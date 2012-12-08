@@ -1,6 +1,9 @@
 /Rayne.xcodeproj/xcuserdata/
 /Rayne.xcodeproj/project.xcworkspace/xcuserdata/
+/Debug/
+/Release/
 .DS_Store
+*.opensdf
 *.a
 *.so
 *.dylib
