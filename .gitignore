@@ -1,0 +1,7 @@
+/Rayne.xcodeproj/xcuserdata/
+/Rayne.xcodeproj/project.xcworkspace/xcuserdata/
+.DS_Store
+*.a
+*.so
+*.dylib
+*.dll
