@@ -6,9 +6,18 @@
 	objectVersion = 46;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		E98D1E641673B22400889F3B /* RNVector.h in Headers */ = {isa = PBXBuildFile; fileRef = E98D1E621673B22400889F3B /* RNVector.h */; };
+		E98D1E681673BA6700889F3B /* RNWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E98D1E661673BA6700889F3B /* RNWorld.cpp */; };
+		E98D1E691673BA6700889F3B /* RNWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = E98D1E671673BA6700889F3B /* RNWorld.h */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		E98D1E581673A6E200889F3B /* libRayne.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libRayne.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		E98D1E601673AFC100889F3B /* RNBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNBase.h; sourceTree = "<group>"; };
+		E98D1E601673AFC100889F3B /* RNBase.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNBase.h; sourceTree = "<group>"; usesTabs = 1; };
+		E98D1E621673B22400889F3B /* RNVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNVector.h; sourceTree = "<group>"; usesTabs = 1; };
+		E98D1E661673BA6700889F3B /* RNWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWorld.cpp; sourceTree = "<group>"; };
+		E98D1E671673BA6700889F3B /* RNWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWorld.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -29,6 +38,7 @@
 				E98D1E591673A6E200889F3B /* Products */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 1;
 		};
 		E98D1E591673A6E200889F3B /* Products */ = {
 			isa = PBXGroup;
@@ -42,8 +52,27 @@
 			isa = PBXGroup;
 			children = (
 				E98D1E601673AFC100889F3B /* RNBase.h */,
+				E98D1E651673B41900889F3B /* Math */,
+				E98D1E6A1673BA6D00889F3B /* Scene */,
 			);
 			path = "Engine Source";
+			sourceTree = "<group>";
+		};
+		E98D1E651673B41900889F3B /* Math */ = {
+			isa = PBXGroup;
+			children = (
+				E98D1E621673B22400889F3B /* RNVector.h */,
+			);
+			name = Math;
+			sourceTree = "<group>";
+		};
+		E98D1E6A1673BA6D00889F3B /* Scene */ = {
+			isa = PBXGroup;
+			children = (
+				E98D1E661673BA6700889F3B /* RNWorld.cpp */,
+				E98D1E671673BA6700889F3B /* RNWorld.h */,
+			);
+			name = Scene;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -53,6 +82,8 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E98D1E641673B22400889F3B /* RNVector.h in Headers */,
+				E98D1E691673BA6700889F3B /* RNWorld.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,6 +138,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E98D1E681673BA6700889F3B /* RNWorld.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

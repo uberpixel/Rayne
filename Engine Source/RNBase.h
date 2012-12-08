@@ -14,4 +14,8 @@
 
 #define kRNEpsilonFloat 0.0001f
 
+#define RN_INLINE inline
+#define RN_EXTERN extern
+#define RN_INLINE_EXTERN extern inline
+
 #endif /* __RAYNE_BASE_H__ */
