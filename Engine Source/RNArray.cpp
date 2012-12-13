@@ -10,22 +10,22 @@
 
 namespace RN
 {
-    Array::Array()
-    {
-        _count    = 0;
-        _capacity = 10;
-        _objects  = (Object **)malloc(_capacity * sizeof(Object *));
+	Array::Array()
+	{
+		_count    = 0;
+		_capacity = 10;
+		_objects  = (Object **)malloc(_capacity * sizeof(Object *));
 		
 		RN::Assert(_objects);
-    }
+	}
 	
 	Array::Array(size_t capacity)
 	{
 		RN::Assert(capacity > 0);
 		
 		_count    = 0;
-        _capacity = capacity;
-        _objects  = (Object **)malloc(_capacity * sizeof(Object *));
+		_capacity = capacity;
+		_objects  = (Object **)malloc(_capacity * sizeof(Object *));
 		
 		RN::Assert(_objects);
 	}

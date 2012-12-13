@@ -15,20 +15,20 @@
 
 namespace RN
 {
-    class Context : public Object
-    {
-    public:
-        virtual void MakeActiveContext();
-        virtual void DeactiveContext();
-        
-        virtual void Flush() = 0;
-        
-        static Context *ActiveContext();
-        
-    private:
+	class Context : public Object
+	{
+	public:
+		virtual void MakeActiveContext();
+		virtual void DeactiveContext();
+		
+		virtual void Flush() = 0;
+		
+		static Context *ActiveContext();
+		
+	private:
 		bool _active;
 		Thread *_thread;
-    };
+	};
 }
 
 #endif /* __RAYNE_CONTEXT_H__ */

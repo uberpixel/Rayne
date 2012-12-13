@@ -12,15 +12,15 @@ namespace RN
 {
 	void Assert(bool condition, const char *message)
 	{
-        if(!condition)
-        {
-            #if RN_PLATFORM_POSIX
-                raise(SIGTRAP);
-            #endif
-            
-            #if RN_PLATFORM_WINDOWS
-                __debugbreak();
-            #endif
-        }
+		if(!condition)
+		{
+			#if RN_PLATFORM_POSIX
+				raise(SIGTRAP);
+			#endif
+			
+			#if RN_PLATFORM_WINDOWS
+				__debugbreak();
+			#endif
+		}
 	}
 }

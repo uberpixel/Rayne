@@ -13,16 +13,16 @@
 
 namespace RN
 {
-    class Vector2
-    {
-    public:
-        Vector2();
-        Vector2(const Vector2& other);
-        Vector2(const float n);
-        Vector2(const float x, const float y);
-        
-        bool operator== (const Vector2 &other) const;
-        bool operator!= (const Vector2 &other) const;
+	class Vector2
+	{
+	public:
+		Vector2();
+		Vector2(const Vector2& other);
+		Vector2(const float n);
+		Vector2(const float x, const float y);
+		
+		bool operator== (const Vector2 &other) const;
+		bool operator!= (const Vector2 &other) const;
 		
 		Vector2 operator- () const;
 		
@@ -39,13 +39,13 @@ namespace RN
 		Vector2& operator/= (const Vector2& other);
 		
 		float Length() const;
-        
+		
 		struct
 		{
 			float x;
 			float y;
 		};
-    };
+	};
 	
 	RN_INLINE Vector2::Vector2()
 	{
@@ -68,28 +68,28 @@ namespace RN
 		x = _x;
 		y = _y;
 	}
-    
-    RN_INLINE bool Vector2::operator== (const Vector2 &other) const
-    {
-        if(fabs(x - other.x) > kRNEpsilonFloat)
-            return false;
-        
-        if(fabs(y - other.y) > kRNEpsilonFloat)
-            return false;
-        
-        return true;
-    }
-    
-    RN_INLINE bool Vector2::operator!= (const Vector2 &other) const
-    {
-        if(fabs(x - other.x) <= kRNEpsilonFloat)
-            return false;
-        
-        if(fabs(y - other.y) <= kRNEpsilonFloat)
-            return false;
-        
-        return true;
-    }
+	
+	RN_INLINE bool Vector2::operator== (const Vector2 &other) const
+	{
+		if(fabs(x - other.x) > kRNEpsilonFloat)
+			return false;
+		
+		if(fabs(y - other.y) > kRNEpsilonFloat)
+			return false;
+		
+		return true;
+	}
+	
+	RN_INLINE bool Vector2::operator!= (const Vector2 &other) const
+	{
+		if(fabs(x - other.x) <= kRNEpsilonFloat)
+			return false;
+		
+		if(fabs(y - other.y) <= kRNEpsilonFloat)
+			return false;
+		
+		return true;
+	}
 	
 	RN_INLINE Vector2 Vector2::operator- () const
 	{

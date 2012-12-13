@@ -19,6 +19,8 @@
 		E995D4B1167526D2002014FE /* RNContext.h in Headers */ = {isa = PBXBuildFile; fileRef = E995D4AF167526D2002014FE /* RNContext.h */; };
 		E995D4B516752BA2002014FE /* RNThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E995D4B316752BA2002014FE /* RNThread.cpp */; };
 		E995D4B616752BA2002014FE /* RNThread.h in Headers */ = {isa = PBXBuildFile; fileRef = E995D4B416752BA2002014FE /* RNThread.h */; };
+		E9B1125616796B2D001A0DA5 /* RNKernel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9B1125416796B2D001A0DA5 /* RNKernel.cpp */; };
+		E9B1125716796B2D001A0DA5 /* RNKernel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9B1125516796B2D001A0DA5 /* RNKernel.h */; };
 		E9DA82B61675427800AED8AB /* RNArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9DA82B41675427800AED8AB /* RNArray.cpp */; };
 		E9DA82B71675427800AED8AB /* RNArray.h in Headers */ = {isa = PBXBuildFile; fileRef = E9DA82B51675427800AED8AB /* RNArray.h */; };
 /* End PBXBuildFile section */
@@ -40,6 +42,8 @@
 		E995D4AF167526D2002014FE /* RNContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNContext.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E995D4B316752BA2002014FE /* RNThread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNThread.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E995D4B416752BA2002014FE /* RNThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNThread.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		E9B1125416796B2D001A0DA5 /* RNKernel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNKernel.cpp; sourceTree = "<group>"; };
+		E9B1125516796B2D001A0DA5 /* RNKernel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNKernel.h; sourceTree = "<group>"; };
 		E9DA82B41675427800AED8AB /* RNArray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNArray.cpp; sourceTree = "<group>"; };
 		E9DA82B51675427800AED8AB /* RNArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNArray.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 /* End PBXFileReference section */
@@ -131,6 +135,8 @@
 				E94F002B1679409F00998A24 /* RNMutex.h */,
 				E995D4B316752BA2002014FE /* RNThread.cpp */,
 				E995D4B416752BA2002014FE /* RNThread.h */,
+				E9B1125416796B2D001A0DA5 /* RNKernel.cpp */,
+				E9B1125516796B2D001A0DA5 /* RNKernel.h */,
 			);
 			name = System;
 			sourceTree = "<group>";
@@ -158,6 +164,7 @@
 				E995D4B616752BA2002014FE /* RNThread.h in Headers */,
 				E9DA82B71675427800AED8AB /* RNArray.h in Headers */,
 				E94F002D1679409F00998A24 /* RNMutex.h in Headers */,
+				E9B1125716796B2D001A0DA5 /* RNKernel.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -219,6 +226,7 @@
 				E9DA82B61675427800AED8AB /* RNArray.cpp in Sources */,
 				E9585DE216793ACC00F63350 /* RNBase.cpp in Sources */,
 				E94F002C1679409F00998A24 /* RNMutex.cpp in Sources */,
+				E9B1125616796B2D001A0DA5 /* RNKernel.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

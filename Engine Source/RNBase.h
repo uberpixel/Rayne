@@ -48,6 +48,16 @@
 namespace RN
 {
 	RN_EXTERN void Assert(bool condition, const char *message = 0);
+	
+	template <class T>
+	class Singleton
+	{
+	public:
+		static T *SharedInstance()
+		{
+			return 0;
+		}
+	};
 }
 
 #endif /* __RAYNE_BASE_H__ */

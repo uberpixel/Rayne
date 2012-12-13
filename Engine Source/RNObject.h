@@ -21,9 +21,9 @@ namespace RN
 		
 		void Retain();
 		void Release();
-        
-        virtual bool IsEqual(Object *other) const;
-        virtual machine_hash Hash() const;
+		
+		virtual bool IsEqual(Object *other) const;
+		virtual machine_hash Hash() const;
 		
 	private:
 		machine_int _refCount;

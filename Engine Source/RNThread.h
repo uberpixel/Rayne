@@ -14,36 +14,36 @@
 
 namespace RN
 {
-    class Mutex;
-    class Thread : public Object
-    {
-    public:
-        typedef void (*ThreadEntry)(Thread *thread);
-        
-        Thread(ThreadEntry entry);
-        virtual ~Thread();
-        
-        bool OnThread() const;
-        void Detach();
-        
-        static void Join(Thread *other);
-        static Thread *CurrentThread();
-        
-    private:
-        static void *Entry(void *object);
-        
-        bool _detached;
+	class Mutex;
+	class Thread : public Object
+	{
+	public:
+		typedef void (*ThreadEntry)(Thread *thread);
+		
+		Thread(ThreadEntry entry);
+		virtual ~Thread();
+		
+		bool OnThread() const;
+		void Detach();
+		
+		static void Join(Thread *other);
+		static Thread *CurrentThread();
+		
+	private:
+		static void *Entry(void *object);
+		
+		bool _detached;
 		ThreadEntry _entry;
-        Mutex *_mutex;
-        
+		Mutex *_mutex;
+		
 #if RN_PLATFORM_POSIX
-        pthread_t _thread;
+		pthread_t _thread;
 #endif
 #if RN_PLATFORM_WINDOWS
 		HANDLE _thread;
-        DWORD _id;
+		DWORD _id;
 #endif
-    };
+	};
 }
 
 #endif /* __RAYNE_THREAD_H__ */
