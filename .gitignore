@@ -8,3 +8,5 @@
 *.so
 *.dylib
 *.dll
+*.v11.suo
+*.sdf
