@@ -10,6 +10,27 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Engine Source\RNArray.cpp" />
+    <ClCompile Include="Engine Source\RNBase.cpp" />
+    <ClCompile Include="Engine Source\RNContext.cpp" />
+    <ClCompile Include="Engine Source\RNMutex.cpp" />
+    <ClCompile Include="Engine Source\RNObject.cpp" />
+    <ClCompile Include="Engine Source\RNThread.cpp" />
+    <ClCompile Include="Engine Source\RNWorld.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Engine Source\RNArray.h" />
+    <ClInclude Include="Engine Source\RNBase.h" />
+    <ClInclude Include="Engine Source\RNContext.h" />
+    <ClInclude Include="Engine Source\RNDefines.h" />
+    <ClInclude Include="Engine Source\RNMutex.h" />
+    <ClInclude Include="Engine Source\RNObject.h" />
+    <ClInclude Include="Engine Source\RNPlatform.h" />
+    <ClInclude Include="Engine Source\RNThread.h" />
+    <ClInclude Include="Engine Source\RNVector.h" />
+    <ClInclude Include="Engine Source\RNWorld.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D54AF823-A9B2-41E4-9FB2-5CCFEBF43D21}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -75,14 +96,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClInclude Include="Engine Source\RNBase.h" />
-    <ClInclude Include="Engine Source\RNVector.h" />
-    <ClInclude Include="Engine Source\RNWorld.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Engine Source\RNWorld.cpp" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

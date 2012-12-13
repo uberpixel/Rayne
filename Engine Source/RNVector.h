@@ -11,34 +11,34 @@
 
 #include "RNBase.h"
 
-namespace rn
+namespace RN
 {
-    class vector2
+    class Vector2
     {
     public:
-        vector2();
-        vector2(const vector2& other);
-        vector2(const float n);
-        vector2(const float x, const float y);
+        Vector2();
+        Vector2(const Vector2& other);
+        Vector2(const float n);
+        Vector2(const float x, const float y);
         
-        bool operator== (const vector2 &other) const;
-        bool operator!= (const vector2 &other) const;
+        bool operator== (const Vector2 &other) const;
+        bool operator!= (const Vector2 &other) const;
 		
-		vector2 operator- () const;
+		Vector2 operator- () const;
 		
-		vector2 operator+ (const vector2& other) const;
-		vector2 operator- (const vector2& other) const;
-		vector2 operator* (const vector2& other) const;
-		vector2 operator/ (const vector2& other) const;
-		vector2 operator* (const float n) const;
-		vector2 operator/ (const float n) const;
+		Vector2 operator+ (const Vector2& other) const;
+		Vector2 operator- (const Vector2& other) const;
+		Vector2 operator* (const Vector2& other) const;
+		Vector2 operator/ (const Vector2& other) const;
+		Vector2 operator* (const float n) const;
+		Vector2 operator/ (const float n) const;
 		
-		vector2& operator+= (const vector2& other);
-		vector2& operator-= (const vector2& other);
-		vector2& operator*= (const vector2& other);
-		vector2& operator/= (const vector2& other);
+		Vector2& operator+= (const Vector2& other);
+		Vector2& operator-= (const Vector2& other);
+		Vector2& operator*= (const Vector2& other);
+		Vector2& operator/= (const Vector2& other);
 		
-		float length() const;
+		float Length() const;
         
 		struct
 		{
@@ -47,29 +47,29 @@ namespace rn
 		};
     };
 	
-	RN_INLINE vector2::vector2()
+	RN_INLINE Vector2::Vector2()
 	{
 		x = y = 0.0f;
 	}
 	
-	RN_INLINE vector2::vector2(const vector2& other)
+	RN_INLINE Vector2::Vector2(const Vector2& other)
 	{
 		x = other.x;
 		y = other.y;
 	}
 	
-	RN_INLINE vector2::vector2(const float n)
+	RN_INLINE Vector2::Vector2(const float n)
 	{
 		x = y = n;
 	}
 	
-	RN_INLINE vector2::vector2(const float _x, const float _y)
+	RN_INLINE Vector2::Vector2(const float _x, const float _y)
 	{
 		x = _x;
 		y = _y;
 	}
     
-    RN_INLINE bool vector2::operator== (const vector2 &other) const
+    RN_INLINE bool Vector2::operator== (const Vector2 &other) const
     {
         if(fabs(x - other.x) > kRNEpsilonFloat)
             return false;
@@ -80,7 +80,7 @@ namespace rn
         return true;
     }
     
-    RN_INLINE bool vector2::operator!= (const vector2 &other) const
+    RN_INLINE bool Vector2::operator!= (const Vector2 &other) const
     {
         if(fabs(x - other.x) <= kRNEpsilonFloat)
             return false;
@@ -91,58 +91,58 @@ namespace rn
         return true;
     }
 	
-	RN_INLINE vector2 vector2::operator- () const
+	RN_INLINE Vector2 Vector2::operator- () const
 	{
-		return vector2(-x, -y);
+		return Vector2(-x, -y);
 	}
 	
-	RN_INLINE vector2 vector2::operator+ (const vector2& other) const
+	RN_INLINE Vector2 Vector2::operator+ (const Vector2& other) const
 	{
-		return vector2(x + other.x, y + other.y);
+		return Vector2(x + other.x, y + other.y);
 	}
-	RN_INLINE vector2 vector2::operator- (const vector2& other) const
+	RN_INLINE Vector2 Vector2::operator- (const Vector2& other) const
 	{
-		return vector2(x - other.x, y - other.y);
+		return Vector2(x - other.x, y - other.y);
 	}
-	RN_INLINE vector2 vector2::operator* (const vector2& other) const
+	RN_INLINE Vector2 Vector2::operator* (const Vector2& other) const
 	{
-		return vector2(x * other.x, y * other.y);
+		return Vector2(x * other.x, y * other.y);
 	}
-	RN_INLINE vector2 vector2::operator/ (const vector2& other) const
+	RN_INLINE Vector2 Vector2::operator/ (const Vector2& other) const
 	{
-		return vector2(x / other.x, y / other.y);
+		return Vector2(x / other.x, y / other.y);
 	}
-	RN_INLINE vector2 vector2::operator* (const float n) const
+	RN_INLINE Vector2 Vector2::operator* (const float n) const
 	{
-		return vector2(x * n, y * n);
+		return Vector2(x * n, y * n);
 	}
-	RN_INLINE vector2 vector2::operator/ (const float n) const
+	RN_INLINE Vector2 Vector2::operator/ (const float n) const
 	{
-		return vector2(x / n, y / n);
+		return Vector2(x / n, y / n);
 	}
 	
-	RN_INLINE vector2& vector2::operator+= (const vector2& other)
+	RN_INLINE Vector2& Vector2::operator+= (const Vector2& other)
 	{
 		x += other.x;
 		y += other.y;
 		
 		return *this;
 	}
-	RN_INLINE vector2& vector2::operator-= (const vector2& other)
+	RN_INLINE Vector2& Vector2::operator-= (const Vector2& other)
 	{
 		x -= other.x;
 		y -= other.y;
 		
 		return *this;
 	}
-	RN_INLINE vector2& vector2::operator*= (const vector2& other)
+	RN_INLINE Vector2& Vector2::operator*= (const Vector2& other)
 	{
 		x *= other.x;
 		y *= other.y;
 		
 		return *this;
 	}
-	RN_INLINE vector2& vector2::operator/= (const vector2& other)
+	RN_INLINE Vector2& Vector2::operator/= (const Vector2& other)
 	{
 		x /= other.x;
 		y /= other.y;
@@ -150,7 +150,7 @@ namespace rn
 		return *this;
 	}
 	
-	RN_INLINE float vector2::length() const
+	RN_INLINE float Vector2::Length() const
 	{
 		return fabsf(x * x + y * y);
 	}

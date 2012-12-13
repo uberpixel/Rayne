@@ -10,6 +10,17 @@
 #define __RAYNE_WORLD_H__
 
 #include "RNBase.h"
+#include "RNObject.h"
 #include "RNVector.h"
+
+namespace RN
+{
+	class World : public Object
+	{
+	public:
+		World();
+		virtual ~World();
+	};
+}
 
 #endif /* __RAYNE_WORLD_H__ */

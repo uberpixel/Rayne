@@ -9,13 +9,45 @@
 #ifndef __RAYNE_BASE_H__
 #define __RAYNE_BASE_H__
 
+// ---------------------------
+// Platform independent includes
+// ---------------------------
+#include <assert.h>
 #include <math.h>
 #include <string.h>
+#include <stdint.h>
+#include <stdlib.h>
 
-#define kRNEpsilonFloat 0.0001f
+#include "RNPlatform.h"
+#include "RNDefines.h"
+
+// ---------------------------
+// Platform dependent includes
+// ---------------------------
+#if RN_PLATFORM_POSIX
+	#include <pthread.h>
+	#include <signal.h>
+	#include <errno.h>
+#endif
+
+#if RN_PLATFORM_WINDOWS
+	#define WINDOWS_LEAN_AND_MEAN // fuck MFC!
+	#include <windows.h>
+#endif
+
+// ---------------------------
+// Helper macros
+// ---------------------------
+#define kRNEpsilonFloat 0.001f
 
 #define RN_INLINE inline
 #define RN_EXTERN extern
-#define RN_INLINE_EXTERN extern inline
+
+#define RN_NOT_FOUND ((machine_uint)-1)
+
+namespace RN
+{
+	RN_EXTERN void Assert(bool condition, const char *message = 0);
+}
 
 #endif /* __RAYNE_BASE_H__ */

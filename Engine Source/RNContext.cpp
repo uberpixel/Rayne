@@ -1,20 +1,21 @@
 //
-//  RNWorld.cpp
+//  RNContext.cpp
 //  Rayne
 //
 //  Copyright 2012 by Felix Pohl and Sidney Just. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNWorld.h"
+#include "RNContext.h"
 
 namespace RN
 {
-	World::World()
+	void Context::MakeActiveContext()
 	{
 	}
 	
-	World::~World()
+	void Context::DeactiveContext()
 	{
+		
 	}
 }
