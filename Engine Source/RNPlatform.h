@@ -23,8 +23,11 @@
 	#endif
 #endif
 
-#if defined(__WIN32__) || defined(_WIN64)
+#if defined(_MSC_VER)
 	#define RN_PLATFORM_WINDOWS 1
+
+	#pragma section(".CRT$XCU",read)
+	#pragma warning(disable: 4800)
 
 	#if defined(_WIN64) || defined(__amd64__)
 			#define RN_PLATFORM_WIN64 1

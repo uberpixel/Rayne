@@ -97,7 +97,7 @@ namespace RN
 			}
 #endif
 #if RN_PLATFORM_WINDOWS
-			_thread = CreateThread(NULL, 0, &thread::entry, this, 0, _id);
+			_thread = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)&Thread::Entry, this, 0, &_id);
 			if(_thread == NULL)
 			{
 				Release();
