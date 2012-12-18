@@ -2,8 +2,8 @@
 //  RNContextOGL.h
 //  Rayne
 //
-//  Created by Sidney Just on 13.12.12.
-//  Copyright (c) 2012 Sidney Just. All rights reserved.
+//  Copyright 2012 by Felix Pohl and Sidney Just. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #ifndef __RAYNE_CONTEXTOGL_H__
