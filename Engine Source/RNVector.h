@@ -86,6 +86,7 @@ namespace RN
 	RN_INLINE bool Vector2::operator!= (const Vector2 &other) const
 	{
 		if(fabs(x - other.x) <= kRNEpsilonFloat && fabs(y - other.y) <= kRNEpsilonFloat)
+			return false;
 		
 		return true;
 	}
