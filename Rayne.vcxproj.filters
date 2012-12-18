@@ -68,5 +68,8 @@
     <ClInclude Include="Engine Source\RNWorld.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNMatrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -24,6 +24,7 @@
     <ClInclude Include="Engine Source\RNBase.h" />
     <ClInclude Include="Engine Source\RNContext.h" />
     <ClInclude Include="Engine Source\RNDefines.h" />
+    <ClInclude Include="Engine Source\RNMatrix.h" />
     <ClInclude Include="Engine Source\RNMutex.h" />
     <ClInclude Include="Engine Source\RNObject.h" />
     <ClInclude Include="Engine Source\RNPlatform.h" />
