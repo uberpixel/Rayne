@@ -9,6 +9,7 @@
 #include "RNThread.h"
 #include "RNMutex.h"
 #include "RNArray.h"
+#include "RNContext.h"
 
 namespace RN
 {
@@ -20,13 +21,17 @@ namespace RN
 		_detached = false;
 		_entry = entry;
 		_mutex = new Mutex();
+		_context = 0;
 		
 		RN::Assert(_entry != 0 && _mutex != 0);
 	}
 	
 	Thread::~Thread()
 	{
-		delete _mutex;
+		_mutex->Release();
+		
+		if(_context)
+			_context->DeactiveContext();
 	}
 	
 	Thread *Thread::CurrentThread()

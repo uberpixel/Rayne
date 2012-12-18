@@ -20,6 +20,7 @@
 
 #include "RNPlatform.h"
 #include "RNDefines.h"
+#include "RNError.h"
 
 // ---------------------------
 // Platform dependent includes
@@ -28,6 +29,13 @@
 	#include <pthread.h>
 	#include <signal.h>
 	#include <errno.h>
+#endif
+
+#if RN_PLATFORM_MAC_OS
+	#import <Cocoa/Cocoa.h>
+	#include <OpenGL/OpenGL.h>
+	#include <OpenGL/gl.h>
+	#include <OpenGL/glext.h>
 #endif
 
 #if RN_PLATFORM_WINDOWS
@@ -48,6 +56,40 @@
 namespace RN
 {
 	RN_EXTERN void Assert(bool condition, const char *message = 0);
+	
+#if RN_PLATFORM_MAC_OS
+	#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_8
+		static inline void OSXVersion(int32 *major, int32 *minor, int32 *patch)
+		{
+			NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
+			Assert(dict);
+			
+			NSArray *versionComponents = [dict objectForKey:@"ProductVersion"];
+			Assert(dict && [dict count] == 3);
+			
+			if(major)
+				*major = [[versionComponents objectAtIndex:0] intValue];
+			
+			if(minor)
+				*minor = [[versionComponents objectAtIndex:1] intValue];
+			
+			if(patch)
+				*patch = [[versionComponents objectAtIndex:2] intValue];
+		}
+	#else
+		static inline void OSXVersion(int32 *major, int32 *minor, int32 *patch)
+		{
+			if(major)
+				Gestalt(gestaltSystemVersionMajor, major);
+			
+			if(minor)
+				Gestalt(gestaltSystemVersionMinor, minor);
+			
+			if(patch)
+				Gestalt(gestaltSystemVersionBugFix, patch);
+		}
+	#endif
+#endif
 	
 	template <class T>
 	class Singleton

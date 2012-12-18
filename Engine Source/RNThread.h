@@ -15,9 +15,11 @@
 namespace RN
 {
 	class Mutex;
+    class Context;
 	class Thread : public Object
 	{
 	public:
+		friend class Context;
 		typedef void (*ThreadEntry)(Thread *thread);
 		
 		Thread(ThreadEntry entry);
@@ -34,7 +36,9 @@ namespace RN
 		
 		bool _detached;
 		ThreadEntry _entry;
-		Mutex *_mutex;
+        
+		Mutex   *_mutex;
+		Context *_context;
 		
 #if RN_PLATFORM_POSIX
 		pthread_t _thread;
