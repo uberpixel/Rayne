@@ -32,29 +32,47 @@ namespace RN
 	}
 	
 	
-	bool Shader::SetVertexShader(const std::string& path, Error *error)
+	void Shader::SetVertexShader(const std::string& path)
 	{
-		return SetShaderForType(path, GL_VERTEX_SHADER, error);
+		SetShaderForType(path, GL_VERTEX_SHADER);
 	}
 	
-	bool Shader::SetFragmentShader(const std::string& path, Error *error)
+	void Shader::SetVertexShader(File *file)
 	{
-		return SetShaderForType(path, GL_FRAGMENT_SHADER, error);
+		SetShaderForType(file, GL_VERTEX_SHADER);
 	}
 	
-	bool Shader::SetGeometryShader(const std::string& path, Error *error)
+	void Shader::SetFragmentShader(const std::string& path)
+	{
+		SetShaderForType(path, GL_FRAGMENT_SHADER);
+	}
+	
+	void Shader::SetFragmentShader(File *file)
+	{
+		SetShaderForType(file, GL_FRAGMENT_SHADER);
+	}
+	
+	void Shader::SetGeometryShader(const std::string& path)
 	{
 #ifdef GL_GEOMETRY_SHADER
-		return SetShaderForType(path, GL_GEOMETRY_SHADER, error);
+		SetShaderForType(path, GL_GEOMETRY_SHADER);
 #else
-		if(error)
-			*error = Error(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported, "");
-		
-		return false;
+		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
 #endif
 	}
 	
-	bool Shader::SetShaderForType(const std::string& path, GLenum type, Error *error)
+	void Shader::SetGeometryShader(File *file)
+	{
+#ifdef GL_GEOMETRY_SHADER
+		SetShaderForType(file, GL_GEOMETRY_SHADER);
+#else
+		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
+#endif
+	}
+	
+	
+	
+	void Shader::SetShaderForType(const std::vector<uint8>& data, GLenum type)
 	{
 		switch(type)
 		{
@@ -85,47 +103,56 @@ namespace RN
 #endif
 				
 			default:
-				if(error)
-					*error = Error(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported, "");
-				
-				return false;
+				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
+				break;
 		}
 		
 		
-		const GLchar *source = 0;
+		const GLchar *source = (const GLchar *)&data[0];
 		GLuint shader = glCreateShader(type);
-				
-		if(shader == 0)
-		{
-			if(error)
-				*error = Error(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported, "");
-			
-			return false;
-		}
+		
+		if(!shader == 0)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
 		
 		glShaderSource(shader, 1, &source, NULL);
 		glCompileShader(shader);
 		
-		
+		// Get the compilation status
 		GLint status, length;
 		
 		glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-		if(status == GL_FALSE && error)
+		if(status == GL_FALSE)
 		{
 			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-		
+			
 			GLchar *log = new GLchar[length];
 			glGetShaderInfoLog(shader, length, &length, log);
 			
-			*error = Error(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, std::string((char *)log));
+			std::string tlog = std::string((char *)log);
 			delete [] log;
+			
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, tlog);
 		}
-		
-		return (status == GL_TRUE);
 	}
 	
-	bool Shader::Link(Error *error)
+	void Shader::SetShaderForType(File *file, GLenum type)
 	{
+		std::vector<uint8> bytes = file->Bytes();
+		SetShaderForType(bytes, type);
+	}
+	
+	void Shader::SetShaderForType(const std::string& path, GLenum type)
+	{
+		File *file = new File(path);
+		SetShaderForType(file, type);
+		file->Release();
+	}
+	
+	void Shader::Link()
+	{
+		if(_program)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderAlreadyLinked);
+
 		_program = glCreateProgram();
 		
 		if(_vertexShader)
@@ -143,18 +170,21 @@ namespace RN
 		GLint status, length;
 		
 		glGetProgramiv(_program, GL_LINK_STATUS, &status);
-		if(status == GL_FALSE && error)
+		if(status == GL_FALSE)
 		{
 			glGetProgramiv(_program, GL_INFO_LOG_LENGTH, &length);
 			
 			GLchar *log = new GLchar[length];
 			glGetProgramInfoLog(_program, length, &length, log);
 			
-			*error = Error(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, std::string((char *)log));
+			std::string tlog = std::string((char *)log);
 			delete [] log;
+
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, tlog);
 		}
-		else if(status == GL_TRUE)
+		else
 		{
+			// Detach and remove the shader
 			if(_vertexShader)
 			{
 				glDetachShader(_program, _vertexShader);
@@ -197,7 +227,5 @@ namespace RN
 			_texcoord0 = glGetAttribLocation(_program, "texcoord0");
 			_texcoord1 = glGetAttribLocation(_program, "texcoord1");
 		}
-		
-		return (status == GL_TRUE);
 	}
 }

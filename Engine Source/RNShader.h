@@ -12,6 +12,7 @@
 #include <string>
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNFile.h"
 
 namespace RN
 {
@@ -21,14 +22,21 @@ namespace RN
 		Shader();
 		virtual ~Shader();
 		
-		bool SetVertexShader(const std::string& path, Error *error);
-		bool SetFragmentShader(const std::string& path, Error *error);
-		bool SetGeometryShader(const std::string& path, Error *error);
+		void SetVertexShader(const std::string& path);
+		void SetVertexShader(File *file);
 		
-		bool Link(Error *error);
+		void SetFragmentShader(const std::string& path);
+		void SetFragmentShader(File *file);
+		
+		void SetGeometryShader(const std::string& path);
+		void SetGeometryShader(File *file);
+		
+		void Link();
 		
 	private:
-		bool SetShaderForType(const std::string& path, GLenum type, Error *error);
+		void SetShaderForType(const std::string& path, GLenum type);
+		void SetShaderForType(File *file, GLenum type);
+		void SetShaderForType(const std::vector<uint8>& data, GLenum type);
 		
 		GLuint _vertexShader;
 		GLuint _fragmentShader;

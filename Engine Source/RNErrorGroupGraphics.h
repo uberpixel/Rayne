@@ -20,7 +20,8 @@ namespace RN
 		kGraphicsContextFailed = 0x2,
 		kGraphicsShaderTypeNotSupported = 0x3,
 		kGraphicsShaderCompilingFailed = 0x4,
-		kGraphicsShaderLinkingFailed = 0x5
+		kGraphicsShaderLinkingFailed = 0x5,
+		kGraphicsShaderAlreadyLinked = 0x6
 	};
 }
 

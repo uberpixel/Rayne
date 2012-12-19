@@ -29,6 +29,9 @@
 	#include <pthread.h>
 	#include <signal.h>
 	#include <errno.h>
+
+	#include <string>
+	#include <vector>
 #endif
 
 #if RN_PLATFORM_MAC_OS

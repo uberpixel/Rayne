@@ -9,6 +9,8 @@
 #ifndef __RAYNE_ERROR_H__
 #define __RAYNE_ERROR_H__
 
+#include <string>
+
 #include "RNPlatform.h"
 #include "RNDefines.h"
 
@@ -46,38 +48,22 @@ namespace RN
 	};
 	
 	
-	class Error
-	{
-	public:
-		Error(ErrorCode error, const std::string& description) { _error = error; _description = description; }
-		Error(uint32 group, uint32 subgroup, uint32 code, const std::string& description) { _error = group | subgroup | code; _description = description; }
-		
-		uint32 Group() const { return RNErrorGetGroup(_error); }
-		uint32 Subgroup() const { return RNErrorGetSubroup(_error); }
-		uint32 Code() const { return RNErrorGetCode(_error); }
-		
-		ErrorCode GetError() const { return _error; }
-		const std::string& Description() const { return _description; }
-		
-	private:
-		ErrorCode _error;
-		std::string _description;
-	};
-	
 	class ErrorException
 	{
 	public:
-		ErrorException(ErrorCode error) { _error = error; }
-		ErrorException(uint32 group, uint32 subgroup, uint32 code) { _error = group | subgroup | code; }
+		ErrorException(ErrorCode error, const std::string& description="") { _error = error; _description = description; }
+		ErrorException(uint32 group, uint32 subgroup, uint32 code, const std::string& description="") { _error = group | subgroup | code; _description = description; }
 		
 		uint32 Group() const { return RNErrorGetGroup(_error); }
 		uint32 Subgroup() const { return RNErrorGetSubroup(_error); }
 		uint32 Code() const { return RNErrorGetCode(_error); }
 		
 		ErrorCode Error() const { return _error; }
+		const std::string& Description() const { return _description; }
 		
 	private:
 		ErrorCode _error;
+		std::string _description;
 	};
 }
 

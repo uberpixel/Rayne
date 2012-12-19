@@ -1,0 +1,42 @@
+//
+//  RNFile.h
+//  Rayne
+//
+//  Copyright 2012 by Felix Pohl and Sidney Just. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
+//
+
+#ifndef __RAYNE_FILE_H__
+#define __RAYNE_FILE_H__
+
+#include "RNBase.h"
+#include "RNObject.h"
+
+namespace RN
+{
+	class File : public Object
+	{
+	public:
+		File(const std::string& path);
+		virtual ~File();
+		
+		static void AddSearchPath(const std::string& path);
+		
+		bool IsOpen() { return (_file != 0); }
+		
+		void Open();
+		void Close();
+		
+		std::vector<uint8> Bytes();
+		std::string String();
+		
+	private:
+		static FILE *FileForPath(const std::string& path);
+		
+		std::string _path;
+		FILE *_file;
+		long _size;
+	};
+}
+
+#endif /* __RAYNE_FILE_H__ */

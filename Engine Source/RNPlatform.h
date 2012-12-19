@@ -40,7 +40,4 @@
 	#endif
 #endif
 
-#include <string>
-
-
 #endif /* __RAYNE_PLATFORM_H__ */
