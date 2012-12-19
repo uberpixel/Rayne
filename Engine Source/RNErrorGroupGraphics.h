@@ -17,7 +17,10 @@ namespace RN
 	enum
 	{
 		kGraphicsNoHardware = 0x1,
-		kGraphicsContextFailed = 0x2
+		kGraphicsContextFailed = 0x2,
+		kGraphicsShaderTypeNotSupported = 0x3,
+		kGraphicsShaderCompilingFailed = 0x4,
+		kGraphicsShaderLinkingFailed = 0x5
 	};
 }
 

@@ -10,6 +10,10 @@
 		E94F002C1679409F00998A24 /* RNMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E94F002A1679409F00998A24 /* RNMutex.cpp */; };
 		E94F002D1679409F00998A24 /* RNMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = E94F002B1679409F00998A24 /* RNMutex.h */; };
 		E9543F601681209900F53C4F /* RNMatrix.h in Headers */ = {isa = PBXBuildFile; fileRef = E9543F5F1681209900F53C4F /* RNMatrix.h */; };
+		E9543F651681380C00F53C4F /* RNRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9543F631681380C00F53C4F /* RNRenderer.cpp */; };
+		E9543F661681380C00F53C4F /* RNRenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = E9543F641681380C00F53C4F /* RNRenderer.h */; };
+		E9543F69168143EB00F53C4F /* RNShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9543F67168143EB00F53C4F /* RNShader.cpp */; };
+		E9543F6A168143EB00F53C4F /* RNShader.h in Headers */ = {isa = PBXBuildFile; fileRef = E9543F68168143EB00F53C4F /* RNShader.h */; };
 		E9585DE216793ACC00F63350 /* RNBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9585DE116793ACC00F63350 /* RNBase.cpp */; };
 		E98D1E641673B22400889F3B /* RNVector.h in Headers */ = {isa = PBXBuildFile; fileRef = E98D1E621673B22400889F3B /* RNVector.h */; };
 		E98D1E681673BA6700889F3B /* RNWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E98D1E661673BA6700889F3B /* RNWorld.cpp */; };
@@ -38,6 +42,10 @@
 		E9543F5F1681209900F53C4F /* RNMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMatrix.h; sourceTree = "<group>"; };
 		E9543F611681213200F53C4F /* RNError.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNError.h; sourceTree = "<group>"; };
 		E9543F6216812A5400F53C4F /* RNErrorGroupGraphics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNErrorGroupGraphics.h; sourceTree = "<group>"; };
+		E9543F631681380C00F53C4F /* RNRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRenderer.cpp; sourceTree = "<group>"; };
+		E9543F641681380C00F53C4F /* RNRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRenderer.h; sourceTree = "<group>"; };
+		E9543F67168143EB00F53C4F /* RNShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNShader.cpp; sourceTree = "<group>"; };
+		E9543F68168143EB00F53C4F /* RNShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNShader.h; sourceTree = "<group>"; };
 		E9585DDF1679344000F63350 /* RNDefines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNDefines.h; sourceTree = "<group>"; };
 		E9585DE01679347400F63350 /* RNPlatform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNPlatform.h; sourceTree = "<group>"; };
 		E9585DE116793ACC00F63350 /* RNBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNBase.cpp; sourceTree = "<group>"; };
@@ -148,6 +156,10 @@
 				E995D4AF167526D2002014FE /* RNContext.h */,
 				E9B1125816797813001A0DA5 /* RNContextOGL.cpp */,
 				E9B1125916797813001A0DA5 /* RNContextOGL.h */,
+				E9543F631681380C00F53C4F /* RNRenderer.cpp */,
+				E9543F641681380C00F53C4F /* RNRenderer.h */,
+				E9543F67168143EB00F53C4F /* RNShader.cpp */,
+				E9543F68168143EB00F53C4F /* RNShader.h */,
 			);
 			name = Rendering;
 			sourceTree = "<group>";
@@ -203,6 +215,8 @@
 				E9B1125B16797813001A0DA5 /* RNContextOGL.h in Headers */,
 				E9F6B5B0167FF76F00EBE826 /* RNList.h in Headers */,
 				E9543F601681209900F53C4F /* RNMatrix.h in Headers */,
+				E9543F661681380C00F53C4F /* RNRenderer.h in Headers */,
+				E9543F6A168143EB00F53C4F /* RNShader.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,6 +281,8 @@
 				E9B1125616796B2D001A0DA5 /* RNKernel.cpp in Sources */,
 				E9B1125A16797813001A0DA5 /* RNContextOGL.cpp in Sources */,
 				E9F6B5AF167FF76F00EBE826 /* RNList.cpp in Sources */,
+				E9543F651681380C00F53C4F /* RNRenderer.cpp in Sources */,
+				E9543F69168143EB00F53C4F /* RNShader.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

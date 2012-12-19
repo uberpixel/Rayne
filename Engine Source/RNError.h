@@ -46,6 +46,23 @@ namespace RN
 	};
 	
 	
+	class Error
+	{
+	public:
+		Error(ErrorCode error, const std::string& description) { _error = error; _description = description; }
+		Error(uint32 group, uint32 subgroup, uint32 code, const std::string& description) { _error = group | subgroup | code; _description = description; }
+		
+		uint32 Group() const { return RNErrorGetGroup(_error); }
+		uint32 Subgroup() const { return RNErrorGetSubroup(_error); }
+		uint32 Code() const { return RNErrorGetCode(_error); }
+		
+		ErrorCode GetError() const { return _error; }
+		const std::string& Description() const { return _description; }
+		
+	private:
+		ErrorCode _error;
+		std::string _description;
+	};
 	
 	class ErrorException
 	{
@@ -53,11 +70,11 @@ namespace RN
 		ErrorException(ErrorCode error) { _error = error; }
 		ErrorException(uint32 group, uint32 subgroup, uint32 code) { _error = group | subgroup | code; }
 		
-		uint32 Group() { return RNErrorGetGroup(_error); }
-		uint32 Subgroup() { return RNErrorGetSubroup(_error); }
-		uint32 Code() { return RNErrorGetCode(_error); }
+		uint32 Group() const { return RNErrorGetGroup(_error); }
+		uint32 Subgroup() const { return RNErrorGetSubroup(_error); }
+		uint32 Code() const { return RNErrorGetCode(_error); }
 		
-		ErrorCode Error() { return _error; }
+		ErrorCode Error() const { return _error; }
 		
 	private:
 		ErrorCode _error;

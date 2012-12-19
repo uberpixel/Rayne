@@ -36,6 +36,11 @@
 	#include <OpenGL/OpenGL.h>
 	#include <OpenGL/gl.h>
 	#include <OpenGL/glext.h>
+
+	#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
+		#include <OpenGL/gl3.h>
+		#include <OpenGL/gl3ext.h>
+	#endif
 #endif
 
 #if RN_PLATFORM_WINDOWS
