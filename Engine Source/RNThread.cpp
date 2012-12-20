@@ -16,6 +16,13 @@ namespace RN
 	static Mutex       *__ThreadMutex = 0;
 	static ObjectArray *__ThreadArray = 0;
 	
+#if RN_PLATFORM_POSIX
+	pthread_t __ThreadMainThread;
+#endif
+#if RN_PLATFORM_WINDOWS
+	DWORD __ThreadMainThread;
+#endif
+	
 	Thread::Thread(ThreadEntry entry)
 	{
 		_detached = false;
@@ -24,6 +31,24 @@ namespace RN
 		_context = 0;
 		
 		RN::Assert(_entry != 0 && _mutex != 0);
+	}
+	
+	Thread::Thread()
+	{
+		_detached = true;
+		_entry = 0;
+		_mutex = new Mutex();
+		_context = 0;
+		
+		RN::Assert(_mutex != 0);
+		
+#if RN_PLATFORM_POSIX
+		_thread = pthread_self();
+#endif
+#if RN_PLATFORM_WINDOWS
+		_thread = GetCurrentThread();
+		_id     = GetCurrentThreadId();
+#endif
 	}
 	
 	Thread::~Thread()
@@ -47,6 +72,29 @@ namespace RN
 				return thread;
 			}
 		}
+		
+#if RN_PLATFORM_POSIX
+		if(pthread_equal(__ThreadMainThread, pthread_self()))
+		{
+			Thread *thread = new Thread();
+			
+			__ThreadArray->AddObject(thread);
+			__ThreadMutex->Unlock();
+			
+			return thread;
+		}
+#endif
+#if RN_PLATFORM_WINDOWS
+		if(__ThreadMainThread == GetCurrentThreadId())
+		{
+			Thread *thread = new Thread();
+			
+			__ThreadArray->AddObject(thread);
+			__ThreadMutex->Unlock();
+			
+			return thread;
+		}
+#endif
 		
 		__ThreadMutex->Unlock();
 		return 0;
@@ -132,6 +180,13 @@ namespace RN
 	{
 		__ThreadMutex = new Mutex();
 		__ThreadArray = new ObjectArray();
+		
+#if RN_PLATFORM_POSIX
+		__ThreadMainThread = pthread_self();
+#endif
+#if RN_PLATFORM_WINDOWS
+		__ThreadMainThread = GetCurrentThreadId();
+#endif
 		
 		RN::Assert(__ThreadMutex != 0 && __ThreadArray != 0);
 	}

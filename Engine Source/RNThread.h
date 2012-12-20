@@ -32,6 +32,8 @@ namespace RN
 		static Thread *CurrentThread();
 		
 	private:
+		Thread();
+		
 		static void *Entry(void *object);
 		
 		bool _detached;
