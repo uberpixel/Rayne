@@ -13,8 +13,8 @@
 
 namespace RN
 {
-	static Mutex *__ThreadMutex = 0;
-	static Array *__ThreadArray = 0;
+	static Mutex       *__ThreadMutex = 0;
+	static ObjectArray *__ThreadArray = 0;
 	
 	Thread::Thread(ThreadEntry entry)
 	{
@@ -131,7 +131,7 @@ namespace RN
 	RN_INITIALIZER(__ThreadInitializer)
 	{
 		__ThreadMutex = new Mutex();
-		__ThreadArray = new Array();
+		__ThreadArray = new ObjectArray();
 		
 		RN::Assert(__ThreadMutex != 0 && __ThreadArray != 0);
 	}
