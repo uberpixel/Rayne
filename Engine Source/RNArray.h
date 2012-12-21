@@ -38,9 +38,24 @@ namespace RN
 			RN::Assert(_data);
 		}
 		
+		Array(const Array<T>& other)
+		{
+			_count    = other._count;
+			_capacity = other._capacity;
+			_data     = (T *)malloc(_capacity * sizeof(T));
+			
+			RN::Assert(_data);
+			memcpy((void *)_data, (const void *)other._data, _count * sizeof(T));
+		}
+		
 		virtual ~Array()
 		{
 			free(_data);
+		}
+		
+		T& operator[] (int index) const
+		{
+			return ObjectAtIndex(index);
 		}
 		
 		virtual void AddObject(T object)
@@ -54,12 +69,6 @@ namespace RN
 			}
 			
 			_data[_count ++] = object;
-		}
-		
-		virtual void RemoveObject(T object)
-		{
-			machine_uint index = IndexOfObject(object);
-			RemoveObjectAtIndex(index);
 		}
 		
 		virtual void RemoveObjectAtIndex(machine_uint index)
@@ -86,23 +95,10 @@ namespace RN
 			}
 		}
 		
-		virtual T ObjectAtIndex(machine_uint index) const
+		virtual T& ObjectAtIndex(machine_uint index) const
 		{
 			RN::Assert(index != RN_NOT_FOUND && index < _count);
 			return _data[index];
-		}
-		
-		virtual machine_uint IndexOfObject(T object) const
-		{
-			for(machine_uint i=0; i<_count; i++)
-			{
-				T tobject = _data[i];
-				
-				if(tobject == object)
-					return true;
-			}
-			
-			return RN_NOT_FOUND;
 		}
 		
 		virtual machine_uint Count() const
@@ -145,6 +141,12 @@ namespace RN
 		{
 			Array::AddObject(object);
 			object->Retain();
+		}
+		
+		virtual void RemoveObject(Object *object)
+		{
+			machine_uint index = IndexOfObject(object);
+			RemoveObjectAtIndex(index);
 		}
 		
 		virtual void RemoveObjectAtIndex(machine_uint index)
