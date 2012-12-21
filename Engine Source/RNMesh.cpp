@@ -22,7 +22,9 @@ namespace RN
 		{
 			size_t size = _descriptor[i].elements * SizeForMeshFeatureType(_descriptor[i].type);
 			
-			_meshSize += size;
+			if(_descriptor[i].feature != kMeshFeatureIndices)
+				_meshSize += size;
+			
 			_descriptor[i]._pointer = (uint8 *)malloc(size);
 			_descriptor[i]._offset = 0;
 		}
