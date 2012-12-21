@@ -16,7 +16,7 @@ namespace RN
 		_meshSize = 0;
 		_meshData = 0;
 		
-		_vbo = _ivbo = -1;
+		_vbo = _ibo = -1;
 		
 		for(int i=0; i<_descriptor.Count(); i++)
 		{
@@ -35,8 +35,8 @@ namespace RN
 		if(_vbo != -1)
 			glDeleteBuffers(1, &_vbo);
 		
-		if(_ivbo != -1)
-			glDeleteBuffers(1, &_ivbo);
+		if(_ibo != -1)
+			glDeleteBuffers(1, &_ibo);
 		
 		for(int i=0; i<_descriptor.Count(); i++)
 		{
@@ -123,15 +123,15 @@ namespace RN
 		if(_vbo == -1)
 			glGenBuffers(1, &_vbo);
 			
-		if(_ivbo == -1)
-			glGenBuffers(1, &_ivbo);
+		if(_ibo == -1)
+			glGenBuffers(1, &_ibo);
 		
 		
 		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 		glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ivbo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, GL_STATIC_DRAW);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}

@@ -73,7 +73,7 @@ namespace RN
 		bool _vboToggled;
 		
 		GLuint _vbo;
-		GLuint _ivbo;
+		GLuint _ibo;
 		
 		size_t _meshSize;
 		size_t _indicesSize;
