@@ -30,20 +30,30 @@ namespace RN
 		};
 		typedef int32 ContextFlags;
 		
+		Context(ContextFlags flags, Context *shared=0);
+        virtual ~Context();
+		
 		void MakeActiveContext();
 		void DeactiveContext();
 		
-		virtual void Flush() = 0;
+		virtual void Flush();
 		
 		static Context *ActiveContext();
 		
     protected:
-        virtual void Activate() = 0;
-        virtual void Deactivate() = 0;
+        virtual void Activate();
+        virtual void Deactivate();
         
 	private:
 		bool _active;
 		Thread *_thread;
+		
+		int32 _glsl;
+		
+#if RN_PLATFORM_MAC_OS
+        Context *_shared;
+        NSOpenGLContext *_oglContext;
+#endif
 	};
 }
 

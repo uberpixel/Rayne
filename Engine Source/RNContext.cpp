@@ -11,6 +11,71 @@
 
 namespace RN
 {
+	Context::Context(ContextFlags flags, Context *shared)
+	{
+		_shared = shared;
+		
+#if RN_PLATFORM_MAC_OS
+		int32 major;
+		int32 minor;
+		RN::OSXVersion(&major, &minor, 0);
+		
+		int32 depthBufferSize   = 0;
+		int32 stencilBufferSize = 0;
+		
+		NSOpenGLPixelFormatAttribute oglProfile = (major == 10 && minor < 7) ? (NSOpenGLPixelFormatAttribute)0 : NSOpenGLPFAOpenGLProfile;
+		
+		RN::OSXVersion(&major, &minor, 0);
+		if(major == 10 && minor < 7)
+		{
+			oglProfile = (NSOpenGLPixelFormatAttribute)0;
+			_glsl = 120;
+		}
+		else
+		{
+			_glsl = 150;
+		}
+		
+		depthBufferSize = (flags & DepthBufferSize8) ? 8 : (flags & DepthBufferSize16) ? 16 : (flags & DepthBufferSize24) ? 24 : 0;
+		stencilBufferSize = (flags & StencilBufferSize8) ? 8 : (flags & StencilBufferSize16) ? 16 : (flags & StencilBufferSize24) ? 24 : 0;
+		
+		
+		static NSOpenGLPixelFormatAttribute formatAttributes[] =
+		{
+			NSOpenGLPFAMinimumPolicy,
+			NSOpenGLPFAAccelerated,
+			NSOpenGLPFADoubleBuffer,
+			NSOpenGLPFAColorSize, 24,
+			NSOpenGLPFAAlphaSize, 8,
+			NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute)depthBufferSize,
+			NSOpenGLPFAStencilSize, (NSOpenGLPixelFormatAttribute)stencilBufferSize,
+			oglProfile, NSOpenGLProfileVersion3_2Core,
+			0
+		};
+		
+		NSOpenGLPixelFormat *pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes] autorelease];
+		if(!pixelFormat)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
+		
+		_oglContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:_shared ? _shared->_oglContext : nil];
+		if(!_oglContext)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+#else
+		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+#endif
+	}
+	
+	Context::~Context()
+	{
+		if(_shared)
+			_shared->Release();
+		
+#if RN_PLATFORM_MAC_OS
+		[_oglContext release];
+#endif
+	}
+	
+	
 	void Context::MakeActiveContext()
 	{
 		Thread *thread = Thread::CurrentThread();
@@ -60,5 +125,24 @@ namespace RN
 		RN::Assert(thread);
 		
 		return thread->_context;
+	}
+	
+	void Context::Flush()
+	{
+		glFlush();
+	}
+	
+	void Context::Activate()
+	{
+#if RN_PLATFORM_MAC_OS
+		[_oglContext makeCurrentContext];
+#endif
+	}
+	
+	void Context::Deactivate()
+	{
+#if RN_PLATFORM_MAC_OS
+		[NSOpenGLContext clearCurrentContext];
+#endif
 	}
 }
