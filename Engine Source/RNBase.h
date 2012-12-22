@@ -37,12 +37,13 @@
 #if RN_PLATFORM_MAC_OS
 	#import <Cocoa/Cocoa.h>
 	#include <OpenGL/OpenGL.h>
-	#include <OpenGL/gl.h>
-	#include <OpenGL/glext.h>
 
 	#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 		#include <OpenGL/gl3.h>
 		#include <OpenGL/gl3ext.h>
+	#else
+		#include <OpenGL/gl.h>
+		#include <OpenGL/glext.h>
 	#endif
 #endif
 
