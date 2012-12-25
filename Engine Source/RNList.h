@@ -6,8 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_ARRAY_H__
-#define __RAYNE_ARRAY_H__
+#ifndef __RAYNE_LIST_H__
+#define __RAYNE_LIST_H__
 
 #include "RNBase.h"
 #include "RNObject.h"
@@ -54,4 +54,4 @@ namespace RN
     };
 }
 
-#endif /* __RAYNE_ARRAY_H__ */
+#endif /* __RAYNE_LIST_H__ */
