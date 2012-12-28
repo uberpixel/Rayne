@@ -312,6 +312,33 @@ namespace RN
 		result = (*this) * other;
 		return result;
 	}
+	
+	RN_INLINE void Matrix::Transpose()
+	{
+		float temp[16];
+		
+		temp[0] = m[0];
+		temp[1] = m[4];
+		temp[2] = m[8];
+		temp[3] = m[12];
+		
+		temp[4] = m[1];
+		temp[5] = m[5];
+		temp[6] = m[9];
+		temp[7] = m[13];
+		
+		temp[8] = m[2];
+		temp[9] = m[6];
+		temp[10] = m[10];
+		temp[11] = m[14];
+		
+		temp[12] = m[3];
+		temp[13] = m[7];
+		temp[14] = m[11];
+		temp[15] = m[15];
+		
+		memcpy(m, temp, 16 * sizeof(float));
+	}
 }
 
 #endif /* __RAYNE_MATRIX_H__ */

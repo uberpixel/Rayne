@@ -50,6 +50,8 @@ namespace RN
 		void Rotate(const Vector4& rot);
 		void Rotate(const Quaternion& rot);
 		
+		void Transpose();
+		
 		Vector3 Transform(const Vector3& other) const;
 		Vector4 Transform(const Vector4& other) const;
 		

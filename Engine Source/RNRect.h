@@ -17,6 +17,7 @@ namespace RN
 	class Rect
 	{
 	public:
+		Rect();
 		Rect(float x, float y, float width, float height);
 		Rect(const Vector2& origin, float width, float height);
 		Rect(const Vector2& origin, const Vector2& size);
@@ -42,6 +43,11 @@ namespace RN
 			float height;
 		};
 	};
+	
+	RN_INLINE Rect::Rect()
+	{
+		x = y = width = height = 0.0f;
+	}
 	
 	RN_INLINE Rect::Rect(float tx, float ty, float twidth, float theight)
 	{
