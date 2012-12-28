@@ -134,7 +134,7 @@ namespace RN
 		FileSearchPaths.push_back(path);
 	}
 	
-	FILE *File::FileForPath(const std::string& path)
+	void File::AddDefaultSearchPaths()
 	{
 		static bool addedDefaultSearchPaths = false;
 		if(!addedDefaultSearchPaths)
@@ -143,9 +143,40 @@ namespace RN
 			NSString *path = [[NSBundle mainBundle] resourcePath];
 			File::AddSearchPath(std::string([path UTF8String]));
 #endif
-		
+			
 			addedDefaultSearchPaths = true;
 		}
+	}
+	
+	std::string File::PathForName(const std::string& path)
+	{
+		AddDefaultSearchPaths();
+		
+		FILE *file = fopen(path.c_str(), "r");
+		if(file)
+		{
+			fclose(file);
+			return path;
+		}
+		
+		for(auto i=FileSearchPaths.begin(); i!=FileSearchPaths.end(); i++)
+		{
+			std::string tpath = *i + "/" + path;
+			
+			file = fopen(tpath.c_str(), "r");
+			if(file)
+			{
+				fclose(file);
+				return tpath;
+			}
+		}
+		
+		return "";
+	}
+	
+	FILE *File::FileForPath(const std::string& path)
+	{
+		AddDefaultSearchPaths();
 		
 		FILE *file = fopen(path.c_str(), "r");
 		if(file)
