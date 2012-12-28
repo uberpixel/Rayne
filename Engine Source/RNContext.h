@@ -15,8 +15,10 @@
 
 namespace RN
 {
+	class Window;
 	class Context : public Object
 	{
+	friend class Window;
 	public:
 		enum
 		{
@@ -51,8 +53,9 @@ namespace RN
 		int32 _glsl;
 		
 #if RN_PLATFORM_MAC_OS
-        Context *_shared;
-        NSOpenGLContext *_oglContext;
+		Context *_shared;
+		NSOpenGLContext *_oglContext;
+		NSOpenGLPixelFormat *_oglPixelFormat;
 #endif
 	};
 }

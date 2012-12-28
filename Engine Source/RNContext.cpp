@@ -49,15 +49,15 @@ namespace RN
 			NSOpenGLPFAAlphaSize, 8,
 			NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute)depthBufferSize,
 			NSOpenGLPFAStencilSize, (NSOpenGLPixelFormatAttribute)stencilBufferSize,
-			oglProfile, NSOpenGLProfileVersion3_2Core,
+			oglProfile, NSOpenGLProfileVersionLegacy,
 			0
 		};
 		
-		NSOpenGLPixelFormat *pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes] autorelease];
-		if(!pixelFormat)
+		_oglPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes];
+		if(!_oglPixelFormat)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
 		
-		_oglContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:_shared ? _shared->_oglContext : nil];
+		_oglContext = [[NSOpenGLContext alloc] initWithFormat:_oglPixelFormat shareContext:_shared ? _shared->_oglContext : nil];
 		if(!_oglContext)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #else
@@ -72,6 +72,7 @@ namespace RN
 		
 #if RN_PLATFORM_MAC_OS
 		[_oglContext release];
+		[_oglPixelFormat release];
 #endif
 	}
 	
