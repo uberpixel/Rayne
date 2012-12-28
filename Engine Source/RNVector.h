@@ -41,7 +41,7 @@ namespace RN
 		float Length() const;
 		float Dot (const Vector2& other) const;
 		
-		Vector2& Normalize (const float n);
+		Vector2& Normalize (const float n=1.0f);
 		
 		struct
 		{
@@ -155,12 +155,12 @@ namespace RN
 		return fabsf(x * x + y * y);
 	}
 
-	RN_INLINE float Vector2::Dot (const Vector2& other) const
+	RN_INLINE float Vector2::Dot(const Vector2& other) const
 	{
 		return (x * other.x + y * other.y);
 	}
 
-	RN_INLINE Vector2& Vector2::Normalize (const float n)
+	RN_INLINE Vector2& Vector2::Normalize(const float n)
 	{
 		float length = Length();
 		x *= n/length;
@@ -195,9 +195,10 @@ namespace RN
 		Vector3& operator/= (const Vector3& other);
 		
 		float Length() const;
-		float Dot (const Vector3& other) const;
+		float Dot(const Vector3& other) const;
+		Vector3 Cross(const Vector3& other) const;
 		
-		Vector3& Normalize (const float n);
+		Vector3& Normalize(const float n=1.0f);
 		
 		struct
 		{
@@ -321,12 +322,23 @@ namespace RN
 		return fabsf(x * x + y * y + z * z);
 	}
 
-	RN_INLINE float Vector3::Dot (const Vector3& other) const
+	RN_INLINE float Vector3::Dot(const Vector3& other) const
 	{
 		return (x * other.x + y * other.y + z * other.z);
 	}
+	
+	RN_INLINE Vector3 Vector3::Cross(const Vector3& other) const
+	{
+		Vector3 result;
+		
+		result.x = y * other.z - z * other.y;
+		result.y = z * other.x - x * other.z;
+		result.z = x * other.y - y * other.x;
+		
+		return result;
+	}
 
-	RN_INLINE Vector3& Vector3::Normalize (const float n)
+	RN_INLINE Vector3& Vector3::Normalize(const float n)
 	{
 		float length = Length();
 		x *= n/length;
@@ -335,6 +347,7 @@ namespace RN
 		
 		return *this;
 	}
+	
 
 	class Vector4
 	{
@@ -362,9 +375,10 @@ namespace RN
 		Vector4& operator/= (const Vector4& other);
 		
 		float Length() const;
-		float Dot (const Vector4& other) const;
+		float Dot(const Vector4& other) const;
+		Vector4 Cross(const Vector4& other) const;
 		
-		Vector4& Normalize (const float n);
+		Vector4& Normalize(const float n=1.0f);
 
 		struct
 		{
@@ -506,6 +520,18 @@ namespace RN
 		return (x * other.x + y * other.y + z * other.z + w * other.w);
 	}
 
+	RN_INLINE Vector4 Vector4::Cross(const Vector4& other) const
+	{
+		Vector4 result;
+		
+		result.x = y * other.z - z * other.y;
+		result.y = z * other.x - x * other.z;
+		result.z = x * other.y - y * other.x;
+		result.w = 0.0f;
+		
+		return result;
+	}
+	
 	RN_INLINE Vector4& Vector4::Normalize (const float n)
 	{
 		float length = Length();

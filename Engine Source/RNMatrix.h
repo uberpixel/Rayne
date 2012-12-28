@@ -11,42 +11,18 @@
 
 #include "RNBase.h"
 #include "RNVector.h"
+#include "RNMatrixQuaternion.h"
 
 namespace RN
 {
-	class Matrix
-	{
-	public:
-		Matrix();
-		Matrix(const Matrix& other);
-
-		Matrix& Matrix::operator*= (const Matrix& other);
-		Matrix Matrix::operator* (const Matrix& other) const;
-		Vector3 Matrix::operator* (const Vector3& other) const;
-		Vector4 Matrix::operator* (const Vector4& other) const;
-
-		void SetIdentity();
-		float Determinant() const;
-		float DeterminantSubmatrix(const int k) const;
-
-		Matrix Matrix::Inverse() const;
-
-		struct
-		{
-			float m[16];
-		};
-	};
-
 	RN_INLINE Matrix::Matrix()
 	{
-		int i;
-		for(i = 0; i < 16; i++) m[i] = 0.0f;
+		MakeIdentity();
 	}
 
 	RN_INLINE Matrix::Matrix(const Matrix& other)
 	{
-		int i;
-		for(i = 0; i < 16; i++) m[i] = other.m[i];
+		memcpy(m, other.m, 16 * sizeof(float));
 	}
 
 	RN_INLINE Matrix& Matrix::operator*= (const Matrix& other)
@@ -121,26 +97,121 @@ namespace RN
 		return matrix;
 	}
 
-	RN_INLINE void Matrix::SetIdentity()
+	RN_INLINE void Matrix::MakeIdentity()
 	{
-		m[0] = 1.0f;
-		m[1] = 0.0f;
-		m[2] = 0.0f;
-		m[3] = 0.0f;
-		m[4] = 0.0f;
-		m[5] = 1.0f;
-		m[6] = 0.0f;
-		m[7] = 0.0f;
-		m[8] = 0.0f;
-		m[9] = 0.0f;
-		m[10] = 1.0f;
-		m[11] = 0.0f;
-		m[12] = 0.0f;
-		m[13] = 0.0f;
-		m[14] = 0.0f;
-		m[15] = 1.0f;
+		memset(m, 0, 16 * sizeof(float));
+		m[0] = m[5] = m[10] = m[15] = 1.0f;
+	}
+	
+	RN_INLINE void Matrix::MakeTranslate(const Vector3& trans)
+	{
+		MakeIdentity();
+		
+		m[12] = trans.x;
+		m[13] = trans.y;
+		m[14] = trans.z;
+	}
+	
+	RN_INLINE void Matrix::MakeTranslate(const Vector4& trans)
+	{
+		MakeIdentity();
+		
+		m[12] = trans.x;
+		m[13] = trans.y;
+		m[14] = trans.z;
+		m[15] = trans.w;
+	}
+	
+	RN_INLINE void Matrix::MakeScale(const Vector3& scal)
+	{
+		MakeIdentity();
+		
+		m[0] = scal.x;
+		m[5] = scal.y;
+		m[10] = scal.z;
+	}
+	
+	RN_INLINE void Matrix::MakeScale(const Vector4& scal)
+	{
+		MakeIdentity();
+		
+		m[0] = scal.x;
+		m[5] = scal.y;
+		m[10] = scal.z;
+		m[15] = scal.w;
+	}
+	
+	RN_INLINE void Matrix::MakeRotate(const Vector3& rot)
+	{
+		Quaternion quat(rot);
+		*this = quat.RotationMatrix();
+	}
+	
+	RN_INLINE void Matrix::MakeRotate(const Vector4& rot)
+	{
+		Quaternion quat(rot);
+		*this = quat.RotationMatrix();
+	}
+	
+	RN_INLINE void Matrix::MakeRotate(const Quaternion& rot)
+	{
+		Quaternion quat(rot);
+		*this = quat.RotationMatrix();
 	}
 
+	
+	RN_INLINE void Matrix::MakeProjectionOrthogonal(float left, float right, float bottom, float top, float clipnear, float clipfar)
+	{
+		MakeIdentity();
+		
+		float rl = right - left;
+		float tb = top - bottom;
+		float fn = clipfar - clipnear;
+		float tx = - (right + left) / (right - left);
+		float ty = - (top + bottom) / (top - bottom);
+		float tz = - (clipfar + clipnear) / (clipfar - clipnear);
+		
+		m[0] = 2.0f / rl;
+		m[5] = 2.0 / tb;
+		m[10] = -2.0f / fn;
+		
+		m[12] = tx;
+		m[13] = ty;
+		m[14] = tz;
+		m[15] = 1.0f;
+	}
+	
+	RN_INLINE void Matrix::MakeProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)
+	{
+		MakeIdentity();
+		
+		float xFac, yFac;
+		yFac = tanf(arc * M_PI / 360.0f);
+		xFac = yFac * aspect;
+		
+		m[0] = 1.0f / xFac;
+		m[5] = 1.0f / yFac;
+		m[10] = -(clipfar + clipnear) / (clipfar - clipnear);
+		m[11] = -1.0f;
+		m[14] = -(2.0f * clipfar * clipnear) / (clipfar - clipnear);
+	}
+	
+	RN_INLINE void Matrix::MakeInverveProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)
+	{
+		MakeIdentity();
+		
+		float xFac, yFac;
+		yFac = tanf(arc * M_PI / 360.0f);
+		xFac = yFac * aspect;
+		
+		m[0] = xFac;
+		m[5] = yFac;
+		m[11] = -(clipfar - clipnear) / (2.0f * clipfar * clipnear);
+		m[14] = -1.0f;
+		m[15] = (clipfar + clipnear) / (2.0f * clipfar * clipnear);
+	}
+	
+	
 	RN_INLINE float Matrix::Determinant() const
 	{
 		float det = m[0] * (m[5]*m[10]*m[15] + m[6]*m[11]*m[13] + m[7]*m[9]*m[14] - m[7]*m[10]*m[13] - m[6]*m[9]*m[15] - m[5]*m[11]*m[14]);
@@ -169,7 +240,78 @@ namespace RN
 
 		return det;
 	}
-
+	
+	
+	RN_INLINE void Matrix::Translate(const Vector3& trans)
+	{
+		Matrix temp;
+		temp.MakeTranslate(trans);
+		
+		*this *= temp;
+	}
+	
+	RN_INLINE void Matrix::Translate(const Vector4& trans)
+	{
+		Matrix temp;
+		temp.MakeTranslate(trans);
+		
+		*this *= temp;
+	}
+	
+	RN_INLINE void Matrix::Scale(const Vector3& scal)
+	{
+		Matrix temp;
+		temp.MakeScale(scal);
+		
+		*this *= temp;
+	}
+	
+	RN_INLINE void Matrix::Scale(const Vector4& scal)
+	{
+		Matrix temp;
+		temp.MakeScale(scal);
+		
+		*this *= temp;
+	}
+	
+	RN_INLINE void Matrix::Rotate(const Vector3& rot)
+	{
+		Matrix temp;
+		temp.MakeRotate(rot);
+		
+		*this *= temp;
+	}
+	
+	RN_INLINE void Matrix::Rotate(const Vector4& rot)
+	{
+		Matrix temp;
+		temp.MakeRotate(rot);
+		
+		*this *= temp;
+	}
+	
+	RN_INLINE void Matrix::Rotate(const Quaternion& rot)
+	{
+		Matrix temp;
+		temp.MakeRotate(rot);
+		
+		*this *= temp;
+	}
+	
+	
+	RN_INLINE Vector3 Matrix::Transform(const Vector3& other) const
+	{
+		Vector3 result;
+		result = (*this) * other;
+		return result;
+	}
+	
+	RN_INLINE Vector4 Matrix::Transform(const Vector4& other) const
+	{
+		Vector4 result;
+		result = (*this) * other;
+		return result;
+	}
 }
 
 #endif /* __RAYNE_MATRIX_H__ */
