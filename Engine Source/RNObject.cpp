@@ -23,11 +23,17 @@ namespace RN
 	
 	void Object::Retain()
 	{
+		if(!this)
+			return;
+		
 		_refCount ++;
 	}
 	
 	void Object::Release()
 	{
+		if(!this)
+			return;
+		
 		if((-- _refCount) == 0)
 		{
 			delete this;
