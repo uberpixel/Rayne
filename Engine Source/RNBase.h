@@ -35,8 +35,13 @@
 #endif
 
 #if RN_PLATFORM_MAC_OS
+	#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED 1
+
 	#import <Cocoa/Cocoa.h>
-	#include <OpenGL/OpenGL.h>
+	#import <OpenGL/OpenGL.h>
+	#import <WebKit/WebKit.h>
+	#import <JavaScriptCore/JavaScriptCore.h>
+
 
 	#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 		#include <OpenGL/gl3.h>
@@ -64,7 +69,14 @@
 
 namespace RN
 {
+#ifndef NDEBUG
 	RN_EXTERN void Assert(bool condition, const char *message = 0);
+#else
+	static inline void Assert(bool condition, const char *message = 0);
+	void Assert(bool condition, const char *message = 0)
+	{
+	}
+#endif
 	
 #if RN_PLATFORM_MAC_OS
 	#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_8
@@ -73,8 +85,8 @@ namespace RN
 			NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
 			Assert(dict);
 			
-			NSArray *versionComponents = [dict objectForKey:@"ProductVersion"];
-			Assert(dict && [dict count] == 3);
+			NSArray *versionComponents = [[dict objectForKey:@"ProductVersion"] componentsSeparatedByString:@"."];
+			Assert(dict);
 			
 			if(major)
 				*major = [[versionComponents objectAtIndex:0] intValue];
