@@ -21,6 +21,7 @@ namespace RN
 		virtual ~File();
 		
 		static void AddSearchPath(const std::string& path);
+		static std::string PathForName(const std::string& name);
 		
 		bool IsOpen() { return (_file != 0); }
 		
@@ -31,6 +32,7 @@ namespace RN
 		std::string String();
 		
 	private:
+		static void AddDefaultSearchPaths();
 		static FILE *FileForPath(const std::string& path);
 		
 		std::string _path;
