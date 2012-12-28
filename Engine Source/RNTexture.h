@@ -30,10 +30,13 @@ namespace RN
 		} Format;
 		
 		Texture(Format format);
+		
 		virtual ~Texture();
 		
 		void Bind();
 		void Unbind();
+		
+		GLuint Name() { return _name; }
 		
 		void SetData(const std::vector<uint8>& data, uint32 width, uint32 height, Format format);
 		void UpdateData(const std::vector<uint8>& data, Format format);

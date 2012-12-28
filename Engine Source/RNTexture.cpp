@@ -20,7 +20,20 @@ namespace RN
 		_bound = false;
 		_previous = 0;
 		_format = format;
+		
+		Bind();
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		
+		Unbind();
 	}
+
+	
+	
 	
 	Texture::~Texture()
 	{
@@ -68,6 +81,9 @@ namespace RN
 		
 		converted = ConvertData(data, width, height, format, _format);
 		ConvertFormat(_format, &glFormat, &glType);
+		
+		_width  = width;
+		_height = height;
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, glFormat, width, height, 0, glFormat, glType, &converted[0]);
@@ -125,11 +141,11 @@ namespace RN
 		if(current == target)
 			return data;
 		
-		std::vector<uint8> intermediate, result;	
+		std::vector<uint8> intermediate, result;
 		size_t pixel = width * height;
 		
 		// Promote data to RGBA8888
-		intermediate.reserve(pixel * 4);
+		intermediate.resize(pixel * 4);
 		
 		switch(current)
 		{
@@ -207,12 +223,15 @@ namespace RN
 				break;			
 		}
 		
+		if(target == RGBA8888)
+			return intermediate;
+		
 		// Convert data to the specified target format
 		switch(target)
 		{
 			case RGBA4444:
 			{
-				result.reserve(pixel * 2);
+				result.resize(pixel * 2);
 				
 				uint32 *inPixel = (uint32 *)&intermediate[0];
 				uint16 *outPixel = (uint16 *)&result[0];
@@ -230,7 +249,7 @@ namespace RN
 				
 			case RGBA5551:
 			{
-				result.reserve(pixel * 2);
+				result.resize(pixel * 2);
 				
 				uint32 *inPixel = (uint32 *)&intermediate[0];
 				uint16 *outPixel = (uint16 *)&result[0];
@@ -248,7 +267,7 @@ namespace RN
 				
 			case RGB565:
 			{
-				result.reserve(pixel * 2);
+				result.resize(pixel * 2);
 				
 				uint32 *inPixel = (uint32 *)&intermediate[0];
 				uint16 *outPixel = (uint16 *)&result[0];
