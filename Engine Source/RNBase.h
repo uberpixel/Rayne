@@ -18,6 +18,10 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <string>
+#include <vector>
+#include <type_traits>
+
 #include "RNPlatform.h"
 #include "RNDefines.h"
 #include "RNError.h"
@@ -29,9 +33,6 @@
 	#include <pthread.h>
 	#include <signal.h>
 	#include <errno.h>
-
-	#include <string>
-	#include <vector>
 #endif
 
 #if RN_PLATFORM_MAC_OS

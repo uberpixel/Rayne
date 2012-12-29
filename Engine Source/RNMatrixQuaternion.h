@@ -19,7 +19,6 @@ namespace RN
 	{
 	public:
 		Matrix();
-		Matrix(const Matrix& other);
 		
 		Matrix& operator*= (const Matrix& other);
 		Matrix operator* (const Matrix& other) const;
@@ -67,7 +66,6 @@ namespace RN
 	{
 	public:
 		Quaternion();
-		Quaternion(const Quaternion& other);
 		Quaternion(const Vector3& euler);
 		Quaternion(const Vector4& axis);
 		
@@ -95,6 +93,9 @@ namespace RN
 			float w;
 		};
 	};
+	
+	static_assert(std::is_trivially_copyable<Matrix>::value, "Matrix must be trivially copyable");
+	static_assert(std::is_trivially_copyable<Quaternion>::value, "Quaternion must be trivially copyable");
 }
 
 #endif /* __RAYNE_MATRIXQUATERNION_H__ */

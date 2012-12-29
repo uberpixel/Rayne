@@ -17,7 +17,6 @@ namespace RN
 	{
 	public:
 		Vector2();
-		Vector2(const Vector2& other);
 		Vector2(const float n);
 		Vector2(const float x, const float y);
 		
@@ -53,12 +52,6 @@ namespace RN
 	RN_INLINE Vector2::Vector2()
 	{
 		x = y = 0.0f;
-	}
-	
-	RN_INLINE Vector2::Vector2(const Vector2& other)
-	{
-		x = other.x;
-		y = other.y;
 	}
 	
 	RN_INLINE Vector2::Vector2(const float n)
@@ -173,7 +166,6 @@ namespace RN
 	{
 	public:
 		Vector3();
-		Vector3(const Vector3& other);
 		Vector3(const float n);
 		Vector3(const float x, const float y, const float z);
 		
@@ -211,13 +203,6 @@ namespace RN
 	RN_INLINE Vector3::Vector3()
 	{
 		x = y = z = 0.0f;
-	}
-	
-	RN_INLINE Vector3::Vector3(const Vector3& other)
-	{
-		x = other.x;
-		y = other.y;
-		z = other.z;
 	}
 	
 	RN_INLINE Vector3::Vector3(const float n)
@@ -353,7 +338,6 @@ namespace RN
 	{
 	public:
 		Vector4();
-		Vector4(const Vector4& other);
 		Vector4(const float n);
 		Vector4(const float x, const float y, const float z, const float w);
 		
@@ -392,14 +376,6 @@ namespace RN
 	RN_INLINE Vector4::Vector4()
 	{
 		x = y = z = w = 0.0f;
-	}
-	
-	RN_INLINE Vector4::Vector4(const Vector4& other)
-	{
-		x = other.x;
-		y = other.y;
-		z = other.z;
-		w = other.w;
 	}
 	
 	RN_INLINE Vector4::Vector4(const float n)
@@ -543,6 +519,9 @@ namespace RN
 		return *this;
 	}
 
+	static_assert(std::is_trivially_copyable<Vector2>::value, "Vector2 must be trivially copyable");
+	static_assert(std::is_trivially_copyable<Vector3>::value, "Vector3 must be trivially copyable");
+	static_assert(std::is_trivially_copyable<Vector4>::value, "Vector4 must be trivially copyable");
 }
 
 #endif /* __RAYNE_VECTOR_H__ */

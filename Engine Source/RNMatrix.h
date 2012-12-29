@@ -20,11 +20,6 @@ namespace RN
 		MakeIdentity();
 	}
 
-	RN_INLINE Matrix::Matrix(const Matrix& other)
-	{
-		memcpy(m, other.m, 16 * sizeof(float));
-	}
-
 	RN_INLINE Matrix& Matrix::operator*= (const Matrix& other)
 	{
 		float tmp[4];
