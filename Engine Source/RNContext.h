@@ -33,6 +33,8 @@ namespace RN
 		typedef int32 ContextFlags;
 		
 		Context(ContextFlags flags, Context *shared=0);
+		Context(Context *shared);
+		
         virtual ~Context();
 		
 		void MakeActiveContext();

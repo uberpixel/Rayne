@@ -13,7 +13,10 @@ namespace RN
 {
 	Context::Context(ContextFlags flags, Context *shared)
 	{
+		_active = false;
+		_thread = 0;
 		_shared = shared;
+		_shared->Retain();
 		
 #if RN_PLATFORM_MAC_OS
 		int32 major;
@@ -49,6 +52,7 @@ namespace RN
 			NSOpenGLPFAAlphaSize, 8,
 			NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute)depthBufferSize,
 			NSOpenGLPFAStencilSize, (NSOpenGLPixelFormatAttribute)stencilBufferSize,
+			//oglProfile, NSOpenGLProfileVersion3_2Core,
 			oglProfile, NSOpenGLProfileVersionLegacy,
 			0
 		};
@@ -60,6 +64,23 @@ namespace RN
 		_oglContext = [[NSOpenGLContext alloc] initWithFormat:_oglPixelFormat shareContext:_shared ? _shared->_oglContext : nil];
 		if(!_oglContext)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+#else
+		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+#endif
+	}
+	
+	Context::Context(Context *shared)
+	{
+		_active = false;
+		_thread = 0;
+		_shared = shared;
+		_shared->Retain();
+		
+#if RN_PLATFORM_MAC_OS
+		_glsl = shared->_glsl;
+		
+		_oglPixelFormat = [[NSOpenGLPixelFormat alloc] initWithCGLPixelFormatObj:[_shared->_oglPixelFormat CGLPixelFormatObj]];
+		_oglContext = [[NSOpenGLContext alloc] initWithFormat:_oglPixelFormat shareContext:_shared->_oglContext];
 #else
 		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #endif
