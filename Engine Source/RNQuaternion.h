@@ -20,14 +20,6 @@ namespace RN
 		MakeIdentity();
 	}
 	
-	RN_INLINE Quaternion::Quaternion(const Quaternion& other)
-	{
-		x = other.x;
-		y = other.y;
-		z = other.z;
-		w = other.w;
-	}
-	
 	RN_INLINE Quaternion::Quaternion(const Vector3& euler)
 	{
 		MakeEulerAngle(euler);
