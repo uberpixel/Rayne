@@ -2,7 +2,7 @@
 //  RNObject.h
 //  Rayne
 //
-//  Copyright 2012 by Felix Pohl and Sidney Just. All rights reserved.
+//  Copyright 2013 by Felix Pohl and Sidney Just. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
@@ -10,6 +10,7 @@
 #define __RAYNE_OBJECT_H__
 
 #include "RNBase.h"
+#include "RNProxy.h"
 
 namespace RN
 {
