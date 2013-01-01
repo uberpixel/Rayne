@@ -51,7 +51,7 @@ namespace RN
 		}
 		
 	private:
-		uint32 _lock;
+		machine_uint _lock;
 	};
 }
 
