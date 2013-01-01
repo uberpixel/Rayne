@@ -10,16 +10,13 @@
 
 namespace RN
 {
-	static Texture *__CurrentTexture = 0;
-	
 	Texture::Texture(Format format) :
 		_proxy(this)
 	{
 		glGenTextures(1, &_name);
 		
 		_width = _height = 0;
-		_bound = false;
-		_previous = 0;
+		_bound = 0;
 		_format = format;
 		
 		Bind();
@@ -33,53 +30,33 @@ namespace RN
 		Unbind();
 	}
 
-	
-	
-	
 	Texture::~Texture()
 	{
-		if(_bound)
-			Unbind();
-		
 		glDeleteTextures(1, &_name);
 	}
 	
 	
 	void Texture::Bind()
 	{
-		if(!_bound)
+		if((++ _bound) == 1)
 		{
-			_bound = true;
-			_previous = __CurrentTexture;
-			__CurrentTexture = this;
-			
 			glBindTexture(GL_TEXTURE_2D, _name);
 		}
 	}
 	
 	void Texture::Unbind()
 	{
-		if(_bound)
-		{
-			RN::Assert(__CurrentTexture == this);
-			
-			__CurrentTexture = _previous;
-			_bound = false;
-			
-			if(_previous)
-				glBindTexture(GL_TEXTURE_2D, _previous->_name);
-		}
+		_bound --;
 	}
 	
 	
 	
 	void Texture::SetData(const std::vector<uint8>& data, uint32 width, uint32 height, Format format)
-	{
-		RN::Assert(this == __CurrentTexture);
-		
+	{		
 		GLenum glType, glFormat;
 		std::vector<uint8> converted;
 		
+		Bind();
 		_proxy.WillChangeData();
 		
 		converted = ConvertData(data, width, height, format, _format);
@@ -92,15 +69,15 @@ namespace RN
 		glTexImage2D(GL_TEXTURE_2D, 0, glFormat, width, height, 0, glFormat, glType, &converted[0]);
 		
 		_proxy.DidChangeData();
+		Unbind();
 	}
 	
 	void Texture::UpdateData(const std::vector<uint8>& data, Format format)
 	{
-		RN::Assert(this == __CurrentTexture);
-		
 		GLenum glType, glFormat;
 		std::vector<uint8> converted;
 		
+		Bind();
 		_proxy.WillChangeData();
 		
 		converted = ConvertData(data, _width, _height, format, _format);
@@ -110,6 +87,7 @@ namespace RN
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, &converted[0]);
 		
 		_proxy.DidChangeData();
+		Unbind();
 	}
 	
 	

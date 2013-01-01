@@ -76,8 +76,7 @@ namespace RN
 		Format _format;
 		Proxy _proxy;
 		
-		bool _bound;
-		Texture *_previous;
+		uint32 _bound;
 	};
 }
 
