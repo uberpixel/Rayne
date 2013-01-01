@@ -15,67 +15,48 @@
 
 namespace RN
 {
-	template <typename T>
-	class Proxy;
-	
-	template <typename T>
-	class ProxyListener
-	{
-	public:
-		virtual T CopyData(Proxy<T> *proxy) = 0;
-		virtual T SimpleAccessData(Proxy<T> *proxy) = 0;
-		virtual void FreeData(Proxy<T> *proxy, T data) = 0;
-	};
-	
-	template <typename T>
 	class Proxy
 	{
 	public:
-		Proxy(ProxyListener<T> *source)
+		Proxy()
 		{
-			_source = source;
 			_listener = 0;
 			_hasCopy = false;
 		}
 		
 		~Proxy()
 		{}
-		
+	
 		// Change
-		void WillChangeData()
+		virtual void WillChangeData()
 		{
 			_lock.Lock();
 			
-			if(!_hasCopy)
-				_cache = _source->CopyData(this);
+			if(!_hasCopy && _listener > 0)
+			{
+				CreateCopy();
+				_hasCopy = true;
+			}
 		}
 		
-		void DidChangeData()
+		virtual void DidChangeData()
 		{
 			_lock.Unlock();
 		}
 		
 		// Access
-		void WillAccessData()
+		virtual void WillAccessData()
 		{
 			_lock.Lock();
 		}
 		
-		void DidAccessData()
+		virtual void DidAccessData()
 		{
 			_lock.Unlock();
 		}
 		
-		T AccessData()
-		{
-			if(_hasCopy)
-				return _cache;
-			
-			return _source->SimpleAccessData(this);
-		}
-		
 		// Listener
-		void AddListener()
+		virtual void AddListener()
 		{
 			_lock.Lock();
 			
@@ -84,26 +65,62 @@ namespace RN
 			_lock.Unlock();
 		}
 		
-		void RemoveListener()
+		virtual void RemoveListener()
 		{
 			_lock.Lock();
 			
 			if((-- _listener) == 0 && _hasCopy)
 			{
-				_source->FreeData(this, _cache);
+				DisposeCopy();
 				_hasCopy = false;
 			}
 		
 			_lock.Unlock();
 		}
 		
-	private:
+	protected:
 		SpinLock _lock;
-		ProxyListener<T> *_source;
-		
 		uint32 _listener;
+		
+		virtual void CreateCopy()
+		{
+		}
+		
+		virtual void DisposeCopy()
+		{
+		}
+		
+		bool ShouldServeCopy()
+		{
+			return (_hasCopy == true);
+		}
+		
+	private:
 		bool _hasCopy;
-		T _cache;
+	};
+	
+	class BlockingProxy : public Proxy
+	{
+	public:
+		virtual void WillAccessData()
+		{
+		}
+		
+		virtual void DidAccessData()
+		{
+		}
+		
+		virtual void AddListener()
+		{
+			if((++ _listener) == 1)
+				_lock.Lock();
+		}
+		
+		virtual void RemoveListener()
+		{
+			if((-- _listener) == 0)
+				_lock.Unlock();
+		}
 	};
 }
 
