@@ -43,6 +43,28 @@ namespace RN
 		
 		static bool PlatformSupportsFormat(Format format);
 		
+		class Proxy : public BlockingProxy
+		{
+		public:
+			Proxy(Texture *texture)
+			{
+				_texture = texture;
+			}
+			
+			GLuint Name() const
+			{
+				return _texture->Name();
+			}
+			
+		private:
+			Texture *_texture;
+		};
+		
+		Proxy *ProxyObject()
+		{
+			return &_proxy;
+		}
+		
 	protected:
 		GLuint _name;
 		uint32 _width, _height;
@@ -52,6 +74,7 @@ namespace RN
 		static void ConvertFormat(Format format, GLenum *glFormat, GLenum *glType);
 		
 		Format _format;
+		Proxy _proxy;
 		
 		bool _bound;
 		Texture *_previous;

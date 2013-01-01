@@ -12,7 +12,8 @@ namespace RN
 {
 	static Texture *__CurrentTexture = 0;
 	
-	Texture::Texture(Format format)
+	Texture::Texture(Format format) :
+		_proxy(this)
 	{
 		glGenTextures(1, &_name);
 		
@@ -79,6 +80,8 @@ namespace RN
 		GLenum glType, glFormat;
 		std::vector<uint8> converted;
 		
+		_proxy.WillChangeData();
+		
 		converted = ConvertData(data, width, height, format, _format);
 		ConvertFormat(_format, &glFormat, &glType);
 		
@@ -87,6 +90,8 @@ namespace RN
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, glFormat, width, height, 0, glFormat, glType, &converted[0]);
+		
+		_proxy.DidChangeData();
 	}
 	
 	void Texture::UpdateData(const std::vector<uint8>& data, Format format)
@@ -96,11 +101,15 @@ namespace RN
 		GLenum glType, glFormat;
 		std::vector<uint8> converted;
 		
+		_proxy.WillChangeData();
+		
 		converted = ConvertData(data, _width, _height, format, _format);
 		ConvertFormat(_format, &glFormat, &glType);
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, &converted[0]);
+		
+		_proxy.DidChangeData();
 	}
 	
 	
