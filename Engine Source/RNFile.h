@@ -23,13 +23,15 @@ namespace RN
 		static void AddSearchPath(const std::string& path);
 		static std::string PathForName(const std::string& name);
 		
-		bool IsOpen() { return (_file != 0); }
+		bool IsOpen() const { return (_file != 0); }
 		
 		void Open();
 		void Close();
 		
 		std::vector<uint8> Bytes();
 		std::string String();
+		
+		FILE *FilePointer() { return _file; }
 		
 	private:
 		static void AddDefaultSearchPaths();
