@@ -61,12 +61,7 @@ namespace RN
 		virtual void AddObject(T object)
 		{
 			if(_count >= _capacity)
-			{
-				_capacity = _capacity * 2;
-				_data     = (T *)realloc(_data, _capacity * sizeof(T));
-				
-				RN::Assert(_data);
-			}
+				ResizeToSize(_capacity * 2);
 			
 			_data[_count ++] = object;
 		}
@@ -78,21 +73,21 @@ namespace RN
 			_count --;
 			
 			for(machine_uint i=index; i<_count; i++)
-			{
 				_data[i] = _data[i + 1];
-			}
 			
 			if(_count < (_capacity / 2))
-			{
-				machine_uint capacity = _capacity / 2;
-				T *data = (T *)realloc(_data, _capacity * sizeof(T));
-				
-				if(data)
-				{
-					_data     = data;
-					_capacity = capacity;
-				}
-			}
+				ResizeToSize(_capacity / 2);
+		}
+		
+		
+		virtual void RemoveLastObject()
+		{
+			if(_count == 0)
+				return;
+			
+			if(( --_count) < (_capacity / 2))
+				ResizeToSize(_capacity / 2);
+			
 		}
 		
 		virtual T& ObjectAtIndex(machine_uint index) const
@@ -107,6 +102,17 @@ namespace RN
 		}
 		
 	protected:
+		void ResizeToSize(machine_uint size)
+		{
+			T *data = (T *)realloc(_data, size * sizeof(T));
+			
+			if(data)
+			{
+				_data     = data;
+				_capacity = size;
+			}
+		}
+		
 		T *_data;
 		machine_uint _capacity;
 		machine_uint _count;
@@ -146,7 +152,9 @@ namespace RN
 		virtual void RemoveObject(Object *object)
 		{
 			machine_uint index = IndexOfObject(object);
-			RemoveObjectAtIndex(index);
+			
+			if(index != RN_NOT_FOUND)
+				RemoveObjectAtIndex(index);
 		}
 		
 		virtual void RemoveObjectAtIndex(machine_uint index)
@@ -156,6 +164,22 @@ namespace RN
 			
 			Array::RemoveObjectAtIndex(index);
 			object->Release();
+		}
+		
+		virtual void RemoveLastObject()
+		{
+			if(_count == 0)
+				return;
+			
+			Object *object = _data[_count - 1];
+			
+			Array::RemoveLastObject();
+			object->Release();
+		}
+		
+		Object *LastObject()
+		{
+			return (_count > 0) ? _data[_count - 1] : 0;
 		}
 		
 		virtual machine_uint IndexOfObject(Object *object) const
