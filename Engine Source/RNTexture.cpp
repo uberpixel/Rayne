@@ -7,6 +7,7 @@
 //
 
 #include "RNTexture.h"
+#include "RNTextureLoader.h"
 #include "RNThread.h"
 
 namespace RN
@@ -25,6 +26,36 @@ namespace RN
 		
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		
+		Unbind();
+	}
+	
+	Texture::Texture(const std::string& name, Format format)
+	{
+		TextureLoader loader = TextureLoader(name);
+		
+		glGenTextures(1, &_name);
+		
+		_width = _height = 0;
+		_format = format;
+		
+		Bind();
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		
+		try
+		{
+			SetData(loader.Data(), loader.Width(), loader.Height(), loader.Format());
+		}
+		catch (ErrorException exception)
+		{
+			printf("Caught exception!");
+		}
+		
 		
 		Unbind();
 	}
@@ -60,12 +91,13 @@ namespace RN
 	
 	
 	
-	void Texture::SetData(const std::vector<uint8>& data, uint32 width, uint32 height, Format format)
+	void Texture::SetData(const void *data, uint32 width, uint32 height, Format format)
 	{		
 		GLenum glType, glFormat;
-		std::vector<uint8> converted;
+		void *converted;
 		
 		Bind();
+		WillChangeData();
 		
 		converted = ConvertData(data, width, height, format, _format);
 		ConvertFormat(_format, &glFormat, &glType);
@@ -74,15 +106,19 @@ namespace RN
 		_height = height;
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexImage2D(GL_TEXTURE_2D, 0, glFormat, width, height, 0, glFormat, glType, &converted[0]);
+		glTexImage2D(GL_TEXTURE_2D, 0, glFormat, _width, _height, 0, glFormat, glType, converted);
 		
+		DidChangeData();
 		Unbind();
+		
+		if(converted != data)
+			free(converted);
 	}
 	
-	void Texture::UpdateData(const std::vector<uint8>& data, Format format)
+	void Texture::UpdateData(const void *data, Format format)
 	{
 		GLenum glType, glFormat;
-		std::vector<uint8> converted;
+		void *converted;
 		
 		Bind();
 		WillChangeData();
@@ -91,10 +127,13 @@ namespace RN
 		ConvertFormat(_format, &glFormat, &glType);
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, &converted[0]);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, converted);
 		
 		DidChangeData();
 		Unbind();
+		
+		if(converted != data)
+			free(converted);
 	}
 	
 	
@@ -130,41 +169,48 @@ namespace RN
 		}
 	}
 	
-	std::vector<uint8> Texture::ConvertData(const std::vector<uint8>& data, uint32 width, uint32 height, Format current, Format target)
+	void *Texture::ConvertData(const void *data, uint32 width, uint32 height, Format current, Format target)
 	{
 		if(current == target)
-			return data;
+			return (void *)data;
 		
-		std::vector<uint8> intermediate, result;
+		void *intermediate = 0;
+		void *result = 0;
 		size_t pixel = width * height;
 		
 		// Promote data to RGBA8888
-		intermediate.resize(pixel * 4);
-		
 		switch(current)
 		{
-			case ARGB8888:
+			case RGBA8888:
+				intermediate = (void *)data;
+				break;
+				
+			/*case RGBA8888:
 			{
-				uint32 *inPixel  = (uint32 *)&data[0];
-				uint32 *outPixel = (uint32 *)&intermediate[0];
+				intermediate = malloc(pixel * sizeof(uint32));
+				
+				uint32 *inPixel  = (uint32 *)data;
+				uint32 *outPixel = (uint32 *)intermediate;
 				
 				for(size_t i=0; i<pixel; i++, inPixel++)
                 {
-					uint32 r = ((*inPixel >> 16) & 0xFF);
-					uint32 g = ((*inPixel >> 8)  & 0xFF);
-					uint32 b = ((*inPixel >> 0)  & 0xFF);
-					uint32 a = ((*inPixel >> 24) & 0xFF);
+					uint32 r = ((*inPixel >> 24) & 0xFF);
+					uint32 g = ((*inPixel >> 16) & 0xFF);
+					uint32 b = ((*inPixel >> 8)  & 0xFF);
+					uint32 a = ((*inPixel >> 0)  & 0xFF);
 					
-                    *outPixel ++ = (r << 24) | (g << 16) | (b << 8) | a;
+                    *outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
                 }
 				
 				break;
-			}
+			}*/
 				
 			case RGBA4444:
 			{
-				uint16 *inPixel  = (uint16 *)&data[0];
-				uint32 *outPixel = (uint32 *)&intermediate[0];
+				intermediate = malloc(pixel * sizeof(uint32));
+				
+				uint16 *inPixel  = (uint16 *)data;
+				uint32 *outPixel = (uint32 *)intermediate;
 				
 				for(size_t i=0; i<pixel; i++, inPixel++)
                 {
@@ -173,7 +219,7 @@ namespace RN
 					uint32 b = ((*inPixel >> 4)  & 0xF) << 4;
 					uint32 a = ((*inPixel >> 0)  & 0xF) << 4;
 					
-                    *outPixel ++ = (r << 24) | (g << 16) | (b << 8) | a;
+                    *outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
                 }
 				
 				break;
@@ -181,8 +227,10 @@ namespace RN
 				
 			case RGBA5551:
 			{
-				uint16 *inPixel  = (uint16 *)&data[0];
-				uint32 *outPixel = (uint32 *)&intermediate[0];
+				intermediate = malloc(pixel * sizeof(uint32));
+				
+				uint16 *inPixel  = (uint16 *)data;
+				uint32 *outPixel = (uint32 *)intermediate;
 				
 				for(size_t i=0; i<pixel; i++, inPixel++)
                 {
@@ -191,7 +239,7 @@ namespace RN
 					uint32 b = ((*inPixel >> 1)  & 0xFF) << 3;
 					uint32 a = ((*inPixel >> 0)  & 0xFF) << 7;
 					
-                    *outPixel ++ = (r << 24) | (g << 16) | (b << 8) | a;
+                    *outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
                 }
 				
 				break;
@@ -199,78 +247,82 @@ namespace RN
 				
 			case RGB565:
 			{
-				uint16 *inPixel  = (uint16 *)&data[0];
-				uint32 *outPixel = (uint32 *)&intermediate[0];
+				intermediate = malloc(pixel * sizeof(uint32));
+				
+				uint16 *inPixel  = (uint16 *)data;
+				uint32 *outPixel = (uint32 *)intermediate;
 				
 				for(size_t i=0; i<pixel; i++, inPixel++)
                 {
 					uint32 r = ((*inPixel >> 11) & 0xFF) << 3;
 					uint32 g = ((*inPixel >> 5)  & 0xFF) << 2;
 					uint32 b = ((*inPixel >> 0)  & 0xFF) << 3;
+					uint32 a = 255;
 					
-                    *outPixel ++ = (r << 24) | (g << 16) | (b << 8) | 255;
+                   *outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
                 }
 			}
 				
 			default:
 				throw ErrorException(0, 0, 0); // Todo throw an actual error exception!
-				break;			
+				break;
 		}
-		
-		if(target == RGBA8888)
-			return intermediate;
 		
 		// Convert data to the specified target format
 		switch(target)
 		{
 			case RGBA4444:
 			{
-				result.resize(pixel * 2);
+				result = malloc(pixel * sizeof(uint16));
 				
-				uint32 *inPixel = (uint32 *)&intermediate[0];
-				uint16 *outPixel = (uint16 *)&result[0];
+				uint32 *inPixel  = (uint32 *)intermediate;
+				uint16 *outPixel = (uint16 *)result;
 				
 				for(size_t i=0; i<pixel; i++, inPixel++)
                 {
-                    uint32 r = (((*inPixel >> 24) & 0xFF) >> 4);
-                    uint32 g = (((*inPixel >> 16) & 0xFF) >> 4);
-                    uint32 b = (((*inPixel >> 8)  & 0xFF) >> 4);
-					uint32 a = (((*inPixel >> 0)  & 0xFF) >> 4);
+                    uint32 r = (((*inPixel >> 0)  & 0xFF) >> 4);
+                    uint32 g = (((*inPixel >> 8)  & 0xFF) >> 4);
+                    uint32 b = (((*inPixel >> 16) & 0xFF) >> 4);
+					uint32 a = (((*inPixel >> 24) & 0xFF) >> 4);
                     
                     *outPixel ++ = (r << 12) | (g << 8) | (b << 4) | a;
                 }
+				
+				break;
 			}
 				
 			case RGBA5551:
 			{
-				result.resize(pixel * 2);
+				result = malloc(pixel * sizeof(uint16));
 				
-				uint32 *inPixel = (uint32 *)&intermediate[0];
-				uint16 *outPixel = (uint16 *)&result[0];
+				uint32 *inPixel = (uint32 *)intermediate;
+				uint16 *outPixel = (uint16 *)result;
 				
 				for(size_t i=0; i<pixel; i++, inPixel++)
                 {
-                    uint32 r = (((*inPixel >> 24) & 0xFF) >> 3);
-                    uint32 g = (((*inPixel >> 16) & 0xFF) >> 3);
-                    uint32 b = (((*inPixel >> 8)  & 0xFF) >> 3);
-					uint32 a = (((*inPixel >> 0)  & 0xFF) >> 7);
+                    uint32 r = (((*inPixel >> 0)  & 0xFF) >> 3);
+                    uint32 g = (((*inPixel >> 8)  & 0xFF) >> 3);
+                    uint32 b = (((*inPixel >> 16) & 0xFF) >> 3);
+					uint32 a = (((*inPixel >> 24) & 0xFF) >> 7);
                     
                     *outPixel ++ = (r << 11) | (g << 6) | (b << 1) | a;
                 }
-			}
 				
+				break;
+			}
+			
 			case RGB565:
 			{
-				result.resize(pixel * 2);
+				result = malloc(pixel * sizeof(uint16));
 				
-				uint32 *inPixel = (uint32 *)&intermediate[0];
-				uint16 *outPixel = (uint16 *)&result[0];
+				uint32 *inPixel = (uint32 *)intermediate;
+				uint16 *outPixel = (uint16 *)result;
 				
                 for(size_t i=0; i<pixel; i++, inPixel++)
                 {
-                    uint32 r = (((*inPixel >> 24) & 0xFF) >> 3);
-                    uint32 g = (((*inPixel >> 16) & 0xFF) >> 2);
-                    uint32 b = (((*inPixel >> 8)  & 0xFF) >> 3);
+                    uint32 r = (((*inPixel >> 0) & 0xFF) >> 3);
+                    uint32 g = (((*inPixel >> 8) & 0xFF) >> 2);
+                    uint32 b = (((*inPixel >> 16)  & 0xFF) >> 3);
                     
                     *outPixel ++ = (r << 11) | (g << 5) | (b << 0);
                 }
@@ -282,6 +334,9 @@ namespace RN
 				throw ErrorException(0, 0, 0); // Todo throw an actual error exception!
 				break;
 		}
+		
+		if(intermediate != data)
+			free(intermediate);
 		
 		return result;
 	}

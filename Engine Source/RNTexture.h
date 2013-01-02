@@ -19,17 +19,17 @@ namespace RN
 	public:
 		typedef enum
 		{
-			ARGB8888,
 			RGBA8888,
 			RGBA4444,
 			RGBA5551,
 			RGB565,
 			
 			PVRTC4,
-			PVRTC2			
+			PVRTC2
 		} Format;
 		
 		Texture(Format format);
+		Texture(const std::string& name, Format format);
 		
 		virtual ~Texture();
 		
@@ -38,8 +38,8 @@ namespace RN
 		
 		GLuint Name() { return _name; }
 		
-		void SetData(const std::vector<uint8>& data, uint32 width, uint32 height, Format format);
-		void UpdateData(const std::vector<uint8>& data, Format format);
+		void SetData(const void *data, uint32 width, uint32 height, Format format);
+		void UpdateData(const void *data, Format format);
 		
 		static bool PlatformSupportsFormat(Format format);
 		
@@ -48,7 +48,7 @@ namespace RN
 		uint32 _width, _height;
 		
 	private:
-		static std::vector<uint8> ConvertData(const std::vector<uint8>& data, uint32 width, uint32 height, Format current, Format target);
+		static void *ConvertData(const void *data, uint32 width, uint32 height, Format current, Format target);
 		static void ConvertFormat(Format format, GLenum *glFormat, GLenum *glType);
 		
 		Format _format;
