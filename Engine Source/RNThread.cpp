@@ -11,6 +11,11 @@
 #include "RNArray.h"
 #include "RNContext.h"
 
+#include "RNTexture.h"
+#include "RNCamera.h"
+#include "RNMesh.h"
+#include "RNShader.h"
+
 namespace RN
 {
 	static Mutex       *__ThreadMutex = 0;
@@ -25,22 +30,19 @@ namespace RN
 	
 	Thread::Thread(ThreadEntry entry)
 	{
+		RN::Assert(entry != 0);
+		Initialize();
+		
 		_detached = false;
 		_entry = entry;
-		_mutex = new Mutex();
-		_context = 0;
-		
-		RN::Assert(_entry != 0 && _mutex != 0);
 	}
 	
 	Thread::Thread()
 	{
+		Initialize();
+		
 		_detached = true;
 		_entry = 0;
-		_mutex = new Mutex();
-		_context = 0;
-		
-		RN::Assert(_mutex != 0);
 		
 #if RN_PLATFORM_POSIX
 		_thread = pthread_self();
@@ -49,14 +51,35 @@ namespace RN
 		_thread = GetCurrentThread();
 		_id     = GetCurrentThreadId();
 #endif
+		
+		__ThreadMutex->Lock();
+		__ThreadArray->AddObject(this);
+		__ThreadMutex->Unlock();
 	}
 	
 	Thread::~Thread()
 	{
 		_mutex->Release();
 		
+		_textures->Release();
+		_cameras->Release();
+		_meshes->Release();
+		
 		if(_context)
 			_context->DeactiveContext();
+	}
+	
+	void Thread::Initialize()
+	{
+		_textures = new ObjectArray();
+		_cameras  = new ObjectArray();
+		_meshes   = new ObjectArray();
+		
+		_mutex = new Mutex();
+		_context = 0;
+		
+		RN::Assert(_textures && _cameras && _meshes);
+		RN:Assert(_mutex != 0);
 	}
 	
 	Thread *Thread::CurrentThread()
@@ -73,33 +96,19 @@ namespace RN
 			}
 		}
 		
-#if RN_PLATFORM_POSIX
-		if(pthread_equal(__ThreadMainThread, pthread_self()))
-		{
-			Thread *thread = new Thread();
-			
-			__ThreadArray->AddObject(thread);
-			__ThreadMutex->Unlock();
-			
-			return thread;
-		}
-#endif
-#if RN_PLATFORM_WINDOWS
-		if(__ThreadMainThread == GetCurrentThreadId())
-		{
-			Thread *thread = new Thread();
-			
-			__ThreadArray->AddObject(thread);
-			__ThreadMutex->Unlock();
-			
-			return thread;
-		}
-#endif
-		
 		__ThreadMutex->Unlock();
-		return 0;
+		
+		Thread *thread = new Thread();
+		return thread;
 	}
 	
+	
+	void Thread::Exit()
+	{
+		__ThreadMutex->Lock();
+		__ThreadArray->RemoveObject(this);
+		__ThreadMutex->Unlock();
+	}
 	
 	void *Thread::Entry(void *object)
 	{
@@ -110,12 +119,9 @@ namespace RN
 		__ThreadMutex->Unlock();
 		
 		thread->_entry(thread);
-		
-		__ThreadMutex->Lock();
-		__ThreadArray->RemoveObject(thread);
-		__ThreadMutex->Unlock();
-		
+		thread->Exit();
 		thread->Release();
+		
 		return NULL;
 	}
 	
@@ -175,6 +181,22 @@ namespace RN
 		WaitForSingleObject(other->_thread, INFINITE);
 #endif
 	}
+	
+	void Thread::PushTexture(Texture *texture)
+	{
+		_textures->AddObject(texture);
+	}
+	
+	void Thread::PushCamera(Camera *camera)
+	{
+		_cameras->AddObject(camera);
+	}
+	
+	void Thread::PushMesh(Mesh *mesh)
+	{
+		_meshes->AddObject(mesh);
+	}
+	
 	
 	RN_INITIALIZER(__ThreadInitializer)
 	{

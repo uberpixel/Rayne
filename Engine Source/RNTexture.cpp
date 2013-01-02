@@ -7,16 +7,15 @@
 //
 
 #include "RNTexture.h"
+#include "RNThread.h"
 
 namespace RN
 {
-	Texture::Texture(Format format) :
-		_proxy(this)
+	Texture::Texture(Format format)
 	{
 		glGenTextures(1, &_name);
 		
 		_width = _height = 0;
-		_bound = 0;
 		_format = format;
 		
 		Bind();
@@ -38,15 +37,25 @@ namespace RN
 	
 	void Texture::Bind()
 	{
-		if((++ _bound) == 1)
-		{
+		Thread *thread = Thread::CurrentThread();
+		
+		if(thread->CurrentTexture() != this)
 			glBindTexture(GL_TEXTURE_2D, _name);
-		}
+		
+		thread->PushTexture(this);
 	}
 	
 	void Texture::Unbind()
 	{
-		_bound --;
+		Thread *thread = Thread::CurrentThread();
+		if(thread->CurrentTexture() == this)
+		{
+			thread->PopTexture();
+			
+			Texture *other = thread->CurrentTexture();
+			if(other && other != this)
+				glBindTexture(GL_TEXTURE_2D, other->_name);
+		}
 	}
 	
 	
@@ -57,7 +66,6 @@ namespace RN
 		std::vector<uint8> converted;
 		
 		Bind();
-		_proxy.WillChangeData();
 		
 		converted = ConvertData(data, width, height, format, _format);
 		ConvertFormat(_format, &glFormat, &glType);
@@ -68,7 +76,6 @@ namespace RN
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, glFormat, width, height, 0, glFormat, glType, &converted[0]);
 		
-		_proxy.DidChangeData();
 		Unbind();
 	}
 	
@@ -78,7 +85,7 @@ namespace RN
 		std::vector<uint8> converted;
 		
 		Bind();
-		_proxy.WillChangeData();
+		WillChangeData();
 		
 		converted = ConvertData(data, _width, _height, format, _format);
 		ConvertFormat(_format, &glFormat, &glType);
@@ -86,7 +93,7 @@ namespace RN
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, &converted[0]);
 		
-		_proxy.DidChangeData();
+		DidChangeData();
 		Unbind();
 	}
 	

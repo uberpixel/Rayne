@@ -11,15 +11,27 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNArray.h"
 
 namespace RN
 {
 	class Mutex;
     class Context;
+	
+	class Texture;
+	class Camera;
+	class Mesh;
+	class Shader;
+	
 	class Thread : public Object
 	{
 	public:
 		friend class Context;
+		friend class Texture;
+		friend class Camera;
+		friend class Mesh;
+		friend class Shader;
+		
 		typedef void (*ThreadEntry)(Thread *thread);
 		
 		Thread(ThreadEntry entry);
@@ -27,12 +39,27 @@ namespace RN
 		
 		bool OnThread() const;
 		void Detach();
+		void Exit();
+		
+		Texture *CurrentTexture() const { return (Texture *)_textures->LastObject(); }
+		Camera *CurrentCamera() const { return (Camera *)_cameras->LastObject(); }
+		Mesh *CurrentMesh() const { return (Mesh *)_meshes->LastObject(); }
 		
 		static void Join(Thread *other);
 		static Thread *CurrentThread();
 		
 	private:
 		Thread();
+		void Initialize();
+		
+		void PushTexture(Texture *texture);
+		void PopTexture() { _textures->RemoveLastObject(); }
+		
+		void PushCamera(Camera *camera);
+		void PopCamera() { _cameras->RemoveLastObject(); }
+		
+		void PushMesh(Mesh *mesh);
+		void PopMesh() { _meshes->RemoveLastObject(); }
 		
 		static void *Entry(void *object);
 		
@@ -41,6 +68,10 @@ namespace RN
         
 		Mutex   *_mutex;
 		Context *_context;
+		
+		ObjectArray *_textures;
+		ObjectArray *_cameras;
+		ObjectArray *_meshes;
 		
 #if RN_PLATFORM_POSIX
 		pthread_t _thread;

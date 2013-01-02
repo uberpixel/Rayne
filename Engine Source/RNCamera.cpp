@@ -7,11 +7,10 @@
 //
 
 #include "RNCamera.h"
+#include "RNThread.h"
 
 namespace RN
 {
-	Camera *__CurrentCamera = 0;
-	
 	Camera::Camera(const Vector2& size) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_clearColor(0.193f, 0.435f, 0.753f, 1.0f)
@@ -36,7 +35,6 @@ namespace RN
 		clipnear = 0.1f;
 		clipfar = 500.0f;
 		
-		_bound = false;
 		SetFrame(_frame);
 		
 		UpdateProjection();
@@ -50,39 +48,33 @@ namespace RN
 		glDeleteRenderbuffers(1, &_colorBuffer);
 		glDeleteRenderbuffers(1, &_depthBuffer);
 		glDeleteRenderbuffers(1, &_stencilBuffer);
-		
-		if(_bound)
-			Unbind();
 	}
-	
 	
 	void Camera::Bind()
 	{
-		if(!_bound)
-		{
-			_bound = true;
-			_previous = __CurrentCamera;
-			__CurrentCamera = this;
-			
+		Thread *thread = Thread::CurrentThread();
+		
+		if(thread->CurrentCamera() != this)
 			glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
-		}
+		
+		thread->PushCamera(this);
 	}
 	
 	void Camera::Unbind()
 	{
-		RN::Assert(__CurrentCamera == this);
-		
-		_bound = false;
-		__CurrentCamera = _previous;
-		
-		if(_previous)
-			glBindFramebuffer(GL_FRAMEBUFFER, _previous->_frameBuffer);
+		Thread *thread = Thread::CurrentThread();
+		if(thread->CurrentCamera() == this)
+		{
+			thread->PopCamera();
+			
+			Camera *other = thread->CurrentCamera();
+			if(other && other != this)
+				glBindFramebuffer(GL_FRAMEBUFFER, other->_frameBuffer);
+		}
 	}
 	
 	void Camera::PrepareForRendering()
 	{
-		RN::Assert(__CurrentCamera == this);
-		
 		glViewport(_frame.x, _frame.y, _frame.width, _frame.height);
 		
 		glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);

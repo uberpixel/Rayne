@@ -18,7 +18,7 @@
 
 namespace RN
 {
-	class Camera : public Object
+	class Camera : public Object, public BlockingProxy
 	{
 	public:
 		Camera(const Vector2& size);
@@ -65,10 +65,6 @@ namespace RN
 		GLuint _colorBuffer;
 		GLuint _depthBuffer;
 		GLuint _stencilBuffer;
-		
-	private:
-		bool _bound;
-		Camera *_previous;
 	};
 }
 
