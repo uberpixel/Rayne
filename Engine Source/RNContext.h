@@ -53,11 +53,15 @@ namespace RN
 		Thread *_thread;
 		
 		int32 _glsl;
+		ContextFlags _flags;
 		
 #if RN_PLATFORM_MAC_OS
+		NSOpenGLPixelFormat *CreatePixelFormat(ContextFlags flags);
+		
 		Context *_shared;
 		NSOpenGLContext *_oglContext;
 		NSOpenGLPixelFormat *_oglPixelFormat;
+		CGLContextObj _cglContext;
 #endif
 	};
 }

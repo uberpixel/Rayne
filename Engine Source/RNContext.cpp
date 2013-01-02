@@ -14,11 +14,67 @@ namespace RN
 	Context::Context(ContextFlags flags, Context *shared)
 	{
 		_active = false;
+		_flags  = flags;
 		_thread = 0;
 		_shared = shared;
 		_shared->Retain();
 		
 #if RN_PLATFORM_MAC_OS
+		_oglPixelFormat = CreatePixelFormat(flags);
+		if(!_oglPixelFormat)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
+		
+		_oglContext = [[NSOpenGLContext alloc] initWithFormat:_oglPixelFormat shareContext:_shared ? _shared->_oglContext : nil];
+		if(!_oglContext)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+		
+		_cglContext = (CGLContextObj)[_oglContext CGLContextObj];
+#else
+		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+#endif
+	}
+	
+	Context::Context(Context *shared)
+	{
+		_active = false;
+		_thread = 0;
+		_shared = shared;
+		_shared->Retain();
+		
+#if RN_PLATFORM_MAC_OS
+		_glsl = shared->_glsl;
+		
+		_oglPixelFormat = [[NSOpenGLPixelFormat alloc] initWithCGLPixelFormatObj:[_shared->_oglPixelFormat CGLPixelFormatObj]];
+		if(!_oglPixelFormat)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
+		
+		_oglContext = [[NSOpenGLContext alloc] initWithFormat:_oglPixelFormat shareContext:_shared->_oglContext];
+		if(!_oglContext)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+		
+		_cglContext = (CGLContextObj)[_oglContext CGLContextObj];
+		
+		CGLEnable(_shared->_cglContext, kCGLCEMPEngine);
+		CGLEnable(_cglContext, kCGLCEMPEngine);
+#else
+		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+#endif
+	}
+	
+	Context::~Context()
+	{
+		if(_shared)
+			_shared->Release();
+		
+#if RN_PLATFORM_MAC_OS
+		[_oglContext release];
+		[_oglPixelFormat release];
+#endif
+	}
+	
+#if RN_PLATFORM_MAC_OS
+	NSOpenGLPixelFormat *Context::CreatePixelFormat(ContextFlags flags)
+	{
 		int32 major;
 		int32 minor;
 		RN::OSXVersion(&major, &minor, 0);
@@ -57,45 +113,9 @@ namespace RN
 			0
 		};
 		
-		_oglPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes];
-		if(!_oglPixelFormat)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
-		
-		_oglContext = [[NSOpenGLContext alloc] initWithFormat:_oglPixelFormat shareContext:_shared ? _shared->_oglContext : nil];
-		if(!_oglContext)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
-#else
-		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
-#endif
+		return [[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes];
 	}
-	
-	Context::Context(Context *shared)
-	{
-		_active = false;
-		_thread = 0;
-		_shared = shared;
-		_shared->Retain();
-		
-#if RN_PLATFORM_MAC_OS
-		_glsl = shared->_glsl;
-		
-		_oglPixelFormat = [[NSOpenGLPixelFormat alloc] initWithCGLPixelFormatObj:[_shared->_oglPixelFormat CGLPixelFormatObj]];
-		_oglContext = [[NSOpenGLContext alloc] initWithFormat:_oglPixelFormat shareContext:_shared->_oglContext];
-#else
-		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #endif
-	}
-	
-	Context::~Context()
-	{
-		if(_shared)
-			_shared->Release();
-		
-#if RN_PLATFORM_MAC_OS
-		[_oglContext release];
-		[_oglPixelFormat release];
-#endif
-	}
 	
 	
 	void Context::MakeActiveContext()
@@ -104,6 +124,12 @@ namespace RN
 		RN::Assert(thread);
 		
 		thread->_mutex->Lock();
+		
+		if(thread->_context == this)
+		{
+			thread->_mutex->Unlock();
+			return;
+		}
 		
 		if(thread->_context)
 		{
@@ -134,7 +160,6 @@ namespace RN
 		this->_active = false;
 		this->_thread = 0;
 		
-		this->Flush();
 		this->Deactivate();
 		
 		thread->_context = 0;
@@ -151,12 +176,13 @@ namespace RN
 	
 	void Context::Flush()
 	{
-		glFlush();
+		CGLFlushDrawable(_cglContext);
 	}
 	
 	void Context::Activate()
 	{
 #if RN_PLATFORM_MAC_OS
+		CGLLockContext(_cglContext);
 		[_oglContext makeCurrentContext];
 #endif
 	}
@@ -164,7 +190,8 @@ namespace RN
 	void Context::Deactivate()
 	{
 #if RN_PLATFORM_MAC_OS
-		[NSOpenGLContext clearCurrentContext];
+		//[NSOpenGLContext clearCurrentContext];
+		CGLUnlockContext(_cglContext);
 #endif
 	}
 }
