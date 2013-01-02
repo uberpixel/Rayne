@@ -102,14 +102,6 @@ namespace RN
 	class BlockingProxy : public Proxy
 	{
 	public:
-		virtual void WillAccessData()
-		{
-		}
-		
-		virtual void DidAccessData()
-		{
-		}
-		
 		virtual void AddListener()
 		{
 			if((++ _listener) == 1)
