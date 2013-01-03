@@ -25,32 +25,25 @@ namespace RN
 		kMeshFeatureUVSet1 = 4,
 		kMeshFeatureIndices = 5,
 		
-		kMaxMeshFeatures = 6
+		__kMaxMeshFeatures = 6
 	} MeshFeature;
-	
-	typedef enum
-	{
-		kMeshFeatureTypeVector2,
-		kMeshFeatureTypeVector3,
-		kMeshFeatureTypeVector4,
-		kMeshFeatureTypeUint16
-	} MeshFeatureType;
 	
 	class MeshLODStage;
 	struct MeshDescriptor
 	{
 	friend class MeshLODStage;
 	public:
-		MeshFeature feature;
-		MeshFeatureType type;
-		
+		MeshFeature feature;		
 		int32 elements;
+		
+		size_t elementCount;
+		size_t size;
 		
 	private:
 		uint8 *_pointer;
 		size_t _offset;
 		
-		bool _dirty;
+		bool _available;
 	};
 	
 	class MeshLODStage
@@ -60,18 +53,20 @@ namespace RN
 		~MeshLODStage();
 		
 		template <typename T>
-		T *Data(int32 index) const
+		T *Data(MeshFeature feature)
 		{
-			return static_cast<T *>(_descriptor[index]._pointer);
+			return static_cast<T *>(_descriptor[(int32)feature]._pointer);
 		}
 		
 		void GenerateMesh();
 		
+		GLuint VBO() const { return _vbo; }
+		GLuint IBO() const { return _ibo; }
+		
+		bool SupportsFeature(MeshFeature feature);
+		size_t OffsetForFeature(MeshFeature feature);
+		
 	private:
-		static size_t SizeForMeshFeatureType(MeshFeatureType type);
-		
-		bool _vboToggled;
-		
 		GLuint _vbo;
 		GLuint _ibo;
 		
@@ -80,7 +75,7 @@ namespace RN
 		
 		void *_meshData;
 		void *_indices;
-		Array<MeshDescriptor> _descriptor;
+		MeshDescriptor _descriptor[__kMaxMeshFeatures];
 	};
 	
 	class Mesh : public Object

@@ -12,21 +12,49 @@ namespace RN
 {
 	MeshLODStage::MeshLODStage(const Array<MeshDescriptor>& descriptor)
 	{
-		_descriptor = Array<MeshDescriptor>(descriptor);
 		_meshSize = 0;
 		_meshData = 0;
 		
-		_vbo = _ibo = -1;
+		_indicesSize = 0;
+		_indices     = 0;
 		
-		for(int i=0; i<_descriptor.Count(); i++)
+		glGenBuffers(1, &_vbo);
+		glGenBuffers(1, &_ibo);
+		
+		for(int i=0; i<__kMaxMeshFeatures; i++)
 		{
-			size_t size = _descriptor[i].elements * SizeForMeshFeatureType(_descriptor[i].type);
+			_descriptor[i]._available = false;
+			_descriptor[i]._pointer = 0;
+			_descriptor[i]._offset  = 0;
+		}
+		
+		for(int i=0; i<descriptor.Count(); i++)
+		{
+			size_t size = descriptor[i].size;
+			int index = (int)descriptor[i].feature;
 			
-			if(_descriptor[i].feature != kMeshFeatureIndices)
-				_meshSize += size;
-			
-			_descriptor[i]._pointer = (uint8 *)malloc(size);
-			_descriptor[i]._offset = 0;
+			if(_descriptor[index]._available == false)
+			{
+				if(_descriptor[index].feature != kMeshFeatureIndices)
+					_meshSize += size;
+				else
+					_indicesSize += size;
+				
+				_descriptor[index]._pointer = (uint8 *)malloc(size);
+				_descriptor[index]._offset = 0;
+				_descriptor[index]._available = true;
+			}
+		}
+		
+		size_t offset = 0;
+		for(int i=0; i<__kMaxMeshFeatures; i++)
+		{
+			if(_descriptor[i]._available == false)
+			{
+				_descriptor[i]._offset = offset;
+				offset += descriptor[i].size;
+				
+			}
 		}
 	}
 	
@@ -38,7 +66,7 @@ namespace RN
 		if(_ibo != -1)
 			glDeleteBuffers(1, &_ibo);
 		
-		for(int i=0; i<_descriptor.Count(); i++)
+		for(int i=0; i<__kMaxMeshFeatures; i++)
 		{
 			if(_descriptor[i]._pointer)
 				free(_descriptor[i]._pointer);
@@ -46,6 +74,9 @@ namespace RN
 		
 		if(_meshData)
 			free(_meshData);
+		
+		if(_indices)
+			free(_indices);
 	}
 	
 	void MeshLODStage::GenerateMesh()
@@ -53,113 +84,58 @@ namespace RN
 		if(!_meshData)
 			_meshData = malloc(_meshSize);
 		
-		uint8 *bytes = (uint8 *)_meshData;
+		if(!_indices)
+			_indices = malloc(_indicesSize);
 		
-		for(int i=0; i<_meshSize;)
+		uint8 *bytes = (uint8 *)_meshData;
+		uint8 *bytesEnd = bytes + _meshSize;
+		
+		uint8 *buffer[kMeshFeatureIndices];
+		
+		for(int i=0; i<kMeshFeatureIndices; i++)
 		{
-			for(int j=0; j<_descriptor.Count(); j++)
+			buffer[i] = 0;
+			
+			if(_descriptor[i]._available)
+				buffer[i] = _descriptor[i]._pointer;
+		}
+		
+		while(bytes < bytesEnd)
+		{
+			for(int i=0; i<kMeshFeatureIndices; i++)
 			{
-				if(_descriptor[i].feature == kMeshFeatureIndices)
+				if(_descriptor[i]._available)
 				{
-					_indices = _descriptor[i]._pointer;
-					_indicesSize = _descriptor[i].elements * sizeof(uint16);
-					continue;
-				}
-				
-				switch(_descriptor[i].type)
-				{
-					case kMeshFeatureTypeVector2:
-					{
-						const size_t size = 2 * sizeof(float);
-						
-						memcpy(&bytes[i], &_descriptor[i]._pointer[_descriptor[i]._offset], size);
-						
-						_descriptor[i]._offset += size;
-						i += size;
-						break;
-					}
-						
-					case kMeshFeatureTypeVector3:
-					{
-						const size_t size = 3 * sizeof(float);
-						
-						memcpy(&bytes[i], &_descriptor[i]._pointer[_descriptor[i]._offset], size);
-						
-						_descriptor[i]._offset += size;
-						i += size;
-						break;
-					}
-						
-					case kMeshFeatureTypeVector4:
-					{
-						const size_t size = 4 * sizeof(float);
-						
-						memcpy(&bytes[i], &_descriptor[i]._pointer[_descriptor[i]._offset], size);
-						
-						_descriptor[i]._offset += size;
-						i += size;
-						break;
-					}
-						
-					case kMeshFeatureTypeUint16:
-					{
-						const size_t size = sizeof(uint16);
-						
-						memcpy(&bytes[i], &_descriptor[i]._pointer[_descriptor[i]._offset], size);
-						
-						_descriptor[i]._offset += size;
-						i += size;
-						break;
-					}
-						
-					default:
-						break;
+					memcpy(bytes, buffer[i], _descriptor[i].size);
+					
+					bytes     += _descriptor[i].size;
+					buffer[i] += _descriptor[i].size;
 				}
 			}
 		}
 		
-		
-		// Generate the buffers
-		if(_vbo == -1)
-			glGenBuffers(1, &_vbo);
-			
-		if(_ibo == -1)
-			glGenBuffers(1, &_ibo);
-		
+		if(_descriptor[kMeshFeatureIndices]._available)
+			memcpy(_indices, _descriptor[kMeshFeatureIndices]._pointer, _indicesSize);		
 		
 		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 		glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, GL_STATIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 
-	
-	size_t MeshLODStage::SizeForMeshFeatureType(MeshFeatureType type)
+	bool MeshLODStage::SupportsFeature(MeshFeature feature)
 	{
-		switch(type)
-		{
-			case kMeshFeatureTypeVector2:
-				return 2 * sizeof(float);
-				break;
-				
-			case kMeshFeatureTypeVector3:
-				return 3 * sizeof(float);
-				break;
-				
-			case kMeshFeatureTypeVector4:
-				return 4 * sizeof(float);
-				
-			case kMeshFeatureTypeUint16:
-				return sizeof(uint16);
-				break;
-			
-			default:
-				return 0;
-		}
+		return _descriptor[(int32)feature]._available;
 	}
+	
+	size_t MeshLODStage::OffsetForFeature(MeshFeature feature)
+	{
+		return _descriptor[(int32)feature]._offset;
+	}
+	
+
+	
 	
 	
 	Mesh::Mesh()
