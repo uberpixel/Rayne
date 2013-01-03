@@ -16,7 +16,7 @@
 namespace RN
 {
 	class Mutex;
-    class Context;
+	class Context;
 	
 	class Texture;
 	class Camera;
@@ -65,7 +65,7 @@ namespace RN
 		
 		bool _detached;
 		ThreadEntry _entry;
-        
+		
 		Mutex   *_mutex;
 		Context *_context;
 		

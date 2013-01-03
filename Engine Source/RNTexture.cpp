@@ -193,14 +193,14 @@ namespace RN
 				uint32 *outPixel = (uint32 *)intermediate;
 				
 				for(size_t i=0; i<pixel; i++, inPixel++)
-                {
+				{
 					uint32 r = ((*inPixel >> 24) & 0xFF);
 					uint32 g = ((*inPixel >> 16) & 0xFF);
 					uint32 b = ((*inPixel >> 8)  & 0xFF);
 					uint32 a = ((*inPixel >> 0)  & 0xFF);
 					
-                    *outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
-                }
+					*outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
+				}
 				
 				break;
 			}*/
@@ -213,14 +213,14 @@ namespace RN
 				uint32 *outPixel = (uint32 *)intermediate;
 				
 				for(size_t i=0; i<pixel; i++, inPixel++)
-                {
+				{
 					uint32 r = ((*inPixel >> 12) & 0xF) << 4;
 					uint32 g = ((*inPixel >> 8)  & 0xF) << 4;
 					uint32 b = ((*inPixel >> 4)  & 0xF) << 4;
 					uint32 a = ((*inPixel >> 0)  & 0xF) << 4;
 					
-                    *outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
-                }
+					*outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
+				}
 				
 				break;
 			}
@@ -233,14 +233,14 @@ namespace RN
 				uint32 *outPixel = (uint32 *)intermediate;
 				
 				for(size_t i=0; i<pixel; i++, inPixel++)
-                {
+				{
 					uint32 r = ((*inPixel >> 11) & 0xFF) << 3;
 					uint32 g = ((*inPixel >> 6)  & 0xFF) << 3;
 					uint32 b = ((*inPixel >> 1)  & 0xFF) << 3;
 					uint32 a = ((*inPixel >> 0)  & 0xFF) << 7;
 					
-                    *outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
-                }
+					*outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
+				}
 				
 				break;
 			}
@@ -253,14 +253,14 @@ namespace RN
 				uint32 *outPixel = (uint32 *)intermediate;
 				
 				for(size_t i=0; i<pixel; i++, inPixel++)
-                {
+				{
 					uint32 r = ((*inPixel >> 11) & 0xFF) << 3;
 					uint32 g = ((*inPixel >> 5)  & 0xFF) << 2;
 					uint32 b = ((*inPixel >> 0)  & 0xFF) << 3;
 					uint32 a = 255;
 					
-                   *outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
-                }
+				   *outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
+				}
 			}
 				
 			default:
@@ -279,14 +279,14 @@ namespace RN
 				uint16 *outPixel = (uint16 *)result;
 				
 				for(size_t i=0; i<pixel; i++, inPixel++)
-                {
-                    uint32 r = (((*inPixel >> 0)  & 0xFF) >> 4);
-                    uint32 g = (((*inPixel >> 8)  & 0xFF) >> 4);
-                    uint32 b = (((*inPixel >> 16) & 0xFF) >> 4);
+				{
+					uint32 r = (((*inPixel >> 0)  & 0xFF) >> 4);
+					uint32 g = (((*inPixel >> 8)  & 0xFF) >> 4);
+					uint32 b = (((*inPixel >> 16) & 0xFF) >> 4);
 					uint32 a = (((*inPixel >> 24) & 0xFF) >> 4);
-                    
-                    *outPixel ++ = (r << 12) | (g << 8) | (b << 4) | a;
-                }
+					
+					*outPixel ++ = (r << 12) | (g << 8) | (b << 4) | a;
+				}
 				
 				break;
 			}
@@ -299,14 +299,14 @@ namespace RN
 				uint16 *outPixel = (uint16 *)result;
 				
 				for(size_t i=0; i<pixel; i++, inPixel++)
-                {
-                    uint32 r = (((*inPixel >> 0)  & 0xFF) >> 3);
-                    uint32 g = (((*inPixel >> 8)  & 0xFF) >> 3);
-                    uint32 b = (((*inPixel >> 16) & 0xFF) >> 3);
+				{
+					uint32 r = (((*inPixel >> 0)  & 0xFF) >> 3);
+					uint32 g = (((*inPixel >> 8)  & 0xFF) >> 3);
+					uint32 b = (((*inPixel >> 16) & 0xFF) >> 3);
 					uint32 a = (((*inPixel >> 24) & 0xFF) >> 7);
-                    
-                    *outPixel ++ = (r << 11) | (g << 6) | (b << 1) | a;
-                }
+					
+					*outPixel ++ = (r << 11) | (g << 6) | (b << 1) | a;
+				}
 				
 				break;
 			}
@@ -318,14 +318,14 @@ namespace RN
 				uint32 *inPixel = (uint32 *)intermediate;
 				uint16 *outPixel = (uint16 *)result;
 				
-                for(size_t i=0; i<pixel; i++, inPixel++)
-                {
-                    uint32 r = (((*inPixel >> 0) & 0xFF) >> 3);
-                    uint32 g = (((*inPixel >> 8) & 0xFF) >> 2);
-                    uint32 b = (((*inPixel >> 16)  & 0xFF) >> 3);
-                    
-                    *outPixel ++ = (r << 11) | (g << 5) | (b << 0);
-                }
+				for(size_t i=0; i<pixel; i++, inPixel++)
+				{
+					uint32 r = (((*inPixel >> 0) & 0xFF) >> 3);
+					uint32 g = (((*inPixel >> 8) & 0xFF) >> 2);
+					uint32 b = (((*inPixel >> 16)  & 0xFF) >> 3);
+					
+					*outPixel ++ = (r << 11) | (g << 5) | (b << 0);
+				}
 				
 				break;
 			}

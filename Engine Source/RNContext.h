@@ -35,7 +35,7 @@ namespace RN
 		Context(ContextFlags flags, Context *shared=0);
 		Context(Context *shared);
 		
-        virtual ~Context();
+		virtual ~Context();
 		
 		void MakeActiveContext();
 		void DeactiveContext();
@@ -44,10 +44,10 @@ namespace RN
 		
 		static Context *ActiveContext();
 		
-    protected:
-        virtual void Activate();
-        virtual void Deactivate();
-        
+	protected:
+		virtual void Activate();
+		virtual void Deactivate();
+		
 	private:
 		bool _active;
 		Thread *_thread;

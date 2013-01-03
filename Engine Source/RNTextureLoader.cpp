@@ -53,16 +53,16 @@ namespace RN
 		png_infop pngInfo = png_create_info_struct(pngPointer);
 		
 		png_init_io(pngPointer, file);
-        png_set_sig_bytes(pngPointer, 8);
+		png_set_sig_bytes(pngPointer, 8);
 		
-        png_read_info(pngPointer, pngInfo);
+		png_read_info(pngPointer, pngInfo);
 		
 		uint32 width  = (uint32)png_get_image_width(pngPointer, pngInfo);
-        uint32 height = (uint32)png_get_image_height(pngPointer, pngInfo);
+		uint32 height = (uint32)png_get_image_height(pngPointer, pngInfo);
 		
-        png_byte colorType = png_get_color_type(pngPointer, pngInfo);
+		png_byte colorType = png_get_color_type(pngPointer, pngInfo);
 		
-        png_read_update_info(pngPointer, pngInfo);
+		png_read_update_info(pngPointer, pngInfo);
 		
 		
 		png_size_t rowBytes = png_get_rowbytes(pngPointer, pngInfo);
