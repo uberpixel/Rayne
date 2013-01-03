@@ -108,8 +108,7 @@ namespace RN
 			NSOpenGLPFAAlphaSize, 8,
 			NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute)depthBufferSize,
 			NSOpenGLPFAStencilSize, (NSOpenGLPixelFormatAttribute)stencilBufferSize,
-			//oglProfile, NSOpenGLProfileVersion3_2Core,
-			oglProfile, NSOpenGLProfileVersionLegacy,
+			oglProfile, NSOpenGLProfileVersion3_2Core,
 			0
 		};
 		
