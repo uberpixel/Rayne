@@ -51,7 +51,7 @@ namespace RN
 		size_t offset = 0;
 		for(int i=0; i<__kMaxMeshFeatures; i++)
 		{
-			if(_descriptor[i]._available == false)
+			if(_descriptor[i]._available)
 			{
 				_descriptor[i]._offset = offset;
 				offset += _descriptor[i].elementSize;
@@ -117,7 +117,21 @@ namespace RN
 		}
 		
 		if(_descriptor[kMeshFeatureIndices]._available)
-			memcpy(_indices, _descriptor[kMeshFeatureIndices]._pointer, _indicesSize);		
+			memcpy(_indices, _descriptor[kMeshFeatureIndices]._pointer, _indicesSize);
+		
+		float *data = (float *)_meshData;
+		float *end = (float *)bytesEnd;
+		
+		int i=0;
+		while(data < end)
+		{
+			printf("%f ", *data);
+			
+			if((++ i) % 7 == 0)
+				printf("\n");
+			
+			data ++;
+		}
 		
 		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 		glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, GL_STATIC_DRAW);
