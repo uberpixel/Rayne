@@ -18,7 +18,7 @@ namespace RN
 	
 	void ListMember::AddNext(ListMember *member)
 	{
-		RN::Assert(member && member->_list == 0);
+		RN_ASSERT0(member && member->_list == 0);
 		
 		member->Retain();
 		
@@ -34,7 +34,7 @@ namespace RN
 	
 	void ListMember::AddPrev(ListMember *member)
 	{
-		RN::Assert(member && member->_list == 0);
+		RN_ASSERT0(member && member->_list == 0);
 		
 		member->Retain();
 		
@@ -74,7 +74,7 @@ namespace RN
 	
 	void List::AddFront(ListMember *member)
 	{
-		RN::Assert(member->_list == 0);
+		RN_ASSERT0(member->_list == 0);
 		
 		member->_prev = 0;
 		member->_next = _head;
@@ -89,7 +89,7 @@ namespace RN
 	
 	void List::AddBack(ListMember *member)
 	{
-		RN::Assert(member->_list == 0);
+		RN_ASSERT0(member->_list == 0);
 		
 		member->_prev = _tail;
 		member->_next = 0;
@@ -104,7 +104,7 @@ namespace RN
 	
 	void List::Remove(ListMember *member)
 	{
-		RN::Assert(member->_list == this);
+		RN_ASSERT0(member->_list == this);
 		
 		if(member->_next)
 			member->_next->_prev = member->_prev;

@@ -16,12 +16,31 @@ namespace RN
 {
 	enum
 	{
+		kGraphicsGroupGeneric = 0x0,
+		kGraphicsGroupOpenGL  = 0x1
+	};
+	
+	enum
+	{
 		kGraphicsNoHardware = 0x1,
 		kGraphicsContextFailed = 0x2,
 		kGraphicsShaderTypeNotSupported = 0x3,
 		kGraphicsShaderCompilingFailed = 0x4,
 		kGraphicsShaderLinkingFailed = 0x5,
 		kGraphicsShaderAlreadyLinked = 0x6
+	};
+	
+	enum
+	{
+		kGraphicsFramebufferGenericError,
+		kGraphicsFramebufferUndefined,
+		kGraphicsFramebufferIncompleteAttachment,
+		kGraphicsFramebufferIncompleteMissingAttachment,
+		kGraphicsFramebufferIncompleteDrawBuffer,
+		kGraphicsFramebufferUnsupported,
+		kGraphicsFramebufferIncompleteMultisample,
+		kGraphicsFramebufferIncompleteLayerTargets,
+		kGraphicsFramebufferIncompleteDimensions
 	};
 }
 

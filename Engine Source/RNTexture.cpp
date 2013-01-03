@@ -139,7 +139,7 @@ namespace RN
 	
 	void Texture::ConvertFormat(Format format, GLenum *glFormat, GLenum *glType)
 	{
-		RN::Assert(glFormat != 0 && glType != 0);
+		RN_ASSERT0(glFormat != 0 && glType != 0);
 		
 		switch(format)
 		{

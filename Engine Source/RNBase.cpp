@@ -10,17 +10,20 @@
 
 namespace RN
 {
-	void Assert(bool condition, const char *message)
+	void __Assert(const char *func, int line, const char *expression, const char *message, ...)
 	{
-		if(!condition)
+		fprintf(stderr, "%s(), assertion '%s' failed!\n", func, expression);
+		
+		if(message)
 		{
-			#if RN_PLATFORM_POSIX
-				raise(SIGTRAP);
-			#endif
+			va_list args;
+			va_start(args, message);
 			
-			#if RN_PLATFORM_WINDOWS
-				__debugbreak();
-			#endif
-		}
+			vfprintf(stderr, message, args);
+			
+			va_end(args);
+		}			
+		
+		abort();
 	}
 }

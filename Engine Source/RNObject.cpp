@@ -17,7 +17,7 @@ namespace RN
 	
 	Object::~Object()
 	{
-		RN::Assert(_refCount == 0, "refCount must be zero on destructor call!");
+		RN_ASSERT(_refCount <= 1, "refCount must be <= 1 upon destructor call. Use object->Release(); instead of delete object;");
 	}
 	
 	

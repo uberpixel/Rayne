@@ -121,7 +121,7 @@ namespace RN
 	void Context::MakeActiveContext()
 	{
 		Thread *thread = Thread::CurrentThread();
-		RN::Assert(thread);
+		RN_ASSERT0(thread);
 		
 		thread->_mutex->Lock();
 		
@@ -153,7 +153,7 @@ namespace RN
 	void Context::DeactiveContext()
 	{
 		Thread *thread = Thread::CurrentThread();
-		RN::Assert(thread);
+		RN_ASSERT0(thread);
 		
 		thread->_mutex->Lock();
 		
@@ -169,7 +169,7 @@ namespace RN
 	Context *Context::ActiveContext()
 	{
 		Thread *thread = Thread::CurrentThread();
-		RN::Assert(thread);
+		RN_ASSERT0(thread);
 		
 		return thread->_context;
 	}

@@ -16,12 +16,12 @@ namespace RN
 		int error = 0;
 		
 		error = pthread_mutexattr_init(&_attribute);
-		RN::Assert(error == 0);
+		RN_ASSERT0(error == 0);
 		
 		pthread_mutexattr_settype(&_attribute, PTHREAD_MUTEX_NORMAL);
 		
 		error = pthread_mutex_init(&_mutex, &_attribute);
-		RN::Assert(error == 0);
+		RN_ASSERT0(error == 0);
 #endif
 		
 #if RN_PLATFORM_WINDOWS

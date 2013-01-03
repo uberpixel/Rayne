@@ -24,18 +24,18 @@ namespace RN
 			_capacity = 10;
 			_data     = (T *)malloc(_capacity * sizeof(T));
 			
-			RN::Assert(_data);
+			RN_ASSERT0(_data);
 		}
 		
 		Array(size_t capacity)
 		{
-			RN::Assert(capacity > 0);
+			RN_ASSERT0(capacity > 0);
 			
 			_count    = 0;
 			_capacity = capacity;
 			_data     = (T *)malloc(_capacity * sizeof(T));
 			
-			RN::Assert(_data);
+			RN_ASSERT0(_data);
 		}
 		
 		Array(const Array<T>& other)
@@ -44,7 +44,7 @@ namespace RN
 			_capacity = other._capacity;
 			_data     = (T *)malloc(_capacity * sizeof(T));
 			
-			RN::Assert(_data);
+			RN_ASSERT0(_data);
 			memcpy((void *)_data, (const void *)other._data, _count * sizeof(T));
 		}
 		
@@ -68,7 +68,7 @@ namespace RN
 		
 		virtual void RemoveObjectAtIndex(machine_uint index)
 		{
-			RN::Assert(index != RN_NOT_FOUND);
+			RN_ASSERT0(index != RN_NOT_FOUND);
 			
 			_count --;
 			
@@ -97,7 +97,7 @@ namespace RN
 		
 		virtual T& ObjectAtIndex(machine_uint index) const
 		{
-			RN::Assert(index != RN_NOT_FOUND && index < _count);
+			RN_ASSERT0(index != RN_NOT_FOUND && index < _count);
 			return _data[index];
 		}
 		
@@ -164,7 +164,7 @@ namespace RN
 		
 		virtual void RemoveObjectAtIndex(machine_uint index)
 		{
-			RN::Assert(index != RN_NOT_FOUND);
+			RN_ASSERT0(index != RN_NOT_FOUND);
 			Object *object = _data[index];
 			
 			Array::RemoveObjectAtIndex(index);

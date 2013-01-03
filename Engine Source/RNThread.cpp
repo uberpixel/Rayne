@@ -30,7 +30,7 @@ namespace RN
 	
 	Thread::Thread(ThreadEntry entry)
 	{
-		RN::Assert(entry != 0);
+		RN_ASSERT0(entry != 0);
 		Initialize();
 		
 		_detached = false;
@@ -78,8 +78,8 @@ namespace RN
 		_mutex = new Mutex();
 		_context = 0;
 		
-		RN::Assert(_textures && _cameras && _meshes);
-		RN:Assert(_mutex != 0);
+		RN_ASSERT0(_textures && _cameras && _meshes);
+		RN_ASSERT0(_mutex != 0);
 	}
 	
 	Thread *Thread::CurrentThread()
@@ -171,7 +171,7 @@ namespace RN
 	void Thread::Join(Thread *other)
 	{
 		other->_mutex->Lock();
-		RN::Assert(other->_detached);
+		RN_ASSERT0(other->_detached);
 		other->_mutex->Unlock();
 		
 #if RN_PLATFORM_POSIX
@@ -210,6 +210,6 @@ namespace RN
 		__ThreadMainThread = GetCurrentThreadId();
 #endif
 		
-		RN::Assert(__ThreadMutex != 0 && __ThreadArray != 0);
+		RN_ASSERT0(__ThreadMutex != 0 && __ThreadArray != 0);
 	}
 }

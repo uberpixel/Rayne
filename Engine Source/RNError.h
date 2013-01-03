@@ -39,12 +39,12 @@ namespace RN
 	
 	enum
 	{
-		kErrorGroupEngine   = RNErrorGroup(0x0),
-		kErrorGroupGraphics = RNErrorGroup(0x1),
-		kErrorGroupMath     = RNErrorGroup(0x2),
-		kErrorGroupSystem   = RNErrorGroup(0x3),
-		kErrorGroupInput    = RNErrorGroup(0x4),
-		kErrorGroupNetwork  = RNErrorGroup(0x5)
+		kErrorGroupEngine   = 0x0,
+		kErrorGroupGraphics = 0x1,
+		kErrorGroupMath     = 0x2,
+		kErrorGroupSystem   = 0x3,
+		kErrorGroupInput    = 0x4,
+		kErrorGroupNetwork  = 0x5
 	};
 	
 	
@@ -52,7 +52,7 @@ namespace RN
 	{
 	public:
 		ErrorException(ErrorCode error, const std::string& description="") { _error = error; _description = description; }
-		ErrorException(uint32 group, uint32 subgroup, uint32 code, const std::string& description="") { _error = group | subgroup | code; _description = description; }
+		ErrorException(uint32 group, uint32 subgroup, uint32 code, const std::string& description="") { _error = RNErrorGroup(group) | RNErrorSubgroup(subgroup) | code; _description = description; }
 		
 		uint32 Group() const { return RNErrorGetGroup(_error); }
 		uint32 Subgroup() const { return RNErrorGetSubroup(_error); }

@@ -22,6 +22,7 @@ namespace RN
 	{
 	public:
 		Camera(const Vector2& size);
+		Camera(GLuint framebuffer);
 		virtual ~Camera();
 		
 		void Bind();
@@ -52,6 +53,8 @@ namespace RN
 		Quaternion rotation;
 		
 	protected:
+		void CheckError();
+		
 		Rect _frame;
 		Color _clearColor;
 		
@@ -61,6 +64,7 @@ namespace RN
 		Matrix _viewMatrix;
 		Matrix _inverseViewMatrix;
 		
+		bool _ownsBuffer;
 		GLuint _frameBuffer;
 		GLuint _colorBuffer;
 		GLuint _depthBuffer;

@@ -11,6 +11,9 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNRenderering.h"
+#include "RNRendererFrontend.h"
+#include "RNWindow.h"
 
 namespace RN
 {
@@ -20,7 +23,18 @@ namespace RN
 		Kernel();
 		virtual ~Kernel();
 		
+		void Update(float delta);
+		void SetContext(Context *context);
+		
+		RendererFrontend *Renderer() { return _renderer; }
+		
 		static Kernel *SharedInstance();
+		static void CheckOpenGLError(const char *context);
+		
+	private:
+		Context *_context;
+		Window *_window;
+		RendererFrontend *_renderer;
 	};
 }
 

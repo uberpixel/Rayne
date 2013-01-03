@@ -71,12 +71,13 @@
 namespace RN
 {
 #ifndef NDEBUG
-	RN_EXTERN void Assert(bool condition, const char *message = 0);
+	RN_EXTERN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
+	
+	#define RN_ASSERT(e, ...) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, __VA_ARGS__) : (void)0
+	#define RN_ASSERT0(e) if(!(e)) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, 0) : (void)0
+	
 #else
-	static inline void Assert(bool condition, const char *message = 0);
-	void Assert(bool condition, const char *message = 0)
-	{
-	}
+	#define RN_ASSERT(e, message, ...) (void)0
 #endif
 	
 #if RN_PLATFORM_MAC_OS
@@ -84,10 +85,10 @@ namespace RN
 		static inline void OSXVersion(int32 *major, int32 *minor, int32 *patch)
 		{
 			NSDictionary *dict = [NSDictionary dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
-			Assert(dict);
+			RN_ASSERT0(dict);
 			
 			NSArray *versionComponents = [[dict objectForKey:@"ProductVersion"] componentsSeparatedByString:@"."];
-			Assert(dict);
+			RN_ASSERT0(dict);
 			
 			if(major)
 				*major = [[versionComponents objectAtIndex:0] intValue];
