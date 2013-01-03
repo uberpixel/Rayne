@@ -46,6 +46,8 @@ namespace RN
 		GLuint position;
 		GLuint texcoord0;
 		GLuint texcoord1;
+		GLuint color0;
+		GLuint color1;
 		
 	private:
 		void SetShaderForType(const std::string& path, GLenum type);

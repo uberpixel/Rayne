@@ -224,8 +224,11 @@ namespace RN
 			
 			// Get attributes
 			position = glGetAttribLocation(program, "position");
+			
 			texcoord0 = glGetAttribLocation(program, "texcoord0");
 			texcoord1 = glGetAttribLocation(program, "texcoord1");
+			color0 = glGetAttribLocation(program, "color0");
+			color1 = glGetAttribLocation(program, "color1");
 		}
 	}
 }
