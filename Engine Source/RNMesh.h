@@ -33,11 +33,11 @@ namespace RN
 	{
 	friend class MeshLODStage;
 	public:
-		MeshFeature feature;		
-		int32 elements;
+		MeshFeature feature;
 		
+		int32 elementMember;
+		size_t elementSize;
 		size_t elementCount;
-		size_t size;
 		
 	private:
 		uint8 *_pointer;
@@ -55,7 +55,12 @@ namespace RN
 		template <typename T>
 		T *Data(MeshFeature feature)
 		{
-			return static_cast<T *>(_descriptor[(int32)feature]._pointer);
+			return (T *)(_descriptor[(int32)feature]._pointer);
+		}
+		
+		MeshDescriptor *Descriptor(MeshFeature feature)
+		{
+			return &_descriptor[(int32)feature];
 		}
 		
 		void GenerateMesh();

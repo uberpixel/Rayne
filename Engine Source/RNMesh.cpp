@@ -30,11 +30,13 @@ namespace RN
 		
 		for(int i=0; i<descriptor.Count(); i++)
 		{
-			size_t size = descriptor[i].size;
+			size_t size = descriptor[i].elementSize * descriptor[i].elementCount;
 			int index = (int)descriptor[i].feature;
 			
 			if(_descriptor[index]._available == false)
 			{
+				_descriptor[index] = descriptor[i];
+				
 				if(_descriptor[index].feature != kMeshFeatureIndices)
 					_meshSize += size;
 				else
@@ -52,7 +54,7 @@ namespace RN
 			if(_descriptor[i]._available == false)
 			{
 				_descriptor[i]._offset = offset;
-				offset += descriptor[i].size;
+				offset += _descriptor[i].elementSize;
 				
 			}
 		}
@@ -106,10 +108,10 @@ namespace RN
 			{
 				if(_descriptor[i]._available)
 				{
-					memcpy(bytes, buffer[i], _descriptor[i].size);
+					memcpy(bytes, buffer[i], _descriptor[i].elementSize);
 					
-					bytes     += _descriptor[i].size;
-					buffer[i] += _descriptor[i].size;
+					bytes     += _descriptor[i].elementSize;
+					buffer[i] += _descriptor[i].elementSize;
 				}
 			}
 		}
@@ -145,9 +147,7 @@ namespace RN
 	Mesh::~Mesh()
 	{
 		for(int i=0; i<_LODStages.Count(); i++)
-		{
 			delete _LODStages[i];
-		}
 	}
 	
 	MeshLODStage *Mesh::AddLODStage(const Array<MeshDescriptor>& descriptor)
