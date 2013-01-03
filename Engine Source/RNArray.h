@@ -90,6 +90,11 @@ namespace RN
 			
 		}
 		
+		virtual void RemoveAllObjects()
+		{
+			_count = 0;
+		}
+		
 		virtual T& ObjectAtIndex(machine_uint index) const
 		{
 			RN::Assert(index != RN_NOT_FOUND && index < _count);
@@ -164,6 +169,16 @@ namespace RN
 			
 			Array::RemoveObjectAtIndex(index);
 			object->Release();
+		}
+		
+		virtual void RemoveAllObjects()
+		{
+			for(machine_uint i=0; i<_count; i++)
+			{
+				_data[i]->Release();
+			}
+			
+			_count = 0;
 		}
 		
 		virtual void RemoveLastObject()
