@@ -16,9 +16,12 @@
 
 namespace RN
 {
+	class Material;
 	class Shader : public Object, public BlockingProxy
 	{
 	public:
+		friend class Material;
+		
 		Shader();
 		virtual ~Shader();
 		
