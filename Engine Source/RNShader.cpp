@@ -7,12 +7,13 @@
 //
 
 #include "RNShader.h"
+#include "RNKernel.h"
 
 namespace RN
 {
 	Shader::Shader()
 	{
-		_vertexShader = _fragmentShader = _fragmentShader = 0;
+		_vertexShader = _fragmentShader = _geometryShader = 0;
 		program = 0;
 	}
 	
@@ -107,11 +108,12 @@ namespace RN
 				break;
 		}
 		
-		
 		const GLchar *source = (const GLchar *)&data[0];
 		GLuint shader = glCreateShader(type);
 		
-		if(!shader == 0)
+		Kernel::CheckOpenGLError("glCreateShader");
+		
+		if(shader == 0)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
 		
 		glShaderSource(shader, 1, &source, NULL);
@@ -132,6 +134,27 @@ namespace RN
 			delete [] log;
 			
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, tlog);
+		}
+		
+		switch(type)
+		{
+			case GL_VERTEX_SHADER:
+				_vertexShader = shader;
+				break;
+				
+			case GL_FRAGMENT_SHADER:
+				_fragmentShader = shader;
+				break;
+				
+#ifdef GL_GEOMETRY_SHADER
+			case GL_GEOMETRY_SHADER:
+				_geometryShader = shader;
+				break;
+#endif
+				
+			default:
+				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
+				break;
 		}
 	}
 	
@@ -164,6 +187,9 @@ namespace RN
 		if(_geometryShader)
 			glAttachShader(program, _geometryShader);
 		
+		
+		glBindFragDataLocation(program, 0, "fragColor0");
+		glBindFragDataLocation(program, 1, "fragColor1");
 		
 		glLinkProgram(program);
 		
