@@ -16,12 +16,10 @@ namespace RN
 	public:
 		Color(float n=1.0f);
 		Color(float r, float g, float b, float a=1.0f);
-		Color(const Color& other);
 		
 		bool operator== (const Color& other);
 		bool operator!= (const Color& other);
 		
-		Color& operator= (const Color& other);
 		Color operator- () const;
 		
 		Color& operator+= (const Color& other);
@@ -66,14 +64,6 @@ namespace RN
 		a = _a;
 	}
 	
-	RN_INLINE Color::Color(const Color& other)
-	{
-		r = other.r;
-		g = other.g;
-		b = other.b;
-		a = other.a;
-	}
-	
 	
 	RN_INLINE bool Color::operator== (const Color& other)
 	{
@@ -93,16 +83,6 @@ namespace RN
 		float absA = fabsf(a - other.a);
 		
 		return (absR > kRNEpsilonFloat || absG > kRNEpsilonFloat || absB > kRNEpsilonFloat || absA > kRNEpsilonFloat);
-	}
-	
-	RN_INLINE Color& Color::operator= (const Color& other)
-	{
-		r = other.r;
-		g = other.g;
-		b = other.b;
-		a = other.a;
-		
-		return *this;
 	}
 	
 	RN_INLINE Color Color::operator- () const
@@ -297,6 +277,8 @@ namespace RN
 		
 		return result;
 	}
+	
+	static_assert(std::is_trivially_copyable<Color>::value, "Color must be trivially copyable");
 }
 
 #endif /* __RAYNE_Color_H__ */
