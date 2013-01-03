@@ -9,19 +9,15 @@
 #ifndef __RAYNE_SHADER_H__
 #define __RAYNE_SHADER_H__
 
-#include <string>
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNFile.h"
 
 namespace RN
 {
-	class Material;
 	class Shader : public Object, public BlockingProxy
 	{
-	public:
-		friend class Material;
-		
+	public:		
 		Shader();
 		virtual ~Shader();
 		
@@ -36,6 +32,21 @@ namespace RN
 		
 		void Link();
 		
+		GLuint program;
+		
+		GLuint matProj;
+		GLuint matProjInverse;
+		GLuint matView;
+		GLuint matViewInverse;
+		GLuint matModel;
+		GLuint matModelInverse;
+		GLuint matProjViewModel;
+		GLuint matProjViewModelInverse;
+		
+		GLuint position;
+		GLuint texcoord0;
+		GLuint texcoord1;
+		
 	private:
 		void SetShaderForType(const std::string& path, GLenum type);
 		void SetShaderForType(File *file, GLenum type);
@@ -44,21 +55,6 @@ namespace RN
 		GLuint _vertexShader;
 		GLuint _fragmentShader;
 		GLuint _geometryShader;
-		
-		GLuint _program;
-		
-		GLuint _matProj;
-		GLuint _matProjInverse;
-		GLuint _matView;
-		GLuint _matViewInverse;
-		GLuint _matModel;
-		GLuint _matModelInverse;
-		GLuint _matProjViewModel;
-		GLuint _matProjViewModelInverse;
-		
-		GLuint _position;
-		GLuint _texcoord0;
-		GLuint _texcoord1;
 	};
 }
 

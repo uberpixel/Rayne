@@ -13,7 +13,7 @@ namespace RN
 	Shader::Shader()
 	{
 		_vertexShader = _fragmentShader = _fragmentShader = 0;
-		_program = 0;
+		program = 0;
 	}
 	
 	Shader::~Shader()
@@ -27,8 +27,8 @@ namespace RN
 		if(_geometryShader)
 			glDeleteShader(_geometryShader);
 		
-		if(_program)
-			glDeleteProgram(_program);
+		if(program)
+			glDeleteProgram(program);
 	}
 	
 	
@@ -150,32 +150,32 @@ namespace RN
 	
 	void Shader::Link()
 	{
-		if(_program)
+		if(program)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderAlreadyLinked);
 
-		_program = glCreateProgram();
+		program = glCreateProgram();
 		
 		if(_vertexShader)
-			glAttachShader(_program, _vertexShader);
+			glAttachShader(program, _vertexShader);
 		
 		if(_fragmentShader)
-			glAttachShader(_program, _fragmentShader);
+			glAttachShader(program, _fragmentShader);
 		
 		if(_geometryShader)
-			glAttachShader(_program, _geometryShader);
+			glAttachShader(program, _geometryShader);
 		
 		
-		glLinkProgram(_program);
+		glLinkProgram(program);
 		
 		GLint status, length;
 		
-		glGetProgramiv(_program, GL_LINK_STATUS, &status);
+		glGetProgramiv(program, GL_LINK_STATUS, &status);
 		if(status == GL_FALSE)
 		{
-			glGetProgramiv(_program, GL_INFO_LOG_LENGTH, &length);
+			glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
 			
 			GLchar *log = new GLchar[length];
-			glGetProgramInfoLog(_program, length, &length, log);
+			glGetProgramInfoLog(program, length, &length, log);
 			
 			std::string tlog = std::string((char *)log);
 			delete [] log;
@@ -187,7 +187,7 @@ namespace RN
 			// Detach and remove the shader
 			if(_vertexShader)
 			{
-				glDetachShader(_program, _vertexShader);
+				glDetachShader(program, _vertexShader);
 				glDeleteShader(_vertexShader);
 				
 				_vertexShader = 0;
@@ -195,7 +195,7 @@ namespace RN
 			
 			if(_fragmentShader)
 			{
-				glDetachShader(_program, _fragmentShader);
+				glDetachShader(program, _fragmentShader);
 				glDeleteShader(_fragmentShader);
 				
 				_fragmentShader = 0;
@@ -203,29 +203,29 @@ namespace RN
 			
 			if(_geometryShader)
 			{
-				glDetachShader(_program, _geometryShader);
+				glDetachShader(program, _geometryShader);
 				glDeleteShader(_geometryShader);
 				
 				_geometryShader = 0;
 			}
 			
 			// Get uniforms
-			_matProj = glGetUniformLocation(_program, "matProj");
-			_matProjInverse = glGetUniformLocation(_program, "matProjInverse");
+			matProj = glGetUniformLocation(program, "matProj");
+			matProjInverse = glGetUniformLocation(program, "matProjInverse");
 			
-			_matView = glGetUniformLocation(_program, "matView");
-			_matViewInverse = glGetUniformLocation(_program, "matViewInverse");
+			matView = glGetUniformLocation(program, "matView");
+			matViewInverse = glGetUniformLocation(program, "matViewInverse");
 			
-			_matModel = glGetUniformLocation(_program, "matModel");
-			_matModelInverse = glGetUniformLocation(_program, "matModelInverse");
+			matModel = glGetUniformLocation(program, "matModel");
+			matModelInverse = glGetUniformLocation(program, "matModelInverse");
 			
-			_matProjViewModel = glGetUniformLocation(_program, "matProjViewModel");
-			_matProjViewModelInverse = glGetUniformLocation(_program, "matProjViewModelInverse");
+			matProjViewModel = glGetUniformLocation(program, "matProjViewModel");
+			matProjViewModelInverse = glGetUniformLocation(program, "matProjViewModelInverse");
 			
 			// Get attributes
-			_position = glGetAttribLocation(_program, "position");
-			_texcoord0 = glGetAttribLocation(_program, "texcoord0");
-			_texcoord1 = glGetAttribLocation(_program, "texcoord1");
+			position = glGetAttribLocation(program, "position");
+			texcoord0 = glGetAttribLocation(program, "texcoord0");
+			texcoord1 = glGetAttribLocation(program, "texcoord1");
 		}
 	}
 }

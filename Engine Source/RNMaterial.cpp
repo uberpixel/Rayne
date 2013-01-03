@@ -91,7 +91,7 @@ namespace RN
 			for(machine_uint i=0; i<_textures->Count(); i++)
 			{
 				sprintf(string, "mTexture%i", (int)i);
-				_textureLocations->AddObject(glGetUniformLocation(_shader->_program, string));
+				_textureLocations->AddObject(glGetUniformLocation(_shader->program, string));
 			}
 		}
 	}
