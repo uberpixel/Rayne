@@ -11,7 +11,9 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNArray.h"
 #include "RNShader.h"
+#include "RNTexture.h"
 #include "RNColor.h"
 
 namespace RN
@@ -24,6 +26,10 @@ namespace RN
 		
 		void SetShader(Shader *shader);
 		Shader *Shader() const;
+		
+		void AddTexture(Texture *texture);
+		ObjectArray *Textures() const;
+		Array<GLint> *TextureLocations() const;
 		
 		bool culling;
 		GLenum cullmode;
@@ -47,7 +53,11 @@ namespace RN
 		GLenum depthtestmode;
 		
 	private:
+		void GetUniforms();
+		
 		RN::Shader *_shader;
+		ObjectArray *_textures;
+		Array<GLint> *_textureLocations;
 	};
 }
 
