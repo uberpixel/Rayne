@@ -95,12 +95,17 @@ namespace RN
 		
 		uint8 *buffer[kMeshFeatureIndices];
 		
+		_stride = 0;
+		
 		for(int i=0; i<kMeshFeatureIndices; i++)
 		{
 			buffer[i] = 0;
 			
 			if(_descriptor[i]._available)
+			{
 				buffer[i] = _descriptor[i]._pointer;
+				_stride += _descriptor[i].elementSize;
+			}
 		}
 		
 		while(bytes < bytesEnd)
@@ -119,20 +124,6 @@ namespace RN
 		
 		if(_descriptor[kMeshFeatureIndices]._available)
 			memcpy(_indices, _descriptor[kMeshFeatureIndices]._pointer, _indicesSize);
-		
-		float *data = (float *)_meshData;
-		float *end = (float *)bytesEnd;
-		
-		int i=0;
-		while(data < end)
-		{
-			printf("%f ", *data);
-			
-			if((++ i) % 7 == 0)
-				printf("\n");
-			
-			data ++;
-		}
 		
 		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 		glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, GL_STATIC_DRAW);

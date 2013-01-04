@@ -70,6 +70,7 @@ namespace RN
 		
 		bool SupportsFeature(MeshFeature feature);
 		size_t OffsetForFeature(MeshFeature feature);
+		size_t Stride() const { return _stride; };
 		
 	private:
 		struct
@@ -77,6 +78,8 @@ namespace RN
 			GLuint _vbo;
 			GLuint _ibo;
 		};
+		
+		size_t _stride;
 		
 		size_t _meshSize;
 		size_t _indicesSize;
