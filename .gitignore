@@ -39,3 +39,4 @@ Ankh.NoLoad
 *.a
 *.so
 *.dll
+xcuserdata
