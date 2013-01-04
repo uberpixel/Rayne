@@ -63,6 +63,11 @@ namespace RN
 		NSOpenGLPixelFormat *_oglPixelFormat;
 		CGLContextObj _cglContext;
 #endif
+		
+#if RN_PLATFORM_IOS
+		Context *_shared;
+		EAGLContext *_oglContext;
+#endif
 	};
 }
 

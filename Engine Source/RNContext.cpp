@@ -29,6 +29,12 @@ namespace RN
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 		
 		_cglContext = (CGLContextObj)[_oglContext CGLContextObj];
+#elif RN_PLATFORM_IOS
+		EAGLSharegroup *sharegroup = _shared ? [_shared->_oglContext sharegroup] : nil;
+		
+		_oglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
+		if(!_oglContext)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #else
 		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #endif
@@ -56,6 +62,19 @@ namespace RN
 		
 		CGLEnable(_shared->_cglContext, kCGLCEMPEngine);
 		CGLEnable(_cglContext, kCGLCEMPEngine);
+		
+		if(_shared->_active && _shared->_thread->OnThread())
+		{
+			// Reactivate the context
+			[_shared->_oglContext makeCurrentContext];
+		}
+		
+#elif RN_PLATFORM_IOS
+		EAGLSharegroup *sharegroup = [_shared->_oglContext sharegroup];
+		
+		_oglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
+		if(!_oglContext)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #else
 		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #endif
@@ -175,7 +194,9 @@ namespace RN
 	
 	void Context::Flush()
 	{
+#if RN_PLATFORM_MAC_OS
 		CGLFlushDrawable(_cglContext);
+#endif
 	}
 	
 	void Context::Activate()
@@ -183,13 +204,19 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		CGLLockContext(_cglContext);
 		[_oglContext makeCurrentContext];
+		
+		RN_ASSERT0([NSOpenGLContext currentContext] == _oglContext);		
+#endif
+		
+#if RN_PLATFORM_IOS
+		BOOL result = [EAGLContext setCurrentContext:_oglContext];
+		RN_ASSERT0(result);
 #endif
 	}
 	
 	void Context::Deactivate()
 	{
 #if RN_PLATFORM_MAC_OS
-		//[NSOpenGLContext clearCurrentContext];
 		CGLUnlockContext(_cglContext);
 #endif
 	}
