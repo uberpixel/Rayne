@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNRenderingResource.h"
 #include "RNArray.h"
 #include "RNVector.h"
 
@@ -89,7 +90,7 @@ namespace RN
 		MeshDescriptor _descriptor[__kMaxMeshFeatures];
 	};
 	
-	class Mesh : public Object
+	class Mesh : public Object, public RenderingResource
 	{
 	public:
 		Mesh();

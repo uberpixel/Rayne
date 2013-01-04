@@ -66,7 +66,7 @@ namespace RN
 		_meshes->Release();
 		
 		if(_context)
-			_context->DeactiveContext();
+			_context->DeactivateContext();
 	}
 	
 	void Thread::Initialize()

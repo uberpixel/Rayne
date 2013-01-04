@@ -28,6 +28,7 @@ namespace RN
 		_cullingEnabled   = false;
 		_depthTestEnabled = false;
 		_blendingEnabled  = false;
+		_depthWrite = false;
 		
 		_cullMode = GL_CCW;
 		_depthFunc = GL_LESS;
@@ -120,13 +121,12 @@ namespace RN
 		
 		std::vector<RenderingIntent>::iterator iterator;
 		for(iterator=frame->begin(); iterator!=frame->end(); iterator++)
-		{
+		{			
 			RenderingIntent *intent = &(*iterator);
 			Material *material = intent->material;
-			
 			Shader *shader = material->Shader();
 			
-			//printf("Rendering %p using %i\n", intent->mesh, shader->program);
+			intent->Push();
 			
 			glUseProgram(shader->program);
 			
@@ -166,6 +166,7 @@ namespace RN
 			
 			// Draw the mesh
 			DrawMesh(intent->mesh);
+			intent->Pop();
 		}
 		
 		_defaultCamera->Unbind();
@@ -178,6 +179,8 @@ namespace RN
 		
 		if(material)
 		{
+			material->Push();
+			
 			ObjectArray *textures = material->Textures();
 			Array<GLint> *textureLocations = material->TextureLocations();
 			
@@ -254,10 +257,12 @@ namespace RN
 				}
 			}
 			
-			if(!_currentMaterial || material->depthwrite != _currentMaterial->depthwrite)
+			if(material->depthwrite != _depthWrite)
 			{
 				GLboolean depthwrite = (material->depthwrite) ? GL_TRUE : GL_FALSE;
 				glDepthMask(depthwrite);
+				
+				_depthWrite = material->depthwrite;
 			}
 			
 			if(!_currentMaterial || (material->blending != _currentMaterial->blending || material->blendSource != _blendSource || material->blendDestination != _blendDestination))
@@ -283,6 +288,8 @@ namespace RN
 					_blendingEnabled = false;
 				}
 			}
+			
+			material->Pop();
 		}
 		
 		_currentMaterial = material;
@@ -292,6 +299,8 @@ namespace RN
 	{
 		if(mesh && mesh != _currentMesh)
 		{
+			mesh->Push();
+			
 			MeshLODStage *stage = mesh->LODStage(0);
 			Shader *shader = _currentMaterial->Shader();
 			
@@ -377,6 +386,8 @@ namespace RN
 					glDisableVertexAttribArray(shader->color1);
 				}
 			}
+			
+			mesh->Pop();
 		}
 		
 		if(mesh)

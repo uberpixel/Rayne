@@ -10,7 +10,8 @@
 
 namespace RN
 {
-	Material::Material(RN::Shader *shader)
+	Material::Material(RN::Shader *shader) :
+		RenderingResource("Material")
 	{
 		_shader = shader;
 		_shader->Retain();

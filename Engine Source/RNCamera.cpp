@@ -14,7 +14,8 @@ namespace RN
 {
 	Camera::Camera(const Vector2& size) :
 		_frame(Vector2(0.0f, 0.0f), size),
-		_clearColor(0.193f, 0.435f, 0.753f, 1.0f)
+		_clearColor(0.193f, 0.435f, 0.753f, 1.0f),
+		RenderingResource("Camera (RTT)")
 	{
 		_ownsBuffer = true;
 		_texture    = new Texture(Texture::RGBA8888);
@@ -29,9 +30,9 @@ namespace RN
 		glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthBuffer);
 
-		glGenRenderbuffers(1, &_stencilBuffer);
+		/*glGenRenderbuffers(1, &_stencilBuffer);
 		glBindRenderbuffer(GL_RENDERBUFFER, _stencilBuffer);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilBuffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilBuffer);*/
 		
 		try
 		{
@@ -52,7 +53,8 @@ namespace RN
 	
 	Camera::Camera(GLuint framebuffer, const Vector2& size) :
 		_frame(Vector2(0.0f, 0.0f), size),
-		_clearColor(0.193f, 0.435f, 0.753f, 1.0f)
+		_clearColor(0.193f, 0.435f, 0.753f, 1.0f),
+		RenderingResource("Camera")
 	{
 		_ownsBuffer = false;
 		_frameBuffer = framebuffer;
@@ -177,6 +179,7 @@ namespace RN
 	
 	void Camera::Bind()
 	{
+		Push();
 		Thread *thread = Thread::CurrentThread();
 		
 		if(thread->CurrentCamera() != this)
@@ -186,10 +189,11 @@ namespace RN
 	}
 	
 	void Camera::Unbind()
-	{
+	{		
 		Thread *thread = Thread::CurrentThread();
 		if(thread->CurrentCamera() == this)
 		{
+			Pop();
 			thread->PopCamera();
 			
 			Camera *other = thread->CurrentCamera();
@@ -202,24 +206,26 @@ namespace RN
 	{
 		glViewport(_frame.x, _frame.y, _frame.width, _frame.height);
 		
-		glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
-		glClearStencil(0);
-		
-#if RN_PLATFORM_IOS
-		glClearDepthf(1.0f);
-#endif
-		
-#if RN_PLATFORM_MAC_OS
-		glClearDepth(1.0f);
-#endif
 		
 		GLenum clearMask = GL_COLOR_BUFFER_BIT;
 		if(_depthBuffer)
+		{
+#if RN_PLATFORM_IOS
+			glClearDepthf(1.0f);
+#endif
+#if RN_PLATFORM_MAC_OS
+			glClearDepth(1.0f);
+#endif
 			clearMask |= GL_DEPTH_BUFFER_BIT;
+		}
 		
 		if(_stencilBuffer)
+		{
+			glClearStencil(0);
 			clearMask |= GL_STENCIL_BUFFER_BIT;
+		}
 		
+		glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
 		glClear(clearMask);
 	}
 		

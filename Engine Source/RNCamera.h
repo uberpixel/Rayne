@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNRenderingResource.h"
 #include "RNRect.h"
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
@@ -19,7 +20,7 @@
 
 namespace RN
 {
-	class Camera : public Object, public BlockingProxy
+	class Camera : public Object, public BlockingProxy, public RenderingResource
 	{
 	public:
 		Camera(const Vector2& size);

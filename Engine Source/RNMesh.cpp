@@ -148,7 +148,8 @@ namespace RN
 	
 	
 	
-	Mesh::Mesh()
+	Mesh::Mesh() :
+		RenderingResource("Mesh")
 	{
 	}
 	

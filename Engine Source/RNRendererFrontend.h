@@ -11,7 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNRenderering.h"
+#include "RNRendering.h"
 #include "RNMutex.h"
 
 namespace RN

@@ -12,11 +12,12 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNThread.h"
+#include "RNRenderingResource.h"
 
 namespace RN
 {
 	class Window;
-	class Context : public Object
+	class Context : public Object, public RenderingResource
 	{
 	friend class Window;
 	public:
@@ -38,9 +39,10 @@ namespace RN
 		virtual ~Context();
 		
 		void MakeActiveContext();
-		void DeactiveContext();
+		void DeactivateContext();
 		
 		virtual void Flush();
+		virtual void SetName(const char *name);
 		
 		static Context *ActiveContext();
 		

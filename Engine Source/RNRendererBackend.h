@@ -11,7 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNRenderering.h"
+#include "RNRendering.h"
 
 namespace RN
 {
@@ -37,6 +37,7 @@ namespace RN
 		bool _cullingEnabled;
 		bool _depthTestEnabled;
 		bool _blendingEnabled;
+		bool _depthWrite;
 		
 		GLenum _cullMode;
 		GLenum _depthFunc;

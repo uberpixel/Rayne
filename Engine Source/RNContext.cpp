@@ -11,7 +11,8 @@
 
 namespace RN
 {
-	Context::Context(ContextFlags flags, Context *shared)
+	Context::Context(ContextFlags flags, Context *shared) :
+		RenderingResource("Context")
 	{
 		_active = false;
 		_flags  = flags;
@@ -40,7 +41,8 @@ namespace RN
 #endif
 	}
 	
-	Context::Context(Context *shared)
+	Context::Context(Context *shared) :
+		RenderingResource("Context")
 	{
 		_active = false;
 		_thread = 0;
@@ -168,7 +170,7 @@ namespace RN
 		thread->_mutex->Unlock();
 	}
 	
-	void Context::DeactiveContext()
+	void Context::DeactivateContext()
 	{
 		Thread *thread = Thread::CurrentThread();
 		RN_ASSERT0(thread);
@@ -190,6 +192,15 @@ namespace RN
 		RN_ASSERT0(thread);
 		
 		return thread->_context;
+	}
+	
+	void Context::SetName(const char *name)
+	{
+		RenderingResource::SetName(name);
+		
+#if RN_PLATFORM_IOS
+		[_oglContext setDebugLabel:[NSString stringWithUTF8String:name]];
+#endif
 	}
 	
 	void Context::Flush()

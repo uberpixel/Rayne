@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNRenderingResource.h"
 #include "RNArray.h"
 #include "RNShader.h"
 #include "RNTexture.h"
@@ -18,7 +19,7 @@
 
 namespace RN
 {
-	class Material : public Object, public BlockingProxy
+	class Material : public Object, public BlockingProxy, public RenderingResource
 	{
 	public:
 		Material(Shader *shader);
