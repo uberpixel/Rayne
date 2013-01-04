@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "E9ED4FD216960CEE00DAD683"
-               BuildableName = "libpng-ios.a"
-               BlueprintName = "png-ios"
-               ReferencedContainer = "container:png.xcodeproj">
+               BlueprintIdentifier = "E9619E7E1696164100DA187E"
+               BuildableName = "libpng.a"
+               BlueprintName = "png"
+               ReferencedContainer = "container:png-ios.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>

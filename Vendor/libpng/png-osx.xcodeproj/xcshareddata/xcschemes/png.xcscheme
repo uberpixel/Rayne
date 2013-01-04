@@ -17,7 +17,7 @@
                BlueprintIdentifier = "E995E39B169496FA00B2E0C3"
                BuildableName = "libpng.a"
                BlueprintName = "png"
-               ReferencedContainer = "container:png.xcodeproj">
+               ReferencedContainer = "container:png-osx.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
