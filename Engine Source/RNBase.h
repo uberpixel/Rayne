@@ -41,8 +41,8 @@
 
 	#import <Cocoa/Cocoa.h>
 	#import <OpenGL/OpenGL.h>
-	#import <WebKit/WebKit.h>
-	#import <JavaScriptCore/JavaScriptCore.h>
+
+	#include <libkern/OSAtomic.h>
 
 	#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 		#include <OpenGL/gl3.h>
@@ -58,6 +58,8 @@
 	#import <OpenGLES/ES2/gl.h>
 	#import <OpenGLES/ES2/glext.h>
 	#import <QuartzCore/QuartzCore.h>
+
+	#include <libkern/OSAtomic.h>
 #endif
 
 #if RN_PLATFORM_WINDOWS

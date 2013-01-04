@@ -18,40 +18,21 @@ namespace RN
 	public:
 		SpinLock()
 		{
-			_lock = 0;
+			_lock = OS_SPINLOCK_INIT;
 		}
 		
 		void Lock()
 		{
-#if RN_PLATFORM_INTEL
-			uintptr_t address = (uintptr_t)&_lock;
-	
-#if RN_PLATFORM_64BIT
-			__asm__ volatile("movq $0x1, %%rcx \n"
-							 "movq %0, %%rbx \n"
-							 "SpinlockWait: \n"
-							 "xorq %%rax, %%rax \n"
-							 "lock cmpxchgq %%rcx, (%%rbx) \n"
-							 "jne SpinlockWait" : : "m" (address) : "%rcx", "%rax", "%rbx");
-#endif
-#if RN_PLATFORM_32BIT
-			__asm__ volatile("movl $0x1, %%ecx \n"
-							 "movl %0, %%ebx \n"
-							 "SpinlockWait: \n"
-							 "xorl %%eax, %%eax \n"
-							 "lock cmpxchgl %%ecx, (%%ebx) \n"
-							 "jne SpinlockWait" : : "m" (address) : "%ecx", "%eax", "%ebx");
-#endif
-#endif
+			OSSpinLockLock(&_lock);
 		}
 		
 		void Unlock()
 		{
-			_lock = 0;
+			OSSpinLockUnlock(&_lock);
 		}
 		
 	private:
-		machine_uint _lock;
+		OSSpinLock _lock;
 	};
 }
 
