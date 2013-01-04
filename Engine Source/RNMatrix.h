@@ -22,34 +22,55 @@ namespace RN
 
 	RN_INLINE Matrix& Matrix::operator*= (const Matrix& other)
 	{
-		float tmp[4];
-		for(int i = 0; i < 4; i++)
-		{
-			int k = i*4;
-			tmp[0] = m[k];
-			tmp[1] = m[k+1];
-			tmp[2] = m[k+2];
-			tmp[3] = m[k+3];
-			m[k] = tmp[0]*other.m[0] + tmp[1]*other.m[4] + tmp[2]*other.m[8] + tmp[3]*other.m[12];
-			m[k+1] = tmp[0]*other.m[1] + tmp[1]*other.m[5] + tmp[2]*other.m[9] + tmp[3]*other.m[13];
-			m[k+2] = tmp[0]*other.m[2] + tmp[1]*other.m[6] + tmp[2]*other.m[10] + tmp[3]*other.m[14];
-			m[k+3] = tmp[0]*other.m[3] + tmp[1]*other.m[7] + tmp[2]*other.m[11] + tmp[3]*other.m[15];
-		}
-
+		float tmp[16];
+		
+		tmp[ 0] = m[ 0] * other.m[ 0] + m[ 4] * other.m[ 1] + m[ 8] * other.m[ 2] + m[12] * other.m[ 3];
+		tmp[ 1] = m[ 1] * other.m[ 0] + m[ 5] * other.m[ 1] + m[ 9] * other.m[ 2] + m[13] * other.m[ 3];
+		tmp[ 2] = m[ 2] * other.m[ 0] + m[ 6] * other.m[ 1] + m[10] * other.m[ 2] + m[14] * other.m[ 3];
+		tmp[ 3] = m[ 3] * other.m[ 0] + m[ 7] * other.m[ 1] + m[11] * other.m[ 2] + m[15] * other.m[ 3];
+		
+		tmp[ 4] = m[ 0] * other.m[ 4] + m[ 4] * other.m[ 5] + m[ 8] * other.m[ 6] + m[12] * other.m[ 7];
+		tmp[ 5] = m[ 1] * other.m[ 4] + m[ 5] * other.m[ 5] + m[ 9] * other.m[ 6] + m[13] * other.m[ 7];
+		tmp[ 6] = m[ 2] * other.m[ 4] + m[ 6] * other.m[ 5] + m[10] * other.m[ 6] + m[14] * other.m[ 7];
+		tmp[ 7] = m[ 3] * other.m[ 4] + m[ 7] * other.m[ 5] + m[11] * other.m[ 6] + m[15] * other.m[ 7];
+		
+		tmp[ 8] = m[ 0] * other.m[ 8] + m[ 4] * other.m[ 9] + m[ 8] * other.m[10] + m[12] * other.m[11];
+		tmp[ 9] = m[ 1] * other.m[ 8] + m[ 5] * other.m[ 9] + m[ 9] * other.m[10] + m[13] * other.m[11];
+		tmp[10] = m[ 2] * other.m[ 8] + m[ 6] * other.m[ 9] + m[10] * other.m[10] + m[14] * other.m[11];
+		tmp[11] = m[ 3] * other.m[ 8] + m[ 7] * other.m[ 9] + m[11] * other.m[10] + m[15] * other.m[11];
+		
+		tmp[12] = m[ 0] * other.m[12] + m[ 4] * other.m[13] + m[ 8] * other.m[14] + m[12] * other.m[15];
+		tmp[13] = m[ 1] * other.m[12] + m[ 5] * other.m[13] + m[ 9] * other.m[14] + m[13] * other.m[15];
+		tmp[14] = m[ 2] * other.m[12] + m[ 6] * other.m[13] + m[10] * other.m[14] + m[14] * other.m[15];
+		tmp[15] = m[ 3] * other.m[12] + m[ 7] * other.m[13] + m[11] * other.m[14] + m[15] * other.m[15];
+		
+		memcpy(m, tmp, 16 * sizeof(float));
 		return *this;
 	}
 
 	RN_INLINE Matrix Matrix::operator* (const Matrix& other) const
 	{
 		Matrix matrix;
-		for(int i = 0; i < 4; i++)
-		{
-			int k = i*4;
-			matrix.m[k] = m[0]*other.m[0] + m[1]*other.m[4] + m[2]*other.m[8] + m[3]*other.m[12];
-			matrix.m[k+1] = m[0]*other.m[1] + m[1]*other.m[5] + m[2]*other.m[9] + m[3]*other.m[13];
-			matrix.m[k+2] = m[0]*other.m[2] + m[1]*other.m[6] + m[2]*other.m[10] + m[3]*other.m[14];
-			matrix.m[k+3] = m[0]*other.m[3] + m[1]*other.m[7] + m[2]*other.m[11] + m[3]*other.m[15];
-		}
+		
+		matrix.m[ 0] = m[ 0] * other.m[ 0] + m[ 4] * other.m[ 1] + m[ 8] * other.m[ 2] + m[12] * other.m[ 3];
+		matrix.m[ 1] = m[ 1] * other.m[ 0] + m[ 5] * other.m[ 1] + m[ 9] * other.m[ 2] + m[13] * other.m[ 3];
+		matrix.m[ 2] = m[ 2] * other.m[ 0] + m[ 6] * other.m[ 1] + m[10] * other.m[ 2] + m[14] * other.m[ 3];
+		matrix.m[ 3] = m[ 3] * other.m[ 0] + m[ 7] * other.m[ 1] + m[11] * other.m[ 2] + m[15] * other.m[ 3];
+		
+		matrix.m[ 4] = m[ 0] * other.m[ 4] + m[ 4] * other.m[ 5] + m[ 8] * other.m[ 6] + m[12] * other.m[ 7];
+		matrix.m[ 5] = m[ 1] * other.m[ 4] + m[ 5] * other.m[ 5] + m[ 9] * other.m[ 6] + m[13] * other.m[ 7];
+		matrix.m[ 6] = m[ 2] * other.m[ 4] + m[ 6] * other.m[ 5] + m[10] * other.m[ 6] + m[14] * other.m[ 7];
+		matrix.m[ 7] = m[ 3] * other.m[ 4] + m[ 7] * other.m[ 5] + m[11] * other.m[ 6] + m[15] * other.m[ 7];
+		
+		matrix.m[ 8] = m[ 0] * other.m[ 8] + m[ 4] * other.m[ 9] + m[ 8] * other.m[10] + m[12] * other.m[11];
+		matrix.m[ 9] = m[ 1] * other.m[ 8] + m[ 5] * other.m[ 9] + m[ 9] * other.m[10] + m[13] * other.m[11];
+		matrix.m[10] = m[ 2] * other.m[ 8] + m[ 6] * other.m[ 9] + m[10] * other.m[10] + m[14] * other.m[11];
+		matrix.m[11] = m[ 3] * other.m[ 8] + m[ 7] * other.m[ 9] + m[11] * other.m[10] + m[15] * other.m[11];
+		
+		matrix.m[12] = m[ 0] * other.m[12] + m[ 4] * other.m[13] + m[ 8] * other.m[14] + m[12] * other.m[15];
+		matrix.m[13] = m[ 1] * other.m[12] + m[ 5] * other.m[13] + m[ 9] * other.m[14] + m[13] * other.m[15];
+		matrix.m[14] = m[ 2] * other.m[12] + m[ 6] * other.m[13] + m[10] * other.m[14] + m[14] * other.m[15];
+		matrix.m[15] = m[ 3] * other.m[12] + m[ 7] * other.m[13] + m[11] * other.m[14] + m[15] * other.m[15];
 
 		return matrix;
 	}
@@ -59,9 +80,9 @@ namespace RN
 	{
 		Vector3 result;
 
-		result.x = m[0]*vec.x + m[1]*vec.y + m[2]*vec.z;
-		result.y = m[4]*vec.x + m[5]*vec.y + m[6]*vec.z;
-		result.z = m[8]*vec.x + m[9]*vec.y + m[10]*vec.z;
+		result.x = m[0] * vec.x + m[1] * vec.y + m[ 2] * vec.z;
+		result.y = m[4] * vec.x + m[5] * vec.y + m[ 6] * vec.z;
+		result.z = m[8] * vec.x + m[9] * vec.y + m[10] * vec.z;
 
 		return result;
 	}
@@ -70,10 +91,10 @@ namespace RN
 	{
 		Vector4 result;
 
-		result.x = m[0]*vec.x + m[1]*vec.y + m[2]*vec.z + m[3]*vec.w;
-		result.y = m[4]*vec.x + m[5]*vec.y + m[6]*vec.z + m[7]*vec.w;
-		result.z = m[8]*vec.x + m[9]*vec.y + m[10]*vec.z + m[11]*vec.w;
-		result.w = m[12]*vec.x + m[13]*vec.y + m[14]*vec.z + m[15]*vec.w;
+		result.x = m[ 0] * vec.x + m[ 1] * vec.y + m[ 2] * vec.z + m[ 3] * vec.w;
+		result.y = m[ 4] * vec.x + m[ 5] * vec.y + m[ 6] * vec.z + m[ 7] * vec.w;
+		result.z = m[ 8] * vec.x + m[ 9] * vec.y + m[10] * vec.z + m[11] * vec.w;
+		result.w = m[12] * vec.x + m[13] * vec.y + m[14] * vec.z + m[15] * vec.w;
 
 		return result;
 	}
