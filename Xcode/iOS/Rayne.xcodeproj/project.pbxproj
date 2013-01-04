@@ -1,0 +1,507 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E9619EEB169616FD00DA187E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619EEA169616FD00DA187E /* Foundation.framework */; };
+		E9619F2D1696170700DA187E /* RNBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619EFA1696170700DA187E /* RNBase.cpp */; };
+		E9619F2E1696170700DA187E /* RNCamera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619EFC1696170700DA187E /* RNCamera.cpp */; };
+		E9619F2F1696170700DA187E /* RNContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619EFF1696170700DA187E /* RNContext.cpp */; };
+		E9619F301696170700DA187E /* RNFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F041696170700DA187E /* RNFile.cpp */; };
+		E9619F311696170700DA187E /* RNKernel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F061696170700DA187E /* RNKernel.cpp */; };
+		E9619F321696170700DA187E /* RNList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F081696170700DA187E /* RNList.cpp */; };
+		E9619F331696170700DA187E /* RNMaterial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F0A1696170700DA187E /* RNMaterial.cpp */; };
+		E9619F341696170700DA187E /* RNMesh.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F0E1696170700DA187E /* RNMesh.cpp */; };
+		E9619F351696170700DA187E /* RNMutex.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F101696170700DA187E /* RNMutex.cpp */; };
+		E9619F361696170700DA187E /* RNObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F121696170700DA187E /* RNObject.cpp */; };
+		E9619F381696170700DA187E /* RNRendererBackend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F1A1696170700DA187E /* RNRendererBackend.cpp */; };
+		E9619F391696170700DA187E /* RNRendererFrontend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F1C1696170700DA187E /* RNRendererFrontend.cpp */; };
+		E9619F3A1696170700DA187E /* RNShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F1F1696170700DA187E /* RNShader.cpp */; };
+		E9619F3B1696170700DA187E /* RNTexture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F221696170700DA187E /* RNTexture.cpp */; };
+		E9619F3C1696170700DA187E /* RNTextureLoader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F241696170700DA187E /* RNTextureLoader.cpp */; };
+		E9619F3D1696170700DA187E /* RNThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F261696170700DA187E /* RNThread.cpp */; };
+		E9619F3E1696170700DA187E /* RNWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F291696170700DA187E /* RNWindow.cpp */; };
+		E9619F3F1696170700DA187E /* RNWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619F2B1696170700DA187E /* RNWorld.cpp */; };
+		E9619F431696178900DA187E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F421696178900DA187E /* UIKit.framework */; };
+		E9619F451696179100DA187E /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F441696179100DA187E /* OpenGLES.framework */; };
+		E9619F471696179500DA187E /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F461696179500DA187E /* QuartzCore.framework */; };
+		E9619F4F1696185B00DA187E /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F4D1696184100DA187E /* libpng.a */; };
+		E9619F5D1696BCC300DA187E /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F5C1696BCC300DA187E /* libz.dylib */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E9619F4C1696184100DA187E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E9619F481696184000DA187E /* png-ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9619E7F1696164100DA187E;
+			remoteInfo = png;
+		};
+		E9619F7F1696FDD000DA187E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E9619F481696184000DA187E /* png-ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E9619E7E1696164100DA187E;
+			remoteInfo = png;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E9619EE5169616FD00DA187E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/${PRODUCT_NAME}";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		E9619EE7169616FD00DA187E /* libRayne.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRayne.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9619EEA169616FD00DA187E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		E9619EF91696170700DA187E /* RNArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNArray.h; sourceTree = "<group>"; };
+		E9619EFA1696170700DA187E /* RNBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNBase.cpp; sourceTree = "<group>"; };
+		E9619EFB1696170700DA187E /* RNBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBase.h; sourceTree = "<group>"; };
+		E9619EFC1696170700DA187E /* RNCamera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNCamera.cpp; sourceTree = "<group>"; };
+		E9619EFD1696170700DA187E /* RNCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNCamera.h; sourceTree = "<group>"; };
+		E9619EFE1696170700DA187E /* RNColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNColor.h; sourceTree = "<group>"; };
+		E9619EFF1696170700DA187E /* RNContext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNContext.cpp; sourceTree = "<group>"; };
+		E9619F001696170700DA187E /* RNContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNContext.h; sourceTree = "<group>"; };
+		E9619F011696170700DA187E /* RNDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDefines.h; sourceTree = "<group>"; };
+		E9619F021696170700DA187E /* RNError.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNError.h; sourceTree = "<group>"; };
+		E9619F031696170700DA187E /* RNErrorGroupGraphics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNErrorGroupGraphics.h; sourceTree = "<group>"; };
+		E9619F041696170700DA187E /* RNFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNFile.cpp; sourceTree = "<group>"; };
+		E9619F051696170700DA187E /* RNFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNFile.h; sourceTree = "<group>"; };
+		E9619F061696170700DA187E /* RNKernel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNKernel.cpp; sourceTree = "<group>"; };
+		E9619F071696170700DA187E /* RNKernel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNKernel.h; sourceTree = "<group>"; };
+		E9619F081696170700DA187E /* RNList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNList.cpp; sourceTree = "<group>"; };
+		E9619F091696170700DA187E /* RNList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNList.h; sourceTree = "<group>"; };
+		E9619F0A1696170700DA187E /* RNMaterial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNMaterial.cpp; sourceTree = "<group>"; };
+		E9619F0B1696170700DA187E /* RNMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMaterial.h; sourceTree = "<group>"; };
+		E9619F0C1696170700DA187E /* RNMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMatrix.h; sourceTree = "<group>"; };
+		E9619F0D1696170700DA187E /* RNMatrixQuaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMatrixQuaternion.h; sourceTree = "<group>"; };
+		E9619F0E1696170700DA187E /* RNMesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNMesh.cpp; sourceTree = "<group>"; };
+		E9619F0F1696170700DA187E /* RNMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMesh.h; sourceTree = "<group>"; };
+		E9619F101696170700DA187E /* RNMutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNMutex.cpp; sourceTree = "<group>"; };
+		E9619F111696170700DA187E /* RNMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMutex.h; sourceTree = "<group>"; };
+		E9619F121696170700DA187E /* RNObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNObject.cpp; sourceTree = "<group>"; };
+		E9619F131696170700DA187E /* RNObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNObject.h; sourceTree = "<group>"; };
+		E9619F161696170700DA187E /* RNPlatform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPlatform.h; sourceTree = "<group>"; };
+		E9619F171696170700DA187E /* RNProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNProxy.h; sourceTree = "<group>"; };
+		E9619F181696170700DA187E /* RNQuaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNQuaternion.h; sourceTree = "<group>"; };
+		E9619F191696170700DA187E /* RNRect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRect.h; sourceTree = "<group>"; };
+		E9619F1A1696170700DA187E /* RNRendererBackend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRendererBackend.cpp; sourceTree = "<group>"; };
+		E9619F1B1696170700DA187E /* RNRendererBackend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRendererBackend.h; sourceTree = "<group>"; };
+		E9619F1C1696170700DA187E /* RNRendererFrontend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRendererFrontend.cpp; sourceTree = "<group>"; };
+		E9619F1D1696170700DA187E /* RNRendererFrontend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRendererFrontend.h; sourceTree = "<group>"; };
+		E9619F1E1696170700DA187E /* RNRenderering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRenderering.h; sourceTree = "<group>"; };
+		E9619F1F1696170700DA187E /* RNShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNShader.cpp; sourceTree = "<group>"; };
+		E9619F201696170700DA187E /* RNShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNShader.h; sourceTree = "<group>"; };
+		E9619F211696170700DA187E /* RNSpinLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSpinLock.h; sourceTree = "<group>"; };
+		E9619F221696170700DA187E /* RNTexture.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTexture.cpp; sourceTree = "<group>"; };
+		E9619F231696170700DA187E /* RNTexture.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTexture.h; sourceTree = "<group>"; };
+		E9619F241696170700DA187E /* RNTextureLoader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTextureLoader.cpp; sourceTree = "<group>"; };
+		E9619F251696170700DA187E /* RNTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTextureLoader.h; sourceTree = "<group>"; };
+		E9619F261696170700DA187E /* RNThread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNThread.cpp; sourceTree = "<group>"; };
+		E9619F271696170700DA187E /* RNThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNThread.h; sourceTree = "<group>"; };
+		E9619F281696170700DA187E /* RNVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNVector.h; sourceTree = "<group>"; };
+		E9619F291696170700DA187E /* RNWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWindow.cpp; sourceTree = "<group>"; };
+		E9619F2A1696170700DA187E /* RNWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWindow.h; sourceTree = "<group>"; };
+		E9619F2B1696170700DA187E /* RNWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWorld.cpp; sourceTree = "<group>"; };
+		E9619F2C1696170700DA187E /* RNWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWorld.h; sourceTree = "<group>"; };
+		E9619F411696173500DA187E /* Rayne-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Rayne-Prefix.pch"; sourceTree = "<group>"; };
+		E9619F421696178900DA187E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		E9619F441696179100DA187E /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		E9619F461696179500DA187E /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		E9619F481696184000DA187E /* png-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "png-ios.xcodeproj"; path = "../../Vendor/libpng/png-ios.xcodeproj"; sourceTree = "<group>"; };
+		E9619F5C1696BCC300DA187E /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E9619EE4169616FD00DA187E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E9619F5D1696BCC300DA187E /* libz.dylib in Frameworks */,
+				E9619F471696179500DA187E /* QuartzCore.framework in Frameworks */,
+				E9619F451696179100DA187E /* OpenGLES.framework in Frameworks */,
+				E9619F431696178900DA187E /* UIKit.framework in Frameworks */,
+				E9619EEB169616FD00DA187E /* Foundation.framework in Frameworks */,
+				E9619F4F1696185B00DA187E /* libpng.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E9619EDE169616FD00DA187E = {
+			isa = PBXGroup;
+			children = (
+				E9619EF81696170700DA187E /* Engine Source */,
+				E9619F401696173500DA187E /* Supporting files */,
+				E9619F4E1696184400DA187E /* Vendor */,
+				E9619EE9169616FD00DA187E /* Frameworks */,
+				E9619EE8169616FD00DA187E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E9619EE8169616FD00DA187E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E9619EE7169616FD00DA187E /* libRayne.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E9619EE9169616FD00DA187E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E9619EEA169616FD00DA187E /* Foundation.framework */,
+				E9619F441696179100DA187E /* OpenGLES.framework */,
+				E9619F461696179500DA187E /* QuartzCore.framework */,
+				E9619F421696178900DA187E /* UIKit.framework */,
+				E9619F5C1696BCC300DA187E /* libz.dylib */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E9619EF81696170700DA187E /* Engine Source */ = {
+			isa = PBXGroup;
+			children = (
+				E9619F611696CB4100DA187E /* Base */,
+				E9619F601696CAEB00DA187E /* Container */,
+				E9619F621696CB7900DA187E /* Math */,
+				E9619F631696CBDF00DA187E /* Rendering */,
+				E9619F651696CC3500DA187E /* Scene */,
+				E9619F641696CC2800DA187E /* System */,
+			);
+			name = "Engine Source";
+			path = "../../Engine Source";
+			sourceTree = "<group>";
+		};
+		E9619F401696173500DA187E /* Supporting files */ = {
+			isa = PBXGroup;
+			children = (
+				E9619F411696173500DA187E /* Rayne-Prefix.pch */,
+			);
+			path = "Supporting files";
+			sourceTree = "<group>";
+		};
+		E9619F491696184000DA187E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E9619F4D1696184100DA187E /* libpng.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E9619F4E1696184400DA187E /* Vendor */ = {
+			isa = PBXGroup;
+			children = (
+				E9619F481696184000DA187E /* png-ios.xcodeproj */,
+			);
+			name = Vendor;
+			sourceTree = "<group>";
+		};
+		E9619F601696CAEB00DA187E /* Container */ = {
+			isa = PBXGroup;
+			children = (
+				E9619EF91696170700DA187E /* RNArray.h */,
+				E9619F081696170700DA187E /* RNList.cpp */,
+				E9619F091696170700DA187E /* RNList.h */,
+			);
+			name = Container;
+			sourceTree = "<group>";
+		};
+		E9619F611696CB4100DA187E /* Base */ = {
+			isa = PBXGroup;
+			children = (
+				E9619EFA1696170700DA187E /* RNBase.cpp */,
+				E9619EFB1696170700DA187E /* RNBase.h */,
+				E9619F011696170700DA187E /* RNDefines.h */,
+				E9619F021696170700DA187E /* RNError.h */,
+				E9619F031696170700DA187E /* RNErrorGroupGraphics.h */,
+				E9619F041696170700DA187E /* RNFile.cpp */,
+				E9619F051696170700DA187E /* RNFile.h */,
+				E9619F121696170700DA187E /* RNObject.cpp */,
+				E9619F131696170700DA187E /* RNObject.h */,
+				E9619F161696170700DA187E /* RNPlatform.h */,
+				E9619F171696170700DA187E /* RNProxy.h */,
+				E9619F241696170700DA187E /* RNTextureLoader.cpp */,
+				E9619F251696170700DA187E /* RNTextureLoader.h */,
+			);
+			name = Base;
+			sourceTree = "<group>";
+		};
+		E9619F621696CB7900DA187E /* Math */ = {
+			isa = PBXGroup;
+			children = (
+				E9619EFE1696170700DA187E /* RNColor.h */,
+				E9619F0C1696170700DA187E /* RNMatrix.h */,
+				E9619F0D1696170700DA187E /* RNMatrixQuaternion.h */,
+				E9619F181696170700DA187E /* RNQuaternion.h */,
+				E9619F191696170700DA187E /* RNRect.h */,
+				E9619F281696170700DA187E /* RNVector.h */,
+			);
+			name = Math;
+			sourceTree = "<group>";
+		};
+		E9619F631696CBDF00DA187E /* Rendering */ = {
+			isa = PBXGroup;
+			children = (
+				E9619EFC1696170700DA187E /* RNCamera.cpp */,
+				E9619EFD1696170700DA187E /* RNCamera.h */,
+				E9619EFF1696170700DA187E /* RNContext.cpp */,
+				E9619F001696170700DA187E /* RNContext.h */,
+				E9619F0A1696170700DA187E /* RNMaterial.cpp */,
+				E9619F0B1696170700DA187E /* RNMaterial.h */,
+				E9619F0E1696170700DA187E /* RNMesh.cpp */,
+				E9619F0F1696170700DA187E /* RNMesh.h */,
+				E9619F1A1696170700DA187E /* RNRendererBackend.cpp */,
+				E9619F1B1696170700DA187E /* RNRendererBackend.h */,
+				E9619F1C1696170700DA187E /* RNRendererFrontend.cpp */,
+				E9619F1D1696170700DA187E /* RNRendererFrontend.h */,
+				E9619F1E1696170700DA187E /* RNRenderering.h */,
+				E9619F1F1696170700DA187E /* RNShader.cpp */,
+				E9619F201696170700DA187E /* RNShader.h */,
+				E9619F221696170700DA187E /* RNTexture.cpp */,
+				E9619F231696170700DA187E /* RNTexture.h */,
+			);
+			name = Rendering;
+			sourceTree = "<group>";
+		};
+		E9619F641696CC2800DA187E /* System */ = {
+			isa = PBXGroup;
+			children = (
+				E9619F061696170700DA187E /* RNKernel.cpp */,
+				E9619F071696170700DA187E /* RNKernel.h */,
+				E9619F101696170700DA187E /* RNMutex.cpp */,
+				E9619F111696170700DA187E /* RNMutex.h */,
+				E9619F211696170700DA187E /* RNSpinLock.h */,
+				E9619F261696170700DA187E /* RNThread.cpp */,
+				E9619F271696170700DA187E /* RNThread.h */,
+				E9619F291696170700DA187E /* RNWindow.cpp */,
+				E9619F2A1696170700DA187E /* RNWindow.h */,
+			);
+			name = System;
+			sourceTree = "<group>";
+		};
+		E9619F651696CC3500DA187E /* Scene */ = {
+			isa = PBXGroup;
+			children = (
+				E9619F2B1696170700DA187E /* RNWorld.cpp */,
+				E9619F2C1696170700DA187E /* RNWorld.h */,
+			);
+			name = Scene;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		E9619EE6169616FD00DA187E /* Rayne */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E9619EF5169616FD00DA187E /* Build configuration list for PBXNativeTarget "Rayne" */;
+			buildPhases = (
+				E9619EE3169616FD00DA187E /* Sources */,
+				E9619EE4169616FD00DA187E /* Frameworks */,
+				E9619EE5169616FD00DA187E /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E9619F801696FDD000DA187E /* PBXTargetDependency */,
+			);
+			name = Rayne;
+			productName = Rayne;
+			productReference = E9619EE7169616FD00DA187E /* libRayne.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E9619EDF169616FD00DA187E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = "Sidney Just";
+			};
+			buildConfigurationList = E9619EE2169616FD00DA187E /* Build configuration list for PBXProject "Rayne" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = E9619EDE169616FD00DA187E;
+			productRefGroup = E9619EE8169616FD00DA187E /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = E9619F491696184000DA187E /* Products */;
+					ProjectRef = E9619F481696184000DA187E /* png-ios.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				E9619EE6169616FD00DA187E /* Rayne */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		E9619F4D1696184100DA187E /* libpng.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libpng.a;
+			remoteRef = E9619F4C1696184100DA187E /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E9619EE3169616FD00DA187E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E9619F2D1696170700DA187E /* RNBase.cpp in Sources */,
+				E9619F2E1696170700DA187E /* RNCamera.cpp in Sources */,
+				E9619F2F1696170700DA187E /* RNContext.cpp in Sources */,
+				E9619F301696170700DA187E /* RNFile.cpp in Sources */,
+				E9619F311696170700DA187E /* RNKernel.cpp in Sources */,
+				E9619F321696170700DA187E /* RNList.cpp in Sources */,
+				E9619F331696170700DA187E /* RNMaterial.cpp in Sources */,
+				E9619F341696170700DA187E /* RNMesh.cpp in Sources */,
+				E9619F351696170700DA187E /* RNMutex.cpp in Sources */,
+				E9619F361696170700DA187E /* RNObject.cpp in Sources */,
+				E9619F381696170700DA187E /* RNRendererBackend.cpp in Sources */,
+				E9619F391696170700DA187E /* RNRendererFrontend.cpp in Sources */,
+				E9619F3A1696170700DA187E /* RNShader.cpp in Sources */,
+				E9619F3B1696170700DA187E /* RNTexture.cpp in Sources */,
+				E9619F3C1696170700DA187E /* RNTextureLoader.cpp in Sources */,
+				E9619F3D1696170700DA187E /* RNThread.cpp in Sources */,
+				E9619F3E1696170700DA187E /* RNWindow.cpp in Sources */,
+				E9619F3F1696170700DA187E /* RNWorld.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E9619F801696FDD000DA187E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = png;
+			targetProxy = E9619F7F1696FDD000DA187E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		E9619EF3169616FD00DA187E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		E9619EF4169616FD00DA187E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		E9619EF6169616FD00DA187E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DSTROOT = /tmp/Rayne.dst;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Supporting files/Rayne-Prefix.pch";
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Vendor/libpng/include\"";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		E9619EF7169616FD00DA187E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DSTROOT = /tmp/Rayne.dst;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Supporting files/Rayne-Prefix.pch";
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Vendor/libpng/include\"";
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E9619EE2169616FD00DA187E /* Build configuration list for PBXProject "Rayne" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E9619EF3169616FD00DA187E /* Debug */,
+				E9619EF4169616FD00DA187E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E9619EF5169616FD00DA187E /* Build configuration list for PBXNativeTarget "Rayne" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E9619EF6169616FD00DA187E /* Debug */,
+				E9619EF7169616FD00DA187E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E9619EDF169616FD00DA187E /* Project object */;
+}
