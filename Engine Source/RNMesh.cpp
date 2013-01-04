@@ -127,10 +127,14 @@ namespace RN
 		
 		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 		glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
 		Kernel::CheckOpenGLError("glBufferData");
 		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		
 		Kernel::CheckOpenGLError("glBufferData");
 	}
 
