@@ -22,6 +22,7 @@
 #include <vector>
 #include <type_traits>
 
+
 #include "RNPlatform.h"
 #include "RNDefines.h"
 #include "RNError.h"
@@ -43,7 +44,6 @@
 	#import <WebKit/WebKit.h>
 	#import <JavaScriptCore/JavaScriptCore.h>
 
-
 	#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 		#include <OpenGL/gl3.h>
 		#include <OpenGL/gl3ext.h>
@@ -51,6 +51,13 @@
 		#include <OpenGL/gl.h>
 		#include <OpenGL/glext.h>
 	#endif
+#endif
+
+#if RN_PLATFORM_IOS
+	#import <UIKit/UIKit.h>
+	#import <OpenGLES/ES2/gl.h>
+	#import <OpenGLES/ES2/glext.h>
+	#import <QuartzCore/QuartzCore.h>
 #endif
 
 #if RN_PLATFORM_WINDOWS
