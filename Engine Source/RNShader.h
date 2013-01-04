@@ -50,9 +50,10 @@ namespace RN
 		GLuint color1;
 		
 	private:
-		void SetShaderForType(const std::string& path, GLenum type);
 		void SetShaderForType(File *file, GLenum type);
-		void SetShaderForType(const std::vector<uint8>& data, GLenum type);
+		void SetShaderForType(const std::string& path, GLenum type);
+		
+		void SetShaderDataForType(const std::string& data, GLenum type);
 		
 		GLuint _vertexShader;
 		GLuint _fragmentShader;

@@ -73,7 +73,7 @@ namespace RN
 	
 	
 	
-	void Shader::SetShaderForType(const std::vector<uint8>& data, GLenum type)
+	void Shader::SetShaderDataForType(const std::string& data, GLenum type)
 	{
 		switch(type)
 		{
@@ -108,7 +108,7 @@ namespace RN
 				break;
 		}
 		
-		const GLchar *source = (const GLchar *)&data[0];
+		const GLchar *source = (const GLchar *)data.c_str();
 		GLuint shader = glCreateShader(type);
 		
 		Kernel::CheckOpenGLError("glCreateShader");
@@ -160,8 +160,7 @@ namespace RN
 	
 	void Shader::SetShaderForType(File *file, GLenum type)
 	{
-		std::vector<uint8> bytes = file->Bytes();
-		SetShaderForType(bytes, type);
+		SetShaderDataForType(file->String(), type);
 	}
 	
 	void Shader::SetShaderForType(const std::string& path, GLenum type)
