@@ -111,7 +111,7 @@ namespace RN
 				// TODO: Throw an exception!
 			}
 			
-			string.append(buffer);
+			string.append(buffer, tread);
 			read += tread;
 		}
 		
