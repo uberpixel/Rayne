@@ -15,6 +15,7 @@
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
 #include "RNColor.h"
+#include "RNTexture.h"
 
 namespace RN
 {
@@ -22,7 +23,7 @@ namespace RN
 	{
 	public:
 		Camera(const Vector2& size);
-		Camera(GLuint framebuffer);
+		Camera(GLuint framebuffer, const Vector2& size);
 		virtual ~Camera();
 		
 		void Bind();
@@ -43,6 +44,11 @@ namespace RN
 		
 		const Matrix& ViewMatrix() const { return _viewMatrix; }
 		const Matrix& InverseViewMatrix() const { return _inverseViewMatrix; }
+		
+		GLuint DepthBuffer() const { return _depthBuffer; }
+		GLuint SteincilBuffer() const { return _stencilBuffer; }
+		
+		Texture *Target() const { return _texture; }
 		
 		float arc;
 		float aspect;
@@ -66,9 +72,13 @@ namespace RN
 		
 		bool _ownsBuffer;
 		GLuint _frameBuffer;
-		GLuint _colorBuffer;
 		GLuint _depthBuffer;
 		GLuint _stencilBuffer;
+		
+		Texture *_texture;
+		
+	private:
+		void SetDefaultValues();
 	};
 }
 

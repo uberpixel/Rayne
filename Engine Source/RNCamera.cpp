@@ -8,6 +8,7 @@
 
 #include "RNCamera.h"
 #include "RNThread.h"
+#include "RNKernel.h"
 
 namespace RN
 {
@@ -16,13 +17,13 @@ namespace RN
 		_clearColor(0.193f, 0.435f, 0.753f, 1.0f)
 	{
 		_ownsBuffer = true;
+		_texture    = new Texture(Texture::RGBA8888);
 		
 		glGenFramebuffers(1, &_frameBuffer);
 		Bind();
 		
-		glGenRenderbuffers(1, &_colorBuffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, _colorBuffer);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _colorBuffer);
+		_depthBuffer   = 0;
+		_stencilBuffer = 0;
 		
 		glGenRenderbuffers(1, &_depthBuffer);
 		glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer);
@@ -34,7 +35,7 @@ namespace RN
 		
 		try
 		{
-			CheckError();
+			SetFrame(_frame);
 		}
 		catch(ErrorException e)
 		{
@@ -44,49 +45,30 @@ namespace RN
 		
 		Unbind();
 		
-		arc = 70.0f;
-		aspect = 1.0f;
-		clipnear = 0.1f;
-		clipfar = 500.0f;
-		
-		SetFrame(_frame);
-		
+		SetDefaultValues();
 		UpdateProjection();
 		UpdateCamera();
 	}
 	
-	Camera::Camera(GLuint framebuffer) :
-		_frame(Vector2(0.0f, 0.0f), Vector2(1024.0f, 768.0f)),
+	Camera::Camera(GLuint framebuffer, const Vector2& size) :
+		_frame(Vector2(0.0f, 0.0f), size),
 		_clearColor(0.193f, 0.435f, 0.753f, 1.0f)
 	{
 		_ownsBuffer = false;
 		_frameBuffer = framebuffer;
+		_texture = 0;
 		
 		Bind();
 		
-		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, (GLint *)&_colorBuffer);
-		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, (GLint *)&_depthBuffer);
-		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, (GLint *)&_stencilBuffer);
+		_depthBuffer = 0;
+		_stencilBuffer = 0;
 		
-		try
-		{
-			CheckError();
-		}
-		catch(ErrorException e)
-		{
-			Unbind();
-			throw e;
-		}
+		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, (GLint *)&_depthBuffer);
+		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, (GLint *)&_stencilBuffer);
 		
 		Unbind();
 		
-		arc = 70.0f;
-		aspect = 1.0f;
-		clipnear = 0.1f;
-		clipfar = 500.0f;
-		
-		SetFrame(_frame);
-		
+		SetDefaultValues();
 		UpdateProjection();
 		UpdateCamera();
 	}
@@ -97,10 +79,23 @@ namespace RN
 		{
 			glDeleteFramebuffers(1, &_frameBuffer);
 			
-			glDeleteRenderbuffers(1, &_colorBuffer);
-			glDeleteRenderbuffers(1, &_depthBuffer);
-			glDeleteRenderbuffers(1, &_stencilBuffer);
+			if(_depthBuffer)
+				glDeleteRenderbuffers(1, &_depthBuffer);
+			
+			if(_stencilBuffer)
+				glDeleteRenderbuffers(1, &_stencilBuffer);
 		}
+		
+		if(_texture)
+			_texture->Release();
+	}
+	
+	void Camera::SetDefaultValues()
+	{
+		arc = 70.0f;
+		aspect = 1.0f;
+		clipnear = 0.1f;
+		clipfar = 500.0f;
 	}
 	
 	void Camera::CheckError()
@@ -155,7 +150,7 @@ namespace RN
 			switch(status)
 			{
 				case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferUndefined);
+					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteAttachment);
 					break;
 					
 				case GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
@@ -209,9 +204,23 @@ namespace RN
 		
 		glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
 		glClearStencil(0);
-		glClearDepth(1.0f);
 		
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+#if RN_PLATFORM_IOS
+		glClearDepthf(1.0f);
+#endif
+		
+#if RN_PLATFORM_MAC_OS
+		glClearDepth(1.0f);
+#endif
+		
+		GLenum clearMask = GL_COLOR_BUFFER_BIT;
+		if(_depthBuffer)
+			clearMask |= GL_DEPTH_BUFFER_BIT;
+		
+		if(_stencilBuffer)
+			clearMask |= GL_STENCIL_BUFFER_BIT;
+		
+		glClear(clearMask);
 	}
 		
 	
@@ -226,12 +235,42 @@ namespace RN
 		uint32 width  = (uint32)_frame.width;
 		uint32 height = (uint32)_frame.height;
 		
-		glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+		if(_texture)
+		{
+			_texture->Bind();
+			
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture->Name(), 0);
+			
+			Kernel::CheckOpenGLError("glTexImage2D");
+			
+			_texture->Unbind();
+		}
 		
-		glBindRenderbuffer(GL_RENDERBUFFER, _stencilBuffer);
-		glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
+		if(_depthBuffer)
+		{
+#if RN_PLATFORM_MAC_OS
+			glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+#endif
+			
+#if RN_PLATFORM_IOS
+			glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24_OES, width, height);
+#endif
+			
+			Kernel::CheckOpenGLError("glRenderBufferStorage");
+		}
 		
+		if(_stencilBuffer)
+		{
+			glBindRenderbuffer(GL_RENDERBUFFER, _stencilBuffer);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
+			
+			Kernel::CheckOpenGLError("glRenderBufferStorage");
+		}
+		
+		CheckError();
 		Unbind();
 	}
 	
