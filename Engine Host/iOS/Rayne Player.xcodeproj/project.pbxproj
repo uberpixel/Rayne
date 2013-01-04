@@ -312,6 +312,7 @@
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -326,6 +327,7 @@
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
