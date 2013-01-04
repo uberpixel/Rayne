@@ -35,7 +35,7 @@ namespace RN
 		
 	private:
 		static void AddDefaultSearchPaths();
-		static FILE *FileForPath(const std::string& path);
+		static FILE *FileForPath(const std::string& path, std::string *outPath);
 		
 		std::string _path;
 		FILE *_file;

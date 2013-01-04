@@ -12,7 +12,8 @@
 
 namespace RN
 {
-	std::vector<std::string> FileSearchPaths;	
+	static std::vector<std::string> FileSearchPaths;
+	static std::vector<std::string> FileModifiers;
 	
 	File::File(const std::string& path)
 	{
@@ -32,7 +33,7 @@ namespace RN
 		if(_file)
 			return;
 		
-		_file = FileForPath(_path);
+		_file = FileForPath(_path, 0);
 		if(_file)
 		{
 			fseek(_file, 0, SEEK_END);
@@ -142,6 +143,33 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 			NSString *path = [[NSBundle mainBundle] resourcePath];
 			File::AddSearchPath(std::string([path UTF8String]));
+			File::AddSearchPath(std::string([path UTF8String]) + "/Engine Resources");
+			
+			FileModifiers.push_back("~150");
+			FileModifiers.push_back("~140");
+			FileModifiers.push_back("~130");
+			FileModifiers.push_back("~120");
+			FileModifiers.push_back("~110");
+#endif
+			
+#if RN_PLATFORM_IOS
+			NSString *path = [[NSBundle mainBundle] resourcePath];
+			File::AddSearchPath(std::string([path UTF8String]));
+			File::AddSearchPath(std::string([path UTF8String]) + "/Engine Resources");
+			
+			FileModifiers.push_back("~es2");
+			FileModifiers.push_back("~ios");
+			
+			if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+			{
+				FileModifiers.push_back("~iphone~es2");
+				FileModifiers.push_back("~iphone");
+			}
+			else if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+			{
+				FileModifiers.push_back("~ipad~es2");
+				FileModifiers.push_back("~ipad");
+			}
 #endif
 			
 			addedDefaultSearchPaths = true;
@@ -152,43 +180,107 @@ namespace RN
 	{
 		AddDefaultSearchPaths();
 		
-		FILE *file = fopen(path.c_str(), "r");
+		std::string outPath;
+		FILE *file = FileForPath(path, &outPath);
 		if(file)
 		{
 			fclose(file);
-			return path;
-		}
-		
-		for(auto i=FileSearchPaths.begin(); i!=FileSearchPaths.end(); i++)
-		{
-			std::string tpath = *i + "/" + path;
-			
-			file = fopen(tpath.c_str(), "r");
-			if(file)
-			{
-				fclose(file);
-				return tpath;
-			}
+			return outPath;
 		}
 		
 		return "";
 	}
 	
-	FILE *File::FileForPath(const std::string& path)
+	FILE *File::FileForPath(const std::string& fullpath, std::string *outPath)
 	{
 		AddDefaultSearchPaths();
 		
-		FILE *file = fopen(path.c_str(), "r");
+		FILE *file = fopen(fullpath.c_str(), "r");
 		if(file)
+		{
+			if(outPath)
+				*outPath = fullpath;
+			
 			return file;
+		}
+		
+		std::string path("");
+		std::string name("");
+		std::string extension("");
+		
+		bool hasExtension = false;
+		bool hasName = false;
+		
+		size_t i = fullpath.length();
+		size_t length = 0;
+		size_t extensionIndex = i;
+		
+		while(i > 0)
+		{
+			length ++;
+			i --;
+			
+			if(!hasExtension)
+			{
+				if(fullpath[i] == '.')
+				{
+					hasExtension = true;
+					extension = fullpath.substr(i + 1, length - 1);
+					extensionIndex = i;
+					
+					length = 0;
+					i --;
+				}
+			}
+			else
+			{
+				if(fullpath[i] == '/' || fullpath[i] == '\\')
+				{
+					name = fullpath.substr(i + 1, length);
+					path = fullpath.substr(0, i);
+					
+					hasName = true;
+					
+					break;
+				}
+			}
+		}
+		
+		if(!hasName)
+			name = fullpath.substr(0, extensionIndex);
+
+		
+		std::string basepath = (path.length() > 0) ? "/" + path + "/" : "/";
 		
 		for(auto i=FileSearchPaths.begin(); i!=FileSearchPaths.end(); i++)
 		{
-			std::string tpath = *i + "/" + path;
+			std::string temp = *i + basepath;
 			
-			file = fopen(tpath.c_str(), "r");
+			for(auto j=FileModifiers.begin(); j!=FileModifiers.end(); j++)
+			{
+				std::string exploded = temp + name + *j + "." + extension;
+
+				file = fopen(exploded.c_str(), "r");
+				if(file)
+				{
+					if(outPath)
+						*outPath = exploded;
+					
+					return file;
+				}
+			}
+			
+			std::string exploded = temp + name + "." + extension;
+			
+			file = fopen(exploded.c_str(), "r");
 			if(file)
+			{
+				if(outPath)
+					*outPath = exploded;
+				
 				return file;
+			}
+			
 		}
 		
 		return 0;
