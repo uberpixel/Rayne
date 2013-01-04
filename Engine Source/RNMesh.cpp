@@ -7,6 +7,7 @@
 //
 
 #include "RNMesh.h"
+#include "RNKernel.h"
 
 namespace RN
 {
@@ -18,8 +19,8 @@ namespace RN
 		_indicesSize = 0;
 		_indices     = 0;
 		
-		glGenBuffers(1, &_vbo);
-		glGenBuffers(1, &_ibo);
+		glGenBuffers(2, &_vbo);
+		Kernel::CheckOpenGLError("glGenBuffers");
 		
 		for(int i=0; i<__kMaxMeshFeatures; i++)
 		{
@@ -62,10 +63,10 @@ namespace RN
 	
 	MeshLODStage::~MeshLODStage()
 	{
-		if(_vbo != -1)
+		if(_vbo)
 			glDeleteBuffers(1, &_vbo);
 		
-		if(_ibo != -1)
+		if(_ibo)
 			glDeleteBuffers(1, &_ibo);
 		
 		for(int i=0; i<__kMaxMeshFeatures; i++)
@@ -135,9 +136,11 @@ namespace RN
 		
 		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 		glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, GL_STATIC_DRAW);
+		Kernel::CheckOpenGLError("glBufferData");
 		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, GL_STATIC_DRAW);
+		Kernel::CheckOpenGLError("glBufferData");
 	}
 
 	bool MeshLODStage::SupportsFeature(MeshFeature feature)

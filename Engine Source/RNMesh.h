@@ -72,8 +72,11 @@ namespace RN
 		size_t OffsetForFeature(MeshFeature feature);
 		
 	private:
-		GLuint _vbo;
-		GLuint _ibo;
+		struct
+		{
+			GLuint _vbo;
+			GLuint _ibo;
+		};
 		
 		size_t _meshSize;
 		size_t _indicesSize;
