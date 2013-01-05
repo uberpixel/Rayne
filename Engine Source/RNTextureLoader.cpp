@@ -77,12 +77,12 @@ namespace RN
 		switch(colorType)
 		{
 			case PNG_COLOR_TYPE_RGB:
-				_format = Texture::RGBA8888;
+				_format = Texture::FormatRGBA8888;
 				offset = 3;
 				break;
 				
 			case PNG_COLOR_TYPE_RGBA:
-				_format = Texture::RGBA8888;
+				_format = Texture::FormatRGBA8888;
 				offset = 4;
 				break;
 				

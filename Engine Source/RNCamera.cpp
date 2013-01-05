@@ -18,7 +18,7 @@ namespace RN
 		RenderingResource("Camera (RTT)")
 	{
 		_ownsBuffer = true;
-		_texture    = new Texture(Texture::RGBA8888);
+		_texture    = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
 		
 		glGenFramebuffers(1, &_frameBuffer);
 		Bind();

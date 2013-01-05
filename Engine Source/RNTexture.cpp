@@ -12,7 +12,7 @@
 
 namespace RN
 {
-	Texture::Texture(Format format)
+	Texture::Texture(Format format, WrapMode wrap, Filter filter)
 	{
 		glGenTextures(1, &_name);
 		
@@ -21,16 +21,13 @@ namespace RN
 		
 		Bind();
 		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		SetFilter(filter);
+		SetWrappingMode(wrap);
 		
 		Unbind();
 	}
 	
-	Texture::Texture(const std::string& name, Format format)
+	Texture::Texture(const std::string& name, Format format, WrapMode wrap, Filter filter)
 	{
 		TextureLoader loader = TextureLoader(name);
 		
@@ -41,11 +38,9 @@ namespace RN
 		
 		Bind();
 		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		SetFilter(filter);
+		SetWrappingMode(wrap);
 		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		
 		try
 		{
@@ -89,6 +84,62 @@ namespace RN
 		}
 	}
 	
+	
+	void Texture::SetFormat(Format format)
+	{
+		_format = format;
+	}
+	
+	void Texture::SetWrappingMode(WrapMode wrap)
+	{
+		_wrapMode = wrap;
+		
+		Bind();
+		
+		GLenum mode;
+		
+		switch(wrap)
+		{
+			case WrapModeClamp:
+				mode = GL_CLAMP_TO_EDGE;
+				break;
+				
+			case WrapModeRepeat:
+				mode = GL_REPEAT;
+				break;
+		}
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode);
+		
+		Unbind();
+	}
+	
+	void Texture::SetFilter(Filter filter)
+	{
+		Bind();
+		
+		GLenum minFilter;
+		GLenum magFilter;
+		
+		switch(filter)
+		{
+			case FilterLinear:
+				minFilter = GL_LINEAR;
+				magFilter = GL_LINEAR;
+				break;
+				
+			case FilterNearest:
+				minFilter = GL_NEAREST;
+				magFilter = GL_NEAREST;
+				break;
+		}
+		
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+		
+		Unbind();
+	}
 	
 	
 	void Texture::SetData(const void *data, uint32 width, uint32 height, Format format)
@@ -143,22 +194,22 @@ namespace RN
 		
 		switch(format)
 		{
-			case RGBA8888:
+			case FormatRGBA8888:
 				*glFormat = GL_RGBA;
 				*glType   = GL_UNSIGNED_BYTE;
 				break;
 				
-			case RGBA4444:
+			case FormatRGBA4444:
 				*glFormat = GL_RGBA;
 				*glType   = GL_UNSIGNED_SHORT_4_4_4_4;
 				break;
 				
-			case RGBA5551:
+			case FormatRGBA5551:
 				*glFormat = GL_RGBA;
 				*glType   = GL_UNSIGNED_SHORT_5_5_5_1;
 				break;
 				
-			case RGB565:
+			case FormatRGB565:
 				*glFormat = GL_RGB;
 				*glType   = GL_UNSIGNED_SHORT_5_6_5;
 				break;
@@ -181,11 +232,11 @@ namespace RN
 		// Promote data to RGBA8888
 		switch(current)
 		{
-			case RGBA8888:
+			case FormatRGBA8888:
 				intermediate = (void *)data;
 				break;
 				
-			/*case RGBA8888:
+			/*case FormatRGBA8888:
 			{
 				intermediate = malloc(pixel * sizeof(uint32));
 				
@@ -205,7 +256,7 @@ namespace RN
 				break;
 			}*/
 				
-			case RGBA4444:
+			case FormatRGBA4444:
 			{
 				intermediate = malloc(pixel * sizeof(uint32));
 				
@@ -225,7 +276,7 @@ namespace RN
 				break;
 			}
 				
-			case RGBA5551:
+			case FormatRGBA5551:
 			{
 				intermediate = malloc(pixel * sizeof(uint32));
 				
@@ -245,7 +296,7 @@ namespace RN
 				break;
 			}
 				
-			case RGB565:
+			case FormatRGB565:
 			{
 				intermediate = malloc(pixel * sizeof(uint32));
 				
@@ -271,7 +322,7 @@ namespace RN
 		// Convert data to the specified target format
 		switch(target)
 		{
-			case RGBA4444:
+			case FormatRGBA4444:
 			{
 				result = malloc(pixel * sizeof(uint16));
 				
@@ -291,7 +342,7 @@ namespace RN
 				break;
 			}
 				
-			case RGBA5551:
+			case FormatRGBA5551:
 			{
 				result = malloc(pixel * sizeof(uint16));
 				
@@ -311,7 +362,7 @@ namespace RN
 				break;
 			}
 			
-			case RGB565:
+			case FormatRGB565:
 			{
 				result = malloc(pixel * sizeof(uint16));
 				
@@ -346,8 +397,8 @@ namespace RN
 	{
 		switch(format)
 		{
-			case PVRTC2:
-			case PVRTC4:
+			case FormatPVRTC2:
+			case FormatPVRTC4:
 				return false;
 				break;
 				

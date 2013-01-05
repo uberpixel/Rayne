@@ -19,17 +19,29 @@ namespace RN
 	public:
 		typedef enum
 		{
-			RGBA8888,
-			RGBA4444,
-			RGBA5551,
-			RGB565,
+			FormatRGBA8888,
+			FormatRGBA4444,
+			FormatRGBA5551,
+			FormatRGB565,
 			
-			PVRTC4,
-			PVRTC2
+			FormatPVRTC4,
+			FormatPVRTC2
 		} Format;
 		
-		Texture(Format format);
-		Texture(const std::string& name, Format format);
+		typedef enum
+		{
+			WrapModeClamp,
+			WrapModeRepeat
+		} WrapMode;
+		
+		typedef enum
+		{
+			FilterLinear,
+			FilterNearest
+		} Filter;
+		
+		Texture(Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear);
+		Texture(const std::string& name, Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear);
 		
 		virtual ~Texture();
 		
@@ -40,6 +52,14 @@ namespace RN
 		
 		void SetData(const void *data, uint32 width, uint32 height, Format format);
 		void UpdateData(const void *data, Format format);
+		
+		void SetFormat(Format format);
+		void SetWrappingMode(WrapMode wrap);
+		void SetFilter(Filter filter);
+		
+		Format TextureFormat() const { return _format; }
+		Filter TextureFilter() const { return _filter; }
+		WrapMode WrappingMode() const { return _wrapMode; }
 		
 		static bool PlatformSupportsFormat(Format format);
 		
@@ -52,6 +72,8 @@ namespace RN
 		static void ConvertFormat(Format format, GLenum *glFormat, GLenum *glType);
 		
 		Format _format;
+		Filter _filter;
+		WrapMode _wrapMode;
 	};
 }
 
