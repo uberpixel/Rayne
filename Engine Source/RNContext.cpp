@@ -199,7 +199,8 @@ namespace RN
 		RenderingResource::SetName(name);
 		
 #if RN_PLATFORM_IOS
-		[_oglContext setDebugLabel:[NSString stringWithUTF8String:name]];
+		if([_oglContext respondsToSelector:@selector(setDebugLabel:)])
+			[_oglContext setDebugLabel:[NSString stringWithUTF8String:name]];
 #endif
 	}
 	
