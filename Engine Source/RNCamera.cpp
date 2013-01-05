@@ -18,7 +18,10 @@ namespace RN
 		RenderingResource("Camera (RTT)")
 	{
 		_ownsBuffer = true;
-		_texture    = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
+		
+		_current    = 0;
+		_texture[0] = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
+		_texture[1] = 0;
 		
 		glGenFramebuffers(1, &_frameBuffer);
 		Bind();
@@ -58,7 +61,10 @@ namespace RN
 	{
 		_ownsBuffer = false;
 		_frameBuffer = framebuffer;
-		_texture = 0;
+		
+		_current    = 0;
+		_texture[0] = 0;
+		_texture[1] = 0;
 		
 		Bind();
 		
@@ -88,9 +94,28 @@ namespace RN
 				glDeleteRenderbuffers(1, &_stencilBuffer);
 		}
 		
-		if(_texture)
-			_texture->Release();
+		if(_texture[0])
+			_texture[0]->Release();
+		
+		if(_texture[1])
+			_texture[1]->Release();
 	}
+	
+	
+	void Camera::MakeDoubleBuffered()
+	{
+		if(_texture[1] == 0)
+		{
+			_texture[1] = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
+		}
+	}
+	
+	void Camera::SwitchBuffers()
+	{
+		_current = (_current == 0) ? 1 : 0;
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture[_current]->Name(), 0);
+	}
+	
 	
 	void Camera::SetDefaultValues()
 	{
@@ -241,16 +266,19 @@ namespace RN
 		uint32 width  = (uint32)_frame.width;
 		uint32 height = (uint32)_frame.height;
 		
-		if(_texture)
+		for(int i=0; i<2; i++)
 		{
-			_texture->Bind();
-			
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture->Name(), 0);
-			
-			Kernel::CheckOpenGLError("glTexImage2D");
-			
-			_texture->Unbind();
+			if(_texture[i])
+			{
+				_texture[i]->Bind();
+				
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture[i]->Name(), 0);
+				
+				Kernel::CheckOpenGLError("glTexImage2D");
+				
+				_texture[i]->Unbind();
+			}
 		}
 		
 		if(_depthBuffer)
