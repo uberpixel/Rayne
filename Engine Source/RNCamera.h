@@ -30,6 +30,7 @@ namespace RN
 		void Bind();
 		void Unbind();
 		virtual void PrepareForRendering();
+		virtual void FinishRendering();
 		
 		virtual void SetFrame(const Rect& frame);
 		void SetClearColor(const Color& color);
@@ -80,6 +81,7 @@ namespace RN
 		GLuint _stencilBuffer;
 		
 	private:
+		bool _doubleBuffered;
 		int _current;
 		Texture *_texture[2];
 		

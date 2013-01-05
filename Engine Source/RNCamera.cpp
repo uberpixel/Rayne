@@ -23,11 +23,11 @@ namespace RN
 		_texture[0] = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
 		_texture[1] = 0;
 		
+		_doubleBuffered = false;
+		
+		
 		glGenFramebuffers(1, &_frameBuffer);
 		Bind();
-		
-		_depthBuffer   = 0;
-		_stencilBuffer = 0;
 		
 		glGenRenderbuffers(1, &_depthBuffer);
 		glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer);
@@ -66,10 +66,9 @@ namespace RN
 		_texture[0] = 0;
 		_texture[1] = 0;
 		
-		Bind();
+		_doubleBuffered = false;
 		
-		_depthBuffer = 0;
-		_stencilBuffer = 0;
+		Bind();
 		
 		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, (GLint *)&_depthBuffer);
 		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, (GLint *)&_stencilBuffer);
@@ -104,16 +103,20 @@ namespace RN
 	
 	void Camera::MakeDoubleBuffered()
 	{
-		if(_texture[1] == 0)
+		if(!_doubleBuffered)
 		{
 			_texture[1] = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
+			_doubleBuffered = true;
 		}
 	}
 	
 	void Camera::SwitchBuffers()
 	{
-		_current = (_current == 0) ? 1 : 0;
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture[_current]->Name(), 0);
+		if(_doubleBuffered)
+		{
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture[_current]->Name(), 0);
+			_current = (_current == 0) ? 1 : 0;
+		}
 	}
 	
 	
@@ -227,6 +230,8 @@ namespace RN
 		}
 	}
 	
+	
+	
 	void Camera::PrepareForRendering()
 	{
 		glViewport(_frame.x, _frame.y, _frame.width, _frame.height);
@@ -254,7 +259,10 @@ namespace RN
 		glClear(clearMask);
 	}
 		
-	
+	void Camera::FinishRendering()
+	{
+		SwitchBuffers();
+	}
 	
 	
 	void Camera::SetFrame(const Rect& frame)
