@@ -105,34 +105,20 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 @interface RNOpenGLView : UIView
 {
-	RN::SpinLock _lock;
-	RN::Matrix _projection;
+	GLuint _frameBuffer;
+	GLuint _colorBuffer;
 	
 	RN::Context *_context;
 	RN::Camera *_camera;
-	RN::Shader *_shader;
-	
-	BOOL _updateBackgroundCamera;
-	
-	RN::Context *_rendererContext;
-	RN::Camera *_rendererCamera;
 	RN::RendererBackend *_renderer;
 	
 	NSThread *_rendererThread;
 	CADisplayLink *_displayLink;
 	
-	GLuint _texlocation;
-	
 	GLint _backingWidth;
 	GLint _backingHeight;
 	
-	GLuint _frameBuffer;
-	GLuint _colorBuffer;
-	
-	GLfloat _vertices[16];
-	GLshort _indices[6];
-	
-	BOOL _drawOnMainThread;
+	BOOL _resizeLayer;
 }
 
 @end
@@ -144,27 +130,28 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 	return [CAEAGLLayer class];
 }
 
+// Rendering
+
 - (void)drawBackgroundFrame
 {
-	_rendererContext->MakeActiveContext();
+	if(_resizeLayer)
+		[self resizeFromLayer:(CAEAGLLayer *)[self layer]];
 	
-	// Update the cameras frame if needed
-	_lock.Lock();
-	if(_updateBackgroundCamera)
-	{
-		_rendererCamera->SetFrame(RN::Rect(0.0f, 0.0f, _backingWidth, _backingHeight));
-		_updateBackgroundCamera = NO;
-	}
-	_lock.Unlock();
-	
-	// Draw the frame into the camera
 	_renderer->DrawFrame();
-	glFlush();	
-	_rendererContext->DeactivateContext();
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, _colorBuffer);
+	
+	[[EAGLContext currentContext] presentRenderbuffer:GL_RENDERBUFFER];
 }
 
-- (void)renderInBackground
+- (void)renderTest
 {
+	_context->MakeActiveContext();
+	
+	[self createDrawBuffer];
+	[self resizeFromLayer:(CAEAGLLayer *)[self layer]];
+	
 	_displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(drawBackgroundFrame)];
 	[_displayLink setFrameInterval:1];
 	[_displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
@@ -179,46 +166,7 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 }
 
 
-
-
-- (void)copyFrame
-{
-	if(_drawOnMainThread)
-		[self drawBackgroundFrame];
-	
-	_lock.Lock();
-	_context->MakeActiveContext();
-	
-	_camera->Bind();
-	_camera->PrepareForRendering();
-	
-	RN::Texture *texture = _rendererCamera->Target();
-	
-	glUseProgram(_shader->program);
-	
-	glActiveTexture(GL_TEXTURE0);
-	texture->Bind();
-	
-	glUniform1i(_texlocation, 0);
-	glUniformMatrix4fv(_shader->matProj, 1, GL_FALSE, _projection.m);
-	
-	glEnableVertexAttribArray(_shader->position);
-	glVertexAttribPointer(_shader->position,  2, GL_FLOAT, 0, 16, &_vertices[0]);
-	
-	glEnableVertexAttribArray(_shader->texcoord0);
-	glVertexAttribPointer(_shader->texcoord0, 2, GL_FLOAT, 0, 16, &_vertices[2]);
-	
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, _indices);
-	
-	texture->Unbind();
-	
-	glBindRenderbuffer(GL_RENDERBUFFER, _colorBuffer);
-	[[EAGLContext currentContext] presentRenderbuffer:GL_RENDERBUFFER];
-	
-	_camera->Unbind();
-	_lock.Unlock();
-}
-
+// Buffer Management
 
 - (void)createDrawBuffer
 {
@@ -228,13 +176,15 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 	glGenRenderbuffers(1, &_colorBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, _colorBuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _colorBuffer);
+	
+	CGRect frame = [self frame];
+	
+	_camera = new RN::Camera(_frameBuffer, RN::Vector2(frame.size.width, frame.size.height));
+	_renderer->SetDefaultCamera(_camera);
 }
 
 - (void)resizeFromLayer:(CAEAGLLayer *)layer
 {
-	_context->MakeActiveContext();
-	
-	_lock.Lock();
 	_camera->Bind();
 	
 	glBindRenderbuffer(GL_RENDERBUFFER, _colorBuffer);
@@ -245,63 +195,22 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 	
 	_camera->SetFrame(RN::Rect(0.0f, 0.0f, _backingWidth, _backingHeight));
 	_camera->Unbind();
-	
-	_projection.MakeProjectionOrthogonal(0.0f, _backingWidth, 0.0f, _backingHeight, -1.0f, 1.0f);
-	
-	_vertices[1] = _backingHeight;
-	_vertices[4] = _backingWidth;
-	_vertices[5] = _backingHeight;
-	_vertices[8] = _backingWidth;
-	
-	_updateBackgroundCamera = YES;
-	_lock.Unlock();
-	
-	[self copyFrame];
 }
 
 - (void)layoutSubviews
 {
 	[super layoutSubviews];
 	
-	[self resizeFromLayer:(CAEAGLLayer *)[self layer]];
-	[self copyFrame];
+	_resizeLayer = YES;
 }
-
 
 - (id)initWithContext:(RN::Context *)context renderer:(RN::RendererBackend *)renderer andFrame:(CGRect)frame
 {
 	if((self = [super initWithFrame:frame]))
 	{
-		_drawOnMainThread = NO;
-		
-		_context  = context;
 		_renderer = renderer;
-		_rendererContext = new RN::Context(context);
-		_rendererContext->SetName("Renderering Context");
-		
-		_shader = new RN::Shader();
-		_shader->SetFragmentShader("shader/rn_copyTexture.fsh");
-		_shader->SetVertexShader("shader/rn_copyTexture.vsh");
-		_shader->Link();
-		
-		_texlocation = glGetUniformLocation(_shader->program, "mTexture0");
-		
-		static GLfloat vertices[] =
-		{
-			0.0f, 0.0f, 0.0f, 1.0f,
-			0.0f, 0.0f, 1.0f, 1.0f,
-			0.0f, 0.0f, 1.0f, 0.0f,
-			0.0f, 0.0f, 0.0f, 0.0f
-		};
-		
-		static uint16 indices[] =
-		{
-			0, 3, 1, 2, 1, 3
-		};
-		
-		memcpy(_vertices, vertices, 16 * sizeof(GLfloat));
-		memcpy(_indices,  indices,   6 * sizeof(GLshort));
-		
+		_context = new RN::Context(context);
+		_context->SetName("Renderering Context");
 		
 		CAEAGLLayer *layer = (CAEAGLLayer *)[self layer];
 		NSDictionary *properties = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
@@ -309,20 +218,8 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 		[layer setDrawableProperties:properties];
 		[layer setOpaque:YES];
 		
-		[self createDrawBuffer];
-		
-		_camera = new RN::Camera(_frameBuffer, RN::Vector2(frame.size.width, frame.size.height));
-		_rendererCamera = new RN::Camera(RN::Vector2(frame.size.width, frame.size.height));
-		
-		_renderer->SetDefaultCamera(_rendererCamera);
-		
-		[self resizeFromLayer:layer];
-		
-		if(!_drawOnMainThread)
-		{
-			_rendererThread = [[NSThread alloc] initWithTarget:self selector:@selector(renderInBackground) object:nil];
-			[_rendererThread start];
-		}
+		_rendererThread = [[NSThread alloc] initWithTarget:self selector:@selector(renderTest) object:nil];
+		[_rendererThread start];
 	}
 	
 	return self;
@@ -330,23 +227,19 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 - (void)dealloc
 {
-	if(!_drawOnMainThread)
-	{
-		[_rendererThread cancel];
-		
-		while([_rendererThread isExecuting])
-			[NSThread sleepForTimeInterval:0.1f];
-		
-		[_rendererThread release];
-	}
+	// Wait for the rendering thread to terminate
+	
+	[_rendererThread cancel];
+	
+	while([_rendererThread isExecuting])
+		[NSThread sleepForTimeInterval:0.1f];
+	
+	[_rendererThread release];
 	
 	_renderer->SetDefaultCamera(0);
-	_rendererContext->Release();
-	
 	_camera->Release();
-	_rendererCamera->Release();
 	
-	_shader->Release();
+	_context->Release();
 	
 	[super dealloc];
 }
@@ -467,13 +360,6 @@ namespace RN
 		[_nativeWindow setTitle:[NSString stringWithUTF8String:title.c_str()]];
 #endif
 	}
-	
-#if RN_PLATFORM_IOS
-	void Window::DrawFrame()
-	{
-		[[(RNOpenGLViewController *)_rootViewController openGLView] copyFrame];
-	}
-#endif
 }
 
 #endif

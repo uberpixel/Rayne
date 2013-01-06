@@ -49,10 +49,6 @@ namespace RN
 		void SetContext(Context *context, RendererBackend *renderer);
 		void SetTitle(const std::string& title);
 		
-#if RN_PLATFORM_IOS
-		void DrawFrame();
-#endif
-		
 	private:
 #if RN_PLATFORM_MAC_OS
 		RNNativeWindow *_nativeWindow;
