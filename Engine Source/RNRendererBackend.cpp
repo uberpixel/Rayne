@@ -24,7 +24,6 @@ namespace RN
 		_lastFrame   = 0;
 		_lastFrameID = 0;
 		
-		_texture2DEnabled = false;
 		_cullingEnabled   = false;
 		_depthTestEnabled = false;
 		_blendingEnabled  = false;
@@ -114,10 +113,10 @@ namespace RN
 		if(!_defaultCamera)
 			_defaultCamera = new Camera(0, Vector2(1024.0f, 768.0f));
 		
-		_defaultCamera->Bind();
-		_defaultCamera->PrepareForRendering();
-		
 		Camera *camera = _defaultCamera;
+		
+		camera->Bind();
+		camera->PrepareForRendering();
 		
 		std::vector<RenderingIntent>::iterator iterator;
 		for(iterator=frame->begin(); iterator!=frame->end(); iterator++)
@@ -169,7 +168,8 @@ namespace RN
 			intent->Pop();
 		}
 		
-		_defaultCamera->Unbind();
+		camera->FinishRendering();
+		camera->Unbind();
 	}
 	
 	void RendererBackend::BindMaterial(Material *material)
@@ -186,12 +186,6 @@ namespace RN
 			
 			if(textureLocations->Count() > 0)
 			{
-				if(!_texture2DEnabled)
-				{
-					glEnable(GL_TEXTURE_2D);
-					_texture2DEnabled = true;
-				}
-				
 				for(machine_uint i=0; i<textureLocations->Count(); i++)
 				{
 					GLint location = textureLocations->ObjectAtIndex(i);
@@ -204,11 +198,6 @@ namespace RN
 					glBindTexture(GL_TEXTURE_2D, texture->Name());
 					glUniform1i(location, (GLint)i);
 				}
-			}
-			else if(_texture2DEnabled)
-			{
-				glDisable(GL_TEXTURE_2D);
-				_texture2DEnabled = false;
 			}
 			
 			if(!_currentMaterial || material->culling != _currentMaterial->culling)
@@ -296,7 +285,7 @@ namespace RN
 	}
 	
 	void RendererBackend::DrawMesh(Mesh *mesh)
-	{
+	{		
 		if(mesh && mesh != _currentMesh)
 		{
 			mesh->Push();

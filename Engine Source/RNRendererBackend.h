@@ -33,7 +33,6 @@ namespace RN
 		virtual void BindMaterial(Material *material);
 		virtual void DrawMesh(Mesh *mesh);
 		
-		bool _texture2DEnabled;
 		bool _cullingEnabled;
 		bool _depthTestEnabled;
 		bool _blendingEnabled;
