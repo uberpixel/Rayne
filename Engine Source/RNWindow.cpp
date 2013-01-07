@@ -194,7 +194,10 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &_backingHeight);
 	
 	_camera->SetFrame(RN::Rect(0.0f, 0.0f, _backingWidth, _backingHeight));
+	_camera->UpdateProjection();
 	_camera->Unbind();
+	
+	_resizeLayer = NO;
 }
 
 - (void)layoutSubviews
