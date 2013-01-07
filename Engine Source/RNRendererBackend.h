@@ -44,6 +44,8 @@ namespace RN
 		GLenum _blendSource;
 		GLenum _blendDestination;
 		
+		GLuint _vao;
+		
 		Camera *_defaultCamera;
 		RendererFrontend *_frontend;
 		

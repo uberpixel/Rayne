@@ -68,11 +68,20 @@ namespace RN
 		std::vector<RenderingIntent> *frame = 0;
 		uint32 frameID = _frontend->CommittedFrame(&frame);
 		
+#if RN_PLATFORM_MAC_OS
+		glGenVertexArrays(1, &_vao);
+		glBindVertexArray(_vao);
+#endif
+		
 		if(frameID == _lastFrameID)
 		{
 			if(_lastFrame)
 			{
 				PrepareFrame(frame);
+				
+#if RN_PLATFORM_MAC_OS
+				glDeleteVertexArrays(1, &_vao);
+#endif
 			}
 			
 			return;
@@ -83,6 +92,10 @@ namespace RN
 		
 
 		PrepareFrame(frame);
+		
+#if RN_PLATFORM_MAC_OS
+		glDeleteVertexArrays(1, &_vao);
+#endif
 		
 		_lastFrame = frame;
 		_lastFrameID = frameID;
@@ -306,10 +319,6 @@ namespace RN
 					glEnableVertexAttribArray(shader->position);
 					glVertexAttribPointer(shader->position, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureVertices));
 				}
-				else
-				{
-					glDisableVertexAttribArray(shader->position);
-				}
 			}
 			
 			// Texcoord0
@@ -321,10 +330,6 @@ namespace RN
 					
 					glEnableVertexAttribArray(shader->texcoord0);
 					glVertexAttribPointer(shader->texcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureUVSet0));
-				}
-				else
-				{
-					glDisableVertexAttribArray(shader->texcoord0);
 				}
 			}
 			
@@ -338,10 +343,6 @@ namespace RN
 					glEnableVertexAttribArray(shader->texcoord1);
 					glVertexAttribPointer(shader->texcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureUVSet1));
 				}
-				else
-				{
-					glDisableVertexAttribArray(shader->texcoord1);
-				}
 			}
 			
 			// Color0
@@ -354,10 +355,6 @@ namespace RN
 					glEnableVertexAttribArray(shader->color0);
 					glVertexAttribPointer(shader->color0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureColor0));
 				}
-				else
-				{
-					glDisableVertexAttribArray(shader->color0);
-				}
 			}
 			
 			// Color1
@@ -369,10 +366,6 @@ namespace RN
 					
 					glEnableVertexAttribArray(shader->color1);
 					glVertexAttribPointer(shader->color1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureColor1));
-				}
-				else
-				{
-					glDisableVertexAttribArray(shader->color1);
 				}
 			}
 			
