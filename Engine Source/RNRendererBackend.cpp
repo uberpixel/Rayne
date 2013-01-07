@@ -181,7 +181,6 @@ namespace RN
 			intent->Pop();
 		}
 		
-		camera->FinishRendering();
 		camera->Unbind();
 	}
 	
