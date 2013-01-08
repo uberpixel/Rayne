@@ -229,6 +229,9 @@ namespace RN
 		void *result = 0;
 		size_t pixel = width * height;
 		
+		RN_ASSERT0(width > 0 && height > 0);
+		RN_ASSERT0(pixel > 0);
+		
 		// Promote data to RGBA8888
 		switch(current)
 		{

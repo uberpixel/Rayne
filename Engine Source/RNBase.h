@@ -81,10 +81,10 @@
 namespace RN
 {
 #ifndef NDEBUG
-	RN_EXTERN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
+	RN_EXTERN RN_NORETURN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
 	
 	#define RN_ASSERT(e, ...) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, __VA_ARGS__) : (void)0
-	#define RN_ASSERT0(e) if(!(e)) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, 0) : (void)0
+	#define RN_ASSERT0(e) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, 0) : (void)0
 	
 #else
 	#define RN_ASSERT(e, message, ...) (void)0

@@ -60,6 +60,8 @@ namespace RN
 		uint32 width  = (uint32)png_get_image_width(pngPointer, pngInfo);
 		uint32 height = (uint32)png_get_image_height(pngPointer, pngInfo);
 		
+		RN_ASSERT0(width > 0 && height > 0);
+		
 		png_byte colorType = png_get_color_type(pngPointer, pngInfo);
 		
 		png_read_update_info(pngPointer, pngInfo);

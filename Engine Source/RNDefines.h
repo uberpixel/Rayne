@@ -30,6 +30,8 @@
 		__declspec(allocate(".CRT$XCU")) void (__cdecl*f##_)(void) = f; \
 		static void __cdecl f()
 
+	#define RN_NORETURN __declspec(noreturn)
+
 #elif defined(__GNUC__)
 
 	typedef signed char				int8;
@@ -47,6 +49,8 @@
 	#define RN_INITIALIZER(f) \
 		static void f() __attribute__((constructor)); \
 		static void f()
+
+	#define RN_NORETURN __attribute__((noreturn))
 
 #else
 	#error "Unsupported compiler."

@@ -109,6 +109,7 @@ namespace RN
 	protected:
 		void ResizeToSize(machine_uint size)
 		{
+			size = MAX(size, 1);
 			T *data = (T *)realloc(_data, size * sizeof(T));
 			
 			if(data)
