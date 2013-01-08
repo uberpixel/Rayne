@@ -21,21 +21,7 @@ namespace RN
 	{
 	friend class Window;
 	public:
-		enum
-		{
-			DepthBufferSize8  = (1 << 1),
-			DepthBufferSize16 = (1 << 2),
-			DepthBufferSize24 = (1 << 3),
-			
-			StencilBufferSize8  = (1 << 4),
-			StencilBufferSize16 = (1 << 5),
-			StencilBufferSize24 = (1 << 6)
-		};
-		typedef int32 ContextFlags;
-		
-		Context(ContextFlags flags, Context *shared=0);
-		Context(Context *shared);
-		
+		Context(Context *shared=0);		
 		virtual ~Context();
 		
 		void MakeActiveContext();
@@ -47,19 +33,14 @@ namespace RN
 		static Context *ActiveContext();
 		
 	protected:
-		virtual void Activate();
-		virtual void Deactivate();
+		void Activate();
+		void Deactivate();
 		
 	private:
 		bool _active;
 		Thread *_thread;
 		
-		int32 _glsl;
-		ContextFlags _flags;
-		
 #if RN_PLATFORM_MAC_OS
-		NSOpenGLPixelFormat *CreatePixelFormat(ContextFlags flags);
-		
 		Context *_shared;
 		NSOpenGLContext *_oglContext;
 		NSOpenGLPixelFormat *_oglPixelFormat;

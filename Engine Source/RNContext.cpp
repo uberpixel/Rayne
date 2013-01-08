@@ -11,36 +11,6 @@
 
 namespace RN
 {
-	Context::Context(ContextFlags flags, Context *shared) :
-		RenderingResource("Context")
-	{
-		_active = false;
-		_flags  = flags;
-		_thread = 0;
-		_shared = shared;
-		_shared->Retain();
-		
-#if RN_PLATFORM_MAC_OS
-		_oglPixelFormat = CreatePixelFormat(flags);
-		if(!_oglPixelFormat)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
-		
-		_oglContext = [[NSOpenGLContext alloc] initWithFormat:_oglPixelFormat shareContext:_shared ? _shared->_oglContext : nil];
-		if(!_oglContext)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
-		
-		_cglContext = (CGLContextObj)[_oglContext CGLContextObj];
-#elif RN_PLATFORM_IOS
-		EAGLSharegroup *sharegroup = _shared ? [_shared->_oglContext sharegroup] : nil;
-		
-		_oglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
-		if(!_oglContext)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
-#else
-		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
-#endif
-	}
-	
 	Context::Context(Context *shared) :
 		RenderingResource("Context")
 	{
@@ -50,29 +20,45 @@ namespace RN
 		_shared->Retain();
 		
 #if RN_PLATFORM_MAC_OS
-		_glsl = shared->_glsl;
+		static NSOpenGLPixelFormatAttribute formatAttributes[] =
+		{
+			NSOpenGLPFAMinimumPolicy,
+			NSOpenGLPFAAccelerated,
+			NSOpenGLPFADoubleBuffer,
+			NSOpenGLPFAColorSize, 24,
+			NSOpenGLPFAAlphaSize, 8,
+			NSOpenGLPFADepthSize, 24,
+			NSOpenGLPFAStencilSize, 8,
+			NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
+			0
+		};
 		
-		_oglPixelFormat = [[NSOpenGLPixelFormat alloc] initWithCGLPixelFormatObj:[_shared->_oglPixelFormat CGLPixelFormatObj]];
+		_oglPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes];
 		if(!_oglPixelFormat)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
 		
-		_oglContext = [[NSOpenGLContext alloc] initWithFormat:_oglPixelFormat shareContext:_shared->_oglContext];
+		_oglContext = [[NSOpenGLContext alloc] initWithFormat:_oglPixelFormat shareContext:_shared ? _shared->_oglContext : nil];
 		if(!_oglContext)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 		
 		_cglContext = (CGLContextObj)[_oglContext CGLContextObj];
 		
-		CGLEnable(_shared->_cglContext, kCGLCEMPEngine);
-		CGLEnable(_cglContext, kCGLCEMPEngine);
-		
-		if(_shared->_active && _shared->_thread->OnThread())
+		if(_shared)
 		{
-			// Reactivate the context
-			[_shared->_oglContext makeCurrentContext];
+			// Enable the multithreaded OpenGL Engine
+			
+			CGLEnable(_shared->_cglContext, kCGLCEMPEngine);
+			CGLEnable(_cglContext, kCGLCEMPEngine);
+			
+			if(_shared->_active && shared->_thread->OnThread())
+			{
+				_shared->Deactivate();
+				_shared->Activate();
+			}
 		}
 		
 #elif RN_PLATFORM_IOS
-		EAGLSharegroup *sharegroup = [_shared->_oglContext sharegroup];
+		EAGLSharegroup *sharegroup = _shared ? [_shared->_oglContext sharegroup] : nil;
 		
 		_oglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
 		if(!_oglContext)
@@ -91,52 +77,11 @@ namespace RN
 		[_oglContext release];
 		[_oglPixelFormat release];
 #endif
-	}
-	
-#if RN_PLATFORM_MAC_OS
-	NSOpenGLPixelFormat *Context::CreatePixelFormat(ContextFlags flags)
-	{
-		int32 major;
-		int32 minor;
-		RN::OSXVersion(&major, &minor, 0);
 		
-		int32 depthBufferSize   = 0;
-		int32 stencilBufferSize = 0;
-		
-		NSOpenGLPixelFormatAttribute oglProfile = (major == 10 && minor < 7) ? (NSOpenGLPixelFormatAttribute)0 : NSOpenGLPFAOpenGLProfile;
-		
-		RN::OSXVersion(&major, &minor, 0);
-		if(major == 10 && minor < 7)
-		{
-			oglProfile = (NSOpenGLPixelFormatAttribute)0;
-			_glsl = 120;
-		}
-		else
-		{
-			_glsl = 150;
-		}
-		
-		depthBufferSize = (flags & DepthBufferSize8) ? 8 : (flags & DepthBufferSize16) ? 16 : (flags & DepthBufferSize24) ? 24 : 0;
-		stencilBufferSize = (flags & StencilBufferSize8) ? 8 : (flags & StencilBufferSize16) ? 16 : (flags & StencilBufferSize24) ? 24 : 0;
-		
-		
-		static NSOpenGLPixelFormatAttribute formatAttributes[] =
-		{
-			NSOpenGLPFAMinimumPolicy,
-			NSOpenGLPFAAccelerated,
-			NSOpenGLPFADoubleBuffer,
-			NSOpenGLPFAColorSize, 24,
-			NSOpenGLPFAAlphaSize, 8,
-			NSOpenGLPFADepthSize, (NSOpenGLPixelFormatAttribute)depthBufferSize,
-			NSOpenGLPFAStencilSize, (NSOpenGLPixelFormatAttribute)stencilBufferSize,
-			oglProfile, NSOpenGLProfileVersion3_2Core,
-			0
-		};
-		
-		return [[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes];
-	}
+#if RN_PLATFORM_IOS
+		[_oglContext release];
 #endif
-	
+	}
 	
 	void Context::MakeActiveContext()
 	{
