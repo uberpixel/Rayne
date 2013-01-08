@@ -33,6 +33,8 @@ namespace RN
 		virtual void BindMaterial(Material *material);
 		virtual void DrawMesh(Mesh *mesh);
 		
+		GLuint VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple);
+		
 		bool _cullingEnabled;
 		bool _depthTestEnabled;
 		bool _blendingEnabled;
@@ -44,7 +46,8 @@ namespace RN
 		GLenum _blendSource;
 		GLenum _blendDestination;
 		
-		GLuint _vao;
+		std::map<std::tuple<Material *, MeshLODStage *>, GLuint> _vaos;
+		GLuint _currentVao;
 		
 		Camera *_defaultCamera;
 		RendererFrontend *_frontend;

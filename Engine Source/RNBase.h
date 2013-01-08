@@ -20,8 +20,9 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <type_traits>
-
+#include <tuple>
 
 #include "RNPlatform.h"
 #include "RNDefines.h"

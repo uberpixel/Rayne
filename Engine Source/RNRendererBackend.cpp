@@ -9,6 +9,7 @@
 #include "RNRendererBackend.h"
 #include "RNRendererFrontend.h"
 #include "RNKernel.h"
+#include "RNOpenGL.h"
 
 namespace RN
 {
@@ -19,6 +20,7 @@ namespace RN
 		_defaultCamera   = 0;
 		_currentMaterial = 0;
 		_currentMesh     = 0;
+		_currentVao      = 0;
 		
 		_frontend = frontend;
 		_lastFrame   = 0;
@@ -27,12 +29,12 @@ namespace RN
 		_cullingEnabled   = false;
 		_depthTestEnabled = false;
 		_blendingEnabled  = false;
-		_depthWrite = false;
+		_depthWrite       = false;
 		
-		_cullMode = GL_CCW;
+		_cullMode  = GL_CCW;
 		_depthFunc = GL_LESS;
 		
-		_blendSource = GL_ONE;
+		_blendSource      = GL_ONE;
 		_blendDestination = GL_ZERO;
 	}
 	
@@ -68,20 +70,11 @@ namespace RN
 		std::vector<RenderingIntent> *frame = 0;
 		uint32 frameID = _frontend->CommittedFrame(&frame);
 		
-#if RN_PLATFORM_MAC_OS
-		glGenVertexArrays(1, &_vao);
-		glBindVertexArray(_vao);
-#endif
-		
 		if(frameID == _lastFrameID)
 		{
 			if(_lastFrame)
 			{
 				PrepareFrame(frame);
-				
-#if RN_PLATFORM_MAC_OS
-				glDeleteVertexArrays(1, &_vao);
-#endif
 			}
 			
 			return;
@@ -92,10 +85,6 @@ namespace RN
 		
 
 		PrepareFrame(frame);
-		
-#if RN_PLATFORM_MAC_OS
-		glDeleteVertexArrays(1, &_vao);
-#endif
 		
 		_lastFrame = frame;
 		_lastFrameID = frameID;
@@ -182,6 +171,43 @@ namespace RN
 		}
 		
 		camera->Unbind();
+	}
+	
+	GLuint RendererBackend::VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple)
+	{
+		auto iterator = _vaos.find(tuple);
+		if(iterator == _vaos.end())
+		{
+			GLuint vao;
+			
+			Material *material  = std::get<0>(tuple);
+			MeshLODStage *stage = std::get<1>(tuple);
+			
+			Shader *shader = material->Shader();
+			
+			gl::GenVertexArrays(1, &vao);
+			gl::BindVertexArray(vao);
+			
+			if(shader->position != -1 && stage->SupportsFeature(kMeshFeatureVertices))
+			   glEnableVertexAttribArray(shader->position);
+			
+			if(shader->texcoord0 != -1 && stage->SupportsFeature(kMeshFeatureUVSet0))
+				glEnableVertexAttribArray(shader->texcoord0);
+			
+			if(shader->texcoord1 != -1 && stage->SupportsFeature(kMeshFeatureUVSet1))
+				glEnableVertexAttribArray(shader->texcoord1);
+			
+			if(shader->color0 != -1 && stage->SupportsFeature(kMeshFeatureColor0))
+				glEnableVertexAttribArray(shader->color0);
+			
+			if(shader->color1 != -1 && stage->SupportsFeature(kMeshFeatureColor1))
+				glEnableVertexAttribArray(shader->color1);
+			
+			_vaos[tuple] = vao;
+			return vao;
+		}
+		
+		return iterator->second;
 	}
 	
 	void RendererBackend::BindMaterial(Material *material)
@@ -305,67 +331,51 @@ namespace RN
 			MeshLODStage *stage = mesh->LODStage(0);
 			Shader *shader = _currentMaterial->Shader();
 			
+			std::tuple<Material *, MeshLODStage *> tuple = std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage);
+			GLuint vao = VAOForTuple(tuple);
+			
+			if(vao != _currentVao)
+			{
+				gl::BindVertexArray(vao);
+				_currentVao = vao;
+			}
+			
 			glBindBuffer(GL_ARRAY_BUFFER, stage->VBO());
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, stage->IBO());
 			
 			// Vertex
-			if(shader->position != -1)
+			if(shader->position != -1 && stage->SupportsFeature(kMeshFeatureVertices))
 			{
-				if(stage->SupportsFeature(kMeshFeatureVertices))
-				{
-					MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureVertices);
-					
-					glEnableVertexAttribArray(shader->position);
-					glVertexAttribPointer(shader->position, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureVertices));
-				}
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureVertices);
+				glVertexAttribPointer(shader->position, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureVertices));
 			}
 			
 			// Texcoord0
-			if(shader->texcoord0 != -1)
+			if(shader->texcoord0 != -1 && stage->SupportsFeature(kMeshFeatureUVSet0))
 			{
-				if(stage->SupportsFeature(kMeshFeatureUVSet0))
-				{
-					MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureUVSet0);
-					
-					glEnableVertexAttribArray(shader->texcoord0);
-					glVertexAttribPointer(shader->texcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureUVSet0));
-				}
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureUVSet0);
+				glVertexAttribPointer(shader->texcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureUVSet0));
 			}
 			
 			// Texcoord1
-			if(shader->texcoord1 != -1)
+			if(shader->texcoord1 != -1 && stage->SupportsFeature(kMeshFeatureUVSet1))
 			{
-				if(stage->SupportsFeature(kMeshFeatureUVSet1))
-				{
-					MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureUVSet1);
-					
-					glEnableVertexAttribArray(shader->texcoord1);
-					glVertexAttribPointer(shader->texcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureUVSet1));
-				}
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureUVSet1);
+				glVertexAttribPointer(shader->texcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureUVSet1));
 			}
 			
 			// Color0
-			if(shader->color0 != -1)
+			if(shader->color0 != -1 && stage->SupportsFeature(kMeshFeatureColor0))
 			{
-				if(stage->SupportsFeature(kMeshFeatureColor0))
-				{
-					MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureColor0);
-					
-					glEnableVertexAttribArray(shader->color0);
-					glVertexAttribPointer(shader->color0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureColor0));
-				}
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureColor0);
+				glVertexAttribPointer(shader->color0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureColor0));
 			}
 			
 			// Color1
-			if(shader->color1 != -1)
+			if(shader->color1 != -1 && stage->SupportsFeature(kMeshFeatureColor1))
 			{
-				if(stage->SupportsFeature(kMeshFeatureColor1))
-				{
-					MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureColor1);
-					
-					glEnableVertexAttribArray(shader->color1);
-					glVertexAttribPointer(shader->color1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureColor1));
-				}
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureColor1);
+				glVertexAttribPointer(shader->color1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)stage->OffsetForFeature(kMeshFeatureColor1));
 			}
 			
 			mesh->Pop();
