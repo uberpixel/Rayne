@@ -31,6 +31,8 @@
 		E9619F471696179500DA187E /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F461696179500DA187E /* QuartzCore.framework */; };
 		E9619F4F1696185B00DA187E /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F4D1696184100DA187E /* libpng.a */; };
 		E9619F5D1696BCC300DA187E /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F5C1696BCC300DA187E /* libz.dylib */; };
+		E9F77792169A75AC006EE702 /* RNEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F77790169A75AC006EE702 /* RNEntity.cpp */; };
+		E9F77795169C4038006EE702 /* RNOpenGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F77793169C4038006EE702 /* RNOpenGL.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -122,6 +124,10 @@
 		E9619F461696179500DA187E /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		E9619F481696184000DA187E /* png-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "png-ios.xcodeproj"; path = "../../Vendor/libpng/png-ios.xcodeproj"; sourceTree = "<group>"; };
 		E9619F5C1696BCC300DA187E /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		E9F77790169A75AC006EE702 /* RNEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNEntity.cpp; sourceTree = "<group>"; };
+		E9F77791169A75AC006EE702 /* RNEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNEntity.h; sourceTree = "<group>"; };
+		E9F77793169C4038006EE702 /* RNOpenGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenGL.cpp; sourceTree = "<group>"; };
+		E9F77794169C4038006EE702 /* RNOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOpenGL.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -232,6 +238,8 @@
 				E9619F051696170700DA187E /* RNFile.h */,
 				E9619F121696170700DA187E /* RNObject.cpp */,
 				E9619F131696170700DA187E /* RNObject.h */,
+				E9F77793169C4038006EE702 /* RNOpenGL.cpp */,
+				E9F77794169C4038006EE702 /* RNOpenGL.h */,
 				E9619F161696170700DA187E /* RNPlatform.h */,
 				E9619F171696170700DA187E /* RNProxy.h */,
 				E9619F241696170700DA187E /* RNTextureLoader.cpp */,
@@ -297,6 +305,8 @@
 		E9619F651696CC3500DA187E /* Scene */ = {
 			isa = PBXGroup;
 			children = (
+				E9F77790169A75AC006EE702 /* RNEntity.cpp */,
+				E9F77791169A75AC006EE702 /* RNEntity.h */,
 				E9619F2B1696170700DA187E /* RNWorld.cpp */,
 				E9619F2C1696170700DA187E /* RNWorld.h */,
 			);
@@ -389,6 +399,8 @@
 				E9619F3D1696170700DA187E /* RNThread.cpp in Sources */,
 				E9619F3E1696170700DA187E /* RNWindow.cpp in Sources */,
 				E9619F3F1696170700DA187E /* RNWorld.cpp in Sources */,
+				E9F77792169A75AC006EE702 /* RNEntity.cpp in Sources */,
+				E9F77795169C4038006EE702 /* RNOpenGL.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
