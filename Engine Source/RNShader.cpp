@@ -249,12 +249,12 @@ namespace RN
 			matProjViewModelInverse = glGetUniformLocation(program, "matProjViewModelInverse");
 			
 			// Get attributes
-			position = glGetAttribLocation(program, "position");
-			
+			position  = glGetAttribLocation(program, "position");
+			normal    = glGetAttribLocation(program, "normal");
 			texcoord0 = glGetAttribLocation(program, "texcoord0");
 			texcoord1 = glGetAttribLocation(program, "texcoord1");
-			color0 = glGetAttribLocation(program, "color0");
-			color1 = glGetAttribLocation(program, "color1");
+			color0    = glGetAttribLocation(program, "color0");
+			color1    = glGetAttribLocation(program, "color1");
 		}
 	}
 }

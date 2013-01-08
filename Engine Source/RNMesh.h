@@ -20,11 +20,12 @@ namespace RN
 	typedef enum
 	{
 		kMeshFeatureVertices = 0,
-		kMeshFeatureColor0 = 1,
-		kMeshFeatureColor1 = 2,
-		kMeshFeatureUVSet0 = 3,
-		kMeshFeatureUVSet1 = 4,
-		kMeshFeatureIndices = 5,
+		kMeshFeatureNormals = 1,
+		kMeshFeatureColor0 = 2,
+		kMeshFeatureColor1 = 3,
+		kMeshFeatureUVSet0 = 4,
+		kMeshFeatureUVSet1 = 5,
+		kMeshFeatureIndices = 6,
 		
 		__kMaxMeshFeatures = 6
 	} MeshFeature;

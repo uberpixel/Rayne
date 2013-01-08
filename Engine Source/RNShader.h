@@ -44,6 +44,7 @@ namespace RN
 		GLuint matProjViewModelInverse;
 		
 		GLuint position;
+		GLuint normal;
 		GLuint texcoord0;
 		GLuint texcoord1;
 		GLuint color0;
