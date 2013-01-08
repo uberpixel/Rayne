@@ -15,13 +15,10 @@ namespace RN
 	Camera::Camera(const Vector2& size) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_clearColor(0.193f, 0.435f, 0.753f, 1.0f),
-		RenderingResource("Camera (RTT)")
+		RenderingResource("Camera")
 	{
 		_ownsBuffer = true;
-		
-		_current    = 0;
-		_texture[0] = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
-		_texture[1] = 0;
+		_texture    = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
 		
 		glGenFramebuffers(1, &_frameBuffer);
 		Bind();
@@ -62,14 +59,9 @@ namespace RN
 		_ownsBuffer = false;
 		_frameBuffer = framebuffer;
 		
-		_current    = 0;
-		_texture[0] = 0;
-		_texture[1] = 0;
+		_texture = 0;
 		
 		Bind();
-		
-		_depthBuffer = 0;
-		_stencilBuffer = 0;
 		
 		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, (GLint *)&_depthBuffer);
 		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, (GLint *)&_stencilBuffer);
@@ -94,28 +86,9 @@ namespace RN
 				glDeleteRenderbuffers(1, &_stencilBuffer);
 		}
 		
-		if(_texture[0])
-			_texture[0]->Release();
-		
-		if(_texture[1])
-			_texture[1]->Release();
+		if(_texture)
+			_texture->Release();
 	}
-	
-	
-	void Camera::MakeDoubleBuffered()
-	{
-		if(_texture[1] == 0)
-		{
-			_texture[1] = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
-		}
-	}
-	
-	void Camera::SwitchBuffers()
-	{
-		_current = (_current == 0) ? 1 : 0;
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture[_current]->Name(), 0);
-	}
-	
 	
 	void Camera::SetDefaultValues()
 	{
@@ -266,19 +239,16 @@ namespace RN
 		uint32 width  = (uint32)_frame.width;
 		uint32 height = (uint32)_frame.height;
 		
-		for(int i=0; i<2; i++)
+		if(_texture)
 		{
-			if(_texture[i])
-			{
-				_texture[i]->Bind();
-				
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture[i]->Name(), 0);
-				
-				Kernel::CheckOpenGLError("glTexImage2D");
-				
-				_texture[i]->Unbind();
-			}
+			_texture->Bind();
+			
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture->Name(), 0);
+			
+			Kernel::CheckOpenGLError("glTexImage2D");
+			
+			_texture->Unbind();
 		}
 		
 		if(_depthBuffer)
@@ -305,6 +275,7 @@ namespace RN
 		}
 		
 		CheckError();
+		UpdateProjection();
 		Unbind();
 	}
 	

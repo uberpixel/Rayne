@@ -49,10 +49,7 @@ namespace RN
 		GLuint DepthBuffer() const { return _depthBuffer; }
 		GLuint SteincilBuffer() const { return _stencilBuffer; }
 		
-		Texture *Target() const { return _texture[_current]; }
-		
-		void MakeDoubleBuffered();
-		void SwitchBuffers();
+		Texture *Target() const { return _texture; }
 		
 		float arc;
 		float aspect;
@@ -81,7 +78,7 @@ namespace RN
 		
 	private:
 		int _current;
-		Texture *_texture[2];
+		Texture *_texture;
 		
 		void SetDefaultValues();
 	};
