@@ -191,6 +191,9 @@ namespace RN
 			if(shader->position != -1 && stage->SupportsFeature(kMeshFeatureVertices))
 			   glEnableVertexAttribArray(shader->position);
 			
+			if(shader->normal != -1 && stage->SupportsFeature(kMeshFeatureNormals))
+				glEnableVertexAttribArray(shader->normal);
+			
 			if(shader->texcoord0 != -1 && stage->SupportsFeature(kMeshFeatureUVSet0))
 				glEnableVertexAttribArray(shader->texcoord0);
 			
@@ -358,7 +361,7 @@ namespace RN
 				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureNormals);
 				size_t offset = stage->OffsetForFeature(kMeshFeatureNormals);
 				
-				glVertexAttribPointer(shader->position, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->normal, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
 			// Texcoord0
@@ -367,7 +370,7 @@ namespace RN
 				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureUVSet0);
 				size_t offset = stage->OffsetForFeature(kMeshFeatureUVSet0);
 				
-				glVertexAttribPointer(shader->position, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->texcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
 			// Texcoord1
@@ -376,7 +379,7 @@ namespace RN
 				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureUVSet1);
 				size_t offset = stage->OffsetForFeature(kMeshFeatureUVSet1);
 				
-				glVertexAttribPointer(shader->position, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->texcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
 			// Color0
@@ -385,7 +388,7 @@ namespace RN
 				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureColor0);
 				size_t offset = stage->OffsetForFeature(kMeshFeatureColor0);
 				
-				glVertexAttribPointer(shader->position, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->color0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
 			// Color1
@@ -394,7 +397,7 @@ namespace RN
 				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureColor1);
 				size_t offset = stage->OffsetForFeature(kMeshFeatureColor1);
 				
-				glVertexAttribPointer(shader->position, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->color1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
 			mesh->Pop();

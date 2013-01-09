@@ -27,7 +27,7 @@ namespace RN
 		kMeshFeatureUVSet1 = 5,
 		kMeshFeatureIndices = 6,
 		
-		__kMaxMeshFeatures = 6
+		__kMaxMeshFeatures = 7
 	} MeshFeature;
 	
 	class MeshLODStage;
