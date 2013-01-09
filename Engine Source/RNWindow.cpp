@@ -283,7 +283,7 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 namespace RN
 {
-	Window::Window(const std::string& title)
+	Window::Window(const std::string& title, Kernel *kernel)
 	{
 #if RN_PLATFORM_MAC_OS 
 		_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, 1024, 768)];
@@ -299,6 +299,7 @@ namespace RN
 		_rootViewController = 0;
 #endif
 		_context = 0;
+		_kernel = kernel;
 		
 		SetTitle(title);
 		Show();
@@ -336,13 +337,13 @@ namespace RN
 #endif
 	}
 	
-	void Window::SetContext(Context *context, RendererBackend *renderer)
+	void Window::SetContext(Context *context)
 	{
 #if RN_PLATFORM_MAC_OS 
 		_context->Release();
 		_context = new Context(context);
 		
-		[_nativeWindow setRNContext:_context Renderer:renderer OpenGLContext:_context->_oglContext andPixelFormat:_context->_oglPixelFormat];
+		[_nativeWindow setRNContext:_context Renderer:_kernel->RendererBackend() OpenGLContext:_context->_oglContext andPixelFormat:_context->_oglPixelFormat];
 #endif
 		
 #if RN_PLATFORM_IOS
