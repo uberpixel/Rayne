@@ -37,16 +37,17 @@ namespace RN
 
 namespace RN
 {
+	class Kernel;
 	class Window : public Object
 	{
 	public:
-		Window(const std::string& title);
+		Window(const std::string& title, Kernel *kernel);
 		virtual ~Window();
 		
 		void Show();
 		void Hide();
 		
-		void SetContext(Context *context, RendererBackend *renderer);
+		void SetContext(Context *context);
 		void SetTitle(const std::string& title);
 		
 	private:
@@ -58,7 +59,9 @@ namespace RN
 		UIWindow *_nativeWindow;
 		UIViewController *_rootViewController;
 #endif
+		
 		Context *_context;
+		Kernel *_kernel;
 	};
 }
 

@@ -351,7 +351,7 @@ namespace RN
 		_context->Retain();
 		
 		[_rootViewController release];
-		_rootViewController = [[RNOpenGLViewController alloc] initWithContext:_context renderer:renderer andFrame:[_nativeWindow bounds]];
+		_rootViewController = [[RNOpenGLViewController alloc] initWithContext:_context renderer:_kernel->RendererBackend() andFrame:[_nativeWindow bounds]];
 		
 		[_nativeWindow setRootViewController:_rootViewController];
 #endif
