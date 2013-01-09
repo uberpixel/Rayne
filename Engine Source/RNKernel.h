@@ -11,7 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNRenderering.h"
+#include "RNRenderingResource.h"
 #include "RNRendererFrontend.h"
 #include "RNWindow.h"
 
@@ -27,11 +27,20 @@ namespace RN
 		void SetContext(Context *context);
 		
 		RendererFrontend *Renderer() { return _renderer; }
+		RendererBackend *RendererBackend() { return _renderer->Backend(); }
 		
 		static Kernel *SharedInstance();
+		
+		static bool SupportsExtension(const char *extension);
 		static void CheckOpenGLError(const char *context);
 		
 	private:
+		Mesh *mesh;
+		Texture *texture;
+		Material *material;
+		Shader *shader;
+		Matrix transform;
+		
 		Context *_context;
 		Window *_window;
 		RendererFrontend *_renderer;

@@ -7,23 +7,89 @@
 //
 
 #include "RNKernel.h"
+#include "RNOpenGL.h"
 
 namespace RN
 {
 	static Kernel *sharedKernel = 0;
-	static SpinLock errorLock;
-	
-	void DrawOffscreenWindows();
 	
 	Kernel::Kernel()
 	{
-		_context = new Context::Context(Context::DepthBufferSize8 | Context::StencilBufferSize8);
-		_context->MakeActiveContext();
-		
+		_context  = new Context::Context();
 		_renderer = new RendererFrontend();
 		
-		_window  = new Window::Window("Rayne");
-		_window->SetContext(_context, _renderer->Backend());
+		_context->MakeActiveContext();
+		
+		_window  = new Window::Window("Rayne", this);
+		_window->SetContext(_context);
+		
+		ReadOpenGLExtensions();
+		
+		// Mesh
+		mesh = new Mesh();
+		
+		MeshDescriptor vertexDescriptor;
+		vertexDescriptor.feature = kMeshFeatureVertices;
+		vertexDescriptor.elementSize = sizeof(Vector3);
+		vertexDescriptor.elementMember = 3;
+		vertexDescriptor.elementCount  = 4;
+		
+		MeshDescriptor colorDescriptor;
+		colorDescriptor.feature = kMeshFeatureColor0;
+		colorDescriptor.elementSize = sizeof(Color);
+		colorDescriptor.elementMember = 4;
+		colorDescriptor.elementCount  = 4;
+		
+		MeshDescriptor indicesDescriptor;
+		indicesDescriptor.feature = kMeshFeatureIndices;
+		indicesDescriptor.elementSize = sizeof(uint16);
+		indicesDescriptor.elementMember = 1;
+		indicesDescriptor.elementCount  = 6;
+		
+		Array<MeshDescriptor> descriptors;
+		descriptors.AddObject(vertexDescriptor);
+		descriptors.AddObject(colorDescriptor);
+		descriptors.AddObject(indicesDescriptor);
+		
+		
+		MeshLODStage *stage = mesh->AddLODStage(descriptors);
+		
+		Vector3 *vertices = stage->Data<Vector3>(kMeshFeatureVertices);
+		Color *colors     = stage->Data<Color>(kMeshFeatureColor0);
+		uint16 *indicies  = stage->Data<uint16>(kMeshFeatureIndices);
+		
+		*vertices ++ = Vector3(-32.0f, 32.0f, 0.0f);
+		*vertices ++ = Vector3(32.0f, 32.0f, 0.0f);
+		*vertices ++ = Vector3(32.0f, -32.0f,  0.0f);
+		*vertices ++ = Vector3(-32.0f, -32.0f,  0.0f);
+		
+		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
+		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
+		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
+		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
+		
+		*indicies ++ = 0;
+		*indicies ++ = 3;
+		*indicies ++ = 1;
+		*indicies ++ = 2;
+		*indicies ++ = 1;
+		*indicies ++ = 3;
+		
+		stage->GenerateMesh();
+		
+		// Shader
+		shader = new Shader();
+		shader->SetFragmentShader("shader/Test.fsh");
+		shader->SetVertexShader("shader/Test.vsh");
+		
+		shader->Link();
+		
+		// Material
+		material = new Material(shader);
+		material->culling = false;
+		material->depthtest = false;
+		
+		_context->DeactivateContext();
 	}	
 	
 	Kernel::~Kernel()
@@ -35,15 +101,31 @@ namespace RN
 	}
 	
 	
-	
 	void Kernel::Update(float delta)
 	{
 		_context->MakeActiveContext();
-		DrawOffscreenWindows();
-		_context->DeactiveContext();
-		
 		_renderer->BeginFrame();
-		_renderer->CommitFrame();		
+		
+		static float rot = 0;
+		static float dist = -128.0f;
+		
+		RenderingIntent intent;
+		intent.transform = transform;
+		intent.mesh = mesh;
+		intent.material = material;
+		
+		//rot += 1.0f;
+		//dist -= 1.0f;
+		
+		transform.MakeTranslate(Vector3(0.0f, 0.0f, dist));
+		transform.Rotate(Vector3(0.0f, rot, -rot));
+		
+		_renderer->PushIntent(intent);
+		_renderer->CommitFrame();
+		
+		_context->DeactivateContext();
+		
+		CheckOpenGLError("Kernel::Update()");
 	}
 	
 	void Kernel::SetContext(Context *context)
@@ -52,14 +134,18 @@ namespace RN
 		_context = context;
 		_context->Retain();
 		
-		_window->SetContext(_context, _renderer->Backend());
+		_window->SetContext(_context);
 	}
 	
 	
+	bool Kernel::SupportsExtension(const char *extension)
+	{
+		std::string extensions((const char *)glGetString(GL_EXTENSIONS));
+		return (extensions.rfind(extension) != std::string::npos);
+	}
+	
 	void Kernel::CheckOpenGLError(const char *context)
 	{
-		//errorLock.Lock();
-		
 		GLenum error;
 		while((error = glGetError()) != GL_NO_ERROR)
 		{
@@ -85,6 +171,7 @@ namespace RN
 					printf("OpenGL Error: GL_OUT_OF_MEMORY. Context: %s\n", context);
 					break;
 					
+#if defined(__gl_h_)
 				case GL_STACK_UNDERFLOW:
 					printf("OpenGL Error: GL_STACK_UNDERFLOW. Context: %s\n", context);
 					break;
@@ -93,6 +180,11 @@ namespace RN
 					printf("OpenGL Error: GL_STACK_OVERFLOW. Context: %s\n", context);
 					break;
 					
+				case GL_TABLE_TOO_LARGE:
+					printf("OpenGL Error: GL_STACK_OVERFLOW. Context: %s\n", context);
+					break;
+#endif
+					
 				default:
 					printf("Unknown OpenGL Error: %i. Context: %s\n", error, context);
 					break;
@@ -100,8 +192,6 @@ namespace RN
 			
 			fflush(stdout);
 		}
-		
-		//errorLock.Unlock();
 	}
 	
 	
