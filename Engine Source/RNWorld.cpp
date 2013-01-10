@@ -22,16 +22,28 @@ namespace RN
 		Rect frame = _kernel->Window()->Frame();
 		Camera *camera = new Camera(Vector2(frame.width, frame.height));
 		
-		Shader *pptest = new Shader();
-		pptest->SetFragmentShader("shader/TestPP.fsh");
-		pptest->SetVertexShader("shader/TestPP.vsh");
-		pptest->Link();
+		Shader *pptest1 = new Shader();
+		pptest1->SetFragmentShader("shader/TestPP.fsh");
+		pptest1->SetVertexShader("shader/TestPP.vsh");
+		pptest1->Link();
 		
-		Material *ppmat = new Material(pptest);
-		camera->SetMaterial(ppmat);
+		Shader *pptest2 = new Shader();
+		pptest2->SetFragmentShader("shader/TestPP2.fsh");
+		pptest2->SetVertexShader("shader/TestPP2.vsh");
+		pptest2->Link();
+		
+		Material *ppmat1 = new Material(pptest1);
+		Material *ppmat2 = new Material(pptest2);
+		
+		camera->SetMaterial(ppmat1);
+		camera->SetClearColor(Color(0.0f, 0.0f, 0.0f, 0.0f));
 		
 		_cameras->AddObject(camera);
 		camera->Release();
+		
+		Camera *stage = new Camera(Vector2(frame.width, frame.height), Camera::FlagInherit | Camera::FlagDrawTarget);
+		stage->SetMaterial(ppmat2);
+		camera->AddStage(stage);
 		
 		CreateTestMesh();
 	}

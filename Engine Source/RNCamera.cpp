@@ -257,14 +257,13 @@ namespace RN
 		CheckError();
 		UpdateProjection();
 		Unbind();
-		
-		if(_stage && _stage->flags & FlagInherit)
-			_stage->SetFrame(frame);
+		UpdateStage(true);
 	}
 	
 	void Camera::SetClearColor(const Color& color)
 	{
 		_clearColor = color;
+		UpdateStage(true);
 	}
 	
 	void Camera::SetMaterial(class Material *material)
@@ -284,10 +283,7 @@ namespace RN
 			{
 				if(!temp->_stage)
 				{
-					temp->_stage->Release();
-					temp->_stage = _stage;
-					temp->_stage->Retain();
-					
+					temp->InsertStage(stage);
 					return;
 				}
 				
@@ -307,12 +303,32 @@ namespace RN
 		stage->_stage->Retain();
 		
 		_stage = stage;
+		UpdateStage(true);
 	}
 	
 	void Camera::RemoveStage(Camera *stage)
 	{
 	}
 	
+	void Camera::UpdateStage(bool updateFrame) const
+	{
+		if(_stage && _stage->flags & FlagInherit)
+		{
+			_stage->arc = arc;
+			_stage->aspect = aspect;
+			_stage->clipnear = clipnear;
+			_stage->clipfar = clipfar;
+			
+			if(updateFrame)
+				_stage->SetFrame(_frame);
+			
+			_stage->position = position;
+			_stage->rotation = rotation;
+			
+			_stage->SetClearColor(_clearColor);
+			_stage->UpdateCamera();
+		}
+	}
 	
 	void Camera::UpdateProjection()
 	{
@@ -321,6 +337,8 @@ namespace RN
 		
 		_projectionMatrix.MakeProjectionPerspective(arc, aspect, clipnear, clipfar);
 		_inverseProjectionMatrix.MakeInverveProjectionPerspective(arc, aspect, clipnear, clipfar);
+		
+		UpdateStage(true);
 	}
 	
 	void Camera::UpdateCamera()
@@ -331,5 +349,7 @@ namespace RN
 		
 		_inverseViewMatrix.MakeTranslate(position);
 		_inverseViewMatrix.Rotate(rotation);
+		
+		UpdateStage(false);
 	}
 }

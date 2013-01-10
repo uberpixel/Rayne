@@ -93,6 +93,8 @@ namespace RN
 		GLuint _stencilBuffer;
 		
 	private:
+		void UpdateStage(bool updateFrame) const;
+		
 		int _current;
 		
 		Texture *_texture;

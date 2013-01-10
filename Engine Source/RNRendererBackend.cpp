@@ -180,7 +180,7 @@ namespace RN
 		// Flush the cameras to the screen
 		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
 		
-		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		glViewport(0, 0, _defaultWidth, _defaultHeight);
@@ -211,7 +211,6 @@ namespace RN
 		
 		if(material)
 			BindMaterial(material);
-		
 		
 		glUseProgram(shader->program);
 		glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, _copyProjection.m);
@@ -249,65 +248,84 @@ namespace RN
 	
 	void RendererBackend::DrawGroup(RenderingGroup *group)
 	{
+		Camera *previous = 0;
 		Camera *camera = group->camera;
 		std::vector<RenderingIntent> *frame = &group->intents;
 		
-		camera->Bind();
-		camera->PrepareForRendering();
-		
-		std::vector<RenderingIntent>::iterator iterator;
-		for(iterator=frame->begin(); iterator!=frame->end(); iterator++)
+		while(camera)
 		{
-			RenderingIntent *intent = &(*iterator);
-			Material *material = intent->material;
-			Shader *shader = material->Shader();
+			camera->Bind();
+			camera->PrepareForRendering();
 			
-			intent->Push();
-			
-			glUseProgram(shader->program);
-			
-			// Bind the material
-			BindMaterial(material);
-			
-			// Make the matrices available
-			if(shader->matProj != -1)
-				glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, camera->ProjectionMatrix().m);
-			
-			if(shader->matProjInverse != -1)
-				glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, camera->InverseProjectionMatrix().m);
-			
-			if(shader->matView != -1)
-				glUniformMatrix4fv(shader->matView, 1, GL_FALSE, camera->ViewMatrix().m);
-			
-			if(shader->matViewInverse != -1)
-				glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, camera->InverseViewMatrix().m);
-			
-			if(shader->matModel != -1)
-				glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, intent->transform.m);
-			
-			if(shader->matModelInverse != -1)
-				glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, intent->transform.Inverse().m);
-			
-			if(shader->matProjViewModel != -1)
+			if(!(camera->flags & Camera::FlagDrawTarget))
 			{
-				Matrix projViewModel = camera->ProjectionMatrix() * camera->ViewMatrix() * intent->transform;
-				glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+				std::vector<RenderingIntent>::iterator iterator;
+				for(iterator=frame->begin(); iterator!=frame->end(); iterator++)
+				{
+					RenderingIntent *intent = &(*iterator);
+					Material *material = intent->material;
+					Shader *shader = material->Shader();
+					
+					intent->Push();
+					
+					glUseProgram(shader->program);
+					
+					// Bind the material
+					BindMaterial(material);
+					
+					// Make the matrices available
+					if(shader->matProj != -1)
+						glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, camera->ProjectionMatrix().m);
+					
+					if(shader->matProjInverse != -1)
+						glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, camera->InverseProjectionMatrix().m);
+					
+					if(shader->matView != -1)
+						glUniformMatrix4fv(shader->matView, 1, GL_FALSE, camera->ViewMatrix().m);
+					
+					if(shader->matViewInverse != -1)
+						glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, camera->InverseViewMatrix().m);
+					
+					if(shader->matModel != -1)
+						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, intent->transform.m);
+					
+					if(shader->matModelInverse != -1)
+						glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, intent->transform.Inverse().m);
+					
+					if(shader->matProjViewModel != -1)
+					{
+						Matrix projViewModel = camera->ProjectionMatrix() * camera->ViewMatrix() * intent->transform;
+						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+					}
+					
+					if(shader->matProjViewModelInverse != -1)
+					{
+						Matrix projViewModel = camera->InverseProjectionMatrix() * camera->InverseViewMatrix() * intent->transform.Inverse();
+						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+					}
+					
+					// Draw the mesh
+					DrawMesh(intent->mesh);
+					intent->Pop();
+				}
+			}
+			else
+			{
+				if(previous)
+				{
+					// Flush the previous camera into the camera
+					FlushCamera(previous);
+				}
 			}
 			
-			if(shader->matProjViewModelInverse != -1)
-			{
-				Matrix projViewModel = camera->InverseProjectionMatrix() * camera->InverseViewMatrix() * intent->transform.Inverse();
-				glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
-			}
+			previous = camera;
 			
-			// Draw the mesh
-			DrawMesh(intent->mesh);
-			intent->Pop();
+			camera->Unbind();
+			camera = camera->Stage();
 			
-			_flushCameras.push_back(camera);
+			if(!camera)
+				_flushCameras.push_back(previous);
 		}
-		
-		camera->Unbind();
 	}
 	
 	void RendererBackend::BindMaterial(Material *material)
