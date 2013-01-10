@@ -17,13 +17,22 @@
 #include "RNQuaternion.h"
 #include "RNColor.h"
 #include "RNTexture.h"
+#include "RNMaterial.h"
 
 namespace RN
 {
 	class Camera : public Object, public RenderingResource
 	{
 	public:
-		Camera(const Vector2& size);
+		enum
+		{
+			FlagDrawTarget = (1 << 0),
+			FlagUpdateAspect = (1 << 1),
+			FlagInherit = (1 << 2)
+		};
+		typedef uint32 Flags;
+		
+		Camera(const Vector2& size, Flags flags=FlagUpdateAspect);
 		virtual ~Camera();
 		
 		void Bind();
@@ -32,6 +41,11 @@ namespace RN
 		
 		virtual void SetFrame(const Rect& frame);
 		void SetClearColor(const Color& color);
+		void SetMaterial(Material *material);
+		
+		void AddStage(Camera *stage);
+		void InsertStage(Camera *stage);
+		void RemoveStage(Camera *stage);
 		
 		virtual void UpdateProjection();
 		virtual void UpdateCamera();
@@ -49,11 +63,15 @@ namespace RN
 		GLuint StencilBuffer() const { return _stencilBuffer; }
 		
 		Texture *Target() const { return _texture; }
+		Material *Material() const { return _material; }
+		Camera *Stage() const { return _stage; }
 		
 		float arc;
 		float aspect;
 		float clipnear;
 		float clipfar;
+		
+		Flags flags;
 		
 		Vector3 position;
 		Quaternion rotation;
@@ -76,7 +94,10 @@ namespace RN
 		
 	private:
 		int _current;
+		
 		Texture *_texture;
+		Camera *_stage;
+		class Material *_material;
 		
 		void SetDefaultValues();
 	};

@@ -177,7 +177,6 @@ namespace RN
 #if GL_EXT_debug_marker
 		glPushGroupMarkerEXT(0, "Flushing cameras");
 #endif
-		
 		// Flush the cameras to the screen
 		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
 		
@@ -185,42 +184,11 @@ namespace RN
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		glViewport(0, 0, _defaultWidth, _defaultHeight);
-		glUseProgram(_copyShader->program);
-		
-		glUniformMatrix4fv(_copyShader->matProj, 1, GL_FALSE, _copyProjection.m);
-		
-		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
-		
-		gl::BindVertexArray(_copyVAO);
-		_currentVAO = _copyVAO;
-		
-		if(_depthTestEnabled)
-		{
-			glDisable(GL_DEPTH_TEST);
-			_depthTestEnabled = false;
-		}
 		
 		for(auto iterator=_flushCameras.begin(); iterator!=_flushCameras.end(); iterator++)
 		{
 			Camera  *camera  = *iterator;
-			Texture *texture = camera->Target();
-			
-			const Rect frame = camera->Frame();
-			
-			camera->Push();
-			
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, texture->Name());
-			glUniform1i(_copyShader->targetmap, 0);
-			
-			Matrix matrix;
-			matrix.MakeScale(Vector3(frame.width, frame.height, 0.0f));
-			
-			glUniformMatrix4fv(_copyShader->matModel, 1, GL_FALSE, matrix.m);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
-			
-			camera->Pop();
+			FlushCamera(camera);
 		}
 		
 #if GL_EXT_debug_marker
@@ -228,6 +196,55 @@ namespace RN
 #endif
 		
 		_flushCameras.clear();
+	}
+	
+	void RendererBackend::FlushCamera(Camera *camera)
+	{
+		camera->Push();
+		
+		Texture *texture = camera->Target();
+		Material *material = camera->Material();
+		
+		Shader *shader = material ? material->Shader() : _copyShader;
+		
+		const Rect frame = camera->Frame();
+		
+		if(material)
+			BindMaterial(material);
+		
+		
+		glUseProgram(shader->program);
+		glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, _copyProjection.m);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
+		
+		if(_currentVAO != _copyVAO)
+		{
+			gl::BindVertexArray(_copyVAO);
+			_currentVAO = _copyVAO;
+		}
+		
+		glEnableVertexAttribArray(shader->position);
+		glVertexAttribPointer(shader->position,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
+		
+		glEnableVertexAttribArray(shader->texcoord0);
+		glVertexAttribPointer(shader->texcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
+		
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture->Name());
+		glUniform1i(shader->targetmap, 0);
+		
+		Matrix matrix;
+		matrix.MakeScale(Vector3(frame.width, frame.height, 0.0f));
+		
+		glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, matrix.m);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+		
+		glDisableVertexAttribArray(shader->position);
+		glDisableVertexAttribArray(shader->texcoord0);
+		
+		camera->Pop();
 	}
 	
 	void RendererBackend::DrawGroup(RenderingGroup *group)

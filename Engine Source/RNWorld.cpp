@@ -22,6 +22,14 @@ namespace RN
 		Rect frame = _kernel->Window()->Frame();
 		Camera *camera = new Camera(Vector2(frame.width, frame.height));
 		
+		Shader *pptest = new Shader();
+		pptest->SetFragmentShader("shader/TestPP.fsh");
+		pptest->SetVertexShader("shader/TestPP.vsh");
+		pptest->Link();
+		
+		Material *ppmat = new Material(pptest);
+		camera->SetMaterial(ppmat);
+		
 		_cameras->AddObject(camera);
 		camera->Release();
 		

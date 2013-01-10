@@ -12,18 +12,18 @@
 
 namespace RN
 {
-	Camera::Camera(const Vector2& size) :
+	Camera::Camera(const Vector2& size, Flags _flags) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_clearColor(0.193f, 0.435f, 0.753f, 1.0f),
 		RenderingResource("Camera")
 	{
-		_texture = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
+		_material = 0;
+		_stage    = 0;
+		_texture  = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
 		
-		Kernel::CheckOpenGLError("Sup?");
+		flags = _flags;
 		
 		glGenFramebuffers(1, &_frameBuffer);
-		
-		Kernel::CheckOpenGLError("Sup?");
 		
 		SetDefaultValues();
 		Bind();
@@ -38,8 +38,6 @@ namespace RN
 		/*glGenRenderbuffers(1, &_stencilBuffer);
 		glBindRenderbuffer(GL_RENDERBUFFER, _stencilBuffer);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilBuffer);*/
-		
-		Kernel::CheckOpenGLError("Sup?");
 		
 		try
 		{
@@ -67,10 +65,13 @@ namespace RN
 		
 		if(_texture)
 			_texture->Release();
+		
+		_stage->Release();
 	}
 	
 	void Camera::SetDefaultValues()
 	{
+		aspect   = 1.0f;
 		arc      = 70.0f;
 		clipnear = 0.1f;
 		clipfar  = 500.0f;
@@ -206,7 +207,6 @@ namespace RN
 		
 	
 	
-	
 	void Camera::SetFrame(const Rect& frame)
 	{
 		_frame = frame;
@@ -225,7 +225,6 @@ namespace RN
 			
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture->Name(), 0);
 			Kernel::CheckOpenGLError("glFramebufferTexture2D");			
-			
 			
 			_texture->_width  = width;
 			_texture->_height = height;
@@ -258,6 +257,9 @@ namespace RN
 		CheckError();
 		UpdateProjection();
 		Unbind();
+		
+		if(_stage && _stage->flags & FlagInherit)
+			_stage->SetFrame(frame);
 	}
 	
 	void Camera::SetClearColor(const Color& color)
@@ -265,10 +267,57 @@ namespace RN
 		_clearColor = color;
 	}
 	
+	void Camera::SetMaterial(class Material *material)
+	{
+		_material->Release();
+		_material = material;
+		_material->Retain();
+	}
+	
+	
+	void Camera::AddStage(Camera *stage)
+	{
+		if(_stage)
+		{
+			Camera *temp = _stage;
+			while(temp)
+			{
+				if(!temp->_stage)
+				{
+					temp->_stage->Release();
+					temp->_stage = _stage;
+					temp->_stage->Retain();
+					
+					return;
+				}
+				
+				temp = temp->_stage;
+			}
+		}
+		else
+		{
+			InsertStage(stage);
+		}
+	}
+	
+	void Camera::InsertStage(Camera *stage)
+	{
+		stage->_stage->Release();
+		stage->_stage = _stage;
+		stage->_stage->Retain();
+		
+		_stage = stage;
+	}
+	
+	void Camera::RemoveStage(Camera *stage)
+	{
+	}
+	
 	
 	void Camera::UpdateProjection()
 	{
-		aspect = _frame.width / _frame.height;
+		if(flags & FlagUpdateAspect)
+			aspect = _frame.width / _frame.height;
 		
 		_projectionMatrix.MakeProjectionPerspective(arc, aspect, clipnear, clipfar);
 		_inverseProjectionMatrix.MakeInverveProjectionPerspective(arc, aspect, clipnear, clipfar);

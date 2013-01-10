@@ -32,6 +32,7 @@ namespace RN
 		void DrawGroup(RenderingGroup *group);
 		void BindMaterial(Material *material);
 		void DrawMesh(Mesh *mesh);
+		void FlushCamera(Camera *camera);
 		
 		void InitializeFramebufferCopy();
 		void FlushCameras();
