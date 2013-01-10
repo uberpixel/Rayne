@@ -148,7 +148,6 @@ namespace RN
 		void *converted;
 		
 		Bind();
-		WillChangeData();
 		
 		converted = ConvertData(data, width, height, format, _format);
 		ConvertFormat(_format, &glFormat, &glType);
@@ -159,7 +158,6 @@ namespace RN
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, glFormat, _width, _height, 0, glFormat, glType, converted);
 		
-		DidChangeData();
 		Unbind();
 		
 		if(converted != data)
@@ -172,7 +170,6 @@ namespace RN
 		void *converted;
 		
 		Bind();
-		WillChangeData();
 		
 		converted = ConvertData(data, _width, _height, format, _format);
 		ConvertFormat(_format, &glFormat, &glType);
@@ -180,7 +177,6 @@ namespace RN
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, converted);
 		
-		DidChangeData();
 		Unbind();
 		
 		if(converted != data)

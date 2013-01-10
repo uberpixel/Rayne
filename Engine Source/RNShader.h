@@ -15,7 +15,7 @@
 
 namespace RN
 {
-	class Shader : public Object, public BlockingProxy
+	class Shader : public Object
 	{
 	public:		
 		Shader();

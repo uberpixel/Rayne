@@ -19,7 +19,7 @@
 
 namespace RN
 {
-	class Material : public Object, public BlockingProxy, public RenderingResource
+	class Material : public Object, public RenderingResource
 	{
 	public:
 		Material(Shader *shader);

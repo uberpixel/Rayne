@@ -27,8 +27,6 @@ namespace RN
 			NSOpenGLPFADoubleBuffer,
 			NSOpenGLPFAColorSize, 24,
 			NSOpenGLPFAAlphaSize, 8,
-			NSOpenGLPFADepthSize, 24,
-			NSOpenGLPFAStencilSize, 8,
 			NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
 			0
 		};

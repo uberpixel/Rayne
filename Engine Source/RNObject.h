@@ -10,7 +10,6 @@
 #define __RAYNE_OBJECT_H__
 
 #include "RNBase.h"
-#include "RNProxy.h"
 
 namespace RN
 {

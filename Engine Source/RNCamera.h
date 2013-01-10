@@ -20,7 +20,7 @@
 
 namespace RN
 {
-	class Camera : public Object, public BlockingProxy, public RenderingResource
+	class Camera : public Object, public RenderingResource
 	{
 	public:
 		Camera(const Vector2& size);

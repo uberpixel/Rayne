@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	class Texture : public Object, public BlockingProxy
+	class Texture : public Object
 	{
 	public:
 		typedef enum

@@ -56,7 +56,7 @@ namespace RN
 		
 		Vector3 *vertices = stage->Data<Vector3>(kMeshFeatureVertices);
 		Color *colors     = stage->Data<Color>(kMeshFeatureColor0);
-		uint16 *indicies  = stage->Data<uint16>(kMeshFeatureIndices);
+		uint16 *indices   = stage->Data<uint16>(kMeshFeatureIndices);
 		
 		*vertices ++ = Vector3(-32.0f, 32.0f, 0.0f);
 		*vertices ++ = Vector3(32.0f, 32.0f, 0.0f);
@@ -68,12 +68,12 @@ namespace RN
 		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
 		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
 		
-		*indicies ++ = 0;
-		*indicies ++ = 3;
-		*indicies ++ = 1;
-		*indicies ++ = 2;
-		*indicies ++ = 1;
-		*indicies ++ = 3;
+		*indices ++ = 0;
+		*indices ++ = 3;
+		*indices ++ = 1;
+		*indices ++ = 2;
+		*indices ++ = 1;
+		*indices ++ = 3;
 		
 		stage->GenerateMesh();
 		
@@ -114,7 +114,7 @@ namespace RN
 		intent.mesh = mesh;
 		intent.material = material;
 		
-		//rot += 1.0f;
+		rot += 1.0f;
 		//dist -= 1.0f;
 		
 		transform.MakeTranslate(Vector3(0.0f, 0.0f, dist));

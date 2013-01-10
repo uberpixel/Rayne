@@ -37,7 +37,6 @@
 		E9619E411696157E00DA187E /* RNObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619E0D1696157E00DA187E /* RNObject.cpp */; };
 		E9619E421696157E00DA187E /* RNObject.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E0E1696157E00DA187E /* RNObject.h */; };
 		E9619E451696157E00DA187E /* RNPlatform.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E111696157E00DA187E /* RNPlatform.h */; };
-		E9619E461696157E00DA187E /* RNProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E121696157E00DA187E /* RNProxy.h */; };
 		E9619E471696157E00DA187E /* RNQuaternion.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E131696157E00DA187E /* RNQuaternion.h */; };
 		E9619E481696157E00DA187E /* RNRect.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E141696157E00DA187E /* RNRect.h */; };
 		E9619E491696157E00DA187E /* RNRendererBackend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619E151696157E00DA187E /* RNRendererBackend.cpp */; };
@@ -118,7 +117,6 @@
 		E9619E0D1696157E00DA187E /* RNObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNObject.cpp; sourceTree = "<group>"; };
 		E9619E0E1696157E00DA187E /* RNObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNObject.h; sourceTree = "<group>"; };
 		E9619E111696157E00DA187E /* RNPlatform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPlatform.h; sourceTree = "<group>"; };
-		E9619E121696157E00DA187E /* RNProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNProxy.h; sourceTree = "<group>"; };
 		E9619E131696157E00DA187E /* RNQuaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNQuaternion.h; sourceTree = "<group>"; };
 		E9619E141696157E00DA187E /* RNRect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRect.h; sourceTree = "<group>"; };
 		E9619E151696157E00DA187E /* RNRendererBackend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRendererBackend.cpp; sourceTree = "<group>"; };
@@ -243,7 +241,6 @@
 				E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */,
 				E9F77797169C5CF8006EE702 /* RNOpenGL.h */,
 				E9619E111696157E00DA187E /* RNPlatform.h */,
-				E9619E121696157E00DA187E /* RNProxy.h */,
 				E9619E1F1696157E00DA187E /* RNTextureLoader.cpp */,
 				E9619E201696157E00DA187E /* RNTextureLoader.h */,
 			);
@@ -348,7 +345,6 @@
 				E9619E401696157E00DA187E /* RNMutex.h in Headers */,
 				E9619E421696157E00DA187E /* RNObject.h in Headers */,
 				E9619E451696157E00DA187E /* RNPlatform.h in Headers */,
-				E9619E461696157E00DA187E /* RNProxy.h in Headers */,
 				E9619E471696157E00DA187E /* RNQuaternion.h in Headers */,
 				E9619E481696157E00DA187E /* RNRect.h in Headers */,
 				E9619E4A1696157E00DA187E /* RNRendererBackend.h in Headers */,
