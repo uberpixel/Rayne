@@ -17,12 +17,13 @@ namespace RN
 	{
 		RN_ASSERT0(frontend != 0);
 		
-		_defaultCamera   = 0;
+		// Some general state variables
+		_defaultFBO      = 0;
 		_currentMaterial = 0;
 		_currentMesh     = 0;
-		_currentVao      = 0;
+		_currentVAO      = 0;
 		
-		_frontend = frontend;
+		_frontend    = frontend;
 		_lastFrame   = 0;
 		_lastFrameID = 0;
 		
@@ -36,6 +37,21 @@ namespace RN
 		
 		_blendSource      = GL_ONE;
 		_blendDestination = GL_ZERO;
+		
+		// Setup framebuffer copy stuff
+		_copyShader = 0;
+		
+		_copyVertices[0] = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+		_copyVertices[1] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+		_copyVertices[2] = Vector4(1.0f, 0.0f, 1.0f, 0.0f);
+		_copyVertices[3] = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+
+		_copyIndices[0] = 0;
+		_copyIndices[1] = 3;
+		_copyIndices[2] = 1;
+		_copyIndices[3] = 2;
+		_copyIndices[4] = 1;
+		_copyIndices[5] = 3;
 	}
 	
 	RendererBackend::~RendererBackend()
@@ -43,31 +59,67 @@ namespace RN
 		if(_lastFrame)
 			delete _lastFrame;
 		
-		if(_defaultCamera)
-			delete _defaultCamera;
+		if(_copyShader)
+		{
+			_copyShader->Release();
+				
+			glDeleteBuffers(1, &_copyVBO);
+			glDeleteBuffers(1, &_copyIBO);
+			
+			gl::DeleteVertexArrays(1, &_copyVAO);
+		}
 	}
 	
-	void RendererBackend::SetDefaultCamera(Camera *camera)
+	void RendererBackend::InitializeFramebufferCopy()
 	{
-		_drawLock.Lock();
+		_copyShader = new Shader();
+		_copyShader->SetFragmentShader("shader/rn_CopyFramebuffer.fsh");
+		_copyShader->SetVertexShader("shader/rn_CopyFramebuffer.vsh");
+		_copyShader->Link();
 		
-		_defaultCamera->Release();
-		_defaultCamera = camera;
-		_defaultCamera->Retain();
+		gl::GenVertexArrays(1, &_copyVAO);
+		gl::BindVertexArray(_copyVAO);
 		
-		_drawLock.Unlock();
+		glGenBuffers(1, &_copyVBO);
+		glGenBuffers(1, &_copyIBO);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STATIC_DRAW);
+		
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLshort), _copyIndices, GL_STATIC_DRAW);
+		
+		glEnableVertexAttribArray(_copyShader->position);
+		glVertexAttribPointer(_copyShader->position,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
+		
+		glEnableVertexAttribArray(_copyShader->texcoord0);
+		glVertexAttribPointer(_copyShader->texcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 	}
 	
-	Camera *RendererBackend::DefaultCamera()
+	
+	void RendererBackend::SetDefaultFBO(GLuint fbo)
 	{
-		return _defaultCamera;
+		_defaultFBO = fbo;
 	}
 	
-	
+	void RendererBackend::SetDefaultFrame(uint32 width, uint32 height)
+	{
+		_defaultWidth  = width;
+		_defaultHeight = height;
+		
+		_copyProjection.MakeProjectionOrthogonal(0.0f, width, 0.0f, height, -1.0f, 1.0f);
+	}
 	
 	void RendererBackend::DrawFrame()
 	{
-		std::vector<RenderingIntent> *frame = 0;
+		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
+		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			return;
+		
+		if(!_copyShader)
+			InitializeFramebufferCopy();
+		
+		std::vector<RenderingGroup> *frame = 0;
 		uint32 frameID = _frontend->CommittedFrame(&frame);
 		
 		if(frameID == _lastFrameID)
@@ -90,7 +142,7 @@ namespace RN
 		_lastFrameID = frameID;
 	}
 	
-	void RendererBackend::PrepareFrame(std::vector<RenderingIntent> *frame)
+	void RendererBackend::PrepareFrame(std::vector<RenderingGroup> *frame)
 	{
 		_drawLock.Lock();
 		
@@ -99,7 +151,17 @@ namespace RN
 		
 		try
 		{
-			DrawFrame(frame);
+			// Draw all rendering groups
+			for(auto iterator=frame->begin(); iterator!=frame->end(); iterator++)
+			{
+				RenderingGroup *group = &(*iterator);
+				DrawGroup(group);
+			}
+			
+			FlushCameras();
+			
+			_currentMaterial = 0;
+			_currentMesh = 0;
 		}
 		catch (ErrorException e)
 		{
@@ -110,19 +172,75 @@ namespace RN
 		_drawLock.Unlock();
 	}
 	
-	void RendererBackend::DrawFrame(std::vector<RenderingIntent> *frame)
+	void RendererBackend::FlushCameras()
 	{
-		if(!_defaultCamera)
-			_defaultCamera = new Camera(0, Vector2(1024.0f, 768.0f));
+#if GL_EXT_debug_marker
+		glPushGroupMarkerEXT(0, "Flushing cameras");
+#endif
 		
-		Camera *camera = _defaultCamera;
+		// Flush the cameras to the screen
+		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
+		
+		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		
+		glViewport(0, 0, _defaultWidth, _defaultHeight);
+		glUseProgram(_copyShader->program);
+		
+		glUniformMatrix4fv(_copyShader->matProj, 1, GL_FALSE, _copyProjection.m);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
+		
+		gl::BindVertexArray(_copyVAO);
+		_currentVAO = _copyVAO;
+		
+		if(_depthTestEnabled)
+		{
+			glDisable(GL_DEPTH_TEST);
+			_depthTestEnabled = false;
+		}
+		
+		for(auto iterator=_flushCameras.begin(); iterator!=_flushCameras.end(); iterator++)
+		{
+			Camera  *camera  = *iterator;
+			Texture *texture = camera->Target();
+			
+			const Rect frame = camera->Frame();
+			
+			camera->Push();
+			
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, texture->Name());
+			glUniform1i(_copyShader->targetmap, 0);
+			
+			Matrix matrix;
+			matrix.MakeScale(Vector3(frame.width, frame.height, 0.0f));
+			
+			glUniformMatrix4fv(_copyShader->matModel, 1, GL_FALSE, matrix.m);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+			
+			camera->Pop();
+		}
+		
+#if GL_EXT_debug_marker
+		glPopGroupMarkerEXT();
+#endif
+		
+		_flushCameras.clear();
+	}
+	
+	void RendererBackend::DrawGroup(RenderingGroup *group)
+	{
+		Camera *camera = group->camera;
+		std::vector<RenderingIntent> *frame = &group->intents;
 		
 		camera->Bind();
 		camera->PrepareForRendering();
 		
 		std::vector<RenderingIntent>::iterator iterator;
 		for(iterator=frame->begin(); iterator!=frame->end(); iterator++)
-		{			
+		{
 			RenderingIntent *intent = &(*iterator);
 			Material *material = intent->material;
 			Shader *shader = material->Shader();
@@ -168,49 +286,11 @@ namespace RN
 			// Draw the mesh
 			DrawMesh(intent->mesh);
 			intent->Pop();
+			
+			_flushCameras.push_back(camera);
 		}
 		
 		camera->Unbind();
-	}
-	
-	GLuint RendererBackend::VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple)
-	{
-		auto iterator = _vaos.find(tuple);
-		if(iterator == _vaos.end())
-		{
-			GLuint vao;
-			
-			Material *material  = std::get<0>(tuple);
-			MeshLODStage *stage = std::get<1>(tuple);
-			
-			Shader *shader = material->Shader();
-			
-			gl::GenVertexArrays(1, &vao);
-			gl::BindVertexArray(vao);
-			
-			if(shader->position != -1 && stage->SupportsFeature(kMeshFeatureVertices))
-			   glEnableVertexAttribArray(shader->position);
-			
-			if(shader->normal != -1 && stage->SupportsFeature(kMeshFeatureNormals))
-				glEnableVertexAttribArray(shader->normal);
-			
-			if(shader->texcoord0 != -1 && stage->SupportsFeature(kMeshFeatureUVSet0))
-				glEnableVertexAttribArray(shader->texcoord0);
-			
-			if(shader->texcoord1 != -1 && stage->SupportsFeature(kMeshFeatureUVSet1))
-				glEnableVertexAttribArray(shader->texcoord1);
-			
-			if(shader->color0 != -1 && stage->SupportsFeature(kMeshFeatureColor0))
-				glEnableVertexAttribArray(shader->color0);
-			
-			if(shader->color1 != -1 && stage->SupportsFeature(kMeshFeatureColor1))
-				glEnableVertexAttribArray(shader->color1);
-			
-			_vaos[tuple] = vao;
-			return vao;
-		}
-		
-		return iterator->second;
 	}
 	
 	void RendererBackend::BindMaterial(Material *material)
@@ -332,72 +412,17 @@ namespace RN
 			mesh->Push();
 			
 			MeshLODStage *stage = mesh->LODStage(0);
-			Shader *shader = _currentMaterial->Shader();
-			
+
 			std::tuple<Material *, MeshLODStage *> tuple = std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage);
 			GLuint vao = VAOForTuple(tuple);
-			
-			if(vao != _currentVao)
-			{
-				gl::BindVertexArray(vao);
-				_currentVao = vao;
-			}
 			
 			glBindBuffer(GL_ARRAY_BUFFER, stage->VBO());
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, stage->IBO());
 			
-			// Vertices
-			if(shader->position != -1 && stage->SupportsFeature(kMeshFeatureVertices))
+			if(vao != _currentVAO)
 			{
-				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureVertices);
-				size_t offset = stage->OffsetForFeature(kMeshFeatureVertices);
-				
-				glVertexAttribPointer(shader->position, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
-			}
-			
-			// Normals
-			if(shader->normal != -1 && stage->SupportsFeature(kMeshFeatureNormals))
-			{
-				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureNormals);
-				size_t offset = stage->OffsetForFeature(kMeshFeatureNormals);
-				
-				glVertexAttribPointer(shader->normal, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
-			}
-			
-			// Texcoord0
-			if(shader->texcoord0 != -1 && stage->SupportsFeature(kMeshFeatureUVSet0))
-			{
-				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureUVSet0);
-				size_t offset = stage->OffsetForFeature(kMeshFeatureUVSet0);
-				
-				glVertexAttribPointer(shader->texcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
-			}
-			
-			// Texcoord1
-			if(shader->texcoord1 != -1 && stage->SupportsFeature(kMeshFeatureUVSet1))
-			{
-				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureUVSet1);
-				size_t offset = stage->OffsetForFeature(kMeshFeatureUVSet1);
-				
-				glVertexAttribPointer(shader->texcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
-			}
-			
-			// Color0
-			if(shader->color0 != -1 && stage->SupportsFeature(kMeshFeatureColor0))
-			{
-				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureColor0);
-				size_t offset = stage->OffsetForFeature(kMeshFeatureColor0);
-				
-				glVertexAttribPointer(shader->color0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
-			}
-			
-			// Color1
-			if(shader->color1 != -1 && stage->SupportsFeature(kMeshFeatureColor1))
-			{
-				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureColor1);
-				size_t offset = stage->OffsetForFeature(kMeshFeatureColor1);
-				
-				glVertexAttribPointer(shader->color1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				gl::BindVertexArray(vao);
+				_currentVAO = vao;
 			}
 			
 			mesh->Pop();
@@ -412,5 +437,91 @@ namespace RN
 		}
 		
 		_currentMesh = mesh;
+	}
+	
+	GLuint RendererBackend::VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple)
+	{
+		auto iterator = _vaos.find(tuple);
+		if(iterator == _vaos.end())
+		{
+			GLuint vao;
+			
+			Material *material  = std::get<0>(tuple);
+			MeshLODStage *stage = std::get<1>(tuple);
+			
+			Shader *shader = material->Shader();
+			
+			glBindBuffer(GL_ARRAY_BUFFER, stage->VBO());
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, stage->IBO());
+			
+			
+			gl::GenVertexArrays(1, &vao);
+			gl::BindVertexArray(vao);
+			
+			// Vertices
+			if(shader->position != -1 && stage->SupportsFeature(kMeshFeatureVertices))
+			{
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureVertices);
+				size_t offset = stage->OffsetForFeature(kMeshFeatureVertices);
+				
+				glEnableVertexAttribArray(shader->position);
+				glVertexAttribPointer(shader->position, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+			}
+			
+			// Normals
+			if(shader->normal != -1 && stage->SupportsFeature(kMeshFeatureNormals))
+			{
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureNormals);
+				size_t offset = stage->OffsetForFeature(kMeshFeatureNormals);
+				
+				glEnableVertexAttribArray(shader->normal);
+				glVertexAttribPointer(shader->normal, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+			}
+			
+			// Texcoord0
+			if(shader->texcoord0 != -1 && stage->SupportsFeature(kMeshFeatureUVSet0))
+			{
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureUVSet0);
+				size_t offset = stage->OffsetForFeature(kMeshFeatureUVSet0);
+				
+				glEnableVertexAttribArray(shader->texcoord0);
+				glVertexAttribPointer(shader->texcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+			}
+			
+			// Texcoord1
+			if(shader->texcoord1 != -1 && stage->SupportsFeature(kMeshFeatureUVSet1))
+			{
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureUVSet1);
+				size_t offset = stage->OffsetForFeature(kMeshFeatureUVSet1);
+				
+				glEnableVertexAttribArray(shader->texcoord1);
+				glVertexAttribPointer(shader->texcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+			}
+			
+			// Color0
+			if(shader->color0 != -1 && stage->SupportsFeature(kMeshFeatureColor0))
+			{
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureColor0);
+				size_t offset = stage->OffsetForFeature(kMeshFeatureColor0);
+				
+				glEnableVertexAttribArray(shader->color0);
+				glVertexAttribPointer(shader->color0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+			}
+			
+			// Color1
+			if(shader->color1 != -1 && stage->SupportsFeature(kMeshFeatureColor1))
+			{
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureColor1);
+				size_t offset = stage->OffsetForFeature(kMeshFeatureColor1);
+				
+				glEnableVertexAttribArray(shader->color1);
+				glVertexAttribPointer(shader->color1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+			}
+			
+			_vaos[tuple] = vao;
+			return vao;
+		}
+		
+		return iterator->second;
 	}
 }

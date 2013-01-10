@@ -22,18 +22,23 @@ namespace RN
 		RendererBackend(RendererFrontend *frontend);
 		virtual ~RendererBackend();
 		
-		void SetDefaultCamera(Camera *camera);
-		Camera *DefaultCamera();
+		void SetDefaultFBO(GLuint fbo);
+		void SetDefaultFrame(uint32 width, uint32 height);
 		
 		void DrawFrame();
-		void PrepareFrame(std::vector<RenderingIntent> *frame);
+		void PrepareFrame(std::vector<RenderingGroup> *frame);
 		
-	protected:
-		virtual void DrawFrame(std::vector<RenderingIntent> *frame);
-		virtual void BindMaterial(Material *material);
-		virtual void DrawMesh(Mesh *mesh);
+	private:
+		void DrawGroup(RenderingGroup *group);
+		void BindMaterial(Material *material);
+		void DrawMesh(Mesh *mesh);
+		
+		void InitializeFramebufferCopy();
+		void FlushCameras();
 		
 		GLuint VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple);
+		
+		RendererFrontend *_frontend;
 		
 		bool _cullingEnabled;
 		bool _depthTestEnabled;
@@ -47,17 +52,28 @@ namespace RN
 		GLenum _blendDestination;
 		
 		std::map<std::tuple<Material *, MeshLODStage *>, GLuint> _vaos;
-		GLuint _currentVao;
+		GLuint _currentVAO;
 		
-		Camera *_defaultCamera;
-		RendererFrontend *_frontend;
+		GLuint _defaultFBO;
+		uint32 _defaultWidth;
+		uint32 _defaultHeight;
 		
 		Material *_currentMaterial;
 		Mesh *_currentMesh;
 		
 		SpinLock _drawLock;
 		uint32 _lastFrameID;
-		std::vector<RenderingIntent> *_lastFrame;
+		std::vector<RenderingGroup> *_lastFrame;
+		std::vector<Camera *> _flushCameras;
+		
+		Matrix _copyProjection;
+		Shader *_copyShader;
+		GLuint _copyVAO;
+		GLuint _copyVBO;
+		GLuint _copyIBO;
+		
+		Vector4 _copyVertices[4];
+		GLshort _copyIndices[6];
 	};
 }
 

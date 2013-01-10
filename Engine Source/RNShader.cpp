@@ -248,6 +248,8 @@ namespace RN
 			matProjViewModel = glGetUniformLocation(program, "matProjViewModel");
 			matProjViewModelInverse = glGetUniformLocation(program, "matProjViewModelInverse");
 			
+			targetmap = glGetUniformLocation(program, "targetmap");
+			
 			// Get attributes
 			position  = glGetAttribLocation(program, "position");
 			normal    = glGetAttribLocation(program, "normal");

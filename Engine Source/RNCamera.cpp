@@ -17,10 +17,15 @@ namespace RN
 		_clearColor(0.193f, 0.435f, 0.753f, 1.0f),
 		RenderingResource("Camera")
 	{
-		_ownsBuffer = true;
-		_texture    = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
+		_texture = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
+		
+		Kernel::CheckOpenGLError("Sup?");
 		
 		glGenFramebuffers(1, &_frameBuffer);
+		
+		Kernel::CheckOpenGLError("Sup?");
+		
+		SetDefaultValues();
 		Bind();
 		
 		_depthBuffer   = 0;
@@ -34,6 +39,8 @@ namespace RN
 		glBindRenderbuffer(GL_RENDERBUFFER, _stencilBuffer);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilBuffer);*/
 		
+		Kernel::CheckOpenGLError("Sup?");
+		
 		try
 		{
 			SetFrame(_frame);
@@ -45,46 +52,18 @@ namespace RN
 		}
 		
 		Unbind();
-		
-		SetDefaultValues();
-		UpdateProjection();
-		UpdateCamera();
-	}
-	
-	Camera::Camera(GLuint framebuffer, const Vector2& size) :
-		_frame(Vector2(0.0f, 0.0f), size),
-		_clearColor(0.193f, 0.435f, 0.753f, 1.0f),
-		RenderingResource("Camera")
-	{
-		_ownsBuffer = false;
-		_frameBuffer = framebuffer;
-		
-		_texture = 0;
-		
-		Bind();
-		
-		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, (GLint *)&_depthBuffer);
-		glGetFramebufferAttachmentParameteriv(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME, (GLint *)&_stencilBuffer);
-		
-		Unbind();
-		
-		SetDefaultValues();
-		UpdateProjection();
 		UpdateCamera();
 	}
 	
 	Camera::~Camera()
 	{
-		if(_ownsBuffer)
-		{
-			glDeleteFramebuffers(1, &_frameBuffer);
-			
-			if(_depthBuffer)
-				glDeleteRenderbuffers(1, &_depthBuffer);
-			
-			if(_stencilBuffer)
-				glDeleteRenderbuffers(1, &_stencilBuffer);
-		}
+		glDeleteFramebuffers(1, &_frameBuffer);
+		
+		if(_depthBuffer)
+			glDeleteRenderbuffers(1, &_depthBuffer);
+		
+		if(_stencilBuffer)
+			glDeleteRenderbuffers(1, &_stencilBuffer);
 		
 		if(_texture)
 			_texture->Release();
@@ -92,10 +71,9 @@ namespace RN
 	
 	void Camera::SetDefaultValues()
 	{
-		arc = 70.0f;
-		aspect = 1.0f;
+		arc      = 70.0f;
 		clipnear = 0.1f;
-		clipfar = 500.0f;
+		clipfar  = 500.0f;
 	}
 	
 	void Camera::CheckError()
@@ -202,9 +180,6 @@ namespace RN
 	
 	void Camera::PrepareForRendering()
 	{
-		glViewport(_frame.x, _frame.y, _frame.width, _frame.height);
-		
-		
 		GLenum clearMask = GL_COLOR_BUFFER_BIT;
 		if(_depthBuffer)
 		{
@@ -225,6 +200,8 @@ namespace RN
 		
 		glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
 		glClear(clearMask);
+		
+		glViewport(0, 0, _frame.width, _frame.height);
 	}
 		
 	
@@ -244,10 +221,14 @@ namespace RN
 			_texture->Bind();
 			
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture->Name(), 0);
-			
 			Kernel::CheckOpenGLError("glTexImage2D");
 			
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture->Name(), 0);
+			Kernel::CheckOpenGLError("glFramebufferTexture2D");			
+			
+			
+			_texture->_width  = width;
+			_texture->_height = height;
 			_texture->Unbind();
 		}
 		
@@ -287,6 +268,8 @@ namespace RN
 	
 	void Camera::UpdateProjection()
 	{
+		aspect = _frame.width / _frame.height;
+		
 		_projectionMatrix.MakeProjectionPerspective(arc, aspect, clipnear, clipfar);
 		_inverseProjectionMatrix.MakeInverveProjectionPerspective(arc, aspect, clipnear, clipfar);
 	}

@@ -8,11 +8,13 @@
 
 #import <UIKit/UIKit.h>
 #include <RNKernel.h>
+#include <RNWorld.h>
 
 @interface RNAppDelegate : UIResponder <UIApplicationDelegate>
 {
 @private
 	RN::Kernel *kernel;
+	RN::World *world;
 }
 
 @end

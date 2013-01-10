@@ -24,7 +24,6 @@ namespace RN
 	{
 	public:
 		Camera(const Vector2& size);
-		Camera(GLuint framebuffer, const Vector2& size);
 		virtual ~Camera();
 		
 		void Bind();
@@ -37,8 +36,8 @@ namespace RN
 		virtual void UpdateProjection();
 		virtual void UpdateCamera();
 		
-		const Rect& Frame() const;
-		const Color& ClearColor() const;
+		const Rect& Frame() const { return _frame; }
+		const Color& ClearColor() const { return _clearColor; }
 		
 		const Matrix& ProjectionMatrix() const { return _projectionMatrix; }
 		const Matrix& InverseProjectionMatrix() const { return _inverseProjectionMatrix; }
@@ -47,7 +46,7 @@ namespace RN
 		const Matrix& InverseViewMatrix() const { return _inverseViewMatrix; }
 		
 		GLuint DepthBuffer() const { return _depthBuffer; }
-		GLuint SteincilBuffer() const { return _stencilBuffer; }
+		GLuint StencilBuffer() const { return _stencilBuffer; }
 		
 		Texture *Target() const { return _texture; }
 		
@@ -71,7 +70,6 @@ namespace RN
 		Matrix _viewMatrix;
 		Matrix _inverseViewMatrix;
 		
-		bool _ownsBuffer;
 		GLuint _frameBuffer;
 		GLuint _depthBuffer;
 		GLuint _stencilBuffer;

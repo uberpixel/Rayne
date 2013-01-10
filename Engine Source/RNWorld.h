@@ -11,15 +11,34 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNVector.h"
+#include "RNCamera.h"
+#include "RNArray.h"
+#include "RNRenderingResource.h"
+#include "RNRendererFrontend.h"
 
 namespace RN
 {
+	class Kernel;
 	class World : public Object
 	{
 	public:
-		World();
+		World(Kernel *kernel);
 		virtual ~World();
+		
+		void Update(float delta);
+		
+	private:
+		Kernel *_kernel;
+		ObjectArray *_cameras;
+		RendererFrontend *_renderer;
+		
+		void CreateTestMesh();
+		
+		Mesh *mesh;
+		Texture *texture;
+		Material *material;
+		Shader *shader;
+		Matrix transform;
 	};
 }
 

@@ -18,6 +18,8 @@
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
 	kernel = RN::Kernel::SharedInstance();
+	world = new RN::World(kernel);
+	
 	[NSTimer scheduledTimerWithTimeInterval:1.0f/60.0f target:self selector:@selector(runGameLoop) userInfo:nil repeats:YES];
 	
     return YES;
@@ -55,7 +57,7 @@
 
 - (NSUInteger)application:(UIApplication *)application supportedInterfaceOrientationsForWindow:(UIWindow *)window
 {
-	return UIInterfaceOrientationMaskAll;
+	return UIInterfaceOrientationMaskLandscape;
 }
 
 @end

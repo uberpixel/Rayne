@@ -37,7 +37,7 @@ namespace RN
 	void RendererFrontend::BeginFrame()
 	{
 		RN_ASSERT0(_buildFrame == 0);
-		_buildFrame = new std::vector<RenderingIntent>();
+		_buildFrame = new std::vector<RenderingGroup>();
 	}
 	
 	void RendererFrontend::CommitFrame()
@@ -56,7 +56,14 @@ namespace RN
 		_frameLock->Unlock();
 	}
 	
-	uint32_t RendererFrontend::CommittedFrame(std::vector<RenderingIntent> **frame)
+	void RendererFrontend::PushGroup(const RenderingGroup& group)
+	{
+		_buildFrame->push_back(group);
+	}
+	
+	
+	
+	uint32_t RendererFrontend::CommittedFrame(std::vector<RenderingGroup> **frame)
 	{
 		RN_ASSERT0(frame != 0);
 		
@@ -69,10 +76,5 @@ namespace RN
 		_frameLock->Unlock();
 		
 		return frameID;
-	}
-	
-	void RendererFrontend::PushIntent(const RenderingIntent& command)
-	{
-		_buildFrame->push_back(command);
 	}
 }

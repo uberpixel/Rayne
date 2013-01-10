@@ -16,6 +16,9 @@
 @interface RNOpenGLView : NSOpenGLView
 {
 @public
+	BOOL _sizeChanged;
+	NSSize _size;
+	
 	RN::Context *_context;
 	RN::RendererBackend *_renderer;
 }
@@ -27,22 +30,24 @@
 {
 	_context->MakeActiveContext();
 	
-	try
+	if(_sizeChanged)
 	{
-		_renderer->DrawFrame();
+		_renderer->SetDefaultFrame(_size.width, _size.height);
+		_sizeChanged = NO;
 	}
-	catch(RN::ErrorException e)
-	{
-		uint32 group = e.Group();
-		uint32 subgroup = e.Subgroup();
-		uint32 code = e.Code();
-		
-		if(code != RN::kGraphicsFramebufferUndefined || subgroup != RN::kGraphicsGroupOpenGL || group != RN::kErrorGroupGraphics)
-			throw e; // Rethrow
-	}
+	
+	_renderer->DrawFrame();
 	
 	_context->Flush();
 	_context->DeactivateContext();
+}
+
+- (void)setFrame:(NSRect)frameRect
+{
+	[super setFrame:frameRect];
+	
+	_size = frameRect.size;
+	_sizeChanged = YES;
 }
 
 @end
@@ -109,7 +114,6 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 	GLuint _colorBuffer;
 	
 	RN::Context *_context;
-	RN::Camera *_camera;
 	RN::RendererBackend *_renderer;
 	
 	NSThread *_rendererThread;
@@ -121,9 +125,13 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 	BOOL _resizeLayer;
 }
 
+@property (nonatomic, readonly) GLint _backingWidth;
+@property (nonatomic, readonly) GLint _backingHeight;
+
 @end
 
 @implementation RNOpenGLView
+@synthesize _backingWidth, _backingHeight;
 
 + (Class)layerClass
 {
@@ -177,25 +185,19 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 	glBindRenderbuffer(GL_RENDERBUFFER, _colorBuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _colorBuffer);
 	
-	CGRect frame = [self frame];
-	
-	_camera = new RN::Camera(_frameBuffer, RN::Vector2(frame.size.width, frame.size.height));
-	_renderer->SetDefaultCamera(_camera);
+	_renderer->SetDefaultFBO(_frameBuffer);
 }
 
 - (void)resizeFromLayer:(CAEAGLLayer *)layer
 {
-	_camera->Bind();
-	
+	glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, _colorBuffer);
 	[[EAGLContext currentContext] renderbufferStorage:GL_RENDERBUFFER fromDrawable:layer];
 	
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH,  &_backingWidth);
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &_backingHeight);
 	
-	_camera->SetFrame(RN::Rect(0.0f, 0.0f, _backingWidth, _backingHeight));
-	_camera->Unbind();
-	
+	_renderer->SetDefaultFrame(_backingWidth, _backingHeight);
 	_resizeLayer = NO;
 }
 
@@ -237,10 +239,6 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 		[NSThread sleepForTimeInterval:0.1f];
 	
 	[_rendererThread release];
-	
-	_renderer->SetDefaultCamera(0);
-	_camera->Release();
-	
 	_context->Release();
 	
 	[super dealloc];
@@ -262,7 +260,7 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 - (NSUInteger)supportedInterfaceOrientations
 {
-	return UIInterfaceOrientationMaskAll;
+	return UIInterfaceOrientationMaskLandscape;
 }
 
 - (BOOL)shouldAutorotate
@@ -293,21 +291,14 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 namespace RN
 {
+#if RN_PLATFORM_MAC_OS
 	Window::Window(const std::string& title, Kernel *kernel)
 	{
-#if RN_PLATFORM_MAC_OS 
 		_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, 1024, 768)];
 		[_nativeWindow center];
 		
 		_nativeWindow->_controller = this;
-#endif
-		
-#if RN_PLATFORM_IOS
-		_nativeWindow = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
-		[_nativeWindow setBackgroundColor:[UIColor whiteColor]];
-		
-		_rootViewController = 0;
-#endif
+
 		_context = 0;
 		_kernel = kernel;
 		
@@ -319,61 +310,97 @@ namespace RN
 	{
 		_context->Release();
 		[_nativeWindow release];
-		
-#if RN_PLATFORM_IOS
-		[_rootViewController release];
-#endif
 	}
 	
 	
 	void Window::Show()
 	{
-#if RN_PLATFORM_MAC_OS 
 		[_nativeWindow makeKeyAndOrderFront:nil];
-#endif
-#if RN_PLATFORM_IOS
-		[_nativeWindow makeKeyAndVisible];
-#endif
 	}
 	
 	void Window::Hide()
 	{
-#if RN_PLATFORM_MAC_OS 
 		[_nativeWindow close];
-#endif
-#if RN_PLATFORM_IOS
-		[_nativeWindow resignFirstResponder];
-		[_nativeWindow setHidden:YES];
-#endif
 	}
 	
 	void Window::SetContext(Context *context)
 	{
-#if RN_PLATFORM_MAC_OS 
 		_context->Release();
 		_context = new Context(context);
 		
 		[_nativeWindow setRNContext:_context Renderer:_kernel->RendererBackend() OpenGLContext:_context->_oglContext andPixelFormat:_context->_oglPixelFormat];
+	}
+	
+	void Window::SetTitle(const std::string& title)
+	{
+		[_nativeWindow setTitle:[NSString stringWithUTF8String:title.c_str()]];
+	}
+	
+	Rect Window::Frame() const
+	{
+		NSRect frame = [[_nativeWindow contentView] frame];
+		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+	}
 #endif
-		
+	
+	
 #if RN_PLATFORM_IOS
+	Window::Window(const std::string& title, Kernel *kernel)
+	{
+		_nativeWindow = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
+		[_nativeWindow setBackgroundColor:[UIColor whiteColor]];
+		
+		_rootViewController = 0;
+
+		_context = 0;
+		_kernel = kernel;
+		
+		SetTitle(title);
+		Show();
+	}
+	
+	Window::~Window()
+	{
+		_context->Release();
+		[_nativeWindow release];
+		[_rootViewController release];
+	}
+	
+	
+	void Window::Show()
+	{
+		[_nativeWindow makeKeyAndVisible];
+	}
+	
+	void Window::Hide()
+	{
+		[_nativeWindow resignFirstResponder];
+		[_nativeWindow setHidden:YES];
+	}
+	
+	void Window::SetContext(Context *context)
+	{
 		_context->Release();
 		_context = context;
 		_context->Retain();
 		
 		[_rootViewController release];
 		_rootViewController = [[RNOpenGLViewController alloc] initWithContext:_context renderer:_kernel->RendererBackend() andFrame:[_nativeWindow bounds]];
+		_renderingView = [_rootViewController view];
 		
 		[_nativeWindow setRootViewController:_rootViewController];
-#endif
 	}
 	
 	void Window::SetTitle(const std::string& title)
 	{
-#if RN_PLATFORM_MAC_OS 
-		[_nativeWindow setTitle:[NSString stringWithUTF8String:title.c_str()]];
-#endif
 	}
+	
+	Rect Window::Frame() const
+	{
+		CGRect frame = [_renderingView bounds];
+		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+	}
+#endif
 }
 
 #endif

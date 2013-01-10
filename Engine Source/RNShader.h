@@ -50,6 +50,8 @@ namespace RN
 		GLuint color0;
 		GLuint color1;
 		
+		GLuint targetmap;
+		
 	private:
 		void SetShaderForType(File *file, GLenum type);
 		void SetShaderForType(const std::string& path, GLenum type);

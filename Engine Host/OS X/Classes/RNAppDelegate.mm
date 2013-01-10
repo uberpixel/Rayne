@@ -18,6 +18,8 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
 	kernel = RN::Kernel::SharedInstance();
+	world = new RN::World(kernel);
+	
 	[NSTimer scheduledTimerWithTimeInterval:1.0f/60.0f target:self selector:@selector(runGameLoop) userInfo:nil repeats:YES];
 }
 

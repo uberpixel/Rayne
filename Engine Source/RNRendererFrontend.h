@@ -19,6 +19,7 @@ namespace RN
 	class RendererBackend;
 	class RendererFrontend : public Object
 	{
+	friend class RendererBackend;
 	public:
 		RendererFrontend();
 		virtual ~RendererFrontend();
@@ -26,19 +27,19 @@ namespace RN
 		void BeginFrame();
 		void CommitFrame();
 		
-		uint32_t CommittedFrame(std::vector<RenderingIntent> **frame);
-		
-		void PushIntent(const RenderingIntent& command);
+		void PushGroup(const RenderingGroup& group);
 		
 		RendererBackend *Backend() { return _backend; }
 		
 	private:
+		uint32_t CommittedFrame(std::vector<RenderingGroup> **frame);
+		
 		Mutex *_frameLock;
 		uint32 _frameNumber;
 		bool _tookFrame;
 		
-		std::vector<RenderingIntent> *_buildFrame;
-		std::vector<RenderingIntent> *_committedFrame;
+		std::vector<RenderingGroup> *_buildFrame;
+		std::vector<RenderingGroup> *_committedFrame;
 		
 		RendererBackend *_backend;
 	};

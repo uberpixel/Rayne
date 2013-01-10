@@ -50,6 +50,8 @@ namespace RN
 		void SetContext(Context *context);
 		void SetTitle(const std::string& title);
 		
+		Rect Frame() const;
+		
 	private:
 #if RN_PLATFORM_MAC_OS
 		RNNativeWindow *_nativeWindow;
@@ -58,6 +60,7 @@ namespace RN
 #if RN_PLATFORM_IOS
 		UIWindow *_nativeWindow;
 		UIViewController *_rootViewController;
+		UIView *_renderingView;
 #endif
 		
 		Context *_context;

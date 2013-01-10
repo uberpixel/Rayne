@@ -36,6 +36,18 @@ namespace RN
 		Material *material;
 		Mesh *mesh;
 	};
+	
+	class RenderingGroup : public RenderingResource
+	{
+	public:
+		RenderingGroup() :
+			RenderingResource("Rendering Group")
+		{
+		}
+		
+		Camera *camera;
+		std::vector<RenderingIntent> intents;
+	};
 }
 
 #endif /* __RAYNE_RENDERING_H__ */

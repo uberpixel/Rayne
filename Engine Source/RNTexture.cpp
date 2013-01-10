@@ -9,12 +9,15 @@
 #include "RNTexture.h"
 #include "RNTextureLoader.h"
 #include "RNThread.h"
+#include "RNKernel.h"
 
 namespace RN
 {
 	Texture::Texture(Format format, WrapMode wrap, Filter filter)
 	{
 		glGenTextures(1, &_name);
+		
+		Kernel::CheckOpenGLError("Fooo");
 		
 		_width = _height = 0;
 		_format = format;
@@ -117,6 +120,8 @@ namespace RN
 	
 	void Texture::SetFilter(Filter filter)
 	{
+		_filter = filter;
+		
 		Bind();
 		
 		GLenum minFilter;

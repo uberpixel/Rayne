@@ -14,8 +14,10 @@
 
 namespace RN
 {
+	class Camera;
 	class Texture : public Object
 	{
+	friend class Camera;
 	public:
 		typedef enum
 		{
