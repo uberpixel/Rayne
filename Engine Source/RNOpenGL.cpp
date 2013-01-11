@@ -16,6 +16,7 @@ namespace RN
 		OGLFunctionGen GenVertexArrays;
 		OGLFunctionDelete DeleteVertexArrays;
 		OGLFunctionBind BindVertexArray;
+		OGLBlitFramebuffer BlitFramebuffer;
 	}
 	
 	bool OpenGLFeatures[__kOpenGLFeatureMax] = { false };
@@ -57,5 +58,7 @@ namespace RN
 		gl::BindVertexArray = (gl::OGLFunctionBind)LookupOpenGLFunction("glBindVertexArray");
 		
 		OpenGLFeatures[kOpenGLFeatureVertexArrays] = (gl::GenVertexArrays && gl::DeleteVertexArrays && gl::BindVertexArray);
+		
+		gl::BlitFramebuffer = (gl::OGLBlitFramebuffer)LookupOpenGLFunction("glBlitFramebuffer");
 	}
 }
