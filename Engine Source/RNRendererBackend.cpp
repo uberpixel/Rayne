@@ -178,13 +178,16 @@ namespace RN
 		glPushGroupMarkerEXT(0, "Flushing cameras");
 #endif
 		// Flush the cameras to the screen
+		// If we are using OpenGL 3.0+ we can use glBlitFramebuffer() to effeciently copy the frambeuffers content around
+		// however, this can only be used when the camera renders without any kind of Material attached to it.
+		
 #if defined(GL_DRAW_FRAMEBUFFER) && defined(GL_READ_FRAMEBUFFER)
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _defaultFBO);
 #else
 		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
 #endif
 		
-		glClearColor(0.0f, 1.0f, 1.0f, 1.0f);
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		glViewport(0, 0, _defaultWidth, _defaultHeight);
@@ -195,12 +198,12 @@ namespace RN
 			FlushCamera(camera);
 			
 #if defined(GL_DRAW_FRAMEBUFFER) && defined(GL_READ_FRAMEBUFFER)
-			if(!camera->Material())
+			if(!camera->Material() && gl::BlitFramebuffer)
 			{
 				const Rect frame = camera->Frame();
 				
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, camera->Framebuffer());
-				glBlitFramebuffer(0, 0, frame.width, frame.height, frame.x, frame.y, frame.width, frame.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+				gl::BlitFramebuffer(0, 0, frame.width, frame.height, frame.x, frame.y, frame.width, frame.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 			}
 			else
 			{

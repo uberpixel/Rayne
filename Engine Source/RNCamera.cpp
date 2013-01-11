@@ -39,10 +39,6 @@ namespace RN
 		glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthbuffer);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilbuffer);
-
-		//glGenRenderbuffers(1, &_stencilbuffer);
-		//glBindRenderbuffer(GL_RENDERBUFFER, _stencilbuffer);
-		
 		
 		try
 		{
