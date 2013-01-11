@@ -39,6 +39,8 @@ namespace RN
 		void Unbind();
 		virtual void PrepareForRendering();
 		
+		void CreateBuffer(bool depthbuffer, bool stencilbuffer);
+		
 		virtual void SetFrame(const Rect& frame);
 		void SetClearColor(const Color& color);
 		void SetMaterial(Material *material);
@@ -59,8 +61,9 @@ namespace RN
 		const Matrix& ViewMatrix() const { return _viewMatrix; }
 		const Matrix& InverseViewMatrix() const { return _inverseViewMatrix; }
 		
-		GLuint DepthBuffer() const { return _depthBuffer; }
-		GLuint StencilBuffer() const { return _stencilBuffer; }
+		GLuint Framebuffer() const { return _framebuffer; }
+		GLuint Depthbuffer() const { return _depthbuffer; }
+		GLuint Stencilbuffer() const { return _stencilbuffer; }
 		
 		Texture *Target() const { return _texture; }
 		Material *Material() const { return _material; }
@@ -88,13 +91,14 @@ namespace RN
 		Matrix _viewMatrix;
 		Matrix _inverseViewMatrix;
 		
-		GLuint _frameBuffer;
-		GLuint _depthBuffer;
-		GLuint _stencilBuffer;
+		GLuint _framebuffer;
+		GLuint _depthbuffer;
+		GLuint _stencilbuffer;
 		
 	private:
 		void UpdateStage(bool updateFrame) const;
 		
+		bool _packedStencil;
 		int _current;
 		
 		Texture *_texture;

@@ -23,21 +23,26 @@ namespace RN
 		
 		flags = _flags;
 		
-		glGenFramebuffers(1, &_frameBuffer);
+		glGenFramebuffers(1, &_framebuffer);
 		
 		SetDefaultValues();
 		Bind();
 		
-		_depthBuffer   = 0;
-		_stencilBuffer = 0;
+		_depthbuffer   = 0;
+		_stencilbuffer = 0;
 		
-		glGenRenderbuffers(1, &_depthBuffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthBuffer);
+		glGenRenderbuffers(1, &_depthbuffer);
+		
+		_stencilbuffer = _depthbuffer;
+		_packedStencil = true;
+		
+		glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthbuffer);
+		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilbuffer);
 
-		/*glGenRenderbuffers(1, &_stencilBuffer);
-		glBindRenderbuffer(GL_RENDERBUFFER, _stencilBuffer);
-		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilBuffer);*/
+		//glGenRenderbuffers(1, &_stencilbuffer);
+		//glBindRenderbuffer(GL_RENDERBUFFER, _stencilbuffer);
+		
 		
 		try
 		{
@@ -55,13 +60,13 @@ namespace RN
 	
 	Camera::~Camera()
 	{
-		glDeleteFramebuffers(1, &_frameBuffer);
+		glDeleteFramebuffers(1, &_framebuffer);
 		
-		if(_depthBuffer)
-			glDeleteRenderbuffers(1, &_depthBuffer);
+		if(_depthbuffer)
+			glDeleteRenderbuffers(1, &_depthbuffer);
 		
-		if(_stencilBuffer)
-			glDeleteRenderbuffers(1, &_stencilBuffer);
+		if(_stencilbuffer && !_packedStencil)
+			glDeleteRenderbuffers(1, &_stencilbuffer);
 		
 		if(_texture)
 			_texture->Release();
@@ -160,7 +165,7 @@ namespace RN
 		Thread *thread = Thread::CurrentThread();
 		
 		if(thread->CurrentCamera() != this)
-			glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+			glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 		
 		thread->PushCamera(this);
 	}
@@ -175,14 +180,14 @@ namespace RN
 			
 			Camera *other = thread->CurrentCamera();
 			if(other && other != this)
-				glBindFramebuffer(GL_FRAMEBUFFER, other->_frameBuffer);
+				glBindFramebuffer(GL_FRAMEBUFFER, other->_framebuffer);
 		}
 	}
 	
 	void Camera::PrepareForRendering()
 	{
 		GLenum clearMask = GL_COLOR_BUFFER_BIT;
-		if(_depthBuffer)
+		if(_depthbuffer)
 		{
 #if RN_PLATFORM_IOS
 			glClearDepthf(1.0f);
@@ -193,7 +198,7 @@ namespace RN
 			clearMask |= GL_DEPTH_BUFFER_BIT;
 		}
 		
-		if(_stencilBuffer)
+		if(_stencilbuffer)
 		{
 			glClearStencil(0);
 			clearMask |= GL_STENCIL_BUFFER_BIT;
@@ -231,27 +236,42 @@ namespace RN
 			_texture->Unbind();
 		}
 		
-		if(_depthBuffer)
+		if(_packedStencil)
 		{
 #if RN_PLATFORM_MAC_OS
-			glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+			glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
 #endif
 			
 #if RN_PLATFORM_IOS
-			glBindRenderbuffer(GL_RENDERBUFFER, _depthBuffer);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24_OES, width, height);
+			glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, width, height);
 #endif
-			
-			Kernel::CheckOpenGLError("glRenderBufferStorage");
 		}
-		
-		if(_stencilBuffer)
+		else
 		{
-			glBindRenderbuffer(GL_RENDERBUFFER, _stencilBuffer);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
+			if(_depthbuffer)
+			{
+#if RN_PLATFORM_MAC_OS
+				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+#endif
+				
+#if RN_PLATFORM_IOS
+				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24_OES, width, height);
+#endif
+				
+				Kernel::CheckOpenGLError("glRenderBufferStorage");
+			}
 			
-			Kernel::CheckOpenGLError("glRenderBufferStorage");
+			if(_stencilbuffer)
+			{
+				glBindRenderbuffer(GL_RENDERBUFFER, _stencilbuffer);
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
+				
+				Kernel::CheckOpenGLError("glRenderBufferStorage");
+			}
 		}
 		
 		CheckError();
