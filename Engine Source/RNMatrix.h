@@ -260,18 +260,32 @@ namespace RN
 	
 	RN_INLINE void Matrix::Translate(const Vector3& trans)
 	{
-		Matrix temp;
-		temp.MakeTranslate(trans);
+		float tmp[4];
 		
-		*this *= temp;
+		tmp[0] = m[ 0] * trans.x + m[ 4] * trans.y + m[ 8] * trans.z + m[12];
+		tmp[1] = m[ 1] * trans.x + m[ 5] * trans.y + m[ 9] * trans.z + m[13];
+		tmp[2] = m[ 2] * trans.x + m[ 6] * trans.y + m[10] * trans.z + m[14];
+		tmp[3] = m[ 3] * trans.x + m[ 7] * trans.y + m[11] * trans.z + m[15];
+		
+		m[12] = tmp[0];
+		m[13] = tmp[1];
+		m[14] = tmp[2];
+		m[15] = tmp[3];
 	}
 	
 	RN_INLINE void Matrix::Translate(const Vector4& trans)
 	{
-		Matrix temp;
-		temp.MakeTranslate(trans);
+		float tmp[4];
 		
-		*this *= temp;
+		tmp[0] = m[ 0] * trans.x + m[ 4] * trans.y + m[ 8] * trans.z + m[12] * trans.z;
+		tmp[1] = m[ 1] * trans.x + m[ 5] * trans.y + m[ 9] * trans.z + m[13] * trans.z;
+		tmp[2] = m[ 2] * trans.x + m[ 6] * trans.y + m[10] * trans.z + m[14] * trans.z;
+		tmp[3] = m[ 3] * trans.x + m[ 7] * trans.y + m[11] * trans.z + m[15] * trans.z;
+		
+		m[12] = tmp[0];
+		m[13] = tmp[1];
+		m[14] = tmp[2];
+		m[15] = tmp[3];
 	}
 	
 	RN_INLINE void Matrix::Scale(const Vector3& scal)
