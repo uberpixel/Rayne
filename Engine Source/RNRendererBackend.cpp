@@ -194,8 +194,7 @@ namespace RN
 		
 		for(auto iterator=_flushCameras.begin(); iterator!=_flushCameras.end(); iterator++)
 		{
-			Camera  *camera  = *iterator;
-			FlushCamera(camera);
+			Camera *camera  = *iterator;
 			
 #if defined(GL_DRAW_FRAMEBUFFER) && defined(GL_READ_FRAMEBUFFER)
 			if(!camera->Material() && gl::BlitFramebuffer)
