@@ -114,7 +114,7 @@ namespace RN
 			{
 				if(_descriptor[i]._available)
 				{
-					memcpy(bytes, buffer[i], _descriptor[i].elementSize);
+					std::copy(buffer[i], buffer[i] +_descriptor[i].elementSize, bytes);
 					
 					bytes     += _descriptor[i].elementSize;
 					buffer[i] += _descriptor[i].elementSize;
@@ -123,7 +123,10 @@ namespace RN
 		}
 		
 		if(_descriptor[kMeshFeatureIndices]._available)
-			memcpy(_indices, _descriptor[kMeshFeatureIndices]._pointer, _indicesSize);
+		{
+			uint8 *indices = (uint8 *)_descriptor[kMeshFeatureIndices]._pointer;
+			std::copy(indices, indices + _indicesSize, (uint8 *)_indices);
+		}
 		
 		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 		glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, GL_STATIC_DRAW);

@@ -73,7 +73,7 @@ namespace RN
 				// TODO: Throw an exception!
 			}
 			
-			memcpy(&data[read], buffer, tread);
+			std::copy(buffer, buffer + tread, &data[read]);
 			read += tread;
 		}
 		

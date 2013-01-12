@@ -45,7 +45,7 @@ namespace RN
 			_data     = (T *)malloc(_capacity * sizeof(T));
 			
 			RN_ASSERT0(_data);
-			memcpy((void *)_data, (const void *)other._data, _count * sizeof(T));
+			std::copy(other._data, other._data + _count, _data);
 		}
 		
 		virtual ~Array()

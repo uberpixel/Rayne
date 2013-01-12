@@ -20,11 +20,8 @@ namespace RN
 		_context->MakeActiveContext();
 		
 		ReadOpenGLExtensions();
-		Kernel::CheckOpenGLError("Meh...");
 		
 		_renderer = new RendererFrontend();
-		
-		Kernel::CheckOpenGLError("Meh...");
 		
 		_window  = new Window::Window("Rayne", this);
 		_window->SetContext(_context);

@@ -44,7 +44,7 @@ namespace RN
 		tmp[14] = m[ 2] * other.m[12] + m[ 6] * other.m[13] + m[10] * other.m[14] + m[14] * other.m[15];
 		tmp[15] = m[ 3] * other.m[12] + m[ 7] * other.m[13] + m[11] * other.m[14] + m[15] * other.m[15];
 		
-		memcpy(m, tmp, 16 * sizeof(float));
+		std::copy(tmp, tmp + 16, m);
 		return *this;
 	}
 
@@ -115,7 +115,7 @@ namespace RN
 
 	RN_INLINE void Matrix::MakeIdentity()
 	{
-		memset(m, 0, 16 * sizeof(float));
+		std::fill(m, m + 16, 0);
 		m[0] = m[5] = m[10] = m[15] = 1.0f;
 	}
 	
@@ -367,7 +367,7 @@ namespace RN
 		temp[14] = m[11];
 		temp[15] = m[15];
 		
-		memcpy(m, temp, 16 * sizeof(float));
+		std::copy(temp, temp + 16, m);
 	}
 }
 
