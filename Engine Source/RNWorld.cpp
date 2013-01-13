@@ -63,7 +63,7 @@ namespace RN
 		static float dist = -128.0f;
 		
 		//rot += 1.0f;
-		//dist -= 1.0f;
+		dist -= 20.0f * delta;
 		
 		transform.MakeTranslate(Vector3(0.0f, 0.0f, dist));
 		transform.Rotate(Vector3(0.0f, rot, -rot));
