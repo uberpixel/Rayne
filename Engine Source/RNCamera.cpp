@@ -20,6 +20,7 @@ namespace RN
 		_material = 0;
 		_stage    = 0;
 		_texture  = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
+		_texture->SetGeneratesMipmaps(false);
 		
 		flags = _flags;
 		

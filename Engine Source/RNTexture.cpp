@@ -21,7 +21,7 @@ namespace RN
 		
 		_width = _height = 0;
 		_format = format;
-		_generateMipMaps = true;
+		_generateMipmaps = true;
 		
 		Bind();
 		
@@ -39,7 +39,7 @@ namespace RN
 		
 		_width = _height = 0;
 		_format = format;
-		_generateMipMaps = true;
+		_generateMipmaps = true;
 		
 		Bind();
 		
@@ -133,6 +133,10 @@ namespace RN
 			case FilterLinear:
 				minFilter = GL_LINEAR;
 				magFilter = GL_LINEAR;
+				
+				if(_generateMipmaps)
+					minFilter = GL_LINEAR_MIPMAP_LINEAR;
+				
 				break;
 				
 			case FilterNearest:
@@ -147,11 +151,11 @@ namespace RN
 		Unbind();
 	}
 	
-	void Texture::SetGenerateMipMaps(bool genMipMaps)
+	void Texture::SetGeneratesMipmaps(bool genMipmaps)
 	{
-		if(genMipMaps != _generateMipMaps)
+		if(genMipmaps != _generateMipmaps)
 		{
-			if(genMipMaps)
+			if(genMipmaps)
 			{
 				Bind();
 				
@@ -160,7 +164,8 @@ namespace RN
 				Unbind();
 			}
 			
-			_generateMipMaps = genMipMaps;
+			_generateMipmaps = genMipmaps;
+			SetFilter(_filter);
 		}
 	}
 	
@@ -180,7 +185,7 @@ namespace RN
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, glFormat, _width, _height, 0, glFormat, glType, converted);
 		
-		if(_generateMipMaps)
+		if(_generateMipmaps)
 			glGenerateMipmap(GL_TEXTURE_2D);
 		
 		Unbind();
@@ -202,7 +207,7 @@ namespace RN
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, converted);
 		
-		if(_generateMipMaps)
+		if(_generateMipmaps)
 			glGenerateMipmap(GL_TEXTURE_2D);
 		
 		Unbind();
@@ -211,6 +216,17 @@ namespace RN
 			free(converted);
 	}
 	
+	void Texture::GenerateMipmaps()
+	{
+		if(!_generateMipmaps)
+			_generateMipmaps = true;
+		
+		Bind();
+		
+		glGenerateMipmap(GL_TEXTURE_2D);
+		
+		Unbind();
+	}
 	
 	void Texture::ConvertFormat(Format format, GLenum *glFormat, GLenum *glType)
 	{

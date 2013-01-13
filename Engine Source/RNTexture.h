@@ -54,16 +54,17 @@ namespace RN
 		
 		void SetData(const void *data, uint32 width, uint32 height, Format format);
 		void UpdateData(const void *data, Format format);
+		void GenerateMipmaps();
 		
 		void SetFormat(Format format);
 		void SetWrappingMode(WrapMode wrap);
 		void SetFilter(Filter filter);
-		void SetGenerateMipMaps(bool genMipMaps);
+		void SetGeneratesMipmaps(bool genMipmaps);
 		
 		Format TextureFormat() const { return _format; }
 		Filter TextureFilter() const { return _filter; }
 		WrapMode TextureWrapMode() const { return _wrapMode; }
-		bool GenerateMipMaps() const { return _generateMipMaps; }
+		bool GeneratesMipmaps() const { return _generateMipmaps; }
 		
 		static bool PlatformSupportsFormat(Format format);
 		
@@ -75,7 +76,7 @@ namespace RN
 		static void *ConvertData(const void *data, uint32 width, uint32 height, Format current, Format target);
 		static void ConvertFormat(Format format, GLenum *glFormat, GLenum *glType);
 		
-		bool _generateMipMaps;
+		bool _generateMipmaps;
 		Format _format;
 		Filter _filter;
 		WrapMode _wrapMode;
