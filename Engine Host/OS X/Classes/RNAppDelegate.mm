@@ -12,7 +12,7 @@
 
 - (void)runGameLoop
 {
-	kernel->Update(0.0f);
+	kernel->Update();
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification

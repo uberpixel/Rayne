@@ -24,7 +24,7 @@ namespace RN
 		Kernel();
 		virtual ~Kernel();
 		
-		void Update(float delta);
+		void Update();
 		void SetContext(Context *context);
 		void SetWorld(World *world);
 		
@@ -42,6 +42,8 @@ namespace RN
 		Context *_context;
 		RendererFrontend *_renderer;
 		World *_world;
+		
+		std::chrono::time_point<std::chrono::system_clock> _lastFrame;
 	};
 }
 

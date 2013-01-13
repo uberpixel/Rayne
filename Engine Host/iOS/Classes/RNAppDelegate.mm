@@ -12,7 +12,7 @@
 
 - (void)runGameLoop
 {
-	kernel->Update(0.0f);
+	kernel->Update();
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions

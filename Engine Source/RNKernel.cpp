@@ -27,6 +27,7 @@ namespace RN
 		_window->SetContext(_context);
 		
 		_world = 0;
+		_lastFrame = std::chrono::system_clock::now();
 	}	
 	
 	Kernel::~Kernel()
@@ -38,8 +39,16 @@ namespace RN
 		_world->Release();
 	}
 	
-	void Kernel::Update(float delta)
+	void Kernel::Update()
 	{
+		std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+		
+		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now - _lastFrame).count();
+		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
+		
+		float delta = seconds + (milliseconds / 1000.0f);
+
+		
 		_context->MakeActiveContext();
 		
 		if(_world)
@@ -50,6 +59,7 @@ namespace RN
 		}
 		
 		_context->DeactivateContext();
+		_lastFrame = now;
 		
 		CheckOpenGLError("Kernel::Update()");
 	}
