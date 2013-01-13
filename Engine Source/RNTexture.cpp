@@ -21,6 +21,7 @@ namespace RN
 		
 		_width = _height = 0;
 		_format = format;
+		_generateMipMaps = true;
 		
 		Bind();
 		
@@ -38,12 +39,12 @@ namespace RN
 		
 		_width = _height = 0;
 		_format = format;
+		_generateMipMaps = true;
 		
 		Bind();
 		
 		SetFilter(filter);
 		SetWrappingMode(wrap);
-		
 		
 		try
 		{
@@ -146,6 +147,22 @@ namespace RN
 		Unbind();
 	}
 	
+	void Texture::SetGenerateMipMaps(bool genMipMaps)
+	{
+		if(genMipMaps != _generateMipMaps)
+		{
+			if(genMipMaps)
+			{
+				Bind();
+				
+				glGenerateMipmap(GL_TEXTURE_2D);
+				
+				Unbind();
+			}
+			
+			_generateMipMaps = genMipMaps;
+		}
+	}
 	
 	void Texture::SetData(const void *data, uint32 width, uint32 height, Format format)
 	{		
@@ -162,6 +179,9 @@ namespace RN
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, glFormat, _width, _height, 0, glFormat, glType, converted);
+		
+		if(_generateMipMaps)
+			glGenerateMipmap(GL_TEXTURE_2D);
 		
 		Unbind();
 		
@@ -181,6 +201,9 @@ namespace RN
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, converted);
+		
+		if(_generateMipMaps)
+			glGenerateMipmap(GL_TEXTURE_2D);
 		
 		Unbind();
 		

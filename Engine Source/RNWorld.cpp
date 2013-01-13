@@ -42,8 +42,8 @@ namespace RN
 		Camera *stage = new Camera(Vector2(frame.width, frame.height), Camera::FlagInherit | Camera::FlagDrawTarget);
 		stage->SetMaterial(ppmat2);
 		
-		camera->SetMaterial(ppmat1);
-		camera->AddStage(stage);
+		//camera->SetMaterial(ppmat1);
+		//camera->AddStage(stage);
 		
 		camera->Release();
 		
@@ -62,7 +62,7 @@ namespace RN
 		static float rot = 0;
 		static float dist = -128.0f;
 		
-		rot += 1.0f;
+		//rot += 1.0f;
 		//dist -= 1.0f;
 		
 		transform.MakeTranslate(Vector3(0.0f, 0.0f, dist));
@@ -104,6 +104,12 @@ namespace RN
 		colorDescriptor.elementMember = 4;
 		colorDescriptor.elementCount  = 4;
 		
+		MeshDescriptor texcoordDescriptor;
+		texcoordDescriptor.feature = kMeshFeatureUVSet0;
+		texcoordDescriptor.elementSize = sizeof(Vector2);
+		texcoordDescriptor.elementMember = 2;
+		texcoordDescriptor.elementCount  = 4;
+		
 		MeshDescriptor indicesDescriptor;
 		indicesDescriptor.feature = kMeshFeatureIndices;
 		indicesDescriptor.elementSize = sizeof(uint16);
@@ -114,18 +120,25 @@ namespace RN
 		descriptors.AddObject(vertexDescriptor);
 		descriptors.AddObject(colorDescriptor);
 		descriptors.AddObject(indicesDescriptor);
+		descriptors.AddObject(texcoordDescriptor);
 		
 		
 		MeshLODStage *stage = mesh->AddLODStage(descriptors);
 		
-		Vector3 *vertices = stage->Data<Vector3>(kMeshFeatureVertices);
-		Color *colors     = stage->Data<Color>(kMeshFeatureColor0);
-		uint16 *indices   = stage->Data<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = stage->Data<Vector3>(kMeshFeatureVertices);
+		Color *colors      = stage->Data<Color>(kMeshFeatureColor0);
+		Vector2 *texcoords = stage->Data<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = stage->Data<uint16>(kMeshFeatureIndices);
 		
 		*vertices ++ = Vector3(-32.0f, 32.0f, 0.0f);
 		*vertices ++ = Vector3(32.0f, 32.0f, 0.0f);
-		*vertices ++ = Vector3(32.0f, -32.0f,  0.0f);
-		*vertices ++ = Vector3(-32.0f, -32.0f,  0.0f);
+		*vertices ++ = Vector3(32.0f, -32.0f, 0.0f);
+		*vertices ++ = Vector3(-32.0f, -32.0f, 0.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
 		
 		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
 		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
@@ -142,6 +155,9 @@ namespace RN
 		stage->GenerateMesh();
 		
 		// Shader
+		Texture *texture0 = new Texture("textures/brick.png", Texture::FormatRGB565);
+		Texture *texture1 = new Texture("textures/testpng.png", Texture::FormatRGB565);
+		
 		shader = new Shader();
 		shader->SetFragmentShader("shader/Test.fsh");
 		shader->SetVertexShader("shader/Test.vsh");
@@ -150,6 +166,8 @@ namespace RN
 		
 		// Material
 		material = new Material(shader);
+		material->AddTexture(texture0);
+		material->AddTexture(texture1);
 		material->culling = false;
 	}
 }
