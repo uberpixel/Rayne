@@ -17,11 +17,11 @@ namespace RN
 	{
 		glGenTextures(1, &_name);
 		
-		Kernel::CheckOpenGLError("Fooo");
-		
 		_width = _height = 0;
 		_format = format;
+		
 		_generateMipmaps = true;
+		_isCompleteTexture = false;
 		
 		Bind();
 		
@@ -39,7 +39,9 @@ namespace RN
 		
 		_width = _height = 0;
 		_format = format;
+		
 		_generateMipmaps = true;
+		_isCompleteTexture = false;
 		
 		Bind();
 		
@@ -134,8 +136,8 @@ namespace RN
 				minFilter = GL_LINEAR;
 				magFilter = GL_LINEAR;
 				
-				if(_generateMipmaps)
-					minFilter = GL_LINEAR_MIPMAP_LINEAR;
+				//if(_generateMipmaps)
+				//	minFilter = GL_LINEAR_MIPMAP_LINEAR;
 				
 				break;
 				
@@ -157,11 +159,7 @@ namespace RN
 		{
 			if(genMipmaps)
 			{
-				Bind();
-				
-				glGenerateMipmap(GL_TEXTURE_2D);
-				
-				Unbind();
+				UpdateMipmaps();
 			}
 			
 			_generateMipmaps = genMipmaps;
@@ -182,12 +180,12 @@ namespace RN
 		_width  = width;
 		_height = height;
 		
+		_isCompleteTexture = true;
+		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, glFormat, _width, _height, 0, glFormat, glType, converted);
 		
-		if(_generateMipmaps)
-			glGenerateMipmap(GL_TEXTURE_2D);
-		
+		UpdateMipmaps();
 		Unbind();
 		
 		if(converted != data)
@@ -196,6 +194,9 @@ namespace RN
 	
 	void Texture::UpdateData(const void *data, Format format)
 	{
+		if(!_isCompleteTexture)
+			return; // TODO: Throw an exception
+		
 		GLenum glType, glFormat;
 		void *converted;
 		
@@ -207,23 +208,21 @@ namespace RN
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, converted);
 		
-		if(_generateMipmaps)
-			glGenerateMipmap(GL_TEXTURE_2D);
-		
+		UpdateMipmaps();		
 		Unbind();
 		
 		if(converted != data)
 			free(converted);
 	}
 	
-	void Texture::GenerateMipmaps()
+	void Texture::UpdateMipmaps()
 	{
-		if(!_generateMipmaps)
-			_generateMipmaps = true;
+		if(!_generateMipmaps || !_isCompleteTexture)
+			return;
 		
 		Bind();
 		
-		glGenerateMipmap(GL_TEXTURE_2D);
+		//glGenerateMipmap(GL_TEXTURE_2D);
 		
 		Unbind();
 	}

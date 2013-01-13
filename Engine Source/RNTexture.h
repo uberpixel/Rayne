@@ -54,7 +54,7 @@ namespace RN
 		
 		void SetData(const void *data, uint32 width, uint32 height, Format format);
 		void UpdateData(const void *data, Format format);
-		void GenerateMipmaps();
+		void UpdateMipmaps();
 		
 		void SetFormat(Format format);
 		void SetWrappingMode(WrapMode wrap);
@@ -76,7 +76,9 @@ namespace RN
 		static void *ConvertData(const void *data, uint32 width, uint32 height, Format current, Format target);
 		static void ConvertFormat(Format format, GLenum *glFormat, GLenum *glType);
 		
+		bool _isCompleteTexture;
 		bool _generateMipmaps;
+		
 		Format _format;
 		Filter _filter;
 		WrapMode _wrapMode;
