@@ -2,7 +2,7 @@
 
 precision highp float;
 layout(triangles) in;
-layout(triangle_strip, max_vertices=300) out;
+layout(triangle_strip, max_vertices=512) out;
 
 uniform mat4 matProj;
 uniform mat4 matModel;
@@ -57,9 +57,11 @@ vec4 v0, v01, v02;
 void produceVertex(float s, float t)
 {
 	gl_Position = v0 + s*v01 + t*v02;
-	gl_Position.z += sin(time*4.0+gl_Position.x*0.2)*5.0;
-	gl_Position = matProj * matModel * gl_Position;
 	texcoord = vec2(gl_Position.x/64.0+0.5, gl_Position.y/64.0+0.5);
+	gl_Position.z += sin(time*4.0+gl_Position.x*0.2)*5.0;
+/*	gl_Position.z *= cos(time*2.0+gl_Position.y*0.4)*5.0;
+	gl_Position.x *= cos(time*2.0+gl_Position.y*0.4)*1.0;*/
+	gl_Position = matProj * matModel * gl_Position;
 	EmitVertex();
 }
 
