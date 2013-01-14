@@ -1,3 +1,0 @@
-[submodule "Vendor/boost-svn"]
-	path = Vendor/boost-svn
-	url = git://github.com/ryppl/boost-svn.git
