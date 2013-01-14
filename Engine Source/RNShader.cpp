@@ -257,6 +257,8 @@ namespace RN
 			texcoord1 = glGetAttribLocation(program, "texcoord1");
 			color0    = glGetAttribLocation(program, "color0");
 			color1    = glGetAttribLocation(program, "color1");
+			
+			glFlush();
 		}
 	}
 }

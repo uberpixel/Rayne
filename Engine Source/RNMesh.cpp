@@ -139,6 +139,8 @@ namespace RN
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		
 		Kernel::CheckOpenGLError("glBufferData");
+		
+		glFlush();
 	}
 
 	bool MeshLODStage::SupportsFeature(MeshFeature feature)
