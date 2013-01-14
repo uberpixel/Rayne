@@ -29,7 +29,7 @@ namespace RN
 			_descriptor[i]._offset  = 0;
 		}
 		
-		for(int i=0; i<descriptor.Count(); i++)
+		for(machine_uint i=0; i<descriptor.Count(); i++)
 		{
 			size_t size = descriptor[i].elementSize * descriptor[i].elementCount;
 			int index = (int)descriptor[i].feature;
@@ -164,7 +164,7 @@ namespace RN
 	
 	Mesh::~Mesh()
 	{
-		for(int i=0; i<_LODStages.Count(); i++)
+		for(machine_uint i=0; i<_LODStages.Count(); i++)
 			delete _LODStages[i];
 	}
 	
@@ -183,7 +183,7 @@ namespace RN
 	
 	void Mesh::UpdateMesh()
 	{
-		for(int i=0; i<_LODStages.Count(); i++)
+		for(machine_uint i=0; i<_LODStages.Count(); i++)
 		{
 			_LODStages[i]->GenerateMesh();
 		}

@@ -16,14 +16,14 @@ namespace RN
 	
 	Kernel::Kernel()
 	{
-		_context = new Context::Context();
+		_context = new Context();
 		_context->MakeActiveContext();
 		
 		ReadOpenGLExtensions();
 		
 		_renderer = new RendererFrontend();
 		
-		_window  = new Window::Window("Rayne", this);
+		_window = new class Window("Rayne", this);
 		_window->SetContext(_context);
 		
 		_world = 0;

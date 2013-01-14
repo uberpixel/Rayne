@@ -39,17 +39,21 @@ namespace RN
 	private:
 		bool _active;
 		Thread *_thread;
+		Context *_shared;
 		
 #if RN_PLATFORM_MAC_OS
-		Context *_shared;
 		NSOpenGLContext *_oglContext;
 		NSOpenGLPixelFormat *_oglPixelFormat;
 		CGLContextObj _cglContext;
 #endif
 		
 #if RN_PLATFORM_IOS
-		Context *_shared;
 		EAGLContext *_oglContext;
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		PIXELFORMATDESCRIPTOR _oglPixelformat;
+		HGLRC _oglContext;
 #endif
 	};
 }
