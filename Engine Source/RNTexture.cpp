@@ -22,6 +22,7 @@ namespace RN
 		
 		_generateMipmaps = true;
 		_isCompleteTexture = false;
+		_hasChanged = false;
 		
 		Bind();
 		
@@ -42,6 +43,7 @@ namespace RN
 		
 		_generateMipmaps = true;
 		_isCompleteTexture = false;
+		_hasChanged = false;
 		
 		Bind();
 		
@@ -82,6 +84,9 @@ namespace RN
 		Thread *thread = Thread::CurrentThread();
 		if(thread->CurrentTexture() == this)
 		{
+			if(_hasChanged)
+				glFlush();
+			
 			thread->PopTexture();
 			
 			Texture *other = thread->CurrentTexture();
@@ -118,6 +123,8 @@ namespace RN
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode);
 		
+		_hasChanged = true;
+		
 		Unbind();
 	}
 	
@@ -136,8 +143,8 @@ namespace RN
 				minFilter = GL_LINEAR;
 				magFilter = GL_LINEAR;
 				
-				//if(_generateMipmaps)
-				//	minFilter = GL_LINEAR_MIPMAP_LINEAR;
+				if(_generateMipmaps)
+					minFilter = GL_LINEAR_MIPMAP_LINEAR;
 				
 				break;
 				
@@ -149,6 +156,8 @@ namespace RN
 		
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+		
+		_hasChanged = true;
 		
 		Unbind();
 	}
@@ -185,6 +194,8 @@ namespace RN
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, glFormat, _width, _height, 0, glFormat, glType, converted);
 		
+		_hasChanged = true;
+		
 		UpdateMipmaps();
 		Unbind();
 		
@@ -208,6 +219,8 @@ namespace RN
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, converted);
 		
+		_hasChanged = true;
+		
 		UpdateMipmaps();		
 		Unbind();
 		
@@ -223,6 +236,7 @@ namespace RN
 		Bind();
 		
 		glGenerateMipmap(GL_TEXTURE_2D);
+		_hasChanged = true;
 		
 		Unbind();
 	}

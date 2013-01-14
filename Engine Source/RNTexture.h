@@ -78,6 +78,7 @@ namespace RN
 		
 		bool _isCompleteTexture;
 		bool _generateMipmaps;
+		bool _hasChanged;
 		
 		Format _format;
 		Filter _filter;
