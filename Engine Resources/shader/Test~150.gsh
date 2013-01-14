@@ -70,7 +70,7 @@ void main()
 //	tesselate(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_in[2].gl_Position, 0);
 
 
-	int level = 4;
+	int level = 3;
 	int i,j;
 	v0 = gl_in[0].gl_Position;
 	v01 = (gl_in[1].gl_Position - gl_in[0].gl_Position);
