@@ -13,54 +13,54 @@ out vec2 texcoord;
 out vec4 color;
 
 void main()
-{	
-  for(int i=0; i<3; i++)
-  {
-    gl_Position = gl_in[i].gl_Position;
-	gl_Position.z -= 32;
-	gl_Position = matProj * matModel * gl_Position;
-	texcoord = texcoordgeo[i];
-	color = colorgeo[i];
-    EmitVertex();
-  }
-  EndPrimitive();
-  
-  for(int i=0; i<3; i++)
-  {
-    gl_Position.x = gl_in[i].gl_Position.x;
-	gl_Position.y = gl_in[i].gl_Position.y;
-	gl_Position.z = gl_in[i].gl_Position.z+32.0;
-	gl_Position.w = 1.0;
-	gl_Position = matProj * matModel * gl_Position;
-	texcoord = texcoordgeo[i];
-	color = colorgeo[i];
-    EmitVertex();
-  }
-  EndPrimitive();
-  
-  for(int i=0; i<3; i++)
-  {
-    gl_Position.x = gl_in[i].gl_Position.x;
-	gl_Position.y = gl_in[i].gl_Position.z+32;
-	gl_Position.z = gl_in[i].gl_Position.y;
-	gl_Position.w = 1.0;
-	gl_Position = matProj * matModel * gl_Position;
-	texcoord = texcoordgeo[i];
-	color = colorgeo[i];
-    EmitVertex();
-  }
-  EndPrimitive();
-  
-  for(int i=0; i<3; i++)
-  {
-    gl_Position.x = gl_in[i].gl_Position.x;
-	gl_Position.y = gl_in[i].gl_Position.z-32;
-	gl_Position.z = gl_in[i].gl_Position.y;
-	gl_Position.w = 1.0;
-	gl_Position = matProj * matModel * gl_Position;
-	texcoord = texcoordgeo[i];
-	color = colorgeo[i];
-    EmitVertex();
-  }
-  EndPrimitive();
+{
+	for(int i=0; i<3; i++)
+	{
+		gl_Position = gl_in[i].gl_Position;
+		gl_Position.z -= 32;
+		gl_Position = matProj * matModel * gl_Position;
+		texcoord = texcoordgeo[i];
+		color = colorgeo[i];
+		EmitVertex();
+	}
+	EndPrimitive();
+
+	for(int i=0; i<3; i++)
+	{
+		gl_Position.x = gl_in[i].gl_Position.x;
+		gl_Position.y = gl_in[i].gl_Position.y;
+		gl_Position.z = gl_in[i].gl_Position.z+32.0;
+		gl_Position.w = 1.0;
+		gl_Position = matProj * matModel * gl_Position;
+		texcoord = texcoordgeo[i];
+		color = colorgeo[i];
+		EmitVertex();
+	}
+	EndPrimitive();
+
+	for(int i=0; i<3; i++)
+	{
+		gl_Position.x = gl_in[i].gl_Position.x;
+		gl_Position.y = gl_in[i].gl_Position.z+32;
+		gl_Position.z = gl_in[i].gl_Position.y;
+		gl_Position.w = 1.0;
+		gl_Position = matProj * matModel * gl_Position;
+		texcoord = texcoordgeo[i];
+		color = colorgeo[i];
+		EmitVertex();
+	}
+	EndPrimitive();
+
+	for(int i=0; i<3; i++)
+	{
+		gl_Position.x = gl_in[i].gl_Position.x;
+		gl_Position.y = gl_in[i].gl_Position.z-32;
+		gl_Position.z = gl_in[i].gl_Position.y;
+		gl_Position.w = 1.0;
+		gl_Position = matProj * matModel * gl_Position;
+		texcoord = texcoordgeo[i];
+		color = colorgeo[i];
+		EmitVertex();
+	}
+	EndPrimitive();
 }
