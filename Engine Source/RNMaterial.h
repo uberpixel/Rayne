@@ -58,7 +58,6 @@ namespace RN
 		
 		RN::Shader *_shader;
 		ObjectArray *_textures;
-		Array<GLint> *_textureLocations;
 	};
 }
 

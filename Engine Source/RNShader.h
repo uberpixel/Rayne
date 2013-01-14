@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNFile.h"
+#include "RNArray.h"
 
 namespace RN
 {
@@ -52,6 +53,8 @@ namespace RN
 		
 		GLuint targetmap;
 		GLuint time;
+		
+		Array<GLuint> texlocations;
 		
 	private:
 		void SetShaderForType(File *file, GLenum type);
