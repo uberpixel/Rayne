@@ -17,6 +17,7 @@ void main()
   for(int i=0; i<3; i++)
   {
     gl_Position = gl_in[i].gl_Position;
+	gl_Position.z -= 32;
 	gl_Position = matProj * matModel * gl_Position;
 	texcoord = texcoordgeo[i];
 	color = colorgeo[i];
@@ -28,7 +29,7 @@ void main()
   {
     gl_Position.x = gl_in[i].gl_Position.x;
 	gl_Position.y = gl_in[i].gl_Position.y;
-	gl_Position.z = gl_in[i].gl_Position.z+64.0;
+	gl_Position.z = gl_in[i].gl_Position.z+32.0;
 	gl_Position.w = 1.0;
 	gl_Position = matProj * matModel * gl_Position;
 	texcoord = texcoordgeo[i];
@@ -41,7 +42,7 @@ void main()
   {
     gl_Position.x = gl_in[i].gl_Position.x;
 	gl_Position.y = gl_in[i].gl_Position.z+32;
-	gl_Position.z = gl_in[i].gl_Position.y+32;
+	gl_Position.z = gl_in[i].gl_Position.y;
 	gl_Position.w = 1.0;
 	gl_Position = matProj * matModel * gl_Position;
 	texcoord = texcoordgeo[i];
@@ -54,7 +55,7 @@ void main()
   {
     gl_Position.x = gl_in[i].gl_Position.x;
 	gl_Position.y = gl_in[i].gl_Position.z-32;
-	gl_Position.z = gl_in[i].gl_Position.y+32;
+	gl_Position.z = gl_in[i].gl_Position.y;
 	gl_Position.w = 1.0;
 	gl_Position = matProj * matModel * gl_Position;
 	texcoord = texcoordgeo[i];
