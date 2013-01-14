@@ -71,6 +71,14 @@
     <ClCompile Include="Engine Source\RNWindow.cpp" />
     <ClCompile Include="Engine Source\RNWorld.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Vendor\libpng\png.vcxproj">
+      <Project>{72ac8d35-e0d4-4b0c-a2c4-8f1e3390adf2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="Vendor\libz\libz.vcxproj">
+      <Project>{be0fb7fe-299f-405d-91ef-dbcc3672ac4e}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D54AF823-A9B2-41E4-9FB2-5CCFEBF43D21}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -102,6 +110,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(MSBuildProjectDirectory)\Vendor\libpng\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
