@@ -51,6 +51,7 @@ namespace RN
 		GLuint color1;
 		
 		GLuint targetmap;
+		GLuint time;
 		
 	private:
 		void SetShaderForType(File *file, GLenum type);

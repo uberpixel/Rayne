@@ -40,6 +40,7 @@ namespace RN
 		GLuint VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple);
 		
 		RendererFrontend *_frontend;
+		float _time;
 		
 		bool _cullingEnabled;
 		bool _depthTestEnabled;

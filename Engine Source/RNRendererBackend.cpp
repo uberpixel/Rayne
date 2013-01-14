@@ -120,7 +120,7 @@ namespace RN
 			InitializeFramebufferCopy();
 		
 		std::vector<RenderingGroup> *frame = 0;
-		uint32 frameID = _frontend->CommittedFrame(&frame);
+		uint32 frameID = _frontend->CommittedFrame(&frame, &_time);
 		
 		if(frameID == _lastFrameID)
 		{
@@ -295,7 +295,10 @@ namespace RN
 					// Bind the material
 					BindMaterial(material);
 					
-					// Make the matrices available
+					// Update the built-in uniforms
+					if(shader->time != -1)
+						glUniform1f(shader->time, _time);
+					
 					if(shader->matProj != -1)
 						glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, camera->ProjectionMatrix().m);
 					

@@ -43,6 +43,7 @@ namespace RN
 		RendererFrontend *_renderer;
 		World *_world;
 		
+		float _time;
 		std::chrono::time_point<std::chrono::system_clock> _lastFrame;
 	};
 }

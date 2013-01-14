@@ -25,17 +25,18 @@ namespace RN
 		virtual ~RendererFrontend();
 		
 		void BeginFrame();
-		void CommitFrame();
+		void CommitFrame(float time);
 		
 		void PushGroup(const RenderingGroup& group);
 		
 		RendererBackend *Backend() { return _backend; }
 		
 	private:
-		uint32_t CommittedFrame(std::vector<RenderingGroup> **frame);
+		uint32_t CommittedFrame(std::vector<RenderingGroup> **frame, float *time);
 		
 		Mutex *_frameLock;
 		uint32 _frameNumber;
+		float _time;
 		bool _tookFrame;
 		
 		std::vector<RenderingGroup> *_buildFrame;

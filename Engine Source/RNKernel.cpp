@@ -27,6 +27,7 @@ namespace RN
 		_window->SetContext(_context);
 		
 		_world = 0;
+		_time  = 0;
 		_lastFrame = std::chrono::system_clock::now();
 	}	
 	
@@ -47,7 +48,7 @@ namespace RN
 		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
 		
 		float delta = seconds + (milliseconds / 1000.0f);
-
+		_time += delta;
 		
 		_context->MakeActiveContext();
 		
@@ -55,7 +56,7 @@ namespace RN
 		{
 			_renderer->BeginFrame();
 			_world->Update(delta);
-			_renderer->CommitFrame();
+			_renderer->CommitFrame(_time);
 		}
 		
 		_context->DeactivateContext();

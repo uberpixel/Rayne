@@ -40,7 +40,7 @@ namespace RN
 		_buildFrame = new std::vector<RenderingGroup>();
 	}
 	
-	void RendererFrontend::CommitFrame()
+	void RendererFrontend::CommitFrame(float time)
 	{
 		_frameLock->Lock();
 		
@@ -48,6 +48,8 @@ namespace RN
 			delete _committedFrame;
 		
 		_committedFrame = _buildFrame;
+		_time = time;
+		
 		_buildFrame = 0;
 		_tookFrame = false;
 		
@@ -63,14 +65,16 @@ namespace RN
 	
 	
 	
-	uint32_t RendererFrontend::CommittedFrame(std::vector<RenderingGroup> **frame)
+	uint32_t RendererFrontend::CommittedFrame(std::vector<RenderingGroup> **frame, float *time)
 	{
-		RN_ASSERT0(frame != 0);
+		RN_ASSERT0(frame && time);
 		
 		_frameLock->Lock();
 		
 		uint32 frameID = _frameNumber;
+		
 		*frame = _committedFrame;
+		*time = _time;
 		
 		_tookFrame = true;
 		_frameLock->Unlock();
