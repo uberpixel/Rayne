@@ -4,3 +4,22 @@ If possible, please create a static library that gets compiled and linked with t
 ## Licensing
 When adding libraries, make sure that their license is compatible with the proprietary Rayne license! In general, everything that is licensed under the LGPL, MIT, BSD or Apache license is fine. GPL, Creative Commons or no direct license at all are a NO NO! (If there is no license for a given library, contact the vendor and ask them for clarification).  
 If you are unsure about a license and if it is compatible, checkout [tl;dr legal](http://www.tldrlegal.com/)
+
+## libpng
+### Info
+ *  Maintainer: Sidney Just
+ *  Project home: http://www.libpng.org/
+ *  Repository: -
+ *  Version: 1.5.13
+
+### Notes
+Static library project for iOS and Mac OS X to allow the targets to have the same name.
+
+### License
+Copyright (c) 2012 Glenn Randers-Pehrson
+This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
+Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
+
+ *  The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+ *  Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+ *  This notice may not be removed or altered from any source distribution.
