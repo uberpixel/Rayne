@@ -17,12 +17,12 @@ namespace RN
 	class Mutex : public Object
 	{
 	public:
-		Mutex();
-		virtual ~Mutex();
+		RNAPI Mutex();
+		RNAPI virtual ~Mutex();
 		
-		void Lock();
-		bool TryLock();
-		void Unlock();
+		RNAPI void Lock();
+		RNAPI bool TryLock();
+		RNAPI void Unlock();
 		
 	private:
 #if RN_PLATFORM_POSIX

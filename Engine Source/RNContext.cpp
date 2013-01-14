@@ -56,11 +56,17 @@ namespace RN
 		}
 		
 #elif RN_PLATFORM_IOS
+
 		EAGLSharegroup *sharegroup = _shared ? [_shared->_oglContext sharegroup] : nil;
 		
 		_oglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
 		if(!_oglContext)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+
+#elif RN_PLATFORM_WINDOWS
+
+
+
 #else
 		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #endif

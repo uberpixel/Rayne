@@ -19,19 +19,19 @@ namespace RN
 	class Shader : public Object
 	{
 	public:		
-		Shader();
-		virtual ~Shader();
+		RNAPI Shader();
+		RNAPI virtual ~Shader();
 		
-		void SetVertexShader(const std::string& path);
-		void SetVertexShader(File *file);
+		RNAPI void SetVertexShader(const std::string& path);
+		RNAPI void SetVertexShader(File *file);
 		
-		void SetFragmentShader(const std::string& path);
-		void SetFragmentShader(File *file);
+		RNAPI void SetFragmentShader(const std::string& path);
+		RNAPI void SetFragmentShader(File *file);
 		
-		void SetGeometryShader(const std::string& path);
-		void SetGeometryShader(File *file);
+		RNAPI void SetGeometryShader(const std::string& path);
+		RNAPI void SetGeometryShader(File *file);
 		
-		void Link();
+		RNAPI void Link();
 		
 		GLuint program;
 		

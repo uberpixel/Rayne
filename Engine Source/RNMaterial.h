@@ -22,15 +22,14 @@ namespace RN
 	class Material : public Object, public RenderingResource
 	{
 	public:
-		Material(Shader *shader);
-		virtual ~Material();
+		RNAPI Material(Shader *shader);
+		RNAPI virtual ~Material();
 		
-		void SetShader(Shader *shader);
-		Shader *Shader() const;
+		RNAPI void SetShader(Shader *shader);
+		RNAPI Shader *Shader() const;
 		
-		void AddTexture(Texture *texture);
-		ObjectArray *Textures() const;
-		Array<GLint> *TextureLocations() const;
+		RNAPI void AddTexture(Texture *texture);
+		RNAPI ObjectArray *Textures() const;
 		
 		bool culling;
 		GLenum cullmode;

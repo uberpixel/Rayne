@@ -16,14 +16,14 @@ namespace RN
 	class Object
 	{
 	public:
-		Object();
-		virtual ~Object();
+		RNAPI Object();
+		RNAPI virtual ~Object();
 		
-		void Retain();
-		void Release();
+		RNAPI void Retain();
+		RNAPI void Release();
 		
-		virtual bool IsEqual(Object *other) const;
-		virtual machine_hash Hash() const;
+		RNAPI virtual bool IsEqual(Object *other) const;
+		RNAPI virtual machine_hash Hash() const;
 		
 	private:
 		machine_int _refCount;

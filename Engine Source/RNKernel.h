@@ -21,12 +21,12 @@ namespace RN
 	class Kernel : public Object, public Singleton<Kernel>
 	{
 	public:
-		Kernel();
-		virtual ~Kernel();
+		RNAPI Kernel();
+		RNAPI virtual ~Kernel();
 		
-		void Update();
-		void SetContext(Context *context);
-		void SetWorld(World *world);
+		RNAPI void Update();
+		RNAPI void SetContext(Context *context);
+		RNAPI void SetWorld(World *world);
 		
 		RendererFrontend *Renderer() const { return _renderer; }
 		RendererBackend *RendererBackend() const { return _renderer->Backend(); }

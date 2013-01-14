@@ -407,10 +407,13 @@ namespace RN
 
 #if RN_PLATFORM_WINDOWS
 
+void RNRegisterWindow();
+
 namespace RN
 {
 	Window::Window(const std::string& title, Kernel *kernel)
 	{
+		RNRegisterWindow();
 		SetTitle(title);
 	}
 
@@ -437,6 +440,35 @@ namespace RN
 	Rect Window::Frame() const
 	{
 		return Rect(Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f));
+	}
+}
+
+LRESULT CALLBACK RNWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	return DefWindowProc(hWnd, message, wParam, lParam);
+}
+
+void RNRegisterWindow()
+{
+	static bool registered = false;
+	if(!registered)
+	{
+		WNDCLASSEX windowClass;
+		memset(&windowClass, 0, sizeof(WNDCLASSEX));
+
+		windowClass.cbSize = sizeof(WNDCLASSEX);
+		windowClass.style = CS_HREDRAW | CS_VREDRAW;
+		windowClass.lpfnWndProc = RNWndProc;
+		windowClass.hInstance = (HINSTANCE)GetModuleHandle(0);
+		windowClass.hIcon = LoadIcon(0, IDI_APPLICATION);
+		windowClass.hCursor = LoadCursor(0, IDC_ARROW);
+		windowClass.lpszClassName = (LPCWSTR)"RNWindowClass";
+		windowClass.hIconSm = LoadIcon(0, IDI_WINLOGO);
+
+		MessageBoxA(nullptr, "Hello fucking World", "Test", MB_OK | MB_ICONINFORMATION);
+
+		RegisterClassEx(&windowClass);
+		registered = true;
 	}
 }
 

@@ -94,7 +94,7 @@
 namespace RN
 {
 #ifndef NDEBUG
-	RN_EXTERN RN_NORETURN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
+	RNAPI RN_NORETURN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
 	
 	#if RN_PLATFORM_POSIX
 		#define RN_ASSERT(e, ...) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, __VA_ARGS__) : (void)0

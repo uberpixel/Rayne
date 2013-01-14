@@ -21,13 +21,13 @@ namespace RN
 	{
 	friend class RendererBackend;
 	public:
-		RendererFrontend();
-		virtual ~RendererFrontend();
+		RNAPI RendererFrontend();
+		RNAPI virtual ~RendererFrontend();
 		
-		void BeginFrame();
-		void CommitFrame(float time);
+		RNAPI void BeginFrame();
+		RNAPI void CommitFrame(float time);
 		
-		void PushGroup(const RenderingGroup& group);
+		RNAPI void PushGroup(const RenderingGroup& group);
 		
 		RendererBackend *Backend() { return _backend; }
 		

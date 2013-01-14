@@ -42,24 +42,24 @@ namespace RN
 			FilterNearest
 		} Filter;
 		
-		Texture(Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear);
-		Texture(const std::string& name, Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear);
+		RNAPI Texture(Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear);
+		RNAPI Texture(const std::string& name, Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear);
 		
-		virtual ~Texture();
+		RNAPI virtual ~Texture();
 		
-		void Bind();
-		void Unbind();
+		RNAPI void Bind();
+		RNAPI void Unbind();
 		
 		GLuint Name() { return _name; }
 		
-		void SetData(const void *data, uint32 width, uint32 height, Format format);
-		void UpdateData(const void *data, Format format);
-		void UpdateMipmaps();
+		RNAPI void SetData(const void *data, uint32 width, uint32 height, Format format);
+		RNAPI void UpdateData(const void *data, Format format);
+		RNAPI void UpdateMipmaps();
 		
-		void SetFormat(Format format);
-		void SetWrappingMode(WrapMode wrap);
-		void SetFilter(Filter filter);
-		void SetGeneratesMipmaps(bool genMipmaps);
+		RNAPI void SetFormat(Format format);
+		RNAPI void SetWrappingMode(WrapMode wrap);
+		RNAPI void SetFilter(Filter filter);
+		RNAPI void SetGeneratesMipmaps(bool genMipmaps);
 		
 		Format TextureFormat() const { return _format; }
 		Filter TextureFilter() const { return _filter; }

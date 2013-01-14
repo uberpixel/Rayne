@@ -17,19 +17,19 @@ namespace RN
 	class File : public Object
 	{
 	public:
-		File(const std::string& path);
-		virtual ~File();
+		RNAPI File(const std::string& path);
+		RNAPI virtual ~File();
 		
 		static void AddSearchPath(const std::string& path);
 		static std::string PathForName(const std::string& name);
 		
 		bool IsOpen() const { return (_file != 0); }
 		
-		void Open();
-		void Close();
+		RNAPI void Open();
+		RNAPI void Close();
 		
-		std::vector<uint8> Bytes();
-		std::string String();
+		RNAPI std::vector<uint8> Bytes();
+		RNAPI std::string String();
 		
 		FILE *FilePointer() { return _file; }
 		

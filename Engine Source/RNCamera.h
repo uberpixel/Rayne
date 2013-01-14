@@ -32,25 +32,25 @@ namespace RN
 		};
 		typedef uint32 Flags;
 		
-		Camera(const Vector2& size, Flags flags=FlagUpdateAspect);
-		virtual ~Camera();
+		RNAPI Camera(const Vector2& size, Flags flags=FlagUpdateAspect);
+		RNAPI virtual ~Camera();
 		
-		void Bind();
-		void Unbind();
-		virtual void PrepareForRendering();
+		RNAPI void Bind();
+		RNAPI void Unbind();
+		RNAPI virtual void PrepareForRendering();
 		
-		void CreateBuffer(bool depthbuffer, bool stencilbuffer);
+		RNAPI void CreateBuffer(bool depthbuffer, bool stencilbuffer);
 		
-		virtual void SetFrame(const Rect& frame);
-		void SetClearColor(const Color& color);
-		void SetMaterial(Material *material);
+		RNAPI virtual void SetFrame(const Rect& frame);
+		RNAPI void SetClearColor(const Color& color);
+		RNAPI void SetMaterial(Material *material);
 		
-		void AddStage(Camera *stage);
-		void InsertStage(Camera *stage);
-		void RemoveStage(Camera *stage);
+		RNAPI void AddStage(Camera *stage);
+		RNAPI void InsertStage(Camera *stage);
+		RNAPI void RemoveStage(Camera *stage);
 		
-		virtual void UpdateProjection();
-		virtual void UpdateCamera();
+		RNAPI virtual void UpdateProjection();
+		RNAPI virtual void UpdateCamera();
 		
 		const Rect& Frame() const { return _frame; }
 		const Color& ClearColor() const { return _clearColor; }

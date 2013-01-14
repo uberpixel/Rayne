@@ -21,14 +21,14 @@ namespace RN
 	{
 	friend class Window;
 	public:
-		Context(Context *shared=0);		
-		virtual ~Context();
+		RNAPI Context(Context *shared=0);		
+		RNAPI virtual ~Context();
 		
-		void MakeActiveContext();
-		void DeactivateContext();
+		RNAPI void MakeActiveContext();
+		RNAPI void DeactivateContext();
 		
-		virtual void Flush();
-		virtual void SetName(const char *name);
+		RNAPI virtual void Flush();
+		RNAPI virtual void SetName(const char *name);
 		
 		static Context *ActiveContext();
 		

@@ -78,16 +78,16 @@ namespace RN
 	class Window : public Object
 	{
 	public:
-		Window(const std::string& title, Kernel *kernel);
-		virtual ~Window();
+		RNAPI Window(const std::string& title, Kernel *kernel);
+		RNAPI virtual ~Window();
 
-		void Show();
-		void Hide();
+		RNAPI void Show();
+		RNAPI void Hide();
 
-		void SetContext(Context *context);
-		void SetTitle(const std::string& title);
+		RNAPI void SetContext(Context *context);
+		RNAPI void SetTitle(const std::string& title);
 
-		Rect Frame() const;
+		RNAPI Rect Frame() const;
 
 	private:
 		HWND _hWnd;

@@ -34,12 +34,12 @@ namespace RN
 		
 		typedef void (*ThreadEntry)(Thread *thread);
 		
-		Thread(ThreadEntry entry);
-		virtual ~Thread();
+		RNAPI Thread(ThreadEntry entry);
+		RNAPI virtual ~Thread();
 		
-		bool OnThread() const;
-		void Detach();
-		void Exit();
+		RNAPI bool OnThread() const;
+		RNAPI void Detach();
+		RNAPI void Exit();
 		
 		Texture *CurrentTexture() const { return (Texture *)_textures->LastObject(); }
 		Camera *CurrentCamera() const { return (Camera *)_cameras->LastObject(); }

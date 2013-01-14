@@ -19,10 +19,10 @@ namespace RN
 	{
 	friend class List;
 	public:
-		ListMember();
+		RNAPI ListMember();
 		
-		void AddNext(ListMember *member);
-		void AddPrev(ListMember *member);
+		RNAPI void AddNext(ListMember *member);
+		RNAPI void AddPrev(ListMember *member);
 		
 		ListMember *Next() const { return _next; }
 		ListMember *Prev() const { return _prev; }
@@ -37,13 +37,13 @@ namespace RN
 	{
 	friend class ListMember;
 	public:
-		List();
-		virtual ~List();
+		RNAPI List();
+		RNAPI virtual ~List();
 		
-		void AddFront(ListMember *member);
-		void AddBack(ListMember *member);
+		RNAPI void AddFront(ListMember *member);
+		RNAPI void AddBack(ListMember *member);
 		
-		void Remove(ListMember *member);
+		RNAPI void Remove(ListMember *member);
 		
 		ListMember *Head() const { return _head; }
 		ListMember *Tail() const { return _tail; }

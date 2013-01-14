@@ -19,8 +19,8 @@ namespace RN
 	class TextureLoader
 	{
 	public:
-		TextureLoader(const std::string& name);
-		~TextureLoader();
+		RNAPI TextureLoader(const std::string& name);
+		RNAPI ~TextureLoader();
 		
 		uint32 Width() const { return _width; }
 		uint32 Height() const { return _height; }

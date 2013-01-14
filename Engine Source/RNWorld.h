@@ -22,10 +22,10 @@ namespace RN
 	class World : public Object
 	{
 	public:
-		World(Kernel *kernel);
-		virtual ~World();
+		RNAPI World(Kernel *kernel);
+		RNAPI virtual ~World();
 		
-		void Update(float delta);
+		RNAPI void Update(float delta);
 		
 	private:
 		Kernel *_kernel;

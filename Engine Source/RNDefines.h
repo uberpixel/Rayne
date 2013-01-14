@@ -49,8 +49,11 @@
 
 	#define RN_NORETURN __declspec(noreturn)
 
-	#define _CRT_SECURE_NO_DEPRECATE
-	#define _SCL_SECURE_NO_DEPRECATE
+	#if RN_BUILD_LIBRARY
+		#define RNAPI __declspec(dllexport)
+	#else
+		#define RNAPI __declspec(dllimport)
+	#endif
 
 #elif defined(__GNUC__)
 
@@ -71,6 +74,12 @@
 		static void f()
 
 	#define RN_NORETURN __attribute__((noreturn))
+
+	#if RN_BUILD_LIBRARY
+		#define RNAPI __attribute__((visibility("default")))
+	#else
+		#define RNAPI
+	#endif
 
 #else
 	#error "Unsupported compiler."

@@ -19,14 +19,14 @@ namespace RN
 	class RendererBackend : public Object
 	{
 	public:
-		RendererBackend(RendererFrontend *frontend);
-		virtual ~RendererBackend();
+		RNAPI RendererBackend(RendererFrontend *frontend);
+		RNAPI virtual ~RendererBackend();
 		
-		void SetDefaultFBO(GLuint fbo);
-		void SetDefaultFrame(uint32 width, uint32 height);
+		RNAPI void SetDefaultFBO(GLuint fbo);
+		RNAPI void SetDefaultFrame(uint32 width, uint32 height);
 		
-		void DrawFrame();
-		void PrepareFrame(std::vector<RenderingGroup> *frame);
+		RNAPI void DrawFrame();
+		RNAPI void PrepareFrame(std::vector<RenderingGroup> *frame);
 		
 	private:
 		void DrawGroup(RenderingGroup *group);

@@ -20,8 +20,8 @@ namespace RN
 		__kOpenGLFeatureMax
 	} OpenGLFeature;
 	
-	void ReadOpenGLExtensions();
-	bool SupportsOpenGLFeature(OpenGLFeature feature);
+	RNAPI void ReadOpenGLExtensions();
+	RNAPI bool SupportsOpenGLFeature(OpenGLFeature feature);
 	
 	namespace gl
 	{

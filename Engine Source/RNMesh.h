@@ -51,8 +51,8 @@ namespace RN
 	class MeshLODStage
 	{
 	public:
-		MeshLODStage(const Array<MeshDescriptor>& descriptor);
-		~MeshLODStage();
+		RNAPI MeshLODStage(const Array<MeshDescriptor>& descriptor);
+		RNAPI ~MeshLODStage();
 		
 		template <typename T>
 		T *Data(MeshFeature feature)
@@ -65,13 +65,13 @@ namespace RN
 			return &_descriptor[(int32)feature];
 		}
 		
-		void GenerateMesh();
+		RNAPI void GenerateMesh();
 		
 		GLuint VBO() const { return _vbo; }
 		GLuint IBO() const { return _ibo; }
 		
-		bool SupportsFeature(MeshFeature feature);
-		size_t OffsetForFeature(MeshFeature feature);
+		RNAPI bool SupportsFeature(MeshFeature feature);
+		RNAPI size_t OffsetForFeature(MeshFeature feature);
 		size_t Stride() const { return _stride; };
 		
 	private:
@@ -94,15 +94,15 @@ namespace RN
 	class Mesh : public Object, public RenderingResource
 	{
 	public:
-		Mesh();
-		virtual ~Mesh();
+		RNAPI Mesh();
+		RNAPI virtual ~Mesh();
 		
-		MeshLODStage *AddLODStage(const Array<MeshDescriptor>& descriptor);
+		RNAPI MeshLODStage *AddLODStage(const Array<MeshDescriptor>& descriptor);
 		
-		MeshLODStage *LODStage(int index);
-		machine_uint LODStages() const { return _LODStages.Count(); }
+		RNAPI MeshLODStage *LODStage(int index);
+		RNAPI machine_uint LODStages() const { return _LODStages.Count(); }
 		
-		void UpdateMesh();
+		RNAPI void UpdateMesh();
 		
 	private:
 		Array<MeshLODStage *> _LODStages;
