@@ -363,7 +363,7 @@ namespace RN
 			material->Push();
 			
 			ObjectArray *textures = material->Textures();
-			Array<GLint> *textureLocations = material->TextureLocations();
+			Array<GLuint> *textureLocations = &material->Shader()->texlocations;
 			
 			if(textureLocations->Count() > 0)
 			{

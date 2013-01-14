@@ -251,6 +251,18 @@ namespace RN
 			targetmap = glGetUniformLocation(program, "targetmap");
 			time = glGetUniformLocation(program, "time");
 			
+			char string[10];
+			for(machine_uint i=0; ; i++)
+			{
+				sprintf(string, "mTexture%i", (int)i);
+				GLuint location = glGetUniformLocation(program, string);
+				
+				if(location == -1)
+					break;
+				
+				texlocations.AddObject(location);
+			}
+			
 			// Get attributes
 			position  = glGetAttribLocation(program, "position");
 			normal    = glGetAttribLocation(program, "normal");

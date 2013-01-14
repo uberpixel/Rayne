@@ -17,7 +17,6 @@ namespace RN
 		_shader->Retain();
 		
 		_textures = new ObjectArray();
-		_textureLocations = new Array<GLint>();
 		
 		culling  = true;
 		cullmode = GL_CCW;
@@ -45,7 +44,6 @@ namespace RN
 	{
 		_shader->Release();
 		_textures->Release();
-		_textureLocations->Release();
 	}
 	
 	void Material::SetShader(RN::Shader *shader)
@@ -53,8 +51,6 @@ namespace RN
 		_shader->Release();
 		_shader = shader;
 		_shader->Retain();
-		
-		GetUniforms();
 	}
 	
 	
@@ -67,33 +63,10 @@ namespace RN
 	void Material::AddTexture(Texture *texture)
 	{
 		_textures->AddObject(texture);
-		
-		GetUniforms();
 	}
 	
 	ObjectArray *Material::Textures() const
 	{
 		return _textures;
-	}
-	
-	Array<GLint> *Material::TextureLocations() const
-	{
-		return _textureLocations;
-	}
-	
-	
-	void Material::GetUniforms()
-	{
-		_textureLocations->RemoveAllObjects();
-		
-		if(_shader)
-		{
-			char string[10];
-			for(machine_uint i=0; i<_textures->Count(); i++)
-			{
-				sprintf(string, "mTexture%i", (int)i);
-				_textureLocations->AddObject(glGetUniformLocation(_shader->program, string));
-			}
-		}
 	}
 }
