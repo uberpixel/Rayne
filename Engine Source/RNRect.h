@@ -105,8 +105,8 @@ namespace RN
 	
 	RN_INLINE void Rect::Inset(float dx, float dy)
 	{
-		float hx = dx * 0.5;
-		float hy = dy * 0.5;
+		float hx = dx * 0.5f;
+		float hy = dy * 0.5f;
 		
 		x += hx;
 		y += hy;

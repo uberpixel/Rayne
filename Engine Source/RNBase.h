@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include <algorithm>
 #include <string>
@@ -37,6 +38,7 @@
 	#include <pthread.h>
 	#include <signal.h>
 	#include <errno.h>
+	#include <dlfcn.h>
 #endif
 
 #if RN_PLATFORM_MAC_OS
@@ -68,6 +70,12 @@
 #if RN_PLATFORM_WINDOWS
 	#define WINDOWS_LEAN_AND_MEAN // fuck MFC!
 	#include <windows.h>
+
+	#include "gl11.h"
+	#include "glext.h"
+	#include "wglext.h"
+
+	#pragma comment(lib, "opengl32.lib")
 #endif
 
 // ---------------------------
@@ -85,8 +93,15 @@ namespace RN
 #ifndef NDEBUG
 	RN_EXTERN RN_NORETURN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
 	
-	#define RN_ASSERT(e, ...) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, __VA_ARGS__) : (void)0
-	#define RN_ASSERT0(e) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, 0) : (void)0
+	#if RN_PLATFORM_POSIX
+		#define RN_ASSERT(e, ...) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, __VA_ARGS__) : (void)0
+		#define RN_ASSERT0(e) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, 0) : (void)0
+	#endif
+		
+	#if RN_PLATFORM_WINDOWS
+		#define RN_ASSERT(e, ...) (!(e)) ? __Assert(__FUNCTION__, __LINE__, #e, __VA_ARGS__) : (void)0
+		#define RN_ASSERT0(e) (!(e)) ? __Assert(__FUNCTION__, __LINE__, #e, 0) : (void)0
+	#endif
 	
 #else
 	#define RN_ASSERT(e, message, ...) (void)0

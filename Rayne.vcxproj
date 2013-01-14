@@ -11,26 +11,65 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Engine Source\RNArray.cpp" />
-    <ClCompile Include="Engine Source\RNBase.cpp" />
-    <ClCompile Include="Engine Source\RNContext.cpp" />
-    <ClCompile Include="Engine Source\RNMutex.cpp" />
-    <ClCompile Include="Engine Source\RNObject.cpp" />
-    <ClCompile Include="Engine Source\RNThread.cpp" />
-    <ClCompile Include="Engine Source\RNWorld.cpp" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="Engine Source\gl11.h" />
+    <ClInclude Include="Engine Source\glext.h" />
     <ClInclude Include="Engine Source\RNArray.h" />
     <ClInclude Include="Engine Source\RNBase.h" />
+    <ClInclude Include="Engine Source\RNCamera.h" />
+    <ClInclude Include="Engine Source\RNColor.h" />
     <ClInclude Include="Engine Source\RNContext.h" />
     <ClInclude Include="Engine Source\RNDefines.h" />
+    <ClInclude Include="Engine Source\RNEntity.h" />
+    <ClInclude Include="Engine Source\RNError.h" />
+    <ClInclude Include="Engine Source\RNErrorGroupGraphics.h" />
+    <ClInclude Include="Engine Source\RNFile.h" />
+    <ClInclude Include="Engine Source\RNKernel.h" />
+    <ClInclude Include="Engine Source\RNList.h" />
+    <ClInclude Include="Engine Source\RNMaterial.h" />
     <ClInclude Include="Engine Source\RNMatrix.h" />
+    <ClInclude Include="Engine Source\RNMatrixQuaternion.h" />
+    <ClInclude Include="Engine Source\RNMesh.h" />
     <ClInclude Include="Engine Source\RNMutex.h" />
     <ClInclude Include="Engine Source\RNObject.h" />
+    <ClInclude Include="Engine Source\RNOpenGL.h" />
     <ClInclude Include="Engine Source\RNPlatform.h" />
+    <ClInclude Include="Engine Source\RNQuaternion.h" />
+    <ClInclude Include="Engine Source\RNRect.h" />
+    <ClInclude Include="Engine Source\RNRendererBackend.h" />
+    <ClInclude Include="Engine Source\RNRendererFrontend.h" />
+    <ClInclude Include="Engine Source\RNRendering.h" />
+    <ClInclude Include="Engine Source\RNRenderingResource.h" />
+    <ClInclude Include="Engine Source\RNShader.h" />
+    <ClInclude Include="Engine Source\RNSpinLock.h" />
+    <ClInclude Include="Engine Source\RNTexture.h" />
+    <ClInclude Include="Engine Source\RNTextureLoader.h" />
     <ClInclude Include="Engine Source\RNThread.h" />
     <ClInclude Include="Engine Source\RNVector.h" />
+    <ClInclude Include="Engine Source\RNWindow.h" />
     <ClInclude Include="Engine Source\RNWorld.h" />
+    <ClInclude Include="Engine Source\wglext.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Engine Source\RNBase.cpp" />
+    <ClCompile Include="Engine Source\RNCamera.cpp" />
+    <ClCompile Include="Engine Source\RNContext.cpp" />
+    <ClCompile Include="Engine Source\RNEntity.cpp" />
+    <ClCompile Include="Engine Source\RNFile.cpp" />
+    <ClCompile Include="Engine Source\RNKernel.cpp" />
+    <ClCompile Include="Engine Source\RNList.cpp" />
+    <ClCompile Include="Engine Source\RNMaterial.cpp" />
+    <ClCompile Include="Engine Source\RNMesh.cpp" />
+    <ClCompile Include="Engine Source\RNMutex.cpp" />
+    <ClCompile Include="Engine Source\RNObject.cpp" />
+    <ClCompile Include="Engine Source\RNOpenGL.cpp" />
+    <ClCompile Include="Engine Source\RNRendererBackend.cpp" />
+    <ClCompile Include="Engine Source\RNRendererFrontend.cpp" />
+    <ClCompile Include="Engine Source\RNShader.cpp" />
+    <ClCompile Include="Engine Source\RNTexture.cpp" />
+    <ClCompile Include="Engine Source\RNTextureLoader.cpp" />
+    <ClCompile Include="Engine Source\RNThread.cpp" />
+    <ClCompile Include="Engine Source\RNWindow.cpp" />
+    <ClCompile Include="Engine Source\RNWorld.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D54AF823-A9B2-41E4-9FB2-5CCFEBF43D21}</ProjectGuid>

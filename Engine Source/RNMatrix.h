@@ -188,7 +188,7 @@ namespace RN
 		float tz = - (clipfar + clipnear) / (clipfar - clipnear);
 		
 		m[0] = 2.0f / rl;
-		m[5] = 2.0 / tb;
+		m[5] = 2.0f / tb;
 		m[10] = -2.0f / fn;
 		
 		m[12] = tx;

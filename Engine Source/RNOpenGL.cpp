@@ -6,7 +6,6 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include <dlfcn.h>
 #include "RNOpenGL.h"
 
 namespace RN
@@ -22,7 +21,8 @@ namespace RN
 	bool OpenGLFeatures[__kOpenGLFeatureMax] = { false };
 	
 	void *LookupOpenGLFunction(const char *name)
-	{
+	{		
+#if RN_PLATFORM_POSIX
 		void *symbol = dlsym(RTLD_DEFAULT, name);
 		
 		if(!symbol)
@@ -43,6 +43,11 @@ namespace RN
 		}
 		
 		return symbol;
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		return wglGetProcAddress(name);
+#endif
 	}
 	
 	bool SupportsOpenGLFeature(OpenGLFeature feature)
