@@ -404,3 +404,40 @@ namespace RN
 }
 
 #endif
+
+#if RN_PLATFORM_WINDOWS
+
+namespace RN
+{
+	Window::Window(const std::string& title, Kernel *kernel)
+	{
+		SetTitle(title);
+	}
+
+	Window::~Window()
+	{
+	}
+
+	void Window::Show()
+	{
+	}
+
+	void Window::Hide()
+	{
+	}
+
+	void Window::SetContext(Context *context)
+	{
+	}
+
+	void Window::SetTitle(const std::string& title)
+	{
+	}
+
+	Rect Window::Frame() const
+	{
+		return Rect(Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f));
+	}
+}
+
+#endif

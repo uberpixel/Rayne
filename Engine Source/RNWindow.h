@@ -70,4 +70,30 @@ namespace RN
 
 #endif
 
+#if RN_PLATFORM_WINDOWS
+
+namespace RN
+{
+	class Kernel;
+	class Window : public Object
+	{
+	public:
+		Window(const std::string& title, Kernel *kernel);
+		virtual ~Window();
+
+		void Show();
+		void Hide();
+
+		void SetContext(Context *context);
+		void SetTitle(const std::string& title);
+
+		Rect Frame() const;
+
+	private:
+		HWND _hWnd;
+	};
+}
+
+#endif
+
 #endif /* __RAYNE_WINDOW_H__ */
