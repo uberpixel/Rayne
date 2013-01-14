@@ -62,8 +62,8 @@ namespace RN
 		static float rot = 0;
 		static float dist = -128.0f;
 		
-		//rot += 1.0f;
-		dist -= 20.0f * delta;
+		rot += 1.0f;
+		//dist -= 20.0f * delta;
 		
 		transform.MakeTranslate(Vector3(0.0f, 0.0f, dist));
 		transform.Rotate(Vector3(0.0f, rot, -rot));
@@ -159,6 +159,7 @@ namespace RN
 		Texture *texture1 = new Texture("textures/testpng.png", Texture::FormatRGB565);
 		
 		shader = new Shader();
+		shader->SetGeometryShader("shader/Test.gsh");
 		shader->SetFragmentShader("shader/Test.fsh");
 		shader->SetVertexShader("shader/Test.vsh");
 		
