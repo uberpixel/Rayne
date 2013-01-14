@@ -18,21 +18,40 @@ namespace RN
 	public:
 		SpinLock()
 		{
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
 			_lock = OS_SPINLOCK_INIT;
+#endif
 		}
 		
 		void Lock()
 		{
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
 			OSSpinLockLock(&_lock);
+#endif
+			
+#if RN_PLATFORM_WINDOWS
+			_lock.lock();
+#endif
 		}
 		
 		void Unlock()
 		{
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
 			OSSpinLockUnlock(&_lock);
+#endif
+			
+#if RN_PLATFORM_WINDOWS
+			_lock.unlock();
+#endif
 		}
 		
 	private:
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
 		OSSpinLock _lock;
+#endif
+#if RN_PLATFORM_WINDOWS
+		std::mutex _lock;
+#endif
 	};
 }
 

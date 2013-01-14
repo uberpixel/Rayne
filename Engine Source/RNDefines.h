@@ -39,6 +39,9 @@
 	#define M_SQRT2     1.41421356237309504880168872420969808f
 	#define M_SQRT1_2   0.707106781186547524400844362104849039f
 
+	#define MAX(a, b) (a > b ? a : b)
+	#define MIN(a, b) (a < b ? a : b)
+
 	#define RN_INITIALIZER(f) \
 		static void __cdecl f(); \
 		__declspec(allocate(".CRT$XCU")) void (__cdecl*f##_)(void) = f; \

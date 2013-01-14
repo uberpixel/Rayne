@@ -26,6 +26,7 @@
 #include <type_traits>
 #include <tuple>
 #include <chrono>
+#include <mutex>
 
 #include "RNPlatform.h"
 #include "RNDefines.h"
