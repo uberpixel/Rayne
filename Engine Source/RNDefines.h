@@ -49,6 +49,9 @@
 
 	#define RN_NORETURN __declspec(noreturn)
 
+	#define _CRT_SECURE_NO_DEPRECATE
+	#define _SCL_SECURE_NO_DEPRECATE
+
 #elif defined(__GNUC__)
 
 	typedef signed char				int8;

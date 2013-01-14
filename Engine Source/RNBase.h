@@ -79,6 +79,8 @@
 	#pragma comment(lib, "opengl32.lib")
 #endif
 
+#include "RNOpenGL.h"
+
 // ---------------------------
 // Helper macros
 // ---------------------------
