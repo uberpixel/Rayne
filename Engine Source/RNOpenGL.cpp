@@ -12,10 +12,10 @@ namespace RN
 {
 	namespace gl
 	{
-		OGLFunctionGen GenVertexArrays;
-		OGLFunctionDelete DeleteVertexArrays;
-		OGLFunctionBind BindVertexArray;
-		OGLBlitFramebuffer BlitFramebuffer;
+		PFNGLGENVERTEXARRAYSPROC GenVertexArrays = 0;
+		PFNGLDELETEVERTEXARRAYSPROC DeleteVertexArrays = 0;
+		PFNGLBINDVERTEXARRAYPROC BindVertexArray = 0;
+		PFNGLBLITFRAMEBUFFERPROC BlitFramebuffer = 0;
 	}
 	
 	bool OpenGLFeatures[__kOpenGLFeatureMax] = { false };
@@ -62,13 +62,13 @@ namespace RN
 	
 	void ReadOpenGLExtensions()
 	{		
-		gl::GenVertexArrays = (gl::OGLFunctionGen)LookupOpenGLFunction("glGenVertexArrays");
-		gl::DeleteVertexArrays = (gl::OGLFunctionDelete)LookupOpenGLFunction("glDeleteVertexArrays");
-		gl::BindVertexArray = (gl::OGLFunctionBind)LookupOpenGLFunction("glBindVertexArray");
+		gl::GenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)LookupOpenGLFunction("glGenVertexArrays");
+		gl::DeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)LookupOpenGLFunction("glDeleteVertexArrays");
+		gl::BindVertexArray = (PFNGLBINDVERTEXARRAYPROC)LookupOpenGLFunction("glBindVertexArray");
 		
 		OpenGLFeatures[kOpenGLFeatureVertexArrays] = (gl::GenVertexArrays && gl::DeleteVertexArrays && gl::BindVertexArray);
 		
-		gl::BlitFramebuffer = (gl::OGLBlitFramebuffer)LookupOpenGLFunction("glBlitFramebuffer");
+		gl::BlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC)LookupOpenGLFunction("glBlitFramebuffer");
 
 #if RN_PLATFORM_WINDOWS
 

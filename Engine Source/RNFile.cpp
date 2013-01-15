@@ -109,6 +109,10 @@ namespace RN
 			if(tread < kRNFileBufferSize && read + tread < _size)
 			{
 				// TODO: Throw an exception!
+				if(tread > 0)
+					string.append(buffer, tread);
+
+				break;
 			}
 			
 			string.append(buffer, tread);
@@ -171,6 +175,16 @@ namespace RN
 				FileModifiers.push_back("~ipad");
 			}
 #endif
+
+#if RN_PLATFORM_WINDOWS
+			File::AddSearchPath(std::string("C://Projects/Rayne/Engine Resources"));
+
+			FileModifiers.push_back("~150");
+			FileModifiers.push_back("~140");
+			FileModifiers.push_back("~130");
+			FileModifiers.push_back("~120");
+			FileModifiers.push_back("~110");
+#endif
 			
 			addedDefaultSearchPaths = true;
 		}
@@ -195,7 +209,7 @@ namespace RN
 	{
 		AddDefaultSearchPaths();
 		
-		FILE *file = fopen(fullpath.c_str(), "r");
+		FILE *file = fopen(fullpath.c_str(), "rb");
 		if(file)
 		{
 			if(outPath)
@@ -260,7 +274,7 @@ namespace RN
 			{
 				std::string exploded = temp + name + *j + "." + extension;
 
-				file = fopen(exploded.c_str(), "r");
+				file = fopen(exploded.c_str(), "rb");
 				if(file)
 				{
 					if(outPath)
@@ -272,7 +286,7 @@ namespace RN
 			
 			std::string exploded = temp + name + "." + extension;
 			
-			file = fopen(exploded.c_str(), "r");
+			file = fopen(exploded.c_str(), "rb");
 			if(file)
 			{
 				if(outPath)

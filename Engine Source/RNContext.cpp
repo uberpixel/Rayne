@@ -9,6 +9,10 @@
 #include "RNContext.h"
 #include "RNMutex.h"
 
+#if RN_PLATFORM_WINDOWS
+extern void RNRegisterWindow();
+#endif
+
 namespace RN
 {
 	Context::Context(Context *shared) :
@@ -64,6 +68,7 @@ namespace RN
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 
 #elif RN_PLATFORM_WINDOWS
+		RNRegisterWindow();
 
 		_hWnd = CreateOffscreenWindow();
 		_hDC  = GetDC(_hWnd);
@@ -125,6 +130,9 @@ namespace RN
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 
 		wglMakeCurrent(_hDC, _context);
+
+		ShowWindow(_hWnd, SW_SHOW);
+		UpdateWindow(_hWnd);
 #else
 		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #endif
@@ -236,6 +244,10 @@ namespace RN
 	{
 #if RN_PLATFORM_MAC_OS
 		CGLFlushDrawable(_cglContext);
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		SwapBuffers(_hDC);
 #endif
 	}
 	

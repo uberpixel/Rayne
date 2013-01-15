@@ -439,7 +439,7 @@ namespace RN
 
 	Rect Window::Frame() const
 	{
-		return Rect(Vector2(0.0f, 0.0f), Vector2(0.0f, 0.0f));
+		return Rect(Vector2(0.0f, 0.0f), Vector2(1024.0f, 768.0f));
 	}
 }
 

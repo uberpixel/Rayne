@@ -59,6 +59,9 @@ namespace RN
 			_renderer->CommitFrame(_time);
 		}
 		
+		_renderer->Backend()->DrawFrame();
+		_context->Flush();
+
 		_context->DeactivateContext();
 		_lastFrame = now;
 		

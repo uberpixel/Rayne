@@ -235,21 +235,24 @@ namespace RN
 		
 		if(_packedStencil)
 		{
-#if RN_PLATFORM_MAC_OS
-			glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+			if(_depthbuffer)
+			{
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
+				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
 #endif
 			
 #if RN_PLATFORM_IOS
-			glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, width, height);
+				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, width, height);
 #endif
+			}
 		}
 		else
 		{
 			if(_depthbuffer)
 			{
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 #endif
