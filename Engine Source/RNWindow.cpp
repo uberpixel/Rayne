@@ -457,7 +457,7 @@ void RNRegisterWindow()
 		memset(&windowClass, 0, sizeof(WNDCLASSEX));
 
 		windowClass.cbSize = sizeof(WNDCLASSEX);
-		windowClass.style = CS_HREDRAW | CS_VREDRAW;
+		windowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 		windowClass.lpfnWndProc = RNWndProc;
 		windowClass.hInstance = (HINSTANCE)GetModuleHandle(0);
 		windowClass.hIcon = LoadIcon(0, IDI_APPLICATION);

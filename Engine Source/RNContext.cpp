@@ -65,7 +65,38 @@ namespace RN
 
 #elif RN_PLATFORM_WINDOWS
 
+		_hWnd = CreateOffscreenWindow();
 
+		int pf = 0;
+		HDC hDC = GetDC(_hWnd);
+
+		memset(&_oglPixelformat, 0, sizeof(PIXELFORMATDESCRIPTOR));
+
+		_oglPixelformat.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+		_oglPixelformat.nVersion = 1;
+		_oglPixelformat.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+		_oglPixelformat.iPixelType = PFD_TYPE_RGBA;
+		_oglPixelformat.cColorBits = 24;
+		_oglPixelformat.cDepthBits = 24;
+		_oglPixelformat.iLayerType = PFD_MAIN_PLANE;
+
+		pf = ChoosePixelFormat(hDC, &_oglPixelformat);
+		SetPixelFormat(hDC, pf, &_oglPixelformat);
+
+		HGLRC _temp = wglCreateContext(hDC);
+		wglMakeCurrent(hDC, _temp);
+
+		PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
+
+		std::string extensions = std::string((const char *)wglGetExtensionsStringARB(hDC));
+		MessageBoxA(0, extensions.c_str(), "Fuck this shit!", MB_OKCANCEL);
+
+		if(extensions.find("WGL_ARB_create_context") == std::string::npos)
+		{
+			MessageBoxA(0, "Fuck", "Fuck this shit!", MB_OKCANCEL);
+		}
+
+		//wglCreateContextAttribsARB();
 
 #else
 		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
@@ -86,6 +117,27 @@ namespace RN
 		[_oglContext release];
 #endif
 	}
+
+#if RN_PLATFORM_WINDOWS
+	HWND Context::CreateOffscreenWindow()
+	{
+		DWORD dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
+		DWORD dwStyle = WS_OVERLAPPEDWINDOW;
+
+		HINSTANCE hInstance = (HINSTANCE)GetModuleHandle(0);
+		RECT windowRect;
+
+		windowRect.left = 0;
+		windowRect.right = 1024;
+		windowRect.top = 0;
+		windowRect.bottom = 768;
+
+		AdjustWindowRectEx(&windowRect, dwStyle, false, dwExStyle);
+
+		HWND hWnd = CreateWindowEx(0, (LPCWSTR)"RNWindowClass", (LPCWSTR)"Rayne", dwStyle | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, 0, 0, hInstance, 0);
+		return hWnd;
+	}
+#endif
 	
 	void Context::MakeActiveContext()
 	{

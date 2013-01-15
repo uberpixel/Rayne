@@ -52,6 +52,9 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_WINDOWS
+		HWND CreateOffscreenWindow();
+
+		HWND _hWnd;
 		PIXELFORMATDESCRIPTOR _oglPixelformat;
 		HGLRC _oglContext;
 #endif
