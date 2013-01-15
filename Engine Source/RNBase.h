@@ -26,7 +26,9 @@
 #include <type_traits>
 #include <tuple>
 #include <chrono>
+#include <thread>
 #include <mutex>
+#include <unordered_map>
 
 #include "RNPlatform.h"
 #include "RNDefines.h"

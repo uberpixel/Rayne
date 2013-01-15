@@ -34,23 +34,23 @@ namespace RN
 		
 		typedef void (*ThreadEntry)(Thread *thread);
 		
-		RNAPI Thread(ThreadEntry entry);
-		RNAPI virtual ~Thread();
+		Thread(ThreadEntry entry);
+		virtual ~Thread();
 		
-		RNAPI bool OnThread() const;
-		RNAPI void Detach();
-		RNAPI void Exit();
+		bool OnThread() const;
+		void Detach();
+		void Exit();
 		
 		Texture *CurrentTexture() const { return (Texture *)_textures->LastObject(); }
 		Camera *CurrentCamera() const { return (Camera *)_cameras->LastObject(); }
 		Mesh *CurrentMesh() const { return (Mesh *)_meshes->LastObject(); }
 		
-		static void Join(Thread *other);
 		static Thread *CurrentThread();
 		
 	private:
 		Thread();
 		void Initialize();
+		void Entry();
 		
 		void PushTexture(Texture *texture);
 		void PopTexture() { _textures->RemoveLastObject(); }
@@ -60,8 +60,6 @@ namespace RN
 		
 		void PushMesh(Mesh *mesh);
 		void PopMesh() { _meshes->RemoveLastObject(); }
-		
-		static void *Entry(void *object);
 		
 		bool _detached;
 		ThreadEntry _entry;
@@ -73,13 +71,7 @@ namespace RN
 		ObjectArray *_cameras;
 		ObjectArray *_meshes;
 		
-#if RN_PLATFORM_POSIX
-		pthread_t _thread;
-#endif
-#if RN_PLATFORM_WINDOWS
-		HANDLE _thread;
-		DWORD _id;
-#endif
+		std::thread::id _id;
 	};
 }
 
