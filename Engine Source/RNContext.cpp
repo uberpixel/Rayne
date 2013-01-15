@@ -66,38 +66,65 @@ namespace RN
 #elif RN_PLATFORM_WINDOWS
 
 		_hWnd = CreateOffscreenWindow();
+		_hDC  = GetDC(_hWnd);
 
-		int pf = 0;
-		HDC hDC = GetDC(_hWnd);
+		PIXELFORMATDESCRIPTOR descriptor;
+		memset(&descriptor, 0, sizeof(PIXELFORMATDESCRIPTOR));
 
-		memset(&_oglPixelformat, 0, sizeof(PIXELFORMATDESCRIPTOR));
+		descriptor.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+		descriptor.nVersion = 1;
+		descriptor.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+		descriptor.iPixelType = PFD_TYPE_RGBA;
+		descriptor.cColorBits = 24;
+		descriptor.cAlphaBits = 8;
+		descriptor.iLayerType = PFD_MAIN_PLANE;
 
-		_oglPixelformat.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-		_oglPixelformat.nVersion = 1;
-		_oglPixelformat.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-		_oglPixelformat.iPixelType = PFD_TYPE_RGBA;
-		_oglPixelformat.cColorBits = 24;
-		_oglPixelformat.cDepthBits = 24;
-		_oglPixelformat.iLayerType = PFD_MAIN_PLANE;
+		_pixelFormat = ChoosePixelFormat(_hDC, &descriptor);
+		if(!_pixelFormat)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
 
-		pf = ChoosePixelFormat(hDC, &_oglPixelformat);
-		SetPixelFormat(hDC, pf, &_oglPixelformat);
+		SetPixelFormat(_hDC, _pixelFormat, &descriptor);
 
-		HGLRC _temp = wglCreateContext(hDC);
-		wglMakeCurrent(hDC, _temp);
-
-		PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
-
-		std::string extensions = std::string((const char *)wglGetExtensionsStringARB(hDC));
-		MessageBoxA(0, extensions.c_str(), "Fuck this shit!", MB_OKCANCEL);
-
-		if(extensions.find("WGL_ARB_create_context") == std::string::npos)
+		if(!wglCreateContextAttribsARB)
 		{
-			MessageBoxA(0, "Fuck", "Fuck this shit!", MB_OKCANCEL);
+			// Create a temporary pointer to get the right function pointer
+
+			HGLRC _temp = wglCreateContext(_hDC);
+			wglMakeCurrent(_hDC, _temp);
+
+			wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
+			if(!wglGetExtensionsStringARB)
+				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
+
+			std::string extensions = std::string((const char *)wglGetExtensionsStringARB(_hDC));
+
+			auto createContext = extensions.find("WGL_ARB_create_context");
+			auto coreProfile = extensions.find("WGL_ARB_create_context_profile");
+
+			if(createContext == std::string::npos || coreProfile == std::string::npos)
+				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
+
+			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
+			wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+
+			wglMakeCurrent(_hDC, 0);
+			wglDeleteContext(_temp);
 		}
 
-		//wglCreateContextAttribsARB();
+		
+		int attributes[] =
+		{
+			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
+			WGL_CONTEXT_MINOR_VERSION_ARB, 2,
+			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+			0
+		};
 
+		_context = wglCreateContextAttribsARB(_hDC, 0, attributes);
+		if(!_context)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+
+		wglMakeCurrent(_hDC, _context);
 #else
 		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #endif
@@ -224,6 +251,10 @@ namespace RN
 #if RN_PLATFORM_IOS
 		BOOL result = [EAGLContext setCurrentContext:_oglContext];
 		RN_ASSERT0(result);
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		wglMakeCurrent(_hDC, _context);
 #endif
 	}
 	

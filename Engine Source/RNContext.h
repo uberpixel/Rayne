@@ -55,8 +55,9 @@ namespace RN
 		HWND CreateOffscreenWindow();
 
 		HWND _hWnd;
-		PIXELFORMATDESCRIPTOR _oglPixelformat;
-		HGLRC _oglContext;
+		HDC _hDC;
+		HGLRC _context;
+		int _pixelFormat;
 #endif
 	};
 }

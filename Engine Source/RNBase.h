@@ -108,6 +108,7 @@ namespace RN
 	
 #else
 	#define RN_ASSERT(e, message, ...) (void)0
+	#define RN_ASSERT0(e) (void)0
 #endif
 	
 #if RN_PLATFORM_MAC_OS

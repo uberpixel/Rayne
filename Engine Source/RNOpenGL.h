@@ -42,6 +42,8 @@ namespace RN
 extern "C"
 {	
 	extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
+	extern PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB;
+	extern PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
 	
 	extern PFNGLCREATEPROGRAMPROC glCreateProgram;
 	extern PFNGLDELETEPROGRAMPROC glDeleteProgram;

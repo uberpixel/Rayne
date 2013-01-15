@@ -465,8 +465,6 @@ void RNRegisterWindow()
 		windowClass.lpszClassName = (LPCWSTR)"RNWindowClass";
 		windowClass.hIconSm = LoadIcon(0, IDI_WINLOGO);
 
-		MessageBoxA(nullptr, "Hello fucking World", "Test", MB_OK | MB_ICONINFORMATION);
-
 		RegisterClassEx(&windowClass);
 		registered = true;
 	}

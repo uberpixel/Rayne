@@ -4,26 +4,19 @@
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-	RN::Kernel *kernel = new RN::Kernel();
-	RN::World *world =  new RN::World(kernel);
+	RN::Kernel *kernel;
+	RN::World *world;
 
-	/*DWORD dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-	DWORD dwStyle = WS_OVERLAPPEDWINDOW;
-
-	RECT windowRect;
-
-	windowRect.left = 0;
-	windowRect.right = 1024;
-	windowRect.top = 0;
-	windowRect.bottom = 768;
-
-	AdjustWindowRectEx(&windowRect, dwStyle, false, dwExStyle);
-	MessageBoxA(nullptr, "Hello fucking World", "Test", MB_OK | MB_ICONINFORMATION);
-
-	HWND hWnd = CreateWindowEx(0, (LPCWSTR)"RNWindowClass", (LPCWSTR)"Rayne", dwStyle | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, 0, 0, hInstance, 0);
-
-	ShowWindow(hWnd, SW_SHOW);
-	UpdateWindow(hWnd);*/
+	try
+	{
+		kernel = new RN::Kernel();
+		world = new RN::World(kernel);
+	}
+	catch(RN::ErrorException e)
+	{
+		MessageBoxA(0, "It looks like your hardware is unsupported. Please make sure that your hardware supports OpenGL 3.2+ and that your drivers are up to date!", "Error", MB_OK | MB_ICONWARNING);
+		return -1;
+	}
 
 	while(1)
 	{

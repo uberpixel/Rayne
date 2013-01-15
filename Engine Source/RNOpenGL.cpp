@@ -57,7 +57,7 @@ namespace RN
 	}
 
 #if RN_PLATFORM_WINDOWS
-	#define RN_LINKWGL(name, type) do{ name = (type)wglGetProcAddress(#name); } while(0)
+	#define RN_LINKWGL(name, type) do{ name = (type)wglGetProcAddress(#name); if(!name) throw "Fuck that shit!"; } while(0)
 #endif
 	
 	void ReadOpenGLExtensions()
@@ -142,6 +142,8 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 
 PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = 0;
+PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB = 0;
+PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = 0;
 
 PFNGLCREATEPROGRAMPROC glCreateProgram = 0;
 PFNGLDELETEPROGRAMPROC glDeleteProgram = 0;
