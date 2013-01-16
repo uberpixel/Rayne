@@ -93,7 +93,6 @@ namespace RN
 		if(!wglCreateContextAttribsARB)
 		{
 			// Create a temporary pointer to get the right function pointer
-
 			HGLRC _temp = wglCreateContext(_hDC);
 			wglMakeCurrent(_hDC, _temp);
 
@@ -125,14 +124,10 @@ namespace RN
 			0
 		};
 
-		_context = wglCreateContextAttribsARB(_hDC, 0, attributes);
+		_context = wglCreateContextAttribsARB(_hDC, _shared ? _shared->_context : 0, attributes);
 		if(!_context)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 
-		wglMakeCurrent(_hDC, _context);
-
-		ShowWindow(_hWnd, SW_SHOW);
-		UpdateWindow(_hWnd);
 #else
 		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #endif
@@ -140,9 +135,11 @@ namespace RN
 	
 	Context::~Context()
 	{
+		DeactivateContext();
+
 		if(_shared)
 			_shared->Release();
-		
+
 #if RN_PLATFORM_MAC_OS
 		[_oglContext release];
 		[_oglPixelFormat release];
@@ -157,7 +154,7 @@ namespace RN
 	HWND Context::CreateOffscreenWindow()
 	{
 		DWORD dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-		DWORD dwStyle = WS_OVERLAPPEDWINDOW;
+		DWORD dwStyle = WS_OVERLAPPED | WS_CAPTION  | WS_SYSMENU | WS_MINIMIZEBOX | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
 		HINSTANCE hInstance = (HINSTANCE)GetModuleHandle(0);
 		RECT windowRect;
@@ -169,7 +166,22 @@ namespace RN
 
 		AdjustWindowRectEx(&windowRect, dwStyle, false, dwExStyle);
 
-		HWND hWnd = CreateWindowEx(0, (LPCWSTR)"RNWindowClass", (LPCWSTR)"Rayne", dwStyle | WS_CLIPCHILDREN | WS_CLIPSIBLINGS, 0, 0, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, 0, 0, hInstance, 0);
+		HWND desktop = GetDesktopWindow();
+		RECT desktopRect;
+
+		GetWindowRect(desktop, &desktopRect);
+
+
+		LONG desktopWidth = desktopRect.right - desktopRect.left;
+		LONG desktopHeight = desktopRect.bottom - desktopRect.top;
+
+		LONG width = windowRect.right - windowRect.left;
+		LONG height = windowRect.bottom - windowRect.top;
+
+		windowRect.left = (desktopWidth / 2) - (width / 2);
+		windowRect.top = (desktopHeight / 2) - (height / 2);
+
+		HWND hWnd = CreateWindowExA(dwExStyle, "RNWindowClass", "", dwStyle, windowRect.left, windowRect.top, width, height, 0, 0, hInstance, 0);
 		return hWnd;
 	}
 #endif
@@ -245,7 +257,6 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		CGLFlushDrawable(_cglContext);
 #endif
-
 #if RN_PLATFORM_WINDOWS
 		SwapBuffers(_hDC);
 #endif
@@ -254,9 +265,7 @@ namespace RN
 	void Context::Activate()
 	{
 #if RN_PLATFORM_MAC_OS
-		CGLLockContext(_cglContext);
 		[_oglContext makeCurrentContext];
-		
 		RN_ASSERT0([NSOpenGLContext currentContext] == _oglContext);		
 #endif
 		
@@ -273,7 +282,15 @@ namespace RN
 	void Context::Deactivate()
 	{
 #if RN_PLATFORM_MAC_OS
-		CGLUnlockContext(_cglContext);
+		[NSOpenGLContext clearCurrentContext];
+#endif
+
+#if RN_PLATFORM_IOS
+		[EAGLContext setCurrentContext:0];
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		wglMakeCurrent(_hDC, 0);
 #endif
 	}
 }
