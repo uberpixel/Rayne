@@ -177,7 +177,41 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_WINDOWS
-			File::AddSearchPath(std::string("C://Projects/Rayne/Engine Resources"));
+			char buffer[MAX_PATH];
+			DWORD size = MAX_PATH;
+
+			GetModuleFileNameA(0, buffer, size);
+
+			char *temp = buffer + strlen(buffer);
+			while(temp != buffer)
+			{
+				temp --;
+				
+				if(*temp == '\\')
+				{
+					*temp = '\0';
+					break;
+				}
+			}
+
+			AddSearchPath(std::string(buffer));
+			AddSearchPath(std::string(buffer) + "/Engine Resources");
+
+#ifndef NDEBUG
+			while(temp != buffer)
+			{
+				temp --;
+				
+				if(*temp == '\\')
+				{
+					*temp = '\0';
+					break;
+				}
+			}
+
+			AddSearchPath(std::string(buffer));
+			AddSearchPath(std::string(buffer) + "/Engine Resources");
+#endif
 
 			FileModifiers.push_back("~150");
 			FileModifiers.push_back("~140");
