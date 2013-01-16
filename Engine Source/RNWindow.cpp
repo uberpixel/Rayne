@@ -445,6 +445,7 @@ namespace RN
 		_hWnd = _context->_hWnd;
 		_hDC  = _context->_hDC;
 
+		SetWindowLongPtr(_hWnd, GWL_USERDATA, (LONG_PTR)this);
 		SetTitle(_title);
 	}
 
@@ -467,7 +468,22 @@ namespace RN
 
 LRESULT CALLBACK RNWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	return DefWindowProc(hWnd, message, wParam, lParam);
+	RN::Window *window = (RN::Window *)GetWindowLongPtr(hWnd, GWL_USERDATA);
+
+	switch(message)
+	{
+		case WM_DESTROY:
+			if(window)
+			{
+				RN::Kernel::SharedInstance()->Exit();
+			}
+			break;
+
+		default:
+			return DefWindowProc(hWnd, message, wParam, lParam);
+	}
+
+	return 0;
 }
 
 void RNRegisterWindow()

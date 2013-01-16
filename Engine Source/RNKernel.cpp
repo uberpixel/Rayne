@@ -16,6 +16,9 @@ namespace RN
 	
 	Kernel::Kernel()
 	{
+		_shouldExit = false;
+		sharedKernel = this;
+
 		_context = new Context();
 		_context->MakeActiveContext();
 		
@@ -39,10 +42,23 @@ namespace RN
 		
 		_window->Release();
 		_world->Release();
+		_context->Release();
 	}
-	
-	void Kernel::Update()
+
+	bool Kernel::Tick()
 	{
+#if RN_PLATFORM_WINDOWS
+		MSG	message;
+		while(PeekMessageA(&message, 0, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&message);
+			DispatchMessageA(&message);
+		}
+#endif
+
+		if(_shouldExit)
+			return false;
+
 		std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
 		
 		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now - _lastFrame).count();
@@ -67,6 +83,12 @@ namespace RN
 		_context->DeactivateContext();
 
 		_lastFrame = now;
+		return true;
+	}
+
+	void Kernel::Exit()
+	{
+		_shouldExit = true;
 	}
 	
 	void Kernel::SetContext(Context *context)

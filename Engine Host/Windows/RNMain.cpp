@@ -18,17 +18,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 		return -1;
 	}
 
-	while(1)
-	{
-		MSG	message;
-		while(PeekMessageA(&message, 0, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&message);
-			DispatchMessageA(&message);
-		}
-
-		kernel->Update();
-	}
+	while(kernel->Tick())
+	{}
 
 	return 0;
 }

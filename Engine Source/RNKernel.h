@@ -24,9 +24,11 @@ namespace RN
 		RNAPI Kernel();
 		RNAPI virtual ~Kernel();
 		
-		RNAPI void Update();
+		RNAPI bool Tick();
 		RNAPI void SetContext(Context *context);
 		RNAPI void SetWorld(World *world);
+
+		RNAPI void Exit();
 		
 		RendererFrontend *Renderer() const { return _renderer; }
 		RendererBackend *RendererBackend() const { return _renderer->Backend(); }
@@ -43,6 +45,7 @@ namespace RN
 		RendererFrontend *_renderer;
 		World *_world;
 		
+		bool _shouldExit;
 		float _time;
 		std::chrono::time_point<std::chrono::system_clock> _lastFrame;
 	};
