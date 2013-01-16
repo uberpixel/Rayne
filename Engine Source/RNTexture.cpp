@@ -84,8 +84,8 @@ namespace RN
 		Thread *thread = Thread::CurrentThread();
 		if(thread->CurrentTexture() == this)
 		{
-			//if(_hasChanged)
-			//	glFlush();
+			if(_hasChanged && _isCompleteTexture)
+				glFlush();
 			
 			thread->PopTexture();
 			

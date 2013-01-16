@@ -274,7 +274,7 @@ namespace RN
 			}
 		}
 		
-		//glFlush();
+		glFlush();
 		
 		CheckError();
 		UpdateProjection();
