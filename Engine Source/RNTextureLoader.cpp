@@ -17,8 +17,6 @@ namespace RN
 		_data = 0;
 		
 		File *file = new File(name);
-		file->Open();
-		
 		FILE *rfile = file->FilePointer();
 		bool result = false;
 		
@@ -29,7 +27,6 @@ namespace RN
 		fseek(rfile, 0, SEEK_SET);
 		
 	TextureLoaded:
-		file->Close();
 		file->Release();
 	}
 	
