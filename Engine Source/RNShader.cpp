@@ -186,7 +186,7 @@ namespace RN
 		if(_geometryShader)
 			glAttachShader(program, _geometryShader);
 		
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 		glBindFragDataLocation(program, 0, "fragColor0");
 		glBindFragDataLocation(program, 1, "fragColor1");
 #endif

@@ -71,6 +71,7 @@ extern "C"
 	extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
 	extern PFNGLBINDATTRIBLOCATIONPROC glBindAttribLocation;
 	extern PFNGLGETACTIVEUNIFORMPROC glGetActiveUniform;
+	extern PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation;
 	
 	// Shader
 	extern PFNGLCREATESHADERPROC glCreateShader;
