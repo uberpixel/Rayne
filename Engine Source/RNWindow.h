@@ -90,7 +90,11 @@ namespace RN
 		RNAPI Rect Frame() const;
 
 	private:
+		std::string _title;
+
+		Context *_context;
 		HWND _hWnd;
+		HDC _hDC;
 	};
 }
 

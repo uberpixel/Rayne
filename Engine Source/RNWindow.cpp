@@ -303,7 +303,6 @@ namespace RN
 		_kernel = kernel;
 		
 		SetTitle(title);
-		Show();
 	}
 	
 	Window::~Window()
@@ -356,7 +355,6 @@ namespace RN
 		_kernel = kernel;
 		
 		SetTitle(title);
-		Show();
 	}
 	
 	Window::~Window()
@@ -414,32 +412,56 @@ namespace RN
 	Window::Window(const std::string& title, Kernel *kernel)
 	{
 		RNRegisterWindow();
-		SetTitle(title);
+
+		_hWnd = 0;
+		_title = title;
+		_context = 0;
 	}
 
 	Window::~Window()
 	{
+		_context->Release();
 	}
 
 	void Window::Show()
 	{
+		ShowWindow(_hWnd, SW_SHOW);
+		UpdateWindow(_hWnd);
 	}
 
 	void Window::Hide()
 	{
+		ShowWindow(_hWnd, SW_HIDE);
 	}
 
 	void Window::SetContext(Context *context)
 	{
+		//_context->Release();
+		//_context = new Context(context);
+
+		_context = context;
+		_context->Retain();
+
+		_hWnd = _context->_hWnd;
+		_hDC  = _context->_hDC;
+
+		SetTitle(_title);
 	}
 
 	void Window::SetTitle(const std::string& title)
 	{
+		if(_hWnd)
+			SetWindowTextA(_hWnd, (LPCSTR)title.c_str());
+
+		_title = title;
 	}
 
 	Rect Window::Frame() const
 	{
-		return Rect(Vector2(0.0f, 0.0f), Vector2(1024.0f, 768.0f));
+		RECT rect;
+		GetWindowRect(_hWnd, &rect);
+
+		return Rect(Vector2(rect.left, rect.top), Vector2(rect.right - rect.left, rect.bottom - rect.top));
 	}
 }
 
@@ -453,19 +475,19 @@ void RNRegisterWindow()
 	static bool registered = false;
 	if(!registered)
 	{
-		WNDCLASSEX windowClass;
-		memset(&windowClass, 0, sizeof(WNDCLASSEX));
+		WNDCLASSEXA windowClass;
+		memset(&windowClass, 0, sizeof(WNDCLASSEXA));
 
-		windowClass.cbSize = sizeof(WNDCLASSEX);
+		windowClass.cbSize = sizeof(WNDCLASSEXA);
 		windowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
 		windowClass.lpfnWndProc = RNWndProc;
 		windowClass.hInstance = (HINSTANCE)GetModuleHandle(0);
 		windowClass.hIcon = LoadIcon(0, IDI_APPLICATION);
 		windowClass.hCursor = LoadCursor(0, IDC_ARROW);
-		windowClass.lpszClassName = (LPCWSTR)"RNWindowClass";
+		windowClass.lpszClassName = "RNWindowClass";
 		windowClass.hIconSm = LoadIcon(0, IDI_WINLOGO);
 
-		RegisterClassEx(&windowClass);
+		RegisterClassExA(&windowClass);
 		registered = true;
 	}
 }
