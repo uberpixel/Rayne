@@ -25,6 +25,7 @@ namespace RN
 		
 		_window = new class Window("Rayne", this);
 		_window->SetContext(_context);
+		_window->Show();
 		
 		_world = 0;
 		_time  = 0;
@@ -62,10 +63,10 @@ namespace RN
 		_renderer->Backend()->DrawFrame();
 		_context->Flush();
 
-		_context->DeactivateContext();
-		_lastFrame = now;
-		
 		CheckOpenGLError("Kernel::Update()");
+		_context->DeactivateContext();
+
+		_lastFrame = now;
 	}
 	
 	void Kernel::SetContext(Context *context)
