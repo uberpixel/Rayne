@@ -1,3 +1,10 @@
+//
+//  TestPP2.vsh
+//  Rayne
+//
+//  Copyright 2013 by Felix Pohl, Nils Daumann and Sidney Just. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
+//
 
 uniform mat4 matProj;
 uniform mat4 matModel;
