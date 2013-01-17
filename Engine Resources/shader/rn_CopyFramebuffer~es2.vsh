@@ -17,5 +17,5 @@ varying vec2 texcoord;
 void main()
 {
 	texcoord = texcoord0;
-	gl_Position = matProj * matModel * vec4(position, 1.0, 1.0);
+	gl_Position = vec4(position, 0.0, 1.0);
 }
