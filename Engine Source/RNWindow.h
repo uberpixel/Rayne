@@ -90,10 +90,15 @@ namespace RN
 		RNAPI Rect Frame() const;
 
 	private:
+		void RenderLoop();
 		std::string _title;
+
+		bool _stopRendering;
+		bool _threadStopped;
 
 		Context *_context;
 		Kernel *_kernel;
+		RendererBackend *_renderer;
 		HWND _hWnd;
 		HDC _hDC;
 	};

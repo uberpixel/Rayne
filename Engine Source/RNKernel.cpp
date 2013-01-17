@@ -41,7 +41,12 @@ namespace RN
 			sharedKernel = 0;
 		
 		_window->Release();
+
 		_world->Release();
+
+		_renderer->Release();
+
+		
 		_context->Release();
 	}
 
@@ -75,14 +80,14 @@ namespace RN
 			_world->Update(delta);
 			_renderer->CommitFrame(_time);
 		}
-		
-		_renderer->Backend()->DrawFrame();
-		_context->Flush();
 
 		CheckOpenGLError("Kernel::Update()");
 		_context->DeactivateContext();
 
 		_lastFrame = now;
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
 		return true;
 	}
 

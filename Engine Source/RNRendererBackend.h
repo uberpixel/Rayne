@@ -18,6 +18,7 @@ namespace RN
 	class RendererFrontend;
 	class RendererBackend : public Object
 	{
+	friend class RendererFrontend;
 	public:
 		RNAPI RendererBackend(RendererFrontend *frontend);
 		RNAPI virtual ~RendererBackend();
@@ -27,12 +28,12 @@ namespace RN
 		
 		RNAPI void DrawFrame();
 		RNAPI void PrepareFrame(std::vector<RenderingGroup> *frame);
-		
+
 	private:
 		void DrawGroup(RenderingGroup *group);
 		void BindMaterial(Material *material);
 		void DrawMesh(Mesh *mesh);
-		void FlushCamera(Camera *camera);
+		void FlushCamera(Camera *target, Camera *source);
 		
 		void InitializeFramebufferCopy();
 		void FlushCameras();
@@ -40,6 +41,8 @@ namespace RN
 		GLuint VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple);
 		
 		RendererFrontend *_frontend;
+		bool _hasValidFramebuffer;
+
 		float _time;
 		
 		bool _cullingEnabled;

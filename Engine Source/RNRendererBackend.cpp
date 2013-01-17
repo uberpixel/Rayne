@@ -37,6 +37,8 @@ namespace RN
 		
 		_blendSource      = GL_ONE;
 		_blendDestination = GL_ZERO;
+
+		_hasValidFramebuffer = false;
 		
 		// Setup framebuffer copy stuff
 		_copyShader = 0;
@@ -69,7 +71,7 @@ namespace RN
 			gl::DeleteVertexArrays(1, &_copyVAO);
 		}
 	}
-	
+
 	void RendererBackend::InitializeFramebufferCopy()
 	{
 		_copyShader = new Shader();
@@ -110,9 +112,14 @@ namespace RN
 	
 	void RendererBackend::DrawFrame()
 	{
-		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
-		if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-			return;
+		if(!_hasValidFramebuffer)
+		{
+			glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
+			if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				return;
+
+			_hasValidFramebuffer = true;
+		}
 		
 		if(!_copyShader)
 			InitializeFramebufferCopy();
@@ -204,7 +211,7 @@ namespace RN
 			}
 			else
 			{
-				FlushCamera(camera);
+				FlushCamera(0, camera);
 			}
 #else
 			FlushCamera(camera);
@@ -218,24 +225,27 @@ namespace RN
 		_flushCameras.clear();
 	}
 	
-	void RendererBackend::FlushCamera(Camera *camera)
+	void RendererBackend::FlushCamera(Camera *target, Camera *source)
 	{
-		camera->Push();
+		source->Push();
 		
-		Texture *texture = camera->Target();
-		Material *material = camera->Material();
+		Texture *texture = source->Target();
+		Material *material = source->Material();
 		
 		Shader *shader = material ? material->Shader() : _copyShader;
 		
-		const Rect frame = camera->Frame();
+		const Rect frame = source->Frame();
 		
 		if(material)
 			BindMaterial(material);
 
-		if(_depthTestEnabled)
+		if(!target || target->Depthbuffer() == 0)
 		{
-			glDisable(GL_DEPTH_TEST);
-			_depthTestEnabled = false;
+			if(_depthTestEnabled)
+			{
+				glDisable(GL_DEPTH_TEST);
+				_depthTestEnabled = false;
+			}
 		}
 		
 		glUseProgram(shader->program);
@@ -263,7 +273,7 @@ namespace RN
 		glDisableVertexAttribArray(shader->position);
 		glDisableVertexAttribArray(shader->texcoord0);
 		
-		camera->Pop();
+		source->Pop();
 	}
 	
 	void RendererBackend::DrawGroup(RenderingGroup *group)
@@ -337,7 +347,7 @@ namespace RN
 				if(previous)
 				{
 					// Flush the previous camera into the camera
-					FlushCamera(previous);
+					FlushCamera(camera, previous);
 				}
 			}
 			

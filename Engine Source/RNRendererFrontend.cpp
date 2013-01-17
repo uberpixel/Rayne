@@ -22,13 +22,13 @@ namespace RN
 	
 	RendererFrontend::~RendererFrontend()
 	{
-		_frameLock->Release();
 		_backend->Release();
+		_frameLock->Release();
 		
 		if(_buildFrame)
 			delete _buildFrame;
-		
-		if(_committedFrame)
+
+		if(!_tookFrame && _committedFrame)
 			delete _committedFrame;
 	}
 	
@@ -77,6 +77,7 @@ namespace RN
 		*time = _time;
 		
 		_tookFrame = true;
+
 		_frameLock->Unlock();
 		
 		return frameID;

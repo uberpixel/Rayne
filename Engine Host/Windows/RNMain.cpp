@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <RNKernel.h>
 #include <RNWorld.h>
+#include <RNMutex.h>
 
 int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
@@ -21,6 +22,8 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
 	while(kernel->Tick())
 	{}
+
+	kernel->Release();
 
 	return 0;
 }

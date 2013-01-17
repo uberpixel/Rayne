@@ -26,8 +26,7 @@ namespace RN
 		
 		RNAPI void MakeActiveContext();
 		RNAPI void DeactivateContext();
-		
-		RNAPI virtual void Flush();
+
 		RNAPI virtual void SetName(const char *name);
 		
 		static Context *ActiveContext();

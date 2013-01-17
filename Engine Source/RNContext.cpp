@@ -136,6 +136,17 @@ namespace RN
 			wglMakeCurrent(_hDC, 0);
 		}
 
+		if(_shared)
+		{
+		if(_shared->_active && shared->_thread->OnThread())
+		{
+			_shared->Deactivate();
+			_shared->Activate();
+		}
+
+		wglShareLists(_context, _shared->_context);
+		}
+
 #else
 		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #endif
@@ -213,7 +224,6 @@ namespace RN
 			other->_active = false;
 			other->_thread = 0;
 			
-			other->Flush();
 			other->Deactivate();
 		}
 		
@@ -257,16 +267,6 @@ namespace RN
 #if RN_PLATFORM_IOS
 		if([_oglContext respondsToSelector:@selector(setDebugLabel:)])
 			[_oglContext setDebugLabel:[NSString stringWithUTF8String:name]];
-#endif
-	}
-	
-	void Context::Flush()
-	{
-#if RN_PLATFORM_MAC_OS
-		CGLFlushDrawable(_cglContext);
-#endif
-#if RN_PLATFORM_WINDOWS
-		SwapBuffers(_hDC);
 #endif
 	}
 	

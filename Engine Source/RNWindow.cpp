@@ -413,6 +413,9 @@ namespace RN
 	{
 		RNRegisterWindow();
 
+		_stopRendering = false;
+		_threadStopped = false;
+
 		_hWnd = 0;
 		_title = title;
 		_kernel = kernel;
@@ -421,6 +424,11 @@ namespace RN
 
 	Window::~Window()
 	{
+		_stopRendering = true;
+
+		while(!_threadStopped)
+		{}
+
 		_context->Release();
 	}
 
@@ -435,13 +443,24 @@ namespace RN
 		ShowWindow(_hWnd, SW_HIDE);
 	}
 
+	void Window::RenderLoop()
+	{
+		_context->MakeActiveContext();
+
+		while(!_stopRendering)
+		{
+			_renderer->DrawFrame();
+			SwapBuffers(_hDC);
+		}
+
+		Thread::CurrentThread()->Exit();
+		_threadStopped = true;
+	}
+
 	void Window::SetContext(Context *context)
 	{
-		//_context->Release();
-		//_context = new Context(context);
-
-		_context = context;
-		_context->Retain();
+		_context->Release();
+		_context = new Context(context);
 
 		_hWnd = _context->_hWnd;
 		_hDC  = _context->_hDC;
@@ -450,7 +469,12 @@ namespace RN
 		SetTitle(_title);
 
 		Rect frame = Frame();
-		_kernel->RendererBackend()->SetDefaultFrame(frame.width, frame.height);
+
+		_renderer = _kernel->RendererBackend();
+		_renderer->SetDefaultFrame(frame.width, frame.height);
+
+		std::thread temp = std::thread(&Window::RenderLoop, this);
+		temp.detach();
 	}
 
 	void Window::SetTitle(const std::string& title)
