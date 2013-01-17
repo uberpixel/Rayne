@@ -9,15 +9,19 @@
 #version 150
 precision highp float;
 
+
 /*uniform mat4 matProj;
 uniform mat4 matModel;*/
+
 
 in vec3 position;
 in vec4 color0;
 in vec2 texcoord0;
 
 out vec4 colorgeo;
+
 out vec2 texcoordgeo;
+
 
 void main()
 {
