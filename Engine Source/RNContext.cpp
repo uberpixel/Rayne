@@ -110,6 +110,7 @@ namespace RN
 
 			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
 			wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+			wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 
 			wglMakeCurrent(_hDC, 0);
 			wglDeleteContext(_temp);
@@ -127,6 +128,13 @@ namespace RN
 		_context = wglCreateContextAttribsARB(_hDC, _shared ? _shared->_context : 0, attributes);
 		if(!_context)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+
+		if(wglSwapIntervalEXT)
+		{
+			wglMakeCurrent(_hDC, _context);
+			wglSwapIntervalEXT(1);
+			wglMakeCurrent(_hDC, 0);
+		}
 
 #else
 		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
