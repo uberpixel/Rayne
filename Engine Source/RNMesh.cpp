@@ -31,12 +31,12 @@ namespace RN
 		
 		for(machine_uint i=0; i<descriptor.Count(); i++)
 		{
-			size_t size = descriptor[i].elementSize * descriptor[i].elementCount;
-			int index = (int)descriptor[i].feature;
+			size_t size = descriptor[(int)i].elementSize * descriptor[(int)i].elementCount;
+			int index = (int)descriptor[(int)i].feature;
 			
 			if(_descriptor[index]._available == false)
 			{
-				_descriptor[index] = descriptor[i];
+				_descriptor[index] = descriptor[(int)i];
 				
 				if(_descriptor[index].feature != kMeshFeatureIndices)
 					_meshSize += size;
@@ -165,7 +165,7 @@ namespace RN
 	Mesh::~Mesh()
 	{
 		for(machine_uint i=0; i<_LODStages.Count(); i++)
-			delete _LODStages[i];
+			delete _LODStages[(int)i];
 	}
 	
 	MeshLODStage *Mesh::AddLODStage(const Array<MeshDescriptor>& descriptor)
@@ -185,7 +185,7 @@ namespace RN
 	{
 		for(machine_uint i=0; i<_LODStages.Count(); i++)
 		{
-			_LODStages[i]->GenerateMesh();
+			_LODStages[(int)i]->GenerateMesh();
 		}
 	}
 }

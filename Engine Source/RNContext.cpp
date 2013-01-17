@@ -138,13 +138,13 @@ namespace RN
 
 		if(_shared)
 		{
-		if(_shared->_active && shared->_thread->OnThread())
-		{
-			_shared->Deactivate();
-			_shared->Activate();
-		}
+			if(_shared->_active && shared->_thread->OnThread())
+			{
+				_shared->Deactivate();
+				_shared->Activate();
+			}
 
-		wglShareLists(_context, _shared->_context);
+			wglShareLists(_context, _shared->_context);
 		}
 
 #else

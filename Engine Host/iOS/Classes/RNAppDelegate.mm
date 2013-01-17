@@ -10,9 +10,12 @@
 
 @implementation RNAppDelegate
 
-- (void)runGameLoop
+- (void)runGameLoop:(NSTimer *)timer
 {
-	kernel->Update();
+	if(!kernel->Tick())
+	{
+		[timer invalidate];
+	}
 }
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
@@ -20,7 +23,7 @@
 	kernel = RN::Kernel::SharedInstance();
 	world = new RN::World(kernel);
 	
-	[NSTimer scheduledTimerWithTimeInterval:1.0f/60.0f target:self selector:@selector(runGameLoop) userInfo:nil repeats:YES];
+	[NSTimer scheduledTimerWithTimeInterval:0.0f target:self selector:@selector(runGameLoop:) userInfo:nil repeats:YES];
 	
     return YES;
 }

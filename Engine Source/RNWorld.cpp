@@ -158,7 +158,9 @@ namespace RN
 		Texture *texture1 = new Texture("textures/testpng.png", Texture::FormatRGB565);
 		
 		shader = new Shader();
+#if !RN_PLATFORM_IOS
 		shader->SetGeometryShader("shader/Test.gsh");
+#endif
 		shader->SetFragmentShader("shader/Test.fsh");
 		shader->SetVertexShader("shader/Test.vsh");
 		

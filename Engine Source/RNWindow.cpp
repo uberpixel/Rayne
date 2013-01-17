@@ -38,7 +38,8 @@
 	
 	_renderer->DrawFrame();
 	
-	_context->Flush();
+	CGLFlushDrawable((CGLContextObj)[[self openGLContext] CGLContextObj]);
+	
 	_context->DeactivateContext();
 }
 

@@ -214,7 +214,7 @@ namespace RN
 				FlushCamera(0, camera);
 			}
 #else
-			FlushCamera(camera);
+			FlushCamera(0, camera);
 #endif
 		}
 		
