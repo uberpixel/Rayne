@@ -233,6 +233,12 @@ namespace RN
 		
 		if(material)
 			BindMaterial(material);
+
+		if(_depthTestEnabled)
+		{
+			glDisable(GL_DEPTH_TEST);
+			_depthTestEnabled = false;
+		}
 		
 		glUseProgram(shader->program);
 		glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, _copyProjection.m);

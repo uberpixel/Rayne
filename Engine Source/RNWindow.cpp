@@ -415,6 +415,7 @@ namespace RN
 
 		_hWnd = 0;
 		_title = title;
+		_kernel = kernel;
 		_context = 0;
 	}
 
@@ -447,6 +448,9 @@ namespace RN
 
 		SetWindowLongPtr(_hWnd, GWL_USERDATA, (LONG_PTR)this);
 		SetTitle(_title);
+
+		Rect frame = Frame();
+		_kernel->RendererBackend()->SetDefaultFrame(frame.width, frame.height);
 	}
 
 	void Window::SetTitle(const std::string& title)
@@ -460,7 +464,7 @@ namespace RN
 	Rect Window::Frame() const
 	{
 		RECT rect;
-		GetWindowRect(_hWnd, &rect);
+		GetClientRect(_hWnd, &rect);
 
 		return Rect(Vector2(rect.left, rect.top), Vector2(rect.right - rect.left, rect.bottom - rect.top));
 	}

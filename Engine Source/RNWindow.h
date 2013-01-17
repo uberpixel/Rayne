@@ -93,6 +93,7 @@ namespace RN
 		std::string _title;
 
 		Context *_context;
+		Kernel *_kernel;
 		HWND _hWnd;
 		HDC _hDC;
 	};
