@@ -68,7 +68,6 @@ namespace RN
 		std::vector<RenderingGroup> *_lastFrame;
 		std::vector<Camera *> _flushCameras;
 		
-		Matrix _copyProjection;
 		Shader *_copyShader;
 		GLuint _copyVAO;
 		GLuint _copyVBO;

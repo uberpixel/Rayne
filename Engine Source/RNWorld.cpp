@@ -25,7 +25,6 @@ namespace RN
 		_cameras->AddObject(camera);
 		
 		
-		
 		Shader *pptest1 = new Shader();
 		pptest1->SetFragmentShader("shader/TestPP.fsh");
 		pptest1->SetVertexShader("shader/TestPP.vsh");
@@ -42,7 +41,7 @@ namespace RN
 		Camera *stage = new Camera(Vector2(frame.width, frame.height), Camera::FlagInherit | Camera::FlagDrawTarget);
 		stage->SetMaterial(ppmat2);
 		
-		//camera->SetMaterial(ppmat1);
+		camera->SetMaterial(ppmat1);
 		//camera->AddStage(stage);
 		
 		camera->Release();

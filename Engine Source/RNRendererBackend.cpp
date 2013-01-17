@@ -41,10 +41,10 @@ namespace RN
 		// Setup framebuffer copy stuff
 		_copyShader = 0;
 		
-		_copyVertices[0] = Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+		_copyVertices[0] = Vector4(-1.0f, 1.0f, 0.0f, 1.0f);
 		_copyVertices[1] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-		_copyVertices[2] = Vector4(1.0f, 0.0f, 1.0f, 0.0f);
-		_copyVertices[3] = Vector4(0.0f, 0.0f, 0.0f, 0.0f);
+		_copyVertices[2] = Vector4(1.0f, -1.0f, 1.0f, 0.0f);
+		_copyVertices[3] = Vector4(-1.0f, -1.0f, 0.0f, 0.0f);
 
 		_copyIndices[0] = 0;
 		_copyIndices[1] = 3;
@@ -106,8 +106,6 @@ namespace RN
 	{
 		_defaultWidth  = width;
 		_defaultHeight = height;
-		
-		_copyProjection.MakeProjectionOrthogonal(0.0f, width, 0.0f, height, -1.0f, 1.0f);
 	}
 	
 	void RendererBackend::DrawFrame()
@@ -241,8 +239,6 @@ namespace RN
 		}
 		
 		glUseProgram(shader->program);
-		glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, _copyProjection.m);
-		
 		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		
@@ -262,10 +258,6 @@ namespace RN
 		glBindTexture(GL_TEXTURE_2D, texture->Name());
 		glUniform1i(shader->targetmap, 0);
 		
-		Matrix matrix;
-		matrix.MakeScale(Vector3(frame.width, frame.height, 0.0f));
-		
-		glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, matrix.m);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 		
 		glDisableVertexAttribArray(shader->position);
