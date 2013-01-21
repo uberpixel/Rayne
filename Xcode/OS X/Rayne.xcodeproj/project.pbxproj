@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		E91B88751697889F001B7F22 /* RNRendering.h in Headers */ = {isa = PBXBuildFile; fileRef = E91B88731697889B001B7F22 /* RNRendering.h */; };
 		E91B88761697889F001B7F22 /* RNRenderingResource.h in Headers */ = {isa = PBXBuildFile; fileRef = E91B88741697889E001B7F22 /* RNRenderingResource.h */; };
+		E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */; };
+		E9580BD416AB8BEA0056DEF2 /* RNEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = E9580BD216AB8BEA0056DEF2 /* RNEntity.h */; };
 		E9619E281696157E00DA187E /* RNArray.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619DF41696157E00DA187E /* RNArray.h */; };
 		E9619E291696157E00DA187E /* RNBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619DF51696157E00DA187E /* RNBase.cpp */; };
 		E9619E2A1696157E00DA187E /* RNBase.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619DF61696157E00DA187E /* RNBase.h */; };
@@ -89,6 +91,9 @@
 		E9543FA1168167A100F53C4F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		E9543FA2168167A100F53C4F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		E9543FA3168167A100F53C4F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNEntity.cpp; sourceTree = "<group>"; };
+		E9580BD216AB8BEA0056DEF2 /* RNEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNEntity.h; sourceTree = "<group>"; };
+		E9580BD516AC8DAA0056DEF2 /* RNTransform.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNTransform.h; sourceTree = "<group>"; };
 		E9619DF41696157E00DA187E /* RNArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNArray.h; sourceTree = "<group>"; };
 		E9619DF51696157E00DA187E /* RNBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNBase.cpp; sourceTree = "<group>"; };
 		E9619DF61696157E00DA187E /* RNBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBase.h; sourceTree = "<group>"; };
@@ -265,6 +270,7 @@
 				E9619E081696157E00DA187E /* RNMatrixQuaternion.h */,
 				E9619E131696157E00DA187E /* RNQuaternion.h */,
 				E9619E141696157E00DA187E /* RNRect.h */,
+				E9580BD516AC8DAA0056DEF2 /* RNTransform.h */,
 			);
 			name = Math;
 			sourceTree = "<group>";
@@ -297,6 +303,8 @@
 		E9F8070D1697051C00773A34 /* Scene */ = {
 			isa = PBXGroup;
 			children = (
+				E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */,
+				E9580BD216AB8BEA0056DEF2 /* RNEntity.h */,
 				E9619E261696157E00DA187E /* RNWorld.cpp */,
 				E9619E271696157E00DA187E /* RNWorld.h */,
 			);
@@ -360,6 +368,7 @@
 				E91B88751697889F001B7F22 /* RNRendering.h in Headers */,
 				E91B88761697889F001B7F22 /* RNRenderingResource.h in Headers */,
 				E9F77799169C5CF8006EE702 /* RNOpenGL.h in Headers */,
+				E9580BD416AB8BEA0056DEF2 /* RNEntity.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -450,6 +459,7 @@
 				E9619E581696157E00DA187E /* RNWindow.cpp in Sources */,
 				E9619E5A1696157E00DA187E /* RNWorld.cpp in Sources */,
 				E9F77798169C5CF8006EE702 /* RNOpenGL.cpp in Sources */,
+				E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
