@@ -39,6 +39,7 @@ namespace RN
 		_blendDestination = GL_ZERO;
 
 		_hasValidFramebuffer = false;
+		_activeTextureUnits = 0;
 		
 		// Setup framebuffer copy stuff
 		_copyShader = 0;
@@ -366,6 +367,14 @@ namespace RN
 		if(material == _currentMaterial)
 			return;
 		
+		for(machine_uint i=0; i<_activeTextureUnits; i++)
+		{
+			glActiveTexture((GLenum)(GL_TEXTURE0 + i));
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+		
+		_activeTextureUnits = 0;
+		
 		if(material)
 		{
 			material->Push();
@@ -378,15 +387,14 @@ namespace RN
 				for(machine_uint i=0; i<textureLocations->Count(); i++)
 				{
 					GLint location = textureLocations->ObjectAtIndex(i);
-					if(location == -1)
-						break;
-					
 					Texture *texture = (Texture *)textures->ObjectAtIndex(i);
 					
 					glActiveTexture((GLenum)(GL_TEXTURE0 + i));
 					glBindTexture(GL_TEXTURE_2D, texture->Name());
 					glUniform1i(location, (GLint)i);
 				}
+				
+				_activeTextureUnits = textureLocations->Count();
 			}
 			
 			if(!_currentMaterial || material->culling != _currentMaterial->culling)

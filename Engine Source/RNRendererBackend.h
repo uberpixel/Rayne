@@ -44,6 +44,7 @@ namespace RN
 		bool _hasValidFramebuffer;
 
 		float _time;
+		machine_uint _activeTextureUnits;
 		
 		bool _cullingEnabled;
 		bool _depthTestEnabled;
