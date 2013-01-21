@@ -10,5 +10,58 @@
 
 namespace RN
 {
+	Entity::Entity()
+	{
+		_mesh = 0;
+		_material = 0;
+	}
 	
+	Entity::Entity(Entity *other)
+	{
+		_mesh = other->_mesh;
+		_mesh->Retain();
+		
+		_material = other->_material;
+		_material->Retain();
+		
+		SetPosition(other->Position());
+		SetScale(other->Scale());
+		SetRotation(other->Rotation());
+	}
+	
+	Entity::~Entity()
+	{
+		_mesh->Release();
+		_material->Release();		
+	}
+	
+	void Entity::Update(float delta)
+	{
+	}
+	
+	void Entity::PostUpdate()
+	{
+		_renderingIntent.transform = Matrix();
+		_renderingIntent.material = _material;
+		_renderingIntent.mesh = _mesh;
+	}
+	
+	const RenderingIntent& Entity::Intent()
+	{
+		return _renderingIntent;
+	}
+	
+	void Entity::SetMesh(class Mesh *mesh)
+	{
+		_mesh->Release();
+		_mesh = mesh;
+		_mesh->Retain();
+	}
+	
+	void Entity::SetMaterial(class Material *material)
+	{
+		_material->Release();
+		_material = material;
+		_material->Retain();
+	}
 }
