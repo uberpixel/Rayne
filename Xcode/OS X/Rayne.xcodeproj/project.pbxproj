@@ -41,10 +41,6 @@
 		E9619E451696157E00DA187E /* RNPlatform.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E111696157E00DA187E /* RNPlatform.h */; };
 		E9619E471696157E00DA187E /* RNQuaternion.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E131696157E00DA187E /* RNQuaternion.h */; };
 		E9619E481696157E00DA187E /* RNRect.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E141696157E00DA187E /* RNRect.h */; };
-		E9619E491696157E00DA187E /* RNRendererBackend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619E151696157E00DA187E /* RNRendererBackend.cpp */; };
-		E9619E4A1696157E00DA187E /* RNRendererBackend.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E161696157E00DA187E /* RNRendererBackend.h */; };
-		E9619E4B1696157E00DA187E /* RNRendererFrontend.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619E171696157E00DA187E /* RNRendererFrontend.cpp */; };
-		E9619E4C1696157E00DA187E /* RNRendererFrontend.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E181696157E00DA187E /* RNRendererFrontend.h */; };
 		E9619E4E1696157E00DA187E /* RNShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619E1A1696157E00DA187E /* RNShader.cpp */; };
 		E9619E4F1696157E00DA187E /* RNShader.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E1B1696157E00DA187E /* RNShader.h */; };
 		E9619E501696157E00DA187E /* RNSpinLock.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E1C1696157E00DA187E /* RNSpinLock.h */; };
@@ -65,6 +61,10 @@
 		E9B1125D16797846001A0DA5 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9B1125C16797846001A0DA5 /* OpenGL.framework */; };
 		E9C6F08616AE95DD006288D5 /* RNPipelineSegment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F08416AE95DD006288D5 /* RNPipelineSegment.cpp */; };
 		E9C6F08716AE95DD006288D5 /* RNPipelineSegment.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C6F08516AE95DD006288D5 /* RNPipelineSegment.h */; };
+		E9C6F08E16AEA7AE006288D5 /* RNPhysicsPipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F08C16AEA7AE006288D5 /* RNPhysicsPipeline.cpp */; };
+		E9C6F08F16AEA7AE006288D5 /* RNPhysicsPipeline.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C6F08D16AEA7AE006288D5 /* RNPhysicsPipeline.h */; };
+		E9C6F09216AEB9D5006288D5 /* RNRenderingPipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F09016AEB9D5006288D5 /* RNRenderingPipeline.cpp */; };
+		E9C6F09316AEB9D5006288D5 /* RNRenderingPipeline.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C6F09116AEB9D5006288D5 /* RNRenderingPipeline.h */; };
 		E9F6B5AC167FE6CF00EBE826 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9F6B5AB167FE6CF00EBE826 /* Cocoa.framework */; };
 		E9F77798169C5CF8006EE702 /* RNOpenGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */; };
 		E9F77799169C5CF8006EE702 /* RNOpenGL.h in Headers */ = {isa = PBXBuildFile; fileRef = E9F77797169C5CF8006EE702 /* RNOpenGL.h */; };
@@ -126,10 +126,6 @@
 		E9619E111696157E00DA187E /* RNPlatform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPlatform.h; sourceTree = "<group>"; };
 		E9619E131696157E00DA187E /* RNQuaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNQuaternion.h; sourceTree = "<group>"; };
 		E9619E141696157E00DA187E /* RNRect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRect.h; sourceTree = "<group>"; };
-		E9619E151696157E00DA187E /* RNRendererBackend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRendererBackend.cpp; sourceTree = "<group>"; };
-		E9619E161696157E00DA187E /* RNRendererBackend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRendererBackend.h; sourceTree = "<group>"; };
-		E9619E171696157E00DA187E /* RNRendererFrontend.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRendererFrontend.cpp; sourceTree = "<group>"; };
-		E9619E181696157E00DA187E /* RNRendererFrontend.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRendererFrontend.h; sourceTree = "<group>"; };
 		E9619E1A1696157E00DA187E /* RNShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNShader.cpp; sourceTree = "<group>"; };
 		E9619E1B1696157E00DA187E /* RNShader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNShader.h; sourceTree = "<group>"; };
 		E9619E1C1696157E00DA187E /* RNSpinLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSpinLock.h; sourceTree = "<group>"; };
@@ -151,6 +147,10 @@
 		E9B1125C16797846001A0DA5 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		E9C6F08416AE95DD006288D5 /* RNPipelineSegment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNPipelineSegment.cpp; sourceTree = "<group>"; };
 		E9C6F08516AE95DD006288D5 /* RNPipelineSegment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPipelineSegment.h; sourceTree = "<group>"; };
+		E9C6F08C16AEA7AE006288D5 /* RNPhysicsPipeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNPhysicsPipeline.cpp; sourceTree = "<group>"; };
+		E9C6F08D16AEA7AE006288D5 /* RNPhysicsPipeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPhysicsPipeline.h; sourceTree = "<group>"; };
+		E9C6F09016AEB9D5006288D5 /* RNRenderingPipeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRenderingPipeline.cpp; sourceTree = "<group>"; };
+		E9C6F09116AEB9D5006288D5 /* RNRenderingPipeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRenderingPipeline.h; sourceTree = "<group>"; };
 		E9F6B5AB167FE6CF00EBE826 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenGL.cpp; sourceTree = "<group>"; };
 		E9F77797169C5CF8006EE702 /* RNOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOpenGL.h; sourceTree = "<group>"; };
@@ -293,10 +293,8 @@
 				E9619E061696157E00DA187E /* RNMaterial.h */,
 				E9619E091696157E00DA187E /* RNMesh.cpp */,
 				E9619E0A1696157E00DA187E /* RNMesh.h */,
-				E9619E151696157E00DA187E /* RNRendererBackend.cpp */,
-				E9619E161696157E00DA187E /* RNRendererBackend.h */,
-				E9619E171696157E00DA187E /* RNRendererFrontend.cpp */,
-				E9619E181696157E00DA187E /* RNRendererFrontend.h */,
+				E9C6F09016AEB9D5006288D5 /* RNRenderingPipeline.cpp */,
+				E9C6F09116AEB9D5006288D5 /* RNRenderingPipeline.h */,
 				E91B88741697889E001B7F22 /* RNRenderingResource.h */,
 				E91B88731697889B001B7F22 /* RNRendering.h */,
 				E9619E1A1696157E00DA187E /* RNShader.cpp */,
@@ -312,6 +310,8 @@
 			children = (
 				E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */,
 				E9580BD216AB8BEA0056DEF2 /* RNEntity.h */,
+				E9C6F08C16AEA7AE006288D5 /* RNPhysicsPipeline.cpp */,
+				E9C6F08D16AEA7AE006288D5 /* RNPhysicsPipeline.h */,
 				E9619E261696157E00DA187E /* RNWorld.cpp */,
 				E9619E271696157E00DA187E /* RNWorld.h */,
 			);
@@ -361,8 +361,6 @@
 				E9619E451696157E00DA187E /* RNPlatform.h in Headers */,
 				E9619E471696157E00DA187E /* RNQuaternion.h in Headers */,
 				E9619E481696157E00DA187E /* RNRect.h in Headers */,
-				E9619E4A1696157E00DA187E /* RNRendererBackend.h in Headers */,
-				E9619E4C1696157E00DA187E /* RNRendererFrontend.h in Headers */,
 				E9619E4F1696157E00DA187E /* RNShader.h in Headers */,
 				E9619E501696157E00DA187E /* RNSpinLock.h in Headers */,
 				E9619E521696157E00DA187E /* RNTexture.h in Headers */,
@@ -376,6 +374,8 @@
 				E9F77799169C5CF8006EE702 /* RNOpenGL.h in Headers */,
 				E9580BD416AB8BEA0056DEF2 /* RNEntity.h in Headers */,
 				E9C6F08716AE95DD006288D5 /* RNPipelineSegment.h in Headers */,
+				E9C6F08F16AEA7AE006288D5 /* RNPhysicsPipeline.h in Headers */,
+				E9C6F09316AEB9D5006288D5 /* RNRenderingPipeline.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -457,8 +457,6 @@
 				E9619E3D1696157E00DA187E /* RNMesh.cpp in Sources */,
 				E9619E3F1696157E00DA187E /* RNMutex.cpp in Sources */,
 				E9619E411696157E00DA187E /* RNObject.cpp in Sources */,
-				E9619E491696157E00DA187E /* RNRendererBackend.cpp in Sources */,
-				E9619E4B1696157E00DA187E /* RNRendererFrontend.cpp in Sources */,
 				E9619E4E1696157E00DA187E /* RNShader.cpp in Sources */,
 				E9619E511696157E00DA187E /* RNTexture.cpp in Sources */,
 				E9619E531696157E00DA187E /* RNTextureLoader.cpp in Sources */,
@@ -468,6 +466,8 @@
 				E9F77798169C5CF8006EE702 /* RNOpenGL.cpp in Sources */,
 				E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */,
 				E9C6F08616AE95DD006288D5 /* RNPipelineSegment.cpp in Sources */,
+				E9C6F08E16AEA7AE006288D5 /* RNPhysicsPipeline.cpp in Sources */,
+				E9C6F09216AEB9D5006288D5 /* RNRenderingPipeline.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

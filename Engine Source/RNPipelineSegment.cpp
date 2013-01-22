@@ -13,11 +13,9 @@ namespace RN
 	PipelineSegment::PipelineSegment()
 	{
 		_task = kPipelineSegmentNullTask;
-		_workerLock = new Mutex();
-		_thread = 0;
+		_lastTask = 0;
 		
-		std::thread thread = std::thread(&PipelineSegment::WorkerLoop, this);
-		thread.detach();
+		_workerLock = new Mutex();
 	}
 	
 	PipelineSegment::~PipelineSegment()
@@ -26,22 +24,21 @@ namespace RN
 	}
 	
 	
-
-	
-	void PipelineSegment::WorkerLoop()
+	void PipelineSegment::WaitForWork()
 	{
-		_thread = Thread::CurrentThread();
-		
 		while(1)
 		{
 			_workerLock->Lock();
 			
-			if(_task)
+			if(_task != kPipelineSegmentNullTask)
 			{
 				WorkOnTask(_task);
-				_task = kPipelineSegmentNullTask;
 				
+				_lastTask = _task;
+				_task = kPipelineSegmentNullTask;
 				_workerLock->Unlock();
+				
+				return;
 			}
 			else
 			{
@@ -49,16 +46,18 @@ namespace RN
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			}
 		}
-		
-		_thread->Exit();
 	}
 	
-	
-	void PipelineSegment::BeginTask(TaskID task)
+	PipelineSegment::TaskID PipelineSegment::BeginTask()
 	{
 		_workerLock->Lock();
-		_task = task;
+		
+		TaskID ntask = _lastTask + 1;
+		_task = ntask;
+		
 		_workerLock->Unlock();
+		
+		return ntask;
 	}
 	
 	void PipelineSegment::WaitForTaskCompletion(TaskID task)

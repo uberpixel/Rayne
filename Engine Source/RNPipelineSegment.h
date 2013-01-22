@@ -27,14 +27,18 @@ namespace RN
 		
 		virtual void WorkOnTask(TaskID task) = 0;
 		
-		void BeginTask(TaskID task);
+		TaskID BeginTask();
 		void WaitForTaskCompletion(TaskID task);
+		
+	//protected:
+		void WaitForWork();
 		
 	private:
 		void WorkerLoop();
 		
 		TaskID _task;
-		Thread *_thread;
+		TaskID _lastTask;
+		
 		Mutex  *_workerLock;
 	};
 }

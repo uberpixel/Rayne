@@ -12,7 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNContext.h"
-#include "RNRendererBackend.h"
+#include "RNRenderingPipeline.h"
 
 #if RN_PLATFORM_MAC_OS
 

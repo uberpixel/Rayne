@@ -12,7 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNRenderingResource.h"
-#include "RNRendererFrontend.h"
+#include "RNRenderingPipeline.h"
 #include "RNWindow.h"
 
 namespace RN
@@ -30,14 +30,13 @@ namespace RN
 
 		RNAPI void Exit();
 		
-		RendererFrontend *Renderer() const { return _renderer; }
-		RendererBackend *RendererBackend() const { return _renderer->Backend(); }
+		RenderingPipeline *Renderer() const { return _renderer; }
 		Window *Window() const { return _window; }
 		
 	private:		
 		class Window *_window;
 		Context *_context;
-		RendererFrontend *_renderer;
+		RenderingPipeline *_renderer;
 		World *_world;
 		
 		bool _shouldExit;
