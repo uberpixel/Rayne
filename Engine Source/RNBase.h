@@ -153,9 +153,27 @@ namespace RN
 	public:
 		static T *SharedInstance()
 		{
-			return 0;
+			if(!_instance)
+				_instance = new T();
+			
+			return _instance;
 		}
+		
+	protected:
+		Singleton()
+		{}
+		
+		virtual ~Singleton()
+		{
+			_instance = 0;
+		}
+		
+	private:
+		static T *_instance;
 	};
+	
+	template <class T>
+	T * Singleton<T>::_instance = 0;
 }
 
 #endif /* __RAYNE_BASE_H__ */

@@ -12,12 +12,9 @@
 
 namespace RN
 {
-	static Kernel *sharedKernel = 0;
-	
 	Kernel::Kernel()
 	{
 		_shouldExit = false;
-		sharedKernel = this;
 
 		_context = new Context();
 		_context->MakeActiveContext();
@@ -37,16 +34,10 @@ namespace RN
 	
 	Kernel::~Kernel()
 	{
-		if(sharedKernel == this)
-			sharedKernel = 0;
-		
 		_window->Release();
-
 		_world->Release();
-
-		_renderer->Release();
-
 		
+		_renderer->Release();
 		_context->Release();
 	}
 
@@ -167,14 +158,5 @@ namespace RN
 			
 			fflush(stdout);
 		}
-	}
-	
-	
-	Kernel *Kernel::SharedInstance()
-	{
-		if(!sharedKernel)
-			sharedKernel = new Kernel();
-		
-		return sharedKernel;
 	}
 }

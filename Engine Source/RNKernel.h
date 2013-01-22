@@ -34,8 +34,6 @@ namespace RN
 		RendererBackend *RendererBackend() const { return _renderer->Backend(); }
 		Window *Window() const { return _window; }
 		
-		static Kernel *SharedInstance();
-		
 		static bool SupportsExtension(const char *extension);
 		static void CheckOpenGLError(const char *context);
 		
