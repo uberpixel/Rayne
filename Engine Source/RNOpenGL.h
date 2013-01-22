@@ -22,6 +22,55 @@ typedef void (*PFNGLGENVERTEXARRAYSPROC)(GLsizei n, GLuint *arrays);
 typedef void (*PFNGLBLITFRAMEBUFFERPROC)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
 #endif
 
+#define __RN_EXPANDOPENGLERROR(error) #error
+#define __RN_OPENGLTOKEN(error) __RN_EXPANDOPENGLERROR(error)
+
+#define __RN_REPORTOPENGLERROR(error) \
+	do { printf("OpenGL error: %s. File: %s:%i", __RN_OPENGLTOKEN(error), __FILE__, __LINE__); } while(0)
+
+#define __RN_CHECKOPENGLERROR(error) \
+	case error: \
+		__RN_REPORTOPENGLERROR(error); \
+		break;
+
+#ifndef GL_STACK_UNDERFLOW
+#define GL_STACK_UNDERFLOW 0xffffffff
+#endif
+
+#ifndef GL_STACK_OVERFLOW
+#define GL_STACK_OVERFLOW (0xffffffff - 1)
+#endif
+
+#ifndef GL_TABLE_TOO_LARGE
+#define GL_TABLE_TOO_LARGE (0xffffffff - 2)
+#endif
+
+#ifndef NDEBUG
+	#define RN_CHECKOPENGL() \
+		while(0) { \
+			GLenum error; \
+			while((error = glGetError()) != GL_NO_ERROR) \
+			{ \
+				switch(error) \
+				{ \
+					__RN_CHECKOPENGLERROR(GL_INVALID_ENUM) \
+					__RN_CHECKOPENGLERROR(GL_INVALID_VALUE) \
+					__RN_CHECKOPENGLERROR(GL_INVALID_OPERATION) \
+					__RN_CHECKOPENGLERROR(GL_INVALID_FRAMEBUFFER_OPERATION) \
+					__RN_CHECKOPENGLERROR(GL_OUT_OF_MEMORY) \
+					__RN_CHECKOPENGLERROR(GL_STACK_UNDERFLOW) \
+					__RN_CHECKOPENGLERROR(GL_STACK_OVERFLOW) \
+					__RN_CHECKOPENGLERROR(GL_TABLE_TOO_LARGE) \
+					default: \
+						printf("Unknown OpenGL error: %i. File: %s:%i", error, __FILE__, __LINE__); \
+						break; \
+				} \
+			} \
+		}
+#else
+	#define RN_CHECKOPENGL() (void)0
+#endif
+
 namespace RN
 {
 	typedef enum

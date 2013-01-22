@@ -111,7 +111,7 @@ namespace RN
 		const GLchar *source = (const GLchar *)data.c_str();
 		GLuint shader = glCreateShader(type);
 		
-		Kernel::CheckOpenGLError("glCreateShader");
+		RN_CHECKOPENGL();
 		
 		if(shader == 0)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);

@@ -72,7 +72,7 @@ namespace RN
 			_renderer->CommitFrame(_time);
 		}
 
-		CheckOpenGLError("Kernel::Update()");
+		RN_CHECKOPENGL();
 		_context->DeactivateContext();
 
 		_lastFrame = now;
@@ -101,62 +101,5 @@ namespace RN
 		_world->Release();
 		_world = world;
 		_world->Retain();
-	}
-	
-	
-	bool Kernel::SupportsExtension(const char *extension)
-	{
-		std::string extensions((const char *)glGetString(GL_EXTENSIONS));
-		return (extensions.rfind(extension) != std::string::npos);
-	}
-	
-	void Kernel::CheckOpenGLError(const char *context)
-	{
-		GLenum error;
-		while((error = glGetError()) != GL_NO_ERROR)
-		{
-			switch(error)
-			{
-				case GL_INVALID_ENUM:
-					printf("OpenGL Error: GL_INVALID_ENUM. Context: %s\n", context);
-					break;
-					
-				case GL_INVALID_VALUE:
-					printf("OpenGL Error: GL_INVALID_VALUE. Context: %s\n", context);
-					break;
-					
-				case GL_INVALID_OPERATION:
-					printf("OpenGL Error: GL_INVALID_OPERATION. Context: %s\n", context);
-					break;
-					
-				case GL_INVALID_FRAMEBUFFER_OPERATION:
-					printf("OpenGL Error: GL_INVALID_FRAMEBUFFER_OPERATION. Context: %s\n", context);
-					break;
-					
-				case GL_OUT_OF_MEMORY:
-					printf("OpenGL Error: GL_OUT_OF_MEMORY. Context: %s\n", context);
-					break;
-					
-#if defined(__gl_h_)
-				case GL_STACK_UNDERFLOW:
-					printf("OpenGL Error: GL_STACK_UNDERFLOW. Context: %s\n", context);
-					break;
-					
-				case GL_STACK_OVERFLOW:
-					printf("OpenGL Error: GL_STACK_OVERFLOW. Context: %s\n", context);
-					break;
-					
-				case GL_TABLE_TOO_LARGE:
-					printf("OpenGL Error: GL_TABLE_TOO_LARGE. Context: %s\n", context);
-					break;
-#endif
-					
-				default:
-					printf("Unknown OpenGL Error: %i. Context: %s\n", error, context);
-					break;
-			}
-			
-			fflush(stdout);
-		}
 	}
 }

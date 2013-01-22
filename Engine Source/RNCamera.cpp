@@ -223,10 +223,10 @@ namespace RN
 			_texture->Bind();
 			
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-			Kernel::CheckOpenGLError("glTexImage2D");
+			RN_CHECKOPENGL();
 			
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture->Name(), 0);
-			Kernel::CheckOpenGLError("glFramebufferTexture2D");			
+			RN_CHECKOPENGL();		
 			
 			_texture->_width  = width;
 			_texture->_height = height;
@@ -246,6 +246,8 @@ namespace RN
 				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, width, height);
 #endif
+				
+				RN_CHECKOPENGL();
 			}
 		}
 		else
@@ -262,7 +264,7 @@ namespace RN
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24_OES, width, height);
 #endif
 				
-				Kernel::CheckOpenGLError("glRenderBufferStorage");
+				RN_CHECKOPENGL();
 			}
 			
 			if(_stencilbuffer)
@@ -270,7 +272,7 @@ namespace RN
 				glBindRenderbuffer(GL_RENDERBUFFER, _stencilbuffer);
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_STENCIL_INDEX8, width, height);
 				
-				Kernel::CheckOpenGLError("glRenderBufferStorage");
+				RN_CHECKOPENGL();
 			}
 		}
 		
