@@ -46,19 +46,22 @@ namespace RN
 		class Matrix _transform;
 	};
 	
-	RN_INLINE Transform::Transform()
+	RN_INLINE Transform::Transform() :
+		_scale(Vector3(1.0f))
 	{
 		_didChange = true;
 	}
 	
 	RN_INLINE Transform::Transform(const Vector3& position) :
-		_position(position)
+		_position(position),
+		_scale(Vector3(1.0f))
 	{
 		_didChange = true;
 	}
 	
 	RN_INLINE Transform::Transform(const Vector3& position, const Quaternion& rotation) :
 		_position(position),
+		_scale(Vector3(1.0f)),
 		_rotation(rotation)
 	{
 		_didChange = true;
