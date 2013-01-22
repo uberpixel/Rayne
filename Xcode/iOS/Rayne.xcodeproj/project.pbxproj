@@ -31,6 +31,7 @@
 		E9619F471696179500DA187E /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F461696179500DA187E /* QuartzCore.framework */; };
 		E9619F4F1696185B00DA187E /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F4D1696184100DA187E /* libpng.a */; };
 		E9619F5D1696BCC300DA187E /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F5C1696BCC300DA187E /* libz.dylib */; };
+		E9C6F08A16AEA0F8006288D5 /* RNPipelineSegment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F08816AEA0F8006288D5 /* RNPipelineSegment.cpp */; };
 		E9F77792169A75AC006EE702 /* RNEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F77790169A75AC006EE702 /* RNEntity.cpp */; };
 		E9F77795169C4038006EE702 /* RNOpenGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F77793169C4038006EE702 /* RNOpenGL.cpp */; };
 /* End PBXBuildFile section */
@@ -123,6 +124,9 @@
 		E9619F461696179500DA187E /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		E9619F481696184000DA187E /* png-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "png-ios.xcodeproj"; path = "../../Vendor/libpng/png-ios.xcodeproj"; sourceTree = "<group>"; };
 		E9619F5C1696BCC300DA187E /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		E9C6F08816AEA0F8006288D5 /* RNPipelineSegment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNPipelineSegment.cpp; sourceTree = "<group>"; };
+		E9C6F08916AEA0F8006288D5 /* RNPipelineSegment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPipelineSegment.h; sourceTree = "<group>"; };
+		E9C6F08B16AEA112006288D5 /* RNTransform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTransform.h; sourceTree = "<group>"; };
 		E9F77790169A75AC006EE702 /* RNEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNEntity.cpp; sourceTree = "<group>"; };
 		E9F77791169A75AC006EE702 /* RNEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNEntity.h; sourceTree = "<group>"; };
 		E9F77793169C4038006EE702 /* RNOpenGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenGL.cpp; sourceTree = "<group>"; };
@@ -240,6 +244,8 @@
 				E9F77793169C4038006EE702 /* RNOpenGL.cpp */,
 				E9F77794169C4038006EE702 /* RNOpenGL.h */,
 				E9619F161696170700DA187E /* RNPlatform.h */,
+				E9C6F08816AEA0F8006288D5 /* RNPipelineSegment.cpp */,
+				E9C6F08916AEA0F8006288D5 /* RNPipelineSegment.h */,
 				E9619F241696170700DA187E /* RNTextureLoader.cpp */,
 				E9619F251696170700DA187E /* RNTextureLoader.h */,
 			);
@@ -254,6 +260,7 @@
 				E9619F0D1696170700DA187E /* RNMatrixQuaternion.h */,
 				E9619F181696170700DA187E /* RNQuaternion.h */,
 				E9619F191696170700DA187E /* RNRect.h */,
+				E9C6F08B16AEA112006288D5 /* RNTransform.h */,
 				E9619F281696170700DA187E /* RNVector.h */,
 			);
 			name = Math;
@@ -399,6 +406,7 @@
 				E9619F3F1696170700DA187E /* RNWorld.cpp in Sources */,
 				E9F77792169A75AC006EE702 /* RNEntity.cpp in Sources */,
 				E9F77795169C4038006EE702 /* RNOpenGL.cpp in Sources */,
+				E9C6F08A16AEA0F8006288D5 /* RNPipelineSegment.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
