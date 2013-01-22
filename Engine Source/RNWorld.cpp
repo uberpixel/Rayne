@@ -25,7 +25,7 @@ namespace RN
 		_cameras->AddObject(camera);
 		
 		
-		Shader *pptest1 = new Shader();
+		/*Shader *pptest1 = new Shader();
 		pptest1->SetFragmentShader("shader/TestPP.fsh");
 		pptest1->SetVertexShader("shader/TestPP.vsh");
 		pptest1->Link();
@@ -42,7 +42,7 @@ namespace RN
 		stage->SetMaterial(ppmat2);
 		
 		camera->SetMaterial(ppmat1);
-		//camera->AddStage(stage);
+		camera->AddStage(stage);*/
 		
 		camera->Release();
 		
@@ -58,38 +58,55 @@ namespace RN
 	
 	void World::Update(float delta)
 	{
-		static float rot = 0;
-		static float dist = -128.0f;
-		
-		rot += 60.0f * delta;
-		//dist -= 20.0f * delta;
-		
-		transform.MakeTranslate(Vector3(0.0f, 0.0f, dist));
-		transform.Rotate(Vector3(0.0f, rot, -rot));
+		for(auto i=_entities.begin(); i!=_entities.end(); i++)
+		{
+			Entity *entity = *i;
+			entity->Update(delta);
+		}
 		
 		for(machine_uint i=0; i<_cameras->Count(); i++)
 		{
 			Camera *camera = (Camera *)_cameras->ObjectAtIndex(i);
 			
-			RenderingIntent intent;
-			intent.transform = transform;
-			intent.mesh      = mesh;
-			intent.material  = material;
-			
 			RenderingGroup group;
 			group.camera = camera;
-			group.intents.push_back(intent);
+			
+			
+			for(auto i=_entities.begin(); i!=_entities.end(); i++)
+			{
+				Entity *entity = *i;
+				
+				entity->PostUpdate();
+				group.intents.push_back(entity->Intent());
+			}
 			
 			_renderer->PushGroup(group);
 		}
 	}
 	
 	
+	void World::AddEntity(Entity *entity)
+	{
+		_entities.push_back(entity);
+	}
+	
+	void World::RemoveEntity(Entity *entity)
+	{
+		for(auto i=_entities.begin(); i!=_entities.end(); i++)
+		{
+			if(*i == entity)
+			{
+				_entities.erase(i);
+				return;
+			}
+		}
+	}
+	
 	
 	void World::CreateTestMesh()
 	{
 		// Mesh
-		mesh = new Mesh();
+		Mesh *mesh = new Mesh();
 		
 		MeshDescriptor vertexDescriptor;
 		vertexDescriptor.feature = kMeshFeatureVertices;
@@ -151,13 +168,13 @@ namespace RN
 		*indices ++ = 1;
 		*indices ++ = 3;
 		
-		stage->GenerateMesh();
+		mesh->UpdateMesh();
 		
 		// Shader
 		Texture *texture0 = new Texture("textures/brick.png", Texture::FormatRGB565);
 		Texture *texture1 = new Texture("textures/testpng.png", Texture::FormatRGB565);
 		
-		shader = new Shader();
+		Shader *shader = new Shader();
 #if !RN_PLATFORM_IOS
 		shader->SetGeometryShader("shader/Test.gsh");
 #endif
@@ -167,9 +184,16 @@ namespace RN
 		shader->Link();
 		
 		// Material
-		material = new Material(shader);
+		Material *material = new Material(shader);
 		material->AddTexture(texture0);
 		material->AddTexture(texture1);
 		material->culling = false;
+		
+		// Entity
+		Entity *entity = new Entity();
+		entity->SetMesh(mesh);
+		entity->SetMaterial(material);
+		
+		entity->SetPosition(Vector3(0.0f, 0.0f, -128.0f));
 	}
 }

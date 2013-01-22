@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNCamera.h"
+#include "RNEntity.h"
 #include "RNArray.h"
 #include "RNRenderingResource.h"
 #include "RNRendererFrontend.h"
@@ -19,8 +20,9 @@
 namespace RN
 {
 	class Kernel;
-	class World : public Object
+	class World : public Object, public UnconstructingSingleton<World>
 	{
+	friend class Entity;
 	public:
 		RNAPI World(Kernel *kernel);
 		RNAPI virtual ~World();
@@ -28,17 +30,16 @@ namespace RN
 		RNAPI void Update(float delta);
 		
 	private:
+		void AddEntity(Entity *entity);
+		void RemoveEntity(Entity *entity);
+		
 		Kernel *_kernel;
 		ObjectArray *_cameras;
+		std::vector<Entity *> _entities;
+		
 		RendererFrontend *_renderer;
 		
 		void CreateTestMesh();
-		
-		Mesh *mesh;
-		Texture *texture;
-		Material *material;
-		Shader *shader;
-		Matrix transform;
 	};
 }
 

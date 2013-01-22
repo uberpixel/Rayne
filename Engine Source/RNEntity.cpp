@@ -7,6 +7,8 @@
 //
 
 #include "RNEntity.h"
+#include "RNWorld.h"
+#include "RNKernel.h"
 
 namespace RN
 {
@@ -14,6 +16,8 @@ namespace RN
 	{
 		_mesh = 0;
 		_material = 0;
+		
+		World::SharedInstance()->AddEntity(this);
 	}
 	
 	Entity::Entity(Entity *other)
@@ -27,12 +31,16 @@ namespace RN
 		SetPosition(other->Position());
 		SetScale(other->Scale());
 		SetRotation(other->Rotation());
+		
+		World::SharedInstance()->AddEntity(this);
 	}
 	
 	Entity::~Entity()
 	{
+		World::SharedInstance()->RemoveEntity(this);
+		
 		_mesh->Release();
-		_material->Release();		
+		_material->Release();
 	}
 	
 	void Entity::Update(float delta)

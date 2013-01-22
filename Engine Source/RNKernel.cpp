@@ -63,20 +63,19 @@ namespace RN
 		float delta = seconds + (milliseconds / 1000.0f);
 		_time += delta;
 		
-		_context->MakeActiveContext();
-		
 		if(_world)
 		{
+			_context->MakeActiveContext();
+			
 			_renderer->BeginFrame();
 			_world->Update(delta);
 			_renderer->CommitFrame(_time);
+			
+			RN_CHECKOPENGL();
+			_context->DeactivateContext();
 		}
 
-		RN_CHECKOPENGL();
-		_context->DeactivateContext();
-
 		_lastFrame = now;
-
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
 		return true;

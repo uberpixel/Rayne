@@ -174,6 +174,34 @@ namespace RN
 	
 	template <class T>
 	T * Singleton<T>::_instance = 0;
+	
+	template <class T>
+	class UnconstructingSingleton
+	{
+	public:
+		static T *SharedInstance()
+		{
+			return _instance;
+		}
+		
+	protected:
+		UnconstructingSingleton()
+		{
+			RN_ASSERT0(_instance == 0);
+			_instance = static_cast<T *>(this);
+		}
+		
+		virtual ~UnconstructingSingleton()
+		{
+			_instance = 0;
+		}
+		
+	private:
+		static T *_instance;
+	};
+	
+	template <class T>
+	T * UnconstructingSingleton<T>::_instance = 0;
 }
 
 #endif /* __RAYNE_BASE_H__ */
