@@ -13,82 +13,22 @@
 
 #if RN_PLATFORM_MAC_OS
 
-@interface RNOpenGLView : NSOpenGLView
-{
-@public
-	BOOL _sizeChanged;
-	NSSize _size;
-	
-	RN::Context *_context;
-	RN::RenderingPipeline *_renderer;
-}
-@end
-
-@implementation RNOpenGLView
-
-- (void)drawFrame
-{
-	_context->MakeActiveContext();
-	
-	if(_sizeChanged)
-	{
-		_renderer->SetDefaultFrame(_size.width, _size.height);
-		_sizeChanged = NO;
-	}
-	
-	_renderer->WaitForWork();
-	CGLFlushDrawable((CGLContextObj)[[self openGLContext] CGLContextObj]);
-	
-	_context->DeactivateContext();
-}
-
-- (void)setFrame:(NSRect)frameRect
-{
-	[super setFrame:frameRect];
-	
-	_size = frameRect.size;
-	_sizeChanged = YES;
-}
-
-@end
-
-static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTimeStamp *now, const CVTimeStamp *outputTime, CVOptionFlags flagsIn, CVOptionFlags *flagsOut, void *context)
-{
-	@autoreleasepool
-	{
-		[(RNOpenGLView *)context drawFrame];
-	}
-	
-	return kCVReturnSuccess;
-}
-
 @implementation RNNativeWindow
 
-- (void)setRNContext:(RN::Context *)rnContext Renderer:(RN::RenderingPipeline *)renderer OpenGLContext:(NSOpenGLContext *)context andPixelFormat:(NSOpenGLPixelFormat *)pixelFormat
+- (void)setOpenGLContext:(NSOpenGLContext *)context andPixelFormat:(NSOpenGLPixelFormat *)pixelFormat
 {
-	CVDisplayLinkStop(_displayLink);
-	CVDisplayLinkSetCurrentCGDisplayFromOpenGLContext(_displayLink, (CGLContextObj)[context CGLContextObj], (CGLPixelFormatObj)[pixelFormat CGLPixelFormatObj]);
-	
 	[_openGLView setOpenGLContext:context];
 	[_openGLView setPixelFormat:pixelFormat];
-	
-	((RNOpenGLView *)_openGLView)->_context  = rnContext;
-	((RNOpenGLView *)_openGLView)->_renderer = renderer;
-	
-	CVDisplayLinkStart(_displayLink);
 }
 
 - (id)initWithFrame:(NSRect)frame
 {
 	if((self = [super initWithContentRect:frame styleMask:NSTitledWindowMask | NSClosableWindowMask backing:NSBackingStoreBuffered defer:NO]))
-	{
+	{		
 		NSRect rect = [self contentRectForFrameRect:frame];
-		_openGLView = [[RNOpenGLView alloc] initWithFrame:rect];
+		_openGLView = [[NSOpenGLView alloc] initWithFrame:rect];
 		
 		[self setContentView:_openGLView];
-		
-		CVDisplayLinkCreateWithActiveCGDisplays(&_displayLink);
-		CVDisplayLinkSetOutputCallback(_displayLink, &RNDisplayLinkCallback, (void *)_openGLView);
 	}
 	
 	return self;
@@ -96,8 +36,6 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 - (void)dealloc
 {
-	CVDisplayLinkRelease(_displayLink);
-	
 	[_openGLView release];
 	[super dealloc];
 }
@@ -110,28 +48,29 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 @interface RNOpenGLView : UIView
 {
-	GLuint _frameBuffer;
-	GLuint _colorBuffer;
+	CAEAGLLayer *_renderLayer;
+	RN::Window *_controller;
 	
-	RN::Context *_context;
-	RN::RenderingPipeline *_renderer;
-	
-	NSThread *_rendererThread;
-	CADisplayLink *_displayLink;
+	GLuint _framebuffer;
+	GLuint _colorbuffer;
 	
 	GLint _backingWidth;
 	GLint _backingHeight;
 	
-	BOOL _resizeLayer;
+	BOOL _needsLayerResize;
 }
 
-@property (nonatomic, readonly) GLint _backingWidth;
-@property (nonatomic, readonly) GLint _backingHeight;
+@property (nonatomic, readonly) BOOL needsLayerResize;
+@property (nonatomic, readonly) GLuint framebuffer;
+@property (nonatomic, readonly) GLint backingWidth;
+@property (nonatomic, readonly) GLint backingHeight;
 
 @end
 
 @implementation RNOpenGLView
-@synthesize _backingWidth, _backingHeight;
+@synthesize needsLayerResize = _needsLayerResize;
+@synthesize framebuffer = _framebuffer;
+@synthesize backingWidth = _backingWidth, backingHeight = _backingHeight;
 
 + (Class)layerClass
 {
@@ -140,90 +79,59 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 // Rendering
 
-- (void)drawBackgroundFrame
+- (void)flushFrame
 {
-	if(_resizeLayer)
-		[self resizeFromLayer:(CAEAGLLayer *)[self layer]];
-	
-	_renderer->WaitForWork();
-	
-	glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, _colorBuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, _colorbuffer);
 	
 	[[EAGLContext currentContext] presentRenderbuffer:GL_RENDERBUFFER];
 }
-
-- (void)renderTest
-{
-	_context->MakeActiveContext();
-	
-	[self createDrawBuffer];
-	[self resizeFromLayer:(CAEAGLLayer *)[self layer]];
-	
-	_displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(drawBackgroundFrame)];
-	[_displayLink setFrameInterval:1];
-	[_displayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-	
-	while(![_rendererThread isCancelled])
-	{
-		NSDate *date = [NSDate dateWithTimeIntervalSinceNow:0.1];
-		[[NSRunLoop currentRunLoop] runUntilDate:date];
-	}
-	
-	[_displayLink removeFromRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
-}
-
 
 // Buffer Management
 
 - (void)createDrawBuffer
 {
-	glGenFramebuffers(1, &_frameBuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
+	glGenFramebuffers(1, &_framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 	
-	glGenRenderbuffers(1, &_colorBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, _colorBuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _colorBuffer);
+	glGenRenderbuffers(1, &_colorbuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, _colorbuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _colorbuffer);
 	
-	_renderer->SetDefaultFBO(_frameBuffer);
+	_needsLayerResize = YES;
 }
 
-- (void)resizeFromLayer:(CAEAGLLayer *)layer
+- (void)resizeFromLayer
 {
-	glBindFramebuffer(GL_FRAMEBUFFER, _frameBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, _colorBuffer);
-	[[EAGLContext currentContext] renderbufferStorage:GL_RENDERBUFFER fromDrawable:layer];
+	glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, _colorbuffer);
+	
+	[[EAGLContext currentContext] renderbufferStorage:GL_RENDERBUFFER fromDrawable:_renderLayer];
 	
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH,  &_backingWidth);
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &_backingHeight);
 	
-	_renderer->SetDefaultFrame(_backingWidth, _backingHeight);
-	_resizeLayer = NO;
+	_needsLayerResize = NO;
 }
 
 - (void)layoutSubviews
 {
 	[super layoutSubviews];
-	
-	_resizeLayer = YES;
+	_needsLayerResize = YES;
 }
 
-- (id)initWithContext:(RN::Context *)context renderer:(RN::RenderingPipeline *)renderer andFrame:(CGRect)frame
+- (id)initWithController:(RN::Window *)controller andFrame:(CGRect)frame
 {
 	if((self = [super initWithFrame:frame]))
 	{
-		_renderer = renderer;
-		_context = new RN::Context(context);
-		_context->SetName("Renderering Context");
+		_controller = controller;
 		
-		CAEAGLLayer *layer = (CAEAGLLayer *)[self layer];
-		NSDictionary *properties = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithBool:NO], kEAGLDrawablePropertyRetainedBacking, kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat, nil];
+		NSDictionary *properties = @{kEAGLDrawablePropertyRetainedBacking : @NO,  kEAGLDrawablePropertyColorFormat : kEAGLColorFormatRGBA8};
 		
-		[layer setDrawableProperties:properties];
-		[layer setOpaque:YES];
+		_renderLayer = (CAEAGLLayer *)[self layer];
 		
-		_rendererThread = [[NSThread alloc] initWithTarget:self selector:@selector(renderTest) object:nil];
-		[_rendererThread start];
+		[_renderLayer setDrawableProperties:properties];
+		[_renderLayer setOpaque:YES];
 	}
 	
 	return self;
@@ -231,15 +139,8 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 
 - (void)dealloc
 {
-	// Wait for the rendering thread to terminate
-	
-	[_rendererThread cancel];
-	
-	while([_rendererThread isExecuting])
-		[NSThread sleepForTimeInterval:0.1f];
-	
-	[_rendererThread release];
-	_context->Release();
+	glDeleteRenderbuffers(1, &_colorbuffer);
+	glDeleteFramebuffers(1, &_framebuffer);
 	
 	[super dealloc];
 }
@@ -269,14 +170,13 @@ static CVReturn RNDisplayLinkCallback(CVDisplayLinkRef displayLink, const CVTime
 }
 
 
-- (id)initWithContext:(RN::Context *)context renderer:(RN::RenderingPipeline *)renderer andFrame:(CGRect)frame
+- (id)initWithController:(RN::Window *)controller andFrame:(CGRect)frame
 {
 	if((self = [super init]))
 	{
-		openGLView = [[RNOpenGLView alloc] initWithContext:context renderer:renderer andFrame:frame];
-		[openGLView autorelease];
-		
+		openGLView = [[RNOpenGLView alloc] initWithController:controller andFrame:frame];
 		[self setView:openGLView];
+		[openGLView release];
 	}
 	
 	return self;
@@ -297,12 +197,14 @@ namespace RN
 		_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, 1024, 768)];
 		[_nativeWindow center];
 		
-		_nativeWindow->_controller = this;
-
 		_context = 0;
 		_kernel = kernel;
+		_renderer = _kernel->Renderer();
 		
 		SetTitle(title);
+		
+		std::thread thread = std::thread(&Window::RenderLoop, this);
+		thread.detach();
 	}
 	
 	Window::~Window()
@@ -327,7 +229,7 @@ namespace RN
 		_context->Release();
 		_context = new Context(context);
 		
-		[_nativeWindow setRNContext:_context Renderer:_kernel->Renderer() OpenGLContext:_context->_oglContext andPixelFormat:_context->_oglPixelFormat];
+		[_nativeWindow setOpenGLContext:_context->_oglContext andPixelFormat:_context->_oglPixelFormat];
 	}
 	
 	void Window::SetTitle(const std::string& title)
@@ -340,6 +242,26 @@ namespace RN
 		NSRect frame = [[_nativeWindow contentView] frame];
 		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
 	}
+	
+	void Window::RenderLoop()
+	{
+		if(!_context)
+		{
+			std::this_thread::sleep_for(std::chrono::microseconds(5));
+			continue;
+		}
+		
+		while(1)
+		{
+			_context->MakeActiveContext();
+			
+			_renderer->WaitForWork();
+			CGLFlushDrawable((CGLContextObj)[_context->_oglContext CGLContextObj]);
+			
+			_context->DeactivateContext();
+		}
+	}
+	
 #endif
 	
 	
@@ -353,8 +275,12 @@ namespace RN
 
 		_context = 0;
 		_kernel = kernel;
+		_renderer = _kernel->Renderer();
 		
 		SetTitle(title);
+		
+		std::thread thread = std::thread(&Window::RenderLoop, this);
+		thread.detach();
 	}
 	
 	Window::~Window()
@@ -377,16 +303,16 @@ namespace RN
 	}
 	
 	void Window::SetContext(Context *context)
-	{
-		_context->Release();
-		_context = context;
-		_context->Retain();
-		
+	{		
 		[_rootViewController release];
-		_rootViewController = [[RNOpenGLViewController alloc] initWithContext:_context renderer:_kernel->Renderer() andFrame:[_nativeWindow bounds]];
-		_renderingView = [_rootViewController view];
+		
+		_rootViewController = [[RNOpenGLViewController alloc] initWithController:this andFrame:[_nativeWindow bounds]];
+		_renderingView      = (RNOpenGLView *)[_rootViewController view];
 		
 		[_nativeWindow setRootViewController:_rootViewController];
+		
+		_context->Release();
+		_context = new Context(context);
 	}
 	
 	void Window::SetTitle(const std::string& title)
@@ -398,6 +324,38 @@ namespace RN
 		CGRect frame = [_renderingView bounds];
 		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
 	}
+	
+	void Window::RenderLoop()
+	{
+		while(!_context)
+		{
+			std::this_thread::sleep_for(std::chrono::microseconds(5));
+			continue;
+		}
+		
+		_context->MakeActiveContext();
+		[_renderingView createDrawBuffer];
+		_context->DeactivateContext();
+		
+		while(1)
+		{
+			_context->MakeActiveContext();
+			
+			if(_renderingView.needsLayerResize)
+			{
+				[_renderingView resizeFromLayer];
+				
+				_renderer->SetDefaultFrame(_renderingView.backingWidth, _renderingView.backingHeight);
+				_renderer->SetDefaultFBO(_renderingView.framebuffer);
+			}
+			
+			_renderer->WaitForWork();
+			[_renderingView flushFrame];
+			
+			_context->DeactivateContext();
+		}
+		
+	}	
 #endif
 }
 

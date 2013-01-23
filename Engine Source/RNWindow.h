@@ -23,10 +23,7 @@ namespace RN
 
 @interface RNNativeWindow : NSWindow
 {
-@public
-	RN::Window *_controller;
 	NSOpenGLView *_openGLView;
-	CVDisplayLinkRef _displayLink;
 }
 
 @end
@@ -34,6 +31,10 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
+
+#if RN_PLATFORM_IOS
+@class RNOpenGLView;
+#endif
 
 namespace RN
 {
@@ -53,6 +54,8 @@ namespace RN
 		Rect Frame() const;
 		
 	private:
+		void RenderLoop();
+		
 #if RN_PLATFORM_MAC_OS
 		RNNativeWindow *_nativeWindow;
 #endif
@@ -60,10 +63,11 @@ namespace RN
 #if RN_PLATFORM_IOS
 		UIWindow *_nativeWindow;
 		UIViewController *_rootViewController;
-		UIView *_renderingView;
+		RNOpenGLView *_renderingView;
 #endif
 		
 		Context *_context;
+		RenderingPipeline *_renderer;
 		Kernel *_kernel;
 	};
 }
