@@ -30,7 +30,7 @@ namespace RN
 		TaskID BeginTask();
 		void WaitForTaskCompletion(TaskID task);
 		
-	//protected:
+	protected:
 		void WaitForWork();
 		
 	private:

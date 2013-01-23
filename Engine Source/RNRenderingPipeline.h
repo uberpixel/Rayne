@@ -15,8 +15,10 @@
 
 namespace RN
 {
+	class Window;
 	class RenderingPipeline : public PipelineSegment
 	{
+	friend class Window;
 	public:
 		RenderingPipeline();
 		virtual ~RenderingPipeline();
