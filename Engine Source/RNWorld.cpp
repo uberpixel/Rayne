@@ -63,6 +63,8 @@ namespace RN
 	
 	void World::Update(float delta)
 	{
+		Entity *entity = _entities[0];
+		entity->Translate(Vector3(0.0f, 0.0f, -10.0f * delta));
 	}
 	
 	void World::BeginUpdate(float delta)

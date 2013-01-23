@@ -28,7 +28,7 @@ namespace RN
 		
 		virtual void Update(float delta);
 		virtual void PostUpdate();
-		const RenderingIntent& Intent();
+		RenderingIntent Intent();
 		
 		void SetMesh(Mesh *mesh);
 		void SetMaterial(Material *material);
@@ -36,13 +36,18 @@ namespace RN
 		Mesh *Mesh() const { return _mesh; }
 		Material *Material() const { return _material; }
 		
-	protected:
-		RenderingIntent _renderingIntent;
-		
 	private:
 		class Mesh *_mesh;
 		class Material *_material;
 	};
+	
+	RN_INLINE RenderingIntent Entity::Intent()
+	{
+		RenderingIntent intent(_mesh, _material);
+		intent.transform = Matrix();
+		
+		return intent;
+	}
 }
 
 #endif /* __RAYNE_ENTITY_H__ */

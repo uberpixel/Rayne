@@ -27,10 +27,34 @@ namespace RN
 	class RenderingIntent : public RenderingResource
 	{
 	public:
-		RenderingIntent() :
+		RenderingIntent(Mesh *_mesh, Material *_material) :
 			RenderingResource("Rendering Intent")
 		{
+			mesh = _mesh;
+			mesh->Retain();
+			
+			material = _material;
+			material->Retain();
 		}
+		
+		RenderingIntent(const RenderingIntent& other) :
+			RenderingResource(other._name)
+		{
+			mesh = other.mesh;
+			mesh->Retain();
+			
+			material = other.material;
+			material->Retain();
+			
+			transform = other.transform;
+		}
+		
+		~RenderingIntent()
+		{
+			mesh->Release();
+			material->Release();
+		}
+		
 		
 		Matrix transform;
 		Material *material;

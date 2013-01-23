@@ -49,14 +49,6 @@ namespace RN
 	
 	void Entity::PostUpdate()
 	{
-		_renderingIntent.transform = Matrix();
-		_renderingIntent.material = _material;
-		_renderingIntent.mesh = _mesh;
-	}
-	
-	const RenderingIntent& Entity::Intent()
-	{
-		return _renderingIntent;
 	}
 	
 	void Entity::SetMesh(class Mesh *mesh)
