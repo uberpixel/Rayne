@@ -245,7 +245,7 @@ namespace RN
 	
 	void Window::RenderLoop()
 	{
-		if(!_context)
+		while(!_context)
 		{
 			std::this_thread::sleep_for(std::chrono::microseconds(5));
 			continue;
