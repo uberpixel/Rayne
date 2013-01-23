@@ -39,7 +39,11 @@ namespace RN
 		TaskID _task;
 		TaskID _lastTask;
 		
-		Mutex  *_workerLock;
+		std::condition_variable _waitCondition;
+		std::condition_variable _workCondition;
+		
+		std::mutex _waitMutex;
+		std::mutex _workMutex;
 	};
 }
 
