@@ -30,21 +30,15 @@ namespace RN
 		RenderingIntent(Mesh *_mesh, Material *_material) :
 			RenderingResource("Rendering Intent")
 		{
-			mesh = _mesh;
-			mesh->Retain();
-			
-			material = _material;
-			material->Retain();
+			mesh = _mesh->Retain<Mesh>();
+			material = _material->Retain<Material>();
 		}
 		
 		RenderingIntent(const RenderingIntent& other) :
 			RenderingResource(other._name)
 		{
-			mesh = other.mesh;
-			mesh->Retain();
-			
-			material = other.material;
-			material->Retain();
+			mesh = other.mesh->Retain<Mesh>();
+			material = other.material->Retain<Material>();
 			
 			transform = other.transform;
 		}

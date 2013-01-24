@@ -13,9 +13,7 @@ namespace RN
 	Material::Material(RN::Shader *shader) :
 		RenderingResource("Material")
 	{
-		_shader = shader;
-		_shader->Retain();
-		
+		_shader = shader->Retain<RN::Shader>();
 		_textures = new ObjectArray();
 		
 		culling  = true;

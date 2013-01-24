@@ -20,13 +20,11 @@ namespace RN
 	{
 		RN_ASSERT0(member && member->_list == 0);
 		
-		member->Retain();
-		
 		member->_next = _next;
 		member->_prev = this;
 		member->_list = _list;
 		
-		_next = member;
+		_next = member->Retain<ListMember>();
 		
 		if(_list->_tail == this)
 			_list->_tail = member;
@@ -36,13 +34,11 @@ namespace RN
 	{
 		RN_ASSERT0(member && member->_list == 0);
 		
-		member->Retain();
-		
 		member->_next = this;
 		member->_prev = _prev;
 		member->_list = _list;
 		
-		_prev = member;
+		_prev = member->Retain<ListMember>();
 		
 		if(_list->_head == this)
 			_list->_head = member;

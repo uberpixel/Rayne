@@ -21,24 +21,27 @@ namespace RN
 	}
 	
 	
-	void Object::Retain()
+	Object *Object::CoreRetain()
 	{
 		if(!this)
-			return;
+			return this;
 		
 		_refCount ++;
+		return this;
 	}
 	
-	void Object::Release()
+	Object *Object::CoreRelease()
 	{
 		if(!this)
-			return;
+			return this;
 		
 		if((-- _refCount) == 0)
 		{
 			delete this;
-			return;
+			return 0;
 		}
+		
+		return this;
 	}
 	
 	

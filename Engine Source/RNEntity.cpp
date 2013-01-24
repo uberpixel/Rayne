@@ -22,11 +22,8 @@ namespace RN
 	
 	Entity::Entity(Entity *other)
 	{
-		_mesh = other->_mesh;
-		_mesh->Retain();
-		
-		_material = other->_material;
-		_material->Retain();
+		_mesh = other->_mesh->Retain<RN::Mesh>();
+		_material = other->_material->Retain<RN::Material>();
 		
 		SetPosition(other->Position());
 		SetScale(other->Scale());
@@ -54,14 +51,12 @@ namespace RN
 	void Entity::SetMesh(class Mesh *mesh)
 	{
 		_mesh->Release();
-		_mesh = mesh;
-		_mesh->Retain();
+		_mesh = mesh->Retain<RN::Mesh>();
 	}
 	
 	void Entity::SetMaterial(class Material *material)
 	{
 		_material->Release();
-		_material = material;
-		_material->Retain();
+		_material = material->Retain<RN::Material>();
 	}
 }

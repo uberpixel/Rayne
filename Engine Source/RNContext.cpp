@@ -20,8 +20,7 @@ namespace RN
 	{
 		_active = false;
 		_thread = 0;
-		_shared = shared;
-		_shared->Retain();
+		_shared = shared->Retain<Context>();
 		
 #if RN_PLATFORM_MAC_OS
 		static NSOpenGLPixelFormatAttribute formatAttributes[] =

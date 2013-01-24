@@ -151,8 +151,7 @@ namespace RN
 		
 		virtual void AddObject(Object *object)
 		{
-			Array::AddObject(object);
-			object->Retain();
+			Array::AddObject(object->Retain<Object>());
 		}
 		
 		virtual void RemoveObject(Object *object)
