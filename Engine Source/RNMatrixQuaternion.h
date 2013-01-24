@@ -56,25 +56,61 @@ namespace RN
 		
 		Matrix Inverse() const;
 		
-		struct
-		{
-			float m[16];
-		};
+		float m[16];
 	};
 	
 	class Quaternion
 	{
 	public:
 		Quaternion();
+		Quaternion(float x, float y, float z, float w);
 		Quaternion(const Vector3& euler);
 		Quaternion(const Vector4& axis);
+		
+		//Quaternion& operator= (const Quaternion& other);
+		Quaternion& operator= (const Vector3& other);
+		Quaternion& operator= (const Vector4& other);
+		
+		Quaternion& operator+= (const Quaternion& other);
+		Quaternion& operator-= (const Quaternion& other);
+		Quaternion& operator*= (const Quaternion& other);
+		Quaternion& operator/= (const Quaternion& other);
+		
+		Quaternion& operator*= (const Vector4& other);
+		Quaternion& operator/= (const Vector4& other);
+		
+		Quaternion& operator+= (const Vector3& other);
+		Quaternion& operator-= (const Vector3& other);
+		
+		Quaternion& operator*= (float scalar);
+		Quaternion& operator/= (float scalar);
+		
+		Quaternion operator+ (const Quaternion& other) const;
+		Quaternion operator- (const Quaternion& other) const;
+		Quaternion operator* (const Quaternion& other) const;
+		Quaternion operator/ (const Quaternion& other) const;
+		
+		Quaternion operator+ (const Vector3& other) const;
+		Quaternion operator- (const Vector3& other) const;
+		
+		Quaternion operator* (const Vector4& other) const;
+		Quaternion operator/ (const Vector4& other) const;
+		
+		Quaternion operator* (float scalar) const;
+		Quaternion operator/ (float scalar) const;
 		
 		void MakeIdentity();
 		void MakeEulerAngle(const Vector3& euler);
 		void MakeAxisAngle(const Vector4& euler);
+		void MakeLerpS(const Quaternion& start, const Quaternion& end, float factor);
+		void MakeLerpN(const Quaternion& start, const Quaternion& end, float factor);
 		
 		void LookAt(const Vector3& dir, const Vector3& up=Vector3(1.0f, 0.0f, 0.0f));
 		void Normalize();
+		void Conjugate();
+		
+		Quaternion LerpS(const Quaternion& other, float factor) const;
+		Quaternion LerpN(const Quaternion& other, float factor) const;
 		
 		Vector3 RotateEuler(const Vector3& vec) const;
 		Vector4 RotateAxis(const Vector4& vec) const;
@@ -83,7 +119,9 @@ namespace RN
 		
 		Vector3 EulerAngle() const;
 		Vector4 AxisAngle() const;
+		
 		float Length() const;
+		float Dot(const Quaternion& other) const;
 		
 		struct
 		{

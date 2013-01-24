@@ -20,6 +20,14 @@ namespace RN
 		MakeIdentity();
 	}
 	
+	RN_INLINE Quaternion::Quaternion(float _x, float _y, float _z, float _w)
+	{
+		x = _x;
+		y = _y;
+		z = _z;
+		w = _w;
+	}
+	
 	RN_INLINE Quaternion::Quaternion(const Vector3& euler)
 	{
 		MakeEulerAngle(euler);
@@ -30,6 +38,185 @@ namespace RN
 		MakeAxisAngle(axis);
 	}
 	
+	
+	
+	RN_INLINE Quaternion& Quaternion::operator+= (const Quaternion& other)
+	{
+		w += other.w;
+		x += other.x;
+		y += other.y;
+		z += other.z;
+		
+		return *this;
+	}
+	
+	RN_INLINE Quaternion& Quaternion::operator-= (const Quaternion& other)
+	{
+		w -= other.w;
+		x -= other.x;
+		y -= other.y;
+		z -= other.z;
+		
+		return *this;
+	}
+	
+	RN_INLINE Quaternion& Quaternion::operator*= (const Quaternion& other)
+	{
+		Vector4 temp = Vector4(x, y, z, w);
+		
+		w = -temp.x * other.x - temp.y * other.y - temp.z * other.z + temp.w * other.w;
+		x =  temp.x * other.w + temp.y * other.z - temp.z * other.y + temp.w * other.x;
+		y = -temp.x * other.z + temp.y * other.w + temp.z * other.x + temp.w * other.y;
+		z =  temp.x * other.y - temp.y * other.x + temp.z * other.w + temp.w * other.z;
+		
+		return *this;
+	}
+	
+	RN_INLINE Quaternion& Quaternion::operator/= (const Quaternion& other)
+	{
+		Vector4 temp = Vector4(x, y, z, w);
+		
+		w = (temp.w * other.w + temp.x * other.x + temp.y * other.y + temp.z * other.z) / (other.w * other.w + other.x * other.x + other.y * other.y + other.z * other.z);
+		x = (temp.x * other.w - temp.w * other.x - temp.z * other.y + temp.y * other.z) / (other.w * other.w + other.x * other.x + other.y * other.y + other.z * other.z);
+		y = (temp.y * other.w + temp.z * other.x - temp.w * other.y - temp.x * other.z) / (other.w * other.w + other.x * other.x + other.y * other.y + other.z * other.z);
+		z = (temp.z * other.w - temp.y * other.x + temp.x * other.y - temp.w * other.z) / (other.w * other.w + other.x * other.x + other.y * other.y + other.z * other.z);
+		
+		return *this;
+	}
+	
+	RN_INLINE Quaternion& Quaternion::operator*= (const Vector4& other)
+	{
+		Quaternion quaternion(other);
+		*this *= quaternion;
+		
+		return *this;
+	}
+	
+	RN_INLINE Quaternion& Quaternion::operator/= (const Vector4& other)
+	{
+		Quaternion quaternion(other);
+		*this /= quaternion;
+		
+		return *this;
+	}
+	
+	RN_INLINE Quaternion& Quaternion::operator+= (const Vector3& other)
+	{
+		Vector3 euler = EulerAngle();
+		euler += other;
+		
+		MakeEulerAngle(euler);
+		return *this;
+	}
+	
+	RN_INLINE Quaternion& Quaternion::operator-= (const Vector3& other)
+	{
+		Vector3 euler = EulerAngle();
+		euler -= other;
+		
+		MakeEulerAngle(euler);
+		return *this;
+	}
+	
+	RN_INLINE Quaternion& Quaternion::operator*= (float scalar)
+	{
+		x *= scalar;
+		y *= scalar;
+		z *= scalar;
+		w *= scalar;
+		
+		return *this;
+	}
+	
+	RN_INLINE Quaternion& Quaternion::operator/= (float scalar)
+	{
+		x /= scalar;
+		y /= scalar;
+		z /= scalar;
+		w /= scalar;
+		
+		return *this;
+	}
+	
+	RN_INLINE Quaternion Quaternion::operator+ (const Quaternion& other) const
+	{
+		Quaternion result(*this);
+		result += other;
+		
+		return result;
+	}
+	
+	RN_INLINE Quaternion Quaternion::operator- (const Quaternion& other) const
+	{
+		Quaternion result(*this);
+		result -= other;
+		
+		return result;
+	}
+	
+	RN_INLINE Quaternion Quaternion::operator* (const Quaternion& other) const
+	{
+		Quaternion result(*this);
+		result *= other;
+		
+		return result;
+	}
+	
+	RN_INLINE Quaternion Quaternion::operator/ (const Quaternion& other) const
+	{
+		Quaternion result(*this);
+		result /= other;
+		
+		return result;
+	}
+	
+	RN_INLINE Quaternion Quaternion::operator* (const Vector4& other) const
+	{
+		Quaternion result(*this);
+		result *= other;
+		
+		return result;
+	}
+	
+	RN_INLINE Quaternion Quaternion::operator/ (const Vector4& other) const
+	{
+		Quaternion result(*this);
+		result /= other;
+		
+		return result;
+	}
+	
+	RN_INLINE Quaternion Quaternion::operator+ (const Vector3& other) const
+	{
+		Vector3 euler = EulerAngle();
+		euler += other;
+		
+		return Quaternion(euler);
+	}
+	
+	RN_INLINE Quaternion Quaternion::operator- (const Vector3& other) const
+	{
+		Vector3 euler = EulerAngle();
+		euler -= other;
+		
+		return Quaternion(euler);
+	}
+	
+	RN_INLINE Quaternion Quaternion::operator* (float scalar) const
+	{
+		Quaternion result(*this);
+		result *= scalar;
+		
+		return result;
+	}
+	
+	RN_INLINE Quaternion Quaternion::operator/ (float scalar) const
+	{
+		Quaternion result(*this);
+		result /= scalar;
+		
+		return result;
+	}
 	
 	RN_INLINE void Quaternion::MakeIdentity()
 	{
@@ -70,6 +257,52 @@ namespace RN
 		z = fsin * axis.z;
 		
 		Normalize();
+	}
+	
+	RN_INLINE void Quaternion::MakeLerpS(const Quaternion& start, const Quaternion& end, float factor)
+	{
+		Quaternion quat1(start);
+		Quaternion quat2(end);
+		
+		float angle = quat1.Dot(quat2);
+		if(angle < 0.0f)
+		{
+			quat1 *= -1.0f;
+			angle *= -1.0f;
+		}
+		
+		float scale, inverseScale;
+		
+		if((angle + 1.0f) > 0.005f)
+		{
+			if((1.0f - angle) >= 0.05f)
+			{
+				float theta = acos(angle);
+				float inverseTheta = 1.0f / sin(theta);
+				
+				scale = sin(theta * (1.0f - factor)) * inverseTheta;
+				inverseScale = sin(theta * factor) * inverseTheta;
+			}
+			else
+			{
+				scale = 1.0f - factor;
+				inverseScale = factor;
+			}
+		}
+		else
+		{
+			quat2 = Quaternion(-quat1.y, quat1.x, -quat1.w, quat1.z);
+			scale = sin(M_PI * (0.5f - factor));
+			inverseScale = sin(M_PI * factor);
+		}
+		
+		*this = (quat1 * scale) + (quat2 * inverseScale);
+	}
+	
+	RN_INLINE void Quaternion::MakeLerpN(const Quaternion& start, const Quaternion& end, float factor)
+	{
+		float inverseFactor = 1.0f - factor;
+		*this = (end * factor) + (start * inverseFactor);
 	}
 	
 	RN_INLINE void Quaternion::LookAt(const Vector3& tdir, const Vector3& tup)
@@ -152,6 +385,29 @@ namespace RN
 			y *= fac;
 			z *= fac;
 		}
+	}
+	
+	RN_INLINE void Quaternion::Conjugate()
+	{
+		x = -x;
+		y = -y;
+		z = -z;
+	}
+	
+	RN_INLINE Quaternion Quaternion::LerpS(const Quaternion& other, float factor) const
+	{
+		Quaternion result;
+		result.MakeLerpS(*this, other, factor);
+		
+		return result;
+	}
+	
+	RN_INLINE Quaternion Quaternion::LerpN(const Quaternion& other, float factor) const
+	{
+		Quaternion result;
+		result.MakeLerpN(*this, other, factor);
+		
+		return result;
 	}
 	
 	RN_INLINE Vector3 Quaternion::RotateEuler(const Vector3& euler) const
@@ -251,6 +507,11 @@ namespace RN
 	RN_INLINE float Quaternion::Length() const
 	{
 		return sqrt(x * x + y * y + z * z + w * w);
+	}
+	
+	RN_INLINE float Quaternion::Dot(const Quaternion& other) const
+	{
+		return x * other.x + y * other.y + z * other.z + w * other.w;
 	}
 }
 
