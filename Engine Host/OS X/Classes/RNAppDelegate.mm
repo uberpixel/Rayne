@@ -23,7 +23,7 @@
 	kernel = RN::Kernel::SharedInstance();
 	world = new RN::World(kernel);
 	
-	[NSTimer scheduledTimerWithTimeInterval:0.0f target:self selector:@selector(runGameLoop:) userInfo:nil repeats:YES];
+	[NSTimer scheduledTimerWithTimeInterval:1.0f/60.0f target:self selector:@selector(runGameLoop:) userInfo:nil repeats:YES];
 }
 
 @end

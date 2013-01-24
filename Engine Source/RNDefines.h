@@ -42,11 +42,6 @@
 	#define MAX(a, b) (a > b ? a : b)
 	#define MIN(a, b) (a < b ? a : b)
 
-	#define RN_INITIALIZER(f) \
-		static void __cdecl f(); \
-		__declspec(allocate(".CRT$XCU")) void (__cdecl*f##_)(void) = f; \
-		static void __cdecl f()
-
 	#define RN_NORETURN __declspec(noreturn)
 
 	#if RN_BUILD_LIBRARY
@@ -68,10 +63,6 @@
 
 	typedef long long				int64;
 	typedef unsigned long long		uint64;
-
-	#define RN_INITIALIZER(f) \
-		static void f() __attribute__((constructor)); \
-		static void f()
 
 	#define RN_NORETURN __attribute__((noreturn))
 

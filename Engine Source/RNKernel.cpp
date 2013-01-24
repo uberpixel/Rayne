@@ -21,7 +21,7 @@ namespace RN
 		
 		ReadOpenGLExtensions();
 		
-		_renderer = new RendererFrontend();
+		_renderer = new RenderingPipeline();
 		
 		_window = new class Window("Rayne", this);
 		_window->SetContext(_context);
@@ -37,7 +37,7 @@ namespace RN
 		_window->Release();
 		_world->Release();
 		
-		_renderer->Release();
+		delete _renderer;
 		_context->Release();
 	}
 
@@ -67,12 +67,10 @@ namespace RN
 		{
 			_context->MakeActiveContext();
 			
-			_renderer->BeginFrame();
-			_world->Update(delta);
-			_renderer->CommitFrame(_time);
+			_world->BeginUpdate(delta);
+			_world->FinishUpdate(delta);
 			
-			RN_CHECKOPENGL();
-			_context->DeactivateContext();
+			_context->DeactivateContext();			
 		}
 
 		_lastFrame = now;

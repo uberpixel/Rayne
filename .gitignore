@@ -3,8 +3,8 @@
 *.DS_Store
 
 # Xcode Project files
-/Rayne.xcodeproj/xcuserdata/
-/Rayne.xcodeproj/project.xcworkspace/xcuserdata/
+/xcuserdata/
+/project.xcworkspace/xcuserdata/
 
 # Visual Studio
 *.[Oo]bj
@@ -28,7 +28,6 @@
 *.opensdf
 *.unsuccessfulbuild
 ipch/
-obj/
 [Bb]in
 [Dd]ebug*/
 [Rr]elease*/

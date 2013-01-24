@@ -15,7 +15,8 @@
 #include "RNEntity.h"
 #include "RNArray.h"
 #include "RNRenderingResource.h"
-#include "RNRendererFrontend.h"
+#include "RNRenderingPipeline.h"
+#include "RNPhysicsPipeline.h"
 
 namespace RN
 {
@@ -23,21 +24,29 @@ namespace RN
 	class World : public Object, public UnconstructingSingleton<World>
 	{
 	friend class Entity;
+	friend class Kernel;
 	public:
 		RNAPI World(Kernel *kernel);
 		RNAPI virtual ~World();
 		
-		RNAPI void Update(float delta);
+		RNAPI virtual void Update(float delta);
 		
 	private:
 		void AddEntity(Entity *entity);
 		void RemoveEntity(Entity *entity);
 		
+		void BeginUpdate(float delta);
+		void FinishUpdate(float delta);
+		
 		Kernel *_kernel;
 		ObjectArray *_cameras;
 		std::vector<Entity *> _entities;
 		
-		RendererFrontend *_renderer;
+		PhysicsPipeline *_physics;
+		RenderingPipeline *_renderer;
+		
+		PipelineSegment::TaskID _physicsTask;
+		PipelineSegment::TaskID _renderingTask;
 		
 		void CreateTestMesh();
 	};
