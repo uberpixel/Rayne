@@ -30,9 +30,9 @@ namespace RN
 		void SetScale(const Vector3& scal);
 		void SetRotation(const Quaternion& rot);
 		
-		const Vector3& Position() { return _position; }
-		const Vector3& Scale() { return _scale; }
-		const Quaternion& Rotation() { return _rotation; }
+		const Vector3& Position() const { return _position; }
+		const Vector3& Scale() const { return _scale; }
+		const Quaternion& Rotation() const { return _rotation; }
 		
 		const Matrix& Matrix();
 		
@@ -81,7 +81,7 @@ namespace RN
 	
 	RN_INLINE void Transform::Rotate(const Vector3& rot)
 	{
-		_rotation.RotateEuler(rot);
+		_rotation += rot;
 		_didChange = true;
 	}
 	
