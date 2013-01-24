@@ -25,16 +25,17 @@ namespace RN
 		PipelineSegment();
 		virtual ~PipelineSegment();
 		
-		virtual void WorkOnTask(TaskID task) = 0;
-		
-		TaskID BeginTask();
+		TaskID BeginTask(float delta);
 		void WaitForTaskCompletion(TaskID task);
 		
 	protected:
 		void WaitForWork();
+		virtual void WorkOnTask(TaskID task, float delta) = 0;
 		
 	private:
 		void WorkerLoop();
+		
+		float _delta;
 		
 		TaskID _task;
 		TaskID _lastTask;

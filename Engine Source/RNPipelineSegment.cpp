@@ -29,7 +29,7 @@ namespace RN
 		
 		std::lock_guard<std::mutex> waitLock(_waitMutex);
 		
-		WorkOnTask(_task);
+		WorkOnTask(_task, _delta);
 		
 		_lastTask = _task;
 		_task = kPipelineSegmentNullTask;
@@ -37,12 +37,13 @@ namespace RN
 		_waitCondition.notify_all();
 	}
 	
-	PipelineSegment::TaskID PipelineSegment::BeginTask()
+	PipelineSegment::TaskID PipelineSegment::BeginTask(float delta)
 	{
 		std::lock_guard<std::mutex> waitLock(_workMutex);
 		
 		TaskID ntask = _lastTask + 1;
 		_task = ntask;
+		_delta = delta;
 		
 		_workCondition.notify_one();
 		

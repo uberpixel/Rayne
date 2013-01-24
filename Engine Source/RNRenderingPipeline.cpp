@@ -532,8 +532,8 @@ namespace RN
 	}
 	
 	
-	void RenderingPipeline::WorkOnTask(TaskID task)
-	{
+	void RenderingPipeline::WorkOnTask(TaskID task, float delta)
+	{		
 		if(!_hasValidFramebuffer)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
@@ -546,7 +546,9 @@ namespace RN
 		}
 		
 		if(!_copyShader)
-			InitializeFramebufferCopy();		
+			InitializeFramebufferCopy();
+		
+		_time += delta;
 
 		while(1)
 		{

@@ -69,7 +69,7 @@ namespace RN
 	
 	void World::BeginUpdate(float delta)
 	{
-		_physicsTask = _physics->BeginTask();
+		_physicsTask = _physics->BeginTask(delta);
 		
 		Update(delta);
 		
@@ -80,7 +80,7 @@ namespace RN
 		}
 	}
 	
-	void World::FinishUpdate()
+	void World::FinishUpdate(float delta)
 	{
 		_physics->WaitForTaskCompletion(_physicsTask);
 		
@@ -91,7 +91,7 @@ namespace RN
 		}
 		
 		_renderer->WaitForTaskCompletion(_renderingTask);
-		_renderingTask = _renderer->BeginTask();
+		_renderingTask = _renderer->BeginTask(delta);
 		
 		for(machine_uint i=0; i<_cameras->Count(); i++)
 		{

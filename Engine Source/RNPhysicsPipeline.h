@@ -20,9 +20,8 @@ namespace RN
 	public:
 		PhysicsPipeline();
 		
-		virtual void WorkOnTask(TaskID task);
-		
 	private:
+		virtual void WorkOnTask(TaskID task, float delta);
 		void WorkLoop();
 	};
 }

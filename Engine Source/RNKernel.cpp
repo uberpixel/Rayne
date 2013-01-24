@@ -68,7 +68,7 @@ namespace RN
 			_context->MakeActiveContext();
 			
 			_world->BeginUpdate(delta);
-			_world->FinishUpdate();
+			_world->FinishUpdate(delta);
 			
 			_context->DeactivateContext();			
 		}

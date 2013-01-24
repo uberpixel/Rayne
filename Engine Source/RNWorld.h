@@ -36,7 +36,7 @@ namespace RN
 		void RemoveEntity(Entity *entity);
 		
 		void BeginUpdate(float delta);
-		void FinishUpdate();
+		void FinishUpdate(float delta);
 		
 		Kernel *_kernel;
 		ObjectArray *_cameras;

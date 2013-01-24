@@ -16,7 +16,7 @@ namespace RN
 		thread.detach();
 	}
 	
-	void PhysicsPipeline::WorkOnTask(TaskID task)
+	void PhysicsPipeline::WorkOnTask(TaskID task, float delta)
 	{
 		// TODO: Run the physics simulation here
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));

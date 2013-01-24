@@ -23,8 +23,6 @@ namespace RN
 		RenderingPipeline();
 		virtual ~RenderingPipeline();
 		
-		virtual void WorkOnTask(TaskID task);
-		
 		RNAPI void PushGroup(const RenderingGroup& group);
 		RNAPI void FinishFrame();
 
@@ -32,7 +30,7 @@ namespace RN
 		RNAPI void SetDefaultFrame(uint32 width, uint32 height);
 		
 	private:
-		void InitializeFramebufferCopy();		
+		void InitializeFramebufferCopy();
 		GLuint VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple);
 		
 		void DrawGroup(RenderingGroup *group);
@@ -41,6 +39,8 @@ namespace RN
 		
 		void FlushCameras();
 		void FlushCamera(Camera *target, Camera *source);
+		
+		virtual void WorkOnTask(TaskID task, float delta);
 		
 		bool _hasValidFramebuffer;
 		
