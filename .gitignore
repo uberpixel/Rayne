@@ -38,3 +38,5 @@ Ankh.NoLoad
 *.so
 *.dll
 xcuserdata
+/DerivedData/
+/Vendor/bullet/DerivedData/

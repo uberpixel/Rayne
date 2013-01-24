@@ -49,6 +49,7 @@ namespace RN
 	
 	void Entity::PostUpdate()
 	{
+		
 	}
 	
 	void Entity::SetMesh(class Mesh *mesh)

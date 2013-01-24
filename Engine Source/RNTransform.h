@@ -30,9 +30,9 @@ namespace RN
 		void SetScale(const Vector3& scal);
 		void SetRotation(const Quaternion& rot);
 		
-		const Vector3& Position() { return _position; }
-		const Vector3& Scale() { return _scale; }
-		const Quaternion& Rotation() { return _rotation; }
+		const Vector3& Position() const { return _position; }
+		const Vector3& Scale() const { return _scale; }
+		const Quaternion& Rotation() const { return _rotation; }
 		
 		const Matrix& Matrix();
 		

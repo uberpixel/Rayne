@@ -62,6 +62,7 @@ namespace RN
 		
 		float delta = seconds + (milliseconds / 1000.0f);
 		_time += delta;
+		printf("FPS: %i\n", (int)(1.0f / delta));
 		
 		if(_world)
 		{
@@ -74,7 +75,6 @@ namespace RN
 		}
 
 		_lastFrame = now;
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
 		return true;
 	}
