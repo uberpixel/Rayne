@@ -24,11 +24,12 @@ namespace RN
 	
 	void PhysicsPipeline::WorkLoop()
 	{
-		while(1)
+		while(!ShouldStop())
 		{
 			WaitForWork();
 		}
 		
 		Thread::CurrentThread()->Exit();
+		DidStop();
 	}
 }

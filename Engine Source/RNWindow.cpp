@@ -251,7 +251,7 @@ namespace RN
 			continue;
 		}
 		
-		while(1)
+		while(!_renderer->ShouldStop())
 		{
 			_context->MakeActiveContext();
 			
@@ -260,6 +260,8 @@ namespace RN
 			
 			_context->DeactivateContext();
 		}
+		
+		_renderer->DidStop();
 	}
 	
 #endif
@@ -337,7 +339,7 @@ namespace RN
 		[_renderingView createDrawBuffer];
 		_context->DeactivateContext();
 		
-		while(1)
+		while(!_renderer->ShouldStop())
 		{
 			_context->MakeActiveContext();
 			
@@ -355,6 +357,7 @@ namespace RN
 			_context->DeactivateContext();
 		}
 		
+		_renderer->DidStop();		
 	}	
 #endif
 }

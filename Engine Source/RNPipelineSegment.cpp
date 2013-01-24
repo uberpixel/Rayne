@@ -14,11 +14,17 @@ namespace RN
 	{
 		_task = kPipelineSegmentNullTask;
 		_lastTask = 0;
+		
+		_shouldStop = false;
+		_didStop = false;
 	}
 	
 	PipelineSegment::~PipelineSegment()
 	{
-		RN_ASSERT0(1);
+		_shouldStop = true;
+		
+		while(!_didStop)
+			std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	}
 	
 	
@@ -54,5 +60,15 @@ namespace RN
 	{
 		std::unique_lock<std::mutex> lock(_waitMutex);
 		_waitCondition.wait(lock, [&]() { return (_task != task || _task == kPipelineSegmentNullTask); });
+	}
+	
+	bool PipelineSegment::ShouldStop()
+	{
+		return _shouldStop;
+	}
+	
+	void PipelineSegment::DidStop()
+	{
+		_didStop = true;
 	}
 }

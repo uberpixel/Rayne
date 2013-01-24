@@ -30,12 +30,19 @@ namespace RN
 		
 	protected:
 		void WaitForWork();
+		
+		bool ShouldStop();
+		void DidStop();
+		
 		virtual void WorkOnTask(TaskID task, float delta) = 0;
 		
 	private:
 		void WorkerLoop();
 		
 		float _delta;
+		
+		bool _shouldStop;
+		bool _didStop;
 		
 		TaskID _task;
 		TaskID _lastTask;
