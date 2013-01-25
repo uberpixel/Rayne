@@ -13,6 +13,7 @@ namespace RN
 {
 	PhysicsPipeline::PhysicsPipeline()
 	{
+		_gravity = Vector3(0.0, -9.81, 0.0);
 		std::thread thread = std::thread(&PhysicsPipeline::WorkLoop, this);
 		thread.detach();
 	}
@@ -26,6 +27,14 @@ namespace RN
 		}
 		_addedRigidEntities.clear();
 		
+		for(auto i=_removedRigidEntities.begin(); i!=_removedRigidEntities.end(); i++)
+		{
+			RigidBodyEntity *entity = *i;
+			entity->DestroyRigidBody(_dynamicsWorld);
+		}
+		_removedRigidEntities.clear();
+		
+		_dynamicsWorld->setGravity(btVector3(_gravity.x, _gravity.y, _gravity.z));
 		_dynamicsWorld->stepSimulation(delta, 10);
 	}
 	
@@ -43,7 +52,7 @@ namespace RN
 		
 		// The world.
 		_dynamicsWorld = new btDiscreteDynamicsWorld(_dispatcher, _broadphase, _solver, _collisionConfiguration);
-		_dynamicsWorld->setGravity(btVector3(0, -9.81, 0));
+		_dynamicsWorld->setGravity(btVector3(_gravity.x, _gravity.y, _gravity.z));
 		
 		while(!ShouldStop())
 		{
@@ -63,5 +72,15 @@ namespace RN
 	void PhysicsPipeline::AddRigidBody(RigidBodyEntity *entity)
 	{
 		_addedRigidEntities.push_back(entity);
+	}
+	
+	void PhysicsPipeline::RemoveRigidBody(RigidBodyEntity *entity)
+	{
+		_removedRigidEntities.push_back(entity);
+	}
+	
+	void PhysicsPipeline::SetGravity(Vector3 gravity)
+	{
+		_gravity = gravity;
 	}
 }

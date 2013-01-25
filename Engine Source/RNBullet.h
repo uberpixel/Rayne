@@ -15,7 +15,28 @@ class btCollisionDispatcher;
 class btSequentialImpulseConstraintSolver;
 class btDynamicsWorld;
 class btCollisionShape;
+class btTriangleMesh;
 class btRigidBody;
-class btMotionState;
+class btTransform;
+
+#ifndef BT_MOTIONSTATE_H
+#define BT_MOTIONSTATE_H
+class	btMotionState
+{
+public:
+	
+	virtual ~btMotionState()
+	{
+		
+	}
+	
+	virtual void	getWorldTransform(btTransform& worldTrans ) const =0;
+	
+	//Bullet only calls the update of worldtransform for active objects
+	virtual void	setWorldTransform(const btTransform& worldTrans)=0;
+	
+	
+};
+#endif /* BT_MOTIONSTATE_H */
 
 #endif /* __RAYNE_BULLET_H__ */

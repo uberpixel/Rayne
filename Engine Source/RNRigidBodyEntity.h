@@ -11,13 +11,20 @@
 
 #include "RNBase.h"
 #include "RNEntity.h"
-#include <btBulletDynamicsCommon.h>
+#include "RNBullet.h"
 
 namespace RN
 {
 	class RigidBodyEntity : public Entity, public btMotionState
 	{
 	public:
+		enum ShapeType
+		{
+			Shape_BOX,
+			Shape_SPHERE,
+			Shape_MESH
+		};
+		
 		RigidBodyEntity();
 		
 		virtual ~RigidBodyEntity();
@@ -26,10 +33,11 @@ namespace RN
 		virtual void PostUpdate();
 		
 		void InitializeRigidBody(btDynamicsWorld *world);
-		void UpdateRigidBody();
+		void DestroyRigidBody(btDynamicsWorld *world);
 		
 		void SetMass(float mass){_mass = mass;}
 		void SetSize(Vector3 size){_size = size;}
+		void SetShape(ShapeType shape);
 		
 		/**
 		 *	Motion state events.
@@ -39,10 +47,14 @@ namespace RN
 		void setWorldTransform(const btTransform &worldTrans);
 		
 	private:
+		btCollisionShape *GenerateMeshShape();
+		
 		float _mass;
 		Vector3 _size;
 		
+		ShapeType _shapeType;
 		btCollisionShape *_shape;
+		btTriangleMesh *_triangleMesh;
 		btRigidBody *_rigidbody;
 		Vector3 _tempPosition;
 		Quaternion _tempRotation;

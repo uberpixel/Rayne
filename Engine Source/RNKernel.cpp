@@ -62,7 +62,6 @@ namespace RN
 		
 		float delta = seconds + (milliseconds / 1000.0f);
 		_time += delta;
-		printf("FPS: %i\n", (int)(1.0f / delta));
 		
 		if(_world)
 		{

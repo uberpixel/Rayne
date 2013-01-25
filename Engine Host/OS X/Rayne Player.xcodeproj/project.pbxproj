@@ -302,7 +302,6 @@
 				GCC_PREFIX_HEADER = "Supporting files/Rayne Player-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
-					"\"$(SRCROOT)/../../Vendor/Bullet\"/**",
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
 				LIBRARY_SEARCH_PATHS = (
@@ -322,7 +321,6 @@
 				GCC_PREFIX_HEADER = "Supporting files/Rayne Player-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
-					"\"$(SRCROOT)/../../Vendor/Bullet\"/**",
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
 				LIBRARY_SEARCH_PATHS = (

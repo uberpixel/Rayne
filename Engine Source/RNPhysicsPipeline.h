@@ -23,6 +23,8 @@ namespace RN
 		PhysicsPipeline();
 		
 		void AddRigidBody(RigidBodyEntity *entity);
+		void RemoveRigidBody(RigidBodyEntity *entity);
+		void SetGravity(Vector3 gravity);
 		
 	private:
 		virtual void WorkOnTask(TaskID task, float delta);
@@ -35,6 +37,9 @@ namespace RN
 		btDynamicsWorld *_dynamicsWorld;
 		
 		std::vector<RigidBodyEntity*> _addedRigidEntities;
+		std::vector<RigidBodyEntity*> _removedRigidEntities;
+		
+		Vector3 _gravity;
 	};
 }
 
