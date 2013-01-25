@@ -329,9 +329,10 @@ namespace RN
 		material->culling = false;
 		
 		// Entity
+		Model *model = new Model(mesh, material);
+		
 		RigidBodyEntity *entity = new RigidBodyEntity();
-		entity->SetMesh(mesh);
-		entity->SetMaterial(material);
+		entity->SetModel(model);
 		Quaternion rot;
 		rot.MakeEulerAngle(Vector3(45.0f, 45.0f, 45.0f));
 		entity->SetRotation(rot);
@@ -340,8 +341,7 @@ namespace RN
 		entity->SetMass(10.0f);
 		
 		entity = new RigidBodyEntity();
-		entity->SetMesh(mesh);
-		entity->SetMaterial(material);
+		entity->SetModel(model);
 		rot.MakeEulerAngle(Vector3(45.0f, 45.0f, 45.0f));
 		entity->SetRotation(rot);
 		entity->SetPosition(Vector3(1.0f, 8.0f, -8.0f));
@@ -349,8 +349,7 @@ namespace RN
 		entity->SetMass(10.0f);
 		
 		entity = new RigidBodyEntity();
-		entity->SetMesh(mesh);
-		entity->SetMaterial(material);
+		entity->SetModel(model);
 		rot.MakeEulerAngle(Vector3(45.0f, 45.0f, 45.0f));
 		entity->SetRotation(rot);
 		entity->SetPosition(Vector3(-0.25f, 5.0f, -8.0f));
@@ -369,9 +368,9 @@ namespace RN
 		material->AddTexture(texture1);
 		material->culling = false;
 		
+		model = new Model(mesh, material);
 		entity = new RigidBodyEntity();
-		entity->SetMesh(mesh);
-		entity->SetMaterial(material);
+		entity->SetModel(model);
 		entity->SetPosition(Vector3(0.0f, -5.0f, -8.0f));
 		entity->SetScale(Vector3(10.0f, 1.0f, 10.0f));
 		entity->SetMass(0.0f);
