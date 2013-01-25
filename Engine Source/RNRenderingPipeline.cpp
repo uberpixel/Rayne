@@ -548,9 +548,11 @@ namespace RN
 			glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
 			
 			if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			{
+				_frame.clear();
 				return;
+			}
 			
-			_frame.clear();
 			_hasValidFramebuffer = true;
 		}
 		
