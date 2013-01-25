@@ -573,7 +573,6 @@ namespace RN
 				
 				_frameLock->Unlock();
 				
-				drawn ++;
 				DrawGroup(&group);
 			}
 			else
