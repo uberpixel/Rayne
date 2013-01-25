@@ -14,16 +14,14 @@ namespace RN
 {
 	Entity::Entity()
 	{
-		_mesh = 0;
-		_material = 0;
+		_model = 0;
 		
 		World::SharedInstance()->AddEntity(this);
 	}
 	
 	Entity::Entity(Entity *other)
 	{
-		_mesh = other->_mesh->Retain<RN::Mesh>();
-		_material = other->_material->Retain<RN::Material>();
+		_model = other->_model->Retain<RN::Model>();
 		
 		SetPosition(other->Position());
 		SetScale(other->Scale());
@@ -36,8 +34,7 @@ namespace RN
 	{
 		World::SharedInstance()->RemoveEntity(this);
 		
-		_mesh->Release();
-		_material->Release();
+		_model->Release();
 	}
 	
 	void Entity::Update(float delta)
@@ -48,15 +45,9 @@ namespace RN
 	{
 	}
 	
-	void Entity::SetMesh(class Mesh *mesh)
+	void Entity::SetModel(class Model *model)
 	{
-		_mesh->Release();
-		_mesh = mesh->Retain<RN::Mesh>();
-	}
-	
-	void Entity::SetMaterial(class Material *material)
-	{
-		_material->Release();
-		_material = material->Retain<RN::Material>();
+		_model->Release();
+		_model = model->Retain<RN::Model>();
 	}
 }

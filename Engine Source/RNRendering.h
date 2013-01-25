@@ -11,48 +11,37 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNSpinLock.h"
 #include "RNRenderingResource.h"
-
 #include "RNCamera.h"
-#include "RNVector.h"
 #include "RNMatrix.h"
-#include "RNQuaternion.h"
-#include "RNTexture.h"
-#include "RNMaterial.h"
-#include "RNMesh.h"
+#include "RNModel.h"
 
 namespace RN
 {
 	class RenderingIntent : public RenderingResource
 	{
 	public:
-		RenderingIntent(Mesh *_mesh, Material *_material) :
+		RenderingIntent(Model *_model) :
 			RenderingResource("Rendering Intent")
 		{
-			mesh = _mesh->Retain<Mesh>();
-			material = _material->Retain<Material>();
+			model = _model->Retain<Model>();
 		}
 		
 		RenderingIntent(const RenderingIntent& other) :
 			RenderingResource(other._name)
 		{
-			mesh = other.mesh->Retain<Mesh>();
-			material = other.material->Retain<Material>();
-			
+			model = other.model->Retain<Model>();
 			transform = other.transform;
 		}
 		
 		~RenderingIntent()
 		{
-			mesh->Release();
-			material->Release();
+			model->Release();
 		}
 		
 		
 		Matrix transform;
-		Material *material;
-		Mesh *mesh;
+		Model *model;
 	};
 	
 	class RenderingGroup : public RenderingResource

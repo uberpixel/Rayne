@@ -30,20 +30,18 @@ namespace RN
 		virtual void PostUpdate();
 		RenderingIntent Intent();
 		
-		void SetMesh(Mesh *mesh);
-		void SetMaterial(Material *material);
 		
-		Mesh *Mesh() const { return _mesh; }
-		Material *Material() const { return _material; }
+		void SetModel(Model *_model);
+		
+		Model *Model() const { return _model; }
 		
 	private:
-		class Mesh *_mesh;
-		class Material *_material;
+		class Model *_model;
 	};
 	
 	RN_INLINE RenderingIntent Entity::Intent()
 	{
-		RenderingIntent intent(_mesh, _material);
+		RenderingIntent intent(_model);
 		intent.transform = Matrix();
 		
 		return intent;

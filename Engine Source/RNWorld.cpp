@@ -219,10 +219,10 @@ namespace RN
 		material->culling = false;
 		
 		// Entity
-		Entity *entity = new Entity();
-		entity->SetMesh(mesh);
-		entity->SetMaterial(material);
+		Model *model = new Model(mesh, material);
 		
+		Entity *entity = new Entity();
+		entity->SetModel(model);
 		entity->SetPosition(Vector3(0.0f, 0.0f, -128.0f));
 	}
 }

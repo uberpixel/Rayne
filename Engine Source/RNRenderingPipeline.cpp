@@ -223,54 +223,62 @@ namespace RN
 				std::vector<RenderingIntent>::iterator iterator;
 				for(iterator=frame->begin(); iterator!=frame->end(); iterator++)
 				{
-					RenderingIntent *intent = &(*iterator);
-					Material *material = intent->material;
-					Shader *shader = material->Shader();
+					iterator->Push();
 					
-					intent->Push();
+					Model *model = iterator->model;
 					
-					glUseProgram(shader->program);
-					
-					// Bind the material
-					BindMaterial(material);
-					
-					// Update the built-in uniforms
-					if(shader->time != -1)
-						glUniform1f(shader->time, _time);
-					
-					if(shader->matProj != -1)
-						glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, camera->ProjectionMatrix().m);
-					
-					if(shader->matProjInverse != -1)
-						glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, camera->InverseProjectionMatrix().m);
-					
-					if(shader->matView != -1)
-						glUniformMatrix4fv(shader->matView, 1, GL_FALSE, camera->ViewMatrix().m);
-					
-					if(shader->matViewInverse != -1)
-						glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, camera->InverseViewMatrix().m);
-					
-					if(shader->matModel != -1)
-						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, intent->transform.m);
-					
-					if(shader->matModelInverse != -1)
-						glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, intent->transform.Inverse().m);
-					
-					if(shader->matProjViewModel != -1)
+					uint32 count = model->Meshes();
+					for(uint32 i=0; i<count; i++)
 					{
-						Matrix projViewModel = camera->ProjectionMatrix() * camera->ViewMatrix() * intent->transform;
-						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+						Mesh *mesh = model->MeshAtIndex(i);
+						Material *material = model->MaterialForMesh(mesh);
+						
+						Shader *shader = material->Shader();
+						
+						glUseProgram(shader->program);
+						
+						// Bind the material
+						BindMaterial(material);
+						
+						// Update the built-in uniforms
+						if(shader->time != -1)
+							glUniform1f(shader->time, _time);
+						
+						if(shader->matProj != -1)
+							glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, camera->ProjectionMatrix().m);
+						
+						if(shader->matProjInverse != -1)
+							glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, camera->InverseProjectionMatrix().m);
+						
+						if(shader->matView != -1)
+							glUniformMatrix4fv(shader->matView, 1, GL_FALSE, camera->ViewMatrix().m);
+						
+						if(shader->matViewInverse != -1)
+							glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, camera->InverseViewMatrix().m);
+						
+						if(shader->matModel != -1)
+							glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, iterator->transform.m);
+						
+						if(shader->matModelInverse != -1)
+							glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, iterator->transform.Inverse().m);
+						
+						if(shader->matProjViewModel != -1)
+						{
+							Matrix projViewModel = camera->ProjectionMatrix() * camera->ViewMatrix() * iterator->transform;
+							glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+						}
+						
+						if(shader->matProjViewModelInverse != -1)
+						{
+							Matrix projViewModel = camera->InverseProjectionMatrix() * camera->InverseViewMatrix() * iterator->transform.Inverse();
+							glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+						}
+						
+						// Draw the mesh
+						DrawMesh(mesh);
 					}
 					
-					if(shader->matProjViewModelInverse != -1)
-					{
-						Matrix projViewModel = camera->InverseProjectionMatrix() * camera->InverseViewMatrix() * intent->transform.Inverse();
-						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
-					}
-					
-					// Draw the mesh
-					DrawMesh(intent->mesh);
-					intent->Pop();
+					iterator->Pop();
 				}
 			}
 			else
