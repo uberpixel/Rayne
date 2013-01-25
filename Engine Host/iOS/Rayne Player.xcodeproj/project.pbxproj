@@ -310,6 +310,7 @@
 				GCC_PREFIX_HEADER = "Supporting files/Rayne Player-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
+					"\"$(SRCROOT)/../../Vendor/bullet/src\"",
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
@@ -325,6 +326,7 @@
 				GCC_PREFIX_HEADER = "Supporting files/Rayne Player-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
+					"\"$(SRCROOT)/../../Vendor/bullet/src\"",
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;

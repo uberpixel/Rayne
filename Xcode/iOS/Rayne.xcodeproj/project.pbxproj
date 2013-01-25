@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C085A9D116B2898B00E48EBB /* RNRigidBodyEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C085A9CF16B2898B00E48EBB /* RNRigidBodyEntity.cpp */; };
+		C085A9E016B28B7900E48EBB /* libbullet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C085A9DB16B28A2800E48EBB /* libbullet.a */; };
 		E9619EEB169616FD00DA187E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619EEA169616FD00DA187E /* Foundation.framework */; };
 		E9619F2D1696170700DA187E /* RNBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619EFA1696170700DA187E /* RNBase.cpp */; };
 		E9619F2E1696170700DA187E /* RNCamera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619EFC1696170700DA187E /* RNCamera.cpp */; };
@@ -37,6 +39,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		C085A9DA16B28A2800E48EBB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C085A9D316B28A2800E48EBB /* bullet-ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = C05BC15E16B0B4CD00FA7ED0;
+			remoteInfo = bullet;
+		};
+		C085A9DE16B28AE400E48EBB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = C085A9D316B28A2800E48EBB /* bullet-ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = C05BC15D16B0B4CD00FA7ED0;
+			remoteInfo = bullet;
+		};
 		E9619F4C1696184100DA187E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E9619F481696184000DA187E /* png-ios.xcodeproj */;
@@ -66,6 +82,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C085A9CF16B2898B00E48EBB /* RNRigidBodyEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRigidBodyEntity.cpp; sourceTree = "<group>"; };
+		C085A9D016B2898B00E48EBB /* RNRigidBodyEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRigidBodyEntity.h; sourceTree = "<group>"; };
+		C085A9D216B2899E00E48EBB /* RNBullet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBullet.h; sourceTree = "<group>"; };
+		C085A9D316B28A2800E48EBB /* bullet-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "bullet-ios.xcodeproj"; path = "../../Vendor/bullet/bullet-ios.xcodeproj"; sourceTree = "<group>"; };
 		E91B887216977B3C001B7F22 /* RNRenderingResource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNRenderingResource.h; sourceTree = "<group>"; };
 		E9619EE7169616FD00DA187E /* libRayne.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRayne.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9619EEA169616FD00DA187E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -144,12 +164,21 @@
 				E9619F431696178900DA187E /* UIKit.framework in Frameworks */,
 				E9619EEB169616FD00DA187E /* Foundation.framework in Frameworks */,
 				E9619F4F1696185B00DA187E /* libpng.a in Frameworks */,
+				C085A9E016B28B7900E48EBB /* libbullet.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		C085A9D416B28A2800E48EBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				C085A9DB16B28A2800E48EBB /* libbullet.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		E9619EDE169616FD00DA187E = {
 			isa = PBXGroup;
 			children = (
@@ -214,6 +243,7 @@
 		E9619F4E1696184400DA187E /* Vendor */ = {
 			isa = PBXGroup;
 			children = (
+				C085A9D316B28A2800E48EBB /* bullet-ios.xcodeproj */,
 				E9619F481696184000DA187E /* png-ios.xcodeproj */,
 			);
 			name = Vendor;
@@ -232,6 +262,7 @@
 		E9619F611696CB4100DA187E /* Base */ = {
 			isa = PBXGroup;
 			children = (
+				C085A9D216B2899E00E48EBB /* RNBullet.h */,
 				E9619EFA1696170700DA187E /* RNBase.cpp */,
 				E9619EFB1696170700DA187E /* RNBase.h */,
 				E9619F011696170700DA187E /* RNDefines.h */,
@@ -308,6 +339,8 @@
 		E9619F651696CC3500DA187E /* Scene */ = {
 			isa = PBXGroup;
 			children = (
+				C085A9CF16B2898B00E48EBB /* RNRigidBodyEntity.cpp */,
+				C085A9D016B2898B00E48EBB /* RNRigidBodyEntity.h */,
 				E9F77790169A75AC006EE702 /* RNEntity.cpp */,
 				E9F77791169A75AC006EE702 /* RNEntity.h */,
 				E9C6F09716AF4E6E006288D5 /* RNPhysicsPipeline.cpp */,
@@ -332,6 +365,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				C085A9DF16B28AE400E48EBB /* PBXTargetDependency */,
 				E9619F801696FDD000DA187E /* PBXTargetDependency */,
 			);
 			name = Rayne;
@@ -360,6 +394,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = C085A9D416B28A2800E48EBB /* Products */;
+					ProjectRef = C085A9D316B28A2800E48EBB /* bullet-ios.xcodeproj */;
+				},
+				{
 					ProductGroup = E9619F491696184000DA187E /* Products */;
 					ProjectRef = E9619F481696184000DA187E /* png-ios.xcodeproj */;
 				},
@@ -372,6 +410,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		C085A9DB16B28A2800E48EBB /* libbullet.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libbullet.a;
+			remoteRef = C085A9DA16B28A2800E48EBB /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		E9619F4D1696184100DA187E /* libpng.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -407,12 +452,18 @@
 				E9C6F08A16AEA0F8006288D5 /* RNPipelineSegment.cpp in Sources */,
 				E9C6F09616AF4E5E006288D5 /* RNRenderingPipeline.cpp in Sources */,
 				E9C6F09916AF4E6E006288D5 /* RNPhysicsPipeline.cpp in Sources */,
+				C085A9D116B2898B00E48EBB /* RNRigidBodyEntity.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		C085A9DF16B28AE400E48EBB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = bullet;
+			targetProxy = C085A9DE16B28AE400E48EBB /* PBXContainerItemProxy */;
+		};
 		E9619F801696FDD000DA187E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = png;
@@ -479,7 +530,10 @@
 				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Supporting files/Rayne-Prefix.pch";
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Vendor/libpng/include\"";
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
+					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -494,7 +548,10 @@
 				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Supporting files/Rayne-Prefix.pch";
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Vendor/libpng/include\"";
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
+					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
