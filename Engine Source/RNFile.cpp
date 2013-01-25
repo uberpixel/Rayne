@@ -65,6 +65,92 @@ namespace RN
 		return string;
 	}
 	
+	void File::ReadIntoBuffer(void *buffer, size_t size)
+	{
+		size_t read = fread(buffer, size, 1, _file);
+		RN_ASSERT0(read == size);
+	}
+	
+	uint8 File::ReadUint8()
+	{
+		uint8 result;
+		ReadIntoBuffer(&result, sizeof(uint8));
+		
+		return result;
+	}
+	
+	uint16 File::ReadUint16()
+	{
+		uint16 result;
+		ReadIntoBuffer(&result, sizeof(uint16));
+		
+		return result;
+	}
+	
+	uint32 File::ReadUint32()
+	{
+		uint32 result;
+		ReadIntoBuffer(&result, sizeof(uint32));
+		
+		return result;
+	}
+	
+	uint64 File::ReadUint64()
+	{
+		uint64 result;
+		ReadIntoBuffer(&result, sizeof(uint64));
+		
+		return result;
+	}
+	
+	int8 File::ReadInt8()
+	{
+		int8 result;
+		ReadIntoBuffer(&result, sizeof(int8));
+		
+		return result;
+	}
+	
+	int16 File::ReadInt16()
+	{
+		int16 result;
+		ReadIntoBuffer(&result, sizeof(int16));
+		
+		return result;
+	}
+	
+	int32 File::ReadInt32()
+	{
+		int32 result;
+		ReadIntoBuffer(&result, sizeof(int32));
+		
+		return result;
+	}
+	
+	int64 File::ReadInt64()
+	{
+		int64 result;
+		ReadIntoBuffer(&result, sizeof(int64));
+		
+		return result;
+	}
+	
+	float File::ReadFloat()
+	{
+		float result;
+		ReadIntoBuffer(&result, sizeof(float));
+		
+		return result;
+	}
+	
+	double File::ReadDouble()
+	{
+		double result;
+		ReadIntoBuffer(&result, sizeof(double));
+		
+		return result;
+	}
+	
 	// Writing operations
 
 	void File::WriteString(const std::string& string)

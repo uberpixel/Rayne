@@ -29,6 +29,20 @@ namespace RN
 		
 		// Reading operations
 		RNAPI std::string String();
+		RNAPI void ReadIntoBuffer(void *buffer, size_t size);
+		
+		RNAPI uint8 ReadUint8();
+		RNAPI uint16 ReadUint16();
+		RNAPI uint32 ReadUint32();
+		RNAPI uint64 ReadUint64();
+		
+		RNAPI int8 ReadInt8();
+		RNAPI int16 ReadInt16();
+		RNAPI int32 ReadInt32();
+		RNAPI int64 ReadInt64();
+		
+		RNAPI float ReadFloat();
+		RNAPI double ReadDouble();
 
 		// Writing operations
 		RNAPI void WriteString(const std::string& string);
