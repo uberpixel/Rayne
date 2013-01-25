@@ -46,6 +46,7 @@ namespace RN
 		
 		GLuint position;
 		GLuint normal;
+		GLuint tangent;
 		GLuint texcoord0;
 		GLuint texcoord1;
 		GLuint color0;

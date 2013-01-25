@@ -21,13 +21,14 @@ namespace RN
 	{
 		kMeshFeatureVertices = 0,
 		kMeshFeatureNormals = 1,
-		kMeshFeatureColor0 = 2,
-		kMeshFeatureColor1 = 3,
-		kMeshFeatureUVSet0 = 4,
-		kMeshFeatureUVSet1 = 5,
-		kMeshFeatureIndices = 6,
+		kMeshFeatureTangents = 2,
+		kMeshFeatureColor0 = 3,
+		kMeshFeatureColor1 = 4,
+		kMeshFeatureUVSet0 = 5,
+		kMeshFeatureUVSet1 = 6,
+		kMeshFeatureIndices = 7,
 		
-		__kMaxMeshFeatures = 7
+		__kMaxMeshFeatures = 8
 	} MeshFeature;
 	
 	class MeshLODStage;

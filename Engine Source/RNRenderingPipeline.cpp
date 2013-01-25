@@ -484,6 +484,16 @@ namespace RN
 				glVertexAttribPointer(shader->normal, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
+			// Tangents
+			if(shader->tangent != -1 && stage->SupportsFeature(kMeshFeatureTangents))
+			{
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureTangents);
+				size_t offset = stage->OffsetForFeature(kMeshFeatureTangents);
+				
+				glEnableVertexAttribArray(shader->tangent);
+				glVertexAttribPointer(shader->tangent, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+			}
+			
 			// Texcoord0
 			if(shader->texcoord0 != -1 && stage->SupportsFeature(kMeshFeatureUVSet0))
 			{

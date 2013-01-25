@@ -265,6 +265,7 @@ namespace RN
 			
 			// Get attributes
 			position  = glGetAttribLocation(program, "position");
+			tangent   = glGetAttribLocation(program, "tangent");
 			normal    = glGetAttribLocation(program, "normal");
 			texcoord0 = glGetAttribLocation(program, "texcoord0");
 			texcoord1 = glGetAttribLocation(program, "texcoord1");

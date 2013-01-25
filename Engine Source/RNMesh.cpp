@@ -64,11 +64,7 @@ namespace RN
 	
 	MeshLODStage::~MeshLODStage()
 	{
-		if(_vbo)
-			glDeleteBuffers(1, &_vbo);
-		
-		if(_ibo)
-			glDeleteBuffers(1, &_ibo);
+		glDeleteBuffers(2, &_vbo);
 		
 		for(int i=0; i<__kMaxMeshFeatures; i++)
 		{
