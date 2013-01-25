@@ -26,9 +26,6 @@ namespace RN
 		}
 		_addedRigidEntities.clear();
 		
-		// TODO: Run the physics simulation here
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-		
 		_dynamicsWorld->stepSimulation(delta, 10);
 	}
 	
