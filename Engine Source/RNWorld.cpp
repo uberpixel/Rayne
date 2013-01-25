@@ -91,6 +91,8 @@ namespace RN
 		}
 		
 		_renderer->WaitForTaskCompletion(_renderingTask);
+		
+		_renderer->PepareFrame();
 		_renderingTask = _renderer->BeginTask(delta);
 		
 		for(machine_uint i=0; i<_cameras->Count(); i++)

@@ -25,6 +25,7 @@ namespace RN
 		
 		RNAPI void PushGroup(const RenderingGroup& group);
 		RNAPI void FinishFrame();
+		RNAPI void PepareFrame();
 
 		RNAPI void SetDefaultFBO(GLuint fbo);
 		RNAPI void SetDefaultFrame(uint32 width, uint32 height);
@@ -46,6 +47,7 @@ namespace RN
 		
 		Mutex *_frameLock;
 		bool _finishFrame;
+		uint32 _pushedGroups;
 		std::vector<RenderingGroup> _frame;
 		
 		float _time;

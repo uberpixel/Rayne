@@ -558,8 +558,8 @@ namespace RN
 			InitializeFramebufferCopy();
 		
 		_time += delta;
-
-		while(1)
+		
+		while(!_finishFrame || _pushedGroups > 0)
 		{
 			_frameLock->Lock();
 			
@@ -567,23 +567,23 @@ namespace RN
 			if(iterator != _frame.end())
 			{
 				RenderingGroup group = *iterator;
+				
 				_frame.erase(iterator);
+				_pushedGroups --;
+				
 				_frameLock->Unlock();
 				
+				drawn ++;
 				DrawGroup(&group);
 			}
 			else
 			{
 				_frameLock->Unlock();
-				
-				if(_finishFrame)
-					break;
 			}
 		}
 		
 		FlushCameras();
 		
-		_finishFrame = false;
 		_currentMaterial = 0;
 		_currentMesh = 0;
 	}
@@ -591,8 +591,17 @@ namespace RN
 	void RenderingPipeline::PushGroup(const RenderingGroup& group)
 	{
 		_frameLock->Lock();
+		
 		_frame.push_back(group);
+		_pushedGroups ++;
+		
 		_frameLock->Unlock();
+	}
+	
+	void RenderingPipeline::PepareFrame()
+	{
+		_finishFrame = false;
+		_pushedGroups = 0;
 	}
 	
 	void RenderingPipeline::FinishFrame()
