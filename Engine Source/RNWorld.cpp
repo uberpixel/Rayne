@@ -141,25 +141,25 @@ namespace RN
 		vertexDescriptor.feature = kMeshFeatureVertices;
 		vertexDescriptor.elementSize = sizeof(Vector3);
 		vertexDescriptor.elementMember = 3;
-		vertexDescriptor.elementCount  = 4;
+		vertexDescriptor.elementCount  = 24;
 		
 		MeshDescriptor colorDescriptor;
 		colorDescriptor.feature = kMeshFeatureColor0;
 		colorDescriptor.elementSize = sizeof(Color);
 		colorDescriptor.elementMember = 4;
-		colorDescriptor.elementCount  = 4;
+		colorDescriptor.elementCount  = 24;
 		
 		MeshDescriptor texcoordDescriptor;
 		texcoordDescriptor.feature = kMeshFeatureUVSet0;
 		texcoordDescriptor.elementSize = sizeof(Vector2);
 		texcoordDescriptor.elementMember = 2;
-		texcoordDescriptor.elementCount  = 4;
+		texcoordDescriptor.elementCount  = 24;
 		
 		MeshDescriptor indicesDescriptor;
 		indicesDescriptor.feature = kMeshFeatureIndices;
 		indicesDescriptor.elementSize = sizeof(uint16);
 		indicesDescriptor.elementMember = 1;
-		indicesDescriptor.elementCount  = 6;
+		indicesDescriptor.elementCount  = 36;
 		
 		Array<MeshDescriptor> descriptors;
 		descriptors.AddObject(vertexDescriptor);
@@ -175,15 +175,90 @@ namespace RN
 		Vector2 *texcoords = stage->Data<Vector2>(kMeshFeatureUVSet0);
 		uint16 *indices    = stage->Data<uint16>(kMeshFeatureIndices);
 		
-		*vertices ++ = Vector3(-32.0f, 32.0f, 0.0f);
-		*vertices ++ = Vector3(32.0f, 32.0f, 0.0f);
-		*vertices ++ = Vector3(32.0f, -32.0f, 0.0f);
-		*vertices ++ = Vector3(-32.0f, -32.0f, 0.0f);
+		*vertices ++ = Vector3(-0.5f, 0.5f, 0.5f);
+		*vertices ++ = Vector3(0.5f, 0.5f, 0.5f);
+		*vertices ++ = Vector3(0.5f, -0.5f, 0.5f);
+		*vertices ++ = Vector3(-0.5f, -0.5f, 0.5f);
+		
+		*vertices ++ = Vector3(-0.5f, 0.5f, -0.5f);
+		*vertices ++ = Vector3(0.5f, 0.5f, -0.5f);
+		*vertices ++ = Vector3(0.5f, -0.5f, -0.5f);
+		*vertices ++ = Vector3(-0.5f, -0.5f, -0.5f);
+		
+		*vertices ++ = Vector3(-0.5f, 0.5f, -0.5f);
+		*vertices ++ = Vector3(-0.5f, 0.5f, 0.5f);
+		*vertices ++ = Vector3(-0.5f, -0.5f, 0.5f);
+		*vertices ++ = Vector3(-0.5f, -0.5f, -0.5f);
+		
+		*vertices ++ = Vector3(0.5f, 0.5f, -0.5f);
+		*vertices ++ = Vector3(0.5f, 0.5f, 0.5f);
+		*vertices ++ = Vector3(0.5f, -0.5f, 0.5f);
+		*vertices ++ = Vector3(0.5f, -0.5f, -0.5f);
+		
+		*vertices ++ = Vector3(-0.5f, 0.5f, 0.5f);
+		*vertices ++ = Vector3(0.5f, 0.5f, 0.5f);
+		*vertices ++ = Vector3(0.5f, 0.5f, -0.5f);
+		*vertices ++ = Vector3(-0.5f, 0.5f, -0.5f);
+		
+		*vertices ++ = Vector3(-0.5f, -0.5f, -0.5f);
+		*vertices ++ = Vector3(0.5f, -0.5f, -0.5f);
+		*vertices ++ = Vector3(0.5f, -0.5f, 0.5f);
+		*vertices ++ = Vector3(-0.5f, -0.5f, 0.5f);
 		
 		*texcoords ++ = Vector2(0.0f, 0.0f);
 		*texcoords ++ = Vector2(1.0f, 0.0f);
 		*texcoords ++ = Vector2(1.0f, 1.0f);
 		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
+		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
+		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
+		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
+		
+		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
+		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
+		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
+		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
+		
+		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
+		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
+		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
+		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
+		
+		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
+		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
+		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
+		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
+		
+		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
+		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
+		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
+		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
 		
 		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
 		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
@@ -196,6 +271,41 @@ namespace RN
 		*indices ++ = 2;
 		*indices ++ = 1;
 		*indices ++ = 3;
+		
+		*indices ++ = 4;
+		*indices ++ = 7;
+		*indices ++ = 5;
+		*indices ++ = 6;
+		*indices ++ = 5;
+		*indices ++ = 7;
+		
+		*indices ++ = 8;
+		*indices ++ = 11;
+		*indices ++ = 9;
+		*indices ++ = 10;
+		*indices ++ = 9;
+		*indices ++ = 11;
+		
+		*indices ++ = 12;
+		*indices ++ = 15;
+		*indices ++ = 13;
+		*indices ++ = 14;
+		*indices ++ = 13;
+		*indices ++ = 15;
+		
+		*indices ++ = 16;
+		*indices ++ = 19;
+		*indices ++ = 17;
+		*indices ++ = 18;
+		*indices ++ = 17;
+		*indices ++ = 19;
+		
+		*indices ++ = 20;
+		*indices ++ = 23;
+		*indices ++ = 21;
+		*indices ++ = 22;
+		*indices ++ = 21;
+		*indices ++ = 23;
 		
 		mesh->UpdateMesh();
 		
@@ -219,10 +329,52 @@ namespace RN
 		material->culling = false;
 		
 		// Entity
-		Model *model = new Model(mesh, material);
+		RigidBodyEntity *entity = new RigidBodyEntity();
+		entity->SetMesh(mesh);
+		entity->SetMaterial(material);
+		Quaternion rot;
+		rot.MakeEulerAngle(Vector3(45.0f, 45.0f, 45.0f));
+		entity->SetRotation(rot);
+		entity->SetPosition(Vector3(0.0f, 8.0f, -8.0f));
+		entity->SetSize(Vector3(0.5f, 0.5f, 0.5f));
+		entity->SetMass(10.0f);
 		
-		Entity *entity = new Entity();
-		entity->SetModel(model);
-		entity->SetPosition(Vector3(0.0f, 0.0f, -128.0f));
+		entity = new RigidBodyEntity();
+		entity->SetMesh(mesh);
+		entity->SetMaterial(material);
+		rot.MakeEulerAngle(Vector3(45.0f, 45.0f, 45.0f));
+		entity->SetRotation(rot);
+		entity->SetPosition(Vector3(1.0f, 8.0f, -8.0f));
+		entity->SetSize(Vector3(0.5f, 0.5f, 0.5f));
+		entity->SetMass(10.0f);
+		
+		entity = new RigidBodyEntity();
+		entity->SetMesh(mesh);
+		entity->SetMaterial(material);
+		rot.MakeEulerAngle(Vector3(45.0f, 45.0f, 45.0f));
+		entity->SetRotation(rot);
+		entity->SetPosition(Vector3(-0.25f, 5.0f, -8.0f));
+		entity->SetSize(Vector3(0.5f, 0.5f, 0.5f));
+		entity->SetMass(10.0f);
+		
+		
+		shader = new Shader();
+		shader->SetFragmentShader("shader/Ground.fsh");
+		shader->SetVertexShader("shader/Ground.vsh");
+		shader->Link();
+		
+		texture0 = new Texture("textures/tiles.png", Texture::FormatRGB565);
+		material = new Material(shader);
+		material->AddTexture(texture0);
+		material->AddTexture(texture1);
+		material->culling = false;
+		
+		entity = new RigidBodyEntity();
+		entity->SetMesh(mesh);
+		entity->SetMaterial(material);
+		entity->SetPosition(Vector3(0.0f, -5.0f, -8.0f));
+		entity->SetScale(Vector3(10.0f, 1.0f, 10.0f));
+		entity->SetMass(0.0f);
+		entity->SetSize(Vector3(5.0f, 0.5f, 5.0f));
 	}
 }

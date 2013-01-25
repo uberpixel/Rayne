@@ -12,6 +12,8 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNPipelineSegment.h"
+#include "RNBullet.h"
+#include "RNRigidBodyEntity.h"
 
 namespace RN
 {
@@ -20,9 +22,24 @@ namespace RN
 	public:
 		PhysicsPipeline();
 		
+		void AddRigidBody(RigidBodyEntity *entity);
+		void RemoveRigidBody(RigidBodyEntity *entity);
+		void SetGravity(Vector3 gravity);
+		
 	private:
 		virtual void WorkOnTask(TaskID task, float delta);
 		void WorkLoop();
+		
+		btBroadphaseInterface *_broadphase;
+		btDefaultCollisionConfiguration *_collisionConfiguration;
+		btCollisionDispatcher *_dispatcher;
+		btSequentialImpulseConstraintSolver *_solver;
+		btDynamicsWorld *_dynamicsWorld;
+		
+		std::vector<RigidBodyEntity*> _addedRigidEntities;
+		std::vector<RigidBodyEntity*> _removedRigidEntities;
+		
+		Vector3 _gravity;
 	};
 }
 

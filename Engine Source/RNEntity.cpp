@@ -43,6 +43,7 @@ namespace RN
 	
 	void Entity::PostUpdate()
 	{
+		
 	}
 	
 	void Entity::SetModel(class Model *model)

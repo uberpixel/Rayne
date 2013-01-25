@@ -87,12 +87,6 @@ namespace RN
 		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLshort), _copyIndices, GL_STATIC_DRAW);
-		
-		glEnableVertexAttribArray(_copyShader->position);
-		glVertexAttribPointer(_copyShader->position,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
-		
-		glEnableVertexAttribArray(_copyShader->texcoord0);
-		glVertexAttribPointer(_copyShader->texcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 	}
 	
 	void RenderingPipeline::SetDefaultFBO(GLuint fbo)
@@ -180,13 +174,14 @@ namespace RN
 		}
 		
 		glUseProgram(shader->program);
-		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		
 		if(_currentVAO != _copyVAO)
 		{
 			gl::BindVertexArray(_copyVAO);
 			_currentVAO = _copyVAO;
+			
+			glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		}
 		
 		glEnableVertexAttribArray(shader->position);
@@ -430,9 +425,6 @@ namespace RN
 			std::tuple<Material *, MeshLODStage *> tuple = std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage);
 			GLuint vao = VAOForTuple(tuple);
 			
-			glBindBuffer(GL_ARRAY_BUFFER, stage->VBO());
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, stage->IBO());
-			
 			if(vao != _currentVAO)
 			{
 				gl::BindVertexArray(vao);
@@ -464,13 +456,12 @@ namespace RN
 			MeshLODStage *stage = std::get<1>(tuple);
 			
 			Shader *shader = material->Shader();
+
+			gl::GenVertexArrays(1, &vao);
+			gl::BindVertexArray(vao);
 			
 			glBindBuffer(GL_ARRAY_BUFFER, stage->VBO());
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, stage->IBO());
-			
-			
-			gl::GenVertexArrays(1, &vao);
-			gl::BindVertexArray(vao);
 			
 			// Vertices
 			if(shader->position != -1 && stage->SupportsFeature(kMeshFeatureVertices))
