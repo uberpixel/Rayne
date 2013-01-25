@@ -18,6 +18,8 @@ namespace RN
 		_size.x = 1.0;
 		_size.y = 1.0;
 		_size.z = 1.0;
+		
+		World::SharedInstance()->Physics()->AddRigidBody(this);
 	}
 	
 	RigidBodyEntity::~RigidBodyEntity()

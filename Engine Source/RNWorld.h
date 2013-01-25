@@ -31,6 +31,8 @@ namespace RN
 		
 		RNAPI virtual void Update(float delta);
 		
+		RNAPI PhysicsPipeline *Physics() const { return _physics; }
+		
 	private:
 		void AddEntity(Entity *entity);
 		void RemoveEntity(Entity *entity);
