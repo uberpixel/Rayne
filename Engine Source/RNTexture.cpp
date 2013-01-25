@@ -13,12 +13,13 @@
 
 namespace RN
 {
-	Texture::Texture(Format format, WrapMode wrap, Filter filter)
+	Texture::Texture(Format format, WrapMode wrap, Filter filter, bool isLinear)
 	{
 		glGenTextures(1, &_name);
 		
 		_width = _height = 0;
 		_format = format;
+		_isLinear = isLinear;
 		
 		_generateMipmaps = true;
 		_isCompleteTexture = false;
@@ -32,7 +33,7 @@ namespace RN
 		Unbind();
 	}
 	
-	Texture::Texture(const std::string& name, Format format, WrapMode wrap, Filter filter)
+	Texture::Texture(const std::string& name, Format format, WrapMode wrap, Filter filter, bool isLinear)
 	{
 		TextureLoader loader = TextureLoader(name);
 		
@@ -40,6 +41,7 @@ namespace RN
 		
 		_width = _height = 0;
 		_format = format;
+		_isLinear = isLinear;
 		
 		_generateMipmaps = true;
 		_isCompleteTexture = false;
@@ -179,12 +181,13 @@ namespace RN
 	void Texture::SetData(const void *data, uint32 width, uint32 height, Format format)
 	{		
 		GLenum glType, glFormat;
+		GLint glInternalFormat;
 		void *converted;
 		
 		Bind();
 		
 		converted = ConvertData(data, width, height, format, _format);
-		ConvertFormat(_format, &glFormat, &glType);
+		ConvertFormat(_format, _isLinear, &glFormat, &glInternalFormat, &glType);
 		
 		_width  = width;
 		_height = height;
@@ -192,7 +195,7 @@ namespace RN
 		_isCompleteTexture = true;
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexImage2D(GL_TEXTURE_2D, 0, glFormat, _width, _height, 0, glFormat, glType, converted);
+		glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, _width, _height, 0, glFormat, glType, converted);
 		
 		_hasChanged = true;
 		
@@ -209,12 +212,13 @@ namespace RN
 			return; // TODO: Throw an exception
 		
 		GLenum glType, glFormat;
+		GLint glInternalFormat;
 		void *converted;
 		
 		Bind();
 		
 		converted = ConvertData(data, _width, _height, format, _format);
-		ConvertFormat(_format, &glFormat, &glType);
+		ConvertFormat(_format, _isLinear, &glFormat, &glInternalFormat, &glType);
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, converted);
@@ -241,7 +245,7 @@ namespace RN
 		Unbind();
 	}
 	
-	void Texture::ConvertFormat(Format format, GLenum *glFormat, GLenum *glType)
+	void Texture::ConvertFormat(Format format, bool isLinear, GLenum *glFormat, GLint *glInternalFormat, GLenum *glType)
 	{
 		RN_ASSERT0(glFormat != 0 && glType != 0);
 		
@@ -249,21 +253,37 @@ namespace RN
 		{
 			case FormatRGBA8888:
 				*glFormat = GL_RGBA;
+				if(isLinear)
+					*glInternalFormat = GL_RGBA;
+				else
+					*glInternalFormat = GL_SRGB8_ALPHA8;
 				*glType   = GL_UNSIGNED_BYTE;
 				break;
 				
 			case FormatRGBA4444:
 				*glFormat = GL_RGBA;
+				if(isLinear)
+					*glInternalFormat = GL_RGBA;
+				else
+					*glInternalFormat = GL_SRGB8_ALPHA8;
 				*glType   = GL_UNSIGNED_SHORT_4_4_4_4;
 				break;
 				
 			case FormatRGBA5551:
 				*glFormat = GL_RGBA;
+				if(isLinear)
+					*glInternalFormat = GL_RGBA;
+				else
+					*glInternalFormat = GL_SRGB8_ALPHA8;
 				*glType   = GL_UNSIGNED_SHORT_5_5_5_1;
 				break;
 				
 			case FormatRGB565:
 				*glFormat = GL_RGB;
+				if(isLinear)
+					*glInternalFormat = GL_RGB;
+				else
+					*glInternalFormat = GL_SRGB8;
 				*glType   = GL_UNSIGNED_SHORT_5_6_5;
 				break;
 				

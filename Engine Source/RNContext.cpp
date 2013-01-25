@@ -21,6 +21,7 @@ namespace RN
 		_active = false;
 		_thread = 0;
 		_shared = shared->Retain<Context>();
+		_firstActivation = true;
 		
 #if RN_PLATFORM_MAC_OS
 		static NSOpenGLPixelFormatAttribute formatAttributes[] =
@@ -284,6 +285,13 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		wglMakeCurrent(_hDC, _context);
 #endif
+		
+		if(_firstActivation)
+		{
+			_firstActivation = false;
+			
+			glEnable(GL_FRAMEBUFFER_SRGB);
+		}
 	}
 	
 	void Context::Deactivate()

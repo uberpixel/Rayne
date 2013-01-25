@@ -54,6 +54,7 @@ namespace RN
 		
 		const Rect& Frame() const { return _frame; }
 		const Color& ClearColor() const { return _clearColor; }
+		const bool& Linear() const { return _isLinear; }
 		
 		const Matrix& ProjectionMatrix() const { return _projectionMatrix; }
 		const Matrix& InverseProjectionMatrix() const { return _inverseProjectionMatrix; }
@@ -84,6 +85,7 @@ namespace RN
 		
 		Rect _frame;
 		Color _clearColor;
+		bool _isLinear;
 		
 		Matrix _projectionMatrix;
 		Matrix _inverseProjectionMatrix;

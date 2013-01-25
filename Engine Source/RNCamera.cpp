@@ -19,7 +19,8 @@ namespace RN
 	{
 		_material = 0;
 		_stage    = 0;
-		_texture  = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp);
+		_isLinear = false;
+		_texture  = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp, Texture::FilterNearest, _isLinear);
 		_texture->SetGeneratesMipmaps(false);
 		
 		flags = _flags;
@@ -222,8 +223,16 @@ namespace RN
 		{
 			_texture->Bind();
 			
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			if(_isLinear)
+			{
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 			RN_CHECKOPENGL();
+			}
+			else
+			{
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+				RN_CHECKOPENGL();
+			}
 			
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture->Name(), 0);
 			RN_CHECKOPENGL();		

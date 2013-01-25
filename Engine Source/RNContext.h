@@ -39,6 +39,7 @@ namespace RN
 		bool _active;
 		Thread *_thread;
 		Context *_shared;
+		bool _firstActivation;
 		
 #if RN_PLATFORM_MAC_OS
 		NSOpenGLContext *_oglContext;

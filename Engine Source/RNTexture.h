@@ -42,8 +42,8 @@ namespace RN
 			FilterNearest
 		} Filter;
 		
-		RNAPI Texture(Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear);
-		RNAPI Texture(const std::string& name, Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear);
+		RNAPI Texture(Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear, bool isLinear=false);
+		RNAPI Texture(const std::string& name, Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear, bool isLinear=false);
 		
 		RNAPI virtual ~Texture();
 		
@@ -74,7 +74,7 @@ namespace RN
 		
 	private:
 		static void *ConvertData(const void *data, uint32 width, uint32 height, Format current, Format target);
-		static void ConvertFormat(Format format, GLenum *glFormat, GLenum *glType);
+		static void ConvertFormat(Format format, bool isLinear, GLenum *glFormat, GLint *glInternalFormat, GLenum *glType);
 		
 		bool _isCompleteTexture;
 		bool _generateMipmaps;
@@ -83,6 +83,7 @@ namespace RN
 		Format _format;
 		Filter _filter;
 		WrapMode _wrapMode;
+		bool _isLinear;
 	};
 }
 
