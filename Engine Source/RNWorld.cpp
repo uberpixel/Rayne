@@ -205,7 +205,7 @@ namespace RN
 		
 		Shader *shader = new Shader();
 #if !RN_PLATFORM_IOS
-		shader->SetGeometryShader("shader/Test.gsh");
+//		shader->SetGeometryShader("shader/Test.gsh");
 #endif
 		shader->SetFragmentShader("shader/Test.fsh");
 		shader->SetVertexShader("shader/Test.vsh");
