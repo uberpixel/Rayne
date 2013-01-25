@@ -290,7 +290,9 @@ namespace RN
 		{
 			_firstActivation = false;
 			
+#if GL_FRAMEBUFFER_SRGB
 			glEnable(GL_FRAMEBUFFER_SRGB);
+#endif
 		}
 	}
 	

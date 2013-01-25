@@ -245,6 +245,13 @@ namespace RN
 		Unbind();
 	}
 	
+#ifndef GL_SRGB8_ALPHA8
+#define GL_SRGB8_ALPHA8 GL_RGBA
+#define GL_SRGB8        GL_RGB
+	
+#define RN_ADDED_GL_SRGB
+#endif
+	
 	void Texture::ConvertFormat(Format format, bool isLinear, GLenum *glFormat, GLint *glInternalFormat, GLenum *glType)
 	{
 		RN_ASSERT0(glFormat != 0 && glType != 0);
@@ -253,37 +260,25 @@ namespace RN
 		{
 			case FormatRGBA8888:
 				*glFormat = GL_RGBA;
-				if(isLinear)
-					*glInternalFormat = GL_RGBA;
-				else
-					*glInternalFormat = GL_SRGB8_ALPHA8;
+				*glInternalFormat = isLinear ? GL_RGBA : GL_SRGB8_ALPHA8;
 				*glType   = GL_UNSIGNED_BYTE;
 				break;
 				
 			case FormatRGBA4444:
 				*glFormat = GL_RGBA;
-				if(isLinear)
-					*glInternalFormat = GL_RGBA;
-				else
-					*glInternalFormat = GL_SRGB8_ALPHA8;
+				*glInternalFormat = isLinear ? GL_RGBA : GL_SRGB8_ALPHA8;
 				*glType   = GL_UNSIGNED_SHORT_4_4_4_4;
 				break;
 				
 			case FormatRGBA5551:
 				*glFormat = GL_RGBA;
-				if(isLinear)
-					*glInternalFormat = GL_RGBA;
-				else
-					*glInternalFormat = GL_SRGB8_ALPHA8;
+				*glInternalFormat = isLinear ? GL_RGBA : GL_SRGB8_ALPHA8;
 				*glType   = GL_UNSIGNED_SHORT_5_5_5_1;
 				break;
 				
 			case FormatRGB565:
 				*glFormat = GL_RGB;
-				if(isLinear)
-					*glInternalFormat = GL_RGB;
-				else
-					*glInternalFormat = GL_SRGB8;
+				*glInternalFormat = isLinear ? GL_RGB : GL_SRGB8;
 				*glType   = GL_UNSIGNED_SHORT_5_6_5;
 				break;
 				
@@ -292,6 +287,12 @@ namespace RN
 				break;
 		}
 	}
+	
+#ifdef RN_ADDED_GL_SRGB
+#undef GL_SRGB8_ALPHA8
+#undef GL_SRGB8
+#undef RN_ADDED_GL_SRGB
+#endif
 	
 	void *Texture::ConvertData(const void *data, uint32 width, uint32 height, Format current, Format target)
 	{

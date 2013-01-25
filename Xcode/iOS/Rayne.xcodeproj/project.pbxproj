@@ -32,6 +32,7 @@
 		E9C6F08A16AEA0F8006288D5 /* RNPipelineSegment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F08816AEA0F8006288D5 /* RNPipelineSegment.cpp */; };
 		E9C6F09616AF4E5E006288D5 /* RNRenderingPipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F09416AF4E5E006288D5 /* RNRenderingPipeline.cpp */; };
 		E9C6F09916AF4E6E006288D5 /* RNPhysicsPipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F09716AF4E6E006288D5 /* RNPhysicsPipeline.cpp */; };
+		E9C6F0AC16B245C9006288D5 /* RNModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F0AA16B245C9006288D5 /* RNModel.cpp */; };
 		E9F77792169A75AC006EE702 /* RNEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F77790169A75AC006EE702 /* RNEntity.cpp */; };
 		E9F77795169C4038006EE702 /* RNOpenGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F77793169C4038006EE702 /* RNOpenGL.cpp */; };
 /* End PBXBuildFile section */
@@ -127,6 +128,8 @@
 		E9C6F09516AF4E5E006288D5 /* RNRenderingPipeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRenderingPipeline.h; sourceTree = "<group>"; };
 		E9C6F09716AF4E6E006288D5 /* RNPhysicsPipeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNPhysicsPipeline.cpp; sourceTree = "<group>"; };
 		E9C6F09816AF4E6E006288D5 /* RNPhysicsPipeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPhysicsPipeline.h; sourceTree = "<group>"; };
+		E9C6F0AA16B245C9006288D5 /* RNModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNModel.cpp; sourceTree = "<group>"; };
+		E9C6F0AB16B245C9006288D5 /* RNModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNModel.h; sourceTree = "<group>"; };
 		E9F77790169A75AC006EE702 /* RNEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNEntity.cpp; sourceTree = "<group>"; };
 		E9F77791169A75AC006EE702 /* RNEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNEntity.h; sourceTree = "<group>"; };
 		E9F77793169C4038006EE702 /* RNOpenGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenGL.cpp; sourceTree = "<group>"; };
@@ -184,6 +187,7 @@
 		E9619EF81696170700DA187E /* Engine Source */ = {
 			isa = PBXGroup;
 			children = (
+				E9C6F0A916B245BC006288D5 /* Assets */,
 				E9619F611696CB4100DA187E /* Base */,
 				E9619F601696CAEB00DA187E /* Container */,
 				E9619F621696CB7900DA187E /* Math */,
@@ -246,8 +250,6 @@
 				E9619F161696170700DA187E /* RNPlatform.h */,
 				E9C6F08816AEA0F8006288D5 /* RNPipelineSegment.cpp */,
 				E9C6F08916AEA0F8006288D5 /* RNPipelineSegment.h */,
-				E9619F241696170700DA187E /* RNTextureLoader.cpp */,
-				E9619F251696170700DA187E /* RNTextureLoader.h */,
 			);
 			name = Base;
 			sourceTree = "<group>";
@@ -316,6 +318,17 @@
 				E9619F2C1696170700DA187E /* RNWorld.h */,
 			);
 			name = Scene;
+			sourceTree = "<group>";
+		};
+		E9C6F0A916B245BC006288D5 /* Assets */ = {
+			isa = PBXGroup;
+			children = (
+				E9C6F0AA16B245C9006288D5 /* RNModel.cpp */,
+				E9C6F0AB16B245C9006288D5 /* RNModel.h */,
+				E9619F241696170700DA187E /* RNTextureLoader.cpp */,
+				E9619F251696170700DA187E /* RNTextureLoader.h */,
+			);
+			name = Assets;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -407,6 +420,7 @@
 				E9C6F08A16AEA0F8006288D5 /* RNPipelineSegment.cpp in Sources */,
 				E9C6F09616AF4E5E006288D5 /* RNRenderingPipeline.cpp in Sources */,
 				E9C6F09916AF4E6E006288D5 /* RNPhysicsPipeline.cpp in Sources */,
+				E9C6F0AC16B245C9006288D5 /* RNModel.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

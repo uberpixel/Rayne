@@ -223,16 +223,21 @@ namespace RN
 		{
 			_texture->Bind();
 			
+#if GL_SRGB8_ALPHA8
 			if(_isLinear)
 			{
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-			RN_CHECKOPENGL();
+				RN_CHECKOPENGL();
 			}
 			else
 			{
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 				RN_CHECKOPENGL();
 			}
+#else
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			RN_CHECKOPENGL();
+#endif
 			
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture->Name(), 0);
 			RN_CHECKOPENGL();		

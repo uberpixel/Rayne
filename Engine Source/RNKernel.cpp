@@ -72,6 +72,8 @@ namespace RN
 			
 			_context->DeactivateContext();			
 		}
+		
+		printf("FPS: %i\n", (int)(1.0f / delta));
 
 		_lastFrame = now;
 		return true;
