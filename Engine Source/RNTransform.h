@@ -26,9 +26,9 @@ namespace RN
 		void Scale(const Vector3& scal);
 		void Rotate(const Vector3& rot);
 		
-		void SetPosition(const Vector3& pos);
-		void SetScale(const Vector3& scal);
-		void SetRotation(const Quaternion& rot);
+		virtual void SetPosition(const Vector3& pos);
+		virtual void SetScale(const Vector3& scal);
+		virtual void SetRotation(const Quaternion& rot);
 		
 		const Vector3& Position() const { return _position; }
 		const Vector3& Scale() const { return _scale; }
@@ -36,13 +36,14 @@ namespace RN
 		
 		const Matrix& Matrix();
 		
-	private:
+	protected:
 		bool _didChange;
 		
 		Vector3 _position;
 		Vector3 _scale;
 		Quaternion _rotation;
 		
+	private:
 		class Matrix _transform;
 	};
 	

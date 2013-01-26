@@ -335,25 +335,21 @@ namespace RN
 		
 		RigidBodyEntity *entity = new RigidBodyEntity();
 		entity->SetModel(model);
-		Quaternion rot;
-		rot.MakeEulerAngle(Vector3(45.0f, 45.0f, 45.0f));
-		entity->SetRotation(rot);
+		entity->SetRotation(Quaternion(Vector3(45.0f, 45.0f, 45.0f)));
 		entity->SetPosition(Vector3(0.0f, 8.0f, -8.0f));
 		entity->SetSize(Vector3(0.5f, 0.5f, 0.5f));
 		entity->SetMass(10.0f);
 		
 		entity = new RigidBodyEntity();
 		entity->SetModel(model);
-		rot.MakeEulerAngle(Vector3(45.0f, 45.0f, 45.0f));
-		entity->SetRotation(rot);
+		entity->SetRotation(Quaternion(Vector3(45.0f, 45.0f, 45.0f)));
 		entity->SetPosition(Vector3(1.0f, 8.0f, -8.0f));
 		entity->SetSize(Vector3(0.5f, 0.5f, 0.5f));
 		entity->SetMass(10.0f);
 		
 		entity = new RigidBodyEntity();
 		entity->SetModel(model);
-		rot.MakeEulerAngle(Vector3(45.0f, 45.0f, 45.0f));
-		entity->SetRotation(rot);
+		entity->SetRotation(Quaternion(Vector3(45.0f, 45.0f, 45.0f)));
 		entity->SetPosition(Vector3(-0.25f, 5.0f, -8.0f));
 		entity->SetSize(Vector3(0.5f, 0.5f, 0.5f));
 		entity->SetMass(10.0f);

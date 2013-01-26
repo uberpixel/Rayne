@@ -19,16 +19,30 @@ namespace RN
 {
 	class PhysicsPipeline : public PipelineSegment
 	{
+	friend class RigidBodyEntity;
 	public:
 		PhysicsPipeline();
 		
-		void AddRigidBody(RigidBodyEntity *entity);
-		void RemoveRigidBody(RigidBodyEntity *entity);
-		void SetGravity(Vector3 gravity);
+		void SetGravity(const Vector3& gravity);
 		
 	private:
+		enum
+		{
+			GravityChange = (1 << 0)
+		};
+		
+		struct RemovedRigidBody
+		{
+			btCollisionShape *shape;
+			btTriangleMesh *triangleMesh;
+			btRigidBody *rigidbody;
+		};
+		
 		virtual void WorkOnTask(TaskID task, float delta);
 		void WorkLoop();
+		
+		void ChangedRigidBody(RigidBodyEntity *entity);
+		void RemoveRigidBody(RigidBodyEntity *entity);
 		
 		btBroadphaseInterface *_broadphase;
 		btDefaultCollisionConfiguration *_collisionConfiguration;
@@ -36,10 +50,11 @@ namespace RN
 		btSequentialImpulseConstraintSolver *_solver;
 		btDynamicsWorld *_dynamicsWorld;
 		
-		std::vector<RigidBodyEntity*> _addedRigidEntities;
-		std::vector<RigidBodyEntity*> _removedRigidEntities;
+		std::unordered_set<RigidBodyEntity *> _changedRigidEntities;
+		std::vector<RemovedRigidBody> _removedRigidEntities;
 		
 		Vector3 _gravity;
+		uint32 _changes;
 	};
 }
 

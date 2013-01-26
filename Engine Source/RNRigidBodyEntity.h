@@ -12,52 +12,64 @@
 #include "RNBase.h"
 #include "RNEntity.h"
 #include "RNBullet.h"
+#include "RNSpinLock.h"
 
 namespace RN
 {
+	class PhysicsPipeline;
 	class RigidBodyEntity : public Entity, public btMotionState
 	{
+	friend class PhysicsPipeline;
 	public:
-		enum ShapeType
+		typedef enum 
 		{
-			Shape_BOX,
-			Shape_SPHERE,
-			Shape_MESH
-		};
+			ShapeBox,
+			ShapeSphere,
+			ShapeMesh
+		} Shape;
 		
-		RigidBodyEntity();
-		
+		RigidBodyEntity(Shape shape=ShapeBox);
 		virtual ~RigidBodyEntity();
 		
 		virtual void Update(float delta);
 		virtual void PostUpdate();
 		
-		void InitializeRigidBody(btDynamicsWorld *world);
-		void DestroyRigidBody(btDynamicsWorld *world);
+		void SetMass(float mass);
+		void SetSize(const Vector3& size);
 		
-		void SetMass(float mass){_mass = mass;}
-		void SetSize(Vector3 size){_size = size;}
-		void SetShape(ShapeType shape);
+		virtual void SetPosition(const Vector3& pos);
+		virtual void SetRotation(const Quaternion& rot);
 		
-		/**
-		 *	Motion state events.
-		 *	Functions used internally to set and get the bodys transformation.
-		 */
-		void getWorldTransform(btTransform &worldTrans) const;
-		void setWorldTransform(const btTransform &worldTrans);
+	protected:
+		void UpdateRigidBody(btDynamicsWorld *world);
+		
+		virtual void getWorldTransform(btTransform& worldTrans) const;
+		virtual void setWorldTransform(const btTransform& worldTrans);
 		
 	private:
+		enum
+		{
+			MassChange = (1 << 0),
+			SizeChange = (1 << 1),
+			PositionChange = (1 << 2),
+			RotationChange = (1 << 3)
+		};
+		
 		btCollisionShape *GenerateMeshShape();
+		
+		SpinLock _transformLock;
+		Transform _cachedTransform;
+		std::mutex _mutex;
 		
 		float _mass;
 		Vector3 _size;
+		uint32 _changes;
 		
-		ShapeType _shapeType;
+		Shape _shapeType;
+		
 		btCollisionShape *_shape;
 		btTriangleMesh *_triangleMesh;
 		btRigidBody *_rigidbody;
-		Vector3 _tempPosition;
-		Quaternion _tempRotation;
 	};
 }
 

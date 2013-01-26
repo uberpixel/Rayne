@@ -30,6 +30,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "RNPlatform.h"
 #include "RNDefines.h"

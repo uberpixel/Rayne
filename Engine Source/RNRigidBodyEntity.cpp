@@ -13,19 +13,18 @@
 
 namespace RN
 {
-	RigidBodyEntity::RigidBodyEntity()
+	RigidBodyEntity::RigidBodyEntity(Shape shape) :
+		_size(Vector3(1.0f)),
+		_shapeType(shape)
 	{
-		_mass = 1.0;
-		_size.x = 1.0;
-		_size.y = 1.0;
-		_size.z = 1.0;
+		_mass = 1.0f;
+		_changes = 0;
 		
-		_shapeType = Shape_BOX;
 		_shape = 0;
 		_rigidbody = 0;
 		_triangleMesh = 0;
 		
-		World::SharedInstance()->Physics()->AddRigidBody(this);
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
 	}
 	
 	RigidBodyEntity::~RigidBodyEntity()
@@ -33,70 +32,161 @@ namespace RN
 		World::SharedInstance()->Physics()->RemoveRigidBody(this);
 	}
 	
+	
 	void RigidBodyEntity::Update(float delta)
 	{
-		
 	}
 	
 	void RigidBodyEntity::PostUpdate()
 	{
-		SetRotation(_tempRotation);
-		SetPosition(_tempPosition);
+		_position = _cachedTransform.Position();
+		_rotation = _cachedTransform.Rotation();
+		_didChange = true;
+		
+		_changes &= ~PositionChange;
+		_changes &= ~RotationChange;
 	}
 	
-	void RigidBodyEntity::InitializeRigidBody(btDynamicsWorld *world)
-	{
-		switch(_shapeType)
+	
+	void RigidBodyEntity::UpdateRigidBody(btDynamicsWorld *world)
+	{		
+		if(!_shape || _changes & SizeChange)
 		{
-			case Shape_BOX:
-				_shape = new btBoxShape(btVector3(_size.x, _size.y, _size.z));
-				break;
-			
-			case Shape_SPHERE:
-				_shape = new btSphereShape(_size.x);
-				break;
+			if(_shape)
+			{
+				delete _shape;
 				
-			case Shape_MESH:
-				_shape = GenerateMeshShape();
-				break;
-		}
-		btVector3 inertia(0, 0, 0);
-		if(_triangleMesh == 0)
+				if(_triangleMesh)
+				{
+					delete _triangleMesh;
+					_triangleMesh = 0;
+				}
+			}
+			
+			switch(_shapeType)
+			{
+				case ShapeBox:
+					_shape = new btBoxShape(btVector3(_size.x, _size.y, _size.z));
+					break;
+					
+				case ShapeSphere:
+					_shape = new btSphereShape(_size.x);
+					break;
+					
+				case ShapeMesh:
+					_shape = GenerateMeshShape();
+					break;
+			}
+			
+			btVector3 inertia(0, 0, 0);
 			_shape->calculateLocalInertia(_mass, inertia);
-		btRigidBody::btRigidBodyConstructionInfo bodyci(_mass, this, _shape, inertia);
-		_rigidbody = new btRigidBody(bodyci);
-		world->addRigidBody(_rigidbody);
-		btTransform trans;
-		getWorldTransform(trans);
-		setWorldTransform(trans);
+			
+			if(!_rigidbody)
+			{
+				_transformLock.Lock();
+				_cachedTransform = *this;
+				_changes &= ~(PositionChange | RotationChange);
+				_transformLock.Unlock();
+				
+				btRigidBody::btRigidBodyConstructionInfo info(_mass, this, _shape, inertia);
+				
+				_rigidbody = new btRigidBody(info);
+				world->addRigidBody(_rigidbody);
+			}
+			else
+			{
+				_rigidbody->setCollisionShape(_shape);
+			}
+			
+			_changes &= ~(MassChange | SizeChange);
+		}
+		
+		if(_changes & MassChange)
+		{
+			btVector3 inertia(0, 0, 0);
+			_shape->calculateLocalInertia(_mass, inertia);
+			_rigidbody->setMassProps(_mass, inertia);
+			
+			_changes &= ~MassChange;
+		}
+		
+		if(_changes & PositionChange || _changes & RotationChange)
+		{
+			_transformLock.Lock();
+			
+			btTransform transform;
+			
+			getWorldTransform(transform);
+			_rigidbody->setWorldTransform(transform);
+			
+			_transformLock.Unlock();
+			
+			_changes &= ~(PositionChange | RotationChange);
+		}
 	}
 	
-	void RigidBodyEntity::DestroyRigidBody(btDynamicsWorld *world)
+	
+	void RigidBodyEntity::SetMass(float mass)
 	{
-		world->removeRigidBody(_rigidbody);
-		delete _rigidbody;
-		delete _shape;
-		if(_triangleMesh != 0)
-			delete _triangleMesh;
+		_mass = mass;
+		_changes |= MassChange;
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
 	}
 	
-	void RigidBodyEntity::getWorldTransform(btTransform &worldTrans) const
+	void RigidBodyEntity::SetSize(const Vector3& size)
 	{
-		const Quaternion& rot = Rotation();
+		_size = size;
+		_changes |= SizeChange;
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+	}
+	
+	void RigidBodyEntity::SetPosition(const Vector3& pos)
+	{
+		Transform::SetPosition(pos);
+		_changes |= PositionChange;
+		
+		_transformLock.Lock();
+		_cachedTransform.SetPosition(pos);
+		_transformLock.Unlock();
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+	}
+	
+	void RigidBodyEntity::SetRotation(const Quaternion& rot)
+	{
+		Transform::SetRotation(rot);
+		_changes |= RotationChange;
+		
+		_transformLock.Lock();
+		_cachedTransform.SetRotation(rot);
+		_transformLock.Unlock();
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+	}
+	
+	
+	void RigidBodyEntity::getWorldTransform(btTransform& worldTrans) const
+	{
+		const Quaternion& rot = _cachedTransform.Rotation();
+		const Vector3& pos = _cachedTransform.Position();
+		
 		worldTrans.setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
-		const Vector3& pos = Position();
 		worldTrans.setOrigin(btVector3(pos.x, pos.y, pos.z));
 	}
 	
-	void RigidBodyEntity::setWorldTransform(const btTransform &worldTrans)
+	void RigidBodyEntity::setWorldTransform(const btTransform& worldTrans)
 	{
 		btQuaternion rot = worldTrans.getRotation();
-		_tempRotation.x = rot.x();
-		_tempRotation.y = rot.y();
-		_tempRotation.z = rot.z();
-		_tempRotation.w = rot.w();
 		btVector3 pos = worldTrans.getOrigin();
-		_tempPosition = Vector3(pos.x(), pos.y(), pos.z());
+		
+		_transformLock.Lock();
+		
+		_cachedTransform.SetRotation(Quaternion(rot.x(), rot.y(), rot.z(), rot.w()));
+		_cachedTransform.SetPosition(Vector3(pos.x(), pos.y(), pos.z()));
+		
+		_transformLock.Unlock();
 	}
 	
 	btCollisionShape *RigidBodyEntity::GenerateMeshShape()

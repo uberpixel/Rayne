@@ -341,12 +341,12 @@
 		E9619F651696CC3500DA187E /* Scene */ = {
 			isa = PBXGroup;
 			children = (
-				C085AA2716B2B42500E48EBB /* RNRigidBodyEntity.cpp */,
-				C085AA2816B2B42500E48EBB /* RNRigidBodyEntity.h */,
 				E9F77790169A75AC006EE702 /* RNEntity.cpp */,
 				E9F77791169A75AC006EE702 /* RNEntity.h */,
 				E9C6F09716AF4E6E006288D5 /* RNPhysicsPipeline.cpp */,
 				E9C6F09816AF4E6E006288D5 /* RNPhysicsPipeline.h */,
+				C085AA2716B2B42500E48EBB /* RNRigidBodyEntity.cpp */,
+				C085AA2816B2B42500E48EBB /* RNRigidBodyEntity.h */,
 				E9619F2B1696170700DA187E /* RNWorld.cpp */,
 				E9619F2C1696170700DA187E /* RNWorld.h */,
 			);

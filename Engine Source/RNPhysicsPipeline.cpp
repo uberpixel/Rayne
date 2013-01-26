@@ -14,33 +14,50 @@ namespace RN
 	PhysicsPipeline::PhysicsPipeline()
 	{
 		_gravity = Vector3(0.0, -9.81, 0.0);
+		_changes = GravityChange;
+		
 		std::thread thread = std::thread(&PhysicsPipeline::WorkLoop, this);
 		thread.detach();
 	}
 	
 	void PhysicsPipeline::WorkOnTask(TaskID task, float delta)
 	{
-		for(auto i=_addedRigidEntities.begin(); i!=_addedRigidEntities.end(); i++)
-		{
-			RigidBodyEntity *entity = *i;
-			entity->InitializeRigidBody(_dynamicsWorld);
-		}
-		_addedRigidEntities.clear();
-		
+		// Remove the accumulated dead bodies
 		for(auto i=_removedRigidEntities.begin(); i!=_removedRigidEntities.end(); i++)
 		{
-			RigidBodyEntity *entity = *i;
-			entity->DestroyRigidBody(_dynamicsWorld);
+			_dynamicsWorld->removeRigidBody(i->rigidbody);
+			
+			delete i->rigidbody;
+			delete i->shape;
+			
+			if(i->triangleMesh)
+				delete i->triangleMesh;
 		}
+		
 		_removedRigidEntities.clear();
 		
-		_dynamicsWorld->setGravity(btVector3(_gravity.x, _gravity.y, _gravity.z));
+		// Update rigid bodies
+		for(auto i=_changedRigidEntities.begin(); i!=_changedRigidEntities.end(); i++)
+		{
+			RigidBodyEntity *entity = *i;
+			entity->UpdateRigidBody(_dynamicsWorld);
+		}
+		
+		_changedRigidEntities.clear();
+		
+		// Apply accumulated changes to the world
+		if(_changes & GravityChange)
+		{
+			_dynamicsWorld->setGravity(btVector3(_gravity.x, _gravity.y, _gravity.z));
+			_changes &= ~GravityChange;
+		}
+		
+		// Simulate the world
 		_dynamicsWorld->stepSimulation(delta, 10);
 	}
 	
 	void PhysicsPipeline::WorkLoop()
 	{
-
 		btBroadphaseInterface *_broadphase = new btDbvtBroadphase();
 		
 		// Set up the collision configuration and dispatcher
@@ -52,7 +69,6 @@ namespace RN
 		
 		// The world.
 		_dynamicsWorld = new btDiscreteDynamicsWorld(_dispatcher, _broadphase, _solver, _collisionConfiguration);
-		_dynamicsWorld->setGravity(btVector3(_gravity.x, _gravity.y, _gravity.z));
 		
 		while(!ShouldStop())
 		{
@@ -69,18 +85,29 @@ namespace RN
 		DidStop();
 	}
 	
-	void PhysicsPipeline::AddRigidBody(RigidBodyEntity *entity)
+	
+	void PhysicsPipeline::ChangedRigidBody(RigidBodyEntity *entity)
 	{
-		_addedRigidEntities.push_back(entity);
+		_changedRigidEntities.insert(entity);
 	}
 	
 	void PhysicsPipeline::RemoveRigidBody(RigidBodyEntity *entity)
 	{
-		_removedRigidEntities.push_back(entity);
+		_changedRigidEntities.erase(entity);
+		
+		RemovedRigidBody body;
+		body.shape = entity->_shape;
+		body.triangleMesh = entity->_triangleMesh;
+		body.rigidbody = entity->_rigidbody;
+		
+		_removedRigidEntities.push_back(body);
 	}
 	
-	void PhysicsPipeline::SetGravity(Vector3 gravity)
+	
+	
+	void PhysicsPipeline::SetGravity(const Vector3& gravity)
 	{
 		_gravity = gravity;
+		_changes |= GravityChange;
 	}
 }
