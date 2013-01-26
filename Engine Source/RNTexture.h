@@ -60,13 +60,18 @@ namespace RN
 		RNAPI void SetWrappingMode(WrapMode wrap);
 		RNAPI void SetFilter(Filter filter);
 		RNAPI void SetGeneratesMipmaps(bool genMipmaps);
+		RNAPI void SetAnisotropyLevel(uint32 level);
 		
 		Format TextureFormat() const { return _format; }
 		Filter TextureFilter() const { return _filter; }
 		WrapMode TextureWrapMode() const { return _wrapMode; }
 		bool GeneratesMipmaps() const { return _generateMipmaps; }
+		uint32 AnisotropyLevel() const { return _anisotropy; }
 		
 		static bool PlatformSupportsFormat(Format format);
+		static uint32 MaxAnisotropyLevel();
+		static uint32 DefaultAnisotropyLevel();
+		static void SetDefaultAnisotropyLevel(uint32 level);
 		
 	protected:
 		GLuint _name;
@@ -83,7 +88,10 @@ namespace RN
 		Format _format;
 		Filter _filter;
 		WrapMode _wrapMode;
+		uint32 _anisotropy;
 		bool _isLinear;
+		
+		static uint32 _defaultAnisotropy;
 	};
 }
 

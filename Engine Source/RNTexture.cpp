@@ -13,6 +13,8 @@
 
 namespace RN
 {
+	uint32 Texture::_defaultAnisotropy = 0;
+	
 	Texture::Texture(Format format, WrapMode wrap, Filter filter, bool isLinear)
 	{
 		glGenTextures(1, &_name);
@@ -20,6 +22,7 @@ namespace RN
 		_width = _height = 0;
 		_format = format;
 		_isLinear = isLinear;
+		_anisotropy = 0;
 		
 		_generateMipmaps = true;
 		_isCompleteTexture = false;
@@ -29,6 +32,7 @@ namespace RN
 		
 		SetFilter(filter);
 		SetWrappingMode(wrap);
+		SetAnisotropyLevel(_defaultAnisotropy);
 		
 		Unbind();
 	}
@@ -175,6 +179,21 @@ namespace RN
 			
 			_generateMipmaps = genMipmaps;
 			SetFilter(_filter);
+		}
+	}
+	
+	void Texture::SetAnisotropyLevel(uint32 level)
+	{
+		if(_anisotropy != level)
+		{
+			_anisotropy = level;
+			
+			Bind();
+			
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, level);
+			_hasChanged = true;
+			
+			Unbind();
 		}
 	}
 	
@@ -482,5 +501,23 @@ namespace RN
 			default:
 				return true;
 		}
+	}
+	
+	uint32 Texture::MaxAnisotropyLevel()
+	{
+		GLint max;
+		glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
+		
+		return max;
+	}
+	
+	uint32 Texture::DefaultAnisotropyLevel()
+	{
+		return _defaultAnisotropy;
+	}
+	
+	void Texture::SetDefaultAnisotropyLevel(uint32 level)
+	{
+		_defaultAnisotropy = level;
 	}
 }

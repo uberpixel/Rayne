@@ -30,6 +30,8 @@ namespace RN
 		_world = 0;
 		_time  = 0;
 		_lastFrame = std::chrono::system_clock::now();
+		
+		Texture::SetDefaultAnisotropyLevel(Texture::MaxAnisotropyLevel());
 	}	
 	
 	Kernel::~Kernel()
