@@ -71,7 +71,7 @@ namespace RN
 		float _linearDamping;
 		float _angularDamping;
 		
-		std::vector<Vector3> _centralForces;
+		Vector3 _centralForce;
 		std::vector<std::tuple<Vector3, Vector3>> _forces;
 		
 		Shape _shapeType;

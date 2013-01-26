@@ -354,6 +354,9 @@ namespace RN
 		entity->SetSize(Vector3(0.5f, 0.5f, 0.5f));
 		entity->SetMass(10.0f);
 		
+		entity->ApplyForce(Vector3(0.0f, 0.0f, -1000.0f));
+		entity->ApplyForce(Vector3(0.0f, -3000.0f, 0.0f));
+		
 		
 		shader = new Shader();
 		shader->SetFragmentShader("shader/Ground.fsh");

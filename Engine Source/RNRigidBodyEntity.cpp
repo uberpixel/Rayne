@@ -130,10 +130,8 @@ namespace RN
 		
 		if(_changes & ForceChange)
 		{
-			for(auto i=_centralForces.begin(); i!=_centralForces.end(); i++)
-			{
-				_rigidbody->applyCentralForce(btVector3(i->x, i->y, i->z));
-			}
+			_rigidbody->applyCentralForce(btVector3(_centralForce.x, _centralForce.y, _centralForce.z));
+			_centralForce = Vector3(0.0f);
 			
 			for(auto i=_forces.begin(); i!=_forces.end(); i++)
 			{
@@ -143,7 +141,6 @@ namespace RN
 				_rigidbody->applyForce(btVector3(force.x, force.y, force.z), btVector3(origin.x, origin.y, origin.z));
 			}
 			
-			_centralForces.clear();
 			_forces.clear();
 		}
 		
@@ -212,6 +209,29 @@ namespace RN
 		_physicsLock.Unlock();
 	}
 	
+	void RigidBodyEntity::ApplyForce(const Vector3& force)
+	{
+		_physicsLock.Lock();
+		
+		_centralForce += force;
+		_changes |= ForceChange;
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
+	}
+	
+	void RigidBodyEntity::ApplyForce(const Vector3& force, const Vector3& origin)
+	{
+		_physicsLock.Lock();
+		
+		_forces.push_back(std::tuple<Vector3, Vector3>(force, origin));
+		_changes |= ForceChange;
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
+	}
+	
+	// Bullet helper
 	
 	void RigidBodyEntity::getWorldTransform(btTransform& worldTrans) const
 	{
