@@ -192,7 +192,34 @@ namespace RN
 #endif
 		
 		glLinkProgram(program);
+		RN_CHECKOPENGL();
 		
+		// Detach and remove the shader
+		if(_vertexShader)
+		{
+			glDetachShader(program, _vertexShader);
+			glDeleteShader(_vertexShader);
+			
+			_vertexShader = 0;
+		}
+		
+		if(_fragmentShader)
+		{
+			glDetachShader(program, _fragmentShader);
+			glDeleteShader(_fragmentShader);
+			
+			_fragmentShader = 0;
+		}
+		
+		if(_geometryShader)
+		{
+			glDetachShader(program, _geometryShader);
+			glDeleteShader(_geometryShader);
+			
+			_geometryShader = 0;
+		}
+		
+		// Get the linking status
 		GLint status, length;
 		
 		glGetProgramiv(program, GL_LINK_STATUS, &status);
@@ -209,32 +236,7 @@ namespace RN
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, tlog);
 		}
 		else
-		{
-			// Detach and remove the shader
-			if(_vertexShader)
-			{
-				glDetachShader(program, _vertexShader);
-				glDeleteShader(_vertexShader);
-				
-				_vertexShader = 0;
-			}
-			
-			if(_fragmentShader)
-			{
-				glDetachShader(program, _fragmentShader);
-				glDeleteShader(_fragmentShader);
-				
-				_fragmentShader = 0;
-			}
-			
-			if(_geometryShader)
-			{
-				glDetachShader(program, _geometryShader);
-				glDeleteShader(_geometryShader);
-				
-				_geometryShader = 0;
-			}
-			
+		{			
 			// Get uniforms
 			matProj = glGetUniformLocation(program, "matProj");
 			matProjInverse = glGetUniformLocation(program, "matProjInverse");
@@ -272,6 +274,7 @@ namespace RN
 			color0    = glGetAttribLocation(program, "color0");
 			color1    = glGetAttribLocation(program, "color1");
 			
+			RN_CHECKOPENGL();
 			glFlush();
 		}
 	}

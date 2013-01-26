@@ -129,6 +129,8 @@ namespace RN
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode);
 		
+		RN_CHECKOPENGL();
+		
 		_hasChanged = true;
 		
 		Unbind();
@@ -163,6 +165,8 @@ namespace RN
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 		
+		RN_CHECKOPENGL();
+		
 		_hasChanged = true;
 		
 		Unbind();
@@ -187,11 +191,14 @@ namespace RN
 		if(_anisotropy != level)
 		{
 			_anisotropy = level;
+			_hasChanged = true;
+			
 			
 			Bind();
 			
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, level);
-			_hasChanged = true;
+			
+			RN_CHECKOPENGL();
 			
 			Unbind();
 		}
@@ -215,6 +222,8 @@ namespace RN
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, _width, _height, 0, glFormat, glType, converted);
+		
+		RN_CHECKOPENGL();
 		
 		_hasChanged = true;
 		
@@ -241,6 +250,8 @@ namespace RN
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, converted);
+		
+		RN_CHECKOPENGL();
 		
 		_hasChanged = true;
 		
