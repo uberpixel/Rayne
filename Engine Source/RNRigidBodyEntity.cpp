@@ -15,7 +15,9 @@ namespace RN
 {
 	RigidBodyEntity::RigidBodyEntity(Shape shape) :
 		_size(Vector3(1.0f)),
-		_shapeType(shape)
+		_shapeType(shape),
+		_centralForce(Vector3(0.0f)),
+		_torque(Vector3(0.0f))
 	{
 		_mass = 1.0f;
 		_changes = 0;
@@ -24,6 +26,28 @@ namespace RN
 		_rigidbody = 0;
 		_triangleMesh = 0;
 		
+		_rigidBodyIsInWorld = false;
+		
+		CreateRigidBody();
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+	}
+	
+	RigidBodyEntity::RigidBodyEntity(Shape shape, const Vector3& size, float mass) :
+		_size(size),
+		_mass(mass),
+		_shapeType(shape),
+		_centralForce(Vector3(0.0f)),
+		_torque(Vector3(0.0f))
+	{
+		_changes = 0;
+		
+		_shape = 0;
+		_rigidbody = 0;
+		_triangleMesh = 0;
+		
+		_rigidBodyIsInWorld = false;
+		
+		CreateRigidBody();
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
 	}
 	
@@ -43,10 +67,59 @@ namespace RN
 		_rotation = _cachedTransform.Rotation();
 		_didChange = true;
 		
-		_changes &= ~PositionChange;
-		_changes &= ~RotationChange;
+		_changes &= ~(PositionChange | RotationChange);
 	}
 	
+	
+	void RigidBodyEntity::CreateRigidBody()
+	{
+		if(_shape)
+		{
+			delete _shape;
+			
+			if(_triangleMesh)
+			{
+				delete _triangleMesh;
+				_triangleMesh = 0;
+			}
+		}
+		
+		switch(_shapeType)
+		{
+			case ShapeBox:
+				_shape = new btBoxShape(btVector3(_size.x, _size.y, _size.z));
+				break;
+				
+			case ShapeSphere:
+				_shape = new btSphereShape(_size.x);
+				break;
+				
+			case ShapeMesh:
+				_shape = GenerateMeshShape();
+				break;
+		}
+		
+		btVector3 inertia;
+		_shape->calculateLocalInertia(_mass, inertia);
+		
+		if(!_rigidbody)
+		{
+			_cachedTransform = *this;
+			_changes &= ~(PositionChange | RotationChange);
+			
+			btRigidBody::btRigidBodyConstructionInfo info(_mass, this, _shape, inertia);
+			_rigidbody = new btRigidBody(info);
+		}
+		else
+		{
+			_rigidbody->setCollisionShape(_shape);
+		}
+		
+		// Get the initial values
+		_linearDamping = _rigidbody->getLinearDamping();
+		_angularDamping = _rigidbody->getAngularDamping();
+		_friction = _rigidbody->getFriction();
+	}
 	
 	void RigidBodyEntity::UpdateRigidBody(btDynamicsWorld *world)
 	{
@@ -54,51 +127,8 @@ namespace RN
 		
 		if(!_shape || _changes & SizeChange)
 		{
-			if(_shape)
-			{
-				delete _shape;
-				
-				if(_triangleMesh)
-				{
-					delete _triangleMesh;
-					_triangleMesh = 0;
-				}
-			}
-			
-			switch(_shapeType)
-			{
-				case ShapeBox:
-					_shape = new btBoxShape(btVector3(_size.x, _size.y, _size.z));
-					break;
-					
-				case ShapeSphere:
-					_shape = new btSphereShape(_size.x);
-					break;
-					
-				case ShapeMesh:
-					_shape = GenerateMeshShape();
-					break;
-			}
-			
-			btVector3 inertia;
-			_shape->calculateLocalInertia(_mass, inertia);
-			
-			if(!_rigidbody)
-			{
-				_cachedTransform = *this;
-				_changes &= ~(PositionChange | RotationChange);
-				
-				btRigidBody::btRigidBodyConstructionInfo info(_mass, this, _shape, inertia);
-				
-				_rigidbody = new btRigidBody(info);
-				world->addRigidBody(_rigidbody);
-			}
-			else
-			{
-				_rigidbody->setCollisionShape(_shape);
-			}
-			
-			_changes &= ~(MassChange | SizeChange);
+			CreateRigidBody();
+			_changes &= ~SizeChange;
 		}
 		
 		if(_changes & MassChange)
@@ -117,7 +147,6 @@ namespace RN
 			getWorldTransform(transform);
 			_rigidbody->setWorldTransform(transform);
 			
-			
 			_changes &= ~(PositionChange | RotationChange);
 		}
 		
@@ -128,10 +157,16 @@ namespace RN
 			_changes &= ~DampingChange;
 		}
 		
+		if(_changes & FrictionChange)
+		{
+			_rigidbody->setFriction(_friction);
+			_changes &= ~FrictionChange;
+		}
+		
 		if(_changes & ClearForcesChange)
 		{
 			_rigidbody->clearForces();
-			_changes &= ClearForcesChange;
+			_changes &= ~ClearForcesChange;
 		}
 		
 		if(_changes & ForceChange)
@@ -164,6 +199,12 @@ namespace RN
 		}
 		
 		_physicsLock.Unlock();
+		
+		if(!_rigidBodyIsInWorld)
+		{
+			world->addRigidBody(_rigidbody);
+			_rigidBodyIsInWorld = true;
+		}
 	}
 	
 	// Physics property setter
@@ -197,6 +238,17 @@ namespace RN
 		_angularDamping = angular;
 		
 		_changes |= DampingChange;
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
+	}
+	
+	void RigidBodyEntity::SetFriction(float friction)
+	{
+		_physicsLock.Lock();
+		
+		_friction = friction;		
+		_changes |= FrictionChange;
 		
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
 		_physicsLock.Unlock();

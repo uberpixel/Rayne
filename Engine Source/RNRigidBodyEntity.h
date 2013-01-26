@@ -29,6 +29,7 @@ namespace RN
 		} Shape;
 		
 		RigidBodyEntity(Shape shape=ShapeBox);
+		RigidBodyEntity(Shape shape, const Vector3& size, float mass);
 		virtual ~RigidBodyEntity();
 		
 		virtual void PostUpdate();
@@ -36,6 +37,7 @@ namespace RN
 		void SetMass(float mass);
 		void SetSize(const Vector3& size);
 		void SetDamping(float linear, float angular);
+		void SetFriction(float friction);
 		
 		void ApplyForce(const Vector3& force);
 		void ApplyForce(const Vector3& force, const Vector3& origin);
@@ -47,7 +49,13 @@ namespace RN
 		virtual void SetPosition(const Vector3& pos);
 		virtual void SetRotation(const Quaternion& rot);
 		
+		float Mass() const { return _mass; }
+		float LinearDamping() const { return _linearDamping; }
+		float AngularDamping() const { return _angularDamping; }
+		float Friction() const { return _friction; }
+		
 	protected:
+		void CreateRigidBody();
 		void UpdateRigidBody(btDynamicsWorld *world);
 		
 		virtual void getWorldTransform(btTransform& worldTrans) const;
@@ -63,7 +71,8 @@ namespace RN
 			DampingChange = (1 << 4),
 			ForceChange = (1 << 5),
 			TorqueChange = (1 << 6),
-			ClearForcesChange = (1 << 7)
+			ClearForcesChange = (1 << 7),
+			FrictionChange = (1 << 8)
 		};
 		
 		btCollisionShape *GenerateMeshShape();
@@ -71,11 +80,13 @@ namespace RN
 		Transform _cachedTransform;
 		
 		SpinLock _physicsLock;
+		uint32 _changes;
+		
 		float _mass;
 		Vector3 _size;
-		uint32 _changes;
 		float _linearDamping;
 		float _angularDamping;
+		float _friction;
 		
 		Vector3 _centralForce;
 		std::vector<std::tuple<Vector3, Vector3>> _forces;
@@ -85,6 +96,7 @@ namespace RN
 		
 		Shape _shapeType;
 		
+		bool _rigidBodyIsInWorld;
 		btCollisionShape *_shape;
 		btTriangleMesh *_triangleMesh;
 		btRigidBody *_rigidbody;
