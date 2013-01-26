@@ -40,6 +40,9 @@ namespace RN
 		void ApplyForce(const Vector3& force);
 		void ApplyForce(const Vector3& force, const Vector3& origin);
 		
+		void ApplyTorque(const Vector3& torque);
+		void ApplyTorqueImpulse(const Vector3& torque);
+		
 		virtual void SetPosition(const Vector3& pos);
 		virtual void SetRotation(const Quaternion& rot);
 		
@@ -57,7 +60,8 @@ namespace RN
 			PositionChange = (1 << 2),
 			RotationChange = (1 << 3),
 			DampingChange = (1 << 4),
-			ForceChange = (1 << 5)
+			ForceChange = (1 << 5),
+			TorqueChange = (1 << 6)
 		};
 		
 		btCollisionShape *GenerateMeshShape();
@@ -73,6 +77,9 @@ namespace RN
 		
 		Vector3 _centralForce;
 		std::vector<std::tuple<Vector3, Vector3>> _forces;
+		
+		Vector3 _torque;
+		std::vector<Vector3> _torqueImpulses;
 		
 		Shape _shapeType;
 		

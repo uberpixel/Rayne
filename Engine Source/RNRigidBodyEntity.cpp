@@ -144,6 +144,19 @@ namespace RN
 			_forces.clear();
 		}
 		
+		if(_changes & TorqueChange)
+		{
+			_rigidbody->applyTorque(btVector3(_torque.x, _torque.y, _torque.z));
+			_torque = Vector3(0.0f);
+			
+			for(auto i=_torqueImpulses.begin(); i!=_torqueImpulses.end(); i++)
+			{
+				_rigidbody->applyTorqueImpulse(btVector3(i->x, i->y, i->z));
+			}
+			
+			_torqueImpulses.clear();
+		}
+		
 		_physicsLock.Unlock();
 	}
 	
@@ -226,6 +239,28 @@ namespace RN
 		
 		_forces.push_back(std::tuple<Vector3, Vector3>(force, origin));
 		_changes |= ForceChange;
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
+	}
+	
+	void RigidBodyEntity::ApplyTorque(const Vector3& torque)
+	{
+		_physicsLock.Lock();
+		
+		_torque += torque;
+		_changes |= TorqueChange;
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
+	}
+	
+	void RigidBodyEntity::ApplyTorqueImpulse(const Vector3& torque)
+	{
+		_physicsLock.Lock();
+		
+		_torqueImpulses.push_back(torque);
+		_changes |= TorqueChange;
 		
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
 		_physicsLock.Unlock();
