@@ -39,6 +39,7 @@ namespace RN
 		
 		void ApplyForce(const Vector3& force);
 		void ApplyForce(const Vector3& force, const Vector3& origin);
+		void ClearForces();
 		
 		void ApplyTorque(const Vector3& torque);
 		void ApplyTorqueImpulse(const Vector3& torque);
@@ -61,7 +62,8 @@ namespace RN
 			RotationChange = (1 << 3),
 			DampingChange = (1 << 4),
 			ForceChange = (1 << 5),
-			TorqueChange = (1 << 6)
+			TorqueChange = (1 << 6),
+			ClearForcesChange = (1 << 7)
 		};
 		
 		btCollisionShape *GenerateMeshShape();

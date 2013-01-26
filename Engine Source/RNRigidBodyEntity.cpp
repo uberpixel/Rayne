@@ -128,6 +128,12 @@ namespace RN
 			_changes &= ~DampingChange;
 		}
 		
+		if(_changes & ClearForcesChange)
+		{
+			_rigidbody->clearForces();
+			_changes &= ClearForcesChange;
+		}
+		
 		if(_changes & ForceChange)
 		{
 			_rigidbody->applyCentralForce(btVector3(_centralForce.x, _centralForce.y, _centralForce.z));
@@ -239,6 +245,19 @@ namespace RN
 		
 		_forces.push_back(std::tuple<Vector3, Vector3>(force, origin));
 		_changes |= ForceChange;
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
+	}
+	
+	void RigidBodyEntity::ClearForces()
+	{
+		_physicsLock.Lock();
+		
+		_centralForce = Vector3(0.0f);
+		_forces.clear();
+		
+		_changes |= ClearForcesChange;
 		
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
 		_physicsLock.Unlock();
