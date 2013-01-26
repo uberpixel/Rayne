@@ -31,11 +31,14 @@ namespace RN
 		RigidBodyEntity(Shape shape=ShapeBox);
 		virtual ~RigidBodyEntity();
 		
-		virtual void Update(float delta);
 		virtual void PostUpdate();
 		
 		void SetMass(float mass);
 		void SetSize(const Vector3& size);
+		void SetDamping(float linear, float angular);
+		
+		void ApplyForce(const Vector3& force);
+		void ApplyForce(const Vector3& force, const Vector3& origin);
 		
 		virtual void SetPosition(const Vector3& pos);
 		virtual void SetRotation(const Quaternion& rot);
@@ -52,18 +55,24 @@ namespace RN
 			MassChange = (1 << 0),
 			SizeChange = (1 << 1),
 			PositionChange = (1 << 2),
-			RotationChange = (1 << 3)
+			RotationChange = (1 << 3),
+			DampingChange = (1 << 4),
+			ForceChange = (1 << 5)
 		};
 		
 		btCollisionShape *GenerateMeshShape();
 		
-		SpinLock _transformLock;
 		Transform _cachedTransform;
-		std::mutex _mutex;
 		
+		SpinLock _physicsLock;
 		float _mass;
 		Vector3 _size;
 		uint32 _changes;
+		float _linearDamping;
+		float _angularDamping;
+		
+		std::vector<Vector3> _centralForces;
+		std::vector<std::tuple<Vector3, Vector3>> _forces;
 		
 		Shape _shapeType;
 		

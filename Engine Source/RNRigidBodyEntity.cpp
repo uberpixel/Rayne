@@ -31,14 +31,14 @@ namespace RN
 	{
 		World::SharedInstance()->Physics()->RemoveRigidBody(this);
 	}
+
 	
-	
-	void RigidBodyEntity::Update(float delta)
-	{
-	}
 	
 	void RigidBodyEntity::PostUpdate()
 	{
+		// We don't need to acquire the _physicsLock here because PostUpdate() is called
+		// in a single threaded manner. The physics thread did already run at this point.
+		
 		_position = _cachedTransform.Position();
 		_rotation = _cachedTransform.Rotation();
 		_didChange = true;
@@ -49,7 +49,9 @@ namespace RN
 	
 	
 	void RigidBodyEntity::UpdateRigidBody(btDynamicsWorld *world)
-	{		
+	{
+		_physicsLock.Lock();
+		
 		if(!_shape || _changes & SizeChange)
 		{
 			if(_shape)
@@ -78,15 +80,13 @@ namespace RN
 					break;
 			}
 			
-			btVector3 inertia(0, 0, 0);
+			btVector3 inertia;
 			_shape->calculateLocalInertia(_mass, inertia);
 			
 			if(!_rigidbody)
 			{
-				_transformLock.Lock();
 				_cachedTransform = *this;
 				_changes &= ~(PositionChange | RotationChange);
-				_transformLock.Unlock();
 				
 				btRigidBody::btRigidBodyConstructionInfo info(_mass, this, _shape, inertia);
 				
@@ -103,7 +103,7 @@ namespace RN
 		
 		if(_changes & MassChange)
 		{
-			btVector3 inertia(0, 0, 0);
+			btVector3 inertia;
 			_shape->calculateLocalInertia(_mass, inertia);
 			_rigidbody->setMassProps(_mass, inertia);
 			
@@ -112,58 +112,104 @@ namespace RN
 		
 		if(_changes & PositionChange || _changes & RotationChange)
 		{
-			_transformLock.Lock();
-			
 			btTransform transform;
 			
 			getWorldTransform(transform);
 			_rigidbody->setWorldTransform(transform);
 			
-			_transformLock.Unlock();
 			
 			_changes &= ~(PositionChange | RotationChange);
 		}
+		
+		if(_changes & DampingChange)
+		{
+			_rigidbody->setDamping(_linearDamping, _angularDamping);
+			
+			_changes &= ~DampingChange;
+		}
+		
+		if(_changes & ForceChange)
+		{
+			for(auto i=_centralForces.begin(); i!=_centralForces.end(); i++)
+			{
+				_rigidbody->applyCentralForce(btVector3(i->x, i->y, i->z));
+			}
+			
+			for(auto i=_forces.begin(); i!=_forces.end(); i++)
+			{
+				Vector3 force = std::get<0>(*i);
+				Vector3 origin = std::get<1>(*i);
+				
+				_rigidbody->applyForce(btVector3(force.x, force.y, force.z), btVector3(origin.x, origin.y, origin.z));
+			}
+			
+			_centralForces.clear();
+			_forces.clear();
+		}
+		
+		_physicsLock.Unlock();
 	}
 	
-	
+	// Physics property setter
 	void RigidBodyEntity::SetMass(float mass)
 	{
+		_physicsLock.Lock();
+		
 		_mass = mass;
 		_changes |= MassChange;
 		
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
 	}
 	
 	void RigidBodyEntity::SetSize(const Vector3& size)
 	{
+		_physicsLock.Lock();
+		
 		_size = size;
 		_changes |= SizeChange;
 		
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
+	}
+	
+	void RigidBodyEntity::SetDamping(float linear, float angular)
+	{
+		_physicsLock.Lock();
+		
+		_linearDamping = linear;
+		_angularDamping = angular;
+		
+		_changes |= DampingChange;
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
 	}
 	
 	void RigidBodyEntity::SetPosition(const Vector3& pos)
 	{
 		Transform::SetPosition(pos);
+		
+		_physicsLock.Lock();
+		
+		_cachedTransform.SetPosition(pos);
 		_changes |= PositionChange;
 		
-		_transformLock.Lock();
-		_cachedTransform.SetPosition(pos);
-		_transformLock.Unlock();
-		
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
 	}
 	
 	void RigidBodyEntity::SetRotation(const Quaternion& rot)
 	{
 		Transform::SetRotation(rot);
+		
+		_physicsLock.Lock();
+		
+		_cachedTransform.SetRotation(rot);
 		_changes |= RotationChange;
 		
-		_transformLock.Lock();
-		_cachedTransform.SetRotation(rot);
-		_transformLock.Unlock();
-		
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
 	}
 	
 	
@@ -181,12 +227,12 @@ namespace RN
 		btQuaternion rot = worldTrans.getRotation();
 		btVector3 pos = worldTrans.getOrigin();
 		
-		_transformLock.Lock();
+		_physicsLock.Lock();
 		
 		_cachedTransform.SetRotation(Quaternion(rot.x(), rot.y(), rot.z(), rot.w()));
 		_cachedTransform.SetPosition(Vector3(pos.x(), pos.y(), pos.z()));
 		
-		_transformLock.Unlock();
+		_physicsLock.Unlock();
 	}
 	
 	btCollisionShape *RigidBodyEntity::GenerateMeshShape()
