@@ -17,6 +17,7 @@ namespace RN
 		_size(Vector3(1.0f)),
 		_shapeType(shape),
 		_centralForce(Vector3(0.0f)),
+		_centralImpulse(Vector3(0.0f)),
 		_torque(Vector3(0.0f))
 	{
 		_rigidBodyIsInWorld = false;
@@ -32,6 +33,7 @@ namespace RN
 		_mass(mass),
 		_shapeType(shape),
 		_centralForce(Vector3(0.0f)),
+		_centralImpulse(Vector3(0.0f)),
 		_torque(Vector3(0.0f))
 	{
 		_rigidBodyIsInWorld = false;
@@ -96,6 +98,10 @@ namespace RN
 				
 			case ShapeSphere:
 				_shape = new btSphereShape(_size.x);
+				break;
+				
+			case ShapeCapsule:
+				_shape = new btCapsuleShape(_size.x, _size.y);
 				break;
 				
 			case ShapeMesh:
@@ -202,6 +208,23 @@ namespace RN
 			
 			_torqueImpulses.clear();
 			_changes &= ~TorqueChange;
+		}
+		
+		if(_changes & ImpulseChange)
+		{
+			_rigidbody->applyCentralImpulse(btVector3(_centralImpulse.x, _centralImpulse.y, _centralImpulse.z));
+			_centralImpulse = Vector3(0.0f);
+			
+			for(auto i=_impulses.begin(); i!=_impulses.end(); i++)
+			{
+				Vector3 impulse = std::get<0>(*i);
+				Vector3 origin = std::get<1>(*i);
+				
+				_rigidbody->applyImpulse(btVector3(impulse.x, impulse.y, impulse.z), btVector3(origin.x, origin.y, origin.z));
+			}
+			
+			_impulses.clear();
+			_changes &= ~ImpulseChange;
 		}
 		
 		_physicsLock.Unlock();
@@ -354,6 +377,28 @@ namespace RN
 		_physicsLock.Unlock();
 	}
 	
+	void RigidBodyEntity::ApplyImpulse(const Vector3& impulse)
+	{
+		_physicsLock.Lock();
+		
+		_centralImpulse += impulse;
+		_changes |= ImpulseChange;
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
+	}
+	
+	void RigidBodyEntity::ApplyImpulse(const Vector3& impulse, const Vector3& origin)
+	{
+		_physicsLock.Lock();
+		
+		_impulses.push_back(std::tuple<Vector3, Vector3>(impulse, origin));
+		_changes |= ImpulseChange;
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
+	}
+
 	// Bullet helper
 	
 	void RigidBodyEntity::getWorldTransform(btTransform& worldTrans) const

@@ -25,6 +25,7 @@ namespace RN
 		{
 			ShapeBox,
 			ShapeSphere,
+			ShapeCapsule,
 			ShapeMesh
 		} Shape;
 		
@@ -46,6 +47,9 @@ namespace RN
 		
 		void ApplyTorque(const Vector3& torque);
 		void ApplyTorqueImpulse(const Vector3& torque);
+		
+		void ApplyImpulse(const Vector3& impulse);
+		void ApplyImpulse(const Vector3& impulse, const Vector3& origin);
 		
 		virtual void SetPosition(const Vector3& pos);
 		virtual void SetRotation(const Quaternion& rot);
@@ -76,7 +80,8 @@ namespace RN
 			TorqueChange = (1 << 6),
 			ClearForcesChange = (1 << 7),
 			FrictionChange = (1 << 8),
-			RestitutionChange = (1 << 9)
+			RestitutionChange = (1 << 9),
+			ImpulseChange = (1 << 10)
 		};
 		
 		btCollisionShape *GenerateMeshShape();
@@ -95,6 +100,9 @@ namespace RN
 		
 		Vector3 _centralForce;
 		std::vector<std::tuple<Vector3, Vector3>> _forces;
+		
+		Vector3 _centralImpulse;
+		std::vector<std::tuple<Vector3, Vector3>> _impulses;
 		
 		Vector3 _torque;
 		std::vector<Vector3> _torqueImpulses;
