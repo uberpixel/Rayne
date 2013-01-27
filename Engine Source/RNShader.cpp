@@ -17,6 +17,17 @@ namespace RN
 		program = 0;
 	}
 	
+	Shader::Shader(const std::string& vertexShader, const std::string& fragmentShader)
+	{
+		_vertexShader = _fragmentShader = _geometryShader = 0;
+		program = 0;
+		
+		SetVertexShader(vertexShader);
+		SetFragmentShader(fragmentShader);
+		
+		Link();
+	}
+	
 	Shader::~Shader()
 	{
 		if(_vertexShader)

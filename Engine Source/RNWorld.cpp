@@ -315,14 +315,7 @@ namespace RN
 		Texture *texture0 = new Texture("textures/brick.png", Texture::FormatRGB565);
 		Texture *texture1 = new Texture("textures/testpng.png", Texture::FormatRGB565);
 		
-		Shader *shader = new Shader();
-#if !RN_PLATFORM_IOS
-//		shader->SetGeometryShader("shader/Test.gsh");
-#endif
-		shader->SetFragmentShader("shader/Test.fsh");
-		shader->SetVertexShader("shader/Test.vsh");
-		
-		shader->Link();
+		Shader *shader = new Shader("shader/Test.vsh", "shader/Test.fsh");
 		
 		// Material
 		Material *material = new Material(shader);
@@ -361,10 +354,7 @@ namespace RN
 		entity->ApplyForce(Vector3(0.0f, -3000.0f, 0.0f));
 		
 		
-		shader = new Shader();
-		shader->SetFragmentShader("shader/Ground.fsh");
-		shader->SetVertexShader("shader/Ground.vsh");
-		shader->Link();
+		shader = new Shader("shader/Ground.vsh", "shader/Ground.fsh");
 		
 		texture0 = new Texture("textures/tiles.png", Texture::FormatRGB565);
 		material = new Material(shader);
