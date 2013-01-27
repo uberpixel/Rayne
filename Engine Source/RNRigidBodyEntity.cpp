@@ -19,16 +19,11 @@ namespace RN
 		_centralForce(Vector3(0.0f)),
 		_torque(Vector3(0.0f))
 	{
-		_mass = 1.0f;
-		_changes = 0;
-		
-		_shape = 0;
-		_rigidbody = 0;
-		_triangleMesh = 0;
-		
 		_rigidBodyIsInWorld = false;
 		
+		InitializeProperties();
 		CreateRigidBody();
+		
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
 	}
 	
@@ -39,15 +34,11 @@ namespace RN
 		_centralForce(Vector3(0.0f)),
 		_torque(Vector3(0.0f))
 	{
-		_changes = 0;
-		
-		_shape = 0;
-		_rigidbody = 0;
-		_triangleMesh = 0;
-		
 		_rigidBodyIsInWorld = false;
 		
+		InitializeProperties();
 		CreateRigidBody();
+		
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
 	}
 	
@@ -56,6 +47,19 @@ namespace RN
 		World::SharedInstance()->Physics()->RemoveRigidBody(this);
 	}
 
+	void RigidBodyEntity::InitializeProperties()
+	{
+		_linearDamping = _angularDamping = 0.0f;
+		_friction = 0.5f;
+		_restitution = 0.0f;
+		
+		_mass = 1.0f;
+		_changes = 0;
+		
+		_shape = 0;
+		_rigidbody = 0;
+		_triangleMesh = 0;
+	}
 	
 	
 	void RigidBodyEntity::PostUpdate()
@@ -114,18 +118,13 @@ namespace RN
 		{
 			_rigidbody->setCollisionShape(_shape);
 		}
-		
-		// Get the initial values
-		_linearDamping = _rigidbody->getLinearDamping();
-		_angularDamping = _rigidbody->getAngularDamping();
-		_friction = _rigidbody->getFriction();
 	}
 	
 	void RigidBodyEntity::UpdateRigidBody(btDynamicsWorld *world)
 	{
 		_physicsLock.Lock();
 		
-		if(!_shape || _changes & SizeChange)
+		if(!_rigidbody || _changes & SizeChange)
 		{
 			CreateRigidBody();
 			_changes &= ~SizeChange;
@@ -153,7 +152,6 @@ namespace RN
 		if(_changes & DampingChange)
 		{
 			_rigidbody->setDamping(_linearDamping, _angularDamping);
-			
 			_changes &= ~DampingChange;
 		}
 		
@@ -161,6 +159,12 @@ namespace RN
 		{
 			_rigidbody->setFriction(_friction);
 			_changes &= ~FrictionChange;
+		}
+		
+		if(_changes & RestitutionChange)
+		{
+			_rigidbody->setRestitution(_restitution);
+			_changes &= ~RestitutionChange;
 		}
 		
 		if(_changes & ClearForcesChange)
@@ -183,6 +187,7 @@ namespace RN
 			}
 			
 			_forces.clear();
+			_changes &= ~ForceChange;
 		}
 		
 		if(_changes & TorqueChange)
@@ -196,6 +201,7 @@ namespace RN
 			}
 			
 			_torqueImpulses.clear();
+			_changes &= ~TorqueChange;
 		}
 		
 		_physicsLock.Unlock();
@@ -249,6 +255,17 @@ namespace RN
 		
 		_friction = friction;		
 		_changes |= FrictionChange;
+		
+		World::SharedInstance()->Physics()->ChangedRigidBody(this);
+		_physicsLock.Unlock();
+	}
+	
+	void RigidBodyEntity::SetRestitution(float restitution)
+	{
+		_physicsLock.Lock();
+		
+		_restitution = restitution;
+		_changes |= RestitutionChange;
 		
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
 		_physicsLock.Unlock();

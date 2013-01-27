@@ -335,11 +335,13 @@ namespace RN
 		
 		RigidBodyEntity *entity = new RigidBodyEntity();
 		entity->SetModel(model);
-		entity->SetRotation(Quaternion(Vector3(45.0f, 45.0f, 45.0f)));
+		entity->SetRotation(Quaternion(Vector3(0.0f, 0.0f, 0.0f)));
 		entity->SetPosition(Vector3(-1.0f, 8.0f, -8.0f));
 		entity->SetSize(Vector3(0.5f, 0.5f, 0.5f));
 		entity->SetMass(10.0f);
-		//entity->SetDamping(10.0f, 1.0f);
+		entity->SetRestitution(0.8);
+		entity->SetFriction(1.8f);
+		entity->ApplyForce(Vector3(0.0f, -1000.0f, 0.0f));
 		
 		entity = new RigidBodyEntity();
 		entity->SetModel(model);
@@ -377,5 +379,6 @@ namespace RN
 		entity->SetScale(Vector3(10.0f, 1.0f, 10.0f));
 		entity->SetMass(0.0f);
 		entity->SetSize(Vector3(5.0f, 0.5f, 5.0f));
+		entity->SetRestitution(0.5f);
 	}
 }

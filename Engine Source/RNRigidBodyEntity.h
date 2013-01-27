@@ -38,6 +38,7 @@ namespace RN
 		void SetSize(const Vector3& size);
 		void SetDamping(float linear, float angular);
 		void SetFriction(float friction);
+		void SetRestitution(float restitution);
 		
 		void ApplyForce(const Vector3& force);
 		void ApplyForce(const Vector3& force, const Vector3& origin);
@@ -53,8 +54,10 @@ namespace RN
 		float LinearDamping() const { return _linearDamping; }
 		float AngularDamping() const { return _angularDamping; }
 		float Friction() const { return _friction; }
+		float Restitution() const { return _restitution; }
 		
 	protected:
+		void InitializeProperties();
 		void CreateRigidBody();
 		void UpdateRigidBody(btDynamicsWorld *world);
 		
@@ -72,7 +75,8 @@ namespace RN
 			ForceChange = (1 << 5),
 			TorqueChange = (1 << 6),
 			ClearForcesChange = (1 << 7),
-			FrictionChange = (1 << 8)
+			FrictionChange = (1 << 8),
+			RestitutionChange = (1 << 9)
 		};
 		
 		btCollisionShape *GenerateMeshShape();
@@ -87,6 +91,7 @@ namespace RN
 		float _linearDamping;
 		float _angularDamping;
 		float _friction;
+		float _restitution;
 		
 		Vector3 _centralForce;
 		std::vector<std::tuple<Vector3, Vector3>> _forces;
