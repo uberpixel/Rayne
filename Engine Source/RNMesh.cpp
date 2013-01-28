@@ -183,4 +183,323 @@ namespace RN
 			_LODStages[(int)i]->GenerateMesh();
 		}
 	}
+	
+	
+	Mesh *Mesh::CubeMesh(const Vector3& size)
+	{
+		Mesh *mesh = new Mesh();
+		
+		MeshDescriptor vertexDescriptor;
+		vertexDescriptor.feature = kMeshFeatureVertices;
+		vertexDescriptor.elementSize = sizeof(Vector3);
+		vertexDescriptor.elementMember = 3;
+		vertexDescriptor.elementCount  = 24;
+		
+		MeshDescriptor texcoordDescriptor;
+		texcoordDescriptor.feature = kMeshFeatureUVSet0;
+		texcoordDescriptor.elementSize = sizeof(Vector2);
+		texcoordDescriptor.elementMember = 2;
+		texcoordDescriptor.elementCount  = 24;
+		
+		MeshDescriptor indicesDescriptor;
+		indicesDescriptor.feature = kMeshFeatureIndices;
+		indicesDescriptor.elementSize = sizeof(uint16);
+		indicesDescriptor.elementMember = 1;
+		indicesDescriptor.elementCount  = 36;
+		
+		Array<MeshDescriptor> descriptors;
+		descriptors.AddObject(vertexDescriptor);
+		descriptors.AddObject(indicesDescriptor);
+		descriptors.AddObject(texcoordDescriptor);
+		
+		
+		MeshLODStage *stage = mesh->AddLODStage(descriptors);
+		
+		Vector3 *vertices  = stage->Data<Vector3>(kMeshFeatureVertices);
+		Vector2 *texcoords = stage->Data<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = stage->Data<uint16>(kMeshFeatureIndices);
+		
+		*vertices ++ = Vector3(-size.x,  size.y, size.z);
+		*vertices ++ = Vector3( size.x,  size.y, size.z);
+		*vertices ++ = Vector3( size.x, -size.y, size.z);
+		*vertices ++ = Vector3(-size.x, -size.y, size.z);
+		
+		*vertices ++ = Vector3(-size.x,  size.y, -size.z);
+		*vertices ++ = Vector3( size.x,  size.y, -size.z);
+		*vertices ++ = Vector3( size.x, -size.y, -size.z);
+		*vertices ++ = Vector3(-size.x, -size.y, -size.z);
+		
+		*vertices ++ = Vector3(-size.x,  size.y, -size.z);
+		*vertices ++ = Vector3(-size.x,  size.y,  size.z);
+		*vertices ++ = Vector3(-size.x, -size.y,  size.z);
+		*vertices ++ = Vector3(-size.x, -size.y, -size.z);
+		
+		*vertices ++ = Vector3(size.x,  size.y, -size.z);
+		*vertices ++ = Vector3(size.x,  size.y,  size.z);
+		*vertices ++ = Vector3(size.x, -size.y,  size.z);
+		*vertices ++ = Vector3(size.x, -size.y, -size.z);
+		
+		*vertices ++ = Vector3(-size.x, size.y,  size.z);
+		*vertices ++ = Vector3( size.x, size.y,  size.z);
+		*vertices ++ = Vector3( size.x, size.y, -size.z);
+		*vertices ++ = Vector3(-size.x, size.y, -size.z);
+		
+		*vertices ++ = Vector3(-size.x, -size.y, -size.z);
+		*vertices ++ = Vector3( size.x, -size.y, -size.z);
+		*vertices ++ = Vector3( size.x, -size.y,  size.z);
+		*vertices ++ = Vector3(-size.x, -size.y,  size.z);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*indices ++ = 0;
+		*indices ++ = 3;
+		*indices ++ = 1;
+		*indices ++ = 2;
+		*indices ++ = 1;
+		*indices ++ = 3;
+		
+		*indices ++ = 4;
+		*indices ++ = 7;
+		*indices ++ = 5;
+		*indices ++ = 6;
+		*indices ++ = 5;
+		*indices ++ = 7;
+		
+		*indices ++ = 8;
+		*indices ++ = 11;
+		*indices ++ = 9;
+		*indices ++ = 10;
+		*indices ++ = 9;
+		*indices ++ = 11;
+		
+		*indices ++ = 12;
+		*indices ++ = 15;
+		*indices ++ = 13;
+		*indices ++ = 14;
+		*indices ++ = 13;
+		*indices ++ = 15;
+		
+		*indices ++ = 16;
+		*indices ++ = 19;
+		*indices ++ = 17;
+		*indices ++ = 18;
+		*indices ++ = 17;
+		*indices ++ = 19;
+		
+		*indices ++ = 20;
+		*indices ++ = 23;
+		*indices ++ = 21;
+		*indices ++ = 22;
+		*indices ++ = 21;
+		*indices ++ = 23;
+		
+		mesh->UpdateMesh();
+		return mesh;
+	}
+	
+	Mesh *Mesh::CubeMesh(const Vector3& size, const Color& color)
+	{
+		Mesh *mesh = new Mesh();
+		
+		MeshDescriptor vertexDescriptor;
+		vertexDescriptor.feature = kMeshFeatureVertices;
+		vertexDescriptor.elementSize = sizeof(Vector3);
+		vertexDescriptor.elementMember = 3;
+		vertexDescriptor.elementCount  = 24;
+		
+		MeshDescriptor colorDescriptor;
+		colorDescriptor.feature = kMeshFeatureColor0;
+		colorDescriptor.elementSize = sizeof(Color);
+		colorDescriptor.elementMember = 4;
+		colorDescriptor.elementCount  = 24;
+		
+		MeshDescriptor texcoordDescriptor;
+		texcoordDescriptor.feature = kMeshFeatureUVSet0;
+		texcoordDescriptor.elementSize = sizeof(Vector2);
+		texcoordDescriptor.elementMember = 2;
+		texcoordDescriptor.elementCount  = 24;
+		
+		MeshDescriptor indicesDescriptor;
+		indicesDescriptor.feature = kMeshFeatureIndices;
+		indicesDescriptor.elementSize = sizeof(uint16);
+		indicesDescriptor.elementMember = 1;
+		indicesDescriptor.elementCount  = 36;
+		
+		Array<MeshDescriptor> descriptors;
+		descriptors.AddObject(vertexDescriptor);
+		descriptors.AddObject(colorDescriptor);
+		descriptors.AddObject(indicesDescriptor);
+		descriptors.AddObject(texcoordDescriptor);
+		
+		
+		MeshLODStage *stage = mesh->AddLODStage(descriptors);
+		
+		Vector3 *vertices  = stage->Data<Vector3>(kMeshFeatureVertices);
+		Color *colors      = stage->Data<Color>(kMeshFeatureColor0);
+		Vector2 *texcoords = stage->Data<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = stage->Data<uint16>(kMeshFeatureIndices);
+		
+		*vertices ++ = Vector3(-size.x,  size.y, size.z);
+		*vertices ++ = Vector3( size.x,  size.y, size.z);
+		*vertices ++ = Vector3( size.x, -size.y, size.z);
+		*vertices ++ = Vector3(-size.x, -size.y, size.z);
+		
+		*vertices ++ = Vector3(-size.x,  size.y, -size.z);
+		*vertices ++ = Vector3( size.x,  size.y, -size.z);
+		*vertices ++ = Vector3( size.x, -size.y, -size.z);
+		*vertices ++ = Vector3(-size.x, -size.y, -size.z);
+		
+		*vertices ++ = Vector3(-size.x,  size.y, -size.z);
+		*vertices ++ = Vector3(-size.x,  size.y,  size.z);
+		*vertices ++ = Vector3(-size.x, -size.y,  size.z);
+		*vertices ++ = Vector3(-size.x, -size.y, -size.z);
+		
+		*vertices ++ = Vector3(size.x,  size.y, -size.z);
+		*vertices ++ = Vector3(size.x,  size.y,  size.z);
+		*vertices ++ = Vector3(size.x, -size.y,  size.z);
+		*vertices ++ = Vector3(size.x, -size.y, -size.z);
+		
+		*vertices ++ = Vector3(-size.x, size.y,  size.z);
+		*vertices ++ = Vector3( size.x, size.y,  size.z);
+		*vertices ++ = Vector3( size.x, size.y, -size.z);
+		*vertices ++ = Vector3(-size.x, size.y, -size.z);
+		
+		*vertices ++ = Vector3(-size.x, -size.y, -size.z);
+		*vertices ++ = Vector3( size.x, -size.y, -size.z);
+		*vertices ++ = Vector3( size.x, -size.y,  size.z);
+		*vertices ++ = Vector3(-size.x, -size.y,  size.z);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*colors ++ = color;
+		*colors ++ = color;
+		*colors ++ = color;
+		*colors ++ = color;
+		
+		*colors ++ = color;
+		*colors ++ = color;
+		*colors ++ = color;
+		*colors ++ = color;
+		
+		*colors ++ = color;
+		*colors ++ = color;
+		*colors ++ = color;
+		*colors ++ = color;
+		
+		*colors ++ = color;
+		*colors ++ = color;
+		*colors ++ = color;
+		*colors ++ = color;
+		
+		*colors ++ = color;
+		*colors ++ = color;
+		*colors ++ = color;
+		*colors ++ = color;
+		
+		*colors ++ = color;
+		*colors ++ = color;
+		*colors ++ = color;
+		*colors ++ = color;
+		
+		*indices ++ = 0;
+		*indices ++ = 3;
+		*indices ++ = 1;
+		*indices ++ = 2;
+		*indices ++ = 1;
+		*indices ++ = 3;
+		
+		*indices ++ = 4;
+		*indices ++ = 7;
+		*indices ++ = 5;
+		*indices ++ = 6;
+		*indices ++ = 5;
+		*indices ++ = 7;
+		
+		*indices ++ = 8;
+		*indices ++ = 11;
+		*indices ++ = 9;
+		*indices ++ = 10;
+		*indices ++ = 9;
+		*indices ++ = 11;
+		
+		*indices ++ = 12;
+		*indices ++ = 15;
+		*indices ++ = 13;
+		*indices ++ = 14;
+		*indices ++ = 13;
+		*indices ++ = 15;
+		
+		*indices ++ = 16;
+		*indices ++ = 19;
+		*indices ++ = 17;
+		*indices ++ = 18;
+		*indices ++ = 17;
+		*indices ++ = 19;
+		
+		*indices ++ = 20;
+		*indices ++ = 23;
+		*indices ++ = 21;
+		*indices ++ = 22;
+		*indices ++ = 21;
+		*indices ++ = 23;
+		
+		mesh->UpdateMesh();
+		return mesh;
+	}
 }

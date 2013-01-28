@@ -14,6 +14,7 @@
 #include "RNRenderingResource.h"
 #include "RNArray.h"
 #include "RNVector.h"
+#include "RNColor.h"
 
 namespace RN
 {
@@ -104,6 +105,9 @@ namespace RN
 		RNAPI machine_uint LODStages() const { return _LODStages.Count(); }
 		
 		RNAPI void UpdateMesh();
+		
+		static Mesh *CubeMesh(const Vector3& size);
+		static Mesh *CubeMesh(const Vector3& size, const Color& color);
 		
 	private:
 		Array<MeshLODStage *> _LODStages;
