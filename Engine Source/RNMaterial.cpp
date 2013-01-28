@@ -13,8 +13,10 @@ namespace RN
 	Material::Material() :
 		RenderingResource("Material")
 	{
-		_shader = 0
+		_shader = 0;
 		_textures = new ObjectArray();
+		
+		SetDefaultProperties();
 	}
 	
 	Material::Material(RN::Shader *shader) :
@@ -22,6 +24,8 @@ namespace RN
 	{
 		_shader = shader->Retain<RN::Shader>();
 		_textures = new ObjectArray();
+		
+		SetDefaultProperties();
 	}
 	
 	Material::~Material()

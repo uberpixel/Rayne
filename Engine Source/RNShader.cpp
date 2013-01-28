@@ -17,7 +17,29 @@ namespace RN
 		program = 0;
 	}
 	
-	Shader::Shader(const std::string& vertexShader, const std::string& fragmentShader)
+	Shader::Shader(const std::string& shader, bool link)
+	{
+		_vertexShader = _fragmentShader = _geometryShader = 0;
+		program = 0;
+		
+		std::string vertexPath = File::PathForName(shader + ".vsh");
+		std::string fragmentPath = File::PathForName(shader + ".fsh");
+		std::string geometryPath = File::PathForName(shader + ".gsh");
+		
+		if(vertexPath.length() > 0)
+			SetVertexShader(vertexPath);
+		
+		if(fragmentPath.length() > 0)
+			SetFragmentShader(fragmentPath);
+		
+		if(geometryPath.length() > 0)
+			SetGeometryShader(geometryPath);
+		
+		if(link)
+			Link();
+	}
+	
+	Shader::Shader(const std::string& vertexShader, const std::string& fragmentShader, bool link)
 	{
 		_vertexShader = _fragmentShader = _geometryShader = 0;
 		program = 0;
@@ -25,7 +47,8 @@ namespace RN
 		SetVertexShader(vertexShader);
 		SetFragmentShader(fragmentShader);
 		
-		Link();
+		if(link)
+			Link();
 	}
 	
 	Shader::~Shader()
