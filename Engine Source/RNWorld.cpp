@@ -11,9 +11,9 @@
 
 namespace RN
 {
-	World::World(Kernel *kernel)
+	World::World()
 	{
-		_kernel = kernel;
+		_kernel = Kernel::SharedInstance();
 		_kernel->SetWorld(this);
 		
 		_cameras = new ObjectArray();
@@ -48,9 +48,6 @@ namespace RN
 		camera->AddStage(stage);*/
 		
 		camera->Release();
-		
-		
-		CreateTestMesh();
 	}
 	
 	World::~World()
@@ -63,8 +60,6 @@ namespace RN
 	
 	void World::Update(float delta)
 	{
-		Entity *entity = _entities[0];
-		entity->Translate(Vector3(0.0f, 0.0f, -10.0f * delta));
 	}
 	
 	void World::BeginUpdate(float delta)
@@ -131,244 +126,5 @@ namespace RN
 				return;
 			}
 		}
-	}
-	
-	
-	void World::CreateTestMesh()
-	{
-		// Mesh
-		Mesh *mesh = new Mesh();
-		
-		MeshDescriptor vertexDescriptor;
-		vertexDescriptor.feature = kMeshFeatureVertices;
-		vertexDescriptor.elementSize = sizeof(Vector3);
-		vertexDescriptor.elementMember = 3;
-		vertexDescriptor.elementCount  = 24;
-		
-		MeshDescriptor colorDescriptor;
-		colorDescriptor.feature = kMeshFeatureColor0;
-		colorDescriptor.elementSize = sizeof(Color);
-		colorDescriptor.elementMember = 4;
-		colorDescriptor.elementCount  = 24;
-		
-		MeshDescriptor texcoordDescriptor;
-		texcoordDescriptor.feature = kMeshFeatureUVSet0;
-		texcoordDescriptor.elementSize = sizeof(Vector2);
-		texcoordDescriptor.elementMember = 2;
-		texcoordDescriptor.elementCount  = 24;
-		
-		MeshDescriptor indicesDescriptor;
-		indicesDescriptor.feature = kMeshFeatureIndices;
-		indicesDescriptor.elementSize = sizeof(uint16);
-		indicesDescriptor.elementMember = 1;
-		indicesDescriptor.elementCount  = 36;
-		
-		Array<MeshDescriptor> descriptors;
-		descriptors.AddObject(vertexDescriptor);
-		descriptors.AddObject(colorDescriptor);
-		descriptors.AddObject(indicesDescriptor);
-		descriptors.AddObject(texcoordDescriptor);
-		
-		
-		MeshLODStage *stage = mesh->AddLODStage(descriptors);
-		
-		Vector3 *vertices  = stage->Data<Vector3>(kMeshFeatureVertices);
-		Color *colors      = stage->Data<Color>(kMeshFeatureColor0);
-		Vector2 *texcoords = stage->Data<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = stage->Data<uint16>(kMeshFeatureIndices);
-		
-		*vertices ++ = Vector3(-0.5f, 0.5f, 0.5f);
-		*vertices ++ = Vector3(0.5f, 0.5f, 0.5f);
-		*vertices ++ = Vector3(0.5f, -0.5f, 0.5f);
-		*vertices ++ = Vector3(-0.5f, -0.5f, 0.5f);
-		
-		*vertices ++ = Vector3(-0.5f, 0.5f, -0.5f);
-		*vertices ++ = Vector3(0.5f, 0.5f, -0.5f);
-		*vertices ++ = Vector3(0.5f, -0.5f, -0.5f);
-		*vertices ++ = Vector3(-0.5f, -0.5f, -0.5f);
-		
-		*vertices ++ = Vector3(-0.5f, 0.5f, -0.5f);
-		*vertices ++ = Vector3(-0.5f, 0.5f, 0.5f);
-		*vertices ++ = Vector3(-0.5f, -0.5f, 0.5f);
-		*vertices ++ = Vector3(-0.5f, -0.5f, -0.5f);
-		
-		*vertices ++ = Vector3(0.5f, 0.5f, -0.5f);
-		*vertices ++ = Vector3(0.5f, 0.5f, 0.5f);
-		*vertices ++ = Vector3(0.5f, -0.5f, 0.5f);
-		*vertices ++ = Vector3(0.5f, -0.5f, -0.5f);
-		
-		*vertices ++ = Vector3(-0.5f, 0.5f, 0.5f);
-		*vertices ++ = Vector3(0.5f, 0.5f, 0.5f);
-		*vertices ++ = Vector3(0.5f, 0.5f, -0.5f);
-		*vertices ++ = Vector3(-0.5f, 0.5f, -0.5f);
-		
-		*vertices ++ = Vector3(-0.5f, -0.5f, -0.5f);
-		*vertices ++ = Vector3(0.5f, -0.5f, -0.5f);
-		*vertices ++ = Vector3(0.5f, -0.5f, 0.5f);
-		*vertices ++ = Vector3(-0.5f, -0.5f, 0.5f);
-		
-		*texcoords ++ = Vector2(0.0f, 0.0f);
-		*texcoords ++ = Vector2(1.0f, 0.0f);
-		*texcoords ++ = Vector2(1.0f, 1.0f);
-		*texcoords ++ = Vector2(0.0f, 1.0f);
-		
-		*texcoords ++ = Vector2(0.0f, 0.0f);
-		*texcoords ++ = Vector2(1.0f, 0.0f);
-		*texcoords ++ = Vector2(1.0f, 1.0f);
-		*texcoords ++ = Vector2(0.0f, 1.0f);
-		
-		*texcoords ++ = Vector2(0.0f, 0.0f);
-		*texcoords ++ = Vector2(1.0f, 0.0f);
-		*texcoords ++ = Vector2(1.0f, 1.0f);
-		*texcoords ++ = Vector2(0.0f, 1.0f);
-		
-		*texcoords ++ = Vector2(0.0f, 0.0f);
-		*texcoords ++ = Vector2(1.0f, 0.0f);
-		*texcoords ++ = Vector2(1.0f, 1.0f);
-		*texcoords ++ = Vector2(0.0f, 1.0f);
-		
-		*texcoords ++ = Vector2(0.0f, 0.0f);
-		*texcoords ++ = Vector2(1.0f, 0.0f);
-		*texcoords ++ = Vector2(1.0f, 1.0f);
-		*texcoords ++ = Vector2(0.0f, 1.0f);
-		
-		*texcoords ++ = Vector2(0.0f, 0.0f);
-		*texcoords ++ = Vector2(1.0f, 0.0f);
-		*texcoords ++ = Vector2(1.0f, 1.0f);
-		*texcoords ++ = Vector2(0.0f, 1.0f);
-		
-		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
-		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
-		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
-		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
-		
-		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
-		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
-		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
-		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
-		
-		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
-		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
-		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
-		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
-		
-		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
-		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
-		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
-		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
-		
-		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
-		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
-		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
-		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
-		
-		*colors ++ = Color(1.0f, 0.0f, 0.0f, 1.0f);
-		*colors ++ = Color(0.0f, 1.0f, 0.0f, 1.0f);
-		*colors ++ = Color(0.0f, 0.0f, 1.0f, 1.0f);
-		*colors ++ = Color(0.0f, 0.0f, 0.0f, 1.0f);
-		
-		*indices ++ = 0;
-		*indices ++ = 3;
-		*indices ++ = 1;
-		*indices ++ = 2;
-		*indices ++ = 1;
-		*indices ++ = 3;
-		
-		*indices ++ = 4;
-		*indices ++ = 7;
-		*indices ++ = 5;
-		*indices ++ = 6;
-		*indices ++ = 5;
-		*indices ++ = 7;
-		
-		*indices ++ = 8;
-		*indices ++ = 11;
-		*indices ++ = 9;
-		*indices ++ = 10;
-		*indices ++ = 9;
-		*indices ++ = 11;
-		
-		*indices ++ = 12;
-		*indices ++ = 15;
-		*indices ++ = 13;
-		*indices ++ = 14;
-		*indices ++ = 13;
-		*indices ++ = 15;
-		
-		*indices ++ = 16;
-		*indices ++ = 19;
-		*indices ++ = 17;
-		*indices ++ = 18;
-		*indices ++ = 17;
-		*indices ++ = 19;
-		
-		*indices ++ = 20;
-		*indices ++ = 23;
-		*indices ++ = 21;
-		*indices ++ = 22;
-		*indices ++ = 21;
-		*indices ++ = 23;
-		
-		mesh->UpdateMesh();
-		
-		// Shader
-		Texture *texture0 = new Texture("textures/brick.png", Texture::FormatRGB565);
-		Texture *texture1 = new Texture("textures/testpng.png", Texture::FormatRGB565);
-		
-		Shader *shader = new Shader("shader/Test.vsh", "shader/Test.fsh");
-		
-		// Material
-		Material *material = new Material(shader);
-		material->AddTexture(texture0);
-		material->AddTexture(texture1);
-		material->culling = false;
-		
-		// Entity
-		Model *model = new Model(mesh, material);
-		
-		RigidBodyEntity *entity = new RigidBodyEntity();
-		entity->SetModel(model);
-		entity->SetRotation(Quaternion(Vector3(0.0f, 0.0f, 0.0f)));
-		entity->SetPosition(Vector3(-1.0f, 8.0f, -8.0f));
-		entity->SetSize(Vector3(0.5f, 0.5f, 0.5f));
-		entity->SetMass(10.0f);
-		entity->SetRestitution(0.8);
-		entity->SetFriction(1.8f);
-		entity->ApplyForce(Vector3(0.0f, -1000.0f, 0.0f));
-		
-		entity = new RigidBodyEntity();
-		entity->SetModel(model);
-		entity->SetRotation(Quaternion(Vector3(45.0f, 45.0f, 45.0f)));
-		entity->SetPosition(Vector3(1.0f, 8.0f, -8.0f));
-		entity->SetSize(Vector3(0.5f, 0.5f, 0.5f));
-		entity->SetMass(10.0f);
-		
-		entity = new RigidBodyEntity();
-		entity->SetModel(model);
-		entity->SetRotation(Quaternion(Vector3(45.0f, 45.0f, 45.0f)));
-		entity->SetPosition(Vector3(0.0f, 5.0f, -8.0f));
-		entity->SetSize(Vector3(0.5f, 0.5f, 0.5f));
-		entity->SetMass(10.0f);
-		
-		entity->ApplyForce(Vector3(0.0f, 0.0f, -1000.0f));
-		entity->ApplyForce(Vector3(0.0f, -3000.0f, 0.0f));
-		
-		
-		shader = new Shader("shader/Ground.vsh", "shader/Ground.fsh");
-		
-		texture0 = new Texture("textures/tiles.png", Texture::FormatRGB565);
-		material = new Material(shader);
-		material->AddTexture(texture0);
-		material->AddTexture(texture1);
-		material->culling = false;
-		
-		model = new Model(mesh, material);
-		entity = new RigidBodyEntity();
-		entity->SetModel(model);
-		entity->SetPosition(Vector3(0.0f, -5.0f, -8.0f));
-		entity->SetScale(Vector3(10.0f, 1.0f, 10.0f));
-		entity->SetMass(0.0f);
-		entity->SetSize(Vector3(5.0f, 0.5f, 5.0f));
-		entity->SetRestitution(0.5f);
 	}
 }

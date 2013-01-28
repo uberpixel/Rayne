@@ -18,27 +18,33 @@
 namespace RN
 {
 	class World;
-	class Kernel : public Object, public Singleton<Kernel>
+	class Kernel : public Object, public UnconstructingSingleton<Kernel>
 	{
 	public:
-		RNAPI Kernel();
+		RNAPI Kernel(const std::string& module);
 		RNAPI virtual ~Kernel();
 		
 		RNAPI bool Tick();
 		RNAPI void SetContext(Context *context);
 		RNAPI void SetWorld(World *world);
+		
+		RNAPI void DidSleepForSignificantTime();
 
 		RNAPI void Exit();
 		
 		RenderingPipeline *Renderer() const { return _renderer; }
 		Window *Window() const { return _window; }
 		
-	private:		
+	private:
+		void LoadApplicationModule(const std::string& module);
+		void *_appHandle;
+		
 		class Window *_window;
 		Context *_context;
 		RenderingPipeline *_renderer;
 		World *_world;
 		
+		bool _resetDelta;
 		bool _shouldExit;
 		float _time;
 		std::chrono::time_point<std::chrono::system_clock> _lastFrame;

@@ -1,0 +1,308 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E92AE1CD16B524B600EFE1E8 /* TGApplication.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92AE1CB16B524B600EFE1E8 /* TGApplication.cpp */; };
+		E92AE1CE16B524B600EFE1E8 /* TGApplication.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1CC16B524B600EFE1E8 /* TGApplication.h */; };
+		E92AE1DA16B5251B00EFE1E8 /* libRayne.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E92AE1D716B5250D00EFE1E8 /* libRayne.dylib */; };
+		E92AE1DE16B5281D00EFE1E8 /* TGWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */; };
+		E92AE1DF16B5281D00EFE1E8 /* TGWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E92AE1D616B5250D00EFE1E8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E92AE1D216B5250D00EFE1E8 /* Rayne.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E98D1E581673A6E200889F3B;
+			remoteInfo = Rayne;
+		};
+		E92AE1D816B5251200EFE1E8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E92AE1D216B5250D00EFE1E8 /* Rayne.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E98D1E571673A6E200889F3B;
+			remoteInfo = Rayne;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		E92AE1B916B523DD00EFE1E8 /* libGame.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libGame.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		E92AE1CB16B524B600EFE1E8 /* TGApplication.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGApplication.cpp; sourceTree = "<group>"; };
+		E92AE1CC16B524B600EFE1E8 /* TGApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGApplication.h; sourceTree = "<group>"; };
+		E92AE1D216B5250D00EFE1E8 /* Rayne.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rayne.xcodeproj; path = "../../Xcode/OS X/Rayne.xcodeproj"; sourceTree = "<group>"; };
+		E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGWorld.cpp; sourceTree = "<group>"; };
+		E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGWorld.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E92AE1B616B523DD00EFE1E8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E92AE1DA16B5251B00EFE1E8 /* libRayne.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E92AE1B016B523DD00EFE1E8 = {
+			isa = PBXGroup;
+			children = (
+				E92AE1CA16B5249E00EFE1E8 /* Source */,
+				E92AE1D116B524DB00EFE1E8 /* Frameworks */,
+				E92AE1BA16B523DD00EFE1E8 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E92AE1BA16B523DD00EFE1E8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E92AE1B916B523DD00EFE1E8 /* libGame.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E92AE1CA16B5249E00EFE1E8 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				E92AE1CB16B524B600EFE1E8 /* TGApplication.cpp */,
+				E92AE1CC16B524B600EFE1E8 /* TGApplication.h */,
+				E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */,
+				E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */,
+			);
+			path = Source;
+			sourceTree = "<group>";
+		};
+		E92AE1D116B524DB00EFE1E8 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E92AE1D216B5250D00EFE1E8 /* Rayne.xcodeproj */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E92AE1D316B5250D00EFE1E8 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E92AE1D716B5250D00EFE1E8 /* libRayne.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		E92AE1B716B523DD00EFE1E8 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E92AE1CE16B524B600EFE1E8 /* TGApplication.h in Headers */,
+				E92AE1DF16B5281D00EFE1E8 /* TGWorld.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		E92AE1B816B523DD00EFE1E8 /* Game */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E92AE1BD16B523DD00EFE1E8 /* Build configuration list for PBXNativeTarget "Game" */;
+			buildPhases = (
+				E92AE1B516B523DD00EFE1E8 /* Sources */,
+				E92AE1B616B523DD00EFE1E8 /* Frameworks */,
+				E92AE1B716B523DD00EFE1E8 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E92AE1D916B5251200EFE1E8 /* PBXTargetDependency */,
+			);
+			name = Game;
+			productName = Game;
+			productReference = E92AE1B916B523DD00EFE1E8 /* libGame.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E92AE1B116B523DD00EFE1E8 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = "Sidney Just";
+			};
+			buildConfigurationList = E92AE1B416B523DD00EFE1E8 /* Build configuration list for PBXProject "Game" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = E92AE1B016B523DD00EFE1E8;
+			productRefGroup = E92AE1BA16B523DD00EFE1E8 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = E92AE1D316B5250D00EFE1E8 /* Products */;
+					ProjectRef = E92AE1D216B5250D00EFE1E8 /* Rayne.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				E92AE1B816B523DD00EFE1E8 /* Game */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		E92AE1D716B5250D00EFE1E8 /* libRayne.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = libRayne.dylib;
+			remoteRef = E92AE1D616B5250D00EFE1E8 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E92AE1B516B523DD00EFE1E8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E92AE1CD16B524B600EFE1E8 /* TGApplication.cpp in Sources */,
+				E92AE1DE16B5281D00EFE1E8 /* TGWorld.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E92AE1D916B5251200EFE1E8 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Rayne;
+			targetProxy = E92AE1D816B5251200EFE1E8 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		E92AE1BB16B523DD00EFE1E8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		E92AE1BC16B523DD00EFE1E8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		E92AE1BE16B523DD00EFE1E8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				HEADER_SEARCH_PATHS = (
+					"\"/Users/Sidney/Projects/Active/Rayne/Engine Source\"",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/Rayne-espsryeibhnxbqfvbotsdrzqfiam/Build/Products/Debug\"",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		E92AE1BF16B523DD00EFE1E8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				HEADER_SEARCH_PATHS = (
+					"\"/Users/Sidney/Projects/Active/Rayne/Engine Source\"",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/Rayne-espsryeibhnxbqfvbotsdrzqfiam/Build/Products/Debug\"",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E92AE1B416B523DD00EFE1E8 /* Build configuration list for PBXProject "Game" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E92AE1BB16B523DD00EFE1E8 /* Debug */,
+				E92AE1BC16B523DD00EFE1E8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E92AE1BD16B523DD00EFE1E8 /* Build configuration list for PBXNativeTarget "Game" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E92AE1BE16B523DD00EFE1E8 /* Debug */,
+				E92AE1BF16B523DD00EFE1E8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E92AE1B116B523DD00EFE1E8 /* Project object */;
+}

@@ -9,10 +9,17 @@
 #include "RNKernel.h"
 #include "RNWorld.h"
 #include "RNOpenGL.h"
+#include "RNApplication.h"
+
+//extern "C" void RNApplicationCreate(RN:Kernel *kernel);
+
+typedef void (*RNApplicationEntryPointer)(RN::Kernel *);
 
 namespace RN
 {
-	Kernel::Kernel()
+	RNApplicationEntryPointer __ApplicationEntry = 0;
+	
+	Kernel::Kernel(const std::string& module)
 	{
 		_shouldExit = false;
 
@@ -30,8 +37,12 @@ namespace RN
 		_world = 0;
 		_time  = 0;
 		_lastFrame = std::chrono::system_clock::now();
+		_resetDelta = true;
 		
-		//Texture::SetDefaultAnisotropyLevel(4);
+		LoadApplicationModule(module);
+		
+		__ApplicationEntry(this);
+		RN_ASSERT0(Application::SharedInstance());
 	}	
 	
 	Kernel::~Kernel()
@@ -43,10 +54,21 @@ namespace RN
 		_context->Release();
 	}
 
+	void Kernel::LoadApplicationModule(const std::string& module)
+	{
+		std::string path = File::PathForName(module);
+		
+		_appHandle = dlopen(path.c_str(), RTLD_LAZY);
+		__ApplicationEntry = (RNApplicationEntryPointer)dlsym(_appHandle, "RNApplicationCreate");
+	}
+	
 	bool Kernel::Tick()
 	{
+		std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+		
 #if RN_PLATFORM_WINDOWS
 		MSG	message;
+		
 		while(PeekMessageA(&message, 0, 0, 0, PM_REMOVE))
 		{
 			TranslateMessage(&message);
@@ -56,8 +78,12 @@ namespace RN
 
 		if(_shouldExit)
 			return false;
-
-		std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+		
+		if(_resetDelta)
+		{
+			_lastFrame = now;
+			_resetDelta = false;
+		}
 		
 		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now - _lastFrame).count();
 		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
@@ -69,7 +95,10 @@ namespace RN
 		{
 			_context->MakeActiveContext();
 			
+			Application::SharedInstance()->GameUpdate(delta);
 			_world->BeginUpdate(delta);
+			
+			Application::SharedInstance()->WorldUpdate(delta);
 			_world->FinishUpdate(delta);
 			
 			_context->DeactivateContext();			
@@ -87,8 +116,7 @@ namespace RN
 	void Kernel::SetContext(Context *context)
 	{
 		_context->Release();
-		_context = context;
-		_context->Retain();
+		_context = context->Retain<Context>();
 		
 		_window->SetContext(_context);
 	}
@@ -96,7 +124,11 @@ namespace RN
 	void Kernel::SetWorld(World *world)
 	{
 		_world->Release();
-		_world = world;
-		_world->Retain();
+		_world = world->Retain<World>();
+	}
+	
+	void Kernel::DidSleepForSignificantTime()
+	{
+		_resetDelta = true;
 	}
 }

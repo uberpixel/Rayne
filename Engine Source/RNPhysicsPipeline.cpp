@@ -65,7 +65,7 @@ namespace RN
 		btCollisionDispatcher *_dispatcher = new btCollisionDispatcher(_collisionConfiguration);
 		
 		// The actual physics solver
-		btSequentialImpulseConstraintSolver *_solver = new btSequentialImpulseConstraintSolver;
+		btSequentialImpulseConstraintSolver *_solver = new btSequentialImpulseConstraintSolver();
 		
 		// The world.
 		_dynamicsWorld = new btDiscreteDynamicsWorld(_dispatcher, _broadphase, _solver, _collisionConfiguration);

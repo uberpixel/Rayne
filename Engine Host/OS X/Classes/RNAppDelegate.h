@@ -14,7 +14,6 @@
 {
 @private
 	RN::Kernel *kernel;
-	RN::World *world;
 }
 
 @end

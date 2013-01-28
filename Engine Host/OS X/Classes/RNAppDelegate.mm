@@ -15,14 +15,13 @@
 	if(!kernel->Tick())
 	{
 		[timer invalidate];
+		[NSApp terminate:self];
 	}
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
-	kernel = RN::Kernel::SharedInstance();
-	world = new RN::World(kernel);
-	
+	kernel = new RN::Kernel("libGame.dylib");	
 	[NSTimer scheduledTimerWithTimeInterval:1.0f/60.0f target:self selector:@selector(runGameLoop:) userInfo:nil repeats:YES];
 }
 

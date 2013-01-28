@@ -26,7 +26,7 @@ namespace RN
 	friend class Entity;
 	friend class Kernel;
 	public:
-		RNAPI World(Kernel *kernel);
+		RNAPI World();
 		RNAPI virtual ~World();
 		
 		RNAPI virtual void Update(float delta);
@@ -49,8 +49,6 @@ namespace RN
 		
 		PipelineSegment::TaskID _physicsTask;
 		PipelineSegment::TaskID _renderingTask;
-		
-		void CreateTestMesh();
 	};
 }
 
