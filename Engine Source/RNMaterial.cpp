@@ -10,12 +10,64 @@
 
 namespace RN
 {
+	Material::Material() :
+		RenderingResource("Material")
+	{
+		_shader = 0
+		_textures = new ObjectArray();
+	}
+	
 	Material::Material(RN::Shader *shader) :
 		RenderingResource("Material")
 	{
 		_shader = shader->Retain<RN::Shader>();
 		_textures = new ObjectArray();
-		
+	}
+	
+	Material::~Material()
+	{
+		_shader->Release();
+		_textures->Release();
+	}
+	
+	
+	
+	void Material::SetShader(RN::Shader *shader)
+	{
+		_shader->Release();
+		_shader = shader->Retain<RN::Shader>();
+	}
+	
+	Shader *Material::Shader() const
+	{
+		return _shader;
+	}
+	
+	
+	void Material::AddTexture(Texture *texture)
+	{
+		_textures->AddObject(texture);
+	}
+	
+	void Material::RemoveTexture(Texture *texture)
+	{
+		_textures->RemoveObject(texture);
+	}
+	
+	void Material::RemoveTextures()
+	{
+		_textures->RemoveAllObjects();
+	}
+	
+	
+	ObjectArray *Material::Textures() const
+	{
+		return _textures;
+	}
+	
+	
+	void Material::SetDefaultProperties()
+	{
 		culling  = true;
 		cullmode = GL_CCW;
 		
@@ -36,35 +88,5 @@ namespace RN
 		depthtest = true;
 		depthtestmode = GL_LEQUAL;
 		depthwrite = true;
-	}
-	
-	Material::~Material()
-	{
-		_shader->Release();
-		_textures->Release();
-	}
-	
-	void Material::SetShader(RN::Shader *shader)
-	{
-		_shader->Release();
-		_shader = shader;
-		_shader->Retain();
-	}
-	
-	
-	Shader *Material::Shader() const
-	{
-		return _shader;
-	}
-	
-	
-	void Material::AddTexture(Texture *texture)
-	{
-		_textures->AddObject(texture);
-	}
-	
-	ObjectArray *Material::Textures() const
-	{
-		return _textures;
 	}
 }

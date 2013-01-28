@@ -22,6 +22,7 @@ namespace RN
 	class Material : public Object, public RenderingResource
 	{
 	public:
+		RNAPI Material();
 		RNAPI Material(Shader *shader);
 		RNAPI virtual ~Material();
 		
@@ -29,7 +30,11 @@ namespace RN
 		RNAPI Shader *Shader() const;
 		
 		RNAPI void AddTexture(Texture *texture);
+		RNAPI void RemoveTexture(Texture *texture);
+		RNAPI void RemoveTextures();
+		
 		RNAPI ObjectArray *Textures() const;
+		RNAPI uint32 TextureCount() const { return (uint32)_textures->Count(); }
 		
 		bool culling;
 		GLenum cullmode;
@@ -53,7 +58,7 @@ namespace RN
 		GLenum depthtestmode;
 		
 	private:
-		void GetUniforms();
+		void SetDefaultProperties();
 		
 		RN::Shader *_shader;
 		ObjectArray *_textures;
