@@ -56,9 +56,6 @@ namespace RN
 		
 		ObjectArray *_materials;
 		std::vector<MeshGroup> _groups;
-		
-		//std::map<Mesh *, Material *> _materials;
-		//std::map<std::string, std::tuple<Mesh *, uint32>> _meshes;
 	};
 }
 

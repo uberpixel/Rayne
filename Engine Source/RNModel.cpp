@@ -43,10 +43,48 @@ namespace RN
 		group.material = material;
 		group.name = name;
 		
-		_materials = new ObjectArray();
-		
 		_groups.push_back(group);
+		
+		_materials = new ObjectArray();
 		_materials->AddObject(material);
+		
+		if(!material->Shader())
+		{
+			// Pick a shader automatically
+			Shader *shader = 0;
+			
+			uint32 textures = material->TextureCount();
+			bool hasTexcoord0 = mesh->LODStage(0)->SupportsFeature(kMeshFeatureUVSet0);
+			bool hasColor0 = mesh->LODStage(0)->SupportsFeature(kMeshFeatureColor0);
+			bool hasColor1 = mesh->LODStage(0)->SupportsFeature(kMeshFeatureColor1);
+			
+			if(hasTexcoord0 && textures > 0)
+			{
+				if(textures == 1)
+				{
+					shader = new Shader("shader/rn_Texture1.vsh", "shader/rn_Texture1.fsh");
+				}
+				if(textures == 2)
+				{
+					shader = new Shader("shader/rn_Texture2.vsh", "shader/rn_Texture2.fsh");
+				}
+			}
+			else if(hasColor0)
+			{
+				if(hasColor1)
+				{
+					shader = new Shader("shader/rn_Color2.vsh", "shader/rn_Color2.fsh");
+				}
+				else
+				{
+					shader = new Shader("shader/rn_Color1.vsh", "shader/rn_Color1.fsh");
+				}
+			}
+			
+			
+			material->SetShader(shader);
+			shader->Release();
+		}
 	}
 	
 	Model::~Model()
