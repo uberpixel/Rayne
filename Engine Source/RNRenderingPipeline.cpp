@@ -134,7 +134,7 @@ namespace RN
 				const Rect frame = camera->Frame();
 				
 				glBindFramebuffer(GL_READ_FRAMEBUFFER, camera->Framebuffer());
-				gl::BlitFramebuffer(0, 0, frame.width, frame.height, frame.x, frame.y, frame.width, frame.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+				gl::BlitFramebuffer(0, 0, frame.width*_scaleFactor, frame.height*_scaleFactor, frame.x*_scaleFactor, frame.y*_scaleFactor, frame.width*_scaleFactor, frame.height*_scaleFactor, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 			}
 			else
 			{
