@@ -55,6 +55,7 @@ namespace RN
 		
 		SetFilter(filter);
 		SetWrappingMode(wrap);
+		SetAnisotropyLevel(_defaultAnisotropy);
 		
 		try
 		{
