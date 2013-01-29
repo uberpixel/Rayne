@@ -102,6 +102,7 @@ namespace RN
 		
 		bool _packedStencil;
 		int _current;
+		float _scaleFactor;
 		
 		Texture *_texture;
 		Camera *_stage;

@@ -7,6 +7,7 @@
 //
 
 #include "RNRenderingPipeline.h"
+#include "RNKernel.h"
 
 namespace RN
 {
@@ -21,6 +22,7 @@ namespace RN
 		_currentVAO      = 0;
 		
 		_finishFrame = 0;
+		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
 		
 		_cullingEnabled   = false;
 		_depthTestEnabled = false;
@@ -120,7 +122,7 @@ namespace RN
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 		
-		glViewport(0, 0, _defaultWidth, _defaultHeight);
+		glViewport(0, 0, _defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor);
 		
 		for(auto iterator=_flushCameras.begin(); iterator!=_flushCameras.end(); iterator++)
 		{

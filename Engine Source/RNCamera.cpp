@@ -23,7 +23,8 @@ namespace RN
 		_texture  = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp, Texture::FilterNearest, _isLinear);
 		_texture->SetGeneratesMipmaps(false);
 		
-		flags = _flags;
+		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
+		flags        = _flags;
 		
 		glGenFramebuffers(1, &_framebuffer);
 		
@@ -205,7 +206,7 @@ namespace RN
 		glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
 		glClear(clearMask);
 		
-		glViewport(0, 0, _frame.width, _frame.height);
+		glViewport(0, 0, _frame.width * _scaleFactor, _frame.height * _scaleFactor);
 	}
 		
 	
@@ -216,8 +217,8 @@ namespace RN
 		
 		Bind();
 		
-		uint32 width  = (uint32)_frame.width;
-		uint32 height = (uint32)_frame.height;
+		uint32 width  = (uint32)(_frame.width * _scaleFactor);
+		uint32 height = (uint32)(_frame.height * _scaleFactor);
 		
 		if(_texture)
 		{
@@ -337,8 +338,7 @@ namespace RN
 	void Camera::InsertStage(Camera *stage)
 	{
 		stage->_stage->Release();
-		stage->_stage = _stage;
-		stage->_stage->Retain();
+		stage->_stage = _stage->Retain<Camera>();
 		
 		_stage = stage;
 		UpdateStage(true);

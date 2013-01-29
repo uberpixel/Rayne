@@ -50,6 +50,7 @@ namespace RN
 		uint32 _pushedGroups;
 		std::vector<RenderingGroup> _frame;
 		
+		float _scaleFactor;
 		float _time;
 		machine_uint _activeTextureUnits;
 		

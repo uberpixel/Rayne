@@ -111,6 +111,11 @@
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH,  &_backingWidth);
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &_backingHeight);
 	
+	float scaleFactor = RN::Kernel::SharedInstance()->ScaleFactor();
+	
+	_backingWidth  /= scaleFactor;
+	_backingHeight /= scaleFactor;
+	
 	_needsLayerResize = NO;
 }
 
@@ -123,13 +128,14 @@
 - (id)initWithController:(RN::Window *)controller andFrame:(CGRect)frame
 {
 	if((self = [super initWithFrame:frame]))
-	{
+	{		
 		_controller = controller;
 		
 		NSDictionary *properties = @{kEAGLDrawablePropertyRetainedBacking : @NO,  kEAGLDrawablePropertyColorFormat : kEAGLColorFormatRGBA8};
 		
 		_renderLayer = (CAEAGLLayer *)[self layer];
 		
+		[_renderLayer setContentsScale:RN::Kernel::SharedInstance()->ScaleFactor()];
 		[_renderLayer setDrawableProperties:properties];
 		[_renderLayer setOpaque:YES];
 	}

@@ -33,12 +33,16 @@ namespace RN
 
 		RNAPI void Exit();
 		
+		float ScaleFactor() const { return _scaleFactor; }
+		
 		RenderingPipeline *Renderer() const { return _renderer; }
 		Window *Window() const { return _window; }
 		
 	private:
 		void LoadApplicationModule(const std::string& module);
 		void *_appHandle;
+		
+		float _scaleFactor;
 		
 		Application *_app;
 		

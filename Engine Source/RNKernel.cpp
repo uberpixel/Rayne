@@ -19,11 +19,14 @@ RNApplicationEntryPointer __ApplicationEntry = 0;
 
 namespace RN
 {
-	
-	
 	Kernel::Kernel(const std::string& module)
 	{
 		_shouldExit = false;
+		_scaleFactor = 1.0f;
+		
+#if RN_PLATFORM_IOS
+		_scaleFactor = [[UIScreen mainScreen] scale];
+#endif
 
 		_context = new Context();
 		_context->MakeActiveContext();
@@ -48,7 +51,7 @@ namespace RN
 		_app = __ApplicationEntry(this);
 #endif
 		
-		RN_ASSERT(_app, "The game module must respond to RNApplicationCreate() and return a valid Application object!");
+		RN_ASSERT(_app, "The game module must respond to RNApplicationCreate() and return a valid RN::Application object!");
 	}	
 	
 	Kernel::~Kernel()
