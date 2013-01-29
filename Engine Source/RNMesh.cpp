@@ -286,12 +286,12 @@ namespace RN
 		*indices ++ = 1;
 		*indices ++ = 3;
 		
+		*indices ++ = 5;
+		*indices ++ = 7;
 		*indices ++ = 4;
 		*indices ++ = 7;
 		*indices ++ = 5;
 		*indices ++ = 6;
-		*indices ++ = 5;
-		*indices ++ = 7;
 		
 		*indices ++ = 8;
 		*indices ++ = 11;
@@ -300,26 +300,26 @@ namespace RN
 		*indices ++ = 9;
 		*indices ++ = 11;
 		
+		*indices ++ = 13;
+		*indices ++ = 15;
 		*indices ++ = 12;
 		*indices ++ = 15;
 		*indices ++ = 13;
 		*indices ++ = 14;
-		*indices ++ = 13;
-		*indices ++ = 15;
 		
+		*indices ++ = 17;
+		*indices ++ = 19;
 		*indices ++ = 16;
 		*indices ++ = 19;
 		*indices ++ = 17;
 		*indices ++ = 18;
-		*indices ++ = 17;
-		*indices ++ = 19;
 		
+		*indices ++ = 21;
+		*indices ++ = 23;
 		*indices ++ = 20;
 		*indices ++ = 23;
 		*indices ++ = 21;
 		*indices ++ = 22;
-		*indices ++ = 21;
-		*indices ++ = 23;
 		
 		mesh->UpdateMesh();
 		return mesh;
@@ -464,12 +464,12 @@ namespace RN
 		*indices ++ = 1;
 		*indices ++ = 3;
 		
+		*indices ++ = 5;
+		*indices ++ = 7;
 		*indices ++ = 4;
 		*indices ++ = 7;
 		*indices ++ = 5;
 		*indices ++ = 6;
-		*indices ++ = 5;
-		*indices ++ = 7;
 		
 		*indices ++ = 8;
 		*indices ++ = 11;
@@ -478,26 +478,26 @@ namespace RN
 		*indices ++ = 9;
 		*indices ++ = 11;
 		
+		*indices ++ = 13;
+		*indices ++ = 15;
 		*indices ++ = 12;
 		*indices ++ = 15;
 		*indices ++ = 13;
 		*indices ++ = 14;
-		*indices ++ = 13;
-		*indices ++ = 15;
 		
+		*indices ++ = 17;
+		*indices ++ = 19;
 		*indices ++ = 16;
 		*indices ++ = 19;
 		*indices ++ = 17;
 		*indices ++ = 18;
-		*indices ++ = 17;
-		*indices ++ = 19;
 		
+		*indices ++ = 21;
+		*indices ++ = 23;
 		*indices ++ = 20;
 		*indices ++ = 23;
 		*indices ++ = 21;
 		*indices ++ = 22;
-		*indices ++ = 21;
-		*indices ++ = 23;
 		
 		mesh->UpdateMesh();
 		return mesh;

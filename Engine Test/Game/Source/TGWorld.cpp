@@ -40,9 +40,8 @@ namespace TG
 		RN::Material *blockMaterial = new RN::Material(0);
 		blockMaterial->AddTexture(blockTexture0);
 		blockMaterial->AddTexture(blockTexture1);
-		blockMaterial->culling = false;
 		
-		RN::Mesh  *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f, 0.5f, 0.5f), RN::Color(1.0f, 0.478431373f, 0.211764706f, 1.0f));
+		RN::Mesh  *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f, 0.5f, 0.5f));
 		RN::Model *blockModel = new RN::Model(blockMesh, blockMaterial);
 		
 		_block1 = new RN::RigidBodyEntity();
@@ -75,7 +74,6 @@ namespace TG
 		
 		RN::Material *floorMaterial = new RN::Material(floorShader);
 		floorMaterial->AddTexture(floorTexture);
-		floorMaterial->culling = false;
 		
 		RN::Mesh *floorMesh = RN::Mesh::CubeMesh(RN::Vector3(5.0f, 0.5f, 5.0f));
 		RN::Model *floorModel = new RN::Model(floorMesh, floorMaterial);
