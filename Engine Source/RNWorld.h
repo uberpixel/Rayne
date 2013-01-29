@@ -21,7 +21,7 @@
 namespace RN
 {
 	class Kernel;
-	class World : public Object, public UnconstructingSingleton<World>
+	class World : public UnconstructingSingleton<World>
 	{
 	friend class Entity;
 	friend class Kernel;

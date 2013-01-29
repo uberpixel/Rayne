@@ -22,7 +22,7 @@ namespace RN
 		_mode = mode;
 
 		if(!OpenPath(path, mode))
-			throw ErrorException(0, 0, 0);
+			throw ErrorException(0, 0, 0, "Could not open file \"" + path + "\"");
 
 		fseek(_file, 0, SEEK_END);
 		_size = ftell(_file);

@@ -62,22 +62,22 @@ namespace RN
 			{
 				if(textures == 1)
 				{
-					shader = new Shader("shader/rn_Texture1.vsh", "shader/rn_Texture1.fsh");
+					shader = new Shader("shader/rn_Texture1");
 				}
 				if(textures == 2)
 				{
-					shader = new Shader("shader/rn_Texture2.vsh", "shader/rn_Texture2.fsh");
+					shader = new Shader("shader/rn_Texture2");
 				}
 			}
 			else if(hasColor0)
 			{
 				if(hasColor1)
 				{
-					shader = new Shader("shader/rn_Color2.vsh", "shader/rn_Color2.fsh");
+					shader = new Shader("shader/rn_Color2");
 				}
 				else
 				{
-					shader = new Shader("shader/rn_Color1.vsh", "shader/rn_Color1.fsh");
+					shader = new Shader("shader/rn_Color1");
 				}
 			}
 			

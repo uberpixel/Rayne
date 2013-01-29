@@ -146,7 +146,7 @@ namespace RN
 				object->Release();
 			}
 			
-			free(_data);
+			//free(_data);
 		}
 		
 		virtual void AddObject(Object *object)

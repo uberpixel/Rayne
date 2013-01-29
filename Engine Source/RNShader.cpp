@@ -22,18 +22,24 @@ namespace RN
 		_vertexShader = _fragmentShader = _geometryShader = 0;
 		program = 0;
 		
-		std::string vertexPath = File::PathForName(shader + ".vsh");
-		std::string fragmentPath = File::PathForName(shader + ".fsh");
-		std::string geometryPath = File::PathForName(shader + ".gsh");
+		{
+			std::string path = File::PathForName(shader + ".vsh");
+			SetVertexShader(path);
+		}
 		
-		if(vertexPath.length() > 0)
-			SetVertexShader(vertexPath);
+		{
+			std::string path = File::PathForName(shader + ".fsh");
+			SetFragmentShader(path);
+		}
 		
-		if(fragmentPath.length() > 0)
-			SetFragmentShader(fragmentPath);
-		
-		if(geometryPath.length() > 0)
-			SetGeometryShader(geometryPath);
+		try
+		{
+			std::string path = File::PathForName(shader + ".gsh");
+			SetGeometryShader(path);
+		}
+		catch(ErrorException e)
+		{
+		}
 		
 		if(link)
 			Link();

@@ -38,6 +38,7 @@
 		E92AE1D216B5250D00EFE1E8 /* Rayne.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rayne.xcodeproj; path = "../../Xcode/OS X/Rayne.xcodeproj"; sourceTree = "<group>"; };
 		E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGWorld.cpp; sourceTree = "<group>"; };
 		E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGWorld.h; sourceTree = "<group>"; };
+		E92D60EF16B7496E00BFCC44 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,6 +85,7 @@
 			isa = PBXGroup;
 			children = (
 				E92AE1D216B5250D00EFE1E8 /* Rayne.xcodeproj */,
+				E92D60EF16B7496E00BFCC44 /* Foundation.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -138,7 +140,7 @@
 				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = "Sidney Just";
 			};
-			buildConfigurationList = E92AE1B416B523DD00EFE1E8 /* Build configuration list for PBXProject "Game" */;
+			buildConfigurationList = E92AE1B416B523DD00EFE1E8 /* Build configuration list for PBXProject "Game-osx" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -208,6 +210,7 @@
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -240,6 +243,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
@@ -255,7 +259,7 @@
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
 				HEADER_SEARCH_PATHS = (
-					"\"/Users/Sidney/Projects/Active/Rayne/Engine Source\"",
+					"\"$(SRCROOT)/../../Engine Source\"",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -271,7 +275,7 @@
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
 				HEADER_SEARCH_PATHS = (
-					"\"/Users/Sidney/Projects/Active/Rayne/Engine Source\"",
+					"\"$(SRCROOT)/../../Engine Source\"",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -284,7 +288,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E92AE1B416B523DD00EFE1E8 /* Build configuration list for PBXProject "Game" */ = {
+		E92AE1B416B523DD00EFE1E8 /* Build configuration list for PBXProject "Game-osx" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E92AE1BB16B523DD00EFE1E8 /* Debug */,

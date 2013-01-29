@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNApplication.h"
 #include "RNRenderingResource.h"
 #include "RNRenderingPipeline.h"
 #include "RNWindow.h"
@@ -38,6 +39,8 @@ namespace RN
 	private:
 		void LoadApplicationModule(const std::string& module);
 		void *_appHandle;
+		
+		Application *_app;
 		
 		class Window *_window;
 		Context *_context;

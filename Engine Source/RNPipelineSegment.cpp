@@ -30,8 +30,16 @@ namespace RN
 	
 	void PipelineSegment::WaitForWork()
 	{
-		std::unique_lock<std::mutex> lock(_workMutex);		
-		_workCondition.wait(lock, [&](){ return _task != kPipelineSegmentNullTask; });
+		std::unique_lock<std::mutex> lock(_workMutex);
+		bool result;
+		
+		do {
+			result = _workCondition.wait_for(lock, std::chrono::milliseconds(50), [&](){ return (_task != kPipelineSegmentNullTask); });
+		
+			if(_shouldStop)
+				return;
+		
+		} while(!result);
 		
 		std::lock_guard<std::mutex> waitLock(_waitMutex);
 		

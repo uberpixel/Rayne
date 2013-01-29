@@ -7,6 +7,7 @@
 //
 
 #include "RNBase.h"
+#include "RNError.h"
 
 namespace RN
 {
@@ -19,7 +20,9 @@ namespace RN
 			va_list args;
 			va_start(args, message);
 			
+			fprintf(stderr, "Reason: \"");
 			vfprintf(stderr, message, args);
+			fprintf(stderr, "\"");
 			
 			va_end(args);
 		}			
@@ -27,3 +30,47 @@ namespace RN
 		abort();
 	}
 }
+
+#if RN_PLATFORM_MAC_OS
+
+int main(int argc, char *argv[])
+{
+	int result = 0;
+	
+	try
+	{
+		result = NSApplicationMain(argc, (const char **)argv);
+	}
+	catch(RN::ErrorException e)
+	{
+		fprintf(stderr, "Caught exception %i|%i|%i.\nReason: %s\n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str());
+		fflush(stderr);
+	}
+	
+	return result;
+}
+
+#endif
+
+#if RN_PLATFORM_IOS
+
+int main(int argc, char *argv[])
+{
+	int result = 0;
+	
+	try
+	{
+		@autoreleasepool {
+			result = UIApplicationMain(argc, argv, nil, @"RNAppDelegate");
+		}
+	}
+	catch(RN::ErrorException e)
+	{
+		fprintf(stderr, "Caught exception %i|%i|%i.\nReason: %s\n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str());
+		fflush(stderr);
+	}
+	
+	return result;
+}
+
+#endif

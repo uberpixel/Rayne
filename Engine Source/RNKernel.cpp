@@ -9,15 +9,17 @@
 #include "RNKernel.h"
 #include "RNWorld.h"
 #include "RNOpenGL.h"
-#include "RNApplication.h"
 
-//extern "C" void RNApplicationCreate(RN:Kernel *kernel);
-
-typedef void (*RNApplicationEntryPointer)(RN::Kernel *);
+#if RN_PLATFORM_IOS
+extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
+#else
+typedef RN::Application *(*RNApplicationEntryPointer)(RN::Kernel *);
+RNApplicationEntryPointer __ApplicationEntry = 0;
+#endif
 
 namespace RN
 {
-	RNApplicationEntryPointer __ApplicationEntry = 0;
+	
 	
 	Kernel::Kernel(const std::string& module)
 	{
@@ -38,17 +40,21 @@ namespace RN
 		_time  = 0;
 		_lastFrame = std::chrono::system_clock::now();
 		_resetDelta = true;
-		
+	
+#if RN_PLATFORM_IOS
+		_app = RNApplicationCreate(this);
+#else
 		LoadApplicationModule(module);
+		_app = __ApplicationEntry(this);
+#endif
 		
-		__ApplicationEntry(this);
-		RN_ASSERT0(Application::SharedInstance());
+		RN_ASSERT(_app, "The game module must respond to RNApplicationCreate() and return a valid Application object!");
 	}	
 	
 	Kernel::~Kernel()
 	{
+		delete _app;
 		_window->Release();
-		_world->Release();
 		
 		delete _renderer;
 		_context->Release();
@@ -56,10 +62,14 @@ namespace RN
 
 	void Kernel::LoadApplicationModule(const std::string& module)
 	{
+#if RN_PLATFORM_MAC_OS
 		std::string path = File::PathForName(module);
-		
+	
 		_appHandle = dlopen(path.c_str(), RTLD_LAZY);
 		__ApplicationEntry = (RNApplicationEntryPointer)dlsym(_appHandle, "RNApplicationCreate");
+		
+		RN_ASSERT(__ApplicationEntry, "The game module must provide an application entry point (RNApplicationCreate())");
+#endif
 	}
 	
 	bool Kernel::Tick()
@@ -123,8 +133,7 @@ namespace RN
 	
 	void Kernel::SetWorld(World *world)
 	{
-		_world->Release();
-		_world = world->Retain<World>();
+		_world = world;
 	}
 	
 	void Kernel::DidSleepForSignificantTime()

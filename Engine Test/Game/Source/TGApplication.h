@@ -14,7 +14,7 @@
 
 namespace TG
 {
-	class Application : RN::Application
+	class Application : public RN::Application
 	{
 	public:
 		Application();

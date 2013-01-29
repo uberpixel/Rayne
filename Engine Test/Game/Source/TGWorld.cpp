@@ -70,7 +70,7 @@ namespace TG
 		_block3->ApplyImpulse(RN::Vector3(0.0f, 0.0f, -15.0f));
 		
 		// Floor
-		RN::Shader *floorShader = new RN::Shader("shader/Ground.vsh", "shader/Ground.fsh");
+		RN::Shader *floorShader = new RN::Shader("shader/Ground");
 		RN::Texture *floorTexture = new RN::Texture("textures/tiles.png", RN::Texture::FormatRGB565);
 		
 		RN::Material *floorMaterial = new RN::Material(floorShader);

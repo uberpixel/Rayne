@@ -17,6 +17,7 @@ namespace TG
 	
 	Application::~Application()
 	{
+		delete _world;
 	}
 	
 	void Application::UpdateGame(float delta)
@@ -30,8 +31,8 @@ namespace TG
 
 extern "C"
 {
-	void RNApplicationCreate(RN::Kernel *kernel)
+	RN::Application *RNApplicationCreate(RN::Kernel *kernel)
 	{
-		new TG::Application();
+		return static_cast<RN::Application *>(new TG::Application());
 	}
 }

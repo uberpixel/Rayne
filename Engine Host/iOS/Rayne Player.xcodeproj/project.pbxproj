@@ -11,18 +11,32 @@
 		E91B886C169754F5001B7F22 /* Default.png in Resources */ = {isa = PBXBuildFile; fileRef = E91B8869169754F5001B7F22 /* Default.png */; };
 		E91B886D169754F5001B7F22 /* Default@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = E91B886A169754F5001B7F22 /* Default@2x.png */; };
 		E91B887116975536001B7F22 /* Engine Resources in Resources */ = {isa = PBXBuildFile; fileRef = E91B887016975536001B7F22 /* Engine Resources */; };
+		E92D613416B75B8D00BFCC44 /* libGame.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E92D613116B75B7900BFCC44 /* libGame.a */; };
 		E9619F55169621F400DA187E /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F54169621F400DA187E /* OpenGLES.framework */; };
 		E9619F57169621F800DA187E /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F56169621F800DA187E /* QuartzCore.framework */; };
 		E9619F5F1696BCDE00DA187E /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F5E1696BCDE00DA187E /* libz.dylib */; };
-		E9619F6F1696FBA300DA187E /* libRayne.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F6C1696FB8A00DA187E /* libRayne.a */; };
+		E9D6B87416B794B00097C8BC /* libRayne.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F6C1696FB8A00DA187E /* libRayne.a */; };
 		E9ED4F431696086400DAD683 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ED4F421696086400DAD683 /* UIKit.framework */; };
 		E9ED4F451696086400DAD683 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ED4F441696086400DAD683 /* Foundation.framework */; };
 		E9ED4F471696086400DAD683 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ED4F461696086400DAD683 /* CoreGraphics.framework */; };
 		E9ED4F951696094500DAD683 /* RNAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E9ED4F8C1696094500DAD683 /* RNAppDelegate.mm */; };
-		E9ED4F991696094500DAD683 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = E9ED4F921696094500DAD683 /* main.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		E92D613016B75B7900BFCC44 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E92D612C16B75B7800BFCC44 /* Game-ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E92D611316B75B2100BFCC44;
+			remoteInfo = Game;
+		};
+		E92D613216B75B8600BFCC44 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E92D612C16B75B7800BFCC44 /* Game-ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E92D611216B75B2100BFCC44;
+			remoteInfo = Game;
+		};
 		E9619F6B1696FB8A00DA187E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E9619F661696FB8900DA187E /* Rayne.xcodeproj */;
@@ -30,7 +44,7 @@
 			remoteGlobalIDString = E9619EE7169616FD00DA187E;
 			remoteInfo = Rayne;
 		};
-		E9619F6D1696FB9000DA187E /* PBXContainerItemProxy */ = {
+		E9D6B87116B794AB0097C8BC /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E9619F661696FB8900DA187E /* Rayne.xcodeproj */;
 			proxyType = 1;
@@ -44,6 +58,7 @@
 		E91B8869169754F5001B7F22 /* Default.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Default.png; sourceTree = "<group>"; };
 		E91B886A169754F5001B7F22 /* Default@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Default@2x.png"; sourceTree = "<group>"; };
 		E91B887016975536001B7F22 /* Engine Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Engine Resources"; path = "../../Engine Resources"; sourceTree = "<group>"; };
+		E92D612C16B75B7800BFCC44 /* Game-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "Game-ios.xcodeproj"; path = "../../Engine Test/Game/Game-ios.xcodeproj"; sourceTree = "<group>"; };
 		E9619F54169621F400DA187E /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		E9619F56169621F800DA187E /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		E9619F5E1696BCDE00DA187E /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
@@ -54,7 +69,6 @@
 		E9ED4F461696086400DAD683 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		E9ED4F8B1696094500DAD683 /* RNAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAppDelegate.h; sourceTree = "<group>"; };
 		E9ED4F8C1696094500DAD683 /* RNAppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = RNAppDelegate.mm; sourceTree = "<group>"; };
-		E9ED4F921696094500DAD683 /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		E9ED4F931696094500DAD683 /* Rayne Player-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Rayne Player-Info.plist"; sourceTree = "<group>"; };
 		E9ED4F941696094500DAD683 /* Rayne Player-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Rayne Player-Prefix.pch"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -70,13 +84,22 @@
 				E9ED4F431696086400DAD683 /* UIKit.framework in Frameworks */,
 				E9ED4F451696086400DAD683 /* Foundation.framework in Frameworks */,
 				E9ED4F471696086400DAD683 /* CoreGraphics.framework in Frameworks */,
-				E9619F6F1696FBA300DA187E /* libRayne.a in Frameworks */,
+				E92D613416B75B8D00BFCC44 /* libGame.a in Frameworks */,
+				E9D6B87416B794B00097C8BC /* libRayne.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E92D612D16B75B7800BFCC44 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E92D613116B75B7900BFCC44 /* libGame.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		E9619F671696FB8900DA187E /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -108,6 +131,7 @@
 		E9ED4F411696086400DAD683 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				E92D612C16B75B7800BFCC44 /* Game-ios.xcodeproj */,
 				E9619F661696FB8900DA187E /* Rayne.xcodeproj */,
 				E9ED4F461696086400DAD683 /* CoreGraphics.framework */,
 				E9ED4F441696086400DAD683 /* Foundation.framework */,
@@ -141,7 +165,6 @@
 		E9ED4F8E1696094500DAD683 /* Supporting files */ = {
 			isa = PBXGroup;
 			children = (
-				E9ED4F921696094500DAD683 /* main.mm */,
 				E9ED4F931696094500DAD683 /* Rayne Player-Info.plist */,
 				E9ED4F941696094500DAD683 /* Rayne Player-Prefix.pch */,
 			);
@@ -162,7 +185,8 @@
 			buildRules = (
 			);
 			dependencies = (
-				E9619F6E1696FB9000DA187E /* PBXTargetDependency */,
+				E9D6B87216B794AB0097C8BC /* PBXTargetDependency */,
+				E92D613316B75B8600BFCC44 /* PBXTargetDependency */,
 			);
 			name = "Rayne Player";
 			productName = "Rayne Player";
@@ -191,6 +215,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = E92D612D16B75B7800BFCC44 /* Products */;
+					ProjectRef = E92D612C16B75B7800BFCC44 /* Game-ios.xcodeproj */;
+				},
+				{
 					ProductGroup = E9619F671696FB8900DA187E /* Products */;
 					ProjectRef = E9619F661696FB8900DA187E /* Rayne.xcodeproj */;
 				},
@@ -203,6 +231,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		E92D613116B75B7900BFCC44 /* libGame.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libGame.a;
+			remoteRef = E92D613016B75B7900BFCC44 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		E9619F6C1696FB8A00DA187E /* libRayne.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -232,17 +267,21 @@
 			buildActionMask = 2147483647;
 			files = (
 				E9ED4F951696094500DAD683 /* RNAppDelegate.mm in Sources */,
-				E9ED4F991696094500DAD683 /* main.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		E9619F6E1696FB9000DA187E /* PBXTargetDependency */ = {
+		E92D613316B75B8600BFCC44 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Game;
+			targetProxy = E92D613216B75B8600BFCC44 /* PBXContainerItemProxy */;
+		};
+		E9D6B87216B794AB0097C8BC /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = Rayne;
-			targetProxy = E9619F6D1696FB9000DA187E /* PBXContainerItemProxy */;
+			targetProxy = E9D6B87116B794AB0097C8BC /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -313,6 +352,7 @@
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -328,6 +368,7 @@
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				OTHER_LDFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
