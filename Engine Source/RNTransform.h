@@ -43,6 +43,7 @@ namespace RN
 		Vector3 _position;
 		Vector3 _scale;
 		Quaternion _rotation;
+		Vector3 _euler;	//there has to be a way to fix this in the quaternion class somehow...
 		
 	private:
 		class Matrix _transform;
@@ -66,6 +67,7 @@ namespace RN
 		_scale(Vector3(1.0f)),
 		_rotation(rotation)
 	{
+		_euler = rotation.EulerAngle();
 		_didChange = true;
 	}
 	
@@ -83,7 +85,9 @@ namespace RN
 	
 	RN_INLINE void Transform::Rotate(const Vector3& rot)
 	{
-		_rotation += rot;
+//		_rotation += rot;
+		_euler += rot;
+		_rotation = Quaternion(_euler);
 		_didChange = true;
 	}
 	
@@ -101,6 +105,7 @@ namespace RN
 	
 	RN_INLINE void Transform::SetRotation(const Quaternion& rot)
 	{
+		_euler = rot.EulerAngle();
 		_rotation = rot;
 		_didChange = true;
 	}

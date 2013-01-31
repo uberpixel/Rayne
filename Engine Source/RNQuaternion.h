@@ -104,6 +104,24 @@ namespace RN
 	{
 		Vector3 euler = EulerAngle();
 		euler += other;
+//		printf("x: %f, y: %f, z: %f\n", euler.x, euler.y, euler.z);
+
+/*		float fSinPitch = sin(atan2(2.0f * (y * w - x * z), 1.0f - 2.0f * (y*y + z*z))*0.5f+other.x*M_PI/360.0f);
+		float fCosPitch = cos(atan2(2.0f * (y * w - x * z), 1.0f - 2.0f * (y*y + z*z))*0.5f+other.x*M_PI/360.0f);
+		float fSinYaw   = sin(asin(2.0f * (x * y + z * w))*0.5f+other.y*M_PI/360.0f);
+		float fCosYaw   = cos(asin(2.0f * (x * y + z * w))*0.5f+other.y*M_PI/360.0f);
+		float fSinRoll  = sin(atan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (x*x + z*z))*0.5f+other.z*M_PI/360.0f);
+		float fCosRoll  = cos(atan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (x*x + z*z))*0.5f+other.z*M_PI/360.0f);
+		
+		float fCosPitchCosYaw = fCosPitch * fCosYaw;
+		float fSinPitchSinYaw = fSinPitch * fSinYaw;
+		
+		x = fSinRoll * fCosPitchCosYaw     - fCosRoll * fSinPitchSinYaw;
+		y = fCosRoll * fSinPitch * fCosYaw + fSinRoll * fCosPitch * fSinYaw;
+		z = fCosRoll * fCosPitch * fSinYaw - fSinRoll * fSinPitch * fCosYaw;
+		w = fCosRoll * fCosPitchCosYaw     + fSinRoll * fSinPitchSinYaw;
+		
+		Normalize();*/
 		
 		MakeEulerAngle(euler);
 		return *this;
@@ -454,8 +472,9 @@ namespace RN
 		float sqy = y * y;
 		float sqz = z * z;
 		
-		float clamped = 2.0f * (x * y + z * w);
-		if(clamped > 0.99999f)
+		float clamped = (x * y + z * w);
+//		printf("dafuq: %f\n", clamped);
+		if(clamped > 0.4999f)
 		{
 			result.x = 2.0f * atan2(x, w) * 180.0f / M_PI;
 			result.y = 90.0f;
@@ -464,7 +483,7 @@ namespace RN
 			return result;
 		}
 		
-		if(clamped < -0.99999f)
+		if(clamped < -0.4999f)
 		{
 			result.x = -2.0f * atan2(x, w) * 180.0f / M_PI;
 			result.y = -90.0f;
@@ -474,7 +493,7 @@ namespace RN
 		}
 		
 		result.x = (float)(atan2(2.0f * (y * w - x * z), 1.0f - 2.0f * (sqy + sqz)));
-		result.y = asin(clamped);
+		result.y = asin(2.0f*clamped);
 		result.z = (float)(atan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (sqx + sqz)));
 		result *= 180.0f / M_PI;
 		
