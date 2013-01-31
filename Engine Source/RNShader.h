@@ -21,8 +21,9 @@ namespace RN
 	public:		
 		RNAPI Shader();
 		RNAPI Shader(const std::string& shader, bool link=true);
-		RNAPI Shader(const std::string& vertexShader, const std::string& fragmentShader, bool link=true);
 		RNAPI virtual ~Shader();
+		
+		static Shader *WithFile(const std::string& shader, bool link=true);
 		
 		RNAPI void SetVertexShader(const std::string& path);
 		RNAPI void SetVertexShader(File *file);

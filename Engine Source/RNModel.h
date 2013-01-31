@@ -25,6 +25,9 @@ namespace RN
 		
 		virtual ~Model();
 		
+		static Model *WithFile(const std::string& path);
+		static Model *WithMesh(Mesh *mesh, Material *material, const std::string& name="Unnamed");
+		
 		uint32 Meshes() const;
 		uint32 Materials() const;
 		

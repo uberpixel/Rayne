@@ -91,6 +91,19 @@ namespace RN
 	{
 	}
 	
+	Model *Model::WithFile(const std::string& path)
+	{
+		Model *model = new Model(path);
+		return model->Autorelease<Model>();
+	}
+	
+	Model *Model::WithMesh(Mesh *mesh, Material *material, const std::string& name)
+	{
+		Model *model = new Model(mesh, material, name);
+		return model->Autorelease<Model>();
+	}
+	
+	
 	
 	uint32 Model::Meshes() const
 	{

@@ -50,7 +50,14 @@ namespace RN
 		if(!this)
 			return this;
 		
-		AutoreleasePool::CurrentPool()->AddObject(this);
+		AutoreleasePool *pool = AutoreleasePool::CurrentPool();
+		if(!pool)
+		{
+			printf("Autorelease() with no pool in place, %p will leak!\n", this);
+			return this;
+		}
+		
+		pool->AddObject(this);
 		return this;
 	}
 	

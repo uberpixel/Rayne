@@ -20,6 +20,8 @@ namespace RN
 	
 	AutoreleasePool::~AutoreleasePool()
 	{
+		RN_ASSERT(_owner->_pool == this, "Popping pool other than the topmost pool is forbidden!");
+		
 		Drain();
 		_owner->_pool = _parent;
 	}

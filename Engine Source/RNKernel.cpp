@@ -9,6 +9,7 @@
 #include "RNKernel.h"
 #include "RNWorld.h"
 #include "RNOpenGL.h"
+#include "RNAutoreleasePool.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -21,6 +22,8 @@ namespace RN
 {
 	Kernel::Kernel(const std::string& module)
 	{
+		AutoreleasePool *pool = new AutoreleasePool();
+		
 		_shouldExit = false;
 
 		_context = new Context();
@@ -56,17 +59,22 @@ namespace RN
 		LoadApplicationModule(module);
 		_app = __ApplicationEntry(this);
 #endif
+		delete pool;
 		
 		RN_ASSERT(_app, "The game module must respond to RNApplicationCreate() and return a valid RN::Application object!");
 	}	
 	
 	Kernel::~Kernel()
 	{
+		AutoreleasePool *pool = new AutoreleasePool();
+		
 		delete _app;
 		_window->Release();
 		
 		delete _renderer;
 		_context->Release();
+		
+		delete pool;
 	}
 
 	void Kernel::LoadApplicationModule(const std::string& module)
@@ -84,6 +92,7 @@ namespace RN
 	bool Kernel::Tick()
 	{
 		std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+		AutoreleasePool *pool = new AutoreleasePool();
 		
 #if RN_PLATFORM_WINDOWS
 		MSG	message;
@@ -96,7 +105,10 @@ namespace RN
 #endif
 
 		if(_shouldExit)
+		{
+			delete pool;
 			return false;
+		}
 		
 		if(_resetDelta)
 		{
@@ -124,6 +136,8 @@ namespace RN
 		}
 
 		_lastFrame = now;
+		
+		delete pool;
 		return true;
 	}
 

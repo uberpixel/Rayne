@@ -45,18 +45,6 @@ namespace RN
 			Link();
 	}
 	
-	Shader::Shader(const std::string& vertexShader, const std::string& fragmentShader, bool link)
-	{
-		_vertexShader = _fragmentShader = _geometryShader = 0;
-		program = 0;
-		
-		SetVertexShader(vertexShader);
-		SetFragmentShader(fragmentShader);
-		
-		if(link)
-			Link();
-	}
-	
 	Shader::~Shader()
 	{
 		if(_vertexShader)
@@ -70,6 +58,12 @@ namespace RN
 		
 		if(program)
 			glDeleteProgram(program);
+	}
+	
+	Shader *Shader::WithFile(const std::string& file, bool link)
+	{
+		Shader *shader = new Shader(file, link);
+		return shader->Autorelease<Shader>();
 	}
 	
 	

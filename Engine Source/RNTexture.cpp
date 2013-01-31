@@ -61,19 +61,26 @@ namespace RN
 		{
 			SetData(loader.Data(), loader.Width(), loader.Height(), loader.Format());
 		}
-		catch (ErrorException exception)
+		catch (ErrorException e)
 		{
-			printf("Caught exception!");
+			Unbind();
+			throw e;
 		}
-		
 		
 		Unbind();
 	}
-
+	
 	Texture::~Texture()
 	{
 		glDeleteTextures(1, &_name);
 	}
+	
+	Texture *Texture::WithFile(const std::string& name, Format format, WrapMode wrap, Filter filter, bool isLinear)
+	{
+		Texture *texture = new Texture(name, format, wrap, filter, isLinear);
+		return texture->Autorelease<Texture>();
+	}
+
 	
 	
 	void Texture::Bind()

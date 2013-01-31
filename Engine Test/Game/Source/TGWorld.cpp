@@ -27,6 +27,8 @@ namespace TG
 		if(time >= 5.0f)
 		{
 			_block1->ApplyImpulse(RN::Vector3(0.0f, 100.0f, 0.0f));
+			_block1->ApplyTorqueImpulse(RN::Vector3(0.0f, 10.0f, 0.0f));
+			
 			time = 0.0f;
 		}
 	}
@@ -34,15 +36,15 @@ namespace TG
 	void World::CreateWorld()
 	{
 		// Blocks
-		RN::Texture *blockTexture0 = new RN::Texture("textures/brick.png", RN::Texture::FormatRGB565);
-		RN::Texture *blockTexture1 = new RN::Texture("textures/testpng.png", RN::Texture::FormatRGB565);
+		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB565);
+		RN::Texture *blockTexture1 = RN::Texture::WithFile("textures/testpng.png", RN::Texture::FormatRGB565);
 		
 		RN::Material *blockMaterial = new RN::Material(0);
 		blockMaterial->AddTexture(blockTexture0);
 		blockMaterial->AddTexture(blockTexture1);
 		
 		RN::Mesh  *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f, 0.5f, 0.5f));
-		RN::Model *blockModel = new RN::Model(blockMesh, blockMaterial);
+		RN::Model *blockModel = RN::Model::WithMesh(blockMesh->Autorelease<RN::Mesh>(), blockMaterial->Autorelease<RN::Material>());
 		
 		_block1 = new RN::RigidBodyEntity();
 		_block1->SetModel(blockModel);
@@ -69,14 +71,14 @@ namespace TG
 		_block3->ApplyImpulse(RN::Vector3(0.0f, 0.0f, -15.0f));
 		
 		// Floor
-		RN::Shader *floorShader = new RN::Shader("shader/Ground");
-		RN::Texture *floorTexture = new RN::Texture("textures/tiles.png", RN::Texture::FormatRGB565);
+		RN::Shader *floorShader = RN::Shader::WithFile("shader/Ground");
+		RN::Texture *floorTexture = RN::Texture::WithFile("textures/tiles.png", RN::Texture::FormatRGB565);
 		
 		RN::Material *floorMaterial = new RN::Material(floorShader);
 		floorMaterial->AddTexture(floorTexture);
 		
 		RN::Mesh *floorMesh = RN::Mesh::CubeMesh(RN::Vector3(5.0f, 0.5f, 5.0f));
-		RN::Model *floorModel = new RN::Model(floorMesh, floorMaterial);
+		RN::Model *floorModel = new RN::Model(floorMesh->Autorelease<RN::Mesh>(), floorMaterial->Autorelease<RN::Material>());
 		
 		_floor = new RN::RigidBodyEntity();
 		_floor->SetModel(floorModel);

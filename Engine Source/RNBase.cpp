@@ -22,7 +22,7 @@ namespace RN
 			
 			fprintf(stderr, "Reason: \"");
 			vfprintf(stderr, message, args);
-			fprintf(stderr, "\"");
+			fprintf(stderr, "\"\n");
 			
 			va_end(args);
 		}			

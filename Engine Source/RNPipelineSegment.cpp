@@ -7,6 +7,7 @@
 //
 
 #include "RNPipelineSegment.h"
+#include "RNAutoreleasePool.h"
 
 namespace RN
 {
@@ -43,7 +44,11 @@ namespace RN
 		
 		std::lock_guard<std::mutex> waitLock(_waitMutex);
 		
+		AutoreleasePool *pool = new AutoreleasePool();
+		
 		WorkOnTask(_task, _delta);
+		
+		delete pool;
 		
 		_lastTask = _task;
 		_task = kPipelineSegmentNullTask;

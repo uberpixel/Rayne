@@ -45,6 +45,8 @@ namespace RN
 		RNAPI Texture(Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear, bool isLinear=false);
 		RNAPI Texture(const std::string& name, Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear, bool isLinear=false);
 		
+		static Texture *WithFile(const std::string& name, Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear, bool isLinear=false);
+		
 		RNAPI virtual ~Texture();
 		
 		RNAPI void Bind();
