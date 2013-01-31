@@ -24,9 +24,10 @@
 - (id)initWithFrame:(NSRect)frame
 {
 	if((self = [super initWithContentRect:frame styleMask:NSTitledWindowMask | NSClosableWindowMask backing:NSBackingStoreBuffered defer:NO]))
-	{		
+	{
 		NSRect rect = [self contentRectForFrameRect:frame];
 		_openGLView = [[NSOpenGLView alloc] initWithFrame:rect];
+		[_openGLView  setWantsBestResolutionOpenGLSurface:YES];
 		
 		[self setContentView:_openGLView];
 	}

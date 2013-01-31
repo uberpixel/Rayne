@@ -22,16 +22,22 @@ namespace RN
 	Kernel::Kernel(const std::string& module)
 	{
 		_shouldExit = false;
-		_scaleFactor = 1.0f;
-		
-#if RN_PLATFORM_IOS
-		_scaleFactor = [[UIScreen mainScreen] scale];
-#endif
 
 		_context = new Context();
 		_context->MakeActiveContext();
 		
 		ReadOpenGLExtensions();
+		
+		_scaleFactor = 1.0f;
+		
+#if RN_PLATFORM_IOS
+		_scaleFactor = [[UIScreen mainScreen] scale];
+#elif RN_PLATFORM_MAC_OS
+		if([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)])
+		{
+			_scaleFactor = [NSScreen mainScreen].backingScaleFactor;
+		}
+#endif
 		
 		_renderer = new RenderingPipeline();
 		
