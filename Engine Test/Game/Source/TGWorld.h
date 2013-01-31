@@ -24,6 +24,8 @@ namespace TG
 	private:
 		void CreateWorld();
 		
+		RN::Camera *_camera;
+		
 		RN::RigidBodyEntity *_block1;
 		RN::RigidBodyEntity *_block2;
 		RN::RigidBodyEntity *_block3;

@@ -10,7 +10,8 @@
 #define __RAYNE_TRANSFORM_H__
 
 #include "RNBase.h"
-#include "RNMatrixQuaternion.h"
+#include "RNMatrix.h"
+#include "RNQuaternion.h"
 #include "RNVector.h"
 
 namespace RN

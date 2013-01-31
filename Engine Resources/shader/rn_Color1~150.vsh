@@ -9,8 +9,7 @@
 #version 150
 precision highp float;
 
-uniform mat4 matProj;
-uniform mat4 matModel;
+uniform mat4 matProjViewModel;
 
 in vec3 position;
 in vec4 color0;
@@ -21,5 +20,5 @@ void main()
 {
 	outColor = color0;
 
-	gl_Position = matProj * matModel * vec4(position, 1.0);
+	gl_Position = matProjViewModel * vec4(position, 1.0);
 }

@@ -16,16 +16,8 @@ namespace RN
 		_kernel = Kernel::SharedInstance();
 		_kernel->SetWorld(this);
 		
-		_cameras = new ObjectArray();
-		
 		_renderer = _kernel->Renderer();
 		_physics  = new PhysicsPipeline();
-		
-		Rect frame = _kernel->Window()->Frame();
-		Camera *camera = new Camera(Vector2(frame.width, frame.height));
-		
-		_cameras->AddObject(camera);
-		camera->Release();
 		
 		_physicsTask = kPipelineSegmentNullTask;
 		_renderingTask = kPipelineSegmentNullTask;
@@ -33,9 +25,7 @@ namespace RN
 	
 	World::~World()
 	{
-		_cameras->Release();
 		delete _physics;
-		
 		_kernel->SetWorld(0);
 	}
 	
@@ -56,6 +46,12 @@ namespace RN
 			Entity *entity = *i;
 			entity->Update(delta);
 		}
+		
+		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
+		{
+			Camera *camera = *i;
+			camera->UpdateCamera();
+		}
 	}
 	
 	void World::FinishUpdate(float delta)
@@ -73,16 +69,16 @@ namespace RN
 		_renderer->PepareFrame();
 		_renderingTask = _renderer->BeginTask(delta);
 		
-		for(machine_uint i=0; i<_cameras->Count(); i++)
+		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
 		{
-			Camera *camera = (Camera *)_cameras->ObjectAtIndex(i);
+			Camera *camera = *i;
 			
 			RenderingGroup group;
 			group.camera = camera;
 			
-			for(auto i=_entities.begin(); i!=_entities.end(); i++)
+			for(auto j=_entities.begin(); j!=_entities.end(); j++)
 			{
-				Entity *entity = *i;
+				Entity *entity = *j;
 				group.intents.push_back(entity->Intent());
 			}
 			
@@ -106,6 +102,23 @@ namespace RN
 			if(*i == entity)
 			{
 				_entities.erase(i);
+				return;
+			}
+		}
+	}
+	
+	void World::AddCamera(Camera *camera)
+	{
+		_cameras.push_back(camera);
+	}
+	
+	void World::RemoveCamera(Camera *camera)
+	{
+		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
+		{
+			if(*i == camera)
+			{
+				_cameras.erase(i);
 				return;
 			}
 		}

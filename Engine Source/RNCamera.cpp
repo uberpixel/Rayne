@@ -9,6 +9,9 @@
 #include "RNCamera.h"
 #include "RNThread.h"
 #include "RNKernel.h"
+#include "RNTexture.h"
+#include "RNMaterial.h"
+#include "RNWorld.h"
 
 namespace RN
 {
@@ -55,6 +58,8 @@ namespace RN
 		
 		Unbind();
 		UpdateCamera();
+		
+		World::SharedInstance()->AddCamera(this);
 	}
 	
 	Camera::~Camera()
@@ -71,6 +76,7 @@ namespace RN
 			_texture->Release();
 		
 		_stage->Release();
+		World::SharedInstance()->RemoveCamera(this);
 	}
 	
 	void Camera::SetDefaultValues()
@@ -360,8 +366,8 @@ namespace RN
 			if(updateFrame)
 				_stage->SetFrame(_frame);
 			
-			_stage->position = position;
-			_stage->rotation = rotation;
+			_stage->SetPosition(Position());
+			_stage->SetRotation(Rotation());
 			
 			_stage->SetClearColor(_clearColor);
 			_stage->UpdateCamera();
@@ -381,12 +387,8 @@ namespace RN
 	
 	void Camera::UpdateCamera()
 	{
-		_viewMatrix = rotation.RotationMatrix();
-		_viewMatrix.Transpose();
-		_viewMatrix.Translate(position * (-1));
-		
-		_inverseViewMatrix.MakeTranslate(position);
-		_inverseViewMatrix.Rotate(rotation);
+		_viewMatrix = Matrix();
+		_inverseViewMatrix = _viewMatrix.Inverse();
 		
 		UpdateStage(false);
 	}

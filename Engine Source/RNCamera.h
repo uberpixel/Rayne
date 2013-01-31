@@ -13,15 +13,14 @@
 #include "RNObject.h"
 #include "RNRenderingResource.h"
 #include "RNRect.h"
-#include "RNMatrix.h"
-#include "RNQuaternion.h"
+#include "RNTransform.h"
 #include "RNColor.h"
-#include "RNTexture.h"
-#include "RNMaterial.h"
 
 namespace RN
 {
-	class Camera : public Object, public RenderingResource
+	class Texture;
+	class Material;
+	class Camera : public Object, public Transform, public RenderingResource
 	{
 	public:
 		enum
@@ -56,11 +55,11 @@ namespace RN
 		const Color& ClearColor() const { return _clearColor; }
 		const bool& Linear() const { return _isLinear; }
 		
-		const Matrix& ProjectionMatrix() const { return _projectionMatrix; }
-		const Matrix& InverseProjectionMatrix() const { return _inverseProjectionMatrix; }
+		const class Matrix& ProjectionMatrix() const { return _projectionMatrix; }
+		const class Matrix& InverseProjectionMatrix() const { return _inverseProjectionMatrix; }
 		
-		const Matrix& ViewMatrix() const { return _viewMatrix; }
-		const Matrix& InverseViewMatrix() const { return _inverseViewMatrix; }
+		const class Matrix& ViewMatrix() const { return _viewMatrix; }
+		const class Matrix& InverseViewMatrix() const { return _inverseViewMatrix; }
 		
 		GLuint Framebuffer() const { return _framebuffer; }
 		GLuint Depthbuffer() const { return _depthbuffer; }
@@ -77,9 +76,6 @@ namespace RN
 		
 		Flags flags;
 		
-		Vector3 position;
-		Quaternion rotation;
-		
 	protected:
 		void CheckError();
 		
@@ -87,11 +83,11 @@ namespace RN
 		Color _clearColor;
 		bool _isLinear;
 		
-		Matrix _projectionMatrix;
-		Matrix _inverseProjectionMatrix;
+		class Matrix _projectionMatrix;
+		class Matrix _inverseProjectionMatrix;
 		
-		Matrix _viewMatrix;
-		Matrix _inverseViewMatrix;
+		class Matrix _viewMatrix;
+		class Matrix _inverseViewMatrix;
 		
 		GLuint _framebuffer;
 		GLuint _depthbuffer;

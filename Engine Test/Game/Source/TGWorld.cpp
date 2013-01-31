@@ -13,15 +13,21 @@ namespace TG
 	World::World()
 	{
 		CreateWorld();
+		
+		RN::Rect frame = RN::Kernel::SharedInstance()->Window()->Frame();
+		_camera = new RN::Camera(RN::Vector2(frame.width, frame.height));
 	}
 	
 	World::~World()
 	{
+		_camera->Release();		
 	}
 	
 	void World::Update(float delta)
 	{
 		static float time = 0.0f;
+		
+		//_camera->Rotate(RN::Vector3(0.0f, -30.0f * delta, 0.0f));
 		
 		time += delta;
 		if(time >= 5.0f)

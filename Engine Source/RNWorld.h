@@ -24,6 +24,7 @@ namespace RN
 	class World : public UnconstructingSingleton<World>
 	{
 	friend class Entity;
+	friend class Camera;
 	friend class Kernel;
 	public:
 		RNAPI World();
@@ -37,11 +38,15 @@ namespace RN
 		void AddEntity(Entity *entity);
 		void RemoveEntity(Entity *entity);
 		
+		void AddCamera(Camera *camera);
+		void RemoveCamera(Camera *camera);
+		
 		void BeginUpdate(float delta);
 		void FinishUpdate(float delta);
 		
 		Kernel *_kernel;
-		ObjectArray *_cameras;
+		
+		std::vector<Camera *> _cameras;
 		std::vector<Entity *> _entities;
 		
 		PhysicsPipeline *_physics;

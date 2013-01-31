@@ -8,10 +8,7 @@
 
 precision highp float;
 
-
-uniform mat4 matProj;
-uniform mat4 matModel;
-
+uniform mat4 matProjViewModel;
 
 attribute vec3 position;
 attribute vec4 color0;
@@ -27,6 +24,6 @@ void main()
 	color = color0;
 	texcoord = texcoord0*10.0;
 	
-	gl_Position = matProj * matModel * vec4(position, 1.0);
+	gl_Position = matProjViewModel * vec4(position, 1.0);
 }
 
