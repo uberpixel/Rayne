@@ -68,7 +68,7 @@ namespace RN
 	void File::ReadIntoBuffer(void *buffer, size_t size)
 	{
 		size_t read = fread(buffer, size, 1, _file);
-		RN_ASSERT0(read == size);
+		RN_ASSERT0(read == 1);
 	}
 	
 	uint8 File::ReadUint8()
