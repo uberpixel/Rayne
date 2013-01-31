@@ -29,6 +29,7 @@ namespace RN
 		
 		_detached = false;
 		_entry = entry;
+		_pool = 0;
 	}
 	
 	Thread::Thread()
@@ -37,6 +38,7 @@ namespace RN
 		
 		_detached = true;
 		_entry = 0;
+		_pool = 0;
 		
 		_id = std::this_thread::get_id();
 		

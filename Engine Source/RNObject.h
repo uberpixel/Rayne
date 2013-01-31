@@ -35,12 +35,21 @@ namespace RN
 			return static_cast<T *>(CoreRelease());
 		}
 		
+		template <class T=Object>
+		RNAPI T *Autorelease()
+		{
+			static_assert(std::is_base_of<Object, T>::value, "Release called with incompatible class");
+			
+			return static_cast<T *>(CoreAutorelease());
+		}
+		
 		RNAPI virtual bool IsEqual(Object *other) const;
 		RNAPI virtual machine_hash Hash() const;
 		
 	private:
 		Object *CoreRetain();
 		Object *CoreRelease();
+		Object *CoreAutorelease();
 		
 		machine_int _refCount;
 	};

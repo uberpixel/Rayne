@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		C085AA2016B2B38700E48EBB /* libbullet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C085AA1D16B2B36000E48EBB /* libbullet.a */; };
 		C085AA2916B2B42500E48EBB /* RNRigidBodyEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C085AA2716B2B42500E48EBB /* RNRigidBodyEntity.cpp */; };
+		E9145CB016BA953B004BDEC8 /* RNAutoreleasePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9145CAE16BA953B004BDEC8 /* RNAutoreleasePool.cpp */; };
 		E92D614F16B75EFE00BFCC44 /* RNApplication.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92D614D16B75EFE00BFCC44 /* RNApplication.cpp */; };
 		E9619EEB169616FD00DA187E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619EEA169616FD00DA187E /* Foundation.framework */; };
 		E9619F2D1696170700DA187E /* RNBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619EFA1696170700DA187E /* RNBase.cpp */; };
@@ -88,6 +89,8 @@
 		C085AA2616B2B41300E48EBB /* RNBullet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBullet.h; sourceTree = "<group>"; };
 		C085AA2716B2B42500E48EBB /* RNRigidBodyEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRigidBodyEntity.cpp; sourceTree = "<group>"; };
 		C085AA2816B2B42500E48EBB /* RNRigidBodyEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRigidBodyEntity.h; sourceTree = "<group>"; };
+		E9145CAE16BA953B004BDEC8 /* RNAutoreleasePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNAutoreleasePool.cpp; sourceTree = "<group>"; };
+		E9145CAF16BA953B004BDEC8 /* RNAutoreleasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAutoreleasePool.h; sourceTree = "<group>"; };
 		E91B887216977B3C001B7F22 /* RNRenderingResource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNRenderingResource.h; sourceTree = "<group>"; };
 		E92D614D16B75EFE00BFCC44 /* RNApplication.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNApplication.cpp; sourceTree = "<group>"; };
 		E92D614E16B75EFE00BFCC44 /* RNApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNApplication.h; sourceTree = "<group>"; };
@@ -273,6 +276,8 @@
 			children = (
 				E92D614D16B75EFE00BFCC44 /* RNApplication.cpp */,
 				E92D614E16B75EFE00BFCC44 /* RNApplication.h */,
+				E9145CAE16BA953B004BDEC8 /* RNAutoreleasePool.cpp */,
+				E9145CAF16BA953B004BDEC8 /* RNAutoreleasePool.h */,
 				C085AA2616B2B41300E48EBB /* RNBullet.h */,
 				E9619EFA1696170700DA187E /* RNBase.cpp */,
 				E9619EFB1696170700DA187E /* RNBase.h */,
@@ -475,6 +480,7 @@
 				E9C6F0AC16B245C9006288D5 /* RNModel.cpp in Sources */,
 				C085AA2916B2B42500E48EBB /* RNRigidBodyEntity.cpp in Sources */,
 				E92D614F16B75EFE00BFCC44 /* RNApplication.cpp in Sources */,
+				E9145CB016BA953B004BDEC8 /* RNAutoreleasePool.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

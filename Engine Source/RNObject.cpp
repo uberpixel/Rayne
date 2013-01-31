@@ -7,6 +7,7 @@
 //
 
 #include "RNObject.h"
+#include "RNAutoreleasePool.h"
 
 namespace RN
 {
@@ -41,6 +42,15 @@ namespace RN
 			return 0;
 		}
 		
+		return this;
+	}
+	
+	Object *Object::CoreAutorelease()
+	{
+		if(!this)
+			return this;
+		
+		AutoreleasePool::CurrentPool()->AddObject(this);
 		return this;
 	}
 	

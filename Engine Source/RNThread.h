@@ -22,16 +22,18 @@ namespace RN
 	class Camera;
 	class Mesh;
 	class Shader;
+	class AutoreleasePool;
 	
 	class Thread : public Object
 	{
-	public:
-		friend class Context;
-		friend class Texture;
-		friend class Camera;
-		friend class Mesh;
-		friend class Shader;
+	friend class Context;
+	friend class Texture;
+	friend class Camera;
+	friend class Mesh;
+	friend class Shader;
+	friend class AutoreleasePool;
 		
+	public:
 		typedef void (*ThreadEntry)(Thread *thread);
 		
 		Thread(ThreadEntry entry);
@@ -66,6 +68,7 @@ namespace RN
 		
 		Mutex   *_mutex;
 		Context *_context;
+		AutoreleasePool *_pool;
 		
 		ObjectArray *_textures;
 		ObjectArray *_cameras;
