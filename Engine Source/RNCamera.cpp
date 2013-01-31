@@ -46,6 +46,9 @@ namespace RN
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthbuffer);
 		glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilbuffer);
 		
+		if(flags & FlagFullscreen)
+			_frame = Kernel::SharedInstance()->Window()->Frame();
+			
 		try
 		{
 			SetFrame(_frame);
@@ -390,6 +393,21 @@ namespace RN
 		_viewMatrix = Matrix();
 		_inverseViewMatrix = _viewMatrix.Inverse();
 		
-		UpdateStage(false);
+		if(flags & FlagFullscreen)
+		{
+			Rect frame = Kernel::SharedInstance()->Window()->Frame();
+			if(frame != _frame)
+			{
+				SetFrame(frame);
+			}
+			else
+			{
+				UpdateStage(false);
+			}
+		}
+		else
+		{
+			UpdateStage(false);
+		}
 	}
 }

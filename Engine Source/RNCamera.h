@@ -27,7 +27,8 @@ namespace RN
 		{
 			FlagDrawTarget = (1 << 0),
 			FlagUpdateAspect = (1 << 1),
-			FlagInherit = (1 << 2)
+			FlagInherit = (1 << 2),
+			FlagFullscreen = (1 << 3)
 		};
 		typedef uint32 Flags;
 		
