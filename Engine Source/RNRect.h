@@ -23,6 +23,9 @@ namespace RN
 		Rect(const Vector2& origin, const Vector2& size);
 		Rect(const Rect& other);
 		
+		bool operator== (const Rect& other);
+		bool operator!= (const Rect& other);
+		
 		bool ContainsPoint(const Vector2& point) const;
 		bool IntersectsRect(const Rect& other) const;
 		bool ContainsRect(const Rect& other) const;
@@ -83,6 +86,24 @@ namespace RN
 		
 		width  = other.width;
 		height = other.height;
+	}
+	
+	RN_INLINE bool Rect::operator== (const Rect& other)
+	{
+		if(abs(x - other.x) > kRNEpsilonFloat || abs(y - other.y) > kRNEpsilonFloat ||
+		   abs(width - other.width) > kRNEpsilonFloat || abs(height - other.height) > kRNEpsilonFloat)
+			return false;
+		
+		return true;
+	}
+	
+	RN_INLINE bool Rect::operator!= (const Rect& other)
+	{
+		if(abs(x - other.x) > kRNEpsilonFloat || abs(y - other.y) > kRNEpsilonFloat ||
+		   abs(width - other.width) > kRNEpsilonFloat || abs(height - other.height) > kRNEpsilonFloat)
+			return true;
+		
+		return false;
 	}
 	
 	
