@@ -26,7 +26,7 @@ namespace TG
 	{
 		static float time = 0.0f;
 		
-		//_camera->Rotate(RN::Vector3(0.0f, 0.0f, 0.0f));
+		_camera->Rotate(RN::Vector3(0.0f, -30.0f * delta, 0.0f));
 		
 		time += delta;
 		if(time >= 5.0f)
