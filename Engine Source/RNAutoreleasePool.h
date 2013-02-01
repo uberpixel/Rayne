@@ -2,8 +2,8 @@
 //  RNAutoreleasePool.h
 //  Rayne
 //
-//  Created by Sidney Just on 31.01.13.
-//  Copyright (c) 2013 Sidney Just. All rights reserved.
+//  Copyright 2013 by Felix Pohl, Nils Daumann and Sidney Just. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #ifndef __RAYNE_AUTORELEASEPOOL_H__
