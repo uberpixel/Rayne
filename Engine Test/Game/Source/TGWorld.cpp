@@ -14,11 +14,18 @@ namespace TG
 	{
 		CreateWorld();
 		
+		_delta = 0.0f;
 		_camera = new RN::Camera(RN::Vector2(), RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
+		
+		RN::Input::SharedInstance()->Activate();
+		RN::MessageCenter::SharedInstance()->AddObserver(this, RN::Message::MessageGroupInput, RN::InputMessage::InputMessageTypeKeyDown | RN::InputMessage::InputMessageTypeKeyPressed);
 	}
 	
 	World::~World()
 	{
+		RN::Input::SharedInstance()->Deactivate();
+		RN::MessageCenter::SharedInstance()->RemoveObserver(this);
+		
 		_camera->Release();		
 	}
 	
@@ -26,7 +33,9 @@ namespace TG
 	{
 		static float time = 0.0f;
 		
-		_camera->Rotate(RN::Vector3(0.0f, -30.0f * delta, 0.0f));
+		_delta = delta;
+		
+		//_camera->Rotate(RN::Vector3(0.0f, -30.0f * delta, 0.0f));
 		
 		time += delta;
 		if(time >= 5.0f)
@@ -35,6 +44,49 @@ namespace TG
 			_block1->ApplyTorqueImpulse(RN::Vector3(0.0f, 10.0f, 0.0f));
 			
 			time = 0.0f;
+		}
+	}
+	
+	void World::HandleMessage(RN::Message *message)
+	{
+		if(message->Group() == RN::Message::MessageGroupInput)
+		{
+			RN::InputMessage *input = (RN::InputMessage *)message;
+			RN::Vector3 translation;
+			float rotation = 0.0f;
+			
+			switch(input->character)
+			{
+				case 'w':
+					translation.z += 5.0f;
+					break;
+					
+				case 's':
+					translation.z -= 5.0f;
+					break;
+					
+				case 'a':
+					translation.x += 5.0f;
+					break;
+					
+				case 'd':
+					translation.x -= 5.0f;
+					break;
+					
+				case 'q':
+					rotation -= 18.0f;
+					break;
+					
+				case 'e':
+					rotation += 18.0f;
+					break;
+					
+				default:
+					break;
+			}
+			
+			_camera->Translate(translation * _delta);
+			_camera->Rotate(RN::Vector3(rotation * _delta, 0.0f, 0.0f));
 		}
 	}
 	

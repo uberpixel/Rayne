@@ -15,6 +15,7 @@
 #include "RNRenderingResource.h"
 #include "RNRenderingPipeline.h"
 #include "RNWindow.h"
+#include "RNInput.h"
 
 namespace RN
 {
@@ -49,6 +50,7 @@ namespace RN
 		class Window *_window;
 		Context *_context;
 		RenderingPipeline *_renderer;
+		Input *_input;
 		World *_world;
 		
 		bool _resetDelta;

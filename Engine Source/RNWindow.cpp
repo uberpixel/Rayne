@@ -10,10 +10,58 @@
 #include "RNFile.h"
 #include "RNTexture.h"
 #include "RNKernel.h"
+#include "RNInput.h"
 
 #if RN_PLATFORM_MAC_OS
 
 @implementation RNNativeWindow
+
+- (void)close
+{
+	RN::Kernel::SharedInstance()->Exit();
+}
+
+- (void)keyDown:(NSEvent *)theEvent
+{
+	RN::Input::SharedInstance()->HandleKeyboardEvent(theEvent);
+}
+
+- (void)keyUp:(NSEvent *)theEvent
+{
+	RN::Input::SharedInstance()->HandleKeyboardEvent(theEvent);
+}
+
+- (void)mouseDown:(NSEvent *)theEvent
+{
+	RN::Input::SharedInstance()->HandleMouseEvent(theEvent);
+}
+
+- (void)mouseMoved:(NSEvent *)theEvent
+{
+	RN::Input::SharedInstance()->HandleMouseEvent(theEvent);
+}
+
+- (void)mouseUp:(NSEvent *)theEvent
+{
+	RN::Input::SharedInstance()->HandleMouseEvent(theEvent);
+}
+
+- (void)mouseDragged:(NSEvent *)theEvent
+{
+	RN::Input::SharedInstance()->HandleMouseEvent(theEvent);
+}
+
+
+- (BOOL)canBecomeKeyWindow
+{
+	return YES;
+}
+
+- (BOOL)canBecomeMainWindow
+{
+	return YES;
+}
+
 
 - (void)setOpenGLContext:(NSOpenGLContext *)context andPixelFormat:(NSOpenGLPixelFormat *)pixelFormat
 {

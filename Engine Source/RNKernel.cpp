@@ -43,6 +43,7 @@ namespace RN
 #endif
 		
 		_renderer = new RenderingPipeline();
+		_input = Input::SharedInstance();
 		
 		_window = new class Window("Rayne", this);
 		_window->SetContext(_context);
@@ -128,6 +129,7 @@ namespace RN
 			
 			Application::SharedInstance()->GameUpdate(delta);
 			_world->BeginUpdate(delta);
+			_input->DispatchInputEvents();
 			
 			Application::SharedInstance()->WorldUpdate(delta);
 			_world->FinishUpdate(delta);

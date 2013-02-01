@@ -54,6 +54,13 @@
 
 	#include <libkern/OSAtomic.h>
 
+	#include <IOKit/IOKitLib.h>
+	#include <IOKit/IOCFPlugIn.h>
+	#include <IOKit/hid/IOHIDBase.h>
+	#include <IOKit/hid/IOHIDKeys.h>
+	#include <IOKit/hid/IOHIDUsageTables.h>
+	#include <IOKit/hid/IOHIDLib.h>
+
 	#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
 		#include <OpenGL/gl3.h>
 		#include <OpenGL/gl3ext.h>

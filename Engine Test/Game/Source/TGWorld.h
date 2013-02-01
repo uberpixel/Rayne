@@ -13,7 +13,7 @@
 
 namespace TG
 {
-	class World : RN::World
+	class World : public RN::World, public RN::MessageObserver
 	{
 	public:
 		World();
@@ -21,9 +21,12 @@ namespace TG
 		
 		virtual void Update(float delta);
 		
+		virtual void HandleMessage(RN::Message *message);
+		
 	private:
 		void CreateWorld();
 		
+		float _delta;
 		RN::Camera *_camera;
 		
 		RN::RigidBodyEntity *_block1;

@@ -15,6 +15,8 @@
 
 #include "RNKernel.h"
 #include "RNApplication.h"
+#include "RNInput.h"
+#include "RNMessage.h"
 #include "RNFile.h"
 
 #include "RNModel.h"
