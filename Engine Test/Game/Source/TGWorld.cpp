@@ -35,7 +35,12 @@ namespace TG
 		
 		_delta = delta;
 		
-		//_camera->Rotate(RN::Vector3(0.0f, -30.0f * delta, 0.0f));
+		const RN::Vector3& mouseDelta = RN::Input::SharedInstance()->MouseDelta();
+		
+		float yaw = mouseDelta.x;
+		float pitch = mouseDelta.y;
+		
+		_camera->Rotate(RN::Vector3(yaw, 0.0f, pitch));
 		
 		time += delta;
 		if(time >= 5.0f)
@@ -53,7 +58,6 @@ namespace TG
 		{
 			RN::InputMessage *input = (RN::InputMessage *)message;
 			RN::Vector3 translation;
-			float rotation = 0.0f;
 			
 			switch(input->character)
 			{
@@ -73,20 +77,11 @@ namespace TG
 					translation.x -= 5.0f;
 					break;
 					
-				case 'q':
-					rotation -= 18.0f;
-					break;
-					
-				case 'e':
-					rotation += 18.0f;
-					break;
-					
 				default:
 					break;
 			}
 			
 			_camera->Translate(translation * _delta);
-			_camera->Rotate(RN::Vector3(rotation * _delta, 0.0f, 0.0f));
 		}
 	}
 	

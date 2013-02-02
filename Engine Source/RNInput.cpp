@@ -10,6 +10,10 @@
 
 namespace RN
 {
+	
+#pragma mark -
+#pragma mark Input controller
+	
 	const char *KeyboarButtonNames[232] =
 	{
 		"0x00", "0x01", "0x02", "0x03", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
@@ -34,7 +38,7 @@ namespace RN
 		'\0', '\0', '\0', '\0', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l',
 		'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '1', '2',
 		'3', '4', '5', '6', '7', '8', '9', '0', '\0', '\0', '\0', '\0', ' ', '-', '=', '[',
-		']', '\\', '\0', ';', '\'', '`', ',', '.', '/', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
+		']', '\\', '#', ';', '\'', '`', ',', '.', '/', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
 		'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
 		'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
 		'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0',
@@ -48,17 +52,31 @@ namespace RN
 		'\0', '\0', '\0', '\0', '\0', '\0', '\0', '\0'
 	};
 	
-	InputControl::InputControl()
+	const char *DeltaAxisNames[3] =
+	{
+		"X-Delta ", "Y-Delta ", "Z-Delta "
+	};
+	
+	InputControl::InputControl(InputDevice *device) :
+		_device(device)
 	{
 		_cookie = 0;
+		_type = InputControlTypeGroup;
 		_parent = _next = _child = 0;
 	}
 	
-	InputControl::InputControl(IOHIDElementCookie cookie, const std::string& name) :
+	InputControl::InputControl(InputControlType type, InputDevice *device, IOHIDElementCookie cookie, const std::string& name) :
 		_name(name),
-		_cookie(cookie)
+		_cookie(cookie),
+		_type(type),
+		_device(device)
 	{
 		_parent = _next = _child = 0;
+	}
+	
+	InputControl *InputControl::FirstControl() const
+	{
+		return _child;
 	}
 	
 	InputControl *InputControl::NextControl() const
@@ -74,6 +92,7 @@ namespace RN
 		
 		return _parent;
 	}
+	
 	
 	void InputControl::AddChild(InputControl *control)
 	{
@@ -92,14 +111,29 @@ namespace RN
 	}
 	
 	
-	KeyboardControl::KeyboardControl(IOHIDElementCookie cookie, const std::string& name, char character) :
-		InputControl(cookie, name)
+	KeyboardControl::KeyboardControl(InputDevice *device, IOHIDElementCookie cookie, const std::string& name, char character) :
+		InputControl(InputControlTypeKeyboard, device, cookie, name)
 	{
 		_character = character;
 	}
 	
+	DeltaAxisControl::DeltaAxisControl(InputDevice *device, IOHIDElementCookie cookie, const std::string& name, uint32 axis) :
+		InputControl(InputControlTypeDeltaAxis, device, cookie, name)
+	{
+		_axis = axis;
+	}
+	
+	MouseButtonControl::MouseButtonControl(InputDevice *device, IOHIDElementCookie cookie, const std::string& name, uint32 button) :
+		InputControl(InputControlTypeMouseButton, device, cookie, name)
+	{
+		_button = button;
+	}
+	
+#pragma mark -
+#pragma mark Input devices
 	
 	InputDevice::InputDevice(InputDeviceType type, io_object_t object, CFMutableDictionaryRef properties) :
+		InputControl(0),
 		_type(type)
 	{
 		_pluginInterface = 0;
@@ -116,8 +150,10 @@ namespace RN
 			CFStringGetCString((CFStringRef)productValue, name, 255, kCFStringEncodingUTF8);
 			_name = std::string(name);
 			
+			//printf("%s\n", _name.c_str());
+			
 			if(IOCreatePlugInInterfaceForService(object, kIOHIDDeviceUserClientTypeID, kIOCFPlugInInterfaceID, &_pluginInterface, &score) == kIOReturnSuccess)
-			{
+			{				
 				if((**_pluginInterface).QueryInterface(_pluginInterface, CFUUIDGetUUIDBytes(kIOHIDDeviceInterfaceID), (void **)&_deviceInterface) == S_OK)
 				{
 					(**_deviceInterface).open(_deviceInterface, 0);
@@ -125,7 +161,7 @@ namespace RN
 					
 					if(_deviceQueue && (**_deviceQueue).create(_deviceQueue, 0, 1024) == kIOReturnSuccess)
 					{
-						printf("Device name: %s, type: %i\n", name, (int)type);
+						//printf("Device name: %s, type: %i\n", _name.c_str(), (int)type);
 						BuildControlTree(this, properties);
 					}
 				}
@@ -176,9 +212,9 @@ namespace RN
 						{
 							case kIOHIDElementTypeCollection:
 							{
-								InputControl *collection = new InputControl();
-								
+								InputControl *collection = new InputControl(this);
 								control->AddChild(collection);
+								
 								BuildControlTree(collection, elementProperties);
 								break;
 							}
@@ -191,7 +227,7 @@ namespace RN
 								CFNumberRef cookieValue = (CFNumberRef)CFDictionaryGetValue(elementProperties, CFSTR(kIOHIDElementCookieKey));
 								if(cookieValue)
 								{
-									int32 cookie;
+									IOHIDElementCookie cookie;
 									CFNumberGetValue(cookieValue, kCFNumberSInt32Type, &cookie);
 									
 									CFNumberRef usagePageValue = (CFNumberRef)CFDictionaryGetValue(elementProperties, CFSTR(kIOHIDElementUsagePageKey));
@@ -205,6 +241,60 @@ namespace RN
 										CFNumberGetValue(usagePageValue, kCFNumberSInt32Type, &usagePage);
 										CFNumberGetValue(usageValue, kCFNumberSInt32Type, &usage);
 										
+										InputControl *elementControl = 0;
+										
+										if(usagePage == kHIDPage_GenericDesktop)
+										{
+											switch(usage)
+											{
+												case kHIDUsage_GD_X:
+												case kHIDUsage_GD_Y:
+												case kHIDUsage_GD_Z:
+												{
+													bool relative = false;
+													int axis = usage - kHIDUsage_GD_X;
+													
+													CFBooleanRef relativeValue = (CFBooleanRef)CFDictionaryGetValue(elementProperties, CFSTR(kIOHIDElementIsRelativeKey));
+													if(relativeValue)
+														relative = CFBooleanGetValue(relativeValue);
+													
+													if(relative)
+													{
+														const char *name = DeltaAxisNames[axis];
+														elementControl = new DeltaAxisControl(this, cookie, std::string(name), axis);
+													}
+													
+													printf("Delta Axis %i on %s\n", axis, this->Name().c_str());
+													
+													break;
+												}
+													
+												case kHIDUsage_GD_Wheel:
+												{
+													uint32 axis = 2;
+													
+													const char *name = DeltaAxisNames[axis];
+													elementControl = new DeltaAxisControl(this, cookie, std::string(name), axis);
+													
+													printf("Mouse wheel on %s\n", this->Name().c_str());
+													
+													break;
+												}
+													
+												default:
+													printf("Usage %i\n", usage);
+													break;
+											}
+										}
+										else
+										if(usagePage == kHIDPage_Button)
+										{
+											char buffer[32];
+											sprintf(buffer, "Button %i", usage);
+											
+											elementControl = new MouseButtonControl(this, cookie, std::string(buffer), usage);
+										}
+										else
 										if(usagePage == kHIDPage_KeyboardOrKeypad)
 										{
 											bool valid = ((uint32)(usage - 0xE0) < 8U);
@@ -224,9 +314,13 @@ namespace RN
 												const char *name = KeyboarButtonNames[usage];
 												char character = KeyboardCharacters[usage];
 												
-												KeyboardControl *key = new KeyboardControl((IOHIDElementCookie)cookie, std::string(name), character);
-												control->AddControl(key);
+												elementControl = new KeyboardControl(this, cookie, std::string(name), character);
 											}
+										}
+										
+										if(elementControl)
+										{
+											control->AddControl(elementControl);
 										}
 									}
 								}
@@ -278,6 +372,103 @@ namespace RN
 	}
 	
 	void InputDevice::DispatchInputEvents()
+	{
+	}
+	
+	
+	InputDeviceMouse::InputDeviceMouse(io_object_t object, CFMutableDictionaryRef properties) :
+		InputDevice(InputDeviceTypeMouse, object, properties)
+	{
+	}
+	
+	void InputDeviceMouse::DispatchInputEvents()
+	{
+		static const AbsoluteTime zero = { 0, 0 };
+		
+		IOHIDEventStruct event;
+		IOHIDElementCookie cookie;
+		
+		std::vector<InputControl *> newControls;
+		
+		_mouseDelta = Vector3();
+		
+		while((**_deviceQueue).getNextEvent(_deviceQueue, &event, zero, 0) == kIOReturnSuccess)
+		{
+			cookie = event.elementCookie;
+			
+			InputControl *control = FirstControl();
+			while(control)
+			{
+				if(control->Cookie() == cookie)
+				{
+					switch(control->Type())
+					{
+						case InputControl::InputControlTypeDeltaAxis:
+						{
+							DeltaAxisControl *tcontrol = (DeltaAxisControl *)control;
+							float value = (float)event.value;
+							
+							switch(tcontrol->Axis())
+							{
+								case 0:
+									_mouseDelta.x += value;
+									break;
+									
+								case 1:
+									_mouseDelta.y += value;
+									break;
+									
+								case 2:
+									_mouseDelta.z += value;
+									break;
+									
+								default:
+									break;
+							}
+							
+							break;
+						}
+							
+						case InputControl::InputControlTypeMouseButton:
+						{
+							MouseButtonControl *tcontrol = (MouseButtonControl *)control;
+							
+							switch(event.value)
+							{
+								case 0:
+									_pressedButtons &= ~(1 << tcontrol->Button());
+									break;
+									
+								case 1:
+									_pressedButtons |= (1 << tcontrol->Button());
+									break;
+									
+								default:
+									break;
+							}
+							
+							break;
+						}
+							
+						default:
+							break;
+					}
+					
+					
+				}
+				
+				control = control->NextControl();
+			}
+		}
+	}
+	
+	
+	InputDeviceKeyboard::InputDeviceKeyboard(io_object_t object, CFMutableDictionaryRef properties) :
+		InputDevice(InputDeviceTypeKeyboard, object, properties)
+	{
+	}
+	
+	void InputDeviceKeyboard::DispatchInputEvents()
 	{
 		static const AbsoluteTime zero = { 0, 0 };
 		
@@ -343,13 +534,54 @@ namespace RN
 	}
 	
 	
+#pragma mark -
+#pragma mark Misc
+	
 	InputMessage::InputMessage(InputControl *control, MessageSubgroup subgroup) :
 		Message(MessageGroupInput, subgroup)
 	{
 		_control = control;
 		
-		character = control->Character();
-		isKeyboard = (subgroup & InputMessageTypeKeyDown || subgroup & InputMessageTypeKeyPressed || subgroup & InputMessageTypeKeyUp);
+		character = '\0';
+		button = 0;
+		axis = -1;
+		
+		isKeyboard = false;
+		isMouse = false;
+		
+		switch(control->Type())
+		{
+			case InputControl::InputControlTypeKeyboard:
+			{
+				KeyboardControl *tcontrol = (KeyboardControl *)control;
+				
+				character = tcontrol->Character();
+				isKeyboard = true;
+				
+				break;
+			}
+				
+			case InputControl::InputControlTypeDeltaAxis:
+			{
+				DeltaAxisControl *tcontrol = (DeltaAxisControl *)control;
+				
+				axis = tcontrol->Axis();
+				isMouse = true;
+				break;
+			}
+				
+			case InputControl::InputControlTypeMouseButton:
+			{
+				MouseButtonControl *tcontrol = (MouseButtonControl *)control;
+				
+				button = tcontrol->Button();
+				isMouse = true;
+				break;
+			}
+				
+			default:
+				break;
+		}
 	}
 	
 	
@@ -395,18 +627,18 @@ namespace RN
 					{
 						switch(usage)
 						{
-							case kHIDUsage_GD_Keyboard:
-							case kHIDUsage_GD_Keypad:
+							case kHIDUsage_GD_Mouse:
+							case kHIDUsage_GD_Pointer:
 							{
-								InputDevice *device = new InputDevice(InputDevice::InputDeviceKeyboard, object, properties);
+								InputDevice *device = new InputDeviceMouse(object, properties);
 								_devices.push_back(device);
 								break;
 							}
 								
-							case kHIDUsage_GD_Joystick:
-							case kHIDUsage_GD_GamePad:
+							case kHIDUsage_GD_Keyboard:
+							case kHIDUsage_GD_Keypad:
 							{
-								InputDevice *device = new InputDevice(InputDevice::InputDeviceGamepad, object, properties);
+								InputDevice *device = new InputDeviceKeyboard(object, properties);
 								_devices.push_back(device);
 								break;
 							}
@@ -428,12 +660,23 @@ namespace RN
 	
 	void Input::DispatchInputEvents()
 	{
+		_mouseDelta = Vector3();
+		_pressedButtons = 0;
+		
 		for(auto i=_devices.begin(); i!=_devices.end(); i++)
 		{
 			InputDevice *device = *i;
 			if(device->IsActive())
 			{
 				device->DispatchInputEvents();
+				
+				if(device->Type() == InputDevice::InputDeviceTypeMouse)
+				{
+					InputDeviceMouse *mouse = (InputDeviceMouse *)device;
+					
+					_mouseDelta += mouse->MouseDelta();
+					_pressedButtons |= mouse->PressedButtons();
+				}
 			}
 		}
 	}
