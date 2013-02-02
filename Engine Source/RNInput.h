@@ -96,7 +96,7 @@ namespace RN
 #pragma mark -
 #pragma mark Input Devices
 	
-	class InputDevice : public InputControl
+	class InputDevice
 	{
 	public:
 		typedef enum
@@ -108,10 +108,12 @@ namespace RN
 		InputDevice(InputDeviceType type, io_object_t object, CFMutableDictionaryRef properties);
 		virtual ~InputDevice();
 		
-		bool IsActive() const { return _active; }
-		
 		void Activate();
 		void Deactivate();
+		
+		bool IsActive() const { return _active; }
+		InputDeviceType Type() const { return _type; }
+		const std::string& Name() const { return _name; }
 		
 		virtual void DispatchInputEvents();
 		
@@ -120,10 +122,13 @@ namespace RN
 		IOHIDDeviceInterface **_deviceInterface;
 		IOHIDQueueInterface **_deviceQueue;
 		
+		InputControl *_root;
+		
 	private:
 		void BuildControlTree(InputControl *control, CFMutableDictionaryRef properties);
 		
 		InputDeviceType _type;
+		std::string _name;
 		bool _active;
 	};
 	
@@ -147,10 +152,12 @@ namespace RN
 	public:
 		InputDeviceKeyboard(io_object_t object, CFMutableDictionaryRef properties);
 		
+		bool KeyPressed(char key) const;
 		virtual void DispatchInputEvents();
 		
 	private:
 		std::vector<InputControl *> _pressedControls;
+		std::unordered_set<char> _pressedCharacters;
 	};
 	
 	
@@ -200,6 +207,7 @@ namespace RN
 		
 		const Vector3& MouseDelta() { return _mouseDelta; }
 		uint32 PressedButtons() { return _pressedButtons; }
+		bool KeyPressed(char key) const;
 		
 	private:
 		void ReadInputDevices();

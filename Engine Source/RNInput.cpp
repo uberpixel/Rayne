@@ -133,13 +133,13 @@ namespace RN
 #pragma mark Input devices
 	
 	InputDevice::InputDevice(InputDeviceType type, io_object_t object, CFMutableDictionaryRef properties) :
-		InputControl(0),
 		_type(type)
 	{
 		_pluginInterface = 0;
 		_deviceInterface = 0;
 		_deviceQueue = 0;
 		_active = false;
+		_root = new InputControl(this);
 		
 		const void *productValue = CFDictionaryGetValue(properties, CFSTR(kIOHIDProductKey));
 		if(productValue)
@@ -150,8 +150,6 @@ namespace RN
 			CFStringGetCString((CFStringRef)productValue, name, 255, kCFStringEncodingUTF8);
 			_name = std::string(name);
 			
-			//printf("%s\n", _name.c_str());
-			
 			if(IOCreatePlugInInterfaceForService(object, kIOHIDDeviceUserClientTypeID, kIOCFPlugInInterfaceID, &_pluginInterface, &score) == kIOReturnSuccess)
 			{				
 				if((**_pluginInterface).QueryInterface(_pluginInterface, CFUUIDGetUUIDBytes(kIOHIDDeviceInterfaceID), (void **)&_deviceInterface) == S_OK)
@@ -161,8 +159,7 @@ namespace RN
 					
 					if(_deviceQueue && (**_deviceQueue).create(_deviceQueue, 0, 1024) == kIOReturnSuccess)
 					{
-						//printf("Device name: %s, type: %i\n", _name.c_str(), (int)type);
-						BuildControlTree(this, properties);
+						BuildControlTree(_root, properties);
 					}
 				}
 			}
@@ -173,6 +170,8 @@ namespace RN
 	
 	InputDevice::~InputDevice()
 	{
+		delete _root;
+		
 		if(_deviceQueue)
 		{
 			(**_deviceQueue).dispose(_deviceQueue);
@@ -345,7 +344,7 @@ namespace RN
 			
 			(**_deviceQueue).start(_deviceQueue);
 			
-			InputControl *control = FirstControl();
+			InputControl *control = _root->FirstControl();
 			while(control)
 			{
 				(**_deviceQueue).addElement(_deviceQueue, control->Cookie(), 0);
@@ -360,7 +359,7 @@ namespace RN
 		{
 			(**_deviceQueue).stop(_deviceQueue);
 			
-			InputControl *control = FirstControl();
+			InputControl *control = _root->FirstControl();
 			while(control)
 			{
 				(**_deviceQueue).removeElement(_deviceQueue, control->Cookie());
@@ -396,7 +395,7 @@ namespace RN
 		{
 			cookie = event.elementCookie;
 			
-			InputControl *control = FirstControl();
+			InputControl *control = _root->FirstControl();
 			while(control)
 			{
 				if(control->Cookie() == cookie)
@@ -468,6 +467,11 @@ namespace RN
 	{
 	}
 	
+	bool InputDeviceKeyboard::KeyPressed(char key) const
+	{
+		return (_pressedCharacters.find(key) != _pressedCharacters.end());
+	}
+	
 	void InputDeviceKeyboard::DispatchInputEvents()
 	{
 		static const AbsoluteTime zero = { 0, 0 };
@@ -481,11 +485,13 @@ namespace RN
 		{
 			cookie = event.elementCookie;
 			
-			InputControl *control = FirstControl();
+			InputControl *control = _root->FirstControl();
 			while(control)
 			{
 				if(control->Cookie() == cookie)
 				{
+					KeyboardControl *keyControl = (KeyboardControl *)control;
+					
 					switch(event.value)
 					{
 						case 0:
@@ -503,12 +509,18 @@ namespace RN
 								}
 							}
 							
+							if(keyControl->Character() != '\0')
+								_pressedCharacters.erase(keyControl->Character());
+							
 							break;
 						}
 							
 						case 1:
 						{
 							newControls.push_back(control);
+							
+							if(keyControl->Character() != '\0')
+								_pressedCharacters.insert(keyControl->Character());
 							
 							InputMessage message = InputMessage(control, InputMessage::InputMessageTypeKeyDown);
 							MessageCenter::SharedInstance()->PostMessage(&message);
@@ -697,6 +709,24 @@ namespace RN
 			InputDevice *device = *i;
 			device->Deactivate();
 		}
+	}
+	
+	bool Input::KeyPressed(char key) const
+	{
+		for(auto i=_devices.begin(); i!=_devices.end(); i++)
+		{
+			InputDevice *device = *i;
+			
+			if(device->IsActive() && device->Type() == InputDevice::InputDeviceTypeKeyboard)
+			{
+				InputDeviceKeyboard *temp = (InputDeviceKeyboard *)device;
+				
+				if(temp->KeyPressed(key))
+					return true;
+			}
+		}
+		
+		return false;
 	}
 	
 #if RN_PLATFORM_MAC_OS

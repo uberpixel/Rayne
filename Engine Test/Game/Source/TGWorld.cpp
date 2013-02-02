@@ -14,17 +14,14 @@ namespace TG
 	{
 		CreateWorld();
 		
-		_delta = 0.0f;
 		_camera = new RN::Camera(RN::Vector2(), RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
 		
 		RN::Input::SharedInstance()->Activate();
-		RN::MessageCenter::SharedInstance()->AddObserver(this, RN::Message::MessageGroupInput, RN::InputMessage::InputMessageTypeKeyDown | RN::InputMessage::InputMessageTypeKeyPressed);
 	}
 	
 	World::~World()
 	{
 		RN::Input::SharedInstance()->Deactivate();
-		RN::MessageCenter::SharedInstance()->RemoveObserver(this);
 		
 		_camera->Release();		
 	}
@@ -33,14 +30,22 @@ namespace TG
 	{
 		static float time = 0.0f;
 		
-		_delta = delta;
+		RN::Input *input = RN::Input::SharedInstance();
 		
-		const RN::Vector3& mouseDelta = RN::Input::SharedInstance()->MouseDelta();
+		RN::Vector3 translation;
+		RN::Vector3 rotation;
 		
-		float yaw = mouseDelta.x;
-		float pitch = mouseDelta.y;
+		const RN::Vector3& mouseDelta = input->MouseDelta() * 0.2f;
 		
-		_camera->Rotate(RN::Vector3(yaw, 0.0f, pitch));
+		rotation.x = mouseDelta.x;
+		rotation.z = mouseDelta.y;
+		
+		translation.x = (input->KeyPressed('a') - input->KeyPressed('d')) * 5.0f;
+		translation.z = (input->KeyPressed('w') - input->KeyPressed('s')) * 5.0f;
+		
+		
+		_camera->Rotate(rotation);
+		_camera->Translate(translation * delta);
 		
 		time += delta;
 		if(time >= 5.0f)
@@ -49,39 +54,6 @@ namespace TG
 			_block1->ApplyTorqueImpulse(RN::Vector3(0.0f, 10.0f, 0.0f));
 			
 			time = 0.0f;
-		}
-	}
-	
-	void World::HandleMessage(RN::Message *message)
-	{
-		if(message->Group() == RN::Message::MessageGroupInput)
-		{
-			RN::InputMessage *input = (RN::InputMessage *)message;
-			RN::Vector3 translation;
-			
-			switch(input->character)
-			{
-				case 'w':
-					translation.z += 5.0f;
-					break;
-					
-				case 's':
-					translation.z -= 5.0f;
-					break;
-					
-				case 'a':
-					translation.x += 5.0f;
-					break;
-					
-				case 'd':
-					translation.x -= 5.0f;
-					break;
-					
-				default:
-					break;
-			}
-			
-			_camera->Translate(translation * _delta);
 		}
 	}
 	
