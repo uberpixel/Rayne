@@ -39,6 +39,7 @@ namespace RN
 		
 		float Length() const;
 		float Dot (const Vector2& other) const;
+		bool IsEqual(const Vector2& other, float epsilon) const;
 		
 		Vector2& Normalize (const float n=1.0f);
 		
@@ -152,6 +153,17 @@ namespace RN
 	{
 		return (x * other.x + y * other.y);
 	}
+	
+	RN_INLINE bool Vector2::IsEqual(const Vector2& other, float epsilon) const
+	{
+		if(fabs(x - other.x) > epsilon)
+			return false;
+		
+		if(fabs(y - other.y) > epsilon)
+			return false;
+		
+		return true;
+	}
 
 	RN_INLINE Vector2& Vector2::Normalize(const float n)
 	{
@@ -189,6 +201,7 @@ namespace RN
 		float Length() const;
 		float Dot(const Vector3& other) const;
 		Vector3 Cross(const Vector3& other) const;
+		bool IsEqual(const Vector3& other, float epsilon) const;
 		
 		Vector3& Normalize(const float n=1.0f);
 		
@@ -322,6 +335,20 @@ namespace RN
 		
 		return result;
 	}
+	
+	RN_INLINE bool Vector3::IsEqual(const Vector3& other, float epsilon) const
+	{
+		if(fabs(x - other.x) > epsilon)
+			return false;
+		
+		if(fabs(y - other.y) > epsilon)
+			return false;
+		
+		if(fabs(z - other.z) > epsilon)
+			return false;
+		
+		return true;
+	}
 
 	RN_INLINE Vector3& Vector3::Normalize(const float n)
 	{
@@ -361,6 +388,7 @@ namespace RN
 		float Length() const;
 		float Dot(const Vector4& other) const;
 		Vector4 Cross(const Vector4& other) const;
+		bool IsEqual(const Vector4& other, float epsilon) const;
 		
 		Vector4& Normalize(const float n=1.0f);
 
@@ -506,6 +534,23 @@ namespace RN
 		result.w = 0.0f;
 		
 		return result;
+	}
+	
+	RN_INLINE bool Vector4::IsEqual(const Vector4& other, float epsilon) const
+	{
+		if(fabs(x - other.x) > epsilon)
+			return false;
+		
+		if(fabs(y - other.y) > epsilon)
+			return false;
+		
+		if(fabs(z - other.z) > epsilon)
+			return false;
+		
+		if(fabs(w - other.w) > epsilon)
+			return false;
+		
+		return true;
 	}
 	
 	RN_INLINE Vector4& Vector4::Normalize (const float n)
