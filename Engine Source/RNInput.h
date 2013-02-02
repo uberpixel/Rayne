@@ -156,7 +156,6 @@ namespace RN
 		virtual void DispatchInputEvents();
 		
 	private:
-		std::vector<InputControl *> _pressedControls;
 		std::unordered_set<char> _pressedCharacters;
 	};
 	
@@ -171,7 +170,9 @@ namespace RN
 		{
 			InputMessageTypeKeyDown = (1 << 0),
 			InputMessageTypeKeyUp = (1 << 1),
-			InputMessageTypeKeyPressed = (1 << 2)
+			
+			InputMessageTypeMouseDown = (1 << 2),
+			InputMessageTypeMouseUp = (1 << 3)
 		};
 		
 		InputMessage(InputControl *control, MessageSubgroup subgroup);

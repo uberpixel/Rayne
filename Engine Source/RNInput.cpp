@@ -14,7 +14,7 @@ namespace RN
 #pragma mark -
 #pragma mark Input controller
 	
-	const char *KeyboarButtonNames[232] =
+	const char *KeyboardButtonNames[232] =
 	{
 		"0x00", "0x01", "0x02", "0x03", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
 		"M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2",
@@ -263,8 +263,6 @@ namespace RN
 														elementControl = new DeltaAxisControl(this, cookie, std::string(name), axis);
 													}
 													
-													printf("Delta Axis %i on %s\n", axis, this->Name().c_str());
-													
 													break;
 												}
 													
@@ -275,14 +273,8 @@ namespace RN
 													const char *name = DeltaAxisNames[axis];
 													elementControl = new DeltaAxisControl(this, cookie, std::string(name), axis);
 													
-													printf("Mouse wheel on %s\n", this->Name().c_str());
-													
 													break;
 												}
-													
-												default:
-													printf("Usage %i\n", usage);
-													break;
 											}
 										}
 										else
@@ -310,7 +302,7 @@ namespace RN
 											
 											if(valid)
 											{
-												const char *name = KeyboarButtonNames[usage];
+												const char *name = KeyboardButtonNames[usage];
 												char character = KeyboardCharacters[usage];
 												
 												elementControl = new KeyboardControl(this, cookie, std::string(name), character);
@@ -435,12 +427,22 @@ namespace RN
 							switch(event.value)
 							{
 								case 0:
+								{
+									InputMessage message = InputMessage(control, InputMessage::InputMessageTypeMouseUp);
+									MessageCenter::SharedInstance()->PostMessage(&message);
+									
 									_pressedButtons &= ~(1 << tcontrol->Button());
 									break;
+								}
 									
 								case 1:
+								{
+									InputMessage message = InputMessage(control, InputMessage::InputMessageTypeMouseDown);
+									MessageCenter::SharedInstance()->PostMessage(&message);
+									
 									_pressedButtons |= (1 << tcontrol->Button());
 									break;
+								}
 									
 								default:
 									break;
@@ -479,8 +481,6 @@ namespace RN
 		IOHIDEventStruct event;
 		IOHIDElementCookie cookie;
 		
-		std::vector<InputControl *> newControls;
-		
 		while((**_deviceQueue).getNextEvent(_deviceQueue, &event, zero, 0) == kIOReturnSuccess)
 		{
 			cookie = event.elementCookie;
@@ -496,18 +496,8 @@ namespace RN
 					{
 						case 0:
 						{
-							for(auto i=_pressedControls.begin(); i!=_pressedControls.end(); i++)
-							{
-								InputControl *temp = *i;
-								if(temp == control)
-								{
-									InputMessage message = InputMessage(control, InputMessage::InputMessageTypeKeyUp);
-									MessageCenter::SharedInstance()->PostMessage(&message);
-									
-									_pressedControls.erase(i);
-									break;
-								}
-							}
+							InputMessage message = InputMessage(control, InputMessage::InputMessageTypeKeyUp);
+							MessageCenter::SharedInstance()->PostMessage(&message);
 							
 							if(keyControl->Character() != '\0')
 								_pressedCharacters.erase(keyControl->Character());
@@ -517,8 +507,6 @@ namespace RN
 							
 						case 1:
 						{
-							newControls.push_back(control);
-							
 							if(keyControl->Character() != '\0')
 								_pressedCharacters.insert(keyControl->Character());
 							
@@ -535,14 +523,6 @@ namespace RN
 				control = control->NextControl();
 			}
 		}
-		
-		for(auto i=_pressedControls.begin(); i!=_pressedControls.end(); i++)
-		{
-			InputMessage message = InputMessage(*i, InputMessage::InputMessageTypeKeyPressed);
-			MessageCenter::SharedInstance()->PostMessage(&message);
-		}
-		
-		_pressedControls.insert(_pressedControls.end(), newControls.begin(), newControls.end());
 	}
 	
 	
