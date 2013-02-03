@@ -6,9 +6,6 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-uniform mat4 matProj;
-uniform mat4 matModel;
-
 attribute vec2 position;
 attribute vec2 texcoord0;
 

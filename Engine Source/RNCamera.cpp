@@ -22,6 +22,8 @@ namespace RN
 	{
 		_material = 0;
 		_stage    = 0;
+		_surfaceShader = 0;
+		
 		_isLinear = false;
 		_texture  = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp, Texture::FilterNearest, _isLinear);
 		_texture->SetGeneratesMipmaps(false);
@@ -317,8 +319,13 @@ namespace RN
 	void Camera::SetMaterial(class Material *material)
 	{
 		_material->Release();
-		_material = material;
-		_material->Retain();
+		_material = material->Retain<class Material>();
+	}
+	
+	void Camera::SetSurfaceShader(Shader *shader)
+	{
+		_surfaceShader->Release();
+		_surfaceShader = shader->Retain<Shader>();
 	}
 	
 	

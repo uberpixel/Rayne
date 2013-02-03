@@ -20,6 +20,7 @@ namespace RN
 {
 	class Texture;
 	class Material;
+	class Shader;
 	class Camera : public Object, public Transform, public RenderingResource
 	{
 	public:
@@ -44,6 +45,7 @@ namespace RN
 		RNAPI virtual void SetFrame(const Rect& frame);
 		RNAPI void SetClearColor(const Color& color);
 		RNAPI void SetMaterial(Material *material);
+		RNAPI void SetSurfaceShader(Shader *shader);
 		
 		RNAPI void AddStage(Camera *stage);
 		RNAPI void InsertStage(Camera *stage);
@@ -68,6 +70,7 @@ namespace RN
 		
 		Texture *Target() const { return _texture; }
 		Material *Material() const { return _material; }
+		Shader *SurfaceShader() const { return _surfaceShader; }
 		Camera *Stage() const { return _stage; }
 		
 		float arc;
@@ -103,6 +106,7 @@ namespace RN
 		
 		Texture *_texture;
 		Camera *_stage;
+		Shader *_surfaceShader;
 		class Material *_material;
 		
 		void SetDefaultValues();

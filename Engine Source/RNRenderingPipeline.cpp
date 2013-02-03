@@ -156,15 +156,13 @@ namespace RN
 	{
 		source->Push();
 		
-		Texture *texture = source->Target();
 		Material *material = source->Material();
-		
 		Shader *shader = material ? material->Shader() : _copyShader;
 		
 		const Rect frame = source->Frame();
 		
 		if(material)
-			BindMaterial(material);
+			BindMaterial(material, shader);
 		
 		if(!target || target->Depthbuffer() == 0)
 		{
@@ -192,9 +190,23 @@ namespace RN
 		glEnableVertexAttribArray(shader->texcoord0);
 		glVertexAttribPointer(shader->texcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture->Name());
-		glUniform1i(shader->targetmap, 0);
+		if(shader->targetmap != -1 && source->Target())
+		{
+			glActiveTexture((GLenum)(GL_TEXTURE0 + _activeTextureUnits));
+			glBindTexture(GL_TEXTURE_2D, source->Target()->Name());
+			glUniform1i(shader->targetmap, 0);
+			
+			_activeTextureUnits ++;
+		}
+		
+		/*if(shader->depthmap != -1 && source->DepthTarget())
+		{
+			glActiveTexture((GLenum)(GL_TEXTURE0 + _activeTextureUnits));
+			glBindTexture(GL_TEXTURE_2D, source->DepthTarget()->Name());
+			glUniform1i(shader->depthmap, 0);
+			
+			_activeTextureUnits ++;
+		}*/
 		
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 		
@@ -217,6 +229,8 @@ namespace RN
 			
 			if(!(camera->flags & Camera::FlagDrawTarget))
 			{
+				Shader *surfaceShader = camera->SurfaceShader();
+				
 				std::vector<RenderingIntent>::iterator iterator;
 				for(iterator=frame->begin(); iterator!=frame->end(); iterator++)
 				{
@@ -230,12 +244,12 @@ namespace RN
 						Mesh *mesh = model->MeshAtIndex(i);
 						Material *material = model->MaterialForMesh(mesh);
 						
-						Shader *shader = material->Shader();
+						Shader *shader = surfaceShader ? surfaceShader : material->Shader();
 						
 						glUseProgram(shader->program);
 						
 						// Bind the material
-						BindMaterial(material);
+						BindMaterial(material, shader);
 						
 						// Update the built-in uniforms
 						if(shader->time != -1)
@@ -272,7 +286,7 @@ namespace RN
 						}
 						
 						// Draw the mesh
-						DrawMesh(mesh);
+						DrawMesh(mesh, shader);
 					}
 					
 					iterator->Pop();
@@ -297,7 +311,7 @@ namespace RN
 		}
 	}
 	
-	void RenderingPipeline::BindMaterial(Material *material)
+	void RenderingPipeline::BindMaterial(Material *material, Shader *shader)
 	{
 		if(material == _currentMaterial)
 			return;
@@ -315,7 +329,7 @@ namespace RN
 			material->Push();
 			
 			ObjectArray *textures = material->Textures();
-			Array<GLuint> *textureLocations = &material->Shader()->texlocations;
+			Array<GLuint> *textureLocations = &shader->texlocations;
 			
 			if(textureLocations->Count() > 0)
 			{
@@ -416,7 +430,7 @@ namespace RN
 		_currentMaterial = material;
 	}
 	
-	void RenderingPipeline::DrawMesh(Mesh *mesh)
+	void RenderingPipeline::DrawMesh(Mesh *mesh, Shader *shader)
 	{
 		if(mesh && mesh != _currentMesh)
 		{
@@ -424,7 +438,7 @@ namespace RN
 			
 			MeshLODStage *stage = mesh->LODStage(0);
 			
-			std::tuple<Material *, MeshLODStage *> tuple = std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage);
+			std::tuple<Shader *, MeshLODStage *> tuple = std::tuple<Shader *, MeshLODStage *>(shader, stage);
 			GLuint vao = VAOForTuple(tuple);
 			
 			if(vao != _currentVAO)
@@ -447,17 +461,15 @@ namespace RN
 		_currentMesh = mesh;
 	}
 	
-	GLuint RenderingPipeline::VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple)
+	GLuint RenderingPipeline::VAOForTuple(const std::tuple<Shader *, MeshLODStage *>& tuple)
 	{
 		auto iterator = _vaos.find(tuple);
 		if(iterator == _vaos.end())
 		{
 			GLuint vao;
 			
-			Material *material  = std::get<0>(tuple);
+			Shader *shader      = std::get<0>(tuple);
 			MeshLODStage *stage = std::get<1>(tuple);
-			
-			Shader *shader = material->Shader();
 
 			gl::GenVertexArrays(1, &vao);
 			gl::BindVertexArray(vao);
