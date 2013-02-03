@@ -24,7 +24,10 @@ namespace RN
 @interface RNNativeWindow : NSWindow
 {
 	NSOpenGLView *_openGLView;
+	BOOL _needsResize;
 }
+
+@property (nonatomic, assign) BOOL needsResize;
 
 @end
 

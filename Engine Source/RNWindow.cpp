@@ -15,6 +15,7 @@
 #if RN_PLATFORM_MAC_OS
 
 @implementation RNNativeWindow
+@synthesize needsResize = _needsResize;
 
 - (void)close
 {
@@ -78,6 +79,8 @@
 		[_openGLView  setWantsBestResolutionOpenGLSurface:YES];
 		
 		[self setContentView:_openGLView];
+		
+		_needsResize = YES;
 	}
 	
 	return self;
@@ -376,6 +379,14 @@ namespace RN
 		while(!_renderer->ShouldStop())
 		{
 			_context->MakeActiveContext();
+			
+			if(_nativeWindow.needsResize)
+			{
+				NSRect frame = [[_nativeWindow contentView] frame];
+				
+				_renderer->SetDefaultFrame(frame.size.width, frame.size.height);
+				_nativeWindow.needsResize = false;
+			}
 			
 			_renderer->WaitForWork();
 			CGLFlushDrawable((CGLContextObj)[_context->_oglContext CGLContextObj]);
