@@ -397,8 +397,8 @@ namespace RN
 	
 	void Camera::UpdateCamera()
 	{
-		_viewMatrix = Matrix();
-		_inverseViewMatrix = _viewMatrix.Inverse();
+		_inverseViewMatrix = Matrix();
+		_viewMatrix = _inverseViewMatrix.Inverse();
 		
 		if(flags & FlagFullscreen)
 		{

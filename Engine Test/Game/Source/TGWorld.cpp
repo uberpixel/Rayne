@@ -35,7 +35,7 @@ namespace TG
 		RN::Vector3 rotation;
 		
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
-		const RN::Vector3& mouseDelta = input->MouseDelta() * 0.2f;
+		const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
 		
 		rotation.x = mouseDelta.x;
 		rotation.z = mouseDelta.y;
@@ -56,11 +56,15 @@ namespace TG
 			}
 		}
 		
-		rotation *= 0.2f;
+		rotation *= -0.2f;
 #endif
 		
 		_camera->Rotate(rotation);
-		_camera->Translate(translation * delta);
+		
+		RN::Matrix rot;
+		rot.MakeRotate(_camera->Rotation());
+		rot.Transpose();
+		_camera->Translate(rot.Transform(translation * -delta));
 		
 		time += delta;
 		if(time >= 5.0f)
