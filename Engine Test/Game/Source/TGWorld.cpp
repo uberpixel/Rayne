@@ -31,10 +31,10 @@ namespace TG
 		static float time = 0.0f;
 		
 		RN::Input *input = RN::Input::SharedInstance();
-		
 		RN::Vector3 translation;
 		RN::Vector3 rotation;
 		
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 		const RN::Vector3& mouseDelta = input->MouseDelta() * 0.2f;
 		
 		rotation.x = mouseDelta.x;
@@ -42,7 +42,22 @@ namespace TG
 		
 		translation.x = (input->KeyPressed('a') - input->KeyPressed('d')) * 5.0f;
 		translation.z = (input->KeyPressed('w') - input->KeyPressed('s')) * 5.0f;
+#endif
 		
+#if RN_PLATFORM_IOS
+		const std::vector<RN::Touch>& touches = input->Touches();
+		
+		for(auto i=touches.begin(); i!=touches.end(); i++)
+		{
+			if(i->phase == RN::Touch::TouchPhaseMoved)
+			{
+				rotation.x += i->deltaLocation.x;
+				rotation.z += i->deltaLocation.y;
+			}
+		}
+		
+		rotation *= 0.2f;
+#endif
 		
 		_camera->Rotate(rotation);
 		_camera->Translate(translation * delta);

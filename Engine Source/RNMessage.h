@@ -32,7 +32,6 @@ namespace RN
 		Message(MessageGroup group, MessageSubgroup subgroup);
 		virtual ~Message();
 		
-	private:
 		MessageGroup _group;
 		MessageSubgroup _subgroup;
 	};

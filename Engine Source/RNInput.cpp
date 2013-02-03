@@ -14,6 +14,7 @@ namespace RN
 #pragma mark -
 #pragma mark Input controller
 	
+#if RN_PLATFORM_MAC_OS
 	const char *KeyboardButtonNames[232] =
 	{
 		"0x00", "0x01", "0x02", "0x03", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
@@ -56,6 +57,9 @@ namespace RN
 	{
 		"X-Delta ", "Y-Delta ", "Z-Delta "
 	};
+#endif
+	
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 	
 	InputControl::InputControl(InputDevice *device) :
 		_device(device)
@@ -65,6 +69,7 @@ namespace RN
 		_parent = _next = _child = 0;
 	}
 	
+#if RN_PLATFORM_MAC_OS
 	InputControl::InputControl(InputControlType type, InputDevice *device, IOHIDElementCookie cookie, const std::string& name) :
 		_name(name),
 		_cookie(cookie),
@@ -73,6 +78,7 @@ namespace RN
 	{
 		_parent = _next = _child = 0;
 	}
+#endif
 	
 	InputControl *InputControl::FirstControl() const
 	{
@@ -129,8 +135,12 @@ namespace RN
 		_button = button;
 	}
 	
+#endif
+	
 #pragma mark -
 #pragma mark Input devices
+	
+#if RN_PLATFORM_MAC_OS
 	
 	InputDevice::InputDevice(InputDeviceType type, io_object_t object, CFMutableDictionaryRef properties) :
 		_type(type)
@@ -362,10 +372,38 @@ namespace RN
 		}
 	}
 	
+#endif
+	
+#if RN_PLATFORM_IOS
+	
+	InputDevice::InputDevice(InputDeviceType type, const std::string& name) :
+		_type(type),
+		_name(name)
+	{
+		_active = false;
+	}
+	
+	InputDevice::~InputDevice()
+	{
+	}
+	
+	void InputDevice::Activate()
+	{
+		_active = true;
+	}
+	
+	void InputDevice::Deactivate()
+	{
+		_active = false;
+	}
+	
+#endif
+	
 	void InputDevice::DispatchInputEvents()
 	{
 	}
 	
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 	
 	InputDeviceMouse::InputDeviceMouse(io_object_t object, CFMutableDictionaryRef properties) :
 		InputDevice(InputDeviceTypeMouse, object, properties)
@@ -525,21 +563,19 @@ namespace RN
 		}
 	}
 	
+#endif
+	
 	
 #pragma mark -
 #pragma mark Misc
 	
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
+	
 	InputMessage::InputMessage(InputControl *control, MessageSubgroup subgroup) :
 		Message(MessageGroupInput, subgroup)
 	{
+		Initialize();
 		_control = control;
-		
-		character = '\0';
-		button = 0;
-		axis = -1;
-		
-		isKeyboard = false;
-		isMouse = false;
 		
 		switch(control->Type())
 		{
@@ -576,6 +612,67 @@ namespace RN
 		}
 	}
 	
+#endif
+	
+#if RN_PLATFORM_IOS
+	
+	InputMessage::InputMessage(InputDevice *device, MessageSubgroup subgroup) :
+		Message(MessageGroupInput, subgroup)
+	{
+		Initialize();
+		_device = device;
+	}
+	
+	InputMessage::InputMessage(Touch *_touch) :
+		Message(MessageGroupInput, 0)
+	{
+		Initialize();
+		touch = _touch;
+		
+		switch(touch->phase)
+		{
+			case Touch::TouchPhaseBegan:
+				_subgroup = InputMessageTypeTouchDown;
+				break;
+				
+			case Touch::TouchPhaseMoved:
+				_subgroup = InputMessageTypeTouchMoved;
+				break;
+				
+			case Touch::TouchPhaseEnded:
+				_subgroup = InputMessageTypeTouchUp;
+				break;
+				
+			case Touch::TouchPhaseCancelled:
+				_subgroup = InputMessageTypeTouchCancelled;
+				break;
+				
+			default:
+				break;
+		}
+	}
+	
+#endif
+	
+	void InputMessage::Initialize()
+	{
+		character = '\0';
+		button = 0;
+		axis = -1;
+		
+#if RN_PLATFORM_IOS
+		touch = 0;
+		_device = 0;
+#endif
+		
+#if RN_PLATFORM_MAC_OS
+		_control = 0;
+#endif
+		
+		isKeyboard = false;
+		isMouse = false;
+		isTouch = false;
+	}
 	
 	Input::Input()
 	{
@@ -590,6 +687,8 @@ namespace RN
 			delete device;
 		}
 	}
+	
+#if RN_PLATFORM_MAC_OS
 	
 	void Input::ReadInputDevices()
 	{
@@ -673,6 +772,130 @@ namespace RN
 		}
 	}
 	
+	void Input::HandleKeyboardEvent(NSEvent *event)
+	{
+	}
+	
+	void Input::HandleMouseEvent(NSEvent *event)
+	{
+	}
+	
+#endif
+	
+#if RN_PLATFORM_IOS
+	
+	void Input::ReadInputDevices()
+	{
+	}
+	
+	void Input::DispatchInputEvents()
+	{
+		do
+		{
+			auto i = _touches.begin();
+			while(i != _touches.end())
+			{
+				if(i->phase == Touch::TouchPhaseEnded || i->phase == Touch::TouchPhaseCancelled)
+				{
+					i = _touches.erase(i);
+					continue;
+				}
+				
+				i->changed = false;
+				i ++;
+			}
+		} while (0);
+		
+		// Dispatch the queued up touch events
+		for(auto i=_queuedTouchEvents.begin(); i!=_queuedTouchEvents.end(); i++)
+		{
+			
+			DispatchTouchEvent(*i);
+		}
+		
+		_queuedTouchEvents.clear();
+	}
+	
+	void Input::HandleTouchEvent(const Touch& touch)
+	{
+		_queuedTouchEvents.push_back(touch);
+	}
+
+	void Input::DispatchTouchEvent(const Touch& input)
+	{		
+		switch(input.phase)
+		{
+			case Touch::TouchPhaseBegan:
+			{
+				Touch touch;
+				touch.location = input.location;
+				touch.deltaLocation = Vector2();
+				touch.phase = Touch::TouchPhaseBegan;
+				touch.userData = 0;
+				touch.uniqueID = _touchID ++;
+				touch.changed = true;
+				
+				_touches.push_back(touch);
+				
+				InputMessage message = InputMessage(&touch);
+				MessageCenter::SharedInstance()->PostMessage(&message);
+				break;
+			}
+				
+			case Touch::TouchPhaseMoved:
+			{
+				Vector2 location = input.previousLocation;
+				
+				for(auto i=_touches.begin(); i!=_touches.end(); i++)
+				{
+					if(i->location.IsEqual(location, 5.0f))
+					{						
+						i->location = input.location;
+						i->previousLocation = location;
+						i->deltaLocation = i->location - i->previousLocation;
+						i->phase = Touch::TouchPhaseMoved;
+						i->changed = true;
+						
+						InputMessage message = InputMessage(&*i);
+						MessageCenter::SharedInstance()->PostMessage(&message);
+						break;
+					}
+				}
+				
+				break;
+			}
+				
+			case Touch::TouchPhaseEnded:
+			case Touch::TouchPhaseCancelled:
+			{
+				Vector2 location = input.previousLocation;
+				
+				for(auto i=_touches.begin(); i!=_touches.end(); i++)
+				{
+					if(i->location.IsEqual(location, 5.0f))
+					{
+						i->location = input.location;
+						i->previousLocation = location;
+						i->deltaLocation = i->location - i->previousLocation;
+						i->phase = input.phase;
+						i->changed = true;
+						
+						InputMessage message = InputMessage(&*i);
+						MessageCenter::SharedInstance()->PostMessage(&message);
+						break;
+					}
+				}
+				
+				break;
+			}
+				
+			default:
+				break;
+		}
+	}
+	
+#endif
+	
 	void Input::Activate()
 	{
 		for(auto i=_devices.begin(); i!=_devices.end(); i++)
@@ -693,6 +916,7 @@ namespace RN
 	
 	bool Input::KeyPressed(char key) const
 	{
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 		for(auto i=_devices.begin(); i!=_devices.end(); i++)
 		{
 			InputDevice *device = *i;
@@ -705,17 +929,8 @@ namespace RN
 					return true;
 			}
 		}
+#endif
 		
 		return false;
 	}
-	
-#if RN_PLATFORM_MAC_OS
-	void Input::HandleKeyboardEvent(NSEvent *event)
-	{
-	}
-	
-	void Input::HandleMouseEvent(NSEvent *event)
-	{
-	}
-#endif
 }

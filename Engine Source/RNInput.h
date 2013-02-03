@@ -19,6 +19,8 @@ namespace RN
 #pragma mark -
 #pragma mark Input controller
 	
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
+	
 	class InputDevice;
 	class InputControl
 	{
@@ -33,7 +35,10 @@ namespace RN
 		} InputControlType;
 		
 		InputControl(InputDevice *device);
+		
+#if RN_PLATFORM_MAC_OS
 		InputControl(InputControlType type, InputDevice *device, IOHIDElementCookie cookie, const std::string& name);
+#endif
 		
 		InputControl *FirstControl() const;
 		InputControl *NextControl() const;
@@ -41,14 +46,20 @@ namespace RN
 		InputDevice *Device() const { return _device; }
 		InputControlType Type() const { return _type; }
 		
+#if RN_PLATFORM_MAC_OS
 		IOHIDElementCookie Cookie() const { return _cookie; }
+#endif
+		
 		const std::string& Name() const { return _name; }
 		
 	protected:
 		void AddControl(InputControl *control);
 		void AddChild(InputControl *control);
 		
+#if RN_PLATFORM_MAC_OS
 		IOHIDElementCookie _cookie;
+#endif
+		
 		std::string _name;
 		
 	private:
@@ -93,6 +104,8 @@ namespace RN
 		uint32 _button;
 	};
 	
+#endif
+	
 #pragma mark -
 #pragma mark Input Devices
 	
@@ -105,32 +118,47 @@ namespace RN
 			InputDeviceTypeKeyboard
 		} InputDeviceType;
 		
+#if RN_PLATFORM_MAC_OS
 		InputDevice(InputDeviceType type, io_object_t object, CFMutableDictionaryRef properties);
+#endif
+#if RN_PLATFORM_IOS
+		InputDevice(InputDeviceType type, const std::string& name);
+#endif
+		
 		virtual ~InputDevice();
 		
-		void Activate();
-		void Deactivate();
+		virtual void Activate();
+		virtual void Deactivate();
 		
 		bool IsActive() const { return _active; }
+		
 		InputDeviceType Type() const { return _type; }
 		const std::string& Name() const { return _name; }
 		
 		virtual void DispatchInputEvents();
 		
 	protected:
+#if RN_PLATFORM_MAC_OS
 		IOCFPlugInInterface **_pluginInterface;
 		IOHIDDeviceInterface **_deviceInterface;
 		IOHIDQueueInterface **_deviceQueue;
+#endif
 		
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 		InputControl *_root;
+#endif
 		
 	private:
+#if RN_PLATFORM_MAC_OS
 		void BuildControlTree(InputControl *control, CFMutableDictionaryRef properties);
+#endif
 		
 		InputDeviceType _type;
 		std::string _name;
 		bool _active;
 	};
+	
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 	
 	class InputDeviceMouse : public InputDevice
 	{
@@ -159,9 +187,33 @@ namespace RN
 		std::unordered_set<char> _pressedCharacters;
 	};
 	
+#endif
+	
 	
 #pragma mark -
 #pragma mark Misc
+	
+#if RN_PLATFORM_IOS
+	struct Touch
+	{
+		typedef enum
+		{
+			TouchPhaseBegan,
+			TouchPhaseMoved,
+			TouchPhaseEnded,
+			TouchPhaseCancelled
+		} TouchPhase;
+		
+		Vector2 location;
+		Vector2 previousLocation;
+		Vector2 deltaLocation;
+		
+		TouchPhase phase;
+		uint32 uniqueID;
+		bool changed;
+		void *userData;
+	};
+#endif
 	
 	class InputMessage : public Message
 	{
@@ -172,10 +224,23 @@ namespace RN
 			InputMessageTypeKeyUp = (1 << 1),
 			
 			InputMessageTypeMouseDown = (1 << 2),
-			InputMessageTypeMouseUp = (1 << 3)
+			InputMessageTypeMouseUp = (1 << 3),
+			
+			InputMessageTypeTouchDown = (1 << 4),
+			InputMessageTypeTouchMoved = (1 << 5),
+			InputMessageTypeTouchUp = (1 << 6),
+			InputMessageTypeTouchCancelled = (1 << 7)
 		};
 		
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 		InputMessage(InputControl *control, MessageSubgroup subgroup);
+#endif
+#if RN_PLATFORM_IOS
+		InputMessage(InputDevice *device, MessageSubgroup subgroup);
+		InputMessage(Touch *touch);
+		
+		Touch *touch;
+#endif
 		
 		char character;
 		uint32 button;
@@ -183,9 +248,17 @@ namespace RN
 		
 		bool isKeyboard;
 		bool isMouse;
+		bool isTouch;
 		
 	private:
+		void Initialize();
+		
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 		InputControl *_control;
+#endif
+#if RN_PLATFORM_IOS
+		InputDevice *_device;
+#endif
 	};
 	
 	class Input : public Singleton<Input>
@@ -199,11 +272,15 @@ namespace RN
 		void Activate();
 		void Deactivate();
 		
-		void UpdateInputDevices();
-		
 #if RN_PLATFORM_MAC_OS
 		void HandleKeyboardEvent(NSEvent *event);
 		void HandleMouseEvent(NSEvent *event);
+#endif
+		
+#if RN_PLATFORM_IOS
+		void HandleTouchEvent(const Touch& touch);
+		
+		const std::vector<Touch>& Touches() const { return _touches; }
 #endif
 		
 		const Vector3& MouseDelta() { return _mouseDelta; }
@@ -211,12 +288,23 @@ namespace RN
 		bool KeyPressed(char key) const;
 		
 	private:
+#if RN_PLATFORM_IOS
+		void DispatchTouchEvent(const Touch& input);
+#endif
+		
 		void ReadInputDevices();
 		
 		Vector3 _mouseDelta;
 		uint32 _pressedButtons;
 		
 		std::vector<InputDevice *> _devices;
+		
+#if RN_PLATFORM_IOS
+		uint32 _touchID;
+		
+		std::vector<Touch> _queuedTouchEvents;
+		std::vector<Touch> _touches;
+#endif
 	};
 }
 

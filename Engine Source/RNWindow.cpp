@@ -96,7 +96,7 @@
 #if RN_PLATFORM_IOS
 
 @interface RNOpenGLView : UIView
-{
+{	
 	CAEAGLLayer *_renderLayer;
 	RN::Window *_controller;
 	
@@ -124,6 +124,71 @@
 + (Class)layerClass
 {
 	return [CAEAGLLayer class];
+}
+
+// Input
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
+{
+	for(UITouch *touch in touches)
+	{
+		RN::Touch temp;
+		CGPoint location = [touch locationInView:[touch view]];
+		
+		temp.phase = RN::Touch::TouchPhaseBegan;
+		temp.location = RN::Vector2(location.x, location.y);
+		temp.previousLocation = RN::Vector2();
+		
+		RN::Input::SharedInstance()->HandleTouchEvent(temp);
+	}
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
+{
+	for(UITouch *touch in touches)
+	{
+		RN::Touch temp;
+		CGPoint location = [touch locationInView:[touch view]];
+		CGPoint prevLocation = [touch previousLocationInView:[touch view]];
+		
+		temp.phase = RN::Touch::TouchPhaseMoved;
+		temp.location = RN::Vector2(location.x, location.y);
+		temp.previousLocation = RN::Vector2(prevLocation.x, prevLocation.y);
+		
+		RN::Input::SharedInstance()->HandleTouchEvent(temp);
+	}
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+	for(UITouch *touch in touches)
+	{
+		RN::Touch temp;
+		CGPoint location = [touch locationInView:[touch view]];
+		CGPoint prevLocation = [touch previousLocationInView:[touch view]];
+		
+		temp.phase = RN::Touch::TouchPhaseEnded;
+		temp.location = RN::Vector2(location.x, location.y);
+		temp.previousLocation = RN::Vector2(prevLocation.x, prevLocation.y);
+		
+		RN::Input::SharedInstance()->HandleTouchEvent(temp);
+	}
+}
+
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+	for(UITouch *touch in touches)
+	{
+		RN::Touch temp;
+		CGPoint location = [touch locationInView:[touch view]];
+		CGPoint prevLocation = [touch previousLocationInView:[touch view]];
+		
+		temp.phase = RN::Touch::TouchPhaseCancelled;
+		temp.location = RN::Vector2(location.x, location.y);
+		temp.previousLocation = RN::Vector2(prevLocation.x, prevLocation.y);
+		
+		RN::Input::SharedInstance()->HandleTouchEvent(temp);
+	}
 }
 
 // Rendering
@@ -177,7 +242,9 @@
 - (id)initWithController:(RN::Window *)controller andFrame:(CGRect)frame
 {
 	if((self = [super initWithFrame:frame]))
-	{		
+	{
+		[self setMultipleTouchEnabled:YES];
+		
 		_controller = controller;
 		
 		NSDictionary *properties = @{kEAGLDrawablePropertyRetainedBacking : @NO,  kEAGLDrawablePropertyColorFormat : kEAGLColorFormatRGBA8};
