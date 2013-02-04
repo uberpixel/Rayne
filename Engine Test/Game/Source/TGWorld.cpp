@@ -49,14 +49,35 @@ namespace TG
 		
 		for(auto i=touches.begin(); i!=touches.end(); i++)
 		{
+			if(i->phase == RN::Touch::TouchPhaseBegan)
+			{
+				if(i->location.x > _camera->Frame().width*0.5f)
+				{
+					_touchRight = i->location;
+				}
+				else
+				{
+					_touchLeft = i->location;
+				}
+			}
+			
 			if(i->phase == RN::Touch::TouchPhaseMoved)
 			{
-				rotation.x += i->deltaLocation.x;
-				rotation.z += i->deltaLocation.y;
+				if(i->location.x > _camera->Frame().width*0.5f)
+				{
+					rotation.x = _touchRight.x-i->location.x;
+					rotation.z = _touchRight.y-i->location.y;
+				}
+				else
+				{
+					translation.x = _touchLeft.x-i->location.x;
+					translation.z = _touchLeft.y-i->location.y;
+				}
 			}
 		}
 		
-		rotation *= -0.2f;
+		rotation *= delta;
+		translation *= 0.2f;
 #endif
 		
 		_camera->Rotate(rotation);
