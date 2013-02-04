@@ -14,13 +14,13 @@ out vec3 surfaceNormal;
 out float surfaceDepth;
 
 float nearPlane = 0.001;
-float farPlane = 100.0;
+float farPlane = 1000.0;
 
 void main()
 {
-	mat4 modelView = matModel * matView;
+	mat4 modelView = matView * matModel;
 
-	mat3 foo = mat3(inverse(matProjViewModel));
+	mat3 foo = mat3(inverse(modelView));
 	surfaceNormal = normalize(vec3(foo * normal)) * vec3(0.5) + vec3(0.5);
 
 	surfaceDepth = (modelView * vec4(position, 1.0)).z;

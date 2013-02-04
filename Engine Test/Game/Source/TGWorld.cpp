@@ -120,7 +120,7 @@ namespace TG
 		ssaoMaterial->Release();
 		
 		// Blur
-		RN::Shader *blurVertical = new RN::Shader();
+		/*RN::Shader *blurVertical = new RN::Shader();
 		RN::Shader *blurHorizontal = new RN::Shader();
 		
 		blurVertical->SetVertexShader("shader/GaussianVertical.vsh");
@@ -151,13 +151,13 @@ namespace TG
 		
 		RN::Camera *ssaoPostStage = new RN::Camera(RN::Vector2(1.0f, 1.0f), RN::Camera::FlagInherit);
 		ssaoPostStage->SetMaterial(ssaoPostMaterial);
-		ssaoPostStage->SetName("SSAO Post Stage");
+		ssaoPostStage->SetName("SSAO Post Stage");*/
 		
 		// Stage chain
 		_camera->AddStage(ssaoStage);
-		_camera->AddStage(verticalStage);
+		/*_camera->AddStage(verticalStage);
 		_camera->AddStage(horizontalStage);
-		_camera->AddStage(ssaoPostStage);
+		_camera->AddStage(ssaoPostStage);*/
 	}
 	
 	void World::CreateWorld()
