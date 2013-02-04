@@ -205,6 +205,7 @@ namespace RN
 		} TouchPhase;
 		
 		Vector2 location;
+		Vector2 initialLocation;
 		Vector2 previousLocation;
 		Vector2 deltaLocation;
 		
