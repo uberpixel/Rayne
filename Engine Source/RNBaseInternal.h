@@ -19,7 +19,12 @@
 #if RN_PLATFORM_IOS
 	#import <UIKit/UIKit.h>
 	#import <QuartzCore/QuartzCore.h>
-	#import <CoreMotion/CoreMotion.h>
+	//#import <CoreMotion/CoreMotion.h>
+#endif
+
+#if RN_PLATFORM_MAC_OS
+	#import <Cocoa/Cocoa.h>
+	#import <OpenGL/OpenGL.h>
 #endif
 
 #endif /* __RAYNE_BASEINTERNAL_H__ */

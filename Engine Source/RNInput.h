@@ -272,11 +272,7 @@ namespace RN
 		
 		void Activate();
 		void Deactivate();
-		
-#if RN_PLATFORM_MAC_OS
-		void HandleKeyboardEvent(NSEvent *event);
-		void HandleMouseEvent(NSEvent *event);
-#endif
+
 		
 #if RN_PLATFORM_IOS
 		void HandleTouchEvent(const Touch& touch);

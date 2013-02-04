@@ -42,13 +42,13 @@ namespace RN
 		bool _firstActivation;
 		
 #if RN_PLATFORM_MAC_OS
-		NSOpenGLContext *_oglContext;
-		NSOpenGLPixelFormat *_oglPixelFormat;
-		CGLContextObj _cglContext;
+		void *_oglContext;
+		void *_oglPixelFormat;
+		void *_cglContext;
 #endif
 		
 #if RN_PLATFORM_IOS
-		EAGLContext *_oglContext;
+		void *_oglContext;
 #endif
 
 #if RN_PLATFORM_WINDOWS

@@ -7,12 +7,23 @@
 //
 
 #include "RNWindow.h"
+#include "RNBaseInternal.h"
+
 #include "RNFile.h"
 #include "RNTexture.h"
 #include "RNKernel.h"
 #include "RNInput.h"
 
 #if RN_PLATFORM_MAC_OS
+
+@interface RNNativeWindow : NSWindow
+{
+	NSOpenGLView *_openGLView;
+	BOOL _needsResize;
+}
+
+@property (nonatomic, assign) BOOL needsResize;
+@end
 
 @implementation RNNativeWindow
 @synthesize needsResize = _needsResize;
@@ -24,32 +35,26 @@
 
 - (void)keyDown:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleKeyboardEvent(theEvent);
 }
 
 - (void)keyUp:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleKeyboardEvent(theEvent);
 }
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleMouseEvent(theEvent);
 }
 
 - (void)mouseMoved:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleMouseEvent(theEvent);
 }
 
 - (void)mouseUp:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleMouseEvent(theEvent);
 }
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleMouseEvent(theEvent);
 }
 
 
@@ -320,7 +325,7 @@ namespace RN
 	Window::Window(const std::string& title, Kernel *kernel)
 	{
 		_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, 1024, 768)];
-		[_nativeWindow center];
+		[(RNNativeWindow *)_nativeWindow center];
 		
 		_context = 0;
 		_kernel = kernel;
@@ -335,18 +340,18 @@ namespace RN
 	Window::~Window()
 	{
 		_context->Release();
-		[_nativeWindow release];
+		[(RNNativeWindow *)_nativeWindow release];
 	}
 	
 	
 	void Window::Show()
 	{
-		[_nativeWindow makeKeyAndOrderFront:nil];
+		[(RNNativeWindow *)_nativeWindow makeKeyAndOrderFront:nil];
 	}
 	
 	void Window::Hide()
 	{
-		[_nativeWindow close];
+		[(RNNativeWindow *)_nativeWindow close];
 	}
 	
 	void Window::SetContext(Context *context)
@@ -354,17 +359,17 @@ namespace RN
 		_context->Release();
 		_context = new Context(context);
 		
-		[_nativeWindow setOpenGLContext:_context->_oglContext andPixelFormat:_context->_oglPixelFormat];
+		[(RNNativeWindow *)_nativeWindow setOpenGLContext:(NSOpenGLContext *)_context->_oglContext andPixelFormat:(NSOpenGLPixelFormat *)_context->_oglPixelFormat];
 	}
 	
 	void Window::SetTitle(const std::string& title)
 	{
-		[_nativeWindow setTitle:[NSString stringWithUTF8String:title.c_str()]];
+		[(RNNativeWindow *)_nativeWindow setTitle:[NSString stringWithUTF8String:title.c_str()]];
 	}
 	
 	Rect Window::Frame() const
 	{
-		NSRect frame = [[_nativeWindow contentView] frame];
+		NSRect frame = [[(RNNativeWindow *)_nativeWindow contentView] frame];
 		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
 	}
 	
@@ -380,16 +385,16 @@ namespace RN
 		{
 			_context->MakeActiveContext();
 			
-			if(_nativeWindow.needsResize)
+			if(((RNNativeWindow *)_nativeWindow).needsResize)
 			{
-				NSRect frame = [[_nativeWindow contentView] frame];
+				NSRect frame = [[(RNNativeWindow *)_nativeWindow contentView] frame];
 				
 				_renderer->SetDefaultFrame(frame.size.width, frame.size.height);
-				_nativeWindow.needsResize = false;
+				((RNNativeWindow *)_nativeWindow).needsResize = false;
 			}
 			
 			_renderer->WaitForWork();
-			CGLFlushDrawable((CGLContextObj)[_context->_oglContext CGLContextObj]);
+			CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
 			
 			_context->DeactivateContext();
 		}
@@ -404,7 +409,7 @@ namespace RN
 	Window::Window(const std::string& title, Kernel *kernel)
 	{
 		_nativeWindow = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
-		[_nativeWindow setBackgroundColor:[UIColor whiteColor]];
+		[(UIWindow *)_nativeWindow setBackgroundColor:[UIColor whiteColor]];
 		
 		_rootViewController = 0;
 
@@ -421,30 +426,30 @@ namespace RN
 	Window::~Window()
 	{
 		_context->Release();
-		[_nativeWindow release];
-		[_rootViewController release];
+		[(UIWindow *)_nativeWindow release];
+		[(UIViewController *)_rootViewController release];
 	}
 	
 	
 	void Window::Show()
 	{
-		[_nativeWindow makeKeyAndVisible];
+		[(UIWindow *)_nativeWindow makeKeyAndVisible];
 	}
 	
 	void Window::Hide()
 	{
-		[_nativeWindow resignFirstResponder];
-		[_nativeWindow setHidden:YES];
+		[(UIWindow *)_nativeWindow resignFirstResponder];
+		[(UIWindow *)_nativeWindow setHidden:YES];
 	}
 	
 	void Window::SetContext(Context *context)
 	{		
-		[_rootViewController release];
+		[(UIViewController *)_rootViewController release];
 		
-		_rootViewController = [[RNOpenGLViewController alloc] initWithController:this andFrame:[_nativeWindow bounds]];
-		_renderingView      = (RNOpenGLView *)[_rootViewController view];
+		_rootViewController = [[RNOpenGLViewController alloc] initWithController:this andFrame:[(UIWindow *)_nativeWindow bounds]];
+		_renderingView      = (RNOpenGLView *)[(UIViewController *)_rootViewController view];
 		
-		[_nativeWindow setRootViewController:_rootViewController];
+		[(UIWindow *)_nativeWindow setRootViewController:(UIViewController *)_rootViewController];
 		
 		_context->Release();
 		_context = new Context(context);
@@ -456,7 +461,7 @@ namespace RN
 	
 	Rect Window::Frame() const
 	{
-		CGRect frame = [_renderingView bounds];
+		CGRect frame = [(RNOpenGLView *)_renderingView bounds];
 		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
 	}
 	
@@ -469,23 +474,23 @@ namespace RN
 		}
 		
 		_context->MakeActiveContext();
-		[_renderingView createDrawBuffer];
+		[(RNOpenGLView *)_renderingView createDrawBuffer];
 		_context->DeactivateContext();
 		
 		while(!_renderer->ShouldStop())
 		{
 			_context->MakeActiveContext();
 			
-			if(_renderingView.needsLayerResize)
+			if(((RNOpenGLView *)_renderingView).needsLayerResize)
 			{
-				[_renderingView resizeFromLayer];
+				[(RNOpenGLView *)_renderingView resizeFromLayer];
 				
-				_renderer->SetDefaultFrame(_renderingView.backingWidth, _renderingView.backingHeight);
-				_renderer->SetDefaultFBO(_renderingView.framebuffer);
+				_renderer->SetDefaultFrame(((RNOpenGLView *)_renderingView).backingWidth, ((RNOpenGLView *)_renderingView).backingHeight);
+				_renderer->SetDefaultFBO(((RNOpenGLView *)_renderingView).framebuffer);
 			}
 			
 			_renderer->WaitForWork();
-			[_renderingView flushFrame];
+			[(RNOpenGLView *)_renderingView flushFrame];
 			
 			_context->DeactivateContext();
 		}

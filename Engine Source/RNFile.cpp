@@ -7,6 +7,7 @@
 //
 
 #include "RNFile.h"
+#include "RNBaseInternal.h"
 
 #define kRNFileBufferSize 256
 

@@ -7,6 +7,7 @@
 //
 
 #include "RNKernel.h"
+#include "RNBaseInternal.h"
 #include "RNWorld.h"
 #include "RNOpenGL.h"
 #include "RNAutoreleasePool.h"

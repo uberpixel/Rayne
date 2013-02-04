@@ -7,6 +7,7 @@
 //
 
 #include "RNBase.h"
+#include "RNBaseInternal.h"
 #include "RNError.h"
 
 namespace RN

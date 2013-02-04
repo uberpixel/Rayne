@@ -10,34 +10,12 @@
 #define __RAYNE_WINDOW_H__
 
 #include "RNBase.h"
+
 #include "RNObject.h"
 #include "RNContext.h"
 #include "RNRenderingPipeline.h"
 
-#if RN_PLATFORM_MAC_OS
-
-namespace RN
-{
-	class Window;
-}
-
-@interface RNNativeWindow : NSWindow
-{
-	NSOpenGLView *_openGLView;
-	BOOL _needsResize;
-}
-
-@property (nonatomic, assign) BOOL needsResize;
-
-@end
-
-#endif
-
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
-
-#if RN_PLATFORM_IOS
-@class RNOpenGLView;
-#endif
 
 namespace RN
 {
@@ -60,13 +38,13 @@ namespace RN
 		void RenderLoop();
 		
 #if RN_PLATFORM_MAC_OS
-		RNNativeWindow *_nativeWindow;
+		void *_nativeWindow;
 #endif
 		
 #if RN_PLATFORM_IOS
-		UIWindow *_nativeWindow;
-		UIViewController *_rootViewController;
-		RNOpenGLView *_renderingView;
+		void *_nativeWindow;
+		void *_rootViewController;
+		void *_renderingView;
 #endif
 		
 		Context *_context;

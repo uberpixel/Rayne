@@ -7,6 +7,7 @@
 //
 
 #include "RNContext.h"
+#include "RNBaseInternal.h"
 #include "RNMutex.h"
 
 #if RN_PLATFORM_WINDOWS
@@ -39,18 +40,18 @@ namespace RN
 		if(!_oglPixelFormat)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
 		
-		_oglContext = [[NSOpenGLContext alloc] initWithFormat:_oglPixelFormat shareContext:_shared ? _shared->_oglContext : nil];
+		_oglContext = [[NSOpenGLContext alloc] initWithFormat:(NSOpenGLPixelFormat *)_oglPixelFormat shareContext:_shared ? (NSOpenGLContext *)_shared->_oglContext : nil];
 		if(!_oglContext)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 		
-		_cglContext = (CGLContextObj)[_oglContext CGLContextObj];
+		_cglContext = (CGLContextObj)[(NSOpenGLContext *)_oglContext CGLContextObj];
 		
 		if(_shared)
 		{
 			// Enable the multithreaded OpenGL Engine
 			
-			CGLEnable(_shared->_cglContext, kCGLCEMPEngine);
-			CGLEnable(_cglContext, kCGLCEMPEngine);
+			CGLEnable((CGLContextObj)_shared->_cglContext, kCGLCEMPEngine);
+			CGLEnable((CGLContextObj)_cglContext, kCGLCEMPEngine);
 			
 			if(_shared->_active && shared->_thread->OnThread())
 			{
@@ -61,7 +62,7 @@ namespace RN
 		
 #elif RN_PLATFORM_IOS
 
-		EAGLSharegroup *sharegroup = _shared ? [_shared->_oglContext sharegroup] : nil;
+		EAGLSharegroup *sharegroup = _shared ? [(EAGLContext *)_shared->_oglContext sharegroup] : nil;
 		
 		_oglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
 		if(!_oglContext)
@@ -160,12 +161,12 @@ namespace RN
 			_shared->Release();
 
 #if RN_PLATFORM_MAC_OS
-		[_oglContext release];
-		[_oglPixelFormat release];
+		[(id)_oglContext release];
+		[(id)_oglPixelFormat release];
 #endif
 		
 #if RN_PLATFORM_IOS
-		[_oglContext release];
+		[(EAGLContext *)_oglContext release];
 #endif
 	}
 
@@ -265,20 +266,20 @@ namespace RN
 		RenderingResource::SetName(name);
 		
 #if RN_PLATFORM_IOS
-		if([_oglContext respondsToSelector:@selector(setDebugLabel:)])
-			[_oglContext setDebugLabel:[NSString stringWithUTF8String:name]];
+		if([(EAGLContext *)_oglContext respondsToSelector:@selector(setDebugLabel:)])
+			[(EAGLContext *)_oglContext setDebugLabel:[NSString stringWithUTF8String:name]];
 #endif
 	}
 	
 	void Context::Activate()
 	{
 #if RN_PLATFORM_MAC_OS
-		[_oglContext makeCurrentContext];
+		[(NSOpenGLContext *)_oglContext makeCurrentContext];
 		RN_ASSERT0([NSOpenGLContext currentContext] == _oglContext);		
 #endif
 		
 #if RN_PLATFORM_IOS
-		BOOL result = [EAGLContext setCurrentContext:_oglContext];
+		BOOL result = [EAGLContext setCurrentContext:(EAGLContext *)_oglContext];
 		RN_ASSERT0(result);
 #endif
 

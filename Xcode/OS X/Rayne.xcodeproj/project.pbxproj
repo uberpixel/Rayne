@@ -19,6 +19,7 @@
 		E91B88761697889F001B7F22 /* RNRenderingResource.h in Headers */ = {isa = PBXBuildFile; fileRef = E91B88741697889E001B7F22 /* RNRenderingResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E92AE1AE16B4D68C00EFE1E8 /* RNApplication.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92AE1AC16B4D68C00EFE1E8 /* RNApplication.cpp */; };
 		E92AE1AF16B4D68C00EFE1E8 /* RNApplication.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1AD16B4D68C00EFE1E8 /* RNApplication.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9319D3416BFE560001FA38F /* RNBaseInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = E9319D3316BFE560001FA38F /* RNBaseInternal.h */; };
 		E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */; };
 		E9580BD416AB8BEA0056DEF2 /* RNEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = E9580BD216AB8BEA0056DEF2 /* RNEntity.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E281696157E00DA187E /* RNArray.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619DF41696157E00DA187E /* RNArray.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -129,6 +130,7 @@
 		E92AE1AC16B4D68C00EFE1E8 /* RNApplication.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNApplication.cpp; sourceTree = "<group>"; };
 		E92AE1AD16B4D68C00EFE1E8 /* RNApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNApplication.h; sourceTree = "<group>"; };
 		E92AE1E016B5286500EFE1E8 /* Rayne.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Rayne.h; sourceTree = "<group>"; };
+		E9319D3316BFE560001FA38F /* RNBaseInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBaseInternal.h; sourceTree = "<group>"; };
 		E9543FA1168167A100F53C4F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		E9543FA2168167A100F53C4F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		E9543FA3168167A100F53C4F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -311,6 +313,7 @@
 				C085AA2416B2B40600E48EBB /* RNBullet.h */,
 				E9619DF51696157E00DA187E /* RNBase.cpp */,
 				E9619DF61696157E00DA187E /* RNBase.h */,
+				E9319D3316BFE560001FA38F /* RNBaseInternal.h */,
 				E9619DFC1696157E00DA187E /* RNDefines.h */,
 				E9619DFD1696157E00DA187E /* RNError.h */,
 				E9619DFE1696157E00DA187E /* RNErrorGroupGraphics.h */,
@@ -458,6 +461,7 @@
 				E9145CAD16BA9076004BDEC8 /* RNAutoreleasePool.h in Headers */,
 				E9145CB416BAB82D004BDEC8 /* RNInput.h in Headers */,
 				E991F1C716BB707300B205A1 /* RNMessage.h in Headers */,
+				E9319D3416BFE560001FA38F /* RNBaseInternal.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

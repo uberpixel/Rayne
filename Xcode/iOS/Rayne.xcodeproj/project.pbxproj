@@ -101,6 +101,7 @@
 		E92D614D16B75EFE00BFCC44 /* RNApplication.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNApplication.cpp; sourceTree = "<group>"; };
 		E92D614E16B75EFE00BFCC44 /* RNApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNApplication.h; sourceTree = "<group>"; };
 		E92D615016B75F0900BFCC44 /* Rayne.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rayne.h; sourceTree = "<group>"; };
+		E9319D3616BFEC6A001FA38F /* RNBaseInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBaseInternal.h; sourceTree = "<group>"; };
 		E9619EE7169616FD00DA187E /* libRayne.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRayne.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9619EEA169616FD00DA187E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E9619EF91696170700DA187E /* RNArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNArray.h; sourceTree = "<group>"; };
@@ -287,6 +288,7 @@
 				C085AA2616B2B41300E48EBB /* RNBullet.h */,
 				E9619EFA1696170700DA187E /* RNBase.cpp */,
 				E9619EFB1696170700DA187E /* RNBase.h */,
+				E9319D3616BFEC6A001FA38F /* RNBaseInternal.h */,
 				E9619F011696170700DA187E /* RNDefines.h */,
 				E9619F021696170700DA187E /* RNError.h */,
 				E9619F031696170700DA187E /* RNErrorGroupGraphics.h */,

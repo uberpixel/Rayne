@@ -772,14 +772,6 @@ namespace RN
 		}
 	}
 	
-	void Input::HandleKeyboardEvent(NSEvent *event)
-	{
-	}
-	
-	void Input::HandleMouseEvent(NSEvent *event)
-	{
-	}
-	
 #endif
 	
 #if RN_PLATFORM_IOS
