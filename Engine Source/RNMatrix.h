@@ -210,9 +210,10 @@ namespace RN
 		m[10] = -(clipfar + clipnear) / (clipfar - clipnear);
 		m[11] = -1.0f;
 		m[14] = -(2.0f * clipfar * clipnear) / (clipfar - clipnear);
+		m[15] = 0.0f;
 	}
 	
-	RN_INLINE void Matrix::MakeInverveProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)
+	RN_INLINE void Matrix::MakeInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)
 	{
 		MakeIdentity();
 		
@@ -226,7 +227,6 @@ namespace RN
 		m[14] = -1.0f;
 		m[15] = (clipfar + clipnear) / (2.0f * clipfar * clipnear);
 	}
-	
 	
 	RN_INLINE float Matrix::Determinant() const
 	{

@@ -36,7 +36,7 @@ namespace RN
 		
 		void MakeProjectionOrthogonal(float left, float right, float bottom, float top, float clipnear, float clipfar);
 		void MakeProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
-		void MakeInverveProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
+		void MakeInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
 		
 		float Determinant() const;
 		float DeterminantSubmatrix(const int k) const;
@@ -112,8 +112,8 @@ namespace RN
 		Quaternion LerpS(const Quaternion& other, float factor) const;
 		Quaternion LerpN(const Quaternion& other, float factor) const;
 		
-		Vector3 RotateEuler(const Vector3& vec) const;
-		Vector4 RotateAxis(const Vector4& vec) const;
+		Vector3 RotateVector3(const Vector3& vec) const;
+		Vector4 RotateVector4(const Vector4& vec) const;
 		
 		Matrix RotationMatrix() const;
 		

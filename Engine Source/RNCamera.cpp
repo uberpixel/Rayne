@@ -390,7 +390,7 @@ namespace RN
 			aspect = _frame.width / _frame.height;
 		
 		_projectionMatrix.MakeProjectionPerspective(arc, aspect, clipnear, clipfar);
-		_inverseProjectionMatrix.MakeInverveProjectionPerspective(arc, aspect, clipnear, clipfar);
+		_inverseProjectionMatrix.MakeInverseProjectionPerspective(arc, aspect, clipnear, clipfar);
 		
 		UpdateStage(true);
 	}

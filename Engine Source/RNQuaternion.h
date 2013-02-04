@@ -428,14 +428,14 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE Vector3 Quaternion::RotateEuler(const Vector3& euler) const
+	RN_INLINE Vector3 Quaternion::RotateVector3(const Vector3& vector) const
 	{
-		return RotationMatrix().Transform(euler);
+		return RotationMatrix().Transform(vector);
 	}
 	
-	RN_INLINE Vector4 Quaternion::RotateAxis(const Vector4& axis) const
+	RN_INLINE Vector4 Quaternion::RotateVector4(const Vector4& vector) const
 	{
-		return RotationMatrix().Transform(axis);
+		return RotationMatrix().Transform(vector);
 	}
 	
 	RN_INLINE Matrix Quaternion::RotationMatrix() const
