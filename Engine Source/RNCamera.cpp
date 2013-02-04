@@ -25,7 +25,7 @@ namespace RN
 		_stage    = 0;
 		_surfaceMaterial = 0;
 		
-		_isLinear = false;
+		_isLinear = true;
 		_texture  = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp, Texture::FilterNearest, _isLinear);
 		_texture->SetGeneratesMipmaps(false);
 		

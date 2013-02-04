@@ -129,7 +129,7 @@ namespace RN
 			Camera *camera  = *iterator;
 			
 #if defined(GL_DRAW_FRAMEBUFFER) && defined(GL_READ_FRAMEBUFFER)
-			if(!camera->Material() && gl::BlitFramebuffer)
+/*			if(!camera->Material() && gl::BlitFramebuffer)
 			{
 				const Rect frame = camera->Frame();
 				
@@ -137,9 +137,9 @@ namespace RN
 				gl::BlitFramebuffer(0, 0, frame.width*_scaleFactor, frame.height*_scaleFactor, frame.x*_scaleFactor, frame.y*_scaleFactor, frame.width*_scaleFactor, frame.height*_scaleFactor, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 			}
 			else
-			{
+			{*/
 				FlushCamera(0, camera);
-			}
+//			}
 #else
 			FlushCamera(0, camera);
 #endif

@@ -12,12 +12,12 @@ namespace TG
 {
 	World::World()
 	{
-		_camera = new RN::Camera(RN::Vector2(), RN::Camera::FormatRGBA, RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
+		_camera = new RN::Camera(RN::Vector2(), RN::Camera::FormatRGBAFloat, RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
 		
 		CreateWorld();
 		
 #if RN_PLATFORM_MAC_OS
-		CreateSSAOStage();
+//		CreateSSAOStage();
 #endif
 		
 		RN::Input::SharedInstance()->Activate();

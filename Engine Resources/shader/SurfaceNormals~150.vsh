@@ -14,7 +14,7 @@ out vec3 surfaceNormal;
 out float surfaceDepth;
 
 float nearPlane = 0.1;
-float farPlane = 50.0;
+float farPlane = 1000.0;
 
 void main()
 {
