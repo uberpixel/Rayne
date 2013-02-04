@@ -26,7 +26,7 @@ void main()
 	float currentPixelDepth = currentPixelSample.a;
 
 	vec3 ep = vec3(texcoord.xy, currentPixelDepth);
-	vec3 norm = currentPixelSample.xyz * vec3(2.0) - vec3(1.0);
+	vec3 norm = currentPixelSample.xyz * 2.0 - 1.0;
 
 	float bl = 0.0;
 	float radD = rad / currentPixelDepth;
@@ -42,11 +42,11 @@ void main()
 		occluderFragment = texture(targetmap, ep.xy + sign(dot(ray, norm)) * ray.xy);
 		depthDifference = currentPixelDepth - occluderFragment.a;
 
-		bl += step(falloff,depthDifference)*(1.0-dot(occluderFragment.xyz,norm))*(1.0-smoothstep(falloff,strength,depthDifference));
+		bl += step(falloff,depthDifference)*(1.0-dot(occluderFragment.xyz*2.0-1.0,norm))*(1.0-smoothstep(falloff,strength,depthDifference));
 	}
 
 	float ao = 1.0 + bl * invSamples;
 
-	fragColor0.rgb = vec3(ao, ao, ao);
+	fragColor0.rgb = vec3(ao);
 	fragColor0.a = ao;
 }
