@@ -54,25 +54,28 @@ namespace TG
 			{
 				if(i->location.x > _camera->Frame().width*0.5f)
 				{
-					_touchRight = i->location;
+					_touchRight = i->uniqueID;
+					_touchRightLocation = i->location;
 				}
 				else
 				{
-					_touchLeft = i->location;
+					_touchLeft = i->uniqueID;
+					_touchLeftLocation = i->location;
 				}
 			}
 			
 			if(i->phase == RN::Touch::TouchPhaseMoved)
 			{
-				if(i->location.x > _camera->Frame().width*0.5f)
+				if(i->uniqueID == _touchRight)
 				{
-					rotation.x = _touchRight.x-i->location.x;
-					rotation.z = _touchRight.y-i->location.y;
+					rotation.x = _touchRightLocation.x - i->location.x;
+					rotation.z = _touchRightLocation.y - i->location.y;
 				}
-				else
+						
+				if(i->uniqueID == _touchLeft)
 				{
-					translation.x = _touchLeft.x-i->location.x;
-					translation.z = _touchLeft.y-i->location.y;
+					translation.x = _touchLeftLocation.x - i->location.x;
+					translation.z = _touchLeftLocation.y - i->location.y;
 				}
 			}
 		}
