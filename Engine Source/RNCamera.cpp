@@ -15,9 +15,10 @@
 
 namespace RN
 {
-	Camera::Camera(const Vector2& size, Flags _flags) :
+	Camera::Camera(const Vector2& size, Format format, Flags _flags) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_clearColor(0.193f, 0.435f, 0.753f, 1.0f),
+		_format(format),
 		RenderingResource("Camera")
 	{
 		_material = 0;
@@ -235,21 +236,95 @@ namespace RN
 		{
 			_texture->Bind();
 			
+			GLenum format;
+			GLenum internalFormat;
+			GLenum type;
+			
+			switch(_format)
+			{
+				// Unsigend bytes
+				case FormatRGBA:
+					format = GL_RGBA;
+					
 #if GL_SRGB8_ALPHA8
-			if(_isLinear)
-			{
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-				RN_CHECKOPENGL();
-			}
-			else
-			{
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-				RN_CHECKOPENGL();
-			}
+					internalFormat = _isLinear ? GL_RGBA : GL_SRGB8_ALPHA8;
 #else
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-			RN_CHECKOPENGL();
+					internalFormat = GL_RGBA;
 #endif
+					type = GL_UNSIGNED_BYTE;					
+					break;
+					
+				case FormatR:
+					format = GL_RED;
+					internalFormat = GL_RED;
+					type = GL_UNSIGNED_BYTE;
+					break;
+					
+				case FormatRG:
+					format = GL_RG;
+					internalFormat = GL_RG;
+					type = GL_UNSIGNED_BYTE;
+					break;
+					
+				case FormatRGB:
+					format = GL_RGB;
+					internalFormat = GL_RGB;
+					type = GL_UNSIGNED_BYTE;
+					break;
+					
+				// FLoats
+				case FormatRGBAFloat:
+					format = GL_RGBA;
+					internalFormat = GL_RGBA32F;
+					type = GL_FLOAT;
+					break;
+					
+				case FormatRFloat:
+					format = GL_RED;
+					internalFormat = GL_R32F;
+					type = GL_FLOAT;
+					break;
+					
+				case FormatRGFloat:
+					format = GL_RG;
+					internalFormat = GL_RG32F;
+					type = GL_FLOAT;
+					break;
+					
+				case FormatRGBFloat:
+					format = GL_RGB;
+					internalFormat = GL_RGB32F;
+					type = GL_FLOAT;
+					break;
+					
+				// Half floats
+				case FormatRGBAHalfFloat:
+					format = GL_RGBA;
+					internalFormat = GL_RGBA16F;
+					type = GL_FLOAT;
+					break;
+					
+				case FormatRHalfFloat:
+					format = GL_RED;
+					internalFormat = GL_R16F;
+					type = GL_HALF_FLOAT;
+					break;
+					
+				case FormatRGHalfFloat:
+					format = GL_RG;
+					internalFormat = GL_RG16F;
+					type = GL_HALF_FLOAT;
+					break;
+					
+				case FormatRGBHalfFloat:
+					format = GL_RGB;
+					internalFormat = GL_RGB16F;
+					type = GL_HALF_FLOAT;
+					break;
+			}
+			
+			glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type, 0);
+			RN_CHECKOPENGL();
 			
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _texture->Name(), 0);
 			RN_CHECKOPENGL();		

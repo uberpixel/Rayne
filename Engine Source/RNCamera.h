@@ -33,7 +33,25 @@ namespace RN
 		};
 		typedef uint32 Flags;
 		
-		RNAPI Camera(const Vector2& size, Flags flags=FlagUpdateAspect);
+		typedef enum
+		{
+			FormatRGBA,
+			FormatR,
+			FormatRG,
+			FormatRGB,
+			
+			FormatRGBAFloat,
+			FormatRFloat,
+			FormatRGFloat,
+			FormatRGBFloat,
+			
+			FormatRGBAHalfFloat,
+			FormatRHalfFloat,
+			FormatRGHalfFloat,
+			FormatRGBHalfFloat,
+		} Format;
+		
+		RNAPI Camera(const Vector2& size, Format format=FormatRGBA, Flags flags=FlagUpdateAspect);
 		RNAPI virtual ~Camera();
 		
 		RNAPI void Bind();
@@ -104,6 +122,7 @@ namespace RN
 		int _current;
 		float _scaleFactor;
 		
+		Format _format;
 		Texture *_texture;
 		Camera *_stage;
 		

@@ -12,7 +12,7 @@ namespace TG
 {
 	World::World()
 	{
-		_camera = new RN::Camera(RN::Vector2(), RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
+		_camera = new RN::Camera(RN::Vector2(), RN::Camera::FormatRGBA, RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
 		
 		CreateWorld();
 		
@@ -118,7 +118,7 @@ namespace TG
 		RN::Material *ssaoMaterial = new RN::Material(ssao);
 		ssaoMaterial->AddTexture(noise);
 		
-		RN::Camera *ssaoStage  = new RN::Camera(RN::Vector2(1.0f, 1.0f), RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
+		RN::Camera *ssaoStage  = new RN::Camera(RN::Vector2(1.0f, 1.0f), RN::Camera::FormatRGBA, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
 		ssaoStage->SetMaterial(ssaoMaterial);
 		ssaoStage->SetName("SSAO Stage");
 		ssaoMaterial->Release();
@@ -138,10 +138,10 @@ namespace TG
 		RN::Material *verticalMaterial = new RN::Material(blurVertical->Autorelease<RN::Shader>());
 		RN::Material *horizontalMateral = new RN::Material(blurHorizontal->Autorelease<RN::Shader>());
 		
-		RN::Camera *verticalStage  = new RN::Camera(RN::Vector2(1.0f, 1.0f), RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
+		RN::Camera *verticalStage  = new RN::Camera(RN::Vector2(1.0f, 1.0f), RN::Camera::FormatRGBA, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
 		verticalStage->SetMaterial(verticalMaterial);
 		
-		RN::Camera *horizontalStage  = new RN::Camera(RN::Vector2(1.0f, 1.0f), RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
+		RN::Camera *horizontalStage  = new RN::Camera(RN::Vector2(1.0f, 1.0f), RN::Camera::FormatRGBA, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
 		horizontalStage->SetMaterial(horizontalMateral);
 		
 		// SSAO Post
@@ -153,7 +153,7 @@ namespace TG
 		RN::Material *ssaoPostMaterial = new RN::Material(ssaoPost);
 		ssaoPostMaterial->AddTexture(horizontalStage->Target());
 		
-		RN::Camera *ssaoPostStage = new RN::Camera(RN::Vector2(1.0f, 1.0f), RN::Camera::FlagInherit);
+		RN::Camera *ssaoPostStage = new RN::Camera(RN::Vector2(1.0f, 1.0f), RN::Camera::FormatRGBA, RN::Camera::FlagInherit);
 		ssaoPostStage->SetMaterial(ssaoPostMaterial);
 		ssaoPostStage->SetName("SSAO Post Stage");
 		
