@@ -194,7 +194,7 @@ namespace RN
 		{
 			glActiveTexture((GLenum)(GL_TEXTURE0 + _activeTextureUnits));
 			glBindTexture(GL_TEXTURE_2D, source->Target()->Name());
-			glUniform1i(shader->targetmap, 0);
+			glUniform1i(shader->targetmap, _activeTextureUnits);
 			
 			_activeTextureUnits ++;
 		}
