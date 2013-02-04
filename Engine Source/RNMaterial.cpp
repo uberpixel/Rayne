@@ -75,7 +75,7 @@ namespace RN
 		culling  = true;
 		cullmode = GL_CCW;
 		
-		blending = true;
+		blending = false;
 		blendSource = GL_ONE;
 		blendDestination = GL_ONE_MINUS_SRC_ALPHA;
 		

@@ -195,6 +195,12 @@ namespace RN
 		vertexDescriptor.elementMember = 3;
 		vertexDescriptor.elementCount  = 24;
 		
+		MeshDescriptor normalDescriptor;
+		normalDescriptor.feature = kMeshFeatureNormals;
+		normalDescriptor.elementSize = sizeof(Vector3);
+		normalDescriptor.elementMember = 3;
+		normalDescriptor.elementCount  = 24;
+		
 		MeshDescriptor texcoordDescriptor;
 		texcoordDescriptor.feature = kMeshFeatureUVSet0;
 		texcoordDescriptor.elementSize = sizeof(Vector2);
@@ -209,6 +215,7 @@ namespace RN
 		
 		Array<MeshDescriptor> descriptors;
 		descriptors.AddObject(vertexDescriptor);
+		descriptors.AddObject(normalDescriptor);
 		descriptors.AddObject(indicesDescriptor);
 		descriptors.AddObject(texcoordDescriptor);
 		
@@ -216,6 +223,7 @@ namespace RN
 		MeshLODStage *stage = mesh->AddLODStage(descriptors);
 		
 		Vector3 *vertices  = stage->Data<Vector3>(kMeshFeatureVertices);
+		Vector3 *normals   = stage->Data<Vector3>(kMeshFeatureNormals);
 		Vector2 *texcoords = stage->Data<Vector2>(kMeshFeatureUVSet0);
 		uint16 *indices    = stage->Data<uint16>(kMeshFeatureIndices);
 		
@@ -248,6 +256,37 @@ namespace RN
 		*vertices ++ = Vector3( size.x, -size.y, -size.z);
 		*vertices ++ = Vector3( size.x, -size.y,  size.z);
 		*vertices ++ = Vector3(-size.x, -size.y,  size.z);
+		
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0);
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0);
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0);
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0);
+		
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0);
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0);
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0);
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0);
+		
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0);
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0);
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0);
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0);
+		
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0);
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0);
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0);
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0);
+		
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0);
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0);
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0);
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0);
+		
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0);
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0);
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0);
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0);
+		
 		
 		*texcoords ++ = Vector2(0.0f, 0.0f);
 		*texcoords ++ = Vector2(1.0f, 0.0f);

@@ -22,7 +22,7 @@ namespace RN
 	{
 		_material = 0;
 		_stage    = 0;
-		_surfaceShader = 0;
+		_surfaceMaterial = 0;
 		
 		_isLinear = false;
 		_texture  = new Texture(Texture::FormatRGBA8888, Texture::WrapModeClamp, Texture::FilterNearest, _isLinear);
@@ -322,10 +322,10 @@ namespace RN
 		_material = material->Retain<class Material>();
 	}
 	
-	void Camera::SetSurfaceShader(Shader *shader)
+	void Camera::SetSurfaceMaterial(class Material *material)
 	{
-		_surfaceShader->Release();
-		_surfaceShader = shader->Retain<Shader>();
+		_surfaceMaterial->Release();
+		_surfaceMaterial = material->Retain<class Material>();
 	}
 	
 	
@@ -358,6 +358,8 @@ namespace RN
 		
 		_stage = stage;
 		UpdateStage(true);
+		
+		World::SharedInstance()->RemoveCamera(stage);
 	}
 	
 	void Camera::RemoveStage(Camera *stage)

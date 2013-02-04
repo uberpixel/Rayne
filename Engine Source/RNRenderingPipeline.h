@@ -32,11 +32,11 @@ namespace RN
 		
 	private:
 		void InitializeFramebufferCopy();
-		GLuint VAOForTuple(const std::tuple<Shader *, MeshLODStage *>& tuple);
+		GLuint VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple);
 		
 		void DrawGroup(RenderingGroup *group);
-		void BindMaterial(Material *material, Shader *shader);
-		void DrawMesh(Mesh *mesh, Shader *shader);
+		void BindMaterial(Material *material);
+		void DrawMesh(Mesh *mesh);
 		
 		void FlushCameras();
 		void FlushCamera(Camera *target, Camera *source);
@@ -65,7 +65,7 @@ namespace RN
 		GLenum _blendSource;
 		GLenum _blendDestination;
 		
-		std::map<std::tuple<Shader *, MeshLODStage *>, GLuint> _vaos;
+		std::map<std::tuple<Material *, MeshLODStage *>, GLuint> _vaos;
 		GLuint _currentVAO;
 		
 		GLuint _defaultFBO;

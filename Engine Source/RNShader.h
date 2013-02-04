@@ -56,6 +56,7 @@ namespace RN
 		GLuint color1;
 		
 		GLuint targetmap;
+		GLuint depthmap;
 		GLuint time;
 		
 		Array<GLuint> texlocations;

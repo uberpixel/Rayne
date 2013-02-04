@@ -162,7 +162,7 @@ namespace RN
 		const Rect frame = source->Frame();
 		
 		if(material)
-			BindMaterial(material, shader);
+			BindMaterial(material);
 		
 		if(!target || target->Depthbuffer() == 0)
 		{
@@ -192,21 +192,14 @@ namespace RN
 		
 		if(shader->targetmap != -1 && source->Target())
 		{
-			glActiveTexture((GLenum)(GL_TEXTURE0 + _activeTextureUnits));
+			machine_uint textureUnit = _activeTextureUnits ++;
+			
+			glActiveTexture((GLenum)(GL_TEXTURE0 + textureUnit));
 			glBindTexture(GL_TEXTURE_2D, source->Target()->Name());
-			glUniform1i(shader->targetmap, _activeTextureUnits);
+			glUniform1i(shader->targetmap, (GLuint)textureUnit);
 			
 			_activeTextureUnits ++;
 		}
-		
-		/*if(shader->depthmap != -1 && source->DepthTarget())
-		{
-			glActiveTexture((GLenum)(GL_TEXTURE0 + _activeTextureUnits));
-			glBindTexture(GL_TEXTURE_2D, source->DepthTarget()->Name());
-			glUniform1i(shader->depthmap, 0);
-			
-			_activeTextureUnits ++;
-		}*/
 		
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 		
@@ -229,7 +222,7 @@ namespace RN
 			
 			if(!(camera->flags & Camera::FlagDrawTarget))
 			{
-				Shader *surfaceShader = camera->SurfaceShader();
+				Material *surfaceMaterial = camera->SurfaceMaterial();
 				
 				std::vector<RenderingIntent>::iterator iterator;
 				for(iterator=frame->begin(); iterator!=frame->end(); iterator++)
@@ -242,14 +235,14 @@ namespace RN
 					for(uint32 i=0; i<count; i++)
 					{
 						Mesh *mesh = model->MeshAtIndex(i);
-						Material *material = model->MaterialForMesh(mesh);
+						Material *material = surfaceMaterial ? surfaceMaterial : model->MaterialForMesh(mesh);
 						
-						Shader *shader = surfaceShader ? surfaceShader : material->Shader();
+						Shader *shader = material->Shader();
 						
 						glUseProgram(shader->program);
 						
 						// Bind the material
-						BindMaterial(material, shader);
+						BindMaterial(material);
 						
 						// Update the built-in uniforms
 						if(shader->time != -1)
@@ -286,7 +279,7 @@ namespace RN
 						}
 						
 						// Draw the mesh
-						DrawMesh(mesh, shader);
+						DrawMesh(mesh);
 					}
 					
 					iterator->Pop();
@@ -311,7 +304,7 @@ namespace RN
 		}
 	}
 	
-	void RenderingPipeline::BindMaterial(Material *material, Shader *shader)
+	void RenderingPipeline::BindMaterial(Material *material)
 	{
 		if(material == _currentMaterial)
 			return;
@@ -329,7 +322,7 @@ namespace RN
 			material->Push();
 			
 			ObjectArray *textures = material->Textures();
-			Array<GLuint> *textureLocations = &shader->texlocations;
+			Array<GLuint> *textureLocations = &material->Shader()->texlocations;
 			
 			if(textureLocations->Count() > 0)
 			{
@@ -430,7 +423,7 @@ namespace RN
 		_currentMaterial = material;
 	}
 	
-	void RenderingPipeline::DrawMesh(Mesh *mesh, Shader *shader)
+	void RenderingPipeline::DrawMesh(Mesh *mesh)
 	{
 		if(mesh && mesh != _currentMesh)
 		{
@@ -438,7 +431,7 @@ namespace RN
 			
 			MeshLODStage *stage = mesh->LODStage(0);
 			
-			std::tuple<Shader *, MeshLODStage *> tuple = std::tuple<Shader *, MeshLODStage *>(shader, stage);
+			std::tuple<Material *, MeshLODStage *> tuple = std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage);
 			GLuint vao = VAOForTuple(tuple);
 			
 			if(vao != _currentVAO)
@@ -461,15 +454,17 @@ namespace RN
 		_currentMesh = mesh;
 	}
 	
-	GLuint RenderingPipeline::VAOForTuple(const std::tuple<Shader *, MeshLODStage *>& tuple)
+	GLuint RenderingPipeline::VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple)
 	{
 		auto iterator = _vaos.find(tuple);
 		if(iterator == _vaos.end())
 		{
 			GLuint vao;
 			
-			Shader *shader      = std::get<0>(tuple);
+			Material *material  = std::get<0>(tuple);
 			MeshLODStage *stage = std::get<1>(tuple);
+			
+			Shader *shader = material->Shader();
 
 			gl::GenVertexArrays(1, &vao);
 			gl::BindVertexArray(vao);

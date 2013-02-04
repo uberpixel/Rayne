@@ -45,7 +45,7 @@ namespace RN
 		RNAPI virtual void SetFrame(const Rect& frame);
 		RNAPI void SetClearColor(const Color& color);
 		RNAPI void SetMaterial(Material *material);
-		RNAPI void SetSurfaceShader(Shader *shader);
+		RNAPI void SetSurfaceMaterial(Material *material);
 		
 		RNAPI void AddStage(Camera *stage);
 		RNAPI void InsertStage(Camera *stage);
@@ -69,8 +69,8 @@ namespace RN
 		GLuint Stencilbuffer() const { return _stencilbuffer; }
 		
 		Texture *Target() const { return _texture; }
+		Material *SurfaceMaterial() const { return _surfaceMaterial; }
 		Material *Material() const { return _material; }
-		Shader *SurfaceShader() const { return _surfaceShader; }
 		Camera *Stage() const { return _stage; }
 		
 		float arc;
@@ -106,7 +106,8 @@ namespace RN
 		
 		Texture *_texture;
 		Camera *_stage;
-		Shader *_surfaceShader;
+		
+		class Material *_surfaceMaterial;
 		class Material *_material;
 		
 		void SetDefaultValues();

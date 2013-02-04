@@ -23,6 +23,7 @@ namespace TG
 		
 	private:
 		void CreateWorld();
+		void CreateSSAOStage();
 		
 		RN::Camera *_camera;
 		RN::Vector2 _touchRight;

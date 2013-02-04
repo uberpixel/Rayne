@@ -285,6 +285,8 @@ namespace RN
 			matProjViewModelInverse = glGetUniformLocation(program, "matProjViewModelInverse");
 			
 			targetmap = glGetUniformLocation(program, "targetmap");
+			depthmap  = glGetUniformLocation(program, "depthmap");
+			
 			time = glGetUniformLocation(program, "time");
 			
 			char string[10];
