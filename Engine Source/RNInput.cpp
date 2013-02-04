@@ -829,6 +829,7 @@ namespace RN
 			{
 				Touch touch;
 				touch.location = input.location;
+				touch.initialLocation = touch.location;
 				touch.deltaLocation = Vector2();
 				touch.phase = Touch::TouchPhaseBegan;
 				touch.userData = 0;

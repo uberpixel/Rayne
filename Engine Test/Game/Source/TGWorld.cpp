@@ -15,7 +15,10 @@ namespace TG
 		_camera = new RN::Camera(RN::Vector2(), RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
 		
 		CreateWorld();
+		
+#if RN_PLATFORM_MAC_OS
 		CreateSSAOStage();
+#endif
 		
 		RN::Input::SharedInstance()->Activate();
 	}
@@ -54,25 +57,26 @@ namespace TG
 			{
 				if(i->location.x > _camera->Frame().width*0.5f)
 				{
-					_touchRight = i->location;
+					_touchRight = i->uniqueID;
 				}
 				else
 				{
-					_touchLeft = i->location;
+					_touchLeft = i->uniqueID;
 				}
 			}
 			
 			if(i->phase == RN::Touch::TouchPhaseMoved)
 			{
-				if(i->location.x > _camera->Frame().width*0.5f)
+				if(i->uniqueID == _touchRight)
 				{
-					rotation.x = _touchRight.x-i->location.x;
-					rotation.z = _touchRight.y-i->location.y;
+					rotation.x = i->initialLocation.x - i->location.x;
+					rotation.z = i->initialLocation.y - i->location.y;
 				}
-				else
+						
+				if(i->uniqueID == _touchLeft)
 				{
-					translation.x = _touchLeft.x-i->location.x;
-					translation.z = _touchLeft.y-i->location.y;
+					translation.x = i->initialLocation.x - i->location.x;
+					translation.z = i->initialLocation.y - i->location.y;
 				}
 			}
 		}
