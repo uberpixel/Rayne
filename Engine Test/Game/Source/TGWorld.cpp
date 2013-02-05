@@ -111,7 +111,7 @@ namespace TG
 		_camera->SetMaterial(surfaceMaterial);
 		
 		// SSAO stage
-		RN::Texture *noise = RN::Texture::WithFile("textures/SSAO_noise.png", RN::Texture::FormatRGBA8888, RN::Texture::WrapModeRepeat, RN::Texture::FilterLinear, true);
+		RN::Texture *noise = RN::Texture::WithFile("textures/SSAO_noise.png", RN::Texture::FormatRGB888, RN::Texture::WrapModeRepeat, RN::Texture::FilterLinear, true);
 		RN::Shader *ssao = RN::Shader::WithFile("shader/SSAO");
 		
 		RN::Material *ssaoMaterial = new RN::Material(ssao);
@@ -151,7 +151,7 @@ namespace TG
 		 */
 		
 		// SSAO Post
-		RN::Camera *sceneCamera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagInherit);
+		RN::Camera *sceneCamera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGB888, RN::Camera::FlagInherit);
 		_camera->AddStage(sceneCamera);
 		
 		RN::Shader *ssaoPost = new RN::Shader();
