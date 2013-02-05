@@ -720,15 +720,18 @@ namespace RN
 	
 	bool Texture::PlatformSupportsFormat(Format format)
 	{
-		switch(format)
+		try
 		{
-			case FormatPVRTC2:
-			case FormatPVRTC4:
-				return false;
-				break;
-				
-			default:
-				return true;
+			GLenum glFormat;
+			GLint glInternalFormat;
+			GLenum glType;
+			
+			ConvertFormat(format, true, &glFormat, &glInternalFormat, &glType);
+			return true;
+		}
+		catch(ErrorException e)
+		{
+			return false;
 		}
 	}
 	
