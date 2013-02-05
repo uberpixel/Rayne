@@ -269,6 +269,7 @@ namespace RN
 		_stage->Release();
 		_stage = stage->Retain<Camera>();
 		
+		UpdateProjection();
 		World::SharedInstance()->RemoveCamera(_stage);
 	}
 	
@@ -283,6 +284,8 @@ namespace RN
 			_stage->RemoveStage(_stage->_stage);
 		
 		_stage->_stage = temp;
+		
+		UpdateProjection();
 		World::SharedInstance()->RemoveCamera(_stage);
 	}
 	
@@ -337,11 +340,6 @@ namespace RN
 			if(_stage->_flags & FlagInherit)
 			{
 				_stage->SetFrame(_frame);
-				_stage->aspect = aspect;
-				_stage->fov    = fov;
-				
-				_stage->clipfar  = clipfar;
-				_stage->clipnear = clipnear;
 				
 				_stage->SetPosition(Position());
 				_stage->SetRotation(Rotation());
@@ -358,6 +356,17 @@ namespace RN
 		
 		_projectionMatrix.MakeProjectionPerspective(fov, aspect, clipnear, clipfar);
 		_inverseProjectionMatrix.MakeInverseProjectionPerspective(fov, aspect, clipnear, clipfar);
+		
+		if(_stage && _stage->_flags & FlagInherit)
+		{
+			_stage->aspect = aspect;
+			_stage->fov    = fov;
+			
+			_stage->clipfar  = clipfar;
+			_stage->clipnear = clipnear;
+			
+			_stage->UpdateProjection();
+		}
 	}
 	
 	void Camera::CheckFramebufferStatus()

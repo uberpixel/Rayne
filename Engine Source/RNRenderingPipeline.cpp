@@ -161,14 +161,17 @@ namespace RN
 		Material *material = 0;
 		Shader *shader = _copyShader;
 		
-		if((source->CameraFlags() & Camera::FlagDrawTarget) && source->Material())
+		if(target)
 		{
-			material = source->Material();
-			shader = material->Shader();
+			if((target->CameraFlags() & Camera::FlagDrawTarget) && target->Material())
+				material = source->Material();
 		}
 		
 		if(material)
+		{
 			BindMaterial(material);
+			shader = material->Shader();
+		}
 		
 		if(!target || !target->HasDepthbuffer())
 		{
@@ -199,7 +202,7 @@ namespace RN
 		uint32 targetmaps = MIN((uint32)shader->targetmaplocations.Count(), source->RenderTargets());
 		for(uint32 i=0; i<targetmaps; i++)
 		{
-			machine_uint textureUnit = _activeTextureUnits ++;
+			machine_uint textureUnit = (++ _activeTextureUnits);
 			
 			Texture *texture = source->RenderTarget(i);
 			GLuint location = shader->targetmaplocations.ObjectAtIndex(i);
