@@ -221,8 +221,16 @@ namespace RN
 			glAttachShader(program, _geometryShader);
 		
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
-		glBindFragDataLocation(program, 0, "fragColor0");
-		glBindFragDataLocation(program, 1, "fragColor1");
+		GLint maxDrawbuffers;
+		glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawbuffers);
+		
+		for(GLint i=0; i<maxDrawbuffers; i++)
+		{
+			char buffer[32];
+			sprintf(buffer, "fragColor%i", i);
+			
+			glBindFragDataLocation(program, i, buffer);
+		}
 #endif
 		
 		glLinkProgram(program);
