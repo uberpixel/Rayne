@@ -16,7 +16,7 @@ namespace TG
 		CreateWorld();
 		
 #if RN_PLATFORM_MAC_OS
-//		CreateSSAOStage();
+		CreateSSAOStage();
 #endif
 		
 		RN::Input::SharedInstance()->Activate();
@@ -111,18 +111,21 @@ namespace TG
 		_camera->SetMaterial(surfaceMaterial);
 		
 		// SSAO stage
-		RN::Texture *noise = RN::Texture::WithFile("textures/SSAO_noise.png", RN::Texture::FormatRGBA8888);
+		RN::Texture *noise = RN::Texture::WithFile("textures/SSAO_noise.png", RN::Texture::FormatRGBA8888, RN::Texture::WrapModeRepeat, RN::Texture::FilterLinear, true);
 		RN::Shader *ssao = RN::Shader::WithFile("shader/SSAO");
 		
 		RN::Material *ssaoMaterial = new RN::Material(ssao);
 		ssaoMaterial->AddTexture(noise);
 		
-		RN::Camera *ssaoStage  = new RN::Camera(RN::Vector2(), RN::Texture::FormatR8, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
+		RN::Camera *ssaoStage  = new RN::Camera(RN::Vector2(), RN::Texture::FormatR8, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget, RN::Camera::BufferFormatColor);
 		ssaoStage->SetMaterial(ssaoMaterial);
 		ssaoStage->SetName("SSAO Stage");
 		ssaoMaterial->Release();
 		
+		_camera->AddStage(ssaoStage);
+		
 		// Blur
+		/*
 		RN::Shader *blurVertical = new RN::Shader();
 		RN::Shader *blurHorizontal = new RN::Shader();
 		
@@ -142,6 +145,10 @@ namespace TG
 		
 		verticalStage->SetMaterial(verticalMaterial);		
 		horizontalStage->SetMaterial(horizontalMateral);
+		 
+		_camera->AddStage(verticalStage);
+		_camera->AddStage(horizontalStage); 
+		 */
 		
 		// SSAO Post
 		RN::Shader *ssaoPost = new RN::Shader();
@@ -150,24 +157,19 @@ namespace TG
 		ssaoPost->Link();
 		
 		RN::Material *ssaoPostMaterial = new RN::Material(ssaoPost);
-		ssaoPostMaterial->AddTexture(horizontalStage->RenderTarget());
+		//ssaoPostMaterial->AddTexture(horizontalStage->RenderTarget());
 		
-		RN::Camera *ssaoPostStage = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGB888, RN::Camera::FlagInherit);
+		RN::Camera *ssaoPostStage = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGB888, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
 		ssaoPostStage->SetMaterial(ssaoPostMaterial);
-		ssaoPostStage->SetName("SSAO Post Stage");
 		
-		// Stage chain
-		_camera->AddStage(ssaoStage);
-		_camera->AddStage(verticalStage);
-		_camera->AddStage(horizontalStage);
 		_camera->AddStage(ssaoPostStage);
 	}
 	
 	void World::CreateWorld()
 	{
 		// Blocks
-		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB565);
-		RN::Texture *blockTexture1 = RN::Texture::WithFile("textures/testpng.png", RN::Texture::FormatRG88);
+		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
+		RN::Texture *blockTexture1 = RN::Texture::WithFile("textures/testpng.png", RN::Texture::FormatRGB565);
 		
 		RN::Material *blockMaterial = new RN::Material(0);
 		blockMaterial->AddTexture(blockTexture0);
@@ -202,7 +204,7 @@ namespace TG
 		
 		// Floor
 		RN::Shader *floorShader = RN::Shader::WithFile("shader/Ground");
-		RN::Texture *floorTexture = RN::Texture::WithFile("textures/tiles.png", RN::Texture::FormatRGB565);
+		RN::Texture *floorTexture = RN::Texture::WithFile("textures/tiles.png", RN::Texture::FormatRGB888);
 		
 		RN::Material *floorMaterial = new RN::Material(floorShader);
 		floorMaterial->AddTexture(floorTexture);

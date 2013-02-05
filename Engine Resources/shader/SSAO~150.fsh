@@ -46,7 +46,5 @@ void main()
 	}
 
 	float ao = 1.0 + bl * invSamples;
-
-	fragColor0.rgb = vec3(ao);
-	fragColor0.a = ao;
+	fragColor0.r = ao;
 }
