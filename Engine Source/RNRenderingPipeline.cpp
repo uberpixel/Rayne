@@ -124,6 +124,9 @@ namespace RN
 		
 		glViewport(0, 0, _defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor);
 		
+#if GL_FRAMEBUFFER_SRGB
+		glEnable(GL_FRAMEBUFFER_SRGB);
+#endif
 		for(auto iterator=_flushCameras.begin(); iterator!=_flushCameras.end(); iterator++)
 		{
 			Camera *camera  = *iterator;
