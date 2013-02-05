@@ -184,11 +184,11 @@ namespace RN
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		}
 		
-		glEnableVertexAttribArray(shader->position);
-		glVertexAttribPointer(shader->position,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
+		glEnableVertexAttribArray(shader->vertPosition);
+		glVertexAttribPointer(shader->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
 		
-		glEnableVertexAttribArray(shader->texcoord0);
-		glVertexAttribPointer(shader->texcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
+		glEnableVertexAttribArray(shader->vertTexcoord0);
+		glVertexAttribPointer(shader->vertTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
 		if(shader->targetmap != -1 && source->Target())
 		{
@@ -203,8 +203,8 @@ namespace RN
 		
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 		
-		glDisableVertexAttribArray(shader->position);
-		glDisableVertexAttribArray(shader->texcoord0);
+		glDisableVertexAttribArray(shader->vertPosition);
+		glDisableVertexAttribArray(shader->vertTexcoord0);
 		
 		source->Pop();
 	}
@@ -265,6 +265,18 @@ namespace RN
 						
 						if(shader->matModelInverse != -1)
 							glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, iterator->transform.Inverse().m);
+						
+						if(shader->matViewModel != -1)
+						{
+							Matrix viewModel = camera->ViewMatrix() * iterator->transform;
+							glUniformMatrix4fv(shader->matViewModel, 1, GL_FALSE, viewModel.m);
+						}
+						
+						if(shader->matViewModelInverse != -1)
+						{
+							Matrix viewModel = camera->InverseViewMatrix() * iterator->transform.Inverse();
+							glUniformMatrix4fv(shader->matViewModelInverse, 1, GL_FALSE, viewModel.m);
+						}
 						
 						if(shader->matProjViewModel != -1)
 						{
@@ -473,73 +485,73 @@ namespace RN
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, stage->IBO());
 			
 			// Vertices
-			if(shader->position != -1 && stage->SupportsFeature(kMeshFeatureVertices))
+			if(shader->vertPosition != -1 && stage->SupportsFeature(kMeshFeatureVertices))
 			{
 				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureVertices);
 				size_t offset = stage->OffsetForFeature(kMeshFeatureVertices);
 				
-				glEnableVertexAttribArray(shader->position);
-				glVertexAttribPointer(shader->position, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				glEnableVertexAttribArray(shader->vertPosition);
+				glVertexAttribPointer(shader->vertPosition, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
 			// Normals
-			if(shader->normal != -1 && stage->SupportsFeature(kMeshFeatureNormals))
+			if(shader->vertNormal != -1 && stage->SupportsFeature(kMeshFeatureNormals))
 			{
 				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureNormals);
 				size_t offset = stage->OffsetForFeature(kMeshFeatureNormals);
 				
-				glEnableVertexAttribArray(shader->normal);
-				glVertexAttribPointer(shader->normal, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				glEnableVertexAttribArray(shader->vertNormal);
+				glVertexAttribPointer(shader->vertNormal, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
 			// Tangents
-			if(shader->tangent != -1 && stage->SupportsFeature(kMeshFeatureTangents))
+			if(shader->vertTangent != -1 && stage->SupportsFeature(kMeshFeatureTangents))
 			{
 				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureTangents);
 				size_t offset = stage->OffsetForFeature(kMeshFeatureTangents);
 				
-				glEnableVertexAttribArray(shader->tangent);
-				glVertexAttribPointer(shader->tangent, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				glEnableVertexAttribArray(shader->vertTangent);
+				glVertexAttribPointer(shader->vertTangent, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
 			// Texcoord0
-			if(shader->texcoord0 != -1 && stage->SupportsFeature(kMeshFeatureUVSet0))
+			if(shader->vertTexcoord0 != -1 && stage->SupportsFeature(kMeshFeatureUVSet0))
 			{
 				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureUVSet0);
 				size_t offset = stage->OffsetForFeature(kMeshFeatureUVSet0);
 				
-				glEnableVertexAttribArray(shader->texcoord0);
-				glVertexAttribPointer(shader->texcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				glEnableVertexAttribArray(shader->vertTexcoord0);
+				glVertexAttribPointer(shader->vertTexcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
 			// Texcoord1
-			if(shader->texcoord1 != -1 && stage->SupportsFeature(kMeshFeatureUVSet1))
+			if(shader->vertTexcoord1 != -1 && stage->SupportsFeature(kMeshFeatureUVSet1))
 			{
 				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureUVSet1);
 				size_t offset = stage->OffsetForFeature(kMeshFeatureUVSet1);
 				
-				glEnableVertexAttribArray(shader->texcoord1);
-				glVertexAttribPointer(shader->texcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				glEnableVertexAttribArray(shader->vertTexcoord1);
+				glVertexAttribPointer(shader->vertTexcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
 			// Color0
-			if(shader->color0 != -1 && stage->SupportsFeature(kMeshFeatureColor0))
+			if(shader->vertColor0 != -1 && stage->SupportsFeature(kMeshFeatureColor0))
 			{
 				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureColor0);
 				size_t offset = stage->OffsetForFeature(kMeshFeatureColor0);
 				
-				glEnableVertexAttribArray(shader->color0);
-				glVertexAttribPointer(shader->color0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				glEnableVertexAttribArray(shader->vertColor0);
+				glVertexAttribPointer(shader->vertColor0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
 			// Color1
-			if(shader->color1 != -1 && stage->SupportsFeature(kMeshFeatureColor1))
+			if(shader->vertColor1 != -1 && stage->SupportsFeature(kMeshFeatureColor1))
 			{
 				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureColor1);
 				size_t offset = stage->OffsetForFeature(kMeshFeatureColor1);
 				
-				glEnableVertexAttribArray(shader->color1);
-				glVertexAttribPointer(shader->color1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+				glEnableVertexAttribArray(shader->vertColor1);
+				glVertexAttribPointer(shader->vertColor1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 			
 			_vaos[tuple] = vao;

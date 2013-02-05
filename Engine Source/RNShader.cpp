@@ -278,24 +278,30 @@ namespace RN
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, tlog);
 		}
 		else
-		{			
+		{
+			
+#define GetUniformLocation(uniform) uniform = glGetUniformLocation(program, #uniform)
+#define GetAttributeLocation(attribute) attribute = glGetAttribLocation(program, #attribute)
+			
 			// Get uniforms
-			matProj = glGetUniformLocation(program, "matProj");
-			matProjInverse = glGetUniformLocation(program, "matProjInverse");
+			GetUniformLocation(matProj);
+			GetUniformLocation(matProj);
 			
-			matView = glGetUniformLocation(program, "matView");
-			matViewInverse = glGetUniformLocation(program, "matViewInverse");
+			GetUniformLocation(matView);
+			GetUniformLocation(matViewInverse);
 			
-			matModel = glGetUniformLocation(program, "matModel");
-			matModelInverse = glGetUniformLocation(program, "matModelInverse");
+			GetUniformLocation(matModel);
+			GetUniformLocation(matModelInverse);
 			
-			matProjViewModel = glGetUniformLocation(program, "matProjViewModel");
-			matProjViewModelInverse = glGetUniformLocation(program, "matProjViewModelInverse");
+			GetUniformLocation(matViewModel);
+			GetUniformLocation(matViewModelInverse);
 			
-			targetmap = glGetUniformLocation(program, "targetmap");
-			depthmap  = glGetUniformLocation(program, "depthmap");
+			GetUniformLocation(matProjViewModel);
+			GetUniformLocation(matProjViewModelInverse);
 			
-			time = glGetUniformLocation(program, "time");
+			GetUniformLocation(targetmap);
+			GetUniformLocation(depthmap);
+			GetUniformLocation(time);
 			
 			char string[10];
 			for(machine_uint i=0; ; i++)
@@ -310,16 +316,26 @@ namespace RN
 			}
 			
 			// Get attributes
-			position  = glGetAttribLocation(program, "position");
-			tangent   = glGetAttribLocation(program, "tangent");
-			normal    = glGetAttribLocation(program, "normal");
-			texcoord0 = glGetAttribLocation(program, "texcoord0");
-			texcoord1 = glGetAttribLocation(program, "texcoord1");
-			color0    = glGetAttribLocation(program, "color0");
-			color1    = glGetAttribLocation(program, "color1");
+			GetAttributeLocation(vertPosition);
+			GetAttributeLocation(vertNormal);
+			GetAttributeLocation(vertTangent);
+			
+			GetAttributeLocation(vertTexcoord0);
+			GetAttributeLocation(vertTexcoord1);
+			
+			GetAttributeLocation(vertColor0);
+			GetAttributeLocation(vertColor1);
+			
+#undef GetUniformLocation
+#undef GetAttributeLocation
 			
 			RN_CHECKOPENGL();
 			glFlush();
 		}
+	}
+	
+	bool Shader::IsLinked() const
+	{
+		return (program != 0);
 	}
 }

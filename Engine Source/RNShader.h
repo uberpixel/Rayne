@@ -35,6 +35,7 @@ namespace RN
 		RNAPI void SetGeometryShader(File *file);
 		
 		RNAPI void Link();
+		RNAPI bool IsLinked() const;
 		
 		GLuint program;
 		
@@ -44,16 +45,18 @@ namespace RN
 		GLuint matViewInverse;
 		GLuint matModel;
 		GLuint matModelInverse;
+		GLuint matViewModel;
+		GLuint matViewModelInverse;
 		GLuint matProjViewModel;
 		GLuint matProjViewModelInverse;
 		
-		GLuint position;
-		GLuint normal;
-		GLuint tangent;
-		GLuint texcoord0;
-		GLuint texcoord1;
-		GLuint color0;
-		GLuint color1;
+		GLuint vertPosition;
+		GLuint vertNormal;
+		GLuint vertTangent;
+		GLuint vertTexcoord0;
+		GLuint vertTexcoord1;
+		GLuint vertColor0;
+		GLuint vertColor1;
 		
 		GLuint targetmap;
 		GLuint depthmap;

@@ -1,15 +1,15 @@
 #version 150
 precision highp float;
 
-in vec2 position;
-in vec2 texcoord0;
+in vec2 vertPosition;
+in vec2 vertTexcoord0;
 
 out vec2 texcoord;
 out vec2 blurTexcoords[14];
 
 void main()
 {
-	texcoord = texcoord0;
+	texcoord = vertTexcoord0;
 
 	blurTexcoords[ 0] = texcoord + vec2(-0.028, 0.0);
 	blurTexcoords[ 1] = texcoord + vec2(-0.024, 0.0);
@@ -26,5 +26,5 @@ void main()
 	blurTexcoords[12] = texcoord + vec2( 0.024, 0.0);
 	blurTexcoords[13] = texcoord + vec2( 0.028, 0.0);
 
-	gl_Position = vec4(position, 0.0, 1.0);
+	gl_Position = vec4(vertPosition, 0.0, 1.0);
 }

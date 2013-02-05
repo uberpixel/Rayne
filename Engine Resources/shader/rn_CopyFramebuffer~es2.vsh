@@ -6,13 +6,13 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-attribute vec2 position;
-attribute vec2 texcoord0;
+attribute vec2 vertPosition;
+attribute vec2 vertTexcoord0;
 
 varying vec2 texcoord;
 
 void main()
 {
-	texcoord = texcoord0;
-	gl_Position = vec4(position, 0.0, 1.0);
+	texcoord = vertTexcoord0;
+	gl_Position = vec4(vertPosition, 0.0, 1.0);
 }

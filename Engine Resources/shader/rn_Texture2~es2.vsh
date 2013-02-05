@@ -10,14 +10,14 @@ precision highp float;
 
 uniform mat4 matProjViewModel;
 
-attribute vec3 position;
-attribute vec2 texcoord0;
+attribute vec3 vertPosition;
+attribute vec2 vertTexcoord0;
 
 varying vec2 outTexcoord;
 
 void main()
 {
-	outTexcoord = texcoord0;
+	outTexcoord = vertTexcoord0;
 	
-	gl_Position = matProjViewModel * vec4(position, 1.0);
+	gl_Position = matProjViewModel * vec4(vertPosition, 1.0);
 }

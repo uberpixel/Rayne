@@ -11,9 +11,9 @@ precision highp float;
 
 uniform mat4 matProjViewModel;
 
-in vec3 position;
-in vec4 color0;
-in vec2 texcoord0;
+in vec3 vertPosition;
+in vec4 vertColor0;
+in vec2 vertTexcoord0;
 
 out vec4 color;
 
@@ -22,9 +22,9 @@ out vec2 texcoord;
 
 void main()
 {
-	color = color0;
-	texcoord = texcoord0*10.0;
+	color = vertColor0;
+	texcoord = vertTexcoord0*10.0;
 	
-	gl_Position = matProjViewModel * vec4(position, 1.0);
+	gl_Position = matProjViewModel * vec4(vertPosition, 1.0);
 }
 
