@@ -12,7 +12,7 @@ namespace TG
 {
 	World::World()
 	{
-		_camera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
+		_camera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA32F, RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
 		CreateWorld();
 		
 #if RN_PLATFORM_MAC_OS
@@ -84,7 +84,7 @@ namespace TG
 		translation *= 0.2f;
 #endif
 		
-		_camera->Rotate(rotation);
+//		_camera->Rotate(rotation);
 		
 		RN::Matrix rot;
 		rot.MakeRotate(_camera->Rotation());
@@ -124,7 +124,7 @@ namespace TG
 		_camera->AddStage(ssaoStage);
 		
 		// Blur
-		/*RN::Shader *blurVertical = new RN::Shader();
+		RN::Shader *blurVertical = new RN::Shader();
 		RN::Shader *blurHorizontal = new RN::Shader();
 		
 		blurVertical->SetVertexShader("shader/GaussianVertical.vsh");
@@ -145,7 +145,7 @@ namespace TG
 		horizontalStage->SetMaterial(horizontalMateral);
 		 
 		_camera->AddStage(verticalStage);
-		_camera->AddStage(horizontalStage); 
+		_camera->AddStage(horizontalStage);
 		
 		// World stage
 		RN::Camera *sceneCamera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGB888, RN::Camera::FlagInherit);
@@ -163,7 +163,7 @@ namespace TG
 		RN::Camera *ssaoPostStage = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGB888, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
 		ssaoPostStage->SetMaterial(ssaoPostMaterial);
 		
-		_camera->AddStage(ssaoPostStage);*/
+		_camera->AddStage(ssaoPostStage);
 	}
 	
 	void World::CreateWorld()

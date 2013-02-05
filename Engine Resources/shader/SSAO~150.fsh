@@ -10,10 +10,10 @@ in vec2 texcoord;
 float strength = 0.07;
 float offset = 18.0;
 float falloff = 0.000002;
-float rad = 0.006;
+float rad = 0.0002;
 
-#define SSAO_SAMPLES 10
-const float invSamples = -1.38/10.0;
+#define SSAO_SAMPLES 2
+const float invSamples = -1.5/SSAO_SAMPLES;
 
 out vec4 fragColor0;
 
@@ -26,7 +26,7 @@ void main()
 	float currentPixelDepth = currentPixelSample.a;
 
 	vec3 ep = vec3(texcoord.xy, currentPixelDepth);
-	vec3 norm = currentPixelSample.xyz * 2.0 - 1.0;
+	vec3 norm = currentPixelSample.xyz;
 
 	float bl = 0.0;
 	float radD = rad / currentPixelDepth;
@@ -42,7 +42,7 @@ void main()
 		occluderFragment = texture(targetmap0, ep.xy + sign(dot(ray, norm)) * ray.xy);
 		depthDifference = currentPixelDepth - occluderFragment.a;
 
-		bl += step(falloff,depthDifference)*(1.0-dot(occluderFragment.xyz*2.0-1.0,norm))*(1.0-smoothstep(falloff,strength,depthDifference));
+		bl += step(falloff,depthDifference)*(1.0-dot(occluderFragment.xyz,norm))*(1.0-smoothstep(falloff,strength,depthDifference));
 	}
 
 	float ao = 1.0 + bl * invSamples;

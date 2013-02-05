@@ -198,7 +198,7 @@ namespace RN
 	void Camera::SetRenderTarget(Texture *target, uint32 index)
 	{
 		target->Bind();
-		target->SetLinear(false);
+//		target->SetLinear(false);
 		target->SetWrappingMode(Texture::WrapModeClamp);
 		target->SetGeneratesMipmaps(false);
 		target->SetFilter(Texture::FilterNearest);
@@ -220,7 +220,7 @@ namespace RN
 			throw ErrorException(0, 0, 0);
 		
 		target->Bind();
-		target->SetLinear(false);
+//		target->SetLinear(false);
 		target->SetWrappingMode(Texture::WrapModeClamp);
 		target->SetGeneratesMipmaps(false);
 		target->SetFilter(Texture::FilterNearest);
