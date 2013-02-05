@@ -185,9 +185,7 @@ namespace RN
 		if(genMipmaps != _generateMipmaps)
 		{
 			if(genMipmaps)
-			{
 				UpdateMipmaps();
-			}
 			
 			_generateMipmaps = genMipmaps;
 			SetFilter(_filter);
@@ -205,7 +203,6 @@ namespace RN
 			Bind();
 			
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, level);
-			
 			RN_CHECKOPENGL();
 			
 			Unbind();

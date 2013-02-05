@@ -63,6 +63,7 @@ namespace RN
 		GLuint time;
 		
 		Array<GLuint> texlocations;
+		Array<GLuint> fraglocations;
 		
 	private:
 		void SetShaderForType(File *file, GLenum type);
