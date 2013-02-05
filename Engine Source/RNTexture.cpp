@@ -117,67 +117,75 @@ namespace RN
 	
 	void Texture::SetWrappingMode(WrapMode wrap)
 	{
-		_wrapMode = wrap;
-		
-		Bind();
-		
-		GLenum mode;
-		
-		switch(wrap)
+		if(_wrapMode != wrap)
 		{
-			case WrapModeClamp:
-				mode = GL_CLAMP_TO_EDGE;
-				break;
-				
-			case WrapModeRepeat:
-				mode = GL_REPEAT;
-				break;
+			Bind();
+			
+			GLenum mode;
+			switch(wrap)
+			{
+				case WrapModeClamp:
+					mode = GL_CLAMP_TO_EDGE;
+					break;
+					
+				case WrapModeRepeat:
+					mode = GL_REPEAT;
+					break;
+			}
+			
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode);
+			
+			RN_CHECKOPENGL();
+			
+			_hasChanged = true;
+			_wrapMode = wrap;
+			
+			Unbind();
 		}
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode);
-		
-		RN_CHECKOPENGL();
-		
-		_hasChanged = true;
-		
-		Unbind();
 	}
 	
 	void Texture::SetFilter(Filter filter)
 	{
-		_filter = filter;
-		
-		Bind();
-		
-		GLenum minFilter;
-		GLenum magFilter;
-		
-		switch(filter)
+		if(_filter != filter)
 		{
-			case FilterLinear:
-				minFilter = GL_LINEAR;
-				magFilter = GL_LINEAR;
-				
-				if(_generateMipmaps)
-					minFilter = GL_LINEAR_MIPMAP_LINEAR;
-				
-				break;
-				
-			case FilterNearest:
-				minFilter = GL_NEAREST;
-				magFilter = GL_NEAREST;
-				break;
+			Bind();
+			
+			GLenum minFilter;
+			GLenum magFilter;
+			
+			switch(filter)
+			{
+				case FilterLinear:
+					minFilter = GL_LINEAR;
+					magFilter = GL_LINEAR;
+					
+					if(_generateMipmaps)
+						minFilter = GL_LINEAR_MIPMAP_LINEAR;
+					
+					break;
+					
+				case FilterNearest:
+					minFilter = GL_NEAREST;
+					magFilter = GL_NEAREST;
+					break;
+			}
+			
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+			
+			RN_CHECKOPENGL();
+			
+			_hasChanged = true;
+			_filter = filter;
+			
+			Unbind();
 		}
-		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
-		
-		RN_CHECKOPENGL();
-		
-		_hasChanged = true;
-		
-		Unbind();
+	}
+	
+	void Texture::SetLinear(bool linear)
+	{
+		_isLinear = linear;
 	}
 	
 	void Texture::SetGeneratesMipmaps(bool genMipmaps)
@@ -359,7 +367,7 @@ namespace RN
 				
 			case FormatRGB888:
 				*glFormat = GL_RGB;
-				*glInternalFormat = GL_RGB;
+				*glInternalFormat = isLinear ? GL_RGB : GL_SRGB8;
 				*glType = GL_UNSIGNED_BYTE;
 				break;
 				
