@@ -346,7 +346,9 @@ namespace RN
 			
 			if(textureLocations->Count() > 0)
 			{
-				for(machine_uint i=0; i<textureLocations->Count(); i++)
+				machine_uint textureCount = MIN(textureLocations->Count(), textures->Count());
+				
+				for(machine_uint i=0; i<textureCount; i++)
 				{
 					GLint location = textureLocations->ObjectAtIndex(i);
 					Texture *texture = (Texture *)textures->ObjectAtIndex(i);
