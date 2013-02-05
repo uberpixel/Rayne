@@ -220,25 +220,24 @@ namespace RN
 		
 		Bind();
 		
-		converted = ConvertData(data, width, height, format, _format);
+		converted = data ? ConvertData(data, width, height, format, _format) : 0;
 		ConvertFormat(_format, _isLinear, &glFormat, &glInternalFormat, &glType);
+		
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, width, height, 0, glFormat, glType, converted);
+		
+		RN_CHECKOPENGL();
 		
 		_width  = width;
 		_height = height;
 		
 		_isCompleteTexture = true;
-		
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, _width, _height, 0, glFormat, glType, converted);
-		
-		RN_CHECKOPENGL();
-		
 		_hasChanged = true;
 		
 		UpdateMipmaps();
 		Unbind();
 		
-		if(converted != data)
+		if(converted && converted != data)
 			free(converted);
 	}
 	
@@ -264,6 +263,34 @@ namespace RN
 		_hasChanged = true;
 		
 		UpdateMipmaps();		
+		Unbind();
+		
+		if(converted != data)
+			free(converted);
+	}
+	
+	void Texture::UpdateRegion(const void *data, Format format, Rect region)
+	{
+		if(!_isCompleteTexture)
+			return; // TODO: Throw an exception
+		
+		GLenum glType, glFormat;
+		GLint glInternalFormat;
+		void *converted;
+		
+		Bind();
+		
+		converted = ConvertData(data, region.width, region.height, format, _format);
+		ConvertFormat(_format, _isLinear, &glFormat, &glInternalFormat, &glType);
+		
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexSubImage2D(GL_TEXTURE_2D, 0, region.x, region.y, region.width, region.height, glFormat, glType, converted);
+		
+		RN_CHECKOPENGL();
+		
+		_hasChanged = true;
+		
+		UpdateMipmaps();
 		Unbind();
 		
 		if(converted != data)

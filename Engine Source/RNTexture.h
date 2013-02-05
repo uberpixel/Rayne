@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNRect.h"
 
 namespace RN
 {
@@ -71,6 +72,7 @@ namespace RN
 		
 		RNAPI void SetData(const void *data, uint32 width, uint32 height, Format format);
 		RNAPI void UpdateData(const void *data, Format format);
+		RNAPI void UpdateRegion(const void *data, Format format, Rect region);
 		RNAPI void UpdateMipmaps();
 		
 		RNAPI void SetFormat(Format format);
