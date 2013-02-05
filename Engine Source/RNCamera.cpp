@@ -195,6 +195,13 @@ namespace RN
 	// Render target handling
 	void Camera::SetRenderTarget(Texture *target, uint32 index)
 	{
+		target->Bind();
+		target->SetLinear(false);
+		target->SetWrappingMode(Texture::WrapModeClamp);
+		target->SetGeneratesMipmaps(false);
+		target->SetFilter(Texture::FilterNearest);
+		target->Unbind();
+		
 		_renderTargets->ReplaceObjectAtIndex(index, target);
 		_renderTargetsChanged = true;
 	}
@@ -209,6 +216,13 @@ namespace RN
 	{
 		if(_renderTargets->Count() >= MaxRenderTargets())
 			throw ErrorException(0, 0, 0);
+		
+		target->Bind();
+		target->SetLinear(false);
+		target->SetWrappingMode(Texture::WrapModeClamp);
+		target->SetGeneratesMipmaps(false);
+		target->SetFilter(Texture::FilterNearest);
+		target->Unbind();
 		
 		_renderTargets->AddObject(target);
 		_renderTargetsChanged = true;
@@ -242,7 +256,7 @@ namespace RN
 		{
 			if(!temp->_stage)
 			{
-				temp->InsertStage(_stage);
+				temp->InsertStage(stage);
 				return;
 			}
 			
@@ -318,17 +332,22 @@ namespace RN
 			SetFrame(frame);
 		}
 		
-		if(_stage && _stage->_flags & FlagInherit)
+		if(_stage)
 		{
-			_stage->SetFrame(_frame);
-			_stage->aspect = aspect;
-			_stage->fov    = fov;
+			if(_stage->_flags & FlagInherit)
+			{
+				_stage->SetFrame(_frame);
+				_stage->aspect = aspect;
+				_stage->fov    = fov;
+				
+				_stage->clipfar  = clipfar;
+				_stage->clipnear = clipnear;
+				
+				_stage->SetPosition(Position());
+				_stage->SetRotation(Rotation());
+			}
 			
-			_stage->clipfar  = clipfar;
-			_stage->clipnear = clipnear;
-			
-			_stage->SetPosition(Position());
-			_stage->SetRotation(Rotation());
+			_stage->Update(delta);
 		}
 	}
 	
