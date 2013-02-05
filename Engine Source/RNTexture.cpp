@@ -353,6 +353,7 @@ namespace RN
 				*glType   = GL_UNSIGNED_SHORT_5_6_5;
 				break;
 				
+#if RN_TARGET_OPENGL
 			case FormatR8:
 				*glFormat = GL_RED;
 				*glInternalFormat = GL_RED;
@@ -364,6 +365,7 @@ namespace RN
 				*glInternalFormat = GL_RGB;
 				*glType = GL_UNSIGNED_BYTE;
 				break;
+#endif
 				
 			case FormatRGB888:
 				*glFormat = GL_RGB;
@@ -372,27 +374,28 @@ namespace RN
 				break;
 				
 			// Floating point formats
+#if RN_TARGET_OPENGL
 			case FormatRGBA32F:
 				*glFormat = GL_RGBA;
-				*glInternalFormat = GL_RGBA16F;
+				*glInternalFormat = GL_RGBA32F;
 				*glType = GL_FLOAT;
 				break;
 				
 			case FormatR32F:
 				*glFormat = GL_RED;
-				*glInternalFormat = GL_R16F;
+				*glInternalFormat = GL_R32F;
 				*glType = GL_FLOAT;
 				break;
 				
 			case FormatRG32F:
 				*glFormat = GL_RG;
-				*glInternalFormat = GL_RG16F;
+				*glInternalFormat = GL_RG32F;
 				*glType = GL_FLOAT;
 				break;
 				
 			case FormatRGB32F:
 				*glFormat = GL_RGB;
-				*glInternalFormat = GL_RGB16F;
+				*glInternalFormat = GL_RGB32F;
 				*glType = GL_FLOAT;
 				break;
 				
@@ -420,6 +423,33 @@ namespace RN
 				*glInternalFormat = GL_RGB16F;
 				*glType = GL_HALF_FLOAT;
 				break;
+#endif
+				
+#if RN_TARGET_OPENGL_ES
+			case FormatRGBA32F:
+				*glFormat = GL_RGBA;
+				*glInternalFormat = GL_RGBA32F_EXT;
+				*glType = GL_FLOAT;
+				break;
+				
+			case FormatRGB32F:
+				*glFormat = GL_RGB;
+				*glInternalFormat = GL_RGB32F_EXT;
+				*glType = GL_FLOAT;
+				break;
+				
+			case FormatRGBA16F:
+				*glFormat = GL_RGBA;
+				*glInternalFormat = GL_RGBA16F_EXT;
+				*glType = GL_HALF_FLOAT_OES;
+				break;
+				
+			case FormatRGB16F:
+				*glFormat = GL_RGB;
+				*glInternalFormat = GL_RGB16F_EXT;
+				*glType = GL_HALF_FLOAT_OES;
+				break;
+#endif
 				
 			default:
 				throw ErrorException(0, 0, 0); // Todo throw an actual error exception!

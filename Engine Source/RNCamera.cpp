@@ -169,6 +169,8 @@ namespace RN
 		{
 			_frame = frame;
 			_frameChanged = true;
+			
+			UpdateProjection();
 		}
 	}
 	
@@ -326,9 +328,6 @@ namespace RN
 		_inverseViewMatrix = Matrix();
 		_viewMatrix = _inverseViewMatrix.Inverse();
 		
-		//_viewMatrix = Matrix();
-		//_inverseViewMatrix = _viewMatrix.Inverse();
-		
 		if(_flags & FlagFullscreen)
 		{
 			Rect frame = Kernel::SharedInstance()->Window()->Frame();
@@ -447,12 +446,14 @@ namespace RN
 	
 	void Camera::UpdateDrawBuffers(uint32 count)
 	{
+#if RN_TARGET_OPENGL
 		GLenum buffers[count];
 		
 		for(uint32 i=0; i<count; i++)
 			buffers[i] = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
 		
 		glDrawBuffers(count, buffers);
+#endif
 	}
 	
 	void Camera::UpdateBuffer()
@@ -531,6 +532,7 @@ namespace RN
 				texture->Unbind();
 			}
 			
+#if RN_TARGET_OPENGL
 			if(_format == BufferFormatColorDepth)
 			{
 				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
@@ -542,6 +544,21 @@ namespace RN
 				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
 			}
+#endif
+			
+#if RN_TARGET_OPENGL_ES
+			if(_format == BufferFormatColorDepth)
+			{
+				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24_OES, width, height);
+			}
+			
+			if(_format == BufferFormatColorDepthStencil)
+			{
+				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, width, height);
+			}
+#endif
 			
 			try
 			{
