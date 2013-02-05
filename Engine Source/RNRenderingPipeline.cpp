@@ -127,22 +127,7 @@ namespace RN
 		for(auto iterator=_flushCameras.begin(); iterator!=_flushCameras.end(); iterator++)
 		{
 			Camera *camera  = *iterator;
-			
-#if defined(GL_DRAW_FRAMEBUFFER) && defined(GL_READ_FRAMEBUFFER)
-/*			if(!camera->Material() && gl::BlitFramebuffer)
-			{
-				const Rect frame = camera->Frame();
-				
-				glBindFramebuffer(GL_READ_FRAMEBUFFER, camera->Framebuffer());
-				gl::BlitFramebuffer(0, 0, frame.width*_scaleFactor, frame.height*_scaleFactor, frame.x*_scaleFactor, frame.y*_scaleFactor, frame.width*_scaleFactor, frame.height*_scaleFactor, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			}
-			else
-			{*/
-				FlushCamera(0, camera);
-//			}
-#else
-			FlushCamera(0, camera);
-#endif
+			FlushCamera(camera);
 		}
 		
 #if GL_EXT_debug_marker
@@ -152,37 +137,17 @@ namespace RN
 		_flushCameras.clear();
 	}
 	
-	void RenderingPipeline::FlushCamera(Camera *target, Camera *source)
+	void RenderingPipeline::FlushCamera(Camera *camera)
 	{
-		source->Push();
+		camera->Push();
 		
-		const Rect frame = source->Frame();
-		
-		Material *material = 0;
 		Shader *shader = _copyShader;
 		
-		if(target)
+		if(_depthTestEnabled)
 		{
-			if((target->CameraFlags() & Camera::FlagDrawTarget) && target->Material())
-				material = source->Material();
+			glDisable(GL_DEPTH_TEST);
+			_depthTestEnabled = false;
 		}
-		
-		if(material)
-		{
-			BindMaterial(material);
-			shader = material->Shader();
-		}
-		
-		if(!target || !target->HasDepthbuffer())
-		{
-			if(_depthTestEnabled)
-			{
-				glDisable(GL_DEPTH_TEST);
-				_depthTestEnabled = false;
-			}
-		}
-		
-		glUseProgram(shader->program);
 		
 		if(_currentVAO != _copyVAO)
 		{
@@ -193,19 +158,21 @@ namespace RN
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		}
 		
+		glUseProgram(shader->program);
+		
 		glEnableVertexAttribArray(shader->vertPosition);
 		glVertexAttribPointer(shader->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
 		
 		glEnableVertexAttribArray(shader->vertTexcoord0);
 		glVertexAttribPointer(shader->vertTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
-		uint32 targetmaps = MIN((uint32)shader->targetmaplocations.Count(), source->RenderTargets());
-		for(uint32 i=0; i<targetmaps; i++)
+		uint32 targetmaps = MIN((uint32)shader->targetmaplocations.Count(), camera->RenderTargets());
+		if(targetmaps >= 1)
 		{
 			machine_uint textureUnit = (++ _activeTextureUnits);
 			
-			Texture *texture = source->RenderTarget(i);
-			GLuint location = shader->targetmaplocations.ObjectAtIndex(i);
+			Texture *texture = camera->RenderTarget(0);
+			GLuint location = shader->targetmaplocations.ObjectAtIndex(0);
 			
 			glActiveTexture((GLenum)(GL_TEXTURE0 + textureUnit));
 			glBindTexture(GL_TEXTURE_2D, texture->Name());
@@ -217,7 +184,64 @@ namespace RN
 		glDisableVertexAttribArray(shader->vertPosition);
 		glDisableVertexAttribArray(shader->vertTexcoord0);
 		
-		source->Pop();
+		camera->Pop();
+	}
+	
+	void RenderingPipeline::DrawCameraStage(Camera *camera, Camera *stage)
+	{
+		stage->Push();
+		
+		Material *material = stage->Material();
+		Shader *shader     = material->Shader();
+		
+		BindMaterial(material);
+		
+		if(!stage->HasDepthbuffer())
+		{
+			if(_depthTestEnabled)
+			{
+				glDisable(GL_DEPTH_TEST);
+				_depthTestEnabled = false;
+			}
+		}
+		
+		if(_currentVAO != _copyVAO)
+		{
+			gl::BindVertexArray(_copyVAO);
+			_currentVAO = _copyVAO;
+			
+			glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
+		}
+		
+		
+		glUseProgram(shader->program);
+		
+		glEnableVertexAttribArray(shader->vertPosition);
+		glVertexAttribPointer(shader->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
+		
+		glEnableVertexAttribArray(shader->vertTexcoord0);
+		glVertexAttribPointer(shader->vertTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
+		
+		uint32 targetmaps = MIN((uint32)shader->targetmaplocations.Count(), camera->RenderTargets());
+		for(uint32 i=0; i<targetmaps; i++)
+		{
+			machine_uint textureUnit = (++ _activeTextureUnits);
+			
+			Texture *texture = camera->RenderTarget(i);
+			GLuint location  = shader->targetmaplocations.ObjectAtIndex(i);
+			
+			glActiveTexture((GLenum)(GL_TEXTURE0 + textureUnit));
+			glBindTexture(GL_TEXTURE_2D, texture->Name());
+			glUniform1i(location, (GLuint)textureUnit);
+		}
+		
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+		
+		glDisableVertexAttribArray(shader->vertPosition);
+		glDisableVertexAttribArray(shader->vertTexcoord0);
+		
+		stage->Pop();
 	}
 	
 	void RenderingPipeline::DrawGroup(RenderingGroup *group)
@@ -311,10 +335,7 @@ namespace RN
 			else
 			{
 				if(previous)
-				{
-					// Flush the previous camera into the camera
-					FlushCamera(camera, previous);
-				}
+					DrawCameraStage(previous, camera);
 			}
 			
 			previous = camera;

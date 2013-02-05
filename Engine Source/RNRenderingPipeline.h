@@ -37,9 +37,11 @@ namespace RN
 		void DrawGroup(RenderingGroup *group);
 		void BindMaterial(Material *material);
 		void DrawMesh(Mesh *mesh);
+		void DrawCameraStage(Camera *camera, Camera *stage);
 		
 		void FlushCameras();
-		void FlushCamera(Camera *target, Camera *source);
+		void FlushCamera(Camera *camera);
+		//void FlushCamera(Camera *target, Camera *source);
 		
 		virtual void WorkOnTask(TaskID task, float delta);
 		

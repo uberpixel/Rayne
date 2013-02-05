@@ -117,8 +117,9 @@ namespace TG
 		RN::Material *ssaoMaterial = new RN::Material(ssao);
 		ssaoMaterial->AddTexture(noise);
 		
-		RN::Camera *ssaoStage  = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget, RN::Camera::BufferFormatColor);
+		RN::Camera *ssaoStage  = new RN::Camera(RN::Vector2(), RN::Texture::FormatR8, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget, RN::Camera::BufferFormatColor);
 		ssaoStage->SetMaterial(ssaoMaterial);
+		ssaoStage->SetName("SSAO stage");
 		ssaoMaterial->Release();
 		
 		_camera->AddStage(ssaoStage);
@@ -150,21 +151,21 @@ namespace TG
 		 */
 		
 		// SSAO Post
-		//RN::Camera *sceneCamera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagInherit);
-		//_camera->AddStage(sceneCamera);
+		RN::Camera *sceneCamera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagInherit);
+		_camera->AddStage(sceneCamera);
 		
-		/*RN::Shader *ssaoPost = new RN::Shader();
+		RN::Shader *ssaoPost = new RN::Shader();
 		ssaoPost->SetVertexShader("shader/SSAO.vsh");
 		ssaoPost->SetFragmentShader("shader/SSAOPost.fsh");
 		ssaoPost->Link();
 		
 		RN::Material *ssaoPostMaterial = new RN::Material(ssaoPost);
-		//ssaoPostMaterial->AddTexture(horizontalStage->RenderTarget());
+		ssaoPostMaterial->AddTexture(ssaoStage->RenderTarget());
 		
 		RN::Camera *ssaoPostStage = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGB888, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
 		ssaoPostStage->SetMaterial(ssaoPostMaterial);
 		
-		_camera->AddStage(ssaoPostStage);*/
+		_camera->AddStage(ssaoPostStage);
 	}
 	
 	void World::CreateWorld()

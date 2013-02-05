@@ -10,10 +10,8 @@ out vec4 fragColor0;
 
 void main()
 {
-	//vec4 scene = texture(targetmap0, texcoord);
+	vec4 scene = texture(targetmap0, texcoord);
+	float ssao = texture(mTexture0, texcoord).r;
 
-	float ssao = texture(targetmap0, texcoord).r;
-	fragColor0 = vec4(ssao, ssao, ssao, 1.0);
-
-	//fragColor0 = scene * ssao;
+	fragColor0 = scene * ssao;
 }
