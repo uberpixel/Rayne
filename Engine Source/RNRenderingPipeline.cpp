@@ -156,15 +156,21 @@ namespace RN
 	{
 		source->Push();
 		
-		Material *material = source->Material();
-		Shader *shader = material ? material->Shader() : _copyShader;
-		
 		const Rect frame = source->Frame();
+		
+		Material *material = 0;
+		Shader *shader = _copyShader;
+		
+		if((source->CameraFlags() & Camera::FlagDrawTarget) && source->Material())
+		{
+			material = source->Material();
+			shader = material->Shader();
+		}
 		
 		if(material)
 			BindMaterial(material);
 		
-		if(!target || target->Depthbuffer() == 0)
+		if(!target || !target->HasDepthbuffer())
 		{
 			if(_depthTestEnabled)
 			{
@@ -190,15 +196,17 @@ namespace RN
 		glEnableVertexAttribArray(shader->vertTexcoord0);
 		glVertexAttribPointer(shader->vertTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
-		if(shader->targetmap != -1 && source->Target())
+		uint32 targetmaps = MIN((uint32)shader->targetmaplocations.Count(), source->RenderTargets());
+		for(uint32 i=0; i<targetmaps; i++)
 		{
 			machine_uint textureUnit = _activeTextureUnits ++;
 			
-			glActiveTexture((GLenum)(GL_TEXTURE0 + textureUnit));
-			glBindTexture(GL_TEXTURE_2D, source->Target()->Name());
-			glUniform1i(shader->targetmap, (GLuint)textureUnit);
+			Texture *texture = source->RenderTarget(i);
+			GLuint location = shader->targetmaplocations.ObjectAtIndex(i);
 			
-			_activeTextureUnits ++;
+			glActiveTexture((GLenum)(GL_TEXTURE0 + textureUnit));
+			glBindTexture(GL_TEXTURE_2D, texture->Name());
+			glUniform1i(location, (GLuint)textureUnit);
 		}
 		
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
@@ -220,9 +228,9 @@ namespace RN
 			camera->Bind();
 			camera->PrepareForRendering();
 			
-			if(!(camera->flags & Camera::FlagDrawTarget))
+			if(!(camera->CameraFlags() & Camera::FlagDrawTarget))
 			{
-				Material *surfaceMaterial = camera->SurfaceMaterial();
+				Material *surfaceMaterial = camera->Material();
 				
 				std::vector<RenderingIntent>::iterator iterator;
 				for(iterator=frame->begin(); iterator!=frame->end(); iterator++)
@@ -555,6 +563,7 @@ namespace RN
 			}
 			
 			_vaos[tuple] = vao;
+			_currentVAO = vao;
 			return vao;
 		}
 		

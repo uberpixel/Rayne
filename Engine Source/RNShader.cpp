@@ -302,11 +302,20 @@ namespace RN
 			GetUniformLocation(matProjViewModel);
 			GetUniformLocation(matProjViewModelInverse);
 			
-			GetUniformLocation(targetmap);
-			GetUniformLocation(depthmap);
 			GetUniformLocation(time);
 			
-			char string[10];
+			char string[32];
+			for(machine_uint i=0; ; i++)
+			{
+				sprintf(string, "targetmap%i", (int)i);
+				GLuint location = glGetUniformLocation(program, string);
+				
+				if(location == -1)
+					break;
+				
+				targetmaplocations.AddObject(location);
+			}
+			
 			for(machine_uint i=0; ; i++)
 			{
 				sprintf(string, "mTexture%i", (int)i);

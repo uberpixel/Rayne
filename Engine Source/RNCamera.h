@@ -11,7 +11,9 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNArray.h"
 #include "RNRenderingResource.h"
+#include "RNTexture.h"
 #include "RNRect.h"
 #include "RNTransform.h"
 #include "RNColor.h"
@@ -20,7 +22,7 @@ namespace RN
 {
 	class Texture;
 	class Material;
-	class Shader;
+	
 	class Camera : public Object, public Transform, public RenderingResource
 	{
 	public:
@@ -29,52 +31,64 @@ namespace RN
 			FlagDrawTarget = (1 << 0),
 			FlagUpdateAspect = (1 << 1),
 			FlagInherit = (1 << 2),
-			FlagFullscreen = (1 << 3)
+			FlagFullscreen = (1 << 3),
+			
 		};
 		typedef uint32 Flags;
 		
 		typedef enum
 		{
-			FormatRGBA,
-			FormatR,
-			FormatRG,
-			FormatRGB,
-			
-			FormatRGBAFloat,
-			FormatRFloat,
-			FormatRGFloat,
-			FormatRGBFloat,
-			
-			FormatRGBAHalfFloat,
-			FormatRHalfFloat,
-			FormatRGHalfFloat,
-			FormatRGBHalfFloat,
-		} Format;
+			BufferFormatColor,
+			BufferFormatColorDepth,
+			BufferFormatColorDepthStencil
+		} BufferFormat;
 		
-		RNAPI Camera(const Vector2& size, Format format=FormatRGBA, Flags flags=FlagUpdateAspect);
-		RNAPI virtual ~Camera();
+		Camera(const Vector2& size);
 		
-		RNAPI void Bind();
-		RNAPI void Unbind();
-		RNAPI virtual void PrepareForRendering();
+		Camera(const Vector2& size, Texture *target);
+		Camera(const Vector2& size, Texture *target, Flags flags);
+		Camera(const Vector2& size, Texture *target, Flags flags, BufferFormat format);
 		
-		RNAPI void CreateBuffer(bool depthbuffer, bool stencilbuffer);
+		Camera(const Vector2& size, Texture::Format targetFormat);
+		Camera(const Vector2& size, Texture::Format targetFormat, Flags flags);
+		Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, BufferFormat format);
 		
-		RNAPI virtual void SetFrame(const Rect& frame);
-		RNAPI void SetClearColor(const Color& color);
-		RNAPI void SetMaterial(Material *material);
-		RNAPI void SetSurfaceMaterial(Material *material);
+		virtual ~Camera();
 		
-		RNAPI void AddStage(Camera *stage);
-		RNAPI void InsertStage(Camera *stage);
-		RNAPI void RemoveStage(Camera *stage);
+		void Bind();
+		void Unbind();
+		void PrepareForRendering();
 		
-		RNAPI virtual void UpdateProjection();
-		RNAPI virtual void UpdateCamera();
+		void SetFrame(const Rect& frame);
+		void SetClearColor(const Color& color);
+		void SetMaterial(Material *material);
+		void SetBufferFormat(BufferFormat format);
 		
-		const Rect& Frame() const { return _frame; }
+		void SetRenderTarget(Texture *target, uint32 index);
+		void AddRenderTarget(Texture *target);
+		void AddRenderTarget(Texture::Format format);
+		void RemoveRenderTarget(Texture *target);
+		
+		void AddStage(Camera *stage);
+		void InsertStage(Camera *stage);
+		void ReplaceStage(Camera *stage);
+		void RemoveStage(Camera *stage);
+		
+		void Update(float delta);
+		void UpdateProjection();
+		
+		bool HasDepthbuffer() const { return (_format == BufferFormatColorDepth || _format == BufferFormatColorDepthStencil); }
+		bool HasStencilbuffer() const { return _format == BufferFormatColorDepthStencil; }
+		
+		GLuint Framebuffer() const { return _framebuffer; }
 		const Color& ClearColor() const { return _clearColor; }
-		const bool& Linear() const { return _isLinear; }
+		const Rect& Frame() const { return _frame; }
+		Material *Material() const { return _material; }
+		Camera *Stage() const { return _stage; }
+		Flags CameraFlags() const { return _flags; }
+		
+		uint32 RenderTargets() const { return (uint32)_renderTargets->Count(); }
+		Texture *RenderTarget(uint32 index=0) const { return (Texture *)_renderTargets->ObjectAtIndex(index); }
 		
 		const class Matrix& ProjectionMatrix() const { return _projectionMatrix; }
 		const class Matrix& InverseProjectionMatrix() const { return _inverseProjectionMatrix; }
@@ -82,28 +96,17 @@ namespace RN
 		const class Matrix& ViewMatrix() const { return _viewMatrix; }
 		const class Matrix& InverseViewMatrix() const { return _inverseViewMatrix; }
 		
-		GLuint Framebuffer() const { return _framebuffer; }
-		GLuint Depthbuffer() const { return _depthbuffer; }
-		GLuint Stencilbuffer() const { return _stencilbuffer; }
+		static uint32 MaxRenderTargets();
 		
-		Texture *Target() const { return _texture; }
-		Material *SurfaceMaterial() const { return _surfaceMaterial; }
-		Material *Material() const { return _material; }
-		Camera *Stage() const { return _stage; }
-		
-		float arc;
+		float fov;
 		float aspect;
 		float clipnear;
 		float clipfar;
 		
-		Flags flags;
-		
 	protected:
-		void CheckError();
-		
-		Rect _frame;
-		Color _clearColor;
-		bool _isLinear;
+		void Initialize();
+		void CheckFramebufferStatus();
+		void UpdateBuffer();
 		
 		class Matrix _projectionMatrix;
 		class Matrix _inverseProjectionMatrix;
@@ -111,25 +114,26 @@ namespace RN
 		class Matrix _viewMatrix;
 		class Matrix _inverseViewMatrix;
 		
+	private:
+		void UpdateDrawBuffers(uint32 count);
+		
 		GLuint _framebuffer;
 		GLuint _depthbuffer;
 		GLuint _stencilbuffer;
 		
-	private:
-		void UpdateStage(bool updateFrame) const;
-		
-		bool _packedStencil;
-		int _current;
+		Rect _frame;
+		Color _clearColor;
+		BufferFormat _format;
+		Flags _flags;
 		float _scaleFactor;
+		bool _frameChanged;
+		bool _formatChanged;
+		bool _renderTargetsChanged;
+		uint32 _boundRenderTargets;
 		
-		Format _format;
-		Texture *_texture;
-		Camera *_stage;
-		
-		class Material *_surfaceMaterial;
 		class Material *_material;
-		
-		void SetDefaultValues();
+		ObjectArray *_renderTargets;
+		Camera *_stage;
 	};
 }
 

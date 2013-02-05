@@ -58,11 +58,10 @@ namespace RN
 		GLuint vertColor0;
 		GLuint vertColor1;
 		
-		GLuint targetmap;
-		GLuint depthmap;
 		GLuint time;
 		
 		Array<GLuint> texlocations;
+		Array<GLuint> targetmaplocations;
 		Array<GLuint> fraglocations;
 		
 	private:

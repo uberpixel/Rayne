@@ -154,6 +154,13 @@ namespace RN
 			Array::AddObject(object->Retain<Object>());
 		}
 		
+		void ReplaceObjectAtIndex(machine_uint index, Object *object)
+		{
+			Object *old = _data[index];
+			_data[index] = object->Retain<Object>();
+			old->Release();
+		}
+		
 		virtual void RemoveObject(Object *object)
 		{
 			machine_uint index = IndexOfObject(object);

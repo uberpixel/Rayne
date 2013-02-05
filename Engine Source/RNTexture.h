@@ -78,12 +78,14 @@ namespace RN
 		RNAPI void SetFormat(Format format);
 		RNAPI void SetWrappingMode(WrapMode wrap);
 		RNAPI void SetFilter(Filter filter);
+		RNAPI void SetLinear(bool linear);
 		RNAPI void SetGeneratesMipmaps(bool genMipmaps);
 		RNAPI void SetAnisotropyLevel(uint32 level);
 		
 		Format TextureFormat() const { return _format; }
 		Filter TextureFilter() const { return _filter; }
 		WrapMode TextureWrapMode() const { return _wrapMode; }
+		bool IsLinear() const { return _isLinear; }
 		bool GeneratesMipmaps() const { return _generateMipmaps; }
 		uint32 AnisotropyLevel() const { return _anisotropy; }
 		

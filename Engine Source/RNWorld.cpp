@@ -50,7 +50,7 @@ namespace RN
 		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
 		{
 			Camera *camera = *i;
-			camera->UpdateCamera();
+			camera->Update(delta);
 		}
 	}
 	

@@ -8,10 +8,10 @@
 
 precision mediump float;
 
-uniform sampler2D targetmap;
+uniform sampler2D targetmap0;
 varying lowp vec2 texcoord;
 
 void main()
 {
-	gl_FragColor = texture2D(targetmap, texcoord);
+	gl_FragColor = texture2D(targetmap0, texcoord);
 }
