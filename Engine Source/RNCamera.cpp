@@ -577,7 +577,7 @@ namespace RN
 	
 	uint32 Camera::MaxRenderTargets()
 	{
-#if GL_MAX_DRAW_BUFFERS
+#if GL_MAX_COLOR_ATTACHMENTS
 		static GLint maxDrawbuffers = 0;
 		
 		if(maxDrawbuffers == 0)
