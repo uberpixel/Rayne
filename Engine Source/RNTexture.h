@@ -26,6 +26,21 @@ namespace RN
 			FormatRGBA5551,
 			FormatRGB565,
 			
+			FormatR8,
+			FormatRG88,
+			FormatRGB888,
+			
+			// No auto conversion for the following types!
+			FormatRGBA16F,
+			FormatR16F,
+			FormatRG16F,
+			FormatRGB16F,
+			
+			FormatRGBA32F,
+			FormatR32F,
+			FormatRG32F,
+			FormatRGB32F,
+			
 			FormatPVRTC4,
 			FormatPVRTC2
 		} Format;

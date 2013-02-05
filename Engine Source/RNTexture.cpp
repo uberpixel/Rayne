@@ -284,18 +284,19 @@ namespace RN
 	}
 	
 #ifndef GL_SRGB8_ALPHA8
-#define GL_SRGB8_ALPHA8 GL_RGBA
-#define GL_SRGB8        GL_RGB
-	
-#define RN_ADDED_GL_SRGB
+	#define GL_SRGB8_ALPHA8 GL_RGBA
+	#define GL_SRGB8        GL_RGB
+		
+	#define RN_ADDED_GL_SRGB
 #endif
 	
 	void Texture::ConvertFormat(Format format, bool isLinear, GLenum *glFormat, GLint *glInternalFormat, GLenum *glType)
 	{
-		RN_ASSERT0(glFormat != 0 && glType != 0);
+		RN_ASSERT0(glFormat != 0 && glInternalFormat != 0 && glType != 0);
 		
 		switch(format)
 		{
+			// Integer formats
 			case FormatRGBA8888:
 				*glFormat = GL_RGBA;
 				*glInternalFormat = isLinear ? GL_RGBA : GL_SRGB8_ALPHA8;
@@ -320,6 +321,74 @@ namespace RN
 				*glType   = GL_UNSIGNED_SHORT_5_6_5;
 				break;
 				
+			case FormatR8:
+				*glFormat = GL_RED;
+				*glInternalFormat = GL_RED;
+				*glType = GL_UNSIGNED_BYTE;
+				break;
+				
+			case FormatRG88:
+				*glFormat = GL_RG;
+				*glInternalFormat = GL_RGB;
+				*glType = GL_UNSIGNED_BYTE;
+				break;
+				
+			case FormatRGB888:
+				*glFormat = GL_RGB;
+				*glInternalFormat = GL_RGB;
+				*glType = GL_UNSIGNED_BYTE;
+				break;
+				
+			// Floating point formats
+			case FormatRGBA32F:
+				*glFormat = GL_RGBA;
+				*glInternalFormat = GL_RGBA16F;
+				*glType = GL_FLOAT;
+				break;
+				
+			case FormatR32F:
+				*glFormat = GL_RED;
+				*glInternalFormat = GL_R16F;
+				*glType = GL_FLOAT;
+				break;
+				
+			case FormatRG32F:
+				*glFormat = GL_RG;
+				*glInternalFormat = GL_RG16F;
+				*glType = GL_FLOAT;
+				break;
+				
+			case FormatRGB32F:
+				*glFormat = GL_RGB;
+				*glInternalFormat = GL_RGB16F;
+				*glType = GL_FLOAT;
+				break;
+				
+			// Half floats
+			case FormatRGBA16F:
+				*glFormat = GL_RGBA;
+				*glInternalFormat = GL_RGBA16F;
+				*glType = GL_HALF_FLOAT;
+				break;
+				
+			case FormatR16F:
+				*glFormat = GL_RED;
+				*glInternalFormat = GL_R16F;
+				*glType = GL_HALF_FLOAT;
+				break;
+				
+			case FormatRG16F:
+				*glFormat = GL_RG;
+				*glInternalFormat = GL_RG16F;
+				*glType = GL_HALF_FLOAT;
+				break;
+				
+			case FormatRGB16F:
+				*glFormat = GL_RGB;
+				*glInternalFormat = GL_RGB16F;
+				*glType = GL_HALF_FLOAT;
+				break;
+				
 			default:
 				throw ErrorException(0, 0, 0); // Todo throw an actual error exception!
 				break;
@@ -327,129 +396,159 @@ namespace RN
 	}
 	
 #ifdef RN_ADDED_GL_SRGB
-#undef GL_SRGB8_ALPHA8
-#undef GL_SRGB8
-#undef RN_ADDED_GL_SRGB
+	#undef GL_SRGB8_ALPHA8
+	#undef GL_SRGB8
+	#undef RN_ADDED_GL_SRGB
 #endif
+	
+	RN_INLINE uint8 *ReadPixel(uint8 *data, Texture::Format format, uint32 *r, uint32 *g, uint32 *b, uint32 *a)
+	{
+		RN_ASSERT0(r && g && b && a);
+		
+		switch(format)
+		{
+			case Texture::FormatRGBA8888:
+			{
+				uint32 *pixel = (uint32 *)data;
+				
+				*a = ((*pixel >> 24) & 0xFF);
+				*b = ((*pixel >> 16) & 0xFF);
+				*g = ((*pixel >> 8) & 0xFF);
+				*r = ((*pixel >> 0) & 0xFF);
+				
+				return (uint8 *)(pixel + 1);
+				break;
+			}
+				
+			case Texture::FormatRGBA4444:
+			{
+				uint16 *pixel = (uint16 *)data;
+				
+				*r = ((*pixel >> 12) & 0xF) << 4;
+				*g = ((*pixel >> 8)  & 0xF) << 4;
+				*b = ((*pixel >> 4)  & 0xF) << 4;
+				*a = ((*pixel >> 0)  & 0xF) << 4;
+				
+				return (uint8 *)(pixel + 1);
+				break;
+			}
+				
+			case Texture::FormatRGBA5551:
+			{
+				uint16 *pixel = (uint16 *)data;
+				
+				*r = ((*pixel >> 11) & 0xFF) << 3;
+				*g = ((*pixel >> 6)  & 0xFF) << 3;
+				*b = ((*pixel >> 1)  & 0xFF) << 3;
+				*a = ((*pixel >> 0)  & 0xFF) << 7;
+				
+				return (uint8 *)(pixel + 1);
+				break;
+			}
+				
+			case Texture::FormatRGB565:
+			{
+				uint16 *pixel = (uint16 *)data;
+				
+				*r = ((*pixel >> 11) & 0xFF) << 3;
+				*g = ((*pixel >> 5)  & 0xFF) << 2;
+				*b = ((*pixel >> 0)  & 0xFF) << 3;
+				*a = 255;
+				
+				return (uint8 *)(pixel + 1);
+				break;
+			}
+				
+			case Texture::FormatR8:
+			{
+				*r = *data;
+				*g = *b = 0;
+				*a = 255;
+				
+				return (data + 1);
+				break;
+			}
+				
+			case Texture::FormatRG88:
+			{
+				uint16 *pixel = (uint16 *)data;
+				
+				*r = ((*pixel >> 8)  & 0xFF);
+				*g = ((*pixel >> 0)  & 0xFF);
+				*b = 0;
+				*a = 255;
+				
+				return (uint8 *)(pixel + 1);
+				break;
+			}
+				
+			case Texture::FormatRGB888:
+			{
+				uint16 *pixelRG = (uint16 *)data;
+				uint8 *pixelB = (uint8 *)(pixelRG + 1);
+				
+				*r = ((*pixelRG >> 8)  & 0xFF);
+				*g = ((*pixelRG >> 0)  & 0xFF);
+				*b = *pixelB;
+				*a = 255;
+				
+				return (uint8 *)(pixelB + 1);
+				break;
+			}
+				
+			default:
+				throw ErrorException(0, 0, 0);
+				break;
+		}
+		
+		return data;
+	}
 	
 	void *Texture::ConvertData(const void *data, uint32 width, uint32 height, Format current, Format target)
 	{
 		if(current == target)
 			return (void *)data;
 		
-		void *intermediate = 0;
-		void *result = 0;
+		RN_ASSERT0(data && width > 0 && height > 0);
+		
 		size_t pixel = width * height;
-		
-		RN_ASSERT0(width > 0 && height > 0);
-		RN_ASSERT0(pixel > 0);
-		
-		// Promote data to RGBA8888
-		switch(current)
-		{
-			case FormatRGBA8888:
-				intermediate = (void *)data;
-				break;
-				
-			/*case FormatRGBA8888:
-			{
-				intermediate = malloc(pixel * sizeof(uint32));
-				
-				uint32 *inPixel  = (uint32 *)data;
-				uint32 *outPixel = (uint32 *)intermediate;
-				
-				for(size_t i=0; i<pixel; i++, inPixel++)
-				{
-					uint32 r = ((*inPixel >> 24) & 0xFF);
-					uint32 g = ((*inPixel >> 16) & 0xFF);
-					uint32 b = ((*inPixel >> 8)  & 0xFF);
-					uint32 a = ((*inPixel >> 0)  & 0xFF);
-					
-					*outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
-				}
-				
-				break;
-			}*/
-				
-			case FormatRGBA4444:
-			{
-				intermediate = malloc(pixel * sizeof(uint32));
-				
-				uint16 *inPixel  = (uint16 *)data;
-				uint32 *outPixel = (uint32 *)intermediate;
-				
-				for(size_t i=0; i<pixel; i++, inPixel++)
-				{
-					uint32 r = ((*inPixel >> 12) & 0xF) << 4;
-					uint32 g = ((*inPixel >> 8)  & 0xF) << 4;
-					uint32 b = ((*inPixel >> 4)  & 0xF) << 4;
-					uint32 a = ((*inPixel >> 0)  & 0xF) << 4;
-					
-					*outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
-				}
-				
-				break;
-			}
-				
-			case FormatRGBA5551:
-			{
-				intermediate = malloc(pixel * sizeof(uint32));
-				
-				uint16 *inPixel  = (uint16 *)data;
-				uint32 *outPixel = (uint32 *)intermediate;
-				
-				for(size_t i=0; i<pixel; i++, inPixel++)
-				{
-					uint32 r = ((*inPixel >> 11) & 0xFF) << 3;
-					uint32 g = ((*inPixel >> 6)  & 0xFF) << 3;
-					uint32 b = ((*inPixel >> 1)  & 0xFF) << 3;
-					uint32 a = ((*inPixel >> 0)  & 0xFF) << 7;
-					
-					*outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
-				}
-				
-				break;
-			}
-				
-			case FormatRGB565:
-			{
-				intermediate = malloc(pixel * sizeof(uint32));
-				
-				uint16 *inPixel  = (uint16 *)data;
-				uint32 *outPixel = (uint32 *)intermediate;
-				
-				for(size_t i=0; i<pixel; i++, inPixel++)
-				{
-					uint32 r = ((*inPixel >> 11) & 0xFF) << 3;
-					uint32 g = ((*inPixel >> 5)  & 0xFF) << 2;
-					uint32 b = ((*inPixel >> 0)  & 0xFF) << 3;
-					uint32 a = 255;
-					
-				   *outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
-				}
-			}
-				
-			default:
-				throw ErrorException(0, 0, 0); // Todo throw an actual error exception!
-				break;
-		}
+	
+		uint8 *temp = (uint8 *)data;
+		void  *result = 0;
 		
 		// Convert data to the specified target format
 		switch(target)
 		{
+			case FormatRGBA8888:
+			{
+				result = malloc(pixel * sizeof(uint32));
+				
+				uint32 *outPixel = (uint32 *)result;
+				for(size_t i=0; i<pixel; i++)
+				{
+					uint32 r, g, b, a;
+					temp = ReadPixel(temp, current, &r, &g, &b, &a);
+					
+					*outPixel ++ = (a << 24) | (b << 16) | (g << 8) | r;
+				}
+				
+				break;
+			}
+				
 			case FormatRGBA4444:
 			{
 				result = malloc(pixel * sizeof(uint16));
 				
-				uint32 *inPixel  = (uint32 *)intermediate;
 				uint16 *outPixel = (uint16 *)result;
-				
-				for(size_t i=0; i<pixel; i++, inPixel++)
+				for(size_t i=0; i<pixel; i++)
 				{
-					uint32 r = (((*inPixel >> 0)  & 0xFF) >> 4);
-					uint32 g = (((*inPixel >> 8)  & 0xFF) >> 4);
-					uint32 b = (((*inPixel >> 16) & 0xFF) >> 4);
-					uint32 a = (((*inPixel >> 24) & 0xFF) >> 4);
+					uint32 r, g, b, a;
+					temp = ReadPixel(temp, current, &r, &g, &b, &a);
+					
+					r = (r >> 4);
+					g = (g >> 4);
+					b = (b >> 4);
+					a = (a >> 4);
 					
 					*outPixel ++ = (r << 12) | (g << 8) | (b << 4) | a;
 				}
@@ -461,36 +560,88 @@ namespace RN
 			{
 				result = malloc(pixel * sizeof(uint16));
 				
-				uint32 *inPixel = (uint32 *)intermediate;
 				uint16 *outPixel = (uint16 *)result;
-				
-				for(size_t i=0; i<pixel; i++, inPixel++)
+				for(size_t i=0; i<pixel; i++)
 				{
-					uint32 r = (((*inPixel >> 0)  & 0xFF) >> 3);
-					uint32 g = (((*inPixel >> 8)  & 0xFF) >> 3);
-					uint32 b = (((*inPixel >> 16) & 0xFF) >> 3);
-					uint32 a = (((*inPixel >> 24) & 0xFF) >> 7);
+					uint32 r, g, b, a;
+					temp = ReadPixel(temp, current, &r, &g, &b, &a);
+					
+					r = (r >> 3);
+					g = (g >> 3);
+					b = (b >> 3);
+					a = (a >> 7);
 					
 					*outPixel ++ = (r << 11) | (g << 6) | (b << 1) | a;
 				}
 				
 				break;
 			}
-			
+				
 			case FormatRGB565:
 			{
 				result = malloc(pixel * sizeof(uint16));
 				
-				uint32 *inPixel = (uint32 *)intermediate;
 				uint16 *outPixel = (uint16 *)result;
-				
-				for(size_t i=0; i<pixel; i++, inPixel++)
+				for(size_t i=0; i<pixel; i++)
 				{
-					uint32 r = (((*inPixel >> 0) & 0xFF) >> 3);
-					uint32 g = (((*inPixel >> 8) & 0xFF) >> 2);
-					uint32 b = (((*inPixel >> 16)  & 0xFF) >> 3);
+					uint32 r, g, b, a;
+					temp = ReadPixel(temp, current, &r, &g, &b, &a);
 					
-					*outPixel ++ = (r << 11) | (g << 5) | (b << 0);
+					r = (r >> 3);
+					g = (g >> 2);
+					b = (b >> 3);
+					
+					*outPixel ++ = (r << 11) | (g << 5) | b;
+				}
+				
+				break;
+			}
+				
+			case FormatR8:
+			{
+				result = malloc(pixel * sizeof(uint8));
+				
+				uint8 *outPixel = (uint8 *)result;
+				for(size_t i=0; i<pixel; i++)
+				{
+					uint32 r, g, b, a;
+					temp = ReadPixel(temp, current, &r, &g, &b, &a);
+					
+					*outPixel ++ = r;
+				}
+				
+				break;
+			}
+				
+			case FormatRG88:
+			{
+				result = malloc(pixel * sizeof(uint16));
+				
+				uint16 *outPixel = (uint16 *)result;
+				for(size_t i=0; i<pixel; i++)
+				{
+					uint32 r, g, b, a;
+					temp = ReadPixel(temp, current, &r, &g, &b, &a);
+					
+					*outPixel ++ = (r << 8) | g;
+				}
+				
+				break;
+			}
+				
+			case FormatRGB888:
+			{
+				result = malloc(pixel * (sizeof(uint8) * 3));
+				
+				uint8 *outPixel = (uint8 *)result;
+				for(size_t i=0; i<pixel; i++)
+				{
+					uint32 r, g, b, a;
+					temp = ReadPixel(temp, current, &r, &g, &b, &a);
+					
+					*outPixel ++ = r;
+					*outPixel ++ = g;
+					*outPixel ++ = b;
 				}
 				
 				break;
@@ -500,9 +651,6 @@ namespace RN
 				throw ErrorException(0, 0, 0); // Todo throw an actual error exception!
 				break;
 		}
-		
-		if(intermediate != data)
-			free(intermediate);
 		
 		return result;
 	}
