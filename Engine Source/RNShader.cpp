@@ -221,16 +221,19 @@ namespace RN
 			glAttachShader(program, _geometryShader);
 		
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
-		GLint maxDrawbuffers;
-		glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawbuffers);
-		
-		for(GLint i=0; i<maxDrawbuffers; i++)
+		do
 		{
-			char buffer[32];
-			sprintf(buffer, "fragColor%i", i);
+			GLint maxDrawbuffers;
+			glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawbuffers);
 			
-			glBindFragDataLocation(program, i, buffer);
-		}
+			for(GLint i=0; i<maxDrawbuffers; i++)
+			{
+				char buffer[32];
+				sprintf(buffer, "fragColor%i", i);
+				
+				glBindFragDataLocation(program, i, buffer);
+			}
+		} while(0);
 #endif
 		
 		glLinkProgram(program);
@@ -325,6 +328,27 @@ namespace RN
 			
 			GetAttributeLocation(vertColor0);
 			GetAttributeLocation(vertColor1);
+			
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
+			do
+			{
+				GLint maxDrawbuffers;
+				glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawbuffers);
+				
+				for(GLint i=0; i<maxDrawbuffers; i++)
+				{
+					char buffer[32];
+					sprintf(buffer, "fragColor%i", i);
+					
+					GLint location = glGetFragDataLocation(program, buffer);
+					
+					if(location == -1)
+						break;
+					
+					fraglocations.AddObject(location);
+				}
+			} while(0);
+#endif
 			
 #undef GetUniformLocation
 #undef GetAttributeLocation
