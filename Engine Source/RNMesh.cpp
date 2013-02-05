@@ -27,7 +27,7 @@ namespace RN
 		{
 			_descriptor[i]._available = false;
 			_descriptor[i]._pointer = 0;
-			_descriptor[i]._offset  = 0;
+			_descriptor[i].offset  = 0;
 		}
 		
 		for(machine_uint i=0; i<descriptor.Count(); i++)
@@ -44,9 +44,10 @@ namespace RN
 				else
 					_indicesSize += size;
 				
-				_descriptor[index]._pointer = (uint8 *)malloc(size);
-				_descriptor[index]._offset = 0;
+				_descriptor[index].offset = 0;
+				_descriptor[index]._pointer = 0;
 				_descriptor[index]._available = true;
+				_descriptor[index]._size = size;
 			}
 		}
 		
@@ -55,11 +56,53 @@ namespace RN
 		{
 			if(_descriptor[i]._available)
 			{
-				_descriptor[i]._offset = offset;
+				_descriptor[i].offset = offset;
 				offset += _descriptor[i].elementSize;
-				
 			}
 		}
+	}
+	
+	MeshLODStage::MeshLODStage(const Array<MeshDescriptor>& descriptor, const void *data)
+	{
+		_meshSize = 0;
+		_meshData = 0;
+		
+		_indicesSize = 0;
+		_indices     = 0;
+		
+		glGenBuffers(2, &_vbo);
+		RN_CHECKOPENGL();
+		
+		for(int i=0; i<__kMaxMeshFeatures; i++)
+		{
+			_descriptor[i]._available = false;
+			_descriptor[i]._pointer = 0;
+			_descriptor[i].offset  = 0;
+		}
+		
+		for(machine_uint i=0; i<descriptor.Count(); i++)
+		{
+			size_t size = descriptor[(int)i].elementSize * descriptor[(int)i].elementCount;
+			int index   = (int)descriptor[(int)i].feature;
+			
+			if(_descriptor[index]._available == false)
+			{
+				_descriptor[index] = descriptor[(int)i];
+				
+				if(_descriptor[index].feature != kMeshFeatureIndices)
+					_meshSize += size;
+				else
+					_indicesSize += size;
+				
+				_descriptor[index].offset = descriptor[(int)i].offset;
+				_descriptor[index]._pointer = 0;
+				_descriptor[index]._available = true;
+				_descriptor[index]._size = size;
+			}
+		}
+		
+		_meshData = malloc(_meshSize);
+		memcpy(_meshData, data, _meshSize);
 	}
 	
 	MeshLODStage::~MeshLODStage()
@@ -100,7 +143,9 @@ namespace RN
 			
 			if(_descriptor[i]._available)
 			{
-				buffer[i] = _descriptor[i]._pointer;
+				if(_descriptor[i]._pointer)
+					buffer[i] = _descriptor[i]._pointer;
+				
 				_stride += _descriptor[i].elementSize;
 			}
 		}
@@ -111,7 +156,8 @@ namespace RN
 			{
 				if(_descriptor[i]._available)
 				{
-					std::copy(buffer[i], buffer[i] +_descriptor[i].elementSize, bytes);
+					if(_descriptor[i]._pointer)
+						std::copy(buffer[i], buffer[i] +_descriptor[i].elementSize, bytes);
 					
 					bytes     += _descriptor[i].elementSize;
 					buffer[i] += _descriptor[i].elementSize;
@@ -136,6 +182,15 @@ namespace RN
 		RN_CHECKOPENGL();
 		
 		glFlush();
+		
+		for(int i=0; i<__kMaxMeshFeatures; i++)
+		{
+			if(_descriptor[i]._available && _descriptor[i]._pointer)
+			{
+				free(_descriptor[i]._pointer);
+				_descriptor[i]._pointer = 0;
+			}
+		}
 	}
 
 	bool MeshLODStage::SupportsFeature(MeshFeature feature)
@@ -145,7 +200,7 @@ namespace RN
 	
 	size_t MeshLODStage::OffsetForFeature(MeshFeature feature)
 	{
-		return _descriptor[(int32)feature]._offset;
+		return _descriptor[(int32)feature].offset;
 	}
 	
 
@@ -166,6 +221,14 @@ namespace RN
 	MeshLODStage *Mesh::AddLODStage(const Array<MeshDescriptor>& descriptor)
 	{
 		MeshLODStage *stage = new MeshLODStage(descriptor);
+		_LODStages.AddObject(stage);
+		
+		return stage;
+	}
+	
+	MeshLODStage *Mesh::AddLODStage(const Array<MeshDescriptor>& descriptor, const void *data)
+	{
+		MeshLODStage *stage = new MeshLODStage(descriptor, data);
 		_LODStages.AddObject(stage);
 		
 		return stage;
@@ -285,8 +348,7 @@ namespace RN
 		*normals ++ = Vector3(0.0f, -1.0f, 0.0);
 		*normals ++ = Vector3(0.0f, -1.0f, 0.0);
 		*normals ++ = Vector3(0.0f, -1.0f, 0.0);
-		*normals ++ = Vector3(0.0f, -1.0f, 0.0);
-		
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0);		
 		
 		*texcoords ++ = Vector2(0.0f, 0.0f);
 		*texcoords ++ = Vector2(1.0f, 0.0f);
@@ -374,6 +436,12 @@ namespace RN
 		vertexDescriptor.elementMember = 3;
 		vertexDescriptor.elementCount  = 24;
 		
+		MeshDescriptor normalDescriptor;
+		normalDescriptor.feature = kMeshFeatureNormals;
+		normalDescriptor.elementSize = sizeof(Vector3);
+		normalDescriptor.elementMember = 3;
+		normalDescriptor.elementCount  = 24;
+		
 		MeshDescriptor colorDescriptor;
 		colorDescriptor.feature = kMeshFeatureColor0;
 		colorDescriptor.elementSize = sizeof(Color);
@@ -394,6 +462,7 @@ namespace RN
 		
 		Array<MeshDescriptor> descriptors;
 		descriptors.AddObject(vertexDescriptor);
+		descriptors.AddObject(normalDescriptor);
 		descriptors.AddObject(colorDescriptor);
 		descriptors.AddObject(indicesDescriptor);
 		descriptors.AddObject(texcoordDescriptor);
@@ -402,6 +471,7 @@ namespace RN
 		MeshLODStage *stage = mesh->AddLODStage(descriptors);
 		
 		Vector3 *vertices  = stage->Data<Vector3>(kMeshFeatureVertices);
+		Vector3 *normals   = stage->Data<Vector3>(kMeshFeatureNormals);
 		Color *colors      = stage->Data<Color>(kMeshFeatureColor0);
 		Vector2 *texcoords = stage->Data<Vector2>(kMeshFeatureUVSet0);
 		uint16 *indices    = stage->Data<uint16>(kMeshFeatureIndices);
@@ -465,6 +535,36 @@ namespace RN
 		*texcoords ++ = Vector2(1.0f, 0.0f);
 		*texcoords ++ = Vector2(1.0f, 1.0f);
 		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0);
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0);
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0);
+		*normals ++ = Vector3(0.0f, 0.0f, 1.0);
+		
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0);
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0);
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0);
+		*normals ++ = Vector3(0.0f, 0.0f, -1.0);
+		
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0);
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0);
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0);
+		*normals ++ = Vector3(-1.0f, 0.0f, 0.0);
+		
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0);
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0);
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0);
+		*normals ++ = Vector3(1.0f, 0.0f, 0.0);
+		
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0);
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0);
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0);
+		*normals ++ = Vector3(0.0f, 1.0f, 0.0);
+		
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0);
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0);
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0);
+		*normals ++ = Vector3(0.0f, -1.0f, 0.0);
 		
 		*colors ++ = color;
 		*colors ++ = color;

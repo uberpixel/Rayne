@@ -43,9 +43,11 @@ namespace RN
 		size_t elementSize;
 		size_t elementCount;
 		
+		size_t offset;
+		
 	private:
 		uint8 *_pointer;
-		size_t _offset;
+		size_t _size;
 		
 		bool _available;
 	};
@@ -54,11 +56,15 @@ namespace RN
 	{
 	public:
 		RNAPI MeshLODStage(const Array<MeshDescriptor>& descriptor);
+		RNAPI MeshLODStage(const Array<MeshDescriptor>& descriptor, const void *data);
 		RNAPI ~MeshLODStage();
 		
 		template <typename T>
 		T *Data(MeshFeature feature)
 		{
+			if(!_descriptor[(int32)feature]._pointer)
+				_descriptor[(int32)feature]._pointer = (uint8 *)malloc(_descriptor[(int32)feature]._size);
+				
 			return (T *)(_descriptor[(int32)feature]._pointer);
 		}
 		
@@ -100,6 +106,7 @@ namespace RN
 		RNAPI virtual ~Mesh();
 		
 		RNAPI MeshLODStage *AddLODStage(const Array<MeshDescriptor>& descriptor);
+		RNAPI MeshLODStage *AddLODStage(const Array<MeshDescriptor>& descriptor, const void *data);
 		
 		RNAPI MeshLODStage *LODStage(int index);
 		RNAPI machine_uint LODStages() const { return _LODStages.Count(); }
