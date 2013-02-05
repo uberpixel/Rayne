@@ -329,42 +329,45 @@ namespace RN
 	
 	void RenderingPipeline::BindMaterial(Material *material)
 	{
-		if(material == _currentMaterial)
-			return;
-		
-		for(machine_uint i=0; i<_activeTextureUnits; i++)
+		if(material != _currentMaterial)
 		{
-			glActiveTexture((GLenum)(GL_TEXTURE0 + i));
-			glBindTexture(GL_TEXTURE_2D, 0);
+			for(machine_uint i=0; i<_activeTextureUnits; i++)
+			{
+				glActiveTexture((GLenum)(GL_TEXTURE0 + i));
+				glBindTexture(GL_TEXTURE_2D, 0);
+			}
+			
+			_activeTextureUnits = 0;
 		}
-		
-		_activeTextureUnits = 0;
 		
 		if(material)
 		{
 			material->Push();
 			
-			ObjectArray *textures = material->Textures();
-			Array<GLuint> *textureLocations = &material->Shader()->texlocations;
-			
-			if(textureLocations->Count() > 0)
+			if(material != _currentMaterial)
 			{
-				machine_uint textureCount = MIN(textureLocations->Count(), textures->Count());
+				ObjectArray *textures = material->Textures();
+				Array<GLuint> *textureLocations = &material->Shader()->texlocations;
 				
-				for(machine_uint i=0; i<textureCount; i++)
+				if(textureLocations->Count() > 0)
 				{
-					GLint location = textureLocations->ObjectAtIndex(i);
-					Texture *texture = (Texture *)textures->ObjectAtIndex(i);
+					machine_uint textureCount = MIN(textureLocations->Count(), textures->Count());
 					
-					glActiveTexture((GLenum)(GL_TEXTURE0 + i));
-					glBindTexture(GL_TEXTURE_2D, texture->Name());
-					glUniform1i(location, (GLint)i);
+					for(machine_uint i=0; i<textureCount; i++)
+					{
+						GLint location = textureLocations->ObjectAtIndex(i);
+						Texture *texture = (Texture *)textures->ObjectAtIndex(i);
+						
+						glActiveTexture((GLenum)(GL_TEXTURE0 + i));
+						glBindTexture(GL_TEXTURE_2D, texture->Name());
+						glUniform1i(location, (GLint)i);
+					}
+					
+					_activeTextureUnits = textureLocations->Count();
 				}
-				
-				_activeTextureUnits = textureLocations->Count();
 			}
 			
-			if(!_currentMaterial || material->culling != _currentMaterial->culling)
+			if(material->culling != _cullingEnabled)
 			{
 				if(material->culling)
 				{
@@ -387,7 +390,7 @@ namespace RN
 				}
 			}
 			
-			if(!_currentMaterial || (material->depthtest != _currentMaterial->depthtest || material->depthtestmode != _depthFunc))
+			if(material->depthtest != _depthTestEnabled || material->depthtestmode != _depthFunc)
 			{
 				if(material->depthtest)
 				{
@@ -418,7 +421,7 @@ namespace RN
 				_depthWrite = material->depthwrite;
 			}
 			
-			if(!_currentMaterial || (material->blending != _currentMaterial->blending || material->blendSource != _blendSource || material->blendDestination != _blendDestination))
+			if(material->blending != _blendingEnabled || material->blendSource != _blendSource || material->blendDestination != _blendDestination)
 			{
 				if(material->blending)
 				{
