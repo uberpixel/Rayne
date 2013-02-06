@@ -53,11 +53,9 @@ namespace RN
 		_copyIndices[5] = 3;
 		
 		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, (GLint *)&_maxTextureUnits);
-		_activeTextures.resize(_maxTextureUnits, false);
-		_hasValidFramebuffer = false;
-		_textureTag = 0;
 		
-		printf("Max active textures %i\n", _maxTextureUnits);
+		_textureUnit = 0;
+		_hasValidFramebuffer = false;
 	}
 	
 	RenderingPipeline::~RenderingPipeline()
@@ -339,54 +337,14 @@ namespace RN
 	
 	uint32 RenderingPipeline::BindTexture(Texture *texture)
 	{
-		auto iterator = _boundTextures.find(texture);
-		if(iterator != _boundTextures.end())
-		{
-			std::get<1>(iterator->second) = (_textureTag ++);
-			return std::get<0>(iterator->second);
-		}
-		else
-		{
-			// Find a free texture unit
-			if(_boundTextures.size() < _maxTextureUnits)
-			{
-				for(uint32 i=0; i<_activeTextures.size(); i++)
-				{
-					if(_activeTextures[i] == false)
-					{
-						glActiveTexture((GLenum)(GL_TEXTURE0 + i));
-						glBindTexture(GL_TEXTURE_2D, texture->Name());
-						
-						_boundTextures[texture] = std::tuple<uint32, uint32>(i, (_textureTag ++));
-						_activeTextures[i] = true;
-						
-						return i;
-					}
-				}
-			}
-			
-			// Kick out the oldest one
-			auto oldest = _boundTextures.begin();
-			uint32 oldestTag = _textureTag;
-			
-			for(auto i=_boundTextures.begin(); i!=_boundTextures.end(); i++)
-			{
-				if(oldestTag > std::get<1>(i->second))
-				{
-					oldest = i;
-					oldestTag = std::get<1>(i->second);
-				}
-			}
-			
-			uint32 unit = std::get<0>(oldest->second);
-			_boundTextures.erase(oldest);
-			
-			glActiveTexture((GLenum)(GL_TEXTURE0 + unit));
-			glBindTexture(GL_TEXTURE_2D, texture->Name());
-			
-			_boundTextures[texture] = std::tuple<uint32, uint32>(unit, (_textureTag ++));
-			return unit;
-		}
+		uint32 unit = _textureUnit ++;
+		unit %= _maxTextureUnits;
+		
+		glActiveTexture((GLenum)(GL_TEXTURE0 + unit));
+		glBindTexture(GL_TEXTURE_2D, texture->Name());
+		
+		_textureUnit = unit;
+		return unit;
 	}
 	
 	void RenderingPipeline::BindMaterial(Material *material)

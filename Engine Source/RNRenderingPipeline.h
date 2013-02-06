@@ -56,9 +56,7 @@ namespace RN
 		float _scaleFactor;
 		float _time;
 		
-		std::map<Texture *, std::tuple<uint32, uint32>> _boundTextures;
-		std::vector<bool> _activeTextures;
-		
+		uint32 _textureUnit;
 		uint32 _maxTextureUnits;
 		
 		bool _cullingEnabled;
@@ -83,7 +81,6 @@ namespace RN
 		Mesh *_currentMesh;
 		
 		std::vector<Camera *> _flushCameras;
-		uint32 _textureTag;
 		
 		Shader *_copyShader;
 		GLuint _copyVAO;
