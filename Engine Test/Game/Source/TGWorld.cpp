@@ -46,8 +46,8 @@ namespace TG
 //		rotation.x = (input->KeyPressed('j') - input->KeyPressed('l')) * 0.8f;
 //		rotation.z = (input->KeyPressed('i') - input->KeyPressed('k')) * 0.8f;
 		
-		translation.x = (input->KeyPressed('a') - input->KeyPressed('d')) * 5.0f;
-		translation.z = (input->KeyPressed('w') - input->KeyPressed('s')) * 5.0f;
+		translation.x = (input->KeyPressed('a') - input->KeyPressed('d')) * 18.0f;
+		translation.z = (input->KeyPressed('w') - input->KeyPressed('s')) * 18.0f;
 #endif
 		
 #if RN_PLATFORM_IOS
@@ -94,14 +94,14 @@ namespace TG
 		rot.Transpose();
 		_camera->Translate(rot.Transform(translation * -delta));
 		
-		time += delta;
+		/*time += delta;
 		if(time >= 5.0f)
 		{
 			_block1->ApplyImpulse(RN::Vector3(0.0f, 100.0f, 0.0f));
 			_block1->ApplyTorqueImpulse(RN::Vector3(0.0f, 10.0f, 0.0f));
 			
 			time = 0.0f;
-		}
+		}*/
 	}
 	
 	
@@ -172,7 +172,7 @@ namespace TG
 	void World::CreateWorld()
 	{
 		// Blocks
-		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
+		/*RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
 		RN::Texture *blockTexture1 = RN::Texture::WithFile("textures/testpng.png", RN::Texture::FormatRGB565);
 		
 		RN::Material *blockMaterial = new RN::Material(0);
@@ -221,7 +221,7 @@ namespace TG
 		_floor->SetPosition(RN::Vector3(0.0f, -5.0f, -8.0f));
 		_floor->SetMass(0.0f);
 		_floor->SetSize(RN::Vector3(5.0f, 0.5f, 5.0f));
-		_floor->SetRestitution(0.5f);
+		_floor->SetRestitution(0.5f);*/
 		
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
 		model->MaterialForMesh(model->MeshAtIndex(4))->SetShader(RN::Shader::WithFile("shader/rn_Texture1Discard"));
