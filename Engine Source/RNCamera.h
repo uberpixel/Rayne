@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNSynchronization.h"
 #include "RNArray.h"
 #include "RNRenderingResource.h"
 #include "RNTexture.h"
@@ -76,6 +77,13 @@ namespace RN
 		
 		void Update(float delta);
 		void UpdateProjection();
+		void SynchronizePast()
+		{
+			projectionMatrix.SynchronizePast();
+			inverseProjectionMatrix.SynchronizePast();
+			viewMatrix.SynchronizePast();
+			inverseViewMatrix.SynchronizePast();
+		}
 		
 		bool HasDepthbuffer() const { return (_format == BufferFormatColorDepth || _format == BufferFormatColorDepthStencil); }
 		bool HasStencilbuffer() const { return _format == BufferFormatColorDepthStencil; }
@@ -90,13 +98,12 @@ namespace RN
 		uint32 RenderTargets() const { return (uint32)_renderTargets->Count(); }
 		Texture *RenderTarget(uint32 index=0) const { return (Texture *)_renderTargets->ObjectAtIndex(index); }
 		
-		const class Matrix& ProjectionMatrix() const { return _projectionMatrix; }
-		const class Matrix& InverseProjectionMatrix() const { return _inverseProjectionMatrix; }
-		
-		const class Matrix& ViewMatrix() const { return _viewMatrix; }
-		const class Matrix& InverseViewMatrix() const { return _inverseViewMatrix; }
-		
 		static uint32 MaxRenderTargets();
+		
+		Past<class Matrix> projectionMatrix;
+		Past<class Matrix> inverseProjectionMatrix;
+		Past<class Matrix> viewMatrix;
+		Past<class Matrix> inverseViewMatrix;
 		
 		float fov;
 		float aspect;
@@ -107,12 +114,6 @@ namespace RN
 		void Initialize();
 		void CheckFramebufferStatus();
 		void UpdateBuffer();
-		
-		class Matrix _projectionMatrix;
-		class Matrix _inverseProjectionMatrix;
-		
-		class Matrix _viewMatrix;
-		class Matrix _inverseViewMatrix;
 		
 	private:
 		void UpdateDrawBuffers(uint32 count);

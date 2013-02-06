@@ -271,16 +271,16 @@ namespace RN
 							glUniform1f(shader->time, _time);
 						
 						if(shader->matProj != -1)
-							glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, group->projectionMatrix.m);
+							glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, camera->projectionMatrix.AccessPast().m);
 						
 						if(shader->matProjInverse != -1)
-							glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, group->inverseProjectionMatrix.m);
+							glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, camera->inverseProjectionMatrix.AccessPast().m);
 						
 						if(shader->matView != -1)
-							glUniformMatrix4fv(shader->matView, 1, GL_FALSE, group->viewMatrix.m);
+							glUniformMatrix4fv(shader->matView, 1, GL_FALSE, camera->viewMatrix.AccessPast().m);
 						
 						if(shader->matViewInverse != -1)
-							glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, group->inverseViewMatrix.m);
+							glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, camera->inverseViewMatrix.AccessPast().m);
 						
 						if(shader->matModel != -1)
 							glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, iterator->transform.m);
@@ -290,25 +290,25 @@ namespace RN
 						
 						if(shader->matViewModel != -1)
 						{
-							Matrix viewModel = group->viewMatrix * iterator->transform;
+							Matrix viewModel = camera->viewMatrix.AccessPast() * iterator->transform;
 							glUniformMatrix4fv(shader->matViewModel, 1, GL_FALSE, viewModel.m);
 						}
 						
 						if(shader->matViewModelInverse != -1)
 						{
-							Matrix viewModel = group->inverseViewMatrix * iterator->transform.Inverse();
+							Matrix viewModel = camera->inverseViewMatrix * iterator->transform.Inverse();
 							glUniformMatrix4fv(shader->matViewModelInverse, 1, GL_FALSE, viewModel.m);
 						}
 						
 						if(shader->matProjViewModel != -1)
 						{
-							Matrix projViewModel = group->projectionMatrix * group->viewMatrix * iterator->transform;
+							Matrix projViewModel = camera->projectionMatrix.AccessPast() * camera->viewMatrix.AccessPast() * iterator->transform;
 							glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 						}
 						
 						if(shader->matProjViewModelInverse != -1)
 						{
-							Matrix projViewModel = group->inverseProjectionMatrix * group->inverseViewMatrix * iterator->transform.Inverse();
+							Matrix projViewModel = camera->inverseProjectionMatrix.AccessPast() * camera->inverseViewMatrix.AccessPast() * iterator->transform.Inverse();
 							glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 						}
 						

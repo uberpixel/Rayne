@@ -53,12 +53,6 @@ namespace RN
 		}
 		
 		Camera *camera;
-		
-		Matrix viewMatrix;
-		Matrix inverseViewMatrix;
-		Matrix projectionMatrix;
-		Matrix inverseProjectionMatrix;
-		
 		std::vector<RenderingIntent> intents;
 	};
 }

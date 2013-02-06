@@ -72,13 +72,10 @@ namespace RN
 		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
 		{
 			Camera *camera = *i;
+			camera->SynchronizePast();
 			
 			RenderingGroup group;
 			group.camera = camera;
-			group.viewMatrix = camera->ViewMatrix();
-			group.inverseViewMatrix = camera->InverseViewMatrix();
-			group.projectionMatrix = camera->ProjectionMatrix();
-			group.inverseProjectionMatrix = camera->InverseProjectionMatrix();
 			
 			for(auto j=_entities.begin(); j!=_entities.end(); j++)
 			{

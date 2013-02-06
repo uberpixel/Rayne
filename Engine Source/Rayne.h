@@ -47,6 +47,7 @@
 #include "RNMutex.h"
 #include "RNThread.h"
 #include "RNSpinLock.h"
+#include "RNSynchronization.h"
 #include "RNWindow.h"
 
 #endif /* __RAYNE_H__ */

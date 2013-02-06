@@ -35,6 +35,7 @@
 		E9619F471696179500DA187E /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F461696179500DA187E /* QuartzCore.framework */; };
 		E9619F4F1696185B00DA187E /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F4D1696184100DA187E /* libpng.a */; };
 		E9619F5D1696BCC300DA187E /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F5C1696BCC300DA187E /* libz.dylib */; };
+		E9C6761016C2CEB800DA720F /* RNSynchronization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6760E16C2CEB800DA720F /* RNSynchronization.cpp */; };
 		E9C6F08A16AEA0F8006288D5 /* RNPipelineSegment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F08816AEA0F8006288D5 /* RNPipelineSegment.cpp */; };
 		E9C6F09616AF4E5E006288D5 /* RNRenderingPipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F09416AF4E5E006288D5 /* RNRenderingPipeline.cpp */; };
 		E9C6F09916AF4E6E006288D5 /* RNPhysicsPipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F09716AF4E6E006288D5 /* RNPhysicsPipeline.cpp */; };
@@ -155,6 +156,8 @@
 		E9619F461696179500DA187E /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		E9619F481696184000DA187E /* png-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "png-ios.xcodeproj"; path = "../../Vendor/libpng/png-ios.xcodeproj"; sourceTree = "<group>"; };
 		E9619F5C1696BCC300DA187E /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		E9C6760E16C2CEB800DA720F /* RNSynchronization.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSynchronization.cpp; sourceTree = "<group>"; };
+		E9C6760F16C2CEB800DA720F /* RNSynchronization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSynchronization.h; sourceTree = "<group>"; };
 		E9C6F08816AEA0F8006288D5 /* RNPipelineSegment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNPipelineSegment.cpp; sourceTree = "<group>"; };
 		E9C6F08916AEA0F8006288D5 /* RNPipelineSegment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPipelineSegment.h; sourceTree = "<group>"; };
 		E9C6F08B16AEA112006288D5 /* RNTransform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTransform.h; sourceTree = "<group>"; };
@@ -354,6 +357,8 @@
 				E9619F101696170700DA187E /* RNMutex.cpp */,
 				E9619F111696170700DA187E /* RNMutex.h */,
 				E9619F211696170700DA187E /* RNSpinLock.h */,
+				E9C6760E16C2CEB800DA720F /* RNSynchronization.cpp */,
+				E9C6760F16C2CEB800DA720F /* RNSynchronization.h */,
 				E9619F261696170700DA187E /* RNThread.cpp */,
 				E9619F271696170700DA187E /* RNThread.h */,
 				E9619F291696170700DA187E /* RNWindow.cpp */,
@@ -495,6 +500,7 @@
 				E9145CB016BA953B004BDEC8 /* RNAutoreleasePool.cpp in Sources */,
 				E90CAE3916BCF109008A55DD /* RNInput.cpp in Sources */,
 				E90CAE3A16BCF109008A55DD /* RNMessage.cpp in Sources */,
+				E9C6761016C2CEB800DA720F /* RNSynchronization.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

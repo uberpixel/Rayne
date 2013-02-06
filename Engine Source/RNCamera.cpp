@@ -326,8 +326,8 @@ namespace RN
 	// Helper
 	void Camera::Update(float delta)
 	{
-		_inverseViewMatrix = Matrix();
-		_viewMatrix = _inverseViewMatrix.Inverse();
+		inverseViewMatrix = Matrix();
+		viewMatrix = inverseViewMatrix->Inverse();
 		
 		if(_flags & FlagFullscreen)
 		{
@@ -354,8 +354,8 @@ namespace RN
 		if(_flags & FlagUpdateAspect)
 			aspect = _frame.width / _frame.height;
 		
-		_projectionMatrix.MakeProjectionPerspective(fov, aspect, clipnear, clipfar);
-		_inverseProjectionMatrix.MakeInverseProjectionPerspective(fov, aspect, clipnear, clipfar);
+		projectionMatrix->MakeProjectionPerspective(fov, aspect, clipnear, clipfar);
+		inverseProjectionMatrix->MakeInverseProjectionPerspective(fov, aspect, clipnear, clipfar);
 		
 		if(_stage && _stage->_flags & FlagInherit)
 		{
