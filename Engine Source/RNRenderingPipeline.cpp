@@ -348,17 +348,20 @@ namespace RN
 		else
 		{
 			// Find a free texture unit
-			for(uint32 i=0; i<_activeTextures.size(); i++)
+			if(_boundTextures.size() < _maxTextureUnits)
 			{
-				if(_activeTextures[i] == false)
+				for(uint32 i=0; i<_activeTextures.size(); i++)
 				{
-					glActiveTexture((GLenum)(GL_TEXTURE0 + i));
-					glBindTexture(GL_TEXTURE_2D, texture->Name());
-					
-					_boundTextures[texture] = std::tuple<uint32, uint32>(i, (_textureTag ++));
-					_activeTextures[i] = true;
-					
-					return i;
+					if(_activeTextures[i] == false)
+					{
+						glActiveTexture((GLenum)(GL_TEXTURE0 + i));
+						glBindTexture(GL_TEXTURE_2D, texture->Name());
+						
+						_boundTextures[texture] = std::tuple<uint32, uint32>(i, (_textureTag ++));
+						_activeTextures[i] = true;
+						
+						return i;
+					}
 				}
 			}
 			
