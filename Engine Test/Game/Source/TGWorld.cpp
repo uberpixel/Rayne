@@ -120,7 +120,7 @@ namespace TG
 		RN::Material *ssaoMaterial = new RN::Material(ssao);
 		ssaoMaterial->AddTexture(noise);
 		
-		RN::Camera *ssaoStage  = new RN::Camera(RN::Vector2(), RN::Texture::FormatR8, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget, RN::Camera::BufferFormatColor);
+		RN::Camera *ssaoStage  = new RN::Camera(RN::Vector2(), RN::Texture::FormatR8, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget, RN::RenderStorage::BufferFormatColor);
 		ssaoStage->SetMaterial(ssaoMaterial);
 		ssaoMaterial->Release();
 		

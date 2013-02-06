@@ -24,6 +24,61 @@ namespace RN
 	class Texture;
 	class Material;
 	
+	class Camera;
+	class RenderStorage : public Object
+	{
+	friend class Camera;
+	public:
+		typedef enum
+		{
+			BufferFormatColor,
+			BufferFormatColorDepth,
+			BufferFormatColorDepthStencil
+		} BufferFormat;
+		
+		RenderStorage(BufferFormat format);
+		virtual ~RenderStorage();
+		
+		void SetFrame(const Rect& frame);
+		void SetBufferFormat(BufferFormat format);
+		
+		void SetRenderTarget(Texture *target, uint32 index=0);
+		void AddRenderTarget(Texture *target);
+		void AddRenderTarget(Texture::Format format);
+		void RemoveRenderTarget(Texture *target);
+		
+		bool HasDepthbuffer() const { return (_format == BufferFormatColorDepth || _format == BufferFormatColorDepthStencil); }
+		bool HasStencilbuffer() const { return _format == BufferFormatColorDepthStencil; }
+		
+		uint32 RenderTargets() const { return (uint32)_renderTargets->Count(); }
+		Texture *RenderTarget(uint32 index=0) const { return (Texture *)_renderTargets->ObjectAtIndex(index); }
+		GLenum ClearMask() const { return _clearMask; }
+		
+		static uint32 MaxRenderTargets();
+		
+	private:
+		void UpdateBuffer();
+		void UpdateDrawBuffers(uint32 count);
+		void CheckFramebufferStatus();
+		
+		GLuint _framebuffer;
+		GLuint _depthbuffer;
+		GLuint _stencilbuffer;
+		
+		GLenum _clearMask;
+		
+		Rect _frame;
+		BufferFormat _format;
+		
+		ObjectArray *_renderTargets;
+		uint32 _boundRenderTargets;
+		
+		bool _frameChanged;
+		bool _formatChanged;
+		bool _renderTargetsChanged;
+		float _scaleFactor;
+	};
+	
 	class Camera : public Object, public Transform, public RenderingResource
 	{
 	public:
@@ -33,26 +88,22 @@ namespace RN
 			FlagUpdateAspect = (1 << 1),
 			FlagInherit = (1 << 2),
 			FlagFullscreen = (1 << 3),
-			
+			FlagNoClear = (1 << 4)
 		};
 		typedef uint32 Flags;
 		
-		typedef enum
-		{
-			BufferFormatColor,
-			BufferFormatColorDepth,
-			BufferFormatColorDepthStencil
-		} BufferFormat;
 		
 		Camera(const Vector2& size);
 		
 		Camera(const Vector2& size, Texture *target);
 		Camera(const Vector2& size, Texture *target, Flags flags);
-		Camera(const Vector2& size, Texture *target, Flags flags, BufferFormat format);
+		Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format);
 		
 		Camera(const Vector2& size, Texture::Format targetFormat);
 		Camera(const Vector2& size, Texture::Format targetFormat, Flags flags);
-		Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, BufferFormat format);
+		Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format);
+		
+		Camera(const Vector2& size, RenderStorage *storage, Flags flags);
 		
 		virtual ~Camera();
 		
@@ -63,12 +114,7 @@ namespace RN
 		void SetFrame(const Rect& frame);
 		void SetClearColor(const Color& color);
 		void SetMaterial(Material *material);
-		void SetBufferFormat(BufferFormat format);
-		
-		void SetRenderTarget(Texture *target, uint32 index);
-		void AddRenderTarget(Texture *target);
-		void AddRenderTarget(Texture::Format format);
-		void RemoveRenderTarget(Texture *target);
+		void SetRenderStorage(RenderStorage *storage);
 		
 		void AddStage(Camera *stage);
 		void InsertStage(Camera *stage);
@@ -85,20 +131,19 @@ namespace RN
 			inverseViewMatrix.SynchronizePast();
 		}
 		
-		bool HasDepthbuffer() const { return (_format == BufferFormatColorDepth || _format == BufferFormatColorDepthStencil); }
-		bool HasStencilbuffer() const { return _format == BufferFormatColorDepthStencil; }
 		
-		GLuint Framebuffer() const { return _framebuffer; }
+		RenderStorage *Storage() const { return _storage; }
 		const Color& ClearColor() const { return _clearColor; }
 		const Rect& Frame() const { return _frame; }
 		Material *Material() const { return _material; }
 		Camera *Stage() const { return _stage; }
 		Flags CameraFlags() const { return _flags; }
 		
-		uint32 RenderTargets() const { return (uint32)_renderTargets->Count(); }
-		Texture *RenderTarget(uint32 index=0) const { return (Texture *)_renderTargets->ObjectAtIndex(index); }
+		uint32 RenderTargets() const { return (uint32)_storage->_renderTargets->Count(); }
+		Texture *RenderTarget(uint32 index=0) const { return (Texture *)_storage->_renderTargets->ObjectAtIndex(index); }
 		
-		static uint32 MaxRenderTargets();
+		bool HasDepthbuffer() const { return _storage->HasDepthbuffer(); }
+		bool HasStencilbuffer() const { return _storage->HasStencilbuffer(); }
 		
 		Past<class Matrix> projectionMatrix;
 		Past<class Matrix> inverseProjectionMatrix;
@@ -112,28 +157,15 @@ namespace RN
 		
 	protected:
 		void Initialize();
-		void CheckFramebufferStatus();
-		void UpdateBuffer();
 		
 	private:
-		void UpdateDrawBuffers(uint32 count);
-		
-		GLuint _framebuffer;
-		GLuint _depthbuffer;
-		GLuint _stencilbuffer;
-		
 		Rect _frame;
 		Color _clearColor;
-		BufferFormat _format;
 		Flags _flags;
 		float _scaleFactor;
-		bool _frameChanged;
-		bool _formatChanged;
-		bool _renderTargetsChanged;
-		uint32 _boundRenderTargets;
 		
 		class Material *_material;
-		ObjectArray *_renderTargets;
+		RenderStorage *_storage;
 		Camera *_stage;
 	};
 }
