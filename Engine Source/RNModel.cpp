@@ -15,23 +15,21 @@ namespace RN
 	{
 		File *file = new File(path);
 		
-		_materials = new ObjectArray();
+//		uint32 magic = file->ReadUint32();
+		uint32 version = file->ReadUint8();
 		
-		uint32 magic = file->ReadUint32();
-		uint32 version = file->ReadUint32();
-		
-		if(magic == 0x8A7FEED1)
-		{
+//		if(magic == 0x8A7FEED1)
+//		{
 			switch(version)
 			{
-				case 0:
-					ReadModelVersion0(file);
+				case 1:
+					ReadModelVersion1(file);
 					break;
 					
 				default:
 					break;
 			}
-		}
+//		}
 		
 		file->Release();
 	}
@@ -44,9 +42,7 @@ namespace RN
 		group.name = name;
 		
 		_groups.push_back(group);
-		
-		_materials = new ObjectArray();
-		_materials->AddObject(material);
+		_materials.AddObject(material);
 		
 		if(!material->Shader())
 		{
@@ -81,7 +77,6 @@ namespace RN
 				}
 			}
 			
-			
 			material->SetShader(shader);
 			shader->Release();
 		}
@@ -112,18 +107,7 @@ namespace RN
 	
 	uint32 Model::Materials() const
 	{
-		return (uint32)_materials->Count();
-	}
-	
-	Mesh *Model::MeshWithName(const std::string& name) const
-	{
-		for(auto i=_groups.begin(); i!=_groups.end(); i++)
-		{
-			if(i->name == name)
-				return i->mesh;
-		}
-		
-		return 0;
+		return (uint32)_materials.Count();
 	}
 	
 	Mesh *Model::MeshAtIndex(uint32 index) const
@@ -142,16 +126,168 @@ namespace RN
 		return 0;
 	}
 	
-	void Model::ReadModelVersion0(File *file)
+	void Model::ReadModelVersion1(File *file)
 	{
-		uint32 materialCount = file->ReadUint32();
-		uint32 groups = file->ReadUint32();
+		//Get materials
+		unsigned char countmats = file->ReadUint8();
+		Shader *shader = new Shader("shader/rn_Texture1");
+		Material *material;
+		for(unsigned int i = 0; i < countmats; i++)
+		{
+			material = new Material(shader);
+			file->ReadUint8();
+			unsigned char texcount = file->ReadUint8();
+			for(unsigned int n = 0; n < texcount; n++)
+			{
+				unsigned short lentexfilename = file->ReadUint16();
+				char *texfilename = new char[lentexfilename];
+				file->ReadIntoBuffer(texfilename, lentexfilename);
+				
+				std::string path = file->Path();
+				Texture *texture = new Texture(path+"/"+std::string(texfilename), Texture::FormatRGBA8888);
+				material->AddTexture(texture);
+				texture->Release();
+				
+				delete[] texfilename;
+			}
+			
+			_materials.AddObject(material);
+		}
 		
-		ReadMaterials(file, materialCount);
-		ReadGroups(file, groups);
+		//Get meshes
+		unsigned char countmeshs = file->ReadUint8();
+		for(int i = 0; i < countmeshs; i++)
+		{
+			MeshGroup group;
+			
+			char test = file->ReadUint8();
+			material = (Material *)_materials.ObjectAtIndex(file->ReadUint8());
+			
+			unsigned short numverts = file->ReadUint16();
+			unsigned char uvcount = file->ReadUint8();
+			unsigned char datacount = file->ReadUint8();
+			unsigned char hastangent = file->ReadUint8();
+			unsigned char bonecount = file->ReadUint8();
+			
+			Array<MeshDescriptor> descriptors;
+			
+			MeshDescriptor meshDescriptor;
+			meshDescriptor.feature = kMeshFeatureVertices;
+			meshDescriptor.elementCount = numverts;
+			meshDescriptor.elementSize = sizeof(Vector3);
+			meshDescriptor.elementMember = 3;
+			meshDescriptor.offset = 0;
+			descriptors.AddObject(meshDescriptor);
+			meshDescriptor.offset += sizeof(Vector3);
+			
+			meshDescriptor.feature = kMeshFeatureNormals;
+			meshDescriptor.elementCount = numverts;
+			meshDescriptor.elementSize = sizeof(Vector3);
+			meshDescriptor.elementMember = 3;
+			descriptors.AddObject(meshDescriptor);
+			meshDescriptor.offset += sizeof(Vector3);
+			
+			meshDescriptor.feature = kMeshFeatureUVSet0;
+			meshDescriptor.elementCount = numverts;
+			meshDescriptor.elementSize = sizeof(Vector2);
+			meshDescriptor.elementMember = 2;
+			descriptors.AddObject(meshDescriptor);
+			meshDescriptor.offset += sizeof(Vector2);
+			
+			if(hastangent == 1)
+			{
+				meshDescriptor.feature = kMeshFeatureTangents;
+				meshDescriptor.elementCount = numverts;
+				meshDescriptor.elementSize = sizeof(Vector4);
+				meshDescriptor.elementMember = 4;
+				descriptors.AddObject(meshDescriptor);
+				meshDescriptor.offset += sizeof(Vector4);
+			}
+			if(uvcount > 1)
+			{
+				meshDescriptor.feature = kMeshFeatureUVSet1;
+				meshDescriptor.elementCount = numverts;
+				meshDescriptor.elementSize = sizeof(Vector2);
+				meshDescriptor.elementMember = 2;
+				descriptors.AddObject(meshDescriptor);
+				meshDescriptor.offset += sizeof(Vector2);
+			}
+			if(datacount == 4)
+			{
+				meshDescriptor.feature = kMeshFeatureColor0;
+				meshDescriptor.elementCount = numverts;
+				meshDescriptor.elementSize = sizeof(Vector4);
+				meshDescriptor.elementMember = 4;
+				descriptors.AddObject(meshDescriptor);
+				meshDescriptor.offset += sizeof(Vector4);
+			}
+			if(bonecount > 0)
+			{
+/*				meshDescriptor.feature = kMeshFeatureBoneWeights;
+				meshDescriptor.elementCount = numverts;
+				meshDescriptor.elementSize = sizeof(Vector4);
+				meshDescriptor.elementMember = 4;
+				descriptors.AddObject(meshDescriptor);
+				meshDescriptor.offset += sizeof(Vector4);
+				
+				meshDescriptor.feature = kMeshFeatureBoneIndices;
+				meshDescriptor.elementCount = numverts;
+				meshDescriptor.elementSize = sizeof(Vector4);
+				meshDescriptor.elementMember = 4;
+				descriptors.AddObject(meshDescriptor);
+				meshDescriptor.offset += sizeof(Vector4);*/
+				
+				unsigned short *bonemapping = new unsigned short[bonecount];
+				file->ReadIntoBuffer(bonemapping, 2*bonecount);
+				delete[] bonemapping;
+			}
+			
+			float *vertexdata = new float[meshDescriptor.offset/sizeof(float)*numverts];
+			file->ReadIntoBuffer(vertexdata, meshDescriptor.offset*numverts);
+			
+			uint32 numindices = file->ReadUint32();
+			meshDescriptor.feature = kMeshFeatureIndices;
+			meshDescriptor.elementCount = numindices;
+			meshDescriptor.elementSize = sizeof(uint16);
+			meshDescriptor.elementMember = 1;
+			meshDescriptor.offset = 0;
+			descriptors.AddObject(meshDescriptor);
+			
+			Mesh *mesh = new Mesh();
+			MeshLODStage *stage = mesh->AddLODStage(descriptors, vertexdata);
+			delete[] vertexdata;
+			uint16 *indices = stage->Data<uint16>(kMeshFeatureIndices);
+			
+			file->ReadIntoBuffer(indices, numindices*sizeof(uint16));
+			mesh->UpdateMesh();
+			
+			group.mesh = mesh;
+			group.material = material;
+			_groups.push_back(group);
+		}
+		
+		//Animations
+/*		unsigned char hasanimations = file->ReadInt8();
+		if(hasanimations)
+		{
+			unsigned short lenanimfilename = file->ReadInt16();
+			char *animfilename = new char[lenanimfilename];
+			file->ReadIntoBuffer(animfilename, lenanimfilename*sizeof(char));
+			printf("Animation filename: %s\n", animfilename);
+			//meshesstd::string(animfilename);
+		}*/
+		
+		
+		
+		
+//		uint32 materialCount = file->ReadUint32();
+//		uint32 groups = file->ReadUint32();
+		
+/*		ReadMaterials(file, materialCount);
+		ReadGroups(file, groups);*/
 	}
 	
-	void Model::ReadMaterials(File *file, uint32 count)
+/*	void Model::ReadMaterials(File *file, uint32 count)
 	{
 		while(count)
 		{
@@ -281,5 +417,5 @@ namespace RN
 		descriptor.size = size;
 		
 		return descriptor;
-	}
+	}*/
 }

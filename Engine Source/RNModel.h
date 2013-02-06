@@ -31,7 +31,6 @@ namespace RN
 		uint32 Meshes() const;
 		uint32 Materials() const;
 		
-		Mesh *MeshWithName(const std::string& name) const;
 		Mesh *MeshAtIndex(uint32 index) const;
 		
 		Material *MaterialForMesh(Mesh *mesh) const;
@@ -44,20 +43,13 @@ namespace RN
 			Material *material;
 		};
 		
-		struct FeatureDescriptor
-		{
-			MeshDescriptor meshDescriptor;
-			uint8 *data;
-			uint32 size;
-		};
-		
-		void ReadModelVersion0(File *file);
-		void ReadMaterials(File *file, uint32 count);
+		void ReadModelVersion1(File *file);
+/*		void ReadMaterials(File *file, uint32 count);
 		void ReadGroups(File *file, uint32 count);
 		
-		FeatureDescriptor ReadFeature(File *file);
+		FeatureDescriptor ReadFeature(File *file);*/
 		
-		ObjectArray *_materials;
+		ObjectArray _materials;
 		std::vector<MeshGroup> _groups;
 	};
 }

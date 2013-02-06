@@ -38,13 +38,13 @@ namespace TG
 		RN::Vector3 rotation;
 		
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
-		/*  const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
+		  const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
 		
 		rotation.x = mouseDelta.x;
-		rotation.z = mouseDelta.y;*/
+		rotation.z = mouseDelta.y;
 		
-		rotation.x = (input->KeyPressed('j') - input->KeyPressed('l')) * 0.8f;
-		rotation.z = (input->KeyPressed('i') - input->KeyPressed('k')) * 0.8f;
+//		rotation.x = (input->KeyPressed('j') - input->KeyPressed('l')) * 0.8f;
+//		rotation.z = (input->KeyPressed('i') - input->KeyPressed('k')) * 0.8f;
 		
 		translation.x = (input->KeyPressed('a') - input->KeyPressed('d')) * 5.0f;
 		translation.z = (input->KeyPressed('w') - input->KeyPressed('s')) * 5.0f;
@@ -222,5 +222,12 @@ namespace TG
 		_floor->SetMass(0.0f);
 		_floor->SetSize(RN::Vector3(5.0f, 0.5f, 5.0f));
 		_floor->SetRestitution(0.5f);
+		
+		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
+		RN::Entity *spacecraft = new RN::Entity();
+		spacecraft->SetModel(model);
+		spacecraft->SetScale(RN::Vector3(0.1, 0.1, 0.1));
+		spacecraft->Rotate(RN::Vector3(0.0, 0.0, -90.0));
+		spacecraft->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 	}
 }
