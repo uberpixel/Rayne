@@ -34,14 +34,15 @@ namespace RN
 		void InitializeFramebufferCopy();
 		GLuint VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple);
 		
-		void DrawGroup(RenderingGroup *group);
 		void BindMaterial(Material *material);
+		uint32 BindTexture(Texture *texture);
+		
+		void DrawGroup(RenderingGroup *group);
 		void DrawMesh(Mesh *mesh);
 		void DrawCameraStage(Camera *camera, Camera *stage);
 		
 		void FlushCameras();
 		void FlushCamera(Camera *camera);
-		//void FlushCamera(Camera *target, Camera *source);
 		
 		virtual void WorkOnTask(TaskID task, float delta);
 		
@@ -54,7 +55,11 @@ namespace RN
 		
 		float _scaleFactor;
 		float _time;
-		machine_uint _activeTextureUnits;
+		
+		std::map<Texture *, std::tuple<uint32, uint32>> _boundTextures;
+		std::vector<bool> _activeTextures;
+		
+		uint32 _maxTextureUnits;
 		
 		bool _cullingEnabled;
 		bool _depthTestEnabled;
@@ -78,6 +83,7 @@ namespace RN
 		Mesh *_currentMesh;
 		
 		std::vector<Camera *> _flushCameras;
+		uint32 _textureTag;
 		
 		Shader *_copyShader;
 		GLuint _copyVAO;

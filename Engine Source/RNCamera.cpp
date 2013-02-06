@@ -198,9 +198,9 @@ namespace RN
 	void Camera::SetRenderTarget(Texture *target, uint32 index)
 	{
 		target->Bind();
-//		target->SetLinear(false);
-		target->SetWrappingMode(Texture::WrapModeClamp);
+		target->SetLinear(false);
 		target->SetGeneratesMipmaps(false);
+		target->SetWrappingMode(Texture::WrapModeClamp);
 		target->SetFilter(Texture::FilterNearest);
 		target->Unbind();
 		
@@ -220,9 +220,9 @@ namespace RN
 			throw ErrorException(0, 0, 0);
 		
 		target->Bind();
-//		target->SetLinear(false);
-		target->SetWrappingMode(Texture::WrapModeClamp);
+		target->SetLinear(false);
 		target->SetGeneratesMipmaps(false);
+		target->SetWrappingMode(Texture::WrapModeClamp);
 		target->SetFilter(Texture::FilterNearest);
 		target->Unbind();
 		
@@ -232,7 +232,8 @@ namespace RN
 	
 	void Camera::AddRenderTarget(Texture::Format format)
 	{
-		Texture *target = new Texture(format, Texture::WrapModeClamp, Texture::FilterNearest, true);
+		Texture *target = new Texture(format, Texture::WrapModeClamp, Texture::FilterNearest, false);
+		
 		try
 		{
 			AddRenderTarget(target);
@@ -496,7 +497,7 @@ namespace RN
 		
 		if(_renderTargetsChanged)
 		{
-			for(uint32 i=0; i<_boundRenderTargets; i++)
+			for(machine_uint i=_renderTargets->Count(); i<_boundRenderTargets; i++)
 			{
 				glFramebufferTexture2D(GL_FRAMEBUFFER, (GLenum)(GL_COLOR_ATTACHMENT0 + i), GL_TEXTURE_2D, 0, 0);
 			}
@@ -525,10 +526,6 @@ namespace RN
 				
 				texture->Bind();
 				texture->SetData(0, width, height, Texture::FormatRGBA8888);
-				
-				glFramebufferTexture2D(GL_FRAMEBUFFER, (GLenum)(GL_COLOR_ATTACHMENT0 + i), GL_TEXTURE_2D, texture->Name(), 0);
-				RN_CHECKOPENGL();
-				
 				texture->Unbind();
 			}
 			
@@ -551,12 +548,16 @@ namespace RN
 			{
 				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24_OES, width, height);
+				
+				RN_CHECKOPENGL();
 			}
 			
 			if(_format == BufferFormatColorDepthStencil)
 			{
 				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, width, height);
+				
+				RN_CHECKOPENGL();
 			}
 #endif
 			

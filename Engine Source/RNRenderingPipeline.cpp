@@ -35,9 +35,6 @@ namespace RN
 		_blendSource      = GL_ONE;
 		_blendDestination = GL_ZERO;
 		
-		_hasValidFramebuffer = false;
-		_activeTextureUnits = 0;
-		
 		_frameLock = new Mutex();
 		
 		// Setup framebuffer copy stuff
@@ -54,6 +51,13 @@ namespace RN
 		_copyIndices[3] = 2;
 		_copyIndices[4] = 1;
 		_copyIndices[5] = 3;
+		
+		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, (GLint *)&_maxTextureUnits);
+		_activeTextures.resize(_maxTextureUnits, false);
+		_hasValidFramebuffer = false;
+		_textureTag = 0;
+		
+		printf("Max active textures %i\n", _maxTextureUnits);
 	}
 	
 	RenderingPipeline::~RenderingPipeline()
@@ -109,15 +113,8 @@ namespace RN
 #if GL_EXT_debug_marker
 		glPushGroupMarkerEXT(0, "Flushing cameras");
 #endif
-		// Flush the cameras to the screen
-		// If we are using OpenGL 3.0+ we can use glBlitFramebuffer() to effeciently copy the frambeuffers content around
-		// however, this can only be used when the camera renders without any kind of Material attached to it.
-		
-#if defined(GL_DRAW_FRAMEBUFFER) && defined(GL_READ_FRAMEBUFFER)
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _defaultFBO);
-#else
+
 		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
-#endif
 		
 		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -169,14 +166,10 @@ namespace RN
 		uint32 targetmaps = MIN((uint32)shader->targetmaplocations.Count(), camera->RenderTargets());
 		if(targetmaps >= 1)
 		{
-			machine_uint textureUnit = (++ _activeTextureUnits);
-			
 			Texture *texture = camera->RenderTarget(0);
 			GLuint location = shader->targetmaplocations.ObjectAtIndex(0);
 			
-			glActiveTexture((GLenum)(GL_TEXTURE0 + textureUnit));
-			glBindTexture(GL_TEXTURE_2D, texture->Name());
-			glUniform1i(location, (GLuint)textureUnit);
+			glUniform1i(location, BindTexture(texture));
 		}
 		
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
@@ -226,14 +219,10 @@ namespace RN
 		uint32 targetmaps = MIN((uint32)shader->targetmaplocations.Count(), camera->RenderTargets());
 		for(uint32 i=0; i<targetmaps; i++)
 		{
-			machine_uint textureUnit = (++ _activeTextureUnits);
-			
 			Texture *texture = camera->RenderTarget(i);
-			GLuint location  = shader->targetmaplocations.ObjectAtIndex(i);
+			GLuint location = shader->targetmaplocations.ObjectAtIndex(i);
 			
-			glActiveTexture((GLenum)(GL_TEXTURE0 + textureUnit));
-			glBindTexture(GL_TEXTURE_2D, texture->Name());
-			glUniform1i(location, (GLuint)textureUnit);
+			glUniform1i(location, BindTexture(texture));
 		}
 		
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
@@ -348,19 +337,57 @@ namespace RN
 		}
 	}
 	
-	void RenderingPipeline::BindMaterial(Material *material)
+	uint32 RenderingPipeline::BindTexture(Texture *texture)
 	{
-		if(material != _currentMaterial)
+		auto iterator = _boundTextures.find(texture);
+		if(iterator != _boundTextures.end())
 		{
-			for(machine_uint i=0; i<_activeTextureUnits; i++)
+			std::get<1>(iterator->second) = (_textureTag ++);
+			return std::get<0>(iterator->second);
+		}
+		else
+		{
+			// Find a free texture unit
+			for(uint32 i=0; i<_activeTextures.size(); i++)
 			{
-				glActiveTexture((GLenum)(GL_TEXTURE0 + i));
-				glBindTexture(GL_TEXTURE_2D, 0);
+				if(_activeTextures[i] == false)
+				{
+					glActiveTexture((GLenum)(GL_TEXTURE0 + i));
+					glBindTexture(GL_TEXTURE_2D, texture->Name());
+					
+					_boundTextures[texture] = std::tuple<uint32, uint32>(i, (_textureTag ++));
+					_activeTextures[i] = true;
+					
+					return i;
+				}
 			}
 			
-			_activeTextureUnits = 0;
+			// Kick out the oldest one
+			auto oldest = _boundTextures.begin();
+			uint32 oldestTag = _textureTag;
+			
+			for(auto i=_boundTextures.begin(); i!=_boundTextures.end(); i++)
+			{
+				if(oldestTag > std::get<1>(i->second))
+				{
+					oldest = i;
+					oldestTag = std::get<1>(i->second);
+				}
+			}
+			
+			uint32 unit = std::get<0>(oldest->second);
+			_boundTextures.erase(oldest);
+			
+			glActiveTexture((GLenum)(GL_TEXTURE0 + unit));
+			glBindTexture(GL_TEXTURE_2D, texture->Name());
+			
+			_boundTextures[texture] = std::tuple<uint32, uint32>(unit, (_textureTag ++));
+			return unit;
 		}
-		
+	}
+	
+	void RenderingPipeline::BindMaterial(Material *material)
+	{
 		if(material)
 		{
 			material->Push();
@@ -379,12 +406,8 @@ namespace RN
 						GLint location = textureLocations->ObjectAtIndex(i);
 						Texture *texture = (Texture *)textures->ObjectAtIndex(i);
 						
-						glActiveTexture((GLenum)(GL_TEXTURE0 + i));
-						glBindTexture(GL_TEXTURE_2D, texture->Name());
-						glUniform1i(location, (GLint)i);
+						glUniform1i(location, BindTexture(texture));
 					}
-					
-					_activeTextureUnits = textureLocations->Count();
 				}
 			}
 			
