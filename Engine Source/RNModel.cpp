@@ -160,7 +160,7 @@ namespace RN
 		{
 			MeshGroup group;
 			
-			char test = file->ReadUint8();
+			file->ReadUint8();
 			material = (Material *)_materials.ObjectAtIndex(file->ReadUint8());
 			
 			unsigned short numverts = file->ReadUint16();

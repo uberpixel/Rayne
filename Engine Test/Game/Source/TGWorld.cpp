@@ -31,7 +31,7 @@ namespace TG
 	
 	void World::Update(float delta)
 	{
-		static float time = 0.0f;
+		//static float time = 0.0f;
 		
 		RN::Input *input = RN::Input::SharedInstance();
 		RN::Vector3 translation;
