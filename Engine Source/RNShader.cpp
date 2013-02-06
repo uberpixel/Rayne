@@ -288,7 +288,7 @@ namespace RN
 			
 			// Get uniforms
 			GetUniformLocation(matProj);
-			GetUniformLocation(matProj);
+			GetUniformLocation(matProjInverse);
 			
 			GetUniformLocation(matView);
 			GetUniformLocation(matViewInverse);

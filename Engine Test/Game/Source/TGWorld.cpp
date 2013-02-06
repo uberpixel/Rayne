@@ -12,7 +12,7 @@ namespace TG
 {
 	World::World()
 	{
-		_camera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA32F, RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
+		_camera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
 		CreateWorld();
 		
 #if RN_PLATFORM_MAC_OS
