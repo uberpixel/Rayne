@@ -16,7 +16,7 @@ namespace TG
 		CreateWorld();
 		
 #if RN_PLATFORM_MAC_OS
-		CreateSSAOStage();
+//		CreateSSAOStage();
 #endif
 		
 		RN::Input::SharedInstance()->Activate();
@@ -224,6 +224,12 @@ namespace TG
 		_floor->SetRestitution(0.5f);
 		
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
+		model->MaterialForMesh(model->MeshAtIndex(4))->SetShader(RN::Shader::WithFile("shader/rn_Texture1Discard"));
+		model->MaterialForMesh(model->MeshAtIndex(4))->culling = false;
+		model->MaterialForMesh(model->MeshAtIndex(10))->SetShader(RN::Shader::WithFile("shader/rn_Texture1Discard"));
+		model->MaterialForMesh(model->MeshAtIndex(10))->culling = false;
+		model->MaterialForMesh(model->MeshAtIndex(19))->SetShader(RN::Shader::WithFile("shader/rn_Texture1Discard"));
+		model->MaterialForMesh(model->MeshAtIndex(19))->culling = false;
 		RN::Entity *spacecraft = new RN::Entity();
 		spacecraft->SetModel(model);
 		spacecraft->SetScale(RN::Vector3(0.1, 0.1, 0.1));
