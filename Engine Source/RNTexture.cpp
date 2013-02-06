@@ -24,6 +24,9 @@ namespace RN
 		_isLinear = isLinear;
 		_anisotropy = 0;
 		
+		_wrapMode = (WrapMode)-1;
+		_filter = (Filter)-1;
+		
 		_generateMipmaps = true;
 		_isCompleteTexture = false;
 		_hasChanged = false;
