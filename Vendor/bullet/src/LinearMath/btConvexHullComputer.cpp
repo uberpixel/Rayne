@@ -581,7 +581,18 @@ class btConvexHullInternal
 			private:
 				static uint32_t high(uint64_t value)
 				{
-					return (uint32_t) (value >> 32);
+//					return (uint32_t) (value >> 32);
+					
+					struct cast_helper
+					{
+						union
+						{
+							uint32_t value64;
+							struct { uint32_t low, high; } value32;
+						};
+						cast_helper(uint64_t value) : value64(value) {}
+					};
+					return cast_helper(value).value32.high;
 				}
 				
 				static uint32_t low(uint64_t value)
