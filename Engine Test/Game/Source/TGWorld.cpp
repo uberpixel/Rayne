@@ -235,5 +235,11 @@ namespace TG
 		spacecraft->SetScale(RN::Vector3(0.1, 0.1, 0.1));
 		spacecraft->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 		spacecraft->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
+		
+		model = RN::Model::WithFile("models/nobiax/fern_01.sgm");
+		model->MaterialForMesh(model->MeshAtIndex(0))->SetShader(RN::Shader::WithFile("shader/rn_Texture1Discard"));
+		RN::Entity *fern = new RN::Entity();
+		fern->SetModel(model);
+		fern->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 	}
 }
