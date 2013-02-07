@@ -60,6 +60,9 @@ namespace RN
 		
 		GLuint time;
 		
+		GLuint lightPosition;
+		GLuint lightColor;
+		
 		Array<GLuint> texlocations;
 		Array<GLuint> targetmaplocations;
 		Array<GLuint> fraglocations;

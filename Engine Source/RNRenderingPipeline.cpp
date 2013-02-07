@@ -236,6 +236,21 @@ namespace RN
 		Camera *previous = 0;
 		Camera *camera = group->camera;
 		std::vector<RenderingIntent> *frame = &group->intents;
+		std::vector<RenderingLight> *lights = &group->lights;
+		
+		Vector4 *lightpos = new Vector4[lights->size()];
+		Vector3 *lightcolor = new Vector3[lights->size()];
+		std::vector<RenderingLight>::iterator lightiterator;
+		int lightcount = 0;
+		for(lightiterator=lights->begin(); lightiterator!=lights->end(); lightiterator++)
+		{
+			lightpos[lightcount].x = lightiterator->position.x;
+			lightpos[lightcount].y = lightiterator->position.y;
+			lightpos[lightcount].z = lightiterator->position.z;
+			lightpos[lightcount].w = lightiterator->range;
+			lightcolor[lightcount] = lightiterator->color;
+			lightcount++;
+		}
 		
 		while(camera)
 		{
@@ -311,6 +326,12 @@ namespace RN
 							Matrix projViewModel = camera->inverseProjectionMatrix.AccessPast() * camera->inverseViewMatrix.AccessPast() * iterator->transform.Inverse();
 							glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 						}
+						
+						if(shader->lightPosition != -1 && lightcount > 0)
+							glUniform4fv(shader->lightPosition, lightcount, &(lightpos[0].x));
+						
+						if(shader->lightColor != -1 && lightcount > 0)
+							glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
 						
 						// Draw the mesh
 						DrawMesh(mesh);
