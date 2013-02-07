@@ -31,8 +31,6 @@ namespace TG
 	
 	void World::Update(float delta)
 	{
-		//static float time = 0.0f;
-		
 		RN::Input *input = RN::Input::SharedInstance();
 		RN::Vector3 translation;
 		RN::Vector3 rotation;
@@ -42,9 +40,6 @@ namespace TG
 		
 		rotation.x = mouseDelta.x;
 		rotation.z = mouseDelta.y;
-		
-//		rotation.x = (input->KeyPressed('j') - input->KeyPressed('l')) * 0.8f;
-//		rotation.z = (input->KeyPressed('i') - input->KeyPressed('k')) * 0.8f;
 		
 		translation.x = (input->KeyPressed('a') - input->KeyPressed('d')) * 18.0f;
 		translation.z = (input->KeyPressed('w') - input->KeyPressed('s')) * 18.0f;
@@ -93,15 +88,6 @@ namespace TG
 		rot.MakeRotate(_camera->Rotation());
 		rot.Transpose();
 		_camera->Translate(rot.Transform(translation * -delta));
-		
-		/*time += delta;
-		if(time >= 5.0f)
-		{
-			_block1->ApplyImpulse(RN::Vector3(0.0f, 100.0f, 0.0f));
-			_block1->ApplyTorqueImpulse(RN::Vector3(0.0f, 10.0f, 0.0f));
-			
-			time = 0.0f;
-		}*/
 	}
 	
 	
@@ -224,6 +210,7 @@ namespace TG
 		_floor->SetRestitution(0.5f);*/
 		
 		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1Discard");
+		
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
 		model->MaterialForMesh(model->MeshAtIndex(4))->SetShader(shader);
 		model->MaterialForMesh(model->MeshAtIndex(4))->culling = false;
@@ -231,42 +218,45 @@ namespace TG
 		model->MaterialForMesh(model->MeshAtIndex(10))->culling = false;
 		model->MaterialForMesh(model->MeshAtIndex(19))->SetShader(shader);
 		model->MaterialForMesh(model->MeshAtIndex(19))->culling = false;
-		RN::Entity *spacecraft = new RN::Entity();
-		spacecraft->SetModel(model);
-		spacecraft->SetScale(RN::Vector3(0.1, 0.1, 0.1));
-		spacecraft->Rotate(RN::Vector3(0.0, 0.0, -90.0));
-		spacecraft->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
+		RN::Entity *sponza = new RN::Entity();
+		sponza->SetModel(model);
+		sponza->SetScale(RN::Vector3(0.1, 0.1, 0.1));
+		sponza->Rotate(RN::Vector3(0.0, 0.0, -90.0));
+		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
+		
+#if RN_TARGET_OPENGL
 		RN::Model *foliage[4];
-        foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
-        foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->SetShader(shader);
-        foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->culling = false;
-        
-        foliage[1] = RN::Model::WithFile("models/nobiax/grass_05.sgm");
-        foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->SetShader(shader);
-        foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->culling = false;
-        
-        foliage[2] = RN::Model::WithFile("models/nobiax/grass_19.sgm");
-        foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->SetShader(shader);
-        foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->culling = false;
-        
-        foliage[3] = RN::Model::WithFile("models/nobiax/grass_04.sgm");
-        foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->SetShader(shader);
-        foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->culling = false;
-        
-        uint32 index = 0;
-        
-        for(float x = -10.0f; x < 100.0f; x += 1.0f)
-        {
-            for(float y = -10.0f; y < 10.0f; y += 1.0f)
-            {
-                index = (index + 1) % 4;
-                
-                RN::Entity *fern = new RN::Entity();
-                fern->SetModel(foliage[index]);
-                fern->Rotate(RN::Vector3(0.0, 0.0, -90.0));
-                fern->SetPosition(RN::Vector3(x, -5.23, y));
-            }
-        }
+		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
+		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->SetShader(shader);
+		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->culling = false;
+		
+		foliage[1] = RN::Model::WithFile("models/nobiax/grass_05.sgm");
+		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->SetShader(shader);
+		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->culling = false;
+		
+		foliage[2] = RN::Model::WithFile("models/nobiax/grass_19.sgm");
+		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->SetShader(shader);
+		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->culling = false;
+		
+		foliage[3] = RN::Model::WithFile("models/nobiax/grass_04.sgm");
+		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->SetShader(shader);
+		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->culling = false;
+		
+		uint32 index = 0;
+		
+		for(float x = -100.0f; x < 200.0f; x += 1.0f)
+		{
+			for(float y = -100.0f; y < 100.0f; y += 1.0f)
+			{
+				index = (index + 1) % 4;
+				
+				RN::Entity *fern = new RN::Entity();
+				fern->SetModel(foliage[index]);
+				fern->Rotate(RN::Vector3(0.0, 0.0, -90.0));
+				fern->SetPosition(RN::Vector3(x, -5.3, y));
+			}
+		}
+#endif
 	}
 }
