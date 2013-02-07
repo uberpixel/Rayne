@@ -10,7 +10,16 @@
 #include "RNKernel.h"
 
 namespace RN
-{
+{	
+	bool SortRenderingObject(struct RenderingObject& a, struct RenderingObject& b)
+	{
+		machine_uint objA = (machine_uint)a.mesh;
+		machine_uint objB = (machine_uint)b.mesh;
+		
+		return (objA < objB);
+	}
+	
+	
 	RenderingPipeline::RenderingPipeline()
 	{
 		// Some general state variables
@@ -73,7 +82,7 @@ namespace RN
 		_frameLock->Release();
 	}
 	
-	void RenderingPipeline::InitializeFramebufferCopy()
+	void RenderingPipeline::Initialize()
 	{
 		_copyShader = new Shader();
 		_copyShader->SetFragmentShader("shader/rn_CopyFramebuffer.fsh");
@@ -91,6 +100,11 @@ namespace RN
 		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLshort), _copyIndices, GL_STATIC_DRAW);
+		
+		gl::BindVertexArray(0);
+		
+		glGenBuffers(1, &_instancingVBO);
+		
 	}
 	
 	void RenderingPipeline::SetDefaultFBO(GLuint fbo)
@@ -233,9 +247,35 @@ namespace RN
 	
 	void RenderingPipeline::DrawGroup(RenderingGroup *group)
 	{
+		// Object pre-pass
+		std::vector<RenderingIntent> *frame = &group->intents;
+		std::vector<RenderingObject> objects;
+		
+		objects.reserve(frame->size());
+		
+		// Unpack the frame
+		for(auto i=frame->begin(); i!=frame->end(); i++)
+		{
+			Model *model = i->model;
+			uint32 meshes = model->Meshes();
+			
+			for(uint32 j=0; j<meshes; j++)
+			{
+				RenderingObject object;
+				object.mesh = model->MeshAtIndex(j);
+				object.material = model->MaterialForMesh(object.mesh);
+				object.transform = &i->transform;
+				
+				objects.push_back(object);
+			}
+		}
+		
+		// Sort the frame
+		std::sort(objects.begin(), objects.end(), SortRenderingObject);
+		
+		// Render all cameras
 		Camera *previous = 0;
 		Camera *camera = group->camera;
-		std::vector<RenderingIntent> *frame = &group->intents;
 		
 		while(camera)
 		{
@@ -246,77 +286,102 @@ namespace RN
 			{
 				Material *surfaceMaterial = camera->Material();
 				
-				std::vector<RenderingIntent>::iterator iterator;
-				for(iterator=frame->begin(); iterator!=frame->end(); iterator++)
+				uint32 offset = 1;
+				uint32 noCheck = 0;
+				
+				for(auto i=objects.begin(); i!=objects.end(); i+=offset)
 				{
-					iterator->Push();
+					Mesh *mesh = i->mesh;
+					Material *material = surfaceMaterial ? surfaceMaterial : i->material;
+					Shader *shader = material->Shader();
 					
-					Model *model = iterator->model;
+					// Send generic attributes to the shader
+					glUseProgram(shader->program);
 					
-					uint32 count = model->Meshes();
-					for(uint32 i=0; i<count; i++)
+					if(shader->time != -1)
+						glUniform1f(shader->time, _time);
+					
+					// Check if we can use instancing here
+					if(noCheck == 0)
 					{
-						Mesh *mesh = model->MeshAtIndex(i);
-						Material *material = surfaceMaterial ? surfaceMaterial : model->MaterialForMesh(mesh);
-						
-						Shader *shader = material->Shader();
-						
-						glUseProgram(shader->program);
-						
-						// Bind the material
-						BindMaterial(material);
-						
-						// Update the built-in uniforms
-						if(shader->time != -1)
-							glUniform1f(shader->time, _time);
-						
-						if(shader->matProj != -1)
-							glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, camera->projectionMatrix.AccessPast().m);
-						
-						if(shader->matProjInverse != -1)
-							glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, camera->inverseProjectionMatrix.AccessPast().m);
-						
-						if(shader->matView != -1)
-							glUniformMatrix4fv(shader->matView, 1, GL_FALSE, camera->viewMatrix.AccessPast().m);
-						
-						if(shader->matViewInverse != -1)
-							glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, camera->inverseViewMatrix.AccessPast().m);
-						
-						if(shader->matModel != -1)
-							glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, iterator->transform.m);
-						
-						if(shader->matModelInverse != -1)
-							glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, iterator->transform.Inverse().m);
-						
-						if(shader->matViewModel != -1)
+						if(SupportsOpenGLFeature(kOpenGLFeatureInstancing))
 						{
-							Matrix viewModel = camera->viewMatrix.AccessPast() * iterator->transform;
-							glUniformMatrix4fv(shader->matViewModel, 1, GL_FALSE, viewModel.m);
+							auto end = i + 1;
+							offset = 1;
+							
+							while(end != objects.end())
+							{
+								if(end->mesh != mesh)
+									break;
+								
+								offset ++;
+								end ++;
+							}
+							
+							if(offset >= kRNRenderingPipelineInstancingCutOff)
+							{
+								if(material->Shader()->imatProjViewModel != -1)
+								{
+									BindMaterial(material);
+									DrawMeshInstanced(camera, i, end, offset);
+									
+									continue;
+								}
+							}
+							
+							noCheck = offset;
 						}
-						
-						if(shader->matViewModelInverse != -1)
-						{
-							Matrix viewModel = camera->inverseViewMatrix * iterator->transform.Inverse();
-							glUniformMatrix4fv(shader->matViewModelInverse, 1, GL_FALSE, viewModel.m);
-						}
-						
-						if(shader->matProjViewModel != -1)
-						{
-							Matrix projViewModel = camera->projectionMatrix.AccessPast() * camera->viewMatrix.AccessPast() * iterator->transform;
-							glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
-						}
-						
-						if(shader->matProjViewModelInverse != -1)
-						{
-							Matrix projViewModel = camera->inverseProjectionMatrix.AccessPast() * camera->inverseViewMatrix.AccessPast() * iterator->transform.Inverse();
-							glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
-						}
-						
-						// Draw the mesh
-						DrawMesh(mesh);
+					}
+					else
+					{
+						noCheck --;
 					}
 					
-					iterator->Pop();
+					// Render the mesh normally
+					if(shader->matProj != -1)
+						glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, camera->projectionMatrix.AccessPast().m);
+					
+					if(shader->matProjInverse != -1)
+						glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, camera->inverseProjectionMatrix.AccessPast().m);
+					
+					if(shader->matView != -1)
+						glUniformMatrix4fv(shader->matView, 1, GL_FALSE, camera->viewMatrix.AccessPast().m);
+					
+					if(shader->matViewInverse != -1)
+						glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, camera->inverseViewMatrix.AccessPast().m);
+					
+					if(shader->matModel != -1)
+						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, i->transform->m);
+					
+					if(shader->matModelInverse != -1)
+						glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, i->transform->Inverse().m);
+					
+					if(shader->matViewModel != -1)
+					{
+						Matrix viewModel = camera->viewMatrix.AccessPast() * (*i->transform);
+						glUniformMatrix4fv(shader->matViewModel, 1, GL_FALSE, viewModel.m);
+					}
+					
+					if(shader->matViewModelInverse != -1)
+					{
+						Matrix viewModel = camera->inverseViewMatrix * i->transform->Inverse();
+						glUniformMatrix4fv(shader->matViewModelInverse, 1, GL_FALSE, viewModel.m);
+					}
+					
+					if(shader->matProjViewModel != -1)
+					{
+						Matrix projViewModel = camera->projectionMatrix.AccessPast() * camera->viewMatrix.AccessPast() * (*i->transform);
+						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+					}
+					
+					if(shader->matProjViewModelInverse != -1)
+					{
+						Matrix projViewModel = camera->inverseProjectionMatrix.AccessPast() * camera->inverseViewMatrix.AccessPast() * i->transform->Inverse();
+						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+					}
+				
+					BindMaterial(material);
+					DrawMesh(mesh);
 				}
 			}
 			else
@@ -487,6 +552,56 @@ namespace RN
 		_currentMesh = mesh;
 	}
 	
+	void RenderingPipeline::DrawMeshInstanced(Camera *camera, std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count)
+	{
+		Mesh *mesh = begin->mesh;
+		MeshLODStage *stage = mesh->LODStage(0);
+		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
+		
+		Material *material = begin->material;
+		Shader *shader = material->Shader();
+		
+		GLuint vao = VAOForTuple(std::tuple<Material *, MeshLODStage *>(material, stage));
+		if(_currentVAO != vao)
+		{
+			gl::BindVertexArray(vao);
+			_currentVAO = vao;
+		}
+		
+		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
+		
+		for(int i=0; i<4; i++)
+		{
+			glEnableVertexAttribArray(shader->imatProjViewModel + i);
+			glVertexAttribPointer(shader->imatProjViewModel + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * (i * 4)));
+			glVertexAttribDivisorARB(shader->imatProjViewModel + i, 1);
+		}
+		
+		
+		Matrix projView = camera->projectionMatrix.AccessPast() * camera->viewMatrix.AccessPast();
+		
+		Matrix *matrices = (Matrix *)malloc(count * sizeof(Matrix));
+		uint32 offset = 0;
+		
+		while(begin != last)
+		{
+			matrices[offset] = projView * (*begin->transform);
+			
+			offset ++;
+			begin ++;
+		}
+		
+		glBufferData(GL_ARRAY_BUFFER, count * sizeof(Matrix), matrices, GL_DYNAMIC_DRAW);
+		free(matrices);
+		
+		glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0, count);
+		
+		for(int i=0; i<4; i++)
+		{
+			glDisableVertexAttribArray(shader->imatProjViewModel + i);
+		}
+	}
+	
 	GLuint RenderingPipeline::VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple)
 	{
 		auto iterator = _vaos.find(tuple);
@@ -600,7 +715,7 @@ namespace RN
 		}
 		
 		if(!_copyShader)
-			InitializeFramebufferCopy();
+			Initialize();
 		
 		_time += delta;
 		

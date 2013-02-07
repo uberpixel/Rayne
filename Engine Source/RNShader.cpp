@@ -236,6 +236,9 @@ namespace RN
 		} while(0);
 #endif
 		
+		//glBindAttribLocation(<#GLuint program#>, <#GLuint index#>, <#const GLchar *name#>)
+		
+		
 		glLinkProgram(program);
 		RN_CHECKOPENGL();
 		
@@ -328,6 +331,8 @@ namespace RN
 			}
 			
 			// Get attributes
+			GetAttributeLocation(imatProjViewModel);
+			
 			GetAttributeLocation(vertPosition);
 			GetAttributeLocation(vertNormal);
 			GetAttributeLocation(vertTangent);
