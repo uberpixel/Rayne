@@ -28,13 +28,22 @@ namespace RN
 		virtual void Update(float delta);
 		virtual void PostUpdate();
 		
+		RenderingLight Light();
+		
 	private:
-		Vector3 _position;
 		Vector3 _color;
 		float _range;
-		Vector3 _direction;
-		float _angle;
 	};
+	
+	RN_INLINE RenderingLight LightEntity::Light()
+	{
+		RenderingLight light;
+		light.position = Position();
+		light.color = _color;
+		light.range = _range;
+		
+		return light;
+	}
 }
 
 #endif /* __RAYNE_LIGHTENTITY_H__ */

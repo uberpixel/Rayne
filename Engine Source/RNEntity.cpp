@@ -20,7 +20,7 @@ namespace RN
 		World::SharedInstance()->AddEntity(this);
 	}
 	
-	Entity::Entity(Type type)
+	Entity::Entity(EntityType type)
 	{
 		_model = 0;
 		_type = type;
@@ -31,7 +31,7 @@ namespace RN
 	Entity::Entity(Entity *other)
 	{
 		_model = other->_model->Retain<RN::Model>();
-		_type = other->GetType();
+		_type = other->Type();
 		
 		SetPosition(other->Position());
 		SetScale(other->Scale());

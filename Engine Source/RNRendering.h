@@ -44,6 +44,27 @@ namespace RN
 		Model *model;
 	};
 	
+	class RenderingLight : public RenderingResource
+	{
+	public:
+		RenderingLight() :
+		RenderingResource("Rendering Light")
+		{
+		}
+		
+		RenderingLight(const RenderingLight& other) :
+		RenderingResource(other._name)
+		{
+			position = other.position;
+			color = other.color;
+			range = other.range;
+		}
+		
+		Vector3 position;
+		Vector3 color;
+		float range;
+	};
+	
 	class RenderingGroup : public RenderingResource
 	{
 	public:
@@ -54,6 +75,7 @@ namespace RN
 		
 		Camera *camera;
 		std::vector<RenderingIntent> intents;
+		std::vector<RenderingLight> lights;
 	};
 }
 
