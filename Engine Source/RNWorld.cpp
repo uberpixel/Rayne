@@ -80,7 +80,10 @@ namespace RN
 			for(auto j=_entities.begin(); j!=_entities.end(); j++)
 			{
 				Entity *entity = *j;
-				group.intents.push_back(entity->Intent());
+				if(entity->HasIntent())
+				{
+					group.intents.push_back(entity->Intent());
+				}
 			}
 			
 			_renderer->PushGroup(group);

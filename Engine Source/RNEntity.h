@@ -21,7 +21,14 @@ namespace RN
 	class Entity : public Object, public Transform
 	{
 	public:
+		typedef enum
+		{
+			Object,
+			Light
+		} Type;
+		
 		Entity();
+		Entity(Type type);
 		Entity(Entity *other);
 		
 		virtual ~Entity();
@@ -30,13 +37,15 @@ namespace RN
 		virtual void PostUpdate();
 		RenderingIntent Intent();
 		
-		
 		void SetModel(Model *_model);
+		bool HasIntent();
+		Type GetType() const {return _type;}
 		
 		Model *Model() const { return _model; }
 		
 	private:
 		class Model *_model;
+		Type _type;
 	};
 	
 	RN_INLINE RenderingIntent Entity::Intent()
@@ -45,6 +54,11 @@ namespace RN
 		intent.transform = Matrix();
 		
 		return intent;
+	}
+	
+	RN_INLINE bool Entity::HasIntent()
+	{
+		return (_model != 0);
 	}
 }
 

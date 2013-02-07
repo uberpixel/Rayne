@@ -15,6 +15,15 @@ namespace RN
 	Entity::Entity()
 	{
 		_model = 0;
+		_type = Object;
+		
+		World::SharedInstance()->AddEntity(this);
+	}
+	
+	Entity::Entity(Type type)
+	{
+		_model = 0;
+		_type = type;
 		
 		World::SharedInstance()->AddEntity(this);
 	}
@@ -22,6 +31,7 @@ namespace RN
 	Entity::Entity(Entity *other)
 	{
 		_model = other->_model->Retain<RN::Model>();
+		_type = other->GetType();
 		
 		SetPosition(other->Position());
 		SetScale(other->Scale());
