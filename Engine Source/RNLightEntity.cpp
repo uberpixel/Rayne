@@ -13,13 +13,13 @@
 namespace RN
 {
 	LightEntity::LightEntity()
-	:Entity(Entity::Light)
+		:Entity(Entity::Light)
 	{
 		
 	}
 	
 	LightEntity::LightEntity(LightEntity *other)
-	:Entity(other)
+		:Entity(other)
 	{
 		
 	}

@@ -323,7 +323,7 @@ namespace RN
 					
 					// Light data
 					if(shader->lightCount != -1)
-						glUniform1f(shader->lightCount, lightcount);
+						glUniform1i(shader->lightCount, lightcount);
 					
 					if(shader->lightPosition != -1 && lightcount > 0)
 						glUniform4fv(shader->lightPosition, lightcount, &(lightpos[0].x));
@@ -619,7 +619,7 @@ namespace RN
 		{
 			glEnableVertexAttribArray(shader->imatModel + i);
 			glVertexAttribPointer(shader->imatModel + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * (i * 4)));
-			glVertexAttribDivisorARB(shader->imatModel + i, 1);
+			gl::VertexAttribDivisor(shader->imatModel + i, 1);
 		}
 		
 		for(uint32 i=0; begin!=last; begin++, i++)
@@ -628,7 +628,7 @@ namespace RN
 		}
 		
 		glBufferData(GL_ARRAY_BUFFER, count * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);		
-		glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0, count);
+		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0, count);
 		
 		for(int i=0; i<4; i++)
 		{
