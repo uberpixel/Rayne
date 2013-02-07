@@ -335,7 +335,7 @@ namespace RN
 			}
 			
 			// Get attributes
-			GetAttributeLocation(imatProjViewModel);
+			GetAttributeLocation(imatModel);
 			
 			GetAttributeLocation(vertPosition);
 			GetAttributeLocation(vertNormal);

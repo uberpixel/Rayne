@@ -48,7 +48,7 @@ namespace RN
 		
 		void DrawGroup(RenderingGroup *group);
 		void DrawMesh(Mesh *mesh);
-		void DrawMeshInstanced(Camera *camera, std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count);
+		void DrawMeshInstanced(std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count);
 		void DrawCameraStage(Camera *camera, Camera *stage);
 		
 		void FlushCameras();
@@ -82,6 +82,9 @@ namespace RN
 		
 		std::map<std::tuple<Material *, MeshLODStage *>, GLuint> _vaos;
 		GLuint _currentVAO;
+		
+		Matrix *_instancingMatrices;
+		uint32 _numInstancingMatrices;
 		GLuint _instancingVBO;
 		
 		GLuint _defaultFBO;

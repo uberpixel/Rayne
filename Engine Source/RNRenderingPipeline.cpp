@@ -65,6 +65,9 @@ namespace RN
 		
 		_textureUnit = 0;
 		_hasValidFramebuffer = false;
+		
+		_numInstancingMatrices = 500;
+		_instancingMatrices = (Matrix *)malloc(_numInstancingMatrices * sizeof(Matrix));
 	}
 	
 	RenderingPipeline::~RenderingPipeline()
@@ -78,6 +81,8 @@ namespace RN
 			
 			gl::DeleteVertexArrays(1, &_copyVAO);
 		}
+		
+		free(_instancingMatrices);
 		
 		_frameLock->Release();
 	}
@@ -102,9 +107,7 @@ namespace RN
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLshort), _copyIndices, GL_STATIC_DRAW);
 		
 		gl::BindVertexArray(0);
-		
 		glGenBuffers(1, &_instancingVBO);
-		
 	}
 	
 	void RenderingPipeline::SetDefaultFBO(GLuint fbo)
@@ -318,50 +321,18 @@ namespace RN
 					if(shader->time != -1)
 						glUniform1f(shader->time, _time);
 					
+					// Light data
+					if(shader->lightCount != -1)
+						glUniform1f(shader->lightCount, lightcount);
+					
 					if(shader->lightPosition != -1 && lightcount > 0)
 						glUniform4fv(shader->lightPosition, lightcount, &(lightpos[0].x));
 						
 					if(shader->lightColor != -1 && lightcount > 0)
 						glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
-						
 					
-					// Check if we can use instancing here
-					if(noCheck == 0)
-					{
-						if(SupportsOpenGLFeature(kOpenGLFeatureInstancing))
-						{
-							auto end = i + 1;
-							offset = 1;
-							
-							while(end != objects.end())
-							{
-								if(end->mesh != mesh)
-									break;
-								
-								offset ++;
-								end ++;
-							}
-							
-							if(offset >= kRNRenderingPipelineInstancingCutOff)
-							{
-								if(material->Shader()->imatProjViewModel != -1)
-								{
-									BindMaterial(material);
-									DrawMeshInstanced(camera, i, end, offset);
-									
-									continue;
-								}
-							}
-							
-							noCheck = offset;
-						}
-					}
-					else
-					{
-						noCheck --;
-					}
 					
-					// Render the mesh normally
+					// Matrices
 					if(shader->matProj != -1)
 						glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, camera->projectionMatrix.AccessPast().m);
 					
@@ -403,7 +374,46 @@ namespace RN
 						Matrix projViewModel = camera->inverseProjectionMatrix.AccessPast() * camera->inverseViewMatrix.AccessPast() * i->transform->Inverse();
 						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 					}
-				
+						
+					
+					// Check if we can use instancing here
+					if(noCheck == 0)
+					{
+						if(SupportsOpenGLFeature(kOpenGLFeatureInstancing))
+						{
+							auto end = i + 1;
+							offset = 1;
+							
+							while(end != objects.end())
+							{
+								if(end->mesh != mesh)
+									break;
+								
+								offset ++;
+								end ++;
+							}
+							
+							if(offset >= kRNRenderingPipelineInstancingCutOff)
+							{
+								if(material->Shader()->imatModel != -1)
+								{
+									BindMaterial(material);
+									DrawMeshInstanced(i, end, offset);
+									
+									continue;
+								}
+							}
+							
+							noCheck = offset;
+							offset = 1;
+						}
+					}
+					else
+					{
+						noCheck --;
+					}
+					
+					// Render the mesh normally				
 					BindMaterial(material);
 					DrawMesh(mesh);
 				}
@@ -419,12 +429,12 @@ namespace RN
 			camera->Unbind();
 			camera = camera->Stage();
 			
-			delete[] lightcolor;
-			delete[] lightpos;
-			
 			if(!camera)
 				_flushCameras.push_back(previous);
 		}
+		
+		delete[] lightcolor;
+		delete[] lightpos;
 	}
 	
 	uint32 RenderingPipeline::BindTexture(Texture *texture)
@@ -579,7 +589,7 @@ namespace RN
 		_currentMesh = mesh;
 	}
 	
-	void RenderingPipeline::DrawMeshInstanced(Camera *camera, std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count)
+	void RenderingPipeline::DrawMeshInstanced(std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count)
 	{
 		Mesh *mesh = begin->mesh;
 		MeshLODStage *stage = mesh->LODStage(0);
@@ -587,6 +597,14 @@ namespace RN
 		
 		Material *material = begin->material;
 		Shader *shader = material->Shader();
+		
+		if(count > _numInstancingMatrices)
+		{
+			_numInstancingMatrices = count;
+			
+			free(_instancingMatrices);
+			_instancingMatrices = (Matrix *)malloc(_numInstancingMatrices * sizeof(Matrix));
+		}
 		
 		GLuint vao = VAOForTuple(std::tuple<Material *, MeshLODStage *>(material, stage));
 		if(_currentVAO != vao)
@@ -599,33 +617,22 @@ namespace RN
 		
 		for(int i=0; i<4; i++)
 		{
-			glEnableVertexAttribArray(shader->imatProjViewModel + i);
-			glVertexAttribPointer(shader->imatProjViewModel + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * (i * 4)));
-			glVertexAttribDivisorARB(shader->imatProjViewModel + i, 1);
+			glEnableVertexAttribArray(shader->imatModel + i);
+			glVertexAttribPointer(shader->imatModel + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * (i * 4)));
+			glVertexAttribDivisorARB(shader->imatModel + i, 1);
 		}
 		
-		
-		Matrix projView = camera->projectionMatrix.AccessPast() * camera->viewMatrix.AccessPast();
-		
-		Matrix *matrices = (Matrix *)malloc(count * sizeof(Matrix));
-		uint32 offset = 0;
-		
-		while(begin != last)
+		for(uint32 i=0; begin!=last; begin++, i++)
 		{
-			matrices[offset] = projView * (*begin->transform);
-			
-			offset ++;
-			begin ++;
+			_instancingMatrices[i] = *begin->transform;
 		}
 		
-		glBufferData(GL_ARRAY_BUFFER, count * sizeof(Matrix), matrices, GL_DYNAMIC_DRAW);
-		free(matrices);
-		
+		glBufferData(GL_ARRAY_BUFFER, count * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);		
 		glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0, count);
 		
 		for(int i=0; i<4; i++)
 		{
-			glDisableVertexAttribArray(shader->imatProjViewModel + i);
+			glDisableVertexAttribArray(shader->imatModel + i);
 		}
 	}
 	

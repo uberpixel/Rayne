@@ -9,7 +9,9 @@
 #version 150
 precision highp float;
 
-in mat4 imatProjViewModel;
+uniform mat4 matProj;
+uniform mat4 matView;
+in mat4 imatModel;
 
 in vec3 vertPosition;
 in vec2 vertTexcoord0;
@@ -20,5 +22,5 @@ void main()
 {
 	outTexcoord = vertTexcoord0;
 	
-	gl_Position = imatProjViewModel * vec4(vertPosition, 1.0);
+	gl_Position = matProj * matView * imatModel * vec4(vertPosition, 1.0);
 }
