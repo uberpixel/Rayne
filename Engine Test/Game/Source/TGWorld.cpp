@@ -238,8 +238,21 @@ namespace TG
 		
 		model = RN::Model::WithFile("models/nobiax/fern_01.sgm");
 		model->MaterialForMesh(model->MeshAtIndex(0))->SetShader(RN::Shader::WithFile("shader/rn_Texture1Discard"));
-		RN::Entity *fern = new RN::Entity();
+		model->MaterialForMesh(model->MeshAtIndex(0))->culling = false;
+		RN::Entity *fern;/* = new RN::Entity();
 		fern->SetModel(model);
 		fern->Rotate(RN::Vector3(0.0, 0.0, -90.0));
+		fern->SetPosition(RN::Vector3(0.0, -5.3, 0.0));*/
+		
+		for(float x = -10.0f; x < 20.0f; x += 1.0f)
+		{
+			for(float y = -10.0f; y < 10.0f; y += 1.0f)
+			{
+				fern = new RN::Entity();
+				fern->SetModel(model);
+				fern->Rotate(RN::Vector3(0.0, 0.0, -90.0));
+				fern->SetPosition(RN::Vector3(x, -5.3, y));
+			}
+		}
 	}
 }
