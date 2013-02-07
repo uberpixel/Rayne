@@ -13,8 +13,17 @@
 #include "RNRendering.h"
 #include "RNPipelineSegment.h"
 
+#define kRNRenderingPipelineInstancingCutOff 100
+
 namespace RN
 {
+	struct RenderingObject
+	{
+		Mesh *mesh;
+		Material *material;
+		Matrix *transform;
+	};
+	
 	class Window;
 	class RenderingPipeline : public PipelineSegment
 	{
@@ -31,7 +40,7 @@ namespace RN
 		RNAPI void SetDefaultFrame(uint32 width, uint32 height);
 		
 	private:
-		void InitializeFramebufferCopy();
+		void Initialize();
 		GLuint VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple);
 		
 		void BindMaterial(Material *material);
@@ -39,6 +48,7 @@ namespace RN
 		
 		void DrawGroup(RenderingGroup *group);
 		void DrawMesh(Mesh *mesh);
+		void DrawMeshInstanced(Camera *camera, std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count);
 		void DrawCameraStage(Camera *camera, Camera *stage);
 		
 		void FlushCameras();
@@ -72,6 +82,7 @@ namespace RN
 		
 		std::map<std::tuple<Material *, MeshLODStage *>, GLuint> _vaos;
 		GLuint _currentVAO;
+		GLuint _instancingVBO;
 		
 		GLuint _defaultFBO;
 		uint32 _defaultWidth;
