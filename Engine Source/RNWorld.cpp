@@ -8,6 +8,7 @@
 
 #include "RNWorld.h"
 #include "RNKernel.h"
+#include "RNLightEntity.h"
 
 namespace RN
 {
@@ -83,6 +84,10 @@ namespace RN
 				if(entity->HasIntent())
 				{
 					group.intents.push_back(entity->Intent());
+				}
+				if(entity->Type() == Entity::Light)
+				{
+					group.lights.push_back(((LightEntity*)entity)->Light());
 				}
 			}
 			

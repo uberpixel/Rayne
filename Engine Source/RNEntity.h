@@ -25,10 +25,10 @@ namespace RN
 		{
 			Object,
 			Light
-		} Type;
+		} EntityType;
 		
 		Entity();
-		Entity(Type type);
+		Entity(EntityType type);
 		Entity(Entity *other);
 		
 		virtual ~Entity();
@@ -39,13 +39,13 @@ namespace RN
 		
 		void SetModel(Model *_model);
 		bool HasIntent();
-		Type GetType() const {return _type;}
+		EntityType Type() const {return _type;}
 		
 		Model *Model() const { return _model; }
 		
 	private:
 		class Model *_model;
-		Type _type;
+		EntityType _type;
 	};
 	
 	RN_INLINE RenderingIntent Entity::Intent()
