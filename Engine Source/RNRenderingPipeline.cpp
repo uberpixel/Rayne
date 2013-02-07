@@ -419,6 +419,9 @@ namespace RN
 			camera->Unbind();
 			camera = camera->Stage();
 			
+			delete[] lightcolor;
+			delete[] lightpos;
+			
 			if(!camera)
 				_flushCameras.push_back(previous);
 		}

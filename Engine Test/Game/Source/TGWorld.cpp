@@ -277,7 +277,7 @@ namespace TG
 		
 		uint32 index = 0;
 		
-		for(float x = -10.0f; x < 10.0f; x += 1.0f)
+		for(float x = -100.0f; x < 200.0f; x += 1.0f)
 		{
 			for(float y = -10.0f; y < 10.0f; y += 1.0f)
 			{
