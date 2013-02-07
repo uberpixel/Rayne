@@ -13,6 +13,7 @@
 namespace RN
 {
 	LightEntity::LightEntity()
+	:Entity(Entity::Light)
 	{
 		
 	}
