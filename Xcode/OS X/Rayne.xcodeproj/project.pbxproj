@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C050166916C3FDE600326514 /* RNLightEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C050166716C3FDE600326514 /* RNLightEntity.cpp */; };
+		C050166A16C3FDE600326514 /* RNLightEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = C050166816C3FDE600326514 /* RNLightEntity.h */; };
 		C085AA2316B2B3AC00E48EBB /* libbullet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C085AA1416B2B34D00E48EBB /* libbullet.a */; };
 		C085AA2516B2B40600E48EBB /* RNBullet.h in Headers */ = {isa = PBXBuildFile; fileRef = C085AA2416B2B40600E48EBB /* RNBullet.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C085AA2C16B2B43500E48EBB /* RNRigidBodyEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C085AA2A16B2B43500E48EBB /* RNRigidBodyEntity.cpp */; };
@@ -119,6 +121,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C050166716C3FDE600326514 /* RNLightEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNLightEntity.cpp; sourceTree = "<group>"; };
+		C050166816C3FDE600326514 /* RNLightEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNLightEntity.h; sourceTree = "<group>"; };
 		C085AA0C16B2B34D00E48EBB /* bullet-osx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "bullet-osx.xcodeproj"; path = "../../Vendor/bullet/bullet-osx.xcodeproj"; sourceTree = "<group>"; };
 		C085AA2416B2B40600E48EBB /* RNBullet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBullet.h; sourceTree = "<group>"; };
 		C085AA2A16B2B43500E48EBB /* RNRigidBodyEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRigidBodyEntity.cpp; sourceTree = "<group>"; };
@@ -386,6 +390,8 @@
 		E9F8070D1697051C00773A34 /* Scene */ = {
 			isa = PBXGroup;
 			children = (
+				C050166716C3FDE600326514 /* RNLightEntity.cpp */,
+				C050166816C3FDE600326514 /* RNLightEntity.h */,
 				E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */,
 				E9580BD216AB8BEA0056DEF2 /* RNEntity.h */,
 				E9C6F08C16AEA7AE006288D5 /* RNPhysicsPipeline.cpp */,
@@ -469,6 +475,7 @@
 				E991F1C716BB707300B205A1 /* RNMessage.h in Headers */,
 				E9319D3416BFE560001FA38F /* RNBaseInternal.h in Headers */,
 				E9C6760D16C2B75500DA720F /* RNSynchronization.h in Headers */,
+				C050166A16C3FDE600326514 /* RNLightEntity.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -580,6 +587,7 @@
 				E9145CB316BAB82D004BDEC8 /* RNInput.cpp in Sources */,
 				E991F1C616BB707300B205A1 /* RNMessage.cpp in Sources */,
 				E9C6760C16C2B75500DA720F /* RNSynchronization.cpp in Sources */,
+				C050166916C3FDE600326514 /* RNLightEntity.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
