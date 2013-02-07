@@ -209,9 +209,14 @@ namespace TG
 		_floor->SetSize(RN::Vector3(5.0f, 0.5f, 5.0f));
 		_floor->SetRestitution(0.5f);*/
 		
-		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1Discard");
+		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight");
+		RN::Shader *lightshader = RN::Shader::WithFile("shader/rn_Texture1Light");
 		
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
+		for(int i = 0; i < model->Meshes(); i++)
+		{
+			model->MaterialForMesh(model->MeshAtIndex(i))->SetShader(lightshader);
+		}
 		model->MaterialForMesh(model->MeshAtIndex(4))->SetShader(shader);
 		model->MaterialForMesh(model->MeshAtIndex(4))->culling = false;
 		model->MaterialForMesh(model->MeshAtIndex(10))->SetShader(shader);
@@ -224,6 +229,31 @@ namespace TG
 		sponza->SetScale(RN::Vector3(0.1, 0.1, 0.1));
 		sponza->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
+		
+		RN::LightEntity *light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(50.0f, 0.0f, 0.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-50.0f, 0.0f, 0.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(100.0f, 0.0f, 0.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-100.0f, 0.0f, 0.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
 		
 #if RN_TARGET_OPENGL
 		RN::Model *foliage[4];
@@ -245,9 +275,9 @@ namespace TG
 		
 		uint32 index = 0;
 		
-		for(float x = -100.0f; x < 200.0f; x += 1.0f)
+		for(float x = -10.0f; x < 10.0f; x += 1.0f)
 		{
-			for(float y = -100.0f; y < 100.0f; y += 1.0f)
+			for(float y = -10.0f; y < 10.0f; y += 1.0f)
 			{
 				index = (index + 1) % 4;
 				

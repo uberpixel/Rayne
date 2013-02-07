@@ -37,4 +37,14 @@ namespace RN
 	{
 		
 	}
+	
+	void LightEntity::SetRange(float range)
+	{
+		_range = range;
+	}
+	
+	void LightEntity::SetColor(Vector3 color)
+	{
+		_color = color;
+	}
 }

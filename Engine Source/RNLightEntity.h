@@ -28,6 +28,9 @@ namespace RN
 		virtual void Update(float delta);
 		virtual void PostUpdate();
 		
+		void SetRange(float range);
+		void SetColor(Vector3 color);
+		
 		RenderingLight Light();
 		
 	private:
