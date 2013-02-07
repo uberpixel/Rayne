@@ -11,27 +11,53 @@
 
 #include "RNBase.h"
 
-#if RN_PLATFORM_MAC_OS
-typedef void (APIENTRYP PFNGLBLITFRAMEBUFFERPROC)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+#ifndef APIENTRY
+#define APIENTRY
+#endif
+#ifndef APIENTRYP
+#define APIENTRYP APIENTRY *
+#endif
+#ifndef GLAPI
+#define GLAPI extern
 #endif
 
-#if RN_PLATFORM_IOS
-typedef void (*PFNGLBINDVERTEXARRAYPROC)(GLuint array);
-typedef void (*PFNGLDELETEVERTEXARRAYSPROC)(GLsizei n, const GLuint *arrays);
-typedef void (*PFNGLGENVERTEXARRAYSPROC)(GLsizei n, GLuint *arrays);
-typedef void (*PFNGLBLITFRAMEBUFFERPROC)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
-#endif
+namespace RN
+{
+	typedef enum
+	{
+		kOpenGLFeatureVertexArrays,
+		kOpenGLFeatureBlitFramebuffer,
+		kOpenGLFeatureInstancing,
+		
+		__kOpenGLFeatureMax
+	} OpenGLFeature;
+	
+	RNAPI void ReadOpenGLExtensions();
+	RNAPI bool SupportsOpenGLFeature(OpenGLFeature feature);
+	
+	namespace gl
+	{
+		extern void (APIENTRYP GenVertexArrays)(GLsizei n, GLuint *arrays);
+		extern void (APIENTRYP DeleteVertexArrays)(GLsizei n, const GLuint *arrays);
+		extern void (APIENTRYP BindVertexArray)(GLuint array);
+		
+		extern void (APIENTRYP BlitFramebuffer)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
+	
+		extern void (APIENTRYP VertexAttribDivisor)(GLuint index, GLuint divisor);
+		extern void (APIENTRYP DrawElementsInstanced)(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount);
+	}
+}
 
 #define __RN_EXPANDOPENGLERROR(error) #error
 #define __RN_OPENGLTOKEN(error) __RN_EXPANDOPENGLERROR(error)
 
 #define __RN_REPORTOPENGLERROR(error) \
-	do { printf("OpenGL error: %s. File: %s:%i", __RN_OPENGLTOKEN(error), __FILE__, __LINE__); } while(0)
+do { printf("OpenGL error: %s. File: %s:%i", __RN_OPENGLTOKEN(error), __FILE__, __LINE__); } while(0)
 
 #define __RN_CHECKOPENGLERROR(error) \
-	case error: \
-		__RN_REPORTOPENGLERROR(error); \
-		break;
+case error: \
+__RN_REPORTOPENGLERROR(error); \
+break;
 
 #ifndef GL_STACK_UNDERFLOW
 #define GL_STACK_UNDERFLOW 0xffffffff
@@ -46,13 +72,13 @@ typedef void (*PFNGLBLITFRAMEBUFFERPROC)(GLint srcX0, GLint srcY0, GLint srcX1, 
 #endif
 
 #ifndef NDEBUG
-	#define RN_CHECKOPENGL() \
-		while(0) { \
-			GLenum error; \
-			while((error = glGetError()) != GL_NO_ERROR) \
+#define RN_CHECKOPENGL() \
+	while(0) { \
+		GLenum error; \
+		while((error = glGetError()) != GL_NO_ERROR) \
+		{ \
+			switch(error) \
 			{ \
-				switch(error) \
-				{ \
 					__RN_CHECKOPENGLERROR(GL_INVALID_ENUM) \
 					__RN_CHECKOPENGLERROR(GL_INVALID_VALUE) \
 					__RN_CHECKOPENGLERROR(GL_INVALID_OPERATION) \
@@ -61,36 +87,15 @@ typedef void (*PFNGLBLITFRAMEBUFFERPROC)(GLint srcX0, GLint srcY0, GLint srcX1, 
 					__RN_CHECKOPENGLERROR(GL_STACK_UNDERFLOW) \
 					__RN_CHECKOPENGLERROR(GL_STACK_OVERFLOW) \
 					__RN_CHECKOPENGLERROR(GL_TABLE_TOO_LARGE) \
-					default: \
-						printf("Unknown OpenGL error: %i. File: %s:%i", error, __FILE__, __LINE__); \
-						break; \
-				} \
+				default: \
+					printf("Unknown OpenGL error: %i. File: %s:%i", error, __FILE__, __LINE__); \
+					break; \
 			} \
-		}
-#else
-	#define RN_CHECKOPENGL() (void)0
-#endif
-
-namespace RN
-{
-	typedef enum
-	{
-		kOpenGLFeatureVertexArrays,
-		
-		__kOpenGLFeatureMax
-	} OpenGLFeature;
-	
-	RNAPI void ReadOpenGLExtensions();
-	RNAPI bool SupportsOpenGLFeature(OpenGLFeature feature);
-	
-	namespace gl
-	{		
-		extern PFNGLGENVERTEXARRAYSPROC GenVertexArrays;
-		extern PFNGLDELETEVERTEXARRAYSPROC DeleteVertexArrays;
-		extern PFNGLBINDVERTEXARRAYPROC BindVertexArray;
-		extern PFNGLBLITFRAMEBUFFERPROC BlitFramebuffer;
+		} \
 	}
-}
+#else
+#define RN_CHECKOPENGL() (void)0
+#endif
 
 #if RN_PLATFORM_WINDOWS
 

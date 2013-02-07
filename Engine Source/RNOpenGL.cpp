@@ -12,65 +12,164 @@ namespace RN
 {
 	namespace gl
 	{
-		PFNGLGENVERTEXARRAYSPROC GenVertexArrays = 0;
-		PFNGLDELETEVERTEXARRAYSPROC DeleteVertexArrays = 0;
-		PFNGLBINDVERTEXARRAYPROC BindVertexArray = 0;
-		PFNGLBLITFRAMEBUFFERPROC BlitFramebuffer = 0;
+		void (APIENTRYP GenVertexArrays)(GLsizei n, GLuint *arrays) = 0;
+		void (APIENTRYP DeleteVertexArrays)(GLsizei n, const GLuint *arrays) = 0;
+		void (APIENTRYP BindVertexArray)(GLuint array) = 0;
+		
+		void (APIENTRYP BlitFramebuffer)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter) = 0;
+		
+		void (APIENTRYP VertexAttribDivisor)(GLuint index, GLuint divisor);
+		void (APIENTRYP DrawElementsInstanced)(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount);
+		
+		bool OpenGLFeatures[__kOpenGLFeatureMax] = { false };
 	}
-	
-	bool OpenGLFeatures[__kOpenGLFeatureMax] = { false };
 	
 	void *LookupOpenGLFunction(const char *name)
 	{		
 #if RN_PLATFORM_POSIX
 		void *symbol = dlsym(RTLD_DEFAULT, name);
+#elif RN_PLATFORM_WINDOWS
+		void *symbol = wglGetProcAddress(name);
+#endif
 		
 		if(!symbol)
 		{
 			std::string symbolname = std::string(name);
 			
-			std::string symbolOES = symbolname.append("OES");
-			std::string symbolARB = symbolname.append("ARB");
+#if RN_PLATFORM_POSIX
+#define TryOpenGLFunction(name) do { \
+				std::string trysymbol = symbolname.append(#name); \
+				void *temp = dlsym(RTLD_DEFAULT, trysymbol.c_str()); \
+				if(temp) \
+					return temp; \
+			} while(0)
+#elif RN_PLATFOM_WINDOWS
+#define TryOpenGLFunction(name) do { \
+				std::string trysymbol = symbolname.append(#name); \
+				void *temp = wglGetProcAddress(trysymbol.c_str()); \
+				if(temp) \
+					return temp; \
+				} while(0)
+#endif
 			
-			symbol = dlsym(RTLD_DEFAULT, symbolOES.c_str());
-			if(symbol)
-				return symbol;
 			
+#if RN_TARGET_OPENGL_ES
+			TryOpenGLFunction(OES);
+			TryOpenGLFunction(EXT);
 			
-			symbol = dlsym(RTLD_DEFAULT, symbolARB.c_str());
-			if(symbol)
-				return symbol;
+#if RN_PLATFORM_IOS
+			TryOpenGLFunction(APPLE);
+#endif
+#endif
+			
+#if RN_TARGET_OPENGL
+			TryOpenGLFunction(ARB);
+			TryOpenGLFunction(EXT);
+			
+#if RN_PLATFORM_MAC_OS
+			TryOpenGLFunction(APPLE);
+#endif
+#endif
 		}
 		
 		return symbol;
-#endif
+	}
+	
+	
+	
+	bool LookupOpenGLExtension(void ***fpointers, const char **fnames, uint32 functions)
+	{
+		bool hasSupport = true;
 		
-#if RN_PLATFORM_WINDOWS
-		return wglGetProcAddress(name);
-#endif
+		for(uint32 i=0; i<functions; i++)
+		{
+			const char *name = fnames[i];
+			void **fpointer = fpointers[i];
+			void *pointer = LookupOpenGLFunction(name);
+			
+			if(fpointer)
+				*fpointer = pointer;
+			
+			if(!pointer)
+				hasSupport = false;
+		}
+		
+		return hasSupport;
 	}
 	
 	bool SupportsOpenGLFeature(OpenGLFeature feature)
 	{
 		int index = (int)feature;
-		return OpenGLFeatures[index];
+		return gl::OpenGLFeatures[index];
 	}
 
-#if RN_PLATFORM_WINDOWS
-	#define RN_LINKWGL(name, type) do{ name = (type)wglGetProcAddress(#name); if(!name) throw "Fuck that shit!"; } while(0)
-#endif
+	
+
+	
+	void __ReadVAOExtension()
+	{
+		void **fpointer[] =
+		{
+			(void **)&gl::GenVertexArrays,
+			(void **)&gl::DeleteVertexArrays,
+			(void **)&gl::BindVertexArray
+		};
+		
+		const char *fnames[] =
+		{
+			"glGenVertexArrays",
+			"glDeleteVertexArrays",
+			"glBindVertexArray"
+		};
+		
+		bool supports = LookupOpenGLExtension(fpointer, fnames, 3);
+		gl::OpenGLFeatures[(int)kOpenGLFeatureVertexArrays] = supports;
+	}
+	
+	void __ReadBlitFramebufferExtension()
+	{
+		void **fpointer[] =
+		{
+			(void **)&gl::BlitFramebuffer
+		};
+		
+		const char *fnames[] =
+		{
+			"glBlitFramebuffer"
+		};
+		
+		bool supports = LookupOpenGLExtension(fpointer, fnames, 1);
+		gl::OpenGLFeatures[(int)kOpenGLFeatureBlitFramebuffer] = supports;
+	}
+	
+	void __ReadInstancingExtension()
+	{
+		void **fpointer[] =
+		{
+			(void **)&gl::VertexAttribDivisor,
+			(void **)&gl::DrawElementsInstanced
+		};
+		
+		const char *fnames[] =
+		{
+			"glVertexAttribDivisor",
+			"glDrawElementsInstanced"
+		};
+		
+		bool supports = LookupOpenGLExtension(fpointer, fnames, 2);
+		gl::OpenGLFeatures[(int)kOpenGLFeatureInstancing] = supports;
+	}
+	
+	
 	
 	void ReadOpenGLExtensions()
-	{		
-		gl::GenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)LookupOpenGLFunction("glGenVertexArrays");
-		gl::DeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)LookupOpenGLFunction("glDeleteVertexArrays");
-		gl::BindVertexArray = (PFNGLBINDVERTEXARRAYPROC)LookupOpenGLFunction("glBindVertexArray");
-		
-		OpenGLFeatures[kOpenGLFeatureVertexArrays] = (gl::GenVertexArrays && gl::DeleteVertexArrays && gl::BindVertexArray);
-		
-		gl::BlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC)LookupOpenGLFunction("glBlitFramebuffer");
+	{
+		__ReadVAOExtension();
+		__ReadBlitFramebufferExtension();
+		__ReadInstancingExtension();
 
 #if RN_PLATFORM_WINDOWS
+#define RN_LINKWGL(name, type) do{ name = (type)wglGetProcAddress(#name); if(!name) throw "Fuck that shit!"; } while(0)
 
 		RN_LINKWGL(glCreateProgram, PFNGLCREATEPROGRAMPROC);
 		RN_LINKWGL(glDeleteProgram, PFNGLDELETEPROGRAMPROC);
