@@ -273,10 +273,27 @@ namespace RN
 		// Sort the frame
 		std::sort(objects.begin(), objects.end(), SortRenderingObject);
 		
+		// Light pre-pass
+		std::vector<RenderingLight> *lights = &group->lights;
+		
+		Vector4 *lightpos = new Vector4[lights->size()];
+		Vector3 *lightcolor = new Vector3[lights->size()];
+		std::vector<RenderingLight>::iterator lightiterator;
+		int lightcount = 0;
+		for(lightiterator=lights->begin(); lightiterator!=lights->end(); lightiterator++)
+		{
+			lightpos[lightcount].x = lightiterator->position.x;
+			lightpos[lightcount].y = lightiterator->position.y;
+			lightpos[lightcount].z = lightiterator->position.z;
+			lightpos[lightcount].w = lightiterator->range;
+			lightcolor[lightcount] = lightiterator->color;
+			lightcount++;
+		}
+
 		// Render all cameras
 		Camera *previous = 0;
 		Camera *camera = group->camera;
-		
+
 		while(camera)
 		{
 			camera->Bind();
@@ -301,6 +318,14 @@ namespace RN
 					if(shader->time != -1)
 						glUniform1f(shader->time, _time);
 					
+					if(shader->lightPosition != -1 && lightcount > 0)
+						glUniform4fv(shader->lightPosition, lightcount, &(lightpos[0].x));
+						
+					if(shader->lightColor != -1 && lightcount > 0)
+						glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
+						
+
+					for(uint32 i=0; i<count; i++)
 					// Check if we can use instancing here
 					if(noCheck == 0)
 					{

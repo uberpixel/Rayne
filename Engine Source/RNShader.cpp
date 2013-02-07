@@ -307,6 +307,9 @@ namespace RN
 			
 			GetUniformLocation(time);
 			
+			GetUniformLocation(lightPosition);
+			GetUniformLocation(lightColor);
+			
 			char string[32];
 			for(machine_uint i=0; ; i++)
 			{

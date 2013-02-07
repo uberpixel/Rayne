@@ -43,6 +43,7 @@
 #include "RNWorld.h"
 #include "RNEntity.h"
 #include "RNRigidBodyEntity.h"
+#include "RNLightEntity.h"
 
 #include "RNMutex.h"
 #include "RNThread.h"
