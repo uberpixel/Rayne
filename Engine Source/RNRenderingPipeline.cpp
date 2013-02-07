@@ -324,8 +324,7 @@ namespace RN
 					if(shader->lightColor != -1 && lightcount > 0)
 						glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
 						
-
-					for(uint32 i=0; i<count; i++)
+					
 					// Check if we can use instancing here
 					if(noCheck == 0)
 					{
