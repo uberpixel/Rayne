@@ -434,6 +434,8 @@ namespace RN
 		_material = 0;
 		_stage = 0;
 		
+		_lightTiles = Vector2(32, 32);
+		
 		Update(0.0f);
 		UpdateProjection();
 		UpdateFrustum();

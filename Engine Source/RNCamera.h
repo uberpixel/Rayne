@@ -146,6 +146,8 @@ namespace RN
 		Camera *Stage() const { return _stage; }
 		Flags CameraFlags() const { return _flags; }
 		
+		Vector2 LightTiles() const { return _lightTiles; }
+		
 		uint32 RenderTargets() const { return (uint32)_storage->_renderTargets->Count(); }
 		Texture *RenderTarget(uint32 index=0) const { return (Texture *)_storage->_renderTargets->ObjectAtIndex(index); }
 		
@@ -177,6 +179,8 @@ namespace RN
 		Plane _frustumRight;
 		Plane _frustumTop;
 		Plane _frustumBottom;
+		
+		Vector2 _lightTiles;
 		
 		class Material *_material;
 		RenderStorage *_storage;
