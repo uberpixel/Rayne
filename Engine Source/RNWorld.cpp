@@ -89,7 +89,7 @@ namespace RN
 				if(entity->Type() == Entity::Light)
 				{
 					RenderingLight light = ((LightEntity*)entity)->Light();
-					if(camera->InFrustum(light.position, light.range))
+//					if(camera->InFrustum(light.position, light.range))
 					{
 						group.lights.push_back(light);
 					}

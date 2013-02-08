@@ -82,6 +82,11 @@ namespace RN
 			gl::DeleteVertexArrays(1, &_copyVAO);
 		}
 		
+#if !(PLATFORM_IOS)
+		glDeleteTextures(4, _lightTextures);
+		glDeleteBuffers(4, _lightBuffers);
+#endif
+		
 		free(_instancingMatrices);
 		
 		_frameLock->Release();
@@ -108,6 +113,31 @@ namespace RN
 		
 		gl::BindVertexArray(0);
 		glGenBuffers(1, &_instancingVBO);
+		
+#if !(PLATFORM_IOS)
+		glGenTextures(4, _lightTextures);
+		glGenBuffers(4, _lightBuffers);
+		
+		//indexpos
+		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[0]);
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightBuffers[0]);
+		
+		//indices
+		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[1]);
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightBuffers[1]);
+		
+		//lightpos
+		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[2]);
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[2]);
+		
+		//lightcol
+		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[3]);
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, _lightBuffers[3]);
+#endif
 	}
 	
 	void RenderingPipeline::SetDefaultFBO(GLuint fbo)
@@ -276,10 +306,12 @@ namespace RN
 		// Sort the frame
 		std::sort(objects.begin(), objects.end(), SortRenderingObject);
 		
-		// Light pre-pass
-		std::vector<RenderingLight> *lights = &group->lights;
+		// Render all cameras
+		Camera *previous = 0;
+		Camera *camera = group->camera;
 		
-//		std::vector<>
+		// Creating light list
+		std::vector<RenderingLight> *lights = &group->lights;
 		
 		Vector4 *lightpos = new Vector4[lights->size()];
 		Vector3 *lightcolor = new Vector3[lights->size()];
@@ -294,12 +326,80 @@ namespace RN
 			lightcolor[lightcount] = lightiterator->color;
 			lightcount++;
 		}
-		
-		printf("Lightcount: %i\n", lightcount);
+//		printf("Lightcount: %i\n", lightcount);
 
-		// Render all cameras
-		Camera *previous = 0;
-		Camera *camera = group->camera;
+#if !(PLATFORM_IOS)
+		std::vector<int> lightindexpos;
+		std::vector<int> lightindices;
+		std::vector<int> tempindices;
+		Rect rect = camera->Frame();
+		int tileswidth = rect.width/camera->LightTiles().x;
+		int tilesheight = rect.height/camera->LightTiles().y;
+		Vector3 corner1 = camera->CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
+		Vector3 corner2 = camera->CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
+		Vector3 corner3 = camera->CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
+		
+		Vector3 dirx = (corner2-corner1)/tileswidth;
+		Vector3 diry = (corner3-corner1)/tilesheight;
+		
+		Plane plleft;
+		Plane plright;
+		Plane pltop;
+		Plane plbottom;
+		int counter;
+		for(float x = 0.0f; x < tileswidth; x += 1.0f)
+		{
+			for(float y = 0.0f; y < tilesheight; y += 1.0f)
+			{
+				plleft.SetPlane(camera->Position(), corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
+				plright.SetPlane(camera->Position(), corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
+				pltop.SetPlane(camera->Position(), corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
+				plbottom.SetPlane(camera->Position(), corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
+				
+				counter = -1;
+				for(lightiterator=lights->begin(); lightiterator!=lights->end(); lightiterator++)
+				{
+					counter++;
+					if(plleft.Distance(lightiterator->position) > lightiterator->range)
+						continue;
+					
+					if(plright.Distance(lightiterator->position) < -lightiterator->range)
+						continue;
+					
+					if(pltop.Distance(lightiterator->position) < -lightiterator->range)
+						continue;
+					
+					if(plbottom.Distance(lightiterator->position) > lightiterator->range)
+						continue;
+					
+					tempindices.push_back(counter);
+				}
+//				printf("lights: %i \n", tempindices.size());
+				lightindexpos.push_back(static_cast<int>(lightindices.size()));
+				lightindexpos.push_back(static_cast<int>(tempindices.size()));
+				lightindices.insert(lightindices.end(), tempindices.begin(), tempindices.end());
+				tempindices.clear();
+			}
+		}
+		
+		//indexpos
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
+		glBufferData(GL_TEXTURE_BUFFER, lightindexpos.size()*sizeof(int), &lightindexpos[0], GL_STREAM_DRAW);
+		
+		//indices
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
+		glBufferData(GL_TEXTURE_BUFFER, lightindices.size()*sizeof(int), &lightindices[0], GL_STREAM_DRAW);
+		
+		//lightpos
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
+		glBufferData(GL_TEXTURE_BUFFER, lightcount*4*sizeof(float), lightpos, GL_STREAM_DRAW);
+		
+		//lightcol
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
+		glBufferData(GL_TEXTURE_BUFFER, lightcount*3*sizeof(float), lightcolor, GL_STREAM_DRAW);
+		
+		glBindBuffer(GL_TEXTURE_BUFFER, 0);
+#endif
 
 		while(camera)
 		{
@@ -334,6 +434,43 @@ namespace RN
 						
 					if(shader->lightColor != -1 && lightcount > 0)
 						glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
+#if !(PLATFORM_IOS)
+					if(shader->lightListPosition != -1)
+					{
+						_textureUnit ++;
+						_textureUnit %= _maxTextureUnits;
+						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[2]);
+						glUniform1i(shader->lightListPosition, _textureUnit);
+					}
+					
+					if(shader->lightList != -1)
+					{
+						_textureUnit ++;
+						_textureUnit %= _maxTextureUnits;
+						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[1]);
+						glUniform1i(shader->lightList, _textureUnit);
+					}
+					
+					if(shader->lightListOffset != -1)
+					{
+						_textureUnit ++;
+						_textureUnit %= _maxTextureUnits;
+						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[0]);
+						glUniform1i(shader->lightListOffset, _textureUnit);
+					}
+					
+					if(shader->lightListColor != -1)
+					{
+						_textureUnit ++;
+						_textureUnit %= _maxTextureUnits;
+						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[3]);
+						glUniform1i(shader->lightListColor, _textureUnit);
+					}
+#endif
 					
 					
 					// Matrices
@@ -443,14 +580,13 @@ namespace RN
 	
 	uint32 RenderingPipeline::BindTexture(Texture *texture)
 	{
-		uint32 unit = _textureUnit ++;
-		unit %= _maxTextureUnits;
+		_textureUnit ++;
+		_textureUnit %= _maxTextureUnits;
 		
-		glActiveTexture((GLenum)(GL_TEXTURE0 + unit));
+		glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
 		glBindTexture(GL_TEXTURE_2D, texture->Name());
-		
-		_textureUnit = unit;
-		return unit;
+
+		return _textureUnit;
 	}
 	
 	void RenderingPipeline::BindMaterial(Material *material)

@@ -65,6 +65,10 @@ namespace RN
 		GLuint lightPosition;
 		GLuint lightColor;
 		GLuint lightCount;
+		GLuint lightList;
+		GLuint lightListOffset;
+		GLuint lightListPosition;
+		GLuint lightListColor;
 		
 		Array<GLuint> texlocations;
 		Array<GLuint> targetmaplocations;
