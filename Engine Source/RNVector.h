@@ -203,6 +203,7 @@ namespace RN
 		Vector3 Cross(const Vector3& other) const;
 		bool IsEqual(const Vector3& other, float epsilon) const;
 		float Distance(const Vector3 &other) const;
+		Vector3 Lerp(const Vector3 &other, float factor) const;
 		
 		Vector3& Normalize(const float n=1.0f);
 		
@@ -365,6 +366,11 @@ namespace RN
 	{
 		Vector3 difference = *this-other;
 		return difference.Length();
+	}
+	
+	RN_INLINE Vector3 Vector3::Lerp(const Vector3 &other, float factor) const
+	{
+		return *this*factor+other*(1.0f-factor);
 	}
 	
 
