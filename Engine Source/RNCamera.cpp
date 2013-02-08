@@ -436,6 +436,7 @@ namespace RN
 		
 		Update(0.0f);
 		UpdateProjection();
+		UpdateFrustum();
 	}
 	
 	
@@ -640,5 +641,65 @@ namespace RN
 			
 			_stage->UpdateProjection();
 		}
+	}
+	
+	Vector3 Camera::CamToWorld(Vector3 dir)
+	{
+		Vector4 vec(dir.x, dir.y, dir.z, 1.0f);
+		vec = inverseProjectionMatrix->Transform(vec);
+		vec /= vec.w;
+		
+		Vector3 temp;
+		temp.x = vec.x;
+		temp.y = vec.y;
+		temp.z = vec.z;
+		temp = inverseViewMatrix->Transform(temp);
+		return temp;
+	}
+	
+	void Camera::UpdateFrustum()
+	{
+		Vector3 pos2 = CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
+		Vector3 pos3 = CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
+		Vector3 pos5 = CamToWorld(Vector3(1.0f, 1.0f, 1.0f));
+		Vector3 pos6 = CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
+		
+		Vector3 vmax;
+		Vector3 vmin;
+		vmax.x = fmax(_position.x, fmax(pos2.x, fmax(pos3.x, fmax(pos5.x, pos6.x))));
+		vmax.y = fmax(_position.y, fmax(pos2.y, fmax(pos3.y, fmax(pos5.y, pos6.y))));
+		vmax.z = fmax(_position.z, fmax(pos2.z, fmax(pos3.z, fmax(pos5.z, pos6.z))));
+		vmin.x = fmin(_position.x, fmin(pos2.x, fmin(pos3.x, fmin(pos5.x, pos6.x))));
+		vmin.y = fmin(_position.y, fmin(pos2.y, fmin(pos3.y, fmin(pos5.y, pos6.y))));
+		vmin.z = fmin(_position.z, fmin(pos2.z, fmin(pos3.z, fmin(pos5.z, pos6.z))));
+		
+		_frustumCenter = vmax+vmin;
+		_frustumCenter = _frustumCenter*0.5f;
+		_frustumRadius = _frustumCenter.Distance(vmax);
+		
+		_frustumLeft.SetPlane(_position, pos2, pos3);
+		_frustumRight.SetPlane(_position, pos5, pos6);
+		_frustumTop.SetPlane(_position, pos2, pos5);
+		_frustumBottom.SetPlane(_position, pos3, pos6);
+	}
+	
+	bool Camera::InFrustum(Vector3 &position, float &radius)
+	{
+		if(_frustumCenter.Distance(position) > _frustumRadius+radius)
+			return false;
+		
+		if(_frustumLeft.Distance(position) > radius)
+			return false;
+		
+		if(_frustumRight.Distance(position) < -radius)
+			return false;
+		
+		if(_frustumTop.Distance(position) < -radius)
+			return false;
+		
+		if(_frustumBottom.Distance(position) > radius)
+			return false;
+		
+		return true;
 	}
 }

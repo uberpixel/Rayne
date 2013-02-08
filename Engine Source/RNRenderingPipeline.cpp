@@ -279,6 +279,8 @@ namespace RN
 		// Light pre-pass
 		std::vector<RenderingLight> *lights = &group->lights;
 		
+//		std::vector<>
+		
 		Vector4 *lightpos = new Vector4[lights->size()];
 		Vector3 *lightcolor = new Vector3[lights->size()];
 		std::vector<RenderingLight>::iterator lightiterator;
@@ -292,6 +294,8 @@ namespace RN
 			lightcolor[lightcount] = lightiterator->color;
 			lightcount++;
 		}
+		
+		printf("Lightcount: %i\n", lightcount);
 
 		// Render all cameras
 		Camera *previous = 0;

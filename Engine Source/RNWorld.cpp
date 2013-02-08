@@ -73,6 +73,7 @@ namespace RN
 		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
 		{
 			Camera *camera = *i;
+			camera->UpdateFrustum();
 			camera->SynchronizePast();
 			
 			RenderingGroup group;
@@ -87,7 +88,11 @@ namespace RN
 				}
 				if(entity->Type() == Entity::Light)
 				{
-					group.lights.push_back(((LightEntity*)entity)->Light());
+					RenderingLight light = ((LightEntity*)entity)->Light();
+					if(camera->InFrustum(light.position, light.range))
+					{
+						group.lights.push_back(light);
+					}
 				}
 			}
 			

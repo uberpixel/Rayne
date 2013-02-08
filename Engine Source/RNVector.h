@@ -146,7 +146,7 @@ namespace RN
 	
 	RN_INLINE float Vector2::Length() const
 	{
-		return fabsf(x * x + y * y);
+		return sqrtf(x * x + y * y);
 	}
 
 	RN_INLINE float Vector2::Dot(const Vector2& other) const
@@ -202,6 +202,7 @@ namespace RN
 		float Dot(const Vector3& other) const;
 		Vector3 Cross(const Vector3& other) const;
 		bool IsEqual(const Vector3& other, float epsilon) const;
+		float Distance(const Vector3 &other) const;
 		
 		Vector3& Normalize(const float n=1.0f);
 		
@@ -302,7 +303,7 @@ namespace RN
 	{
 		x *= other.x;
 		y *= other.y;
-		z *= other.y;
+		z *= other.z;
 	
 		return *this;
 	}
@@ -317,7 +318,7 @@ namespace RN
 	
 	RN_INLINE float Vector3::Length() const
 	{
-		return fabsf(x * x + y * y + z * z);
+		return sqrtf(x * x + y * y + z * z);
 	}
 
 	RN_INLINE float Vector3::Dot(const Vector3& other) const
@@ -352,12 +353,18 @@ namespace RN
 
 	RN_INLINE Vector3& Vector3::Normalize(const float n)
 	{
-		float length = Length();
-		x *= n/length;
-		y *= n/length;
-		z *= n/length;
+		float length = n/Length();
+		x *= length;
+		y *= length;
+		z *= length;
 		
 		return *this;
+	}
+	
+	RN_INLINE float Vector3::Distance(const Vector3 &other) const
+	{
+		Vector3 difference = *this-other;
+		return difference.Length();
 	}
 	
 
@@ -498,7 +505,7 @@ namespace RN
 	{
 		x *= other.x;
 		y *= other.y;
-		z *= other.y;
+		z *= other.z;
 		w *= other.w;
 	
 		return *this;
@@ -516,7 +523,7 @@ namespace RN
 	
 	RN_INLINE float Vector4::Length() const
 	{
-		return fabsf(x * x + y * y + z * z + w * w);
+		return sqrtf(x * x + y * y + z * z + w * w);
 	}
 
 	RN_INLINE float Vector4::Dot (const Vector4& other) const
@@ -555,11 +562,11 @@ namespace RN
 	
 	RN_INLINE Vector4& Vector4::Normalize (const float n)
 	{
-		float length = Length();
-		x *= n/length;
-		y *= n/length;
-		z *= n/length;
-		w *= n/length;
+		float length = n/Length();
+		x *= length;
+		y *= length;
+		z *= length;
+		w *= length;
 		
 		return *this;
 	}

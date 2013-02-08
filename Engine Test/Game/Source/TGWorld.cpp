@@ -86,7 +86,6 @@ namespace TG
 		
 		RN::Matrix rot;
 		rot.MakeRotate(_camera->Rotation());
-		rot.Transpose();
 		_camera->Translate(rot.Transform(translation * -delta));
 	}
 	
@@ -230,6 +229,8 @@ namespace TG
 		sponza->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
+		
+		
 		RN::LightEntity *light = new RN::LightEntity();
 		light->SetPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
 		light->SetRange(50.0f);
@@ -255,8 +256,143 @@ namespace TG
 		light->SetRange(50.0f);
 		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
 		
+		
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(0.0f, 0.0f, 50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(50.0f, 0.0f, 50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-50.0f, 0.0f, 50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(100.0f, 0.0f, 50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-100.0f, 0.0f, 50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(0.0f, 0.0f, -50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(50.0f, 0.0f, -50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-50.0f, 0.0f, -50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(100.0f, 0.0f, -50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-100.0f, 0.0f, -50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(0.0f, 100.0f, 0.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(50.0f, 100.0f, 0.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-50.0f, 100.0f, 0.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(80.0f, 100.0f, 0.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-80.0f, 100.0f, 0.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(0.0f, 50.0f, 50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(50.0f, 50.0f, 50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-50.0f, 50.0f, 50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(100.0f, 50.0f, 50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-100.0f, 50.0f, 50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(0.0f, 50.0f, -50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(50.0f, 50.0f, -50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-50.0f, 50.0f, -50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(100.0f, 50.0f, -50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-100.0f, 50.0f, -50.0f));
+		light->SetRange(50.0f);
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
 #if RN_TARGET_OPENGL
-		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1Discard_instanced");
+/*		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight_instanced");
 		RN::Model *foliage[4];
 		
 		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
@@ -288,7 +424,7 @@ namespace TG
 				fern->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 				fern->SetPosition(RN::Vector3(x, -5.3, y));
 			}
-		}
+		}*/
 #endif
 	}
 }

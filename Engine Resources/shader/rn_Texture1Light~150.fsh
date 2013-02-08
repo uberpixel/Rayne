@@ -10,8 +10,9 @@
 precision highp float;
 
 uniform sampler2D mTexture0;
-uniform vec4 lightPosition[20];
-uniform vec3 lightColor[20];
+uniform vec4 lightPosition[50];
+uniform vec3 lightColor[50];
+uniform int lightCount;
 
 in vec2 outTexcoord;
 in vec3 outNormal;
@@ -24,12 +25,15 @@ void main()
 	vec3 normal = normalize(outNormal);
 	
 	vec3 posdiff = vec3(0.0);
-	float attenuation = 0.0f;
+	float attenuation = 0.0;
 	vec3 light = vec3(0.0);
-	for(int i = 0; i < 5; i++)
+	for(int i = 0; i < lightCount; i++)
 	{
 		posdiff = lightPosition[i].xyz-outPosition;
-		attenuation = max((lightPosition[i].w-length(posdiff))/lightPosition[i].w, 0.0);
+		attenuation = lightPosition[i].w-length(posdiff);
+//		if(attenuation < 0.0)
+//			continue;
+		attenuation = max(attenuation/lightPosition[i].w, 0.0);
 		light += lightColor[i]*dot(normal, normalize(posdiff))*attenuation;
 	}
 	

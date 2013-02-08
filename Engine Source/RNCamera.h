@@ -16,6 +16,7 @@
 #include "RNRenderingResource.h"
 #include "RNTexture.h"
 #include "RNRect.h"
+#include "RNPlane.h"
 #include "RNTransform.h"
 #include "RNColor.h"
 
@@ -131,6 +132,12 @@ namespace RN
 			inverseViewMatrix.SynchronizePast();
 		}
 		
+		Vector3 CamToWorld(Vector3 dir);
+		void UpdateFrustum();
+		bool InFrustum(Vector3 &position, float &radius);
+		
+		Vector3 const FrustumCenter() const {return _frustumCenter;}
+		float const FrustumRadius() const {return _frustumRadius;}
 		
 		RenderStorage *Storage() const { return _storage; }
 		const Color& ClearColor() const { return _clearColor; }
@@ -163,6 +170,13 @@ namespace RN
 		Color _clearColor;
 		Flags _flags;
 		float _scaleFactor;
+		
+		Vector3 _frustumCenter;
+		float _frustumRadius;
+		Plane _frustumLeft;
+		Plane _frustumRight;
+		Plane _frustumTop;
+		Plane _frustumBottom;
 		
 		class Material *_material;
 		RenderStorage *_storage;
