@@ -10,9 +10,11 @@
 precision highp float;
 
 uniform sampler2D mTexture0;
-uniform vec4 lightPosition[50];
-uniform vec3 lightColor[50];
-uniform int lightCount;
+
+uniform samplerBuffer lightListColor;
+uniform samplerBuffer lightListPosition;
+uniform isamplerBuffer lightList;
+uniform isamplerBuffer lightListOffset;
 
 in vec2 outTexcoord;
 in vec3 outNormal;
@@ -27,17 +29,35 @@ void main()
 		discard;
 	
 	vec3 normal = normalize(outNormal);
-	
 	vec3 posdiff = vec3(0.0);
 	float attenuation = 0.0;
 	vec3 light = vec3(0.0);
-	for(int i = 0; i < lightCount; i++)
+	vec4 lightpos;
+	vec3 lightcolor;
+	int lightindex = 0;
+	int tileindex = (int((gl_FragCoord.x-0.5)/64.0)*24+int((gl_FragCoord.y-0.5)/64.0))*2;
+	int listoffset = texelFetch(lightListOffset, tileindex).r;
+	int lightcount = texelFetch(lightListOffset, tileindex+1).r;
+	for(int i = 0; i < lightcount; i++)
 	{
-		posdiff = lightPosition[i].xyz-outPosition;
-		attenuation = max((lightPosition[i].w-length(posdiff))/lightPosition[i].w, 0.0);
-		light += lightColor[i]*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
+		lightindex = texelFetch(lightList, listoffset+i).r;
+		lightpos = texelFetch(lightListPosition, lightindex);
+		lightcolor = texelFetch(lightListColor, lightindex).xyz;
+		posdiff = lightpos.xyz-outPosition;
+		attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
+		light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}
 	
 	color0.rgb *= light+0.2;
+	
+	/*	if(lightcount > 20)
+	 color0.rgb = vec3(color0.r, 0.0, 0.0);
+	 else if(lightcount > 15)
+	 color0.rgb = vec3(0.0, color0.g, 0.0);
+	 else if(lightcount > 10)
+	 color0.rgb = vec3(0.0, 0.0, color0.b);
+	 else if(lightcount > 5)
+	 color0.rgb = vec3(0.0, color0.g, color0.b);*/
 	fragColor0 = color0;
 }
+

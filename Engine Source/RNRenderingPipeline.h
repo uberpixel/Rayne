@@ -103,6 +103,9 @@ namespace RN
 		
 		Vector4 _copyVertices[4];
 		GLshort _copyIndices[6];
+		
+		GLuint _lightTextures[4];
+		GLuint _lightBuffers[4];
 	};
 }
 

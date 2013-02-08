@@ -82,6 +82,11 @@ namespace RN
 			gl::DeleteVertexArrays(1, &_copyVAO);
 		}
 		
+#if !(PLATFORM_IOS)
+		glDeleteTextures(4, _lightTextures);
+		glDeleteBuffers(4, _lightBuffers);
+#endif
+		
 		free(_instancingMatrices);
 		
 		_frameLock->Release();
@@ -108,6 +113,31 @@ namespace RN
 		
 		gl::BindVertexArray(0);
 		glGenBuffers(1, &_instancingVBO);
+		
+#if !(PLATFORM_IOS)
+		glGenTextures(4, _lightTextures);
+		glGenBuffers(4, _lightBuffers);
+		
+		//indexpos
+		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[0]);
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightBuffers[0]);
+		
+		//indices
+		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[1]);
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightBuffers[1]);
+		
+		//lightpos
+		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[2]);
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[2]);
+		
+		//lightcol
+		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[3]);
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, _lightBuffers[3]);
+#endif
 	}
 	
 	void RenderingPipeline::SetDefaultFBO(GLuint fbo)
@@ -297,7 +327,8 @@ namespace RN
 			lightcount++;
 		}
 //		printf("Lightcount: %i\n", lightcount);
-		
+
+#if !(PLATFORM_IOS)
 		std::vector<int> lightindexpos;
 		std::vector<int> lightindices;
 		std::vector<int> tempindices;
@@ -328,8 +359,6 @@ namespace RN
 				counter = -1;
 				for(lightiterator=lights->begin(); lightiterator!=lights->end(); lightiterator++)
 				{
-//					if(x != 2 || y != 2) continue;
-					
 					counter++;
 					if(plleft.Distance(lightiterator->position) > lightiterator->range)
 						continue;
@@ -343,9 +372,6 @@ namespace RN
 					if(plbottom.Distance(lightiterator->position) > lightiterator->range)
 						continue;
 					
-/*					if(rand() > RAND_MAX*0.5)
-						continue;*/
-					
 					tempindices.push_back(counter);
 				}
 //				printf("lights: %i \n", tempindices.size());
@@ -356,30 +382,24 @@ namespace RN
 			}
 		}
 		
-		GLuint tex[3];
-		glGenTextures(3, tex);
-		GLuint buff[3];
-		glGenBuffers(3, buff);
-		
 		//indexpos
-		glBindTexture(GL_TEXTURE_BUFFER, tex[0]);
-		glBindBuffer(GL_TEXTURE_BUFFER, buff[0]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, buff[0]);
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
 		glBufferData(GL_TEXTURE_BUFFER, lightindexpos.size()*sizeof(int), &lightindexpos[0], GL_STREAM_DRAW);
 		
 		//indices
-		glBindTexture(GL_TEXTURE_BUFFER, tex[1]);
-		glBindBuffer(GL_TEXTURE_BUFFER, buff[1]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, buff[1]);
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
 		glBufferData(GL_TEXTURE_BUFFER, lightindices.size()*sizeof(int), &lightindices[0], GL_STREAM_DRAW);
 		
 		//lightpos
-		glBindTexture(GL_TEXTURE_BUFFER, tex[2]);
-		glBindBuffer(GL_TEXTURE_BUFFER, buff[2]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, buff[2]);
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
 		glBufferData(GL_TEXTURE_BUFFER, lightcount*4*sizeof(float), lightpos, GL_STREAM_DRAW);
 		
+		//lightcol
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
+		glBufferData(GL_TEXTURE_BUFFER, lightcount*3*sizeof(float), lightcolor, GL_STREAM_DRAW);
+		
 		glBindBuffer(GL_TEXTURE_BUFFER, 0);
+#endif
 
 		while(camera)
 		{
@@ -420,7 +440,7 @@ namespace RN
 						_textureUnit ++;
 						_textureUnit %= _maxTextureUnits;
 						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
-						glBindTexture(GL_TEXTURE_BUFFER, tex[2]);
+						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[2]);
 						glUniform1i(shader->lightListPosition, _textureUnit);
 					}
 					
@@ -429,17 +449,26 @@ namespace RN
 						_textureUnit ++;
 						_textureUnit %= _maxTextureUnits;
 						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
-						glBindTexture(GL_TEXTURE_BUFFER, tex[1]);
+						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[1]);
 						glUniform1i(shader->lightList, _textureUnit);
 					}
 					
-					if(shader->lightListIndex != -1)
+					if(shader->lightListOffset != -1)
 					{
 						_textureUnit ++;
 						_textureUnit %= _maxTextureUnits;
 						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
-						glBindTexture(GL_TEXTURE_BUFFER, tex[0]);
-						glUniform1i(shader->lightListIndex, _textureUnit);
+						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[0]);
+						glUniform1i(shader->lightListOffset, _textureUnit);
+					}
+					
+					if(shader->lightListColor != -1)
+					{
+						_textureUnit ++;
+						_textureUnit %= _maxTextureUnits;
+						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[3]);
+						glUniform1i(shader->lightListColor, _textureUnit);
 					}
 #endif
 					
@@ -544,9 +573,6 @@ namespace RN
 			if(!camera)
 				_flushCameras.push_back(previous);
 		}
-		
-		glDeleteBuffers(3, buff);
-		glDeleteTextures(3, tex);
 		
 		delete[] lightcolor;
 		delete[] lightpos;

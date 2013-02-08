@@ -88,7 +88,7 @@ namespace TG
 		rot.MakeRotate(_camera->Rotation());
 		_camera->Translate(rot.Transform(translation * -delta));
 		
-		RN::Vector3 temp = rot.Transform(RN::Vector3(0.0, 0.0, 1.0));
+//		RN::Vector3 temp = rot.Transform(RN::Vector3(0.0, 0.0, 1.0));
 //		printf("camdir x: %f, y: %f, z: %f\n", temp.x, temp.y, temp.z);
 	}
 	
@@ -393,6 +393,14 @@ namespace TG
 		light->SetPosition(RN::Vector3(-100.0f, 50.0f, -50.0f));
 		light->SetRange(50.0f);
 		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		
+		for(int i = 0; i < 100; i++)
+		{
+			light = new RN::LightEntity();
+			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*200.0f-100.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*100.0f-50.0f));
+			light->SetRange((float)(rand())/RAND_MAX*50.0f);
+			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
+		}
 		
 #if RN_TARGET_OPENGL
 /*		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight_instanced");
