@@ -338,6 +338,7 @@ namespace RN
 		Vector3 corner1 = camera->CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
 		Vector3 corner2 = camera->CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
 		Vector3 corner3 = camera->CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
+		Vector2 lighttilesize = camera->LightTiles()*_scaleFactor;
 		
 		Vector3 dirx = (corner2-corner1)/tileswidth;
 		Vector3 diry = (corner3-corner1)/tilesheight;
@@ -469,6 +470,11 @@ namespace RN
 						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
 						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[3]);
 						glUniform1i(shader->lightListColor, _textureUnit);
+					}
+					
+					if(shader->lightTileSize != -1)
+					{
+						glUniform2fv(shader->lightTileSize, 1, &lighttilesize.x);
 					}
 #endif
 					

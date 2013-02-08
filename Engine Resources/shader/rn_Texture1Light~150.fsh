@@ -15,6 +15,7 @@ uniform samplerBuffer lightListColor;
 uniform samplerBuffer lightListPosition;
 uniform isamplerBuffer lightList;
 uniform isamplerBuffer lightListOffset;
+uniform vec2 lightTileSize;
 
 in vec2 outTexcoord;
 in vec3 outNormal;
@@ -32,7 +33,7 @@ void main()
 	vec4 lightpos;
 	vec3 lightcolor;
 	int lightindex = 0;
-	int tileindex = (int((gl_FragCoord.x-0.5)/64.0)*24+int((gl_FragCoord.y-0.5)/64.0))*2;
+	int tileindex = (int((gl_FragCoord.x-0.5)/lightTileSize.x)*24+int((gl_FragCoord.y-0.5)/lightTileSize.y))*2;
 	int listoffset = texelFetch(lightListOffset, tileindex).r;
 	int lightcount = texelFetch(lightListOffset, tileindex+1).r;
 	for(int i = 0; i < lightcount; i++)
