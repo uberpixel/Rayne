@@ -33,15 +33,11 @@ void main()
 		attenuation = lightPosition[i].w-length(posdiff);
 //		if(attenuation < 0.0)
 //			continue;
-//		attenuation = max(attenuation/lightPosition[i].w, 0.0);
-		if(attenuation < 0.0)
-			attenuation = 0.0;
-		else
-			attenuation = 0.3;
-		light += lightColor[i]/**max(dot(normal, normalize(posdiff)), 0.0)*/*attenuation;//*attenuation;
+		attenuation = max(attenuation/lightPosition[i].w, 0.0);
+		light += lightColor[i]*dot(normal, normalize(posdiff))*attenuation;
 	}
 	
 	vec4 color0 = texture(mTexture0, outTexcoord);
-	color0.rgb *= light;//+0.2;
+	color0.rgb *= light;
 	fragColor0 = color0;
 }

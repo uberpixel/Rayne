@@ -139,8 +139,6 @@ namespace RN
 		Vector3 const FrustumCenter() const {return _frustumCenter;}
 		float const FrustumRadius() const {return _frustumRadius;}
 		
-		Vector2 const LightTiles() const {return _lightTiles;}
-		
 		RenderStorage *Storage() const { return _storage; }
 		const Color& ClearColor() const { return _clearColor; }
 		const Rect& Frame() const { return _frame; }
@@ -172,8 +170,6 @@ namespace RN
 		Color _clearColor;
 		Flags _flags;
 		float _scaleFactor;
-		
-		Vector2 _lightTiles;
 		
 		Vector3 _frustumCenter;
 		float _frustumRadius;

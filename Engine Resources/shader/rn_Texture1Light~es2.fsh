@@ -27,12 +27,11 @@ void main()
 	for(int i = 0; i < 3; i++)
 	{
 		posdiff = lightPosition[i].xyz-outPosition;
-		attenuation = (lightPosition[i].w-length(posdiff))>0.0?0.3:0.0;
-//		attenuation = max((lightPosition[i].w-length(posdiff))/lightPosition[i].w, 0.0);
-		light += lightColor[i]/**max(dot(normal, normalize(posdiff)), 0.0)*/*attenuation;
+		attenuation = max((lightPosition[i].w-length(posdiff))/lightPosition[i].w, 0.0);
+		light += lightColor[i]*dot(normal, normalize(posdiff))*attenuation;
 	}
 	
 	mediump vec4 color0 = texture2D(mTexture0, outTexcoord);
-	color0.rgb *= light;//+0.2;
+	color0.rgb *= light;
 	gl_FragColor = color0;
 }
