@@ -310,6 +310,9 @@ namespace RN
 			GetUniformLocation(lightPosition);
 			GetUniformLocation(lightColor);
 			GetUniformLocation(lightCount);
+			GetUniformLocation(lightList);
+			GetUniformLocation(lightListIndex);
+			GetUniformLocation(lightListPosition);
 			
 			char string[32];
 			for(machine_uint i=0; ; i++)

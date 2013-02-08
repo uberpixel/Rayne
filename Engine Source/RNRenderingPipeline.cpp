@@ -296,8 +296,7 @@ namespace RN
 			lightcolor[lightcount] = lightiterator->color;
 			lightcount++;
 		}
-		
-		printf("Lightcount: %i\n", lightcount);
+//		printf("Lightcount: %i\n", lightcount);
 		
 		std::vector<int> lightindexpos;
 		std::vector<int> lightindices;
@@ -309,8 +308,8 @@ namespace RN
 		Vector3 corner2 = camera->CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
 		Vector3 corner3 = camera->CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
 		
-		Vector3 dirx = (corner2-corner1)/camera->LightTiles().x;
-		Vector3 diry = (corner3-corner1)/camera->LightTiles().y;
+		Vector3 dirx = (corner2-corner1)/tileswidth;
+		Vector3 diry = (corner3-corner1)/tilesheight;
 		
 		Plane plleft;
 		Plane plright;
@@ -321,14 +320,16 @@ namespace RN
 		{
 			for(float y = 0.0f; y < tilesheight; y += 1.0f)
 			{
-				plleft.SetPlane(camera->Position(), corner1+dirx*(float)x+diry*(float)y, corner1+dirx*(float)x+diry*(float)(y+1.0f));
-				plright.SetPlane(camera->Position(), corner1+dirx*(float)(x+1.0f)+diry*(float)y, corner1+dirx*(float)(x+1.0f)+diry*(float)(y+1.0f));
-				pltop.SetPlane(camera->Position(), corner1+dirx*(float)x+diry*(float)(y+1.0f), corner1+dirx*(float)(x+1.0f)+diry*(float)(y+1.0f));
-				plbottom.SetPlane(camera->Position(), corner1+dirx*(float)x+diry*(float)y, corner1+dirx*(float)(x+1.0f)+diry*(float)y);
+				plleft.SetPlane(camera->Position(), corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
+				plright.SetPlane(camera->Position(), corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
+				pltop.SetPlane(camera->Position(), corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
+				plbottom.SetPlane(camera->Position(), corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
 				
 				counter = -1;
 				for(lightiterator=lights->begin(); lightiterator!=lights->end(); lightiterator++)
 				{
+//					if(x != 2 || y != 2) continue;
+					
 					counter++;
 					if(plleft.Distance(lightiterator->position) > lightiterator->range)
 						continue;
@@ -342,14 +343,43 @@ namespace RN
 					if(plbottom.Distance(lightiterator->position) > lightiterator->range)
 						continue;
 					
+/*					if(rand() > RAND_MAX*0.5)
+						continue;*/
+					
 					tempindices.push_back(counter);
 				}
-				printf("lights: %i \n", counter);
+//				printf("lights: %i \n", tempindices.size());
 				lightindexpos.push_back(static_cast<int>(lightindices.size()));
+				lightindexpos.push_back(static_cast<int>(tempindices.size()));
 				lightindices.insert(lightindices.end(), tempindices.begin(), tempindices.end());
 				tempindices.clear();
 			}
 		}
+		
+		GLuint tex[3];
+		glGenTextures(3, tex);
+		GLuint buff[3];
+		glGenBuffers(3, buff);
+		
+		//indexpos
+		glBindTexture(GL_TEXTURE_BUFFER, tex[0]);
+		glBindBuffer(GL_TEXTURE_BUFFER, buff[0]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, buff[0]);
+		glBufferData(GL_TEXTURE_BUFFER, lightindexpos.size()*sizeof(int), &lightindexpos[0], GL_STREAM_DRAW);
+		
+		//indices
+		glBindTexture(GL_TEXTURE_BUFFER, tex[1]);
+		glBindBuffer(GL_TEXTURE_BUFFER, buff[1]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, buff[1]);
+		glBufferData(GL_TEXTURE_BUFFER, lightindices.size()*sizeof(int), &lightindices[0], GL_STREAM_DRAW);
+		
+		//lightpos
+		glBindTexture(GL_TEXTURE_BUFFER, tex[2]);
+		glBindBuffer(GL_TEXTURE_BUFFER, buff[2]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, buff[2]);
+		glBufferData(GL_TEXTURE_BUFFER, lightcount*4*sizeof(float), lightpos, GL_STREAM_DRAW);
+		
+		glBindBuffer(GL_TEXTURE_BUFFER, 0);
 
 		while(camera)
 		{
@@ -384,6 +414,34 @@ namespace RN
 						
 					if(shader->lightColor != -1 && lightcount > 0)
 						glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
+#if !(PLATFORM_IOS)
+					if(shader->lightListPosition != -1)
+					{
+						_textureUnit ++;
+						_textureUnit %= _maxTextureUnits;
+						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+						glBindTexture(GL_TEXTURE_BUFFER, tex[2]);
+						glUniform1i(shader->lightListPosition, _textureUnit);
+					}
+					
+					if(shader->lightList != -1)
+					{
+						_textureUnit ++;
+						_textureUnit %= _maxTextureUnits;
+						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+						glBindTexture(GL_TEXTURE_BUFFER, tex[1]);
+						glUniform1i(shader->lightList, _textureUnit);
+					}
+					
+					if(shader->lightListIndex != -1)
+					{
+						_textureUnit ++;
+						_textureUnit %= _maxTextureUnits;
+						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+						glBindTexture(GL_TEXTURE_BUFFER, tex[0]);
+						glUniform1i(shader->lightListIndex, _textureUnit);
+					}
+#endif
 					
 					
 					// Matrices
@@ -487,20 +545,22 @@ namespace RN
 				_flushCameras.push_back(previous);
 		}
 		
+		glDeleteBuffers(3, buff);
+		glDeleteTextures(3, tex);
+		
 		delete[] lightcolor;
 		delete[] lightpos;
 	}
 	
 	uint32 RenderingPipeline::BindTexture(Texture *texture)
 	{
-		uint32 unit = _textureUnit ++;
-		unit %= _maxTextureUnits;
+		_textureUnit ++;
+		_textureUnit %= _maxTextureUnits;
 		
-		glActiveTexture((GLenum)(GL_TEXTURE0 + unit));
+		glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
 		glBindTexture(GL_TEXTURE_2D, texture->Name());
-		
-		_textureUnit = unit;
-		return unit;
+
+		return _textureUnit;
 	}
 	
 	void RenderingPipeline::BindMaterial(Material *material)

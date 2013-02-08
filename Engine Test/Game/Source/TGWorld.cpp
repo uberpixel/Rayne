@@ -87,6 +87,9 @@ namespace TG
 		RN::Matrix rot;
 		rot.MakeRotate(_camera->Rotation());
 		_camera->Translate(rot.Transform(translation * -delta));
+		
+		RN::Vector3 temp = rot.Transform(RN::Vector3(0.0, 0.0, 1.0));
+//		printf("camdir x: %f, y: %f, z: %f\n", temp.x, temp.y, temp.z);
 	}
 	
 	

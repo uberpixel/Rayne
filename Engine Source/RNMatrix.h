@@ -223,6 +223,7 @@ namespace RN
 		
 		m[0] = xFac;
 		m[5] = yFac;
+		m[10] = 0.0f;
 		m[11] = -(clipfar - clipnear) / (2.0f * clipfar * clipnear);
 		m[14] = -1.0f;
 		m[15] = (clipfar + clipnear) / (2.0f * clipfar * clipnear);
