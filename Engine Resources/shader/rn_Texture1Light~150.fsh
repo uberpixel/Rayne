@@ -46,7 +46,7 @@ void main()
 		light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}
 	
-	color0.rgb *= light+0.2;
+	color0.rgb *= light+0.0;
 /*	if(lightcount > 20)
 		color0.rgb = vec3(color0.r, 0.0, 0.0);
 	else if(lightcount > 15)
