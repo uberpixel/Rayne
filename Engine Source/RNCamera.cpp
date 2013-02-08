@@ -407,8 +407,8 @@ namespace RN
 	{
 		_storage = 0;
 		
-		Initialize();
 		SetRenderStorage(storage);
+		Initialize();
 		
 		World::SharedInstance()->AddCamera(this);
 	}

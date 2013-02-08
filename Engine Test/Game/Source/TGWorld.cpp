@@ -12,8 +12,14 @@ namespace TG
 {
 	World::World()
 	{
-		_camera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatColorDepthStencil);
+		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
+		
+		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
 		CreateWorld();
+/*
+		RN::Camera *depthcam  = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagInherit);
+		_camera->AddStage(depthcam);*/
 		
 #if RN_PLATFORM_MAC_OS
 //		CreateSSAOStage();
