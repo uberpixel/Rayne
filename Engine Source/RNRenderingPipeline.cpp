@@ -279,13 +279,11 @@ namespace RN
 		// Light pre-pass
 		std::vector<RenderingLight> *lights = &group->lights;
 		
-//		std::vector<>
-		
 		Vector4 *lightpos = new Vector4[lights->size()];
 		Vector3 *lightcolor = new Vector3[lights->size()];
-		std::vector<RenderingLight>::iterator lightiterator;
+
 		int lightcount = 0;
-		for(lightiterator=lights->begin(); lightiterator!=lights->end(); lightiterator++)
+		for(auto lightiterator=lights->begin(); lightiterator!=lights->end(); lightiterator++)
 		{
 			lightpos[lightcount].x = lightiterator->position.x;
 			lightpos[lightcount].y = lightiterator->position.y;
@@ -295,7 +293,7 @@ namespace RN
 			lightcount++;
 		}
 		
-		printf("Lightcount: %i\n", lightcount);
+		//printf("Lightcount: %i\n", lightcount);
 
 		// Render all cameras
 		Camera *previous = 0;
@@ -347,38 +345,7 @@ namespace RN
 						glUniformMatrix4fv(shader->matView, 1, GL_FALSE, camera->viewMatrix.AccessPast().m);
 					
 					if(shader->matViewInverse != -1)
-						glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, camera->inverseViewMatrix.AccessPast().m);
-					
-					if(shader->matModel != -1)
-						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, i->transform->m);
-					
-					if(shader->matModelInverse != -1)
-						glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, i->transform->Inverse().m);
-					
-					if(shader->matViewModel != -1)
-					{
-						Matrix viewModel = camera->viewMatrix.AccessPast() * (*i->transform);
-						glUniformMatrix4fv(shader->matViewModel, 1, GL_FALSE, viewModel.m);
-					}
-					
-					if(shader->matViewModelInverse != -1)
-					{
-						Matrix viewModel = camera->inverseViewMatrix * i->transform->Inverse();
-						glUniformMatrix4fv(shader->matViewModelInverse, 1, GL_FALSE, viewModel.m);
-					}
-					
-					if(shader->matProjViewModel != -1)
-					{
-						Matrix projViewModel = camera->projectionMatrix.AccessPast() * camera->viewMatrix.AccessPast() * (*i->transform);
-						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
-					}
-					
-					if(shader->matProjViewModelInverse != -1)
-					{
-						Matrix projViewModel = camera->inverseProjectionMatrix.AccessPast() * camera->inverseViewMatrix.AccessPast() * i->transform->Inverse();
-						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
-					}
-						
+						glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, camera->inverseViewMatrix.AccessPast().m);						
 					
 					// Check if we can use instancing here
 					if(noCheck == 0)
@@ -415,6 +382,37 @@ namespace RN
 					else
 					{
 						noCheck --;
+					}
+					
+					
+					if(shader->matModel != -1)
+						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, i->transform->m);
+					
+					if(shader->matModelInverse != -1)
+						glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, i->transform->Inverse().m);
+					
+					if(shader->matViewModel != -1)
+					{
+						Matrix viewModel = camera->viewMatrix.AccessPast() * (*i->transform);
+						glUniformMatrix4fv(shader->matViewModel, 1, GL_FALSE, viewModel.m);
+					}
+					
+					if(shader->matViewModelInverse != -1)
+					{
+						Matrix viewModel = camera->inverseViewMatrix * i->transform->Inverse();
+						glUniformMatrix4fv(shader->matViewModelInverse, 1, GL_FALSE, viewModel.m);
+					}
+					
+					if(shader->matProjViewModel != -1)
+					{
+						Matrix projViewModel = camera->projectionMatrix.AccessPast() * camera->viewMatrix.AccessPast() * (*i->transform);
+						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+					}
+					
+					if(shader->matProjViewModelInverse != -1)
+					{
+						Matrix projViewModel = camera->inverseProjectionMatrix.AccessPast() * camera->inverseViewMatrix.AccessPast() * i->transform->Inverse();
+						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 					}
 					
 					// Render the mesh normally				
