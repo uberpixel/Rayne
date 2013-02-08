@@ -35,9 +35,9 @@ void main()
 	{
 		posdiff = lightPosition[i].xyz-outPosition;
 		attenuation = max((lightPosition[i].w-length(posdiff))/lightPosition[i].w, 0.0);
-		light += lightColor[i]*dot(normal, normalize(posdiff))*attenuation*attenuation;
+		light += lightColor[i]*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}
 	
-	color0.rgb *= light;
+	color0.rgb *= light+0.2;
 	fragColor0 = color0;
 }

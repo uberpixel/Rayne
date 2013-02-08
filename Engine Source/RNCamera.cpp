@@ -431,6 +431,8 @@ namespace RN
 		_clearColor  = Color(0.193f, 0.435f, 0.753f, 1.0f);
 		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
 		
+		_lightTiles = Vector2(32.0f, 32.0f);
+		
 		_material = 0;
 		_stage = 0;
 		

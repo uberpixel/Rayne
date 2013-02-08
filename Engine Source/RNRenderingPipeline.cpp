@@ -276,10 +276,12 @@ namespace RN
 		// Sort the frame
 		std::sort(objects.begin(), objects.end(), SortRenderingObject);
 		
-		// Light pre-pass
-		std::vector<RenderingLight> *lights = &group->lights;
+		// Render all cameras
+		Camera *previous = 0;
+		Camera *camera = group->camera;
 		
-//		std::vector<>
+		// Creating light list
+		std::vector<RenderingLight> *lights = &group->lights;
 		
 		Vector4 *lightpos = new Vector4[lights->size()];
 		Vector3 *lightcolor = new Vector3[lights->size()];
@@ -296,10 +298,58 @@ namespace RN
 		}
 		
 		printf("Lightcount: %i\n", lightcount);
-
-		// Render all cameras
-		Camera *previous = 0;
-		Camera *camera = group->camera;
+		
+		std::vector<int> lightindexpos;
+		std::vector<int> lightindices;
+		std::vector<int> tempindices;
+		Rect rect = camera->Frame();
+		int tileswidth = rect.width/camera->LightTiles().x;
+		int tilesheight = rect.height/camera->LightTiles().y;
+		Vector3 corner1 = camera->CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
+		Vector3 corner2 = camera->CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
+		Vector3 corner3 = camera->CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
+		
+		Vector3 dirx = (corner2-corner1)/camera->LightTiles().x;
+		Vector3 diry = (corner3-corner1)/camera->LightTiles().y;
+		
+		Plane plleft;
+		Plane plright;
+		Plane pltop;
+		Plane plbottom;
+		int counter;
+		for(float x = 0.0f; x < tileswidth; x += 1.0f)
+		{
+			for(float y = 0.0f; y < tilesheight; y += 1.0f)
+			{
+				plleft.SetPlane(camera->Position(), corner1+dirx*(float)x+diry*(float)y, corner1+dirx*(float)x+diry*(float)(y+1.0f));
+				plright.SetPlane(camera->Position(), corner1+dirx*(float)(x+1.0f)+diry*(float)y, corner1+dirx*(float)(x+1.0f)+diry*(float)(y+1.0f));
+				pltop.SetPlane(camera->Position(), corner1+dirx*(float)x+diry*(float)(y+1.0f), corner1+dirx*(float)(x+1.0f)+diry*(float)(y+1.0f));
+				plbottom.SetPlane(camera->Position(), corner1+dirx*(float)x+diry*(float)y, corner1+dirx*(float)(x+1.0f)+diry*(float)y);
+				
+				counter = -1;
+				for(lightiterator=lights->begin(); lightiterator!=lights->end(); lightiterator++)
+				{
+					counter++;
+					if(plleft.Distance(lightiterator->position) > lightiterator->range)
+						continue;
+					
+					if(plright.Distance(lightiterator->position) < -lightiterator->range)
+						continue;
+					
+					if(pltop.Distance(lightiterator->position) < -lightiterator->range)
+						continue;
+					
+					if(plbottom.Distance(lightiterator->position) > lightiterator->range)
+						continue;
+					
+					tempindices.push_back(counter);
+				}
+				printf("lights: %i \n", counter);
+				lightindexpos.push_back(static_cast<int>(lightindices.size()));
+				lightindices.insert(lightindices.end(), tempindices.begin(), tempindices.end());
+				tempindices.clear();
+			}
+		}
 
 		while(camera)
 		{
