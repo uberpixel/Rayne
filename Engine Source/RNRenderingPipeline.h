@@ -48,7 +48,7 @@ namespace RN
 		
 		void DrawGroup(RenderingGroup *group);
 		void DrawMesh(Mesh *mesh);
-		void DrawMeshInstanced(std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count);
+		void DrawMeshInstanced(Material *material, std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count);
 		void DrawCameraStage(Camera *camera, Camera *stage);
 		
 		void FlushCameras();

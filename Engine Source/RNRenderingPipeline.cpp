@@ -491,7 +491,49 @@ namespace RN
 					
 					if(shader->matViewInverse != -1)
 						glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, camera->inverseViewMatrix.AccessPast().m);
+						
 					
+					// Check if we can use instancing here
+					if(noCheck == 0)
+					{
+						if(SupportsOpenGLFeature(kOpenGLFeatureInstancing))
+						{
+							auto end = i + 1;
+							offset = 1;
+							
+							while(end != objects.end())
+							{
+								if(end->mesh != mesh)
+									break;
+								
+								if(!surfaceMaterial && end->material != material)
+									break;
+								
+								offset ++;
+								end ++;
+							}
+							
+							if(offset >= kRNRenderingPipelineInstancingCutOff)
+							{
+								if(material->Shader()->imatModel != -1)
+								{
+									BindMaterial(material);
+									DrawMeshInstanced(material, i, end, offset);
+									
+									continue;
+								}
+							}
+							
+							noCheck = offset;
+							offset = 1;
+						}
+					}
+					else
+					{
+						noCheck --;
+					}
+					
+					// Send the other matrices to the shader
 					if(shader->matModel != -1)
 						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, i->transform->m);
 					
@@ -520,44 +562,6 @@ namespace RN
 					{
 						Matrix projViewModel = camera->inverseProjectionMatrix.AccessPast() * camera->inverseViewMatrix.AccessPast() * i->transform->Inverse();
 						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
-					}
-						
-					
-					// Check if we can use instancing here
-					if(noCheck == 0)
-					{
-						if(SupportsOpenGLFeature(kOpenGLFeatureInstancing))
-						{
-							auto end = i + 1;
-							offset = 1;
-							
-							while(end != objects.end())
-							{
-								if(end->mesh != mesh)
-									break;
-								
-								offset ++;
-								end ++;
-							}
-							
-							if(offset >= kRNRenderingPipelineInstancingCutOff)
-							{
-								if(material->Shader()->imatModel != -1)
-								{
-									BindMaterial(material);
-									DrawMeshInstanced(i, end, offset);
-									
-									continue;
-								}
-							}
-							
-							noCheck = offset;
-							offset = 1;
-						}
-					}
-					else
-					{
-						noCheck --;
 					}
 					
 					// Render the mesh normally				
@@ -735,13 +739,12 @@ namespace RN
 		_currentMesh = mesh;
 	}
 	
-	void RenderingPipeline::DrawMeshInstanced(std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count)
+	void RenderingPipeline::DrawMeshInstanced(Material *material, std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count)
 	{
 		Mesh *mesh = begin->mesh;
 		MeshLODStage *stage = mesh->LODStage(0);
 		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
 		
-		Material *material = begin->material;
 		Shader *shader = material->Shader();
 		
 		if(count > _numInstancingMatrices)
