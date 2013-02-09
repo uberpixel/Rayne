@@ -64,22 +64,23 @@ namespace RN
 			_formatChanged = true;
 			_format = format;
 			
-			_clearMask = GL_COLOR_BUFFER_BIT;
+			_clearMask = 0;
 			
-			switch(format)
+			RN_ASSERT(format > 0, "You must specify at least one buffer in the buffer format!");
+			
+			if(_format & BufferFormatStencil)
 			{
-				case BufferFormatColor:
-					_clearMask = GL_COLOR_BUFFER_BIT;
-					break;
-					
-				case BufferFormatColorDepth:
-					_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
-					break;
-					
-				case BufferFormatColorDepthStencil:
-					_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
-					break;
+				RN_ASSERT((_format & BufferFormatDepth), "When specifying a stencil buffer, you must also specify a depth buffer!");
 			}
+			
+			if(_format & BufferFormatColor)
+				_clearMask |= GL_COLOR_BUFFER_BIT;
+			
+			if(_format & BufferFormatDepth)
+				_clearMask |= GL_DEPTH_BUFFER_BIT;
+			
+			if(_format & BufferFormatStencil)
+				_clearMask |= GL_STENCIL_BUFFER_BIT;
 		}
 	}
 	
@@ -226,13 +227,23 @@ namespace RN
 		if(_formatChanged)
 		{
 			// Remove unused buffers
-			if(_stencilbuffer && _format != BufferFormatColorDepthStencil)
+			if(_boundRenderTargets > 0 && !(_format & BufferFormatColor))
+			{
+				for(machine_uint i=0; i<_boundRenderTargets; i++)
+				{
+					glFramebufferTexture2D(GL_FRAMEBUFFER, (GLenum)(GL_COLOR_ATTACHMENT0 + i), GL_TEXTURE_2D, 0, 0);
+				}
+				
+				_boundRenderTargets = 0;
+			}
+			
+			if(_stencilbuffer && !(_format & BufferFormatStencil))
 			{
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
 				_stencilbuffer = 0;
 			}
 			
-			if(_depthbuffer && (_format != BufferFormatColorDepth || _format != BufferFormatColorDepthStencil))
+			if(_depthbuffer && !(_format & BufferFormatDepth || _format & BufferFormatStencil))
 			{
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
 				glDeleteRenderbuffers(1, &_depthbuffer);
@@ -240,13 +251,13 @@ namespace RN
 			}
 			
 			// Create new buffers
-			if(_depthbuffer == 0 && (_format == BufferFormatColorDepth || _format == BufferFormatColorDepthStencil))
+			if(_depthbuffer == 0 && (_format & BufferFormatDepth))
 			{
 				glGenRenderbuffers(1, &_depthbuffer);
 				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthbuffer);
 				
-				if(_format == BufferFormatColorDepthStencil)
+				if(_format & BufferFormatStencil)
 				{
 					_stencilbuffer = _depthbuffer;
 					glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilbuffer);
@@ -257,7 +268,7 @@ namespace RN
 			_frameChanged  = true;
 		}
 		
-		if(_renderTargetsChanged)
+		if(_renderTargetsChanged && (_format & BufferFormatColor))
 		{
 			for(machine_uint i=_renderTargets->Count(); i<_boundRenderTargets; i++)
 			{
@@ -271,9 +282,9 @@ namespace RN
 			}
 			
 			_boundRenderTargets = (uint32)_renderTargets->Count();
-			UpdateDrawBuffers(_boundRenderTargets);
-			
 			_renderTargetsChanged = false;
+			
+			UpdateDrawBuffers(_boundRenderTargets);
 		}
 		
 		// Allocate storage for the buffers
@@ -292,13 +303,13 @@ namespace RN
 			}
 			
 #if RN_TARGET_OPENGL
-			if(_format == BufferFormatColorDepth)
+			if(_format & BufferFormatDepth)
 			{
 				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
 			}
 			
-			if(_format == BufferFormatColorDepthStencil)
+			if(_format & BufferFormatStencil)
 			{
 				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
@@ -306,7 +317,7 @@ namespace RN
 #endif
 			
 #if RN_TARGET_OPENGL_ES
-			if(_format == BufferFormatColorDepth)
+			if(_format & BufferFormatDepth)
 			{
 				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24_OES, width, height);
@@ -314,7 +325,7 @@ namespace RN
 				RN_CHECKOPENGL();
 			}
 			
-			if(_format == BufferFormatColorDepthStencil)
+			if(_format & BufferFormatStencil)
 			{
 				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
 				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8_OES, width, height);
@@ -351,20 +362,20 @@ namespace RN
 	
 	
 	Camera::Camera(const Vector2& size, Texture *target) :
-		Camera(size, target, FlagUpdateAspect | FlagFullscreen)
+		Camera(size, target, FlagDefaults)
 	{}
 	
 	Camera::Camera(const Vector2& size, Texture *target, Flags flags) :
-		Camera(size, target, flags, RenderStorage::BufferFormat::BufferFormatColorDepthStencil)
+		Camera(size, target, flags, RenderStorage::BufferFormatComplete)
 	{}
 	
 	
 	Camera::Camera(const Vector2& size, Texture::Format targetFormat) :
-		Camera(size, targetFormat, FlagUpdateAspect | FlagFullscreen)
+		Camera(size, targetFormat, FlagDefaults)
 	{}
 	
 	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags) :
-		Camera(size, targetFormat, flags, RenderStorage::BufferFormat::BufferFormatColorDepthStencil)
+		Camera(size, targetFormat, flags, RenderStorage::BufferFormatComplete)
 	{}
 	
 	
@@ -476,10 +487,12 @@ namespace RN
 		{
 #if RN_PLATFORM_IOS
 			glClearDepthf(1.0f);
+			glClearStencil(0);
 			glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
 #endif
 #if RN_PLATFORM_MAC_OS
 			glClearDepth(1.0f);
+			glClearStencil(0);
 			glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
 #endif
 			
@@ -496,7 +509,9 @@ namespace RN
 		if(_frame != frame)
 		{
 			_frame = frame;
-			_storage->SetFrame(frame);
+			
+			if(_flags & FlagUpdateStorageFrame)
+				_storage->SetFrame(frame);
 			
 			UpdateProjection();
 		}
@@ -519,6 +534,9 @@ namespace RN
 		
 		_storage->Release();
 		_storage = storage->Retain<RenderStorage>();
+		
+		if(_flags & FlagUpdateStorageFrame)
+			_storage->SetFrame(_frame);
 	}
 	
 	// Stages

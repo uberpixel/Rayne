@@ -12,11 +12,12 @@ namespace TG
 {
 	World::World()
 	{
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatColorDepthStencil);
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
 		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
 		
-		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
+		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 0.0));
+		
 		CreateWorld();
 /*
 		RN::Camera *depthcam  = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagInherit);

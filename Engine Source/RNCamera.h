@@ -30,26 +30,30 @@ namespace RN
 	{
 	friend class Camera;
 	public:
-		typedef enum
+		enum
 		{
-			BufferFormatColor,
-			BufferFormatColorDepth,
-			BufferFormatColorDepthStencil
-		} BufferFormat;
+			BufferFormatColor = (1 << 0),
+			BufferFormatDepth = (1 << 1),
+			BufferFormatStencil = (1 << 2),
+			
+			BufferFormatComplete = (BufferFormatColor | BufferFormatDepth | BufferFormatStencil)
+		};
+		typedef uint32 BufferFormat;
 		
 		RenderStorage(BufferFormat format);
 		virtual ~RenderStorage();
 		
 		void SetFrame(const Rect& frame);
 		void SetBufferFormat(BufferFormat format);
+		void UpdateBuffer();
 		
 		void SetRenderTarget(Texture *target, uint32 index=0);
 		void AddRenderTarget(Texture *target);
 		void AddRenderTarget(Texture::Format format);
 		void RemoveRenderTarget(Texture *target);
 		
-		bool HasDepthbuffer() const { return (_format == BufferFormatColorDepth || _format == BufferFormatColorDepthStencil); }
-		bool HasStencilbuffer() const { return _format == BufferFormatColorDepthStencil; }
+		bool HasDepthbuffer() const { return (_format & BufferFormatDepth); }
+		bool HasStencilbuffer() const { return (_format & BufferFormatStencil); }
 		
 		uint32 RenderTargets() const { return (uint32)_renderTargets->Count(); }
 		Texture *RenderTarget(uint32 index=0) const { return (Texture *)_renderTargets->ObjectAtIndex(index); }
@@ -58,7 +62,6 @@ namespace RN
 		static uint32 MaxRenderTargets();
 		
 	private:
-		void UpdateBuffer();
 		void UpdateDrawBuffers(uint32 count);
 		void CheckFramebufferStatus();
 		
@@ -89,7 +92,10 @@ namespace RN
 			FlagUpdateAspect = (1 << 1),
 			FlagInherit = (1 << 2),
 			FlagFullscreen = (1 << 3),
-			FlagNoClear = (1 << 4)
+			FlagNoClear = (1 << 4),
+			FlagUpdateStorageFrame = (1 << 5),
+			
+			FlagDefaults = (FlagFullscreen | FlagUpdateAspect | FlagUpdateStorageFrame)
 		};
 		typedef uint32 Flags;
 		
