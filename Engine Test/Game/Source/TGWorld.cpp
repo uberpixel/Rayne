@@ -15,12 +15,17 @@ namespace TG
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
 		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
 		
+		//RN::Shader *surfaceShader = RN::Shader::WithFile("shader/SurfaceNormals");
+		//RN::Material *surfaceMaterial = new RN::Material(surfaceShader);
+		
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 0.0));
+		//_camera->SetMaterial(surfaceMaterial);
 		
 		CreateWorld();
-/*
-		RN::Camera *depthcam  = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagInherit);
+		
+		/*RN::Camera *depthcam = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagInherit | RN::Camera::FlagNoClear);
+		depthcam->SetName("Depth Cam");
 		_camera->AddStage(depthcam);*/
 		
 #if RN_PLATFORM_MAC_OS

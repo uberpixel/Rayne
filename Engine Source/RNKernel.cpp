@@ -14,10 +14,10 @@
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
-#else
+#endif
+
 typedef RN::Application *(*RNApplicationEntryPointer)(RN::Kernel *);
 RNApplicationEntryPointer __ApplicationEntry = 0;
-#endif
 
 namespace RN
 {
@@ -87,6 +87,9 @@ namespace RN
 		__ApplicationEntry = (RNApplicationEntryPointer)dlsym(_appHandle, "RNApplicationCreate");
 		
 		RN_ASSERT(__ApplicationEntry, "The game module must provide an application entry point (RNApplicationCreate())");
+#endif
+#if RN_PLATFORM_IOS
+		__ApplicationEntry = RNApplicationCreate;
 #endif
 		
 		_app = __ApplicationEntry(this);

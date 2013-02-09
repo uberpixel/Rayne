@@ -82,7 +82,7 @@ namespace RN
 			gl::DeleteVertexArrays(1, &_copyVAO);
 		}
 		
-#if !(PLATFORM_IOS)
+#if !(RN_PLATFORM_IOS)
 		glDeleteTextures(4, _lightTextures);
 		glDeleteBuffers(4, _lightBuffers);
 #endif
@@ -114,7 +114,7 @@ namespace RN
 		gl::BindVertexArray(0);
 		glGenBuffers(1, &_instancingVBO);
 		
-#if !(PLATFORM_IOS)
+#if !(RN_PLATFORM_IOS)
 		glGenTextures(4, _lightTextures);
 		glGenBuffers(4, _lightBuffers);
 		
@@ -328,7 +328,7 @@ namespace RN
 		}
 //		printf("Lightcount: %i\n", lightcount);
 
-#if !(PLATFORM_IOS)
+#if !(RN_PLATFORM_IOS)
 		std::vector<int> lightindexpos;
 		std::vector<int> lightindices;
 		std::vector<int> tempindices;
@@ -435,7 +435,7 @@ namespace RN
 						
 					if(shader->lightColor != -1 && lightcount > 0)
 						glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
-#if !(PLATFORM_IOS)
+#if !(RN_PLATFORM_IOS)
 					if(shader->lightListPosition != -1)
 					{
 						_textureUnit ++;
