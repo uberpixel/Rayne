@@ -40,11 +40,12 @@ namespace RN
 		};
 		typedef uint32 BufferFormat;
 		
-		RenderStorage(BufferFormat format);
+		RenderStorage(BufferFormat format, Texture *depthTexture=0);
 		virtual ~RenderStorage();
 		
 		void SetFrame(const Rect& frame);
 		void SetBufferFormat(BufferFormat format);
+		void SetDepthTexture(Texture *texture);
 		void UpdateBuffer();
 		
 		void SetRenderTarget(Texture *target, uint32 index=0);
@@ -57,6 +58,8 @@ namespace RN
 		
 		uint32 RenderTargets() const { return (uint32)_renderTargets->Count(); }
 		Texture *RenderTarget(uint32 index=0) const { return (Texture *)_renderTargets->ObjectAtIndex(index); }
+		Texture *DepthTarget() const { return _depthTexture; }
+		
 		GLenum ClearMask() const { return _clearMask; }
 		
 		static uint32 MaxRenderTargets();
@@ -76,6 +79,7 @@ namespace RN
 		
 		ObjectArray *_renderTargets;
 		uint32 _boundRenderTargets;
+		Texture *_depthTexture;
 		
 		bool _frameChanged;
 		bool _formatChanged;

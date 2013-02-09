@@ -15,7 +15,7 @@
 
 namespace RN
 {
-	RenderStorage::RenderStorage(BufferFormat format)
+	RenderStorage::RenderStorage(BufferFormat format, Texture *depthTexture)
 	{
 		_formatChanged = true;
 		_frameChanged  = true;
@@ -23,12 +23,13 @@ namespace RN
 		
 		_boundRenderTargets = 0;
 		_renderTargets = new ObjectArray();
+		_depthTexture = depthTexture->Retain<Texture>();
 		
 		_framebuffer = _depthbuffer = _stencilbuffer = 0;
 		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
 		_format = (BufferFormat)-1;
 		
-		SetBufferFormat(format);
+		SetBufferFormat(format);		
 		glGenFramebuffers(1, &_framebuffer);
 	}
 	
@@ -65,6 +66,7 @@ namespace RN
 			_format = format;
 			
 			_clearMask = 0;
+			_depthTexture->Release();
 			
 			RN_ASSERT(format > 0, "You must specify at least one buffer in the buffer format!");
 			
@@ -82,6 +84,13 @@ namespace RN
 			if(_format & BufferFormatStencil)
 				_clearMask |= GL_STENCIL_BUFFER_BIT;
 		}
+	}
+	
+	void RenderStorage::SetDepthTexture(Texture *depthTexture)
+	{
+		_depthTexture->Release();
+		_depthTexture  = depthTexture->Retain<Texture>();
+		_formatChanged = true;
 	}
 	
 	void RenderStorage::SetRenderTarget(Texture *target, uint32 index)
@@ -237,13 +246,13 @@ namespace RN
 				_boundRenderTargets = 0;
 			}
 			
-			if(_stencilbuffer && !(_format & BufferFormatStencil))
+			if(_stencilbuffer && ((!(_format & BufferFormatStencil)) || _depthTexture))
 			{
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
 				_stencilbuffer = 0;
 			}
 			
-			if(_depthbuffer && !(_format & BufferFormatDepth || _format & BufferFormatStencil))
+			if(_depthbuffer && ((!(_format & BufferFormatDepth || _format & BufferFormatStencil)) || _depthTexture))
 			{
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
 				glDeleteRenderbuffers(1, &_depthbuffer);
@@ -251,7 +260,7 @@ namespace RN
 			}
 			
 			// Create new buffers
-			if(_depthbuffer == 0 && (_format & BufferFormatDepth))
+			if(_depthbuffer == 0 && (_format & BufferFormatDepth) && !_depthTexture)
 			{
 				glGenRenderbuffers(1, &_depthbuffer);
 				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
@@ -262,6 +271,15 @@ namespace RN
 					_stencilbuffer = _depthbuffer;
 					glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilbuffer);
 				}
+			}
+			
+			if(_depthTexture)
+			{
+				if(_format & BufferFormatDepth)
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->Name(), 0);
+				
+				if(_format & BufferFormatStencil)
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->Name(), 0);
 			}
 			
 			_formatChanged = false;
@@ -302,17 +320,34 @@ namespace RN
 				texture->Unbind();
 			}
 			
+			if(_depthTexture)
+				_depthTexture->Bind();
+			
 #if RN_TARGET_OPENGL
 			if(_format & BufferFormatDepth)
 			{
-				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
-				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+				if(!_depthTexture)
+				{
+					glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+					glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
+				}
+				else
+				{
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, 0);
+				}
 			}
 			
 			if(_format & BufferFormatStencil)
 			{
-				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
-				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+				if(!_depthTexture)
+				{
+					glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+					glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+				}
+				else
+				{
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_STENCIL, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_BYTE, 0);
+				}
 			}
 #endif
 			
@@ -333,6 +368,8 @@ namespace RN
 				RN_CHECKOPENGL();
 			}
 #endif
+			if(_depthTexture)
+				_depthTexture->Unbind();
 			
 			CheckFramebufferStatus();
 			_frameChanged = false;
