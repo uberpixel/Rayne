@@ -22,8 +22,7 @@ namespace TG
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
 		_camera->SetMaterial(surfaceMaterial);
 		
-		RN::Camera *depthcam = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults |RN::Camera::FlagInherit | RN::Camera::FlagNoClear);
-		depthcam->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
+		RN::Camera *depthcam = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults | RN::Camera::FlagInherit | RN::Camera::FlagNoClear);
 		depthcam->SetName("Depth Cam");
 		_camera->AddStage(depthcam);
 		
@@ -245,8 +244,6 @@ namespace TG
 		sponza->SetScale(RN::Vector3(0.1, 0.1, 0.1));
 		sponza->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
-		
-		
 		
 		RN::LightEntity *light;
 		for(int i = 0; i < 200; i++)
