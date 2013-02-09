@@ -12,8 +12,15 @@ namespace TG
 {
 	World::World()
 	{
-		_camera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatColorDepthStencil);
+		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
+		
+		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagFullscreen | RN::Camera::FlagUpdateAspect);
+		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 0.0));
 		CreateWorld();
+/*
+		RN::Camera *depthcam  = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagInherit);
+		_camera->AddStage(depthcam);*/
 		
 #if RN_PLATFORM_MAC_OS
 //		CreateSSAOStage();
@@ -87,6 +94,9 @@ namespace TG
 		RN::Matrix rot;
 		rot.MakeRotate(_camera->Rotation());
 		_camera->Translate(rot.Transform(translation * -delta));
+		
+//		RN::Vector3 temp = rot.Transform(RN::Vector3(0.0, 0.0, 1.0));
+//		printf("camdir x: %f, y: %f, z: %f\n", temp.x, temp.y, temp.z);
 	}
 	
 	
@@ -231,7 +241,7 @@ namespace TG
 		
 		
 		
-		RN::LightEntity *light = new RN::LightEntity();
+		RN::LightEntity *light;/* = new RN::LightEntity();
 		light->SetPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
 		light->SetRange(50.0f);
 		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
@@ -389,7 +399,15 @@ namespace TG
 		light = new RN::LightEntity();
 		light->SetPosition(RN::Vector3(-100.0f, 50.0f, -50.0f));
 		light->SetRange(50.0f);
-		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));
+		light->SetColor(RN::Vector3(1.0f, 1.0f, 1.0f));*/
+		
+		for(int i = 0; i < 100; i++)
+		{
+			light = new RN::LightEntity();
+			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
+			light->SetRange((float)(rand())/RAND_MAX*50.0f);
+			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
+		}
 		
 #if RN_TARGET_OPENGL
 /*		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight_instanced");

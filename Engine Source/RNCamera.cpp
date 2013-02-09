@@ -407,8 +407,8 @@ namespace RN
 	{
 		_storage = 0;
 		
-		Initialize();
 		SetRenderStorage(storage);
+		Initialize();
 		
 		World::SharedInstance()->AddCamera(this);
 	}
@@ -433,6 +433,8 @@ namespace RN
 		
 		_material = 0;
 		_stage = 0;
+		
+		_lightTiles = Vector2(32, 32);
 		
 		Update(0.0f);
 		UpdateProjection();
