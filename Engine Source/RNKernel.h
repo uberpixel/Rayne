@@ -27,11 +27,12 @@ namespace RN
 		RNAPI virtual ~Kernel();
 		
 		RNAPI bool Tick();
+		
 		RNAPI void SetContext(Context *context);
 		RNAPI void SetWorld(World *world);
+		RNAPI void SetTimeScale(float timeScale);
 		
 		RNAPI void DidSleepForSignificantTime();
-
 		RNAPI void Exit();
 		
 		float ScaleFactor() const { return _scaleFactor; }
@@ -39,7 +40,13 @@ namespace RN
 		RenderingPipeline *Renderer() const { return _renderer; }
 		Window *Window() const { return _window; }
 		
+		float Delta() const { return _delta; }
+		float Time() const { return _time; }
+		float ScaledTime() const { return _scaledTime; }
+		float TimeScale() const { return _timeScale; }
+		
 	private:
+		void Initialize();
 		void LoadApplicationModule(const std::string& module);
 		void *_appHandle;
 		
@@ -55,7 +62,12 @@ namespace RN
 		
 		bool _resetDelta;
 		bool _shouldExit;
+		bool _initialized;
+		
 		float _time;
+		float _scaledTime;
+		float _delta;
+		float _timeScale;
 		std::chrono::time_point<std::chrono::system_clock> _lastFrame;
 	};
 }

@@ -12,13 +12,27 @@ namespace TG
 {
 	Application::Application()
 	{
-		_world = new World();
+		_world = 0;
 	}
 	
 	Application::~Application()
+	{}
+	
+	
+	void Application::Start()
 	{
-		delete _world;
+		_world = new World();
 	}
+	
+	void Application::WillExit()
+	{
+		if(_world)
+		{
+			delete _world;
+			_world = 0;
+		}
+	}
+	
 	
 	void Application::UpdateGame(float delta)
 	{

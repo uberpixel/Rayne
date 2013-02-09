@@ -24,8 +24,6 @@ namespace RN
 	Kernel::Kernel(const std::string& module)
 	{
 		AutoreleasePool *pool = new AutoreleasePool();
-		
-		_shouldExit = false;
 
 		_context = new Context();
 		_context->MakeActiveContext();
@@ -36,7 +34,8 @@ namespace RN
 		
 #if RN_PLATFORM_IOS
 		_scaleFactor = [[UIScreen mainScreen] scale];
-#elif RN_PLATFORM_MAC_OS
+#endif
+#if RN_PLATFORM_MAC_OS
 		if([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)])
 		{
 			_scaleFactor = [NSScreen mainScreen].backingScaleFactor;
@@ -44,36 +43,36 @@ namespace RN
 #endif
 		
 		_renderer = new RenderingPipeline();
-		_input = Input::SharedInstance();
+		_input    = Input::SharedInstance();
 		
-		_window = new class Window("Rayne", this);
-		_window->SetContext(_context);
-		_window->Show();
+		_world  = 0;
+		_window = 0;
 		
-		_world = 0;
-		_time  = 0;
-		_lastFrame = std::chrono::system_clock::now();
+		_delta = 0.0f;
+		_time  = 0.0f;
+		_scaledTime = 0.0f;
+		_timeScale  = 1.0f;
+		
+		_lastFrame  = std::chrono::system_clock::now();
 		_resetDelta = true;
-	
-#if RN_PLATFORM_IOS
-		_app = RNApplicationCreate(this);
-#else
-		LoadApplicationModule(module);
-		_app = __ApplicationEntry(this);
-#endif
-		delete pool;
 		
-		RN_ASSERT(_app, "The game module must respond to RNApplicationCreate() and return a valid RN::Application object!");
+		_initialized = false;
+		_shouldExit  = false;
+		
+		LoadApplicationModule(module);
+		delete pool;
 	}	
 	
 	Kernel::~Kernel()
 	{
 		AutoreleasePool *pool = new AutoreleasePool();
 		
-		delete _app;
+		_app->WillExit();
 		_window->Release();
 		
 		delete _renderer;
+		delete _app;
+		
 		_context->Release();
 		
 		delete pool;
@@ -89,6 +88,21 @@ namespace RN
 		
 		RN_ASSERT(__ApplicationEntry, "The game module must provide an application entry point (RNApplicationCreate())");
 #endif
+		
+		_app = __ApplicationEntry(this);
+		RN_ASSERT(_app, "The game module must respond to RNApplicationCreate() and return a valid RN::Application object!");
+	}
+	
+	void Kernel::Initialize()
+	{
+		if(!_window)
+		{
+			_window = new class Window("Rayne", this);
+			_window->SetContext(_context);
+			_window->Show();
+		}
+		
+		_app->Start();
 	}
 	
 	bool Kernel::Tick()
@@ -96,20 +110,10 @@ namespace RN
 		std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
 		AutoreleasePool *pool = new AutoreleasePool();
 		
-#if RN_PLATFORM_WINDOWS
-		MSG	message;
-		
-		while(PeekMessageA(&message, 0, 0, 0, PM_REMOVE))
+		if(!_initialized)
 		{
-			TranslateMessage(&message);
-			DispatchMessageA(&message);
-		}
-#endif
-
-		if(_shouldExit)
-		{
-			delete pool;
-			return false;
+			Initialize();
+			_initialized = true;
 		}
 		
 		if(_resetDelta)
@@ -121,19 +125,33 @@ namespace RN
 		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now - _lastFrame).count();
 		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
 		
-		float delta = seconds + (milliseconds / 1000.0f);
-		_time += delta;
+		float trueDelta = seconds + (milliseconds / 1000.0f);
+		
+		_time += trueDelta;
+		
+		_delta = trueDelta * _timeScale;
+		_scaledTime += _delta;
+		
+#if RN_PLATFORM_WINDOWS
+		MSG	message;
+		
+		while(PeekMessageA(&message, 0, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&message);
+			DispatchMessageA(&message);
+		}
+#endif
 		
 		if(_world)
 		{
 			_context->MakeActiveContext();
 			
-			Application::SharedInstance()->GameUpdate(delta);
-			_world->BeginUpdate(delta);
+			Application::SharedInstance()->GameUpdate(_delta);
+			_world->BeginUpdate(_delta);
 			_input->DispatchInputEvents();
 			
-			Application::SharedInstance()->WorldUpdate(delta);
-			_world->FinishUpdate(delta);
+			Application::SharedInstance()->WorldUpdate(_delta);
+			_world->FinishUpdate(_delta);
 			
 			_context->DeactivateContext();			
 		}
@@ -141,13 +159,15 @@ namespace RN
 		_lastFrame = now;
 		
 		delete pool;
-		return true;
+		return (_shouldExit == false);
 	}
 
 	void Kernel::Exit()
 	{
-		_shouldExit = true;
+		if(_app->CanExit())
+			_shouldExit = true;
 	}
+	
 	
 	void Kernel::SetContext(Context *context)
 	{
@@ -162,8 +182,14 @@ namespace RN
 		_world = world;
 	}
 	
+	void Kernel::SetTimeScale(float timeScale)
+	{
+		_timeScale = timeScale;
+	}
+	
 	void Kernel::DidSleepForSignificantTime()
 	{
 		_resetDelta = true;
+		_delta = 0.0f;
 	}
 }

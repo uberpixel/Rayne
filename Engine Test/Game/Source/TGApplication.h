@@ -20,6 +20,9 @@ namespace TG
 		Application();
 		virtual ~Application();
 		
+		virtual void Start();
+		virtual void WillExit();
+		
 		virtual void UpdateGame(float delta);
 		virtual void UpdateWorld(float delta);
 		

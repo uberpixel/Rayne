@@ -20,6 +20,10 @@ namespace RN
 		Application();
 		virtual ~Application();
 		
+		virtual void Start();
+		virtual bool CanExit();
+		virtual void WillExit();
+		
 		virtual void GameUpdate(float delta);
 		virtual void WorldUpdate(float delta);
 	};
