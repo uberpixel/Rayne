@@ -710,14 +710,14 @@ namespace RN
 	
 	void RenderingPipeline::DrawMesh(Mesh *mesh)
 	{
-		if(mesh && mesh != _currentMesh)
+		if(mesh)
 		{
 			mesh->Push();
 			
 			MeshLODStage *stage = mesh->LODStage(0);
 			
 			std::tuple<Material *, MeshLODStage *> tuple = std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage);
-			GLuint vao = VAOForTuple(tuple);
+			GLuint vao = VAOForTuple(tuple);			
 			
 			if(vao != _currentVAO)
 			{
