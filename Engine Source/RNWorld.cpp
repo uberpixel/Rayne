@@ -73,8 +73,11 @@ namespace RN
 		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
 		{
 			Camera *camera = *i;
-			camera->UpdateFrustum();
-			camera->SynchronizePast();
+			for(Camera *cam = camera; cam != 0; cam = cam->Stage())
+			{
+				cam->UpdateFrustum();
+				cam->SynchronizePast();
+			}
 			
 			RenderingGroup group;
 			group.camera = camera;
