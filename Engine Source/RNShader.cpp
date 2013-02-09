@@ -339,6 +339,8 @@ namespace RN
 				texlocations.AddObject(location);
 			}
 			
+			GetUniformLocation(depthmap);
+			
 			// Get attributes
 			GetAttributeLocation(imatModel);
 			

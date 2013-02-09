@@ -246,17 +246,35 @@ namespace RN
 				_boundRenderTargets = 0;
 			}
 			
-			if(_stencilbuffer && ((!(_format & BufferFormatStencil)) || _depthTexture))
+			if(_depthTexture)
 			{
-				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
-				_stencilbuffer = 0;
+				if(_stencilbuffer)
+				{
+					glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
+					_stencilbuffer = 0;
+				}
+				
+				if(_depthbuffer)
+				{
+					glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+					glDeleteRenderbuffers(1, &_depthbuffer);
+					_depthbuffer = 0;
+				}
 			}
-			
-			if(_depthbuffer && ((!(_format & BufferFormatDepth || _format & BufferFormatStencil)) || _depthTexture))
+			else
 			{
-				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
-				glDeleteRenderbuffers(1, &_depthbuffer);
-				_depthbuffer = 0;
+				if(_stencilbuffer && !(_format & BufferFormatStencil))
+				{
+					glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
+					_stencilbuffer = 0;
+				}
+				
+				if(_depthbuffer && !(_format & BufferFormatDepth || _format & BufferFormatStencil))
+				{
+					glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+					glDeleteRenderbuffers(1, &_depthbuffer);
+					_depthbuffer = 0;
+				}
 			}
 			
 			// Create new buffers

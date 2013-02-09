@@ -74,6 +74,7 @@ namespace RN
 		Array<GLuint> texlocations;
 		Array<GLuint> targetmaplocations;
 		Array<GLuint> fraglocations;
+		GLuint depthmap;
 		
 	private:
 		void SetShaderForType(File *file, GLenum type);

@@ -270,6 +270,15 @@ namespace RN
 			glUniform1i(location, BindTexture(texture));
 		}
 		
+		if(shader->depthmap != -1)
+		{
+			Texture *depthmap = camera->Storage()->DepthTarget();
+			if(depthmap)
+			{
+				glUniform1i(shader->depthmap, BindTexture(depthmap));
+			}
+		}
+		
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 		
 		glDisableVertexAttribArray(shader->vertPosition);
