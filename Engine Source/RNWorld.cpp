@@ -20,6 +20,8 @@ namespace RN
 		_renderer = _kernel->Renderer();
 		_physics  = new PhysicsPipeline();
 		
+		_entityPool = new ReleasePool();
+		
 		_physicsTask   = kPipelineSegmentNullTask;
 		_renderingTask = kPipelineSegmentNullTask;
 	}
@@ -27,6 +29,8 @@ namespace RN
 	World::~World()
 	{
 		delete _physics;
+		delete _entityPool;
+		
 		_kernel->SetWorld(0);
 	}
 	
@@ -65,6 +69,7 @@ namespace RN
 		}
 		
 		_renderer->WaitForTaskCompletion(_renderingTask);
+		_entityPool->Drain();
 		
 		_renderer->PepareFrame();
 		_renderingTask = _renderer->BeginTask(delta);
@@ -87,6 +92,8 @@ namespace RN
 				
 				if(entity->IsVisibleInCamera(camera))
 				{
+					_entityPool->AddObject(entity);
+					
 					if(entity->Model())
 						group.entities.push_back(entity);
 					

@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNAutoreleasePool.h"
 #include "RNCamera.h"
 #include "RNEntity.h"
 #include "RNArray.h"
@@ -51,6 +52,7 @@ namespace RN
 		
 		PhysicsPipeline *_physics;
 		RenderingPipeline *_renderer;
+		ReleasePool *_entityPool;
 		
 		PipelineSegment::TaskID _physicsTask;
 		PipelineSegment::TaskID _renderingTask;

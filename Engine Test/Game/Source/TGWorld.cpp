@@ -20,10 +20,9 @@ namespace TG
 		RN::Material *surfaceMaterial = new RN::Material(surfaceShader);
 		
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
-		_camera->SetClearColor(RN::Color(1.0, 0.0, 0.0, 1.0));
+		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
 		_camera->SetMaterial(surfaceMaterial);
 		
-		/*
 		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
 		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
@@ -85,7 +84,6 @@ namespace TG
 		{
 			_camera->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
 		}
-		*/
 		
 		CreateWorld();
 		
@@ -156,11 +154,11 @@ namespace TG
 		translation *= 0.2f;
 #endif
 		
-		//_camera->Rotate(rotation);
+		_camera->Rotate(rotation);
 		
-		//RN::Matrix rot;
-		//rot.MakeRotate(_camera->Rotation());
-		//_camera->Translate(rot.Transform(translation * -delta));
+		RN::Matrix rot;
+		rot.MakeRotate(_camera->Rotation());
+		_camera->Translate(rot.Transform(translation * -delta));
 		
 //		RN::Vector3 temp = rot.Transform(RN::Vector3(0.0, 0.0, 1.0));
 //		printf("camdir x: %f, y: %f, z: %f\n", temp.x, temp.y, temp.z);

@@ -10,6 +10,33 @@
 
 namespace RN
 {
+	ReleasePool::ReleasePool()
+	{}
+	
+	ReleasePool::~ReleasePool()
+	{
+		Drain();
+	}
+	
+	void ReleasePool::AddObject(Object *object)
+	{
+		object->Retain();
+		_objects.push_back(object);
+	}
+	
+	void ReleasePool::Drain()
+	{
+		for(auto i=_objects.begin(); i!=_objects.end(); i++)
+		{
+			Object *object = *i;
+			object->Release();
+		}
+		
+		_objects.clear();
+	}
+	
+	
+	
 	AutoreleasePool::AutoreleasePool()
 	{
 		_owner  = Thread::CurrentThread();

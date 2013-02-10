@@ -15,6 +15,19 @@
 
 namespace RN
 {
+	class ReleasePool
+	{
+	public:
+		ReleasePool();
+		~ReleasePool();
+		
+		void AddObject(Object *object);
+		void Drain();
+		
+	private:
+		std::vector<Object *> _objects;
+	};
+	
 	class AutoreleasePool
 	{
 	public:
