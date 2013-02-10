@@ -307,6 +307,7 @@ namespace RN
 			
 			GetUniformLocation(time);
 			GetUniformLocation(frameSize);
+			GetUniformLocation(clipPlanes);
 			
 			GetUniformLocation(lightPosition);
 			GetUniformLocation(lightColor);

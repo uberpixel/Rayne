@@ -12,6 +12,7 @@ namespace TG
 {
 	World::World()
 	{
+#if !(RN_PLATFORM_IOS)
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth|RN::RenderStorage::BufferFormatStencil);
 		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatR8);
 		storage->SetDepthTexture(depthtex);
@@ -71,21 +72,23 @@ namespace TG
 			downsample64x->SetMaterial(downsampleMaterial64x);
 		}
 			
-		RN::Camera *finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection | RN::Camera::FlagNoClear);
-		finalcam->Storage()->SetDepthTexture(depthtex);
-		finalcam->SetName("Final Cam");
-		_camera->AddStage(finalcam);
+		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection | RN::Camera::FlagNoClear);
+		_finalcam->Storage()->SetDepthTexture(depthtex);
+		_finalcam->SetName("Final Cam");
+//		_camera->AddStage(_finalcam);
 		
 		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
 		{
-			_camera->ActivateTiledLightLists(downsample64x->Storage()->RenderTarget());
-			_depthtiletex = downsample64x->Storage()->RenderTarget();
+			_finalcam->ActivateTiledLightLists(downsample64x->Storage()->RenderTarget());
 		}
 		else
 		{
-			_camera->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
-			_depthtiletex = downsample32x->Storage()->RenderTarget();
+			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
 		}
+#else
+		_camera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults);
+		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
+#endif
 		
 		CreateWorld();
 		
@@ -162,8 +165,10 @@ namespace TG
 		rot.MakeRotate(_camera->Rotation());
 		_camera->Translate(rot.Transform(translation * -delta));
 		
-//		RN::Vector3 temp = rot.Transform(RN::Vector3(0.0, 0.0, 1.0));
-//		printf("camdir x: %f, y: %f, z: %f\n", temp.x, temp.y, temp.z);
+#if !(RN_PLATFORM_IOS)
+		_finalcam->SetPosition(_camera->Position());
+		_finalcam->SetRotation(_camera->Rotation());
+#endif
 	}
 	
 	
@@ -292,7 +297,6 @@ namespace TG
 		for(int i = 0; i < model->Meshes(); i++)
 		{
 			model->MaterialForMesh(model->MeshAtIndex(i))->SetShader(lightshader);
-			model->MaterialForMesh(model->MeshAtIndex(i))->AddTexture(_depthtiletex);
 		}
 		model->MaterialForMesh(model->MeshAtIndex(4))->SetShader(shader);
 		model->MaterialForMesh(model->MeshAtIndex(4))->culling = false;
@@ -308,11 +312,22 @@ namespace TG
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
 		RN::LightEntity *light;
-		for(int i = 0; i < 200; i++)
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
+		light->SetRange(80.0f);
+		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
+		
+		light = new RN::LightEntity();
+		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
+		light->SetRange(80.0f);
+		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
+		
+		for(int i = 0; i < 400; i++)
 		{
 			light = new RN::LightEntity();
 			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
-			light->SetRange((float)(rand())/RAND_MAX*50.0f);
+			light->SetRange((float)(rand())/RAND_MAX*20.0f);
 			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
 		}
 		

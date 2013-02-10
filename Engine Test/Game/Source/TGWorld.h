@@ -26,7 +26,7 @@ namespace TG
 		void CreateSSAOStage();
 		
 		RN::Camera *_camera;
-		RN::Texture *_depthtiletex;
+		RN::Camera *_finalcam;
 		
 		uint32 _touchRight;
 		uint32 _touchLeft;

@@ -9,12 +9,10 @@
 attribute vec2 vertPosition;
 attribute vec2 vertTexcoord0;
 
-uniform vec4 frameSize;
-
 varying vec2 texcoord;
 
 void main()
 {
-	texcoord = vertTexcoord0+frameSize.xy*0.5;
+	texcoord = vertTexcoord0;
 	gl_Position = vec4(vertPosition, 0.0, 1.0);
 }

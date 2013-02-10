@@ -62,6 +62,7 @@ namespace RN
 		
 		GLuint time;
 		GLuint frameSize;
+		GLuint clipPlanes;
 		
 		GLuint lightPosition;
 		GLuint lightColor;

@@ -245,6 +245,9 @@ namespace RN
 		if(shader->frameSize != -1)
 			glUniform4f(shader->frameSize, 1.0f/camera->Frame().width, 1.0f/camera->Frame().height, camera->Frame().width, camera->Frame().height);
 		
+		if(shader->clipPlanes != -1)
+			glUniform2f(shader->clipPlanes, camera->clipnear, camera->clipfar);
+		
 		if(!stage->HasDepthbuffer())
 		{
 			if(_depthTestEnabled)
@@ -348,14 +351,15 @@ namespace RN
 #if !(RN_PLATFORM_IOS)
 		std::vector<int> lightindexpos;
 		std::vector<int> lightindices;
+		Rect rect = camera->Frame();
+		int tileswidth  = rect.width / camera->LightTiles().x;
+		int tilesheight = rect.height / camera->LightTiles().y;
 		Vector2 lighttilesize = camera->LightTiles() * _scaleFactor;
+		Vector2 lighttilecount = Vector2(tileswidth, tilesheight);
 		
 		if(camera->DepthTiles() != 0)
 		{
 			std::vector<int> tempindices;
-			Rect rect = camera->Frame();
-			int tileswidth  = rect.width / camera->LightTiles().x;
-			int tilesheight = rect.height / camera->LightTiles().y;
 			
 			Vector3 corner1 = camera->CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
 			Vector3 corner2 = camera->CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
@@ -488,7 +492,10 @@ namespace RN
 						glUniform1f(shader->time, _time);
 					
 					if(shader->frameSize != -1)
-						glUniform4f(shader->frameSize, 1.0f/camera->Frame().width, 1.0f/camera->Frame().height, camera->Frame().width, camera->Frame().height);
+						glUniform4f(shader->frameSize, 1.0f/camera->Frame().width/_scaleFactor, 1.0f/camera->Frame().height/_scaleFactor, camera->Frame().width*_scaleFactor, camera->Frame().height*_scaleFactor);
+					
+					if(shader->clipPlanes != -1)
+						glUniform2f(shader->clipPlanes, camera->clipnear, camera->clipfar);
 					
 					// Light data
 					if(shader->lightCount != -1)
@@ -540,7 +547,7 @@ namespace RN
 						}
 						
 						if(shader->lightTileSize != -1)
-							glUniform2fv(shader->lightTileSize, 1, &lighttilesize.x);
+							glUniform4f(shader->lightTileSize, lighttilesize.x, lighttilesize.y, lighttilecount.x, lighttilecount.y);
 					}
 #endif
 					
