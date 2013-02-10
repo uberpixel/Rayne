@@ -750,12 +750,12 @@ namespace RN
 		
 		Vector3 vmax;
 		Vector3 vmin;
-		vmax.x = fmax(_position.x, fmax(pos2.x, fmax(pos3.x, fmax(pos5.x, pos6.x))));
-		vmax.y = fmax(_position.y, fmax(pos2.y, fmax(pos3.y, fmax(pos5.y, pos6.y))));
-		vmax.z = fmax(_position.z, fmax(pos2.z, fmax(pos3.z, fmax(pos5.z, pos6.z))));
-		vmin.x = fmin(_position.x, fmin(pos2.x, fmin(pos3.x, fmin(pos5.x, pos6.x))));
-		vmin.y = fmin(_position.y, fmin(pos2.y, fmin(pos3.y, fmin(pos5.y, pos6.y))));
-		vmin.z = fmin(_position.z, fmin(pos2.z, fmin(pos3.z, fmin(pos5.z, pos6.z))));
+		vmax.x = fmax(_position->x, fmax(pos2.x, fmax(pos3.x, fmax(pos5.x, pos6.x))));
+		vmax.y = fmax(_position->y, fmax(pos2.y, fmax(pos3.y, fmax(pos5.y, pos6.y))));
+		vmax.z = fmax(_position->z, fmax(pos2.z, fmax(pos3.z, fmax(pos5.z, pos6.z))));
+		vmin.x = fmin(_position->x, fmin(pos2.x, fmin(pos3.x, fmin(pos5.x, pos6.x))));
+		vmin.y = fmin(_position->y, fmin(pos2.y, fmin(pos3.y, fmin(pos5.y, pos6.y))));
+		vmin.z = fmin(_position->z, fmin(pos2.z, fmin(pos3.z, fmin(pos5.z, pos6.z))));
 		
 		_frustumCenter = vmax+vmin;
 		_frustumCenter = _frustumCenter*0.5f;

@@ -20,9 +20,9 @@ namespace RN
 {
 	struct RenderingObject
 	{
-		Mesh *mesh;
-		Material *material;
-		Matrix *transform;
+		const Mesh *mesh;
+		const Material *material;
+		const Matrix *transform;
 	};
 	
 	class Window;

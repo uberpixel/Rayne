@@ -34,6 +34,12 @@ namespace RN
 			return _current;
 		}
 		
+		operator T() const
+		{
+			return _current;
+		}
+		
+		
 		const T* operator-> () const
 		{
 			return &_current;
@@ -98,6 +104,11 @@ namespace RN
 		
 		
 		T& AccessPast()
+		{
+			return _past;
+		}
+		
+		T AccessPast() const
 		{
 			return _past;
 		}

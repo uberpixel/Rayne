@@ -316,7 +316,7 @@ namespace RN
 				RenderingObject object;
 				object.mesh = model->MeshAtIndex(j);
 				object.material = model->MaterialForMesh(object.mesh);
-				object.transform = &entity->_transform;
+				object.transform = &entity->PastWorldTransform();
 				
 				objects.push_back(object);
 			}
@@ -339,7 +339,7 @@ namespace RN
 		for(auto i=lights->begin(); i!=lights->end(); i++, lightcount++)
 		{
 			LightEntity *light = *i;
-			const Vector3& position = light->Position();
+			const Vector3& position = light->Position().AccessPast();
 			
 			lightpos[lightcount] = Vector4(position.x, position.y, position.z, light->Range());
 			lightcolor[lightcount] = light->Color();
@@ -369,7 +369,7 @@ namespace RN
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, deptharray);
 			
 			RN::Matrix rot;
-			rot.MakeRotate(camera->Rotation());
+			rot.MakeRotate(camera->Rotation().AccessPast());
 			Vector3 camdir = rot.Transform(RN::Vector3(0.0, 0.0, -1.0));
 			
 			Plane plleft;
@@ -398,7 +398,7 @@ namespace RN
 					for(auto i=lights->begin(); i!=lights->end(); i++)
 					{
 						LightEntity *light = *i;
-						const Vector3& position = light->Position();
+						const Vector3& position = light->Position().AccessPast();
 						float range = light->Range();
 						
 						counter ++;
@@ -467,8 +467,8 @@ namespace RN
 				
 				for(auto i=objects.begin(); i!=objects.end(); i+=offset)
 				{
-					Mesh *mesh = i->mesh;
-					Material *material = surfaceMaterial ? surfaceMaterial : i->material;
+					Mesh *mesh = (Mesh *)i->mesh;
+					Material *material = surfaceMaterial ? surfaceMaterial : (Material *)i->material;
 					Shader *shader = material->Shader();
 					
 					// Send generic attributes to the shader
@@ -798,7 +798,7 @@ namespace RN
 	
 	void RenderingPipeline::DrawMeshInstanced(Material *material, std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count)
 	{
-		Mesh *mesh = begin->mesh;
+		Mesh *mesh = (Mesh *)begin->mesh;
 		MeshLODStage *stage = mesh->LODStage(0);
 		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
 		

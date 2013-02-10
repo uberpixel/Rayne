@@ -49,8 +49,7 @@ namespace RN
 		
 	protected:		
 		Entity(EntityType type);
-		Matrix _transform;
-		
+
 	private:
 		class Model *_model;
 		EntityType _type;

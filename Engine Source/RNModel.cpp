@@ -115,7 +115,7 @@ namespace RN
 		return _groups[index].mesh;
 	}
 	
-	Material *Model::MaterialForMesh(Mesh *mesh) const
+	Material *Model::MaterialForMesh(const Mesh *mesh) const
 	{
 		for(auto i=_groups.begin(); i!=_groups.end(); i++)
 		{			

@@ -33,7 +33,7 @@ namespace RN
 		
 		Mesh *MeshAtIndex(uint32 index) const;
 		
-		Material *MaterialForMesh(Mesh *mesh) const;
+		Material *MaterialForMesh(const Mesh *mesh) const;
 		
 	private:
 		struct MeshGroup

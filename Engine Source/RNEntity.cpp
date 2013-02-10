@@ -55,7 +55,8 @@ namespace RN
 	
 	void Entity::PostUpdate()
 	{
-		_transform = WorldTransform();
+		Transform::WorldTransform(); // Make sure that the internal transform updates
+		Transform::SynchronizePast();
 	}
 	
 	bool Entity::IsVisibleInCamera(Camera *camera)

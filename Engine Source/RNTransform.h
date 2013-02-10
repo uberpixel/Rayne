@@ -13,6 +13,7 @@
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
 #include "RNVector.h"
+#include "RNSynchronization.h"
 
 namespace RN
 {
@@ -31,44 +32,59 @@ namespace RN
 		virtual void SetScale(const Vector3& scal);
 		virtual void SetRotation(const Quaternion& rot);
 		
-		const Vector3& Position() const { return _position; }
-		const Vector3& Scale() const { return _scale; }
-		const Quaternion& Rotation() const { return _rotation; }
+		const Past<Vector3>& Position() const { return _position; }
+		const Past<Vector3>& Scale() const { return _scale; }
+		const Past<Quaternion>& Rotation() const { return _rotation; }
 		
 		const Matrix& WorldTransform();
+		const Matrix& PastWorldTransform();		
+		
+		void SynchronizePast()
+		{
+			_position.SynchronizePast();
+			_scale.SynchronizePast();
+			_rotation.SynchronizePast();
+			_euler.SynchronizePast();
+			_transform.SynchronizePast();
+		}
 		
 	protected:
 		bool _didChange;
 		
-		Vector3 _position;
-		Vector3 _scale;
-		Quaternion _rotation;
-		Vector3 _euler;	//there has to be a way to fix this in the quaternion class somehow...
+		Past<Vector3> _position;
+		Past<Vector3> _scale;
+		Past<Quaternion> _rotation;
+		Past<Vector3> _euler;	//there has to be a way to fix this in the quaternion class somehow...
 		
 	private:
-		Matrix _transform;
+		Past<Matrix> _transform;
 	};
 	
-	RN_INLINE Transform::Transform() :
-		_scale(Vector3(1.0f))
+	RN_INLINE Transform::Transform()
 	{
+		_scale = Vector3(1.0f);
 		_didChange = true;
+		SynchronizePast();
 	}
 	
-	RN_INLINE Transform::Transform(const Vector3& position) :
-		_position(position),
-		_scale(Vector3(1.0f))
+	RN_INLINE Transform::Transform(const Vector3& position)
 	{
+		_position = position;
+		_scale = Vector3(1.0f);
+		
 		_didChange = true;
+		SynchronizePast();
 	}
 	
-	RN_INLINE Transform::Transform(const Vector3& position, const Quaternion& rotation) :
-		_position(position),
-		_scale(Vector3(1.0f)),
-		_rotation(rotation)
+	RN_INLINE Transform::Transform(const Vector3& position, const Quaternion& rotation)
 	{
+		_position = position;
+		_scale = Vector3(1.0f);
+		_rotation = rotation;
 		_euler = rotation.EulerAngle();
+		
 		_didChange = true;
+		SynchronizePast();
 	}
 	
 	RN_INLINE void Transform::Translate(const Vector3& trans)
@@ -114,14 +130,19 @@ namespace RN
 	{
 		if(_didChange)
 		{
-			_transform.MakeTranslate(_position);
-			_transform.Scale(_scale);
-			_transform.Rotate(_rotation);
+			_transform->MakeTranslate(_position);
+			_transform->Scale(_scale);
+			_transform->Rotate(_rotation);
 			
 			_didChange = false;
 		}
 		
 		return _transform;
+	}
+	
+	RN_INLINE const Matrix& Transform::PastWorldTransform()
+	{
+		return _transform.AccessPast();
 	}
 }
 
