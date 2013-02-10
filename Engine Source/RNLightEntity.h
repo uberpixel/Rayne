@@ -25,17 +25,18 @@ namespace RN
 		
 		virtual ~LightEntity();
 		
+		virtual void PostUpdate();
 		virtual bool IsVisibleInCamera(Camera *camera);
 		
 		void SetRange(float range);
 		void SetColor(Vector3 color);
 		
-		const Vector3& Color() { return _color; }
-		const float Range() { return _range; }
+		const Past<Vector3>& Color() { return _color; }
+		const Past<float> Range() { return _range; }
 		
 	private:
-		Vector3 _color;
-		float _range;
+		Past<Vector3> _color;
+		Past<float> _range;
 	};
 }
 
