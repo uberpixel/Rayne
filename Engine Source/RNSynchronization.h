@@ -17,6 +17,13 @@ namespace RN
 	class Past
 	{
 	public:
+		Past()
+		{}
+		
+		Past(const T& t) :
+			_current(t),
+			_past(t)
+		{}
 		
 		bool operator == (const T& other) const
 		{

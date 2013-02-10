@@ -60,31 +60,26 @@ namespace RN
 		Past<Matrix> _transform;
 	};
 	
-	RN_INLINE Transform::Transform()
+	RN_INLINE Transform::Transform() :
+		_scale(Vector3(1.0f))
 	{
-		_scale = Vector3(1.0f);
 		_didChange = true;
-		SynchronizePast();
 	}
 	
-	RN_INLINE Transform::Transform(const Vector3& position)
+	RN_INLINE Transform::Transform(const Vector3& position) :
+		_position(position),
+		_scale(Vector3(1.0f))
 	{
-		_position = position;
-		_scale = Vector3(1.0f);
-		
 		_didChange = true;
-		SynchronizePast();
 	}
 	
-	RN_INLINE Transform::Transform(const Vector3& position, const Quaternion& rotation)
+	RN_INLINE Transform::Transform(const Vector3& position, const Quaternion& rotation) :
+		_position(position),
+		_scale(Vector3(1.0f)),
+		_rotation(rotation),
+		_euler(rotation.EulerAngle())
 	{
-		_position = position;
-		_scale = Vector3(1.0f);
-		_rotation = rotation;
-		_euler = rotation.EulerAngle();
-		
 		_didChange = true;
-		SynchronizePast();
 	}
 	
 	RN_INLINE void Transform::Translate(const Vector3& trans)
