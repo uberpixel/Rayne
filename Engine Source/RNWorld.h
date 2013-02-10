@@ -52,7 +52,7 @@ namespace RN
 		
 		PhysicsPipeline *_physics;
 		RenderingPipeline *_renderer;
-		ReleasePool *_entityPool;
+		RetainPool *_entityPool;
 		
 		PipelineSegment::TaskID _physicsTask;
 		PipelineSegment::TaskID _renderingTask;

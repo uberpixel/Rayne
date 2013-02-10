@@ -15,11 +15,11 @@
 
 namespace RN
 {
-	class ReleasePool
+	class RetainPool
 	{
 	public:
-		ReleasePool();
-		~ReleasePool();
+		RetainPool();
+		~RetainPool();
 		
 		void AddObject(Object *object);
 		void Drain();

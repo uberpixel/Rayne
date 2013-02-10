@@ -10,21 +10,21 @@
 
 namespace RN
 {
-	ReleasePool::ReleasePool()
+	RetainPool::RetainPool()
 	{}
 	
-	ReleasePool::~ReleasePool()
+	RetainPool::~RetainPool()
 	{
 		Drain();
 	}
 	
-	void ReleasePool::AddObject(Object *object)
+	void RetainPool::AddObject(Object *object)
 	{
 		object->Retain();
 		_objects.push_back(object);
 	}
 	
-	void ReleasePool::Drain()
+	void RetainPool::Drain()
 	{
 		for(auto i=_objects.begin(); i!=_objects.end(); i++)
 		{

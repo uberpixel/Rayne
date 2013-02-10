@@ -20,7 +20,7 @@ namespace RN
 		_renderer = _kernel->Renderer();
 		_physics  = new PhysicsPipeline();
 		
-		_entityPool = new ReleasePool();
+		_entityPool = new RetainPool();
 		
 		_physicsTask   = kPipelineSegmentNullTask;
 		_renderingTask = kPipelineSegmentNullTask;
