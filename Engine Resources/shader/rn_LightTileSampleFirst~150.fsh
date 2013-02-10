@@ -23,6 +23,6 @@ void main()
 	fragColor0.r = (2.0 * n) / (f + n - fragColor0.r * (f - n));
 	fragColor0.g = (2.0 * n) / (f + n - fragColor0.g * (f - n));
 	
-//	fragColor0.rg *= f-n;
-//	fragColor0.g += n;
+	fragColor0.rg *= f-n;
+	fragColor0.g += n;
 }

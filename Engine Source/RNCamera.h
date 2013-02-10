@@ -136,6 +136,9 @@ namespace RN
 		void ReplaceStage(Camera *stage);
 		void RemoveStage(Camera *stage);
 		
+		void ActivateTiledLightLists(Texture *depthtiles){ _depthTiles = depthtiles; }
+		Texture *DepthTiles() { return _depthTiles; }
+		
 		void Update(float delta);
 		void UpdateProjection();
 		void SynchronizePast()
@@ -199,6 +202,8 @@ namespace RN
 		class Material *_material;
 		RenderStorage *_storage;
 		Camera *_stage;
+		
+		Texture *_depthTiles;
 	};
 }
 

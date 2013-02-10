@@ -506,6 +506,7 @@ namespace RN
 		_stage = 0;
 		
 		_lightTiles = Vector2(32, 32);
+		_depthTiles = 0;
 		
 		Update(0.0f);
 		UpdateProjection();
