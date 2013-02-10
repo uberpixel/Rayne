@@ -30,15 +30,7 @@ namespace RN
 	{}
 	
 	
-	
-	void LightEntity::Update(float delta)
-	{
-	}
-	
-	void LightEntity::PostUpdate()
-	{
-		
-	}
+
 	
 	bool LightEntity::IsVisibleInCamera(Camera *camera)
 	{

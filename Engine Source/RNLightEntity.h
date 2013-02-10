@@ -25,8 +25,6 @@ namespace RN
 		
 		virtual ~LightEntity();
 		
-		virtual void Update(float delta);
-		virtual void PostUpdate();
 		virtual bool IsVisibleInCamera(Camera *camera);
 		
 		void SetRange(float range);

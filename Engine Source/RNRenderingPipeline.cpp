@@ -348,7 +348,8 @@ namespace RN
 #if !(RN_PLATFORM_IOS)
 		std::vector<int> lightindexpos;
 		std::vector<int> lightindices;
-		Vector2 lighttilesize = camera->LightTiles()*_scaleFactor;
+		Vector2 lighttilesize = camera->LightTiles() * _scaleFactor;
+		
 		if(camera->DepthTiles() != 0)
 		{
 			std::vector<int> tempindices;
@@ -384,13 +385,16 @@ namespace RN
 			{
 				for(float y=0.0f; y<tilesheight; y+=1.0f)
 				{
-					plleft.SetPlane(camera->Position(), corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
-					plright.SetPlane(camera->Position(), corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
-					pltop.SetPlane(camera->Position(), corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
-					plbottom.SetPlane(camera->Position(), corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
+					const Vector3& camPosition = camera->Position().AccessPast();
 					
-					plnear.SetPlane(camera->Position()+camdir*deptharray[int(y*tileswidth+x)*2], camdir);
-					plfar.SetPlane(camera->Position()+camdir*deptharray[int(y*tileswidth+x)*2+1], camdir);
+					plleft.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
+					plright.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
+					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
+					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
+					
+					plnear.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2], camdir);
+					plfar.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2 + 1], camdir);
+					
 					//printf("%f ", deptharray[int(y*tileswidth+x)*2]);
 					//printf("%f \n", deptharray[int(y*tileswidth+x)*2+1]);
 					
