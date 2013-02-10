@@ -364,7 +364,12 @@ namespace RN
 				}
 				else
 				{
-					glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_FLOAT, 0);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+					glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_STENCIL, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, 0);
 				}
 			}
 #endif
@@ -686,10 +691,13 @@ namespace RN
 		
 		if(_stage)
 		{
-			if(_stage->_flags & FlagInherit)
+			if(_stage->_flags & FlagInheritFrame)
 			{
 				_stage->SetFrame(_frame);
-				
+			}
+			
+			if(_stage->_flags & FlagInheritPosition)
+			{
 				_stage->SetPosition(Position());
 				_stage->SetRotation(Rotation());
 			}
@@ -706,7 +714,7 @@ namespace RN
 		projectionMatrix->MakeProjectionPerspective(fov, aspect, clipnear, clipfar);
 		inverseProjectionMatrix->MakeInverseProjectionPerspective(fov, aspect, clipnear, clipfar);
 		
-		if(_stage && _stage->_flags & FlagInherit)
+		if(_stage && _stage->_flags & FlagInheritProjection)
 		{
 			_stage->aspect = aspect;
 			_stage->fov    = fov;

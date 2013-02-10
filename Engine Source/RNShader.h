@@ -61,6 +61,7 @@ namespace RN
 		GLuint vertColor1;
 		
 		GLuint time;
+		GLuint frameSize;
 		
 		GLuint lightPosition;
 		GLuint lightColor;

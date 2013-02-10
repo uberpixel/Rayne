@@ -94,12 +94,16 @@ namespace RN
 		{
 			FlagDrawTarget = (1 << 0),
 			FlagUpdateAspect = (1 << 1),
-			FlagInherit = (1 << 2),
-			FlagFullscreen = (1 << 3),
-			FlagNoClear = (1 << 4),
-			FlagUpdateStorageFrame = (1 << 5),
+			FlagFullscreen = (1 << 2),
+			FlagNoClear = (1 << 3),
+			FlagInheritPosition = (1 << 4),
+			FlagInheritFrame = (1 << 5),
+			FlagInheritProjection = (1 << 6),
+			FlagUpdateStorageFrame = (1 << 7),
 			
-			FlagDefaults = (FlagFullscreen | FlagUpdateAspect | FlagUpdateStorageFrame)
+			
+			FlagDefaults = (FlagFullscreen | FlagUpdateAspect | FlagUpdateStorageFrame),
+			FlagInherit = (FlagInheritFrame | FlagInheritPosition | FlagInheritProjection)
 		};
 		typedef uint32 Flags;
 		

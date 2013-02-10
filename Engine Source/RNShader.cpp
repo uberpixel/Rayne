@@ -306,6 +306,7 @@ namespace RN
 			GetUniformLocation(matProjViewModelInverse);
 			
 			GetUniformLocation(time);
+			GetUniformLocation(frameSize);
 			
 			GetUniformLocation(lightPosition);
 			GetUniformLocation(lightColor);

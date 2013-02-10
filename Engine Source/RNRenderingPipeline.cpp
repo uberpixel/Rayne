@@ -202,6 +202,9 @@ namespace RN
 		
 		glUseProgram(shader->program);
 		
+		if(shader->frameSize != -1)
+			glUniform4f(shader->frameSize, 1.0f/camera->Frame().width, 1.0f/camera->Frame().height, camera->Frame().width, camera->Frame().height);
+		
 		glEnableVertexAttribArray(shader->vertPosition);
 		glVertexAttribPointer(shader->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
 		
@@ -232,7 +235,14 @@ namespace RN
 		Material *material = stage->Material();
 		Shader *shader     = material->Shader();
 		
+		glUseProgram(shader->program);
 		BindMaterial(material);
+		
+		if(shader->time != -1)
+			glUniform1f(shader->time, _time);
+		
+		if(shader->frameSize != -1)
+			glUniform4f(shader->frameSize, 1.0f/camera->Frame().width, 1.0f/camera->Frame().height, camera->Frame().width, camera->Frame().height);
 		
 		if(!stage->HasDepthbuffer())
 		{
@@ -251,9 +261,6 @@ namespace RN
 			glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		}
-		
-		
-		glUseProgram(shader->program);
 		
 		glEnableVertexAttribArray(shader->vertPosition);
 		glVertexAttribPointer(shader->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
@@ -434,6 +441,9 @@ namespace RN
 					
 					if(shader->time != -1)
 						glUniform1f(shader->time, _time);
+					
+					if(shader->frameSize != -1)
+						glUniform4f(shader->frameSize, 1.0f/camera->Frame().width, 1.0f/camera->Frame().height, camera->Frame().width, camera->Frame().height);
 					
 					// Light data
 					if(shader->lightCount != -1)
