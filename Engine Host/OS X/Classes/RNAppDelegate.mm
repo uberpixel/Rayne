@@ -23,7 +23,7 @@
 {
 	[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"ApplePersistenceIgnoreState"];
 	
-	kernel = new RN::Kernel("libGame.dylib");	
+	kernel = new RN::Kernel("libGame");	
 	[NSTimer scheduledTimerWithTimeInterval:1.0f/60.0f target:self selector:@selector(runGameLoop:) userInfo:nil repeats:YES];
 }
 

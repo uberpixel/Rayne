@@ -679,6 +679,7 @@
 					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
 					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
 				);
+				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -692,6 +693,7 @@
 					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
 					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
 				);
+				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

@@ -189,7 +189,7 @@ namespace RN
 				break;
 		}
 
-
+		
 		bool hasExtension = false;
 		bool hasName = false;
 		
@@ -222,18 +222,16 @@ namespace RN
 					_path = path.substr(0, i);
 					
 					hasName = true;
-					
 					break;
 				}
 			}
 		}
 		
 		if(!hasName)
-			_name = _fullPath.substr(0, extensionIndex);
+			_name = path.substr(0, extensionIndex);
 
 		_fullPath = path;
 		_file = fopen(_fullPath.c_str(), fmode);
-
 		if(_file)
 			return true;
 		
@@ -247,14 +245,14 @@ namespace RN
 			{
 				_fullPath = temp + _name + *j + "." + _extension;
 				_file = fopen(_fullPath.c_str(), fmode);
-
+			
 				if(_file)
 					return true;
 			}
 			
 			_fullPath = temp + _name + "." + _extension;
 			_file = fopen(_fullPath.c_str(), fmode);
-
+			
 			if(_file)
 				return true;
 			
@@ -285,6 +283,7 @@ namespace RN
 			FileModifiers.push_back("~130");
 			FileModifiers.push_back("~120");
 			FileModifiers.push_back("~110");
+			FileModifiers.push_back("~mac");
 #endif
 			
 #if RN_PLATFORM_IOS

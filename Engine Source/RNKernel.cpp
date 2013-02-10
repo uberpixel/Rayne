@@ -81,7 +81,7 @@ namespace RN
 	void Kernel::LoadApplicationModule(const std::string& module)
 	{
 #if RN_PLATFORM_MAC_OS
-		std::string path = File::PathForName(module);
+		std::string path = File::PathForName(module + ".dylib");
 	
 		_appHandle = dlopen(path.c_str(), RTLD_LAZY);
 		__ApplicationEntry = (RNApplicationEntryPointer)dlsym(_appHandle, "RNApplicationCreate");

@@ -46,6 +46,12 @@ int main(int argc, char *argv[])
 	{
 		fprintf(stderr, "Caught exception %i|%i|%i.\nReason: %s\n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str());
 		fflush(stderr);
+		
+		if(e.Description().length() > 0)
+		{
+			[[NSAlert alertWithMessageText:@"Rayne crashed" defaultButton:nil alternateButton:nil otherButton:nil informativeTextWithFormat:@"Reason: %s\nException code: %i|%i|%i", e.Description().c_str(), e.Group(), e.Subgroup(), e.Code()] runModal];
+			[NSApp terminate:nil];
+		}
 	}
 	
 	return result;
