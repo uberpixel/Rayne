@@ -374,6 +374,7 @@ namespace RN
 			RN::Matrix rot;
 			rot.MakeRotate(camera->Rotation().AccessPast());
 			Vector3 camdir = rot.Transform(RN::Vector3(0.0, 0.0, -1.0));
+			const Vector3& camPosition = camera->Position().AccessPast();
 			
 			Plane plleft;
 			Plane plright;
@@ -387,8 +388,6 @@ namespace RN
 			{
 				for(float y=0.0f; y<tilesheight; y+=1.0f)
 				{
-					const Vector3& camPosition = camera->Position().AccessPast();
-					
 					plleft.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
 					plright.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
 					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
@@ -397,8 +396,8 @@ namespace RN
 					plnear.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2], camdir);
 					plfar.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2 + 1], camdir);
 					
-					//printf("%f ", deptharray[int(y*tileswidth+x)*2]);
-					//printf("%f \n", deptharray[int(y*tileswidth+x)*2+1]);
+//					printf("%f ", deptharray[int(y*tileswidth+x)*2]);
+//					printf("%f \n", deptharray[int(y*tileswidth+x)*2+1]);
 					
 					counter = -1;
 					for(auto i=lights->begin(); i!=lights->end(); i++)
@@ -426,7 +425,7 @@ namespace RN
 						
 						if(plfar.Distance(position) > range)
 							continue;
-						
+	
 						tempindices.push_back(counter);
 					}
 					

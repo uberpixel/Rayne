@@ -143,6 +143,8 @@ namespace RN
 		void UpdateProjection();
 		void SynchronizePast()
 		{
+			Transform::SynchronizePast();
+			
 			projectionMatrix.SynchronizePast();
 			inverseProjectionMatrix.SynchronizePast();
 			
