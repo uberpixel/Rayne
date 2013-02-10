@@ -145,15 +145,16 @@ namespace RN
 		{
 			projectionMatrix.SynchronizePast();
 			inverseProjectionMatrix.SynchronizePast();
+			
 			viewMatrix.SynchronizePast();
 			inverseViewMatrix.SynchronizePast();
 		}
 		
 		Vector3 CamToWorld(Vector3 dir);
 		void UpdateFrustum();
-		bool InFrustum(Vector3 &position, float &radius);
+		bool InFrustum(const Vector3& position, float radius);
 		
-		Vector3 const FrustumCenter() const {return _frustumCenter;}
+		const Vector3& FrustumCenter() const {return _frustumCenter;}
 		float const FrustumRadius() const {return _frustumRadius;}
 		
 		RenderStorage *Storage() const { return _storage; }
@@ -171,10 +172,10 @@ namespace RN
 		bool HasDepthbuffer() const { return _storage->HasDepthbuffer(); }
 		bool HasStencilbuffer() const { return _storage->HasStencilbuffer(); }
 		
-		Past<class Matrix> projectionMatrix;
-		Past<class Matrix> inverseProjectionMatrix;
-		Past<class Matrix> viewMatrix;
-		Past<class Matrix> inverseViewMatrix;
+		Past<Matrix> projectionMatrix;
+		Past<Matrix> inverseProjectionMatrix;
+		Past<Matrix> viewMatrix;
+		Past<Matrix> inverseViewMatrix;
 		
 		float fov;
 		float aspect;

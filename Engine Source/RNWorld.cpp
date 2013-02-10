@@ -20,7 +20,7 @@ namespace RN
 		_renderer = _kernel->Renderer();
 		_physics  = new PhysicsPipeline();
 		
-		_physicsTask = kPipelineSegmentNullTask;
+		_physicsTask   = kPipelineSegmentNullTask;
 		_renderingTask = kPipelineSegmentNullTask;
 	}
 	
@@ -33,8 +33,7 @@ namespace RN
 	
 	
 	void World::Update(float delta)
-	{
-	}
+	{}
 	
 	void World::BeginUpdate(float delta)
 	{
@@ -85,16 +84,26 @@ namespace RN
 			for(auto j=_entities.begin(); j!=_entities.end(); j++)
 			{
 				Entity *entity = *j;
-				if(entity->HasIntent())
+				
+				if(entity->IsVisibleInCamera(camera))
 				{
-					group.intents.push_back(entity->Intent());
-				}
-				if(entity->Type() == Entity::Light)
-				{
-					RenderingLight light = ((LightEntity*)entity)->Light();
-					if(camera->InFrustum(light.position, light.range))
+					if(entity->Model())
+						group.entities.push_back(entity);
+					
+					switch(entity->Type())
 					{
-						group.lights.push_back(light);
+						case Entity::TypeObject:
+							break;
+							
+						case Entity::TypeLight:
+						{
+							group.lights.push_back((LightEntity *)entity);
+							
+							if(entity->Model())
+								group.entities.push_back(entity);
+							
+							break;
+						}
 					}
 				}
 			}
@@ -123,6 +132,7 @@ namespace RN
 			}
 		}
 	}
+	
 	
 	void World::AddCamera(Camera *camera)
 	{

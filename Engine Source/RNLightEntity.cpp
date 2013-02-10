@@ -8,26 +8,28 @@
 
 #include "RNLightEntity.h"
 #include "RNWorld.h"
-#include "RNKernel.h"
+#include "RNCamera.h"
 
 namespace RN
 {
-	LightEntity::LightEntity()
-		:Entity(Entity::Light)
+	LightEntity::LightEntity() :
+		Entity(Entity::TypeLight)
 	{
-		
+		_color = Vector3(1.0f, 1.0f, 1.0f);
+		_range = 1.0f;
 	}
 	
-	LightEntity::LightEntity(LightEntity *other)
-		:Entity(other)
+	LightEntity::LightEntity(LightEntity *other) :
+		Entity(other)
 	{
-		
+		_color = other->_color;
+		_range = other->_range;
 	}
 	
 	LightEntity::~LightEntity()
-	{
-		
-	}
+	{}
+	
+	
 	
 	void LightEntity::Update(float delta)
 	{
@@ -37,6 +39,12 @@ namespace RN
 	{
 		
 	}
+	
+	bool LightEntity::IsVisibleInCamera(Camera *camera)
+	{
+		return camera->InFrustum(Position(), _range);
+	}
+	
 	
 	void LightEntity::SetRange(float range)
 	{

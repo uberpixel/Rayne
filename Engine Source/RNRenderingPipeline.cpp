@@ -7,6 +7,7 @@
 //
 
 #include "RNRenderingPipeline.h"
+#include "RNLightEntity.h"
 #include "RNKernel.h"
 
 namespace RN
@@ -297,7 +298,7 @@ namespace RN
 	void RenderingPipeline::DrawGroup(RenderingGroup *group)
 	{
 		// Object pre-pass
-		std::vector<RenderingIntent> *frame = &group->intents;
+		std::vector<Entity *> *frame = &group->entities;
 		std::vector<RenderingObject> objects;
 		
 		objects.reserve(frame->size());
@@ -305,7 +306,9 @@ namespace RN
 		// Unpack the frame
 		for(auto i=frame->begin(); i!=frame->end(); i++)
 		{
-			Model *model = i->model;
+			Entity *entity = *i;
+			Model  *model = entity->Model();
+			
 			uint32 meshes = model->Meshes();
 			
 			for(uint32 j=0; j<meshes; j++)
@@ -313,7 +316,7 @@ namespace RN
 				RenderingObject object;
 				object.mesh = model->MeshAtIndex(j);
 				object.material = model->MaterialForMesh(object.mesh);
-				object.transform = &i->transform;
+				object.transform = &entity->_transform;
 				
 				objects.push_back(object);
 			}
@@ -327,22 +330,20 @@ namespace RN
 		Camera *camera = group->camera;
 		
 		// Creating light list
-		std::vector<RenderingLight> *lights = &group->lights;
+		std::vector<LightEntity *> *lights = &group->lights;
 		
 		Vector4 *lightpos = new Vector4[lights->size()];
 		Vector3 *lightcolor = new Vector3[lights->size()];
-		std::vector<RenderingLight>::iterator lightiterator;
 		int lightcount = 0;
-		for(lightiterator=lights->begin(); lightiterator!=lights->end(); lightiterator++)
+		
+		for(auto i=lights->begin(); i!=lights->end(); i++, lightcount++)
 		{
-			lightpos[lightcount].x = lightiterator->position.x;
-			lightpos[lightcount].y = lightiterator->position.y;
-			lightpos[lightcount].z = lightiterator->position.z;
-			lightpos[lightcount].w = lightiterator->range;
-			lightcolor[lightcount] = lightiterator->color;
-			lightcount++;
+			LightEntity *light = *i;
+			const Vector3& position = light->Position();
+			
+			lightpos[lightcount] = Vector4(position.x, position.y, position.z, light->Range());
+			lightcolor[lightcount] = light->Color();
 		}
-//		printf("Lightcount: %i\n", lightcount);
 
 #if !(RN_PLATFORM_IOS)
 		std::vector<int> lightindexpos;
@@ -378,9 +379,10 @@ namespace RN
 			Plane plfar;
 			Plane plnear;
 			int counter;
-			for(float x = 0.0f; x < tileswidth; x += 1.0f)
+			
+			for(float x=0.0f; x<tileswidth; x+=1.0f)
 			{
-				for(float y = 0.0f; y < tilesheight; y += 1.0f)
+				for(float y=0.0f; y<tilesheight; y+=1.0f)
 				{
 					plleft.SetPlane(camera->Position(), corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
 					plright.SetPlane(camera->Position(), corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
@@ -389,29 +391,34 @@ namespace RN
 					
 					plnear.SetPlane(camera->Position()+camdir*deptharray[int(y*tileswidth+x)*2], camdir);
 					plfar.SetPlane(camera->Position()+camdir*deptharray[int(y*tileswidth+x)*2+1], camdir);
-					printf("%f ", deptharray[int(y*tileswidth+x)*2]);
-					printf("%f \n", deptharray[int(y*tileswidth+x)*2+1]);
+					//printf("%f ", deptharray[int(y*tileswidth+x)*2]);
+					//printf("%f \n", deptharray[int(y*tileswidth+x)*2+1]);
 					
 					counter = -1;
-					for(lightiterator=lights->begin(); lightiterator!=lights->end(); lightiterator++)
+					for(auto i=lights->begin(); i!=lights->end(); i++)
 					{
-						counter++;
-						if(plleft.Distance(lightiterator->position) > lightiterator->range)
+						LightEntity *light = *i;
+						const Vector3& position = light->Position();
+						float range = light->Range();
+						
+						counter ++;
+						
+						if(plleft.Distance(position) > range)
 							continue;
 						
-						if(plright.Distance(lightiterator->position) < -lightiterator->range)
+						if(plright.Distance(position) < -range)
 							continue;
 						
-						if(pltop.Distance(lightiterator->position) < -lightiterator->range)
+						if(pltop.Distance(position) < -range)
 							continue;
 						
-						if(plbottom.Distance(lightiterator->position) > lightiterator->range)
+						if(plbottom.Distance(position) > range)
 							continue;
 						
-						if(plnear.Distance(lightiterator->position) < -lightiterator->range)
+						if(plnear.Distance(position) < -range)
 							continue;
 						
-						if(plfar.Distance(lightiterator->position) > lightiterator->range)
+						if(plfar.Distance(position) > range)
 							continue;
 						
 						tempindices.push_back(counter);

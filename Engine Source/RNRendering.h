@@ -18,53 +18,8 @@
 
 namespace RN
 {
-	class RenderingIntent : public RenderingResource
-	{
-	public:
-		RenderingIntent(Model *_model) :
-			RenderingResource("Rendering Intent")
-		{
-			model = _model->Retain<Model>();
-		}
-		
-		RenderingIntent(const RenderingIntent& other) :
-			RenderingResource(other._name)
-		{
-			model = other.model->Retain<Model>();
-			transform = other.transform;
-		}
-		
-		~RenderingIntent()
-		{
-			model->Release();
-		}
-		
-		
-		Matrix transform;
-		Model *model;
-	};
-	
-	class RenderingLight : public RenderingResource
-	{
-	public:
-		RenderingLight() :
-		RenderingResource("Rendering Light")
-		{
-		}
-		
-		RenderingLight(const RenderingLight& other) :
-		RenderingResource(other._name)
-		{
-			position = other.position;
-			color = other.color;
-			range = other.range;
-		}
-		
-		Vector3 position;
-		Vector3 color;
-		float range;
-	};
-	
+	class Entity;
+	class LightEntity;
 	class RenderingGroup : public RenderingResource
 	{
 	public:
@@ -74,8 +29,8 @@ namespace RN
 		}
 		
 		Camera *camera;
-		std::vector<RenderingIntent> intents;
-		std::vector<RenderingLight> lights;
+		std::vector<Entity *> entities;
+		std::vector<LightEntity *> lights;
 	};
 }
 

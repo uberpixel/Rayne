@@ -393,10 +393,10 @@
 		E9F8070D1697051C00773A34 /* Scene */ = {
 			isa = PBXGroup;
 			children = (
-				C050166716C3FDE600326514 /* RNLightEntity.cpp */,
-				C050166816C3FDE600326514 /* RNLightEntity.h */,
 				E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */,
 				E9580BD216AB8BEA0056DEF2 /* RNEntity.h */,
+				C050166716C3FDE600326514 /* RNLightEntity.cpp */,
+				C050166816C3FDE600326514 /* RNLightEntity.h */,
 				E9C6F08C16AEA7AE006288D5 /* RNPhysicsPipeline.cpp */,
 				E9C6F08D16AEA7AE006288D5 /* RNPhysicsPipeline.h */,
 				C085AA2A16B2B43500E48EBB /* RNRigidBodyEntity.cpp */,

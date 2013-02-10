@@ -35,7 +35,7 @@ namespace RN
 		const Vector3& Scale() const { return _scale; }
 		const Quaternion& Rotation() const { return _rotation; }
 		
-		const Matrix& Matrix();
+		const Matrix& WorldTransform();
 		
 	protected:
 		bool _didChange;
@@ -46,7 +46,7 @@ namespace RN
 		Vector3 _euler;	//there has to be a way to fix this in the quaternion class somehow...
 		
 	private:
-		class Matrix _transform;
+		Matrix _transform;
 	};
 	
 	RN_INLINE Transform::Transform() :
@@ -110,7 +110,7 @@ namespace RN
 		_didChange = true;
 	}
 	
-	RN_INLINE const Matrix& Transform::Matrix()
+	RN_INLINE const Matrix& Transform::WorldTransform()
 	{
 		if(_didChange)
 		{

@@ -681,7 +681,7 @@ namespace RN
 	// Helper
 	void Camera::Update(float delta)
 	{
-		inverseViewMatrix = Matrix();
+		inverseViewMatrix = WorldTransform();
 		viewMatrix = inverseViewMatrix->Inverse();
 		
 		if(_flags & FlagFullscreen)
@@ -767,9 +767,9 @@ namespace RN
 		_frustumBottom.SetPlane(_position, pos3, pos6);
 	}
 	
-	bool Camera::InFrustum(Vector3 &position, float &radius)
+	bool Camera::InFrustum(const Vector3& position, float radius)
 	{
-		if(_frustumCenter.Distance(position) > _frustumRadius+radius)
+		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
 			return false;
 		
 		if(_frustumLeft.Distance(position) > radius)

@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNRendering.h"
 #include "RNPipelineSegment.h"
+#include "RNEntity.h"
 
 #define kRNRenderingPipelineInstancingCutOff 100
 

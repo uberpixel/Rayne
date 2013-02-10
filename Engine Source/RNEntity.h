@@ -18,48 +18,43 @@
 
 namespace RN
 {
+	class World;
+	class Camera;
+	class RenderingPipeline;
+	
 	class Entity : public Object, public Transform
 	{
+	friend class World;
+	friend class RenderingPipeline;
 	public:
 		typedef enum
 		{
-			Object,
-			Light
+			TypeObject,
+			TypeLight
 		} EntityType;
 		
 		Entity();
-		Entity(EntityType type);
 		Entity(Entity *other);
 		
 		virtual ~Entity();
 		
 		virtual void Update(float delta);
 		virtual void PostUpdate();
-		RenderingIntent Intent();
+		virtual bool IsVisibleInCamera(Camera *camera);
 		
-		void SetModel(Model *_model);
-		bool HasIntent();
+		void SetModel(Model *model);
+		
 		EntityType Type() const {return _type;}
-		
 		Model *Model() const { return _model; }
+		
+	protected:		
+		Entity(EntityType type);
+		Matrix _transform;
 		
 	private:
 		class Model *_model;
 		EntityType _type;
 	};
-	
-	RN_INLINE RenderingIntent Entity::Intent()
-	{
-		RenderingIntent intent(_model);
-		intent.transform = Matrix();
-		
-		return intent;
-	}
-	
-	RN_INLINE bool Entity::HasIntent()
-	{
-		return (_model != 0);
-	}
 }
 
 #endif /* __RAYNE_ENTITY_H__ */

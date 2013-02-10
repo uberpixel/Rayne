@@ -27,26 +27,18 @@ namespace RN
 		
 		virtual void Update(float delta);
 		virtual void PostUpdate();
+		virtual bool IsVisibleInCamera(Camera *camera);
 		
 		void SetRange(float range);
 		void SetColor(Vector3 color);
 		
-		RenderingLight Light();
+		const Vector3& Color() { return _color; }
+		const float Range() { return _range; }
 		
 	private:
 		Vector3 _color;
 		float _range;
 	};
-	
-	RN_INLINE RenderingLight LightEntity::Light()
-	{
-		RenderingLight light;
-		light.position = Position();
-		light.color = _color;
-		light.range = _range;
-		
-		return light;
-	}
 }
 
 #endif /* __RAYNE_LIGHTENTITY_H__ */

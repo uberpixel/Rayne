@@ -7,15 +7,16 @@
 //
 
 #include "RNEntity.h"
-#include "RNWorld.h"
 #include "RNKernel.h"
+#include "RNWorld.h"
+#include "RNCamera.h"
 
 namespace RN
 {
 	Entity::Entity()
 	{
 		_model = 0;
-		_type = Object;
+		_type = TypeObject;
 		
 		World::SharedInstance()->AddEntity(this);
 	}
@@ -31,7 +32,7 @@ namespace RN
 	Entity::Entity(Entity *other)
 	{
 		_model = other->_model->Retain<RN::Model>();
-		_type = other->Type();
+		_type  = other->_type;
 		
 		SetPosition(other->Position());
 		SetScale(other->Scale());
@@ -47,14 +48,21 @@ namespace RN
 		_model->Release();
 	}
 	
+	
+	
 	void Entity::Update(float delta)
-	{
-	}
+	{}
 	
 	void Entity::PostUpdate()
 	{
-		
+		_transform = WorldTransform();
 	}
+	
+	bool Entity::IsVisibleInCamera(Camera *camera)
+	{
+		return true;
+	}
+	
 	
 	void Entity::SetModel(class Model *model)
 	{
