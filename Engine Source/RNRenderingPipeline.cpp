@@ -376,6 +376,10 @@ namespace RN
 			Vector3 camdir = rot.Transform(RN::Vector3(0.0, 0.0, -1.0));
 			const Vector3& camPosition = camera->Position().AccessPast();
 			
+/*			Vector3 far = camera->CamToWorld(Vector3(1.0f, 1.0f, 1.0f));
+			far = far-camPosition;
+			printf("farplane x: %f, y: %f, z:%f\n", far.x, far.y, far.z);*/
+			
 			Plane plleft;
 			Plane plright;
 			Plane pltop;

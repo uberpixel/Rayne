@@ -20,10 +20,13 @@ void main()
 	
 	float n = 0.1;
 	float f = 500.0;
-	fragColor0.r = 0.0;//(2.0 * n) / (f + n - fragColor0.r * (f - n));
+	
+	fragColor0.rg = (n * f) / (f - fragColor0.rg * (f - n));
+	
+/*	fragColor0.r = (2.0 * n) / (f + n - fragColor0.r * (f - n));
 	fragColor0.g = (2.0 * n) / (f + n - fragColor0.g * (f - n));
 	
-	fragColor0.rg *= f-n;
-	fragColor0.r *= 0.7;
-	fragColor0.rg += n;
+	fragColor0.rg *= f-n;*/
+//	fragColor0.r *= 0.1;
+//	fragColor0.rg += n;
 }

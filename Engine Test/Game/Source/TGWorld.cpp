@@ -35,7 +35,7 @@ namespace TG
 		RN::Material *downsampleMaterial4x = new RN::Material(downsampleShader);
 		downsampleMaterial4x->AddTexture(downsample2x->Storage()->RenderTarget());
 		
-		RN::Camera *downsample4x = new RN::Camera(RN::Vector2(_camera->Frame().width/4, _camera->Frame().height)/4, RN::Texture::FormatRGB32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
+		RN::Camera *downsample4x = new RN::Camera(RN::Vector2(_camera->Frame().width/4, _camera->Frame().height/4), RN::Texture::FormatRGB32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
 		_camera->AddStage(downsample4x);
 		downsample4x->SetMaterial(downsampleMaterial4x);
 		
@@ -79,10 +79,12 @@ namespace TG
 		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
 		{
 			_camera->ActivateTiledLightLists(downsample64x->Storage()->RenderTarget());
+			_depthtiletex = downsample64x->Storage()->RenderTarget();
 		}
 		else
 		{
 			_camera->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
+			_depthtiletex = downsample32x->Storage()->RenderTarget();
 		}
 		
 		CreateWorld();
@@ -290,6 +292,7 @@ namespace TG
 		for(int i = 0; i < model->Meshes(); i++)
 		{
 			model->MaterialForMesh(model->MeshAtIndex(i))->SetShader(lightshader);
+			model->MaterialForMesh(model->MeshAtIndex(i))->AddTexture(_depthtiletex);
 		}
 		model->MaterialForMesh(model->MeshAtIndex(4))->SetShader(shader);
 		model->MaterialForMesh(model->MeshAtIndex(4))->culling = false;
