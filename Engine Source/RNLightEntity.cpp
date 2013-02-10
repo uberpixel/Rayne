@@ -30,6 +30,13 @@ namespace RN
 	{}
 	
 	
+	void LightEntity::PostUpdate()
+	{
+		Entity::PostUpdate();
+		
+		_color.SynchronizePast();
+		_range.SynchronizePast();
+	}
 
 	
 	bool LightEntity::IsVisibleInCamera(Camera *camera)

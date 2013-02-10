@@ -341,8 +341,8 @@ namespace RN
 			LightEntity *light = *i;
 			const Vector3& position = light->Position().AccessPast();
 			
-			lightpos[lightcount] = Vector4(position.x, position.y, position.z, light->Range());
-			lightcolor[lightcount] = light->Color();
+			lightpos[lightcount] = Vector4(position.x, position.y, position.z, light->Range().AccessPast());
+			lightcolor[lightcount] = light->Color().AccessPast();
 		}
 
 #if !(RN_PLATFORM_IOS)
@@ -354,19 +354,21 @@ namespace RN
 		{
 			std::vector<int> tempindices;
 			Rect rect = camera->Frame();
-			int tileswidth = rect.width/camera->LightTiles().x;
-			int tilesheight = rect.height/camera->LightTiles().y;
+			int tileswidth  = rect.width / camera->LightTiles().x;
+			int tilesheight = rect.height / camera->LightTiles().y;
+			
 			Vector3 corner1 = camera->CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
 			Vector3 corner2 = camera->CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
 			Vector3 corner3 = camera->CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
 			
-			Vector3 dirx = (corner2-corner1)/tileswidth;
-			Vector3 diry = (corner3-corner1)/tilesheight;
+			Vector3 dirx = (corner2-corner1) / tileswidth;
+			Vector3 diry = (corner3-corner1) / tilesheight;
+			
+			float *deptharray = new float[tileswidth * tilesheight * 2];
 			
 			glPixelStorei(GL_PACK_ALIGNMENT, 1);
 			glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 			glBindTexture(GL_TEXTURE_2D, camera->DepthTiles()->Name());
-			float *deptharray = new float[tileswidth*tilesheight*2];
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, deptharray);
 			
 			RN::Matrix rot;
@@ -403,7 +405,7 @@ namespace RN
 					{
 						LightEntity *light = *i;
 						const Vector3& position = light->Position().AccessPast();
-						float range = light->Range();
+						float range = light->Range().AccessPast();
 						
 						counter ++;
 						
@@ -427,6 +429,7 @@ namespace RN
 						
 						tempindices.push_back(counter);
 					}
+					
 	//				printf("lights: %i \n", tempindices.size());
 					lightindexpos.push_back(static_cast<int>(lightindices.size()));
 					lightindexpos.push_back(static_cast<int>(tempindices.size()));
@@ -435,7 +438,7 @@ namespace RN
 				}
 			}
 			
-//			delete[] deptharray;
+			delete[] deptharray;
 			
 			//indexpos
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
@@ -493,6 +496,7 @@ namespace RN
 						
 					if(shader->lightColor != -1 && lightcount > 0)
 						glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
+					
 #if !(RN_PLATFORM_IOS)
 					if(lightindices.size() > 0)
 					{
@@ -533,9 +537,7 @@ namespace RN
 						}
 						
 						if(shader->lightTileSize != -1)
-						{
 							glUniform2fv(shader->lightTileSize, 1, &lighttilesize.x);
-						}
 					}
 #endif
 					
