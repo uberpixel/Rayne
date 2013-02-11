@@ -381,7 +381,7 @@ namespace RN
 			
 			RN::Matrix rot;
 			rot.MakeRotate(camera->Rotation().AccessPast());
-			Vector3 camdir = rot.Transform(RN::Vector3(0.0, 0.0, -1.0));
+//			Vector3 camdir = rot.Transform(RN::Vector3(0.0, 0.0, -1.0));
 			const Vector3& camPosition = camera->Position().AccessPast();
 			
 /*			Vector3 far = camera->CamToWorld(Vector3(1.0f, 1.0f, 1.0f));
@@ -396,9 +396,9 @@ namespace RN
 			Plane plnear;
 			int counter;
 			
-			for(float x=0.0f; x<tileswidth; x+=1.0f)
+			for(float y=0.0f; y<tileswidth; y+=1.0f)
 			{
-				for(float y=0.0f; y<tilesheight; y+=1.0f)
+				for(float x=0.0f; x<tilesheight; x+=1.0f)
 				{
 					plleft.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
 					plright.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));

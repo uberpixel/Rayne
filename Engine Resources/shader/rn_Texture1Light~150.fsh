@@ -35,7 +35,7 @@ void main()
 	vec4 lightpos;
 	vec3 lightcolor;
 	int lightindex = 0;
-	int tileindex = int(int((gl_FragCoord.x-0.5)/lightTileSize.x)*lightTileSize.w+int((gl_FragCoord.y-0.5)/lightTileSize.y))*2;
+	int tileindex = int(int((gl_FragCoord.y-0.5)/lightTileSize.y)*lightTileSize.z+int((gl_FragCoord.x-0.5)/lightTileSize.x))*2;
 	int listoffset = texelFetch(lightListOffset, tileindex).r;
 	int lightcount = texelFetch(lightListOffset, tileindex+1).r;
 	for(int i = 0; i < lightcount; i++)
