@@ -112,12 +112,6 @@ namespace RN
 		}
 	}
 	
-	
-	void Texture::SetFormat(Format format)
-	{
-		_format = format;
-	}
-	
 	void Texture::SetWrappingMode(WrapMode wrap)
 	{
 		if(_wrapMode != wrap)
@@ -453,6 +447,18 @@ namespace RN
 				*glType = GL_HALF_FLOAT_OES;
 				break;
 #endif
+				
+			case FormatDepth:
+				*glFormat = GL_DEPTH_COMPONENT;
+				*glInternalFormat = GL_DEPTH_COMPONENT24;
+				*glType = GL_UNSIGNED_BYTE;
+				break;
+				
+			case FormatDepthStencil:
+				*glFormat = GL_DEPTH_STENCIL;
+				*glInternalFormat = GL_DEPTH24_STENCIL8;
+				*glType = GL_UNSIGNED_INT_24_8;
+				break;
 				
 			default:
 				throw ErrorException(0, 0, 0); // Todo throw an actual error exception!

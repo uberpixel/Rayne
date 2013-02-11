@@ -92,6 +92,7 @@ namespace RN
 		uint32 _defaultWidth;
 		uint32 _defaultHeight;
 
+		Camera *_currentCamera;
 		Material *_currentMaterial;
 		Mesh *_currentMesh;
 

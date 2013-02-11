@@ -43,15 +43,14 @@ namespace RN
 		RenderStorage(BufferFormat format, Texture *depthTexture=0);
 		virtual ~RenderStorage();
 		
-		void SetFrame(const Rect& frame);
-		void SetBufferFormat(BufferFormat format);
-		void SetDepthTexture(Texture *texture);
-		void UpdateBuffer();
-		
+		void SetFrame(const Rect& frame);		
 		void SetRenderTarget(Texture *target, uint32 index=0);
 		void AddRenderTarget(Texture *target);
 		void AddRenderTarget(Texture::Format format);
 		void RemoveRenderTarget(Texture *target);
+		void SetDepthTarget(Texture *texture);
+		
+		void UpdateBuffer();
 		
 		bool HasDepthbuffer() const { return (_format & BufferFormatDepth); }
 		bool HasStencilbuffer() const { return (_format & BufferFormatStencil); }
@@ -59,8 +58,6 @@ namespace RN
 		uint32 RenderTargets() const { return (uint32)_renderTargets->Count(); }
 		Texture *RenderTarget(uint32 index=0) const { return (Texture *)_renderTargets->ObjectAtIndex(index); }
 		Texture *DepthTarget() const { return _depthTexture; }
-		
-		GLenum ClearMask() const { return _clearMask; }
 		
 		static uint32 MaxRenderTargets();
 		
@@ -71,8 +68,6 @@ namespace RN
 		GLuint _framebuffer;
 		GLuint _depthbuffer;
 		GLuint _stencilbuffer;
-		
-		GLenum _clearMask;
 		
 		Rect _frame;
 		BufferFormat _format;
@@ -107,6 +102,22 @@ namespace RN
 		};
 		typedef uint32 Flags;
 		
+		enum
+		{
+			ClearFlagColor = (1 << 0),
+			ClearFlagDepth = (1 << 1),
+			ClearFlagStencil = (1 << 2)
+		};
+		typedef uint32 ClearFlags;
+		
+		enum
+		{
+			ColorFlagRed = (1 << 0),
+			ColorFlagGreen = (1 << 1),
+			ColorFlagBlue = (1 << 2),
+			ColorFlagAlpha = (1 << 3)
+		};
+		typedef uint32 ColorFlags;
 		
 		Camera(const Vector2& size);
 		
@@ -130,6 +141,9 @@ namespace RN
 		void SetClearColor(const Color& color);
 		void SetMaterial(Material *material);
 		void SetRenderStorage(RenderStorage *storage);
+		void SetClearMask(ClearFlags mask);
+		void SetColorMask(ColorFlags mask);
+		void SetAllowsDepthWrite(bool flag);
 		
 		void AddStage(Camera *stage);
 		void InsertStage(Camera *stage);
@@ -174,6 +188,8 @@ namespace RN
 		bool HasDepthbuffer() const { return _storage->HasDepthbuffer(); }
 		bool HasStencilbuffer() const { return _storage->HasStencilbuffer(); }
 		
+		bool AllowsDepthWrite() const { return _allowDepthWrite; }
+		
 		Past<Matrix> projectionMatrix;
 		Past<Matrix> inverseProjectionMatrix;
 		Past<Matrix> viewMatrix;
@@ -191,6 +207,8 @@ namespace RN
 		Rect _frame;
 		Color _clearColor;
 		Flags _flags;
+		ColorFlags _colorMask;
+		GLuint _clearMask;
 		float _scaleFactor;
 		
 		Vector3 _frustumCenter;
@@ -201,6 +219,8 @@ namespace RN
 		Plane _frustumBottom;
 		
 		Vector2 _lightTiles;
+		
+		bool _allowDepthWrite;
 		
 		class Material *_material;
 		RenderStorage *_storage;

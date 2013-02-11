@@ -42,6 +42,9 @@ namespace RN
 			FormatRG32F,
 			FormatRGB32F,
 			
+			FormatDepth,
+			FormatDepthStencil,
+			
 			FormatPVRTC4,
 			FormatPVRTC2
 		} Format;
@@ -75,7 +78,6 @@ namespace RN
 		RNAPI void UpdateRegion(const void *data, Format format, Rect region);
 		RNAPI void UpdateMipmaps();
 		
-		RNAPI void SetFormat(Format format);
 		RNAPI void SetWrappingMode(WrapMode wrap);
 		RNAPI void SetFilter(Filter filter);
 		RNAPI void SetLinear(bool linear);

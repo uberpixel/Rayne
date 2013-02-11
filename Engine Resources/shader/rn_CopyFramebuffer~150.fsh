@@ -16,5 +16,6 @@ out vec4 fragColor0;
 
 void main()
 {
-	fragColor0 = texture(targetmap0, texcoord);
+	vec4 color0 = texture(targetmap0, texcoord);
+	fragColor0 = pow(color0, vec4(0.454545455));
 }

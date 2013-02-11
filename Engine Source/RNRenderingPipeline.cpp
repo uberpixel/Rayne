@@ -252,7 +252,7 @@ namespace RN
 		if(shader->clipPlanes != -1)
 			glUniform2f(shader->clipPlanes, camera->clipnear, camera->clipfar);
 		
-		if(!stage->HasDepthbuffer())
+		if(!stage->HasDepthbuffer() || !stage->AllowsDepthWrite())
 		{
 			if(_depthTestEnabled)
 			{
@@ -475,6 +475,8 @@ namespace RN
 		{
 			camera->Bind();
 			camera->PrepareForRendering();
+			
+			_currentCamera = camera;
 
 			if(!(camera->CameraFlags() & Camera::FlagDrawTarget))
 			{
@@ -678,75 +680,83 @@ namespace RN
 
 	void RenderingPipeline::BindMaterial(Material *material)
 	{
-		if(material)
+		material->Push();
+
+		if(material != _currentMaterial)
 		{
-			material->Push();
+			ObjectArray *textures = material->Textures();
+			Array<GLuint> *textureLocations = &material->Shader()->texlocations;
 
-			if(material != _currentMaterial)
+			if(textureLocations->Count() > 0)
 			{
-				ObjectArray *textures = material->Textures();
-				Array<GLuint> *textureLocations = &material->Shader()->texlocations;
+				machine_uint textureCount = MIN(textureLocations->Count(), textures->Count());
 
-				if(textureLocations->Count() > 0)
+				for(machine_uint i=0; i<textureCount; i++)
 				{
-					machine_uint textureCount = MIN(textureLocations->Count(), textures->Count());
+					GLint location = textureLocations->ObjectAtIndex(i);
+					Texture *texture = (Texture *)textures->ObjectAtIndex(i);
 
-					for(machine_uint i=0; i<textureCount; i++)
-					{
-						GLint location = textureLocations->ObjectAtIndex(i);
-						Texture *texture = (Texture *)textures->ObjectAtIndex(i);
-
-						glUniform1i(location, BindTexture(texture));
-					}
+					glUniform1i(location, BindTexture(texture));
 				}
 			}
+		}
 
-			if(material->culling != _cullingEnabled)
+		if(material->culling != _cullingEnabled)
+		{
+			if(material->culling)
 			{
-				if(material->culling)
+				if(!_cullingEnabled)
 				{
-					if(!_cullingEnabled)
-					{
-						glEnable(GL_CULL_FACE);
-						_cullingEnabled = true;
-					}
-
-					if(material->cullmode != _cullMode)
-					{
-						glFrontFace(material->cullmode);
-						_cullMode = material->cullmode;
-					}
+					glEnable(GL_CULL_FACE);
+					_cullingEnabled = true;
 				}
-				else if(_cullingEnabled)
+
+				if(material->cullmode != _cullMode)
 				{
-					glDisable(GL_CULL_FACE);
-					_cullingEnabled = false;
+					glFrontFace(material->cullmode);
+					_cullMode = material->cullmode;
 				}
 			}
-
-			if(material->depthtest != _depthTestEnabled || material->depthtestmode != _depthFunc)
+			else if(_cullingEnabled)
 			{
-				if(material->depthtest)
-				{
-					if(!_depthTestEnabled)
-					{
-						glEnable(GL_DEPTH_TEST);
-						_depthTestEnabled = true;
-					}
+				glDisable(GL_CULL_FACE);
+				_cullingEnabled = false;
+			}
+		}
 
-					if(material->depthtestmode != _depthFunc)
-					{
-						glDepthFunc(material->depthtestmode);
-						_depthFunc = material->depthtestmode;
-					}
-				}
-				else if(_depthTestEnabled)
+		if(material->depthtest != _depthTestEnabled || material->depthtestmode != _depthFunc)
+		{
+			if(material->depthtest)
+			{
+				if(!_depthTestEnabled)
 				{
-					glDisable(GL_DEPTH_TEST);
-					_depthTestEnabled = false;
+					glEnable(GL_DEPTH_TEST);
+					_depthTestEnabled = true;
+				}
+
+				if(material->depthtestmode != _depthFunc)
+				{
+					glDepthFunc(material->depthtestmode);
+					_depthFunc = material->depthtestmode;
 				}
 			}
+			else if(_depthTestEnabled)
+			{
+				glDisable(GL_DEPTH_TEST);
+				_depthTestEnabled = false;
+			}
+		}
 
+		if(!_currentCamera->AllowsDepthWrite())
+		{
+			if(_depthWrite)
+			{
+				glDepthMask(GL_FALSE);
+				_depthWrite = false;
+			}
+		}
+		else
+		{
 			if(material->depthwrite != _depthWrite)
 			{
 				GLboolean depthwrite = (material->depthwrite) ? GL_TRUE : GL_FALSE;
@@ -754,65 +764,56 @@ namespace RN
 
 				_depthWrite = material->depthwrite;
 			}
+		}
 
-			if(material->blending != _blendingEnabled || material->blendSource != _blendSource || material->blendDestination != _blendDestination)
+		if(material->blending != _blendingEnabled || material->blendSource != _blendSource || material->blendDestination != _blendDestination)
+		{
+			if(material->blending)
 			{
-				if(material->blending)
+				if(!_blendingEnabled)
 				{
-					if(!_blendingEnabled)
-					{
-						glEnable(GL_BLEND);
-						_blendingEnabled = true;
-					}
-
-					if(material->blendSource != _blendSource || material->blendDestination != _blendDestination)
-					{
-						glBlendFunc(material->blendSource, material->blendDestination);
-						_blendSource = material->blendSource;
-						_blendDestination = material->blendDestination;
-					}
+					glEnable(GL_BLEND);
+					_blendingEnabled = true;
 				}
-				else if(_blendingEnabled)
+
+				if(material->blendSource != _blendSource || material->blendDestination != _blendDestination)
 				{
-					glDisable(GL_BLEND);
-					_blendingEnabled = false;
+					glBlendFunc(material->blendSource, material->blendDestination);
+					_blendSource = material->blendSource;
+					_blendDestination = material->blendDestination;
 				}
 			}
-
-			material->Pop();
+			else if(_blendingEnabled)
+			{
+				glDisable(GL_BLEND);
+				_blendingEnabled = false;
+			}
 		}
+
+		material->Pop();
 
 		_currentMaterial = material;
 	}
 
 	void RenderingPipeline::DrawMesh(Mesh *mesh)
 	{
-		if(mesh)
+		mesh->Push();
+
+		MeshLODStage *stage = mesh->LODStage(0);
+		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
+		
+		std::tuple<Material *, MeshLODStage *> tuple = std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage);
+		GLuint vao = VAOForTuple(tuple);
+
+		if(vao != _currentVAO)
 		{
-			mesh->Push();
-
-			MeshLODStage *stage = mesh->LODStage(0);
-
-			std::tuple<Material *, MeshLODStage *> tuple = std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage);
-			GLuint vao = VAOForTuple(tuple);
-
-			if(vao != _currentVAO)
-			{
-				gl::BindVertexArray(vao);
-				_currentVAO = vao;
-			}
-
-			mesh->Pop();
+			gl::BindVertexArray(vao);
+			_currentVAO = vao;
 		}
 
-		if(mesh)
-		{
-			MeshLODStage *stage = mesh->LODStage(0);
-			MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
-
-			glDrawElements(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0);
-		}
-
+		glDrawElements(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0);
+		
+		mesh->Pop();
 		_currentMesh = mesh;
 	}
 

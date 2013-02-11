@@ -13,9 +13,9 @@ namespace TG
 	World::World()
 	{
 #if !(RN_PLATFORM_IOS)
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth|RN::RenderStorage::BufferFormatStencil);
-		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatR8);
-		storage->SetDepthTexture(depthtex);
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
+		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
+		storage->SetDepthTarget(depthtex);
 		
 		RN::Shader *surfaceShader = RN::Shader::WithFile("shader/SurfaceNormals");
 		RN::Material *surfaceMaterial = new RN::Material(surfaceShader);
@@ -73,7 +73,7 @@ namespace TG
 		}
 			
 		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection | RN::Camera::FlagNoClear);
-		_finalcam->Storage()->SetDepthTexture(depthtex);
+		_finalcam->Storage()->SetDepthTarget(depthtex);
 		_finalcam->SetName("Final Cam");
 //		_camera->AddStage(_finalcam);
 		
@@ -323,13 +323,14 @@ namespace TG
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
 		
-		for(int i = 0; i < 400; i++)
+		/*for(int i = 0; i < 400; i++)
 		{
 			light = new RN::LightEntity();
 			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
-			light->SetRange((float)(rand())/RAND_MAX*20.0f);
+			//light->SetRange((float)(rand())/RAND_MAX*20.0f);
+			light->SetRange(20.0f);
 			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
-		}
+		}*/
 		
 #if RN_TARGET_OPENGL
 /*		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight_instanced");
