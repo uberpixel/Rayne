@@ -25,28 +25,28 @@ namespace RN
 	public:
 		Window(const std::string& title, Kernel *kernel);
 		virtual ~Window();
-		
+
 		void Show();
 		void Hide();
-		
+
 		void SetContext(Context *context);
 		void SetTitle(const std::string& title);
-		
+
 		Rect Frame() const;
-		
+
 	private:
 		void RenderLoop();
-		
+
 #if RN_PLATFORM_MAC_OS
 		void *_nativeWindow;
 #endif
-		
+
 #if RN_PLATFORM_IOS
 		void *_nativeWindow;
 		void *_rootViewController;
 		void *_renderingView;
 #endif
-		
+
 		Context *_context;
 		RenderingPipeline *_renderer;
 		Kernel *_kernel;
@@ -86,6 +86,40 @@ namespace RN
 		RendererBackend *_renderer;
 		HWND _hWnd;
 		HDC _hDC;
+	};
+}
+
+#endif
+
+
+#if RN_PLATFORM_LINUX
+
+namespace RN
+{
+	class Kernel;
+	class Window : public Object
+	{
+	public:
+		Window(const std::string& title, Kernel *kernel);
+		virtual ~Window();
+
+		void Show();
+		void Hide();
+
+		void SetContext(Context *context);
+		void SetTitle(const std::string& title);
+
+		Rect Frame() const;
+
+	private:
+		void RenderLoop();
+
+		Context *_context;
+		RenderingPipeline *_renderer;
+		Kernel *_kernel;
+
+		Display *_dpy;
+		XID _win;
 	};
 }
 

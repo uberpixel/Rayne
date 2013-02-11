@@ -23,7 +23,7 @@ namespace RN
 		_thread = 0;
 		_shared = shared->Retain<Context>();
 		_firstActivation = true;
-		
+
 #if RN_PLATFORM_MAC_OS
 		static NSOpenGLPixelFormatAttribute formatAttributes[] =
 		{
@@ -35,35 +35,35 @@ namespace RN
 			NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
 			0
 		};
-		
+
 		_oglPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes];
 		if(!_oglPixelFormat)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
-		
+
 		_oglContext = [[NSOpenGLContext alloc] initWithFormat:(NSOpenGLPixelFormat *)_oglPixelFormat shareContext:_shared ? (NSOpenGLContext *)_shared->_oglContext : nil];
 		if(!_oglContext)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
-		
+
 		_cglContext = (CGLContextObj)[(NSOpenGLContext *)_oglContext CGLContextObj];
-		
+
 		if(_shared)
 		{
 			// Enable the multithreaded OpenGL Engine
-			
+
 			CGLEnable((CGLContextObj)_shared->_cglContext, kCGLCEMPEngine);
 			CGLEnable((CGLContextObj)_cglContext, kCGLCEMPEngine);
-			
+
 			if(_shared->_active && shared->_thread->OnThread())
 			{
 				_shared->Deactivate();
 				_shared->Activate();
 			}
 		}
-		
+
 #elif RN_PLATFORM_IOS
 
 		EAGLSharegroup *sharegroup = _shared ? [(EAGLContext *)_shared->_oglContext sharegroup] : nil;
-		
+
 		_oglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
 		if(!_oglContext)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
@@ -117,7 +117,7 @@ namespace RN
 			wglDeleteContext(_temp);
 		}
 
-		
+
 		int attributes[] =
 		{
 			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
@@ -148,11 +148,59 @@ namespace RN
 			wglShareLists(_context, _shared->_context);
 		}
 
+#elif RN_PLATFORM_LINUX
+
+		// TODO: identify which other attributes are needed here
+		Colormap             cmap;
+		XSetWindowAttributes swa;
+		static int attributes[]  = {GLX_RGBA, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, None};
+		int dummy;
+
+		/*** (1) open a connection to the X server ***/
+		_dpy = XOpenDisplay(NULL);
+		if (_dpy == NULL)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "could not open display");
+
+		/*** (2) make sure OpenGL's GLX extension supported ***/
+		if(!glXQueryExtension(_dpy, &dummy, &dummy))
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "X server has no OpenGL GLX extension");
+
+		/*** (3) find an appropriate visual ***/
+
+		/* find an OpenGL-capable RGB visual with depth and double buffer */
+		_vi = glXChooseVisual(_dpy, DefaultScreen(_dpy), attributes);
+		if (_vi == NULL)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "no RGB visual with depth buffer and double buffer");
+
+		if (_vi->c_class != TrueColor)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "TrueColor visual required for this program");
+
+		/*** (4) create an OpenGL rendering context  ***/
+
+		/* create an OpenGL rendering context */
+		_context = glXCreateContext(_dpy, _vi, /* no shared dlists */ None,
+							/* direct rendering if possible */ GL_TRUE);
+		if (_context == NULL)
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "could not create rendering context");
+
+		/* Create fake Invisible XWindow to enable openGl context without window */
+		/* create an X colormap since probably not using default visual */
+		cmap = XCreateColormap(_dpy, RootWindow(_dpy, _vi->screen), _vi->visual, AllocNone);
+		swa.colormap = cmap;
+		swa.border_pixel = 0;
+		swa.event_mask = KeyPressMask    | ExposureMask
+					 | ButtonPressMask | StructureNotifyMask;
+
+		_fakexid = XCreateWindow(_dpy, RootWindow(_dpy, _vi->screen), 0, 0,
+						  1024, 768, 0, _vi->depth, InputOutput, _vi->visual,
+						  CWBorderPixel | CWColormap | CWEventMask, &swa);
+
+
 #else
 		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #endif
 	}
-	
+
 	Context::~Context()
 	{
 		DeactivateContext();
@@ -164,7 +212,7 @@ namespace RN
 		[(id)_oglContext release];
 		[(id)_oglPixelFormat release];
 #endif
-		
+
 #if RN_PLATFORM_IOS
 		[(EAGLContext *)_oglContext release];
 #endif
@@ -205,79 +253,79 @@ namespace RN
 		return hWnd;
 	}
 #endif
-	
+
 	void Context::MakeActiveContext()
 	{
 		Thread *thread = Thread::CurrentThread();
 		RN_ASSERT0(thread);
-		
+
 		thread->_mutex->Lock();
-		
+
 		if(thread->_context == this)
 		{
 			thread->_mutex->Unlock();
 			return;
 		}
-		
+
 		if(thread->_context)
 		{
 			Context *other = thread->_context;
 			other->_active = false;
 			other->_thread = 0;
-			
+
 			other->Deactivate();
 		}
-		
+
 		this->Activate();
-		
+
 		this->_active = true;
 		this->_thread = thread;
-		
+
 		thread->_context = this;
 		thread->_mutex->Unlock();
 	}
-	
+
 	void Context::DeactivateContext()
 	{
 		Thread *thread = Thread::CurrentThread();
 		RN_ASSERT0(thread);
-		
+
 		thread->_mutex->Lock();
-		
+
 		this->_active = false;
 		this->_thread = 0;
-		
+
 		this->Deactivate();
-		
+
 		thread->_context = 0;
 		thread->_mutex->Unlock();
 	}
-	
+
 	Context *Context::ActiveContext()
 	{
 		Thread *thread = Thread::CurrentThread();
 		RN_ASSERT0(thread);
-		
+
 		return thread->_context;
 	}
-	
+
 	void Context::SetName(const char *name)
 	{
 		RenderingResource::SetName(name);
-		
+
 #if RN_PLATFORM_IOS
 		if([(EAGLContext *)_oglContext respondsToSelector:@selector(setDebugLabel:)])
 			[(EAGLContext *)_oglContext setDebugLabel:[NSString stringWithUTF8String:name]];
 #endif
 	}
-	
+
 	void Context::Activate()
 	{
 #if RN_PLATFORM_MAC_OS
 		[(NSOpenGLContext *)_oglContext makeCurrentContext];
-		RN_ASSERT0([NSOpenGLContext currentContext] == _oglContext);		
+		RN_ASSERT0([NSOpenGLContext currentContext] == _oglContext);
 #endif
-		
+
 #if RN_PLATFORM_IOS
 		BOOL result = [EAGLContext setCurrentContext:(EAGLContext *)_oglContext];
 		RN_ASSERT0(result);
@@ -286,17 +334,21 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		wglMakeCurrent(_hDC, _context);
 #endif
-		
+
+#if RN_PLATFORM_LINUX
+		glXMakeCurrent(_dpy, _fakexid, _context);
+#endif
+
 		if(_firstActivation)
 		{
 			_firstActivation = false;
-			
+
 #if GL_FRAMEBUFFER_SRGB
 			glEnable(GL_FRAMEBUFFER_SRGB);
 #endif
 		}
 	}
-	
+
 	void Context::Deactivate()
 	{
 #if RN_PLATFORM_MAC_OS
@@ -309,6 +361,10 @@ namespace RN
 
 #if RN_PLATFORM_WINDOWS
 		wglMakeCurrent(_hDC, 0);
+#endif
+
+#if RN_PLATFORM_LINUX
+		glXMakeCurrent(_dpy, _fakexid, 0);
 #endif
 	}
 }

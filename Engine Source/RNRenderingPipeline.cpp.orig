@@ -206,10 +206,14 @@ namespace RN
 		}
 
 		glUseProgram(shader->program);
-
+<<<<<<< Updated upstream
+		
 		if(shader->frameSize != -1)
 			glUniform4f(shader->frameSize, 1.0f/camera->Frame().width, 1.0f/camera->Frame().height, camera->Frame().width, camera->Frame().height);
 		
+=======
+
+>>>>>>> Stashed changes
 		glEnableVertexAttribArray(shader->vertPosition);
 		glVertexAttribPointer(shader->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
 
@@ -239,10 +243,11 @@ namespace RN
 
 		Material *material = stage->Material();
 		Shader *shader     = material->Shader();
-
+<<<<<<< Updated upstream
+		
 		glUseProgram(shader->program);
 		BindMaterial(material);
-
+		
 		if(shader->time != -1)
 			glUniform1f(shader->time, _time);
 		
@@ -252,6 +257,11 @@ namespace RN
 		if(shader->clipPlanes != -1)
 			glUniform2f(shader->clipPlanes, camera->clipnear, camera->clipfar);
 		
+=======
+
+		BindMaterial(material);
+
+>>>>>>> Stashed changes
 		if(!stage->HasDepthbuffer())
 		{
 			if(_depthTestEnabled)
@@ -269,7 +279,14 @@ namespace RN
 			glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		}
+<<<<<<< Updated upstream
+		
+=======
 
+
+		glUseProgram(shader->program);
+
+>>>>>>> Stashed changes
 		glEnableVertexAttribArray(shader->vertPosition);
 		glVertexAttribPointer(shader->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
 
@@ -323,8 +340,13 @@ namespace RN
 				RenderingObject object;
 				object.mesh = model->MeshAtIndex(j);
 				object.material = model->MaterialForMesh(object.mesh);
+<<<<<<< Updated upstream
 				object.transform = &entity->PastWorldTransform();
+				
+=======
+				object.transform = &i->transform;
 
+>>>>>>> Stashed changes
 				objects.push_back(object);
 			}
 		}
@@ -337,8 +359,13 @@ namespace RN
 		Camera *camera = group->camera;
 
 		// Creating light list
+<<<<<<< Updated upstream
 		std::vector<LightEntity *> *lights = &group->lights;
+		
+=======
+		std::vector<RenderingLight> *lights = &group->lights;
 
+>>>>>>> Stashed changes
 		Vector4 *lightpos = new Vector4[lights->size()];
 		Vector3 *lightcolor = new Vector3[lights->size()];
 		int lightcount = 0;
@@ -356,12 +383,31 @@ namespace RN
 		std::vector<int> lightindexpos;
 		std::vector<int> lightindices;
 		Rect rect = camera->Frame();
+<<<<<<< Updated upstream
 		int tileswidth  = rect.width / camera->LightTiles().x;
 		int tilesheight = rect.height / camera->LightTiles().y;
 		Vector2 lighttilesize = camera->LightTiles() * _scaleFactor;
 		Vector2 lighttilecount = Vector2(tileswidth, tilesheight);
 		
 		if(camera->DepthTiles() != 0)
+=======
+		int tileswidth = rect.width/camera->LightTiles().x;
+		int tilesheight = rect.height/camera->LightTiles().y;
+		Vector3 corner1 = camera->CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
+		Vector3 corner2 = camera->CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
+		Vector3 corner3 = camera->CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
+		Vector2 lighttilesize = camera->LightTiles()*_scaleFactor;
+
+		Vector3 dirx = (corner2-corner1)/tileswidth;
+		Vector3 diry = (corner3-corner1)/tilesheight;
+
+		Plane plleft;
+		Plane plright;
+		Plane pltop;
+		Plane plbottom;
+		int counter;
+		for(float x = 0.0f; x < tileswidth; x += 1.0f)
+>>>>>>> Stashed changes
 		{
 			std::vector<int> tempindices;
 			
@@ -398,6 +444,7 @@ namespace RN
 			
 			for(float x=0.0f; x<tileswidth; x+=1.0f)
 			{
+<<<<<<< Updated upstream
 				for(float y=0.0f; y<tilesheight; y+=1.0f)
 				{
 					plleft.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
@@ -446,6 +493,30 @@ namespace RN
 					lightindexpos.push_back(static_cast<int>(tempindices.size()));
 					lightindices.insert(lightindices.end(), tempindices.begin(), tempindices.end());
 					tempindices.clear();
+=======
+				plleft.SetPlane(camera->Position(), corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
+				plright.SetPlane(camera->Position(), corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
+				pltop.SetPlane(camera->Position(), corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
+				plbottom.SetPlane(camera->Position(), corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
+
+				counter = -1;
+				for(lightiterator=lights->begin(); lightiterator!=lights->end(); lightiterator++)
+				{
+					counter++;
+					if(plleft.Distance(lightiterator->position) > lightiterator->range)
+						continue;
+
+					if(plright.Distance(lightiterator->position) < -lightiterator->range)
+						continue;
+
+					if(pltop.Distance(lightiterator->position) < -lightiterator->range)
+						continue;
+
+					if(plbottom.Distance(lightiterator->position) > lightiterator->range)
+						continue;
+
+					tempindices.push_back(counter);
+>>>>>>> Stashed changes
 				}
 			}
 			
@@ -469,6 +540,27 @@ namespace RN
 			
 			glBindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
+<<<<<<< Updated upstream
+=======
+
+		//indexpos
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
+		glBufferData(GL_TEXTURE_BUFFER, lightindexpos.size()*sizeof(int), &lightindexpos[0], GL_STREAM_DRAW);
+
+		//indices
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
+		glBufferData(GL_TEXTURE_BUFFER, lightindices.size()*sizeof(int), &lightindices[0], GL_STREAM_DRAW);
+
+		//lightpos
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
+		glBufferData(GL_TEXTURE_BUFFER, lightcount*4*sizeof(float), lightpos, GL_STREAM_DRAW);
+
+		//lightcol
+		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
+		glBufferData(GL_TEXTURE_BUFFER, lightcount*3*sizeof(float), lightcolor, GL_STREAM_DRAW);
+
+		glBindBuffer(GL_TEXTURE_BUFFER, 0);
+>>>>>>> Stashed changes
 #endif
 
 		while(camera)
@@ -494,13 +586,17 @@ namespace RN
 
 					if(shader->time != -1)
 						glUniform1f(shader->time, _time);
-
+<<<<<<< Updated upstream
+					
 					if(shader->frameSize != -1)
 						glUniform4f(shader->frameSize, 1.0f/camera->Frame().width/_scaleFactor, 1.0f/camera->Frame().height/_scaleFactor, camera->Frame().width*_scaleFactor, camera->Frame().height*_scaleFactor);
 					
 					if(shader->clipPlanes != -1)
 						glUniform2f(shader->clipPlanes, camera->clipnear, camera->clipfar);
 					
+=======
+
+>>>>>>> Stashed changes
 					// Light data
 					if(shader->lightCount != -1)
 						glUniform1i(shader->lightCount, lightcount);
@@ -510,9 +606,50 @@ namespace RN
 
 					if(shader->lightColor != -1 && lightcount > 0)
 						glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
+<<<<<<< Updated upstream
 					
 #if !(RN_PLATFORM_IOS)
 					if(lightindices.size() > 0)
+=======
+#if !(RN_PLATFORM_IOS)
+					if(shader->lightListPosition != -1)
+					{
+						_textureUnit ++;
+						_textureUnit %= _maxTextureUnits;
+						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[2]);
+						glUniform1i(shader->lightListPosition, _textureUnit);
+					}
+
+					if(shader->lightList != -1)
+					{
+						_textureUnit ++;
+						_textureUnit %= _maxTextureUnits;
+						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[1]);
+						glUniform1i(shader->lightList, _textureUnit);
+					}
+
+					if(shader->lightListOffset != -1)
+					{
+						_textureUnit ++;
+						_textureUnit %= _maxTextureUnits;
+						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[0]);
+						glUniform1i(shader->lightListOffset, _textureUnit);
+					}
+
+					if(shader->lightListColor != -1)
+					{
+						_textureUnit ++;
+						_textureUnit %= _maxTextureUnits;
+						glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+						glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[3]);
+						glUniform1i(shader->lightListColor, _textureUnit);
+					}
+
+					if(shader->lightTileSize != -1)
+>>>>>>> Stashed changes
 					{
 						if(shader->lightListPosition != -1)
 						{

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="Workspace">
+		<Project filename="Rayne.cbp" />
+		<Project filename="Engine Host/Linux/Rayne Player.cbp" />
+		<Project filename="Vendor/bullet/bullet.cbp" />
+		<Project filename="Engine Test/Game/Game.cbp" />
+	</Workspace>
+</CodeBlocks_workspace_file>

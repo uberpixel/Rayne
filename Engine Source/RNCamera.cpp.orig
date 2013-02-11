@@ -505,8 +505,12 @@ namespace RN
 		_stage = 0;
 
 		_lightTiles = Vector2(32, 32);
+<<<<<<< Updated upstream
 		_depthTiles = 0;
+		
+=======
 
+>>>>>>> Stashed changes
 		Update(0.0f);
 		UpdateProjection();
 		UpdateFrustum();
@@ -694,10 +698,14 @@ namespace RN
 			if(_stage->_flags & FlagInheritFrame)
 			{
 				_stage->SetFrame(_frame);
+<<<<<<< Updated upstream
 			}
 			
 			if(_stage->_flags & FlagInheritPosition)
 			{
+=======
+
+>>>>>>> Stashed changes
 				_stage->SetPosition(Position());
 				_stage->SetRotation(Rotation());
 			}
@@ -713,8 +721,13 @@ namespace RN
 
 		projectionMatrix->MakeProjectionPerspective(fov, aspect, clipnear, clipfar);
 		inverseProjectionMatrix->MakeInverseProjectionPerspective(fov, aspect, clipnear, clipfar);
-
+<<<<<<< Updated upstream
+		
 		if(_stage && _stage->_flags & FlagInheritProjection)
+=======
+
+		if(_stage && _stage->_flags & FlagInherit)
+>>>>>>> Stashed changes
 		{
 			_stage->aspect = aspect;
 			_stage->fov    = fov;
@@ -749,13 +762,23 @@ namespace RN
 
 		Vector3 vmax;
 		Vector3 vmin;
+<<<<<<< Updated upstream
 		vmax.x = fmax(_position->x, fmax(pos2.x, fmax(pos3.x, fmax(pos5.x, pos6.x))));
 		vmax.y = fmax(_position->y, fmax(pos2.y, fmax(pos3.y, fmax(pos5.y, pos6.y))));
 		vmax.z = fmax(_position->z, fmax(pos2.z, fmax(pos3.z, fmax(pos5.z, pos6.z))));
 		vmin.x = fmin(_position->x, fmin(pos2.x, fmin(pos3.x, fmin(pos5.x, pos6.x))));
 		vmin.y = fmin(_position->y, fmin(pos2.y, fmin(pos3.y, fmin(pos5.y, pos6.y))));
 		vmin.z = fmin(_position->z, fmin(pos2.z, fmin(pos3.z, fmin(pos5.z, pos6.z))));
+		
+=======
+		vmax.x = fmax(_position.x, fmax(pos2.x, fmax(pos3.x, fmax(pos5.x, pos6.x))));
+		vmax.y = fmax(_position.y, fmax(pos2.y, fmax(pos3.y, fmax(pos5.y, pos6.y))));
+		vmax.z = fmax(_position.z, fmax(pos2.z, fmax(pos3.z, fmax(pos5.z, pos6.z))));
+		vmin.x = fmin(_position.x, fmin(pos2.x, fmin(pos3.x, fmin(pos5.x, pos6.x))));
+		vmin.y = fmin(_position.y, fmin(pos2.y, fmin(pos3.y, fmin(pos5.y, pos6.y))));
+		vmin.z = fmin(_position.z, fmin(pos2.z, fmin(pos3.z, fmin(pos5.z, pos6.z))));
 
+>>>>>>> Stashed changes
 		_frustumCenter = vmax+vmin;
 		_frustumCenter = _frustumCenter*0.5f;
 		_frustumRadius = _frustumCenter.Distance(vmax);
@@ -765,8 +788,13 @@ namespace RN
 		_frustumTop.SetPlane(_position, pos2, pos5);
 		_frustumBottom.SetPlane(_position, pos3, pos6);
 	}
-
+<<<<<<< Updated upstream
+	
 	bool Camera::InFrustum(const Vector3& position, float radius)
+=======
+
+	bool Camera::InFrustum(Vector3 &position, float &radius)
+>>>>>>> Stashed changes
 	{
 		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
 			return false;

@@ -23,121 +23,121 @@ namespace RN
 			_count    = 0;
 			_capacity = 10;
 			_data     = (T *)malloc(_capacity * sizeof(T));
-			
+
 			RN_ASSERT0(_data);
 		}
-		
+
 		Array(size_t capacity)
 		{
 			RN_ASSERT0(capacity > 0);
-			
+
 			_count    = 0;
 			_capacity = capacity;
 			_data     = (T *)malloc(_capacity * sizeof(T));
-			
+
 			RN_ASSERT0(_data);
 		}
-		
+
 		Array(const Array<T>& other)
 		{
 			_count    = other._count;
 			_capacity = other._capacity;
 			_data     = (T *)malloc(_capacity * sizeof(T));
-			
+
 			RN_ASSERT0(_data);
 			std::copy(other._data, other._data + _count, _data);
 		}
-		
+
 		virtual ~Array()
 		{
 			free(_data);
 		}
-		
+
 		T& operator[] (int index) const
 		{
 			return ObjectAtIndex(index);
 		}
-		
+
 		virtual void AddObject(T object)
 		{
 			if(_count >= _capacity)
 				ResizeToSize(_capacity * 2);
-			
+
 			_data[_count ++] = object;
 		}
-		
+
 		virtual void RemoveObjectAtIndex(machine_uint index)
 		{
 			RN_ASSERT0(index != RN_NOT_FOUND);
-			
+
 			_count --;
-			
+
 			for(machine_uint i=index; i<_count; i++)
 				_data[i] = _data[i + 1];
-			
+
 			if(_count < (_capacity / 2))
 				ResizeToSize(_capacity / 2);
 		}
-		
-		
+
+
 		virtual void RemoveLastObject()
 		{
 			if(_count == 0)
 				return;
-			
+
 			if(( --_count) < (_capacity / 2))
 				ResizeToSize(_capacity / 2);
-			
+
 		}
-		
+
 		virtual void RemoveAllObjects()
 		{
 			_count = 0;
 		}
-		
+
 		virtual T& ObjectAtIndex(machine_uint index) const
 		{
 			RN_ASSERT0(index != RN_NOT_FOUND && index < _count);
 			return _data[index];
 		}
-		
+
 		virtual machine_uint Count() const
 		{
 			return _count;
 		}
-		
+
 	protected:
 		void ResizeToSize(machine_uint size)
 		{
-			size = MAX(size, 1);
+			size = MAX(size, (machine_uint)1);
 			T *data = (T *)realloc(_data, size * sizeof(T));
-			
+
 			if(data)
 			{
 				_data     = data;
 				_capacity = size;
 			}
 		}
-		
+
 		T *_data;
 		machine_uint _capacity;
 		machine_uint _count;
 	};
-	
-	
-	
+
+
+
 	class ObjectArray : public Array<Object *>
 	{
 	public:
 		ObjectArray()
 		{
 		}
-		
+
 		ObjectArray(size_t size) :
 			Array(size)
 		{
 		}
-		
+
 		virtual ~ObjectArray()
 		{
 			for(size_t i=0; i<_count; i++)
@@ -145,75 +145,75 @@ namespace RN
 				Object *object = _data[i];
 				object->Release();
 			}
-			
+
 			//free(_data);
 		}
-		
+
 		virtual void AddObject(Object *object)
 		{
 			Array::AddObject(object->Retain<Object>());
 		}
-		
+
 		void ReplaceObjectAtIndex(machine_uint index, Object *object)
 		{
 			Object *old = _data[index];
 			_data[index] = object->Retain<Object>();
 			old->Release();
 		}
-		
+
 		virtual void RemoveObject(Object *object)
 		{
 			machine_uint index = IndexOfObject(object);
-			
+
 			if(index != RN_NOT_FOUND)
 				RemoveObjectAtIndex(index);
 		}
-		
+
 		virtual void RemoveObjectAtIndex(machine_uint index)
 		{
 			RN_ASSERT0(index != RN_NOT_FOUND);
 			Object *object = _data[index];
-			
+
 			Array::RemoveObjectAtIndex(index);
 			object->Release();
 		}
-		
+
 		virtual void RemoveAllObjects()
 		{
 			for(machine_uint i=0; i<_count; i++)
 			{
 				_data[i]->Release();
 			}
-			
+
 			_count = 0;
 		}
-		
+
 		virtual void RemoveLastObject()
 		{
 			if(_count == 0)
 				return;
-			
+
 			Object *object = _data[_count - 1];
-			
+
 			Array::RemoveLastObject();
 			object->Release();
 		}
-		
+
 		Object *LastObject()
 		{
 			return (_count > 0) ? _data[_count - 1] : 0;
 		}
-		
+
 		virtual machine_uint IndexOfObject(Object *object) const
 		{
 			for(machine_uint i=0; i<_count; i++)
 			{
 				Object *tobject = _data[i];
-				
+
 				if(object->Hash() == tobject->Hash() && object->IsEqual(tobject))
 					return true;
 			}
-			
+
 			return RN_NOT_FOUND;
 		}
 	};

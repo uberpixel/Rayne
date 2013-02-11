@@ -44,6 +44,7 @@
 	#include <signal.h>
 	#include <errno.h>
 	#include <dlfcn.h>
+	#include <stdarg.h>
 #endif
 
 #if RN_PLATFORM_MAC_OS
@@ -85,6 +86,17 @@
 	#pragma comment(lib, "opengl32.lib")
 #endif
 
+#if RN_PLATFORM_LINUX
+
+	#define GL_GLEXT_PROTOTYPES 1
+	#define GL3_PROTOTYPES 1
+
+	#include <GL/glx.h>
+	#include <GL/gl.h>
+	//#include <GL/glu.h>
+	//#include <GL/glut.h>
+#endif
+
 #include "RNOpenGL.h"
 
 // ---------------------------
@@ -109,22 +121,22 @@ namespace RN
 {
 #ifndef NDEBUG
 	RNAPI RN_NORETURN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
-	
+
 	#if RN_PLATFORM_POSIX
 		#define RN_ASSERT(e, ...) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, __VA_ARGS__) : (void)0
 		#define RN_ASSERT0(e) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, 0) : (void)0
 	#endif
-		
+
 	#if RN_PLATFORM_WINDOWS
 		#define RN_ASSERT(e, ...) (!(e)) ? __Assert(__FUNCTION__, __LINE__, #e, __VA_ARGS__) : (void)0
 		#define RN_ASSERT0(e) (!(e)) ? __Assert(__FUNCTION__, __LINE__, #e, 0) : (void)0
 	#endif
-	
+
 #else
 	#define RN_ASSERT(e, message, ...) (void)0
 	#define RN_ASSERT0(e) (void)0
 #endif
-	
+
 	template <class T>
 	class Singleton
 	{
@@ -133,26 +145,26 @@ namespace RN
 		{
 			if(!_instance)
 				_instance = new T();
-			
+
 			return _instance;
 		}
-		
+
 	protected:
 		Singleton()
 		{}
-		
+
 		virtual ~Singleton()
 		{
 			_instance = 0;
 		}
-		
+
 	private:
 		static T *_instance;
 	};
-	
+
 	template <class T>
 	T * Singleton<T>::_instance = 0;
-	
+
 	template <class T>
 	class UnconstructingSingleton
 	{
@@ -161,23 +173,23 @@ namespace RN
 		{
 			return _instance;
 		}
-		
+
 	protected:
 		UnconstructingSingleton()
 		{
 			RN_ASSERT0(_instance == 0);
 			_instance = static_cast<T *>(this);
 		}
-		
+
 		virtual ~UnconstructingSingleton()
 		{
 			_instance = 0;
 		}
-		
+
 	private:
 		static T *_instance;
 	};
-	
+
 	template <class T>
 	T * UnconstructingSingleton<T>::_instance = 0;
 }

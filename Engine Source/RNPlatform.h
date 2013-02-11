@@ -12,6 +12,7 @@
 #define RN_PLATFORM_MAC_OS  0
 #define RN_PLATFORM_WINDOWS 0
 #define RN_PLATFORM_IOS     0
+#define RN_PLATFORM_LINUX	0
 
 #define RN_PLATFORM_ARM   0
 #define RN_PLATFORM_INTEL 0
@@ -58,7 +59,7 @@
 	#pragma section(".CRT$XCU",read)
 	#pragma warning(disable: 4800)
 
-	
+
 
 	#if defined(_WIN64) || defined(__amd64__)
 			#undef RN_PLATFORM_INTEL
@@ -74,5 +75,32 @@
 			#define RN_PLATFORM_32BIT 1
 	#endif
 #endif
+
+#if defined(__linux__)
+	#define RN_PLATFORM_POSIX 1
+
+	#undef RN_PLATFORM_LINUX
+	#undef RN_TARGET_OPENGL
+
+	#define RN_PLATFORM_LINUX 1
+	#define RN_TARGET_OPENGL 1
+
+	#if defined(__x86_64__)
+			#undef RN_PLATFORM_INTEL
+			#undef RN_PLATFORM_64BIT
+
+			#define RN_PLATFORM_INTEL 1
+			#define RN_PLATFORM_64BIT 1
+		#else
+			#undef RN_PLATFORM_INTEL
+			#undef RN_PLATFORM_32BIT
+
+			#define RN_PLATFORM_INTEL 1
+			#define RN_PLATFORM_32BIT 1
+	#endif
+
+
+#endif
+
 
 #endif /* __RAYNE_PLATFORM_H__ */

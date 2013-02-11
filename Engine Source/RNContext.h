@@ -21,32 +21,32 @@ namespace RN
 	{
 	friend class Window;
 	public:
-		RNAPI Context(Context *shared=0);		
+		RNAPI Context(Context *shared=0);
 		RNAPI virtual ~Context();
-		
+
 		RNAPI void MakeActiveContext();
 		RNAPI void DeactivateContext();
 
 		RNAPI virtual void SetName(const char *name);
-		
+
 		static Context *ActiveContext();
-		
+
 	protected:
 		void Activate();
 		void Deactivate();
-		
+
 	private:
 		bool _active;
 		Thread *_thread;
 		Context *_shared;
 		bool _firstActivation;
-		
+
 #if RN_PLATFORM_MAC_OS
 		void *_oglContext;
 		void *_oglPixelFormat;
 		void *_cglContext;
 #endif
-		
+
 #if RN_PLATFORM_IOS
 		void *_oglContext;
 #endif
@@ -58,6 +58,14 @@ namespace RN
 		HDC _hDC;
 		HGLRC _context;
 		int _pixelFormat;
+#endif
+
+#if RN_PLATFORM_LINUX
+		Display *_dpy;
+
+		XVisualInfo *_vi;
+		GLXContext _context;
+		XID _fakexid;
 #endif
 	};
 }

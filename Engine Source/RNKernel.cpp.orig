@@ -80,12 +80,19 @@ namespace RN
 
 	void Kernel::LoadApplicationModule(const std::string& module)
 	{
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
+<<<<<<< Updated upstream
+#if RN_PLATFORM_MAC_OS
 		std::string path = File::PathForName(module + ".dylib");
+	
+		_appHandle = dlopen(path.c_str(), RTLD_LAZY);
+=======
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
+		std::string path = File::PathForName(module);
 
 		_appHandle = dlopen(path.c_str(), RTLD_LAZY);
 		if (_appHandle == NULL) puts(dlerror());
 		dlerror();
+>>>>>>> Stashed changes
 		__ApplicationEntry = (RNApplicationEntryPointer)dlsym(_appHandle, "RNApplicationCreate");
 
 		RN_ASSERT(__ApplicationEntry, "The game module must provide an application entry point (RNApplicationCreate())");

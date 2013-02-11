@@ -82,12 +82,12 @@
 		NSRect rect = [self contentRectForFrameRect:frame];
 		_openGLView = [[NSOpenGLView alloc] initWithFrame:rect];
 		[_openGLView  setWantsBestResolutionOpenGLSurface:YES];
-		
+
 		[self setContentView:_openGLView];
-		
+
 		_needsResize = YES;
 	}
-	
+
 	return self;
 }
 
@@ -104,16 +104,16 @@
 #if RN_PLATFORM_IOS
 
 @interface RNOpenGLView : UIView
-{	
+{
 	CAEAGLLayer *_renderLayer;
 	RN::Window *_controller;
-	
+
 	GLuint _framebuffer;
 	GLuint _colorbuffer;
-	
+
 	GLint _backingWidth;
 	GLint _backingHeight;
-	
+
 	BOOL _needsLayerResize;
 }
 
@@ -142,11 +142,11 @@
 	{
 		RN::Touch temp;
 		CGPoint location = [touch locationInView:[touch view]];
-		
+
 		temp.phase = RN::Touch::TouchPhaseBegan;
 		temp.location = RN::Vector2(location.x, location.y);
 		temp.previousLocation = RN::Vector2();
-		
+
 		RN::Input::SharedInstance()->HandleTouchEvent(temp);
 	}
 }
@@ -158,11 +158,11 @@
 		RN::Touch temp;
 		CGPoint location = [touch locationInView:[touch view]];
 		CGPoint prevLocation = [touch previousLocationInView:[touch view]];
-		
+
 		temp.phase = RN::Touch::TouchPhaseMoved;
 		temp.location = RN::Vector2(location.x, location.y);
 		temp.previousLocation = RN::Vector2(prevLocation.x, prevLocation.y);
-		
+
 		RN::Input::SharedInstance()->HandleTouchEvent(temp);
 	}
 }
@@ -174,11 +174,11 @@
 		RN::Touch temp;
 		CGPoint location = [touch locationInView:[touch view]];
 		CGPoint prevLocation = [touch previousLocationInView:[touch view]];
-		
+
 		temp.phase = RN::Touch::TouchPhaseEnded;
 		temp.location = RN::Vector2(location.x, location.y);
 		temp.previousLocation = RN::Vector2(prevLocation.x, prevLocation.y);
-		
+
 		RN::Input::SharedInstance()->HandleTouchEvent(temp);
 	}
 }
@@ -190,11 +190,11 @@
 		RN::Touch temp;
 		CGPoint location = [touch locationInView:[touch view]];
 		CGPoint prevLocation = [touch previousLocationInView:[touch view]];
-		
+
 		temp.phase = RN::Touch::TouchPhaseCancelled;
 		temp.location = RN::Vector2(location.x, location.y);
 		temp.previousLocation = RN::Vector2(prevLocation.x, prevLocation.y);
-		
+
 		RN::Input::SharedInstance()->HandleTouchEvent(temp);
 	}
 }
@@ -205,7 +205,7 @@
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, _colorbuffer);
-	
+
 	[[EAGLContext currentContext] presentRenderbuffer:GL_RENDERBUFFER];
 }
 
@@ -215,11 +215,11 @@
 {
 	glGenFramebuffers(1, &_framebuffer);
 	glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-	
+
 	glGenRenderbuffers(1, &_colorbuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, _colorbuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _colorbuffer);
-	
+
 	_needsLayerResize = YES;
 }
 
@@ -227,17 +227,17 @@
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, _colorbuffer);
-	
+
 	[[EAGLContext currentContext] renderbufferStorage:GL_RENDERBUFFER fromDrawable:_renderLayer];
-	
+
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH,  &_backingWidth);
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &_backingHeight);
-	
+
 	float scaleFactor = RN::Kernel::SharedInstance()->ScaleFactor();
-	
+
 	_backingWidth  /= scaleFactor;
 	_backingHeight /= scaleFactor;
-	
+
 	_needsLayerResize = NO;
 }
 
@@ -252,18 +252,18 @@
 	if((self = [super initWithFrame:frame]))
 	{
 		[self setMultipleTouchEnabled:YES];
-		
+
 		_controller = controller;
-		
+
 		NSDictionary *properties = @{kEAGLDrawablePropertyRetainedBacking : @NO,  kEAGLDrawablePropertyColorFormat : kEAGLColorFormatRGBA8};
-		
+
 		_renderLayer = (CAEAGLLayer *)[self layer];
-		
+
 		[_renderLayer setContentsScale:RN::Kernel::SharedInstance()->ScaleFactor()];
 		[_renderLayer setDrawableProperties:properties];
 		[_renderLayer setOpaque:YES];
 	}
-	
+
 	return self;
 }
 
@@ -271,7 +271,7 @@
 {
 	glDeleteRenderbuffers(1, &_colorbuffer);
 	glDeleteFramebuffers(1, &_framebuffer);
-	
+
 	[super dealloc];
 }
 
@@ -308,7 +308,7 @@
 		[self setView:openGLView];
 		[openGLView release];
 	}
-	
+
 	return self;
 }
 
@@ -326,53 +326,53 @@ namespace RN
 	{
 		_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, 1024, 768)];
 		[(RNNativeWindow *)_nativeWindow center];
-		
+
 		_context = 0;
 		_kernel = kernel;
 		_renderer = _kernel->Renderer();
-		
+
 		SetTitle(title);
-		
+
 		std::thread thread = std::thread(&Window::RenderLoop, this);
 		thread.detach();
 	}
-	
+
 	Window::~Window()
 	{
 		_context->Release();
 		[(RNNativeWindow *)_nativeWindow release];
 	}
-	
-	
+
+
 	void Window::Show()
 	{
 		[(RNNativeWindow *)_nativeWindow makeKeyAndOrderFront:nil];
 	}
-	
+
 	void Window::Hide()
 	{
 		[(RNNativeWindow *)_nativeWindow close];
 	}
-	
+
 	void Window::SetContext(Context *context)
 	{
 		_context->Release();
 		_context = new Context(context);
-		
+
 		[(RNNativeWindow *)_nativeWindow setOpenGLContext:(NSOpenGLContext *)_context->_oglContext andPixelFormat:(NSOpenGLPixelFormat *)_context->_oglPixelFormat];
 	}
-	
+
 	void Window::SetTitle(const std::string& title)
 	{
 		[(RNNativeWindow *)_nativeWindow setTitle:[NSString stringWithUTF8String:title.c_str()]];
 	}
-	
+
 	Rect Window::Frame() const
 	{
 		NSRect frame = [[(RNNativeWindow *)_nativeWindow contentView] frame];
 		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
 	}
-	
+
 	void Window::RenderLoop()
 	{
 		while(!_context)
@@ -380,91 +380,91 @@ namespace RN
 			std::this_thread::sleep_for(std::chrono::microseconds(5));
 			continue;
 		}
-		
+
 		while(!_renderer->ShouldStop())
 		{
 			_context->MakeActiveContext();
-			
+
 			if(((RNNativeWindow *)_nativeWindow).needsResize)
 			{
 				NSRect frame = [[(RNNativeWindow *)_nativeWindow contentView] frame];
-				
+
 				_renderer->SetDefaultFrame(frame.size.width, frame.size.height);
 				((RNNativeWindow *)_nativeWindow).needsResize = false;
 			}
-			
+
 			_renderer->WaitForWork();
 			CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
-			
+
 			_context->DeactivateContext();
 		}
-		
+
 		_renderer->DidStop();
 	}
-	
+
 #endif
-	
-	
+
+
 #if RN_PLATFORM_IOS
 	Window::Window(const std::string& title, Kernel *kernel)
 	{
 		_nativeWindow = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
 		[(UIWindow *)_nativeWindow setBackgroundColor:[UIColor whiteColor]];
-		
+
 		_rootViewController = 0;
 
 		_context = 0;
 		_kernel = kernel;
 		_renderer = _kernel->Renderer();
-		
+
 		SetTitle(title);
-		
+
 		std::thread thread = std::thread(&Window::RenderLoop, this);
 		thread.detach();
 	}
-	
+
 	Window::~Window()
 	{
 		_context->Release();
 		[(UIWindow *)_nativeWindow release];
 		[(UIViewController *)_rootViewController release];
 	}
-	
-	
+
+
 	void Window::Show()
 	{
 		[(UIWindow *)_nativeWindow makeKeyAndVisible];
 	}
-	
+
 	void Window::Hide()
 	{
 		[(UIWindow *)_nativeWindow resignFirstResponder];
 		[(UIWindow *)_nativeWindow setHidden:YES];
 	}
-	
+
 	void Window::SetContext(Context *context)
-	{		
+	{
 		[(UIViewController *)_rootViewController release];
-		
+
 		_rootViewController = [[RNOpenGLViewController alloc] initWithController:this andFrame:[(UIWindow *)_nativeWindow bounds]];
 		_renderingView      = (RNOpenGLView *)[(UIViewController *)_rootViewController view];
-		
+
 		[(UIWindow *)_nativeWindow setRootViewController:(UIViewController *)_rootViewController];
-		
+
 		_context->Release();
 		_context = new Context(context);
 	}
-	
+
 	void Window::SetTitle(const std::string& title)
 	{
 	}
-	
+
 	Rect Window::Frame() const
 	{
 		CGRect frame = [(RNOpenGLView *)_renderingView bounds];
 		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
 	}
-	
+
 	void Window::RenderLoop()
 	{
 		while(!_context)
@@ -472,31 +472,31 @@ namespace RN
 			std::this_thread::sleep_for(std::chrono::microseconds(5));
 			continue;
 		}
-		
+
 		_context->MakeActiveContext();
 		[(RNOpenGLView *)_renderingView createDrawBuffer];
 		_context->DeactivateContext();
-		
+
 		while(!_renderer->ShouldStop())
 		{
 			_context->MakeActiveContext();
-			
+
 			if(((RNOpenGLView *)_renderingView).needsLayerResize)
 			{
 				[(RNOpenGLView *)_renderingView resizeFromLayer];
-				
+
 				_renderer->SetDefaultFrame(((RNOpenGLView *)_renderingView).backingWidth, ((RNOpenGLView *)_renderingView).backingHeight);
 				_renderer->SetDefaultFBO(((RNOpenGLView *)_renderingView).framebuffer);
 			}
-			
+
 			_renderer->WaitForWork();
 			[(RNOpenGLView *)_renderingView flushFrame];
-			
+
 			_context->DeactivateContext();
 		}
-		
-		_renderer->DidStop();		
-	}	
+
+		_renderer->DidStop();
+	}
 #endif
 }
 
@@ -635,4 +635,106 @@ void RNRegisterWindow()
 	}
 }
 
-#endif
+}
+#endif // RN_PLATFORM_WINDOWS
+
+
+
+#if RN_PLATFORM_LINUX
+
+
+namespace RN
+{
+	Window::Window(const std::string& title, Kernel *kernel)
+	{
+
+		_context = 0;
+
+		_kernel = kernel;
+		_renderer = _kernel->Renderer();
+
+
+		Colormap             cmap;
+		XSetWindowAttributes swa;
+
+		//  get dpy pointer (TODO: better method?)
+		_dpy = kernel->Context()->_dpy;
+		XVisualInfo *vi = kernel->Context()->_vi;
+
+		/* create an X colormap since probably not using default visual */
+		cmap = XCreateColormap(_dpy, RootWindow(_dpy, vi->screen), vi->visual, AllocNone);
+		swa.colormap = cmap;
+		swa.border_pixel = 0;
+		swa.event_mask = KeyPressMask    | ExposureMask
+					 | ButtonPressMask | StructureNotifyMask;
+
+		_win = XCreateWindow(_dpy, RootWindow(_dpy, vi->screen), 0, 0,
+						  1024, 768, 0, vi->depth, InputOutput, vi->visual,
+						  CWBorderPixel | CWColormap | CWEventMask, &swa);
+
+		/*XSetStandardProperties(dpy, win, title.c_str(), "iconname", None,
+							 argv, argc, NULL);*/
+		SetTitle(title);
+	}
+
+	Window::~Window()
+	{
+
+	}
+
+	void Window::Show()
+	{
+		XMapWindow(_dpy, _win);
+	}
+
+	void Window::Hide()
+	{
+		XUnmapWindow(_dpy, _win);
+	}
+
+	void Window::SetContext(Context *context)
+	{
+		_context->Release();
+		_context = new Context(context);
+
+		Rect frame = Frame();
+
+		_renderer = _kernel->Renderer();
+		_renderer->SetDefaultFrame(frame.width, frame.height);
+
+		std::thread temp = std::thread(&Window::RenderLoop, this);
+		temp.detach();
+	}
+
+	void Window::SetTitle(const std::string& title)
+	{
+		XStoreName(_dpy, _win, title.c_str());
+	}
+
+	Rect Window::Frame() const
+	{
+		return Rect();
+	}
+
+	void Window::RenderLoop()
+	{
+		while(!_context)
+		{
+			std::this_thread::sleep_for(std::chrono::microseconds(5));
+			continue;
+		}
+
+		_context->MakeActiveContext();
+
+		while(!_renderer->ShouldStop())
+		{
+			_renderer->WaitForWork();
+
+			glXSwapBuffers(_dpy, _win);
+		}
+
+		_renderer->DidStop();
+	}
+
+}
+#endif	// RN_PLATFORM_LINUX

@@ -25,45 +25,46 @@ namespace RN
 	public:
 		RNAPI Kernel(const std::string& module);
 		RNAPI virtual ~Kernel();
-		
+
 		RNAPI bool Tick();
-		
+
 		RNAPI void SetContext(Context *context);
 		RNAPI void SetWorld(World *world);
 		RNAPI void SetTimeScale(float timeScale);
-		
+
 		RNAPI void DidSleepForSignificantTime();
 		RNAPI void Exit();
-		
+
 		float ScaleFactor() const { return _scaleFactor; }
-		
+
 		RenderingPipeline *Renderer() const { return _renderer; }
 		Window *Window() const { return _window; }
-		
+		Context *Context() const { return _context; }
+
 		float Delta() const { return _delta; }
 		float Time() const { return _time; }
 		float ScaledTime() const { return _scaledTime; }
 		float TimeScale() const { return _timeScale; }
-		
+
 	private:
 		void Initialize();
 		void LoadApplicationModule(const std::string& module);
 		void *_appHandle;
-		
+
 		float _scaleFactor;
-		
+
 		Application *_app;
-		
+
 		class Window *_window;
-		Context *_context;
+		class Context *_context;
 		RenderingPipeline *_renderer;
 		Input *_input;
 		World *_world;
-		
+
 		bool _resetDelta;
 		bool _shouldExit;
 		bool _initialized;
-		
+
 		float _time;
 		float _scaledTime;
 		float _delta;
