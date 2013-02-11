@@ -49,7 +49,7 @@ namespace RN
 		
 		FeatureDescriptor ReadFeature(File *file);*/
 		
-		ObjectArray _materials;
+		Array<Material> _materials;
 		std::vector<MeshGroup> _groups;
 	};
 }

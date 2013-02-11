@@ -14,209 +14,372 @@
 
 namespace RN
 {
+	template <class T, bool B>
+	class __ArrayCore : public Object
+	{
+	};
+	
+	
 	template <class T>
-	class Array : public Object
+	class __ArrayCore<T, false> : public Object
 	{
 	public:
-		Array()
+		__ArrayCore()
 		{
-			_count    = 0;
-			_capacity = 10;
-			_data     = (T *)malloc(_capacity * sizeof(T));
-
-			RN_ASSERT0(_data);
+			_size  = 5;
+			_count = 0;
+			
+			_data = (T *)malloc(_size * sizeof(T));
 		}
-
-		Array(size_t capacity)
-		{
-			RN_ASSERT0(capacity > 0);
-
-			_count    = 0;
-			_capacity = capacity;
-			_data     = (T *)malloc(_capacity * sizeof(T));
-
-			RN_ASSERT0(_data);
-		}
-
-		Array(const Array<T>& other)
-		{
-			_count    = other._count;
-			_capacity = other._capacity;
-			_data     = (T *)malloc(_capacity * sizeof(T));
-
-			RN_ASSERT0(_data);
-			std::copy(other._data, other._data + _count, _data);
-		}
-
-		virtual ~Array()
+		
+		~__ArrayCore()
 		{
 			free(_data);
 		}
-
-		T& operator[] (int index) const
+		
+		
+		T& operator[](int index) const
 		{
-			return ObjectAtIndex(index);
-		}
-
-		virtual void AddObject(T object)
-		{
-			if(_count >= _capacity)
-				ResizeToSize(_capacity * 2);
-
-			_data[_count ++] = object;
-		}
-
-		virtual void RemoveObjectAtIndex(machine_uint index)
-		{
-			RN_ASSERT0(index != RN_NOT_FOUND);
-
-			_count --;
-
-			for(machine_uint i=index; i<_count; i++)
-				_data[i] = _data[i + 1];
-
-			if(_count < (_capacity / 2))
-				ResizeToSize(_capacity / 2);
-		}
-
-
-		virtual void RemoveLastObject()
-		{
-			if(_count == 0)
-				return;
-
-			if(( --_count) < (_capacity / 2))
-				ResizeToSize(_capacity / 2);
-
-		}
-
-		virtual void RemoveAllObjects()
-		{
-			_count = 0;
-		}
-
-		virtual T& ObjectAtIndex(machine_uint index) const
-		{
-			RN_ASSERT0(index != RN_NOT_FOUND && index < _count);
 			return _data[index];
 		}
-
-		virtual machine_uint Count() const
+		
+		
+		void AddObject(T object)
+		{
+			_data[_count ++] = object;
+			UpdateSizeIfNeeded();
+		}
+		
+		void InsertObjectAtIndex(T object, machine_uint index)
+		{
+			// Well, fuck
+			throw ErrorException(0);
+		}
+		
+		void ReplaceObjectAtIndex(machine_uint index, T object)
+		{
+			_data[index] = object;
+		}
+		
+		void RemoveObject(T object)
+		{
+			for(machine_uint i=0; i<_count; i++)
+			{
+				if(object == _data[i])
+				{
+					RemoveObjectAtIndex(i);
+					return;
+				}
+			}
+		}
+		
+		void RemoveObjectAtIndex(machine_uint index)
+		{
+			for(; index<_count - 1; index++)
+			{
+				_data[index] = _data[index + 1];
+			}
+			
+			_count --;
+			UpdateSizeIfNeeded();
+		}
+		
+		void RemoveLastObject()
+		{
+			RemoveObjectAtIndex(_count - 1);
+		}
+		
+		void RemoveAllObjects()
+		{
+			_count = 0;
+			
+			T *tdata = (T *)realloc(_data, 5 * sizeof(T));
+			if(tdata)
+			{
+				_data = tdata;
+				_size = 5;
+			}
+		}
+		
+		T& ObjectAtIndex(machine_uint index) const
+		{
+			return _data[index];
+		}
+		
+		T& FirstObject() const
+		{
+			return _data[0];
+		}
+		
+		T& LastObject() const
+		{
+			return _data[_count - 1];
+		}
+		
+		machine_uint IndexOfObject(T object) const
+		{
+			for(machine_uint i=0; i<_count; i++)
+			{
+				if(object == _data[i])
+					return i;
+			}
+			
+			return RN_NOT_FOUND;
+		}
+		
+		bool ContainsObject(T object) const
+		{
+			for(machine_uint i=0; i<_count; i++)
+			{
+				if(object == _data[i])
+					return true;
+			}
+			
+			return false;
+		}
+		
+		machine_uint Count() const
 		{
 			return _count;
 		}
-
-	protected:
-		void ResizeToSize(machine_uint size)
+			
+		void ShrinkToFit()
 		{
-			size = MAX(size, (machine_uint)1);
-			T *data = (T *)realloc(_data, size * sizeof(T));
-
-			if(data)
+			T *temp = (T *)realloc(_data, _count * sizeof(T));
+			if(temp)
 			{
-				_data     = data;
-				_capacity = size;
+				_data = temp;
+				_size = _count;
 			}
 		}
-
-		T *_data;
-		machine_uint _capacity;
+		
+	private:
+		void UpdateSizeIfNeeded()
+		{
+			if(_count >= _size)
+			{
+				machine_uint tsize = _size * 2;
+				T *tdata = (T *)realloc(_data, tsize * sizeof(T));
+				
+				if(tdata)
+				{
+					_size = tsize;
+					_data = tdata;
+				}
+				
+				return;
+			}
+			
+			machine_uint tsize = _size / 2;
+			
+			if(tsize >= _count && tsize > 5)
+			{
+				T *tdata = (T *)realloc(_data, tsize * sizeof(T));
+				
+				if(tdata)
+				{
+					_size = tsize;
+					_data = tdata;
+				}
+			}
+		}
+		
+		machine_uint _size;
 		machine_uint _count;
+		T *_data;
 	};
-
-
-
-	class ObjectArray : public Array<Object *>
+	
+	
+	template <class T>
+	class __ArrayCore<T, true> : public Object
 	{
 	public:
-		ObjectArray()
+		__ArrayCore()
 		{
+			_size  = 5;
+			_count = 0;
+			
+			_data = (T **)malloc(_size * sizeof(T *));
 		}
-
-		ObjectArray(size_t size) :
-			Array(size)
+		
+		~__ArrayCore()
 		{
+			for(machine_uint i=0; i<_count; i++)
+				_data[i]->Release();
+			
+			free(_data);
 		}
-
-		virtual ~ObjectArray()
+		
+		
+		T& operator[](int index) const
 		{
-			for(size_t i=0; i<_count; i++)
-			{
-				Object *object = _data[i];
-				object->Release();
-			}
-
-			//free(_data);
+			return _data[index];
 		}
-
-		virtual void AddObject(Object *object)
+		
+		
+		void AddObject(T *object)
 		{
-			Array::AddObject(object->Retain<Object>());
+			_data[_count ++] = object->template Retain<T>();
+			UpdateSizeIfNeeded();
 		}
-
-		void ReplaceObjectAtIndex(machine_uint index, Object *object)
+		
+		void InsertObjectAtIndex(T object, machine_uint index)
 		{
-			Object *old = _data[index];
-			_data[index] = object->Retain<Object>();
-			old->Release();
+			// Well, fuck
+			throw ErrorException(0);
 		}
-
-		virtual void RemoveObject(Object *object)
+		
+		void ReplaceObjectAtIndex(machine_uint index, T *object)
 		{
-			machine_uint index = IndexOfObject(object);
-
-			if(index != RN_NOT_FOUND)
-				RemoveObjectAtIndex(index);
+			_data[index]->Release();
+			_data[index] = object->template Retain<T>();
 		}
-
-		virtual void RemoveObjectAtIndex(machine_uint index)
-		{
-			RN_ASSERT0(index != RN_NOT_FOUND);
-			Object *object = _data[index];
-
-			Array::RemoveObjectAtIndex(index);
-			object->Release();
-		}
-
-		virtual void RemoveAllObjects()
+		
+		void RemoveObject(T *object)
 		{
 			for(machine_uint i=0; i<_count; i++)
 			{
-				_data[i]->Release();
+				if(object == _data[i])
+				{
+					RemoveObjectAtIndex(i);
+					return;
+				}
 			}
-
-			_count = 0;
 		}
-
-		virtual void RemoveLastObject()
+		
+		void RemoveObjectAtIndex(machine_uint index)
+		{
+			_data[index]->Release();
+			
+			for(; index<_count - 1; index++)
+				_data[index] = _data[index + 1];
+			
+			_count --;
+			UpdateSizeIfNeeded();
+		}
+		
+		void RemoveLastObject()
+		{
+			RN_ASSERT0(_count > 0);
+			RemoveObjectAtIndex(_count - 1);
+		}
+		
+		void RemoveAllObjects()
+		{
+			for(machine_uint i=0; i<_count; i++)
+				_data[i]->Release();
+			
+			_count = 0;
+			
+			T **tdata = (T **)realloc(_data, 5 * sizeof(T *));
+			if(tdata)
+			{
+				_data = tdata;
+				_size = 5;
+			}
+		}
+		
+		T* ObjectAtIndex(machine_uint index) const
+		{
+			if(index >= _count)
+				return 0;
+				
+			return _data[index];
+		}
+		
+		T* FirstObject() const
 		{
 			if(_count == 0)
-				return;
-
-			Object *object = _data[_count - 1];
-
-			Array::RemoveLastObject();
-			object->Release();
+				return 0;
+			
+			return _data[0];
 		}
-
-		Object *LastObject()
+		
+		T* LastObject() const
 		{
-			return (_count > 0) ? _data[_count - 1] : 0;
+			if(_count == 0)
+				return 0;
+			
+			return _data[_count - 1];
 		}
-
-		virtual machine_uint IndexOfObject(Object *object) const
+		
+		machine_uint IndexOfObject(T *object) const
 		{
 			for(machine_uint i=0; i<_count; i++)
 			{
-				Object *tobject = _data[i];
-
-				if(object->Hash() == tobject->Hash() && object->IsEqual(tobject))
-					return true;
+				if(object->IsEqual(_data[i]))
+					return i;
 			}
-
+			
 			return RN_NOT_FOUND;
 		}
+		
+		bool ContainsObject(T *object) const
+		{
+			for(machine_uint i=0; i<_count; i++)
+			{
+				if(object->IsEqual(_data[i]))
+					return true;
+			}
+			
+			return false;
+		}
+		
+		machine_uint Count() const
+		{
+			return _count;
+		}
+		
+		void ShrinkToFit()
+		{
+			T **temp = (T **)realloc(_data, _count * sizeof(T *));
+			if(temp)
+			{
+				_data = temp;
+				_size = _count;
+			}
+		}
+		
+	protected:
+		void UpdateSizeIfNeeded()
+		{
+			if(_count >= _size)
+			{
+				machine_uint tsize = _size * 2;
+				T **tdata = (T **)realloc(_data, tsize * sizeof(T *));
+				
+				if(tdata)
+				{
+					_size = tsize;
+					_data = tdata;
+				}
+				
+				return;
+			}
+			
+			machine_uint tsize = _size / 2;
+			
+			if(tsize >= _count && tsize > 5)
+			{
+				T **tdata = (T **)realloc(_data, tsize * sizeof(T *));
+				
+				if(tdata)
+				{
+					_size = tsize;
+					_data = tdata;
+				}
+			}
+		}
+		
+		machine_uint _size;
+		machine_uint _count;
+		T **_data;
 	};
+	
+	template <typename T>
+	using Array = __ArrayCore<T, std::is_base_of<Object, T>::value>;
+	
+	static_assert(std::is_base_of<Object, Object>::value, "WTF?!");
 }
 
 #endif /* __RAYNE_ARRAY_H__ */

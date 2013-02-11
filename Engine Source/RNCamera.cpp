@@ -21,7 +21,7 @@ namespace RN
 		_renderTargetsChanged = true;
 
 		_boundRenderTargets = 0;
-		_renderTargets = new ObjectArray();
+		_renderTargets = new Array<Texture>();
 		_depthTexture = depthTexture->Retain<Texture>();
 
 		_framebuffer = _depthbuffer = _stencilbuffer = 0;
@@ -287,7 +287,7 @@ namespace RN
 			// Bind all render targetst to the framebuffer
 			for(machine_uint i=0; i<_renderTargets->Count(); i++)
 			{
-				Texture *texture = (Texture *)_renderTargets->ObjectAtIndex(i);
+				Texture *texture = _renderTargets->ObjectAtIndex(i);
 				GLenum attachment = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
 				
 				glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->Name(), 0);
@@ -307,7 +307,7 @@ namespace RN
 
 			for(machine_uint i=0; i<_renderTargets->Count(); i++)
 			{
-				Texture *texture = (Texture *)_renderTargets->ObjectAtIndex(i);
+				Texture *texture = _renderTargets->ObjectAtIndex(i);
 
 				texture->Bind();
 				texture->SetData(0, width, height, Texture::FormatRGBA8888);
@@ -654,7 +654,7 @@ namespace RN
 			temp = temp->_stage;
 		}
 	}
-
+	
 	// Helper
 	void Camera::Update(float delta)
 	{

@@ -13,14 +13,15 @@
 #include "RNObject.h"
 #include "RNArray.h"
 
+#include "RNMesh.h"
+#include "RNTexture.h"
+#include "RNCamera.h"
+
 namespace RN
 {
 	class Mutex;
 	class Context;
 	
-	class Texture;
-	class Camera;
-	class Mesh;
 	class Shader;
 	class AutoreleasePool;
 	
@@ -43,9 +44,9 @@ namespace RN
 		void Detach();
 		void Exit();
 		
-		Texture *CurrentTexture() const { return (Texture *)_textures->LastObject(); }
-		Camera *CurrentCamera() const { return (Camera *)_cameras->LastObject(); }
-		Mesh *CurrentMesh() const { return (Mesh *)_meshes->LastObject(); }
+		Texture *CurrentTexture() const { return _textures->LastObject(); }
+		Camera *CurrentCamera() const { return _cameras->LastObject(); }
+		Mesh *CurrentMesh() const { return _meshes->LastObject(); }
 		
 		static Thread *CurrentThread();
 		
@@ -70,9 +71,9 @@ namespace RN
 		Context *_context;
 		AutoreleasePool *_pool;
 		
-		ObjectArray *_textures;
-		ObjectArray *_cameras;
-		ObjectArray *_meshes;
+		Array<Texture> *_textures;
+		Array<Camera> *_cameras;
+		Array<Mesh> *_meshes;
 		
 		std::thread::id _id;
 	};

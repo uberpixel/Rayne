@@ -14,7 +14,7 @@ namespace RN
 		RenderingResource("Material")
 	{
 		_shader = 0;
-		_textures = new ObjectArray();
+		_textures = new Array<Texture>();
 		
 		SetDefaultProperties();
 	}
@@ -23,7 +23,7 @@ namespace RN
 		RenderingResource("Material")
 	{
 		_shader = shader->Retain<RN::Shader>();
-		_textures = new ObjectArray();
+		_textures = new Array<Texture>();
 		
 		SetDefaultProperties();
 	}
@@ -64,7 +64,7 @@ namespace RN
 	}
 	
 	
-	ObjectArray *Material::Textures() const
+	Array<Texture> *Material::Textures() const
 	{
 		return _textures;
 	}

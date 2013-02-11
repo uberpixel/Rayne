@@ -56,7 +56,7 @@ namespace RN
 		bool HasStencilbuffer() const { return (_format & BufferFormatStencil); }
 		
 		uint32 RenderTargets() const { return (uint32)_renderTargets->Count(); }
-		Texture *RenderTarget(uint32 index=0) const { return (Texture *)_renderTargets->ObjectAtIndex(index); }
+		Texture *RenderTarget(uint32 index=0) const { return _renderTargets->ObjectAtIndex(index); }
 		Texture *DepthTarget() const { return _depthTexture; }
 		
 		static uint32 MaxRenderTargets();
@@ -72,7 +72,7 @@ namespace RN
 		Rect _frame;
 		BufferFormat _format;
 		
-		ObjectArray *_renderTargets;
+		Array<Texture> *_renderTargets;
 		uint32 _boundRenderTargets;
 		Texture *_depthTexture;
 		
@@ -183,7 +183,7 @@ namespace RN
 		Vector2 LightTiles() const { return _lightTiles; }
 		
 		uint32 RenderTargets() const { return (uint32)_storage->_renderTargets->Count(); }
-		Texture *RenderTarget(uint32 index=0) const { return (Texture *)_storage->_renderTargets->ObjectAtIndex(index); }
+		Texture *RenderTarget(uint32 index=0) const { return _storage->_renderTargets->ObjectAtIndex(index); }
 		
 		bool HasDepthbuffer() const { return _storage->HasDepthbuffer(); }
 		bool HasStencilbuffer() const { return _storage->HasStencilbuffer(); }

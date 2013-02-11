@@ -61,9 +61,9 @@ namespace RN
 	
 	void Thread::Initialize()
 	{
-		_textures = new ObjectArray();
-		_cameras  = new ObjectArray();
-		_meshes   = new ObjectArray();
+		_textures = new Array<Texture>();
+		_cameras  = new Array<Camera>();
+		_meshes   = new Array<Mesh>();
 		
 		_mutex = new Mutex();
 		_context = 0;

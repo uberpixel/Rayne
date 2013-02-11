@@ -33,7 +33,7 @@ namespace RN
 		RNAPI void RemoveTexture(Texture *texture);
 		RNAPI void RemoveTextures();
 		
-		RNAPI ObjectArray *Textures() const;
+		RNAPI Array<Texture> *Textures() const;
 		RNAPI uint32 TextureCount() const { return (uint32)_textures->Count(); }
 		
 		bool culling;
@@ -61,7 +61,7 @@ namespace RN
 		void SetDefaultProperties();
 		
 		RN::Shader *_shader;
-		ObjectArray *_textures;
+		Array<Texture> *_textures;
 	};
 }
 

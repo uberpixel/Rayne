@@ -686,7 +686,7 @@ namespace RN
 
 		if(material != _currentMaterial)
 		{
-			ObjectArray *textures = material->Textures();
+			Array<Texture> *textures = material->Textures();
 			Array<GLuint> *textureLocations = &material->Shader()->texlocations;
 
 			if(textureLocations->Count() > 0)
@@ -696,7 +696,7 @@ namespace RN
 				for(machine_uint i=0; i<textureCount; i++)
 				{
 					GLint location = textureLocations->ObjectAtIndex(i);
-					Texture *texture = (Texture *)textures->ObjectAtIndex(i);
+					Texture *texture = textures->ObjectAtIndex(i);
 
 					glUniform1i(location, BindTexture(texture));
 				}
