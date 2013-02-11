@@ -52,8 +52,13 @@ namespace RN
 		
 		void InsertObjectAtIndex(T object, machine_uint index)
 		{
-			// Well, fuck
-			throw ErrorException(0);
+			for(machine_uint i=_count; i>index; i--)
+			{
+				_data[i] = _data[i - 1];
+			}
+			
+			_count ++;
+			UpdateSizeIfNeeded();
 		}
 		
 		void ReplaceObjectAtIndex(machine_uint index, T object)
@@ -223,10 +228,17 @@ namespace RN
 			UpdateSizeIfNeeded();
 		}
 		
-		void InsertObjectAtIndex(T object, machine_uint index)
+		void InsertObjectAtIndex(T *object, machine_uint index)
 		{
-			// Well, fuck
-			throw ErrorException(0);
+			for(machine_uint i=_count; i>index; i--)
+			{
+				_data[i] = _data[i - 1];
+			}
+			
+			_data[index] = object->template Retain<T>();
+			_count ++;
+			
+			UpdateSizeIfNeeded();
 		}
 		
 		void ReplaceObjectAtIndex(machine_uint index, T *object)
@@ -340,7 +352,7 @@ namespace RN
 			}
 		}
 		
-	protected:
+	private:
 		void UpdateSizeIfNeeded()
 		{
 			if(_count >= _size)
@@ -378,8 +390,6 @@ namespace RN
 	
 	template <typename T>
 	using Array = __ArrayCore<T, std::is_base_of<Object, T>::value>;
-	
-	static_assert(std::is_base_of<Object, Object>::value, "WTF?!");
 }
 
 #endif /* __RAYNE_ARRAY_H__ */
