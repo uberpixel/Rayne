@@ -453,19 +453,19 @@ namespace RN
 			
 			//indexpos
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
-			glBufferData(GL_TEXTURE_BUFFER, lightindexpos.size()*sizeof(int), &lightindexpos[0], GL_STREAM_DRAW);
+			glBufferData(GL_TEXTURE_BUFFER, lightindexpos.size()*sizeof(int), &lightindexpos[0], GL_DYNAMIC_DRAW);
 			
 			//indices
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
-			glBufferData(GL_TEXTURE_BUFFER, lightindices.size()*sizeof(int), &lightindices[0], GL_STREAM_DRAW);
+			glBufferData(GL_TEXTURE_BUFFER, lightindices.size()*sizeof(int), &lightindices[0], GL_DYNAMIC_DRAW);
 			
 			//lightpos
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
-			glBufferData(GL_TEXTURE_BUFFER, lightcount*4*sizeof(float), lightpos, GL_STREAM_DRAW);
+			glBufferData(GL_TEXTURE_BUFFER, lightcount*4*sizeof(float), lightpos, GL_DYNAMIC_DRAW);
 			
 			//lightcol
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
-			glBufferData(GL_TEXTURE_BUFFER, lightcount*3*sizeof(float), lightcolor, GL_STREAM_DRAW);
+			glBufferData(GL_TEXTURE_BUFFER, lightcount*3*sizeof(float), lightcolor, GL_DYNAMIC_DRAW);
 			
 			glBindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
