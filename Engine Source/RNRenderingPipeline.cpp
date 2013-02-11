@@ -372,12 +372,12 @@ namespace RN
 			Vector3 dirx = (corner2-corner1) / tileswidth;
 			Vector3 diry = (corner3-corner1) / tilesheight;
 			
-			float *deptharray = new float[tileswidth * tilesheight * 2];
-			
-			glPixelStorei(GL_PACK_ALIGNMENT, 1);
-			glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-			glBindTexture(GL_TEXTURE_2D, camera->DepthTiles()->Name());
-			glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, deptharray);
+//			float *deptharray = new float[tileswidth * tilesheight * 2];
+//			glFinish();
+//			glPixelStorei(GL_PACK_ALIGNMENT, 1);
+//			glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+//			glBindTexture(GL_TEXTURE_2D, camera->DepthTiles()->Name());
+//			glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, deptharray);
 			
 			RN::Matrix rot;
 			rot.MakeRotate(camera->Rotation().AccessPast());
@@ -405,8 +405,8 @@ namespace RN
 					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
 					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
 					
-					plnear.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2], camdir);
-					plfar.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2 + 1], camdir);
+//					plnear.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2], camdir);
+//					plfar.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2 + 1], camdir);
 					
 //					printf("%f ", deptharray[int(y*tileswidth+x)*2]);
 //					printf("%f \n", deptharray[int(y*tileswidth+x)*2+1]);
@@ -432,16 +432,16 @@ namespace RN
 						if(plbottom.Distance(position) > range)
 							continue;
 						
-						if(plnear.Distance(position) < -range)
+/*						if(plnear.Distance(position) < -range)
 							continue;
 						
 						if(plfar.Distance(position) > range)
-							continue;
+							continue;*/
 	
 						tempindices.push_back(counter);
 					}
 					
-	//				printf("lights: %i \n", tempindices.size());
+//					printf("lights: %i \n", tempindices.size());
 					lightindexpos.push_back(static_cast<int>(lightindices.size()));
 					lightindexpos.push_back(static_cast<int>(tempindices.size()));
 					lightindices.insert(lightindices.end(), tempindices.begin(), tempindices.end());
@@ -449,7 +449,7 @@ namespace RN
 				}
 			}
 			
-			delete[] deptharray;
+//			delete[] deptharray;
 			
 			//indexpos
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
@@ -514,7 +514,7 @@ namespace RN
 						glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
 					
 #if !(RN_PLATFORM_IOS)
-					if(lightindices.size() > 0)
+					if(camera->LightTiles() != 0)
 					{
 						if(shader->lightListPosition != -1)
 						{
@@ -553,7 +553,9 @@ namespace RN
 						}
 						
 						if(shader->lightTileSize != -1)
+						{
 							glUniform4f(shader->lightTileSize, lighttilesize.x, lighttilesize.y, lighttilecount.x, lighttilecount.y);
+						}
 					}
 #endif
 

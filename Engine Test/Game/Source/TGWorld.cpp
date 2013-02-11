@@ -13,7 +13,8 @@ namespace TG
 	World::World()
 	{
 #if !(RN_PLATFORM_IOS)
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);//FormatDepth | RN::RenderStorage::BufferFormatStencil);
+		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
 		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
 		storage->SetDepthTarget(depthtex);
 		
@@ -29,35 +30,35 @@ namespace TG
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
 		downsampleMaterial2x->AddTexture(depthtex);
 		
-		RN::Camera *downsample2x = new RN::Camera(RN::Vector2(_camera->Frame().width/2, _camera->Frame().height/2), RN::Texture::FormatRGB32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
+		RN::Camera *downsample2x = new RN::Camera(RN::Vector2(_camera->Frame().width/2, _camera->Frame().height/2), RN::Texture::FormatRG32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
 		_camera->AddStage(downsample2x);
 		downsample2x->SetMaterial(downsampleMaterial2x);
 		
 		RN::Material *downsampleMaterial4x = new RN::Material(downsampleShader);
 		downsampleMaterial4x->AddTexture(downsample2x->Storage()->RenderTarget());
 		
-		RN::Camera *downsample4x = new RN::Camera(RN::Vector2(_camera->Frame().width/4, _camera->Frame().height/4), RN::Texture::FormatRGB32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
+		RN::Camera *downsample4x = new RN::Camera(RN::Vector2(_camera->Frame().width/4, _camera->Frame().height/4), RN::Texture::FormatRG32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
 		_camera->AddStage(downsample4x);
 		downsample4x->SetMaterial(downsampleMaterial4x);
 		
 		RN::Material *downsampleMaterial8x = new RN::Material(downsampleShader);
 		downsampleMaterial8x->AddTexture(downsample4x->Storage()->RenderTarget());
 		
-		RN::Camera *downsample8x = new RN::Camera(RN::Vector2(_camera->Frame().width/8, _camera->Frame().height/8), RN::Texture::FormatRGB32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
+		RN::Camera *downsample8x = new RN::Camera(RN::Vector2(_camera->Frame().width/8, _camera->Frame().height/8), RN::Texture::FormatRG32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
 		_camera->AddStage(downsample8x);
 		downsample8x->SetMaterial(downsampleMaterial8x);
 		
 		RN::Material *downsampleMaterial16x = new RN::Material(downsampleShader);
 		downsampleMaterial16x->AddTexture(downsample8x->Storage()->RenderTarget());
 		
-		RN::Camera *downsample16x = new RN::Camera(RN::Vector2(_camera->Frame().width/16, _camera->Frame().height/16), RN::Texture::FormatRGB32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
+		RN::Camera *downsample16x = new RN::Camera(RN::Vector2(_camera->Frame().width/16, _camera->Frame().height/16), RN::Texture::FormatRG32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
 		_camera->AddStage(downsample16x);
 		downsample16x->SetMaterial(downsampleMaterial16x);
 		
 		RN::Material *downsampleMaterial32x = new RN::Material(downsampleShader);
 		downsampleMaterial32x->AddTexture(downsample16x->Storage()->RenderTarget());
 		
-		RN::Camera *downsample32x = new RN::Camera(RN::Vector2(_camera->Frame().width/32, _camera->Frame().height/32), RN::Texture::FormatRGB32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
+		RN::Camera *downsample32x = new RN::Camera(RN::Vector2(_camera->Frame().width/32, _camera->Frame().height/32), RN::Texture::FormatRG32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
 		_camera->AddStage(downsample32x);
 		downsample32x->SetMaterial(downsampleMaterial32x);
 		
@@ -67,15 +68,15 @@ namespace TG
 			RN::Material *downsampleMaterial64x = new RN::Material(downsampleShader);
 			downsampleMaterial64x->AddTexture(downsample32x->Storage()->RenderTarget());
 			
-			downsample64x = new RN::Camera(RN::Vector2(_camera->Frame().width/64, _camera->Frame().height/64), RN::Texture::FormatRGB32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
+			downsample64x = new RN::Camera(RN::Vector2(_camera->Frame().width/64, _camera->Frame().height/64), RN::Texture::FormatRG32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
 			_camera->AddStage(downsample64x);
 			downsample64x->SetMaterial(downsampleMaterial64x);
 		}
 			
-		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection | RN::Camera::FlagNoClear);
+		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
+		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
 		_finalcam->Storage()->SetDepthTarget(depthtex);
 		_finalcam->SetName("Final Cam");
-//		_camera->AddStage(_finalcam);
 		
 		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
 		{

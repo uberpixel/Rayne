@@ -62,7 +62,7 @@ namespace RN
 		RN_ASSERT0(_format & BufferFormatColor);
 		
 		target->Bind();
-		target->SetLinear(false);
+		target->SetLinear(true);
 		target->SetGeneratesMipmaps(false);
 		target->SetWrappingMode(Texture::WrapModeClamp);
 		target->SetFilter(Texture::FilterNearest);
@@ -88,7 +88,7 @@ namespace RN
 			throw ErrorException(0, 0, 0);
 
 		target->Bind();
-		target->SetLinear(false);
+		target->SetLinear(true);
 		target->SetGeneratesMipmaps(false);
 		target->SetWrappingMode(Texture::WrapModeClamp);
 		target->SetFilter(Texture::FilterNearest);
@@ -102,7 +102,7 @@ namespace RN
 	{
 		RN_ASSERT0(_format & BufferFormatColor);
 		
-		Texture *target = new Texture(format, Texture::WrapModeClamp, Texture::FilterNearest, false);
+		Texture *target = new Texture(format, Texture::WrapModeClamp, Texture::FilterNearest, true);
 
 		try
 		{
