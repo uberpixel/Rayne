@@ -19,79 +19,13 @@ namespace RN
 	{
 	};
 	
-	
 	template <class T>
-	class __ArrayCore<T, false> : public Object
+	class __ArrayStore
 	{
 	public:
-		__ArrayCore()
+		machine_uint Count() const
 		{
-			_size  = 5;
-			_count = 0;
-			
-			_data = (T *)malloc(_size * sizeof(T));
-		}
-		
-		~__ArrayCore()
-		{
-			free(_data);
-		}
-		
-		
-		T& operator[](int index) const
-		{
-			return _data[index];
-		}
-		
-		
-		void AddObject(T object)
-		{
-			_data[_count ++] = object;
-			UpdateSizeIfNeeded();
-		}
-		
-		void InsertObjectAtIndex(T object, machine_uint index)
-		{
-			for(machine_uint i=_count; i>index; i--)
-			{
-				_data[i] = _data[i - 1];
-			}
-			
-			_count ++;
-			UpdateSizeIfNeeded();
-		}
-		
-		void ReplaceObjectAtIndex(machine_uint index, T object)
-		{
-			_data[index] = object;
-		}
-		
-		void RemoveObject(T object)
-		{
-			for(machine_uint i=0; i<_count; i++)
-			{
-				if(object == _data[i])
-				{
-					RemoveObjectAtIndex(i);
-					return;
-				}
-			}
-		}
-		
-		void RemoveObjectAtIndex(machine_uint index)
-		{
-			for(; index<_count - 1; index++)
-			{
-				_data[index] = _data[index + 1];
-			}
-			
-			_count --;
-			UpdateSizeIfNeeded();
-		}
-		
-		void RemoveLastObject()
-		{
-			RemoveObjectAtIndex(_count - 1);
+			return _count;
 		}
 		
 		void RemoveAllObjects()
@@ -106,64 +40,22 @@ namespace RN
 			}
 		}
 		
-		T& ObjectAtIndex(machine_uint index) const
-		{
-			return _data[index];
-		}
-		
-		T& FirstObject() const
-		{
-			return _data[0];
-		}
-		
-		T& LastObject() const
-		{
-			return _data[_count - 1];
-		}
-		
-		machine_uint IndexOfObject(T object) const
-		{
-			for(machine_uint i=0; i<_count; i++)
-			{
-				if(object == _data[i])
-					return i;
-			}
-			
-			return RN_NOT_FOUND;
-		}
-		
-		bool ContainsObject(T object) const
-		{
-			for(machine_uint i=0; i<_count; i++)
-			{
-				if(object == _data[i])
-					return true;
-			}
-			
-			return false;
-		}
-		
-		machine_uint Count() const
-		{
-			return _count;
-		}
-			
 		void ShrinkToFit()
 		{
-			T *temp = (T *)realloc(_data, _count * sizeof(T));
+			T *temp = (T *)realloc(_data, (_count + 1) * sizeof(T));
 			if(temp)
 			{
 				_data = temp;
-				_size = _count;
+				_size = _count + 1;
 			}
 		}
 		
 		template<typename F>
 		bool IsSorted(F&& func)
 		{
-			for(machine_uint i=0; i<_count - 1; i++)
+			for(machine_uint i=0; i<this->_count - 1; i++)
 			{
-				if(func(_data[i], _data[i + 1]) < kRNCompareEqualTo)
+				if(func(this->_data[i], this->_data[i + 1]) < kRNCompareEqualTo)
 					return false;
 			}
 			
@@ -175,7 +67,7 @@ namespace RN
 		{
 			for(machine_uint i=begin; i<end - 1; i++)
 			{
-				if(func(_data[i], _data[i + 1]) < kRNCompareEqualTo)
+				if(func(this->_data[i], this->_data[i + 1]) < kRNCompareEqualTo)
 					return false;
 			}
 			
@@ -185,38 +77,89 @@ namespace RN
 		template<typename F>
 		void SortUsingFunction(F&& func)
 		{
-			QuickSort(0, _count, logf(_count) * 2, func);
+			QuickSort(0, this->_count, logf(this->_count) * 2, func);
 			InsertionSort(func);
 		}
 		
-	private:
+	protected:
+		__ArrayStore()
+		{
+			_size  = 5;
+			_count = 0;
+			
+			_data = (T *)malloc(_size * sizeof(T));
+		}
+		
+		__ArrayStore(machine_uint capacity)
+		{
+			_size  = capacity > 5 ? capacity : 5;
+			_count = 0;
+			
+			_data = (T *)malloc(_size * sizeof(T));
+		}
+		
+		virtual ~__ArrayStore()
+		{
+			free(_data);
+		}
+		
+		void UpdateSizeIfNeeded()
+		{
+			if(_count >= _size)
+			{
+				machine_uint tsize = _size * 2;
+				T *tdata = (T *)realloc(_data, tsize * sizeof(T));
+				
+				if(tdata)
+				{
+					_size = tsize;
+					_data = tdata;
+				}
+				
+				return;
+			}
+			
+			machine_uint tsize = _size / 2;
+			
+			if(tsize >= _count && tsize > 5)
+			{
+				T *tdata = (T *)realloc(_data, tsize * sizeof(T));
+				
+				if(tdata)
+				{
+					_size = tsize;
+					_data = tdata;
+				}
+			}
+		}
+		
 		template<typename F>
 		machine_uint Partition(machine_uint begin, machine_uint end, F&& func)
 		{
 			machine_uint pivot = begin;
 			machine_uint middle = (begin + end) / 2;
 			
-			if(func(_data[middle], _data[begin]) >= kRNCompareEqualTo)
+			if(func(this->_data[middle], this->_data[begin]) >= kRNCompareEqualTo)
 				pivot = middle;
 			
-			if(func(_data[pivot], _data[end]) >= kRNCompareEqualTo)
+			if(func(this->_data[pivot], this->_data[end]) >= kRNCompareEqualTo)
 				pivot = end;
 			
-			std::swap(_data[pivot], _data[begin]);
+			std::swap(this->_data[pivot], this->_data[begin]);
 			pivot = begin;
 			
 			while(begin < end)
 			{
-				if(func(_data[begin], _data[end]) <= kRNCompareEqualTo)
+				if(func(this->_data[begin], this->_data[end]) <= kRNCompareEqualTo)
 				{
-					std::swap(_data[pivot], _data[begin]);
+					std::swap(this->_data[pivot], this->_data[begin]);
 					pivot ++;
 				}
 				
 				begin ++;
 			}
 			
-			std::swap(_data[pivot], _data[end]);
+			std::swap(this->_data[pivot], this->_data[end]);
 			return pivot;
 		}
 		
@@ -243,54 +186,24 @@ namespace RN
 		template<typename F>
 		void InsertionSort(F&& func)
 		{
-			for(machine_uint i=1; i<_count; i++)
+			for(machine_uint i=1; i<this->_count; i++)
 			{
-				if(func(_data[i-1], _data[i]) <= kRNCompareEqualTo)
+				if(func(this->_data[i-1], this->_data[i]) <= kRNCompareEqualTo)
 					continue;
 				
-				T value = _data[i];
-				std::swap(_data[i], _data[i-1]);
+				T value = this->_data[i];
+				std::swap(this->_data[i], this->_data[i-1]);
 				
 				machine_uint j;
 				for(j=i-1; j>=1; j--)
 				{
-					if(func(_data[j-1], value) <= kRNCompareEqualTo)
+					if(func(this->_data[j-1], value) <= kRNCompareEqualTo)
 						break;
 					
-					std::swap(_data[j], _data[j-1]);
+					std::swap(this->_data[j], this->_data[j-1]);
 				}
 				
-				_data[j] = value;
-			}
-		}
-		
-		void UpdateSizeIfNeeded()
-		{
-			if(_count >= _size)
-			{
-				machine_uint tsize = _size * 2;
-				T *tdata = (T *)realloc(_data, tsize * sizeof(T));
-				
-				if(tdata)
-				{
-					_size = tsize;
-					_data = tdata;
-				}
-				
-				return;
-			}
-			
-			machine_uint tsize = _size / 2;
-			
-			if(tsize >= _count && tsize > 5)
-			{
-				T *tdata = (T *)realloc(_data, tsize * sizeof(T));
-				
-				if(tdata)
-				{
-					_size = tsize;
-					_data = tdata;
-				}
+				this->_data[j] = value;
 			}
 		}
 		
@@ -301,62 +214,50 @@ namespace RN
 	
 	
 	template <class T>
-	class __ArrayCore<T, true> : public Object
+	class __ArrayCore<T, false> : public __ArrayStore<T>, public Object
 	{
 	public:
-		__ArrayCore()
-		{
-			_size  = 5;
-			_count = 0;
-			
-			_data = (T **)malloc(_size * sizeof(T *));
-		}
+		__ArrayCore() :
+			__ArrayStore<T>()
+		{}
 		
-		~__ArrayCore()
-		{
-			for(machine_uint i=0; i<_count; i++)
-				_data[i]->Release();
-			
-			free(_data);
-		}
-		
+		__ArrayCore(machine_uint capacity) :
+			__ArrayStore<T>(capacity)
+		{}
 		
 		T& operator[](int index) const
 		{
-			return _data[index];
+			return this->_data[index];
 		}
 		
 		
-		void AddObject(T *object)
+		void AddObject(T object)
 		{
-			_data[_count ++] = object->template Retain<T>();
-			UpdateSizeIfNeeded();
+			this->_data[this->_count ++] = object;
+			this->UpdateSizeIfNeeded();
 		}
 		
-		void InsertObjectAtIndex(T *object, machine_uint index)
+		void InsertObjectAtIndex(T object, machine_uint index)
 		{
-			for(machine_uint i=_count; i>index; i--)
+			for(machine_uint i=this->_count; i>index; i--)
 			{
-				_data[i] = _data[i - 1];
+				this->_data[i] = this->_data[i - 1];
 			}
 			
-			_data[index] = object->template Retain<T>();
-			_count ++;
-			
-			UpdateSizeIfNeeded();
+			this->_count ++;
+			this->UpdateSizeIfNeeded();
 		}
 		
-		void ReplaceObjectAtIndex(machine_uint index, T *object)
+		void ReplaceObjectAtIndex(machine_uint index, T object)
 		{
-			_data[index]->Release();
-			_data[index] = object->template Retain<T>();
+			this->_data[index] = object;
 		}
 		
-		void RemoveObject(T *object)
+		void RemoveObject(T object)
 		{
-			for(machine_uint i=0; i<_count; i++)
+			for(machine_uint i=0; i<this->_count; i++)
 			{
-				if(object == _data[i])
+				if(object == this->_data[i])
 				{
 					RemoveObjectAtIndex(i);
 					return;
@@ -366,65 +267,175 @@ namespace RN
 		
 		void RemoveObjectAtIndex(machine_uint index)
 		{
-			_data[index]->Release();
+			for(; index<this->_count - 1; index++)
+			{
+				this->_data[index] = this->_data[index + 1];
+			}
 			
-			for(; index<_count - 1; index++)
-				_data[index] = _data[index + 1];
-			
-			_count --;
-			UpdateSizeIfNeeded();
+			this->_count --;
+			this->UpdateSizeIfNeeded();
 		}
 		
 		void RemoveLastObject()
 		{
-			RN_ASSERT0(_count > 0);
-			RemoveObjectAtIndex(_count - 1);
+			RemoveObjectAtIndex(this->_count - 1);
+		}
+		
+		T& ObjectAtIndex(machine_uint index) const
+		{
+			return this->_data[index];
+		}
+		
+		T& FirstObject() const
+		{
+			return this->_data[0];
+		}
+		
+		T& LastObject() const
+		{
+			return this->_data[this->_count - 1];
+		}
+		
+		machine_uint IndexOfObject(T object) const
+		{
+			for(machine_uint i=0; i<this->_count; i++)
+			{
+				if(object == this->_data[i])
+					return i;
+			}
+			
+			return RN_NOT_FOUND;
+		}
+		
+		bool ContainsObject(T object) const
+		{
+			for(machine_uint i=0; i<this->_count; i++)
+			{
+				if(object == this->_data[i])
+					return true;
+			}
+			
+			return false;
+		}
+	};
+	
+	
+	template <class T>
+	class __ArrayCore<T, true> : public __ArrayStore<T *>, public Object
+	{
+	public:
+		__ArrayCore() :
+			__ArrayStore<T *>()
+		{}
+		
+		__ArrayCore(machine_uint capacity) :
+			__ArrayStore<T *>(capacity)
+		{}
+		
+		virtual ~__ArrayCore()
+		{
+			for(machine_uint i=0; i<this->_count; i++)
+				this->_data[i]->Release();
+		}
+		
+		
+		T* operator[](int index) const
+		{
+			return this->_data[index];
+		}
+		
+		
+		void AddObject(T *object)
+		{
+			this->_data[this->_count ++] = object->template Retain<T>();
+			this->UpdateSizeIfNeeded();
+		}
+		
+		void InsertObjectAtIndex(T *object, machine_uint index)
+		{
+			for(machine_uint i=this->_count; i>index; i--)
+			{
+				this->_data[i] = this->_data[i - 1];
+			}
+			
+			this->_data[index] = object->template Retain<T>();
+			this->_count ++;
+			
+			this->UpdateSizeIfNeeded();
+		}
+		
+		void ReplaceObjectAtIndex(machine_uint index, T *object)
+		{
+			this->_data[index]->Release();
+			this->_data[index] = object->template Retain<T>();
+		}
+		
+		void RemoveObject(T *object)
+		{
+			for(machine_uint i=0; i<this->_count; i++)
+			{
+				if(object == this->_data[i])
+				{
+					RemoveObjectAtIndex(i);
+					return;
+				}
+			}
+		}
+		
+		void RemoveObjectAtIndex(machine_uint index)
+		{
+			this->_data[index]->Release();
+			
+			for(; index<this->_count - 1; index++)
+				this->_data[index] = this->_data[index + 1];
+			
+			this->_count --;
+			this->UpdateSizeIfNeeded();
+		}
+		
+		void RemoveLastObject()
+		{
+			RN_ASSERT0(this->_count > 0);
+			RemoveObjectAtIndex(this->_count - 1);
 		}
 		
 		void RemoveAllObjects()
 		{
-			for(machine_uint i=0; i<_count; i++)
-				_data[i]->Release();
+			for(machine_uint i=0; i<this->_count; i++)
+				this->_data[i]->Release();
 			
-			_count = 0;
-			
-			T **tdata = (T **)realloc(_data, 5 * sizeof(T *));
-			if(tdata)
-			{
-				_data = tdata;
-				_size = 5;
-			}
+			__ArrayStore<T *>::RemoveAllObjects();
 		}
 		
 		T* ObjectAtIndex(machine_uint index) const
 		{
-			if(index >= _count)
+			if(index >= this->_count)
 				return 0;
 				
-			return _data[index];
+			return this->_data[index];
 		}
 		
 		T* FirstObject() const
 		{
-			if(_count == 0)
+			if(this->_count == 0)
 				return 0;
 			
-			return _data[0];
+			return this->_data[0];
 		}
 		
 		T* LastObject() const
 		{
-			if(_count == 0)
+			if(this->_count == 0)
 				return 0;
 			
-			return _data[_count - 1];
+			return this->_data[this->_count - 1];
 		}
 		
 		machine_uint IndexOfObject(T *object) const
 		{
-			for(machine_uint i=0; i<_count; i++)
+			for(machine_uint i=0; i<this->_count; i++)
 			{
-				if(object->IsEqual(_data[i]))
+				if(object->IsEqual(this->_data[i]))
 					return i;
 			}
 			
@@ -433,64 +444,14 @@ namespace RN
 		
 		bool ContainsObject(T *object) const
 		{
-			for(machine_uint i=0; i<_count; i++)
+			for(machine_uint i=0; i<this->_count; i++)
 			{
-				if(object->IsEqual(_data[i]))
+				if(object->IsEqual(this->_data[i]))
 					return true;
 			}
 			
 			return false;
 		}
-		
-		machine_uint Count() const
-		{
-			return _count;
-		}
-		
-		void ShrinkToFit()
-		{
-			T **temp = (T **)realloc(_data, _count * sizeof(T *));
-			if(temp)
-			{
-				_data = temp;
-				_size = _count;
-			}
-		}
-		
-	private:
-		void UpdateSizeIfNeeded()
-		{
-			if(_count >= _size)
-			{
-				machine_uint tsize = _size * 2;
-				T **tdata = (T **)realloc(_data, tsize * sizeof(T *));
-				
-				if(tdata)
-				{
-					_size = tsize;
-					_data = tdata;
-				}
-				
-				return;
-			}
-			
-			machine_uint tsize = _size / 2;
-			
-			if(tsize >= _count && tsize > 5)
-			{
-				T **tdata = (T **)realloc(_data, tsize * sizeof(T *));
-				
-				if(tdata)
-				{
-					_size = tsize;
-					_data = tdata;
-				}
-			}
-		}
-		
-		machine_uint _size;
-		machine_uint _count;
-		T **_data;
 	};
 	
 	template <typename T>
