@@ -16,7 +16,7 @@ float farPlane = 1000.0;
 
 void main()
 {
-	surfaceNormal = normalize((matProjViewModel * vec4(vertNormal, 0.0f)).xyz);
+	surfaceNormal = (matProjViewModel * vec4(vertNormal, 0.0f)).xyz;
 
 	surfaceDepth = (matViewModel * vec4(vertPosition, 1.0)).z;
 	surfaceDepth = (-surfaceDepth - nearPlane) / (farPlane - nearPlane);

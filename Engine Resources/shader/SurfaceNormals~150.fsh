@@ -8,5 +8,5 @@ out vec4 fragColor0;
 
 void main()
 {
-	fragColor0 = vec4(surfaceNormal, surfaceDepth);
+	fragColor0 = vec4(normalize(surfaceNormal), surfaceDepth);
 }

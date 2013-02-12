@@ -108,6 +108,8 @@ namespace RN
 
 		GLuint _lightTextures[4];
 		GLuint _lightBuffers[4];
+		
+		uint32 _lightBufferLengths[3];
 	};
 }
 

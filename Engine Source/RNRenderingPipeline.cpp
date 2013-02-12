@@ -126,7 +126,7 @@ namespace RN
 		//indexpos
 		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[0]);
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightBuffers[0]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, _lightBuffers[0]);
 
 		//indices
 		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[1]);
@@ -142,6 +142,10 @@ namespace RN
 		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[3]);
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGB32F, _lightBuffers[3]);
+		
+		_lightBufferLengths[0] = 0;
+		_lightBufferLengths[1] = 0;
+		_lightBufferLengths[2] = 0;
 #endif
 	}
 
@@ -396,9 +400,9 @@ namespace RN
 			Plane plnear;
 			int counter;
 			
-			for(float y=0.0f; y<tileswidth; y+=1.0f)
+			for(float x=0.0f; x<tileswidth; x+=1.0f)
 			{
-				for(float x=0.0f; x<tilesheight; x+=1.0f)
+				for(float y=0.0f; y<tilesheight; y+=1.0f)
 				{
 					plleft.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
 					plright.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
@@ -451,21 +455,58 @@ namespace RN
 			
 //			delete[] deptharray;
 			
-			//indexpos
-			glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
-			glBufferData(GL_TEXTURE_BUFFER, lightindexpos.size()*sizeof(int), &lightindexpos[0], GL_DYNAMIC_DRAW);
+			if(_lightBufferLengths[0] < lightindexpos.size())
+			{
+				_lightBufferLengths[0] = (uint32)lightindexpos.size();
+				
+				//indexpos
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
+				glBufferData(GL_TEXTURE_BUFFER, lightindexpos.size()*sizeof(int), &lightindexpos[0], GL_DYNAMIC_DRAW);
+			}
+			else
+			{
+				//indexpos
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindexpos.size()*sizeof(int), &lightindexpos[0]);
+			}
 			
-			//indices
-			glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
-			glBufferData(GL_TEXTURE_BUFFER, lightindices.size()*sizeof(int), &lightindices[0], GL_DYNAMIC_DRAW);
+			if(_lightBufferLengths[1] < lightindices.size())
+			{
+				_lightBufferLengths[1] = (uint32)lightindices.size();
+				
+				//indices
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
+				glBufferData(GL_TEXTURE_BUFFER, lightindices.size()*sizeof(int), &lightindices[0], GL_DYNAMIC_DRAW);
+			}
+			else
+			{
+				//indices
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindices.size()*sizeof(int), &lightindices[0]);
+			}
 			
-			//lightpos
-			glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
-			glBufferData(GL_TEXTURE_BUFFER, lightcount*4*sizeof(float), lightpos, GL_DYNAMIC_DRAW);
-			
-			//lightcol
-			glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
-			glBufferData(GL_TEXTURE_BUFFER, lightcount*3*sizeof(float), lightcolor, GL_DYNAMIC_DRAW);
+			if(_lightBufferLengths[2] < lightcount)
+			{
+				_lightBufferLengths[2] = lightcount;
+				
+				//lightpos
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
+				glBufferData(GL_TEXTURE_BUFFER, lightcount*4*sizeof(float), lightpos, GL_DYNAMIC_DRAW);
+
+				//lightcol
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
+				glBufferData(GL_TEXTURE_BUFFER, lightcount*3*sizeof(float), lightcolor, GL_DYNAMIC_DRAW);
+			}
+			else
+			{
+				//lightpos
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightcount*4*sizeof(float), lightpos);
+				
+				//lightcol
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightcount*3*sizeof(float), lightcolor);
+			}
 			
 			glBindBuffer(GL_TEXTURE_BUFFER, 0);
 		}

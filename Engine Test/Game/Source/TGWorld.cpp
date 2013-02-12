@@ -13,8 +13,8 @@ namespace TG
 	World::World()
 	{
 #if !(RN_PLATFORM_IOS)
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);//FormatDepth | RN::RenderStorage::BufferFormatStencil);
-		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
+//		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
 		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
 		storage->SetDepthTarget(depthtex);
 		
@@ -24,6 +24,7 @@ namespace TG
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
 		_camera->SetMaterial(surfaceMaterial);
+		_camera->ActivateTiledLightLists((RN::Texture*)1);
 		
 		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
 		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
@@ -324,14 +325,13 @@ namespace TG
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
 		
-		/*for(int i = 0; i < 400; i++)
+		for(int i = 0; i < 400; i++)
 		{
 			light = new RN::LightEntity();
 			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
-			//light->SetRange((float)(rand())/RAND_MAX*20.0f);
-			light->SetRange(20.0f);
+			light->SetRange((float)(rand())/RAND_MAX*20.0f);
 			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
-		}*/
+		}
 		
 #if RN_TARGET_OPENGL
 /*		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight_instanced");
