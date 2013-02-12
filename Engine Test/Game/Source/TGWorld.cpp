@@ -13,8 +13,8 @@ namespace TG
 	World::World()
 	{
 #if !(RN_PLATFORM_IOS)
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
-//		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatColor | RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
+		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
 		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
 		storage->SetDepthTarget(depthtex);
 		
@@ -23,9 +23,10 @@ namespace TG
 		
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
-		_camera->SetMaterial(surfaceMaterial);
+		_camera->ActivateTiledLightLists((RN::Texture *)1);
+		//_camera->SetMaterial(surfaceMaterial);
 		
-		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
+		/*RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
 		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
 		downsampleMaterial2x->AddTexture(depthtex);
@@ -85,7 +86,7 @@ namespace TG
 		else
 		{
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
-		}
+		}*/
 #else
 		_camera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults);
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
@@ -167,8 +168,8 @@ namespace TG
 		_camera->Translate(rot.Transform(translation * -delta));
 		
 #if !(RN_PLATFORM_IOS)
-		_finalcam->SetPosition(_camera->Position());
-		_finalcam->SetRotation(_camera->Rotation());
+		//_finalcam->SetPosition(_camera->Position());
+		//_finalcam->SetRotation(_camera->Rotation());
 #endif
 	}
 	

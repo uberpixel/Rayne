@@ -324,6 +324,18 @@ namespace RN
 
 	RN_INLINE float Vector3::Dot(const Vector3& other) const
 	{
+		/*float result;
+		
+		__m128 a = _mm_set_ps(x, y, z, 0.0f);
+		__m128 b = _mm_set_ps(other.x, other.y, other.z, 0.0f);
+		
+		__m128 r1 = _mm_mul_ps(a, b);
+		__m128 r2 = _mm_hadd_ps(r1, r1);
+		__m128 r3 = _mm_hadd_ps(r2, r2);
+		_mm_store_ss(&result, r3);
+		
+		return result;*/
+		
 		return (x * other.x + y * other.y + z * other.z);
 	}
 

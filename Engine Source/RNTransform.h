@@ -17,8 +17,10 @@
 
 namespace RN
 {
+	class RenderingPipeline;
 	class Transform
 	{
+	friend class RenderingPipeline;
 	public:
 		Transform();
 		Transform(const Vector3& position);

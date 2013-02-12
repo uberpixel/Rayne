@@ -36,15 +36,15 @@ namespace RN
 		}
 		
 		
-		operator T& ()
-		{
+		operator T& ();
+		/*{
 			return _current;
-		}
+		}*/
 		
-		operator T() const
-		{
+		operator T() const;
+		/*{
 			return _current;
-		}
+		}*/
 		
 		
 		const T* operator-> () const
@@ -109,16 +109,8 @@ namespace RN
 			return _current / other;
 		}
 		
-		
-		T& AccessPast()
-		{
-			return _past;
-		}
-		
-		T AccessPast() const
-		{
-			return _past;
-		}
+		T& AccessPast();
+		T AccessPast() const;
 		
 		void SynchronizePast()
 		{
@@ -129,6 +121,30 @@ namespace RN
 		T _current;
 		T _past;
 	};
+	
+	template <typename T>
+	RN_INLINE  Past<T>::operator T& ()
+	{
+		return _current;
+	}
+	
+	template <typename T>
+	RN_INLINE  Past<T>::operator T() const
+	{
+		return _current;
+	}
+	
+	template <typename T>
+	T& Past<T>::AccessPast()
+	{
+		return _past;
+	}
+	
+	template <typename T>
+	T Past<T>::AccessPast() const
+	{
+		return _past;
+	}
 }
 
 #endif /* __RAYNE_SYNCHRONIZATION_H__ */

@@ -10,6 +10,8 @@
 #include "RNLightEntity.h"
 #include "RNKernel.h"
 
+#include "RNDebug.h"
+
 namespace RN
 {
 	#if __GNUG__
@@ -357,8 +359,12 @@ namespace RN
 		}
 
 #if !(RN_PLATFORM_IOS)
-		std::vector<int> lightindexpos;
-		std::vector<int> lightindices;
+		int *lightindexoffset = 0;
+		int *lightindices = 0;
+		
+		size_t lightindexoffsetCount = 0;
+		size_t lightindicesCount = 0;
+		
 		Rect rect = camera->Frame();
 		int tileswidth  = rect.width / camera->LightTiles().x;
 		int tilesheight = rect.height / camera->LightTiles().y;
@@ -367,8 +373,6 @@ namespace RN
 		
 		if(camera->DepthTiles() != 0)
 		{
-			std::vector<int> tempindices;
-			
 			Vector3 corner1 = camera->CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
 			Vector3 corner2 = camera->CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
 			Vector3 corner3 = camera->CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
@@ -398,7 +402,17 @@ namespace RN
 			Plane plbottom;
 			Plane plfar;
 			Plane plnear;
-			int counter;
+			
+			lightindices = (int *)malloc(tileswidth * tilesheight * lights->size() * sizeof(int));
+			lightindexoffset = (int *)malloc(tileswidth * tilesheight * 2 * sizeof(int));
+			
+			TimeProfiler profiler;
+			profiler.HitMilestone("Begin");
+			
+			size_t count = lights->size();
+			LightEntity **allLights = lights->data();
+			
+			
 			
 			for(float y=0.0f; y<tilesheight; y+=1.0f)
 			{
@@ -412,17 +426,17 @@ namespace RN
 //					plnear.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2], camdir);
 //					plfar.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2 + 1], camdir);
 					
-//					printf("%f ", deptharray[int(y*tileswidth+x)*2]);
-//					printf("%f \n", deptharray[int(y*tileswidth+x)*2+1]);
+					size_t previous = lightindicesCount;
+					lightindexoffset[lightindexoffsetCount ++] = static_cast<int>(previous);
 					
-					counter = -1;
-					for(auto i=lights->begin(); i!=lights->end(); i++)
+					for(size_t i=0; i<count; i++)
 					{
-						LightEntity *light = *i;
-						const Vector3& position = light->Position().AccessPast();
-						float range = light->Range().AccessPast();
+						LightEntity *light = allLights[i];
 						
-						counter ++;
+						const Vector3& position = light->_position.AccessPast();
+						float range = light->_range.AccessPast();
+
+						
 						
 						if(plleft.Distance(position) > range)
 							continue;
@@ -436,25 +450,31 @@ namespace RN
 						if(plbottom.Distance(position) > range)
 							continue;
 						
+						lightindices[lightindicesCount ++] = static_cast<int>(i);
+						
 /*						if(plnear.Distance(position) < -range)
 							continue;
 						
 						if(plfar.Distance(position) > range)
 							continue;*/
-	
-						tempindices.push_back(counter);
 					}
 					
-//					printf("lights: %i \n", tempindices.size());
-					lightindexpos.push_back(static_cast<int>(lightindices.size()));
-					lightindexpos.push_back(static_cast<int>(tempindices.size()));
-					lightindices.insert(lightindices.end(), tempindices.begin(), tempindices.end());
-					tempindices.clear();
+					lightindexoffset[lightindexoffsetCount ++] = static_cast<int>(lightindicesCount - previous);
 				}
 			}
 			
-//			delete[] deptharray;
 			
+			
+			profiler.HitMilestone("Finish");
+			profiler.DumpStatistic();
+			
+			free(lightindices);
+			free(lightindexoffset);
+			
+			
+//			delete[] deptharray;
+
+/*
 			if(_lightBufferLengths[0] < lightindexpos.size())
 			{
 				_lightBufferLengths[0] = (uint32)lightindexpos.size();
@@ -508,7 +528,8 @@ namespace RN
 				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightcount*3*sizeof(float), lightcolor);
 			}
 			
-			glBindBuffer(GL_TEXTURE_BUFFER, 0);
+			glFinish();
+			glBindBuffer(GL_TEXTURE_BUFFER, 0);*/
 		}
 #endif
 

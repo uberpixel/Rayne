@@ -51,6 +51,7 @@
 	#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED 1
 
 	#include <libkern/OSAtomic.h>
+	#include <tmmintrin.h>
 
 	#include <IOKit/IOKitLib.h>
 	#include <IOKit/IOCFPlugIn.h>
