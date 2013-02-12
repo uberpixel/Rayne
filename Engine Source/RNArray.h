@@ -158,7 +158,112 @@ namespace RN
 			}
 		}
 		
+		template<typename F>
+		bool IsSorted(F&& func)
+		{
+			for(machine_uint i=0; i<_count - 1; i++)
+			{
+				if(func(_data[i], _data[i + 1]) < kRNCompareEqualTo)
+					return false;
+			}
+			
+			return true;
+		}
+		
+		template<typename F>
+		bool IsSorted(machine_uint begin, machine_uint end, F&& func)
+		{
+			for(machine_uint i=begin; i<end - 1; i++)
+			{
+				if(func(_data[i], _data[i + 1]) < kRNCompareEqualTo)
+					return false;
+			}
+			
+			return true;
+		}
+		
+		template<typename F>
+		void SortUsingFunction(F&& func)
+		{
+			QuickSort(0, _count, logf(_count) * 2, func);
+			InsertionSort(func);
+		}
+		
 	private:
+		template<typename F>
+		machine_uint Partition(machine_uint begin, machine_uint end, F&& func)
+		{
+			machine_uint pivot = begin;
+			machine_uint middle = (begin + end) / 2;
+			
+			if(func(_data[middle], _data[begin]) >= kRNCompareEqualTo)
+				pivot = middle;
+			
+			if(func(_data[pivot], _data[end]) >= kRNCompareEqualTo)
+				pivot = end;
+			
+			std::swap(_data[pivot], _data[begin]);
+			pivot = begin;
+			
+			while(begin < end)
+			{
+				if(func(_data[begin], _data[end]) <= kRNCompareEqualTo)
+				{
+					std::swap(_data[pivot], _data[begin]);
+					pivot ++;
+				}
+				
+				begin ++;
+			}
+			
+			std::swap(_data[pivot], _data[end]);
+			return pivot;
+		}
+		
+		template<typename F>
+		void QuickSort(machine_uint begin, machine_uint end, uint32 depth, F&& func)
+		{
+			if(begin < end)
+			{
+				if(depth > 0)
+				{
+					if(IsSorted(begin, end, func))
+						return;
+					
+					machine_uint pivot = Partition(begin, end, func);
+					if(pivot == 0)
+						return;
+					
+					QuickSort(begin, pivot - 1, depth - 1, func);
+					QuickSort(pivot + 1, end, depth - 1, func);
+				}
+			}
+		}
+		
+		template<typename F>
+		void InsertionSort(F&& func)
+		{
+			for(machine_uint i=1; i<_count; i++)
+			{
+				if(func(_data[i-1], _data[i]) <= kRNCompareEqualTo)
+					continue;
+				
+				T value = _data[i];
+				std::swap(_data[i], _data[i-1]);
+				
+				machine_uint j;
+				for(j=i-1; j>=1; j--)
+				{
+					if(func(_data[j-1], value) <= kRNCompareEqualTo)
+						break;
+					
+					std::swap(_data[j], _data[j-1]);
+				}
+				
+				_data[j] = value;
+			}
+		}
+		
 		void UpdateSizeIfNeeded()
 		{
 			if(_count >= _size)

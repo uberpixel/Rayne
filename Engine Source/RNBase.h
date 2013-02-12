@@ -104,6 +104,12 @@
 // ---------------------------
 #define kRNEpsilonFloat 0.001f
 
+typedef int8 ComparisonResult;
+
+#define kRNCompareLessThan     -1
+#define kRNCompareEqualTo       0
+#define kRNCompareGreaterThan   1
+
 #define RN_INLINE inline
 #define RN_EXTERN extern
 
