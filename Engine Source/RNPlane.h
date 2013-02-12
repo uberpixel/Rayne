@@ -8,11 +8,12 @@
 
 #ifndef __RAYNE_PLANE_H__
 #define __RAYNE_PLANE_H__
-
 namespace RN
 {
+	class RenderingPipeline;
 	class Plane
 	{
+	friend RenderingPipeline;
 	public:
 		Plane();
 

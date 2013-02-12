@@ -41,7 +41,7 @@ namespace RN
 	
 	bool LightEntity::IsVisibleInCamera(Camera *camera)
 	{
-		return camera->InFrustum(Position(), _range);
+		return true;//camera->InFrustum(Position(), _range);
 	}
 	
 	

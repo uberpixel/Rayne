@@ -436,9 +436,19 @@ namespace RN
 						const Vector3& position = light->_position.AccessPast();
 						float range = light->_range.AccessPast();
 
+#define Distance(plane, r, operator) { \
+float dot = (position.x * plane._normal.x + position.y * plane._normal.y + position.z * plane._normal.z);\
+float distance = dot - plane._d; \
+if(distance operator r) \
+continue; \
+}
+						Distance(plleft, range, >);
+						Distance(plright, -range, <);
+						Distance(pltop, -range, <);
+						Distance(plbottom, range, >);
+#undef Distance
 						
-						
-						if(plleft.Distance(position) > range)
+/*						if(plleft.Distance(position) > range)
 							continue;
 						
 						if(plright.Distance(position) < -range)
@@ -450,13 +460,13 @@ namespace RN
 						if(plbottom.Distance(position) > range)
 							continue;
 						
-						lightindices[lightindicesCount ++] = static_cast<int>(i);
-						
 /*						if(plnear.Distance(position) < -range)
 							continue;
 						
 						if(plfar.Distance(position) > range)
 							continue;*/
+						
+						lightindices[lightindicesCount ++] = static_cast<int>(i);
 					}
 					
 					lightindexoffset[lightindexoffsetCount ++] = static_cast<int>(lightindicesCount - previous);
