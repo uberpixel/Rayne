@@ -6,7 +6,6 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include <malloc/malloc.h>
 #include "RNRenderingPipeline.h"
 #include "RNLightEntity.h"
 #include "RNKernel.h"
@@ -68,12 +67,6 @@ namespace RN
 		_copyIndices[3] = 2;
 		_copyIndices[4] = 1;
 		_copyIndices[5] = 3;
-		
-		posix_memalign((void **)&_lPosition, 16, 4 * sizeof(float));
-		posix_memalign((void **)&_pNormal, 16, 4 * sizeof(float));
-		posix_memalign((void **)&_dResult, 16, sizeof(float));
-		
-		_lPosition[3] = _pNormal[3] = 0.0f;
 
 		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, (GLint *)&_maxTextureUnits);
 
@@ -410,14 +403,11 @@ namespace RN
 			Plane plfar;
 			Plane plnear;
 			
-			lightindices = (int *)malloc(tileswidth * tilesheight * lights->size() * sizeof(int));
-			lightindexoffset = (int *)malloc(tileswidth * tilesheight * 2 * sizeof(int));
-			
-			TimeProfiler profiler;
-			profiler.HitMilestone("Begin");
-			
 			size_t count = lights->size();
 			LightEntity **allLights = lights->data();
+			
+			lightindices = (int *)malloc(tileswidth * tilesheight * lights->size() * sizeof(int));
+			lightindexoffset = (int *)malloc(tileswidth * tilesheight * 2 * sizeof(int));
 			
 			
 			for(float y=0.0f; y<tilesheight; y+=1.0f)
@@ -441,24 +431,10 @@ namespace RN
 						
 						const Vector3& position = light->_position.AccessPast();
 						float range = light->_range.AccessPast();
-						
-						_lPosition[0] = position.x;
-						_lPosition[1] = position.y;
-						_lPosition[2] = position.z;
-						
-						__m128 mmPosition = _mm_load_ps(_lPosition);
-						
 
 #define Distance(plane, op, r) { \
-	_pNormal[0] = plane._normal.x; \
-	_pNormal[1] = plane._normal.y; \
-	_pNormal[2] = plane._normal.z; \
-	__m128 mmNormal = _mm_load_ps(_pNormal); \
-	__m128 r1 = _mm_mul_ps(mmPosition, mmNormal); \
-	__m128 r2 = _mm_hadd_ps(r1, r1); \
-	__m128 r3 = _mm_hadd_ps(r2, r2); \
-	_mm_store_ss(_dResult, r3); \
-	float distance = (*_dResult) - plane._d; \
+	float dot = (position.x * plane._normal.x + position.y * plane._normal.y + position.z * plane._normal.z);\
+	float distance = dot - plane._d; \
 	if(distance op r) \
 		continue; \
 	}
@@ -469,18 +445,7 @@ namespace RN
 #undef Distance
 
 						
-/*						if(plleft.Distance(position) > range)
-							continue;
-						
-						if(plright.Distance(position) < -range)
-							continue;
-						
-						if(pltop.Distance(position) < -range)
-							continue;
-						
-						if(plbottom.Distance(position) > range)
-							continue;
-						
+/*
 						if(plnear.Distance(position) < -range)
 							continue;
 						
@@ -494,44 +459,38 @@ namespace RN
 				}
 			}
 
-			profiler.HitMilestone("Finish");
-			profiler.DumpStatistic();
-			
-			free(lightindices);
-			free(lightindexoffset);
-			
 			
 //			delete[] deptharray;
 
-/*
-			if(_lightBufferLengths[0] < lightindexpos.size())
+			
+			if(_lightBufferLengths[0] < lightindexoffsetCount)
 			{
-				_lightBufferLengths[0] = (uint32)lightindexpos.size();
+				_lightBufferLengths[0] = (uint32)lightindexoffsetCount;
 				
 				//indexpos
 				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
-				glBufferData(GL_TEXTURE_BUFFER, lightindexpos.size()*sizeof(int), &lightindexpos[0], GL_DYNAMIC_DRAW);
+				glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetCount*sizeof(int), lightindexoffset, GL_DYNAMIC_DRAW);
 			}
 			else
 			{
 				//indexpos
 				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
-				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindexpos.size()*sizeof(int), &lightindexpos[0]);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindexoffsetCount*sizeof(int), lightindexoffset);
 			}
 			
-			if(_lightBufferLengths[1] < lightindices.size())
+			if(_lightBufferLengths[1] < lightindicesCount)
 			{
-				_lightBufferLengths[1] = (uint32)lightindices.size();
+				_lightBufferLengths[1] = (uint32)lightindicesCount;
 				
 				//indices
 				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
-				glBufferData(GL_TEXTURE_BUFFER, lightindices.size()*sizeof(int), &lightindices[0], GL_DYNAMIC_DRAW);
+				glBufferData(GL_TEXTURE_BUFFER, lightindicesCount*sizeof(int), lightindices, GL_DYNAMIC_DRAW);
 			}
 			else
 			{
 				//indices
 				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
-				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindices.size()*sizeof(int), &lightindices[0]);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindicesCount*sizeof(int), lightindices);
 			}
 			
 			if(_lightBufferLengths[2] < lightcount)
@@ -558,7 +517,10 @@ namespace RN
 			}
 			
 			glFinish();
-			glBindBuffer(GL_TEXTURE_BUFFER, 0);*/
+			glBindBuffer(GL_TEXTURE_BUFFER, 0);
+			
+			free(lightindices);
+			free(lightindexoffset);
 		}
 #endif
 

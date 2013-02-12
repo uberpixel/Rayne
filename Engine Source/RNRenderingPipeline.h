@@ -74,11 +74,7 @@ namespace RN
 		bool _depthTestEnabled;
 		bool _blendingEnabled;
 		bool _depthWrite;
-		
-		float *_lPosition;
-		float *_pNormal;
-		float *_dResult;
-
+	
 		GLenum _cullMode;
 		GLenum _depthFunc;
 

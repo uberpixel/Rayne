@@ -35,9 +35,9 @@ void main()
 	vec4 lightpos;
 	vec3 lightcolor;
 	int lightindex = 0;
-	//int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
-	//ivec2 listoffset = texelFetch(lightListOffset, tileindex).xy;
-	/*for(int i = 0; i < listoffset.y; i++)
+	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
+	ivec2 listoffset = texelFetch(lightListOffset, tileindex).xy;
+	for(int i = 0; i < listoffset.y; i++)
 	{
 		lightindex = texelFetch(lightList, listoffset.x+i).r;
 		lightpos = texelFetch(lightListPosition, lightindex);
@@ -45,7 +45,7 @@ void main()
 		posdiff = lightpos.xyz-outPosition;
 		attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
 		light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
-	}*/
+	}
 	
 	fragColor0.rgb *= light;
 	
