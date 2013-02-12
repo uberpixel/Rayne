@@ -42,11 +42,11 @@ namespace RN
 		
 		void ShrinkToFit()
 		{
-			T *temp = (T *)realloc(_data, _count * sizeof(T));
+			T *temp = (T *)realloc(_data, (_count + 1) * sizeof(T));
 			if(temp)
 			{
 				_data = temp;
-				_size = _count;
+				_size = _count + 1;
 			}
 		}
 		
