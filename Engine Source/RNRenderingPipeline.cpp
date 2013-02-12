@@ -400,9 +400,9 @@ namespace RN
 			Plane plnear;
 			int counter;
 			
-			for(float x=0.0f; x<tileswidth; x+=1.0f)
+			for(float y=0.0f; y<tilesheight; y+=1.0f)
 			{
-				for(float y=0.0f; y<tilesheight; y+=1.0f)
+				for(float x=0.0f; x<tileswidth; x+=1.0f)
 				{
 					plleft.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
 					plright.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));

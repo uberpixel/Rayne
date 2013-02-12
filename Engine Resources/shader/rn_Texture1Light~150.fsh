@@ -35,7 +35,7 @@ void main()
 	vec4 lightpos;
 	vec3 lightcolor;
 	int lightindex = 0;
-	int tileindex = int(int(gl_FragCoord.x/lightTileSize.x)*lightTileSize.w+int(gl_FragCoord.y/lightTileSize.y));
+	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 	ivec2 listoffset = texelFetch(lightListOffset, tileindex).xy;
 	for(int i = 0; i < listoffset.y; i++)
 	{
@@ -48,14 +48,13 @@ void main()
 	}
 	
 	color0.rgb *= light;
-/*	color0 = texture(mTexture1, gl_FragCoord.xy*frameSize.xy/2.0).rgrg/500.0;
-	if(lightcount > 20)
+	if(listoffset.y > 20)
 		color0.rgb = vec3(color0.r, 0.0, 0.0);
-	else if(lightcount > 15)
+	else if(listoffset.y > 15)
 		color0.rgb = vec3(0.0, color0.g, 0.0);
-	else if(lightcount > 10)
+	else if(listoffset.y > 10)
 		color0.rgb = vec3(0.0, 0.0, color0.b);
-	else if(lightcount > 5)
-		color0.rgb = vec3(0.0, color0.g, color0.b);*/
+	else if(listoffset.y > 5)
+		color0.rgb = vec3(0.0, color0.g, color0.b);
 	fragColor0 = color0;
 }
