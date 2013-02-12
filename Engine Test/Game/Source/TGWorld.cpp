@@ -24,7 +24,6 @@ namespace TG
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
 		_camera->SetMaterial(surfaceMaterial);
-		_camera->ActivateTiledLightLists((RN::Texture*)1);
 		
 		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
 		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
