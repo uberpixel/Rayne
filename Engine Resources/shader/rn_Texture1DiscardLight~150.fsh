@@ -27,8 +27,8 @@ out vec4 fragColor0;
 
 void main()
 {
-	vec4 color0 = texture(mTexture0, outTexcoord);
-	if(color0.a < 0.3)
+	fragColor0 = texture(mTexture0, outTexcoord);
+	if(fragColor0.a < 0.3)
 		discard;
 	vec3 normal = normalize(outNormal);
 	vec3 posdiff = vec3(0.0);
@@ -49,16 +49,16 @@ void main()
 		light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}
 	
-	color0.rgb *= light;
-	if(listoffset.y > 20)
-		color0.rgb = vec3(color0.r, 0.0, 0.0);
+	fragColor0.rgb *= light;
+	
+/*	if(listoffset.y > 20)
+		fragColor0.rgb = vec3(fragColor0.r, 0.0, 0.0);
 	else if(listoffset.y > 15)
-		color0.rgb = vec3(0.0, color0.g, 0.0);
+		fragColor0.rgb = vec3(0.0, fragColor0.g, 0.0);
 	else if(listoffset.y > 10)
-		color0.rgb = vec3(0.0, 0.0, color0.b);
+		fragColor0.rgb = vec3(0.0, 0.0, fragColor0.b);
 	else if(listoffset.y > 5)
-		color0.rgb = vec3(0.0, color0.g, color0.b);
-	fragColor0 = color0;
+		fragColor0.rgb = vec3(0.0, fragColor0.g, fragColor0.b);*/
 }
 
 
