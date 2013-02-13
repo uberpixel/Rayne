@@ -76,7 +76,7 @@ namespace RN
 		template<typename F>
 		void SortUsingFunction(F&& func)
 		{
-			QuickSort(0, this->_count, logf(this->_count) * 2, func);
+			//QuickSort(0, this->_count, logf(this->_count) * 2, func);
 			InsertionSort(func);
 		}
 		

@@ -14,19 +14,6 @@
 
 namespace RN
 {
-	#if __GNUG__
-	bool SortRenderingObject(struct RenderingObject a, struct RenderingObject b)
-	#else
-	bool SortRenderingObject(struct RenderingObject &a, struct RenderingObject &b)
-	#endif
-	{
-		machine_uint objA = (machine_uint)a.mesh;
-		machine_uint objB = (machine_uint)b.mesh;
-
-		return (objA < objB);
-	}
-
-
 	RenderingPipeline::RenderingPipeline()
 	{
 		// Some general state variables
@@ -325,9 +312,7 @@ namespace RN
 		
 		// Object pre-pass
 		std::vector<Entity *> *frame = &group->entities;
-		std::vector<RenderingObject> objects;
-
-		objects.reserve(frame->size());
+		Array<RenderingObject> objects = Array<RenderingObject>(frame->size());
 
 		// Unpack the frame
 		for(auto i=frame->begin(); i!=frame->end(); i++)
@@ -344,12 +329,9 @@ namespace RN
 				object.material = model->MaterialForMesh(object.mesh);
 				object.transform = &entity->PastWorldTransform();
 
-				objects.push_back(object);
+				objects.AddObject(object);
 			}
 		}
-
-		// Sort the frame
-		std::sort(objects.begin(), objects.end(), SortRenderingObject);
 		
 		profiler.HitMilestone("Object pre-pass");
 
@@ -428,7 +410,7 @@ namespace RN
 			size_t lightindexoffsetSize = tileswidth * tilesheight * 2;
 			if(lightindexoffsetSize > _lightindexoffsetSize)
 			{
-				_lightindexoffset = (int *)realloc(_lightindices, lightindexoffsetSize * sizeof(int));
+				_lightindexoffset = (int *)realloc(_lightindexoffset, lightindexoffsetSize * sizeof(int));
 				_lightindexoffsetSize = lightindexoffsetSize;
 			}
 			
@@ -538,12 +520,12 @@ namespace RN
 				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightcount*3*sizeof(float), lightcolor);
 			}
 			
-			glFinish();
 			glBindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 #endif
 
 		profiler.HitMilestone("Light pre-pass");
+		machine_uint sortOder = 0;
 		
 		while(camera)
 		{
@@ -557,15 +539,61 @@ namespace RN
 			if(!(camera->CameraFlags() & Camera::FlagDrawTarget))
 			{
 				Material *surfaceMaterial = camera->Material();
+				machine_uint bestOrder = surfaceMaterial ? 1 : 2;
+				
+				if(bestOrder != sortOder)
+				{
+					objects.SortUsingFunction([&](const RenderingObject& a, const RenderingObject& b) {
+						if(surfaceMaterial)
+						{
+							machine_uint objA = (machine_uint)a.mesh;
+							machine_uint objB = (machine_uint)b.mesh;
+							
+							if(objA > objB)
+								return kRNCompareGreaterThan;
+							
+							if(objB > objA)
+								return kRNCompareLessThan;
+							
+							return kRNCompareEqualTo;
+						}
+						else
+						{
+							//Material *materialA = a.material;
+							//Material *materialB = b.material;
+							
+							//if(materialA->blending)
+							
+							return kRNCompareEqualTo;
+						}
+					});
+					
+					sortOder = bestOrder;
+				}
 
+				Matrix& projectionMatrix = camera->projectionMatrix.AccessPast();
+				Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix.AccessPast();
+				
+				Matrix& viewMatrix = camera->viewMatrix.AccessPast();
+				Matrix& inverseViewMatrix = camera->inverseViewMatrix.AccessPast();
+				
+				Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
+				Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
+				
 				uint32 offset = 1;
 				uint32 noCheck = 0;
 
-				for(auto i=objects.begin(); i!=objects.end(); i+=offset)
+				machine_uint objectsCount = objects.Count();
+				for(machine_uint i=0; i<objectsCount; i++)
 				{
-					Mesh *mesh = (Mesh *)i->mesh;
-					Material *material = surfaceMaterial ? surfaceMaterial : (Material *)i->material;
+					RenderingObject& object = objects.ObjectAtIndex(i);
+					
+					Mesh *mesh = (Mesh *)object.mesh;
+					Material *material = surfaceMaterial ? surfaceMaterial : (Material *)object.material;
 					Shader *shader = material->Shader();
+					
+					Matrix& transform = *((Matrix *)object.transform);
+					Matrix inverseTransform = transform.Inverse();
 
 					// Send generic attributes to the shader
 					glUseProgram(shader->program);
@@ -638,20 +666,20 @@ namespace RN
 
 					// Matrices
 					if(shader->matProj != -1)
-						glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, camera->projectionMatrix.AccessPast().m);
+						glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, projectionMatrix.m);
 
 					if(shader->matProjInverse != -1)
-						glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, camera->inverseProjectionMatrix.AccessPast().m);
+						glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, inverseProjectionMatrix.m);
 
 					if(shader->matView != -1)
-						glUniformMatrix4fv(shader->matView, 1, GL_FALSE, camera->viewMatrix.AccessPast().m);
+						glUniformMatrix4fv(shader->matView, 1, GL_FALSE, viewMatrix.m);
 
 					if(shader->matViewInverse != -1)
-						glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, camera->inverseViewMatrix.AccessPast().m);
+						glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, inverseViewMatrix.m);
 
 
 					// Check if we can use instancing here
-					if(noCheck == 0)
+					/*if(noCheck == 0)
 					{
 						if(SupportsOpenGLFeature(kOpenGLFeatureInstancing))
 						{
@@ -688,36 +716,38 @@ namespace RN
 					else
 					{
 						noCheck --;
-					}
+					}*/
 
 					// Send the other matrices to the shader
 					if(shader->matModel != -1)
-						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, i->transform->m);
+						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, transform.m);
 
 					if(shader->matModelInverse != -1)
-						glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, i->transform->Inverse().m);
+						glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, inverseTransform.m);
 
+					
 					if(shader->matViewModel != -1)
 					{
-						Matrix viewModel = camera->viewMatrix.AccessPast() * (*i->transform);
+						Matrix viewModel = viewMatrix * transform;
 						glUniformMatrix4fv(shader->matViewModel, 1, GL_FALSE, viewModel.m);
 					}
 
 					if(shader->matViewModelInverse != -1)
 					{
-						Matrix viewModel = camera->inverseViewMatrix * i->transform->Inverse();
+						Matrix viewModel = inverseViewMatrix * inverseTransform;
 						glUniformMatrix4fv(shader->matViewModelInverse, 1, GL_FALSE, viewModel.m);
 					}
 
+					
 					if(shader->matProjViewModel != -1)
 					{
-						Matrix projViewModel = camera->projectionMatrix.AccessPast() * camera->viewMatrix.AccessPast() * (*i->transform);
+						Matrix projViewModel = projectionViewMatrix * transform;
 						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 					}
 
 					if(shader->matProjViewModelInverse != -1)
 					{
-						Matrix projViewModel = camera->inverseProjectionMatrix.AccessPast() * camera->inverseViewMatrix.AccessPast() * i->transform->Inverse();
+						Matrix projViewModel = inverseProjectionViewMatrix * inverseTransform;
 						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 					}
 
@@ -740,6 +770,7 @@ namespace RN
 			if(!camera)
 				_flushCameras.push_back(previous);
 			
+			//glFinish();
 			profiler.HitMilestone("Camera->Unbind()", false);
 		}
 

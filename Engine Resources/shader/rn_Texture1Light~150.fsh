@@ -27,7 +27,6 @@ out vec4 fragColor0;
 
 void main()
 {
-	fragColor0 = texture(mTexture0, outTexcoord);
 	vec3 normal = normalize(outNormal);
 	vec3 posdiff = vec3(0.0);
 	float attenuation = 0.0;
@@ -35,26 +34,22 @@ void main()
 	vec4 lightpos;
 	vec3 lightcolor;
 	int lightindex = 0;
+
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 	ivec2 listoffset = texelFetch(lightListOffset, tileindex).xy;
-	for(int i = 0; i < listoffset.y; i++)
+
+	for(int i = 0; i < 2; i++)
 	{
 		lightindex = texelFetch(lightList, listoffset.x+i).r;
 		lightpos = texelFetch(lightListPosition, lightindex);
 		lightcolor = texelFetch(lightListColor, lightindex).xyz;
+
 		posdiff = lightpos.xyz-outPosition;
 		attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
+
 		light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}
-	
+
+	fragColor0 = texture(mTexture0, outTexcoord);
 	fragColor0.rgb *= light;
-	
-/*	if(listoffset.y > 20)
-		fragColor0.rgb = vec3(fragColor0.r, 0.0, 0.0);
-	else if(listoffset.y > 15)
-		fragColor0.rgb = vec3(0.0, fragColor0.g, 0.0);
-	else if(listoffset.y > 10)
-		fragColor0.rgb = vec3(0.0, 0.0, fragColor0.b);
-	else if(listoffset.y > 5)
-		fragColor0.rgb = vec3(0.0, fragColor0.g, fragColor0.b);*/
 }
