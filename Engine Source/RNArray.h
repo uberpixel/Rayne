@@ -31,21 +31,20 @@ namespace RN
 		void RemoveAllObjects()
 		{
 			_count = 0;
-			
-			T *tdata = (T *)realloc(_data, 5 * sizeof(T));
-			if(tdata)
-			{
-				_data = tdata;
-				_size = 5;
-			}
 		}
 		
 		void ShrinkToFit()
 		{
-			T *temp = (T *)realloc(_data, (_count + 1) * sizeof(T));
-			if(temp)
+			T *tdata = new T[(_count + 1)];
+			
+			if(tdata)
 			{
-				_data = temp;
+				for(machine_uint i=0; i<_count; i++)
+					std::swap(tdata[i], _data[i]);
+				
+				delete [] _data;
+				
+				_data = tdata;
 				_size = _count + 1;
 			}
 		}
@@ -87,7 +86,7 @@ namespace RN
 			_size  = 5;
 			_count = 0;
 			
-			_data = (T *)malloc(_size * sizeof(T));
+			_data = new T[_size];
 		}
 		
 		__ArrayStore(machine_uint capacity)
@@ -95,12 +94,12 @@ namespace RN
 			_size  = capacity > 5 ? capacity : 5;
 			_count = 0;
 			
-			_data = (T *)malloc(_size * sizeof(T));
+			_data = new T[_size];
 		}
 		
 		virtual ~__ArrayStore()
 		{
-			free(_data);
+			delete [] _data;
 		}
 		
 		void UpdateSizeIfNeeded()
@@ -108,10 +107,15 @@ namespace RN
 			if(_count >= _size)
 			{
 				machine_uint tsize = _size * 2;
-				T *tdata = (T *)realloc(_data, tsize * sizeof(T));
+				T *tdata = new T[tsize];
 				
 				if(tdata)
 				{
+					for(machine_uint i=0; i<_count; i++)
+						std::swap(tdata[i], _data[i]);
+					
+					delete [] _data;
+					
 					_size = tsize;
 					_data = tdata;
 				}
@@ -123,10 +127,15 @@ namespace RN
 			
 			if(tsize >= _count && tsize > 5)
 			{
-				T *tdata = (T *)realloc(_data, tsize * sizeof(T));
+				T *tdata = new T[tsize];
 				
 				if(tdata)
 				{
+					for(machine_uint i=0; i<_count; i++)
+						std::swap(tdata[i], _data[i]);
+					
+					delete [] _data;
+					
 					_size = tsize;
 					_data = tdata;
 				}
@@ -197,7 +206,7 @@ namespace RN
 				machine_uint j;
 				for(j=i-1; j>=1; j--)
 				{
-					if(func(this->_data[j-1], value) <= kRNCompareEqualTo)
+					if(func(this->_data[j-1], this->_data[j]) <= kRNCompareEqualTo)
 						break;
 					
 					std::swap(this->_data[j], this->_data[j-1]);
@@ -231,13 +240,16 @@ namespace RN
 		}
 		
 		
-		void AddObject(T object)
+		void AddObject(const T& object)
 		{
 			this->_data[this->_count ++] = object;
 			this->UpdateSizeIfNeeded();
+			
+			std::vector<T> test;
+			test.reserve(1024);
 		}
 		
-		void InsertObjectAtIndex(T object, machine_uint index)
+		void InsertObjectAtIndex(const T& object, machine_uint index)
 		{
 			for(machine_uint i=this->_count; i>index; i--)
 			{
@@ -248,12 +260,12 @@ namespace RN
 			this->UpdateSizeIfNeeded();
 		}
 		
-		void ReplaceObjectAtIndex(machine_uint index, T object)
+		void ReplaceObjectAtIndex(machine_uint index, const T& object)
 		{
 			this->_data[index] = object;
 		}
 		
-		void RemoveObject(T object)
+		void RemoveObject(const T& object)
 		{
 			for(machine_uint i=0; i<this->_count; i++)
 			{
@@ -296,7 +308,7 @@ namespace RN
 			return this->_data[this->_count - 1];
 		}
 		
-		machine_uint IndexOfObject(T object) const
+		machine_uint IndexOfObject(const T& object) const
 		{
 			for(machine_uint i=0; i<this->_count; i++)
 			{
@@ -307,7 +319,7 @@ namespace RN
 			return RN_NOT_FOUND;
 		}
 		
-		bool ContainsObject(T object) const
+		bool ContainsObject(const T& object) const
 		{
 			for(machine_uint i=0; i<this->_count; i++)
 			{
