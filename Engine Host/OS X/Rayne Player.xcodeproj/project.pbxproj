@@ -327,10 +327,7 @@
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/Rayne-espsryeibhnxbqfvbotsdrzqfiam/Build/Products/Debug\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -404,10 +401,7 @@
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/Rayne-espsryeibhnxbqfvbotsdrzqfiam/Build/Products/Debug\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -423,10 +417,7 @@
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/Rayne-espsryeibhnxbqfvbotsdrzqfiam/Build/Products/Debug\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};

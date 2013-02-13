@@ -262,10 +262,7 @@
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/Rayne-espsryeibhnxbqfvbotsdrzqfiam/Build/Products/Debug\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -278,10 +275,7 @@
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/Rayne-espsryeibhnxbqfvbotsdrzqfiam/Build/Products/Debug\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -321,10 +315,7 @@
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/Rayne-espsryeibhnxbqfvbotsdrzqfiam/Build/Products/Debug\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Optimized;
