@@ -80,6 +80,11 @@ namespace RN
 
 		GLenum _blendSource;
 		GLenum _blendDestination;
+		
+		int *_lightindexoffset;
+		int *_lightindices;
+		size_t _lightindexoffsetSize;
+		size_t _lightindicesSize;
 
 		std::map<std::tuple<Material *, MeshLODStage *>, GLuint> _vaos;
 		GLuint _currentVAO;

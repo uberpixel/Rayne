@@ -52,6 +52,13 @@ namespace RN
 		_blendDestination = GL_ZERO;
 
 		_frameLock = new Mutex();
+		
+		// Light indices
+		_lightindexoffsetSize = 100;
+		_lightindicesSize = 500;
+		
+		_lightindexoffset = (int *)malloc(_lightindexoffsetSize * sizeof(int));
+		_lightindices = (int *)malloc(_lightindicesSize * sizeof(int));
 
 		// Setup framebuffer copy stuff
 		_copyShader = 0;
@@ -95,6 +102,9 @@ namespace RN
 #endif
 
 		free(_instancingMatrices);
+		
+		free(_lightindexoffset);
+		free(_lightindices);
 
 		_frameLock->Release();
 	}
@@ -310,6 +320,9 @@ namespace RN
 
 	void RenderingPipeline::DrawGroup(RenderingGroup *group)
 	{
+		TimeProfiler profiler;
+		profiler.HitMilestone("Begin");
+		
 		// Object pre-pass
 		std::vector<Entity *> *frame = &group->entities;
 		std::vector<RenderingObject> objects;
@@ -337,6 +350,8 @@ namespace RN
 
 		// Sort the frame
 		std::sort(objects.begin(), objects.end(), SortRenderingObject);
+		
+		profiler.HitMilestone("Object pre-pass");
 
 		// Render all cameras
 		Camera *previous = 0;
@@ -359,9 +374,6 @@ namespace RN
 		}
 
 #if !(RN_PLATFORM_IOS)
-		int *lightindexoffset = 0;
-		int *lightindices = 0;
-		
 		size_t lightindexoffsetCount = 0;
 		size_t lightindicesCount = 0;
 		
@@ -406,9 +418,19 @@ namespace RN
 			size_t count = lights->size();
 			LightEntity **allLights = lights->data();
 			
-			lightindices = (int *)malloc(tileswidth * tilesheight * lights->size() * sizeof(int));
-			lightindexoffset = (int *)malloc(tileswidth * tilesheight * 2 * sizeof(int));
+			size_t lightindicesSize = tileswidth * tilesheight * lights->size();
+			if(lightindicesSize > _lightindicesSize)
+			{
+				_lightindices = (int *)realloc(_lightindices, lightindicesSize * sizeof(int));
+				_lightindicesSize = lightindicesSize;
+			}
 			
+			size_t lightindexoffsetSize = tileswidth * tilesheight * 2;
+			if(lightindexoffsetSize > _lightindexoffsetSize)
+			{
+				_lightindexoffset = (int *)realloc(_lightindices, lightindexoffsetSize * sizeof(int));
+				_lightindexoffsetSize = lightindexoffsetSize;
+			}
 			
 			for(float y=0.0f; y<tilesheight; y+=1.0f)
 			{
@@ -423,7 +445,7 @@ namespace RN
 //					plfar.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2 + 1], camdir);
 					
 					size_t previous = lightindicesCount;
-					lightindexoffset[lightindexoffsetCount ++] = static_cast<int>(previous);
+					_lightindexoffset[lightindexoffsetCount ++] = static_cast<int>(previous);
 					
 					for(size_t i=0; i<count; i++)
 					{
@@ -452,10 +474,10 @@ namespace RN
 						if(plfar.Distance(position) > range)
 							continue;*/
 						
-						lightindices[lightindicesCount ++] = static_cast<int>(i);
+						_lightindices[lightindicesCount ++] = static_cast<int>(i);
 					}
 					
-					lightindexoffset[lightindexoffsetCount ++] = static_cast<int>(lightindicesCount - previous);
+					_lightindexoffset[lightindexoffsetCount ++] = static_cast<int>(lightindicesCount - previous);
 				}
 			}
 
@@ -469,13 +491,13 @@ namespace RN
 				
 				//indexpos
 				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
-				glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetCount*sizeof(int), lightindexoffset, GL_DYNAMIC_DRAW);
+				glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetCount*sizeof(int), _lightindexoffset, GL_DYNAMIC_DRAW);
 			}
 			else
 			{
 				//indexpos
 				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
-				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindexoffsetCount*sizeof(int), lightindexoffset);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindexoffsetCount*sizeof(int), _lightindexoffset);
 			}
 			
 			if(_lightBufferLengths[1] < lightindicesCount)
@@ -484,13 +506,13 @@ namespace RN
 				
 				//indices
 				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
-				glBufferData(GL_TEXTURE_BUFFER, lightindicesCount*sizeof(int), lightindices, GL_DYNAMIC_DRAW);
+				glBufferData(GL_TEXTURE_BUFFER, lightindicesCount*sizeof(int), _lightindices, GL_DYNAMIC_DRAW);
 			}
 			else
 			{
 				//indices
 				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
-				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindicesCount*sizeof(int), lightindices);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindicesCount*sizeof(int), _lightindices);
 			}
 			
 			if(_lightBufferLengths[2] < lightcount)
@@ -518,14 +540,15 @@ namespace RN
 			
 			glFinish();
 			glBindBuffer(GL_TEXTURE_BUFFER, 0);
-			
-			free(lightindices);
-			free(lightindexoffset);
 		}
 #endif
 
+		profiler.HitMilestone("Light pre-pass");
+		
 		while(camera)
 		{
+			profiler.HitMilestone("Camera->Bind()", false);
+			
 			camera->Bind();
 			camera->PrepareForRendering();
 			
@@ -716,10 +739,15 @@ namespace RN
 
 			if(!camera)
 				_flushCameras.push_back(previous);
+			
+			profiler.HitMilestone("Camera->Unbind()", false);
 		}
 
 		delete[] lightcolor;
 		delete[] lightpos;
+		
+		profiler.HitMilestone("End");
+		profiler.DumpStatistic();
 	}
 
 	uint32 RenderingPipeline::BindTexture(Texture *texture)
