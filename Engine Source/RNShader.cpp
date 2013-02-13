@@ -15,12 +15,16 @@ namespace RN
 	{
 		_vertexShader = _fragmentShader = _geometryShader = 0;
 		program = 0;
+		
+		AddDefines();
 	}
 	
 	Shader::Shader(const std::string& shader, bool link)
 	{
 		_vertexShader = _fragmentShader = _geometryShader = 0;
 		program = 0;
+		
+		AddDefines();
 		
 		{
 			std::string path = File::PathForName(shader + ".vsh");
@@ -64,6 +68,71 @@ namespace RN
 	{
 		Shader *shader = new Shader(file, link);
 		return shader->Autorelease<Shader>();
+	}
+	
+	void Shader::AddDefines()
+	{
+#ifdef DEBUG
+		Define("DEBUG", 1);
+#endif
+#ifdef NDEBUG
+		Define("NDEBUG", 1);
+#endif
+		
+#if RN_TARGET_OPENGL
+		Define("OPENGL", 1);
+#endif
+#if RN_TARGET_OPENGL_ES
+		Define("OPENGLES", 1);
+#endif
+	}
+	
+	
+	void Shader::Define(const std::string& define)
+	{
+		ShaderDefine def;
+		def.name = define;
+		def.value = "";
+		
+		_defines.AddObject(def);
+	}
+	
+	void Shader::Define(const std::string& define, const std::string& value)
+	{
+		ShaderDefine def;
+		def.name = define;
+		def.value = value;
+		
+		_defines.AddObject(def);
+	}
+	
+	void Shader::Define(const std::string& define, int32 value)
+	{
+		char buffer[32];
+		sprintf(buffer, "%i", value);
+		
+		Define(define, buffer);
+	}
+	
+	void Shader::Define(const std::string& define, float value)
+	{
+		char buffer[32];
+		sprintf(buffer, "%f", value);
+		
+		Define(define, buffer);
+	}	
+	
+	void Shader::Undefine(const std::string& name)
+	{
+		for(machine_uint i=0; i<_defines.Count(); i++)
+		{
+			ShaderDefine& define = _defines[(int)i];
+			if(define.name == name)
+			{
+				_defines.RemoveObjectAtIndex(i);
+				return;
+			}
+		}
 	}
 	
 	
@@ -117,6 +186,8 @@ namespace RN
 					glDeleteShader(_vertexShader);
 					_vertexShader = 0;
 				}
+				
+				Define("VERTEXSHADER", 1);
 				break;
 				
 			case GL_FRAGMENT_SHADER:
@@ -125,6 +196,8 @@ namespace RN
 					glDeleteShader(_fragmentShader);
 					_fragmentShader = 0;
 				}
+				
+				Define("FRAGMENTSHADER", 1);
 				break;
 				
 #ifdef GL_GEOMETRY_SHADER
@@ -134,6 +207,8 @@ namespace RN
 					glDeleteShader(_geometryShader);
 					_geometryShader = 0;
 				}
+				
+				Define("GEOMETRYSHADER", 1);
 				break;
 #endif
 				
@@ -146,6 +221,16 @@ namespace RN
 		std::string data = file->String();
 		size_t index = 0;
 		
+		for(machine_uint i=0; i<_defines.Count(); i++)
+		{
+			ShaderDefine& define = _defines[(int)i];
+			std::string exploded = "#define " + define.name + " " + define.value + "\n";
+			
+			data.insert(index, exploded);
+			index += exploded.length();
+		}
+		
+		index = 0;
 		while((index = data.find("#include \"", index)) != std::string::npos)
 		{
 			std::string::iterator iterator = data.begin() + (index + 10);
@@ -199,15 +284,18 @@ namespace RN
 		{
 			case GL_VERTEX_SHADER:
 				_vertexShader = shader;
+				Undefine("VERTEXSHADER");
 				break;
 				
 			case GL_FRAGMENT_SHADER:
 				_fragmentShader = shader;
+				Undefine("FRAGMENTSHADER");
 				break;
 				
 #ifdef GL_GEOMETRY_SHADER
 			case GL_GEOMETRY_SHADER:
 				_geometryShader = shader;
+				Undefine("GEOMETRYSHADER");
 				break;
 #endif
 				

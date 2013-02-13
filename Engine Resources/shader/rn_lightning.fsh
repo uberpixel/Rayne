@@ -10,7 +10,7 @@ vec3 rn_calculateLight(vec3 inNormal, vec3 inPosition)
 	vec3 normal = normalize(inNormal);
 	vec3 posdiff = vec3(0.0);
 	float attenuation = 0.0;
-	vec3 light = vec3(0.1);
+	vec3 light = vec3(0.0);
 	vec4 lightpos;
 	vec3 lightcolor;
 	int lightindex = 0;

@@ -25,6 +25,12 @@ namespace RN
 		
 		static Shader *WithFile(const std::string& shader, bool link=true);
 		
+		RNAPI void Define(const std::string& define);
+		RNAPI void Define(const std::string& define, const std::string& value);
+		RNAPI void Define(const std::string& define, int32 value);
+		RNAPI void Define(const std::string& define, float value);
+		RNAPI void Undefine(const std::string& define);
+		
 		RNAPI void SetVertexShader(const std::string& path);
 		RNAPI void SetVertexShader(File *file);
 		
@@ -79,8 +85,17 @@ namespace RN
 		GLuint depthmap;
 		
 	private:
+		struct ShaderDefine
+		{
+			std::string name;
+			std::string value;
+		};
+		
 		void SetShaderForType(const std::string& path, GLenum type);
 		void SetShaderForType(File *file, GLenum type);
+		void AddDefines();
+		
+		Array<ShaderDefine> _defines;
 		
 		GLuint _vertexShader;
 		GLuint _fragmentShader;
