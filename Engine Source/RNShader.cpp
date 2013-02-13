@@ -219,7 +219,22 @@ namespace RN
 		
 		// Preprocess the shader
 		std::string data = file->String();
-		size_t index = 0;
+		size_t index = data.find("#version");
+		
+		if(index != std::string::npos)
+		{
+			index += 8;
+			
+			do {
+				index ++;
+			} while(data[index] != '\n');
+			
+			index ++;
+		}
+		else
+		{
+			index = 0;
+		}
 		
 		for(machine_uint i=0; i<_defines.Count(); i++)
 		{
