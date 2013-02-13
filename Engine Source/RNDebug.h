@@ -21,7 +21,7 @@ namespace RN
 		~TimeProfiler();
 		
 		void DumpStatistic();
-		void HitMilestone(const std::string& name);
+		void HitMilestone(const std::string& name, bool mergeSet=true);
 		
 	private:
 		struct Milestone
@@ -31,9 +31,7 @@ namespace RN
 			uint32 hits;
 		};
 		
-		//Array<Milestone> _milestones;
-		
-		std::vector<Milestone> _milestones;
+		Array<Milestone> _milestones;
 		std::chrono::time_point<std::chrono::high_resolution_clock> _lastHit;
 		std::chrono::nanoseconds _accumulated;
 		machine_uint _totalHits;

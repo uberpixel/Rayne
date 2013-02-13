@@ -23,6 +23,7 @@ namespace RN
 	
 	void TimeProfiler::DumpStatistic()
 	{
+#ifndef NDEBUG
 		{
 			auto seconds = std::chrono::duration_cast<std::chrono::seconds>(_accumulated).count();
 			auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(_accumulated).count();
@@ -32,55 +33,41 @@ namespace RN
 			printf("%i total hits, %i:%03i total time\n", (int)_totalHits, (int)seconds, (int)milliseconds);
 		}
 		
-		//for(machine_uint i=0; i<_milestones.Count(); i++)
-		
-		for(auto i=_milestones.begin(); i!=_milestones.end(); i++)
+		for(machine_uint i=0; i<_milestones.Count(); i++)
 		{
-			//Milestone& milestone = _milestones[(int)i];
+			Milestone& milestone = _milestones[(int)i];
 			
-			//auto seconds = std::chrono::duration_cast<std::chrono::seconds>(milestone.accumulated).count();
-			//auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(milestone.accumulated).count();
-			
-			//printf("Milestone %s: %i hits %i:%03i\n", milestone.name.c_str(), milestone.hits, (int)seconds, (int)milliseconds);
-			
-			auto seconds = std::chrono::duration_cast<std::chrono::seconds>(i->accumulated).count();
-			auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(i->accumulated).count();
-			
+			auto seconds = std::chrono::duration_cast<std::chrono::seconds>(milestone.accumulated).count();
+			auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(milestone.accumulated).count();
 			milliseconds -= (seconds * 1000);
 			
-			printf("Milestone %s: %i hits %i:%03i\n", i->name.c_str(), i->hits, (int)seconds, (int)milliseconds);
+			printf("Milestone \"%s\": %i hits %i:%03i\n", milestone.name.c_str(), milestone.hits, (int)seconds, (int)milliseconds);
 		}
+#endif
 	}
 	
-	void TimeProfiler::HitMilestone(const std::string& name)
+	void TimeProfiler::HitMilestone(const std::string& name, bool mergeSet)
 	{
+#ifndef NDEBUG
 		std::chrono::time_point<std::chrono::high_resolution_clock> hit = std::chrono::high_resolution_clock::now();
 		std::chrono::nanoseconds duration = std::chrono::duration_cast<std::chrono::nanoseconds>(hit - _lastHit);
 		
 		_totalHits ++;
 		_accumulated += duration;
 		
-		//for(machine_uint i=0; i<_milestones.Count(); i++)
-		//{
-		for(auto i=_milestones.begin(); i!=_milestones.end(); i++)
+		if(mergeSet)
 		{
-			/*Milestone& milestone = _milestones[(int)i];
-			if(milestone.name.compare(name) == 0)
+			for(machine_uint i=0; i<_milestones.Count(); i++)
 			{
-				milestone.accumulated += duration;
-				milestone.hits ++;
-				
-				_lastHit = std::chrono::high_resolution_clock::now();
-				return;
-			}*/
-			
-			if(i->name.compare(name) == 0)
-			{
-				i->accumulated += duration;
-				i->hits ++;
-				
-				_lastHit = std::chrono::high_resolution_clock::now();
-				return;
+				Milestone& milestone = _milestones[(int)i];
+				if(milestone.name.compare(name) == 0)
+				{
+					milestone.accumulated += duration;
+					milestone.hits ++;
+					
+					_lastHit = std::chrono::high_resolution_clock::now();
+					return;
+				}
 			}
 		}
 		
@@ -89,8 +76,8 @@ namespace RN
 		milestone.hits = 1;
 		milestone.accumulated = duration;
 		
-		//_milestones.AddObject(milestone);
-		_milestones.push_back(milestone);
+		_milestones.AddObject(milestone);
 		_lastHit = std::chrono::high_resolution_clock::now();
+#endif
 	}
 }
