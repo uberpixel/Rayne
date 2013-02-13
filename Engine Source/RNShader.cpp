@@ -107,7 +107,7 @@ namespace RN
 	
 	
 	
-	void Shader::SetShaderDataForType(const std::string& data, GLenum type)
+	void Shader::SetShaderForType(File *file, GLenum type)
 	{
 		switch(type)
 		{
@@ -142,6 +142,29 @@ namespace RN
 				break;
 		}
 		
+		// Preprocess the shader
+		std::string data = file->String();
+		size_t index = 0;
+		
+		while((index = data.find("#include \"", index)) != std::string::npos)
+		{
+			std::string::iterator iterator = data.begin() + (index + 10);
+			size_t length = 0;
+			while(*iterator != '"')
+			{
+				length ++;
+				iterator ++;
+			}
+			
+			std::string name = data.substr(index + 10, length);
+			data.erase(index, length + 11);
+			
+			File *includeFile = new File(file->Path() + "/" + name);
+			data.insert(index, includeFile->String());
+			includeFile->Release();
+		}
+		
+		// Compile everything
 		const GLchar *source = (const GLchar *)data.c_str();
 		GLuint shader = glCreateShader(type);
 		
@@ -167,7 +190,9 @@ namespace RN
 			std::string tlog = std::string((char *)log);
 			delete [] log;
 			
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, tlog);
+			std::string compilerLog = "Failed to compile " + file->Name() + file->Extension() + ".\n" + tlog;
+			
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, compilerLog);
 		}
 		
 		switch(type)
@@ -190,11 +215,6 @@ namespace RN
 				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
 				break;
 		}
-	}
-	
-	void Shader::SetShaderForType(File *file, GLenum type)
-	{
-		SetShaderDataForType(file->String(), type);
 	}
 	
 	void Shader::SetShaderForType(const std::string& path, GLenum type)
@@ -235,9 +255,6 @@ namespace RN
 			}
 		} while(0);
 #endif
-		
-		//glBindAttribLocation(<#GLuint program#>, <#GLuint index#>, <#const GLchar *name#>)
-		
 		
 		glLinkProgram(program);
 		RN_CHECKOPENGL();

@@ -79,10 +79,8 @@ namespace RN
 		GLuint depthmap;
 		
 	private:
-		void SetShaderForType(File *file, GLenum type);
 		void SetShaderForType(const std::string& path, GLenum type);
-		
-		void SetShaderDataForType(const std::string& data, GLenum type);
+		void SetShaderForType(File *file, GLenum type);
 		
 		GLuint _vertexShader;
 		GLuint _fragmentShader;
