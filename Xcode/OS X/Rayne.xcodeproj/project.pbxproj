@@ -651,6 +651,7 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
@@ -740,6 +741,7 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
 					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
