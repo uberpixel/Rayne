@@ -11,6 +11,7 @@
 #include "RNWorld.h"
 #include "RNOpenGL.h"
 #include "RNAutoreleasePool.h"
+#include "RNThreadPool.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -31,6 +32,7 @@ namespace RN
 		_context->MakeActiveContext();
 
 		ReadOpenGLExtensions();
+		ThreadPool::SharedInstance();
 
 		_scaleFactor = 1.0f;
 

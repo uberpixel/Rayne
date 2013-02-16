@@ -16,6 +16,7 @@
 #include "RNCamera.h"
 #include "RNMesh.h"
 #include "RNShader.h"
+#include "RNThreadPool.h"
 
 namespace RN
 {
@@ -61,6 +62,9 @@ namespace RN
 		
 		RN_ASSERT0(_textures && _cameras && _meshes);
 		RN_ASSERT0(_mutex != 0);
+		
+		Retain();
+		ThreadPool::SharedInstance()->ConsumeConcurrency();
 	}
 	
 	Thread *Thread::CurrentThread()
@@ -88,8 +92,10 @@ namespace RN
 		__ThreadMap.erase(iterator);
 		
 		__ThreadLock.Unlock();
-		
 		_isRunning = false;
+		
+		ThreadPool::SharedInstance()->RestoreConcurrency();
+		Release();
 	}
 	
 	void Thread::Entry()
