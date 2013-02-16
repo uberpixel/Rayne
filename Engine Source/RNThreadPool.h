@@ -105,7 +105,6 @@ namespace RN
 			}
 			
 			_threads.RemoveObject(Thread::CurrentThread());
-			printf("Consumer finished!\n");
 			_waitCondition.notify_all();
 		}
 		
