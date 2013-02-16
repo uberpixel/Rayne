@@ -332,14 +332,16 @@ namespace RN
 		_renderer = _kernel->Renderer();
 
 		SetTitle(title);
-
-		std::thread thread = std::thread(&Window::RenderLoop, this);
-		thread.detach();
+		
+		_thread = new Thread(std::bind(&Window::RenderLoop, this));
+		_renderer->SetThread(_thread);
 	}
 
 	Window::~Window()
 	{
 		_context->Release();
+		_thread->Release();
+		
 		[(RNNativeWindow *)_nativeWindow release];
 	}
 
@@ -381,7 +383,7 @@ namespace RN
 			continue;
 		}
 
-		while(!_renderer->ShouldStop())
+		while(!_thread->IsCancelled())
 		{
 			_context->MakeActiveContext();
 
@@ -398,8 +400,6 @@ namespace RN
 
 			_context->DeactivateContext();
 		}
-
-		_renderer->DidStop();
 	}
 
 #endif

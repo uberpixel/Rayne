@@ -23,6 +23,8 @@ namespace RN
 {
 	Kernel::Kernel(const std::string& module)
 	{
+		_mainThread = new Thread();
+		
 		AutoreleasePool *pool = new AutoreleasePool();
 
 		_context = new class Context();
@@ -76,6 +78,7 @@ namespace RN
 		_context->Release();
 
 		delete pool;
+		delete _mainThread;
 	}
 
 	void Kernel::LoadApplicationModule(const std::string& module)

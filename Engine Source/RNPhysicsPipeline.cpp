@@ -11,13 +11,11 @@
 
 namespace RN
 {
-	PhysicsPipeline::PhysicsPipeline()
+	PhysicsPipeline::PhysicsPipeline() :
+		PipelineSegment(true)
 	{
 		_gravity = Vector3(0.0, -9.81, 0.0);
 		_changes = GravityChange;
-		
-		std::thread thread = std::thread(&PhysicsPipeline::WorkLoop, this);
-		thread.detach();
 	}
 	
 	void PhysicsPipeline::WorkOnTask(TaskID task, float delta)
@@ -70,7 +68,7 @@ namespace RN
 		// The world.
 		_dynamicsWorld = new btDiscreteDynamicsWorld(_dispatcher, _broadphase, _solver, _collisionConfiguration);
 		
-		while(!ShouldStop())
+		while(!WorkerThread()->IsCancelled())
 		{
 			WaitForWork();
 		}
@@ -80,9 +78,6 @@ namespace RN
 		delete _dispatcher;
 		delete _collisionConfiguration;
 		delete _broadphase;
-		
-		Thread::CurrentThread()->Exit();
-		DidStop();
 	}
 	
 	

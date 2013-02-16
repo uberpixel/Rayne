@@ -11,23 +11,38 @@
 
 namespace RN
 {
-	PipelineSegment::PipelineSegment()
+	PipelineSegment::PipelineSegment(bool spinThread)
 	{
 		_task = kPipelineSegmentNullTask;
 		_lastTask = 0;
 		
-		_shouldStop = false;
-		_didStop = false;
+		_thread = spinThread ? new Thread(std::bind(&PipelineSegment::WorkLoop, this)) : 0;
 	}
 	
 	PipelineSegment::~PipelineSegment()
 	{
-		_shouldStop = true;
+		_thread->Cancel();
 		
-		while(!_didStop)
-			std::this_thread::sleep_for(std::chrono::milliseconds(5));
+		while(_thread->IsRunning())
+		{}
+		
+		_thread->Release();
 	}
 	
+	void PipelineSegment::SetThread(Thread *thread)
+	{
+		RN_ASSERT(!_thread, "The thread of a PipelineSegment can't be replaced!");
+		_thread = thread->Retain<Thread>();
+	}
+	
+	void PipelineSegment::WorkLoop()
+	{
+		while(!_thread)
+		{}
+		
+		while(!_thread->IsCancelled())
+			WaitForWork();
+	}
 	
 	void PipelineSegment::WaitForWork()
 	{
@@ -37,7 +52,7 @@ namespace RN
 		do {
 			result = _workCondition.wait_for(lock, std::chrono::milliseconds(50), [&](){ return (_task != kPipelineSegmentNullTask); });
 		
-			if(_shouldStop)
+			if(_thread->IsCancelled())
 				return;
 		
 		} while(!result);
@@ -45,9 +60,9 @@ namespace RN
 		std::lock_guard<std::mutex> waitLock(_waitMutex);
 		
 		AutoreleasePool *pool = new AutoreleasePool();
-		
-		WorkOnTask(_task, _delta);
-		
+		{
+			WorkOnTask(_task, _delta);
+		}
 		delete pool;
 		
 		_lastTask = _task;
@@ -73,15 +88,5 @@ namespace RN
 	{
 		std::unique_lock<std::mutex> lock(_waitMutex);
 		_waitCondition.wait(lock, [&]() { return (_task != task || _task == kPipelineSegmentNullTask); });
-	}
-	
-	bool PipelineSegment::ShouldStop()
-	{
-		return _shouldStop;
-	}
-	
-	void PipelineSegment::DidStop()
-	{
-		_didStop = true;
 	}
 }

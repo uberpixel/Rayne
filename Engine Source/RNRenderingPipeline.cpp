@@ -14,7 +14,8 @@
 
 namespace RN
 {
-	RenderingPipeline::RenderingPipeline()
+	RenderingPipeline::RenderingPipeline() :
+		PipelineSegment(false)
 	{
 		// Some general state variables
 		_defaultFBO = 0;
