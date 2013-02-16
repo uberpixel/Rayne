@@ -334,7 +334,7 @@ namespace TG
 		}
 		
 #if RN_TARGET_OPENGL
-/*		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight_instanced");
+		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight_instanced");
 		RN::Model *foliage[4];
 		
 		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
@@ -355,18 +355,18 @@ namespace TG
 		
 		uint32 index = 0;
 		
-		for(float x = -100.0f; x < 200.0f; x += 1.0f)
+		for(float x = -100.0f; x < 200.0f; x += 1.5f)
 		{
 			for(float y = -10.0f; y < 10.0f; y += 1.0f)
 			{
-				index = (index + 1) % 4;
+				index = 0; //(index + 1) % 4;
 				
 				RN::Entity *fern = new RN::Entity();
 				fern->SetModel(foliage[index]);
 				fern->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 				fern->SetPosition(RN::Vector3(x, -5.3, y));
 			}
-		}*/
+		}
 #endif
 	}
 }

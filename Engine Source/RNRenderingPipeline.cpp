@@ -560,10 +560,14 @@ namespace RN
 						}
 						else
 						{
-							//Material *materialA = a.material;
-							//Material *materialB = b.material;
+							machine_uint objA = (machine_uint)a.mesh;
+							machine_uint objB = (machine_uint)b.mesh;
 							
-							//if(materialA->blending)
+							if(objA > objB)
+								return kRNCompareGreaterThan;
+							
+							if(objB > objA)
+								return kRNCompareLessThan;
 							
 							return kRNCompareEqualTo;
 						}
@@ -585,8 +589,10 @@ namespace RN
 				uint32 noCheck = 0;
 
 				machine_uint objectsCount = objects.Count();
-				for(machine_uint i=0; i<objectsCount; i++)
+				for(machine_uint i=0; i<objectsCount; i+=offset)
 				{
+					offset = 1;
+					
 					RenderingObject& object = objects.ObjectAtIndex(i);
 					
 					Mesh *mesh = (Mesh *)object.mesh;
@@ -680,32 +686,35 @@ namespace RN
 
 
 					// Check if we can use instancing here
-					/*if(noCheck == 0)
+					if(noCheck == 0)
 					{
 						if(SupportsOpenGLFeature(kOpenGLFeatureInstancing))
 						{
-							auto end = i + 1;
+							machine_uint end = i + 1;
 							offset = 1;
 
-							while(end != objects.end())
+							while(end < objectsCount)
 							{
-								if(end->mesh != mesh)
+								RenderingObject& temp = objects.ObjectAtIndex(end);
+								
+								if(temp.mesh != mesh)
 									break;
 
-								if(!surfaceMaterial && end->material != material)
+								if(!surfaceMaterial && temp.material != material)
 									break;
 
 								offset ++;
 								end ++;
 							}
+							
 
 							if(offset >= kRNRenderingPipelineInstancingCutOff)
 							{
 								if(material->Shader()->imatModel != -1)
 								{
 									BindMaterial(material);
-									DrawMeshInstanced(material, i, end, offset);
-
+									DrawMeshInstanced(objects, i, offset);
+									
 									continue;
 								}
 							}
@@ -717,7 +726,7 @@ namespace RN
 					else
 					{
 						noCheck --;
-					}*/
+					}
 
 					// Send the other matrices to the shader
 					if(shader->matModel != -1)
@@ -779,7 +788,7 @@ namespace RN
 		delete[] lightpos;
 		
 		profiler.HitMilestone("End");
-		//profiler.DumpStatistic();
+		profiler.DumpStatistic();
 	}
 
 	uint32 RenderingPipeline::BindTexture(Texture *texture)
@@ -932,23 +941,23 @@ namespace RN
 		_currentMesh = mesh;
 	}
 
-	void RenderingPipeline::DrawMeshInstanced(Material *material, std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count)
+	void RenderingPipeline::DrawMeshInstanced(Array<RenderingObject>& group, machine_uint start, machine_uint count)
 	{
-		Mesh *mesh = (Mesh *)begin->mesh;
+		Mesh *mesh = (Mesh *)group[(int)start].mesh;
 		MeshLODStage *stage = mesh->LODStage(0);
 		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
 
-		Shader *shader = material->Shader();
+		Shader *shader = _currentMaterial->Shader();
 
 		if(count > _numInstancingMatrices)
 		{
-			_numInstancingMatrices = count;
+			_numInstancingMatrices = (uint32)count;
 
 			free(_instancingMatrices);
 			_instancingMatrices = (Matrix *)malloc(_numInstancingMatrices * sizeof(Matrix));
 		}
 
-		GLuint vao = VAOForTuple(std::tuple<Material *, MeshLODStage *>(material, stage));
+		GLuint vao = VAOForTuple(std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage));
 		if(_currentVAO != vao)
 		{
 			gl::BindVertexArray(vao);
@@ -964,13 +973,14 @@ namespace RN
 			gl::VertexAttribDivisor(shader->imatModel + i, 1);
 		}
 
-		for(uint32 i=0; begin!=last; begin++, i++)
+		for(machine_uint i=0; i<count; i++)
 		{
-			_instancingMatrices[i] = *begin->transform;
+			RenderingObject& object = group[(int)(start + i)];
+			_instancingMatrices[i] = *object.transform;
 		}
 
 		glBufferData(GL_ARRAY_BUFFER, count * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
-		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0, count);
+		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0, (GLsizei)count);
 
 		for(int i=0; i<4; i++)
 		{
