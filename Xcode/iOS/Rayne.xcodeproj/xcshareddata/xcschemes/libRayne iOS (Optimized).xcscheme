@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "E9619E7E1696164100DA187E"
-               BuildableName = "libpng.a"
-               BlueprintName = "png"
-               ReferencedContainer = "container:png-ios.xcodeproj">
+               BlueprintIdentifier = "E9619EE6169616FD00DA187E"
+               BuildableName = "libRayne.a"
+               BlueprintName = "Rayne"
+               ReferencedContainer = "container:Rayne.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -35,7 +35,7 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
-      buildConfiguration = "Release"
+      buildConfiguration = "Optimized"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       allowLocationSimulation = "YES">

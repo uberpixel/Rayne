@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "E9619E7E1696164100DA187E"
-               BuildableName = "libpng.a"
-               BlueprintName = "png"
-               ReferencedContainer = "container:png-ios.xcodeproj">
+               BlueprintIdentifier = "E92D611216B75B2100BFCC44"
+               BuildableName = "libGame.a"
+               BlueprintName = "Game"
+               ReferencedContainer = "container:Game-ios.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -35,7 +35,7 @@
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       ignoresPersistentStateOnLaunch = "NO"
       debugDocumentVersioning = "YES"
       allowLocationSimulation = "YES">
