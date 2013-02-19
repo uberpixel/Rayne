@@ -27,7 +27,7 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		static NSOpenGLPixelFormatAttribute formatAttributes[] =
 		{
-			NSOpenGLPFAMinimumPolicy,
+			NSOpenGLPFAClosestPolicy,
 			NSOpenGLPFAAccelerated,
 			NSOpenGLPFADoubleBuffer,
 			NSOpenGLPFAColorSize, 24,
@@ -342,6 +342,9 @@ namespace RN
 		if(_firstActivation)
 		{
 			_firstActivation = false;
+#if GL_FRAMEBUFFER_SRGB
+			glEnable(GL_FRAMEBUFFER_SRGB);
+#endif
 		}
 	}
 

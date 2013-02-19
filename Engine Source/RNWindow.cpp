@@ -382,11 +382,11 @@ namespace RN
 			std::this_thread::sleep_for(std::chrono::microseconds(5));
 			continue;
 		}
+		
+		_context->MakeActiveContext();
 
 		while(!_thread->IsCancelled())
 		{
-			_context->MakeActiveContext();
-
 			if(((RNNativeWindow *)_nativeWindow).needsResize)
 			{
 				NSRect frame = [[(RNNativeWindow *)_nativeWindow contentView] frame];
@@ -397,9 +397,9 @@ namespace RN
 
 			_renderer->WaitForWork();
 			CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
-
-			_context->DeactivateContext();
 		}
+		
+		_context->DeactivateContext();
 	}
 
 #endif

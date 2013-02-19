@@ -544,6 +544,7 @@ namespace RN
 				
 				if(bestOrder != sortOder)
 				{
+					profiler.HitMilestone("Sorting objects");
 					objects.SortUsingFunction([&](const RenderingObject& a, const RenderingObject& b) {
 						if(surfaceMaterial)
 						{
@@ -573,6 +574,7 @@ namespace RN
 						}
 					});
 					
+					profiler.FinishedMilestone("Sorting objects");
 					sortOder = bestOrder;
 				}
 
@@ -715,6 +717,7 @@ namespace RN
 									BindMaterial(material);
 									DrawMeshInstanced(objects, i, offset);
 									
+									profiler.HitMilestone("DrawMeshInstanced()");
 									continue;
 								}
 							}
@@ -764,6 +767,7 @@ namespace RN
 					// Render the mesh normally
 					BindMaterial(material);
 					DrawMesh(mesh);
+					profiler.HitMilestone("DrawMesh()");
 				}
 			}
 			else
@@ -773,7 +777,7 @@ namespace RN
 			}
 
 			previous = camera;
-
+			
 			camera->Unbind();
 			camera = camera->Stage();
 
@@ -788,7 +792,7 @@ namespace RN
 		delete[] lightpos;
 		
 		profiler.HitMilestone("End");
-		profiler.DumpStatistic();
+		//profiler.DumpStatistic();
 	}
 
 	uint32 RenderingPipeline::BindTexture(Texture *texture)
@@ -1096,7 +1100,7 @@ namespace RN
 				_frame.clear();
 				return;
 			}
-
+			
 			_hasValidFramebuffer = true;
 		}
 

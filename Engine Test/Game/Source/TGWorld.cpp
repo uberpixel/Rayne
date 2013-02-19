@@ -94,10 +94,6 @@ namespace TG
 		
 		CreateWorld();
 		
-#if RN_PLATFORM_MAC_OS
-//		CreateSSAOStage();
-#endif
-		
 		RN::Input::SharedInstance()->Activate();
 	}
 	
@@ -171,71 +167,6 @@ namespace TG
 		//_finalcam->SetPosition(_camera->Position());
 		//_finalcam->SetRotation(_camera->Rotation());
 #endif
-	}
-	
-	
-	void World::CreateSSAOStage()
-	{
-		// Surface normals + depth stage
-		RN::Shader *surfaceShader = RN::Shader::WithFile("shader/SurfaceNormals");
-		RN::Material *surfaceMaterial = new RN::Material(surfaceShader);
-		
-		_camera->SetMaterial(surfaceMaterial);
-		
-		// SSAO stage
-		RN::Texture *noise = RN::Texture::WithFile("textures/SSAO_noise.png", RN::Texture::FormatRGB888, RN::Texture::WrapModeRepeat, RN::Texture::FilterLinear, true);
-		RN::Shader *ssao = RN::Shader::WithFile("shader/SSAO");
-		
-		RN::Material *ssaoMaterial = new RN::Material(ssao);
-		ssaoMaterial->AddTexture(noise);
-		
-		RN::Camera *ssaoStage  = new RN::Camera(RN::Vector2(), RN::Texture::FormatR8, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget, RN::RenderStorage::BufferFormatColor);
-		ssaoStage->SetMaterial(ssaoMaterial);
-		ssaoMaterial->Release();
-		
-		_camera->AddStage(ssaoStage);
-		
-		// Blur
-		RN::Shader *blurVertical = new RN::Shader();
-		RN::Shader *blurHorizontal = new RN::Shader();
-		
-		blurVertical->SetVertexShader("shader/GaussianVertical.vsh");
-		blurVertical->SetFragmentShader("shader/Gaussian.fsh");
-		blurVertical->Link();
-		
-		blurHorizontal->SetVertexShader("shader/GaussianHorizontal.vsh");
-		blurHorizontal->SetFragmentShader("shader/Gaussian.fsh");
-		blurHorizontal->Link();
-		
-		RN::Material *verticalMaterial = new RN::Material(blurVertical->Autorelease<RN::Shader>());
-		RN::Material *horizontalMateral = new RN::Material(blurHorizontal->Autorelease<RN::Shader>());
-		
-		RN::Camera *verticalStage  = new RN::Camera(RN::Vector2(), RN::Texture::FormatR8, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
-		RN::Camera *horizontalStage  = new RN::Camera(RN::Vector2(), RN::Texture::FormatR8, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
-		
-		verticalStage->SetMaterial(verticalMaterial);		
-		horizontalStage->SetMaterial(horizontalMateral);
-		 
-		_camera->AddStage(verticalStage);
-		_camera->AddStage(horizontalStage);
-		
-		// World stage
-		RN::Camera *sceneCamera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGB888, RN::Camera::FlagInherit);
-		_camera->AddStage(sceneCamera);
-		
-		// SSAO post stage
-		RN::Shader *ssaoPost = new RN::Shader();
-		ssaoPost->SetVertexShader("shader/SSAO.vsh");
-		ssaoPost->SetFragmentShader("shader/SSAOPost.fsh");
-		ssaoPost->Link();
-		
-		RN::Material *ssaoPostMaterial = new RN::Material(ssaoPost);
-		ssaoPostMaterial->AddTexture(horizontalStage->RenderTarget());
-		
-		RN::Camera *ssaoPostStage = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGB888, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
-		ssaoPostStage->SetMaterial(ssaoPostMaterial);
-		
-		_camera->AddStage(ssaoPostStage);
 	}
 	
 	void World::CreateWorld()
@@ -325,7 +256,7 @@ namespace TG
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
 		
-		for(int i = 0; i < 500; i++)
+		for(int i = 0; i < 1000; i++)
 		{
 			light = new RN::LightEntity();
 			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
@@ -359,7 +290,7 @@ namespace TG
 		{
 			for(float y = -10.0f; y < 10.0f; y += 1.0f)
 			{
-				index = 0; //(index + 1) % 4;
+				index = (index + 1) % 4;
 				
 				RN::Entity *fern = new RN::Entity();
 				fern->SetModel(foliage[index]);

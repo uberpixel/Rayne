@@ -22,12 +22,14 @@ namespace RN
 		
 		void DumpStatistic();
 		void HitMilestone(const std::string& name, bool mergeSet=true);
+		void FinishedMilestone(const std::string& name);
 		
 	private:
 		struct Milestone
 		{
 			std::string name;
 			std::chrono::nanoseconds accumulated;
+			std::chrono::nanoseconds firstHit;
 			uint32 hits;
 		};
 		
