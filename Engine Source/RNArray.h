@@ -204,7 +204,7 @@ namespace RN
 				std::swap(this->_data[i], this->_data[i-1]);
 				
 				machine_uint j;
-				for(j=i-1; j>=1; j--)
+				for(j=i-1; j>=startoffset; j--)
 				{
 					if(func(this->_data[j-1], this->_data[j]) <= kRNCompareEqualTo)
 						break;
