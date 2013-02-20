@@ -29,6 +29,7 @@ namespace RN
 		static Model *WithFile(const std::string& path);
 		static Model *WithMesh(Mesh *mesh, Material *material, const std::string& name="Unnamed");
 		static Model *Empty();
+		static Model *WithSkyCube(std::string up, std::string down, std::string left, std::string right, std::string front, std::string back, std::string shader="shader/rn_Sky");
 		
 		void AddMesh(Mesh *mesh, Material *material, const std::string& name="Unnamed");
 		

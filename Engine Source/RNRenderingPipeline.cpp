@@ -314,6 +314,29 @@ namespace RN
 		// Object pre-pass
 		std::vector<Entity *> *frame = &group->entities;
 		Array<RenderingObject> objects = Array<RenderingObject>(frame->size());
+		
+		// Render all cameras
+		Camera *previous = 0;
+		Camera *camera = group->camera;
+		
+		//add skycube
+		Model *skycube = camera->SkyCube();
+		Matrix camrotationmatrix;
+		camrotationmatrix.MakeRotate(camera->Rotation().AccessPast());
+		if(skycube != 0)
+		{
+			uint32 meshes = skycube->Meshes();
+			
+			for(uint32 j=0; j<meshes; j++)
+			{
+				RenderingObject object;
+				object.mesh = skycube->MeshAtIndex(j);
+				object.material = skycube->MaterialForMesh(object.mesh);
+				object.transform = &camrotationmatrix;
+				
+				objects.AddObject(object);
+			}
+		}
 
 		// Unpack the frame
 		for(auto i=frame->begin(); i!=frame->end(); i++)
@@ -335,10 +358,6 @@ namespace RN
 		}
 		
 		profiler.HitMilestone("Object pre-pass");
-
-		// Render all cameras
-		Camera *previous = 0;
-		Camera *camera = group->camera;
 
 		// Creating light list
 		std::vector<LightEntity *> *lights = &group->lights;

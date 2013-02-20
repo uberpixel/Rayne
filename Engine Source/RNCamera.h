@@ -19,6 +19,7 @@
 #include "RNPlane.h"
 #include "RNTransform.h"
 #include "RNColor.h"
+#include "RNModel.h"
 
 namespace RN
 {
@@ -182,6 +183,9 @@ namespace RN
 		
 		Vector2 LightTiles() const { return _lightTiles; }
 		
+		void setSkyCube(Model *skycube) { _skycube = skycube->Retain<RN::Model>();}
+		Model *SkyCube() const { return _skycube; }
+		
 		uint32 RenderTargets() const { return (uint32)_storage->_renderTargets->Count(); }
 		Texture *RenderTarget(uint32 index=0) const { return _storage->_renderTargets->ObjectAtIndex(index); }
 		
@@ -227,6 +231,7 @@ namespace RN
 		Camera *_stage;
 		
 		Texture *_depthTiles;
+		Model *_skycube;
 	};
 }
 

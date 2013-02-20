@@ -93,6 +93,49 @@ namespace RN
 		return model->Autorelease<Model>();
 	}
 	
+	Model *Model::WithSkyCube(std::string up, std::string down, std::string left, std::string right, std::string front, std::string back, std::string shader)
+	{
+		RN::Material *skyDownMaterial = new RN::Material(RN::Shader::WithFile(shader));
+		skyDownMaterial->AddTexture(RN::Texture::WithFile(down, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		skyDownMaterial->depthwrite = false;
+		RN::Mesh  *skyDownMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(0.0f, 0.0f, 0.0f));
+		
+		RN::Material *skyUpMaterial = new RN::Material(RN::Shader::WithFile(shader));
+		skyUpMaterial->AddTexture(RN::Texture::WithFile(up, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		skyUpMaterial->depthwrite = false;
+		RN::Mesh  *skyUpMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(0.0f, 180.0f, 0.0f));
+		
+		RN::Material *skyLeftMaterial = new RN::Material(RN::Shader::WithFile(shader));
+		skyLeftMaterial->AddTexture(RN::Texture::WithFile(left, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		skyLeftMaterial->depthwrite = false;
+		RN::Mesh  *skyLeftMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(-90.0f, 0.0f, 90.0f));
+		
+		RN::Material *skyRightMaterial = new RN::Material(RN::Shader::WithFile(shader));
+		skyRightMaterial->AddTexture(RN::Texture::WithFile(right, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		skyRightMaterial->depthwrite = false;
+		RN::Mesh  *skyRightMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(90.0f, 0.0f, 90.0f));
+		
+		RN::Material *skyFrontMaterial = new RN::Material(RN::Shader::WithFile(shader));
+		skyFrontMaterial->AddTexture(RN::Texture::WithFile(front, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		skyFrontMaterial->depthwrite = false;
+		RN::Mesh  *skyFrontMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(180.0f, 0.0f, 90.0f));
+		
+		RN::Material *skyBackMaterial = new RN::Material(RN::Shader::WithFile(shader));
+		skyBackMaterial->AddTexture(RN::Texture::WithFile(back, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		skyBackMaterial->depthwrite = false;
+		RN::Mesh  *skyBackMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(0.0f, 0.0f, 90.0f));
+		
+		RN::Model *skyModel = RN::Model::Empty();
+		skyModel->AddMesh(skyDownMesh->Autorelease<RN::Mesh>(), skyDownMaterial->Autorelease<RN::Material>());
+		skyModel->AddMesh(skyUpMesh->Autorelease<RN::Mesh>(), skyUpMaterial->Autorelease<RN::Material>());
+		skyModel->AddMesh(skyLeftMesh->Autorelease<RN::Mesh>(), skyLeftMaterial->Autorelease<RN::Material>());
+		skyModel->AddMesh(skyRightMesh->Autorelease<RN::Mesh>(), skyRightMaterial->Autorelease<RN::Material>());
+		skyModel->AddMesh(skyFrontMesh->Autorelease<RN::Mesh>(), skyFrontMaterial->Autorelease<RN::Material>());
+		skyModel->AddMesh(skyBackMesh->Autorelease<RN::Mesh>(), skyBackMaterial->Autorelease<RN::Material>());
+		
+		return skyModel;
+	}
+	
 	Model *Model::WithMesh(Mesh *mesh, Material *material, const std::string& name)
 	{
 		Model *model = new Model(mesh, material, name);

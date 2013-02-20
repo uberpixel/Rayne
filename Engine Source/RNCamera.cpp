@@ -454,6 +454,7 @@ namespace RN
 
 		_lightTiles = Vector2(32, 32);
 		_depthTiles = 0;
+		_skycube = 0;
 		
 		_allowDepthWrite = true;
 		

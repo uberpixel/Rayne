@@ -113,6 +113,7 @@ namespace RN
 		
 		RNAPI void UpdateMesh();
 		
+		static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0, 1.0, 1.0), const Vector3& rotation = Vector3(0.0f, 0.0f, 0.0f));
 		static Mesh *CubeMesh(const Vector3& size);
 		static Mesh *CubeMesh(const Vector3& size, const Color& color);
 		
