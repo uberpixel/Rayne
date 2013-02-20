@@ -591,7 +591,7 @@ namespace RN
 							
 							return kRNCompareEqualTo;
 						}
-					}, 7);
+					}, 6);
 					
 					profiler.FinishedMilestone("Sorting objects");
 					sortOder = bestOrder;

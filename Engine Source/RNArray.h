@@ -74,10 +74,10 @@ namespace RN
 		}
 		
 		template<typename F>
-		void SortUsingFunction(F&& func, machine_uint startoffset = 1)
+		void SortUsingFunction(F&& func, machine_uint offset = 0)
 		{
-			//QuickSort(0, this->_count, logf(this->_count) * 2, func);
-			InsertionSort(func, startoffset);
+			//QuickSort(offset, this->_count, logf(this->_count) * 2, func);
+			InsertionSort(func, offset);
 		}
 		
 	protected:
@@ -193,9 +193,11 @@ namespace RN
 		}
 		
 		template<typename F>
-		void InsertionSort(F&& func, machine_uint startoffset = 1)
+		void InsertionSort(F&& func, machine_uint offset)
 		{
-			for(machine_uint i=startoffset; i<this->_count; i++)
+			offset ++;
+			
+			for(machine_uint i=offset; i<this->_count; i++)
 			{
 				if(func(this->_data[i-1], this->_data[i]) <= kRNCompareEqualTo)
 					continue;
@@ -204,7 +206,7 @@ namespace RN
 				std::swap(this->_data[i], this->_data[i-1]);
 				
 				machine_uint j;
-				for(j=i-1; j>=startoffset; j--)
+				for(j=i-1; j>=offset; j--)
 				{
 					if(func(this->_data[j-1], this->_data[j]) <= kRNCompareEqualTo)
 						break;
