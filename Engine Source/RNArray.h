@@ -74,10 +74,10 @@ namespace RN
 		}
 		
 		template<typename F>
-		void SortUsingFunction(F&& func)
+		void SortUsingFunction(F&& func, machine_uint startoffset = 1)
 		{
 			//QuickSort(0, this->_count, logf(this->_count) * 2, func);
-			InsertionSort(func);
+			InsertionSort(func, startoffset);
 		}
 		
 	protected:
@@ -193,9 +193,9 @@ namespace RN
 		}
 		
 		template<typename F>
-		void InsertionSort(F&& func)
+		void InsertionSort(F&& func, machine_uint startoffset = 1)
 		{
-			for(machine_uint i=1; i<this->_count; i++)
+			for(machine_uint i=startoffset; i<this->_count; i++)
 			{
 				if(func(this->_data[i-1], this->_data[i]) <= kRNCompareEqualTo)
 					continue;
