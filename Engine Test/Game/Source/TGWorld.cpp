@@ -239,10 +239,13 @@ namespace TG
 		}
 		model->MaterialForMesh(model->MeshAtIndex(4))->SetShader(shader);
 		model->MaterialForMesh(model->MeshAtIndex(4))->culling = false;
+		model->MaterialForMesh(model->MeshAtIndex(4))->alphatest = true;
 		model->MaterialForMesh(model->MeshAtIndex(10))->SetShader(shader);
 		model->MaterialForMesh(model->MeshAtIndex(10))->culling = false;
+		model->MaterialForMesh(model->MeshAtIndex(10))->alphatest = true;
 		model->MaterialForMesh(model->MeshAtIndex(19))->SetShader(shader);
 		model->MaterialForMesh(model->MeshAtIndex(19))->culling = false;
+		model->MaterialForMesh(model->MeshAtIndex(19))->alphatest = true;
 		
 		RN::Entity *sponza = new RN::Entity();
 		sponza->SetModel(model);
