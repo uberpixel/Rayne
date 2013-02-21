@@ -16,6 +16,7 @@ namespace RN
 		_task = kPipelineSegmentNullTask;
 		_lastTask = 0;
 		
+		_thread = 0;
 		_thread = spinThread ? new Thread(std::bind(&PipelineSegment::WorkLoop, this)) : 0;
 	}
 	
