@@ -170,9 +170,7 @@ namespace RN
 #endif
 
 		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
-
-		//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		//glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		glViewport(0, 0, _defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor);
 
@@ -564,6 +562,7 @@ namespace RN
 		{
 			profiler.HitMilestone("Camera->Bind()", false);
 			
+			camera->Push();
 			camera->Bind();
 			camera->PrepareForRendering();
 			
@@ -864,6 +863,8 @@ namespace RN
 			previous = camera;
 			
 			camera->Unbind();
+			camera->Pop();
+			
 			camera = camera->Stage();
 
 			if(!camera)
