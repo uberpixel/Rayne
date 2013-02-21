@@ -680,29 +680,29 @@ namespace RN
 						glUseProgram(shader->program);
 					}
 
-					if(shader->time != -1)
+					if(shader->time != -1 && changedShader)
 						glUniform1f(shader->time, _time);
 
-					if(shader->frameSize != -1)
+					if(shader->frameSize != -1 && (changedShader || switchedCamera))
 						glUniform4f(shader->frameSize, 1.0f/camera->Frame().width/_scaleFactor, 1.0f/camera->Frame().height/_scaleFactor, camera->Frame().width*_scaleFactor, camera->Frame().height*_scaleFactor);
 					
-					if(shader->clipPlanes != -1)
+					if(shader->clipPlanes != -1 && (changedShader || switchedCamera))
 						glUniform2f(shader->clipPlanes, camera->clipnear, camera->clipfar);
 					
 					// Light data
-					if(shader->lightCount != -1)
+					if(shader->lightCount != -1 && changedShader)
 						glUniform1i(shader->lightCount, lightcount);
 
-					if(shader->lightPosition != -1 && lightcount > 0)
+					if(shader->lightPosition != -1 && lightcount > 0 && changedShader)
 						glUniform4fv(shader->lightPosition, lightcount, &(lightpos[0].x));
 
-					if(shader->lightColor != -1 && lightcount > 0)
+					if(shader->lightColor != -1 && lightcount > 0 && changedShader)
 						glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
 					
 #if !(RN_PLATFORM_IOS)
 					if(camera->LightTiles() != 0)
 					{
-						if(shader->lightListPosition != -1)
+						if(shader->lightListPosition != -1 && changedShader)
 						{
 							_textureUnit ++;
 							_textureUnit %= _maxTextureUnits;
@@ -711,7 +711,7 @@ namespace RN
 							glUniform1i(shader->lightListPosition, _textureUnit);
 						}
 						
-						if(shader->lightList != -1)
+						if(shader->lightList != -1 && changedShader)
 						{
 							_textureUnit ++;
 							_textureUnit %= _maxTextureUnits;
@@ -720,7 +720,7 @@ namespace RN
 							glUniform1i(shader->lightList, _textureUnit);
 						}
 						
-						if(shader->lightListOffset != -1)
+						if(shader->lightListOffset != -1 && changedShader)
 						{
 							_textureUnit ++;
 							_textureUnit %= _maxTextureUnits;
@@ -729,7 +729,7 @@ namespace RN
 							glUniform1i(shader->lightListOffset, _textureUnit);
 						}
 						
-						if(shader->lightListColor != -1)
+						if(shader->lightListColor != -1 && changedShader)
 						{
 							_textureUnit ++;
 							_textureUnit %= _maxTextureUnits;
@@ -738,7 +738,7 @@ namespace RN
 							glUniform1i(shader->lightListColor, _textureUnit);
 						}
 						
-						if(shader->lightTileSize != -1)
+						if(shader->lightTileSize != -1 && changedShader)
 						{
 							glUniform4f(shader->lightTileSize, lighttilesize.x, lighttilesize.y, lighttilecount.x, lighttilecount.y);
 						}
@@ -829,13 +829,13 @@ namespace RN
 					}
 
 					
-					if(shader->matProjViewModel != -1 && (changedShader || switchedCamera))
+					if(shader->matProjViewModel != -1)
 					{
 						Matrix projViewModel = projectionViewMatrix * transform;
 						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 					}
 
-					if(shader->matProjViewModelInverse != -1 && (changedShader || switchedCamera))
+					if(shader->matProjViewModelInverse != -1)
 					{
 						Matrix projViewModel = inverseProjectionViewMatrix * inverseTransform;
 						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
