@@ -47,6 +47,9 @@ namespace RN
 	
 	void PipelineSegment::WaitForWork()
 	{
+		while(!_thread)
+		{}
+		
 		std::unique_lock<std::mutex> lock(_workMutex);
 		bool result;
 		
