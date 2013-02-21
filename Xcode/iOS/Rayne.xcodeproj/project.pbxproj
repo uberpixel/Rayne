@@ -36,6 +36,7 @@
 		E9619F4F1696185B00DA187E /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F4D1696184100DA187E /* libpng.a */; };
 		E9619F5D1696BCC300DA187E /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F5C1696BCC300DA187E /* libz.dylib */; };
 		E9932CF316C444650006CFA0 /* RNLightEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9932CF116C444650006CFA0 /* RNLightEntity.cpp */; };
+		E9AB0DAD16D6BCE9000D1CF0 /* RNTransform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AB0DAC16D6BCE9000D1CF0 /* RNTransform.cpp */; };
 		E9AB7F1216D42789006BB4CB /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AB7F0F16D42789006BB4CB /* RNDebug.cpp */; };
 		E9AB7F1516D427A4006BB4CB /* RNThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AB7F1316D427A4006BB4CB /* RNThreadPool.cpp */; };
 		E9C6761016C2CEB800DA720F /* RNSynchronization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6760E16C2CEB800DA720F /* RNSynchronization.cpp */; };
@@ -161,6 +162,7 @@
 		E9619F5C1696BCC300DA187E /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		E9932CF116C444650006CFA0 /* RNLightEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNLightEntity.cpp; sourceTree = "<group>"; };
 		E9932CF216C444650006CFA0 /* RNLightEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNLightEntity.h; sourceTree = "<group>"; };
+		E9AB0DAC16D6BCE9000D1CF0 /* RNTransform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTransform.cpp; sourceTree = "<group>"; };
 		E9AB7F0F16D42789006BB4CB /* RNDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDebug.cpp; sourceTree = "<group>"; };
 		E9AB7F1016D42789006BB4CB /* RNDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDebug.h; sourceTree = "<group>"; };
 		E9AB7F1116D42789006BB4CB /* RNOpenGLExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOpenGLExtensions.h; sourceTree = "<group>"; };
@@ -331,6 +333,7 @@
 				E9AB7F1616D427B5006BB4CB /* RNPlane.h */,
 				E9619F181696170700DA187E /* RNQuaternion.h */,
 				E9619F191696170700DA187E /* RNRect.h */,
+				E9AB0DAC16D6BCE9000D1CF0 /* RNTransform.cpp */,
 				E9C6F08B16AEA112006288D5 /* RNTransform.h */,
 				E9619F281696170700DA187E /* RNVector.h */,
 			);
@@ -523,6 +526,7 @@
 				E9932CF316C444650006CFA0 /* RNLightEntity.cpp in Sources */,
 				E9AB7F1216D42789006BB4CB /* RNDebug.cpp in Sources */,
 				E9AB7F1516D427A4006BB4CB /* RNThreadPool.cpp in Sources */,
+				E9AB0DAD16D6BCE9000D1CF0 /* RNTransform.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
