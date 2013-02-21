@@ -24,6 +24,7 @@ namespace RN
 		_currentMaterial = 0;
 		_currentMesh     = 0;
 		_currentVAO      = 0;
+		_currentShader	 = 0;
 
 		_finishFrame = 0;
 		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
@@ -170,8 +171,8 @@ namespace RN
 
 		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
 
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		//glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		//glClear(GL_COLOR_BUFFER_BIT);
 
 		glViewport(0, 0, _defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor);
 
@@ -209,7 +210,11 @@ namespace RN
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		}
 
-		glUseProgram(shader->program);
+		if(_currentShader != shader->program)
+		{
+			glUseProgram(shader->program);
+			_currentShader = shader->program;
+		}
 
 		if(shader->frameSize != -1)
 			glUniform4f(shader->frameSize, 1.0f/camera->Frame().width, 1.0f/camera->Frame().height, camera->Frame().width, camera->Frame().height);
@@ -244,7 +249,12 @@ namespace RN
 		Material *material = stage->Material();
 		Shader *shader     = material->Shader();
 
-		glUseProgram(shader->program);
+		if(shader->program)
+		{
+			glUseProgram(shader->program);
+			_currentShader = shader->program;
+		}
+		
 		BindMaterial(material);
 
 		if(shader->time != -1)
@@ -547,6 +557,9 @@ namespace RN
 		profiler.HitMilestone("Light pre-pass");
 		machine_uint sortOder = 0;
 		
+		bool changedShader = true;
+		bool switchedCamera = true;
+		
 		while(camera)
 		{
 			profiler.HitMilestone("Camera->Bind()", false);
@@ -555,6 +568,7 @@ namespace RN
 			camera->PrepareForRendering();
 			
 			_currentCamera = camera;
+			switchedCamera = true;
 
 			if(!(camera->CameraFlags() & Camera::FlagDrawTarget))
 			{
@@ -580,13 +594,39 @@ namespace RN
 						}
 						else
 						{
-							machine_uint objA = (machine_uint)a.mesh;
-							machine_uint objB = (machine_uint)b.mesh;
+							// Sort by material
+							const Material *materialA = a.material;
+							const Material *materialB = b.material;
 							
-							if(objA > objB)
+							if(materialA->blending != materialB->blending)
+							{
+								if(!materialB->blending)
+									return kRNCompareGreaterThan;
+								
+								if(!materialA->blending)
+									return kRNCompareLessThan;
+							}
+							
+							if(materialA->alphatest != materialB->alphatest)
+							{
+								if(!materialB->alphatest)
+									return kRNCompareGreaterThan;
+								
+								if(!materialA->alphatest)
+									return kRNCompareLessThan;
+							}
+							
+							if(materialA->Shader() > materialB->Shader())
 								return kRNCompareGreaterThan;
 							
-							if(objB > objA)
+							if(materialB->Shader() > materialA->Shader())
+								return kRNCompareLessThan;
+							
+							// Sort by mesh
+							if(a.mesh > b.mesh)
+								return kRNCompareGreaterThan;
+							
+							if(b.mesh > a.mesh)
 								return kRNCompareLessThan;
 							
 							return kRNCompareEqualTo;
@@ -597,6 +637,8 @@ namespace RN
 					sortOder = bestOrder;
 				}
 
+				profiler.HitMilestone("Beginning objects");
+				
 				Matrix& projectionMatrix = camera->projectionMatrix.AccessPast();
 				Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix.AccessPast();
 				
@@ -606,6 +648,8 @@ namespace RN
 				Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
 				Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
 				
+				profiler.HitMilestone("Matrices grabbed");
+				
 				uint32 offset = 1;
 				uint32 noCheck = 0;
 
@@ -613,6 +657,7 @@ namespace RN
 				for(machine_uint i=0; i<objectsCount; i+=offset)
 				{
 					offset = 1;
+					profiler.HitMilestone("Preparing object");
 					
 					RenderingObject& object = objects.ObjectAtIndex(i);
 					
@@ -624,7 +669,16 @@ namespace RN
 					Matrix inverseTransform = transform.Inverse();
 
 					// Send generic attributes to the shader
-					glUseProgram(shader->program);
+					
+					profiler.HitMilestone("Binding shader");
+					
+					if(shader->program != _currentShader)
+					{
+						_currentShader = shader->program;
+						changedShader  = true;
+						
+						glUseProgram(shader->program);
+					}
 
 					if(shader->time != -1)
 						glUniform1f(shader->time, _time);
@@ -693,17 +747,19 @@ namespace RN
 
 
 					// Matrices
-					if(shader->matProj != -1)
+					if(shader->matProj != -1 && (changedShader || switchedCamera))
 						glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, projectionMatrix.m);
 
-					if(shader->matProjInverse != -1)
+					if(shader->matProjInverse != -1 && (changedShader || switchedCamera))
 						glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, inverseProjectionMatrix.m);
 
-					if(shader->matView != -1)
+					if(shader->matView != -1 && (changedShader || switchedCamera))
 						glUniformMatrix4fv(shader->matView, 1, GL_FALSE, viewMatrix.m);
 
-					if(shader->matViewInverse != -1)
+					if(shader->matViewInverse != -1 && (changedShader || switchedCamera))
 						glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, inverseViewMatrix.m);
+					
+					profiler.HitMilestone("Shader bound");
 
 
 					// Check if we can use instancing here
@@ -749,6 +805,8 @@ namespace RN
 					{
 						noCheck --;
 					}
+					
+					profiler.HitMilestone("Instancing check");
 
 					// Send the other matrices to the shader
 					if(shader->matModel != -1)
@@ -771,28 +829,36 @@ namespace RN
 					}
 
 					
-					if(shader->matProjViewModel != -1)
+					if(shader->matProjViewModel != -1 && (changedShader || switchedCamera))
 					{
 						Matrix projViewModel = projectionViewMatrix * transform;
 						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 					}
 
-					if(shader->matProjViewModelInverse != -1)
+					if(shader->matProjViewModelInverse != -1 && (changedShader || switchedCamera))
 					{
 						Matrix projViewModel = inverseProjectionViewMatrix * inverseTransform;
 						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 					}
 
 					// Render the mesh normally
+					profiler.HitMilestone("Begin rendering");
 					BindMaterial(material);
+					profiler.HitMilestone("Bind Material");
 					DrawMesh(mesh);
 					profiler.HitMilestone("DrawMesh()");
+					
+					changedShader  = false;
+					switchedCamera = false;
 				}
 			}
 			else
 			{
 				if(previous)
+				{
 					DrawCameraStage(previous, camera);
+					changedShader = true;
+				}
 			}
 
 			previous = camera;
@@ -811,7 +877,7 @@ namespace RN
 		delete[] lightpos;
 		
 		profiler.HitMilestone("End");
-		//profiler.DumpStatistic();
+		profiler.DumpStatistic();
 	}
 
 	uint32 RenderingPipeline::BindTexture(Texture *texture)

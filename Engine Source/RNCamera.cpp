@@ -495,16 +495,11 @@ namespace RN
 
 		if(!(_flags & FlagNoClear))
 		{
-#if RN_PLATFORM_IOS
-			glClearDepthf(1.0f);
-			glClearStencil(0);
-			glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
-#endif
-#if RN_PLATFORM_MAC_OS
-			glClearDepth(1.0f);
-			glClearStencil(0);
-			glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
-#endif
+			Context *context = Context::ActiveContext();
+			
+			context->SetDepthClear(1.0f);
+			context->SetStencilClear(0);
+			context->SetClearColor(_clearColor);
 			
 			glClear(_clearMask);
 		}

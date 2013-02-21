@@ -300,6 +300,39 @@ namespace RN
 		thread->_context = 0;
 		thread->_mutex->Unlock();
 	}
+	
+	
+	void Context::SetDepthClear(GLfloat depth)
+	{
+		if(depth != _depthClear)
+		{
+#if RN_TARGET_OPENGL_ES
+			glClearDepthf(depth);
+#endif
+			
+#if RN_TARGET_OPENGL
+			glClearDepth(depth);
+#endif
+			_depthClear = depth;
+		}
+	}
+	void Context::SetStencilClear(GLint stencil)
+	{
+		if(stencil != _stencilClear)
+		{
+			glClearStencil(stencil);
+			_stencilClear = stencil;
+		}
+	}
+	void Context::SetClearColor(const Color& color)
+	{
+		if(_clearColor != color)
+		{
+			glClearColor(color.r, color.g, color.b, color.a);
+			_clearColor = color;
+		}
+	}
+	
 
 	Context *Context::ActiveContext()
 	{
@@ -342,6 +375,11 @@ namespace RN
 		if(_firstActivation)
 		{
 			_firstActivation = false;
+			
+			glGetFloatv(GL_DEPTH_CLEAR_VALUE, &_depthClear);
+			glGetIntegerv(GL_STENCIL_CLEAR_VALUE, &_stencilClear);
+			glGetFloatv(GL_COLOR_CLEAR_VALUE, &_clearColor.r);
+			
 #if GL_FRAMEBUFFER_SRGB
 			glEnable(GL_FRAMEBUFFER_SRGB);
 #endif

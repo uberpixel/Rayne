@@ -88,6 +88,7 @@ namespace RN
 
 		std::map<std::tuple<Material *, MeshLODStage *>, GLuint> _vaos;
 		GLuint _currentVAO;
+		GLuint _currentShader;
 
 		Matrix *_instancingMatrices;
 		uint32 _numInstancingMatrices;
