@@ -76,6 +76,7 @@
 		E991F1C616BB707300B205A1 /* RNMessage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E991F1C416BB707300B205A1 /* RNMessage.cpp */; };
 		E991F1C716BB707300B205A1 /* RNMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = E991F1C516BB707300B205A1 /* RNMessage.h */; };
 		E995E40F1694A0B300B2E0C3 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E995E40E1694A0B300B2E0C3 /* libz.dylib */; };
+		E9AB0DAB16D679DC000D1CF0 /* RNTransform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AB0DAA16D679DC000D1CF0 /* RNTransform.cpp */; };
 		E9B1125D16797846001A0DA5 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9B1125C16797846001A0DA5 /* OpenGL.framework */; };
 		E9B1742A16CACA5A00732DCE /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9B1742816CACA5A00732DCE /* RNDebug.cpp */; };
 		E9B1742B16CACA5A00732DCE /* RNDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = E9B1742916CACA5A00732DCE /* RNDebug.h */; };
@@ -201,6 +202,7 @@
 		E991F1C416BB707300B205A1 /* RNMessage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNMessage.cpp; sourceTree = "<group>"; };
 		E991F1C516BB707300B205A1 /* RNMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMessage.h; sourceTree = "<group>"; };
 		E995E40E1694A0B300B2E0C3 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		E9AB0DAA16D679DC000D1CF0 /* RNTransform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTransform.cpp; sourceTree = "<group>"; };
 		E9AB7F0E16D42522006BB4CB /* RNOpenGLExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNOpenGLExtensions.h; sourceTree = "<group>"; };
 		E9B1125C16797846001A0DA5 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		E9B1742816CACA5A00732DCE /* RNDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDebug.cpp; sourceTree = "<group>"; };
@@ -373,6 +375,7 @@
 				E9619E081696157E00DA187E /* RNMatrixQuaternion.h */,
 				E9619E131696157E00DA187E /* RNQuaternion.h */,
 				E9619E141696157E00DA187E /* RNRect.h */,
+				E9AB0DAA16D679DC000D1CF0 /* RNTransform.cpp */,
 				E9580BD516AC8DAA0056DEF2 /* RNTransform.h */,
 				E9619E231696157E00DA187E /* RNVector.h */,
 			);
@@ -610,6 +613,7 @@
 				C050166916C3FDE600326514 /* RNLightEntity.cpp in Sources */,
 				E9B1742A16CACA5A00732DCE /* RNDebug.cpp in Sources */,
 				E91F784216CE336000FFD318 /* RNThreadPool.cpp in Sources */,
+				E9AB0DAB16D679DC000D1CF0 /* RNTransform.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -646,7 +650,10 @@
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"RN_BUILD_LIBRARY=1",
+				);
 				GCC_STRICT_ALIASING = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -692,7 +699,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
-					"$(inherited)",
+					"RN_BUILD_LIBRARY=1",
 				);
 				GCC_STRICT_ALIASING = YES;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
@@ -723,7 +730,10 @@
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_OPTIMIZATION_LEVEL = 3;
-				GCC_PREPROCESSOR_DEFINITIONS = "NDEBUG=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"NDEBUG=1",
+					"RN_BUILD_LIBRARY=1",
+				);
 				GCC_STRICT_ALIASING = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
