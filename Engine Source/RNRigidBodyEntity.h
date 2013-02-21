@@ -86,8 +86,6 @@ namespace RN
 		
 		btCollisionShape *GenerateMeshShape();
 		
-		Transform _cachedTransform;
-		
 		SpinLock _physicsLock;
 		uint32 _changes;
 		

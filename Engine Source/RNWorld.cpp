@@ -8,7 +8,10 @@
 
 #include "RNWorld.h"
 #include "RNKernel.h"
+#include "RNTransform.h"
+#include "RNEntity.h"
 #include "RNLightEntity.h"
+#include "RNAutoreleasePool.h"
 
 namespace RN
 {
@@ -45,16 +48,10 @@ namespace RN
 		
 		Update(delta);
 		
-		for(auto i=_entities.begin(); i!=_entities.end(); i++)
+		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)
 		{
-			Entity *entity = *i;
-			entity->Update(delta);
-		}
-		
-		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
-		{
-			Camera *camera = *i;
-			camera->Update(delta);
+			Transform *transform = *i;
+			transform->Update(delta);
 		}
 	}
 	
@@ -62,10 +59,10 @@ namespace RN
 	{
 		_physics->WaitForTaskCompletion(_physicsTask);
 		
-		for(auto i=_entities.begin(); i!=_entities.end(); i++)
+		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)
 		{
-			Entity *entity = *i;
-			entity->PostUpdate();
+			Transform *transform = *i;
+			transform->PostUpdate();
 		}
 		
 		_renderer->WaitForTaskCompletion(_renderingTask);
@@ -77,39 +74,39 @@ namespace RN
 		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
 		{
 			Camera *camera = *i;
-			for(Camera *cam = camera; cam != 0; cam = cam->Stage())
-			{
-				cam->UpdateFrustum();
-				cam->SynchronizePast();
-			}
 			
 			RenderingGroup group;
 			group.camera = camera;
 			
-			for(auto j=_entities.begin(); j!=_entities.end(); j++)
+			for(auto j=_transforms.begin(); j!=_transforms.end(); j++)
 			{
-				Entity *entity = *j;
+				Transform *transform = *j;
 				
-				if(entity->IsVisibleInCamera(camera))
+				if(transform->Type() == Transform::TransformTypeEntity)
 				{
-					_entityPool->AddObject(entity);
+					Entity *entity = (Entity *)transform;
 					
-					if(entity->Model())
-						group.entities.push_back(entity);
-					
-					switch(entity->Type())
+					if(entity->IsVisibleInCamera(camera))
 					{
-						case Entity::TypeObject:
-							break;
-							
-						case Entity::TypeLight:
+						_entityPool->AddObject(entity);
+						
+						if(entity->Model())
+							group.entities.push_back(entity);
+						
+						switch(entity->Type())
 						{
-							group.lights.push_back((LightEntity *)entity);
-							
-							if(entity->Model())
-								group.entities.push_back(entity);
-							
-							break;
+							case Entity::TypeObject:
+								break;
+								
+							case Entity::TypeLight:
+							{
+								group.lights.push_back((LightEntity *)entity);
+								
+								if(entity->Model())
+									group.entities.push_back(entity);
+								
+								break;
+							}
 						}
 					}
 				}
@@ -123,37 +120,42 @@ namespace RN
 	
 	
 	
-	void World::AddEntity(Entity *entity)
+	void World::AddTransform(Transform *transform)
 	{
-		_entities.push_back(entity);
-	}
-	
-	void World::RemoveEntity(Entity *entity)
-	{
-		for(auto i=_entities.begin(); i!=_entities.end(); i++)
+		if(!transform)
+			return;
+		
+		if(_transforms.find(transform) == _transforms.end())
 		{
-			if(*i == entity)
+			_transforms.insert(transform);
+				
+			if(transform->Type() == Transform::TransformTypeCamera)
 			{
-				_entities.erase(i);
-				return;
+				Camera *camera = (Camera *)transform;
+				_cameras.push_back(camera);
 			}
 		}
 	}
 	
-	
-	void World::AddCamera(Camera *camera)
+	void World::RemoveTransform(Transform *transform)
 	{
-		_cameras.push_back(camera);
-	}
-	
-	void World::RemoveCamera(Camera *camera)
-	{
-		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
+		if(!transform)
+			return;
+		
+		if(_transforms.find(transform) == _transforms.end())
 		{
-			if(*i == camera)
+			_transforms.erase(transform);
+			
+			if(transform->Type() == Transform::TransformTypeCamera)
 			{
-				_cameras.erase(i);
-				return;
+				for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
+				{
+					if(*i == transform)
+					{
+						_cameras.erase(i);
+						return;
+					}
+				}
 			}
 		}
 	}

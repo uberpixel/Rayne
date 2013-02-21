@@ -66,13 +66,7 @@ namespace RN
 	
 	void RigidBodyEntity::PostUpdate()
 	{
-		// We don't need to acquire the _physicsLock here because PostUpdate() is called
-		// in a single threaded manner. The physics thread did already run at this point.
-		
-		_position = _cachedTransform.Position();
-		_rotation = _cachedTransform.Rotation();
-		_didChange = true;
-		
+		Entity::PostUpdate();
 		_changes &= ~(PositionChange | RotationChange);
 	}
 	
@@ -114,7 +108,7 @@ namespace RN
 		
 		if(!_rigidbody)
 		{
-			_cachedTransform = *this;
+			//_cachedTransform = *this;
 			_changes &= ~(PositionChange | RotationChange);
 			
 			btRigidBody::btRigidBodyConstructionInfo info(_mass, this, _shape, inertia);
@@ -300,7 +294,7 @@ namespace RN
 		
 		_physicsLock.Lock();
 		
-		_cachedTransform.SetPosition(pos);
+		//_cachedTransform.SetPosition(pos);
 		_changes |= PositionChange;
 		
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
@@ -313,7 +307,7 @@ namespace RN
 		
 		_physicsLock.Lock();
 		
-		_cachedTransform.SetRotation(rot);
+		//_cachedTransform.SetRotation(rot);
 		_changes |= RotationChange;
 		
 		World::SharedInstance()->Physics()->ChangedRigidBody(this);
@@ -403,16 +397,16 @@ namespace RN
 	
 	void RigidBodyEntity::getWorldTransform(btTransform& worldTrans) const
 	{
-		const Quaternion& rot = _cachedTransform.Rotation();
+		/*const Quaternion& rot = _cachedTransform.Rotation();
 		const Vector3& pos = _cachedTransform.Position();
 		
 		worldTrans.setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
-		worldTrans.setOrigin(btVector3(pos.x, pos.y, pos.z));
+		worldTrans.setOrigin(btVector3(pos.x, pos.y, pos.z));*/
 	}
 	
 	void RigidBodyEntity::setWorldTransform(const btTransform& worldTrans)
 	{
-		btQuaternion rot = worldTrans.getRotation();
+		/*btQuaternion rot = worldTrans.getRotation();
 		btVector3 pos = worldTrans.getOrigin();
 		
 		_physicsLock.Lock();
@@ -420,7 +414,7 @@ namespace RN
 		_cachedTransform.SetRotation(Quaternion(rot.x(), rot.y(), rot.z(), rot.w()));
 		_cachedTransform.SetPosition(Vector3(pos.x(), pos.y(), pos.z()));
 		
-		_physicsLock.Unlock();
+		_physicsLock.Unlock();*/
 	}
 	
 	btCollisionShape *RigidBodyEntity::GenerateMeshShape()

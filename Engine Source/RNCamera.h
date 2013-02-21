@@ -155,17 +155,8 @@ namespace RN
 		Texture *DepthTiles() { return _depthTiles; }
 		
 		void Update(float delta);
+		void PostUpdate();
 		void UpdateProjection();
-		void SynchronizePast()
-		{
-			Transform::SynchronizePast();
-			
-			projectionMatrix.SynchronizePast();
-			inverseProjectionMatrix.SynchronizePast();
-			
-			viewMatrix.SynchronizePast();
-			inverseViewMatrix.SynchronizePast();
-		}
 		
 		Vector3 CamToWorld(Vector3 dir);
 		void UpdateFrustum();

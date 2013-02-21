@@ -135,13 +135,13 @@ namespace RN
 	}
 	
 	template <typename T>
-	T& Past<T>::AccessPast()
+	RN_INLINE T& Past<T>::AccessPast()
 	{
 		return _past;
 	}
 	
 	template <typename T>
-	T Past<T>::AccessPast() const
+	RN_INLINE T Past<T>::AccessPast() const
 	{
 		return _past;
 	}

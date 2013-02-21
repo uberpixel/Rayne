@@ -158,6 +158,11 @@ namespace TG
 		translation *= 0.2f;
 #endif
 		
+		_parentBlock->Rotate(RN::Vector3(0.0f, 64.0f * delta, 0.0f));
+		
+		_childBlock->Rotate(RN::Vector3(32.0f * delta, 0.0f, 32.0f * delta));
+		_childBlock->SetPosition(RN::Vector3(0.0f, 2.0f + (sinf(RN::Kernel::SharedInstance()->Time())), 0.0f));
+		
 		_camera->Rotate(rotation);
 		
 		RN::Matrix rot;
@@ -173,7 +178,7 @@ namespace TG
 	void World::CreateWorld()
 	{
 		// Blocks
-/*		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
+		/*RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
 		RN::Texture *blockTexture1 = RN::Texture::WithFile("textures/testpng.png", RN::Texture::FormatRGB565);
 		
 		RN::Material *blockMaterial = new RN::Material(0);
@@ -224,8 +229,8 @@ namespace TG
 		_floor->SetSize(RN::Vector3(5.0f, 0.5f, 5.0f));
 		_floor->SetRestitution(0.5f);*/
 		
-		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight");
-		RN::Shader *lightshader = RN::Shader::WithFile("shader/rn_Texture1Light");
+		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1Discard");
+		RN::Shader *lightshader = RN::Shader::WithFile("shader/rn_Texture1");
 		
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
 		for(int i = 0; i < model->Meshes(); i++)
@@ -245,7 +250,23 @@ namespace TG
 		sponza->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
-		RN::LightEntity *light;
+		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
+		
+		RN::Material *blockMaterial = new RN::Material(lightshader);
+		blockMaterial->AddTexture(blockTexture0);
+		
+		RN::Mesh  *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f, 0.5f, 0.5f));
+		RN::Model *blockModel = RN::Model::WithMesh(blockMesh->Autorelease<RN::Mesh>(), blockMaterial->Autorelease<RN::Material>());
+		
+		_parentBlock = new RN::Entity();
+		_parentBlock->SetModel(blockModel);
+		
+		_childBlock = new RN::Entity();
+		_childBlock->SetModel(blockModel);
+		
+		_parentBlock->AttachChild(_childBlock);
+		
+		/*RN::LightEntity *light;
 		
 		light = new RN::LightEntity();
 		light->SetPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
@@ -256,16 +277,17 @@ namespace TG
 		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
+		 */
 		
-		for(int i = 0; i < 1000; i++)
+		/*for(int i = 0; i < 1000; i++)
 		{
 			light = new RN::LightEntity();
 			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
 			light->SetRange((float)(rand())/RAND_MAX*20.0f);
 			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
-		}
+		}*/
 		
-#if RN_TARGET_OPENGL
+#if 0 //RN_TARGET_OPENGL
 		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight_instanced");
 		RN::Model *foliage[4];
 		

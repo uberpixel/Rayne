@@ -13,23 +13,22 @@
 
 namespace RN
 {
-	Entity::Entity()
+	Entity::Entity() :
+		Transform(Transform::TransformTypeEntity)
 	{
 		_model = 0;
 		_type = TypeObject;
-		
-		World::SharedInstance()->AddEntity(this);
 	}
 	
-	Entity::Entity(EntityType type)
+	Entity::Entity(EntityType type) :
+		Transform(Transform::TransformTypeEntity)
 	{
 		_model = 0;
 		_type = type;
-		
-		World::SharedInstance()->AddEntity(this);
 	}
 	
-	Entity::Entity(Entity *other)
+	Entity::Entity(Entity *other) :
+		Transform(Transform::TransformTypeEntity)
 	{
 		_model = other->_model->Retain<RN::Model>();
 		_type  = other->_type;
@@ -37,27 +36,25 @@ namespace RN
 		SetPosition(other->Position());
 		SetScale(other->Scale());
 		SetRotation(other->Rotation());
-		
-		World::SharedInstance()->AddEntity(this);
 	}
 	
 	Entity::~Entity()
 	{
-		World::SharedInstance()->RemoveEntity(this);
-		
 		_model->Release();
 	}
 	
 	
 	
 	void Entity::Update(float delta)
-	{}
+	{
+		Transform::Update(delta);
+	}
 	
 	void Entity::PostUpdate()
 	{
-		Transform::WorldTransform(); // Make sure that the internal transform updates
-		Transform::SynchronizePast();
+		Transform::PostUpdate();
 	}
+	
 	
 	bool Entity::IsVisibleInCamera(Camera *camera)
 	{

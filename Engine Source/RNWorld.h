@@ -11,44 +11,39 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNAutoreleasePool.h"
-#include "RNCamera.h"
-#include "RNEntity.h"
-#include "RNArray.h"
 #include "RNRenderingResource.h"
 #include "RNRenderingPipeline.h"
 #include "RNPhysicsPipeline.h"
+#include "RNCamera.h"
 
 namespace RN
 {
 	class Kernel;
+	class Transform;
+	class RetainPool;
+	
 	class World : public UnconstructingSingleton<World>
 	{
-	friend class Entity;
-	friend class Camera;
+	friend class Transform;
 	friend class Kernel;
 	public:
 		RNAPI World();
 		RNAPI virtual ~World();
+		
+		RNAPI void AddTransform(Transform *transform);
+		RNAPI void RemoveTransform(Transform *transform);
 		
 		RNAPI virtual void Update(float delta);
 		
 		RNAPI PhysicsPipeline *Physics() const { return _physics; }
 		
 	private:
-		void AddEntity(Entity *entity);
-		void RemoveEntity(Entity *entity);
-		
-		void AddCamera(Camera *camera);
-		void RemoveCamera(Camera *camera);
-		
 		void BeginUpdate(float delta);
 		void FinishUpdate(float delta);
 		
 		Kernel *_kernel;
-		
+		std::unordered_set<Transform *> _transforms;
 		std::vector<Camera *> _cameras;
-		std::vector<Entity *> _entities;
 		
 		PhysicsPipeline *_physics;
 		RenderingPipeline *_renderer;

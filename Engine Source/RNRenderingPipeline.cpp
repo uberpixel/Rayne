@@ -351,7 +351,7 @@ namespace RN
 				RenderingObject object;
 				object.mesh = model->MeshAtIndex(j);
 				object.material = model->MaterialForMesh(object.mesh);
-				object.transform = &entity->PastWorldTransform();
+				object.transform = entity->PastWorldTransform();
 
 				objects.AddObject(object);
 			}
@@ -620,7 +620,7 @@ namespace RN
 					Material *material = surfaceMaterial ? surfaceMaterial : (Material *)object.material;
 					Shader *shader = material->Shader();
 					
-					Matrix& transform = *((Matrix *)object.transform);
+					Matrix& transform = (Matrix &)*object.transform;
 					Matrix inverseTransform = transform.Inverse();
 
 					// Send generic attributes to the shader
