@@ -12,10 +12,13 @@
 namespace RN
 {
 	PhysicsPipeline::PhysicsPipeline() :
-		PipelineSegment(true)
+		PipelineSegment(false)
 	{
 		_gravity = Vector3(0.0, -9.81, 0.0);
 		_changes = GravityChange;
+		
+		Thread *thread = new Thread(std::bind(&PhysicsPipeline::WorkLoop, this));
+		SetThread(thread->Autorelease<Thread>());
 	}
 	
 	void PhysicsPipeline::WorkOnTask(TaskID task, float delta)

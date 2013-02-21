@@ -39,7 +39,7 @@ namespace RN
 		};
 		
 		virtual void WorkOnTask(TaskID task, float delta);
-		void WorkLoop();
+		virtual void WorkLoop();
 		
 		void ChangedRigidBody(RigidBodyEntity *entity);
 		void RemoveRigidBody(RigidBodyEntity *entity);
