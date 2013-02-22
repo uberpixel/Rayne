@@ -1,0 +1,279 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E9ECEEA316D7EFB500C6CF09 /* dump.c in Sources */ = {isa = PBXBuildFile; fileRef = E9ECEE9316D7EFB500C6CF09 /* dump.c */; };
+		E9ECEEA416D7EFB500C6CF09 /* error.c in Sources */ = {isa = PBXBuildFile; fileRef = E9ECEE9416D7EFB500C6CF09 /* error.c */; };
+		E9ECEEA516D7EFB500C6CF09 /* hashtable.c in Sources */ = {isa = PBXBuildFile; fileRef = E9ECEE9516D7EFB500C6CF09 /* hashtable.c */; };
+		E9ECEEA616D7EFB500C6CF09 /* hashtable.h in Headers */ = {isa = PBXBuildFile; fileRef = E9ECEE9616D7EFB500C6CF09 /* hashtable.h */; };
+		E9ECEEA716D7EFB500C6CF09 /* jansson.h in Headers */ = {isa = PBXBuildFile; fileRef = E9ECEE9716D7EFB500C6CF09 /* jansson.h */; };
+		E9ECEEA816D7EFB500C6CF09 /* jansson_config.h in Headers */ = {isa = PBXBuildFile; fileRef = E9ECEE9816D7EFB500C6CF09 /* jansson_config.h */; };
+		E9ECEEA916D7EFB500C6CF09 /* jansson_private.h in Headers */ = {isa = PBXBuildFile; fileRef = E9ECEE9916D7EFB500C6CF09 /* jansson_private.h */; };
+		E9ECEEAA16D7EFB500C6CF09 /* load.c in Sources */ = {isa = PBXBuildFile; fileRef = E9ECEE9A16D7EFB500C6CF09 /* load.c */; };
+		E9ECEEAB16D7EFB500C6CF09 /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = E9ECEE9B16D7EFB500C6CF09 /* memory.c */; };
+		E9ECEEAC16D7EFB500C6CF09 /* pack_unpack.c in Sources */ = {isa = PBXBuildFile; fileRef = E9ECEE9C16D7EFB500C6CF09 /* pack_unpack.c */; };
+		E9ECEEAD16D7EFB500C6CF09 /* strbuffer.c in Sources */ = {isa = PBXBuildFile; fileRef = E9ECEE9D16D7EFB500C6CF09 /* strbuffer.c */; };
+		E9ECEEAE16D7EFB500C6CF09 /* strbuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = E9ECEE9E16D7EFB500C6CF09 /* strbuffer.h */; };
+		E9ECEEAF16D7EFB500C6CF09 /* strconv.c in Sources */ = {isa = PBXBuildFile; fileRef = E9ECEE9F16D7EFB500C6CF09 /* strconv.c */; };
+		E9ECEEB016D7EFB500C6CF09 /* utf.c in Sources */ = {isa = PBXBuildFile; fileRef = E9ECEEA016D7EFB500C6CF09 /* utf.c */; };
+		E9ECEEB116D7EFB500C6CF09 /* utf.h in Headers */ = {isa = PBXBuildFile; fileRef = E9ECEEA116D7EFB500C6CF09 /* utf.h */; };
+		E9ECEEB216D7EFB500C6CF09 /* value.c in Sources */ = {isa = PBXBuildFile; fileRef = E9ECEEA216D7EFB500C6CF09 /* value.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		E9ECEE8B16D7EF9400C6CF09 /* libjansson.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libjansson.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9ECEE9316D7EFB500C6CF09 /* dump.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dump.c; sourceTree = "<group>"; };
+		E9ECEE9416D7EFB500C6CF09 /* error.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = error.c; sourceTree = "<group>"; };
+		E9ECEE9516D7EFB500C6CF09 /* hashtable.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = hashtable.c; sourceTree = "<group>"; };
+		E9ECEE9616D7EFB500C6CF09 /* hashtable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hashtable.h; sourceTree = "<group>"; };
+		E9ECEE9716D7EFB500C6CF09 /* jansson.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jansson.h; sourceTree = "<group>"; };
+		E9ECEE9816D7EFB500C6CF09 /* jansson_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jansson_config.h; sourceTree = "<group>"; };
+		E9ECEE9916D7EFB500C6CF09 /* jansson_private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jansson_private.h; sourceTree = "<group>"; };
+		E9ECEE9A16D7EFB500C6CF09 /* load.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = load.c; sourceTree = "<group>"; };
+		E9ECEE9B16D7EFB500C6CF09 /* memory.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = memory.c; sourceTree = "<group>"; };
+		E9ECEE9C16D7EFB500C6CF09 /* pack_unpack.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = pack_unpack.c; sourceTree = "<group>"; };
+		E9ECEE9D16D7EFB500C6CF09 /* strbuffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = strbuffer.c; sourceTree = "<group>"; };
+		E9ECEE9E16D7EFB500C6CF09 /* strbuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = strbuffer.h; sourceTree = "<group>"; };
+		E9ECEE9F16D7EFB500C6CF09 /* strconv.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = strconv.c; sourceTree = "<group>"; };
+		E9ECEEA016D7EFB500C6CF09 /* utf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = utf.c; sourceTree = "<group>"; };
+		E9ECEEA116D7EFB500C6CF09 /* utf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = utf.h; sourceTree = "<group>"; };
+		E9ECEEA216D7EFB500C6CF09 /* value.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = value.c; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E9ECEE8816D7EF9400C6CF09 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E9ECEE8216D7EF9400C6CF09 = {
+			isa = PBXGroup;
+			children = (
+				E9ECEE9216D7EFB500C6CF09 /* Source */,
+				E9ECEE8C16D7EF9400C6CF09 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E9ECEE8C16D7EF9400C6CF09 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E9ECEE8B16D7EF9400C6CF09 /* libjansson.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E9ECEE9216D7EFB500C6CF09 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				E9ECEE9316D7EFB500C6CF09 /* dump.c */,
+				E9ECEE9416D7EFB500C6CF09 /* error.c */,
+				E9ECEE9516D7EFB500C6CF09 /* hashtable.c */,
+				E9ECEE9616D7EFB500C6CF09 /* hashtable.h */,
+				E9ECEE9716D7EFB500C6CF09 /* jansson.h */,
+				E9ECEE9816D7EFB500C6CF09 /* jansson_config.h */,
+				E9ECEE9916D7EFB500C6CF09 /* jansson_private.h */,
+				E9ECEE9A16D7EFB500C6CF09 /* load.c */,
+				E9ECEE9B16D7EFB500C6CF09 /* memory.c */,
+				E9ECEE9C16D7EFB500C6CF09 /* pack_unpack.c */,
+				E9ECEE9D16D7EFB500C6CF09 /* strbuffer.c */,
+				E9ECEE9E16D7EFB500C6CF09 /* strbuffer.h */,
+				E9ECEE9F16D7EFB500C6CF09 /* strconv.c */,
+				E9ECEEA016D7EFB500C6CF09 /* utf.c */,
+				E9ECEEA116D7EFB500C6CF09 /* utf.h */,
+				E9ECEEA216D7EFB500C6CF09 /* value.c */,
+			);
+			name = Source;
+			path = source;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		E9ECEE8916D7EF9400C6CF09 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E9ECEEA616D7EFB500C6CF09 /* hashtable.h in Headers */,
+				E9ECEEA716D7EFB500C6CF09 /* jansson.h in Headers */,
+				E9ECEEA816D7EFB500C6CF09 /* jansson_config.h in Headers */,
+				E9ECEEA916D7EFB500C6CF09 /* jansson_private.h in Headers */,
+				E9ECEEAE16D7EFB500C6CF09 /* strbuffer.h in Headers */,
+				E9ECEEB116D7EFB500C6CF09 /* utf.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		E9ECEE8A16D7EF9400C6CF09 /* jansson */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E9ECEE8F16D7EF9400C6CF09 /* Build configuration list for PBXNativeTarget "jansson" */;
+			buildPhases = (
+				E9ECEE8716D7EF9400C6CF09 /* Sources */,
+				E9ECEE8816D7EF9400C6CF09 /* Frameworks */,
+				E9ECEE8916D7EF9400C6CF09 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = jansson;
+			productName = jansson;
+			productReference = E9ECEE8B16D7EF9400C6CF09 /* libjansson.a */;
+			productType = "com.apple.product-type.library.static";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E9ECEE8316D7EF9400C6CF09 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = "Petri Lehtinen";
+			};
+			buildConfigurationList = E9ECEE8616D7EF9400C6CF09 /* Build configuration list for PBXProject "jansson-osx" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = E9ECEE8216D7EF9400C6CF09;
+			productRefGroup = E9ECEE8C16D7EF9400C6CF09 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				E9ECEE8A16D7EF9400C6CF09 /* jansson */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E9ECEE8716D7EF9400C6CF09 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E9ECEEA316D7EFB500C6CF09 /* dump.c in Sources */,
+				E9ECEEA416D7EFB500C6CF09 /* error.c in Sources */,
+				E9ECEEA516D7EFB500C6CF09 /* hashtable.c in Sources */,
+				E9ECEEAA16D7EFB500C6CF09 /* load.c in Sources */,
+				E9ECEEAB16D7EFB500C6CF09 /* memory.c in Sources */,
+				E9ECEEAC16D7EFB500C6CF09 /* pack_unpack.c in Sources */,
+				E9ECEEAD16D7EFB500C6CF09 /* strbuffer.c in Sources */,
+				E9ECEEAF16D7EFB500C6CF09 /* strconv.c in Sources */,
+				E9ECEEB016D7EFB500C6CF09 /* utf.c in Sources */,
+				E9ECEEB216D7EFB500C6CF09 /* value.c in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		E9ECEE8D16D7EF9400C6CF09 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		E9ECEE8E16D7EF9400C6CF09 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		E9ECEE9016D7EF9400C6CF09 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		E9ECEE9116D7EF9400C6CF09 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				EXECUTABLE_PREFIX = lib;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E9ECEE8616D7EF9400C6CF09 /* Build configuration list for PBXProject "jansson-osx" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E9ECEE8D16D7EF9400C6CF09 /* Debug */,
+				E9ECEE8E16D7EF9400C6CF09 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E9ECEE8F16D7EF9400C6CF09 /* Build configuration list for PBXNativeTarget "jansson" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E9ECEE9016D7EF9400C6CF09 /* Debug */,
+				E9ECEE9116D7EF9400C6CF09 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E9ECEE8316D7EF9400C6CF09 /* Project object */;
+}
