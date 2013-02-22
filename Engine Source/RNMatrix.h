@@ -98,6 +98,12 @@ namespace RN
 
 		return result;
 	}
+	
+	RN_INLINE Matrix& Matrix::operator= (const Matrix& other)
+	{
+		std::copy(other.m, other.m + 16, m);
+		return *this;
+	}
 
 	RN_INLINE Matrix Matrix::Inverse() const
 	{

@@ -22,27 +22,25 @@ namespace RN
 	public:
 		typedef uint32 TaskID;
 		
-		PipelineSegment();
+		PipelineSegment(bool spinThread);
 		virtual ~PipelineSegment();
 		
 		TaskID BeginTask(float delta);
 		void WaitForTaskCompletion(TaskID task);
+		Thread *WorkerThread() const { return _thread; }
 		
 	protected:
 		void WaitForWork();
-		
-		bool ShouldStop();
-		void DidStop();
+		void SetThread(Thread *thread);
 		
 		virtual void WorkOnTask(TaskID task, float delta) = 0;
+		virtual void WorkLoop();
 		
 	private:
 		void WorkerLoop();
 		
+		Thread *_thread;
 		float _delta;
-		
-		bool _shouldStop;
-		bool _didStop;
 		
 		TaskID _task;
 		TaskID _lastTask;

@@ -291,6 +291,49 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		E94F26A316CB61060031A96C /* Optimized */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				SDKROOT = macosx;
+			};
+			name = Optimized;
+		};
+		E94F26A416CB61060031A96C /* Optimized */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Supporting files/Rayne Player-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)/../../Engine Source\"",
+				);
+				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Optimized;
+		};
 		E9ED4F851696091E00DAD683 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -339,6 +382,8 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = "NDEBUG=1";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
@@ -358,10 +403,7 @@
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/Rayne-espsryeibhnxbqfvbotsdrzqfiam/Build/Products/Debug\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -377,10 +419,7 @@
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../../../../Library/Developer/Xcode/DerivedData/Rayne-espsryeibhnxbqfvbotsdrzqfiam/Build/Products/Debug\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -394,6 +433,7 @@
 			buildConfigurations = (
 				E9ED4F851696091E00DAD683 /* Debug */,
 				E9ED4F861696091E00DAD683 /* Release */,
+				E94F26A316CB61060031A96C /* Optimized */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -403,6 +443,7 @@
 			buildConfigurations = (
 				E9ED4F881696091E00DAD683 /* Debug */,
 				E9ED4F891696091E00DAD683 /* Release */,
+				E94F26A416CB61060031A96C /* Optimized */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

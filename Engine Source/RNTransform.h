@@ -2,8 +2,8 @@
 //  RNTransform.h
 //  Rayne
 //
-//  Created by Sidney Just on 20.01.13.
-//  Copyright (c) 2013 Sidney Just. All rights reserved.
+//  Copyright 2013 by Felix Pohl, Nils Daumann and Sidney Just. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #ifndef __RAYNE_TRANSFORM_H__
@@ -13,16 +13,25 @@
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
 #include "RNVector.h"
+#include "RNArray.h"
 #include "RNSynchronization.h"
 
 namespace RN
 {
+	class RenderingPipeline;
 	class Transform
 	{
+	friend class RenderingPipeline;
 	public:
-		Transform();
-		Transform(const Vector3& position);
-		Transform(const Vector3& position, const Quaternion& rotation);
+		typedef enum
+		{
+			TransformTypeEntity,
+			TransformTypeCamera
+		} TransformType;
+		
+		virtual ~Transform();
+		
+		TransformType Type() const { return _type; }
 		
 		void Translate(const Vector3& trans);
 		void Scale(const Vector3& scal);
@@ -34,22 +43,63 @@ namespace RN
 		
 		const Past<Vector3>& Position() const { return _position; }
 		const Past<Vector3>& Scale() const { return _scale; }
+		const Past<Vector3>& EulerAngle() const { return _euler; }
 		const Past<Quaternion>& Rotation() const { return _rotation; }
 		
-		const Matrix& WorldTransform();
-		const Matrix& PastWorldTransform();		
+		const Past<Vector3>& WorldPosition() const { return _worldPosition; }
+		const Past<Vector3>& WorldScale() const { return _worldScale; }
+		const Past<Vector3>& WorldEulerAngle() const { return _worldEuler; }
+		const Past<Quaternion>& WorldRotation() const { return _worldRotation; }
 		
-		void SynchronizePast()
+		void AttachChild(Transform *child);
+		void DetachChild(Transform *child);
+		void DetachAllChilds();
+		void DetachFromParent();
+		
+		const Past<Matrix>& WorldTransform() { return _worldTransform; }
+		const Past<Matrix>& LocalTransform() { return _localTransform; }
+		
+		virtual void Update(float delta)
+		{
+			machine_uint count = _childs.Count();
+			for(machine_uint i=0; i<count; i++)
+			{
+				Transform *child = _childs.ObjectAtIndex(i);
+				child->Update(delta);
+			}
+		}
+		
+		virtual void PostUpdate()
 		{
 			_position.SynchronizePast();
 			_scale.SynchronizePast();
 			_rotation.SynchronizePast();
 			_euler.SynchronizePast();
-			_transform.SynchronizePast();
+			
+			_worldPosition.SynchronizePast();
+			_worldScale.SynchronizePast();
+			_worldRotation.SynchronizePast();
+			_worldEuler.SynchronizePast();
+			
+			_worldTransform.SynchronizePast();
+			_localTransform.SynchronizePast();
+			
+			_pastWorldTransform = _worldTransform.AccessPast();
+			
+			machine_uint count = _childs.Count();
+			for(machine_uint i=0; i<count; i++)
+			{
+				Transform *child = _childs.ObjectAtIndex(i);
+				child->PostUpdate();
+			}
 		}
 		
 	protected:
-		bool _didChange;
+		Transform(TransformType type);
+		Transform(TransformType type, const Vector3& position);
+		Transform(TransformType type, const Vector3& position, const Quaternion& rotation);
+		
+		void DidUpdate();
 		
 		Past<Vector3> _position;
 		Past<Vector3> _scale;
@@ -57,87 +107,99 @@ namespace RN
 		Past<Vector3> _euler;	//there has to be a way to fix this in the quaternion class somehow...
 		
 	private:
-		Past<Matrix> _transform;
+		const Matrix *PastWorldTransform() const { return &_pastWorldTransform; }
+		
+		Transform *_parent;
+		Array<Transform *> _childs;
+		
+		TransformType _type;
+		
+		Past<Vector3> _worldPosition;
+		Past<Quaternion> _worldRotation;
+		Past<Vector3> _worldScale;
+		Past<Vector3> _worldEuler;
+		
+		Past<Matrix> _worldTransform;
+		Past<Matrix> _localTransform;
+		
+		Matrix _pastWorldTransform;
 	};
 	
-	RN_INLINE Transform::Transform() :
-		_scale(Vector3(1.0f))
-	{
-		_didChange = true;
-	}
 	
-	RN_INLINE Transform::Transform(const Vector3& position) :
-		_position(position),
-		_scale(Vector3(1.0f))
-	{
-		_didChange = true;
-	}
-	
-	RN_INLINE Transform::Transform(const Vector3& position, const Quaternion& rotation) :
-		_position(position),
-		_scale(Vector3(1.0f)),
-		_rotation(rotation),
-		_euler(rotation.EulerAngle())
-	{
-		_didChange = true;
-	}
 	
 	RN_INLINE void Transform::Translate(const Vector3& trans)
 	{
 		_position += trans;
-		_didChange = true;
+		DidUpdate();
 	}
 	
 	RN_INLINE void Transform::Scale(const Vector3& scal)
 	{
 		_scale += scal;
-		_didChange = true;
+		DidUpdate();
 	}
 	
 	RN_INLINE void Transform::Rotate(const Vector3& rot)
 	{
-//		_rotation += rot;
 		_euler += rot;
 		_rotation = Quaternion(_euler);
-		_didChange = true;
+		DidUpdate();
 	}
+	
+	
 	
 	RN_INLINE void Transform::SetPosition(const Vector3& pos)
 	{
 		_position = pos;
-		_didChange = true;
+		DidUpdate();
 	}
 	
 	RN_INLINE void Transform::SetScale(const Vector3& scal)
 	{
 		_scale = scal;
-		_didChange = true;
+		DidUpdate();
 	}
 	
 	RN_INLINE void Transform::SetRotation(const Quaternion& rot)
 	{
 		_euler = rot.EulerAngle();
 		_rotation = rot;
-		_didChange = true;
+		
+		DidUpdate();
 	}
 	
-	RN_INLINE const Matrix& Transform::WorldTransform()
+	
+	RN_INLINE void Transform::DidUpdate()
 	{
-		if(_didChange)
+		_localTransform->MakeTranslate(_position);
+		_localTransform->Rotate(_rotation);
+		_localTransform->Scale(_scale);
+		
+		if(_parent)
 		{
-			_transform->MakeTranslate(_position);
-			_transform->Scale(_scale);
-			_transform->Rotate(_rotation);
+			_worldPosition = _parent->_worldPosition + _position;
+			_worldRotation = _parent->_worldRotation + _rotation;
+			_worldScale = _parent->_worldScale + _scale;
+			_worldEuler = _parent->_worldEuler + _euler;
 			
-			_didChange = false;
+			_worldTransform = _parent->_localTransform * _localTransform;
+		}
+		else
+		{
+			_worldPosition = _position;
+			_worldRotation = _rotation;
+			_worldScale = _scale;
+			_worldEuler = _euler;
+			
+			_worldTransform = _localTransform;
 		}
 		
-		return _transform;
-	}
-	
-	RN_INLINE const Matrix& Transform::PastWorldTransform()
-	{
-		return _transform.AccessPast();
+		machine_uint count = _childs.Count();
+		for(machine_uint i=0; i<count; i++)
+		{
+			Transform *child = _childs.ObjectAtIndex(i);
+			child->DidUpdate();
+		}
 	}
 }
 

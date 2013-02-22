@@ -28,7 +28,11 @@ namespace RN
 		RNAPI void DeactivateContext();
 
 		RNAPI virtual void SetName(const char *name);
-
+		
+		RNAPI void SetDepthClear(GLfloat depth);
+		RNAPI void SetStencilClear(GLint stencil);
+		RNAPI void SetClearColor(const Color& color);
+		
 		static Context *ActiveContext();
 
 	protected:
@@ -40,7 +44,11 @@ namespace RN
 		Thread *_thread;
 		Context *_shared;
 		bool _firstActivation;
-
+		
+		GLfloat _depthClear;
+		GLint _stencilClear;
+		Color _clearColor;
+		
 #if RN_PLATFORM_MAC_OS
 		void *_oglContext;
 		void *_oglPixelFormat;

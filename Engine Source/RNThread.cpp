@@ -16,29 +16,17 @@
 #include "RNCamera.h"
 #include "RNMesh.h"
 #include "RNShader.h"
+#include "RNThreadPool.h"
 
 namespace RN
 {
 	static SpinLock __ThreadLock;
 	static std::unordered_map<std::thread::id, Thread *> __ThreadMap;
-	
-	Thread::Thread(ThreadEntry entry)
-	{
-		RN_ASSERT0(entry != 0);
-		Initialize();
-		
-		_detached = false;
-		_entry = entry;
-		_pool = 0;
-	}
+	static Array<Thread> __ThreadBin;
 	
 	Thread::Thread()
 	{
 		Initialize();
-		
-		_detached = true;
-		_entry = 0;
-		_pool = 0;
 		
 		_id = std::this_thread::get_id();
 		
@@ -67,9 +55,16 @@ namespace RN
 		
 		_mutex = new Mutex();
 		_context = 0;
+		_pool    = 0;
+		
+		_isRunning = true;
+		_isCancelled = false;
 		
 		RN_ASSERT0(_textures && _cameras && _meshes);
 		RN_ASSERT0(_mutex != 0);
+		
+		Retain();
+		ThreadPool::SharedInstance()->ConsumeConcurrency();
 	}
 	
 	Thread *Thread::CurrentThread()
@@ -79,15 +74,11 @@ namespace RN
 		__ThreadLock.Lock();
 		
 		auto iterator = __ThreadMap.find(std::this_thread::get_id());
+		
 		if(iterator != __ThreadMap.end())
-		{
 			thread = iterator->second;
-		}
 		
 		__ThreadLock.Unlock();
-		
-		if(!thread)
-			thread = new Thread();
 		
 		return thread;
 	}
@@ -97,10 +88,14 @@ namespace RN
 	{
 		__ThreadLock.Lock();
 		
-		auto iterator = __ThreadMap.find(std::this_thread::get_id());
+		auto iterator = __ThreadMap.find(_id);
 		__ThreadMap.erase(iterator);
 		
 		__ThreadLock.Unlock();
+		_isRunning = false;
+		
+		ThreadPool::SharedInstance()->RestoreConcurrency();
+		Release();
 	}
 	
 	void Thread::Entry()
@@ -110,18 +105,15 @@ namespace RN
 		__ThreadLock.Lock();
 		__ThreadMap[_id] = this;
 		__ThreadLock.Unlock();
-		
-		_entry(this);
-		
-		Exit();
-		Release();
+	}
+	
+	void Thread::Cancel()
+	{
+		_isCancelled = true;
 	}
 	
 	bool Thread::OnThread() const
 	{
-		if(!_detached)
-			return false;
-		
 		__ThreadLock.Lock();
 		
 		auto iterator = __ThreadMap.find(_id);
@@ -132,23 +124,6 @@ namespace RN
 		return onThread;
 	}
 	
-	void Thread::Detach()
-	{
-		_mutex->Lock();
-		
-		if(!_detached)
-		{
-			Retain();
-			_detached = true;
-			
-			std::thread thread = std::thread(&Thread::Entry, this);
-			thread.detach();
-		}
-		
-		_mutex->Unlock();
-	}
-	
-
 	
 	void Thread::PushTexture(Texture *texture)
 	{

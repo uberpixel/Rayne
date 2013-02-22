@@ -36,6 +36,9 @@
 		E9619F4F1696185B00DA187E /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F4D1696184100DA187E /* libpng.a */; };
 		E9619F5D1696BCC300DA187E /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F5C1696BCC300DA187E /* libz.dylib */; };
 		E9932CF316C444650006CFA0 /* RNLightEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9932CF116C444650006CFA0 /* RNLightEntity.cpp */; };
+		E9AB0DAD16D6BCE9000D1CF0 /* RNTransform.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AB0DAC16D6BCE9000D1CF0 /* RNTransform.cpp */; };
+		E9AB7F1216D42789006BB4CB /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AB7F0F16D42789006BB4CB /* RNDebug.cpp */; };
+		E9AB7F1516D427A4006BB4CB /* RNThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AB7F1316D427A4006BB4CB /* RNThreadPool.cpp */; };
 		E9C6761016C2CEB800DA720F /* RNSynchronization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6760E16C2CEB800DA720F /* RNSynchronization.cpp */; };
 		E9C6F08A16AEA0F8006288D5 /* RNPipelineSegment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F08816AEA0F8006288D5 /* RNPipelineSegment.cpp */; };
 		E9C6F09616AF4E5E006288D5 /* RNRenderingPipeline.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F09416AF4E5E006288D5 /* RNRenderingPipeline.cpp */; };
@@ -159,6 +162,13 @@
 		E9619F5C1696BCC300DA187E /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		E9932CF116C444650006CFA0 /* RNLightEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNLightEntity.cpp; sourceTree = "<group>"; };
 		E9932CF216C444650006CFA0 /* RNLightEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNLightEntity.h; sourceTree = "<group>"; };
+		E9AB0DAC16D6BCE9000D1CF0 /* RNTransform.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTransform.cpp; sourceTree = "<group>"; };
+		E9AB7F0F16D42789006BB4CB /* RNDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDebug.cpp; sourceTree = "<group>"; };
+		E9AB7F1016D42789006BB4CB /* RNDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDebug.h; sourceTree = "<group>"; };
+		E9AB7F1116D42789006BB4CB /* RNOpenGLExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOpenGLExtensions.h; sourceTree = "<group>"; };
+		E9AB7F1316D427A4006BB4CB /* RNThreadPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNThreadPool.cpp; sourceTree = "<group>"; };
+		E9AB7F1416D427A4006BB4CB /* RNThreadPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNThreadPool.h; sourceTree = "<group>"; };
+		E9AB7F1616D427B5006BB4CB /* RNPlane.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPlane.h; sourceTree = "<group>"; };
 		E9C6760E16C2CEB800DA720F /* RNSynchronization.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSynchronization.cpp; sourceTree = "<group>"; };
 		E9C6760F16C2CEB800DA720F /* RNSynchronization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSynchronization.h; sourceTree = "<group>"; };
 		E9C6F08816AEA0F8006288D5 /* RNPipelineSegment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNPipelineSegment.cpp; sourceTree = "<group>"; };
@@ -295,6 +305,8 @@
 				E9619EFA1696170700DA187E /* RNBase.cpp */,
 				E9619EFB1696170700DA187E /* RNBase.h */,
 				E9319D3616BFEC6A001FA38F /* RNBaseInternal.h */,
+				E9AB7F0F16D42789006BB4CB /* RNDebug.cpp */,
+				E9AB7F1016D42789006BB4CB /* RNDebug.h */,
 				E9619F011696170700DA187E /* RNDefines.h */,
 				E9619F021696170700DA187E /* RNError.h */,
 				E9619F031696170700DA187E /* RNErrorGroupGraphics.h */,
@@ -304,6 +316,7 @@
 				E9619F131696170700DA187E /* RNObject.h */,
 				E9F77793169C4038006EE702 /* RNOpenGL.cpp */,
 				E9F77794169C4038006EE702 /* RNOpenGL.h */,
+				E9AB7F1116D42789006BB4CB /* RNOpenGLExtensions.h */,
 				E9619F161696170700DA187E /* RNPlatform.h */,
 				E9C6F08816AEA0F8006288D5 /* RNPipelineSegment.cpp */,
 				E9C6F08916AEA0F8006288D5 /* RNPipelineSegment.h */,
@@ -317,8 +330,10 @@
 				E9619EFE1696170700DA187E /* RNColor.h */,
 				E9619F0C1696170700DA187E /* RNMatrix.h */,
 				E9619F0D1696170700DA187E /* RNMatrixQuaternion.h */,
+				E9AB7F1616D427B5006BB4CB /* RNPlane.h */,
 				E9619F181696170700DA187E /* RNQuaternion.h */,
 				E9619F191696170700DA187E /* RNRect.h */,
+				E9AB0DAC16D6BCE9000D1CF0 /* RNTransform.cpp */,
 				E9C6F08B16AEA112006288D5 /* RNTransform.h */,
 				E9619F281696170700DA187E /* RNVector.h */,
 			);
@@ -364,6 +379,8 @@
 				E9C6760F16C2CEB800DA720F /* RNSynchronization.h */,
 				E9619F261696170700DA187E /* RNThread.cpp */,
 				E9619F271696170700DA187E /* RNThread.h */,
+				E9AB7F1316D427A4006BB4CB /* RNThreadPool.cpp */,
+				E9AB7F1416D427A4006BB4CB /* RNThreadPool.h */,
 				E9619F291696170700DA187E /* RNWindow.cpp */,
 				E9619F2A1696170700DA187E /* RNWindow.h */,
 			);
@@ -507,6 +524,9 @@
 				E90CAE3A16BCF109008A55DD /* RNMessage.cpp in Sources */,
 				E9C6761016C2CEB800DA720F /* RNSynchronization.cpp in Sources */,
 				E9932CF316C444650006CFA0 /* RNLightEntity.cpp in Sources */,
+				E9AB7F1216D42789006BB4CB /* RNDebug.cpp in Sources */,
+				E9AB7F1516D427A4006BB4CB /* RNThreadPool.cpp in Sources */,
+				E9AB0DAD16D6BCE9000D1CF0 /* RNTransform.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -543,13 +563,13 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
-					"$(inherited)",
+					"RN_BUILD_LIBRARY=1",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 			};
@@ -568,10 +588,15 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"NDEBUG=1",
+					"RN_BUILD_LIBRARY=1",
+				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -600,6 +625,7 @@
 			buildSettings = {
 				DSTROOT = /tmp/Rayne.dst;
 				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Supporting files/Rayne-Prefix.pch";
 				HEADER_SEARCH_PATHS = (
@@ -613,6 +639,52 @@
 			};
 			name = Release;
 		};
+		E9AB7F1716D42AD3006BB4CB /* Optimized */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"RN_BUILD_LIBRARY=1",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Optimized;
+		};
+		E9AB7F1816D42AD3006BB4CB /* Optimized */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				DSTROOT = /tmp/Rayne.dst;
+				GCC_INPUT_FILETYPE = sourcecode.cpp.objcpp;
+				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Supporting files/Rayne-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
+					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				OTHER_LDFLAGS = "-ObjC";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Optimized;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -621,6 +693,7 @@
 			buildConfigurations = (
 				E9619EF3169616FD00DA187E /* Debug */,
 				E9619EF4169616FD00DA187E /* Release */,
+				E9AB7F1716D42AD3006BB4CB /* Optimized */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -630,6 +703,7 @@
 			buildConfigurations = (
 				E9619EF6169616FD00DA187E /* Debug */,
 				E9619EF7169616FD00DA187E /* Release */,
+				E9AB7F1816D42AD3006BB4CB /* Optimized */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -207,7 +207,7 @@ namespace RN
 			
 			Bind();
 			
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, level);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, level);
 			RN_CHECKOPENGL();
 			
 			Unbind();
@@ -371,7 +371,6 @@ namespace RN
 				break;
 				
 			// Floating point formats
-#if RN_TARGET_OPENGL
 			case FormatRGBA32F:
 				*glFormat = GL_RGBA;
 				*glInternalFormat = GL_RGBA32F;
@@ -420,33 +419,6 @@ namespace RN
 				*glInternalFormat = GL_RGB16F;
 				*glType = GL_HALF_FLOAT;
 				break;
-#endif
-				
-#if RN_TARGET_OPENGL_ES
-			case FormatRGBA32F:
-				*glFormat = GL_RGBA;
-				*glInternalFormat = GL_RGBA32F_EXT;
-				*glType = GL_FLOAT;
-				break;
-				
-			case FormatRGB32F:
-				*glFormat = GL_RGB;
-				*glInternalFormat = GL_RGB32F_EXT;
-				*glType = GL_FLOAT;
-				break;
-				
-			case FormatRGBA16F:
-				*glFormat = GL_RGBA;
-				*glInternalFormat = GL_RGBA16F_EXT;
-				*glType = GL_HALF_FLOAT_OES;
-				break;
-				
-			case FormatRGB16F:
-				*glFormat = GL_RGB;
-				*glInternalFormat = GL_RGB16F_EXT;
-				*glType = GL_HALF_FLOAT_OES;
-				break;
-#endif
 				
 			case FormatDepth:
 				*glFormat = GL_DEPTH_COMPONENT;
@@ -747,7 +719,7 @@ namespace RN
 	uint32 Texture::MaxAnisotropyLevel()
 	{
 		GLint max;
-		glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
+		glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &max);
 		
 		return max;
 	}

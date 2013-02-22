@@ -49,7 +49,7 @@ namespace RN
 
 		void DrawGroup(RenderingGroup *group);
 		void DrawMesh(Mesh *mesh);
-		void DrawMeshInstanced(Material *material, std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count);
+		void DrawMeshInstanced(Array<RenderingObject>&group, machine_uint start, machine_uint count);
 		void DrawCameraStage(Camera *camera, Camera *stage);
 
 		void FlushCameras();
@@ -74,15 +74,21 @@ namespace RN
 		bool _depthTestEnabled;
 		bool _blendingEnabled;
 		bool _depthWrite;
-
+	
 		GLenum _cullMode;
 		GLenum _depthFunc;
 
 		GLenum _blendSource;
 		GLenum _blendDestination;
+		
+		int *_lightindexoffset;
+		int *_lightindices;
+		size_t _lightindexoffsetSize;
+		size_t _lightindicesSize;
 
 		std::map<std::tuple<Material *, MeshLODStage *>, GLuint> _vaos;
 		GLuint _currentVAO;
+		GLuint _currentShader;
 
 		Matrix *_instancingMatrices;
 		uint32 _numInstancingMatrices;

@@ -19,6 +19,7 @@ namespace RN
 {
 	class LightEntity : public Entity
 	{
+	friend class RenderingPipeline;
 	public:
 		LightEntity();
 		LightEntity(LightEntity *other);

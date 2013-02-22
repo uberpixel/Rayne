@@ -62,7 +62,7 @@ namespace RN
 		RN_ASSERT0(_format & BufferFormatColor);
 		
 		target->Bind();
-		target->SetLinear(true);
+		target->SetLinear(false);
 		target->SetGeneratesMipmaps(false);
 		target->SetWrappingMode(Texture::WrapModeClamp);
 		target->SetFilter(Texture::FilterNearest);
@@ -88,7 +88,7 @@ namespace RN
 			throw ErrorException(0, 0, 0);
 
 		target->Bind();
-		target->SetLinear(true);
+		target->SetLinear(false);
 		target->SetGeneratesMipmaps(false);
 		target->SetWrappingMode(Texture::WrapModeClamp);
 		target->SetFilter(Texture::FilterNearest);
@@ -102,7 +102,7 @@ namespace RN
 	{
 		RN_ASSERT0(_format & BufferFormatColor);
 		
-		Texture *target = new Texture(format, Texture::WrapModeClamp, Texture::FilterNearest, true);
+		Texture *target = new Texture(format, Texture::WrapModeClamp, Texture::FilterNearest, false);
 
 		try
 		{
@@ -389,7 +389,8 @@ namespace RN
 	Camera::Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_flags(flags),
-		RenderingResource("Camera")
+		RenderingResource("Camera"),
+		Transform(Transform::TransformTypeCamera)
 	{
 		_storage = 0;
 
@@ -398,14 +399,13 @@ namespace RN
 
 		SetRenderStorage(storage);
 		Initialize();
-
-		World::SharedInstance()->AddCamera(this);
 	}
 
 	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_flags(flags),
-		RenderingResource("Camera")
+		RenderingResource("Camera"),
+		Transform(Transform::TransformTypeCamera)
 	{
 		_storage = 0;
 
@@ -414,27 +414,23 @@ namespace RN
 
 		SetRenderStorage(storage);
 		Initialize();
-
-		World::SharedInstance()->AddCamera(this);
 	}
 
 	Camera::Camera(const Vector2& size, RenderStorage *storage, Flags flags) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_flags(flags),
-		RenderingResource("Camera")
+		RenderingResource("Camera"),
+		Transform(Transform::TransformTypeCamera)
 	{
 		_storage = 0;
 
 		SetRenderStorage(storage);
 		Initialize();
-
-		World::SharedInstance()->AddCamera(this);
 	}
 
 	Camera::~Camera()
 	{
 		_storage->Release();
-		World::SharedInstance()->RemoveCamera(this);
 	}
 
 
@@ -454,6 +450,7 @@ namespace RN
 
 		_lightTiles = Vector2(32, 32);
 		_depthTiles = 0;
+		_skycube = 0;
 		
 		_allowDepthWrite = true;
 		
@@ -498,16 +495,11 @@ namespace RN
 
 		if(!(_flags & FlagNoClear))
 		{
-#if RN_PLATFORM_IOS
-			glClearDepthf(1.0f);
-			glClearStencil(0);
-			glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
-#endif
-#if RN_PLATFORM_MAC_OS
-			glClearDepth(1.0f);
-			glClearStencil(0);
-			glClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
-#endif
+			Context *context = Context::ActiveContext();
+			
+			context->SetDepthClear(1.0f);
+			context->SetStencilClear(0);
+			context->SetClearColor(_clearColor);
 			
 			glClear(_clearMask);
 		}
@@ -605,12 +597,13 @@ namespace RN
 		_stage = stage->Retain<Camera>();
 
 		UpdateProjection();
-		World::SharedInstance()->RemoveCamera(_stage);
+		World::SharedInstance()->RemoveTransform(stage);
 	}
 
 	void Camera::ReplaceStage(Camera *stage)
 	{
 		Camera *temp = _stage ? _stage->_stage->Retain<Camera>() : 0;
+		World::SharedInstance()->AddTransform(_stage);
 
 		_stage->Release();
 		_stage = stage->Retain<Camera>();
@@ -621,15 +614,15 @@ namespace RN
 		_stage->_stage = temp;
 
 		UpdateProjection();
-		World::SharedInstance()->RemoveCamera(_stage);
+		World::SharedInstance()->RemoveTransform(stage);
 	}
 
 	void Camera::RemoveStage(Camera *stage)
 	{
 		if(_stage == stage)
 		{
-			World::SharedInstance()->AddCamera(_stage);
 			stage = stage->_stage->Retain<Camera>();
+			World::SharedInstance()->AddTransform(stage);
 
 			_stage->Release();
 			_stage = stage;
@@ -642,8 +635,8 @@ namespace RN
 		{
 			if(temp->_stage == stage)
 			{
-				World::SharedInstance()->AddCamera(temp->_stage);
 				stage = stage->_stage->Retain<Camera>();
+				World::SharedInstance()->AddTransform(stage);
 
 				temp->_stage->Release();
 				temp->_stage = stage;
@@ -658,6 +651,22 @@ namespace RN
 	// Helper
 	void Camera::Update(float delta)
 	{
+		if(_stage)
+			_stage->PostUpdate();
+		
+		Transform::Update(delta);
+	}
+	
+	void Camera::PostUpdate()
+	{
+		Transform::PostUpdate();
+		
+		projectionMatrix.SynchronizePast();
+		inverseProjectionMatrix.SynchronizePast();
+		
+		viewMatrix.SynchronizePast();
+		inverseViewMatrix.SynchronizePast();
+		
 		inverseViewMatrix = WorldTransform();
 		viewMatrix = inverseViewMatrix->Inverse();
 
@@ -680,7 +689,7 @@ namespace RN
 				_stage->SetRotation(Rotation());
 			}
 
-			_stage->Update(delta);
+			_stage->PostUpdate();
 		}
 	}
 

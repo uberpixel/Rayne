@@ -13,6 +13,7 @@ namespace TG
 	Application::Application()
 	{
 		_world = 0;
+		RN::Texture::SetDefaultAnisotropyLevel(RN::Texture::MaxAnisotropyLevel());
 	}
 	
 	Application::~Application()

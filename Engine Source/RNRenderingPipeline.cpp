@@ -10,22 +10,12 @@
 #include "RNLightEntity.h"
 #include "RNKernel.h"
 
+#include "RNDebug.h"
+
 namespace RN
 {
-	#if __GNUG__
-	bool SortRenderingObject(struct RenderingObject a, struct RenderingObject b)
-	#else
-	bool SortRenderingObject(struct RenderingObject &a, struct RenderingObject &b)
-	#endif
-	{
-		machine_uint objA = (machine_uint)a.mesh;
-		machine_uint objB = (machine_uint)b.mesh;
-
-		return (objA < objB);
-	}
-
-
-	RenderingPipeline::RenderingPipeline()
+	RenderingPipeline::RenderingPipeline() :
+		PipelineSegment(false)
 	{
 		// Some general state variables
 		_defaultFBO = 0;
@@ -34,6 +24,7 @@ namespace RN
 		_currentMaterial = 0;
 		_currentMesh     = 0;
 		_currentVAO      = 0;
+		_currentShader	 = 0;
 
 		_finishFrame = 0;
 		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
@@ -50,6 +41,13 @@ namespace RN
 		_blendDestination = GL_ZERO;
 
 		_frameLock = new Mutex();
+		
+		// Light indices
+		_lightindexoffsetSize = 100;
+		_lightindicesSize = 500;
+		
+		_lightindexoffset = (int *)malloc(_lightindexoffsetSize * sizeof(int));
+		_lightindices = (int *)malloc(_lightindicesSize * sizeof(int));
 
 		// Setup framebuffer copy stuff
 		_copyShader = 0;
@@ -93,6 +91,9 @@ namespace RN
 #endif
 
 		free(_instancingMatrices);
+		
+		free(_lightindexoffset);
+		free(_lightindices);
 
 		_frameLock->Release();
 	}
@@ -169,8 +170,6 @@ namespace RN
 #endif
 
 		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
-
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glViewport(0, 0, _defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor);
@@ -209,7 +208,11 @@ namespace RN
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		}
 
-		glUseProgram(shader->program);
+		if(_currentShader != shader->program)
+		{
+			glUseProgram(shader->program);
+			_currentShader = shader->program;
+		}
 
 		if(shader->frameSize != -1)
 			glUniform4f(shader->frameSize, 1.0f/camera->Frame().width, 1.0f/camera->Frame().height, camera->Frame().width, camera->Frame().height);
@@ -244,7 +247,12 @@ namespace RN
 		Material *material = stage->Material();
 		Shader *shader     = material->Shader();
 
-		glUseProgram(shader->program);
+		if(shader->program)
+		{
+			glUseProgram(shader->program);
+			_currentShader = shader->program;
+		}
+		
 		BindMaterial(material);
 
 		if(shader->time != -1)
@@ -308,11 +316,35 @@ namespace RN
 
 	void RenderingPipeline::DrawGroup(RenderingGroup *group)
 	{
+		TimeProfiler profiler;
+		profiler.HitMilestone("Begin");
+		
 		// Object pre-pass
 		std::vector<Entity *> *frame = &group->entities;
-		std::vector<RenderingObject> objects;
-
-		objects.reserve(frame->size());
+		Array<RenderingObject> objects = Array<RenderingObject>(frame->size());
+		
+		// Render all cameras
+		Camera *previous = 0;
+		Camera *camera = group->camera;
+		
+		//add skycube
+		Model *skycube = camera->SkyCube();
+		Matrix camrotationmatrix;
+		camrotationmatrix.MakeRotate(camera->Rotation().AccessPast());
+		if(skycube != 0)
+		{
+			uint32 meshes = skycube->Meshes();
+			
+			for(uint32 j=0; j<meshes; j++)
+			{
+				RenderingObject object;
+				object.mesh = skycube->MeshAtIndex(j);
+				object.material = skycube->MaterialForMesh(object.mesh);
+				object.transform = &camrotationmatrix;
+				
+				objects.AddObject(object);
+			}
+		}
 
 		// Unpack the frame
 		for(auto i=frame->begin(); i!=frame->end(); i++)
@@ -327,18 +359,13 @@ namespace RN
 				RenderingObject object;
 				object.mesh = model->MeshAtIndex(j);
 				object.material = model->MaterialForMesh(object.mesh);
-				object.transform = &entity->PastWorldTransform();
+				object.transform = entity->PastWorldTransform();
 
-				objects.push_back(object);
+				objects.AddObject(object);
 			}
 		}
-
-		// Sort the frame
-		std::sort(objects.begin(), objects.end(), SortRenderingObject);
-
-		// Render all cameras
-		Camera *previous = 0;
-		Camera *camera = group->camera;
+		
+		profiler.HitMilestone("Object pre-pass");
 
 		// Creating light list
 		std::vector<LightEntity *> *lights = &group->lights;
@@ -357,8 +384,9 @@ namespace RN
 		}
 
 #if !(RN_PLATFORM_IOS)
-		std::vector<int> lightindexpos;
-		std::vector<int> lightindices;
+		size_t lightindexoffsetCount = 0;
+		size_t lightindicesCount = 0;
+		
 		Rect rect = camera->Frame();
 		int tileswidth  = rect.width / camera->LightTiles().x;
 		int tilesheight = rect.height / camera->LightTiles().y;
@@ -367,8 +395,6 @@ namespace RN
 		
 		if(camera->DepthTiles() != 0)
 		{
-			std::vector<int> tempindices;
-			
 			Vector3 corner1 = camera->CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
 			Vector3 corner2 = camera->CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
 			Vector3 corner3 = camera->CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
@@ -398,7 +424,23 @@ namespace RN
 			Plane plbottom;
 			Plane plfar;
 			Plane plnear;
-			int counter;
+			
+			size_t count = lights->size();
+			LightEntity **allLights = lights->data();
+			
+			size_t lightindicesSize = tileswidth * tilesheight * lights->size();
+			if(lightindicesSize > _lightindicesSize)
+			{
+				_lightindices = (int *)realloc(_lightindices, lightindicesSize * sizeof(int));
+				_lightindicesSize = lightindicesSize;
+			}
+			
+			size_t lightindexoffsetSize = tileswidth * tilesheight * 2;
+			if(lightindexoffsetSize > _lightindexoffsetSize)
+			{
+				_lightindexoffset = (int *)realloc(_lightindexoffset, lightindexoffsetSize * sizeof(int));
+				_lightindexoffsetSize = lightindexoffsetSize;
+			}
 			
 			for(float y=0.0f; y<tilesheight; y+=1.0f)
 			{
@@ -412,77 +454,75 @@ namespace RN
 //					plnear.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2], camdir);
 //					plfar.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2 + 1], camdir);
 					
-//					printf("%f ", deptharray[int(y*tileswidth+x)*2]);
-//					printf("%f \n", deptharray[int(y*tileswidth+x)*2+1]);
+					size_t previous = lightindicesCount;
+					_lightindexoffset[lightindexoffsetCount ++] = static_cast<int>(previous);
 					
-					counter = -1;
-					for(auto i=lights->begin(); i!=lights->end(); i++)
+					for(size_t i=0; i<count; i++)
 					{
-						LightEntity *light = *i;
-						const Vector3& position = light->Position().AccessPast();
-						float range = light->Range().AccessPast();
+						LightEntity *light = allLights[i];
 						
-						counter ++;
+						const Vector3& position = light->_position.AccessPast();
+						float range = light->_range.AccessPast();
+
+#define Distance(plane, op, r) { \
+	float dot = (position.x * plane._normal.x + position.y * plane._normal.y + position.z * plane._normal.z);\
+	float distance = dot - plane._d; \
+	if(distance op r) \
+		continue; \
+	}
+						Distance(plleft, >, range);
+						Distance(plright, <, -range);
+						Distance(pltop, <, -range);
+						Distance(plbottom, >, range);
+#undef Distance
+
 						
-						if(plleft.Distance(position) > range)
-							continue;
-						
-						if(plright.Distance(position) < -range)
-							continue;
-						
-						if(pltop.Distance(position) < -range)
-							continue;
-						
-						if(plbottom.Distance(position) > range)
-							continue;
-						
-/*						if(plnear.Distance(position) < -range)
+/*
+						if(plnear.Distance(position) < -range)
 							continue;
 						
 						if(plfar.Distance(position) > range)
 							continue;*/
-	
-						tempindices.push_back(counter);
+						
+						_lightindices[lightindicesCount ++] = static_cast<int>(i);
 					}
 					
-//					printf("lights: %i \n", tempindices.size());
-					lightindexpos.push_back(static_cast<int>(lightindices.size()));
-					lightindexpos.push_back(static_cast<int>(tempindices.size()));
-					lightindices.insert(lightindices.end(), tempindices.begin(), tempindices.end());
-					tempindices.clear();
+					_lightindexoffset[lightindexoffsetCount ++] = static_cast<int>(lightindicesCount - previous);
 				}
 			}
+
 			
 //			delete[] deptharray;
+
 			
-			if(_lightBufferLengths[0] < lightindexpos.size())
+			if(_lightBufferLengths[0] < lightindexoffsetCount)
 			{
-				_lightBufferLengths[0] = (uint32)lightindexpos.size();
+				_lightBufferLengths[0] = (uint32)lightindexoffsetCount;
 				
 				//indexpos
 				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
-				glBufferData(GL_TEXTURE_BUFFER, lightindexpos.size()*sizeof(int), &lightindexpos[0], GL_DYNAMIC_DRAW);
+				glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetCount*sizeof(int), _lightindexoffset, GL_DYNAMIC_DRAW);
 			}
 			else
 			{
 				//indexpos
 				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
-				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindexpos.size()*sizeof(int), &lightindexpos[0]);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindexoffsetCount*sizeof(int), _lightindexoffset);
 			}
 			
-			if(_lightBufferLengths[1] < lightindices.size())
+			if(_lightBufferLengths[1] < lightindicesCount)
 			{
-				_lightBufferLengths[1] = (uint32)lightindices.size();
+				_lightBufferLengths[1] = (uint32)lightindicesCount;
 				
 				//indices
 				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
-				glBufferData(GL_TEXTURE_BUFFER, lightindices.size()*sizeof(int), &lightindices[0], GL_DYNAMIC_DRAW);
+				glBufferData(GL_TEXTURE_BUFFER, lightindicesCount*sizeof(int), _lightindices, GL_DYNAMIC_DRAW);
 			}
 			else
 			{
 				//indices
 				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
-				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindices.size()*sizeof(int), &lightindices[0]);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindicesCount*sizeof(int), _lightindices);
 			}
 			
 			if(_lightBufferLengths[2] < lightcount)
@@ -512,52 +552,156 @@ namespace RN
 		}
 #endif
 
+		profiler.HitMilestone("Light pre-pass");
+		machine_uint sortOder = 0;
+		
+		bool changedShader = true;
+		bool switchedCamera = true;
+		
 		while(camera)
 		{
+			profiler.HitMilestone("Camera->Bind()", false);
+			
+			camera->Push();
 			camera->Bind();
 			camera->PrepareForRendering();
 			
 			_currentCamera = camera;
+			switchedCamera = true;
 
 			if(!(camera->CameraFlags() & Camera::FlagDrawTarget))
 			{
 				Material *surfaceMaterial = camera->Material();
+				machine_uint bestOrder = surfaceMaterial ? 1 : 2;
+				
+				if(bestOrder != sortOder)
+				{
+					profiler.HitMilestone("Sorting objects");
+					objects.SortUsingFunction([&](const RenderingObject& a, const RenderingObject& b) {
+						if(surfaceMaterial)
+						{
+							machine_uint objA = (machine_uint)a.mesh;
+							machine_uint objB = (machine_uint)b.mesh;
+							
+							if(objA > objB)
+								return kRNCompareGreaterThan;
+							
+							if(objB > objA)
+								return kRNCompareLessThan;
+							
+							return kRNCompareEqualTo;
+						}
+						else
+						{
+							// Sort by material
+							const Material *materialA = a.material;
+							const Material *materialB = b.material;
+							
+							if(materialA->blending != materialB->blending)
+							{
+								if(!materialB->blending)
+									return kRNCompareGreaterThan;
+								
+								if(!materialA->blending)
+									return kRNCompareLessThan;
+							}
+							
+							if(materialA->alphatest != materialB->alphatest)
+							{
+								if(!materialB->alphatest)
+									return kRNCompareGreaterThan;
+								
+								if(!materialA->alphatest)
+									return kRNCompareLessThan;
+							}
+							
+							if(materialA->Shader() > materialB->Shader())
+								return kRNCompareGreaterThan;
+							
+							if(materialB->Shader() > materialA->Shader())
+								return kRNCompareLessThan;
+							
+							// Sort by mesh
+							if(a.mesh > b.mesh)
+								return kRNCompareGreaterThan;
+							
+							if(b.mesh > a.mesh)
+								return kRNCompareLessThan;
+							
+							return kRNCompareEqualTo;
+						}
+					}, 6);
+					
+					profiler.FinishedMilestone("Sorting objects");
+					sortOder = bestOrder;
+				}
 
+				profiler.HitMilestone("Beginning objects");
+				
+				Matrix& projectionMatrix = camera->projectionMatrix.AccessPast();
+				Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix.AccessPast();
+				
+				Matrix& viewMatrix = camera->viewMatrix.AccessPast();
+				Matrix& inverseViewMatrix = camera->inverseViewMatrix.AccessPast();
+				
+				Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
+				Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
+				
+				profiler.HitMilestone("Matrices grabbed");
+				
 				uint32 offset = 1;
 				uint32 noCheck = 0;
 
-				for(auto i=objects.begin(); i!=objects.end(); i+=offset)
+				machine_uint objectsCount = objects.Count();
+				for(machine_uint i=0; i<objectsCount; i+=offset)
 				{
-					Mesh *mesh = (Mesh *)i->mesh;
-					Material *material = surfaceMaterial ? surfaceMaterial : (Material *)i->material;
+					offset = 1;
+					profiler.HitMilestone("Preparing object");
+					
+					RenderingObject& object = objects.ObjectAtIndex(i);
+					
+					Mesh *mesh = (Mesh *)object.mesh;
+					Material *material = surfaceMaterial ? surfaceMaterial : (Material *)object.material;
 					Shader *shader = material->Shader();
+					
+					Matrix& transform = (Matrix &)*object.transform;
+					Matrix inverseTransform = transform.Inverse();
 
 					// Send generic attributes to the shader
-					glUseProgram(shader->program);
+					
+					profiler.HitMilestone("Binding shader");
+					
+					if(shader->program != _currentShader)
+					{
+						_currentShader = shader->program;
+						changedShader  = true;
+						
+						glUseProgram(shader->program);
+					}
 
-					if(shader->time != -1)
+					if(shader->time != -1 && changedShader)
 						glUniform1f(shader->time, _time);
 
-					if(shader->frameSize != -1)
+					if(shader->frameSize != -1 && (changedShader || switchedCamera))
 						glUniform4f(shader->frameSize, 1.0f/camera->Frame().width/_scaleFactor, 1.0f/camera->Frame().height/_scaleFactor, camera->Frame().width*_scaleFactor, camera->Frame().height*_scaleFactor);
 					
-					if(shader->clipPlanes != -1)
+					if(shader->clipPlanes != -1 && (changedShader || switchedCamera))
 						glUniform2f(shader->clipPlanes, camera->clipnear, camera->clipfar);
 					
 					// Light data
-					if(shader->lightCount != -1)
+					if(shader->lightCount != -1 && changedShader)
 						glUniform1i(shader->lightCount, lightcount);
 
-					if(shader->lightPosition != -1 && lightcount > 0)
+					if(shader->lightPosition != -1 && lightcount > 0 && changedShader)
 						glUniform4fv(shader->lightPosition, lightcount, &(lightpos[0].x));
 
-					if(shader->lightColor != -1 && lightcount > 0)
+					if(shader->lightColor != -1 && lightcount > 0 && changedShader)
 						glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
 					
 #if !(RN_PLATFORM_IOS)
 					if(camera->LightTiles() != 0)
 					{
-						if(shader->lightListPosition != -1)
+						if(shader->lightListPosition != -1 && changedShader)
 						{
 							_textureUnit ++;
 							_textureUnit %= _maxTextureUnits;
@@ -566,7 +710,7 @@ namespace RN
 							glUniform1i(shader->lightListPosition, _textureUnit);
 						}
 						
-						if(shader->lightList != -1)
+						if(shader->lightList != -1 && changedShader)
 						{
 							_textureUnit ++;
 							_textureUnit %= _maxTextureUnits;
@@ -575,7 +719,7 @@ namespace RN
 							glUniform1i(shader->lightList, _textureUnit);
 						}
 						
-						if(shader->lightListOffset != -1)
+						if(shader->lightListOffset != -1 && changedShader)
 						{
 							_textureUnit ++;
 							_textureUnit %= _maxTextureUnits;
@@ -584,7 +728,7 @@ namespace RN
 							glUniform1i(shader->lightListOffset, _textureUnit);
 						}
 						
-						if(shader->lightListColor != -1)
+						if(shader->lightListColor != -1 && changedShader)
 						{
 							_textureUnit ++;
 							_textureUnit %= _maxTextureUnits;
@@ -593,7 +737,7 @@ namespace RN
 							glUniform1i(shader->lightListColor, _textureUnit);
 						}
 						
-						if(shader->lightTileSize != -1)
+						if(shader->lightTileSize != -1 && changedShader)
 						{
 							glUniform4f(shader->lightTileSize, lighttilesize.x, lighttilesize.y, lighttilecount.x, lighttilecount.y);
 						}
@@ -602,17 +746,19 @@ namespace RN
 
 
 					// Matrices
-					if(shader->matProj != -1)
-						glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, camera->projectionMatrix.AccessPast().m);
+					if(shader->matProj != -1 && (changedShader || switchedCamera))
+						glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, projectionMatrix.m);
 
-					if(shader->matProjInverse != -1)
-						glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, camera->inverseProjectionMatrix.AccessPast().m);
+					if(shader->matProjInverse != -1 && (changedShader || switchedCamera))
+						glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, inverseProjectionMatrix.m);
 
-					if(shader->matView != -1)
-						glUniformMatrix4fv(shader->matView, 1, GL_FALSE, camera->viewMatrix.AccessPast().m);
+					if(shader->matView != -1 && (changedShader || switchedCamera))
+						glUniformMatrix4fv(shader->matView, 1, GL_FALSE, viewMatrix.m);
 
-					if(shader->matViewInverse != -1)
-						glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, camera->inverseViewMatrix.AccessPast().m);
+					if(shader->matViewInverse != -1 && (changedShader || switchedCamera))
+						glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, inverseViewMatrix.m);
+					
+					profiler.HitMilestone("Shader bound");
 
 
 					// Check if we can use instancing here
@@ -620,28 +766,32 @@ namespace RN
 					{
 						if(SupportsOpenGLFeature(kOpenGLFeatureInstancing))
 						{
-							auto end = i + 1;
+							machine_uint end = i + 1;
 							offset = 1;
 
-							while(end != objects.end())
+							while(end < objectsCount)
 							{
-								if(end->mesh != mesh)
+								RenderingObject& temp = objects.ObjectAtIndex(end);
+								
+								if(temp.mesh != mesh)
 									break;
 
-								if(!surfaceMaterial && end->material != material)
+								if(!surfaceMaterial && temp.material != material)
 									break;
 
 								offset ++;
 								end ++;
 							}
+							
 
 							if(offset >= kRNRenderingPipelineInstancingCutOff)
 							{
 								if(material->Shader()->imatModel != -1)
 								{
 									BindMaterial(material);
-									DrawMeshInstanced(material, i, end, offset);
-
+									DrawMeshInstanced(objects, i, offset);
+									
+									profiler.HitMilestone("DrawMeshInstanced()");
 									continue;
 								}
 							}
@@ -654,60 +804,81 @@ namespace RN
 					{
 						noCheck --;
 					}
+					
+					profiler.HitMilestone("Instancing check");
 
 					// Send the other matrices to the shader
 					if(shader->matModel != -1)
-						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, i->transform->m);
+						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, transform.m);
 
 					if(shader->matModelInverse != -1)
-						glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, i->transform->Inverse().m);
+						glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, inverseTransform.m);
 
+					
 					if(shader->matViewModel != -1)
 					{
-						Matrix viewModel = camera->viewMatrix.AccessPast() * (*i->transform);
+						Matrix viewModel = viewMatrix * transform;
 						glUniformMatrix4fv(shader->matViewModel, 1, GL_FALSE, viewModel.m);
 					}
 
 					if(shader->matViewModelInverse != -1)
 					{
-						Matrix viewModel = camera->inverseViewMatrix * i->transform->Inverse();
+						Matrix viewModel = inverseViewMatrix * inverseTransform;
 						glUniformMatrix4fv(shader->matViewModelInverse, 1, GL_FALSE, viewModel.m);
 					}
 
+					
 					if(shader->matProjViewModel != -1)
 					{
-						Matrix projViewModel = camera->projectionMatrix.AccessPast() * camera->viewMatrix.AccessPast() * (*i->transform);
+						Matrix projViewModel = projectionViewMatrix * transform;
 						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 					}
 
 					if(shader->matProjViewModelInverse != -1)
 					{
-						Matrix projViewModel = camera->inverseProjectionMatrix.AccessPast() * camera->inverseViewMatrix.AccessPast() * i->transform->Inverse();
+						Matrix projViewModel = inverseProjectionViewMatrix * inverseTransform;
 						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 					}
 
 					// Render the mesh normally
+					profiler.HitMilestone("Begin rendering");
 					BindMaterial(material);
+					profiler.HitMilestone("Bind Material");
 					DrawMesh(mesh);
+					profiler.HitMilestone("DrawMesh()");
+					
+					changedShader  = false;
+					switchedCamera = false;
 				}
 			}
 			else
 			{
 				if(previous)
+				{
 					DrawCameraStage(previous, camera);
+					changedShader = true;
+				}
 			}
 
 			previous = camera;
-
+			
 			camera->Unbind();
+			camera->Pop();
+			
 			camera = camera->Stage();
 
 			if(!camera)
 				_flushCameras.push_back(previous);
+			
+			//glFinish();
+			profiler.HitMilestone("Camera->Unbind()", false);
 		}
 
 		delete[] lightcolor;
 		delete[] lightpos;
+		
+		profiler.HitMilestone("End");
+		profiler.DumpStatistic();
 	}
 
 	uint32 RenderingPipeline::BindTexture(Texture *texture)
@@ -860,23 +1031,23 @@ namespace RN
 		_currentMesh = mesh;
 	}
 
-	void RenderingPipeline::DrawMeshInstanced(Material *material, std::vector<RenderingObject>::iterator begin, const std::vector<RenderingObject>::iterator& last, uint32 count)
+	void RenderingPipeline::DrawMeshInstanced(Array<RenderingObject>& group, machine_uint start, machine_uint count)
 	{
-		Mesh *mesh = (Mesh *)begin->mesh;
+		Mesh *mesh = (Mesh *)group[(int)start].mesh;
 		MeshLODStage *stage = mesh->LODStage(0);
 		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
 
-		Shader *shader = material->Shader();
+		Shader *shader = _currentMaterial->Shader();
 
 		if(count > _numInstancingMatrices)
 		{
-			_numInstancingMatrices = count;
+			_numInstancingMatrices = (uint32)count;
 
 			free(_instancingMatrices);
 			_instancingMatrices = (Matrix *)malloc(_numInstancingMatrices * sizeof(Matrix));
 		}
 
-		GLuint vao = VAOForTuple(std::tuple<Material *, MeshLODStage *>(material, stage));
+		GLuint vao = VAOForTuple(std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage));
 		if(_currentVAO != vao)
 		{
 			gl::BindVertexArray(vao);
@@ -892,13 +1063,14 @@ namespace RN
 			gl::VertexAttribDivisor(shader->imatModel + i, 1);
 		}
 
-		for(uint32 i=0; begin!=last; begin++, i++)
+		for(machine_uint i=0; i<count; i++)
 		{
-			_instancingMatrices[i] = *begin->transform;
+			RenderingObject& object = group[(int)(start + i)];
+			_instancingMatrices[i] = *object.transform;
 		}
 
 		glBufferData(GL_ARRAY_BUFFER, count * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
-		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0, count);
+		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0, (GLsizei)count);
 
 		for(int i=0; i<4; i++)
 		{
@@ -1014,7 +1186,7 @@ namespace RN
 				_frame.clear();
 				return;
 			}
-
+			
 			_hasValidFramebuffer = true;
 		}
 

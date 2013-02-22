@@ -11,25 +11,26 @@
 
 namespace RN
 {
+	Model::Model()
+	{
+		
+	}
+	
 	Model::Model(const std::string& path)
 	{
 		File *file = new File(path);
 		
-//		uint32 magic = file->ReadUint32();
 		uint32 version = file->ReadUint8();
-		
-//		if(magic == 0x8A7FEED1)
-//		{
-			switch(version)
-			{
-				case 1:
-					ReadModelVersion1(file);
-					break;
-					
-				default:
-					break;
-			}
-//		}
+
+		switch(version)
+		{
+			case 1:
+				ReadModelVersion1(file);
+				break;
+				
+			default:
+				break;
+		}
 		
 		file->Release();
 	}
@@ -92,13 +93,71 @@ namespace RN
 		return model->Autorelease<Model>();
 	}
 	
+	Model *Model::WithSkyCube(std::string up, std::string down, std::string left, std::string right, std::string front, std::string back, std::string shader)
+	{
+		RN::Material *skyDownMaterial = new RN::Material(RN::Shader::WithFile(shader));
+		skyDownMaterial->AddTexture(RN::Texture::WithFile(down, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		skyDownMaterial->depthwrite = false;
+		RN::Mesh  *skyDownMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(0.0f, 0.0f, 0.0f));
+		
+		RN::Material *skyUpMaterial = new RN::Material(RN::Shader::WithFile(shader));
+		skyUpMaterial->AddTexture(RN::Texture::WithFile(up, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		skyUpMaterial->depthwrite = false;
+		RN::Mesh  *skyUpMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(0.0f, 180.0f, 0.0f));
+		
+		RN::Material *skyLeftMaterial = new RN::Material(RN::Shader::WithFile(shader));
+		skyLeftMaterial->AddTexture(RN::Texture::WithFile(left, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		skyLeftMaterial->depthwrite = false;
+		RN::Mesh  *skyLeftMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(-90.0f, 0.0f, 90.0f));
+		
+		RN::Material *skyRightMaterial = new RN::Material(RN::Shader::WithFile(shader));
+		skyRightMaterial->AddTexture(RN::Texture::WithFile(right, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		skyRightMaterial->depthwrite = false;
+		RN::Mesh  *skyRightMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(90.0f, 0.0f, 90.0f));
+		
+		RN::Material *skyFrontMaterial = new RN::Material(RN::Shader::WithFile(shader));
+		skyFrontMaterial->AddTexture(RN::Texture::WithFile(front, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		skyFrontMaterial->depthwrite = false;
+		RN::Mesh  *skyFrontMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(180.0f, 0.0f, 90.0f));
+		
+		RN::Material *skyBackMaterial = new RN::Material(RN::Shader::WithFile(shader));
+		skyBackMaterial->AddTexture(RN::Texture::WithFile(back, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		skyBackMaterial->depthwrite = false;
+		RN::Mesh  *skyBackMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(0.0f, 0.0f, 90.0f));
+		
+		RN::Model *skyModel = RN::Model::Empty();
+		skyModel->AddMesh(skyDownMesh->Autorelease<RN::Mesh>(), skyDownMaterial->Autorelease<RN::Material>());
+		skyModel->AddMesh(skyUpMesh->Autorelease<RN::Mesh>(), skyUpMaterial->Autorelease<RN::Material>());
+		skyModel->AddMesh(skyLeftMesh->Autorelease<RN::Mesh>(), skyLeftMaterial->Autorelease<RN::Material>());
+		skyModel->AddMesh(skyRightMesh->Autorelease<RN::Mesh>(), skyRightMaterial->Autorelease<RN::Material>());
+		skyModel->AddMesh(skyFrontMesh->Autorelease<RN::Mesh>(), skyFrontMaterial->Autorelease<RN::Material>());
+		skyModel->AddMesh(skyBackMesh->Autorelease<RN::Mesh>(), skyBackMaterial->Autorelease<RN::Material>());
+		
+		return skyModel;
+	}
+	
 	Model *Model::WithMesh(Mesh *mesh, Material *material, const std::string& name)
 	{
 		Model *model = new Model(mesh, material, name);
 		return model->Autorelease<Model>();
 	}
 	
+	Model *Model::Empty()
+	{
+		Model *model = new Model();
+		return model->Autorelease<Model>();
+	}
 	
+	void Model::AddMesh(Mesh *mesh, Material *material, const std::string& name)
+	{
+		MeshGroup group;
+		group.mesh = mesh->Retain<Mesh>();
+		group.material = material;
+		group.name = name;
+		
+		_groups.push_back(group);
+		_materials.AddObject(material);
+	}
 	
 	uint32 Model::Meshes() const
 	{
@@ -276,146 +335,5 @@ namespace RN
 			printf("Animation filename: %s\n", animfilename);
 			//meshesstd::string(animfilename);
 		}*/
-		
-		
-		
-		
-//		uint32 materialCount = file->ReadUint32();
-//		uint32 groups = file->ReadUint32();
-		
-/*		ReadMaterials(file, materialCount);
-		ReadGroups(file, groups);*/
 	}
-	
-/*	void Model::ReadMaterials(File *file, uint32 count)
-	{
-		while(count)
-		{
-			Material *material = new Material(0);
-			
-			// Culling
-			uint8 culling = file->ReadUint8();
-			
-			material->culling = (culling & 0x1);
-			material->cullmode = ((culling >> 1) & 0x1) ? GL_CCW : GL_CW;
-			
-			// Alpha test
-			uint8 alphaTest = file->ReadUint8();
-			
-			material->alphatest = (alphaTest);
-			
-			// Diffuse color
-			uint32 diffuse = file->ReadUint32();
-			uint8 diffuseR = (diffuse >> 24) & 0xff;
-			uint8 diffuseG = (diffuse >> 16) & 0xff;
-			uint8 diffuseB = (diffuse >> 8)  & 0xff;
-			uint8 diffuseA = (diffuse >> 0)  & 0xff;
-			
-			material->diffuse = Color((diffuseR / 255.0f), (diffuseG / 255.0f), (diffuseB / 255.0f), (diffuseA / 255.0f));
-			
-			// Grab the textures
-			uint32 textures = file->ReadUint32();
-			while(textures)
-			{
-				uint32 length = file->ReadUint32();
-				char *name = new char[length + 1];
-				
-				file->ReadIntoBuffer(name, length);
-				name[length] = '\0';
-				
-				Texture *texture = new Texture(std::string(name), Texture::FormatRGBA8888);
-				material->AddTexture(texture);
-				texture->Release();
-				
-				delete [] name;
-				
-				textures --;
-			}
-			
-			_materials->AddObject(material);
-			material->Release();
-			
-			count --;
-		}
-	}
-	
-	void Model::ReadGroups(File *file, uint32 count)
-	{
-		while(count)
-		{
-			MeshGroup group;
-			
-			Material *material = (Material *)_materials->ObjectAtIndex(file->ReadUint32());
-			Mesh *mesh = new Mesh();
-			
-			uint32 features = file->ReadUint32();
-			
-			// Read the name
-			{
-				uint32 length = file->ReadUint32();
-				char *name = new char[length + 1];
-				
-				file->ReadIntoBuffer(name, length);
-				name[length] = '\0';
-				
-				group.name = std::string(name);
-				delete [] name;
-			}
-			
-			// Read all features of the mesh
-			std::vector<FeatureDescriptor> descriptors;
-			Array<MeshDescriptor> meshDescriptors;
-			
-			while(features)
-			{
-				FeatureDescriptor descriptor = ReadFeature(file);
-				
-				descriptors.push_back(descriptor);
-				meshDescriptors.AddObject(descriptor.meshDescriptor);
-				
-				features --;
-			}
-			
-			// Create the mesh
-			MeshLODStage *stage = mesh->AddLODStage(meshDescriptors);
-			
-			for(auto i=descriptors.begin(); i!=descriptors.end(); i++)
-			{
-				FeatureDescriptor descriptor = *i;
-				uint8 *target = stage->Data<uint8>(descriptor.meshDescriptor.feature);
-				uint8 *source = descriptor.data;
-				
-				std::copy(source, source + descriptor.size, target);
-			}
-			
-			mesh->UpdateMesh();
-			
-			group.material = material;
-			group.mesh = mesh;
-			
-			_groups.push_back(group);
-			count --;
-		}
-	}
-	
-	Model::FeatureDescriptor Model::ReadFeature(File *file)
-	{
-		MeshDescriptor meshDescriptor;
-		meshDescriptor.feature = (MeshFeature)file->ReadUint32();
-		meshDescriptor.elementCount = file->ReadUint32();
-		meshDescriptor.elementSize = file->ReadUint32();
-		meshDescriptor.elementMember = file->ReadUint32();
-		
-		uint32 size = file->ReadUint32();
-		uint8 *data = new uint8[size];
-		
-		file->ReadIntoBuffer(data, size);
-		
-		FeatureDescriptor descriptor;
-		descriptor.meshDescriptor = meshDescriptor;
-		descriptor.data = data;
-		descriptor.size = size;
-		
-		return descriptor;
-	}*/
 }

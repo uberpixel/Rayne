@@ -321,56 +321,106 @@
 
 namespace RN
 {
-#if RN_PLATFORM_MAC_OS
 	Window::Window(const std::string& title, Kernel *kernel)
 	{
+#if RN_PLATFORM_MAC_OS
 		_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, 1024, 768)];
 		[(RNNativeWindow *)_nativeWindow center];
+#endif
+		
+#if RN_PLATFORM_IOS
+		_nativeWindow = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
+		[(UIWindow *)_nativeWindow setBackgroundColor:[UIColor whiteColor]];
+		
+		_rootViewController = 0;
+#endif
 
 		_context = 0;
 		_kernel = kernel;
 		_renderer = _kernel->Renderer();
 
 		SetTitle(title);
-
-		std::thread thread = std::thread(&Window::RenderLoop, this);
-		thread.detach();
+		
+		_thread = new Thread(std::bind(&Window::RenderLoop, this));
+		_renderer->SetThread(_thread);
 	}
 
 	Window::~Window()
 	{
 		_context->Release();
+		_thread->Release();
+		
+#if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow release];
+#endif
+		
+#if RN_PLATFORM_IOS
+		[(UIWindow *)_nativeWindow release];
+		[(UIViewController *)_rootViewController release];
+#endif
 	}
 
 
 	void Window::Show()
 	{
+#if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow makeKeyAndOrderFront:nil];
+#endif
+		
+#if RN_PLATFORM_IOS
+		[(UIWindow *)_nativeWindow makeKeyAndVisible];
+#endif
 	}
 
 	void Window::Hide()
 	{
+#if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow close];
+#endif
+		
+#if RN_PLATFORM_IOS
+		[(UIWindow *)_nativeWindow resignFirstResponder];
+		[(UIWindow *)_nativeWindow setHidden:YES];
+#endif
 	}
 
 	void Window::SetContext(Context *context)
 	{
+#if RN_PLATFORM_IOS
+		[(UIViewController *)_rootViewController release];
+		
+		_rootViewController = [[RNOpenGLViewController alloc] initWithController:this andFrame:[(UIWindow *)_nativeWindow bounds]];
+		_renderingView      = (RNOpenGLView *)[(UIViewController *)_rootViewController view];
+		
+		[(UIWindow *)_nativeWindow setRootViewController:(UIViewController *)_rootViewController];
+#endif
+		
 		_context->Release();
 		_context = new Context(context);
 
+#if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow setOpenGLContext:(NSOpenGLContext *)_context->_oglContext andPixelFormat:(NSOpenGLPixelFormat *)_context->_oglPixelFormat];
+#endif
 	}
 
 	void Window::SetTitle(const std::string& title)
 	{
+#if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow setTitle:[NSString stringWithUTF8String:title.c_str()]];
+#endif
 	}
 
 	Rect Window::Frame() const
 	{
+#if RN_PLATFORM_MAC_OS
 		NSRect frame = [[(RNNativeWindow *)_nativeWindow contentView] frame];
 		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+#endif
+		
+#if RN_PLATFORM_IOS
+		CGRect frame = [(RNOpenGLView *)_renderingView bounds];
+		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+#endif
 	}
 
 	void Window::RenderLoop()
@@ -380,11 +430,16 @@ namespace RN
 			std::this_thread::sleep_for(std::chrono::microseconds(5));
 			continue;
 		}
+	
+		_context->MakeActiveContext();
+		
+#if RN_PLATFORM_IOS
+		[(RNOpenGLView *)_renderingView createDrawBuffer];
+#endif
 
-		while(!_renderer->ShouldStop())
+		while(!_thread->IsCancelled())
 		{
-			_context->MakeActiveContext();
-
+#if RN_PLATFORM_MAC_OS
 			if(((RNNativeWindow *)_nativeWindow).needsResize)
 			{
 				NSRect frame = [[(RNNativeWindow *)_nativeWindow contentView] frame];
@@ -395,111 +450,25 @@ namespace RN
 
 			_renderer->WaitForWork();
 			CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
-
-			_context->DeactivateContext();
-		}
-
-		_renderer->DidStop();
-	}
-
 #endif
-
-
+			
 #if RN_PLATFORM_IOS
-	Window::Window(const std::string& title, Kernel *kernel)
-	{
-		_nativeWindow = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
-		[(UIWindow *)_nativeWindow setBackgroundColor:[UIColor whiteColor]];
-
-		_rootViewController = 0;
-
-		_context = 0;
-		_kernel = kernel;
-		_renderer = _kernel->Renderer();
-
-		SetTitle(title);
-
-		std::thread thread = std::thread(&Window::RenderLoop, this);
-		thread.detach();
-	}
-
-	Window::~Window()
-	{
-		_context->Release();
-		[(UIWindow *)_nativeWindow release];
-		[(UIViewController *)_rootViewController release];
-	}
-
-
-	void Window::Show()
-	{
-		[(UIWindow *)_nativeWindow makeKeyAndVisible];
-	}
-
-	void Window::Hide()
-	{
-		[(UIWindow *)_nativeWindow resignFirstResponder];
-		[(UIWindow *)_nativeWindow setHidden:YES];
-	}
-
-	void Window::SetContext(Context *context)
-	{
-		[(UIViewController *)_rootViewController release];
-
-		_rootViewController = [[RNOpenGLViewController alloc] initWithController:this andFrame:[(UIWindow *)_nativeWindow bounds]];
-		_renderingView      = (RNOpenGLView *)[(UIViewController *)_rootViewController view];
-
-		[(UIWindow *)_nativeWindow setRootViewController:(UIViewController *)_rootViewController];
-
-		_context->Release();
-		_context = new Context(context);
-	}
-
-	void Window::SetTitle(const std::string& title)
-	{
-	}
-
-	Rect Window::Frame() const
-	{
-		CGRect frame = [(RNOpenGLView *)_renderingView bounds];
-		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
-	}
-
-	void Window::RenderLoop()
-	{
-		while(!_context)
-		{
-			std::this_thread::sleep_for(std::chrono::microseconds(5));
-			continue;
-		}
-
-		_context->MakeActiveContext();
-		[(RNOpenGLView *)_renderingView createDrawBuffer];
-		_context->DeactivateContext();
-
-		while(!_renderer->ShouldStop())
-		{
-			_context->MakeActiveContext();
-
 			if(((RNOpenGLView *)_renderingView).needsLayerResize)
 			{
 				[(RNOpenGLView *)_renderingView resizeFromLayer];
-
+				
 				_renderer->SetDefaultFrame(((RNOpenGLView *)_renderingView).backingWidth, ((RNOpenGLView *)_renderingView).backingHeight);
 				_renderer->SetDefaultFBO(((RNOpenGLView *)_renderingView).framebuffer);
 			}
-
+			
 			_renderer->WaitForWork();
 			[(RNOpenGLView *)_renderingView flushFrame];
-
-			_context->DeactivateContext();
-		}
-
-		_renderer->DidStop();
-	}
 #endif
+		}
+		
+		_context->DeactivateContext();
+	}
 }
-
 #endif
 
 #if RN_PLATFORM_WINDOWS

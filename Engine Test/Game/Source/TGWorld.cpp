@@ -13,8 +13,8 @@ namespace TG
 	World::World()
 	{
 #if !(RN_PLATFORM_IOS)
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
-//		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatColor | RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
+		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
 		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
 		storage->SetDepthTarget(depthtex);
 		
@@ -23,9 +23,11 @@ namespace TG
 		
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
-		_camera->SetMaterial(surfaceMaterial);
+		_camera->ActivateTiledLightLists((RN::Texture *)1);
+		_camera->setSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
+		//_camera->SetMaterial(surfaceMaterial);
 		
-		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
+		/*RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
 		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
 		downsampleMaterial2x->AddTexture(depthtex);
@@ -85,17 +87,13 @@ namespace TG
 		else
 		{
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
-		}
+		}*/
 #else
 		_camera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults);
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
 #endif
 		
 		CreateWorld();
-		
-#if RN_PLATFORM_MAC_OS
-//		CreateSSAOStage();
-#endif
 		
 		RN::Input::SharedInstance()->Activate();
 	}
@@ -160,6 +158,11 @@ namespace TG
 		translation *= 0.2f;
 #endif
 		
+		_parentBlock->Rotate(RN::Vector3(0.0f, 64.0f * delta, 0.0f));
+		
+		_childBlock->Rotate(RN::Vector3(32.0f * delta, 0.0f, 32.0f * delta));
+		_childBlock->SetPosition(RN::Vector3(0.0f, 2.0f + (sinf(RN::Kernel::SharedInstance()->Time())), 0.0f));
+		
 		_camera->Rotate(rotation);
 		
 		RN::Matrix rot;
@@ -167,80 +170,15 @@ namespace TG
 		_camera->Translate(rot.Transform(translation * -delta));
 		
 #if !(RN_PLATFORM_IOS)
-		_finalcam->SetPosition(_camera->Position());
-		_finalcam->SetRotation(_camera->Rotation());
+		//_finalcam->SetPosition(_camera->Position());
+		//_finalcam->SetRotation(_camera->Rotation());
 #endif
-	}
-	
-	
-	void World::CreateSSAOStage()
-	{
-		// Surface normals + depth stage
-		RN::Shader *surfaceShader = RN::Shader::WithFile("shader/SurfaceNormals");
-		RN::Material *surfaceMaterial = new RN::Material(surfaceShader);
-		
-		_camera->SetMaterial(surfaceMaterial);
-		
-		// SSAO stage
-		RN::Texture *noise = RN::Texture::WithFile("textures/SSAO_noise.png", RN::Texture::FormatRGB888, RN::Texture::WrapModeRepeat, RN::Texture::FilterLinear, true);
-		RN::Shader *ssao = RN::Shader::WithFile("shader/SSAO");
-		
-		RN::Material *ssaoMaterial = new RN::Material(ssao);
-		ssaoMaterial->AddTexture(noise);
-		
-		RN::Camera *ssaoStage  = new RN::Camera(RN::Vector2(), RN::Texture::FormatR8, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget, RN::RenderStorage::BufferFormatColor);
-		ssaoStage->SetMaterial(ssaoMaterial);
-		ssaoMaterial->Release();
-		
-		_camera->AddStage(ssaoStage);
-		
-		// Blur
-		RN::Shader *blurVertical = new RN::Shader();
-		RN::Shader *blurHorizontal = new RN::Shader();
-		
-		blurVertical->SetVertexShader("shader/GaussianVertical.vsh");
-		blurVertical->SetFragmentShader("shader/Gaussian.fsh");
-		blurVertical->Link();
-		
-		blurHorizontal->SetVertexShader("shader/GaussianHorizontal.vsh");
-		blurHorizontal->SetFragmentShader("shader/Gaussian.fsh");
-		blurHorizontal->Link();
-		
-		RN::Material *verticalMaterial = new RN::Material(blurVertical->Autorelease<RN::Shader>());
-		RN::Material *horizontalMateral = new RN::Material(blurHorizontal->Autorelease<RN::Shader>());
-		
-		RN::Camera *verticalStage  = new RN::Camera(RN::Vector2(), RN::Texture::FormatR8, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
-		RN::Camera *horizontalStage  = new RN::Camera(RN::Vector2(), RN::Texture::FormatR8, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
-		
-		verticalStage->SetMaterial(verticalMaterial);		
-		horizontalStage->SetMaterial(horizontalMateral);
-		 
-		_camera->AddStage(verticalStage);
-		_camera->AddStage(horizontalStage);
-		
-		// World stage
-		RN::Camera *sceneCamera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGB888, RN::Camera::FlagInherit);
-		_camera->AddStage(sceneCamera);
-		
-		// SSAO post stage
-		RN::Shader *ssaoPost = new RN::Shader();
-		ssaoPost->SetVertexShader("shader/SSAO.vsh");
-		ssaoPost->SetFragmentShader("shader/SSAOPost.fsh");
-		ssaoPost->Link();
-		
-		RN::Material *ssaoPostMaterial = new RN::Material(ssaoPost);
-		ssaoPostMaterial->AddTexture(horizontalStage->RenderTarget());
-		
-		RN::Camera *ssaoPostStage = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGB888, RN::Camera::FlagInherit | RN::Camera::FlagDrawTarget);
-		ssaoPostStage->SetMaterial(ssaoPostMaterial);
-		
-		_camera->AddStage(ssaoPostStage);
 	}
 	
 	void World::CreateWorld()
 	{
 		// Blocks
-/*		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
+		/*RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
 		RN::Texture *blockTexture1 = RN::Texture::WithFile("textures/testpng.png", RN::Texture::FormatRGB565);
 		
 		RN::Material *blockMaterial = new RN::Material(0);
@@ -291,8 +229,8 @@ namespace TG
 		_floor->SetSize(RN::Vector3(5.0f, 0.5f, 5.0f));
 		_floor->SetRestitution(0.5f);*/
 		
-		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight");
-		RN::Shader *lightshader = RN::Shader::WithFile("shader/rn_Texture1Light");
+		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1Discard");
+		RN::Shader *lightshader = RN::Shader::WithFile("shader/rn_Texture1");
 		
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
 		for(int i = 0; i < model->Meshes(); i++)
@@ -301,10 +239,13 @@ namespace TG
 		}
 		model->MaterialForMesh(model->MeshAtIndex(4))->SetShader(shader);
 		model->MaterialForMesh(model->MeshAtIndex(4))->culling = false;
+		model->MaterialForMesh(model->MeshAtIndex(4))->alphatest = true;
 		model->MaterialForMesh(model->MeshAtIndex(10))->SetShader(shader);
 		model->MaterialForMesh(model->MeshAtIndex(10))->culling = false;
+		model->MaterialForMesh(model->MeshAtIndex(10))->alphatest = true;
 		model->MaterialForMesh(model->MeshAtIndex(19))->SetShader(shader);
 		model->MaterialForMesh(model->MeshAtIndex(19))->culling = false;
+		model->MaterialForMesh(model->MeshAtIndex(19))->alphatest = true;
 		
 		RN::Entity *sponza = new RN::Entity();
 		sponza->SetModel(model);
@@ -312,7 +253,23 @@ namespace TG
 		sponza->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
-		RN::LightEntity *light;
+		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
+		
+		RN::Material *blockMaterial = new RN::Material(lightshader);
+		blockMaterial->AddTexture(blockTexture0);
+		
+		RN::Mesh  *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f, 0.5f, 0.5f));
+		RN::Model *blockModel = RN::Model::WithMesh(blockMesh->Autorelease<RN::Mesh>(), blockMaterial->Autorelease<RN::Material>());
+		
+		_parentBlock = new RN::Entity();
+		_parentBlock->SetModel(blockModel);
+		
+		_childBlock = new RN::Entity();
+		_childBlock->SetModel(blockModel);
+		
+		_parentBlock->AttachChild(_childBlock);
+		
+		/*RN::LightEntity *light;
 		
 		light = new RN::LightEntity();
 		light->SetPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
@@ -323,17 +280,18 @@ namespace TG
 		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
+		 */
 		
-		for(int i = 0; i < 400; i++)
+		/*for(int i = 0; i < 1000; i++)
 		{
 			light = new RN::LightEntity();
 			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
 			light->SetRange((float)(rand())/RAND_MAX*20.0f);
 			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
-		}
+		}*/
 		
-#if RN_TARGET_OPENGL
-/*		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight_instanced");
+#if 0 //RN_TARGET_OPENGL
+		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight_instanced");
 		RN::Model *foliage[4];
 		
 		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
@@ -354,7 +312,7 @@ namespace TG
 		
 		uint32 index = 0;
 		
-		for(float x = -100.0f; x < 200.0f; x += 1.0f)
+		for(float x = -100.0f; x < 200.0f; x += 1.5f)
 		{
 			for(float y = -10.0f; y < 10.0f; y += 1.0f)
 			{
@@ -365,7 +323,7 @@ namespace TG
 				fern->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 				fern->SetPosition(RN::Vector3(x, -5.3, y));
 			}
-		}*/
+		}
 #endif
 	}
 }

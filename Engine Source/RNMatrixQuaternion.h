@@ -20,6 +20,7 @@ namespace RN
 	public:
 		Matrix();
 
+		Matrix& operator= (const Matrix& other);
 		Matrix& operator*= (const Matrix& other);
 		Matrix operator* (const Matrix& other) const;
 		Vector3 operator* (const Vector3& other) const;

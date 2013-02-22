@@ -10,6 +10,7 @@
 #define __RAYNE_OPENGL_H__
 
 #include "RNBase.h"
+#include "RNOpenGLExtensions.h"
 
 #ifndef APIENTRY
 #define APIENTRY

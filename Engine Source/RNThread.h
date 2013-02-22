@@ -21,8 +21,7 @@ namespace RN
 {
 	class Mutex;
 	class Context;
-	
-	class Shader;
+	class Kernel;
 	class AutoreleasePool;
 	
 	class Thread : public Object
@@ -31,29 +30,39 @@ namespace RN
 	friend class Texture;
 	friend class Camera;
 	friend class Mesh;
-	friend class Shader;
 	friend class AutoreleasePool;
-		
+	friend class Kernel;
 	public:
-		typedef void (*ThreadEntry)(Thread *thread);
+		template<typename F>
+		Thread(F&& func)
+		{
+			Initialize();
+			
+			std::thread thread = std::thread([=]() {
+				Entry();
+				func();
+				Exit();
+			});
+			
+			thread.detach();
+		}
 		
-		Thread(ThreadEntry entry);
 		virtual ~Thread();
 		
 		bool OnThread() const;
-		void Detach();
-		void Exit();
 		
-		Texture *CurrentTexture() const { return _textures->LastObject(); }
-		Camera *CurrentCamera() const { return _cameras->LastObject(); }
-		Mesh *CurrentMesh() const { return _meshes->LastObject(); }
+		void Cancel();
+		bool IsCancelled() const { return _isCancelled; }
+		bool IsRunning() const { return _isRunning; }
 		
 		static Thread *CurrentThread();
 		
 	private:
 		Thread();
+		
 		void Initialize();
 		void Entry();
+		void Exit();
 		
 		void PushTexture(Texture *texture);
 		void PopTexture() { _textures->RemoveLastObject(); }
@@ -64,16 +73,21 @@ namespace RN
 		void PushMesh(Mesh *mesh);
 		void PopMesh() { _meshes->RemoveLastObject(); }
 		
-		bool _detached;
-		ThreadEntry _entry;
+		Texture *CurrentTexture() const { return _textures->LastObject(); }
+		Camera *CurrentCamera() const { return _cameras->LastObject(); }
+		Mesh *CurrentMesh() const { return _meshes->LastObject(); }
 		
-		Mutex   *_mutex;
+		
+		Mutex *_mutex;
 		Context *_context;
 		AutoreleasePool *_pool;
 		
 		Array<Texture> *_textures;
 		Array<Camera> *_cameras;
 		Array<Mesh> *_meshes;
+		
+		bool _isRunning;
+		bool _isCancelled;
 		
 		std::thread::id _id;
 	};

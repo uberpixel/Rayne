@@ -50,6 +50,7 @@ namespace RN
 		Context *_context;
 		RenderingPipeline *_renderer;
 		Kernel *_kernel;
+		Thread *_thread;
 	};
 }
 

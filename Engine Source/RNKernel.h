@@ -54,6 +54,7 @@ namespace RN
 		float _scaleFactor;
 
 		Application *_app;
+		Thread *_mainThread;
 
 		class Window *_window;
 		class Context *_context;

@@ -11,6 +11,7 @@
 #include "RNWorld.h"
 #include "RNOpenGL.h"
 #include "RNAutoreleasePool.h"
+#include "RNThreadPool.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -23,12 +24,15 @@ namespace RN
 {
 	Kernel::Kernel(const std::string& module)
 	{
+		_mainThread = new Thread();
+		
 		AutoreleasePool *pool = new AutoreleasePool();
 
 		_context = new class Context();
 		_context->MakeActiveContext();
 
 		ReadOpenGLExtensions();
+		ThreadPool::SharedInstance();
 
 		_scaleFactor = 1.0f;
 
@@ -76,6 +80,7 @@ namespace RN
 		_context->Release();
 
 		delete pool;
+		delete _mainThread;
 	}
 
 	void Kernel::LoadApplicationModule(const std::string& module)

@@ -247,6 +247,63 @@ namespace RN
 		}
 	}
 	
+	Mesh *Mesh::PlaneMesh(const Vector3& size, const Vector3& rotation)
+	{
+		Mesh *mesh = new Mesh();
+		
+		MeshDescriptor vertexDescriptor;
+		vertexDescriptor.feature = kMeshFeatureVertices;
+		vertexDescriptor.elementSize = sizeof(Vector3);
+		vertexDescriptor.elementMember = 3;
+		vertexDescriptor.elementCount  = 4;
+		
+		MeshDescriptor texcoordDescriptor;
+		texcoordDescriptor.feature = kMeshFeatureUVSet0;
+		texcoordDescriptor.elementSize = sizeof(Vector2);
+		texcoordDescriptor.elementMember = 2;
+		texcoordDescriptor.elementCount  = 4;
+		
+		MeshDescriptor indicesDescriptor;
+		indicesDescriptor.feature = kMeshFeatureIndices;
+		indicesDescriptor.elementSize = sizeof(uint16);
+		indicesDescriptor.elementMember = 1;
+		indicesDescriptor.elementCount  = 6;
+		
+		Array<MeshDescriptor> descriptors;
+		descriptors.AddObject(vertexDescriptor);
+		descriptors.AddObject(indicesDescriptor);
+		descriptors.AddObject(texcoordDescriptor);
+		
+		
+		MeshLODStage *stage = mesh->AddLODStage(descriptors);
+		
+		Vector3 *vertices  = stage->Data<Vector3>(kMeshFeatureVertices);
+		Vector2 *texcoords = stage->Data<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = stage->Data<uint16>(kMeshFeatureIndices);
+		
+		Matrix rotmat;
+		rotmat.MakeRotate(rotation);
+		
+		*vertices ++ = rotmat.Transform(Vector3(-size.x, size.y, -size.z));
+		*vertices ++ = rotmat.Transform(Vector3( size.x, size.y, -size.z));
+		*vertices ++ = rotmat.Transform(Vector3( size.x, size.y, size.z));
+		*vertices ++ = rotmat.Transform(Vector3(-size.x, size.y, size.z));
+		
+		*texcoords ++ = Vector2(0.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 0.0f);
+		*texcoords ++ = Vector2(1.0f, 1.0f);
+		*texcoords ++ = Vector2(0.0f, 1.0f);
+		
+		*indices ++ = 0;
+		*indices ++ = 3;
+		*indices ++ = 1;
+		*indices ++ = 2;
+		*indices ++ = 1;
+		*indices ++ = 3;
+		
+		mesh->UpdateMesh();
+		return mesh;
+	}
 	
 	Mesh *Mesh::CubeMesh(const Vector3& size)
 	{
