@@ -9,6 +9,7 @@
 #include "RNContext.h"
 #include "RNBaseInternal.h"
 #include "RNMutex.h"
+#include "RNSettings.h"
 
 #if RN_PLATFORM_WINDOWS
 extern void RNRegisterWindow();
@@ -381,7 +382,10 @@ namespace RN
 			glGetFloatv(GL_COLOR_CLEAR_VALUE, &_clearColor.r);
 			
 #if GL_FRAMEBUFFER_SRGB
-			glEnable(GL_FRAMEBUFFER_SRGB);
+			if(Settings::SharedInstance()->GammaCorrection())
+			{
+				glEnable(GL_FRAMEBUFFER_SRGB);
+			}
 #endif
 		}
 	}

@@ -10,6 +10,7 @@
 #include "RNTextureLoader.h"
 #include "RNThread.h"
 #include "RNKernel.h"
+#include "RNSettings.h"
 
 namespace RN
 {
@@ -21,7 +22,6 @@ namespace RN
 		
 		_width = _height = 0;
 		_format = format;
-		_isLinear = isLinear;
 		_anisotropy = 0;
 		
 		_wrapMode = (WrapMode)-1;
@@ -36,6 +36,7 @@ namespace RN
 		SetFilter(filter);
 		SetWrappingMode(wrap);
 		SetAnisotropyLevel(_defaultAnisotropy);
+		SetLinear(isLinear);
 		
 		Unbind();
 	}
@@ -48,7 +49,6 @@ namespace RN
 		
 		_width = _height = 0;
 		_format = format;
-		_isLinear = isLinear;
 		
 		_generateMipmaps = true;
 		_isCompleteTexture = false;
@@ -59,6 +59,7 @@ namespace RN
 		SetFilter(filter);
 		SetWrappingMode(wrap);
 		SetAnisotropyLevel(_defaultAnisotropy);
+		SetLinear(isLinear);
 		
 		try
 		{
@@ -183,6 +184,9 @@ namespace RN
 	void Texture::SetLinear(bool linear)
 	{
 		_isLinear = linear;
+		
+		if(!Settings::SharedInstance()->GammaCorrection())
+			_isLinear = true;
 	}
 	
 	void Texture::SetGeneratesMipmaps(bool genMipmaps)

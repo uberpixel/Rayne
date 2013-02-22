@@ -23,7 +23,7 @@ namespace RN
 	class Kernel : public Object, public UnconstructingSingleton<Kernel>
 	{
 	public:
-		RNAPI Kernel(const std::string& module);
+		RNAPI Kernel();
 		RNAPI virtual ~Kernel();
 
 		RNAPI bool Tick();
