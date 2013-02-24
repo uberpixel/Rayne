@@ -22,7 +22,7 @@ namespace RN
 	class Transform;
 	class RetainPool;
 	
-	class World : public UnconstructingSingleton<World>
+	class World : public NonConstructingSingleton<World>
 	{
 	friend class Transform;
 	friend class Kernel;

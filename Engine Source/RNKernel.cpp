@@ -59,7 +59,7 @@ namespace RN
 		_scaledTime = 0.0f;
 		_timeScale  = 1.0f;
 
-		_lastFrame  = std::chrono::system_clock::now();
+		_lastFrame  = std::chrono::steady_clock::now();
 		_resetDelta = true;
 
 		_initialized = false;
@@ -88,10 +88,22 @@ namespace RN
 	void Kernel::LoadApplicationModule(const std::string& module)
 	{
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
-		std::string path = File::PathForName(module + ".dylib");
+		std::string moduleName = module;
+		
+#if RN_PLATFORM_MAC_OS
+		moduleName += ".dylib";
+#endif
+		
+#if RN_PLATFORM_LINUX
+		moduleName += ".so";
+#endif
+		
+		std::string path = File::PathForName(moduleName);
 
 		_appHandle = dlopen(path.c_str(), RTLD_LAZY);
-		if (_appHandle == NULL) puts(dlerror());
+		if(!_appHandle)
+			throw ErrorException(0, 0, 0, std::string(dlerror()));
+								 
 		dlerror();
 		__ApplicationEntry = (RNApplicationEntryPointer)dlsym(_appHandle, "RNApplicationCreate");
 
@@ -119,7 +131,7 @@ namespace RN
 
 	bool Kernel::Tick()
 	{
-		std::chrono::time_point<std::chrono::system_clock> now = std::chrono::system_clock::now();
+		std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
 		AutoreleasePool *pool = new AutoreleasePool();
 
 		if(!_initialized)
@@ -134,10 +146,8 @@ namespace RN
 			_resetDelta = false;
 		}
 
-		auto seconds = std::chrono::duration_cast<std::chrono::seconds>(now - _lastFrame).count();
 		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
-
-		float trueDelta = seconds + (milliseconds / 1000.0f);
+		float trueDelta = milliseconds / 1000.0f;
 
 		_time += trueDelta;
 

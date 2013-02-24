@@ -20,7 +20,7 @@
 namespace RN
 {
 	class World;
-	class Kernel : public Object, public UnconstructingSingleton<Kernel>
+	class Kernel : public Object, public NonConstructingSingleton<Kernel>
 	{
 	public:
 		RNAPI Kernel();
@@ -70,7 +70,7 @@ namespace RN
 		float _scaledTime;
 		float _delta;
 		float _timeScale;
-		std::chrono::time_point<std::chrono::system_clock> _lastFrame;
+		std::chrono::time_point<std::chrono::steady_clock> _lastFrame;
 	};
 }
 

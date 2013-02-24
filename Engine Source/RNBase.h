@@ -162,7 +162,8 @@ namespace RN
 
 		virtual ~Singleton()
 		{
-			_instance = 0;
+			if(_instance == this)
+				_instance = 0;
 		}
 
 	private:
@@ -173,7 +174,7 @@ namespace RN
 	T * Singleton<T>::_instance = 0;
 
 	template <class T>
-	class UnconstructingSingleton
+	class NonConstructingSingleton
 	{
 	public:
 		static T *SharedInstance()
@@ -182,13 +183,13 @@ namespace RN
 		}
 
 	protected:
-		UnconstructingSingleton()
+		NonConstructingSingleton()
 		{
 			RN_ASSERT0(_instance == 0);
 			_instance = static_cast<T *>(this);
 		}
 
-		virtual ~UnconstructingSingleton()
+		virtual ~NonConstructingSingleton()
 		{
 			_instance = 0;
 		}
@@ -198,7 +199,7 @@ namespace RN
 	};
 
 	template <class T>
-	T * UnconstructingSingleton<T>::_instance = 0;
+	T * NonConstructingSingleton<T>::_instance = 0;
 }
 
 #endif /* __RAYNE_BASE_H__ */

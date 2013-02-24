@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	class Application : public UnconstructingSingleton<Application>
+	class Application : public NonConstructingSingleton<Application>
 	{
 	public:
 		Application();
