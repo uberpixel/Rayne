@@ -45,6 +45,17 @@ namespace RN
 #endif
 		}
 		
+		bool TryLock()
+		{
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
+			return OSSpinLockTry(&_lock);
+#endif
+			
+#if RN_PLATFORM_WINDOWS
+			return _lock.try_lock();
+#endif
+		}
+		
 	private:
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
 		OSSpinLock _lock;
