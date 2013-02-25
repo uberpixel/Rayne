@@ -37,15 +37,7 @@ namespace RN
 		
 		
 		operator T& ();
-		/*{
-			return _current;
-		}*/
-		
 		operator T() const;
-		/*{
-			return _current;
-		}*/
-		
 		
 		const T* operator-> () const
 		{
@@ -115,6 +107,17 @@ namespace RN
 		void SynchronizePast()
 		{
 			_past = _current;
+		}
+		
+		bool IsSynchronWithPast() const
+		{
+			return (_current == _past);
+		}
+		
+		template <typename R=T>
+		R Diff() const
+		{
+			return ((R)_current) - ((R)_past);
 		}
 		
 	private:
