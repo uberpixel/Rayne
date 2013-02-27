@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNAutoreleasePool.h"
+#include "RNCache.h"
 
 #include "RNKernel.h"
 #include "RNApplication.h"
