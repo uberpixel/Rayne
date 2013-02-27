@@ -18,7 +18,7 @@ namespace RN
 {
 	class ThreadPool : public Singleton<ThreadPool>
 	{
-		friend class Thread;
+	friend class Thread;
 	public:
 		ThreadPool();
 		
@@ -101,6 +101,10 @@ namespace RN
 				task();
 				
 				lock.lock();
+				
+				if(_threads.Count() > 1 && ThreadPool::SharedInstance()->AvailableConcurrency() < 0)
+					break;
+				
 				workLeft = _tasks.Count();
 			}
 			
