@@ -25,7 +25,7 @@ namespace RN
 		virtual void EndContentAccess();
 		
 		virtual bool DiscardContent() = 0;
-		virtual bool IsDiscarded() = 0;
+		virtual bool IsDiscarded() const = 0;
 		
 		Cache *Cache() const { return _owner; }
 		
@@ -66,6 +66,9 @@ namespace RN
 		
 		void SetWeightLimit(machine_uint maxWeight);
 		void EvictCacheables(machine_uint weight);
+		
+		machine_uint WeightLimit() const { return _weightLimit; }
+		machine_uint TotalWeight() const { return _totalWeight; }
 		
 	private:
 		void AgeCacheables();

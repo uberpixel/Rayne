@@ -57,14 +57,16 @@ namespace RN
 		}
 		
 		_lock.Unlock();
-		
 		return true;
 	}
 	
 	void Cacheable::EndContentAccess()
 	{
 		_lock.Lock();
-		_accessCount --;
+		if((-- _accessCount) == 0)
+		{
+			BecameDirty();
+		}
 		_lock.Unlock();
 	}
 	
@@ -134,7 +136,7 @@ namespace RN
 	void Cache::UpdateCacheable(Cacheable *cacheable)
 	{
 		auto iterator = _evicted.find(cacheable);
-		if(iterator == _evicted.end())
+		if(iterator != _evicted.end())
 		{
 			cacheable->_weight.SynchronizePast();
 			cacheable->_age = 0;
@@ -297,6 +299,12 @@ namespace RN
 		std::sort(_caches.begin(), _caches.end(), [](Cacheable *cacheA, Cacheable *cacheB) {
 			return cacheB->_age < cacheA->_age;
 		});
+		
+		if(_weightLimit > 0 && _totalWeight > _weightLimit)
+		{
+			__EvictCacheables(_totalWeight - _weightLimit);
+			RN_ASSERT0(_totalWeight <= _weightLimit);
+		}
 	}
 	
 	
@@ -351,7 +359,10 @@ namespace RN
 		AgeCacheables();
 		
 		cacheable->_age = 0;
+		cacheable->_owner = this;
+		
 		_caches.push_back(cacheable);
+		_totalWeight += weight;
 		
 		_lock.Unlock();
 		cacheable->_lock.Unlock();
