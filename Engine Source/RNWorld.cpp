@@ -142,20 +142,14 @@ namespace RN
 		if(!transform)
 			return;
 		
-		if(_transforms.find(transform) == _transforms.end())
+		auto iterator = _transforms.find(transform);
+		if(iterator != _transforms.end())
 		{
-			_transforms.erase(transform);
+			_transforms.erase(iterator);
 			
 			if(transform->Type() == Transform::TransformTypeCamera)
 			{
-				for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
-				{
-					if(*i == transform)
-					{
-						_cameras.erase(i);
-						return;
-					}
-				}
+				_cameras.erase(std::remove(_cameras.begin(), _cameras.end(), transform), _cameras.end());
 			}
 		}
 	}
