@@ -24,6 +24,8 @@
 		E91B88761697889F001B7F22 /* RNRenderingResource.h in Headers */ = {isa = PBXBuildFile; fileRef = E91B88741697889E001B7F22 /* RNRenderingResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E91F784216CE336000FFD318 /* RNThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E91F784016CE336000FFD318 /* RNThreadPool.cpp */; };
 		E91F784316CE336000FFD318 /* RNThreadPool.h in Headers */ = {isa = PBXBuildFile; fileRef = E91F784116CE336000FFD318 /* RNThreadPool.h */; };
+		E92A625916DE961F006E68AF /* RNCacheable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92A625716DE961F006E68AF /* RNCacheable.cpp */; };
+		E92A625D16DE9630006E68AF /* RNAsyncCacheable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92A625B16DE9630006E68AF /* RNAsyncCacheable.cpp */; };
 		E92AE1AE16B4D68C00EFE1E8 /* RNApplication.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92AE1AC16B4D68C00EFE1E8 /* RNApplication.cpp */; };
 		E92AE1AF16B4D68C00EFE1E8 /* RNApplication.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1AD16B4D68C00EFE1E8 /* RNApplication.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9319D3416BFE560001FA38F /* RNBaseInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = E9319D3316BFE560001FA38F /* RNBaseInternal.h */; };
@@ -162,6 +164,8 @@
 		E91B88741697889E001B7F22 /* RNRenderingResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRenderingResource.h; sourceTree = "<group>"; };
 		E91F784016CE336000FFD318 /* RNThreadPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNThreadPool.cpp; sourceTree = "<group>"; };
 		E91F784116CE336000FFD318 /* RNThreadPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNThreadPool.h; sourceTree = "<group>"; };
+		E92A625716DE961F006E68AF /* RNCacheable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNCacheable.cpp; sourceTree = "<group>"; };
+		E92A625B16DE9630006E68AF /* RNAsyncCacheable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNAsyncCacheable.cpp; sourceTree = "<group>"; };
 		E92AE1AC16B4D68C00EFE1E8 /* RNApplication.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNApplication.cpp; sourceTree = "<group>"; };
 		E92AE1AD16B4D68C00EFE1E8 /* RNApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNApplication.h; sourceTree = "<group>"; };
 		E92AE1E016B5286500EFE1E8 /* Rayne.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = Rayne.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -341,6 +345,8 @@
 			isa = PBXGroup;
 			children = (
 				E903837816DA4BFF004D3D5E /* RNCache.cpp */,
+				E92A625716DE961F006E68AF /* RNCacheable.cpp */,
+				E92A625B16DE9630006E68AF /* RNAsyncCacheable.cpp */,
 				E903837916DA4BFF004D3D5E /* RNCache.h */,
 				E9C6F0A516B207E1006288D5 /* RNModel.cpp */,
 				E9C6F0A616B207E1006288D5 /* RNModel.h */,
@@ -664,6 +670,8 @@
 				E9AB0DAB16D679DC000D1CF0 /* RNTransform.cpp in Sources */,
 				E9780FC016D82913001AE2ED /* RNSettings.cpp in Sources */,
 				E903837A16DA4BFF004D3D5E /* RNCache.cpp in Sources */,
+				E92A625916DE961F006E68AF /* RNCacheable.cpp in Sources */,
+				E92A625D16DE9630006E68AF /* RNAsyncCacheable.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

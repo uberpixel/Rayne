@@ -25,7 +25,7 @@ namespace RN
 		virtual void EndContentAccess();
 		
 		virtual bool DiscardContent() = 0;
-		virtual bool IsDiscarded() const = 0;
+		virtual bool IsDiscarded() = 0;
 		
 		machine_uint Cost() const { return _cost; }
 		machine_uint Weight() const { return _weight; }
@@ -54,6 +54,26 @@ namespace RN
 		machine_uint _accessCount;
 		machine_uint _age;
 		machine_uint _agingFactor;
+	};
+	
+	class AsyncCacheable : public Cacheable
+	{
+	public:
+		AsyncCacheable(bool hasContent=false);
+		
+		virtual bool BeginContentAccess();
+		virtual void EndContentAccess();
+		
+		virtual bool DiscardContent();
+		virtual bool IsDiscarded();
+		
+		virtual void RecreateContent() = 0;
+		virtual void DisposeContent() = 0;
+		
+	private:
+		SpinLock _contentLock;
+		bool _isCreatingContent;
+		bool _hasContent;
 	};
 	
 	class Cache : public Object
