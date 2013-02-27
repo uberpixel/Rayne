@@ -63,11 +63,11 @@ namespace RN
 	void Cacheable::EndContentAccess()
 	{
 		_lock.Lock();
-		if((-- _accessCount) == 0)
-		{
-			BecameDirty();
-		}
+		bool canEvict = ((-- _accessCount) == 0);
 		_lock.Unlock();
+		
+		if(canEvict && _owner)
+			_owner->CleanCacheables();
 	}
 	
 	
@@ -133,6 +133,16 @@ namespace RN
 	{}
 	
 	
+	void Cache::CleanCacheables()
+	{
+		_lock.Lock();
+		
+		if(_weightLimit > 0 && _totalWeight > _weightLimit)
+			__EvictCacheables(_totalWeight - _weightLimit);
+		
+		_lock.Unlock();
+	}
+	
 	void Cache::UpdateCacheable(Cacheable *cacheable)
 	{
 		auto iterator = _evicted.find(cacheable);
@@ -149,10 +159,7 @@ namespace RN
 				_totalWeight += cacheable->_weight;
 				
 				if(_weightLimit > 0 && _totalWeight > _weightLimit)
-				{
 					__EvictCacheables(_totalWeight - _weightLimit);
-					RN_ASSERT0(_totalWeight <= _weightLimit);
-				}
 			}
 			
 			
@@ -186,10 +193,7 @@ namespace RN
 					cacheable->_weight.SynchronizePast();
 					
 					if(_weightLimit > 0 && _totalWeight > _weightLimit)
-					{
 						__EvictCacheables(_totalWeight - _weightLimit);
-						RN_ASSERT0(_totalWeight <= _weightLimit);
-					}
 				}
 			}
 		}
@@ -301,10 +305,7 @@ namespace RN
 		});
 		
 		if(_weightLimit > 0 && _totalWeight > _weightLimit)
-		{
 			__EvictCacheables(_totalWeight - _weightLimit);
-			RN_ASSERT0(_totalWeight <= _weightLimit);
-		}
 	}
 	
 	
@@ -316,10 +317,7 @@ namespace RN
 		_weightLimit = maxWeight;
 		
 		if(_weightLimit > 0 && _totalWeight > _weightLimit)
-		{
 			__EvictCacheables(_totalWeight - _weightLimit);
-			RN_ASSERT0(_totalWeight <= _weightLimit);
-		}
 		
 		_lock.Unlock();
 	}
@@ -349,10 +347,7 @@ namespace RN
 			}
 			
 			if(_totalWeight + weight > _weightLimit)
-			{
 				__EvictCacheables(weight);
-				RN_ASSERT0(_totalWeight + weight <= _weightLimit);
-			}
 		}
 		
 		

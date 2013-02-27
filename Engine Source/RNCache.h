@@ -27,6 +27,9 @@ namespace RN
 		virtual bool DiscardContent() = 0;
 		virtual bool IsDiscarded() const = 0;
 		
+		machine_uint Cost() const { return _cost; }
+		machine_uint Weight() const { return _weight; }
+		
 		Cache *Cache() const { return _owner; }
 		
 	protected:
@@ -71,8 +74,9 @@ namespace RN
 		machine_uint TotalWeight() const { return _totalWeight; }
 		
 	private:
-		void AgeCacheables();
 		void __EvictCacheables(machine_uint weight);
+		void AgeCacheables();
+		void CleanCacheables();
 		
 		void CacheableBecameDirty(Cacheable *cacheable);
 		void UpdateCacheable(Cacheable *cacheable);
