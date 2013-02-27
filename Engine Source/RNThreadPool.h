@@ -46,13 +46,12 @@ namespace RN
 			PoolTypeConcurrent
 		} PoolType;
 		
-		
 		ThreadPool(PoolType type)
 		{
 			_type = type;
 		}
 		
-		~ThreadPool()
+		virtual ~ThreadPool()
 		{
 			WaitForTasksToComplete();
 		}
@@ -87,8 +86,8 @@ namespace RN
 			_waitCondition.wait(lock, [&]() { return (_tasks.Count() == 0 && _threads.Count() == 0); });
 		}
 		
-	private:
-		void Consumer()
+	protected:
+		virtual void Consumer()
 		{
 			std::unique_lock<std::mutex> lock(_mutex);
 			machine_uint workLeft = _tasks.Count();
@@ -114,6 +113,7 @@ namespace RN
 			_waitCondition.notify_all();
 		}
 		
+	private:
 		PoolType _type;
 		
 		Array<F> _tasks;
@@ -121,6 +121,35 @@ namespace RN
 		
 		std::condition_variable _waitCondition;
 		std::mutex _mutex;
+	};
+	
+	template<typename F>
+	class OpenGLThreadPool : public ThreadPool<F>
+	{
+	public:
+		OpenGLThreadPool() :
+			ThreadPool<F>(ThreadPool<F>::PoolTypeSerial)
+		{
+			_context = new Context(Kernel::SharedInstance()->Context());
+		}
+		
+		virtual ~OpenGLThreadPool()
+		{
+			ThreadPool<F>::WaitForTasksToComplete();
+			_context->Autorelease();
+		}
+		
+	private:
+		virtual void Consumer()
+		{
+			_context->MakeActiveContext();
+			
+			ThreadPool<F>::Consumer();
+			
+			_context->DeactivateContext();
+		}
+		
+		Context *_context;
 	};
 }
 
