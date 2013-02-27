@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	ThreadPool::ThreadPool()
+	ThreadCoordinator::ThreadCoordinator()
 	{
 		_baseConcurrency = (machine_int)std::thread::hardware_concurrency();
 		_consumedConcurrency = 0;
@@ -18,21 +18,21 @@ namespace RN
 		_baseConcurrency = MAX(_baseConcurrency, 4);
 	}
 	
-	void ThreadPool::ConsumeConcurrency()
+	void ThreadCoordinator::ConsumeConcurrency()
 	{
 		_lock.Lock();
 		_consumedConcurrency ++;
 		_lock.Unlock();
 	}
 	
-	void ThreadPool::RestoreConcurrency()
+	void ThreadCoordinator::RestoreConcurrency()
 	{
 		_lock.Lock();
 		_consumedConcurrency --;
 		_lock.Unlock();
 	}
 	
-	machine_int ThreadPool::AvailableConcurrency()
+	machine_int ThreadCoordinator::AvailableConcurrency()
 	{
 		_lock.Lock();
 		machine_int concurrency = _baseConcurrency - _consumedConcurrency;

@@ -34,7 +34,7 @@ namespace RN
 		_context->MakeActiveContext();
 
 		ReadOpenGLExtensions();
-		ThreadPool::SharedInstance();
+		ThreadCoordinator::SharedInstance();
 
 		_scaleFactor = 1.0f;
 

@@ -13,14 +13,16 @@
 #include "RNThread.h"
 #include "RNSpinLock.h"
 #include "RNArray.h"
+#include "RNContext.h"
+#include "RNKernel.h"
 
 namespace RN
 {
-	class ThreadPool : public Singleton<ThreadPool>
+	class ThreadCoordinator : public Singleton<ThreadCoordinator>
 	{
-	friend class Thread;
+		friend class Thread;
 	public:
-		ThreadPool();
+		ThreadCoordinator();
 		
 		machine_int AvailableConcurrency();
 		
@@ -34,9 +36,8 @@ namespace RN
 		machine_int _consumedConcurrency;
 	};
 	
-	
 	template<typename F>
-	class WorkerPool
+	class ThreadPool
 	{
 	public:
 		typedef enum
@@ -46,14 +47,15 @@ namespace RN
 		} PoolType;
 		
 		
-		WorkerPool(PoolType type)
+		ThreadPool(PoolType type)
 		{
 			_type = type;
 		}
 		
-		~WorkerPool()
-		{}
-		
+		~ThreadPool()
+		{
+			WaitForTasksToComplete();
+		}
 		
 		void AddTask(F&& task)
 		{
@@ -68,13 +70,13 @@ namespace RN
 					break;
 					
 				case PoolTypeConcurrent:
-					spinUpThread = (ThreadPool::SharedInstance()->AvailableConcurrency() > 0 || _threads.Count() == 0);
+					spinUpThread = (ThreadCoordinator::SharedInstance()->AvailableConcurrency() > 0 || _threads.Count() == 0);
 					break;
 			}
 			
 			if(spinUpThread)
 			{
-				Thread *thread = new Thread(std::bind(&WorkerPool::Consumer, this));
+				Thread *thread = new Thread(std::bind(&ThreadPool::Consumer, this));
 				_threads.AddObject(thread->Autorelease<Thread>());
 			}
 		}
@@ -102,7 +104,7 @@ namespace RN
 				
 				lock.lock();
 				
-				if(_threads.Count() > 1 && ThreadPool::SharedInstance()->AvailableConcurrency() < 0)
+				if(_threads.Count() > 1 && ThreadCoordinator::SharedInstance()->AvailableConcurrency() < 0)
 					break;
 				
 				workLeft = _tasks.Count();
