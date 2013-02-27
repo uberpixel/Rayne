@@ -30,6 +30,13 @@ namespace RN
 		_isCreatingContent = false;
 	}
 	
+	AsyncCacheable::AsyncCacheable(machine_uint cost, machine_uint weight, bool hasContent) :
+		Cacheable(cost, weight)
+	{
+		_hasContent = hasContent;
+		_isCreatingContent = false;
+	}
+	
 	bool AsyncCacheable::BeginContentAccess()
 	{
 		_contentLock.Lock();

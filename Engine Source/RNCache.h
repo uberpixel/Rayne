@@ -58,9 +58,7 @@ namespace RN
 	
 	class AsyncCacheable : public Cacheable
 	{
-	public:
-		AsyncCacheable(bool hasContent=false);
-		
+	public:		
 		virtual bool BeginContentAccess();
 		virtual void EndContentAccess();
 		
@@ -69,6 +67,10 @@ namespace RN
 		
 		virtual void RecreateContent() = 0;
 		virtual void DisposeContent() = 0;
+		
+	protected:
+		AsyncCacheable(bool hasContent=false);
+		AsyncCacheable(machine_uint cost, machine_uint weight, bool hasContent=false);
 		
 	private:
 		SpinLock _contentLock;
