@@ -14,7 +14,7 @@ namespace RN
 {
 	Settings::Settings()
 	{
-		File *file = (new File("game/settings.json"))->Autorelease<File>();
+		File *file = (new File("settings.json"))->Autorelease<File>();
 		
 		json_error_t error;
 		json_t *root = json_loadf(file->FilePointer(), 0, &error);

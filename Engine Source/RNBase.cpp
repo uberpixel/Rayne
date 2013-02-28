@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include <execinfo.h>
 #include "RNBase.h"
 #include "RNBaseInternal.h"
 #include "RNError.h"
@@ -34,9 +35,20 @@ namespace RN
 
 #if RN_PLATFORM_MAC_OS
 
+#include "RNFile.h"
+
 int main(int argc, char *argv[])
 {
 	int result = 0;
+	
+	for(int i=1; i<argc; i++)
+	{
+		if(strcmp(argv[i], "-r") == 0 && i < argc - 1)
+		{
+			char *path = argv[++ i];
+			RN::File::AddSearchPath(path);
+		}
+	}
 	
 	try
 	{

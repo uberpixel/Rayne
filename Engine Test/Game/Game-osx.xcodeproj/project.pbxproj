@@ -7,35 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E92A62C716DF2474006E68AF /* libRayne.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E92A62C516DF244C006E68AF /* libRayne.dylib */; };
 		E92AE1CD16B524B600EFE1E8 /* TGApplication.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92AE1CB16B524B600EFE1E8 /* TGApplication.cpp */; };
 		E92AE1CE16B524B600EFE1E8 /* TGApplication.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1CC16B524B600EFE1E8 /* TGApplication.h */; };
-		E92AE1DA16B5251B00EFE1E8 /* libRayne.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E92AE1D716B5250D00EFE1E8 /* libRayne.dylib */; };
 		E92AE1DE16B5281D00EFE1E8 /* TGWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */; };
 		E92AE1DF16B5281D00EFE1E8 /* TGWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		E92AE1D616B5250D00EFE1E8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E92AE1D216B5250D00EFE1E8 /* Rayne.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = E98D1E581673A6E200889F3B;
-			remoteInfo = Rayne;
-		};
-		E92AE1D816B5251200EFE1E8 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E92AE1D216B5250D00EFE1E8 /* Rayne.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = E98D1E571673A6E200889F3B;
-			remoteInfo = Rayne;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
+		E92A62C516DF244C006E68AF /* libRayne.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libRayne.dylib; path = ../../Build/libRayne.dylib; sourceTree = "<group>"; };
+		E92A62C816DF24B6006E68AF /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
 		E92AE1B916B523DD00EFE1E8 /* libGame.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libGame.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		E92AE1CB16B524B600EFE1E8 /* TGApplication.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGApplication.cpp; sourceTree = "<group>"; };
 		E92AE1CC16B524B600EFE1E8 /* TGApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGApplication.h; sourceTree = "<group>"; };
-		E92AE1D216B5250D00EFE1E8 /* Rayne.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rayne.xcodeproj; path = "../../Xcode/OS X/Rayne.xcodeproj"; sourceTree = "<group>"; };
 		E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGWorld.cpp; sourceTree = "<group>"; };
 		E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGWorld.h; sourceTree = "<group>"; };
 		E92D60EF16B7496E00BFCC44 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -46,7 +30,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E92AE1DA16B5251B00EFE1E8 /* libRayne.dylib in Frameworks */,
+				E92A62C716DF2474006E68AF /* libRayne.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -57,6 +41,7 @@
 			isa = PBXGroup;
 			children = (
 				E92AE1CA16B5249E00EFE1E8 /* Source */,
+				E92A62C816DF24B6006E68AF /* Resources */,
 				E92AE1D116B524DB00EFE1E8 /* Frameworks */,
 				E92AE1BA16B523DD00EFE1E8 /* Products */,
 			);
@@ -84,18 +69,10 @@
 		E92AE1D116B524DB00EFE1E8 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				E92AE1D216B5250D00EFE1E8 /* Rayne.xcodeproj */,
 				E92D60EF16B7496E00BFCC44 /* Foundation.framework */,
+				E92A62C516DF244C006E68AF /* libRayne.dylib */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		E92AE1D316B5250D00EFE1E8 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				E92AE1D716B5250D00EFE1E8 /* libRayne.dylib */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -120,11 +97,11 @@
 				E92AE1B516B523DD00EFE1E8 /* Sources */,
 				E92AE1B616B523DD00EFE1E8 /* Frameworks */,
 				E92AE1B716B523DD00EFE1E8 /* Headers */,
+				E92A62C916DF252A006E68AF /* Install game */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				E92AE1D916B5251200EFE1E8 /* PBXTargetDependency */,
 			);
 			name = Game;
 			productName = Game;
@@ -150,12 +127,6 @@
 			mainGroup = E92AE1B016B523DD00EFE1E8;
 			productRefGroup = E92AE1BA16B523DD00EFE1E8 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = E92AE1D316B5250D00EFE1E8 /* Products */;
-					ProjectRef = E92AE1D216B5250D00EFE1E8 /* Rayne.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				E92AE1B816B523DD00EFE1E8 /* Game */,
@@ -163,15 +134,22 @@
 		};
 /* End PBXProject section */
 
-/* Begin PBXReferenceProxy section */
-		E92AE1D716B5250D00EFE1E8 /* libRayne.dylib */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.dylib";
-			path = libRayne.dylib;
-			remoteRef = E92AE1D616B5250D00EFE1E8 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
+/* Begin PBXShellScriptBuildPhase section */
+		E92A62C916DF252A006E68AF /* Install game */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Install game";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "rm -rf \"$PROJECT_DIR/Resources/$EXECUTABLE_NAME\"\ncp -r \"$BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\" \"$PROJECT_DIR/Resources/$EXECUTABLE_NAME\"";
 		};
-/* End PBXReferenceProxy section */
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E92AE1B516B523DD00EFE1E8 /* Sources */ = {
@@ -184,14 +162,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		E92AE1D916B5251200EFE1E8 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Rayne;
-			targetProxy = E92AE1D816B5251200EFE1E8 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		E92AE1BB16B523DD00EFE1E8 /* Debug */ = {
@@ -263,7 +233,10 @@
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../Build\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -276,7 +249,10 @@
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../Build\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -317,7 +293,10 @@
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
 				);
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../Build\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Optimized;

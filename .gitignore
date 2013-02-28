@@ -44,3 +44,6 @@ obj/
 xcuserdata
 /DerivedData/
 /Vendor/bullet/DerivedData/
+
+# Misc
+/Build/

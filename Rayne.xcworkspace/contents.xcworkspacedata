@@ -3,23 +3,6 @@
    version = "1.0">
    <Group
       location = "container:"
-      name = "Engine Test">
-      <FileRef
-         location = "group:Engine Test/Game/Game-ios.xcodeproj">
-      </FileRef>
-      <FileRef
-         location = "group:Engine Test/Game/Game-osx.xcodeproj">
-      </FileRef>
-   </Group>
-   <Group
-      location = "container:"
-      name = "Engine Modules">
-      <FileRef
-         location = "group:Engine Modules/rayne-test/rayne-test.xcodeproj">
-      </FileRef>
-   </Group>
-   <Group
-      location = "container:"
       name = "iOS">
       <FileRef
          location = "group:Engine Host/iOS/Rayne Player.xcodeproj">
