@@ -13,6 +13,7 @@
 #include "RNAutoreleasePool.h"
 #include "RNThreadPool.h"
 #include "RNSettings.h"
+#include "RNModule.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -66,6 +67,8 @@ namespace RN
 		_shouldExit  = false;
 
 		LoadApplicationModule(Settings::SharedInstance()->GameModule());
+		ModuleCoordinator::SharedInstance();
+		
 		delete pool;
 	}
 

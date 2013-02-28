@@ -1,4 +1,7 @@
 {
-	"RNGammaCorrection": true,
-	"RNGameModule": "libGame"
+	"RNGammaCorrection": false,
+	"RNGameModule": "libGame",
+	"RNModules": [
+		"librayne-test"
+	]
 }

@@ -13,6 +13,13 @@
    </Group>
    <Group
       location = "container:"
+      name = "Engine Modules">
+      <FileRef
+         location = "group:Engine Modules/rayne-test/rayne-test.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "container:"
       name = "iOS">
       <FileRef
          location = "group:Engine Host/iOS/Rayne Player.xcodeproj">
