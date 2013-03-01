@@ -74,6 +74,7 @@
 				E92A627116DECC2F006E68AF /* Sources */,
 				E92A627216DECC2F006E68AF /* Frameworks */,
 				E92A627316DECC2F006E68AF /* Headers */,
+				E98A89CB16E033CA0012A47E /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -109,6 +110,22 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E98A89CB16E033CA0012A47E /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "BUILD_DIR=\"$PROJECT_DIR/../Build\"\nINCLUDE_DIR=\"$BUILT_PRODUCTS_DIR/usr/local/include\"\n\nmkdir -p \"$BUILD_DIR\"\nmkdir -p \"$BUILD_DIR/include\"\ncp \"$BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\" \"$BUILD_DIR/$EXECUTABLE_NAME\"\n\n\nif [ -d \"$INCLUDE_DIR\" ]; then\n    rsync -avz \"$INCLUDE_DIR\" \"$BUILD_DIR\"\nfi";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E92A627116DECC2F006E68AF /* Sources */ = {
@@ -220,6 +237,7 @@
 				E92A627B16DECC2F006E68AF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

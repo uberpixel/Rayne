@@ -147,7 +147,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "rm -rf \"$PROJECT_DIR/Resources/$EXECUTABLE_NAME\"\ncp -r \"$BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\" \"$PROJECT_DIR/Resources/$EXECUTABLE_NAME\"";
+			shellScript = "rm -rf \"$PROJECT_DIR/Resources/$EXECUTABLE_NAME\"\ncp -r \"$BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\" \"$PROJECT_DIR/Resources/$EXECUTABLE_NAME\"\n\nrm -rf \"$PROJECT_DIR/Resources/modules\"\ncp -r \"$PROJECT_DIR/../../Engine Modules/Build\" \"$PROJECT_DIR/Resources/modules\"";
 		};
 /* End PBXShellScriptBuildPhase section */
 
