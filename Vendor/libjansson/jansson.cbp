@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="jansson" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option output="jansson" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="jansson" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-fPIC" />
+			<Add directory="source" />
+		</Compiler>
+		<Unit filename="source/dump.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/error.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/hashtable.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/hashtable.h" />
+		<Unit filename="source/jansson.h" />
+		<Unit filename="source/jansson_config.h" />
+		<Unit filename="source/jansson_private.h" />
+		<Unit filename="source/load.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/memory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/pack_unpack.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/strbuffer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/strbuffer.h" />
+		<Unit filename="source/strconv.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/utf.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="source/utf.h" />
+		<Unit filename="source/value.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

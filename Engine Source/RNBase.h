@@ -45,6 +45,7 @@
 	#include <errno.h>
 	#include <dlfcn.h>
 	#include <stdarg.h>
+	#include <unistd.h>
 #endif
 
 #if RN_PLATFORM_MAC_OS

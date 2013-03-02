@@ -11,7 +11,7 @@ int main()
 
 	try
 	{
-	kernel = new RN::Kernel("libGame.so");
+	kernel = new RN::Kernel();
 	}
 	catch(RN::ErrorException e)
 	{

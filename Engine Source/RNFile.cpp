@@ -15,7 +15,7 @@ namespace RN
 {
 	static std::vector<std::string> FileSearchPaths;
 	static std::vector<std::string> FileModifiers;
-	
+
 	File::File(const std::string& path, FileMode mode)
 	{
 		_file = 0;
@@ -29,13 +29,13 @@ namespace RN
 		_size = ftell(_file);
 		fseek(_file, 0, SEEK_SET);
 	}
-	
+
 	File::~File()
 	{
 		if(_file)
 			fclose(_file);
 	}
-	
+
 	// Reading operations
 
 	std::string File::String()
@@ -43,12 +43,12 @@ namespace RN
 		long read = 0;
 		long offset = ftell(_file);
 		fseek(_file, 0, SEEK_SET);
-		
+
 		std::string string = std::string();
 		char buffer[kRNFileBufferSize];
-		
+
 		string.reserve(_size);
-		
+
 		while(read < _size)
 		{
 			long tread = fread(buffer, 1, kRNFileBufferSize, _file);
@@ -58,100 +58,100 @@ namespace RN
 			{
 				throw ErrorException(0, 0, 0);
 			}
-			
+
 			string.append(buffer, tread);
 		}
-		
+
 		fseek(_file, offset, SEEK_SET);
 		return string;
 	}
-	
+
 	void File::ReadIntoBuffer(void *buffer, size_t size)
 	{
 		size_t read = fread(buffer, size, 1, _file);
 		RN_ASSERT0(read == 1);
 	}
-	
+
 	uint8 File::ReadUint8()
 	{
 		uint8 result;
 		ReadIntoBuffer(&result, sizeof(uint8));
-		
+
 		return result;
 	}
-	
+
 	uint16 File::ReadUint16()
 	{
 		uint16 result;
 		ReadIntoBuffer(&result, sizeof(uint16));
-		
+
 		return result;
 	}
-	
+
 	uint32 File::ReadUint32()
 	{
 		uint32 result;
 		ReadIntoBuffer(&result, sizeof(uint32));
-		
+
 		return result;
 	}
-	
+
 	uint64 File::ReadUint64()
 	{
 		uint64 result;
 		ReadIntoBuffer(&result, sizeof(uint64));
-		
+
 		return result;
 	}
-	
+
 	int8 File::ReadInt8()
 	{
 		int8 result;
 		ReadIntoBuffer(&result, sizeof(int8));
-		
+
 		return result;
 	}
-	
+
 	int16 File::ReadInt16()
 	{
 		int16 result;
 		ReadIntoBuffer(&result, sizeof(int16));
-		
+
 		return result;
 	}
-	
+
 	int32 File::ReadInt32()
 	{
 		int32 result;
 		ReadIntoBuffer(&result, sizeof(int32));
-		
+
 		return result;
 	}
-	
+
 	int64 File::ReadInt64()
 	{
 		int64 result;
 		ReadIntoBuffer(&result, sizeof(int64));
-		
+
 		return result;
 	}
-	
+
 	float File::ReadFloat()
 	{
 		float result;
 		ReadIntoBuffer(&result, sizeof(float));
-		
+
 		return result;
 	}
-	
+
 	double File::ReadDouble()
 	{
 		double result;
 		ReadIntoBuffer(&result, sizeof(double));
-		
+
 		return result;
 	}
-	
+
 	// Writing operations
 
 	void File::WriteString(const std::string& string)
@@ -167,7 +167,7 @@ namespace RN
 			cstring += written;
 		}
 	}
-	
+
 
 	bool File::OpenPath(const std::string& path, FileMode mode)
 	{
@@ -189,19 +189,19 @@ namespace RN
 				break;
 		}
 
-		
+
 		bool hasExtension = false;
 		bool hasName = false;
-		
+
 		size_t i = path.length();
 		size_t length = 0;
 		size_t extensionIndex = i;
-		
+
 		while(i > 0)
 		{
 			length ++;
 			i --;
-			
+
 			if(!hasExtension)
 			{
 				if(path[i] == '.')
@@ -209,7 +209,7 @@ namespace RN
 					hasExtension = true;
 					_extension   = path.substr(i + 1, length - 1);
 					extensionIndex = i;
-					
+
 					length = 0;
 					i --;
 				}
@@ -220,54 +220,57 @@ namespace RN
 				{
 					_name = path.substr(i + 1, length);
 					_path = path.substr(0, i);
-					
+
 					hasName = true;
 					break;
 				}
 			}
 		}
-		
+
 		if(!hasName)
 			_name = path.substr(0, extensionIndex);
 
 		_fullPath = path;
+		printf("Trying %s\n", _fullPath.c_str());
 		_file = fopen(_fullPath.c_str(), fmode);
 		if(_file)
 			return true;
-		
+
 		std::string basepath = (_path.length() > 0) ? "/" + _path + "/" : "/";
-		
+
 		for(auto i=FileSearchPaths.begin(); i!=FileSearchPaths.end(); i++)
 		{
 			std::string temp = *i + basepath;
-			
+
 			for(auto j=FileModifiers.begin(); j!=FileModifiers.end(); j++)
 			{
 				_fullPath = temp + _name + *j + "." + _extension;
+				printf("Trying %s\n", _fullPath.c_str());
 				_file = fopen(_fullPath.c_str(), fmode);
-			
+
 				if(_file)
 					return true;
 			}
-			
+
 			_fullPath = temp + _name + "." + _extension;
+			printf("Trying %s\n", _fullPath.c_str());
 			_file = fopen(_fullPath.c_str(), fmode);
-			
+
 			if(_file)
 				return true;
-			
+
 		}
-		
+
 		return false;
 	}
 
 
-	
+
 	void File::AddSearchPath(const std::string& path)
 	{
 		FileSearchPaths.push_back(path);
 	}
-	
+
 	void File::AddDefaultSearchPaths()
 	{
 		static bool addedDefaultSearchPaths = false;
@@ -277,7 +280,7 @@ namespace RN
 			NSString *path = [[NSBundle mainBundle] resourcePath];
 			File::AddSearchPath(std::string([path UTF8String]));
 			File::AddSearchPath(std::string([path UTF8String]) + "/Engine Resources");
-			
+
 			FileModifiers.push_back("~150");
 			FileModifiers.push_back("~140");
 			FileModifiers.push_back("~130");
@@ -285,15 +288,15 @@ namespace RN
 			FileModifiers.push_back("~110");
 			FileModifiers.push_back("~mac");
 #endif
-			
+
 #if RN_PLATFORM_IOS
 			NSString *path = [[NSBundle mainBundle] resourcePath];
 			File::AddSearchPath(std::string([path UTF8String]));
 			File::AddSearchPath(std::string([path UTF8String]) + "/Engine Resources");
-			
+
 			FileModifiers.push_back("~es2");
 			FileModifiers.push_back("~ios");
-			
+
 			if(UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
 			{
 				FileModifiers.push_back("~iphone~es2");
@@ -316,7 +319,7 @@ namespace RN
 			while(temp != buffer)
 			{
 				temp --;
-				
+
 				if(*temp == '\\')
 				{
 					*temp = '\0';
@@ -331,7 +334,7 @@ namespace RN
 			while(temp != buffer)
 			{
 				temp --;
-				
+
 				if(*temp == '\\')
 				{
 					*temp = '\0';
@@ -349,11 +352,28 @@ namespace RN
 			FileModifiers.push_back("~120");
 			FileModifiers.push_back("~110");
 #endif
-			
+
+
+
+#if RN_PLATFORM_LINUX
+			char *path = get_current_dir_name();
+			puts(path);
+			File::AddSearchPath(std::string(path));
+			File::AddSearchPath(std::string(path) + "/Engine Resources");
+			free(path);
+
+			FileModifiers.push_back("~150");
+			FileModifiers.push_back("~140");
+			FileModifiers.push_back("~130");
+			FileModifiers.push_back("~120");
+			FileModifiers.push_back("~110");
+			FileModifiers.push_back("~linux");
+#endif // RN_PLATFORM_LINUX
+
 			addedDefaultSearchPaths = true;
 		}
 	}
-	
+
 	std::string File::PathForName(const std::string& path)
 	{
 		File *temp = new File(path, Read);
@@ -380,7 +400,7 @@ namespace RN
 		while(temp != buffer)
 		{
 			temp --;
-				
+
 			if(*temp == '\\')
 			{
 				*temp = '\0';

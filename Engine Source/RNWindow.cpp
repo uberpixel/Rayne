@@ -327,11 +327,11 @@ namespace RN
 		_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, 1024, 768)];
 		[(RNNativeWindow *)_nativeWindow center];
 #endif
-		
+
 #if RN_PLATFORM_IOS
 		_nativeWindow = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
 		[(UIWindow *)_nativeWindow setBackgroundColor:[UIColor whiteColor]];
-		
+
 		_rootViewController = 0;
 #endif
 
@@ -340,7 +340,7 @@ namespace RN
 		_renderer = _kernel->Renderer();
 
 		SetTitle(title);
-		
+
 		_thread = new Thread(std::bind(&Window::RenderLoop, this));
 		_renderer->SetThread(_thread);
 	}
@@ -349,11 +349,11 @@ namespace RN
 	{
 		_context->Release();
 		_thread->Release();
-		
+
 #if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow release];
 #endif
-		
+
 #if RN_PLATFORM_IOS
 		[(UIWindow *)_nativeWindow release];
 		[(UIViewController *)_rootViewController release];
@@ -366,7 +366,7 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow makeKeyAndOrderFront:nil];
 #endif
-		
+
 #if RN_PLATFORM_IOS
 		[(UIWindow *)_nativeWindow makeKeyAndVisible];
 #endif
@@ -377,7 +377,7 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow close];
 #endif
-		
+
 #if RN_PLATFORM_IOS
 		[(UIWindow *)_nativeWindow resignFirstResponder];
 		[(UIWindow *)_nativeWindow setHidden:YES];
@@ -388,13 +388,13 @@ namespace RN
 	{
 #if RN_PLATFORM_IOS
 		[(UIViewController *)_rootViewController release];
-		
+
 		_rootViewController = [[RNOpenGLViewController alloc] initWithController:this andFrame:[(UIWindow *)_nativeWindow bounds]];
 		_renderingView      = (RNOpenGLView *)[(UIViewController *)_rootViewController view];
-		
+
 		[(UIWindow *)_nativeWindow setRootViewController:(UIViewController *)_rootViewController];
 #endif
-		
+
 		_context->Release();
 		_context = new Context(context);
 
@@ -416,7 +416,7 @@ namespace RN
 		NSRect frame = [[(RNNativeWindow *)_nativeWindow contentView] frame];
 		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
 #endif
-		
+
 #if RN_PLATFORM_IOS
 		CGRect frame = [(RNOpenGLView *)_renderingView bounds];
 		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
@@ -430,9 +430,9 @@ namespace RN
 			std::this_thread::sleep_for(std::chrono::microseconds(5));
 			continue;
 		}
-	
+
 		_context->MakeActiveContext();
-		
+
 #if RN_PLATFORM_IOS
 		[(RNOpenGLView *)_renderingView createDrawBuffer];
 #endif
@@ -451,21 +451,21 @@ namespace RN
 			_renderer->WaitForWork();
 			CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
 #endif
-			
+
 #if RN_PLATFORM_IOS
 			if(((RNOpenGLView *)_renderingView).needsLayerResize)
 			{
 				[(RNOpenGLView *)_renderingView resizeFromLayer];
-				
+
 				_renderer->SetDefaultFrame(((RNOpenGLView *)_renderingView).backingWidth, ((RNOpenGLView *)_renderingView).backingHeight);
 				_renderer->SetDefaultFBO(((RNOpenGLView *)_renderingView).framebuffer);
 			}
-			
+
 			_renderer->WaitForWork();
 			[(RNOpenGLView *)_renderingView flushFrame];
 #endif
 		}
-		
+
 		_context->DeactivateContext();
 	}
 }
@@ -623,6 +623,7 @@ namespace RN
 		_renderer = _kernel->Renderer();
 
 
+		// create window
 		Colormap             cmap;
 		XSetWindowAttributes swa;
 
@@ -644,6 +645,9 @@ namespace RN
 		/*XSetStandardProperties(dpy, win, title.c_str(), "iconname", None,
 							 argv, argc, NULL);*/
 		SetTitle(title);
+
+		_thread = new Thread(std::bind(&Window::RenderLoop, this));
+		_renderer->SetThread(_thread);
 	}
 
 	Window::~Window()
@@ -695,14 +699,14 @@ namespace RN
 
 		_context->MakeActiveContext();
 
-		while(!_renderer->ShouldStop())
+		while(!_thread->IsCancelled())
 		{
 			_renderer->WaitForWork();
 
 			glXSwapBuffers(_dpy, _win);
 		}
 
-		_renderer->DidStop();
+		_context->DeactivateContext();
 	}
 
 }

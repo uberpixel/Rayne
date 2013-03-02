@@ -40,6 +40,7 @@
 			<Add option="-fpermissive" />
 			<Add option="-fPIC" />
 			<Add directory="Vendor/bullet/src/" />
+			<Add directory="Vendor/libjansson/source" />
 		</Compiler>
 		<Linker>
 			<Add option="-rdynamic" />
@@ -47,7 +48,9 @@
 			<Add library="GL" />
 			<Add library="pthread" />
 			<Add library="bullet" />
-			<Add directory="/home/tilman/projects/rayne/Vendor/bullet/" />
+			<Add library="jansson" />
+			<Add directory="Vendor/bullet/" />
+			<Add directory="Vendor/libjansson" />
 		</Linker>
 		<Unit filename="Engine Source/RNApplication.cpp" />
 		<Unit filename="Engine Source/RNApplication.h" />
@@ -59,12 +62,15 @@
 		<Unit filename="Engine Source/RNBaseInternal.h" />
 		<Unit filename="Engine Source/RNBullet.h" />
 		<Unit filename="Engine Source/RNCamera.cpp" />
+		<Unit filename="Engine Source/RNCamera.cpp.orig" />
 		<Unit filename="Engine Source/RNCamera.h" />
 		<Unit filename="Engine Source/RNCharacter.cpp" />
 		<Unit filename="Engine Source/RNCharacter.h" />
 		<Unit filename="Engine Source/RNColor.h" />
 		<Unit filename="Engine Source/RNContext.cpp" />
 		<Unit filename="Engine Source/RNContext.h" />
+		<Unit filename="Engine Source/RNDebug.cpp" />
+		<Unit filename="Engine Source/RNDebug.h" />
 		<Unit filename="Engine Source/RNDefines.h" />
 		<Unit filename="Engine Source/RNEntity.cpp" />
 		<Unit filename="Engine Source/RNEntity.h" />
@@ -75,6 +81,7 @@
 		<Unit filename="Engine Source/RNInput.cpp" />
 		<Unit filename="Engine Source/RNInput.h" />
 		<Unit filename="Engine Source/RNKernel.cpp" />
+		<Unit filename="Engine Source/RNKernel.cpp.orig" />
 		<Unit filename="Engine Source/RNKernel.h" />
 		<Unit filename="Engine Source/RNLightEntity.cpp" />
 		<Unit filename="Engine Source/RNLightEntity.h" />
@@ -96,6 +103,7 @@
 		<Unit filename="Engine Source/RNObject.h" />
 		<Unit filename="Engine Source/RNOpenGL.cpp" />
 		<Unit filename="Engine Source/RNOpenGL.h" />
+		<Unit filename="Engine Source/RNOpenGLExtensions.h" />
 		<Unit filename="Engine Source/RNPhysicsPipeline.cpp" />
 		<Unit filename="Engine Source/RNPhysicsPipeline.h" />
 		<Unit filename="Engine Source/RNPipelineSegment.cpp" />
@@ -106,14 +114,16 @@
 		<Unit filename="Engine Source/RNRect.h" />
 		<Unit filename="Engine Source/RNRendering.h" />
 		<Unit filename="Engine Source/RNRenderingPipeline.cpp" />
+		<Unit filename="Engine Source/RNRenderingPipeline.cpp.orig" />
 		<Unit filename="Engine Source/RNRenderingPipeline.h" />
 		<Unit filename="Engine Source/RNRenderingResource.h" />
 		<Unit filename="Engine Source/RNRigidBodyEntity.cpp" />
 		<Unit filename="Engine Source/RNRigidBodyEntity.h" />
+		<Unit filename="Engine Source/RNSettings.cpp" />
+		<Unit filename="Engine Source/RNSettings.h" />
 		<Unit filename="Engine Source/RNShader.cpp" />
 		<Unit filename="Engine Source/RNShader.h" />
 		<Unit filename="Engine Source/RNSpinLock.h" />
-		<Unit filename="Engine Source/RNSynchronization.cpp" />
 		<Unit filename="Engine Source/RNSynchronization.h" />
 		<Unit filename="Engine Source/RNTexture.cpp" />
 		<Unit filename="Engine Source/RNTexture.h" />
@@ -121,6 +131,9 @@
 		<Unit filename="Engine Source/RNTextureLoader.h" />
 		<Unit filename="Engine Source/RNThread.cpp" />
 		<Unit filename="Engine Source/RNThread.h" />
+		<Unit filename="Engine Source/RNThreadPool.cpp" />
+		<Unit filename="Engine Source/RNThreadPool.h" />
+		<Unit filename="Engine Source/RNTransform.cpp" />
 		<Unit filename="Engine Source/RNTransform.h" />
 		<Unit filename="Engine Source/RNVector.h" />
 		<Unit filename="Engine Source/RNWindow.cpp" />
@@ -128,6 +141,9 @@
 		<Unit filename="Engine Source/RNWorld.cpp" />
 		<Unit filename="Engine Source/RNWorld.h" />
 		<Unit filename="Engine Source/Rayne.h" />
+		<Unit filename="Engine Source/gl11.h" />
+		<Unit filename="Engine Source/glext.h" />
+		<Unit filename="Engine Source/wglext.h" />
 		<Extensions>
 			<code_completion />
 			<envvars />

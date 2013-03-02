@@ -42,7 +42,6 @@
 		<Linker>
 			<Add option="-rdynamic" />
 			<Add library="Rayne" />
-			<Add library="bullet" />
 			<Add library="GL" />
 			<Add library="libz" />
 			<Add library="png" />
