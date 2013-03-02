@@ -179,7 +179,7 @@ namespace RN
 		/*** (4) create an OpenGL rendering context  ***/
 
 		/* create an OpenGL rendering context */
-		_context = glXCreateContext(_dpy, _vi, /* no shared dlists */ None,
+		_context = glXCreateContext(_dpy, _vi, _shared ? _shared->_context : 0,
 							/* direct rendering if possible */ GL_TRUE);
 		if (_context == NULL)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "could not create rendering context");
@@ -195,6 +195,17 @@ namespace RN
 		_fakexid = XCreateWindow(_dpy, RootWindow(_dpy, _vi->screen), 0, 0,
 						  1024, 768, 0, _vi->depth, InputOutput, _vi->visual,
 						  CWBorderPixel | CWColormap | CWEventMask, &swa);
+						  
+		if(_shared)
+		{
+			// no multithreading yet :(
+
+			if(_shared->_active && shared->_thread->OnThread())
+			{
+				_shared->Deactivate();
+				_shared->Activate();
+			}
+		}
 
 
 #else
@@ -405,7 +416,7 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_LINUX
-		glXMakeCurrent(_dpy, _fakexid, 0);
+		glXMakeCurrent(_dpy, None, 0);
 #endif
 	}
 }

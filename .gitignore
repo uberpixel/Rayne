@@ -33,9 +33,10 @@ ipch/
 [Rr]elease*/
 Ankh.NoLoad
 
-# Code::Blocks compiler output
+# Code::Blocks IDE stuff
 bin/
 obj/
+*.depend
 
 # Library stuff
 *.a

@@ -647,6 +647,8 @@ namespace RN
 		SetTitle(title);
 
 		_thread = new Thread(std::bind(&Window::RenderLoop, this));
+		printf("Created window thread %i\n", (int)(void*)_thread);
+		RN_ASSERT0(_thread);
 		_renderer->SetThread(_thread);
 	}
 
@@ -667,16 +669,11 @@ namespace RN
 
 	void Window::SetContext(Context *context)
 	{
+		_renderer = _kernel->Renderer();
+		_renderer->SetDefaultFrame(1024, 768);
+		
 		_context->Release();
 		_context = new Context(context);
-
-		Rect frame = Frame();
-
-		_renderer = _kernel->Renderer();
-		_renderer->SetDefaultFrame(frame.width, frame.height);
-
-		std::thread temp = std::thread(&Window::RenderLoop, this);
-		temp.detach();
 	}
 
 	void Window::SetTitle(const std::string& title)
@@ -686,7 +683,7 @@ namespace RN
 
 	Rect Window::Frame() const
 	{
-		return Rect();
+		return Rect(0, 0, 1024, 768);
 	}
 
 	void Window::RenderLoop()

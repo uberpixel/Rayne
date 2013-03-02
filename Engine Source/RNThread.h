@@ -37,10 +37,17 @@ namespace RN
 		Thread(F&& func)
 		{
 			Initialize();
-			
+		
 			std::thread thread = std::thread([=]() {
 				Entry();
-				func();
+				try
+				{
+					func();
+				}
+				catch (ErrorException &e) {
+					printf("ERROR: %i %i %i, %s \n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str());
+				}
+
 				Exit();
 			});
 			

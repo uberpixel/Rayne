@@ -1,1 +1,1 @@
-LD_LIBRARY_PATH=./bin/Debug/:.Engine\ Test/Game/bin/Debug/:${LD_LIBRARY_PATH} Engine\ Host/Linux/bin/Debug/Rayne\ Player
+LD_LIBRARY_PATH=./bin/Debug/:${LD_LIBRARY_PATH} Engine\ Host/Linux/bin/Debug/Rayne\ Player -r Engine\ Test/Game/Resources

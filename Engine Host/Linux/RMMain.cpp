@@ -1,13 +1,21 @@
 #include <RNKernel.h>
-#include <RNWorld.h>
+#include <RNFile.h>
 #include <RNMutex.h>
 
 using namespace std;
 
-int main()
+int main(int argc, char* argv[])
 {
 	RN::Kernel *kernel;
-	RN::World *world;
+	
+	for(int i=1; i<argc; i++)
+	{
+		if(strcmp(argv[i], "-r") == 0 && i < argc - 1)
+		{
+			char *path = argv[++ i];
+			RN::File::AddSearchPath(path);
+		}
+	}
 
 	try
 	{
