@@ -14,7 +14,7 @@ namespace RN
 {
 	Settings::Settings()
 	{
-		File *file = (new File("game/settings.json"))->Autorelease<File>();
+		File *file = (new File("settings.json"))->Autorelease<File>();
 		
 		json_error_t error;
 		json_t *root = json_loadf(file->FilePointer(), 0, &error);
@@ -23,9 +23,23 @@ namespace RN
 		
 		json_t *gammaCorrection = json_object_get(root, "RNGammaCorrection");
 		json_t *gameModule = json_object_get(root, "RNGameModule");
+		json_t *modules = json_object_get(root, "RNModules");
 		
 		_gammaCorrection = (gammaCorrection && json_is_boolean(gammaCorrection)) ? (gammaCorrection == json_true()) : true;
 		_gameModule = (gameModule && json_is_string(gameModule)) ? json_string_value(gameModule) : "";
+		
+		if(modules && json_is_array(modules))
+		{
+			for(size_t i=0; i<json_array_size(modules); i++)
+			{
+				json_t *module = json_array_get(modules, i);
+				if(json_is_string(module))
+				{
+					std::string name = json_string_value(module);
+					_modules.push_back(name);
+				}
+			}
+		}
 		
 		json_decref(root);
 	}

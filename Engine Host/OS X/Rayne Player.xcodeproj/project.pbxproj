@@ -8,9 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		E91B886F1697551E001B7F22 /* Engine Resources in Resources */ = {isa = PBXBuildFile; fileRef = E91B886E1697551E001B7F22 /* Engine Resources */; };
-		E92D614C16B75E6100BFCC44 /* libGame.dylib in Resources */ = {isa = PBXBuildFile; fileRef = E92D614916B75E3F00BFCC44 /* libGame.dylib */; };
-		E94C686D16C7C62600435126 /* libRayne.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = E9619F751696FD1200DA187E /* libRayne.dylib */; };
-		E9619F781696FD2400DA187E /* libRayne.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F751696FD1200DA187E /* libRayne.dylib */; };
+		E92A62BC16DF21EC006E68AF /* libRayne.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E92A62BA16DF21DF006E68AF /* libRayne.dylib */; };
+		E92A62C016DF235A006E68AF /* libRayne.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = E92A62BA16DF21DF006E68AF /* libRayne.dylib */; };
 		E9ED4F6E1696091E00DAD683 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ED4F6D1696091E00DAD683 /* Cocoa.framework */; };
 		E9ED4FA4169609B400DAD683 /* RNAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E9ED4F9D169609B400DAD683 /* RNAppDelegate.mm */; };
 		E9ED4FA5169609B400DAD683 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = E9ED4F9F169609B400DAD683 /* MainMenu.xib */; };
@@ -18,20 +17,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		E92D614816B75E3F00BFCC44 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E92D614416B75E3F00BFCC44 /* Game-osx.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = E92AE1B916B523DD00EFE1E8;
-			remoteInfo = Game;
-		};
-		E92D614A16B75E5500BFCC44 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E92D614416B75E3F00BFCC44 /* Game-osx.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = E92AE1B816B523DD00EFE1E8;
-			remoteInfo = Game;
-		};
 		E9619F741696FD1200DA187E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E9619F701696FD1100DA187E /* Rayne.xcodeproj */;
@@ -49,21 +34,22 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		E94C686C16C7C61E00435126 /* CopyFiles */ = {
+		E92A62BF16DF2348006E68AF /* Copy Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				E94C686D16C7C62600435126 /* libRayne.dylib in CopyFiles */,
+				E92A62C016DF235A006E68AF /* libRayne.dylib in Copy Frameworks */,
 			);
+			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		E91B886E1697551E001B7F22 /* Engine Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Engine Resources"; path = "../../Engine Resources"; sourceTree = "<group>"; };
-		E92D614416B75E3F00BFCC44 /* Game-osx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "Game-osx.xcodeproj"; path = "../../Engine Test/Game/Game-osx.xcodeproj"; sourceTree = "<group>"; };
+		E92A62BA16DF21DF006E68AF /* libRayne.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libRayne.dylib; path = ../../Build/libRayne.dylib; sourceTree = "<group>"; };
 		E9619F701696FD1100DA187E /* Rayne.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rayne.xcodeproj; path = "../../Xcode/OS X/Rayne.xcodeproj"; sourceTree = "<group>"; };
 		E9ED4F6A1696091E00DAD683 /* Rayne Player.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Rayne Player.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9ED4F6D1696091E00DAD683 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
@@ -85,21 +71,13 @@
 			files = (
 				E9ED4FA916960A7000DAD683 /* OpenGL.framework in Frameworks */,
 				E9ED4F6E1696091E00DAD683 /* Cocoa.framework in Frameworks */,
-				E9619F781696FD2400DA187E /* libRayne.dylib in Frameworks */,
+				E92A62BC16DF21EC006E68AF /* libRayne.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		E92D614516B75E3F00BFCC44 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				E92D614916B75E3F00BFCC44 /* libGame.dylib */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		E9619F711696FD1100DA187E /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -131,10 +109,10 @@
 		E9ED4F6C1696091E00DAD683 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				E92D614416B75E3F00BFCC44 /* Game-osx.xcodeproj */,
 				E9619F701696FD1100DA187E /* Rayne.xcodeproj */,
 				E9ED4F6D1696091E00DAD683 /* Cocoa.framework */,
 				E9ED4FA816960A7000DAD683 /* OpenGL.framework */,
+				E92A62BA16DF21DF006E68AF /* libRayne.dylib */,
 				E9ED4F6F1696091E00DAD683 /* Other Frameworks */,
 			);
 			name = Frameworks;
@@ -186,12 +164,12 @@
 				E9ED4F661696091E00DAD683 /* Sources */,
 				E9ED4F671696091E00DAD683 /* Frameworks */,
 				E9ED4F681696091E00DAD683 /* Resources */,
-				E94C686C16C7C61E00435126 /* CopyFiles */,
+				E92A62BF16DF2348006E68AF /* Copy Frameworks */,
+				E92A628B16DEF515006E68AF /* Install player */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				E92D614B16B75E5500BFCC44 /* PBXTargetDependency */,
 				E9619F771696FD1C00DA187E /* PBXTargetDependency */,
 			);
 			name = "Rayne Player";
@@ -221,10 +199,6 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = E92D614516B75E3F00BFCC44 /* Products */;
-					ProjectRef = E92D614416B75E3F00BFCC44 /* Game-osx.xcodeproj */;
-				},
-				{
 					ProductGroup = E9619F711696FD1100DA187E /* Products */;
 					ProjectRef = E9619F701696FD1100DA187E /* Rayne.xcodeproj */;
 				},
@@ -237,13 +211,6 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		E92D614916B75E3F00BFCC44 /* libGame.dylib */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.dylib";
-			path = libGame.dylib;
-			remoteRef = E92D614816B75E3F00BFCC44 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		E9619F751696FD1200DA187E /* libRayne.dylib */ = {
 			isa = PBXReferenceProxy;
 			fileType = "compiled.mach-o.dylib";
@@ -260,11 +227,27 @@
 			files = (
 				E9ED4FA5169609B400DAD683 /* MainMenu.xib in Resources */,
 				E91B886F1697551E001B7F22 /* Engine Resources in Resources */,
-				E92D614C16B75E6100BFCC44 /* libGame.dylib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E92A628B16DEF515006E68AF /* Install player */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Install player";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "exec \"$PROJECT_DIR/build.sh\"";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E9ED4F661696091E00DAD683 /* Sources */ = {
@@ -278,11 +261,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		E92D614B16B75E5500BFCC44 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = Game;
-			targetProxy = E92D614A16B75E5500BFCC44 /* PBXContainerItemProxy */;
-		};
 		E9619F771696FD1C00DA187E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = Rayne;
@@ -324,11 +302,12 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Supporting files/Rayne Player-Prefix.pch";
-				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/../../Engine Source\"",
-				);
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Build/include\"";
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../Build\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -399,11 +378,12 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Supporting files/Rayne Player-Prefix.pch";
-				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/../../Engine Source\"",
-				);
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Build/include\"";
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../Build\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -415,11 +395,12 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Supporting files/Rayne Player-Prefix.pch";
-				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/../../Engine Source\"",
-				);
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Build/include\"";
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../../Build\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};

@@ -21,10 +21,12 @@ namespace RN
 		
 		bool GammaCorrection() const { return _gammaCorrection; }
 		const std::string& GameModule() const { return _gameModule; }
+		const std::vector<std::string>& Modules() const { return _modules; }
 		
 	private:
 		bool _gammaCorrection;
 		std::string _gameModule;
+		std::vector<std::string> _modules;
 	};
 }
 

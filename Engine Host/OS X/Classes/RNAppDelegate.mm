@@ -14,6 +14,8 @@
 {
 	if(!kernel->Tick())
 	{
+		delete kernel;
+		
 		[timer invalidate];
 		[NSApp terminate:self];
 	}
@@ -22,9 +24,9 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
 	[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"ApplePersistenceIgnoreState"];
-	
-	kernel = new RN::Kernel();	
 	[NSTimer scheduledTimerWithTimeInterval:1.0f/60.0f target:self selector:@selector(runGameLoop:) userInfo:nil repeats:YES];
+	
+	kernel = new RN::Kernel();
 }
 
 @end

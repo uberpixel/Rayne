@@ -1,0 +1,7 @@
+{
+	"RNGammaCorrection": false,
+	"RNGameModule": "libGame",
+	"RNModules": [
+		"modules/librayne-test"
+	]
+}

@@ -41,6 +41,9 @@ obj/
 *.a
 *.so
 *.dll
+*.dylib
 xcuserdata
 /DerivedData/
-/Vendor/bullet/DerivedData/
+
+# Misc
+/Build/
