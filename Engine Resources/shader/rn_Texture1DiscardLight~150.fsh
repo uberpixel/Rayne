@@ -9,7 +9,7 @@
 #version 150
 precision highp float;
 
-#include "rn_lightning.fsh"
+#include "rn_Lightning.fsh"
 
 uniform sampler2D mTexture0;
 uniform sampler2D mTexture1;
