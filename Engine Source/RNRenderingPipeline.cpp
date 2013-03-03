@@ -878,7 +878,7 @@ namespace RN
 		delete[] lightpos;
 		
 		profiler.HitMilestone("End");
-		profiler.DumpStatistic();
+		//profiler.DumpStatistic();
 	}
 
 	uint32 RenderingPipeline::BindTexture(Texture *texture)

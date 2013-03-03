@@ -107,8 +107,8 @@ namespace TG
 		RN::Vector3 translation;
 		RN::Vector3 rotation;
 		
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
-		  const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
+		const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
 		
 		rotation.x = mouseDelta.x;
 		rotation.z = mouseDelta.y;
@@ -275,8 +275,8 @@ namespace TG
 		light = new RN::LightEntity();
 		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
-		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
-		 */
+		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));*/
+		 
 		
 		/*for(int i = 0; i < 1000; i++)
 		{

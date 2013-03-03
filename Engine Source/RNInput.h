@@ -160,7 +160,7 @@ namespace RN
 		bool _active;
 	};
 
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS 
 
 	class InputDeviceMouse : public InputDevice
 	{
@@ -266,6 +266,7 @@ namespace RN
 
 	class Input : public Singleton<Input>
 	{
+	friend class Window;
 	public:
 		Input();
 		~Input();
@@ -303,6 +304,15 @@ namespace RN
 
 		std::vector<Touch> _queuedTouchEvents;
 		std::vector<Touch> _touches;
+#endif
+
+#if RN_PLATFORM_LINUX
+		bool _mouseEntered;
+		Vector3 _lastMouseAbs;
+
+		void HandleXInputEvents(XEvent *event);
+		
+		std::unordered_set<char> _pressedCharacters;
 #endif
 	};
 }

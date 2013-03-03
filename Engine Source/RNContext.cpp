@@ -189,12 +189,14 @@ namespace RN
 		cmap = XCreateColormap(_dpy, RootWindow(_dpy, _vi->screen), _vi->visual, AllocNone);
 		swa.colormap = cmap;
 		swa.border_pixel = 0;
-		swa.event_mask = KeyPressMask    | ExposureMask
-					 | ButtonPressMask | StructureNotifyMask;
+		swa.event_mask = KeyPressMask  | KeyReleaseMask | ExposureMask
+					 | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask
+					  | PointerMotionMask | EnterWindowMask | LeaveWindowMask;
 
 		_win = XCreateWindow(_dpy, RootWindow(_dpy, _vi->screen), 0, 0,
 						  1024, 768, 0, _vi->depth, InputOutput, _vi->visual,
 						  CWBorderPixel | CWColormap | CWEventMask, &swa);
+						  
 						  
 		if(_shared)
 		{

@@ -39,7 +39,6 @@ namespace RN
 
 		RenderingPipeline *Renderer() const { return _renderer; }
 		Window *Window() const { return _window; }
-		Context *Context() const { return _context; }
 
 		float Delta() const { return _delta; }
 		float Time() const { return _time; }

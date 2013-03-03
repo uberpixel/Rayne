@@ -676,6 +676,8 @@ namespace RN
 
 	Input::Input()
 	{
+		_mouseEntered = false;
+		
 		ReadInputDevices();
 	}
 
@@ -893,84 +895,73 @@ namespace RN
 
 	void Input::ReadInputDevices()
 	{
-		/*io_iterator_t iterator;
-		io_object_t object;
-
-		CFMutableDictionaryRef dictionary = IOServiceMatching(kIOHIDDeviceKey);
-		IOServiceGetMatchingServices(kIOMasterPortDefault, dictionary, &iterator);
-
-		while((object = IOIteratorNext(iterator)))
-		{
-			CFMutableDictionaryRef properties;
-			if(IORegistryEntryCreateCFProperties(object, &properties, kCFAllocatorDefault, kNilOptions) == KERN_SUCCESS)
-			{
-				const void *usagePageValue = CFDictionaryGetValue(properties, CFSTR(kIOHIDPrimaryUsagePageKey));
-				const void *usageValue = CFDictionaryGetValue(properties, CFSTR(kIOHIDPrimaryUsageKey));
-
-				if(usagePageValue && usageValue)
-				{
-					int32 usagePage;
-					int32 usage;
-
-					CFNumberGetValue((CFNumberRef)usagePageValue, kCFNumberSInt32Type, &usagePage);
-					CFNumberGetValue((CFNumberRef)usageValue, kCFNumberSInt32Type, &usage);
-
-					if(usagePage == kHIDPage_GenericDesktop)
-					{
-						switch(usage)
-						{
-							case kHIDUsage_GD_Mouse:
-							case kHIDUsage_GD_Pointer:
-							{
-								InputDevice *device = new InputDeviceMouse(object, properties);
-								_devices.push_back(device);
-								break;
-							}
-
-							case kHIDUsage_GD_Keyboard:
-							case kHIDUsage_GD_Keypad:
-							{
-								InputDevice *device = new InputDeviceKeyboard(object, properties);
-								_devices.push_back(device);
-								break;
-							}
-
-							default:
-								break;
-						}
-					}
-				}
-
-				CFRelease(properties);
-			}
-
-			IOObjectRelease(object);
-		}
-
-		IOObjectRelease(iterator);*/
 	}
 
 	void Input::DispatchInputEvents()
 	{
-		/*_mouseDelta = Vector3();
-		_pressedButtons = 0;
-
-		for(auto i=_devices.begin(); i!=_devices.end(); i++)
+		_mouseDelta = Vector3();
+	}
+	
+	void Input::HandleXInputEvents(XEvent *event)
+	{
+		KeySym keysym;
+		char buffer[1];
+		switch (event->type)
 		{
-			InputDevice *device = *i;
-			if(device->IsActive())
-			{
-				device->DispatchInputEvents();
 
-				if(device->Type() == InputDevice::InputDeviceTypeMouse)
+			case KeyPress:
+
+				if (XLookupString(&event->xkey,buffer,1,&keysym,NULL) == 1)
 				{
-					InputDeviceMouse *mouse = (InputDeviceMouse *)device;
-
-					_mouseDelta += mouse->MouseDelta();
-					_pressedButtons |= mouse->PressedButtons();
+					// example: (keysym == (KeySym)XK_Escape) )
+						//printf("pressed key: %c\n", *buffer);
+						_pressedCharacters.insert(*buffer);
 				}
-			}
-		}*/
+				
+				break;
+					
+			case KeyRelease:
+
+				if (XLookupString(&event->xkey, buffer,1,&keysym,NULL) == 1)
+				{
+						//printf("released key: %c\n", *buffer);
+						_pressedCharacters.erase(*buffer);
+				}
+				
+				break;
+
+			case ButtonPress:
+				
+				_pressedButtons |= (1 << event->xbutton.button);
+				
+				break;
+				
+			case ButtonRelease:
+
+				_pressedButtons &= ~(1 << event->xbutton.button);
+				
+				break;
+				
+			case EnterNotify:
+				_mouseEntered = true;
+				break;
+				  
+			case MotionNotify:
+				
+				if (!_mouseEntered)
+				{
+					_mouseDelta.x += (float)event->xmotion.x - _lastMouseAbs.x;
+					_mouseDelta.y += (float)event->xmotion.y - _lastMouseAbs.y;	
+				}
+				_mouseEntered = false;
+				
+				
+				_lastMouseAbs.x = event->xmotion.x;
+				_lastMouseAbs.y = event->xmotion.y;
+				
+				break;
+
+		}
 	}
 
 #endif // RN_PLATFORM_LINUX
@@ -1008,6 +999,9 @@ namespace RN
 					return true;
 			}
 		}
+		
+#elif RN_PLATFORM_LINUX
+		return (_pressedCharacters.find(key) != _pressedCharacters.end());
 #endif
 
 		return false;
