@@ -46,6 +46,9 @@ namespace RN
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 
 		_cglContext = (CGLContextObj)[(NSOpenGLContext *)_oglContext CGLContextObj];
+		
+		GLint sync = 1;
+		CGLSetParameter((CGLContextObj)_cglContext, kCGLCPSwapInterval, &sync);
 
 		if(_shared)
 		{
