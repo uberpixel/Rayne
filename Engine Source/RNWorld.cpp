@@ -31,6 +31,9 @@ namespace RN
 	
 	World::~World()
 	{
+		_physics->WaitForTaskCompletion(_physicsTask);
+		_renderer->WaitForTaskCompletion(_renderingTask);
+		
 		delete _physics;
 		delete _entityPool;
 		
@@ -75,8 +78,7 @@ namespace RN
 		{
 			Camera *camera = *i;
 			
-			RenderingGroup group;
-			group.camera = camera;
+			RenderingGroup group = RenderingGroup(camera);
 			
 			for(auto j=_transforms.begin(); j!=_transforms.end(); j++)
 			{
@@ -91,7 +93,7 @@ namespace RN
 						_entityPool->AddObject(entity);
 						
 						if(entity->Model())
-							group.entities.push_back(entity);
+							group.entities.AddObject(entity);
 						
 						switch(entity->Type())
 						{
@@ -100,10 +102,10 @@ namespace RN
 								
 							case Entity::TypeLight:
 							{
-								group.lights.push_back((LightEntity *)entity);
+								group.lights.AddObject((LightEntity *)entity);
 								
 								if(entity->Model())
-									group.entities.push_back(entity);
+									group.entities.AddObject(entity);
 								
 								break;
 							}

@@ -98,7 +98,7 @@ namespace TG
 	{
 		RN::Input::SharedInstance()->Deactivate();
 		
-		_camera->Release();		
+		_camera->Release();
 	}
 	
 	void World::Update(float delta)

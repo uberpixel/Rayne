@@ -11,7 +11,6 @@
 
 #include "RNBase.h"
 #include "RNEntity.h"
-#include "RNRendering.h"
 #include "RNMaterial.h"
 #include "RNMesh.h"
 

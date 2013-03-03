@@ -320,8 +320,8 @@ namespace RN
 		profiler.HitMilestone("Begin");
 		
 		// Object pre-pass
-		std::vector<Entity *> *frame = &group->entities;
-		Array<RenderingObject> objects = Array<RenderingObject>(frame->size());
+		Array<Entity> *frame = &group->entities;
+		Array<RenderingObject> objects = Array<RenderingObject>(frame->Capacity());
 		
 		// Render all cameras
 		Camera *previous = 0;
@@ -347,13 +347,14 @@ namespace RN
 		}
 
 		// Unpack the frame
-		for(auto i=frame->begin(); i!=frame->end(); i++)
+		//for(auto i=frame->begin(); i!=frame->end(); i++)
+			
+		for(machine_uint i=0; i<frame->Count(); i++)
 		{
-			Entity *entity = *i;
-			Model  *model = entity->Model();
+			Entity *entity = frame->ObjectAtIndex(i);
+			Model  *model  = entity->Model();
 			
 			uint32 meshes = model->Meshes();
-
 			for(uint32 j=0; j<meshes; j++)
 			{
 				RenderingObject object;
@@ -368,15 +369,15 @@ namespace RN
 		profiler.HitMilestone("Object pre-pass");
 
 		// Creating light list
-		std::vector<LightEntity *> *lights = &group->lights;
+		Array<LightEntity> *lights = &group->lights;
 
-		Vector4 *lightpos = new Vector4[lights->size()];
-		Vector3 *lightcolor = new Vector3[lights->size()];
+		Vector4 *lightpos = new Vector4[lights->Capacity()];
+		Vector3 *lightcolor = new Vector3[lights->Capacity()];
 		int lightcount = 0;
-		
-		for(auto i=lights->begin(); i!=lights->end(); i++, lightcount++)
+
+		for(machine_uint i=0; i<lights->Count(); i++, lightcount++)
 		{
-			LightEntity *light = *i;
+			LightEntity *light = lights->ObjectAtIndex(i);
 			const Vector3& position = light->Position().AccessPast();
 			
 			lightpos[lightcount] = Vector4(position.x, position.y, position.z, light->Range().AccessPast());
@@ -425,10 +426,10 @@ namespace RN
 			Plane plfar;
 			Plane plnear;
 			
-			size_t count = lights->size();
-			LightEntity **allLights = lights->data();
+			size_t count = lights->Count();
+			LightEntity **allLights = lights->Data();
 			
-			size_t lightindicesSize = tileswidth * tilesheight * lights->size();
+			size_t lightindicesSize = tileswidth * tilesheight * lights->Count();
 			if(lightindicesSize > _lightindicesSize)
 			{
 				_lightindices = (int *)realloc(_lightindices, lightindicesSize * sizeof(int));

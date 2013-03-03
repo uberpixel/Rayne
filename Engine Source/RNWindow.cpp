@@ -16,7 +16,7 @@
 
 #if RN_PLATFORM_MAC_OS
 
-@interface RNNativeWindow : NSWindow
+@interface RNNativeWindow : NSWindow <NSWindowDelegate>
 {
 	NSOpenGLView *_openGLView;
 	BOOL _needsResize;
@@ -28,9 +28,10 @@
 @implementation RNNativeWindow
 @synthesize needsResize = _needsResize;
 
-- (void)close
+- (BOOL)windowShouldClose:(id)sender
 {
 	RN::Kernel::SharedInstance()->Exit();
+	return NO;
 }
 
 - (void)keyDown:(NSEvent *)theEvent
@@ -84,6 +85,7 @@
 		[_openGLView  setWantsBestResolutionOpenGLSurface:YES];
 
 		[self setContentView:_openGLView];
+		[self setDelegate:self];
 
 		_needsResize = YES;
 	}
@@ -92,7 +94,7 @@
 }
 
 - (void)dealloc
-{
+{	
 	[_openGLView release];
 	[super dealloc];
 }
@@ -623,6 +625,31 @@ namespace RN
 		_kernel = kernel;
 		_renderer = _kernel->Renderer();
 
+
+
+		// create window
+		Colormap             cmap;
+		XSetWindowAttributes swa;
+
+		//  get dpy pointer (TODO: better method?)
+		_dpy = kernel->Context()->_dpy;
+		XVisualInfo *vi = kernel->Context()->_vi;
+
+		/* create an X colormap since probably not using default visual */
+		cmap = XCreateColormap(_dpy, RootWindow(_dpy, vi->screen), vi->visual, AllocNone);
+		swa.colormap = cmap;
+		swa.border_pixel = 0;
+		swa.event_mask = KeyPressMask    | ExposureMask
+					 | ButtonPressMask | StructureNotifyMask;
+
+		_win = XCreateWindow(_dpy, RootWindow(_dpy, vi->screen), 0, 0,
+						  1024, 768, 0, vi->depth, InputOutput, vi->visual,
+						  CWBorderPixel | CWColormap | CWEventMask, &swa);
+
+		/*XSetStandardProperties(dpy, win, title.c_str(), "iconname", None,
+							 argv, argc, NULL);*/
+		SetTitle(title);
+
 		_thread = new Thread(std::bind(&Window::RenderLoop, this));
 		_renderer->SetThread(_thread);
 	}
@@ -652,6 +679,8 @@ namespace RN
 
 		_dpy = _context->_dpy;
 		_win = _context->_win;
+		_renderer->SetDefaultFrame(frame.width, frame.height);
+
 		
 		SetTitle(_title);
 	}
@@ -685,7 +714,7 @@ namespace RN
 			// TODO: use events
 			
 			_renderer->WaitForWork();
-			
+		
 			glXSwapBuffers(_dpy, _win);
 		}
 

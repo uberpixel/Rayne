@@ -89,7 +89,8 @@ namespace RN
 		_context->Release();
 
 		delete pool;
-		delete _mainThread;
+		_mainThread->Exit();
+		_mainThread->Release();
 	}
 
 	void Kernel::LoadApplicationModule(const std::string& module)

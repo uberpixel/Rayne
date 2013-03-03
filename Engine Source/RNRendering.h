@@ -13,24 +13,36 @@
 #include "RNObject.h"
 #include "RNRenderingResource.h"
 #include "RNCamera.h"
-#include "RNMatrix.h"
-#include "RNModel.h"
+#include "RNEntity.h"
+#include "RNLightEntity.h"
 
 namespace RN
 {
-	class Entity;
-	class LightEntity;
 	class RenderingGroup : public RenderingResource
 	{
 	public:
-		RenderingGroup() :
+		RenderingGroup(Camera *tcamera) :
 			RenderingResource("Rendering Group")
 		{
+			camera = tcamera->Retain<Camera>();
+		}
+		
+		RenderingGroup(const RenderingGroup& other) :
+			RenderingResource(other._name),
+			entities(other.entities),
+			lights(other.lights)
+		{
+			camera = other.camera->Retain<Camera>();
+		}
+		
+		~RenderingGroup()
+		{
+			camera->Release();
 		}
 		
 		Camera *camera;
-		std::vector<Entity *> entities;
-		std::vector<LightEntity *> lights;
+		Array<Entity> entities;
+		Array<LightEntity> lights;
 	};
 }
 

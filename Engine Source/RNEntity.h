@@ -11,9 +11,9 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNRendering.h"
 #include "RNTransform.h"
 #include "RNMaterial.h"
+#include "RNModel.h"
 #include "RNMesh.h"
 
 namespace RN
