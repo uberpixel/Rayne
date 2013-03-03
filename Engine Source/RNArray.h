@@ -28,6 +28,16 @@ namespace RN
 			return _count;
 		}
 		
+		machine_uint Capacity() const
+		{
+			return _size;
+		}
+		
+		T *Data() const
+		{
+			return _data;
+		}
+		
 		void RemoveAllObjects()
 		{
 			_count = 0;
