@@ -231,7 +231,6 @@ namespace RN
 			_name = path.substr(0, extensionIndex);
 
 		_fullPath = path;
-		printf("Trying %s\n", _fullPath.c_str());
 		_file = fopen(_fullPath.c_str(), fmode);
 		if(_file)
 			return true;
@@ -245,7 +244,6 @@ namespace RN
 			for(auto j=FileModifiers.begin(); j!=FileModifiers.end(); j++)
 			{
 				_fullPath = temp + _name + *j + "." + _extension;
-				printf("Trying %s\n", _fullPath.c_str());
 				_file = fopen(_fullPath.c_str(), fmode);
 
 				if(_file)
@@ -253,7 +251,6 @@ namespace RN
 			}
 
 			_fullPath = temp + _name + "." + _extension;
-			printf("Trying %s\n", _fullPath.c_str());
 			_file = fopen(_fullPath.c_str(), fmode);
 
 			if(_file)

@@ -73,7 +73,7 @@ namespace RN
 
 		XVisualInfo *_vi;
 		GLXContext _context;
-		XID _fakexid;
+		XID _win;
 #endif
 	};
 }

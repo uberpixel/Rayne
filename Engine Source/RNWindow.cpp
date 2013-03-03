@@ -616,39 +616,14 @@ namespace RN
 {
 	Window::Window(const std::string& title, Kernel *kernel)
 	{
-
 		_context = 0;
+		_win = 0;
+		_title.assign(title);
 
 		_kernel = kernel;
 		_renderer = _kernel->Renderer();
 
-
-		// create window
-		Colormap             cmap;
-		XSetWindowAttributes swa;
-
-		//  get dpy pointer (TODO: better method?)
-		_dpy = kernel->Context()->_dpy;
-		XVisualInfo *vi = kernel->Context()->_vi;
-
-		/* create an X colormap since probably not using default visual */
-		cmap = XCreateColormap(_dpy, RootWindow(_dpy, vi->screen), vi->visual, AllocNone);
-		swa.colormap = cmap;
-		swa.border_pixel = 0;
-		swa.event_mask = KeyPressMask    | ExposureMask
-					 | ButtonPressMask | StructureNotifyMask;
-
-		_win = XCreateWindow(_dpy, RootWindow(_dpy, vi->screen), 0, 0,
-						  1024, 768, 0, vi->depth, InputOutput, vi->visual,
-						  CWBorderPixel | CWColormap | CWEventMask, &swa);
-
-		/*XSetStandardProperties(dpy, win, title.c_str(), "iconname", None,
-							 argv, argc, NULL);*/
-		SetTitle(title);
-
 		_thread = new Thread(std::bind(&Window::RenderLoop, this));
-		printf("Created window thread %i\n", (int)(void*)_thread);
-		RN_ASSERT0(_thread);
 		_renderer->SetThread(_thread);
 	}
 
@@ -674,6 +649,11 @@ namespace RN
 		
 		_context->Release();
 		_context = new Context(context);
+
+		_dpy = _context->_dpy;
+		_win = _context->_win;
+		
+		SetTitle(_title);
 	}
 
 	void Window::SetTitle(const std::string& title)
@@ -696,10 +676,16 @@ namespace RN
 
 		_context->MakeActiveContext();
 
+		XEvent event;
 		while(!_thread->IsCancelled())
 		{
+			//glxMakeCurrent(_dpy, _win, _context->)
+			
+			XNextEvent(_dpy, &event);
+			// TODO: use events
+			
 			_renderer->WaitForWork();
-
+			
 			glXSwapBuffers(_dpy, _win);
 		}
 

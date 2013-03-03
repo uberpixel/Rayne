@@ -114,6 +114,7 @@ namespace RN
 
 	private:
 		void RenderLoop();
+		std::string _title;
 
 		Context *_context;
 		RenderingPipeline *_renderer;

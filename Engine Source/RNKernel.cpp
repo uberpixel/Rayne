@@ -26,6 +26,10 @@ namespace RN
 {
 	Kernel::Kernel()
 	{
+#if RN_PLATFORM_LINUX
+		XInitThreads();
+#endif
+		
 		_mainThread = new Thread();
 		
 		AutoreleasePool *pool = new AutoreleasePool();

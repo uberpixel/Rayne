@@ -192,7 +192,7 @@ namespace RN
 		swa.event_mask = KeyPressMask    | ExposureMask
 					 | ButtonPressMask | StructureNotifyMask;
 
-		_fakexid = XCreateWindow(_dpy, RootWindow(_dpy, _vi->screen), 0, 0,
+		_win = XCreateWindow(_dpy, RootWindow(_dpy, _vi->screen), 0, 0,
 						  1024, 768, 0, _vi->depth, InputOutput, _vi->visual,
 						  CWBorderPixel | CWColormap | CWEventMask, &swa);
 						  
@@ -381,7 +381,7 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_LINUX
-		glXMakeCurrent(_dpy, _fakexid, _context);
+		glXMakeCurrent(_dpy, _win, _context);
 #endif
 
 		if(_firstActivation)

@@ -97,6 +97,8 @@
 		<Unit filename="Engine Source/RNMessage.h" />
 		<Unit filename="Engine Source/RNModel.cpp" />
 		<Unit filename="Engine Source/RNModel.h" />
+		<Unit filename="Engine Source/RNModule.cpp" />
+		<Unit filename="Engine Source/RNModule.h" />
 		<Unit filename="Engine Source/RNMutex.cpp" />
 		<Unit filename="Engine Source/RNMutex.h" />
 		<Unit filename="Engine Source/RNObject.cpp" />
