@@ -23,8 +23,6 @@ namespace RN
 		_renderer = _kernel->Renderer();
 		_physics  = new PhysicsPipeline();
 		
-		_entityPool = new RetainPool();
-		
 		_physicsTask   = kPipelineSegmentNullTask;
 		_renderingTask = kPipelineSegmentNullTask;
 	}
@@ -35,7 +33,6 @@ namespace RN
 		_renderer->WaitForTaskCompletion(_renderingTask);
 		
 		delete _physics;
-		delete _entityPool;
 		
 		_kernel->SetWorld(0);
 	}
@@ -58,6 +55,36 @@ namespace RN
 		}
 	}
 	
+	void World::VisitTransform(Camera *camera, Transform *transform, RenderingGroup *group)
+	{
+		if(transform->Type() == Transform::TransformTypeEntity)
+		{
+			Entity *entity = (Entity *)transform;
+			
+			if(entity->IsVisibleInCamera(camera))
+			{
+				if(entity->Model())
+					group->entities.AddObject(entity);
+				
+				switch(entity->Type())
+				{
+					case Entity::TypeObject:
+						break;
+						
+					case Entity::TypeLight:
+						group->lights.AddObject((LightEntity *)entity);
+						break;
+				}
+			}
+		}
+		
+		for(machine_uint i=0; i<transform->Childs(); i++)
+		{
+			Transform *child = transform->ChildAtIndex(i);
+			VisitTransform(camera, child, group);
+		}
+	}
+	
 	void World::FinishUpdate(float delta)
 	{
 		_physics->WaitForTaskCompletion(_physicsTask);
@@ -69,8 +96,8 @@ namespace RN
 		}
 		
 		_renderer->WaitForTaskCompletion(_renderingTask);
-		_entityPool->Drain();
 		
+		// Begin the new frame
 		_renderer->PepareFrame();
 		_renderingTask = _renderer->BeginTask(delta);
 		
@@ -83,35 +110,7 @@ namespace RN
 			for(auto j=_transforms.begin(); j!=_transforms.end(); j++)
 			{
 				Transform *transform = *j;
-				
-				if(transform->Type() == Transform::TransformTypeEntity)
-				{
-					Entity *entity = (Entity *)transform;
-					
-					if(entity->IsVisibleInCamera(camera))
-					{
-						_entityPool->AddObject(entity);
-						
-						if(entity->Model())
-							group.entities.AddObject(entity);
-						
-						switch(entity->Type())
-						{
-							case Entity::TypeObject:
-								break;
-								
-							case Entity::TypeLight:
-							{
-								group.lights.AddObject((LightEntity *)entity);
-								
-								if(entity->Model())
-									group.entities.AddObject(entity);
-								
-								break;
-							}
-						}
-					}
-				}
+				VisitTransform(camera, transform, &group);
 			}
 			
 			_renderer->PushGroup(group);

@@ -41,13 +41,14 @@ namespace RN
 		void BeginUpdate(float delta);
 		void FinishUpdate(float delta);
 		
+		void VisitTransform(Camera *camera, Transform *transform, RenderingGroup *group);
+		
 		Kernel *_kernel;
 		std::unordered_set<Transform *> _transforms;
 		std::vector<Camera *> _cameras;
 		
 		PhysicsPipeline *_physics;
 		RenderingPipeline *_renderer;
-		RetainPool *_entityPool;
 		
 		PipelineSegment::TaskID _physicsTask;
 		PipelineSegment::TaskID _renderingTask;

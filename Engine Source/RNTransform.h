@@ -56,6 +56,9 @@ namespace RN
 		void DetachAllChilds();
 		void DetachFromParent();
 		
+		machine_uint Childs() const { return _childs.Count(); }
+		Transform *ChildAtIndex(machine_uint index) const { return _childs.ObjectAtIndex(index); }
+		
 		const Past<Matrix>& WorldTransform() { return _worldTransform; }
 		const Past<Matrix>& LocalTransform() { return _localTransform; }
 		
