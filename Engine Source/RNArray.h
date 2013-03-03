@@ -236,6 +236,17 @@ namespace RN
 			__ArrayStore<T>(capacity)
 		{}
 		
+		__ArrayCore(const __ArrayCore<T, false>& other) :
+			__ArrayStore<T>(other._size)
+		{
+			this->_count = other._count;
+			
+			for(machine_uint i=0; i<this->_count; i++)
+			{
+				this->_data[i] = other._data[i];
+			}
+		}
+		
 		T& operator[](int index) const
 		{
 			return this->_data[index];
@@ -345,6 +356,17 @@ namespace RN
 		__ArrayCore(machine_uint capacity) :
 			__ArrayStore<T *>(capacity)
 		{}
+		
+		__ArrayCore(const __ArrayCore<T, true>& other) :
+			__ArrayStore<T *>(other._size)
+		{
+			this->_count = other._count;
+			
+			for(machine_uint i=0; i<this->_count; i++)
+			{
+				this->_data[i] = other._data[i]->template Retain<T>();
+			}
+		}
 		
 		virtual ~__ArrayCore()
 		{
