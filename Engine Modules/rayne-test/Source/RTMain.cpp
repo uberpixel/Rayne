@@ -17,4 +17,6 @@ extern "C" bool RNModuleConstructor(RN::ModuleExports *exports)
 {
 	exports->version = 1;
 	printf("Hello world\n");
+	
+	return true;
 }

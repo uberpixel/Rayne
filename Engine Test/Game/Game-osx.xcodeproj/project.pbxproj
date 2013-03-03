@@ -97,6 +97,7 @@
 				E92AE1B516B523DD00EFE1E8 /* Sources */,
 				E92AE1B616B523DD00EFE1E8 /* Frameworks */,
 				E92AE1B716B523DD00EFE1E8 /* Headers */,
+				E90A0BBB16E39A93002190BE /* Build dependencies */,
 				E92A62C916DF252A006E68AF /* Install game */,
 			);
 			buildRules = (
@@ -135,6 +136,20 @@
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		E90A0BBB16E39A93002190BE /* Build dependencies */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Build dependencies";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$PROJECT_DIR/../../Engine Modules/rayne-test\"\nxcrun xcodebuild -configuration $CONFIGURATION";
+		};
 		E92A62C916DF252A006E68AF /* Install game */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;

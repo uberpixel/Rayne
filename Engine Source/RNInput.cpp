@@ -676,7 +676,9 @@ namespace RN
 
 	Input::Input()
 	{
+#if RN_PLATFORM_LINUX
 		_mouseEntered = false;
+#endif
 		
 		ReadInputDevices();
 	}
