@@ -679,7 +679,6 @@ namespace RN
 
 		_dpy = _context->_dpy;
 		_win = _context->_win;
-		_renderer->SetDefaultFrame(frame.width, frame.height);
 
 		
 		SetTitle(_title);
@@ -708,10 +707,45 @@ namespace RN
 		XEvent event;
 		while(!_thread->IsCancelled())
 		{
-			//glxMakeCurrent(_dpy, _win, _context->)
-			
-			XNextEvent(_dpy, &event);
-			// TODO: use events
+			// go through xevents
+			while(XPending(_dpy))
+			{
+				XNextEvent(_dpy, &event);
+				switch (event.type)
+				{
+					case KeyPress:
+						/*KeySym     keysym;
+						XKeyEvent *kevent;
+						char       buffer[1];
+						 //It is necessary to convert the keycode to a
+						 //keysym before checking if it is an escape 
+						kevent = (XKeyEvent *) &event;
+						if (   (XLookupString((XKeyEvent *)&event,buffer,1,&keysym,NULL) == 1)
+						  && (keysym == (KeySym)XK_Escape) )
+						exit(0);*/
+						break;
+
+					case ButtonPress:
+					  // mouse buttons
+					  /*switch (event.xbutton.button)
+					  {
+						case 1: xAngle += 10.0;
+						  break;
+						case 2: yAngle += 10.0;
+						  break;
+						case 3: zAngle += 10.0;
+						  break;
+					  }*/
+					  break;
+					case ConfigureNotify:
+					  /*glViewport(0, 0, event.xconfigure.width,
+								 event.xconfigure.height);*/
+					  /* fall through... */
+					case Expose:
+					  //needRedraw = GL_TRUE;
+					  break;
+				}
+			} 
 			
 			_renderer->WaitForWork();
 		
