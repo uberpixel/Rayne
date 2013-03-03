@@ -431,6 +431,7 @@ namespace RN
 	Camera::~Camera()
 	{
 		_storage->Release();
+		_skycube->Release();
 	}
 
 
@@ -569,6 +570,12 @@ namespace RN
 		_allowDepthWrite = flag;
 	}
 	
+	void Camera::SetSkyCube(Model *skycube)
+	{
+		_skycube->Release();
+		_skycube = skycube->Retain<Model>();
+	}
+	
 	// Stages
 	void Camera::AddStage(Camera *stage)
 	{
@@ -661,15 +668,15 @@ namespace RN
 	{
 		Transform::PostUpdate();
 		
+		inverseViewMatrix = WorldTransform();
+		viewMatrix = inverseViewMatrix->Inverse();
+		
 		projectionMatrix.SynchronizePast();
 		inverseProjectionMatrix.SynchronizePast();
 		
 		viewMatrix.SynchronizePast();
 		inverseViewMatrix.SynchronizePast();
 		
-		inverseViewMatrix = WorldTransform();
-		viewMatrix = inverseViewMatrix->Inverse();
-
 		if(_flags & FlagFullscreen)
 		{
 			Rect frame = Kernel::SharedInstance()->Window()->Frame();

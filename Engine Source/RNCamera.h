@@ -145,6 +145,7 @@ namespace RN
 		void SetClearMask(ClearFlags mask);
 		void SetColorMask(ColorFlags mask);
 		void SetAllowsDepthWrite(bool flag);
+		void SetSkyCube(Model *skycube);
 		
 		void AddStage(Camera *stage);
 		void InsertStage(Camera *stage);
@@ -173,8 +174,6 @@ namespace RN
 		Flags CameraFlags() const { return _flags; }
 		
 		Vector2 LightTiles() const { return _lightTiles; }
-		
-		void setSkyCube(Model *skycube) { _skycube = skycube->Retain<RN::Model>();}
 		Model *SkyCube() const { return _skycube; }
 		
 		uint32 RenderTargets() const { return (uint32)_storage->_renderTargets->Count(); }

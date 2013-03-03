@@ -331,6 +331,7 @@ namespace RN
 		Model *skycube = camera->SkyCube();
 		Matrix camrotationmatrix;
 		camrotationmatrix.MakeRotate(camera->Rotation().AccessPast());
+		
 		if(skycube != 0)
 		{
 			uint32 meshes = skycube->Meshes();
@@ -347,8 +348,6 @@ namespace RN
 		}
 
 		// Unpack the frame
-		//for(auto i=frame->begin(); i!=frame->end(); i++)
-			
 		for(machine_uint i=0; i<frame->Count(); i++)
 		{
 			Entity *entity = frame->ObjectAtIndex(i);
