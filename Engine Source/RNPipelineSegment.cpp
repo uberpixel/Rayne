@@ -18,6 +18,8 @@ namespace RN
 		
 		_thread = 0;
 		_thread = spinThread ? new Thread(std::bind(&PipelineSegment::WorkLoop, this)) : 0;
+		
+		_usedTime = 0;
 	}
 	
 	PipelineSegment::~PipelineSegment()
@@ -65,7 +67,9 @@ namespace RN
 		
 		AutoreleasePool *pool = new AutoreleasePool();
 		{
+			_timer.Time();
 			WorkOnTask(_task, _delta);
+			_usedTime = _timer.Time();
 		}
 		delete pool;
 		

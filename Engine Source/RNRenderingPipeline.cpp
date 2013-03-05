@@ -47,6 +47,9 @@ namespace RN
 		
 		_lightindexoffset = (int *)malloc(_lightindexoffsetSize * sizeof(int));
 		_lightindices = (int *)malloc(_lightindicesSize * sizeof(int));
+		
+		_lightTextures[0] = 0;
+		_lightBuffers[0] = 0;
 
 		// Setup framebuffer copy stuff
 		_copyShader = 0;
@@ -94,11 +97,15 @@ namespace RN
 		}
 
 #if !(RN_PLATFORM_IOS)
-		glDeleteTextures(4, _lightTextures);
-		glDeleteBuffers(4, _lightBuffers);
+		if(_lightTextures[0])
+			glDeleteTextures(4, _lightTextures);
+		
+		if(_lightBuffers[0])
+			glDeleteBuffers(4, _lightBuffers);
 #endif
 
-		free(_instancingMatrices);
+		if(_instancingMatrices)
+			free(_instancingMatrices);
 		
 		free(_lightindexoffset);
 		free(_lightindices);

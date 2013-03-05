@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNThread.h"
 #include "RNMutex.h"
+#include "RNDebug.h"
 
 #define kPipelineSegmentNullTask ((uint32)-1)
 
@@ -29,6 +30,8 @@ namespace RN
 		void WaitForTaskCompletion(TaskID task);
 		Thread *WorkerThread() const { return _thread; }
 		
+		float UsedTime() const { return _usedTime; }
+		
 	protected:
 		void WaitForWork();
 		void SetThread(Thread *thread);
@@ -44,6 +47,9 @@ namespace RN
 		
 		TaskID _task;
 		TaskID _lastTask;
+		
+		Timer _timer;
+		float _usedTime;
 		
 		std::condition_variable _waitCondition;
 		std::condition_variable _workCondition;
