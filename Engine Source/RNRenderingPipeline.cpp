@@ -74,20 +74,11 @@ namespace RN
 		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, (GLint *)&_maxTextureUnits);
 		_textureUnit = 0;
 		
-		printf("Available texture units: %i\n", _maxTextureUnits);
 		_hasValidFramebuffer = false;
 		_initialized = false;
 
-		if(SupportsOpenGLFeature(kOpenGLFeatureInstancing))
-		{
-			_numInstancingMatrices = 500;
-			_instancingMatrices = (Matrix *)malloc(_numInstancingMatrices * sizeof(Matrix));
-		}
-		else
-		{
-			_numInstancingMatrices = 0;
-			_instancingMatrices = 0;
-		}
+		_numInstancingMatrices = 0;
+		_instancingMatrices = 0;
 	}
 
 	RenderingPipeline::~RenderingPipeline()
@@ -692,8 +683,10 @@ namespace RN
 		{
 			_numInstancingMatrices = (uint32)count;
 			
-			free(_instancingMatrices);
-			_instancingMatrices = (Matrix *)malloc(_numInstancingMatrices * sizeof(Matrix));
+			if(_instancingMatrices)
+				free(_instancingMatrices);
+			
+			_instancingMatrices = (Matrix *)malloc((_numInstancingMatrices * 2) * sizeof(Matrix));
 		}
 		
 		
@@ -701,28 +694,66 @@ namespace RN
 		
 		BindVAO(std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage));
 		
-		for(int i=0; i<4; i++)
+		uint32 offset = 0;
+		
+		if(shader->imatModel != -1)
 		{
-			glEnableVertexAttribArray(shader->imatModel + i);
-			glVertexAttribPointer(shader->imatModel + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * (i * 4)));
-			gl::VertexAttribDivisor(shader->imatModel + i, 1);
+			for(int i=0; i<4; i++)
+			{
+				glEnableVertexAttribArray(shader->imatModel + i);
+				glVertexAttribPointer(shader->imatModel + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * ((i * 4) + offset)));
+				gl::VertexAttribDivisor(shader->imatModel + i, 1);
+			}
+			
+			for(machine_uint i=0; i<count; i++)
+			{
+				RenderingObject& object = group[(int)(start + i)];
+				_instancingMatrices[i + offset] = *object.transform;
+			}
+			
+			offset += count;
 		}
 		
-		for(machine_uint i=0; i<count; i++)
+		if(shader->imatModelInverse != -1)
 		{
-			RenderingObject& object = group[(int)(start + i)];
-			_instancingMatrices[i] = *object.transform;
+			for(int i=0; i<4; i++)
+			{
+				glEnableVertexAttribArray(shader->imatModelInverse + i);
+				glVertexAttribPointer(shader->imatModelInverse + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * ((i * 4) + offset)));
+				gl::VertexAttribDivisor(shader->imatModelInverse + i, 1);
+			}
+			
+			for(machine_uint i=0; i<count; i++)
+			{
+				RenderingObject& object = group[(int)(start + i)];
+				_instancingMatrices[i + offset] = object.transform->Inverse();
+			}
+			
+			offset += count;
+		}
+		
+		if(offset == 0)
+		{
+			mesh->Pop();
+			return;
 		}
 		
 		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
-		glBufferData(GL_ARRAY_BUFFER, count * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, offset * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
 		
 		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
 		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
 		
-		for(int i=0; i<4; i++)
+		if(shader->imatModel != -1)
 		{
-			glDisableVertexAttribArray(shader->imatModel + i);
+			for(int i=0; i<4; i++)
+				glDisableVertexAttribArray(shader->imatModel + i);
+		}
+		
+		if(shader->imatModelInverse != -1)
+		{
+			for(int i=0; i<4; i++)
+				glDisableVertexAttribArray(shader->imatModelInverse + i);
 		}
 		
 		mesh->Pop();
@@ -741,8 +772,6 @@ namespace RN
 		Matrix& viewMatrix = camera->viewMatrix.AccessPast();
 		Matrix& inverseViewMatrix = camera->inverseViewMatrix.AccessPast();
 		
-		//Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
-		//Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
 		
 		if(shader->frameSize != -1)
 			glUniform4f(shader->frameSize, 1.0f/camera->Frame().width/_scaleFactor, 1.0f/camera->Frame().height/_scaleFactor, camera->Frame().width*_scaleFactor, camera->Frame().height*_scaleFactor);
@@ -761,6 +790,18 @@ namespace RN
 		
 		if(shader->matViewInverse != -1)
 			glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, inverseViewMatrix.m);
+		
+		if(shader->matProjView != -1)
+		{
+			Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
+			glUniformMatrix4fv(shader->matProjView, 1, GL_FALSE, projectionViewMatrix.m);
+		}
+		
+		if(shader->matProjViewInverse != -1)
+		{
+			Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
+			glUniformMatrix4fv(shader->matProjViewInverse, 1, GL_FALSE, inverseProjectionViewMatrix.m);
+		}
 	}
 	
 	void RenderingPipeline::CreateLightList(RenderingGroup *group, Camera *camera, Vector4 **outLightPos, Vector3 **outLightColor, int *outLightCount)

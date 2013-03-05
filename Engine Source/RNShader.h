@@ -53,10 +53,13 @@ namespace RN
 		GLuint matModelInverse;
 		GLuint matViewModel;
 		GLuint matViewModelInverse;
+		GLuint matProjView;
+		GLuint matProjViewInverse;
 		GLuint matProjViewModel;
 		GLuint matProjViewModelInverse;
 		
 		GLuint imatModel;
+		GLuint imatModelInverse;
 		
 		GLuint vertPosition;
 		GLuint vertNormal;
