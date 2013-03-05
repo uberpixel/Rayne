@@ -73,7 +73,8 @@ namespace RN
 		
 		while(!WorkerThread()->IsCancelled())
 		{
-			WaitForWork();
+			if(!WaitForWork())
+				break;
 		}
 		
 		delete _dynamicsWorld;

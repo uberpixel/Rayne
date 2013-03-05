@@ -33,7 +33,7 @@ namespace RN
 		float UsedTime() const { return _usedTime; }
 		
 	protected:
-		void WaitForWork();
+		bool WaitForWork();
 		void SetThread(Thread *thread);
 		
 		virtual void WorkOnTask(TaskID task, float delta) = 0;

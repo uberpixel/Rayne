@@ -450,7 +450,9 @@ namespace RN
 				((RNNativeWindow *)_nativeWindow).needsResize = false;
 			}
 
-			_renderer->WaitForWork();
+			if(!_renderer->WaitForWork())
+				break;
+			
 			CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
 #endif
 
