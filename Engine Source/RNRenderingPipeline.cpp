@@ -10,7 +10,10 @@
 #include "RNLightEntity.h"
 #include "RNKernel.h"
 
-#include "RNDebug.h"
+#define kRNRenderingPipelineInstancingCutOff 100
+
+#define kRNRenderingPipelineFeatureLightning 0
+#define kRNRenderingPipelineFeatureInstancing 0
 
 namespace RN
 {
@@ -369,6 +372,7 @@ namespace RN
 		}
 
 		// Light list
+#if kRNRenderingPipelineFeatureLightning
 		Vector4 *lightPos = 0;
 		Vector3 *lightColor = 0;
 		int lightCount = 0;
@@ -381,6 +385,7 @@ namespace RN
 		Vector2 lightTilesCount = Vector2(tilesWidth, tilesHeight);
 		
 		CreateLightList(group, camera, &lightPos, &lightColor, &lightCount);
+#endif
 		
 		// Draw all camera stages
 		bool changedShader;
@@ -490,6 +495,7 @@ namespace RN
 					
 					changedShader = (_currentShader != shader->program);
 					BindShader(shader);
+					BindMaterial(material);
 					
 					if(changedShader || changedCamera)
 					{
@@ -497,6 +503,7 @@ namespace RN
 						changedCamera = false;
 					}
 					
+#if kRNRenderingPipelineFeatureLightning
 					if(changedShader)
 					{					
 						// Light data
@@ -559,7 +566,9 @@ namespace RN
 						}
 #endif
 					}
-
+#endif
+	
+#if kRNRenderingPipelineFeatureInstancing
 					// Check if we can use instancing here
 					if(noCheck == 0 && SupportsOpenGLFeature(kOpenGLFeatureInstancing))
 					{
@@ -584,9 +593,7 @@ namespace RN
 						{
 							if(material->Shader()->imatModel != -1)
 							{
-								BindMaterial(material);
 								DrawMeshInstanced(objects, i, offset);
-								
 								continue;
 							}
 						}
@@ -598,6 +605,7 @@ namespace RN
 					{
 						noCheck --;
 					}
+#endif
 					
 
 					// Send the object related uniforms tot he shader
@@ -632,8 +640,6 @@ namespace RN
 						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 					}
 
-					// Render the mesh normally
-					BindMaterial(material);
 					DrawMesh(mesh);
 				}
 			}
@@ -652,8 +658,10 @@ namespace RN
 				_flushCameras.push_back(previous);
 		}
 
+#if kRNRenderingPipelineFeatureLightning
 		delete[] lightColor;
 		delete[] lightPos;
+#endif
 	}
 
 	void RenderingPipeline::DrawMesh(Mesh *mesh)

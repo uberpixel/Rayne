@@ -14,8 +14,6 @@
 #include "RNPipelineSegment.h"
 #include "RNEntity.h"
 
-#define kRNRenderingPipelineInstancingCutOff 100
-
 namespace RN
 {
 	struct RenderingObject
