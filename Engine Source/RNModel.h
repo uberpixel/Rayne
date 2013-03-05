@@ -52,6 +52,7 @@ namespace RN
 		
 		Array<Material> _materials;
 		std::vector<MeshGroup> _groups;
+		std::string _animfilename;
 	};
 }
 

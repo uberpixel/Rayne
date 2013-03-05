@@ -334,6 +334,12 @@ namespace RN
 			unsigned short lenanimfilename = file->ReadInt16();
 			char *animfilename = new char[lenanimfilename];
 			file->ReadIntoBuffer(animfilename, lenanimfilename*sizeof(char));
+			_animfilename = animfilename;
+			delete[] animfilename;
+		}
+		else
+		{
+			_animfilename = "";
 		}
 	}
 }
