@@ -43,12 +43,12 @@ namespace RN
 	private:
 		void Initialize();
 		
-		void BindMaterial(Material *material);
-		void BindShader(Shader *shader);
+		void BindMaterial(Material *material, ShaderProgram *program);
+		void BindShader(ShaderProgram *shader);
 		uint32 BindTexture(Texture *texture);
-		GLuint BindVAO(const std::tuple<Material *, MeshLODStage *>& tuple);
+		GLuint BindVAO(const std::tuple<ShaderProgram *, MeshLODStage *>& tuple);
 		
-		void UpdateShaderWithCamera(Shader *shader, Camera *camera);
+		void UpdateShaderWithCamera(ShaderProgram *shader, Camera *camera);
 		void CreateLightList(RenderingGroup *group, Camera *camera, Vector4 **outLightPos, Vector3 **outLightColor, int *outLightCount);
 
 		void DrawGroup(RenderingGroup *group);
@@ -91,7 +91,7 @@ namespace RN
 		size_t _lightindexoffsetSize;
 		size_t _lightindicesSize;
 
-		std::map<std::tuple<Material *, MeshLODStage *>, GLuint> _vaos;
+		std::map<std::tuple<ShaderProgram *, MeshLODStage *>, GLuint> _vaos;
 		
 		Matrix *_instancingMatrices;
 		uint32 _numInstancingMatrices;

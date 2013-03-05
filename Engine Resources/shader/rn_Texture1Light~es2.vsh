@@ -1,5 +1,5 @@
 //
-//  rn_Texture1.vsh
+//  rn_Texture1Light.vsh
 //  Rayne
 //
 //  Copyright 2013 by Felix Pohl, Nils Daumann and Sidney Just. All rights reserved.

@@ -110,7 +110,7 @@
 		E9619EE7169616FD00DA187E /* libRayne.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libRayne.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9619EEA169616FD00DA187E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E9619EF91696170700DA187E /* RNArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNArray.h; sourceTree = "<group>"; };
-		E9619EFA1696170700DA187E /* RNBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNBase.cpp; sourceTree = "<group>"; };
+		E9619EFA1696170700DA187E /* RNBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNBase.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9619EFB1696170700DA187E /* RNBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBase.h; sourceTree = "<group>"; };
 		E9619EFC1696170700DA187E /* RNCamera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNCamera.cpp; sourceTree = "<group>"; };
 		E9619EFD1696170700DA187E /* RNCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNCamera.h; sourceTree = "<group>"; };
@@ -122,11 +122,11 @@
 		E9619F031696170700DA187E /* RNErrorGroupGraphics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNErrorGroupGraphics.h; sourceTree = "<group>"; };
 		E9619F041696170700DA187E /* RNFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNFile.cpp; sourceTree = "<group>"; };
 		E9619F051696170700DA187E /* RNFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNFile.h; sourceTree = "<group>"; };
-		E9619F061696170700DA187E /* RNKernel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNKernel.cpp; sourceTree = "<group>"; };
+		E9619F061696170700DA187E /* RNKernel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 2; path = RNKernel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9619F071696170700DA187E /* RNKernel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNKernel.h; sourceTree = "<group>"; };
 		E9619F081696170700DA187E /* RNList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNList.cpp; sourceTree = "<group>"; };
 		E9619F091696170700DA187E /* RNList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNList.h; sourceTree = "<group>"; };
-		E9619F0A1696170700DA187E /* RNMaterial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNMaterial.cpp; sourceTree = "<group>"; };
+		E9619F0A1696170700DA187E /* RNMaterial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNMaterial.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9619F0B1696170700DA187E /* RNMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMaterial.h; sourceTree = "<group>"; };
 		E9619F0C1696170700DA187E /* RNMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMatrix.h; sourceTree = "<group>"; };
 		E9619F0D1696170700DA187E /* RNMatrixQuaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMatrixQuaternion.h; sourceTree = "<group>"; };
@@ -178,9 +178,9 @@
 		E9C6F09516AF4E5E006288D5 /* RNRenderingPipeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRenderingPipeline.h; sourceTree = "<group>"; };
 		E9C6F09716AF4E6E006288D5 /* RNPhysicsPipeline.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNPhysicsPipeline.cpp; sourceTree = "<group>"; };
 		E9C6F09816AF4E6E006288D5 /* RNPhysicsPipeline.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPhysicsPipeline.h; sourceTree = "<group>"; };
-		E9C6F0AA16B245C9006288D5 /* RNModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNModel.cpp; sourceTree = "<group>"; };
+		E9C6F0AA16B245C9006288D5 /* RNModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNModel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9C6F0AB16B245C9006288D5 /* RNModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNModel.h; sourceTree = "<group>"; };
-		E9F77790169A75AC006EE702 /* RNEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNEntity.cpp; sourceTree = "<group>"; };
+		E9F77790169A75AC006EE702 /* RNEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNEntity.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9F77791169A75AC006EE702 /* RNEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNEntity.h; sourceTree = "<group>"; };
 		E9F77793169C4038006EE702 /* RNOpenGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenGL.cpp; sourceTree = "<group>"; };
 		E9F77794169C4038006EE702 /* RNOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOpenGL.h; sourceTree = "<group>"; };

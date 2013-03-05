@@ -1,5 +1,5 @@
 //
-//  rn_Texture1.vsh
+//  rn_Texture1Discard.vsh
 //  Rayne
 //
 //  Copyright 2013 by Felix Pohl, Nils Daumann and Sidney Just. All rights reserved.
@@ -9,7 +9,7 @@
 #version 150
 precision highp float;
 
-uniform mat4 matProjViewModel;
+#include "rn_Matrices.vsh"
 
 in vec3 vertPosition;
 in vec2 vertTexcoord0;

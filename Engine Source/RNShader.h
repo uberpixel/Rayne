@@ -16,33 +16,18 @@
 
 namespace RN
 {
-	class Shader : public Object
+	class ShaderProgram
 	{
-	public:		
-		RNAPI Shader();
-		RNAPI Shader(const std::string& shader, bool link=true);
-		RNAPI virtual ~Shader();
+	public:
+		typedef enum
+		{
+			TypeNormal,
+			TypeInstanced,
+			
+			__TypeMax
+		} Type;
 		
-		static Shader *WithFile(const std::string& shader, bool link=true);
-		
-		RNAPI void Define(const std::string& define);
-		RNAPI void Define(const std::string& define, const std::string& value);
-		RNAPI void Define(const std::string& define, int32 value);
-		RNAPI void Define(const std::string& define, float value);
-		RNAPI void Undefine(const std::string& define);
-		
-		RNAPI void SetVertexShader(const std::string& path);
-		RNAPI void SetVertexShader(File *file);
-		
-		RNAPI void SetFragmentShader(const std::string& path);
-		RNAPI void SetFragmentShader(File *file);
-		
-		RNAPI void SetGeometryShader(const std::string& path);
-		RNAPI void SetGeometryShader(File *file);
-		
-		RNAPI void Link();
-		RNAPI bool IsLinked() const;
-		
+		Type type;
 		GLuint program;
 		
 		GLuint matProj;
@@ -89,6 +74,34 @@ namespace RN
 		Array<GLuint> targetmaplocations;
 		Array<GLuint> fraglocations;
 		GLuint depthmap;
+	};
+	
+	class Shader : public Object
+	{
+	public:		
+		RNAPI Shader();
+		RNAPI Shader(const std::string& shader);
+		RNAPI virtual ~Shader();
+		
+		static Shader *WithFile(const std::string& shader);
+		
+		RNAPI void Define(const std::string& define);
+		RNAPI void Define(const std::string& define, const std::string& value);
+		RNAPI void Define(const std::string& define, int32 value);
+		RNAPI void Define(const std::string& define, float value);
+		RNAPI void Undefine(const std::string& define);
+		
+		RNAPI void SetVertexShader(const std::string& path);
+		RNAPI void SetVertexShader(File *file);
+		
+		RNAPI void SetFragmentShader(const std::string& path);
+		RNAPI void SetFragmentShader(File *file);
+		
+		RNAPI void SetGeometryShader(const std::string& path);
+		RNAPI void SetGeometryShader(File *file);
+		
+		RNAPI ShaderProgram *ProgramOfType(ShaderProgram::Type type);
+		RNAPI bool SupportsProgramOfType(ShaderProgram::Type type);
 		
 	private:
 		struct ShaderDefine
@@ -101,11 +114,22 @@ namespace RN
 		void SetShaderForType(File *file, GLenum type);
 		void AddDefines();
 		
+		std::string PreProcessedShaderSource(const std::string& source);
+		void CompileShader(GLenum type, GLuint *outShader);
+		
 		Array<ShaderDefine> _defines;
 		
-		GLuint _vertexShader;
-		GLuint _fragmentShader;
-		GLuint _geometryShader;
+		uint32 _supportedPrograms;
+		ShaderProgram *_programs[ShaderProgram::__TypeMax];
+		
+		std::string _vertexFile;
+		std::string _vertexShader;
+		
+		std::string _fragmentFile;
+		std::string _fragmentShader;
+		
+		std::string _geometryFile;
+		std::string _geometryShader;
 	};
 }
 

@@ -223,30 +223,30 @@ namespace RN
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		}
 
-		Shader *shader = _copyShader;
+		ShaderProgram *program = _copyShader->ProgramOfType(ShaderProgram::TypeNormal);
 		
-		BindShader(_copyShader);
-		UpdateShaderWithCamera(_copyShader, camera);
+		BindShader(program);
+		UpdateShaderWithCamera(program, camera);
 
-		glEnableVertexAttribArray(shader->vertPosition);
-		glVertexAttribPointer(shader->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
+		glEnableVertexAttribArray(program->vertPosition);
+		glVertexAttribPointer(program->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
 
-		glEnableVertexAttribArray(shader->vertTexcoord0);
-		glVertexAttribPointer(shader->vertTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
+		glEnableVertexAttribArray(program->vertTexcoord0);
+		glVertexAttribPointer(program->vertTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 
-		uint32 targetmaps = MIN((uint32)shader->targetmaplocations.Count(), camera->RenderTargets());
+		uint32 targetmaps = MIN((uint32)program->targetmaplocations.Count(), camera->RenderTargets());
 		if(targetmaps >= 1)
 		{
 			Texture *texture = camera->RenderTarget(0);
-			GLuint location = shader->targetmaplocations.ObjectAtIndex(0);
+			GLuint location = program->targetmaplocations.ObjectAtIndex(0);
 
 			glUniform1i(location, BindTexture(texture));
 		}
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 
-		glDisableVertexAttribArray(shader->vertPosition);
-		glDisableVertexAttribArray(shader->vertTexcoord0);
+		glDisableVertexAttribArray(program->vertPosition);
+		glDisableVertexAttribArray(program->vertTexcoord0);
 
 		camera->Pop();
 	}
@@ -257,12 +257,14 @@ namespace RN
 
 		Material *material = stage->Material();
 		Shader *shader = material->Shader();
+		ShaderProgram *program = shader->ProgramOfType(ShaderProgram::TypeNormal);
 		
 		_currentCamera = stage;
 		
-		BindMaterial(material);
-		BindShader(shader);
-		UpdateShaderWithCamera(shader, stage);
+		BindShader(program);
+		BindMaterial(material, program);
+		
+		UpdateShaderWithCamera(program, stage);
 		
 		if(_currentVAO != _copyVAO)
 		{
@@ -273,34 +275,34 @@ namespace RN
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		}
 
-		glEnableVertexAttribArray(shader->vertPosition);
-		glVertexAttribPointer(shader->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
+		glEnableVertexAttribArray(program->vertPosition);
+		glVertexAttribPointer(program->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
 
-		glEnableVertexAttribArray(shader->vertTexcoord0);
-		glVertexAttribPointer(shader->vertTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
+		glEnableVertexAttribArray(program->vertTexcoord0);
+		glVertexAttribPointer(program->vertTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 
-		uint32 targetmaps = MIN((uint32)shader->targetmaplocations.Count(), camera->RenderTargets());
+		uint32 targetmaps = MIN((uint32)program->targetmaplocations.Count(), camera->RenderTargets());
 		for(uint32 i=0; i<targetmaps; i++)
 		{
 			Texture *texture = camera->RenderTarget(i);
-			GLuint location = shader->targetmaplocations.ObjectAtIndex(i);
+			GLuint location = program->targetmaplocations.ObjectAtIndex(i);
 
 			glUniform1i(location, BindTexture(texture));
 		}
 
-		if(shader->depthmap != -1)
+		if(program->depthmap != -1)
 		{
 			Texture *depthmap = camera->Storage()->DepthTarget();
 			if(depthmap)
 			{
-				glUniform1i(shader->depthmap, BindTexture(depthmap));
+				glUniform1i(program->depthmap, BindTexture(depthmap));
 			}
 		}
 
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 
-		glDisableVertexAttribArray(shader->vertPosition);
-		glDisableVertexAttribArray(shader->vertTexcoord0);
+		glDisableVertexAttribArray(program->vertPosition);
+		glDisableVertexAttribArray(program->vertTexcoord0);
 
 		stage->Pop();
 	}
@@ -482,114 +484,38 @@ namespace RN
 					
 					Matrix& transform = (Matrix &)*object.transform;
 					Matrix inverseTransform = transform.Inverse();
-
-					// Send generic attributes to the shader
-					changedShader = (_currentShader != shader->program);
 					
-					BindShader(shader);
-					BindMaterial(material);
-					
-					if(changedShader || changedCamera)
-					{
-						UpdateShaderWithCamera(shader, camera);
-						changedCamera = false;
-					}
-					
-#if kRNRenderingPipelineFeatureLightning
-					if(changedShader)
-					{					
-						// Light data
-						if(shader->lightCount != -1)
-							glUniform1i(shader->lightCount, lightCount);
-
-						if(shader->lightPosition != -1 && lightCount > 0)
-							glUniform4fv(shader->lightPosition, lightCount, &(lightPos[0].x));
-
-						if(shader->lightColor != -1 && lightCount > 0)
-							glUniform3fv(shader->lightColor, lightCount, &(lightColor[0].x));
-					
-#if !(RN_PLATFORM_IOS)
-						if(camera->LightTiles() != 0)
-						{
-							if(shader->lightListOffset != -1)
-							{
-								_textureUnit ++;
-								_textureUnit %= _maxTextureUnits;
-								
-								glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
-								glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[0]);
-								glUniform1i(shader->lightListOffset, _textureUnit);
-							}
-							
-							if(shader->lightList != -1)
-							{
-								_textureUnit ++;
-								_textureUnit %= _maxTextureUnits;
-								
-								glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
-								glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[1]);
-								glUniform1i(shader->lightList, _textureUnit);
-							}
-							
-							if(shader->lightListPosition != -1)
-							{
-								_textureUnit ++;
-								_textureUnit %= _maxTextureUnits;
-								
-								glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
-								glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[2]);
-								glUniform1i(shader->lightListPosition, _textureUnit);
-							}
-							
-							if(shader->lightListColor != -1)
-							{
-								_textureUnit ++;
-								_textureUnit %= _maxTextureUnits;
-								
-								glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
-								glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[3]);
-								glUniform1i(shader->lightListColor, _textureUnit);
-							}
-							
-							if(shader->lightTileSize != -1)
-							{
-								glUniform4f(shader->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
-							}
-						}
-#endif
-					}
-#endif
-	
 #if kRNRenderingPipelineFeatureInstancing
 					// Check if we can use instancing here
+					bool canDrawInstanced = false;
+					
 					if(noCheck == 0 && SupportsOpenGLFeature(kOpenGLFeatureInstancing))
 					{
 						machine_uint end = i + 1;
 						offset = 1;
-
+						
 						while(end < objectsCount)
 						{
 							RenderingObject& temp = objects.ObjectAtIndex(end);
 							
 							if(temp.mesh != mesh)
 								break;
-
+							
 							if(!surfaceMaterial && temp.material != material)
 								break;
-
+							
 							offset ++;
 							end ++;
 						}
 						
 						if(offset >= kRNRenderingPipelineInstancingCutOff)
 						{
-							if(material->Shader()->imatModel != -1)
+							if(shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
 							{
-								DrawMeshInstanced(objects, i, offset);
-								continue;
+								canDrawInstanced = true;
 							}
 						}
-
+						
 						noCheck = offset;
 						offset = 1;
 					}
@@ -598,43 +524,129 @@ namespace RN
 						noCheck --;
 					}
 #endif
+
+					// Grab the correct shader program
+					ShaderProgram *program = canDrawInstanced ? shader->ProgramOfType(ShaderProgram::TypeInstanced) : shader->ProgramOfType(ShaderProgram::TypeNormal);
 					
-					if(object.skeleton != NULL && shader->matBones != -1)
+					// Send generic attributes to the shader
+					changedShader = (_currentShader != program->program);
+					
+					BindShader(program);
+					BindMaterial(material, program);
+					
+					if(changedShader || changedCamera)
+					{
+						UpdateShaderWithCamera(program, camera);
+						changedCamera = false;
+					}
+					
+#if kRNRenderingPipelineFeatureLightning
+					if(changedShader)
+					{					
+						// Light data
+						if(program->lightCount != -1)
+							glUniform1i(program->lightCount, lightCount);
+
+						if(program->lightPosition != -1 && lightCount > 0)
+							glUniform4fv(program->lightPosition, lightCount, &(lightPos[0].x));
+
+						if(program->lightColor != -1 && lightCount > 0)
+							glUniform3fv(program->lightColor, lightCount, &(lightColor[0].x));
+					
+#if !(RN_PLATFORM_IOS)
+						if(camera->LightTiles() != 0)
+						{
+							if(program->lightListOffset != -1)
+							{
+								_textureUnit ++;
+								_textureUnit %= _maxTextureUnits;
+								
+								glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+								glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[0]);
+								glUniform1i(program->lightListOffset, _textureUnit);
+							}
+							
+							if(program->lightList != -1)
+							{
+								_textureUnit ++;
+								_textureUnit %= _maxTextureUnits;
+								
+								glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+								glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[1]);
+								glUniform1i(program->lightList, _textureUnit);
+							}
+							
+							if(program->lightListPosition != -1)
+							{
+								_textureUnit ++;
+								_textureUnit %= _maxTextureUnits;
+								
+								glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+								glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[2]);
+								glUniform1i(program->lightListPosition, _textureUnit);
+							}
+							
+							if(program->lightListColor != -1)
+							{
+								_textureUnit ++;
+								_textureUnit %= _maxTextureUnits;
+								
+								glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+								glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[3]);
+								glUniform1i(program->lightListColor, _textureUnit);
+							}
+							
+							if(program->lightTileSize != -1)
+							{
+								glUniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
+							}
+						}
+#endif
+					}
+#endif
+					
+					if(canDrawInstanced)
+					{
+						DrawMeshInstanced(objects, i, noCheck);
+						continue;
+					}
+					
+					// Send the object related uniforms to the shader
+					if(object.skeleton && shader->matBones != -1)
 					{
 						float *data = object.skeleton->Matrices().AccessPast().Data()->m;
 						glUniformMatrix4fv(shader->matBones, object.skeleton->NumBones(), GL_FALSE, data);
 					}
-					
-					// Send the object related uniforms tot he shader
-					if(shader->matModel != -1)
-						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, transform.m);
 
-					if(shader->matModelInverse != -1)
-						glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, inverseTransform.m);
+					if(program->matModel != -1)
+						glUniformMatrix4fv(program->matModel, 1, GL_FALSE, transform.m);
+
+					if(program->matModelInverse != -1)
+						glUniformMatrix4fv(program->matModelInverse, 1, GL_FALSE, inverseTransform.m);
 					
-					if(shader->matViewModel != -1)
+					if(program->matViewModel != -1)
 					{
 						Matrix viewModel = viewMatrix * transform;
-						glUniformMatrix4fv(shader->matViewModel, 1, GL_FALSE, viewModel.m);
+						glUniformMatrix4fv(program->matViewModel, 1, GL_FALSE, viewModel.m);
 					}
 
-					if(shader->matViewModelInverse != -1)
+					if(program->matViewModelInverse != -1)
 					{
 						Matrix viewModel = inverseViewMatrix * inverseTransform;
-						glUniformMatrix4fv(shader->matViewModelInverse, 1, GL_FALSE, viewModel.m);
+						glUniformMatrix4fv(program->matViewModelInverse, 1, GL_FALSE, viewModel.m);
 					}
 
 					
-					if(shader->matProjViewModel != -1)
+					if(program->matProjViewModel != -1)
 					{
 						Matrix projViewModel = projectionViewMatrix * transform;
-						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+						glUniformMatrix4fv(program->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 					}
 
-					if(shader->matProjViewModelInverse != -1)
+					if(program->matProjViewModelInverse != -1)
 					{
 						Matrix projViewModelInverse = inverseProjectionViewMatrix * inverseTransform;
-						glUniformMatrix4fv(shader->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
+						glUniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
 					}
 
 					DrawMesh(mesh);
@@ -672,7 +684,10 @@ namespace RN
 		MeshLODStage *stage = mesh->LODStage(0);
 		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
 		
-		BindVAO(std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage));
+		Shader *shader = _currentMaterial->Shader();
+		ShaderProgram *program = shader->ProgramOfType(ShaderProgram::TypeNormal);
+		
+		BindVAO(std::tuple<ShaderProgram *, MeshLODStage *>(program, stage));
 		
 		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
 		glDrawElements(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0);
@@ -685,7 +700,9 @@ namespace RN
 		Mesh *mesh = (Mesh *)group[(int)start].mesh;
 		MeshLODStage *stage = mesh->LODStage(0);
 		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
+		
 		Shader *shader = _currentMaterial->Shader();
+		ShaderProgram *program = shader->ProgramOfType(ShaderProgram::TypeInstanced);
 		
 		if(count > _numInstancingMatrices)
 		{
@@ -700,18 +717,18 @@ namespace RN
 		
 		mesh->Push();
 		
-		BindVAO(std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage));
+		BindVAO(std::tuple<ShaderProgram *, MeshLODStage *>(program, stage));
 		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
 		
 		uint32 offset = 0;
 		
-		if(shader->imatModel != -1)
+		if(program->imatModel != -1)
 		{
 			for(int i=0; i<4; i++)
 			{
-				glEnableVertexAttribArray(shader->imatModel + i);
-				glVertexAttribPointer(shader->imatModel + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * ((i * 4) + offset)));
-				gl::VertexAttribDivisor(shader->imatModel + i, 1);
+				glEnableVertexAttribArray(program->imatModel + i);
+				glVertexAttribPointer(program->imatModel + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * ((i * 4) + offset)));
+				gl::VertexAttribDivisor(program->imatModel + i, 1);
 			}
 			
 			for(machine_uint i=0; i<count; i++)
@@ -723,13 +740,13 @@ namespace RN
 			offset += count;
 		}
 		
-		if(shader->imatModelInverse != -1)
+		if(program->imatModelInverse != -1)
 		{
 			for(int i=0; i<4; i++)
 			{
-				glEnableVertexAttribArray(shader->imatModelInverse + i);
-				glVertexAttribPointer(shader->imatModelInverse + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * ((i * 4) + offset)));
-				gl::VertexAttribDivisor(shader->imatModelInverse + i, 1);
+				glEnableVertexAttribArray(program->imatModelInverse + i);
+				glVertexAttribPointer(program->imatModelInverse + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * ((i * 4) + offset)));
+				gl::VertexAttribDivisor(program->imatModelInverse + i, 1);
 			}
 			
 			for(machine_uint i=0; i<count; i++)
@@ -752,16 +769,16 @@ namespace RN
 		glBufferData(GL_ARRAY_BUFFER, offset * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
 		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
 		
-		if(shader->imatModel != -1)
+		if(program->imatModel != -1)
 		{
 			for(int i=0; i<4; i++)
-				glDisableVertexAttribArray(shader->imatModel + i);
+				glDisableVertexAttribArray(program->imatModel + i);
 		}
 		
-		if(shader->imatModelInverse != -1)
+		if(program->imatModelInverse != -1)
 		{
 			for(int i=0; i<4; i++)
-				glDisableVertexAttribArray(shader->imatModelInverse + i);
+				glDisableVertexAttribArray(program->imatModelInverse + i);
 		}
 		
 		mesh->Pop();
@@ -772,7 +789,7 @@ namespace RN
 	// MARK: Additional helper
 	// ---------------------
 	
-	void RenderingPipeline::UpdateShaderWithCamera(Shader *shader, Camera *camera)
+	void RenderingPipeline::UpdateShaderWithCamera(ShaderProgram *shader, Camera *camera)
 	{
 		Matrix& projectionMatrix = camera->projectionMatrix.AccessPast();
 		Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix.AccessPast();
@@ -992,7 +1009,7 @@ continue; \
 		return _textureUnit;
 	}
 	
-	void RenderingPipeline::BindShader(Shader *shader)
+	void RenderingPipeline::BindShader(ShaderProgram *shader)
 	{
 		if(_currentShader != shader->program)
 		{
@@ -1005,14 +1022,14 @@ continue; \
 		}
 	}
 	
-	void RenderingPipeline::BindMaterial(Material *material)
+	void RenderingPipeline::BindMaterial(Material *material, ShaderProgram *program)
 	{
 		material->Push();
 		
 		if(material != _currentMaterial)
 		{
 			Array<Texture> *textures = material->Textures();
-			Array<GLuint> *textureLocations = &material->Shader()->texlocations;
+			Array<GLuint> *textureLocations = &program->texlocations;
 			
 			if(textureLocations->Count() > 0)
 			{
@@ -1122,17 +1139,15 @@ continue; \
 		material->Pop();
 	}
 
-	GLuint RenderingPipeline::BindVAO(const std::tuple<Material *, MeshLODStage *>& tuple)
+	GLuint RenderingPipeline::BindVAO(const std::tuple<ShaderProgram *, MeshLODStage *>& tuple)
 	{
 		auto iterator = _vaos.find(tuple);
 		GLuint vao;
 		
 		if(iterator == _vaos.end())
 		{
-			Material *material  = std::get<0>(tuple);
+			ShaderProgram *shader  = std::get<0>(tuple);
 			MeshLODStage *stage = std::get<1>(tuple);
-
-			Shader *shader = material->Shader();
 
 			gl::GenVertexArrays(1, &vao);
 			gl::BindVertexArray(vao);

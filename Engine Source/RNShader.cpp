@@ -13,62 +13,60 @@ namespace RN
 {
 	Shader::Shader()
 	{
-		_vertexShader = _fragmentShader = _geometryShader = 0;
-		program = 0;
+		_supportedPrograms = 0;
+		
+		_programs[ShaderProgram::TypeNormal] = 0;
+		_programs[ShaderProgram::TypeInstanced] = 0;
 		
 		AddDefines();
 	}
 	
-	Shader::Shader(const std::string& shader, bool link)
+	Shader::Shader(const std::string& shader)
 	{
-		_vertexShader = _fragmentShader = _geometryShader = 0;
-		program = 0;
+		_supportedPrograms = 0;
+		
+		_programs[ShaderProgram::TypeNormal] = 0;
+		_programs[ShaderProgram::TypeInstanced] = 0;
 		
 		AddDefines();
 		
-		{
-			std::string path = File::PathForName(shader + ".vsh");
-			SetVertexShader(path);
-		}
-		
-		{
-			std::string path = File::PathForName(shader + ".fsh");
-			SetFragmentShader(path);
-		}
+		SetVertexShader(File::PathForName(shader + ".vsh"));
+		SetFragmentShader(File::PathForName(shader + ".fsh"));
 		
 		try
 		{
 			std::string path = File::PathForName(shader + ".gsh");
-			SetGeometryShader(path);
+			SetGeometryShader(File::PathForName(shader + ".gsh"));
 		}
 		catch(ErrorException e)
 		{
 		}
 		
-		if(link)
-			Link();
+		ProgramOfType(ShaderProgram::TypeNormal);
 	}
 	
 	Shader::~Shader()
 	{
-		if(_vertexShader)
-			glDeleteShader(_vertexShader);
-		
-		if(_fragmentShader)
-			glDeleteShader(_fragmentShader);
-		
-		if(_geometryShader)
-			glDeleteShader(_geometryShader);
-		
-		if(program)
-			glDeleteProgram(program);
+		for(uint32 i=0; i<ShaderProgram::__TypeMax; i++)
+		{
+			if(_programs[i])
+				glDeleteProgram(_programs[i]->program);
+			
+			delete _programs[i];
+		}
 	}
 	
-	Shader *Shader::WithFile(const std::string& file, bool link)
+	Shader *Shader::WithFile(const std::string& file)
 	{
-		Shader *shader = new Shader(file, link);
+		Shader *shader = new Shader(file);
 		return shader->Autorelease<Shader>();
 	}
+	
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Defines
+	// ---------------------
 	
 	void Shader::AddDefines()
 	{
@@ -86,7 +84,6 @@ namespace RN
 		Define("OPENGLES", 1);
 #endif
 	}
-	
 	
 	void Shader::Define(const std::string& define)
 	{
@@ -135,6 +132,363 @@ namespace RN
 		}
 	}
 	
+	// ---------------------
+	// MARK: -
+	// MARK: Program creation
+	// ---------------------
+	
+	std::string Shader::PreProcessedShaderSource(const std::string& source)
+	{
+		std::string data = source;
+		size_t index = data.find("#version");
+		
+		if(index != std::string::npos)
+		{
+			index += 8;
+			
+			do {
+				index ++;
+			} while(data[index] != '\n');
+			
+			index ++;
+		}
+		else
+		{
+			index = 0;
+		}
+		
+		for(machine_uint i=0; i<_defines.Count(); i++)
+		{
+			ShaderDefine& define = _defines[(int)i];
+			std::string exploded = "#define " + define.name + " " + define.value + "\n";
+			
+			data.insert(index, exploded);
+			index += exploded.length();
+		}
+		
+		return data;
+	}
+	
+	void Shader::CompileShader(GLenum type, GLuint *outShader)
+	{
+		GLuint shader = 0;
+		std::string source;
+		
+		switch(type)
+		{
+			case GL_VERTEX_SHADER:
+				Define("RN_VERTEXSHADER", 1);
+				source = PreProcessedShaderSource(_vertexShader);
+				Undefine("RN_VERTEXSHADER");
+				break;
+				
+			case GL_FRAGMENT_SHADER:
+				Define("RN_FRAGMENTSHADER", 1);
+				source = PreProcessedShaderSource(_fragmentShader);
+				Undefine("RN_FRAGMENTSHADER");
+				break;
+				
+#ifdef GL_GEOMETRY_SHADER
+			case GL_GEOMETRY_SHADER:
+				Define("RN_GEOMETRYSHADER", 1);
+				source = PreProcessedShaderSource(_geometryShader);
+				Undefine("RN_GEOMETRYSHADER");
+				break;
+#endif
+		}
+		
+		const GLchar *data = source.c_str();
+		
+		shader = glCreateShader(type);
+		
+		glShaderSource(shader, 1, &data, NULL);
+		glCompileShader(shader);
+		
+		*outShader = shader;
+		
+		// Check the compilation status of the shader
+		GLint status, length;
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+		if(status == GL_FALSE)
+		{
+			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+			
+			GLchar *log = new GLchar[length];
+			glGetShaderInfoLog(shader, length, &length, log);
+			glDeleteShader(shader);
+			
+			*outShader = 0;
+			
+			std::string tlog = std::string((char *)log);
+			delete [] log;
+			
+			std::string compilerLog;
+			
+			switch(type)
+			{
+				case GL_VERTEX_SHADER:
+					compilerLog = "Failed to compile " + _vertexFile + ".\n" + tlog;
+					break;
+					
+				case GL_FRAGMENT_SHADER:
+					compilerLog = "Failed to compile " + _fragmentFile + ".\n" + tlog;
+					break;
+					
+#ifdef GL_GEOMETRY_SHADER
+				case GL_GEOMETRY_SHADER:
+					compilerLog = "Failed to compile " + _geometryFile + ".\n" + tlog;
+					break;
+#endif
+			}
+			
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, compilerLog);
+		}
+	}
+	
+	ShaderProgram *Shader::ProgramOfType(ShaderProgram::Type type)
+	{
+		if(!SupportsProgramOfType(type))
+			return 0;
+		
+		ShaderProgram *program = _programs[type];
+		if(!program)
+		{
+			GLuint shader[3] = {0};
+			
+			program = new ShaderProgram;
+			program->program = glCreateProgram();
+			
+			_programs[type] = program;
+			
+			// Prepare the state
+			switch(type)
+			{
+				case ShaderProgram::TypeNormal:
+					break;
+					
+				case ShaderProgram::TypeInstanced:
+					Define("RN_INSTANCING");
+					break;
+					
+				default:
+					break;
+			}
+			
+			// Compile all required shaders
+			try
+			{
+				if(_vertexShader.length() > 0)
+				{
+					CompileShader(GL_VERTEX_SHADER, &shader[0]);
+					glAttachShader(program->program, shader[0]);
+				}
+				
+				if(_fragmentShader.length() > 0)
+				{
+					CompileShader(GL_FRAGMENT_SHADER, &shader[1]);
+					glAttachShader(program->program, shader[1]);
+				}
+			
+#ifdef GL_GEOMETRY_SHADER
+				if(_geometryShader.length() > 0)
+				{
+					CompileShader(GL_GEOMETRY_SHADER, &shader[2]);
+					glAttachShader(program->program, shader[2]);
+				}
+#endif
+			}
+			catch(ErrorException e)
+			{
+				Undefine("RN_INSTANCING");
+				
+				delete program;
+				_programs[type] = 0;
+				
+				throw e;
+			}
+			
+			// Link the program
+			glLinkProgram(program->program);
+			RN_CHECKOPENGL();
+			
+			// Clean up
+			Undefine("RN_INSTANCING");
+			
+			for(int i=0; i<3; i++)
+			{
+				if(shader[i] != 0)
+				{
+					glDetachShader(program->program, shader[i]);
+					glDeleteShader(shader[i]);
+				}
+			}
+			
+			
+			// Check the programs linking status
+			GLint status, length;
+			
+			glGetProgramiv(program->program, GL_LINK_STATUS, &status);
+			if(status == GL_FALSE)
+			{
+				glGetProgramiv(program->program, GL_INFO_LOG_LENGTH, &length);
+				
+				GLchar *log = new GLchar[length];
+				glGetProgramInfoLog(program->program, length, &length, log);
+				glDeleteProgram(program->program);
+				
+				delete program;
+				_programs[type] = 0;
+				
+				std::string tlog = std::string((char *)log);
+				switch(type)
+				{
+					case ShaderProgram::TypeNormal:
+						tlog += "\nType: Normal";
+						break;
+						
+					case ShaderProgram::TypeInstanced:
+						tlog += "\nType: Instancing";
+						break;
+						
+					default:
+						break;
+				}
+				
+				if(_vertexFile.length() > 0)
+					tlog += "\nVertex Shader: " + _vertexFile;
+				
+				if(_fragmentFile.length() > 0)
+					tlog += "\nFragment Shader: " + _fragmentFile;
+				
+				if(_geometryFile.length() > 0)
+					tlog += "\nGeometry Shader: " + _geometryFile;
+				
+				delete [] log;
+				
+				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderLinkingFailed, tlog);
+			}
+			else
+			{
+				
+#define GetUniformLocation(uniform) program->uniform = glGetUniformLocation(program->program, #uniform)
+#define GetAttributeLocation(attribute) program->attribute = glGetAttribLocation(program->program, #attribute)
+				
+				// Get uniforms
+				GetUniformLocation(matProj);
+				GetUniformLocation(matProjInverse);
+				
+				GetUniformLocation(matView);
+				GetUniformLocation(matViewInverse);
+				
+				GetUniformLocation(matModel);
+				GetUniformLocation(matModelInverse);
+				
+				GetUniformLocation(matViewModel);
+				GetUniformLocation(matViewModelInverse);
+				
+				GetUniformLocation(matProjView);
+				GetUniformLocation(matProjViewInverse);
+				
+				GetUniformLocation(matProjViewModel);
+				GetUniformLocation(matProjViewModelInverse);
+				
+				GetUniformLocation(matBones);
+				
+				GetUniformLocation(time);
+				GetUniformLocation(frameSize);
+				GetUniformLocation(clipPlanes);
+				
+				GetUniformLocation(lightPosition);
+				GetUniformLocation(lightColor);
+				GetUniformLocation(lightCount);
+				GetUniformLocation(lightList);
+				GetUniformLocation(lightListOffset);
+				GetUniformLocation(lightListPosition);
+				GetUniformLocation(lightListColor);
+				GetUniformLocation(lightTileSize);
+				
+				char string[32];
+				for(machine_uint i=0; ; i++)
+				{
+					sprintf(string, "targetmap%i", (int)i);
+					GLuint location = glGetUniformLocation(program->program, string);
+					
+					if(location == -1)
+						break;
+					
+					program->targetmaplocations.AddObject(location);
+				}
+				
+				for(machine_uint i=0; ; i++)
+				{
+					sprintf(string, "mTexture%i", (int)i);
+					GLuint location = glGetUniformLocation(program->program, string);
+					
+					if(location == -1)
+						break;
+					
+					program->texlocations.AddObject(location);
+				}
+				
+				GetUniformLocation(depthmap);
+				
+				// Get attributes
+				GetAttributeLocation(imatModel);
+				GetAttributeLocation(imatModelInverse);
+				
+				GetAttributeLocation(vertPosition);
+				GetAttributeLocation(vertNormal);
+				GetAttributeLocation(vertTangent);
+				
+				GetAttributeLocation(vertTexcoord0);
+				GetAttributeLocation(vertTexcoord1);
+				
+				GetAttributeLocation(vertColor0);
+				GetAttributeLocation(vertColor1);
+
+				GetAttributeLocation(vertBoneWeights);
+				GetAttributeLocation(vertBoneIndices);
+				
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
+				do
+				{
+					GLint maxDrawbuffers;
+					glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawbuffers);
+					
+					for(GLint i=0; i<maxDrawbuffers; i++)
+					{
+						sprintf(string, "fragColor%i", i);
+						GLint location = glGetFragDataLocation(program->program, string);
+						
+						if(location == -1)
+							break;
+						
+						program->fraglocations.AddObject(location);
+					}
+				} while(0);
+#endif
+				
+#undef GetUniformLocation
+#undef GetAttributeLocation
+				
+				RN_CHECKOPENGL();
+				glFlush();
+			}
+		}
+		
+		return program;
+	}
+	
+	bool Shader::SupportsProgramOfType(ShaderProgram::Type type)
+	{
+		uint32 mask = (1 << type);
+		return (_supportedPrograms & mask);
+	}
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Setter
+	// ---------------------
 	
 	void Shader::SetVertexShader(const std::string& path)
 	{
@@ -174,49 +528,8 @@ namespace RN
 #endif
 	}
 	
-	
-	
 	void Shader::SetShaderForType(File *file, GLenum type)
-	{
-		switch(type)
-		{
-			case GL_VERTEX_SHADER:
-				if(_vertexShader)
-				{
-					glDeleteShader(_vertexShader);
-					_vertexShader = 0;
-				}
-				
-				Define("VERTEXSHADER", 1);
-				break;
-				
-			case GL_FRAGMENT_SHADER:
-				if(_fragmentShader)
-				{
-					glDeleteShader(_fragmentShader);
-					_fragmentShader = 0;
-				}
-				
-				Define("FRAGMENTSHADER", 1);
-				break;
-				
-#ifdef GL_GEOMETRY_SHADER
-			case GL_GEOMETRY_SHADER:
-				if(_geometryShader)
-				{
-					glDeleteShader(_geometryShader);
-					_geometryShader = 0;
-				}
-				
-				Define("GEOMETRYSHADER", 1);
-				break;
-#endif
-				
-			default:
-				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
-				break;
-		}
-		
+	{		
 		// Preprocess the shader
 		std::string data = file->String();
 		size_t index = data.find("#version");
@@ -236,15 +549,7 @@ namespace RN
 			index = 0;
 		}
 		
-		for(machine_uint i=0; i<_defines.Count(); i++)
-		{
-			ShaderDefine& define = _defines[(int)i];
-			std::string exploded = "#define " + define.name + " " + define.value + "\n";
-			
-			data.insert(index, exploded);
-			index += exploded.length();
-		}
-		
+		// Search for includes files
 		index = 0;
 		while((index = data.find("#include \"", index)) != std::string::npos)
 		{
@@ -264,53 +569,26 @@ namespace RN
 			includeFile->Release();
 		}
 		
-		// Compile everything
-		const GLchar *source = (const GLchar *)data.c_str();
-		GLuint shader = glCreateShader(type);
-		
-		RN_CHECKOPENGL();
-		
-		if(shader == 0)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
-		
-		glShaderSource(shader, 1, &source, NULL);
-		glCompileShader(shader);
-		
-		// Get the compilation status
-		GLint status, length;
-		
-		glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-		if(status == GL_FALSE)
-		{
-			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-			
-			GLchar *log = new GLchar[length];
-			glGetShaderInfoLog(shader, length, &length, log);
-			
-			std::string tlog = std::string((char *)log);
-			delete [] log;
-			
-			std::string compilerLog = "Failed to compile " + file->Name() + file->Extension() + ".\n" + tlog;
-			
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, compilerLog);
-		}
+		// Check what program types the shader supports
+		_supportedPrograms |= (1 << ShaderProgram::TypeNormal);
+		_supportedPrograms |= (data.find("#ifdef RN_INSTANCING") != std::string::npos) ? (1 << ShaderProgram::TypeInstanced) : 0;
 		
 		switch(type)
 		{
 			case GL_VERTEX_SHADER:
-				_vertexShader = shader;
-				Undefine("VERTEXSHADER");
+				_vertexShader = data;
+				_vertexFile   = file->Name() + "." + file->Extension();
 				break;
 				
 			case GL_FRAGMENT_SHADER:
-				_fragmentShader = shader;
-				Undefine("FRAGMENTSHADER");
+				_fragmentShader = data;
+				_fragmentFile   = file->Name() + "." + file->Extension();
 				break;
 				
 #ifdef GL_GEOMETRY_SHADER
 			case GL_GEOMETRY_SHADER:
-				_geometryShader = shader;
-				Undefine("GEOMETRYSHADER");
+				_geometryShader = data;
+				_geometryFile   = file->Name() + "." + file->Extension();
 				break;
 #endif
 				
@@ -325,196 +603,5 @@ namespace RN
 		File *file = new File(path);
 		SetShaderForType(file, type);
 		file->Release();
-	}
-	
-	void Shader::Link()
-	{
-		if(program)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderAlreadyLinked);
-
-		program = glCreateProgram();
-		
-		if(_vertexShader)
-			glAttachShader(program, _vertexShader);
-		
-		if(_fragmentShader)
-			glAttachShader(program, _fragmentShader);
-		
-		if(_geometryShader)
-			glAttachShader(program, _geometryShader);
-		
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
-		do
-		{
-			GLint maxDrawbuffers;
-			glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawbuffers);
-			
-			for(GLint i=0; i<maxDrawbuffers; i++)
-			{
-				char buffer[32];
-				sprintf(buffer, "fragColor%i", i);
-				
-				glBindFragDataLocation(program, i, buffer);
-			}
-		} while(0);
-#endif
-		
-		glLinkProgram(program);
-		RN_CHECKOPENGL();
-		
-		// Detach and remove the shader
-		if(_vertexShader)
-		{
-			glDetachShader(program, _vertexShader);
-			glDeleteShader(_vertexShader);
-			
-			_vertexShader = 0;
-		}
-		
-		if(_fragmentShader)
-		{
-			glDetachShader(program, _fragmentShader);
-			glDeleteShader(_fragmentShader);
-			
-			_fragmentShader = 0;
-		}
-		
-		if(_geometryShader)
-		{
-			glDetachShader(program, _geometryShader);
-			glDeleteShader(_geometryShader);
-			
-			_geometryShader = 0;
-		}
-		
-		// Get the linking status
-		GLint status, length;
-		
-		glGetProgramiv(program, GL_LINK_STATUS, &status);
-		if(status == GL_FALSE)
-		{
-			glGetProgramiv(program, GL_INFO_LOG_LENGTH, &length);
-			
-			GLchar *log = new GLchar[length];
-			glGetProgramInfoLog(program, length, &length, log);
-			
-			std::string tlog = std::string((char *)log);
-			delete [] log;
-
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, tlog);
-		}
-		else
-		{
-			
-#define GetUniformLocation(uniform) uniform = glGetUniformLocation(program, #uniform)
-#define GetAttributeLocation(attribute) attribute = glGetAttribLocation(program, #attribute)
-			
-			// Get uniforms
-			GetUniformLocation(matProj);
-			GetUniformLocation(matProjInverse);
-			
-			GetUniformLocation(matView);
-			GetUniformLocation(matViewInverse);
-			
-			GetUniformLocation(matModel);
-			GetUniformLocation(matModelInverse);
-			
-			GetUniformLocation(matViewModel);
-			GetUniformLocation(matViewModelInverse);
-			
-			GetUniformLocation(matProjView);
-			GetUniformLocation(matProjViewInverse);
-			
-			GetUniformLocation(matProjViewModel);
-			GetUniformLocation(matProjViewModelInverse);
-			
-			GetUniformLocation(matBones);
-			
-			GetUniformLocation(time);
-			GetUniformLocation(frameSize);
-			GetUniformLocation(clipPlanes);
-			
-			GetUniformLocation(lightPosition);
-			GetUniformLocation(lightColor);
-			GetUniformLocation(lightCount);
-			GetUniformLocation(lightList);
-			GetUniformLocation(lightListOffset);
-			GetUniformLocation(lightListPosition);
-			GetUniformLocation(lightListColor);
-			GetUniformLocation(lightTileSize);
-			
-			char string[32];
-			for(machine_uint i=0; ; i++)
-			{
-				sprintf(string, "targetmap%i", (int)i);
-				GLuint location = glGetUniformLocation(program, string);
-				
-				if(location == -1)
-					break;
-				
-				targetmaplocations.AddObject(location);
-			}
-			
-			for(machine_uint i=0; ; i++)
-			{
-				sprintf(string, "mTexture%i", (int)i);
-				GLuint location = glGetUniformLocation(program, string);
-				
-				if(location == -1)
-					break;
-				
-				texlocations.AddObject(location);
-			}
-			
-			GetUniformLocation(depthmap);
-			
-			// Get attributes
-			GetAttributeLocation(imatModel);
-			GetAttributeLocation(imatModelInverse);
-			
-			GetAttributeLocation(vertPosition);
-			GetAttributeLocation(vertNormal);
-			GetAttributeLocation(vertTangent);
-			
-			GetAttributeLocation(vertTexcoord0);
-			GetAttributeLocation(vertTexcoord1);
-			
-			GetAttributeLocation(vertColor0);
-			GetAttributeLocation(vertColor1);
-			GetAttributeLocation(vertBoneWeights);
-			GetAttributeLocation(vertBoneIndices);
-			
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
-			do
-			{
-				GLint maxDrawbuffers;
-				glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawbuffers);
-				
-				for(GLint i=0; i<maxDrawbuffers; i++)
-				{
-					char buffer[32];
-					sprintf(buffer, "fragColor%i", i);
-					
-					GLint location = glGetFragDataLocation(program, buffer);
-					
-					if(location == -1)
-						break;
-					
-					fraglocations.AddObject(location);
-				}
-			} while(0);
-#endif
-			
-#undef GetUniformLocation
-#undef GetAttributeLocation
-			
-			RN_CHECKOPENGL();
-			glFlush();
-		}
-	}
-	
-	bool Shader::IsLinked() const
-	{
-		return (program != 0);
 	}
 }
