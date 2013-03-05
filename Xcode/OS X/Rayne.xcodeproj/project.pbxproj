@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C01BCEC816E6698E0009834F /* RNSkeleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C01BCEC616E6698E0009834F /* RNSkeleton.cpp */; };
+		C01BCEC916E6698E0009834F /* RNSkeleton.h in Headers */ = {isa = PBXBuildFile; fileRef = C01BCEC716E6698E0009834F /* RNSkeleton.h */; };
 		C050166916C3FDE600326514 /* RNLightEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C050166716C3FDE600326514 /* RNLightEntity.cpp */; };
 		C050166A16C3FDE600326514 /* RNLightEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = C050166816C3FDE600326514 /* RNLightEntity.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C050167016C45BF100326514 /* RNPlane.h in Headers */ = {isa = PBXBuildFile; fileRef = C050166E16C45BF100326514 /* RNPlane.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -147,6 +149,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		C01BCEC616E6698E0009834F /* RNSkeleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSkeleton.cpp; sourceTree = "<group>"; };
+		C01BCEC716E6698E0009834F /* RNSkeleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSkeleton.h; sourceTree = "<group>"; };
 		C050166716C3FDE600326514 /* RNLightEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNLightEntity.cpp; sourceTree = "<group>"; };
 		C050166816C3FDE600326514 /* RNLightEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNLightEntity.h; sourceTree = "<group>"; };
 		C050166E16C45BF100326514 /* RNPlane.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPlane.h; sourceTree = "<group>"; };
@@ -342,6 +346,8 @@
 		E9C6F0A416B207BF006288D5 /* Assets */ = {
 			isa = PBXGroup;
 			children = (
+				C01BCEC616E6698E0009834F /* RNSkeleton.cpp */,
+				C01BCEC716E6698E0009834F /* RNSkeleton.h */,
 				E9C6F0A516B207E1006288D5 /* RNModel.cpp */,
 				E9C6F0A616B207E1006288D5 /* RNModel.h */,
 				E9619E1F1696157E00DA187E /* RNTextureLoader.cpp */,
@@ -540,6 +546,7 @@
 				E92AE1AF16B4D68C00EFE1E8 /* RNApplication.h in Headers */,
 				E92A62BD16DF2267006E68AF /* RNOpenGLExtensions.h in Headers */,
 				E92A62BE16DF2278006E68AF /* RNTransform.h in Headers */,
+				C01BCEC916E6698E0009834F /* RNSkeleton.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -685,6 +692,7 @@
 				E9AB0DAB16D679DC000D1CF0 /* RNTransform.cpp in Sources */,
 				E9780FC016D82913001AE2ED /* RNSettings.cpp in Sources */,
 				E92A626A16DEA8C1006E68AF /* RNModule.cpp in Sources */,
+				C01BCEC816E6698E0009834F /* RNSkeleton.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
