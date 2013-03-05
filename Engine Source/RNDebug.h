@@ -38,6 +38,18 @@ namespace RN
 		std::chrono::nanoseconds _accumulated;
 		machine_uint _totalHits;
 	};
+	
+	class Timer
+	{
+	public:
+		Timer();
+		~Timer();
+		
+		float Time();
+		
+	private:
+		std::chrono::time_point<std::chrono::high_resolution_clock> _time;
+	};
 }
 
 #endif /* __RAYNE_DEBUG_H__ */
