@@ -27,9 +27,11 @@ namespace RN
 		kMeshFeatureColor1 = 4,
 		kMeshFeatureUVSet0 = 5,
 		kMeshFeatureUVSet1 = 6,
-		kMeshFeatureIndices = 7,
+		kMeshFeatureBoneWeights = 7,
+		kMeshFeatureBoneIndices = 8,
+		kMeshFeatureIndices = 9,
 		
-		__kMaxMeshFeatures = 8
+		__kMaxMeshFeatures = 10
 	} MeshFeature;
 	
 	class MeshLODStage;

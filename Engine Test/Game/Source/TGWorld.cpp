@@ -115,21 +115,25 @@ namespace TG
 		{
 			model->MaterialForMesh(model->MeshAtIndex(i))->SetShader(lightshader);
 		}
-		model->MaterialForMesh(model->MeshAtIndex(4))->SetShader(shader);
-		model->MaterialForMesh(model->MeshAtIndex(4))->culling = false;
-		model->MaterialForMesh(model->MeshAtIndex(4))->alphatest = true;
-		model->MaterialForMesh(model->MeshAtIndex(10))->SetShader(shader);
-		model->MaterialForMesh(model->MeshAtIndex(10))->culling = false;
-		model->MaterialForMesh(model->MeshAtIndex(10))->alphatest = true;
-		model->MaterialForMesh(model->MeshAtIndex(19))->SetShader(shader);
-		model->MaterialForMesh(model->MeshAtIndex(19))->culling = false;
-		model->MaterialForMesh(model->MeshAtIndex(19))->alphatest = true;
+		model->MaterialForMesh(model->MeshAtIndex(5))->SetShader(shader);
+		model->MaterialForMesh(model->MeshAtIndex(5))->culling = false;
+		model->MaterialForMesh(model->MeshAtIndex(5))->alphatest = true;
+		model->MaterialForMesh(model->MeshAtIndex(6))->SetShader(shader);
+		model->MaterialForMesh(model->MeshAtIndex(6))->culling = false;
+		model->MaterialForMesh(model->MeshAtIndex(6))->alphatest = true;
+		model->MaterialForMesh(model->MeshAtIndex(17))->SetShader(shader);
+		model->MaterialForMesh(model->MeshAtIndex(17))->culling = false;
+		model->MaterialForMesh(model->MeshAtIndex(17))->alphatest = true;
 		
 		RN::Entity *sponza = new RN::Entity();
 		sponza->SetModel(model);
-		sponza->SetScale(RN::Vector3(0.1, 0.1, 0.1));
+		sponza->SetScale(RN::Vector3(0.5, 0.5, 0.5));
 		sponza->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
+		
+		RN::Model *girlmodel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
+		RN::Entity *girl = new RN::Entity();
+		girl->SetModel(girlmodel);
 		
 		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
 		
