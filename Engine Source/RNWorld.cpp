@@ -97,6 +97,24 @@ namespace RN
 		
 		_renderer->WaitForTaskCompletion(_renderingTask);
 		
+		static float renderingTime = 0.0f;
+		static float totalTime = 0.0f;
+		static int count = 0;
+		
+		renderingTime += _renderer->UsedTime();
+		totalTime += delta;
+		count ++;
+		
+		if(totalTime >= 1.0f)
+		{
+			float average = renderingTime / count;
+			
+			printf("Drew %i frames in the last %f seconds. Average frame time: %f\n", count, totalTime, average);
+			
+			renderingTime = totalTime = 0.0f;
+			count = 0;
+		}
+		
 		// Begin the new frame
 		_renderer->PepareFrame();
 		_renderingTask = _renderer->BeginTask(delta);

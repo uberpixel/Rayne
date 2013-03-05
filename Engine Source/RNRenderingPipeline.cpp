@@ -74,6 +74,7 @@ namespace RN
 		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, (GLint *)&_maxTextureUnits);
 		_textureUnit = 0;
 		
+		printf("Available texture units: %i\n", _maxTextureUnits);
 		_hasValidFramebuffer = false;
 		_initialized = false;
 
@@ -1083,9 +1084,7 @@ continue; \
 			MeshLODStage *stage = std::get<1>(tuple);
 
 			Shader *shader = material->Shader();
-			
-			printf("Creating VAO\n");
-			
+
 			gl::GenVertexArrays(1, &vao);
 			gl::BindVertexArray(vao);
 
