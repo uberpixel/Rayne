@@ -14,6 +14,8 @@
 
 #define kRNRenderingPipelineFeatureLightning 0
 #define kRNRenderingPipelineFeatureInstancing 0
+#define kRNRenderingPipelineFeatureStages 0
+#define kRNRenderingPipelineFeatureSorting 0
 
 namespace RN
 {
@@ -402,6 +404,8 @@ namespace RN
 			if(!(camera->CameraFlags() & Camera::FlagDrawTarget))
 			{
 				Material *surfaceMaterial = camera->Material();
+				
+#if kRNRenderingPipelineFeatureSorting
 				machine_uint bestOrder = surfaceMaterial ? 1 : 2;
 				
 				if(bestOrder != sortOder)
@@ -464,6 +468,7 @@ namespace RN
 					
 					sortOder = bestOrder;
 				}
+#endif
 				
 				Matrix& projectionMatrix = camera->projectionMatrix.AccessPast();
 				Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix.AccessPast();
@@ -492,8 +497,8 @@ namespace RN
 					Matrix inverseTransform = transform.Inverse();
 
 					// Send generic attributes to the shader
-					
 					changedShader = (_currentShader != shader->program);
+					
 					BindShader(shader);
 					BindMaterial(material);
 					
@@ -653,6 +658,10 @@ namespace RN
 			
 			camera->Unbind();
 			camera = camera->Stage();
+			
+#if !kRNRenderingPipelineFeatureStages
+			camera = 0;
+#endif
 
 			if(!camera)
 				_flushCameras.push_back(previous);
