@@ -12,10 +12,10 @@
 
 #define kRNRenderingPipelineInstancingCutOff 100
 
-#define kRNRenderingPipelineFeatureLightning 0
-#define kRNRenderingPipelineFeatureInstancing 0
-#define kRNRenderingPipelineFeatureStages 0
-#define kRNRenderingPipelineFeatureSorting 0
+#define kRNRenderingPipelineFeatureLightning 1
+#define kRNRenderingPipelineFeatureInstancing 1
+#define kRNRenderingPipelineFeatureStages 1
+#define kRNRenderingPipelineFeatureSorting 1
 
 namespace RN
 {
@@ -165,6 +165,8 @@ namespace RN
 		_lightBufferLengths[1] = 0;
 		_lightBufferLengths[2] = 0;
 #endif
+		
+		_initialized = true;
 	}
 
 	void RenderingPipeline::SetDefaultFBO(GLuint fbo)
@@ -1088,7 +1090,9 @@ continue; \
 			MeshLODStage *stage = std::get<1>(tuple);
 
 			Shader *shader = material->Shader();
-
+			
+			printf("Creating VAO\n");
+			
 			gl::GenVertexArrays(1, &vao);
 			gl::BindVertexArray(vao);
 

@@ -12,83 +12,17 @@ namespace TG
 {
 	World::World()
 	{
-#if !(RN_PLATFORM_IOS)
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatColor | RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
-		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
 		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
+		
 		storage->SetDepthTarget(depthtex);
+		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
 		
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
 		_camera->ActivateTiledLightLists((RN::Texture *)1);
 		_camera->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
-		
-		/*RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
-		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
-		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
-		downsampleMaterial2x->AddTexture(depthtex);
-		
-		RN::Camera *downsample2x = new RN::Camera(RN::Vector2(_camera->Frame().width/2, _camera->Frame().height/2), RN::Texture::FormatRG32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
-		_camera->AddStage(downsample2x);
-		downsample2x->SetMaterial(downsampleMaterial2x);
-		
-		RN::Material *downsampleMaterial4x = new RN::Material(downsampleShader);
-		downsampleMaterial4x->AddTexture(downsample2x->Storage()->RenderTarget());
-		
-		RN::Camera *downsample4x = new RN::Camera(RN::Vector2(_camera->Frame().width/4, _camera->Frame().height/4), RN::Texture::FormatRG32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
-		_camera->AddStage(downsample4x);
-		downsample4x->SetMaterial(downsampleMaterial4x);
-		
-		RN::Material *downsampleMaterial8x = new RN::Material(downsampleShader);
-		downsampleMaterial8x->AddTexture(downsample4x->Storage()->RenderTarget());
-		
-		RN::Camera *downsample8x = new RN::Camera(RN::Vector2(_camera->Frame().width/8, _camera->Frame().height/8), RN::Texture::FormatRG32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
-		_camera->AddStage(downsample8x);
-		downsample8x->SetMaterial(downsampleMaterial8x);
-		
-		RN::Material *downsampleMaterial16x = new RN::Material(downsampleShader);
-		downsampleMaterial16x->AddTexture(downsample8x->Storage()->RenderTarget());
-		
-		RN::Camera *downsample16x = new RN::Camera(RN::Vector2(_camera->Frame().width/16, _camera->Frame().height/16), RN::Texture::FormatRG32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
-		_camera->AddStage(downsample16x);
-		downsample16x->SetMaterial(downsampleMaterial16x);
-		
-		RN::Material *downsampleMaterial32x = new RN::Material(downsampleShader);
-		downsampleMaterial32x->AddTexture(downsample16x->Storage()->RenderTarget());
-		
-		RN::Camera *downsample32x = new RN::Camera(RN::Vector2(_camera->Frame().width/32, _camera->Frame().height/32), RN::Texture::FormatRG32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
-		_camera->AddStage(downsample32x);
-		downsample32x->SetMaterial(downsampleMaterial32x);
-		
-		RN::Camera *downsample64x;
-		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
-		{
-			RN::Material *downsampleMaterial64x = new RN::Material(downsampleShader);
-			downsampleMaterial64x->AddTexture(downsample32x->Storage()->RenderTarget());
-			
-			downsample64x = new RN::Camera(RN::Vector2(_camera->Frame().width/64, _camera->Frame().height/64), RN::Texture::FormatRG32F, RN::Camera::FlagDrawTarget | RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
-			_camera->AddStage(downsample64x);
-			downsample64x->SetMaterial(downsampleMaterial64x);
-		}
-			
-		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults | RN::Camera::FlagInheritPosition | RN::Camera::FlagInheritProjection);
-		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
-		_finalcam->Storage()->SetDepthTarget(depthtex);
-		_finalcam->SetName("Final Cam");
-		
-		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
-		{
-			_finalcam->ActivateTiledLightLists(downsample64x->Storage()->RenderTarget());
-		}
-		else
-		{
-			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
-		}*/
-#else
-		_camera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults);
-		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
-#endif
-		
+				
 		CreateWorld();
 		
 		RN::Input::SharedInstance()->Activate();
@@ -173,58 +107,6 @@ namespace TG
 	
 	void World::CreateWorld()
 	{
-		// Blocks
-		/*RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
-		RN::Texture *blockTexture1 = RN::Texture::WithFile("textures/testpng.png", RN::Texture::FormatRGB565);
-		
-		RN::Material *blockMaterial = new RN::Material(0);
-		blockMaterial->AddTexture(blockTexture0);
-		blockMaterial->AddTexture(blockTexture1);
-		
-		RN::Mesh  *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f, 0.5f, 0.5f));
-		RN::Model *blockModel = RN::Model::WithMesh(blockMesh->Autorelease<RN::Mesh>(), blockMaterial->Autorelease<RN::Material>());
-		
-		_block1 = new RN::RigidBodyEntity();
-		_block1->SetModel(blockModel);
-		_block1->SetPosition(RN::Vector3(-1.0f, 8.0f, -8.0f));
-		_block1->SetSize(RN::Vector3(0.5f));
-		_block1->SetMass(10.0f);
-		_block1->SetRestitution(0.8);
-		_block1->SetFriction(1.8f);
-		_block1->ApplyImpulse(RN::Vector3(0.0f, -100.0f, 0.0f));
-		
-		_block2 = new RN::RigidBodyEntity();
-		_block2->SetModel(blockModel);
-		_block2->SetRotation(RN::Quaternion(RN::Vector3(45.0f)));
-		_block2->SetPosition(RN::Vector3(1.0f, 8.0f, -8.0f));
-		_block2->SetSize(RN::Vector3(0.5f));
-		_block2->SetMass(10.0f);
-		
-		_block3 = new RN::RigidBodyEntity();
-		_block3->SetModel(blockModel);
-		_block3->SetRotation(RN::Quaternion(RN::Vector3(45.0f)));
-		_block3->SetPosition(RN::Vector3(0.0f, 8.0f, -10.0f));
-		_block3->SetSize(RN::Vector3(0.5f));
-		_block3->SetMass(10.0f);
-		_block3->ApplyImpulse(RN::Vector3(0.0f, 0.0f, -15.0f));
-		
-		// Floor
-		RN::Shader *floorShader = RN::Shader::WithFile("shader/Ground");
-		RN::Texture *floorTexture = RN::Texture::WithFile("textures/tiles.png", RN::Texture::FormatRGB888);
-		
-		RN::Material *floorMaterial = new RN::Material(floorShader);
-		floorMaterial->AddTexture(floorTexture);
-		
-		RN::Mesh *floorMesh = RN::Mesh::CubeMesh(RN::Vector3(5.0f, 0.5f, 5.0f));
-		RN::Model *floorModel = new RN::Model(floorMesh->Autorelease<RN::Mesh>(), floorMaterial->Autorelease<RN::Material>());
-		
-		_floor = new RN::RigidBodyEntity();
-		_floor->SetModel(floorModel);
-		_floor->SetPosition(RN::Vector3(0.0f, -5.0f, -8.0f));
-		_floor->SetMass(0.0f);
-		_floor->SetSize(RN::Vector3(5.0f, 0.5f, 5.0f));
-		_floor->SetRestitution(0.5f);*/
-		
 		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1Discard");
 		RN::Shader *lightshader = RN::Shader::WithFile("shader/rn_Texture1");
 		
@@ -265,7 +147,8 @@ namespace TG
 		
 		_parentBlock->AttachChild(_childBlock);
 		
-		/*RN::LightEntity *light;
+#if 0
+		RN::LightEntity *light;
 		
 		light = new RN::LightEntity();
 		light->SetPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
@@ -275,16 +158,17 @@ namespace TG
 		light = new RN::LightEntity();
 		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
-		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));*/
+		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
 		 
 		
-		/*for(int i = 0; i < 1000; i++)
+		for(int i = 0; i < 1000; i++)
 		{
 			light = new RN::LightEntity();
 			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
 			light->SetRange((float)(rand())/RAND_MAX*20.0f);
 			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
-		}*/
+		}
+#endif
 		
 #if 0 //RN_TARGET_OPENGL
 		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight_instanced");
