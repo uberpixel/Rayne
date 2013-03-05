@@ -24,12 +24,19 @@ namespace RN
 	
 	PipelineSegment::~PipelineSegment()
 	{
-		_thread->Cancel();
-		
-		while(_thread->IsRunning())
-		{}
-		
-		_thread->Release();
+		if(_thread)
+		{
+			_thread->Cancel();
+			
+			volatile bool running;
+			
+			do {
+				running = _thread->IsRunning();
+				std::this_thread::sleep_for(std::chrono::nanoseconds(100));
+			} while(running);
+			
+			_thread->Release();
+		}
 	}
 	
 	void PipelineSegment::SetThread(Thread *thread)
@@ -47,7 +54,7 @@ namespace RN
 			WaitForWork();
 	}
 	
-	void PipelineSegment::WaitForWork()
+	bool PipelineSegment::WaitForWork()
 	{
 		while(!_thread)
 		{}
@@ -56,10 +63,10 @@ namespace RN
 		bool result;
 		
 		do {
-			result = _workCondition.wait_for(lock, std::chrono::milliseconds(50), [&](){ return (_task != kPipelineSegmentNullTask); });
+			result = _workCondition.wait_for(lock, std::chrono::milliseconds(50), [&](){ return (_task != kPipelineSegmentNullTask || _thread->IsCancelled()); });
 		
 			if(_thread->IsCancelled())
-				return;
+				return false;
 		
 		} while(!result);
 		
@@ -77,6 +84,7 @@ namespace RN
 		_task = kPipelineSegmentNullTask;
 		
 		_waitCondition.notify_all();
+		return true;
 	}
 	
 	PipelineSegment::TaskID PipelineSegment::BeginTask(float delta)
@@ -94,6 +102,9 @@ namespace RN
 	
 	void PipelineSegment::WaitForTaskCompletion(TaskID task)
 	{
+		if(task == kPipelineSegmentNullTask)
+			return;
+		
 		std::unique_lock<std::mutex> lock(_waitMutex);
 		_waitCondition.wait(lock, [&]() { return (_task != task || _task == kPipelineSegmentNullTask); });
 	}
