@@ -701,6 +701,7 @@ namespace RN
 		mesh->Push();
 		
 		BindVAO(std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage));
+		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
 		
 		uint32 offset = 0;
 		
@@ -746,10 +747,9 @@ namespace RN
 			return;
 		}
 		
-		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
-		glBufferData(GL_ARRAY_BUFFER, offset * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
-		
 		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+		
+		glBufferData(GL_ARRAY_BUFFER, offset * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
 		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
 		
 		if(shader->imatModel != -1)
