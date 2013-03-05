@@ -422,6 +422,9 @@ namespace RN
 			GetUniformLocation(matViewModel);
 			GetUniformLocation(matViewModelInverse);
 			
+			GetUniformLocation(matProjView);
+			GetUniformLocation(matProjViewInverse);
+			
 			GetUniformLocation(matProjViewModel);
 			GetUniformLocation(matProjViewModelInverse);
 			
@@ -467,6 +470,7 @@ namespace RN
 			
 			// Get attributes
 			GetAttributeLocation(imatModel);
+			GetAttributeLocation(imatModelInverse);
 			
 			GetAttributeLocation(vertPosition);
 			GetAttributeLocation(vertNormal);
