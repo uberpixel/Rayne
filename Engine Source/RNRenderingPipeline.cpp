@@ -64,12 +64,21 @@ namespace RN
 		_copyIndices[5] = 3;
 
 		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, (GLint *)&_maxTextureUnits);
-
 		_textureUnit = 0;
+		
 		_hasValidFramebuffer = false;
+		_initialized = false;
 
-		_numInstancingMatrices = 500;
-		_instancingMatrices = (Matrix *)malloc(_numInstancingMatrices * sizeof(Matrix));
+		if(SupportsOpenGLFeature(kOpenGLFeatureInstancing))
+		{
+			_numInstancingMatrices = 500;
+			_instancingMatrices = (Matrix *)malloc(_numInstancingMatrices * sizeof(Matrix));
+		}
+		else
+		{
+			_numInstancingMatrices = 0;
+			_instancingMatrices = 0;
+		}
 	}
 
 	RenderingPipeline::~RenderingPipeline()
