@@ -8,6 +8,9 @@
 
 #include "TGWorld.h"
 
+#define TGWorldFeatureLights      0
+#define TGWorldFeatureInstancing  1
+
 namespace TG
 {
 	World::World()
@@ -98,30 +101,30 @@ namespace TG
 		RN::Matrix rot;
 		rot.MakeRotate(_camera->Rotation());
 		_camera->Translate(rot.Transform(translation * -delta));
-		
-#if !(RN_PLATFORM_IOS)
-		//_finalcam->SetPosition(_camera->Position());
-		//_finalcam->SetRotation(_camera->Rotation());
-#endif
 	}
 	
 	void World::CreateWorld()
 	{
-		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1Discard");
-		RN::Shader *lightshader = RN::Shader::WithFile("shader/rn_Texture1");
+#if TGWorldFeatureLights
+		RN::Shader *discardShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight");
+		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1Light");
+#else
+		RN::Shader *discardShader = RN::Shader::WithFile("shader/rn_Texture1Discard");
+		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1");
+#endif
 		
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
 		for(int i = 0; i < model->Meshes(); i++)
 		{
-			model->MaterialForMesh(model->MeshAtIndex(i))->SetShader(lightshader);
+			model->MaterialForMesh(model->MeshAtIndex(i))->SetShader(shader);
 		}
-		model->MaterialForMesh(model->MeshAtIndex(4))->SetShader(shader);
+		model->MaterialForMesh(model->MeshAtIndex(4))->SetShader(discardShader);
 		model->MaterialForMesh(model->MeshAtIndex(4))->culling = false;
 		model->MaterialForMesh(model->MeshAtIndex(4))->alphatest = true;
-		model->MaterialForMesh(model->MeshAtIndex(10))->SetShader(shader);
+		model->MaterialForMesh(model->MeshAtIndex(10))->SetShader(discardShader);
 		model->MaterialForMesh(model->MeshAtIndex(10))->culling = false;
 		model->MaterialForMesh(model->MeshAtIndex(10))->alphatest = true;
-		model->MaterialForMesh(model->MeshAtIndex(19))->SetShader(shader);
+		model->MaterialForMesh(model->MeshAtIndex(19))->SetShader(discardShader);
 		model->MaterialForMesh(model->MeshAtIndex(19))->culling = false;
 		model->MaterialForMesh(model->MeshAtIndex(19))->alphatest = true;
 		
@@ -133,7 +136,7 @@ namespace TG
 		
 		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
 		
-		RN::Material *blockMaterial = new RN::Material(lightshader);
+		RN::Material *blockMaterial = new RN::Material(shader);
 		blockMaterial->AddTexture(blockTexture0);
 		
 		RN::Mesh  *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f, 0.5f, 0.5f));
@@ -170,24 +173,23 @@ namespace TG
 		}
 #endif
 		
-#if 0 //RN_TARGET_OPENGL
-		RN::Shader *instancedShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight_instanced");
+#if TGWorldFeatureInstancing
 		RN::Model *foliage[4];
 		
 		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
-		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->SetShader(instancedShader);
+		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->SetShader(discardShader);
 		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->culling = false;
 		
 		foliage[1] = RN::Model::WithFile("models/nobiax/grass_05.sgm");
-		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->SetShader(instancedShader);
+		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->SetShader(discardShader);
 		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->culling = false;
 		
 		foliage[2] = RN::Model::WithFile("models/nobiax/grass_19.sgm");
-		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->SetShader(instancedShader);
+		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->SetShader(discardShader);
 		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->culling = false;
 		
 		foliage[3] = RN::Model::WithFile("models/nobiax/grass_04.sgm");
-		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->SetShader(instancedShader);
+		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->SetShader(discardShader);
 		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->culling = false;
 		
 		uint32 index = 0;

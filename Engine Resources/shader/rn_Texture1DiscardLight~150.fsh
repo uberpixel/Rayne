@@ -1,5 +1,5 @@
 //
-//  rn_Texture1.fsh
+//  rn_Texture1DiscarLight.fsh
 //  Rayne
 //
 //  Copyright 2013 by Felix Pohl, Nils Daumann and Sidney Just. All rights reserved.
