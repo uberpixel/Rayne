@@ -105,12 +105,12 @@ namespace RN
 		{
 			Camera *camera = *i;
 			
-			RenderingGroup group = RenderingGroup(camera);
+			RenderingGroup *group = new RenderingGroup(camera);
 			
 			for(auto j=_transforms.begin(); j!=_transforms.end(); j++)
 			{
 				Transform *transform = *j;
-				VisitTransform(camera, transform, &group);
+				VisitTransform(camera, transform, group);
 			}
 			
 			_renderer->PushGroup(group);

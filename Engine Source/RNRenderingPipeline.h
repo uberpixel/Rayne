@@ -31,7 +31,7 @@ namespace RN
 		RenderingPipeline();
 		virtual ~RenderingPipeline();
 
-		RNAPI void PushGroup(const RenderingGroup& group);
+		RNAPI void PushGroup(RenderingGroup *group);
 		RNAPI void FinishFrame();
 		RNAPI void PepareFrame();
 
@@ -65,7 +65,7 @@ namespace RN
 		Mutex *_frameLock;
 		bool _finishFrame;
 		uint32 _pushedGroups;
-		std::vector<RenderingGroup> _frame;
+		std::vector<RenderingGroup *> _frame;
 
 		float _scaleFactor;
 		float _time;

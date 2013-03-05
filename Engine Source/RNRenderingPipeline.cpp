@@ -120,10 +120,7 @@ namespace RN
 
 	void RenderingPipeline::Initialize()
 	{
-		_copyShader = new Shader();
-		_copyShader->SetFragmentShader("shader/rn_CopyFramebuffer.fsh");
-		_copyShader->SetVertexShader("shader/rn_CopyFramebuffer.vsh");
-		_copyShader->Link();
+		_copyShader = new Shader("shader/rn_CopyFramebuffer");
 
 		gl::GenVertexArrays(1, &_copyVAO);
 		gl::BindVertexArray(_copyVAO);
@@ -1219,13 +1216,14 @@ continue; \
 			auto iterator = _frame.begin();
 			if(iterator != _frame.end())
 			{
-				RenderingGroup group = *iterator;
+				RenderingGroup *group = *iterator;
 
 				_frame.erase(iterator);
 				_pushedGroups --;
 				_frameLock->Unlock();
 
-				DrawGroup(&group);
+				DrawGroup(group);
+				delete group;
 			}
 			else
 			{
@@ -1236,7 +1234,7 @@ continue; \
 		FlushCameras();
 	}
 
-	void RenderingPipeline::PushGroup(const RenderingGroup& group)
+	void RenderingPipeline::PushGroup(RenderingGroup *group)
 	{
 		_frameLock->Lock();
 
