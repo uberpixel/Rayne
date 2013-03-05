@@ -682,7 +682,8 @@ namespace RN
 		
 		BindVAO(std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage));
 		
-		glDrawElements(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0);
+		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+		glDrawElements(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0);
 		
 		mesh->Pop();
 	}
@@ -722,7 +723,9 @@ namespace RN
 		
 		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
 		glBufferData(GL_ARRAY_BUFFER, count * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
-		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0, (GLsizei)count);
+		
+		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
 		
 		for(int i=0; i<4; i++)
 		{
