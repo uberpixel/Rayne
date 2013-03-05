@@ -22,7 +22,6 @@ namespace RN
 		_defaultWidth = _defaultHeight = 0;
 
 		_currentMaterial = 0;
-		_currentMesh     = 0;
 		_currentVAO      = 0;
 		_currentShader	 = 0;
 
@@ -163,6 +162,11 @@ namespace RN
 	}
 
 
+	// ---------------------
+	// MARK: -
+	// MARK: Camera flushing
+	// ---------------------
+	
 	void RenderingPipeline::FlushCameras()
 	{
 #if GL_EXT_debug_marker
@@ -186,12 +190,10 @@ namespace RN
 
 		_flushCameras.clear();
 	}
-
+	
 	void RenderingPipeline::FlushCamera(Camera *camera)
 	{
 		camera->Push();
-
-		Shader *shader = _copyShader;
 
 		if(_depthTestEnabled)
 		{
@@ -208,15 +210,11 @@ namespace RN
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		}
 
-		if(_currentShader != shader->program)
-		{
-			glUseProgram(shader->program);
-			_currentShader = shader->program;
-		}
-
-		if(shader->frameSize != -1)
-			glUniform4f(shader->frameSize, 1.0f/camera->Frame().width, 1.0f/camera->Frame().height, camera->Frame().width, camera->Frame().height);
+		Shader *shader = _copyShader;
 		
+		BindShader(_copyShader);
+		UpdateShaderWithCamera(_copyShader, camera);
+
 		glEnableVertexAttribArray(shader->vertPosition);
 		glVertexAttribPointer(shader->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
 
@@ -245,24 +243,11 @@ namespace RN
 		stage->Push();
 
 		Material *material = stage->Material();
-		Shader *shader     = material->Shader();
-
-		if(shader->program)
-		{
-			glUseProgram(shader->program);
-			_currentShader = shader->program;
-		}
+		Shader *shader = material->Shader();
 		
 		BindMaterial(material);
-
-		if(shader->time != -1)
-			glUniform1f(shader->time, _time);
-		
-		if(shader->frameSize != -1)
-			glUniform4f(shader->frameSize, 1.0f/camera->Frame().width, 1.0f/camera->Frame().height, camera->Frame().width, camera->Frame().height);
-		
-		if(shader->clipPlanes != -1)
-			glUniform2f(shader->clipPlanes, camera->clipnear, camera->clipfar);
+		BindShader(shader);
+		UpdateShaderWithCamera(shader, camera);
 		
 		if(!stage->HasDepthbuffer() || !stage->AllowsDepthWrite())
 		{
@@ -314,20 +299,22 @@ namespace RN
 		stage->Pop();
 	}
 
+	// ---------------------
+	// MARK: -
+	// MARK: Drawing
+	// ---------------------
+	
 	void RenderingPipeline::DrawGroup(RenderingGroup *group)
 	{
-		TimeProfiler profiler;
-		profiler.HitMilestone("Begin");
+		Camera *previous = 0;
+		Camera *camera = group->camera;
+		machine_uint sortOder = 0;
 		
 		// Object pre-pass
 		Array<Entity> *frame = &group->entities;
 		Array<RenderingObject> objects = Array<RenderingObject>(frame->Capacity());
 		
-		// Render all cameras
-		Camera *previous = 0;
-		Camera *camera = group->camera;
-		
-		//add skycube
+		// Skycube
 		Model *skycube = camera->SkyCube();
 		Matrix camrotationmatrix;
 		camrotationmatrix.MakeRotate(camera->Rotation().AccessPast());
@@ -364,210 +351,32 @@ namespace RN
 				objects.AddObject(object);
 			}
 		}
-		
-		profiler.HitMilestone("Object pre-pass");
 
-		// Creating light list
-		Array<LightEntity> *lights = &group->lights;
-
-		Vector4 *lightpos = new Vector4[lights->Capacity()];
-		Vector3 *lightcolor = new Vector3[lights->Capacity()];
-		int lightcount = 0;
-
-		for(machine_uint i=0; i<lights->Count(); i++, lightcount++)
-		{
-			LightEntity *light = lights->ObjectAtIndex(i);
-			const Vector3& position = light->Position().AccessPast();
-			
-			lightpos[lightcount] = Vector4(position.x, position.y, position.z, light->Range().AccessPast());
-			lightcolor[lightcount] = light->Color().AccessPast();
-		}
-
-#if !(RN_PLATFORM_IOS)
-		size_t lightindexoffsetCount = 0;
-		size_t lightindicesCount = 0;
+		// Light list
+		Vector4 *lightPos = 0;
+		Vector3 *lightColor = 0;
+		int lightCount = 0;
 		
 		Rect rect = camera->Frame();
-		int tileswidth  = rect.width / camera->LightTiles().x;
-		int tilesheight = rect.height / camera->LightTiles().y;
-		Vector2 lighttilesize = camera->LightTiles() * _scaleFactor;
-		Vector2 lighttilecount = Vector2(tileswidth, tilesheight);
+		int tilesWidth  = rect.width / camera->LightTiles().x;
+		int tilesHeight = rect.height / camera->LightTiles().y;
 		
-		if(camera->DepthTiles() != 0)
-		{
-			Vector3 corner1 = camera->CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
-			Vector3 corner2 = camera->CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
-			Vector3 corner3 = camera->CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
-			
-			Vector3 dirx = (corner2-corner1) / tileswidth;
-			Vector3 diry = (corner3-corner1) / tilesheight;
-			
-//			float *deptharray = new float[tileswidth * tilesheight * 2];
-//			glFinish();
-//			glPixelStorei(GL_PACK_ALIGNMENT, 1);
-//			glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-//			glBindTexture(GL_TEXTURE_2D, camera->DepthTiles()->Name());
-//			glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, deptharray);
-			
-			RN::Matrix rot;
-			rot.MakeRotate(camera->Rotation().AccessPast());
-//			Vector3 camdir = rot.Transform(RN::Vector3(0.0, 0.0, -1.0));
-			const Vector3& camPosition = camera->Position().AccessPast();
-			
-/*			Vector3 far = camera->CamToWorld(Vector3(1.0f, 1.0f, 1.0f));
-			far = far-camPosition;
-			printf("farplane x: %f, y: %f, z:%f\n", far.x, far.y, far.z);*/
-			
-			Plane plleft;
-			Plane plright;
-			Plane pltop;
-			Plane plbottom;
-			Plane plfar;
-			Plane plnear;
-			
-			size_t count = lights->Count();
-			LightEntity **allLights = lights->Data();
-			
-			size_t lightindicesSize = tileswidth * tilesheight * lights->Count();
-			if(lightindicesSize > _lightindicesSize)
-			{
-				_lightindices = (int *)realloc(_lightindices, lightindicesSize * sizeof(int));
-				_lightindicesSize = lightindicesSize;
-			}
-			
-			size_t lightindexoffsetSize = tileswidth * tilesheight * 2;
-			if(lightindexoffsetSize > _lightindexoffsetSize)
-			{
-				_lightindexoffset = (int *)realloc(_lightindexoffset, lightindexoffsetSize * sizeof(int));
-				_lightindexoffsetSize = lightindexoffsetSize;
-			}
-			
-			for(float y=0.0f; y<tilesheight; y+=1.0f)
-			{
-				for(float x=0.0f; x<tileswidth; x+=1.0f)
-				{
-					plleft.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
-					plright.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
-					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
-					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
-					
-//					plnear.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2], camdir);
-//					plfar.SetPlane(camPosition + camdir * deptharray[int(y * tileswidth + x) * 2 + 1], camdir);
-					
-					size_t previous = lightindicesCount;
-					_lightindexoffset[lightindexoffsetCount ++] = static_cast<int>(previous);
-					
-					for(size_t i=0; i<count; i++)
-					{
-						LightEntity *light = allLights[i];
-						
-						const Vector3& position = light->_position.AccessPast();
-						float range = light->_range.AccessPast();
-
-#define Distance(plane, op, r) { \
-	float dot = (position.x * plane._normal.x + position.y * plane._normal.y + position.z * plane._normal.z);\
-	float distance = dot - plane._d; \
-	if(distance op r) \
-		continue; \
-	}
-						Distance(plleft, >, range);
-						Distance(plright, <, -range);
-						Distance(pltop, <, -range);
-						Distance(plbottom, >, range);
-#undef Distance
-
-						
-/*
-						if(plnear.Distance(position) < -range)
-							continue;
-						
-						if(plfar.Distance(position) > range)
-							continue;*/
-						
-						_lightindices[lightindicesCount ++] = static_cast<int>(i);
-					}
-					
-					_lightindexoffset[lightindexoffsetCount ++] = static_cast<int>(lightindicesCount - previous);
-				}
-			}
-
-			
-//			delete[] deptharray;
-
-			
-			if(_lightBufferLengths[0] < lightindexoffsetCount)
-			{
-				_lightBufferLengths[0] = (uint32)lightindexoffsetCount;
-				
-				//indexpos
-				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
-				glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetCount*sizeof(int), _lightindexoffset, GL_DYNAMIC_DRAW);
-			}
-			else
-			{
-				//indexpos
-				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
-				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindexoffsetCount*sizeof(int), _lightindexoffset);
-			}
-			
-			if(_lightBufferLengths[1] < lightindicesCount)
-			{
-				_lightBufferLengths[1] = (uint32)lightindicesCount;
-				
-				//indices
-				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
-				glBufferData(GL_TEXTURE_BUFFER, lightindicesCount*sizeof(int), _lightindices, GL_DYNAMIC_DRAW);
-			}
-			else
-			{
-				//indices
-				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
-				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightindicesCount*sizeof(int), _lightindices);
-			}
-			
-			if(_lightBufferLengths[2] < lightcount)
-			{
-				_lightBufferLengths[2] = lightcount;
-				
-				//lightpos
-				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
-				glBufferData(GL_TEXTURE_BUFFER, lightcount*4*sizeof(float), lightpos, GL_DYNAMIC_DRAW);
-
-				//lightcol
-				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
-				glBufferData(GL_TEXTURE_BUFFER, lightcount*3*sizeof(float), lightcolor, GL_DYNAMIC_DRAW);
-			}
-			else
-			{
-				//lightpos
-				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
-				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightcount*4*sizeof(float), lightpos);
-				
-				//lightcol
-				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
-				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightcount*3*sizeof(float), lightcolor);
-			}
-			
-			glBindBuffer(GL_TEXTURE_BUFFER, 0);
-		}
-#endif
-
-		profiler.HitMilestone("Light pre-pass");
-		machine_uint sortOder = 0;
+		Vector2 lightTilesSize = camera->LightTiles() * _scaleFactor;
+		Vector2 lightTilesCount = Vector2(tilesWidth, tilesHeight);
 		
-		bool changedShader = true;
-		bool switchedCamera = true;
+		CreateLightList(group, camera, &lightPos, &lightColor, &lightCount);
+		
+		// Draw all camera stages
+		bool changedShader;
+		bool changedCamera;
 		
 		while(camera)
 		{
-			profiler.HitMilestone("Camera->Bind()", false);
-			
-			camera->Push();
 			camera->Bind();
 			camera->PrepareForRendering();
 			
 			_currentCamera = camera;
-			switchedCamera = true;
+			changedCamera  = true;
 
 			if(!(camera->CameraFlags() & Camera::FlagDrawTarget))
 			{
@@ -576,7 +385,7 @@ namespace RN
 				
 				if(bestOrder != sortOder)
 				{
-					profiler.HitMilestone("Sorting objects");
+					// Sort the objects
 					objects.SortUsingFunction([&](const RenderingObject& a, const RenderingObject& b) {
 						if(surfaceMaterial)
 						{
@@ -632,11 +441,8 @@ namespace RN
 						}
 					}, 6);
 					
-					profiler.FinishedMilestone("Sorting objects");
 					sortOder = bestOrder;
 				}
-
-				profiler.HitMilestone("Beginning objects");
 				
 				Matrix& projectionMatrix = camera->projectionMatrix.AccessPast();
 				Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix.AccessPast();
@@ -647,16 +453,13 @@ namespace RN
 				Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
 				Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
 				
-				profiler.HitMilestone("Matrices grabbed");
-				
-				uint32 offset = 1;
+				uint32 offset;
 				uint32 noCheck = 0;
 
 				machine_uint objectsCount = objects.Count();
 				for(machine_uint i=0; i<objectsCount; i+=offset)
 				{
 					offset = 1;
-					profiler.HitMilestone("Preparing object");
 					
 					RenderingObject& object = objects.ObjectAtIndex(i);
 					
@@ -669,151 +472,124 @@ namespace RN
 
 					// Send generic attributes to the shader
 					
-					profiler.HitMilestone("Binding shader");
+					changedShader = (_currentShader != shader->program);
+					BindShader(shader);
 					
-					if(shader->program != _currentShader)
+					if(changedShader || changedCamera)
 					{
-						_currentShader = shader->program;
-						changedShader  = true;
-						
-						glUseProgram(shader->program);
+						UpdateShaderWithCamera(shader, camera);
+						changedCamera = false;
 					}
-
-					if(shader->time != -1 && changedShader)
-						glUniform1f(shader->time, _time);
-
-					if(shader->frameSize != -1 && (changedShader || switchedCamera))
-						glUniform4f(shader->frameSize, 1.0f/camera->Frame().width/_scaleFactor, 1.0f/camera->Frame().height/_scaleFactor, camera->Frame().width*_scaleFactor, camera->Frame().height*_scaleFactor);
 					
-					if(shader->clipPlanes != -1 && (changedShader || switchedCamera))
-						glUniform2f(shader->clipPlanes, camera->clipnear, camera->clipfar);
-					
-					// Light data
-					if(shader->lightCount != -1 && changedShader)
-						glUniform1i(shader->lightCount, lightcount);
+					if(changedShader)
+					{					
+						// Light data
+						if(shader->lightCount != -1)
+							glUniform1i(shader->lightCount, lightCount);
 
-					if(shader->lightPosition != -1 && lightcount > 0 && changedShader)
-						glUniform4fv(shader->lightPosition, lightcount, &(lightpos[0].x));
+						if(shader->lightPosition != -1 && lightCount > 0)
+							glUniform4fv(shader->lightPosition, lightCount, &(lightPos[0].x));
 
-					if(shader->lightColor != -1 && lightcount > 0 && changedShader)
-						glUniform3fv(shader->lightColor, lightcount, &(lightcolor[0].x));
+						if(shader->lightColor != -1 && lightCount > 0)
+							glUniform3fv(shader->lightColor, lightCount, &(lightColor[0].x));
 					
 #if !(RN_PLATFORM_IOS)
-					if(camera->LightTiles() != 0)
-					{
-						if(shader->lightListPosition != -1 && changedShader)
+						if(camera->LightTiles() != 0)
 						{
-							_textureUnit ++;
-							_textureUnit %= _maxTextureUnits;
-							glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
-							glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[2]);
-							glUniform1i(shader->lightListPosition, _textureUnit);
-						}
-						
-						if(shader->lightList != -1 && changedShader)
-						{
-							_textureUnit ++;
-							_textureUnit %= _maxTextureUnits;
-							glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
-							glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[1]);
-							glUniform1i(shader->lightList, _textureUnit);
-						}
-						
-						if(shader->lightListOffset != -1 && changedShader)
-						{
-							_textureUnit ++;
-							_textureUnit %= _maxTextureUnits;
-							glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
-							glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[0]);
-							glUniform1i(shader->lightListOffset, _textureUnit);
-						}
-						
-						if(shader->lightListColor != -1 && changedShader)
-						{
-							_textureUnit ++;
-							_textureUnit %= _maxTextureUnits;
-							glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
-							glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[3]);
-							glUniform1i(shader->lightListColor, _textureUnit);
-						}
-						
-						if(shader->lightTileSize != -1 && changedShader)
-						{
-							glUniform4f(shader->lightTileSize, lighttilesize.x, lighttilesize.y, lighttilecount.x, lighttilecount.y);
-						}
-					}
-#endif
-
-
-					// Matrices
-					if(shader->matProj != -1 && (changedShader || switchedCamera))
-						glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, projectionMatrix.m);
-
-					if(shader->matProjInverse != -1 && (changedShader || switchedCamera))
-						glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, inverseProjectionMatrix.m);
-
-					if(shader->matView != -1 && (changedShader || switchedCamera))
-						glUniformMatrix4fv(shader->matView, 1, GL_FALSE, viewMatrix.m);
-
-					if(shader->matViewInverse != -1 && (changedShader || switchedCamera))
-						glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, inverseViewMatrix.m);
-					
-					profiler.HitMilestone("Shader bound");
-
-
-					// Check if we can use instancing here
-					if(noCheck == 0)
-					{
-						if(SupportsOpenGLFeature(kOpenGLFeatureInstancing))
-						{
-							machine_uint end = i + 1;
-							offset = 1;
-
-							while(end < objectsCount)
+							if(shader->lightListOffset != -1)
 							{
-								RenderingObject& temp = objects.ObjectAtIndex(end);
+								_textureUnit ++;
+								_textureUnit %= _maxTextureUnits;
 								
-								if(temp.mesh != mesh)
-									break;
-
-								if(!surfaceMaterial && temp.material != material)
-									break;
-
-								offset ++;
-								end ++;
+								glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+								glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[0]);
+								glUniform1i(shader->lightListOffset, _textureUnit);
 							}
 							
-
-							if(offset >= kRNRenderingPipelineInstancingCutOff)
+							if(shader->lightList != -1)
 							{
-								if(material->Shader()->imatModel != -1)
-								{
-									BindMaterial(material);
-									DrawMeshInstanced(objects, i, offset);
-									
-									profiler.HitMilestone("DrawMeshInstanced()");
-									continue;
-								}
+								_textureUnit ++;
+								_textureUnit %= _maxTextureUnits;
+								
+								glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+								glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[1]);
+								glUniform1i(shader->lightList, _textureUnit);
 							}
-
-							noCheck = offset;
-							offset = 1;
+							
+							if(shader->lightListPosition != -1)
+							{
+								_textureUnit ++;
+								_textureUnit %= _maxTextureUnits;
+								
+								glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+								glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[2]);
+								glUniform1i(shader->lightListPosition, _textureUnit);
+							}
+							
+							if(shader->lightListColor != -1)
+							{
+								_textureUnit ++;
+								_textureUnit %= _maxTextureUnits;
+								
+								glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+								glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[3]);
+								glUniform1i(shader->lightListColor, _textureUnit);
+							}
+							
+							if(shader->lightTileSize != -1)
+							{
+								glUniform4f(shader->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
+							}
 						}
+#endif
+					}
+
+					// Check if we can use instancing here
+					if(noCheck == 0 && SupportsOpenGLFeature(kOpenGLFeatureInstancing))
+					{
+						machine_uint end = i + 1;
+						offset = 1;
+
+						while(end < objectsCount)
+						{
+							RenderingObject& temp = objects.ObjectAtIndex(end);
+							
+							if(temp.mesh != mesh)
+								break;
+
+							if(!surfaceMaterial && temp.material != material)
+								break;
+
+							offset ++;
+							end ++;
+						}
+						
+						if(offset >= kRNRenderingPipelineInstancingCutOff)
+						{
+							if(material->Shader()->imatModel != -1)
+							{
+								BindMaterial(material);
+								DrawMeshInstanced(objects, i, offset);
+								
+								continue;
+							}
+						}
+
+						noCheck = offset;
+						offset = 1;
 					}
 					else
 					{
 						noCheck --;
 					}
 					
-					profiler.HitMilestone("Instancing check");
 
-					// Send the other matrices to the shader
+					// Send the object related uniforms tot he shader
 					if(shader->matModel != -1)
 						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, transform.m);
 
 					if(shader->matModelInverse != -1)
 						glUniformMatrix4fv(shader->matModelInverse, 1, GL_FALSE, inverseTransform.m);
-
 					
 					if(shader->matViewModel != -1)
 					{
@@ -841,80 +617,341 @@ namespace RN
 					}
 
 					// Render the mesh normally
-					profiler.HitMilestone("Begin rendering");
 					BindMaterial(material);
-					profiler.HitMilestone("Bind Material");
 					DrawMesh(mesh);
-					profiler.HitMilestone("DrawMesh()");
-					
-					changedShader  = false;
-					switchedCamera = false;
 				}
 			}
 			else
 			{
 				if(previous)
-				{
 					DrawCameraStage(previous, camera);
-					changedShader = true;
-				}
 			}
 
 			previous = camera;
 			
 			camera->Unbind();
-			camera->Pop();
-			
 			camera = camera->Stage();
 
 			if(!camera)
 				_flushCameras.push_back(previous);
-			
-			//glFinish();
-			profiler.HitMilestone("Camera->Unbind()", false);
 		}
 
-		delete[] lightcolor;
-		delete[] lightpos;
-		
-		profiler.HitMilestone("End");
-		//profiler.DumpStatistic();
+		delete[] lightColor;
+		delete[] lightPos;
 	}
 
+	void RenderingPipeline::DrawMesh(Mesh *mesh)
+	{
+		mesh->Push();
+		
+		MeshLODStage *stage = mesh->LODStage(0);
+		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
+		
+		BindVAO(std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage));
+		
+		glDrawElements(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0);
+		
+		mesh->Pop();
+	}
+	
+	void RenderingPipeline::DrawMeshInstanced(const Array<RenderingObject>& group, machine_uint start, machine_uint count)
+	{
+		Mesh *mesh = (Mesh *)group[(int)start].mesh;
+		MeshLODStage *stage = mesh->LODStage(0);
+		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
+		Shader *shader = _currentMaterial->Shader();
+		
+		if(count > _numInstancingMatrices)
+		{
+			_numInstancingMatrices = (uint32)count;
+			
+			free(_instancingMatrices);
+			_instancingMatrices = (Matrix *)malloc(_numInstancingMatrices * sizeof(Matrix));
+		}
+		
+		
+		mesh->Push();
+		
+		BindVAO(std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage));
+		
+		for(int i=0; i<4; i++)
+		{
+			glEnableVertexAttribArray(shader->imatModel + i);
+			glVertexAttribPointer(shader->imatModel + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * (i * 4)));
+			gl::VertexAttribDivisor(shader->imatModel + i, 1);
+		}
+		
+		for(machine_uint i=0; i<count; i++)
+		{
+			RenderingObject& object = group[(int)(start + i)];
+			_instancingMatrices[i] = *object.transform;
+		}
+		
+		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
+		glBufferData(GL_ARRAY_BUFFER, count * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
+		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0, (GLsizei)count);
+		
+		for(int i=0; i<4; i++)
+		{
+			glDisableVertexAttribArray(shader->imatModel + i);
+		}
+		
+		mesh->Pop();
+	}
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Additional helper
+	// ---------------------
+	
+	void RenderingPipeline::UpdateShaderWithCamera(Shader *shader, Camera *camera)
+	{
+		Matrix& projectionMatrix = camera->projectionMatrix.AccessPast();
+		Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix.AccessPast();
+		
+		Matrix& viewMatrix = camera->viewMatrix.AccessPast();
+		Matrix& inverseViewMatrix = camera->inverseViewMatrix.AccessPast();
+		
+		//Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
+		//Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
+		
+		if(shader->frameSize != -1)
+			glUniform4f(shader->frameSize, 1.0f/camera->Frame().width/_scaleFactor, 1.0f/camera->Frame().height/_scaleFactor, camera->Frame().width*_scaleFactor, camera->Frame().height*_scaleFactor);
+		
+		if(shader->clipPlanes != -1)
+			glUniform2f(shader->clipPlanes, camera->clipnear, camera->clipfar);
+		
+		if(shader->matProj != -1)
+			glUniformMatrix4fv(shader->matProj, 1, GL_FALSE, projectionMatrix.m);
+		
+		if(shader->matProjInverse != -1)
+			glUniformMatrix4fv(shader->matProjInverse, 1, GL_FALSE, inverseProjectionMatrix.m);
+		
+		if(shader->matView != -1)
+			glUniformMatrix4fv(shader->matView, 1, GL_FALSE, viewMatrix.m);
+		
+		if(shader->matViewInverse != -1)
+			glUniformMatrix4fv(shader->matViewInverse, 1, GL_FALSE, inverseViewMatrix.m);
+	}
+	
+	void RenderingPipeline::CreateLightList(RenderingGroup *group, Camera *camera, Vector4 **outLightPos, Vector3 **outLightColor, int *outLightCount)
+	{
+		Array<LightEntity> *lights = &group->lights;
+		
+		Vector4 *lightPos = *outLightPos;
+		Vector3 *lightColor = *outLightColor;
+		machine_uint lightCount = 0;
+		
+		if(!lightPos)
+			lightPos = new Vector4[lights->Count()];
+		
+		if(!lightColor)
+			lightColor = new Vector3[lights->Count()];
+		
+		for(machine_uint i=0; i<lights->Count(); i++, lightCount++)
+		{
+			LightEntity *light = lights->ObjectAtIndex(i);
+			const Vector3& position = light->Position().AccessPast();
+			
+			lightPos[lightCount] = Vector4(position.x, position.y, position.z, light->Range().AccessPast());
+			lightColor[lightCount] = light->Color().AccessPast();
+		}
+		
+#if !(RN_PLATFORM_IOS)
+		size_t lightIndexOffsetCount = 0;
+		size_t lightIndicesCount = 0;
+		
+		Rect rect = camera->Frame();
+		int tilesWidth  = rect.width / camera->LightTiles().x;
+		int tilesHeight = rect.height / camera->LightTiles().y;
+		
+		if(camera->DepthTiles() != 0)
+		{
+			Vector3 corner1 = camera->CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
+			Vector3 corner2 = camera->CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
+			Vector3 corner3 = camera->CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
+			
+			Vector3 dirx = (corner2-corner1) / tilesWidth;
+			Vector3 diry = (corner3-corner1) / tilesHeight;
+			
+			const Vector3& camPosition = camera->Position().AccessPast();
+			
+			Plane plleft;
+			Plane plright;
+			Plane pltop;
+			Plane plbottom;
+			Plane plfar;
+			Plane plnear;
+			
+			size_t count = lights->Count();
+			LightEntity **allLights = lights->Data();
+			
+			size_t lightindicesSize = tilesWidth * tilesHeight * lights->Count();
+			if(lightindicesSize > _lightindicesSize)
+			{
+				_lightindices = (int *)realloc(_lightindices, lightindicesSize * sizeof(int));
+				_lightindicesSize = lightindicesSize;
+			}
+			
+			size_t lightindexoffsetSize = tilesWidth * tilesHeight * 2;
+			if(lightindexoffsetSize > _lightindexoffsetSize)
+			{
+				_lightindexoffset = (int *)realloc(_lightindexoffset, lightindexoffsetSize * sizeof(int));
+				_lightindexoffsetSize = lightindexoffsetSize;
+			}
+			
+			for(float y=0.0f; y<tilesHeight; y+=1.0f)
+			{
+				for(float x=0.0f; x<tilesWidth; x+=1.0f)
+				{
+					plleft.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
+					plright.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
+					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
+					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
+					
+					size_t previous = lightIndicesCount;
+					_lightindexoffset[lightIndexOffsetCount ++] = static_cast<int>(previous);
+					
+					for(size_t i=0; i<count; i++)
+					{
+						LightEntity *light = allLights[i];
+						
+						const Vector3& position = light->_position.AccessPast();
+						float range = light->_range.AccessPast();
+						
+#define Distance(plane, op, r) { \
+float dot = (position.x * plane._normal.x + position.y * plane._normal.y + position.z * plane._normal.z);\
+float distance = dot - plane._d; \
+if(distance op r) \
+continue; \
+}
+						Distance(plleft, >, range);
+						Distance(plright, <, -range);
+						Distance(pltop, <, -range);
+						Distance(plbottom, >, range);
+#undef Distance
+						
+						_lightindices[lightIndicesCount ++] = static_cast<int>(i);
+					}
+					
+					_lightindexoffset[lightIndexOffsetCount ++] = static_cast<int>(lightIndicesCount - previous);
+				}
+			}
+			
+			
+			if(_lightBufferLengths[0] < lightIndexOffsetCount)
+			{
+				_lightBufferLengths[0] = (uint32)lightIndexOffsetCount;
+				
+				//indexpos
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
+				glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), _lightindexoffset, GL_DYNAMIC_DRAW);
+			}
+			else
+			{
+				//indexpos
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[0]);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightIndexOffsetCount * sizeof(int), _lightindexoffset);
+			}
+			
+			if(_lightBufferLengths[1] < lightIndicesCount)
+			{
+				_lightBufferLengths[1] = (uint32)lightIndicesCount;
+				
+				//indices
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
+				glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), _lightindices, GL_DYNAMIC_DRAW);
+			}
+			else
+			{
+				//indices
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[1]);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightIndicesCount * sizeof(int), _lightindices);
+			}
+			
+			if(_lightBufferLengths[2] < lightCount)
+			{
+				_lightBufferLengths[2] = (uint32)lightCount;
+				
+				//lightpos
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
+				glBufferData(GL_TEXTURE_BUFFER, lightCount * 4 * sizeof(float), lightPos, GL_DYNAMIC_DRAW);
+				
+				//lightcol
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
+				glBufferData(GL_TEXTURE_BUFFER, lightCount * 3 * sizeof(float), lightColor, GL_DYNAMIC_DRAW);
+			}
+			else
+			{
+				//lightpos
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[2]);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightCount * 4 * sizeof(float), lightPos);
+				
+				//lightcol
+				glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[3]);
+				glBufferSubData(GL_TEXTURE_BUFFER, 0, lightCount * 3 * sizeof(float), lightColor);
+			}
+			
+			glBindBuffer(GL_TEXTURE_BUFFER, 0);
+		}
+#endif
+	}
+	
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Binding
+	// ---------------------
+	
 	uint32 RenderingPipeline::BindTexture(Texture *texture)
 	{
 		_textureUnit ++;
 		_textureUnit %= _maxTextureUnits;
-
+		
 		glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
 		glBindTexture(GL_TEXTURE_2D, texture->Name());
-
+		
 		return _textureUnit;
 	}
-
+	
+	void RenderingPipeline::BindShader(Shader *shader)
+	{
+		if(_currentShader != shader->program)
+		{
+			glUseProgram(shader->program);
+			
+			if(shader->time != -1)
+				glUniform1f(shader->time, _time);
+			
+			_currentShader = shader->program;
+		}
+	}
+	
 	void RenderingPipeline::BindMaterial(Material *material)
 	{
 		material->Push();
-
+		
 		if(material != _currentMaterial)
 		{
 			Array<Texture> *textures = material->Textures();
 			Array<GLuint> *textureLocations = &material->Shader()->texlocations;
-
+			
 			if(textureLocations->Count() > 0)
 			{
 				machine_uint textureCount = MIN(textureLocations->Count(), textures->Count());
-
+				
 				for(machine_uint i=0; i<textureCount; i++)
 				{
 					GLint location = textureLocations->ObjectAtIndex(i);
 					Texture *texture = textures->ObjectAtIndex(i);
-
+					
 					glUniform1i(location, BindTexture(texture));
 				}
 			}
+			
+			_currentMaterial = material;
 		}
-
+		
 		if(material->culling != _cullingEnabled)
 		{
 			if(material->culling)
@@ -924,7 +961,7 @@ namespace RN
 					glEnable(GL_CULL_FACE);
 					_cullingEnabled = true;
 				}
-
+				
 				if(material->cullmode != _cullMode)
 				{
 					glFrontFace(material->cullmode);
@@ -937,7 +974,7 @@ namespace RN
 				_cullingEnabled = false;
 			}
 		}
-
+		
 		if(material->depthtest != _depthTestEnabled || material->depthtestmode != _depthFunc)
 		{
 			if(material->depthtest)
@@ -947,7 +984,7 @@ namespace RN
 					glEnable(GL_DEPTH_TEST);
 					_depthTestEnabled = true;
 				}
-
+				
 				if(material->depthtestmode != _depthFunc)
 				{
 					glDepthFunc(material->depthtestmode);
@@ -960,7 +997,7 @@ namespace RN
 				_depthTestEnabled = false;
 			}
 		}
-
+		
 		if(!_currentCamera->AllowsDepthWrite())
 		{
 			if(_depthWrite)
@@ -975,11 +1012,11 @@ namespace RN
 			{
 				GLboolean depthwrite = (material->depthwrite) ? GL_TRUE : GL_FALSE;
 				glDepthMask(depthwrite);
-
+				
 				_depthWrite = material->depthwrite;
 			}
 		}
-
+		
 		if(material->blending != _blendingEnabled || material->blendSource != _blendSource || material->blendDestination != _blendDestination)
 		{
 			if(material->blending)
@@ -989,7 +1026,7 @@ namespace RN
 					glEnable(GL_BLEND);
 					_blendingEnabled = true;
 				}
-
+				
 				if(material->blendSource != _blendSource || material->blendDestination != _blendDestination)
 				{
 					glBlendFunc(material->blendSource, material->blendDestination);
@@ -1003,88 +1040,17 @@ namespace RN
 				_blendingEnabled = false;
 			}
 		}
-
+		
 		material->Pop();
-
-		_currentMaterial = material;
 	}
 
-	void RenderingPipeline::DrawMesh(Mesh *mesh)
-	{
-		mesh->Push();
-
-		MeshLODStage *stage = mesh->LODStage(0);
-		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
-		
-		std::tuple<Material *, MeshLODStage *> tuple = std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage);
-		GLuint vao = VAOForTuple(tuple);
-
-		if(vao != _currentVAO)
-		{
-			gl::BindVertexArray(vao);
-			_currentVAO = vao;
-		}
-
-		glDrawElements(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0);
-		
-		mesh->Pop();
-		_currentMesh = mesh;
-	}
-
-	void RenderingPipeline::DrawMeshInstanced(Array<RenderingObject>& group, machine_uint start, machine_uint count)
-	{
-		Mesh *mesh = (Mesh *)group[(int)start].mesh;
-		MeshLODStage *stage = mesh->LODStage(0);
-		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
-
-		Shader *shader = _currentMaterial->Shader();
-
-		if(count > _numInstancingMatrices)
-		{
-			_numInstancingMatrices = (uint32)count;
-
-			free(_instancingMatrices);
-			_instancingMatrices = (Matrix *)malloc(_numInstancingMatrices * sizeof(Matrix));
-		}
-
-		GLuint vao = VAOForTuple(std::tuple<Material *, MeshLODStage *>(_currentMaterial, stage));
-		if(_currentVAO != vao)
-		{
-			gl::BindVertexArray(vao);
-			_currentVAO = vao;
-		}
-
-		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
-
-		for(int i=0; i<4; i++)
-		{
-			glEnableVertexAttribArray(shader->imatModel + i);
-			glVertexAttribPointer(shader->imatModel + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * (i * 4)));
-			gl::VertexAttribDivisor(shader->imatModel + i, 1);
-		}
-
-		for(machine_uint i=0; i<count; i++)
-		{
-			RenderingObject& object = group[(int)(start + i)];
-			_instancingMatrices[i] = *object.transform;
-		}
-
-		glBufferData(GL_ARRAY_BUFFER, count * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
-		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, GL_UNSIGNED_SHORT, 0, (GLsizei)count);
-
-		for(int i=0; i<4; i++)
-		{
-			glDisableVertexAttribArray(shader->imatModel + i);
-		}
-	}
-
-	GLuint RenderingPipeline::VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple)
+	GLuint RenderingPipeline::BindVAO(const std::tuple<Material *, MeshLODStage *>& tuple)
 	{
 		auto iterator = _vaos.find(tuple);
+		GLuint vao;
+		
 		if(iterator == _vaos.end())
 		{
-			GLuint vao;
-
 			Material *material  = std::get<0>(tuple);
 			MeshLODStage *stage = std::get<1>(tuple);
 
@@ -1171,10 +1137,21 @@ namespace RN
 			return vao;
 		}
 
+		vao = iterator->second;
+		if(vao != _currentVAO)
+		{
+			gl::BindVertexArray(vao);
+			_currentVAO = vao;
+		}
+		
 		return iterator->second;
 	}
 
-
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Misc
+	// ---------------------
 	void RenderingPipeline::WorkOnTask(TaskID task, float delta)
 	{
 		if(!_hasValidFramebuffer)
@@ -1190,11 +1167,15 @@ namespace RN
 			_hasValidFramebuffer = true;
 		}
 
-		if(!_copyShader)
+		if(!_initialized)
 			Initialize();
 
 		_time += delta;
-
+		
+		// Reset the previous frames data
+		_currentMaterial = 0;
+		_currentCamera = 0;
+		
 		while(!_finishFrame || _pushedGroups > 0)
 		{
 			_frameLock->Lock();
@@ -1206,7 +1187,6 @@ namespace RN
 
 				_frame.erase(iterator);
 				_pushedGroups --;
-
 				_frameLock->Unlock();
 
 				DrawGroup(&group);
@@ -1218,9 +1198,6 @@ namespace RN
 		}
 
 		FlushCameras();
-
-		_currentMaterial = 0;
-		_currentMesh = 0;
 	}
 
 	void RenderingPipeline::PushGroup(const RenderingGroup& group)

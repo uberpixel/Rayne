@@ -42,14 +42,18 @@ namespace RN
 
 	private:
 		void Initialize();
-		GLuint VAOForTuple(const std::tuple<Material *, MeshLODStage *>& tuple);
-
+		
 		void BindMaterial(Material *material);
+		void BindShader(Shader *shader);
 		uint32 BindTexture(Texture *texture);
+		GLuint BindVAO(const std::tuple<Material *, MeshLODStage *>& tuple);
+		
+		void UpdateShaderWithCamera(Shader *shader, Camera *camera);
+		void CreateLightList(RenderingGroup *group, Camera *camera, Vector4 **outLightPos, Vector3 **outLightColor, int *outLightCount);
 
 		void DrawGroup(RenderingGroup *group);
 		void DrawMesh(Mesh *mesh);
-		void DrawMeshInstanced(Array<RenderingObject>&group, machine_uint start, machine_uint count);
+		void DrawMeshInstanced(const Array<RenderingObject>& group, machine_uint start, machine_uint count);
 		void DrawCameraStage(Camera *camera, Camera *stage);
 
 		void FlushCameras();
@@ -57,6 +61,7 @@ namespace RN
 
 		virtual void WorkOnTask(TaskID task, float delta);
 
+		bool _initialized;
 		bool _hasValidFramebuffer;
 
 		Mutex *_frameLock;
@@ -87,9 +92,7 @@ namespace RN
 		size_t _lightindicesSize;
 
 		std::map<std::tuple<Material *, MeshLODStage *>, GLuint> _vaos;
-		GLuint _currentVAO;
-		GLuint _currentShader;
-
+		
 		Matrix *_instancingMatrices;
 		uint32 _numInstancingMatrices;
 		GLuint _instancingVBO;
@@ -98,10 +101,11 @@ namespace RN
 		uint32 _defaultWidth;
 		uint32 _defaultHeight;
 
-		Camera *_currentCamera;
+		Camera   *_currentCamera;
 		Material *_currentMaterial;
-		Mesh *_currentMesh;
-
+		GLuint _currentShader;
+		GLuint _currentVAO;
+		
 		std::vector<Camera *> _flushCameras;
 
 		Shader *_copyShader;
