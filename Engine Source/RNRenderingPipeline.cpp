@@ -636,8 +636,8 @@ namespace RN
 
 					if(shader->matProjViewModelInverse != -1)
 					{
-						Matrix projViewModel = inverseProjectionViewMatrix * inverseTransform;
-						glUniformMatrix4fv(shader->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+						Matrix projViewModelInverse = inverseProjectionViewMatrix * inverseTransform;
+						glUniformMatrix4fv(shader->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
 					}
 
 					DrawMesh(mesh);
