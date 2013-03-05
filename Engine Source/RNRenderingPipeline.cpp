@@ -265,19 +265,12 @@ namespace RN
 		Material *material = stage->Material();
 		Shader *shader = material->Shader();
 		
+		_currentCamera = stage;
+		
 		BindMaterial(material);
 		BindShader(shader);
-		UpdateShaderWithCamera(shader, camera);
+		UpdateShaderWithCamera(shader, stage);
 		
-		if(!stage->HasDepthbuffer() || !stage->AllowsDepthWrite())
-		{
-			if(_depthTestEnabled)
-			{
-				glDisable(GL_DEPTH_TEST);
-				_depthTestEnabled = false;
-			}
-		}
-
 		if(_currentVAO != _copyVAO)
 		{
 			gl::BindVertexArray(_copyVAO);
