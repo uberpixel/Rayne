@@ -16,11 +16,13 @@
 
 namespace RN
 {
+	class Skeleton;
 	struct RenderingObject
 	{
 		const Mesh *mesh;
 		const Material *material;
 		const Matrix *transform;
+		const Skeleton *skeleton;
 	};
 
 	class Window;

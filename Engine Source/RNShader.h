@@ -55,6 +55,7 @@ namespace RN
 		GLuint matViewModelInverse;
 		GLuint matProjViewModel;
 		GLuint matProjViewModelInverse;
+		GLuint matBones;
 		
 		GLuint imatModel;
 		
@@ -65,6 +66,8 @@ namespace RN
 		GLuint vertTexcoord1;
 		GLuint vertColor0;
 		GLuint vertColor1;
+		GLuint vertBoneWeights;
+		GLuint vertBoneIndices;
 		
 		GLuint time;
 		GLuint frameSize;

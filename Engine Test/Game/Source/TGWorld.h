@@ -34,6 +34,8 @@ namespace TG
 		RN::Entity *_parentBlock;
 		RN::Entity *_childBlock;
 		
+		RN::Skeleton *_skeleton;
+		
 		RN::RigidBodyEntity *_block1;
 		RN::RigidBodyEntity *_block2;
 		RN::RigidBodyEntity *_block3;

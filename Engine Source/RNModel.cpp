@@ -8,16 +8,18 @@
 
 #include "RNModel.h"
 #include "RNFile.h"
+#include "RNSkeleton.h"
 
 namespace RN
 {
 	Model::Model()
 	{
-		
+		_skeleton = NULL;
 	}
 	
 	Model::Model(const std::string& path)
 	{
+		_skeleton = NULL;
 		File *file = new File(path);
 		
 		uint32 magic = file->ReadUint32();
@@ -90,6 +92,7 @@ namespace RN
 	
 	Model::~Model()
 	{
+		_skeleton->Release();
 	}
 	
 	Model *Model::WithFile(const std::string& path)
@@ -188,6 +191,11 @@ namespace RN
 		}
 		
 		return 0;
+	}
+	
+	Skeleton *Model::Skeleton()
+	{
+		return _skeleton;
 	}
 	
 	void Model::ReadModelVersion1(File *file)
@@ -334,12 +342,11 @@ namespace RN
 			unsigned short lenanimfilename = file->ReadInt16();
 			char *animfilename = new char[lenanimfilename];
 			file->ReadIntoBuffer(animfilename, lenanimfilename*sizeof(char));
-			_animfilename = animfilename;
+			std::string path = file->Path();
+			_skeleton = Skeleton::WithFile(path+"/"+std::string(animfilename));
+			_skeleton->Retain();
+			_skeleton->Init();
 			delete[] animfilename;
-		}
-		else
-		{
-			_animfilename = "";
 		}
 	}
 }

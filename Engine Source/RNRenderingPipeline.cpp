@@ -9,6 +9,7 @@
 #include "RNRenderingPipeline.h"
 #include "RNLightEntity.h"
 #include "RNKernel.h"
+#include "RNSkeleton.h"
 
 #define kRNRenderingPipelineInstancingCutOff 100
 
@@ -342,6 +343,7 @@ namespace RN
 				object.mesh = skycube->MeshAtIndex(j);
 				object.material = skycube->MaterialForMesh(object.mesh);
 				object.transform = &camrotationmatrix;
+				object.skeleton = NULL;
 				
 				objects.AddObject(object);
 			}
@@ -360,6 +362,7 @@ namespace RN
 				object.mesh = model->MeshAtIndex(j);
 				object.material = model->MaterialForMesh(object.mesh);
 				object.transform = entity->PastWorldTransform();
+				object.skeleton = model->Skeleton();
 
 				objects.AddObject(object);
 			}
@@ -604,6 +607,8 @@ namespace RN
 					}
 #endif
 					
+					if(object.skeleton != NULL && shader->matBones != -1)
+						glUniformMatrix4fv(shader->matBones, object.skeleton->NumBones(), GL_FALSE, object.skeleton->Matrices());
 
 					// Send the object related uniforms tot he shader
 					if(shader->matModel != -1)
@@ -1160,6 +1165,26 @@ continue; \
 
 				glEnableVertexAttribArray(shader->vertColor1);
 				glVertexAttribPointer(shader->vertColor1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+			}
+			
+			// Bone Weights
+			if(shader->vertBoneWeights != -1 && stage->SupportsFeature(kMeshFeatureBoneWeights))
+			{
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureBoneWeights);
+				size_t offset = stage->OffsetForFeature(kMeshFeatureBoneWeights);
+				
+				glEnableVertexAttribArray(shader->vertBoneWeights);
+				glVertexAttribPointer(shader->vertBoneWeights, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
+			}
+			
+			// Bone Indices
+			if(shader->vertBoneIndices != -1 && stage->SupportsFeature(kMeshFeatureBoneIndices))
+			{
+				MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureBoneIndices);
+				size_t offset = stage->OffsetForFeature(kMeshFeatureBoneIndices);
+				
+				glEnableVertexAttribArray(shader->vertBoneIndices);
+				glVertexAttribPointer(shader->vertBoneIndices, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 
 			_vaos[tuple] = vao;

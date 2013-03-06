@@ -425,6 +425,8 @@ namespace RN
 			GetUniformLocation(matProjViewModel);
 			GetUniformLocation(matProjViewModelInverse);
 			
+			GetUniformLocation(matBones);
+			
 			GetUniformLocation(time);
 			GetUniformLocation(frameSize);
 			GetUniformLocation(clipPlanes);
@@ -475,6 +477,8 @@ namespace RN
 			
 			GetAttributeLocation(vertColor0);
 			GetAttributeLocation(vertColor1);
+			GetAttributeLocation(vertBoneWeights);
+			GetAttributeLocation(vertBoneIndices);
 			
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 			do

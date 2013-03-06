@@ -20,6 +20,7 @@
 #include "RNMessage.h"
 #include "RNFile.h"
 
+#include "RNSkeleton.h"
 #include "RNModel.h"
 #include "RNTextureLoader.h"
 

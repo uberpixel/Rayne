@@ -17,6 +17,7 @@
 
 namespace RN
 {
+	class Skeleton;
 	class Model : public Object
 	{
 	public:
@@ -37,8 +38,8 @@ namespace RN
 		uint32 Materials() const;
 		
 		Mesh *MeshAtIndex(uint32 index) const;
-		
 		Material *MaterialForMesh(const Mesh *mesh) const;
+		Skeleton *Skeleton();
 		
 	private:
 		struct MeshGroup
@@ -52,7 +53,7 @@ namespace RN
 		
 		Array<Material> _materials;
 		std::vector<MeshGroup> _groups;
-		std::string _animfilename;
+		class Skeleton *_skeleton;
 	};
 }
 
