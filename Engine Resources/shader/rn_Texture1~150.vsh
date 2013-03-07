@@ -20,6 +20,5 @@ out vec2 outTexcoord;
 void main()
 {
 	outTexcoord = vertTexcoord0;
-	
 	gl_Position = matProjViewModel * rn_Animate(vertPosition);
 }

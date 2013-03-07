@@ -10,6 +10,7 @@
 precision highp float;
 
 #include "rn_Matrices.vsh"
+#include "rn_Animation.vsh"
 
 in vec3 vertPosition;
 in vec2 vertTexcoord0;
@@ -20,5 +21,5 @@ void main()
 {
 	outTexcoord = vertTexcoord0;
 	
-	gl_Position = matProjViewModel * vec4(vertPosition, 1.0);
+	gl_Position = matProjViewModel * rn_Animate(vertPosition);
 }
