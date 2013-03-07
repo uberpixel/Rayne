@@ -59,7 +59,7 @@ namespace RN
 	{
 		Transform::PostUpdate();
 		if(_skeleton)
-			_skeleton->SynchronizePast();
+			_skeleton->PostUpdate();
 	}
 	
 	

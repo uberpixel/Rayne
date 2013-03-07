@@ -608,8 +608,11 @@ namespace RN
 #endif
 					
 					if(object.skeleton != NULL && shader->matBones != -1)
-						glUniformMatrix4fv(shader->matBones, object.skeleton->NumBones(), GL_FALSE, object.skeleton->Matrices());
-
+					{
+						float *data = object.skeleton->Matrices().AccessPast().Data()->m;
+						glUniformMatrix4fv(shader->matBones, object.skeleton->NumBones(), GL_FALSE, data);
+					}
+					
 					// Send the object related uniforms tot he shader
 					if(shader->matModel != -1)
 						glUniformMatrix4fv(shader->matModel, 1, GL_FALSE, transform.m);

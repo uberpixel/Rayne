@@ -16,6 +16,7 @@
 #include "RNArray.h"
 #include "RNQuaternion.h"
 #include "RNMatrix.h"
+#include "RNSynchronization.h"
 
 namespace RN
 {
@@ -92,14 +93,13 @@ namespace RN
 		void Update(float timestep);
 		void SetAnimation(const std::string &animname);
 		uint16 NumBones() const {return bones.size();}
-		float *Matrices() const {return matrices_past;}
+		Past<Array<Matrix>> Matrices() const {return _matrices;}
 		
-		void SynchronizePast() {memcpy(matrices_past, matrices, bones.size()*16*sizeof(float));};
+		void PostUpdate() {_matrices.SynchronizePast();};
 		
 		std::vector<Bone> bones;
 		std::map<std::string, Animation*> animations;
-		float *matrices;
-		float *matrices_past;
+		Past<Array<Matrix>> _matrices;
 		
 	private:
 		void ReadSkeletonVersion1(File *file);

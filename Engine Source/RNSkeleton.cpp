@@ -138,12 +138,10 @@ namespace RN
 	
 	Skeleton::Skeleton()
 	{
-		matrices = NULL;
 	}
 
 	Skeleton::Skeleton(const std::string& path)
 	{
-		matrices = NULL;
 		File *file = new File(path);
 		
 		uint32 magic = file->ReadUint32();
@@ -172,12 +170,11 @@ namespace RN
 		{
 			it->second->Release();
 		}
-		delete[] matrices;
 	}
 	
 	void Skeleton::Init()
 	{
-		if(matrices != NULL)
+		if(_matrices->Count() > 0)
 			return;
 		
 		for(int i = 0; i < bones.size(); i++)
@@ -188,10 +185,9 @@ namespace RN
 			}
 		}
 		
-		matrices = new float[16*bones.size()];
-		matrices_past = new float[16*bones.size()];
 		for(int i = 0; i < bones.size(); i++)
 		{
+			_matrices->AddObject(bones[i].finalMatrix);
 			if(bones[i].isRoot)
 			{
 				bones[i].Init();
@@ -211,7 +207,7 @@ namespace RN
 		
 		for(int i = 0; i < bones.size(); i++)
 		{
-			memcpy(matrices+16*i, bones[i].finalMatrix.m, 16*sizeof(float));
+			_matrices->ReplaceObjectAtIndex(i, bones[i].finalMatrix);
 		}
 	}
 	
