@@ -39,7 +39,6 @@ namespace RN
 		
 		Mesh *MeshAtIndex(uint32 index) const;
 		Material *MaterialForMesh(const Mesh *mesh) const;
-		Skeleton *Skeleton();
 		
 	private:
 		struct MeshGroup
@@ -53,7 +52,6 @@ namespace RN
 		
 		Array<Material> _materials;
 		std::vector<MeshGroup> _groups;
-		class Skeleton *_skeleton;
 	};
 }
 

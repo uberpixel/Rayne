@@ -43,9 +43,11 @@ namespace RN
 		virtual bool IsVisibleInCamera(Camera *camera);
 		
 		void SetModel(Model *model);
+		void SetSkeleton(class Skeleton *skeleton);
 		
 		EntityType Type() const {return _type;}
 		Model *Model() const { return _model; }
+		Skeleton *Skeleton() const { return _skeleton; }
 		
 	protected:		
 		Entity(EntityType type);

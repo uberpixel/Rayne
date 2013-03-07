@@ -362,7 +362,7 @@ namespace RN
 				object.mesh = model->MeshAtIndex(j);
 				object.material = model->MaterialForMesh(object.mesh);
 				object.transform = entity->PastWorldTransform();
-				object.skeleton = model->Skeleton();
+				object.skeleton = entity->Skeleton();
 
 				objects.AddObject(object);
 			}

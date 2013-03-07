@@ -32,16 +32,17 @@ namespace RN
 		for (std::map<int, AnimationBone*>::iterator it = bones.begin(); it != bones.end(); ++it)
 		{
 			AnimationBone *bone = it->second;
-			AnimationBone *first = bone;
-			while(bone)
+			if(bone->prevFrame != 0)
+			{
+				bone->prevFrame->nextFrame = 0;
+				bone->prevFrame = 0;
+			}
+			while(bone->nextFrame)
 			{
 				bone = bone->nextFrame;
 				delete bone->prevFrame;
-				if(bone == first)
-					break;
 			}
-			if(bone != first)
-				delete bone;
+			delete bone;
 		}
 	}
 	
@@ -162,6 +163,8 @@ namespace RN
 		}
 		
 		file->Release();
+		
+		Init();
 	}
 	
 	Skeleton::~Skeleton()

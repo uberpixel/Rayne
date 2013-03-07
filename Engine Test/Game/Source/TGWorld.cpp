@@ -104,7 +104,8 @@ namespace TG
 		//_finalcam->SetRotation(_camera->Rotation());
 #endif
 		
-		_skeleton->Update(delta*24.0f);
+		_girlskeleton->Update(delta*24.0f);
+		_zombieskeleton->Update(delta*24.0f);
 	}
 	
 	void World::CreateWorld()
@@ -135,12 +136,22 @@ namespace TG
 		
 		RN::Shader *animshader = RN::Shader::WithFile("shader/anim");
 		RN::Model *girlmodel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
+		_girlskeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
 		RN::Entity *girl = new RN::Entity();
 		girl->SetModel(girlmodel);
+		girl->SetSkeleton(_girlskeleton);
 		girl->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
 		girlmodel->MaterialForMesh(girlmodel->MeshAtIndex(0))->SetShader(animshader);
-		_skeleton = girlmodel->Skeleton();
-		_skeleton->SetAnimation("cammina");
+		_girlskeleton->SetAnimation("cammina");
+		
+		RN::Model *zombiemodel = RN::Model::WithFile("models/RosswetMobile/new_thin_zombie.sgm");
+		_zombieskeleton = RN::Skeleton::WithFile("models/RosswetMobile/new_thin_zombie.sga");
+		RN::Entity *zombie = new RN::Entity();
+		zombie->SetModel(zombiemodel);
+		zombie->SetSkeleton(_zombieskeleton);
+		zombie->SetPosition(RN::Vector3(-5.0f, -5.0f, 0.0f));
+		zombiemodel->MaterialForMesh(zombiemodel->MeshAtIndex(0))->SetShader(animshader);
+		_zombieskeleton->SetAnimation("idle");
 		
 		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
 		

@@ -14,12 +14,10 @@ namespace RN
 {
 	Model::Model()
 	{
-		_skeleton = 0;
 	}
 	
 	Model::Model(const std::string& path)
 	{
-		_skeleton = 0;
 		File *file = new File(path);
 		
 		uint32 magic = file->ReadUint32();
@@ -44,7 +42,6 @@ namespace RN
 	
 	Model::Model(Mesh *mesh, Material *material, const std::string& name)
 	{
-		_skeleton = 0;
 		MeshGroup group;
 		group.mesh = mesh->Retain<Mesh>();
 		group.material = material;
@@ -93,7 +90,6 @@ namespace RN
 	
 	Model::~Model()
 	{
-		_skeleton->Release();
 	}
 	
 	Model *Model::WithFile(const std::string& path)
@@ -192,11 +188,6 @@ namespace RN
 		}
 		
 		return 0;
-	}
-	
-	Skeleton *Model::Skeleton()
-	{
-		return _skeleton;
 	}
 	
 	void Model::ReadModelVersion1(File *file)
@@ -343,10 +334,6 @@ namespace RN
 			unsigned short lenanimfilename = file->ReadInt16();
 			char *animfilename = new char[lenanimfilename];
 			file->ReadIntoBuffer(animfilename, lenanimfilename*sizeof(char));
-			std::string path = file->Path();
-			_skeleton = Skeleton::WithFile(path+"/"+std::string(animfilename));
-			_skeleton->Retain();
-			_skeleton->Init();
 			delete[] animfilename;
 		}
 	}

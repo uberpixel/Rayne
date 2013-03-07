@@ -73,8 +73,11 @@ namespace RN
 	{
 		_model->Release();
 		_model = model->Retain<RN::Model>();
-		
+	}
+	
+	void Entity::SetSkeleton(class Skeleton *skeleton)
+	{
 		_skeleton->Release();
-		_skeleton = model->Skeleton();
+		_skeleton = skeleton->Retain<RN::Skeleton>();
 	}
 }
