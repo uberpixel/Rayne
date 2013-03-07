@@ -451,7 +451,7 @@ namespace RN
 							
 							return kRNCompareEqualTo;
 						}
-					}, 6);
+					}, skycube != 0 ? 6 : 0);
 					
 					sortOder = bestOrder;
 				}
