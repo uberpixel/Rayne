@@ -8,8 +8,8 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureLights      0
-#define TGWorldFeatureInstancing  1
+#define TGWorldFeatureLights      1
+#define TGWorldFeatureInstancing  0
 
 namespace TG
 {
@@ -202,7 +202,7 @@ namespace TG
 		{
 			for(float y = -10.0f; y < 10.0f; y += 1.0f)
 			{
-				index = (index + 1) % 4;
+				index = 0; //(index + 1) % 4;
 				
 				RN::Entity *fern = new RN::Entity();
 				fern->SetModel(foliage[index]);
