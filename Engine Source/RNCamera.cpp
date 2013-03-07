@@ -667,6 +667,7 @@ namespace RN
 	void Camera::PostUpdate()
 	{
 		Transform::PostUpdate();
+		UpdateFrustum();
 		
 		inverseViewMatrix = WorldTransform();
 		viewMatrix = inverseViewMatrix->Inverse();
