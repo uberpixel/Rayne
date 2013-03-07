@@ -23,6 +23,7 @@ namespace RN
 		{
 			TypeNormal,
 			TypeInstanced,
+			TypeAnimated,
 			
 			__TypeMax
 		} Type;

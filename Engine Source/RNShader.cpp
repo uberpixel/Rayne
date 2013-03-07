@@ -15,8 +15,8 @@ namespace RN
 	{
 		_supportedPrograms = 0;
 		
-		_programs[ShaderProgram::TypeNormal] = 0;
-		_programs[ShaderProgram::TypeInstanced] = 0;
+		for(uint32 i=0; i<ShaderProgram::__TypeMax; i++)
+			_programs[i] = 0;
 		
 		AddDefines();
 	}
@@ -25,8 +25,8 @@ namespace RN
 	{
 		_supportedPrograms = 0;
 		
-		_programs[ShaderProgram::TypeNormal] = 0;
-		_programs[ShaderProgram::TypeInstanced] = 0;
+		for(uint32 i=0; i<ShaderProgram::__TypeMax; i++)
+			_programs[i] = 0;
 		
 		AddDefines();
 		
@@ -270,6 +270,10 @@ namespace RN
 					Define("RN_INSTANCING");
 					break;
 					
+				case ShaderProgram::TypeAnimated:
+					Define("RN_ANIMATION");
+					break;
+					
 				default:
 					break;
 			}
@@ -300,6 +304,7 @@ namespace RN
 			catch(ErrorException e)
 			{
 				Undefine("RN_INSTANCING");
+				Undefine("RN_ANIMATION");
 				
 				delete program;
 				_programs[type] = 0;
@@ -313,6 +318,7 @@ namespace RN
 			
 			// Clean up
 			Undefine("RN_INSTANCING");
+			Undefine("RN_ANIMATION");
 			
 			for(int i=0; i<3; i++)
 			{
@@ -572,6 +578,7 @@ namespace RN
 		// Check what program types the shader supports
 		_supportedPrograms |= (1 << ShaderProgram::TypeNormal);
 		_supportedPrograms |= (data.find("#ifdef RN_INSTANCING") != std::string::npos) ? (1 << ShaderProgram::TypeInstanced) : 0;
+		_supportedPrograms |= (data.find("#ifdef RN_ANIMATION") != std::string::npos) ? (1 << ShaderProgram::TypeAnimated) : 0;
 		
 		switch(type)
 		{

@@ -9,7 +9,7 @@
 #include "TGWorld.h"
 
 #define TGWorldFeatureLights      0
-#define TGWorldFeatureInstancing  0
+#define TGWorldFeatureInstancing  1
 #define TGWorldFeatureAnimations  1
 
 namespace TG
@@ -114,13 +114,12 @@ namespace TG
 #if TGWorldFeatureLights
 		RN::Shader *discardShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight");
 		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1Light");
-		RN::Shader *animshader = RN::Shader::WithFile("shader/anim");
 #else
 		RN::Shader *discardShader = RN::Shader::WithFile("shader/rn_Texture1Discard");
 		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1");
-		RN::Shader *animshader = RN::Shader::WithFile("shader/anim");
 #endif
 		
+		// Sponza
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
 		for(int i = 0; i < model->Meshes(); i++)
 		{
@@ -142,34 +141,10 @@ namespace TG
 		sponza->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
-#if TGWorldFeatureAnimations
-		RN::Model *girlmodel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
-		_girlskeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
-		_girlskeleton->SetAnimation("cammina");
-		 
-		RN::Entity *girl = new RN::Entity();
-		girl->SetModel(girlmodel);
-		girl->SetSkeleton(_girlskeleton);
-		girl->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
-		girlmodel->MaterialForMesh(girlmodel->MeshAtIndex(0))->SetShader(animshader);
 		
-		
-		RN::Model *zombiemodel = RN::Model::WithFile("models/RosswetMobile/new_thin_zombie.sgm");
-		_zombieskeleton = RN::Skeleton::WithFile("models/RosswetMobile/new_thin_zombie.sga");
-		_zombieskeleton->SetAnimation("idle");
-		 
-		RN::Entity *zombie = new RN::Entity();
-		zombie->SetModel(zombiemodel);
-		zombie->SetSkeleton(_zombieskeleton);
-		zombie->SetPosition(RN::Vector3(-5.0f, -5.0f, 0.0f));
-		zombiemodel->MaterialForMesh(zombiemodel->MeshAtIndex(0))->SetShader(animshader);
-#endif
-		
-		
-		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
-		
+		// Blocks
 		RN::Material *blockMaterial = new RN::Material(shader);
-		blockMaterial->AddTexture(blockTexture0);
+		blockMaterial->AddTexture(RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888));
 		
 		RN::Mesh  *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f, 0.5f, 0.5f));
 		RN::Model *blockModel = RN::Model::WithMesh(blockMesh->Autorelease<RN::Mesh>(), blockMaterial->Autorelease<RN::Material>());
@@ -181,6 +156,29 @@ namespace TG
 		_childBlock->SetModel(blockModel);
 		
 		_parentBlock->AttachChild(_childBlock);
+		
+#if TGWorldFeatureAnimations
+		RN::Model *girlmodel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
+		_girlskeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
+		_girlskeleton->SetAnimation("cammina");
+		 
+		RN::Entity *girl = new RN::Entity();
+		girl->SetModel(girlmodel);
+		girl->SetSkeleton(_girlskeleton);
+		girl->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
+		girlmodel->MaterialForMesh(girlmodel->MeshAtIndex(0))->SetShader(shader);
+		
+		
+		RN::Model *zombiemodel = RN::Model::WithFile("models/RosswetMobile/new_thin_zombie.sgm");
+		_zombieskeleton = RN::Skeleton::WithFile("models/RosswetMobile/new_thin_zombie.sga");
+		_zombieskeleton->SetAnimation("idle");
+		 
+		RN::Entity *zombie = new RN::Entity();
+		zombie->SetModel(zombiemodel);
+		zombie->SetSkeleton(_zombieskeleton);
+		zombie->SetPosition(RN::Vector3(-5.0f, -5.0f, 0.0f));
+		zombiemodel->MaterialForMesh(zombiemodel->MeshAtIndex(0))->SetShader(shader);
+#endif
 		
 #if TGWorldFeatureLights
 		RN::LightEntity *light;
@@ -194,7 +192,6 @@ namespace TG
 		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
-		 
 		
 		for(int i = 0; i < 1000; i++)
 		{
@@ -234,7 +231,7 @@ namespace TG
 		{
 			for(float y = -10.0f; y < 10.0f; y += 1.0f)
 			{
-				index = 0; //(index + 1) % 4;
+				index = (index + 1) % 4;
 				
 				RN::Entity *fern = new RN::Entity();
 				fern->SetModel(foliage[index]);

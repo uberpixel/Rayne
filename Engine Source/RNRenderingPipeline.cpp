@@ -620,7 +620,7 @@ namespace RN
 					// Send the object related uniforms to the shader
 					if(object.skeleton && program->matBones != -1)
 					{
-						float *data = object.skeleton->Matrices().AccessPast().Data()->m;
+						float *data = (float *)object.skeleton->Matrices().AccessPast().Data();
 						glUniformMatrix4fv(program->matBones, object.skeleton->NumBones(), GL_FALSE, data);
 					}
 
@@ -641,7 +641,6 @@ namespace RN
 						Matrix viewModel = inverseViewMatrix * inverseTransform;
 						glUniformMatrix4fv(program->matViewModelInverse, 1, GL_FALSE, viewModel.m);
 					}
-
 					
 					if(program->matProjViewModel != -1)
 					{
