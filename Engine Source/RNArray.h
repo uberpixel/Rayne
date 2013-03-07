@@ -404,6 +404,11 @@ namespace RN
 		
 		__ArrayCore<T, true>& operator =(const __ArrayCore<T, true>& other)
 		{
+			for(machine_uint i=0; i<this->_count; i++)
+			{
+				this->_data[i]->template Release();
+			}
+			
 			if(other._size > this->_size)
 			{
 				delete [] this->_data;
