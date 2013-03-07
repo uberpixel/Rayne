@@ -654,7 +654,7 @@ namespace RN
 						glUniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
 					}
 
-					DrawMesh(mesh);
+					DrawMesh(mesh, program);
 				}
 			}
 			else
@@ -682,15 +682,12 @@ namespace RN
 #endif
 	}
 
-	void RenderingPipeline::DrawMesh(Mesh *mesh)
+	void RenderingPipeline::DrawMesh(Mesh *mesh, ShaderProgram *program)
 	{
 		mesh->Push();
 		
 		MeshLODStage *stage = mesh->LODStage(0);
 		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
-		
-		Shader *shader = _currentMaterial->Shader();
-		ShaderProgram *program = shader->ProgramOfType(ShaderProgram::TypeNormal);
 		
 		BindVAO(std::tuple<ShaderProgram *, MeshLODStage *>(program, stage));
 		

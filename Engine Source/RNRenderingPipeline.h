@@ -52,7 +52,7 @@ namespace RN
 		void CreateLightList(RenderingGroup *group, Camera *camera, Vector4 **outLightPos, Vector3 **outLightColor, int *outLightCount);
 
 		void DrawGroup(RenderingGroup *group);
-		void DrawMesh(Mesh *mesh);
+		void DrawMesh(Mesh *mesh, ShaderProgram *program);
 		void DrawMeshInstanced(const Array<RenderingObject>& group, machine_uint start, machine_uint count);
 		void DrawCameraStage(Camera *camera, Camera *stage);
 
