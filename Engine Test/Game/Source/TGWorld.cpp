@@ -172,7 +172,6 @@ namespace TG
 		
 		_parentBlock->AttachChild(_childBlock);
 		
-#if 0
 #if TGWorldFeatureLights
 		RN::LightEntity *light;
 		
@@ -202,18 +201,22 @@ namespace TG
 		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
 		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->SetShader(discardShader);
 		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->culling = false;
+		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->alphatest = true;
 		
 		foliage[1] = RN::Model::WithFile("models/nobiax/grass_05.sgm");
 		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->SetShader(discardShader);
 		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->culling = false;
+		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->alphatest = true;
 		
 		foliage[2] = RN::Model::WithFile("models/nobiax/grass_19.sgm");
 		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->SetShader(discardShader);
 		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->culling = false;
+		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->alphatest = true;
 		
 		foliage[3] = RN::Model::WithFile("models/nobiax/grass_04.sgm");
 		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->SetShader(discardShader);
 		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->culling = false;
+		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->alphatest = true;
 		
 		uint32 index = 0;
 		

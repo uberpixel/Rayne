@@ -261,9 +261,7 @@ namespace RN
 		
 		_currentCamera = stage;
 		
-		BindShader(program);
 		BindMaterial(material, program);
-		
 		UpdateShaderWithCamera(program, stage);
 		
 		if(_currentVAO != _copyVAO)
@@ -531,7 +529,6 @@ namespace RN
 					// Send generic attributes to the shader
 					changedShader = (_currentShader != program->program);
 					
-					BindShader(program);
 					BindMaterial(material, program);
 					
 					if(changedShader || changedCamera)
@@ -1041,7 +1038,10 @@ continue; \
 	{
 		material->Push();
 		
-		if(material != _currentMaterial)
+		bool changedShader = (program->program != _currentShader);
+		BindShader(program);
+		
+		if(changedShader || material != _currentMaterial)
 		{
 			Array<Texture> *textures = material->Textures();
 			Array<GLuint> *textureLocations = &program->texlocations;
@@ -1058,8 +1058,6 @@ continue; \
 					glUniform1i(location, BindTexture(texture));
 				}
 			}
-			
-			_currentMaterial = material;
 		}
 		
 		if(material->culling != _cullingEnabled)
@@ -1151,6 +1149,7 @@ continue; \
 			}
 		}
 		
+		_currentMaterial = material;
 		material->Pop();
 	}
 
@@ -1302,7 +1301,7 @@ continue; \
 		
 		// Reset the previous frames data
 		_currentMaterial = 0;
-		_currentCamera = 0;
+		_currentCamera   = 0;
 		
 		while(!_finishFrame || _pushedGroups > 0)
 		{
