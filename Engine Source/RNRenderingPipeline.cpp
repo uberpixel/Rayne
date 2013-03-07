@@ -609,10 +609,10 @@ namespace RN
 					}
 					
 					// Send the object related uniforms to the shader
-					if(object.skeleton && shader->matBones != -1)
+					if(object.skeleton && program->matBones != -1)
 					{
 						float *data = object.skeleton->Matrices().AccessPast().Data()->m;
-						glUniformMatrix4fv(shader->matBones, object.skeleton->NumBones(), GL_FALSE, data);
+						glUniformMatrix4fv(program->matBones, object.skeleton->NumBones(), GL_FALSE, data);
 					}
 
 					if(program->matModel != -1)

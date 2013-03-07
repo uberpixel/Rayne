@@ -8,8 +8,9 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureLights      1
+#define TGWorldFeatureLights      0
 #define TGWorldFeatureInstancing  0
+#define TGWorldFeatureAnimations  1
 
 namespace TG
 {
@@ -96,14 +97,16 @@ namespace TG
 		_childBlock->Rotate(RN::Vector3(32.0f * delta, 0.0f, 32.0f * delta));
 		_childBlock->SetPosition(RN::Vector3(0.0f, 2.0f + (sinf(RN::Kernel::SharedInstance()->Time())), 0.0f));
 		
+#if TGWorldFeatureAnimations
+		_girlskeleton->Update(delta*24.0f);
+		_zombieskeleton->Update(delta*24.0f);
+#endif
+		
 		_camera->Rotate(rotation);
 		
 		RN::Matrix rot;
 		rot.MakeRotate(_camera->Rotation());
 		_camera->Translate(rot.Transform(translation * -delta));
-		
-		_girlskeleton->Update(delta*24.0f);
-		_zombieskeleton->Update(delta*24.0f);
 	}
 	
 	void World::CreateWorld()
@@ -111,9 +114,11 @@ namespace TG
 #if TGWorldFeatureLights
 		RN::Shader *discardShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight");
 		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1Light");
+		RN::Shader *animshader = RN::Shader::WithFile("shader/anim");
 #else
 		RN::Shader *discardShader = RN::Shader::WithFile("shader/rn_Texture1Discard");
 		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1");
+		RN::Shader *animshader = RN::Shader::WithFile("shader/anim");
 #endif
 		
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
@@ -133,28 +138,33 @@ namespace TG
 		
 		RN::Entity *sponza = new RN::Entity();
 		sponza->SetModel(model);
-		sponza->SetScale(RN::Vector3(0.1, 0.1, 0.1));
+		sponza->SetScale(RN::Vector3(0.5, 0.5, 0.5));
 		sponza->Rotate(RN::Vector3(0.0, 0.0, -90.0));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
-		RN::Shader *animshader = RN::Shader::WithFile("shader/anim");
+#if TGWorldFeatureAnimations
 		RN::Model *girlmodel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
 		_girlskeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
+		_girlskeleton->SetAnimation("cammina");
+		 
 		RN::Entity *girl = new RN::Entity();
 		girl->SetModel(girlmodel);
 		girl->SetSkeleton(_girlskeleton);
 		girl->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
 		girlmodel->MaterialForMesh(girlmodel->MeshAtIndex(0))->SetShader(animshader);
-		_girlskeleton->SetAnimation("cammina");
+		
 		
 		RN::Model *zombiemodel = RN::Model::WithFile("models/RosswetMobile/new_thin_zombie.sgm");
 		_zombieskeleton = RN::Skeleton::WithFile("models/RosswetMobile/new_thin_zombie.sga");
+		_zombieskeleton->SetAnimation("idle");
+		 
 		RN::Entity *zombie = new RN::Entity();
 		zombie->SetModel(zombiemodel);
 		zombie->SetSkeleton(_zombieskeleton);
 		zombie->SetPosition(RN::Vector3(-5.0f, -5.0f, 0.0f));
 		zombiemodel->MaterialForMesh(zombiemodel->MeshAtIndex(0))->SetShader(animshader);
-		_zombieskeleton->SetAnimation("idle");
+#endif
+		
 		
 		RN::Texture *blockTexture0 = RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888);
 		
