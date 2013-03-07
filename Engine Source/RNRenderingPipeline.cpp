@@ -703,6 +703,7 @@ namespace RN
 		
 		Shader *shader = _currentMaterial->Shader();
 		ShaderProgram *program = shader->ProgramOfType(ShaderProgram::TypeInstanced);
+		bool resized = false;
 		
 		if(count > _numInstancingMatrices)
 		{
@@ -712,16 +713,19 @@ namespace RN
 				free(_instancingMatrices);
 			
 			_instancingMatrices = (Matrix *)malloc((_numInstancingMatrices * 2) * sizeof(Matrix));
+			resized = true;
 		}
 		
 		
 		mesh->Push();
 		
 		BindVAO(std::tuple<ShaderProgram *, MeshLODStage *>(program, stage));
-		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
+		
 		
 		uint32 offset = 0;
+		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
 		
+		// Enabling vertex arrays
 		if(program->imatModel != -1)
 		{
 			for(int i=0; i<4; i++)
@@ -764,11 +768,22 @@ namespace RN
 			return;
 		}
 		
+		// Drawing
 		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
 		
-		glBufferData(GL_ARRAY_BUFFER, offset * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
-		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
+		if(resized)
+		{
+			
+			glBufferData(GL_ARRAY_BUFFER, offset * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
+			gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
+		}
+		else
+		{
+			glBufferSubData(GL_ARRAY_BUFFER, 0, offset * sizeof(Matrix), _instancingMatrices);
+			gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
+		}
 		
+		// Disabling vertex attributes
 		if(program->imatModel != -1)
 		{
 			for(int i=0; i<4; i++)
