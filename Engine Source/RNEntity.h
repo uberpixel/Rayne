@@ -52,6 +52,7 @@ namespace RN
 
 	private:
 		class Model *_model;
+		class Skeleton *_skeleton;
 		EntityType _type;
 	};
 }

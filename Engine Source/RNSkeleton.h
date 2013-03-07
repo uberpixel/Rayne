@@ -92,11 +92,14 @@ namespace RN
 		void Update(float timestep);
 		void SetAnimation(const std::string &animname);
 		uint16 NumBones() const {return bones.size();}
-		float *Matrices() const {return matrices;}
+		float *Matrices() const {return matrices_past;}
+		
+		void SynchronizePast() {memcpy(matrices_past, matrices, bones.size()*16*sizeof(float));};
 		
 		std::vector<Bone> bones;
 		std::map<std::string, Animation*> animations;
 		float *matrices;
+		float *matrices_past;
 		
 	private:
 		void ReadSkeletonVersion1(File *file);

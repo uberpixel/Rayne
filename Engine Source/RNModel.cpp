@@ -14,12 +14,12 @@ namespace RN
 {
 	Model::Model()
 	{
-		_skeleton = NULL;
+		_skeleton = 0;
 	}
 	
 	Model::Model(const std::string& path)
 	{
-		_skeleton = NULL;
+		_skeleton = 0;
 		File *file = new File(path);
 		
 		uint32 magic = file->ReadUint32();
@@ -44,6 +44,7 @@ namespace RN
 	
 	Model::Model(Mesh *mesh, Material *material, const std::string& name)
 	{
+		_skeleton = 0;
 		MeshGroup group;
 		group.mesh = mesh->Retain<Mesh>();
 		group.material = material;

@@ -10,6 +10,7 @@
 #include "RNKernel.h"
 #include "RNWorld.h"
 #include "RNCamera.h"
+#include "RNSkeleton.h"
 
 namespace RN
 {
@@ -17,6 +18,7 @@ namespace RN
 		Transform(Transform::TransformTypeEntity)
 	{
 		_model = 0;
+		_skeleton = 0;
 		_type = TypeObject;
 	}
 	
@@ -24,6 +26,7 @@ namespace RN
 		Transform(Transform::TransformTypeEntity)
 	{
 		_model = 0;
+		_skeleton = 0;
 		_type = type;
 	}
 	
@@ -31,6 +34,7 @@ namespace RN
 		Transform(Transform::TransformTypeEntity)
 	{
 		_model = other->_model->Retain<RN::Model>();
+		_skeleton = other->_skeleton->Retain<RN::Skeleton>();
 		_type  = other->_type;
 		
 		SetPosition(other->Position());
@@ -41,6 +45,7 @@ namespace RN
 	Entity::~Entity()
 	{
 		_model->Release();
+		_skeleton->Release();
 	}
 	
 	
@@ -53,6 +58,8 @@ namespace RN
 	void Entity::PostUpdate()
 	{
 		Transform::PostUpdate();
+		if(_skeleton)
+			_skeleton->SynchronizePast();
 	}
 	
 	
@@ -66,5 +73,8 @@ namespace RN
 	{
 		_model->Release();
 		_model = model->Retain<RN::Model>();
+		
+		_skeleton->Release();
+		_skeleton = model->Skeleton();
 	}
 }

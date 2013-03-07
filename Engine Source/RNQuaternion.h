@@ -291,7 +291,7 @@ namespace RN
 		
 		float scale, inverseScale;
 		
-		if((angle + 1.0f) > 0.005f)
+		if((angle + 1.0f) > 0.05f)
 		{
 			if((1.0f - angle) >= 0.05f)
 			{

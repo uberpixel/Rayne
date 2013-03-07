@@ -382,7 +382,7 @@ namespace RN
 
 	RN_INLINE Vector3 Vector3::Lerp(const Vector3 &other, float factor) const
 	{
-		return *this*factor+other*(1.0f-factor);
+		return *this*(1.0f-factor)+other*factor;
 	}
 
 

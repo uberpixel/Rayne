@@ -189,6 +189,7 @@ namespace RN
 		}
 		
 		matrices = new float[16*bones.size()];
+		matrices_past = new float[16*bones.size()];
 		for(int i = 0; i < bones.size(); i++)
 		{
 			if(bones[i].isRoot)
