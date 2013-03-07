@@ -570,9 +570,16 @@ namespace RN
 			std::string name = data.substr(index + 10, length);
 			data.erase(index, length + 11);
 			
-			File *includeFile = new File(file->Path() + "/" + name);
-			data.insert(index, includeFile->String());
-			includeFile->Release();
+			try
+			{
+				File *includeFile = new File(file->Path() + "/" + name);
+				data.insert(index, includeFile->String());
+				includeFile->Release();
+			}
+			catch(ErrorException e)
+			{
+				throw ErrorException(e.Error(), "Failed to preprocess " + file->Name() + "." + file->Extension() + "\n\n" + e.Description());
+			}
 		}
 		
 		// Check what program types the shader supports

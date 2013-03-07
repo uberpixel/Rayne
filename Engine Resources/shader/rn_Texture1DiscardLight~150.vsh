@@ -10,7 +10,7 @@
 precision highp float;
 
 #include "rn_Matrices.vsh"
-#include "rn_Animation.vhs"
+#include "rn_Animation.vsh"
 
 in vec3 vertPosition;
 in vec3 vertNormal;
