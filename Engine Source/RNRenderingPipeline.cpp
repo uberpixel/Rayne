@@ -451,7 +451,7 @@ namespace RN
 							
 							return kRNCompareEqualTo;
 						}
-					}, skycube != 0 ? 6 : 0);
+					}, (skycube != 0) ? 6 : 0);
 					
 					sortOder = bestOrder;
 				}
@@ -506,31 +506,38 @@ namespace RN
 							end ++;
 						}
 						
-						if(offset >= kRNRenderingPipelineInstancingCutOff)
-						{
-							if(shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
-							{
-								canDrawInstanced = true;
-							}
-						}
+						canDrawInstanced = (offset >= kRNRenderingPipelineInstancingCutOff && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced));
 						
-						noCheck = offset;
-						offset = 1;
+						if(!canDrawInstanced)
+						{
+							noCheck = offset;
+							offset = 1;
+						}
 					}
 					else
 					{
-						noCheck --;
+						if(noCheck > 0)
+							noCheck --;
 					}
 #endif
 
 					// Grab the correct shader program
-					ShaderProgram *program = canDrawInstanced ? shader->ProgramOfType(ShaderProgram::TypeInstanced) : shader->ProgramOfType(ShaderProgram::TypeNormal);
+					ShaderProgram *program = shader->ProgramOfType(ShaderProgram::TypeNormal);
 					
-					// Send generic attributes to the shader
+					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
+					{
+						program = shader->ProgramOfType(ShaderProgram::TypeAnimated);
+					}
+					else
+					if(canDrawInstanced && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
+					{
+						program = shader->ProgramOfType(ShaderProgram::TypeInstanced);
+					}
+					
 					changedShader = (_currentShader != program->program);
-					
 					BindMaterial(material, program);
 					
+					// Update the shader data
 					if(changedShader || changedCamera)
 					{
 						UpdateShaderWithCamera(program, camera);
@@ -602,11 +609,13 @@ namespace RN
 					}
 #endif
 					
+#if kRNRenderingPipelineFeatureInstancing
 					if(canDrawInstanced)
 					{
-						DrawMeshInstanced(objects, i, noCheck);
+						DrawMeshInstanced(objects, i, offset);
 						continue;
 					}
+#endif
 					
 					// Send the object related uniforms to the shader
 					if(object.skeleton && program->matBones != -1)
