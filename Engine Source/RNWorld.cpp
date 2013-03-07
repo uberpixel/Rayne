@@ -88,6 +88,7 @@ namespace RN
 	void World::FinishUpdate(float delta)
 	{
 		_physics->WaitForTaskCompletion(_physicsTask);
+		_renderer->WaitForTaskCompletion(_renderingTask);
 		
 		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)
 		{
@@ -95,7 +96,6 @@ namespace RN
 			transform->PostUpdate();
 		}
 		
-		_renderer->WaitForTaskCompletion(_renderingTask);
 		
 		static float renderingTime = 0.0f;
 		static float totalTime = 0.0f;
