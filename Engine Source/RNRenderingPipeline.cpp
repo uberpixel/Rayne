@@ -522,18 +522,21 @@ namespace RN
 #endif
 
 					// Grab the correct shader program
-					ShaderProgram *program = shader->ProgramOfType(ShaderProgram::TypeNormal);
+					uint32 programTypes = 0;
+					ShaderProgram *program = 0;
 					
 					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
-					{
-						program = shader->ProgramOfType(ShaderProgram::TypeAnimated);
-					}
-					else
+						programTypes |= ShaderProgram::TypeAnimated;
+						
 					if(canDrawInstanced && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
-					{
-						program = shader->ProgramOfType(ShaderProgram::TypeInstanced);
-					}
+						programTypes |= ShaderProgram::TypeInstanced;
 					
+#if kRNRenderingPipelineFeatureLightning
+					if(lightCount > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeLightning))
+						programTypes |= ShaderProgram::TypeLightning;
+#endif
+					
+					program = shader->ProgramOfType(programTypes);
 					changedShader = (_currentShader != program->program);
 					BindMaterial(material, program);
 					
@@ -1007,6 +1010,15 @@ continue; \
 			glBindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 #endif
+		
+		if(outLightColor)
+			*outLightColor = lightColor;
+		
+		if(outLightPos)
+			*outLightPos = lightPos;
+		
+		if(outLightCount)
+			*outLightCount = (int)lightCount;
 	}
 	
 	

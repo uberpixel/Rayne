@@ -19,16 +19,14 @@ namespace RN
 	class ShaderProgram
 	{
 	public:
-		typedef enum
+		enum
 		{
-			TypeNormal,
-			TypeInstanced,
-			TypeAnimated,
-			
-			__TypeMax
-		} Type;
+			TypeNormal = 0,
+			TypeInstanced = (1 << 1),
+			TypeAnimated = (1 << 2),
+			TypeLightning = (1 << 3)
+		};
 		
-		Type type;
 		GLuint program;
 		
 		GLuint matProj;
@@ -101,8 +99,8 @@ namespace RN
 		RNAPI void SetGeometryShader(const std::string& path);
 		RNAPI void SetGeometryShader(File *file);
 		
-		RNAPI ShaderProgram *ProgramOfType(ShaderProgram::Type type);
-		RNAPI bool SupportsProgramOfType(ShaderProgram::Type type);
+		RNAPI ShaderProgram *ProgramOfType(uint32 type);
+		RNAPI bool SupportsProgramOfType(uint32 type);
 		
 	private:
 		struct ShaderDefine
@@ -121,7 +119,7 @@ namespace RN
 		Array<ShaderDefine> _defines;
 		
 		uint32 _supportedPrograms;
-		ShaderProgram *_programs[ShaderProgram::__TypeMax];
+		std::unordered_map<uint32, ShaderProgram *> _programs;
 		
 		std::string _vertexFile;
 		std::string _vertexShader;

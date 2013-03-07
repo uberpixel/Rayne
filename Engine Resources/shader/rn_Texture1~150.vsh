@@ -11,8 +11,10 @@ precision highp float;
 
 #include "rn_Matrices.vsh"
 #include "rn_Animation.vsh"
+#include "rn_Lightning.vsh"
 
 in vec3 vertPosition;
+in vec3 vertNormal;
 in vec2 vertTexcoord0;
 
 out vec2 outTexcoord;
@@ -20,5 +22,7 @@ out vec2 outTexcoord;
 void main()
 {
 	outTexcoord = vertTexcoord0;
-	gl_Position = matProjViewModel * rn_Animate(vertPosition);
+
+	vec3 position = rn_Lightning(matModel, vertPosition, vertNormal);
+	gl_Position = matProjViewModel * vec4(position, 1.0);
 }

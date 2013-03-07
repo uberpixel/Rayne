@@ -6,15 +6,22 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#define RN_LIGHTNING_FSH
+
+#ifdef RN_LIGHTNING
+
 uniform samplerBuffer lightListColor;
 uniform samplerBuffer lightListPosition;
 uniform isamplerBuffer lightList;
 uniform isamplerBuffer lightListOffset;
 uniform vec4 lightTileSize;
 
-vec3 rn_calculateLight(vec3 inNormal, vec3 inPosition)
+in vec3 outLightNormal;
+in vec3 outLightPosition;
+
+vec4 rn_Lightning()
 {
-	vec3 normal = normalize(inNormal);
+	vec3 normal = normalize(outLightNormal);
 	vec3 posdiff = vec3(0.0);
 	float attenuation = 0.0;
 	vec3 light = vec3(0.0);
@@ -31,11 +38,17 @@ vec3 rn_calculateLight(vec3 inNormal, vec3 inPosition)
 		lightpos = texelFetch(lightListPosition, lightindex);
 		lightcolor = texelFetch(lightListColor, lightindex).xyz;
 		
-		posdiff = lightpos.xyz-inPosition;
+		posdiff = lightpos.xyz-outLightPosition;
 		attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
 		
 		light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}
 	
-	return light;
+	return vec4(light, 1.0);
 }
+
+#else
+
+#define rn_Lightning() (vec4(1.0))
+
+#endif

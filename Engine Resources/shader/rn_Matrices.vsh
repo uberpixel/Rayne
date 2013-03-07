@@ -6,6 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#define RN_MATRICES_VSH
+
 uniform mat4 matProjView;
 uniform mat4 matProjViewInverse;
 

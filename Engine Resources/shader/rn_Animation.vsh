@@ -6,6 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#define RN_ANIMATION_VSH
+
 #ifdef RN_ANIMATION
 
 #ifndef RN_MAX_MATBONES

@@ -14,20 +14,12 @@ namespace RN
 	Shader::Shader()
 	{
 		_supportedPrograms = 0;
-		
-		for(uint32 i=0; i<ShaderProgram::__TypeMax; i++)
-			_programs[i] = 0;
-		
 		AddDefines();
 	}
 	
 	Shader::Shader(const std::string& shader)
 	{
 		_supportedPrograms = 0;
-		
-		for(uint32 i=0; i<ShaderProgram::__TypeMax; i++)
-			_programs[i] = 0;
-		
 		AddDefines();
 		
 		SetVertexShader(File::PathForName(shader + ".vsh"));
@@ -47,12 +39,12 @@ namespace RN
 	
 	Shader::~Shader()
 	{
-		for(uint32 i=0; i<ShaderProgram::__TypeMax; i++)
+		for(auto i=_programs.begin(); i!=_programs.end(); i++)
 		{
-			if(_programs[i])
-				glDeleteProgram(_programs[i]->program);
+			ShaderProgram *program = i->second;
 			
-			delete _programs[i];
+			glDeleteProgram(program->program);
+			delete program;
 		}
 	}
 	
@@ -219,7 +211,7 @@ namespace RN
 			
 			*outShader = 0;
 			
-			std::string tlog = std::string((char *)log);
+			std::string tlog = std::string((char *)log) + "\n" + source;
 			delete [] log;
 			
 			std::string compilerLog;
@@ -245,7 +237,7 @@ namespace RN
 		}
 	}
 	
-	ShaderProgram *Shader::ProgramOfType(ShaderProgram::Type type)
+	ShaderProgram *Shader::ProgramOfType(uint32 type)
 	{
 		if(!SupportsProgramOfType(type))
 			return 0;
@@ -261,22 +253,14 @@ namespace RN
 			_programs[type] = program;
 			
 			// Prepare the state
-			switch(type)
-			{
-				case ShaderProgram::TypeNormal:
-					break;
-					
-				case ShaderProgram::TypeInstanced:
-					Define("RN_INSTANCING");
-					break;
-					
-				case ShaderProgram::TypeAnimated:
-					Define("RN_ANIMATION");
-					break;
-					
-				default:
-					break;
-			}
+			if(type & ShaderProgram::TypeInstanced)
+				Define("RN_INSTANCING");
+			
+			if(type & ShaderProgram::TypeAnimated)
+				Define("RN_ANIMATION");
+			
+			if(type & ShaderProgram::TypeLightning)
+				Define("RN_LIGHTNING");
 			
 			// Compile all required shaders
 			try
@@ -305,6 +289,7 @@ namespace RN
 			{
 				Undefine("RN_INSTANCING");
 				Undefine("RN_ANIMATION");
+				Undefine("RN_LIGHTNING");
 				
 				delete program;
 				_programs[type] = 0;
@@ -319,6 +304,7 @@ namespace RN
 			// Clean up
 			Undefine("RN_INSTANCING");
 			Undefine("RN_ANIMATION");
+			Undefine("RN_LIGHTNING");
 			
 			for(int i=0; i<3; i++)
 			{
@@ -358,6 +344,20 @@ namespace RN
 						
 					default:
 						break;
+				}
+				
+				if(type > 0)
+				{
+					tlog += "\nType:";
+					
+					if(type & ShaderProgram::TypeInstanced)
+						tlog += " Instancing";
+					
+					if(type & ShaderProgram::TypeAnimated)
+						tlog += " Animation";
+					
+					if(type & ShaderProgram::TypeLightning)
+						tlog += " Lightning";
 				}
 				
 				if(_vertexFile.length() > 0)
@@ -485,10 +485,9 @@ namespace RN
 		return program;
 	}
 	
-	bool Shader::SupportsProgramOfType(ShaderProgram::Type type)
+	bool Shader::SupportsProgramOfType(uint32 type)
 	{
-		uint32 mask = (1 << type);
-		return (_supportedPrograms & mask);
+		return (_supportedPrograms & type || type == 0);
 	}
 	
 	// ---------------------
@@ -583,9 +582,9 @@ namespace RN
 		}
 		
 		// Check what program types the shader supports
-		_supportedPrograms |= (1 << ShaderProgram::TypeNormal);
-		_supportedPrograms |= (data.find("#ifdef RN_INSTANCING") != std::string::npos) ? (1 << ShaderProgram::TypeInstanced) : 0;
-		_supportedPrograms |= (data.find("#ifdef RN_ANIMATION") != std::string::npos) ? (1 << ShaderProgram::TypeAnimated) : 0;
+		_supportedPrograms |= (data.find("#ifdef RN_INSTANCING") != std::string::npos) ? (ShaderProgram::TypeInstanced) : 0;
+		_supportedPrograms |= (data.find("#ifdef RN_ANIMATION") != std::string::npos) ? (ShaderProgram::TypeAnimated) : 0;
+		_supportedPrograms |= (data.find("#ifdef RN_LIGHTNING") != std::string::npos) ? (ShaderProgram::TypeLightning) : 0;
 		
 		switch(type)
 		{
