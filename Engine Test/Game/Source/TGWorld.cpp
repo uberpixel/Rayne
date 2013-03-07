@@ -111,13 +111,8 @@ namespace TG
 	
 	void World::CreateWorld()
 	{
-#if TGWorldFeatureLights
-		RN::Shader *discardShader = RN::Shader::WithFile("shader/rn_Texture1DiscardLight");
-		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1Light");
-#else
 		RN::Shader *discardShader = RN::Shader::WithFile("shader/rn_Texture1Discard");
 		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1");
-#endif
 		
 		// Sponza
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
