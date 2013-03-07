@@ -16,9 +16,8 @@ out vec3 outLightPosition;
 vec3 rn_Lightning(mat4 model, vec3 position, vec3 normal)
 {
 #ifdef RN_ANIMATION_VSH
-	vec4 pos = rn_Animate(position);
-	vec4 norm = rn_Animate(normal);
-	
+	vec4 pos = rn_Animate(vec4(position, 1.0));
+	vec4 norm = rn_Animate(vec4(normal, 0.0));
 	norm.w = 0.0;
 	 
 	outLightNormal = (model * norm).xyz;
@@ -39,7 +38,7 @@ vec3 rn_Lightning(mat4 model, vec3 position, vec3 normal)
 
 vec3 rn_Lightning(mat4 model, vec3 position, vec3 normal)
 {
-	vec4 pos = rn_Animate(position);
+	vec4 pos = rn_Animate(vec4(position, 1.0));
 	return pos.xyz;
 }
 
