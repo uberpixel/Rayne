@@ -88,14 +88,13 @@ namespace RN
 	void World::FinishUpdate(float delta)
 	{
 		_physics->WaitForTaskCompletion(_physicsTask);
+		_renderer->WaitForTaskCompletion(_renderingTask);
 		
 		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)
 		{
 			Transform *transform = *i;
 			transform->PostUpdate();
 		}
-		
-		_renderer->WaitForTaskCompletion(_renderingTask);
 		
 		// Begin the new frame
 		_renderer->PepareFrame();

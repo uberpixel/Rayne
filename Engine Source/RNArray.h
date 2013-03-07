@@ -262,14 +262,26 @@ namespace RN
 			return this->_data[index];
 		}
 		
+		__ArrayCore<T, false>& operator =(const __ArrayCore<T, false>& other)
+		{
+			if(other._size > this->_size)
+			{
+				delete [] this->_data;
+				this->_data = new T[(other._size)];
+				
+				this->_size = other._size;
+			}
+			
+			std::copy(other._data, other._data + other._count, this->_data);
+			this->_count = other._count;
+			
+			return *this;
+		}
 		
 		void AddObject(const T& object)
 		{
 			this->_data[this->_count ++] = object;
 			this->UpdateSizeIfNeeded();
-			
-			std::vector<T> test;
-			test.reserve(1024);
 		}
 		
 		void InsertObjectAtIndex(const T& object, machine_uint index)
@@ -388,6 +400,27 @@ namespace RN
 		T* operator[](int index) const
 		{
 			return this->_data[index];
+		}
+		
+		__ArrayCore<T, true>& operator =(const __ArrayCore<T, true>& other)
+		{
+			if(other._size > this->_size)
+			{
+				delete [] this->_data;
+				this->_data = new T *[(other._size)];
+				
+				this->_size = other._size;
+			}
+			
+			std::copy(other._data, other._data + other._count, this->_data);
+			this->_count = other._count;
+			
+			for(machine_uint i=0; i<this->_count; i++)
+			{
+				this->_data[i]->template Retain<T>();
+			}
+			
+			return *this;
 		}
 		
 		
