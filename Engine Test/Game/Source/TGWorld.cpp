@@ -151,6 +151,7 @@ namespace TG
 		_parentBlock->AttachChild(_childBlock);
 		
 #if 0
+#if TGWorldFeatureLights
 		RN::LightEntity *light;
 		
 		light = new RN::LightEntity();
