@@ -59,6 +59,9 @@ namespace RN
 	
 	void PhysicsPipeline::WorkLoop()
 	{
+		while(!WorkerThread())
+			std::this_thread::sleep_for(std::chrono::nanoseconds(100));
+		
 		btBroadphaseInterface *_broadphase = new btDbvtBroadphase();
 		
 		// Set up the collision configuration and dispatcher
