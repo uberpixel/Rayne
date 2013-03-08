@@ -125,6 +125,8 @@
 		<Unit filename="Engine Source/RNSettings.h" />
 		<Unit filename="Engine Source/RNShader.cpp" />
 		<Unit filename="Engine Source/RNShader.h" />
+		<Unit filename="Engine Source/RNSkeleton.cpp" />
+		<Unit filename="Engine Source/RNSkeleton.h" />
 		<Unit filename="Engine Source/RNSpinLock.h" />
 		<Unit filename="Engine Source/RNSynchronization.h" />
 		<Unit filename="Engine Source/RNTexture.cpp" />
