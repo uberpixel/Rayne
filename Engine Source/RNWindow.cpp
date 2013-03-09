@@ -632,8 +632,9 @@ namespace RN
 	}
 
 	Window::~Window()
-	{
-
+	{		
+		_context->Release();
+		_thread->Release();
 	}
 
 	void Window::Show()
@@ -672,7 +673,7 @@ namespace RN
 	}
 
 	void Window::RenderLoop()
-	{
+	{		
 		while(!_context)
 		{
 			std::this_thread::sleep_for(std::chrono::microseconds(5));
@@ -681,6 +682,7 @@ namespace RN
 
 		_context->MakeActiveContext();
 
+		Atom wmDeleteMessage = XInternAtom(_dpy, "WM_DELETE_WINDOW", False);
 		XEvent event;
 		while(!_thread->IsCancelled())
 		{
@@ -693,7 +695,11 @@ namespace RN
 					case ConfigureNotify:
 					case Expose:
 					case ClientMessage:
-						// TODO: what to do with this?
+						if (event.xclient.data.l[0] == wmDeleteMessage)
+						{
+							puts("Closing of window detected!");
+							// TODO: handle, but how
+						}
 						break;
 						
 					default:

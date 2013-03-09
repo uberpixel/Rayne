@@ -171,7 +171,7 @@ namespace RN
 
 		/*** (3) find an appropriate visual ***/
 
-		/* find an OpenGL-capable RGB visual with depth and double buffer */
+		// find an OpenGL-capable RGB visual with depth and double buffer 
 		_vi = glXChooseVisual(_dpy, DefaultScreen(_dpy), attributes);
 		if (_vi == NULL)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "no RGB visual with depth buffer and double buffer");
@@ -181,14 +181,14 @@ namespace RN
 
 		/*** (4) create an OpenGL rendering context  ***/
 
-		/* create an OpenGL rendering context */
+		// create an OpenGL rendering context
 		_context = glXCreateContext(_dpy, _vi, _shared ? _shared->_context : 0,
 							/* direct rendering if possible */ GL_TRUE);
 		if (_context == NULL)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "could not create rendering context");
 
-		/* Create fake Invisible XWindow to enable openGl context without window */
-		/* create an X colormap since probably not using default visual */
+		// Create fake Invisible XWindow to enable openGl context without window 
+		// create an X colormap since probably not using default visual 
 		cmap = XCreateColormap(_dpy, RootWindow(_dpy, _vi->screen), _vi->visual, AllocNone);
 		swa.colormap = cmap;
 		swa.border_pixel = 0;
@@ -199,6 +199,10 @@ namespace RN
 		_win = XCreateWindow(_dpy, RootWindow(_dpy, _vi->screen), 0, 0,
 						  1024, 768, 0, _vi->depth, InputOutput, _vi->visual,
 						  CWBorderPixel | CWColormap | CWEventMask, &swa);
+						  
+		// register interest in the delete window message
+	   Atom wmDeleteMessage = XInternAtom(_dpy, "WM_DELETE_WINDOW", False);
+	   XSetWMProtocols(_dpy, _win, &wmDeleteMessage, 1);
 						  
 						  
 		if(_shared)
@@ -232,6 +236,10 @@ namespace RN
 
 #if RN_PLATFORM_IOS
 		[(EAGLContext *)_oglContext release];
+#endif
+
+#if RN_PLATFORM_LINUX
+		XCloseDisplay(_dpy);
 #endif
 	}
 

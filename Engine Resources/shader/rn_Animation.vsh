@@ -19,16 +19,14 @@ in vec4 vertBoneIndices;
 
 uniform mat4 matBones[RN_MAX_MATBONES];
 
-vec4 rn_Animate(vec3 position)
+vec4 rn_Animate(vec4 position)
 {
-	vec4 pos = vec4(position, 1.0);
+	vec4 pos1 = matBones[int(vertBoneIndices.x)] * position;
+	vec4 pos2 = matBones[int(vertBoneIndices.y)] * position;
+	vec4 pos3 = matBones[int(vertBoneIndices.z)] * position;
+	vec4 pos4 = matBones[int(vertBoneIndices.w)] * position;
 
-	vec4 pos1 = matBones[int(vertBoneIndices.x)] * pos;
-	vec4 pos2 = matBones[int(vertBoneIndices.y)] * pos;
-	vec4 pos3 = matBones[int(vertBoneIndices.z)] * pos;
-	vec4 pos4 = matBones[int(vertBoneIndices.w)] * pos;
-
-	pos = pos1 * vertBoneWeights.x + pos2 * vertBoneWeights.y + pos3 * vertBoneWeights.z + pos4 * vertBoneWeights.w;
+	vec4 pos = pos1 * vertBoneWeights.x + pos2 * vertBoneWeights.y + pos3 * vertBoneWeights.z + pos4 * vertBoneWeights.w;
 	pos.w = 1.0;
 
 	return pos;
@@ -36,6 +34,6 @@ vec4 rn_Animate(vec3 position)
 
 #else
 
-#define rn_Animate(position) vec4(position, 1.0)
+#define rn_Animate(position) position
 
 #endif
