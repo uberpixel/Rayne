@@ -280,19 +280,20 @@ namespace RN
 		
 		void AddObject(const T& object)
 		{
-			this->_data[this->_count ++] = object;
 			this->UpdateSizeIfNeeded();
+			this->_data[this->_count ++] = object;
 		}
 		
 		void InsertObjectAtIndex(const T& object, machine_uint index)
 		{
+			this->UpdateSizeIfNeeded();
+			
 			for(machine_uint i=this->_count; i>index; i--)
 			{
 				this->_data[i] = this->_data[i - 1];
 			}
 			
 			this->_count ++;
-			this->UpdateSizeIfNeeded();
 		}
 		
 		void ReplaceObjectAtIndex(machine_uint index, const T& object)
@@ -431,12 +432,14 @@ namespace RN
 		
 		void AddObject(T *object)
 		{
-			this->_data[this->_count ++] = object->template Retain<T>();
 			this->UpdateSizeIfNeeded();
+			this->_data[this->_count ++] = object->template Retain<T>();
 		}
 		
 		void InsertObjectAtIndex(T *object, machine_uint index)
 		{
+			this->UpdateSizeIfNeeded();
+			
 			for(machine_uint i=this->_count; i>index; i--)
 			{
 				this->_data[i] = this->_data[i - 1];
@@ -444,8 +447,6 @@ namespace RN
 			
 			this->_data[index] = object->template Retain<T>();
 			this->_count ++;
-			
-			this->UpdateSizeIfNeeded();
 		}
 		
 		void ReplaceObjectAtIndex(machine_uint index, T *object)
