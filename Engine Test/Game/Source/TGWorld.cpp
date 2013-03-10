@@ -102,6 +102,12 @@ namespace TG
 		_zombieskeleton->Update(delta*24.0f);
 #endif
 		
+		if(_spruce && RN::Kernel::SharedInstance()->Time() > 10.0f)
+		{
+			_spruce->Release();
+			_spruce = 0;
+		}
+		
 		_camera->Rotate(rotation);
 		
 		RN::Matrix rot;
@@ -180,7 +186,6 @@ namespace TG
 		foliageShader->SetFragmentShader("shader/rn_Texture1Discard.fsh");
 		
 		RN::Model *spruceModel = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
-		RN::Entity *spruce = new RN::Entity();
 		
 		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(0))->SetShader(foliageShader);
 		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(0))->culling = false;
@@ -190,7 +195,8 @@ namespace TG
 		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(1))->culling = false;
 		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(1))->alphatest = true;
 		
-		spruce->SetModel(spruceModel);
+		_spruce = new RN::Entity();
+		_spruce->SetModel(spruceModel);
 		
 #if TGWorldFeatureLights
 		RN::LightEntity *light;

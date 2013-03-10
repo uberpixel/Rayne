@@ -12,11 +12,12 @@
 #include "RNSkeleton.h"
 
 #define kRNRenderingPipelineInstancingCutOff 100
+#define kRNRenderingPipelineMaxVAOAge        300
 
-#define kRNRenderingPipelineFeatureLightning 1
+#define kRNRenderingPipelineFeatureLightning  1
 #define kRNRenderingPipelineFeatureInstancing 1
-#define kRNRenderingPipelineFeatureStages 1
-#define kRNRenderingPipelineFeatureSorting 1
+#define kRNRenderingPipelineFeatureStages     1
+#define kRNRenderingPipelineFeatureSorting    1
 
 namespace RN
 {
@@ -1258,19 +1259,23 @@ continue; \
 				glVertexAttribPointer(shader->vertBoneIndices, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 
-			_vaos[tuple] = vao;
+			_vaos[tuple] = std::tuple<GLuint, uint32>(vao, 0);
 			_currentVAO = vao;
 			return vao;
 		}
 
-		vao = iterator->second;
+		uint32& age = std::get<1>(iterator->second);
+		
+		vao = std::get<0>(iterator->second);
+		age = 0;
+		
 		if(vao != _currentVAO)
 		{
 			gl::BindVertexArray(vao);
 			_currentVAO = vao;
 		}
 		
-		return iterator->second;
+		return vao;
 	}
 
 	
@@ -1298,9 +1303,25 @@ continue; \
 
 		_time += delta;
 		
+		// Age the VAOs
+		for(auto i=_vaos.begin(); i!=_vaos.end();)
+		{
+			uint32& age = std::get<1>(i->second);
+			
+			if((++ age) > kRNRenderingPipelineMaxVAOAge)
+			{
+				i = _vaos.erase(i);
+				continue;
+			}
+			
+			i ++;
+		}
+		
 		// Reset the previous frames data
 		_currentMaterial = 0;
 		_currentCamera   = 0;
+		_currentVAO      = 0;
+		_currentShader   = 0;
 		
 		while(!_finishFrame || _pushedGroups > 0)
 		{

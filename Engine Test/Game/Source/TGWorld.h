@@ -34,6 +34,8 @@ namespace TG
 		RN::Entity *_parentBlock;
 		RN::Entity *_childBlock;
 		
+		RN::Entity *_spruce;
+		
 		RN::Skeleton *_girlskeleton;
 		RN::Skeleton *_zombieskeleton;
 		

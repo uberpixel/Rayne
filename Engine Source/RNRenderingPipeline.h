@@ -91,7 +91,7 @@ namespace RN
 		size_t _lightindexoffsetSize;
 		size_t _lightindicesSize;
 
-		std::map<std::tuple<ShaderProgram *, MeshLODStage *>, GLuint> _vaos;
+		std::map<std::tuple<ShaderProgram *, MeshLODStage *>, std::tuple<GLuint, uint32>> _vaos;
 
 		GLuint _defaultFBO;
 		uint32 _defaultWidth;
