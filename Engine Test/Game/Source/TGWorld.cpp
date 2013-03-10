@@ -119,7 +119,6 @@ namespace TG
 	{
 		RN::Shader *discardShader = RN::Shader::WithFile("shader/rn_Texture1Discard");
 		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1");
-		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
 		
 		// Sponza
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
@@ -137,9 +136,12 @@ namespace TG
 		model->MaterialForMesh(model->MeshAtIndex(17))->culling = false;
 		model->MaterialForMesh(model->MeshAtIndex(17))->alphatest = true;
 		
+#if TGWorldFeatureLights
+		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
 		RN::Texture *normalmap = RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png", RN::Texture::FormatRGBA8888);
 		model->MaterialForMesh(model->MeshAtIndex(3))->AddTexture(normalmap);
 		model->MaterialForMesh(model->MeshAtIndex(3))->SetShader(normalshader);
+#endif
 		
 		RN::Entity *sponza = new RN::Entity();
 		sponza->SetModel(model);
