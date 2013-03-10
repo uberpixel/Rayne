@@ -8,9 +8,9 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureLights      1
-#define TGWorldFeatureInstancing  0
-#define TGWorldFeatureAnimations  1
+#define TGWorldFeatureLights      0
+#define TGWorldFeatureInstancing  1
+#define TGWorldFeatureAnimations  0
 
 namespace TG
 {
@@ -22,21 +22,10 @@ namespace TG
 		storage->SetDepthTarget(depthtex);
 		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
 		
-		RN::Shader *camshader = RN::Shader::WithFile("shader/rn_Color1");
-		RN::Material *cammaterial = new RN::Material(camshader);
-		
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
-		_camera->SetMaterial(cammaterial);
-		
-		RN::Camera *_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults);
-		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
-		_finalcam->Storage()->SetDepthTarget(depthtex);
-		_finalcam->SetName("Final Cam");
-		_camera->AttachChild(_finalcam);
-		_finalcam->ActivateTiledLightLists((RN::Texture *)1);
-		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
-		
+		_camera->ActivateTiledLightLists((RN::Texture *)1);
+		_camera->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
 				
 		CreateWorld();
 		
@@ -112,6 +101,12 @@ namespace TG
 		_girlskeleton->Update(delta*24.0f);
 		_zombieskeleton->Update(delta*24.0f);
 #endif
+		
+		if(_spruce && RN::Kernel::SharedInstance()->Time() > 10.0f)
+		{
+			_spruce->Release();
+			_spruce = 0;
+		}
 		
 		_camera->Rotate(rotation);
 		
@@ -191,6 +186,23 @@ namespace TG
 		zombiemodel->MaterialForMesh(zombiemodel->MeshAtIndex(0))->SetShader(shader);
 #endif
 		
+		RN::Shader *foliageShader = new RN::Shader();
+		foliageShader->SetVertexShader("shader/rn_WindFoliage.vsh");
+		foliageShader->SetFragmentShader("shader/rn_Texture1Discard.fsh");
+		
+		RN::Model *spruceModel = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
+		
+		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(0))->SetShader(foliageShader);
+		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(0))->culling = false;
+		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(0))->alphatest = true;
+		
+		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(1))->SetShader(foliageShader);
+		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(1))->culling = false;
+		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(1))->alphatest = true;
+		
+		_spruce = new RN::Entity();
+		_spruce->SetModel(spruceModel);
+		
 #if TGWorldFeatureLights
 		RN::LightEntity *light;
 		
@@ -216,23 +228,25 @@ namespace TG
 #if TGWorldFeatureInstancing
 		RN::Model *foliage[4];
 		
+		
+		
 		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
-		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->SetShader(discardShader);
+		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->SetShader(foliageShader);
 		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->culling = false;
 		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->alphatest = true;
 		
 		foliage[1] = RN::Model::WithFile("models/nobiax/grass_05.sgm");
-		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->SetShader(discardShader);
+		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->SetShader(foliageShader);
 		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->culling = false;
 		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->alphatest = true;
 		
 		foliage[2] = RN::Model::WithFile("models/nobiax/grass_19.sgm");
-		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->SetShader(discardShader);
+		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->SetShader(foliageShader);
 		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->culling = false;
 		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->alphatest = true;
 		
 		foliage[3] = RN::Model::WithFile("models/nobiax/grass_04.sgm");
-		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->SetShader(discardShader);
+		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->SetShader(foliageShader);
 		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->culling = false;
 		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->alphatest = true;
 		
@@ -242,7 +256,7 @@ namespace TG
 		{
 			for(float y = -10.0f; y < 10.0f; y += 1.0f)
 			{
-				index = (index + 1) % 4;
+				index = 0; //(index + 1) % 4;
 				
 				RN::Entity *fern = new RN::Entity();
 				fern->SetModel(foliage[index]);

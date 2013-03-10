@@ -12,11 +12,12 @@
 #include "RNSkeleton.h"
 
 #define kRNRenderingPipelineInstancingCutOff 100
+#define kRNRenderingPipelineMaxVAOAge        300
 
-#define kRNRenderingPipelineFeatureLightning 1
+#define kRNRenderingPipelineFeatureLightning  1
 #define kRNRenderingPipelineFeatureInstancing 1
-#define kRNRenderingPipelineFeatureStages 1
-#define kRNRenderingPipelineFeatureSorting 1
+#define kRNRenderingPipelineFeatureStages     1
+#define kRNRenderingPipelineFeatureSorting    1
 
 namespace RN
 {
@@ -77,9 +78,6 @@ namespace RN
 		
 		_hasValidFramebuffer = false;
 		_initialized = false;
-
-		_numInstancingMatrices = 0;
-		_instancingMatrices = 0;
 	}
 
 	RenderingPipeline::~RenderingPipeline()
@@ -101,9 +99,6 @@ namespace RN
 		if(_lightBuffers[0])
 			glDeleteBuffers(4, _lightBuffers);
 #endif
-
-		if(_instancingMatrices)
-			free(_instancingMatrices);
 		
 		free(_lightindexoffset);
 		free(_lightindices);
@@ -128,7 +123,6 @@ namespace RN
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLshort), _copyIndices, GL_STATIC_DRAW);
 
 		gl::BindVertexArray(0);
-		glGenBuffers(1, &_instancingVBO);
 
 #if !(RN_PLATFORM_IOS)
 		glGenTextures(4, _lightTextures);
@@ -708,19 +702,6 @@ namespace RN
 		
 		Shader *shader = _currentMaterial->Shader();
 		ShaderProgram *program = shader->ProgramOfType(ShaderProgram::TypeInstanced);
-		bool resized = false;
-		
-		if(count > _numInstancingMatrices)
-		{
-			_numInstancingMatrices = (uint32)count;
-			
-			if(_instancingMatrices)
-				free(_instancingMatrices);
-			
-			_instancingMatrices = (Matrix *)malloc((_numInstancingMatrices * 2) * sizeof(Matrix));
-			resized = true;
-		}
-		
 		
 		mesh->Push();
 		
@@ -728,7 +709,17 @@ namespace RN
 		
 		
 		uint32 offset = 0;
-		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
+		
+		Matrix *instancingMatrices = 0;
+		GLuint instancingVBO = 0;
+		
+		size_t size = (count * 2) * sizeof(Matrix);
+		bool resized = stage->InstancingData(size, &instancingVBO, (void **)&instancingMatrices);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, instancingVBO);
+		
+		if(resized)
+			glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_DRAW);
 		
 		// Enabling vertex arrays
 		if(program->imatModel != -1)
@@ -743,7 +734,7 @@ namespace RN
 			for(machine_uint i=0; i<count; i++)
 			{
 				RenderingObject& object = group[(int)(start + i)];
-				_instancingMatrices[i + offset] = *object.transform;
+				instancingMatrices[i + offset] = *object.transform;
 			}
 			
 			offset += count;
@@ -761,7 +752,7 @@ namespace RN
 			for(machine_uint i=0; i<count; i++)
 			{
 				RenderingObject& object = group[(int)(start + i)];
-				_instancingMatrices[i + offset] = object.transform->Inverse();
+				instancingMatrices[i + offset] = object.transform->Inverse();
 			}
 			
 			offset += count;
@@ -776,17 +767,8 @@ namespace RN
 		// Drawing
 		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
 		
-		if(resized)
-		{
-			
-			glBufferData(GL_ARRAY_BUFFER, offset * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
-			gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
-		}
-		else
-		{
-			glBufferSubData(GL_ARRAY_BUFFER, 0, offset * sizeof(Matrix), _instancingMatrices);
-			gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
-		}
+		glBufferSubData(GL_ARRAY_BUFFER, 0, offset * sizeof(Matrix), instancingMatrices);
+		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
 		
 		// Disabling vertex attributes
 		if(program->imatModel != -1)
@@ -801,6 +783,7 @@ namespace RN
 				glDisableVertexAttribArray(program->imatModelInverse + i);
 		}
 		
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		mesh->Pop();
 	}
 	
@@ -1282,19 +1265,23 @@ continue; \
 				glVertexAttribPointer(shader->vertBoneIndices, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)stage->Stride(), (const void *)offset);
 			}
 
-			_vaos[tuple] = vao;
+			_vaos[tuple] = std::tuple<GLuint, uint32>(vao, 0);
 			_currentVAO = vao;
 			return vao;
 		}
 
-		vao = iterator->second;
+		uint32& age = std::get<1>(iterator->second);
+		
+		vao = std::get<0>(iterator->second);
+		age = 0;
+		
 		if(vao != _currentVAO)
 		{
 			gl::BindVertexArray(vao);
 			_currentVAO = vao;
 		}
 		
-		return iterator->second;
+		return vao;
 	}
 
 	
@@ -1322,9 +1309,25 @@ continue; \
 
 		_time += delta;
 		
+		// Age the VAOs
+		for(auto i=_vaos.begin(); i!=_vaos.end();)
+		{
+			uint32& age = std::get<1>(i->second);
+			
+			if((++ age) > kRNRenderingPipelineMaxVAOAge)
+			{
+				i = _vaos.erase(i);
+				continue;
+			}
+			
+			i ++;
+		}
+		
 		// Reset the previous frames data
 		_currentMaterial = 0;
 		_currentCamera   = 0;
+		_currentVAO      = 0;
+		_currentShader   = 0;
 		
 		while(!_finishFrame || _pushedGroups > 0)
 		{

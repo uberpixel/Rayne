@@ -84,12 +84,21 @@ namespace RN
 		RNAPI size_t OffsetForFeature(MeshFeature feature);
 		size_t Stride() const { return _stride; };
 		
+		RNAPI bool InstancingData(size_t size, GLuint *outVBO, void **outData);
+		
 	private:
 		struct
 		{
 			GLuint _vbo;
 			GLuint _ibo;
 		};
+		
+		struct
+		{
+			GLuint _vbo;
+			size_t _size;
+			void *_data;
+		} _instancing;
 		
 		size_t _stride;
 		
