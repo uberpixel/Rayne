@@ -509,6 +509,13 @@ namespace RN
 		glViewport(0, 0, _frame.width * _scaleFactor, _frame.height * _scaleFactor);
 	}
 
+	void Camera::Translate(const Vector3& translation)
+	{
+		RN::Matrix rot;
+		rot.MakeRotate(Rotation());
+		
+		Transform::Translate(rot.Transform(translation));
+	}
 
 	// Setter
 	void Camera::SetFrame(const Rect& frame)

@@ -138,6 +138,8 @@ namespace RN
 		void Unbind();
 		void PrepareForRendering();
 		
+		virtual void Translate(const Vector3& translation);
+		
 		void SetFrame(const Rect& frame);
 		void SetClearColor(const Color& color);
 		void SetMaterial(Material *material);

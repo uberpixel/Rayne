@@ -109,10 +109,7 @@ namespace TG
 		}
 		
 		_camera->Rotate(rotation);
-		
-		RN::Matrix rot;
-		rot.MakeRotate(_camera->Rotation());
-		_camera->Translate(rot.Transform(translation * -delta));
+		_camera->Translate(translation * -delta);
 	}
 	
 	void World::CreateWorld()

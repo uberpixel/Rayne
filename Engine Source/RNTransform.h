@@ -33,9 +33,9 @@ namespace RN
 		
 		TransformType Type() const { return _type; }
 		
-		void Translate(const Vector3& trans);
-		void Scale(const Vector3& scal);
-		void Rotate(const Vector3& rot);
+		virtual void Translate(const Vector3& trans);
+		virtual void Scale(const Vector3& scal);
+		virtual void Rotate(const Vector3& rot);
 		
 		virtual void SetPosition(const Vector3& pos);
 		virtual void SetScale(const Vector3& scal);
