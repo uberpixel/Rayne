@@ -17,6 +17,10 @@ extern void RNRegisterWindow();
 
 namespace RN
 {
+	#if RN_PLATFORM_LINUX
+	Display *Context::_dpy = 0;
+	#endif 
+	
 	Context::Context(Context *shared) :
 		RenderingResource("Context")
 	{
@@ -160,10 +164,13 @@ namespace RN
 		static int attributes[]  = {GLX_RGBA, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, None};
 		int dummy;
 
-		/*** (1) open a connection to the X server ***/
-		_dpy = XOpenDisplay(NULL);
-		if (_dpy == NULL)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "could not open display");
+		if (_dpy == 0)
+		{
+			/*** (1) open a connection to the X server ***/
+			_dpy = XOpenDisplay(NULL);
+			if (_dpy == NULL)
+				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "could not open display");
+		}
 
 		/*** (2) make sure OpenGL's GLX extension supported ***/
 		if(!glXQueryExtension(_dpy, &dummy, &dummy))
@@ -207,8 +214,6 @@ namespace RN
 						  
 		if(_shared)
 		{
-			// no multithreading yet :(
-
 			if(_shared->_active && shared->_thread->OnThread())
 			{
 				_shared->Deactivate();
@@ -224,6 +229,7 @@ namespace RN
 
 	Context::~Context()
 	{
+		
 		DeactivateContext();
 
 		if(_shared)
@@ -236,10 +242,6 @@ namespace RN
 
 #if RN_PLATFORM_IOS
 		[(EAGLContext *)_oglContext release];
-#endif
-
-#if RN_PLATFORM_LINUX
-		XCloseDisplay(_dpy);
 #endif
 	}
 

@@ -86,7 +86,16 @@ namespace RN
 		delete _renderer;
 		delete _app;
 
+		#if RN_PLATFORM_LINUX
+		// close display after last context
+		Display *dpy = Context::_dpy;
+		#endif
+		
 		_context->Release();
+		
+		#if RN_PLATFORM_LINUX
+		XCloseDisplay(dpy);
+		#endif
 
 		delete pool;
 		_mainThread->Exit();

@@ -62,7 +62,6 @@
 		<Unit filename="Engine Source/RNBaseInternal.h" />
 		<Unit filename="Engine Source/RNBullet.h" />
 		<Unit filename="Engine Source/RNCamera.cpp" />
-		<Unit filename="Engine Source/RNCamera.cpp.orig" />
 		<Unit filename="Engine Source/RNCamera.h" />
 		<Unit filename="Engine Source/RNCharacter.cpp" />
 		<Unit filename="Engine Source/RNCharacter.h" />
@@ -81,7 +80,6 @@
 		<Unit filename="Engine Source/RNInput.cpp" />
 		<Unit filename="Engine Source/RNInput.h" />
 		<Unit filename="Engine Source/RNKernel.cpp" />
-		<Unit filename="Engine Source/RNKernel.cpp.orig" />
 		<Unit filename="Engine Source/RNKernel.h" />
 		<Unit filename="Engine Source/RNLightEntity.cpp" />
 		<Unit filename="Engine Source/RNLightEntity.h" />
@@ -116,7 +114,6 @@
 		<Unit filename="Engine Source/RNRect.h" />
 		<Unit filename="Engine Source/RNRendering.h" />
 		<Unit filename="Engine Source/RNRenderingPipeline.cpp" />
-		<Unit filename="Engine Source/RNRenderingPipeline.cpp.orig" />
 		<Unit filename="Engine Source/RNRenderingPipeline.h" />
 		<Unit filename="Engine Source/RNRenderingResource.h" />
 		<Unit filename="Engine Source/RNRigidBodyEntity.cpp" />

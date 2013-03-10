@@ -632,7 +632,7 @@ namespace RN
 	}
 
 	Window::~Window()
-	{		
+	{
 		_context->Release();
 		_thread->Release();
 	}
@@ -697,8 +697,8 @@ namespace RN
 					case ClientMessage:
 						if (event.xclient.data.l[0] == wmDeleteMessage)
 						{
-							puts("Closing of window detected!");
-							// TODO: handle, but how
+							// Exit the application
+							RN::Kernel::SharedInstance()->Exit();
 						}
 						break;
 						
@@ -708,7 +708,8 @@ namespace RN
 				}
 			} 
 			
-			_renderer->WaitForWork();
+			if(!_renderer->WaitForWork())
+				break;
 		
 			glXSwapBuffers(_dpy, _win);
 		}
