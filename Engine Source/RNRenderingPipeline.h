@@ -92,10 +92,6 @@ namespace RN
 		size_t _lightindicesSize;
 
 		std::map<std::tuple<ShaderProgram *, MeshLODStage *>, GLuint> _vaos;
-		
-		Matrix *_instancingMatrices;
-		uint32 _numInstancingMatrices;
-		GLuint _instancingVBO;
 
 		GLuint _defaultFBO;
 		uint32 _defaultWidth;

@@ -77,9 +77,6 @@ namespace RN
 		
 		_hasValidFramebuffer = false;
 		_initialized = false;
-
-		_numInstancingMatrices = 0;
-		_instancingMatrices = 0;
 	}
 
 	RenderingPipeline::~RenderingPipeline()
@@ -101,9 +98,6 @@ namespace RN
 		if(_lightBuffers[0])
 			glDeleteBuffers(4, _lightBuffers);
 #endif
-
-		if(_instancingMatrices)
-			free(_instancingMatrices);
 		
 		free(_lightindexoffset);
 		free(_lightindices);
@@ -128,7 +122,6 @@ namespace RN
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLshort), _copyIndices, GL_STATIC_DRAW);
 
 		gl::BindVertexArray(0);
-		glGenBuffers(1, &_instancingVBO);
 
 #if !(RN_PLATFORM_IOS)
 		glGenTextures(4, _lightTextures);
@@ -708,19 +701,6 @@ namespace RN
 		
 		Shader *shader = _currentMaterial->Shader();
 		ShaderProgram *program = shader->ProgramOfType(ShaderProgram::TypeInstanced);
-		bool resized = false;
-		
-		if(count > _numInstancingMatrices)
-		{
-			_numInstancingMatrices = (uint32)count;
-			
-			if(_instancingMatrices)
-				free(_instancingMatrices);
-			
-			_instancingMatrices = (Matrix *)malloc((_numInstancingMatrices * 2) * sizeof(Matrix));
-			resized = true;
-		}
-		
 		
 		mesh->Push();
 		
@@ -728,7 +708,17 @@ namespace RN
 		
 		
 		uint32 offset = 0;
-		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
+		
+		Matrix *instancingMatrices = 0;
+		GLuint instancingVBO = 0;
+		
+		size_t size = (count * 2) * sizeof(Matrix);
+		bool resized = stage->InstancingData(size, &instancingVBO, (void **)&instancingMatrices);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, instancingVBO);
+		
+		if(resized)
+			glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_DRAW);
 		
 		// Enabling vertex arrays
 		if(program->imatModel != -1)
@@ -743,7 +733,7 @@ namespace RN
 			for(machine_uint i=0; i<count; i++)
 			{
 				RenderingObject& object = group[(int)(start + i)];
-				_instancingMatrices[i + offset] = *object.transform;
+				instancingMatrices[i + offset] = *object.transform;
 			}
 			
 			offset += count;
@@ -761,7 +751,7 @@ namespace RN
 			for(machine_uint i=0; i<count; i++)
 			{
 				RenderingObject& object = group[(int)(start + i)];
-				_instancingMatrices[i + offset] = object.transform->Inverse();
+				instancingMatrices[i + offset] = object.transform->Inverse();
 			}
 			
 			offset += count;
@@ -776,17 +766,8 @@ namespace RN
 		// Drawing
 		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
 		
-		if(resized)
-		{
-			
-			glBufferData(GL_ARRAY_BUFFER, offset * sizeof(Matrix), _instancingMatrices, GL_DYNAMIC_DRAW);
-			gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
-		}
-		else
-		{
-			glBufferSubData(GL_ARRAY_BUFFER, 0, offset * sizeof(Matrix), _instancingMatrices);
-			gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
-		}
+		glBufferSubData(GL_ARRAY_BUFFER, 0, offset * sizeof(Matrix), instancingMatrices);
+		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
 		
 		// Disabling vertex attributes
 		if(program->imatModel != -1)
@@ -801,6 +782,7 @@ namespace RN
 				glDisableVertexAttribArray(program->imatModelInverse + i);
 		}
 		
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		mesh->Pop();
 	}
 	

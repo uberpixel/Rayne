@@ -19,6 +19,10 @@ namespace RN
 		_indicesSize = 0;
 		_indices     = 0;
 		
+		_instancing._data = 0;
+		_instancing._size = 0;
+		_instancing._vbo = 0;
+		
 		glGenBuffers(2, &_vbo);
 		RN_CHECKOPENGL();
 		
@@ -70,6 +74,10 @@ namespace RN
 		_indicesSize = 0;
 		_indices     = 0;
 		
+		_instancing._data = 0;
+		_instancing._size = 0;
+		_instancing._vbo = 0;
+		
 		glGenBuffers(2, &_vbo);
 		RN_CHECKOPENGL();
 		
@@ -120,6 +128,12 @@ namespace RN
 		
 		if(_indices)
 			free(_indices);
+		
+		if(_instancing._data)
+			free(_instancing._data);
+		
+		if(_instancing._vbo)
+			glDeleteBuffers(1, &_instancing._vbo);
 	}
 	
 	void MeshLODStage::GenerateMesh()
@@ -203,6 +217,48 @@ namespace RN
 		return _descriptor[(int32)feature].offset;
 	}
 	
+	bool MeshLODStage::InstancingData(size_t size, GLuint *outVBO, void **outData)
+	{
+		RN_ASSERT0(outVBO);
+		RN_ASSERT0(outData);
+		
+		bool didResize = false;
+		
+		if(_instancing._vbo == 0)
+		{
+			glGenBuffers(1, &_instancing._vbo);
+			RN_CHECKOPENGL();
+		}
+
+		if(_instancing._data == 0)
+		{
+			void *temp = malloc(size);
+			if(!temp)
+				throw ErrorException(0, 0, 0);
+			
+			_instancing._data = temp;
+			_instancing._size = size;
+			
+			didResize = true;
+		}
+		
+		if(size > _instancing._size)
+		{
+			void *temp = realloc(_instancing._data, size);
+			if(!temp)
+				throw ErrorException(0, 0, 0);
+				
+			_instancing._data = temp;
+			_instancing._size = size;
+			
+			didResize = true;
+		}
+		
+		*outVBO  = _instancing._vbo;
+		*outData = _instancing._data;
+		
+		return didResize;
+	}
 
 	
 	
