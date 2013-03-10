@@ -811,11 +811,11 @@ namespace RN
 	
 	void RenderingPipeline::UpdateShaderWithCamera(ShaderProgram *shader, Camera *camera)
 	{
-		Matrix& projectionMatrix = camera->projectionMatrix.AccessPast();
-		Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix.AccessPast();
+		const Matrix& projectionMatrix = camera->projectionMatrix.AccessPast();
+		const Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix.AccessPast();
 		
-		Matrix& viewMatrix = camera->viewMatrix.AccessPast();
-		Matrix& inverseViewMatrix = camera->inverseViewMatrix.AccessPast();
+		const Matrix& viewMatrix = camera->viewMatrix.AccessPast();
+		const Matrix& inverseViewMatrix = camera->inverseViewMatrix.AccessPast();
 		
 		
 		if(shader->frameSize != -1)
@@ -846,6 +846,12 @@ namespace RN
 		{
 			Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
 			glUniformMatrix4fv(shader->matProjViewInverse, 1, GL_FALSE, inverseProjectionViewMatrix.m);
+		}
+		
+		if(shader->viewPosition != -1)
+		{
+			const Vector3 &position = camera->Position().AccessPast();
+			glUniform3fv(shader->viewPosition, 1, &position.x);
 		}
 	}
 	

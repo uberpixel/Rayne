@@ -404,6 +404,8 @@ namespace RN
 				GetUniformLocation(frameSize);
 				GetUniformLocation(clipPlanes);
 				
+				GetUniformLocation(viewPosition);
+				
 				GetUniformLocation(lightPosition);
 				GetUniformLocation(lightColor);
 				GetUniformLocation(lightCount);

@@ -8,8 +8,8 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureLights      0
-#define TGWorldFeatureInstancing  1
+#define TGWorldFeatureLights      1
+#define TGWorldFeatureInstancing  0
 #define TGWorldFeatureAnimations  1
 
 namespace TG
@@ -22,10 +22,21 @@ namespace TG
 		storage->SetDepthTarget(depthtex);
 		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
 		
+		RN::Shader *camshader = RN::Shader::WithFile("shader/rn_Color1");
+		RN::Material *cammaterial = new RN::Material(camshader);
+		
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
-		_camera->ActivateTiledLightLists((RN::Texture *)1);
-		_camera->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
+		_camera->SetMaterial(cammaterial);
+		
+		RN::Camera *_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults);
+		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
+		_finalcam->Storage()->SetDepthTarget(depthtex);
+		_finalcam->SetName("Final Cam");
+		_camera->AttachChild(_finalcam);
+		_finalcam->ActivateTiledLightLists((RN::Texture *)1);
+		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
+		
 				
 		CreateWorld();
 		
@@ -113,6 +124,7 @@ namespace TG
 	{
 		RN::Shader *discardShader = RN::Shader::WithFile("shader/rn_Texture1Discard");
 		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1");
+		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
 		
 		// Sponza
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
@@ -129,6 +141,10 @@ namespace TG
 		model->MaterialForMesh(model->MeshAtIndex(17))->SetShader(discardShader);
 		model->MaterialForMesh(model->MeshAtIndex(17))->culling = false;
 		model->MaterialForMesh(model->MeshAtIndex(17))->alphatest = true;
+		
+		RN::Texture *normalmap = RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png", RN::Texture::FormatRGBA8888);
+		model->MaterialForMesh(model->MeshAtIndex(3))->AddTexture(normalmap);
+		model->MaterialForMesh(model->MeshAtIndex(3))->SetShader(normalshader);
 		
 		RN::Entity *sponza = new RN::Entity();
 		sponza->SetModel(model);
