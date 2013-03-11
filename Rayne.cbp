@@ -45,7 +45,6 @@
 		<Linker>
 			<Add option="-rdynamic" />
 			<Add library="png" />
-			<Add library="GL" />
 			<Add library="pthread" />
 			<Add library="bullet" />
 			<Add library="jansson" />

@@ -98,14 +98,16 @@ break;
 #define RN_CHECKOPENGL() (void)0
 #endif
 
-#if RN_PLATFORM_WINDOWS
+#if RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
 
 extern "C"
 {	
+	#if RN_PLATFORM_WINDOWS
 	extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 	extern PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB;
 	extern PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
 	extern PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
+	#endif
 	
 	extern PFNGLCREATEPROGRAMPROC glCreateProgram;
 	extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
@@ -123,6 +125,9 @@ extern "C"
 	extern PFNGLUNIFORM3IVPROC glUniform3iv;
 	extern PFNGLUNIFORM4IVPROC glUniform4iv;
 	extern PFNGLUNIFORM1FPROC glUniform1f;
+	extern PFNGLUNIFORM2FPROC glUniform2f;
+	extern PFNGLUNIFORM3FPROC glUniform3f;
+	extern PFNGLUNIFORM4FPROC glUniform4f;
 	extern PFNGLUNIFORM1FVPROC glUniform1fv;
 	extern PFNGLUNIFORM2FVPROC glUniform2fv;
 	extern PFNGLUNIFORM3FVPROC glUniform3fv;
@@ -139,6 +144,8 @@ extern "C"
 	extern PFNGLBINDATTRIBLOCATIONPROC glBindAttribLocation;
 	extern PFNGLGETACTIVEUNIFORMPROC glGetActiveUniform;
 	extern PFNGLBINDFRAGDATALOCATIONPROC glBindFragDataLocation;
+	extern PFNGLDRAWBUFFERSPROC glDrawBuffers;
+	extern PFNGLTEXBUFFERPROC glTexBuffer;
 	
 	// Shader
 	extern PFNGLCREATESHADERPROC glCreateShader;
@@ -152,6 +159,7 @@ extern "C"
 	extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 	extern PFNGLBINDBUFFERPROC glBindBuffer;
 	extern PFNGLBUFFERDATAPROC glBufferData;
+	extern PFNGLBUFFERSUBDATAPROC glBufferSubData;
 	extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 	
 	// FBO
@@ -167,8 +175,8 @@ extern "C"
 	extern PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
 	
 	// Textures
-	extern PFNGLACTIVETEXTUREPROC glActiveTexture;
-	extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;	
+	//extern PFNGLACTIVETEXTUREPROC glActiveTexture;
+	extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 }
 
 #endif
