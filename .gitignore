@@ -38,6 +38,7 @@ Ankh.NoLoad
 bin/
 obj/
 *.depend
+*.layout
 
 # Library stuff
 *.a
