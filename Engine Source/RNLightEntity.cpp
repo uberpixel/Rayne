@@ -48,6 +48,11 @@ namespace RN
 		}
 	}
 
+	void LightEntity::DidUpdate()
+	{
+		Entity::DidUpdate();
+		_direction = _rotation->RotateVector3(Vector3(1.0, 0.0, 0.0));
+	}
 	
 	bool LightEntity::IsVisibleInCamera(Camera *camera)
 	{
@@ -63,11 +68,6 @@ namespace RN
 	void LightEntity::SetColor(Vector3 color)
 	{
 		_color = color;
-	}
-	
-	void LightEntity::SetDirection(Vector3 direction)
-	{
-		_direction = direction;
 	}
 	
 	void LightEntity::SetAngle(float angle)

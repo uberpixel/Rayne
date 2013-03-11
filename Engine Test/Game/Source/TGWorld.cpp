@@ -213,7 +213,6 @@ namespace TG
 		light = new RN::LightEntity(RN::LightEntity::TypeSpotLight);
 		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
-		light->SetDirection(RN::Vector3(0.0f, -1.0f, 0.0f));
 		light->SetAngle(0.7f);
 		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
 		

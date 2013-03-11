@@ -102,7 +102,7 @@ namespace RN
 		Transform(TransformType type, const Vector3& position);
 		Transform(TransformType type, const Vector3& position, const Quaternion& rotation);
 		
-		void DidUpdate();
+		virtual void DidUpdate();
 		
 		Past<Vector3> _position;
 		Past<Vector3> _scale;
