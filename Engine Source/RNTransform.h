@@ -180,8 +180,8 @@ namespace RN
 		
 		if(_parent)
 		{
-			_worldPosition = _parent->_worldPosition + _position;
-			_worldRotation = _parent->_worldRotation + _rotation;
+			_worldPosition = _parent->_worldPosition + _parent->_worldRotation->RotateVector3(_position);
+			_worldRotation = _parent->_worldRotation * _rotation;
 			_worldScale = _parent->_worldScale + _scale;
 			_worldEuler = _parent->_worldEuler + _euler;
 			
