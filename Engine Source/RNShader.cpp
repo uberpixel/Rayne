@@ -406,13 +406,28 @@ namespace RN
 				
 				GetUniformLocation(viewPosition);
 				
-				GetUniformLocation(lightPosition);
-				GetUniformLocation(lightColor);
-				GetUniformLocation(lightCount);
-				GetUniformLocation(lightList);
-				GetUniformLocation(lightListOffset);
-				GetUniformLocation(lightListPosition);
-				GetUniformLocation(lightListColor);
+				GetUniformLocation(lightPointPosition);
+				GetUniformLocation(lightPointColor);
+				GetUniformLocation(lightPointCount);
+				GetUniformLocation(lightPointList);
+				GetUniformLocation(lightPointListOffset);
+				GetUniformLocation(lightPointListPosition);
+				GetUniformLocation(lightPointListColor);
+				
+				GetUniformLocation(lightSpotPosition);
+				GetUniformLocation(lightSpotDirection);
+				GetUniformLocation(lightSpotColor);
+				GetUniformLocation(lightSpotCount);
+				GetUniformLocation(lightSpotList);
+				GetUniformLocation(lightSpotListOffset);
+				GetUniformLocation(lightSpotListPosition);
+				GetUniformLocation(lightSpotListDirection);
+				GetUniformLocation(lightSpotListColor);
+				
+				GetUniformLocation(lightDirectionalDirection);
+				GetUniformLocation(lightDirectionalColor);
+				GetUniformLocation(lightDirectionalCount);
+				
 				GetUniformLocation(lightTileSize);
 				
 				char string[32];

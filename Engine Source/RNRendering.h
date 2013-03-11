@@ -30,7 +30,9 @@ namespace RN
 		RenderingGroup(const RenderingGroup& other) :
 			RenderingResource(other._name),
 			entities(other.entities),
-			lights(other.lights)
+			pointLights(other.pointLights),
+			spotLights(other.spotLights),
+			directionalLights(other.directionalLights)
 		{
 			camera = other.camera->Retain<Camera>();
 		}
@@ -42,7 +44,9 @@ namespace RN
 		
 		Camera *camera;
 		Array<Entity> entities;
-		Array<LightEntity> lights;
+		Array<LightEntity> pointLights;
+		Array<LightEntity> spotLights;
+		Array<LightEntity> directionalLights;
 	};
 }
 

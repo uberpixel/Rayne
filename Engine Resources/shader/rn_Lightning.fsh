@@ -10,10 +10,17 @@
 
 #ifdef RN_LIGHTNING
 
-uniform samplerBuffer lightListColor;
-uniform samplerBuffer lightListPosition;
-uniform isamplerBuffer lightList;
-uniform isamplerBuffer lightListOffset;
+uniform samplerBuffer lightPointListColor;
+uniform samplerBuffer lightPointListPosition;
+uniform isamplerBuffer lightPointList;
+uniform isamplerBuffer lightPointListOffset;
+
+uniform samplerBuffer lightSpotListColor;
+uniform samplerBuffer lightSpotListPosition;
+uniform samplerBuffer lightSpotListDirection;
+uniform isamplerBuffer lightSpotList;
+uniform isamplerBuffer lightSpotListOffset;
+
 uniform vec4 lightTileSize;
 
 in vec3 outLightNormal;
@@ -30,18 +37,38 @@ vec4 rn_Lightning()
 	int lightindex = 0;
 	
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
-	ivec2 listoffset = texelFetch(lightListOffset, tileindex).xy;
 	
+	//pointlights
+	ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
 	for(int i = 0; i < listoffset.y; i++)
 	{
-		lightindex = texelFetch(lightList, listoffset.x+i).r;
-		lightpos = texelFetch(lightListPosition, lightindex);
-		lightcolor = texelFetch(lightListColor, lightindex).xyz;
+		lightindex = texelFetch(lightPointList, listoffset.x+i).r;
+		lightpos = texelFetch(lightPointListPosition, lightindex);
+		lightcolor = texelFetch(lightPointListColor, lightindex).xyz;
 		
 		posdiff = lightpos.xyz-outLightPosition;
 		attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
 		
 		light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
+	}
+	
+	//spotlights
+	vec4 lightdir;
+	float dirfac;
+	listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
+	for(int i = 0; i < listoffset.y; i++)
+	{
+		lightindex = texelFetch(lightSpotList, listoffset.x+i).r;
+		lightpos = texelFetch(lightSpotListPosition, lightindex);
+		lightcolor = texelFetch(lightSpotListColor, lightindex).xyz;
+		lightdir = texelFetch(lightSpotListDirection, lightindex);
+		
+		posdiff = lightpos.xyz-outLightPosition;
+		attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
+		dirfac = dot(normalize(posdiff), -lightdir.xyz);
+		
+		if(dirfac > lightdir.w)
+			light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}
 	
 	return vec4(light, 1.0);

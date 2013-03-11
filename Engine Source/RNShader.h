@@ -62,13 +62,28 @@ namespace RN
 		
 		GLuint viewPosition;
 		
-		GLuint lightPosition;
-		GLuint lightColor;
-		GLuint lightCount;
-		GLuint lightList;
-		GLuint lightListOffset;
-		GLuint lightListPosition;
-		GLuint lightListColor;
+		GLuint lightPointPosition;
+		GLuint lightPointColor;
+		GLuint lightPointCount;
+		GLuint lightPointList;
+		GLuint lightPointListOffset;
+		GLuint lightPointListPosition;
+		GLuint lightPointListColor;
+		
+		GLuint lightSpotPosition;
+		GLuint lightSpotDirection;
+		GLuint lightSpotColor;
+		GLuint lightSpotCount;
+		GLuint lightSpotList;
+		GLuint lightSpotListOffset;
+		GLuint lightSpotListPosition;
+		GLuint lightSpotListDirection;
+		GLuint lightSpotListColor;
+		
+		GLuint lightDirectionalDirection;
+		GLuint lightDirectionalColor;
+		GLuint lightDirectionalCount;
+		
 		GLuint lightTileSize;
 		
 		Array<GLuint> texlocations;

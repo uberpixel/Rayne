@@ -72,7 +72,13 @@ namespace RN
 						break;
 						
 					case Entity::TypeLight:
-						group->lights.AddObject((LightEntity *)entity);
+						LightEntity *light = (LightEntity *)entity;
+						if(light->LightType() == LightEntity::TypePointLight)
+							group->pointLights.AddObject(light);
+						if(light->LightType() == LightEntity::TypeSpotLight)
+							group->spotLights.AddObject(light);
+						if(light->LightType() == LightEntity::TypeDirectionalLight)
+							group->directionalLights.AddObject(light);
 						break;
 				}
 			}

@@ -8,8 +8,8 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureLights      0
-#define TGWorldFeatureInstancing  1
+#define TGWorldFeatureLights      1
+#define TGWorldFeatureInstancing  0
 #define TGWorldFeatureAnimations  0
 
 namespace TG
@@ -210,18 +210,20 @@ namespace TG
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
 		
-		light = new RN::LightEntity();
+		light = new RN::LightEntity(RN::LightEntity::TypeSpotLight);
 		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
+		light->SetDirection(RN::Vector3(0.0f, -1.0f, 0.0f));
+		light->SetAngle(0.7f);
 		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
 		
-		for(int i = 0; i < 1000; i++)
+/*		for(int i = 0; i < 1000; i++)
 		{
 			light = new RN::LightEntity();
 			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
 			light->SetRange((float)(rand())/RAND_MAX*20.0f);
 			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
-		}
+		}*/
 #endif
 		
 #if TGWorldFeatureInstancing

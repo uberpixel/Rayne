@@ -12,18 +12,22 @@
 
 namespace RN
 {
-	LightEntity::LightEntity() :
-		Entity(Entity::TypeLight)
+	LightEntity::LightEntity(Type lighttype) :
+		Entity(Entity::TypeLight), _lightType(lighttype)
 	{
 		_color = Vector3(1.0f, 1.0f, 1.0f);
 		_range = 1.0f;
+		_angle = 0.5f;
 	}
 	
 	LightEntity::LightEntity(LightEntity *other) :
 		Entity(other)
 	{
+		_lightType = other->_lightType;
 		_color = other->_color;
 		_range = other->_range;
+		_direction = other->_direction;
+		_angle = other->_angle;
 	}
 	
 	LightEntity::~LightEntity()
@@ -36,6 +40,12 @@ namespace RN
 		
 		_color.SynchronizePast();
 		_range.SynchronizePast();
+		
+		if(_lightType == TypeSpotLight)
+		{
+			_direction.SynchronizePast();
+			_angle.SynchronizePast();
+		}
 	}
 
 	
@@ -53,5 +63,15 @@ namespace RN
 	void LightEntity::SetColor(Vector3 color)
 	{
 		_color = color;
+	}
+	
+	void LightEntity::SetDirection(Vector3 direction)
+	{
+		_direction = direction;
+	}
+	
+	void LightEntity::SetAngle(float angle)
+	{
+		_angle = angle;
 	}
 }

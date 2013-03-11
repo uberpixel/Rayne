@@ -20,7 +20,14 @@ namespace RN
 	{
 	friend class RenderingPipeline;
 	public:
-		LightEntity();
+		enum Type
+		{
+			TypePointLight = 0,
+			TypeSpotLight = 1,
+			TypeDirectionalLight = 2
+		};
+		
+		LightEntity(Type type = TypePointLight);
 		LightEntity(LightEntity *other);
 		
 		virtual ~LightEntity();
@@ -30,13 +37,21 @@ namespace RN
 		
 		void SetRange(float range);
 		void SetColor(Vector3 color);
+		void SetDirection(Vector3 direction);
+		void SetAngle(float angle);
 		
+		const Type LightType() { return _lightType; }
 		const Past<Vector3>& Color() { return _color; }
 		const Past<float> Range() { return _range; }
+		const Past<Vector3>& Direction() { return _direction; }
+		const Past<float> Angle() { return _angle; }
 		
 	private:
+		Type _lightType;
 		Past<Vector3> _color;
 		Past<float> _range;
+		Past<Vector3> _direction;
+		Past<float> _angle;
 	};
 }
 

@@ -16,10 +16,10 @@ in vec2 outTexcoord;
 in mat3 outTangentToWorldMatrix;
 out vec4 fragColor0;
 
-uniform samplerBuffer lightListColor;
-uniform samplerBuffer lightListPosition;
-uniform isamplerBuffer lightList;
-uniform isamplerBuffer lightListOffset;
+uniform samplerBuffer lightPointListColor;
+uniform samplerBuffer lightPointListPosition;
+uniform isamplerBuffer lightPointList;
+uniform isamplerBuffer lightPointListOffset;
 uniform vec4 lightTileSize;
 uniform vec3 viewPosition;
 
@@ -40,13 +40,13 @@ vec4 rn_Lightning(vec3 normal, vec4 color, float specmask)
 	vec3 viewdir = viewPosition-outLightPosition;
 	
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
-	ivec2 listoffset = texelFetch(lightListOffset, tileindex).xy;
+	ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
 	
 	for(int i = 0; i < listoffset.y; i++)
 	{
-		lightindex = texelFetch(lightList, listoffset.x+i).r;
-		lightpos = texelFetch(lightListPosition, lightindex);
-		lightcolor = texelFetch(lightListColor, lightindex).xyz;
+		lightindex = texelFetch(lightPointList, listoffset.x+i).r;
+		lightpos = texelFetch(lightPointListPosition, lightindex);
+		lightcolor = texelFetch(lightPointListColor, lightindex).xyz;
 		
 		posdiff = lightpos.xyz-outLightPosition;
 		attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);

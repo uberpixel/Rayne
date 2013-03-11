@@ -49,7 +49,9 @@ namespace RN
 		GLuint BindVAO(const std::tuple<ShaderProgram *, MeshLODStage *>& tuple);
 		
 		void UpdateShaderWithCamera(ShaderProgram *shader, Camera *camera);
-		void CreateLightList(RenderingGroup *group, Camera *camera, Vector4 **outLightPos, Vector3 **outLightColor, int *outLightCount);
+		void CreatePointLightList(RenderingGroup *group, Camera *camera, Vector4 **outLightPos, Vector4 **outLightColor, int *outLightCount);
+		void CreateSpotLightList(RenderingGroup *group, Camera *camera, Vector4 **outLightPos, Vector4 **outLightDir, Vector4 **outLightColor, int *outLightCount);
+		void CreateDirectionalLightList(RenderingGroup *group, Camera *camera, Vector4 **outLightDir, Vector4 **outLightColor, int *outLightCount);
 
 		void DrawGroup(RenderingGroup *group);
 		void DrawMesh(Mesh *mesh, ShaderProgram *program);
@@ -86,10 +88,15 @@ namespace RN
 		GLenum _blendSource;
 		GLenum _blendDestination;
 		
-		int *_lightindexoffset;
-		int *_lightindices;
-		size_t _lightindexoffsetSize;
-		size_t _lightindicesSize;
+		int *_lightPointIndexOffset;
+		int *_lightPointIndices;
+		size_t _lightPointIndexOffsetSize;
+		size_t _lightPointIndicesSize;
+		
+		int *_lightSpotIndexOffset;
+		int *_lightSpotIndices;
+		size_t _lightSpotIndexOffsetSize;
+		size_t _lightSpotIndicesSize;
 
 		std::map<std::tuple<ShaderProgram *, MeshLODStage *>, std::tuple<GLuint, uint32>> _vaos;
 
@@ -112,10 +119,13 @@ namespace RN
 		Vector4 _copyVertices[4];
 		GLshort _copyIndices[6];
 
-		GLuint _lightTextures[4];
-		GLuint _lightBuffers[4];
+		GLuint _lightPointTextures[4];
+		GLuint _lightPointBuffers[4];
+		GLuint _lightSpotTextures[5];
+		GLuint _lightSpotBuffers[5];
 		
-		uint32 _lightBufferLengths[3];
+		uint32 _lightPointBufferLengths[3];
+		uint32 _lightSpotBufferLengths[3];
 	};
 }
 
