@@ -46,6 +46,7 @@
 	#include <dlfcn.h>
 	#include <stdarg.h>
 	#include <unistd.h>
+	#include <wordexp.h>
 #endif
 
 #if RN_PLATFORM_MAC_OS

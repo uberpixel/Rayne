@@ -57,6 +57,7 @@ namespace RN
 		static void AddSearchPath(const std::string& path);
 		static std::string PathForName(const std::string& name);
 		static std::string ExecutableDirectory();
+		static std::string SaveDirectory();
 
 	private:
 		static void AddDefaultSearchPaths();
