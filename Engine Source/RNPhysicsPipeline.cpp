@@ -18,6 +18,7 @@ namespace RN
 		_changes = GravityChange;
 		
 		Thread *thread = new Thread(std::bind(&PhysicsPipeline::WorkLoop, this));
+		thread->SetName("PhysicsPipeline");
 		SetThread(thread->Autorelease<Thread>());
 	}
 	

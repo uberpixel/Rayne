@@ -63,6 +63,9 @@ namespace RN
 		bool IsCancelled() const { return _isCancelled; }
 		bool IsRunning() const { return _isRunning; }
 		
+		void SetName(const std::string& name);
+		const std::string Name() const;
+		
 		static Thread *CurrentThread();
 		
 	private:
@@ -98,6 +101,7 @@ namespace RN
 		bool _isCancelled;
 		
 		std::thread::id _id;
+		std::string _name;
 	};
 }
 
