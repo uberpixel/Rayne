@@ -44,8 +44,9 @@ namespace RN
 				{
 					func();
 				}
-				catch (ErrorException &e) {
-					printf("ERROR: %i %i %i, %s \n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str());
+				catch (ErrorException e)
+				{
+					__HandleExcption(e);
 				}
 
 				Exit();

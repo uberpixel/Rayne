@@ -31,6 +31,23 @@ namespace RN
 		
 		abort();
 	}
+	
+	void __HandleExcption(const ErrorException& e)
+	{
+		fprintf(stderr, "Caught exception %i|%i|%i.\nReason: %s\n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str());
+		fflush(stderr);
+		
+#if RN_PLATFORM_MAC_OS
+		if(e.Description().length() > 0)
+		{
+			[[NSAlert alertWithMessageText:@"Rayne crashed" defaultButton:nil alternateButton:nil otherButton:nil informativeTextWithFormat:@"Reason: %s\nException code: %i|%i|%i", e.Description().c_str(), e.Group(), e.Subgroup(), e.Code()] runModal];
+			[NSApp terminate:nil];
+		}
+#endif
+		
+		abort();
+	}
+		
 }
 
 #if RN_PLATFORM_MAC_OS
@@ -56,14 +73,7 @@ int main(int argc, char *argv[])
 	}
 	catch(RN::ErrorException e)
 	{
-		fprintf(stderr, "Caught exception %i|%i|%i.\nReason: %s\n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str());
-		fflush(stderr);
-		
-		if(e.Description().length() > 0)
-		{
-			[[NSAlert alertWithMessageText:@"Rayne crashed" defaultButton:nil alternateButton:nil otherButton:nil informativeTextWithFormat:@"Reason: %s\nException code: %i|%i|%i", e.Description().c_str(), e.Group(), e.Subgroup(), e.Code()] runModal];
-			[NSApp terminate:nil];
-		}
+		__HandleExcption(e);
 	}
 	
 	return result;
@@ -85,8 +95,7 @@ int main(int argc, char *argv[])
 	}
 	catch(RN::ErrorException e)
 	{
-		fprintf(stderr, "Caught exception %i|%i|%i.\nReason: %s\n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str());
-		fflush(stderr);
+		__HandleExcption(e)
 	}
 	
 	return result;

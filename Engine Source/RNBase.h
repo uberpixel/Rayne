@@ -145,6 +145,8 @@ namespace RN
 	#define RN_ASSERT0(e) (void)0
 #endif
 
+	RNAPI RN_NORETURN void __HandleExcption(const ErrorException& e);
+	
 	template <class T>
 	class Singleton
 	{
