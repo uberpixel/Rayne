@@ -211,29 +211,29 @@ namespace RN
 			
 			*outShader = 0;
 			
-			std::string tlog = std::string((char *)log) + "\n" + source;
+			std::string compilerLog = std::string((char *)log) + "\nShader source:\n" + source;
 			delete [] log;
 			
-			std::string compilerLog;
+			std::string tlog;
 			
 			switch(type)
 			{
 				case GL_VERTEX_SHADER:
-					compilerLog = "Failed to compile " + _vertexFile + ".\n" + tlog;
+					tlog = "Failed to compile " + _vertexFile + ".\n";
 					break;
 					
 				case GL_FRAGMENT_SHADER:
-					compilerLog = "Failed to compile " + _fragmentFile + ".\n" + tlog;
+					tlog = "Failed to compile " + _fragmentFile + ".\n";
 					break;
 					
 #ifdef GL_GEOMETRY_SHADER
 				case GL_GEOMETRY_SHADER:
-					compilerLog = "Failed to compile " + _geometryFile + ".\n" + tlog;
+					tlog = "Failed to compile " + _geometryFile + ".\n";
 					break;
 #endif
 			}
 			
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, compilerLog);
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, tlog, compilerLog);
 		}
 	}
 	
