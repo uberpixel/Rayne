@@ -251,7 +251,9 @@ namespace RN
 		RN_LINKGL(glFramebufferTexture2D, PFNGLFRAMEBUFFERTEXTURE2DPROC);
 
 		// Textures
-		//RN_LINKGL(glActiveTexture, PFNGLACTIVETEXTUREPROC);
+		#if RN_PLATFORM_WINDOWS
+		RN_LINKGL(glActiveTexture, PFNGLACTIVETEXTUREPROC);
+		#endif
 		RN_LINKGL(glGenerateMipmap, PFNGLGENERATEMIPMAPPROC);
 
 #endif
@@ -333,7 +335,9 @@ PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer = 0;
 PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D = 0;
 
 // Textures
-//PFNGLACTIVETEXTUREPROC glActiveTexture = 0;
+#if RN_PLATFORM_WINDOWS
+PFNGLACTIVETEXTUREPROC glActiveTexture = 0;
+#endif
 PFNGLGENERATEMIPMAPPROC glGenerateMipmap = 0;
 
 #endif

@@ -42,15 +42,18 @@
 			<Add directory="Vendor/bullet/src/" />
 			<Add directory="Vendor/libjansson/source" />
 			<Add directory="Vendor/libpng/include" />
+			<Add directory="Vendor/libz/include" />
 		</Compiler>
 		<Linker>
 			<Add option="-rdynamic" />
 			<Add library="png" />
 			<Add library="bullet" />
 			<Add library="jansson" />
+			<Add library="libz" />
 			<Add directory="Vendor/bullet/" />
 			<Add directory="Vendor/libjansson" />
 			<Add directory="Vendor/libpng" />
+			<Add directory="Vendor/libz" />
 		</Linker>
 		<Unit filename="Engine Source/RNApplication.cpp" />
 		<Unit filename="Engine Source/RNApplication.h" />

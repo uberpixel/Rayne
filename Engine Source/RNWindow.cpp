@@ -632,7 +632,7 @@ namespace RN
 	}
 
 	Window::~Window()
-	{
+	{		
 		_context->Release();
 		_thread->Release();
 	}

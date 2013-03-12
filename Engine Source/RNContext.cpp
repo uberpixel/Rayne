@@ -161,7 +161,12 @@ namespace RN
 		// TODO: identify which other attributes are needed here
 		Colormap             cmap;
 		XSetWindowAttributes swa;
-		static int attributes[]  = {GLX_RGBA, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, None};
+		static int attributes[]  = {GLX_RGBA, 
+					GLX_RED_SIZE, 8,
+					GLX_GREEN_SIZE, 8,
+					GLX_BLUE_SIZE, 8,
+					GLX_DEPTH_SIZE, 16, 
+					GLX_DOUBLEBUFFER, None};
 		int dummy;
 
 		if (_dpy == 0)
@@ -242,6 +247,11 @@ namespace RN
 
 #if RN_PLATFORM_IOS
 		[(EAGLContext *)_oglContext release];
+#endif
+
+#if RN_PLATFORM_LINUX
+		glXDestroyContext(_dpy, _context);
+		XDestroyWindow(_dpy, _win);
 #endif
 	}
 
