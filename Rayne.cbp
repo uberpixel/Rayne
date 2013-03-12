@@ -41,15 +41,16 @@
 			<Add option="-fPIC" />
 			<Add directory="Vendor/bullet/src/" />
 			<Add directory="Vendor/libjansson/source" />
+			<Add directory="Vendor/libpng/include" />
 		</Compiler>
 		<Linker>
 			<Add option="-rdynamic" />
 			<Add library="png" />
-			<Add library="pthread" />
 			<Add library="bullet" />
 			<Add library="jansson" />
 			<Add directory="Vendor/bullet/" />
 			<Add directory="Vendor/libjansson" />
+			<Add directory="Vendor/libpng" />
 		</Linker>
 		<Unit filename="Engine Source/RNApplication.cpp" />
 		<Unit filename="Engine Source/RNApplication.h" />

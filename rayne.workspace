@@ -6,5 +6,6 @@
 		<Project filename="Vendor/bullet/bullet.cbp" />
 		<Project filename="Engine Test/Game/Game.cbp" />
 		<Project filename="Vendor/libjansson/jansson.cbp" />
+		<Project filename="Vendor/libpng/libpng.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

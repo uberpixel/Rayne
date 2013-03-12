@@ -41,6 +41,10 @@
 		</Compiler>
 		<Linker>
 			<Add library="Rayne" />
+			<Add library="X11" />
+			<Add library="pthread" />
+			<Add library="libz" />
+			<Add library="GL" />
 			<Add directory="/home/tilman/projects/rayne/Vendor/bullet/" />
 			<Add directory="../../Engine Test/Game/bin/Debug/" />
 		</Linker>
