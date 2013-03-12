@@ -40,14 +40,7 @@
 			<Add directory="../../Engine Source/" />
 		</Compiler>
 		<Linker>
-			<Add option="-rdynamic" />
 			<Add library="Rayne" />
-			<Add library="GL" />
-			<Add library="libz" />
-			<Add library="png" />
-			<Add library="X11" />
-			<Add library="dl" />
-			<Add library="pthread" />
 			<Add directory="/home/tilman/projects/rayne/Vendor/bullet/" />
 			<Add directory="../../Engine Test/Game/bin/Debug/" />
 		</Linker>

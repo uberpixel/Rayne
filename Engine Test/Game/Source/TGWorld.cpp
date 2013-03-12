@@ -9,7 +9,7 @@
 #include "TGWorld.h"
 
 #define TGWorldFeatureLights      0
-#define TGWorldFeatureInstancing  0
+#define TGWorldFeatureInstancing  1
 #define TGWorldFeatureAnimations  0
 
 namespace TG
