@@ -102,7 +102,7 @@ namespace RN
 		Transform(TransformType type, const Vector3& position);
 		Transform(TransformType type, const Vector3& position, const Quaternion& rotation);
 		
-		void DidUpdate();
+		virtual void DidUpdate();
 		
 		Past<Vector3> _position;
 		Past<Vector3> _scale;
@@ -180,8 +180,8 @@ namespace RN
 		
 		if(_parent)
 		{
-			_worldPosition = _parent->_worldPosition + _position;
-			_worldRotation = _parent->_worldRotation + _rotation;
+			_worldPosition = _parent->_worldPosition + _parent->_worldRotation->RotateVector3(_position);
+			_worldRotation = _parent->_worldRotation * _rotation;
 			_worldScale = _parent->_worldScale + _scale;
 			_worldEuler = _parent->_worldEuler + _euler;
 			

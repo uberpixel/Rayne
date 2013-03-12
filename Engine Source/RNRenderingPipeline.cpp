@@ -989,7 +989,7 @@ namespace RN
 		for(machine_uint i=0; i<lights->Count(); i++, lightCount++)
 		{
 			LightEntity *light = lights->ObjectAtIndex(i);
-			const Vector3& position = light->Position().AccessPast();
+			const Vector3& position = light->WorldPosition().AccessPast();
 			const Vector3& color = light->Color().AccessPast();
 			
 			lightPos[lightCount] = Vector4(position.x, position.y, position.z, light->Range().AccessPast());
@@ -1167,7 +1167,7 @@ continue; \
 		for(machine_uint i=0; i<lights->Count(); i++, lightCount++)
 		{
 			LightEntity *light = lights->ObjectAtIndex(i);
-			const Vector3& position = light->Position().AccessPast();
+			const Vector3& position = light->WorldPosition().AccessPast();
 			const Vector3& direction = light->Direction().AccessPast();
 			const Vector3& color = light->Color().AccessPast();
 			

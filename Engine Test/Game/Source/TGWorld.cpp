@@ -9,6 +9,7 @@
 #include "TGWorld.h"
 
 #define TGWorldFeatureLights      1
+#define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing  0
 #define TGWorldFeatureAnimations  0
 
@@ -53,6 +54,27 @@ namespace TG
 		
 		translation.x = (input->KeyPressed('a') - input->KeyPressed('d')) * 18.0f;
 		translation.z = (input->KeyPressed('w') - input->KeyPressed('s')) * 18.0f;
+		
+#if TGWorldFeatureLights
+		static bool fpressed = false;
+		if(input->KeyPressed('f'))
+		{
+			if(!fpressed)
+			{
+				fpressed = true;
+				RN::LightEntity *child = (RN::LightEntity*)_camera->ChildAtIndex(0);
+				if(child->Range() < 1.0f)
+					child->SetRange(300.0f);
+				else
+					child->SetRange(0.0f);
+			}
+		}
+		else
+		{
+			fpressed = false;
+		}
+#endif
+		
 #endif
 		
 #if RN_PLATFORM_IOS
@@ -133,7 +155,7 @@ namespace TG
 		model->MaterialForMesh(model->MeshAtIndex(17))->culling = false;
 		model->MaterialForMesh(model->MeshAtIndex(17))->alphatest = true;
 		
-#if TGWorldFeatureLights
+#if TGWorldFeatureNormalMapping && TGWorldFeatureLights
 		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
 		RN::Texture *normalmap = RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png", RN::Texture::FormatRGBA8888);
 		model->MaterialForMesh(model->MeshAtIndex(3))->AddTexture(normalmap);
@@ -210,20 +232,25 @@ namespace TG
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
 		
-		light = new RN::LightEntity(RN::LightEntity::TypeSpotLight);
+		light = new RN::LightEntity();
 		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
-		light->SetDirection(RN::Vector3(0.0f, -1.0f, 0.0f));
-		light->SetAngle(0.7f);
 		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
 		
-/*		for(int i = 0; i < 1000; i++)
+		light = new RN::LightEntity(RN::LightEntity::TypeSpotLight);
+		light->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
+		light->SetRange(300.0f);
+		light->SetAngle(0.9f);
+		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
+		_camera->AttachChild(light);
+		
+		for(int i = 0; i < 1000; i++)
 		{
 			light = new RN::LightEntity();
 			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
 			light->SetRange((float)(rand())/RAND_MAX*20.0f);
 			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
-		}*/
+		}
 #endif
 		
 #if TGWorldFeatureInstancing

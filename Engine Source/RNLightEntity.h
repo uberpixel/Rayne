@@ -37,7 +37,6 @@ namespace RN
 		
 		void SetRange(float range);
 		void SetColor(Vector3 color);
-		void SetDirection(Vector3 direction);
 		void SetAngle(float angle);
 		
 		const Type LightType() { return _lightType; }
@@ -45,6 +44,9 @@ namespace RN
 		const Past<float> Range() { return _range; }
 		const Past<Vector3>& Direction() { return _direction; }
 		const Past<float> Angle() { return _angle; }
+		
+	protected:
+		virtual void DidUpdate();
 		
 	private:
 		Type _lightType;
