@@ -131,7 +131,7 @@ namespace TG
 		}
 		
 		_camera->Rotate(rotation);
-		_camera->Translate(translation * -delta);
+		_camera->Translate(translation * -delta, true);
 	}
 	
 	void World::CreateWorld()
