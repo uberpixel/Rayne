@@ -29,8 +29,6 @@ int main(int argc, char* argv[])
 
 	while(kernel->Tick())
 	{}
-	
-	puts("out of tick loop");
 
 	kernel->Release();
 

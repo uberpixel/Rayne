@@ -91,11 +91,9 @@
 
 #if RN_PLATFORM_LINUX
 
-	#define GL_GLEXT_PROTOTYPES 1
-	#define GL3_PROTOTYPES 1
-
 	#include <GL/glx.h>
-	#include <GL/gl.h>
+	#include "glext.h"
+	
 #endif
 
 #include "RNOpenGL.h"

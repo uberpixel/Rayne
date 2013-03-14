@@ -670,8 +670,8 @@ namespace RN
 					case ConfigureNotify:
 					case Expose:
 					case ClientMessage:
-						if (event.xclient.data.l[0] == wmDeleteMessage)
-							puts("Closing of window detected!");
+						if(event.xclient.data.l[0] == wmDeleteMessage)
+							RN::Kernel::SharedInstance()->Exit();
 						break;
 						
 					default:

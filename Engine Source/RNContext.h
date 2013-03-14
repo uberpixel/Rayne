@@ -20,6 +20,7 @@ namespace RN
 	class Context : public Object, public RenderingResource
 	{
 	friend class Window;
+	friend class Kernel;
 	public:
 		RNAPI Context(Context *shared=0);
 		RNAPI virtual ~Context();
@@ -69,7 +70,7 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_LINUX
-		Display *_dpy;
+		static Display *_dpy;
 
 		XVisualInfo *_vi;
 		GLXContext _context;
