@@ -33,13 +33,12 @@ namespace RN
 		
 		AutoreleasePool *pool = new AutoreleasePool();
 		Settings::SharedInstance();
-		ThreadPool::SharedInstance();
 
 		_context = new class Context();
 		_context->MakeActiveContext();
 
 		ReadOpenGLExtensions();
-		
+		ThreadCoordinator::SharedInstance();
 		_scaleFactor = 1.0f;
 
 #if RN_PLATFORM_IOS

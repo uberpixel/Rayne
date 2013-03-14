@@ -13,14 +13,16 @@
 #include "RNThread.h"
 #include "RNSpinLock.h"
 #include "RNArray.h"
+#include "RNContext.h"
+#include "RNKernel.h"
 
 namespace RN
 {
-	class ThreadPool : public Singleton<ThreadPool>
+	class ThreadCoordinator : public Singleton<ThreadCoordinator>
 	{
 		friend class Thread;
 	public:
-		ThreadPool();
+		ThreadCoordinator();
 		
 		machine_int AvailableConcurrency();
 		
@@ -34,9 +36,8 @@ namespace RN
 		machine_int _consumedConcurrency;
 	};
 	
-	
 	template<typename F>
-	class WorkerPool
+	class ThreadPool
 	{
 	public:
 		typedef enum
@@ -45,15 +46,15 @@ namespace RN
 			PoolTypeConcurrent
 		} PoolType;
 		
-		
-		WorkerPool(PoolType type)
+		ThreadPool(PoolType type)
 		{
 			_type = type;
 		}
 		
-		~WorkerPool()
-		{}
-		
+		virtual ~ThreadPool()
+		{
+			WaitForTasksToComplete();
+		}
 		
 		void AddTask(F&& task)
 		{
@@ -68,13 +69,13 @@ namespace RN
 					break;
 					
 				case PoolTypeConcurrent:
-					spinUpThread = (ThreadPool::SharedInstance()->AvailableConcurrency() > 0 || _threads.Count() == 0);
+					spinUpThread = (ThreadCoordinator::SharedInstance()->AvailableConcurrency() > 0 || _threads.Count() == 0);
 					break;
 			}
 			
 			if(spinUpThread)
 			{
-				Thread *thread = new Thread(std::bind(&WorkerPool::Consumer, this));
+				Thread *thread = new Thread(std::bind(&ThreadPool::Consumer, this));
 				_threads.AddObject(thread->Autorelease<Thread>());
 			}
 		}
@@ -85,8 +86,8 @@ namespace RN
 			_waitCondition.wait(lock, [&]() { return (_tasks.Count() == 0 && _threads.Count() == 0); });
 		}
 		
-	private:
-		void Consumer()
+	protected:
+		virtual void Consumer()
 		{
 			std::unique_lock<std::mutex> lock(_mutex);
 			machine_uint workLeft = _tasks.Count();
@@ -101,6 +102,10 @@ namespace RN
 				task();
 				
 				lock.lock();
+				
+				if(_threads.Count() > 1 && ThreadCoordinator::SharedInstance()->AvailableConcurrency() < 0)
+					break;
+				
 				workLeft = _tasks.Count();
 			}
 			
@@ -108,6 +113,7 @@ namespace RN
 			_waitCondition.notify_all();
 		}
 		
+	private:
 		PoolType _type;
 		
 		Array<F> _tasks;
@@ -115,6 +121,35 @@ namespace RN
 		
 		std::condition_variable _waitCondition;
 		std::mutex _mutex;
+	};
+	
+	template<typename F>
+	class OpenGLThreadPool : public ThreadPool<F>
+	{
+	public:
+		OpenGLThreadPool() :
+			ThreadPool<F>(ThreadPool<F>::PoolTypeSerial)
+		{
+			_context = new Context(Kernel::SharedInstance()->Context());
+		}
+		
+		virtual ~OpenGLThreadPool()
+		{
+			ThreadPool<F>::WaitForTasksToComplete();
+			_context->Autorelease();
+		}
+		
+	private:
+		virtual void Consumer()
+		{
+			_context->MakeActiveContext();
+			
+			ThreadPool<F>::Consumer();
+			
+			_context->DeactivateContext();
+		}
+		
+		Context *_context;
 	};
 }
 
