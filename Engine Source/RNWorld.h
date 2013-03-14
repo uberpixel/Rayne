@@ -13,7 +13,6 @@
 #include "RNObject.h"
 #include "RNRenderingResource.h"
 #include "RNRenderingPipeline.h"
-#include "RNPhysicsPipeline.h"
 #include "RNCamera.h"
 
 namespace RN
@@ -35,8 +34,6 @@ namespace RN
 		
 		RNAPI virtual void Update(float delta);
 		
-		RNAPI PhysicsPipeline *Physics() const { return _physics; }
-		
 	private:
 		void BeginUpdate(float delta);
 		void FinishUpdate(float delta);
@@ -47,7 +44,6 @@ namespace RN
 		std::unordered_set<Transform *> _transforms;
 		std::vector<Camera *> _cameras;
 		
-		PhysicsPipeline *_physics;
 		RenderingPipeline *_renderer;
 		
 		PipelineSegment::TaskID _physicsTask;

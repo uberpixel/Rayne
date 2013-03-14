@@ -21,7 +21,6 @@ namespace RN
 		_kernel->SetWorld(this);
 		
 		_renderer = _kernel->Renderer();
-		_physics  = new PhysicsPipeline();
 		
 		_physicsTask   = kPipelineSegmentNullTask;
 		_renderingTask = kPipelineSegmentNullTask;
@@ -29,11 +28,7 @@ namespace RN
 	
 	World::~World()
 	{
-		_physics->WaitForTaskCompletion(_physicsTask);
 		_renderer->WaitForTaskCompletion(_renderingTask);
-		
-		delete _physics;
-		
 		_kernel->SetWorld(0);
 	}
 	
@@ -44,8 +39,6 @@ namespace RN
 	
 	void World::BeginUpdate(float delta)
 	{
-		_physicsTask = _physics->BeginTask(delta);
-		
 		Update(delta);
 		
 		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)
@@ -93,7 +86,6 @@ namespace RN
 	
 	void World::FinishUpdate(float delta)
 	{
-		_physics->WaitForTaskCompletion(_physicsTask);
 		_renderer->WaitForTaskCompletion(_renderingTask);
 		
 		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)

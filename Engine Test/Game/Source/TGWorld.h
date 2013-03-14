@@ -39,12 +39,6 @@ namespace TG
 		
 		RN::Skeleton *_girlskeleton;
 		RN::Skeleton *_zombieskeleton;
-		
-		RN::RigidBodyEntity *_block1;
-		RN::RigidBodyEntity *_block2;
-		RN::RigidBodyEntity *_block3;
-		
-		RN::RigidBodyEntity *_floor;
 	};
 }
 
