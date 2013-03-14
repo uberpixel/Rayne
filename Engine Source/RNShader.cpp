@@ -250,6 +250,16 @@ namespace RN
 			program = new ShaderProgram;
 			program->program = glCreateProgram();
 			
+			if(program->program == 0)
+			{
+				RN_CHECKOPENGL();
+				
+				delete program;
+				_programs[type] = 0;
+				
+				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderLinkingFailed, "Couldn't create program");
+			}
+			
 			_programs[type] = program;
 			
 			// Prepare the state

@@ -10,6 +10,7 @@
 		E91B886F1697551E001B7F22 /* Engine Resources in Resources */ = {isa = PBXBuildFile; fileRef = E91B886E1697551E001B7F22 /* Engine Resources */; };
 		E92A62BC16DF21EC006E68AF /* libRayne.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E92A62BA16DF21DF006E68AF /* libRayne.dylib */; };
 		E92A62C016DF235A006E68AF /* libRayne.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = E92A62BA16DF21DF006E68AF /* libRayne.dylib */; };
+		E9A5C10716EFB828007806EC /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = E9A5C10516EFB828007806EC /* main.mm */; };
 		E9ED4F6E1696091E00DAD683 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ED4F6D1696091E00DAD683 /* Cocoa.framework */; };
 		E9ED4FA4169609B400DAD683 /* RNAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E9ED4F9D169609B400DAD683 /* RNAppDelegate.mm */; };
 		E9ED4FA5169609B400DAD683 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = E9ED4F9F169609B400DAD683 /* MainMenu.xib */; };
@@ -51,6 +52,7 @@
 		E91B886E1697551E001B7F22 /* Engine Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "Engine Resources"; path = "../../Engine Resources"; sourceTree = "<group>"; };
 		E92A62BA16DF21DF006E68AF /* libRayne.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libRayne.dylib; path = ../../Build/libRayne.dylib; sourceTree = "<group>"; };
 		E9619F701696FD1100DA187E /* Rayne.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rayne.xcodeproj; path = "../../Xcode/OS X/Rayne.xcodeproj"; sourceTree = "<group>"; };
+		E9A5C10516EFB828007806EC /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		E9ED4F6A1696091E00DAD683 /* Rayne Player.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Rayne Player.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9ED4F6D1696091E00DAD683 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		E9ED4F701696091E00DAD683 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -148,6 +150,7 @@
 		E9ED4FA0169609B400DAD683 /* Supporting files */ = {
 			isa = PBXGroup;
 			children = (
+				E9A5C10516EFB828007806EC /* main.mm */,
 				E9ED4FA2169609B400DAD683 /* Rayne Player-Info.plist */,
 				E9ED4FA3169609B400DAD683 /* Rayne Player-Prefix.pch */,
 			);
@@ -255,6 +258,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E9ED4FA4169609B400DAD683 /* RNAppDelegate.mm in Sources */,
+				E9A5C10716EFB828007806EC /* main.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

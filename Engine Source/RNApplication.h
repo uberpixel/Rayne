@@ -26,6 +26,12 @@ namespace RN
 		
 		virtual void GameUpdate(float delta);
 		virtual void WorldUpdate(float delta);
+		
+		void SetTitle(const std::string& title);
+		const std::string& Title() const { return _title; }
+		
+	protected:
+		std::string _title;
 	};
 }
 

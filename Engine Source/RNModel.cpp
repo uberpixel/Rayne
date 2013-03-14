@@ -304,11 +304,14 @@ namespace RN
 				meshDescriptor.offset += sizeof(Vector4);
 			}
 			
-			float *vertexdata = new float[meshDescriptor.offset/sizeof(float)*numverts];
-			file->ReadIntoBuffer(vertexdata, meshDescriptor.offset*numverts);
+			size_t size = meshDescriptor.offset * numverts;
+			
+			uint8 *vertexdata = new uint8[size];
+			file->ReadIntoBuffer(vertexdata, meshDescriptor.offset * numverts);
 			
 			uint32 numindices = file->ReadUint32();
 			uint8 sizeindices = file->ReadUint8();
+			
 			meshDescriptor.feature = kMeshFeatureIndices;
 			meshDescriptor.elementCount = numindices;
 			meshDescriptor.elementSize = sizeindices;
@@ -318,11 +321,12 @@ namespace RN
 			
 			Mesh *mesh = new Mesh();
 			MeshLODStage *stage = mesh->AddLODStage(descriptors, vertexdata);
-			delete[] vertexdata;
-			void *indices = stage->Data<void>(kMeshFeatureIndices);
 			
-			file->ReadIntoBuffer(indices, numindices*sizeindices);
+			file->ReadIntoBuffer(stage->Data<void>(kMeshFeatureIndices), numindices*sizeindices);
+			
 			mesh->UpdateMesh();
+			
+			delete[] vertexdata;
 			
 			group.mesh = mesh;
 			group.material = material;

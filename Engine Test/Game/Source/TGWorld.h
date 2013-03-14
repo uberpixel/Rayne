@@ -35,6 +35,7 @@ namespace TG
 		RN::Entity *_childBlock;
 		
 		RN::Entity *_spruce;
+		RN::LightEntity *_spotLight;
 		
 		RN::Skeleton *_girlskeleton;
 		RN::Skeleton *_zombieskeleton;

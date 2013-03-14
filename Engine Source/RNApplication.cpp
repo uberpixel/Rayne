@@ -40,4 +40,9 @@ namespace RN
 	void Application::WorldUpdate(float delta)
 	{
 	}
+	
+	void Application::SetTitle(const std::string& title)
+	{
+		_title = title;
+	}
 }

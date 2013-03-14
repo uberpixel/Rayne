@@ -8,7 +8,7 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureLights      1
+#define TGWorldFeatureLights      0
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing  0
 #define TGWorldFeatureAnimations  0

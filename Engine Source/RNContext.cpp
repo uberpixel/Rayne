@@ -47,9 +47,6 @@ namespace RN
 
 		_cglContext = (CGLContextObj)[(NSOpenGLContext *)_oglContext CGLContextObj];
 		
-		GLint sync = 1;
-		CGLSetParameter((CGLContextObj)_cglContext, kCGLCPSwapInterval, &sync);
-
 		if(_shared)
 		{
 			// Enable the multithreaded OpenGL Engine

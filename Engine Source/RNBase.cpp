@@ -52,37 +52,6 @@ namespace RN
 		
 }
 
-#if RN_PLATFORM_MAC_OS
-
-#include "RNFile.h"
-
-int main(int argc, char *argv[])
-{
-	int result = 0;
-	
-	for(int i=1; i<argc; i++)
-	{
-		if(strcmp(argv[i], "-r") == 0 && i < argc - 1)
-		{
-			char *path = argv[++ i];
-			RN::File::AddSearchPath(path);
-		}
-	}
-	
-	try
-	{
-		result = NSApplicationMain(argc, (const char **)argv);
-	}
-	catch(RN::ErrorException e)
-	{
-		__HandleExcption(e);
-	}
-	
-	return result;
-}
-
-#endif
-
 #if RN_PLATFORM_IOS
 
 int main(int argc, char *argv[])

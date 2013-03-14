@@ -29,18 +29,17 @@ namespace RN
 #if RN_PLATFORM_LINUX
 		XInitThreads();
 #endif
-		
 		_mainThread = new Thread();
 		
 		AutoreleasePool *pool = new AutoreleasePool();
 		Settings::SharedInstance();
+		ThreadPool::SharedInstance();
 
 		_context = new class Context();
 		_context->MakeActiveContext();
 
 		ReadOpenGLExtensions();
-		ThreadPool::SharedInstance();
-
+		
 		_scaleFactor = 1.0f;
 
 #if RN_PLATFORM_IOS
@@ -52,12 +51,12 @@ namespace RN
 			_scaleFactor = [NSScreen mainScreen].backingScaleFactor;
 		}
 #endif
-
+		
 		_renderer = new RenderingPipeline();
 		_input    = Input::SharedInstance();
 
-		_world  = 0;
-		_window = 0;
+		_world = 0;
+		_window = Window::SharedInstance();
 
 		_delta = 0.0f;
 		_time  = 0.0f;
@@ -73,15 +72,17 @@ namespace RN
 		LoadApplicationModule(Settings::SharedInstance()->GameModule());
 		ModuleCoordinator::SharedInstance();
 		
+		_context->DeactivateContext();
+		
 		delete pool;
 	}
 
 	Kernel::~Kernel()
 	{
 		AutoreleasePool *pool = new AutoreleasePool();
-
+		
+		_context->MakeActiveContext();
 		_app->WillExit();
-		_window->Release();
 
 		delete _renderer;
 		delete _app;
@@ -127,14 +128,12 @@ namespace RN
 
 	void Kernel::Initialize()
 	{
-		if(!_window)
-		{
-			_window = new class Window("Rayne", this);
-			_window->SetContext(_context);
-			_window->Show();
-		}
-
+		_context->MakeActiveContext();
+		
 		_app->Start();
+		_window->SetTitle(_app->Title());
+		
+		_context->DeactivateContext();
 	}
 
 	bool Kernel::Tick()
@@ -198,14 +197,6 @@ namespace RN
 			_shouldExit = true;
 	}
 
-
-	void Kernel::SetContext(class Context *context)
-	{
-		_context->Release();
-		_context = context->Retain<class Context>();
-
-		_window->SetContext(_context);
-	}
 
 	void Kernel::SetWorld(World *world)
 	{
