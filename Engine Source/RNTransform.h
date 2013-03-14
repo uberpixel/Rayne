@@ -33,9 +33,9 @@ namespace RN
 		
 		TransformType Type() const { return _type; }
 		
-		virtual void Translate(const Vector3& trans);
-		virtual void Scale(const Vector3& scal);
-		virtual void Rotate(const Vector3& rot);
+		void Translate(const Vector3& trans, bool local=false);
+		void Scale(const Vector3& scal);
+		void Rotate(const Vector3& rot);
 		
 		virtual void SetPosition(const Vector3& pos);
 		virtual void SetScale(const Vector3& scal);
@@ -130,8 +130,19 @@ namespace RN
 	
 	
 	
-	RN_INLINE void Transform::Translate(const Vector3& trans)
+	RN_INLINE void Transform::Translate(const Vector3& trans, bool local)
 	{
+		if(local)
+		{
+			Matrix rotation;
+			rotation.MakeRotate(_rotation);
+			
+			_position += rotation.Transform(trans);
+			
+			DidUpdate();
+			return;
+		}
+		
 		_position += trans;
 		DidUpdate();
 	}
