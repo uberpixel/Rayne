@@ -14,6 +14,7 @@
 #include "RNAutoreleasePool.h"
 #include "RNModule.h"
 #include "RNCache.h"
+#include "RNThreadPool.h"
 
 #include "RNKernel.h"
 #include "RNApplication.h"
