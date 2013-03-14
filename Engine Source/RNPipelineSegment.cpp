@@ -24,6 +24,17 @@ namespace RN
 	
 	PipelineSegment::~PipelineSegment()
 	{
+		Exit();
+	}
+	
+	void PipelineSegment::SetThread(Thread *thread)
+	{
+		RN_ASSERT(!_thread, "The thread of a PipelineSegment can't be replaced!");
+		_thread = thread->Retain<Thread>();
+	}
+	
+	void PipelineSegment::Exit()
+	{
 		if(_thread)
 		{
 			_thread->Cancel();
@@ -36,13 +47,8 @@ namespace RN
 			} while(running);
 			
 			_thread->Release();
+			_thread = 0;
 		}
-	}
-	
-	void PipelineSegment::SetThread(Thread *thread)
-	{
-		RN_ASSERT(!_thread, "The thread of a PipelineSegment can't be replaced!");
-		_thread = thread->Retain<Thread>();
 	}
 	
 	void PipelineSegment::WorkLoop()

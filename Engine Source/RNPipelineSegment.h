@@ -35,6 +35,8 @@ namespace RN
 	protected:
 		bool WaitForWork();
 		void SetThread(Thread *thread);
+		void Exit();
+		TaskID CurrentTask() const { return _task; }
 		
 		virtual void WorkOnTask(TaskID task, float delta) = 0;
 		virtual void WorkLoop();

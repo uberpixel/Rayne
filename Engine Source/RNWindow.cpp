@@ -24,14 +24,11 @@
 @interface RNNativeWindow : NSWindow <NSWindowDelegate>
 {
 	NSOpenGLView *_openGLView;
-	BOOL _needsResize;
 }
 
-@property (nonatomic, assign) BOOL needsResize;
 @end
 
 @implementation RNNativeWindow
-@synthesize needsResize = _needsResize;
 
 - (BOOL)windowShouldClose:(id)sender
 {
@@ -92,8 +89,6 @@
 
 		[self setContentView:_openGLView];
 		[self setDelegate:self];
-
-		_needsResize = YES;
 	}
 
 	return self;
@@ -507,14 +502,7 @@ namespace RN
 
 	Window::~Window()
 	{
-		_thread->Cancel();
-		
-		volatile bool running;
-		
-		do {
-			running = _thread->IsRunning();
-			std::this_thread::sleep_for(std::chrono::nanoseconds(100));
-		} while(running);
+		_renderer->Exit();
 		
 		_context->Release();
 		_thread->Release();
@@ -549,6 +537,8 @@ namespace RN
 	
 	void Window::SetConfiguration(WindowConfiguration *configuration, WindowMask mask)
 	{
+		_renderer->WaitForTaskCompletion(_renderer->CurrentTask());
+		
 		uint32 width  = configuration->Width();
 		uint32 height = configuration->Height();
 		
@@ -570,9 +560,8 @@ namespace RN
 		else
 		{
 			NSUInteger windowStyleMask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
-			_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSZeroRect andStyleMask:windowStyleMask];
+			_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, configuration->Width(), configuration->Height()) andStyleMask:windowStyleMask];
 			
-			[(RNNativeWindow *)_nativeWindow setContentSize:NSMakeSize(configuration->Width(), configuration->Height())];
 			[(RNNativeWindow *)_nativeWindow center];
 			
 			_renderer->SetDefaultFrame(width, height);
