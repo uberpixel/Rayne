@@ -47,6 +47,9 @@ namespace RN
 	
 	Transform::~Transform()
 	{
+		if(_parent)
+			_parent->DetachChild(this);
+		
 		World::SharedInstance()->RemoveTransform(this);
 	}
 	
