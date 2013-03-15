@@ -43,6 +43,7 @@ namespace RN
 		
 		void SetModel(Model *model);
 		void SetSkeleton(class Skeleton *skeleton);
+		void SetAction(const std::function<void (Entity *, float)>& action);
 		
 		EntityType Type() const {return _type;}
 		Model *Model() const { return _model; }
@@ -54,7 +55,9 @@ namespace RN
 	private:
 		class Model *_model;
 		class Skeleton *_skeleton;
+		
 		EntityType _type;
+		std::function<void (Entity *, float)> _action;
 	};
 }
 

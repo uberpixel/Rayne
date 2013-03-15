@@ -27,7 +27,7 @@ namespace TG
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
 		_camera->ActivateTiledLightLists((RN::Texture *)1);
 		_camera->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
-				
+		
 		CreateWorld();
 		
 		RN::Input::SharedInstance()->Activate();
@@ -101,7 +101,7 @@ namespace TG
 					rotation.x = i->initialLocation.x - i->location.x;
 					rotation.z = i->initialLocation.y - i->location.y;
 				}
-						
+				
 				if(i->uniqueID == _touchLeft)
 				{
 					translation.x = i->initialLocation.x - i->location.x;
@@ -113,11 +113,6 @@ namespace TG
 		rotation *= delta;
 		translation *= 0.2f;
 #endif
-		
-		_parentBlock->Rotate(RN::Vector3(0.0f, 64.0f * delta, 0.0f));
-		
-		_childBlock->Rotate(RN::Vector3(32.0f * delta, 0.0f, 32.0f * delta));
-		_childBlock->SetPosition(RN::Vector3(0.0f, 2.0f + (sinf(RN::Kernel::SharedInstance()->Time())), 0.0f));
 		
 #if TGWorldFeatureAnimations
 		_girlskeleton->Update(delta*24.0f);
@@ -175,8 +170,15 @@ namespace TG
 		
 		_childBlock = new RN::Entity();
 		_childBlock->SetModel(blockModel);
+		_childBlock->SetAction([](RN::Entity *entity, float delta) {
+			entity->Rotate(RN::Vector3(32.0f * delta, 0.0f, 32.0f * delta));
+			entity->SetPosition(RN::Vector3(0.0f, 2.0f + (sinf(RN::Kernel::SharedInstance()->Time())), 0.0f));
+		});
 		
 		_parentBlock->AttachChild(_childBlock);
+		_parentBlock->SetAction([](RN::Entity *entity, float delta) {
+			entity->Rotate(RN::Vector3(0.0f, 64.0f * delta, 0.0f));
+		});
 		
 #if TGWorldFeatureAnimations
 		RN::Model *girlmodel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
