@@ -8,10 +8,10 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureLights      0
+#define TGWorldFeatureLights        0
 #define TGWorldFeatureNormalMapping 0
-#define TGWorldFeatureInstancing  0
-#define TGWorldFeatureAnimations  0
+#define TGWorldFeatureInstancing    0
+#define TGWorldFeatureAnimations    0
 
 namespace TG
 {
@@ -57,16 +57,15 @@ namespace TG
 		
 #if TGWorldFeatureLights
 		static bool fpressed = false;
+		
 		if(input->KeyPressed('f'))
 		{
 			if(!fpressed)
 			{
 				fpressed = true;
-				RN::LightEntity *child = (RN::LightEntity*)_camera->ChildAtIndex(0);
-				if(child->Range() < 1.0f)
-					child->SetRange(300.0f);
-				else
-					child->SetRange(0.0f);
+				
+				RN::LightEntity *child = _camera->ChildAtIndex<RN::LightEntity>(0);
+				child->SetRange((child->Range() < 1.0f) ? 300.0f : 0.0f);
 			}
 		}
 		else

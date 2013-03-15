@@ -14,12 +14,12 @@
 
 namespace RN
 {
-	template <class T, bool B>
+	template <typename T, bool B>
 	class __ArrayCore : public Object
 	{
 	};
 	
-	template <class T>
+	template <typename T>
 	class __ArrayStore
 	{
 	public:
@@ -234,7 +234,7 @@ namespace RN
 	};
 	
 	
-	template <class T>
+	template <typename T>
 	class __ArrayCore<T, false> : public __ArrayStore<T>, public Object
 	{
 	public:
@@ -368,7 +368,7 @@ namespace RN
 	};
 	
 	
-	template <class T>
+	template <typename T>
 	class __ArrayCore<T, true> : public __ArrayStore<T *>, public Object
 	{
 	public:

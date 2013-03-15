@@ -19,7 +19,7 @@ namespace RN
 		RNAPI Object();
 		RNAPI virtual ~Object();
 		
-		template <class T=Object>
+		template <typename T=Object>
 		RNAPI T *Retain()
 		{
 			static_assert(std::is_base_of<Object, T>::value, "Release called with incompatible class");
@@ -27,7 +27,7 @@ namespace RN
 			return static_cast<T *>(CoreRetain());
 		}
 		
-		template <class T=Object>
+		template <typename T=Object>
 		RNAPI T *Release()
 		{
 			static_assert(std::is_base_of<Object, T>::value, "Release called with incompatible class");
@@ -35,7 +35,7 @@ namespace RN
 			return static_cast<T *>(CoreRelease());
 		}
 		
-		template <class T=Object>
+		template <typename T=Object>
 		RNAPI T *Autorelease()
 		{
 			static_assert(std::is_base_of<Object, T>::value, "Release called with incompatible class");

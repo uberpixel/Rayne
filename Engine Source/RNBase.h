@@ -144,7 +144,7 @@ namespace RN
 
 	RNAPI RN_NORETURN void __HandleExcption(const ErrorException& e);
 	
-	template <class T>
+	template <typename T>
 	class Singleton
 	{
 	public:
@@ -170,10 +170,10 @@ namespace RN
 		static T *_instance;
 	};
 
-	template <class T>
+	template <typename T>
 	T * Singleton<T>::_instance = 0;
 
-	template <class T>
+	template <typename T>
 	class NonConstructingSingleton
 	{
 	public:
@@ -198,7 +198,7 @@ namespace RN
 		static T *_instance;
 	};
 
-	template <class T>
+	template <typename T>
 	T * NonConstructingSingleton<T>::_instance = 0;
 }
 
