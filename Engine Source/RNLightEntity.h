@@ -32,7 +32,6 @@ namespace RN
 		
 		virtual ~LightEntity();
 		
-		virtual void PostUpdate();
 		virtual bool IsVisibleInCamera(Camera *camera);
 		
 		void SetRange(float range);
@@ -40,20 +39,20 @@ namespace RN
 		void SetAngle(float angle);
 		
 		const Type LightType() { return _lightType; }
-		const Past<Vector3>& Color() { return _color; }
-		const Past<float> Range() { return _range; }
-		const Past<Vector3>& Direction() { return _direction; }
-		const Past<float> Angle() { return _angle; }
+		const Vector3& Color() { return _color; }
+		const float Range() { return _range; }
+		const Vector3& Direction() { return _direction; }
+		const float Angle() { return _angle; }
 		
 	protected:
 		virtual void DidUpdate();
 		
 	private:
 		Type _lightType;
-		Past<Vector3> _color;
-		Past<float> _range;
-		Past<Vector3> _direction;
-		Past<float> _angle;
+		Vector3 _color;
+		float _range;
+		Vector3 _direction;
+		float _angle;
 	};
 }
 

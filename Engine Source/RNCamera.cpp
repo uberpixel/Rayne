@@ -665,17 +665,10 @@ namespace RN
 	
 	void Camera::PostUpdate()
 	{
-		Transform::PostUpdate();
 		UpdateFrustum();
 		
 		inverseViewMatrix = WorldTransform();
-		viewMatrix = inverseViewMatrix->Inverse();
-		
-		projectionMatrix.SynchronizePast();
-		inverseProjectionMatrix.SynchronizePast();
-		
-		viewMatrix.SynchronizePast();
-		inverseViewMatrix.SynchronizePast();
+		viewMatrix = inverseViewMatrix.Inverse();
 		
 		if(_flags & FlagFullscreen)
 		{
@@ -705,8 +698,8 @@ namespace RN
 		if(_flags & FlagUpdateAspect)
 			aspect = _frame.width / _frame.height;
 
-		projectionMatrix->MakeProjectionPerspective(fov, aspect, clipnear, clipfar);
-		inverseProjectionMatrix->MakeInverseProjectionPerspective(fov, aspect, clipnear, clipfar);
+		projectionMatrix.MakeProjectionPerspective(fov, aspect, clipnear, clipfar);
+		inverseProjectionMatrix.MakeInverseProjectionPerspective(fov, aspect, clipnear, clipfar);
 
 		if(_stage && _stage->_flags & FlagInheritProjection)
 		{
@@ -723,14 +716,14 @@ namespace RN
 	Vector3 Camera::CamToWorld(Vector3 dir)
 	{
 		Vector4 vec(dir.x, dir.y, dir.z, 1.0f);
-		vec = inverseProjectionMatrix->Transform(vec);
+		vec = inverseProjectionMatrix.Transform(vec);
 		vec /= vec.w;
 
 		Vector3 temp;
 		temp.x = vec.x;
 		temp.y = vec.y;
 		temp.z = vec.z;
-		temp = inverseViewMatrix->Transform(temp);
+		temp = inverseViewMatrix.Transform(temp);
 		return temp;
 	}
 
@@ -743,12 +736,12 @@ namespace RN
 
 		Vector3 vmax;
 		Vector3 vmin;
-		vmax.x = fmax(_position->x, fmax(pos2.x, fmax(pos3.x, fmax(pos5.x, pos6.x))));
-		vmax.y = fmax(_position->y, fmax(pos2.y, fmax(pos3.y, fmax(pos5.y, pos6.y))));
-		vmax.z = fmax(_position->z, fmax(pos2.z, fmax(pos3.z, fmax(pos5.z, pos6.z))));
-		vmin.x = fmin(_position->x, fmin(pos2.x, fmin(pos3.x, fmin(pos5.x, pos6.x))));
-		vmin.y = fmin(_position->y, fmin(pos2.y, fmin(pos3.y, fmin(pos5.y, pos6.y))));
-		vmin.z = fmin(_position->z, fmin(pos2.z, fmin(pos3.z, fmin(pos5.z, pos6.z))));
+		vmax.x = fmax(_position.x, fmax(pos2.x, fmax(pos3.x, fmax(pos5.x, pos6.x))));
+		vmax.y = fmax(_position.y, fmax(pos2.y, fmax(pos3.y, fmax(pos5.y, pos6.y))));
+		vmax.z = fmax(_position.z, fmax(pos2.z, fmax(pos3.z, fmax(pos5.z, pos6.z))));
+		vmin.x = fmin(_position.x, fmin(pos2.x, fmin(pos3.x, fmin(pos5.x, pos6.x))));
+		vmin.y = fmin(_position.y, fmin(pos2.y, fmin(pos3.y, fmin(pos5.y, pos6.y))));
+		vmin.z = fmin(_position.z, fmin(pos2.z, fmin(pos3.z, fmin(pos5.z, pos6.z))));
 
 		_frustumCenter = vmax+vmin;
 		_frustumCenter = _frustumCenter*0.5f;

@@ -48,26 +48,15 @@ namespace RN
 		_skeleton->Release();
 	}
 	
-	
-	
 	void Entity::Update(float delta)
 	{
 		Transform::Update(delta);
 	}
 	
-	void Entity::PostUpdate()
-	{
-		Transform::PostUpdate();
-		if(_skeleton)
-			_skeleton->PostUpdate();
-	}
-	
-	
 	bool Entity::IsVisibleInCamera(Camera *camera)
 	{
 		return true;
 	}
-	
 	
 	void Entity::SetModel(class Model *model)
 	{

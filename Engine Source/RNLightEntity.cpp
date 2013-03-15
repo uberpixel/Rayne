@@ -32,26 +32,11 @@ namespace RN
 	
 	LightEntity::~LightEntity()
 	{}
-	
-	
-	void LightEntity::PostUpdate()
-	{
-		Entity::PostUpdate();
-		
-		_color.SynchronizePast();
-		_range.SynchronizePast();
-		
-		if(_lightType == TypeSpotLight)
-		{
-			_direction.SynchronizePast();
-			_angle.SynchronizePast();
-		}
-	}
 
 	void LightEntity::DidUpdate()
 	{
 		Entity::DidUpdate();
-		_direction = WorldRotation()->RotateVector3(Vector3(0.0, 0.0, -1.0));
+		_direction = WorldRotation().RotateVector3(Vector3(0.0, 0.0, -1.0));
 	}
 	
 	bool LightEntity::IsVisibleInCamera(Camera *camera)

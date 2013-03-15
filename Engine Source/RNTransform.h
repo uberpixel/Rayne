@@ -14,7 +14,6 @@
 #include "RNQuaternion.h"
 #include "RNVector.h"
 #include "RNArray.h"
-#include "RNSynchronization.h"
 
 namespace RN
 {
@@ -41,15 +40,15 @@ namespace RN
 		virtual void SetScale(const Vector3& scal);
 		virtual void SetRotation(const Quaternion& rot);
 		
-		const Past<Vector3>& Position() const { return _position; }
-		const Past<Vector3>& Scale() const { return _scale; }
-		const Past<Vector3>& EulerAngle() const { return _euler; }
-		const Past<Quaternion>& Rotation() const { return _rotation; }
+		const Vector3& Position() const { return _position; }
+		const Vector3& Scale() const { return _scale; }
+		const Vector3& EulerAngle() const { return _euler; }
+		const Quaternion& Rotation() const { return _rotation; }
 		
-		const Past<Vector3>& WorldPosition() const { return _worldPosition; }
-		const Past<Vector3>& WorldScale() const { return _worldScale; }
-		const Past<Vector3>& WorldEulerAngle() const { return _worldEuler; }
-		const Past<Quaternion>& WorldRotation() const { return _worldRotation; }
+		const Vector3& WorldPosition() const { return _worldPosition; }
+		const Vector3& WorldScale() const { return _worldScale; }
+		const Vector3& WorldEulerAngle() const { return _worldEuler; }
+		const Quaternion& WorldRotation() const { return _worldRotation; }
 		
 		void AttachChild(Transform *child);
 		void DetachChild(Transform *child);
@@ -59,8 +58,8 @@ namespace RN
 		machine_uint Childs() const { return _childs.Count(); }
 		Transform *ChildAtIndex(machine_uint index) const { return _childs.ObjectAtIndex(index); }
 		
-		const Past<Matrix>& WorldTransform() { return _worldTransform; }
-		const Past<Matrix>& LocalTransform() { return _localTransform; }
+		const Matrix& WorldTransform() { return _worldTransform; }
+		const Matrix& LocalTransform() { return _localTransform; }
 		
 		virtual void Update(float delta)
 		{
@@ -72,31 +71,6 @@ namespace RN
 			}
 		}
 		
-		virtual void PostUpdate()
-		{
-			_position.SynchronizePast();
-			_scale.SynchronizePast();
-			_rotation.SynchronizePast();
-			_euler.SynchronizePast();
-			
-			_worldPosition.SynchronizePast();
-			_worldScale.SynchronizePast();
-			_worldRotation.SynchronizePast();
-			_worldEuler.SynchronizePast();
-			
-			_worldTransform.SynchronizePast();
-			_localTransform.SynchronizePast();
-			
-			_pastWorldTransform = _worldTransform.AccessPast();
-			
-			machine_uint count = _childs.Count();
-			for(machine_uint i=0; i<count; i++)
-			{
-				Transform *child = _childs.ObjectAtIndex(i);
-				child->PostUpdate();
-			}
-		}
-		
 	protected:
 		Transform(TransformType type);
 		Transform(TransformType type, const Vector3& position);
@@ -104,28 +78,24 @@ namespace RN
 		
 		virtual void DidUpdate();
 		
-		Past<Vector3> _position;
-		Past<Vector3> _scale;
-		Past<Quaternion> _rotation;
-		Past<Vector3> _euler;	//there has to be a way to fix this in the quaternion class somehow...
+		Vector3 _position;
+		Vector3 _scale;
+		Quaternion _rotation;
+		Vector3 _euler;	//there has to be a way to fix this in the quaternion class somehow...
 		
 	private:
-		const Matrix *PastWorldTransform() const { return &_pastWorldTransform; }
-		
 		Transform *_parent;
 		Array<Transform *> _childs;
 		
 		TransformType _type;
 		
-		Past<Vector3> _worldPosition;
-		Past<Quaternion> _worldRotation;
-		Past<Vector3> _worldScale;
-		Past<Vector3> _worldEuler;
+		Vector3 _worldPosition;
+		Quaternion _worldRotation;
+		Vector3 _worldScale;
+		Vector3 _worldEuler;
 		
-		Past<Matrix> _worldTransform;
-		Past<Matrix> _localTransform;
-		
-		Matrix _pastWorldTransform;
+		Matrix _worldTransform;
+		Matrix _localTransform;
 	};
 	
 	
@@ -185,13 +155,13 @@ namespace RN
 	
 	RN_INLINE void Transform::DidUpdate()
 	{
-		_localTransform->MakeTranslate(_position);
-		_localTransform->Rotate(_rotation);
-		_localTransform->Scale(_scale);
+		_localTransform.MakeTranslate(_position);
+		_localTransform.Rotate(_rotation);
+		_localTransform.Scale(_scale);
 		
 		if(_parent)
 		{
-			_worldPosition = _parent->_worldPosition + _parent->_worldRotation->RotateVector3(_position);
+			_worldPosition = _parent->_worldPosition + _parent->_worldRotation.RotateVector3(_position);
 			_worldRotation = _parent->_worldRotation * _rotation;
 			_worldScale = _parent->_worldScale + _scale;
 			_worldEuler = _parent->_worldEuler + _euler;

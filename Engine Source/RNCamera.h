@@ -11,7 +11,6 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNSynchronization.h"
 #include "RNArray.h"
 #include "RNRenderingResource.h"
 #include "RNTexture.h"
@@ -184,15 +183,15 @@ namespace RN
 		
 		bool AllowsDepthWrite() const { return _allowDepthWrite; }
 		
-		Past<Matrix> projectionMatrix;
-		Past<Matrix> inverseProjectionMatrix;
-		Past<Matrix> viewMatrix;
-		Past<Matrix> inverseViewMatrix;
-		
 		float fov;
 		float aspect;
 		float clipnear;
 		float clipfar;
+		
+		Matrix projectionMatrix;
+		Matrix inverseProjectionMatrix;
+		Matrix viewMatrix;
+		Matrix inverseViewMatrix;
 		
 	protected:
 		void Initialize();

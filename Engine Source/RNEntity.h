@@ -39,7 +39,6 @@ namespace RN
 		virtual ~Entity();
 		
 		virtual void Update(float delta);
-		virtual void PostUpdate();
 		virtual bool IsVisibleInCamera(Camera *camera);
 		
 		void SetModel(Model *model);
