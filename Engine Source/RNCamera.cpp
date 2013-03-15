@@ -149,37 +149,41 @@ namespace RN
 			switch(status)
 			{
 				case GL_FRAMEBUFFER_UNDEFINED:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferUndefined);
+					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferUndefined, "GL_FRAMEBUFFER_UNDEFINED");
 					break;
 
 				case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteAttachment);
+					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteAttachment, "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
 					break;
 
 				case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteMissingAttachment);
+					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteMissingAttachment, "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
 					break;
 
 				case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteDrawBuffer);
+					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteDrawBuffer, "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER");
 					break;
 
 				case GL_FRAMEBUFFER_UNSUPPORTED:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferUnsupported);
+					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferUnsupported, "GL_FRAMEBUFFER_UNSUPPORTED");
 					break;
 
 				case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteMultisample);
+					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteMultisample, "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
 					break;
 
 				case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteLayerTargets);
+					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteLayerTargets, "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS");
 					break;
 
 				default:
-					printf("Unknown framebuffer status %i\n", status);
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferGenericError);
+				{
+					char buffer[128];
+					sprintf(buffer, "Unknown framebuffer status %i\n", status);
+					
+					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferGenericError, std::string(buffer));
 					break;
+				}
 			}
 		}
 #endif

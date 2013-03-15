@@ -37,6 +37,8 @@
 #include "RNTransform.h"
 #include "RNVector.h"
 
+#include "RNRenderer.h"
+
 #include "RNCamera.h"
 #include "RNContext.h"
 #include "RNMaterial.h"
@@ -52,7 +54,6 @@
 #include "RNThread.h"
 #include "RNThreadPool.h"
 #include "RNSpinLock.h"
-#include "RNSynchronization.h"
 #include "RNWindow.h"
 
 #endif /* __RAYNE_H__ */

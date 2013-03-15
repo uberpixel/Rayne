@@ -382,9 +382,8 @@ namespace RN
 	Window::Window()
 	{
 		_kernel = Kernel::SharedInstance();
-		_renderer = _kernel->Renderer();
+		_context = _kernel->Context();
 		
-		_context = new Context(_kernel->Context());
 		_mask = 0;
 		_activeConfiguration = 0;
 		_cursorVisible = true;
@@ -493,20 +492,10 @@ namespace RN
 		
 		SetTitle("");
 		SetConfiguration(_configurations.ObjectAtIndex(0), _mask);
-
-		_thread = new Thread(std::bind(&Window::RenderLoop, this));
-		_thread->SetName("RenderingPipeline");
-		
-		_renderer->SetThread(_thread);
 	}
 
 	Window::~Window()
 	{
-		_renderer->Exit();
-		
-		_context->Release();
-		_thread->Release();
-
 #if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow release];
 #endif
@@ -537,10 +526,10 @@ namespace RN
 	
 	void Window::SetConfiguration(WindowConfiguration *configuration, WindowMask mask)
 	{
-		_renderer->WaitForTaskCompletion(_renderer->CurrentTask());
-		
 		uint32 width  = configuration->Width();
 		uint32 height = configuration->Height();
+		
+		Renderer *renderer = Renderer::SharedInstance();
 		
 #if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow release];
@@ -555,7 +544,7 @@ namespace RN
 			[(RNNativeWindow *)_nativeWindow setOpaque:YES];
 			[(RNNativeWindow *)_nativeWindow setHidesOnDeactivate:YES];
 			
-			_renderer->SetDefaultFrame(displayRect.size.width, displayRect.size.height);
+			renderer->SetDefaultFrame(displayRect.size.width, displayRect.size.height);
 		}
 		else
 		{
@@ -564,7 +553,7 @@ namespace RN
 			
 			[(RNNativeWindow *)_nativeWindow center];
 			
-			_renderer->SetDefaultFrame(width, height);
+			renderer->SetDefaultFrame(width, height);
 		}
 		
 		[(RNNativeWindow *)_nativeWindow setReleasedWhenClosed:NO];
@@ -597,15 +586,17 @@ namespace RN
 			XRRSetScreenConfigAndRate(_dpy, screenConfig, rootWindow, originalSize, originalRotation, originalRate, CurrentTime);
 				
 			windowAttributes.override_redirect = false;
-			XChangeWindowAttributes(_dpy, engineWindow, CWOverrideRedirect, &windowAttributes);
+			XChangeWindowAttributes(_dpy, _win, CWOverrideRedirect, &windowAttributes);
 			
 			Screen *screen = DefaultScreenOfDisplay(_dpy);
 			
 			uint32 originX = (WidthOfScreen(screen) / 2) - (width / 2);
 			uint32 originY = (HeightOfScreen(screen) / 2) - (height / 2);
 			
-			XMoveResizeWindow(_dpy, engineWindow, originX, oiriginY, width, height);
+			XMoveResizeWindow(_dpy, _win, originX, oiriginY, width, height);
 		}
+		
+		renderer->SetDefaultFrame(width, height);
 		
 		XSizeHints *sizeHints = XAllocSizeHints();
 		
@@ -636,49 +627,6 @@ namespace RN
 		return Rect(0, 0, _activeConfiguration->Width(), _activeConfiguration->Height());
 	}
 
-	void Window::RenderLoop()
-	{
-		_context->MakeActiveContext();
-
-		while(!_thread->IsCancelled())
-		{
-#if RN_PLATFORM_MAC_OS
-			if(!_renderer->WaitForWork())
-				break;
-			
-			CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
-#endif
-	
-#if RN_PLATFORM_LINUX
-			while(XPending(_dpy))
-			{
-				XNextEvent(_dpy, &event);
-				
-				switch(event.type)
-				{
-					case ConfigureNotify:
-					case Expose:
-					case ClientMessage:
-						if(event.xclient.data.l[0] == wmDeleteMessage)
-							RN::Kernel::SharedInstance()->Exit();
-						break;
-						
-					default:
-						Input::SharedInstance()->HandleXInputEvents(&event);
-						break;
-				}
-			}
-			
-			if(!_renderer->WaitForWork())
-				break;
-			
-			glXSwapBuffers(_dpy, _win);
-#endif
-		}
-
-		_context->DeactivateContext();
-	}
-	
 	void Window::ShowCursor()
 	{
 		if(_cursorVisible)

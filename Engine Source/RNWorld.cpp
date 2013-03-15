@@ -21,15 +21,11 @@ namespace RN
 		_kernel = Kernel::SharedInstance();
 		_kernel->SetWorld(this);
 		
-		_renderer = _kernel->Renderer();
-		
-		_physicsTask   = kPipelineSegmentNullTask;
-		_renderingTask = kPipelineSegmentNullTask;
+		_renderer = Renderer::SharedInstance();
 	}
 	
 	World::~World()
 	{
-		_renderer->WaitForTaskCompletion(_renderingTask);
 		_kernel->SetWorld(0);
 	}
 	
@@ -38,7 +34,57 @@ namespace RN
 	void World::Update(float delta)
 	{}
 	
-	void World::BeginUpdate(float delta)
+	void World::TransformsUpdated()
+	{}
+	
+	
+	void World::VisitTransform(Camera *camera, Transform *transform)
+	{
+		if(transform->Type() == Transform::TransformTypeEntity)
+		{
+			Entity *entity = (Entity *)transform;
+			
+			if(entity->IsVisibleInCamera(camera))
+			{
+				if(entity->Model())
+				{
+					Model *model = entity->Model();
+					
+					RenderingObject object;
+					
+					object.transform = (Matrix *)&entity->WorldTransform();
+					object.skeleton  = entity->Skeleton();
+					
+					uint32 count = model->Meshes();
+					for(uint32 i=0; i<count; i++)
+					{
+						object.mesh = model->MeshAtIndex(i);
+						object.material = model->MaterialForMesh(object.mesh);
+						
+						_renderer->RenderObject(object);
+					}
+				}
+				
+				switch(entity->Type())
+				{
+					case Entity::TypeObject:
+						break;
+						
+					case Entity::TypeLight:
+						//LightEntity *light = (LightEntity *)entity;
+						break;
+				}
+			}
+		}
+		
+		for(machine_uint i=0; i<transform->Childs(); i++)
+		{
+			Transform *child = transform->ChildAtIndex(i);
+			VisitTransform(camera, child);
+		}
+	}
+	
+	void World::StepWorld(float delta)
 	{
 		Update(delta);
 		
@@ -49,74 +95,29 @@ namespace RN
 			Transform *transform = *i;
 			
 			pool->AddTask([transform, delta]() {
-				//transform->Update(delta);
-				
-				printf("Transform: %p\n", transform);
+				transform->Update(delta);
 			});
 		}
 		
-		printf("Waiting for tasks to complete...\n");
 		pool->WaitForTasksToComplete();
-		printf("Done..\n");
-	}
-	
-	void World::VisitTransform(Camera *camera, Transform *transform, RenderingGroup *group)
-	{
-		if(transform->Type() == Transform::TransformTypeEntity)
+		TransformsUpdated();
+		
+		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
 		{
-			Entity *entity = (Entity *)transform;
+			Camera *camera = *i;
+			camera->PostUpdate();
 			
-			if(entity->IsVisibleInCamera(camera))
+			_renderer->BeginCamera(camera);
+			
+			for(auto j=_transforms.begin(); j!=_transforms.end(); j++)
 			{
-				if(entity->Model())
-					group->entities.AddObject(entity);
-				
-				switch(entity->Type())
-				{
-					case Entity::TypeObject:
-						break;
-						
-					case Entity::TypeLight:
-						LightEntity *light = (LightEntity *)entity;
-						if(light->LightType() == LightEntity::TypePointLight)
-							group->pointLights.AddObject(light);
-						if(light->LightType() == LightEntity::TypeSpotLight)
-							group->spotLights.AddObject(light);
-						if(light->LightType() == LightEntity::TypeDirectionalLight)
-							group->directionalLights.AddObject(light);
-						break;
-				}
+				Transform *transform = *j;
+				VisitTransform(camera, transform);
 			}
-		}
-		
-		for(machine_uint i=0; i<transform->Childs(); i++)
-		{
-			Transform *child = transform->ChildAtIndex(i);
-			VisitTransform(camera, child, group);
+			
+			_renderer->FlushCamera();
 		}
 	}
-	
-		/*static float renderingTime = 0.0f;
-		static float totalTime = 0.0f;
-		static int count = 0;
-		
-		renderingTime += _renderer->UsedTime();
-		totalTime += delta;
-		count ++;
-		
-		if(totalTime >= 1.0f)
-		{
-			float average = renderingTime / count;
-			
-			printf("Drew %i frames in the last %f seconds. Average frame time: %f\n", count, totalTime, average);
-			
-			renderingTime = totalTime = 0.0f;
-			count = 0;
-		}*/
-		
-		// Begin the new frame
-
-	
 	
 	
 	void World::AddTransform(Transform *transform)

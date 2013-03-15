@@ -51,7 +51,7 @@ namespace RN
 		}
 #endif
 		
-		_renderer = new RenderingPipeline();
+		_renderer = Renderer::SharedInstance();
 		_input    = Input::SharedInstance();
 
 		_world = 0;
@@ -71,31 +71,26 @@ namespace RN
 		LoadApplicationModule(Settings::SharedInstance()->GameModule());
 		ModuleCoordinator::SharedInstance();
 		
-		_context->DeactivateContext();
-		
 		delete pool;
 	}
 
 	Kernel::~Kernel()
 	{
 		AutoreleasePool *pool = new AutoreleasePool();
-		
-		_context->MakeActiveContext();
 		_app->WillExit();
 
 		delete _renderer;
 		delete _app;
 
-		#if RN_PLATFORM_LINUX
-		// close display after last context
+#if RN_PLATFORM_LINUX
 		Display *dpy = Context::_dpy;
-		#endif
+#endif
 		
 		_context->Release();
 		
-		#if RN_PLATFORM_LINUX
+#if RN_PLATFORM_LINUX
 		XCloseDisplay(dpy);
-		#endif
+#endif
 
 		delete pool;
 		_mainThread->Exit();
@@ -136,12 +131,8 @@ namespace RN
 
 	void Kernel::Initialize()
 	{
-		_context->MakeActiveContext();
-		
 		_app->Start();
 		_window->SetTitle(_app->Title());
-		
-		_context->DeactivateContext();
 	}
 
 	bool Kernel::Tick()
@@ -178,20 +169,66 @@ namespace RN
 			DispatchMessageA(&message);
 		}
 #endif
+		
+		_renderer->BeginFrame(_delta);
 
 		if(_world)
 		{
-			_context->MakeActiveContext();
-
 			Application::SharedInstance()->GameUpdate(_delta);
-			_world->BeginUpdate(_delta);
+			
+			_world->StepWorld(_delta);
 			_input->DispatchInputEvents();
 
 			Application::SharedInstance()->WorldUpdate(_delta);
-
-			_context->DeactivateContext();
 		}
-
+		
+		_renderer->FinishFrame();
+		
+#if RN_PLATFORM_MAC_OS
+		CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
+#endif
+		
+#if RN_PLATFORM_LINUX
+		while(XPending(_context->_dpy))
+		{
+			XNextEvent(_context->_dpy, &event);
+			
+			switch(event.type)
+			{
+				case ConfigureNotify:
+				case Expose:
+				case ClientMessage:
+					if(event.xclient.data.l[0] == wmDeleteMessage)
+						Exit();
+					break;
+					
+				default:
+					_input->HandleXInputEvents(&event);
+					break;
+			}
+		}
+		
+		
+		glXSwapBuffers(_context->_dpy, _context->_win);
+#endif
+		
+		
+		static float totalTime = 0.0f;
+		static int count = 0;
+		
+		totalTime += _delta;
+		count ++;
+		
+		if(totalTime >= 1.0f)
+		{
+			float average = totalTime / count;
+			
+			printf("Drew %i frames in the last %f seconds. Average frame time: %f\n", count, totalTime, average);
+			
+			totalTime = 0.0f;
+			count = 0;
+		}
+		
 		_lastFrame = now;
 
 		delete pool;

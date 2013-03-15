@@ -115,7 +115,7 @@ namespace RN
 		{
 			std::unique_lock<std::mutex> lock(_taskMutex);
 			Thread *thread = Thread::CurrentThread();
-			Context *context = new Context(Kernel::SharedInstance()->Context());
+			//Context *context = new Context(Kernel::SharedInstance()->Context());
 			
 			while(1)
 			{
@@ -141,7 +141,7 @@ namespace RN
 				_waitCondition.notify_all();
 			}
 			
-			delete context;
+			//delete context;
 		}
 		
 	private:

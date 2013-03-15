@@ -13,7 +13,6 @@
 
 #include "RNObject.h"
 #include "RNContext.h"
-#include "RNRenderingPipeline.h"
 
 namespace RN
 {
@@ -74,8 +73,6 @@ namespace RN
 		Rect Frame() const;
 
 	private:
-		void RenderLoop();
-
 #if RN_PLATFORM_MAC_OS
 		void *_nativeWindow;
 #endif
@@ -99,9 +96,7 @@ namespace RN
 #endif
 
 		Context *_context;
-		RenderingPipeline *_renderer;
 		Kernel *_kernel;
-		Thread *_thread;
 		
 		std::string _title;
 		bool _cursorVisible;

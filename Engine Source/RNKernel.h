@@ -13,7 +13,7 @@
 #include "RNObject.h"
 #include "RNApplication.h"
 #include "RNRenderingResource.h"
-#include "RNRenderingPipeline.h"
+#include "RNRenderer.h"
 #include "RNWindow.h"
 #include "RNInput.h"
 
@@ -36,7 +36,6 @@ namespace RN
 
 		float ScaleFactor() const { return _scaleFactor; }
 
-		RenderingPipeline *Renderer() const { return _renderer; }
 		Window *Window() const { return _window; }
 		Context *Context() const { return _context; }
 
@@ -57,7 +56,8 @@ namespace RN
 
 		class Window *_window;
 		class Context *_context;
-		RenderingPipeline *_renderer;
+		
+		Renderer *_renderer;
 		Input *_input;
 		World *_world;
 
