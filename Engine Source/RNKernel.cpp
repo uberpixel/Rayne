@@ -188,7 +188,6 @@ namespace RN
 			_input->DispatchInputEvents();
 
 			Application::SharedInstance()->WorldUpdate(_delta);
-			_world->FinishUpdate(_delta);
 
 			_context->DeactivateContext();
 		}

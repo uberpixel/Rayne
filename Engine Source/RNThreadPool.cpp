@@ -12,10 +12,8 @@ namespace RN
 {
 	ThreadCoordinator::ThreadCoordinator()
 	{
-		_baseConcurrency = (machine_int)std::thread::hardware_concurrency();
+		_baseConcurrency = MAX((machine_int)std::thread::hardware_concurrency(), 2);
 		_consumedConcurrency = 0;
-		
-		_baseConcurrency = MAX(_baseConcurrency, 4);
 	}
 	
 	void ThreadCoordinator::ConsumeConcurrency()
@@ -39,5 +37,15 @@ namespace RN
 		_lock.Unlock();
 		
 		return concurrency;
+	}
+	
+	ThreadPool<std::function<void ()>> *ThreadCoordinator::GlobalPool()
+	{
+		static std::once_flag once;
+		std::call_once(once, [this]() {
+			_threadPool = new ThreadPool<std::function<void ()>>(ThreadPool<std::function<void ()>>::PoolTypeConcurrent);
+		});
+		
+		return _threadPool;
 	}
 }

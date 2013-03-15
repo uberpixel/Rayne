@@ -11,19 +11,6 @@
 
 namespace RN
 {
-	OpenGLThreadPool<std::function<void ()>> *AsyncCacheableThreadPool()
-	{
-		static OpenGLThreadPool<std::function<void ()>> *pool;
-		static std::once_flag once;
-		
-		std::call_once(once, [&]() {
-			pool = new OpenGLThreadPool<std::function<void ()>>();
-		});
-		
-		return pool;
-	}
-	
-	
 	AsyncCacheable::AsyncCacheable(bool hasContent)
 	{
 		_hasContent = hasContent;
@@ -44,7 +31,7 @@ namespace RN
 		{
 			_isCreatingContent = true;
 			
-			AsyncCacheableThreadPool()->AddTask([this]() {
+			ThreadCoordinator::SharedInstance()->GlobalPool()->AddTask([this]() {
 				RecreateContent();
 				
 				_contentLock.Lock();

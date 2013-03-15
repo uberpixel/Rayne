@@ -18,13 +18,19 @@
 
 namespace RN
 {
+	template<typename F>
+	class ThreadPool;
+	
 	class ThreadCoordinator : public Singleton<ThreadCoordinator>
 	{
-		friend class Thread;
+	friend class Thread;
 	public:
 		ThreadCoordinator();
 		
 		machine_int AvailableConcurrency();
+		machine_int BaseConcurrency() const { return _baseConcurrency; }
+		
+		ThreadPool<std::function<void ()>> *GlobalPool();
 		
 	private:
 		void ConsumeConcurrency();
@@ -34,6 +40,8 @@ namespace RN
 		
 		machine_int _baseConcurrency;
 		machine_int _consumedConcurrency;
+		
+		ThreadPool<std::function<void ()>> *_threadPool;
 	};
 	
 	template<typename F>
@@ -49,68 +57,89 @@ namespace RN
 		ThreadPool(PoolType type)
 		{
 			_type = type;
+			_running = 0;
+			
+			switch(_type)
+			{
+				case PoolTypeSerial:
+				{
+					Thread *thread = new Thread(std::bind(&ThreadPool::Consumer, this));
+					_threads.AddObject(thread->Autorelease<Thread>());
+					
+					break;
+				}
+					
+				case PoolTypeConcurrent:
+				{
+					machine_uint concurrency = ThreadCoordinator::SharedInstance()->BaseConcurrency();
+					
+					for(machine_uint i=0; i<concurrency; i++)
+					{
+						Thread *thread = new Thread(std::bind(&ThreadPool::Consumer, this));
+						_threads.AddObject(thread->Autorelease<Thread>());
+					}
+					
+					break;
+				}
+			}
 		}
 		
 		virtual ~ThreadPool()
 		{
+			for(machine_uint i=0; i<_threads.Count(); i++)
+			{
+				Thread *thread = _threads.ObjectAtIndex(i);
+				thread->Cancel();
+			}
+			
 			WaitForTasksToComplete();
+			_threads.RemoveAllObjects();
 		}
 		
 		void AddTask(F&& task)
 		{
-			std::unique_lock<std::mutex> lock(_mutex);
+			std::unique_lock<std::mutex> lock(_taskMutex);
 			_tasks.AddObject(task);
 			
-			bool spinUpThread = false;
-			switch(_type)
-			{
-				case PoolTypeSerial:
-					spinUpThread = (_threads.Count() == 0);
-					break;
-					
-				case PoolTypeConcurrent:
-					spinUpThread = (ThreadCoordinator::SharedInstance()->AvailableConcurrency() > 0 || _threads.Count() == 0);
-					break;
-			}
-			
-			if(spinUpThread)
-			{
-				Thread *thread = new Thread(std::bind(&ThreadPool::Consumer, this));
-				_threads.AddObject(thread->Autorelease<Thread>());
-			}
+			_taskCondition.notify_one();
 		}
 		
 		void WaitForTasksToComplete()
 		{
-			std::unique_lock<std::mutex> lock(_mutex);
-			_waitCondition.wait(lock, [&]() { return (_tasks.Count() == 0 && _threads.Count() == 0); });
+			std::unique_lock<std::mutex> lock(_waitMutex);
+			_waitCondition.wait(lock, [&]() { return (_tasks.Count() == 0 && _running == 0); });
 		}
 		
 	protected:
-		virtual void Consumer()
+		void Consumer()
 		{
-			std::unique_lock<std::mutex> lock(_mutex);
-			machine_uint workLeft = _tasks.Count();
+			std::unique_lock<std::mutex> lock(_taskMutex);
+			Thread *thread = Thread::CurrentThread();
+			Context *context = new Context(Kernel::SharedInstance()->Context());
 			
-			while(workLeft > 0)
+			while(1)
 			{
-				F task = _tasks.ObjectAtIndex(0);
-				_tasks.RemoveObjectAtIndex(0);
+				_taskCondition.wait(lock, [&]() { return (_tasks.Count() > 0 || thread->IsCancelled()); });
 				
+				if(thread->IsCancelled())
+					break;
+				
+				
+				F task = _tasks.LastObject();
+				_tasks.RemoveLastObject();
+				
+				_running ++;
 				lock.unlock();
 				
 				task();
 				
 				lock.lock();
 				
-				if(_threads.Count() > 1 && ThreadCoordinator::SharedInstance()->AvailableConcurrency() < 0)
-					break;
-				
-				workLeft = _tasks.Count();
+				_running --;
+				_waitCondition.notify_all();
 			}
 			
-			_threads.RemoveObject(Thread::CurrentThread());
-			_waitCondition.notify_all();
+			delete context;
 		}
 		
 	private:
@@ -118,38 +147,12 @@ namespace RN
 		
 		Array<F> _tasks;
 		Array<Thread> _threads;
+		uint32 _running;
 		
+		std::condition_variable _taskCondition;
 		std::condition_variable _waitCondition;
-		std::mutex _mutex;
-	};
-	
-	template<typename F>
-	class OpenGLThreadPool : public ThreadPool<F>
-	{
-	public:
-		OpenGLThreadPool() :
-			ThreadPool<F>(ThreadPool<F>::PoolTypeSerial)
-		{
-			_context = new Context(Kernel::SharedInstance()->Context());
-		}
-		
-		virtual ~OpenGLThreadPool()
-		{
-			ThreadPool<F>::WaitForTasksToComplete();
-			_context->Autorelease();
-		}
-		
-	private:
-		virtual void Consumer()
-		{
-			_context->MakeActiveContext();
-			
-			ThreadPool<F>::Consumer();
-			
-			_context->DeactivateContext();
-		}
-		
-		Context *_context;
+		std::mutex _taskMutex;
+		std::mutex _waitMutex;
 	};
 }
 

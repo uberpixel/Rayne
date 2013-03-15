@@ -35,9 +35,7 @@ namespace RN
 		RNAPI virtual void Update(float delta);
 		
 	private:
-		void BeginUpdate(float delta);
-		void FinishUpdate(float delta);
-		
+		void BeginUpdate(float delta);		
 		void VisitTransform(Camera *camera, Transform *transform, RenderingGroup *group);
 		
 		Kernel *_kernel;

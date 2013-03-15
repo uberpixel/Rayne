@@ -124,12 +124,6 @@ namespace TG
 		_zombieskeleton->Update(delta*24.0f);
 #endif
 		
-		if(_spruce && RN::Kernel::SharedInstance()->Time() > 10.0f)
-		{
-			_spruce->Release();
-			_spruce = 0;
-		}
-		
 		_camera->Rotate(rotation);
 		_camera->Translate(translation * -delta, true);
 	}

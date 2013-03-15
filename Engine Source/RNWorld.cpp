@@ -12,6 +12,7 @@
 #include "RNEntity.h"
 #include "RNLightEntity.h"
 #include "RNAutoreleasePool.h"
+#include "RNThreadPool.h"
 
 namespace RN
 {
@@ -41,11 +42,22 @@ namespace RN
 	{
 		Update(delta);
 		
+		auto pool = ThreadCoordinator::SharedInstance()->GlobalPool();
+		
 		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)
 		{
 			Transform *transform = *i;
-			transform->Update(delta);
+			
+			pool->AddTask([transform, delta]() {
+				//transform->Update(delta);
+				
+				printf("Transform: %p\n", transform);
+			});
 		}
+		
+		printf("Waiting for tasks to complete...\n");
+		pool->WaitForTasksToComplete();
+		printf("Done..\n");
 	}
 	
 	void World::VisitTransform(Camera *camera, Transform *transform, RenderingGroup *group)
@@ -84,18 +96,7 @@ namespace RN
 		}
 	}
 	
-	void World::FinishUpdate(float delta)
-	{
-		_renderer->WaitForTaskCompletion(_renderingTask);
-		
-		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)
-		{
-			Transform *transform = *i;
-			transform->PostUpdate();
-		}
-		
-		
-		static float renderingTime = 0.0f;
+		/*static float renderingTime = 0.0f;
 		static float totalTime = 0.0f;
 		static int count = 0;
 		
@@ -111,29 +112,10 @@ namespace RN
 			
 			renderingTime = totalTime = 0.0f;
 			count = 0;
-		}
+		}*/
 		
 		// Begin the new frame
-		_renderer->PepareFrame();
-		_renderingTask = _renderer->BeginTask(delta);
-		
-		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
-		{
-			Camera *camera = *i;
-			
-			RenderingGroup *group = new RenderingGroup(camera);
-			
-			for(auto j=_transforms.begin(); j!=_transforms.end(); j++)
-			{
-				Transform *transform = *j;
-				VisitTransform(camera, transform, group);
-			}
-			
-			_renderer->PushGroup(group);
-		}
-		
-		_renderer->FinishFrame();
-	}
+
 	
 	
 	
