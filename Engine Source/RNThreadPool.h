@@ -136,6 +136,8 @@ namespace RN
 				lock.lock();
 				
 				_running --;
+				
+				std::unique_lock<std::mutex> waitLock(_waitMutex);
 				_waitCondition.notify_all();
 			}
 			
