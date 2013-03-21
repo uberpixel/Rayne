@@ -12,7 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNArray.h"
-
+#include "RNSpinLock.h"
 #include "RNMesh.h"
 #include "RNTexture.h"
 #include "RNCamera.h"
@@ -34,30 +34,38 @@ namespace RN
 	friend class Kernel;
 	public:
 		template<typename F>
-		Thread(F&& func)
+		Thread(F&& func, bool detach=true)
 		{
 			Initialize();
-		
-			std::thread thread = std::thread([=]() {
-				Entry();
-				try
-				{
-					func();
-				}
-				catch (ErrorException e)
-				{
-					__HandleExcption(e);
-				}
-
-				Exit();
-			});
 			
-			thread.detach();
+			_function = func;
+			
+			if(detach)
+				Detach();
 		}
 		
 		virtual ~Thread();
 		
 		bool OnThread() const;
+		
+		void Detach()
+		{
+			std::thread thread = std::thread([=]() {
+				Entry();
+				try
+				{
+					_function();
+				}
+				catch (ErrorException e)
+				{
+					__HandleExcption(e);
+				}
+				
+				Exit();
+			});
+			
+			thread.detach();
+		}
 		
 		void Cancel();
 		bool IsCancelled() const { return _isCancelled; }
@@ -65,6 +73,24 @@ namespace RN
 		
 		void SetName(const std::string& name);
 		const std::string Name() const;
+		
+		template <typename T>
+		T *ObjectForKey(const std::string& key)
+		{
+			_dictionaryLock.Lock();
+			void *object = _dictionary[key];
+			_dictionaryLock.Unlock();
+			
+			return static_cast<T *>(object);
+		}
+		
+		template <typename T>
+		void SetObjectForKey(T *object, const std::string& key)
+		{
+			_dictionaryLock.Lock();
+			_dictionary[key] = static_cast<void *>(object);
+			_dictionaryLock.Unlock();
+		}
 		
 		static Thread *CurrentThread();
 		
@@ -92,6 +118,7 @@ namespace RN
 		Mutex *_mutex;
 		Context *_context;
 		AutoreleasePool *_pool;
+		SpinLock _dictionaryLock;
 		
 		Array<Texture> *_textures;
 		Array<Camera> *_cameras;
@@ -100,8 +127,11 @@ namespace RN
 		bool _isRunning;
 		bool _isCancelled;
 		
+		std::function<void ()> _function;
 		std::thread::id _id;
+		
 		std::string _name;
+		std::map<std::string, void *> _dictionary;
 	};
 }
 
