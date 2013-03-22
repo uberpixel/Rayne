@@ -10,10 +10,10 @@
 #define __RAYNE_PLANE_H__
 namespace RN
 {
-	class RenderingPipeline;
+	class Renderer;
 	class Plane
 	{
-	friend RenderingPipeline;
+	friend Renderer;
 	public:
 		Plane();
 

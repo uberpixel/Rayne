@@ -249,6 +249,9 @@ namespace TG
 			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
 			light->SetRange((float)(rand())/RAND_MAX*20.0f);
 			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
+			light->SetAction([](RN::Entity *light, float delta) {
+				light->Translate(RN::Vector3(5.0f * delta, 0.0f, 0.0f));
+			});
 		}
 #endif
 		

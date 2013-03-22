@@ -18,7 +18,7 @@ namespace RN
 {
 	class LightEntity : public Entity
 	{
-	friend class RenderingPipeline;
+	friend class Renderer;
 	public:
 		enum Type
 		{

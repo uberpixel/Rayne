@@ -17,6 +17,7 @@
 #include "RNMaterial.h"
 #include "RNMesh.h"
 #include "RNSkeleton.h"
+#include "RNLightEntity.h"
 
 namespace RN
 {
@@ -40,6 +41,7 @@ namespace RN
 		RNAPI void BeginCamera(Camera *camera);
 		RNAPI void FlushCamera();
 		RNAPI void RenderObject(const RenderingObject& object);
+		RNAPI void RenderLight(LightEntity *light);
 		
 		RNAPI void SetDefaultFBO(GLuint fbo);
 		RNAPI void SetDefaultFrame(uint32 width, uint32 height);
@@ -64,6 +66,7 @@ namespace RN
 		RNAPI void UpdateShaderData();
 		RNAPI void DrawMesh(Mesh *mesh);
 		RNAPI void BindVAO(const std::tuple<ShaderProgram *, MeshLODStage *>& tuple);
+		RNAPI void CreatePointLightList(Camera *camera, Vector4 **outLightPos, Vector4 **outLightColor, int *outLightCount);
 		
 		bool _hasValidFramebuffer;
 		
@@ -98,6 +101,8 @@ namespace RN
 		
 		Camera *_frameCamera;
 		Array<RenderingObject> _frame;
+		Array<LightEntity *> _pointLights;
+		Array<LightEntity *> _spotLights;
 		
 	private:
 		void Initialize();
@@ -111,6 +116,24 @@ namespace RN
 		
 		Vector4 _copyVertices[4];
 		GLshort _copyIndices[6];
+		
+		GLuint _lightPointTextures[4];
+		GLuint _lightPointBuffers[4];
+		GLuint _lightSpotTextures[5];
+		GLuint _lightSpotBuffers[5];
+		
+		uint32 _lightPointBufferLengths[3];
+		uint32 _lightSpotBufferLengths[3];
+		
+		int *_lightPointIndexOffset;
+		int *_lightPointIndices;
+		size_t _lightPointIndexOffsetSize;
+		size_t _lightPointIndicesSize;
+		
+		int *_lightSpotIndexOffset;
+		int *_lightSpotIndices;
+		size_t _lightSpotIndexOffsetSize;
+		size_t _lightSpotIndicesSize;
 	};
 	
 	RN_INLINE uint32 Renderer::BindTexture(Texture *texture)

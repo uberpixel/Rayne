@@ -71,7 +71,7 @@ namespace RN
 						break;
 						
 					case Entity::TypeLight:
-						//LightEntity *light = (LightEntity *)entity;
+						_renderer->RenderLight(static_cast<LightEntity *>(transform));
 						break;
 				}
 			}
