@@ -47,9 +47,7 @@ namespace RN
 	
 	Transform::~Transform()
 	{
-		if(_parent)
-			_parent->DetachChild(this);
-		
+		DetachAllChilds();
 		World::SharedInstance()->RemoveTransform(this);
 	}
 	
@@ -57,6 +55,7 @@ namespace RN
 	
 	void Transform::AttachChild(Transform *child)
 	{
+		child->Retain();
 		child->DetachFromParent();
 		
 		_childs.AddObject(child);
@@ -71,6 +70,7 @@ namespace RN
 			_childs.RemoveObject(child);
 			child->_parent = 0;
 			child->DidUpdate();
+			child->Release();
 		}
 	}
 	
@@ -83,6 +83,7 @@ namespace RN
 			Transform *child = _childs.ObjectAtIndex(i);
 			child->_parent = 0;
 			child->DidUpdate();
+			child->Release();
 		}
 		
 		_childs.RemoveAllObjects();

@@ -168,10 +168,14 @@ namespace TG
 		_parentBlock->SetModel(blockModel);
 		
 		_childBlock = new RN::Entity();
+		_childBlock->Autorelease();
 		_childBlock->SetModel(blockModel);
 		_childBlock->SetAction([](RN::Entity *entity, float delta) {
 			entity->Rotate(RN::Vector3(32.0f * delta, 0.0f, 32.0f * delta));
 			entity->SetPosition(RN::Vector3(0.0f, 2.0f + (sinf(RN::Kernel::SharedInstance()->Time())), 0.0f));
+			
+			if(RN::Kernel::SharedInstance()->Time() > 5.0f)
+				entity->DetachFromParent();
 		});
 		
 		_parentBlock->AttachChild(_childBlock);

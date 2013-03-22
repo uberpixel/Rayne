@@ -46,10 +46,10 @@ namespace RN
 		const Vector3& EulerAngle() const { return _euler; }
 		const Quaternion& Rotation() const { return _rotation; }
 		
-		const Vector3& WorldPosition() const { return _worldPosition; }
-		const Vector3& WorldScale() const { return _worldScale; }
-		const Vector3& WorldEulerAngle() const { return _worldEuler; }
-		const Quaternion& WorldRotation() const { return _worldRotation; }
+		const Vector3& WorldPosition();
+		const Vector3& WorldScale();
+		const Vector3& WorldEulerAngle();
+		const Quaternion& WorldRotation();
 		
 		void AttachChild(Transform *child);
 		void DetachChild(Transform *child);
@@ -57,12 +57,13 @@ namespace RN
 		void DetachFromParent();
 		
 		machine_uint Childs() const { return _childs.Count(); }
+		Transform *Parent() const { return _parent; }
 		
 		template<typename T=Transform>
-		T *ChildAtIndex(machine_uint index) const { return(T *)_childs.ObjectAtIndex(index); }
+		T *ChildAtIndex(machine_uint index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
 		
-		const Matrix& WorldTransform() { return _worldTransform; }
-		const Matrix& LocalTransform() { return _localTransform; }
+		const Matrix& WorldTransform();
+		const Matrix& LocalTransform();
 		
 		virtual void Update(float delta)
 		{}
@@ -72,7 +73,8 @@ namespace RN
 		Transform(TransformType type, const Vector3& position);
 		Transform(TransformType type, const Vector3& position, const Quaternion& rotation);
 		
-		virtual void DidUpdate();
+		void DidUpdate();
+		void UpdateInternalData();
 		
 		Vector3 _position;
 		Vector3 _scale;
@@ -82,6 +84,7 @@ namespace RN
 	private:
 		Transform *_parent;
 		Array<Transform *> _childs;
+		bool _updated;
 		
 		TransformType _type;
 		
@@ -149,36 +152,81 @@ namespace RN
 	}
 	
 	
+	RN_INLINE const Vector3& Transform::WorldPosition()
+	{
+		UpdateInternalData();
+		return _worldPosition;
+	}
+	RN_INLINE const Vector3& Transform::WorldScale()
+	{
+		UpdateInternalData();
+		return _worldScale;
+	}
+	RN_INLINE const Vector3& Transform::WorldEulerAngle()
+	{
+		UpdateInternalData();
+		return _worldEuler;
+	}
+	RN_INLINE const Quaternion& Transform::WorldRotation()
+	{
+		UpdateInternalData();
+		return _worldRotation;
+	}
+	
+	
+	RN_INLINE const Matrix& Transform::LocalTransform()
+	{
+		UpdateInternalData();
+		return _localTransform;
+	}
+	
+	RN_INLINE const Matrix& Transform::WorldTransform()
+	{
+		UpdateInternalData();
+		return _worldTransform;
+	}
+	
+	
 	RN_INLINE void Transform::DidUpdate()
 	{
-		_localTransform.MakeTranslate(_position);
-		_localTransform.Rotate(_rotation);
-		_localTransform.Scale(_scale);
-		
-		if(_parent)
+		_updated = true;
+	}
+	
+	RN_INLINE void Transform::UpdateInternalData()
+	{
+		if(_updated)
 		{
-			_worldPosition = _parent->_worldPosition + _parent->_worldRotation.RotateVector3(_position);
-			_worldRotation = _parent->_worldRotation * _rotation;
-			_worldScale = _parent->_worldScale + _scale;
-			_worldEuler = _parent->_worldEuler + _euler;
+			_localTransform.MakeTranslate(_position);
+			_localTransform.Rotate(_rotation);
+			_localTransform.Scale(_scale);
 			
-			_worldTransform = _parent->_localTransform * _localTransform;
-		}
-		else
-		{
-			_worldPosition = _position;
-			_worldRotation = _rotation;
-			_worldScale = _scale;
-			_worldEuler = _euler;
+			if(_parent)
+			{
+				_worldPosition = _parent->_worldPosition + _parent->_worldRotation.RotateVector3(_position);
+				_worldRotation = _parent->_worldRotation * _rotation;
+				_worldScale = _parent->_worldScale + _scale;
+				_worldEuler = _parent->_worldEuler + _euler;
+				
+				_worldTransform = _parent->_localTransform * _localTransform;
+			}
+			else
+			{
+				_worldPosition = _position;
+				_worldRotation = _rotation;
+				_worldScale = _scale;
+				_worldEuler = _euler;
+				
+				_worldTransform = _localTransform;
+			}
 			
-			_worldTransform = _localTransform;
-		}
-		
-		machine_uint count = _childs.Count();
-		for(machine_uint i=0; i<count; i++)
-		{
-			Transform *child = _childs.ObjectAtIndex(i);
-			child->DidUpdate();
+			machine_uint count = _childs.Count();
+			for(machine_uint i=0; i<count; i++)
+			{
+				Transform *child = _childs.ObjectAtIndex(i);
+				child->DidUpdate();
+			}
+			
+			_updated = false;
 		}
 	}
 }
