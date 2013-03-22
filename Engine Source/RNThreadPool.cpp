@@ -39,13 +39,13 @@ namespace RN
 		return concurrency;
 	}
 	
-	ThreadPool<std::function<void ()>> *ThreadCoordinator::GlobalPool()
+	ThreadPool *ThreadCoordinator::GlobalPool()
 	{
 		static std::once_flag once;
 		std::call_once(once, [this]() {
-			_threadPool = new ThreadPool<std::function<void ()>>(ThreadPool<std::function<void ()>>::PoolTypeConcurrent);
+			_globalPool = new ThreadPool(ThreadPool::PoolTypeConcurrent);
 		});
 		
-		return _threadPool;
+		return _globalPool;
 	}
 }

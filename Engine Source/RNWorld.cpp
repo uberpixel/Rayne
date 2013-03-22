@@ -88,18 +88,26 @@ namespace RN
 	{
 		Update(delta);
 		
-		auto pool = ThreadCoordinator::SharedInstance()->GlobalPool();
+		uint32 size = (uint32)_transforms.size();
+		uint32 j = 0;
 		
-		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)
+		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
+		std::vector<std::future<void>> results(size);
+		
+		for(auto i=_transforms.begin(); i!=_transforms.end(); i++, j++)
 		{
 			Transform *transform = *i;
-			
-			pool->AddTask([transform, delta]() {
+
+			results[j] = pool->AddTask([transform, delta]() {
 				transform->Update(delta);
 			});
 		}
 		
-		pool->WaitForTasksToComplete();
+		for(j=0; j<size; j++)
+		{
+			results[j].wait();
+		}
+		
 		TransformsUpdated();
 		
 		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)

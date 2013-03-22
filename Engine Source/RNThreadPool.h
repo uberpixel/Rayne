@@ -16,11 +16,13 @@
 #include "RNContext.h"
 #include "RNKernel.h"
 
+#include <list>
+#include <future>
+
 #define kRNThreadConsumerKey "kRNThreadConsumer"
 
 namespace RN
 {
-	template<typename F>
 	class ThreadPool;
 	
 	class ThreadCoordinator : public Singleton<ThreadCoordinator>
@@ -32,7 +34,7 @@ namespace RN
 		machine_int AvailableConcurrency();
 		machine_int BaseConcurrency() const { return _baseConcurrency; }
 		
-		ThreadPool<std::function<void ()>> *GlobalPool();
+		ThreadPool *GlobalPool();
 		
 	private:
 		void ConsumeConcurrency();
@@ -43,10 +45,59 @@ namespace RN
 		machine_int _baseConcurrency;
 		machine_int _consumedConcurrency;
 		
-		ThreadPool<std::function<void ()>> *_threadPool;
+		ThreadPool *_globalPool;
 	};
 	
-	template<typename F>
+	class FunctionWrapper
+	{
+	public:
+		template<typename F>
+		FunctionWrapper(F&& f) :
+			_implementation(new ImplementationType<F>(std::move(f)))
+		{}
+		
+		void operator()() { _implementation->Call(); }
+		
+		FunctionWrapper() = default;
+		FunctionWrapper(FunctionWrapper&& other) :
+			_implementation(std::move(other._implementation))
+		{}
+		
+		FunctionWrapper& operator=(FunctionWrapper&& other)
+		{
+			_implementation = std::move(other._implementation);
+			return *this;
+		}
+		
+		FunctionWrapper(const FunctionWrapper&) = delete;
+		FunctionWrapper(FunctionWrapper&) = delete;
+		FunctionWrapper& operator= (const FunctionWrapper&) = delete;
+		
+	private:
+		struct Base
+		{
+			virtual void Call() = 0;
+			virtual ~Base() {}
+		};
+		
+		template<typename F>
+		struct ImplementationType : Base
+		{
+			ImplementationType(F&& f) :
+				function(std::move(f))
+			{}
+			
+			void Call()
+			{
+				function();
+			}
+			
+			F function;
+		};
+		
+		std::unique_ptr<Base> _implementation;
+	};
+	
 	class ThreadPool
 	{
 	public:
@@ -56,10 +107,10 @@ namespace RN
 			PoolTypeConcurrent
 		} PoolType;
 		
-		ThreadPool(PoolType type)
+		ThreadPool(PoolType type, machine_uint maxThreads=0)
 		{
 			_type = type;
-			_running = 0;
+			_resigned = 0;
 			
 			switch(_type)
 			{
@@ -72,19 +123,21 @@ namespace RN
 					
 				case PoolTypeConcurrent:
 				{
-					machine_uint concurrency = ThreadCoordinator::SharedInstance()->BaseConcurrency();
+					if(maxThreads == 0)
+						maxThreads = ThreadCoordinator::SharedInstance()->BaseConcurrency();
 					
-					for(machine_uint i=0; i<concurrency; i++)
+					for(machine_uint i=0; i<maxThreads; i++)
 					{
 						Thread *thread = CreateThread();
 						thread->Detach();
 					}
+					
 					break;
 				}
 			}
 		}
 		
-		virtual ~ThreadPool()
+		~ThreadPool()
 		{
 			for(machine_uint i=0; i<_threads.Count(); i++)
 			{
@@ -92,109 +145,30 @@ namespace RN
 				thread->Cancel();
 			}
 			
-			WaitForTasksToComplete();
-			_threads.RemoveAllObjects();
+			std::unique_lock<std::mutex> lock(_tearDownMutex);
+			_tearDownCondition.wait(lock, [&]() { return (_resigned == _threads.Count()); } );
 		}
 		
-		void AddTask(F&& task)
+		template<typename F>
+		std::future<typename std::result_of<F()>::type> AddTask(F f)
 		{
-			Thread *candidate = 0;
-			ThreadConsumer *candidateConsumer = 0;
+			typedef typename std::result_of<F()>::type resultType;
 			
-			machine_uint leastTasks = 0;
+			std::packaged_task<resultType()> task(std::move(f));
+			std::future<resultType> result(task.get_future());
 			
-			switch(_type)
-			{
-				case PoolTypeSerial:
-					candidate = _threads.ObjectAtIndex(0);
-					candidateConsumer = candidate->ObjectForKey<ThreadConsumer>(kRNThreadConsumerKey);
-					break;
-					
-				case PoolTypeConcurrent:
-				{
-					machine_uint threads = _threads.Count();
-					for(machine_uint i=0; i<threads; i++)
-					{
-						Thread *thread = _threads.ObjectAtIndex(i);
-						ThreadConsumer *consumer = thread->ObjectForKey<ThreadConsumer>(kRNThreadConsumerKey);
-						consumer->lock.Lock();
-						
-						machine_uint tasks = consumer->tasks.Count();
-						if(tasks == 0)
-						{
-							consumer->lock.Unlock();
-							candidate = thread;
-							candidateConsumer = consumer;
-							
-							break;
-						}
-						
-						if(tasks < leastTasks || leastTasks == 0)
-						{
-							candidate = thread;
-							candidateConsumer = consumer;
-						}
-						
-						consumer->lock.Unlock();
-					}
-					
-					break;
-				}
-			}
+			_lock.Lock();
+			_workQueue.push_back(std::move(task));
+			_lock.Unlock();
 			
-			RN_ASSERT0(candidate && candidateConsumer);
-			
-			candidateConsumer->lock.Lock();
-			
-			if(!candidateConsumer->running)
-			{
-				std::unique_lock<std::mutex> consumerLock(candidateConsumer->mutex);
-				std::unique_lock<std::mutex> lock(_waitMutex);
-				_running ++;
-				lock.unlock();
-				
-				candidateConsumer->tasks.AddObject(task);
-				candidateConsumer->running = true;
-				candidateConsumer->lock.Unlock();
-				
-				consumerLock.unlock();
-				candidateConsumer->condition.notify_one();
-			}
-			else
-			{
-				candidateConsumer->tasks.AddObject(task);
-				candidateConsumer->lock.Unlock();
-			}
-		}
-		
-		void WaitForTasksToComplete()
-		{
-			std::unique_lock<std::mutex> lock(_waitMutex);
-			_waitCondition.wait(lock, [&]() { return (_running == 0); });
+			_waitCondition.notify_one();
+			return result;
 		}
 		
 	private:
-		struct ThreadConsumer
-		{
-			std::mutex mutex;
-			std::condition_variable condition;
-			
-			Array<F> tasks;
-			SpinLock lock;
-			
-			bool running;
-		};
-		
 		Thread *CreateThread()
 		{
 			Thread *thread = new Thread(std::bind(&ThreadPool::Consumer, this), false);
-			ThreadConsumer *consumer = new ThreadConsumer();
-			
-			consumer->running = false;
-			
-			thread->SetObjectForKey<ThreadConsumer>(consumer, kRNThreadConsumerKey);
-			thread->Autorelease();
-			
 			_threads.AddObject(thread);
 			
 			return thread;
@@ -203,69 +177,48 @@ namespace RN
 		void Consumer()
 		{
 			Thread *thread = Thread::CurrentThread();
-			ThreadConsumer *consumer = thread->ObjectForKey<ThreadConsumer>(kRNThreadConsumerKey);
 			
-			/*Context *context = new Context(Kernel::SharedInstance()->Context());
-			context->MakeActiveContext();*/
-			
-			bool hasTasks = false;
-			
-			while(1)
+			while(!thread->IsCancelled())
 			{
-				bool wasRunning = consumer->running;
-				
-				do {
-					consumer->lock.Lock();
-					hasTasks = (consumer->tasks.Count() > 0);
-					
-					if(!hasTasks)
-					{						
-						if(wasRunning)
-						{
-							std::unique_lock<std::mutex> waitLock(_waitMutex);
-							_running --;
-							waitLock.unlock();
-							
-							_waitCondition.notify_all();
-							wasRunning = false;
-						}
+				if(_lock.TryLock())
+				{
+					if(_workQueue.size() == 0)
+					{
+						_lock.Unlock();
 						
-						consumer->running = false;
-						consumer->lock.Unlock();
-						
-						std::unique_lock<std::mutex> lock(consumer->mutex);
-						consumer->condition.wait(lock, [&]() { return (consumer->tasks.Count() > 0 || thread->IsCancelled()); });
-						
-						if(thread->IsCancelled())
-						{
-							delete consumer;
-							// delete context;
-							
-							return;
-						}
-						
-						consumer->lock.Lock();
-						hasTasks = (consumer->tasks.Count() > 0);
+						std::unique_lock<std::mutex> lock(_waitMutex);
+						_waitCondition.wait(lock); // Spurios wake ups are okay
+						continue;
 					}
 					
-				} while(!hasTasks);
-				
-				F task = consumer->tasks.LastObject();				
-				consumer->tasks.RemoveLastObject();
-				
-				consumer->running = true;
-				consumer->lock.Unlock();
-				
-				task();
+					FunctionWrapper task = std::move(_workQueue.front());
+					_workQueue.pop_front();
+					
+					_lock.Unlock();
+					
+					task();
+				}
+				else
+				{
+					std::this_thread::yield();
+				}
 			}
+			
+			_resigned ++;
+			_tearDownCondition.notify_all();
 		}
 		
+		SpinLock _lock;
 		PoolType _type;
-		Array<Thread> _threads;
 		
-		std::condition_variable _waitCondition;
+		Array<Thread> _threads;
+		machine_uint _resigned;
+		std::list<FunctionWrapper> _workQueue;
+	
+		std::mutex _tearDownMutex;
 		std::mutex _waitMutex;
-		uint32 _running;
+		std::condition_variable _tearDownCondition;
+		std::condition_variable _waitCondition;
 	};
 }
 
