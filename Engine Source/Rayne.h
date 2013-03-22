@@ -14,7 +14,6 @@
 #include "RNAutoreleasePool.h"
 #include "RNModule.h"
 #include "RNCache.h"
-#include "RNThreadPool.h"
 
 #include "RNKernel.h"
 #include "RNApplication.h"
@@ -50,10 +49,11 @@
 #include "RNEntity.h"
 #include "RNLightEntity.h"
 
-#include "RNMutex.h"
 #include "RNThread.h"
 #include "RNThreadPool.h"
+#include "RNFunction.h"
 #include "RNSpinLock.h"
+#include "RNMutex.h"
 #include "RNWindow.h"
 
 #endif /* __RAYNE_H__ */

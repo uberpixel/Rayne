@@ -12,14 +12,12 @@
 #include "RNBase.h"
 #include "RNThread.h"
 #include "RNSpinLock.h"
+#include "RNFunction.h"
 #include "RNArray.h"
 #include "RNContext.h"
 #include "RNKernel.h"
 
-#include <list>
-#include <future>
-
-#define kRNThreadConsumerKey "kRNThreadConsumer"
+#define kRNThreadPoolLocalQueueMaxSize 100
 
 namespace RN
 {
@@ -48,56 +46,6 @@ namespace RN
 		ThreadPool *_globalPool;
 	};
 	
-	class FunctionWrapper
-	{
-	public:
-		template<typename F>
-		FunctionWrapper(F&& f) :
-			_implementation(new ImplementationType<F>(std::move(f)))
-		{}
-		
-		void operator()() { _implementation->Call(); }
-		
-		FunctionWrapper() = default;
-		FunctionWrapper(FunctionWrapper&& other) :
-			_implementation(std::move(other._implementation))
-		{}
-		
-		FunctionWrapper& operator=(FunctionWrapper&& other)
-		{
-			_implementation = std::move(other._implementation);
-			return *this;
-		}
-		
-		FunctionWrapper(const FunctionWrapper&) = delete;
-		FunctionWrapper(FunctionWrapper&) = delete;
-		FunctionWrapper& operator= (const FunctionWrapper&) = delete;
-		
-	private:
-		struct Base
-		{
-			virtual void Call() = 0;
-			virtual ~Base() {}
-		};
-		
-		template<typename F>
-		struct ImplementationType : Base
-		{
-			ImplementationType(F&& f) :
-				function(std::move(f))
-			{}
-			
-			void Call()
-			{
-				function();
-			}
-			
-			F function;
-		};
-		
-		std::unique_ptr<Base> _implementation;
-	};
-	
 	class ThreadPool
 	{
 	public:
@@ -111,6 +59,7 @@ namespace RN
 		{
 			_type = type;
 			_resigned = 0;
+			_insertingTaskBatch = false;
 			
 			switch(_type)
 			{
@@ -145,6 +94,8 @@ namespace RN
 				thread->Cancel();
 			}
 			
+			_waitCondition.notify_all(); // Notify all sleeping threads
+			
 			std::unique_lock<std::mutex> lock(_tearDownMutex);
 			_tearDownCondition.wait(lock, [&]() { return (_resigned == _threads.Count()); } );
 		}
@@ -157,12 +108,34 @@ namespace RN
 			std::packaged_task<resultType()> task(std::move(f));
 			std::future<resultType> result(task.get_future());
 			
+			if(!_insertingTaskBatch)
+			{
+				_lock.Lock();
+				_workQueue.push_back(std::move(task));
+				_lock.Unlock();
+				
+				_waitCondition.notify_one();
+			}
+			else
+			{
+				_workQueue.push_back(std::move(task));
+			}
+			
+			return result;
+		}
+		
+		void BeginTaskBatch()
+		{
 			_lock.Lock();
-			_workQueue.push_back(std::move(task));
+			_insertingTaskBatch = true;
+		}
+		
+		void EndTaskBatch()
+		{
+			_insertingTaskBatch = false;
 			_lock.Unlock();
 			
-			_waitCondition.notify_one();
-			return result;
+			_waitCondition.notify_all();
 		}
 		
 	private:
@@ -177,11 +150,14 @@ namespace RN
 		void Consumer()
 		{
 			Thread *thread = Thread::CurrentThread();
+			std::list<Function> localQueue;
 			
 			while(!thread->IsCancelled())
 			{
-				if(_lock.TryLock())
+				if(localQueue.size() == 0)
 				{
+					_lock.Lock();
+					
 					if(_workQueue.size() == 0)
 					{
 						_lock.Unlock();
@@ -191,17 +167,20 @@ namespace RN
 						continue;
 					}
 					
-					FunctionWrapper task = std::move(_workQueue.front());
-					_workQueue.pop_front();
+					machine_uint moveLocal = MIN(kRNThreadPoolLocalQueueMaxSize, _workQueue.size());
+					std::list<Function>::iterator last = _workQueue.begin();
+					std::advance(last, moveLocal);
 					
+					std::move(_workQueue.begin(), last, std::back_inserter(localQueue));
+					_workQueue.erase(_workQueue.begin(), last);
+
 					_lock.Unlock();
-					
-					task();
 				}
-				else
-				{
-					std::this_thread::yield();
-				}
+				
+				Function task = std::move(localQueue.front());
+				localQueue.pop_front();
+				
+				task();
 			}
 			
 			_resigned ++;
@@ -211,9 +190,11 @@ namespace RN
 		SpinLock _lock;
 		PoolType _type;
 		
+		bool _insertingTaskBatch;
+		
 		Array<Thread> _threads;
 		machine_uint _resigned;
-		std::list<FunctionWrapper> _workQueue;
+		std::list<Function> _workQueue;
 	
 		std::mutex _tearDownMutex;
 		std::mutex _waitMutex;

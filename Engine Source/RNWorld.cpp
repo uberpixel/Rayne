@@ -94,6 +94,8 @@ namespace RN
 		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
 		std::vector<std::future<void>> results(size);
 		
+		pool->BeginTaskBatch();
+		
 		for(auto i=_transforms.begin(); i!=_transforms.end(); i++, j++)
 		{
 			Transform *transform = *i;
@@ -102,6 +104,8 @@ namespace RN
 				transform->Update(delta);
 			});
 		}
+		
+		pool->EndTaskBatch();
 		
 		for(j=0; j<size; j++)
 		{
