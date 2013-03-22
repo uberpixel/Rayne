@@ -31,6 +31,7 @@
 #include <thread>
 #include <future>
 #include <mutex>
+#include <atomic>
 #include <condition_variable>
 #include <unordered_map>
 #include <unordered_set>

@@ -11,6 +11,8 @@
 
 namespace RN
 {
+	//RNDeclareMeta(RenderStorage)
+	
 	RenderStorage::RenderStorage(BufferFormat format, Texture *depthTexture)
 	{
 		_formatChanged = true;
@@ -19,7 +21,7 @@ namespace RN
 		
 		_boundRenderTargets = 0;
 		_renderTargets = new Array<Texture>();
-		_depthTexture = depthTexture->Retain<Texture>();
+		_depthTexture = depthTexture->Retain();
 		
 		_framebuffer = _depthbuffer = _stencilbuffer = 0;
 		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
@@ -129,7 +131,7 @@ namespace RN
 		}
 		
 		_depthTexture->Release();
-		_depthTexture = depthTexture->Retain<Texture>();
+		_depthTexture = depthTexture->Retain();
 		
 		_formatChanged = true;
 	}

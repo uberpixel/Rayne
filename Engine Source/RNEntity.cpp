@@ -14,32 +14,20 @@
 
 namespace RN
 {
-	Entity::Entity() :
-		Transform(Transform::TransformTypeEntity)
+	RNDeclareMeta(Entity)
+	
+	Entity::Entity()
 	{
 		_model = 0;
 		_skeleton = 0;
 		_type = TypeObject;
 	}
 	
-	Entity::Entity(EntityType type) :
-		Transform(Transform::TransformTypeEntity)
+	Entity::Entity(EntityType type)
 	{
 		_model = 0;
 		_skeleton = 0;
 		_type = type;
-	}
-	
-	Entity::Entity(Entity *other) :
-		Transform(Transform::TransformTypeEntity)
-	{
-		_model = other->_model->Retain<RN::Model>();
-		_skeleton = other->_skeleton->Retain<RN::Skeleton>();
-		_type  = other->_type;
-		
-		SetPosition(other->Position());
-		SetScale(other->Scale());
-		SetRotation(other->Rotation());
 	}
 	
 	Entity::~Entity()
@@ -64,13 +52,13 @@ namespace RN
 	void Entity::SetModel(class Model *model)
 	{
 		_model->Release();
-		_model = model->Retain<RN::Model>();
+		_model = model->Retain();
 	}
 	
 	void Entity::SetSkeleton(class Skeleton *skeleton)
 	{
 		_skeleton->Release();
-		_skeleton = skeleton->Retain<RN::Skeleton>();
+		_skeleton = (class Skeleton *)skeleton->Retain();
 	}
 	
 	void Entity::SetAction(const std::function<void (Entity *, float)>& action)

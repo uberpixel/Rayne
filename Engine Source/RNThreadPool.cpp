@@ -12,6 +12,11 @@ namespace RN
 {
 	ThreadCoordinator::ThreadCoordinator()
 	{
+		// Sid:
+		// Even on non multicore systems we have a base concurrency of at least two threads
+		// This means that even on single core CPUs we spawn up to three threads in the base
+		// implementation using a thread pool with threads equal to the amount of concurrency available.
+		// I'm not sure if that's a good idea, and I lack the hardware to test it...
 		_baseConcurrency = MAX((machine_int)std::thread::hardware_concurrency(), 2);
 		_consumedConcurrency = 0;
 	}

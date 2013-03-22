@@ -26,7 +26,6 @@
 #include "RNTextureLoader.h"
 
 #include "RNArray.h"
-#include "RNList.h"
 
 #include "RNColor.h"
 #include "RNMatrixQuaternion.h"

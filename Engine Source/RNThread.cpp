@@ -20,6 +20,8 @@
 
 namespace RN
 {
+	RNDeclareMeta(Thread)
+	
 	static SpinLock __ThreadLock;
 	static std::unordered_map<std::thread::id, Thread *> __ThreadMap;
 	static Array<Thread> __ThreadBin;

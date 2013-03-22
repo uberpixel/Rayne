@@ -23,15 +23,10 @@ namespace RN
 	{
 	friend class RenderingPipeline;
 	public:
-		typedef enum
-		{
-			TransformTypeEntity,
-			TransformTypeCamera
-		} TransformType;
-		
+		Transform();
+		Transform(const Vector3& position);
+		Transform(const Vector3& position, const Quaternion& rotation);
 		virtual ~Transform();
-		
-		TransformType Type() const { return _type; }
 		
 		void Translate(const Vector3& trans, bool local=false);
 		void Scale(const Vector3& scal);
@@ -68,11 +63,7 @@ namespace RN
 		virtual void Update(float delta)
 		{}
 		
-	protected:
-		Transform(TransformType type);
-		Transform(TransformType type, const Vector3& position);
-		Transform(TransformType type, const Vector3& position, const Quaternion& rotation);
-		
+	protected:		
 		void DidUpdate();
 		void UpdateInternalData();
 		
@@ -86,8 +77,6 @@ namespace RN
 		Array<Transform *> _childs;
 		bool _updated;
 		
-		TransformType _type;
-		
 		Vector3 _worldPosition;
 		Quaternion _worldRotation;
 		Vector3 _worldScale;
@@ -95,6 +84,8 @@ namespace RN
 		
 		Matrix _worldTransform;
 		Matrix _localTransform;
+		
+		RNDefineMeta(Transform, Object)
 	};
 	
 	

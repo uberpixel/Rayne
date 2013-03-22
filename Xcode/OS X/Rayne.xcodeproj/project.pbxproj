@@ -28,6 +28,8 @@
 		E92B858E16FC4C9E002FA04D /* RNFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = E92B858D16FC4BD4002FA04D /* RNFunction.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E92B859116FC6027002FA04D /* RNRenderStorage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92B858F16FC6027002FA04D /* RNRenderStorage.cpp */; };
 		E92B859216FC6027002FA04D /* RNRenderStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = E92B859016FC6027002FA04D /* RNRenderStorage.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E92B859516FC8E42002FA04D /* RNCatalogue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92B859316FC8E42002FA04D /* RNCatalogue.cpp */; };
+		E92B859616FC8E42002FA04D /* RNCatalogue.h in Headers */ = {isa = PBXBuildFile; fileRef = E92B859416FC8E42002FA04D /* RNCatalogue.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9319D3416BFE560001FA38F /* RNBaseInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = E9319D3316BFE560001FA38F /* RNBaseInternal.h */; settings = {ATTRIBUTES = (); }; };
 		E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */; };
 		E9580BD416AB8BEA0056DEF2 /* RNEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = E9580BD216AB8BEA0056DEF2 /* RNEntity.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -46,8 +48,6 @@
 		E9619E341696157E00DA187E /* RNFile.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E001696157E00DA187E /* RNFile.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E351696157E00DA187E /* RNKernel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619E011696157E00DA187E /* RNKernel.cpp */; };
 		E9619E361696157E00DA187E /* RNKernel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E021696157E00DA187E /* RNKernel.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9619E371696157E00DA187E /* RNList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619E031696157E00DA187E /* RNList.cpp */; };
-		E9619E381696157E00DA187E /* RNList.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E041696157E00DA187E /* RNList.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E391696157E00DA187E /* RNMaterial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619E051696157E00DA187E /* RNMaterial.cpp */; };
 		E9619E3A1696157E00DA187E /* RNMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E061696157E00DA187E /* RNMaterial.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E3B1696157E00DA187E /* RNMatrix.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E071696157E00DA187E /* RNMatrix.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -161,6 +161,8 @@
 		E92B858D16FC4BD4002FA04D /* RNFunction.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNFunction.h; sourceTree = "<group>"; };
 		E92B858F16FC6027002FA04D /* RNRenderStorage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRenderStorage.cpp; sourceTree = "<group>"; };
 		E92B859016FC6027002FA04D /* RNRenderStorage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRenderStorage.h; sourceTree = "<group>"; };
+		E92B859316FC8E42002FA04D /* RNCatalogue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNCatalogue.cpp; sourceTree = "<group>"; };
+		E92B859416FC8E42002FA04D /* RNCatalogue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNCatalogue.h; sourceTree = "<group>"; };
 		E9319D3316BFE560001FA38F /* RNBaseInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBaseInternal.h; sourceTree = "<group>"; };
 		E9543FA1168167A100F53C4F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		E9543FA2168167A100F53C4F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
@@ -183,8 +185,6 @@
 		E9619E001696157E00DA187E /* RNFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNFile.h; sourceTree = "<group>"; };
 		E9619E011696157E00DA187E /* RNKernel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 2; path = RNKernel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9619E021696157E00DA187E /* RNKernel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNKernel.h; sourceTree = "<group>"; };
-		E9619E031696157E00DA187E /* RNList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNList.cpp; sourceTree = "<group>"; };
-		E9619E041696157E00DA187E /* RNList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNList.h; sourceTree = "<group>"; };
 		E9619E051696157E00DA187E /* RNMaterial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNMaterial.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9619E061696157E00DA187E /* RNMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMaterial.h; sourceTree = "<group>"; };
 		E9619E071696157E00DA187E /* RNMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMatrix.h; sourceTree = "<group>"; };
@@ -362,6 +362,8 @@
 				E9619DF51696157E00DA187E /* RNBase.cpp */,
 				E9619DF61696157E00DA187E /* RNBase.h */,
 				E9319D3316BFE560001FA38F /* RNBaseInternal.h */,
+				E92B859316FC8E42002FA04D /* RNCatalogue.cpp */,
+				E92B859416FC8E42002FA04D /* RNCatalogue.h */,
 				E9B1742816CACA5A00732DCE /* RNDebug.cpp */,
 				E9B1742916CACA5A00732DCE /* RNDebug.h */,
 				E9619DFC1696157E00DA187E /* RNDefines.h */,
@@ -393,8 +395,6 @@
 			isa = PBXGroup;
 			children = (
 				E9619DF41696157E00DA187E /* RNArray.h */,
-				E9619E031696157E00DA187E /* RNList.cpp */,
-				E9619E041696157E00DA187E /* RNList.h */,
 			);
 			name = Container;
 			sourceTree = "<group>";
@@ -491,7 +491,6 @@
 				E9619E311696157E00DA187E /* RNError.h in Headers */,
 				E9619E341696157E00DA187E /* RNFile.h in Headers */,
 				E9619E361696157E00DA187E /* RNKernel.h in Headers */,
-				E9619E381696157E00DA187E /* RNList.h in Headers */,
 				E9619E3A1696157E00DA187E /* RNMaterial.h in Headers */,
 				E9619E3B1696157E00DA187E /* RNMatrix.h in Headers */,
 				E9619E3C1696157E00DA187E /* RNMatrixQuaternion.h in Headers */,
@@ -534,6 +533,7 @@
 				E9B03FEC16F279E40016176B /* RNModule.h in Headers */,
 				E92B858E16FC4C9E002FA04D /* RNFunction.h in Headers */,
 				E92B859216FC6027002FA04D /* RNRenderStorage.h in Headers */,
+				E92B859616FC8E42002FA04D /* RNCatalogue.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -639,7 +639,6 @@
 				E9619E2E1696157E00DA187E /* RNContext.cpp in Sources */,
 				E9619E331696157E00DA187E /* RNFile.cpp in Sources */,
 				E9619E351696157E00DA187E /* RNKernel.cpp in Sources */,
-				E9619E371696157E00DA187E /* RNList.cpp in Sources */,
 				E9619E391696157E00DA187E /* RNMaterial.cpp in Sources */,
 				E9619E3D1696157E00DA187E /* RNMesh.cpp in Sources */,
 				E9619E3F1696157E00DA187E /* RNMutex.cpp in Sources */,
@@ -673,6 +672,7 @@
 				E92B857116FC25C1002FA04D /* RNSpinLock.S in Sources */,
 				E92B857416FC29C2002FA04D /* RNSpinLockInternal.cpp in Sources */,
 				E92B859116FC6027002FA04D /* RNRenderStorage.cpp in Sources */,
+				E92B859516FC8E42002FA04D /* RNCatalogue.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

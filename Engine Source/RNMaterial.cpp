@@ -10,6 +10,8 @@
 
 namespace RN
 {
+	RNDeclareMeta(Material)
+	
 	Material::Material() :
 		RenderingResource("Material")
 	{
@@ -22,7 +24,7 @@ namespace RN
 	Material::Material(RN::Shader *shader) :
 		RenderingResource("Material")
 	{
-		_shader = shader->Retain<RN::Shader>();
+		_shader = shader->Retain();
 		_textures = new Array<Texture>();
 		
 		SetDefaultProperties();
@@ -39,7 +41,7 @@ namespace RN
 	void Material::SetShader(RN::Shader *shader)
 	{
 		_shader->Release();
-		_shader = shader->Retain<RN::Shader>();
+		_shader = shader->Retain();
 	}
 	
 	Shader *Material::Shader() const

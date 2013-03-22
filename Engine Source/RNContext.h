@@ -76,6 +76,8 @@ namespace RN
 		GLXContext _context;
 		XID _win;
 #endif
+		
+		RNDefineMeta(Context, Object)
 	};
 }
 

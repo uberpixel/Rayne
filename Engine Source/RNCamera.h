@@ -162,6 +162,8 @@ namespace RN
 		
 		Texture *_depthTiles;
 		Model *_skycube;
+		
+		RNDefineConstructorlessMeta(Camera, Transform)
 	};
 }
 

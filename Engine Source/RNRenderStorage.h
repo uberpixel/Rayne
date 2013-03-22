@@ -70,6 +70,8 @@ namespace RN
 		bool _formatChanged;
 		bool _renderTargetsChanged;
 		float _scaleFactor;
+		
+		//RNDefineConstructorlessMeta(RenderStorage, Object)
 	};
 }
 

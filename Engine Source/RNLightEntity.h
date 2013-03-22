@@ -28,8 +28,6 @@ namespace RN
 		};
 		
 		LightEntity(Type type = TypePointLight);
-		LightEntity(LightEntity *other);
-		
 		virtual ~LightEntity();
 		
 		virtual bool IsVisibleInCamera(Camera *camera);
@@ -53,6 +51,8 @@ namespace RN
 		float _range;
 		Vector3 _direction;
 		float _angle;
+		
+		RNDefineMeta(LightEntity, Entity)
 	};
 }
 

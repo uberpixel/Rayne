@@ -34,7 +34,6 @@ namespace RN
 		} EntityType;
 		
 		Entity();
-		Entity(Entity *other);
 		
 		virtual ~Entity();
 		
@@ -58,6 +57,8 @@ namespace RN
 		
 		EntityType _type;
 		std::function<void (Entity *, float)> _action;
+		
+		RNDefineMeta(Entity, Transform)
 	};
 }
 

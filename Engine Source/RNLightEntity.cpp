@@ -12,22 +12,15 @@
 
 namespace RN
 {
+	RNDeclareMeta(LightEntity)
+	
 	LightEntity::LightEntity(Type lighttype) :
-		Entity(Entity::TypeLight), _lightType(lighttype)
+		Entity(Entity::TypeLight),
+		_lightType(lighttype)
 	{
 		_color = Vector3(1.0f, 1.0f, 1.0f);
 		_range = 1.0f;
 		_angle = 0.5f;
-	}
-	
-	LightEntity::LightEntity(LightEntity *other) :
-		Entity(other)
-	{
-		_lightType = other->_lightType;
-		_color = other->_color;
-		_range = other->_range;
-		_direction = other->_direction;
-		_angle = other->_angle;
 	}
 	
 	LightEntity::~LightEntity()

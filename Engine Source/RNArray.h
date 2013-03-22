@@ -387,7 +387,7 @@ namespace RN
 			
 			for(machine_uint i=0; i<this->_count; i++)
 			{
-				this->_data[i] = other._data[i]->template Retain<T>();
+				this->_data[i] = other._data[i]->Retain();
 			}
 		}
 		
@@ -407,7 +407,7 @@ namespace RN
 		{
 			for(machine_uint i=0; i<this->_count; i++)
 			{
-				this->_data[i]->template Release();
+				this->_data[i]->Release();
 			}
 			
 			if(other._size > this->_size)
@@ -423,7 +423,7 @@ namespace RN
 			
 			for(machine_uint i=0; i<this->_count; i++)
 			{
-				this->_data[i]->template Retain<T>();
+				this->_data[i]->Retain();
 			}
 			
 			return *this;
@@ -433,7 +433,7 @@ namespace RN
 		void AddObject(T *object)
 		{
 			this->UpdateSizeIfNeeded();
-			this->_data[this->_count ++] = object->template Retain<T>();
+			this->_data[this->_count ++] = object->Retain();
 		}
 		
 		void InsertObjectAtIndex(T *object, machine_uint index)
@@ -445,14 +445,14 @@ namespace RN
 				this->_data[i] = this->_data[i - 1];
 			}
 			
-			this->_data[index] = object->template Retain<T>();
+			this->_data[index] = object->Retain();
 			this->_count ++;
 		}
 		
 		void ReplaceObjectAtIndex(machine_uint index, T *object)
 		{
 			this->_data[index]->Release();
-			this->_data[index] = object->template Retain<T>();
+			this->_data[index] = object->Retain();
 		}
 		
 		void RemoveObject(T *object)

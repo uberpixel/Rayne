@@ -11,9 +11,10 @@
 
 namespace RN
 {
-	Transform::Transform(TransformType type) :
-		_scale(Vector3(1.0f)),
-		_type(type)
+	RNDeclareMeta(Transform)
+	
+	Transform::Transform() :
+		_scale(Vector3(1.0f))
 	{
 		_parent = 0;
 		DidUpdate();
@@ -21,10 +22,9 @@ namespace RN
 		World::SharedInstance()->AddTransform(this);
 	}
 	
-	Transform::Transform(TransformType type, const Vector3& position) :
+	Transform::Transform(const Vector3& position) :
 		_position(position),
-		_scale(Vector3(1.0f)),
-		_type(type)
+		_scale(Vector3(1.0f))
 	{
 		_parent = 0;
 		DidUpdate();
@@ -32,12 +32,11 @@ namespace RN
 		World::SharedInstance()->AddTransform(this);
 	}
 	
-	Transform::Transform(TransformType type, const Vector3& position, const Quaternion& rotation) :
+	Transform::Transform(const Vector3& position, const Quaternion& rotation) :
 		_position(position),
 		_scale(Vector3(1.0f)),
 		_rotation(rotation),
-		_euler(rotation.EulerAngle()),
-		_type(type)
+		_euler(rotation.EulerAngle())
 	{
 		_parent = 0;
 		DidUpdate();

@@ -11,6 +11,8 @@
 
 namespace RN
 {
+	RNDeclareMeta(Shader)
+	
 	Shader::Shader()
 	{
 		_supportedPrograms = 0;
@@ -51,7 +53,7 @@ namespace RN
 	Shader *Shader::WithFile(const std::string& file)
 	{
 		Shader *shader = new Shader(file);
-		return shader->Autorelease<Shader>();
+		return shader->Autorelease();
 	}
 	
 	

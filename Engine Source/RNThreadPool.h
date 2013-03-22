@@ -160,10 +160,11 @@ namespace RN
 					
 					if(_workQueue.size() == 0)
 					{
+						// TODO: Check if we can steal tasks from other threads
 						_lock.Unlock();
 						
 						std::unique_lock<std::mutex> lock(_waitMutex);
-						_waitCondition.wait(lock); // Spurios wake ups are okay
+						_waitCondition.wait(lock); // Spurious wake ups are okay, the cost of a predicate is higher than looping again.
 						continue;
 					}
 					

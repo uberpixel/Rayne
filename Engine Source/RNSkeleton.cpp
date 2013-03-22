@@ -232,13 +232,13 @@ namespace RN
 	Skeleton *Skeleton::WithFile(const std::string& path)
 	{
 		Skeleton *skeleton = new Skeleton(path);
-		return skeleton->Autorelease<Skeleton>();
+		return (Skeleton *)skeleton->Autorelease();
 	}
 		
 	Skeleton *Skeleton::Empty()
 	{
 		Skeleton *skeleton = new Skeleton();
-		return skeleton->Autorelease<Skeleton>();
+		return (Skeleton *)skeleton->Autorelease();
 	}
 	
 	void Skeleton::ReadSkeletonVersion1(File *file)
@@ -281,7 +281,7 @@ namespace RN
 			file->ReadIntoBuffer(animname, lenanimname);
 			
 			Animation *anim = new Animation(animname);
-			anim->Autorelease<Animation>();
+			anim->Autorelease();
 			anim->Retain();
 			animations.insert(std::pair<std::string, Animation*>(animname, anim));
 			delete[] animname;

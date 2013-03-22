@@ -8,7 +8,7 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureLights        1
+#define TGWorldFeatureLights        0
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
 #define TGWorldFeatureAnimations    0
@@ -162,7 +162,7 @@ namespace TG
 		blockMaterial->AddTexture(RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888));
 		
 		RN::Mesh  *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f, 0.5f, 0.5f));
-		RN::Model *blockModel = RN::Model::WithMesh(blockMesh->Autorelease<RN::Mesh>(), blockMaterial->Autorelease<RN::Material>());
+		RN::Model *blockModel = RN::Model::WithMesh(blockMesh->Autorelease(), blockMaterial->Autorelease());
 		
 		_parentBlock = new RN::Entity();
 		_parentBlock->SetModel(blockModel);

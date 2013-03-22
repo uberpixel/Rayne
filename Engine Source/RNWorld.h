@@ -37,16 +37,19 @@ namespace RN
 	private:
 		void StepWorld(float delta);		
 		void VisitTransform(Camera *camera, Transform *transform);
+		void ApplyTransformUpdates();
 		
 		Kernel *_kernel;
-		bool _updatingTransforms;
 		
 		std::unordered_set<Transform *> _transforms;
 		std::deque<Transform *> _addedTransforms;
-		std::deque<Transform *> _removedTransforms;
 		std::vector<Camera *> _cameras;
 		
 		Renderer *_renderer;
+		
+		MetaClass *_cameraClass;
+		MetaClass *_entityClass;
+		MetaClass *_lightEntityClass;
 	};
 }
 

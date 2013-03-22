@@ -30,7 +30,7 @@ namespace RN
 	void PipelineSegment::SetThread(Thread *thread)
 	{
 		RN_ASSERT(!_thread, "The thread of a PipelineSegment can't be replaced!");
-		_thread = thread->Retain<Thread>();
+		_thread = thread->Retain();
 	}
 	
 	void PipelineSegment::Exit()

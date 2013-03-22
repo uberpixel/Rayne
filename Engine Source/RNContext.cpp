@@ -17,16 +17,18 @@ extern void RNRegisterWindow();
 
 namespace RN
 {
-	#if RN_PLATFORM_LINUX
+	RNDeclareMeta(Context)
+	
+#if RN_PLATFORM_LINUX
 	Display *Context::_dpy = 0;
-	#endif 
+#endif 
 	
 	Context::Context(Context *shared) :
 		RenderingResource("Context")
 	{
 		_active = false;
 		_thread = 0;
-		_shared = shared->Retain<Context>();
+		_shared = shared->Retain();
 		_firstActivation = true;
 
 #if RN_PLATFORM_MAC_OS

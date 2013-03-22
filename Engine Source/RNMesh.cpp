@@ -11,6 +11,8 @@
 
 namespace RN
 {
+	RNDeclareMeta(Mesh)
+	
 	MeshLODStage::MeshLODStage(const Array<MeshDescriptor>& descriptor)
 	{
 		_meshSize = 0;

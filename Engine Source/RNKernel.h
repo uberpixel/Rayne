@@ -20,7 +20,7 @@
 namespace RN
 {
 	class World;
-	class Kernel : public Object, public NonConstructingSingleton<Kernel>
+	class Kernel : public NonConstructingSingleton<Kernel>
 	{
 	public:
 		RNAPI Kernel();

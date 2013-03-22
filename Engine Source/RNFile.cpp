@@ -15,6 +15,8 @@ namespace RN
 {
 	static std::vector<std::string> FileSearchPaths;
 	static std::vector<std::string> FileModifiers;
+	
+	RNDeclareMeta(File)
 
 	File::File(const std::string& path, FileMode mode)
 	{

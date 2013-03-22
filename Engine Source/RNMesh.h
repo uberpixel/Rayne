@@ -130,6 +130,8 @@ namespace RN
 		
 	private:
 		Array<MeshLODStage *> _LODStages;
+		
+		RNDefineMeta(Mesh, Object)
 	};
 }
 

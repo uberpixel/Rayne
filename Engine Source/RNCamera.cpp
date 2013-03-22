@@ -13,6 +13,8 @@
 
 namespace RN
 {
+	RNDeclareMeta(Camera)
+	
 	Camera::Camera(const Vector2& size) :
 		Camera(size, Texture::FormatRGBA8888)
 	{}
@@ -39,8 +41,7 @@ namespace RN
 	Camera::Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_flags(flags),
-		RenderingResource("Camera"),
-		Transform(Transform::TransformTypeCamera)
+		RenderingResource("Camera")
 	{
 		_storage = 0;
 
@@ -54,8 +55,7 @@ namespace RN
 	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_flags(flags),
-		RenderingResource("Camera"),
-		Transform(Transform::TransformTypeCamera)
+		RenderingResource("Camera")
 	{
 		_storage = 0;
 
@@ -69,8 +69,7 @@ namespace RN
 	Camera::Camera(const Vector2& size, RenderStorage *storage, Flags flags) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_flags(flags),
-		RenderingResource("Camera"),
-		Transform(Transform::TransformTypeCamera)
+		RenderingResource("Camera")
 	{
 		_storage = 0;
 
@@ -181,7 +180,7 @@ namespace RN
 	void Camera::SetMaterial(class Material *material)
 	{
 		_material->Release();
-		_material = material->Retain<class Material>();
+		_material = material->Retain();
 	}
 
 	void Camera::SetRenderStorage(RenderStorage *storage)
@@ -189,7 +188,7 @@ namespace RN
 		RN_ASSERT(storage, "Render storage mustn't be NULL!");
 
 		_storage->Release();
-		_storage = storage->Retain<RenderStorage>();
+		_storage = (RenderStorage *)storage->Retain();
 
 		if(_flags & FlagUpdateStorageFrame)
 			_storage->SetFrame(_frame);
@@ -222,7 +221,7 @@ namespace RN
 	void Camera::SetSkyCube(Model *skycube)
 	{
 		_skycube->Release();
-		_skycube = skycube->Retain<Model>();
+		_skycube = skycube->Retain();
 	}
 	
 	// Stages
@@ -250,7 +249,7 @@ namespace RN
 	void Camera::InsertStage(Camera *stage)
 	{
 		_stage->Release();
-		_stage = stage->Retain<Camera>();
+		_stage = stage->Retain();
 
 		UpdateProjection();
 		World::SharedInstance()->RemoveTransform(stage);
@@ -258,11 +257,11 @@ namespace RN
 
 	void Camera::ReplaceStage(Camera *stage)
 	{
-		Camera *temp = _stage ? _stage->_stage->Retain<Camera>() : 0;
+		Camera *temp = _stage ? _stage->_stage->Retain() : 0;
 		World::SharedInstance()->AddTransform(_stage);
 
 		_stage->Release();
-		_stage = stage->Retain<Camera>();
+		_stage = stage->Retain();
 
 		if(_stage->_stage)
 			_stage->RemoveStage(_stage->_stage);
@@ -277,7 +276,7 @@ namespace RN
 	{
 		if(_stage == stage)
 		{
-			stage = stage->_stage->Retain<Camera>();
+			stage = stage->_stage->Retain();
 			World::SharedInstance()->AddTransform(stage);
 
 			_stage->Release();
@@ -291,7 +290,7 @@ namespace RN
 		{
 			if(temp->_stage == stage)
 			{
-				stage = stage->_stage->Retain<Camera>();
+				stage = stage->_stage->Retain();
 				World::SharedInstance()->AddTransform(stage);
 
 				temp->_stage->Release();

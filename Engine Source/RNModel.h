@@ -52,6 +52,8 @@ namespace RN
 		
 		Array<Material> _materials;
 		std::vector<MeshGroup> _groups;
+		
+		RNDefineMeta(Model, Object)
 	};
 }
 

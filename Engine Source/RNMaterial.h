@@ -62,6 +62,8 @@ namespace RN
 		
 		RN::Shader *_shader;
 		Array<Texture> *_textures;
+		
+		RNDefineMeta(Material, Object)
 	};
 }
 

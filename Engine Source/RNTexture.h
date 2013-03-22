@@ -115,6 +115,8 @@ namespace RN
 		bool _isLinear;
 		
 		static uint32 _defaultAnisotropy;
+		
+		RNDefineConstructorlessMeta(Texture, Object)
 	};
 }
 

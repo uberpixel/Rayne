@@ -132,6 +132,8 @@ namespace RN
 		
 		std::string _name;
 		std::map<std::string, void *> _dictionary;
+		
+		RNDefineConstructorlessMeta(Thread, Object)
 	};
 }
 

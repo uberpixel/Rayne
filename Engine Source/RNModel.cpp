@@ -12,6 +12,8 @@
 
 namespace RN
 {
+	RNDeclareMeta(Model)
+	
 	Model::Model()
 	{
 	}
@@ -43,7 +45,7 @@ namespace RN
 	Model::Model(Mesh *mesh, Material *material, const std::string& name)
 	{
 		MeshGroup group;
-		group.mesh = mesh->Retain<Mesh>();
+		group.mesh = mesh->Retain();
 		group.material = material;
 		group.name = name;
 		
@@ -95,7 +97,7 @@ namespace RN
 	Model *Model::WithFile(const std::string& path)
 	{
 		Model *model = new Model(path);
-		return model->Autorelease<Model>();
+		return model->Autorelease();
 	}
 	
 	Model *Model::WithSkyCube(std::string up, std::string down, std::string left, std::string right, std::string front, std::string back, std::string shader)
@@ -133,12 +135,12 @@ namespace RN
 		Mesh  *skyBackMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 0.0f, 90.0f));
 		
 		Model *skyModel = Model::Empty();
-		skyModel->AddMesh(skyDownMesh->Autorelease<Mesh>(), skyDownMaterial->Autorelease<Material>());
-		skyModel->AddMesh(skyUpMesh->Autorelease<Mesh>(), skyUpMaterial->Autorelease<Material>());
-		skyModel->AddMesh(skyLeftMesh->Autorelease<Mesh>(), skyLeftMaterial->Autorelease<Material>());
-		skyModel->AddMesh(skyRightMesh->Autorelease<Mesh>(), skyRightMaterial->Autorelease<Material>());
-		skyModel->AddMesh(skyFrontMesh->Autorelease<Mesh>(), skyFrontMaterial->Autorelease<Material>());
-		skyModel->AddMesh(skyBackMesh->Autorelease<Mesh>(), skyBackMaterial->Autorelease<Material>());
+		skyModel->AddMesh(skyDownMesh->Autorelease(), skyDownMaterial->Autorelease());
+		skyModel->AddMesh(skyUpMesh->Autorelease(), skyUpMaterial->Autorelease());
+		skyModel->AddMesh(skyLeftMesh->Autorelease(), skyLeftMaterial->Autorelease());
+		skyModel->AddMesh(skyRightMesh->Autorelease(), skyRightMaterial->Autorelease());
+		skyModel->AddMesh(skyFrontMesh->Autorelease(), skyFrontMaterial->Autorelease());
+		skyModel->AddMesh(skyBackMesh->Autorelease(), skyBackMaterial->Autorelease());
 		
 		return skyModel;
 	}
@@ -146,19 +148,19 @@ namespace RN
 	Model *Model::WithMesh(Mesh *mesh, Material *material, const std::string& name)
 	{
 		Model *model = new Model(mesh, material, name);
-		return model->Autorelease<Model>();
+		return model->Autorelease();
 	}
 	
 	Model *Model::Empty()
 	{
 		Model *model = new Model();
-		return model->Autorelease<Model>();
+		return model->Autorelease();
 	}
 	
 	void Model::AddMesh(Mesh *mesh, Material *material, const std::string& name)
 	{
 		MeshGroup group;
-		group.mesh = mesh->Retain<Mesh>();
+		group.mesh = mesh->Retain();
 		group.material = material;
 		group.name = name;
 		

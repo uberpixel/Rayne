@@ -146,6 +146,8 @@ namespace RN
 		
 		std::string _geometryFile;
 		std::string _geometryShader;
+		
+		RNDefineMeta(Shader, Object)
 	};
 }
 
