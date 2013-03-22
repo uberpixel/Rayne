@@ -11,78 +11,19 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNArray.h"
+#include "RNTransform.h"
+#include "RNRenderStorage.h"
 #include "RNRenderingResource.h"
 #include "RNTexture.h"
+#include "RNMaterial.h"
 #include "RNRect.h"
 #include "RNPlane.h"
-#include "RNTransform.h"
 #include "RNColor.h"
 #include "RNModel.h"
 
 namespace RN
 {
-	class Texture;
-	class Material;
-	
-	class Camera;
-	class RenderStorage : public Object
-	{
-	friend class Camera;
-	public:
-		enum
-		{
-			BufferFormatColor = (1 << 0),
-			BufferFormatDepth = (1 << 1),
-			BufferFormatStencil = (1 << 2),
-			
-			BufferFormatComplete = (BufferFormatColor | BufferFormatDepth | BufferFormatStencil)
-		};
-		typedef uint32 BufferFormat;
-		
-		RenderStorage(BufferFormat format, Texture *depthTexture=0);
-		virtual ~RenderStorage();
-		
-		void SetFrame(const Rect& frame);		
-		void SetRenderTarget(Texture *target, uint32 index=0);
-		void AddRenderTarget(Texture *target);
-		void AddRenderTarget(Texture::Format format);
-		void RemoveRenderTarget(Texture *target);
-		void SetDepthTarget(Texture *texture);
-		
-		void UpdateBuffer();
-		
-		bool HasDepthbuffer() const { return (_format & BufferFormatDepth); }
-		bool HasStencilbuffer() const { return (_format & BufferFormatStencil); }
-		
-		uint32 RenderTargets() const { return (uint32)_renderTargets->Count(); }
-		Texture *RenderTarget(uint32 index=0) const { return _renderTargets->ObjectAtIndex(index); }
-		Texture *DepthTarget() const { return _depthTexture; }
-		
-		static uint32 MaxRenderTargets();
-		
-	private:
-		void UpdateDrawBuffers(uint32 count);
-		void CheckFramebufferStatus();
-		
-		GLuint _framebuffer;
-		GLuint _depthbuffer;
-		GLuint _stencilbuffer;
-		
-		Rect _frame;
-		BufferFormat _format;
-		
-		Array<Texture> *_renderTargets;
-		uint32 _boundRenderTargets;
-		Texture *_depthTexture;
-		
-		bool _frameChanged;
-		bool _formatChanged;
-		bool _renderTargetsChanged;
-		float _scaleFactor;
-	};
-	
-	class Camera : public Object, public Transform, public RenderingResource
+	class Camera : public Transform, public RenderingResource
 	{
 	public:
 		enum

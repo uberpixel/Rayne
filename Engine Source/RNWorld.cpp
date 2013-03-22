@@ -92,28 +92,61 @@ namespace RN
 		uint32 j = 0;
 		
 		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
-		std::vector<std::future<void>> results(size);
+		std::vector<std::tuple<Transform *, std::future<void>>> results(size);
 		
+		// Add the Transform updates to the thread pool
 		pool->BeginTaskBatch();
+		_updatingTransforms = true;
 		
 		for(auto i=_transforms.begin(); i!=_transforms.end(); i++, j++)
 		{
 			Transform *transform = *i;
-
-			results[j] = pool->AddTask([transform, delta]() {
+			transform->Retain();
+			
+			results[j] = std::tuple<Transform *, std::future<void>>(transform, pool->AddTask([transform, delta]() {
 				transform->Update(delta);
-			});
+			}));
 		}
 		
 		pool->EndTaskBatch();
 		
+		// Wait for the updates to complete
 		for(j=0; j<size; j++)
 		{
-			results[j].wait();
+			std::get<1>(results[j]).wait();
+		}
+		
+		_updatingTransforms = false;
+		
+		for(j=0; j<size; j++)
+		{
+			std::get<0>(results[j])->Release();
+		}
+		
+		// Apply the transform updates
+		if(_removedTransforms.size() > 0)
+		{
+			for(auto i : _removedTransforms)
+			{
+				RemoveTransform(i);
+			}
+			
+			_removedTransforms.clear();
+		}
+		
+		if(_addedTransforms.size() > 0)
+		{
+			for(auto i : _addedTransforms)
+			{
+				AddTransform(i);
+			}
+				
+			_addedTransforms.clear();
 		}
 		
 		TransformsUpdated();
 		
+		// Iterate over all cameras and render the visible nodes
 		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
 		{
 			Camera *camera = *i;
@@ -137,6 +170,12 @@ namespace RN
 		if(!transform)
 			return;
 		
+		if(_updatingTransforms)
+		{
+			_addedTransforms.push_back(transform);
+			return;
+		}
+		
 		if(_transforms.find(transform) == _transforms.end())
 		{
 			_transforms.insert(transform);
@@ -153,6 +192,12 @@ namespace RN
 	{
 		if(!transform)
 			return;
+		
+		if(_updatingTransforms)
+		{
+			_removedTransforms.push_back(transform);
+			return;
+		}
 		
 		auto iterator = _transforms.find(transform);
 		if(iterator != _transforms.end())

@@ -10,6 +10,7 @@
 #define __RAYNE_TRANSFORM_H__
 
 #include "RNBase.h"
+#include "RNObject.h"
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
 #include "RNVector.h"
@@ -18,7 +19,7 @@
 namespace RN
 {
 	class RenderingPipeline;
-	class Transform
+	class Transform : public Object
 	{
 	friend class RenderingPipeline;
 	public:
@@ -64,14 +65,7 @@ namespace RN
 		const Matrix& LocalTransform() { return _localTransform; }
 		
 		virtual void Update(float delta)
-		{
-			machine_uint count = _childs.Count();
-			for(machine_uint i=0; i<count; i++)
-			{
-				Transform *child = _childs.ObjectAtIndex(i);
-				child->Update(delta);
-			}
-		}
+		{}
 		
 	protected:
 		Transform(TransformType type);

@@ -17,7 +17,7 @@
 #include "RNContext.h"
 #include "RNKernel.h"
 
-#define kRNThreadPoolLocalQueueMaxSize 100
+#define kRNThreadPoolLocalQueueMaxSize 25
 
 namespace RN
 {
@@ -150,7 +150,7 @@ namespace RN
 		void Consumer()
 		{
 			Thread *thread = Thread::CurrentThread();
-			std::list<Function> localQueue;
+			std::deque<Function> localQueue;
 			
 			while(!thread->IsCancelled())
 			{
@@ -168,7 +168,7 @@ namespace RN
 					}
 					
 					machine_uint moveLocal = MIN(kRNThreadPoolLocalQueueMaxSize, _workQueue.size());
-					std::list<Function>::iterator last = _workQueue.begin();
+					std::deque<Function>::iterator last = _workQueue.begin();
 					std::advance(last, moveLocal);
 					
 					std::move(_workQueue.begin(), last, std::back_inserter(localQueue));
@@ -194,7 +194,7 @@ namespace RN
 		
 		Array<Thread> _threads;
 		machine_uint _resigned;
-		std::list<Function> _workQueue;
+		std::deque<Function> _workQueue;
 	
 		std::mutex _tearDownMutex;
 		std::mutex _waitMutex;

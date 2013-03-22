@@ -22,7 +22,7 @@ namespace RN
 	class Camera;
 	class RenderingPipeline;
 	
-	class Entity : public Object, public Transform
+	class Entity : public Transform
 	{
 	friend class World;
 	friend class RenderingPipeline;
