@@ -2,8 +2,8 @@
 //  RNCatalogue.cpp
 //  Rayne
 //
-//  Created by Sidney Just on 22.03.13.
-//  Copyright (c) 2013 Sidney Just. All rights reserved.
+//  Copyright 2013 by Felix Pohl, Nils Daumann and Sidney Just. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "RNCatalogue.h"
