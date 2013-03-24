@@ -12,7 +12,6 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNApplication.h"
-#include "RNRenderingResource.h"
 #include "RNRenderer.h"
 #include "RNWindow.h"
 #include "RNInput.h"

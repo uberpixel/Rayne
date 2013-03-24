@@ -530,8 +530,6 @@ continue; \
 	
 	void Renderer::BindMaterial(Material *material, ShaderProgram *program)
 	{
-		material->Push();
-		
 		bool changedShader = (program != _currentProgram);
 		UseShader(program);
 		
@@ -565,7 +563,6 @@ continue; \
 		SetBlendFunction(material->blendSource, material->blendDestination);
 		
 		_currentMaterial = material;
-		material->Pop();
 	}
 	
 	
@@ -637,7 +634,6 @@ continue; \
 	
 	void Renderer::FlushCamera(Camera *camera)
 	{
-		camera->Push();
 		_currentCamera = camera;
 		
 		SetDepthTestEanbled(false);
@@ -675,14 +671,10 @@ continue; \
 		
 		glDisableVertexAttribArray(program->vertPosition);
 		glDisableVertexAttribArray(program->vertTexcoord0);
-		
-		camera->Pop();
 	}
 	
 	void Renderer::DrawCameraStage(Camera *camera, Camera *stage)
 	{
-		stage->Push();
-		
 		Material *material = stage->Material();
 		ShaderProgram *program = material->Shader()->ProgramOfType(ShaderProgram::TypeNormal);
 		
@@ -728,8 +720,6 @@ continue; \
 		
 		glDisableVertexAttribArray(program->vertPosition);
 		glDisableVertexAttribArray(program->vertTexcoord0);
-		
-		stage->Pop();
 	}
 	
 	// ---------------------
@@ -1180,8 +1170,6 @@ continue; \
 	
 	void Renderer::DrawMesh(Mesh *mesh)
 	{
-		mesh->Push();
-		
 		MeshLODStage *stage = mesh->LODStage(0);
 		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
 		
@@ -1189,8 +1177,6 @@ continue; \
 		
 		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
 		glDrawElements(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0);
-		
-		mesh->Pop();
 	}
 	
 	void Renderer::RenderObject(const RenderingObject& object)

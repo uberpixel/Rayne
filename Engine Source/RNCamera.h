@@ -13,7 +13,6 @@
 #include "RNObject.h"
 #include "RNTransform.h"
 #include "RNRenderStorage.h"
-#include "RNRenderingResource.h"
 #include "RNTexture.h"
 #include "RNMaterial.h"
 #include "RNRect.h"
@@ -23,7 +22,7 @@
 
 namespace RN
 {
-	class Camera : public Transform, public RenderingResource
+	class Camera : public Transform
 	{
 	public:
 		enum

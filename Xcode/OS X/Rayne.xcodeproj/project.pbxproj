@@ -16,7 +16,6 @@
 		E9145CAD16BA9076004BDEC8 /* RNAutoreleasePool.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9145CB316BAB82D004BDEC8 /* RNInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9145CB116BAB82D004BDEC8 /* RNInput.cpp */; };
 		E9145CB416BAB82D004BDEC8 /* RNInput.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CB216BAB82D004BDEC8 /* RNInput.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E91B88761697889F001B7F22 /* RNRenderingResource.h in Headers */ = {isa = PBXBuildFile; fileRef = E91B88741697889E001B7F22 /* RNRenderingResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E91F784216CE336000FFD318 /* RNThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E91F784016CE336000FFD318 /* RNThreadPool.cpp */; };
 		E91F784316CE336000FFD318 /* RNThreadPool.h in Headers */ = {isa = PBXBuildFile; fileRef = E91F784116CE336000FFD318 /* RNThreadPool.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E92A62BD16DF2267006E68AF /* RNOpenGLExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = E9AB7F0E16D42522006BB4CB /* RNOpenGLExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -147,7 +146,6 @@
 		E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAutoreleasePool.h; sourceTree = "<group>"; };
 		E9145CB116BAB82D004BDEC8 /* RNInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNInput.cpp; sourceTree = "<group>"; };
 		E9145CB216BAB82D004BDEC8 /* RNInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNInput.h; sourceTree = "<group>"; };
-		E91B88741697889E001B7F22 /* RNRenderingResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRenderingResource.h; sourceTree = "<group>"; };
 		E91F784016CE336000FFD318 /* RNThreadPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNThreadPool.cpp; sourceTree = "<group>"; };
 		E91F784116CE336000FFD318 /* RNThreadPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNThreadPool.h; sourceTree = "<group>"; };
 		E92A626816DEA8C1006E68AF /* RNModule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNModule.cpp; sourceTree = "<group>"; };
@@ -426,7 +424,6 @@
 				E9619E0A1696157E00DA187E /* RNMesh.h */,
 				E996A0B216F2CE97000EFB03 /* RNRenderer.cpp */,
 				E996A0B316F2CE97000EFB03 /* RNRenderer.h */,
-				E91B88741697889E001B7F22 /* RNRenderingResource.h */,
 				E92B858F16FC6027002FA04D /* RNRenderStorage.cpp */,
 				E92B859016FC6027002FA04D /* RNRenderStorage.h */,
 				E9619E1A1696157E00DA187E /* RNShader.cpp */,
@@ -508,7 +505,6 @@
 				E9619E571696157E00DA187E /* RNVector.h in Headers */,
 				E9619E591696157E00DA187E /* RNWindow.h in Headers */,
 				E9619E5B1696157E00DA187E /* RNWorld.h in Headers */,
-				E91B88761697889F001B7F22 /* RNRenderingResource.h in Headers */,
 				E9F77799169C5CF8006EE702 /* RNOpenGL.h in Headers */,
 				E9619E321696157E00DA187E /* RNErrorGroupGraphics.h in Headers */,
 				E9580BD416AB8BEA0056DEF2 /* RNEntity.h in Headers */,

@@ -11,7 +11,6 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNRenderingResource.h"
 #include "RNArray.h"
 #include "RNVector.h"
 #include "RNColor.h"
@@ -110,7 +109,7 @@ namespace RN
 		MeshDescriptor _descriptor[__kMaxMeshFeatures];
 	};
 	
-	class Mesh : public Object, public RenderingResource
+	class Mesh : public Object
 	{
 	public:
 		RNAPI Mesh();

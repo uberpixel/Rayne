@@ -10,7 +10,6 @@
 #define __RAYNE_RENDERER_H__
 
 #include "RNBase.h"
-#include "RNRenderingResource.h"
 #include "RNMatrixQuaternion.h"
 #include "RNTexture.h"
 #include "RNShader.h"

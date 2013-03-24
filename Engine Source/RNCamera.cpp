@@ -40,8 +40,7 @@ namespace RN
 
 	Camera::Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format) :
 		_frame(Vector2(0.0f, 0.0f), size),
-		_flags(flags),
-		RenderingResource("Camera")
+		_flags(flags)
 	{
 		_storage = 0;
 
@@ -54,8 +53,7 @@ namespace RN
 
 	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format) :
 		_frame(Vector2(0.0f, 0.0f), size),
-		_flags(flags),
-		RenderingResource("Camera")
+		_flags(flags)
 	{
 		_storage = 0;
 
@@ -68,8 +66,7 @@ namespace RN
 
 	Camera::Camera(const Vector2& size, RenderStorage *storage, Flags flags) :
 		_frame(Vector2(0.0f, 0.0f), size),
-		_flags(flags),
-		RenderingResource("Camera")
+		_flags(flags)
 	{
 		_storage = 0;
 
@@ -116,7 +113,6 @@ namespace RN
 
 	void Camera::Bind()
 	{
-		Push();
 		Thread *thread = Thread::CurrentThread();
 
 		if(thread->CurrentCamera() != this)
@@ -130,7 +126,6 @@ namespace RN
 		Thread *thread = Thread::CurrentThread();
 		if(thread->CurrentCamera() == this)
 		{
-			Pop();
 			thread->PopCamera();
 
 			Camera *other = thread->CurrentCamera();

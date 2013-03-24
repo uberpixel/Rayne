@@ -12,12 +12,11 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNThread.h"
-#include "RNRenderingResource.h"
 
 namespace RN
 {
 	class Window;
-	class Context : public Object, public RenderingResource
+	class Context : public Object
 	{
 	friend class Window;
 	friend class Kernel;
@@ -27,8 +26,6 @@ namespace RN
 
 		RNAPI void MakeActiveContext();
 		RNAPI void DeactivateContext();
-
-		RNAPI virtual void SetName(const char *name);
 		
 		RNAPI void SetDepthClear(GLfloat depth);
 		RNAPI void SetStencilClear(GLint stencil);

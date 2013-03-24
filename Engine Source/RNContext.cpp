@@ -23,8 +23,7 @@ namespace RN
 	Display *Context::_dpy = 0;
 #endif 
 	
-	Context::Context(Context *shared) :
-		RenderingResource("Context")
+	Context::Context(Context *shared)
 	{
 		_active = false;
 		_thread = 0;
@@ -376,16 +375,6 @@ namespace RN
 		RN_ASSERT0(thread);
 
 		return thread->_context;
-	}
-
-	void Context::SetName(const char *name)
-	{
-		RenderingResource::SetName(name);
-
-#if RN_PLATFORM_IOS
-		if([(EAGLContext *)_oglContext respondsToSelector:@selector(setDebugLabel:)])
-			[(EAGLContext *)_oglContext setDebugLabel:[NSString stringWithUTF8String:name]];
-#endif
 	}
 
 	void Context::Activate()
