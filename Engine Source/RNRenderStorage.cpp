@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	//RNDeclareMeta(RenderStorage)
+	RNDeclareMeta(RenderStorage)
 	
 	RenderStorage::RenderStorage(BufferFormat format, Texture *depthTexture)
 	{

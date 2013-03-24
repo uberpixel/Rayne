@@ -188,7 +188,7 @@ namespace RN
 		RN_ASSERT(storage, "Render storage mustn't be NULL!");
 
 		_storage->Release();
-		_storage = (RenderStorage *)storage->Retain();
+		_storage = storage->Retain();
 
 		if(_flags & FlagUpdateStorageFrame)
 			_storage->SetFrame(_frame);
