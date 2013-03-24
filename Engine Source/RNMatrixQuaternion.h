@@ -113,8 +113,8 @@ namespace RN
 		Quaternion LerpS(const Quaternion& other, float factor) const;
 		Quaternion LerpN(const Quaternion& other, float factor) const;
 
-		Vector3 RotateVector3(const Vector3& vec) const;
-		Vector4 RotateVector4(const Vector4& vec) const;
+		Vector3 RotateVector(const Vector3& vec) const;
+		Vector4 RotateVector(const Vector4& vec) const;
 
 		Matrix RotationMatrix() const;
 

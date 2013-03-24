@@ -266,9 +266,9 @@ namespace RN
 		
 		if(camera->DepthTiles() != 0)
 		{
-			Vector3 corner1 = camera->CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
-			Vector3 corner2 = camera->CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
-			Vector3 corner3 = camera->CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
+			Vector3 corner1 = camera->ToWorld(Vector3(-1.0f, -1.0f, 1.0f));
+			Vector3 corner2 = camera->ToWorld(Vector3(1.0f, -1.0f, 1.0f));
+			Vector3 corner3 = camera->ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
 			
 			Vector3 dirx = (corner2-corner1) / tilesWidth;
 			Vector3 diry = (corner3-corner1) / tilesHeight;

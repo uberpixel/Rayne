@@ -362,38 +362,36 @@ namespace RN
 		}
 	}
 
-	Vector3 Camera::CamToWorld(Vector3 dir)
+	Vector3 Camera::ToWorld(const Vector3& dir)
 	{
 		Vector4 vec(dir.x, dir.y, dir.z, 1.0f);
 		vec = inverseProjectionMatrix.Transform(vec);
 		vec /= vec.w;
 
-		Vector3 temp;
-		temp.x = vec.x;
-		temp.y = vec.y;
-		temp.z = vec.z;
+		Vector3 temp(vec.x, vec.y, vec.z);
 		temp = inverseViewMatrix.Transform(temp);
+		
 		return temp;
 	}
 
 	void Camera::UpdateFrustum()
 	{
-		Vector3 pos2 = CamToWorld(Vector3(-1.0f, 1.0f, 1.0f));
-		Vector3 pos3 = CamToWorld(Vector3(-1.0f, -1.0f, 1.0f));
-		Vector3 pos5 = CamToWorld(Vector3(1.0f, 1.0f, 1.0f));
-		Vector3 pos6 = CamToWorld(Vector3(1.0f, -1.0f, 1.0f));
+		Vector3 pos2 = ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
+		Vector3 pos3 = ToWorld(Vector3(-1.0f, -1.0f, 1.0f));
+		Vector3 pos5 = ToWorld(Vector3(1.0f, 1.0f, 1.0f));
+		Vector3 pos6 = ToWorld(Vector3(1.0f, -1.0f, 1.0f));
 
 		Vector3 vmax;
 		Vector3 vmin;
-		vmax.x = fmax(_position.x, fmax(pos2.x, fmax(pos3.x, fmax(pos5.x, pos6.x))));
-		vmax.y = fmax(_position.y, fmax(pos2.y, fmax(pos3.y, fmax(pos5.y, pos6.y))));
-		vmax.z = fmax(_position.z, fmax(pos2.z, fmax(pos3.z, fmax(pos5.z, pos6.z))));
-		vmin.x = fmin(_position.x, fmin(pos2.x, fmin(pos3.x, fmin(pos5.x, pos6.x))));
-		vmin.y = fmin(_position.y, fmin(pos2.y, fmin(pos3.y, fmin(pos5.y, pos6.y))));
-		vmin.z = fmin(_position.z, fmin(pos2.z, fmin(pos3.z, fmin(pos5.z, pos6.z))));
+		vmax.x = MAX(_position.x, MAX(pos2.x, MAX(pos3.x, MAX(pos5.x, pos6.x))));
+		vmax.y = MAX(_position.y, MAX(pos2.y, MAX(pos3.y, MAX(pos5.y, pos6.y))));
+		vmax.z = MAX(_position.z, MAX(pos2.z, MAX(pos3.z, MAX(pos5.z, pos6.z))));
+		vmin.x = MIN(_position.x, MIN(pos2.x, MIN(pos3.x, MIN(pos5.x, pos6.x))));
+		vmin.y = MIN(_position.y, MIN(pos2.y, MIN(pos3.y, MIN(pos5.y, pos6.y))));
+		vmin.z = MIN(_position.z, MIN(pos2.z, MIN(pos3.z, MIN(pos5.z, pos6.z))));
 
-		_frustumCenter = vmax+vmin;
-		_frustumCenter = _frustumCenter*0.5f;
+		_frustumCenter = vmax + vmin;
+		_frustumCenter = _frustumCenter * 0.5f;
 		_frustumRadius = _frustumCenter.Distance(vmax);
 
 		_frustumLeft.SetPlane(_position, pos2, pos3);

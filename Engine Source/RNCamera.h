@@ -99,7 +99,7 @@ namespace RN
 		void PostUpdate();
 		void UpdateProjection();
 		
-		Vector3 CamToWorld(Vector3 dir);
+		Vector3 ToWorld(const Vector3& dir);
 		void UpdateFrustum();
 		bool InFrustum(const Vector3& position, float radius);
 		

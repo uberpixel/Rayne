@@ -15,8 +15,6 @@ namespace RN
 	{
 		_superClass = parent;
 		Catalogue::SharedInstance()->AddMetaClass(this);
-		
-		printf("Added class %s, super class: %s\n", name.c_str(), parent ? parent->Name().c_str() : "NULL");
 	}
 	
 	MetaClass::~MetaClass()
