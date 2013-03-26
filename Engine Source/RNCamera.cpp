@@ -305,7 +305,7 @@ namespace RN
 	void Camera::Update(float delta)
 	{
 		if(_stage)
-			_stage->PostUpdate();
+			_stage->Update(delta);
 		
 		Transform::Update(delta);
 	}
@@ -375,10 +375,7 @@ namespace RN
 	const Rect& Camera::Frame()
 	{
 		if(_flags & FlagFullscreen)
-		{
-			Rect frame = Kernel::SharedInstance()->Window()->Frame();
-			return frame;
-		}
+			_frame = Kernel::SharedInstance()->Window()->Frame();
 		
 		return _frame;
 	}
