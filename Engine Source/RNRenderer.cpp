@@ -754,9 +754,6 @@ continue; \
 		
 		_currentCamera = stage;
 		
-		BindMaterial(material, program);
-		UpdateShaderData();
-		
 		if(_currentVAO != _copyVAO)
 		{
 			gl::BindVertexArray(_copyVAO);
@@ -765,6 +762,9 @@ continue; \
 			glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		}
+		
+		BindMaterial(material, program);
+		UpdateShaderData();
 		
 		glEnableVertexAttribArray(program->vertPosition);
 		glVertexAttribPointer(program->vertPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
@@ -1000,8 +1000,8 @@ continue; \
 					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
 						programTypes |= ShaderProgram::TypeAnimated;
 					
-					if(lightPointCount > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeLightning))
-						programTypes |= ShaderProgram::TypeLightning;
+					//if(lightPointCount > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeLightning))
+					//	programTypes |= ShaderProgram::TypeLightning;
 #if 0
 					if(canDrawInstanced && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
 						programTypes |= ShaderProgram::TypeInstanced;
