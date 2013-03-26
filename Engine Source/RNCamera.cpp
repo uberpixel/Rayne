@@ -375,7 +375,10 @@ namespace RN
 	const Rect& Camera::Frame()
 	{
 		if(_flags & FlagFullscreen)
-			_frame = Kernel::SharedInstance()->Window()->Frame();
+		{
+			Rect frame = Kernel::SharedInstance()->Window()->Frame();
+			SetFrame(frame);
+		}
 		
 		return _frame;
 	}
