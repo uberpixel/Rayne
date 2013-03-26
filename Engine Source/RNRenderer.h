@@ -65,7 +65,7 @@ namespace RN
 		RNAPI void UpdateShaderData();
 		RNAPI void DrawMesh(Mesh *mesh);
 		RNAPI void BindVAO(const std::tuple<ShaderProgram *, MeshLODStage *>& tuple);
-		RNAPI void CreatePointLightList(Camera *camera, Vector4 **outLightPos, Vector4 **outLightColor, int *outLightCount);
+		RNAPI int CreatePointLightList(Camera *camera);
 		
 		bool _hasValidFramebuffer;
 		
@@ -116,23 +116,12 @@ namespace RN
 		Vector4 _copyVertices[4];
 		GLshort _copyIndices[6];
 		
-		GLuint _lightPointTextures[4];
-		GLuint _lightPointBuffers[4];
+		size_t _lightPointDataSize;
+		GLuint _lightPointTextures[3];
+		GLuint _lightPointBuffers[3];
+		
 		GLuint _lightSpotTextures[5];
 		GLuint _lightSpotBuffers[5];
-		
-		uint32 _lightPointBufferLengths[3];
-		uint32 _lightSpotBufferLengths[3];
-		
-		int *_lightPointIndexOffset;
-		int *_lightPointIndices;
-		size_t _lightPointIndexOffsetSize;
-		size_t _lightPointIndicesSize;
-		
-		int *_lightSpotIndexOffset;
-		int *_lightSpotIndices;
-		size_t _lightSpotIndexOffsetSize;
-		size_t _lightSpotIndicesSize;
 	};
 	
 	RN_INLINE uint32 Renderer::BindTexture(Texture *texture)

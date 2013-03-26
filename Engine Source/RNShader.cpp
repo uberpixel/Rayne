@@ -418,13 +418,10 @@ namespace RN
 				
 				GetUniformLocation(viewPosition);
 				
-				GetUniformLocation(lightPointPosition);
-				GetUniformLocation(lightPointColor);
 				GetUniformLocation(lightPointCount);
 				GetUniformLocation(lightPointList);
 				GetUniformLocation(lightPointListOffset);
-				GetUniformLocation(lightPointListPosition);
-				GetUniformLocation(lightPointListColor);
+				GetUniformLocation(lightPointListData);
 				
 				GetUniformLocation(lightSpotPosition);
 				GetUniformLocation(lightSpotDirection);

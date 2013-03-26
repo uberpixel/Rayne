@@ -62,13 +62,10 @@ namespace RN
 		
 		GLuint viewPosition;
 		
-		GLuint lightPointPosition;
-		GLuint lightPointColor;
 		GLuint lightPointCount;
 		GLuint lightPointList;
 		GLuint lightPointListOffset;
-		GLuint lightPointListPosition;
-		GLuint lightPointListColor;
+		GLuint lightPointListData;
 		
 		GLuint lightSpotPosition;
 		GLuint lightSpotDirection;

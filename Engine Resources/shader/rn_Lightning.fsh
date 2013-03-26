@@ -10,16 +10,15 @@
 
 #ifdef RN_LIGHTNING
 
-uniform samplerBuffer lightPointListColor;
-uniform samplerBuffer lightPointListPosition;
 uniform isamplerBuffer lightPointList;
 uniform isamplerBuffer lightPointListOffset;
-
+uniform samplerBuffer lightPointListData;
+/*
 uniform samplerBuffer lightSpotListColor;
 uniform samplerBuffer lightSpotListPosition;
 uniform samplerBuffer lightSpotListDirection;
 uniform isamplerBuffer lightSpotList;
-uniform isamplerBuffer lightSpotListOffset;
+uniform isamplerBuffer lightSpotListOffset;*/
 
 uniform vec4 lightTileSize;
 uniform int lightPointCount;
@@ -33,7 +32,7 @@ vec4 rn_Lightning()
 	vec3 normal = normalize(outLightNormal);
 	vec3 posdiff = vec3(0.0);
 	float attenuation = 0.0;
-	vec3 light = vec3(0.0);
+	vec3 light = vec3(0.1);
 	vec4 lightpos;
 	vec3 lightcolor;
 	vec4 lightdir;
@@ -43,16 +42,17 @@ vec4 rn_Lightning()
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 	
 	//pointlights
-	if(lightPointCount > 0)
+	//if(lightPointCount > 0)
 	{
 		ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
-		for(int i = 0; i < listoffset.y; i++)
+		for(int i=0; i<listoffset.y; i++)
 		{
-			lightindex = texelFetch(lightPointList, listoffset.x+i).r;
-			lightpos = texelFetch(lightPointListPosition, lightindex);
-			lightcolor = texelFetch(lightPointListColor, lightindex).xyz;
+			lightindex = texelFetch(lightPointList, listoffset.x + i).r;
+
+			lightpos   = texelFetch(lightPointListData, lightindex);
+			lightcolor = texelFetch(lightPointListData, lightindex + lightPointCount).xyz;
 			
-			posdiff = lightpos.xyz-outLightPosition;
+			posdiff     = lightpos.xyz-outLightPosition;
 			attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
 			
 			light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
@@ -60,7 +60,7 @@ vec4 rn_Lightning()
 	}
 	
 	//spotlights
-	if(lightSpotCount > 0)
+	/*if(lightSpotCount > 0)
 	{
 		ivec2 listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
 		for(int i = 0; i < listoffset.y; i++)
@@ -77,7 +77,7 @@ vec4 rn_Lightning()
 			if(dirfac > lightdir.w)
 				light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 		}
-	}
+	}*/
 	
 	return vec4(light, 1.0);
 }

@@ -104,6 +104,7 @@ namespace RN
 			
 			results[j] = pool->AddTask([transform, delta]() {
 				transform->Update(delta);
+				transform->WorldTransform(); // Make sure that transforms matrices get updated within the thread pool
 				transform->Release();
 			});
 		}
