@@ -287,14 +287,14 @@ namespace RN
 			
 			lightData = (Vector4 *)glMapBufferRange(GL_TEXTURE_BUFFER, 0, _lightPointDataSize, GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT);
 			
-			for(machine_uint i=0; i<lightCount; i+=2)
+			for(machine_uint i=0; i<lightCount; i+=1)
 			{
 				LightEntity *light = lights[i];
 				const Vector3& position = light->WorldPosition();
 				const Vector3& color = light->Color();
 				
-				lightData[i + 0] = Vector4(position.x, position.y, position.z, light->Range());
-				lightData[i + 1] = Vector4(color.x, color.y, color.z, 0.0f);
+				lightData[i * 2 + 0] = Vector4(position.x, position.y, position.z, light->Range());
+				lightData[i * 2 + 1] = Vector4(color.x, color.y, color.z, 0.0f);
 			}
 			
 			glUnmapBuffer(GL_TEXTURE_BUFFER);
