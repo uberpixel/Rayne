@@ -629,7 +629,7 @@ continue; \
 		SetCullingEnabled(material->culling);
 		SetCullMode(material->cullmode);
 
-		SetDepthTestEanbled(material->depthtest);
+		SetDepthTestEnabled(material->depthtest);
 		SetDepthFunction(material->depthtestmode);
 		SetDepthWriteEnabled((material->depthwrite && _currentCamera->AllowsDepthWrite()));
 		
@@ -710,7 +710,7 @@ continue; \
 	{
 		_currentCamera = camera;
 		
-		SetDepthTestEanbled(false);
+		SetDepthTestEnabled(false);
 		
 		if(_currentVAO != _copyVAO)
 		{

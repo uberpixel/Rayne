@@ -53,7 +53,7 @@ namespace RN
 		void UseShader(ShaderProgram *shader);
 		
 		void SetCullingEnabled(bool enabled);
-		void SetDepthTestEanbled(bool enabled);
+		void SetDepthTestEnabled(bool enabled);
 		void SetDepthWriteEnabled(bool enabled);
 		void SetBlendingEnabled(bool enabled);
 		
@@ -160,7 +160,8 @@ namespace RN
 		if(_currentProgram != shader)
 		{
 			glUseProgram(shader->program);
-			glUniform1f(shader->time, _time);
+			if(shader->time != -1)
+				glUniform1f(shader->time, _time);
 			
 			_currentProgram = shader;
 		}
@@ -176,7 +177,7 @@ namespace RN
 		_cullingEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
 	}
 	
-	RN_INLINE void Renderer::SetDepthTestEanbled(bool enabled)
+	RN_INLINE void Renderer::SetDepthTestEnabled(bool enabled)
 	{
 		if(_depthTestEnabled == enabled)
 			return;
