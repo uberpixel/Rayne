@@ -39,6 +39,7 @@ namespace RN
 		void AddRenderTarget(Texture::Format format);
 		void RemoveRenderTarget(Texture *target);
 		void SetDepthTarget(Texture *texture);
+		void SetDepthTarget(Texture::Format format);
 		
 		void UpdateBuffer();
 		

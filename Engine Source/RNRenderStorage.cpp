@@ -136,6 +136,20 @@ namespace RN
 		_formatChanged = true;
 	}
 	
+	void RenderStorage::SetDepthTarget(Texture::Format format)
+	{
+		Texture *target = new Texture(format);
+		
+		try
+		{
+			SetDepthTarget(target);
+			target->Release();
+		}
+		catch(ErrorException e)
+		{
+			target->Release();
+		}
+	}
 	
 	
 	void RenderStorage::CheckFramebufferStatus()
