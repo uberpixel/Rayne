@@ -280,18 +280,21 @@ namespace RN
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
 			
 			if(lightDataSize > _lightPointDataSize)
+			{
 				glBufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
+				_lightPointDataSize = lightDataSize;
+			}
 			
 			lightData = (Vector4 *)glMapBufferRange(GL_TEXTURE_BUFFER, 0, _lightPointDataSize, GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT);
 			
-			for(machine_uint i=0; i<lightCount; i++)
+			for(machine_uint i=0; i<lightCount; i+=2)
 			{
 				LightEntity *light = lights[i];
 				const Vector3& position = light->WorldPosition();
 				const Vector3& color = light->Color();
 				
-				lightData[i] = Vector4(position.x, position.y, position.z, light->Range());
-				lightData[i + lightCount] = Vector4(color.x, color.y, color.z, 0.0f);
+				lightData[i + 0] = Vector4(position.x, position.y, position.z, light->Range());
+				lightData[i + 1] = Vector4(color.x, color.y, color.z, 0.0f);
 			}
 			
 			glUnmapBuffer(GL_TEXTURE_BUFFER);

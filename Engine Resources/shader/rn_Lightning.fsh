@@ -47,10 +47,10 @@ vec4 rn_Lightning()
 		ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
 		for(int i=0; i<listoffset.y; i++)
 		{
-			lightindex = texelFetch(lightPointList, listoffset.x + i).r;
+			lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;
 
 			lightpos   = texelFetch(lightPointListData, lightindex);
-			lightcolor = texelFetch(lightPointListData, lightindex + lightPointCount).xyz;
+			lightcolor = texelFetch(lightPointListData, lightindex + 1).xyz;
 			
 			posdiff     = lightpos.xyz-outLightPosition;
 			attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
