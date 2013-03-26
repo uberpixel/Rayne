@@ -18,10 +18,10 @@
 
 namespace RN
 {
-	class RenderingPipeline;
+	class Renderer;
 	class Transform : public Object
 	{
-	friend class RenderingPipeline;
+	friend class Renderer;
 	public:
 		Transform();
 		Transform(const Vector3& position);

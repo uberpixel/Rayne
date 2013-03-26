@@ -237,7 +237,7 @@ namespace RN
 					{
 						LightEntity *light = lights[i];
 						
-						const Vector3& position = light->_position;
+						const Vector3& position = light->_worldPosition;
 						const float range = light->_range;
 						
 #define Distance(plane, op, r) { \
