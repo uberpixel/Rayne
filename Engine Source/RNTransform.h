@@ -94,10 +94,7 @@ namespace RN
 	{
 		if(local)
 		{
-			Matrix rotation;
-			rotation.MakeRotate(_rotation);
-			
-			_position += rotation.Transform(trans);
+			_position += _rotation.RotateVector(trans);
 			
 			DidUpdate();
 			return;

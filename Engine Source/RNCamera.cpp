@@ -130,12 +130,12 @@ namespace RN
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
 		_colorMask = ColorFlagRed | ColorFlagGreen | ColorFlagBlue | ColorFlagAlpha;
 
+		if(_flags & FlagUpdateStorageFrame)
+			_storage->SetFrame(_frame);
+		
 		Update(0.0f);
 		UpdateProjection();
 		UpdateFrustum();
-		
-		if(_flags & FlagUpdateStorageFrame)
-			_storage->SetFrame(_frame);
 	}
 
 
