@@ -185,6 +185,7 @@ namespace RN
 			transform->Release();
 		}
 		
+		_addedTransforms.erase(std::remove(_addedTransforms.begin(), _addedTransforms.end(), transform), _addedTransforms.end());
 		return;
 	}
 }
