@@ -102,12 +102,12 @@ namespace RN
 		// light index offsets
 		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListIndicesIndex]);
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
 		
 		// Light indices
 		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
 		
 		// Light Data
 		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListDataIndex]);
@@ -240,17 +240,17 @@ namespace RN
 						const Vector3& position = light->_position;
 						const float range = light->_range;
 						
-#define Distance(plane, op) { \
+#define Distance(plane, op, r) { \
 		float dot = (position.x * plane._normal.x + position.y * plane._normal.y + position.z * plane._normal.z);\
 		float distance = dot - plane._d; \
-		if(distance op range) \
+		if(distance op r) \
 			continue; \
 	}
 					
-						Distance(plleft, >);
-						Distance(plright, <);
-						Distance(pltop, <);
-						Distance(plbottom, >);
+						Distance(plleft, >, range);
+						Distance(plright, <, -range);
+						Distance(pltop, <, -range);
+						Distance(plbottom, >, range);
 #undef Distance
 						
 						lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
