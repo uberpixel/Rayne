@@ -250,11 +250,7 @@ namespace RN
 			__ArrayStore<T>(other._size)
 		{
 			this->_count = other._count;
-			
-			for(machine_uint i=0; i<this->_count; i++)
-			{
-				this->_data[i] = other._data[i];
-			}
+			std::copy(other._data, other._data + other._count, this->_data);
 		}
 		
 		T& operator[](int index) const
@@ -280,20 +276,34 @@ namespace RN
 		
 		void AddObject(const T& object)
 		{
+			this->_count ++;
 			this->UpdateSizeIfNeeded();
-			this->_data[this->_count ++] = object;
+			
+			this->_data[this->_count - 1] = object;
+		}
+		
+		void InsertObjectsAtIndex(const __ArrayCore<T, false>& other, machine_uint index)
+		{
+			size_t oldCount = this->_count;
+			
+			this->_count += other._count;
+			this->UpdateSizeIfNeeded();
+			
+			auto begin = this->_data + index;
+			
+			std::move(begin, this->_data + oldCount, begin + other._count);
+			std::copy(other._data, other._data + other._count, begin);
 		}
 		
 		void InsertObjectAtIndex(const T& object, machine_uint index)
 		{
+			this->_count ++;
 			this->UpdateSizeIfNeeded();
 			
-			for(machine_uint i=this->_count; i>index; i--)
-			{
-				this->_data[i] = this->_data[i - 1];
-			}
+			auto begin = this->_data + index;
 			
-			this->_count ++;
+			std::move(begin, this->_data + (this->_count - 1), begin + 1);
+			this->_data[index] = object;
 		}
 		
 		void ReplaceObjectAtIndex(machine_uint index, const T& object)
@@ -315,10 +325,7 @@ namespace RN
 		
 		void RemoveObjectAtIndex(machine_uint index)
 		{
-			for(; index<this->_count - 1; index++)
-			{
-				this->_data[index] = this->_data[index + 1];
-			}
+			std::move(this->_data + (index + 1), this->_data + this->_count, this->_data + index);
 			
 			this->_count --;
 			this->UpdateSizeIfNeeded();
@@ -432,21 +439,39 @@ namespace RN
 		
 		void AddObject(T *object)
 		{
+			this->_count ++;
 			this->UpdateSizeIfNeeded();
-			this->_data[this->_count ++] = object->Retain();
+			
+			this->_data[this->_count - 1] = object->Retain();
+		}
+		
+		void InsertObjectsAtIndex(const __ArrayCore<T, true>& other, machine_uint index)
+		{
+			size_t oldCount = this->_count;
+			
+			this->_count += other._count;
+			this->UpdateSizeIfNeeded();
+			
+			auto begin = this->_data + index;
+			
+			std::move(begin, this->_data + oldCount, begin + other._count);
+			std::copy(other._data, other._data + other._count, begin);
+			
+			for(machine_uint i=0; i<other._count; i++)
+			{
+				this->_data[index + i]->Retain();
+			}
 		}
 		
 		void InsertObjectAtIndex(T *object, machine_uint index)
 		{
+			this->_count ++;
 			this->UpdateSizeIfNeeded();
 			
-			for(machine_uint i=this->_count; i>index; i--)
-			{
-				this->_data[i] = this->_data[i - 1];
-			}
+			auto begin = this->_data + index;
 			
+			std::move(begin, this->_data + (this->_count - 1), begin + 1);
 			this->_data[index] = object->Retain();
-			this->_count ++;
 		}
 		
 		void ReplaceObjectAtIndex(machine_uint index, T *object)
@@ -470,9 +495,7 @@ namespace RN
 		void RemoveObjectAtIndex(machine_uint index)
 		{
 			this->_data[index]->Release();
-			
-			for(; index<this->_count - 1; index++)
-				this->_data[index] = this->_data[index + 1];
+			std::move(this->_data + (index + 1), this->_data + this->_count, this->_data + index);
 			
 			this->_count --;
 			this->UpdateSizeIfNeeded();

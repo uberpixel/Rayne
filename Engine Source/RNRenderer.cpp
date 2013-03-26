@@ -820,23 +820,31 @@ continue; \
 		machine_uint sortOder = 0;
 		
 		// Skycube
-		/*Model *skyCube = camera->SkyCube();
+		Model *skyCube = camera->SkyCube();
+		uint32 skyCubeMeshes = 0;
+		
 		Matrix cameraRotation;
 		cameraRotation.MakeRotate(camera->Rotation());
 		
 		if(skyCube)
 		{
-			uint32 meshes = skyCube->Meshes();
+			Array<RenderingObject> skyCubeObejcts;
 			
-			for(uint32 j=0; j<meshes; j++)
+			skyCubeMeshes = skyCube->Meshes();
+			
+			for(uint32 j=0; j<skyCubeMeshes; j++)
 			{
 				RenderingObject object;
-				object.mesh = skycube->MeshAtIndex(j);
-				object.material = skycube->MaterialForMesh(object.mesh);
+				object.mesh = skyCube->MeshAtIndex(j);
+				object.material = skyCube->MaterialForMesh(object.mesh);
 				object.transform = &cameraRotation;
-				object.skeleton = NULL;
+				object.skeleton = 0;
+				
+				skyCubeObejcts.AddObject(object);
 			}
-		}*/
+			
+			_frame.InsertObjectsAtIndex(skyCubeObejcts, 0);
+		}
 		
 		// Render loop
 		bool changedCamera;
@@ -912,7 +920,7 @@ continue; \
 							
 							return kRNCompareEqualTo;
 						}
-					}, 0);
+					}, skyCubeMeshes);
 					
 					sortOder = bestOrder;
 				}
