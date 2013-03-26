@@ -47,19 +47,6 @@ namespace RN
 		RenderStorage *storage = new RenderStorage(format);
 		storage->AddRenderTarget(target);
 		
-		if(format & RenderStorage::BufferFormatDepth || format & RenderStorage::BufferFormatStencil)
-		{
-			Texture::Format depthFormat;
-			
-			if(format & RenderStorage::BufferFormatDepth)
-				depthFormat = Texture::FormatDepth;
-			
-			if(format & RenderStorage::BufferFormatStencil)
-				depthFormat = Texture::FormatDepthStencil;
-			
-			storage->SetDepthTarget(depthFormat);
-		}
-
 		SetRenderStorage(storage);
 		Initialize();
 	}
@@ -73,19 +60,6 @@ namespace RN
 		RenderStorage *storage = new RenderStorage(format);
 		storage->AddRenderTarget(targetFormat);
 		
-		if(format & RenderStorage::BufferFormatDepth || format & RenderStorage::BufferFormatStencil)
-		{
-			Texture::Format depthFormat;
-			
-			if(format & RenderStorage::BufferFormatDepth)
-				depthFormat = Texture::FormatDepth;
-			
-			if(format & RenderStorage::BufferFormatStencil)
-				depthFormat = Texture::FormatDepthStencil;
-			
-			storage->SetDepthTarget(depthFormat);
-		}
-
 		SetRenderStorage(storage);
 		Initialize();
 	}
@@ -396,6 +370,17 @@ namespace RN
 		temp = inverseViewMatrix.Transform(temp);
 		
 		return temp;
+	}
+	
+	const Rect& Camera::Frame()
+	{
+		if(_flags & FlagFullscreen)
+		{
+			Rect frame = Kernel::SharedInstance()->Window()->Frame();
+			return frame;
+		}
+		
+		return _frame;
 	}
 
 	void Camera::UpdateFrustum()

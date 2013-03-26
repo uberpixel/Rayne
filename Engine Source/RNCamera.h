@@ -107,7 +107,7 @@ namespace RN
 		
 		RenderStorage *Storage() const { return _storage; }
 		const Color& ClearColor() const { return _clearColor; }
-		const Rect& Frame() const { return _frame; }
+		const Rect& Frame();
 		Material *Material() const { return _material; }
 		Camera *Stage() const { return _stage; }
 		Flags CameraFlags() const { return _flags; }
