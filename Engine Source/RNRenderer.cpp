@@ -214,69 +214,99 @@ namespace RN
 			Vector3 far = camera->ToWorld(Vector3(1.0f, 1.0f, 1.0f));
 			far = far-camPosition;
 			
-			Plane plleft;
-			Plane plright;
-			Plane pltop;
-			Plane plbottom;
+			ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
+			pool->BeginTaskBatch();
 			
-			Plane plfar;
-			Plane plnear;
-			
-			size_t lightIndexOffsetCount = 0;
-			size_t lightIndicesCount = 0;
-			
-			size_t lightindicesSize = tilesWidth * tilesHeight * lightCount;
-			size_t lightindexoffsetSize = tilesWidth * tilesHeight * 2;
-			
-			int *lightPointIndices = new int[lightindicesSize];
-			int *lightPointIndexOffset = new int[lightindexoffsetSize];
+			size_t i = 0;
+			size_t tileCount = tilesWidth * tilesHeight;
+			std::vector<std::future<std::tuple<size_t, int *>>> futures(tileCount);
 			
 			for(float y=0.0f; y<tilesHeight; y+=1.0f)
 			{
 				for(float x=0.0f; x<tilesWidth; x+=1.0f)
 				{
-					plleft.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
-					plright.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
-					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
-					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
-					
-					plnear.SetPlane(camPosition + camdir * depthArray[int(y * tilesWidth + x) * 2 + 0], camdir);
-					plfar.SetPlane(camPosition + camdir * depthArray[int(y * tilesWidth + x) * 2 + 1], camdir);
-					
-					size_t previous = lightIndicesCount;
-					lightPointIndexOffset[lightIndexOffsetCount ++] = static_cast<int>(previous);
-					
-					for(size_t i=0; i<lightCount; i++)
-					{
-						LightEntity *light = lights[i];
+					futures[i ++] = pool->AddTask([&, x, y]()->std::tuple<size_t, int *> {
+						Plane plleft;
+						Plane plright;
+						Plane pltop;
+						Plane plbottom;
 						
-						const Vector3& position = light->_worldPosition;
-						const float range = light->_range;
+						Plane plfar;
+						Plane plnear;
 						
+						plleft.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
+						plright.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
+						pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
+						plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
+						
+						plnear.SetPlane(camPosition + camdir * depthArray[int(y * tilesWidth + x) * 2 + 0], camdir);
+						plfar.SetPlane(camPosition + camdir * depthArray[int(y * tilesWidth + x) * 2 + 1], camdir);
+						
+						size_t lightIndicesCount = 0;
+						int *lightPointIndices = new int[lightCount];
+						
+						for(size_t i=0; i<lightCount; i++)
+						{
+							LightEntity *light = lights[i];
+							
+							const Vector3& position = light->_worldPosition;
+							const float range = light->_range;
+							
 #define Distance(plane, op, r) { \
-		float dot = (position.x * plane._normal.x + position.y * plane._normal.y + position.z * plane._normal.z);\
-		float distance = dot - plane._d; \
-		if(distance op r) \
-			continue; \
+	float dot = (position.x * plane._normal.x + position.y * plane._normal.y + position.z * plane._normal.z);\
+	float distance = dot - plane._d; \
+	if(distance op r) \
+		continue; \
 	}
-					
-						Distance(plleft, >, range);
-						Distance(plright, <, -range);
-						Distance(pltop, <, -range);
-						Distance(plbottom, >, range);
-						
-						Distance(plnear, <, -range);
-						Distance(plfar, >, range);
+							
+							Distance(plleft, >, range);
+							Distance(plright, <, -range);
+							Distance(pltop, <, -range);
+							Distance(plbottom, >, range);
+							
+							Distance(plnear, <, -range);
+							Distance(plfar, >, range);
 #undef Distance
+							
+							lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
+						}
 						
-						lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
-					}
-					
-					lightPointIndexOffset[lightIndexOffsetCount ++] = static_cast<int>(lightIndicesCount - previous);
+						return std::tuple<size_t, int *>(lightIndicesCount, lightPointIndices);
+					});
 				}
 			}
 			
+			pool->EndTaskBatch();
+			
+			size_t lightindicesSize = tilesWidth * tilesHeight * lightCount;
+			size_t lightindexoffsetSize = tilesWidth * tilesHeight * 2;
+			
+			size_t lightIndicesCount = 0;
+			size_t lightIndexOffsetCount = 0;
+			
+			int *lightPointIndices = new int[lightindicesSize];
+			int *lightPointIndexOffset = new int[lightindexoffsetSize];
+			
+			for(i=0; i<tileCount; i++)
+			{
+				std::tuple<size_t, int *> data = futures[i].get();
+				
+				size_t tileCount = std::get<0>(data);
+				int *tileIndices = std::get<1>(data);
+				
+				size_t previous = lightIndicesCount;
+				lightPointIndexOffset[lightIndexOffsetCount ++] = static_cast<int>(previous);
+				
+				std::copy(tileIndices, tileIndices + tileCount, lightPointIndices + lightIndicesCount);
+				lightIndicesCount += tileCount;
+				
+				lightPointIndexOffset[lightIndexOffsetCount ++] = static_cast<int>(lightIndicesCount - previous);
+				
+				delete tileIndices;
+			}
+			
 			delete[] depthArray;
+			
 			
 			// Indices
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);

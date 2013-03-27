@@ -80,8 +80,8 @@ namespace TG
 		}
 
 		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA32F, RN::Camera::FlagDefaults);
-//		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
-//		_finalcam->Storage()->SetDepthTarget(depthtex);
+		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
+		_finalcam->Storage()->SetDepthTarget(depthtex);
 //		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
 //		_camera->AttachChild(_finalcam);
 
@@ -330,7 +330,7 @@ namespace TG
 		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
 		_camera->AttachChild(light);
 		
-		for(int i = 0; i < 1000; i++)
+		for(int i = 0; i < 10000; i++)
 		{
 			light = new RN::LightEntity();
 			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
