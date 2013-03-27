@@ -609,6 +609,8 @@ continue; \
 		
 		if(changedShader || material != _currentMaterial)
 		{
+			_textureUnit = 0;
+			
 			Array<Texture> *textures = material->Textures();
 			Array<GLuint> *textureLocations = &program->texlocations;
 			
@@ -709,6 +711,7 @@ continue; \
 	void Renderer::FlushCamera(Camera *camera)
 	{
 		_currentCamera = camera;
+		_textureUnit = 0;
 		
 		SetDepthTestEnabled(false);
 		
@@ -753,6 +756,7 @@ continue; \
 		ShaderProgram *program = material->Shader()->ProgramOfType(ShaderProgram::TypeNormal);
 		
 		_currentCamera = stage;
+		_textureUnit = 0;
 		
 		if(_currentVAO != _copyVAO)
 		{
@@ -1135,6 +1139,7 @@ continue; \
 		
 		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
 		glDrawElements(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0);
+		
 	}
 	
 	void Renderer::RenderObject(const RenderingObject& object)
