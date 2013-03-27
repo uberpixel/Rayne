@@ -181,8 +181,6 @@ namespace RN
 				Camera *camera = static_cast<Camera *>(transform);
 				_cameras.erase(std::remove(_cameras.begin(), _cameras.end(), camera), _cameras.end());
 			}
-			
-			transform->Release();
 		}
 		
 		_addedTransforms.erase(std::remove(_addedTransforms.begin(), _addedTransforms.end(), transform), _addedTransforms.end());

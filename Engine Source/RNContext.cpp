@@ -27,7 +27,7 @@ namespace RN
 	{
 		_active = false;
 		_thread = 0;
-		_shared = shared->Retain();
+		_shared = shared ? shared->Retain() : 0;
 		_firstActivation = true;
 
 #if RN_PLATFORM_MAC_OS

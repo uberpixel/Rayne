@@ -21,7 +21,7 @@ namespace RN
 		
 		_boundRenderTargets = 0;
 		_renderTargets = new Array<Texture>();
-		_depthTexture = depthTexture->Retain();
+		_depthTexture = depthTexture ? depthTexture->Retain() : 0;
 		
 		_framebuffer = _depthbuffer = _stencilbuffer = 0;
 		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
@@ -42,7 +42,11 @@ namespace RN
 		if(_framebuffer)
 			glDeleteFramebuffers(1, &_framebuffer);
 		
-		_renderTargets->Release();
+		if(_renderTargets)
+			_renderTargets->Release();
+		
+		if(_depthTexture)
+			_depthTexture->Release();
 	}
 	
 	
@@ -130,8 +134,9 @@ namespace RN
 			}
 		}
 		
-		_depthTexture->Release();
-		_depthTexture = depthTexture->Retain();
+		if(_depthTexture)
+			_depthTexture->Release();
+		_depthTexture = depthTexture ? depthTexture->Retain() : 0;
 		
 		_formatChanged = true;
 	}
@@ -235,6 +240,9 @@ namespace RN
 	void RenderStorage::UpdateDrawBuffers(uint32 count)
 	{
 #if RN_TARGET_OPENGL
+		if(count == 0)
+			return;
+		
 		GLenum buffers[count];
 		
 		for(uint32 i=0; i<count; i++)

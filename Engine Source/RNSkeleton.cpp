@@ -281,8 +281,6 @@ namespace RN
 			file->ReadIntoBuffer(animname, lenanimname);
 			
 			Animation *anim = new Animation(animname);
-			anim->Autorelease();
-			anim->Retain();
 			animations.insert(std::pair<std::string, Animation*>(animname, anim));
 			delete[] animname;
 			

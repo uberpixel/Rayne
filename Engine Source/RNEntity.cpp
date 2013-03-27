@@ -32,8 +32,11 @@ namespace RN
 	
 	Entity::~Entity()
 	{
-		_model->Release();
-		_skeleton->Release();
+		if(_model)
+			_model->Release();
+		
+		if(_skeleton)
+			_skeleton->Release();
 	}
 	
 	void Entity::Update(float delta)
@@ -51,14 +54,16 @@ namespace RN
 	
 	void Entity::SetModel(class Model *model)
 	{
-		_model->Release();
-		_model = model->Retain();
+		if(_model)
+			_model->Release();
+		_model = model ? model->Retain() : 0;
 	}
 	
 	void Entity::SetSkeleton(class Skeleton *skeleton)
 	{
-		_skeleton->Release();
-		_skeleton = (class Skeleton *)skeleton->Retain();
+		if(_skeleton)
+			_skeleton->Release();
+		_skeleton = skeleton ? (class Skeleton *)skeleton->Retain() : 0;
 	}
 	
 	void Entity::SetAction(const std::function<void (Entity *, float)>& action)

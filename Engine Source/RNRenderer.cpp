@@ -11,6 +11,7 @@
 #include "RNQuaternion.h"
 #include "RNCamera.h"
 #include "RNKernel.h"
+#include "RNThreadPool.h"
 
 #define kRNRendererInstancingCutOff  100
 #define kRNRendererMaxVAOAge         300
@@ -205,12 +206,9 @@ namespace RN
 			
 			const Vector3& camPosition = camera->Position();
 			
-			float *deptharray = new float[tilesWidth * tilesHeight * 2];
-//			glFinish();
-//			glPixelStorei(GL_PACK_ALIGNMENT, 1);
-//			glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+			float *depthArray = new float[tilesWidth * tilesHeight * 2];
 			glBindTexture(GL_TEXTURE_2D, camera->DepthTiles()->Name());
-			glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, deptharray);
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, depthArray);
 			
 			Vector3 camdir = camera->Rotation().RotateVector(RN::Vector3(0.0, 0.0, -1.0));
 			Vector3 far = camera->ToWorld(Vector3(1.0f, 1.0f, 1.0f));
@@ -242,8 +240,8 @@ namespace RN
 					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
 					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
 					
-					plnear.SetPlane(camPosition + camdir * deptharray[int(y * tilesWidth + x) * 2 + 0], camdir);
-					plfar.SetPlane(camPosition + camdir * deptharray[int(y * tilesWidth + x) * 2 + 1], camdir);
+					plnear.SetPlane(camPosition + camdir * depthArray[int(y * tilesWidth + x) * 2 + 0], camdir);
+					plfar.SetPlane(camPosition + camdir * depthArray[int(y * tilesWidth + x) * 2 + 1], camdir);
 					
 					size_t previous = lightIndicesCount;
 					lightPointIndexOffset[lightIndexOffsetCount ++] = static_cast<int>(previous);
@@ -278,7 +276,7 @@ namespace RN
 				}
 			}
 			
-			delete[] deptharray;
+			delete[] depthArray;
 			
 			// Indices
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);

@@ -27,9 +27,6 @@ namespace RN
 	
 	Object *Object::Retain()
 	{
-		if(!this)
-			return this;
-		
 		_lock.Lock();
 		_refCount ++;
 		_lock.Unlock();
@@ -39,9 +36,6 @@ namespace RN
 	
 	Object *Object::Release()
 	{
-		if(!this)
-			return this;
-		
 		_lock.Lock();
 		
 		if((-- _refCount) == 0)
@@ -58,9 +52,6 @@ namespace RN
 	
 	Object *Object::Autorelease()
 	{
-		if(!this)
-			return this;
-		
 		AutoreleasePool *pool = AutoreleasePool::CurrentPool();
 		if(!pool)
 		{

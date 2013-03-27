@@ -76,8 +76,20 @@ namespace RN
 
 	Camera::~Camera()
 	{
-		_storage->Release();
-		_skycube->Release();
+		if(_storage)
+			_storage->Release();
+		
+		if(_skycube)
+			_skycube->Release();
+		
+		if(_material)
+			_material->Release();
+		
+		if(_stage)
+			_stage->Release();
+		
+		if(_depthTiles)
+			_depthTiles->Release();
 	}
 
 
@@ -177,16 +189,20 @@ namespace RN
 
 	void Camera::SetMaterial(class Material *material)
 	{
-		_material->Release();
-		_material = material->Retain();
+		if(_material)
+			_material->Release();
+		
+		_material = material ? material->Retain() : 0;
 	}
 
 	void Camera::SetRenderStorage(RenderStorage *storage)
 	{
 		RN_ASSERT(storage, "Render storage mustn't be NULL!");
 
-		_storage->Release();
-		_storage = storage->Retain();
+		if(_storage)
+			_storage->Release();
+		
+		_storage =storage->Retain();
 
 		if(_flags & FlagUpdateStorageFrame)
 			_storage->SetFrame(_frame);
@@ -218,8 +234,10 @@ namespace RN
 	
 	void Camera::SetSkyCube(Model *skycube)
 	{
-		_skycube->Release();
-		_skycube = skycube->Retain();
+		if(_skycube)
+			_skycube->Release();
+		
+		_skycube = skycube ? skycube->Retain() : 0;
 	}
 	
 	// Stages
@@ -246,8 +264,10 @@ namespace RN
 
 	void Camera::InsertStage(Camera *stage)
 	{
-		_stage->Release();
-		_stage = stage->Retain();
+		if(_stage)
+			_stage->Release();
+		
+		_stage = stage ? stage->Retain() : 0;
 
 		UpdateProjection();
 		World::SharedInstance()->RemoveTransform(stage);
@@ -258,8 +278,10 @@ namespace RN
 		Camera *temp = _stage ? _stage->_stage->Retain() : 0;
 		World::SharedInstance()->AddTransform(_stage);
 
-		_stage->Release();
-		_stage = stage->Retain();
+		if(_stage)
+			_stage->Release();
+		
+		_stage = stage ? stage->Retain() : 0;
 
 		if(_stage->_stage)
 			_stage->RemoveStage(_stage->_stage);
@@ -274,7 +296,7 @@ namespace RN
 	{
 		if(_stage == stage)
 		{
-			stage = stage->_stage->Retain();
+			stage = stage->_stage ? stage->_stage->Retain() : 0;
 			World::SharedInstance()->AddTransform(stage);
 
 			_stage->Release();
@@ -288,7 +310,7 @@ namespace RN
 		{
 			if(temp->_stage == stage)
 			{
-				stage = stage->_stage->Retain();
+				stage = stage->_stage ? stage->_stage->Retain() : 0;
 				World::SharedInstance()->AddTransform(stage);
 
 				temp->_stage->Release();

@@ -85,8 +85,11 @@ namespace RN
 				}
 			}
 			
-			material->SetShader(shader);
-			shader->Release();
+			if(shader)
+			{
+				material->SetShader(shader);
+				shader->Release();
+			}
 		}
 	}
 	
