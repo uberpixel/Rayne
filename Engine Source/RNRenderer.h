@@ -216,7 +216,7 @@ namespace RN
 	
 	RN_INLINE void Renderer::SetDepthFunction(GLenum depthFunction)
 	{
-		if(_depthFunc != depthFunction)
+		if(_depthFunc == depthFunction)
 			return;
 		
 		glDepthFunc(depthFunction);
