@@ -112,17 +112,17 @@ namespace RN
 			delete [] _data;
 		}
 		
-		void UpdateSizeIfNeeded()
+		void UpdateSizeIfNeeded(size_t required)
 		{
-			if(_count >= _size)
+			if(required >= _size)
 			{
-				machine_uint tsize = _size * 2;
+				machine_uint tsize = MAX(required, _size * 2);
 				T *tdata = new T[tsize];
 				
 				if(tdata)
 				{
 					for(machine_uint i=0; i<_count; i++)
-						std::swap(tdata[i], _data[i]);
+						tdata[i] = std::move(_data[i]);
 					
 					delete [] _data;
 					
@@ -135,14 +135,14 @@ namespace RN
 			
 			machine_uint tsize = _size / 2;
 			
-			if(tsize >= _count && tsize > 5)
+			if(tsize >= required && tsize > 5)
 			{
 				T *tdata = new T[tsize];
 				
 				if(tdata)
 				{
 					for(machine_uint i=0; i<_count; i++)
-						std::swap(tdata[i], _data[i]);
+						tdata[i] = std::move(_data[i]);
 					
 					delete [] _data;
 					
@@ -276,34 +276,30 @@ namespace RN
 		
 		void AddObject(const T& object)
 		{
-			this->_count ++;
-			this->UpdateSizeIfNeeded();
-			
-			this->_data[this->_count - 1] = object;
+			this->UpdateSizeIfNeeded(this->_count + 1);
+			this->_data[this->_count ++] = object;
 		}
 		
 		void InsertObjectsAtIndex(const __ArrayCore<T, false>& other, machine_uint index)
 		{
-			size_t oldCount = this->_count;
-			
-			this->_count += other._count;
-			this->UpdateSizeIfNeeded();
-			
+			this->UpdateSizeIfNeeded(this->_count + other._count);
 			auto begin = this->_data + index;
 			
-			std::move(begin, this->_data + oldCount, begin + other._count);
+			std::move(begin, this->_data + this->_count, begin + other._count);
 			std::copy(other._data, other._data + other._count, begin);
+			
+			this->_count += other._count;
 		}
 		
 		void InsertObjectAtIndex(const T& object, machine_uint index)
 		{
-			this->_count ++;
-			this->UpdateSizeIfNeeded();
+			this->UpdateSizeIfNeeded(this->_count + 1);
 			
 			auto begin = this->_data + index;
 			
-			std::move(begin, this->_data + (this->_count - 1), begin + 1);
+			std::move(begin, this->_data + this->_count, begin + 1);
 			this->_data[index] = object;
+			this->_count ++;
 		}
 		
 		void ReplaceObjectAtIndex(machine_uint index, const T& object)
@@ -326,9 +322,8 @@ namespace RN
 		void RemoveObjectAtIndex(machine_uint index)
 		{
 			std::move(this->_data + (index + 1), this->_data + this->_count, this->_data + index);
-			
+			this->UpdateSizeIfNeeded(this->_count - 1);
 			this->_count --;
-			this->UpdateSizeIfNeeded();
 		}
 		
 		void RemoveLastObject()
@@ -439,23 +434,19 @@ namespace RN
 		
 		void AddObject(T *object)
 		{
-			this->_count ++;
-			this->UpdateSizeIfNeeded();
-			
-			this->_data[this->_count - 1] = object->Retain();
+			this->UpdateSizeIfNeeded(this->_count + 1);
+			this->_data[this->_count ++] = object->Retain();
 		}
 		
 		void InsertObjectsAtIndex(const __ArrayCore<T, true>& other, machine_uint index)
 		{
-			size_t oldCount = this->_count;
-			
-			this->_count += other._count;
-			this->UpdateSizeIfNeeded();
-			
+			this->UpdateSizeIfNeeded(this->_count + other._count);
 			auto begin = this->_data + index;
 			
-			std::move(begin, this->_data + oldCount, begin + other._count);
+			std::move(begin, this->_data + this->_count, begin + other._count);
 			std::copy(other._data, other._data + other._count, begin);
+			
+			this->_count += other._count;
 			
 			for(machine_uint i=0; i<other._count; i++)
 			{
@@ -465,13 +456,13 @@ namespace RN
 		
 		void InsertObjectAtIndex(T *object, machine_uint index)
 		{
-			this->_count ++;
-			this->UpdateSizeIfNeeded();
+			this->UpdateSizeIfNeeded(this->_count + 1);
 			
 			auto begin = this->_data + index;
 			
-			std::move(begin, this->_data + (this->_count - 1), begin + 1);
+			std::move(begin, this->_data + this->_count, begin + 1);
 			this->_data[index] = object->Retain();
+			this->_count ++;
 		}
 		
 		void ReplaceObjectAtIndex(machine_uint index, T *object)
@@ -497,8 +488,8 @@ namespace RN
 			this->_data[index]->Release();
 			std::move(this->_data + (index + 1), this->_data + this->_count, this->_data + index);
 			
+			this->UpdateSizeIfNeeded(this->_count - 1);
 			this->_count --;
-			this->UpdateSizeIfNeeded();
 		}
 		
 		void RemoveLastObject()
