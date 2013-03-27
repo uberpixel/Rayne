@@ -18,17 +18,14 @@ namespace TG
 	World::World()
 	{
 #if !(RN_PLATFORM_IOS)
-		RN::RenderStorage *storage = new RN::RenderStorage(/*RN::RenderStorage::BufferFormatColor | */RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
 		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
 		storage->SetDepthTarget(depthtex);
-//		storage->AddRenderTarget(RN::Texture::FormatRGBA32F);
 		
 		RN::Shader *depthShader = RN::Shader::WithFile("shader/rn_LightDepth");
 		RN::Material *depthMaterial = new RN::Material(depthShader);
 		
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
-//		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
-//		_camera->ActivateTiledLightLists((RN::Texture*)1);
 		_camera->SetMaterial(depthMaterial);
 		
 		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
@@ -82,7 +79,7 @@ namespace TG
 		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
 		_finalcam->Storage()->SetDepthTarget(depthtex);
-//		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
+		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
 //		_camera->AttachChild(_finalcam);
 
 		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
@@ -336,7 +333,7 @@ namespace TG
 			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*280.0f-140.0f, (float)(rand())/RAND_MAX*100.0f, (float)(rand())/RAND_MAX*120.0f-50.0f));
 			light->SetRange((float)(rand())/RAND_MAX*20.0f);
 			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
-/*			light->SetAction([](RN::Entity *light, float delta) {
+			/*light->SetAction([](RN::Entity *light, float delta) {
 				light->Translate(RN::Vector3(5.0f * delta, 0.0f, 0.0f));
 			});*/
 		}
@@ -344,8 +341,6 @@ namespace TG
 		
 #if TGWorldFeatureInstancing
 		RN::Model *foliage[4];
-		
-		
 		
 		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
 		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->SetShader(foliageShader);
@@ -373,7 +368,7 @@ namespace TG
 		{
 			for(float y = -10.0f; y < 10.0f; y += 1.0f)
 			{
-				index = 0; //(index + 1) % 4;
+				index = (index + 1) % 4;
 				
 				RN::Entity *fern = new RN::Entity();
 				fern->SetModel(foliage[index]);
