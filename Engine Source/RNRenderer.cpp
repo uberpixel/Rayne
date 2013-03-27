@@ -63,6 +63,12 @@ namespace RN
 		_copyIndices[4] = 1;
 		_copyIndices[5] = 3;
 		
+		_lightIndicesBuffer = 0;
+		_lightOffsetBuffer = 0;
+		
+		_lightIndicesBufferSize = 0;
+		_lightOffsetBufferSize = 0;
+		
 		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, (GLint *)&_maxTextureUnits);
 		_textureUnit = 0;
 		
@@ -185,6 +191,25 @@ namespace RN
 		}
 	}
 	
+	void Renderer::AllocateLightBufferStorage(size_t indicesSize, size_t offsetSize)
+	{
+		if(indicesSize > _lightIndicesBufferSize)
+		{
+			delete _lightIndicesBuffer;
+			
+			_lightIndicesBufferSize = indicesSize;
+			_lightIndicesBuffer = new int[_lightIndicesBufferSize];
+		}
+		
+		if(offsetSize > _lightOffsetBufferSize)
+		{
+			delete _lightOffsetBuffer;
+			
+			_lightOffsetBufferSize = offsetSize;
+			_lightOffsetBuffer = new int[_lightOffsetBufferSize];
+		}
+	}
+	
 	int Renderer::CreatePointLightList(Camera *camera)
 	{
 		LightEntity **lights = _pointLights.Data();
@@ -284,8 +309,7 @@ namespace RN
 			size_t lightIndicesCount = 0;
 			size_t lightIndexOffsetCount = 0;
 			
-			int *lightPointIndices = new int[lightindicesSize];
-			int *lightPointIndexOffset = new int[lightindexoffsetSize];
+			AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
 			
 			for(i=0; i<tileCount; i++)
 			{
@@ -295,12 +319,12 @@ namespace RN
 				int *tileIndices = std::get<1>(data);
 				
 				size_t previous = lightIndicesCount;
-				lightPointIndexOffset[lightIndexOffsetCount ++] = static_cast<int>(previous);
+				_lightOffsetBuffer[lightIndexOffsetCount ++] = static_cast<int>(previous);
 				
-				std::copy(tileIndices, tileIndices + tileCount, lightPointIndices + lightIndicesCount);
+				std::copy(tileIndices, tileIndices + tileCount, _lightIndicesBuffer + lightIndicesCount);
 				lightIndicesCount += tileCount;
 				
-				lightPointIndexOffset[lightIndexOffsetCount ++] = static_cast<int>(lightIndicesCount - previous);
+				_lightOffsetBuffer[lightIndexOffsetCount ++] = static_cast<int>(lightIndicesCount - previous);
 				
 				delete tileIndices;
 			}
@@ -311,15 +335,12 @@ namespace RN
 			// Indices
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
 			glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
-			glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), lightPointIndices, GL_DYNAMIC_DRAW);
+			glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), _lightIndicesBuffer, GL_DYNAMIC_DRAW);
 			
 			// Offsets
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
 			glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
-			glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), lightPointIndexOffset, GL_DYNAMIC_DRAW);
-			
-			delete lightPointIndices;
-			delete lightPointIndexOffset;
+			glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
 			
 			// Write the position, range and colour of the lights
 			Vector4 *lightData = 0;

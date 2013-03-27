@@ -107,6 +107,7 @@ namespace RN
 		void Initialize();
 		void FlushCamera(Camera *camera);
 		void DrawCameraStage(Camera *camera, Camera *stage);
+		void AllocateLightBufferStorage(size_t indicesSize, size_t offsetSize);
 		
 		Shader *_copyShader;
 		GLuint _copyVAO;
@@ -115,6 +116,11 @@ namespace RN
 		
 		Vector4 _copyVertices[4];
 		GLshort _copyIndices[6];
+		
+		int *_lightIndicesBuffer;
+		int *_lightOffsetBuffer;
+		size_t _lightIndicesBufferSize;
+		size_t _lightOffsetBufferSize;
 		
 		size_t _lightPointDataSize;
 		GLuint _lightPointTextures[3];
