@@ -117,6 +117,8 @@ namespace RN
 		Vector4 _copyVertices[4];
 		GLshort _copyIndices[6];
 		
+		GLuint _lightDepthPBO;
+		
 		int *_lightIndicesBuffer;
 		int *_lightOffsetBuffer;
 		size_t _lightIndicesBufferSize;
