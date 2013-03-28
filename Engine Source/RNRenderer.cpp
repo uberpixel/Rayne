@@ -378,162 +378,7 @@ namespace RN
 		
 		return static_cast<int>(lightCount);
 	}
-	
-	/*void Renderer::CreatePointLightList(Camera *camera, Vector4 **outLightPos, Vector4 **outLightColor, int *outLightCount)
-	{
-		Array<LightEntity *> *lights = &_pointLights;
 		
-		Vector4 *lightPos = *outLightPos;
-		Vector4 *lightColor = *outLightColor;
-		machine_uint lightCount = 0;
-		
-		if(!lightPos)
-			lightPos = new Vector4[lights->Count()];
-		
-		if(!lightColor)
-			lightColor = new Vector4[lights->Count()];
-		
-		for(machine_uint i=0; i<lights->Count(); i++, lightCount++)
-		{
-			LightEntity *light = lights->ObjectAtIndex(i);
-			const Vector3& position = light->WorldPosition();
-			const Vector3& color = light->Color();
-			
-			lightPos[lightCount] = Vector4(position.x, position.y, position.z, light->Range());
-			lightColor[lightCount] = Vector4(color.x, color.y, color.z, 0.0f);
-		}
-		
-#if !(RN_PLATFORM_IOS)
-		size_t lightIndexOffsetCount = 0;
-		size_t lightIndicesCount = 0;
-		
-		Rect rect = camera->Frame();
-		int tilesWidth  = rect.width / camera->LightTiles().x;
-		int tilesHeight = rect.height / camera->LightTiles().y;
-		
-		if(camera->DepthTiles() != 0)
-		{
-			Vector3 corner1 = camera->ToWorld(Vector3(-1.0f, -1.0f, 1.0f));
-			Vector3 corner2 = camera->ToWorld(Vector3(1.0f, -1.0f, 1.0f));
-			Vector3 corner3 = camera->ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
-			
-			Vector3 dirx = (corner2-corner1) / tilesWidth;
-			Vector3 diry = (corner3-corner1) / tilesHeight;
-			
-			const Vector3& camPosition = camera->Position();
-			
-			Plane plleft;
-			Plane plright;
-			Plane pltop;
-			Plane plbottom;
-			Plane plfar;
-			Plane plnear;
-			
-			size_t count = lights->Count();
-			LightEntity **allLights = lights->Data();
-			
-			size_t lightindicesSize = tilesWidth * tilesHeight * lights->Count();
-			if(lightindicesSize > _lightPointIndicesSize)
-			{
-				_lightPointIndices = (int *)realloc(_lightPointIndices, lightindicesSize * sizeof(int));
-				_lightPointIndicesSize = lightindicesSize;
-			}
-			
-			size_t lightindexoffsetSize = tilesWidth * tilesHeight * 2;
-			if(lightindexoffsetSize > _lightPointIndexOffsetSize)
-			{
-				_lightPointIndexOffset = (int *)realloc(_lightPointIndexOffset, lightindexoffsetSize * sizeof(int));
-				_lightPointIndexOffsetSize = lightindexoffsetSize;
-			}
-			
-			for(float y=0.0f; y<tilesHeight; y+=1.0f)
-			{
-				for(float x=0.0f; x<tilesWidth; x+=1.0f)
-				{
-					plleft.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
-					plright.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
-					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
-					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
-					
-					size_t previous = lightIndicesCount;
-					_lightPointIndexOffset[lightIndexOffsetCount ++] = static_cast<int>(previous);
-					
-					for(size_t i=0; i<count; i++)
-					{
-						LightEntity *light = allLights[i];
-						
-						const Vector3& position = light->_position;
-						const float range = light->_range;
-						
-#define Distance(plane, op, r) { \
-float dot = (position.x * plane._normal.x + position.y * plane._normal.y + position.z * plane._normal.z);\
-float distance = dot - plane._d; \
-if(distance op r) \
-continue; \
-}
-						Distance(plleft, >, range);
-						Distance(plright, <, -range);
-						Distance(pltop, <, -range);
-						Distance(plbottom, >, range);
-#undef Distance
-						
-						_lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
-					}
-					
-					_lightPointIndexOffset[lightIndexOffsetCount ++] = static_cast<int>(lightIndicesCount - previous);
-				}
-			}
-			
-			
-			//if(_lightPointBufferLengths[0] < lightIndexOffsetCount)
-			{
-				_lightPointBufferLengths[0] = (uint32)lightIndexOffsetCount;
-				
-				//indexpos
-				glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[0]);
-				glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_STREAM_DRAW);
-				glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), _lightPointIndexOffset, GL_STREAM_DRAW);
-			}
-			
-			//if(_lightPointBufferLengths[1] < lightIndicesCount)
-			{
-				_lightPointBufferLengths[1] = (uint32)lightIndicesCount;
-				
-				//indices
-				glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[1]);
-				glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), 0, GL_STREAM_DRAW);
-				glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), _lightPointIndices, GL_STREAM_DRAW);
-			}
-			
-			//if(_lightPointBufferLengths[2] < lightCount)
-			{
-				_lightPointBufferLengths[2] = (uint32)lightCount;
-				
-				//lightpos
-				glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[2]);
-				glBufferData(GL_TEXTURE_BUFFER, lightCount * 4 * sizeof(float), 0, GL_STREAM_DRAW);
-				glBufferData(GL_TEXTURE_BUFFER, lightCount * 4 * sizeof(float), lightPos, GL_STREAM_DRAW);
-				
-				//lightcol
-				glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[3]);
-				glBufferData(GL_TEXTURE_BUFFER, lightCount * 4 * sizeof(float), 0, GL_STREAM_DRAW);
-				glBufferData(GL_TEXTURE_BUFFER, lightCount * 4 * sizeof(float), lightColor, GL_STREAM_DRAW);
-			}
-			
-			glBindBuffer(GL_TEXTURE_BUFFER, 0);
-		}
-#endif
-		
-		if(outLightColor)
-			*outLightColor = lightColor;
-		
-		if(outLightPos)
-			*outLightPos = lightPos;
-		
-		if(outLightCount)
-			*outLightCount = (int)lightCount;
-	}*/
-	
 	// ---------------------
 	// MARK: -
 	// MARK: Binding
@@ -869,6 +714,7 @@ continue; \
 		_currentMaterial = 0;
 		_currentCamera   = 0;
 		_currentVAO      = 0;
+		_textureUnit     = 0;
 	}
 	
 	void Renderer::FlushCamera()
@@ -1014,7 +860,6 @@ continue; \
 					Matrix& transform = (Matrix &)*object.transform;
 					Matrix inverseTransform = transform.Inverse();
 					
-#if 0
 					// Check if we can use instancing here
 					bool canDrawInstanced = false;
 					
@@ -1025,7 +870,7 @@ continue; \
 						
 						while(end < objectsCount)
 						{
-							RenderingObject& temp = objects.ObjectAtIndex(end);
+							RenderingObject& temp = _frame.ObjectAtIndex(end);
 							
 							if(temp.mesh != mesh)
 								break;
@@ -1037,8 +882,7 @@ continue; \
 							end ++;
 						}
 						
-						canDrawInstanced = (offset >= kRNRenderingPipelineInstancingCutOff && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced));
-						
+						canDrawInstanced = (offset >= kRNRendererInstancingCutOff && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced));
 						if(!canDrawInstanced)
 						{
 							noCheck = offset;
@@ -1050,7 +894,6 @@ continue; \
 						if(noCheck > 0)
 							noCheck --;
 					}
-#endif
 					
 					// Grab the correct shader program
 					uint32 programTypes = 0;
@@ -1061,10 +904,9 @@ continue; \
 					
 					if(lightPointCount > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeLightning))
 						programTypes |= ShaderProgram::TypeLightning;
-#if 0
+					
 					if(canDrawInstanced && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
 						programTypes |= ShaderProgram::TypeInstanced;
-#endif
 		
 					program = shader->ProgramOfType(programTypes);
 					changedShader = (_currentProgram != program);
@@ -1122,6 +964,11 @@ continue; \
 #endif
 					}
 
+					if(canDrawInstanced)
+					{
+						DrawMeshInstanced(i, offset);
+						continue;
+					}
 					
 					// More updates
 					if(object.skeleton && program->matBones != -1)
@@ -1194,7 +1041,86 @@ continue; \
 		
 		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
 		glDrawElements(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0);
+	}
+	
+	void Renderer::DrawMeshInstanced(machine_uint start, machine_uint count)
+	{
+		Mesh *mesh = (Mesh *)_frame[(int)start].mesh;
+		MeshLODStage *stage = mesh->LODStage(0);
+		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
 		
+		BindVAO(std::tuple<ShaderProgram *, MeshLODStage *>(_currentProgram, stage));
+		
+		Matrix *instancingMatrices = 0;
+		GLuint instancingVBO = 0;
+		
+		size_t size = (count * 2) * sizeof(Matrix);
+		bool resized = stage->InstancingData(size, &instancingVBO, (void **)&instancingMatrices);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, instancingVBO);
+		
+		if(resized)
+			glBufferData(GL_ARRAY_BUFFER, size, 0, GL_DYNAMIC_DRAW);
+		
+		uint32 offset = 0;
+		if(_currentProgram->imatModel != -1)
+		{
+			for(int i=0; i<4; i++)
+			{
+				glEnableVertexAttribArray(_currentProgram->imatModel + i);
+				glVertexAttribPointer(_currentProgram->imatModel + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * ((i * 4) + offset)));
+				gl::VertexAttribDivisor(_currentProgram->imatModel + i, 1);
+			}
+			
+			for(machine_uint i=0; i<count; i++)
+			{
+				RenderingObject& object = _frame[(int)(start + i)];
+				instancingMatrices[i + offset] = *object.transform;
+			}
+			
+			offset += count;
+		}
+		
+		if(_currentProgram->imatModelInverse != -1)
+		{
+			for(int i=0; i<4; i++)
+			{
+				glEnableVertexAttribArray(_currentProgram->imatModelInverse + i);
+				glVertexAttribPointer(_currentProgram->imatModelInverse + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * ((i * 4) + offset)));
+				gl::VertexAttribDivisor(_currentProgram->imatModelInverse + i, 1);
+			}
+			
+			for(machine_uint i=0; i<count; i++)
+			{
+				RenderingObject& object = _frame[(int)(start + i)];
+				instancingMatrices[i + offset] = object.transform->Inverse();
+			}
+			
+			offset += count;
+		}
+		
+		if(offset == 0)
+			return;
+		
+		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+		
+		glBufferSubData(GL_ARRAY_BUFFER, 0, offset * sizeof(Matrix), instancingMatrices);
+		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
+		
+		// Disabling vertex attributes
+		if(_currentProgram->imatModel != -1)
+		{
+			for(int i=0; i<4; i++)
+				glDisableVertexAttribArray(_currentProgram->imatModel + i);
+		}
+		
+		if(_currentProgram->imatModelInverse != -1)
+		{
+			for(int i=0; i<4; i++)
+				glDisableVertexAttribArray(_currentProgram->imatModelInverse + i);
+		}
+		
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	
 	void Renderer::RenderObject(const RenderingObject& object)

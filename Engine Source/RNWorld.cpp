@@ -118,9 +118,8 @@ namespace RN
 		TransformsUpdated();
 		
 		// Iterate over all cameras and render the visible nodes
-		for(auto i=_cameras.begin(); i!=_cameras.end(); i++)
+		for(Camera *camera : _cameras)
 		{
-			Camera *camera = *i;
 			camera->PostUpdate();
 			
 			_renderer->BeginCamera(camera);

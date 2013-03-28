@@ -64,6 +64,7 @@ namespace RN
 	protected:
 		RNAPI void UpdateShaderData();
 		RNAPI void DrawMesh(Mesh *mesh);
+		RNAPI void DrawMeshInstanced(machine_uint start, machine_uint count);
 		RNAPI void BindVAO(const std::tuple<ShaderProgram *, MeshLODStage *>& tuple);
 		RNAPI int CreatePointLightList(Camera *camera);
 		
