@@ -428,9 +428,9 @@ namespace RN
 		wordexp_t result;
 		wordexp(basepath, &result, 0);
 		
-		std::string path = std::string(exp_result.we_wordv[0]);
+		std::string path = std::string(result.we_wordv[0]);
 		
-		wordfree(result);
+		wordfree(&result);
 		
 		return path;
 #endif

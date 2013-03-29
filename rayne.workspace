@@ -2,7 +2,6 @@
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
 		<Project filename="Rayne.cbp">
-			<Depends filename="Vendor/bullet/bullet.cbp" />
 			<Depends filename="Vendor/libjansson/jansson.cbp" />
 			<Depends filename="Vendor/libpng/libpng.cbp" />
 			<Depends filename="Vendor/libz/libz.cbp" />
@@ -11,7 +10,6 @@
 			<Depends filename="Rayne.cbp" />
 			<Depends filename="Engine Test/Game/Game.cbp" />
 		</Project>
-		<Project filename="Vendor/bullet/bullet.cbp" />
 		<Project filename="Engine Test/Game/Game.cbp">
 			<Depends filename="Rayne.cbp" />
 		</Project>

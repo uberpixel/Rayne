@@ -189,6 +189,8 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_LINUX
+		XEvent event;
+		Atom wmDeleteMessage = XInternAtom(_context->_dpy, "WM_DELETE_WINDOW", False);
 		while(XPending(_context->_dpy))
 		{
 			XNextEvent(_context->_dpy, &event);

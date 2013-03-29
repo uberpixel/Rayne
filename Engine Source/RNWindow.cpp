@@ -358,7 +358,7 @@ namespace RN
 #if RN_PLATFORM_LINUX
 	WindowConfiguration::WindowConfiguration(int32 index, uint32 width, uint32 height)
 	{
-		_index = index;
+		_modeIndex = index;
 		
 		_width  = width;
 		_height = height;
@@ -366,7 +366,7 @@ namespace RN
 	
 	WindowConfiguration::WindowConfiguration(uint32 width, uint32 height)
 	{
-		_index = -1;
+		_modeIndex = -1;
 		
 		_width  = width;
 		_height = height;
@@ -445,6 +445,7 @@ namespace RN
 		_win = _context->_win;
 		
 		_screenConfig = XRRGetScreenInfo(_dpy, _win);
+		_originalSize = XRRConfigCurrentConfiguration(_screenConfig, &_originalRotation);
 		
 		int32 mainScreen = DefaultScreen(_dpy);
 		int count;
@@ -457,8 +458,8 @@ namespace RN
 			
 			if(width >= 1024 && height >= 768)
 			{
-				WindowConfiguration *configuration = new WindowConfiguration(mode);
-				_configurations.AddObject(i, width, height);
+				WindowConfiguration *configuration = new WindowConfiguration(i, width, height);
+				_configurations.AddObject(configuration);
 			}
 		}
 		
@@ -583,7 +584,7 @@ namespace RN
 		}
 		else
 		{
-			XRRSetScreenConfigAndRate(_dpy, screenConfig, rootWindow, originalSize, originalRotation, originalRate, CurrentTime);
+			XRRSetScreenConfig(_dpy, _screenConfig, rootWindow, _originalSize, _originalRotation, CurrentTime);
 				
 			windowAttributes.override_redirect = false;
 			XChangeWindowAttributes(_dpy, _win, CWOverrideRedirect, &windowAttributes);
@@ -593,7 +594,7 @@ namespace RN
 			uint32 originX = (WidthOfScreen(screen) / 2) - (width / 2);
 			uint32 originY = (HeightOfScreen(screen) / 2) - (height / 2);
 			
-			XMoveResizeWindow(_dpy, _win, originX, oiriginY, width, height);
+			XMoveResizeWindow(_dpy, _win, originX, originY, width, height);
 		}
 		
 		renderer->SetDefaultFrame(width, height);
@@ -650,7 +651,7 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_LINUX
-		XDefineCursor(_dpy, _win, _emtpyCursor);
+		XDefineCursor(_dpy, _win, _emptyCursor);
 #endif
 	}
 }
