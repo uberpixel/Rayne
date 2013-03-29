@@ -30,6 +30,7 @@ namespace RN
 		LightEntity(Type type = TypePointLight);
 		virtual ~LightEntity();
 		
+		virtual void Update(float delta);
 		virtual bool IsVisibleInCamera(Camera *camera);
 		
 		void SetRange(float range);
@@ -41,9 +42,7 @@ namespace RN
 		const float Range() { return _range; }
 		const Vector3& Direction() { return _direction; }
 		const float Angle() { return _angle; }
-		
-	protected:
-		virtual void DidUpdate();
+	
 		
 	private:
 		Type _lightType;

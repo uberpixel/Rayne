@@ -13,6 +13,9 @@
 #define TGWorldFeatureInstancing    0
 #define TGWorldFeatureAnimations    0
 
+#define TGWorldRandom (float)(rand())/RAND_MAX
+#define TGWorldSpotLightRange 95.0f
+
 namespace TG
 {
 	World::World()
@@ -146,7 +149,7 @@ namespace TG
 				fpressed = true;
 				
 				RN::LightEntity *child = _camera->ChildAtIndex<RN::LightEntity>(0);
-				child->SetRange((child->Range() < 1.0f) ? 300.0f : 0.0f);
+				child->SetRange((child->Range() < 1.0f) ? TGWorldSpotLightRange : 0.0f);
 			}
 		}
 		else
@@ -310,32 +313,31 @@ namespace TG
 #if TGWorldFeatureLights
 		RN::LightEntity *light;
 		
+		//srand(time(0));
+		
 		light = new RN::LightEntity();
 		light->SetPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
-		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
+		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
 		light = new RN::LightEntity();
 		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
-		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
+		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
 		light = new RN::LightEntity(RN::LightEntity::TypeSpotLight);
 		light->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
-		light->SetRange(300.0f);
+		light->SetRange(TGWorldSpotLightRange);
 		light->SetAngle(0.9f);
-		light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
+		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		_camera->AttachChild(light);
 		
-		for(int i = 0; i < 100; i++)
+		for(int i=0; i<100; i++)
 		{
 			light = new RN::LightEntity();
-			light->SetPosition(RN::Vector3((float)(rand())/RAND_MAX*140.0f-70.0f, (float)(rand())/RAND_MAX*80.0f-20.0f, (float)(rand())/RAND_MAX*80.0f-40.0f));
-			light->SetRange((float)(rand())/RAND_MAX*20.0f);
-			light->SetColor(RN::Vector3((float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX, (float)(rand())/RAND_MAX));
-			/*light->SetAction([](RN::Entity *light, float delta) {
-				light->Translate(RN::Vector3(5.0f * delta, 0.0f, 0.0f));
-			});*/
+			light->SetPosition(RN::Vector3(TGWorldRandom * 280.0f - 140.0f, TGWorldRandom * 100.0f, TGWorldRandom * 120.0f - 50.0f));
+			light->SetRange(TGWorldRandom * 20.0f);
+			light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		}
 #endif
 		

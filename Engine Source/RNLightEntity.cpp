@@ -26,9 +26,9 @@ namespace RN
 	LightEntity::~LightEntity()
 	{}
 
-	void LightEntity::DidUpdate()
+	void LightEntity::Update(float delta)
 	{
-		Entity::DidUpdate();
+		Entity::Update(delta);
 		_direction = WorldRotation().RotateVector(Vector3(0.0, 0.0, -1.0));
 	}
 	

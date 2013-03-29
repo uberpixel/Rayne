@@ -8,6 +8,8 @@
 #version 150
 precision highp float;
 
+#include "rn_Matrices.vsh"
+
 in vec2 vertPosition;
 in vec2 vertTexcoord0;
 

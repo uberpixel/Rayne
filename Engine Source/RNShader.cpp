@@ -415,6 +415,7 @@ namespace RN
 				GetUniformLocation(time);
 				GetUniformLocation(frameSize);
 				GetUniformLocation(clipPlanes);
+				GetUniformLocation(discardThreshold);
 				
 				GetUniformLocation(viewPosition);
 				
@@ -423,15 +424,10 @@ namespace RN
 				GetUniformLocation(lightPointListOffset);
 				GetUniformLocation(lightPointListData);
 				
-				GetUniformLocation(lightSpotPosition);
-				GetUniformLocation(lightSpotDirection);
-				GetUniformLocation(lightSpotColor);
 				GetUniformLocation(lightSpotCount);
 				GetUniformLocation(lightSpotList);
 				GetUniformLocation(lightSpotListOffset);
-				GetUniformLocation(lightSpotListPosition);
-				GetUniformLocation(lightSpotListDirection);
-				GetUniformLocation(lightSpotListColor);
+				GetUniformLocation(lightSpotListData);
 				
 				GetUniformLocation(lightDirectionalDirection);
 				GetUniformLocation(lightDirectionalColor);
@@ -595,6 +591,7 @@ namespace RN
 		_supportedPrograms |= (data.find("#ifdef RN_INSTANCING") != std::string::npos) ? (ShaderProgram::TypeInstanced) : 0;
 		_supportedPrograms |= (data.find("#ifdef RN_ANIMATION") != std::string::npos) ? (ShaderProgram::TypeAnimated) : 0;
 		_supportedPrograms |= (data.find("#ifdef RN_LIGHTNING") != std::string::npos) ? (ShaderProgram::TypeLightning) : 0;
+		_supportedPrograms |= (data.find("#ifdef RN_DISCARD") != std::string::npos) ? (ShaderProgram::TypeDiscard) : 0;
 		
 		switch(type)
 		{

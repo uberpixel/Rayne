@@ -23,8 +23,9 @@ namespace RN
 		{
 			TypeNormal = 0,
 			TypeInstanced = (1 << 1),
-			TypeAnimated = (1 << 2),
-			TypeLightning = (1 << 3)
+			TypeAnimated  = (1 << 2),
+			TypeLightning = (1 << 3),
+			TypeDiscard   = (1 << 4)
 		};
 		
 		GLuint program;
@@ -59,6 +60,7 @@ namespace RN
 		GLuint time;
 		GLuint frameSize;
 		GLuint clipPlanes;
+		GLuint discardThreshold;
 		
 		GLuint viewPosition;
 		
@@ -67,15 +69,10 @@ namespace RN
 		GLuint lightPointListOffset;
 		GLuint lightPointListData;
 		
-		GLuint lightSpotPosition;
-		GLuint lightSpotDirection;
-		GLuint lightSpotColor;
 		GLuint lightSpotCount;
 		GLuint lightSpotList;
 		GLuint lightSpotListOffset;
-		GLuint lightSpotListPosition;
-		GLuint lightSpotListDirection;
-		GLuint lightSpotListColor;
+		GLuint lightSpotListData;
 		
 		GLuint lightDirectionalDirection;
 		GLuint lightDirectionalColor;

@@ -24,7 +24,7 @@
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
 	[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"ApplePersistenceIgnoreState"];
-	[NSTimer scheduledTimerWithTimeInterval:1.0/60.0 target:self selector:@selector(runGameLoop:) userInfo:nil repeats:YES];
+	[NSTimer scheduledTimerWithTimeInterval:0.0 target:self selector:@selector(runGameLoop:) userInfo:nil repeats:YES];
 	
 	kernel = new RN::Kernel();
 }
