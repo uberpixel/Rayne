@@ -404,8 +404,8 @@ namespace RN
 				const Vector3& position = light->WorldPosition();
 				const Vector3& color = light->Color();
 				
-				lightData[i * 2 + 0] = Vector4(position.x, position.y, position.z, light->Range());
-				lightData[i * 2 + 1] = Vector4(color.x, color.y, color.z, 0.0f);
+				lightData[i * 2 + 0] = Vector4(position, light->Range());
+				lightData[i * 2 + 1] = Vector4(color, 0.0f);
 			}
 			
 			glUnmapBuffer(GL_TEXTURE_BUFFER);
@@ -452,9 +452,9 @@ namespace RN
 				const Vector3& color = light->Color();
 				const Vector3& direction = light->Direction();
 				
-				lightData[i * 3 + 0] = Vector4(position.x, position.y, position.z, light->Range());
-				lightData[i * 3 + 1] = Vector4(color.x, color.y, color.z, 0.0f);
-				lightData[i * 3 + 2] = Vector4(direction.x, direction.y, direction.z, light->Angle());
+				lightData[i * 3 + 0] = Vector4(position, light->Range());
+				lightData[i * 3 + 1] = Vector4(color, 0.0f);
+				lightData[i * 3 + 2] = Vector4(direction, light->Angle());
 			}
 			
 			glUnmapBuffer(GL_TEXTURE_BUFFER);
@@ -628,6 +628,10 @@ namespace RN
 		_currentMaterial = material;
 	}
 	
+	// ---------------------
+	// MARK: -
+	// MARK: Frame handling
+	// ---------------------
 	
 	void Renderer::BeginFrame(float delta)
 	{
@@ -647,17 +651,8 @@ namespace RN
 		}
 	}
 	
-	// ---------------------
-	// MARK: -
-	// MARK: Camera handling
-	// ---------------------
-	
 	void Renderer::FinishFrame()
 	{
-#if GL_EXT_debug_marker
-		glPushGroupMarkerEXT(0, "Flushing cameras");
-#endif
-		
 		if(!_hasValidFramebuffer)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
@@ -665,10 +660,6 @@ namespace RN
 			if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 			{
 				_flushCameras.clear();
-				
-#if GL_EXT_debug_marker
-				glPopGroupMarkerEXT();
-#endif
 				return;
 			}
 			
@@ -686,14 +677,8 @@ namespace RN
 			FlushCamera(camera);
 		}
 		
-#if GL_EXT_debug_marker
-		glPopGroupMarkerEXT();
-#endif
-		
 		_flushCameras.clear();
 	}
-	
-	
 	
 	void Renderer::FlushCamera(Camera *camera)
 	{
@@ -804,7 +789,7 @@ namespace RN
 		_textureUnit     = 0;
 	}
 	
-	void Renderer::FlushCamera()
+	void Renderer::FinishCamera()
 	{
 		Camera *previous = 0;
 		Camera *camera = _frameCamera;
@@ -1136,6 +1121,7 @@ namespace RN
 		
 		// Cleanup of the frame
 		_frameCamera = 0;
+		
 		_frame.RemoveAllObjects();
 		_pointLights.RemoveAllObjects();
 		_spotLights.RemoveAllObjects();

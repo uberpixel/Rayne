@@ -31,14 +31,15 @@ namespace RN
 	class Renderer : public Singleton<Renderer>
 	{
 	public:
-		Renderer();
-		~Renderer();
+		RNAPI Renderer();
+		RNAPI ~Renderer();
 		
 		RNAPI void BeginFrame(float delta);
 		RNAPI void FinishFrame();
 		
 		RNAPI void BeginCamera(Camera *camera);
-		RNAPI void FlushCamera();
+		RNAPI void FinishCamera();
+		
 		RNAPI void RenderObject(const RenderingObject& object);
 		RNAPI void RenderLight(Light *light);
 		

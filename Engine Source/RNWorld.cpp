@@ -131,7 +131,7 @@ namespace RN
 				VisitTransform(camera, transform);
 			}
 			
-			_renderer->FlushCamera();
+			_renderer->FinishCamera();
 		}
 	}
 	
