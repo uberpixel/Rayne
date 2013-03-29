@@ -155,7 +155,7 @@ namespace RN
 					
 					if(transform->IsKindOfClass(_cameraClass))
 					{
-						Camera *camera = (Camera *)transform;
+						Camera *camera = static_cast<Camera *>(transform);
 						_cameras.push_back(camera);
 					}
 				}

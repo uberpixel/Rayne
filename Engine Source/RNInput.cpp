@@ -434,7 +434,7 @@ namespace RN
 					{
 						case InputControl::InputControlTypeDeltaAxis:
 						{
-							DeltaAxisControl *tcontrol = (DeltaAxisControl *)control;
+							DeltaAxisControl *tcontrol = static_cast<DeltaAxisControl *>(control);
 							float value = (float)event.value;
 
 							switch(tcontrol->Axis())
@@ -460,7 +460,7 @@ namespace RN
 
 						case InputControl::InputControlTypeMouseButton:
 						{
-							MouseButtonControl *tcontrol = (MouseButtonControl *)control;
+							MouseButtonControl *tcontrol = static_cast<MouseButtonControl *>(control);
 
 							switch(event.value)
 							{
@@ -528,7 +528,7 @@ namespace RN
 			{
 				if(control->Cookie() == cookie)
 				{
-					KeyboardControl *keyControl = (KeyboardControl *)control;
+					KeyboardControl *keyControl = static_cast<KeyboardControl *>(control);
 
 					switch(event.value)
 					{
@@ -581,7 +581,7 @@ namespace RN
 		{
 			case InputControl::InputControlTypeKeyboard:
 			{
-				KeyboardControl *tcontrol = (KeyboardControl *)control;
+				KeyboardControl *tcontrol = static_cast<KeyboardControl *>(control);
 
 				character = tcontrol->Character();
 				isKeyboard = true;
@@ -591,7 +591,7 @@ namespace RN
 
 			case InputControl::InputControlTypeDeltaAxis:
 			{
-				DeltaAxisControl *tcontrol = (DeltaAxisControl *)control;
+				DeltaAxisControl *tcontrol = static_cast<DeltaAxisControl *>(control);
 
 				axis = tcontrol->Axis();
 				isMouse = true;
@@ -600,7 +600,7 @@ namespace RN
 
 			case InputControl::InputControlTypeMouseButton:
 			{
-				MouseButtonControl *tcontrol = (MouseButtonControl *)control;
+				MouseButtonControl *tcontrol = static_cast<MouseButtonControl *>(control);
 
 				button = tcontrol->Button();
 				isMouse = true;
@@ -767,7 +767,7 @@ namespace RN
 
 				if(device->Type() == InputDevice::InputDeviceTypeMouse)
 				{
-					InputDeviceMouse *mouse = (InputDeviceMouse *)device;
+					InputDeviceMouse *mouse = static_cast<InputDeviceMouse *>(device);
 
 					_mouseDelta += mouse->MouseDelta();
 					_pressedButtons |= mouse->PressedButtons();
@@ -995,7 +995,7 @@ namespace RN
 
 			if(device->IsActive() && device->Type() == InputDevice::InputDeviceTypeKeyboard)
 			{
-				InputDeviceKeyboard *temp = (InputDeviceKeyboard *)device;
+				InputDeviceKeyboard *temp = static_cast<InputDeviceKeyboard *>(device);
 
 				if(temp->KeyPressed(key))
 					return true;

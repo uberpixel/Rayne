@@ -146,7 +146,7 @@ namespace RN
 		if(!_indices)
 			_indices = malloc(_indicesSize);
 		
-		uint8 *bytes = (uint8 *)_meshData;
+		uint8 *bytes = static_cast<uint8 *>(_meshData);
 		uint8 *bytesEnd = bytes + _meshSize;
 		
 		uint8 *buffer[kMeshFeatureIndices];
@@ -183,8 +183,8 @@ namespace RN
 		
 		if(_descriptor[kMeshFeatureIndices]._available)
 		{
-			uint8 *indices = (uint8 *)_descriptor[kMeshFeatureIndices]._pointer;
-			std::copy(indices, indices + _indicesSize, (uint8 *)_indices);
+			uint8 *indices = static_cast<uint8 *>(_descriptor[kMeshFeatureIndices]._pointer);
+			std::copy(indices, indices + _indicesSize, static_cast<uint8 *>(_indices));
 		}
 		
 		glBindBuffer(GL_ARRAY_BUFFER, _vbo);

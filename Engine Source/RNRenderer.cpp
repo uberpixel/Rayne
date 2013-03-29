@@ -941,8 +941,8 @@ namespace RN
 					
 					RenderingObject& object = _frame.ObjectAtIndex(i);
 					
-					Mesh *mesh = (Mesh *)object.mesh;
-					Material *material = surfaceMaterial ? surfaceMaterial : (Material *)object.material;
+					Mesh *mesh = object.mesh;
+					Material *material = surfaceMaterial ? surfaceMaterial : object.material;
 					Shader *shader = material->Shader();
 					
 					Matrix& transform = (Matrix &)*object.transform;
@@ -1082,7 +1082,7 @@ namespace RN
 					// More updates
 					if(object.skeleton && program->matBones != -1)
 					{
-						float *data = (float *)object.skeleton->Matrices().Data();
+						float *data = reinterpret_cast<float *>(object.skeleton->Matrices().Data());
 						glUniformMatrix4fv(program->matBones, object.skeleton->NumBones(), GL_FALSE, data);
 					}
 					
@@ -1154,7 +1154,7 @@ namespace RN
 	
 	void Renderer::DrawMeshInstanced(machine_uint start, machine_uint count)
 	{
-		Mesh *mesh = (Mesh *)_frame[(int)start].mesh;
+		Mesh *mesh = _frame[(int)start].mesh;
 		MeshLODStage *stage = mesh->LODStage(0);
 		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
 		

@@ -66,7 +66,7 @@ namespace RN
 			if(!_descriptor[(int32)feature]._pointer)
 				_descriptor[(int32)feature]._pointer = (uint8 *)malloc(_descriptor[(int32)feature]._size);
 				
-			return (T *)(_descriptor[(int32)feature]._pointer);
+			return reinterpret_cast<T *>(_descriptor[(int32)feature]._pointer);
 		}
 		
 		MeshDescriptor *Descriptor(MeshFeature feature)
