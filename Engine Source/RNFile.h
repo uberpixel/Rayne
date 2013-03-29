@@ -30,6 +30,7 @@ namespace RN
 		// Reading operations
 		RNAPI std::string String();
 		RNAPI void ReadIntoBuffer(void *buffer, size_t size);
+		RNAPI void Seek(size_t offset);
 		
 		RNAPI uint8 ReadUint8();
 		RNAPI uint16 ReadUint16();

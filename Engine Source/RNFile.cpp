@@ -73,6 +73,11 @@ namespace RN
 		size_t read = fread(buffer, size, 1, _file);
 		RN_ASSERT0(read == 1);
 	}
+	
+	void File::Seek(size_t offset)
+	{
+		fseek(_file, offset, SEEK_CUR);
+	}
 
 	uint8 File::ReadUint8()
 	{
