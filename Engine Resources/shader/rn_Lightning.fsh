@@ -19,9 +19,6 @@ uniform isamplerBuffer lightSpotListOffset;
 uniform samplerBuffer lightSpotListData;
 
 uniform vec4 lightTileSize;
-uniform int lightPointCount;
-uniform int lightSpotCount;
-
 in vec3 outLightNormal;
 in vec3 outLightPosition;
 
@@ -35,61 +32,40 @@ vec4 rn_Lightning()
 	vec3 lightcolor;
 	vec4 lightdir;
 	float dirfac;
-	int lightindex = 0;
+	int lightindex;
+	ivec2 listoffset;
 	
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 	
-	//pointlights
-	//if(lightPointCount > 0)
+	listoffset = texelFetch(lightPointListOffset, tileindex).xy;
+	for(int i=0; i<listoffset.y; i++)
 	{
-		ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
-		for(int i=0; i<listoffset.y; i++)
-		{
-			lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;
+		lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;
 
-			lightpos   = texelFetch(lightPointListData, lightindex);
-			lightcolor = texelFetch(lightPointListData, lightindex + 1).xyz;
-			
-			posdiff     = lightpos.xyz-outLightPosition;
-			attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
-			
-			light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
-		}
+		lightpos   = texelFetch(lightPointListData, lightindex);
+		lightcolor = texelFetch(lightPointListData, lightindex + 1).xyz;
+		
+		posdiff     = lightpos.xyz-outLightPosition;
+		attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
+		
+		light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}
-	
-	//spotlights
-	//if(lightSpotCount > 0)
+
+	listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
+	for(int i=0; i<listoffset.y; i++)
 	{
-		ivec2 listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
-		for(int i=0; i<listoffset.y; i++)
-		{
-			lightindex = (texelFetch(lightSpotList, listoffset.x + i).r) * 3;
+		lightindex = (texelFetch(lightSpotList, listoffset.x + i).r) * 3;
 
-			lightpos   = texelFetch(lightSpotListData, lightindex);
-			lightcolor = texelFetch(lightSpotListData, lightindex + 1).xyz;
-			lightdir   = texelFetch(lightSpotListData, lightindex + 2);
-			
-			posdiff = lightpos.xyz-outLightPosition;
-			attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
-			dirfac = dot(normalize(posdiff), -lightdir.xyz);
-			
-			if(dirfac > lightdir.w)
-				light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
-		}
-
-		/*ivec2 listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
-		for(int i=0; i<listoffset.y; i++)
-		{
-			lightindex = (texelFetch(lightSpotList, listoffset.x + i).r) * 3;
-
-			lightpos   = texelFetch(lightSpotListData, lightindex);
-			lightcolor = texelFetch(lightSpotListData, lightindex + 1).xyz;
-			
-			posdiff     = lightpos.xyz-outLightPosition;
-			attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
-			
+		lightpos   = texelFetch(lightSpotListData, lightindex);
+		lightcolor = texelFetch(lightSpotListData, lightindex + 1).xyz;
+		lightdir   = texelFetch(lightSpotListData, lightindex + 2);
+		
+		posdiff = lightpos.xyz-outLightPosition;
+		attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
+		dirfac = dot(normalize(posdiff), -lightdir.xyz);
+		
+		if(dirfac > lightdir.w)
 			light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
-		}*/
 	}
 	
 	return vec4(light, 1.0);
