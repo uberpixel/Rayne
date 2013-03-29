@@ -4,7 +4,6 @@
 		<Project filename="Rayne.cbp">
 			<Depends filename="Vendor/libjansson/jansson.cbp" />
 			<Depends filename="Vendor/libpng/libpng.cbp" />
-			<Depends filename="Vendor/libz/libz.cbp" />
 		</Project>
 		<Project filename="Engine Host/Linux/Rayne Player.cbp">
 			<Depends filename="Rayne.cbp" />

@@ -63,7 +63,6 @@
 		<Unit filename="Engine Source/RNBase.cpp" />
 		<Unit filename="Engine Source/RNBase.h" />
 		<Unit filename="Engine Source/RNBaseInternal.h" />
-		<Unit filename="Engine Source/RNBullet.h" />
 		<Unit filename="Engine Source/RNCache.cpp" />
 		<Unit filename="Engine Source/RNCache.h" />
 		<Unit filename="Engine Source/RNCacheable.cpp" />
@@ -91,10 +90,6 @@
 		<Unit filename="Engine Source/RNKernel.h" />
 		<Unit filename="Engine Source/RNLight.cpp" />
 		<Unit filename="Engine Source/RNLight.h" />
-		<Unit filename="Engine Source/RNLightEntity.cpp" />
-		<Unit filename="Engine Source/RNLightEntity.h" />
-		<Unit filename="Engine Source/RNList.cpp" />
-		<Unit filename="Engine Source/RNList.h" />
 		<Unit filename="Engine Source/RNMaterial.cpp" />
 		<Unit filename="Engine Source/RNMaterial.h" />
 		<Unit filename="Engine Source/RNMatrix.h" />
@@ -114,10 +109,6 @@
 		<Unit filename="Engine Source/RNOpenGL.cpp" />
 		<Unit filename="Engine Source/RNOpenGL.h" />
 		<Unit filename="Engine Source/RNOpenGLExtensions.h" />
-		<Unit filename="Engine Source/RNPhysicsPipeline.cpp" />
-		<Unit filename="Engine Source/RNPhysicsPipeline.h" />
-		<Unit filename="Engine Source/RNPipelineSegment.cpp" />
-		<Unit filename="Engine Source/RNPipelineSegment.h" />
 		<Unit filename="Engine Source/RNPlane.h" />
 		<Unit filename="Engine Source/RNPlatform.h" />
 		<Unit filename="Engine Source/RNQuaternion.h" />
@@ -126,12 +117,6 @@
 		<Unit filename="Engine Source/RNRenderStorage.h" />
 		<Unit filename="Engine Source/RNRenderer.cpp" />
 		<Unit filename="Engine Source/RNRenderer.h" />
-		<Unit filename="Engine Source/RNRendering.h" />
-		<Unit filename="Engine Source/RNRenderingPipeline.cpp" />
-		<Unit filename="Engine Source/RNRenderingPipeline.h" />
-		<Unit filename="Engine Source/RNRenderingResource.h" />
-		<Unit filename="Engine Source/RNRigidBodyEntity.cpp" />
-		<Unit filename="Engine Source/RNRigidBodyEntity.h" />
 		<Unit filename="Engine Source/RNSettings.cpp" />
 		<Unit filename="Engine Source/RNSettings.h" />
 		<Unit filename="Engine Source/RNShader.cpp" />
