@@ -19,6 +19,7 @@
 namespace RN
 {
 	class Renderer;
+	class Camera;
 	class Transform : public Object
 	{
 	friend class Renderer;
@@ -35,6 +36,8 @@ namespace RN
 		virtual void SetPosition(const Vector3& pos);
 		virtual void SetScale(const Vector3& scal);
 		virtual void SetRotation(const Quaternion& rot);
+		
+		virtual bool IsVisibleInCamera(Camera *camera) { return false; }
 		
 		const Vector3& Position() const { return _position; }
 		const Vector3& Scale() const { return _scale; }

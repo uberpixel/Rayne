@@ -12,29 +12,20 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNTransform.h"
+#include "RNCamera.h"
 #include "RNMaterial.h"
 #include "RNModel.h"
+#include "RNSkeleton.h"
 #include "RNMesh.h"
 
 namespace RN
 {
 	class World;
-	class Camera;
-	class RenderingPipeline;
-	
 	class Entity : public Transform
 	{
 	friend class World;
-	friend class RenderingPipeline;
 	public:
-		typedef enum
-		{
-			TypeObject,
-			TypeLight
-		} EntityType;
-		
 		Entity();
-		
 		virtual ~Entity();
 		
 		virtual void Update(float delta);
@@ -44,18 +35,13 @@ namespace RN
 		void SetSkeleton(class Skeleton *skeleton);
 		void SetAction(const std::function<void (Entity *, float)>& action);
 		
-		EntityType Type() const {return _type;}
 		Model *Model() const { return _model; }
 		Skeleton *Skeleton() const { return _skeleton; }
-		
-	protected:		
-		Entity(EntityType type);
 
 	private:
 		class Model *_model;
 		class Skeleton *_skeleton;
 		
-		EntityType _type;
 		std::function<void (Entity *, float)> _action;
 		
 		RNDefineMeta(Entity, Transform)

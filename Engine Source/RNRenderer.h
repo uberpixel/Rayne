@@ -16,7 +16,7 @@
 #include "RNMaterial.h"
 #include "RNMesh.h"
 #include "RNSkeleton.h"
-#include "RNLightEntity.h"
+#include "RNLight.h"
 
 namespace RN
 {
@@ -40,7 +40,7 @@ namespace RN
 		RNAPI void BeginCamera(Camera *camera);
 		RNAPI void FlushCamera();
 		RNAPI void RenderObject(const RenderingObject& object);
-		RNAPI void RenderLight(LightEntity *light);
+		RNAPI void RenderLight(Light *light);
 		
 		RNAPI void SetDefaultFBO(GLuint fbo);
 		RNAPI void SetDefaultFrame(uint32 width, uint32 height);
@@ -67,7 +67,7 @@ namespace RN
 		RNAPI void DrawMeshInstanced(machine_uint start, machine_uint count);
 		RNAPI void BindVAO(const std::tuple<ShaderProgram *, MeshLODStage *>& tuple);
 		
-		RNAPI void CullLights(Camera *camera, LightEntity **lights, machine_uint lightCount, GLuint indicesBuffer, GLuint offsetBuffer);
+		RNAPI void CullLights(Camera *camera, Light **lights, machine_uint lightCount, GLuint indicesBuffer, GLuint offsetBuffer);
 		
 		RNAPI int CreatePointLightList(Camera *camera);
 		RNAPI int CreateSpotLightList(Camera *camera);
@@ -105,8 +105,8 @@ namespace RN
 		
 		Camera *_frameCamera;
 		Array<RenderingObject> _frame;
-		Array<LightEntity *> _pointLights;
-		Array<LightEntity *> _spotLights;
+		Array<Light *> _pointLights;
+		Array<Light *> _spotLights;
 		
 	private:
 		void Initialize();

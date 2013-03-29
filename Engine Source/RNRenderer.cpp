@@ -247,7 +247,7 @@ namespace RN
 		continue; \
 	}
 	
-	void Renderer::CullLights(Camera *camera, LightEntity **lights, machine_uint lightCount, GLuint indicesBuffer, GLuint offsetBuffer)
+	void Renderer::CullLights(Camera *camera, Light **lights, machine_uint lightCount, GLuint indicesBuffer, GLuint offsetBuffer)
 	{
 		Rect rect = camera->Frame();
 		int tilesWidth  = rect.width / camera->LightTiles().x;
@@ -303,7 +303,7 @@ namespace RN
 					
 					for(size_t i=0; i<lightCount; i++)
 					{
-						LightEntity *light = lights[i];
+						Light *light = lights[i];
 						
 						const Vector3& position = light->_worldPosition;
 						const float range = light->_range;
@@ -370,7 +370,7 @@ namespace RN
 	
 	int Renderer::CreatePointLightList(Camera *camera)
 	{
-		LightEntity **lights = _pointLights.Data();
+		Light **lights = _pointLights.Data();
 		machine_uint lightCount = _pointLights.Count();
 		
 		if(camera->DepthTiles())
@@ -400,7 +400,7 @@ namespace RN
 			
 			for(machine_uint i=0; i<lightCount; i++)
 			{
-				LightEntity *light = lights[i];
+				Light *light = lights[i];
 				const Vector3& position = light->WorldPosition();
 				const Vector3& color = light->Color();
 				
@@ -417,7 +417,7 @@ namespace RN
 	
 	int Renderer::CreateSpotLightList(Camera *camera)
 	{
-		LightEntity **lights = _spotLights.Data();
+		Light **lights = _spotLights.Data();
 		machine_uint lightCount = _spotLights.Count();
 		
 		if(camera->DepthTiles())
@@ -447,7 +447,7 @@ namespace RN
 			
 			for(machine_uint i=0; i<lightCount; i++)
 			{
-				LightEntity *light = lights[i];
+				Light *light = lights[i];
 				const Vector3& position = light->WorldPosition();
 				const Vector3& color = light->Color();
 				const Vector3& direction = light->Direction();
@@ -1237,15 +1237,15 @@ namespace RN
 		_frame.AddObject(object);
 	}
 	
-	void Renderer::RenderLight(LightEntity *light)
+	void Renderer::RenderLight(Light *light)
 	{
 		switch(light->LightType())
 		{
-			case LightEntity::TypePointLight:
+			case Light::TypePointLight:
 				_pointLights.AddObject(light);
 				break;
 				
-			case LightEntity::TypeSpotLight:
+			case Light::TypeSpotLight:
 				_spotLights.AddObject(light);
 				break;
 				

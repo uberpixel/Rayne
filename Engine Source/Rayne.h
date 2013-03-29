@@ -46,7 +46,7 @@
 
 #include "RNWorld.h"
 #include "RNEntity.h"
-#include "RNLightEntity.h"
+#include "RNLight.h"
 
 #include "RNThread.h"
 #include "RNThreadPool.h"

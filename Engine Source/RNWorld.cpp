@@ -8,11 +8,10 @@
 
 #include "RNWorld.h"
 #include "RNKernel.h"
-#include "RNTransform.h"
-#include "RNEntity.h"
-#include "RNLightEntity.h"
 #include "RNAutoreleasePool.h"
 #include "RNThreadPool.h"
+#include "RNEntity.h"
+#include "RNLight.h"
 
 namespace RN
 {
@@ -25,7 +24,7 @@ namespace RN
 		
 		_cameraClass = Camera::MetaClass();
 		_entityClass = Entity::MetaClass();
-		_lightEntityClass = LightEntity::MetaClass();
+		_lightClass  = Light::MetaClass();
 	}
 	
 	World::~World()
@@ -44,12 +43,11 @@ namespace RN
 	
 	void World::VisitTransform(Camera *camera, Transform *transform)
 	{
-		if(transform->IsKindOfClass(_entityClass))
+		if(transform->IsVisibleInCamera(camera))
 		{
-			Entity *entity = static_cast<Entity *>(transform);
-			
-			if(entity->IsVisibleInCamera(camera))
+			if(transform->IsKindOfClass(_entityClass))
 			{
+				Entity *entity = static_cast<Entity *>(transform);
 				if(entity->Model())
 				{
 					Model *model = entity->Model();
@@ -68,11 +66,11 @@ namespace RN
 						_renderer->RenderObject(object);
 					}
 				}
-				
-				if(entity->IsKindOfClass(_lightEntityClass))
-				{
-					_renderer->RenderLight(static_cast<LightEntity *>(transform));
-				}
+			}
+			
+			if(transform->IsKindOfClass(_lightClass))
+			{
+				_renderer->RenderLight(static_cast<Light *>(transform));
 			}
 		}
 		
@@ -137,12 +135,20 @@ namespace RN
 		}
 	}
 	
+	bool World::SupportsTransform(Transform *transform)
+	{
+		return (transform->IsKindOfClass(_entityClass) || transform->IsKindOfClass(_lightClass) || transform->IsKindOfClass(_cameraClass));
+	}
+	
 	void World::ApplyTransformUpdates()
 	{
 		if(_addedTransforms.size() > 0)
 		{
 			for(Transform *transform : _addedTransforms)
 			{
+				if(!SupportsTransform(transform))
+					continue;
+				
 				if(_transforms.find(transform) == _transforms.end())
 				{
 					_transforms.insert(transform);

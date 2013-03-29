@@ -9,8 +9,8 @@
 /* Begin PBXBuildFile section */
 		C01BCEC816E6698E0009834F /* RNSkeleton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C01BCEC616E6698E0009834F /* RNSkeleton.cpp */; };
 		C01BCEC916E6698E0009834F /* RNSkeleton.h in Headers */ = {isa = PBXBuildFile; fileRef = C01BCEC716E6698E0009834F /* RNSkeleton.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		C050166916C3FDE600326514 /* RNLightEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C050166716C3FDE600326514 /* RNLightEntity.cpp */; };
-		C050166A16C3FDE600326514 /* RNLightEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = C050166816C3FDE600326514 /* RNLightEntity.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		C050166916C3FDE600326514 /* RNLight.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C050166716C3FDE600326514 /* RNLight.cpp */; };
+		C050166A16C3FDE600326514 /* RNLight.h in Headers */ = {isa = PBXBuildFile; fileRef = C050166816C3FDE600326514 /* RNLight.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C050167016C45BF100326514 /* RNPlane.h in Headers */ = {isa = PBXBuildFile; fileRef = C050166E16C45BF100326514 /* RNPlane.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9145CAC16BA9076004BDEC8 /* RNAutoreleasePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9145CAA16BA9076004BDEC8 /* RNAutoreleasePool.cpp */; };
 		E9145CAD16BA9076004BDEC8 /* RNAutoreleasePool.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -139,8 +139,8 @@
 /* Begin PBXFileReference section */
 		C01BCEC616E6698E0009834F /* RNSkeleton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSkeleton.cpp; sourceTree = "<group>"; };
 		C01BCEC716E6698E0009834F /* RNSkeleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSkeleton.h; sourceTree = "<group>"; };
-		C050166716C3FDE600326514 /* RNLightEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNLightEntity.cpp; sourceTree = "<group>"; };
-		C050166816C3FDE600326514 /* RNLightEntity.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNLightEntity.h; sourceTree = "<group>"; };
+		C050166716C3FDE600326514 /* RNLight.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNLight.cpp; sourceTree = "<group>"; };
+		C050166816C3FDE600326514 /* RNLight.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNLight.h; sourceTree = "<group>"; };
 		C050166E16C45BF100326514 /* RNPlane.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPlane.h; sourceTree = "<group>"; };
 		E9145CAA16BA9076004BDEC8 /* RNAutoreleasePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNAutoreleasePool.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAutoreleasePool.h; sourceTree = "<group>"; };
@@ -441,8 +441,8 @@
 				E9619DF81696157E00DA187E /* RNCamera.h */,
 				E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */,
 				E9580BD216AB8BEA0056DEF2 /* RNEntity.h */,
-				C050166716C3FDE600326514 /* RNLightEntity.cpp */,
-				C050166816C3FDE600326514 /* RNLightEntity.h */,
+				C050166716C3FDE600326514 /* RNLight.cpp */,
+				C050166816C3FDE600326514 /* RNLight.h */,
 				E9619E261696157E00DA187E /* RNWorld.cpp */,
 				E9619E271696157E00DA187E /* RNWorld.h */,
 			);
@@ -514,7 +514,7 @@
 				E9145CB416BAB82D004BDEC8 /* RNInput.h in Headers */,
 				E991F1C716BB707300B205A1 /* RNMessage.h in Headers */,
 				E9319D3416BFE560001FA38F /* RNBaseInternal.h in Headers */,
-				C050166A16C3FDE600326514 /* RNLightEntity.h in Headers */,
+				C050166A16C3FDE600326514 /* RNLight.h in Headers */,
 				C050167016C45BF100326514 /* RNPlane.h in Headers */,
 				E9B1742B16CACA5A00732DCE /* RNDebug.h in Headers */,
 				E9780FC116D82913001AE2ED /* RNSettings.h in Headers */,
@@ -653,7 +653,7 @@
 				E9145CAC16BA9076004BDEC8 /* RNAutoreleasePool.cpp in Sources */,
 				E9145CB316BAB82D004BDEC8 /* RNInput.cpp in Sources */,
 				E991F1C616BB707300B205A1 /* RNMessage.cpp in Sources */,
-				C050166916C3FDE600326514 /* RNLightEntity.cpp in Sources */,
+				C050166916C3FDE600326514 /* RNLight.cpp in Sources */,
 				E9B1742A16CACA5A00732DCE /* RNDebug.cpp in Sources */,
 				E91F784216CE336000FFD318 /* RNThreadPool.cpp in Sources */,
 				E9AB0DAB16D679DC000D1CF0 /* RNTransform.cpp in Sources */,

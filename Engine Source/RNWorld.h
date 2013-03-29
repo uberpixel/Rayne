@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNRenderer.h"
+#include "RNTransform.h"
 #include "RNCamera.h"
 
 namespace RN
@@ -35,8 +36,9 @@ namespace RN
 		RNAPI virtual void TransformsUpdated();
 		
 	private:
-		void StepWorld(float delta);		
+		void StepWorld(float delta);
 		void VisitTransform(Camera *camera, Transform *transform);
+		bool SupportsTransform(Transform *transform);
 		void ApplyTransformUpdates();
 		
 		Kernel *_kernel;
@@ -49,7 +51,7 @@ namespace RN
 		
 		MetaClass *_cameraClass;
 		MetaClass *_entityClass;
-		MetaClass *_lightEntityClass;
+		MetaClass *_lightClass;
 	};
 }
 

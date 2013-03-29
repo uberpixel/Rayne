@@ -1,22 +1,21 @@
 //
-//  RNLightEntity.h
+//  RNLight.h
 //  Rayne
 //
 //  Copyright 2013 by Felix Pohl, Nils Daumann and Sidney Just. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_LIGHTENTITY_H__
-#define __RAYNE_LIGHTENTITY_H__
+#ifndef __RAYNE_LIGHT_H__
+#define __RAYNE_LIGHT_H__
 
 #include "RNBase.h"
-#include "RNEntity.h"
-#include "RNMaterial.h"
-#include "RNMesh.h"
+#include "RNTransform.h"
+#include "RNCamera.h"
 
 namespace RN
 {
-	class LightEntity : public Entity
+	class Light : public Transform
 	{
 	friend class Renderer;
 	public:
@@ -27,8 +26,8 @@ namespace RN
 			TypeDirectionalLight = 2
 		};
 		
-		LightEntity(Type type = TypePointLight);
-		virtual ~LightEntity();
+		Light(Type type = TypePointLight);
+		virtual ~Light();
 		
 		virtual void Update(float delta);
 		virtual bool IsVisibleInCamera(Camera *camera);
@@ -39,20 +38,20 @@ namespace RN
 		
 		const Type LightType() { return _lightType; }
 		const Vector3& Color() { return _color; }
-		const float Range() { return _range; }
 		const Vector3& Direction() { return _direction; }
+		const float Range() { return _range; }
 		const float Angle() { return _angle; }
 	
 		
 	private:
 		Type _lightType;
 		Vector3 _color;
-		float _range;
 		Vector3 _direction;
+		float _range;
 		float _angle;
 		
-		RNDefineMeta(LightEntity, Entity)
+		RNDefineMeta(Light, Transform)
 	};
 }
 
-#endif /* __RAYNE_LIGHTENTITY_H__ */
+#endif /* __RAYNE_LIGHT_H__ */

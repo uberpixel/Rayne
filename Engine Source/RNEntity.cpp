@@ -9,8 +9,6 @@
 #include "RNEntity.h"
 #include "RNKernel.h"
 #include "RNWorld.h"
-#include "RNCamera.h"
-#include "RNSkeleton.h"
 
 namespace RN
 {
@@ -20,14 +18,6 @@ namespace RN
 	{
 		_model = 0;
 		_skeleton = 0;
-		_type = TypeObject;
-	}
-	
-	Entity::Entity(EntityType type)
-	{
-		_model = 0;
-		_skeleton = 0;
-		_type = type;
 	}
 	
 	Entity::~Entity()
@@ -56,6 +46,7 @@ namespace RN
 	{
 		if(_model)
 			_model->Release();
+		
 		_model = model ? model->Retain() : 0;
 	}
 	
@@ -63,6 +54,7 @@ namespace RN
 	{
 		if(_skeleton)
 			_skeleton->Release();
+		
 		_skeleton = skeleton ? (class Skeleton *)skeleton->Retain() : 0;
 	}
 	

@@ -148,7 +148,7 @@ namespace TG
 			{
 				fpressed = true;
 				
-				RN::LightEntity *child = _camera->ChildAtIndex<RN::LightEntity>(0);
+				RN::Light *child = _camera->ChildAtIndex<RN::Light>(0);
 				child->SetRange((child->Range() < 1.0f) ? TGWorldSpotLightRange : 0.0f);
 			}
 		}
@@ -311,21 +311,21 @@ namespace TG
 		_spruce->SetModel(spruceModel);
 		
 #if TGWorldFeatureLights
-		RN::LightEntity *light;
+		RN::Light *light;
 		
 		//srand(time(0));
 		
-		light = new RN::LightEntity();
+		light = new RN::Light();
 		light->SetPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
-		light = new RN::LightEntity();
+		light = new RN::Light();
 		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
-		light = new RN::LightEntity(RN::LightEntity::TypeSpotLight);
+		light = new RN::Light(RN::Light::TypeSpotLight);
 		light->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		light->SetRange(TGWorldSpotLightRange);
 		light->SetAngle(0.9f);
@@ -334,7 +334,7 @@ namespace TG
 		
 		for(int i=0; i<100; i++)
 		{
-			light = new RN::LightEntity();
+			light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 280.0f - 140.0f, TGWorldRandom * 100.0f, TGWorldRandom * 120.0f - 50.0f));
 			light->SetRange(TGWorldRandom * 20.0f);
 			light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
