@@ -11,7 +11,7 @@
 #define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureInstancing    0
-#define TGWorldFeatureAnimations    0
+#define TGWorldFeatureAnimations    1
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 95.0f

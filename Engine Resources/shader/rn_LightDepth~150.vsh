@@ -10,10 +10,11 @@
 precision highp float;
 
 #include "rn_Matrices.vsh"
+#include "rn_Animation.vsh"
 
 in vec3 vertPosition;
 
 void main()
 {
-	gl_Position = matProjViewModel * vec4(vertPosition, 1.0);
+	gl_Position = matProjViewModel * rn_Animate(vec4(vertPosition, 1.0));
 }
