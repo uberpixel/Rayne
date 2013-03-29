@@ -17,25 +17,25 @@ namespace RN
 	class Rect
 	{
 	public:
-		Rect();
-		Rect(float x, float y, float width, float height);
-		Rect(const Vector2& origin, float width, float height);
-		Rect(const Vector2& origin, const Vector2& size);
-		Rect(const Rect& other);
+		RNAPI Rect();
+		RNAPI Rect(float x, float y, float width, float height);
+		RNAPI Rect(const Vector2& origin, float width, float height);
+		RNAPI Rect(const Vector2& origin, const Vector2& size);
+		RNAPI Rect(const Rect& other);
 		
-		bool operator== (const Rect& other);
-		bool operator!= (const Rect& other);
+		RNAPI bool operator== (const Rect& other);
+		RNAPI bool operator!= (const Rect& other);
 		
-		bool ContainsPoint(const Vector2& point) const;
-		bool IntersectsRect(const Rect& other) const;
-		bool ContainsRect(const Rect& other) const;
+		RNAPI bool ContainsPoint(const Vector2& point) const;
+		RNAPI bool IntersectsRect(const Rect& other) const;
+		RNAPI bool ContainsRect(const Rect& other) const;
 		
-		void Inset(float dx, float dy);
+		RNAPI void Inset(float dx, float dy);
 		
-		float Top() const;
-		float Bottom() const;
-		float Left() const;
-		float Right() const;
+		RNAPI float Top() const;
+		RNAPI float Bottom() const;
+		RNAPI float Left() const;
+		RNAPI float Right() const;
 		
 		struct
 		{

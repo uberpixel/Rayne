@@ -13,30 +13,66 @@
 
 #include "RNObject.h"
 #include "RNContext.h"
-#include "RNRenderingPipeline.h"
-
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
 
 namespace RN
 {
+	class Window;
+	class WindowConfiguration
+	{
+	friend class Window;
+	public:
+#if RN_PLATFORM_MAC_OS
+		RNAPI WindowConfiguration(CGDisplayModeRef mode);
+		RNAPI ~WindowConfiguration();
+#endif
+#if RN_PLATFORM_LINUX
+		RNAPI WindowConfiguration(int32 index, uint32 width, uint32 height);
+#endif
+		
+		RNAPI WindowConfiguration(uint32 width, uint32 height);
+		
+		uint32 Width() const { return _width; }
+		uint32 Height() const { return _height; }
+		
+	private:
+		uint32 _width;
+		uint32 _height;
+		
+#if RN_PLATFORM_MAC_OS
+		CGDisplayModeRef _mode;
+#endif
+		
+#if RN_PLATFORM_LINUX
+		int32 _modeIndex;
+#endif
+	};
+	
 	class Kernel;
-	class Window : public Object
+	class Window : public Singleton<Window>
 	{
 	public:
-		Window(const std::string& title, Kernel *kernel);
-		virtual ~Window();
+		enum
+		{
+			WindowMaskFullscreen = (1 << 0),
+			WindowMaskVSync = (1 << 1)
+		};
+		typedef uint32 WindowMask;
+		
+		RNAPI Window();
+		RNAPI virtual ~Window();
 
-		void Show();
-		void Hide();
+		RNAPI void SetTitle(const std::string& title);
+		RNAPI void SetConfiguration(WindowConfiguration *configuration, WindowMask mask);
+		
+		RNAPI void ShowCursor();
+		RNAPI void HideCursor();
 
-		void SetContext(Context *context);
-		void SetTitle(const std::string& title);
-
-		Rect Frame() const;
+		WindowConfiguration *ActiveConfiguration() const { return _activeConfiguration; }
+		const Array<WindowConfiguration *>& Configurations() const { return _configurations; }
+		
+		RNAPI Rect Frame() const;
 
 	private:
-		void RenderLoop();
-
 #if RN_PLATFORM_MAC_OS
 		void *_nativeWindow;
 #endif
@@ -46,86 +82,29 @@ namespace RN
 		void *_rootViewController;
 		void *_renderingView;
 #endif
-
-		Context *_context;
-		RenderingPipeline *_renderer;
-		Kernel *_kernel;
-		Thread *_thread;
-	};
-}
-
-#endif
-
-#if RN_PLATFORM_WINDOWS
-
-namespace RN
-{
-	class Kernel;
-	class Window : public Object
-	{
-	public:
-		RNAPI Window(const std::string& title, Kernel *kernel);
-		RNAPI virtual ~Window();
-
-		RNAPI void Show();
-		RNAPI void Hide();
-
-		RNAPI void SetContext(Context *context);
-		RNAPI void SetTitle(const std::string& title);
-
-		RNAPI Rect Frame() const;
-
-	private:
-		void RenderLoop();
-		std::string _title;
-
-		bool _stopRendering;
-		bool _threadStopped;
-
-		Context *_context;
-		Kernel *_kernel;
-		RendererBackend *_renderer;
-		HWND _hWnd;
-		HDC _hDC;
-	};
-}
-
-#endif
-
-
+		
 #if RN_PLATFORM_LINUX
-
-namespace RN
-{
-	class Kernel;
-	class Window : public Object
-	{
-	public:
-		Window(const std::string& title, Kernel *kernel);
-		virtual ~Window();
-
-		void Show();
-		void Hide();
-
-		void SetContext(Context *context);
-		void SetTitle(const std::string& title);
-
-		Rect Frame() const;
-
-	private:
-		void RenderLoop();
-		std::string _title;
-
-		Context *_context;
-		RenderingPipeline *_renderer;
-		Kernel *_kernel;
-		Thread *_thread;
-
 		Display *_dpy;
 		XID _win;
+		XRRScreenConfiguration *_screenConfig;
+		Cursor _emtpyCursor;
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		HWND _hWnd;
+		HDC _hDC;
+#endif
+
+		Context *_context;
+		Kernel *_kernel;
+		
+		std::string _title;
+		bool _cursorVisible;
+		
+		WindowMask _mask;
+		WindowConfiguration *_activeConfiguration;
+		Array<WindowConfiguration *> _configurations;
 	};
 }
-
-#endif
 
 #endif /* __RAYNE_WINDOW_H__ */

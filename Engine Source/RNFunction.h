@@ -1,0 +1,67 @@
+//
+//  RNFunction.h
+//  Rayne
+//
+//  Copyright 2013 by Felix Pohl, Nils Daumann and Sidney Just. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
+//
+
+#ifndef __RAYNE_FUNCTIONH_H__
+#define __RAYNE_FUNCTIONH_H__
+
+#include "RNBase.h"
+
+namespace RN
+{
+	class Function
+	{
+	public:
+		template<typename F>
+		Function(F&& f) :
+			_implementation(new ImplementationType<F>(std::move(f)))
+		{}
+		
+		void operator() () { _implementation->Call(); }
+		
+		Function() = default;
+		Function(Function&& other) :
+			_implementation(std::move(other._implementation))
+		{}
+		
+		Function& operator=(Function&& other)
+		{
+			_implementation = std::move(other._implementation);
+			return *this;
+		}
+		
+		Function(const Function&) = delete;
+		Function(Function&) = delete;
+		Function& operator= (const Function&) = delete;
+		
+	private:
+		struct Base
+		{
+			virtual void Call() = 0;
+			virtual ~Base() {}
+		};
+		
+		template<typename F>
+		struct ImplementationType : Base
+		{
+			ImplementationType(F&& f) :
+				function(std::move(f))
+			{}
+			
+			void Call()
+			{
+				function();
+			}
+			
+			F function;
+		};
+		
+		std::unique_ptr<Base> _implementation;
+	};
+}
+
+#endif

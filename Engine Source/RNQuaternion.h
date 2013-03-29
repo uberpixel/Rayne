@@ -291,7 +291,7 @@ namespace RN
 		
 		float scale, inverseScale;
 		
-		if((angle + 1.0f) > 0.005f)
+		if((angle + 1.0f) > 0.05f)
 		{
 			if((1.0f - angle) >= 0.05f)
 			{
@@ -428,12 +428,12 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE Vector3 Quaternion::RotateVector3(const Vector3& vector) const
+	RN_INLINE Vector3 Quaternion::RotateVector(const Vector3& vector) const
 	{
 		return RotationMatrix().Transform(vector);
 	}
 	
-	RN_INLINE Vector4 Quaternion::RotateVector4(const Vector4& vector) const
+	RN_INLINE Vector4 Quaternion::RotateVector(const Vector4& vector) const
 	{
 		return RotationMatrix().Transform(vector);
 	}

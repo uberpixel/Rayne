@@ -8,28 +8,35 @@
 
 #include "RNModel.h"
 #include "RNFile.h"
+#include "RNSkeleton.h"
 
 namespace RN
 {
+	RNDeclareMeta(Model)
+	
 	Model::Model()
 	{
-		
 	}
 	
 	Model::Model(const std::string& path)
 	{
 		File *file = new File(path);
 		
-		uint32 version = file->ReadUint8();
-
-		switch(version)
+		uint32 magic = file->ReadUint32();
+		
+		if(magic == 352658064)
 		{
-			case 1:
-				ReadModelVersion1(file);
-				break;
-				
-			default:
-				break;
+			uint32 version = file->ReadUint8();
+			
+			switch(version)
+			{
+				case 1:
+					ReadModelVersion1(file);
+					break;
+					
+				default:
+					break;
+			}
 		}
 		
 		file->Release();
@@ -38,7 +45,7 @@ namespace RN
 	Model::Model(Mesh *mesh, Material *material, const std::string& name)
 	{
 		MeshGroup group;
-		group.mesh = mesh->Retain<Mesh>();
+		group.mesh = mesh->Retain();
 		group.material = material;
 		group.name = name;
 		
@@ -78,8 +85,11 @@ namespace RN
 				}
 			}
 			
-			material->SetShader(shader);
-			shader->Release();
+			if(shader)
+			{
+				material->SetShader(shader);
+				shader->Release();
+			}
 		}
 	}
 	
@@ -90,48 +100,50 @@ namespace RN
 	Model *Model::WithFile(const std::string& path)
 	{
 		Model *model = new Model(path);
-		return model->Autorelease<Model>();
+		return model->Autorelease();
 	}
 	
 	Model *Model::WithSkyCube(std::string up, std::string down, std::string left, std::string right, std::string front, std::string back, std::string shader)
 	{
-		RN::Material *skyDownMaterial = new RN::Material(RN::Shader::WithFile(shader));
-		skyDownMaterial->AddTexture(RN::Texture::WithFile(down, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		Shader *matShader = Shader::WithFile(shader);
+		
+		Material *skyDownMaterial = new Material(matShader);
+		skyDownMaterial->AddTexture(Texture::WithFile(down, Texture::FormatRGB888, Texture::WrapModeClamp));
 		skyDownMaterial->depthwrite = false;
-		RN::Mesh  *skyDownMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(0.0f, 0.0f, 0.0f));
+		Mesh  *skyDownMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f));
 		
-		RN::Material *skyUpMaterial = new RN::Material(RN::Shader::WithFile(shader));
-		skyUpMaterial->AddTexture(RN::Texture::WithFile(up, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		Material *skyUpMaterial = new Material(matShader);
+		skyUpMaterial->AddTexture(Texture::WithFile(up, Texture::FormatRGB888, Texture::WrapModeClamp));
 		skyUpMaterial->depthwrite = false;
-		RN::Mesh  *skyUpMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(0.0f, 180.0f, 0.0f));
+		Mesh  *skyUpMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 180.0f, 0.0f));
 		
-		RN::Material *skyLeftMaterial = new RN::Material(RN::Shader::WithFile(shader));
-		skyLeftMaterial->AddTexture(RN::Texture::WithFile(left, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		Material *skyLeftMaterial = new Material(matShader);
+		skyLeftMaterial->AddTexture(Texture::WithFile(left, Texture::FormatRGB888, Texture::WrapModeClamp));
 		skyLeftMaterial->depthwrite = false;
-		RN::Mesh  *skyLeftMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(-90.0f, 0.0f, 90.0f));
+		Mesh  *skyLeftMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(-90.0f, 0.0f, 90.0f));
 		
-		RN::Material *skyRightMaterial = new RN::Material(RN::Shader::WithFile(shader));
-		skyRightMaterial->AddTexture(RN::Texture::WithFile(right, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		Material *skyRightMaterial = new Material(matShader);
+		skyRightMaterial->AddTexture(Texture::WithFile(right, Texture::FormatRGB888, Texture::WrapModeClamp));
 		skyRightMaterial->depthwrite = false;
-		RN::Mesh  *skyRightMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(90.0f, 0.0f, 90.0f));
+		Mesh  *skyRightMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(90.0f, 0.0f, 90.0f));
 		
-		RN::Material *skyFrontMaterial = new RN::Material(RN::Shader::WithFile(shader));
-		skyFrontMaterial->AddTexture(RN::Texture::WithFile(front, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		Material *skyFrontMaterial = new Material(matShader);
+		skyFrontMaterial->AddTexture(Texture::WithFile(front, Texture::FormatRGB888, Texture::WrapModeClamp));
 		skyFrontMaterial->depthwrite = false;
-		RN::Mesh  *skyFrontMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(180.0f, 0.0f, 90.0f));
+		Mesh  *skyFrontMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(180.0f, 0.0f, 90.0f));
 		
-		RN::Material *skyBackMaterial = new RN::Material(RN::Shader::WithFile(shader));
-		skyBackMaterial->AddTexture(RN::Texture::WithFile(back, RN::Texture::FormatRGB888, RN::Texture::WrapModeClamp));
+		Material *skyBackMaterial = new Material(matShader);
+		skyBackMaterial->AddTexture(Texture::WithFile(back, Texture::FormatRGB888, Texture::WrapModeClamp));
 		skyBackMaterial->depthwrite = false;
-		RN::Mesh  *skyBackMesh = RN::Mesh::PlaneMesh(RN::Vector3(1.0f, -1.0f, 1.0f), RN::Vector3(0.0f, 0.0f, 90.0f));
+		Mesh  *skyBackMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 0.0f, 90.0f));
 		
-		RN::Model *skyModel = RN::Model::Empty();
-		skyModel->AddMesh(skyDownMesh->Autorelease<RN::Mesh>(), skyDownMaterial->Autorelease<RN::Material>());
-		skyModel->AddMesh(skyUpMesh->Autorelease<RN::Mesh>(), skyUpMaterial->Autorelease<RN::Material>());
-		skyModel->AddMesh(skyLeftMesh->Autorelease<RN::Mesh>(), skyLeftMaterial->Autorelease<RN::Material>());
-		skyModel->AddMesh(skyRightMesh->Autorelease<RN::Mesh>(), skyRightMaterial->Autorelease<RN::Material>());
-		skyModel->AddMesh(skyFrontMesh->Autorelease<RN::Mesh>(), skyFrontMaterial->Autorelease<RN::Material>());
-		skyModel->AddMesh(skyBackMesh->Autorelease<RN::Mesh>(), skyBackMaterial->Autorelease<RN::Material>());
+		Model *skyModel = Model::Empty();
+		skyModel->AddMesh(skyDownMesh->Autorelease(), skyDownMaterial->Autorelease());
+		skyModel->AddMesh(skyUpMesh->Autorelease(), skyUpMaterial->Autorelease());
+		skyModel->AddMesh(skyLeftMesh->Autorelease(), skyLeftMaterial->Autorelease());
+		skyModel->AddMesh(skyRightMesh->Autorelease(), skyRightMaterial->Autorelease());
+		skyModel->AddMesh(skyFrontMesh->Autorelease(), skyFrontMaterial->Autorelease());
+		skyModel->AddMesh(skyBackMesh->Autorelease(), skyBackMaterial->Autorelease());
 		
 		return skyModel;
 	}
@@ -139,19 +151,19 @@ namespace RN
 	Model *Model::WithMesh(Mesh *mesh, Material *material, const std::string& name)
 	{
 		Model *model = new Model(mesh, material, name);
-		return model->Autorelease<Model>();
+		return model->Autorelease();
 	}
 	
 	Model *Model::Empty()
 	{
 		Model *model = new Model();
-		return model->Autorelease<Model>();
+		return model->Autorelease();
 	}
 	
 	void Model::AddMesh(Mesh *mesh, Material *material, const std::string& name)
 	{
 		MeshGroup group;
-		group.mesh = mesh->Retain<Mesh>();
+		group.mesh = mesh->Retain();
 		group.material = material;
 		group.name = name;
 		
@@ -226,7 +238,7 @@ namespace RN
 			unsigned char uvcount = file->ReadUint8();
 			unsigned char datacount = file->ReadUint8();
 			unsigned char hastangent = file->ReadUint8();
-			unsigned char bonecount = file->ReadUint8();
+			unsigned char hasbones = file->ReadUint8();
 			
 			Array<MeshDescriptor> descriptors;
 			
@@ -280,9 +292,9 @@ namespace RN
 				descriptors.AddObject(meshDescriptor);
 				meshDescriptor.offset += sizeof(Vector4);
 			}
-			if(bonecount > 0)
+			if(hasbones > 0)
 			{
-/*				meshDescriptor.feature = kMeshFeatureBoneWeights;
+				meshDescriptor.feature = kMeshFeatureBoneWeights;
 				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
@@ -294,31 +306,32 @@ namespace RN
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				descriptors.AddObject(meshDescriptor);
-				meshDescriptor.offset += sizeof(Vector4);*/
-				
-				unsigned short *bonemapping = new unsigned short[bonecount];
-				file->ReadIntoBuffer(bonemapping, 2*bonecount);
-				delete[] bonemapping;
+				meshDescriptor.offset += sizeof(Vector4);
 			}
 			
-			float *vertexdata = new float[meshDescriptor.offset/sizeof(float)*numverts];
-			file->ReadIntoBuffer(vertexdata, meshDescriptor.offset*numverts);
+			size_t size = meshDescriptor.offset * numverts;
+			
+			uint8 *vertexdata = new uint8[size];
+			file->ReadIntoBuffer(vertexdata, meshDescriptor.offset * numverts);
 			
 			uint32 numindices = file->ReadUint32();
+			uint8 sizeindices = file->ReadUint8();
+			
 			meshDescriptor.feature = kMeshFeatureIndices;
 			meshDescriptor.elementCount = numindices;
-			meshDescriptor.elementSize = sizeof(uint16);
+			meshDescriptor.elementSize = sizeindices;
 			meshDescriptor.elementMember = 1;
 			meshDescriptor.offset = 0;
 			descriptors.AddObject(meshDescriptor);
 			
 			Mesh *mesh = new Mesh();
 			MeshLODStage *stage = mesh->AddLODStage(descriptors, vertexdata);
-			delete[] vertexdata;
-			uint16 *indices = stage->Data<uint16>(kMeshFeatureIndices);
 			
-			file->ReadIntoBuffer(indices, numindices*sizeof(uint16));
+			file->ReadIntoBuffer(stage->Data<void>(kMeshFeatureIndices), numindices*sizeindices);
+			
 			mesh->UpdateMesh();
+			
+			delete[] vertexdata;
 			
 			group.mesh = mesh;
 			group.material = material;
@@ -326,14 +339,13 @@ namespace RN
 		}
 		
 		//Animations
-/*		unsigned char hasanimations = file->ReadInt8();
+		unsigned char hasanimations = file->ReadInt8();
 		if(hasanimations)
 		{
 			unsigned short lenanimfilename = file->ReadInt16();
 			char *animfilename = new char[lenanimfilename];
 			file->ReadIntoBuffer(animfilename, lenanimfilename*sizeof(char));
-			printf("Animation filename: %s\n", animfilename);
-			//meshesstd::string(animfilename);
-		}*/
+			delete[] animfilename;
+		}
 	}
 }

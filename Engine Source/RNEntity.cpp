@@ -9,62 +9,57 @@
 #include "RNEntity.h"
 #include "RNKernel.h"
 #include "RNWorld.h"
-#include "RNCamera.h"
 
 namespace RN
 {
-	Entity::Entity() :
-		Transform(Transform::TransformTypeEntity)
+	RNDeclareMeta(Entity)
+	
+	Entity::Entity()
 	{
 		_model = 0;
-		_type = TypeObject;
-	}
-	
-	Entity::Entity(EntityType type) :
-		Transform(Transform::TransformTypeEntity)
-	{
-		_model = 0;
-		_type = type;
-	}
-	
-	Entity::Entity(Entity *other) :
-		Transform(Transform::TransformTypeEntity)
-	{
-		_model = other->_model->Retain<RN::Model>();
-		_type  = other->_type;
-		
-		SetPosition(other->Position());
-		SetScale(other->Scale());
-		SetRotation(other->Rotation());
+		_skeleton = 0;
 	}
 	
 	Entity::~Entity()
 	{
-		_model->Release();
+		if(_model)
+			_model->Release();
+		
+		if(_skeleton)
+			_skeleton->Release();
 	}
-	
-	
 	
 	void Entity::Update(float delta)
 	{
 		Transform::Update(delta);
+		
+		if(_action)
+			_action(this, delta);
 	}
-	
-	void Entity::PostUpdate()
-	{
-		Transform::PostUpdate();
-	}
-	
 	
 	bool Entity::IsVisibleInCamera(Camera *camera)
 	{
 		return true;
 	}
 	
-	
 	void Entity::SetModel(class Model *model)
 	{
-		_model->Release();
-		_model = model->Retain<RN::Model>();
+		if(_model)
+			_model->Release();
+		
+		_model = model ? model->Retain() : 0;
+	}
+	
+	void Entity::SetSkeleton(class Skeleton *skeleton)
+	{
+		if(_skeleton)
+			_skeleton->Release();
+		
+		_skeleton = skeleton ? (class Skeleton *)skeleton->Retain() : 0;
+	}
+	
+	void Entity::SetAction(const std::function<void (Entity *, float)>& action)
+	{
+		_action = action;
 	}
 }

@@ -11,7 +11,6 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNRenderingResource.h"
 #include "RNArray.h"
 #include "RNShader.h"
 #include "RNTexture.h"
@@ -19,7 +18,7 @@
 
 namespace RN
 {
-	class Material : public Object, public RenderingResource
+	class Material : public Object
 	{
 	public:
 		RNAPI Material();
@@ -62,6 +61,8 @@ namespace RN
 		
 		RN::Shader *_shader;
 		Array<Texture> *_textures;
+		
+		RNDefineMeta(Material, Object)
 	};
 }
 

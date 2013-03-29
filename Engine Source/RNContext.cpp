@@ -17,12 +17,17 @@ extern void RNRegisterWindow();
 
 namespace RN
 {
-	Context::Context(Context *shared) :
-		RenderingResource("Context")
+	RNDeclareMeta(Context)
+	
+#if RN_PLATFORM_LINUX
+	Display *Context::_dpy = 0;
+#endif 
+	
+	Context::Context(Context *shared)
 	{
 		_active = false;
 		_thread = 0;
-		_shared = shared->Retain<Context>();
+		_shared = shared ? shared->Retain() : 0;
 		_firstActivation = true;
 
 #if RN_PLATFORM_MAC_OS
@@ -46,7 +51,7 @@ namespace RN
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 
 		_cglContext = (CGLContextObj)[(NSOpenGLContext *)_oglContext CGLContextObj];
-
+		
 		if(_shared)
 		{
 			// Enable the multithreaded OpenGL Engine
@@ -154,13 +159,21 @@ namespace RN
 		// TODO: identify which other attributes are needed here
 		Colormap             cmap;
 		XSetWindowAttributes swa;
-		static int attributes[]  = {GLX_RGBA, GLX_DEPTH_SIZE, 16, GLX_DOUBLEBUFFER, None};
+		static int attributes[]  = {GLX_RGBA, 
+					GLX_RED_SIZE, 8,
+					GLX_GREEN_SIZE, 8,
+					GLX_BLUE_SIZE, 8,
+					GLX_DEPTH_SIZE, 16, 
+					GLX_DOUBLEBUFFER, None};
 		int dummy;
 
-		/*** (1) open a connection to the X server ***/
-		_dpy = XOpenDisplay(NULL);
-		if (_dpy == NULL)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "could not open display");
+		if (_dpy == 0)
+		{
+			/*** (1) open a connection to the X server ***/
+			_dpy = XOpenDisplay(NULL);
+			if (_dpy == NULL)
+				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "could not open display");
+		}
 
 		/*** (2) make sure OpenGL's GLX extension supported ***/
 		if(!glXQueryExtension(_dpy, &dummy, &dummy))
@@ -168,7 +181,7 @@ namespace RN
 
 		/*** (3) find an appropriate visual ***/
 
-		/* find an OpenGL-capable RGB visual with depth and double buffer */
+		// find an OpenGL-capable RGB visual with depth and double buffer 
 		_vi = glXChooseVisual(_dpy, DefaultScreen(_dpy), attributes);
 		if (_vi == NULL)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "no RGB visual with depth buffer and double buffer");
@@ -178,14 +191,14 @@ namespace RN
 
 		/*** (4) create an OpenGL rendering context  ***/
 
-		/* create an OpenGL rendering context */
+		// create an OpenGL rendering context
 		_context = glXCreateContext(_dpy, _vi, _shared ? _shared->_context : 0,
 							/* direct rendering if possible */ GL_TRUE);
 		if (_context == NULL)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "could not create rendering context");
 
-		/* Create fake Invisible XWindow to enable openGl context without window */
-		/* create an X colormap since probably not using default visual */
+		// Create fake Invisible XWindow to enable openGl context without window 
+		// create an X colormap since probably not using default visual 
 		cmap = XCreateColormap(_dpy, RootWindow(_dpy, _vi->screen), _vi->visual, AllocNone);
 		swa.colormap = cmap;
 		swa.border_pixel = 0;
@@ -197,11 +210,13 @@ namespace RN
 						  1024, 768, 0, _vi->depth, InputOutput, _vi->visual,
 						  CWBorderPixel | CWColormap | CWEventMask, &swa);
 						  
+		// register interest in the delete window message
+	   Atom wmDeleteMessage = XInternAtom(_dpy, "WM_DELETE_WINDOW", False);
+	   XSetWMProtocols(_dpy, _win, &wmDeleteMessage, 1);
+						  
 						  
 		if(_shared)
 		{
-			// no multithreading yet :(
-
 			if(_shared->_active && shared->_thread->OnThread())
 			{
 				_shared->Deactivate();
@@ -217,6 +232,7 @@ namespace RN
 
 	Context::~Context()
 	{
+		
 		DeactivateContext();
 
 		if(_shared)
@@ -229,6 +245,11 @@ namespace RN
 
 #if RN_PLATFORM_IOS
 		[(EAGLContext *)_oglContext release];
+#endif
+
+#if RN_PLATFORM_LINUX
+		glXDestroyContext(_dpy, _context);
+		XDestroyWindow(_dpy, _win);
 #endif
 	}
 
@@ -354,16 +375,6 @@ namespace RN
 		RN_ASSERT0(thread);
 
 		return thread->_context;
-	}
-
-	void Context::SetName(const char *name)
-	{
-		RenderingResource::SetName(name);
-
-#if RN_PLATFORM_IOS
-		if([(EAGLContext *)_oglContext respondsToSelector:@selector(setDebugLabel:)])
-			[(EAGLContext *)_oglContext setDebugLabel:[NSString stringWithUTF8String:name]];
-#endif
 	}
 
 	void Context::Activate()

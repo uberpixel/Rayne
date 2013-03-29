@@ -11,9 +11,10 @@
 
 namespace RN
 {
-	Transform::Transform(TransformType type) :
-		_scale(Vector3(1.0f)),
-		_type(type)
+	RNDeclareMeta(Transform)
+	
+	Transform::Transform() :
+		_scale(Vector3(1.0f))
 	{
 		_parent = 0;
 		DidUpdate();
@@ -21,10 +22,9 @@ namespace RN
 		World::SharedInstance()->AddTransform(this);
 	}
 	
-	Transform::Transform(TransformType type, const Vector3& position) :
+	Transform::Transform(const Vector3& position) :
 		_position(position),
-		_scale(Vector3(1.0f)),
-		_type(type)
+		_scale(Vector3(1.0f))
 	{
 		_parent = 0;
 		DidUpdate();
@@ -32,12 +32,11 @@ namespace RN
 		World::SharedInstance()->AddTransform(this);
 	}
 	
-	Transform::Transform(TransformType type, const Vector3& position, const Quaternion& rotation) :
+	Transform::Transform(const Vector3& position, const Quaternion& rotation) :
 		_position(position),
 		_scale(Vector3(1.0f)),
 		_rotation(rotation),
-		_euler(rotation.EulerAngle()),
-		_type(type)
+		_euler(rotation.EulerAngle())
 	{
 		_parent = 0;
 		DidUpdate();
@@ -47,6 +46,7 @@ namespace RN
 	
 	Transform::~Transform()
 	{
+		DetachAllChilds();
 		World::SharedInstance()->RemoveTransform(this);
 	}
 	
@@ -54,13 +54,12 @@ namespace RN
 	
 	void Transform::AttachChild(Transform *child)
 	{
+		child->Retain();
 		child->DetachFromParent();
 		
 		_childs.AddObject(child);
 		child->_parent = this;
 		child->DidUpdate();
-		
-		World::SharedInstance()->RemoveTransform(child);
 	}
 	
 	void Transform::DetachChild(Transform *child)
@@ -70,8 +69,7 @@ namespace RN
 			_childs.RemoveObject(child);
 			child->_parent = 0;
 			child->DidUpdate();
-			
-			World::SharedInstance()->AddTransform(child);
+			child->Release();
 		}
 	}
 	
@@ -84,8 +82,7 @@ namespace RN
 			Transform *child = _childs.ObjectAtIndex(i);
 			child->_parent = 0;
 			child->DidUpdate();
-			
-			World::SharedInstance()->AddTransform(child);
+			child->Release();
 		}
 		
 		_childs.RemoveAllObjects();

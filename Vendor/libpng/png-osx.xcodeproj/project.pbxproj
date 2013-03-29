@@ -33,7 +33,7 @@
 
 /* Begin PBXFileReference section */
 		E995E39C169496FA00B2E0C3 /* libpng.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpng.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		E995E3A41694973C00B2E0C3 /* png.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = png.h; sourceTree = "<group>"; };
+		E995E3A41694973C00B2E0C3 /* png.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = png.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E995E3A51694973C00B2E0C3 /* pngconf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngconf.h; sourceTree = "<group>"; };
 		E995E3A61694973C00B2E0C3 /* pngdebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pngdebug.h; sourceTree = "<group>"; };
 		E995E3A71694973C00B2E0C3 /* pnginfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pnginfo.h; sourceTree = "<group>"; };
@@ -177,7 +177,7 @@
 				LastUpgradeCheck = 0460;
 				ORGANIZATIONNAME = "Greg Roelofs";
 			};
-			buildConfigurationList = E995E397169496FA00B2E0C3 /* Build configuration list for PBXProject "png" */;
+			buildConfigurationList = E995E397169496FA00B2E0C3 /* Build configuration list for PBXProject "png-osx" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -296,7 +296,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		E995E397169496FA00B2E0C3 /* Build configuration list for PBXProject "png" */ = {
+		E995E397169496FA00B2E0C3 /* Build configuration list for PBXProject "png-osx" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E995E39E169496FA00B2E0C3 /* Debug */,

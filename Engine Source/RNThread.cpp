@@ -20,6 +20,8 @@
 
 namespace RN
 {
+	RNDeclareMeta(Thread)
+	
 	static SpinLock __ThreadLock;
 	static std::unordered_map<std::thread::id, Thread *> __ThreadMap;
 	static Array<Thread> __ThreadBin;
@@ -29,6 +31,7 @@ namespace RN
 		Initialize();
 		
 		_id = std::this_thread::get_id();
+		_name = std::string("Main Thread");
 		
 		__ThreadLock.Lock();
 		__ThreadMap[_id] = this;
@@ -64,7 +67,7 @@ namespace RN
 		RN_ASSERT0(_mutex != 0);
 		
 		Retain();
-		ThreadPool::SharedInstance()->ConsumeConcurrency();
+		ThreadCoordinator::SharedInstance()->ConsumeConcurrency();
 	}
 	
 	Thread *Thread::CurrentThread()
@@ -94,7 +97,7 @@ namespace RN
 		__ThreadLock.Unlock();
 		_isRunning = false;
 		
-		ThreadPool::SharedInstance()->RestoreConcurrency();
+		ThreadCoordinator::SharedInstance()->RestoreConcurrency();
 		Release();
 	}
 	
@@ -122,6 +125,22 @@ namespace RN
 		__ThreadLock.Unlock();
 		
 		return onThread;
+	}
+	
+	void Thread::SetName(const std::string& name)
+	{
+		_mutex->Lock();
+		_name = std::string(name);
+		_mutex->Unlock();
+	}
+	
+	const std::string Thread::Name() const
+	{
+		_mutex->Lock();
+		std::string name = _name;
+		_mutex->Unlock();
+		
+		return name;
 	}
 	
 	

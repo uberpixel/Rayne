@@ -10,6 +10,8 @@
 
 namespace RN
 {
+	RNDeclareMeta(Mutex)
+	
 	Mutex::Mutex()
 	{
 #if RN_PLATFORM_POSIX

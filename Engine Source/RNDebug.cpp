@@ -107,4 +107,21 @@ namespace RN
 		_lastHit = std::chrono::high_resolution_clock::now();
 #endif
 	}
+	
+	Timer::Timer()
+	{
+		_time = std::chrono::high_resolution_clock::now();
+	}
+	
+	Timer::~Timer()
+	{}
+	
+	float Timer::Time()
+	{
+		auto now = std::chrono::high_resolution_clock::now();;
+		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _time).count();
+		_time = now;
+		
+		return milliseconds / 1000.0f;
+	}
 }

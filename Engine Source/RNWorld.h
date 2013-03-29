@@ -11,9 +11,8 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNRenderingResource.h"
-#include "RNRenderingPipeline.h"
-#include "RNPhysicsPipeline.h"
+#include "RNRenderer.h"
+#include "RNTransform.h"
 #include "RNCamera.h"
 
 namespace RN
@@ -34,24 +33,25 @@ namespace RN
 		RNAPI void RemoveTransform(Transform *transform);
 		
 		RNAPI virtual void Update(float delta);
-		
-		RNAPI PhysicsPipeline *Physics() const { return _physics; }
+		RNAPI virtual void TransformsUpdated();
 		
 	private:
-		void BeginUpdate(float delta);
-		void FinishUpdate(float delta);
-		
-		void VisitTransform(Camera *camera, Transform *transform, RenderingGroup *group);
+		void StepWorld(float delta);
+		void VisitTransform(Camera *camera, Transform *transform);
+		bool SupportsTransform(Transform *transform);
+		void ApplyTransformUpdates();
 		
 		Kernel *_kernel;
+		
 		std::unordered_set<Transform *> _transforms;
+		std::deque<Transform *> _addedTransforms;
 		std::vector<Camera *> _cameras;
 		
-		PhysicsPipeline *_physics;
-		RenderingPipeline *_renderer;
+		Renderer *_renderer;
 		
-		PipelineSegment::TaskID _physicsTask;
-		PipelineSegment::TaskID _renderingTask;
+		MetaClass *_cameraClass;
+		MetaClass *_entityClass;
+		MetaClass *_lightClass;
 	};
 }
 

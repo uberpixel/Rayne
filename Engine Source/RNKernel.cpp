@@ -29,7 +29,6 @@ namespace RN
 #if RN_PLATFORM_LINUX
 		XInitThreads();
 #endif
-		
 		_mainThread = new Thread();
 		
 		AutoreleasePool *pool = new AutoreleasePool();
@@ -39,8 +38,7 @@ namespace RN
 		_context->MakeActiveContext();
 
 		ReadOpenGLExtensions();
-		ThreadPool::SharedInstance();
-
+		ThreadCoordinator::SharedInstance();
 		_scaleFactor = 1.0f;
 
 #if RN_PLATFORM_IOS
@@ -52,12 +50,12 @@ namespace RN
 			_scaleFactor = [NSScreen mainScreen].backingScaleFactor;
 		}
 #endif
-
-		_renderer = new RenderingPipeline();
+		
+		_renderer = Renderer::SharedInstance();
 		_input    = Input::SharedInstance();
 
-		_world  = 0;
-		_window = 0;
+		_world = 0;
+		_window = Window::SharedInstance();
 
 		_delta = 0.0f;
 		_time  = 0.0f;
@@ -79,14 +77,20 @@ namespace RN
 	Kernel::~Kernel()
 	{
 		AutoreleasePool *pool = new AutoreleasePool();
-
 		_app->WillExit();
-		_window->Release();
 
 		delete _renderer;
 		delete _app;
 
+#if RN_PLATFORM_LINUX
+		Display *dpy = Context::_dpy;
+#endif
+		
 		_context->Release();
+		
+#if RN_PLATFORM_LINUX
+		XCloseDisplay(dpy);
+#endif
 
 		delete pool;
 		_mainThread->Exit();
@@ -127,14 +131,8 @@ namespace RN
 
 	void Kernel::Initialize()
 	{
-		if(!_window)
-		{
-			_window = new class Window("Rayne", this);
-			_window->SetContext(_context);
-			_window->Show();
-		}
-
 		_app->Start();
+		_window->SetTitle(_app->Title());
 	}
 
 	bool Kernel::Tick()
@@ -171,21 +169,66 @@ namespace RN
 			DispatchMessageA(&message);
 		}
 #endif
+		
+		_renderer->BeginFrame(_delta);
 
 		if(_world)
 		{
-			_context->MakeActiveContext();
-
 			Application::SharedInstance()->GameUpdate(_delta);
-			_world->BeginUpdate(_delta);
+			
+			_world->StepWorld(_delta);
 			_input->DispatchInputEvents();
 
 			Application::SharedInstance()->WorldUpdate(_delta);
-			_world->FinishUpdate(_delta);
-
-			_context->DeactivateContext();
 		}
-
+		
+		_renderer->FinishFrame();
+		
+#if RN_PLATFORM_MAC_OS
+		CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
+#endif
+		
+#if RN_PLATFORM_LINUX
+		while(XPending(_context->_dpy))
+		{
+			XNextEvent(_context->_dpy, &event);
+			
+			switch(event.type)
+			{
+				case ConfigureNotify:
+				case Expose:
+				case ClientMessage:
+					if(event.xclient.data.l[0] == wmDeleteMessage)
+						Exit();
+					break;
+					
+				default:
+					_input->HandleXInputEvents(&event);
+					break;
+			}
+		}
+		
+		
+		glXSwapBuffers(_context->_dpy, _context->_win);
+#endif
+		
+		
+		static float totalTime = 0.0f;
+		static int count = 0;
+		
+		totalTime += _delta;
+		count ++;
+		
+		if(totalTime >= 1.0f)
+		{
+			float average = totalTime / count;
+			
+			printf("Drew %i frames in the last %f seconds. Average frame time: %f\n", count, totalTime, average);
+			
+			totalTime = 0.0f;
+			count = 0;
+		}
+		
 		_lastFrame = now;
 
 		delete pool;
@@ -198,14 +241,6 @@ namespace RN
 			_shouldExit = true;
 	}
 
-
-	void Kernel::SetContext(class Context *context)
-	{
-		_context->Release();
-		_context = context->Retain<class Context>();
-
-		_window->SetContext(_context);
-	}
 
 	void Kernel::SetWorld(World *world)
 	{

@@ -12,47 +12,39 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNTransform.h"
+#include "RNCamera.h"
 #include "RNMaterial.h"
 #include "RNModel.h"
+#include "RNSkeleton.h"
 #include "RNMesh.h"
 
 namespace RN
 {
 	class World;
-	class Camera;
-	class RenderingPipeline;
-	
-	class Entity : public Object, public Transform
+	class Entity : public Transform
 	{
 	friend class World;
-	friend class RenderingPipeline;
 	public:
-		typedef enum
-		{
-			TypeObject,
-			TypeLight
-		} EntityType;
+		RNAPI Entity();
+		RNAPI virtual ~Entity();
 		
-		Entity();
-		Entity(Entity *other);
+		RNAPI virtual void Update(float delta);
+		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
-		virtual ~Entity();
+		RNAPI void SetModel(Model *model);
+		RNAPI void SetSkeleton(class Skeleton *skeleton);
+		RNAPI void SetAction(const std::function<void (Entity *, float)>& action);
 		
-		virtual void Update(float delta);
-		virtual void PostUpdate();
-		virtual bool IsVisibleInCamera(Camera *camera);
-		
-		void SetModel(Model *model);
-		
-		EntityType Type() const {return _type;}
 		Model *Model() const { return _model; }
-		
-	protected:		
-		Entity(EntityType type);
+		Skeleton *Skeleton() const { return _skeleton; }
 
 	private:
 		class Model *_model;
-		EntityType _type;
+		class Skeleton *_skeleton;
+		
+		std::function<void (Entity *, float)> _action;
+		
+		RNDefineMeta(Entity, Transform)
 	};
 }
 

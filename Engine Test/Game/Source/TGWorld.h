@@ -34,11 +34,11 @@ namespace TG
 		RN::Entity *_parentBlock;
 		RN::Entity *_childBlock;
 		
-		RN::RigidBodyEntity *_block1;
-		RN::RigidBodyEntity *_block2;
-		RN::RigidBodyEntity *_block3;
+		RN::Entity *_spruce;
+		RN::Light *_spotLight;
 		
-		RN::RigidBodyEntity *_floor;
+		RN::Skeleton *_girlskeleton;
+		RN::Skeleton *_zombieskeleton;
 	};
 }
 

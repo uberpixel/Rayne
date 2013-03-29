@@ -10,17 +10,17 @@
 #define __RAYNE_PLANE_H__
 namespace RN
 {
-	class RenderingPipeline;
+	class Renderer;
 	class Plane
 	{
-	friend RenderingPipeline;
+	friend Renderer;
 	public:
-		Plane();
+		RNAPI Plane();
 
-		void SetPlane(const Vector3 &position, const Vector3 &normal);
-		void SetPlane(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3);
+		RNAPI void SetPlane(const Vector3 &position, const Vector3 &normal);
+		RNAPI void SetPlane(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3);
 		
-		float Distance(const Vector3 &position);
+		RNAPI float Distance(const Vector3 &position);
 	
 	private:
 		void CalcD();

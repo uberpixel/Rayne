@@ -10,34 +10,47 @@
 
 namespace RN
 {
-	ThreadPool::ThreadPool()
+	ThreadCoordinator::ThreadCoordinator()
 	{
-		_baseConcurrency = (machine_int)std::thread::hardware_concurrency();
+		// Sid:
+		// Even on non multicore systems we have a base concurrency of at least two threads
+		// This means that even on single core CPUs we spawn up to three threads in the base
+		// implementation using a thread pool with threads equal to the amount of concurrency available.
+		// I'm not sure if that's a good idea, and I lack the hardware to test it...
+		_baseConcurrency = MAX((machine_int)std::thread::hardware_concurrency(), 2);
 		_consumedConcurrency = 0;
-		
-		_baseConcurrency = MAX(_baseConcurrency, 4);
 	}
 	
-	void ThreadPool::ConsumeConcurrency()
+	void ThreadCoordinator::ConsumeConcurrency()
 	{
 		_lock.Lock();
 		_consumedConcurrency ++;
 		_lock.Unlock();
 	}
 	
-	void ThreadPool::RestoreConcurrency()
+	void ThreadCoordinator::RestoreConcurrency()
 	{
 		_lock.Lock();
 		_consumedConcurrency --;
 		_lock.Unlock();
 	}
 	
-	machine_int ThreadPool::AvailableConcurrency()
+	machine_int ThreadCoordinator::AvailableConcurrency()
 	{
 		_lock.Lock();
 		machine_int concurrency = _baseConcurrency - _consumedConcurrency;
 		_lock.Unlock();
 		
 		return concurrency;
+	}
+	
+	ThreadPool *ThreadCoordinator::GlobalPool()
+	{
+		static std::once_flag once;
+		std::call_once(once, [this]() {
+			_globalPool = new ThreadPool(ThreadPool::PoolTypeConcurrent);
+		});
+		
+		return _globalPool;
 	}
 }

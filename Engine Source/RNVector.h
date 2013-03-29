@@ -13,35 +13,40 @@
 
 namespace RN
 {
+	class Vector3;
+	class Vector4;
+	
 	class Vector2
 	{
 	public:
-		Vector2();
-		Vector2(const float n);
-		Vector2(const float x, const float y);
+		RNAPI Vector2();
+		RNAPI Vector2(const float n);
+		RNAPI Vector2(const float x, const float y);
+		RNAPI Vector2(const Vector3& other);
+		RNAPI Vector2(const Vector4& other);
 
-		bool operator== (const Vector2 &other) const;
-		bool operator!= (const Vector2 &other) const;
+		RNAPI bool operator== (const Vector2 &other) const;
+		RNAPI bool operator!= (const Vector2 &other) const;
 
-		Vector2 operator- () const;
+		RNAPI Vector2 operator- () const;
 
-		Vector2 operator+ (const Vector2& other) const;
-		Vector2 operator- (const Vector2& other) const;
-		Vector2 operator* (const Vector2& other) const;
-		Vector2 operator/ (const Vector2& other) const;
-		Vector2 operator* (const float n) const;
-		Vector2 operator/ (const float n) const;
+		RNAPI Vector2 operator+ (const Vector2& other) const;
+		RNAPI Vector2 operator- (const Vector2& other) const;
+		RNAPI Vector2 operator* (const Vector2& other) const;
+		RNAPI Vector2 operator/ (const Vector2& other) const;
+		RNAPI Vector2 operator* (const float n) const;
+		RNAPI Vector2 operator/ (const float n) const;
 
-		Vector2& operator+= (const Vector2& other);
-		Vector2& operator-= (const Vector2& other);
-		Vector2& operator*= (const Vector2& other);
-		Vector2& operator/= (const Vector2& other);
+		RNAPI Vector2& operator+= (const Vector2& other);
+		RNAPI Vector2& operator-= (const Vector2& other);
+		RNAPI Vector2& operator*= (const Vector2& other);
+		RNAPI Vector2& operator/= (const Vector2& other);
 
-		float Length() const;
-		float Dot (const Vector2& other) const;
-		bool IsEqual(const Vector2& other, float epsilon) const;
+		RNAPI float Length() const;
+		RNAPI float Dot (const Vector2& other) const;
+		RNAPI bool IsEqual(const Vector2& other, float epsilon) const;
 
-		Vector2& Normalize (const float n=1.0f);
+		RNAPI Vector2& Normalize(const float n=1.0f);
 
 		struct
 		{
@@ -50,6 +55,93 @@ namespace RN
 		};
 	};
 
+	class Vector3
+	{
+	public:
+		RNAPI Vector3();
+		RNAPI Vector3(const float n);
+		RNAPI Vector3(const float x, const float y, const float z);
+		RNAPI Vector3(const Vector2& other, float z=0.0f);
+		RNAPI Vector3(const Vector4& other);
+		
+		RNAPI bool operator== (const Vector3 &other) const;
+		RNAPI bool operator!= (const Vector3 &other) const;
+		
+		RNAPI Vector3 operator- () const;
+		
+		RNAPI Vector3 operator+ (const Vector3& other) const;
+		RNAPI Vector3 operator- (const Vector3& other) const;
+		RNAPI Vector3 operator* (const Vector3& other) const;
+		RNAPI Vector3 operator/ (const Vector3& other) const;
+		RNAPI Vector3 operator* (const float n) const;
+		RNAPI Vector3 operator/ (const float n) const;
+		
+		RNAPI Vector3& operator+= (const Vector3& other);
+		RNAPI Vector3& operator-= (const Vector3& other);
+		RNAPI Vector3& operator*= (const Vector3& other);
+		RNAPI Vector3& operator/= (const Vector3& other);
+		
+		RNAPI float Length() const;
+		RNAPI float Dot(const Vector3& other) const;
+		RNAPI Vector3 Cross(const Vector3& other) const;
+		RNAPI bool IsEqual(const Vector3& other, float epsilon) const;
+		RNAPI float Distance(const Vector3 &other) const;
+		RNAPI Vector3 Lerp(const Vector3 &other, float factor) const;
+		
+		RNAPI Vector3& Normalize(const float n=1.0f);
+		
+		struct
+		{
+			float x;
+			float y;
+			float z;
+		};
+	};
+	
+	class Vector4
+	{
+	public:
+		RNAPI Vector4();
+		RNAPI Vector4(const float n);
+		RNAPI Vector4(const float x, const float y, const float z, const float w);
+		RNAPI Vector4(const Vector2& other, float z=0.0f, float w=0.0f);
+		RNAPI Vector4(const Vector3& other, float w=0.0f);
+		
+		RNAPI bool operator== (const Vector4 &other) const;
+		RNAPI bool operator!= (const Vector4 &other) const;
+		
+		RNAPI Vector4 operator- () const;
+		
+		RNAPI Vector4 operator+ (const Vector4& other) const;
+		RNAPI Vector4 operator- (const Vector4& other) const;
+		RNAPI Vector4 operator* (const Vector4& other) const;
+		RNAPI Vector4 operator/ (const Vector4& other) const;
+		RNAPI Vector4 operator* (const float n) const;
+		RNAPI Vector4 operator/ (const float n) const;
+		
+		RNAPI Vector4& operator+= (const Vector4& other);
+		RNAPI Vector4& operator-= (const Vector4& other);
+		RNAPI Vector4& operator*= (const Vector4& other);
+		RNAPI Vector4& operator/= (const Vector4& other);
+		
+		RNAPI float Length() const;
+		RNAPI float Dot(const Vector4& other) const;
+		RNAPI Vector4 Cross(const Vector4& other) const;
+		RNAPI bool IsEqual(const Vector4& other, float epsilon) const;
+		
+		RNAPI Vector4& Normalize(const float n=1.0f);
+		
+		struct
+		{
+			float x;
+			float y;
+			float z;
+			float w;
+		};
+	};
+	
+	
+	
 	RN_INLINE Vector2::Vector2()
 	{
 		x = y = 0.0f;
@@ -64,6 +156,18 @@ namespace RN
 	{
 		x = _x;
 		y = _y;
+	}
+	
+	RN_INLINE Vector2::Vector2(const Vector3& other)
+	{
+		x = other.x;
+		y = other.y;
+	}
+	
+	RN_INLINE Vector2::Vector2(const Vector4& other)
+	{
+		x = other.x;
+		y = other.y;
 	}
 
 	RN_INLINE bool Vector2::operator== (const Vector2 &other) const
@@ -174,46 +278,8 @@ namespace RN
 		return *this;
 	}
 
-	class Vector3
-	{
-	public:
-		Vector3();
-		Vector3(const float n);
-		Vector3(const float x, const float y, const float z);
-
-		bool operator== (const Vector3 &other) const;
-		bool operator!= (const Vector3 &other) const;
-
-		Vector3 operator- () const;
-
-		Vector3 operator+ (const Vector3& other) const;
-		Vector3 operator- (const Vector3& other) const;
-		Vector3 operator* (const Vector3& other) const;
-		Vector3 operator/ (const Vector3& other) const;
-		Vector3 operator* (const float n) const;
-		Vector3 operator/ (const float n) const;
-
-		Vector3& operator+= (const Vector3& other);
-		Vector3& operator-= (const Vector3& other);
-		Vector3& operator*= (const Vector3& other);
-		Vector3& operator/= (const Vector3& other);
-
-		float Length() const;
-		float Dot(const Vector3& other) const;
-		Vector3 Cross(const Vector3& other) const;
-		bool IsEqual(const Vector3& other, float epsilon) const;
-		float Distance(const Vector3 &other) const;
-		Vector3 Lerp(const Vector3 &other, float factor) const;
-
-		Vector3& Normalize(const float n=1.0f);
-
-		struct
-		{
-			float x;
-			float y;
-			float z;
-		};
-	};
+	
+	
 
 	RN_INLINE Vector3::Vector3()
 	{
@@ -230,6 +296,20 @@ namespace RN
 		x = _x;
 		y = _y;
 		z = _z;
+	}
+	
+	RN_INLINE Vector3::Vector3(const Vector2& other, float _z)
+	{
+		x = other.x;
+		y = other.y;
+		z = _z;
+	}
+	
+	RN_INLINE Vector3::Vector3(const Vector4& other)
+	{
+		x = other.x;
+		y = other.y;
+		z = other.z;
 	}
 
 	RN_INLINE bool Vector3::operator== (const Vector3 &other) const
@@ -324,18 +404,6 @@ namespace RN
 
 	RN_INLINE float Vector3::Dot(const Vector3& other) const
 	{
-		/*float result;
-		
-		__m128 a = _mm_set_ps(x, y, z, 0.0f);
-		__m128 b = _mm_set_ps(other.x, other.y, other.z, 0.0f);
-		
-		__m128 r1 = _mm_mul_ps(a, b);
-		__m128 r2 = _mm_hadd_ps(r1, r1);
-		__m128 r3 = _mm_hadd_ps(r2, r2);
-		_mm_store_ss(&result, r3);
-		
-		return result;*/
-		
 		return (x * other.x + y * other.y + z * other.z);
 	}
 
@@ -382,49 +450,11 @@ namespace RN
 
 	RN_INLINE Vector3 Vector3::Lerp(const Vector3 &other, float factor) const
 	{
-		return *this*factor+other*(1.0f-factor);
+		return *this*(1.0f-factor)+other*factor;
 	}
 
 
-	class Vector4
-	{
-	public:
-		Vector4();
-		Vector4(const float n);
-		Vector4(const float x, const float y, const float z, const float w);
 
-		bool operator== (const Vector4 &other) const;
-		bool operator!= (const Vector4 &other) const;
-
-		Vector4 operator- () const;
-
-		Vector4 operator+ (const Vector4& other) const;
-		Vector4 operator- (const Vector4& other) const;
-		Vector4 operator* (const Vector4& other) const;
-		Vector4 operator/ (const Vector4& other) const;
-		Vector4 operator* (const float n) const;
-		Vector4 operator/ (const float n) const;
-
-		Vector4& operator+= (const Vector4& other);
-		Vector4& operator-= (const Vector4& other);
-		Vector4& operator*= (const Vector4& other);
-		Vector4& operator/= (const Vector4& other);
-
-		float Length() const;
-		float Dot(const Vector4& other) const;
-		Vector4 Cross(const Vector4& other) const;
-		bool IsEqual(const Vector4& other, float epsilon) const;
-
-		Vector4& Normalize(const float n=1.0f);
-
-		struct
-		{
-			float x;
-			float y;
-			float z;
-			float w;
-		};
-	};
 
 	RN_INLINE Vector4::Vector4()
 	{
@@ -441,6 +471,22 @@ namespace RN
 		x = _x;
 		y = _y;
 		z = _z;
+		w = _w;
+	}
+	
+	RN_INLINE Vector4::Vector4(const Vector2& other, float _z, float _w)
+	{
+		x = other.x;
+		y = other.y;
+		z = _z;
+		w = _w;
+	}
+	
+	RN_INLINE Vector4::Vector4(const Vector3& other, float _w)
+	{
+		x = other.x;
+		y = other.y;
+		z = other.z;
 		w = _w;
 	}
 
@@ -589,11 +635,11 @@ namespace RN
 		return *this;
 	}
 
-	#ifndef __GNUG__
+#ifndef __GNUG__
 	static_assert(std::is_trivially_copyable<Vector2>::value, "Vector2 must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Vector3>::value, "Vector3 must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Vector4>::value, "Vector4 must be trivially copyable");
-	#endif
+#endif
 }
 
 #endif /* __RAYNE_VECTOR_H__ */

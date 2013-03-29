@@ -12,15 +12,14 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNApplication.h"
-#include "RNRenderingResource.h"
-#include "RNRenderingPipeline.h"
+#include "RNRenderer.h"
 #include "RNWindow.h"
 #include "RNInput.h"
 
 namespace RN
 {
 	class World;
-	class Kernel : public Object, public NonConstructingSingleton<Kernel>
+	class Kernel : public NonConstructingSingleton<Kernel>
 	{
 	public:
 		RNAPI Kernel();
@@ -28,7 +27,6 @@ namespace RN
 
 		RNAPI bool Tick();
 
-		RNAPI void SetContext(Context *context);
 		RNAPI void SetWorld(World *world);
 		RNAPI void SetTimeScale(float timeScale);
 
@@ -37,8 +35,8 @@ namespace RN
 
 		float ScaleFactor() const { return _scaleFactor; }
 
-		RenderingPipeline *Renderer() const { return _renderer; }
 		Window *Window() const { return _window; }
+		Context *Context() const { return _context; }
 
 		float Delta() const { return _delta; }
 		float Time() const { return _time; }
@@ -57,7 +55,8 @@ namespace RN
 
 		class Window *_window;
 		class Context *_context;
-		RenderingPipeline *_renderer;
+		
+		Renderer *_renderer;
 		Input *_input;
 		World *_world;
 

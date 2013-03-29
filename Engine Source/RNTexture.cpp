@@ -14,6 +14,7 @@
 
 namespace RN
 {
+	RNDeclareMeta(Texture)
 	uint32 Texture::_defaultAnisotropy = 0;
 	
 	Texture::Texture(Format format, WrapMode wrap, Filter filter, bool isLinear)
@@ -82,7 +83,7 @@ namespace RN
 	Texture *Texture::WithFile(const std::string& name, Format format, WrapMode wrap, Filter filter, bool isLinear)
 	{
 		Texture *texture = new Texture(name, format, wrap, filter, isLinear);
-		return texture->Autorelease<Texture>();
+		return texture->Autorelease();
 	}
 
 	

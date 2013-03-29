@@ -12,22 +12,20 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNThread.h"
-#include "RNRenderingResource.h"
 
 namespace RN
 {
 	class Window;
-	class Context : public Object, public RenderingResource
+	class Context : public Object
 	{
 	friend class Window;
+	friend class Kernel;
 	public:
 		RNAPI Context(Context *shared=0);
 		RNAPI virtual ~Context();
 
 		RNAPI void MakeActiveContext();
 		RNAPI void DeactivateContext();
-
-		RNAPI virtual void SetName(const char *name);
 		
 		RNAPI void SetDepthClear(GLfloat depth);
 		RNAPI void SetStencilClear(GLint stencil);
@@ -36,8 +34,8 @@ namespace RN
 		static Context *ActiveContext();
 
 	protected:
-		void Activate();
-		void Deactivate();
+		RNAPI void Activate();
+		RNAPI void Deactivate();
 
 	private:
 		bool _active;
@@ -69,12 +67,14 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_LINUX
-		Display *_dpy;
+		static Display *_dpy;
 
 		XVisualInfo *_vi;
 		GLXContext _context;
 		XID _win;
 #endif
+		
+		RNDefineMeta(Context, Object)
 	};
 }
 

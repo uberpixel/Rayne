@@ -9,7 +9,7 @@
 #version 150
 precision highp float;
 
-uniform mat4 matProjViewModel;
+#include "rn_Matrices.vsh"
 
 in vec3 vertPosition;
 in vec4 vertColor0;

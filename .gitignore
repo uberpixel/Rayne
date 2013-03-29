@@ -38,6 +38,7 @@ Ankh.NoLoad
 bin/
 obj/
 *.depend
+*.layout
 
 # Library stuff
 *.a
@@ -49,3 +50,7 @@ xcuserdata
 
 # Misc
 /Build/
+
+/Xcode/OS X/DerivedData/
+/Engine Test/Game/Game-ios.xcodeproj/project.xcworkspace/
+/Engine Test/Game/DerivedData/

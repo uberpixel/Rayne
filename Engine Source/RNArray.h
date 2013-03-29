@@ -14,12 +14,12 @@
 
 namespace RN
 {
-	template <class T, bool B>
+	template <typename T, bool B>
 	class __ArrayCore : public Object
 	{
 	};
 	
-	template <class T>
+	template <typename T>
 	class __ArrayStore
 	{
 	public:
@@ -112,17 +112,17 @@ namespace RN
 			delete [] _data;
 		}
 		
-		void UpdateSizeIfNeeded()
+		void UpdateSizeIfNeeded(size_t required)
 		{
-			if(_count >= _size)
+			if(required >= _size)
 			{
-				machine_uint tsize = _size * 2;
+				machine_uint tsize = MAX(required, _size * 2);
 				T *tdata = new T[tsize];
 				
 				if(tdata)
 				{
 					for(machine_uint i=0; i<_count; i++)
-						std::swap(tdata[i], _data[i]);
+						tdata[i] = std::move(_data[i]);
 					
 					delete [] _data;
 					
@@ -135,14 +135,14 @@ namespace RN
 			
 			machine_uint tsize = _size / 2;
 			
-			if(tsize >= _count && tsize > 5)
+			if(tsize >= required && tsize > 5)
 			{
 				T *tdata = new T[tsize];
 				
 				if(tdata)
 				{
 					for(machine_uint i=0; i<_count; i++)
-						std::swap(tdata[i], _data[i]);
+						tdata[i] = std::move(_data[i]);
 					
 					delete [] _data;
 					
@@ -234,7 +234,7 @@ namespace RN
 	};
 	
 	
-	template <class T>
+	template <typename T>
 	class __ArrayCore<T, false> : public __ArrayStore<T>, public Object
 	{
 	public:
@@ -250,11 +250,7 @@ namespace RN
 			__ArrayStore<T>(other._size)
 		{
 			this->_count = other._count;
-			
-			for(machine_uint i=0; i<this->_count; i++)
-			{
-				this->_data[i] = other._data[i];
-			}
+			std::copy(other._data, other._data + other._count, this->_data);
 		}
 		
 		T& operator[](int index) const
@@ -280,19 +276,29 @@ namespace RN
 		
 		void AddObject(const T& object)
 		{
-			this->UpdateSizeIfNeeded();
+			this->UpdateSizeIfNeeded(this->_count + 1);
 			this->_data[this->_count ++] = object;
+		}
+		
+		void InsertObjectsAtIndex(const __ArrayCore<T, false>& other, machine_uint index)
+		{
+			this->UpdateSizeIfNeeded(this->_count + other._count);
+			auto begin = this->_data + index;
+			
+			std::move(begin, this->_data + this->_count, begin + other._count);
+			std::copy(other._data, other._data + other._count, begin);
+			
+			this->_count += other._count;
 		}
 		
 		void InsertObjectAtIndex(const T& object, machine_uint index)
 		{
-			this->UpdateSizeIfNeeded();
+			this->UpdateSizeIfNeeded(this->_count + 1);
 			
-			for(machine_uint i=this->_count; i>index; i--)
-			{
-				this->_data[i] = this->_data[i - 1];
-			}
+			auto begin = this->_data + index;
 			
+			std::move(begin, this->_data + this->_count, begin + 1);
+			this->_data[index] = object;
 			this->_count ++;
 		}
 		
@@ -315,13 +321,9 @@ namespace RN
 		
 		void RemoveObjectAtIndex(machine_uint index)
 		{
-			for(; index<this->_count - 1; index++)
-			{
-				this->_data[index] = this->_data[index + 1];
-			}
-			
+			std::move(this->_data + (index + 1), this->_data + this->_count, this->_data + index);
+			this->UpdateSizeIfNeeded(this->_count - 1);
 			this->_count --;
-			this->UpdateSizeIfNeeded();
 		}
 		
 		void RemoveLastObject()
@@ -368,7 +370,7 @@ namespace RN
 	};
 	
 	
-	template <class T>
+	template <typename T>
 	class __ArrayCore<T, true> : public __ArrayStore<T *>, public Object
 	{
 	public:
@@ -387,7 +389,7 @@ namespace RN
 			
 			for(machine_uint i=0; i<this->_count; i++)
 			{
-				this->_data[i] = other._data[i]->template Retain<T>();
+				this->_data[i] = other._data[i]->Retain();
 			}
 		}
 		
@@ -407,7 +409,7 @@ namespace RN
 		{
 			for(machine_uint i=0; i<this->_count; i++)
 			{
-				this->_data[i]->template Release();
+				this->_data[i]->Release();
 			}
 			
 			if(other._size > this->_size)
@@ -423,7 +425,7 @@ namespace RN
 			
 			for(machine_uint i=0; i<this->_count; i++)
 			{
-				this->_data[i]->template Retain<T>();
+				this->_data[i]->Retain();
 			}
 			
 			return *this;
@@ -432,27 +434,41 @@ namespace RN
 		
 		void AddObject(T *object)
 		{
-			this->UpdateSizeIfNeeded();
-			this->_data[this->_count ++] = object->template Retain<T>();
+			this->UpdateSizeIfNeeded(this->_count + 1);
+			this->_data[this->_count ++] = object->Retain();
+		}
+		
+		void InsertObjectsAtIndex(const __ArrayCore<T, true>& other, machine_uint index)
+		{
+			this->UpdateSizeIfNeeded(this->_count + other._count);
+			auto begin = this->_data + index;
+			
+			std::move(begin, this->_data + this->_count, begin + other._count);
+			std::copy(other._data, other._data + other._count, begin);
+			
+			this->_count += other._count;
+			
+			for(machine_uint i=0; i<other._count; i++)
+			{
+				this->_data[index + i]->Retain();
+			}
 		}
 		
 		void InsertObjectAtIndex(T *object, machine_uint index)
 		{
-			this->UpdateSizeIfNeeded();
+			this->UpdateSizeIfNeeded(this->_count + 1);
 			
-			for(machine_uint i=this->_count; i>index; i--)
-			{
-				this->_data[i] = this->_data[i - 1];
-			}
+			auto begin = this->_data + index;
 			
-			this->_data[index] = object->template Retain<T>();
+			std::move(begin, this->_data + this->_count, begin + 1);
+			this->_data[index] = object->Retain();
 			this->_count ++;
 		}
 		
 		void ReplaceObjectAtIndex(machine_uint index, T *object)
 		{
 			this->_data[index]->Release();
-			this->_data[index] = object->template Retain<T>();
+			this->_data[index] = object->Retain();
 		}
 		
 		void RemoveObject(T *object)
@@ -470,12 +486,10 @@ namespace RN
 		void RemoveObjectAtIndex(machine_uint index)
 		{
 			this->_data[index]->Release();
+			std::move(this->_data + (index + 1), this->_data + this->_count, this->_data + index);
 			
-			for(; index<this->_count - 1; index++)
-				this->_data[index] = this->_data[index + 1];
-			
+			this->UpdateSizeIfNeeded(this->_count - 1);
 			this->_count --;
-			this->UpdateSizeIfNeeded();
 		}
 		
 		void RemoveLastObject()

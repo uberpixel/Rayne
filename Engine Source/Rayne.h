@@ -13,6 +13,7 @@
 #include "RNObject.h"
 #include "RNAutoreleasePool.h"
 #include "RNModule.h"
+#include "RNCache.h"
 
 #include "RNKernel.h"
 #include "RNApplication.h"
@@ -20,11 +21,11 @@
 #include "RNMessage.h"
 #include "RNFile.h"
 
+#include "RNSkeleton.h"
 #include "RNModel.h"
 #include "RNTextureLoader.h"
 
 #include "RNArray.h"
-#include "RNList.h"
 
 #include "RNColor.h"
 #include "RNMatrixQuaternion.h"
@@ -33,6 +34,8 @@
 #include "RNRect.h"
 #include "RNTransform.h"
 #include "RNVector.h"
+
+#include "RNRenderer.h"
 
 #include "RNCamera.h"
 #include "RNContext.h"
@@ -43,14 +46,13 @@
 
 #include "RNWorld.h"
 #include "RNEntity.h"
-#include "RNRigidBodyEntity.h"
-#include "RNLightEntity.h"
+#include "RNLight.h"
 
-#include "RNMutex.h"
 #include "RNThread.h"
 #include "RNThreadPool.h"
+#include "RNFunction.h"
 #include "RNSpinLock.h"
-#include "RNSynchronization.h"
+#include "RNMutex.h"
 #include "RNWindow.h"
 
 #endif /* __RAYNE_H__ */

@@ -17,6 +17,7 @@
 
 namespace RN
 {
+	class Skeleton;
 	class Model : public Object
 	{
 	public:
@@ -37,7 +38,6 @@ namespace RN
 		uint32 Materials() const;
 		
 		Mesh *MeshAtIndex(uint32 index) const;
-		
 		Material *MaterialForMesh(const Mesh *mesh) const;
 		
 	private:
@@ -52,6 +52,8 @@ namespace RN
 		
 		Array<Material> _materials;
 		std::vector<MeshGroup> _groups;
+		
+		RNDefineMeta(Model, Object)
 	};
 }
 

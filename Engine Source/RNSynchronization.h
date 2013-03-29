@@ -21,8 +21,8 @@ namespace RN
 		{}
 		
 		Past(const T& t) :
-			_current(t),
-			_past(t)
+		_current(t),
+		_past(t)
 		{}
 		
 		bool operator == (const T& other) const

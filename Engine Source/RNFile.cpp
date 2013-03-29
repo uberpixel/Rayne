@@ -15,6 +15,8 @@ namespace RN
 {
 	static std::vector<std::string> FileSearchPaths;
 	static std::vector<std::string> FileModifiers;
+	
+	RNDeclareMeta(File)
 
 	File::File(const std::string& path, FileMode mode)
 	{
@@ -409,5 +411,28 @@ namespace RN
 #endif
 
 		return "";
+	}
+	
+	std::string File::SaveDirectory()
+	{
+#if RN_PLATFORM_MAC_OS
+		NSString *path = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+		path = [path stringByAppendingPathComponent:@"Rayne"];
+		
+		return std::string([path UTF8String]);
+#endif
+		
+#if RN_PLATFORM_LINUX
+		const char *basepath = "~/.Rayne";
+		
+		wordexp_t result;
+		wordexp(basepath, &result, 0);
+		
+		std::string path = std::string(exp_result.we_wordv[0]);
+		
+		wordfree(result);
+		
+		return path;
+#endif
 	}
 }

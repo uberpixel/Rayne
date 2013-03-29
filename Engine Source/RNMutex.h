@@ -33,6 +33,8 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		HANDLE _mutex;
 #endif
+		
+		RNDefineMeta(Mutex, Object)
 	};
 }
 

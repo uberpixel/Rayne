@@ -11,7 +11,6 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNRenderingResource.h"
 #include "RNArray.h"
 #include "RNVector.h"
 #include "RNColor.h"
@@ -27,9 +26,11 @@ namespace RN
 		kMeshFeatureColor1 = 4,
 		kMeshFeatureUVSet0 = 5,
 		kMeshFeatureUVSet1 = 6,
-		kMeshFeatureIndices = 7,
+		kMeshFeatureBoneWeights = 7,
+		kMeshFeatureBoneIndices = 8,
+		kMeshFeatureIndices = 9,
 		
-		__kMaxMeshFeatures = 8
+		__kMaxMeshFeatures = 10
 	} MeshFeature;
 	
 	class MeshLODStage;
@@ -65,7 +66,7 @@ namespace RN
 			if(!_descriptor[(int32)feature]._pointer)
 				_descriptor[(int32)feature]._pointer = (uint8 *)malloc(_descriptor[(int32)feature]._size);
 				
-			return (T *)(_descriptor[(int32)feature]._pointer);
+			return reinterpret_cast<T *>(_descriptor[(int32)feature]._pointer);
 		}
 		
 		MeshDescriptor *Descriptor(MeshFeature feature)
@@ -82,12 +83,21 @@ namespace RN
 		RNAPI size_t OffsetForFeature(MeshFeature feature);
 		size_t Stride() const { return _stride; };
 		
+		RNAPI bool InstancingData(size_t size, GLuint *outVBO, void **outData);
+		
 	private:
 		struct
 		{
 			GLuint _vbo;
 			GLuint _ibo;
 		};
+		
+		struct
+		{
+			GLuint _vbo;
+			size_t _size;
+			void *_data;
+		} _instancing;
 		
 		size_t _stride;
 		
@@ -99,7 +109,7 @@ namespace RN
 		MeshDescriptor _descriptor[__kMaxMeshFeatures];
 	};
 	
-	class Mesh : public Object, public RenderingResource
+	class Mesh : public Object
 	{
 	public:
 		RNAPI Mesh();
@@ -113,12 +123,14 @@ namespace RN
 		
 		RNAPI void UpdateMesh();
 		
-		static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0, 1.0, 1.0), const Vector3& rotation = Vector3(0.0f, 0.0f, 0.0f));
-		static Mesh *CubeMesh(const Vector3& size);
-		static Mesh *CubeMesh(const Vector3& size, const Color& color);
+		RNAPI static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0, 1.0, 1.0), const Vector3& rotation = Vector3(0.0f, 0.0f, 0.0f));
+		RNAPI static Mesh *CubeMesh(const Vector3& size);
+		RNAPI static Mesh *CubeMesh(const Vector3& size, const Color& color);
 		
 	private:
 		Array<MeshLODStage *> _LODStages;
+		
+		RNDefineMeta(Mesh, Object)
 	};
 }
 

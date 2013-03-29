@@ -19,15 +19,19 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include <type_traits>
 #include <algorithm>
 #include <string>
 #include <vector>
 #include <map>
-#include <type_traits>
+#include <list>
+#include <deque>
 #include <tuple>
 #include <chrono>
 #include <thread>
+#include <future>
 #include <mutex>
+#include <atomic>
 #include <condition_variable>
 #include <unordered_map>
 #include <unordered_set>
@@ -46,6 +50,7 @@
 	#include <dlfcn.h>
 	#include <stdarg.h>
 	#include <unistd.h>
+	#include <wordexp.h>
 #endif
 
 #if RN_PLATFORM_MAC_OS
@@ -56,18 +61,18 @@
 
 	#include <IOKit/IOKitLib.h>
 	#include <IOKit/IOCFPlugIn.h>
+
 	#include <IOKit/hid/IOHIDBase.h>
 	#include <IOKit/hid/IOHIDKeys.h>
 	#include <IOKit/hid/IOHIDUsageTables.h>
 	#include <IOKit/hid/IOHIDLib.h>
 
-	#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_7
-		#include <OpenGL/gl3.h>
-		#include <OpenGL/gl3ext.h>
-	#else
-		#include <OpenGL/gl.h>
-		#include <OpenGL/glext.h>
-	#endif
+	#include <IOKit/graphics/IOGraphicsLib.h>
+
+	#include <CoreGraphics/CoreGraphics.h>
+
+	#include <OpenGL/gl3.h>
+	#include <OpenGL/gl3ext.h>
 #endif
 
 #if RN_PLATFORM_IOS
@@ -90,13 +95,9 @@
 
 #if RN_PLATFORM_LINUX
 
-	#define GL_GLEXT_PROTOTYPES 1
-	#define GL3_PROTOTYPES 1
-
 	#include <GL/glx.h>
-	#include <GL/gl.h>
-	//#include <GL/glu.h>
-	//#include <GL/glut.h>
+	#include "glext.h"
+	
 #endif
 
 #include "RNOpenGL.h"
@@ -145,7 +146,9 @@ namespace RN
 	#define RN_ASSERT0(e) (void)0
 #endif
 
-	template <class T>
+	RNAPI RN_NORETURN void __HandleExcption(const ErrorException& e);
+	
+	template <typename T>
 	class Singleton
 	{
 	public:
@@ -171,10 +174,10 @@ namespace RN
 		static T *_instance;
 	};
 
-	template <class T>
+	template <typename T>
 	T * Singleton<T>::_instance = 0;
 
-	template <class T>
+	template <typename T>
 	class NonConstructingSingleton
 	{
 	public:
@@ -199,7 +202,7 @@ namespace RN
 		static T *_instance;
 	};
 
-	template <class T>
+	template <typename T>
 	T * NonConstructingSingleton<T>::_instance = 0;
 }
 

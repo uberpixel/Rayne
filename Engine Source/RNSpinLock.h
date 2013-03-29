@@ -11,6 +11,15 @@
 
 #include "RNBase.h"
 
+typedef uint8 RNPrimitiveSpinLock;
+
+extern "C"
+{
+	void RNPrimitiveSpinLockLock(RNPrimitiveSpinLock *lock);
+	void RNPrimitiveSpinLockUnlock(RNPrimitiveSpinLock *lock);
+	bool RNPrimitiveSpinLockTryLock(RNPrimitiveSpinLock *lock);
+}
+
 namespace RN
 {
 	class SpinLock
@@ -18,51 +27,26 @@ namespace RN
 	public:
 		SpinLock()
 		{
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
-			_lock = OS_SPINLOCK_INIT;
-#endif
+			_lock = 0;
 		}
 		
 		void Lock()
 		{
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
-			OSSpinLockLock(&_lock);
-#endif
-			
-#if RN_PLATFORM_WINDOWS
-			_lock.lock();
-#endif
+			RNPrimitiveSpinLockLock(&_lock);
 		}
 		
 		void Unlock()
 		{
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
-			OSSpinLockUnlock(&_lock);
-#endif
-			
-#if RN_PLATFORM_WINDOWS
-			_lock.unlock();
-#endif
+			RNPrimitiveSpinLockUnlock(&_lock);
 		}
 		
 		bool TryLock()
 		{
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
-			return OSSpinLockTry(&_lock);
-#endif
-			
-#if RN_PLATFORM_WINDOWS
-			return _lock.try_lock();
-#endif
+			return RNPrimitiveSpinLockTryLock(&_lock);
 		}
 		
 	private:
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
-		OSSpinLock _lock;
-#endif
-#if RN_PLATFORM_WINDOWS
-		std::mutex _lock;
-#endif
+		RNPrimitiveSpinLock _lock;
 	};
 }
 

@@ -9,7 +9,9 @@
 #ifndef __RAYNE_ERROR_H__
 #define __RAYNE_ERROR_H__
 
+// We can't include the RNBase.h, so we have to include the common headers ourself
 #include <string>
+#include <vector>
 
 #include "RNPlatform.h"
 #include "RNDefines.h"
@@ -36,7 +38,6 @@ namespace RN
 		kErrorOkay = 0
 	};
 	
-	
 	enum
 	{
 		kErrorGroupEngine   = 0x0,
@@ -47,23 +48,36 @@ namespace RN
 		kErrorGroupNetwork  = 0x5
 	};
 	
-	
+	class Thread;
 	class ErrorException
 	{
 	public:
-		ErrorException(ErrorCode error, const std::string& description="") { _error = error; _description = description; }
-		ErrorException(uint32 group, uint32 subgroup, uint32 code, const std::string& description="") { _error = RNErrorGroup(group) | RNErrorSubgroup(subgroup) | code; _description = description; }
+		RNAPI ErrorException(ErrorCode error, const std::string& description="", const std::string& detail="");
+		RNAPI ErrorException(uint32 group, uint32 subgroup, uint32 code, const std::string& description="", const std::string& detail="");
 		
 		uint32 Group() const { return RNErrorGetGroup(_error); }
 		uint32 Subgroup() const { return RNErrorGetSubroup(_error); }
 		uint32 Code() const { return RNErrorGetCode(_error); }
 		
+		
 		ErrorCode Error() const { return _error; }
+		Thread *Thread() const { return _thread; }
+		
 		const std::string& Description() const { return _description; }
+		const std::string& AdditionalDetails() const { return _additionalDetail; }
+		
+		const std::vector<std::pair<uintptr_t, std::string>>& CallStack() const { return _callStack; }
 		
 	private:
+		void GatherInfo();
+		
 		ErrorCode _error;
+		RN::Thread *_thread;
+		
 		std::string _description;
+		std::string _additionalDetail;
+		
+		std::vector<std::pair<uintptr_t, std::string>> _callStack;
 	};
 }
 

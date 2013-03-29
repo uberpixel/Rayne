@@ -10,128 +10,99 @@
 #define __RAYNE_TRANSFORM_H__
 
 #include "RNBase.h"
+#include "RNObject.h"
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
 #include "RNVector.h"
 #include "RNArray.h"
-#include "RNSynchronization.h"
 
 namespace RN
 {
-	class RenderingPipeline;
-	class Transform
+	class Renderer;
+	class Camera;
+	class Transform : public Object
 	{
-	friend class RenderingPipeline;
+	friend class Renderer;
 	public:
-		typedef enum
-		{
-			TransformTypeEntity,
-			TransformTypeCamera
-		} TransformType;
+		RNAPI Transform();
+		RNAPI Transform(const Vector3& position);
+		RNAPI Transform(const Vector3& position, const Quaternion& rotation);
+		RNAPI virtual ~Transform();
 		
-		virtual ~Transform();
+		RNAPI void Translate(const Vector3& trans, bool local=false);
+		RNAPI void Scale(const Vector3& scal);
+		RNAPI void Rotate(const Vector3& rot);
 		
-		TransformType Type() const { return _type; }
+		RNAPI virtual void SetPosition(const Vector3& pos);
+		RNAPI virtual void SetScale(const Vector3& scal);
+		RNAPI virtual void SetRotation(const Quaternion& rot);
 		
-		void Translate(const Vector3& trans);
-		void Scale(const Vector3& scal);
-		void Rotate(const Vector3& rot);
+		virtual bool IsVisibleInCamera(Camera *camera) { return false; }
 		
-		virtual void SetPosition(const Vector3& pos);
-		virtual void SetScale(const Vector3& scal);
-		virtual void SetRotation(const Quaternion& rot);
+		const Vector3& Position() const { return _position; }
+		const Vector3& Scale() const { return _scale; }
+		const Vector3& EulerAngle() const { return _euler; }
+		const Quaternion& Rotation() const { return _rotation; }
 		
-		const Past<Vector3>& Position() const { return _position; }
-		const Past<Vector3>& Scale() const { return _scale; }
-		const Past<Vector3>& EulerAngle() const { return _euler; }
-		const Past<Quaternion>& Rotation() const { return _rotation; }
+		RNAPI const Vector3& WorldPosition();
+		RNAPI const Vector3& WorldScale();
+		RNAPI const Vector3& WorldEulerAngle();
+		RNAPI const Quaternion& WorldRotation();
 		
-		const Past<Vector3>& WorldPosition() const { return _worldPosition; }
-		const Past<Vector3>& WorldScale() const { return _worldScale; }
-		const Past<Vector3>& WorldEulerAngle() const { return _worldEuler; }
-		const Past<Quaternion>& WorldRotation() const { return _worldRotation; }
-		
-		void AttachChild(Transform *child);
-		void DetachChild(Transform *child);
-		void DetachAllChilds();
-		void DetachFromParent();
+		RNAPI void AttachChild(Transform *child);
+		RNAPI void DetachChild(Transform *child);
+		RNAPI void DetachAllChilds();
+		RNAPI void DetachFromParent();
 		
 		machine_uint Childs() const { return _childs.Count(); }
-		Transform *ChildAtIndex(machine_uint index) const { return _childs.ObjectAtIndex(index); }
+		Transform *Parent() const { return _parent; }
 		
-		const Past<Matrix>& WorldTransform() { return _worldTransform; }
-		const Past<Matrix>& LocalTransform() { return _localTransform; }
+		template<typename T=Transform>
+		T *ChildAtIndex(machine_uint index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
+		
+		RNAPI const Matrix& WorldTransform();
+		RNAPI const Matrix& LocalTransform();
 		
 		virtual void Update(float delta)
-		{
-			machine_uint count = _childs.Count();
-			for(machine_uint i=0; i<count; i++)
-			{
-				Transform *child = _childs.ObjectAtIndex(i);
-				child->Update(delta);
-			}
-		}
+		{}
 		
-		virtual void PostUpdate()
-		{
-			_position.SynchronizePast();
-			_scale.SynchronizePast();
-			_rotation.SynchronizePast();
-			_euler.SynchronizePast();
-			
-			_worldPosition.SynchronizePast();
-			_worldScale.SynchronizePast();
-			_worldRotation.SynchronizePast();
-			_worldEuler.SynchronizePast();
-			
-			_worldTransform.SynchronizePast();
-			_localTransform.SynchronizePast();
-			
-			_pastWorldTransform = _worldTransform.AccessPast();
-			
-			machine_uint count = _childs.Count();
-			for(machine_uint i=0; i<count; i++)
-			{
-				Transform *child = _childs.ObjectAtIndex(i);
-				child->PostUpdate();
-			}
-		}
-		
-	protected:
-		Transform(TransformType type);
-		Transform(TransformType type, const Vector3& position);
-		Transform(TransformType type, const Vector3& position, const Quaternion& rotation);
-		
+	protected:		
 		void DidUpdate();
+		void UpdateInternalData();
 		
-		Past<Vector3> _position;
-		Past<Vector3> _scale;
-		Past<Quaternion> _rotation;
-		Past<Vector3> _euler;	//there has to be a way to fix this in the quaternion class somehow...
+		Vector3 _position;
+		Vector3 _scale;
+		Quaternion _rotation;
+		Vector3 _euler;	//there has to be a way to fix this in the quaternion class somehow...
 		
 	private:
-		const Matrix *PastWorldTransform() const { return &_pastWorldTransform; }
-		
 		Transform *_parent;
 		Array<Transform *> _childs;
+		bool _updated;
 		
-		TransformType _type;
+		Vector3 _worldPosition;
+		Quaternion _worldRotation;
+		Vector3 _worldScale;
+		Vector3 _worldEuler;
 		
-		Past<Vector3> _worldPosition;
-		Past<Quaternion> _worldRotation;
-		Past<Vector3> _worldScale;
-		Past<Vector3> _worldEuler;
+		Matrix _worldTransform;
+		Matrix _localTransform;
 		
-		Past<Matrix> _worldTransform;
-		Past<Matrix> _localTransform;
-		
-		Matrix _pastWorldTransform;
+		RNDefineMeta(Transform, Object)
 	};
 	
 	
 	
-	RN_INLINE void Transform::Translate(const Vector3& trans)
+	RN_INLINE void Transform::Translate(const Vector3& trans, bool local)
 	{
+		if(local)
+		{
+			_position += _rotation.RotateVector(trans);
+			
+			DidUpdate();
+			return;
+		}
+		
 		_position += trans;
 		DidUpdate();
 	}
@@ -172,36 +143,81 @@ namespace RN
 	}
 	
 	
+	RN_INLINE const Vector3& Transform::WorldPosition()
+	{
+		UpdateInternalData();
+		return _worldPosition;
+	}
+	RN_INLINE const Vector3& Transform::WorldScale()
+	{
+		UpdateInternalData();
+		return _worldScale;
+	}
+	RN_INLINE const Vector3& Transform::WorldEulerAngle()
+	{
+		UpdateInternalData();
+		return _worldEuler;
+	}
+	RN_INLINE const Quaternion& Transform::WorldRotation()
+	{
+		UpdateInternalData();
+		return _worldRotation;
+	}
+	
+	
+	RN_INLINE const Matrix& Transform::LocalTransform()
+	{
+		UpdateInternalData();
+		return _localTransform;
+	}
+	
+	RN_INLINE const Matrix& Transform::WorldTransform()
+	{
+		UpdateInternalData();
+		return _worldTransform;
+	}
+	
+	
 	RN_INLINE void Transform::DidUpdate()
 	{
-		_localTransform->MakeTranslate(_position);
-		_localTransform->Rotate(_rotation);
-		_localTransform->Scale(_scale);
-		
-		if(_parent)
+		_updated = true;
+	}
+	
+	RN_INLINE void Transform::UpdateInternalData()
+	{
+		if(_updated)
 		{
-			_worldPosition = _parent->_worldPosition + _position;
-			_worldRotation = _parent->_worldRotation + _rotation;
-			_worldScale = _parent->_worldScale + _scale;
-			_worldEuler = _parent->_worldEuler + _euler;
+			_localTransform.MakeTranslate(_position);
+			_localTransform.Rotate(_rotation);
+			_localTransform.Scale(_scale);
 			
-			_worldTransform = _parent->_localTransform * _localTransform;
-		}
-		else
-		{
-			_worldPosition = _position;
-			_worldRotation = _rotation;
-			_worldScale = _scale;
-			_worldEuler = _euler;
+			if(_parent)
+			{
+				_worldPosition = _parent->_worldPosition + _parent->_worldRotation.RotateVector(_position);
+				_worldRotation = _parent->_worldRotation * _rotation;
+				_worldScale = _parent->_worldScale + _scale;
+				_worldEuler = _parent->_worldEuler + _euler;
+				
+				_worldTransform = _parent->_localTransform * _localTransform;
+			}
+			else
+			{
+				_worldPosition = _position;
+				_worldRotation = _rotation;
+				_worldScale = _scale;
+				_worldEuler = _euler;
+				
+				_worldTransform = _localTransform;
+			}
 			
-			_worldTransform = _localTransform;
-		}
-		
-		machine_uint count = _childs.Count();
-		for(machine_uint i=0; i<count; i++)
-		{
-			Transform *child = _childs.ObjectAtIndex(i);
-			child->DidUpdate();
+			machine_uint count = _childs.Count();
+			for(machine_uint i=0; i<count; i++)
+			{
+				Transform *child = _childs.ObjectAtIndex(i);
+				child->DidUpdate();
+			}
+			
+			_updated = false;
 		}
 	}
 }

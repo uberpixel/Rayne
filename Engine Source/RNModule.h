@@ -39,11 +39,11 @@ namespace RN
 			ModuleTypeTexture = ModuleTypeFile | (1 << 1)
 		};
 		
-		Module(const std::string& name);
-		~Module();
+		RNAPI Module(const std::string& name);
+		RNAPI ~Module();
 		
-		void Load();
-		void Unload();
+		RNAPI void Load();
+		RNAPI void Unload();
 		bool IsLoaded() const { return (_handle != 0); }
 		
 		uint32 Type() const { return _exports.type; }
@@ -51,7 +51,7 @@ namespace RN
 		const std::string& Name() const { return _name; }
 		const std::string& Path() const { return _path; }
 		
-		void *FunctionAddress(const std::string& name);
+		RNAPI void *FunctionAddress(const std::string& name);
 		
 	private:
 		void *_handle;

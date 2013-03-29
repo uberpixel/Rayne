@@ -16,17 +16,19 @@
 
 #if RN_PLATFORM_MAC_OS
 
+// ---------------------
+// MARK: -
+// MARK: NSWindow
+// ---------------------
+
 @interface RNNativeWindow : NSWindow <NSWindowDelegate>
 {
 	NSOpenGLView *_openGLView;
-	BOOL _needsResize;
 }
 
-@property (nonatomic, assign) BOOL needsResize;
 @end
 
 @implementation RNNativeWindow
-@synthesize needsResize = _needsResize;
 
 - (BOOL)windowShouldClose:(id)sender
 {
@@ -76,18 +78,17 @@
 	[_openGLView setPixelFormat:pixelFormat];
 }
 
-- (id)initWithFrame:(NSRect)frame
+- (id)initWithFrame:(NSRect)frame andStyleMask:(NSUInteger)stylemask
 {
-	if((self = [super initWithContentRect:frame styleMask:NSTitledWindowMask | NSClosableWindowMask backing:NSBackingStoreBuffered defer:NO]))
+	if((self = [super initWithContentRect:frame styleMask:stylemask backing:NSBackingStoreBuffered defer:NO]))
 	{
 		NSRect rect = [self contentRectForFrameRect:frame];
 		_openGLView = [[NSOpenGLView alloc] initWithFrame:rect];
-		[_openGLView  setWantsBestResolutionOpenGLSurface:YES];
+		
+		[_openGLView setWantsBestResolutionOpenGLSurface:YES];
 
 		[self setContentView:_openGLView];
 		[self setDelegate:self];
-
-		_needsResize = YES;
 	}
 
 	return self;
@@ -104,6 +105,11 @@
 #endif
 
 #if RN_PLATFORM_IOS
+
+// ---------------------
+// MARK: -
+// MARK: UIWindow / UIView
+// ---------------------
 
 @interface RNOpenGLView : UIView
 {
@@ -318,251 +324,342 @@
 
 #endif
 
-
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
-
 namespace RN
 {
-	Window::Window(const std::string& title, Kernel *kernel)
-	{
+	// ---------------------
+	// MARK: -
+	// MARK: DisplayConfiguration
+	// ---------------------
+	
 #if RN_PLATFORM_MAC_OS
-		_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, 1024, 768)];
-		[(RNNativeWindow *)_nativeWindow center];
+	WindowConfiguration::WindowConfiguration(CGDisplayModeRef mode)
+	{
+		_mode = CGDisplayModeRetain(mode);
+		
+		_width  = (uint32)CGDisplayModeGetPixelWidth(_mode);
+		_height = (uint32)CGDisplayModeGetPixelHeight(_mode);
+	}
+	
+	WindowConfiguration::WindowConfiguration(uint32 width, uint32 height)
+	{
+		_mode = 0;
+		
+		_width  = width;
+		_height = height;
+	}
+	
+	WindowConfiguration::~WindowConfiguration()
+	{
+		if(_mode)
+			CGDisplayModeRelease(_mode);
+	}
 #endif
-
-#if RN_PLATFORM_IOS
-		_nativeWindow = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]];
-		[(UIWindow *)_nativeWindow setBackgroundColor:[UIColor whiteColor]];
-
-		_rootViewController = 0;
+	
+#if RN_PLATFORM_LINUX
+	WindowConfiguration::WindowConfiguration(int32 index, uint32 width, uint32 height)
+	{
+		_index = index;
+		
+		_width  = width;
+		_height = height;
+	}
+	
+	WindowConfiguration::WindowConfiguration(uint32 width, uint32 height)
+	{
+		_index = -1;
+		
+		_width  = width;
+		_height = height;
+	}
 #endif
-
-		_context = 0;
-		_kernel = kernel;
-		_renderer = _kernel->Renderer();
-
-		SetTitle(title);
-
-		_thread = new Thread(std::bind(&Window::RenderLoop, this));
-		_renderer->SetThread(_thread);
+	
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Window
+	// ---------------------
+	
+	Window::Window()
+	{
+		_kernel = Kernel::SharedInstance();
+		_context = _kernel->Context();
+		
+		_mask = 0;
+		_activeConfiguration = 0;
+		_cursorVisible = true;
+		
+#if RN_PLATFORM_MAC_OS
+		CGDisplayCount count;
+		
+		CGGetActiveDisplayList(0, 0, &count);
+		CGDirectDisplayID *table = new CGDirectDisplayID[count];
+		
+		CGGetActiveDisplayList(count, table, &count);
+		for(machine_uint i=0; i<count; i++)
+		{
+			CGDirectDisplayID displayID = table[i];
+			
+			if(CGDisplayIsMain(displayID))
+			{
+				CFArrayRef array = CGDisplayCopyAllDisplayModes(displayID, 0);
+				CFIndex count = CFArrayGetCount(array);
+				
+				for(machine_uint i=0; i<count; i++)
+				{
+					CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(array, i);
+					if(CFGetTypeID(mode) == CGDisplayModeGetTypeID())
+					{
+						CFStringRef encoding = CGDisplayModeCopyPixelEncoding(mode);
+						
+						if(CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), 0) == kCFCompareEqualTo)
+						{
+							WindowConfiguration *configuration = new WindowConfiguration(mode);
+							
+							// So not going to support post stamps
+							if(configuration->Width() < 1024 || configuration->Height() < 768)
+							{
+								delete configuration;
+								CFRelease(encoding);
+								
+								continue;
+							}
+							
+							_configurations.AddObject(configuration);
+						}
+						
+						CFRelease(encoding);
+					}
+				}
+				
+				break;
+			}
+		}
+		
+		delete[] table;
+		
+		_nativeWindow = 0;
+#endif
+		
+#if RN_PLATFORM_LINUX
+		_dpy = _context->_dpy;
+		_win = _context->_win;
+		
+		_screenConfig = XRRGetScreenInfo(_dpy, _win);
+		
+		int32 mainScreen = DefaultScreen(_dpy);
+		int count;
+		
+		const XRRScreenSize *sizeArray = XRRSizes(_dpy, mainScreen, &count);
+		for(uint32 i=0; i<count; i++)
+		{
+			uint32 width = sizeArray[i].width;
+			uint32 height = sizeArray[i].height;
+			
+			if(width >= 1024 && height >= 768)
+			{
+				WindowConfiguration *configuration = new WindowConfiguration(mode);
+				_configurations.AddObject(i, width, height);
+			}
+		}
+		
+		char bitmap[8] = {0};
+		XColor color = {0};
+		
+		Pixmap sourcePixmap = XCreateBitmapFromData(_dpy, _win, bitmap, 8, 8);
+		Pixmap maskPixmap = XCreateBitmapFromData(_dpy, _win, bitmap, 8, 8);
+		
+		_emptyCursor = XCreatePixmapCursor(_dpy, sourcePixmap, maskPixmap, &color, &color, 0, 0);
+		
+		XFreePixmap(_dpy, maskPixmap);
+		XFreePixmap(_dpy, sourcePixmap);
+#endif
+		
+		_configurations.SortUsingFunction([](WindowConfiguration *configurationA, WindowConfiguration *configurationB) {
+			if(configurationA->Width() > configurationB->Width())
+				return kRNCompareGreaterThan;
+			
+			if(configurationB->Width() > configurationA->Width())
+				return kRNCompareLessThan;
+			
+			if(configurationA->Height() > configurationB->Height())
+				return kRNCompareGreaterThan;
+			
+			if(configurationB->Height() > configurationA->Height())
+				return kRNCompareLessThan;
+			
+			return kRNCompareEqualTo;
+		});
+		
+		SetTitle("");
+		SetConfiguration(_configurations.ObjectAtIndex(0), _mask);
 	}
 
 	Window::~Window()
 	{
-		_context->Release();
-		_thread->Release();
-
 #if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow release];
 #endif
 
-#if RN_PLATFORM_IOS
-		[(UIWindow *)_nativeWindow release];
-		[(UIViewController *)_rootViewController release];
+#if RN_PLATFORM_LINUX
+		XRRFreeScreenConfigInfo(_screenConfig);
 #endif
-	}
-
-
-	void Window::Show()
-	{
-#if RN_PLATFORM_MAC_OS
-		[(RNNativeWindow *)_nativeWindow makeKeyAndOrderFront:nil];
-#endif
-
-#if RN_PLATFORM_IOS
-		[(UIWindow *)_nativeWindow makeKeyAndVisible];
-#endif
-	}
-
-	void Window::Hide()
-	{
-#if RN_PLATFORM_MAC_OS
-		[(RNNativeWindow *)_nativeWindow close];
-#endif
-
-#if RN_PLATFORM_IOS
-		[(UIWindow *)_nativeWindow resignFirstResponder];
-		[(UIWindow *)_nativeWindow setHidden:YES];
-#endif
-	}
-
-	void Window::SetContext(Context *context)
-	{
-#if RN_PLATFORM_IOS
-		[(UIViewController *)_rootViewController release];
-
-		_rootViewController = [[RNOpenGLViewController alloc] initWithController:this andFrame:[(UIWindow *)_nativeWindow bounds]];
-		_renderingView      = (RNOpenGLView *)[(UIViewController *)_rootViewController view];
-
-		[(UIWindow *)_nativeWindow setRootViewController:(UIViewController *)_rootViewController];
-#endif
-
-		_context->Release();
-		_context = new Context(context);
-
-#if RN_PLATFORM_MAC_OS
-		[(RNNativeWindow *)_nativeWindow setOpenGLContext:(NSOpenGLContext *)_context->_oglContext andPixelFormat:(NSOpenGLPixelFormat *)_context->_oglPixelFormat];
-#endif
+		
+		for(machine_uint i=0; i<_configurations.Count(); i++)
+		{
+			WindowConfiguration *configuration = _configurations.ObjectAtIndex(i);
+			delete configuration;
+		}
 	}
 
 	void Window::SetTitle(const std::string& title)
 	{
+		_title = title;
+		
 #if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow setTitle:[NSString stringWithUTF8String:title.c_str()]];
 #endif
+		
+#if RN_PLATFORM_LINUX
+		XStoreName(_dpy, _win, title.c_str());	
+#endif
+	}
+	
+	void Window::SetConfiguration(WindowConfiguration *configuration, WindowMask mask)
+	{
+		uint32 width  = configuration->Width();
+		uint32 height = configuration->Height();
+		
+		Renderer *renderer = Renderer::SharedInstance();
+		
+#if RN_PLATFORM_MAC_OS
+		[(RNNativeWindow *)_nativeWindow release];
+		
+		if(mask & WindowMaskFullscreen)
+		{
+			NSRect displayRect = [[NSScreen mainScreen] frame];
+			
+			_nativeWindow = [[RNNativeWindow alloc] initWithFrame:displayRect andStyleMask:NSBorderlessWindowMask];
+			[(RNNativeWindow *)_nativeWindow setLevel:NSMainMenuWindowLevel + 1];
+			[(RNNativeWindow *)_nativeWindow setBackgroundColor:[NSColor blackColor]];
+			[(RNNativeWindow *)_nativeWindow setOpaque:YES];
+			[(RNNativeWindow *)_nativeWindow setHidesOnDeactivate:YES];
+			
+			renderer->SetDefaultFrame(displayRect.size.width, displayRect.size.height);
+		}
+		else
+		{
+			NSUInteger windowStyleMask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
+			_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, configuration->Width(), configuration->Height()) andStyleMask:windowStyleMask];
+			
+			[(RNNativeWindow *)_nativeWindow center];
+			
+			renderer->SetDefaultFrame(width, height);
+		}
+		
+		[(RNNativeWindow *)_nativeWindow setReleasedWhenClosed:NO];
+		[(RNNativeWindow *)_nativeWindow setAcceptsMouseMovedEvents:YES];
+		[(RNNativeWindow *)_nativeWindow setOpenGLContext:(NSOpenGLContext *)_context->_oglContext andPixelFormat:(NSOpenGLPixelFormat *)_context->_oglPixelFormat];
+		
+		[(RNNativeWindow *)_nativeWindow makeKeyAndOrderFront:nil];
+		
+		GLint sync = (mask & WindowMaskVSync) ? 1 : 0;
+		[(NSOpenGLContext *)_context->_oglContext setValues:&sync forParameter:NSOpenGLCPSwapInterval];
+#endif
+		
+#if RN_PLATFORM_LINUX
+		XSetWindowAttributes windowAttributes;
+		XID rootWindow = DefaultRootWindow(_dpy);
+		
+		XUnmapWindow(_dpy, _win);
+		bool displayChanged = false;
+		
+		if(mask & WindowMaskFullscreen)
+		{
+			XRRSetScreenConfig(_win, _screenConfig, rootWindow, configuration->_modeIndex, RR_Rotate_0, CurrentTime);
+			XMoveResizeWindow(_dpy, _win, 0, 0, width, height);
+			
+			windowAttributes.override_redirect = true;
+			XChangeWindowAttributes(_dpy, _win, CWOverrideRedirect, &windowAttributes);
+		}
+		else
+		{
+			XRRSetScreenConfigAndRate(_dpy, screenConfig, rootWindow, originalSize, originalRotation, originalRate, CurrentTime);
+				
+			windowAttributes.override_redirect = false;
+			XChangeWindowAttributes(_dpy, _win, CWOverrideRedirect, &windowAttributes);
+			
+			Screen *screen = DefaultScreenOfDisplay(_dpy);
+			
+			uint32 originX = (WidthOfScreen(screen) / 2) - (width / 2);
+			uint32 originY = (HeightOfScreen(screen) / 2) - (height / 2);
+			
+			XMoveResizeWindow(_dpy, _win, originX, oiriginY, width, height);
+		}
+		
+		renderer->SetDefaultFrame(width, height);
+		
+		XSizeHints *sizeHints = XAllocSizeHints();
+		
+		sizeHints->flags = PMinSize | PMaxSize;
+		sizeHints->min_width  = width;
+		sizeHints->min_height = height;
+		sizeHints->max_width  = width;
+		sizeHints->max_height = height;
+		XSetWMNormalHints(_dpy, _win, sizeHints);
+		XFree(sizeHints);
+		
+		XMapRaised(_dpy, _win);
+		
+		if(mask & WindowMaskFullscreen)
+		{
+			XSetInputFocus(_dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
+		}
+#endif
+		
+		_mask = mask;
+		_activeConfiguration = configuration;
+		
+		SetTitle(_title);
 	}
 
 	Rect Window::Frame() const
 	{
-#if RN_PLATFORM_MAC_OS
-		NSRect frame = [[(RNNativeWindow *)_nativeWindow contentView] frame];
-		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
-#endif
-
-#if RN_PLATFORM_IOS
-		CGRect frame = [(RNOpenGLView *)_renderingView bounds];
-		return Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
-#endif
+		return Rect(0, 0, _activeConfiguration->Width(), _activeConfiguration->Height());
 	}
 
-	void Window::RenderLoop()
+	void Window::ShowCursor()
 	{
-		while(!_context)
-		{
-			std::this_thread::sleep_for(std::chrono::microseconds(5));
-			continue;
-		}
-
-		_context->MakeActiveContext();
-
-#if RN_PLATFORM_IOS
-		[(RNOpenGLView *)_renderingView createDrawBuffer];
-#endif
-
-		while(!_thread->IsCancelled())
-		{
+		if(_cursorVisible)
+			return;
+		
+		_cursorVisible = true;
+		
 #if RN_PLATFORM_MAC_OS
-			if(((RNNativeWindow *)_nativeWindow).needsResize)
-			{
-				NSRect frame = [[(RNNativeWindow *)_nativeWindow contentView] frame];
-
-				_renderer->SetDefaultFrame(frame.size.width, frame.size.height);
-				((RNNativeWindow *)_nativeWindow).needsResize = false;
-			}
-
-			_renderer->WaitForWork();
-			CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
+		[NSCursor unhide];
 #endif
-
-#if RN_PLATFORM_IOS
-			if(((RNOpenGLView *)_renderingView).needsLayerResize)
-			{
-				[(RNOpenGLView *)_renderingView resizeFromLayer];
-
-				_renderer->SetDefaultFrame(((RNOpenGLView *)_renderingView).backingWidth, ((RNOpenGLView *)_renderingView).backingHeight);
-				_renderer->SetDefaultFBO(((RNOpenGLView *)_renderingView).framebuffer);
-			}
-
-			_renderer->WaitForWork();
-			[(RNOpenGLView *)_renderingView flushFrame];
+		
+#if RN_PLATFORM_LINUX
+		XUndefineCursor(_dpy, _win);
 #endif
-		}
-
-		_context->DeactivateContext();
+	}
+	
+	void Window::HideCursor()
+	{
+#if RN_PLATFORM_MAC_OS
+		[NSCursor hide];
+#endif
+		
+#if RN_PLATFORM_LINUX
+		XDefineCursor(_dpy, _win, _emtpyCursor);
+#endif
 	}
 }
-#endif
+
+
 
 #if RN_PLATFORM_WINDOWS
 
 void RNRegisterWindow();
-
-namespace RN
-{
-	Window::Window(const std::string& title, Kernel *kernel)
-	{
-		RNRegisterWindow();
-
-		_stopRendering = false;
-		_threadStopped = false;
-
-		_hWnd = 0;
-		_title = title;
-		_kernel = kernel;
-		_context = 0;
-	}
-
-	Window::~Window()
-	{
-		_stopRendering = true;
-
-		while(!_threadStopped)
-		{}
-
-		_context->Release();
-	}
-
-	void Window::Show()
-	{
-		ShowWindow(_hWnd, SW_SHOW);
-		UpdateWindow(_hWnd);
-	}
-
-	void Window::Hide()
-	{
-		ShowWindow(_hWnd, SW_HIDE);
-	}
-
-	void Window::RenderLoop()
-	{
-		_context->MakeActiveContext();
-
-		while(!_stopRendering)
-		{
-			_renderer->DrawFrame();
-			SwapBuffers(_hDC);
-		}
-
-		Thread::CurrentThread()->Exit();
-		_threadStopped = true;
-	}
-
-	void Window::SetContext(Context *context)
-	{
-		_context->Release();
-		_context = new Context(context);
-
-		_hWnd = _context->_hWnd;
-		_hDC  = _context->_hDC;
-
-		SetWindowLongPtr(_hWnd, GWL_USERDATA, (LONG_PTR)this);
-		SetTitle(_title);
-
-		Rect frame = Frame();
-
-		_renderer = _kernel->RendererBackend();
-		_renderer->SetDefaultFrame(frame.width, frame.height);
-
-		std::thread temp = std::thread(&Window::RenderLoop, this);
-		temp.detach();
-	}
-
-	void Window::SetTitle(const std::string& title)
-	{
-		if(_hWnd)
-			SetWindowTextA(_hWnd, (LPCSTR)title.c_str());
-
-		_title = title;
-	}
-
-	Rect Window::Frame() const
-	{
-		RECT rect;
-		GetClientRect(_hWnd, &rect);
-
-		return Rect(Vector2(rect.left, rect.top), Vector2(rect.right - rect.left, rect.bottom - rect.top));
-	}
-}
 
 LRESULT CALLBACK RNWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -606,107 +703,4 @@ void RNRegisterWindow()
 	}
 }
 
-}
 #endif // RN_PLATFORM_WINDOWS
-
-
-
-#if RN_PLATFORM_LINUX
-
-
-namespace RN
-{
-	Window::Window(const std::string& title, Kernel *kernel)
-	{
-		_context = 0;
-		_win = 0;
-		_title.assign(title);
-
-		_kernel = kernel;
-		_renderer = _kernel->Renderer();
-
-		_thread = new Thread(std::bind(&Window::RenderLoop, this));
-		_renderer->SetThread(_thread);
-	}
-
-	Window::~Window()
-	{
-
-	}
-
-	void Window::Show()
-	{
-		XMapWindow(_dpy, _win);
-	}
-
-	void Window::Hide()
-	{
-		XUnmapWindow(_dpy, _win);
-	}
-
-	void Window::SetContext(Context *context)
-	{
-		_renderer = _kernel->Renderer();
-		_renderer->SetDefaultFrame(1024, 768);
-		
-		_context->Release();
-		_context = new Context(context);
-
-		_dpy = _context->_dpy;
-		_win = _context->_win;
-
-		
-		SetTitle(_title);
-	}
-
-	void Window::SetTitle(const std::string& title)
-	{
-		XStoreName(_dpy, _win, title.c_str());
-	}
-
-	Rect Window::Frame() const
-	{
-		return Rect(0, 0, 1024, 768);
-	}
-
-	void Window::RenderLoop()
-	{
-		while(!_context)
-		{
-			std::this_thread::sleep_for(std::chrono::microseconds(5));
-			continue;
-		}
-
-		_context->MakeActiveContext();
-
-		XEvent event;
-		while(!_thread->IsCancelled())
-		{
-			// go through xevents
-			while(XPending(_dpy))
-			{
-				XNextEvent(_dpy, &event);
-				switch (event.type)
-				{
-					case ConfigureNotify:
-					case Expose:
-					case ClientMessage:
-						// TODO: what to do with this?
-						break;
-						
-					default:
-						Input::SharedInstance()->HandleXInputEvents(&event);
-						break;
-				}
-			} 
-			
-			_renderer->WaitForWork();
-		
-			glXSwapBuffers(_dpy, _win);
-		}
-
-		_context->DeactivateContext();
-	}
-
-}
-#endif	// RN_PLATFORM_LINUX

@@ -41,16 +41,19 @@
 			<Add option="-fPIC" />
 			<Add directory="Vendor/bullet/src/" />
 			<Add directory="Vendor/libjansson/source" />
+			<Add directory="Vendor/libpng/include" />
+			<Add directory="Vendor/libz/include" />
 		</Compiler>
 		<Linker>
 			<Add option="-rdynamic" />
 			<Add library="png" />
-			<Add library="GL" />
-			<Add library="pthread" />
 			<Add library="bullet" />
 			<Add library="jansson" />
+			<Add library="libz" />
 			<Add directory="Vendor/bullet/" />
 			<Add directory="Vendor/libjansson" />
+			<Add directory="Vendor/libpng" />
+			<Add directory="Vendor/libz" />
 		</Linker>
 		<Unit filename="Engine Source/RNApplication.cpp" />
 		<Unit filename="Engine Source/RNApplication.h" />
@@ -62,7 +65,6 @@
 		<Unit filename="Engine Source/RNBaseInternal.h" />
 		<Unit filename="Engine Source/RNBullet.h" />
 		<Unit filename="Engine Source/RNCamera.cpp" />
-		<Unit filename="Engine Source/RNCamera.cpp.orig" />
 		<Unit filename="Engine Source/RNCamera.h" />
 		<Unit filename="Engine Source/RNCharacter.cpp" />
 		<Unit filename="Engine Source/RNCharacter.h" />
@@ -81,7 +83,6 @@
 		<Unit filename="Engine Source/RNInput.cpp" />
 		<Unit filename="Engine Source/RNInput.h" />
 		<Unit filename="Engine Source/RNKernel.cpp" />
-		<Unit filename="Engine Source/RNKernel.cpp.orig" />
 		<Unit filename="Engine Source/RNKernel.h" />
 		<Unit filename="Engine Source/RNLightEntity.cpp" />
 		<Unit filename="Engine Source/RNLightEntity.h" />
@@ -116,7 +117,6 @@
 		<Unit filename="Engine Source/RNRect.h" />
 		<Unit filename="Engine Source/RNRendering.h" />
 		<Unit filename="Engine Source/RNRenderingPipeline.cpp" />
-		<Unit filename="Engine Source/RNRenderingPipeline.cpp.orig" />
 		<Unit filename="Engine Source/RNRenderingPipeline.h" />
 		<Unit filename="Engine Source/RNRenderingResource.h" />
 		<Unit filename="Engine Source/RNRigidBodyEntity.cpp" />
@@ -125,6 +125,8 @@
 		<Unit filename="Engine Source/RNSettings.h" />
 		<Unit filename="Engine Source/RNShader.cpp" />
 		<Unit filename="Engine Source/RNShader.h" />
+		<Unit filename="Engine Source/RNSkeleton.cpp" />
+		<Unit filename="Engine Source/RNSkeleton.h" />
 		<Unit filename="Engine Source/RNSpinLock.h" />
 		<Unit filename="Engine Source/RNSynchronization.h" />
 		<Unit filename="Engine Source/RNTexture.cpp" />

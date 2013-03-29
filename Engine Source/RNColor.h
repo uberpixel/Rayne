@@ -14,33 +14,33 @@ namespace RN
 	class Color
 	{
 	public:
-		Color(float n=1.0f);
-		Color(float r, float g, float b, float a=1.0f);
+		RNAPI Color(float n=1.0f);
+		RNAPI Color(float r, float g, float b, float a=1.0f);
 
-		bool operator== (const Color& other);
-		bool operator!= (const Color& other);
+		RNAPI bool operator== (const Color& other);
+		RNAPI bool operator!= (const Color& other);
 
-		Color operator- () const;
+		RNAPI Color operator- () const;
 
-		Color& operator+= (const Color& other);
-		Color& operator-= (const Color& other);
-		Color& operator*= (const Color& other);
-		Color& operator/= (const Color& other);
+		RNAPI Color& operator+= (const Color& other);
+		RNAPI Color& operator-= (const Color& other);
+		RNAPI Color& operator*= (const Color& other);
+		RNAPI Color& operator/= (const Color& other);
 
-		Color operator+ (const Color& other) const;
-		Color operator- (const Color& other) const;
-		Color operator* (const Color& other) const;
-		Color operator/ (const Color& other) const;
+		RNAPI Color operator+ (const Color& other) const;
+		RNAPI Color operator- (const Color& other) const;
+		RNAPI Color operator* (const Color& other) const;
+		RNAPI Color operator/ (const Color& other) const;
 
-		Color& operator+= (float other);
-		Color& operator-= (float other);
-		Color& operator*= (float other);
-		Color& operator/= (float other);
+		RNAPI Color& operator+= (float other);
+		RNAPI Color& operator-= (float other);
+		RNAPI Color& operator*= (float other);
+		RNAPI Color& operator/= (float other);
 
-		Color operator+ (float other) const;
-		Color operator- (float other) const;
-		Color operator* (float other) const;
-		Color operator/ (float other) const;
+		RNAPI Color operator+ (float other) const;
+		RNAPI Color operator- (float other) const;
+		RNAPI Color operator* (float other) const;
+		RNAPI Color operator/ (float other) const;
 
 		struct
 		{

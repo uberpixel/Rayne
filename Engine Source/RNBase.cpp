@@ -10,6 +10,7 @@
 #include "RNBase.h"
 #include "RNBaseInternal.h"
 #include "RNError.h"
+#include "RNThread.h"
 
 namespace RN
 {
@@ -31,45 +32,25 @@ namespace RN
 		
 		abort();
 	}
-}
-
-#if RN_PLATFORM_MAC_OS
-
-#include "RNFile.h"
-
-int main(int argc, char *argv[])
-{
-	int result = 0;
 	
-	for(int i=1; i<argc; i++)
+	void __HandleExcption(const ErrorException& e)
 	{
-		if(strcmp(argv[i], "-r") == 0 && i < argc - 1)
-		{
-			char *path = argv[++ i];
-			RN::File::AddSearchPath(path);
-		}
-	}
-	
-	try
-	{
-		result = NSApplicationMain(argc, (const char **)argv);
-	}
-	catch(RN::ErrorException e)
-	{
-		fprintf(stderr, "Caught exception %i|%i|%i.\nReason: %s\n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str());
-		fflush(stderr);
+		const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.CallStack();
 		
-		if(e.Description().length() > 0)
+		fprintf(stderr, "Caught exception %i|%i|%i.\nReason: %s\nDetails: %s\n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str(), e.AdditionalDetails().c_str());
+		fprintf(stderr, "Chrashing Thread: %s\nBacktrace:\n", e.Thread()->Name().c_str());
+		
+		for(auto i=callstack.begin(); i!=callstack.end(); i++)
 		{
-			[[NSAlert alertWithMessageText:@"Rayne crashed" defaultButton:nil alternateButton:nil otherButton:nil informativeTextWithFormat:@"Reason: %s\nException code: %i|%i|%i", e.Description().c_str(), e.Group(), e.Subgroup(), e.Code()] runModal];
-			[NSApp terminate:nil];
+			std::pair<uintptr_t, std::string> frame = *i;
+			fprintf(stderr, "   0x%8lx %s\n", frame.first, frame.second.c_str());
 		}
+		
+		fflush(stderr);
+		abort();
 	}
-	
-	return result;
+		
 }
-
-#endif
 
 #if RN_PLATFORM_IOS
 
@@ -85,8 +66,7 @@ int main(int argc, char *argv[])
 	}
 	catch(RN::ErrorException e)
 	{
-		fprintf(stderr, "Caught exception %i|%i|%i.\nReason: %s\n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str());
-		fflush(stderr);
+		__HandleExcption(e)
 	}
 	
 	return result;
