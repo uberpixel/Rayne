@@ -27,12 +27,12 @@ namespace RN
 	{
 	friend class Thread;
 	public:
-		ThreadCoordinator();
+		RNAPI ThreadCoordinator();
 		
-		machine_int AvailableConcurrency();
-		machine_int BaseConcurrency() const { return _baseConcurrency; }
+		RNAPI machine_int AvailableConcurrency();
+		RNAPI machine_int BaseConcurrency() const { return _baseConcurrency; }
 		
-		ThreadPool *GlobalPool();
+		RNAPI ThreadPool *GlobalPool();
 		
 	private:
 		void ConsumeConcurrency();

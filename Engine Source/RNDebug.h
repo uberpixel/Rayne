@@ -17,12 +17,12 @@ namespace RN
 	class TimeProfiler
 	{
 	public:
-		TimeProfiler();
-		~TimeProfiler();
+		RNAPI TimeProfiler();
+		RNAPI ~TimeProfiler();
 		
-		void DumpStatistic();
-		void HitMilestone(const std::string& name, bool mergeSet=true);
-		void FinishedMilestone(const std::string& name);
+		RNAPI void DumpStatistic();
+		RNAPI void HitMilestone(const std::string& name, bool mergeSet=true);
+		RNAPI void FinishedMilestone(const std::string& name);
 		
 	private:
 		struct Milestone
@@ -42,10 +42,10 @@ namespace RN
 	class Timer
 	{
 	public:
-		Timer();
-		~Timer();
+		RNAPI Timer();
+		RNAPI ~Timer();
 		
-		float Time();
+		RNAPI float Time();
 		
 	private:
 		std::chrono::time_point<std::chrono::high_resolution_clock> _time;

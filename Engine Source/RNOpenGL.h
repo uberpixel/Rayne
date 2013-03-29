@@ -175,9 +175,9 @@ extern "C"
 	extern PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
 	
 	// Textures
-	#if RN_PLATFORM_WINDOWS
+#if RN_PLATFORM_WINDOWS
 	extern PFNGLACTIVETEXTUREPROC glActiveTexture;
-	#endif
+#endif
 	extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 }
 

@@ -323,6 +323,14 @@ namespace RN
 		}
 	}
 	
+	void Camera::ActivateTiledLightLists(Texture *depthTiles)
+	{
+		if(_depthTiles)
+			_depthTiles->Release();
+		
+		_depthTiles = depthTiles->Retain();
+	}
+	
 	// Helper
 	void Camera::Update(float delta)
 	{

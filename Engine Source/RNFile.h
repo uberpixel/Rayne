@@ -54,10 +54,10 @@ namespace RN
 		RNAPI const std::string& Extension() { return _extension; }
 		RNAPI const std::string& Path() { return _path; }
 		
-		static void AddSearchPath(const std::string& path);
-		static std::string PathForName(const std::string& name);
-		static std::string ExecutableDirectory();
-		static std::string SaveDirectory();
+		RNAPI static void AddSearchPath(const std::string& path);
+		RNAPI static std::string PathForName(const std::string& name);
+		RNAPI static std::string ExecutableDirectory();
+		RNAPI static std::string SaveDirectory();
 
 	private:
 		static void AddDefaultSearchPaths();

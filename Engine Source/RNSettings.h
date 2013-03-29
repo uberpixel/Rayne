@@ -16,8 +16,8 @@ namespace RN
 	class Settings : public Singleton<Settings>
 	{
 	public:
-		Settings();
-		~Settings();
+		RNAPI Settings();
+		RNAPI ~Settings();
 		
 		bool GammaCorrection() const { return _gammaCorrection; }
 		const std::string& GameModule() const { return _gameModule; }

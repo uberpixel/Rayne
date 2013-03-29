@@ -59,51 +59,51 @@ namespace RN
 		};
 		typedef uint32 ColorFlags;
 		
-		Camera(const Vector2& size);
+		RNAPI Camera(const Vector2& size);
 		
-		Camera(const Vector2& size, Texture *target);
-		Camera(const Vector2& size, Texture *target, Flags flags);
-		Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format);
+		RNAPI Camera(const Vector2& size, Texture *target);
+		RNAPI Camera(const Vector2& size, Texture *target, Flags flags);
+		RNAPI Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format);
 		
-		Camera(const Vector2& size, Texture::Format targetFormat);
-		Camera(const Vector2& size, Texture::Format targetFormat, Flags flags);
-		Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format);
+		RNAPI Camera(const Vector2& size, Texture::Format targetFormat);
+		RNAPI Camera(const Vector2& size, Texture::Format targetFormat, Flags flags);
+		RNAPI Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format);
 		
-		Camera(const Vector2& size, RenderStorage *storage, Flags flags);
+		RNAPI Camera(const Vector2& size, RenderStorage *storage, Flags flags);
 		
-		virtual ~Camera();
+		RNAPI virtual ~Camera();
 		
-		void Bind();
-		void Unbind();
-		void PrepareForRendering();
+		RNAPI void Bind();
+		RNAPI void Unbind();
+		RNAPI void PrepareForRendering();
 		
-		void SetFrame(const Rect& frame);
-		void SetClearColor(const Color& color);
-		void SetMaterial(Material *material);
-		void SetRenderStorage(RenderStorage *storage);
-		void SetClearMask(ClearFlags mask);
-		void SetColorMask(ColorFlags mask);
-		void SetAllowsDepthWrite(bool flag);
-		void SetSkyCube(Model *skycube);
+		RNAPI void SetFrame(const Rect& frame);
+		RNAPI void SetClearColor(const Color& color);
+		RNAPI void SetMaterial(Material *material);
+		RNAPI void SetRenderStorage(RenderStorage *storage);
+		RNAPI void SetClearMask(ClearFlags mask);
+		RNAPI void SetColorMask(ColorFlags mask);
+		RNAPI void SetAllowsDepthWrite(bool flag);
+		RNAPI void SetSkyCube(Model *skycube);
 		
-		void AddStage(Camera *stage);
-		void InsertStage(Camera *stage);
-		void ReplaceStage(Camera *stage);
-		void RemoveStage(Camera *stage);
+		RNAPI void AddStage(Camera *stage);
+		RNAPI void InsertStage(Camera *stage);
+		RNAPI void ReplaceStage(Camera *stage);
+		RNAPI void RemoveStage(Camera *stage);
 		
-		void ActivateTiledLightLists(Texture *depthtiles){ _depthTiles = depthtiles; }
+		RNAPI void ActivateTiledLightLists(Texture *depthTiles);
 		Texture *DepthTiles() { return _depthTiles; }
 		
-		void Update(float delta);
-		void PostUpdate();
-		void UpdateProjection();
+		RNAPI void Update(float delta);
+		RNAPI void PostUpdate();
+		RNAPI void UpdateProjection();
 		
-		Vector3 ToWorld(const Vector3& dir);
-		void UpdateFrustum();
-		bool InFrustum(const Vector3& position, float radius);
+		RNAPI Vector3 ToWorld(const Vector3& dir);
+		RNAPI void UpdateFrustum();
+		RNAPI bool InFrustum(const Vector3& position, float radius);
 		
-		const Vector3& FrustumCenter() const {return _frustumCenter;}
-		float const FrustumRadius() const {return _frustumRadius;}
+		const Vector3& FrustumCenter() const { return _frustumCenter; }
+		float const FrustumRadius() const { return _frustumRadius; }
 		
 		RenderStorage *Storage() const { return _storage; }
 		const Color& ClearColor() const { return _clearColor; }

@@ -91,10 +91,10 @@ namespace RN
 		bool GeneratesMipmaps() const { return _generateMipmaps; }
 		uint32 AnisotropyLevel() const { return _anisotropy; }
 		
-		static bool PlatformSupportsFormat(Format format);
-		static uint32 MaxAnisotropyLevel();
-		static uint32 DefaultAnisotropyLevel();
-		static void SetDefaultAnisotropyLevel(uint32 level);
+		RNAPI static bool PlatformSupportsFormat(Format format);
+		RNAPI static uint32 MaxAnisotropyLevel();
+		RNAPI static uint32 DefaultAnisotropyLevel();
+		RNAPI static void SetDefaultAnisotropyLevel(uint32 level);
 		
 	protected:
 		GLuint _name;

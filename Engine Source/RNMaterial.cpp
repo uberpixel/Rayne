@@ -43,6 +43,7 @@ namespace RN
 	{
 		if(_shader)
 			_shader->Release();
+		
 		_shader = shader ? shader->Retain() : 0;
 	}
 	

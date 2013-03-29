@@ -18,11 +18,11 @@ namespace RN
 	class RetainPool
 	{
 	public:
-		RetainPool();
-		~RetainPool();
+		RNAPI RetainPool();
+		RNAPI ~RetainPool();
 		
-		void AddObject(Object *object);
-		void Drain();
+		RNAPI void AddObject(Object *object);
+		RNAPI void Drain();
 		
 	private:
 		std::vector<Object *> _objects;
@@ -31,13 +31,13 @@ namespace RN
 	class AutoreleasePool
 	{
 	public:
-		AutoreleasePool();
-		~AutoreleasePool();
+		RNAPI AutoreleasePool();
+		RNAPI ~AutoreleasePool();
 		
-		void AddObject(Object *object);
-		void Drain();
+		RNAPI void AddObject(Object *object);
+		RNAPI void Drain();
 		
-		static AutoreleasePool *CurrentPool();
+		RNAPI static AutoreleasePool *CurrentPool();
 		
 	private:
 		Thread *_owner;

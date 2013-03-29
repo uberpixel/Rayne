@@ -47,19 +47,19 @@ namespace RN
 		
 		RNAPI void BindMaterial(Material *material, ShaderProgram *program);
 		
-		uint32 BindTexture(Texture *texture);
-		uint32 BindTexture(GLenum type, GLuint texture);
-		void BindVAO(GLuint vao);
-		void UseShader(ShaderProgram *shader);
+		RNAPI uint32 BindTexture(Texture *texture);
+		RNAPI uint32 BindTexture(GLenum type, GLuint texture);
+		RNAPI void BindVAO(GLuint vao);
+		RNAPI void UseShader(ShaderProgram *shader);
 		
-		void SetCullingEnabled(bool enabled);
-		void SetDepthTestEnabled(bool enabled);
-		void SetDepthWriteEnabled(bool enabled);
-		void SetBlendingEnabled(bool enabled);
+		RNAPI void SetCullingEnabled(bool enabled);
+		RNAPI void SetDepthTestEnabled(bool enabled);
+		RNAPI void SetDepthWriteEnabled(bool enabled);
+		RNAPI void SetBlendingEnabled(bool enabled);
 		
-		void SetCullMode(GLenum cullMode);
-		void SetDepthFunction(GLenum depthFunction);
-		void SetBlendFunction(GLenum blendSource, GLenum blendDestination);
+		RNAPI void SetCullMode(GLenum cullMode);
+		RNAPI void SetDepthFunction(GLenum depthFunction);
+		RNAPI void SetBlendFunction(GLenum blendSource, GLenum blendDestination);
 		
 	protected:
 		RNAPI void UpdateShaderData();

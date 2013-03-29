@@ -17,17 +17,17 @@ namespace RN
 	class Application : public NonConstructingSingleton<Application>
 	{
 	public:
-		Application();
-		virtual ~Application();
+		RNAPI Application();
+		RNAPI virtual ~Application();
 		
-		virtual void Start();
-		virtual bool CanExit();
-		virtual void WillExit();
+		RNAPI virtual void Start();
+		RNAPI virtual bool CanExit();
+		RNAPI virtual void WillExit();
 		
-		virtual void GameUpdate(float delta);
-		virtual void WorldUpdate(float delta);
+		RNAPI virtual void GameUpdate(float delta);
+		RNAPI virtual void WorldUpdate(float delta);
 		
-		void SetTitle(const std::string& title);
+		RNAPI void SetTitle(const std::string& title);
 		const std::string& Title() const { return _title; }
 		
 	protected:

@@ -34,8 +34,8 @@ namespace RN
 		static Context *ActiveContext();
 
 	protected:
-		void Activate();
-		void Deactivate();
+		RNAPI void Activate();
+		RNAPI void Deactivate();
 
 	private:
 		bool _active;

@@ -26,15 +26,15 @@ namespace RN
 			TypeDirectionalLight = 2
 		};
 		
-		Light(Type type = TypePointLight);
-		virtual ~Light();
+		RNAPI Light(Type type = TypePointLight);
+		RNAPI virtual ~Light();
 		
-		virtual void Update(float delta);
-		virtual bool IsVisibleInCamera(Camera *camera);
+		RNAPI virtual void Update(float delta);
+		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
-		void SetRange(float range);
-		void SetColor(Vector3 color);
-		void SetAngle(float angle);
+		RNAPI void SetRange(float range);
+		RNAPI void SetColor(Vector3 color);
+		RNAPI void SetAngle(float angle);
 		
 		const Type LightType() { return _lightType; }
 		const Vector3& Color() { return _color; }

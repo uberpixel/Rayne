@@ -34,14 +34,14 @@ namespace RN
 			InputControlTypeMouseButton
 		} InputControlType;
 
-		InputControl(InputDevice *device);
+		RNAPI InputControl(InputDevice *device);
 
 #if RN_PLATFORM_MAC_OS
-		InputControl(InputControlType type, InputDevice *device, IOHIDElementCookie cookie, const std::string& name);
+		RNAPI InputControl(InputControlType type, InputDevice *device, IOHIDElementCookie cookie, const std::string& name);
 #endif
 
-		InputControl *FirstControl() const;
-		InputControl *NextControl() const;
+		RNAPI InputControl *FirstControl() const;
+		RNAPI InputControl *NextControl() const;
 
 		InputDevice *Device() const { return _device; }
 		InputControlType Type() const { return _type; }
@@ -75,7 +75,7 @@ namespace RN
 	class KeyboardControl : public InputControl
 	{
 	public:
-		KeyboardControl(InputDevice *device, IOHIDElementCookie cookie, const std::string& name, char character);
+		RNAPI KeyboardControl(InputDevice *device, IOHIDElementCookie cookie, const std::string& name, char character);
 
 		char Character() const { return _character; }
 
@@ -86,7 +86,7 @@ namespace RN
 	class DeltaAxisControl : public InputControl
 	{
 	public:
-		DeltaAxisControl(InputDevice *device, IOHIDElementCookie cookie, const std::string& name, uint32 axis);
+		RNAPI DeltaAxisControl(InputDevice *device, IOHIDElementCookie cookie, const std::string& name, uint32 axis);
 
 		uint32 Axis() const { return _axis; }
 
@@ -97,7 +97,7 @@ namespace RN
 	class MouseButtonControl : public InputControl
 	{
 	public:
-		MouseButtonControl(InputDevice *device, IOHIDElementCookie cookie, const std::string& name, uint32 button);
+		RNAPI MouseButtonControl(InputDevice *device, IOHIDElementCookie cookie, const std::string& name, uint32 button);
 
 		uint32 Button() const { return _button; }
 
@@ -121,16 +121,16 @@ namespace RN
 		} InputDeviceType;
 
 #if RN_PLATFORM_MAC_OS
-		InputDevice(InputDeviceType type, io_object_t object, CFMutableDictionaryRef properties);
+		RNAPI InputDevice(InputDeviceType type, io_object_t object, CFMutableDictionaryRef properties);
 #endif
 #if RN_PLATFORM_IOS
-		InputDevice(InputDeviceType type, const std::string& name);
+		RNAPI InputDevice(InputDeviceType type, const std::string& name);
 #endif
 
-		virtual ~InputDevice();
+		RNAPI virtual ~InputDevice();
 
-		virtual void Activate();
-		virtual void Deactivate();
+		RNAPI virtual void Activate();
+		RNAPI virtual void Deactivate();
 
 		bool IsActive() const { return _active; }
 
@@ -165,9 +165,9 @@ namespace RN
 	class InputDeviceMouse : public InputDevice
 	{
 	public:
-		InputDeviceMouse(io_object_t object, CFMutableDictionaryRef properties);
+		RNAPI InputDeviceMouse(io_object_t object, CFMutableDictionaryRef properties);
 
-		virtual void DispatchInputEvents();
+		RNAPI virtual void DispatchInputEvents();
 
 		const Vector3& MouseDelta() { return _mouseDelta; }
 		uint32 PressedButtons() { return _pressedButtons; }
@@ -180,10 +180,10 @@ namespace RN
 	class InputDeviceKeyboard : public InputDevice
 	{
 	public:
-		InputDeviceKeyboard(io_object_t object, CFMutableDictionaryRef properties);
+		RNAPI InputDeviceKeyboard(io_object_t object, CFMutableDictionaryRef properties);
 
-		bool KeyPressed(char key) const;
-		virtual void DispatchInputEvents();
+		RNAPI bool KeyPressed(char key) const;
+		RNAPI virtual void DispatchInputEvents();
 
 	private:
 		std::unordered_set<char> _pressedCharacters;
@@ -236,11 +236,11 @@ namespace RN
 		};
 
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
-		InputMessage(InputControl *control, MessageSubgroup subgroup);
+		RNAPI InputMessage(InputControl *control, MessageSubgroup subgroup);
 #endif
 #if RN_PLATFORM_IOS
-		InputMessage(InputDevice *device, MessageSubgroup subgroup);
-		InputMessage(Touch *touch);
+		RNAPI InputMessage(InputDevice *device, MessageSubgroup subgroup);
+		RNAPI InputMessage(Touch *touch);
 
 		Touch *touch;
 #endif
@@ -268,24 +268,23 @@ namespace RN
 	{
 	friend class Window;
 	public:
-		Input();
-		~Input();
+		RNAPI Input();
+		RNAPI ~Input();
 
-		void DispatchInputEvents();
+		RNAPI void DispatchInputEvents();
 
-		void Activate();
-		void Deactivate();
+		RNAPI void Activate();
+		RNAPI void Deactivate();
 
 
 #if RN_PLATFORM_IOS
-		void HandleTouchEvent(const Touch& touch);
-
+		RNAPI void HandleTouchEvent(const Touch& touch);
 		const std::vector<Touch>& Touches() const { return _touches; }
 #endif
 
 		const Vector3& MouseDelta() { return _mouseDelta; }
 		uint32 PressedButtons() { return _pressedButtons; }
-		bool KeyPressed(char key) const;
+		RNAPI bool KeyPressed(char key) const;
 
 	private:
 #if RN_PLATFORM_IOS

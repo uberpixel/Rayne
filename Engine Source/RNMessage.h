@@ -47,14 +47,14 @@ namespace RN
 	class MessageCenter : public Singleton<MessageCenter>
 	{
 	public:
-		void PostMessage(Message *message);
+		RNAPI void PostMessage(Message *message);
 		
-		void AddObserver(MessageObserver *observer, Message::MessageGroup group);
-		void AddObserver(MessageObserver *observer, Message::MessageGroup group, Message::MessageSubgroup subgroup);
+		RNAPI void AddObserver(MessageObserver *observer, Message::MessageGroup group);
+		RNAPI void AddObserver(MessageObserver *observer, Message::MessageGroup group, Message::MessageSubgroup subgroup);
 		
-		void RemoveObserver(MessageObserver *observer);
-		void RemoveObserver(MessageObserver *observer, Message::MessageGroup group);
-		void RemoveObserver(MessageObserver *observer, Message::MessageGroup group, Message::MessageSubgroup subgroup);
+		RNAPI void RemoveObserver(MessageObserver *observer);
+		RNAPI void RemoveObserver(MessageObserver *observer, Message::MessageGroup group);
+		RNAPI void RemoveObserver(MessageObserver *observer, Message::MessageGroup group, Message::MessageSubgroup subgroup);
 		
 	private:		
 		struct MessageObserverProxy

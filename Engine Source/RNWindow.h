@@ -22,14 +22,14 @@ namespace RN
 	friend class Window;
 	public:
 #if RN_PLATFORM_MAC_OS
-		WindowConfiguration(CGDisplayModeRef mode);
-		~WindowConfiguration();
+		RNAPI WindowConfiguration(CGDisplayModeRef mode);
+		RNAPI ~WindowConfiguration();
 #endif
 #if RN_PLATFORM_LINUX
-		WindowConfiguration(int32 index, uint32 width, uint32 height);
+		RNAPI WindowConfiguration(int32 index, uint32 width, uint32 height);
 #endif
 		
-		WindowConfiguration(uint32 width, uint32 height);
+		RNAPI WindowConfiguration(uint32 width, uint32 height);
 		
 		uint32 Width() const { return _width; }
 		uint32 Height() const { return _height; }
@@ -58,19 +58,19 @@ namespace RN
 		};
 		typedef uint32 WindowMask;
 		
-		Window();
-		virtual ~Window();
+		RNAPI Window();
+		RNAPI virtual ~Window();
 
-		void SetTitle(const std::string& title);
-		void SetConfiguration(WindowConfiguration *configuration, WindowMask mask);
+		RNAPI void SetTitle(const std::string& title);
+		RNAPI void SetConfiguration(WindowConfiguration *configuration, WindowMask mask);
 		
-		void ShowCursor();
-		void HideCursor();
+		RNAPI void ShowCursor();
+		RNAPI void HideCursor();
 
 		WindowConfiguration *ActiveConfiguration() const { return _activeConfiguration; }
 		const Array<WindowConfiguration *>& Configurations() const { return _configurations; }
 		
-		Rect Frame() const;
+		RNAPI Rect Frame() const;
 
 	private:
 #if RN_PLATFORM_MAC_OS

@@ -38,7 +38,6 @@ namespace RN
 		kErrorOkay = 0
 	};
 	
-	
 	enum
 	{
 		kErrorGroupEngine   = 0x0,
@@ -53,8 +52,8 @@ namespace RN
 	class ErrorException
 	{
 	public:
-		ErrorException(ErrorCode error, const std::string& description="", const std::string& detail="");
-		ErrorException(uint32 group, uint32 subgroup, uint32 code, const std::string& description="", const std::string& detail="");
+		RNAPI ErrorException(ErrorCode error, const std::string& description="", const std::string& detail="");
+		RNAPI ErrorException(uint32 group, uint32 subgroup, uint32 code, const std::string& description="", const std::string& detail="");
 		
 		uint32 Group() const { return RNErrorGetGroup(_error); }
 		uint32 Subgroup() const { return RNErrorGetSubroup(_error); }

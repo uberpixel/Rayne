@@ -21,11 +21,11 @@ namespace RN
 		const std::string& Name() const { return _name; }
 		
 		virtual Object *Construct() = 0;
-		bool InheritsFromClass(MetaClass *other) const;
+		RNAPI bool InheritsFromClass(MetaClass *other) const;
 	
 	protected:
-		MetaClass(MetaClass *parent, const std::string& name);
-		~MetaClass();
+		RNAPI MetaClass(MetaClass *parent, const std::string& name);
+		RNAPI ~MetaClass();
 		
 	private:
 		MetaClass *_superClass;
@@ -36,7 +36,7 @@ namespace RN
 	{
 	friend class MetaClass;
 	public:
-		MetaClass *ClassWithName(const std::string& name) const;
+		RNAPI MetaClass *ClassWithName(const std::string& name) const;
 		
 	private:
 		void AddMetaClass(MetaClass *meta);

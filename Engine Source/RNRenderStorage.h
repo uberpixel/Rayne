@@ -30,18 +30,18 @@ namespace RN
 		};
 		typedef uint32 BufferFormat;
 		
-		RenderStorage(BufferFormat format, Texture *depthTexture=0);
-		virtual ~RenderStorage();
+		RNAPI RenderStorage(BufferFormat format, Texture *depthTexture=0);
+		RNAPI virtual ~RenderStorage();
 		
-		void SetFrame(const Rect& frame);
-		void SetRenderTarget(Texture *target, uint32 index=0);
-		void AddRenderTarget(Texture *target);
-		void AddRenderTarget(Texture::Format format);
-		void RemoveRenderTarget(Texture *target);
-		void SetDepthTarget(Texture *texture);
-		void SetDepthTarget(Texture::Format format);
+		RNAPI void SetFrame(const Rect& frame);
+		RNAPI void SetRenderTarget(Texture *target, uint32 index=0);
+		RNAPI void AddRenderTarget(Texture *target);
+		RNAPI void AddRenderTarget(Texture::Format format);
+		RNAPI void RemoveRenderTarget(Texture *target);
+		RNAPI void SetDepthTarget(Texture *texture);
+		RNAPI void SetDepthTarget(Texture::Format format);
 		
-		void UpdateBuffer();
+		RNAPI void UpdateBuffer();
 		
 		bool HasDepthbuffer() const { return (_format & BufferFormatDepth); }
 		bool HasStencilbuffer() const { return (_format & BufferFormatStencil); }
@@ -50,7 +50,7 @@ namespace RN
 		Texture *RenderTarget(uint32 index=0) const { return _renderTargets->ObjectAtIndex(index); }
 		Texture *DepthTarget() const { return _depthTexture; }
 		
-		static uint32 MaxRenderTargets();
+		RNAPI static uint32 MaxRenderTargets();
 		
 	private:
 		void UpdateDrawBuffers(uint32 count);

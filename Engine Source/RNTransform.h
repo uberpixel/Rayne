@@ -24,18 +24,18 @@ namespace RN
 	{
 	friend class Renderer;
 	public:
-		Transform();
-		Transform(const Vector3& position);
-		Transform(const Vector3& position, const Quaternion& rotation);
-		virtual ~Transform();
+		RNAPI Transform();
+		RNAPI Transform(const Vector3& position);
+		RNAPI Transform(const Vector3& position, const Quaternion& rotation);
+		RNAPI virtual ~Transform();
 		
-		void Translate(const Vector3& trans, bool local=false);
-		void Scale(const Vector3& scal);
-		void Rotate(const Vector3& rot);
+		RNAPI void Translate(const Vector3& trans, bool local=false);
+		RNAPI void Scale(const Vector3& scal);
+		RNAPI void Rotate(const Vector3& rot);
 		
-		virtual void SetPosition(const Vector3& pos);
-		virtual void SetScale(const Vector3& scal);
-		virtual void SetRotation(const Quaternion& rot);
+		RNAPI virtual void SetPosition(const Vector3& pos);
+		RNAPI virtual void SetScale(const Vector3& scal);
+		RNAPI virtual void SetRotation(const Quaternion& rot);
 		
 		virtual bool IsVisibleInCamera(Camera *camera) { return false; }
 		
@@ -44,15 +44,15 @@ namespace RN
 		const Vector3& EulerAngle() const { return _euler; }
 		const Quaternion& Rotation() const { return _rotation; }
 		
-		const Vector3& WorldPosition();
-		const Vector3& WorldScale();
-		const Vector3& WorldEulerAngle();
-		const Quaternion& WorldRotation();
+		RNAPI const Vector3& WorldPosition();
+		RNAPI const Vector3& WorldScale();
+		RNAPI const Vector3& WorldEulerAngle();
+		RNAPI const Quaternion& WorldRotation();
 		
-		void AttachChild(Transform *child);
-		void DetachChild(Transform *child);
-		void DetachAllChilds();
-		void DetachFromParent();
+		RNAPI void AttachChild(Transform *child);
+		RNAPI void DetachChild(Transform *child);
+		RNAPI void DetachAllChilds();
+		RNAPI void DetachFromParent();
 		
 		machine_uint Childs() const { return _childs.Count(); }
 		Transform *Parent() const { return _parent; }
@@ -60,8 +60,8 @@ namespace RN
 		template<typename T=Transform>
 		T *ChildAtIndex(machine_uint index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
 		
-		const Matrix& WorldTransform();
-		const Matrix& LocalTransform();
+		RNAPI const Matrix& WorldTransform();
+		RNAPI const Matrix& LocalTransform();
 		
 		virtual void Update(float delta)
 		{}

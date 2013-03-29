@@ -44,9 +44,7 @@ namespace RN
 				Detach();
 		}
 		
-		virtual ~Thread();
-		
-		bool OnThread() const;
+		RNAPI virtual ~Thread();
 		
 		void Detach()
 		{
@@ -67,12 +65,14 @@ namespace RN
 			thread.detach();
 		}
 		
-		void Cancel();
+		RNAPI bool OnThread() const;
+		
+		RNAPI void Cancel();
 		bool IsCancelled() const { return _isCancelled; }
 		bool IsRunning() const { return _isRunning; }
 		
-		void SetName(const std::string& name);
-		const std::string Name() const;
+		RNAPI void SetName(const std::string& name);
+		RNAPI const std::string Name() const;
 		
 		template <typename T>
 		T *ObjectForKey(const std::string& key)
@@ -92,7 +92,7 @@ namespace RN
 			_dictionaryLock.Unlock();
 		}
 		
-		static Thread *CurrentThread();
+		RNAPI static Thread *CurrentThread();
 		
 	private:
 		Thread();

@@ -25,15 +25,15 @@ namespace RN
 	{
 	friend class World;
 	public:
-		Entity();
-		virtual ~Entity();
+		RNAPI Entity();
+		RNAPI virtual ~Entity();
 		
-		virtual void Update(float delta);
-		virtual bool IsVisibleInCamera(Camera *camera);
+		RNAPI virtual void Update(float delta);
+		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
-		void SetModel(Model *model);
-		void SetSkeleton(class Skeleton *skeleton);
-		void SetAction(const std::function<void (Entity *, float)>& action);
+		RNAPI void SetModel(Model *model);
+		RNAPI void SetSkeleton(class Skeleton *skeleton);
+		RNAPI void SetAction(const std::function<void (Entity *, float)>& action);
 		
 		Model *Model() const { return _model; }
 		Skeleton *Skeleton() const { return _skeleton; }
