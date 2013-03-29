@@ -267,6 +267,7 @@ namespace RN
 	class Input : public Singleton<Input>
 	{
 	friend class Window;
+	friend class Kernel;
 	public:
 		RNAPI Input();
 		RNAPI ~Input();

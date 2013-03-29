@@ -87,7 +87,9 @@ namespace RN
 		Display *_dpy;
 		XID _win;
 		XRRScreenConfiguration *_screenConfig;
-		Cursor _emtpyCursor;
+		SizeID _originalSize;
+		Rotation _originalRotation;
+		Cursor _emptyCursor;
 #endif
 		
 #if RN_PLATFORM_WINDOWS

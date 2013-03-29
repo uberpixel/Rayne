@@ -95,6 +95,9 @@
 
 #if RN_PLATFORM_LINUX
 
+	#include <X11/extensions/Xrandr.h>
+	#undef FilterNearest
+
 	#include <GL/glx.h>
 	#include "glext.h"
 	
