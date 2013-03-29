@@ -121,6 +121,10 @@ namespace RN
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
 		
+/*		glGenBuffers(1, &_lightDepthPBO);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, _lightDepthPBO);
+		glBufferData(GL_PIXEL_PACK_BUFFER, 32*24*2*sizeof(float), 0, GL_DYNAMIC_DRAW);*/
+		
 #endif
 	}
 	
@@ -231,6 +235,7 @@ namespace RN
 			
 			const Vector3& camPosition = camera->Position();
 			
+//			glBindBuffer(GL_PIXEL_PACK_BUFFER, _lightDepthPBO);
 			float *depthArray = new float[tilesWidth * tilesHeight * 2];
 			glBindTexture(GL_TEXTURE_2D, camera->DepthTiles()->Name());
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, depthArray);
