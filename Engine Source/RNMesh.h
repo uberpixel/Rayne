@@ -63,10 +63,7 @@ namespace RN
 		template <typename T>
 		T *Data(MeshFeature feature)
 		{
-			if(!_descriptor[(int32)feature]._pointer)
-				_descriptor[(int32)feature]._pointer = (uint8 *)malloc(_descriptor[(int32)feature]._size);
-				
-			return reinterpret_cast<T *>(_descriptor[(int32)feature]._pointer);
+			return static_cast<T *>(FetchDataForFeature(feature));
 		}
 		
 		MeshDescriptor *Descriptor(MeshFeature feature)
@@ -76,12 +73,12 @@ namespace RN
 		
 		RNAPI void GenerateMesh();
 		
-		GLuint VBO() const { return _vbo; }
-		GLuint IBO() const { return _ibo; }
-		
 		RNAPI bool SupportsFeature(MeshFeature feature);
 		RNAPI size_t OffsetForFeature(MeshFeature feature);
 		size_t Stride() const { return _stride; };
+		
+		GLuint VBO() const { return _vbo; }
+		GLuint IBO() const { return _ibo; }
 		
 		RNAPI bool InstancingData(size_t size, GLuint *outVBO, void **outData);
 		
@@ -98,6 +95,8 @@ namespace RN
 			size_t _size;
 			void *_data;
 		} _instancing;
+		
+		void *FetchDataForFeature(MeshFeature feature);
 		
 		size_t _stride;
 		

@@ -138,6 +138,39 @@ namespace RN
 			glDeleteBuffers(1, &_instancing._vbo);
 	}
 	
+	void *MeshLODStage::FetchDataForFeature(MeshFeature feature)
+	{
+		int32 index = (int32)feature;
+		
+		if(!_descriptor[index]._available)
+			return 0;
+		
+		if(_descriptor[index]._pointer)
+			return _descriptor[index]._pointer;
+		
+		uint8 *data = (uint8 *)malloc(_descriptor[index]._size);
+		uint8 *meshData = static_cast<uint8 *>(_meshData);
+		
+		if(meshData)
+		{
+			size_t offset = OffsetForFeature(feature);
+			size_t size = _descriptor[feature].elementSize;
+			
+			uint8 *tdata = data;
+			
+			while(offset < _meshSize)
+			{
+				std::copy(meshData + offset, meshData + (offset + size), tdata);
+				
+				offset += _stride;
+				tdata  += size;
+			}
+		}
+		
+		_descriptor[index]._pointer = data;
+		return data;
+	}
+	
 	void MeshLODStage::GenerateMesh()
 	{
 		if(!_meshData)
@@ -183,7 +216,7 @@ namespace RN
 		
 		if(_descriptor[kMeshFeatureIndices]._available)
 		{
-			uint8 *indices = static_cast<uint8 *>(_descriptor[kMeshFeatureIndices]._pointer);
+			uint8 *indices = Data<uint8>(kMeshFeatureIndices);
 			std::copy(indices, indices + _indicesSize, static_cast<uint8 *>(_indices));
 		}
 		
