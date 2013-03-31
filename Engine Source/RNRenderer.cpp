@@ -1140,7 +1140,7 @@ namespace RN
 	
 	void Renderer::DrawMeshInstanced(machine_uint start, machine_uint count)
 	{
-		Mesh *mesh = _frame[(int)start].mesh;
+		/*Mesh *mesh = _frame[(int)start].mesh;
 		MeshLODStage *stage = mesh->LODStage(0);
 		MeshDescriptor *descriptor = stage->Descriptor(kMeshFeatureIndices);
 		
@@ -1215,7 +1215,7 @@ namespace RN
 				glDisableVertexAttribArray(_currentProgram->imatModelInverse + i);
 		}
 		
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);*/
 	}
 	
 	void Renderer::RenderObject(const RenderingObject& object)

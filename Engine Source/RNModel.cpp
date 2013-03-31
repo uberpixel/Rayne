@@ -327,9 +327,9 @@ namespace RN
 			Mesh *mesh = new Mesh();
 			MeshLODStage *stage = mesh->AddLODStage(descriptors, vertexdata);
 			
-			file->ReadIntoBuffer(stage->Data<void>(kMeshFeatureIndices), numindices*sizeindices);
-			
-			mesh->UpdateMesh();
+			void *data = stage->MutableData<void>(kMeshFeatureIndices);
+			file->ReadIntoBuffer(data, numindices*sizeindices);
+			stage->ReleaseData(kMeshFeatureIndices);
 			
 			delete[] vertexdata;
 			

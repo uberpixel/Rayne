@@ -13,52 +13,26 @@ namespace RN
 {
 	RNDeclareMeta(Mesh)
 	
+	MeshDescriptor::MeshDescriptor()
+	{
+		elementMember = 0;
+		elementSize = 0;
+		elementCount = 0;
+		offset = 0;
+		
+		_pointer = 0;
+		_size = 0;
+		_useCount = 0;
+		_available = false;
+		_dirty = false;
+	}
+	
 	MeshLODStage::MeshLODStage(const Array<MeshDescriptor>& descriptor)
 	{
-		_meshSize = 0;
-		_meshData = 0;
-		
-		_indicesSize = 0;
-		_indices     = 0;
-		
-		_instancing._data = 0;
-		_instancing._size = 0;
-		_instancing._vbo = 0;
-		
-		glGenBuffers(2, &_vbo);
-		RN_CHECKOPENGL();
-		
-		
-		for(int i=0; i<__kMaxMeshFeatures; i++)
-		{
-			_descriptor[i]._available = false;
-			_descriptor[i]._pointer = 0;
-			_descriptor[i].offset  = 0;
-		}
-		
-		for(machine_uint i=0; i<descriptor.Count(); i++)
-		{
-			size_t size = descriptor[(int)i].elementSize * descriptor[(int)i].elementCount;
-			int index = (int)descriptor[(int)i].feature;
-			
-			if(_descriptor[index]._available == false)
-			{
-				_descriptor[index] = descriptor[(int)i];
-				
-				if(_descriptor[index].feature != kMeshFeatureIndices)
-					_meshSize += size;
-				else
-					_indicesSize += size;
-				
-				_descriptor[index].offset = 0;
-				_descriptor[index]._pointer = 0;
-				_descriptor[index]._available = true;
-				_descriptor[index]._size = size;
-			}
-		}
+		Initialize(descriptor);
 		
 		size_t offset = 0;
-		for(int i=0; i<__kMaxMeshFeatures; i++)
+		for(int i=0; i<kMeshFeatureIndices; i++)
 		{
 			if(_descriptor[i]._available)
 			{
@@ -70,49 +44,55 @@ namespace RN
 	
 	MeshLODStage::MeshLODStage(const Array<MeshDescriptor>& descriptor, const void *data)
 	{
+		Initialize(descriptor);
+		
+		_meshData = malloc(_meshSize);
+		
+		const uint8 *meshData = static_cast<const uint8 *>(data);
+		std::copy(meshData, meshData + _meshSize, static_cast<uint8 *>(_meshData));
+		
+		for(int i=0; i<__kMaxMeshFeatures; i++)
+		{
+			if(_descriptor[i]._available)
+				_descriptor[i]._dirty = true;
+		}
+	}
+	
+	void MeshLODStage::Initialize(const Array<MeshDescriptor>& descriptor)
+	{
 		_meshSize = 0;
 		_meshData = 0;
 		
 		_indicesSize = 0;
 		_indices     = 0;
 		
-		_instancing._data = 0;
-		_instancing._size = 0;
-		_instancing._vbo = 0;
+		_stride = 0;
 		
 		glGenBuffers(2, &_vbo);
 		RN_CHECKOPENGL();
 		
-		for(int i=0; i<__kMaxMeshFeatures; i++)
+		for(int i=0; i<descriptor.Count(); i++)
 		{
-			_descriptor[i]._available = false;
-			_descriptor[i]._pointer = 0;
-			_descriptor[i].offset  = 0;
-		}
-		
-		for(machine_uint i=0; i<descriptor.Count(); i++)
-		{
-			size_t size = descriptor[(int)i].elementSize * descriptor[(int)i].elementCount;
-			int index   = (int)descriptor[(int)i].feature;
+			size_t size = descriptor[i].elementSize * descriptor[i].elementCount;
+			int index   = (int)descriptor[i].feature;
 			
-			if(_descriptor[index]._available == false)
+			if(!_descriptor[index]._available)
 			{
-				_descriptor[index] = descriptor[(int)i];
-				
-				if(_descriptor[index].feature != kMeshFeatureIndices)
-					_meshSize += size;
-				else
-					_indicesSize += size;
-				
-				_descriptor[index].offset = descriptor[(int)i].offset;
-				_descriptor[index]._pointer = 0;
+				_descriptor[index] = descriptor[i];
 				_descriptor[index]._available = true;
 				_descriptor[index]._size = size;
+				
+				if(_descriptor[index].feature != kMeshFeatureIndices)
+				{
+					_meshSize += size;
+					_stride   += descriptor[i].elementSize;
+				}
+				else
+				{
+					_indicesSize += size;
+				}
 			}
 		}
-		
-		_meshData = malloc(_meshSize);
-		memcpy(_meshData, data, _meshSize);
 	}
 	
 	MeshLODStage::~MeshLODStage()
@@ -130,12 +110,51 @@ namespace RN
 		
 		if(_indices)
 			free(_indices);
+	}
+	
+	const void *MeshLODStage::FetchConstDataForFeature(MeshFeature feature)
+	{
+		int32 index = (int32)feature;
+		if(!_descriptor[index]._available)
+			return 0;
 		
-		if(_instancing._data)
-			free(_instancing._data);
+		if(_descriptor[index]._pointer)
+			return _descriptor[index]._pointer;
 		
-		if(_instancing._vbo)
-			glDeleteBuffers(1, &_instancing._vbo);
+		uint8 *data = (uint8 *)malloc(_descriptor[index]._size);
+		if(feature == kMeshFeatureIndices)
+		{
+			uint8 *indicesData = static_cast<uint8 *>(_indices);
+			
+			if(indicesData)
+				std::copy(indicesData, indicesData + _indicesSize, data);
+		}
+		else
+		{
+			uint8 *meshData = static_cast<uint8 *>(_meshData);
+			
+			if(meshData)
+			{
+				size_t offset = OffsetForFeature(feature);
+				size_t size   = _descriptor[feature].elementSize;
+				
+				uint8 *tdata = data;
+				
+				while(offset < _meshSize)
+				{
+					std::copy(meshData + offset, meshData + (offset + size), tdata);
+					
+					offset += _stride;
+					tdata  += size;
+				}
+			}
+		}
+		
+		_descriptor[index]._pointer = data;
+		_descriptor[index]._dirty = true;
+		_descriptor[index]._useCount ++;
+		
+		return (const void *)data;
 	}
 	
 	void *MeshLODStage::FetchDataForFeature(MeshFeature feature)
@@ -145,30 +164,81 @@ namespace RN
 		if(!_descriptor[index]._available)
 			return 0;
 		
-		if(_descriptor[index]._pointer)
-			return _descriptor[index]._pointer;
-		
-		uint8 *data = (uint8 *)malloc(_descriptor[index]._size);
-		uint8 *meshData = static_cast<uint8 *>(_meshData);
-		
-		if(meshData)
+		_descriptor[index]._dirty = true;
+		return (void *)FetchConstDataForFeature(feature);
+	}
+	
+	void MeshLODStage::ReleaseData(MeshFeature feature)
+	{
+		int32 index = (int32)feature;
+		if((--_descriptor[index]._useCount) == 0)
 		{
-			size_t offset = OffsetForFeature(feature);
-			size_t size = _descriptor[feature].elementSize;
+			bool regenerateMesh = true;
+			bool hasDirtyMesh = false;
 			
-			uint8 *tdata = data;
-			
-			while(offset < _meshSize)
+			for(int i=0; i<__kMaxMeshFeatures; i++)
 			{
-				std::copy(meshData + offset, meshData + (offset + size), tdata);
+				if(_descriptor[i]._useCount > 0)
+				{
+					regenerateMesh = false;
+					break;
+				}
 				
-				offset += _stride;
-				tdata  += size;
+				if(_descriptor[i]._dirty)
+					hasDirtyMesh = true;
+			}
+			
+			if(regenerateMesh && hasDirtyMesh)
+			{
+				GenerateMesh();
+				
+				for(int i=0; i<__kMaxMeshFeatures; i++)
+				{
+					if(_descriptor[i]._pointer)
+					{
+						free(_descriptor[i]._pointer);
+						_descriptor[i]._pointer = 0;
+						_descriptor[i]._dirty = false;
+					}
+				}
+			}
+		}
+	}
+	
+	void MeshLODStage::CalculateBoundingBox()
+	{
+		_min = Vector3();
+		_max = Vector3();
+		
+		const Vector3 *vertices = Data<Vector3>(kMeshFeatureVertices);
+		if(vertices)
+		{
+			size_t count = _descriptor[kMeshFeatureVertices].elementCount;
+			for(size_t i=0; i<count; i++)
+			{
+				const Vector3 *vertex = vertices + i;
+				
+				if(_min.x > vertex->x)
+					_min.x = vertex->x;
+				
+				if(_min.y > vertex->y)
+					_min.y = vertex->y;
+				
+				if(_min.z > vertex->z)
+					_min.z = vertex->z;
+				
+				if(_max.x < vertex->x)
+					_max.x = vertex->x;
+				
+				if(_max.y < vertex->y)
+					_max.y = vertex->y;
+				
+				if(_max.z < vertex->z)
+					_max.z = vertex->z;
 			}
 		}
 		
-		_descriptor[index]._pointer = data;
-		return data;
+		ReleaseData(kMeshFeatureVertices);
 	}
 	
 	void MeshLODStage::GenerateMesh()
@@ -179,67 +249,66 @@ namespace RN
 		if(!_indices)
 			_indices = malloc(_indicesSize);
 		
+		bool meshChanged = false;
+		bool indicesChanged = false;
+		
 		uint8 *bytes = static_cast<uint8 *>(_meshData);
 		uint8 *bytesEnd = bytes + _meshSize;
 		
 		uint8 *buffer[kMeshFeatureIndices];
 		
-		_stride = 0;
-		
 		for(int i=0; i<kMeshFeatureIndices; i++)
-		{
-			buffer[i] = 0;
-			
-			if(_descriptor[i]._available)
-			{
-				if(_descriptor[i]._pointer)
-					buffer[i] = _descriptor[i]._pointer;
-				
-				_stride += _descriptor[i].elementSize;
-			}
-		}
+			buffer[i] = _descriptor[i]._pointer;
 		
+		// Fill the mesh buffer
 		while(bytes < bytesEnd)
 		{
 			for(int i=0; i<kMeshFeatureIndices; i++)
 			{
 				if(_descriptor[i]._available)
 				{
-					if(_descriptor[i]._pointer)
-						std::copy(buffer[i], buffer[i] +_descriptor[i].elementSize, bytes);
+					if(_descriptor[i]._dirty)
+					{
+						if(_descriptor[i]._pointer)
+						{
+							std::copy(buffer[i], buffer[i] + _descriptor[i].elementSize, bytes);
+							buffer[i] += _descriptor[i].elementSize;
+						}
+						
+						meshChanged = true;
+					}
 					
-					bytes     += _descriptor[i].elementSize;
-					buffer[i] += _descriptor[i].elementSize;
+					bytes += _descriptor[i].elementSize;
 				}
 			}
 		}
 		
-		if(_descriptor[kMeshFeatureIndices]._available)
+		// Fill the indices buffer
+		if(_descriptor[kMeshFeatureIndices]._available && _descriptor[kMeshFeatureIndices]._dirty)
 		{
-			uint8 *indices = Data<uint8>(kMeshFeatureIndices);
+			uint8 *indices = _descriptor[kMeshFeatureIndices]._pointer;
 			std::copy(indices, indices + _indicesSize, static_cast<uint8 *>(_indices));
+			
+			indicesChanged = true;
 		}
 		
-		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-		glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		RN_CHECKOPENGL();
+		if(meshChanged)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+			glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, GL_STATIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			RN_CHECKOPENGL();
+		}
 		
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, GL_STATIC_DRAW);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		RN_CHECKOPENGL();
+		if(indicesChanged)
+		{
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, GL_STATIC_DRAW);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			RN_CHECKOPENGL();
+		}
 		
 		glFlush();
-		
-		for(int i=0; i<__kMaxMeshFeatures; i++)
-		{
-			if(_descriptor[i]._available && _descriptor[i]._pointer)
-			{
-				free(_descriptor[i]._pointer);
-				_descriptor[i]._pointer = 0;
-			}
-		}
 	}
 
 	bool MeshLODStage::SupportsFeature(MeshFeature feature)
@@ -251,50 +320,6 @@ namespace RN
 	{
 		return _descriptor[(int32)feature].offset;
 	}
-	
-	bool MeshLODStage::InstancingData(size_t size, GLuint *outVBO, void **outData)
-	{
-		RN_ASSERT0(outVBO);
-		RN_ASSERT0(outData);
-		
-		bool didResize = false;
-		
-		if(_instancing._vbo == 0)
-		{
-			glGenBuffers(1, &_instancing._vbo);
-			RN_CHECKOPENGL();
-		}
-
-		if(_instancing._data == 0)
-		{
-			void *temp = malloc(size);
-			if(!temp)
-				throw ErrorException(0, 0, 0);
-			
-			_instancing._data = temp;
-			_instancing._size = size;
-			
-			didResize = true;
-		}
-		
-		if(size > _instancing._size)
-		{
-			void *temp = realloc(_instancing._data, size);
-			if(!temp)
-				throw ErrorException(0, 0, 0);
-				
-			_instancing._data = temp;
-			_instancing._size = size;
-			
-			didResize = true;
-		}
-		
-		*outVBO  = _instancing._vbo;
-		*outData = _instancing._data;
-		
-		return didResize;
-	}
-
 	
 	
 	
@@ -329,14 +354,6 @@ namespace RN
 		return _LODStages[index];
 	}
 	
-	void Mesh::UpdateMesh()
-	{
-		for(machine_uint i=0; i<_LODStages.Count(); i++)
-		{
-			_LODStages[(int)i]->GenerateMesh();
-		}
-	}
-	
 	Mesh *Mesh::PlaneMesh(const Vector3& size, const Vector3& rotation)
 	{
 		Mesh *mesh = new Mesh();
@@ -367,9 +384,9 @@ namespace RN
 		
 		MeshLODStage *stage = mesh->AddLODStage(descriptors);
 		
-		Vector3 *vertices  = stage->Data<Vector3>(kMeshFeatureVertices);
-		Vector2 *texcoords = stage->Data<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = stage->Data<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = stage->MutableData<Vector3>(kMeshFeatureVertices);
+		Vector2 *texcoords = stage->MutableData<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = stage->MutableData<uint16>(kMeshFeatureIndices);
 		
 		Matrix rotmat;
 		rotmat.MakeRotate(rotation);
@@ -391,7 +408,10 @@ namespace RN
 		*indices ++ = 1;
 		*indices ++ = 3;
 		
-		mesh->UpdateMesh();
+		stage->ReleaseData(kMeshFeatureVertices);
+		stage->ReleaseData(kMeshFeatureUVSet0);
+		stage->ReleaseData(kMeshFeatureIndices);
+		
 		return mesh;
 	}
 	
@@ -432,10 +452,10 @@ namespace RN
 		
 		MeshLODStage *stage = mesh->AddLODStage(descriptors);
 		
-		Vector3 *vertices  = stage->Data<Vector3>(kMeshFeatureVertices);
-		Vector3 *normals   = stage->Data<Vector3>(kMeshFeatureNormals);
-		Vector2 *texcoords = stage->Data<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = stage->Data<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = stage->MutableData<Vector3>(kMeshFeatureVertices);
+		Vector3 *normals   = stage->MutableData<Vector3>(kMeshFeatureNormals);
+		Vector2 *texcoords = stage->MutableData<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = stage->MutableData<uint16>(kMeshFeatureIndices);
 		
 		*vertices ++ = Vector3(-size.x,  size.y, size.z);
 		*vertices ++ = Vector3( size.x,  size.y, size.z);
@@ -569,7 +589,11 @@ namespace RN
 		*indices ++ = 21;
 		*indices ++ = 22;
 		
-		mesh->UpdateMesh();
+		stage->ReleaseData(kMeshFeatureVertices);
+		stage->ReleaseData(kMeshFeatureUVSet0);
+		stage->ReleaseData(kMeshFeatureNormals);
+		stage->ReleaseData(kMeshFeatureIndices);
+		
 		return mesh;
 	}
 	
@@ -617,11 +641,11 @@ namespace RN
 		
 		MeshLODStage *stage = mesh->AddLODStage(descriptors);
 		
-		Vector3 *vertices  = stage->Data<Vector3>(kMeshFeatureVertices);
-		Vector3 *normals   = stage->Data<Vector3>(kMeshFeatureNormals);
-		Color *colors      = stage->Data<Color>(kMeshFeatureColor0);
-		Vector2 *texcoords = stage->Data<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = stage->Data<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = stage->MutableData<Vector3>(kMeshFeatureVertices);
+		Vector3 *normals   = stage->MutableData<Vector3>(kMeshFeatureNormals);
+		Color *colors      = stage->MutableData<Color>(kMeshFeatureColor0);
+		Vector2 *texcoords = stage->MutableData<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = stage->MutableData<uint16>(kMeshFeatureIndices);
 		
 		*vertices ++ = Vector3(-size.x,  size.y, size.z);
 		*vertices ++ = Vector3( size.x,  size.y, size.z);
@@ -785,7 +809,12 @@ namespace RN
 		*indices ++ = 21;
 		*indices ++ = 22;
 		
-		mesh->UpdateMesh();
+		stage->ReleaseData(kMeshFeatureVertices);
+		stage->ReleaseData(kMeshFeatureUVSet0);
+		stage->ReleaseData(kMeshFeatureNormals);
+		stage->ReleaseData(kMeshFeatureColor0);
+		stage->ReleaseData(kMeshFeatureIndices);
+		
 		return mesh;
 	}
 }
