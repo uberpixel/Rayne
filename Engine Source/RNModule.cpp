@@ -11,6 +11,7 @@
 #include "RNApplication.h"
 #include "RNSettings.h"
 #include "RNFile.h"
+#include "RNPathManager.h"
 
 namespace RN
 {
@@ -18,11 +19,11 @@ namespace RN
 		_name(name)
 	{
 #if RN_PLATFORM_MAC_OS
-		_path = File::PathForName(_name + ".dylib");
+		_path = PathManager::PathForName(_name + ".dylib");
 #endif
 		
 #if RN_PLATFORM_LINUX
-		_path = File::PathForName(_name + ".so");
+		_path = PathManager::PathForName(_name + ".so");
 #endif
 		
 		memset(&_exports, 0, sizeof(ModuleExports));

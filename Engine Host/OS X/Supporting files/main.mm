@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 		if(strcmp(argv[i], "-r") == 0 && i < argc - 1)
 		{
 			char *path = argv[++ i];
-			RN::File::AddSearchPath(path);
+			RN::PathManager::AddSearchPath(path);
 		}
 	}
 	

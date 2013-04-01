@@ -20,6 +20,7 @@
 #include "RNInput.h"
 #include "RNMessage.h"
 #include "RNFile.h"
+#include "RNPathManager.h"
 
 #include "RNSkeleton.h"
 #include "RNModel.h"

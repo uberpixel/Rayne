@@ -8,6 +8,7 @@
 
 #include "RNShader.h"
 #include "RNKernel.h"
+#include "RNPathManager.h"
 
 namespace RN
 {
@@ -24,17 +25,14 @@ namespace RN
 		_supportedPrograms = 0;
 		AddDefines();
 		
-		SetVertexShader(File::PathForName(shader + ".vsh"));
-		SetFragmentShader(File::PathForName(shader + ".fsh"));
+		SetVertexShader(PathManager::PathForName(shader + ".vsh"));
+		SetFragmentShader(PathManager::PathForName(shader + ".fsh"));
 		
-		try
-		{
-			std::string path = File::PathForName(shader + ".gsh");
-			SetGeometryShader(File::PathForName(shader + ".gsh"));
-		}
-		catch(ErrorException e)
-		{
-		}
+#if GL_GEOMETRY_SHADER
+		std::string path = PathManager::PathForName(shader + ".gsh");
+		if(path.length() > 0)
+			SetGeometryShader(path);
+#endif
 		
 		ProgramOfType(ShaderProgram::TypeNormal);
 	}
@@ -577,7 +575,7 @@ namespace RN
 			
 			try
 			{
-				File *includeFile = new File(file->Path() + "/" + name);
+				File *includeFile = new File(PathManager::Join(file->Path(), name));
 				data.insert(index, includeFile->String());
 				includeFile->Release();
 			}

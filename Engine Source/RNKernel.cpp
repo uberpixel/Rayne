@@ -14,6 +14,7 @@
 #include "RNThreadPool.h"
 #include "RNSettings.h"
 #include "RNModule.h"
+#include "RNPathManager.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -110,7 +111,7 @@ namespace RN
 		moduleName += ".so";
 #endif
 		
-		std::string path = File::PathForName(moduleName);
+		std::string path = PathManager::PathForName(moduleName);
 
 		_appHandle = dlopen(path.c_str(), RTLD_LAZY);
 		if(!_appHandle)
