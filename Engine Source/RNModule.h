@@ -11,11 +11,14 @@
 
 #include "RNBase.h"
 
+#define kRNModuleCurrentVersion 1
+
 namespace RN
 {
 	class Kernel;
 	class Application;
 	class Module;
+
 	
 	struct ModuleExports
 	{
@@ -36,7 +39,9 @@ namespace RN
 		enum
 		{
 			ModuleTypeFile = (1 << 0),
-			ModuleTypeTexture = ModuleTypeFile | (1 << 1)
+			ModuleTypeTexture = ModuleTypeFile | (1 << 1),
+			
+			ModuleTypePhysics = (1 << 10)
 		};
 		
 		RNAPI Module(const std::string& name);

@@ -33,10 +33,10 @@ namespace RN
 		__kMaxMeshFeatures = 10
 	} MeshFeature;
 	
-	class MeshLODStage;
+	class Mesh;
 	struct MeshDescriptor
 	{
-	friend class MeshLODStage;
+	friend class Mesh;
 	public:
 		MeshDescriptor();
 		
@@ -57,12 +57,12 @@ namespace RN
 		bool _dirty;
 	};
 	
-	class MeshLODStage
+	class Mesh : public Object
 	{
 	public:
-		RNAPI MeshLODStage(const Array<MeshDescriptor>& descriptor);
-		RNAPI MeshLODStage(const Array<MeshDescriptor>& descriptor, const void *data);
-		RNAPI ~MeshLODStage();
+		RNAPI Mesh(const Array<MeshDescriptor>& descriptor);
+		RNAPI Mesh(const Array<MeshDescriptor>& descriptor, const void *data);
+		RNAPI virtual ~Mesh();
 		
 		template <typename T>
 		T *MutableData(MeshFeature feature)
@@ -95,13 +95,17 @@ namespace RN
 		const Vector3& Min() const { return _min; }
 		const Vector3& Max() const { return _max; }
 		
+		RNAPI static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0, 1.0, 1.0), const Vector3& rotation = Vector3(0.0f, 0.0f, 0.0f));
+		RNAPI static Mesh *CubeMesh(const Vector3& size);
+		RNAPI static Mesh *CubeMesh(const Vector3& size, const Color& color);
+		
 	private:
 		void Initialize(const Array<MeshDescriptor>& descriptor);
 		void GenerateMesh();
 		
 		const void *FetchConstDataForFeature(MeshFeature feature);
 		void *FetchDataForFeature(MeshFeature feature);
-						
+		
 		struct
 		{
 			GLuint _vbo;
@@ -119,28 +123,8 @@ namespace RN
 		void *_meshData;
 		void *_indices;
 		MeshDescriptor _descriptor[__kMaxMeshFeatures];
-	};
-	
-	class Mesh : public Object
-	{
-	public:
-		RNAPI Mesh();
-		RNAPI virtual ~Mesh();
 		
-		RNAPI MeshLODStage *AddLODStage(const Array<MeshDescriptor>& descriptor);
-		RNAPI MeshLODStage *AddLODStage(const Array<MeshDescriptor>& descriptor, const void *data);
-		
-		RNAPI MeshLODStage *LODStage(int index);
-		RNAPI machine_uint LODStages() const { return _LODStages.Count(); }
-		
-		RNAPI static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0, 1.0, 1.0), const Vector3& rotation = Vector3(0.0f, 0.0f, 0.0f));
-		RNAPI static Mesh *CubeMesh(const Vector3& size);
-		RNAPI static Mesh *CubeMesh(const Vector3& size, const Color& color);
-		
-	private:
-		Array<MeshLODStage *> _LODStages;
-		
-		RNDefineMeta(Mesh, Object)
+		RNDefineConstructorlessMeta(Mesh, Object)
 	};
 }
 

@@ -66,7 +66,7 @@ namespace RN
 		RNAPI void UpdateShaderData();
 		RNAPI void DrawMesh(Mesh *mesh);
 		RNAPI void DrawMeshInstanced(machine_uint start, machine_uint count);
-		RNAPI void BindVAO(const std::tuple<ShaderProgram *, MeshLODStage *>& tuple);
+		RNAPI void BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple);
 		
 		RNAPI void CullLights(Camera *camera, Light **lights, machine_uint lightCount, GLuint indicesBuffer, GLuint offsetBuffer);
 		
@@ -78,7 +78,7 @@ namespace RN
 		float _scaleFactor;
 		float _time;
 		
-		std::map<std::tuple<ShaderProgram *, MeshLODStage *>, std::tuple<GLuint, uint32>> _autoVAOs;
+		std::map<std::tuple<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
 		std::vector<Camera *> _flushCameras;
 		
 		GLuint _defaultFBO;

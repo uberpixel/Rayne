@@ -27,31 +27,75 @@ namespace RN
 		
 		virtual ~Model();
 		
+		static Model *Empty();
 		static Model *WithFile(const std::string& path);
 		static Model *WithMesh(Mesh *mesh, Material *material, const std::string& name="Unnamed");
-		static Model *Empty();
-		static Model *WithSkyCube(std::string up, std::string down, std::string left, std::string right, std::string front, std::string back, std::string shader="shader/rn_Sky");
+		static Model *WithSkyCube(const std::string& up, const std::string& down, const std::string& left, const std::string& right, const std::string& front, const std::string& back, const std::string& shader="shader/rn_Sky");
 		
-		void AddMesh(Mesh *mesh, Material *material, const std::string& name="Unnamed");
+		uint32 AddLODStage(float distance);
+		void RemoveLODStage(uint32 stage);
 		
-		uint32 Meshes() const;
-		uint32 Materials() const;
+		void AddMesh(Mesh *mesh, Material *material, uint32 lodStage, const std::string& name="Unnamed");
+		void RemoveMesh(Mesh *mesh, uint32 lodStage);
 		
-		Mesh *MeshAtIndex(uint32 index) const;
-		Material *MaterialForMesh(const Mesh *mesh) const;
+		uint32 LODStageForDistance(float distance) const;
+		
+		uint32 Meshes(uint32 lodStage) const;
+		
+		Mesh *MeshAtIndex(uint32 lodStage, uint32 index) const;
+		Material *MaterialAtIndex(uint32 lodStage, uint32 index) const;
 		
 	private:
-		struct MeshGroup
+		class MeshGroup
 		{
+		public:
+			MeshGroup(Mesh *tmesh, Material *tmaterial, const std::string& tname) :
+				name(tname)
+			{
+				RN_ASSERT0(tmesh && tmaterial);
+				
+				mesh = tmesh->Retain();
+				material = tmaterial->Retain();
+			}
+			
+			~MeshGroup()
+			{
+				mesh->Release();
+				material->Release();
+			}
+			
 			std::string name;
+			
 			Mesh *mesh;
 			Material *material;
 		};
 		
-		void ReadModelVersion1(File *file);
+		class LODGroup
+		{
+		public:
+			LODGroup(float distance) :
+				lodDistance(distance)
+			{}
+			
+			~LODGroup()
+			{
+				for(MeshGroup *group : groups)
+				{
+					delete group;
+				}
+			}
+			
+			std::vector<MeshGroup *> groups;
+			float lodDistance;
+		};
 		
-		Array<Material> _materials;
-		std::vector<MeshGroup> _groups;
+		void ReadFileAtPath(const std::string& path, LODGroup *group);
+		void ReadModelVersion1(File *file, LODGroup *group);
+		
+		Shader *PickShaderForMaterialAndMesh(Material *material, Mesh *mesh);
+		Material *PickMaterialForMesh(Mesh *mesh);
+		
+		std::vector<LODGroup *> _groups;
 		
 		RNDefineMeta(Model, Object)
 	};

@@ -42,7 +42,7 @@ namespace RN
 		_range = range;
 	}
 	
-	void Light::SetColor(Vector3 color)
+	void Light::SetColor(const Vector3& color)
 	{
 		_color = color;
 	}

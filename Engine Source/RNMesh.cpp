@@ -27,7 +27,7 @@ namespace RN
 		_dirty = false;
 	}
 	
-	MeshLODStage::MeshLODStage(const Array<MeshDescriptor>& descriptor)
+	Mesh::Mesh(const Array<MeshDescriptor>& descriptor)
 	{
 		Initialize(descriptor);
 		
@@ -42,7 +42,7 @@ namespace RN
 		}
 	}
 	
-	MeshLODStage::MeshLODStage(const Array<MeshDescriptor>& descriptor, const void *data)
+	Mesh::Mesh(const Array<MeshDescriptor>& descriptor, const void *data)
 	{
 		Initialize(descriptor);
 		
@@ -58,7 +58,7 @@ namespace RN
 		}
 	}
 	
-	void MeshLODStage::Initialize(const Array<MeshDescriptor>& descriptor)
+	void Mesh::Initialize(const Array<MeshDescriptor>& descriptor)
 	{
 		_meshSize = 0;
 		_meshData = 0;
@@ -95,7 +95,7 @@ namespace RN
 		}
 	}
 	
-	MeshLODStage::~MeshLODStage()
+	Mesh::~Mesh()
 	{
 		glDeleteBuffers(2, &_vbo);
 		
@@ -112,7 +112,7 @@ namespace RN
 			free(_indices);
 	}
 	
-	const void *MeshLODStage::FetchConstDataForFeature(MeshFeature feature)
+	const void *Mesh::FetchConstDataForFeature(MeshFeature feature)
 	{
 		int32 index = (int32)feature;
 		if(!_descriptor[index]._available)
@@ -157,7 +157,7 @@ namespace RN
 		return (const void *)data;
 	}
 	
-	void *MeshLODStage::FetchDataForFeature(MeshFeature feature)
+	void *Mesh::FetchDataForFeature(MeshFeature feature)
 	{
 		int32 index = (int32)feature;
 		
@@ -168,7 +168,7 @@ namespace RN
 		return (void *)FetchConstDataForFeature(feature);
 	}
 	
-	void MeshLODStage::ReleaseData(MeshFeature feature)
+	void Mesh::ReleaseData(MeshFeature feature)
 	{
 		int32 index = (int32)feature;
 		if((--_descriptor[index]._useCount) == 0)
@@ -205,7 +205,7 @@ namespace RN
 		}
 	}
 	
-	void MeshLODStage::CalculateBoundingBox()
+	void Mesh::CalculateBoundingBox()
 	{
 		_min = Vector3();
 		_max = Vector3();
@@ -241,7 +241,7 @@ namespace RN
 		ReleaseData(kMeshFeatureVertices);
 	}
 	
-	void MeshLODStage::GenerateMesh()
+	void Mesh::GenerateMesh()
 	{
 		if(!_meshData)
 			_meshData = malloc(_meshSize);
@@ -311,53 +311,20 @@ namespace RN
 		glFlush();
 	}
 
-	bool MeshLODStage::SupportsFeature(MeshFeature feature)
+	bool Mesh::SupportsFeature(MeshFeature feature)
 	{
 		return _descriptor[(int32)feature]._available;
 	}
 	
-	size_t MeshLODStage::OffsetForFeature(MeshFeature feature)
+	size_t Mesh::OffsetForFeature(MeshFeature feature)
 	{
 		return _descriptor[(int32)feature].offset;
 	}
 	
 	
 	
-	Mesh::Mesh()
-	{
-	}
-	
-	Mesh::~Mesh()
-	{
-		for(machine_uint i=0; i<_LODStages.Count(); i++)
-			delete _LODStages[(int)i];
-	}
-	
-	MeshLODStage *Mesh::AddLODStage(const Array<MeshDescriptor>& descriptor)
-	{
-		MeshLODStage *stage = new MeshLODStage(descriptor);
-		_LODStages.AddObject(stage);
-		
-		return stage;
-	}
-	
-	MeshLODStage *Mesh::AddLODStage(const Array<MeshDescriptor>& descriptor, const void *data)
-	{
-		MeshLODStage *stage = new MeshLODStage(descriptor, data);
-		_LODStages.AddObject(stage);
-		
-		return stage;
-	}
-	
-	MeshLODStage *Mesh::LODStage(int index)
-	{
-		return _LODStages[index];
-	}
-	
 	Mesh *Mesh::PlaneMesh(const Vector3& size, const Vector3& rotation)
 	{
-		Mesh *mesh = new Mesh();
-		
 		MeshDescriptor vertexDescriptor;
 		vertexDescriptor.feature = kMeshFeatureVertices;
 		vertexDescriptor.elementSize = sizeof(Vector3);
@@ -382,11 +349,11 @@ namespace RN
 		descriptors.AddObject(texcoordDescriptor);
 		
 		
-		MeshLODStage *stage = mesh->AddLODStage(descriptors);
+		Mesh *mesh = new Mesh(descriptors);
 		
-		Vector3 *vertices  = stage->MutableData<Vector3>(kMeshFeatureVertices);
-		Vector2 *texcoords = stage->MutableData<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = stage->MutableData<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = mesh->MutableData<Vector3>(kMeshFeatureVertices);
+		Vector2 *texcoords = mesh->MutableData<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = mesh->MutableData<uint16>(kMeshFeatureIndices);
 		
 		Matrix rotmat;
 		rotmat.MakeRotate(rotation);
@@ -408,17 +375,15 @@ namespace RN
 		*indices ++ = 1;
 		*indices ++ = 3;
 		
-		stage->ReleaseData(kMeshFeatureVertices);
-		stage->ReleaseData(kMeshFeatureUVSet0);
-		stage->ReleaseData(kMeshFeatureIndices);
+		mesh->ReleaseData(kMeshFeatureVertices);
+		mesh->ReleaseData(kMeshFeatureUVSet0);
+		mesh->ReleaseData(kMeshFeatureIndices);
 		
 		return mesh;
 	}
 	
 	Mesh *Mesh::CubeMesh(const Vector3& size)
 	{
-		Mesh *mesh = new Mesh();
-		
 		MeshDescriptor vertexDescriptor;
 		vertexDescriptor.feature = kMeshFeatureVertices;
 		vertexDescriptor.elementSize = sizeof(Vector3);
@@ -450,12 +415,12 @@ namespace RN
 		descriptors.AddObject(texcoordDescriptor);
 		
 		
-		MeshLODStage *stage = mesh->AddLODStage(descriptors);
+		Mesh *mesh = new Mesh(descriptors);
 		
-		Vector3 *vertices  = stage->MutableData<Vector3>(kMeshFeatureVertices);
-		Vector3 *normals   = stage->MutableData<Vector3>(kMeshFeatureNormals);
-		Vector2 *texcoords = stage->MutableData<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = stage->MutableData<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = mesh->MutableData<Vector3>(kMeshFeatureVertices);
+		Vector3 *normals   = mesh->MutableData<Vector3>(kMeshFeatureNormals);
+		Vector2 *texcoords = mesh->MutableData<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = mesh->MutableData<uint16>(kMeshFeatureIndices);
 		
 		*vertices ++ = Vector3(-size.x,  size.y, size.z);
 		*vertices ++ = Vector3( size.x,  size.y, size.z);
@@ -589,18 +554,16 @@ namespace RN
 		*indices ++ = 21;
 		*indices ++ = 22;
 		
-		stage->ReleaseData(kMeshFeatureVertices);
-		stage->ReleaseData(kMeshFeatureUVSet0);
-		stage->ReleaseData(kMeshFeatureNormals);
-		stage->ReleaseData(kMeshFeatureIndices);
+		mesh->ReleaseData(kMeshFeatureVertices);
+		mesh->ReleaseData(kMeshFeatureUVSet0);
+		mesh->ReleaseData(kMeshFeatureNormals);
+		mesh->ReleaseData(kMeshFeatureIndices);
 		
 		return mesh;
 	}
 	
 	Mesh *Mesh::CubeMesh(const Vector3& size, const Color& color)
 	{
-		Mesh *mesh = new Mesh();
-		
 		MeshDescriptor vertexDescriptor;
 		vertexDescriptor.feature = kMeshFeatureVertices;
 		vertexDescriptor.elementSize = sizeof(Vector3);
@@ -639,13 +602,13 @@ namespace RN
 		descriptors.AddObject(texcoordDescriptor);
 		
 		
-		MeshLODStage *stage = mesh->AddLODStage(descriptors);
+		Mesh *mesh = new Mesh(descriptors);
 		
-		Vector3 *vertices  = stage->MutableData<Vector3>(kMeshFeatureVertices);
-		Vector3 *normals   = stage->MutableData<Vector3>(kMeshFeatureNormals);
-		Color *colors      = stage->MutableData<Color>(kMeshFeatureColor0);
-		Vector2 *texcoords = stage->MutableData<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = stage->MutableData<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = mesh->MutableData<Vector3>(kMeshFeatureVertices);
+		Vector3 *normals   = mesh->MutableData<Vector3>(kMeshFeatureNormals);
+		Color *colors      = mesh->MutableData<Color>(kMeshFeatureColor0);
+		Vector2 *texcoords = mesh->MutableData<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = mesh->MutableData<uint16>(kMeshFeatureIndices);
 		
 		*vertices ++ = Vector3(-size.x,  size.y, size.z);
 		*vertices ++ = Vector3( size.x,  size.y, size.z);
@@ -809,11 +772,11 @@ namespace RN
 		*indices ++ = 21;
 		*indices ++ = 22;
 		
-		stage->ReleaseData(kMeshFeatureVertices);
-		stage->ReleaseData(kMeshFeatureUVSet0);
-		stage->ReleaseData(kMeshFeatureNormals);
-		stage->ReleaseData(kMeshFeatureColor0);
-		stage->ReleaseData(kMeshFeatureIndices);
+		mesh->ReleaseData(kMeshFeatureVertices);
+		mesh->ReleaseData(kMeshFeatureUVSet0);
+		mesh->ReleaseData(kMeshFeatureNormals);
+		mesh->ReleaseData(kMeshFeatureColor0);
+		mesh->ReleaseData(kMeshFeatureIndices);
 		
 		return mesh;
 	}

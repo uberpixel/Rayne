@@ -8,6 +8,7 @@
 
 #include "RNModel.h"
 #include "RNFile.h"
+#include "RNPathManager.h"
 #include "RNSkeleton.h"
 
 namespace RN
@@ -16,22 +17,78 @@ namespace RN
 	
 	Model::Model()
 	{
+		LODGroup *group = new LODGroup(0.0f);
+		_groups.push_back(group);
 	}
 	
-	Model::Model(const std::string& path)
+	Model::Model(const std::string& tpath)
+	{
+		std::string path = PathManager::PathForName(tpath);
+		std::string base = PathManager::Basepath(path);
+		std::string name = PathManager::Basename(path);
+		std::string extension = PathManager::Extension(path);
+		
+		LODGroup *group = new LODGroup(0.0f);
+		ReadFileAtPath(path, group);
+		
+		_groups.push_back(group);
+		
+		int stage = 1;
+		//float distance[] = { 0.125f, 0.25f, 0.50f, 0.75 };
+		float distance[] = { 0.05f, 0.125f, 0.50f, 0.75 };
+		
+		while(stage < 5)
+		{
+			char buffer[32];
+			sprintf(buffer, "_lod%i.", stage);
+			
+			std::string lodPath = PathManager::Join(base, (name + buffer + extension));
+			
+			if(PathManager::PathExists(lodPath))
+			{
+				group = new LODGroup(distance[stage - 1]);
+				ReadFileAtPath(lodPath, group);
+				
+				_groups.push_back(group);
+				stage ++;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	
+	Model::Model(Mesh *mesh, Material *material, const std::string& name)
+	{
+		LODGroup *group = new LODGroup(0.0f);
+		_groups.push_back(group);
+		
+		AddMesh(mesh, material, 0, name);
+	}
+	
+	Model::~Model()
+	{
+		for(LODGroup *group : _groups)
+		{
+			delete group;
+		}
+	}
+	
+	
+	void Model::ReadFileAtPath(const std::string& path, LODGroup *group)
 	{
 		File *file = new File(path);
-		
 		uint32 magic = file->ReadUint32();
 		
-		if(magic == 352658064)
+		if(magic == 0x15052290)
 		{
 			uint32 version = file->ReadUint8();
 			
 			switch(version)
 			{
 				case 1:
-					ReadModelVersion1(file);
+					ReadModelVersion1(file, group);
 					break;
 					
 				default:
@@ -42,59 +99,105 @@ namespace RN
 		file->Release();
 	}
 	
-	Model::Model(Mesh *mesh, Material *material, const std::string& name)
+	
+	Shader *Model::PickShaderForMaterialAndMesh(Material *material, Mesh *mesh)
 	{
-		MeshGroup group;
-		group.mesh = mesh->Retain();
-		group.material = material;
-		group.name = name;
-		
-		_groups.push_back(group);
-		_materials.AddObject(material);
-		
-		if(!material->Shader())
+		static Shader *shader = 0;
+		if(!shader)
 		{
-			// Pick a shader automatically
-			Shader *shader = 0;
-			
-			uint32 textures = material->TextureCount();
-			bool hasTexcoord0 = mesh->LODStage(0)->SupportsFeature(kMeshFeatureUVSet0);
-			bool hasColor0 = mesh->LODStage(0)->SupportsFeature(kMeshFeatureColor0);
-			bool hasColor1 = mesh->LODStage(0)->SupportsFeature(kMeshFeatureColor1);
-			
-			if(hasTexcoord0 && textures > 0)
-			{
-				if(textures == 1)
-				{
-					shader = new Shader("shader/rn_Texture1");
-				}
-				if(textures == 2)
-				{
-					shader = new Shader("shader/rn_Texture2");
-				}
-			}
-			else if(hasColor0)
-			{
-				if(hasColor1)
-				{
-					shader = new Shader("shader/rn_Color2");
-				}
-				else
-				{
-					shader = new Shader("shader/rn_Color1");
-				}
-			}
-			
-			if(shader)
-			{
-				material->SetShader(shader);
-				shader->Release();
-			}
+			shader = new Shader("shader/rn_Texture1");
 		}
+		
+		return shader->Retain();
 	}
 	
-	Model::~Model()
+	Material *Model::PickMaterialForMesh(Mesh *mesh)
 	{
+		Material *material = new Material();
+		material->SetShader(PickShaderForMaterialAndMesh(material, mesh));
+		return material;
+	}
+	
+	
+	uint32 Model::AddLODStage(float distance)
+	{
+		LODGroup *group = new LODGroup(distance);
+		_groups.push_back(group);
+		
+		std::sort(_groups.begin(), _groups.end(), [](LODGroup *groupA, LODGroup *groupB) {
+			return groupA->lodDistance < groupB->lodDistance;
+		});
+		
+		auto iterator = std::find(_groups.begin(), _groups.end(), group);
+		return (uint32)std::distance(_groups.begin(), iterator);
+	}
+	
+	void Model::RemoveLODStage(uint32 stage)
+	{
+		auto iterator = _groups.begin();
+		std::advance(iterator, stage);
+		
+		delete *iterator;
+		_groups.erase(iterator);
+	}
+	
+	
+	uint32 Model::LODStageForDistance(float distance) const
+	{
+		if(_groups.size() == 1 || distance <= kRNEpsilonFloat)
+			return 0;
+		
+		uint32 result = 0;
+		for(LODGroup *group : _groups)
+		{
+			if(distance <= group->lodDistance)
+				break;
+			
+			result ++;
+		}
+		
+		return result - 1;
+	}
+	
+	
+	void Model::AddMesh(Mesh *mesh, Material *material, uint32 lodStage, const std::string& name)
+	{
+		if(!material)
+			material = PickMaterialForMesh(mesh);
+		
+		if(!material->Shader())
+			material->SetShader(PickShaderForMaterialAndMesh(material, mesh));
+			
+		MeshGroup *group = new MeshGroup(mesh, material, name);
+		_groups[lodStage]->groups.push_back(group);
+	}
+	
+	void Model::RemoveMesh(Mesh *mesh, uint32 lodStage)
+	{
+	}
+	
+	
+	uint32 Model::Meshes(uint32 lodStage) const
+	{
+		return (uint32)_groups[lodStage]->groups.size();
+	}
+	
+	Mesh *Model::MeshAtIndex(uint32 lodStage, uint32 index) const
+	{
+		return _groups[lodStage]->groups[index]->mesh;
+	}
+	
+	Material *Model::MaterialAtIndex(uint32 lodStage, uint32 index) const
+	{
+		return _groups[lodStage]->groups[index]->material;
+	}
+	
+	
+	
+	Model *Model::Empty()
+	{
+		Model *model = new Model();
+		return model->Autorelease();
 	}
 	
 	Model *Model::WithFile(const std::string& path)
@@ -103,7 +206,13 @@ namespace RN
 		return model->Autorelease();
 	}
 	
-	Model *Model::WithSkyCube(std::string up, std::string down, std::string left, std::string right, std::string front, std::string back, std::string shader)
+	Model *Model::WithMesh(Mesh *mesh, Material *material, const std::string& name)
+	{
+		Model *model = new Model(mesh, material, name);
+		return model->Autorelease();
+	}
+	
+	Model *Model::WithSkyCube(const std::string& up, const std::string& down, const std::string& left, const std::string& right, const std::string& front, const std::string& back, const std::string& shader)
 	{
 		Shader *matShader = Shader::WithFile(shader);
 		
@@ -138,101 +247,57 @@ namespace RN
 		Mesh  *skyBackMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 0.0f, 90.0f));
 		
 		Model *skyModel = Model::Empty();
-		skyModel->AddMesh(skyDownMesh->Autorelease(), skyDownMaterial->Autorelease());
-		skyModel->AddMesh(skyUpMesh->Autorelease(), skyUpMaterial->Autorelease());
-		skyModel->AddMesh(skyLeftMesh->Autorelease(), skyLeftMaterial->Autorelease());
-		skyModel->AddMesh(skyRightMesh->Autorelease(), skyRightMaterial->Autorelease());
-		skyModel->AddMesh(skyFrontMesh->Autorelease(), skyFrontMaterial->Autorelease());
-		skyModel->AddMesh(skyBackMesh->Autorelease(), skyBackMaterial->Autorelease());
+		skyModel->AddMesh(skyDownMesh->Autorelease(), skyDownMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyUpMesh->Autorelease(), skyUpMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyLeftMesh->Autorelease(), skyLeftMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyRightMesh->Autorelease(), skyRightMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyFrontMesh->Autorelease(), skyFrontMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyBackMesh->Autorelease(), skyBackMaterial->Autorelease(), 0);
 		
 		return skyModel;
 	}
 	
-	Model *Model::WithMesh(Mesh *mesh, Material *material, const std::string& name)
-	{
-		Model *model = new Model(mesh, material, name);
-		return model->Autorelease();
-	}
 	
-	Model *Model::Empty()
-	{
-		Model *model = new Model();
-		return model->Autorelease();
-	}
 	
-	void Model::AddMesh(Mesh *mesh, Material *material, const std::string& name)
-	{
-		MeshGroup group;
-		group.mesh = mesh->Retain();
-		group.material = material;
-		group.name = name;
-		
-		_groups.push_back(group);
-		_materials.AddObject(material);
-	}
-	
-	uint32 Model::Meshes() const
-	{
-		return (uint32)_groups.size();
-	}
-	
-	uint32 Model::Materials() const
-	{
-		return (uint32)_materials.Count();
-	}
-	
-	Mesh *Model::MeshAtIndex(uint32 index) const
-	{
-		return _groups[index].mesh;
-	}
-	
-	Material *Model::MaterialForMesh(const Mesh *mesh) const
-	{
-		for(auto i=_groups.begin(); i!=_groups.end(); i++)
-		{			
-			if(i->mesh == mesh)
-				return i->material;
-		}
-		
-		return 0;
-	}
-	
-	void Model::ReadModelVersion1(File *file)
+	void Model::ReadModelVersion1(File *file, LODGroup *group)
 	{
 		//Get materials
-		unsigned char countmats = file->ReadUint8();
+		uint8 countmats = file->ReadUint8();
 		Shader *shader = new Shader("shader/rn_Texture1");
-		Material *material;
+		
+		std::vector<Material *> materials;
+		
 		for(unsigned int i = 0; i < countmats; i++)
 		{
-			material = new Material(shader);
 			file->ReadUint8();
-			unsigned char texcount = file->ReadUint8();
-			for(unsigned int n = 0; n < texcount; n++)
+			Material *material = new Material(shader);
+			
+			uint8 texcount = file->ReadUint8();
+			for(uint8 n=0; n<texcount; n++)
 			{
-				unsigned short lentexfilename = file->ReadUint16();
+				uint16 lentexfilename = file->ReadUint16();
 				char *texfilename = new char[lentexfilename];
 				file->ReadIntoBuffer(texfilename, lentexfilename);
 				
 				std::string path = file->Path();
-				Texture *texture = new Texture(path+"/"+std::string(texfilename), Texture::FormatRGBA8888);
+				Texture *texture = new Texture(path + "/" + std::string(texfilename), Texture::FormatRGBA8888);
 				material->AddTexture(texture);
 				texture->Release();
 				
 				delete[] texfilename;
 			}
 			
-			_materials.AddObject(material);
+			materials.push_back(material);
 		}
 		
 		//Get meshes
-		unsigned char countmeshs = file->ReadUint8();
-		for(int i = 0; i < countmeshs; i++)
+		uint8 countmeshs = file->ReadUint8();
+		for(uint8 i=0; i<countmeshs; i++)
 		{
-			MeshGroup group;
-			
 			file->ReadUint8();
-			material = _materials.ObjectAtIndex(file->ReadUint8());
+			
+			//MeshGroup group;
+			Material *material = materials[file->ReadUint8()];
 			
 			unsigned short numverts = file->ReadUint16();
 			unsigned char uvcount = file->ReadUint8();
@@ -324,23 +389,21 @@ namespace RN
 			meshDescriptor.offset = 0;
 			descriptors.AddObject(meshDescriptor);
 			
-			Mesh *mesh = new Mesh();
-			MeshLODStage *stage = mesh->AddLODStage(descriptors, vertexdata);
+			Mesh *mesh = new Mesh(descriptors, vertexdata);
+			void *data = mesh->MutableData<void>(kMeshFeatureIndices);
 			
-			void *data = stage->MutableData<void>(kMeshFeatureIndices);
 			file->ReadIntoBuffer(data, numindices*sizeindices);
-			stage->ReleaseData(kMeshFeatureIndices);
+			mesh->ReleaseData(kMeshFeatureIndices);
 			
 			delete[] vertexdata;
 			
-			group.mesh = mesh;
-			group.material = material;
-			_groups.push_back(group);
+			MeshGroup *meshGroup = new MeshGroup(mesh->Autorelease(), material, "Unnamed");
+			group->groups.push_back(meshGroup);
 		}
 		
-		//Animations
-		unsigned char hasanimations = file->ReadInt8();
-		if(hasanimations)
+		// Animations
+		bool hasAnimations = file->ReadInt8();
+		if(hasAnimations)
 		{
 			unsigned short lenanimfilename = file->ReadInt16();
 			char *animfilename = new char[lenanimfilename];

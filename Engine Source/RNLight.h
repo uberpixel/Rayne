@@ -33,7 +33,7 @@ namespace RN
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
 		RNAPI void SetRange(float range);
-		RNAPI void SetColor(Vector3 color);
+		RNAPI void SetColor(const Vector3& color);
 		RNAPI void SetAngle(float angle);
 		
 		const Type LightType() { return _lightType; }
@@ -42,7 +42,6 @@ namespace RN
 		const float Range() { return _range; }
 		const float Angle() { return _angle; }
 	
-		
 	private:
 		Type _lightType;
 		Vector3 _color;

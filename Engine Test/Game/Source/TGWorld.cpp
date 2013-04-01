@@ -216,25 +216,26 @@ namespace TG
 		
 		// Sponza
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
-		for(int i = 0; i < model->Meshes(); i++)
+		for(int i = 0; i < model->Meshes(0); i++)
 		{
-			model->MaterialForMesh(model->MeshAtIndex(i))->SetShader(shader);
+			model->MaterialAtIndex(0, i)->SetShader(shader);
 		}
-		model->MaterialForMesh(model->MeshAtIndex(5))->SetShader(discardShader);
-		model->MaterialForMesh(model->MeshAtIndex(5))->culling = false;
-		model->MaterialForMesh(model->MeshAtIndex(5))->alphatest = true;
-		model->MaterialForMesh(model->MeshAtIndex(6))->SetShader(discardShader);
-		model->MaterialForMesh(model->MeshAtIndex(6))->culling = false;
-		model->MaterialForMesh(model->MeshAtIndex(6))->alphatest = true;
-		model->MaterialForMesh(model->MeshAtIndex(17))->SetShader(discardShader);
-		model->MaterialForMesh(model->MeshAtIndex(17))->culling = false;
-		model->MaterialForMesh(model->MeshAtIndex(17))->alphatest = true;
+		
+		model->MaterialAtIndex(0, 5)->SetShader(discardShader);
+		model->MaterialAtIndex(0, 5)->culling = false;
+		model->MaterialAtIndex(0, 5)->alphatest = true;
+		model->MaterialAtIndex(0, 6)->SetShader(discardShader);
+		model->MaterialAtIndex(0, 6)->culling = false;
+		model->MaterialAtIndex(0, 6)->alphatest = true;
+		model->MaterialAtIndex(0, 17)->SetShader(discardShader);
+		model->MaterialAtIndex(0, 17)->culling = false;
+		model->MaterialAtIndex(0, 17)->alphatest = true;
 		
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
 		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
 		RN::Texture *normalmap = RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png", RN::Texture::FormatRGBA8888);
-		model->MaterialForMesh(model->MeshAtIndex(3))->AddTexture(normalmap);
-		model->MaterialForMesh(model->MeshAtIndex(3))->SetShader(normalshader);
+		model->MaterialAtIndex(0, 3)->AddTexture(normalmap);
+		model->MaterialAtIndex(0, 3)->SetShader(normalshader);
 #endif
 		
 		RN::Entity *sponza = new RN::Entity();
@@ -279,7 +280,7 @@ namespace TG
 		girl->SetModel(girlmodel);
 		girl->SetSkeleton(_girlskeleton);
 		girl->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
-		girlmodel->MaterialForMesh(girlmodel->MeshAtIndex(0))->SetShader(shader);
+		girlmodel->MaterialAtIndex(0, 0)->SetShader(shader);
 		
 		
 		RN::Model *zombiemodel = RN::Model::WithFile("models/RosswetMobile/new_thin_zombie.sgm");
@@ -290,22 +291,22 @@ namespace TG
 		zombie->SetModel(zombiemodel);
 		zombie->SetSkeleton(_zombieskeleton);
 		zombie->SetPosition(RN::Vector3(-5.0f, -5.0f, 0.0f));
-		zombiemodel->MaterialForMesh(zombiemodel->MeshAtIndex(0))->SetShader(shader);
+		zombiemodel->MaterialAtIndex(0, 0)->SetShader(shader);
 #endif
 		
 		RN::Shader *foliageShader = new RN::Shader();
 		foliageShader->SetVertexShader("shader/rn_WindFoliage.vsh");
 		foliageShader->SetFragmentShader("shader/rn_Texture1Discard.fsh");
 		
-		RN::Model *spruceModel = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
+		RN::Model *spruceModel = RN::Model::WithFile("models/dexfuck/tree01.sgm");
 		
-		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(0))->SetShader(foliageShader);
+		/*spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(0))->SetShader(foliageShader);
 		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(0))->culling = false;
 		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(0))->alphatest = true;
 		
 		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(1))->SetShader(foliageShader);
 		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(1))->culling = false;
-		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(1))->alphatest = true;
+		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(1))->alphatest = true;*/
 		
 		_spruce = new RN::Entity();
 		_spruce->SetModel(spruceModel);
