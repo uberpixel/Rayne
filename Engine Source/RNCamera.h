@@ -59,6 +59,29 @@ namespace RN
 		};
 		typedef uint32 ColorFlags;
 		
+		enum
+		{
+			OverrideCulling = (1 << 0),
+			OVerrideCullmode = (1 << 1),
+			OverrideBlending = (1 << 2),
+			OverrideBlendmode = (1 << 3),
+			OverrideShininess = (1 << 4),
+			OverrideAmbient = (1 << 5),
+			OverrideDiffuse = (1 << 6),
+			OverrideSpecular = (1 << 7),
+			OverrideEmissive = (1 << 8),
+			OverrideAlphatest = (1 << 9),
+			OverrideDepthtest = (1 << 10),
+			OverrideDepthwrite = (1 << 11),
+			OverrideDepthtestMode = (1 << 12),
+			OverrideDiscard = (1 << 13),
+			OverrideDiscardThreshold = (1 << 14),
+			OverrideTextures = (1 << 15),
+			
+			OverrideAll = 0xFFFFFFFFFFFFFFFF
+		};
+		typedef uint64 MaterialOverride;
+		
 		RNAPI Camera(const Vector2& size);
 		
 		RNAPI Camera(const Vector2& size, Texture *target);
@@ -127,6 +150,8 @@ namespace RN
 		float aspect;
 		float clipnear;
 		float clipfar;
+		
+		MaterialOverride override;
 		
 		Matrix projectionMatrix;
 		Matrix inverseProjectionMatrix;

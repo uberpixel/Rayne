@@ -97,5 +97,8 @@ namespace RN
 		depthtest = true;
 		depthtestmode = GL_LEQUAL;
 		depthwrite = true;
+		
+		discard = false;
+		discardThreshold = 0.3f;
 	}
 }

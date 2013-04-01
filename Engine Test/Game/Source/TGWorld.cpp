@@ -30,6 +30,7 @@ namespace TG
 		
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
 		_camera->SetMaterial(depthMaterial);
+		_camera->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
 		
 		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
 		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
@@ -98,20 +99,6 @@ namespace TG
 		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
 #endif
 		
-		
-		
-		
-/*		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatColor | RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
-		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
-		
-		storage->SetDepthTarget(depthtex);
-		storage->AddRenderTarget(RN::Texture::FormatRGBA8888);
-		
-		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
-		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
-		_camera->ActivateTiledLightLists((RN::Texture *)1);
-		_camera->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
-		*/
 		CreateWorld();
 		
 		RN::Input::SharedInstance()->Activate();
@@ -211,7 +198,6 @@ namespace TG
 	
 	void World::CreateWorld()
 	{
-		RN::Shader *discardShader = RN::Shader::WithFile("shader/rn_Texture1Discard");
 		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1");
 		
 		// Sponza
@@ -221,13 +207,15 @@ namespace TG
 			model->MaterialAtIndex(0, i)->SetShader(shader);
 		}
 		
-		model->MaterialAtIndex(0, 5)->SetShader(discardShader);
+		model->MaterialAtIndex(0, 5)->discard = true;
 		model->MaterialAtIndex(0, 5)->culling = false;
 		model->MaterialAtIndex(0, 5)->alphatest = true;
-		model->MaterialAtIndex(0, 6)->SetShader(discardShader);
+		
+		model->MaterialAtIndex(0, 6)->discard = true;
 		model->MaterialAtIndex(0, 6)->culling = false;
 		model->MaterialAtIndex(0, 6)->alphatest = true;
-		model->MaterialAtIndex(0, 17)->SetShader(discardShader);
+		
+		model->MaterialAtIndex(0, 17)->discard = true;
 		model->MaterialAtIndex(0, 17)->culling = false;
 		model->MaterialAtIndex(0, 17)->alphatest = true;
 		
@@ -296,17 +284,27 @@ namespace TG
 		
 		RN::Shader *foliageShader = new RN::Shader();
 		foliageShader->SetVertexShader("shader/rn_WindFoliage.vsh");
-		foliageShader->SetFragmentShader("shader/rn_Texture1Discard.fsh");
+		foliageShader->SetFragmentShader("shader/rn_Texture1.fsh");
 		
 		RN::Model *spruceModel = RN::Model::WithFile("models/dexfuck/tree01.sgm");
+
+		for(int i=0; i<2; i++)
+		{
+			uint32 meshes = spruceModel->Meshes(i);
+			for(uint32 j=0; j<meshes; j++)
+			{
+				RN::Material *material = spruceModel->MaterialAtIndex(i, j);
+				
+				material->culling = false;
+				material->discard = true;
+				material->alphatest = true;
+				//material->SetShader(foliageShader);
+			}
+		}
 		
-		/*spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(0))->SetShader(foliageShader);
-		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(0))->culling = false;
-		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(0))->alphatest = true;
-		
-		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(1))->SetShader(foliageShader);
-		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(1))->culling = false;
-		spruceModel->MaterialForMesh(spruceModel->MeshAtIndex(1))->alphatest = true;*/
+		spruceModel->MaterialAtIndex(2, 0)->culling = false;
+		spruceModel->MaterialAtIndex(2, 0)->discard = true;
+		spruceModel->MaterialAtIndex(2, 0)->alphatest = true;
 		
 		_spruce = new RN::Entity();
 		_spruce->SetModel(spruceModel);

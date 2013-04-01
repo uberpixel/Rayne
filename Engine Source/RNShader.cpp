@@ -272,6 +272,9 @@ namespace RN
 			if(type & ShaderProgram::TypeLightning)
 				Define("RN_LIGHTNING");
 			
+			if(type & ShaderProgram::TypeDiscard)
+				Define("RN_DISCARD");
+			
 			// Compile all required shaders
 			try
 			{
@@ -300,6 +303,7 @@ namespace RN
 				Undefine("RN_INSTANCING");
 				Undefine("RN_ANIMATION");
 				Undefine("RN_LIGHTNING");
+				Undefine("RN_DISCARD");
 				
 				delete program;
 				_programs[type] = 0;
@@ -315,6 +319,7 @@ namespace RN
 			Undefine("RN_INSTANCING");
 			Undefine("RN_ANIMATION");
 			Undefine("RN_LIGHTNING");
+			Undefine("RN_DISCARD");
 			
 			for(int i=0; i<3; i++)
 			{

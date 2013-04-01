@@ -594,11 +594,15 @@ namespace RN
 		bool changedShader = (program != _currentProgram);
 		UseShader(program);
 		
+		Material *surfaceMaterial = _currentCamera->Material();
+		if(!surfaceMaterial)
+			surfaceMaterial = material;
+		
 		if(changedShader || material != _currentMaterial)
 		{
 			_textureUnit = 0;
 			
-			Array<Texture> *textures = material->Textures();
+			Array<Texture> *textures = (_currentCamera->override & Camera::OverrideTextures) ? surfaceMaterial->Textures() : material->Textures();
 			Array<GLuint> *textureLocations = &program->texlocations;
 			
 			if(textureLocations->Count() > 0)
@@ -615,15 +619,35 @@ namespace RN
 			}
 		}
 
-		SetCullingEnabled(material->culling);
-		SetCullMode(material->cullmode);
-
-		SetDepthTestEnabled(material->depthtest);
-		SetDepthFunction(material->depthtestmode);
-		SetDepthWriteEnabled((material->depthwrite && _currentCamera->AllowsDepthWrite()));
+#define PickAttribute(override, attribute) (_currentCamera->override & Camera::override) ? surfaceMaterial->attribute : material->attribute
 		
-		SetBlendingEnabled(material->blending);
-		SetBlendFunction(material->blendSource, material->blendDestination);
+		SetCullingEnabled(PickAttribute(OverrideCulling, culling));
+		SetCullMode(PickAttribute(OVerrideCullmode, cullmode));
+
+		SetDepthTestEnabled(PickAttribute(OverrideDepthtest, depthtest));
+		SetDepthFunction(PickAttribute(OverrideDepthtestMode, depthtestmode));
+		
+		if(_currentCamera->override & Camera::OverrideBlendmode)
+		{
+			SetDepthWriteEnabled((surfaceMaterial->depthwrite && _currentCamera->AllowsDepthWrite()));
+		}
+		else
+		{
+			SetDepthWriteEnabled((material->depthwrite && _currentCamera->AllowsDepthWrite()));
+		}
+		
+		SetBlendingEnabled(PickAttribute(OverrideBlending, blending));
+		
+		if(_currentCamera->override & Camera::OverrideBlendmode)
+		{
+			SetBlendFunction(surfaceMaterial->blendSource, surfaceMaterial->blendDestination);
+		}
+		else
+		{
+			SetBlendFunction(material->blendSource, material->blendDestination);
+		}
+		
+#undef PickAttribute
 		
 		_currentMaterial = material;
 	}
@@ -794,8 +818,6 @@ namespace RN
 		Camera *previous = 0;
 		Camera *camera = _frameCamera;
 		
-		machine_uint sortOder = 0;
-		
 		// Skycube
 		Model *skyCube = camera->SkyCube();
 		uint32 skyCubeMeshes = 0;
@@ -837,73 +859,50 @@ namespace RN
 			changedCamera  = true;
 			
 			if(!(camera->CameraFlags() & Camera::FlagDrawTarget))
-			{
-				Material *surfaceMaterial = camera->Material();
-				
-				// TODO: Do the sorting in the thread pool
-				machine_uint bestOrder = surfaceMaterial ? 1 : 2;
-				if(bestOrder != sortOder)
-				{
-					// Sort the objects
-					_frame.SortUsingFunction([&](const RenderingObject& a, const RenderingObject& b) {
-						if(surfaceMaterial)
-						{
-							machine_uint objA = (machine_uint)a.mesh;
-							machine_uint objB = (machine_uint)b.mesh;
-							
-							if(objA > objB)
-								return kRNCompareGreaterThan;
-							
-							if(objB > objA)
-								return kRNCompareLessThan;
-							
-							return kRNCompareEqualTo;
-						}
-						else
-						{
-							// Sort by material
-							const Material *materialA = a.material;
-							const Material *materialB = b.material;
-							
-							if(materialA->blending != materialB->blending)
-							{
-								if(!materialB->blending)
-									return kRNCompareGreaterThan;
-								
-								if(!materialA->blending)
-									return kRNCompareLessThan;
-							}
-							
-							if(materialA->alphatest != materialB->alphatest)
-							{
-								if(!materialB->alphatest)
-									return kRNCompareGreaterThan;
-								
-								if(!materialA->alphatest)
-									return kRNCompareLessThan;
-							}
-							
-							if(materialA->Shader() > materialB->Shader())
-								return kRNCompareGreaterThan;
-							
-							if(materialB->Shader() > materialA->Shader())
-								return kRNCompareLessThan;
-							
-							// Sort by mesh
-							if(a.mesh > b.mesh)
-								return kRNCompareGreaterThan;
-							
-							if(b.mesh > a.mesh)
-								return kRNCompareLessThan;
-							
-							return kRNCompareEqualTo;
-						}
-					}, skyCubeMeshes);
+			{				
+				// Sort the objects
+				_frame.SortUsingFunction([&](const RenderingObject& a, const RenderingObject& b) {
+					// Sort by material
+					const Material *materialA = a.material;
+					const Material *materialB = b.material;
 					
-					sortOder = bestOrder;
-				}
+					if(materialA->blending != materialB->blending)
+					{
+						if(!materialB->blending)
+							return kRNCompareGreaterThan;
+						
+						if(!materialA->blending)
+							return kRNCompareLessThan;
+					}
+					
+					if(materialA->alphatest != materialB->alphatest)
+					{
+						if(!materialB->alphatest)
+							return kRNCompareGreaterThan;
+						
+						if(!materialA->alphatest)
+							return kRNCompareLessThan;
+					}
+					
+					if(materialA->Shader() > materialB->Shader())
+						return kRNCompareGreaterThan;
+					
+					if(materialB->Shader() > materialA->Shader())
+						return kRNCompareLessThan;
+					
+					// Sort by mesh
+					if(a.mesh > b.mesh)
+						return kRNCompareGreaterThan;
+					
+					if(b.mesh > a.mesh)
+						return kRNCompareLessThan;
+					
+					return kRNCompareEqualTo;
+				}, skyCubeMeshes);
 				
-				// Create the light lists for the camera				
+				Material *surfaceMaterial = camera->Material();
+					
+				// Create the light lists for the camera
 				int lightPointCount = CreatePointLightList(camera);
 				int lightSpotCount  = CreateSpotLightList(camera);
 				
@@ -928,8 +927,8 @@ namespace RN
 					RenderingObject& object = _frame.ObjectAtIndex(i);
 					
 					Mesh *mesh = object.mesh;
-					Material *material = surfaceMaterial ? surfaceMaterial : object.material;
-					Shader *shader = material->Shader();
+					Material *material = object.material;
+					Shader *shader = surfaceMaterial ? surfaceMaterial->Shader() : material->Shader();
 					
 					Matrix& transform = (Matrix &)*object.transform;
 					Matrix inverseTransform = transform.Inverse();
@@ -973,6 +972,12 @@ namespace RN
 					uint32 programTypes = 0;
 					ShaderProgram *program = 0;
 					
+					bool wantsDiscard = material->discard;
+					if(surfaceMaterial && _currentCamera->override & Camera::OverrideDiscard)
+					{
+						wantsDiscard = surfaceMaterial->discard;
+					}
+					
 					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
 						programTypes |= ShaderProgram::TypeAnimated;
 					
@@ -981,6 +986,12 @@ namespace RN
 					
 					if(canDrawInstanced && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
 						programTypes |= ShaderProgram::TypeInstanced;
+					
+					if(wantsDiscard)
+					{
+					if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
+						programTypes |= ShaderProgram::TypeDiscard;
+					}
 		
 					program = shader->ProgramOfType(programTypes);
 					changedShader = (_currentProgram != program);
@@ -1003,7 +1014,6 @@ namespace RN
 						if(program->lightSpotCount != -1)
 							glUniform1i(program->lightSpotCount, lightSpotCount);
 						
-#if !(RN_PLATFORM_IOS)
 						if(camera->LightTiles() != 0)
 						{
 							// Point lights
@@ -1056,7 +1066,16 @@ namespace RN
 								glUniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
 							}
 						}
-#endif
+						
+						if(program->discardThreshold != -1)
+						{
+							float threshold = _currentMaterial->discardThreshold;
+							
+							if(surfaceMaterial && _currentCamera->override & Camera::OverrideDiscardThreshold)
+								threshold = surfaceMaterial->discardThreshold;
+							
+							glUniform1f(program->discardThreshold, threshold);
+						}
 					}
 
 					if(canDrawInstanced)

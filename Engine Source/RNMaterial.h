@@ -20,7 +20,7 @@ namespace RN
 {
 	class Material : public Object
 	{
-	public:
+	public:		
 		RNAPI Material();
 		RNAPI Material(Shader *shader);
 		RNAPI virtual ~Material();
@@ -33,7 +33,6 @@ namespace RN
 		RNAPI void RemoveTextures();
 		
 		RNAPI Array<Texture> *Textures() const;
-		RNAPI uint32 TextureCount() const { return (uint32)_textures->Count(); }
 		
 		bool culling;
 		GLenum cullmode;
@@ -55,6 +54,9 @@ namespace RN
 		bool depthtest;
 		bool depthwrite;
 		GLenum depthtestmode;
+		
+		bool discard;
+		float discardThreshold;
 		
 	private:
 		void SetDefaultProperties();

@@ -97,6 +97,8 @@ namespace RN
 	{
 		aspect   = 1.0f;
 		fov      = 70.0f;
+		
+		override = OverrideAll;
 
 		clipnear = 0.1f;
 		clipfar  = 500.0f;

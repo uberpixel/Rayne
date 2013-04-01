@@ -10,6 +10,7 @@
 precision highp float;
 
 #include "rn_Lightning.fsh"
+#include "rn_Discard.fsh"
 
 uniform sampler2D mTexture0;
 
@@ -19,5 +20,7 @@ out vec4 fragColor0;
 void main()
 {
 	vec4 color0 = texture(mTexture0, outTexcoord);
+	rn_Discard(color0);
+
 	fragColor0 = color0 * rn_Lightning();
 }
