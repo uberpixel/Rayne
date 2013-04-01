@@ -124,6 +124,7 @@ namespace RN
 		GLshort _copyIndices[6];
 		
 		GLuint _lightDepthPBO;
+		size_t _lightDepthPBOSize;
 		
 		int *_lightIndicesBuffer;
 		int *_lightOffsetBuffer;

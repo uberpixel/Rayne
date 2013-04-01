@@ -105,9 +105,9 @@ namespace RN
 		gl::BindVertexArray(0);
 		
 #if !(RN_PLATFORM_IOS)
-/*		glGenBuffers(1, &_lightDepthPBO);
+		glGenBuffers(1, &_lightDepthPBO);
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, _lightDepthPBO);
-		glBufferData(GL_PIXEL_PACK_BUFFER, 32*24*2*sizeof(float), 0, GL_DYNAMIC_DRAW);*/
+		_lightDepthPBOSize = 0;
 
 		// Point lights
 		_lightPointDataSize = 0;
@@ -262,9 +262,14 @@ namespace RN
 		
 		const Vector3& camPosition = camera->Position();
 		
-		float *depthArray = new float[tilesWidth * tilesHeight * 2];
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, _lightDepthPBO);
+		
+		_lightDepthPBOSize = tilesWidth*tilesHeight;
+		glBufferData(GL_PIXEL_PACK_BUFFER, _lightDepthPBOSize*2*sizeof(float), 0, GL_DYNAMIC_DRAW);
+		
 		glBindTexture(GL_TEXTURE_2D, camera->DepthTiles()->Name());
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, depthArray);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, 0);
+		float *depthArray = (float*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 		
 		Vector3 camdir = camera->Rotation().RotateVector(RN::Vector3(0.0, 0.0, -1.0));
 		Vector3 far = camera->ToWorld(Vector3(1.0f, 1.0f, 1.0f));
@@ -352,7 +357,8 @@ namespace RN
 			delete tileIndices;
 		}
 		
-		delete[] depthArray;
+		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		
 		// Indices
 		if(lightIndicesCount == 0)
