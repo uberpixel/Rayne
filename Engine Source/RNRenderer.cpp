@@ -313,8 +313,8 @@ namespace RN
 						Distance(pltop, <, -range);
 						Distance(plbottom, >, range);
 						
-						//Distance(plnear, <, -range);
-						//Distance(plfar, >, range);
+						Distance(plnear, <, -range);
+						Distance(plfar, >, range);
 						
 						lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
 					}

@@ -336,7 +336,7 @@ namespace TG
 		for(int i=0; i<100; i++)
 		{
 			light = new RN::Light();
-			light->SetPosition(RN::Vector3(TGWorldRandom * 280.0f - 140.0f, TGWorldRandom * 100.0f, TGWorldRandom * 120.0f - 50.0f));
+			light->SetPosition(RN::Vector3(TGWorldRandom * 140.0f - 70.0f, TGWorldRandom * 100.0f-20.0f, TGWorldRandom * 80.0f - 40.0f));
 			light->SetRange(TGWorldRandom * 20.0f);
 			light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		}
