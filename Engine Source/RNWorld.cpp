@@ -187,7 +187,6 @@ namespace RN
 		if(iterator != _transforms.end())
 		{
 			_transforms.erase(iterator);
-			_addedTransforms.erase(std::remove(_addedTransforms.begin(), _addedTransforms.end(), transform), _addedTransforms.end());
 			
 			if(transform->IsKindOfClass(_cameraClass))
 			{
@@ -196,6 +195,7 @@ namespace RN
 			}
 		}
 		
+		_addedTransforms.erase(std::remove(_addedTransforms.begin(), _addedTransforms.end(), transform), _addedTransforms.end());
 		return;
 	}
 }
