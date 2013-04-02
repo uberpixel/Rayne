@@ -14,9 +14,6 @@
 
 namespace RN
 {
-	static std::vector<std::string> FileSearchPaths;
-	static std::vector<std::string> FileModifiers;
-	
 	RNDeclareMeta(File)
 
 	File::File(const std::string& path, FileMode mode)
@@ -69,6 +66,18 @@ namespace RN
 		return string;
 	}
 
+	void File::ReadIntoString(std::string& string, size_t size, bool appendNull)
+	{
+		char *buffer = new char[size + 1];
+		fread(buffer, size, 1, _file);
+		buffer[size] = '\0';
+		
+		std::string temp(buffer);
+		std::swap(temp, string);
+		
+		delete buffer;
+	}
+	
 	void File::ReadIntoBuffer(void *buffer, size_t size)
 	{
 		size_t read = fread(buffer, size, 1, _file);
@@ -161,22 +170,74 @@ namespace RN
 	}
 
 	// Writing operations
-
-	void File::WriteString(const std::string& string)
+	void File::WriteString(const std::string& string, bool includeNull)
 	{
-		size_t length = string.length();
+		size_t length = string.length() + (includeNull ? 1 : 0);
 		const char *cstring = string.c_str();
 
-		while(length > 0)
-		{
-			size_t written = fwrite(cstring, 1, length, _file);
+		size_t written = fwrite(cstring, 1, length, _file);
+		RN_ASSERT0(written == length);
+	}
+	
+	void File::WriteBuffer(const void *buffer, size_t size)
+	{
+		const char *data = static_cast<const char *>(buffer);
 
-			length -= written;
-			cstring += written;
-		}
+		size_t written = fwrite(data, 1, size, _file);
+		RN_ASSERT0(written == size);
+	}
+	
+	void File::WriteUint8(uint8 value)
+	{
+		WriteBuffer(&value, sizeof(uint8));
+	}
+	
+	void File::WriteUint16(uint16 value)
+	{
+		WriteBuffer(&value, sizeof(uint16));
+	}
+	
+	void File::WriteUint32(uint32 value)
+	{
+		WriteBuffer(&value, sizeof(uint32));
+	}
+	
+	void File::WriteUint64(uint64 value)
+	{
+		WriteBuffer(&value, sizeof(uint64));
+	}
+	
+	void File::WriteInt8(int8 value)
+	{
+		WriteBuffer(&value, sizeof(int8));
+	}
+	
+	void File::WriteInt16(int16 value)
+	{
+		WriteBuffer(&value, sizeof(int16));
+	}
+	
+	void File::WriteInt32(int32 value)
+	{
+		WriteBuffer(&value, sizeof(int32));
+	}
+	
+	void File::WriteInt64(int64 value)
+	{
+		WriteBuffer(&value, sizeof(int64));
+	}
+	
+	void File::WriteFloat(float value)
+	{
+		WriteBuffer(&value, sizeof(float));
+	}
+	
+	void File::WriteDouble(double value)
+	{
+		WriteBuffer(&value, sizeof(double));
 	}
 
-
+	// Misc
 	bool File::OpenPath(const std::string& path, FileMode mode)
 	{
 		const char *fmode = 0;
@@ -200,9 +261,9 @@ namespace RN
 		if(_fullPath.size() == 0)
 			return false;
 		
+		_path = PathManager::Basepath(_fullPath);
 		_name = PathManager::Basename(_fullPath);
 		_extension = PathManager::Extension(_fullPath);
-		_path = PathManager::Basepath(_fullPath);
 		
 		_file = fopen(_fullPath.c_str(), fmode);
 		return (_file != 0);

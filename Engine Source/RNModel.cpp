@@ -267,24 +267,21 @@ namespace RN
 		
 		std::vector<Material *> materials;
 		
-		for(unsigned int i = 0; i < countmats; i++)
+		for(uint8 i=0; i<countmats; i++)
 		{
-			file->ReadUint8();
 			Material *material = new Material(shader);
+			file->ReadUint8();
 			
 			uint8 texcount = file->ReadUint8();
 			for(uint8 n=0; n<texcount; n++)
 			{
-				uint16 lentexfilename = file->ReadUint16();
-				char *texfilename = new char[lentexfilename];
-				file->ReadIntoBuffer(texfilename, lentexfilename);
+				std::string textureFile;
+				file->ReadIntoString(textureFile, file->ReadUint16());
 				
 				std::string path = file->Path();
-				Texture *texture = new Texture(path + "/" + std::string(texfilename), Texture::FormatRGBA8888);
+				Texture *texture = new Texture(PathManager::Join(path, textureFile), Texture::FormatRGBA8888);
 				material->AddTexture(texture);
 				texture->Release();
-				
-				delete[] texfilename;
 			}
 			
 			materials.push_back(material);
@@ -405,10 +402,8 @@ namespace RN
 		bool hasAnimations = file->ReadInt8();
 		if(hasAnimations)
 		{
-			unsigned short lenanimfilename = file->ReadInt16();
-			char *animfilename = new char[lenanimfilename];
-			file->ReadIntoBuffer(animfilename, lenanimfilename*sizeof(char));
-			delete[] animfilename;
+			std::string animationFile;
+			file->ReadIntoString(animationFile, file->ReadInt16());
 		}
 	}
 }
