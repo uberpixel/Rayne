@@ -93,4 +93,10 @@ namespace RN
 		if(_parent)
 			_parent->DetachChild(this);
 	}
+	
+	
+	void Transform::SetAction(const std::function<void (Transform *, float)>& action)
+	{
+		_action = action;
+	}
 }

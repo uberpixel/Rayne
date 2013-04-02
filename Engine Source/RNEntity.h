@@ -33,7 +33,6 @@ namespace RN
 		
 		RNAPI void SetModel(Model *model);
 		RNAPI void SetSkeleton(class Skeleton *skeleton);
-		RNAPI void SetAction(const std::function<void (Entity *, float)>& action);
 		
 		Model *Model() const { return _model; }
 		Skeleton *Skeleton() const { return _skeleton; }
@@ -41,8 +40,6 @@ namespace RN
 	private:
 		class Model *_model;
 		class Skeleton *_skeleton;
-		
-		std::function<void (Entity *, float)> _action;
 		
 		RNDefineMeta(Entity, Transform)
 	};

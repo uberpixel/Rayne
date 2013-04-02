@@ -32,9 +32,6 @@ namespace RN
 	void Entity::Update(float delta)
 	{
 		Transform::Update(delta);
-		
-		if(_action)
-			_action(this, delta);
 	}
 	
 	bool Entity::IsVisibleInCamera(Camera *camera)
@@ -56,10 +53,5 @@ namespace RN
 			_skeleton->Release();
 		
 		_skeleton = skeleton ? (class Skeleton *)skeleton->Retain() : 0;
-	}
-	
-	void Entity::SetAction(const std::function<void (Entity *, float)>& action)
-	{
-		_action = action;
 	}
 }

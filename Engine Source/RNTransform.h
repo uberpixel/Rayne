@@ -54,6 +54,8 @@ namespace RN
 		RNAPI void DetachAllChilds();
 		RNAPI void DetachFromParent();
 		
+		RNAPI void SetAction(const std::function<void (Transform *, float)>& action);
+		
 		machine_uint Childs() const { return _childs.Count(); }
 		Transform *Parent() const { return _parent; }
 		
@@ -64,7 +66,10 @@ namespace RN
 		RNAPI const Matrix& LocalTransform();
 		
 		virtual void Update(float delta)
-		{}
+		{
+			if(_action)
+				_action(this, delta);
+		}
 		
 	protected:		
 		void DidUpdate();
@@ -79,6 +84,8 @@ namespace RN
 		Transform *_parent;
 		Array<Transform *> _childs;
 		bool _updated;
+		
+		std::function<void (Transform *, float)> _action;
 		
 		Vector3 _worldPosition;
 		Quaternion _worldRotation;
