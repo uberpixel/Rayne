@@ -118,7 +118,7 @@ namespace RN
 		_depthArray = 0;
 		_depthSize  = 0;
 		
-		_maxLights = 100;
+		_maxLights = 500;
 		
 		_allowDepthWrite = true;
 		
