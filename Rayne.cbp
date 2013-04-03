@@ -15,6 +15,7 @@
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
+					<Add option="-w" />
 					<Add option="-g" />
 				</Compiler>
 			</Target>
@@ -123,9 +124,7 @@
 		<Unit filename="Engine Source/RNShader.h" />
 		<Unit filename="Engine Source/RNSkeleton.cpp" />
 		<Unit filename="Engine Source/RNSkeleton.h" />
-		<Unit filename="Engine Source/RNSpinLock.S" />
 		<Unit filename="Engine Source/RNSpinLock.h" />
-		<Unit filename="Engine Source/RNSpinLockInternal.cpp" />
 		<Unit filename="Engine Source/RNSynchronization.h" />
 		<Unit filename="Engine Source/RNTexture.cpp" />
 		<Unit filename="Engine Source/RNTexture.h" />

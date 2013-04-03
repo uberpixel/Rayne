@@ -161,6 +161,7 @@ extern "C"
 	extern PFNGLBUFFERDATAPROC glBufferData;
 	extern PFNGLBUFFERSUBDATAPROC glBufferSubData;
 	extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+	extern PFNGLMAPBUFFERPROC glMapBuffer;
 	extern PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
 	extern PFNGLUNMAPBUFFERPROC glUnmapBuffer;
 	

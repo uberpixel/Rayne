@@ -46,6 +46,7 @@
 		<Linker>
 			<Add library="Rayne" />
 			<Add library="X11" />
+			<Add library="Xrandr" />
 			<Add library="pthread" />
 			<Add library="GL" />
 			<Add directory="/home/tilman/projects/rayne/Vendor/bullet/" />

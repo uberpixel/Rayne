@@ -9,9 +9,7 @@
 			<Depends filename="Rayne.cbp" />
 			<Depends filename="Engine Test/Game/Game.cbp" />
 		</Project>
-		<Project filename="Engine Test/Game/Game.cbp">
-			<Depends filename="Rayne.cbp" />
-		</Project>
+		<Project filename="Engine Test/Game/Game.cbp" />
 		<Project filename="Vendor/libjansson/jansson.cbp" />
 		<Project filename="Vendor/libpng/libpng.cbp" />
 		<Project filename="Vendor/libz/libz.cbp" />
