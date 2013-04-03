@@ -368,7 +368,7 @@ namespace RN
 		
 		lightCount = MIN(camera->MaxLightsPerTile(), lightCount);
 		
-		if(camera->DepthTiles() && lightCount > 0)
+		if(camera->DepthTiles())
 		{
 			GLuint indicesBuffer = _lightPointBuffers[kRNRendererPointLightListIndicesIndex];
 			GLuint offsetBuffer = _lightPointBuffers[kRNRendererPointLightListOffsetIndex];
@@ -417,7 +417,7 @@ namespace RN
 		
 		lightCount = MIN(camera->MaxLightsPerTile(), lightCount);
 		
-		if(camera->DepthTiles() && lightCount > 0)
+		if(camera->DepthTiles())
 		{
 			GLuint indicesBuffer = _lightSpotBuffers[kRNRendererSpotLightListIndicesIndex];
 			GLuint offsetBuffer = _lightSpotBuffers[kRNRendererSpotLightListOffsetIndex];
