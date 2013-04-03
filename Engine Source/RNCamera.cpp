@@ -113,6 +113,13 @@ namespace RN
 		_depthTiles = 0;
 		_skycube = 0;
 		
+		_frameID = 0;
+		_depthFrame = 0;
+		_depthArray = 0;
+		_depthSize  = 0;
+		
+		_maxLights = 100;
+		
 		_allowDepthWrite = true;
 		
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
@@ -134,7 +141,8 @@ namespace RN
 
 		if(thread->CurrentCamera() != this)
 			glBindFramebuffer(GL_FRAMEBUFFER, _storage->_framebuffer);
-
+		
+		_frameID ++;
 		thread->PushCamera(this);
 	}
 
@@ -242,6 +250,11 @@ namespace RN
 		_skycube = skycube ? skycube->Retain() : 0;
 	}
 	
+	void Camera::SetMaxLightsPerTile(machine_uint lights)
+	{
+		_maxLights = lights;
+	}
+	
 	// Stages
 	void Camera::AddStage(Camera *stage)
 	{
@@ -330,7 +343,7 @@ namespace RN
 		if(_depthTiles)
 			_depthTiles->Release();
 		
-		_depthTiles = depthTiles->Retain();
+		_depthTiles = depthTiles ? depthTiles->Retain() : 0;
 	}
 	
 	// Helper
@@ -413,6 +426,34 @@ namespace RN
 		}
 		
 		return _frame;
+	}
+	
+	float *Camera::DepthArray()
+	{
+		if(!_depthTiles)
+			return 0;
+		
+		if(_depthFrame == _frameID)
+			return _depthArray;
+		
+		int tilesWidth  = (int)_lightTiles.x;
+		int tilesHeight = (int)_lightTiles.y;
+		
+		size_t size = tilesWidth * tilesHeight * 2 * sizeof(float);
+		if(size > _depthSize)
+		{
+			delete _depthArray;
+			
+			_depthArray = new float[size];
+			_depthSize  = size;
+		}
+		
+		_depthTiles->Bind();
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, _depthArray);
+		_depthTiles->Unbind();
+		
+		_depthFrame = _frameID;
+		return _depthArray;
 	}
 
 	void Camera::UpdateFrustum()

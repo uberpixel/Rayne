@@ -108,6 +108,7 @@ namespace RN
 		RNAPI void SetColorMask(ColorFlags mask);
 		RNAPI void SetAllowsDepthWrite(bool flag);
 		RNAPI void SetSkyCube(Model *skycube);
+		RNAPI void SetMaxLightsPerTile(machine_uint lights);
 		
 		RNAPI void AddStage(Camera *stage);
 		RNAPI void InsertStage(Camera *stage);
@@ -145,6 +146,9 @@ namespace RN
 		bool HasStencilbuffer() const { return _storage->HasStencilbuffer(); }
 		
 		bool AllowsDepthWrite() const { return _allowDepthWrite; }
+		
+		float *DepthArray();
+		machine_uint MaxLightsPerTile() const { return _maxLights; }
 		
 		float fov;
 		float aspect;
@@ -186,6 +190,14 @@ namespace RN
 		
 		Texture *_depthTiles;
 		Model *_skycube;
+		
+		uint32 _frameID;
+		
+		float *_depthArray;
+		uint32 _depthFrame;
+		size_t _depthSize;
+		
+		machine_uint _maxLights;
 		
 		RNDefineConstructorlessMeta(Camera, Transform)
 	};

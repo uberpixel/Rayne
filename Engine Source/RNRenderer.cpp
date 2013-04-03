@@ -69,6 +69,7 @@ namespace RN
 		
 		_lightIndicesBuffer = 0;
 		_lightOffsetBuffer = 0;
+		_tempLightIndicesBuffer = 0;
 		
 		_lightIndicesBufferSize = 0;
 		_lightOffsetBufferSize = 0;
@@ -105,10 +106,6 @@ namespace RN
 		gl::BindVertexArray(0);
 		
 #if !(RN_PLATFORM_IOS)
-		glGenBuffers(1, &_lightDepthPBO);
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, _lightDepthPBO);
-		_lightDepthPBOSize = 0;
-
 		// Point lights
 		_lightPointDataSize = 0;
 		
@@ -226,9 +223,12 @@ namespace RN
 		if(indicesSize > _lightIndicesBufferSize)
 		{
 			delete _lightIndicesBuffer;
+			delete _tempLightIndicesBuffer;
 			
 			_lightIndicesBufferSize = indicesSize;
+			
 			_lightIndicesBuffer = new int[_lightIndicesBufferSize];
+			_tempLightIndicesBuffer = new int[_lightIndicesBufferSize];
 		}
 		
 		if(offsetSize > _lightOffsetBufferSize)
@@ -261,15 +261,7 @@ namespace RN
 		Vector3 diry = (corner3-corner1) / tilesHeight;
 		
 		const Vector3& camPosition = camera->Position();
-		
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, _lightDepthPBO);
-		
-		_lightDepthPBOSize = tilesWidth*tilesHeight;
-		glBufferData(GL_PIXEL_PACK_BUFFER, _lightDepthPBOSize*2*sizeof(float), 0, GL_DYNAMIC_DRAW);
-		
-		glBindTexture(GL_TEXTURE_2D, camera->DepthTiles()->Name());
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, 0);
-		float *depthArray = (float*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+		float *depthArray = camera->DepthArray();
 		
 		Vector3 camdir = camera->Rotation().RotateVector(RN::Vector3(0.0, 0.0, -1.0));
 		Vector3 far = camera->ToWorld(Vector3(1.0f, 1.0f, 1.0f));
@@ -280,13 +272,20 @@ namespace RN
 		
 		size_t i = 0;
 		size_t tileCount = tilesWidth * tilesHeight;
-		std::vector<std::future<std::tuple<size_t, int *>>> futures(tileCount);
 		
-		for(float y=0.0f; y<tilesHeight; y+=1.0f)
+		size_t lightindicesSize = tilesWidth * tilesHeight * lightCount;
+		size_t lightindexoffsetSize = tilesWidth * tilesHeight * 2;
+		
+		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
+		
+		std::vector<std::future<size_t>> futures(tileCount);
+		
+		for(int y=0; y<tilesHeight; y++)
 		{
-			for(float x=0.0f; x<tilesWidth; x+=1.0f)
+			for(int x=0; x<tilesWidth; x++)
 			{
-				futures[i ++] = pool->AddTask([&, x, y]()->std::tuple<size_t, int *> {
+				size_t index = i;
+				futures[i ++] = pool->AddTask([&, x, y, index]()->size_t {
 					Plane plleft;
 					Plane plright;
 					Plane pltop;
@@ -300,11 +299,11 @@ namespace RN
 					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
 					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
 					
-					plnear.SetPlane(camPosition + camdir * depthArray[int(y * tilesWidth + x) * 2 + 0], camdir);
-					plfar.SetPlane(camPosition + camdir * depthArray[int(y * tilesWidth + x) * 2 + 1], camdir);
+					plnear.SetPlane(camPosition + camdir * depthArray[index * 2 + 0], camdir);
+					plfar.SetPlane(camPosition + camdir * depthArray[index * 2 + 1], camdir);
 					
 					size_t lightIndicesCount = 0;
-					int *lightPointIndices = new int[lightCount];
+					int *lightPointIndices = _tempLightIndicesBuffer + (index * lightCount);
 					
 					for(size_t i=0; i<lightCount; i++)
 					{
@@ -324,27 +323,20 @@ namespace RN
 						lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
 					}
 					
-					return std::tuple<size_t, int *>(lightIndicesCount, lightPointIndices);
+					return lightIndicesCount;
 				});
 			}
 		}
 		
 		pool->EndTaskBatch();
 		
-		size_t lightindicesSize = tilesWidth * tilesHeight * lightCount;
-		size_t lightindexoffsetSize = tilesWidth * tilesHeight * 2;
-		
 		size_t lightIndicesCount = 0;
 		size_t lightIndexOffsetCount = 0;
 		
-		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
-		
 		for(i=0; i<tileCount; i++)
 		{
-			std::tuple<size_t, int *> data = futures[i].get();
-			
-			size_t tileCount = std::get<0>(data);
-			int *tileIndices = std::get<1>(data);
+			size_t tileCount = futures[i].get();
+			int *tileIndices = _tempLightIndicesBuffer + (i * lightCount);
 			
 			size_t previous = lightIndicesCount;
 			_lightOffsetBuffer[lightIndexOffsetCount ++] = static_cast<int>(previous);
@@ -353,12 +345,7 @@ namespace RN
 			lightIndicesCount += tileCount;
 			
 			_lightOffsetBuffer[lightIndexOffsetCount ++] = static_cast<int>(lightIndicesCount - previous);
-			
-			delete tileIndices;
 		}
-		
-		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 		
 		// Indices
 		if(lightIndicesCount == 0)
@@ -379,7 +366,9 @@ namespace RN
 		Light **lights = _pointLights.Data();
 		machine_uint lightCount = _pointLights.Count();
 		
-		if(camera->DepthTiles())
+		lightCount = MIN(camera->MaxLightsPerTile(), lightCount);
+		
+		if(camera->DepthTiles() && lightCount > 0)
 		{
 			GLuint indicesBuffer = _lightPointBuffers[kRNRendererPointLightListIndicesIndex];
 			GLuint offsetBuffer = _lightPointBuffers[kRNRendererPointLightListOffsetIndex];
@@ -426,7 +415,9 @@ namespace RN
 		Light **lights = _spotLights.Data();
 		machine_uint lightCount = _spotLights.Count();
 		
-		if(camera->DepthTiles())
+		lightCount = MIN(camera->MaxLightsPerTile(), lightCount);
+		
+		if(camera->DepthTiles() && lightCount > 0)
 		{
 			GLuint indicesBuffer = _lightSpotBuffers[kRNRendererSpotLightListIndicesIndex];
 			GLuint offsetBuffer = _lightSpotBuffers[kRNRendererSpotLightListOffsetIndex];
