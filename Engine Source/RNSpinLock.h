@@ -11,42 +11,36 @@
 
 #include "RNBase.h"
 
-typedef uint8 RNPrimitiveSpinLock;
-
-extern "C"
-{
-	void RNPrimitiveSpinLockLock(RNPrimitiveSpinLock *lock);
-	void RNPrimitiveSpinLockUnlock(RNPrimitiveSpinLock *lock);
-	bool RNPrimitiveSpinLockTryLock(RNPrimitiveSpinLock *lock);
-}
-
 namespace RN
 {
 	class SpinLock
 	{
 	public:
-		SpinLock()
+		SpinLock() :
+			_flag(ATOMIC_FLAG_INIT)
 		{
-			_lock = 0;
 		}
 		
 		void Lock()
 		{
-			RNPrimitiveSpinLockLock(&_lock);
+			while(_flag.test_and_set(std::memory_order_acquire))
+			{
+				std::this_thread::yield();
+			}
 		}
 		
 		void Unlock()
 		{
-			RNPrimitiveSpinLockUnlock(&_lock);
+			_flag.clear(std::memory_order_release);
 		}
 		
 		bool TryLock()
 		{
-			return RNPrimitiveSpinLockTryLock(&_lock);
+			return (!_flag.test_and_set(std::memory_order_acquire));
 		}
 		
 	private:
-		RNPrimitiveSpinLock _lock;
+		std::atomic_flag _flag;
 	};
 }
 

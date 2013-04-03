@@ -466,7 +466,7 @@ namespace RN
 							{
 								case 0:
 								{
-									InputMessage message = InputMessage(control, InputMessage::InputMessageTypeMouseUp);
+									InputMessage message(control, InputMessage::InputMessageTypeMouseUp);
 									MessageCenter::SharedInstance()->PostMessage(&message);
 
 									_pressedButtons &= ~(1 << tcontrol->Button());
@@ -475,7 +475,7 @@ namespace RN
 
 								case 1:
 								{
-									InputMessage message = InputMessage(control, InputMessage::InputMessageTypeMouseDown);
+									InputMessage message(control, InputMessage::InputMessageTypeMouseDown);
 									MessageCenter::SharedInstance()->PostMessage(&message);
 
 									_pressedButtons |= (1 << tcontrol->Button());
@@ -534,7 +534,7 @@ namespace RN
 					{
 						case 0:
 						{
-							InputMessage message = InputMessage(control, InputMessage::InputMessageTypeKeyUp);
+							InputMessage message(control, InputMessage::InputMessageTypeKeyUp);
 							MessageCenter::SharedInstance()->PostMessage(&message);
 
 							if(keyControl->Character() != '\0')
@@ -548,7 +548,7 @@ namespace RN
 							if(keyControl->Character() != '\0')
 								_pressedCharacters.insert(keyControl->Character());
 
-							InputMessage message = InputMessage(control, InputMessage::InputMessageTypeKeyDown);
+							InputMessage message(control, InputMessage::InputMessageTypeKeyDown);
 							MessageCenter::SharedInstance()->PostMessage(&message);
 							break;
 						}
