@@ -278,14 +278,15 @@ namespace RN
 		
 		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
 		
-		std::vector<std::future<size_t>> futures(tileCount);
+		std::vector<std::future<void>> futures(tileCount);
+		std::vector<size_t> indicesCount(tileCount);
 		
 		for(int y=0; y<tilesHeight; y++)
 		{
 			for(int x=0; x<tilesWidth; x++)
 			{
 				size_t index = i;
-				futures[i ++] = pool->AddTask([&, x, y, index]()->size_t {
+				futures[i ++] = pool->AddTask([&, x, y, index]() {
 					Plane plleft;
 					Plane plright;
 					Plane pltop;
@@ -323,7 +324,7 @@ namespace RN
 						lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
 					}
 					
-					return lightIndicesCount;
+					indicesCount[index] = lightIndicesCount;
 				});
 			}
 		}
@@ -335,14 +336,19 @@ namespace RN
 		
 		for(i=0; i<tileCount; i++)
 		{
-			size_t tileCount = futures[i].get();
+			futures[i].wait();
+			
+			size_t tileCount = indicesCount[i];
 			int *tileIndices = _tempLightIndicesBuffer + (i * lightCount);
 			
 			size_t previous = lightIndicesCount;
 			_lightOffsetBuffer[lightIndexOffsetCount ++] = static_cast<int>(previous);
 			
-			std::copy(tileIndices, tileIndices + tileCount, _lightIndicesBuffer + lightIndicesCount);
-			lightIndicesCount += tileCount;
+			if(tileCount > 0)
+			{
+				std::copy(tileIndices, tileIndices + tileCount, _lightIndicesBuffer + lightIndicesCount);
+				lightIndicesCount += tileCount;
+			}
 			
 			_lightOffsetBuffer[lightIndexOffsetCount ++] = static_cast<int>(lightIndicesCount - previous);
 		}
