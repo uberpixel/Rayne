@@ -32,6 +32,9 @@ namespace TG
 		uint32 _touchRight;
 		uint32 _touchLeft;
 		
+		RN::Model *_blockModel;
+		RN::bullet::PhysicsMaterial *_blockMaterial;
+		
 		RN::Entity *_parentBlock;
 		RN::Entity *_childBlock;
 		

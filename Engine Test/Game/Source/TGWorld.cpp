@@ -12,7 +12,6 @@
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
 #define TGWorldFeatureAnimations    1
-#define TGWorldFeaturePhysics       1
 #define TGWorldFeatureLOD           0
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
@@ -62,8 +61,15 @@ namespace TG
 			{
 				fpressed = true;
 				
-				RN::Light *child = _camera->ChildAtIndex<RN::Light>(0);
-				child->SetRange((child->Range() < 1.0f) ? TGWorldSpotLightRange : 0.0f);
+				//RN::Light *child = _camera->ChildAtIndex<RN::Light>(0);
+				//child->SetRange((child->Range() < 1.0f) ? TGWorldSpotLightRange : 0.0f);
+				
+				RN::bullet::RigidBody *block;
+				
+				block = new RN::bullet::RigidBody(RN::bullet::BoxShape::WithHalfExtents(RN::Vector3(0.5f)), _blockMaterial, 5.0f);
+				block->SetModel(_blockModel);
+				block->SetPosition(_camera->WorldPosition());
+				block->ApplyImpulse(_camera->WorldRotation().RotateVector(RN::Vector3(0.0, 0.0, -90.0f)));
 			}
 		}
 		else
@@ -229,31 +235,22 @@ namespace TG
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
 		
-#if TGWorldFeaturePhysics
 		RN::Material *blockMaterial = new RN::Material();
 		blockMaterial->AddTexture(RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888));
 		
-		RN::Mesh  *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f));
-		RN::Model *blockModel = RN::Model::WithMesh(blockMesh->Autorelease(), blockMaterial->Autorelease());
+		RN::Mesh *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f));
+		_blockModel = RN::Model::WithMesh(blockMesh, blockMaterial->Autorelease());
+		_blockModel->Retain();
 		
-		RN::bullet::BoxShape *shape = new RN::bullet::BoxShape(RN::Vector3(0.5f));
-		RN::bullet::PhysicsMaterial *physicsMaterial = new RN::bullet::PhysicsMaterial();
-		RN::bullet::RigidBody *block;
+		_blockMaterial = new RN::bullet::PhysicsMaterial();
+		_blockMaterial->SetRestitution(0.3f);
+		_blockMaterial->SetFriction(0.6f);
 		
-		physicsMaterial->SetRestitution(0.8f);
-		physicsMaterial->SetFriction(0.1f);
+		RN::bullet::PhysicsMaterial *floorMaterial = new RN::bullet::PhysicsMaterial();
+		RN::bullet::Shape *floorShape = RN::bullet::StaticPlaneShape::WithNormal(RN::Vector3(0.0f, 1.0f, 0.0f), 1.0f);
 		
-		block = new RN::bullet::RigidBody(shape, physicsMaterial, 5.0f);
-		block->SetPosition(RN::Vector3(-2.0f, 0.0f, 0.0f));
-		block->SetModel(blockModel);
-		
-		block = new RN::bullet::RigidBody(shape, physicsMaterial, 5.0f);
-		block->SetPosition(RN::Vector3(2.0f, 0.0f, 0.0f));
-		block->SetModel(blockModel);
-		
-		RN::bullet::RigidBody *floor = new RN::bullet::RigidBody(RN::bullet::StaticPlaneShape::WithNormal(RN::Vector3(0.0f, 1.0f, 0.0f), 1.0f), physicsMaterial, 0.0f);
+		RN::bullet::RigidBody *floor = new RN::bullet::RigidBody(floorShape, floorMaterial, 0.0f);
 		floor->SetPosition(RN::Vector3(0.0f, -13.0f, 0.0f));
-#endif
 		
 #if TGWorldFeatureAnimations
 		RN::Model *girlmodel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");

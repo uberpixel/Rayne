@@ -28,8 +28,8 @@ namespace RN
 			_linearDamping  = 0.0f;
 			_angularDamping = 0.0f;
 			
-			_friction    = 0.0f;
-			_restitution = 0.0f;
+			_friction    = 0.8f;
+			_restitution = 0.1f;
 		}
 		
 		void PhysicsMaterial::AddListener(void *handle, const std::function<void (PhysicsMaterial *)>& callback)
