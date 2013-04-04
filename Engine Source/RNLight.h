@@ -29,18 +29,17 @@ namespace RN
 		RNAPI Light(Type type = TypePointLight);
 		RNAPI virtual ~Light();
 		
-		RNAPI virtual void Update(float delta);
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
 		RNAPI void SetRange(float range);
 		RNAPI void SetColor(const Vector3& color);
 		RNAPI void SetAngle(float angle);
 		
-		const Type LightType() { return _lightType; }
-		const Vector3& Color() { return _color; }
-		const Vector3& Direction() { return _direction; }
-		const float Range() { return _range; }
-		const float Angle() { return _angle; }
+		const Type LightType() const { return _lightType; }
+		const Vector3& Color() const { return _color; }
+		const float Range() const { return _range; }
+		const float Angle() const { return _angle; }
+		const Vector3& Direction();
 	
 	private:
 		Type _lightType;

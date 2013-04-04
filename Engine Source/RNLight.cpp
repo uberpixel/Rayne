@@ -24,11 +24,11 @@ namespace RN
 	
 	Light::~Light()
 	{}
-
-	void Light::Update(float delta)
+	
+	const Vector3& Light::Direction()
 	{
-		Transform::Update(delta);
 		_direction = WorldRotation().RotateVector(Vector3(0.0, 0.0, -1.0));
+		return _direction;
 	}
 	
 	bool Light::IsVisibleInCamera(Camera *camera)

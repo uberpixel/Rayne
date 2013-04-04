@@ -29,11 +29,6 @@ namespace RN
 			_skeleton->Release();
 	}
 	
-	void Entity::Update(float delta)
-	{
-		Transform::Update(delta);
-	}
-	
 	bool Entity::IsVisibleInCamera(Camera *camera)
 	{
 		return true;
