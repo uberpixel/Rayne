@@ -69,8 +69,8 @@ namespace RN
 		_initialized = false;
 		_shouldExit  = false;
 
-		LoadApplicationModule(Settings::SharedInstance()->GameModule());
 		ModuleCoordinator::SharedInstance();
+		LoadApplicationModule(Settings::SharedInstance()->GameModule());
 		
 		delete pool;
 	}

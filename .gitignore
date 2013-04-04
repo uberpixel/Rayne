@@ -54,3 +54,6 @@ xcuserdata
 /Xcode/OS X/DerivedData/
 /Engine Test/Game/Game-ios.xcodeproj/project.xcworkspace/
 /Engine Test/Game/DerivedData/
+/Engine Modules/Build/
+/Engine Test/Game/Resources/modules/
+/Engine Modules/rayne-bullet/bullet/

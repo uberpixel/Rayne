@@ -9,9 +9,11 @@
 #include "TGWorld.h"
 
 #define TGWorldFeatureLights        1
-#define TGWorldFeatureNormalMapping 1
+#define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
 #define TGWorldFeatureAnimations    1
+#define TGWorldFeaturePhysics       1
+#define TGWorldFeatureLOD           0
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 95.0f
@@ -20,85 +22,10 @@ namespace TG
 {
 	World::World()
 	{
-#if !(RN_PLATFORM_IOS)
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
-		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
-		storage->SetDepthTarget(depthtex);
+		_physicsAttachment = new RN::bullet::PhysicsWorld();
+		AddAttachment(_physicsAttachment->Autorelease());
 		
-		RN::Shader *depthShader = RN::Shader::WithFile("shader/rn_LightDepth");
-		RN::Material *depthMaterial = new RN::Material(depthShader);
-		
-		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
-		_camera->SetMaterial(depthMaterial);
-		_camera->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
-		
-		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
-		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
-		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
-		downsampleMaterial2x->AddTexture(depthtex);
-
-		RN::Camera *downsample2x = new RN::Camera(RN::Vector2(_camera->Frame().width/2, _camera->Frame().height/2), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatComplete);
-		_camera->AddStage(downsample2x);
-		downsample2x->SetMaterial(downsampleMaterial2x);
-
-		RN::Material *downsampleMaterial4x = new RN::Material(downsampleShader);
-		downsampleMaterial4x->AddTexture(downsample2x->Storage()->RenderTarget());
-
-		RN::Camera *downsample4x = new RN::Camera(RN::Vector2(_camera->Frame().width/4, _camera->Frame().height/4), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
-		_camera->AddStage(downsample4x);
-		downsample4x->SetMaterial(downsampleMaterial4x);
-
-		RN::Material *downsampleMaterial8x = new RN::Material(downsampleShader);
-		downsampleMaterial8x->AddTexture(downsample4x->Storage()->RenderTarget());
-
-		RN::Camera *downsample8x = new RN::Camera(RN::Vector2(_camera->Frame().width/8, _camera->Frame().height/8), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
-		_camera->AddStage(downsample8x);
-		downsample8x->SetMaterial(downsampleMaterial8x);
-
-		RN::Material *downsampleMaterial16x = new RN::Material(downsampleShader);
-		downsampleMaterial16x->AddTexture(downsample8x->Storage()->RenderTarget());
-
-		RN::Camera *downsample16x = new RN::Camera(RN::Vector2(_camera->Frame().width/16, _camera->Frame().height/16), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
-		_camera->AddStage(downsample16x);
-		downsample16x->SetMaterial(downsampleMaterial16x);
-
-		RN::Material *downsampleMaterial32x = new RN::Material(downsampleShader);
-		downsampleMaterial32x->AddTexture(downsample16x->Storage()->RenderTarget());
-
-		RN::Camera *downsample32x = new RN::Camera(RN::Vector2(_camera->Frame().width/32, _camera->Frame().height/32), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
-		_camera->AddStage(downsample32x);
-		downsample32x->SetMaterial(downsampleMaterial32x);
-
-		RN::Camera *downsample64x;
-		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
-		{
-			RN::Material *downsampleMaterial64x = new RN::Material(downsampleShader);
-			downsampleMaterial64x->AddTexture(downsample32x->Storage()->RenderTarget());
-
-			downsample64x = new RN::Camera(RN::Vector2(_camera->Frame().width/64, _camera->Frame().height/64), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
-			_camera->AddStage(downsample64x);
-			downsample64x->SetMaterial(downsampleMaterial64x);
-		}
-
-		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA32F, RN::Camera::FlagDefaults);
-		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
-		_finalcam->Storage()->SetDepthTarget(depthtex);
-		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
-//		_camera->AttachChild(_finalcam);
-
-		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
-		{
-			_finalcam->ActivateTiledLightLists(downsample64x->Storage()->RenderTarget());
-		}
-		else
-		{
-			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
-		}
-#else
-		_camera = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA8888, RN::Camera::FlagDefaults);
-		_camera->SetClearColor(RN::Color(0.0, 0.0, 0.0, 1.0));
-#endif
-		
+		CreateCameras();
 		CreateWorld();
 		
 		RN::Input::SharedInstance()->Activate();
@@ -107,9 +34,9 @@ namespace TG
 	World::~World()
 	{
 		RN::Input::SharedInstance()->Deactivate();
-		
 		_camera->Release();
 	}
+	
 	
 	void World::Update(float delta)
 	{
@@ -144,7 +71,6 @@ namespace TG
 			fpressed = false;
 		}
 #endif
-		
 #endif
 		
 #if RN_PLATFORM_IOS
@@ -190,23 +116,92 @@ namespace TG
 #endif
 		
 		_camera->Rotate(rotation);
-		_camera->Translate(translation * -delta, true);
+		_camera->TranslateLocal(translation * -delta);
 		
 		_finalcam->SetRotation(_camera->Rotation());
 		_finalcam->SetPosition(_camera->Position());
 	}
 	
-	void World::CreateWorld()
+	void World::CreateCameras()
 	{
-		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Texture1");
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
+		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
+		storage->SetDepthTarget(depthtex);
 		
-		// Sponza
-		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
-		for(int i = 0; i < model->Meshes(0); i++)
+		RN::Shader *depthShader = RN::Shader::WithFile("shader/rn_LightDepth");
+		RN::Material *depthMaterial = new RN::Material(depthShader);
+		
+		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
+		_camera->SetMaterial(depthMaterial);
+		_camera->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
+		
+		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
+		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
+		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
+		downsampleMaterial2x->AddTexture(depthtex);
+		
+		RN::Camera *downsample2x = new RN::Camera(RN::Vector2(_camera->Frame().width/2, _camera->Frame().height/2), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatComplete);
+		_camera->AddStage(downsample2x);
+		downsample2x->SetMaterial(downsampleMaterial2x);
+		
+		RN::Material *downsampleMaterial4x = new RN::Material(downsampleShader);
+		downsampleMaterial4x->AddTexture(downsample2x->Storage()->RenderTarget());
+		
+		RN::Camera *downsample4x = new RN::Camera(RN::Vector2(_camera->Frame().width/4, _camera->Frame().height/4), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		_camera->AddStage(downsample4x);
+		downsample4x->SetMaterial(downsampleMaterial4x);
+		
+		RN::Material *downsampleMaterial8x = new RN::Material(downsampleShader);
+		downsampleMaterial8x->AddTexture(downsample4x->Storage()->RenderTarget());
+		
+		RN::Camera *downsample8x = new RN::Camera(RN::Vector2(_camera->Frame().width/8, _camera->Frame().height/8), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		_camera->AddStage(downsample8x);
+		downsample8x->SetMaterial(downsampleMaterial8x);
+		
+		RN::Material *downsampleMaterial16x = new RN::Material(downsampleShader);
+		downsampleMaterial16x->AddTexture(downsample8x->Storage()->RenderTarget());
+		
+		RN::Camera *downsample16x = new RN::Camera(RN::Vector2(_camera->Frame().width/16, _camera->Frame().height/16), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		_camera->AddStage(downsample16x);
+		downsample16x->SetMaterial(downsampleMaterial16x);
+		
+		RN::Material *downsampleMaterial32x = new RN::Material(downsampleShader);
+		downsampleMaterial32x->AddTexture(downsample16x->Storage()->RenderTarget());
+		
+		RN::Camera *downsample32x = new RN::Camera(RN::Vector2(_camera->Frame().width/32, _camera->Frame().height/32), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		_camera->AddStage(downsample32x);
+		downsample32x->SetMaterial(downsampleMaterial32x);
+		
+		RN::Camera *downsample64x;
+		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
 		{
-			model->MaterialAtIndex(0, i)->SetShader(shader);
+			RN::Material *downsampleMaterial64x = new RN::Material(downsampleShader);
+			downsampleMaterial64x->AddTexture(downsample32x->Storage()->RenderTarget());
+			
+			downsample64x = new RN::Camera(RN::Vector2(_camera->Frame().width/64, _camera->Frame().height/64), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+			_camera->AddStage(downsample64x);
+			downsample64x->SetMaterial(downsampleMaterial64x);
 		}
 		
+		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA32F, RN::Camera::FlagDefaults);
+		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
+		_finalcam->Storage()->SetDepthTarget(depthtex);
+		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
+		
+		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
+		{
+			_finalcam->ActivateTiledLightLists(downsample64x->Storage()->RenderTarget());
+		}
+		else
+		{
+			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
+		}
+	}
+	
+	void World::CreateWorld()
+	{
+		// Sponza
+		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
 		model->MaterialAtIndex(0, 5)->discard = true;
 		model->MaterialAtIndex(0, 5)->culling = false;
 		model->MaterialAtIndex(0, 5)->alphatest = true;
@@ -222,6 +217,7 @@ namespace TG
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
 		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
 		RN::Texture *normalmap = RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png", RN::Texture::FormatRGBA8888);
+		
 		model->MaterialAtIndex(0, 3)->AddTexture(normalmap);
 		model->MaterialAtIndex(0, 3)->SetShader(normalshader);
 #endif
@@ -233,31 +229,31 @@ namespace TG
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
 		
-		// Blocks
-		RN::Material *blockMaterial = new RN::Material(shader);
+#if TGWorldFeaturePhysics
+		RN::Material *blockMaterial = new RN::Material();
 		blockMaterial->AddTexture(RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888));
 		
-		RN::Mesh  *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f, 0.5f, 0.5f));
+		RN::Mesh  *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f));
 		RN::Model *blockModel = RN::Model::WithMesh(blockMesh->Autorelease(), blockMaterial->Autorelease());
 		
-		_parentBlock = new RN::Entity();
-		_parentBlock->SetModel(blockModel);
+		RN::bullet::BoxShape *shape = new RN::bullet::BoxShape(RN::Vector3(0.5f));
+		RN::bullet::PhysicsMaterial *physicsMaterial = new RN::bullet::PhysicsMaterial();
+		RN::bullet::RigidBody *block;
 		
-		_childBlock = new RN::Entity();
-		_childBlock->Autorelease();
-		_childBlock->SetModel(blockModel);
-		_childBlock->SetAction([](RN::Transform *entity, float delta) {
-			entity->Rotate(RN::Vector3(32.0f * delta, 0.0f, 32.0f * delta));
-			entity->SetPosition(RN::Vector3(0.0f, 2.0f + (sinf(RN::Kernel::SharedInstance()->Time())), 0.0f));
-			
-			if(RN::Kernel::SharedInstance()->Time() > 5.0f)
-				entity->DetachFromParent();
-		});
+		physicsMaterial->SetRestitution(0.8f);
+		physicsMaterial->SetFriction(0.1f);
 		
-		_parentBlock->AttachChild(_childBlock);
-		_parentBlock->SetAction([](RN::Transform *entity, float delta) {
-			entity->Rotate(RN::Vector3(0.0f, 64.0f * delta, 0.0f));
-		});
+		block = new RN::bullet::RigidBody(shape, physicsMaterial, 5.0f);
+		block->SetPosition(RN::Vector3(-2.0f, 0.0f, 0.0f));
+		block->SetModel(blockModel);
+		
+		block = new RN::bullet::RigidBody(shape, physicsMaterial, 5.0f);
+		block->SetPosition(RN::Vector3(2.0f, 0.0f, 0.0f));
+		block->SetModel(blockModel);
+		
+		RN::bullet::RigidBody *floor = new RN::bullet::RigidBody(RN::bullet::StaticPlaneShape::WithNormal(RN::Vector3(0.0f, 1.0f, 0.0f), 1.0f), physicsMaterial, 0.0f);
+		floor->SetPosition(RN::Vector3(0.0f, -13.0f, 0.0f));
+#endif
 		
 #if TGWorldFeatureAnimations
 		RN::Model *girlmodel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
@@ -268,7 +264,6 @@ namespace TG
 		girl->SetModel(girlmodel);
 		girl->SetSkeleton(_girlskeleton);
 		girl->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
-		girlmodel->MaterialAtIndex(0, 0)->SetShader(shader);
 		
 		
 		RN::Model *zombiemodel = RN::Model::WithFile("models/RosswetMobile/new_thin_zombie.sgm");
@@ -279,9 +274,9 @@ namespace TG
 		zombie->SetModel(zombiemodel);
 		zombie->SetSkeleton(_zombieskeleton);
 		zombie->SetPosition(RN::Vector3(-5.0f, -5.0f, 0.0f));
-		zombiemodel->MaterialAtIndex(0, 0)->SetShader(shader);
 #endif
 		
+#if TGWorldFeatureLOD
 		RN::Shader *foliageShader = new RN::Shader();
 		foliageShader->SetVertexShader("shader/rn_WindFoliage.vsh");
 		foliageShader->SetFragmentShader("shader/rn_Texture1.fsh");
@@ -308,10 +303,10 @@ namespace TG
 		
 		_spruce = new RN::Entity();
 		_spruce->SetModel(spruceModel);
+#endif
 		
 #if TGWorldFeatureLights
 		RN::Light *light;
-		
 		//srand(time(0));
 		
 		light = new RN::Light();
@@ -331,12 +326,16 @@ namespace TG
 		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		_camera->AttachChild(light);
 		
-		for(int i=0; i<100; i++)
+		for(int i=0; i<200; i++)
 		{
 			light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 140.0f - 70.0f, TGWorldRandom * 100.0f-20.0f, TGWorldRandom * 80.0f - 40.0f));
-			light->SetRange(TGWorldRandom * 20.0f);
+			light->SetRange((TGWorldRandom * 20.0f) + 10.0f);
 			light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+			
+			light->SetAction([](RN::Transform *transform, float delta) {
+				transform->Translate(RN::Vector3(0.5f * delta, 0.0f, 0.0));
+			});
 		}
 #endif
 		

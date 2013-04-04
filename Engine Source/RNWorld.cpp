@@ -90,6 +90,12 @@ namespace RN
 		Update(delta);
 		ApplyTransformUpdates();
 		
+		for(machine_uint i=0; i<_attachments.Count(); i++)
+		{
+			WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+			attachment->StepWorld(delta);
+		}
+		
 		uint32 size = (uint32)_transforms.size();
 		uint32 j = 0;
 		
@@ -119,12 +125,23 @@ namespace RN
 		ApplyTransformUpdates();
 		TransformsUpdated();
 		
+		for(machine_uint i=0; i<_attachments.Count(); i++)
+		{
+			WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+			attachment->TransformsUpdated();
+		}
+		
 		// Iterate over all cameras and render the visible nodes
 		for(Camera *camera : _cameras)
 		{
 			camera->PostUpdate();
-			
 			_renderer->BeginCamera(camera);
+			
+			for(machine_uint i=0; i<_attachments.Count(); i++)
+			{
+				WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+				attachment->BeginCamera(camera);
+			}
 			
 			for(auto j=_transforms.begin(); j!=_transforms.end(); j++)
 			{
@@ -133,6 +150,12 @@ namespace RN
 					continue;
 				
 				VisitTransform(camera, transform);
+			}
+			
+			for(machine_uint i=0; i<_attachments.Count(); i++)
+			{
+				WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+				attachment->WillFinishCamera(camera);
 			}
 			
 			_renderer->FinishCamera();
@@ -162,12 +185,31 @@ namespace RN
 						Camera *camera = static_cast<Camera *>(transform);
 						_cameras.push_back(camera);
 					}
+					
+					for(machine_uint i=0; i<_attachments.Count(); i++)
+					{
+						WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+						attachment->DidAddTransform(transform);
+					}
 				}
 			}
 			
 			_addedTransforms.clear();
 		}
 	}
+	
+	
+	
+	void World::AddAttachment(WorldAttachment *attachment)
+	{
+		_attachments.AddObject(attachment);
+	}
+	
+	void World::RemoveAttachment(WorldAttachment *attachment)
+	{
+		_attachments.RemoveObject(attachment);
+	}
+	
 	
 	void World::AddTransform(Transform *transform)
 	{
@@ -186,6 +228,12 @@ namespace RN
 		auto iterator = _transforms.find(transform);
 		if(iterator != _transforms.end())
 		{
+			for(machine_uint i=0; i<_attachments.Count(); i++)
+			{
+				WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+				attachment->WillRemoveTransform(transform);
+			}
+			
 			_transforms.erase(iterator);
 			
 			if(transform->IsKindOfClass(_cameraClass))

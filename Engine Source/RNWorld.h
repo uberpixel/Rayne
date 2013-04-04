@@ -11,15 +11,16 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNArray.h"
 #include "RNRenderer.h"
 #include "RNTransform.h"
 #include "RNCamera.h"
+#include "RNWorldAttachment.h"
 
 namespace RN
 {
 	class Kernel;
 	class Transform;
-	class RetainPool;
 	
 	class World : public NonConstructingSingleton<World>
 	{
@@ -32,6 +33,9 @@ namespace RN
 		RNAPI void AddTransform(Transform *transform);
 		RNAPI void RemoveTransform(Transform *transform);
 		
+		RNAPI void AddAttachment(WorldAttachment *attachment);
+		RNAPI void RemoveAttachment(WorldAttachment *attachment);
+		
 		RNAPI virtual void Update(float delta);
 		RNAPI virtual void TransformsUpdated();
 		
@@ -43,6 +47,7 @@ namespace RN
 		
 		Kernel *_kernel;
 		
+		Array<WorldAttachment> _attachments;
 		std::unordered_set<Transform *> _transforms;
 		std::deque<Transform *> _addedTransforms;
 		std::vector<Camera *> _cameras;

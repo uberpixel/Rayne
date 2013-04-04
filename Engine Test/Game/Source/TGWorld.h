@@ -10,6 +10,7 @@
 #define __Game__TGWorld__
 
 #include <Rayne.h>
+#include <RBPhysicsWorld.h>
 
 namespace TG
 {
@@ -22,8 +23,8 @@ namespace TG
 		virtual void Update(float delta);
 		
 	private:
+		void CreateCameras();
 		void CreateWorld();
-		void CreateSSAOStage();
 		
 		RN::Camera *_camera;
 		RN::Camera *_finalcam;
@@ -39,6 +40,8 @@ namespace TG
 		
 		RN::Skeleton *_girlskeleton;
 		RN::Skeleton *_zombieskeleton;
+		
+		RN::bullet::PhysicsWorld *_physicsAttachment;
 	};
 }
 

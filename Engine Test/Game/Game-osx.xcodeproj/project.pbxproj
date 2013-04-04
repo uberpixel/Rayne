@@ -12,6 +12,7 @@
 		E92AE1CE16B524B600EFE1E8 /* TGApplication.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1CC16B524B600EFE1E8 /* TGApplication.h */; };
 		E92AE1DE16B5281D00EFE1E8 /* TGWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */; };
 		E92AE1DF16B5281D00EFE1E8 /* TGWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */; };
+		E959283A170DB40600935AC8 /* librayne-bullet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9592839170DB40600935AC8 /* librayne-bullet.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -23,6 +24,7 @@
 		E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGWorld.cpp; sourceTree = "<group>"; };
 		E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGWorld.h; sourceTree = "<group>"; };
 		E92D60EF16B7496E00BFCC44 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		E9592839170DB40600935AC8 /* librayne-bullet.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "librayne-bullet.dylib"; path = "Resources/modules/rayne-bullet/librayne-bullet.dylib"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -31,6 +33,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E92A62C716DF2474006E68AF /* libRayne.dylib in Frameworks */,
+				E959283A170DB40600935AC8 /* librayne-bullet.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -71,6 +74,7 @@
 			children = (
 				E92D60EF16B7496E00BFCC44 /* Foundation.framework */,
 				E92A62C516DF244C006E68AF /* libRayne.dylib */,
+				E9592839170DB40600935AC8 /* librayne-bullet.dylib */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -94,10 +98,10 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E92AE1BD16B523DD00EFE1E8 /* Build configuration list for PBXNativeTarget "Game" */;
 			buildPhases = (
+				E9592841170E0F6000935AC8 /* Build dependencies */,
 				E92AE1B516B523DD00EFE1E8 /* Sources */,
 				E92AE1B616B523DD00EFE1E8 /* Frameworks */,
 				E92AE1B716B523DD00EFE1E8 /* Headers */,
-				E90A0BBB16E39A93002190BE /* Build dependencies */,
 				E92A62C916DF252A006E68AF /* Install game */,
 			);
 			buildRules = (
@@ -136,20 +140,6 @@
 /* End PBXProject section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		E90A0BBB16E39A93002190BE /* Build dependencies */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Build dependencies";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "cd \"$PROJECT_DIR/../../Engine Modules/rayne-test\"\nxcrun xcodebuild -configuration $CONFIGURATION";
-		};
 		E92A62C916DF252A006E68AF /* Install game */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -162,7 +152,21 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "rm -rf \"$PROJECT_DIR/Resources/$EXECUTABLE_NAME\"\ncp -r \"$BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\" \"$PROJECT_DIR/Resources/$EXECUTABLE_NAME\"\n\nrm -rf \"$PROJECT_DIR/Resources/modules\"\ncp -r \"$PROJECT_DIR/../../Engine Modules/Build\" \"$PROJECT_DIR/Resources/modules\"";
+			shellScript = "rm -rf \"$PROJECT_DIR/Resources/$EXECUTABLE_NAME\"\ncp -r \"$BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\" \"$PROJECT_DIR/Resources/$EXECUTABLE_NAME\"";
+		};
+		E9592841170E0F6000935AC8 /* Build dependencies */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Build dependencies";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"$PROJECT_DIR/build_dependencies.sh\"";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -247,10 +251,12 @@
 				GCC_INPUT_FILETYPE = automatic;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
+					"\"$(SRCROOT)/Resources/modules/rayne-bullet/include\"",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Build\"",
+					"\"$(SRCROOT)/Resources/modules/rayne-bullet\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -263,10 +269,12 @@
 				GCC_INPUT_FILETYPE = automatic;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
+					"\"$(SRCROOT)/Resources/modules/rayne-bullet/include\"",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Build\"",
+					"\"$(SRCROOT)/Resources/modules/rayne-bullet\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -307,10 +315,12 @@
 				GCC_INPUT_FILETYPE = automatic;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Engine Source\"",
+					"\"$(SRCROOT)/Resources/modules/rayne-bullet/include\"",
 				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Build\"",
+					"\"$(SRCROOT)/Resources/modules/rayne-bullet\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

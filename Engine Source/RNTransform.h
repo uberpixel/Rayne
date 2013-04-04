@@ -29,13 +29,20 @@ namespace RN
 		RNAPI Transform(const Vector3& position, const Quaternion& rotation);
 		RNAPI virtual ~Transform();
 		
-		RNAPI void Translate(const Vector3& trans, bool local=false);
+		RNAPI void Translate(const Vector3& trans);
 		RNAPI void Scale(const Vector3& scal);
 		RNAPI void Rotate(const Vector3& rot);
+		
+		RNAPI void TranslateLocal(const Vector3& trans);
+		RNAPI void ScaleLocal(const Vector3& scal);
 		
 		RNAPI virtual void SetPosition(const Vector3& pos);
 		RNAPI virtual void SetScale(const Vector3& scal);
 		RNAPI virtual void SetRotation(const Quaternion& rot);
+		
+		RNAPI virtual void SetWorldPosition(const Vector3& pos);
+		RNAPI virtual void SetWorldScale(const Vector3& scal);
+		RNAPI virtual void SetWorldRotation(const Quaternion& rot);
 		
 		virtual bool IsVisibleInCamera(Camera *camera) { return false; }
 		
@@ -100,16 +107,8 @@ namespace RN
 	
 	
 	
-	RN_INLINE void Transform::Translate(const Vector3& trans, bool local)
+	RN_INLINE void Transform::Translate(const Vector3& trans)
 	{
-		if(local)
-		{
-			_position += _rotation.RotateVector(trans);
-			
-			DidUpdate();
-			return;
-		}
-		
 		_position += trans;
 		DidUpdate();
 	}
@@ -128,6 +127,18 @@ namespace RN
 	}
 	
 	
+	RN_INLINE void Transform::TranslateLocal(const Vector3& trans)
+	{
+		_position += _rotation.RotateVector(trans);
+		DidUpdate();
+	}
+	
+	RN_INLINE void Transform::ScaleLocal(const Vector3& scal)
+	{
+		_scale += _rotation.RotateVector(scal);
+		DidUpdate();
+	}
+	
 	
 	RN_INLINE void Transform::SetPosition(const Vector3& pos)
 	{
@@ -145,6 +156,48 @@ namespace RN
 	{
 		_euler = rot.EulerAngle();
 		_rotation = rot;
+		
+		DidUpdate();
+	}
+	
+	
+	RN_INLINE void Transform::SetWorldPosition(const Vector3& pos)
+	{
+		if(!_parent)
+		{
+			SetPosition(pos);
+			return;
+		}
+		
+		Quaternion temp;
+		temp = temp / _parent->WorldRotation();
+		
+		_position = temp.RotateVector(pos) - temp.RotateVector(WorldPosition());
+		DidUpdate();
+	}
+	
+	RN_INLINE void Transform::SetWorldScale(const Vector3& scal)
+	{
+		if(!_parent)
+		{
+			SetScale(scal);
+			return;
+		}
+		
+		_scale = scal - WorldScale();
+		DidUpdate();
+	}
+	
+	RN_INLINE void Transform::SetWorldRotation(const Quaternion& rot)
+	{
+		if(!_parent)
+		{
+			SetRotation(rot);
+			return;
+		}
+		
+		_rotation = rot / WorldRotation();
+		_euler = _rotation.EulerAngle();
 		
 		DidUpdate();
 	}

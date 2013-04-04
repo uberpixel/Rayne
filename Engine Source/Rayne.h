@@ -12,7 +12,6 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNAutoreleasePool.h"
-#include "RNModule.h"
 #include "RNCache.h"
 
 #include "RNKernel.h"
@@ -21,6 +20,9 @@
 #include "RNMessage.h"
 #include "RNFile.h"
 #include "RNPathManager.h"
+
+#include "RNModule.h"
+#include "RNWorldAttachment.h"
 
 #include "RNSkeleton.h"
 #include "RNModel.h"

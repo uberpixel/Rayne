@@ -123,7 +123,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "BUILD_DIR=\"$PROJECT_DIR/../Build\"\nINCLUDE_DIR=\"$BUILT_PRODUCTS_DIR/usr/local/include\"\n\nmkdir -p \"$BUILD_DIR\"\nmkdir -p \"$BUILD_DIR/include\"\ncp \"$BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\" \"$BUILD_DIR/$EXECUTABLE_NAME\"\n\n\nif [ -d \"$INCLUDE_DIR\" ]; then\n    rsync -avz \"$INCLUDE_DIR\" \"$BUILD_DIR\"\nfi";
+			shellScript = "\"$PROJECT_DIR/../Build_xcode.sh\"";
 		};
 /* End PBXShellScriptBuildPhase section */
 
