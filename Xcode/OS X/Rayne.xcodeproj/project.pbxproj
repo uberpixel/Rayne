@@ -31,7 +31,7 @@
 		E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */; };
 		E9580BD416AB8BEA0056DEF2 /* RNEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = E9580BD216AB8BEA0056DEF2 /* RNEntity.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E959282B170CBAAD00935AC8 /* RNWorldAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9592829170CBAAD00935AC8 /* RNWorldAttachment.cpp */; };
-		E959282C170CBAAD00935AC8 /* RNWorldAttachment.h in Headers */ = {isa = PBXBuildFile; fileRef = E959282A170CBAAD00935AC8 /* RNWorldAttachment.h */; };
+		E959282C170CBAAD00935AC8 /* RNWorldAttachment.h in Headers */ = {isa = PBXBuildFile; fileRef = E959282A170CBAAD00935AC8 /* RNWorldAttachment.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E281696157E00DA187E /* RNArray.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619DF41696157E00DA187E /* RNArray.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E291696157E00DA187E /* RNBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619DF51696157E00DA187E /* RNBase.cpp */; };
 		E9619E2A1696157E00DA187E /* RNBase.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619DF61696157E00DA187E /* RNBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -536,9 +536,9 @@
 				E9B03FEC16F279E40016176B /* RNModule.h in Headers */,
 				E92B858E16FC4C9E002FA04D /* RNFunction.h in Headers */,
 				E92B859216FC6027002FA04D /* RNRenderStorage.h in Headers */,
+				E959282C170CBAAD00935AC8 /* RNWorldAttachment.h in Headers */,
 				E92B859616FC8E42002FA04D /* RNCatalogue.h in Headers */,
 				E995F3CD1709B9F20051223B /* RNPathManager.h in Headers */,
-				E959282C170CBAAD00935AC8 /* RNWorldAttachment.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
