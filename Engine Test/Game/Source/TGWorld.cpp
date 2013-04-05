@@ -228,10 +228,15 @@ namespace TG
 		model->MaterialAtIndex(0, 3)->SetShader(normalshader);
 #endif
 		
-		RN::Entity *sponza = new RN::Entity();
+		RN::bullet::Shape *sponzaShape = new RN::bullet::TriangelMeshShape(model);
+		RN::bullet::PhysicsMaterial *sponzaMaterial = new RN::bullet::PhysicsMaterial();
+		
+		sponzaShape->SetScale(RN::Vector3(0.5));
+		
+		RN::bullet::RigidBody *sponza = new RN::bullet::RigidBody(sponzaShape, sponzaMaterial, 0.0f);
 		sponza->SetModel(model);
 		sponza->SetScale(RN::Vector3(0.5, 0.5, 0.5));
-		sponza->Rotate(RN::Vector3(0.0, 0.0, -90.0));
+		sponza->SetRotation(RN::Quaternion(RN::Vector3(0.0, 0.0, -90.0)));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
 		
@@ -246,11 +251,11 @@ namespace TG
 		_blockMaterial->SetRestitution(0.3f);
 		_blockMaterial->SetFriction(0.6f);
 		
-		RN::bullet::PhysicsMaterial *floorMaterial = new RN::bullet::PhysicsMaterial();
+		/*RN::bullet::PhysicsMaterial *floorMaterial = new RN::bullet::PhysicsMaterial();
 		RN::bullet::Shape *floorShape = RN::bullet::StaticPlaneShape::WithNormal(RN::Vector3(0.0f, 1.0f, 0.0f), 1.0f);
 		
 		RN::bullet::RigidBody *floor = new RN::bullet::RigidBody(floorShape, floorMaterial, 0.0f);
-		floor->SetPosition(RN::Vector3(0.0f, -13.0f, 0.0f));
+		floor->SetPosition(RN::Vector3(0.0f, -13.0f, 0.0f));*/
 		
 #if TGWorldFeatureAnimations
 		RN::Model *girlmodel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");

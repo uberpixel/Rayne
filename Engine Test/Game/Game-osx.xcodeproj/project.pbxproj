@@ -253,6 +253,7 @@
 					"\"$(SRCROOT)/../../Engine Source\"",
 					"\"$(SRCROOT)/Resources/modules/rayne-bullet/include\"",
 				);
+				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Build\"",
@@ -271,6 +272,7 @@
 					"\"$(SRCROOT)/../../Engine Source\"",
 					"\"$(SRCROOT)/Resources/modules/rayne-bullet/include\"",
 				);
+				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Build\"",
@@ -317,6 +319,7 @@
 					"\"$(SRCROOT)/../../Engine Source\"",
 					"\"$(SRCROOT)/Resources/modules/rayne-bullet/include\"",
 				);
+				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Build\"",

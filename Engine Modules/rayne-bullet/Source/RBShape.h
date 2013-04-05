@@ -20,6 +20,9 @@
 
 #include <RNObject.h>
 #include <RNVector.h>
+#include <RNModel.h>
+#include <RNMesh.h>
+#include <RNVector.h>
 #include <btBulletDynamicsCommon.h>
 
 namespace RN
@@ -30,7 +33,9 @@ namespace RN
 		{
 		public:
 			Shape(btCollisionShape *shape);
+			
 			virtual Vector3 CalculateLocalInertia(float mass);
+			void SetScale(const Vector3& scale);
 			
 			btCollisionShape *bulletShape() const { return _shape; }
 			
@@ -91,6 +96,21 @@ namespace RN
 			static StaticPlaneShape *WithNormal(const Vector3& normal, float constant);
 			
 			RNDefineConstructorlessMeta(StaticPlaneShape, Shape);
+		};
+		
+		class TriangelMeshShape : public Shape
+		{
+		public:
+			TriangelMeshShape(Model *model);
+			TriangelMeshShape(Mesh *mesh);
+			TriangelMeshShape(const Array<Mesh>& meshes);
+			virtual ~TriangelMeshShape();
+			
+		private:
+			void AddMesh(Mesh *mesh);
+			btTriangleMesh *_triangleMesh;
+			
+			RNDefineConstructorlessMeta(TriangelMeshShape, Shape)
 		};
 	}
 }

@@ -27,6 +27,7 @@ namespace RN
 		RNDeclareMeta(CylinderShape)
 		RNDeclareMeta(CapsuleShape)
 		RNDeclareMeta(StaticPlaneShape)
+		RNDeclareMeta(TriangelMeshShape)
 		
 		Shape::Shape()
 		{
@@ -52,6 +53,10 @@ namespace RN
 			return Vector3(inertia.x(), inertia.y(), inertia.z());
 		}
 		
+		void Shape::SetScale(const Vector3& scale)
+		{
+			_shape->setLocalScaling(btVector3(scale.x, scale.y, scale.z));
+		}
 		
 		
 		SphereShape::SphereShape(float radius)
@@ -111,6 +116,70 @@ namespace RN
 		{
 			StaticPlaneShape *shape = new StaticPlaneShape(normal, constant);
 			return shape->Autorelease();
+		}
+		
+		
+		TriangelMeshShape::TriangelMeshShape(Model *model)
+		{
+			_triangleMesh = new btTriangleMesh();
+			
+			uint32 meshes = model->Meshes(0);
+			for(uint32 i=0; i<meshes; i++)
+			{
+				Mesh *mesh = model->MeshAtIndex(0, i);
+				AddMesh(mesh);
+			}
+			
+			_shape = new btBvhTriangleMeshShape(_triangleMesh, true);
+		}
+		
+		TriangelMeshShape::TriangelMeshShape(Mesh *mesh)
+		{
+			_triangleMesh = new btTriangleMesh();
+			
+			AddMesh(mesh);
+			
+			_shape = new btBvhTriangleMeshShape(_triangleMesh, true);
+		}
+		
+		TriangelMeshShape::TriangelMeshShape(const Array<Mesh>& meshes)
+		{
+			_triangleMesh = new btTriangleMesh();
+			
+			uint32 count = static_cast<uint32>(meshes.Count());
+			for(uint32 i=0; i<count; i++)
+			{
+				Mesh *mesh = meshes.ObjectAtIndex(i);
+				AddMesh(mesh);
+			}
+			
+			_shape = new btBvhTriangleMeshShape(_triangleMesh, true);
+		}
+		
+		TriangelMeshShape::~TriangelMeshShape()
+		{
+			delete _triangleMesh;
+		}
+		
+		void TriangelMeshShape::AddMesh(Mesh *mesh)
+		{
+			MeshDescriptor *iDescriptor = mesh->Descriptor(kMeshFeatureIndices);
+			
+			const Vector3 *vertices  = mesh->Data<Vector3>(kMeshFeatureVertices);
+			const uint16 *indices    = mesh->Data<uint16>(kMeshFeatureIndices);
+			const uint16 *indicesEnd = indices + iDescriptor->elementCount;
+			
+			while(indices < indicesEnd)
+			{
+				const Vector3 *vertex0 = vertices + (*indices ++);
+				const Vector3 *vertex1 = vertices + (*indices ++);
+				const Vector3 *vertex2 = vertices + (*indices ++);
+				
+				_triangleMesh->addTriangle(btVector3(vertex0->x, vertex0->y, vertex0->z), btVector3(vertex1->x, vertex1->y, vertex1->z), btVector3(vertex2->x, vertex2->y, vertex2->z));
+			}
+			
+			mesh->ReleaseData(kMeshFeatureIndices);
+			mesh->ReleaseData(kMeshFeatureVertices);
 		}
 	}
 }
