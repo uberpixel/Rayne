@@ -141,20 +141,23 @@ namespace RN
 		std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
 		AutoreleasePool *pool = new AutoreleasePool();
 
+		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
+		float trueDelta = milliseconds / 1000.0f;
+		
+		if(_resetDelta)
+		{
+			trueDelta = 0.0f;
+			_resetDelta = false;
+		}
+		
 		if(!_initialized)
 		{
 			Initialize();
+			trueDelta = 0.0f;
+			
 			_initialized = true;
+			_resetDelta  = true;
 		}
-
-		if(_resetDelta)
-		{
-			_lastFrame = now;
-			_resetDelta = false;
-		}
-
-		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
-		float trueDelta = milliseconds / 1000.0f;
 
 		_time += trueDelta;
 
