@@ -66,8 +66,9 @@ namespace TG
 				
 				RN::bullet::RigidBody *block;
 				
-				block = new RN::bullet::RigidBody(RN::bullet::BoxShape::WithHalfExtents(RN::Vector3(0.5f)), _blockMaterial, 5.0f);
+				block = new RN::bullet::RigidBody(RN::bullet::BoxShape::WithHalfExtents(RN::Vector3(0.5f)), 5.0f);
 				block->SetModel(_blockModel);
+				block->SetMaterial(_blockMaterial);
 				block->SetPosition(_camera->WorldPosition());
 				block->ApplyImpulse(_camera->WorldRotation().RotateVector(RN::Vector3(0.0, 0.0, -90.0f)));
 			}
@@ -233,9 +234,10 @@ namespace TG
 		
 		sponzaShape->SetScale(RN::Vector3(0.5));
 		
-		RN::bullet::RigidBody *sponza = new RN::bullet::RigidBody(sponzaShape, sponzaMaterial, 0.0f);
+		RN::bullet::RigidBody *sponza = new RN::bullet::RigidBody(sponzaShape, 0.0f);
 		sponza->SetModel(model);
 		sponza->SetScale(RN::Vector3(0.5, 0.5, 0.5));
+		sponza->SetMaterial(sponzaMaterial);
 		sponza->SetRotation(RN::Quaternion(RN::Vector3(0.0, 0.0, -90.0)));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
@@ -251,22 +253,17 @@ namespace TG
 		_blockMaterial->SetRestitution(0.3f);
 		_blockMaterial->SetFriction(0.6f);
 		
-		/*RN::bullet::PhysicsMaterial *floorMaterial = new RN::bullet::PhysicsMaterial();
-		RN::bullet::Shape *floorShape = RN::bullet::StaticPlaneShape::WithNormal(RN::Vector3(0.0f, 1.0f, 0.0f), 1.0f);
-		
-		RN::bullet::RigidBody *floor = new RN::bullet::RigidBody(floorShape, floorMaterial, 0.0f);
-		floor->SetPosition(RN::Vector3(0.0f, -13.0f, 0.0f));*/
-		
 #if TGWorldFeatureAnimations
 		RN::Model *girlmodel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
 		_girlskeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
 		_girlskeleton->SetAnimation("cammina");
-		 
-		RN::Entity *girl = new RN::Entity();
+		
+		RN::bullet::CapsuleShape *capsule = RN::bullet::CapsuleShape::WithRadius(0.75, 5.0f);
+		RN::bullet::KinematicController *girl = new RN::bullet::KinematicController(capsule, 0.4f);
 		girl->SetModel(girlmodel);
 		girl->SetSkeleton(_girlskeleton);
 		girl->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
-		
+		girl->SetWalkDirection(RN::Vector3(0.0f, 0.0f, -0.15f));
 		
 		RN::Model *zombiemodel = RN::Model::WithFile("models/RosswetMobile/new_thin_zombie.sgm");
 		_zombieskeleton = RN::Skeleton::WithFile("models/RosswetMobile/new_thin_zombie.sga");

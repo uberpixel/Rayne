@@ -23,110 +23,73 @@ namespace RN
 	{
 		RNDeclareMeta(RigidBody)
 		
-		RigidBody::RigidBody(class Shape *shape, float mass) :
-			RigidBody(shape, 0, mass)
-		{}
-		
-		RigidBody::RigidBody(class Shape *shape, float mass, const Vector3& inertia) :
-			RigidBody(shape, 0, mass, inertia)
-		{}
-		
-		
-		RigidBody::RigidBody(class Shape *shape, PhysicsMaterial *material, float mass)
+		RigidBody::RigidBody(Shape *shape, float mass)
 		{
 			RN_ASSERT0(shape);
 			
-			_shape = shape->Retain();
-			_material = 0;
-			_rigidBody = 0;
-			
-			CreateRigidBody(mass, _shape->CalculateLocalInertia(mass));
-			SetMaterial(material);
+			_shape   = shape->Retain();
+			_mass    = mass;
+			_inertia = _shape->CalculateLocalInertia(_mass);
 		}
 		
-		RigidBody::RigidBody(class Shape *shape, PhysicsMaterial *material, float mass, const Vector3& inertia)
+		RigidBody::RigidBody(Shape *shape, float mass, const Vector3& inertia)
 		{
 			RN_ASSERT0(shape);
 			
-			_shape = shape->Retain();
-			_material = 0;
-			_rigidBody = 0;
-			
-			CreateRigidBody(mass, inertia);
-			SetMaterial(material);
+			_shape   = shape->Retain();
+			_mass    = mass;
+			_inertia = inertia;
 		}
 		
 		RigidBody::~RigidBody()
 		{
 			_shape->Release();
-			
-			if(_material)
-			{
-				_material->RemoveListener(this);
-				_material->Release();
-			}
-			
-			delete _rigidBody;
+			if(_object)
+				delete _object;
 		}
 		
 		
-		void RigidBody::CreateRigidBody(float mass, const Vector3& inertia)
+		btCollisionObject *RigidBody::CreateCollisionObject()
 		{
-			btRigidBody::btRigidBodyConstructionInfo info(mass, this, _shape->bulletShape(), btVector3(inertia.x, inertia.y, inertia.z));
-			_rigidBody = new btRigidBody(info);
-		}
-		
-		void RigidBody::ApplyMaterial()
-		{
-			_rigidBody->setDamping(_material->LinearDamping(), _material->AngularDamping());
-			_rigidBody->setFriction(_material->Friction());
-			_rigidBody->setRestitution(_material->Restitution());
+			btRigidBody::btRigidBodyConstructionInfo info(_mass, this, _shape->bulletShape(), btVector3(_inertia.x, _inertia.y, _inertia.z));
+			btRigidBody *rigidBody = new btRigidBody(info);
+			
+			return rigidBody;
 		}
 		
 		
 		void RigidBody::SetMass(float mass)
 		{
-			Vector3 inertia = _shape->CalculateLocalInertia(mass);
-			_rigidBody->setMassProps(mass, btVector3(inertia.x, inertia.y, inertia.z));
+			Vector3 inertia = _shape->CalculateLocalInertia(mass);			
+			SetMass(_mass, inertia);
 		}
 		
 		void RigidBody::SetMass(float mass, const Vector3& inertia)
 		{
-			_rigidBody->setMassProps(mass, btVector3(inertia.x, inertia.y, inertia.z));
+			_inertia = inertia;
+			_mass = mass;
+			
+			bulletRigidBody()->setMassProps(_mass, btVector3(_inertia.x, _inertia.y, _inertia.z));
 		}
 		
 		
+		void RigidBody::ApplyPhysicsMaterial(PhysicsMaterial *material)
+		{
+			CollisionObject::ApplyPhysicsMaterial(material);
+			bulletRigidBody()->setDamping(material->LinearDamping(), material->AngularDamping());
+		}
 		
-		void RigidBody::SetShape(class Shape *shape)
+		
+		void RigidBody::SetCollisionShape(Shape *shape)
 		{
 			RN_ASSERT0(shape);
 			
 			_shape->Release();
 			_shape = shape->Retain();
 			
-			_rigidBody->setCollisionShape(_shape->bulletShape());
+			bulletRigidBody()->setCollisionShape(_shape->bulletShape());
 		}
 		
-		void RigidBody::SetMaterial(PhysicsMaterial *material)
-		{
-			if(_material)
-			{
-				_material->RemoveListener(this);
-				_material->Release();
-			}
-			
-			_material = material ? material->Retain() : 0;
-			
-			if(_material)
-			{
-				_material->AddListener(this, [this](PhysicsMaterial *material) {
-					RN_ASSERT0(material == _material);
-					ApplyMaterial();
-				});
-				
-				ApplyMaterial();
-			}
-		}
 		
 		
 		void RigidBody::SetPosition(const Vector3& position)
@@ -136,7 +99,7 @@ namespace RN
 			btTransform transform;
 			
 			getWorldTransform(transform);
-			_rigidBody->setWorldTransform(transform);
+			bulletRigidBody()->setWorldTransform(transform);
 		}
 		
 		void RigidBody::SetRotation(const Quaternion& rotation)
@@ -146,7 +109,7 @@ namespace RN
 			btTransform transform;
 			
 			getWorldTransform(transform);
-			_rigidBody->setWorldTransform(transform);
+			bulletRigidBody()->setCenterOfMassTransform(transform);
 		}
 		
 		void RigidBody::SetWorldPosition(const Vector3& position)
@@ -156,7 +119,7 @@ namespace RN
 			btTransform transform;
 			
 			getWorldTransform(transform);
-			_rigidBody->setWorldTransform(transform);
+			bulletRigidBody()->setWorldTransform(transform);
 		}
 		
 		void RigidBody::SetWorldRotation(const Quaternion& rotation)
@@ -166,55 +129,79 @@ namespace RN
 			btTransform transform;
 			
 			getWorldTransform(transform);
-			_rigidBody->setWorldTransform(transform);
+			bulletRigidBody()->setCenterOfMassTransform(transform);
 		}
 		
 		
 		void RigidBody::SetLinearVelocity(const Vector3& velocity)
 		{
-			_rigidBody->setLinearVelocity(btVector3(velocity.x, velocity.y, velocity.z));
+			bulletRigidBody()->setLinearVelocity(btVector3(velocity.x, velocity.y, velocity.z));
 		}
 		
 		void RigidBody::SetAngularVelocity(const Vector3& velocity)
 		{
-			_rigidBody->setAngularVelocity(btVector3(velocity.x, velocity.y, velocity.z));
+			bulletRigidBody()->setAngularVelocity(btVector3(velocity.x, velocity.y, velocity.z));
 		}
+		
+		
+		Vector3 RigidBody::LinearVelocity()
+		{
+			const btVector3& velocity = bulletRigidBody()->getLinearVelocity();
+			return Vector3(velocity.x(), velocity.y(), velocity.z());
+		}
+		
+		Vector3 RigidBody::AngularVelocity()
+		{
+			const btVector3& velocity = bulletRigidBody()->getAngularVelocity();
+			return Vector3(velocity.x(), velocity.y(), velocity.z());
+		}
+		
 		
 		void RigidBody::ApplyForce(const Vector3& force)
 		{
-			_rigidBody->applyCentralForce(btVector3(force.x, force.y, force.z));
+			bulletRigidBody()->applyCentralForce(btVector3(force.x, force.y, force.z));
 		}
 		
 		void RigidBody::ApplyForce(const Vector3& force, const Vector3& origin)
 		{
-			_rigidBody->applyForce(btVector3(force.x, force.y, force.z), btVector3(origin.x, origin.y, origin.z));
+			bulletRigidBody()->applyForce(btVector3(force.x, force.y, force.z), btVector3(origin.x, origin.y, origin.z));
 		}
 		
 		void RigidBody::ClearForces()
 		{
-			_rigidBody->clearForces();
+			bulletRigidBody()->clearForces();
 		}
 		
 		void RigidBody::ApplyTorque(const Vector3& torque)
 		{
-			_rigidBody->applyTorque(btVector3(torque.x, torque.y, torque.z));
+			bulletRigidBody()->applyTorque(btVector3(torque.x, torque.y, torque.z));
 		}
 		
 		void RigidBody::ApplyTorqueImpulse(const Vector3& torque)
 		{
-			_rigidBody->applyTorqueImpulse(btVector3(torque.x, torque.y, torque.z));
+			bulletRigidBody()->applyTorqueImpulse(btVector3(torque.x, torque.y, torque.z));
 		}
 		
 		void RigidBody::ApplyImpulse(const Vector3& impulse)
 		{
-			_rigidBody->applyCentralImpulse(btVector3(impulse.x, impulse.y, impulse.z));
+			bulletRigidBody()->applyCentralImpulse(btVector3(impulse.x, impulse.y, impulse.z));
 		}
 		
 		void RigidBody::ApplyImpulse(const Vector3& impulse, const Vector3& origin)
 		{
-			_rigidBody->applyImpulse(btVector3(impulse.x, impulse.y, impulse.z), btVector3(origin.x, origin.y, origin.z));
+			bulletRigidBody()->applyImpulse(btVector3(impulse.x, impulse.y, impulse.z), btVector3(origin.x, origin.y, origin.z));
 		}
 		
+		
+		void RigidBody::InsertIntoWorld(btDynamicsWorld *world)
+		{
+			world->addRigidBody(bulletRigidBody());
+		}
+		
+		void RigidBody::RemoveFromWorld(btDynamicsWorld *world)
+		{
+			world->removeRigidBody(bulletRigidBody());
+		}
 		
 		
 		void RigidBody::getWorldTransform(btTransform& worldTrans)

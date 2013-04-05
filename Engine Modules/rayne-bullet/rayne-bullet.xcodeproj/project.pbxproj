@@ -364,6 +364,10 @@
 		E9592838170D2D5200935AC8 /* RBRigidBody.h in Headers */ = {isa = PBXBuildFile; fileRef = E9592836170D2D5200935AC8 /* RBRigidBody.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E959283F170DE1C100935AC8 /* RBPhysicsMaterial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E959283D170DE1C100935AC8 /* RBPhysicsMaterial.cpp */; };
 		E9592840170DE1C100935AC8 /* RBPhysicsMaterial.h in Headers */ = {isa = PBXBuildFile; fileRef = E959283E170DE1C100935AC8 /* RBPhysicsMaterial.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9592854170F5B4A00935AC8 /* RBKinematicController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9592852170F5B4900935AC8 /* RBKinematicController.cpp */; };
+		E9592855170F5B4A00935AC8 /* RBKinematicController.h in Headers */ = {isa = PBXBuildFile; fileRef = E9592853170F5B4A00935AC8 /* RBKinematicController.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9592858170F6D0600935AC8 /* RBCollisionObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9592856170F6D0600935AC8 /* RBCollisionObject.cpp */; };
+		E9592859170F6D0600935AC8 /* RBCollisionObject.h in Headers */ = {isa = PBXBuildFile; fileRef = E9592857170F6D0600935AC8 /* RBCollisionObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E97DE02E16F251250009128F /* libbullet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E92E06FE16F24B4500304133 /* libbullet.a */; };
 		E97DE03316F2519E0009128F /* RBMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E97DE03116F2519E0009128F /* RBMain.cpp */; };
 		E97DE03416F2519E0009128F /* RBMain.h in Headers */ = {isa = PBXBuildFile; fileRef = E97DE03216F2519E0009128F /* RBMain.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -741,6 +745,10 @@
 		E9592836170D2D5200935AC8 /* RBRigidBody.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RBRigidBody.h; sourceTree = "<group>"; };
 		E959283D170DE1C100935AC8 /* RBPhysicsMaterial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RBPhysicsMaterial.cpp; sourceTree = "<group>"; };
 		E959283E170DE1C100935AC8 /* RBPhysicsMaterial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RBPhysicsMaterial.h; sourceTree = "<group>"; };
+		E9592852170F5B4900935AC8 /* RBKinematicController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RBKinematicController.cpp; sourceTree = "<group>"; };
+		E9592853170F5B4A00935AC8 /* RBKinematicController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RBKinematicController.h; sourceTree = "<group>"; };
+		E9592856170F6D0600935AC8 /* RBCollisionObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RBCollisionObject.cpp; sourceTree = "<group>"; };
+		E9592857170F6D0600935AC8 /* RBCollisionObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RBCollisionObject.h; sourceTree = "<group>"; };
 		E97DE02716F24FEF0009128F /* librayne-bullet.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "librayne-bullet.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E97DE03116F2519E0009128F /* RBMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RBMain.cpp; sourceTree = "<group>"; };
 		E97DE03216F2519E0009128F /* RBMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RBMain.h; sourceTree = "<group>"; };
@@ -1317,6 +1325,10 @@
 			children = (
 				E97DE03116F2519E0009128F /* RBMain.cpp */,
 				E97DE03216F2519E0009128F /* RBMain.h */,
+				E9592856170F6D0600935AC8 /* RBCollisionObject.cpp */,
+				E9592857170F6D0600935AC8 /* RBCollisionObject.h */,
+				E9592852170F5B4900935AC8 /* RBKinematicController.cpp */,
+				E9592853170F5B4A00935AC8 /* RBKinematicController.h */,
 				E959283D170DE1C100935AC8 /* RBPhysicsMaterial.cpp */,
 				E959283E170DE1C100935AC8 /* RBPhysicsMaterial.h */,
 				E959282D170D1ADE00935AC8 /* RBPhysicsWorld.cpp */,
@@ -1566,6 +1578,8 @@
 				E9592834170D293B00935AC8 /* RBShape.h in Headers */,
 				E9592840170DE1C100935AC8 /* RBPhysicsMaterial.h in Headers */,
 				E9592838170D2D5200935AC8 /* RBRigidBody.h in Headers */,
+				E9592855170F5B4A00935AC8 /* RBKinematicController.h in Headers */,
+				E9592859170F6D0600935AC8 /* RBCollisionObject.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1799,6 +1813,8 @@
 				E9592833170D293B00935AC8 /* RBShape.cpp in Sources */,
 				E9592837170D2D5200935AC8 /* RBRigidBody.cpp in Sources */,
 				E959283F170DE1C100935AC8 /* RBPhysicsMaterial.cpp in Sources */,
+				E9592854170F5B4A00935AC8 /* RBKinematicController.cpp in Sources */,
+				E9592858170F6D0600935AC8 /* RBCollisionObject.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

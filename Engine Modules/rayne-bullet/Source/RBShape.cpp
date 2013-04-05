@@ -23,6 +23,7 @@ namespace RN
 	{
 		RNDeclareMeta(Shape)
 		RNDeclareMeta(SphereShape)
+		RNDeclareMeta(MultiSphereShape)
 		RNDeclareMeta(BoxShape)
 		RNDeclareMeta(CylinderShape)
 		RNDeclareMeta(CapsuleShape)
@@ -67,6 +68,28 @@ namespace RN
 		SphereShape *SphereShape::WithRadius(float radius)
 		{
 			SphereShape *shape = new SphereShape(radius);
+			return shape->Autorelease();
+		}
+		
+		
+		MultiSphereShape::MultiSphereShape(const Vector3 *positions, float *radii, int count)
+		{
+			btVector3 *btPositions = new btVector3[count];
+			for(int i=0; i<count; i++)
+			{
+				btPositions[i] = btVector3(positions[i].x, positions[i].y, positions[i].z);
+			}
+			
+			_shape = new btMultiSphereShape(btPositions, radii, count);
+			delete [] btPositions;
+		}
+		
+		MultiSphereShape *MultiSphereShape::WithHeight(float height, float width)
+		{
+			Vector3 positions[2] = { Vector3(0.0, height * 0.5f - width, 0.0f), Vector3(0.0f, -height * 0.5f + width, 0.0f) };
+			float radii[2] = { width, width };
+			
+			MultiSphereShape *shape = new MultiSphereShape(positions, radii, 2);
 			return shape->Autorelease();
 		}
 		

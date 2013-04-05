@@ -1,5 +1,5 @@
 //
-//  RBRigidBody.h
+//  RBKinematicController.h
 //  rayne-bullet
 //
 //  Copyright 2013 by Überpixel. All rights reserved.
@@ -15,75 +15,55 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef __RBULLET_RIGIDBODY_H__
-#define __RBULLET_RIGIDBODY_H__
+#ifndef __RBULLET_KINEMATICCONTROLLER_H__
+#define __RBULLET_KINEMATICCONTROLLER_H__
 
-#include <RNEntity.h>
-#include <btBulletDynamicsCommon.h>
+#include <BulletDynamics/Character/btKinematicCharacterController.h>
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
 
-#include "RBShape.h"
-#include "RBPhysicsMaterial.h"
 #include "RBCollisionObject.h"
+#include "RBShape.h"
 
 namespace RN
 {
 	namespace bullet
 	{
-		class PhysicsWorld;
-		class RigidBody : public CollisionObject, public btMotionState
+		class KinematicController : public CollisionObject
 		{
 		public:
-			RigidBody(Shape *shape, float mass);
-			RigidBody(Shape *shape, float mass, const Vector3& inertia);
-			virtual ~RigidBody();
-			
-			void SetMass(float mass);
-			void SetMass(float mass, const Vector3& inertia);
-			
-			void SetCollisionShape(Shape *shape);
+			KinematicController(Shape *shape, float stepHeight);
+			virtual ~KinematicController();
 			
 			virtual void SetPosition(const Vector3& position);
 			virtual void SetRotation(const Quaternion& rotation);
 			virtual void SetWorldPosition(const Vector3& position);
 			virtual void SetWorldRotation(const Quaternion& rotation);
 			
-			void SetLinearVelocity(const Vector3& velocity);
-			void SetAngularVelocity(const Vector3& velocity);
+			void SetWalkDirection(const Vector3& direction);
+			void SetFallSpeed(float speed);
+			void SetJumpSpeed(float speed);
+			void SetMaxJumpHeight(float maxHeight);
+			void SetMaxSlope(float maxSlope);
+			
+			virtual void Update(float delta);
+			
+			bool IsOnGround();
+			void Jump();
 			
 			Shape *CollisionShape() const { return _shape; }
 			
-			Vector3 LinearVelocity();
-			Vector3 AngularVelocity();
-			
-			void ApplyForce(const Vector3& force);
-			void ApplyForce(const Vector3& force, const Vector3& origin);
-			void ClearForces();
-			
-			void ApplyTorque(const Vector3& torque);
-			void ApplyTorqueImpulse(const Vector3& torque);
-			
-			void ApplyImpulse(const Vector3& impulse);
-			void ApplyImpulse(const Vector3& impulse, const Vector3& origin);
-			
-			btRigidBody *bulletRigidBody() { return bulletCollisionObject<btRigidBody>(); }
-			
-		protected:			
-			virtual void getWorldTransform(btTransform& worldTrans);
-			virtual void setWorldTransform(const btTransform& worldTrans);
-			
+		protected:
 			virtual btCollisionObject *CreateCollisionObject();
-			virtual void ApplyPhysicsMaterial(PhysicsMaterial *material);
-			
 			virtual void InsertIntoWorld(btDynamicsWorld *world);
 			virtual void RemoveFromWorld(btDynamicsWorld *world);
 			
 			Shape *_shape;
-			Vector3 _inertia;
-			float _mass;
+			btKinematicCharacterController *_controller;
+			float _stepHeight;
 			
-			RNDefineConstructorlessMeta(RigidBody, CollisionObject);
+			RNDefineConstructorlessMeta(KinematicController, CollisionObject)
 		};
 	}
 }
 
-#endif /* __RBULLET_RIGIDBODY_H__ */
+#endif /* __RBULLET_KINEMATICCONTROLLER_H__ */

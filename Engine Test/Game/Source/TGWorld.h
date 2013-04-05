@@ -11,6 +11,8 @@
 
 #include <Rayne.h>
 #include <RBPhysicsWorld.h>
+#include <RBRigidBody.h>
+#include <RBKinematicController.h>
 
 namespace TG
 {

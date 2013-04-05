@@ -15,6 +15,7 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
 #include "RBPhysicsWorld.h"
 
 namespace RN
@@ -25,7 +26,7 @@ namespace RN
 		
 		PhysicsWorld::PhysicsWorld(const Vector3& gravity)
 		{
-			_rigidBodyClass = Catalogue::SharedInstance()->ClassWithName("RigidBody");
+			_collisionObjectClass = Catalogue::SharedInstance()->ClassWithName("CollisionObject");
 			
 			BuildDynamicsWorld();
 			SetGravity(gravity);
@@ -38,6 +39,7 @@ namespace RN
 			delete _dispatcher;
 			delete _collisionConfiguration;
 			delete _broadphase;
+			delete _pairCallback;
 		}
 		
 		
@@ -47,30 +49,33 @@ namespace RN
 			_dynamicsWorld->setGravity(btVector3(gravity.x, gravity.y, gravity.z));
 		}
 		
-		void PhysicsWorld::AddRigidBody(RigidBody *body)
+		void PhysicsWorld::AddCollisionObject(CollisionObject *object)
 		{
-			auto iterator = _rigidBodies.find(body);
-			if(iterator == _rigidBodies.end())
+			auto iterator = _collisionObjects.find(object);
+			if(iterator == _collisionObjects.end())
 			{
-				_dynamicsWorld->addRigidBody(body->bulletRigidBody());
-				_rigidBodies.insert(body);
+				object->InsertIntoWorld(_dynamicsWorld);
+				_collisionObjects.insert(object);
 			}
 		}
 		
-		void PhysicsWorld::RemoveRigidBody(RigidBody *body)
+		void PhysicsWorld::RemoveCollisionObject(CollisionObject *object)
 		{
-			auto iterator = _rigidBodies.find(body);
-			if(iterator != _rigidBodies.end())
+			auto iterator = _collisionObjects.find(object);
+			if(iterator != _collisionObjects.end())
 			{
-				_dynamicsWorld->removeRigidBody(body->bulletRigidBody());
-				_rigidBodies.erase(iterator);
+				object->RemoveFromWorld(_dynamicsWorld);				
+				_collisionObjects.erase(iterator);
 			}
 		}
 		
 		
 		void PhysicsWorld::BuildDynamicsWorld()
 		{
+			_pairCallback = new btGhostPairCallback();
+			
 			_broadphase = new btDbvtBroadphase();
+			_broadphase->getOverlappingPairCache()->setInternalGhostPairCallback(_pairCallback);
 			
 			_collisionConfiguration = new btDefaultCollisionConfiguration();
 			_dispatcher = new btCollisionDispatcher(_collisionConfiguration);
@@ -91,19 +96,19 @@ namespace RN
 		
 		void PhysicsWorld::DidAddTransform(Transform *transform)
 		{
-			if(transform->IsKindOfClass(_rigidBodyClass))
+			if(transform->IsKindOfClass(_collisionObjectClass))
 			{
-				RigidBody *body = static_cast<RigidBody *>(transform);
-				AddRigidBody(body);
+				CollisionObject *object = static_cast<CollisionObject *>(transform);
+				AddCollisionObject(object);
 			}
 		}
 		
 		void PhysicsWorld::WillRemoveTransform(Transform *transform)
 		{
-			if(transform->IsKindOfClass(_rigidBodyClass))
+			if(transform->IsKindOfClass(_collisionObjectClass))
 			{
-				RigidBody *body = static_cast<RigidBody *>(transform);
-				RemoveRigidBody(body);
+				CollisionObject *object = static_cast<CollisionObject *>(transform);
+				RemoveCollisionObject(object);
 			}
 		}
 	}

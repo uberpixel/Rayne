@@ -45,7 +45,7 @@ namespace RN
 			
 			btCollisionShape *_shape;
 			
-			RNDefineConstructorlessMeta(Shape, Object);
+			RNDefineConstructorlessMeta(Shape, Object)
 		};
 		
 		class SphereShape : public Shape
@@ -55,7 +55,16 @@ namespace RN
 			
 			static SphereShape *WithRadius(float radius);
 			
-			RNDefineConstructorlessMeta(SphereShape, Shape);
+			RNDefineConstructorlessMeta(SphereShape, Shape)
+		};
+		
+		class MultiSphereShape : public Shape
+		{
+		public:
+			MultiSphereShape(const Vector3 *positions, float *radii, int count);
+			static MultiSphereShape *WithHeight(float height, float width);
+			
+			RNDefineConstructorlessMeta(MultiSphereShape, Shape)
 		};
 		
 		class BoxShape : public Shape
@@ -65,7 +74,7 @@ namespace RN
 			
 			static BoxShape *WithHalfExtents(const Vector3& halfExtents);
 			
-			RNDefineConstructorlessMeta(BoxShape, Shape);
+			RNDefineConstructorlessMeta(BoxShape, Shape)
 		};
 		
 		class CylinderShape : public Shape
@@ -75,7 +84,7 @@ namespace RN
 			
 			static CylinderShape *WithHalfExtents(const Vector3& halfExtents);
 			
-			RNDefineConstructorlessMeta(CylinderShape, Shape);
+			RNDefineConstructorlessMeta(CylinderShape, Shape)
 		};
 		
 		class CapsuleShape : public Shape
@@ -85,7 +94,7 @@ namespace RN
 			
 			static CapsuleShape *WithRadius(float radius, float height);
 			
-			RNDefineConstructorlessMeta(CapsuleShape, Shape);
+			RNDefineConstructorlessMeta(CapsuleShape, Shape)
 		};
 		
 		class StaticPlaneShape : public Shape
@@ -95,7 +104,7 @@ namespace RN
 			
 			static StaticPlaneShape *WithNormal(const Vector3& normal, float constant);
 			
-			RNDefineConstructorlessMeta(StaticPlaneShape, Shape);
+			RNDefineConstructorlessMeta(StaticPlaneShape, Shape)
 		};
 		
 		class TriangelMeshShape : public Shape

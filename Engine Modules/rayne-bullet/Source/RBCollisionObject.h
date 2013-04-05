@@ -1,5 +1,5 @@
 //
-//  RBPhysicsWorld.h
+//  RBCollisionObject.h
 //  rayne-bullet
 //
 //  Copyright 2013 by Überpixel. All rights reserved.
@@ -15,52 +15,55 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef __RBULLET_PHYSICSWORLD_H__
-#define __RBULLET_PHYSICSWORLD_H__
+#ifndef __RBULLET_COLLISIONOBJECT_H__
+#define __RBULLET_COLLISIONOBJECT_H__
 
-#include <RNVector.h>
-#include <RNWorldAttachment.h>
+#include <RNEntity.h>
 #include <btBulletDynamicsCommon.h>
 
-#include "RBCollisionObject.h"
+#include "RBPhysicsMaterial.h"
 
 namespace RN
 {
 	namespace bullet
 	{
-		class PhysicsWorld : public WorldAttachment
+		class PhysicsWorld;
+		class CollisionObject : public Entity
 		{
-		public:
-			PhysicsWorld(const Vector3& gravity=Vector3(0.0f, -9.81f, 0.0f));
-			virtual ~PhysicsWorld();
+		friend class PhysicsWorld;
+		public:			
+			void SetMaterial(PhysicsMaterial *material);
+			PhysicsMaterial *Material() const { return _material; }
 			
-			void SetGravity(const Vector3& gravity);
-			
-			void AddCollisionObject(CollisionObject *object);
-			void RemoveCollisionObject(CollisionObject *object);
-			
-			virtual void StepWorld(float delta);
-			virtual void DidAddTransform(Transform *transform);
-			virtual void WillRemoveTransform(Transform *transform);
-			
-			btDynamicsWorld *bulletDynamicsWorld() const { return _dynamicsWorld; }
+			template<typename T=btCollisionObject>
+			T *bulletCollisionObject()
+			{
+				std::call_once(_objetFlag, [this]{
+					_object = CreateCollisionObject();
+				});
+				
+				return static_cast<T *>(_object);
+			}
 			
 		protected:
-			virtual void BuildDynamicsWorld();
-				
-			btDynamicsWorld *_dynamicsWorld;
-			btBroadphaseInterface *_broadphase;
-			btCollisionConfiguration *_collisionConfiguration;
-			btCollisionDispatcher *_dispatcher;
-			btConstraintSolver *_constraintSolver;
-			btOverlappingPairCallback *_pairCallback;
+			CollisionObject();
+			virtual ~CollisionObject();
 			
-			std::unordered_set<CollisionObject *> _collisionObjects;
-			class MetaClass *_collisionObjectClass;
+			virtual btCollisionObject *CreateCollisionObject() = 0;
+			virtual void ApplyPhysicsMaterial(PhysicsMaterial *material);
 			
-			RNDefineMeta(PhysicsWorld, WorldAttachment);
+			virtual void InsertIntoWorld(btDynamicsWorld *world) {}
+			virtual void RemoveFromWorld(btDynamicsWorld *world) {}
+			
+			PhysicsMaterial *_material;
+			btCollisionObject *_object;
+			
+		private:			
+			std::once_flag _objetFlag;
+			
+			RNDefineConstructorlessMeta(CollisionObject, Entity);
 		};
 	}
 }
 
-#endif /* __RBULLET_PHYSICSWORLD_H__ */
+#endif /* __RBULLET_COLLISIONOBJECT_H__ */

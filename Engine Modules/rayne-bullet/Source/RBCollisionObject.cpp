@@ -1,5 +1,5 @@
 //
-//  RBPhysicsWorld.h
+//  RBCollisionObject.cpp
 //  rayne-bullet
 //
 //  Copyright 2013 by Überpixel. All rights reserved.
@@ -15,52 +15,56 @@
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#ifndef __RBULLET_PHYSICSWORLD_H__
-#define __RBULLET_PHYSICSWORLD_H__
-
-#include <RNVector.h>
-#include <RNWorldAttachment.h>
-#include <btBulletDynamicsCommon.h>
-
 #include "RBCollisionObject.h"
 
 namespace RN
 {
 	namespace bullet
 	{
-		class PhysicsWorld : public WorldAttachment
+		RNDeclareMeta(CollisionObject)
+		
+		CollisionObject::CollisionObject()
 		{
-		public:
-			PhysicsWorld(const Vector3& gravity=Vector3(0.0f, -9.81f, 0.0f));
-			virtual ~PhysicsWorld();
+			_material = 0;
+			_object = 0;
+		}
+		
+		CollisionObject::~CollisionObject()
+		{
+			if(_material)
+			{
+				_material->RemoveListener(this);
+				_material->Release();
+			}
+		}
+		
+		void CollisionObject::SetMaterial(PhysicsMaterial *material)
+		{
+			if(_material)
+			{
+				_material->RemoveListener(this);
+				_material->Release();
+			}
 			
-			void SetGravity(const Vector3& gravity);
+			_material = material ? material->Retain() : 0;
 			
-			void AddCollisionObject(CollisionObject *object);
-			void RemoveCollisionObject(CollisionObject *object);
-			
-			virtual void StepWorld(float delta);
-			virtual void DidAddTransform(Transform *transform);
-			virtual void WillRemoveTransform(Transform *transform);
-			
-			btDynamicsWorld *bulletDynamicsWorld() const { return _dynamicsWorld; }
-			
-		protected:
-			virtual void BuildDynamicsWorld();
+			if(_material)
+			{
+				_material->AddListener(this, [this](PhysicsMaterial *material) {
+					RN_ASSERT0(material == _material);
+					ApplyPhysicsMaterial(_material);
+				});
 				
-			btDynamicsWorld *_dynamicsWorld;
-			btBroadphaseInterface *_broadphase;
-			btCollisionConfiguration *_collisionConfiguration;
-			btCollisionDispatcher *_dispatcher;
-			btConstraintSolver *_constraintSolver;
-			btOverlappingPairCallback *_pairCallback;
+				ApplyPhysicsMaterial(_material);
+			}
+		}
+		
+		void CollisionObject::ApplyPhysicsMaterial(PhysicsMaterial *material)
+		{
+			bulletCollisionObject();
 			
-			std::unordered_set<CollisionObject *> _collisionObjects;
-			class MetaClass *_collisionObjectClass;
-			
-			RNDefineMeta(PhysicsWorld, WorldAttachment);
-		};
+			_object->setFriction(_material->Friction());
+			_object->setRestitution(_material->Restitution());
+		}
 	}
 }
-
-#endif /* __RBULLET_PHYSICSWORLD_H__ */
