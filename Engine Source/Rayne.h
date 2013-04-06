@@ -37,6 +37,7 @@
 #include "RNRect.h"
 #include "RNTransform.h"
 #include "RNVector.h"
+#include "RNInterpolation.h"
 
 #include "RNRenderer.h"
 
