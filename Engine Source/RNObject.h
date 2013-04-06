@@ -63,7 +63,7 @@ namespace RN
 	
 #define __RNDefineMetaPrivate(cls, super, cnstr) \
 	private: \
-		class MetaType : public MetaClass \
+		class MetaType : public RN::MetaClass \
 		{ \
 		public: \
 			MetaType() : \
@@ -78,7 +78,7 @@ namespace RN
 	
 #define __RNDefineMetaPublic(cls) \
 	public: \
-		virtual class MetaClass *Class() const \
+		virtual class RN::MetaClass *Class() const \
 		{ \
 			return cls::__##cls##__metaClass; \
 		} \
@@ -94,7 +94,7 @@ namespace RN
 		{ \
 			return static_cast<cls *>(Object::Autorelease()); \
 		} \
-		static class MetaClass *MetaClass() \
+		static class RN::MetaClass *MetaClass() \
 		{ \
 			if(!cls::__##cls##__metaClass) \
 				cls::__##cls##__metaClass = new cls::MetaType(); \
