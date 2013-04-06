@@ -48,30 +48,12 @@ namespace RN
 			_controller->warp(btVector3(wPosition.x, wPosition.y, wPosition.z));
 		}
 		
-		void KinematicController::SetRotation(const Quaternion& rotation)
-		{
-			Entity::SetRotation(rotation);
-			
-			btPairCachingGhostObject *ghost = bulletCollisionObject<btPairCachingGhostObject>();
-			const Quaternion& wRotation = WorldPosition();
-			
-			ghost->getWorldTransform().setRotation(btQuaternion(wRotation.x, wRotation.y, wRotation.z, wRotation.w));
-		}
-		
 		void KinematicController::SetWorldPosition(const Vector3& position)
 		{
 			Entity::SetWorldPosition(position);
 			bulletCollisionObject();
 			
 			_controller->warp(btVector3(position.x, position.y, position.z));
-		}
-		
-		void KinematicController::SetWorldRotation(const Quaternion& rotation)
-		{
-			Entity::SetWorldRotation(rotation);
-			
-			btPairCachingGhostObject *ghost = bulletCollisionObject<btPairCachingGhostObject>();
-			ghost->getWorldTransform().setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
 		}
 		
 		
@@ -113,11 +95,8 @@ namespace RN
 			btTransform transform = ghost->getWorldTransform();
 			
 			btVector3& position = transform.getOrigin();
-			btQuaternion rotation = transform.getRotation();
 			
 			Entity::SetWorldPosition(Vector3(position.x(), position.y(), position.z()));
-			Entity::SetRotation(Quaternion(rotation.x(), rotation.y(), rotation.z(), rotation.w()));
-			
 			Entity::Update(delta);
 		}
 		

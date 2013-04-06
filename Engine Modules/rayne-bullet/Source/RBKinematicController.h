@@ -35,9 +35,7 @@ namespace RN
 			virtual ~KinematicController();
 			
 			virtual void SetPosition(const Vector3& position);
-			virtual void SetRotation(const Quaternion& rotation);
 			virtual void SetWorldPosition(const Vector3& position);
-			virtual void SetWorldRotation(const Quaternion& rotation);
 			
 			void SetWalkDirection(const Vector3& direction);
 			void SetFallSpeed(float speed);
