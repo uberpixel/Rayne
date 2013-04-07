@@ -39,30 +39,16 @@ namespace TG
 	
 	void World::Update(float delta)
 	{
-		RN::Input *input = RN::Input::SharedInstance();
-		RN::Vector3 translation;
-		RN::Vector3 rotation;
+		//RN::Input *input = RN::Input::SharedInstance();
 		
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
-		const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
+		//static bool fpressed = false;
 		
-		rotation.x = mouseDelta.x;
-		rotation.z = mouseDelta.y;
-		
-		translation.x = (input->KeyPressed('a') - input->KeyPressed('d')) * 18.0f;
-		translation.z = (input->KeyPressed('w') - input->KeyPressed('s')) * 18.0f;
-		
-#if TGWorldFeatureLights
-		static bool fpressed = false;
-		
-		if(input->KeyPressed('f'))
+		/*if(input->KeyPressed('f'))
 		{
 			if(!fpressed)
 			{
 				fpressed = true;
-				
-				//RN::Light *child = _camera->ChildAtIndex<RN::Light>(0);
-				//child->SetRange((child->Range() < 1.0f) ? TGWorldSpotLightRange : 0.0f);
 				
 				RN::bullet::RigidBody *block;
 				
@@ -76,73 +62,44 @@ namespace TG
 		else
 		{
 			fpressed = false;
-		}
-#endif
-#endif
-		
-#if RN_PLATFORM_IOS
-		const std::vector<RN::Touch>& touches = input->Touches();
-		
-		for(auto i=touches.begin(); i!=touches.end(); i++)
-		{
-			if(i->phase == RN::Touch::TouchPhaseBegan)
-			{
-				if(i->location.x > _camera->Frame().width*0.5f)
-				{
-					_touchRight = i->uniqueID;
-				}
-				else
-				{
-					_touchLeft = i->uniqueID;
-				}
-			}
-			
-			if(i->phase == RN::Touch::TouchPhaseMoved)
-			{
-				if(i->uniqueID == _touchRight)
-				{
-					rotation.x = i->initialLocation.x - i->location.x;
-					rotation.z = i->initialLocation.y - i->location.y;
-				}
-				
-				if(i->uniqueID == _touchLeft)
-				{
-					translation.x = i->initialLocation.x - i->location.x;
-					translation.z = i->initialLocation.y - i->location.y;
-				}
-			}
-		}
-		
-		rotation *= delta;
-		translation *= 0.2f;
+		}*/
 #endif
 		
-#if TGWorldFeatureAnimations
-		_girlskeleton->Update(delta*24.0f);
-		_zombieskeleton->Update(delta*24.0f);
-#endif
+		//_camera->Rotate(rotation);
+		//_camera->TranslateLocal(translation * -delta);
 		
-		_camera->Rotate(rotation);
-		_camera->TranslateLocal(translation * -delta);
+		//_finalcam->SetRotation(_camera->Rotation());
+		//_finalcam->SetPosition(_camera->Position());
 		
-		_finalcam->SetRotation(_camera->Rotation());
-		_finalcam->SetPosition(_camera->Position());
+		/*RN::Vector3 cameraPosition = _camera->WorldPosition();
+		RN::Vector3 finalPosition = _finalcam->WorldPosition();
+		
+		RN::Quaternion cameraRotation = _camera->WorldRotation();
+		RN::Quaternion finalRotation = _finalcam->WorldRotation();
+		
+		if(cameraPosition != finalPosition)
+			printf("%f %f %f | %f %f %f\n", cameraPosition.x, cameraPosition.y, cameraPosition.z, finalPosition.x, finalPosition.y, finalPosition.z);
+		
+		if(cameraRotation != finalRotation)
+			printf("%f %f %f %f | %f %f %f %f\n", cameraRotation.x, cameraRotation.y, cameraRotation.z, cameraRotation.w, finalRotation.x, finalRotation.y, finalRotation.z, finalRotation.w);
+		
+		*/
 	}
 	
 	void World::CreateCameras()
 	{
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
-		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
-		storage->SetDepthTarget(depthtex);
+		//RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
+		//RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
+		//storage->SetDepthTarget(depthtex);
 		
-		RN::Shader *depthShader = RN::Shader::WithFile("shader/rn_LightDepth");
-		RN::Material *depthMaterial = new RN::Material(depthShader);
+		//RN::Shader *depthShader = RN::Shader::WithFile("shader/rn_LightDepth");
+		//RN::Material *depthMaterial = new RN::Material(depthShader);
 		
-		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults);
-		_camera->SetMaterial(depthMaterial);
-		_camera->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
+		//_camera = new ThirdPersonCamera(storage);
+		//_camera->SetMaterial(depthMaterial);
+		//_camera->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
 		
-		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
+		/*RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
 		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
 		downsampleMaterial2x->AddTexture(depthtex);
@@ -203,6 +160,16 @@ namespace TG
 		{
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
 		}
+		
+		_camera->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
+		_camera->SetPosition(RN::Vector3(15.0f, 0.0f, 0.0f));*/
+		
+		
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
+		storage->AddRenderTarget(RN::Texture::FormatRGBA32F);
+		
+		_camera = new ThirdPersonCamera(storage);
+		_camera->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
 	}
 	
 	void World::CreateWorld()
@@ -242,68 +209,17 @@ namespace TG
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
 		
-		RN::Material *blockMaterial = new RN::Material();
-		blockMaterial->AddTexture(RN::Texture::WithFile("textures/brick.png", RN::Texture::FormatRGB888));
+		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
+		RN::Skeleton *playerSkeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
+		playerSkeleton->SetAnimation("cammina");
 		
-		RN::Mesh *blockMesh = RN::Mesh::CubeMesh(RN::Vector3(0.5f));
-		_blockModel = RN::Model::WithMesh(blockMesh, blockMaterial->Autorelease());
-		_blockModel->Retain();
+		_player = new Player();
+		_player->SetModel(playerModel);
+		_player->SetSkeleton(playerSkeleton);
+		_player->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
 		
-		_blockMaterial = new RN::bullet::PhysicsMaterial();
-		_blockMaterial->SetRestitution(0.3f);
-		_blockMaterial->SetFriction(0.6f);
-		
-#if TGWorldFeatureAnimations
-		RN::Model *girlmodel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
-		_girlskeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
-		_girlskeleton->SetAnimation("cammina");
-		
-		RN::bullet::CapsuleShape *capsule = RN::bullet::CapsuleShape::WithRadius(0.75, 5.0f);
-		RN::bullet::KinematicController *girl = new RN::bullet::KinematicController(capsule, 0.4f);
-		girl->SetModel(girlmodel);
-		girl->SetSkeleton(_girlskeleton);
-		girl->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
-		girl->SetWalkDirection(RN::Vector3(0.0f, 0.0f, -0.15f));
-		
-		RN::Model *zombiemodel = RN::Model::WithFile("models/RosswetMobile/new_thin_zombie.sgm");
-		_zombieskeleton = RN::Skeleton::WithFile("models/RosswetMobile/new_thin_zombie.sga");
-		_zombieskeleton->SetAnimation("idle");
-		 
-		RN::Entity *zombie = new RN::Entity();
-		zombie->SetModel(zombiemodel);
-		zombie->SetSkeleton(_zombieskeleton);
-		zombie->SetPosition(RN::Vector3(-5.0f, -5.0f, 0.0f));
-#endif
-		
-#if TGWorldFeatureLOD
-		RN::Shader *foliageShader = new RN::Shader();
-		foliageShader->SetVertexShader("shader/rn_WindFoliage.vsh");
-		foliageShader->SetFragmentShader("shader/rn_Texture1.fsh");
-		
-		RN::Model *spruceModel = RN::Model::WithFile("models/dexfuck/tree01.sgm");
-
-		for(int i=0; i<2; i++)
-		{
-			uint32 meshes = spruceModel->Meshes(i);
-			for(uint32 j=0; j<meshes; j++)
-			{
-				RN::Material *material = spruceModel->MaterialAtIndex(i, j);
+		_camera->SetTarget(_player);
 				
-				material->culling = false;
-				material->discard = true;
-				material->alphatest = true;
-				//material->SetShader(foliageShader);
-			}
-		}
-		
-		spruceModel->MaterialAtIndex(2, 0)->culling = false;
-		spruceModel->MaterialAtIndex(2, 0)->discard = true;
-		spruceModel->MaterialAtIndex(2, 0)->alphatest = true;
-		
-		_spruce = new RN::Entity();
-		_spruce->SetModel(spruceModel);
-#endif
-		
 #if TGWorldFeatureLights
 		RN::Light *light;
 		//srand(time(0));
@@ -323,7 +239,7 @@ namespace TG
 		light->SetRange(TGWorldSpotLightRange);
 		light->SetAngle(0.9f);
 		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		_camera->AttachChild(light);
+		//_camera->AttachChild(light);
 		
 		for(int i=0; i<200; i++)
 		{
@@ -332,9 +248,9 @@ namespace TG
 			light->SetRange((TGWorldRandom * 20.0f) + 10.0f);
 			light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 			
-			light->SetAction([](RN::Transform *transform, float delta) {
+			/*light->SetAction([](RN::Transform *transform, float delta) {
 				transform->Translate(RN::Vector3(0.5f * delta, 0.0f, 0.0));
-			});
+			});*/
 		}
 #endif
 		

@@ -14,6 +14,9 @@
 #include <RBRigidBody.h>
 #include <RBKinematicController.h>
 
+#include "TGPlayer.h"
+#include "TGThirdPersonCamera.h"
+
 namespace TG
 {
 	class World : public RN::World
@@ -28,25 +31,12 @@ namespace TG
 		void CreateCameras();
 		void CreateWorld();
 		
-		RN::Camera *_camera;
+		RN::bullet::PhysicsWorld *_physicsAttachment;
+		
+		ThirdPersonCamera *_camera;
 		RN::Camera *_finalcam;
 		
-		uint32 _touchRight;
-		uint32 _touchLeft;
-		
-		RN::Model *_blockModel;
-		RN::bullet::PhysicsMaterial *_blockMaterial;
-		
-		RN::Entity *_parentBlock;
-		RN::Entity *_childBlock;
-		
-		RN::Entity *_spruce;
-		RN::Light *_spotLight;
-		
-		RN::Skeleton *_girlskeleton;
-		RN::Skeleton *_zombieskeleton;
-		
-		RN::bullet::PhysicsWorld *_physicsAttachment;
+		Player *_player;
 	};
 }
 
