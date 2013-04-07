@@ -13,6 +13,10 @@
 		E92AE1DE16B5281D00EFE1E8 /* TGWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */; };
 		E92AE1DF16B5281D00EFE1E8 /* TGWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */; };
 		E959283A170DB40600935AC8 /* librayne-bullet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9592839170DB40600935AC8 /* librayne-bullet.dylib */; };
+		E959285C170F9AEC00935AC8 /* TGPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E959285A170F9AEB00935AC8 /* TGPlayer.cpp */; };
+		E959285D170F9AEC00935AC8 /* TGPlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = E959285B170F9AEC00935AC8 /* TGPlayer.h */; };
+		E9C7DB2A1710E641006AD768 /* TGThirdPersonCamera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C7DB281710E641006AD768 /* TGThirdPersonCamera.cpp */; };
+		E9C7DB2B1710E641006AD768 /* TGThirdPersonCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C7DB291710E641006AD768 /* TGThirdPersonCamera.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +29,10 @@
 		E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGWorld.h; sourceTree = "<group>"; };
 		E92D60EF16B7496E00BFCC44 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E9592839170DB40600935AC8 /* librayne-bullet.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "librayne-bullet.dylib"; path = "Resources/modules/rayne-bullet/librayne-bullet.dylib"; sourceTree = "<group>"; };
+		E959285A170F9AEB00935AC8 /* TGPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGPlayer.cpp; sourceTree = "<group>"; };
+		E959285B170F9AEC00935AC8 /* TGPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGPlayer.h; sourceTree = "<group>"; };
+		E9C7DB281710E641006AD768 /* TGThirdPersonCamera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGThirdPersonCamera.cpp; sourceTree = "<group>"; };
+		E9C7DB291710E641006AD768 /* TGThirdPersonCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGThirdPersonCamera.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +71,10 @@
 			children = (
 				E92AE1CB16B524B600EFE1E8 /* TGApplication.cpp */,
 				E92AE1CC16B524B600EFE1E8 /* TGApplication.h */,
+				E9C7DB281710E641006AD768 /* TGThirdPersonCamera.cpp */,
+				E9C7DB291710E641006AD768 /* TGThirdPersonCamera.h */,
+				E959285A170F9AEB00935AC8 /* TGPlayer.cpp */,
+				E959285B170F9AEC00935AC8 /* TGPlayer.h */,
 				E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */,
 				E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */,
 			);
@@ -88,6 +100,8 @@
 			files = (
 				E92AE1CE16B524B600EFE1E8 /* TGApplication.h in Headers */,
 				E92AE1DF16B5281D00EFE1E8 /* TGWorld.h in Headers */,
+				E959285D170F9AEC00935AC8 /* TGPlayer.h in Headers */,
+				E9C7DB2B1710E641006AD768 /* TGThirdPersonCamera.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -177,6 +191,8 @@
 			files = (
 				E92AE1CD16B524B600EFE1E8 /* TGApplication.cpp in Sources */,
 				E92AE1DE16B5281D00EFE1E8 /* TGWorld.cpp in Sources */,
+				E959285C170F9AEC00935AC8 /* TGPlayer.cpp in Sources */,
+				E9C7DB2A1710E641006AD768 /* TGThirdPersonCamera.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
