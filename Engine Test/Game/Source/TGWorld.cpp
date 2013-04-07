@@ -39,67 +39,29 @@ namespace TG
 	
 	void World::Update(float delta)
 	{
-		//RN::Input *input = RN::Input::SharedInstance();
-		
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
-		//static bool fpressed = false;
-		
-		/*if(input->KeyPressed('f'))
-		{
-			if(!fpressed)
-			{
-				fpressed = true;
-				
-				RN::bullet::RigidBody *block;
-				
-				block = new RN::bullet::RigidBody(RN::bullet::BoxShape::WithHalfExtents(RN::Vector3(0.5f)), 5.0f);
-				block->SetModel(_blockModel);
-				block->SetMaterial(_blockMaterial);
-				block->SetPosition(_camera->WorldPosition());
-				block->ApplyImpulse(_camera->WorldRotation().RotateVector(RN::Vector3(0.0, 0.0, -90.0f)));
-			}
-		}
-		else
-		{
-			fpressed = false;
-		}*/
-#endif
-		
-		//_camera->Rotate(rotation);
-		//_camera->TranslateLocal(translation * -delta);
-		
-		//_finalcam->SetRotation(_camera->Rotation());
-		//_finalcam->SetPosition(_camera->Position());
-		
-		/*RN::Vector3 cameraPosition = _camera->WorldPosition();
-		RN::Vector3 finalPosition = _finalcam->WorldPosition();
-		
-		RN::Quaternion cameraRotation = _camera->WorldRotation();
-		RN::Quaternion finalRotation = _finalcam->WorldRotation();
-		
-		if(cameraPosition != finalPosition)
-			printf("%f %f %f | %f %f %f\n", cameraPosition.x, cameraPosition.y, cameraPosition.z, finalPosition.x, finalPosition.y, finalPosition.z);
-		
-		if(cameraRotation != finalRotation)
-			printf("%f %f %f %f | %f %f %f %f\n", cameraRotation.x, cameraRotation.y, cameraRotation.z, cameraRotation.w, finalRotation.x, finalRotation.y, finalRotation.z, finalRotation.w);
-		
-		*/
 	}
+	
+	void World::TransformsUpdated()
+	{
+		_finalcam->SetRotation(_camera->Rotation());
+		_finalcam->SetPosition(_camera->Position());
+	}
+	
 	
 	void World::CreateCameras()
 	{
-		//RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
-		//RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
-		//storage->SetDepthTarget(depthtex);
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
+		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
+		storage->SetDepthTarget(depthtex);
 		
-		//RN::Shader *depthShader = RN::Shader::WithFile("shader/rn_LightDepth");
-		//RN::Material *depthMaterial = new RN::Material(depthShader);
+		RN::Shader *depthShader = RN::Shader::WithFile("shader/rn_LightDepth");
+		RN::Material *depthMaterial = new RN::Material(depthShader);
 		
-		//_camera = new ThirdPersonCamera(storage);
-		//_camera->SetMaterial(depthMaterial);
-		//_camera->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
+		_camera = new ThirdPersonCamera(storage);
+		_camera->SetMaterial(depthMaterial);
+		_camera->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
 		
-		/*RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
+		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
 		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
 		downsampleMaterial2x->AddTexture(depthtex);
@@ -160,16 +122,6 @@ namespace TG
 		{
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
 		}
-		
-		_camera->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
-		_camera->SetPosition(RN::Vector3(15.0f, 0.0f, 0.0f));*/
-		
-		
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
-		storage->AddRenderTarget(RN::Texture::FormatRGBA32F);
-		
-		_camera = new ThirdPersonCamera(storage);
-		_camera->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
 	}
 	
 	void World::CreateWorld()
@@ -239,7 +191,8 @@ namespace TG
 		light->SetRange(TGWorldSpotLightRange);
 		light->SetAngle(0.9f);
 		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		//_camera->AttachChild(light);
+		
+		_player->AttachChild(light);
 		
 		for(int i=0; i<200; i++)
 		{
