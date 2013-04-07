@@ -412,6 +412,10 @@ namespace RN
 			glUnmapBuffer(GL_TEXTURE_BUFFER);
 			glBindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
+		else
+		{
+			return 0;
+		}
 		
 		return static_cast<int>(lightCount);
 	}
@@ -462,6 +466,10 @@ namespace RN
 			
 			glUnmapBuffer(GL_TEXTURE_BUFFER);
 			glBindBuffer(GL_TEXTURE_BUFFER, 0);
+		}
+		else
+		{
+			return 0;
 		}
 		
 		return static_cast<int>(lightCount);
@@ -990,11 +998,8 @@ namespace RN
 					if(canDrawInstanced && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
 						programTypes |= ShaderProgram::TypeInstanced;
 					
-					if(wantsDiscard)
-					{
 					if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
 						programTypes |= ShaderProgram::TypeDiscard;
-					}
 		
 					program = shader->ProgramOfType(programTypes);
 					changedShader = (_currentProgram != program);
@@ -1017,7 +1022,7 @@ namespace RN
 						if(program->lightSpotCount != -1)
 							glUniform1i(program->lightSpotCount, lightSpotCount);
 						
-						if(camera->LightTiles() != 0)
+						if(camera->DepthTiles() != 0)
 						{
 							// Point lights
 							if(program->lightPointList != -1)
