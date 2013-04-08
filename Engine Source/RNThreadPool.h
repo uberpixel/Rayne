@@ -56,6 +56,7 @@ namespace RN
 		} PoolType;
 		
 		typedef uint32 BatchID;
+		typedef std::chrono::time_point<std::chrono::steady_clock> ClockType;
 		
 		ThreadPool(PoolType type, machine_uint maxThreads=0)
 		{
@@ -103,22 +104,25 @@ namespace RN
 			_tearDownCondition.wait(lock, [&]() { return (_resigned == _threads.Count()); } );
 		}
 		
+		
 		template<typename F>
-		std::future<typename std::result_of<F()>::type> AddTask(F f, std::chrono::time_point<std::chrono::steady_clock> timeout = std::chrono::time_point<std::chrono::steady_clock>::max())
+		void AddTask(F&& f, ClockType timeout = ClockType::max())
 		{
-			typedef typename std::result_of<F()>::type resultType;
-			
-			std::packaged_task<resultType ()> task(std::move(f));
-			std::future<resultType> result(task.get_future());
-			
+			AddTaskWithPredicate(f, std::function<bool ()>(), timeout);
+		}
+		
+		template<typename F>
+		void AddTaskWithPredicate(F&& f, const std::function<bool ()>& predicate, ClockType timeout = ClockType::max())
+		{
 			Task temp;
-			temp.task    = std::move(task);
-			temp.timeout = timeout;
-			temp.batch   = _currentBatch;
+			temp.task      = std::move(f);
+			temp.predicate = predicate;
+			temp.timeout   = timeout;
+			temp.batch     = _currentBatch;
 			
 			if(!_currentBatch)
 			{
-				_lock.Lock();				
+				_lock.Lock();
 				_workQueue.push_back(std::move(temp));
 				_lock.Unlock();
 				
@@ -128,12 +132,17 @@ namespace RN
 			{
 				_currentBatch->queuedTasks.push_back(std::move(temp));
 			}
-			
-			return result;
+		}
+		
+		
+		template<typename F>
+		std::future<typename std::result_of<F()>::type> AddFutureTask(F&& f, ClockType timeout = ClockType::max())
+		{
+			return AddFutureTaskWithPredicate(f, std::function<bool ()>(), timeout);
 		}
 		
 		template<typename F>
-		std::future<typename std::result_of<F()>::type> AddTaskWithPredicate(F f, const std::function<bool ()>& predicate, std::chrono::time_point<std::chrono::steady_clock> timeout = std::chrono::time_point<std::chrono::steady_clock>::max())
+		std::future<typename std::result_of<F()>::type> AddFutureTaskWithPredicate(F&& f, const std::function<bool ()>& predicate, ClockType timeout = ClockType::max())
 		{
 			typedef typename std::result_of<F()>::type resultType;
 			
@@ -161,6 +170,8 @@ namespace RN
 			
 			return result;
 		}
+		
+		
 		
 		BatchID BeginTaskBatch()
 		{
@@ -237,7 +248,7 @@ namespace RN
 		{
 		public:
 			std::function<bool ()> predicate;
-			std::chrono::time_point<std::chrono::steady_clock> timeout;
+			ClockType timeout;
 			
 			Function task;
 			Batch *batch;
@@ -329,10 +340,9 @@ namespace RN
 					_lock.Unlock();
 				}
 				
+				ClockType now = std::chrono::steady_clock::now();
 				Task task = std::move(localQueue.front());
 				localQueue.pop_front();
-				
-				std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
 				
 				if(task.timeout < now)
 				{
