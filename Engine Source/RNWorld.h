@@ -26,6 +26,7 @@ namespace RN
 	{
 	friend class Transform;
 	friend class Kernel;
+	friend class Camera;
 	public:
 		RNAPI World();
 		RNAPI virtual ~World();
@@ -45,10 +46,14 @@ namespace RN
 		bool SupportsTransform(Transform *transform);
 		void ApplyTransformUpdates();
 		
+		void AddCamera(Camera *camera);
+		void RemoveCamera(Camera *camera);
+		
 		Kernel *_kernel;
 		
 		Array<WorldAttachment> _attachments;
 		std::unordered_set<Transform *> _transforms;
+		
 		std::deque<Transform *> _addedTransforms;
 		std::vector<Camera *> _cameras;
 		

@@ -141,7 +141,9 @@ namespace RN
 			for(auto j=_transforms.begin(); j!=_transforms.end(); j++)
 			{
 				Transform *transform = *j;
-				if(transform->Parent())
+				Transform *parent = transform->Parent();
+				
+				if(parent)
 					continue;
 				
 				VisitTransform(camera, transform);
@@ -174,13 +176,7 @@ namespace RN
 				if(_transforms.find(transform) == _transforms.end())
 				{
 					_transforms.insert(transform);
-					
-					if(transform->IsKindOfClass(_cameraClass))
-					{
-						Camera *camera = static_cast<Camera *>(transform);
-						_cameras.push_back(camera);
-					}
-					
+				
 					for(machine_uint i=0; i<_attachments.Count(); i++)
 					{
 						WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
@@ -206,6 +202,16 @@ namespace RN
 	}
 	
 	
+	void World::AddCamera(Camera *camera)
+	{
+		_cameras.push_back(camera);
+	}
+	
+	void World::RemoveCamera(Camera *camera)
+	{
+		_cameras.erase(std::remove(_cameras.begin(), _cameras.end(), camera), _cameras.end());
+	}
+	
 	void World::AddTransform(Transform *transform)
 	{
 		if(!transform)
@@ -230,12 +236,6 @@ namespace RN
 			}
 			
 			_transforms.erase(iterator);
-			
-			if(transform->IsKindOfClass(_cameraClass))
-			{
-				Camera *camera = static_cast<Camera *>(transform);
-				_cameras.erase(std::remove(_cameras.begin(), _cameras.end(), camera), _cameras.end());
-			}
 		}
 		
 		_addedTransforms.erase(std::remove(_addedTransforms.begin(), _addedTransforms.end(), transform), _addedTransforms.end());

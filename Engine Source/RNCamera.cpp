@@ -76,6 +76,8 @@ namespace RN
 
 	Camera::~Camera()
 	{
+		World::SharedInstance()->RemoveCamera(this);
+		
 		if(_storage)
 			_storage->Release();
 		
@@ -131,6 +133,8 @@ namespace RN
 		Update(0.0f);
 		UpdateProjection();
 		UpdateFrustum();
+		
+		World::SharedInstance()->AddCamera(this);
 	}
 
 
@@ -286,12 +290,14 @@ namespace RN
 
 		UpdateProjection();
 		World::SharedInstance()->RemoveTransform(stage);
+		World::SharedInstance()->RemoveCamera(stage);
 	}
 
 	void Camera::ReplaceStage(Camera *stage)
 	{
 		Camera *temp = _stage ? _stage->_stage->Retain() : 0;
 		World::SharedInstance()->AddTransform(_stage);
+		World::SharedInstance()->AddCamera(_stage);
 
 		if(_stage)
 			_stage->Release();
@@ -305,6 +311,7 @@ namespace RN
 
 		UpdateProjection();
 		World::SharedInstance()->RemoveTransform(stage);
+		World::SharedInstance()->RemoveCamera(stage);
 	}
 
 	void Camera::RemoveStage(Camera *stage)
@@ -312,7 +319,9 @@ namespace RN
 		if(_stage == stage)
 		{
 			stage = stage->_stage ? stage->_stage->Retain() : 0;
-			World::SharedInstance()->AddTransform(stage);
+			
+			World::SharedInstance()->RemoveTransform(stage);
+			World::SharedInstance()->RemoveCamera(stage);
 
 			_stage->Release();
 			_stage = stage;
@@ -327,6 +336,7 @@ namespace RN
 			{
 				stage = stage->_stage ? stage->_stage->Retain() : 0;
 				World::SharedInstance()->AddTransform(stage);
+				World::SharedInstance()->AddCamera(stage);
 
 				temp->_stage->Release();
 				temp->_stage = stage;
@@ -377,8 +387,8 @@ namespace RN
 			
 			if(_stage->_flags & FlagInheritPosition)
 			{
-				_stage->SetPosition(Position());
-				_stage->SetRotation(Rotation());
+				_stage->SetWorldPosition(WorldPosition());
+				_stage->SetWorldRotation(WorldRotation());
 			}
 
 			_stage->PostUpdate();
