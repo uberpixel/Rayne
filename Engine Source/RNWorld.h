@@ -40,7 +40,7 @@ namespace RN
 		RNAPI virtual void TransformsUpdated();
 		
 	private:
-		void StepWorld(float delta);
+		void StepWorld(FrameID frame, float delta);
 		void VisitTransform(Camera *camera, Transform *transform);
 		bool SupportsTransform(Transform *transform);
 		void ApplyTransformUpdates();

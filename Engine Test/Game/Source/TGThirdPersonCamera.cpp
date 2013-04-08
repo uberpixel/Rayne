@@ -49,4 +49,15 @@ namespace TG
 		
 		RN::Camera::Update(delta);
 	}
+	
+	bool ThirdPersonCamera::CanUpdate(FrameID frame)
+	{
+		if(!RN::Camera::CanUpdate(frame))
+			return false;
+		
+		if(_target)
+			return (_target->LastFrame() == frame);
+		
+		return true;
+	}
 }

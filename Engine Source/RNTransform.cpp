@@ -17,6 +17,7 @@ namespace RN
 		_scale(Vector3(1.0f))
 	{
 		_parent = 0;
+		_lastFrame = 0;
 		DidUpdate();
 		
 		World::SharedInstance()->AddTransform(this);
@@ -27,6 +28,7 @@ namespace RN
 		_scale(Vector3(1.0f))
 	{
 		_parent = 0;
+		_lastFrame = 0;
 		DidUpdate();
 		
 		World::SharedInstance()->AddTransform(this);
@@ -39,6 +41,7 @@ namespace RN
 		_euler(rotation.EulerAngle())
 	{
 		_parent = 0;
+		_lastFrame = 0;
 		DidUpdate();
 		
 		World::SharedInstance()->AddTransform(this);

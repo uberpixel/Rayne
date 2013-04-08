@@ -48,6 +48,7 @@ namespace RN
 		void LoadApplicationModule(const std::string& module);
 		void *_appHandle;
 
+		FrameID _frame;
 		float _scaleFactor;
 
 		Application *_app;

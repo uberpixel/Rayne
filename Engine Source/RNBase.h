@@ -110,6 +110,7 @@
 // ---------------------------
 #define kRNEpsilonFloat 0.001f
 
+typedef uint32 FrameID;
 typedef int8 ComparisonResult;
 
 #define kRNCompareLessThan     -1

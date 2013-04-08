@@ -85,7 +85,7 @@ namespace RN
 		}
 	}
 	
-	void World::StepWorld(float delta)
+	void World::StepWorld(FrameID frame, float delta)
 	{
 		Update(delta);
 		ApplyTransformUpdates();
@@ -106,11 +106,12 @@ namespace RN
 			Transform *transform = *i;
 			transform->Retain();
 			
-			pool->AddTask([transform, delta]() {
+			pool->AddTaskWithPredicate([&, transform]() {
 				transform->Update(delta);
 				transform->WorldTransform(); // Make sure that transforms matrices get updated within the thread pool
+				transform->UpdatedToFrame(frame);
 				transform->Release();
-			});
+			}, [&, transform]() { return transform->CanUpdate(frame); });
 		}
 		
 		pool->CommitTaskBatch();

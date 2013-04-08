@@ -21,6 +21,7 @@ namespace TG
 	
 		void SetTarget(RN::Entity *target);
 		virtual void Update(float delta);
+		virtual bool CanUpdate(FrameID frame);
 		
 	private:
 		RN::Entity *_target;

@@ -51,25 +51,3 @@ namespace RN
 	}
 		
 }
-
-#if RN_PLATFORM_IOS
-
-int main(int argc, char *argv[])
-{
-	int result = 0;
-	
-	try
-	{
-		@autoreleasepool {
-			result = UIApplicationMain(argc, argv, nil, @"RNAppDelegate");
-		}
-	}
-	catch(RN::ErrorException e)
-	{
-		__HandleExcption(e)
-	}
-	
-	return result;
-}
-
-#endif

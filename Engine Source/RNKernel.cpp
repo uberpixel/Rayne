@@ -57,6 +57,7 @@ namespace RN
 
 		_world = 0;
 		_window = Window::SharedInstance();
+		_frame  = 0;
 
 		_delta = 0.0f;
 		_time  = 0.0f;
@@ -174,13 +175,14 @@ namespace RN
 		}
 #endif
 		
+		_frame ++;
 		_renderer->BeginFrame(_delta);
 
 		if(_world)
 		{
 			Application::SharedInstance()->GameUpdate(_delta);
 			
-			_world->StepWorld(_delta);
+			_world->StepWorld(_frame, _delta);
 			_input->DispatchInputEvents();
 
 			Application::SharedInstance()->WorldUpdate(_delta);

@@ -20,9 +20,12 @@ namespace RN
 {
 	class Renderer;
 	class Camera;
+	class World;
+	
 	class Transform : public Object
 	{
 	friend class Renderer;
+	friend class World;
 	public:
 		RNAPI Transform();
 		RNAPI Transform(const Vector3& position);
@@ -65,6 +68,7 @@ namespace RN
 		
 		machine_uint Childs() const { return _childs.Count(); }
 		Transform *Parent() const { return _parent; }
+		FrameID LastFrame() const { return _lastFrame; }
 		
 		template<typename T=Transform>
 		T *ChildAtIndex(machine_uint index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
@@ -78,9 +82,15 @@ namespace RN
 				_action(this, delta);
 		}
 		
+		virtual bool CanUpdate(FrameID frame)
+		{
+			return true;
+		}
+		
 	protected:		
 		void DidUpdate();
 		void UpdateInternalData();
+		void UpdatedToFrame(FrameID frame) { _lastFrame = frame; }
 		
 		Vector3 _position;
 		Vector3 _scale;
@@ -94,6 +104,7 @@ namespace RN
 		
 		std::function<void (Transform *, float)> _action;
 		
+		FrameID _lastFrame;
 		Vector3 _worldPosition;
 		Quaternion _worldRotation;
 		Vector3 _worldScale;
