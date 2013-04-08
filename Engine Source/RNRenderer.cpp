@@ -267,8 +267,6 @@ namespace RN
 		Vector3 far = camera->ToWorld(Vector3(1.0f, 1.0f, 1.0f));
 		far = far-camPosition;
 		
-		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
-		pool->BeginTaskBatch();
 		
 		size_t i = 0;
 		size_t tileCount = tilesWidth * tilesHeight;
@@ -278,15 +276,17 @@ namespace RN
 		
 		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
 		
-		std::vector<std::future<void>> futures(tileCount);
 		std::vector<size_t> indicesCount(tileCount);
+		
+		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
+		pool->BeginTaskBatch();
 		
 		for(int y=0; y<tilesHeight; y++)
 		{
 			for(int x=0; x<tilesWidth; x++)
 			{
-				size_t index = i;
-				futures[i ++] = pool->AddTask([&, x, y, index]() {
+				size_t index = i ++;
+				pool->AddTask([&, x, y, index]() {
 					Plane plleft;
 					Plane plright;
 					Plane pltop;
@@ -329,15 +329,13 @@ namespace RN
 			}
 		}
 		
-		pool->EndTaskBatch();
+		pool->CommitTaskBatch(true);
 		
 		size_t lightIndicesCount = 0;
 		size_t lightIndexOffsetCount = 0;
 		
 		for(i=0; i<tileCount; i++)
 		{
-			futures[i].wait();
-			
 			size_t tileCount = indicesCount[i];
 			int *tileIndices = _tempLightIndicesBuffer + (i * lightCount);
 			

@@ -96,31 +96,25 @@ namespace RN
 			attachment->StepWorld(delta);
 		}
 		
-		uint32 size = (uint32)_transforms.size();
-		uint32 j = 0;
-		
 		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
-		std::vector<std::future<void>> results(size);
 		
 		// Add the Transform updates to the thread pool
-		pool->BeginTaskBatch();
+		ThreadPool::BatchID batch = pool->BeginTaskBatch();
 		
-		for(auto i=_transforms.begin(); i!=_transforms.end(); i++, j++)
+		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)
 		{
 			Transform *transform = *i;
 			transform->Retain();
 			
-			results[j] = pool->AddTask([transform, delta]() {
+			pool->AddTask([transform, delta]() {
 				transform->Update(delta);
 				transform->WorldTransform(); // Make sure that transforms matrices get updated within the thread pool
 				transform->Release();
 			});
 		}
 		
-		pool->EndTaskBatch();
-		
-		// Wait for the updates to complete
-		std::for_each(results.begin(), results.end(), std::mem_fn(&std::future<void>::wait));
+		pool->CommitTaskBatch();
+		pool->WaitForBatch(batch);
 		
 		ApplyTransformUpdates();
 		TransformsUpdated();
