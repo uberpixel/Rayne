@@ -84,6 +84,9 @@ namespace RN
 		
 		virtual bool CanUpdate(FrameID frame)
 		{
+			if(_parent)
+				return (_parent->_lastFrame == frame);
+			
 			return true;
 		}
 		
