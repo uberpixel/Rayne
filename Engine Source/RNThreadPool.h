@@ -55,11 +55,14 @@ namespace RN
 			PoolTypeConcurrent
 		} PoolType;
 		
+		typedef uint32 BatchID;
+		
 		ThreadPool(PoolType type, machine_uint maxThreads=0)
 		{
-			_type = type;
-			_resigned = 0;
-			_insertingTaskBatch = false;
+			_type         = type;
+			_resigned     = 0;
+			_currentID    = 0;
+			_currentBatch = 0;
 			
 			switch(_type)
 			{
@@ -101,44 +104,157 @@ namespace RN
 		}
 		
 		template<typename F>
-		std::future<typename std::result_of<F()>::type> AddTask(F f)
+		std::future<typename std::result_of<F()>::type> AddTask(F f, std::chrono::time_point<std::chrono::steady_clock> timeout = std::chrono::time_point<std::chrono::steady_clock>::max())
 		{
 			typedef typename std::result_of<F()>::type resultType;
 			
-			std::packaged_task<resultType()> task(std::move(f));
+			std::packaged_task<resultType ()> task(std::move(f));
 			std::future<resultType> result(task.get_future());
 			
-			if(!_insertingTaskBatch)
+			Task temp;
+			temp.task    = std::move(task);
+			temp.timeout = timeout;
+			temp.batch   = _currentBatch;
+			
+			if(!_currentBatch)
 			{
-				_lock.Lock();
-				_workQueue.push_back(std::move(task));
+				_lock.Lock();				
+				_workQueue.push_back(std::move(temp));
 				_lock.Unlock();
 				
 				_waitCondition.notify_one();
 			}
 			else
 			{
-				_workQueue.push_back(std::move(task));
+				_currentBatch->queuedTasks.push_back(std::move(temp));
 			}
 			
 			return result;
 		}
 		
-		void BeginTaskBatch()
+		template<typename F>
+		std::future<typename std::result_of<F()>::type> AddTaskWithPredicate(F f, const std::function<bool ()>& predicate, std::chrono::time_point<std::chrono::steady_clock> timeout = std::chrono::time_point<std::chrono::steady_clock>::max())
 		{
-			_lock.Lock();
-			_insertingTaskBatch = true;
+			typedef typename std::result_of<F()>::type resultType;
+			
+			std::packaged_task<resultType ()> task(std::move(f));
+			std::future<resultType> result(task.get_future());
+			
+			Task temp;
+			temp.task      = std::move(task);
+			temp.predicate = predicate;
+			temp.timeout   = timeout;
+			temp.batch     = _currentBatch;
+			
+			if(!_currentBatch)
+			{
+				_lock.Lock();
+				_workQueue.push_back(std::move(temp));
+				_lock.Unlock();
+				
+				_waitCondition.notify_one();
+			}
+			else
+			{
+				_currentBatch->queuedTasks.push_back(std::move(temp));
+			}
+			
+			return result;
 		}
 		
-		void EndTaskBatch()
+		BatchID BeginTaskBatch()
 		{
-			_insertingTaskBatch = false;
+			RN_ASSERT0(_currentBatch == 0);
+			
+			if(_resignedBatches.size() > 0)
+			{
+				_currentBatch = _resignedBatches.back();
+				_resignedBatches.pop_back();
+			}
+			else
+			{
+				_currentBatch = new Batch;
+			}
+			
+			_currentBatch->batch = (++ _currentID);
+			_currentBatch->tasks.store(0);
+			
+			return _currentBatch->batch;
+		}
+		
+		void CommitTaskBatch(bool waitForCompletion=false)
+		{
+			RN_ASSERT0(_currentBatch);
+			Batch *batch = _currentBatch;
+			
+			_activeBatches.push_back(_currentBatch);
+			_currentBatch = 0;
+			
+			_lock.Lock();
+			
+			batch->tasks.store((uint32)batch->queuedTasks.size());
+			
+			std::move(batch->queuedTasks.begin(), batch->queuedTasks.end(), std::back_inserter(_workQueue));
+			batch->queuedTasks.clear();
+			   
+			_lock.Unlock();
+			_waitCondition.notify_all();
+			
+			if(waitForCompletion)
+			{
+				std::unique_lock<std::mutex> lock(batch->mutex);
+				batch->condition.wait(lock, [&]() { return (batch->tasks.load() == 0); });
+			}
+		}
+		
+		void WaitForBatch(BatchID batchID)
+		{
+			Batch *batch = 0;
+			
+			_lock.Lock();
+			
+			for(Batch *temp : _activeBatches)
+			{
+				if(temp->batch == batchID)
+				{
+					batch = temp;
+					break;
+				}
+			}
+			
 			_lock.Unlock();
 			
-			_waitCondition.notify_all();
+			if(!batch)
+				return;
+			
+			std::unique_lock<std::mutex> lock(batch->mutex);
+			batch->condition.wait(lock, [&]() { return (batch->tasks.load() == 0); });
 		}
 		
 	private:
+		struct Batch;
+		class Task
+		{
+		public:
+			std::function<bool ()> predicate;
+			std::chrono::time_point<std::chrono::steady_clock> timeout;
+			
+			Function task;
+			Batch *batch;
+		};
+		
+		struct Batch
+		{
+			BatchID batch;
+			std::atomic<uint32> tasks;
+			std::deque<Task> queuedTasks;
+			
+			std::mutex mutex;
+			std::condition_variable condition;
+		};
+		
+		
+		
 		Thread *CreateThread()
 		{
 			Thread *thread = new Thread(std::bind(&ThreadPool::Consumer, this), false);
@@ -150,13 +266,48 @@ namespace RN
 		void Consumer()
 		{
 			Thread *thread = Thread::CurrentThread();
-			std::deque<Function> localQueue;
+			std::deque<Task> localQueue;
+			std::deque<Task> backfeed;
 			
 			while(!thread->IsCancelled())
 			{
 				if(localQueue.size() == 0)
 				{
 					_lock.Lock();
+					
+					// Check if an actively running batch has finished
+					for(auto i=_activeBatches.begin(); i!=_activeBatches.end();)
+					{
+						Batch *batch = *i;
+						
+						if(batch->tasks.load() == 0)
+						{
+							batch->condition.notify_all();
+							_resignedBatches.push_back(batch);
+							
+							i = _activeBatches.erase(i);
+							continue;
+						}
+						
+						i ++;
+					}
+					
+					if(backfeed.size() > 0)
+					{
+						if(_workQueue.size() == 0)
+						{
+							std::move(backfeed.begin(), backfeed.end(), std::back_inserter(localQueue));
+							backfeed.clear();
+							
+							_lock.Unlock();
+							continue;
+						}
+						else
+						{
+							std::move(backfeed.begin(), backfeed.end(), std::back_inserter(_workQueue));
+							backfeed.clear();
+						}
+					}
 					
 					if(_workQueue.size() == 0)
 					{
@@ -169,7 +320,7 @@ namespace RN
 					}
 					
 					machine_uint moveLocal = MIN(kRNThreadPoolLocalQueueMaxSize, _workQueue.size());
-					std::deque<Function>::iterator last = _workQueue.begin();
+					std::deque<Task>::iterator last = _workQueue.begin();
 					std::advance(last, moveLocal);
 					
 					std::move(_workQueue.begin(), last, std::back_inserter(localQueue));
@@ -178,10 +329,29 @@ namespace RN
 					_lock.Unlock();
 				}
 				
-				Function task = std::move(localQueue.front());
+				Task task = std::move(localQueue.front());
 				localQueue.pop_front();
 				
-				task();
+				std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+				
+				if(task.timeout < now)
+				{
+					if(task.batch)
+						task.batch->tasks --;
+
+					continue;
+				}
+				
+				if(task.predicate && !task.predicate())
+				{
+					backfeed.push_back(std::move(task));
+					continue;
+				}
+				
+				task.task();
+				
+				if(task.batch)
+					task.batch->tasks --;
 			}
 			
 			_resigned ++;
@@ -191,11 +361,16 @@ namespace RN
 		SpinLock _lock;
 		PoolType _type;
 		
-		bool _insertingTaskBatch;
+		BatchID _currentID;
+		Batch  *_currentBatch;
 		
 		Array<Thread> _threads;
 		machine_uint _resigned;
-		std::deque<Function> _workQueue;
+		
+		std::deque<Task> _workQueue;
+		
+		std::vector<Batch *> _activeBatches;
+		std::vector<Batch *> _resignedBatches;
 	
 		std::mutex _tearDownMutex;
 		std::mutex _waitMutex;
