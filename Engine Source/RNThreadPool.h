@@ -107,13 +107,12 @@ namespace RN
 			std::unique_lock<std::mutex> lock(_tearDownMutex);
 			_tearDownCondition.wait(lock, [&]() { return (_resigned == _threads.Count()); } );
 			
-			// Clear all batches and notify waiting threads
-			for(Batch *batch : _activeBatches)
-			{
-				delete batch;
-			}
+			// Clear all batches
+			std::vector<Batch *> batches;
+			batches.insert(batches.end(), _activeBatches.begin(), _activeBatches.end());
+			batches.insert(batches.end(), _resignedBatches.begin(), _resignedBatches.end());
 			
-			for(Batch *batch : _resignedBatches)
+			for(Batch *batch : batches)
 			{
 				delete batch;
 			}
@@ -286,7 +285,7 @@ namespace RN
 			Thread *thread = new Thread(std::bind(&ThreadPool::Consumer, this), false);
 			_threads.AddObject(thread);
 			
-			return thread;
+			return thread->Autorelease();
 		}
 		
 		void Consumer()
