@@ -98,10 +98,25 @@ namespace RN
 				thread->Cancel();
 			}
 			
+			_lock.Lock();
+			_workQueue.clear();
+			_lock.Unlock();
+			
 			_waitCondition.notify_all(); // Notify all sleeping threads
 			
 			std::unique_lock<std::mutex> lock(_tearDownMutex);
 			_tearDownCondition.wait(lock, [&]() { return (_resigned == _threads.Count()); } );
+			
+			// Clear all batches and notify waiting threads
+			for(Batch *batch : _activeBatches)
+			{
+				delete batch;
+			}
+			
+			for(Batch *batch : _resignedBatches)
+			{
+				delete batch;
+			}
 		}
 		
 		
