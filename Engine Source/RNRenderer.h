@@ -136,6 +136,9 @@ namespace RN
 		size_t _lightSpotDataSize;
 		GLuint _lightSpotTextures[3];
 		GLuint _lightSpotBuffers[3];
+		
+		size_t _instancingVBOSize;
+		GLuint _instancingVBO;
 	};
 	
 	RN_INLINE uint32 Renderer::BindTexture(Texture *texture)
