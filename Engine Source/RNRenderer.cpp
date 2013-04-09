@@ -256,6 +256,33 @@ namespace RN
 		int tilesWidth  = rect.width / camera->LightTiles().x;
 		int tilesHeight = rect.height / camera->LightTiles().y;
 		
+		size_t i = 0;
+		size_t tileCount = tilesWidth * tilesHeight;
+		
+		size_t lightindicesSize = tilesWidth * tilesHeight * lightCount;
+		size_t lightindexoffsetSize = tilesWidth * tilesHeight * 2;
+		
+		if(lightCount == 0)
+		{
+			AllocateLightBufferStorage(1, lightindexoffsetSize);
+			
+			std::fill(_lightIndicesBuffer, _lightIndicesBuffer + 1, 0);
+			std::fill(_lightOffsetBuffer, _lightOffsetBuffer + lightindexoffsetSize, 0);
+			
+			// Indicies
+			glBindBuffer(GL_TEXTURE_BUFFER, indicesBuffer);
+			glBufferData(GL_TEXTURE_BUFFER, 1 * sizeof(int), 0, GL_DYNAMIC_DRAW);
+			glBufferData(GL_TEXTURE_BUFFER, 1 * sizeof(int), _lightIndicesBuffer, GL_DYNAMIC_DRAW);
+			
+			// Offsets
+			glBindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
+			glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
+			glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetSize * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
+			
+			return;
+		}
+		
+		
 		Vector3 corner1 = camera->ToWorld(Vector3(-1.0f, -1.0f, 1.0f));
 		Vector3 corner2 = camera->ToWorld(Vector3(1.0f, -1.0f, 1.0f));
 		Vector3 corner3 = camera->ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
@@ -270,16 +297,8 @@ namespace RN
 		Vector3 far = camera->ToWorld(Vector3(1.0f, 1.0f, 1.0f));
 		far = far-camPosition;
 		
-		
-		size_t i = 0;
-		size_t tileCount = tilesWidth * tilesHeight;
-		
-		size_t lightindicesSize = tilesWidth * tilesHeight * lightCount;
-		size_t lightindexoffsetSize = tilesWidth * tilesHeight * 2;
-		
-		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
-		
 		std::vector<size_t> indicesCount(tileCount);
+		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
 		
 		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
 		pool->BeginTaskBatch();
@@ -480,8 +499,10 @@ namespace RN
 	{
 		Light **lights = _directionalLights.Data();
 		machine_uint lightCount = _directionalLights.Count();
+		
 		_lightDirectionalDirection.RemoveAllObjects();
 		_lightDirectionalColor.RemoveAllObjects();
+		
 		for(machine_uint i=0; i<lightCount; i++)
 		{
 			Light *light = lights[i];
@@ -938,6 +959,8 @@ namespace RN
 				int lightSpotCount  = CreateSpotLightList(camera);
 				int lightDirectionalCount = CreateDirectionalLightList(camera);
 				
+				int lightCount = lightPointCount + lightSpotCount + lightDirectionalCount;
+				
 				// Update the shader
 				const Matrix& projectionMatrix = camera->projectionMatrix;
 				const Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix;
@@ -1013,7 +1036,7 @@ namespace RN
 					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
 						programTypes |= ShaderProgram::TypeAnimated;
 					
-					if(lightPointCount > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
+					if(lightCount > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
 						programTypes |= ShaderProgram::TypeLighting;
 					
 					if(canDrawInstanced)
