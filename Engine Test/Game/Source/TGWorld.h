@@ -36,6 +36,7 @@ namespace TG
 		
 		ThirdPersonCamera *_camera;
 		RN::Camera *_finalcam;
+		RN::Light *_spotLight;
 		
 		Player *_player;
 	};

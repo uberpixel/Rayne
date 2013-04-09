@@ -11,8 +11,7 @@
 #define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
-#define TGWorldFeatureAnimations    1
-#define TGWorldFeatureLOD           0
+#define TGWorldFeatureFreeCamera    1
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 95.0f
@@ -39,6 +38,37 @@ namespace TG
 	
 	void World::Update(float delta)
 	{
+#if TGWorldFeatureFreeCamera
+		RN::Input *input = RN::Input::SharedInstance();
+		RN::Vector3 translation;
+		RN::Vector3 rotation;
+		
+		const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
+		
+		rotation.x = mouseDelta.x;
+		rotation.z = mouseDelta.y;
+		
+		translation.x = (input->KeyPressed('d') - input->KeyPressed('a')) * 0.5f;
+		translation.z = (input->KeyPressed('s') - input->KeyPressed('w')) * 0.5f;
+		
+		_camera->Rotate(rotation);
+		_camera->TranslateLocal(translation);
+		
+		static bool fpressed = false;
+		
+		if(input->KeyPressed('f'))
+		{
+			if(!fpressed)
+			{
+				_spotLight->SetRange(_spotLight->Range() > 1.0f ? 0.0f : TGWorldSpotLightRange);
+				fpressed = true;
+			}
+		}
+		else
+		{
+			fpressed = false;
+		}
+#endif
 	}
 	
 	void World::TransformsUpdated()
@@ -122,6 +152,8 @@ namespace TG
 		{
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
 		}
+		
+		//_camera->AttachChild(_finalcam);
 	}
 	
 	void World::CreateWorld()
@@ -160,7 +192,7 @@ namespace TG
 		sponza->SetRotation(RN::Quaternion(RN::Vector3(0.0, 0.0, -90.0)));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
-		
+#if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
 		RN::Skeleton *playerSkeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
 		playerSkeleton->SetAnimation("cammina");
@@ -171,6 +203,7 @@ namespace TG
 		_player->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
 		
 		_camera->SetTarget(_player);
+#endif
 				
 #if TGWorldFeatureLights
 		RN::Light *light;
@@ -186,13 +219,17 @@ namespace TG
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
-		light = new RN::Light(RN::Light::TypeSpotLight);
-		light->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
-		light->SetRange(TGWorldSpotLightRange);
-		light->SetAngle(0.9f);
-		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
+		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
+		_spotLight->SetRange(TGWorldSpotLightRange);
+		_spotLight->SetAngle(0.9f);
+		_spotLight->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
-		_player->AttachChild(light);
+#if TGWorldFeatureFreeCamera
+		_camera->AttachChild(_spotLight);
+#else
+		_player->AttachChild(_spotLight);
+#endif
 		
 		for(int i=0; i<200; i++)
 		{
@@ -211,24 +248,24 @@ namespace TG
 		RN::Model *foliage[4];
 		
 		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
-		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->SetShader(foliageShader);
-		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->culling = false;
-		foliage[0]->MaterialForMesh(foliage[0]->MeshAtIndex(0))->alphatest = true;
-		
+		foliage[0]->MaterialAtIndex(0, 0)->culling = false;
+		foliage[0]->MaterialAtIndex(0, 0)->discard = true;
+		foliage[0]->MaterialAtIndex(0, 0)->alphatest = true;
+	
 		foliage[1] = RN::Model::WithFile("models/nobiax/grass_05.sgm");
-		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->SetShader(foliageShader);
-		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->culling = false;
-		foliage[1]->MaterialForMesh(foliage[1]->MeshAtIndex(0))->alphatest = true;
+		foliage[1]->MaterialAtIndex(0, 0)->culling = false;
+		foliage[1]->MaterialAtIndex(0, 0)->discard = true;
+		foliage[1]->MaterialAtIndex(0, 0)->alphatest = true;
 		
 		foliage[2] = RN::Model::WithFile("models/nobiax/grass_19.sgm");
-		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->SetShader(foliageShader);
-		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->culling = false;
-		foliage[2]->MaterialForMesh(foliage[2]->MeshAtIndex(0))->alphatest = true;
+		foliage[2]->MaterialAtIndex(0, 0)->culling = false;
+		foliage[2]->MaterialAtIndex(0, 0)->discard = true;
+		foliage[2]->MaterialAtIndex(0, 0)->alphatest = true;
 		
 		foliage[3] = RN::Model::WithFile("models/nobiax/grass_04.sgm");
-		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->SetShader(foliageShader);
-		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->culling = false;
-		foliage[3]->MaterialForMesh(foliage[3]->MeshAtIndex(0))->alphatest = true;
+		foliage[3]->MaterialAtIndex(0, 0)->culling = false;
+		foliage[3]->MaterialAtIndex(0, 0)->discard = true;
+		foliage[3]->MaterialAtIndex(0, 0)->alphatest = true;
 		
 		uint32 index = 0;
 		
@@ -241,7 +278,7 @@ namespace TG
 				RN::Entity *fern = new RN::Entity();
 				fern->SetModel(foliage[index]);
 				fern->Rotate(RN::Vector3(0.0, 0.0, -90.0));
-				fern->SetPosition(RN::Vector3(x, -5.3, y));
+				fern->SetPosition(RN::Vector3(x, -13.3, y));
 			}
 		}
 #endif
