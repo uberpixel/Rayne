@@ -27,7 +27,7 @@ uniform vec3 viewPosition;
 
 in vec3 outLightPosition;
 
-vec4 rn_Lightning(vec3 normal, vec4 color, float specmask)
+vec4 rn_Lighting(vec3 normal, vec4 color, float specmask)
 {
 	vec3 posdiff = vec3(0.0);
 	float attenuation = 0.0;
@@ -75,5 +75,5 @@ void main()
 
 	rn_Discard(color0);
 	
-	fragColor0 = rn_Lightning(normal, color0, norm0.a);
+	fragColor0 = rn_Lighting(normal, color0, norm0.a);
 }

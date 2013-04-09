@@ -72,6 +72,7 @@ namespace RN
 		
 		RNAPI int CreatePointLightList(Camera *camera);
 		RNAPI int CreateSpotLightList(Camera *camera);
+		RNAPI int CreateDirectionalLightList(Camera *camera);
 		
 		bool _hasValidFramebuffer;
 		
@@ -108,6 +109,7 @@ namespace RN
 		Array<RenderingObject> _frame;
 		Array<Light *> _pointLights;
 		Array<Light *> _spotLights;
+		Array<Light *> _directionalLights;
 		
 	private:
 		void Initialize();
@@ -136,6 +138,9 @@ namespace RN
 		size_t _lightSpotDataSize;
 		GLuint _lightSpotTextures[3];
 		GLuint _lightSpotBuffers[3];
+		
+		Array<Vector3> _lightDirectionalDirection;
+		Array<Vector3> _lightDirectionalColor;
 		
 		size_t _instancingVBOSize;
 		GLuint _instancingVBO;

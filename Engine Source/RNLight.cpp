@@ -33,6 +33,9 @@ namespace RN
 	
 	bool Light::IsVisibleInCamera(Camera *camera)
 	{
+		if(TypeDirectionalLight)
+			return true;
+		
 		return camera->InFrustum(Position(), _range);
 	}
 	

@@ -24,7 +24,7 @@ namespace RN
 			TypeNormal = 0,
 			TypeInstanced = (1 << 1),
 			TypeAnimated  = (1 << 2),
-			TypeLightning = (1 << 3),
+			TypeLighting = (1 << 3),
 			TypeDiscard   = (1 << 4)
 		};
 		

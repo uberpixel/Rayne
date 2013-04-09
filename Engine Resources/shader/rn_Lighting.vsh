@@ -1,19 +1,19 @@
 //
-//  rn_Lightning.vsh
+//  rn_Lighting.vsh
 //  Rayne
 //
 //  Copyright 2013 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#define RN_LIGHTNING_VSH
+#define RN_LIGHTING_VSH
 
-#ifdef RN_LIGHTNING
+#ifdef RN_LIGHTING
 
 out vec3 outLightNormal;
 out vec3 outLightPosition;
 
-vec3 rn_Lightning(mat4 model, vec3 position, vec3 normal)
+vec3 rn_Lighting(mat4 model, vec3 position, vec3 normal)
 {
 #ifdef RN_ANIMATION_VSH
 	vec4 pos = rn_Animate(vec4(position, 1.0));
@@ -36,14 +36,14 @@ vec3 rn_Lightning(mat4 model, vec3 position, vec3 normal)
 
 #ifdef RN_ANIMATION_VSH
 
-vec3 rn_Lightning(mat4 model, vec3 position, vec3 normal)
+vec3 rn_Lighting(mat4 model, vec3 position, vec3 normal)
 {
 	vec4 pos = rn_Animate(vec4(position, 1.0));
 	return pos.xyz;
 }
 
 #else
-#define rn_Lightning(model, position, normal) (position)
+#define rn_Lighting(model, position, normal) (position)
 #endif
 
 #endif

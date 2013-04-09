@@ -269,8 +269,8 @@ namespace RN
 			if(type & ShaderProgram::TypeAnimated)
 				Define("RN_ANIMATION");
 			
-			if(type & ShaderProgram::TypeLightning)
-				Define("RN_LIGHTNING");
+			if(type & ShaderProgram::TypeLighting)
+				Define("RN_LIGHTING");
 			
 			if(type & ShaderProgram::TypeDiscard)
 				Define("RN_DISCARD");
@@ -302,7 +302,7 @@ namespace RN
 			{
 				Undefine("RN_INSTANCING");
 				Undefine("RN_ANIMATION");
-				Undefine("RN_LIGHTNING");
+				Undefine("RN_LIGHTING");
 				Undefine("RN_DISCARD");
 				
 				delete program;
@@ -318,7 +318,7 @@ namespace RN
 			// Clean up
 			Undefine("RN_INSTANCING");
 			Undefine("RN_ANIMATION");
-			Undefine("RN_LIGHTNING");
+			Undefine("RN_LIGHTING");
 			Undefine("RN_DISCARD");
 			
 			for(int i=0; i<3; i++)
@@ -371,8 +371,8 @@ namespace RN
 					if(type & ShaderProgram::TypeAnimated)
 						tlog += " Animation";
 					
-					if(type & ShaderProgram::TypeLightning)
-						tlog += " Lightning";
+					if(type & ShaderProgram::TypeLighting)
+						tlog += " Lighting";
 				}
 				
 				if(_vertexFile.length() > 0)
@@ -593,7 +593,7 @@ namespace RN
 		// Check what program types the shader supports
 		_supportedPrograms |= (data.find("#ifdef RN_INSTANCING") != std::string::npos) ? (ShaderProgram::TypeInstanced) : 0;
 		_supportedPrograms |= (data.find("#ifdef RN_ANIMATION") != std::string::npos) ? (ShaderProgram::TypeAnimated) : 0;
-		_supportedPrograms |= (data.find("#ifdef RN_LIGHTNING") != std::string::npos) ? (ShaderProgram::TypeLightning) : 0;
+		_supportedPrograms |= (data.find("#ifdef RN_LIGHTING") != std::string::npos) ? (ShaderProgram::TypeLighting) : 0;
 		_supportedPrograms |= (data.find("#ifdef RN_DISCARD") != std::string::npos) ? (ShaderProgram::TypeDiscard) : 0;
 		
 		switch(type)

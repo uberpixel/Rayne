@@ -1,14 +1,14 @@
 //
-//  rn_Lightning.fsh
+//  rn_Lighting.fsh
 //  Rayne
 //
 //  Copyright 2013 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#define RN_LIGHTNING_FSH
+#define RN_LIGHTING_FSH
 
-#ifdef RN_LIGHTNING
+#ifdef RN_LIGHTING
 
 uniform isamplerBuffer lightPointList;
 uniform isamplerBuffer lightPointListOffset;
@@ -18,11 +18,15 @@ uniform isamplerBuffer lightSpotList;
 uniform isamplerBuffer lightSpotListOffset;
 uniform samplerBuffer lightSpotListData;
 
+uniform int lightDirectionalCount;
+uniform vec3 lightDirectionalDirection[10];
+uniform vec3 lightDirectionalColor[10];
+
 uniform vec4 lightTileSize;
 in vec3 outLightNormal;
 in vec3 outLightPosition;
 
-vec4 rn_Lightning()
+vec4 rn_Lighting()
 {
 	vec3 normal = normalize(outLightNormal);
 	vec3 posdiff = vec3(0.0);
@@ -68,11 +72,16 @@ vec4 rn_Lightning()
 			light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}
 	
+	for(int i=0; i<lightDirectionalCount; i++)
+	{
+		light += lightDirectionalColor[i]*max(dot(normal, lightDirectionalDirection[i]), 0.0);
+	}
+	
 	return vec4(light, 1.0);
 }
 
 #else
 
-#define rn_Lightning() (vec4(1.0))
+#define rn_Lighting() (vec4(1.0))
 
 #endif

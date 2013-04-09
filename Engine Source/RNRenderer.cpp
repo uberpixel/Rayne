@@ -476,6 +476,25 @@ namespace RN
 		return static_cast<int>(lightCount);
 	}
 	
+	int Renderer::CreateDirectionalLightList(Camera *camera)
+	{
+		Light **lights = _directionalLights.Data();
+		machine_uint lightCount = _directionalLights.Count();
+		_lightDirectionalDirection.RemoveAllObjects();
+		_lightDirectionalColor.RemoveAllObjects();
+		for(machine_uint i=0; i<lightCount; i++)
+		{
+			Light *light = lights[i];
+			const Vector3& color = light->Color();
+			const Vector3& direction = light->Direction();
+			
+			_lightDirectionalDirection.AddObject(direction);
+			_lightDirectionalColor.AddObject(color);
+		}
+		
+		return static_cast<int>(lightCount);
+	}
+	
 #undef Distance
 		
 	// ---------------------
@@ -917,6 +936,7 @@ namespace RN
 				// Create the light lists for the camera
 				int lightPointCount = CreatePointLightList(camera);
 				int lightSpotCount  = CreateSpotLightList(camera);
+				int lightDirectionalCount = CreateDirectionalLightList(camera);
 				
 				// Update the shader
 				const Matrix& projectionMatrix = camera->projectionMatrix;
@@ -993,8 +1013,8 @@ namespace RN
 					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
 						programTypes |= ShaderProgram::TypeAnimated;
 					
-					if(lightPointCount > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeLightning))
-						programTypes |= ShaderProgram::TypeLightning;
+					if(lightPointCount > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
+						programTypes |= ShaderProgram::TypeLighting;
 					
 					if(canDrawInstanced)
 						programTypes |= ShaderProgram::TypeInstanced;
@@ -1022,6 +1042,15 @@ namespace RN
 						
 						if(program->lightSpotCount != -1)
 							glUniform1i(program->lightSpotCount, lightSpotCount);
+						
+						if(program->lightDirectionalCount != -1)
+							glUniform1i(program->lightDirectionalCount, lightDirectionalCount);
+						
+						if(program->lightDirectionalDirection != -1)
+							glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)_lightDirectionalDirection.Data());
+						
+						if(program->lightDirectionalColor != -1)
+							glUniform3fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.Data());
 						
 						if(camera->DepthTiles() != 0)
 						{
@@ -1154,6 +1183,7 @@ namespace RN
 		_frame.RemoveAllObjects();
 		_pointLights.RemoveAllObjects();
 		_spotLights.RemoveAllObjects();
+		_directionalLights.RemoveAllObjects();
 	}
 	
 	void Renderer::DrawMesh(Mesh *mesh)
@@ -1235,6 +1265,10 @@ namespace RN
 				
 			case Light::TypeSpotLight:
 				_spotLights.AddObject(light);
+				break;
+				
+			case Light::TypeDirectionalLight:
+				_directionalLights.AddObject(light);
 				break;
 				
 			default:

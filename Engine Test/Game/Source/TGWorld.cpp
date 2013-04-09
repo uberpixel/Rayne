@@ -219,6 +219,9 @@ namespace TG
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
+		light = new RN::Light(RN::Light::TypeDirectionalLight);
+		light->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 60.0f)));
+		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
