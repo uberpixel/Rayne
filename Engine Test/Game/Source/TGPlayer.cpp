@@ -32,7 +32,7 @@ namespace TG
 		rotation.x = mouseDelta.x;
 		//rotation.z = mouseDelta.y;
 		
-		translation.x = (input->KeyPressed('d') - input->KeyPressed('a')) * 0.16f;
+		translation.x = (input->KeyPressed('d') - input->KeyPressed('a')) * 0.10f;
 		translation.z = (input->KeyPressed('s') - input->KeyPressed('w')) * 0.16f;
 		
 		float movement = translation.Length();

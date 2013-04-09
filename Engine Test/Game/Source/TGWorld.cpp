@@ -11,7 +11,7 @@
 #define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
-#define TGWorldFeatureFreeCamera    1
+#define TGWorldFeatureFreeCamera    0
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 95.0f
@@ -38,24 +38,9 @@ namespace TG
 	
 	void World::Update(float delta)
 	{
-#if TGWorldFeatureFreeCamera
 		RN::Input *input = RN::Input::SharedInstance();
-		RN::Vector3 translation;
-		RN::Vector3 rotation;
-		
-		const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
-		
-		rotation.x = mouseDelta.x;
-		rotation.z = mouseDelta.y;
-		
-		translation.x = (input->KeyPressed('d') - input->KeyPressed('a')) * 0.5f;
-		translation.z = (input->KeyPressed('s') - input->KeyPressed('w')) * 0.5f;
-		
-		_camera->Rotate(rotation);
-		_camera->TranslateLocal(translation);
 		
 		static bool fpressed = false;
-		
 		if(input->KeyPressed('f'))
 		{
 			if(!fpressed)
@@ -68,6 +53,21 @@ namespace TG
 		{
 			fpressed = false;
 		}
+		
+#if TGWorldFeatureFreeCamera
+		RN::Vector3 translation;
+		RN::Vector3 rotation;
+		
+		const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
+		
+		rotation.x = mouseDelta.x;
+		rotation.z = mouseDelta.y;
+		
+		translation.x = (input->KeyPressed('d') - input->KeyPressed('a')) * 16.0f;
+		translation.z = (input->KeyPressed('s') - input->KeyPressed('w')) * 16.0f;
+		
+		_camera->Rotate(rotation);
+		_camera->TranslateLocal(translation * delta);
 #endif
 	}
 	
@@ -226,7 +226,7 @@ namespace TG
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(0.9f);
-		_spotLight->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		_spotLight->SetColor(RN::Vector3(0.5f));
 		
 #if TGWorldFeatureFreeCamera
 		_camera->AttachChild(_spotLight);
