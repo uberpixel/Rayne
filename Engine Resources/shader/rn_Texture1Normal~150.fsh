@@ -9,6 +9,8 @@
 #version 150
 precision highp float;
 
+#include "rn_Discard.fsh"
+
 uniform sampler2D mTexture0;
 uniform sampler2D mTexture1;
 
@@ -70,6 +72,8 @@ void main()
 	vec4 norm0 = texture(mTexture1, outTexcoord);
 	vec3 normal = norm0.xyz*2.0-1.0;
 	normal = normalize(outTangentToWorldMatrix*normal);
+
+	rn_Discard(color0);
 	
 	fragColor0 = rn_Lightning(normal, color0, norm0.a);
 }
