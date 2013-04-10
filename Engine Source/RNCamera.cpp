@@ -259,6 +259,11 @@ namespace RN
 		_maxLights = lights;
 	}
 	
+	void Camera::SetCameraFlags(Flags flags)
+	{
+		_flags = flags;
+	}
+	
 	// Stages
 	void Camera::AddStage(Camera *stage)
 	{
@@ -397,6 +402,12 @@ namespace RN
 
 	void Camera::UpdateProjection()
 	{
+		if(_flags & FlagOrthogonal)
+		{
+			projectionMatrix.MakeProjectionOrthogonal(-100.0f, 100.0f, -100.0f, 100.0f, clipnear, clipfar);
+			return;
+		}
+		
 		if(_flags & FlagUpdateAspect)
 			aspect = _frame.width / _frame.height;
 

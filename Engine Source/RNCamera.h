@@ -35,6 +35,8 @@ namespace RN
 			FlagInheritFrame = (1 << 5),
 			FlagInheritProjection = (1 << 6),
 			FlagUpdateStorageFrame = (1 << 7),
+			FlagOrthogonal = (1 << 8),
+			FlagHidden = (1<<9),
 			
 			
 			FlagDefaults = (FlagFullscreen | FlagUpdateAspect | FlagUpdateStorageFrame),
@@ -109,6 +111,7 @@ namespace RN
 		RNAPI void SetAllowsDepthWrite(bool flag);
 		RNAPI void SetSkyCube(Model *skycube);
 		RNAPI void SetMaxLightsPerTile(machine_uint lights);
+		RNAPI void SetCameraFlags(Flags flags);
 		
 		RNAPI void AddStage(Camera *stage);
 		RNAPI void InsertStage(Camera *stage);

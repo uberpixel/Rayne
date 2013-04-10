@@ -14,6 +14,7 @@ precision highp float;
 uniform sampler2D mTexture0;
 
 in vec2 outTexcoord;
+in vec3 outStuff;
 out vec4 fragColor0;
 
 void main()
@@ -23,5 +24,6 @@ void main()
 	rn_Discard(color0);
 #endif
 
-	fragColor0 = vec4(0.0);
+	fragColor0 = vec4(vec2(outStuff.xy/outStuff.z*0.5+0.5), 0.0, 1.0);
+//	fragColor0 = vec4(vec3(gl_FragCoord.z), 1.0);
 }

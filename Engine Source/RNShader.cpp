@@ -435,6 +435,8 @@ namespace RN
 				GetUniformLocation(lightDirectionalDirection);
 				GetUniformLocation(lightDirectionalColor);
 				GetUniformLocation(lightDirectionalCount);
+				GetUniformLocation(lightDirectionalMatrix);
+				GetUniformLocation(lightDirectionalDepth);
 				
 				GetUniformLocation(lightTileSize);
 				

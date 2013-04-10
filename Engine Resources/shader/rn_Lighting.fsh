@@ -21,17 +21,21 @@ uniform samplerBuffer lightSpotListData;
 uniform int lightDirectionalCount;
 uniform vec3 lightDirectionalDirection[10];
 uniform vec3 lightDirectionalColor[10];
+uniform sampler2DShadow lightDirectionalDepth;
+
+uniform vec2 clipPlanes;
 
 uniform vec4 lightTileSize;
 in vec3 outLightNormal;
 in vec3 outLightPosition;
+in vec4 outDirLightProj;
 
 vec4 rn_Lighting()
 {
 	vec3 normal = normalize(outLightNormal);
 	vec3 posdiff = vec3(0.0);
 	float attenuation = 0.0;
-	vec3 light = vec3(0.0);
+	vec3 light = vec3(0.2);
 	vec4 lightpos;
 	vec3 lightcolor;
 	vec4 lightdir;
@@ -39,7 +43,7 @@ vec4 rn_Lighting()
 	int lightindex;
 	ivec2 listoffset;
 	
-	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
+/*	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 	
 	listoffset = texelFetch(lightPointListOffset, tileindex).xy;
 	for(int i=0; i<listoffset.y; i++)
@@ -66,15 +70,16 @@ vec4 rn_Lighting()
 		
 		posdiff = lightpos.xyz-outLightPosition;
 		attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
-		dirfac = dot(normalize(posdiff), -lightdir.xyz);
+		dirfac = dot(normalize(posdiff), lightdir.xyz);
 		
 		if(dirfac > lightdir.w)
 			light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
-	}
+	}*/
 	
 	for(int i=0; i<lightDirectionalCount; i++)
 	{
-		light += lightDirectionalColor[i]*max(dot(normal, lightDirectionalDirection[i]), 0.0);
+		float shadow = textureProj(lightDirectionalDepth, outDirLightProj);
+		light += lightDirectionalColor[i]*max(dot(normal, lightDirectionalDirection[0]), 0.0)*shadow;
 	}
 	
 	return vec4(light, 1.0);

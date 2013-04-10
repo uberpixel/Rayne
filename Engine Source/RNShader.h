@@ -77,6 +77,8 @@ namespace RN
 		GLuint lightDirectionalDirection;
 		GLuint lightDirectionalColor;
 		GLuint lightDirectionalCount;
+		GLuint lightDirectionalMatrix;
+		GLuint lightDirectionalDepth;
 		
 		GLuint lightTileSize;
 		

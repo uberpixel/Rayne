@@ -34,12 +34,16 @@ namespace RN
 		RNAPI void SetRange(float range);
 		RNAPI void SetColor(const Vector3& color);
 		RNAPI void SetAngle(float angle);
+		RNAPI void SetShadow(bool shadow);
 		
 		const Type LightType() const { return _lightType; }
 		const Vector3& Color() const { return _color; }
 		const float Range() const { return _range; }
 		const float Angle() const { return _angle; }
+		const bool Shadow() const { return _shadow; }
 		const Vector3& Direction();
+		
+		Camera *_shadowcam;
 	
 	private:
 		Type _lightType;
@@ -47,6 +51,7 @@ namespace RN
 		Vector3 _direction;
 		float _range;
 		float _angle;
+		bool _shadow;
 		
 		RNDefineMeta(Light, Transform)
 	};

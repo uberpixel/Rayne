@@ -502,6 +502,8 @@ namespace RN
 		
 		_lightDirectionalDirection.RemoveAllObjects();
 		_lightDirectionalColor.RemoveAllObjects();
+//		_lightDirectionalMatrix.RemoveAllObjects();
+		_lightDirectionalDepth.RemoveAllObjects();
 		
 		for(machine_uint i=0; i<lightCount; i++)
 		{
@@ -511,6 +513,17 @@ namespace RN
 			
 			_lightDirectionalDirection.AddObject(direction);
 			_lightDirectionalColor.AddObject(color);
+			
+			Camera *camera = light->_shadowcam;
+			
+			Matrix matProj = camera->projectionMatrix;
+			float delta = 0.1f;
+			float pz = 4.0f;
+			float epsilon = -2.0f * camera->clipfar * camera->clipnear * delta / ((camera->clipfar + camera->clipnear) * pz * (pz + delta));
+			matProj.m[10] *= 1.0f + epsilon;
+			
+			_lightDirectionalMatrix = matProj*camera->viewMatrix;
+			_lightDirectionalDepth.AddObject(camera->Storage()->DepthTarget());
 		}
 		
 		return static_cast<int>(lightCount);
@@ -1075,6 +1088,15 @@ namespace RN
 						if(program->lightDirectionalColor != -1)
 							glUniform3fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.Data());
 						
+						if(program->lightDirectionalMatrix != -1)
+							glUniformMatrix4fv(program->lightDirectionalMatrix, 1, GL_FALSE, _lightDirectionalMatrix.m);
+						
+						if(program->lightDirectionalDepth != -1)
+						{
+							uint32 textureUnit = BindTexture(_lightDirectionalDepth.FirstObject());
+							glUniform1i(program->lightDirectionalDepth, textureUnit);
+						}
+						
 						if(camera->DepthTiles() != 0)
 						{
 							// Point lights
@@ -1196,7 +1218,7 @@ namespace RN
 			camera->Unbind();
 			camera = camera->Stage();
 
-			if(!camera)
+			if(!camera && !(previous->CameraFlags() & Camera::FlagHidden))
 				_flushCameras.push_back(previous);
 		}
 		

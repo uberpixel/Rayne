@@ -141,6 +141,8 @@ namespace RN
 		
 		Array<Vector3> _lightDirectionalDirection;
 		Array<Vector3> _lightDirectionalColor;
+		/*Array<Matrix>*/Matrix _lightDirectionalMatrix;
+		Array<Texture*> _lightDirectionalDepth;
 		
 		size_t _instancingVBOSize;
 		GLuint _instancingVBO;
