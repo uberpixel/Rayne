@@ -47,6 +47,7 @@ namespace RN
 		static class SceneManager *SceneManagerWithName(const std::string& name);
 		void StepWorld(FrameID frame, float delta);
 		
+		void ApplyTransforms();
 		void AddTransform(Transform *transform);
 		void RemoveTransform(Transform *transform);
 		
@@ -58,6 +59,8 @@ namespace RN
 		Array<WorldAttachment> _attachments;
 		
 		std::unordered_set<Transform *> _transforms;
+		std::deque<Transform *> _addedTransforms;
+		
 		std::vector<Camera *> _cameras;
 		
 		Renderer *_renderer;

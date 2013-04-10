@@ -55,6 +55,7 @@ namespace RN
 	void World::StepWorld(FrameID frame, float delta)
 	{
 		Update(delta);
+		ApplyTransforms();
 		
 		for(machine_uint i=0; i<_attachments.Count(); i++)
 		{
@@ -80,7 +81,9 @@ namespace RN
 			}, [&, transform]() { return transform->CanUpdate(frame); });
 		}
 		
-		pool->CommitTaskBatch(true);		
+		pool->CommitTaskBatch(true);
+		
+		ApplyTransforms();
 		TransformsUpdated();
 		
 		for(machine_uint i=0; i<_attachments.Count(); i++)
@@ -113,6 +116,28 @@ namespace RN
 		}
 	}
 	
+	
+	void World::ApplyTransforms()
+	{
+		for(auto i=_addedTransforms.begin(); i!=_addedTransforms.end(); i++)
+		{
+			Transform *transform = *i;
+			
+			if(_transforms.find(transform) == _transforms.end())
+			{
+				_transforms.insert(transform);
+				_sceneManager->AddTransform(transform);
+				
+				for(machine_uint i=0; i<_attachments.Count(); i++)
+				{
+					WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+					attachment->DidAddTransform(transform);
+				}
+			}
+		}
+		
+		_addedTransforms.clear();
+	}
 
 	
 	void World::AddAttachment(WorldAttachment *attachment)
@@ -133,17 +158,7 @@ namespace RN
 		if(!transform)
 			return;
 		
-		if(_transforms.find(transform) == _transforms.end())
-		{
-			_transforms.insert(transform);
-			_sceneManager->AddTransform(transform);
-			
-			for(machine_uint i=0; i<_attachments.Count(); i++)
-			{
-				WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
-				attachment->DidAddTransform(transform);
-			}
-		}
+		_addedTransforms.push_back(transform);
 	}
 	
 	void World::RemoveTransform(Transform *transform)
@@ -163,12 +178,22 @@ namespace RN
 			_sceneManager->RemoveTransform(transform);
 			_transforms.erase(iterator);
 		}
-
+		
+		_addedTransforms.erase(std::remove(_addedTransforms.begin(), _addedTransforms.end(), transform), _addedTransforms.end());
 	}
 	
 	
 	void World::TransformUpdated(Transform *transform)
 	{
+		auto iterator = std::find(_addedTransforms.begin(), _addedTransforms.end(), transform);
+		if(iterator != _addedTransforms.end())
+		{
+			_addedTransforms.erase(iterator);
+			
+			_transforms.insert(transform);
+			_sceneManager->AddTransform(transform);
+		}
+		
 		_sceneManager->UpdateTransform(transform);
 	}
 	
