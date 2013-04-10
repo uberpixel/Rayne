@@ -144,14 +144,14 @@ namespace TG
 		_finalcam->Storage()->SetDepthTarget(depthtex);
 		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
 		
-		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
+/*		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
 		{
 			_finalcam->ActivateTiledLightLists(downsample64x->Storage()->RenderTarget());
 		}
 		else
 		{
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
-		}
+		}*/
 		
 		//_camera->AttachChild(_finalcam);
 	}
@@ -220,8 +220,8 @@ namespace TG
 		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
 		light = new RN::Light(RN::Light::TypeDirectionalLight);
-		light->SetPosition(RN::Vector3(0.0f, 150.0f, 40.0f));
-		light->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -60.0f)));
+		light->SetPosition(RN::Vector3(80.0f, 150.0f, 40.0f));
+		light->SetRotation(RN::Quaternion(RN::Vector3(60.0f, 0.0f, -60.0f)));
 		light->SetShadow(true);
 		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);

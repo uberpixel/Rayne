@@ -518,7 +518,7 @@ namespace RN
 			
 			Matrix matProj = camera->projectionMatrix;
 			float delta = 0.1f;
-			float pz = 4.0f;
+			float pz = 2.0f;
 			float epsilon = -2.0f * camera->clipfar * camera->clipnear * delta / ((camera->clipfar + camera->clipnear) * pz * (pz + delta));
 			matProj.m[10] *= 1.0f + epsilon;
 			

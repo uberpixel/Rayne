@@ -30,6 +30,12 @@ in vec3 outLightNormal;
 in vec3 outLightPosition;
 in vec4 outDirLightProj;
 
+float offset_lookup(sampler2DShadow map, vec4 loc, vec2 offset)
+{
+	return textureProj(map, vec4(loc.xy + offset/1024.0/2.0 * loc.w,
+	loc.z, loc.w));
+}
+
 vec4 rn_Lighting()
 {
 	vec3 normal = normalize(outLightNormal);
@@ -78,7 +84,13 @@ vec4 rn_Lighting()
 	
 	for(int i=0; i<lightDirectionalCount; i++)
 	{
-		float shadow = textureProj(lightDirectionalDepth, outDirLightProj);
+		float shadow = offset_lookup(lightDirectionalDepth, outDirLightProj, vec2(-0.5, -0.5));
+		shadow += offset_lookup(lightDirectionalDepth, outDirLightProj, vec2(-0.5, 0.5));
+		shadow += offset_lookup(lightDirectionalDepth, outDirLightProj, vec2(0.5, -0.5));
+		shadow += offset_lookup(lightDirectionalDepth, outDirLightProj, vec2(0.5, 0.5));
+		
+		shadow *= 0.25;
+		
 		light += lightDirectionalColor[i]*max(dot(normal, lightDirectionalDirection[0]), 0.0)*shadow;
 	}
 	

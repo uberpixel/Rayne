@@ -65,23 +65,16 @@ namespace RN
 		_shadow = shadow;
 		if(_shadow)
 		{
-			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatColor | RenderStorage::BufferFormatDepth | RenderStorage::BufferFormatStencil);
-			Texture *depthtex = new Texture(Texture::FormatDepthStencil);
-			
+			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
+			Texture *depthtex = new Texture(Texture::FormatDepth);
 			storage->SetDepthTarget(depthtex);
-			storage->AddRenderTarget(Texture::FormatRGBA8888);
 			
 			Shader *depthShader = Shader::WithFile("shader/rn_LightDepth");
 			Material *depthMaterial = new Material(depthShader);
 			
 			_shadowcam = new Camera(Vector2(1024, 1024), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
 			_shadowcam->SetMaterial(depthMaterial);
-			_shadowcam->SetPosition(Position());
-			_shadowcam->SetRotation(Rotation());
-			_shadowcam->UpdateProjection();
-			_shadowcam->Update(0.1f);
-			_shadowcam->PostUpdate();
-//			AttachChild(_shadowcam);
+			AttachChild(_shadowcam);
 		}
 	}
 }
