@@ -72,7 +72,7 @@ namespace TG
 #endif
 	}
 	
-	void World::TransformsUpdated()
+	void World::NodesUpdated()
 	{
 		_finalcam->SetRotation(_camera->Rotation());
 		_finalcam->SetPosition(_camera->Position());

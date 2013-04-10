@@ -289,14 +289,14 @@ namespace RN
 		_stage = stage ? stage->Retain() : 0;
 
 		UpdateProjection();
-		World::SharedInstance()->RemoveTransform(stage);
+		World::SharedInstance()->RemoveSceneNode(stage);
 		World::SharedInstance()->RemoveCamera(stage);
 	}
 
 	void Camera::ReplaceStage(Camera *stage)
 	{
 		Camera *temp = _stage ? _stage->_stage->Retain() : 0;
-		World::SharedInstance()->AddTransform(_stage);
+		World::SharedInstance()->AddSceneNode(_stage);
 		World::SharedInstance()->AddCamera(_stage);
 
 		if(_stage)
@@ -310,7 +310,7 @@ namespace RN
 		_stage->_stage = temp;
 
 		UpdateProjection();
-		World::SharedInstance()->RemoveTransform(stage);
+		World::SharedInstance()->RemoveSceneNode(stage);
 		World::SharedInstance()->RemoveCamera(stage);
 	}
 
@@ -320,7 +320,7 @@ namespace RN
 		{
 			stage = stage->_stage ? stage->_stage->Retain() : 0;
 			
-			World::SharedInstance()->RemoveTransform(stage);
+			World::SharedInstance()->RemoveSceneNode(stage);
 			World::SharedInstance()->RemoveCamera(stage);
 
 			_stage->Release();
@@ -335,7 +335,7 @@ namespace RN
 			if(temp->_stage == stage)
 			{
 				stage = stage->_stage ? stage->_stage->Retain() : 0;
-				World::SharedInstance()->AddTransform(stage);
+				World::SharedInstance()->AddSceneNode(stage);
 				World::SharedInstance()->AddCamera(stage);
 
 				temp->_stage->Release();
@@ -362,7 +362,7 @@ namespace RN
 		if(_stage)
 			_stage->Update(delta);
 		
-		Transform::Update(delta);
+		SceneNode::Update(delta);
 	}
 	
 	void Camera::PostUpdate()

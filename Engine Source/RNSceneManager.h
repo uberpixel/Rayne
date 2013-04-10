@@ -10,7 +10,7 @@
 #define __RAYNE_SCENEMANAGER_H__
 
 #include "RNBase.h"
-#include "RNTransform.h"
+#include "RNSceneNode.h"
 #include "RNCamera.h"
 #include "RNEntity.h"
 #include "RNRenderer.h"
@@ -20,11 +20,11 @@ namespace RN
 	class SceneManager : public Object
 	{
 	public:
-		virtual void AddTransform(Transform *transform) = 0;
-		virtual void RemoveTransform(Transform *transform) = 0;
-		virtual void UpdateTransform(Transform *transform) = 0;
+		virtual void AddSceneNode(SceneNode *node) = 0;
+		virtual void RemoveSceneNode(SceneNode *node) = 0;
+		virtual void UpdateSceneNode(SceneNode *node) = 0;
 		
-		virtual void RenderTransforms(Camera *camera) = 0;
+		virtual void RenderScene(Camera *camera) = 0;
 		
 	protected:
 		SceneManager();
@@ -41,16 +41,16 @@ namespace RN
 		GenericSceneManager();
 		virtual ~GenericSceneManager();
 		
-		virtual void AddTransform(Transform *transform);
-		virtual void RemoveTransform(Transform *transform);
-		virtual void UpdateTransform(Transform *transform);
+		virtual void AddSceneNode(SceneNode *node);
+		virtual void RemoveSceneNode(SceneNode *node);
+		virtual void UpdateSceneNode(SceneNode *node);
 		
-		virtual void RenderTransforms(Camera *camera);
+		virtual void RenderScene(Camera *camera);
 		
 	private:
-		void RenderTransform(Camera *camera, Transform *transform);
+		void RenderSceneNode(Camera *camera, SceneNode *node);
 		
-		std::unordered_set<Transform *> _transforms;
+		std::unordered_set<SceneNode *> _nodes;
 		class MetaClass *_entityClass;
 		class MetaClass *_lightClass;
 		

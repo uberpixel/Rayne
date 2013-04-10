@@ -10,12 +10,12 @@
 #define __RAYNE_LIGHT_H__
 
 #include "RNBase.h"
-#include "RNTransform.h"
+#include "RNSceneNode.h"
 #include "RNCamera.h"
 
 namespace RN
 {
-	class Light : public Transform
+	class Light : public SceneNode
 	{
 	friend class Renderer;
 	public:
@@ -48,7 +48,7 @@ namespace RN
 		float _range;
 		float _angle;
 		
-		RNDefineMeta(Light, Transform)
+		RNDefineMeta(Light, SceneNode)
 	};
 }
 

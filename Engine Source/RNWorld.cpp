@@ -47,7 +47,7 @@ namespace RN
 	void World::Update(float delta)
 	{}
 	
-	void World::TransformsUpdated()
+	void World::NodesUpdated()
 	{}
 	
 
@@ -55,7 +55,7 @@ namespace RN
 	void World::StepWorld(FrameID frame, float delta)
 	{
 		Update(delta);
-		ApplyTransforms();
+		ApplyNodes();
 		
 		for(machine_uint i=0; i<_attachments.Count(); i++)
 		{
@@ -68,28 +68,28 @@ namespace RN
 		// Add the Transform updates to the thread pool
 		pool->BeginTaskBatch();
 		
-		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)
+		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
-			Transform *transform = *i;
-			transform->Retain();
+			SceneNode *node = *i;
+			node->Retain();
 			
-			pool->AddTaskWithPredicate([&, transform]() {
-				transform->Update(delta);
-				transform->WorldTransform(); // Make sure that transforms matrices get updated within the thread pool
-				transform->UpdatedToFrame(frame);
-				transform->Release();
-			}, [&, transform]() { return transform->CanUpdate(frame); });
+			pool->AddTaskWithPredicate([&, node]() {
+				node->Update(delta);
+				node->WorldTransform(); // Make sure that transforms matrices get updated within the thread pool
+				node->UpdatedToFrame(frame);
+				node->Release();
+			}, [&, node]() { return node->CanUpdate(frame); });
 		}
 		
 		pool->CommitTaskBatch(true);
 		
-		ApplyTransforms();
-		TransformsUpdated();
+		ApplyNodes();
+		NodesUpdated();
 		
 		for(machine_uint i=0; i<_attachments.Count(); i++)
 		{
 			WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
-			attachment->TransformsUpdated();
+			attachment->SceneNodesUpdated();
 		}
 		
 		// Iterate over all cameras and render the visible nodes
@@ -104,7 +104,7 @@ namespace RN
 				attachment->BeginCamera(camera);
 			}
 			
-			_sceneManager->RenderTransforms(camera);
+			_sceneManager->RenderScene(camera);
 			
 			for(machine_uint i=0; i<_attachments.Count(); i++)
 			{
@@ -117,26 +117,26 @@ namespace RN
 	}
 	
 	
-	void World::ApplyTransforms()
+	void World::ApplyNodes()
 	{
-		for(auto i=_addedTransforms.begin(); i!=_addedTransforms.end(); i++)
+		for(auto i=_addedNodes.begin(); i!=_addedNodes.end(); i++)
 		{
-			Transform *transform = *i;
+			SceneNode *node = *i;
 			
-			if(_transforms.find(transform) == _transforms.end())
+			if(_nodes.find(node) == _nodes.end())
 			{
-				_transforms.insert(transform);
-				_sceneManager->AddTransform(transform);
+				_nodes.insert(node);
+				_sceneManager->AddSceneNode(node);
 				
 				for(machine_uint i=0; i<_attachments.Count(); i++)
 				{
 					WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
-					attachment->DidAddTransform(transform);
+					attachment->DidAddSceneNode(node);
 				}
 			}
 		}
 		
-		_addedTransforms.clear();
+		_addedNodes.clear();
 	}
 
 	
@@ -153,49 +153,50 @@ namespace RN
 	
 	
 	
-	void World::AddTransform(Transform *transform)
+	void World::AddSceneNode(SceneNode *node)
 	{
-		if(!transform)
+		if(!node)
 			return;
 		
-		_addedTransforms.push_back(transform);
+		_addedNodes.push_back(node);
 	}
 	
-	void World::RemoveTransform(Transform *transform)
+	void World::RemoveSceneNode(SceneNode *node)
 	{
-		if(!transform)
+		if(!node)
 			return;
 		
-		auto iterator = _transforms.find(transform);
-		if(iterator != _transforms.end())
+		auto iterator = _nodes.find(node);
+		if(iterator != _nodes.end())
 		{
 			for(machine_uint i=0; i<_attachments.Count(); i++)
 			{
 				WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
-				attachment->WillRemoveTransform(transform);
+				attachment->WillRemoveSceneNode(node);
 			}
 			
-			_sceneManager->RemoveTransform(transform);
-			_transforms.erase(iterator);
+			_sceneManager->RemoveSceneNode(node);
+			_nodes.erase(iterator);
 		}
 		
-		_addedTransforms.erase(std::remove(_addedTransforms.begin(), _addedTransforms.end(), transform), _addedTransforms.end());
+		_addedNodes.erase(std::remove(_addedNodes.begin(), _addedNodes.end(), node), _addedNodes.end());
 	}
 	
 	
-	void World::TransformUpdated(Transform *transform)
+	void World::SceneNodeUpdated(SceneNode *node)
 	{
-		auto iterator = std::find(_addedTransforms.begin(), _addedTransforms.end(), transform);
-		if(iterator != _addedTransforms.end())
+		auto iterator = std::find(_addedNodes.begin(), _addedNodes.end(), node);
+		if(iterator != _addedNodes.end())
 		{
-			_addedTransforms.erase(iterator);
+			_addedNodes.erase(iterator);
 			
-			_transforms.insert(transform);
-			_sceneManager->AddTransform(transform);
+			_nodes.insert(node);
+			_sceneManager->AddSceneNode(node);
 		}
 		
-		_sceneManager->UpdateTransform(transform);
+		_sceneManager->UpdateSceneNode(node);
 	}
+	
 	
 	
 	void World::AddCamera(Camera *camera)

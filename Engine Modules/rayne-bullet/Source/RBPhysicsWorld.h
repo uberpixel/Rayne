@@ -40,8 +40,8 @@ namespace RN
 			void RemoveCollisionObject(CollisionObject *object);
 			
 			virtual void StepWorld(float delta);
-			virtual void DidAddTransform(Transform *transform);
-			virtual void WillRemoveTransform(Transform *transform);
+			virtual void DidAddSceneNode(SceneNode *node);
+			virtual void WillRemoveSceneNode(SceneNode *node);
 			
 			btDynamicsWorld *bulletDynamicsWorld() const { return _dynamicsWorld; }
 			

@@ -25,6 +25,7 @@ namespace RN
 	
 	
 	
+	
 	GenericSceneManager::GenericSceneManager()
 	{
 		_entityClass = Entity::MetaClass();
@@ -35,29 +36,30 @@ namespace RN
 	{
 	}
 	
-	void GenericSceneManager::AddTransform(Transform *transform)
+	
+	void GenericSceneManager::AddSceneNode(SceneNode *node)
 	{
-		_transforms.insert(transform);
+		_nodes.insert(node);
 	}
 	
-	void GenericSceneManager::RemoveTransform(Transform *transform)
+	void GenericSceneManager::RemoveSceneNode(SceneNode *node)
 	{
-		_transforms.erase(transform);
+		_nodes.erase(node);
 	}
 	
-	void GenericSceneManager::UpdateTransform(Transform *transform)
+	void GenericSceneManager::UpdateSceneNode(SceneNode *node)
 	{
 	}
 	
 	
 	
-	void GenericSceneManager::RenderTransform(Camera *camera, Transform *transform)
+	void GenericSceneManager::RenderSceneNode(Camera *camera, SceneNode *node)
 	{
-		if(transform->IsVisibleInCamera(camera))
+		if(node->IsVisibleInCamera(camera))
 		{
-			if(transform->IsKindOfClass(_entityClass))
+			if(node->IsKindOfClass(_entityClass))
 			{
-				Entity *entity = static_cast<Entity *>(transform);
+				Entity *entity = static_cast<Entity *>(node);
 				if(entity->Model())
 				{
 					float distance = entity->WorldPosition().Distance(camera->WorldPosition());
@@ -82,27 +84,27 @@ namespace RN
 				}
 			}
 			
-			if(transform->IsKindOfClass(_lightClass))
+			if(node->IsKindOfClass(_lightClass))
 			{
-				_renderer->RenderLight(static_cast<Light *>(transform));
+				_renderer->RenderLight(static_cast<Light *>(node));
 			}
 			
-			for(machine_uint i=0; i<transform->Childs(); i++)
+			for(machine_uint i=0; i<node->Childs(); i++)
 			{
-				Transform *child = transform->ChildAtIndex(i);
-				RenderTransform(camera, child);
+				SceneNode *child = node->ChildAtIndex(i);
+				RenderSceneNode(camera, child);
 			}
 		}
 	}
 
-	void GenericSceneManager::RenderTransforms(Camera *camera)
+	void GenericSceneManager::RenderScene(Camera *camera)
 	{
-		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)
+		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
-			Transform *transform = *i;
-			if(!transform->Parent())
+			SceneNode *node = *i;
+			if(!node->Parent())
 			{
-				RenderTransform(camera, transform);
+				RenderSceneNode(camera, node);
 			}
 		}
 	}

@@ -11,7 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNTransform.h"
+#include "RNSceneNode.h"
 #include "RNRenderStorage.h"
 #include "RNTexture.h"
 #include "RNMaterial.h"
@@ -22,7 +22,7 @@
 
 namespace RN
 {
-	class Camera : public Transform
+	class Camera : public SceneNode
 	{
 	public:
 		enum
@@ -199,7 +199,7 @@ namespace RN
 		
 		machine_uint _maxLights;
 		
-		RNDefineConstructorlessMeta(Camera, Transform)
+		RNDefineConstructorlessMeta(Camera, SceneNode)
 	};
 }
 

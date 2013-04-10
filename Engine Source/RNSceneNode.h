@@ -1,13 +1,13 @@
 //
-//  RNTransform.h
+//  RNSceneNode.h
 //  Rayne
 //
 //  Copyright 2013 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#ifndef __RAYNE_TRANSFORM_H__
-#define __RAYNE_TRANSFORM_H__
+#ifndef __RAYNE_SCENENODE_H__
+#define __RAYNE_SCENENODE_H__
 
 #include "RNBase.h"
 #include "RNObject.h"
@@ -22,15 +22,15 @@ namespace RN
 	class Camera;
 	class World;
 	
-	class Transform : public Object
+	class SceneNode : public Object
 	{
 	friend class Renderer;
 	friend class World;
 	public:
-		RNAPI Transform();
-		RNAPI Transform(const Vector3& position);
-		RNAPI Transform(const Vector3& position, const Quaternion& rotation);
-		RNAPI virtual ~Transform();
+		RNAPI SceneNode();
+		RNAPI SceneNode(const Vector3& position);
+		RNAPI SceneNode(const Vector3& position, const Quaternion& rotation);
+		RNAPI virtual ~SceneNode();
 		
 		RNAPI void Translate(const Vector3& trans);
 		RNAPI void Scale(const Vector3& scal);
@@ -59,18 +59,18 @@ namespace RN
 		RNAPI const Vector3& WorldEulerAngle();
 		RNAPI const Quaternion& WorldRotation();
 		
-		RNAPI void AttachChild(Transform *child);
-		RNAPI void DetachChild(Transform *child);
+		RNAPI void AttachChild(SceneNode *child);
+		RNAPI void DetachChild(SceneNode *child);
 		RNAPI void DetachAllChilds();
 		RNAPI void DetachFromParent();
 		
-		RNAPI void SetAction(const std::function<void (Transform *, float)>& action);
+		RNAPI void SetAction(const std::function<void (SceneNode *, float)>& action);
 		
 		machine_uint Childs() const { return _childs.Count(); }
-		Transform *Parent() const { return _parent; }
+		SceneNode *Parent() const { return _parent; }
 		FrameID LastFrame() const { return _lastFrame; }
 		
-		template<typename T=Transform>
+		template<typename T=SceneNode>
 		T *ChildAtIndex(machine_uint index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
 		
 		RNAPI const Matrix& WorldTransform();
@@ -101,11 +101,11 @@ namespace RN
 		Vector3 _euler;	//there has to be a way to fix this in the quaternion class somehow...
 		
 	private:
-		Transform *_parent;
-		Array<Transform *> _childs;
+		SceneNode *_parent;
+		Array<SceneNode *> _childs;
 		bool _updated;
 		
-		std::function<void (Transform *, float)> _action;
+		std::function<void (SceneNode *, float)> _action;
 		
 		FrameID _lastFrame;
 		Vector3 _worldPosition;
@@ -116,24 +116,24 @@ namespace RN
 		Matrix _worldTransform;
 		Matrix _localTransform;
 		
-		RNDefineMeta(Transform, Object)
+		RNDefineMeta(SceneNode, Object)
 	};
 	
 	
 	
-	RN_INLINE void Transform::Translate(const Vector3& trans)
+	RN_INLINE void SceneNode::Translate(const Vector3& trans)
 	{
 		_position += trans;
 		DidUpdate();
 	}
 	
-	RN_INLINE void Transform::Scale(const Vector3& scal)
+	RN_INLINE void SceneNode::Scale(const Vector3& scal)
 	{
 		_scale += scal;
 		DidUpdate();
 	}
 	
-	RN_INLINE void Transform::Rotate(const Vector3& rot)
+	RN_INLINE void SceneNode::Rotate(const Vector3& rot)
 	{
 		_euler += rot;
 		_rotation = Quaternion(_euler);
@@ -141,32 +141,32 @@ namespace RN
 	}
 	
 	
-	RN_INLINE void Transform::TranslateLocal(const Vector3& trans)
+	RN_INLINE void SceneNode::TranslateLocal(const Vector3& trans)
 	{
 		_position += _rotation.RotateVector(trans);
 		DidUpdate();
 	}
 	
-	RN_INLINE void Transform::ScaleLocal(const Vector3& scal)
+	RN_INLINE void SceneNode::ScaleLocal(const Vector3& scal)
 	{
 		_scale += _rotation.RotateVector(scal);
 		DidUpdate();
 	}
 	
 	
-	RN_INLINE void Transform::SetPosition(const Vector3& pos)
+	RN_INLINE void SceneNode::SetPosition(const Vector3& pos)
 	{
 		_position = pos;
 		DidUpdate();
 	}
 	
-	RN_INLINE void Transform::SetScale(const Vector3& scal)
+	RN_INLINE void SceneNode::SetScale(const Vector3& scal)
 	{
 		_scale = scal;
 		DidUpdate();
 	}
 	
-	RN_INLINE void Transform::SetRotation(const Quaternion& rot)
+	RN_INLINE void SceneNode::SetRotation(const Quaternion& rot)
 	{
 		_euler = rot.EulerAngle();
 		_rotation = rot;
@@ -175,7 +175,7 @@ namespace RN
 	}
 	
 	
-	RN_INLINE void Transform::SetWorldPosition(const Vector3& pos)
+	RN_INLINE void SceneNode::SetWorldPosition(const Vector3& pos)
 	{
 		if(!_parent)
 		{
@@ -190,7 +190,7 @@ namespace RN
 		DidUpdate();
 	}
 	
-	RN_INLINE void Transform::SetWorldScale(const Vector3& scal)
+	RN_INLINE void SceneNode::SetWorldScale(const Vector3& scal)
 	{
 		if(!_parent)
 		{
@@ -202,7 +202,7 @@ namespace RN
 		DidUpdate();
 	}
 	
-	RN_INLINE void Transform::SetWorldRotation(const Quaternion& rot)
+	RN_INLINE void SceneNode::SetWorldRotation(const Quaternion& rot)
 	{
 		if(!_parent)
 		{
@@ -217,47 +217,47 @@ namespace RN
 	}
 	
 	
-	RN_INLINE const Vector3& Transform::WorldPosition()
+	RN_INLINE const Vector3& SceneNode::WorldPosition()
 	{
 		UpdateInternalData();
 		return _worldPosition;
 	}
-	RN_INLINE const Vector3& Transform::WorldScale()
+	RN_INLINE const Vector3& SceneNode::WorldScale()
 	{
 		UpdateInternalData();
 		return _worldScale;
 	}
-	RN_INLINE const Vector3& Transform::WorldEulerAngle()
+	RN_INLINE const Vector3& SceneNode::WorldEulerAngle()
 	{
 		UpdateInternalData();
 		return _worldEuler;
 	}
-	RN_INLINE const Quaternion& Transform::WorldRotation()
+	RN_INLINE const Quaternion& SceneNode::WorldRotation()
 	{
 		UpdateInternalData();
 		return _worldRotation;
 	}
 	
 	
-	RN_INLINE const Matrix& Transform::LocalTransform()
+	RN_INLINE const Matrix& SceneNode::LocalTransform()
 	{
 		UpdateInternalData();
 		return _localTransform;
 	}
 	
-	RN_INLINE const Matrix& Transform::WorldTransform()
+	RN_INLINE const Matrix& SceneNode::WorldTransform()
 	{
 		UpdateInternalData();
 		return _worldTransform;
 	}
 	
 	
-	RN_INLINE void Transform::DidUpdate()
+	RN_INLINE void SceneNode::DidUpdate()
 	{
 		_updated = true;
 	}
 	
-	RN_INLINE void Transform::UpdateInternalData()
+	RN_INLINE void SceneNode::UpdateInternalData()
 	{
 		if(_updated)
 		{
@@ -289,7 +289,7 @@ namespace RN
 			machine_uint count = _childs.Count();
 			for(machine_uint i=0; i<count; i++)
 			{
-				Transform *child = _childs.ObjectAtIndex(i);
+				SceneNode *child = _childs.ObjectAtIndex(i);
 				child->DidUpdate();
 			}
 			
@@ -298,4 +298,4 @@ namespace RN
 	}
 }
 
-#endif /* __RAYNE_TRANSFORM_H__ */
+#endif /* __RAYNE_SCENENODE_H__ */

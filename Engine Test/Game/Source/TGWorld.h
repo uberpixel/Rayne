@@ -26,7 +26,7 @@ namespace TG
 		~World();
 		
 		virtual void Update(float delta);
-		virtual void TransformsUpdated();
+		virtual void NodesUpdated();
 		
 	private:
 		void CreateCameras();

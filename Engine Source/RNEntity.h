@@ -11,7 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNTransform.h"
+#include "RNSceneNode.h"
 #include "RNCamera.h"
 #include "RNMaterial.h"
 #include "RNModel.h"
@@ -21,7 +21,7 @@
 namespace RN
 {
 	class World;
-	class Entity : public Transform
+	class Entity : public SceneNode
 	{
 	friend class World;
 	public:
@@ -40,7 +40,7 @@ namespace RN
 		class Model *_model;
 		class Skeleton *_skeleton;
 		
-		RNDefineMeta(Entity, Transform)
+		RNDefineMeta(Entity, SceneNode)
 	};
 }
 

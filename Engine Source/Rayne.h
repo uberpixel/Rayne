@@ -35,7 +35,7 @@
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
 #include "RNRect.h"
-#include "RNTransform.h"
+#include "RNSceneNode.h"
 #include "RNVector.h"
 #include "RNInterpolation.h"
 

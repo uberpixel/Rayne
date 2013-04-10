@@ -94,20 +94,20 @@ namespace RN
 		
 		
 		
-		void PhysicsWorld::DidAddTransform(Transform *transform)
+		void PhysicsWorld::DidAddSceneNode(SceneNode *node)
 		{
-			if(transform->IsKindOfClass(_collisionObjectClass))
+			if(node->IsKindOfClass(_collisionObjectClass))
 			{
-				CollisionObject *object = static_cast<CollisionObject *>(transform);
+				CollisionObject *object = static_cast<CollisionObject *>(node);
 				AddCollisionObject(object);
 			}
 		}
 		
-		void PhysicsWorld::WillRemoveTransform(Transform *transform)
+		void PhysicsWorld::WillRemoveSceneNode(SceneNode *node)
 		{
-			if(transform->IsKindOfClass(_collisionObjectClass))
+			if(node->IsKindOfClass(_collisionObjectClass))
 			{
-				CollisionObject *object = static_cast<CollisionObject *>(transform);
+				CollisionObject *object = static_cast<CollisionObject *>(node);
 				RemoveCollisionObject(object);
 			}
 		}

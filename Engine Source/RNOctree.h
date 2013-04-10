@@ -10,7 +10,7 @@
 #define __RAYNE_OCTREE_H__
 
 #include "RNBase.h"
-#include "RNTransform.h"
+#include "RNSceneNode.h"
 
 namespace RN
 {
@@ -49,7 +49,7 @@ namespace RN
 			Vector3 _max;
 			Vector3 _size;
 			
-			Array<Transform *> _transforms;
+			Array<SceneNode *> _nodes;
 			OctreeNode *_childs[8];
 			OctreeNode *_parent;
 		};
