@@ -27,12 +27,6 @@ namespace RN
 	Light::~Light()
 	{}
 	
-	const Vector3& Light::Direction()
-	{
-		_direction = WorldRotation().RotateVector(Vector3(0.0, 0.0, 1.0));
-		return _direction;
-	}
-	
 	bool Light::IsVisibleInCamera(Camera *camera)
 	{
 		if(TypeDirectionalLight)
@@ -76,5 +70,12 @@ namespace RN
 			_shadowcam->SetMaterial(depthMaterial);
 			AttachChild(_shadowcam);
 		}
+	}
+	
+	void Light::Update(float delta)
+	{
+		Transform::Update(delta);
+//		if(_shadow)
+//			_shadowcam->CalcOrthoViewport(_lightcam, 1.0f, 100.0f, this, 2.0f);
 	}
 }

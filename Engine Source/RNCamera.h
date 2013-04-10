@@ -19,6 +19,7 @@
 #include "RNPlane.h"
 #include "RNColor.h"
 #include "RNModel.h"
+#include "RNLight.h"
 
 namespace RN
 {
@@ -118,6 +119,8 @@ namespace RN
 		RNAPI void ReplaceStage(Camera *stage);
 		RNAPI void RemoveStage(Camera *stage);
 		
+		RNAPI void MakeShadowSplit(Camera *camera, Light *light, float near, float far);
+		RNAPI void CalcOrthoViewport(Camera *camera, float nearSlice, float farSlice, Light *light, const float FovYDiv);
 		RNAPI void ActivateTiledLightLists(Texture *depthTiles);
 		Texture *DepthTiles() { return _depthTiles; }
 		
@@ -157,6 +160,11 @@ namespace RN
 		float aspect;
 		float clipnear;
 		float clipfar;
+		
+		float ortholeft;
+		float orthoright;
+		float orthotop;
+		float orthobottom;
 		
 		MaterialOverride override;
 		

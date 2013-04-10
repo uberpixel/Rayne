@@ -11,7 +11,6 @@
 
 #include "RNBase.h"
 #include "RNTransform.h"
-#include "RNCamera.h"
 
 namespace RN
 {
@@ -36,14 +35,16 @@ namespace RN
 		RNAPI void SetAngle(float angle);
 		RNAPI void SetShadow(bool shadow);
 		
+		virtual void Update(float delta);
+		
 		const Type LightType() const { return _lightType; }
 		const Vector3& Color() const { return _color; }
 		const float Range() const { return _range; }
 		const float Angle() const { return _angle; }
 		const bool Shadow() const { return _shadow; }
-		const Vector3& Direction();
 		
-		Camera *_shadowcam;
+		class Camera *_shadowcam;
+		class Camera *_lightcam;
 	
 	private:
 		Type _lightType;

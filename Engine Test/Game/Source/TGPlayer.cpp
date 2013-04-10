@@ -13,7 +13,7 @@ namespace TG
 	RNDeclareMeta(Player)
 	
 	Player::Player() :
-		RN::bullet::KinematicController(RN::bullet::CapsuleShape::WithRadius(0.75, 5.0f), 0.45f)
+		RN::bullet::KinematicController(RN::bullet::CapsuleShape::WithRadius(0.75, 2.5f), 0.45f)
 	{
 	}
 	

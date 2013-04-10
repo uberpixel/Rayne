@@ -53,6 +53,9 @@ namespace RN
 		const Vector3& Scale() const { return _scale; }
 		const Vector3& EulerAngle() const { return _euler; }
 		const Quaternion& Rotation() const { return _rotation; }
+		const Vector3 Forward();
+		const Vector3 Up();
+		const Vector3 Right();
 		
 		RNAPI const Vector3& WorldPosition();
 		RNAPI const Vector3& WorldScale();
@@ -214,6 +217,24 @@ namespace RN
 		_euler = _rotation.EulerAngle();
 		
 		DidUpdate();
+	}
+	
+	RN_INLINE const Vector3 Transform::Forward()
+	{
+		Vector3 forward = WorldRotation().RotateVector(Vector3(0.0, 0.0, 1.0));
+		return forward;
+	}
+	
+	RN_INLINE const Vector3 Transform::Up()
+	{
+		Vector3 up = WorldRotation().RotateVector(Vector3(0.0, 1.0, 0.0));
+		return up;
+	}
+	
+	RN_INLINE const Vector3 Transform::Right()
+	{
+		Vector3 right = WorldRotation().RotateVector(Vector3(1.0, 0.0, 0.0));
+		return right;
 	}
 	
 	
