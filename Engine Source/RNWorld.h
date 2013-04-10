@@ -16,6 +16,7 @@
 #include "RNTransform.h"
 #include "RNCamera.h"
 #include "RNWorldAttachment.h"
+#include "RNSceneManager.h"
 
 namespace RN
 {
@@ -28,11 +29,11 @@ namespace RN
 	friend class Kernel;
 	friend class Camera;
 	public:
-		RNAPI World();
+		RNAPI World(SceneManager *sceneManager);
+		RNAPI World(const std::string& sceneManager);
 		RNAPI virtual ~World();
 		
-		RNAPI void AddTransform(Transform *transform);
-		RNAPI void RemoveTransform(Transform *transform);
+		RNAPI void TransformUpdated(Transform *transform);
 		
 		RNAPI void AddAttachment(WorldAttachment *attachment);
 		RNAPI void RemoveAttachment(WorldAttachment *attachment);
@@ -40,11 +41,14 @@ namespace RN
 		RNAPI virtual void Update(float delta);
 		RNAPI virtual void TransformsUpdated();
 		
+		RNAPI SceneManager *SceneManager() const { return _sceneManager; }
+		
 	private:
+		static class SceneManager *SceneManagerWithName(const std::string& name);
 		void StepWorld(FrameID frame, float delta);
-		void VisitTransform(Camera *camera, Transform *transform);
-		bool SupportsTransform(Transform *transform);
-		void ApplyTransformUpdates();
+		
+		void AddTransform(Transform *transform);
+		void RemoveTransform(Transform *transform);
 		
 		void AddCamera(Camera *camera);
 		void RemoveCamera(Camera *camera);
@@ -52,16 +56,12 @@ namespace RN
 		Kernel *_kernel;
 		
 		Array<WorldAttachment> _attachments;
-		std::unordered_set<Transform *> _transforms;
 		
-		std::deque<Transform *> _addedTransforms;
+		std::unordered_set<Transform *> _transforms;
 		std::vector<Camera *> _cameras;
 		
 		Renderer *_renderer;
-		
-		MetaClass *_cameraClass;
-		MetaClass *_entityClass;
-		MetaClass *_lightClass;
+		class SceneManager *_sceneManager;
 	};
 }
 

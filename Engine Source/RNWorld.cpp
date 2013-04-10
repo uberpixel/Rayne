@@ -15,21 +15,31 @@
 
 namespace RN
 {
-	World::World()
+	World::World(class SceneManager *sceneManager)
 	{
 		_kernel = Kernel::SharedInstance();
 		_kernel->SetWorld(this);
 		
 		_renderer = Renderer::SharedInstance();
-		
-		_cameraClass = Camera::MetaClass();
-		_entityClass = Entity::MetaClass();
-		_lightClass  = Light::MetaClass();
+		_sceneManager = sceneManager->Retain();
+	}
+	
+	World::World(const std::string& sceneManager) :
+		World(World::SceneManagerWithName(sceneManager))
+	{
 	}
 	
 	World::~World()
 	{
 		_kernel->SetWorld(0);
+		_sceneManager->Release();
+	}
+	
+	
+	class SceneManager *World::SceneManagerWithName(const std::string& name)
+	{
+		class MetaClass *meta = Catalogue::SharedInstance()->ClassWithName(name);
+		return static_cast<class SceneManager *>(meta->Construct()->Autorelease());
 	}
 	
 	
@@ -40,55 +50,11 @@ namespace RN
 	void World::TransformsUpdated()
 	{}
 	
-	
-	void World::VisitTransform(Camera *camera, Transform *transform)
-	{
-		if(transform->IsVisibleInCamera(camera))
-		{
-			if(transform->IsKindOfClass(_entityClass))
-			{
-				Entity *entity = static_cast<Entity *>(transform);
-				if(entity->Model())
-				{
-					float distance = entity->WorldPosition().Distance(camera->WorldPosition());
-					distance /= camera->clipfar;
-					
-					Model *model = entity->Model();
-					uint32 lodStage = model->LODStageForDistance(distance);
-					
-					RenderingObject object;
-					
-					object.transform = (Matrix *)&entity->WorldTransform();
-					object.skeleton  = entity->Skeleton();
-					
-					uint32 count = model->Meshes(lodStage);
-					for(uint32 i=0; i<count; i++)
-					{
-						object.mesh = model->MeshAtIndex(lodStage, i);
-						object.material = model->MaterialAtIndex(lodStage, i);
-						
-						_renderer->RenderObject(object);
-					}
-				}
-			}
-			
-			if(transform->IsKindOfClass(_lightClass))
-			{
-				_renderer->RenderLight(static_cast<Light *>(transform));
-			}
-		}
-		
-		for(machine_uint i=0; i<transform->Childs(); i++)
-		{
-			Transform *child = transform->ChildAtIndex(i);
-			VisitTransform(camera, child);
-		}
-	}
+
 	
 	void World::StepWorld(FrameID frame, float delta)
 	{
 		Update(delta);
-		ApplyTransformUpdates();
 		
 		for(machine_uint i=0; i<_attachments.Count(); i++)
 		{
@@ -99,7 +65,7 @@ namespace RN
 		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
 		
 		// Add the Transform updates to the thread pool
-		ThreadPool::BatchID batch = pool->BeginTaskBatch();
+		pool->BeginTaskBatch();
 		
 		for(auto i=_transforms.begin(); i!=_transforms.end(); i++)
 		{
@@ -114,10 +80,7 @@ namespace RN
 			}, [&, transform]() { return transform->CanUpdate(frame); });
 		}
 		
-		pool->CommitTaskBatch();
-		pool->WaitForBatch(batch);
-		
-		ApplyTransformUpdates();
+		pool->CommitTaskBatch(true);		
 		TransformsUpdated();
 		
 		for(machine_uint i=0; i<_attachments.Count(); i++)
@@ -138,16 +101,7 @@ namespace RN
 				attachment->BeginCamera(camera);
 			}
 			
-			for(auto j=_transforms.begin(); j!=_transforms.end(); j++)
-			{
-				Transform *transform = *j;
-				Transform *parent = transform->Parent();
-				
-				if(parent)
-					continue;
-				
-				VisitTransform(camera, transform);
-			}
+			_sceneManager->RenderTransforms(camera);
 			
 			for(machine_uint i=0; i<_attachments.Count(); i++)
 			{
@@ -159,37 +113,7 @@ namespace RN
 		}
 	}
 	
-	bool World::SupportsTransform(Transform *transform)
-	{
-		return (transform->IsKindOfClass(_entityClass) || transform->IsKindOfClass(_lightClass) || transform->IsKindOfClass(_cameraClass));
-	}
-	
-	void World::ApplyTransformUpdates()
-	{
-		if(_addedTransforms.size() > 0)
-		{
-			for(Transform *transform : _addedTransforms)
-			{
-				if(!SupportsTransform(transform))
-					continue;
-				
-				if(_transforms.find(transform) == _transforms.end())
-				{
-					_transforms.insert(transform);
-				
-					for(machine_uint i=0; i<_attachments.Count(); i++)
-					{
-						WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
-						attachment->DidAddTransform(transform);
-					}
-				}
-			}
-			
-			_addedTransforms.clear();
-		}
-	}
-	
-	
+
 	
 	void World::AddAttachment(WorldAttachment *attachment)
 	{
@@ -202,23 +126,24 @@ namespace RN
 	}
 	
 	
-	void World::AddCamera(Camera *camera)
-	{
-		_cameras.push_back(camera);
-	}
 	
-	void World::RemoveCamera(Camera *camera)
-	{
-		_cameras.erase(std::remove(_cameras.begin(), _cameras.end(), camera), _cameras.end());
-	}
 	
 	void World::AddTransform(Transform *transform)
 	{
 		if(!transform)
 			return;
 		
-		_addedTransforms.push_back(transform);
-		return;
+		if(_transforms.find(transform) == _transforms.end())
+		{
+			_transforms.insert(transform);
+			_sceneManager->AddTransform(transform);
+			
+			for(machine_uint i=0; i<_attachments.Count(); i++)
+			{
+				WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+				attachment->DidAddTransform(transform);
+			}
+		}
 	}
 	
 	void World::RemoveTransform(Transform *transform)
@@ -235,10 +160,26 @@ namespace RN
 				attachment->WillRemoveTransform(transform);
 			}
 			
+			_sceneManager->RemoveTransform(transform);
 			_transforms.erase(iterator);
 		}
-		
-		_addedTransforms.erase(std::remove(_addedTransforms.begin(), _addedTransforms.end(), transform), _addedTransforms.end());
-		return;
+
+	}
+	
+	
+	void World::TransformUpdated(Transform *transform)
+	{
+		_sceneManager->UpdateTransform(transform);
+	}
+	
+	
+	void World::AddCamera(Camera *camera)
+	{
+		_cameras.push_back(camera);
+	}
+	
+	void World::RemoveCamera(Camera *camera)
+	{
+		_cameras.erase(std::remove(_cameras.begin(), _cameras.end(), camera), _cameras.end());
 	}
 }

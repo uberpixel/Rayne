@@ -18,7 +18,8 @@
 
 namespace TG
 {
-	World::World()
+	World::World() :
+		RN::World("GenericSceneManager")
 	{
 		_physicsAttachment = new RN::bullet::PhysicsWorld();
 		AddAttachment(_physicsAttachment->Autorelease());
