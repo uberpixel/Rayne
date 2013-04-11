@@ -125,6 +125,8 @@ namespace RN
 			
 			if(_nodes.find(node) == _nodes.end())
 			{
+				node->_world = this;
+				
 				_nodes.insert(node);
 				_sceneManager->AddSceneNode(node);
 				
@@ -177,6 +179,8 @@ namespace RN
 			
 			_sceneManager->RemoveSceneNode(node);
 			_nodes.erase(iterator);
+			
+			node->_world = 0;
 		}
 		
 		_addedNodes.erase(std::remove(_addedNodes.begin(), _addedNodes.end(), node), _addedNodes.end());

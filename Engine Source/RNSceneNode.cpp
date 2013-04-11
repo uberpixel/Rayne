@@ -17,9 +17,10 @@ namespace RN
 		_scale(Vector3(1.0f))
 	{
 		_parent = 0;
+		_world  = 0;
 		_lastFrame = 0;
-		DidUpdate();
 		
+		DidUpdate();
 		World::SharedInstance()->AddSceneNode(this);
 	}
 	
@@ -28,9 +29,10 @@ namespace RN
 		_scale(Vector3(1.0f))
 	{
 		_parent = 0;
+		_world  = 0;
 		_lastFrame = 0;
-		DidUpdate();
 		
+		DidUpdate();
 		World::SharedInstance()->AddSceneNode(this);
 	}
 	
@@ -41,16 +43,19 @@ namespace RN
 		_euler(rotation.EulerAngle())
 	{
 		_parent = 0;
+		_world  = 0;
 		_lastFrame = 0;
-		DidUpdate();
 		
+		DidUpdate();
 		World::SharedInstance()->AddSceneNode(this);
 	}
 	
 	SceneNode::~SceneNode()
 	{
 		DetachAllChilds();
-		World::SharedInstance()->RemoveSceneNode(this);
+		
+		if(_world)
+			_world->RemoveSceneNode(this);
 	}
 	
 	
@@ -63,6 +68,8 @@ namespace RN
 		_childs.AddObject(child);
 		child->_parent = this;
 		child->DidUpdate();
+		
+		DidAddChild(child);
 	}
 	
 	void SceneNode::DetachChild(SceneNode *child)
@@ -70,6 +77,7 @@ namespace RN
 		if(child->_parent == this)
 		{
 			_childs.RemoveObject(child);
+			
 			child->_parent = 0;
 			child->DidUpdate();
 			child->Release();
@@ -83,6 +91,8 @@ namespace RN
 		for(machine_uint i=0; i<count; i++)
 		{
 			SceneNode *child = _childs.ObjectAtIndex(i);
+			WillRemoveChild(child);
+			
 			child->_parent = 0;
 			child->DidUpdate();
 			child->Release();
@@ -97,6 +107,16 @@ namespace RN
 			_parent->DetachChild(this);
 	}
 	
+	void SceneNode::DidUpdate()
+	{
+		_updated = true;
+		
+		if(_world)
+			_world->SceneNodeUpdated(this);
+		
+		if(_parent)
+			_parent->ChildDidUpdate(this);
+	}
 	
 	void SceneNode::SetAction(const std::function<void (SceneNode *, float)>& action)
 	{

@@ -90,10 +90,16 @@ namespace RN
 			return true;
 		}
 		
-	protected:		
-		void DidUpdate();
-		void UpdateInternalData();
+	protected:
+		RNAPI void DidUpdate();
+		RNAPI void UpdateInternalData();
+		
+		RNAPI virtual void ChildDidUpdate(SceneNode *child) {}
+		RNAPI virtual void DidAddChild(SceneNode *child)  {}
+		RNAPI virtual void WillRemoveChild(SceneNode *child) {}
+		
 		void UpdatedToFrame(FrameID frame) { _lastFrame = frame; }
+		
 		
 		Vector3 _position;
 		Vector3 _scale;
@@ -101,8 +107,10 @@ namespace RN
 		Vector3 _euler;	//there has to be a way to fix this in the quaternion class somehow...
 		
 	private:
+		World *_world;
 		SceneNode *_parent;
 		Array<SceneNode *> _childs;
+		
 		bool _updated;
 		
 		std::function<void (SceneNode *, float)> _action;
@@ -249,12 +257,6 @@ namespace RN
 	{
 		UpdateInternalData();
 		return _worldTransform;
-	}
-	
-	
-	RN_INLINE void SceneNode::DidUpdate()
-	{
-		_updated = true;
 	}
 	
 	RN_INLINE void SceneNode::UpdateInternalData()
