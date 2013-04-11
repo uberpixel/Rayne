@@ -502,7 +502,7 @@ namespace RN
 		
 		_lightDirectionalDirection.RemoveAllObjects();
 		_lightDirectionalColor.RemoveAllObjects();
-//		_lightDirectionalMatrix.RemoveAllObjects();
+		_lightDirectionalMatrix.RemoveAllObjects();
 		_lightDirectionalDepth.RemoveAllObjects();
 		
 		for(machine_uint i=0; i<lightCount; i++)
@@ -514,16 +514,23 @@ namespace RN
 			_lightDirectionalDirection.AddObject(direction);
 			_lightDirectionalColor.AddObject(color);
 			
-			Camera *camera = light->_shadowcam;
-			
-			Matrix matProj = camera->projectionMatrix;
-			float delta = 0.1f;
-			float pz = 2.0f;
-			float epsilon = -2.0f * camera->clipfar * camera->clipnear * delta / ((camera->clipfar + camera->clipnear) * pz * (pz + delta));
-			matProj.m[10] *= 1.0f + epsilon;
-			
-			_lightDirectionalMatrix = matProj*camera->viewMatrix;
-			_lightDirectionalDepth.AddObject(camera->Storage()->DepthTarget());
+			if(light->_shadow)
+			{
+				for(int i = 0; i < 4; i++)
+				{
+					Camera *cam = light->_shadowcams.ObjectAtIndex(i);
+				
+					Matrix matProj = cam->projectionMatrix;
+					float delta = 0.1f;
+					float pz = 2.0f;
+					float epsilon = -2.0f * cam->clipfar * cam->clipnear * delta / ((cam->clipfar + cam->clipnear) * pz * (pz + delta));
+					matProj.m[10] *= 1.0f + epsilon;
+					
+					_lightDirectionalMatrix.AddObject(matProj*cam->viewMatrix);
+				}
+				
+				_lightDirectionalDepth.AddObject(light->_shadowcams.ObjectAtIndex(0)->Storage()->DepthTarget());
+			}
 		}
 		
 		return static_cast<int>(lightCount);
@@ -1089,11 +1096,14 @@ namespace RN
 							glUniform3fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.Data());
 						
 						if(program->lightDirectionalMatrix != -1)
-							glUniformMatrix4fv(program->lightDirectionalMatrix, 1, GL_FALSE, _lightDirectionalMatrix.m);
+						{
+							float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.Data());
+							glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.Count(), GL_FALSE, data);
+						}
 						
 						if(program->lightDirectionalDepth != -1)
 						{
-							uint32 textureUnit = BindTexture(_lightDirectionalDepth.FirstObject());
+							uint32 textureUnit = BindTexture(GL_TEXTURE_2D_ARRAY, _lightDirectionalDepth.FirstObject()->Name());
 							glUniform1i(program->lightDirectionalDepth, textureUnit);
 						}
 						

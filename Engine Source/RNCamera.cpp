@@ -360,7 +360,15 @@ namespace RN
 	
 	void Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
 	{
-		Vector3 pos2 = camera->ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
+		SetPosition(camera->WorldPosition()+light->Forward()*200.0f);
+		
+		ortholeft = -far;
+		orthoright = far;
+		orthobottom = -far;
+		orthotop = far;
+		UpdateProjection();
+		
+/*		Vector3 pos2 = camera->ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
 		Vector3 pos3 = camera->ToWorld(Vector3(-1.0f, -1.0f, 1.0f));
 		Vector3 pos5 = camera->ToWorld(Vector3(1.0f, 1.0f, 1.0f));
 		Vector3 pos6 = camera->ToWorld(Vector3(1.0f, -1.0f, 1.0f));
@@ -372,7 +380,7 @@ namespace RN
 		vmax.z = MAX(_position.z, MAX(pos2.z, MAX(pos3.z, MAX(pos5.z, pos6.z))));
 		vmin.x = MIN(_position.x, MIN(pos2.x, MIN(pos3.x, MIN(pos5.x, pos6.x))));
 		vmin.y = MIN(_position.y, MIN(pos2.y, MIN(pos3.y, MIN(pos5.y, pos6.y))));
-		vmin.z = MIN(_position.z, MIN(pos2.z, MIN(pos3.z, MIN(pos5.z, pos6.z))));
+		vmin.z = MIN(_position.z, MIN(pos2.z, MIN(pos3.z, MIN(pos5.z, pos6.z))));*/
 	}
 	
 	//---------------------------------------------------------------------------

@@ -21,7 +21,6 @@ namespace RN
 		_range = 1.0f;
 		_angle = 0.5f;
 		_shadow = false;
-		_shadowcam = NULL;
 	}
 	
 	Light::~Light()
@@ -59,23 +58,36 @@ namespace RN
 		_shadow = shadow;
 		if(_shadow)
 		{
-			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
-			Texture *depthtex = new Texture(Texture::FormatDepth);
-			storage->SetDepthTarget(depthtex);
-			
 			Shader *depthShader = Shader::WithFile("shader/rn_LightDepth");
 			Material *depthMaterial = new Material(depthShader);
 			
-			_shadowcam = new Camera(Vector2(1024, 1024), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
-			_shadowcam->SetMaterial(depthMaterial);
-			AttachChild(_shadowcam);
+			Texture *depthtex = new Texture(Texture::FormatDepthStencil, Texture::WrapModeRepeat, Texture::FilterLinear, false, Texture::Type2DArray);
+			depthtex->SetDepth(4);
+			
+			for(int i = 0; i < 4; i++)
+			{
+				RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatComplete);
+				storage->SetDepthTarget(depthtex, i);
+				storage->AddRenderTarget(Texture::FormatRGBA8888);
+				Camera *tempcam = new Camera(Vector2(1024, 1024), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
+				tempcam->SetMaterial(depthMaterial);
+				//AttachChild(_shadowcam);
+				tempcam->SetRotation(Rotation());
+				
+				_shadowcams.AddObject(tempcam);
+			}
 		}
 	}
 	
 	void Light::Update(float delta)
 	{
 		Transform::Update(delta);
-//		if(_shadow)
-//			_shadowcam->CalcOrthoViewport(_lightcam, 1.0f, 100.0f, this, 2.0f);
+		if(_shadow)
+		{
+			for(int i = 0; i < 4; i++)
+			{
+				_shadowcams.ObjectAtIndex(i)->MakeShadowSplit(_lightcam, this, 0.0f, 20.0f+20.0f*i*i);
+			}
+		}
 	}
 }

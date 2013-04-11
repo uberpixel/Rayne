@@ -10,11 +10,11 @@
 
 #ifdef RN_LIGHTING
 
-uniform mat4 lightDirectionalMatrix;
+uniform mat4 lightDirectionalMatrix[10];
 
 out vec3 outLightNormal;
 out vec3 outLightPosition;
-out vec4 outDirLightProj;
+out vec4 outDirLightProj[4];
 
 vec3 rn_Lighting(mat4 model, vec3 position, vec3 normal)
 {
@@ -32,7 +32,10 @@ vec3 rn_Lighting(mat4 model, vec3 position, vec3 normal)
 		0.0, 0.0, 0.5, 0.0,
 		0.5, 0.5, 0.5, 1.0
 	);
-	outDirLightProj = biasMatrix*lightDirectionalMatrix*matModel*pos;
+	outDirLightProj[0] = biasMatrix*lightDirectionalMatrix[0]*matModel*pos;
+	outDirLightProj[1] = biasMatrix*lightDirectionalMatrix[1]*matModel*pos;
+	outDirLightProj[2] = biasMatrix*lightDirectionalMatrix[2]*matModel*pos;
+	outDirLightProj[3] = biasMatrix*lightDirectionalMatrix[3]*matModel*pos;
 
 	return pos.xyz;
 #else
@@ -45,7 +48,10 @@ vec3 rn_Lighting(mat4 model, vec3 position, vec3 normal)
 	0.0, 0.0, 0.5, 0.0,
 	0.5, 0.5, 0.5, 1.0
 	);
-	outDirLightProj = biasMatrix*lightDirectionalMatrix*matModel*vec4(position, 1.0);
+	outDirLightProj[0] = biasMatrix*lightDirectionalMatrix[0]*matModel*vec4(position, 1.0);
+	outDirLightProj[1] = biasMatrix*lightDirectionalMatrix[1]*matModel*vec4(position, 1.0);
+	outDirLightProj[2] = biasMatrix*lightDirectionalMatrix[2]*matModel*vec4(position, 1.0);
+	outDirLightProj[3] = biasMatrix*lightDirectionalMatrix[3]*matModel*vec4(position, 1.0);
 
 	return position;
 #endif

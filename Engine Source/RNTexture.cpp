@@ -17,12 +17,14 @@ namespace RN
 	RNDeclareMeta(Texture)
 	uint32 Texture::_defaultAnisotropy = 0;
 	
-	Texture::Texture(Format format, WrapMode wrap, Filter filter, bool isLinear)
+	Texture::Texture(Format format, WrapMode wrap, Filter filter, bool isLinear, Type type)
 	{
 		glGenTextures(1, &_name);
 		
 		_width = _height = 0;
+		_depth = 1;
 		_format = format;
+		_type = type;
 		_anisotropy = 0;
 		
 		_wrapMode = (WrapMode)-1;
@@ -49,7 +51,9 @@ namespace RN
 		glGenTextures(1, &_name);
 		
 		_width = _height = 0;
+		_depth = 1;
 		_format = format;
+		_type = Type2D;
 		
 		_generateMipmaps = true;
 		_isCompleteTexture = false;
@@ -93,7 +97,12 @@ namespace RN
 		Thread *thread = Thread::CurrentThread();
 		
 		if(thread->CurrentTexture() != this)
-			glBindTexture(GL_TEXTURE_2D, _name);
+		{
+			if(_type == Type2DArray)
+				glBindTexture(GL_TEXTURE_2D_ARRAY, _name);
+			else
+				glBindTexture(GL_TEXTURE_2D, _name);
+		}
 		
 		thread->PushTexture(this);
 	}
@@ -110,7 +119,12 @@ namespace RN
 			
 			Texture *other = thread->CurrentTexture();
 			if(other && other != this)
-				glBindTexture(GL_TEXTURE_2D, other->_name);
+			{
+				if(other->_type == Type2DArray)
+					glBindTexture(GL_TEXTURE_2D_ARRAY, other->_name);
+				else
+					glBindTexture(GL_TEXTURE_2D, other->_name);
+			}
 		}
 	}
 	
@@ -132,8 +146,16 @@ namespace RN
 					break;
 			}
 			
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode);
+			if(_type == Type2DArray)
+			{
+				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, mode);
+				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, mode);
+			}
+			else
+			{
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mode);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mode);
+			}
 			
 			RN_CHECKOPENGL();
 			
@@ -170,8 +192,16 @@ namespace RN
 					break;
 			}
 			
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+			if(_type == Type2DArray)
+			{
+				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, minFilter);
+				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, magFilter);
+			}
+			else
+			{
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+			}
 			
 			RN_CHECKOPENGL();
 			
@@ -212,10 +242,26 @@ namespace RN
 			
 			Bind();
 			
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, level);
+			if(_type == Type2DArray)
+			{
+				glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_ANISOTROPY, level);
+			}
+			else
+			{
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, level);
+			}
 			RN_CHECKOPENGL();
 			
 			Unbind();
+		}
+	}
+	
+	void Texture::SetDepth(uint32 depth)
+	{
+		if(_depth != depth)
+		{
+			_depth = depth;
+			_hasChanged = true;
 		}
 	}
 	
@@ -231,7 +277,10 @@ namespace RN
 		ConvertFormat(_format, _isLinear, &glFormat, &glInternalFormat, &glType);
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, width, height, 0, glFormat, glType, converted);
+		if(_type == Type2D)
+			glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, width, height, 0, glFormat, glType, converted);
+		else if(_type == Type2DArray)
+			glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, glInternalFormat, width, height, _depth, 0, glFormat, glType, converted);
 		
 		RN_CHECKOPENGL();
 		
@@ -263,7 +312,11 @@ namespace RN
 		ConvertFormat(_format, _isLinear, &glFormat, &glInternalFormat, &glType);
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, converted);
+		
+		if(_type == Type2D)
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, _width, _height, glFormat, glType, converted);
+		else if(_type == Type2DArray)
+			glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, _width, _height, _depth, glFormat, glType, converted);
 		
 		RN_CHECKOPENGL();
 		
@@ -280,6 +333,9 @@ namespace RN
 	{
 		if(!_isCompleteTexture)
 			return; // TODO: Throw an exception
+		
+		if(_type != Type2D)
+			return;
 		
 		GLenum glType, glFormat;
 		GLint glInternalFormat;
@@ -311,9 +367,12 @@ namespace RN
 		
 		Bind();
 		
-		glGenerateMipmap(GL_TEXTURE_2D);
-		_hasChanged = true;
+		if(_type == Type2D)
+			glGenerateMipmap(GL_TEXTURE_2D);
+		else if(_type == Type2DArray)
+			glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 		
+		_hasChanged = true;
 		Unbind();
 	}
 	

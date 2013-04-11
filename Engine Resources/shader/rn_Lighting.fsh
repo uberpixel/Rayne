@@ -21,19 +21,18 @@ uniform samplerBuffer lightSpotListData;
 uniform int lightDirectionalCount;
 uniform vec3 lightDirectionalDirection[10];
 uniform vec3 lightDirectionalColor[10];
-uniform sampler2DShadow lightDirectionalDepth;
+uniform sampler2DArrayShadow lightDirectionalDepth;
 
 uniform vec2 clipPlanes;
 
 uniform vec4 lightTileSize;
 in vec3 outLightNormal;
 in vec3 outLightPosition;
-in vec4 outDirLightProj;
+in vec4 outDirLightProj[4];
 
-float offset_lookup(sampler2DShadow map, vec4 loc, vec2 offset)
+float offset_lookup(sampler2DArrayShadow map, vec4 loc, vec2 offset)
 {
-	return textureProj(map, vec4(loc.xy + offset/1024.0/2.0 * loc.w,
-	loc.z, loc.w));
+	return texture(map, vec4(loc.xy+offset/1024.0/2.0, loc.wz));
 }
 
 vec4 rn_Lighting()
@@ -84,14 +83,20 @@ vec4 rn_Lighting()
 	
 	for(int i=0; i<lightDirectionalCount; i++)
 	{
-		float shadow = offset_lookup(lightDirectionalDepth, outDirLightProj, vec2(-0.5, -0.5));
-		shadow += offset_lookup(lightDirectionalDepth, outDirLightProj, vec2(-0.5, 0.5));
-		shadow += offset_lookup(lightDirectionalDepth, outDirLightProj, vec2(0.5, -0.5));
-		shadow += offset_lookup(lightDirectionalDepth, outDirLightProj, vec2(0.5, 0.5));
+		float comp = (clipPlanes.x * clipPlanes.y)/(clipPlanes.y-gl_FragCoord.z*(clipPlanes.y-clipPlanes.x));
+		
+		vec4  zGreater = vec4(lessThan(vec4(15.0, 30.0, 60.0, 150.0), vec4(comp)));
+		float   mapToUse = dot(zGreater, vec4(1.0f));
+		vec4 projected = vec4(outDirLightProj[int(mapToUse)].xyz/outDirLightProj[int(mapToUse)].w, mapToUse);
+		
+		float shadow = offset_lookup(lightDirectionalDepth, projected, vec2(-1.0, 0.0));
+		shadow += offset_lookup(lightDirectionalDepth, projected, vec2(1.0, 0.0));
+		shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, -1.0));
+		shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, 1.0));
 		
 		shadow *= 0.25;
 		
-		light += lightDirectionalColor[i]*max(dot(normal, lightDirectionalDirection[0]), 0.0)*shadow;
+		light = lightDirectionalColor[i]*max(dot(normal, lightDirectionalDirection[0]), 0.0)*shadow;
 	}
 	
 	return vec4(light, 1.0);

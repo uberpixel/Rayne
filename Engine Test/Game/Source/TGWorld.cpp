@@ -11,7 +11,7 @@
 #define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
-#define TGWorldFeatureFreeCamera    0
+#define TGWorldFeatureFreeCamera    1
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 95.0f
@@ -220,7 +220,7 @@ namespace TG
 		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
 		light = new RN::Light(RN::Light::TypeDirectionalLight);
-		light->SetPosition(RN::Vector3(0.0f, 150.0f, 0.0f));
+//		light->SetPosition(RN::Vector3(0.0f, 150.0f, 0.0f));
 		light->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, -70.0f)));
 		light->_lightcam = _camera;
 		light->SetShadow(true);

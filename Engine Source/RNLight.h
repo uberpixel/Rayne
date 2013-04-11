@@ -43,7 +43,7 @@ namespace RN
 		const float Angle() const { return _angle; }
 		const bool Shadow() const { return _shadow; }
 		
-		class Camera *_shadowcam;
+		Array<class Camera *>_shadowcams;
 		class Camera *_lightcam;
 	
 	private:

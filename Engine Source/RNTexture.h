@@ -51,6 +51,13 @@ namespace RN
 		
 		typedef enum
 		{
+			Type2D,
+			Type3D,
+			Type2DArray
+		} Type;
+		
+		typedef enum
+		{
 			WrapModeClamp,
 			WrapModeRepeat
 		} WrapMode;
@@ -61,7 +68,7 @@ namespace RN
 			FilterNearest
 		} Filter;
 		
-		RNAPI Texture(Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear, bool isLinear=false);
+		RNAPI Texture(Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear, bool isLinear=false, Type type=Type2D);
 		RNAPI Texture(const std::string& name, Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear, bool isLinear=false);
 		
 		static Texture *WithFile(const std::string& name, Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear, bool isLinear=false);
@@ -83,9 +90,11 @@ namespace RN
 		RNAPI void SetLinear(bool linear);
 		RNAPI void SetGeneratesMipmaps(bool genMipmaps);
 		RNAPI void SetAnisotropyLevel(uint32 level);
+		RNAPI void SetDepth(uint32 depth);
 		
 		Format TextureFormat() const { return _format; }
 		Filter TextureFilter() const { return _filter; }
+		Type TextureType() const { return _type; }
 		WrapMode TextureWrapMode() const { return _wrapMode; }
 		bool IsLinear() const { return _isLinear; }
 		bool GeneratesMipmaps() const { return _generateMipmaps; }
@@ -98,7 +107,7 @@ namespace RN
 		
 	protected:
 		GLuint _name;
-		uint32 _width, _height;
+		uint32 _width, _height, _depth;
 		
 	private:
 		static void *ConvertData(const void *data, uint32 width, uint32 height, Format current, Format target);
@@ -109,6 +118,7 @@ namespace RN
 		bool _hasChanged;
 		
 		Format _format;
+		Type _type;
 		Filter _filter;
 		WrapMode _wrapMode;
 		uint32 _anisotropy;
