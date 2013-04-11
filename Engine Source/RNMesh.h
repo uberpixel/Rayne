@@ -14,6 +14,8 @@
 #include "RNArray.h"
 #include "RNVector.h"
 #include "RNColor.h"
+#include "RNAABB.h"
+#include "RNSphere.h"
 
 namespace RN
 {
@@ -92,8 +94,8 @@ namespace RN
 		GLuint VBO() const { return _vbo; }
 		GLuint IBO() const { return _ibo; }
 		
-		const Vector3& Min() const { return _min; }
-		const Vector3& Max() const { return _max; }
+		const AABB& BoundingBox() const { return _boundingBox; }
+		const Sphere& BoundingSphere() const { return _boundingSphere; }
 		
 		RNAPI static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0, 1.0, 1.0), const Vector3& rotation = Vector3(0.0f, 0.0f, 0.0f));
 		RNAPI static Mesh *CubeMesh(const Vector3& size);
@@ -117,8 +119,8 @@ namespace RN
 		size_t _meshSize;
 		size_t _indicesSize;
 		
-		Vector3 _min;
-		Vector3 _max;
+		AABB _boundingBox;
+		Sphere _boundingSphere;
 		
 		void *_meshData;
 		void *_indices;

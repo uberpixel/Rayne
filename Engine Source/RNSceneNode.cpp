@@ -59,6 +59,11 @@ namespace RN
 	}
 	
 	
+	bool SceneNode::IsVisibleInCamera(Camera *camera)
+	{
+		return camera->InFrustum(WorldPosition(), _boundingSphere);
+	}
+	
 	
 	void SceneNode::AttachChild(SceneNode *child)
 	{

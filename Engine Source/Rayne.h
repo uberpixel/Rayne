@@ -30,11 +30,14 @@
 
 #include "RNArray.h"
 
+#include "RNAABB.h"
 #include "RNColor.h"
 #include "RNMatrixQuaternion.h"
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
+#include "RNSphere.h"
 #include "RNRect.h"
+
 #include "RNSceneNode.h"
 #include "RNVector.h"
 #include "RNInterpolation.h"

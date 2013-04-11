@@ -57,6 +57,8 @@ namespace RN
 				break;
 			}
 		}
+		
+		CalculateBoundingBox();
 	}
 	
 	Model::Model(Mesh *mesh, Material *material, const std::string& name)
@@ -170,10 +172,28 @@ namespace RN
 			
 		MeshGroup *group = new MeshGroup(mesh, material, name);
 		_groups[lodStage]->groups.push_back(group);
+		
+		if(lodStage == 0)
+		{
+			_boundingBox += mesh->BoundingBox();
+			_boundingSphere = Sphere(_boundingBox);
+		}
 	}
 	
 	void Model::RemoveMesh(Mesh *mesh, uint32 lodStage)
 	{
+	}
+	
+	void Model::CalculateBoundingBox()
+	{
+		_boundingBox = AABB();
+		
+		for(MeshGroup *group : _groups[0]->groups)
+		{
+			_boundingBox += group->mesh->BoundingBox();
+		}
+		
+		_boundingSphere = Sphere(_boundingBox);
 	}
 	
 	

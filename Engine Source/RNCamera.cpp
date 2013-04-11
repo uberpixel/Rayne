@@ -511,4 +511,14 @@ namespace RN
 
 		return true;
 	}
+	
+	bool Camera::InFrustum(const Vector3& origin, const Sphere& sphere)
+	{
+		return InFrustum(origin + sphere.origin, sphere.radius);
+	}
+	
+	bool Camera::IsVisibleInCamera(Camera *camera)
+	{
+		return true;
+	}
 }

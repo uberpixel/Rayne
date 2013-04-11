@@ -19,6 +19,7 @@
 #include "RNPlane.h"
 #include "RNColor.h"
 #include "RNModel.h"
+#include "RNSphere.h"
 
 namespace RN
 {
@@ -125,6 +126,9 @@ namespace RN
 		RNAPI Vector3 ToWorld(const Vector3& dir);
 		RNAPI void UpdateFrustum();
 		RNAPI bool InFrustum(const Vector3& position, float radius);
+		RNAPI bool InFrustum(const Vector3& origin, const Sphere& sphere);
+		
+		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
 		const Vector3& FrustumCenter() const { return _frustumCenter; }
 		float const FrustumRadius() const { return _frustumRadius; }

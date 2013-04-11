@@ -11,13 +11,18 @@
 
 #include "RNBase.h"
 #include "RNSceneNode.h"
+#include "RNAABB.h"
 
 namespace RN
 {
 	class Octree : public Object
 	{
 	public:
+		Octree();
+		virtual ~Octree();
 		
+		void AddNode(SceneNode *node);
+		void RemoveNode(SceneNode *node);
 		
 	private:
 		class OctreeNode
@@ -47,7 +52,7 @@ namespace RN
 			
 			Vector3 _min;
 			Vector3 _max;
-			Vector3 _size;
+			float _size;
 			
 			Array<SceneNode *> _nodes;
 			OctreeNode *_childs[8];

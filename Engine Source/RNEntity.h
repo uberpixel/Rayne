@@ -28,8 +28,6 @@ namespace RN
 		RNAPI Entity();
 		RNAPI virtual ~Entity();
 		
-		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
-		
 		RNAPI void SetModel(Model *model);
 		RNAPI void SetSkeleton(class Skeleton *skeleton);
 		

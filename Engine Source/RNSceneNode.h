@@ -15,6 +15,8 @@
 #include "RNQuaternion.h"
 #include "RNVector.h"
 #include "RNArray.h"
+#include "RNAABB.h"
+#include "RNSphere.h"
 
 namespace RN
 {
@@ -47,7 +49,17 @@ namespace RN
 		RNAPI virtual void SetWorldScale(const Vector3& scal);
 		RNAPI virtual void SetWorldRotation(const Quaternion& rot);
 		
-		virtual bool IsVisibleInCamera(Camera *camera) { return false; }
+		void SetBoundingBox(const AABB& boundingBox)
+		{
+			_boundingBox = boundingBox;
+		}
+		
+		void SetBoundingSphere(const Sphere& boundingSphere)
+		{
+			_boundingSphere = boundingSphere;
+		}
+		
+		virtual bool IsVisibleInCamera(Camera *camera);
 		
 		const Vector3& Position() const { return _position; }
 		const Vector3& Scale() const { return _scale; }
@@ -69,6 +81,9 @@ namespace RN
 		machine_uint Childs() const { return _childs.Count(); }
 		SceneNode *Parent() const { return _parent; }
 		FrameID LastFrame() const { return _lastFrame; }
+		
+		const AABB& BoundingBox() const { return _boundingBox; }
+		const Sphere& BoundingSphere() const { return _boundingSphere; }
 		
 		template<typename T=SceneNode>
 		T *ChildAtIndex(machine_uint index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
@@ -105,6 +120,9 @@ namespace RN
 		Vector3 _scale;
 		Quaternion _rotation;
 		Vector3 _euler;	//there has to be a way to fix this in the quaternion class somehow...
+		
+		AABB _boundingBox;
+		Sphere _boundingSphere;
 		
 	private:
 		World *_world;

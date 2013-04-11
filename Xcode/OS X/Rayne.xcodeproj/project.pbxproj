@@ -97,6 +97,7 @@
 		E9B03FEA16F2773A0016176B /* RNCacheable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9B03FE616F2773A0016176B /* RNCacheable.cpp */; };
 		E9B03FEB16F277600016176B /* RNModule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92A626816DEA8C1006E68AF /* RNModule.cpp */; };
 		E9B03FEC16F279E40016176B /* RNModule.h in Headers */ = {isa = PBXBuildFile; fileRef = E92A626916DEA8C1006E68AF /* RNModule.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9B083B5171724A0009AD83F /* RNSphere.h in Headers */ = {isa = PBXBuildFile; fileRef = E9B083B417172486009AD83F /* RNSphere.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9B1125D16797846001A0DA5 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9B1125C16797846001A0DA5 /* OpenGL.framework */; };
 		E9B1742A16CACA5A00732DCE /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9B1742816CACA5A00732DCE /* RNDebug.cpp */; };
 		E9B1742B16CACA5A00732DCE /* RNDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = E9B1742916CACA5A00732DCE /* RNDebug.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -104,6 +105,7 @@
 		E9C6F0A816B207E1006288D5 /* RNModel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C6F0A616B207E1006288D5 /* RNModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9C7DB271710D0F3006AD768 /* RNInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C7DB261710CE2C006AD768 /* RNInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9D4BF7B16EEAF8F00513938 /* RNError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D4BF7A16EEAF8F00513938 /* RNError.cpp */; };
+		E9D820A51717143B0080CD17 /* RNAABB.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D820A41717143B0080CD17 /* RNAABB.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9ECEEB916D7F0E700C6CF09 /* libjansson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ECEEB816D7F09800C6CF09 /* libjansson.a */; };
 		E9F6B5AC167FE6CF00EBE826 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9F6B5AB167FE6CF00EBE826 /* Cocoa.framework */; };
 		E9F77798169C5CF8006EE702 /* RNOpenGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */; };
@@ -238,6 +240,7 @@
 		E9B03FE416F2773A0016176B /* RNCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNCache.cpp; sourceTree = "<group>"; };
 		E9B03FE516F2773A0016176B /* RNCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNCache.h; sourceTree = "<group>"; };
 		E9B03FE616F2773A0016176B /* RNCacheable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNCacheable.cpp; sourceTree = "<group>"; };
+		E9B083B417172486009AD83F /* RNSphere.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSphere.h; sourceTree = "<group>"; };
 		E9B1125C16797846001A0DA5 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		E9B1742816CACA5A00732DCE /* RNDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDebug.cpp; sourceTree = "<group>"; };
 		E9B1742916CACA5A00732DCE /* RNDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDebug.h; sourceTree = "<group>"; };
@@ -245,6 +248,7 @@
 		E9C6F0A616B207E1006288D5 /* RNModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNModel.h; sourceTree = "<group>"; };
 		E9C7DB261710CE2C006AD768 /* RNInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNInterpolation.h; sourceTree = "<group>"; };
 		E9D4BF7A16EEAF8F00513938 /* RNError.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNError.cpp; sourceTree = "<group>"; };
+		E9D820A41717143B0080CD17 /* RNAABB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAABB.h; sourceTree = "<group>"; };
 		E9ECEEB316D7F09800C6CF09 /* jansson-osx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "jansson-osx.xcodeproj"; path = "../../Vendor/libjansson/jansson-osx.xcodeproj"; sourceTree = "<group>"; };
 		E9F6B5AB167FE6CF00EBE826 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenGL.cpp; sourceTree = "<group>"; };
@@ -420,6 +424,7 @@
 		E9F8070B169704F700773A34 /* Math */ = {
 			isa = PBXGroup;
 			children = (
+				E9D820A41717143B0080CD17 /* RNAABB.h */,
 				E9619DF91696157E00DA187E /* RNColor.h */,
 				E9C7DB261710CE2C006AD768 /* RNInterpolation.h */,
 				E9619E071696157E00DA187E /* RNMatrix.h */,
@@ -427,6 +432,7 @@
 				C050166E16C45BF100326514 /* RNPlane.h */,
 				E9619E131696157E00DA187E /* RNQuaternion.h */,
 				E9619E141696157E00DA187E /* RNRect.h */,
+				E9B083B417172486009AD83F /* RNSphere.h */,
 				E9619E231696157E00DA187E /* RNVector.h */,
 			);
 			name = Math;
@@ -557,6 +563,8 @@
 				E9C7DB271710D0F3006AD768 /* RNInterpolation.h in Headers */,
 				E957BAB51714DE7400AD7A54 /* RNOctree.h in Headers */,
 				E957BAB91714F61400AD7A54 /* RNSceneManager.h in Headers */,
+				E9D820A51717143B0080CD17 /* RNAABB.h in Headers */,
+				E9B083B5171724A0009AD83F /* RNSphere.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

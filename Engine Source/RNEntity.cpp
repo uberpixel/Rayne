@@ -29,17 +29,18 @@ namespace RN
 			_skeleton->Release();
 	}
 	
-	bool Entity::IsVisibleInCamera(Camera *camera)
-	{
-		return true;
-	}
-	
 	void Entity::SetModel(class Model *model)
 	{
 		if(_model)
 			_model->Release();
 		
 		_model = model ? model->Retain() : 0;
+		
+		if(_model)
+		{
+			SetBoundingBox(_model->BoundingBox());
+			SetBoundingSphere(_model->BoundingSphere());
+		}
 	}
 	
 	void Entity::SetSkeleton(class Skeleton *skeleton)

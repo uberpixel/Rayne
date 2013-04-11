@@ -36,13 +36,16 @@ namespace RN
 		if(TypeDirectionalLight)
 			return true;
 		
-		return camera->InFrustum(Position(), _range);
+		return SceneNode::IsVisibleInCamera(camera);
 	}
 	
 	
 	void Light::SetRange(float range)
 	{
 		_range = range;
+		
+		SetBoundingSphere(Sphere(Vector3(), range));
+		SetBoundingBox(AABB(Vector3(), range));
 	}
 	
 	void Light::SetColor(const Vector3& color)

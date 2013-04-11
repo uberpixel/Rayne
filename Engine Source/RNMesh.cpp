@@ -194,6 +194,9 @@ namespace RN
 				
 				for(int i=0; i<__kMaxMeshFeatures; i++)
 				{
+					if(i == kMeshFeatureVertices)
+						continue;
+					
 					if(_descriptor[i]._pointer)
 					{
 						free(_descriptor[i]._pointer);
@@ -207,8 +210,10 @@ namespace RN
 	
 	void Mesh::CalculateBoundingBox()
 	{
-		_min = Vector3();
-		_max = Vector3();
+		Vector3 min = Vector3();
+		Vector3 max = Vector3();
+		
+		bool wasDirty = _descriptor[kMeshFeatureVertices]._dirty;
 		
 		const Vector3 *vertices = Data<Vector3>(kMeshFeatureVertices);
 		if(vertices)
@@ -218,27 +223,21 @@ namespace RN
 			{
 				const Vector3 *vertex = vertices + i;
 				
-				if(_min.x > vertex->x)
-					_min.x = vertex->x;
+				min.x = MIN(vertex->x, min.x);
+				min.y = MIN(vertex->y, min.y);
+				min.z = MIN(vertex->z, min.z);
 				
-				if(_min.y > vertex->y)
-					_min.y = vertex->y;
-				
-				if(_min.z > vertex->z)
-					_min.z = vertex->z;
-				
-				if(_max.x < vertex->x)
-					_max.x = vertex->x;
-				
-				if(_max.y < vertex->y)
-					_max.y = vertex->y;
-				
-				if(_max.z < vertex->z)
-					_max.z = vertex->z;
+				max.x = MAX(vertex->x, max.x);
+				max.y = MAX(vertex->y, max.y);
+				max.z = MAX(vertex->z, max.z);
 			}
 		}
 		
-		ReleaseData(kMeshFeatureVertices);
+		_boundingBox = AABB(min, max);
+		_boundingSphere = Sphere(_boundingBox);
+		
+		_descriptor[kMeshFeatureVertices]._useCount --;
+		_descriptor[kMeshFeatureVertices]._dirty = wasDirty;
 	}
 	
 	void Mesh::GenerateMesh()
@@ -309,6 +308,7 @@ namespace RN
 		}
 		
 		glFlush();
+		CalculateBoundingBox();
 	}
 
 	bool Mesh::SupportsFeature(MeshFeature feature)
