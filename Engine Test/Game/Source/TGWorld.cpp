@@ -9,7 +9,7 @@
 #include "TGWorld.h"
 
 #define TGWorldFeatureLights        1
-#define TGWorldFeatureNormalMapping 0
+#define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureInstancing    0
 #define TGWorldFeatureFreeCamera    1
 
@@ -69,6 +69,10 @@ namespace TG
 		
 		_camera->Rotate(rotation);
 		_camera->TranslateLocal(translation * delta);
+		
+		rotation.x = (input->KeyPressed('e') - input->KeyPressed('q')) * 5.0f;
+		rotation.z = (input->KeyPressed('r') - input->KeyPressed('f')) * 2.0f;
+		_sunLight->Rotate(rotation);
 #endif
 	}
 	
@@ -300,19 +304,52 @@ namespace TG
 		ent->SetModel(ground);
 		ent->SetScale(RN::Vector3(20.0f));
 		
+		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
+		
 		RN::Model *building = RN::Model::WithFile("models/Sebastian/Old_Buildings.sgm");
 		ent = new RN::Entity();
 		ent->SetModel(building);
-//		ent->SetScale(RN::Vector3(0.2f));
+		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
 		
-		RN::Model *tree = RN::Model::WithFile("models/dexfuck/tree01.sgm");
+#if TGWorldFeatureNormalMapping && TGWorldFeatureLights
+		building->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/brick2-NM.png", RN::Texture::FormatRGBA8888));
+		building->MaterialAtIndex(0, 1)->SetShader(normalshader);
+		
+		building->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_A-NM.png", RN::Texture::FormatRGBA8888));
+		building->MaterialAtIndex(0, 2)->SetShader(normalshader);
+		
+		building->MaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_B-NM.png", RN::Texture::FormatRGBA8888));
+		building->MaterialAtIndex(0, 3)->SetShader(normalshader);
+		
+		building->MaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_C-NM.png", RN::Texture::FormatRGBA8888));
+		building->MaterialAtIndex(0, 4)->SetShader(normalshader);
+#endif
+		
+		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsDecals.sgm");
+		building->MaterialAtIndex(0, 0)->culling = false;
+		building->MaterialAtIndex(0, 0)->discard = true;
+		building->MaterialAtIndex(0, 0)->alphatest = true;
+		building->MaterialAtIndex(0, 1)->culling = false;
+		building->MaterialAtIndex(0, 1)->discard = true;
+		building->MaterialAtIndex(0, 1)->alphatest = true;
 		ent = new RN::Entity();
-		ent->SetModel(tree);
+		ent->SetModel(building);
+		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
+		
+		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsPlants.sgm");
+		building->MaterialAtIndex(0, 0)->culling = false;
+		building->MaterialAtIndex(0, 0)->discard = true;
+		building->MaterialAtIndex(0, 0)->alphatest = true;
+		ent = new RN::Entity();
+		ent->SetModel(building);
+		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
+		
+		RN::Model *tree = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
 		tree->MaterialAtIndex(0, 0)->culling = false;
 		tree->MaterialAtIndex(0, 0)->discard = true;
 		tree->MaterialAtIndex(0, 0)->alphatest = true;
-		tree->MaterialAtIndex(0, 0)->alphatestvalue = 0.3f;
-		tree->MaterialAtIndex(0, 2)->culling = false;
+		tree->MaterialAtIndex(0, 0)->alphatestvalue = 0.9f;
+/*		tree->MaterialAtIndex(0, 2)->culling = false;
 		tree->MaterialAtIndex(0, 2)->discard = true;
 		tree->MaterialAtIndex(0, 2)->alphatest = true;
 		tree->MaterialAtIndex(0, 3)->culling = false;
@@ -320,12 +357,28 @@ namespace TG
 		tree->MaterialAtIndex(0, 3)->alphatest = true;
 		tree->MaterialAtIndex(0, 3)->alphatestvalue = 0.3f;
 		
+		tree->MaterialAtIndex(1, 0)->culling = false;
+		tree->MaterialAtIndex(1, 0)->discard = true;
+		tree->MaterialAtIndex(1, 0)->alphatest = true;
+		tree->MaterialAtIndex(1, 0)->alphatestvalue = 0.3f;
+		tree->MaterialAtIndex(1, 2)->culling = false;
+		tree->MaterialAtIndex(1, 2)->discard = true;
+		tree->MaterialAtIndex(1, 2)->alphatest = true;
+		tree->MaterialAtIndex(1, 3)->culling = false;
+		tree->MaterialAtIndex(1, 3)->discard = true;
+		tree->MaterialAtIndex(1, 3)->alphatest = true;
+		
 		tree->MaterialAtIndex(2, 0)->culling = false;
 		tree->MaterialAtIndex(2, 0)->discard = true;
 		tree->MaterialAtIndex(2, 0)->alphatest = true;
-		tree->MaterialAtIndex(2, 0)->alphatestvalue = 0.3f;
+		tree->MaterialAtIndex(2, 0)->alphatestvalue = 0.3f;*/
 		
-		ent->SetPosition(RN::Vector3(-10.0f, 0.0f, 0.0f));
+		for(int i = 0; i < 200; i += 1)
+		{
+			ent = new RN::Entity();
+			ent->SetModel(tree);
+			ent->SetPosition(RN::Vector3(TGWorldRandom*(-100.0f)-10.0f, 0.0f, TGWorldRandom*(-100.0f)-10.0f));
+		}
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
@@ -354,10 +407,10 @@ namespace TG
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
-		light = new RN::Light(RN::Light::TypeDirectionalLight);
-		light->SetRotation(RN::Quaternion(RN::Vector3(60.0f, 0.0f, -60.0f)));
-		light->_lightcam = _camera;
-		light->SetShadow(true);
+		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
+		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, 0.0f, -60.0f)));
+		_sunLight->_lightcam = _camera;
+		_sunLight->SetShadow(true);
 		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));

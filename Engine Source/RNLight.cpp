@@ -68,7 +68,7 @@ namespace RN
 			{
 				RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
 				storage->SetDepthTarget(depthtex, i);
-				Camera *tempcam = new Camera(Vector2(512, 512), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
+				Camera *tempcam = new Camera(Vector2(1024), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
 				tempcam->SetMaterial(depthMaterial);
 				//AttachChild(_shadowcam);
 				tempcam->SetRotation(Rotation());
@@ -87,6 +87,7 @@ namespace RN
 		{
 			for(int i = 0; i < 4; i++)
 			{
+				_shadowcams.ObjectAtIndex(i)->SetRotation(Rotation());
 				_shadowcams.ObjectAtIndex(i)->MakeShadowSplit(_lightcam, this, 0.0f, 20.0f+20.0f*i*i);
 			}
 		}

@@ -41,7 +41,7 @@ vec4 rn_Lighting(vec3 normal, vec4 color, float specmask)
 	int lightindex = 0;
 	vec3 viewdir = viewPosition-outLightPosition;
 	
-	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
+/*	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 	ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
 	
 	for(int i=0; i<listoffset.y; i++)
@@ -61,9 +61,9 @@ vec4 rn_Lighting(vec3 normal, vec4 color, float specmask)
 		spec = max(dot(normal, halfvec), 0.0)*lightdot;
 		spec = pow(spec, 16.0);
 		lightspec += lightcolor*spec*attenuation;
-	}
+	}*/
 	
-	return color*vec4(light, 1.0)+vec4(lightspec, 0.0)*specmask;
+	return color;//*vec4(light, 1.0)+vec4(lightspec, 0.0)*specmask;
 }
 
 void main()
