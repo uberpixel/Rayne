@@ -31,6 +31,7 @@ namespace TG
 	private:
 		void CreateCameras();
 		void CreateWorld();
+		void CreateForest();
 		
 		RN::bullet::PhysicsWorld *_physicsAttachment;
 		

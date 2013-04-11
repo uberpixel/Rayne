@@ -24,7 +24,8 @@ namespace TG
 		AddAttachment(_physicsAttachment->Autorelease());
 		
 		CreateCameras();
-		CreateWorld();
+//		CreateWorld();
+		CreateForest();
 		
 		RN::Input::SharedInstance()->Activate();
 	}
@@ -289,4 +290,138 @@ namespace TG
 		}
 #endif
 	}
+	
+	
+	void World::CreateForest()
+	{
+		// Ground
+		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
+		RN::Entity *ent = new RN::Entity();
+		ent->SetModel(ground);
+		ent->SetScale(RN::Vector3(20.0f));
+		
+		RN::Model *building = RN::Model::WithFile("models/Sebastian/Old_Buildings.sgm");
+		ent = new RN::Entity();
+		ent->SetModel(building);
+//		ent->SetScale(RN::Vector3(0.2f));
+		
+		RN::Model *tree = RN::Model::WithFile("models/dexfuck/tree01.sgm");
+		ent = new RN::Entity();
+		ent->SetModel(tree);
+		tree->MaterialAtIndex(0, 0)->culling = false;
+		tree->MaterialAtIndex(0, 0)->discard = true;
+		tree->MaterialAtIndex(0, 0)->alphatest = true;
+		tree->MaterialAtIndex(0, 0)->alphatestvalue = 0.3f;
+		tree->MaterialAtIndex(0, 2)->culling = false;
+		tree->MaterialAtIndex(0, 2)->discard = true;
+		tree->MaterialAtIndex(0, 2)->alphatest = true;
+		tree->MaterialAtIndex(0, 3)->culling = false;
+		tree->MaterialAtIndex(0, 3)->discard = true;
+		tree->MaterialAtIndex(0, 3)->alphatest = true;
+		tree->MaterialAtIndex(0, 3)->alphatestvalue = 0.3f;
+		
+		tree->MaterialAtIndex(2, 0)->culling = false;
+		tree->MaterialAtIndex(2, 0)->discard = true;
+		tree->MaterialAtIndex(2, 0)->alphatest = true;
+		tree->MaterialAtIndex(2, 0)->alphatestvalue = 0.3f;
+		
+		ent->SetPosition(RN::Vector3(-10.0f, 0.0f, 0.0f));
+		
+#if !TGWorldFeatureFreeCamera
+		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
+		RN::Skeleton *playerSkeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
+		playerSkeleton->SetAnimation("cammina");
+		
+		_player = new Player();
+		_player->SetModel(playerModel);
+		_player->SetSkeleton(playerSkeleton);
+		_player->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
+		
+		_camera->SetTarget(_player);
+#endif
+		
+#if TGWorldFeatureLights
+		RN::Light *light;
+		//srand(time(0));
+		
+		light = new RN::Light();
+		light->SetPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
+		light->SetRange(80.0f);
+		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		
+		light = new RN::Light();
+		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
+		light->SetRange(80.0f);
+		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		
+		light = new RN::Light(RN::Light::TypeDirectionalLight);
+		light->SetRotation(RN::Quaternion(RN::Vector3(60.0f, 0.0f, -60.0f)));
+		light->_lightcam = _camera;
+		light->SetShadow(true);
+		
+		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
+		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
+		_spotLight->SetRange(TGWorldSpotLightRange);
+		_spotLight->SetAngle(0.9f);
+		_spotLight->SetColor(RN::Vector3(0.5f));
+		
+#if TGWorldFeatureFreeCamera
+		_camera->AttachChild(_spotLight);
+#else
+		_player->AttachChild(_spotLight);
+#endif
+		
+		for(int i=0; i<200; i++)
+		{
+			light = new RN::Light();
+			light->SetPosition(RN::Vector3(TGWorldRandom * 140.0f - 70.0f, TGWorldRandom * 100.0f-20.0f, TGWorldRandom * 80.0f - 40.0f));
+			light->SetRange((TGWorldRandom * 20.0f) + 10.0f);
+			light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+			
+			/*light->SetAction([](RN::Transform *transform, float delta) {
+			 transform->Translate(RN::Vector3(0.5f * delta, 0.0f, 0.0));
+			 });*/
+		}
+#endif
+		
+#if TGWorldFeatureInstancing
+		RN::Model *foliage[4];
+		
+		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
+		foliage[0]->MaterialAtIndex(0, 0)->culling = false;
+		foliage[0]->MaterialAtIndex(0, 0)->discard = true;
+		foliage[0]->MaterialAtIndex(0, 0)->alphatest = true;
+		
+		foliage[1] = RN::Model::WithFile("models/nobiax/grass_05.sgm");
+		foliage[1]->MaterialAtIndex(0, 0)->culling = false;
+		foliage[1]->MaterialAtIndex(0, 0)->discard = true;
+		foliage[1]->MaterialAtIndex(0, 0)->alphatest = true;
+		
+		foliage[2] = RN::Model::WithFile("models/nobiax/grass_19.sgm");
+		foliage[2]->MaterialAtIndex(0, 0)->culling = false;
+		foliage[2]->MaterialAtIndex(0, 0)->discard = true;
+		foliage[2]->MaterialAtIndex(0, 0)->alphatest = true;
+		
+		foliage[3] = RN::Model::WithFile("models/nobiax/grass_04.sgm");
+		foliage[3]->MaterialAtIndex(0, 0)->culling = false;
+		foliage[3]->MaterialAtIndex(0, 0)->discard = true;
+		foliage[3]->MaterialAtIndex(0, 0)->alphatest = true;
+		
+		uint32 index = 0;
+		
+		for(float x = -100.0f; x < 200.0f; x += 1.5f)
+		{
+			for(float y = -10.0f; y < 10.0f; y += 1.0f)
+			{
+				index = (index + 1) % 4;
+				
+				RN::Entity *fern = new RN::Entity();
+				fern->SetModel(foliage[index]);
+				fern->Rotate(RN::Vector3(0.0, 0.0, -90.0));
+				fern->SetPosition(RN::Vector3(x, -13.3, y));
+			}
+		}
+#endif
+	}
+
 }

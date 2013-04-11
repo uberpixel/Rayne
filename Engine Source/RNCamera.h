@@ -113,6 +113,7 @@ namespace RN
 		RNAPI void SetSkyCube(Model *skycube);
 		RNAPI void SetMaxLightsPerTile(machine_uint lights);
 		RNAPI void SetCameraFlags(Flags flags);
+		RNAPI void SetLODCamera(Camera *camera);
 		
 		RNAPI void AddStage(Camera *stage);
 		RNAPI void InsertStage(Camera *stage);
@@ -141,6 +142,7 @@ namespace RN
 		Material *Material() const { return _material; }
 		Camera *Stage() const { return _stage; }
 		Flags CameraFlags() const { return _flags; }
+		Camera *LODCamera() const { return _lodCamera; }
 		
 		Vector2 LightTiles() const { return _lightTiles; }
 		Model *SkyCube() const { return _skycube; }
@@ -198,6 +200,7 @@ namespace RN
 		class Material *_material;
 		RenderStorage *_storage;
 		Camera *_stage;
+		Camera *_lodCamera;
 		
 		Texture *_depthTiles;
 		Model *_skycube;

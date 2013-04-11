@@ -128,6 +128,7 @@ namespace RN
 		_maxLights = 500;
 		
 		_allowDepthWrite = true;
+		_lodCamera = 0;
 		
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
 		_colorMask = ColorFlagRed | ColorFlagGreen | ColorFlagBlue | ColorFlagAlpha;
@@ -267,6 +268,11 @@ namespace RN
 	void Camera::SetCameraFlags(Flags flags)
 	{
 		_flags = flags;
+	}
+	
+	void Camera::SetLODCamera(Camera *camera)
+	{
+		_lodCamera = camera;
 	}
 	
 	// Stages

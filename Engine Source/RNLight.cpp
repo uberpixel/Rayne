@@ -61,18 +61,19 @@ namespace RN
 			Shader *depthShader = Shader::WithFile("shader/rn_LightDepth");
 			Material *depthMaterial = new Material(depthShader);
 			
-			Texture *depthtex = new Texture(Texture::FormatDepthStencil, Texture::WrapModeRepeat, Texture::FilterLinear, false, Texture::Type2DArray);
+			Texture *depthtex = new Texture(Texture::FormatDepth, Texture::WrapModeRepeat, Texture::FilterLinear, false, Texture::Type2DArray);
 			depthtex->SetDepth(4);
 			
 			for(int i = 0; i < 4; i++)
 			{
-				RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatComplete);
+				RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
 				storage->SetDepthTarget(depthtex, i);
-				storage->AddRenderTarget(Texture::FormatRGBA8888);
-				Camera *tempcam = new Camera(Vector2(1024, 1024), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
+				Camera *tempcam = new Camera(Vector2(512, 512), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
 				tempcam->SetMaterial(depthMaterial);
 				//AttachChild(_shadowcam);
 				tempcam->SetRotation(Rotation());
+				tempcam->SetLODCamera(_lightcam);
+				tempcam->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
 				
 				_shadowcams.AddObject(tempcam);
 			}

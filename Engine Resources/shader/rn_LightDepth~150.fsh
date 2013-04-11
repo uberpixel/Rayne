@@ -23,6 +23,5 @@ void main()
 	rn_Discard(color0);
 #endif
 
-//	fragColor0 = vec4(vec3(gl_FragCoord.z), 1.0);
-	fragColor0 = vec4(outTexcoord, 0.0, 1.0);
+	fragColor0 = vec4(vec3(gl_FragCoord.z), 1.0);
 }

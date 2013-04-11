@@ -521,8 +521,8 @@ namespace RN
 					Camera *cam = light->_shadowcams.ObjectAtIndex(i);
 				
 					Matrix matProj = cam->projectionMatrix;
-					float delta = 0.1f;
-					float pz = 2.0f;
+					float delta = 70.0f*(i*i*2+1);
+					float pz = 100.0f;
 					float epsilon = -2.0f * cam->clipfar * cam->clipnear * delta / ((cam->clipfar + cam->clipnear) * pz * (pz + delta));
 					matProj.m[10] *= 1.0f + epsilon;
 					

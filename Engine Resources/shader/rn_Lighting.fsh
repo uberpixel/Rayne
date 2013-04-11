@@ -24,6 +24,7 @@ uniform vec3 lightDirectionalColor[10];
 uniform sampler2DArrayShadow lightDirectionalDepth;
 
 uniform vec2 clipPlanes;
+uniform vec4 frameSize;
 
 uniform vec4 lightTileSize;
 in vec3 outLightNormal;
@@ -32,7 +33,7 @@ in vec4 outDirLightProj[4];
 
 float offset_lookup(sampler2DArrayShadow map, vec4 loc, vec2 offset)
 {
-	return texture(map, vec4(loc.xy+offset/1024.0/2.0, loc.wz));
+	return texture(map, vec4(loc.xy+offset*frameSize.xy, loc.wz));
 }
 
 vec4 rn_Lighting()
@@ -96,7 +97,7 @@ vec4 rn_Lighting()
 		
 		shadow *= 0.25;
 		
-		light = lightDirectionalColor[i]*max(dot(normal, lightDirectionalDirection[0]), 0.0)*shadow;
+		light += lightDirectionalColor[i]*max(dot(normal, lightDirectionalDirection[i]), 0.0)*shadow;
 	}
 	
 	return vec4(light, 1.0);

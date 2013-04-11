@@ -50,8 +50,18 @@ namespace RN
 				Entity *entity = static_cast<Entity *>(transform);
 				if(entity->Model())
 				{
-					float distance = entity->WorldPosition().Distance(camera->WorldPosition());
-					distance /= camera->clipfar;
+					float distance = 0.0f;
+					Camera *lodcam = camera->LODCamera();
+					if(lodcam)
+					{
+						distance = entity->WorldPosition().Distance(lodcam->WorldPosition());
+						distance /= lodcam->clipfar;
+					}
+					else
+					{
+						distance = entity->WorldPosition().Distance(camera->WorldPosition());
+						distance /= camera->clipfar;
+					}
 					
 					Model *model = entity->Model();
 					uint32 lodStage = model->LODStageForDistance(distance);
