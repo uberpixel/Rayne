@@ -30,6 +30,9 @@
 
 #include "RNArray.h"
 
+#include "RNMath.h"
+#include "RNSIMD.h"
+
 #include "RNAABB.h"
 #include "RNColor.h"
 #include "RNMatrixQuaternion.h"

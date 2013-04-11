@@ -29,10 +29,10 @@ namespace RN
 		{
 		public:
 			OctreeNode(OctreeNode *parent, const Vector3& min, const Vector3& max) :
-				_min(min),
-				_max(max)
+				_boundingBox(AABB(min, max))
 			{
 				_parent = parent;
+				_size = _boundingBox.halfWidth.x * 2;
 				
 				for(int i=0; i<8; i++)
 				{
@@ -50,8 +50,7 @@ namespace RN
 			}
 			
 			
-			Vector3 _min;
-			Vector3 _max;
+			AABB  _boundingBox;
 			float _size;
 			
 			Array<SceneNode *> _nodes;

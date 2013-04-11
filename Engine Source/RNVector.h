@@ -250,7 +250,7 @@ namespace RN
 
 	RN_INLINE float Vector2::Length() const
 	{
-		return sqrtf(x * x + y * y);
+		return Math::Sqrt(x * x + y * y);
 	}
 
 	RN_INLINE float Vector2::Dot(const Vector2& other) const
@@ -399,7 +399,7 @@ namespace RN
 
 	RN_INLINE float Vector3::Length() const
 	{
-		return sqrtf(x * x + y * y + z * z);
+		return Math::Sqrt(x * x + y * y + z * z);
 	}
 
 	RN_INLINE float Vector3::Dot(const Vector3& other) const
@@ -587,7 +587,7 @@ namespace RN
 
 	RN_INLINE float Vector4::Length() const
 	{
-		return sqrtf(x * x + y * y + z * z + w * w);
+		return Math::Sqrt(x * x + y * y + z * z + w * w);
 	}
 
 	RN_INLINE float Vector4::Dot (const Vector4& other) const

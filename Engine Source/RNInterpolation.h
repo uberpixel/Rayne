@@ -92,15 +92,15 @@ namespace RN
 					
 				// Sinusoidal easing
 				case InterpolationTypeSinusoidalEaseIn:
-					return _startValue + (-_difference * cos(time / _duration * M_PI_2) + _difference);
+					return _startValue + (-_difference * Math::Cos(time / _duration * kRNPI_2) + _difference);
 					break;
 				
 				case InterpolationTypeSinusoidalEaseOut:
-					return _startValue + (_difference * sin(time / _duration * M_PI_2));
+					return _startValue + (_difference * Math::Sin(time / _duration * kRNPI_2));
 					break;
 					
 				case InterpolationTypeSinusoidalEaseInOut:
-					return _startValue + (-_difference / 2.0 * (cos(M_PI * time / _duration) - 1.0));
+					return _startValue + (-_difference / 2.0 * (Math::Cos(kRNPI * time / _duration) - 1.0));
 					break;
 					
 				// Exponential easing
@@ -126,23 +126,23 @@ namespace RN
 				case InterpolationTypeCircularEaseIn:
 				{
 					TimeType t = time / _duration;
-					return _startValue + (-_difference * (sqrt(1.0 - t * t) - 1.0));
+					return _startValue + (-_difference * (Math::Sqrt(1.0 - t * t) - 1.0));
 				}
 					
 				case InterpolationTypeCircularEaseOut:
 				{
 					TimeType t = (time / _duration) - 1.0;
-					return _startValue + (_difference * sqrt(1.0 - t * t));
+					return _startValue + (_difference * Math::Sqrt(1.0 - t * t));
 				}
 					
 				case InterpolationTypeCircularEaseInOut:
 				{
 					TimeType t = time / (_duration / 2.0);
 					if(t < 1.0)
-						return _startValue + (-_difference / 2.0 * (sqrt(1.0 - t * t) - 1.0));
+						return _startValue + (-_difference / 2.0 * (Math::Sqrt(1.0 - t * t) - 1.0));
 					
 					t -= 2.0;
-					return _startValue + (_difference / 2.0 * (sqrt(1.0 - t * t) + 1.0));
+					return _startValue + (_difference / 2.0 * (Math::Sqrt(1.0 - t * t) + 1.0));
 				}
 				
 				// Cubic easing
