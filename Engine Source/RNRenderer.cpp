@@ -216,7 +216,7 @@ namespace RN
 		
 		if(_currentProgram->viewPosition != -1)
 		{
-			const Vector3& position = _currentCamera->Position();
+			const Vector3& position = _currentCamera->WorldPosition();
 			glUniform3fv(_currentProgram->viewPosition, 1, &position.x);
 		}
 	}
@@ -290,10 +290,10 @@ namespace RN
 		Vector3 dirx = (corner2-corner1) / tilesWidth;
 		Vector3 diry = (corner3-corner1) / tilesHeight;
 		
-		const Vector3& camPosition = camera->Position();
+		const Vector3& camPosition = camera->WorldPosition();
 		float *depthArray = camera->DepthArray();
 		
-		Vector3 camdir = camera->Rotation().RotateVector(RN::Vector3(0.0, 0.0, -1.0));
+		Vector3 camdir = camera->WorldRotation().RotateVector(RN::Vector3(0.0, 0.0, -1.0));
 		Vector3 far = camera->ToWorld(Vector3(1.0f, 1.0f, 1.0f));
 		far = far-camPosition;
 		
@@ -875,7 +875,7 @@ namespace RN
 		uint32 skyCubeMeshes = 0;
 		
 		Matrix cameraRotation;
-		cameraRotation.MakeRotate(camera->Rotation());
+		cameraRotation.MakeRotate(camera->WorldRotation());
 		
 		if(skyCube)
 		{
