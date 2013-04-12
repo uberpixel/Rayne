@@ -33,6 +33,7 @@
 #include "RNMath.h"
 #include "RNSIMD.h"
 #include "RNCPU.h"
+#include "RNMemory.h"
 
 #include "RNAABB.h"
 #include "RNColor.h"
