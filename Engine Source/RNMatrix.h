@@ -22,6 +22,29 @@ namespace RN
 
 	RN_INLINE Matrix& Matrix::operator*= (const Matrix& other)
 	{
+#if RN_SIMD
+		__m128 left, right, result;
+		float alignas(16) tmp[16];
+		
+		for(int i=0; i<16; i+=4)
+		{
+			left  = _mm_load_ps(m);
+			right = _mm_set1_ps(other.m[i]);
+			result = _mm_mul_ps(left, right);
+			
+			for(int j=1; j<4; j++)
+			{
+				left  = _mm_load_ps(&m[j * 4]);
+				right = _mm_set1_ps(other.m[i + j]);
+				
+				result = _mm_add_ps(_mm_mul_ps(left, right), result);
+			}
+			
+			_mm_store_ps(&tmp[i], result);
+		}
+		
+		std::copy(tmp, tmp + 16, m);
+#else
 		float tmp[16];
 		
 		tmp[ 0] = m[ 0] * other.m[ 0] + m[ 4] * other.m[ 1] + m[ 8] * other.m[ 2] + m[12] * other.m[ 3];
@@ -45,6 +68,8 @@ namespace RN
 		tmp[15] = m[ 3] * other.m[12] + m[ 7] * other.m[13] + m[11] * other.m[14] + m[15] * other.m[15];
 		
 		std::copy(tmp, tmp + 16, m);
+#endif
+		
 		return *this;
 	}
 
@@ -52,6 +77,29 @@ namespace RN
 	{
 		Matrix matrix;
 		
+#if RN_SIMD
+		__m128 left, right, result;
+		float alignas(16) tmp[16];
+		
+		for(int i=0; i<16; i+=4)
+		{
+			left  = _mm_load_ps(m);
+			right = _mm_set1_ps(other.m[i]);
+			result = _mm_mul_ps(left, right);
+			
+			for(int j=1; j<4; j++)
+			{
+				left  = _mm_load_ps(&m[j * 4]);
+				right = _mm_set1_ps(other.m[i + j]);
+				
+				result = _mm_add_ps(_mm_mul_ps(left, right), result);
+			}
+			
+			_mm_store_ps(&tmp[i], result);
+		}
+		
+		std::copy(tmp, tmp + 16, matrix.m);
+#else
 		matrix.m[ 0] = m[ 0] * other.m[ 0] + m[ 4] * other.m[ 1] + m[ 8] * other.m[ 2] + m[12] * other.m[ 3];
 		matrix.m[ 1] = m[ 1] * other.m[ 0] + m[ 5] * other.m[ 1] + m[ 9] * other.m[ 2] + m[13] * other.m[ 3];
 		matrix.m[ 2] = m[ 2] * other.m[ 0] + m[ 6] * other.m[ 1] + m[10] * other.m[ 2] + m[14] * other.m[ 3];
@@ -71,7 +119,8 @@ namespace RN
 		matrix.m[13] = m[ 1] * other.m[12] + m[ 5] * other.m[13] + m[ 9] * other.m[14] + m[13] * other.m[15];
 		matrix.m[14] = m[ 2] * other.m[12] + m[ 6] * other.m[13] + m[10] * other.m[14] + m[14] * other.m[15];
 		matrix.m[15] = m[ 3] * other.m[12] + m[ 7] * other.m[13] + m[11] * other.m[14] + m[15] * other.m[15];
-
+#endif
+		
 		return matrix;
 	}
 
@@ -99,12 +148,6 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE Matrix& Matrix::operator= (const Matrix& other)
-	{
-		std::copy(other.m, other.m + 16, m);
-		return *this;
-	}
-
 	RN_INLINE Matrix Matrix::Inverse() const
 	{
 		Matrix matrix;

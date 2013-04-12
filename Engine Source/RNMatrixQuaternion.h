@@ -15,12 +15,11 @@
 namespace RN
 {
 	class Quaternion;
-	class Matrix
+	class alignas(16) Matrix
 	{
 	public:
 		RNAPI Matrix();
 
-		RNAPI Matrix& operator= (const Matrix& other);
 		RNAPI Matrix& operator*= (const Matrix& other);
 		RNAPI Matrix operator* (const Matrix& other) const;
 		RNAPI Vector3 operator* (const Vector3& other) const;
@@ -132,10 +131,9 @@ namespace RN
 		};
 	};
 
-#ifndef __GNUG__
+
 	static_assert(std::is_trivially_copyable<Matrix>::value, "Matrix must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Quaternion>::value, "Quaternion must be trivially copyable");
-#endif
 }
 
 #endif /* __RAYNE_MATRIXQUATERNION_H__ */
