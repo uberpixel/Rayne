@@ -12,17 +12,23 @@
 #include <Rayne.h>
 #include <RBKinematicController.h>
 
+#include "TGThirdPersonCamera.h"
+
 namespace TG
 {
 	class Player : public RN::bullet::KinematicController
 	{
 	public:
-		Player();
+		Player(RN::Model *model);
 		virtual ~Player();
 		
 		void Update(float delta);
+		void SetCamera(ThirdPersonCamera *camera) { _camera = camera; }
 		
-		RNDefineMeta(Player, RN::bullet::KinematicController)
+	private:
+		ThirdPersonCamera *_camera;
+		
+		RNDefineConstructorlessMeta(Player, RN::bullet::KinematicController)
 	};
 }
 

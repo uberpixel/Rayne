@@ -198,10 +198,10 @@ namespace TG
 		RN::Skeleton *playerSkeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
 		playerSkeleton->SetAnimation("cammina");
 		
-		_player = new Player();
-		_player->SetModel(playerModel);
+		_player = new Player(playerModel);
 		_player->SetSkeleton(playerSkeleton);
 		_player->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
+		_player->SetCamera(_camera);
 		
 		_camera->SetTarget(_player);
 #endif

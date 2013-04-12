@@ -23,9 +23,13 @@ namespace TG
 		virtual void Update(float delta);
 		virtual bool CanUpdate(FrameID frame);
 		
+		void SetPitch(float pitch) { _pitch = pitch; }
+		float Pitch() const { return _pitch; }
+		
 	private:
 		RN::Entity *_target;
 		float _distance;
+		float _pitch;
 		
 		RNDefineConstructorlessMeta(ThirdPersonCamera, RN::Camera)
 	};

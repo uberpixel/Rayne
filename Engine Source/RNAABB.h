@@ -31,6 +31,9 @@ namespace RN
 		bool Intersects(const AABB& other);
 		bool Contains(const AABB& other);
 		
+		float Width() const { return halfWidth.x * 2.0f; }
+		float Height() const { return halfWidth.y * 2.0f; }
+		
 		Vector3 origin;
 		Vector3 halfWidth;
 	};
