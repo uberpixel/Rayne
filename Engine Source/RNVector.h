@@ -681,6 +681,20 @@ namespace RN
 			return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(simd, simd, 0xFF)));
 		}
 	#endif
+		
+	#ifdef __SSE3__
+		if(X86_64::Caps() & X86_64::CAP_SSE3)
+		{
+			float result;
+			
+			SIMD::VecFloat r1 = SIMD::Mul(simd, simd);
+			SIMD::VecFloat r2 = _mm_shuffle_ps(r1, r1, _MM_SHUFFLE(1, 2, 3, 0));
+			SIMD::VecFloat r3 = _mm_shuffle_ps(r1, r1, _MM_SHUFFLE(2, 3, 0, 1));
+			
+			SIMD::StoreX(_mm_sqrt_ss(SIMD::Add(r3, SIMD::Add(r1, r2))), &result);
+			return result;
+		}
+	#endif
 #endif
 		
 		return Math::Sqrt(x * x + y * y + z * z + w * w);
@@ -693,6 +707,20 @@ namespace RN
 		if(X86_64::Caps() & X86_64::CAP_SSE41)
 		{
 			return _mm_cvtss_f32(_mm_dp_ps(simd, other.simd, 0xFF));
+		}
+	#endif
+		
+	#ifdef __SSE3__
+		if(X86_64::Caps() & X86_64::CAP_SSE3)
+		{
+			float result;
+			SIMD::VecFloat r1 = SIMD::Mul(simd, other.simd);
+			SIMD::VecFloat r2 = SIMD::Hadd(r1, r1);
+			SIMD::VecFloat r3 = SIMD::Hadd(r2, r2);
+			
+			SIMD::StoreX(r3, &result);
+			return result;
+
 		}
 	#endif
 #endif

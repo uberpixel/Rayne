@@ -15,12 +15,13 @@
 	#undef RN_SIMD
 	#define RN_SIMD 1
 
-	#include <xmmintrin.h>
+	#include <x86intrin.h>
 
-	#ifdef __SSE4_1__
-		#include <smmintrin.h>
-	#else
-		#warning "Please enable compiler support for SSE 4.1"
+	#ifndef __SSE4_1__
+		#warning "Please enable compiler support for SSE 4.1 intrinsics"
+	#endif
+	#ifndef __SSE3__
+		#warning "Please enable compiler support for SSE 3 intrinsics"
 	#endif
 #endif
 
@@ -174,12 +175,21 @@ namespace RN
 #endif
 		}
 		
+		static inline VecFloat Hadd(const VecFloat& v1, const VecFloat& v2)
+		{
+#ifdef __SSE3__
+			return _mm_hadd_ps(v1, v2);
+#endif
+		}
+		
+		
 		static inline VecFloat AddScalar(const VecFloat& v1, const VecFloat& v2)
 		{
 #if __SSE__
 			return _mm_add_ss(v1, v2);
 #endif
 		}
+		
 		
 		static inline VecFloat Sub(const VecFloat& v1, const VecFloat& v2)
 		{
