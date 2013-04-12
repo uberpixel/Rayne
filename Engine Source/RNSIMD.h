@@ -278,6 +278,13 @@ namespace RN
 #endif
 		}
 		
+		static inline VecFloat Set(float value)
+		{
+#if __SSE__
+			return _mm_set1_ps(value);
+#endif
+		}
+		
 		
 		static inline VecFloat PositiveFloor(const VecFloat& v)
 		{

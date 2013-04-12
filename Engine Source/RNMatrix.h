@@ -23,24 +23,24 @@ namespace RN
 	RN_INLINE Matrix& Matrix::operator*= (const Matrix& other)
 	{
 #if RN_SIMD
-		__m128 left, right, result;
 		float alignas(16) tmp[16];
+		SIMD::VecFloat left, right, result;
 		
 		for(int i=0; i<16; i+=4)
 		{
-			left  = _mm_load_ps(m);
-			right = _mm_set1_ps(other.m[i]);
-			result = _mm_mul_ps(left, right);
+			left  = SIMD::Load(m);
+			right = SIMD::Set(other.m[i]);
+			result = SIMD::Mul(left, right);
 			
 			for(int j=1; j<4; j++)
 			{
-				left  = _mm_load_ps(&m[j * 4]);
-				right = _mm_set1_ps(other.m[i + j]);
+				left  = SIMD::Load(&m[j * 4]);
+				right = SIMD::Set(other.m[i + j]);
 				
-				result = _mm_add_ps(_mm_mul_ps(left, right), result);
+				result = SIMD::Add(SIMD::Mul(left, right), result);
 			}
 			
-			_mm_store_ps(&tmp[i], result);
+			SIMD::Store(result, &tmp[i]);
 		}
 		
 		std::copy(tmp, tmp + 16, m);
@@ -78,24 +78,24 @@ namespace RN
 		Matrix matrix;
 		
 #if RN_SIMD
-		__m128 left, right, result;
 		float alignas(16) tmp[16];
+		SIMD::VecFloat left, right, result;
 		
 		for(int i=0; i<16; i+=4)
 		{
-			left  = _mm_load_ps(m);
-			right = _mm_set1_ps(other.m[i]);
-			result = _mm_mul_ps(left, right);
+			left  = SIMD::Load(m);
+			right = SIMD::Set(other.m[i]);
+			result = SIMD::Mul(left, right);
 			
 			for(int j=1; j<4; j++)
 			{
-				left  = _mm_load_ps(&m[j * 4]);
-				right = _mm_set1_ps(other.m[i + j]);
+				left  = SIMD::Load(&m[j * 4]);
+				right = SIMD::Set(other.m[i + j]);
 				
-				result = _mm_add_ps(_mm_mul_ps(left, right), result);
+				result = SIMD::Add(SIMD::Mul(left, right), result);
 			}
 			
-			_mm_store_ps(&tmp[i], result);
+			SIMD::Store(result, &tmp[i]);
 		}
 		
 		std::copy(tmp, tmp + 16, matrix.m);
