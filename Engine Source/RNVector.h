@@ -117,7 +117,7 @@ namespace RN
 		RNAPI Vector4(const SIMD::VecFloat& other);
 		RNAPI Vector4& operator= (const SIMD::VecFloat& other);
 		
-		RN_INLINE void* operator new[](size_t size) { return Memory::AllocateSIMD(size); }
+		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
 		RN_INLINE void operator delete[](void *ptr) { if(ptr) Memory::FreeSIMD(ptr); }
 #endif
 		

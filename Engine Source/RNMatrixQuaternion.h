@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNVector.h"
+#include "RNSIMD.h"
 
 namespace RN
 {
@@ -55,8 +56,19 @@ namespace RN
 		RNAPI Vector4 Transform(const Vector4& other) const;
 
 		RNAPI Matrix Inverse() const;
-
+	
+#if RN_SIMD
+		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
+		RN_INLINE void operator delete[](void *ptr) { if(ptr) Memory::FreeSIMD(ptr); }
+		
+		union
+		{
+			float m[16];
+			Vector4 vec[4];
+		};
+#else
 		float m[16];
+#endif
 	};
 
 	class Quaternion
