@@ -72,21 +72,10 @@ namespace RN
 	
 	RN_INLINE AABB AABB::operator+ (const Vector3& other) const
 	{
-		Vector3 min;
-		Vector3 max;
+		AABB result(*this);
+		result.origin += other;
 		
-		Vector3 tmin(origin - halfWidth);
-		Vector3 tmax(origin + halfWidth);
-		
-		min.x = MIN(tmin.x, other.x);
-		min.y = MIN(tmin.x, other.y);
-		min.z = MIN(tmin.x, other.z);
-		
-		max.x = MAX(tmax.x, other.x);
-		max.y = MAX(tmax.x, other.y);
-		max.z = MAX(tmax.x, other.z);
-		
-		return AABB(min, max);
+		return result;
 	}
 	
 	RN_INLINE AABB AABB::operator+ (const AABB& other) const
