@@ -9,7 +9,7 @@
 #include "TGWorld.h"
 
 #define TGWorldFeatureLights        1
-#define TGWorldFeatureNormalMapping 1
+#define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
 #define TGWorldFeatureFreeCamera    1
 
@@ -312,17 +312,17 @@ namespace TG
 		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
 		
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
-		building->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/brick2-NM.png", RN::Texture::FormatRGBA8888));
+		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/brick2-NM.png", RN::Texture::FormatRGBA8888));
+		building->MaterialAtIndex(0, 0)->SetShader(normalshader);
+		
+		building->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_A-NM.png", RN::Texture::FormatRGBA8888));
 		building->MaterialAtIndex(0, 1)->SetShader(normalshader);
 		
-		building->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_A-NM.png", RN::Texture::FormatRGBA8888));
+		building->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_B-NM.png", RN::Texture::FormatRGBA8888));
 		building->MaterialAtIndex(0, 2)->SetShader(normalshader);
 		
-		building->MaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_B-NM.png", RN::Texture::FormatRGBA8888));
+		building->MaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_C-NM.png", RN::Texture::FormatRGBA8888));
 		building->MaterialAtIndex(0, 3)->SetShader(normalshader);
-		
-		building->MaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_C-NM.png", RN::Texture::FormatRGBA8888));
-		building->MaterialAtIndex(0, 4)->SetShader(normalshader);
 #endif
 		
 		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsDecals.sgm");

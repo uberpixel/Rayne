@@ -22,10 +22,24 @@ uniform isamplerBuffer lightPointList;
 uniform isamplerBuffer lightPointListOffset;
 uniform samplerBuffer lightPointListData;
 
+uniform int lightDirectionalCount;
+uniform vec3 lightDirectionalDirection[10];
+uniform vec3 lightDirectionalColor[10];
+uniform sampler2DArrayShadow lightDirectionalDepth;
+
+uniform vec2 clipPlanes;
+uniform vec4 frameSize;
+
 uniform vec4 lightTileSize;
 uniform vec3 viewPosition;
 
 in vec3 outLightPosition;
+in vec4 outDirLightProj[4];
+
+float offset_lookup(sampler2DArrayShadow map, vec4 loc, vec2 offset)
+{
+	return texture(map, vec4(loc.xy+offset*frameSize.xy, loc.wz));
+}
 
 vec4 rn_Lighting(vec3 normal, vec4 color, float specmask)
 {
@@ -63,7 +77,33 @@ vec4 rn_Lighting(vec3 normal, vec4 color, float specmask)
 		lightspec += lightcolor*spec*attenuation;
 	}*/
 	
-	return color;//*vec4(light, 1.0)+vec4(lightspec, 0.0)*specmask;
+	for(int i=0; i<lightDirectionalCount; i++)
+	{
+		float comp = (clipPlanes.x * clipPlanes.y)/(clipPlanes.y-gl_FragCoord.z*(clipPlanes.y-clipPlanes.x));
+		
+		vec4  zGreater = vec4(lessThan(vec4(15.0, 30.0, 60.0, 150.0), vec4(comp)));
+		float   mapToUse = dot(zGreater, vec4(1.0f));
+		vec4 projected = vec4(outDirLightProj[int(mapToUse)].xyz/outDirLightProj[int(mapToUse)].w, mapToUse);
+		
+		float shadow = offset_lookup(lightDirectionalDepth, projected, vec2(-1.0, 0.0));
+		shadow += offset_lookup(lightDirectionalDepth, projected, vec2(1.0, 0.0));
+		shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, -1.0));
+		shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, 1.0));
+		
+		shadow *= 0.25;
+		
+		lightdot = max(dot(normal, lightDirectionalDirection[i]), 0.0);
+		light += lightDirectionalColor[i]*lightdot*shadow;
+		
+		halfvec = normalize(normalize(viewdir)+lightDirectionalDirection[i]);
+		spec = max(dot(normal, halfvec), 0.0)*lightdot;
+		spec = pow(spec, 16.0);
+		lightspec += lightDirectionalColor[i]*spec;
+	}
+	
+	return color*vec4(light, 1.0)+vec4(lightspec, 0.0);
+
+//	return color;//*vec4(light, 1.0)+vec4(lightspec, 0.0)*specmask;
 }
 
 void main()
