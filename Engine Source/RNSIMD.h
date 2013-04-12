@@ -16,6 +16,12 @@
 	#define RN_SIMD 1
 
 	#include <xmmintrin.h>
+
+	#ifdef __SSE4_1__
+		#include <smmintrin.h>
+	#else
+		#warning "Please enable compiler support for SSE 4.1"
+	#endif
 #endif
 
 namespace RN

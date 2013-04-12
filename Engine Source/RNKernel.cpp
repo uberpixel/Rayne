@@ -15,6 +15,7 @@
 #include "RNSettings.h"
 #include "RNModule.h"
 #include "RNPathManager.h"
+#include "RNCPU.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -23,12 +24,29 @@ extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
 typedef RN::Application *(*RNApplicationEntryPointer)(RN::Kernel *);
 RNApplicationEntryPointer __ApplicationEntry = 0;
 
+
+
 namespace RN
 {
+#if RN_PLATFORM_INTEL
+	namespace X86_64
+	{
+		extern void GetCPUInfo();
+	}
+#endif
+	
 	Kernel::Kernel()
 	{
 #if RN_PLATFORM_LINUX
 		XInitThreads();
+#endif
+		
+#if RN_PLATFORM_INTEL
+		X86_64::GetCPUInfo();
+		X86_64::Capabilities caps = X86_64::Caps();
+		
+		if(!(caps & X86_64::CAP_SSE) || !(caps & X86_64::CAP_SSE2))
+			throw ErrorException(kErrorGroupSystem, kSystemGroupGeneric, kSystemCPUUnsupported);
 #endif
 		_mainThread = new Thread();
 		

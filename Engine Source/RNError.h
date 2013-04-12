@@ -17,9 +17,12 @@
 #include "RNDefines.h"
 
 #include "RNErrorGroupGraphics.h"
+#include "RNErrorGroupSystem.h"
 
 #define RNErrorGroup(x)    (((x) & 0x3f) << 26)
 #define RNErrorSubgroup(x) (((x) & 0xfff) << 14)
+
+#define RNErrorError(group, subgroup, code) (RNErrorGroup((group)) | RNErrorSubgroup((subgroup)) | (code))
 
 #define RNErrorGetGroup(err)   (((err) >> 26) & 0x3f)
 #define RNErrorGetSubroup(err) (((err) >> 14) & 0xfff)
