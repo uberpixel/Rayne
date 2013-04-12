@@ -760,24 +760,26 @@ namespace RN
 		Vector3 pos3 = ToWorld(Vector3(-1.0f, -1.0f, 1.0f));
 		Vector3 pos5 = ToWorld(Vector3(1.0f, 1.0f, 1.0f));
 		Vector3 pos6 = ToWorld(Vector3(1.0f, -1.0f, 1.0f));
+		
+		const Vector3& position = WorldPosition();
 
 		Vector3 vmax;
 		Vector3 vmin;
-		vmax.x = MAX(_position.x, MAX(pos2.x, MAX(pos3.x, MAX(pos5.x, pos6.x))));
-		vmax.y = MAX(_position.y, MAX(pos2.y, MAX(pos3.y, MAX(pos5.y, pos6.y))));
-		vmax.z = MAX(_position.z, MAX(pos2.z, MAX(pos3.z, MAX(pos5.z, pos6.z))));
-		vmin.x = MIN(_position.x, MIN(pos2.x, MIN(pos3.x, MIN(pos5.x, pos6.x))));
-		vmin.y = MIN(_position.y, MIN(pos2.y, MIN(pos3.y, MIN(pos5.y, pos6.y))));
-		vmin.z = MIN(_position.z, MIN(pos2.z, MIN(pos3.z, MIN(pos5.z, pos6.z))));
+		vmax.x = MAX(position.x, MAX(pos2.x, MAX(pos3.x, MAX(pos5.x, pos6.x))));
+		vmax.y = MAX(position.y, MAX(pos2.y, MAX(pos3.y, MAX(pos5.y, pos6.y))));
+		vmax.z = MAX(position.z, MAX(pos2.z, MAX(pos3.z, MAX(pos5.z, pos6.z))));
+		vmin.x = MIN(position.x, MIN(pos2.x, MIN(pos3.x, MIN(pos5.x, pos6.x))));
+		vmin.y = MIN(position.y, MIN(pos2.y, MIN(pos3.y, MIN(pos5.y, pos6.y))));
+		vmin.z = MIN(position.z, MIN(pos2.z, MIN(pos3.z, MIN(pos5.z, pos6.z))));
 
 		_frustumCenter = vmax + vmin;
 		_frustumCenter = _frustumCenter * 0.5f;
 		_frustumRadius = _frustumCenter.Distance(vmax);
 
-		_frustumLeft.SetPlane(_position, pos2, pos3);
-		_frustumRight.SetPlane(_position, pos5, pos6);
-		_frustumTop.SetPlane(_position, pos2, pos5);
-		_frustumBottom.SetPlane(_position, pos3, pos6);
+		_frustumLeft.SetPlane(position, pos2, pos3);
+		_frustumRight.SetPlane(position, pos5, pos6);
+		_frustumTop.SetPlane(position, pos2, pos5);
+		_frustumBottom.SetPlane(position, pos3, pos6);
 	}
 
 	bool Camera::InFrustum(const Vector3& position, float radius)

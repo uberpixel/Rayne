@@ -78,8 +78,8 @@ namespace TG
 	
 	void World::TransformsUpdated()
 	{
-		_finalcam->SetRotation(_camera->Rotation());
-		_finalcam->SetPosition(_camera->Position());
+		//_finalcam->SetRotation(_camera->Rotation());
+		//_finalcam->SetPosition(_camera->Position());
 	}
 	
 	
@@ -158,7 +158,7 @@ namespace TG
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
 		}*/
 		
-		//_camera->AttachChild(_finalcam);
+		_camera->AttachChild(_finalcam);
 	}
 	
 	void World::CreateWorld()
