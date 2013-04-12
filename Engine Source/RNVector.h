@@ -10,6 +10,8 @@
 #define __RAYNE_VECTOR_H__
 
 #include "RNBase.h"
+#include "RNCPU.h"
+#include "RNMemory.h"
 
 namespace RN
 {
@@ -98,7 +100,11 @@ namespace RN
 		};
 	};
 	
+#if RN_SIMD
+	class alignas(16) Vector4
+#else
 	class Vector4
+#endif
 	{
 	public:
 		RNAPI Vector4();
@@ -106,6 +112,14 @@ namespace RN
 		RNAPI Vector4(const float x, const float y, const float z, const float w);
 		RNAPI Vector4(const Vector2& other, float z=0.0f, float w=0.0f);
 		RNAPI Vector4(const Vector3& other, float w=0.0f);
+		
+#if RN_SIMD
+		RNAPI Vector4(const SIMD::VecFloat& other);
+		RNAPI Vector4& operator= (const SIMD::VecFloat& other);
+		
+		RN_INLINE void* operator new[](size_t size) { return Memory::AllocateSIMD(size); }
+		RN_INLINE void operator delete[](void *ptr) { if(ptr) Memory::FreeSIMD(ptr); }
+#endif
 		
 		RNAPI bool operator== (const Vector4 &other) const;
 		RNAPI bool operator!= (const Vector4 &other) const;
@@ -131,6 +145,19 @@ namespace RN
 		
 		RNAPI Vector4& Normalize(const float n=1.0f);
 		
+#if RN_SIMD
+		union
+		{
+			struct
+			{
+				float x;
+				float y;
+				float z;
+				float w;
+			};
+			SIMD::VecFloat simd;
+		};
+#else
 		struct
 		{
 			float x;
@@ -138,6 +165,7 @@ namespace RN
 			float z;
 			float w;
 		};
+#endif
 	};
 	
 	
@@ -489,6 +517,20 @@ namespace RN
 		z = other.z;
 		w = _w;
 	}
+	
+#if RN_SIMD
+	RN_INLINE Vector4::Vector4(const SIMD::VecFloat& other) :
+		simd(other)
+	{
+		
+	}
+	
+	RN_INLINE Vector4& Vector4::operator= (const SIMD::VecFloat& other)
+	{
+		simd = other;
+		return *this;
+	}
+#endif
 
 	RN_INLINE bool Vector4::operator== (const Vector4 &other) const
 	{
@@ -517,86 +559,152 @@ namespace RN
 
 	RN_INLINE Vector4 Vector4::operator- () const
 	{
+#if RN_SIMD
+		return SIMD::Negate(simd);
+#else
 		return Vector4(-x, -y, -z, -w);
+#endif
 	}
 
 	RN_INLINE Vector4 Vector4::operator+ (const Vector4& other) const
 	{
+#if RN_SIMD
+		return SIMD::Add(simd, other.simd);
+#else
 		return Vector4(x + other.x, y + other.y, z + other.z, w + other.w);
+#endif
 	}
 	RN_INLINE Vector4 Vector4::operator- (const Vector4& other) const
 	{
+#if RN_SIMD
+		return SIMD::Sub(simd, other.simd);
+#else
 		return Vector4(x - other.x, y - other.y, z - other.z, w - other.w);
+#endif
 	}
 	RN_INLINE Vector4 Vector4::operator* (const Vector4& other) const
 	{
+#if RN_SIMD
+		return SIMD::Mul(simd, other.simd);
+#else
 		return Vector4(x * other.x, y * other.y, z * other.z, w * other.w);
+#endif
 	}
 	RN_INLINE Vector4 Vector4::operator/ (const Vector4& other) const
 	{
+#if RN_SIMD
+		return SIMD::Div(simd, other.simd);
+#else
 		return Vector4(x / other.x, y / other.y, z / other.z, w / other.w);
+#endif
 	}
+	
 	RN_INLINE Vector4 Vector4::operator* (const float n) const
 	{
+#if RN_SIMD
+		return SIMD::Mul(simd, SIMD::Set(n));
+#else
 		return Vector4(x * n, y * n, z * n, w * n);
+#endif
 	}
 	RN_INLINE Vector4 Vector4::operator/ (const float n) const
 	{
+#if RN_SIMD
+		return SIMD::Div(simd, SIMD::Set(n));
+#else
 		return Vector4(x / n, y / n, z / n, w / n);
+#endif
 	}
 
 	RN_INLINE Vector4& Vector4::operator+= (const Vector4& other)
 	{
+#if RN_SIMD
+		simd = SIMD::Add(simd, other.simd);
+#else
 		x += other.x;
 		y += other.y;
 		z += other.z;
 		w += other.w;
-
+#endif
+		
 		return *this;
 	}
 
 	RN_INLINE Vector4& Vector4::operator-= (const Vector4& other)
 	{
+#if RN_SIMD
+		simd = SIMD::Sub(simd, other.simd);
+#else
 		x -= other.x;
 		y -= other.y;
 		z -= other.z;
 		w -= other.w;
+#endif
 
 		return *this;
 	}
 
 	RN_INLINE Vector4& Vector4::operator*= (const Vector4& other)
 	{
+#if RN_SIMD
+		simd = SIMD::Mul(simd, other.simd);
+#else
 		x *= other.x;
 		y *= other.y;
 		z *= other.z;
 		w *= other.w;
+#endif
 
 		return *this;
 	}
 
 	RN_INLINE Vector4& Vector4::operator/= (const Vector4& other)
 	{
+#if RN_SIMD
+		simd = SIMD::Div(simd, other.simd);
+#else
 		x /= other.x;
 		y /= other.y;
 		z /= other.z;
 		w /= other.w;
+#endif
 
 		return *this;
 	}
 
 	RN_INLINE float Vector4::Length() const
 	{
+#if RN_SIMD
+	#ifdef __SSE4_1__
+		if(X86_64::Caps() & X86_64::CAP_SSE41)
+		{
+			return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(simd, simd, 0xFF)));
+		}
+	#endif
+#endif
+		
 		return Math::Sqrt(x * x + y * y + z * z + w * w);
 	}
 
-	RN_INLINE float Vector4::Dot (const Vector4& other) const
+	RN_INLINE float Vector4::Dot(const Vector4& other) const
 	{
+#if RN_SIMD
+	#ifdef __SSE4_1__
+		if(X86_64::Caps() & X86_64::CAP_SSE41)
+		{
+			return _mm_cvtss_f32(_mm_dp_ps(simd, other.simd, 0xFF));
+		}
+	#endif
+#endif
+		
 		return (x * other.x + y * other.y + z * other.z + w * other.w);
 	}
 
 	RN_INLINE Vector4 Vector4::Cross(const Vector4& other) const
 	{
+#if RN_SIMD
+		return SIMD::Sub(SIMD::Mul(_mm_shuffle_ps(simd, simd, _MM_SHUFFLE(3, 0, 2, 1)), _mm_shuffle_ps(other.simd, other.simd, _MM_SHUFFLE(3, 1, 0, 2))), SIMD::Mul(_mm_shuffle_ps(simd, simd, _MM_SHUFFLE(3, 1, 0, 2)), _mm_shuffle_ps(other.simd, other.simd, _MM_SHUFFLE(3, 0, 2, 1))));
+#else
 		Vector4 result;
 
 		result.x = y * other.z - z * other.y;
@@ -605,6 +713,7 @@ namespace RN
 		result.w = 0.0f;
 
 		return result;
+#endif
 	}
 
 	RN_INLINE bool Vector4::IsEqual(const Vector4& other, float epsilon) const
@@ -626,6 +735,18 @@ namespace RN
 
 	RN_INLINE Vector4& Vector4::Normalize (const float n)
 	{
+#if RN_SIMD
+	#ifdef __SSE4_1__
+		if(X86_64::Caps() & X86_64::CAP_SSE41)
+		{
+			float length = n / _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(simd, simd, 0xFF)));
+			simd = SIMD::Mul(simd, SIMD::Set(length));
+			
+			return *this;
+		}
+	#endif
+#endif
+		
 		float length = n/Length();
 		x *= length;
 		y *= length;
@@ -635,11 +756,9 @@ namespace RN
 		return *this;
 	}
 
-#ifndef __GNUG__
 	static_assert(std::is_trivially_copyable<Vector2>::value, "Vector2 must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Vector3>::value, "Vector3 must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Vector4>::value, "Vector4 must be trivially copyable");
-#endif
 }
 
 #endif /* __RAYNE_VECTOR_H__ */

@@ -8,6 +8,7 @@
 
 #include "RNMesh.h"
 #include "RNKernel.h"
+#include "RNMemory.h"
 
 namespace RN
 {
@@ -46,7 +47,7 @@ namespace RN
 	{
 		Initialize(descriptor);
 		
-		_meshData = new uint8[_meshSize];
+		_meshData = static_cast<uint8 *>(Memory::AllocateSIMD(_meshSize));
 		
 		const uint8 *meshData = static_cast<const uint8 *>(data);
 		std::copy(meshData, meshData + _meshSize, static_cast<uint8 *>(_meshData));
@@ -104,8 +105,11 @@ namespace RN
 			delete [] _descriptor[i]._pointer;
 		}
 		
-		delete [] _meshData;
-		delete [] _indices;
+		if(_meshData)
+			Memory::FreeSIMD(_meshData);
+		
+		if(_indices)
+			Memory::FreeSIMD(_indices);
 	}
 	
 	const void *Mesh::FetchConstDataForFeature(MeshFeature feature)
@@ -117,7 +121,8 @@ namespace RN
 		if(_descriptor[index]._pointer)
 			return _descriptor[index]._pointer;
 		
-		uint8 *data = new uint8[_descriptor[index]._size];
+		uint8 *data = static_cast<uint8 *>(Memory::AllocateSIMD(_descriptor[index]._size));
+		
 		if(feature == kMeshFeatureIndices)
 		{
 			uint8 *indicesData = static_cast<uint8 *>(_indices);
@@ -195,7 +200,8 @@ namespace RN
 					
 					if(_descriptor[i]._pointer)
 					{
-						free(_descriptor[i]._pointer);
+						Memory::FreeSIMD(_descriptor[i]._pointer);
+						
 						_descriptor[i]._pointer = 0;
 						_descriptor[i]._dirty = false;
 					}
@@ -239,10 +245,10 @@ namespace RN
 	void Mesh::GenerateMesh()
 	{
 		if(!_meshData)
-			_meshData = new uint8[_meshSize];
+			_meshData = static_cast<uint8 *>(Memory::AllocateSIMD(_meshSize));
 		
 		if(!_indices)
-			_indices = new uint8[_indicesSize];
+			_indices = static_cast<uint8 *>(Memory::AllocateSIMD(_indicesSize));
 		
 		bool meshChanged = false;
 		bool indicesChanged = false;
