@@ -122,8 +122,8 @@ namespace RN
 		AABB _boundingBox;
 		Sphere _boundingSphere;
 		
-		void *_meshData;
-		void *_indices;
+		uint8 *_meshData;
+		uint8 *_indices;
 		MeshDescriptor _descriptor[__kMaxMeshFeatures];
 		
 		RNDefineConstructorlessMeta(Mesh, Object)

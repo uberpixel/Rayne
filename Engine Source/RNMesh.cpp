@@ -46,7 +46,7 @@ namespace RN
 	{
 		Initialize(descriptor);
 		
-		_meshData = malloc(_meshSize);
+		_meshData = new uint8[_meshSize];
 		
 		const uint8 *meshData = static_cast<const uint8 *>(data);
 		std::copy(meshData, meshData + _meshSize, static_cast<uint8 *>(_meshData));
@@ -101,15 +101,11 @@ namespace RN
 		
 		for(int i=0; i<__kMaxMeshFeatures; i++)
 		{
-			if(_descriptor[i]._pointer)
-				free(_descriptor[i]._pointer);
+			delete [] _descriptor[i]._pointer;
 		}
 		
-		if(_meshData)
-			free(_meshData);
-		
-		if(_indices)
-			free(_indices);
+		delete [] _meshData;
+		delete [] _indices;
 	}
 	
 	const void *Mesh::FetchConstDataForFeature(MeshFeature feature)
@@ -121,7 +117,7 @@ namespace RN
 		if(_descriptor[index]._pointer)
 			return _descriptor[index]._pointer;
 		
-		uint8 *data = (uint8 *)malloc(_descriptor[index]._size);
+		uint8 *data = new uint8[_descriptor[index]._size];
 		if(feature == kMeshFeatureIndices)
 		{
 			uint8 *indicesData = static_cast<uint8 *>(_indices);
@@ -243,10 +239,10 @@ namespace RN
 	void Mesh::GenerateMesh()
 	{
 		if(!_meshData)
-			_meshData = malloc(_meshSize);
+			_meshData = new uint8[_meshSize];
 		
 		if(!_indices)
-			_indices = malloc(_indicesSize);
+			_indices = new uint8[_indicesSize];
 		
 		bool meshChanged = false;
 		bool indicesChanged = false;

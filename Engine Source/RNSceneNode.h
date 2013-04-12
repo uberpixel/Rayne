@@ -49,17 +49,10 @@ namespace RN
 		RNAPI virtual void SetWorldScale(const Vector3& scal);
 		RNAPI virtual void SetWorldRotation(const Quaternion& rot);
 		
-		void SetBoundingBox(const AABB& boundingBox)
-		{
-			_boundingBox = boundingBox;
-		}
+		RNAPI void SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere=true);
+		RNAPI void SetBoundingSphere(const Sphere& boundingSphere);
 		
-		void SetBoundingSphere(const Sphere& boundingSphere)
-		{
-			_boundingSphere = boundingSphere;
-		}
-		
-		virtual bool IsVisibleInCamera(Camera *camera);
+		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
 		const Vector3& Position() const { return _position; }
 		const Vector3& Scale() const { return _scale; }
@@ -71,6 +64,9 @@ namespace RN
 		RNAPI const Vector3& WorldEulerAngle();
 		RNAPI const Quaternion& WorldRotation();
 		
+		const AABB& BoundingBox() const { return _boundingBox; }
+		const Sphere& BoundingSphere() const { return _boundingSphere; }
+		
 		RNAPI void AttachChild(SceneNode *child);
 		RNAPI void DetachChild(SceneNode *child);
 		RNAPI void DetachAllChilds();
@@ -81,9 +77,6 @@ namespace RN
 		machine_uint Childs() const { return _childs.Count(); }
 		SceneNode *Parent() const { return _parent; }
 		FrameID LastFrame() const { return _lastFrame; }
-		
-		const AABB& BoundingBox() const { return _boundingBox; }
-		const Sphere& BoundingSphere() const { return _boundingSphere; }
 		
 		template<typename T=SceneNode>
 		T *ChildAtIndex(machine_uint index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
@@ -264,6 +257,7 @@ namespace RN
 		return _worldRotation;
 	}
 	
+
 	
 	RN_INLINE const Matrix& SceneNode::LocalTransform()
 	{

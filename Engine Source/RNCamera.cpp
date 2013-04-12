@@ -449,7 +449,7 @@ namespace RN
 		int tilesWidth  = (int)_lightTiles.x;
 		int tilesHeight = (int)_lightTiles.y;
 		
-		size_t size = tilesWidth * tilesHeight * 2 * sizeof(float);
+		size_t size = tilesWidth * tilesHeight * 2;
 		if(size > _depthSize)
 		{
 			delete _depthArray;
@@ -459,6 +459,7 @@ namespace RN
 		}
 		
 		_depthTiles->Bind();
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, _depthArray);
 		_depthTiles->Unbind();
 		
@@ -474,6 +475,7 @@ namespace RN
 		Vector3 pos6 = ToWorld(Vector3(1.0f, -1.0f, 1.0f));
 		
 		const Vector3& position = WorldPosition();
+		Vector3 direction = WorldRotation().RotateVector(RN::Vector3(0.0, 0.0, -1.0));
 
 		Vector3 vmax;
 		Vector3 vmin;
@@ -492,6 +494,8 @@ namespace RN
 		_frustumRight.SetPlane(position, pos5, pos6);
 		_frustumTop.SetPlane(position, pos2, pos5);
 		_frustumBottom.SetPlane(position, pos3, pos6);
+		_frustumNear.SetPlane(position + direction * clipnear, direction);
+		_frustumFar.SetPlane(position + direction * clipfar, direction);
 	}
 
 	bool Camera::InFrustum(const Vector3& position, float radius)
@@ -510,13 +514,42 @@ namespace RN
 
 		if(_frustumBottom.Distance(position) > radius)
 			return false;
+		
+		if(_frustumNear.Distance(position) < -radius)
+			return false;
+		
+		if(_frustumFar.Distance(position) > radius)
+			return false;
 
 		return true;
 	}
 	
-	bool Camera::InFrustum(const Vector3& origin, const Sphere& sphere)
+	bool Camera::InFrustum(const Vector3& offset, const Sphere& sphere)
 	{
-		return InFrustum(origin + sphere.origin, sphere.radius);
+		return InFrustum(sphere.origin + offset, sphere.radius);
+	}
+	
+	bool Camera::InFrustum(const Vector3& offset, const AABB& taabb)
+	{
+		AABB aabb(taabb);
+		aabb.origin += offset;
+		
+		Plane *planes = &_frustumLeft;
+		
+		for(int i=0; i<6; i++)
+		{
+			const Plane& plane = planes[i];
+			
+			float d = aabb.origin.Dot(plane.normal);
+			float r = aabb.width.x * Math::FastAbs(plane.normal.x) + aabb.width.y * Math::FastAbs(plane.normal.y) + aabb.width.z * Math::FastAbs(plane.normal.z);
+		
+			float dpr = d + r + plane.d;
+			
+			if(Math::IsNegative(dpr))
+				return false;
+		}
+		
+		return true;
 	}
 	
 	bool Camera::IsVisibleInCamera(Camera *camera)

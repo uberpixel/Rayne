@@ -8,12 +8,11 @@
 
 #ifndef __RAYNE_PLANE_H__
 #define __RAYNE_PLANE_H__
+
 namespace RN
 {
-	class Renderer;
 	class Plane
 	{
-	friend Renderer;
 	public:
 		RNAPI Plane();
 
@@ -22,45 +21,48 @@ namespace RN
 		
 		RNAPI float Distance(const Vector3 &position);
 	
-	private:
-		void CalcD();
+		RNAPI void CalculateD();
 		
-		Vector3 _position;
-		Vector3 _normal;
-		float _d;
+		Vector3 position;
+		Vector3 normal;
+		float d;
 	};
 	
 	RN_INLINE Plane::Plane()
 	{
-		_normal.y = 1.0f;
+		normal.y = 1.0f;
 	}
 	
-	RN_INLINE void Plane::SetPlane(const Vector3 &position, const Vector3 &normal)
+	RN_INLINE void Plane::SetPlane(const Vector3 &tposition, const Vector3 &tnormal)
 	{
-		_position = position;
-		_normal = normal;
-		_normal.Normalize();
-		CalcD();
+		position = tposition;
+		normal = tnormal;
+		normal.Normalize();
+		
+		CalculateD();
 	}
 	
 	RN_INLINE void Plane::SetPlane(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3)
 	{
-		_position = position1;
-		Vector3 diff1 = position2-position1;
-		Vector3 diff2 = position3-position1;
-		_normal = diff1.Cross(diff2);
-		_normal.Normalize();
-		CalcD();
+		Vector3 diff1 = position2 - position1;
+		Vector3 diff2 = position3 - position1;
+		
+		position = position1;
+		
+		normal = diff1.Cross(diff2);
+		normal.Normalize();
+		
+		CalculateD();
 	}
 	
 	RN_INLINE float Plane::Distance(const Vector3 &position)
 	{
-		return position.Dot(_normal)-_d;
+		return position.Dot(normal) - d;
 	}
 	
-	RN_INLINE void Plane::CalcD()
+	RN_INLINE void Plane::CalculateD()
 	{
-		_d = _normal.Dot(_position);
+		d = normal.Dot(position);
 	}
 }
 

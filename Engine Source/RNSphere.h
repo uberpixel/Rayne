@@ -22,6 +22,9 @@ namespace RN
 		Sphere(const Vector3& origin, float radius);
 		Sphere(const AABB& aabb);
 		
+		Sphere operator+ (const Vector3& other) const;
+		Sphere& operator+= (const Vector3& other);
+		
 		Vector3 origin;
 		float radius;
 	};
@@ -47,6 +50,21 @@ namespace RN
 		origin(aabb.origin),
 		radius(aabb.halfWidth.Length())
 	{
+	}
+	
+	
+	RN_INLINE Sphere Sphere::operator+ (const Vector3& other) const
+	{
+		Sphere result(*this);
+		result.origin += other;
+		
+		return result;
+	}
+	
+	RN_INLINE Sphere& Sphere::operator+= (const Vector3& other)
+	{
+		origin += other;
+		return *this;
 	}
 }
 

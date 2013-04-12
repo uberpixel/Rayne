@@ -38,8 +38,7 @@ namespace RN
 		
 		if(_model)
 		{
-			SetBoundingBox(_model->BoundingBox());
-			SetBoundingSphere(_model->BoundingSphere());
+			SetBoundingBox(_model->BoundingBox(), true);
 		}
 	}
 	

@@ -23,19 +23,21 @@ namespace RN
 		AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
 		
 		AABB operator+ (const Vector3& other) const;
-		AABB operator+ (const AABB& other) const;
-		
 		AABB& operator+= (const Vector3& other);
+		
+		AABB operator+ (const AABB& other) const;
 		AABB& operator+= (const AABB& other);
+		
 		
 		bool Intersects(const AABB& other);
 		bool Contains(const AABB& other);
 		
-		float Width() const { return halfWidth.x * 2.0f; }
-		float Height() const { return halfWidth.y * 2.0f; }
+		float Width() const { return width.x; }
+		float Height() const { return width.y; }
 		
 		Vector3 origin;
 		Vector3 halfWidth;
+		Vector3 width;
 	};
 	
 	RN_INLINE AABB::AABB()
@@ -56,7 +58,12 @@ namespace RN
 		max.z = MAX(tmin.x, tmax.z);
 		
 		halfWidth = (max - min) * 0.5f;
-		origin    = min + halfWidth;		
+		halfWidth.x = Math::FastAbs(halfWidth.x);
+		halfWidth.y = Math::FastAbs(halfWidth.y);
+		halfWidth.z = Math::FastAbs(halfWidth.z);
+		
+		width  = halfWidth * 2.0f;
+		origin = min + halfWidth;
 	}
 	
 	RN_INLINE AABB::AABB(const Vector3& torigin, float width) :
@@ -77,6 +84,13 @@ namespace RN
 		
 		return result;
 	}
+	
+	RN_INLINE AABB& AABB::operator+= (const Vector3& other)
+	{
+		origin += other;		
+		return *this;
+	}
+	
 	
 	RN_INLINE AABB AABB::operator+ (const AABB& other) const
 	{
@@ -100,28 +114,6 @@ namespace RN
 		return AABB(min, max);
 	}
 	
-	RN_INLINE AABB& AABB::operator+= (const Vector3& other)
-	{
-		Vector3 min;
-		Vector3 max;
-		
-		Vector3 tmin(origin - halfWidth);
-		Vector3 tmax(origin + halfWidth);
-		
-		min.x = MIN(tmin.x, other.x);
-		min.y = MIN(tmin.x, other.y);
-		min.z = MIN(tmin.x, other.z);
-		
-		max.x = MAX(tmax.x, other.x);
-		max.y = MAX(tmax.x, other.y);
-		max.z = MAX(tmax.x, other.z);
-		
-		halfWidth = (max - min) * 0.5f;
-		origin    = min + halfWidth;
-		
-		return *this;
-	}
-	
 	RN_INLINE AABB& AABB::operator+= (const AABB& other)
 	{
 		Vector3 min;
@@ -142,7 +134,12 @@ namespace RN
 		max.z = MAX(max1.x, max2.z);
 		
 		halfWidth = (max - min) * 0.5f;
-		origin    = min + halfWidth;
+		halfWidth.x = Math::FastAbs(halfWidth.x);
+		halfWidth.y = Math::FastAbs(halfWidth.y);
+		halfWidth.z = Math::FastAbs(halfWidth.z);
+		
+		width  = halfWidth * 2.0f;
+		origin = min + halfWidth;
 		
 		return *this;
 	}

@@ -65,6 +65,18 @@ namespace RN
 	}
 	
 	
+	void SceneNode::SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere)
+	{
+		_boundingBox = boundingBox;
+		_boundingSphere = Sphere(_boundingBox);
+	}
+	
+	void SceneNode::SetBoundingSphere(const Sphere& boundingSphere)
+	{
+		_boundingSphere = boundingSphere;
+	}
+	
+	
 	void SceneNode::AttachChild(SceneNode *child)
 	{
 		child->Retain();

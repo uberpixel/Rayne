@@ -244,8 +244,8 @@ namespace RN
 	}
 	
 #define Distance(plane, op, r) { \
-	float dot = (position.x * plane._normal.x + position.y * plane._normal.y + position.z * plane._normal.z);\
-	float distance = dot - plane._d; \
+	float dot = (position.x * plane.normal.x + position.y * plane.normal.y + position.z * plane.normal.z);\
+	float distance = dot - plane.d; \
 	if(distance op r) \
 		continue; \
 	}

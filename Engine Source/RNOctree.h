@@ -32,7 +32,7 @@ namespace RN
 				_boundingBox(AABB(min, max))
 			{
 				_parent = parent;
-				_size = _boundingBox.halfWidth.x * 2;
+				_size = _boundingBox.width.x;
 				
 				for(int i=0; i<8; i++)
 				{
