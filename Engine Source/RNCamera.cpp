@@ -366,268 +366,54 @@ namespace RN
 	
 	void Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
 	{
-		SetPosition(camera->WorldPosition()+light->Forward()*200.0f);
+/*		Vector3 pixelsize = Vector3(Vector2(far*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
+		Matrix rot = light->WorldRotation().RotationMatrix();
 		
+		Vector3 pos = camera->WorldPosition()+light->Forward()*200.0f;
+		pos = rot.Inverse()*pos;
+		
+		pos /= pixelsize;
+		pos.x = floorf(pos.x);
+		pos.y = floorf(pos.y);
+		pos.z = floorf(pos.z);
+		pos *= pixelsize;
+		pos = rot*pos;
+		SetPosition(pos);
+	
 		ortholeft = -far;
 		orthoright = far;
 		orthobottom = -far;
 		orthotop = far;
+		UpdateProjection();*/
+		
+		Vector3 nearcenter = camera->ToWorldZ(Vector3(0.0f, 0.0f, near));//camera->WorldPosition()+camera->Forward()*near;
+		Vector3 farcorner1 = camera->ToWorldZ(Vector3(1.0f, 1.0f, far));
+		Vector3 farcorner2 = camera->ToWorldZ(Vector3(-1.0f, -1.0f, far));
+		Vector3 farcenter = (farcorner1+farcorner2)*0.5f;
+		
+		Vector3 center = (nearcenter+farcenter)*0.5f;
+		float dist = center.Distance(farcorner1);
+		
+		ortholeft = -dist;
+		orthoright = dist;
+		orthobottom = -dist;
+		orthotop = dist;
 		UpdateProjection();
 		
-/*		Vector3 pos2 = camera->ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
-		Vector3 pos3 = camera->ToWorld(Vector3(-1.0f, -1.0f, 1.0f));
-		Vector3 pos5 = camera->ToWorld(Vector3(1.0f, 1.0f, 1.0f));
-		Vector3 pos6 = camera->ToWorld(Vector3(1.0f, -1.0f, 1.0f));
 		
-		Vector3 vmax;
-		Vector3 vmin;
-		vmax.x = MAX(_position.x, MAX(pos2.x, MAX(pos3.x, MAX(pos5.x, pos6.x))));
-		vmax.y = MAX(_position.y, MAX(pos2.y, MAX(pos3.y, MAX(pos5.y, pos6.y))));
-		vmax.z = MAX(_position.z, MAX(pos2.z, MAX(pos3.z, MAX(pos5.z, pos6.z))));
-		vmin.x = MIN(_position.x, MIN(pos2.x, MIN(pos3.x, MIN(pos5.x, pos6.x))));
-		vmin.y = MIN(_position.y, MIN(pos2.y, MIN(pos3.y, MIN(pos5.y, pos6.y))));
-		vmin.z = MIN(_position.z, MIN(pos2.z, MIN(pos3.z, MIN(pos5.z, pos6.z))));*/
-	}
-	
-	//---------------------------------------------------------------------------
-	//  CalcOrthoViewport{}
-	//          lightMatrix - a full-featured light view matrix
-	//          FovYDiv - a constant value that is used to increase the size of the light view frustum
-	//
-	//---------------------------------------------------------------------------
-	void Camera::CalcOrthoViewport(Camera *camera, float nearSlice, float farSlice, Light *light, const float FovYDiv)
-	{
-        //
-        // Grab the current camera matrix ... which is the camera the viewer uses
-        // The idea is then to find the nearSlice and farSlice values to later snap around
-        // the othographic viewport necessary for the light camera
-        //
-        // Get the position and the "basis" vectors from the viewer camera matrix
-        //      camPos - d
-        //      camDir - c
-        //      camA - a - "x axis"
-        //      camB - b - "y axis"
-        Vector3 camPos(camera->Position());
-        Vector3 camDir(camera->Forward());
-        Vector3 camA(camera->Right());
-        Vector3 camB(camera->Up());
+		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
+		Vector3 pos = center+light->Forward()*200.0f;
 		
-        // normalize vectors
-        camDir.Normalize();
-        camA.Normalize();
-        camB.Normalize();
+		Matrix rot = light->WorldRotation().RotationMatrix();
+		pos = rot.Inverse()*pos;
 		
-        // get the fov x and y value
-        float fovY = (camera->fov/2.0f) * FovYDiv;
-        // a ratio of 1.0f just looks better ... maybe it fits better to the square nature of the render target
-        float ratio = camera->aspect;
-        float fovX = fovY * ratio;
-		
-        // convert from degrees to radians
-        fovX *= M_PI/180.0f;
-        fovY *= M_PI/180.0f;
-		
-        //
-        // this is the width and height of the rectangle that fits into the near
-		// and far slice from the point of the viewer
-        //
-        Vector2 camViewWidth;
-        Vector2 camViewHeight;
-        camViewWidth = Vector2(tanf(fovX) * nearSlice, tanf(fovX) * farSlice);
-        camViewHeight = Vector2(tanf(fovY) * nearSlice, tanf(fovY) * farSlice);
-		
-        //
-        // get two vectors on the near and two vectors on the far plane
-        // each pair points up and left
-        //
-        // -------------
-        // |     ^     |
-        // |     |     |
-        // |  <--      |
-        // |           |
-        // |           |
-        // -------------
-        //
-        // left near point from viewer camera frustum
-        Vector3 leftNear(camA);
-        leftNear *= camViewWidth.x;
-        // up near point from viewer camera frustum
-        Vector3 upNear(-camB);
-        upNear *= camViewHeight.x;
-        // left far point from viewer camera frustum
-        Vector3 leftFar(camA);
-        leftFar *= camViewWidth.y;
-        // up far point from viewer camera frustum
-        Vector3 upFar(-camB);
-        upFar *= camViewHeight.y;
-		
-        //
-        // get two vectors that point in the view direction
-		// to the near and far plane
-        //
-        Vector3 nearCenter(camPos);
-        // add a vector that points in the camera direction and
-        // is scaled to get the near center of the frustum
-        nearCenter += camDir*nearSlice;
-//        nearCenter += camDir*(-m_ViewportZShift));
-		
-        Vector3 farCenter(camPos);
-        // add a vector that points in the camera direction and
-        // is scaled to get the far center of the frustum
-        farCenter += camDir*farSlice;
-//        farCenter += camDir*(-m_ViewportZShift);
-		
-        //
-        // Write the far center and near center value in a box with eight edges
-		// This box does not have any width and height so far, only length
-        //
-        int i;
-        Vector3 extents[8];
-        for(i = 0; i < 4; i++)
-        {
-			// fill up with the near and far center points
-			extents[i] = nearCenter;
-			extents[i + 4] = farCenter;
-        }
-		
-		//
-        // now add width and height to this box
-		//
-		// store the four points for the near plane
-        // creates based on the near center point the four points that form
-        // the near plane of a viewing frustum
-        //
-        // x           x
-        //
-        //
-        //
-        //
-        //
-        // x           x
-        //
-        // go from near center point to the left and then up
-        extents[0] += leftNear;  extents[0] += upNear;
-        // go from near center point to the right and then up
-        extents[1] += -leftNear;  extents[1] += upNear;
-        // go from the near center point to the left and then down
-        extents[2] += leftNear;  extents[2] += -upNear;
-        // go from the near center point to the right and then down
-        extents[3] += -leftNear;  extents[3] += -upNear;
-		
-        // Create far plane
-        // creates based on the far center point the four points that form
-        // the far plane of a viewing frustum
-        // go from the far center point to the left and then up
-        extents[4] += leftFar;  extents[4] += upFar;
-        // go from the far center point to the right and then up
-        extents[5] += -leftFar;  extents[5] += upFar;
-        // go from the far center point to the left and then down
-        extents[6] += leftFar;  extents[6] += -upFar;
-        // go from the far center point to the right and then down
-        extents[7] += -leftFar;  extents[7] += -upFar;
-		
-		//
-		// now we have a box that represents one 3D slice of the view frustum
-		// as shown in the figure above let's move this into light space
-		//
-        // grab view matrix constructed from the light direction
-        // == light space matrix
-		// normalize the three direction vectors
-        Matrix lightOrientation = light->Rotation().RotationMatrix();
-		lightOrientation = lightOrientation.Inverse();
-		
-        // Transforms the view frustum slice into light space
-        // UnTransform() - Transform a vector by the inverse of the current matrix
-        for(i = 0; i < 8; i++)
-			extents[i] = lightOrientation * extents[i];
-		
-		//
-		// Because the slice of the frustum has still the
-		// shape of the viewers frustum, we need to create now
-		// a box that is used in an orthographic projection
-		//
-        // Create axis aligned bounding box in light space
-		//
-        Vector3 minInLight,maxInLight;
-        minInLight = extents[0];
-        maxInLight = extents[0];
-		
-        for(i = 0; i < 8; i++)
-        {
-			// stores the smallest and largest numbers -> extents
-			// in light view space
-			if(extents[i].x < minInLight.x)
-				minInLight.x = extents[i].x;
-			if(extents[i].y < minInLight.y)
-				minInLight.y = extents[i].y;
-			if(extents[i].z < minInLight.z)
-				minInLight.z = extents[i].z;
-			if(extents[i].x > maxInLight.x)
-				maxInLight.x = extents[i].x;
-			if(extents[i].y > maxInLight.y)
-				maxInLight.y = extents[i].y;
-			if(extents[i].z > maxInLight.z)
-				maxInLight.z = extents[i].z;
-        }
-        extents[0] = Vector3(minInLight.x, maxInLight.y, minInLight.z);
-        extents[1] = Vector3(maxInLight.x, maxInLight.y, minInLight.z);
-        extents[2] = Vector3(minInLight.x, minInLight.y, minInLight.z);
-        extents[3] = Vector3(maxInLight.x, minInLight.y, minInLight.z);
-        extents[4] = Vector3(minInLight.x, maxInLight.y, maxInLight.z);
-        extents[5] = Vector3(maxInLight.x, maxInLight.y, maxInLight.z);
-        extents[6] = Vector3(minInLight.x, minInLight.y, maxInLight.z);
-        extents[7] = Vector3(maxInLight.x, minInLight.y, maxInLight.z);
-		
-		//
-		// now we prepare the values vp.Ortho() expects
-		//
-        // Width is the magnitude of the vector from the near top left corner to the near top right corner
-        Vector3 vWidth = extents[1] - extents[0];
-        // Height is the magnitude of the vector from the near top left corner to the near bottom left corner
-        Vector3 vHeight = extents[2] - extents[0];
-        // Depth is the magnitude of the vector from the near top left corner to the far top left corner
-        Vector3 vDepth = extents[4] - extents[0];
-        float width = vWidth.Length();
-        float height = vHeight.Length();
-        float depth = vDepth.Length();
-        float halfWidth = width * 0.5f;
-        float halfHeight = height * 0.5f;
-		
-		//
-		// Scale the depth
-		//
-		// This stretches the length of the box
-		// so that it catches also large buildings like skycrapers
-//        depth *= m_LightDepthScale;
-		
-		
-		//
-		// now we prepare the values SetCameraMtx() expects
-		//
-        // get the center of the box
-        Vector3 vCameraPos;
-        vCameraPos = extents[0]*0.5f+extents[7]*0.5f;
-		
-        // Transform the center of the box back into into world space
-		// this way the box follows the camera
-		lightOrientation = light->Rotation().RotationMatrix();
-        vCameraPos = lightOrientation*vCameraPos;
-        
-        float fHalfDepth = depth * 0.5f;
-        vCameraPos += light->Forward()*(-fHalfDepth);
-		
-		SetPosition(vCameraPos);
-		
-        // dynamic generation of the orthographic projection matrix
-		ortholeft = halfWidth;
-		orthoright = -halfWidth;
-		orthobottom = -halfHeight;
-		orthotop = halfHeight;
-		
-		clipnear = 0.0f;
-		clipfar = depth;
-		
-		UpdateProjection();
+		pos /= pixelsize;
+		pos.x = floorf(pos.x);
+		pos.y = floorf(pos.y);
+		pos.z = floorf(pos.z);
+		pos *= pixelsize;
+		pos = rot*pos;
+		SetPosition(pos);
 	}
 	
 	void Camera::ActivateTiledLightLists(Texture *depthTiles)
@@ -709,6 +495,18 @@ namespace RN
 		vec = inverseProjectionMatrix.Transform(vec);
 		vec /= vec.w;
 
+		Vector3 temp(vec.x, vec.y, vec.z);
+		temp = inverseViewMatrix.Transform(temp);
+		
+		return temp;
+	}
+	
+	Vector3 Camera::ToWorldZ(const Vector3& dir)
+	{
+		Vector4 vec(dir.x, dir.y, 1.0, 1.0f);
+		vec = inverseProjectionMatrix.Transform(vec);
+		vec = vec.Normalize()*dir.z;
+		
 		Vector3 temp(vec.x, vec.y, vec.z);
 		temp = inverseViewMatrix.Transform(temp);
 		

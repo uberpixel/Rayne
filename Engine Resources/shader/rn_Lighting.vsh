@@ -32,10 +32,10 @@ vec3 rn_Lighting(mat4 model, vec3 position, vec3 normal)
 		0.0, 0.0, 0.5, 0.0,
 		0.5, 0.5, 0.5, 1.0
 	);
-	outDirLightProj[0] = biasMatrix*lightDirectionalMatrix[0]*matModel*pos;
-	outDirLightProj[1] = biasMatrix*lightDirectionalMatrix[1]*matModel*pos;
-	outDirLightProj[2] = biasMatrix*lightDirectionalMatrix[2]*matModel*pos;
-	outDirLightProj[3] = biasMatrix*lightDirectionalMatrix[3]*matModel*pos;
+	outDirLightProj[0] = /*biasMatrix**/lightDirectionalMatrix[0]*matModel*pos;
+	outDirLightProj[1] = /*biasMatrix**/lightDirectionalMatrix[1]*matModel*pos;
+	outDirLightProj[2] = /*biasMatrix**/lightDirectionalMatrix[2]*matModel*pos;
+	outDirLightProj[3] = /*biasMatrix**/lightDirectionalMatrix[3]*matModel*pos;
 
 	return pos.xyz;
 #else

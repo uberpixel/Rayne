@@ -373,11 +373,15 @@ namespace TG
 		tree->MaterialAtIndex(2, 0)->alphatest = true;
 		tree->MaterialAtIndex(2, 0)->alphatestvalue = 0.3f;*/
 		
-		for(int i = 0; i < 200; i += 1)
+		for(int i = 0; i < 500; i += 1)
 		{
 			ent = new RN::Entity();
 			ent->SetModel(tree);
-			ent->SetPosition(RN::Vector3(TGWorldRandom*(-100.0f)-10.0f, 0.0f, TGWorldRandom*(-100.0f)-10.0f));
+			RN::Vector3 pos = RN::Vector3(TGWorldRandom*(200.0f)-100.0f, 0.0f, TGWorldRandom*(200.0f)-100.0f);
+			if(pos.Length() < 10.0f)
+				continue;
+			ent->SetPosition(pos);
+			ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
 		}
 		
 #if !TGWorldFeatureFreeCamera
@@ -408,7 +412,7 @@ namespace TG
 		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
 		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
-		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, 0.0f, -60.0f)));
+		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->_lightcam = _camera;
 		_sunLight->SetShadow(true);
 		

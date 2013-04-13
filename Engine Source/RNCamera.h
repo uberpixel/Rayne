@@ -121,7 +121,6 @@ namespace RN
 		RNAPI void RemoveStage(Camera *stage);
 		
 		RNAPI void MakeShadowSplit(Camera *camera, Light *light, float near, float far);
-		RNAPI void CalcOrthoViewport(Camera *camera, float nearSlice, float farSlice, Light *light, const float FovYDiv);
 		RNAPI void ActivateTiledLightLists(Texture *depthTiles);
 		Texture *DepthTiles() { return _depthTiles; }
 		
@@ -130,6 +129,7 @@ namespace RN
 		RNAPI void UpdateProjection();
 		
 		RNAPI Vector3 ToWorld(const Vector3& dir);
+		RNAPI Vector3 ToWorldZ(const Vector3& dir);
 		RNAPI void UpdateFrustum();
 		RNAPI bool InFrustum(const Vector3& position, float radius);
 		
