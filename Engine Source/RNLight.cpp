@@ -85,10 +85,16 @@ namespace RN
 		Transform::Update(delta);
 		if(_shadow)
 		{
+			float near = _lightcam->clipnear;
+			float far;
 			for(int i = 0; i < 4; i++)
 			{
 				_shadowcams.ObjectAtIndex(i)->SetRotation(Rotation());
-				_shadowcams.ObjectAtIndex(i)->MakeShadowSplit(_lightcam, this, 20.0f*i*i, 20.0f*(i+1)*(i+1));
+				float linear = _lightcam->clipnear+(_lightcam->clipfar-_lightcam->clipnear)*(i+1.0f)/4.0f;
+				float log = _lightcam->clipnear*powf(_lightcam->clipfar/_lightcam->clipnear, (i+1.0f)/4.0f);
+				far = linear*0.04f+log*0.96f;
+				_shadowcams.ObjectAtIndex(i)->MakeShadowSplit(_lightcam, this, near, far);
+				near = far;
 			}
 		}
 	}

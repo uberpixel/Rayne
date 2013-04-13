@@ -33,7 +33,7 @@ in vec4 outDirLightProj[4];
 
 float offset_lookup(sampler2DArrayShadow map, vec4 loc, vec2 offset)
 {
-	return texture(map, vec4(loc.xy+offset*frameSize.xy*0.5, loc.wz));
+	return texture(map, vec4(loc.xy+offset*frameSize.xy, loc.wz));
 }
 
 vec4 rn_Lighting()
@@ -104,9 +104,9 @@ vec4 rn_Lighting()
 			vec4 projected = vec4(outDirLightProj[int(mapToUse)].xyz/outDirLightProj[int(mapToUse)].w*0.5+0.5, mapToUse);
 		
 			shadow = offset_lookup(lightDirectionalDepth, projected, vec2(-1.0, 0.0));
-			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(1.0, 0.0));
+			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, 0.0));
 			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, -1.0));
-			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, 1.0));
+			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, 0.0));
 			shadow *= 0.25;
 		}
 
