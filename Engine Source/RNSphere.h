@@ -18,26 +18,23 @@ namespace RN
 	{
 	public:
 		Sphere();
-		Sphere(const Sphere& other);
 		Sphere(const Vector3& origin, float radius);
 		Sphere(const AABB& aabb);
 		
 		Sphere operator+ (const Vector3& other) const;
 		Sphere& operator+= (const Vector3& other);
 		
+		RN_INLINE Vector3 Position() const { return origin + offset; }
+		
+		Vector3 offset;
 		Vector3 origin;
+		
 		float radius;
 	};
 	
 	RN_INLINE Sphere::Sphere()
 	{
 		radius = 0.0f;
-	}
-	
-	RN_INLINE Sphere::Sphere(const Sphere& other) :
-		origin(other.origin),
-		radius(other.radius)
-	{
 	}
 	
 	RN_INLINE Sphere::Sphere(const Vector3& torigin, float tradius) :

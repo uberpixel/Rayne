@@ -22,12 +22,8 @@ namespace RN
 		AABB(const Vector3& origin, float width);
 		AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
 		
-		AABB operator+ (const Vector3& other) const;
-		AABB& operator+= (const Vector3& other);
-		
 		AABB operator+ (const AABB& other) const;
 		AABB& operator+= (const AABB& other);
-		
 		
 		bool Intersects(const AABB& other);
 		bool Contains(const AABB& other);
@@ -35,6 +31,9 @@ namespace RN
 		float Width() const { return width.x; }
 		float Height() const { return width.y; }
 		
+		RN_INLINE Vector3 Position() const { return origin + offset; }
+		
+		Vector3 offset;
 		Vector3 origin;
 		Vector3 halfWidth;
 		Vector3 width;
@@ -57,12 +56,8 @@ namespace RN
 		max.y = MAX(tmin.x, tmax.y);
 		max.z = MAX(tmin.x, tmax.z);
 		
-		halfWidth = (max - min) * 0.5f;
-		halfWidth.x = Math::FastAbs(halfWidth.x);
-		halfWidth.y = Math::FastAbs(halfWidth.y);
-		halfWidth.z = Math::FastAbs(halfWidth.z);
-		
-		width  = halfWidth * 2.0f;
+		width = (max - min);
+		halfWidth = width * 0.5f;
 		origin = min + halfWidth;
 	}
 	
@@ -75,22 +70,6 @@ namespace RN
 	RN_INLINE AABB::AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) :
 		AABB(Vector3(minX, minY, minZ), Vector3(maxX, maxY, maxZ))
 	{}
-	
-	
-	RN_INLINE AABB AABB::operator+ (const Vector3& other) const
-	{
-		AABB result(*this);
-		result.origin += other;
-		
-		return result;
-	}
-	
-	RN_INLINE AABB& AABB::operator+= (const Vector3& other)
-	{
-		origin += other;		
-		return *this;
-	}
-	
 	
 	RN_INLINE AABB AABB::operator+ (const AABB& other) const
 	{
@@ -133,12 +112,8 @@ namespace RN
 		max.y = MAX(max1.x, max2.y);
 		max.z = MAX(max1.x, max2.z);
 		
-		halfWidth = (max - min) * 0.5f;
-		halfWidth.x = Math::FastAbs(halfWidth.x);
-		halfWidth.y = Math::FastAbs(halfWidth.y);
-		halfWidth.z = Math::FastAbs(halfWidth.z);
-		
-		width  = halfWidth * 2.0f;
+		width = (max - min);
+		halfWidth = width * 0.5f;
 		origin = min + halfWidth;
 		
 		return *this;

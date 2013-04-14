@@ -496,6 +496,22 @@ namespace RN
 		_frustumBottom.SetPlane(position, pos3, pos6, 1.0f);
 		_frustumNear.SetPlane(position + direction * clipnear, -direction);
 		_frustumFar.SetPlane(position + direction * clipfar, direction);
+		
+#define CopyAndAbsPlane(dest, source) \
+		dest = source; \
+		dest.normal.x = Math::FastAbs(dest.normal.x); \
+		dest.normal.y = Math::FastAbs(dest.normal.y); \
+		dest.normal.z = Math::FastAbs(dest.normal.z)
+		
+		CopyAndAbsPlane(_absFrustumLeft, _frustumLeft);
+		CopyAndAbsPlane(_absFrustumRight, _frustumRight);
+		CopyAndAbsPlane(_absFrustumTop, _frustumTop);
+		CopyAndAbsPlane(_absFrustumBottom, _frustumBottom);
+		CopyAndAbsPlane(_absFrustumFar, _frustumFar);
+		CopyAndAbsPlane(_absFrustumNear, _frustumNear);
+		
+#undef CopyAndAbsPlane
+		
 	}
 
 	bool Camera::InFrustum(const Vector3& position, float radius)
@@ -524,25 +540,26 @@ namespace RN
 		return true;
 	}
 	
-	bool Camera::InFrustum(const Vector3& offset, const Sphere& sphere)
+	bool Camera::InFrustum(const Sphere& sphere)
 	{
-		return InFrustum(sphere.origin + offset, sphere.radius);
+		return InFrustum(sphere.Position(), sphere.radius);
 	}
 	
-	bool Camera::InFrustum(const Vector3& offset, const AABB& taabb)
+	bool Camera::InFrustum(const AABB& aabb)
 	{
-		AABB aabb(taabb);
-		aabb.origin += offset;
-		
 		Plane *planes = &_frustumLeft;
+		Plane *absPlanes = &_absFrustumLeft;
+	
+		Vector3 position = aabb.Position();
 		
 		for(int i=0; i<6; i++)
 		{
 			const Plane& plane = planes[i];
+			const Plane& absPlane = absPlanes[i];
 			
-			float d = aabb.origin.Dot(plane.normal);
-			float r = aabb.width.x * Math::FastAbs(plane.normal.x) + aabb.width.y * Math::FastAbs(plane.normal.y) + aabb.width.z * Math::FastAbs(plane.normal.z);
-		
+			float d = position.Dot(plane.normal);
+			float r = aabb.width.Dot(absPlane.normal);
+			
 			float dpr = d + r + plane.d;
 			
 			if(Math::IsNegative(dpr))

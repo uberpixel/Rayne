@@ -64,8 +64,8 @@ namespace RN
 		RNAPI const Vector3& WorldEulerAngle();
 		RNAPI const Quaternion& WorldRotation();
 		
-		const AABB& BoundingBox() const { return _boundingBox; }
-		const Sphere& BoundingSphere() const { return _boundingSphere; }
+		RNAPI const AABB& BoundingBox();
+		RNAPI const Sphere& BoundingSphere();
 		
 		RNAPI void AttachChild(SceneNode *child);
 		RNAPI void DetachChild(SceneNode *child);
@@ -271,6 +271,19 @@ namespace RN
 		return _worldTransform;
 	}
 	
+	RN_INLINE const AABB& SceneNode::BoundingBox()
+	{
+		UpdateInternalData();
+		return _boundingBox;
+	}
+	
+	RN_INLINE const Sphere& SceneNode::BoundingSphere()
+	{
+		UpdateInternalData();
+		return _boundingSphere;
+	}
+	
+	
 	RN_INLINE void SceneNode::UpdateInternalData()
 	{
 		if(_updated)
@@ -299,6 +312,9 @@ namespace RN
 				
 				_worldTransform = _localTransform;
 			}
+			
+			_boundingBox.offset = _worldPosition;
+			_boundingSphere.offset = _worldPosition;
 			
 			machine_uint count = _childs.Count();
 			for(machine_uint i=0; i<count; i++)

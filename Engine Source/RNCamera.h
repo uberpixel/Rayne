@@ -126,8 +126,8 @@ namespace RN
 		RNAPI Vector3 ToWorld(const Vector3& dir);
 		RNAPI void UpdateFrustum();
 		RNAPI bool InFrustum(const Vector3& position, float radius);
-		RNAPI bool InFrustum(const Vector3& offset, const Sphere& sphere);
-		RNAPI bool InFrustum(const Vector3& offset, const AABB& aabb);
+		RNAPI bool InFrustum(const Sphere& sphere);
+		RNAPI bool InFrustum(const AABB& aabb);
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
@@ -189,6 +189,13 @@ namespace RN
 			Plane _frustumBottom;
 			Plane _frustumFar;
 			Plane _frustumNear;
+			
+			Plane _absFrustumLeft;
+			Plane _absFrustumRight;
+			Plane _absFrustumTop;
+			Plane _absFrustumBottom;
+			Plane _absFrustumFar;
+			Plane _absFrustumNear;
 		};
 		
 		Vector2 _lightTiles;
