@@ -13,7 +13,7 @@
 #include "RNKernel.h"
 #include "RNThreadPool.h"
 
-#define kRNRendererInstancingCutOff  1000
+#define kRNRendererInstancingCutOff  100
 #define kRNRendererMaxVAOAge         300
 
 #define kRNRendererPointLightListIndicesIndex 0
