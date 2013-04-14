@@ -490,11 +490,11 @@ namespace RN
 		_frustumCenter = _frustumCenter * 0.5f;
 		_frustumRadius = _frustumCenter.Distance(vmax);
 
-		_frustumLeft.SetPlane(position, pos2, pos3);
-		_frustumRight.SetPlane(position, pos5, pos6);
-		_frustumTop.SetPlane(position, pos2, pos5);
-		_frustumBottom.SetPlane(position, pos3, pos6);
-		_frustumNear.SetPlane(position + direction * clipnear, direction);
+		_frustumLeft.SetPlane(position, pos2, pos3, 1.0f);
+		_frustumRight.SetPlane(position, pos5, pos6, -1.0f);
+		_frustumTop.SetPlane(position, pos2, pos5, -1.0f);
+		_frustumBottom.SetPlane(position, pos3, pos6, 1.0f);
+		_frustumNear.SetPlane(position + direction * clipnear, -direction);
 		_frustumFar.SetPlane(position + direction * clipfar, direction);
 	}
 
@@ -506,16 +506,16 @@ namespace RN
 		if(_frustumLeft.Distance(position) > radius)
 			return false;
 
-		if(_frustumRight.Distance(position) < -radius)
+		if(_frustumRight.Distance(position) > radius)
 			return false;
 
-		if(_frustumTop.Distance(position) < -radius)
+		if(_frustumTop.Distance(position) > radius)
 			return false;
 
 		if(_frustumBottom.Distance(position) > radius)
 			return false;
 		
-		if(_frustumNear.Distance(position) < -radius)
+		if(_frustumNear.Distance(position) > radius)
 			return false;
 		
 		if(_frustumFar.Distance(position) > radius)
@@ -541,9 +541,9 @@ namespace RN
 			const Plane& plane = planes[i];
 			
 			float d = aabb.origin.Dot(plane.normal);
-			float r = aabb.width.x * Math::FastAbs(plane.position.x) + aabb.width.y * Math::FastAbs(plane.position.y) + aabb.width.z * Math::FastAbs(plane.position.z);
+			float r = aabb.width.x * Math::FastAbs(plane.normal.x) + aabb.width.y * Math::FastAbs(plane.normal.y) + aabb.width.z * Math::FastAbs(plane.normal.z);
 		
-			float dpr = d + r;
+			float dpr = d + r + plane.d;
 			
 			if(Math::IsNegative(dpr))
 				return false;
