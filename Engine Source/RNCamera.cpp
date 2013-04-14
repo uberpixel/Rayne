@@ -541,9 +541,9 @@ namespace RN
 			const Plane& plane = planes[i];
 			
 			float d = aabb.origin.Dot(plane.normal);
-			float r = aabb.width.x * Math::FastAbs(plane.normal.x) + aabb.width.y * Math::FastAbs(plane.normal.y) + aabb.width.z * Math::FastAbs(plane.normal.z);
+			float r = aabb.width.x * Math::FastAbs(plane.position.x) + aabb.width.y * Math::FastAbs(plane.position.y) + aabb.width.z * Math::FastAbs(plane.position.z);
 		
-			float dpr = d + r + plane.d;
+			float dpr = d + r;
 			
 			if(Math::IsNegative(dpr))
 				return false;

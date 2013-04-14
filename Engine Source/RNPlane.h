@@ -19,7 +19,7 @@ namespace RN
 		RNAPI void SetPlane(const Vector3 &position, const Vector3 &normal);
 		RNAPI void SetPlane(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3);
 		
-		RNAPI float Distance(const Vector3 &position);
+		RNAPI float Distance(const Vector3 &position) const;
 	
 		RNAPI void CalculateD();
 		
@@ -55,7 +55,7 @@ namespace RN
 		CalculateD();
 	}
 	
-	RN_INLINE float Plane::Distance(const Vector3 &position)
+	RN_INLINE float Plane::Distance(const Vector3 &position) const
 	{
 		return position.Dot(normal) - d;
 	}

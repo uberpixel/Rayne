@@ -61,7 +61,7 @@ namespace RN
 	
 	bool SceneNode::IsVisibleInCamera(Camera *camera)
 	{
-		return camera->InFrustum(WorldPosition(), _boundingSphere);
+		return camera->InFrustum(WorldPosition(), _boundingBox);
 	}
 	
 	
