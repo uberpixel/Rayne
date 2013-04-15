@@ -43,18 +43,23 @@ namespace RN
 		
 		int32 Generator::RandomInt32Range(int32 min, int32 max)
 		{
-			int32 base = RandomInt32();
-			if(base == Max())
-				return RandomInt32Range(min, max);
+			RN_ASSERT0(min >= Min());
+			RN_ASSERT0(max <= Max());
 			
-			int32 range = max - min;
-			int32 remainder = Max() % range;
-			int32 bucket    = Max() / range;
-			
-			if(base < Max() - remainder)
-				return min + base / bucket;
-			
-			return RandomInt32Range(min, max);
+			while(1)
+			{
+				int32 base = RandomInt32();
+				
+				if(base == Max())
+					continue;
+				
+				int32 range = max - min;
+				int32 remainder = Max() % range;
+				int32 bucket    = Max() / range;
+				
+				if(base < Max() - remainder)
+					return min + base / bucket;
+			}
 		}
 		
 		float Generator::RandomFloat()
@@ -145,7 +150,7 @@ namespace RN
 		
 		int32 DualPhaseLCG::Max() const
 		{
-			return UINT32_MAX;
+			return INT32_MAX;
 		}
 		
 		void DualPhaseLCG::Seed(uint32 seed)
