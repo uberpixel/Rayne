@@ -120,7 +120,7 @@ namespace RN
 		RNAPI void ReplaceStage(Camera *stage);
 		RNAPI void RemoveStage(Camera *stage);
 		
-		RNAPI void MakeShadowSplit(Camera *camera, Light *light, float near, float far);
+		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		RNAPI void ActivateTiledLightLists(Texture *depthTiles);
 		Texture *DepthTiles() { return _depthTiles; }
 		

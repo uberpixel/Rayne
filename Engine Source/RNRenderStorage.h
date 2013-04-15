@@ -38,7 +38,7 @@ namespace RN
 		RNAPI void AddRenderTarget(Texture *target);
 		RNAPI void AddRenderTarget(Texture::Format format);
 		RNAPI void RemoveRenderTarget(Texture *target);
-		RNAPI void SetDepthTarget(Texture *texture, uint32 layer = 0);
+		RNAPI void SetDepthTarget(Texture *texture, uint32 layer = -1);
 		RNAPI void SetDepthTarget(Texture::Format format);
 		
 		RNAPI void UpdateBuffer();

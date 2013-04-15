@@ -364,29 +364,9 @@ namespace RN
 		}
 	}
 	
-	void Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
+	Matrix Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
 	{
-/*		Vector3 pixelsize = Vector3(Vector2(far*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
-		Matrix rot = light->WorldRotation().RotationMatrix();
-		
-		Vector3 pos = camera->WorldPosition()+light->Forward()*200.0f;
-		pos = rot.Inverse()*pos;
-		
-		pos /= pixelsize;
-		pos.x = floorf(pos.x);
-		pos.y = floorf(pos.y);
-		pos.z = floorf(pos.z);
-		pos *= pixelsize;
-		pos = rot*pos;
-		SetPosition(pos);
-	
-		ortholeft = -far;
-		orthoright = far;
-		orthobottom = -far;
-		orthotop = far;
-		UpdateProjection();*/
-		
-		Vector3 nearcenter = camera->ToWorldZ(Vector3(0.0f, 0.0f, near));//camera->WorldPosition()+camera->Forward()*near;
+		Vector3 nearcenter = camera->ToWorldZ(Vector3(0.0f, 0.0f, near));
 		Vector3 farcorner1 = camera->ToWorldZ(Vector3(1.0f, 1.0f, far));
 		Vector3 farcorner2 = camera->ToWorldZ(Vector3(-1.0f, -1.0f, far));
 		Vector3 farcenter = (farcorner1+farcorner2)*0.5f;
@@ -399,7 +379,6 @@ namespace RN
 		orthobottom = -dist;
 		orthotop = dist;
 		UpdateProjection();
-		
 		
 		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
 		Vector3 pos = center+light->Forward()*200.0f;
@@ -414,6 +393,9 @@ namespace RN
 		pos *= pixelsize;
 		pos = rot*pos;
 		SetPosition(pos);
+		
+		Matrix projview = projectionMatrix*WorldTransform().Inverse();
+		return projview;
 	}
 	
 	void Camera::ActivateTiledLightLists(Texture *depthTiles)

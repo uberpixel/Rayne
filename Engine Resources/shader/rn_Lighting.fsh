@@ -33,7 +33,7 @@ in vec4 outDirLightProj[4];
 
 float offset_lookup(sampler2DArrayShadow map, vec4 loc, vec2 offset)
 {
-	return texture(map, vec4(loc.xy+offset*frameSize.xy, loc.wz));
+	return texture(map, vec4(loc.xy+offset*frameSize.xy, loc.w, loc.z-0.01));
 }
 
 vec4 rn_Lighting()
@@ -82,36 +82,33 @@ vec4 rn_Lighting()
 			light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}*/
 	
-	for(int i=0; i<lightDirectionalCount; i++)
-	{
-/*		float comp = (clipPlanes.x * clipPlanes.y)/(clipPlanes.y-gl_FragCoord.z*(clipPlanes.y-clipPlanes.x));
-		vec4 zGreater = vec4(lessThan(vec4(15.0, 30.0, 60.0, 150.0), vec4(comp)));
-		float mapToUse = dot(zGreater, vec4(1.0f));*/
+//	for(int i=0; i<lightDirectionalCount; i++)
+//	{
+		vec3 proj[4];
+		proj[0] = outDirLightProj[0].xyz/outDirLightProj[0].w;
+		proj[1] = outDirLightProj[1].xyz/outDirLightProj[1].w;
+		proj[2] = outDirLightProj[2].xyz/outDirLightProj[2].w;
+		proj[3] = outDirLightProj[3].xyz/outDirLightProj[3].w;
 		
-		vec2 proj0 = outDirLightProj[0].xy/outDirLightProj[0].w;
-		vec2 proj1 = outDirLightProj[1].xy/outDirLightProj[1].w;
-		vec2 proj2 = outDirLightProj[2].xy/outDirLightProj[2].w;
-		vec2 proj3 = outDirLightProj[3].xy/outDirLightProj[3].w;
-		
-		vec4 dist = vec4(dot(proj0, proj0), dot(proj1, proj1), dot(proj2, proj2), dot(proj3, proj3));
+		vec4 dist = vec4(dot(proj[0], proj[0]), dot(proj[1], proj[1]), dot(proj[2], proj[2]), dot(proj[3], proj[3]));
 
 		vec4 zGreater = vec4(greaterThan(dist, vec4(1.0)));
 		float mapToUse = dot(zGreater, vec4(1.0f));
 		
 		float shadow = 1.0;
-		if(mapToUse < 4.0)
+//		if(mapToUse < 4.0)
 		{
-			vec4 projected = vec4(outDirLightProj[int(mapToUse)].xyz/outDirLightProj[int(mapToUse)].w*0.5+0.5, mapToUse);
+			vec4 projected = vec4(proj[int(mapToUse)]*0.5+0.5, mapToUse);
 		
 			shadow = offset_lookup(lightDirectionalDepth, projected, vec2(-1.0, 0.0));
-			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, 0.0));
+			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(1.0, 0.0));
 			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, -1.0));
-			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, 0.0));
+			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, 1.0));
 			shadow *= 0.25;
 		}
 
-		light += lightDirectionalColor[i]*max(dot(normal, lightDirectionalDirection[i]), 0.0)*shadow;
-	}
+		light += lightDirectionalColor[0]*max(dot(normal, lightDirectionalDirection[0]), 0.0)*shadow;
+//	}
 	
 	return vec4(light, 1.0);
 }

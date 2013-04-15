@@ -85,18 +85,19 @@ namespace TG
 	
 	void World::CreateCameras()
 	{
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
-		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
-		storage->SetDepthTarget(depthtex);
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);//RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
+		storage->AddRenderTarget(RN::Texture::FormatRGBA32F);
+//		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
+//		storage->SetDepthTarget(depthtex);
 		
-		RN::Shader *depthShader = RN::Shader::WithFile("shader/rn_LightDepth");
-		RN::Material *depthMaterial = new RN::Material(depthShader);
+//		RN::Shader *depthShader = RN::Shader::WithFile("shader/rn_LightDepth");
+//		RN::Material *depthMaterial = new RN::Material(depthShader);
 		
 		_camera = new ThirdPersonCamera(storage);
-		_camera->SetMaterial(depthMaterial);
+//		_camera->SetMaterial(depthMaterial);
 		_camera->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
 		
-		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
+/*		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
 		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
 		downsampleMaterial2x->AddTexture(depthtex);
@@ -142,12 +143,12 @@ namespace TG
 			downsample64x = new RN::Camera(RN::Vector2(_camera->Frame().width/64, _camera->Frame().height/64), RN::Texture::FormatRG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
 			_camera->AddStage(downsample64x);
 			downsample64x->SetMaterial(downsampleMaterial64x);
-		}
+		}*/
 		
-		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA32F, RN::Camera::FlagDefaults);
+/*		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::FormatRGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
 		_finalcam->Storage()->SetDepthTarget(depthtex);
-		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
+		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));*/
 		
 /*		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
 		{
@@ -158,7 +159,7 @@ namespace TG
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
 		}*/
 		
-		_camera->AttachChild(_finalcam);
+//		_camera->AttachChild(_finalcam);
 	}
 	
 	void World::CreateWorld()
@@ -224,11 +225,10 @@ namespace TG
 		light->SetRange(80.0f);
 		light->SetColor(RN::Vector3(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
-		light = new RN::Light(RN::Light::TypeDirectionalLight);
-//		light->SetPosition(RN::Vector3(0.0f, 150.0f, 0.0f));
-		light->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, -70.0f)));
-		light->_lightcam = _camera;
-		light->SetShadow(true);
+		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
+		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
+		_sunLight->_lightcam = _camera;
+		_sunLight->SetShadow(true);
 		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));

@@ -502,7 +502,7 @@ namespace RN
 		
 		_lightDirectionalDirection.RemoveAllObjects();
 		_lightDirectionalColor.RemoveAllObjects();
-		_lightDirectionalMatrix.RemoveAllObjects();
+//		_lightDirectionalMatrix.RemoveAllObjects();
 		_lightDirectionalDepth.RemoveAllObjects();
 		
 		for(machine_uint i=0; i<lightCount; i++)
@@ -516,20 +516,27 @@ namespace RN
 			
 			if(light->_shadow)
 			{
+				if(camera == light->_shadowcam)
+				{
+					_lightDirectionalMatrix.RemoveAllObjects();
+				}
 				for(int i = 0; i < 4; i++)
 				{
-					Camera *cam = light->_shadowcams.ObjectAtIndex(i);
+//					Camera *cam = light->_shadowcam;
 				
-					Matrix matProj = cam->projectionMatrix;
+/*					Matrix matProj = cam->projectionMatrix;
 					float delta = 70.0f*(i*i*i*5+1);
 					float pz = 100.0f;
 					float epsilon = -2.0f * cam->clipfar * cam->clipnear * delta / ((cam->clipfar + cam->clipnear) * pz * (pz + delta));
-					matProj.m[10] *= 1.0f + epsilon;
+					matProj.m[10] *= 1.0f + epsilon;*/
 					
-					_lightDirectionalMatrix.AddObject(matProj*cam->viewMatrix);
+					if(camera == light->_shadowcam)
+					{
+						_lightDirectionalMatrix.AddObject(light->_shadowmats.ObjectAtIndex(i));
+					}
 				}
 				
-				_lightDirectionalDepth.AddObject(light->_shadowcams.ObjectAtIndex(0)->Storage()->DepthTarget());
+				_lightDirectionalDepth.AddObject(light->_shadowcam->Storage()->DepthTarget());
 			}
 		}
 		

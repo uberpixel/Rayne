@@ -22,6 +22,7 @@ namespace RN
 		_boundRenderTargets = 0;
 		_renderTargets = new Array<Texture>();
 		_depthTexture = depthTexture ? depthTexture->Retain() : 0;
+		_depthLayer = -1;
 		
 		_framebuffer = _depthbuffer = _stencilbuffer = 0;
 		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
@@ -293,7 +294,10 @@ namespace RN
 				{
 					if(_depthTexture->TextureType() == Texture::Type2DArray)
 					{
-						glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->Name(), 0, _depthLayer);
+						if(_depthLayer != -1)
+							glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->Name(), 0, _depthLayer);
+						else
+							glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->Name(), 0);
 					}
 					else
 					{

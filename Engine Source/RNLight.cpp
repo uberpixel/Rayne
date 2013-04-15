@@ -58,25 +58,19 @@ namespace RN
 		_shadow = shadow;
 		if(_shadow)
 		{
-			Shader *depthShader = Shader::WithFile("shader/rn_LightDepth");
+			Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepth");
 			Material *depthMaterial = new Material(depthShader);
 			
 			Texture *depthtex = new Texture(Texture::FormatDepth, Texture::WrapModeRepeat, Texture::FilterLinear, false, Texture::Type2DArray);
 			depthtex->SetDepth(4);
+			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
+			storage->SetDepthTarget(depthtex);
+			_shadowcam = new Camera(Vector2(1024), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
 			
-			for(int i = 0; i < 4; i++)
-			{
-				RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
-				storage->SetDepthTarget(depthtex, i);
-				Camera *tempcam = new Camera(Vector2(512), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
-				tempcam->SetMaterial(depthMaterial);
-//				AttachChild(tempcam);
-				tempcam->SetRotation(Rotation());
-				tempcam->SetLODCamera(_lightcam);
-				tempcam->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
-				
-				_shadowcams.AddObject(tempcam);
-			}
+			_shadowcam->SetMaterial(depthMaterial);
+//			AttachChild(_shadowcam);
+			_shadowcam->SetLODCamera(_lightcam);
+			_shadowcam->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
 		}
 	}
 	
@@ -87,15 +81,22 @@ namespace RN
 		{
 			float near = _lightcam->clipnear;
 			float far;
+			
+			_shadowcam->SetRotation(Rotation());
+			_shadowmats.RemoveAllObjects();
+			
 			for(int i = 0; i < 4; i++)
 			{
-				_shadowcams.ObjectAtIndex(i)->SetRotation(Rotation());
 				float linear = _lightcam->clipnear+(_lightcam->clipfar-_lightcam->clipnear)*(i+1.0f)/4.0f;
 				float log = _lightcam->clipnear*powf(_lightcam->clipfar/_lightcam->clipnear, (i+1.0f)/4.0f);
 				far = linear*0.04f+log*0.96f;
-				_shadowcams.ObjectAtIndex(i)->MakeShadowSplit(_lightcam, this, near, far);
+				
+				_shadowmats.AddObject(_shadowcam->MakeShadowSplit(_lightcam, this, near, far));
+				
 				near = far;
 			}
+			
+			_shadowcam->MakeShadowSplit(_lightcam, this, _lightcam->clipnear, _lightcam->clipfar);
 		}
 	}
 }
