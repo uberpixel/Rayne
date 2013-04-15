@@ -13,45 +13,119 @@
 
 namespace RN
 {
-	class RandomNumberGenerator
+	namespace Random
 	{
-	public:
-		RandomNumberGenerator();
-		virtual ~RandomNumberGenerator();
+		class Generator
+		{
+		public:
+			Generator();
+			virtual ~Generator();
+			
+			virtual uint32 SeedValue();
+			
+			virtual int32 Min() const = 0;
+			virtual int32 Max() const = 0;
+			
+			virtual void Seed(uint32 seed) = 0;
+			virtual int32 RandomInt32() = 0;
+			virtual int32 RandomInt32Range(int32 min, int32 max);
+			
+			virtual float RandomFloat();
+			virtual float RandomFloatRange(int32 min, int32 max);
+			
+			virtual double UniformDeviate(int32 seed);
+		};
 		
-		virtual int32 Min() const = 0;
-		virtual int32 Max() const = 0;
+		class LCG : public Generator
+		{
+		public:
+			LCG();
+			
+			virtual int32 Min() const;
+			virtual int32 Max() const;
+			
+			virtual void Seed(uint32 seed);
+			virtual int32 RandomInt32();
+			
+		private:
+			int32 _M;
+			int32 _A;
+			int32 _Q;
+			int32 _R;
+			int32 _seed;
+		};
 		
-		virtual int32 RandomInt32() = 0;
-		virtual int32 RandomInt32(int32 min, int32 max);
+		class DualPhaseLCG : public Generator
+		{
+		public:
+			DualPhaseLCG();
+			
+			virtual int32 Min() const;
+			virtual int32 Max() const;
+			
+			virtual void Seed(uint32 seed);
+			virtual int32 RandomInt32();
+			
+		private:
+			int32 _M1;
+			int32 _M2;
+			int32 _A1;
+			int32 _A2;
+			int32 _Q1;
+			int32 _Q2;
+			int32 _R1;
+			int32 _R2;
+			
+			int32 _seed1;
+			int32 _seed2;
+		};
 		
-		virtual float RandomFloat();
-		virtual float RandomFloat(int32 min, int32 max);
+		class MersenneTwister : public Generator
+		{
+		public:
+			MersenneTwister();
+			~MersenneTwister();
+			
+			virtual int32 Min() const;
+			virtual int32 Max() const;
+			
+			virtual void Seed(uint32 seed);
+			virtual int32 RandomInt32();
+			
+		private:
+			int32 _N;
+			int32 _M;
+			int32 _A;
+			int32 _U;
+			int32 _L;
+			
+			uint32 *_bytes;
+			int32 _offset;
+		};
 		
-		virtual double UniformDeviate(int32 seed);
-	};
-	
-	class SecureRNG : public RandomNumberGenerator
-	{
-	public:
-		SecureRNG();
-		virtual ~SecureRNG();
-		
-		virtual int32 Min() const;
-		virtual int32 Max() const;
-		
-		virtual int32 RandomInt32();
-		
-		static bool UsesHardware();
-		
-	private:
-		void FillBuffer();
-		int ReadRDRAND();
-		
-		uint32 *bytes;
-		int32 offset;
-		int32 size;
-	};
+		class Secure : public Generator
+		{
+		public:
+			Secure();
+			virtual ~Secure();
+			
+			virtual int32 Min() const;
+			virtual int32 Max() const;
+			
+			virtual void Seed(uint32 seed);
+			virtual int32 RandomInt32();
+			
+			static bool UsesHardware();
+			
+		private:
+			void FillBuffer();
+			int ReadRDRAND();
+			
+			uint32 *_bytes;
+			int32 _offset;
+			int32 _size;
+		};
+	}
 }
 
 #endif /* __RAYNE_RANDOM_H__ */
