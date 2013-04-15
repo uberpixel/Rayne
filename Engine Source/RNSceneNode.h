@@ -53,6 +53,7 @@ namespace RN
 		RNAPI void SetBoundingSphere(const Sphere& boundingSphere);
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
+		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
 		
 		const Vector3& Position() const { return _position; }
 		const Vector3& Scale() const { return _scale; }

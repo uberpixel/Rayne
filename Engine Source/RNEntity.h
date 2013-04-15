@@ -31,6 +31,8 @@ namespace RN
 		RNAPI void SetModel(Model *model);
 		RNAPI void SetSkeleton(class Skeleton *skeleton);
 		
+		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
+		
 		Model *Model() const { return _model; }
 		Skeleton *Skeleton() const { return _skeleton; }
 

@@ -35,6 +35,8 @@ namespace RN
 		RNAPI void SetColor(const Vector3& color);
 		RNAPI void SetAngle(float angle);
 		
+		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
+		
 		const Type LightType() const { return _lightType; }
 		const Vector3& Color() const { return _color; }
 		const float Range() const { return _range; }

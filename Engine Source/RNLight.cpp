@@ -39,6 +39,10 @@ namespace RN
 		return SceneNode::IsVisibleInCamera(camera);
 	}
 	
+	void Light::Render(Renderer *renderer, Camera *camera)
+	{
+		renderer->RenderLight(this);
+	}
 	
 	void Light::SetRange(float range)
 	{

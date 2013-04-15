@@ -64,6 +64,10 @@ namespace RN
 		return camera->InFrustum(_boundingSphere);
 	}
 	
+	void SceneNode::Render(Renderer *renderer, Camera *camera)
+	{
+	}
+	
 	
 	void SceneNode::SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere)
 	{
