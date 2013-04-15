@@ -34,6 +34,7 @@
 #include "RNSIMD.h"
 #include "RNCPU.h"
 #include "RNMemory.h"
+#include "RNRandom.h"
 
 #include "RNAABB.h"
 #include "RNColor.h"
