@@ -109,7 +109,7 @@ namespace RN
 		else
 		{
 			FILE *file = fopen("/dev/random", "rb");
-			fread(bytes, kRNSecureRNGSize, 1, file);
+			fread(bytes, kRNSecureRNGSize, 4, file);
 			fclose(file);
 			
 			size = kRNSecureRNGSize;
