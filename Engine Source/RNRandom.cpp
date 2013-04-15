@@ -303,7 +303,7 @@ namespace RN
 						if(_size > 0)
 							break;
 						
-						std::this_thread::sleep_for(std::chrono::nanoseconds(10));
+						std::this_thread::yield(); // We need at least one int of new data
 					}
 				}
 			}

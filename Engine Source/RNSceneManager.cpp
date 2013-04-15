@@ -59,7 +59,9 @@ namespace RN
 		{
 			node->Render(_renderer, camera);
 			
-			for(machine_uint i=0; i<node->Childs(); i++)
+			machine_uint childs = node->Childs();
+			
+			for(machine_uint i=0; i<childs; i++)
 			{
 				SceneNode *child = node->ChildAtIndex(i);
 				RenderSceneNode(camera, child);
