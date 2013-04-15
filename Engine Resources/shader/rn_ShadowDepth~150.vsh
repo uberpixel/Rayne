@@ -16,9 +16,12 @@ in vec3 vertPosition;
 in vec2 vertTexcoord0;
 
 out vec2 vertTexcoord;
+//out vec4 projPos;
 
 void main()
 {
 	vertTexcoord = vertTexcoord0;
-	gl_Position = matModel * rn_Animate(vec4(vertPosition, 1.0));
+	vec4 pos = rn_Animate(vec4(vertPosition, 1.0));
+	gl_Position = matModel * pos;
+//	projPos = matProjViewModel * pos;
 }
