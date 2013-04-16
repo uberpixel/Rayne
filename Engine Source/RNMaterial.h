@@ -24,7 +24,7 @@ namespace RN
 		enum
 		{
 			OverrideCulling = (1 << 0),
-			OVerrideCullmode = (1 << 1),
+			OverrideCullmode = (1 << 1),
 			OverrideBlending = (1 << 2),
 			OverrideBlendmode = (1 << 3),
 			OverrideShininess = (1 << 4),
@@ -38,7 +38,9 @@ namespace RN
 			OverrideDepthtestMode = (1 << 12),
 			OverrideDiscard = (1 << 13),
 			OverrideDiscardThreshold = (1 << 14),
-			OverrideTextures = (1 << 15)
+			OverrideTextures = (1 << 15),
+			
+			OverrideGroupDiscard = OverrideDiscard | OverrideDiscardThreshold | OverrideTextures
 		};
 		
 		RNAPI Material();

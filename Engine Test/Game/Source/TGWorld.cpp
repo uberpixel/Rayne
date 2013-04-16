@@ -165,17 +165,17 @@ namespace TG
 		model->MaterialAtIndex(0, 5)->discard = true;
 		model->MaterialAtIndex(0, 5)->culling = false;
 		model->MaterialAtIndex(0, 5)->alphatest = true;
-		model->MaterialAtIndex(0, 5)->override = RN::Material::OverrideDiscard | RN::Material::OverrideDiscardThreshold | RN::Material::OverrideTextures;
+		model->MaterialAtIndex(0, 5)->override = RN::Material::OverrideGroupDiscard;
 		
 		model->MaterialAtIndex(0, 6)->discard = true;
 		model->MaterialAtIndex(0, 6)->culling = false;
 		model->MaterialAtIndex(0, 6)->alphatest = true;
-		model->MaterialAtIndex(0, 6)->override = RN::Material::OverrideDiscard | RN::Material::OverrideDiscardThreshold | RN::Material::OverrideTextures;
+		model->MaterialAtIndex(0, 6)->override = RN::Material::OverrideGroupDiscard;
 		
 		model->MaterialAtIndex(0, 17)->discard = true;
 		model->MaterialAtIndex(0, 17)->culling = false;
 		model->MaterialAtIndex(0, 17)->alphatest = true;
-		model->MaterialAtIndex(0, 17)->override = RN::Material::OverrideDiscard | RN::Material::OverrideDiscardThreshold | RN::Material::OverrideTextures;
+		model->MaterialAtIndex(0, 17)->override = RN::Material::OverrideGroupDiscard;
 		
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
 		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
@@ -218,7 +218,7 @@ namespace TG
 		material->SetShader(shader);
 		material->AddTexture(texture);
 		
-		material->lifespan = 1.0f;
+		material->lifespan = 20.0f;
 		material->blending = true;
 		material->blendSource = GL_SRC_ALPHA;
 		material->blendDestination = GL_ONE;

@@ -531,7 +531,7 @@ namespace RN
 		if(iterator == _autoVAOs.end())
 		{
 			ShaderProgram *shader = std::get<0>(tuple);
-			Mesh          *mesh  = std::get<1>(tuple);
+			Mesh *mesh = std::get<1>(tuple);
 			
 			gl::GenVertexArrays(1, &vao);
 			gl::BindVertexArray(vao);
@@ -636,6 +636,8 @@ namespace RN
 			
 			_autoVAOs[tuple] = std::tuple<GLuint, uint32>(vao, 0);
 			_currentVAO = vao;
+			
+			return;
 		}
 		
 		uint32& age = std::get<1>(iterator->second);
@@ -679,29 +681,29 @@ namespace RN
 #define PickAttribute(override, attribute) (material->override & Material::override) ? material->attribute : surfaceMaterial->attribute
 		
 		SetCullingEnabled(PickAttribute(OverrideCulling, culling));
-		SetCullMode(PickAttribute(OVerrideCullmode, cullmode));
+		SetCullMode(PickAttribute(OverrideCullmode, cullmode));
 
 		SetDepthTestEnabled(PickAttribute(OverrideDepthtest, depthtest));
 		SetDepthFunction(PickAttribute(OverrideDepthtestMode, depthtestmode));
 		
 		if(material->override & Material::OverrideBlendmode)
 		{
-			SetDepthWriteEnabled((surfaceMaterial->depthwrite && _currentCamera->AllowsDepthWrite()));
+			SetDepthWriteEnabled((material->depthwrite && _currentCamera->AllowsDepthWrite()));
 		}
 		else
 		{
-			SetDepthWriteEnabled((material->depthwrite && _currentCamera->AllowsDepthWrite()));
+			SetDepthWriteEnabled((surfaceMaterial->depthwrite && _currentCamera->AllowsDepthWrite()));
 		}
 		
 		SetBlendingEnabled(PickAttribute(OverrideBlending, blending));
 		
 		if(material->override & Material::OverrideBlendmode)
 		{
-			SetBlendFunction(surfaceMaterial->blendSource, surfaceMaterial->blendDestination);
+			SetBlendFunction(material->blendSource, material->blendDestination);
 		}
 		else
 		{
-			SetBlendFunction(material->blendSource, material->blendDestination);
+			SetBlendFunction(surfaceMaterial->blendSource, surfaceMaterial->blendDestination);
 		}
 		
 #undef PickAttribute
@@ -1133,9 +1135,9 @@ namespace RN
 						
 						if(program->discardThreshold != -1)
 						{
-							float threshold = _currentMaterial->discardThreshold;
+							float threshold = material->discardThreshold;
 							
-							if(surfaceMaterial && !(_currentMaterial->override & Material::OverrideDiscardThreshold))
+							if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
 								threshold = surfaceMaterial->discardThreshold;
 							
 							glUniform1f(program->discardThreshold, threshold);

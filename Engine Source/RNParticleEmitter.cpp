@@ -44,8 +44,8 @@ namespace RN
 		_mesh = 0;
 		_material = 0;
 		
-		SetParticlesPerSecond(60);
-		SetMaxParticles(1);
+		SetParticlesPerSecond(500);
+		SetMaxParticles(10000);
 	}
 	
 	ParticleEmitter::~ParticleEmitter()
@@ -135,6 +135,7 @@ namespace RN
 	{
 		Particle *particle = new Particle(WorldPosition());
 		
+		particle->position = Vector3(lcg.RandomFloat() * 140.0f - 70.0f, lcg.RandomFloat() * 100.0f-20.0f, lcg.RandomFloat() * 80.0f - 40.0f);
 		
 		
 		particle->color.r = lcg.RandomFloatRange(0, 1);

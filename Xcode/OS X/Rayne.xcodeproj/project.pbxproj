@@ -829,7 +829,7 @@
 					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
 					"\"$(SRCROOT)/../../Vendor/libjansson/source\"",
 				);
-				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
+				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-x",
@@ -914,7 +914,7 @@
 					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
 					"\"$(SRCROOT)/../../Vendor/libjansson/source\"",
 				);
-				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
+				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-x",
@@ -936,7 +936,7 @@
 					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
 					"\"$(SRCROOT)/../../Vendor/libjansson/source\"",
 				);
-				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
+				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-x",
