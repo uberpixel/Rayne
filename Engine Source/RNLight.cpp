@@ -21,6 +21,7 @@ namespace RN
 		_range = 1.0f;
 		_angle = 0.5f;
 		_shadow = false;
+		_shadowcam = 0;
 	}
 	
 	Light::~Light()
@@ -65,7 +66,7 @@ namespace RN
 			depthtex->SetDepth(4);
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
 			storage->SetDepthTarget(depthtex);
-			_shadowcam = new Camera(Vector2(1024), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
+			_shadowcam = new Camera(Vector2(512), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
 			
 			_shadowcam->SetMaterial(depthMaterial);
 //			AttachChild(_shadowcam);

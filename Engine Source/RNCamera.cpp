@@ -394,6 +394,44 @@ namespace RN
 		pos = rot*pos;
 		SetPosition(pos);
 		
+	/*	Vector3 nearcorner1 = camera->ToWorldZ(Vector3(-1.0f, -1.0f, near));
+		Vector3 farcorner1 = camera->ToWorldZ(Vector3(1.0f, 1.0f, far));
+		Vector3 farcorner2 = camera->ToWorldZ(Vector3(-1.0f, -1.0f, far));
+		float dist1 = nearcorner1.Distance(farcorner1);
+		float dist2 = farcorner1.Distance(farcorner2);
+		float dist = 0.0f;
+		Vector3 center;
+		if(dist1 < dist2)
+		{
+			dist = dist2;
+			center = (farcorner2+farcorner1)*0.5f;
+		}
+		else
+		{
+			dist = dist1;
+			center = (nearcorner1+farcorner1)*0.5f;
+		}
+		
+		ortholeft = -dist;
+		orthoright = dist;
+		orthobottom = -dist;
+		orthotop = dist;
+		UpdateProjection();
+		
+		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
+		Vector3 pos = center+light->Forward()*200.0f;
+		
+		Matrix rot = light->WorldRotation().RotationMatrix();
+		pos = rot.Inverse()*pos;
+		
+		pos /= pixelsize;
+		pos.x = floorf(pos.x);
+		pos.y = floorf(pos.y);
+		pos.z = floorf(pos.z);
+		pos *= pixelsize;
+		pos = rot*pos;
+		SetPosition(pos);*/
+		
 		Matrix projview = projectionMatrix*WorldTransform().Inverse();
 		return projview;
 	}

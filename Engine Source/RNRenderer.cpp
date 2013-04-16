@@ -13,7 +13,7 @@
 #include "RNKernel.h"
 #include "RNThreadPool.h"
 
-#define kRNRendererInstancingCutOff  1000
+#define kRNRendererInstancingCutOff  100
 #define kRNRendererMaxVAOAge         300
 
 #define kRNRendererPointLightListIndicesIndex 0
@@ -79,6 +79,8 @@ namespace RN
 		
 		_hasValidFramebuffer = false;
 		_frameCamera = 0;
+		
+		_instancingEnabled = true;
 		
 		Initialize();
 	}
@@ -521,11 +523,13 @@ namespace RN
 					_lightDirectionalMatrix.RemoveAllObjects();
 					glEnable(GL_POLYGON_OFFSET_FILL);
 					glPolygonOffset(2.0f, 512.0f);
+					_instancingEnabled = false;
 				}
 				else
 				{
 					glDisable(GL_POLYGON_OFFSET_FILL);
 					glPolygonOffset(0.0f, 0.0f);
+					_instancingEnabled = true;
 				}
 				for(int i = 0; i < 4; i++)
 				{
@@ -665,6 +669,7 @@ namespace RN
 			
 			_autoVAOs[tuple] = std::tuple<GLuint, uint32>(vao, 0);
 			_currentVAO = vao;
+			return;
 		}
 		
 		uint32& age = std::get<1>(iterator->second);
@@ -1044,7 +1049,7 @@ namespace RN
 							end ++;
 						}
 						
-						canDrawInstanced = (offset >= kRNRendererInstancingCutOff && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced));
+						canDrawInstanced = (_instancingEnabled && offset >= kRNRendererInstancingCutOff && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced));
 						if(!canDrawInstanced)
 						{
 							noCheck = offset;
@@ -1115,7 +1120,7 @@ namespace RN
 							glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.Count(), GL_FALSE, data);
 						}
 						
-						if(program->lightDirectionalDepth != -1)
+						if(program->lightDirectionalDepth != -1 && _lightDirectionalDepth.Count() > 0)
 						{
 							uint32 textureUnit = BindTexture(GL_TEXTURE_2D_ARRAY, _lightDirectionalDepth.FirstObject()->Name());
 							glUniform1i(program->lightDirectionalDepth, textureUnit);
