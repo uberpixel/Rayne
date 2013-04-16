@@ -769,6 +769,7 @@ namespace RN
 		_textureUnit = 0;
 		
 		SetDepthTestEnabled(false);
+		SetBlendingEnabled(false);
 		
 		if(_currentVAO != _copyVAO)
 		{
