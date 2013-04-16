@@ -309,7 +309,10 @@ namespace RN
 				{
 					if(_depthTexture->TextureType() == Texture::Type2DArray)
 					{
-						glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, _depthTexture->Name(), 0, _depthLayer);
+						if(_depthLayer != -1)
+							glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, _depthTexture->Name(), 0, _depthLayer);
+						else
+							glFramebufferTexture(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, _depthTexture->Name(), 0);
 					}
 					else
 					{
