@@ -17,7 +17,7 @@ namespace RN
 		_shader = 0;
 		_textures = new Array<Texture>();
 		
-		SetDefaultProperties();
+		Initialize();
 	}
 	
 	Material::Material(RN::Shader *shader)
@@ -25,7 +25,7 @@ namespace RN
 		_shader = shader ? shader->Retain() : 0;
 		_textures = new Array<Texture>();
 		
-		SetDefaultProperties();
+		Initialize();
 	}
 	
 	Material::~Material()
@@ -75,8 +75,11 @@ namespace RN
 	}
 	
 	
-	void Material::SetDefaultProperties()
+	void Material::Initialize()
 	{
+		override = 0;
+		lighting = true;
+		
 		culling  = true;
 		cullmode = GL_CCW;
 		

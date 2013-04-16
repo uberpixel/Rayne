@@ -265,6 +265,8 @@ namespace RN
 		glBufferData(GL_ARRAY_BUFFER, _meshSize, 0, _vboUsage);
 		glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, _vboUsage);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+		glFlush();
 	}
 	
 	void Mesh::GenerateMesh()

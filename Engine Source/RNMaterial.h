@@ -20,7 +20,27 @@ namespace RN
 {
 	class Material : public Object
 	{
-	public:		
+	public:
+		enum
+		{
+			OverrideCulling = (1 << 0),
+			OVerrideCullmode = (1 << 1),
+			OverrideBlending = (1 << 2),
+			OverrideBlendmode = (1 << 3),
+			OverrideShininess = (1 << 4),
+			OverrideAmbient = (1 << 5),
+			OverrideDiffuse = (1 << 6),
+			OverrideSpecular = (1 << 7),
+			OverrideEmissive = (1 << 8),
+			OverrideAlphatest = (1 << 9),
+			OverrideDepthtest = (1 << 10),
+			OverrideDepthwrite = (1 << 11),
+			OverrideDepthtestMode = (1 << 12),
+			OverrideDiscard = (1 << 13),
+			OverrideDiscardThreshold = (1 << 14),
+			OverrideTextures = (1 << 15)
+		};
+		
 		RNAPI Material();
 		RNAPI Material(Shader *shader);
 		RNAPI virtual ~Material();
@@ -35,6 +55,8 @@ namespace RN
 		RNAPI Array<Texture> *Textures() const;
 		
 		bool culling;
+		bool lighting;
+		
 		GLenum cullmode;
 		
 		bool blending;
@@ -58,8 +80,10 @@ namespace RN
 		bool discard;
 		float discardThreshold;
 		
+		uint64 override;
+		
 	private:
-		void SetDefaultProperties();
+		void Initialize();
 		
 		RN::Shader *_shader;
 		Array<Texture> *_textures;

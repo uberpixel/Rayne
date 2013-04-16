@@ -538,7 +538,7 @@ namespace RN
 			
 			glBindBuffer(GL_ARRAY_BUFFER, mesh->VBO());
 			
-			if(mesh->Descriptor(kMeshFeatureIndices))
+			if(mesh->SupportsFeature(kMeshFeatureIndices))
 			{
 				GLuint ibo = mesh->IBO();
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
@@ -659,7 +659,7 @@ namespace RN
 		{
 			_textureUnit = 0;
 			
-			Array<Texture> *textures = (_currentCamera->override & Camera::OverrideTextures) ? surfaceMaterial->Textures() : material->Textures();
+			Array<Texture> *textures = (material->override & Material::OverrideTextures) ? material->Textures() : surfaceMaterial->Textures();
 			Array<GLuint> *textureLocations = &program->texlocations;
 			
 			if(textureLocations->Count() > 0)
@@ -676,7 +676,7 @@ namespace RN
 			}
 		}
 
-#define PickAttribute(override, attribute) (_currentCamera->override & Camera::override) ? surfaceMaterial->attribute : material->attribute
+#define PickAttribute(override, attribute) (material->override & Material::override) ? material->attribute : surfaceMaterial->attribute
 		
 		SetCullingEnabled(PickAttribute(OverrideCulling, culling));
 		SetCullMode(PickAttribute(OVerrideCullmode, cullmode));
@@ -684,7 +684,7 @@ namespace RN
 		SetDepthTestEnabled(PickAttribute(OverrideDepthtest, depthtest));
 		SetDepthFunction(PickAttribute(OverrideDepthtestMode, depthtestmode));
 		
-		if(_currentCamera->override & Camera::OverrideBlendmode)
+		if(material->override & Material::OverrideBlendmode)
 		{
 			SetDepthWriteEnabled((surfaceMaterial->depthwrite && _currentCamera->AllowsDepthWrite()));
 		}
@@ -695,7 +695,7 @@ namespace RN
 		
 		SetBlendingEnabled(PickAttribute(OverrideBlending, blending));
 		
-		if(_currentCamera->override & Camera::OverrideBlendmode)
+		if(material->override & Material::OverrideBlendmode)
 		{
 			SetBlendFunction(surfaceMaterial->blendSource, surfaceMaterial->blendDestination);
 		}
@@ -964,8 +964,6 @@ namespace RN
 				int lightSpotCount  = CreateSpotLightList(camera);
 				int lightDirectionalCount = CreateDirectionalLightList(camera);
 				
-				int lightCount = lightPointCount + lightSpotCount + lightDirectionalCount;
-				
 				// Update the shader
 				const Matrix& projectionMatrix = camera->projectionMatrix;
 				const Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix;
@@ -1033,7 +1031,7 @@ namespace RN
 					ShaderProgram *program = 0;
 					
 					bool wantsDiscard = material->discard;
-					if(surfaceMaterial && _currentCamera->override & Camera::OverrideDiscard)
+					if(surfaceMaterial && !(material->override & Material::OverrideDiscard))
 					{
 						wantsDiscard = surfaceMaterial->discard;
 					}
@@ -1041,7 +1039,7 @@ namespace RN
 					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
 						programTypes |= ShaderProgram::TypeAnimated;
 					
-					if(lightCount > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
+					if(material->lighting && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
 						programTypes |= ShaderProgram::TypeLighting;
 					
 					if(canDrawInstanced)
@@ -1137,7 +1135,7 @@ namespace RN
 						{
 							float threshold = _currentMaterial->discardThreshold;
 							
-							if(surfaceMaterial && _currentCamera->override & Camera::OverrideDiscardThreshold)
+							if(surfaceMaterial && !(_currentMaterial->override & Material::OverrideDiscardThreshold))
 								threshold = surfaceMaterial->discardThreshold;
 							
 							glUniform1f(program->discardThreshold, threshold);
