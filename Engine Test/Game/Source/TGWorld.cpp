@@ -11,7 +11,7 @@
 #define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
-#define TGWorldFeatureFreeCamera    1
+#define TGWorldFeatureFreeCamera    0
 #define TGWorldFeatureParticles     1
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
@@ -226,6 +226,7 @@ namespace TG
 		RN::ParticleEmitter *emitter = new RN::ParticleEmitter();
 		emitter->SetMaterial(material);
 		emitter->group = 1;
+		emitter->Cook(100.0f, 10);
 #endif
 		
 #if TGWorldFeatureLights

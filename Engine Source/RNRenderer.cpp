@@ -770,6 +770,7 @@ namespace RN
 		
 		SetDepthTestEnabled(false);
 		SetBlendingEnabled(false);
+		SetCullMode(GL_CCW);
 		
 		if(_currentVAO != _copyVAO)
 		{
@@ -813,6 +814,10 @@ namespace RN
 		
 		_currentCamera = stage;
 		_textureUnit = 0;
+		
+		SetDepthTestEnabled(false);
+		SetBlendingEnabled(false);
+		SetCullMode(GL_CCW);
 		
 		if(_currentVAO != _copyVAO)
 		{
