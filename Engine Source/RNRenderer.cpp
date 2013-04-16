@@ -519,6 +519,13 @@ namespace RN
 				if(camera == light->_shadowcam)
 				{
 					_lightDirectionalMatrix.RemoveAllObjects();
+					glEnable(GL_POLYGON_OFFSET_FILL);
+					glPolygonOffset(2.0f, 512.0f);
+				}
+				else
+				{
+					glDisable(GL_POLYGON_OFFSET_FILL);
+					glPolygonOffset(0.0f, 0.0f);
 				}
 				for(int i = 0; i < 4; i++)
 				{

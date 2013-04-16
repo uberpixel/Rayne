@@ -45,7 +45,7 @@ void main(void)
 			vec3 zGreater = vec3(greaterThan(dist, vec3(1.0)));
 			float count = dot(zGreater, vec3(1.0));
 			
-			if(count < 3.0)
+			if(count < 3.5)
 			{
 				gl_Layer = i;
 				outTexcoord = vertTexcoord[0];
@@ -63,7 +63,7 @@ void main(void)
 				EmitVertex();
 				EndPrimitive();
 				
-				if(count < 1.0)
+				if(count < 0.5)
 					return;
 			}
 		}
