@@ -11,7 +11,8 @@
 #define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
-#define TGWorldFeatureFreeCamera    0
+#define TGWorldFeatureFreeCamera    1
+#define TGWorldFeatureParticles     1
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 95.0f
@@ -90,7 +91,6 @@ namespace TG
 		
 		_camera = new ThirdPersonCamera(storage);
 		_camera->SetMaterial(depthMaterial);
-		_camera->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
 		
 		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
 		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
@@ -164,14 +164,17 @@ namespace TG
 		model->MaterialAtIndex(0, 5)->discard = true;
 		model->MaterialAtIndex(0, 5)->culling = false;
 		model->MaterialAtIndex(0, 5)->alphatest = true;
+		model->MaterialAtIndex(0, 5)->override = RN::Material::OverrideDiscard | RN::Material::OverrideDiscardThreshold | RN::Material::OverrideTextures;
 		
 		model->MaterialAtIndex(0, 6)->discard = true;
 		model->MaterialAtIndex(0, 6)->culling = false;
 		model->MaterialAtIndex(0, 6)->alphatest = true;
+		model->MaterialAtIndex(0, 6)->override = RN::Material::OverrideDiscard | RN::Material::OverrideDiscardThreshold | RN::Material::OverrideTextures;
 		
 		model->MaterialAtIndex(0, 17)->discard = true;
 		model->MaterialAtIndex(0, 17)->culling = false;
 		model->MaterialAtIndex(0, 17)->alphatest = true;
+		model->MaterialAtIndex(0, 17)->override = RN::Material::OverrideDiscard | RN::Material::OverrideDiscardThreshold | RN::Material::OverrideTextures;
 		
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
 		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
@@ -206,6 +209,23 @@ namespace TG
 		_camera->SetTarget(_player);
 #endif
 				
+#if TGWorldFeatureParticles
+		RN::Texture *texture = RN::Texture::WithFile("textures/particle.png", RN::Texture::FormatRGBA8888);
+		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Particle");
+		
+		RN::ParticleMaterial *material = new RN::ParticleMaterial();
+		material->SetShader(shader);
+		material->AddTexture(texture);
+		
+		material->lifespan = 1.0f;
+		material->blending = false;
+		material->blendSource = GL_SRC_ALPHA;
+		material->blendDestination = GL_ONE;
+		
+		RN::ParticleEmitter *emitter = new RN::ParticleEmitter();
+		emitter->SetMaterial(material);
+#endif
+		
 #if TGWorldFeatureLights
 		RN::Light *light;
 		//srand(time(0));

@@ -43,8 +43,6 @@
 #include "RNQuaternion.h"
 #include "RNSphere.h"
 #include "RNRect.h"
-
-#include "RNSceneNode.h"
 #include "RNVector.h"
 #include "RNInterpolation.h"
 
@@ -58,8 +56,11 @@
 #include "RNTexture.h"
 
 #include "RNWorld.h"
+#include "RNSceneNode.h"
 #include "RNEntity.h"
 #include "RNLight.h"
+#include "RNParticleEmitter.h"
+#include "RNParticle.h"
 
 #include "RNThread.h"
 #include "RNThreadPool.h"
