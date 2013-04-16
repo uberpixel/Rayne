@@ -19,7 +19,7 @@ namespace RN
 		elementMember = 0;
 		elementSize = 0;
 		elementCount = 0;
-		offset = 0;
+		offset = -1;
 		
 		_pointer = 0;
 		_size = 0;
@@ -31,26 +31,16 @@ namespace RN
 	Mesh::Mesh(const Array<MeshDescriptor>& descriptor)
 	{
 		Initialize(descriptor);
-		
-		size_t offset = 0;
-		for(int i=0; i<kMeshFeatureIndices; i++)
-		{
-			if(_descriptor[i]._available)
-			{
-				_descriptor[i].offset = offset;
-				offset += _descriptor[i].elementSize;
-			}
-		}
 	}
 	
 	Mesh::Mesh(const Array<MeshDescriptor>& descriptor, const void *data)
 	{
 		Initialize(descriptor);
 		
-		_meshData = static_cast<uint8 *>(Memory::AllocateSIMD(_meshSize));
+		_meshData = MeshData<uint8>();
 		
 		const uint8 *meshData = static_cast<const uint8 *>(data);
-		std::copy(meshData, meshData + _meshSize, static_cast<uint8 *>(_meshData));
+		std::copy(meshData, meshData + _meshSize, _meshData);
 		
 		for(int i=0; i<__kMaxMeshFeatures; i++)
 		{
@@ -68,9 +58,15 @@ namespace RN
 		_indices     = 0;
 		
 		_stride = 0;
+		_mode   = GL_TRIANGLES;
+		
+		_vboUsage = GL_STATIC_DRAW;
+		_iboUsage = GL_STATIC_DRAW;
 		
 		glGenBuffers(2, &_vbo);
 		RN_CHECKOPENGL();
+		
+		size_t offset = 0;
 		
 		for(int i=0; i<descriptor.Count(); i++)
 		{
@@ -87,6 +83,12 @@ namespace RN
 				{
 					_meshSize += size;
 					_stride   += descriptor[i].elementSize;
+					
+					if(_descriptor[index].offset == -1)
+					{
+						_descriptor[index].offset = offset;
+						offset += _descriptor[index].elementSize;
+					}
 				}
 				else
 				{
@@ -110,6 +112,21 @@ namespace RN
 		
 		if(_indices)
 			Memory::FreeSIMD(_indices);
+	}
+	
+	void Mesh::SetMode(GLenum mode)
+	{
+		_mode = mode;
+	}
+	
+	void Mesh::SetVBOUsage(GLenum usage)
+	{
+		_vboUsage = usage;
+	}
+	
+	void Mesh::SetIBOUsage(GLenum usage)
+	{
+		_iboUsage = usage;
 	}
 	
 	const void *Mesh::FetchConstDataForFeature(MeshFeature feature)
@@ -242,12 +259,20 @@ namespace RN
 		_descriptor[kMeshFeatureVertices]._dirty = wasDirty;
 	}
 	
+	void Mesh::UpdateMesh()
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+		glBufferData(GL_ARRAY_BUFFER, _meshSize, 0, _vboUsage);
+		glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, _vboUsage);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+	
 	void Mesh::GenerateMesh()
 	{
 		if(!_meshData)
 			_meshData = static_cast<uint8 *>(Memory::AllocateSIMD(_meshSize));
 		
-		if(!_indices)
+		if(!_indices && _indicesSize > 0)
 			_indices = static_cast<uint8 *>(Memory::AllocateSIMD(_indicesSize));
 		
 		bool meshChanged = false;
@@ -296,7 +321,8 @@ namespace RN
 		if(meshChanged)
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-			glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, GL_STATIC_DRAW);
+			glBufferData(GL_ARRAY_BUFFER, _meshSize, 0, _vboUsage);
+			glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, _vboUsage);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			RN_CHECKOPENGL();
 		}
@@ -304,7 +330,8 @@ namespace RN
 		if(indicesChanged)
 		{
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, GL_STATIC_DRAW);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, 0, _iboUsage);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, _iboUsage);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			RN_CHECKOPENGL();
 		}

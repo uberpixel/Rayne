@@ -20,12 +20,22 @@
 
 namespace RN
 {
-	struct RenderingObject
+	class RenderingObject
 	{
+	public:
+		RenderingObject()
+		{
+			offset = 0;
+			count  = 0;
+		}
+		
 		Mesh     *mesh;
 		Material *material;
 		Matrix   *transform;
 		Skeleton *skeleton;
+		
+		uint32 offset;
+		uint32 count;
 	};
 	
 	class Renderer : public Singleton<Renderer>
@@ -64,7 +74,7 @@ namespace RN
 		
 	protected:
 		RNAPI void UpdateShaderData();
-		RNAPI void DrawMesh(Mesh *mesh);
+		RNAPI void DrawMesh(Mesh *mesh, uint32 offset, uint32 count);
 		RNAPI void DrawMeshInstanced(machine_uint start, machine_uint count);
 		RNAPI void BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple);
 		

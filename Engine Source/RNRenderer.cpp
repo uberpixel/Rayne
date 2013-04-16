@@ -537,7 +537,12 @@ namespace RN
 			gl::BindVertexArray(vao);
 			
 			glBindBuffer(GL_ARRAY_BUFFER, mesh->VBO());
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->IBO());
+			
+			if(mesh->Descriptor(kMeshFeatureIndices))
+			{
+				GLuint ibo = mesh->IBO();
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+			}
 			
 			// Vertices
 			if(shader->vertPosition != -1 && mesh->SupportsFeature(kMeshFeatureVertices))
@@ -1182,7 +1187,7 @@ namespace RN
 						glUniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
 					}
 					
-					DrawMesh(mesh);
+					DrawMesh(mesh, object.offset, object.count);
 				}
 			}
 			else
@@ -1209,13 +1214,26 @@ namespace RN
 		_directionalLights.RemoveAllObjects();
 	}
 	
-	void Renderer::DrawMesh(Mesh *mesh)
+	void Renderer::DrawMesh(Mesh *mesh, uint32 offset, uint32 count)
 	{
-		MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureIndices);
+		bool usesIndices = mesh->SupportsFeature(kMeshFeatureIndices);
+		MeshDescriptor *descriptor = usesIndices ? mesh->Descriptor(kMeshFeatureIndices) : mesh->Descriptor(kMeshFeatureVertices);
+		
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
 		
-		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
-		glDrawElements(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0);
+		GLsizei glCount = static_cast<GLsizei>(descriptor->elementCount);
+		if(count != 0)
+			glCount = MIN(glCount, count);
+		
+		if(usesIndices)
+		{
+			GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+			glDrawElements(mesh->Mode(), glCount, type, (void *)offset);
+		}
+		else
+		{
+			glDrawArrays(mesh->Mode(), 0, glCount);
+		}
 	}
 	
 	void Renderer::DrawMeshInstanced(machine_uint start, machine_uint count)
@@ -1261,8 +1279,16 @@ namespace RN
 		_instancingVBOSize = offset * sizeof(Matrix);
 		glBufferData(GL_ARRAY_BUFFER, _instancingVBOSize, instancingMatrices, GL_DYNAMIC_DRAW);
 	
-		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
-		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
+		if(descriptor)
+		{
+			GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+			glDrawElementsInstanced(mesh->Mode(), (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
+		}
+		else
+		{
+			descriptor = mesh->Descriptor(kMeshFeatureVertices);
+			glDrawArraysInstanced(mesh->Mode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)count);
+		}
 		
 		DisableAttribute(imatModel);
 		DisableAttribute(imatModelInverse);
