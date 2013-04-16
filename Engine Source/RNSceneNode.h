@@ -99,6 +99,8 @@ namespace RN
 			return true;
 		}
 		
+		int8 group;
+		
 	protected:
 		RNAPI void DidUpdate();
 		RNAPI void UpdateInternalData();

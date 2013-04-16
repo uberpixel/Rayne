@@ -144,6 +144,7 @@ namespace TG
 		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
 		_finalcam->Storage()->SetDepthTarget(depthtex);
 		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
+		_finalcam->renderGroup |= RN::Camera::RenderGroup1;
 		
 		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
 		{
@@ -218,12 +219,13 @@ namespace TG
 		material->AddTexture(texture);
 		
 		material->lifespan = 1.0f;
-		material->blending = false;
+		material->blending = true;
 		material->blendSource = GL_SRC_ALPHA;
 		material->blendDestination = GL_ONE;
 		
 		RN::ParticleEmitter *emitter = new RN::ParticleEmitter();
 		emitter->SetMaterial(material);
+		emitter->group = 1;
 #endif
 		
 #if TGWorldFeatureLights

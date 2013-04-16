@@ -20,6 +20,8 @@ namespace RN
 		_world  = 0;
 		_lastFrame = 0;
 		
+		group = 0;
+		
 		DidUpdate();
 		World::SharedInstance()->AddSceneNode(this);
 	}
@@ -31,6 +33,8 @@ namespace RN
 		_parent = 0;
 		_world  = 0;
 		_lastFrame = 0;
+		
+		group = 0;
 		
 		DidUpdate();
 		World::SharedInstance()->AddSceneNode(this);
@@ -45,6 +49,8 @@ namespace RN
 		_parent = 0;
 		_world  = 0;
 		_lastFrame = 0;
+		
+		group = 0;
 		
 		DidUpdate();
 		World::SharedInstance()->AddSceneNode(this);

@@ -60,6 +60,20 @@ namespace RN
 		};
 		typedef uint32 ColorFlags;
 		
+		enum
+		{
+			RenderGroup0 = (1 << 0),
+			RenderGroup1 = (1 << 1),
+			RenderGroup2 = (1 << 2),
+			RenderGroup3 = (1 << 3),
+			RenderGroup4 = (1 << 4),
+			RenderGroup5 = (1 << 5),
+			RenderGroup7 = (1 << 7),
+			RenderGroup8 = (1 << 8),
+			RenderGroup9 = (1 << 9)
+		};
+		typedef uint32 RenderGroups;
+		
 		RNAPI Camera(const Vector2& size);
 		
 		RNAPI Camera(const Vector2& size, Texture *target);
@@ -141,6 +155,8 @@ namespace RN
 		Matrix inverseProjectionMatrix;
 		Matrix viewMatrix;
 		Matrix inverseViewMatrix;
+		
+		RenderGroups renderGroup;
 		
 	protected:
 		void Initialize();

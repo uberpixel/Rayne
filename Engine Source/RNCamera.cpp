@@ -124,6 +124,8 @@ namespace RN
 		
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
 		_colorMask = ColorFlagRed | ColorFlagGreen | ColorFlagBlue | ColorFlagAlpha;
+		
+		renderGroup = RenderGroup0;
 
 		if(_flags & FlagUpdateStorageFrame)
 			_storage->SetFrame(_frame);

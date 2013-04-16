@@ -55,6 +55,9 @@ namespace RN
 	
 	void GenericSceneManager::RenderSceneNode(Camera *camera, SceneNode *node)
 	{
+		if(!(camera->renderGroup & (1 << node->group)))
+			return;
+		
 		if(node->IsVisibleInCamera(camera))
 		{
 			node->Render(_renderer, camera);
