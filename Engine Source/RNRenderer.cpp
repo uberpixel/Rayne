@@ -502,8 +502,6 @@ namespace RN
 		
 		_lightDirectionalDirection.RemoveAllObjects();
 		_lightDirectionalColor.RemoveAllObjects();
-//		_lightDirectionalMatrix.RemoveAllObjects();
-		_lightDirectionalDepth.RemoveAllObjects();
 		
 		for(machine_uint i=0; i<lightCount; i++)
 		{
@@ -519,16 +517,15 @@ namespace RN
 				if(camera == light->_shadowcam)
 				{
 					_lightDirectionalMatrix.RemoveAllObjects();
-				}
-				for(int i = 0; i < 4; i++)
-				{
-					if(camera == light->_shadowcam)
+					_lightDirectionalDepth.RemoveAllObjects();
+					
+					for(int i = 0; i < 4; i++)
 					{
 						_lightDirectionalMatrix.AddObject(light->_shadowmats.ObjectAtIndex(i));
 					}
+					
+					_lightDirectionalDepth.AddObject(light->_shadowcam->Storage()->DepthTarget());
 				}
-				
-				_lightDirectionalDepth.AddObject(light->_shadowcam->Storage()->DepthTarget());
 			}
 		}
 		
@@ -920,6 +917,16 @@ namespace RN
 			
 			_frame.InsertObjectsAtIndex(skyCubeObejcts, 0);
 		}
+		
+		_directionalLights.SortUsingFunction([](Light *a, Light *b) {
+            if(a->Shadow())
+                return kRNCompareLessThan;
+            
+            if(b->Shadow())
+                return kRNCompareGreaterThan;
+            
+            return kRNCompareEqualTo;
+        });
 		
 		// Render loop
 		bool changedCamera;
