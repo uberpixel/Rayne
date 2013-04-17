@@ -64,6 +64,11 @@ namespace RN
 			
 			Texture *depthtex = new Texture(Texture::FormatDepth, Texture::WrapModeRepeat, Texture::FilterLinear, false, Texture::Type2DArray);
 			depthtex->SetDepth(4);
+			depthtex->SetDepthCompare(true);
+			depthtex->SetWrappingMode(Texture::WrapModeClamp);
+			depthtex->SetFilter(Texture::FilterLinear);
+			depthtex->SetGeneratesMipmaps(false);
+			
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
 			storage->SetDepthTarget(depthtex);
 			_shadowcam = new Camera(Vector2(512), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);

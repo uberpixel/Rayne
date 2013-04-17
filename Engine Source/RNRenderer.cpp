@@ -1122,7 +1122,7 @@ namespace RN
 						
 						if(program->lightDirectionalDepth != -1 && _lightDirectionalDepth.Count() > 0)
 						{
-							uint32 textureUnit = BindTexture(GL_TEXTURE_2D_ARRAY, _lightDirectionalDepth.FirstObject()->Name());
+							uint32 textureUnit = BindTexture(_lightDirectionalDepth.FirstObject());
 							glUniform1i(program->lightDirectionalDepth, textureUnit);
 						}
 						

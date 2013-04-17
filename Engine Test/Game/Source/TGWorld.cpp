@@ -301,7 +301,7 @@ namespace TG
 	void World::CreateForest()
 	{
 		// Ground
-/*		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
+		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
 		RN::Entity *ent = new RN::Entity();
 		ent->SetModel(ground);
 		ent->SetScale(RN::Vector3(20.0f));
@@ -375,7 +375,7 @@ namespace TG
 		tree->MaterialAtIndex(2, 0)->alphatest = true;
 		tree->MaterialAtIndex(2, 0)->alphatestvalue = 0.3f;*/
 		
-/*		for(int i = 0; i < TGForestFeatureTrees; i += 1)
+		for(int i = 0; i < TGForestFeatureTrees; i += 1)
 		{
 			RN::Vector3 pos = RN::Vector3(TGWorldRandom*(200.0f)-100.0f, 0.0f, TGWorldRandom*(200.0f)-100.0f);
 			if(pos.Length() < 10.0f)
@@ -385,13 +385,13 @@ namespace TG
 			ent->SetModel(tree);
 			ent->SetPosition(pos);
 			ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
-		}*/
+		}
 		
-		RN::Model *farm = RN::Model::WithFile("models/arteria/Farm/farmbase.sgm");
+/*		RN::Model *farm = RN::Model::WithFile("models/arteria/Farm/farmbase.sgm");
 		RN::Entity *ent = new RN::Entity();
 		ent->SetModel(farm);
 		ent->SetPosition(RN::Vector3(0.0f, 20.0f, 0.0f));
-		ent->SetScale(RN::Vector3(0.1f, 0.1f, 0.1f));
+		ent->SetScale(RN::Vector3(0.1f, 0.1f, 0.1f));*/
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
@@ -437,7 +437,7 @@ namespace TG
 		_player->AttachChild(_spotLight);
 #endif
 		
-/*		for(int i=0; i<200; i++)
+		for(int i=0; i<200; i++)
 		{
 			light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 140.0f - 70.0f, TGWorldRandom * 100.0f-20.0f, TGWorldRandom * 80.0f - 40.0f));
@@ -447,7 +447,7 @@ namespace TG
 			/*light->SetAction([](RN::Transform *transform, float delta) {
 			 transform->Translate(RN::Vector3(0.5f * delta, 0.0f, 0.0));
 			 });*/
-//		}
+		}
 #endif
 		
 #if TGWorldFeatureInstancing

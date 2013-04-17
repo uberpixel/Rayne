@@ -156,7 +156,7 @@ namespace RN
 		_textureUnit %= _maxTextureUnits;
 		
 		glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
-		glBindTexture(GL_TEXTURE_2D, texture->Name());
+		glBindTexture(texture->GLType(), texture->Name());
 		
 		return _textureUnit;
 	}
