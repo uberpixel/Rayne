@@ -80,8 +80,6 @@ namespace RN
 		_hasValidFramebuffer = false;
 		_frameCamera = 0;
 		
-		_instancingEnabled = true;
-		
 		Initialize();
 	}
 	
@@ -521,26 +519,9 @@ namespace RN
 				if(camera == light->_shadowcam)
 				{
 					_lightDirectionalMatrix.RemoveAllObjects();
-					glEnable(GL_POLYGON_OFFSET_FILL);
-					glPolygonOffset(2.0f, 512.0f);
-					_instancingEnabled = false;
-				}
-				else
-				{
-					glDisable(GL_POLYGON_OFFSET_FILL);
-					glPolygonOffset(0.0f, 0.0f);
-					_instancingEnabled = true;
 				}
 				for(int i = 0; i < 4; i++)
 				{
-//					Camera *cam = light->_shadowcam;
-				
-/*					Matrix matProj = cam->projectionMatrix;
-					float delta = 70.0f*(i*i*i*5+1);
-					float pz = 100.0f;
-					float epsilon = -2.0f * cam->clipfar * cam->clipnear * delta / ((cam->clipfar + cam->clipnear) * pz * (pz + delta));
-					matProj.m[10] *= 1.0f + epsilon;*/
-					
 					if(camera == light->_shadowcam)
 					{
 						_lightDirectionalMatrix.AddObject(light->_shadowmats.ObjectAtIndex(i));
@@ -717,6 +698,9 @@ namespace RN
 
 		SetDepthTestEnabled(PickAttribute(OverrideDepthtest, depthtest));
 		SetDepthFunction(PickAttribute(OverrideDepthtestMode, depthtestmode));
+		
+		SetPolygonOffsetEnabled(PickAttribute(OverridePolygonOffset, polygonOffset));
+		SetPolygonOffset(PickAttribute(OverridePolygonOffset, polygonOffsetFactor), PickAttribute(OverridePolygonOffset, polygonOffsetUnits));
 		
 		if(_currentCamera->override & Camera::OverrideBlendmode)
 		{
@@ -1049,7 +1033,7 @@ namespace RN
 							end ++;
 						}
 						
-						canDrawInstanced = (_instancingEnabled && offset >= kRNRendererInstancingCutOff && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced));
+						canDrawInstanced = (camera->UseInstancing() && offset >= kRNRendererInstancingCutOff && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced));
 						if(!canDrawInstanced)
 						{
 							noCheck = offset;

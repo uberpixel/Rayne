@@ -41,6 +41,10 @@ namespace RN
 		GLenum blendSource;
 		GLenum blendDestination;
 		
+		bool polygonOffset;
+		float polygonOffsetFactor;
+		float polygonOffsetUnits;
+		
 		float shininess;
 		
 		Color ambient;

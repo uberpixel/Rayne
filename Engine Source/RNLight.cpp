@@ -61,6 +61,9 @@ namespace RN
 		{
 			Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepth");
 			Material *depthMaterial = new Material(depthShader);
+			depthMaterial->polygonOffset = true;
+			depthMaterial->polygonOffsetFactor = 2.0f;
+			depthMaterial->polygonOffsetUnits = 512.0f;
 			
 			Texture *depthtex = new Texture(Texture::FormatDepth, Texture::WrapModeRepeat, Texture::FilterLinear, false, Texture::Type2DArray);
 			depthtex->SetDepth(4);
@@ -74,6 +77,7 @@ namespace RN
 			_shadowcam = new Camera(Vector2(512), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
 			
 			_shadowcam->SetMaterial(depthMaterial);
+			_shadowcam->SetUseInstancing(false);
 //			AttachChild(_shadowcam);
 			_shadowcam->SetLODCamera(_lightcam);
 			_shadowcam->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);

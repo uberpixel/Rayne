@@ -80,6 +80,7 @@ namespace RN
 			OverrideDiscard = (1 << 13),
 			OverrideDiscardThreshold = (1 << 14),
 			OverrideTextures = (1 << 15),
+			OverridePolygonOffset = (1 << 16),
 			
 			OverrideAll = 0xFFFFFFFFFFFFFFFF
 		};
@@ -114,6 +115,7 @@ namespace RN
 		RNAPI void SetMaxLightsPerTile(machine_uint lights);
 		RNAPI void SetCameraFlags(Flags flags);
 		RNAPI void SetLODCamera(Camera *camera);
+		RNAPI void SetUseInstancing(bool activate);
 		
 		RNAPI void AddStage(Camera *stage);
 		RNAPI void InsertStage(Camera *stage);
@@ -123,6 +125,7 @@ namespace RN
 		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		RNAPI void ActivateTiledLightLists(Texture *depthTiles);
 		Texture *DepthTiles() { return _depthTiles; }
+		RNAPI bool UseInstancing() { return _useInstancing; }
 		
 		RNAPI void Update(float delta);
 		RNAPI void PostUpdate();
@@ -202,6 +205,7 @@ namespace RN
 		Camera *_stage;
 		Camera *_lodCamera;
 		
+		bool _useInstancing;
 		Texture *_depthTiles;
 		Model *_skycube;
 		

@@ -84,6 +84,10 @@ namespace RN
 		blendSource = GL_ONE;
 		blendDestination = GL_ONE_MINUS_SRC_ALPHA;
 		
+		polygonOffset = false;
+		polygonOffsetFactor = 1.0f;
+		polygonOffsetUnits = 1.0f;
+		
 		ambient = Color(0.2f, 0.2f, 0.2f, 1.0f);
 		diffuse = Color(0.8f, 0.8f, 0.8f, 1.0f);
 		specular = Color(0.0f, 0.0f, 0.0f, 0.0f);

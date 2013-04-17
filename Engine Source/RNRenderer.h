@@ -57,10 +57,12 @@ namespace RN
 		RNAPI void SetDepthTestEnabled(bool enabled);
 		RNAPI void SetDepthWriteEnabled(bool enabled);
 		RNAPI void SetBlendingEnabled(bool enabled);
+		RNAPI void SetPolygonOffsetEnabled(bool enabled);
 		
 		RNAPI void SetCullMode(GLenum cullMode);
 		RNAPI void SetDepthFunction(GLenum depthFunction);
 		RNAPI void SetBlendFunction(GLenum blendSource, GLenum blendDestination);
+		RNAPI void SetPolygonOffset(float factor, float units);
 		
 	protected:
 		RNAPI void UpdateShaderData();
@@ -98,12 +100,16 @@ namespace RN
 		bool _depthTestEnabled;
 		bool _blendingEnabled;
 		bool _depthWrite;
+		bool _polygonOffsetEnabled;
 		
 		GLenum _cullMode;
 		GLenum _depthFunc;
 		
 		GLenum _blendSource;
 		GLenum _blendDestination;
+		
+		float _polygonOffsetFactor;
+		float _polygonOffsetUnits;
 		
 		Camera *_frameCamera;
 		Array<RenderingObject> _frame;
@@ -146,8 +152,6 @@ namespace RN
 		
 		size_t _instancingVBOSize;
 		GLuint _instancingVBO;
-		
-		bool _instancingEnabled;
 	};
 	
 	RN_INLINE uint32 Renderer::BindTexture(Texture *texture)
@@ -230,6 +234,15 @@ namespace RN
 		_blendingEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
 	}
 	
+	RN_INLINE void Renderer::SetPolygonOffsetEnabled(bool enabled)
+	{
+		if(_polygonOffsetEnabled == enabled)
+			return;
+		
+		_polygonOffsetEnabled = enabled;
+		_polygonOffsetEnabled ? glEnable(GL_POLYGON_OFFSET_FILL) : glDisable(GL_POLYGON_OFFSET_FILL);
+	}
+	
 	
 	RN_INLINE void Renderer::SetCullMode(GLenum cullMode)
 	{
@@ -253,11 +266,22 @@ namespace RN
 	{
 		if(_blendSource != blendSource || _blendDestination != blendDestination)
 		{
-			glBlendFunc(_blendSource, _blendDestination);
+			glBlendFunc(blendSource, blendDestination);
 			
 			
 			_blendSource = blendSource;
 			_blendDestination = blendDestination;
+		}
+	}
+	
+	RN_INLINE void Renderer::SetPolygonOffset(float factor, float units)
+	{
+		if(_polygonOffsetFactor != factor || _polygonOffsetUnits != units)
+		{
+			glPolygonOffset(factor, units);
+			
+			_polygonOffsetFactor = factor;
+			_polygonOffsetUnits = units;
 		}
 	}
 	

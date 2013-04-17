@@ -129,6 +129,7 @@ namespace RN
 		
 		_allowDepthWrite = true;
 		_lodCamera = 0;
+		_useInstancing = true;
 		
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
 		_colorMask = ColorFlagRed | ColorFlagGreen | ColorFlagBlue | ColorFlagAlpha;
@@ -273,6 +274,11 @@ namespace RN
 	void Camera::SetLODCamera(Camera *camera)
 	{
 		_lodCamera = camera;
+	}
+	
+	void Camera::SetUseInstancing(bool activate)
+	{
+		_useInstancing = activate;
 	}
 	
 	// Stages
