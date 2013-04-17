@@ -14,6 +14,11 @@ namespace RN
 	RNDeclareMeta(ParticleMaterial)
 	RNDeclareMeta(ParticleEmitter)
 	
+	// ---------------------
+	// MARK: -
+	// MARK: Particle Material
+	// ---------------------
+	
 	ParticleMaterial::ParticleMaterial()
 	{
 		lifespan = 1.0f;
@@ -31,13 +36,17 @@ namespace RN
 	}
 	
 	
+	// ---------------------
+	// MARK: -
+	// MARK: Particle Emitter
+	// ---------------------
+	
 	struct ParticleData
 	{
 		Vector3 position;
+		Vector2 size;
 		Color color;
 	};
-	
-	
 	
 	ParticleEmitter::ParticleEmitter()
 	{
@@ -99,22 +108,23 @@ namespace RN
 		vertexDescriptor.elementCount  = maxParticles;
 		vertexDescriptor.offset        = 0;
 		
-		/*MeshDescriptor sizeDescriptor;
-		sizeDescriptor.feature = kMeshFeature
-		sizeDescriptor.elementMember = 1;
-		sizeDescriptor.elementSize   = sizeof(Vector3);
-		sizeDescriptor.elementCount  = maxParticles;*/
+		MeshDescriptor sizeDescriptor;
+		sizeDescriptor.feature = kMeshFeatureUVSet0;
+		sizeDescriptor.elementMember = 2;
+		sizeDescriptor.elementSize   = sizeof(Vector2);
+		sizeDescriptor.elementCount  = maxParticles;
+		sizeDescriptor.offset        = sizeof(Vector3);
 		
 		MeshDescriptor colorDescriptor;
 		colorDescriptor.feature = kMeshFeatureColor0;
 		colorDescriptor.elementMember = 4;
 		colorDescriptor.elementSize   = sizeof(Color);
 		colorDescriptor.elementCount  = maxParticles;
-		colorDescriptor.offset        = sizeof(Vector3);
+		colorDescriptor.offset        = sizeDescriptor.offset + sizeof(Vector2);
 		
 		Array<MeshDescriptor> descriptors;
 		descriptors.AddObject(vertexDescriptor);
-		//descriptors.AddObject(sizeDescriptor);
+		descriptors.AddObject(sizeDescriptor);
 		descriptors.AddObject(colorDescriptor);
 		
 		_mesh = new Mesh(descriptors);
@@ -193,6 +203,7 @@ namespace RN
 		for(Particle *particle : _particles)
 		{
 			data->position = particle->position;
+			data->size     = particle->size;
 			data->color    = particle->color;
 			
 			data ++;

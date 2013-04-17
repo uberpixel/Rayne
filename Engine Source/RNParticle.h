@@ -30,7 +30,7 @@ namespace RN
 		struct
 		{
 			Vector3 position;
-			//Vector2 size;
+			Vector2 size;
 			Color color;
 		};
 	};

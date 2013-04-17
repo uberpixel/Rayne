@@ -16,7 +16,7 @@ namespace RN
 	{
 		lifespan = 5.0f;
 		color = Color(0.0f, 0.0f, 1.0f, 1.0f);
-		//size = Vector2(128.0f);
+		size = Vector2(0.5f);
 	}
 	
 	Particle::~Particle()
