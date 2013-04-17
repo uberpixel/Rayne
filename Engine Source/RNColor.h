@@ -16,6 +16,7 @@ namespace RN
 	public:
 		RNAPI Color(float n=1.0f);
 		RNAPI Color(float r, float g, float b, float a=1.0f);
+		RNAPI Color(int r, int g, int b, int a=255);
 
 		RNAPI bool operator== (const Color& other);
 		RNAPI bool operator!= (const Color& other);
@@ -63,24 +64,32 @@ namespace RN
 		b = _b;
 		a = _a;
 	}
+	
+	RN_INLINE Color::Color(int _r, int _g, int _b, int _a)
+	{
+		r = _r / 255.0f;
+		g = _g / 255.0f;
+		b = _b / 255.0f;
+		a = _a / 255.0f;
+	}
 
 
 	RN_INLINE bool Color::operator== (const Color& other)
 	{
-		float absR = fabsf(r - other.r);
-		float absG = fabsf(g - other.g);
-		float absB = fabsf(b - other.b);
-		float absA = fabsf(a - other.a);
+		float absR = Math::FastAbs(r - other.r);
+		float absG = Math::FastAbs(g - other.g);
+		float absB = Math::FastAbs(b - other.b);
+		float absA = Math::FastAbs(a - other.a);
 
 		return (absR <= kRNEpsilonFloat && absG <= kRNEpsilonFloat && absB <= kRNEpsilonFloat && absA <= kRNEpsilonFloat);
 	}
 
 	RN_INLINE bool Color::operator!= (const Color& other)
 	{
-		float absR = fabsf(r - other.r);
-		float absG = fabsf(g - other.g);
-		float absB = fabsf(b - other.b);
-		float absA = fabsf(a - other.a);
+		float absR = Math::FastAbs(r - other.r);
+		float absG = Math::FastAbs(g - other.g);
+		float absB = Math::FastAbs(b - other.b);
+		float absA = Math::FastAbs(a - other.a);
 
 		return (absR > kRNEpsilonFloat || absG > kRNEpsilonFloat || absB > kRNEpsilonFloat || absA > kRNEpsilonFloat);
 	}

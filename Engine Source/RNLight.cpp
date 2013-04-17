@@ -17,9 +17,12 @@ namespace RN
 	Light::Light(Type lighttype) :
 		_lightType(lighttype)
 	{
-		_color = Vector3(1.0f, 1.0f, 1.0f);
+		_color = RN::Color(1.0f, 1.0f, 1.0f);
 		_range = 1.0f;
 		_angle = 0.5f;
+		_intensity = 1.0;
+		
+		ReCalculateColor();
 	}
 	
 	Light::~Light()
@@ -33,7 +36,7 @@ namespace RN
 	
 	bool Light::IsVisibleInCamera(Camera *camera)
 	{
-		if(TypeDirectionalLight)
+		if(_lightType == TypeDirectionalLight)
 			return true;
 		
 		return SceneNode::IsVisibleInCamera(camera);
@@ -52,13 +55,26 @@ namespace RN
 		SetBoundingBox(AABB(Vector3(), range));
 	}
 	
-	void Light::SetColor(const Vector3& color)
+	void Light::SetColor(const class Color& color)
 	{
 		_color = color;
+		ReCalculateColor();
+	}
+	
+	void Light::SetIntensity(float intensity)
+	{
+		_intensity = intensity;
+		ReCalculateColor();
 	}
 	
 	void Light::SetAngle(float angle)
 	{
 		_angle = angle;
+	}
+	
+	void Light::ReCalculateColor()
+	{
+		_resultColor = Vector3(_color.r, _color.g, _color.b);
+		_resultColor *= _intensity;
 	}
 }

@@ -11,7 +11,7 @@
 
 #include "RNSIMD.h"
 
-#define kRNEpsilonFloat 0.001f
+#define kRNEpsilonFloat FLT_EPSILON
 
 #ifndef MAX
 	#define MAX(a, b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })

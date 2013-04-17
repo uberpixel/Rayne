@@ -423,7 +423,7 @@ namespace RN
 			{
 				Light *light = lights[i];
 				const Vector3& position = light->WorldPosition();
-				const Vector3& color = light->Color();
+				const Vector3& color = light->ResultColor();
 				
 				lightData[i * 2 + 0] = Vector4(position, light->Range());
 				lightData[i * 2 + 1] = Vector4(color, 0.0f);
@@ -476,7 +476,7 @@ namespace RN
 			{
 				Light *light = lights[i];
 				const Vector3& position = light->WorldPosition();
-				const Vector3& color = light->Color();
+				const Vector3& color = light->ResultColor();
 				const Vector3& direction = light->Direction();
 				
 				lightData[i * 3 + 0] = Vector4(position, light->Range());
@@ -506,7 +506,7 @@ namespace RN
 		for(machine_uint i=0; i<lightCount; i++)
 		{
 			Light *light = lights[i];
-			const Vector3& color = light->Color();
+			const Vector3& color = light->ResultColor();
 			const Vector3& direction = light->Direction();
 			
 			_lightDirectionalDirection.AddObject(direction);
