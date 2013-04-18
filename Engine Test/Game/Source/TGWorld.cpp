@@ -73,13 +73,6 @@ namespace TG
 #endif
 	}
 	
-	void World::NodesUpdated()
-	{
-		//_finalcam->SetRotation(_camera->Rotation());
-		//_finalcam->SetPosition(_camera->Position());
-	}
-	
-	
 	void World::CreateCameras()
 	{
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
@@ -212,21 +205,22 @@ namespace TG
 				
 #if TGWorldFeatureParticles
 		RN::Texture *texture = RN::Texture::WithFile("textures/particle.png", RN::Texture::FormatRGBA8888);
-		RN::Shader *shader = RN::Shader::WithFile("shader/rn_Particle");
 		
 		RN::ParticleMaterial *material = new RN::ParticleMaterial();
-		material->SetShader(shader);
 		material->AddTexture(texture);
 		
-		material->lifespan = 20.0f;
+		material->lifespan = 10.0f;
+		material->minVelocity = RN::Vector3(0.0f, 0.5f, 0.0f);
+		material->maxVelocity = RN::Vector3(0.0f, 0.15f, 0.0f);
+		
 		material->blending = true;
 		material->blendSource = GL_SRC_ALPHA;
 		material->blendDestination = GL_ONE;
 		
-		RN::ParticleEmitter *emitter = new RN::ParticleEmitter();
+		DustEmitter *emitter = new DustEmitter();
 		emitter->SetMaterial(material);
-		emitter->group = 1;
 		emitter->Cook(100.0f, 10);
+		emitter->group = 1;
 #endif
 		
 #if TGWorldFeatureLights
