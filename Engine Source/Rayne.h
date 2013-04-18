@@ -16,6 +16,7 @@
 
 #include "RNKernel.h"
 #include "RNApplication.h"
+#include "RNResourcePool.h"
 #include "RNInput.h"
 #include "RNMessage.h"
 #include "RNFile.h"

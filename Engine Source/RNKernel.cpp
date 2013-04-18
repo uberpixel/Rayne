@@ -16,6 +16,7 @@
 #include "RNModule.h"
 #include "RNPathManager.h"
 #include "RNCPU.h"
+#include "RNResourcePool.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -23,8 +24,6 @@ extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
 
 typedef RN::Application *(*RNApplicationEntryPointer)(RN::Kernel *);
 RNApplicationEntryPointer __ApplicationEntry = 0;
-
-
 
 namespace RN
 {
@@ -52,13 +51,26 @@ namespace RN
 		
 		AutoreleasePool *pool = new AutoreleasePool();
 		Settings::SharedInstance();
+		ThreadCoordinator::SharedInstance();
 
 		_context = new class Context();
 		_context->MakeActiveContext();
 
 		ReadOpenGLExtensions();
-		ThreadCoordinator::SharedInstance();
+		ResourcePool::SharedInstance();
+		
+		ThreadPool *threadPool = ThreadCoordinator::SharedInstance()->GlobalPool();
+		
 		_scaleFactor = 1.0f;
+		_resourceBatch = threadPool->BeginTaskBatch();
+		
+		threadPool->AddTask([] {
+			AutoreleasePool *tpool = new AutoreleasePool();
+			ResourcePool::SharedInstance()->LoadDefaultResources();
+			delete tpool;
+		});
+		
+		threadPool->CommitTaskBatch();
 
 #if RN_PLATFORM_IOS
 		_scaleFactor = [[UIScreen mainScreen] scale];
@@ -151,6 +163,9 @@ namespace RN
 
 	void Kernel::Initialize()
 	{
+		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
+		pool->WaitForBatch(_resourceBatch);
+		
 		_app->Start();
 		_window->SetTitle(_app->Title());
 	}
