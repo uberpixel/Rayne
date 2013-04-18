@@ -67,12 +67,10 @@ namespace RN
 			return UniformDeviate(RandomInt32());
 		}
 		
-		float Generator::RandomFloatRange(int32 min, int32 max)
+		float Generator::RandomFloatRange(float min, float max)
 		{
-			float M = (float)MIN(min, max);
-			float N = (float)MAX(min, max);
-			
-			return M + UniformDeviate(RandomInt32()) * (N - M);
+			float range = max - min;
+			return (UniformDeviate(RandomInt32()) * range) + min;
 		}
 		
 		double Generator::UniformDeviate(int32 seed)
@@ -352,5 +350,119 @@ namespace RN
 		{
 			return (X86_64::Caps() & X86_64::CAP_RDRAND);
 		}
+	}
+	
+	RNDeclareMeta(RandomNumberGenerator)
+	
+	RandomNumberGenerator::RandomNumberGenerator(Type type)
+	{
+		switch(type)
+		{
+			case TypeLCG:
+				_generator = new Random::LCG();
+				break;
+				
+			case TypeDualPhaseLCG:
+				_generator = new Random::DualPhaseLCG();
+				break;
+				
+			case TypeMersenneTwister:
+				_generator = new Random::MersenneTwister();
+				break;
+				
+			case TypeSecure:
+				_generator = new Random::Secure();
+				break;
+		}
+	}
+	
+	RandomNumberGenerator::~RandomNumberGenerator()
+	{
+		delete _generator;
+	}
+	
+	int32 RandomNumberGenerator::Min() const
+	{
+		return _generator->Max();
+	}
+	
+	int32 RandomNumberGenerator::Max() const
+	{
+		return _generator->Max();
+	}
+	
+	void RandomNumberGenerator::Seed(uint32 seed)
+	{
+		_generator->Seed(seed);
+	}
+	
+	int32 RandomNumberGenerator::RandomInt32()
+	{
+		return _generator->RandomInt32();
+	}
+	
+	int32 RandomNumberGenerator::RandomInt32Range(int32 min, int32 max)
+	{
+		return _generator->RandomInt32Range(min, max);
+	}
+	
+	float RandomNumberGenerator::RandomFloat()
+	{
+		return _generator->RandomFloat();
+	}
+	
+	float RandomNumberGenerator::RandomFloatRange(float min, float max)
+	{
+		return _generator->RandomFloatRange(min, max);
+	}
+	
+	double RandomNumberGenerator::UniformDeviate(int32 seed)
+	{
+		return _generator->UniformDeviate(seed);
+	}
+	
+	Color RandomNumberGenerator::RandomColor()
+	{
+		Color result;
+		
+		result.r = _generator->UniformDeviate(_generator->RandomInt32());
+		result.g = _generator->UniformDeviate(_generator->RandomInt32());
+		result.b = _generator->UniformDeviate(_generator->RandomInt32());
+		result.a = _generator->UniformDeviate(_generator->RandomInt32());
+		
+		return result;
+	}
+	
+	Vector2 RandomNumberGenerator::RandomVector2Range(const Vector2& min, const Vector2& max)
+	{
+		Vector2 result;
+		
+		result.x = _generator->RandomFloatRange(MIN(min.x, max.x), MAX(min.x, max.x));
+		result.y = _generator->RandomFloatRange(MIN(min.y, max.y), MAX(min.y, max.y));
+		
+		return result;
+	}
+	
+	Vector3 RandomNumberGenerator::RandomVector3Range(const Vector3& min, const Vector3& max)
+	{
+		Vector3 result;
+		
+		result.x = _generator->RandomFloatRange(MIN(min.x, max.x), MAX(min.x, max.x));
+		result.y = _generator->RandomFloatRange(MIN(min.y, max.y), MAX(min.y, max.y));
+		result.z = _generator->RandomFloatRange(MIN(min.z, max.z), MAX(min.z, max.z));
+		
+		return result;
+	}
+	
+	Vector4 RandomNumberGenerator::RandomVector4Range(const Vector4& min, const Vector4& max)
+	{
+		Vector4 result;
+		
+		result.x = _generator->RandomFloatRange(MIN(min.x, max.x), MAX(min.x, max.x));
+		result.y = _generator->RandomFloatRange(MIN(min.y, max.y), MAX(min.y, max.y));
+		result.z = _generator->RandomFloatRange(MIN(min.z, max.z), MAX(min.z, max.z));
+		result.w = _generator->RandomFloatRange(MIN(min.w, max.w), MAX(min.w, max.w));
+		
+		return result;
 	}
 }

@@ -10,6 +10,9 @@
 #define __RAYNE_RANDOM_H__
 
 #include "RNBase.h"
+#include "RNObject.h"
+#include "RNColor.h"
+#include "RNVector.h"
 
 namespace RN
 {
@@ -31,7 +34,7 @@ namespace RN
 			virtual int32 RandomInt32Range(int32 min, int32 max);
 			
 			virtual float RandomFloat();
-			virtual float RandomFloatRange(int32 min, int32 max);
+			virtual float RandomFloatRange(float min, float max);
 			
 			virtual double UniformDeviate(int32 seed);
 		};
@@ -126,6 +129,44 @@ namespace RN
 			int32 _size;
 		};
 	}
+	
+	class RandomNumberGenerator : public Object
+	{
+	public:
+		typedef enum
+		{
+			TypeLCG,
+			TypeDualPhaseLCG,
+			TypeMersenneTwister,
+			TypeSecure
+		} Type;
+		
+		RandomNumberGenerator(Type type);
+		virtual ~RandomNumberGenerator();
+		
+		int32 Min() const;
+		int32 Max() const;
+		
+		void Seed(uint32 seed);
+		int32 RandomInt32();
+		int32 RandomInt32Range(int32 min, int32 max);
+		
+		float RandomFloat();
+		float RandomFloatRange(float min, float max);
+		
+		double UniformDeviate(int32 seed);
+		
+		Color RandomColor();
+		
+		Vector2 RandomVector2Range(const Vector2& min, const Vector2& max);
+		Vector3 RandomVector3Range(const Vector3& min, const Vector3& max);
+		Vector4 RandomVector4Range(const Vector4& min, const Vector4& max);
+		
+	private:
+		Random::Generator *_generator;
+		
+		RNDefineConstructorlessMeta(RandomNumberGenerator, Object)
+	};
 }
 
 #endif /* __RAYNE_RANDOM_H__ */

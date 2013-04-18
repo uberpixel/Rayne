@@ -43,6 +43,11 @@ namespace RN
 	class Interpolator
 	{
 	public:
+		Interpolator(InterpolationType type=InterpolationTypeLinear)
+		{
+			_type = type;
+		}
+		
 		Interpolator(T start, T end, TimeType duration, InterpolationType type=InterpolationTypeLinear)
 		{
 			_startValue = start;
@@ -51,6 +56,30 @@ namespace RN
 			
 			_duration = duration;
 			_difference   = (_endValue - _startValue);
+		}
+		
+		void SetStartValue(const T& value)
+		{
+			_startValue = value;
+			_difference = (_endValue - _startValue);
+		}
+		
+		void SetEndValue(const T& value)
+		{
+			_endValue = value;
+			_difference = (_endValue - _startValue);
+		}
+		
+		void SetValues(const T& start, const T& end)
+		{
+			_startValue = start;
+			_endValue = end;
+			_difference = (_endValue - _startValue);
+		}
+		
+		void SetDuration(TimeType duration)
+		{
+			_duration = duration;
 		}
 		
 		static T ByValueAtPoint(T start, T end, TimeType time, TimeType duration, InterpolationType type=InterpolationTypeLinear)
