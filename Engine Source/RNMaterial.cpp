@@ -47,6 +47,32 @@ namespace RN
 		_shader = shader ? shader->Retain() : 0;
 	}
 	
+	void Material::SetBlendMode(BlendMode mode)
+	{
+		switch(mode)
+		{
+			case BlendMode::Additive:
+				blendSource = GL_ONE;
+				blendDestination = GL_ONE;
+				break;
+				
+			case BlendMode::Multiplicative:
+				blendSource = GL_DST_COLOR;
+				blendDestination = GL_ZERO;
+				break;
+				
+			case BlendMode::Interpolative:
+				blendSource = GL_ONE;
+				blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+				break;
+				
+			case BlendMode::Cutout:
+				blendSource = GL_ZERO;
+				blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+				break;
+		}
+	}
+	
 	Shader *Material::Shader() const
 	{
 		return _shader;

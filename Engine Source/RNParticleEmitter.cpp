@@ -245,7 +245,6 @@ namespace RN
 		RenderingObject object;
 		object.mesh = _mesh;
 		object.count = static_cast<uint32>(_particles.size());
-		object.skeleton = 0;
 		object.material = _material;
 		object.transform = (Matrix *)&WorldTransform();
 		

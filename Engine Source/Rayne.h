@@ -60,6 +60,7 @@
 #include "RNSceneNode.h"
 #include "RNEntity.h"
 #include "RNLight.h"
+#include "RNBillboard.h"
 #include "RNParticleEmitter.h"
 #include "RNParticle.h"
 

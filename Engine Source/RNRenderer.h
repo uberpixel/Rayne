@@ -27,6 +27,11 @@ namespace RN
 		{
 			offset = 0;
 			count  = 0;
+			
+			mesh = 0;
+			material = 0;
+			transform = 0;
+			skeleton = 0;
 		}
 		
 		Mesh     *mesh;

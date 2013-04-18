@@ -96,6 +96,9 @@ namespace RN
 		RNAPI static uint32 DefaultAnisotropyLevel();
 		RNAPI static void SetDefaultAnisotropyLevel(uint32 level);
 		
+		uint32 Width() const { return _width; }
+		uint32 Height() const { return _height; }
+		
 	protected:
 		GLuint _name;
 		uint32 _width, _height;

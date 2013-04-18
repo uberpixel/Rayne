@@ -21,6 +21,14 @@ namespace RN
 	class Material : public Object
 	{
 	public:
+		enum class BlendMode
+		{
+			Additive,
+			Multiplicative,
+			Interpolative,
+			Cutout
+		};
+		
 		enum
 		{
 			OverrideCulling = (1 << 0),
@@ -48,6 +56,8 @@ namespace RN
 		RNAPI virtual ~Material();
 		
 		RNAPI void SetShader(Shader *shader);
+		RNAPI void SetBlendMode(BlendMode mode);
+		
 		RNAPI Shader *Shader() const;
 		
 		RNAPI void AddTexture(Texture *texture);
