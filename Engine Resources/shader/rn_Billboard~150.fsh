@@ -1,5 +1,5 @@
 //
-//  rn_Texture1.fsh
+//  rn_Billboard.fsh
 //  Rayne
 //
 //  Copyright 2013 by Überpixel. All rights reserved.
@@ -10,6 +10,7 @@
 precision highp float;
 
 #include "rn_Discard.fsh"
+#include "rn_Lighting.fsh"
 
 uniform sampler2D mTexture0;
 
@@ -21,5 +22,5 @@ void main()
 	vec4 color0 = texture(mTexture0, outTexcoord);
 	rn_Discard(color0);
 
-	fragColor0 = color0;
+	fragColor0 = color0 * rn_Lighting();
 }

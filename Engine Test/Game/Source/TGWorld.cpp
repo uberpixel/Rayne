@@ -11,7 +11,7 @@
 #define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
-#define TGWorldFeatureFreeCamera    0
+#define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureParticles     1
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
@@ -267,10 +267,11 @@ namespace TG
 #endif
 		
 		RN::Billboard *billboard = new RN::Billboard();
+		
 		billboard->SetTexture(RN::Texture::WithFile("textures/billboard.png", RN::Texture::FormatRGBA8888));
 		billboard->SetScale(RN::Vector3(0.2f));
 		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
-		billboard->TranslateLocal(RN::Vector3(0.0f, 9.0f, 57.0f));
+		//billboard->TranslateLocal(RN::Vector3(0.0f, 9.0f, 57.0f));
 		
 #if TGWorldFeatureInstancing
 		RN::Model *foliage[4];

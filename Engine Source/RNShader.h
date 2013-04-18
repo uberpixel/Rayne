@@ -125,6 +125,9 @@ namespace RN
 		void AddDefines();
 		
 		std::string PreProcessedShaderSource(const std::string& source);
+		std::string IncludeShader(File *source, const std::string& name);
+		std::string PreProcessFile(File *file);
+		
 		void CompileShader(GLenum type, GLuint *outShader);
 		
 		Array<ShaderDefine> _defines;

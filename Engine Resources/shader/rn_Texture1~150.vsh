@@ -23,6 +23,11 @@ void main()
 {
 	outTexcoord = vertTexcoord0;
 
-	vec3 position = rn_Lighting(matModel, vertPosition, vertNormal);
-	gl_Position = matProjViewModel * vec4(position, 1.0);
+	vec4 position = rn_Animate(vec4(vertPosition, 1.0));
+	vec4 normal   = rn_Animate(vec4(vertNormal, 0.0));
+
+	normal.w = 0.0;
+
+	rn_Lighting(position.xyz, normal.xyz);
+	gl_Position = matProjViewModel * vec4(position.xyz, 1.0);
 }
