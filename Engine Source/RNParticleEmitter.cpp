@@ -8,6 +8,7 @@
 
 #include "RNParticleEmitter.h"
 #include "RNRenderer.h"
+#include "RNResourcePool.h"
 
 namespace RN
 {
@@ -23,18 +24,32 @@ namespace RN
 	{
 		lifespan = 1.0f;
 		lifespanVariance = 0.0f;
+		
+		_rng = new RandomNumberGenerator(RandomNumberGenerator::TypeLCG);
+		
+		SetShader(ResourcePool::SharedInstance()->ResourceWithName<class Shader>(kRNResourceKeyParticleShader));
 	}
 	
 	ParticleMaterial::~ParticleMaterial()
 	{
+		_rng->Release();
 	}
 	
-	void ParticleMaterial::UpdateParticle(Particle *particle, float delta)
+	void ParticleMaterial::InitializeParticle(Particle *particle)
 	{
-		if(action)
-			action(particle, delta);
+		particle->lifespan = _rng->RandomFloatRange(lifespan, lifespan + lifespanVariance);
+		particle->velocity = _rng->RandomVector3Range(minVelocity, maxVelocity);
+		
+		particle->Initialize();
 	}
 	
+	void ParticleMaterial::SetGenerator(RandomNumberGenerator *generator)
+	{
+		if(_rng)
+			_rng->Release();
+		
+		_rng = generator->Retain();
+	}
 	
 	// ---------------------
 	// MARK: -
@@ -53,8 +68,8 @@ namespace RN
 		_mesh = 0;
 		_material = 0;
 		
-		SetParticlesPerSecond(500);
-		SetMaxParticles(10000);
+		SetParticlesPerSecond(1);
+		SetMaxParticles(100);
 	}
 	
 	ParticleEmitter::~ParticleEmitter()
@@ -77,8 +92,10 @@ namespace RN
 		
 		for(int i=0; i<steps; i++)
 		{
-			Update(delta);
+			UpdateParticles(delta);
 		}
+		
+		UpdateMesh();
 	}
 	
 	
@@ -98,8 +115,6 @@ namespace RN
 		
 		if(_mesh)
 			_mesh->Release();
-		
-		
 		
 		MeshDescriptor vertexDescriptor;
 		vertexDescriptor.feature = kMeshFeatureVertices;
@@ -141,26 +156,32 @@ namespace RN
 	}
 	
 	
-	Particle *ParticleEmitter::SpawnParticle(ParticleMaterial *material)
+	void ParticleEmitter::SpawnParticles(uint32 particles)
 	{
-		Particle *particle = new Particle(WorldPosition());
+		if(particles == 0)
+			return;
 		
-		particle->position = Vector3(lcg.RandomFloat() * 140.0f - 70.0f, lcg.RandomFloat() * 100.0f-20.0f, lcg.RandomFloat() * 80.0f - 40.0f);
+		std::vector<Particle *> spawned(particles);
 		
+		for(int i=0; i<particles; i++)
+		{
+			Particle *particle = CreateParticle();
+			_material->InitializeParticle(particle);
+			
+			spawned[i] = particle;
+		}
 		
-		particle->color.r = lcg.RandomFloatRange(0, 1);
-		particle->color.g = lcg.RandomFloatRange(0, 1);
-		particle->color.b = lcg.RandomFloatRange(0, 1);
-		
-		particle->lifespan = material->lifespan;
-		
-		return particle;
+		_particles.insert(_particles.end(), spawned.begin(), spawned.end());
 	}
 	
-	void ParticleEmitter::Update(float delta)
+	
+	Particle *ParticleEmitter::CreateParticle()
 	{
-		SceneNode::Update(delta);
-		
+		return new Particle(WorldPosition());
+	}
+	
+	void ParticleEmitter::UpdateParticles(float delta)
+	{
 		for(auto i=_particles.begin(); i!=_particles.end();)
 		{
 			Particle *particle = *i;
@@ -177,28 +198,20 @@ namespace RN
 			i ++;
 		}
 		
-		_accDelta += delta;
-		int spawn = floorf(_accDelta / _spawnRate);
-		_accDelta = fmodf(_accDelta, _spawnRate);
+		int spawn = floorf((_accDelta + delta) / _spawnRate);
+		_accDelta = fmodf((_accDelta + delta), _spawnRate);
 		
 		if(spawn > 0)
 		{
 			if(_maxParticles > 0)
 				spawn = MIN(_maxParticles - (uint32)_particles.size(), spawn);
 			
-			if(spawn > 0)
-			{
-				std::vector<Particle *> spawned(spawn);
-				
-				for(int i=0; i<spawn; i++)
-				{
-					spawned[i] = SpawnParticle(_material);
-				}
-				
-				_particles.insert(_particles.end(), spawned.begin(), spawned.end());
-			}
+			SpawnParticles(spawn);
 		}
-		
+	}
+	
+	void ParticleEmitter::UpdateMesh()
+	{
 		ParticleData *data = _mesh->MeshData<ParticleData>();
 		for(Particle *particle : _particles)
 		{
@@ -210,6 +223,15 @@ namespace RN
 		}
 		
 		_mesh->UpdateMesh();
+	}
+	
+	
+	void ParticleEmitter::Update(float delta)
+	{
+		SceneNode::Update(delta);
+		
+		UpdateParticles(delta);
+		UpdateMesh();
 	}
 	
 	

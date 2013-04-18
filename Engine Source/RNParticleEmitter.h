@@ -19,20 +19,26 @@
 
 namespace RN
 {
+	class ParticleEmitter;
 	class ParticleMaterial : public Material
 	{
 	public:
 		ParticleMaterial();
 		virtual ~ParticleMaterial();
 		
-		Vector3 velocity;
-		Vector3 velocityChange;
+		virtual void InitializeParticle(Particle *particle);
+		
+		void SetGenerator(RandomNumberGenerator *generator);
+		RandomNumberGenerator *Generator() { return _rng; }
+		
+		Vector3 minVelocity;
+		Vector3 maxVelocity;
 		
 		float lifespan;
 		float lifespanVariance;
 		
-		virtual void UpdateParticle(Particle *particle, float delta);
-		std::function<void (Particle *, float)> action;
+	private:
+		RandomNumberGenerator *_rng;
 		
 		RNDefineMeta(ParticleMaterial, Material)
 	};
@@ -48,18 +54,19 @@ namespace RN
 		
 		void SetSpawnRate(float spawnRate);
 		void SetParticlesPerSecond(uint32 particles);
-		
 		void SetMaxParticles(uint32 maxParticles);
+		
+		void SpawnParticles(uint32 particles);
+		virtual Particle *CreateParticle();
 		
 		virtual void Update(float delta);
 		virtual bool IsVisibleInCamera(Camera *camera);
 		virtual void Render(Renderer *renderer, Camera *camera);
 		
-		virtual Particle *SpawnParticle(ParticleMaterial *material);
-		
-		Random::LCG lcg;
-		
 	private:
+		void UpdateParticles(float delta);
+		void UpdateMesh();
+		
 		std::vector<Particle *> _particles;
 		uint32 _maxParticles;
 		

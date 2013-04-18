@@ -11,21 +11,35 @@
 
 namespace RN
 {
-	Particle::Particle(const Vector3& tposition) :
-		position(tposition)
+	Particle::Particle() :
+		size(Vector2(1.0f))
 	{
-		lifespan = 5.0f;
-		color = Color(0.0f, 0.0f, 1.0f, 1.0f);
-		size = Vector2(0.5f);
+		lifespan = 1.0f;
+		time = 0.0f;
+	}
+	
+	Particle::Particle(const Vector3& tposition) :
+		position(tposition),
+		size(Vector2(1.0f))
+	{
+		lifespan = 1.0f;
+		time = 0.0f;
 	}
 	
 	Particle::~Particle()
 	{
 	}
 	
+	
+	void Particle::Initialize()
+	{
+	}
+			 
 	void Particle::Update(float delta)
 	{
+		time += delta;
 		lifespan -= delta;
-		position += Vector3(0.0f, 1.0f * delta, 0.0f);
+		
+		position += velocity * delta;
 	}
 }

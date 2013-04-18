@@ -20,13 +20,18 @@ namespace RN
 	class Particle
 	{
 	public:
+		Particle();
 		Particle(const Vector3& position);
 		virtual ~Particle();
 		
+		virtual void Initialize();
 		virtual void Update(float delta);
 		
+		float time;
 		float lifespan;
 		
+		Vector3 velocity;
+
 		struct
 		{
 			Vector3 position;
