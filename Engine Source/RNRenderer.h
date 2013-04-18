@@ -259,8 +259,7 @@ namespace RN
 	{
 		if(_blendSource != blendSource || _blendDestination != blendDestination)
 		{
-			glBlendFunc(_blendSource, _blendDestination);
-			
+			glBlendFunc(blendSource, blendDestination);
 			
 			_blendSource = blendSource;
 			_blendDestination = blendDestination;
