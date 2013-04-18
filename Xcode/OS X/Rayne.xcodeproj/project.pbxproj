@@ -114,6 +114,8 @@
 		E9C7DB271710D0F3006AD768 /* RNInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C7DB261710CE2C006AD768 /* RNInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9D3CED5171F907500F4BF36 /* RNResourcePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D3CED3171F907500F4BF36 /* RNResourcePool.cpp */; };
 		E9D3CED6171F907500F4BF36 /* RNResourcePool.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D3CED4171F907500F4BF36 /* RNResourcePool.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9D3CEE717203FA100F4BF36 /* RNBillboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D3CEE517203FA100F4BF36 /* RNBillboard.cpp */; };
+		E9D3CEE817203FA100F4BF36 /* RNBillboard.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D3CEE617203FA100F4BF36 /* RNBillboard.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9D4BF7B16EEAF8F00513938 /* RNError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D4BF7A16EEAF8F00513938 /* RNError.cpp */; };
 		E9D820A51717143B0080CD17 /* RNAABB.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D820A41717143B0080CD17 /* RNAABB.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9ECEEB916D7F0E700C6CF09 /* libjansson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ECEEB816D7F09800C6CF09 /* libjansson.a */; };
@@ -272,6 +274,8 @@
 		E9C7DB261710CE2C006AD768 /* RNInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNInterpolation.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E9D3CED3171F907500F4BF36 /* RNResourcePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNResourcePool.cpp; sourceTree = "<group>"; };
 		E9D3CED4171F907500F4BF36 /* RNResourcePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNResourcePool.h; sourceTree = "<group>"; };
+		E9D3CEE517203FA100F4BF36 /* RNBillboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNBillboard.cpp; sourceTree = "<group>"; };
+		E9D3CEE617203FA100F4BF36 /* RNBillboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBillboard.h; sourceTree = "<group>"; };
 		E9D4BF7A16EEAF8F00513938 /* RNError.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNError.cpp; sourceTree = "<group>"; };
 		E9D820A41717143B0080CD17 /* RNAABB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAABB.h; sourceTree = "<group>"; };
 		E9ECEEB316D7F09800C6CF09 /* jansson-osx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "jansson-osx.xcodeproj"; path = "../../Vendor/libjansson/jansson-osx.xcodeproj"; sourceTree = "<group>"; };
@@ -503,6 +507,8 @@
 		E9F8070D1697051C00773A34 /* Scene */ = {
 			isa = PBXGroup;
 			children = (
+				E9D3CEE517203FA100F4BF36 /* RNBillboard.cpp */,
+				E9D3CEE617203FA100F4BF36 /* RNBillboard.h */,
 				E9AB0DAA16D679DC000D1CF0 /* RNSceneNode.cpp */,
 				E9580BD516AC8DAA0056DEF2 /* RNSceneNode.h */,
 				E9619DF71696157E00DA187E /* RNCamera.cpp */,
@@ -628,6 +634,7 @@
 				E9F3A6F9171B8DA70005A79E /* RNParticle.h in Headers */,
 				E9F3A6FD171C489F0005A79E /* RNRandom.h in Headers */,
 				E9D3CED6171F907500F4BF36 /* RNResourcePool.h in Headers */,
+				E9D3CEE817203FA100F4BF36 /* RNBillboard.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -775,6 +782,7 @@
 				E9F3A6F8171B8DA70005A79E /* RNParticle.cpp in Sources */,
 				E9F3A6FC171C489F0005A79E /* RNRandom.cpp in Sources */,
 				E9D3CED5171F907500F4BF36 /* RNResourcePool.cpp in Sources */,
+				E9D3CEE717203FA100F4BF36 /* RNBillboard.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

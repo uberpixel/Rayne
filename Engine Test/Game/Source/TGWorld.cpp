@@ -79,14 +79,15 @@ namespace TG
 		RN::Texture *depthtex = new RN::Texture(RN::Texture::FormatDepthStencil);
 		storage->SetDepthTarget(depthtex);
 		
-		RN::Shader *depthShader = RN::Shader::WithFile("shader/rn_LightDepth");
+		RN::Shader *depthShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightDepthShader);
 		RN::Material *depthMaterial = new RN::Material(depthShader);
 		
 		_camera = new ThirdPersonCamera(storage);
 		_camera->SetMaterial(depthMaterial);
 		
-		RN::Shader *downsampleShader = RN::Shader::WithFile("shader/rn_LightTileSample");
-		RN::Shader *downsampleFirstShader = RN::Shader::WithFile("shader/rn_LightTileSampleFirst");
+		RN::Shader *downsampleShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleShader);
+		RN::Shader *downsampleFirstShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleFirstShader);
+		
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
 		downsampleMaterial2x->AddTexture(depthtex);
 		
@@ -213,9 +214,9 @@ namespace TG
 		material->minVelocity = RN::Vector3(0.0f, 0.5f, 0.0f);
 		material->maxVelocity = RN::Vector3(0.0f, 0.15f, 0.0f);
 		
+		material->discard = true;
 		material->blending = true;
-		material->blendSource = GL_SRC_ALPHA;
-		material->blendDestination = GL_ONE;
+		material->SetBlendMode(RN::Material::BlendMode::Interpolative);
 		
 		DustEmitter *emitter = new DustEmitter();
 		emitter->SetMaterial(material);
@@ -237,8 +238,8 @@ namespace TG
 		light->SetRange(80.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
-		light = new RN::Light(RN::Light::TypeDirectionalLight);
-		light->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 60.0f)));
+		//light = new RN::Light(RN::Light::TypeDirectionalLight);
+		//light->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 60.0f)));
 		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
@@ -264,6 +265,12 @@ namespace TG
 			});*/
 		}
 #endif
+		
+		RN::Billboard *billboard = new RN::Billboard();
+		billboard->SetTexture(RN::Texture::WithFile("textures/billboard.png", RN::Texture::FormatRGBA8888));
+		billboard->SetScale(RN::Vector3(0.2f));
+		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
+		billboard->TranslateLocal(RN::Vector3(0.0f, 9.0f, 57.0f));
 		
 #if TGWorldFeatureInstancing
 		RN::Model *foliage[4];
