@@ -10,6 +10,7 @@
 #include "RNFile.h"
 #include "RNPathManager.h"
 #include "RNSkeleton.h"
+#include "RNResourcePool.h"
 
 namespace RN
 {
@@ -107,7 +108,7 @@ namespace RN
 		static Shader *shader = 0;
 		if(!shader)
 		{
-			shader = new Shader("shader/rn_Texture1");
+			shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyTexture1Shader);
 		}
 		
 		return shader->Retain();
@@ -283,7 +284,7 @@ namespace RN
 	{
 		//Get materials
 		uint8 countmats = file->ReadUint8();
-		Shader *shader = new Shader("shader/rn_Texture1");
+		Shader *shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyTexture1Shader);
 		
 		std::vector<Material *> materials;
 		

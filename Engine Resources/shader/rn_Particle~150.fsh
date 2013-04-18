@@ -23,5 +23,5 @@ void main()
 	vec4 color = texture(mTexture0, texCoord);
 	rn_Discard(color);
 
-	fragColor0 = fragColor * color * color.a;
+	fragColor0 = fragColor * color;
 }

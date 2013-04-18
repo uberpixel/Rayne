@@ -315,7 +315,10 @@ namespace RN
 				return base;
 		}
 		
-		return "";
+		std::string error = "Couldn't find file ";
+		error += path;
+		
+		throw ErrorException(0, error);
 	}
 	
 	std::string PathManager::ExecutableDirectory()

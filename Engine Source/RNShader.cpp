@@ -29,7 +29,16 @@ namespace RN
 		SetFragmentShader(PathManager::PathForName(shader + ".fsh"));
 		
 #if GL_GEOMETRY_SHADER
-		std::string path = PathManager::PathForName(shader + ".gsh");
+		std::string path = "";
+		
+		try
+		{
+			path = PathManager::PathForName(shader + ".gsh");
+		}
+		catch(ErrorException e)
+		{
+		}
+		
 		if(path.length() > 0)
 			SetGeometryShader(path);
 #endif

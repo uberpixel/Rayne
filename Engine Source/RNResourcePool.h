@@ -12,7 +12,16 @@
 #include "RNBase.h"
 #include "RNObject.h"
 
-#define kRNResourceKeyParticleShader "kRNResourceKeyParticleShader"
+#define kRNResourceKeyTexture1Shader       "kRNResourceKeyTexture1Shader"
+#define kRNResourceKeyTexture2Shader       "kRNResourceKeyTexture2Shader"
+#define kRNResourceKeyTexture1NormalShader "kRNResourceKeyTexture1NormalShader"
+#define kRNResourceKeyColor1Shader         "kRNResourceKeyColor1Shader"
+#define kRNResourceKeyColor2Shader         "kRNResourceKeyColor2Shader"
+#define kRNResourceKeyParticleShader       "kRNResourceKeyParticleShader"
+
+#define kRNResourceKeyLightTileSampleFirstShader "kRNResourceKeyLightTileSampleFirstShader"
+#define kRNResourceKeyLightTileSampleShader      "kRNResourceKeyLightTileSampleShader"
+#define kRNResourceKeyLightDepthShader           "kRNResourceKeyLightDepthShader"
 
 namespace RN
 {
