@@ -36,10 +36,10 @@ namespace RN
 		RNAPI void SetFrame(const Rect& frame);
 		RNAPI void SetRenderTarget(Texture *target, uint32 index=0);
 		RNAPI void AddRenderTarget(Texture *target);
-		RNAPI void AddRenderTarget(Texture::Format format);
+		RNAPI void AddRenderTarget(TextureParameter::Format format);
 		RNAPI void RemoveRenderTarget(Texture *target);
 		RNAPI void SetDepthTarget(Texture *texture);
-		RNAPI void SetDepthTarget(Texture::Format format);
+		RNAPI void SetDepthTarget(TextureParameter::Format format);
 		
 		RNAPI void UpdateBuffer();
 		

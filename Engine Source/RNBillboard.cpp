@@ -32,8 +32,8 @@ namespace RN
 	{
 		_material = new RN::Material();
 		_material->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyBillboardShader));
-		_material->culling = true;
-		_material->lighting = true;
+		//_material->culling = true;
+		//_material->lighting = false;
 		
 		static std::once_flag onceFlag;
 		

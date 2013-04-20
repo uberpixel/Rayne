@@ -7,6 +7,7 @@
 //
 
 #include "RNCPU.h"
+
 namespace RN
 {
 #if RN_PLATFORM_INTEL

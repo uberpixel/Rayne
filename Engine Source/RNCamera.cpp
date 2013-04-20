@@ -16,7 +16,7 @@ namespace RN
 	RNDeclareMeta(Camera)
 	
 	Camera::Camera(const Vector2& size) :
-		Camera(size, Texture::FormatRGBA8888)
+	Camera(size, TextureParameter::Format::RGBA8888)
 	{}
 
 
@@ -29,11 +29,11 @@ namespace RN
 	{}
 
 
-	Camera::Camera(const Vector2& size, Texture::Format targetFormat) :
+	Camera::Camera(const Vector2& size, TextureParameter::Format targetFormat) :
 		Camera(size, targetFormat, FlagDefaults)
 	{}
 
-	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags) :
+	Camera::Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags) :
 		Camera(size, targetFormat, flags, RenderStorage::BufferFormatComplete)
 	{}
 
@@ -51,7 +51,7 @@ namespace RN
 		Initialize();
 	}
 
-	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format) :
+	Camera::Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_flags(flags)
 	{

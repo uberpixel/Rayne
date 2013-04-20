@@ -64,12 +64,14 @@ namespace RN
 	{
 		RN_ASSERT0(_format & BufferFormatColor);
 		
-		target->Bind();
-		target->SetLinear(true);
-		target->SetGeneratesMipmaps(false);
-		target->SetWrappingMode(Texture::WrapModeClamp);
-		target->SetFilter(Texture::FilterNearest);
-		target->Unbind();
+		TextureParameter parameter = target->Parameter();
+		
+		parameter.filter = TextureParameter::Filter::Nearest;
+		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+		parameter.mipMaps = 0;
+		parameter.generateMipMaps = false;
+		
+		target->SetParameter(parameter);
 		
 		_renderTargets->ReplaceObjectAtIndex(index, target);
 		_renderTargetsChanged = true;
@@ -90,22 +92,32 @@ namespace RN
 		if(_renderTargets->Count() >= MaxRenderTargets())
 			throw ErrorException(0, 0, 0);
 		
-		target->Bind();
-		target->SetLinear(true);
-		target->SetGeneratesMipmaps(false);
-		target->SetWrappingMode(Texture::WrapModeClamp);
-		target->SetFilter(Texture::FilterNearest);
-		target->Unbind();
+		TextureParameter parameter = target->Parameter();
+		
+		parameter.filter = TextureParameter::Filter::Nearest;
+		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+		parameter.mipMaps = 0;
+		parameter.generateMipMaps = false;
+		
+		target->SetParameter(parameter);
 		
 		_renderTargets->AddObject(target);
 		_renderTargetsChanged = true;
 	}
 	
-	void RenderStorage::AddRenderTarget(Texture::Format format)
+	void RenderStorage::AddRenderTarget(TextureParameter::Format format)
 	{
 		RN_ASSERT0(_format & BufferFormatColor);
 		
-		Texture *target = new Texture(format, Texture::WrapModeClamp, Texture::FilterNearest, true);
+		TextureParameter parameter;
+		
+		parameter.format = format;
+		parameter.filter = TextureParameter::Filter::Nearest;
+		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+		parameter.mipMaps = 0;
+		parameter.generateMipMaps = false;
+		
+		Texture *target = new Texture(parameter, true);
 		
 		try
 		{
@@ -126,24 +138,44 @@ namespace RN
 			
 			if(_format & BufferFormatStencil)
 			{
-				RN_ASSERT0(depthTexture->TextureFormat() == Texture::FormatDepthStencil);
+				RN_ASSERT0(depthTexture->Parameter().format == TextureParameter::Format::DepthStencil);
 			}
 			else
 			{
-				RN_ASSERT0(depthTexture->TextureFormat() == Texture::FormatDepth);
+				RN_ASSERT0(depthTexture->Parameter().format == TextureParameter::Format::Depth);
 			}
 		}
 		
 		if(_depthTexture)
 			_depthTexture->Release();
-		_depthTexture = depthTexture ? depthTexture->Retain() : 0;
 		
+		_depthTexture = depthTexture ? depthTexture->Retain() : 0;
 		_formatChanged = true;
+		
+		if(_depthTexture)
+		{
+			_depthTexture->Bind();
+			
+			TextureParameter parameter = _depthTexture->Parameter();
+			
+			parameter.filter = TextureParameter::Filter::Nearest;
+			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+			parameter.mipMaps = 0;
+			parameter.generateMipMaps = false;
+			
+			_depthTexture->SetParameter(parameter);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+			
+			_depthTexture->Unbind();
+		}
 	}
 	
-	void RenderStorage::SetDepthTarget(Texture::Format format)
+	void RenderStorage::SetDepthTarget(TextureParameter::Format format)
 	{
-		Texture *target = new Texture(format);
+		TextureParameter parameter;
+		parameter.format = format;
+		
+		Texture *target = new Texture(parameter);
 		
 		try
 		{
@@ -335,21 +367,14 @@ namespace RN
 				Texture *texture = _renderTargets->ObjectAtIndex(i);
 				
 				texture->Bind();
-				texture->SetData(0, width, height, Texture::FormatRGBA8888);
+				texture->SetData(0, width, height, TextureParameter::Format::RGBA8888);
 				texture->Unbind();
 			}
 			
 			if(_depthTexture)
 			{
-				_depthTexture->Bind();
-				
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-				
-				_depthTexture->SetData(0, width, height, Texture::FormatRGBA8888);
+				_depthTexture->Bind();				
+				_depthTexture->SetData(0, width, height, TextureParameter::Format::RGBA8888);
 				_depthTexture->Unbind();
 			}
 			else
