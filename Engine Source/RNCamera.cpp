@@ -446,10 +446,10 @@ namespace RN
 		if(_depthFrame == _frameID)
 			return _depthArray;
 		
-		int tilesWidth  = (int)_lightTiles.x;
-		int tilesHeight = (int)_lightTiles.y;
+		int width  = (int)_depthTiles->Width();
+		int height = (int)_depthTiles->Height();
 		
-		size_t size = tilesWidth * tilesHeight * 2;
+		size_t size = width * height * 2;
 		if(size > _depthSize)
 		{
 			delete _depthArray;
@@ -459,6 +459,7 @@ namespace RN
 		}
 		
 		_depthTiles->Bind();
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, _depthArray);
 		_depthTiles->Unbind();
