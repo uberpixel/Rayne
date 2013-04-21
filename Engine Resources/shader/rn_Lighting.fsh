@@ -8,6 +8,8 @@
 
 #define RN_LIGHTING_FSH
 
+#include "rn_Shadow.fsh"
+
 #ifdef RN_LIGHTING
 
 uniform isamplerBuffer lightPointList;
@@ -21,26 +23,10 @@ uniform samplerBuffer lightSpotListData;
 uniform int lightDirectionalCount;
 uniform vec3 lightDirectionalDirection[10];
 uniform vec3 lightDirectionalColor[10];
-uniform sampler2DArrayShadow lightDirectionalDepth;
-
-uniform vec2 clipPlanes;
-uniform vec4 frameSize;
 
 uniform vec4 lightTileSize;
 in vec3 outLightNormal;
 in vec3 outLightPosition;
-in vec4 outDirLightProj[4];
-
-float offset_lookup(sampler2DArrayShadow map, vec4 loc, vec2 offset)
-{
-	return texture(map, vec4(loc.xy+offset*frameSize.xy, loc.w, loc.z));
-}
-
-float random(vec4 seed4)
-{
-	float dot_product = dot(seed4, vec4(12.9898,78.233,45.164,94.673));
-    return fract(sin(dot_product) * 43758.5453);
-}
 
 vec4 rn_Lighting()
 {
@@ -92,80 +78,10 @@ vec4 rn_Lighting()
 			light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}*/
 	
-//	for(int i=0; i<lightDirectionalCount; i++)
-//	{
-		vec3 proj[4];
-		proj[0] = outDirLightProj[0].xyz/outDirLightProj[0].w;
-		proj[1] = outDirLightProj[1].xyz/outDirLightProj[1].w;
-		proj[2] = outDirLightProj[2].xyz/outDirLightProj[2].w;
-		proj[3] = outDirLightProj[3].xyz/outDirLightProj[3].w;
-		
-		vec4 dist = vec4(dot(proj[0], proj[0]), dot(proj[1], proj[1]), dot(proj[2], proj[2]), dot(proj[3], proj[3]));
-
-		vec4 zGreater = vec4(greaterThan(dist, vec4(1.0)));
-		float mapToUse = dot(zGreater, vec4(1.0f));
-		
-/*		float shadow = 1.0;
-		if(mapToUse < 4.0)
-		{*/
-			vec4 projected = vec4(proj[int(mapToUse)]*0.5+0.5, mapToUse);
-			
-/*			vec2 poissonDisk[4] = vec2[](
-			vec2( -0.94201624, -0.39906216 ),
-			vec2( 0.94558609, -0.76890725 ),
-			vec2( -0.094184101, -0.92938870 ),
-			vec2( 0.34495938, 0.29387760 )
-			);
-			shadow = 0.0;
-			for(int i = 0; i < 4; i++)
-			{
-				int index = int(16.0*random(vec4(gl_FragCoord.xyy, float(i))))%4;
-				shadow += offset_lookup(lightDirectionalDepth, projected, poissonDisk[index]*10.0);
-			}
-			shadow *= 0.25;*/
-			
-/*			shadow = 0.0;
-			for(float offx = -2.0; offx <= 1.0; offx += 1.0)
-			{
-				for(float offy = -2.0; offy <= 1.0; offy += 1.0)
-				{
-					shadow += offset_lookup(lightDirectionalDepth, projected, vec2(offx, offy));
-				}
-			}*/
-			
-/*			shadow = offset_lookup(lightDirectionalDepth, projected, vec2(-1.0, -1.0)*5.0);
-			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(1.0, -1.0)*5.0);
-			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(-1.0, 1.0)*5.0);
-			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(1.0, 1.0)*5.0);
-			
-			shadow *= 0.25;*/
-/*			if(shadow > 0.1 || shadow < 3.9)
-			{
-				shadow = offset_lookup(lightDirectionalDepth, projected, vec2(-1.0, -1.0));
-				shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, -1.0));
-				shadow += offset_lookup(lightDirectionalDepth, projected, vec2(1.0, -1.0));
-			
-				shadow += offset_lookup(lightDirectionalDepth, projected, vec2(-1.0, 0.0));
-				shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, 0.0));
-				shadow += offset_lookup(lightDirectionalDepth, projected, vec2(1.0, 0.0));
-			
-				shadow += offset_lookup(lightDirectionalDepth, projected, vec2(-1.0, 1.0));
-				shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, 1.0));
-				shadow += offset_lookup(lightDirectionalDepth, projected, vec2(1.0, 1.0));
-			
-				shadow /= 9.0;
-			}*/
-
-//			shadow = offset_lookup(lightDirectionalDepth, projected, vec2(0.0, 0.0));
-			float shadow = offset_lookup(lightDirectionalDepth, projected, vec2(-1.0, 0.0));
-			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(1.0, 0.0));
-			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, -1.0));
-			shadow += offset_lookup(lightDirectionalDepth, projected, vec2(0.0, 1.0));
-			shadow *= 0.25;
-//		}
-
-		light += lightDirectionalColor[0]*max(dot(normal, lightDirectionalDirection[0]), 0.0)*shadow;
-//	}
+	for(int i=0; i<lightDirectionalCount; i++)
+	{
+		light += lightDirectionalColor[0]*max(dot(normal, lightDirectionalDirection[0]), 0.0)*rn_ShadowDir1();
+	}
 	
 	return vec4(light, 1.0);
 }
