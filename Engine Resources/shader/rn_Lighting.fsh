@@ -45,6 +45,10 @@ float random(vec4 seed4)
 vec4 rn_Lighting()
 {
 	vec3 normal = normalize(outLightNormal);
+	if(!gl_FrontFacing)
+	{
+		normal *= -1.0;
+	}
 	vec3 posdiff = vec3(0.0);
 	float attenuation = 0.0;
 	vec3 light = vec3(0.4);

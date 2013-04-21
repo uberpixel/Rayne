@@ -33,7 +33,7 @@ namespace RN
 		RNAPI void SetRange(float range);
 		RNAPI void SetColor(const Vector3& color);
 		RNAPI void SetAngle(float angle);
-		RNAPI void SetShadow(bool shadow);
+		RNAPI void ActivateSunShadows(bool shadow=true, float resolution=512.0f, int splits=4, float distfac=0.04f, float biasfac=2.0f, float biasunits=512.0f);
 		
 		virtual void Update(float delta);
 		
@@ -54,6 +54,8 @@ namespace RN
 		float _range;
 		float _angle;
 		bool _shadow;
+		int _shadowSplits;
+		float _shadowDistFac;
 		
 		RNDefineMeta(Light, Transform)
 	};
