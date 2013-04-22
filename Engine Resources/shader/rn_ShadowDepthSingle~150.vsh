@@ -21,5 +21,5 @@ void main()
 {
 	vertTexcoord = vertTexcoord0;
 	vec4 pos = rn_Animate(vec4(vertPosition, 1.0));
-	gl_Position = matModel * pos;
+	gl_Position = matProjViewModel * pos;
 }

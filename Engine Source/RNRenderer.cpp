@@ -514,7 +514,7 @@ namespace RN
 			
 			if(light->_shadow)
 			{
-				if(camera == light->_shadowcam)
+				if(camera == light->_shadowcam || light->_shadowcams.ContainsObject(camera))
 				{
 					_lightDirectionalMatrix.RemoveAllObjects();
 					_lightDirectionalDepth.RemoveAllObjects();
@@ -524,7 +524,10 @@ namespace RN
 						_lightDirectionalMatrix.AddObject(light->_shadowmats.ObjectAtIndex(i));
 					}
 					
-					_lightDirectionalDepth.AddObject(light->_shadowcam->Storage()->DepthTarget());
+					if(light->_shadowcam != 0)
+						_lightDirectionalDepth.AddObject(light->_shadowcam->Storage()->DepthTarget());
+					else
+						_lightDirectionalDepth.AddObject(light->_shadowcams.ObjectAtIndex(0)->Storage()->DepthTarget());
 				}
 			}
 		}

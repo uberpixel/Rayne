@@ -22,6 +22,7 @@ namespace RN
 		_angle = 0.5f;
 		_shadow = false;
 		_shadowcam = 0;
+		_lightcam = 0;
 	}
 	
 	Light::~Light()
@@ -53,6 +54,9 @@ namespace RN
 	
 	void Light::ActivateSunShadows(bool shadow, float resolution, int splits, float distfac, float biasfac, float biasunits)
 	{
+		if(_lightType != TypeDirectionalLight)
+			return;
+		
 		if(_shadow == shadow)
 			return;
 		
@@ -62,12 +66,6 @@ namespace RN
 			_shadowSplits = splits;
 			_shadowDistFac = distfac;
 			
-			Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepth");
-			Material *depthMaterial = new Material(depthShader);
-			depthMaterial->polygonOffset = true;
-			depthMaterial->polygonOffsetFactor = biasfac;
-			depthMaterial->polygonOffsetUnits = biasunits;
-			
 			Texture *depthtex = new Texture(Texture::FormatDepth, Texture::WrapModeRepeat, Texture::FilterLinear, false, Texture::Type2DArray);
 			depthtex->SetDepth(splits);
 			depthtex->SetDepthCompare(true);
@@ -75,14 +73,52 @@ namespace RN
 			depthtex->SetFilter(Texture::FilterLinear);
 			depthtex->SetGeneratesMipmaps(false);
 			
-			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
-			storage->SetDepthTarget(depthtex);
-			_shadowcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
-			
-			_shadowcam->SetMaterial(depthMaterial);
-			_shadowcam->SetUseInstancing(false);
-			_shadowcam->SetLODCamera(_lightcam);
-			_shadowcam->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
+//			try
+			{
+				RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
+				storage->SetDepthTarget(depthtex);
+//				storage->SetFrame(Rect(0.0f, 0.0f, 256.0f, 256.0f));
+//				storage->UpdateBuffer();
+				
+				Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepth");
+				Material *depthMaterial = new Material(depthShader);
+				depthMaterial->polygonOffset = true;
+				depthMaterial->polygonOffsetFactor = biasfac;
+				depthMaterial->polygonOffsetUnits = biasunits;
+				
+				_shadowcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
+				
+				_shadowcam->SetMaterial(depthMaterial);
+				_shadowcam->SetUseInstancing(false);
+				_shadowcam->SetLODCamera(_lightcam);
+				_shadowcam->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
+				_shadowcam->clipfar = 1000.0f;
+				_shadowcam->clipnear = 1.0f;
+			}
+/*			catch(ErrorException e)
+			{
+				Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepthSingle");
+				Material *depthMaterial = new Material(depthShader);
+				depthMaterial->polygonOffset = true;
+				depthMaterial->polygonOffsetFactor = biasfac;
+				depthMaterial->polygonOffsetUnits = biasunits;
+				
+				for(int i = 0; i < _shadowSplits; i++)
+				{
+					RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
+					storage->SetDepthTarget(depthtex, i);
+					
+					Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
+					tempcam->SetMaterial(depthMaterial);
+					tempcam->SetUseInstancing(true);
+					tempcam->SetLODCamera(_lightcam);
+					tempcam->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
+					tempcam->clipfar = 1000.0f;
+					tempcam->clipnear = 1.0f;
+	
+					_shadowcams.AddObject(tempcam);
+				}
+			}*/
 		}
 	}
 	
@@ -94,7 +130,9 @@ namespace RN
 			float near = _lightcam->clipnear;
 			float far;
 			
-			_shadowcam->SetRotation(Rotation());
+			if(_shadowcam != 0)
+				_shadowcam->SetRotation(Rotation());
+			
 			_shadowmats.RemoveAllObjects();
 			
 			for(int i = 0; i < _shadowSplits; i++)
@@ -103,12 +141,24 @@ namespace RN
 				float log = _lightcam->clipnear*powf(_lightcam->clipfar/_lightcam->clipnear, (i+1.0f)/float(_shadowSplits));
 				far = linear*_shadowDistFac+log*(1.0f-_shadowDistFac);
 				
-				_shadowmats.AddObject(_shadowcam->MakeShadowSplit(_lightcam, this, near, far));
+				if(_shadowcam != 0)
+				{
+					_shadowmats.AddObject(_shadowcam->MakeShadowSplit(_lightcam, this, near, far));
+				}
+				else
+				{
+					Camera *tempcam = _shadowcams.ObjectAtIndex(i);
+					tempcam->SetRotation(Rotation());
+					_shadowmats.AddObject(tempcam->MakeShadowSplit(_lightcam, this, near, far));
+				}
 				
 				near = far;
 			}
 			
-			_shadowcam->MakeShadowSplit(_lightcam, this, _lightcam->clipnear, _lightcam->clipfar);
+			if(_shadowcam != 0)
+			{
+				_shadowcam->MakeShadowSplit(_lightcam, this, _lightcam->clipnear, _lightcam->clipfar);
+			}
 		}
 	}
 }

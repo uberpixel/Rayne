@@ -33,7 +33,7 @@ namespace RN
 		RNAPI void SetRange(float range);
 		RNAPI void SetColor(const Vector3& color);
 		RNAPI void SetAngle(float angle);
-		RNAPI void ActivateSunShadows(bool shadow=true, float resolution=512.0f, int splits=4, float distfac=0.04f, float biasfac=2.0f, float biasunits=512.0f);
+		RNAPI void ActivateSunShadows(bool shadow=true, float resolution=512.0f, int splits=4, float distfac=0.05f, float biasfac=2.0f, float biasunits=512.0f);
 		
 		virtual void Update(float delta);
 		
@@ -46,6 +46,7 @@ namespace RN
 		class Camera *_shadowcam;
 		class Camera *_lightcam;
 		Array<Matrix> _shadowmats;
+		Array<Camera*> _shadowcams;
 	
 	private:
 		Type _lightType;

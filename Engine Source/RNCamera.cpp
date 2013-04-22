@@ -387,7 +387,7 @@ namespace RN
 		UpdateProjection();
 		
 		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
-		Vector3 pos = center+light->Forward()*200.0f;
+		Vector3 pos = center+light->Forward()*500.0f;
 		
 		Matrix rot = light->WorldRotation().RotationMatrix();
 		pos = rot.Inverse()*pos;

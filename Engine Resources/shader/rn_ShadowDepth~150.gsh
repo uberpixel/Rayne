@@ -16,7 +16,6 @@ layout (triangles) in;
 layout (triangle_strip, max_vertices = 12) out;
 
 in vec2 vertTexcoord[3];
-//in vec4 projPos[3];
 out vec2 outTexcoord;
 
 void main(void)
