@@ -158,6 +158,30 @@ namespace RN
 	}
 	
 	
+	void RenderStorage::Bind()
+	{
+		Thread *thread = Thread::CurrentThread();
+		
+		if(thread->CurrentStorage() != this)
+			glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+		
+		thread->PushStorage(this);
+	}
+	
+	void RenderStorage::Unbind()
+	{
+		Thread *thread = Thread::CurrentThread();
+		
+		if(thread->CurrentStorage() == this)
+		{
+			thread->PopStorage();
+			
+			RenderStorage *other = thread->CurrentStorage();
+			if(other && other != this)
+				glBindFramebuffer(GL_FRAMEBUFFER, other->_framebuffer);
+		}
+	}
+	
 	void RenderStorage::CheckFramebufferStatus()
 	{
 #if RN_TARGET_OPENGL

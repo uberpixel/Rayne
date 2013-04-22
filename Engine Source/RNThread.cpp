@@ -45,6 +45,7 @@ namespace RN
 		_textures->Release();
 		_cameras->Release();
 		_meshes->Release();
+		_storages->Release();
 		
 		if(_context)
 			_context->DeactivateContext();
@@ -55,6 +56,7 @@ namespace RN
 		_textures = new Array<Texture>();
 		_cameras  = new Array<Camera>();
 		_meshes   = new Array<Mesh>();
+		_storages = new Array<RenderStorage>();
 		
 		_mutex = new Mutex();
 		_context = 0;
@@ -63,7 +65,7 @@ namespace RN
 		_isRunning = true;
 		_isCancelled = false;
 		
-		RN_ASSERT0(_textures && _cameras && _meshes);
+		RN_ASSERT0(_textures && _cameras && _meshes && _storages);
 		RN_ASSERT0(_mutex != 0);
 		
 		Retain();
@@ -157,5 +159,10 @@ namespace RN
 	void Thread::PushMesh(Mesh *mesh)
 	{
 		_meshes->AddObject(mesh);
+	}
+	
+	void Thread::PushStorage(RenderStorage *storage)
+	{
+		_storages->AddObject(storage);
 	}
 }

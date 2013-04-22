@@ -73,12 +73,17 @@ namespace RN
 			depthtex->SetFilter(Texture::FilterLinear);
 			depthtex->SetGeneratesMipmaps(false);
 			
-//			try
+			RenderStorage *storage;
+			
+			try
 			{
-				RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
+				storage = new RenderStorage(RenderStorage::BufferFormatDepth);
 				storage->SetDepthTarget(depthtex);
-//				storage->SetFrame(Rect(0.0f, 0.0f, 256.0f, 256.0f));
-//				storage->UpdateBuffer();
+				storage->SetFrame(Rect(0.0f, 0.0f, 256.0f, 256.0f));
+				
+				storage->Bind();
+				storage->UpdateBuffer();
+				storage->Unbind();
 				
 				Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepth");
 				Material *depthMaterial = new Material(depthShader);
@@ -95,8 +100,11 @@ namespace RN
 				_shadowcam->clipfar = 1000.0f;
 				_shadowcam->clipnear = 1.0f;
 			}
-/*			catch(ErrorException e)
+			catch(ErrorException e)
 			{
+				storage->Unbind();
+				storage->Release();
+				
 				Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepthSingle");
 				Material *depthMaterial = new Material(depthShader);
 				depthMaterial->polygonOffset = true;
@@ -105,7 +113,7 @@ namespace RN
 				
 				for(int i = 0; i < _shadowSplits; i++)
 				{
-					RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth);
+					storage = new RenderStorage(RenderStorage::BufferFormatDepth);
 					storage->SetDepthTarget(depthtex, i);
 					
 					Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
@@ -118,7 +126,7 @@ namespace RN
 	
 					_shadowcams.AddObject(tempcam);
 				}
-			}*/
+			}
 		}
 	}
 	

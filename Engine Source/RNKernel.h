@@ -42,6 +42,8 @@ namespace RN
 		float Time() const { return _time; }
 		float ScaledTime() const { return _scaledTime; }
 		float TimeScale() const { return _timeScale; }
+		
+		FrameID CurrentFrame() const { return _frame; }
 
 	private:
 		void Initialize();

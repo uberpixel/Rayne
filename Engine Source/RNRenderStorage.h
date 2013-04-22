@@ -43,6 +43,9 @@ namespace RN
 		
 		RNAPI void UpdateBuffer();
 		
+		RNAPI void Bind();
+		RNAPI void Unbind();
+		
 		bool HasDepthbuffer() const { return (_format & BufferFormatDepth); }
 		bool HasStencilbuffer() const { return (_format & BufferFormatStencil); }
 		

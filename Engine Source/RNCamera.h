@@ -209,8 +209,6 @@ namespace RN
 		Texture *_depthTiles;
 		Model *_skycube;
 		
-		uint32 _frameID;
-		
 		float *_depthArray;
 		uint32 _depthFrame;
 		size_t _depthSize;

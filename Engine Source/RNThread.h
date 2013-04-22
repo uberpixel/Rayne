@@ -30,6 +30,7 @@ namespace RN
 	friend class Texture;
 	friend class Camera;
 	friend class Mesh;
+	friend class RenderStorage;
 	friend class AutoreleasePool;
 	friend class Kernel;
 	public:
@@ -110,9 +111,13 @@ namespace RN
 		void PushMesh(Mesh *mesh);
 		void PopMesh() { _meshes->RemoveLastObject(); }
 		
+		void PushStorage(RenderStorage *storage);
+		void PopStorage() { _storages->RemoveLastObject(); }
+		
 		Texture *CurrentTexture() const { return _textures->LastObject(); }
 		Camera *CurrentCamera() const { return _cameras->LastObject(); }
 		Mesh *CurrentMesh() const { return _meshes->LastObject(); }
+		RenderStorage *CurrentStorage() const { return _storages->LastObject(); }
 		
 		
 		Mutex *_mutex;
@@ -123,6 +128,7 @@ namespace RN
 		Array<Texture> *_textures;
 		Array<Camera> *_cameras;
 		Array<Mesh> *_meshes;
+		Array<RenderStorage> *_storages;
 		
 		bool _isRunning;
 		bool _isCancelled;

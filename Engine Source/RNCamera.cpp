@@ -120,7 +120,6 @@ namespace RN
 		_depthTiles = 0;
 		_skycube = 0;
 		
-		_frameID = 0;
 		_depthFrame = 0;
 		_depthArray = 0;
 		_depthSize  = 0;
@@ -148,26 +147,12 @@ namespace RN
 
 	void Camera::Bind()
 	{
-		Thread *thread = Thread::CurrentThread();
-
-		if(thread->CurrentCamera() != this)
-			glBindFramebuffer(GL_FRAMEBUFFER, _storage->_framebuffer);
-		
-		_frameID ++;
-		thread->PushCamera(this);
+		_storage->Bind();
 	}
 
 	void Camera::Unbind()
 	{
-		Thread *thread = Thread::CurrentThread();
-		if(thread->CurrentCamera() == this)
-		{
-			thread->PopCamera();
-
-			Camera *other = thread->CurrentCamera();
-			if(other && other != this)
-				glBindFramebuffer(GL_FRAMEBUFFER, other->_storage->_framebuffer);
-		}
+		_storage->Unbind();
 	}
 
 	void Camera::PrepareForRendering()
@@ -555,7 +540,7 @@ namespace RN
 		if(!_depthTiles)
 			return 0;
 		
-		if(_depthFrame == _frameID)
+		if(Kernel::SharedInstance()->CurrentFrame() == LastFrame())
 			return _depthArray;
 		
 		int tilesWidth  = (int)_lightTiles.x;
@@ -574,7 +559,6 @@ namespace RN
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, _depthArray);
 		_depthTiles->Unbind();
 		
-		_depthFrame = _frameID;
 		return _depthArray;
 	}
 
