@@ -17,6 +17,7 @@ namespace TG
 	{
 		_target = 0;
 		_distance = 9.0f;
+		_pitch = -10.0f;
 	}
 	
 	ThirdPersonCamera::~ThirdPersonCamera()
@@ -37,8 +38,10 @@ namespace TG
 	{
 		if(_target)
 		{
-			const RN::Quaternion& rotation = _target->WorldRotation();
+			RN::Quaternion rotation = _target->WorldRotation();
 			const RN::Vector3& position = _target->WorldPosition();
+			
+			rotation *= RN::Quaternion(RN::Vector3(0.0f, 0.0f, _pitch));
 			
 			RN::Vector3 cameraPosition = rotation.RotateVector(RN::Vector3(0.0f, 3.8f, _distance));
 			cameraPosition += position;

@@ -17,7 +17,7 @@ namespace RN
 		_shader = 0;
 		_textures = new Array<Texture>();
 		
-		SetDefaultProperties();
+		Initialize();
 	}
 	
 	Material::Material(RN::Shader *shader)
@@ -25,7 +25,7 @@ namespace RN
 		_shader = shader ? shader->Retain() : 0;
 		_textures = new Array<Texture>();
 		
-		SetDefaultProperties();
+		Initialize();
 	}
 	
 	Material::~Material()
@@ -45,6 +45,32 @@ namespace RN
 			_shader->Release();
 		
 		_shader = shader ? shader->Retain() : 0;
+	}
+	
+	void Material::SetBlendMode(BlendMode mode)
+	{
+		switch(mode)
+		{
+			case BlendMode::Additive:
+				blendSource = GL_ONE;
+				blendDestination = GL_ONE;
+				break;
+				
+			case BlendMode::Multiplicative:
+				blendSource = GL_DST_COLOR;
+				blendDestination = GL_ZERO;
+				break;
+				
+			case BlendMode::Interpolative:
+				blendSource = GL_ONE;
+				blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+				break;
+				
+			case BlendMode::Cutout:
+				blendSource = GL_ZERO;
+				blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+				break;
+		}
 	}
 	
 	Shader *Material::Shader() const
@@ -75,8 +101,11 @@ namespace RN
 	}
 	
 	
-	void Material::SetDefaultProperties()
+	void Material::Initialize()
 	{
+		override = 0;
+		lighting = true;
+		
 		culling  = true;
 		cullmode = GL_CCW;
 		

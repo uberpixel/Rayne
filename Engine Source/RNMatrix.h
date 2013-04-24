@@ -22,6 +22,26 @@ namespace RN
 
 	RN_INLINE Matrix& Matrix::operator*= (const Matrix& other)
 	{
+#if RN_SIMD
+		float alignas(16) tmp[16];
+		SIMD::VecFloat right, result;
+		
+		for(int i=0; i<16; i+=4)
+		{
+			right = SIMD::Set(other.m[i]);
+			result = SIMD::Mul(vec[0].simd, right);
+			
+			for(int j=1; j<4; j++)
+			{
+				right = SIMD::Set(other.m[i + j]);
+				result = SIMD::Add(SIMD::Mul(vec[j].simd, right), result);
+			}
+			
+			SIMD::Store(result, &tmp[i]);
+		}
+		
+		std::copy(tmp, tmp + 16, m);
+#else
 		float tmp[16];
 		
 		tmp[ 0] = m[ 0] * other.m[ 0] + m[ 4] * other.m[ 1] + m[ 8] * other.m[ 2] + m[12] * other.m[ 3];
@@ -45,6 +65,8 @@ namespace RN
 		tmp[15] = m[ 3] * other.m[12] + m[ 7] * other.m[13] + m[11] * other.m[14] + m[15] * other.m[15];
 		
 		std::copy(tmp, tmp + 16, m);
+#endif
+		
 		return *this;
 	}
 
@@ -52,6 +74,23 @@ namespace RN
 	{
 		Matrix matrix;
 		
+#if RN_SIMD
+		SIMD::VecFloat right, result;
+		
+		for(int i=0; i<16; i+=4)
+		{
+			right = SIMD::Set(other.m[i]);
+			result = SIMD::Mul(vec[0].simd, right);
+			
+			for(int j=1; j<4; j++)
+			{
+				right = SIMD::Set(other.m[i + j]);
+				result = SIMD::Add(SIMD::Mul(vec[j].simd, right), result);
+			}
+			
+			matrix.vec[i/4].simd = result;
+		}
+#else
 		matrix.m[ 0] = m[ 0] * other.m[ 0] + m[ 4] * other.m[ 1] + m[ 8] * other.m[ 2] + m[12] * other.m[ 3];
 		matrix.m[ 1] = m[ 1] * other.m[ 0] + m[ 5] * other.m[ 1] + m[ 9] * other.m[ 2] + m[13] * other.m[ 3];
 		matrix.m[ 2] = m[ 2] * other.m[ 0] + m[ 6] * other.m[ 1] + m[10] * other.m[ 2] + m[14] * other.m[ 3];
@@ -71,52 +110,54 @@ namespace RN
 		matrix.m[13] = m[ 1] * other.m[12] + m[ 5] * other.m[13] + m[ 9] * other.m[14] + m[13] * other.m[15];
 		matrix.m[14] = m[ 2] * other.m[12] + m[ 6] * other.m[13] + m[10] * other.m[14] + m[14] * other.m[15];
 		matrix.m[15] = m[ 3] * other.m[12] + m[ 7] * other.m[13] + m[11] * other.m[14] + m[15] * other.m[15];
-
+#endif
+		
 		return matrix;
 	}
 
 
-	RN_INLINE Vector3 Matrix::operator* (const Vector3& vec) const
+	RN_INLINE Vector3 Matrix::operator* (const Vector3& other) const
 	{
 		Vector3 result;
 
-		result.x = m[0] * vec.x + m[4] * vec.y + m[ 8] * vec.z + m[12];
-		result.y = m[1] * vec.x + m[5] * vec.y + m[ 9] * vec.z + m[13];
-		result.z = m[2] * vec.x + m[6] * vec.y + m[10] * vec.z + m[14];
+		result.x = m[0] * other.x + m[4] * other.y + m[ 8] * other.z + m[12];
+		result.y = m[1] * other.x + m[5] * other.y + m[ 9] * other.z + m[13];
+		result.z = m[2] * other.x + m[6] * other.y + m[10] * other.z + m[14];
 
 		return result;
 	}
 
-	RN_INLINE Vector4 Matrix::operator* (const Vector4& vec) const
+	RN_INLINE Vector4 Matrix::operator* (const Vector4& other) const
 	{
 		Vector4 result;
 
-		result.x = m[0] * vec.x + m[4] * vec.y + m[ 8] * vec.z + m[12] * vec.w;
-		result.y = m[1] * vec.x + m[5] * vec.y + m[ 9] * vec.z + m[13] * vec.w;
-		result.z = m[2] * vec.x + m[6] * vec.y + m[10] * vec.z + m[14] * vec.w;
-		result.w = m[3] * vec.x + m[7] * vec.y + m[11] * vec.z + m[15] * vec.w;
+#if RN_SIMD
+		result.simd = SIMD::Mul(vec[0].simd, SIMD::Set(other.x));
+		result.simd = SIMD::Add(result.simd, SIMD::Mul(vec[1].simd, SIMD::Set(other.y)));
+		result.simd = SIMD::Add(result.simd, SIMD::Mul(vec[2].simd, SIMD::Set(other.z)));
+		result.simd = SIMD::Add(result.simd, SIMD::Mul(vec[3].simd, SIMD::Set(other.w)));
+#else
+		result.x = m[0] * other.x + m[4] * other.y + m[ 8] * other.z + m[12] * other.w;
+		result.y = m[1] * other.x + m[5] * other.y + m[ 9] * other.z + m[13] * other.w;
+		result.z = m[2] * other.x + m[6] * other.y + m[10] * other.z + m[14] * other.w;
+		result.w = m[3] * other.x + m[7] * other.y + m[11] * other.z + m[15] * other.w;
+#endif
 
 		return result;
 	}
 	
-	RN_INLINE Matrix& Matrix::operator= (const Matrix& other)
-	{
-		std::copy(other.m, other.m + 16, m);
-		return *this;
-	}
-
 	RN_INLINE Matrix Matrix::Inverse() const
 	{
-		Matrix matrix;
+		Matrix result;
+		
 		float det = Determinant();
-		// if(fabs(det) < kRNEpsilonFloat) error;
-
-		for(int i = 0; i < 16; i++)
+		
+		for(int i=0; i<16; i++)
 		{
-			matrix.m[i] = DeterminantSubmatrix(i)/det;
+			result.m[i] = DeterminantSubmatrix(i) / det;
 		}
-
-		return matrix;
+		
+		return result;
 	}
 
 	RN_INLINE void Matrix::MakeIdentity()
@@ -208,7 +249,7 @@ namespace RN
 		MakeIdentity();
 		
 		float xFac, yFac;
-		yFac = tanf(arc * M_PI / 360.0f);
+		yFac = tanf(arc * kRNPI / 360.0f);
 		xFac = yFac * aspect;
 		
 		m[0] = 1.0f / xFac;
@@ -224,7 +265,7 @@ namespace RN
 		MakeIdentity();
 		
 		float xFac, yFac;
-		yFac = tanf(arc * M_PI / 360.0f);
+		yFac = tanf(arc * kRNPI / 360.0f);
 		xFac = yFac * aspect;
 		
 		m[0] = xFac;
@@ -267,6 +308,13 @@ namespace RN
 	
 	RN_INLINE void Matrix::Translate(const Vector3& trans)
 	{
+#if RN_SIMD
+		SIMD::VecFloat result = SIMD::Mul(vec[0].simd, SIMD::Set(trans.x));
+		result = SIMD::Add(result, SIMD::Mul(vec[1].simd, SIMD::Set(trans.y)));
+		result = SIMD::Add(result, SIMD::Mul(vec[2].simd, SIMD::Set(trans.z)));
+		
+		vec[3].simd = SIMD::Add(result, vec[3].simd);
+#else
 		float tmp[4];
 		
 		tmp[0] = m[ 0] * trans.x + m[ 4] * trans.y + m[ 8] * trans.z + m[12];
@@ -278,21 +326,30 @@ namespace RN
 		m[13] = tmp[1];
 		m[14] = tmp[2];
 		m[15] = tmp[3];
+#endif
 	}
 	
 	RN_INLINE void Matrix::Translate(const Vector4& trans)
 	{
+#if RN_SIMD
+		SIMD::VecFloat result = SIMD::Mul(vec[0].simd, SIMD::Set(trans.x));
+		result = SIMD::Add(result, SIMD::Mul(vec[1].simd, SIMD::Set(trans.y)));
+		result = SIMD::Add(result, SIMD::Mul(vec[2].simd, SIMD::Set(trans.z)));
+		
+		vec[3].simd = SIMD::Add(result, SIMD::Mul(vec[3].simd, SIMD::Set(trans.w)));
+#else
 		float tmp[4];
 		
-		tmp[0] = m[ 0] * trans.x + m[ 4] * trans.y + m[ 8] * trans.z + m[12] * trans.z;
-		tmp[1] = m[ 1] * trans.x + m[ 5] * trans.y + m[ 9] * trans.z + m[13] * trans.z;
-		tmp[2] = m[ 2] * trans.x + m[ 6] * trans.y + m[10] * trans.z + m[14] * trans.z;
-		tmp[3] = m[ 3] * trans.x + m[ 7] * trans.y + m[11] * trans.z + m[15] * trans.z;
+		tmp[0] = m[ 0] * trans.x + m[ 4] * trans.y + m[ 8] * trans.z + m[12] * trans.w;
+		tmp[1] = m[ 1] * trans.x + m[ 5] * trans.y + m[ 9] * trans.z + m[13] * trans.w;
+		tmp[2] = m[ 2] * trans.x + m[ 6] * trans.y + m[10] * trans.z + m[14] * trans.w;
+		tmp[3] = m[ 3] * trans.x + m[ 7] * trans.y + m[11] * trans.z + m[15] * trans.w;
 		
 		m[12] = tmp[0];
 		m[13] = tmp[1];
 		m[14] = tmp[2];
 		m[15] = tmp[3];
+#endif
 	}
 	
 	RN_INLINE void Matrix::Scale(const Vector3& scal)

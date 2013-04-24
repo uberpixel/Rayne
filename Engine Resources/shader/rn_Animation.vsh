@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#ifndef RN_ANIMATION_VSH
 #define RN_ANIMATION_VSH
 
 #ifdef RN_ANIMATION
@@ -33,7 +34,7 @@ vec4 rn_Animate(vec4 position)
 }
 
 #else
-
 #define rn_Animate(position) position
+#endif
 
 #endif

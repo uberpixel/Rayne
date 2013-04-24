@@ -6,49 +6,27 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#ifndef RN_LIGHTING_VSH
 #define RN_LIGHTING_VSH
 
 #include "rn_Shadow.vsh"
+#include "rn_Matrices.vsh"
 
 #ifdef RN_LIGHTING
+
 out vec3 outLightNormal;
 out vec3 outLightPosition;
 
-vec3 rn_Lighting(mat4 model, vec3 position, vec3 normal)
-{	
-#ifdef RN_ANIMATION_VSH
-	vec4 pos = rn_Animate(vec4(position, 1.0));
-	vec4 norm = rn_Animate(vec4(normal, 0.0));
-	norm.w = 0.0;
-	 
-	outLightNormal = (model * norm).xyz;
-	outLightPosition = (model * pos).xyz;
-	
-	rn_ShadowDir1(pos);
-
-	return pos.xyz;
-#else
-	outLightNormal = (model * vec4(normal, 0.0)).xyz;
-	outLightPosition = (model * vec4(position, 1.0)).xyz;
-	
-	rn_ShadowDir1(vec4(position, 1.0));
-
-	return position;
-#endif
-}
-
-#else
-
-#ifdef RN_ANIMATION_VSH
-
-vec3 rn_Lighting(mat4 model, vec3 position, vec3 normal)
+void rn_Lighting(vec3 position, vec3 normal)
 {
-	vec4 pos = rn_Animate(vec4(position, 1.0));
-	return pos.xyz;
+	outLightNormal = (matModel * vec4(normal, 0.0)).xyz;
+	outLightPosition = (matModel * vec4(position, 1.0)).xyz;
+
+	rn_ShadowDir1(vec4(position, 1.0));
 }
 
 #else
-#define rn_Lighting(model, position, normal) (position)
+#define rn_Lighting(position, normal)
 #endif
 
-#endif
+#endif 

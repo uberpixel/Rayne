@@ -11,7 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNTransform.h"
+#include "RNSceneNode.h"
 #include "RNCamera.h"
 #include "RNMaterial.h"
 #include "RNModel.h"
@@ -21,17 +21,17 @@
 namespace RN
 {
 	class World;
-	class Entity : public Transform
+	class Entity : public SceneNode
 	{
 	friend class World;
 	public:
 		RNAPI Entity();
 		RNAPI virtual ~Entity();
 		
-		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
-		
 		RNAPI void SetModel(Model *model);
 		RNAPI void SetSkeleton(class Skeleton *skeleton);
+		
+		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
 		
 		Model *Model() const { return _model; }
 		Skeleton *Skeleton() const { return _skeleton; }
@@ -40,7 +40,7 @@ namespace RN
 		class Model *_model;
 		class Skeleton *_skeleton;
 		
-		RNDefineMeta(Entity, Transform)
+		RNDefineMeta(Entity, SceneNode)
 	};
 }
 

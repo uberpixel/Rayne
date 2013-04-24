@@ -17,63 +17,96 @@ namespace RN
 	RNDeclareMeta(Texture)
 	uint32 Texture::_defaultAnisotropy = 0;
 	
-	Texture::Texture(Format format, WrapMode wrap, Filter filter, bool isLinear, Type type)
+	Texture::Texture(TextureParameter::Format format, bool isLinear)
 	{
 		glGenTextures(1, &_name);
 		
 		_width = _height = 0;
 		_depth = 1;
-		_format = format;
-		_type = type;
-		UpdateType();
-		_anisotropy = 0;
-		_depthCompare = false;
 		
-		_wrapMode = (WrapMode)-1;
-		_filter = (Filter)-1;
-		
-		_generateMipmaps = true;
+		_isLinear = (!Settings::SharedInstance()->GammaCorrection()) ? true : isLinear;
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		
 		Bind();
 		
-		SetFilter(filter);
-		SetWrappingMode(wrap);
-		SetAnisotropyLevel(_defaultAnisotropy);
-		SetLinear(isLinear);
-		SetDepthCompare(_depthCompare);
+		TextureParameter parameter;
+		parameter.format = format;
+		
+		SetType(parameter.type);
+		SetParameter(parameter);
 		
 		Unbind();
 	}
 	
-	Texture::Texture(const std::string& name, Format format, WrapMode wrap, Filter filter, bool isLinear)
+	Texture::Texture(const TextureParameter& parameter, bool isLinear)
 	{
-		TextureLoader loader = TextureLoader(name);
-		
 		glGenTextures(1, &_name);
 		
 		_width = _height = 0;
 		_depth = 1;
-		_format = format;
-		_type = Type2D;
-		UpdateType();
-		_depthCompare = false;
 		
-		_generateMipmaps = true;
+		_isLinear = (!Settings::SharedInstance()->GammaCorrection()) ? true : isLinear;
+		_isCompleteTexture = false;
+		_hasChanged = false;
+		
+		Bind();
+		SetType(parameter.type);
+		SetParameter(parameter);
+		Unbind();
+	}
+	
+	Texture::Texture(const std::string& name, bool isLinear)
+	{
+		glGenTextures(1, &_name);
+		
+		_width = _height = 0;
+		
+		_isLinear = (!Settings::SharedInstance()->GammaCorrection()) ? true : isLinear;
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		
 		Bind();
 		
-		SetFilter(filter);
-		SetWrappingMode(wrap);
-		SetAnisotropyLevel(_defaultAnisotropy);
-		SetLinear(isLinear);
-		SetDepthCompare(_depthCompare);
+		try
+		{
+			TextureLoader loader = TextureLoader(name);
+			TextureParameter parameter;
+			
+			parameter.format = loader.Format();
+			
+			SetType(parameter.type);
+			SetParameter(parameter);
+			
+			SetData(loader.Data(), loader.Width(), loader.Height(), loader.Format());
+		}
+		catch (ErrorException e)
+		{
+			Unbind();
+			throw e;
+		}
+		
+		Unbind();
+	}
+	
+	Texture::Texture(const std::string& name, const TextureParameter& parameter, bool isLinear)
+	{
+		glGenTextures(1, &_name);
+		
+		_width = _height = 0;
+		
+		_isLinear = (!Settings::SharedInstance()->GammaCorrection()) ? true : isLinear;
+		_isCompleteTexture = false;
+		_hasChanged = false;
+		
+		Bind();
+		
+		SetType(parameter.type);
+		SetParameter(parameter);
 		
 		try
 		{
+			TextureLoader loader = TextureLoader(name);
 			SetData(loader.Data(), loader.Width(), loader.Height(), loader.Format());
 		}
 		catch (ErrorException e)
@@ -90,12 +123,19 @@ namespace RN
 		glDeleteTextures(1, &_name);
 	}
 	
-	Texture *Texture::WithFile(const std::string& name, Format format, WrapMode wrap, Filter filter, bool isLinear)
+	
+	Texture *Texture::WithFile(const std::string& name, bool isLinear)
 	{
-		Texture *texture = new Texture(name, format, wrap, filter, isLinear);
+		Texture *texture = new Texture(name, isLinear);
 		return texture->Autorelease();
 	}
-
+	
+	Texture *Texture::WithFile(const std::string& name, const TextureParameter& parameter, bool isLinear)
+	{
+		Texture *texture = new Texture(name, parameter, isLinear);
+		return texture->Autorelease();
+	}
+	
 	
 	
 	void Texture::Bind()
@@ -103,9 +143,7 @@ namespace RN
 		Thread *thread = Thread::CurrentThread();
 		
 		if(thread->CurrentTexture() != this)
-		{
-			glBindTexture(_gltype, _name);
-		}
+			glBindTexture(_glType, _name);
 		
 		thread->PushTexture(this);
 	}
@@ -122,161 +160,118 @@ namespace RN
 			
 			Texture *other = thread->CurrentTexture();
 			if(other && other != this)
-			{
-				glBindTexture(_gltype, other->_name);
-			}
+				glBindTexture(_glType, other->_name);
 		}
 	}
 	
-	void Texture::SetWrappingMode(WrapMode wrap)
-	{
-		if(_wrapMode != wrap)
-		{
-			Bind();
-			
-			GLenum mode;
-			switch(wrap)
-			{
-				case WrapModeClamp:
-					mode = GL_CLAMP_TO_EDGE;
-					break;
-					
-				case WrapModeRepeat:
-					mode = GL_REPEAT;
-					break;
-			}
-			
-			glTexParameteri(_gltype, GL_TEXTURE_WRAP_S, mode);
-			glTexParameteri(_gltype, GL_TEXTURE_WRAP_T, mode);
-			
-			RN_CHECKOPENGL();
-			
-			_hasChanged = true;
-			_wrapMode = wrap;
-			
-			Unbind();
-		}
-	}
-	
-	void Texture::SetFilter(Filter filter, bool force)
-	{
-		if(_filter != filter || force)
-		{
-			Bind();
-			
-			GLenum minFilter;
-			GLenum magFilter;
-			
-			switch(filter)
-			{
-				case FilterLinear:
-					minFilter = GL_LINEAR;
-					magFilter = GL_LINEAR;
-					
-					if(_generateMipmaps)
-						minFilter = GL_LINEAR_MIPMAP_LINEAR;
-					
-					break;
-					
-				case FilterNearest:
-					minFilter = GL_NEAREST;
-					magFilter = GL_NEAREST;
-					break;
-			}
-			
-			glTexParameteri(_gltype, GL_TEXTURE_MIN_FILTER, minFilter);
-			glTexParameteri(_gltype, GL_TEXTURE_MAG_FILTER, magFilter);
-			
-			RN_CHECKOPENGL();
-			
-			_hasChanged = true;
-			_filter = filter;
-			
-			Unbind();
-		}
-	}
-	
-	void Texture::SetLinear(bool linear)
-	{
-		_isLinear = linear;
-		
-		if(!Settings::SharedInstance()->GammaCorrection())
-			_isLinear = true;
-	}
-	
-	void Texture::SetGeneratesMipmaps(bool genMipmaps)
-	{
-		if(genMipmaps != _generateMipmaps)
-		{
-			if(genMipmaps)
-				UpdateMipmaps();
-			
-			_generateMipmaps = genMipmaps;
-			SetFilter(_filter, true);
-		}
-	}
-	
-	void Texture::SetAnisotropyLevel(uint32 level)
-	{
-		if(_anisotropy != level)
-		{
-			_anisotropy = level;
-			_hasChanged = true;
-			
-			
-			Bind();
-			
-			glTexParameteri(_gltype, GL_TEXTURE_MAX_ANISOTROPY, level);
-			RN_CHECKOPENGL();
-			
-			Unbind();
-		}
-	}
 	
 	void Texture::SetDepth(uint32 depth)
 	{
-		if(_depth != depth)
-		{
-			_depth = depth;
-			_hasChanged = true;
-		}
+		_depth = depth;
 	}
 	
-	void Texture::SetDepthCompare(bool compare)
+	void Texture::SetParameter(const TextureParameter& parameter)
 	{
-		Bind();
-		_depthCompare = compare;
+		_parameter = parameter;
 		
-		if(_depthCompare)
+		Bind();
+		
+		GLenum wrapMode;
+		GLenum minFilter;
+		GLenum magFilter;
+		
+		switch(parameter.wrapMode)
 		{
-			glTexParameteri(_gltype, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-			glTexParameteri(_gltype, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+			case TextureParameter::WrapMode::Clamp:
+				wrapMode = GL_CLAMP_TO_EDGE;
+				break;
+				
+			case TextureParameter::WrapMode::Repeat:
+				wrapMode = GL_REPEAT;
+				break;
+		}
+		
+		switch(parameter.filter)
+		{
+			case TextureParameter::Filter::Linear:
+				minFilter = GL_LINEAR;
+				magFilter = GL_LINEAR;
+				
+				if(parameter.mipMaps > 0)
+					minFilter = GL_LINEAR_MIPMAP_LINEAR;
+				
+				break;
+				
+			case TextureParameter::Filter::Nearest:
+				minFilter = GL_NEAREST;
+				magFilter = GL_NEAREST;
+				break;
+		}
+		
+		glTexParameteri(_glType, GL_TEXTURE_WRAP_S, wrapMode);
+		glTexParameteri(_glType, GL_TEXTURE_WRAP_T, wrapMode);
+		
+		glTexParameteri(_glType, GL_TEXTURE_MIN_FILTER, minFilter);
+		glTexParameteri(_glType, GL_TEXTURE_MAG_FILTER, magFilter);
+		
+		glTexParameteri(_glType, GL_TEXTURE_MAX_ANISOTROPY, parameter.anisotropy);
+		
+		if(_parameter.depthCompare)
+		{
+			glTexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+			glTexParameteri(_glType, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
 		}
 		else
 		{
-			glTexParameteri(_gltype, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+			glTexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_NONE);
 		}
 		
 		Unbind();
 	}
 	
-	void Texture::SetData(const void *data, uint32 width, uint32 height, Format format)
-	{		
+	void Texture::SetType(TextureParameter::Type type)
+	{
+		switch(type)
+		{
+			case TextureParameter::Type::Texture2D:
+				_glType = GL_TEXTURE_2D;
+				break;
+				
+			case TextureParameter::Type::Texture3D:
+				_glType = GL_TEXTURE_3D;
+				break;
+				
+			case TextureParameter::Type::Texture2DArray:
+				_glType = GL_TEXTURE_2D_ARRAY;
+				break;
+		}
+	}
+	
+	void Texture::SetData(const void *data, uint32 width, uint32 height, TextureParameter::Format format)
+	{
 		GLenum glType, glFormat;
 		GLint glInternalFormat;
 		void *converted;
 		
 		Bind();
 		
-		converted = data ? ConvertData(data, width, height, format, _format) : 0;
-		ConvertFormat(_format, _isLinear, &glFormat, &glInternalFormat, &glType);
+		converted = data ? ConvertData(data, width, height, format, _parameter.format) : 0;
+		ConvertFormat(_parameter.format, _isLinear, &glFormat, &glInternalFormat, &glType);
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		if(_type == Type2D)
-			glTexImage2D(_gltype, 0, glInternalFormat, width, height, 0, glFormat, glType, converted);
-		else if(_type == Type2DArray)
-			glTexImage3D(_gltype, 0, glInternalFormat, width, height, _depth, 0, glFormat, glType, converted);
 		
+		switch(_glType)
+		{
+			case GL_TEXTURE_2D:
+				glTexImage2D(_glType, 0, glInternalFormat, width, height, 0, glFormat, glType, converted);
+				break;
+				
+			case GL_TEXTURE_2D_ARRAY:
+			case GL_TEXTURE_3D:
+				glTexImage3D(_glType, 0, glInternalFormat, width, height, _depth, 0, glFormat, glType, converted);
+				break;
+		}
+
 		RN_CHECKOPENGL();
 		
 		_width  = width;
@@ -292,7 +287,7 @@ namespace RN
 			free(converted);
 	}
 	
-	void Texture::UpdateData(const void *data, Format format)
+	void Texture::UpdateData(const void *data, TextureParameter::Format format)
 	{
 		if(!_isCompleteTexture)
 			return; // TODO: Throw an exception
@@ -303,34 +298,38 @@ namespace RN
 		
 		Bind();
 		
-		converted = ConvertData(data, _width, _height, format, _format);
-		ConvertFormat(_format, _isLinear, &glFormat, &glInternalFormat, &glType);
+		converted = ConvertData(data, _width, _height, format, _parameter.format);
+		ConvertFormat(_parameter.format, _isLinear, &glFormat, &glInternalFormat, &glType);
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		
-		if(_type == Type2D)
-			glTexSubImage2D(_gltype, 0, 0, 0, _width, _height, glFormat, glType, converted);
-		else if(_type == Type2DArray)
-			glTexSubImage3D(_gltype, 0, 0, 0, 0, _width, _height, _depth, glFormat, glType, converted);
+		switch(_glType)
+		{
+			case GL_TEXTURE_2D:
+				glTexSubImage2D(_glType, 0, 0, 0, _width, _height, glFormat, glType, converted);
+				break;
+				
+			case GL_TEXTURE_2D_ARRAY:
+			case GL_TEXTURE_3D:
+				glTexSubImage3D(_glType, 0, 0, 0, 0, _width, _height, _depth, glFormat, glType, converted);
+				break;
+		}
 		
 		RN_CHECKOPENGL();
 		
 		_hasChanged = true;
 		
-		UpdateMipmaps();		
+		UpdateMipmaps();
 		Unbind();
 		
 		if(converted != data)
 			free(converted);
 	}
 	
-	void Texture::UpdateRegion(const void *data, Format format, Rect region)
+	void Texture::UpdateRegion(const void *data, const Rect& region, TextureParameter::Format format)
 	{
 		if(!_isCompleteTexture)
 			return; // TODO: Throw an exception
-		
-		if(_type != Type2D)
-			return;
 		
 		GLenum glType, glFormat;
 		GLint glInternalFormat;
@@ -338,11 +337,17 @@ namespace RN
 		
 		Bind();
 		
-		converted = ConvertData(data, region.width, region.height, format, _format);
-		ConvertFormat(_format, _isLinear, &glFormat, &glInternalFormat, &glType);
+		converted = ConvertData(data, region.width, region.height, format, _parameter.format);
+		ConvertFormat(_parameter.format, _isLinear, &glFormat, &glInternalFormat, &glType);
 		
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, region.x, region.y, region.width, region.height, glFormat, glType, converted);
+		
+		switch(_glType)
+		{
+			case GL_TEXTURE_2D:
+				glTexSubImage2D(_glType, 0, region.x, region.y, region.width, region.height, glFormat, glType, converted);;
+				break;
+		}
 		
 		RN_CHECKOPENGL();
 		
@@ -357,132 +362,132 @@ namespace RN
 	
 	void Texture::UpdateMipmaps()
 	{
-		if(!_generateMipmaps || !_isCompleteTexture)
+		if(!_isCompleteTexture || !_parameter.generateMipMaps)
 			return;
 		
 		Bind();
 		
-		glGenerateMipmap(_gltype);
-		
+		glGenerateMipmap(_glType);
 		_hasChanged = true;
+		
 		Unbind();
 	}
 	
 #ifndef GL_SRGB8_ALPHA8
-	#define GL_SRGB8_ALPHA8 GL_RGBA
-	#define GL_SRGB8        GL_RGB
-		
-	#define RN_ADDED_GL_SRGB
+#define GL_SRGB8_ALPHA8 GL_RGBA
+#define GL_SRGB8        GL_RGB
+	
+#define RN_ADDED_GL_SRGB
 #endif
 	
-	void Texture::ConvertFormat(Format format, bool isLinear, GLenum *glFormat, GLint *glInternalFormat, GLenum *glType)
+	void Texture::ConvertFormat(TextureParameter::Format format, bool isLinear, GLenum *glFormat, GLint *glInternalFormat, GLenum *glType)
 	{
 		RN_ASSERT0(glFormat != 0 && glInternalFormat != 0 && glType != 0);
 		
 		switch(format)
 		{
-			// Integer formats
-			case FormatRGBA8888:
+				// Integer formats
+			case TextureParameter::Format::RGBA8888:
 				*glFormat = GL_RGBA;
 				*glInternalFormat = isLinear ? GL_RGBA : GL_SRGB8_ALPHA8;
 				*glType   = GL_UNSIGNED_BYTE;
 				break;
 				
-			case FormatRGBA4444:
+			case TextureParameter::Format::RGBA4444:
 				*glFormat = GL_RGBA;
 				*glInternalFormat = isLinear ? GL_RGBA : GL_SRGB8_ALPHA8;
 				*glType   = GL_UNSIGNED_SHORT_4_4_4_4;
 				break;
 				
-			case FormatRGBA5551:
+			case TextureParameter::Format::RGBA5551:
 				*glFormat = GL_RGBA;
 				*glInternalFormat = isLinear ? GL_RGBA : GL_SRGB8_ALPHA8;
 				*glType   = GL_UNSIGNED_SHORT_5_5_5_1;
 				break;
 				
-			case FormatRGB565:
+			case TextureParameter::Format::RGB565:
 				*glFormat = GL_RGB;
 				*glInternalFormat = isLinear ? GL_RGB : GL_SRGB8;
 				*glType   = GL_UNSIGNED_SHORT_5_6_5;
 				break;
 				
 #if RN_TARGET_OPENGL
-			case FormatR8:
+			case TextureParameter::Format::R8:
 				*glFormat = GL_RED;
 				*glInternalFormat = GL_RED;
 				*glType = GL_UNSIGNED_BYTE;
 				break;
 				
-			case FormatRG88:
+			case TextureParameter::Format::RG88:
 				*glFormat = GL_RG;
 				*glInternalFormat = GL_RGB;
 				*glType = GL_UNSIGNED_BYTE;
 				break;
 #endif
 				
-			case FormatRGB888:
+			case TextureParameter::Format::RGB888:
 				*glFormat = GL_RGB;
 				*glInternalFormat = isLinear ? GL_RGB : GL_SRGB8;
 				*glType = GL_UNSIGNED_BYTE;
 				break;
 				
-			// Floating point formats
-			case FormatRGBA32F:
+				// Floating point formats
+			case TextureParameter::Format::RGBA32F:
 				*glFormat = GL_RGBA;
 				*glInternalFormat = GL_RGBA32F;
 				*glType = GL_FLOAT;
 				break;
 				
-			case FormatR32F:
+			case TextureParameter::Format::R32F:
 				*glFormat = GL_RED;
 				*glInternalFormat = GL_R32F;
 				*glType = GL_FLOAT;
 				break;
 				
-			case FormatRG32F:
+			case TextureParameter::Format::RG32F:
 				*glFormat = GL_RG;
 				*glInternalFormat = GL_RG32F;
 				*glType = GL_FLOAT;
 				break;
 				
-			case FormatRGB32F:
+			case TextureParameter::Format::RGB32F:
 				*glFormat = GL_RGB;
 				*glInternalFormat = GL_RGB32F;
 				*glType = GL_FLOAT;
 				break;
 				
-			// Half floats
-			case FormatRGBA16F:
+				// Half floats
+			case TextureParameter::Format::RGBA16F:
 				*glFormat = GL_RGBA;
 				*glInternalFormat = GL_RGBA16F;
 				*glType = GL_HALF_FLOAT;
 				break;
 				
-			case FormatR16F:
+			case TextureParameter::Format::R16F:
 				*glFormat = GL_RED;
 				*glInternalFormat = GL_R16F;
 				*glType = GL_HALF_FLOAT;
 				break;
 				
-			case FormatRG16F:
+			case TextureParameter::Format::RG16F:
 				*glFormat = GL_RG;
 				*glInternalFormat = GL_RG16F;
 				*glType = GL_HALF_FLOAT;
 				break;
 				
-			case FormatRGB16F:
+			case TextureParameter::Format::RGB16F:
 				*glFormat = GL_RGB;
 				*glInternalFormat = GL_RGB16F;
 				*glType = GL_HALF_FLOAT;
 				break;
 				
-			case FormatDepth:
+			case TextureParameter::Format::Depth:
 				*glFormat = GL_DEPTH_COMPONENT;
 				*glInternalFormat = GL_DEPTH_COMPONENT24;
 				*glType = GL_UNSIGNED_BYTE;
 				break;
 				
-			case FormatDepthStencil:
+			case TextureParameter::Format::DepthStencil:
 				*glFormat = GL_DEPTH_STENCIL;
 				*glInternalFormat = GL_DEPTH24_STENCIL8;
 				*glType = GL_UNSIGNED_INT_24_8;
@@ -495,18 +500,18 @@ namespace RN
 	}
 	
 #ifdef RN_ADDED_GL_SRGB
-	#undef GL_SRGB8_ALPHA8
-	#undef GL_SRGB8
-	#undef RN_ADDED_GL_SRGB
+#undef GL_SRGB8_ALPHA8
+#undef GL_SRGB8
+#undef RN_ADDED_GL_SRGB
 #endif
 	
-	RN_INLINE uint8 *ReadPixel(uint8 *data, Texture::Format format, uint32 *r, uint32 *g, uint32 *b, uint32 *a)
+	RN_INLINE uint8 *ReadPixel(uint8 *data, TextureParameter::Format format, uint32 *r, uint32 *g, uint32 *b, uint32 *a)
 	{
 		RN_ASSERT0(r && g && b && a);
 		
 		switch(format)
 		{
-			case Texture::FormatRGBA8888:
+			case TextureParameter::Format::RGBA8888:
 			{
 				uint32 *pixel = (uint32 *)data;
 				
@@ -519,7 +524,7 @@ namespace RN
 				break;
 			}
 				
-			case Texture::FormatRGBA4444:
+			case TextureParameter::Format::RGBA4444:
 			{
 				uint16 *pixel = (uint16 *)data;
 				
@@ -532,7 +537,7 @@ namespace RN
 				break;
 			}
 				
-			case Texture::FormatRGBA5551:
+			case TextureParameter::Format::RGBA5551:
 			{
 				uint16 *pixel = (uint16 *)data;
 				
@@ -545,7 +550,7 @@ namespace RN
 				break;
 			}
 				
-			case Texture::FormatRGB565:
+			case TextureParameter::Format::RGB565:
 			{
 				uint16 *pixel = (uint16 *)data;
 				
@@ -558,7 +563,7 @@ namespace RN
 				break;
 			}
 				
-			case Texture::FormatR8:
+			case TextureParameter::Format::R8:
 			{
 				*r = *data;
 				*g = *b = 0;
@@ -568,7 +573,7 @@ namespace RN
 				break;
 			}
 				
-			case Texture::FormatRG88:
+			case TextureParameter::Format::RG88:
 			{
 				uint16 *pixel = (uint16 *)data;
 				
@@ -581,7 +586,7 @@ namespace RN
 				break;
 			}
 				
-			case Texture::FormatRGB888:
+			case TextureParameter::Format::RGB888:
 			{
 				uint16 *pixelRG = (uint16 *)data;
 				uint8 *pixelB = (uint8 *)(pixelRG + 1);
@@ -603,7 +608,7 @@ namespace RN
 		return data;
 	}
 	
-	void *Texture::ConvertData(const void *data, uint32 width, uint32 height, Format current, Format target)
+	void *Texture::ConvertData(const void *data, uint32 width, uint32 height, TextureParameter::Format current, TextureParameter::Format target)
 	{
 		if(current == target)
 			return (void *)data;
@@ -611,14 +616,14 @@ namespace RN
 		RN_ASSERT0(data && width > 0 && height > 0);
 		
 		size_t pixel = width * height;
-	
+		
 		uint8 *temp = (uint8 *)data;
 		void  *result = 0;
 		
 		// Convert data to the specified target format
 		switch(target)
 		{
-			case FormatRGBA8888:
+			case TextureParameter::Format::RGBA8888:
 			{
 				result = malloc(pixel * sizeof(uint32));
 				
@@ -634,7 +639,7 @@ namespace RN
 				break;
 			}
 				
-			case FormatRGBA4444:
+			case TextureParameter::Format::RGBA4444:
 			{
 				result = malloc(pixel * sizeof(uint16));
 				
@@ -655,7 +660,7 @@ namespace RN
 				break;
 			}
 				
-			case FormatRGBA5551:
+			case TextureParameter::Format::RGBA5551:
 			{
 				result = malloc(pixel * sizeof(uint16));
 				
@@ -676,7 +681,7 @@ namespace RN
 				break;
 			}
 				
-			case FormatRGB565:
+			case TextureParameter::Format::RGB565:
 			{
 				result = malloc(pixel * sizeof(uint16));
 				
@@ -696,7 +701,7 @@ namespace RN
 				break;
 			}
 				
-			case FormatR8:
+			case TextureParameter::Format::R8:
 			{
 				result = malloc(pixel * sizeof(uint8));
 				
@@ -712,7 +717,7 @@ namespace RN
 				break;
 			}
 				
-			case FormatRG88:
+			case TextureParameter::Format::RG88:
 			{
 				result = malloc(pixel * sizeof(uint16));
 				
@@ -728,7 +733,7 @@ namespace RN
 				break;
 			}
 				
-			case FormatRGB888:
+			case TextureParameter::Format::RGB888:
 			{
 				result = malloc(pixel * (sizeof(uint8) * 3));
 				
@@ -755,7 +760,7 @@ namespace RN
 	}
 	
 	
-	bool Texture::PlatformSupportsFormat(Format format)
+	bool Texture::PlatformSupportsFormat(TextureParameter::Format format)
 	{
 		try
 		{
@@ -788,27 +793,5 @@ namespace RN
 	void Texture::SetDefaultAnisotropyLevel(uint32 level)
 	{
 		_defaultAnisotropy = level;
-	}
-	
-	void Texture::UpdateType()
-	{
-		switch (_type)
-		{
-			case Type2D:
-				_gltype = GL_TEXTURE_2D;
-				break;
-				
-			case Type2DArray:
-				_gltype = GL_TEXTURE_2D_ARRAY;
-				break;
-				
-			case Type3D:
-				_gltype = GL_TEXTURE_3D;
-				break;
-				
-			default:
-				_gltype = GL_TEXTURE_2D;
-				break;
-		}
 	}
 }

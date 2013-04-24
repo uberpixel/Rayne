@@ -51,14 +51,10 @@ namespace RN
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 
 		_cglContext = (CGLContextObj)[(NSOpenGLContext *)_oglContext CGLContextObj];
+		CGLEnable((CGLContextObj)_cglContext, kCGLCEMPEngine);
 		
 		if(_shared)
 		{
-			// Enable the multithreaded OpenGL Engine
-
-			CGLEnable((CGLContextObj)_shared->_cglContext, kCGLCEMPEngine);
-			CGLEnable((CGLContextObj)_cglContext, kCGLCEMPEngine);
-
 			if(_shared->_active && shared->_thread->OnThread())
 			{
 				_shared->Deactivate();

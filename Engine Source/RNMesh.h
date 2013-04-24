@@ -14,6 +14,8 @@
 #include "RNArray.h"
 #include "RNVector.h"
 #include "RNColor.h"
+#include "RNAABB.h"
+#include "RNSphere.h"
 
 namespace RN
 {
@@ -67,13 +69,22 @@ namespace RN
 		template <typename T>
 		T *MutableData(MeshFeature feature)
 		{
-			return static_cast<T *>(FetchDataForFeature(feature));
+			return reinterpret_cast<T *>(FetchDataForFeature(feature));
 		}
 		
 		template <typename T>
 		const T *Data(MeshFeature feature)
 		{
-			return static_cast<const T *>(FetchConstDataForFeature(feature));
+			return reinterpret_cast<const T *>(FetchConstDataForFeature(feature));
+		}
+		
+		template <typename T>
+		T *MeshData()
+		{
+			if(!_meshData)
+				_meshData = static_cast<uint8 *>(Memory::AllocateSIMD(_meshSize));
+			
+			return reinterpret_cast<T *>(_meshData);
 		}
 		
 		MeshDescriptor *Descriptor(MeshFeature feature)
@@ -81,6 +92,11 @@ namespace RN
 			return &_descriptor[(int32)feature];
 		}
 		
+		RNAPI void UpdateMesh();
+		
+		RNAPI void SetMode(GLenum mode);
+		RNAPI void SetVBOUsage(GLenum usage);
+		RNAPI void SetIBOUsage(GLenum usage);
 		
 		RNAPI void CalculateBoundingBox();
 		RNAPI void ReleaseData(MeshFeature feature);
@@ -91,9 +107,10 @@ namespace RN
 		
 		GLuint VBO() const { return _vbo; }
 		GLuint IBO() const { return _ibo; }
+		GLenum Mode() const { return _mode; }
 		
-		const Vector3& Min() const { return _min; }
-		const Vector3& Max() const { return _max; }
+		const AABB& BoundingBox() const { return _boundingBox; }
+		const Sphere& BoundingSphere() const { return _boundingSphere; }
 		
 		RNAPI static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0, 1.0, 1.0), const Vector3& rotation = Vector3(0.0f, 0.0f, 0.0f));
 		RNAPI static Mesh *CubeMesh(const Vector3& size);
@@ -117,11 +134,15 @@ namespace RN
 		size_t _meshSize;
 		size_t _indicesSize;
 		
-		Vector3 _min;
-		Vector3 _max;
+		GLenum _vboUsage;
+		GLenum _iboUsage;
+		GLenum _mode;
 		
-		void *_meshData;
-		void *_indices;
+		AABB _boundingBox;
+		Sphere _boundingSphere;
+		
+		uint8 *_meshData;
+		uint8 *_indices;
 		MeshDescriptor _descriptor[__kMaxMeshFeatures];
 		
 		RNDefineConstructorlessMeta(Mesh, Object)

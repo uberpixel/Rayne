@@ -48,6 +48,5 @@ namespace RN
 		
 		fflush(stderr);
 		abort();
-	}
-		
+	}		
 }

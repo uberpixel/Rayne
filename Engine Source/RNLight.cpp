@@ -17,12 +17,16 @@ namespace RN
 	Light::Light(Type lighttype) :
 		_lightType(lighttype)
 	{
-		_color = Vector3(1.0f, 1.0f, 1.0f);
+		_color = RN::Color(1.0f, 1.0f, 1.0f);
 		_range = 1.0f;
 		_angle = 0.5f;
+		_intensity = 1.0f;
+
 		_shadow = false;
 		_shadowcam = 0;
 		_lightcam = 0;
+
+		ReCalculateColor();
 	}
 	
 	Light::~Light()
@@ -30,21 +34,35 @@ namespace RN
 	
 	bool Light::IsVisibleInCamera(Camera *camera)
 	{
-		if(TypeDirectionalLight)
+		if(_lightType == TypeDirectionalLight)
 			return true;
 		
-		return camera->InFrustum(Position(), _range);
+		return SceneNode::IsVisibleInCamera(camera);
 	}
 	
+	void Light::Render(Renderer *renderer, Camera *camera)
+	{
+		renderer->RenderLight(this);
+	}
 	
 	void Light::SetRange(float range)
 	{
 		_range = range;
+		
+		SetBoundingSphere(Sphere(Vector3(), range));
+		SetBoundingBox(AABB(Vector3(), range));
 	}
 	
-	void Light::SetColor(const Vector3& color)
+	void Light::SetColor(const class Color& color)
 	{
 		_color = color;
+		ReCalculateColor();
+	}
+	
+	void Light::SetIntensity(float intensity)
+	{
+		_intensity = intensity;
+		ReCalculateColor();
 	}
 	
 	void Light::SetAngle(float angle)
@@ -66,12 +84,16 @@ namespace RN
 			_shadowSplits = splits;
 			_shadowDistFac = distfac;
 			
-			Texture *depthtex = new Texture(Texture::FormatDepth, Texture::WrapModeRepeat, Texture::FilterLinear, false, Texture::Type2DArray);
+			TextureParameter parameter;
+			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+			parameter.filter = TextureParameter::Filter::Linear;
+			parameter.format = TextureParameter::Format::Depth;
+			parameter.type = TextureParameter::Type::Texture2DArray;
+			parameter.depthCompare = true;
+			parameter.generateMipMaps = false;
+			
+			Texture *depthtex = new Texture(parameter);
 			depthtex->SetDepth(splits);
-			depthtex->SetDepthCompare(true);
-			depthtex->SetWrappingMode(Texture::WrapModeClamp);
-			depthtex->SetFilter(Texture::FilterLinear);
-			depthtex->SetGeneratesMipmaps(false);
 			
 			RenderStorage *storage;
 			
@@ -96,7 +118,6 @@ namespace RN
 				_shadowcam->SetMaterial(depthMaterial);
 				_shadowcam->SetUseInstancing(false);
 				_shadowcam->SetLODCamera(_lightcam);
-				_shadowcam->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
 				_shadowcam->clipfar = 1000.0f;
 				_shadowcam->clipnear = 1.0f;
 			}
@@ -120,7 +141,6 @@ namespace RN
 					tempcam->SetMaterial(depthMaterial);
 					tempcam->SetUseInstancing(true);
 					tempcam->SetLODCamera(_lightcam);
-					tempcam->override = RN::Camera::OverrideAll & ~(RN::Camera::OverrideDiscard | RN::Camera::OverrideDiscardThreshold | RN::Camera::OverrideTextures);
 					tempcam->clipfar = 1000.0f;
 					tempcam->clipnear = 1.0f;
 	
@@ -132,7 +152,8 @@ namespace RN
 	
 	void Light::Update(float delta)
 	{
-		Transform::Update(delta);
+		SceneNode::Update(delta);
+		
 		if(_shadow)
 		{
 			float near = _lightcam->clipnear;
@@ -168,5 +189,11 @@ namespace RN
 				_shadowcam->MakeShadowSplit(_lightcam, this, _lightcam->clipnear, _lightcam->clipfar);
 			}
 		}
+	}
+
+	void Light::ReCalculateColor()
+	{
+		_resultColor = Vector3(_color.r, _color.g, _color.b);
+		_resultColor *= _intensity;
 	}
 }

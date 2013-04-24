@@ -11,7 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNTransform.h"
+#include "RNSceneNode.h"
 #include "RNCamera.h"
 
 namespace RN
@@ -19,14 +19,13 @@ namespace RN
 	class WorldAttachment : public Object
 	{
 	public:
-		RNAPI virtual void UpdateTransform(Transform *transform, float delta);
 		RNAPI virtual void StepWorld(float delta);
-		RNAPI virtual void TransformsUpdated();
+		RNAPI virtual void SceneNodesUpdated();
 		RNAPI virtual void BeginCamera(Camera *camera);
 		RNAPI virtual void WillFinishCamera(Camera *camera);
 		
-		RNAPI virtual void DidAddTransform(Transform *transform);
-		RNAPI virtual void WillRemoveTransform(Transform *transform);
+		RNAPI virtual void DidAddSceneNode(SceneNode *node);
+		RNAPI virtual void WillRemoveSceneNode(SceneNode *node);
 		
 		RNDefineConstructorlessMeta(WorldAttachment, Object)
 	};

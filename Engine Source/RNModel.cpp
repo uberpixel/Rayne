@@ -10,6 +10,7 @@
 #include "RNFile.h"
 #include "RNPathManager.h"
 #include "RNSkeleton.h"
+#include "RNResourcePool.h"
 
 namespace RN
 {
@@ -57,6 +58,8 @@ namespace RN
 				break;
 			}
 		}
+		
+		CalculateBoundingBox();
 	}
 	
 	Model::Model(Mesh *mesh, Material *material, const std::string& name)
@@ -105,7 +108,7 @@ namespace RN
 		static Shader *shader = 0;
 		if(!shader)
 		{
-			shader = new Shader("shader/rn_Texture1");
+			shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyTexture1Shader);
 		}
 		
 		return shader->Retain();
@@ -170,10 +173,28 @@ namespace RN
 			
 		MeshGroup *group = new MeshGroup(mesh, material, name);
 		_groups[lodStage]->groups.push_back(group);
+		
+		if(lodStage == 0)
+		{
+			_boundingBox += mesh->BoundingBox();
+			_boundingSphere = Sphere(_boundingBox);
+		}
 	}
 	
 	void Model::RemoveMesh(Mesh *mesh, uint32 lodStage)
 	{
+	}
+	
+	void Model::CalculateBoundingBox()
+	{
+		_boundingBox = AABB();
+		
+		for(MeshGroup *group : _groups[0]->groups)
+		{
+			_boundingBox += group->mesh->BoundingBox();
+		}
+		
+		_boundingSphere = Sphere(_boundingBox);
 	}
 	
 	
@@ -216,33 +237,38 @@ namespace RN
 	{
 		Shader *matShader = Shader::WithFile(shader);
 		
+		TextureParameter parameter;
+		parameter.format = TextureParameter::Format::RGB888;
+		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+		
+		
 		Material *skyDownMaterial = new Material(matShader);
-		skyDownMaterial->AddTexture(Texture::WithFile(down, Texture::FormatRGB888, Texture::WrapModeClamp));
+		skyDownMaterial->AddTexture(Texture::WithFile(down, parameter));
 		skyDownMaterial->depthwrite = false;
 		Mesh  *skyDownMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f));
 		
 		Material *skyUpMaterial = new Material(matShader);
-		skyUpMaterial->AddTexture(Texture::WithFile(up, Texture::FormatRGB888, Texture::WrapModeClamp));
+		skyUpMaterial->AddTexture(Texture::WithFile(up, parameter));
 		skyUpMaterial->depthwrite = false;
 		Mesh  *skyUpMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 180.0f, 0.0f));
 		
 		Material *skyLeftMaterial = new Material(matShader);
-		skyLeftMaterial->AddTexture(Texture::WithFile(left, Texture::FormatRGB888, Texture::WrapModeClamp));
+		skyLeftMaterial->AddTexture(Texture::WithFile(left, parameter));
 		skyLeftMaterial->depthwrite = false;
 		Mesh  *skyLeftMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(-90.0f, 0.0f, 90.0f));
 		
 		Material *skyRightMaterial = new Material(matShader);
-		skyRightMaterial->AddTexture(Texture::WithFile(right, Texture::FormatRGB888, Texture::WrapModeClamp));
+		skyRightMaterial->AddTexture(Texture::WithFile(right, parameter));
 		skyRightMaterial->depthwrite = false;
 		Mesh  *skyRightMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(90.0f, 0.0f, 90.0f));
 		
 		Material *skyFrontMaterial = new Material(matShader);
-		skyFrontMaterial->AddTexture(Texture::WithFile(front, Texture::FormatRGB888, Texture::WrapModeClamp));
+		skyFrontMaterial->AddTexture(Texture::WithFile(front, parameter));
 		skyFrontMaterial->depthwrite = false;
 		Mesh  *skyFrontMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(180.0f, 0.0f, 90.0f));
 		
 		Material *skyBackMaterial = new Material(matShader);
-		skyBackMaterial->AddTexture(Texture::WithFile(back, Texture::FormatRGB888, Texture::WrapModeClamp));
+		skyBackMaterial->AddTexture(Texture::WithFile(back, parameter));
 		skyBackMaterial->depthwrite = false;
 		Mesh  *skyBackMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 0.0f, 90.0f));
 		
@@ -263,9 +289,12 @@ namespace RN
 	{
 		//Get materials
 		uint8 countmats = file->ReadUint8();
-		Shader *shader = new Shader("shader/rn_Texture1");
+		Shader *shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyTexture1Shader);
 		
 		std::vector<Material *> materials;
+		
+		TextureParameter parameter;
+		parameter.format = TextureParameter::Format::RGB888;
 		
 		for(uint8 i=0; i<countmats; i++)
 		{
@@ -279,7 +308,7 @@ namespace RN
 				file->ReadIntoString(textureFile, file->ReadUint16());
 				
 				std::string path = file->Path();
-				Texture *texture = new Texture(PathManager::Join(path, textureFile), Texture::FormatRGBA8888);
+				Texture *texture = new Texture(PathManager::Join(path, textureFile), parameter);
 				material->AddTexture(texture);
 				texture->Release();
 			}

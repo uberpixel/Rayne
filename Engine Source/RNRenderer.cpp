@@ -244,8 +244,8 @@ namespace RN
 	}
 	
 #define Distance(plane, op, r) { \
-	float dot = (position.x * plane._normal.x + position.y * plane._normal.y + position.z * plane._normal.z);\
-	float distance = dot - plane._d; \
+	float dot = (position.x * plane.normal.x + position.y * plane.normal.y + position.z * plane.normal.z);\
+	float distance = dot - plane.d; \
 	if(distance op r) \
 		continue; \
 	}
@@ -423,7 +423,7 @@ namespace RN
 			{
 				Light *light = lights[i];
 				const Vector3& position = light->WorldPosition();
-				const Vector3& color = light->Color();
+				const Vector3& color = light->ResultColor();
 				
 				lightData[i * 2 + 0] = Vector4(position, light->Range());
 				lightData[i * 2 + 1] = Vector4(color, 0.0f);
@@ -475,8 +475,8 @@ namespace RN
 			for(machine_uint i=0; i<lightCount; i++)
 			{
 				Light *light = lights[i];
-				const Vector3& position = light->WorldPosition();
-				const Vector3& color = light->Color();
+				const Vector3& position  = light->WorldPosition();
+				const Vector3& color     = light->ResultColor();
 				const Vector3& direction = light->Forward();
 				
 				lightData[i * 3 + 0] = Vector4(position, light->Range());
@@ -506,7 +506,7 @@ namespace RN
 		for(machine_uint i=0; i<lightCount; i++)
 		{
 			Light *light = lights[i];
-			const Vector3& color = light->Color();
+			const Vector3& color = light->ResultColor();
 			const Vector3& direction = light->Forward();
 			
 			_lightDirectionalDirection.AddObject(direction);
@@ -550,13 +550,18 @@ namespace RN
 		if(iterator == _autoVAOs.end())
 		{
 			ShaderProgram *shader = std::get<0>(tuple);
-			Mesh          *mesh  = std::get<1>(tuple);
+			Mesh *mesh = std::get<1>(tuple);
 			
 			gl::GenVertexArrays(1, &vao);
 			gl::BindVertexArray(vao);
 			
 			glBindBuffer(GL_ARRAY_BUFFER, mesh->VBO());
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mesh->IBO());
+			
+			if(mesh->SupportsFeature(kMeshFeatureIndices))
+			{
+				GLuint ibo = mesh->IBO();
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+			}
 			
 			// Vertices
 			if(shader->vertPosition != -1 && mesh->SupportsFeature(kMeshFeatureVertices))
@@ -650,6 +655,7 @@ namespace RN
 			
 			_autoVAOs[tuple] = std::tuple<GLuint, uint32>(vao, 0);
 			_currentVAO = vao;
+			
 			return;
 		}
 		
@@ -674,7 +680,7 @@ namespace RN
 		{
 			_textureUnit = 0;
 			
-			Array<Texture> *textures = (_currentCamera->override & Camera::OverrideTextures) ? surfaceMaterial->Textures() : material->Textures();
+			Array<Texture> *textures = (material->override & Material::OverrideTextures) ? material->Textures() : surfaceMaterial->Textures();
 			Array<GLuint> *textureLocations = &program->texlocations;
 			
 			if(textureLocations->Count() > 0)
@@ -691,10 +697,10 @@ namespace RN
 			}
 		}
 
-#define PickAttribute(override, attribute) (_currentCamera->override & Camera::override) ? surfaceMaterial->attribute : material->attribute
+#define PickAttribute(override, attribute) (material->override & Material::override) ? material->attribute : surfaceMaterial->attribute
 		
 		SetCullingEnabled(PickAttribute(OverrideCulling, culling));
-		SetCullMode(PickAttribute(OVerrideCullmode, cullmode));
+		SetCullMode(PickAttribute(OverrideCullmode, cullmode));
 
 		SetDepthTestEnabled(PickAttribute(OverrideDepthtest, depthtest));
 		SetDepthFunction(PickAttribute(OverrideDepthtestMode, depthtestmode));
@@ -702,22 +708,14 @@ namespace RN
 		SetPolygonOffsetEnabled(PickAttribute(OverridePolygonOffset, polygonOffset));
 		SetPolygonOffset(PickAttribute(OverridePolygonOffset, polygonOffsetFactor), PickAttribute(OverridePolygonOffset, polygonOffsetUnits));
 		
-		if(_currentCamera->override & Camera::OverrideBlendmode)
-		{
-			SetDepthWriteEnabled((surfaceMaterial->depthwrite && _currentCamera->AllowsDepthWrite()));
-		}
-		else
+		if(material->override & Material::OverrideDepthwrite)
 		{
 			SetDepthWriteEnabled((material->depthwrite && _currentCamera->AllowsDepthWrite()));
 		}
 		
 		SetBlendingEnabled(PickAttribute(OverrideBlending, blending));
 		
-		if(_currentCamera->override & Camera::OverrideBlendmode)
-		{
-			SetBlendFunction(surfaceMaterial->blendSource, surfaceMaterial->blendDestination);
-		}
-		else
+		if(material->override & Material::OverrideBlendmode)
 		{
 			SetBlendFunction(material->blendSource, material->blendDestination);
 		}
@@ -785,6 +783,8 @@ namespace RN
 		_textureUnit = 0;
 		
 		SetDepthTestEnabled(false);
+		SetBlendingEnabled(false);
+		SetCullMode(GL_CCW);
 		
 		if(_currentVAO != _copyVAO)
 		{
@@ -828,6 +828,10 @@ namespace RN
 		
 		_currentCamera = stage;
 		_textureUnit = 0;
+		
+		SetDepthTestEnabled(false);
+		SetBlendingEnabled(false);
+		SetCullMode(GL_CCW);
 		
 		if(_currentVAO != _copyVAO)
 		{
@@ -992,8 +996,6 @@ namespace RN
 				int lightSpotCount  = CreateSpotLightList(camera);
 				int lightDirectionalCount = CreateDirectionalLightList(camera);
 				
-				int lightCount = lightPointCount + lightSpotCount + lightDirectionalCount;
-				
 				// Update the shader
 				const Matrix& projectionMatrix = camera->projectionMatrix;
 				const Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix;
@@ -1061,7 +1063,7 @@ namespace RN
 					ShaderProgram *program = 0;
 					
 					bool wantsDiscard = material->discard;
-					if(surfaceMaterial && _currentCamera->override & Camera::OverrideDiscard)
+					if(surfaceMaterial && !(material->override & Material::OverrideDiscard))
 					{
 						wantsDiscard = surfaceMaterial->discard;
 					}
@@ -1069,7 +1071,7 @@ namespace RN
 					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
 						programTypes |= ShaderProgram::TypeAnimated;
 					
-					if(lightCount > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
+					if(material->lighting && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
 						programTypes |= ShaderProgram::TypeLighting;
 					
 					if(canDrawInstanced)
@@ -1175,9 +1177,9 @@ namespace RN
 						
 						if(program->discardThreshold != -1)
 						{
-							float threshold = _currentMaterial->discardThreshold;
+							float threshold = material->discardThreshold;
 							
-							if(surfaceMaterial && _currentCamera->override & Camera::OverrideDiscardThreshold)
+							if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
 								threshold = surfaceMaterial->discardThreshold;
 							
 							glUniform1f(program->discardThreshold, threshold);
@@ -1227,7 +1229,7 @@ namespace RN
 						glUniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
 					}
 					
-					DrawMesh(mesh);
+					DrawMesh(mesh, object.offset, object.count);
 				}
 			}
 			else
@@ -1254,13 +1256,26 @@ namespace RN
 		_directionalLights.RemoveAllObjects();
 	}
 	
-	void Renderer::DrawMesh(Mesh *mesh)
+	void Renderer::DrawMesh(Mesh *mesh, uint32 offset, uint32 count)
 	{
-		MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureIndices);
+		bool usesIndices = mesh->SupportsFeature(kMeshFeatureIndices);
+		MeshDescriptor *descriptor = usesIndices ? mesh->Descriptor(kMeshFeatureIndices) : mesh->Descriptor(kMeshFeatureVertices);
+		
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
 		
-		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
-		glDrawElements(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0);
+		GLsizei glCount = static_cast<GLsizei>(descriptor->elementCount);
+		if(count != 0)
+			glCount = MIN(glCount, count);
+		
+		if(usesIndices)
+		{
+			GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+			glDrawElements(mesh->Mode(), glCount, type, (void *)offset);
+		}
+		else
+		{
+			glDrawArrays(mesh->Mode(), 0, glCount);
+		}
 	}
 	
 	void Renderer::DrawMeshInstanced(machine_uint start, machine_uint count)
@@ -1306,8 +1321,16 @@ namespace RN
 		_instancingVBOSize = offset * sizeof(Matrix);
 		glBufferData(GL_ARRAY_BUFFER, _instancingVBOSize, instancingMatrices, GL_DYNAMIC_DRAW);
 	
-		GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
-		gl::DrawElementsInstanced(GL_TRIANGLES, (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
+		if(descriptor)
+		{
+			GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+			glDrawElementsInstanced(mesh->Mode(), (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
+		}
+		else
+		{
+			descriptor = mesh->Descriptor(kMeshFeatureVertices);
+			glDrawArraysInstanced(mesh->Mode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)count);
+		}
 		
 		DisableAttribute(imatModel);
 		DisableAttribute(imatModelInverse);

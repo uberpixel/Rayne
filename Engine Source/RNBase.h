@@ -56,9 +56,6 @@
 #if RN_PLATFORM_MAC_OS
 	#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED 1
 
-	#include <libkern/OSAtomic.h>
-	#include <tmmintrin.h>
-
 	#include <IOKit/IOKitLib.h>
 	#include <IOKit/IOCFPlugIn.h>
 
@@ -104,12 +101,12 @@
 #endif
 
 #include "RNOpenGL.h"
+#include "RNMath.h"
+#include "RNSIMD.h"
 
 // ---------------------------
 // Helper macros
 // ---------------------------
-#define kRNEpsilonFloat 0.001f
-
 typedef uint32 FrameID;
 typedef int8 ComparisonResult;
 
@@ -121,14 +118,6 @@ typedef int8 ComparisonResult;
 #define RN_EXTERN extern
 
 #define RN_NOT_FOUND ((machine_uint)-1)
-
-#ifndef MAX
-#define MAX(a, b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
-#endif
-
-#ifndef MIN
-#define MIN(a, b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _b : _a; })
-#endif
 
 namespace RN
 {

@@ -11,16 +11,16 @@
 
 #include "RNBase.h"
 #include "RNVector.h"
+#include "RNSIMD.h"
 
 namespace RN
 {
 	class Quaternion;
-	class Matrix
+	class alignas(16) Matrix
 	{
 	public:
 		RNAPI Matrix();
 
-		RNAPI Matrix& operator= (const Matrix& other);
 		RNAPI Matrix& operator*= (const Matrix& other);
 		RNAPI Matrix operator* (const Matrix& other) const;
 		RNAPI Vector3 operator* (const Vector3& other) const;
@@ -56,8 +56,19 @@ namespace RN
 		RNAPI Vector4 Transform(const Vector4& other) const;
 
 		RNAPI Matrix Inverse() const;
-
+	
+#if RN_SIMD
+		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
+		RN_INLINE void operator delete[](void *ptr) { if(ptr) Memory::FreeSIMD(ptr); }
+		
+		union
+		{
+			float m[16];
+			Vector4 vec[4];
+		};
+#else
 		float m[16];
+#endif
 	};
 
 	class Quaternion
@@ -132,10 +143,9 @@ namespace RN
 		};
 	};
 
-#ifndef __GNUG__
+
 	static_assert(std::is_trivially_copyable<Matrix>::value, "Matrix must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Quaternion>::value, "Quaternion must be trivially copyable");
-#endif
 }
 
 #endif /* __RAYNE_MATRIXQUATERNION_H__ */

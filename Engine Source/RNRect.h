@@ -31,6 +31,7 @@ namespace RN
 		RNAPI bool ContainsRect(const Rect& other) const;
 		
 		RNAPI void Inset(float dx, float dy);
+		RNAPI void Integral();
 		
 		RNAPI float Top() const;
 		RNAPI float Bottom() const;
@@ -134,6 +135,15 @@ namespace RN
 		
 		width  -= hx;
 		height -= hy;
+	}
+	
+	RN_INLINE void Rect::Integral()
+	{
+		x = roundf(x);
+		y = roundf(y);
+		
+		width  = roundf(width);
+		height = roundf(height);
 	}
 	
 	

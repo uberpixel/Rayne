@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#ifndef RN_LIGHTING_FSH
 #define RN_LIGHTING_FSH
 
 #include "rn_Shadow.fsh"
@@ -25,6 +26,7 @@ uniform vec3 lightDirectionalDirection[10];
 uniform vec3 lightDirectionalColor[10];
 
 uniform vec4 lightTileSize;
+
 in vec3 outLightNormal;
 in vec3 outLightPosition;
 
@@ -90,4 +92,5 @@ vec4 rn_Lighting()
 
 #define rn_Lighting() (vec4(1.0))
 
+#endif
 #endif

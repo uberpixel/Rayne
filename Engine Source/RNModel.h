@@ -14,6 +14,8 @@
 #include "RNMesh.h"
 #include "RNMaterial.h"
 #include "RNArray.h"
+#include "RNAABB.h"
+#include "RNSphere.h"
 
 namespace RN
 {
@@ -44,6 +46,9 @@ namespace RN
 		
 		Mesh *MeshAtIndex(uint32 lodStage, uint32 index) const;
 		Material *MaterialAtIndex(uint32 lodStage, uint32 index) const;
+		
+		const AABB& BoundingBox() const { return _boundingBox; }
+		const Sphere& BoundingSphere() const { return _boundingSphere; }
 		
 	private:
 		class MeshGroup
@@ -91,9 +96,13 @@ namespace RN
 		
 		void ReadFileAtPath(const std::string& path, LODGroup *group);
 		void ReadModelVersion1(File *file, LODGroup *group);
+		void CalculateBoundingBox();
 		
 		Shader *PickShaderForMaterialAndMesh(Material *material, Mesh *mesh);
 		Material *PickMaterialForMesh(Mesh *mesh);
+		
+		AABB _boundingBox;
+		Sphere _boundingSphere;
 		
 		std::vector<LODGroup *> _groups;
 		

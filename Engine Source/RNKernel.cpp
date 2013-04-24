@@ -15,6 +15,8 @@
 #include "RNSettings.h"
 #include "RNModule.h"
 #include "RNPathManager.h"
+#include "RNCPU.h"
+#include "RNResourcePool.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -25,22 +27,50 @@ RNApplicationEntryPointer __ApplicationEntry = 0;
 
 namespace RN
 {
+#if RN_PLATFORM_INTEL
+	namespace X86_64
+	{
+		extern void GetCPUInfo();
+	}
+#endif
+	
 	Kernel::Kernel()
 	{
 #if RN_PLATFORM_LINUX
 		XInitThreads();
 #endif
+		
+#if RN_PLATFORM_INTEL
+		X86_64::GetCPUInfo();
+		X86_64::Capabilities caps = X86_64::Caps();
+		
+		if(!(caps & X86_64::CAP_SSE) || !(caps & X86_64::CAP_SSE2))
+			throw ErrorException(kErrorGroupSystem, kSystemGroupGeneric, kSystemCPUUnsupported);
+#endif
 		_mainThread = new Thread();
 		
 		AutoreleasePool *pool = new AutoreleasePool();
 		Settings::SharedInstance();
+		ThreadCoordinator::SharedInstance();
 
 		_context = new class Context();
 		_context->MakeActiveContext();
 
 		ReadOpenGLExtensions();
-		ThreadCoordinator::SharedInstance();
+		ResourcePool::SharedInstance();
+		
+		ThreadPool *threadPool = ThreadCoordinator::SharedInstance()->GlobalPool();
+		
 		_scaleFactor = 1.0f;
+		_resourceBatch = threadPool->BeginTaskBatch();
+		
+		threadPool->AddTask([] {
+			AutoreleasePool *tpool = new AutoreleasePool();
+			ResourcePool::SharedInstance()->LoadDefaultResources();
+			delete tpool;
+		});
+		
+		threadPool->CommitTaskBatch();
 
 #if RN_PLATFORM_IOS
 		_scaleFactor = [[UIScreen mainScreen] scale];
@@ -133,6 +163,9 @@ namespace RN
 
 	void Kernel::Initialize()
 	{
+		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
+		pool->WaitForBatch(_resourceBatch);
+		
 		_app->Start();
 		_window->SetTitle(_app->Title());
 	}

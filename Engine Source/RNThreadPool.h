@@ -291,6 +291,10 @@ namespace RN
 		void Consumer()
 		{
 			Thread *thread = Thread::CurrentThread();
+			Context *context = new Context(Kernel::SharedInstance()->Context());
+			
+			context->MakeActiveContext();
+			
 			std::deque<Task> localQueue;
 			std::deque<Task> backfeed;
 			
@@ -377,6 +381,8 @@ namespace RN
 				if(task.batch)
 					task.batch->tasks --;
 			}
+			
+			context->Release();
 			
 			_resigned ++;
 			_tearDownCondition.notify_all();

@@ -49,7 +49,8 @@ namespace RN
 		void Initialize();
 		void LoadApplicationModule(const std::string& module);
 		void *_appHandle;
-
+		
+		uint32 _resourceBatch;
 		FrameID _frame;
 		float _scaleFactor;
 

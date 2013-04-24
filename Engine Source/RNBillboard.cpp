@@ -1,0 +1,127 @@
+//
+//  RNBillboard.cpp
+//  Rayne
+//
+//  Copyright 2013 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
+//
+
+#include "RNBillboard.h"
+#include "RNResourcePool.h"
+
+#define kRNBillboardMeshResourceName "kRNBillboardMeshResourceName"
+
+namespace RN
+{
+	Billboard::Billboard()
+	{
+		_mesh = 0;
+		_material = 0;
+		
+		Initialize();
+	}
+	
+	Billboard::~Billboard()
+	{
+		_mesh->Release();
+		_material->Release();
+	}
+	
+	
+	void Billboard::Initialize()
+	{
+		_material = new RN::Material();
+		_material->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyBillboardShader));
+		//_material->culling = true;
+		//_material->lighting = false;
+		
+		static std::once_flag onceFlag;
+		
+		std::call_once(onceFlag, []() {
+			MeshDescriptor vertexDescriptor;
+			vertexDescriptor.feature = kMeshFeatureVertices;
+			vertexDescriptor.elementMember = 2;
+			vertexDescriptor.elementSize   = sizeof(Vector2);
+			vertexDescriptor.elementCount  = 10;
+			
+			MeshDescriptor uvDescriptor;
+			uvDescriptor.feature = kMeshFeatureUVSet0;
+			uvDescriptor.elementMember = 2;
+			uvDescriptor.elementSize   = sizeof(Vector2);
+			uvDescriptor.elementCount  = 10;
+			
+			Array<MeshDescriptor> descriptors;
+			descriptors.AddObject(vertexDescriptor);
+			descriptors.AddObject(uvDescriptor);
+			
+			Mesh *mesh = new Mesh(descriptors);
+			mesh->SetMode(GL_TRIANGLE_STRIP);
+			
+			Vector2 *vertices = mesh->MutableData<Vector2>(kMeshFeatureVertices);
+			Vector2 *uvCoords = mesh->MutableData<Vector2>(kMeshFeatureUVSet0);
+			
+			*vertices ++ = Vector2(0.5f, 0.5f);
+			*vertices ++ = Vector2(-0.5f, 0.5f);
+			*vertices ++ = Vector2(0.5f, -0.5f);
+			*vertices ++ = Vector2(-0.5f, -0.5f);
+			
+			*vertices ++ = Vector2(-0.5f, -0.5f);
+			*vertices ++ = Vector2(-0.5f, 0.5f);
+			
+			*vertices ++ = Vector2(-0.5f, 0.5f);
+			*vertices ++ = Vector2(0.5f, 0.5f);
+			*vertices ++ = Vector2(-0.5f, -0.5f);
+			*vertices ++ = Vector2(0.5f, -0.5f);
+			
+			
+			*uvCoords ++ = Vector2(1.0f, 0.0f);
+			*uvCoords ++ = Vector2(0.0f, 0.0f);
+			*uvCoords ++ = Vector2(1.0f, 1.0f);
+			*uvCoords ++ = Vector2(0.0f, 1.0f);
+			
+			*uvCoords ++ = Vector2(0.0f, 1.0f);
+			*uvCoords ++ = Vector2(1.0f, 0.0f);
+			
+			*uvCoords ++ = Vector2(1.0f, 0.0f);
+			*uvCoords ++ = Vector2(0.0f, 0.0f);
+			*uvCoords ++ = Vector2(1.0f, 1.0f);
+			*uvCoords ++ = Vector2(0.0f, 1.0f);
+			
+			mesh->ReleaseData(kMeshFeatureVertices);
+			mesh->ReleaseData(kMeshFeatureUVSet0);
+			
+			ResourcePool::SharedInstance()->AddResource(mesh, kRNBillboardMeshResourceName);
+		});
+		
+		_mesh = ResourcePool::SharedInstance()->ResourceWithName<Mesh>(kRNBillboardMeshResourceName)->Retain();
+	}
+	
+	void Billboard::SetTexture(Texture *texture)
+	{
+		_material->RemoveTextures();
+		_material->AddTexture(texture);
+		
+		_size = Vector2(texture->Width(), texture->Height());
+		_size *= 0.1f;
+	}
+	
+	
+	bool Billboard::IsVisibleInCamera(Camera *camera)
+	{
+		return true;
+	}
+	
+	void Billboard::Render(Renderer *renderer, Camera *camera)
+	{
+		_transform = WorldTransform();
+		_transform.Scale(Vector3(_size.x, _size.y, 0.0f));
+		
+		RenderingObject object;
+		
+		object.mesh = _mesh;
+		object.material = _material;
+		object.transform = &_transform;
+		
+		renderer->RenderObject(object);
+	}
+}

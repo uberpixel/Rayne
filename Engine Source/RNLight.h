@@ -10,11 +10,13 @@
 #define __RAYNE_LIGHT_H__
 
 #include "RNBase.h"
-#include "RNTransform.h"
+#include "RNColor.h"
+#include "RNSceneNode.h"
+#include "RNCamera.h"
 
 namespace RN
 {
-	class Light : public Transform
+	class Light : public SceneNode
 	{
 	friend class Renderer;
 	public:
@@ -31,16 +33,22 @@ namespace RN
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
 		RNAPI void SetRange(float range);
-		RNAPI void SetColor(const Vector3& color);
+		RNAPI void SetColor(const Color& color);
 		RNAPI void SetAngle(float angle);
+		RNAPI void SetIntensity(float intensity);
 		RNAPI void ActivateSunShadows(bool shadow=true, float resolution=512.0f, int splits=4, float distfac=0.05f, float biasfac=2.0f, float biasunits=512.0f);
 		
-		virtual void Update(float delta);
+		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
+		RNAPI virtual void Update(float delta);
+		
+		const Color& Color() const { return _color; }
+		const Vector3& ResultColor() { return _resultColor; }
 		
 		const Type LightType() const { return _lightType; }
-		const Vector3& Color() const { return _color; }
-		const float Range() const { return _range; }
-		const float Angle() const { return _angle; }
+		float Range() const { return _range; }
+		float Angle() const { return _angle; }
+		float Intensity() const { return _intensity; }
+		
 		const bool Shadow() const { return _shadow; }
 		
 		class Camera *_shadowcam;
@@ -49,16 +57,20 @@ namespace RN
 		Array<Camera*> _shadowcams;
 	
 	private:
+		void ReCalculateColor();
+		
 		Type _lightType;
-		Vector3 _color;
+		class Color _color;
+		Vector3 _resultColor;
 		Vector3 _direction;
+		float _intensity;
 		float _range;
 		float _angle;
 		bool _shadow;
 		int _shadowSplits;
 		float _shadowDistFac;
 		
-		RNDefineMeta(Light, Transform)
+		RNDefineMeta(Light, SceneNode)
 	};
 }
 

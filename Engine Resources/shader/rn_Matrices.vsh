@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#ifndef RN_MATRICES_VSH
 #define RN_MATRICES_VSH
 
 uniform mat4 matProjView;
@@ -36,4 +37,5 @@ uniform mat4 matModelInverse;
 uniform mat4 matProjViewModel;
 uniform mat4 matProjViewModelInverse;
 
+#endif
 #endif

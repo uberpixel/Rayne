@@ -13,38 +13,42 @@
 #include "RNObject.h"
 #include "RNArray.h"
 #include "RNRenderer.h"
-#include "RNTransform.h"
+#include "RNSceneNode.h"
 #include "RNCamera.h"
 #include "RNWorldAttachment.h"
+#include "RNSceneManager.h"
 
 namespace RN
 {
 	class Kernel;
-	class Transform;
 	
 	class World : public NonConstructingSingleton<World>
 	{
-	friend class Transform;
+	friend class SceneNode;
 	friend class Kernel;
 	friend class Camera;
 	public:
-		RNAPI World();
+		RNAPI World(SceneManager *sceneManager);
+		RNAPI World(const std::string& sceneManager);
 		RNAPI virtual ~World();
 		
-		RNAPI void AddTransform(Transform *transform);
-		RNAPI void RemoveTransform(Transform *transform);
+		RNAPI void SceneNodeUpdated(SceneNode *node);
 		
 		RNAPI void AddAttachment(WorldAttachment *attachment);
 		RNAPI void RemoveAttachment(WorldAttachment *attachment);
 		
 		RNAPI virtual void Update(float delta);
-		RNAPI virtual void TransformsUpdated();
+		RNAPI virtual void NodesUpdated();
+		
+		RNAPI SceneManager *SceneManager() const { return _sceneManager; }
 		
 	private:
+		static class SceneManager *SceneManagerWithName(const std::string& name);
 		void StepWorld(FrameID frame, float delta);
-		void VisitTransform(Camera *camera, Transform *transform);
-		bool SupportsTransform(Transform *transform);
-		void ApplyTransformUpdates();
+		
+		void ApplyNodes();
+		void AddSceneNode(SceneNode *node);
+		void RemoveSceneNode(SceneNode *node);
 		
 		void AddCamera(Camera *camera);
 		void RemoveCamera(Camera *camera);
@@ -52,16 +56,14 @@ namespace RN
 		Kernel *_kernel;
 		
 		Array<WorldAttachment> _attachments;
-		std::unordered_set<Transform *> _transforms;
 		
-		std::deque<Transform *> _addedTransforms;
+		std::unordered_set<SceneNode *> _nodes;
+		std::deque<SceneNode *> _addedNodes;
+		
 		std::vector<Camera *> _cameras;
 		
 		Renderer *_renderer;
-		
-		MetaClass *_cameraClass;
-		MetaClass *_entityClass;
-		MetaClass *_lightClass;
+		class SceneManager *_sceneManager;
 	};
 }
 

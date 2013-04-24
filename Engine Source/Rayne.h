@@ -16,6 +16,7 @@
 
 #include "RNKernel.h"
 #include "RNApplication.h"
+#include "RNResourcePool.h"
 #include "RNInput.h"
 #include "RNMessage.h"
 #include "RNFile.h"
@@ -30,12 +31,19 @@
 
 #include "RNArray.h"
 
+#include "RNMath.h"
+#include "RNSIMD.h"
+#include "RNCPU.h"
+#include "RNMemory.h"
+#include "RNRandom.h"
+
+#include "RNAABB.h"
 #include "RNColor.h"
 #include "RNMatrixQuaternion.h"
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
+#include "RNSphere.h"
 #include "RNRect.h"
-#include "RNTransform.h"
 #include "RNVector.h"
 #include "RNInterpolation.h"
 
@@ -49,8 +57,12 @@
 #include "RNTexture.h"
 
 #include "RNWorld.h"
+#include "RNSceneNode.h"
 #include "RNEntity.h"
 #include "RNLight.h"
+#include "RNBillboard.h"
+#include "RNParticleEmitter.h"
+#include "RNParticle.h"
 
 #include "RNThread.h"
 #include "RNThreadPool.h"

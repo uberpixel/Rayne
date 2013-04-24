@@ -10,6 +10,7 @@
 precision highp float;
 
 #include "rn_Lighting.fsh"
+#include "rn_Discard.fsh"
 
 uniform sampler2D mTexture0;
 uniform sampler2D mTexture1;
@@ -21,6 +22,8 @@ void main()
 {
 	vec4 color0 = texture(mTexture0, outTexcoord);
 	vec4 color1 = texture(mTexture1, outTexcoord);
+
+	rn_Discard(color0);
 
 	fragColor0 = (color0 * color1) * rn_Lighting();
 }

@@ -12,15 +12,11 @@ namespace RN
 {
 	RNDeclareMeta(WorldAttachment)
 	
-	void WorldAttachment::UpdateTransform(Transform *transform, float delta)
-	{
-	}
-	
 	void WorldAttachment::StepWorld(float delta)
 	{
 	}
 	
-	void WorldAttachment::TransformsUpdated()
+	void WorldAttachment::SceneNodesUpdated()
 	{
 	}
 	
@@ -32,11 +28,11 @@ namespace RN
 	{
 	}
 	
-	void WorldAttachment::DidAddTransform(Transform *transform)
+	void WorldAttachment::DidAddSceneNode(SceneNode *node)
 	{
 	}
 	
-	void WorldAttachment::WillRemoveTransform(Transform *transform)
+	void WorldAttachment::WillRemoveSceneNode(SceneNode *node)
 	{
 	}
 }

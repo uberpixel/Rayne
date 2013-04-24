@@ -16,117 +16,134 @@
 namespace RN
 {
 	class Camera;
+	
+	class TextureParameter
+	{
+	public:
+		TextureParameter()
+		{
+			format = Format::RGBA8888;
+			wrapMode = WrapMode::Repeat;
+			filter = Filter::Linear;
+			type = Type::Texture2D;
+			
+			depthCompare = false;
+			generateMipMaps = true;
+			mipMaps = 8;
+			anisotropy = 0;
+		}
+		
+		enum class Format
+		{
+			RGBA8888,
+			RGBA4444,
+			RGBA5551,
+			RGB565,
+			
+			R8,
+			RG88,
+			RGB888,
+			
+			// No auto conversion for the following types!
+			R16F,
+			RG16F,
+			RGB16F,
+			RGBA16F,
+			
+			R32F,
+			RG32F,
+			RGB32F,
+			RGBA32F,
+			
+			Depth,
+			DepthStencil,
+			
+			PVRTC4,
+			PVRTC2
+		};
+		
+		enum class WrapMode
+		{
+			Clamp,
+			Repeat
+		};
+		
+		enum class Filter
+		{
+			Linear,
+			Nearest
+		};
+
+		enum class Type
+		{
+			Texture2D,
+			Texture3D,
+			Texture2DArray
+		};
+		
+		Format format;
+		Filter filter;
+		WrapMode wrapMode;
+		Type type;
+		
+		bool depthCompare;
+		bool generateMipMaps;
+		uint32 mipMaps;
+		uint32 anisotropy;
+	};
+	
 	class Texture : public Object
 	{
 	friend class Camera;
 	public:
-		typedef enum
-		{
-			FormatRGBA8888,
-			FormatRGBA4444,
-			FormatRGBA5551,
-			FormatRGB565,
-			
-			FormatR8,
-			FormatRG88,
-			FormatRGB888,
-			
-			// No auto conversion for the following types!
-			FormatRGBA16F,
-			FormatR16F,
-			FormatRG16F,
-			FormatRGB16F,
-			
-			FormatRGBA32F,
-			FormatR32F,
-			FormatRG32F,
-			FormatRGB32F,
-			
-			FormatDepth,
-			FormatDepthStencil,
-			
-			FormatPVRTC4,
-			FormatPVRTC2
-		} Format;
+		RNAPI Texture(TextureParameter::Format format, bool isLinear=false);
+		RNAPI Texture(const TextureParameter& parameter, bool isLinear=false);
+		RNAPI Texture(const std::string& name, bool isLinear=false);
+		RNAPI Texture(const std::string& name, const TextureParameter& parameter, bool isLinear=false);
 		
-		typedef enum
-		{
-			Type2D,
-			Type3D,
-			Type2DArray
-		} Type;
-		
-		typedef enum
-		{
-			WrapModeClamp,
-			WrapModeRepeat
-		} WrapMode;
-		
-		typedef enum
-		{
-			FilterLinear,
-			FilterNearest
-		} Filter;
-		
-		RNAPI Texture(Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear, bool isLinear=false, Type type=Type2D);
-		RNAPI Texture(const std::string& name, Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear, bool isLinear=false);
-		
-		static Texture *WithFile(const std::string& name, Format format, WrapMode wrap=WrapModeRepeat, Filter filter=FilterLinear, bool isLinear=false);
+		static Texture *WithFile(const std::string& name, bool isLinear=false);
+		static Texture *WithFile(const std::string& name, const TextureParameter& parameter, bool isLinear=false);
 		
 		RNAPI virtual ~Texture();
 		
-		RNAPI void Bind();
-		RNAPI void Unbind();
+		RNAPI virtual void Bind();
+		RNAPI virtual void Unbind();
 		
 		GLuint Name() { return _name; }
-		GLuint GLType() { return _gltype; }
+		GLuint GLType() { return _glType; }
 		
-		RNAPI void SetData(const void *data, uint32 width, uint32 height, Format format);
-		RNAPI void UpdateData(const void *data, Format format);
-		RNAPI void UpdateRegion(const void *data, Format format, Rect region);
+		RNAPI void SetDepth(uint32 depth);
+		RNAPI void SetData(const void *data, uint32 width, uint32 height, TextureParameter::Format format);
+		RNAPI void UpdateData(const void *data, TextureParameter::Format format);
+		RNAPI void UpdateRegion(const void *data, const Rect& region, TextureParameter::Format format);
 		RNAPI void UpdateMipmaps();
 		
-		RNAPI void SetWrappingMode(WrapMode wrap);
-		RNAPI void SetFilter(Filter filter, bool force=false);
-		RNAPI void SetLinear(bool linear);
-		RNAPI void SetGeneratesMipmaps(bool genMipmaps);
-		RNAPI void SetAnisotropyLevel(uint32 level);
-		RNAPI void SetDepth(uint32 depth);
-		RNAPI void SetDepthCompare(bool compare);
+		RNAPI void SetParameter(const TextureParameter& parameter);
+		RNAPI const TextureParameter& Parameter() const { return _parameter; }
 		
-		Format TextureFormat() const { return _format; }
-		Filter TextureFilter() const { return _filter; }
-		Type TextureType() const { return _type; }
-		WrapMode TextureWrapMode() const { return _wrapMode; }
-		bool IsLinear() const { return _isLinear; }
-		bool GeneratesMipmaps() const { return _generateMipmaps; }
-		uint32 AnisotropyLevel() const { return _anisotropy; }
+		RNAPI static bool PlatformSupportsFormat(TextureParameter::Format format);
+		RNAPI static void SetDefaultAnisotropyLevel(uint32 level);
 		
-		RNAPI static bool PlatformSupportsFormat(Format format);
 		RNAPI static uint32 MaxAnisotropyLevel();
 		RNAPI static uint32 DefaultAnisotropyLevel();
-		RNAPI static void SetDefaultAnisotropyLevel(uint32 level);
+		
+		uint32 Width() const { return _width; }
+		uint32 Height() const { return _height; }
 		
 	protected:
 		GLuint _name;
+		GLenum _glType;
 		uint32 _width, _height, _depth;
 		
 	private:
-		static void *ConvertData(const void *data, uint32 width, uint32 height, Format current, Format target);
-		static void ConvertFormat(Format format, bool isLinear, GLenum *glFormat, GLint *glInternalFormat, GLenum *glType);
+		static void *ConvertData(const void *data, uint32 width, uint32 height, TextureParameter::Format current, TextureParameter::Format target);
+		static void ConvertFormat(TextureParameter::Format format, bool isLinear, GLenum *glFormat, GLint *glInternalFormat, GLenum *glType);
+		void SetType(TextureParameter::Type type);
 		
-		void UpdateType();
+		TextureParameter _parameter;
 		
 		bool _isCompleteTexture;
-		bool _generateMipmaps;
 		bool _hasChanged;
-		
-		Format _format;
-		Type _type;
-		GLuint _gltype;
-		Filter _filter;
-		WrapMode _wrapMode;
-		uint32 _anisotropy;
 		bool _isLinear;
 		bool _depthCompare;
 		

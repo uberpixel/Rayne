@@ -11,7 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNTransform.h"
+#include "RNSceneNode.h"
 #include "RNRenderStorage.h"
 #include "RNTexture.h"
 #include "RNMaterial.h"
@@ -19,11 +19,12 @@
 #include "RNPlane.h"
 #include "RNColor.h"
 #include "RNModel.h"
-#include "RNLight.h"
+#include "RNSphere.h"
 
 namespace RN
 {
-	class Camera : public Transform
+	class Light;
+	class Camera : public SceneNode
 	{
 	public:
 		enum
@@ -64,27 +65,17 @@ namespace RN
 		
 		enum
 		{
-			OverrideCulling = (1 << 0),
-			OVerrideCullmode = (1 << 1),
-			OverrideBlending = (1 << 2),
-			OverrideBlendmode = (1 << 3),
-			OverrideShininess = (1 << 4),
-			OverrideAmbient = (1 << 5),
-			OverrideDiffuse = (1 << 6),
-			OverrideSpecular = (1 << 7),
-			OverrideEmissive = (1 << 8),
-			OverrideAlphatest = (1 << 9),
-			OverrideDepthtest = (1 << 10),
-			OverrideDepthwrite = (1 << 11),
-			OverrideDepthtestMode = (1 << 12),
-			OverrideDiscard = (1 << 13),
-			OverrideDiscardThreshold = (1 << 14),
-			OverrideTextures = (1 << 15),
-			OverridePolygonOffset = (1 << 16),
-			
-			OverrideAll = 0xFFFFFFFFFFFFFFFF
+			RenderGroup0 = (1 << 0),
+			RenderGroup1 = (1 << 1),
+			RenderGroup2 = (1 << 2),
+			RenderGroup3 = (1 << 3),
+			RenderGroup4 = (1 << 4),
+			RenderGroup5 = (1 << 5),
+			RenderGroup7 = (1 << 7),
+			RenderGroup8 = (1 << 8),
+			RenderGroup9 = (1 << 9)
 		};
-		typedef uint64 MaterialOverride;
+		typedef uint32 RenderGroups;
 		
 		RNAPI Camera(const Vector2& size);
 		
@@ -92,9 +83,9 @@ namespace RN
 		RNAPI Camera(const Vector2& size, Texture *target, Flags flags);
 		RNAPI Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format);
 		
-		RNAPI Camera(const Vector2& size, Texture::Format targetFormat);
-		RNAPI Camera(const Vector2& size, Texture::Format targetFormat, Flags flags);
-		RNAPI Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format);
+		RNAPI Camera(const Vector2& size, TextureParameter::Format targetFormat);
+		RNAPI Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags);
+		RNAPI Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format);
 		
 		RNAPI Camera(const Vector2& size, RenderStorage *storage, Flags flags);
 		
@@ -135,6 +126,10 @@ namespace RN
 		RNAPI Vector3 ToWorldZ(const Vector3& dir);
 		RNAPI void UpdateFrustum();
 		RNAPI bool InFrustum(const Vector3& position, float radius);
+		RNAPI bool InFrustum(const Sphere& sphere);
+		RNAPI bool InFrustum(const AABB& aabb);
+		
+		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
 		const Vector3& FrustumCenter() const { return _frustumCenter; }
 		float const FrustumRadius() const { return _frustumRadius; }
@@ -171,12 +166,12 @@ namespace RN
 		float orthotop;
 		float orthobottom;
 		
-		MaterialOverride override;
-		
 		Matrix projectionMatrix;
 		Matrix inverseProjectionMatrix;
 		Matrix viewMatrix;
 		Matrix inverseViewMatrix;
+		
+		RenderGroups renderGroup;
 		
 	protected:
 		void Initialize();
@@ -191,10 +186,23 @@ namespace RN
 		
 		Vector3 _frustumCenter;
 		float _frustumRadius;
-		Plane _frustumLeft;
-		Plane _frustumRight;
-		Plane _frustumTop;
-		Plane _frustumBottom;
+		
+		struct
+		{
+			Plane _frustumLeft;
+			Plane _frustumRight;
+			Plane _frustumTop;
+			Plane _frustumBottom;
+			Plane _frustumFar;
+			Plane _frustumNear;
+			
+			Plane _absFrustumLeft;
+			Plane _absFrustumRight;
+			Plane _absFrustumTop;
+			Plane _absFrustumBottom;
+			Plane _absFrustumFar;
+			Plane _absFrustumNear;
+		};
 		
 		Vector2 _lightTiles;
 		
@@ -215,7 +223,7 @@ namespace RN
 		
 		machine_uint _maxLights;
 		
-		RNDefineConstructorlessMeta(Camera, Transform)
+		RNDefineConstructorlessMeta(Camera, SceneNode)
 	};
 }
 

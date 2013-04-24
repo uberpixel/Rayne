@@ -296,6 +296,15 @@ namespace RN
 		}
 		
 		modifiers.insert(modifiers.end(), _globalModifiers.begin(), _globalModifiers.end());
+		extension = "." + extension;
+		
+		for(auto i=modifiers.begin(); i!=modifiers.end(); i++)
+		{
+			std::string filePath = basepath + *i + extension;
+			
+			if(PathExists(filePath))
+				return filePath;
+		}
 		
 		for(auto i=_searchPaths.begin(); i!=_searchPaths.end(); i++)
 		{
@@ -303,19 +312,22 @@ namespace RN
 			
 			for(auto j=modifiers.begin(); j!=modifiers.end(); j++)
 			{
-				std::string filePath = base + *j + "." + extension;
+				std::string filePath = base + *j + extension;
 				
 				if(PathExists(filePath))
 					return filePath;
 			}
 			
-			base += "." + extension;
+			base += extension;
 			
 			if(PathExists(base))
 				return base;
 		}
 		
-		return "";
+		std::string error = "Couldn't find file ";
+		error += path;
+		
+		throw ErrorException(0, error);
 	}
 	
 	std::string PathManager::ExecutableDirectory()

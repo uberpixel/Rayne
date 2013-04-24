@@ -29,7 +29,16 @@ namespace RN
 		SetFragmentShader(PathManager::PathForName(shader + ".fsh"));
 		
 #if GL_GEOMETRY_SHADER
-		std::string path = PathManager::PathForName(shader + ".gsh");
+		std::string path = "";
+		
+		try
+		{
+			path = PathManager::PathForName(shader + ".gsh");
+		}
+		catch(ErrorException e)
+		{
+		}
+		
 		if(path.length() > 0)
 			SetGeometryShader(path);
 #endif
@@ -560,9 +569,27 @@ namespace RN
 #endif
 	}
 	
-	void Shader::SetShaderForType(File *file, GLenum type)
-	{		
-		// Preprocess the shader
+	std::string Shader::IncludeShader(File *source, const std::string& name)
+	{
+		File *includeFile = 0;
+		
+		try
+		{
+			std::string path = PathManager::PathForName(PathManager::Join(source->Path(), name));
+			includeFile = new File(path);
+			includeFile->Autorelease();
+		}
+		catch(ErrorException e)
+		{
+			throw ErrorException(e.Error(), "Couldn't include file " + name, "Failed to pre-process " + source->Name() + "." + source->Extension());
+		}
+		
+		
+		return PreProcessFile(includeFile);
+	}
+	
+	std::string Shader::PreProcessFile(File *file)
+	{
 		std::string data = file->String();
 		size_t index = 0;
 		
@@ -579,18 +606,16 @@ namespace RN
 			
 			std::string name = data.substr(index + 10, length);
 			data.erase(index, length + 11);
-			
-			try
-			{
-				File *includeFile = new File(PathManager::Join(file->Path(), name));
-				data.insert(index, includeFile->String());
-				includeFile->Release();
-			}
-			catch(ErrorException e)
-			{
-				throw ErrorException(e.Error(), "Failed to preprocess " + file->Name() + "." + file->Extension() + "\n\n" + e.Description());
-			}
+			data.insert(index, IncludeShader(file, name));
 		}
+		
+		return data;
+	}
+	
+	void Shader::SetShaderForType(File *file, GLenum type)
+	{		
+		// Preprocess the shader
+		std::string data = PreProcessFile(file);
 		
 		// Check what program types the shader supports
 		_supportedPrograms |= (data.find("#ifdef RN_INSTANCING") != std::string::npos) ? (ShaderProgram::TypeInstanced) : 0;

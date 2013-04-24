@@ -12,9 +12,11 @@ namespace TG
 {
 	RNDeclareMeta(Player)
 	
-	Player::Player() :
-		RN::bullet::KinematicController(RN::bullet::CapsuleShape::WithRadius(0.75, 2.5f), 0.45f)
+	Player::Player(RN::Model *model) :
+		RN::bullet::KinematicController(RN::bullet::CapsuleShape::WithRadius(model->BoundingBox().Width() * 0.5f, model->BoundingBox().Height()), 0.45f)
 	{
+		SetModel(model);
+		_camera = 0;
 	}
 	
 	Player::~Player()
@@ -28,9 +30,15 @@ namespace TG
 		RN::Vector3 rotation;
 		
 		const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
-		
 		rotation.x = mouseDelta.x;
-		//rotation.z = mouseDelta.y;
+		
+		if(_camera)
+		{
+			float pitch = _camera->Pitch() + (mouseDelta.y * 0.8f);
+			pitch = MIN(25.0f, MAX(-40.0f, pitch));
+			
+			_camera->SetPitch(pitch);
+		}
 		
 		translation.x = (input->KeyPressed('d') - input->KeyPressed('a')) * 0.10f;
 		translation.z = (input->KeyPressed('s') - input->KeyPressed('w')) * 0.16f;

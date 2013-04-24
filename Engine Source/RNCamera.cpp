@@ -10,13 +10,14 @@
 #include "RNThread.h"
 #include "RNKernel.h"
 #include "RNWorld.h"
+#include "RNLight.h"
 
 namespace RN
 {
 	RNDeclareMeta(Camera)
 	
 	Camera::Camera(const Vector2& size) :
-		Camera(size, Texture::FormatRGBA8888)
+	Camera(size, TextureParameter::Format::RGBA8888)
 	{}
 
 
@@ -29,11 +30,11 @@ namespace RN
 	{}
 
 
-	Camera::Camera(const Vector2& size, Texture::Format targetFormat) :
+	Camera::Camera(const Vector2& size, TextureParameter::Format targetFormat) :
 		Camera(size, targetFormat, FlagDefaults)
 	{}
 
-	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags) :
+	Camera::Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags) :
 		Camera(size, targetFormat, flags, RenderStorage::BufferFormatComplete)
 	{}
 
@@ -51,7 +52,7 @@ namespace RN
 		Initialize();
 	}
 
-	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format) :
+	Camera::Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_flags(flags)
 	{
@@ -99,8 +100,6 @@ namespace RN
 	{
 		aspect   = 1.0f;
 		fov      = 70.0f;
-		
-		override = OverrideAll;
 
 		clipnear = 0.1f;
 		clipfar  = 500.0f;
@@ -132,6 +131,8 @@ namespace RN
 		
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
 		_colorMask = ColorFlagRed | ColorFlagGreen | ColorFlagBlue | ColorFlagAlpha;
+		
+		renderGroup = RenderGroup0;
 
 		if(_flags & FlagUpdateStorageFrame)
 			_storage->SetFrame(_frame);
@@ -296,14 +297,14 @@ namespace RN
 		_stage = stage ? stage->Retain() : 0;
 
 		UpdateProjection();
-		World::SharedInstance()->RemoveTransform(stage);
+		World::SharedInstance()->RemoveSceneNode(stage);
 		World::SharedInstance()->RemoveCamera(stage);
 	}
 
 	void Camera::ReplaceStage(Camera *stage)
 	{
 		Camera *temp = _stage ? _stage->_stage->Retain() : 0;
-		World::SharedInstance()->AddTransform(_stage);
+		World::SharedInstance()->AddSceneNode(_stage);
 		World::SharedInstance()->AddCamera(_stage);
 
 		if(_stage)
@@ -317,7 +318,7 @@ namespace RN
 		_stage->_stage = temp;
 
 		UpdateProjection();
-		World::SharedInstance()->RemoveTransform(stage);
+		World::SharedInstance()->RemoveSceneNode(stage);
 		World::SharedInstance()->RemoveCamera(stage);
 	}
 
@@ -327,7 +328,7 @@ namespace RN
 		{
 			stage = stage->_stage ? stage->_stage->Retain() : 0;
 			
-			World::SharedInstance()->RemoveTransform(stage);
+			World::SharedInstance()->RemoveSceneNode(stage);
 			World::SharedInstance()->RemoveCamera(stage);
 
 			_stage->Release();
@@ -342,7 +343,7 @@ namespace RN
 			if(temp->_stage == stage)
 			{
 				stage = stage->_stage ? stage->_stage->Retain() : 0;
-				World::SharedInstance()->AddTransform(stage);
+				World::SharedInstance()->AddSceneNode(stage);
 				World::SharedInstance()->AddCamera(stage);
 
 				temp->_stage->Release();
@@ -441,7 +442,7 @@ namespace RN
 		if(_stage)
 			_stage->Update(delta);
 		
-		Transform::Update(delta);
+		SceneNode::Update(delta);
 	}
 	
 	void Camera::PostUpdate()
@@ -543,10 +544,10 @@ namespace RN
 		if(Kernel::SharedInstance()->CurrentFrame() == LastFrame())
 			return _depthArray;
 		
-		int tilesWidth  = (int)_lightTiles.x;
-		int tilesHeight = (int)_lightTiles.y;
+		int width  = (int)_depthTiles->Width();
+		int height = (int)_depthTiles->Height();
 		
-		size_t size = tilesWidth * tilesHeight * 2 * sizeof(float);
+		size_t size = width * height * 2;
 		if(size > _depthSize)
 		{
 			delete _depthArray;
@@ -556,6 +557,8 @@ namespace RN
 		}
 		
 		_depthTiles->Bind();
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, _depthArray);
 		_depthTiles->Unbind();
 		
@@ -570,6 +573,7 @@ namespace RN
 		Vector3 pos6 = ToWorld(Vector3(1.0f, -1.0f, 1.0f));
 		
 		const Vector3& position = WorldPosition();
+		Vector3 direction = WorldRotation().RotateVector(RN::Vector3(0.0, 0.0, -1.0));
 
 		Vector3 vmax;
 		Vector3 vmin;
@@ -584,10 +588,28 @@ namespace RN
 		_frustumCenter = _frustumCenter * 0.5f;
 		_frustumRadius = _frustumCenter.Distance(vmax);
 
-		_frustumLeft.SetPlane(position, pos2, pos3);
-		_frustumRight.SetPlane(position, pos5, pos6);
-		_frustumTop.SetPlane(position, pos2, pos5);
-		_frustumBottom.SetPlane(position, pos3, pos6);
+		_frustumLeft.SetPlane(position, pos2, pos3, 1.0f);
+		_frustumRight.SetPlane(position, pos5, pos6, -1.0f);
+		_frustumTop.SetPlane(position, pos2, pos5, -1.0f);
+		_frustumBottom.SetPlane(position, pos3, pos6, 1.0f);
+		_frustumNear.SetPlane(position + direction * clipnear, -direction);
+		_frustumFar.SetPlane(position + direction * clipfar, direction);
+		
+#define CopyAndAbsPlane(dest, source) \
+		dest = source; \
+		dest.normal.x = Math::FastAbs(dest.normal.x); \
+		dest.normal.y = Math::FastAbs(dest.normal.y); \
+		dest.normal.z = Math::FastAbs(dest.normal.z)
+		
+		CopyAndAbsPlane(_absFrustumLeft, _frustumLeft);
+		CopyAndAbsPlane(_absFrustumRight, _frustumRight);
+		CopyAndAbsPlane(_absFrustumTop, _frustumTop);
+		CopyAndAbsPlane(_absFrustumBottom, _frustumBottom);
+		CopyAndAbsPlane(_absFrustumFar, _frustumFar);
+		CopyAndAbsPlane(_absFrustumNear, _frustumNear);
+		
+#undef CopyAndAbsPlane
+		
 	}
 
 	bool Camera::InFrustum(const Vector3& position, float radius)
@@ -598,15 +620,55 @@ namespace RN
 		if(_frustumLeft.Distance(position) > radius)
 			return false;
 
-		if(_frustumRight.Distance(position) < -radius)
+		if(_frustumRight.Distance(position) > radius)
 			return false;
 
-		if(_frustumTop.Distance(position) < -radius)
+		if(_frustumTop.Distance(position) > radius)
 			return false;
 
 		if(_frustumBottom.Distance(position) > radius)
 			return false;
+		
+		if(_frustumNear.Distance(position) > radius)
+			return false;
+		
+		if(_frustumFar.Distance(position) > radius)
+			return false;
 
+		return true;
+	}
+	
+	bool Camera::InFrustum(const Sphere& sphere)
+	{
+		return InFrustum(sphere.Position(), sphere.radius);
+	}
+	
+	bool Camera::InFrustum(const AABB& aabb)
+	{
+		Plane *planes = &_frustumLeft;
+		Plane *absPlanes = &_absFrustumLeft;
+	
+		Vector3 position = aabb.Position();
+		
+		for(int i=0; i<6; i++)
+		{
+			const Plane& plane = planes[i];
+			const Plane& absPlane = absPlanes[i];
+			
+			float d = position.Dot(plane.normal);
+			float r = aabb.width.Dot(absPlane.normal);
+			
+			float dpr = d + r + plane.d;
+			
+			if(Math::IsNegative(dpr))
+				return false;
+		}
+		
+		return true;
+	}
+	
+	bool Camera::IsVisibleInCamera(Camera *camera)
+	{
 		return true;
 	}
 }

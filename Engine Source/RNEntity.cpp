@@ -29,9 +29,28 @@ namespace RN
 			_skeleton->Release();
 	}
 	
-	bool Entity::IsVisibleInCamera(Camera *camera)
+	void Entity::Render(Renderer *renderer, Camera *camera)
 	{
-		return true;
+		if(_model)
+		{
+			float distance = WorldPosition().Distance(camera->WorldPosition());
+			distance /= camera->clipfar;
+			
+			uint32 lodStage = _model->LODStageForDistance(distance);
+			RenderingObject object;
+			
+			object.transform = (Matrix *)&WorldTransform();
+			object.skeleton  = Skeleton();
+			
+			uint32 count = _model->Meshes(lodStage);
+			for(uint32 i=0; i<count; i++)
+			{
+				object.mesh = _model->MeshAtIndex(lodStage, i);
+				object.material = _model->MaterialAtIndex(lodStage, i);
+				
+				renderer->RenderObject(object);
+			}
+		}
 	}
 	
 	void Entity::SetModel(class Model *model)
@@ -40,6 +59,11 @@ namespace RN
 			_model->Release();
 		
 		_model = model ? model->Retain() : 0;
+		
+		if(_model)
+		{
+			SetBoundingBox(_model->BoundingBox(), true);
+		}
 	}
 	
 	void Entity::SetSkeleton(class Skeleton *skeleton)
