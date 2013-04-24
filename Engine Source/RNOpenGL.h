@@ -33,6 +33,7 @@ namespace RN
 		__kOpenGLFeatureMax
 	} OpenGLFeature;
 	
+	RNAPI void CheckOpenGLError(const char *file, int line);
 	RNAPI void ReadOpenGLExtensions();
 	RNAPI bool SupportsOpenGLFeature(OpenGLFeature feature);
 	
@@ -49,65 +50,24 @@ namespace RN
 	}
 }
 
-#define __RN_EXPANDOPENGLERROR(error) #error
-#define __RN_OPENGLTOKEN(error) __RN_EXPANDOPENGLERROR(error)
-
-#define __RN_REPORTOPENGLERROR(error) \
-do { printf("OpenGL error: %s. File: %s:%i", __RN_OPENGLTOKEN(error), __FILE__, __LINE__); } while(0)
-
-#define __RN_CHECKOPENGLERROR(error) \
-case error: \
-__RN_REPORTOPENGLERROR(error); \
-break;
-
-#ifndef GL_STACK_UNDERFLOW
-#define GL_STACK_UNDERFLOW 0xffffffff
-#endif
-
-#ifndef GL_STACK_OVERFLOW
-#define GL_STACK_OVERFLOW (0xffffffff - 1)
-#endif
-
-#ifndef GL_TABLE_TOO_LARGE
-#define GL_TABLE_TOO_LARGE (0xffffffff - 2)
-#endif
-
 #ifndef NDEBUG
-#define RN_CHECKOPENGL() \
-	while(0) { \
-		GLenum error; \
-		while((error = glGetError()) != GL_NO_ERROR) \
-		{ \
-			switch(error) \
-			{ \
-					__RN_CHECKOPENGLERROR(GL_INVALID_ENUM) \
-					__RN_CHECKOPENGLERROR(GL_INVALID_VALUE) \
-					__RN_CHECKOPENGLERROR(GL_INVALID_OPERATION) \
-					__RN_CHECKOPENGLERROR(GL_INVALID_FRAMEBUFFER_OPERATION) \
-					__RN_CHECKOPENGLERROR(GL_OUT_OF_MEMORY) \
-					__RN_CHECKOPENGLERROR(GL_STACK_UNDERFLOW) \
-					__RN_CHECKOPENGLERROR(GL_STACK_OVERFLOW) \
-					__RN_CHECKOPENGLERROR(GL_TABLE_TOO_LARGE) \
-				default: \
-					printf("Unknown OpenGL error: %i. File: %s:%i", error, __FILE__, __LINE__); \
-					break; \
-			} \
-		} \
-	}
+	#define RN_CHECKOPENGL() RN::CheckOpenGLError(__FILE__, __LINE__)
+	#define RN_CHECKOPENGL_AGGRESSIVE() RN::CheckOpenGLError(__FILE__, __LINE__)
 #else
-#define RN_CHECKOPENGL() (void)0
+	#define RN_CHECKOPENGL() (void)0
+	#define RN_CHECKOPENGL_AGGRESSIVE() (void)0
 #endif
 
 #if RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
 
 extern "C"
 {	
-	#if RN_PLATFORM_WINDOWS
+#if RN_PLATFORM_WINDOWS
 	extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 	extern PFNWGLGETEXTENSIONSSTRINGARBPROC wglGetExtensionsStringARB;
 	extern PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
 	extern PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
-	#endif
+#endif
 	
 	extern PFNGLCREATEPROGRAMPROC glCreateProgram;
 	extern PFNGLDELETEPROGRAMPROC glDeleteProgram;

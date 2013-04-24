@@ -24,6 +24,35 @@ namespace RN
 		bool OpenGLFeatures[__kOpenGLFeatureMax] = { false };
 	}
 	
+	void CheckOpenGLError(const char *file, int line)
+	{
+		GLenum error;
+		while((error = glGetError()) != GL_NO_ERROR)
+		{
+			switch(error)
+			{
+				case GL_INVALID_ENUM:
+					printf("OpenGL error: GL_INVALID_ENUM\n");
+					break;
+					
+				case GL_INVALID_VALUE:
+					printf("OpenGL error: GL_INVALID_VALUE\n");
+					break;
+					
+				case GL_INVALID_OPERATION:
+					printf("OpenGL error: GL_INVALID_OPERATION\n");
+					
+				case GL_OUT_OF_MEMORY:
+					printf("OpenGL error: GL_OUT_OF_MEMOR\n");
+					break;
+					
+				default:
+					break;
+			}
+		}
+	}
+	
+	
 	void *LookupOpenGLFunction(const char *name)
 	{		
 #if RN_PLATFORM_LINUX

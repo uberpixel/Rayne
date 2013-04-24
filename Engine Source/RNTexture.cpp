@@ -20,6 +20,7 @@ namespace RN
 	Texture::Texture(TextureParameter::Format format, bool isLinear)
 	{
 		glGenTextures(1, &_name);
+		RN_CHECKOPENGL();
 		
 		_width = _height = 0;
 		_depth = 1;
@@ -28,20 +29,21 @@ namespace RN
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		
-		Bind();
 		
 		TextureParameter parameter;
 		parameter.format = format;
 		
 		SetType(parameter.type);
-		SetParameter(parameter);
 		
+		Bind();
+		SetParameter(parameter);
 		Unbind();
 	}
 	
 	Texture::Texture(const TextureParameter& parameter, bool isLinear)
 	{
 		glGenTextures(1, &_name);
+		RN_CHECKOPENGL();
 		
 		_width = _height = 0;
 		_depth = 1;
@@ -50,8 +52,9 @@ namespace RN
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		
-		Bind();
 		SetType(parameter.type);
+		
+		Bind();
 		SetParameter(parameter);
 		Unbind();
 	}
@@ -59,25 +62,28 @@ namespace RN
 	Texture::Texture(const std::string& name, bool isLinear)
 	{
 		glGenTextures(1, &_name);
+		RN_CHECKOPENGL();
 		
 		_width = _height = 0;
+		_depth = 1;
 		
 		_isLinear = (!Settings::SharedInstance()->GammaCorrection()) ? true : isLinear;
 		_isCompleteTexture = false;
 		_hasChanged = false;
+		
+		TextureParameter parameter;
+		
+		SetType(parameter.type);
 		
 		Bind();
 		
 		try
 		{
 			TextureLoader loader = TextureLoader(name);
-			TextureParameter parameter;
 			
 			parameter.format = loader.Format();
 			
-			SetType(parameter.type);
 			SetParameter(parameter);
-			
 			SetData(loader.Data(), loader.Width(), loader.Height(), loader.Format());
 		}
 		catch (ErrorException e)
@@ -92,16 +98,18 @@ namespace RN
 	Texture::Texture(const std::string& name, const TextureParameter& parameter, bool isLinear)
 	{
 		glGenTextures(1, &_name);
+		RN_CHECKOPENGL();
 		
 		_width = _height = 0;
+		_depth = 1;
 		
 		_isLinear = (!Settings::SharedInstance()->GammaCorrection()) ? true : isLinear;
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		
-		Bind();
-		
 		SetType(parameter.type);
+		
+		Bind();
 		SetParameter(parameter);
 		
 		try
@@ -160,7 +168,7 @@ namespace RN
 			
 			Texture *other = thread->CurrentTexture();
 			if(other && other != this)
-				glBindTexture(_glType, other->_name);
+				glBindTexture(other->_glType, other->_name);
 		}
 	}
 	
@@ -208,24 +216,25 @@ namespace RN
 				break;
 		}
 		
-		glTexParameteri(_glType, GL_TEXTURE_WRAP_S, wrapMode);
-		glTexParameteri(_glType, GL_TEXTURE_WRAP_T, wrapMode);
+		glTexParameteri(_glType, GL_TEXTURE_WRAP_S, wrapMode); RN_CHECKOPENGL_AGGRESSIVE();
+		glTexParameteri(_glType, GL_TEXTURE_WRAP_T, wrapMode); RN_CHECKOPENGL_AGGRESSIVE();
 		
-		glTexParameteri(_glType, GL_TEXTURE_MIN_FILTER, minFilter);
-		glTexParameteri(_glType, GL_TEXTURE_MAG_FILTER, magFilter);
+		glTexParameteri(_glType, GL_TEXTURE_MIN_FILTER, minFilter); RN_CHECKOPENGL_AGGRESSIVE();
+		glTexParameteri(_glType, GL_TEXTURE_MAG_FILTER, magFilter); RN_CHECKOPENGL_AGGRESSIVE();
 		
-		glTexParameteri(_glType, GL_TEXTURE_MAX_ANISOTROPY, parameter.anisotropy);
+		//glTexParameteri(_glType, GL_TEXTURE_MAX_ANISOTROPY, parameter.anisotropy); RN_CHECKOPENGL_AGGRESSIVE();
 		
 		if(_parameter.depthCompare)
 		{
-			glTexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-			glTexParameteri(_glType, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+			glTexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE); RN_CHECKOPENGL_AGGRESSIVE();
+			glTexParameteri(_glType, GL_TEXTURE_COMPARE_FUNC, GL_LESS); RN_CHECKOPENGL_AGGRESSIVE();
 		}
 		else
 		{
-			glTexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+			glTexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_NONE); RN_CHECKOPENGL_AGGRESSIVE();
 		}
 		
+		RN_CHECKOPENGL();
 		Unbind();
 	}
 	

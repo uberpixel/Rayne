@@ -28,7 +28,7 @@ namespace RN
 			fprintf(stderr, "\"\n");
 			
 			va_end(args);
-		}			
+		}
 		
 		abort();
 	}
