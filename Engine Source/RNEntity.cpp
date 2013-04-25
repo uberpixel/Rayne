@@ -33,11 +33,16 @@ namespace RN
 	{
 		if(_model)
 		{
-			float distance = WorldPosition().Distance(camera->WorldPosition());
-			distance /= camera->clipfar;
+			float distance = 0.0f;
+			Camera *distanceCamera = (camera->LODCamera()) ? camera->LODCamera() : camera;
+			
+			WorldPosition().Distance(distanceCamera->WorldPosition());
+			distance /= distanceCamera->clipfar;
+			
+			
+			RenderingObject object;
 			
 			uint32 lodStage = _model->LODStageForDistance(distance);
-			RenderingObject object;
 			
 			object.transform = (Matrix *)&WorldTransform();
 			object.skeleton  = Skeleton();
