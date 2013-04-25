@@ -153,42 +153,28 @@ namespace RN
 		_depthTexture = depthTexture ? depthTexture->Retain() : 0;
 		_depthLayer = layer;
 		_formatChanged = true;
-		
-		if(_depthTexture)
-		{
-			_depthTexture->Bind();
-			
-			TextureParameter parameter = _depthTexture->Parameter();
-			
-			parameter.filter = TextureParameter::Filter::Nearest;
-			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
-			parameter.mipMaps = 0;
-			parameter.generateMipMaps = false;
-			
-			_depthTexture->SetParameter(parameter);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-			
-			_depthTexture->Unbind();
-		}
 	}
 	
 	void RenderStorage::SetDepthTarget(TextureParameter::Format format)
-	{
-		TextureParameter parameter;
-		parameter.format = format;
-		
-		Texture *target = new Texture(parameter);
-		
-		try
-		{
-			SetDepthTarget(target);
-			target->Release();
-		}
-		catch(ErrorException e)
-		{
-			target->Release();
-		}
-	}
+    {
+        TextureParameter parameter;
+        parameter.format = format;
+        parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+        parameter.mipMaps = 0;
+        parameter.generateMipMaps = false;
+        
+        Texture *target = new Texture(parameter);
+        
+        try
+        {
+            SetDepthTarget(target);
+            target->Release();
+        }
+        catch(ErrorException e)
+        {
+            target->Release();
+        }
+    }
 	
 	
 	void RenderStorage::Bind()

@@ -91,13 +91,14 @@ namespace RN
 			parameter.type = TextureParameter::Type::Texture2DArray;
 			parameter.depthCompare = true;
 			parameter.generateMipMaps = false;
+			parameter.mipMaps = 0;
 			
 			Texture *depthtex = new Texture(parameter);
 			depthtex->SetDepth(splits);
 			
 			RenderStorage *storage;
 			
-			try
+/*			try
 			{
 				storage = new RenderStorage(RenderStorage::BufferFormatDepth);
 				storage->SetDepthTarget(depthtex);
@@ -121,10 +122,10 @@ namespace RN
 				_shadowcam->clipfar = 1000.0f;
 				_shadowcam->clipnear = 1.0f;
 			}
-			catch(ErrorException e)
+			catch(ErrorException e)*/
 			{
-				storage->Unbind();
-				storage->Release();
+//				storage->Unbind();
+//				storage->Release();
 				
 				Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepthSingle");
 				Material *depthMaterial = new Material(depthShader);
@@ -136,6 +137,7 @@ namespace RN
 				{
 					storage = new RenderStorage(RenderStorage::BufferFormatDepth);
 					storage->SetDepthTarget(depthtex, i);
+//					storage->AddRenderTarget(TextureParameter::Format::RGBA32F);
 					
 					Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
 					tempcam->SetMaterial(depthMaterial);

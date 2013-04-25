@@ -697,7 +697,7 @@ namespace RN
 			}
 		}
 
-#define PickAttribute(override, attribute) (material->override & Material::override) ? material->attribute : surfaceMaterial->attribute
+#define PickAttribute(_override, attribute) (material->override & Material::_override) ? material->attribute : surfaceMaterial->attribute
 		
 		SetCullingEnabled(PickAttribute(OverrideCulling, culling));
 		SetCullMode(PickAttribute(OverrideCullmode, cullmode));
