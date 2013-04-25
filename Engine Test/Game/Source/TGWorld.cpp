@@ -337,7 +337,7 @@ namespace TG
 		RN::Model *tree = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
 		tree->MaterialAtIndex(0, 0)->culling = false;
 		tree->MaterialAtIndex(0, 0)->discard = true;
-		tree->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard;
+		tree->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		
 		for(int i = 0; i < TGForestFeatureTrees; i += 1)
 		{
