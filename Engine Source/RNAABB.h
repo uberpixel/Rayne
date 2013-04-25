@@ -25,6 +25,9 @@ namespace RN
 		AABB operator+ (const AABB& other) const;
 		AABB& operator+= (const AABB& other);
 		
+		AABB operator* (const Vector3& other) const;
+		AABB& operator*= (const Vector3& other);
+		
 		bool Intersects(const AABB& other);
 		bool Contains(const AABB& other);
 		
@@ -118,6 +121,24 @@ namespace RN
 		
 		return *this;
 	}
+	
+	RN_INLINE AABB AABB::operator* (const Vector3& other) const
+	{
+		AABB result = *this;
+		result.width *= other;
+		result.halfWidth *= other;
+		
+		return result;
+	}
+	
+	RN_INLINE AABB& AABB::operator*= (const Vector3& other)
+	{
+		width *= other;
+		halfWidth *= other;
+		
+		return *this;
+	}
+
 	
 	
 	

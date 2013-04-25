@@ -617,7 +617,7 @@ namespace RN
 		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
 			return false;
 
-		if(_frustumLeft.Distance(position) > radius)
+/*		if(_frustumLeft.Distance(position) > radius)
 			return false;
 
 		if(_frustumRight.Distance(position) > radius)
@@ -633,7 +633,7 @@ namespace RN
 			return false;
 		
 		if(_frustumFar.Distance(position) > radius)
-			return false;
+			return false;*/
 
 		return true;
 	}

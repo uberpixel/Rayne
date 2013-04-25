@@ -67,7 +67,7 @@ namespace RN
 	
 	bool SceneNode::IsVisibleInCamera(Camera *camera)
 	{
-		return true;//camera->InFrustum(_boundingSphere);
+		return camera->InFrustum(_boundingSphere*_worldScale);
 	}
 	
 	void SceneNode::Render(Renderer *renderer, Camera *camera)

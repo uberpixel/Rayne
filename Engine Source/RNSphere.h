@@ -23,6 +23,8 @@ namespace RN
 		
 		Sphere operator+ (const Vector3& other) const;
 		Sphere& operator+= (const Vector3& other);
+		Sphere operator* (const Vector3& other) const;
+		Sphere& operator*= (const Vector3& other);
 		
 		RN_INLINE Vector3 Position() const { return origin + offset; }
 		
@@ -61,6 +63,22 @@ namespace RN
 	RN_INLINE Sphere& Sphere::operator+= (const Vector3& other)
 	{
 		origin += other;
+		return *this;
+	}
+	
+	RN_INLINE Sphere Sphere::operator* (const Vector3& other) const
+	{
+		Sphere result(*this);
+		float scale = MAX(MAX(other.x, other.y), other.z);
+		result.radius *= scale;
+		
+		return result;
+	}
+	
+	RN_INLINE Sphere& Sphere::operator*= (const Vector3& other)
+	{
+		float scale = MAX(MAX(other.x, other.y), other.z);
+		radius *= scale;
 		return *this;
 	}
 }

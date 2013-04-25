@@ -87,7 +87,7 @@ namespace RN
 			TextureParameter parameter;
 			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
 			parameter.filter = TextureParameter::Filter::Linear;
-			parameter.format = TextureParameter::Format::Depth;
+			parameter.format = TextureParameter::Format::DepthStencil;
 			parameter.type = TextureParameter::Type::Texture2DArray;
 			parameter.depthCompare = true;
 			parameter.generateMipMaps = false;
@@ -98,7 +98,7 @@ namespace RN
 			
 			RenderStorage *storage;
 			
-			try
+/*			try
 			{
 				storage = new RenderStorage(RenderStorage::BufferFormatDepth);
 				storage->SetDepthTarget(depthtex);
@@ -122,10 +122,10 @@ namespace RN
 				_shadowcam->clipfar = 1000.0f;
 				_shadowcam->clipnear = 1.0f;
 			}
-			catch(ErrorException e)
+			catch(ErrorException e)*/
 			{
-				storage->Unbind();
-				storage->Release();
+//				storage->Unbind();
+//				storage->Release();
 				
 				Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepthSingle");
 				Material *depthMaterial = new Material(depthShader);
@@ -135,8 +135,9 @@ namespace RN
 				
 				for(int i = 0; i < _shadowSplits; i++)
 				{
-					storage = new RenderStorage(RenderStorage::BufferFormatDepth);
+					storage = new RenderStorage(RenderStorage::BufferFormatComplete);// Depth);
 					storage->SetDepthTarget(depthtex, i);
+					storage->AddRenderTarget(TextureParameter::Format::RGBA32F);
 					
 					Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
 					tempcam->SetMaterial(depthMaterial);

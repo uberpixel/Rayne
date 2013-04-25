@@ -237,8 +237,10 @@ namespace RN
 		const Vector3 *vertices = Data<Vector3>(kMeshFeatureVertices);
 		if(vertices)
 		{
+			max = min = *vertices;
+			
 			size_t count = _descriptor[kMeshFeatureVertices].elementCount;
-			for(size_t i=0; i<count; i++)
+			for(size_t i=1; i<count; i++)
 			{
 				const Vector3 *vertex = vertices + i;
 				
