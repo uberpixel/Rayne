@@ -504,6 +504,15 @@ namespace RN
 	Vector3 Camera::ToWorld(const Vector3& dir)
 	{
 		Vector4 vec(dir.x, dir.y, dir.z, 1.0f);
+		if(_flags & FlagOrthogonal)
+		{
+			Vector4 temp = vec*0.5f;
+			temp += 0.5f;
+			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 1.0f-temp.y, 0.0f);
+			vec = Vector4(ortholeft, orthobottom, clipnear, 1.0f)*temp2;
+			vec += Vector4(orthoright, orthotop, clipfar, 1.0f)*temp;
+		}
+		
 		vec = inverseProjectionMatrix.Transform(vec);
 		vec /= vec.w;
 
@@ -516,6 +525,13 @@ namespace RN
 	Vector3 Camera::ToWorldZ(const Vector3& dir)
 	{
 		Vector4 vec(dir.x, dir.y, 1.0, 1.0f);
+		if(_flags & FlagOrthogonal)
+		{
+			Vector2 temp(dir.x*0.5+0.5, dir.y*0.5+0.5);
+			vec.x = ortholeft*(1.0f-temp.x)+orthoright*temp.x;
+			vec.y = orthobottom*(1.0f-temp.y)+orthotop*temp.y;
+		}
+		
 		vec = inverseProjectionMatrix.Transform(vec);
 		vec = vec.Normalize()*dir.z;
 		
@@ -614,8 +630,8 @@ namespace RN
 
 	bool Camera::InFrustum(const Vector3& position, float radius)
 	{
-		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
-			return false;
+//		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
+//			return false;
 
 /*		if(_frustumLeft.Distance(position) > radius)
 			return false;
