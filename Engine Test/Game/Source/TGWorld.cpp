@@ -339,6 +339,8 @@ namespace TG
 		tree->MaterialAtIndex(0, 0)->discard = true;
 		tree->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		
+		RN::InstancingNode *node = new RN::InstancingNode(tree);
+		
 		for(int i = 0; i < TGForestFeatureTrees; i += 1)
 		{
 			RN::Vector3 pos = RN::Vector3(TGWorldRandom*(200.0f)-100.0f, 0.0f, TGWorldRandom*(200.0f)-100.0f);
@@ -349,6 +351,8 @@ namespace TG
 			ent->SetModel(tree);
 			ent->SetPosition(pos);
 			ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
+			
+			node->AttachChild(ent);
 		}
 		
 /*		RN::Model *farm = RN::Model::WithFile("models/arteria/Farm/farmbase.sgm");

@@ -13,8 +13,7 @@
 #include "RNKernel.h"
 #include "RNThreadPool.h"
 
-#define kRNRendererInstancingCutOff  100
-#define kRNRendererMaxVAOAge         300
+#define kRNRendererMaxVAOAge 300
 
 #define kRNRendererPointLightListIndicesIndex 0
 #define kRNRendererPointLightListOffsetIndex  1
@@ -1014,14 +1013,9 @@ namespace RN
 				Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
 				Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
 				
-				uint32 offset;
-				uint32 noCheck = 0;
-				
 				machine_uint objectsCount = _frame.Count();
-				for(machine_uint i=0; i<objectsCount; i+=offset)
+				for(machine_uint i=0; i<objectsCount; i++)
 				{
-					offset = 1;
-					
 					RenderingObject& object = _frame.ObjectAtIndex(i);
 					
 					Mesh *mesh = object.mesh;
@@ -1032,38 +1026,11 @@ namespace RN
 					Matrix inverseTransform = transform.Inverse();
 					
 					// Check if we can use instancing here
-					bool canDrawInstanced = false;
-					
-					if(noCheck == 0 && SupportsOpenGLFeature(kOpenGLFeatureInstancing))
+					bool wantsInstancing = (object.type == RenderingObject::TypeInstanced);
+					if(wantsInstancing)
 					{
-						machine_uint end = i + 1;
-						offset = 1;
-						
-						while(end < objectsCount)
-						{
-							RenderingObject& temp = _frame.ObjectAtIndex(end);
-							
-							if(temp.mesh != mesh)
-								break;
-							
-							if(!surfaceMaterial && temp.material != material)
-								break;
-							
-							offset ++;
-							end ++;
-						}
-						
-						canDrawInstanced = (camera->UseInstancing() && offset >= kRNRendererInstancingCutOff && shader->SupportsProgramOfType(ShaderProgram::TypeInstanced));
-						if(!canDrawInstanced)
-						{
-							noCheck = offset;
-							offset = 1;
-						}
-					}
-					else
-					{
-						if(noCheck > 0)
-							noCheck --;
+						if(!shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
+							continue;
 					}
 					
 					// Grab the correct shader program
@@ -1080,7 +1047,7 @@ namespace RN
 					if(material->lighting && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
 						programTypes |= ShaderProgram::TypeLighting;
 					
-					if(canDrawInstanced)
+					if(wantsInstancing)
 						programTypes |= ShaderProgram::TypeInstanced;
 					
 					if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
@@ -1192,9 +1159,9 @@ namespace RN
 						}
 					}
 
-					if(canDrawInstanced)
+					if(wantsInstancing)
 					{
-						DrawMeshInstanced(i, offset);
+						DrawMeshInstanced(object);
 						continue;
 					}
 					
@@ -1284,36 +1251,25 @@ namespace RN
 		}
 	}
 	
-	void Renderer::DrawMeshInstanced(machine_uint start, machine_uint count)
+	void Renderer::DrawMeshInstanced(const RenderingObject& object)
 	{
-		Mesh *mesh = _frame[(int)start].mesh;
+		Mesh *mesh = object.mesh;
 		MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureIndices);
 		
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
 		
-		size_t offset = 0;
-		Matrix *instancingMatrices = new Matrix[count * 2];
+		glBindBuffer(GL_ARRAY_BUFFER, object.ivbo);
 		
-		glBindBuffer(GL_ARRAY_BUFFER, _instancingVBO);
-		glBufferData(GL_ARRAY_BUFFER, _instancingVBOSize, 0, GL_DYNAMIC_DRAW);
-		
-#define CopyAndEnableInstancingData(type, data) \
+#define EnableVertexAttribute(type, t) \
 		if(_currentProgram->type != -1) \
 		{ \
 			for(int i=0; i<4; i++) \
 			{ \
 				glEnableVertexAttribArray(_currentProgram->type + i); \
-				glVertexAttribPointer(_currentProgram->type + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * ((i * 4) + offset))); \
+				glVertexAttribPointer(_currentProgram->type + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * ((i * 4) + (t * object.offset)))); \
 				gl::VertexAttribDivisor(_currentProgram->type + i, 1); \
 			} \
-			for(machine_uint i=0; i<count; i++) \
-			{ \
-				RenderingObject& object = _frame[(int)(start + i)]; \
-				instancingMatrices[i + offset] = data; \
-			} \
-			offset += count; \
 		}
-		
 #define DisableAttribute(type) \
 		if(_currentProgram->type != -1) \
 		{ \
@@ -1321,21 +1277,19 @@ namespace RN
 				glDisableVertexAttribArray(_currentProgram->type + i); \
 		}
 		
-		CopyAndEnableInstancingData(imatModel, *object.transform);
-		CopyAndEnableInstancingData(imatModelInverse, object.transform->Inverse());
 		
-		_instancingVBOSize = offset * sizeof(Matrix);
-		glBufferData(GL_ARRAY_BUFFER, _instancingVBOSize, instancingMatrices, GL_DYNAMIC_DRAW);
-	
+		EnableVertexAttribute(imatModel, 0);
+		EnableVertexAttribute(imatModelInverse, 1);
+		
 		if(descriptor)
 		{
 			GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
-			glDrawElementsInstanced(mesh->Mode(), (GLsizei)descriptor->elementCount, type, 0, (GLsizei)count);
+			glDrawElementsInstanced(mesh->Mode(), (GLsizei)descriptor->elementCount, type, 0, (GLsizei)object.count);
 		}
 		else
 		{
 			descriptor = mesh->Descriptor(kMeshFeatureVertices);
-			glDrawArraysInstanced(mesh->Mode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)count);
+			glDrawArraysInstanced(mesh->Mode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)object.count);
 		}
 		
 		DisableAttribute(imatModel);
@@ -1344,7 +1298,7 @@ namespace RN
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		
 #undef DisableAttribute
-#undef CopyAndEnableInstancingData
+#undef EnableVertexAttribute
 	}
 	
 	void Renderer::RenderObject(const RenderingObject& object)

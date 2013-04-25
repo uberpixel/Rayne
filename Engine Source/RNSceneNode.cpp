@@ -103,6 +103,7 @@ namespace RN
 	{
 		if(child->_parent == this)
 		{
+			WillRemoveChild(child);
 			_childs.RemoveObject(child);
 			
 			child->_parent = 0;

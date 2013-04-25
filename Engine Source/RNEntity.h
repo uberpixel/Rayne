@@ -21,9 +21,12 @@
 namespace RN
 {
 	class World;
+	class InstancingNode;
+	
 	class Entity : public SceneNode
 	{
 	friend class World;
+	friend class InstancingNode;
 	public:
 		RNAPI Entity();
 		RNAPI virtual ~Entity();
@@ -39,6 +42,8 @@ namespace RN
 	private:
 		class Model *_model;
 		class Skeleton *_skeleton;
+		
+		bool _ignoreDrawing;
 		
 		RNDefineMeta(Entity, SceneNode)
 	};

@@ -18,6 +18,7 @@ namespace RN
 	{
 		_model = 0;
 		_skeleton = 0;
+		_ignoreDrawing = false;
 	}
 	
 	Entity::~Entity()
@@ -31,7 +32,7 @@ namespace RN
 	
 	void Entity::Render(Renderer *renderer, Camera *camera)
 	{
-		if(_model)
+		if(_model && !_ignoreDrawing)
 		{
 			float distance = 0.0f;
 			Camera *distanceCamera = (camera->LODCamera()) ? camera->LODCamera() : camera;
