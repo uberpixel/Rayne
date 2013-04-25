@@ -23,10 +23,18 @@ namespace RN
 	class RenderingObject
 	{
 	public:
-		RenderingObject()
+		enum Type
+		{
+			TypeObject,
+			TypeInstanced
+		};
+		
+		RenderingObject(Type ttype=TypeObject)
 		{
 			offset = 0;
 			count  = 0;
+			type = ttype;
+			ivbo = 0;
 			
 			mesh = 0;
 			material = 0;
@@ -39,6 +47,9 @@ namespace RN
 		Matrix   *transform;
 		Skeleton *skeleton;
 		
+		GLuint ivbo;
+		
+		Type type;
 		uint32 offset;
 		uint32 count;
 	};
@@ -82,7 +93,7 @@ namespace RN
 	protected:
 		RNAPI void UpdateShaderData();
 		RNAPI void DrawMesh(Mesh *mesh, uint32 offset, uint32 count);
-		RNAPI void DrawMeshInstanced(machine_uint start, machine_uint count);
+		RNAPI void DrawMeshInstanced(const RenderingObject& object);
 		RNAPI void BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple);
 		
 		RNAPI void CullLights(Camera *camera, Light **lights, machine_uint lightCount, GLuint indicesBuffer, GLuint offsetBuffer);
