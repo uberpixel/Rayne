@@ -294,7 +294,7 @@ namespace RN
 		std::vector<Material *> materials;
 		
 		TextureParameter parameter;
-		parameter.format = TextureParameter::Format::RGB888;
+		parameter.format = TextureParameter::Format::RGBA8888;
 		
 		for(uint8 i=0; i<countmats; i++)
 		{

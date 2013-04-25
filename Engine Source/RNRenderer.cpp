@@ -712,12 +712,20 @@ namespace RN
 		{
 			SetDepthWriteEnabled((material->depthwrite && _currentCamera->AllowsDepthWrite()));
 		}
+		else
+		{
+			SetDepthWriteEnabled((surfaceMaterial->depthwrite && _currentCamera->AllowsDepthWrite()));
+		}
 		
 		SetBlendingEnabled(PickAttribute(OverrideBlending, blending));
 		
 		if(material->override & Material::OverrideBlendmode)
 		{
 			SetBlendFunction(material->blendSource, material->blendDestination);
+		}
+		else
+		{
+			SetBlendFunction(surfaceMaterial->blendSource, surfaceMaterial->blendDestination);
 		}
 		
 #undef PickAttribute
@@ -964,12 +972,12 @@ namespace RN
 							return kRNCompareLessThan;
 					}
 					
-					if(materialA->alphatest != materialB->alphatest)
+					if(materialA->discard != materialB->discard)
 					{
-						if(!materialB->alphatest)
+						if(!materialB->discard)
 							return kRNCompareGreaterThan;
 						
-						if(!materialA->alphatest)
+						if(!materialA->discard)
 							return kRNCompareLessThan;
 					}
 					
@@ -1064,9 +1072,7 @@ namespace RN
 					
 					bool wantsDiscard = material->discard;
 					if(surfaceMaterial && !(material->override & Material::OverrideDiscard))
-					{
 						wantsDiscard = surfaceMaterial->discard;
-					}
 					
 					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
 						programTypes |= ShaderProgram::TypeAnimated;

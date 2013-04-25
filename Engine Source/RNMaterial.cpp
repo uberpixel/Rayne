@@ -124,9 +124,6 @@ namespace RN
 		
 		shininess = 0.0f;
 		
-		alphatest = false;
-		alphatestvalue = 0.75;
-		
 		depthtest = true;
 		depthtestmode = GL_LEQUAL;
 		depthwrite = true;

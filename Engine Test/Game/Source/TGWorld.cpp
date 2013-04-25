@@ -167,17 +167,14 @@ namespace TG
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
 		model->MaterialAtIndex(0, 5)->discard = true;
 		model->MaterialAtIndex(0, 5)->culling = false;
-		model->MaterialAtIndex(0, 5)->alphatest = true;
 		model->MaterialAtIndex(0, 5)->override = RN::Material::OverrideGroupDiscard;
 		
 		model->MaterialAtIndex(0, 6)->discard = true;
 		model->MaterialAtIndex(0, 6)->culling = false;
-		model->MaterialAtIndex(0, 6)->alphatest = true;
 		model->MaterialAtIndex(0, 6)->override = RN::Material::OverrideGroupDiscard;
 		
 		model->MaterialAtIndex(0, 17)->discard = true;
 		model->MaterialAtIndex(0, 17)->culling = false;
-		model->MaterialAtIndex(0, 17)->alphatest = true;
 		model->MaterialAtIndex(0, 17)->override = RN::Material::OverrideGroupDiscard;
 		
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
@@ -294,14 +291,14 @@ namespace TG
 		ent->SetModel(ground);
 		ent->SetScale(RN::Vector3(20.0f));
 		
-		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
-		
 		RN::Model *building = RN::Model::WithFile("models/Sebastian/Old_Buildings.sgm");
 		ent = new RN::Entity();
 		ent->SetModel(building);
 		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
 		
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
+		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
+		
 		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/brick2-NM.png", RN::Texture::FormatRGBA8888));
 		building->MaterialAtIndex(0, 0)->SetShader(normalshader);
 		
@@ -318,10 +315,8 @@ namespace TG
 		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsDecals.sgm");
 		building->MaterialAtIndex(0, 0)->culling = false;
 		building->MaterialAtIndex(0, 0)->discard = true;
-		building->MaterialAtIndex(0, 0)->alphatest = true;
 		building->MaterialAtIndex(0, 1)->culling = false;
 		building->MaterialAtIndex(0, 1)->discard = true;
-		building->MaterialAtIndex(0, 1)->alphatest = true;
 		ent = new RN::Entity();
 		ent->SetModel(building);
 		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
@@ -329,7 +324,6 @@ namespace TG
 		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsPlants.sgm");
 		building->MaterialAtIndex(0, 0)->culling = false;
 		building->MaterialAtIndex(0, 0)->discard = true;
-		building->MaterialAtIndex(0, 0)->alphatest = true;
 		ent = new RN::Entity();
 		ent->SetModel(building);
 		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
@@ -337,8 +331,6 @@ namespace TG
 		RN::Model *tree = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
 		tree->MaterialAtIndex(0, 0)->culling = false;
 		tree->MaterialAtIndex(0, 0)->discard = true;
-		tree->MaterialAtIndex(0, 0)->alphatest = true;
-		tree->MaterialAtIndex(0, 0)->alphatestvalue = 0.99f;
 		
 		for(int i = 0; i < TGForestFeatureTrees; i += 1)
 		{
@@ -409,10 +401,10 @@ namespace TG
 			light->SetRange((TGWorldRandom * 20.0f) + 10.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 			
-			/*light->SetAction([](RN::Transform *transform, float delta) {
+			light->SetAction([](RN::Transform *transform, float delta) {
 			 transform->Translate(RN::Vector3(0.5f * delta, 0.0f, 0.0));
-			 });*/
-//		}
+			 });
+		}*/
 #endif
 		
 #if TGWorldFeatureInstancing
@@ -421,22 +413,18 @@ namespace TG
 		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
 		foliage[0]->MaterialAtIndex(0, 0)->culling = false;
 		foliage[0]->MaterialAtIndex(0, 0)->discard = true;
-		foliage[0]->MaterialAtIndex(0, 0)->alphatest = true;
 		
 		foliage[1] = RN::Model::WithFile("models/nobiax/grass_05.sgm");
 		foliage[1]->MaterialAtIndex(0, 0)->culling = false;
 		foliage[1]->MaterialAtIndex(0, 0)->discard = true;
-		foliage[1]->MaterialAtIndex(0, 0)->alphatest = true;
 		
 		foliage[2] = RN::Model::WithFile("models/nobiax/grass_19.sgm");
 		foliage[2]->MaterialAtIndex(0, 0)->culling = false;
 		foliage[2]->MaterialAtIndex(0, 0)->discard = true;
-		foliage[2]->MaterialAtIndex(0, 0)->alphatest = true;
 		
 		foliage[3] = RN::Model::WithFile("models/nobiax/grass_04.sgm");
 		foliage[3]->MaterialAtIndex(0, 0)->culling = false;
 		foliage[3]->MaterialAtIndex(0, 0)->discard = true;
-		foliage[3]->MaterialAtIndex(0, 0)->alphatest = true;
 		
 		uint32 index = 0;
 		

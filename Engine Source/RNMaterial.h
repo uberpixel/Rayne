@@ -40,14 +40,13 @@ namespace RN
 			OverrideDiffuse = (1 << 6),
 			OverrideSpecular = (1 << 7),
 			OverrideEmissive = (1 << 8),
-			OverrideAlphatest = (1 << 9),
-			OverrideDepthtest = (1 << 10),
-			OverrideDepthwrite = (1 << 11),
-			OverrideDepthtestMode = (1 << 12),
-			OverrideDiscard = (1 << 13),
-			OverrideDiscardThreshold = (1 << 14),
-			OverrideTextures = (1 << 15),
-			OverridePolygonOffset = (1 << 16),
+			OverrideDepthtest = (1 << 9),
+			OverrideDepthwrite = (1 << 10),
+			OverrideDepthtestMode = (1 << 11),
+			OverrideDiscard = (1 << 12),
+			OverrideDiscardThreshold = (1 << 13),
+			OverrideTextures = (1 << 14),
+			OverridePolygonOffset = (1 << 15),
 			
 			OverrideGroupDiscard = OverrideDiscard | OverrideDiscardThreshold | OverrideTextures
 		};
@@ -86,9 +85,6 @@ namespace RN
 		Color diffuse;
 		Color specular;
 		Color emissive;
-		
-		bool alphatest;
-		float alphatestvalue;
 		
 		bool depthtest;
 		bool depthwrite;
