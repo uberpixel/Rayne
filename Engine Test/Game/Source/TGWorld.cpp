@@ -315,8 +315,12 @@ namespace TG
 		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsDecals.sgm");
 		building->MaterialAtIndex(0, 0)->culling = false;
 		building->MaterialAtIndex(0, 0)->discard = true;
+		building->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard;
+		
 		building->MaterialAtIndex(0, 1)->culling = false;
 		building->MaterialAtIndex(0, 1)->discard = true;
+		building->MaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard;
+		
 		ent = new RN::Entity();
 		ent->SetModel(building);
 		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
@@ -324,6 +328,8 @@ namespace TG
 		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsPlants.sgm");
 		building->MaterialAtIndex(0, 0)->culling = false;
 		building->MaterialAtIndex(0, 0)->discard = true;
+		building->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard;
+		
 		ent = new RN::Entity();
 		ent->SetModel(building);
 		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
@@ -331,6 +337,7 @@ namespace TG
 		RN::Model *tree = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
 		tree->MaterialAtIndex(0, 0)->culling = false;
 		tree->MaterialAtIndex(0, 0)->discard = true;
+		tree->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard;
 		
 		for(int i = 0; i < TGForestFeatureTrees; i += 1)
 		{
