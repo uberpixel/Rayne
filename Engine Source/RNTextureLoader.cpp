@@ -45,6 +45,8 @@ namespace RN
 		
 		if(png_sig_cmp((png_const_bytep)header, 0, 8))
 			return false;
+		
+		int transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_PACKING;
 	
 		png_structp pngPointer = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
 		png_infop pngInfo = png_create_info_struct(pngPointer);
@@ -52,74 +54,74 @@ namespace RN
 		png_init_io(pngPointer, file);
 		png_set_sig_bytes(pngPointer, 8);
 		
-		png_read_info(pngPointer, pngInfo);
+		png_read_png(pngPointer, pngInfo, transforms, 0);
 		
-		uint32 width  = (uint32)png_get_image_width(pngPointer, pngInfo);
-		uint32 height = (uint32)png_get_image_height(pngPointer, pngInfo);
+		
+		uint32 width, height;
+		int depth, colorType, interlaceType;
+		
+		png_get_IHDR(pngPointer, pngInfo, &width, &height, &depth, &colorType, &interlaceType, 0, 0);
 		
 		RN_ASSERT0(width > 0 && height > 0);
+		png_bytepp rows = png_get_rows(pngPointer, pngInfo);
 		
-		png_byte colorType = png_get_color_type(pngPointer, pngInfo);
-		
-		png_read_update_info(pngPointer, pngInfo);
-		
-		
-		png_size_t rowBytes = png_get_rowbytes(pngPointer, pngInfo);
-		png_bytep *rows = (png_bytep *)malloc(height * sizeof(png_bytep));
-		
-		for(uint32 i=0; i<height; i++)
-			rows[i] = (png_bytep)malloc(rowBytes);
-		
-		png_read_image(pngPointer, rows);
-		
-		size_t offset = 0;
 		switch(colorType)
 		{
 			case PNG_COLOR_TYPE_RGB:
-				_format = TextureParameter::Format::RGBA8888;
-				offset = 3;
+			{
+				_format = TextureParameter::Format::RGB888;
+				uint8 *data = (uint8 *)malloc(width * height * 3 * sizeof(uint32));
+				uint8 *temp = data;
+				
+				for(uint32 y=0; y<height; y++)
+				{
+					png_bytep row = rows[y];
+					
+					for(uint32 x=0; x<width; x++)
+					{
+						png_bytep ptr = &(row[x * 3]);
+						
+						*temp ++ = ptr[0];
+						*temp ++ = ptr[1];
+						*temp ++ = ptr[2];
+					}
+				}
+				
+				_data = data;
 				break;
+			}
 				
 			case PNG_COLOR_TYPE_RGBA:
+			{
 				_format = TextureParameter::Format::RGBA8888;
-				offset = 4;
-				break;
+				uint32 *data = (uint32 *)malloc(width * height * 4 * sizeof(uint32));
+				uint32 *temp = data;
 				
+				for(uint32 y=0; y<height; y++)
+				{
+					png_bytep row = rows[y];
+					
+					for(uint32 x=0; x<width; x++)
+					{
+						png_bytep ptr = &(row[x * 4]);
+						
+						*temp ++ = (ptr[3] << 24) | (ptr[2] << 16) | (ptr[1] << 8) | ptr[0];
+					}
+				}
+				
+				_data = data;
+				break;
+			}
+			
 			default:
 				printf("Wrong color type!");
 				break;
 		}
 		
-		uint32 i = 0;
-		uint32 *data = (uint32 *)malloc(width * height * sizeof(uint32));
-		
-		for(uint32 y=0; y<height; y++)
-		{
-			png_bytep row = rows[y];
-			
-			for(uint32 x=0; x<width; x++)
-			{
-				png_bytep ptr = &(row[x * offset]);
-				
-				uint32 r = ptr[0];
-				uint32 g = ptr[1];
-				uint32 b = ptr[2];
-				uint32 a = (offset == 4) ? ptr[3] : 255;
-				
-				data[i ++] = (a << 24) | (b << 16) | (g << 8) | r;
-			}
-			
-			free(rows[y]);
-		}
-		
-		free(rows);
-		
-		png_destroy_info_struct(pngPointer, (png_infopp)&pngInfo);
-		png_destroy_read_struct((png_structpp)&pngPointer, 0, 0);
+		png_destroy_read_struct((png_structpp)&pngPointer, (png_infopp)&pngInfo, 0);
 		
 		_width  = width;
 		_height = height;
-		_data = data;
 		
 		return true;
 	}

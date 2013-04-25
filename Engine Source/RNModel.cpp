@@ -293,9 +293,6 @@ namespace RN
 		
 		std::vector<Material *> materials;
 		
-		TextureParameter parameter;
-		parameter.format = TextureParameter::Format::RGBA8888;
-		
 		for(uint8 i=0; i<countmats; i++)
 		{
 			Material *material = new Material(shader);
@@ -308,7 +305,7 @@ namespace RN
 				file->ReadIntoString(textureFile, file->ReadUint16());
 				
 				std::string path = file->Path();
-				Texture *texture = new Texture(PathManager::Join(path, textureFile), parameter);
+				Texture *texture = new Texture(PathManager::Join(path, textureFile));
 				material->AddTexture(texture);
 				texture->Release();
 			}

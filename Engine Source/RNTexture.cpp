@@ -74,13 +74,11 @@ namespace RN
 		TextureParameter parameter;
 		
 		SetType(parameter.type);
-		
 		Bind();
 		
 		try
 		{
 			TextureLoader loader = TextureLoader(name);
-			
 			parameter.format = loader.Format();
 			
 			SetParameter(parameter);
