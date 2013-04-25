@@ -339,29 +339,6 @@ namespace TG
 		tree->MaterialAtIndex(0, 0)->discard = true;
 		tree->MaterialAtIndex(0, 0)->alphatest = true;
 		tree->MaterialAtIndex(0, 0)->alphatestvalue = 0.99f;
-/*		tree->MaterialAtIndex(0, 2)->culling = false;
-		tree->MaterialAtIndex(0, 2)->discard = true;
-		tree->MaterialAtIndex(0, 2)->alphatest = true;
-		tree->MaterialAtIndex(0, 3)->culling = false;
-		tree->MaterialAtIndex(0, 3)->discard = true;
-		tree->MaterialAtIndex(0, 3)->alphatest = true;
-		tree->MaterialAtIndex(0, 3)->alphatestvalue = 0.3f;
-		
-		tree->MaterialAtIndex(1, 0)->culling = false;
-		tree->MaterialAtIndex(1, 0)->discard = true;
-		tree->MaterialAtIndex(1, 0)->alphatest = true;
-		tree->MaterialAtIndex(1, 0)->alphatestvalue = 0.3f;
-		tree->MaterialAtIndex(1, 2)->culling = false;
-		tree->MaterialAtIndex(1, 2)->discard = true;
-		tree->MaterialAtIndex(1, 2)->alphatest = true;
-		tree->MaterialAtIndex(1, 3)->culling = false;
-		tree->MaterialAtIndex(1, 3)->discard = true;
-		tree->MaterialAtIndex(1, 3)->alphatest = true;
-		
-		tree->MaterialAtIndex(2, 0)->culling = false;
-		tree->MaterialAtIndex(2, 0)->discard = true;
-		tree->MaterialAtIndex(2, 0)->alphatest = true;
-		tree->MaterialAtIndex(2, 0)->alphatestvalue = 0.3f;*/
 		
 		for(int i = 0; i < TGForestFeatureTrees; i += 1)
 		{
@@ -425,7 +402,7 @@ namespace TG
 		_player->AttachChild(_spotLight);
 #endif
 		
-		for(int i=0; i<200; i++)
+/*		for(int i=0; i<200; i++)
 		{
 			light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 140.0f - 70.0f, TGWorldRandom * 100.0f-20.0f, TGWorldRandom * 80.0f - 40.0f));
@@ -435,7 +412,7 @@ namespace TG
 			/*light->SetAction([](RN::Transform *transform, float delta) {
 			 transform->Translate(RN::Vector3(0.5f * delta, 0.0f, 0.0));
 			 });*/
-		}
+//		}
 #endif
 		
 #if TGWorldFeatureInstancing

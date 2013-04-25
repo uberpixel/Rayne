@@ -80,7 +80,7 @@ vec4 rn_Lighting()
 			light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}*/
 	
-	for(int i=0; i<lightDirectionalCount; i++)
+//	for(int i=0; i<lightDirectionalCount; i++)
 	{
 		light += lightDirectionalColor[0]*max(dot(normal, lightDirectionalDirection[0]), 0.0)*rn_ShadowDir1();
 	}
