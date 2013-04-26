@@ -353,6 +353,13 @@ namespace TG
 			ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
 			
 			node->AttachChild(ent);
+			
+			if(i == 10)
+			{
+				ent->SetAction([](RN::SceneNode *node, float delta) {
+					node->Translate(RN::Vector3(0.0f, 1.0f * delta, 0.0f));
+				});
+			}
 		}
 		
 /*		RN::Model *farm = RN::Model::WithFile("models/arteria/Farm/farmbase.sgm");
