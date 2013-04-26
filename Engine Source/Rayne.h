@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNNumber.h"
 #include "RNAutoreleasePool.h"
 #include "RNCache.h"
 

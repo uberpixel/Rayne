@@ -92,6 +92,8 @@
 		E996A0B516F2CE97000EFB03 /* RNRenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = E996A0B316F2CE97000EFB03 /* RNRenderer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E99A955D1729AE1800605C68 /* RNInstancingNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E99A955B1729AE1800605C68 /* RNInstancingNode.cpp */; };
 		E99A955E1729AE1800605C68 /* RNInstancingNode.h in Headers */ = {isa = PBXBuildFile; fileRef = E99A955C1729AE1800605C68 /* RNInstancingNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E99A9561172A002100605C68 /* RNNumber.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E99A955F172A002100605C68 /* RNNumber.cpp */; };
+		E99A9562172A002100605C68 /* RNNumber.h in Headers */ = {isa = PBXBuildFile; fileRef = E99A9560172A002100605C68 /* RNNumber.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9AB0DAB16D679DC000D1CF0 /* RNSceneNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AB0DAA16D679DC000D1CF0 /* RNSceneNode.cpp */; };
 		E9B03FE716F2773A0016176B /* RNAsyncCacheable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9B03FE316F2773A0016176B /* RNAsyncCacheable.cpp */; };
 		E9B03FE816F2773A0016176B /* RNCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9B03FE416F2773A0016176B /* RNCache.cpp */; };
@@ -255,6 +257,8 @@
 		E996A0B616F30B05000EFB03 /* RNSynchronization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSynchronization.h; sourceTree = "<group>"; };
 		E99A955B1729AE1800605C68 /* RNInstancingNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNInstancingNode.cpp; sourceTree = "<group>"; };
 		E99A955C1729AE1800605C68 /* RNInstancingNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNInstancingNode.h; sourceTree = "<group>"; };
+		E99A955F172A002100605C68 /* RNNumber.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNNumber.cpp; sourceTree = "<group>"; };
+		E99A9560172A002100605C68 /* RNNumber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNNumber.h; sourceTree = "<group>"; };
 		E9AB0DAA16D679DC000D1CF0 /* RNSceneNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSceneNode.cpp; sourceTree = "<group>"; };
 		E9AB7F0E16D42522006BB4CB /* RNOpenGLExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNOpenGLExtensions.h; sourceTree = "<group>"; };
 		E9B03FE316F2773A0016176B /* RNAsyncCacheable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNAsyncCacheable.cpp; sourceTree = "<group>"; };
@@ -460,6 +464,8 @@
 			isa = PBXGroup;
 			children = (
 				E9619DF41696157E00DA187E /* RNArray.h */,
+				E99A955F172A002100605C68 /* RNNumber.cpp */,
+				E99A9560172A002100605C68 /* RNNumber.h */,
 				E957BAB21714DE7400AD7A54 /* RNOctree.cpp */,
 				E957BAB31714DE7400AD7A54 /* RNOctree.h */,
 			);
@@ -642,6 +648,7 @@
 				E9D3CED6171F907500F4BF36 /* RNResourcePool.h in Headers */,
 				E9D3CEE817203FA100F4BF36 /* RNBillboard.h in Headers */,
 				E99A955E1729AE1800605C68 /* RNInstancingNode.h in Headers */,
+				E99A9562172A002100605C68 /* RNNumber.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -791,6 +798,7 @@
 				E9D3CED5171F907500F4BF36 /* RNResourcePool.cpp in Sources */,
 				E9D3CEE717203FA100F4BF36 /* RNBillboard.cpp in Sources */,
 				E99A955D1729AE1800605C68 /* RNInstancingNode.cpp in Sources */,
+				E99A9561172A002100605C68 /* RNNumber.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
