@@ -386,6 +386,8 @@ namespace RN
 		pos = rot*pos;
 		SetPosition(pos);
 		
+//		clipfar = 500.0f+dist*2.0f;
+		
 	/*	Vector3 nearcorner1 = camera->ToWorldZ(Vector3(-1.0f, -1.0f, near));
 		Vector3 farcorner1 = camera->ToWorldZ(Vector3(1.0f, 1.0f, far));
 		Vector3 farcorner2 = camera->ToWorldZ(Vector3(-1.0f, -1.0f, far));
@@ -508,7 +510,7 @@ namespace RN
 		{
 			Vector4 temp = vec*0.5f;
 			temp += 0.5f;
-			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 1.0f-temp.y, 0.0f);
+			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 1.0f-temp.z, 0.0f);
 			vec = Vector4(ortholeft, orthobottom, clipnear, 1.0f)*temp2;
 			vec += Vector4(orthoright, orthotop, clipfar, 1.0f)*temp;
 		}
@@ -630,10 +632,10 @@ namespace RN
 
 	bool Camera::InFrustum(const Vector3& position, float radius)
 	{
-//		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
-//			return false;
+		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
+			return false;
 
-/*		if(_frustumLeft.Distance(position) > radius)
+		if(_frustumLeft.Distance(position) > radius)
 			return false;
 
 		if(_frustumRight.Distance(position) > radius)
@@ -649,7 +651,7 @@ namespace RN
 			return false;
 		
 		if(_frustumFar.Distance(position) > radius)
-			return false;*/
+			return false;
 
 		return true;
 	}
