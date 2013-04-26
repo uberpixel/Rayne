@@ -423,6 +423,7 @@ namespace RN
 				GetUniformLocation(matProjViewModelInverse);
 				
 				GetUniformLocation(matBones);
+				GetUniformLocation(instancingData);
 				
 				GetUniformLocation(time);
 				GetUniformLocation(frameSize);
@@ -474,10 +475,7 @@ namespace RN
 				
 				GetUniformLocation(depthmap);
 				
-				// Get attributes
-				GetAttributeLocation(imatModel);
-				GetAttributeLocation(imatModelInverse);
-				
+				// Get attributes				
 				GetAttributeLocation(vertPosition);
 				GetAttributeLocation(vertNormal);
 				GetAttributeLocation(vertTangent);

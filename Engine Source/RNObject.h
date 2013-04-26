@@ -42,6 +42,17 @@ namespace RN
 			return __metaClass;
 		}
 		
+		enum class MemoryPolicy
+		{
+			Assign,
+			Retain,
+			Copy
+		};
+		
+		void SetAssociatedObject(const void *key, Object *value, MemoryPolicy policy);
+		void RemoveAssociatedOject(const void *key);
+		Object *AssociatedObject(const void *key);
+		
 	private:
 		class MetaType : public MetaClass
 		{
@@ -56,9 +67,13 @@ namespace RN
 			{}
 		};
 		
+		void __RemoveAssociatedOject(const void *key);
+		
 		SpinLock _lock;
 		machine_int _refCount;
 		static MetaType *__metaClass;
+		
+		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 	};
 	
 #define __RNDefineMetaPrivate(cls, super, cnstr) \

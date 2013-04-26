@@ -44,8 +44,7 @@ namespace RN
 		GLuint matProjViewModelInverse;
 		GLuint matBones;
 		
-		GLuint imatModel;
-		GLuint imatModelInverse;
+		GLuint instancingData;
 		
 		GLuint vertPosition;
 		GLuint vertNormal;

@@ -34,7 +34,7 @@ namespace RN
 			offset = 0;
 			count  = 0;
 			type = ttype;
-			ivbo = 0;
+			texture = 0;
 			
 			mesh = 0;
 			material = 0;
@@ -47,7 +47,7 @@ namespace RN
 		Matrix   *transform;
 		Skeleton *skeleton;
 		
-		GLuint ivbo;
+		GLuint texture;
 		
 		Type type;
 		uint32 offset;

@@ -20,6 +20,7 @@ namespace RN
 	public:
 		InstancingNode();
 		InstancingNode(Model *model);
+		virtual ~InstancingNode();
 		
 		RNAPI void SetModel(Model *model);
 		
@@ -32,20 +33,19 @@ namespace RN
 		RNAPI virtual void WillRemoveChild(SceneNode *child);
 		
 	private:
-		void MarkChildDirty(SceneNode *child);
-		void GenerateDataForMesh(const Array<Entity *>& entities, Mesh *mesh, Material *material);
-		void RecalculateData();
-		
 		struct InstancedMesh
 		{
 			Mesh *mesh;
 			Material *material;
 			
-			GLuint vbo;
-			
+			GLuint texture;
 			uint32 count;
-			uint32 offset;
 		};
+		
+		void MarkChildDirty(SceneNode *child, bool canRecover);
+		void GenerateDataForMesh(const Array<Entity *>& entities, Mesh *mesh, Material *material);
+		void UpdateDataForMesh(Entity *entity, const InstancedMesh& mesh, uint32 index);
+		void RecalculateData();
 		
 		bool _dirty;
 		Model *_model;

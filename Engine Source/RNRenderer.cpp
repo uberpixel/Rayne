@@ -1258,28 +1258,11 @@ namespace RN
 		
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
 		
-		glBindBuffer(GL_ARRAY_BUFFER, object.ivbo);
-		
-#define EnableVertexAttribute(type, t) \
-		if(_currentProgram->type != -1) \
-		{ \
-			for(int i=0; i<4; i++) \
-			{ \
-				glEnableVertexAttribArray(_currentProgram->type + i); \
-				glVertexAttribPointer(_currentProgram->type + i, 4, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 16, (void *)(sizeof(float) * ((i * 4) + (t * object.offset)))); \
-				gl::VertexAttribDivisor(_currentProgram->type + i, 1); \
-			} \
+		if(_currentProgram->instancingData != -1)
+		{
+			uint32 textureUnit = BindTexture(GL_TEXTURE_2D, object.texture);
+			glUniform1i(_currentProgram->instancingData, textureUnit);
 		}
-#define DisableAttribute(type) \
-		if(_currentProgram->type != -1) \
-		{ \
-			for(int i=0; i<4; i++) \
-				glDisableVertexAttribArray(_currentProgram->type + i); \
-		}
-		
-		
-		EnableVertexAttribute(imatModel, 0);
-		EnableVertexAttribute(imatModelInverse, 1);
 		
 		if(descriptor)
 		{
@@ -1291,14 +1274,6 @@ namespace RN
 			descriptor = mesh->Descriptor(kMeshFeatureVertices);
 			glDrawArraysInstanced(mesh->Mode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)object.count);
 		}
-		
-		DisableAttribute(imatModel);
-		DisableAttribute(imatModelInverse);
-		
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
-#undef DisableAttribute
-#undef EnableVertexAttribute
 	}
 	
 	void Renderer::RenderObject(const RenderingObject& object)
