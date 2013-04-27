@@ -23,7 +23,7 @@ namespace RN
 		
 		region.isFree = true;
 		
-		_regions.AddObject(region);
+		_regions.push_back(region);
 		_data = static_cast<uint8 *>(calloc(width * height * 4, 1));
 	}
 	
@@ -52,7 +52,7 @@ namespace RN
 		size_t biggestDimension = 0;
 		machine_uint biggestIndex = RN_NOT_FOUND;
 		
-		for(machine_uint i=0; i<_regions.Count(); i++)
+		for(size_t i=0; i<_regions.size(); i++)
 		{
 			TextureRegion& region = _regions[(int)i];
 			
@@ -78,18 +78,21 @@ namespace RN
 				return source.rect;
 			}
 			
-			TextureRegion occupator;
-			occupator.rect = Rect(source.rect.x, source.rect.y, width, height);
-			occupator.isFree = false;
 			
-			_regions.AddObject(occupator);
+			
+			TextureRegion occupator;
+			Rect rect = Rect(source.rect.x, source.rect.y, width, height);
+			
+			occupator.rect = rect;
+			occupator.isFree = false;
 			
 			if(source.rect.width == width)
 			{
 				source.rect.height -= height;
 				source.rect.y += height;
 				
-				return occupator.rect;
+				_regions.push_back(occupator);
+				return rect;
 			}
 			
 			if(source.rect.height == height)
@@ -97,9 +100,9 @@ namespace RN
 				source.rect.width -= width;
 				source.rect.x += width;
 				
-				return occupator.rect;
+				_regions.push_back(occupator);
+				return rect;
 			}
-			
 			
 			
 			TextureRegion next;
@@ -113,11 +116,13 @@ namespace RN
 			source.rect.height -= height;
 			source.rect.y += height;
 			
-			_regions.AddObject(next);
-			return occupator.rect;
+			_regions.push_back(occupator);
+			_regions.push_back(next);
+			
+			return rect;
 		}
 		
-		throw "Shit...";
+		throw ErrorException(0, 0, 0);
 	}
 	
 	void TextureAtlas::SetRegionData(const Rect& region, void *data, TextureParameter::Format format)

@@ -122,6 +122,8 @@
 		E9D3CEE817203FA100F4BF36 /* RNBillboard.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D3CEE617203FA100F4BF36 /* RNBillboard.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9D4BF7B16EEAF8F00513938 /* RNError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D4BF7A16EEAF8F00513938 /* RNError.cpp */; };
 		E9D820A51717143B0080CD17 /* RNAABB.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D820A41717143B0080CD17 /* RNAABB.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9E83F45172A4FD70075559B /* RNTextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */; };
+		E9E83F46172A4FD70075559B /* RNTextureAtlas.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E83F44172A4FD70075559B /* RNTextureAtlas.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9ECEEB916D7F0E700C6CF09 /* libjansson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ECEEB816D7F09800C6CF09 /* libjansson.a */; };
 		E9F3A6F4171B8D3E0005A79E /* RNParticleEmitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F3A6F2171B8D3E0005A79E /* RNParticleEmitter.cpp */; };
 		E9F3A6F5171B8D3E0005A79E /* RNParticleEmitter.h in Headers */ = {isa = PBXBuildFile; fileRef = E9F3A6F3171B8D3E0005A79E /* RNParticleEmitter.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -286,6 +288,8 @@
 		E9D3CEE617203FA100F4BF36 /* RNBillboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBillboard.h; sourceTree = "<group>"; };
 		E9D4BF7A16EEAF8F00513938 /* RNError.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNError.cpp; sourceTree = "<group>"; };
 		E9D820A41717143B0080CD17 /* RNAABB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAABB.h; sourceTree = "<group>"; };
+		E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTextureAtlas.cpp; sourceTree = "<group>"; };
+		E9E83F44172A4FD70075559B /* RNTextureAtlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTextureAtlas.h; sourceTree = "<group>"; };
 		E9ECEEB316D7F09800C6CF09 /* jansson-osx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "jansson-osx.xcodeproj"; path = "../../Vendor/libjansson/jansson-osx.xcodeproj"; sourceTree = "<group>"; };
 		E9F3A6F2171B8D3E0005A79E /* RNParticleEmitter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNParticleEmitter.cpp; sourceTree = "<group>"; };
 		E9F3A6F3171B8D3E0005A79E /* RNParticleEmitter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNParticleEmitter.h; sourceTree = "<group>"; };
@@ -510,6 +514,8 @@
 				E9619E1B1696157E00DA187E /* RNShader.h */,
 				E9619E1D1696157E00DA187E /* RNTexture.cpp */,
 				E9619E1E1696157E00DA187E /* RNTexture.h */,
+				E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */,
+				E9E83F44172A4FD70075559B /* RNTextureAtlas.h */,
 			);
 			name = Rendering;
 			sourceTree = "<group>";
@@ -649,6 +655,7 @@
 				E9D3CEE817203FA100F4BF36 /* RNBillboard.h in Headers */,
 				E99A955E1729AE1800605C68 /* RNInstancingNode.h in Headers */,
 				E99A9562172A002100605C68 /* RNNumber.h in Headers */,
+				E9E83F46172A4FD70075559B /* RNTextureAtlas.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -799,6 +806,7 @@
 				E9D3CEE717203FA100F4BF36 /* RNBillboard.cpp in Sources */,
 				E99A955D1729AE1800605C68 /* RNInstancingNode.cpp in Sources */,
 				E99A9561172A002100605C68 /* RNNumber.cpp in Sources */,
+				E9E83F45172A4FD70075559B /* RNTextureAtlas.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

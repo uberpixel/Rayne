@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNTexture.h"
+#include "RNRect.h"
 #include "RNArray.h"
 #include "RNVector.h"
 
@@ -34,7 +35,7 @@ namespace RN
 			bool isFree;
 		};
 		
-		Array<TextureRegion> _regions;
+		std::vector<TextureRegion> _regions;
 		uint8 *_data;
 	};
 }

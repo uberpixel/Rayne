@@ -56,6 +56,7 @@
 #include "RNMesh.h"
 #include "RNShader.h"
 #include "RNTexture.h"
+#include "RNTextureAtlas.h"
 
 #include "RNWorld.h"
 #include "RNSceneNode.h"
