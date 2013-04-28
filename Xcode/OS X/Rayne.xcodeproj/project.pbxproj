@@ -81,6 +81,8 @@
 		E9619F841696FDE100DA187E /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F7E1696FDC000DA187E /* libpng.a */; };
 		E9780FC016D82913001AE2ED /* RNSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9780FBE16D82913001AE2ED /* RNSettings.cpp */; };
 		E9780FC116D82913001AE2ED /* RNSettings.h in Headers */ = {isa = PBXBuildFile; fileRef = E9780FBF16D82913001AE2ED /* RNSettings.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E97C3EB0172B11C7006EA63A /* RNString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E97C3EAE172B11C7006EA63A /* RNString.cpp */; };
+		E97C3EB1172B11C7006EA63A /* RNString.h in Headers */ = {isa = PBXBuildFile; fileRef = E97C3EAF172B11C7006EA63A /* RNString.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E97DE03816F2574C0009128F /* Rayne.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1E016B5286500EFE1E8 /* Rayne.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E991F1BF16BB231000B205A1 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E991F1BE16BB231000B205A1 /* IOKit.framework */; };
 		E991F1C616BB707300B205A1 /* RNMessage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E991F1C416BB707300B205A1 /* RNMessage.cpp */; };
@@ -247,6 +249,8 @@
 		E9619F791696FDC000DA187E /* png-osx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "png-osx.xcodeproj"; path = "../../Vendor/libpng/png-osx.xcodeproj"; sourceTree = "<group>"; };
 		E9780FBE16D82913001AE2ED /* RNSettings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSettings.cpp; sourceTree = "<group>"; };
 		E9780FBF16D82913001AE2ED /* RNSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSettings.h; sourceTree = "<group>"; };
+		E97C3EAE172B11C7006EA63A /* RNString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNString.cpp; sourceTree = "<group>"; };
+		E97C3EAF172B11C7006EA63A /* RNString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNString.h; sourceTree = "<group>"; };
 		E98D1E581673A6E200889F3B /* libRayne.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libRayne.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		E991F1BE16BB231000B205A1 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		E991F1C416BB707300B205A1 /* RNMessage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNMessage.cpp; sourceTree = "<group>"; };
@@ -470,6 +474,8 @@
 				E9619DF41696157E00DA187E /* RNArray.h */,
 				E99A955F172A002100605C68 /* RNNumber.cpp */,
 				E99A9560172A002100605C68 /* RNNumber.h */,
+				E97C3EAE172B11C7006EA63A /* RNString.cpp */,
+				E97C3EAF172B11C7006EA63A /* RNString.h */,
 				E957BAB21714DE7400AD7A54 /* RNOctree.cpp */,
 				E957BAB31714DE7400AD7A54 /* RNOctree.h */,
 			);
@@ -656,6 +662,7 @@
 				E99A955E1729AE1800605C68 /* RNInstancingNode.h in Headers */,
 				E99A9562172A002100605C68 /* RNNumber.h in Headers */,
 				E9E83F46172A4FD70075559B /* RNTextureAtlas.h in Headers */,
+				E97C3EB1172B11C7006EA63A /* RNString.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -807,6 +814,7 @@
 				E99A955D1729AE1800605C68 /* RNInstancingNode.cpp in Sources */,
 				E99A9561172A002100605C68 /* RNNumber.cpp in Sources */,
 				E9E83F45172A4FD70075559B /* RNTextureAtlas.cpp in Sources */,
+				E97C3EB0172B11C7006EA63A /* RNString.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

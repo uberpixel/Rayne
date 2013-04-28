@@ -58,6 +58,8 @@
 #include "RNTexture.h"
 #include "RNTextureAtlas.h"
 
+#include "RNString.h"
+
 #include "RNWorld.h"
 #include "RNSceneNode.h"
 #include "RNEntity.h"
