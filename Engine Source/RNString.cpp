@@ -554,7 +554,7 @@ namespace RN
 			size_t length;
 			
 			length = UTF8TrailingBytes[*data] + 1;
-			data ++;
+			data += length;
 			
 			if(data > dataEnd)
 				throw ErrorException(0, 0, 0);
@@ -569,7 +569,7 @@ namespace RN
 				size_t length;
 				
 				length = UTF8TrailingBytes[*temp] + 1;
-				temp ++;
+				temp += length;
 				
 				if(temp > dataEnd)
 					throw ErrorException(0, 0, 0);
@@ -655,10 +655,10 @@ namespace RN
 			size_t length;
 			
 			length = UTF8TrailingBytes[*dataA] + 1;
-			dataA ++;
+			dataA += length;
 			
 			length = UTF8TrailingBytes[*dataB] + 1;
-			dataB ++;
+			dataB += length;
 			
 			if(dataA > dataAEnd)
 				throw ErrorException(0, 0, 0);
@@ -677,10 +677,10 @@ namespace RN
 				size_t length;
 				
 				length = UTF8TrailingBytes[*tempA] + 1;
-				tempA ++;
+				tempA += length;
 				
 				length = UTF8TrailingBytes[*tempB] + 1;
-				tempB ++;
+				tempB += length;
 				
 				if(tempA > dataAEnd)
 					throw ErrorException(0, 0, 0);
@@ -790,6 +790,36 @@ namespace RN
 		}
 		
 		printf("\n");
+	}
+	
+	String String::Substring(const Range& range) const
+	{
+		const uint8 *data = _buffer;
+		const uint8 *dataEnd = _buffer + _occupied;
+		
+		for(machine_uint i=0; i<range.origin; i++)
+		{
+			size_t length = UTF8TrailingBytes[*data] + 1;
+			data += length;
+			
+			if(data > dataEnd)
+				throw ErrorException(0, 0, 0);
+		}
+		
+		size_t bytes = 0;
+		const uint8 *temp = data;
+		
+		for(machine_uint i=0; i<range.length; i++)
+		{
+			size_t length = UTF8TrailingBytes[*temp] + 1;
+			temp  += length;
+			bytes += length;
+			
+			if(temp > dataEnd)
+				throw ErrorException(0, 0, 0);
+		}
+		
+		return String(data, bytes, Encoding::UTF8);
 	}
 	
 	UniChar String::CharacterAtIndex(uint32 index) const

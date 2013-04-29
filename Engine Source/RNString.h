@@ -62,8 +62,10 @@ namespace RN
 		ComparisonResult Compare(const String& other, ComparisonMode mode) const;
 		ComparisonResult Compare(const String& other, const Range& range, ComparisonMode mode) const;
 		
-		uint32 Length() const { return _length; }
+		String Substring(const Range& range) const;
 		UniChar CharacterAtIndex(uint32 index) const;
+		
+		uint32 Length() const { return _length; }
 		
 		uint8 *BytesWithEncoding(Encoding encoding, bool lossy, size_t *length) const;
 		
