@@ -758,7 +758,7 @@ namespace RN
 				buffer[string.size()] = '\0';
 				
 				if(outLength)
-					*outLength = string.size();
+					*outLength = string.size() * sizeof(char16_t);
 				
 				return reinterpret_cast<uint8 *>(buffer);
 				break;
