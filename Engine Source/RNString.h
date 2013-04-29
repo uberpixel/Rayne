@@ -22,7 +22,8 @@ namespace RN
 		enum
 		{
 			ComparisonModeCaseInsensitive = (1 << 0),
-			ComparisonModeNumerically = (1 << 1)
+			ComparisonModeNumerically = (1 << 1),
+			ComparisonModeBackwards = (1 << 2)
 		};
 		typedef uint32 ComparisonMode;
 		
@@ -53,6 +54,10 @@ namespace RN
 		void Append(const void *bytes, Encoding encoding);
 		void Append(const void *bytes, size_t length, Encoding encoding);
 		void Append(const String& string);
+		
+		void Insert(const String& string, uint32 index);
+		void DeleteCharacters(const Range& range);
+		void ReplaceCharacters(const String& replacement, const Range& range);
 		
 		Range RangeOfString(const String& string);
 		Range RangeOfString(const String& string, ComparisonMode mode);

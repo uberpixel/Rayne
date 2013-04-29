@@ -505,6 +505,91 @@ namespace RN
 	}
 	
 	
+	void String::Insert(const String& string, uint32 index)
+	{
+		ReplaceCharacters(string, Range(index, 0));
+	}
+	
+	void String::DeleteCharacters(const Range& range)
+	{
+		ReplaceCharacters(String(), range);
+	}
+	
+	void String::ReplaceCharacters(const String& replacement, const Range& range)
+	{
+		CheckAndExpandBuffer(replacement._length);
+		
+		uint8 *data = _buffer;
+		uint8 *dataEnd = _buffer + _occupied;
+		
+		RN_ASSERT0(range.origin + range.length <= _length);
+		
+		uint32 intialOccupied = 0;
+		uint32 appendixLength = 0;
+		
+		// Skip the first n characters
+		for(machine_uint i=0; i<range.origin; i++)
+		{
+			size_t length = UTF8TrailingBytes[*data] + 1;
+			data += length;
+			intialOccupied += length;
+			appendixLength ++;
+			
+			if(data > dataEnd)
+				throw ErrorException(0, 0, 0);
+		}
+		
+		uint8 *begin = data;
+		uint8 *end = data;
+		
+		// Find the beginning of the end
+		for(machine_uint i=0; i<range.length; i++)
+		{
+			size_t length = UTF8TrailingBytes[*end] + 1;
+			end += length;
+			appendixLength ++; 
+			
+			if(end > dataEnd)
+				throw ErrorException(0, 0, 0);
+		}
+		
+		appendixLength = (_length - appendixLength);
+		
+		// Copy the appendix of this string into a temporary buffer
+		size_t bytes = (dataEnd + 1) - end;
+		uint8 *temp = 0;
+		
+		if(bytes > 0)
+		{
+			temp = new uint8[bytes];
+			std::copy(end, dataEnd, temp);
+		}
+		
+		// Copy everything back together
+		_length   = static_cast<uint32>(range.origin);
+		_occupied = intialOccupied;
+		
+		if(replacement._length > 0)
+		{
+			uint32 rSize = replacement._occupied;
+			std::copy(replacement._buffer, replacement._buffer + rSize, begin);
+			
+			_length   += replacement._length;
+			_occupied += rSize;
+			
+			begin += rSize;
+		}
+		
+		if(temp)
+		{
+			_length   += appendixLength;
+			_occupied += bytes - 1; // Don't include the null termination
+			
+			std::copy(temp, temp + bytes, begin);
+			delete [] temp;
+		}
+	}
+	
 	// ---------------------
 	// MARK: -
 	// MARK: Comparison
@@ -767,7 +852,7 @@ namespace RN
 	{
 		const uint8 *data = _buffer;
 		
-		for(uint32 i=0; i<_length; i++)
+		while(*data != '\0')
 		{
 			if(*data <= 0x7F)
 			{
