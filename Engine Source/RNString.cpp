@@ -42,12 +42,17 @@ namespace RN
 			return *this;
 		}
 		
-		bool operator >(const CodePoint& other)
+		bool operator ==(const CodePoint& other) const
+		{
+			return (_codePoint == other._codePoint);
+		}
+		
+		bool operator >(const CodePoint& other) const
 		{
 			return _codePoint > other._codePoint;
 		}
 		
-		bool operator <(const CodePoint& other)
+		bool operator <(const CodePoint& other) const
 		{
 			return _codePoint < other._codePoint;
 		}
@@ -505,6 +510,123 @@ namespace RN
 	// MARK: Comparison
 	// ---------------------
 	
+#define PeekCharacter(point, string) do { \
+		uint8 temp[5] = { 0 }; \
+		size_t length = UTF8TrailingBytes[*(string)] + 1; \
+		\
+		std::copy(string, string + length, temp); \
+		std::basic_string<char32_t> converted = convert.from_bytes((const char *)temp); \
+		\
+		point = CodePoint(static_cast<uint32>(converted[0])); \
+		string += length; \
+	} while(0)
+	
+	Range String::RangeOfString(const String& string)
+	{
+		return RangeOfString(string, 0, Range(0, _length));
+	}
+	
+	Range String::RangeOfString(const String& string, ComparisonMode mode)
+	{
+		return RangeOfString(string, mode, Range(0, _length));
+	}
+	
+	Range String::RangeOfString(const String& string, ComparisonMode mode, const Range& range)
+	{
+		const uint8 *data = _buffer;
+		const uint8 *dataEnd = _buffer + _occupied;
+		
+		const uint8 *stringData = string._buffer;
+		const uint8 *stringDataTemp;
+		
+		RN_ASSERT0(range.origin + range.length <= _length);
+		
+		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
+		
+		CodePoint first;
+		PeekCharacter(first, stringData);
+		
+		stringDataTemp = stringData;
+		
+		// Skip the first n characters
+		for(machine_uint i=0; i<range.origin; i++)
+		{
+			size_t length;
+			
+			length = UTF8TrailingBytes[*data] + 1;
+			data ++;
+			
+			if(data > dataEnd)
+				throw ErrorException(0, 0, 0);
+		}
+		
+		// Calculate the new end
+		do {
+			const uint8 *temp = data;
+			
+			for(machine_uint i=0; i<range.length; i++)
+			{
+				size_t length;
+				
+				length = UTF8TrailingBytes[*temp] + 1;
+				temp ++;
+				
+				if(temp > dataEnd)
+					throw ErrorException(0, 0, 0);
+			}
+			
+			dataEnd = temp;
+		} while(0);
+		
+		Range result = Range(kRNNotFound, 0);
+		machine_uint index = range.origin;
+		
+		while(data < dataEnd)
+		{
+			CodePoint point;
+			PeekCharacter(point, data);
+			
+			if(result.origin == kRNNotFound)
+			{
+				if(point == first)
+				{
+					result.origin = index;
+					result.length = 1;
+				}
+			}
+			else
+			{
+				CodePoint read;
+				PeekCharacter(read, stringData);
+				
+				if(mode & ComparisonModeCaseInsensitive)
+				{
+					read  = read.LowerCase();
+					point = point.LowerCase();
+				}
+				
+				if(read != point)
+				{
+					stringData = stringDataTemp;
+					result = Range(kRNNotFound, 0);
+				}
+				else
+				{
+					result.length ++;
+					
+					if(result.length >= string._length)
+						break;
+				}
+			}
+			
+			index ++;
+		}
+		
+		return result;
+	}
+	
+	
+	
 	ComparisonResult String::Compare(const String& other) const
 	{
 		return Compare(other, Range(0, _length), 0);
@@ -526,17 +648,6 @@ namespace RN
 		RN_ASSERT0(range.origin + range.length <= _length);
 		
 		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
-		
-#define PeekCharacter(point, string) do { \
-			uint8 temp[5] = { 0 }; \
-			size_t length = UTF8TrailingBytes[*(string)] + 1; \
-			\
-			std::copy(string, string + length, temp); \
-			std::basic_string<char32_t> converted = convert.from_bytes((const char *)temp); \
-			\
-			point = CodePoint(static_cast<uint32>(converted[0])); \
-			string += length; \
-		} while(0)
 		
 		// Skip the first n characters
 		for(machine_uint i=0; i<range.origin; i++)
@@ -642,11 +753,10 @@ namespace RN
 			}
 		}
 		
-#undef PeekCharacter
-		
 		return kRNCompareEqualTo;
 	}
 	
+#undef PeekCharacter
 	
 	// ---------------------
 	// MARK: -

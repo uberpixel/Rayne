@@ -54,6 +54,10 @@ namespace RN
 		void Append(const void *bytes, size_t length, Encoding encoding);
 		void Append(const String& string);
 		
+		Range RangeOfString(const String& string);
+		Range RangeOfString(const String& string, ComparisonMode mode);
+		Range RangeOfString(const String& string, ComparisonMode mode, const Range& range);
+		
 		ComparisonResult Compare(const String& other) const;
 		ComparisonResult Compare(const String& other, ComparisonMode mode) const;
 		ComparisonResult Compare(const String& other, const Range& range, ComparisonMode mode) const;
