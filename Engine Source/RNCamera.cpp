@@ -366,12 +366,6 @@ namespace RN
 		Vector3 center = (nearcenter+farcenter)*0.5f;
 		float dist = center.Distance(farcorner1);
 		
-		ortholeft = -dist;
-		orthoright = dist;
-		orthobottom = -dist;
-		orthotop = dist;
-		UpdateProjection();
-		
 		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
 		Vector3 pos = center+light->Forward()*500.0f;
 		
@@ -386,7 +380,12 @@ namespace RN
 		pos = rot*pos;
 		SetPosition(pos);
 		
-//		clipfar = 500.0f+dist*2.0f;
+		clipfar = 500.0f+dist*2.0f;
+		ortholeft = -dist;
+		orthoright = dist;
+		orthobottom = -dist;
+		orthotop = dist;
+		UpdateProjection();
 		
 	/*	Vector3 nearcorner1 = camera->ToWorldZ(Vector3(-1.0f, -1.0f, near));
 		Vector3 farcorner1 = camera->ToWorldZ(Vector3(1.0f, 1.0f, far));
