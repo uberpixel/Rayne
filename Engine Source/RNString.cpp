@@ -17,6 +17,88 @@ namespace RN
 {
 	RNDeclareMeta(String)
 	
+	// ---------------------
+	// MARK: -
+	// MARK: CodePoint
+	// ---------------------
+	
+	class CodePoint
+	{
+	public:
+		CodePoint() {}
+		CodePoint(char character)
+		{
+			_codePoint = static_cast<UniChar>(character);
+		}
+		
+		CodePoint(UniChar codepoint)
+		{
+			_codePoint = codepoint;
+		}
+		
+		CodePoint& operator =(uint32 point)
+		{
+			_codePoint = point;
+			return *this;
+		}
+		
+		bool operator >(const CodePoint& other)
+		{
+			return _codePoint > other._codePoint;
+		}
+		
+		bool operator <(const CodePoint& other)
+		{
+			return _codePoint < other._codePoint;
+		}
+		
+		operator uint32()
+		{
+			return _codePoint;
+		}
+		
+		UniChar LowerCase();
+		UniChar UpperCase();
+		
+	private:
+		UniChar _codePoint;
+	};
+	
+	UniChar CodePoint::LowerCase()
+	{
+		if(_codePoint <= 0x7f)
+		{
+			char character = static_cast<char>(_codePoint);
+			if(character >= 'A' && character <= 'Z')
+			{
+				character = tolower(character);
+				return CodePoint(character);
+			}
+		}
+		
+		return *this;
+	}
+	
+	UniChar CodePoint::UpperCase()
+	{
+		if(_codePoint <= 0x7f)
+		{
+			char character = static_cast<char>(_codePoint);
+			if(character >= 'a' && character <= 'z')
+			{
+				character = toupper(character);
+				return CodePoint(character);
+			}
+		}
+		
+		return *this;
+	}
+	
+	// ---------------------
+	// MARK: -
+	// MARK: String
+	// ---------------------
+	
 	static const char UTF8TrailingBytes[256] = {
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -391,21 +473,158 @@ namespace RN
 	
 	ComparisonResult String::Compare(const String& other)
 	{
-		return Compare(&other, 0);
+		return Compare(&other, Range(0, _length), 0);
 	}
 	
 	ComparisonResult String::Compare(const String& other, ComparisonMode mode)
 	{
-		return Compare(&other, mode);
+		return Compare(&other, Range(0, _length), mode);
+	}
+	
+	ComparisonResult String::Compare(const String& other, const Range& range, ComparisonMode mode)
+	{
+		return Compare(&other, range, mode);
 	}
 	
 	ComparisonResult String::Compare(const String *other)
 	{
-		return Compare(other, 0);
+		return Compare(other, Range(0, _length), 0);
 	}
 	
 	ComparisonResult String::Compare(const String *other, ComparisonMode mode)
 	{
+		return Compare(other, Range(0, _length), mode);
+	}
+	
+	ComparisonResult String::Compare(const String *other, const Range& range, ComparisonMode mode)
+	{
+		const uint8 *dataA = _buffer;
+		const uint8 *dataAEnd = _buffer + _occupied;
+		
+		const uint8 *dataB = other->_buffer;
+		const uint8 *dataBEnd = other->_buffer + other->_occupied;
+		
+		RN_ASSERT0(range.origin + range.length <= _length);
+		
+		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
+		
+#define PeekCharacter(point, string) do { \
+			uint8 temp[5] = { 0 }; \
+			size_t length = UTF8TrailingBytes[*(string)] + 1; \
+			\
+			std::copy(string, string + length, temp); \
+			std::basic_string<char32_t> converted = convert.from_bytes((const char *)temp); \
+			\
+			point = CodePoint(static_cast<uint32>(converted[0])); \
+			string += length; \
+		} while(0)
+		
+		// Skip the first n characters
+		for(machine_uint i=0; i<range.origin; i++)
+		{
+			size_t length;
+			
+			length = UTF8TrailingBytes[*dataA] + 1;
+			dataA ++;
+			
+			length = UTF8TrailingBytes[*dataB] + 1;
+			dataB ++;
+			
+			if(dataA > dataAEnd)
+				throw ErrorException(0, 0, 0);
+			
+			if(dataB > dataBEnd)
+				throw ErrorException(0, 0, 0);
+		}
+		
+		// Calculate the new end
+		do {
+			const uint8 *tempA = dataA;
+			const uint8 *tempB = dataB;
+			
+			for(machine_uint i=0; i<range.length; i++)
+			{
+				size_t length;
+				
+				length = UTF8TrailingBytes[*tempA] + 1;
+				tempA ++;
+				
+				length = UTF8TrailingBytes[*tempB] + 1;
+				tempB ++;
+				
+				if(tempA > dataAEnd)
+					throw ErrorException(0, 0, 0);
+				
+				if(tempB > dataBEnd)
+					throw ErrorException(0, 0, 0);
+			}
+			
+			dataAEnd = tempA;
+			dataBEnd = tempB;
+		} while(0);
+
+		while(dataA < dataAEnd && dataB < dataBEnd)
+		{
+			CodePoint a, b;
+			
+			PeekCharacter(a, dataA);
+			PeekCharacter(b, dataB);
+			
+			if(mode & ComparisonModeCaseInsensitive)
+			{
+				a = a.LowerCase();
+				b = b.LowerCase();
+			}
+			
+			if(mode & ComparisonModeNumerically)
+			{
+				if(a <= 0x7f && b <= 0x7f)
+				{
+					char ca = static_cast<char>(a);
+					char cb = static_cast<char>(b);
+					
+					if(ca <= '9' && ca >= '0' && cb <= '9' && cb >= '0')
+					{
+						uint32 numA = 0;
+						uint32 numB = 0;
+						
+						do {
+							char ca = static_cast<char>(a);
+							numA = numA * 10 + (ca - '0');
+							
+							PeekCharacter(a, dataA);
+						} while(ca <= '9' && ca >= '0' && dataA < dataAEnd);
+						
+						do {
+							char cb = static_cast<char>(b);
+							numB = numB * 10 + (cb - '0');
+							
+							PeekCharacter(b, dataB);
+						} while(cb <= '9' && cb >= '0' && dataB < dataBEnd);
+						
+						if(numA > numB)
+							return kRNCompareGreaterThan;
+						
+						if(numB > numA)
+							return kRNCompareLessThan;
+						
+						continue;
+					}
+				}
+			}
+			
+			if(a != b)
+			{
+				if(a > b)
+					return kRNCompareGreaterThan;
+				
+				if(b > a)
+					return kRNCompareLessThan;
+			}
+		}
+		
+#undef PeekCharacter
+		
 		return kRNCompareEqualTo;
 	}
 	

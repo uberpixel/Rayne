@@ -22,7 +22,7 @@ namespace RN
 		enum
 		{
 			ComparisonModeCaseInsensitive = (1 << 0),
-			ComparisonModeNumeric = (1 << 1)
+			ComparisonModeNumerically = (1 << 1)
 		};
 		typedef uint32 ComparisonMode;
 		
@@ -49,9 +49,11 @@ namespace RN
 		
 		ComparisonResult Compare(const String& other);
 		ComparisonResult Compare(const String& other, ComparisonMode mode);
+		ComparisonResult Compare(const String& other, const Range& range, ComparisonMode mode);
 		
 		ComparisonResult Compare(const String *other);
 		ComparisonResult Compare(const String *other, ComparisonMode mode);
+		ComparisonResult Compare(const String *other, const Range& range, ComparisonMode mode);
 		
 		uint32 Length() const { return _length; }
 		UniChar CharacterAtIndex(uint32 index) const;

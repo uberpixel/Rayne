@@ -141,6 +141,20 @@ namespace RN
 
 	RNAPI RN_NORETURN void __HandleExcption(const ErrorException& e);
 	
+	class Range
+	{
+	public:
+		Range() {}
+		Range(machine_uint torigin, machine_uint tlength)
+		{
+			origin = torigin;
+			length = tlength;
+		}
+		
+		machine_uint origin;
+		machine_uint length;
+	};
+	
 	template <typename T>
 	class Singleton
 	{
