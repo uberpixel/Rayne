@@ -337,7 +337,7 @@ namespace TG
 		RN::Model *tree = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
 		tree->MaterialAtIndex(0, 0)->culling = false;
 		tree->MaterialAtIndex(0, 0)->discard = true;
-		tree->MaterialAtIndex(0, 0)->override = /*RN::Material::OverrideGroupDiscard|*/RN::Material::OverrideCulling;
+		tree->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		
 		RN::InstancingNode *node = new RN::InstancingNode(tree);
 		
@@ -429,32 +429,32 @@ namespace TG
 		ent->SetModel(tree);
 		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
 		ent->SetAction([&](RN::SceneNode *node, float delta) {
-			node->SetPosition(_camera->ToWorld(RN::Vector3(1.0, 1.0, 0.98)));});
+			node->SetPosition(_camera->ToWorldZ(RN::Vector3(0.8, 0.8, 100.0)));});
 		
 		ent = new RN::Entity();
 		ent->SetModel(tree);
 		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
 		ent->SetAction([&](RN::SceneNode *node, float delta) {
-			node->SetPosition(_camera->ToWorld(RN::Vector3(-1.0, 1.0, 0.98)));});
+			node->SetPosition(_camera->ToWorldZ(RN::Vector3(-0.8, 0.8, 100.0)));});
 		
 		ent = new RN::Entity();
 		ent->SetModel(tree);
 		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
 		ent->SetAction([&](RN::SceneNode *node, float delta) {
-			node->SetPosition(_camera->ToWorld(RN::Vector3(1.0, -1.0, 0.98)));});
+			node->SetPosition(_camera->ToWorldZ(RN::Vector3(0.8, -0.8, 100.0)));});
 		
 		ent = new RN::Entity();
 		ent->SetModel(tree);
 		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
 		ent->SetAction([&](RN::SceneNode *node, float delta) {
-			node->SetPosition(_camera->ToWorld(RN::Vector3(-1.0, -1.0, 0.98)));});
+			node->SetPosition(_camera->ToWorldZ(RN::Vector3(-0.8, -0.8, 100.0)));});
 		
 		ent = new RN::Entity();
 		ent->SetModel(tree);
 		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
 		ent->SetAction([&](RN::SceneNode *node, float delta) {
-			node->SetPosition(_camera->ToWorld(RN::Vector3(0.0, 0.0, 0.5)));});
-		*/
+			node->SetPosition(_camera->ToWorldZ(RN::Vector3(0.0, 0.0, 100.0)));});*/
+		
 #if TGWorldFeatureInstancing
 		RN::Model *foliage[4];
 		
