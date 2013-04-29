@@ -513,6 +513,7 @@ namespace RN
 			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 1.0f-temp.z, 0.0f);
 			vec = Vector4(ortholeft, orthobottom, clipnear, 1.0f)*temp2;
 			vec += Vector4(orthoright, orthotop, clipfar, 1.0f)*temp;
+			vec.z *= -1.0f;
 		}
 		
 		vec = inverseProjectionMatrix.Transform(vec);
@@ -532,6 +533,7 @@ namespace RN
 			Vector2 temp(dir.x*0.5+0.5, dir.y*0.5+0.5);
 			vec.x = ortholeft*(1.0f-temp.x)+orthoright*temp.x;
 			vec.y = orthobottom*(1.0f-temp.y)+orthotop*temp.y;
+			vec.z *= -1.0f;
 		}
 		
 		vec = inverseProjectionMatrix.Transform(vec);

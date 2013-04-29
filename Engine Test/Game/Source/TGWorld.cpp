@@ -14,7 +14,7 @@
 #define TGWorldFeatureFreeCamera    1
 
 #define TGWorldFeatureParticles     1
-#define TGForestFeatureTrees 500
+#define TGForestFeatureTrees 300
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 95.0f
@@ -50,7 +50,7 @@ namespace TG
 		{
 			if(!fpressed)
 			{
-				_spotLight->SetRange(_spotLight->Range() > 1.0f ? 0.0f : TGWorldSpotLightRange);
+//				_spotLight->SetRange(_spotLight->Range() > 1.0f ? 0.0f : TGWorldSpotLightRange);
 				fpressed = true;
 			}
 		}
@@ -337,7 +337,7 @@ namespace TG
 		RN::Model *tree = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
 		tree->MaterialAtIndex(0, 0)->culling = false;
 		tree->MaterialAtIndex(0, 0)->discard = true;
-		tree->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		tree->MaterialAtIndex(0, 0)->override = /*RN::Material::OverrideGroupDiscard|*/RN::Material::OverrideCulling;
 		
 		RN::InstancingNode *node = new RN::InstancingNode(tree);
 		
@@ -385,7 +385,7 @@ namespace TG
 		RN::Light *light;
 		//srand(time(0));
 		
-		light = new RN::Light();
+/*		light = new RN::Light();
 		light->SetPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
@@ -393,24 +393,24 @@ namespace TG
 		light = new RN::Light();
 		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));*/
 		
 		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->_lightcam = _camera;
 		_sunLight->ActivateSunShadows(true);
 		
-		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
+/*		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(0.9f);
-		_spotLight->SetColor(RN::Color(0.5f, 0.5f, 0.5f));
+		_spotLight->SetColor(RN::Color(0.5f, 0.5f, 0.5f));*/
 		
-#if TGWorldFeatureFreeCamera
+/*#if TGWorldFeatureFreeCamera
 		_camera->AttachChild(_spotLight);
 #else
 		_player->AttachChild(_spotLight);
-#endif
+#endif*/
 		
 /*		for(int i=0; i<200; i++)
 		{
@@ -425,6 +425,36 @@ namespace TG
 		}*/
 #endif
 		
+/*		ent = new RN::Entity();
+		ent->SetModel(tree);
+		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
+		ent->SetAction([&](RN::SceneNode *node, float delta) {
+			node->SetPosition(_camera->ToWorld(RN::Vector3(1.0, 1.0, 0.98)));});
+		
+		ent = new RN::Entity();
+		ent->SetModel(tree);
+		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
+		ent->SetAction([&](RN::SceneNode *node, float delta) {
+			node->SetPosition(_camera->ToWorld(RN::Vector3(-1.0, 1.0, 0.98)));});
+		
+		ent = new RN::Entity();
+		ent->SetModel(tree);
+		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
+		ent->SetAction([&](RN::SceneNode *node, float delta) {
+			node->SetPosition(_camera->ToWorld(RN::Vector3(1.0, -1.0, 0.98)));});
+		
+		ent = new RN::Entity();
+		ent->SetModel(tree);
+		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
+		ent->SetAction([&](RN::SceneNode *node, float delta) {
+			node->SetPosition(_camera->ToWorld(RN::Vector3(-1.0, -1.0, 0.98)));});
+		
+		ent = new RN::Entity();
+		ent->SetModel(tree);
+		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
+		ent->SetAction([&](RN::SceneNode *node, float delta) {
+			node->SetPosition(_camera->ToWorld(RN::Vector3(0.0, 0.0, 0.5)));});
+		*/
 #if TGWorldFeatureInstancing
 		RN::Model *foliage[4];
 		

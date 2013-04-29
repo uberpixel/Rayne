@@ -12,8 +12,8 @@
 #define RN_SIMD 0
 
 #if __SSE__
-	#undef RN_SIMD
-	#define RN_SIMD 1
+//	#undef RN_SIMD
+//	#define RN_SIMD 1
 
 	#include <x86intrin.h>
 

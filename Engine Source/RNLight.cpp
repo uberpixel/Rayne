@@ -143,8 +143,8 @@ namespace RN
 					tempcam->SetMaterial(depthMaterial);
 					tempcam->SetUseInstancing(true);
 					tempcam->SetLODCamera(_lightcam);
-					tempcam->clipfar = 1000.0f;
 					tempcam->clipnear = 1.0f;
+					tempcam->clipfar = 10000.0f;
 	
 					_shadowcams.AddObject(tempcam);
 				}

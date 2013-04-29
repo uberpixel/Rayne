@@ -149,7 +149,7 @@
 		E9619F251696170700DA187E /* RNTextureLoader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTextureLoader.h; sourceTree = "<group>"; };
 		E9619F261696170700DA187E /* RNThread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNThread.cpp; sourceTree = "<group>"; };
 		E9619F271696170700DA187E /* RNThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNThread.h; sourceTree = "<group>"; };
-		E9619F281696170700DA187E /* RNVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNVector.h; sourceTree = "<group>"; };
+		E9619F281696170700DA187E /* RNVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNVector.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E9619F291696170700DA187E /* RNWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWindow.cpp; sourceTree = "<group>"; };
 		E9619F2A1696170700DA187E /* RNWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWindow.h; sourceTree = "<group>"; };
 		E9619F2B1696170700DA187E /* RNWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWorld.cpp; sourceTree = "<group>"; };
