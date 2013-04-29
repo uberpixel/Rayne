@@ -87,7 +87,7 @@ namespace RN
 			TextureParameter parameter;
 			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
 			parameter.filter = TextureParameter::Filter::Linear;
-			parameter.format = TextureParameter::Format::DepthStencil;
+			parameter.format = TextureParameter::Format::Depth;
 			parameter.type = TextureParameter::Type::Texture2DArray;
 			parameter.depthCompare = true;
 			parameter.generateMipMaps = false;
@@ -135,16 +135,15 @@ namespace RN
 				
 				for(int i = 0; i < _shadowSplits; i++)
 				{
-					storage = new RenderStorage(RenderStorage::BufferFormatComplete);// Depth);
+					storage = new RenderStorage(RenderStorage::BufferFormatDepth);
 					storage->SetDepthTarget(depthtex, i);
-					storage->AddRenderTarget(TextureParameter::Format::RGBA32F);
 					
 					Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
 					tempcam->SetMaterial(depthMaterial);
 					tempcam->SetUseInstancing(true);
 					tempcam->SetLODCamera(_lightcam);
 					tempcam->clipnear = 1.0f;
-					tempcam->clipfar = 1000.0f;
+//					tempcam->clipfar = 10000.0f;
 	
 					_shadowcams.AddObject(tempcam);
 				}
