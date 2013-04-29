@@ -690,8 +690,81 @@ namespace RN
 		throw ErrorException(0, 0, 0);
 	}
 	
-	uint8 *String::BytesWithEncoding(Encoding encoding, bool lossy, size_t *length) const
+	uint8 *String::BytesWithEncoding(Encoding encoding, bool lossy, size_t *outLength) const
 	{
-		return 0;
+		switch(encoding)
+		{
+			case Encoding::ASCII:
+			{
+				char *buffer = new char[_length + 1];
+				const uint8 *temp = _buffer;
+				
+				for(uint32 i=0; i<_length; i++)
+				{
+					size_t length = UTF8TrailingBytes[*temp] + 1;
+					
+					if((*temp > 0x7f || length > 1) && !lossy)
+					{
+						delete [] buffer;
+						return 0;
+					}
+					
+					buffer[i] = (*temp <= 0x7f) ? static_cast<char>(*temp) : '?';
+					temp += length;
+				}
+				
+				buffer[_length] = '\0';
+				
+				if(outLength)
+					*outLength = _length;
+				
+				return reinterpret_cast<uint8 *>(buffer);
+				break;
+			}
+				
+			case Encoding::UTF8:
+			{
+				uint8 *buffer = new uint8[_occupied];
+				std::copy(_buffer, _buffer + _occupied, buffer);
+				buffer[_occupied] = '\0';
+				
+				if(outLength)
+					*outLength = _occupied;
+				
+				return buffer;
+				break;
+			}
+				
+			case Encoding::UTF16BE:
+			case Encoding::UTF16LE:
+			{
+				std::basic_string<char16_t> string;
+				
+				if(encoding == Encoding::UTF16LE)
+				{
+					std::wstring_convert<UTF16LEFacet, char16_t> convert;
+					string = convert.from_bytes(reinterpret_cast<char *>(_buffer));
+				}
+				else
+				{
+					std::wstring_convert<UTF16BEFacet, char16_t> convert;
+					string = convert.from_bytes(reinterpret_cast<char *>(_buffer));
+				}
+				
+				char16_t *buffer = new char16_t[string.size() + 1];
+				const char16_t *data = string.data();
+				
+				std::copy(data, data + string.size(), buffer);
+				buffer[string.size()] = '\0';
+				
+				if(outLength)
+					*outLength = string.size();
+				
+				return reinterpret_cast<uint8 *>(buffer);
+				break;
+			}
+		}
+		
+		throw ErrorException(0);
 	}
 }
