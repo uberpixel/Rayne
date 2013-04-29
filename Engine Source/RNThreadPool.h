@@ -175,7 +175,11 @@ namespace RN
 				_workQueue.push_back(std::move(temp));
 				_lock.Unlock();
 				
-				_waitCondition.notify_one();
+				do {
+					std::unique_lock<std::mutex> lock(_waitMutex);
+					_waitCondition.notify_all();
+					lock.unlock();
+				} while(0);
 			}
 			else
 			{
@@ -191,19 +195,39 @@ namespace RN
 		{
 			RN_ASSERT0(_currentBatch == 0);
 			
+			_lock.Lock();
+			
+			bool createNewTask = true;
+			
 			if(_resignedBatches.size() > 0)
 			{
-				_currentBatch = _resignedBatches.back();
-				_resignedBatches.pop_back();
+				for(auto i=_resignedBatches.begin(); i!=_resignedBatches.end(); i++)
+				{
+					Batch *batch = *i;
+					
+					std::lock_guard<std::mutex> lock(batch->mutex);
+					if(batch->waiter.load() == 0)
+					{
+						_currentBatch = batch;
+						_resignedBatches.erase(i);
+						
+						createNewTask = false;
+						break;
+					}
+				}
 			}
-			else
+			
+			
+			if(createNewTask)
 			{
 				_currentBatch = new Batch;
+				_currentBatch->waiter.store(0);
 			}
 			
 			_currentBatch->batch = (++ _currentID);
 			_currentBatch->tasks.store(0);
 			
+			_lock.Unlock();
 			return _currentBatch->batch;
 		}
 		
@@ -212,10 +236,10 @@ namespace RN
 			RN_ASSERT0(_currentBatch);
 			Batch *batch = _currentBatch;
 			
+			_lock.Lock();
+			
 			_activeBatches.push_back(_currentBatch);
 			_currentBatch = 0;
-			
-			_lock.Lock();
 			
 			batch->tasks.store((uint32)batch->queuedTasks.size());
 			
@@ -223,12 +247,22 @@ namespace RN
 			batch->queuedTasks.clear();
 			   
 			_lock.Unlock();
-			_waitCondition.notify_all();
+			
+			do {
+				std::unique_lock<std::mutex> lock(_waitMutex);
+				_waitCondition.notify_all();
+				lock.unlock();
+			} while(0);
 			
 			if(waitForCompletion)
 			{
 				std::unique_lock<std::mutex> lock(batch->mutex);
+				if(batch->tasks.load() == 0)
+					return;
+				
+				batch->waiter ++;
 				batch->condition.wait(lock, [&]() { return (batch->tasks.load() == 0); });
+				batch->waiter --;
 			}
 		}
 		
@@ -253,7 +287,12 @@ namespace RN
 				return;
 			
 			std::unique_lock<std::mutex> lock(batch->mutex);
+			if(batch->tasks.load() == 0)
+				return;
+			
+			batch->waiter ++;
 			batch->condition.wait(lock, [&]() { return (batch->tasks.load() == 0); });
+			batch->waiter --;
 		}
 		
 	private:
@@ -271,7 +310,10 @@ namespace RN
 		struct Batch
 		{
 			BatchID batch;
+			
 			std::atomic<uint32> tasks;
+			std::atomic<uint32> waiter;
+			
 			std::deque<Task> queuedTasks;
 			
 			std::mutex mutex;
@@ -311,10 +353,13 @@ namespace RN
 						
 						if(batch->tasks.load() == 0)
 						{
+							std::unique_lock<std::mutex> lock(batch->mutex);
 							batch->condition.notify_all();
-							_resignedBatches.push_back(batch);
+							lock.unlock();
 							
+							_resignedBatches.push_back(batch);
 							i = _activeBatches.erase(i);
+							
 							continue;
 						}
 						
@@ -341,9 +386,9 @@ namespace RN
 					if(_workQueue.size() == 0)
 					{
 						// TODO: Check if we can steal tasks from other threads
-						_lock.Unlock();
-						
 						std::unique_lock<std::mutex> lock(_waitMutex);
+						
+						_lock.Unlock();
 						_waitCondition.wait(lock); // Spurious wake ups are okay, the cost of a predicate is higher than looping again.
 						continue;
 					}
