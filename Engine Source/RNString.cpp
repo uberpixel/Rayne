@@ -407,6 +407,35 @@ namespace RN
 	
 	// ---------------------
 	// MARK: -
+	// MARK: Operator
+	// ---------------------
+	
+	bool String::operator ==(const String& other) const
+	{
+		return (Compare(other) == kRNCompareEqualTo);
+	}
+	
+	bool String::operator !=(const String& other) const
+	{
+		return (Compare(other) != kRNCompareEqualTo);
+	}
+	
+	String& String::operator +=(const String& other)
+	{
+		Append(other);
+		return *this;
+	}
+	
+	String String::operator +(const String& other) const
+	{
+		String result(*this);
+		result += other;
+		
+		return result;
+	}
+	
+	// ---------------------
+	// MARK: -
 	// MARK: Mutation
 	// ---------------------
 	
@@ -465,44 +494,34 @@ namespace RN
 		CopyBytesWithEncoding(bytes, length, encoding);
 	}
 	
+	void String::Append(const String& string)
+	{
+		CopyUTF8Bytes(string._buffer, string._occupied);
+	}
+	
 	
 	// ---------------------
 	// MARK: -
 	// MARK: Comparison
 	// ---------------------
 	
-	ComparisonResult String::Compare(const String& other)
-	{
-		return Compare(&other, Range(0, _length), 0);
-	}
-	
-	ComparisonResult String::Compare(const String& other, ComparisonMode mode)
-	{
-		return Compare(&other, Range(0, _length), mode);
-	}
-	
-	ComparisonResult String::Compare(const String& other, const Range& range, ComparisonMode mode)
-	{
-		return Compare(&other, range, mode);
-	}
-	
-	ComparisonResult String::Compare(const String *other)
+	ComparisonResult String::Compare(const String& other) const
 	{
 		return Compare(other, Range(0, _length), 0);
 	}
 	
-	ComparisonResult String::Compare(const String *other, ComparisonMode mode)
+	ComparisonResult String::Compare(const String& other, ComparisonMode mode) const
 	{
 		return Compare(other, Range(0, _length), mode);
 	}
 	
-	ComparisonResult String::Compare(const String *other, const Range& range, ComparisonMode mode)
+	ComparisonResult String::Compare(const String& other, const Range& range, ComparisonMode mode) const
 	{
 		const uint8 *dataA = _buffer;
 		const uint8 *dataAEnd = _buffer + _occupied;
 		
-		const uint8 *dataB = other->_buffer;
-		const uint8 *dataBEnd = other->_buffer + other->_occupied;
+		const uint8 *dataB = other._buffer;
+		const uint8 *dataBEnd = other._buffer + other._occupied;
 		
 		RN_ASSERT0(range.origin + range.length <= _length);
 		

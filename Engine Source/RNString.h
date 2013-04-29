@@ -42,18 +42,21 @@ namespace RN
 		String(const String& string);
 		virtual ~String();
 		
+		bool operator ==(const String& other) const;
+		bool operator !=(const String& other) const;
+		
+		String& operator +=(const String& other);
+		String operator +(const String& other) const;
+		
 		void Append(const char *string);
 		void Append(const char *string, size_t length);
 		void Append(const void *bytes, Encoding encoding);
 		void Append(const void *bytes, size_t length, Encoding encoding);
+		void Append(const String& string);
 		
-		ComparisonResult Compare(const String& other);
-		ComparisonResult Compare(const String& other, ComparisonMode mode);
-		ComparisonResult Compare(const String& other, const Range& range, ComparisonMode mode);
-		
-		ComparisonResult Compare(const String *other);
-		ComparisonResult Compare(const String *other, ComparisonMode mode);
-		ComparisonResult Compare(const String *other, const Range& range, ComparisonMode mode);
+		ComparisonResult Compare(const String& other) const;
+		ComparisonResult Compare(const String& other, ComparisonMode mode) const;
+		ComparisonResult Compare(const String& other, const Range& range, ComparisonMode mode) const;
 		
 		uint32 Length() const { return _length; }
 		UniChar CharacterAtIndex(uint32 index) const;
