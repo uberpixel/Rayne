@@ -117,7 +117,7 @@ typedef int8 ComparisonResult;
 #define RN_INLINE inline
 #define RN_EXTERN extern
 
-#define RN_NOT_FOUND ((machine_uint)-1)
+#define kRNNotFound static_cast<machine_uint>(-1)
 
 namespace RN
 {
