@@ -11,6 +11,8 @@
 #include FT_LCD_FILTER_H
 
 #include "RNFont.h"
+#include "RNPathManager.h"
+#include "RNBaseInternal.h"
 
 const char *kRNCommonCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890.,-;:_-+*/!\"§$%&()=?<>' ";
 
@@ -28,7 +30,7 @@ namespace RN
 #define _internals (reinterpret_cast<FontInternals *>(_finternals))
 	
 	Font::Font(const std::string& name, float size)
-	{
+	{		
 		TextureParameter parameter;
 		
 		parameter.mipMaps = 0;
@@ -40,9 +42,7 @@ namespace RN
 		_texture = new TextureAtlas(1024, 1024, parameter);
 		
 		_finternals = 0;
-		
 		_size = size;
-		_fontPath = name;
 		
 		_filtering = false;
 		_filterWeights[0] = 0x10;
@@ -51,6 +51,7 @@ namespace RN
 		_filterWeights[3] = 0x40;
 		_filterWeights[4] = 0x10;
 		
+		ResolveFontName(name);
 		RenderCharactersFromString(String(kRNCommonCharacters));
 	}
 	
@@ -60,6 +61,43 @@ namespace RN
 		DropInternals();
 	}
 	
+	Font *Font::WithName(const std::string& name, float size)
+	{
+		Font *font = new Font(name, size);
+		return font->Autorelease();
+	}
+	
+	
+	
+	void Font::ResolveFontName(const std::string& name)
+	{
+		std::string path;
+		
+		try
+		{
+			path = PathManager::PathForName(name);
+		}
+		catch(ErrorException e)
+		{
+#if RN_PLATFORM_MAC_OS
+			@autoreleasepool
+			{
+				CFStringRef fontName = CFStringCreateWithCString(kCFAllocatorDefault, name.c_str(), kCFStringEncodingASCII);
+				CTFontRef font = CTFontCreateWithName(fontName, 12.0f, 0);
+				
+				NSURL *url = reinterpret_cast<NSURL *>(const_cast<void *>(CTFontCopyAttribute(font, kCTFontURLAttribute)));
+				path = [[url path] UTF8String];
+				
+				[url release];
+				
+				CFRelease(font);
+				CFRelease(fontName);
+			}
+#endif
+		}
+		
+		_fontPath = path;
+	}
 	
 	void Font::InitializeInternals()
 	{

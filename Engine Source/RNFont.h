@@ -46,10 +46,13 @@ namespace RN
 		Font(const std::string& name, float size);
 		virtual ~Font();
 		
+		static Font *WithName(const std::string& name, float size);
+		
 		void RenderCharactersFromString(const String& string);
 		TextureAtlas *Texture() const { return _texture; }
 		
 	private:
+		void ResolveFontName(const std::string& name);
 		void InitializeInternals();
 		void DropInternals();
 		

@@ -24,6 +24,8 @@
 #define kRNResourceKeyLightTileSampleShader      "kRNResourceKeyLightTileSampleShader"
 #define kRNResourceKeyLightDepthShader           "kRNResourceKeyLightDepthShader"
 
+#define kRNResourceKeyDefaultFont "kRNResourceKeyDefaultFont"
+
 namespace RN
 {
 	class Kernel;

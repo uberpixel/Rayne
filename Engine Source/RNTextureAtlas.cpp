@@ -50,7 +50,7 @@ namespace RN
 	Rect TextureAtlas::AllocateRegion(uint32 width, uint32 height)
 	{
 		size_t biggestDimension = 0;
-		machine_uint biggestIndex = RN_NOT_FOUND;
+		machine_uint biggestIndex = kRNNotFound;
 		
 		for(size_t i=0; i<_regions.size(); i++)
 		{
@@ -68,7 +68,7 @@ namespace RN
 			}
 		}
 		
-		if(biggestIndex != RN_NOT_FOUND)
+		if(biggestIndex != kRNNotFound)
 		{
 			TextureRegion& source = _regions[(int)biggestIndex];
 			

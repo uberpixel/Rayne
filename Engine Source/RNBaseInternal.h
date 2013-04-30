@@ -25,6 +25,7 @@
 #if RN_PLATFORM_MAC_OS
 	#import <Cocoa/Cocoa.h>
 	#import <OpenGL/OpenGL.h>
+	#import <CoreText/CoreText.h>
 #endif
 
 #endif /* __RAYNE_BASEINTERNAL_H__ */

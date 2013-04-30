@@ -8,6 +8,7 @@
 
 #include "RNResourcePool.h"
 #include "RNShader.h"
+#include "RNFont.h"
 
 namespace RN
 {
@@ -27,6 +28,8 @@ namespace RN
 		AddResource(Shader::WithFile("shader/rn_LightTileSampleFirst"), kRNResourceKeyLightTileSampleFirstShader);
 		AddResource(Shader::WithFile("shader/rn_LightTileSample"), kRNResourceKeyLightTileSampleShader);
 		AddResource(Shader::WithFile("shader/rn_LightDepth"), kRNResourceKeyLightDepthShader);
+		
+		AddResource(Font::WithName("American Typewriter", 12.0f), kRNResourceKeyDefaultFont);
 	}
 	
 	

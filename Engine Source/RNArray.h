@@ -354,7 +354,7 @@ namespace RN
 					return i;
 			}
 			
-			return RN_NOT_FOUND;
+			return kRNNotFound;
 		}
 		
 		bool ContainsObject(const T& object) const
@@ -538,7 +538,7 @@ namespace RN
 					return i;
 			}
 			
-			return RN_NOT_FOUND;
+			return kRNNotFound;
 		}
 		
 		bool ContainsObject(T *object) const
