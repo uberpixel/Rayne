@@ -11,10 +11,10 @@
 #define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
-#define TGWorldFeatureFreeCamera    1
+#define TGWorldFeatureFreeCamera    0
 
 #define TGWorldFeatureParticles     1
-#define TGForestFeatureTrees 500
+#define TGForestFeatureTrees 1000
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 95.0f
@@ -24,6 +24,12 @@ namespace TG
 	World::World() :
 		RN::World("GenericSceneManager")
 	{
+		_sunLight = 0;
+		_finalcam = 0;
+		_camera = 0;
+		_spotLight = 0;
+		_player = 0;
+		
 		_physicsAttachment = new RN::bullet::PhysicsWorld();
 		AddAttachment(_physicsAttachment->Autorelease());
 		
@@ -73,11 +79,15 @@ namespace TG
 		
 		_camera->Rotate(rotation);
 		_camera->TranslateLocal(translation * delta);
-		
-		rotation.x = (input->KeyPressed('e') - input->KeyPressed('q')) * 5.0f;
-		rotation.z = (input->KeyPressed('r') - input->KeyPressed('f')) * 2.0f;
-		_sunLight->Rotate(rotation);
 #endif
+		
+		if(_sunLight != 0)
+		{
+			RN::Vector3 sunrot;
+			sunrot.x = (input->KeyPressed('e') - input->KeyPressed('q')) * 5.0f;
+			sunrot.z = (input->KeyPressed('r') - input->KeyPressed('f')) * 2.0f;
+			_sunLight->Rotate(sunrot);
+		}
 	}
 	
 	
@@ -287,9 +297,19 @@ namespace TG
 	{
 		// Ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
-		RN::Entity *ent = new RN::Entity();
-		ent->SetModel(ground);
-		ent->SetScale(RN::Vector3(20.0f));
+		
+		RN::bullet::Shape *groundShape = new RN::bullet::TriangelMeshShape(ground);
+		RN::bullet::PhysicsMaterial *groundMaterial = new RN::bullet::PhysicsMaterial();
+		
+		groundShape->SetScale(RN::Vector3(20.0f));
+		
+		RN::bullet::RigidBody *groundbody = new RN::bullet::RigidBody(groundShape, 0.0f);
+		groundbody->SetModel(ground);
+		groundbody->SetScale(RN::Vector3(20.0f));
+		groundbody->SetMaterial(groundMaterial);
+		
+		
+		RN::Entity *ent;
 		
 		RN::Model *building = RN::Model::WithFile("models/Sebastian/Old_Buildings.sgm");
 		ent = new RN::Entity();
@@ -373,10 +393,11 @@ namespace TG
 		RN::Skeleton *playerSkeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
 		playerSkeleton->SetAnimation("cammina");
 		
-		_player = new Player();
-		_player->SetModel(playerModel);
+		_player = new Player(playerModel);
 		_player->SetSkeleton(playerSkeleton);
-		_player->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
+		_player->SetPosition(RN::Vector3(5.0f, 10.0f, 0.0f));
+		_player->SetScale(RN::Vector3(0.4f));
+		_player->SetCamera(_camera);
 		
 		_camera->SetTarget(_player);
 #endif
