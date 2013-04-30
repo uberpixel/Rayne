@@ -14,6 +14,8 @@
 #include "RNSceneNode.h"
 #include "RNCamera.h"
 
+#define kRNShadowCameraPriority 1000
+
 namespace RN
 {
 	class Light : public SceneNode

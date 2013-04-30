@@ -124,6 +124,7 @@ namespace RN
 		_depthSize  = 0;
 		
 		_maxLights = 500;
+		_priority  = 0;
 		
 		_allowDepthWrite = true;
 		_lodCamera = 0;
@@ -265,6 +266,11 @@ namespace RN
 	void Camera::SetUseInstancing(bool activate)
 	{
 		_useInstancing = activate;
+	}
+	
+	void Camera::SetPriority(uint32 priority)
+	{
+		_priority = priority;
 	}
 	
 	// Stages

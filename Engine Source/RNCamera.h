@@ -107,6 +107,7 @@ namespace RN
 		RNAPI void SetCameraFlags(Flags flags);
 		RNAPI void SetLODCamera(Camera *camera);
 		RNAPI void SetUseInstancing(bool activate);
+		RNAPI void SetPriority(uint32 priority);
 		
 		RNAPI void AddStage(Camera *stage);
 		RNAPI void InsertStage(Camera *stage);
@@ -141,6 +142,7 @@ namespace RN
 		Camera *Stage() const { return _stage; }
 		Flags CameraFlags() const { return _flags; }
 		Camera *LODCamera() const { return _lodCamera; }
+		uint32 Priority() const { return _priority; }
 		
 		Vector2 LightTiles() const { return _lightTiles; }
 		Model *SkyCube() const { return _skycube; }
@@ -183,6 +185,7 @@ namespace RN
 		ColorFlags _colorMask;
 		GLuint _clearMask;
 		float _scaleFactor;
+		uint32 _priority;
 		
 		Vector3 _frustumCenter;
 		float _frustumRadius;

@@ -142,6 +142,7 @@ namespace RN
 					tempcam->SetMaterial(depthMaterial);
 					tempcam->SetUseInstancing(true);
 					tempcam->SetLODCamera(_lightcam);
+					tempcam->SetPriority(kRNShadowCameraPriority);
 					tempcam->clipnear = 1.0f;
 //					tempcam->clipfar = 10000.0f;
 	
