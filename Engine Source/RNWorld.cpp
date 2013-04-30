@@ -93,6 +93,10 @@ namespace RN
 		}
 		
 		// Iterate over all cameras and render the visible nodes
+		std::stable_sort(_cameras.begin(), _cameras.end(), [](const Camera *left, const Camera *right) {
+			return (left->Priority() > right->Priority());
+		});
+		
 		for(Camera *camera : _cameras)
 		{
 			camera->PostUpdate();

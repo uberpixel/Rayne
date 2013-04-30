@@ -124,6 +124,7 @@ namespace RN
 		_depthSize  = 0;
 		
 		_maxLights = 500;
+		_priority  = 0;
 		
 		_allowDepthWrite = true;
 		_lodCamera = 0;
@@ -267,6 +268,11 @@ namespace RN
 		_useInstancing = activate;
 	}
 	
+	void Camera::SetPriority(uint32 priority)
+	{
+		_priority = priority;
+	}
+	
 	// Stages
 	void Camera::AddStage(Camera *stage)
 	{
@@ -366,12 +372,6 @@ namespace RN
 		Vector3 center = (nearcenter+farcenter)*0.5f;
 		float dist = center.Distance(farcorner1);
 		
-		ortholeft = -dist;
-		orthoright = dist;
-		orthobottom = -dist;
-		orthotop = dist;
-		UpdateProjection();
-		
 		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
 		Vector3 pos = center+light->Forward()*500.0f;
 		
@@ -385,6 +385,13 @@ namespace RN
 		pos *= pixelsize;
 		pos = rot*pos;
 		SetPosition(pos);
+		
+		clipfar = 500.0f+dist*2.0f;
+		ortholeft = -dist;
+		orthoright = dist;
+		orthobottom = -dist;
+		orthotop = dist;
+		UpdateProjection();
 		
 	/*	Vector3 nearcorner1 = camera->ToWorldZ(Vector3(-1.0f, -1.0f, near));
 		Vector3 farcorner1 = camera->ToWorldZ(Vector3(1.0f, 1.0f, far));
@@ -487,7 +494,7 @@ namespace RN
 			aspect = _frame.width / _frame.height;
 
 		projectionMatrix.MakeProjectionPerspective(fov, aspect, clipnear, clipfar);
-		inverseProjectionMatrix.MakeInverseProjectionPerspective(fov, aspect, clipnear, clipfar);
+		inverseProjectionMatrix = projectionMatrix.Inverse();
 
 		if(_stage && _stage->_flags & FlagInheritProjection)
 		{
@@ -504,8 +511,18 @@ namespace RN
 	Vector3 Camera::ToWorld(const Vector3& dir)
 	{
 		Vector4 vec(dir.x, dir.y, dir.z, 1.0f);
+		if(_flags & FlagOrthogonal)
+		{
+			Vector4 temp = vec*0.5f;
+			temp += 0.5f;
+			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 1.0f-temp.z, 0.0f);
+			vec = Vector4(ortholeft, orthobottom, clipnear, 1.0f)*temp2;
+			vec += Vector4(orthoright, orthotop, clipfar, 1.0f)*temp;
+		}
+		
 		vec = inverseProjectionMatrix.Transform(vec);
 		vec /= vec.w;
+		vec.z *= -1.0f;
 
 		Vector3 temp(vec.x, vec.y, vec.z);
 		temp = inverseViewMatrix.Transform(temp);
@@ -513,11 +530,20 @@ namespace RN
 		return temp;
 	}
 	
+	//There should be a much better solution, but at least this works for now
 	Vector3 Camera::ToWorldZ(const Vector3& dir)
 	{
-		Vector4 vec(dir.x, dir.y, 1.0, 1.0f);
+		Vector4 vec(dir.x, dir.y, 1.0f, 1.0f);
+		if(_flags & FlagOrthogonal)
+		{
+			Vector2 temp(dir.x*0.5f+0.5f, dir.y*0.5f+0.5f);
+			vec.x = ortholeft*(1.0f-temp.x)+orthoright*temp.x;
+			vec.y = orthobottom*(1.0f-temp.y)+orthotop*temp.y;
+		}
+		
 		vec = inverseProjectionMatrix.Transform(vec);
-		vec = vec.Normalize()*dir.z;
+		vec *= dir.z/vec.z;
+		vec.z *= -1.0f;
 		
 		Vector3 temp(vec.x, vec.y, vec.z);
 		temp = inverseViewMatrix.Transform(temp);
@@ -617,7 +643,7 @@ namespace RN
 		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
 			return false;
 
-/*		if(_frustumLeft.Distance(position) > radius)
+		if(_frustumLeft.Distance(position) > radius)
 			return false;
 
 		if(_frustumRight.Distance(position) > radius)
@@ -633,7 +659,7 @@ namespace RN
 			return false;
 		
 		if(_frustumFar.Distance(position) > radius)
-			return false;*/
+			return false;
 
 		return true;
 	}

@@ -16,6 +16,7 @@
 namespace RN
 {
 	class Quaternion;
+	//column fucking major!!!!!111111
 	class alignas(16) Matrix
 	{
 	public:
