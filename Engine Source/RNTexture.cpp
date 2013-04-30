@@ -221,6 +221,7 @@ namespace RN
 		glTexParameteri(_glType, GL_TEXTURE_MAG_FILTER, magFilter); RN_CHECKOPENGL_AGGRESSIVE();
 		
 		//glTexParameteri(_glType, GL_TEXTURE_MAX_ANISOTROPY, parameter.anisotropy); RN_CHECKOPENGL_AGGRESSIVE();
+		glTexParameteri(_glType, GL_TEXTURE_MAX_LEVEL, _parameter.mipMaps);
 		
 		if(_parameter.depthCompare)
 		{

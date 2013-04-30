@@ -29,7 +29,7 @@ namespace RN
 			
 			depthCompare = false;
 			generateMipMaps = true;
-			mipMaps = 8;
+			mipMaps = 1000;
 			anisotropy = 0;
 		}
 		
