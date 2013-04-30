@@ -14,7 +14,7 @@
 #define TGWorldFeatureFreeCamera    1
 
 #define TGWorldFeatureParticles     1
-#define TGForestFeatureTrees 300
+#define TGForestFeatureTrees 500
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 95.0f
