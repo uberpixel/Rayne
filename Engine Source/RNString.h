@@ -58,6 +58,7 @@ namespace RN
 		void Insert(const String& string, uint32 index);
 		void DeleteCharacters(const Range& range);
 		void ReplaceCharacters(const String& replacement, const Range& range);
+		void ReplaceOccurrencesOfString(const String& string, const String& replacement);
 		
 		Range RangeOfString(const String& string);
 		Range RangeOfString(const String& string, ComparisonMode mode);

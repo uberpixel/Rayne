@@ -556,7 +556,7 @@ namespace RN
 		appendixLength = (_length - appendixLength);
 		
 		// Copy the appendix of this string into a temporary buffer
-		size_t bytes = (dataEnd + 1) - end;
+		size_t bytes = dataEnd - end;
 		uint8 *temp = 0;
 		
 		if(bytes > 0)
@@ -583,10 +583,24 @@ namespace RN
 		if(temp)
 		{
 			_length   += appendixLength;
-			_occupied += bytes - 1; // Don't include the null termination
+			_occupied += bytes;
 			
 			std::copy(temp, temp + bytes, begin);
 			delete [] temp;
+		}
+		
+		_buffer[_occupied] = '\0';
+	}
+	
+	void String::ReplaceOccurrencesOfString(const String& string, const String& replacement)
+	{
+		while(1)
+		{
+			Range range = RangeOfString(string);
+			if(range.origin == kRNNotFound)
+				break;
+			
+			ReplaceCharacters(replacement, range);
 		}
 	}
 	
@@ -724,11 +738,11 @@ namespace RN
 	
 	ComparisonResult String::Compare(const String& other, const Range& range, ComparisonMode mode) const
 	{
-		const uint8 *dataA = _buffer;
-		const uint8 *dataAEnd = _buffer + _occupied;
+		const uint8 *data = _buffer;
+		const uint8 *dataEnd = _buffer + _occupied;
 		
-		const uint8 *dataB = other._buffer;
-		const uint8 *dataBEnd = other._buffer + other._occupied;
+		const uint8 *compareData = other._buffer;
+		const uint8 *compareDataEnd = other._buffer + other._occupied;
 		
 		RN_ASSERT0(range.origin + range.length <= _length);
 		
@@ -737,53 +751,35 @@ namespace RN
 		// Skip the first n characters
 		for(machine_uint i=0; i<range.origin; i++)
 		{
-			size_t length;
+			size_t length = UTF8TrailingBytes[*data] + 1;
+			data += length;
 			
-			length = UTF8TrailingBytes[*dataA] + 1;
-			dataA += length;
-			
-			length = UTF8TrailingBytes[*dataB] + 1;
-			dataB += length;
-			
-			if(dataA > dataAEnd)
-				throw ErrorException(0, 0, 0);
-			
-			if(dataB > dataBEnd)
+			if(data > dataEnd)
 				throw ErrorException(0, 0, 0);
 		}
 		
 		// Calculate the new end
 		do {
-			const uint8 *tempA = dataA;
-			const uint8 *tempB = dataB;
+			const uint8 *temp = data;
 			
 			for(machine_uint i=0; i<range.length; i++)
 			{
-				size_t length;
-				
-				length = UTF8TrailingBytes[*tempA] + 1;
-				tempA += length;
-				
-				length = UTF8TrailingBytes[*tempB] + 1;
-				tempB += length;
-				
-				if(tempA > dataAEnd)
-					throw ErrorException(0, 0, 0);
-				
-				if(tempB > dataBEnd)
+				size_t length = UTF8TrailingBytes[*temp] + 1;
+				temp += length;
+
+				if(temp > dataEnd)
 					throw ErrorException(0, 0, 0);
 			}
 			
-			dataAEnd = tempA;
-			dataBEnd = tempB;
+			dataEnd = temp;
 		} while(0);
 
-		while(dataA < dataAEnd && dataB < dataBEnd)
+		while(data < dataEnd && compareData < compareDataEnd)
 		{
 			CodePoint a, b;
 			
-			PeekCharacter(a, dataA);
-			PeekCharacter(b, dataB);
+			PeekCharacter(a, data);
+			PeekCharacter(b, compareData);
 			
 			if(mode & ComparisonModeCaseInsensitive)
 			{
@@ -807,15 +803,15 @@ namespace RN
 							char ca = static_cast<char>(a);
 							numA = numA * 10 + (ca - '0');
 							
-							PeekCharacter(a, dataA);
-						} while(ca <= '9' && ca >= '0' && dataA < dataAEnd);
+							PeekCharacter(a, data);
+						} while(ca <= '9' && ca >= '0' && data < dataEnd);
 						
 						do {
 							char cb = static_cast<char>(b);
 							numB = numB * 10 + (cb - '0');
 							
-							PeekCharacter(b, dataB);
-						} while(cb <= '9' && cb >= '0' && dataB < dataBEnd);
+							PeekCharacter(b, compareData);
+						} while(cb <= '9' && cb >= '0' && compareData < compareDataEnd);
 						
 						if(numA > numB)
 							return kRNCompareGreaterThan;
