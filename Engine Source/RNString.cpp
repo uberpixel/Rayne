@@ -406,8 +406,6 @@ namespace RN
 				break;
 			}
 		}
-		
-		DebugDump();
 	}
 	
 	// ---------------------
@@ -444,64 +442,14 @@ namespace RN
 	// MARK: Mutation
 	// ---------------------
 	
-	void String::Append(const char *string)
-	{
-		CopyBytesWithEncoding(string, strlen(string), Encoding::ASCII);
-	}
-	
-	void String::Append(const char *string, size_t length)
-	{
-		CopyBytesWithEncoding(string, length, Encoding::ASCII);
-	}
-	
-	void String::Append(const void *bytes, Encoding encoding)
-	{
-		switch(encoding)
-		{
-			case Encoding::ASCII:
-			{
-				size_t length = strlen(static_cast<const char *>(bytes));
-				CopyBytesWithEncoding(bytes, length, Encoding::ASCII);
-				break;
-			}
-				
-			case Encoding::UTF8:
-			{
-				CopyBytesWithEncoding(bytes, UTF8ByteLength(static_cast<const uint8 *>(bytes)), Encoding::UTF8);
-				break;
-			}
-				
-			case Encoding::UTF16LE:
-			case Encoding::UTF16BE:
-			{
-				std::string converted;
-				
-				if(encoding == Encoding::UTF16LE)
-				{
-					std::wstring_convert<UTF16LEFacet, char16_t> convert;
-					converted = convert.to_bytes(static_cast<const char16_t *>(bytes));
-				}
-				else
-				{
-					std::wstring_convert<UTF16BEFacet, char16_t> convert;
-					converted = convert.to_bytes(static_cast<const char16_t *>(bytes));
-				}
-				
-				const uint8 *data = (const uint8 *)converted.data();
-				CopyBytesWithEncoding(data, UTF8ByteLength(data), Encoding::UTF8);
-				break;
-			}
-		}
-	}
-	
-	void String::Append(const void *bytes, size_t length, Encoding encoding)
-	{
-		CopyBytesWithEncoding(bytes, length, encoding);
-	}
-	
 	void String::Append(const String& string)
 	{
 		CopyUTF8Bytes(string._buffer, string._occupied);
+	}
+	
+	void String::Append(const String *string)
+	{
+		CopyUTF8Bytes(string->_buffer, string->_occupied);
 	}
 	
 	
@@ -510,14 +458,26 @@ namespace RN
 		ReplaceCharacters(string, Range(index, 0));
 	}
 	
+	void String::Insert(const String *string, uint32 index)
+	{
+		ReplaceCharacters(string, Range(index, 0));
+	}
+	
+	
 	void String::DeleteCharacters(const Range& range)
 	{
 		ReplaceCharacters(String(), range);
 	}
 	
+	
 	void String::ReplaceCharacters(const String& replacement, const Range& range)
 	{
-		CheckAndExpandBuffer(replacement._length);
+		ReplaceCharacters(&replacement, range);
+	}
+	
+	void String::ReplaceCharacters(const String *replacement, const Range& range)
+	{
+		CheckAndExpandBuffer(replacement->_length);
 		
 		uint8 *data = _buffer;
 		uint8 *dataEnd = _buffer + _occupied;
@@ -569,12 +529,12 @@ namespace RN
 		_length   = static_cast<uint32>(range.origin);
 		_occupied = intialOccupied;
 		
-		if(replacement._length > 0)
+		if(replacement->_length > 0)
 		{
-			uint32 rSize = replacement._occupied;
-			std::copy(replacement._buffer, replacement._buffer + rSize, begin);
+			uint32 rSize = replacement->_occupied;
+			std::copy(replacement->_buffer, replacement->_buffer + rSize, begin);
 			
-			_length   += replacement._length;
+			_length   += replacement->_length;
 			_occupied += rSize;
 			
 			begin += rSize;
@@ -593,6 +553,11 @@ namespace RN
 	}
 	
 	void String::ReplaceOccurrencesOfString(const String& string, const String& replacement)
+	{
+		ReplaceOccurrencesOfString(&string, &replacement);
+	}
+	
+	void String::ReplaceOccurrencesOfString(const String *string, const String *replacement)
 	{
 		while(1)
 		{
@@ -622,20 +587,37 @@ namespace RN
 	
 	Range String::RangeOfString(const String& string)
 	{
-		return RangeOfString(string, 0, Range(0, _length));
+		return RangeOfString(&string, 0, Range(0, _length));
 	}
 	
 	Range String::RangeOfString(const String& string, ComparisonMode mode)
 	{
-		return RangeOfString(string, mode, Range(0, _length));
+		return RangeOfString(&string, mode, Range(0, _length));
 	}
 	
 	Range String::RangeOfString(const String& string, ComparisonMode mode, const Range& range)
 	{
+		return RangeOfString(&string, mode, range);
+	}
+	
+	
+	
+	Range String::RangeOfString(const String *string)
+	{
+		return RangeOfString(string, 0, Range(0, _length));
+	}
+	
+	Range String::RangeOfString(const String *string, ComparisonMode mode)
+	{
+		return RangeOfString(string, mode, Range(0, _length));
+	}
+	
+	Range String::RangeOfString(const String *string, ComparisonMode mode, const Range& range)
+	{
 		const uint8 *data = _buffer;
 		const uint8 *dataEnd = _buffer + _occupied;
 		
-		const uint8 *stringData = string._buffer;
+		const uint8 *stringData = string->_buffer;
 		const uint8 *stringDataTemp;
 		
 		RN_ASSERT0(range.origin + range.length <= _length);
@@ -713,7 +695,7 @@ namespace RN
 				{
 					result.length ++;
 					
-					if(result.length >= string._length)
+					if(result.length >= string->_length)
 						break;
 				}
 			}
@@ -725,24 +707,39 @@ namespace RN
 	}
 	
 	
-	
 	ComparisonResult String::Compare(const String& other) const
 	{
-		return Compare(other, Range(0, _length), 0);
+		return Compare(&other, 0, Range(0, _length));
 	}
 	
 	ComparisonResult String::Compare(const String& other, ComparisonMode mode) const
 	{
-		return Compare(other, Range(0, _length), mode);
+		return Compare(&other, mode, Range(0, _length));
 	}
 	
-	ComparisonResult String::Compare(const String& other, const Range& range, ComparisonMode mode) const
+	ComparisonResult String::Compare(const String& other, ComparisonMode mode, const Range& range) const
+	{
+		return Compare(&other, mode, range);
+	}
+	
+	
+	ComparisonResult String::Compare(const String *other) const
+	{
+		return Compare(other, 0, Range(0, _length));
+	}
+	
+	ComparisonResult String::Compare(const String *other, ComparisonMode mode) const
+	{
+		return Compare(other, mode, Range(0, _length));
+	}
+	
+	ComparisonResult String::Compare(const String *other, ComparisonMode mode, const Range& range) const
 	{
 		const uint8 *data = _buffer;
 		const uint8 *dataEnd = _buffer + _occupied;
 		
-		const uint8 *compareData = other._buffer;
-		const uint8 *compareDataEnd = other._buffer + other._occupied;
+		const uint8 *compareData = other->_buffer;
+		const uint8 *compareDataEnd = other->_buffer + other->_occupied;
 		
 		RN_ASSERT0(range.origin + range.length <= _length);
 		
@@ -843,35 +840,6 @@ namespace RN
 	// MARK: -
 	// MARK: Conversion / Access
 	// ---------------------
-	
-	void String::DebugDump() const
-	{
-		const uint8 *data = _buffer;
-		
-		while(*data != '\0')
-		{
-			if(*data <= 0x7F)
-			{
-				printf("%c ", *data);
-				data ++;
-			}
-			else
-			{
-				size_t length = UTF8TrailingBytes[*data] + 1;
-				printf("0x");
-				
-				for(size_t j=0; j<length; j++)
-				{
-					printf("%02x", (int)*data);
-					data ++;
-				}
-				
-				printf(" ");
-			}
-		}
-		
-		printf("\n");
-	}
 	
 	String String::Substring(const Range& range) const
 	{

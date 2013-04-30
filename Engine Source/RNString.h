@@ -41,6 +41,7 @@ namespace RN
 		String(const void *bytes, Encoding encoding);
 		String(const void *bytes, size_t length, Encoding encoding);
 		String(const String& string);
+		String(const String *string);
 		virtual ~String();
 		
 		bool operator ==(const String& other) const;
@@ -49,24 +50,35 @@ namespace RN
 		String& operator +=(const String& other);
 		String operator +(const String& other) const;
 		
-		void Append(const char *string);
-		void Append(const char *string, size_t length);
-		void Append(const void *bytes, Encoding encoding);
-		void Append(const void *bytes, size_t length, Encoding encoding);
 		void Append(const String& string);
+		void Append(const String *string);
 		
 		void Insert(const String& string, uint32 index);
+		void Insert(const String *string, uint32 index);
+		
 		void DeleteCharacters(const Range& range);
+		
 		void ReplaceCharacters(const String& replacement, const Range& range);
+		void ReplaceCharacters(const String *replacement, const Range& range);
+		
 		void ReplaceOccurrencesOfString(const String& string, const String& replacement);
+		void ReplaceOccurrencesOfString(const String *string, const String *replacement);
 		
 		Range RangeOfString(const String& string);
 		Range RangeOfString(const String& string, ComparisonMode mode);
 		Range RangeOfString(const String& string, ComparisonMode mode, const Range& range);
 		
+		Range RangeOfString(const String *string);
+		Range RangeOfString(const String *string, ComparisonMode mode);
+		Range RangeOfString(const String *string, ComparisonMode mode, const Range& range);
+		
 		ComparisonResult Compare(const String& other) const;
 		ComparisonResult Compare(const String& other, ComparisonMode mode) const;
-		ComparisonResult Compare(const String& other, const Range& range, ComparisonMode mode) const;
+		ComparisonResult Compare(const String& other, ComparisonMode mode, const Range& range) const;
+		
+		ComparisonResult Compare(const String *other) const;
+		ComparisonResult Compare(const String *other, ComparisonMode mode) const;
+		ComparisonResult Compare(const String *other, ComparisonMode mode, const Range& range) const;
 		
 		String Substring(const Range& range) const;
 		UniChar CharacterAtIndex(uint32 index) const;
@@ -74,8 +86,6 @@ namespace RN
 		uint32 Length() const { return _length; }
 		
 		uint8 *BytesWithEncoding(Encoding encoding, bool lossy, size_t *length) const;
-		
-		void DebugDump() const;
 		
 	private:
 		void Initialize();
