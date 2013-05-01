@@ -11,7 +11,7 @@
 #define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
-#define TGWorldFeatureFreeCamera    0
+#define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		0
 
 #define TGWorldFeatureParticles     1
@@ -486,41 +486,6 @@ namespace TG
 			 transform->Translate(RN::Vector3(0.5f * delta, 0.0f, 0.0));
 			 });
 		}*/
-#endif
-		
-#if TGWorldFeatureInstancing
-		RN::Model *foliage[4];
-		
-		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
-		foliage[0]->MaterialAtIndex(0, 0)->culling = false;
-		foliage[0]->MaterialAtIndex(0, 0)->discard = true;
-		
-		foliage[1] = RN::Model::WithFile("models/nobiax/grass_05.sgm");
-		foliage[1]->MaterialAtIndex(0, 0)->culling = false;
-		foliage[1]->MaterialAtIndex(0, 0)->discard = true;
-		
-		foliage[2] = RN::Model::WithFile("models/nobiax/grass_19.sgm");
-		foliage[2]->MaterialAtIndex(0, 0)->culling = false;
-		foliage[2]->MaterialAtIndex(0, 0)->discard = true;
-		
-		foliage[3] = RN::Model::WithFile("models/nobiax/grass_04.sgm");
-		foliage[3]->MaterialAtIndex(0, 0)->culling = false;
-		foliage[3]->MaterialAtIndex(0, 0)->discard = true;
-		
-		uint32 index = 0;
-		
-		for(float x = -100.0f; x < 200.0f; x += 1.5f)
-		{
-			for(float y = -10.0f; y < 10.0f; y += 1.0f)
-			{
-				index = (index + 1) % 4;
-				
-				RN::Entity *fern = new RN::Entity();
-				fern->SetModel(foliage[index]);
-				fern->Rotate(RN::Vector3(0.0, 0.0, -90.0));
-				fern->SetPosition(RN::Vector3(x, -13.3, y));
-			}
-		}
 #endif
 	}
 
