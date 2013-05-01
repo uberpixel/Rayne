@@ -119,9 +119,9 @@ namespace RN
 		_depthTiles = 0;
 		_skycube = 0;
 		
-		_depthFrame = 0;
 		_depthArray = 0;
 		_depthSize  = 0;
+		_depthFrame = 0;
 		
 		_maxLights = 500;
 		_priority  = 0;
@@ -567,7 +567,7 @@ namespace RN
 		if(!_depthTiles)
 			return 0;
 		
-		if(Kernel::SharedInstance()->CurrentFrame() == LastFrame())
+		if(Kernel::SharedInstance()->CurrentFrame() == _depthFrame)
 			return _depthArray;
 		
 		int width  = (int)_depthTiles->Width();
@@ -588,6 +588,7 @@ namespace RN
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, _depthArray);
 		_depthTiles->Unbind();
 		
+		_depthFrame = Kernel::SharedInstance()->CurrentFrame();
 		return _depthArray;
 	}
 

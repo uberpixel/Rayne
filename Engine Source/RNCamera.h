@@ -221,7 +221,7 @@ namespace RN
 		Model *_skycube;
 		
 		float *_depthArray;
-		uint32 _depthFrame;
+		FrameID _depthFrame;
 		size_t _depthSize;
 		
 		machine_uint _maxLights;
