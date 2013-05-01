@@ -425,18 +425,12 @@ namespace RN
 				_depthTexture->SetData(0, width, height, TextureParameter::Format::RGBA8888);
 				_depthTexture->Unbind();
 			}
-			else
+			else if((_format & BufferFormatDepth) || (_format & BufferFormatStencil))
 			{
-				if(!(_format & BufferFormatStencil))
-				{
-					glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
-					glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, width, height);
-				}
-				else
-				{
-					glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
-					glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-				}
+				GLenum format = (!(_format & BufferFormatStencil)) ? GL_DEPTH_COMPONENT24 : GL_DEPTH24_STENCIL8;
+				
+				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+				glRenderbufferStorage(GL_RENDERBUFFER, format, width, height);
 			}
 			
 			CheckFramebufferStatus();
