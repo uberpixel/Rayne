@@ -18,7 +18,7 @@ out vec4 fragColor0;
 
 void main()
 {
-	vec2 texcoord = outTexcoord * vec2(5.0);
+	vec2 texcoord = outTexcoord * vec2(8.0);
 	vec4 color0 = texture(mTexture0, texcoord);
 
 	fragColor0 = color0 * rn_Lighting();
