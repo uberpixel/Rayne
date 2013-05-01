@@ -36,7 +36,10 @@ namespace RN
 		for(auto i=_data.begin(); i!=_data.end(); i++)
 		{
 			GLuint texture = i->texture;
+			GLuint buffer = i->buffer;
+			
 			glDeleteTextures(1, &texture);
+			glDeleteBuffers(1, &buffer);
 		}
 	}
 	
@@ -88,14 +91,12 @@ namespace RN
 					if(_dirty)
 						return;
 					
-					Number *tindex = (Number *)entity->AssociatedObject(kRNInstancingNodeAssociatedIndexKey);
-					uint32 index = tindex->Uint32Value();
+					Number *index = (Number *)entity->AssociatedObject(kRNInstancingNodeAssociatedIndexKey);
 					
 					size_t size = _data.size();
+					
 					for(size_t i=0; i<size; i++)
-					{
-						UpdateDataForMesh(entity, _data[i], index);
-					}
+						UpdateDataForMesh(entity, _data[i], index->Uint32Value());
 				}
 				else
 				{
@@ -117,10 +118,10 @@ namespace RN
 		if(_dirty)
 			RecalculateData();
 		
-		RenderingObject object(RenderingObject::TypeInstanced);
-
 		for(auto i=_data.begin(); i!=_data.end(); i++)
 		{
+			RenderingObject object(RenderingObject::TypeInstanced);
+			
 			object.mesh = i->mesh;
 			object.material = i->material;
 			object.texture = i->texture;
@@ -138,32 +139,40 @@ namespace RN
 		size_t count = entities.Count();
 		
 		GLuint texture;
+		GLuint buffer;
+		
 		Matrix *matrices = new Matrix[count * 2];
 		
 		for(machine_uint i=0; i<count; i++)
 		{
-			matrices[(int)i] = entities[(int)i]->WorldTransform();
-			matrices[(int)i + count] = entities[(int)i]->WorldTransform().Inverse();
+			matrices[(int)((i * 2) + 0)] = entities[(int)i]->WorldTransform();
+			matrices[(int)((i * 2) + 1)] = entities[(int)i]->WorldTransform().Inverse();
 		}
 		
 		glGenTextures(1, &texture);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glGenBuffers(1, &buffer);
 		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		RN_CHECKOPENGL_AGGRESSIVE();
 		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glBindTexture(GL_TEXTURE_BUFFER, texture); RN_CHECKOPENGL_AGGRESSIVE();
+		glBindBuffer(GL_TEXTURE_BUFFER, buffer); RN_CHECKOPENGL_AGGRESSIVE();
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, buffer); RN_CHECKOPENGL_AGGRESSIVE();
 		
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+		size_t size = count * 2 * sizeof(Matrix);
+		glBufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(size), matrices, GL_DYNAMIC_DRAW); RN_CHECKOPENGL_AGGRESSIVE();
 		
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, static_cast<GLsizei>(count * 4), 2, 0, GL_RGBA, GL_FLOAT, matrices);
+		glBindBuffer(GL_TEXTURE_BUFFER, 0);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		
+		RN_CHECKOPENGL();
+		
+		delete [] matrices;
 		
 		InstancedMesh imesh;
 		imesh.mesh = mesh;
 		imesh.material = material;
 		imesh.texture = texture;
+		imesh.buffer = buffer;
 		imesh.count = static_cast<uint32>(count);
 		
 		_data.push_back(imesh);
@@ -175,8 +184,13 @@ namespace RN
 		matrices[0] = entity->WorldTransform();
 		matrices[1] = entity->WorldTransform().Inverse();
 		
-		glBindTexture(GL_TEXTURE_2D, mesh.texture);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, index * 4, 0, 4, 2, GL_RGBA, GL_FLOAT, matrices);
+		printf("Index: %i\n", (int)index);
+		
+		size_t offset = index * (sizeof(Matrix) * 2);
+		
+		glBindBuffer(GL_TEXTURE_BUFFER, mesh.buffer);
+		glBufferSubData(GL_TEXTURE_BUFFER, offset, 2 * sizeof(Matrix), matrices);
+		glBindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
 	
 	
@@ -187,7 +201,10 @@ namespace RN
 		for(auto i=_data.begin(); i!=_data.end(); i++)
 		{
 			GLuint texture = i->texture;
+			GLuint buffer = i->buffer;
+			
 			glDeleteTextures(1, &texture);
+			glDeleteBuffers(1, &buffer);
 		}
 		
 		_data.clear();

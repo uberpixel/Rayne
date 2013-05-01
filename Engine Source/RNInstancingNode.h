@@ -39,6 +39,8 @@ namespace RN
 			Material *material;
 			
 			GLuint texture;
+			GLuint buffer;
+			
 			uint32 count;
 		};
 		

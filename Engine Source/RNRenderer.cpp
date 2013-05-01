@@ -945,6 +945,7 @@ namespace RN
 		// Render loop
 		bool changedCamera;
 		bool changedShader;
+		bool changedMaterial;
 		
 		while(camera)
 		{
@@ -1054,7 +1055,9 @@ namespace RN
 						programTypes |= ShaderProgram::TypeDiscard;
 		
 					program = shader->ProgramOfType(programTypes);
+					
 					changedShader = (_currentProgram != program);
+					changedMaterial = (_currentMaterial != material);
 					
 					BindMaterial(material, program);
 					
@@ -1063,6 +1066,7 @@ namespace RN
 					{
 						UpdateShaderData();
 						changedCamera = false;
+						changedShader = true;
 					}
 					
 					if(changedShader)
@@ -1089,6 +1093,34 @@ namespace RN
 							glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.Count(), GL_FALSE, data);
 						}
 						
+						if(camera->DepthTiles() != 0)
+						{
+							if(program->lightTileSize != -1)
+							{
+								Rect rect = camera->Frame();
+								int tilesWidth  = rect.width / camera->LightTiles().x;
+								int tilesHeight = rect.height / camera->LightTiles().y;
+								
+								Vector2 lightTilesSize = camera->LightTiles() * _scaleFactor;
+								Vector2 lightTilesCount = Vector2(tilesWidth, tilesHeight);
+								
+								glUniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
+							}
+						}
+						
+						if(program->discardThreshold != -1)
+						{
+							float threshold = material->discardThreshold;
+							
+							if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
+								threshold = surfaceMaterial->discardThreshold;
+							
+							glUniform1f(program->discardThreshold, threshold);
+						}
+					}
+					
+					if(changedShader || changedMaterial)
+					{
 						if(program->lightDirectionalDepth != -1 && _lightDirectionalDepth.Count() > 0)
 						{
 							uint32 textureUnit = BindTexture(_lightDirectionalDepth.FirstObject());
@@ -1134,28 +1166,6 @@ namespace RN
 								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListDataIndex]);
 								glUniform1i(program->lightSpotListData, textureUnit);
 							}
-							
-							if(program->lightTileSize != -1)
-							{
-								Rect rect = camera->Frame();
-								int tilesWidth  = rect.width / camera->LightTiles().x;
-								int tilesHeight = rect.height / camera->LightTiles().y;
-								
-								Vector2 lightTilesSize = camera->LightTiles() * _scaleFactor;
-								Vector2 lightTilesCount = Vector2(tilesWidth, tilesHeight);
-								
-								glUniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
-							}
-						}
-						
-						if(program->discardThreshold != -1)
-						{
-							float threshold = material->discardThreshold;
-							
-							if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
-								threshold = surfaceMaterial->discardThreshold;
-							
-							glUniform1f(program->discardThreshold, threshold);
 						}
 					}
 
@@ -1257,12 +1267,10 @@ namespace RN
 		MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureIndices);
 		
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
+		RN_ASSERT0(_currentProgram->instancingData != -1);
 		
-		if(_currentProgram->instancingData != -1)
-		{
-			uint32 textureUnit = BindTexture(GL_TEXTURE_2D, object.texture);
-			glUniform1i(_currentProgram->instancingData, textureUnit);
-		}
+		uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, object.texture);
+		glUniform1i(_currentProgram->instancingData, textureUnit);
 		
 		if(descriptor)
 		{

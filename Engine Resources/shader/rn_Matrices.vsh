@@ -17,36 +17,23 @@ uniform mat4 matViewInverse;
 
 #ifdef RN_INSTANCING
 
-uniform sampler2D instancingData;
+uniform samplerBuffer instancingData;
 
-mat4 imatModel()
+mat4 imatModel(int iOffset)
 {
-	int offset = gl_InstanceID * 4;
+	int offset = (gl_InstanceID * 8) + iOffset;
 	mat4 matrix;
 
-	matrix[0] = texelFetch(instancingData, ivec2(offset + 0, 0), 0);
-	matrix[1] = texelFetch(instancingData, ivec2(offset + 1, 0), 0);
-	matrix[2] = texelFetch(instancingData, ivec2(offset + 2, 0), 0);
-	matrix[3] = texelFetch(instancingData, ivec2(offset + 3, 0), 0);
+	matrix[0] = texelFetch(instancingData, offset + 0);
+	matrix[1] = texelFetch(instancingData, offset + 1);
+	matrix[2] = texelFetch(instancingData, offset + 2);
+	matrix[3] = texelFetch(instancingData, offset + 3);
 
 	return matrix;
 }
 
-mat4 imatModelInverse()
-{
-	int offset = gl_InstanceID * 4;
-	mat4 matrix;
-
-	matrix[0] = texelFetch(instancingData, ivec2(offset + 0, 1), 0);
-	matrix[1] = texelFetch(instancingData, ivec2(offset + 1, 1), 0);
-	matrix[2] = texelFetch(instancingData, ivec2(offset + 2, 1), 0);
-	matrix[3] = texelFetch(instancingData, ivec2(offset + 3, 1), 0);
-
-	return matrix;
-}
-
-#define matModel imatModel()
-#define matModelInverse imatModelInverse()
+#define matModel imatModel(0)
+#define matModelInverse imatModel(4)
 
 #define matViewModel (matView * matModel)
 #define matViewModelInverse (matViewInverse * matModelInverse)
