@@ -41,10 +41,6 @@ obj/
 *.layout
 
 # Library stuff
-*.a
-*.so
-*.dll
-*.dylib
 xcuserdata
 /DerivedData/
 
@@ -66,3 +62,4 @@ xcuserdata
 /Vendor/freetype-2.4.11/ChangeLog.21
 /Vendor/freetype-2.4.11/ChangeLog.20
 /Vendor/freetype-2.4.11/ChangeLog
+/Engine Test/Game/Resources/libGame.dylib
