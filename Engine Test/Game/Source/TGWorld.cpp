@@ -14,7 +14,8 @@
 #define TGWorldFeatureFreeCamera    1
 
 #define TGWorldFeatureParticles     1
-#define TGForestFeatureTrees 300
+#define TGForestFeatureTrees 500
+#define TGForestFeatureGras  10000
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 95.0f
@@ -40,11 +41,10 @@ namespace TG
 		_camera->Release();
 	}
 	
-	
 	void World::Update(float delta)
 	{
 		RN::Input *input = RN::Input::SharedInstance();
-		
+
 		static bool fpressed = false;
 		if(input->KeyPressed('f'))
 		{
@@ -286,7 +286,13 @@ namespace TG
 	void World::CreateForest()
 	{
 		// Ground
+		RN::Shader *terrainShader = new RN::Shader();
+		terrainShader->SetFragmentShader("shader/rn_Terrain.fsh");
+		terrainShader->SetVertexShader("shader/rn_Texture1.vsh");
+		
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
+		ground->MaterialAtIndex(0, 0)->SetShader(terrainShader);
+		
 		RN::Entity *ent = new RN::Entity();
 		ent->SetModel(ground);
 		ent->SetScale(RN::Vector3(20.0f));
@@ -339,18 +345,23 @@ namespace TG
 		tree->MaterialAtIndex(0, 0)->discard = true;
 		tree->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		
-		RN::InstancingNode *node = new RN::InstancingNode(tree);
+		RN::InstancingNode *node;
+		RN::Random::DualPhaseLCG dualPhaseLCG;
+		dualPhaseLCG.Seed(0x1024);
+		
+		node = new RN::InstancingNode(tree);
 		
 		for(int i = 0; i < TGForestFeatureTrees; i += 1)
 		{
-			RN::Vector3 pos = RN::Vector3(TGWorldRandom*(200.0f)-100.0f, 0.0f, TGWorldRandom*(200.0f)-100.0f);
+			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
 			if(pos.Length() < 10.0f)
 				continue;
 			
 			ent = new RN::Entity();
 			ent->SetModel(tree);
 			ent->SetPosition(pos);
-			ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
+			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.89f, 1.12f)));
+			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.0f, 365.0f), 0.0f, 0.0f));
 			
 			node->AttachChild(ent);
 			
@@ -361,6 +372,29 @@ namespace TG
 				});
 			}
 		}
+		
+		RN::Model *grass = RN::Model::WithFile("models/dexfuck/grass01.sgm");
+		grass->MaterialAtIndex(0, 0)->culling = false;
+		grass->MaterialAtIndex(0, 0)->discard = true;
+		grass->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		
+		node = new RN::InstancingNode(grass);
+		
+		for(int i=0; i<TGForestFeatureGras; i++)
+		{
+			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-50.0f, 50.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-50.0f, 50.0f));
+			if(pos.Length() < 5.0f)
+				continue;
+			
+			ent = new RN::Entity();
+			ent->SetModel(grass);
+			ent->SetPosition(pos);
+			ent->SetScale(RN::Vector3(2.5f));
+			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0, 365.0f), 0.0f, 0.0f));
+			
+			node->AttachChild(ent);
+		}
+		
 		
 /*		RN::Model *farm = RN::Model::WithFile("models/arteria/Farm/farmbase.sgm");
 		RN::Entity *ent = new RN::Entity();
@@ -382,7 +416,7 @@ namespace TG
 #endif
 		
 #if TGWorldFeatureLights
-		RN::Light *light;
+		//RN::Light *light;
 		//srand(time(0));
 		
 /*		light = new RN::Light();

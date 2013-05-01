@@ -182,24 +182,28 @@ namespace RN
 	
 	RN_INLINE uint32 Renderer::BindTexture(Texture *texture)
 	{
-		_textureUnit ++;
-		_textureUnit %= _maxTextureUnits;
-		
 		glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
 		glBindTexture(texture->GLType(), texture->Name());
 		
-		return _textureUnit;
+		uint32 unit = _textureUnit;
+		
+		_textureUnit ++;
+		_textureUnit %= _maxTextureUnits;
+		
+		return unit;
 	}
 	
 	RN_INLINE uint32 Renderer::BindTexture(GLenum type, GLuint texture)
 	{
-		_textureUnit ++;
-		_textureUnit %= _maxTextureUnits;
-		
 		glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
 		glBindTexture(type, texture);
 		
-		return _textureUnit;
+		uint32 unit = _textureUnit;
+		
+		_textureUnit ++;
+		_textureUnit %= _maxTextureUnits;
+		
+		return unit;
 	}
 	
 	RN_INLINE void Renderer::BindVAO(GLuint vao)

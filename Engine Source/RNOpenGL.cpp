@@ -41,6 +41,7 @@ namespace RN
 					
 				case GL_INVALID_OPERATION:
 					printf("OpenGL error: GL_INVALID_OPERATION\n");
+					break;
 					
 				case GL_OUT_OF_MEMORY:
 					printf("OpenGL error: GL_OUT_OF_MEMOR\n");
