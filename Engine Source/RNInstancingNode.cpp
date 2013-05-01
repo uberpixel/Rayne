@@ -184,8 +184,6 @@ namespace RN
 		matrices[0] = entity->WorldTransform();
 		matrices[1] = entity->WorldTransform().Inverse();
 		
-		printf("Index: %i\n", (int)index);
-		
 		size_t offset = index * (sizeof(Matrix) * 2);
 		
 		glBindBuffer(GL_TEXTURE_BUFFER, mesh.buffer);
