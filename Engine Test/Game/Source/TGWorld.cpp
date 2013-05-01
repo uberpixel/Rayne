@@ -12,6 +12,7 @@
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
 #define TGWorldFeatureFreeCamera    1
+#define TGWorldFeatureZPrePass		0
 
 #define TGWorldFeatureParticles     1
 #define TGForestFeatureTrees 500
@@ -25,6 +26,12 @@ namespace TG
 	World::World() :
 		RN::World("GenericSceneManager")
 	{
+		_sunLight = 0;
+		_finalcam = 0;
+		_camera = 0;
+		_spotLight = 0;
+		_player = 0;
+		
 		_physicsAttachment = new RN::bullet::PhysicsWorld();
 		AddAttachment(_physicsAttachment->Autorelease());
 		
@@ -50,7 +57,8 @@ namespace TG
 		{
 			if(!fpressed)
 			{
-//				_spotLight->SetRange(_spotLight->Range() > 1.0f ? 0.0f : TGWorldSpotLightRange);
+				if(_spotLight)
+					_spotLight->SetRange(_spotLight->Range() > 1.0f ? 0.0f : TGWorldSpotLightRange);
 				fpressed = true;
 			}
 		}
@@ -73,28 +81,32 @@ namespace TG
 		
 		_camera->Rotate(rotation);
 		_camera->TranslateLocal(translation * delta);
-		
-		rotation.x = (input->KeyPressed('e') - input->KeyPressed('q')) * 5.0f;
-		rotation.z = (input->KeyPressed('r') - input->KeyPressed('f')) * 2.0f;
-		_sunLight->Rotate(rotation);
 #endif
+		
+		if(_sunLight != 0)
+		{
+			RN::Vector3 sunrot;
+			sunrot.x = (input->KeyPressed('e') - input->KeyPressed('q')) * 5.0f;
+			sunrot.z = (input->KeyPressed('r') - input->KeyPressed('f')) * 2.0f;
+			_sunLight->Rotate(sunrot);
+		}
 	}
 	
 	
 	void World::CreateCameras()
 	{
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);//RN::RenderStorage::BufferFormatDepth | RN::RenderStorage::BufferFormatStencil);
-		storage->AddRenderTarget(RN::TextureParameter::Format::RGBA32F);
-		//RN::Texture *depthtex = new RN::Texture(RN::TextureParameter::Format::DepthStencil);
-		//storage->SetDepthTarget(depthtex);
+#if TGWorldFeatureZPrePass
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth|RN::RenderStorage::BufferFormatStencil);
+		RN::Texture *depthtex = new RN::Texture(RN::TextureParameter::Format::DepthStencil);
+		storage->SetDepthTarget(depthtex);
 		
-		//RN::Shader *depthShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightDepthShader);
-		//RN::Material *depthMaterial = new RN::Material(depthShader);
+		RN::Shader *depthShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightDepthShader);
+		RN::Material *depthMaterial = new RN::Material(depthShader);
 		
 		_camera = new ThirdPersonCamera(storage);
-//		_camera->SetMaterial(depthMaterial);
+		_camera->SetMaterial(depthMaterial);
 		
-		/*RN::Shader *downsampleShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleShader);
+		RN::Shader *downsampleShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleShader);
 		RN::Shader *downsampleFirstShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleFirstShader);
 		
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
@@ -141,13 +153,13 @@ namespace TG
 			downsample64x = new RN::Camera(RN::Vector2(_camera->Frame().width/64, _camera->Frame().height/64), RN::TextureParameter::Format::RG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
 			_camera->AddStage(downsample64x);
 			downsample64x->SetMaterial(downsampleMaterial64x);
-		}*/
+		}
 		
-		/*_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
+		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
 		_finalcam->Storage()->SetDepthTarget(depthtex);
 		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
-		_finalcam->renderGroup |= RN::Camera::RenderGroup1;*/
+		_finalcam->renderGroup |= RN::Camera::RenderGroup1;
 		
 /*		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
 		{
@@ -158,7 +170,13 @@ namespace TG
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
 		}*/
 		
-//		_camera->AttachChild(_finalcam);
+		_camera->AttachChild(_finalcam);
+		
+#else
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
+		storage->AddRenderTarget(RN::TextureParameter::Format::RGBA32F);
+		_camera = new ThirdPersonCamera(storage);
+#endif
 	}
 	
 	void World::CreateWorld()
@@ -188,11 +206,11 @@ namespace TG
 		RN::bullet::Shape *sponzaShape = new RN::bullet::TriangelMeshShape(model);
 		RN::bullet::PhysicsMaterial *sponzaMaterial = new RN::bullet::PhysicsMaterial();
 		
-		sponzaShape->SetScale(RN::Vector3(0.5));
+		sponzaShape->SetScale(RN::Vector3(0.2f));
 		
 		RN::bullet::RigidBody *sponza = new RN::bullet::RigidBody(sponzaShape, 0.0f);
 		sponza->SetModel(model);
-		sponza->SetScale(RN::Vector3(0.5, 0.5, 0.5));
+		sponza->SetScale(RN::Vector3(0.2f));
 		sponza->SetMaterial(sponzaMaterial);
 		sponza->SetRotation(RN::Quaternion(RN::Vector3(0.0, 0.0, -90.0)));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
@@ -204,7 +222,8 @@ namespace TG
 		
 		_player = new Player(playerModel);
 		_player->SetSkeleton(playerSkeleton);
-		_player->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
+		_player->SetPosition(RN::Vector3(1.0f, -1.0f, 0.0f));
+		_player->SetScale(RN::Vector3(0.4f));
 		_player->SetCamera(_camera);
 		
 		_camera->SetTarget(_player);
@@ -293,9 +312,18 @@ namespace TG
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
 		ground->MaterialAtIndex(0, 0)->SetShader(terrainShader);
 		
-		RN::Entity *ent = new RN::Entity();
-		ent->SetModel(ground);
-		ent->SetScale(RN::Vector3(20.0f));
+		RN::bullet::Shape *groundShape = new RN::bullet::TriangelMeshShape(ground);
+		RN::bullet::PhysicsMaterial *groundMaterial = new RN::bullet::PhysicsMaterial();
+		
+		groundShape->SetScale(RN::Vector3(20.0f));
+		
+		RN::bullet::RigidBody *groundbody = new RN::bullet::RigidBody(groundShape, 0.0f);
+		groundbody->SetModel(ground);
+		groundbody->SetScale(RN::Vector3(20.0f));
+		groundbody->SetMaterial(groundMaterial);
+		
+		
+		RN::Entity *ent;
 		
 		RN::Model *building = RN::Model::WithFile("models/Sebastian/Old_Buildings.sgm");
 		ent = new RN::Entity();
@@ -407,10 +435,11 @@ namespace TG
 		RN::Skeleton *playerSkeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
 		playerSkeleton->SetAnimation("cammina");
 		
-		_player = new Player();
-		_player->SetModel(playerModel);
+		_player = new Player(playerModel);
 		_player->SetSkeleton(playerSkeleton);
-		_player->SetPosition(RN::Vector3(5.0f, -5.0f, 0.0f));
+		_player->SetPosition(RN::Vector3(5.0f, 10.0f, 0.0f));
+		_player->SetScale(RN::Vector3(0.4f));
+		_player->SetCamera(_camera);
 		
 		_camera->SetTarget(_player);
 #endif
@@ -457,71 +486,6 @@ namespace TG
 			 transform->Translate(RN::Vector3(0.5f * delta, 0.0f, 0.0));
 			 });
 		}*/
-#endif
-		
-/*		ent = new RN::Entity();
-		ent->SetModel(tree);
-		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
-		ent->SetAction([&](RN::SceneNode *node, float delta) {
-			node->SetPosition(_camera->ToWorldZ(RN::Vector3(0.8, 0.8, 100.0)));});
-		
-		ent = new RN::Entity();
-		ent->SetModel(tree);
-		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
-		ent->SetAction([&](RN::SceneNode *node, float delta) {
-			node->SetPosition(_camera->ToWorldZ(RN::Vector3(-0.8, 0.8, 100.0)));});
-		
-		ent = new RN::Entity();
-		ent->SetModel(tree);
-		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
-		ent->SetAction([&](RN::SceneNode *node, float delta) {
-			node->SetPosition(_camera->ToWorldZ(RN::Vector3(0.8, -0.8, 100.0)));});
-		
-		ent = new RN::Entity();
-		ent->SetModel(tree);
-		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
-		ent->SetAction([&](RN::SceneNode *node, float delta) {
-			node->SetPosition(_camera->ToWorldZ(RN::Vector3(-0.8, -0.8, 100.0)));});
-		
-		ent = new RN::Entity();
-		ent->SetModel(tree);
-		ent->SetRotation(RN::Vector3(TGWorldRandom, 0.0f, 0.0f));
-		ent->SetAction([&](RN::SceneNode *node, float delta) {
-			node->SetPosition(_camera->ToWorldZ(RN::Vector3(0.0, 0.0, 100.0)));});*/
-		
-#if TGWorldFeatureInstancing
-		RN::Model *foliage[4];
-		
-		foliage[0] = RN::Model::WithFile("models/nobiax/fern_01.sgm");
-		foliage[0]->MaterialAtIndex(0, 0)->culling = false;
-		foliage[0]->MaterialAtIndex(0, 0)->discard = true;
-		
-		foliage[1] = RN::Model::WithFile("models/nobiax/grass_05.sgm");
-		foliage[1]->MaterialAtIndex(0, 0)->culling = false;
-		foliage[1]->MaterialAtIndex(0, 0)->discard = true;
-		
-		foliage[2] = RN::Model::WithFile("models/nobiax/grass_19.sgm");
-		foliage[2]->MaterialAtIndex(0, 0)->culling = false;
-		foliage[2]->MaterialAtIndex(0, 0)->discard = true;
-		
-		foliage[3] = RN::Model::WithFile("models/nobiax/grass_04.sgm");
-		foliage[3]->MaterialAtIndex(0, 0)->culling = false;
-		foliage[3]->MaterialAtIndex(0, 0)->discard = true;
-		
-		uint32 index = 0;
-		
-		for(float x = -100.0f; x < 200.0f; x += 1.5f)
-		{
-			for(float y = -10.0f; y < 10.0f; y += 1.0f)
-			{
-				index = (index + 1) % 4;
-				
-				RN::Entity *fern = new RN::Entity();
-				fern->SetModel(foliage[index]);
-				fern->Rotate(RN::Vector3(0.0, 0.0, -90.0));
-				fern->SetPosition(RN::Vector3(x, -13.3, y));
-			}
-		}
 #endif
 	}
 

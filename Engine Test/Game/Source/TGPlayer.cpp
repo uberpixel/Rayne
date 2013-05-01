@@ -13,7 +13,7 @@ namespace TG
 	RNDeclareMeta(Player)
 	
 	Player::Player(RN::Model *model) :
-		RN::bullet::KinematicController(RN::bullet::CapsuleShape::WithRadius(model->BoundingBox().Width() * 0.5f, model->BoundingBox().Height()), 0.45f)
+		RN::bullet::KinematicController(RN::bullet::CapsuleShape::WithRadius(model->BoundingBox().Width() * 0.5f*0.4f, model->BoundingBox().Height()*0.5f*0.4f), 0.45f)
 	{
 		SetModel(model);
 		_camera = 0;
@@ -41,7 +41,7 @@ namespace TG
 		}
 		
 		translation.x = (input->KeyPressed('d') - input->KeyPressed('a')) * 0.10f;
-		translation.z = (input->KeyPressed('s') - input->KeyPressed('w')) * 0.16f;
+		translation.z = (input->KeyPressed('s') - input->KeyPressed('w')) * 0.16f*(1.0+input->KeyPressed('c'));
 		
 		float movement = translation.Length();
 		if(movement > 0.0f)
@@ -49,7 +49,7 @@ namespace TG
 			RN::Skeleton *skeleton = Skeleton();
 			
 			if(skeleton)
-				skeleton->Update(24.0f * delta);
+				skeleton->Update(200.0f * delta * fabs(translation.z));
 		}
 		
 		Rotate(rotation);

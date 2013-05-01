@@ -16,7 +16,7 @@ namespace TG
 	RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults)
 	{
 		_target = 0;
-		_distance = 9.0f;
+		_distance = 5.0f;
 		_pitch = -10.0f;
 	}
 	
@@ -43,7 +43,7 @@ namespace TG
 			
 			rotation *= RN::Quaternion(RN::Vector3(0.0f, 0.0f, _pitch));
 			
-			RN::Vector3 cameraPosition = rotation.RotateVector(RN::Vector3(0.0f, 3.8f, _distance));
+			RN::Vector3 cameraPosition = rotation.RotateVector(RN::Vector3(0.0f, 1.5f, _distance));
 			cameraPosition += position;
 			
 			SetWorldPosition(cameraPosition);

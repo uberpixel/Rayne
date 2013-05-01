@@ -24,14 +24,14 @@ namespace TG
 	
 	void Application::Start()
 	{
-/*		RN::Window *window = RN::Window::SharedInstance();
+		RN::Window *window = RN::Window::SharedInstance();
 		const RN::Array<RN::WindowConfiguration *>& configurations = window->Configurations();
 		
-		RN::WindowConfiguration *configuration = configurations.FirstObject();
+		RN::WindowConfiguration *configuration = configurations.ObjectAtIndex(configurations.Count() - 2);
 		
-		RN::Window::SharedInstance()->SetConfiguration(configuration, /*RN::Window::WindowMaskFullscreen |*/ /*RN::Window::WindowMaskVSync);
+		RN::Window::SharedInstance()->SetConfiguration(configuration, 0);
 		//RN::Window::SharedInstance()->HideCursor();
-		*/
+		
 		_world = new World();
 	}
 	
