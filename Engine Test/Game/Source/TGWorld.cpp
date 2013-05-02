@@ -12,7 +12,7 @@
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
 #define TGWorldFeatureFreeCamera    1
-#define TGWorldFeatureZPrePass		0
+#define TGWorldFeatureZPrePass		1
 
 #define TGWorldFeatureParticles     0
 #define TGForestFeatureTrees 500
@@ -36,8 +36,8 @@ namespace TG
 		AddAttachment(_physicsAttachment->Autorelease());
 		
 		CreateCameras();
-//		CreateWorld();
-		CreateForest();
+		CreateWorld();
+//		CreateForest();
 		
 		RN::Input::SharedInstance()->Activate();
 	}
@@ -97,7 +97,13 @@ namespace TG
 	{
 #if TGWorldFeatureZPrePass
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth|RN::RenderStorage::BufferFormatStencil);
-		RN::Texture *depthtex = new RN::Texture(RN::TextureParameter::Format::DepthStencil);
+		
+		RN::TextureParameter depthparam;
+		depthparam.format = RN::TextureParameter::Format::DepthStencil;
+		depthparam.generateMipMaps = false;
+		depthparam.mipMaps = 0;
+		depthparam.wrapMode = RN::TextureParameter::WrapMode::Clamp;
+		RN::Texture *depthtex = new RN::Texture(depthparam);
 		storage->SetDepthTarget(depthtex);
 		
 		RN::Shader *depthShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightDepthShader);
@@ -112,11 +118,11 @@ namespace TG
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
 		downsampleMaterial2x->AddTexture(depthtex);
 		
-		RN::Camera *downsample2x = new RN::Camera(RN::Vector2(_camera->Frame().width/2, _camera->Frame().height/2), RN::TextureParameter::Format::RG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatComplete);
+		RN::Camera *downsample2x = new RN::Camera(RN::Vector2(_camera->Frame().width/2, _camera->Frame().height/2), RN::TextureParameter::Format::RG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
 		_camera->AddStage(downsample2x);
 		downsample2x->SetMaterial(downsampleMaterial2x);
 		
-/*		RN::Material *downsampleMaterial4x = new RN::Material(downsampleShader);
+		RN::Material *downsampleMaterial4x = new RN::Material(downsampleShader);
 		downsampleMaterial4x->AddTexture(downsample2x->Storage()->RenderTarget());
 		
 		RN::Camera *downsample4x = new RN::Camera(RN::Vector2(_camera->Frame().width/4, _camera->Frame().height/4), RN::TextureParameter::Format::RG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
@@ -154,8 +160,8 @@ namespace TG
 			_camera->AddStage(downsample64x);
 			downsample64x->SetMaterial(downsampleMaterial64x);
 		}
-*/
-/*		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
+
+		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
 		_finalcam->Storage()->SetDepthTarget(depthtex);
 		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
@@ -170,7 +176,7 @@ namespace TG
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
 		}
 		
-		_camera->AttachChild(_finalcam);*/
+		_camera->AttachChild(_finalcam);
 		
 #else
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);

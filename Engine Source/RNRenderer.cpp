@@ -119,6 +119,7 @@ namespace RN
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
 		
+		//remove?
 		// Light indices
 		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
@@ -273,18 +274,22 @@ namespace RN
 			glBufferData(GL_TEXTURE_BUFFER, 1 * sizeof(int), 0, GL_DYNAMIC_DRAW);
 			glBufferData(GL_TEXTURE_BUFFER, 1 * sizeof(int), _lightIndicesBuffer, GL_DYNAMIC_DRAW);
 			
+			//remove?
 			// Offsets
 			glBindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
 			glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
 			glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetSize * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
+/*			glBindBuffer(GL_UNIFORM_BUFFER, offsetBuffer);
+			glBufferData(GL_UNIFORM_BUFFER, lightindexoffsetSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
+			glBufferData(GL_UNIFORM_BUFFER, lightindexoffsetSize * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);*/
 			
 			return;
 		}
 		
 		
-		Vector3 corner1 = camera->ToWorld(Vector3(-1.0f, -1.0f, 1.0f));
-		Vector3 corner2 = camera->ToWorld(Vector3(1.0f, -1.0f, 1.0f));
-		Vector3 corner3 = camera->ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
+		Vector3 corner1 = camera->ToWorld(Vector3(1.0f, 1.0f, 1.0f));
+		Vector3 corner2 = camera->ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
+		Vector3 corner3 = camera->ToWorld(Vector3(1.0f, -1.0f, 1.0f));
 		
 		Vector3 dirx = (corner2-corner1) / tilesWidth;
 		Vector3 diry = (corner3-corner1) / tilesHeight;
@@ -292,7 +297,7 @@ namespace RN
 		const Vector3& camPosition = camera->WorldPosition();
 		float *depthArray = camera->DepthArray();
 		
-		Vector3 camdir = camera->WorldRotation().RotateVector(RN::Vector3(0.0, 0.0, -1.0));
+		Vector3 camdir = camera->Forward();
 		Vector3 far = camera->ToWorld(Vector3(1.0f, 1.0f, 1.0f));
 		far = far-camPosition;
 		
@@ -380,10 +385,14 @@ namespace RN
 		glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
 		glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), _lightIndicesBuffer, GL_DYNAMIC_DRAW);
 		
+		//remove?
 		// Offsets
 		glBindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
 		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
 		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
+/*		glBindBuffer(GL_UNIFORM_BUFFER, offsetBuffer);
+		glBufferData(GL_UNIFORM_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);*/
 	}
 	
 	int Renderer::CreatePointLightList(Camera *camera)
@@ -858,10 +867,10 @@ namespace RN
 		glEnableVertexAttribArray(program->vertTexcoord0);
 		glVertexAttribPointer(program->vertTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
-		uint32 targetmaps = MIN((uint32)program->targetmaplocations.Count(), camera->RenderTargets());
+		uint32 targetmaps = MIN((uint32)program->targetmaplocations.Count(), stage->RenderTargets());
 		for(uint32 i=0; i<targetmaps; i++)
 		{
-			Texture *texture = camera->RenderTarget(i);
+			Texture *texture = stage->RenderTarget(i);
 			GLuint location = program->targetmaplocations.ObjectAtIndex(i);
 			
 			glUniform1i(location, BindTexture(texture));
@@ -869,7 +878,7 @@ namespace RN
 		
 		if(program->depthmap != -1)
 		{
-			Texture *depthmap = camera->Storage()->DepthTarget();
+			Texture *depthmap = stage->Storage()->DepthTarget();
 			if(depthmap)
 			{
 				glUniform1i(program->depthmap, BindTexture(depthmap));
@@ -1140,6 +1149,13 @@ namespace RN
 							{
 								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
 								glUniform1i(program->lightPointListOffset, textureUnit);
+							}
+							
+							if(program->lightPointLists != -1)
+							{
+								glBindBuffer(GL_UNIFORM_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
+								glBindBufferBase( GL_UNIFORM_BUFFER, program->lightPointLists, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
+								glBindBuffer(GL_UNIFORM_BUFFER, 0);
 							}
 							
 							if(program->lightPointListData != -1)

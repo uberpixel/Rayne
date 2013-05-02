@@ -65,8 +65,9 @@ namespace RN
 		
 		GLuint lightPointCount;
 		GLuint lightPointList;
-		GLuint lightPointListOffset;
+		GLuint lightPointListOffset; //remove
 		GLuint lightPointListData;
+		GLuint lightPointLists;
 		
 		GLuint lightSpotCount;
 		GLuint lightSpotList;
