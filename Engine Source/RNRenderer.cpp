@@ -344,6 +344,7 @@ namespace RN
 						Distance(pltop, <, -range);
 						Distance(plbottom, >, range);
 						
+						//seems to work, but might not cull enough lights
 						Distance(plnear, <, -range);
 						Distance(plfar, >, range);
 						
