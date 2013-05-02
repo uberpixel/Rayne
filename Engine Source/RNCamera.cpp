@@ -77,8 +77,6 @@ namespace RN
 
 	Camera::~Camera()
 	{
-		World::SharedInstance()->RemoveCamera(this);
-		
 		if(_storage)
 			_storage->Release();
 		
@@ -129,6 +127,7 @@ namespace RN
 		_allowDepthWrite = true;
 		_lodCamera = 0;
 		_useInstancing = true;
+		_isStage = false;
 		
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
 		_colorMask = ColorFlagRed | ColorFlagGreen | ColorFlagBlue | ColorFlagAlpha;
@@ -141,8 +140,6 @@ namespace RN
 		Update(0.0f);
 		UpdateProjection();
 		UpdateFrustum();
-		
-		World::SharedInstance()->AddCamera(this);
 	}
 
 
@@ -303,15 +300,11 @@ namespace RN
 		_stage = stage ? stage->Retain() : 0;
 
 		UpdateProjection();
-		World::SharedInstance()->RemoveSceneNode(stage);
-		World::SharedInstance()->RemoveCamera(stage);
 	}
 
 	void Camera::ReplaceStage(Camera *stage)
 	{
 		Camera *temp = _stage ? _stage->_stage->Retain() : 0;
-		World::SharedInstance()->AddSceneNode(_stage);
-		World::SharedInstance()->AddCamera(_stage);
 
 		if(_stage)
 			_stage->Release();
@@ -324,8 +317,6 @@ namespace RN
 		_stage->_stage = temp;
 
 		UpdateProjection();
-		World::SharedInstance()->RemoveSceneNode(stage);
-		World::SharedInstance()->RemoveCamera(stage);
 	}
 
 	void Camera::RemoveStage(Camera *stage)
@@ -333,9 +324,6 @@ namespace RN
 		if(_stage == stage)
 		{
 			stage = stage->_stage ? stage->_stage->Retain() : 0;
-			
-			World::SharedInstance()->RemoveSceneNode(stage);
-			World::SharedInstance()->RemoveCamera(stage);
 
 			_stage->Release();
 			_stage = stage;
@@ -349,8 +337,6 @@ namespace RN
 			if(temp->_stage == stage)
 			{
 				stage = stage->_stage ? stage->_stage->Retain() : 0;
-				World::SharedInstance()->AddSceneNode(stage);
-				World::SharedInstance()->AddCamera(stage);
 
 				temp->_stage->Release();
 				temp->_stage = stage;
@@ -697,5 +683,10 @@ namespace RN
 	bool Camera::IsVisibleInCamera(Camera *camera)
 	{
 		return true;
+	}
+	
+	bool Camera::RequiresRendering() const
+	{
+		return (_isStage == false);
 	}
 }

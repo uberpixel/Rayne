@@ -130,6 +130,8 @@ namespace RN
 		RNAPI bool InFrustum(const Sphere& sphere);
 		RNAPI bool InFrustum(const AABB& aabb);
 		
+		RNAPI bool RequiresRendering() const;
+		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
 		const Vector3& FrustumCenter() const { return _frustumCenter; }
@@ -210,6 +212,7 @@ namespace RN
 		Vector2 _lightTiles;
 		
 		bool _allowDepthWrite;
+		bool _isStage;
 		
 		class Material *_material;
 		RenderStorage *_storage;
