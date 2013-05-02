@@ -14,13 +14,13 @@
 #ifdef RN_LIGHTING
 
 uniform isamplerBuffer lightPointList;
-uniform isamplerBuffer lightPointListOffset;
+//uniform isamplerBuffer lightPointListOffset;
 uniform samplerBuffer lightPointListData;
 
-/*uniform lightPointLists
+uniform lightPointLists
 {
-	ivec2 lightPointListOffset[32*32];
-};*/
+	ivec4 lightPointListOffset[32*32];
+};
 
 uniform isamplerBuffer lightSpotList;
 uniform isamplerBuffer lightSpotListOffset;
@@ -54,7 +54,7 @@ vec4 rn_Lighting()
 	
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 	
-	listoffset = /*lightPointListOffset[tileindex];// */texelFetch(lightPointListOffset, tileindex).xy;
+	listoffset = lightPointListOffset[tileindex].xy;// texelFetch(lightPointListOffset, tileindex).xy;
 	for(int i=0; i<listoffset.y; i++)
 	{
 		lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;

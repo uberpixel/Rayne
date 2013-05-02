@@ -121,9 +121,9 @@ namespace RN
 		
 		//remove?
 		// Light indices
-		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
+//		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
+//		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
+//		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
 		
 		// Light Data
 		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListDataIndex]);
@@ -260,7 +260,7 @@ namespace RN
 		size_t tileCount = tilesWidth * tilesHeight;
 		
 		size_t lightindicesSize = tilesWidth * tilesHeight * lightCount;
-		size_t lightindexoffsetSize = tilesWidth * tilesHeight * 2;
+		size_t lightindexoffsetSize = tilesWidth * tilesHeight * 4;	//remove? not really but 4 is needed for block alignement
 		
 		if(lightCount == 0)
 		{
@@ -276,12 +276,12 @@ namespace RN
 			
 			//remove?
 			// Offsets
-			glBindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
+/*			glBindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
 			glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
-			glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetSize * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
-/*			glBindBuffer(GL_UNIFORM_BUFFER, offsetBuffer);
+			glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetSize * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);*/
+			glBindBuffer(GL_UNIFORM_BUFFER, offsetBuffer);
 			glBufferData(GL_UNIFORM_BUFFER, lightindexoffsetSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
-			glBufferData(GL_UNIFORM_BUFFER, lightindexoffsetSize * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);*/
+			glBufferData(GL_UNIFORM_BUFFER, lightindexoffsetSize * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
 			
 			return;
 		}
@@ -376,6 +376,8 @@ namespace RN
 			}
 			
 			_lightOffsetBuffer[lightIndexOffsetCount ++] = static_cast<int>(lightIndicesCount - previous);
+			_lightOffsetBuffer[lightIndexOffsetCount ++] = 0;
+			_lightOffsetBuffer[lightIndexOffsetCount ++] = 0;
 		}
 		
 		// Indices
@@ -388,12 +390,12 @@ namespace RN
 		
 		//remove?
 		// Offsets
-		glBindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
+/*		glBindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
 		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
-		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
-/*		glBindBuffer(GL_UNIFORM_BUFFER, offsetBuffer);
+		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);*/
+		glBindBuffer(GL_UNIFORM_BUFFER, offsetBuffer);
 		glBufferData(GL_UNIFORM_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
-		glBufferData(GL_UNIFORM_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);*/
+		glBufferData(GL_UNIFORM_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
 	}
 	
 	int Renderer::CreatePointLightList(Camera *camera)
