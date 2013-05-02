@@ -17,6 +17,11 @@ uniform isamplerBuffer lightPointList;
 uniform isamplerBuffer lightPointListOffset;
 uniform samplerBuffer lightPointListData;
 
+/*uniform lightPointLists
+{
+	ivec2 lightPointListOffset[32*32];
+};*/
+
 uniform isamplerBuffer lightSpotList;
 uniform isamplerBuffer lightSpotListOffset;
 uniform samplerBuffer lightSpotListData;
@@ -39,7 +44,7 @@ vec4 rn_Lighting()
 	}
 	vec3 posdiff = vec3(0.0);
 	float attenuation = 0.0;
-	vec3 light = vec3(0.4);
+	vec3 light = vec3(0.1);
 	vec4 lightpos;
 	vec3 lightcolor;
 	vec4 lightdir;
@@ -47,9 +52,9 @@ vec4 rn_Lighting()
 	int lightindex;
 	ivec2 listoffset;
 	
-/*	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
+	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 	
-	listoffset = texelFetch(lightPointListOffset, tileindex).xy;
+	listoffset = /*lightPointListOffset[tileindex];// */texelFetch(lightPointListOffset, tileindex).xy;
 	for(int i=0; i<listoffset.y; i++)
 	{
 		lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;
@@ -63,7 +68,7 @@ vec4 rn_Lighting()
 		light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
 	}
 
-	listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
+/*	listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
 	for(int i=0; i<listoffset.y; i++)
 	{
 		lightindex = (texelFetch(lightSpotList, listoffset.x + i).r) * 3;
@@ -81,9 +86,9 @@ vec4 rn_Lighting()
 	}*/
 	
 //	for(int i=0; i<lightDirectionalCount; i++)
-	{
+/*	{
 		light += lightDirectionalColor[0]*max(dot(normal, lightDirectionalDirection[0]), 0.0)*rn_ShadowDir1();
-	}
+	}*/
 	
 	return vec4(light, 1.0);
 }
