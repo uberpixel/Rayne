@@ -21,12 +21,14 @@
 namespace RN
 {
 	class Kernel;
+	class UIServer;
 	
 	class World : public NonConstructingSingleton<World>
 	{
 	friend class SceneNode;
 	friend class Kernel;
 	friend class Camera;
+	friend class UIServer;
 	public:
 		RNAPI World(SceneManager *sceneManager);
 		RNAPI World(const std::string& sceneManager);

@@ -84,7 +84,8 @@ namespace RN
 		
 		_renderer = Renderer::SharedInstance();
 		_input    = Input::SharedInstance();
-
+		_uiserver = UIServer::SharedInstance();
+		
 		_world = 0;
 		_window = Window::SharedInstance();
 		_frame  = 0;
@@ -110,18 +111,19 @@ namespace RN
 	{
 		AutoreleasePool *pool = new AutoreleasePool();
 		_app->WillExit();
+		
+		delete _app;
 
 		delete _renderer;
-		delete _app;
+		delete _input;
+		delete _uiserver;
 
 #if RN_PLATFORM_LINUX
 		Display *dpy = Context::_dpy;
-#endif
-		
 		_context->Release();
-		
-#if RN_PLATFORM_LINUX
 		XCloseDisplay(dpy);
+#else
+		_context->Release();
 #endif
 
 		delete pool;
@@ -217,6 +219,7 @@ namespace RN
 			
 			_world->StepWorld(_frame, _delta);
 			_input->DispatchInputEvents();
+			_uiserver->Render(_renderer);
 
 			Application::SharedInstance()->WorldUpdate(_delta);
 		}
