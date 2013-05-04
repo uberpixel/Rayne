@@ -114,9 +114,6 @@ typedef int8 ComparisonResult;
 #define kRNCompareEqualTo       0
 #define kRNCompareGreaterThan   1
 
-#define RN_INLINE inline
-#define RN_EXTERN extern
-
 #define kRNNotFound static_cast<machine_uint>(-1)
 
 namespace RN
