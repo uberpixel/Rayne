@@ -128,6 +128,7 @@ namespace RN
 		_lodCamera = 0;
 		_useInstancing = true;
 		_isStage = false;
+		_blend = false;
 		
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
 		_colorMask = ColorFlagRed | ColorFlagGreen | ColorFlagBlue | ColorFlagAlpha;
@@ -268,6 +269,11 @@ namespace RN
 	void Camera::SetPriority(uint32 priority)
 	{
 		_priority = priority;
+	}
+	
+	void Camera::SetUseBlending(bool useBlending)
+	{
+		_blend = useBlending;
 	}
 	
 	// Stages

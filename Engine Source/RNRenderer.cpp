@@ -790,9 +790,17 @@ namespace RN
 		_textureUnit = 0;
 		
 		SetDepthTestEnabled(false);
-		SetBlendingEnabled(true);
-		SetBlendFunction(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		SetCullMode(GL_CCW);
+		
+		if(camera->UseBlending())
+		{
+			SetBlendingEnabled(true);
+			SetBlendFunction(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		}
+		else
+		{
+			SetBlendingEnabled(false);
+		}
 		
 		if(_currentVAO != _copyVAO)
 		{

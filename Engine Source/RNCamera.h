@@ -108,6 +108,7 @@ namespace RN
 		RNAPI void SetLODCamera(Camera *camera);
 		RNAPI void SetUseInstancing(bool activate);
 		RNAPI void SetPriority(uint32 priority);
+		RNAPI void SetUseBlending(bool useBlending);
 		
 		RNAPI void AddStage(Camera *stage);
 		RNAPI void InsertStage(Camera *stage);
@@ -145,6 +146,7 @@ namespace RN
 		Flags CameraFlags() const { return _flags; }
 		Camera *LODCamera() const { return _lodCamera; }
 		uint32 Priority() const { return _priority; }
+		bool UseBlending() const { return _blend; }
 		
 		Vector2 LightTiles() const { return _lightTiles; }
 		Model *SkyCube() const { return _skycube; }
@@ -213,6 +215,7 @@ namespace RN
 		
 		bool _allowDepthWrite;
 		bool _isStage;
+		bool _blend;
 		
 		class Material *_material;
 		RenderStorage *_storage;
