@@ -393,7 +393,8 @@ namespace RN
 						continue;
 					}
 					
-					machine_uint moveLocal = MIN(kRNThreadPoolLocalQueueMaxSize, _workQueue.size());
+					machine_uint moveLocal = MIN(kRNThreadPoolLocalQueueMaxSize, MAX(1, (_workQueue.size() / _threads.Count())));
+					
 					std::deque<Task>::iterator last = _workQueue.begin();
 					std::advance(last, moveLocal);
 					
