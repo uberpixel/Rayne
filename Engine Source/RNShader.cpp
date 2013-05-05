@@ -436,7 +436,7 @@ namespace RN
 				GetUniformLocation(lightPointCount);
 				GetUniformLocation(lightPointList);
 				GetUniformLocation(lightPointListOffset); //remove
-				GetUniformLocation(lightPointListData);
+				GetBlockLocation(lightPointListData);
 				GetBlockLocation(lightPointLists);
 				
 				GetUniformLocation(lightSpotCount);

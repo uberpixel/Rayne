@@ -15,11 +15,16 @@
 
 uniform isamplerBuffer lightPointList;
 //uniform isamplerBuffer lightPointListOffset;
-uniform samplerBuffer lightPointListData;
+//uniform samplerBuffer lightPointListData;
 
 uniform lightPointLists
 {
 	ivec4 lightPointListOffset[32*32];
+};
+
+uniform lightPointListData
+{
+	vec4 lightPointData[2048];
 };
 
 uniform isamplerBuffer lightSpotList;
@@ -59,8 +64,8 @@ vec4 rn_Lighting()
 	{
 		lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;
 
-		lightpos   = texelFetch(lightPointListData, lightindex);
-		lightcolor = texelFetch(lightPointListData, lightindex + 1).xyz;
+		lightpos   = lightPointData[lightindex];//texelFetch(lightPointListData, lightindex);
+		lightcolor = lightPointData[lightindex+1].xyz;//texelFetch(lightPointListData, lightindex + 1).xyz;
 		
 		posdiff     = lightpos.xyz-outLightPosition;
 		attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
