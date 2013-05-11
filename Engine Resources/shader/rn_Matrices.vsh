@@ -15,6 +15,9 @@ uniform mat4 matProjViewInverse;
 uniform mat4 matView;
 uniform mat4 matViewInverse;
 
+uniform mat4 matProj;
+uniform mat4 matProjInverse;
+
 #ifdef RN_INSTANCING
 
 uniform samplerBuffer instancingData;
