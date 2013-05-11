@@ -160,7 +160,10 @@ namespace RN
 		if(thread->CurrentTexture() == this)
 		{
 			if(_hasChanged && _isCompleteTexture)
+			{
 				glFlush();
+				_hasChanged = false;
+			}
 			
 			thread->PopTexture();
 			
