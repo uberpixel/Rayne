@@ -393,44 +393,6 @@ namespace RN
 		orthotop = dist;
 		UpdateProjection();
 		
-	/*	Vector3 nearcorner1 = camera->ToWorldZ(Vector3(-1.0f, -1.0f, near));
-		Vector3 farcorner1 = camera->ToWorldZ(Vector3(1.0f, 1.0f, far));
-		Vector3 farcorner2 = camera->ToWorldZ(Vector3(-1.0f, -1.0f, far));
-		float dist1 = nearcorner1.Distance(farcorner1);
-		float dist2 = farcorner1.Distance(farcorner2);
-		float dist = 0.0f;
-		Vector3 center;
-		if(dist1 < dist2)
-		{
-			dist = dist2;
-			center = (farcorner2+farcorner1)*0.5f;
-		}
-		else
-		{
-			dist = dist1;
-			center = (nearcorner1+farcorner1)*0.5f;
-		}
-		
-		ortholeft = -dist;
-		orthoright = dist;
-		orthobottom = -dist;
-		orthotop = dist;
-		UpdateProjection();
-		
-		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
-		Vector3 pos = center+light->Forward()*200.0f;
-		
-		Matrix rot = light->WorldRotation().RotationMatrix();
-		pos = rot.Inverse()*pos;
-		
-		pos /= pixelsize;
-		pos.x = floorf(pos.x);
-		pos.y = floorf(pos.y);
-		pos.z = floorf(pos.z);
-		pos *= pixelsize;
-		pos = rot*pos;
-		SetPosition(pos);*/
-		
 		Matrix projview = projectionMatrix*WorldTransform().Inverse();
 		return projview;
 	}
@@ -510,45 +472,56 @@ namespace RN
 
 	Vector3 Camera::ToWorld(const Vector3& dir)
 	{
-		Vector4 vec(dir.x, dir.y, dir.z, 1.0f);
+		Vector3 ndcPos(dir.x, dir.y, dir.z*2.0f-1.0f);
 		if(_flags & FlagOrthogonal)
 		{
-			Vector4 temp = vec*0.5f;
+			Vector4 temp = ndcPos*0.5f;
 			temp += 0.5f;
 			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 1.0f-temp.z, 0.0f);
-			vec = Vector4(ortholeft, orthobottom, clipnear, 1.0f)*temp2;
-			vec += Vector4(orthoright, orthotop, clipfar, 1.0f)*temp;
+			Vector4 vec = Vector4(ortholeft, orthobottom, -clipnear, 1.0f)*temp2;
+			vec += Vector4(orthoright, orthotop, -clipfar, 1.0f)*temp;
+			
+			vec = inverseViewMatrix.Transform(vec);
+			return vec;
 		}
-		
-		vec = inverseProjectionMatrix.Transform(vec);
-		vec /= vec.w;
-		vec.z *= -1.0f;
-
-		Vector3 temp(vec.x, vec.y, vec.z);
-		temp = inverseViewMatrix.Transform(temp);
-		
-		return temp;
+		else
+		{
+			Vector4 clipPos;
+			clipPos.w = projectionMatrix.m[14]/(ndcPos.z+projectionMatrix.m[10]);
+			clipPos = Vector4(ndcPos*clipPos.w, clipPos.w);
+			
+			Vector4 temp = inverseProjectionMatrix.Transform(clipPos);
+			temp = inverseViewMatrix.Transform(temp);
+			return temp;
+		}
 	}
 	
 	//There should be a much better solution, but at least this works for now
 	Vector3 Camera::ToWorldZ(const Vector3& dir)
 	{
-		Vector4 vec(dir.x, dir.y, 1.0f, 1.0f);
+		Vector3 ndcPos(dir.x, dir.y, 0.0f);
 		if(_flags & FlagOrthogonal)
 		{
-			Vector2 temp(dir.x*0.5f+0.5f, dir.y*0.5f+0.5f);
-			vec.x = ortholeft*(1.0f-temp.x)+orthoright*temp.x;
-			vec.y = orthobottom*(1.0f-temp.y)+orthotop*temp.y;
+			Vector4 temp = ndcPos*0.5f;
+			temp += 0.5f;
+			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 0.0f, 0.0f);
+			Vector4 vec = Vector4(ortholeft, orthobottom, -dir.z, 1.0f)*temp2;
+			vec += Vector4(orthoright, orthotop, -dir.z, 1.0f)*temp;
+			vec = inverseViewMatrix.Transform(vec);
+			return vec;
 		}
-		
-		vec = inverseProjectionMatrix.Transform(vec);
-		vec *= dir.z/vec.z;
-		vec.z *= -1.0f;
-		
-		Vector3 temp(vec.x, vec.y, vec.z);
-		temp = inverseViewMatrix.Transform(temp);
-		
-		return temp;
+		else
+		{
+			Vector4 clipPos;
+			clipPos.w = projectionMatrix.m[14]/(ndcPos.z+projectionMatrix.m[10]);
+			clipPos = Vector4(ndcPos*clipPos.w, clipPos.w);
+			
+			Vector4 temp = inverseProjectionMatrix.Transform(clipPos);
+			temp *= -dir.z/temp.z;
+			temp.w = 1.0f;
+			temp = inverseViewMatrix.Transform(temp);
+			return temp;
+		}
 	}
 	
 	const Rect& Camera::Frame()
@@ -594,10 +567,10 @@ namespace RN
 
 	void Camera::UpdateFrustum()
 	{
-		Vector3 pos2 = ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
-		Vector3 pos3 = ToWorld(Vector3(-1.0f, -1.0f, 1.0f));
-		Vector3 pos5 = ToWorld(Vector3(1.0f, 1.0f, 1.0f));
-		Vector3 pos6 = ToWorld(Vector3(1.0f, -1.0f, 1.0f));
+		Vector3 pos2 = ToWorld(Vector3(-0.5f, 1.0f, 1.0));
+		Vector3 pos3 = ToWorld(Vector3(-0.5f, -1.0f, 1.0));
+		Vector3 pos5 = ToWorld(Vector3(0.0f, 0.0f, 1.0));
+		Vector3 pos6 = ToWorld(Vector3(0.0f, -0.0f, 1.0));
 		
 		const Vector3& position = WorldPosition();
 		Vector3 direction = WorldRotation().RotateVector(RN::Vector3(0.0, 0.0, -1.0));
@@ -641,13 +614,13 @@ namespace RN
 
 	bool Camera::InFrustum(const Vector3& position, float radius)
 	{
-		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
-			return false;
+//		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
+//			return false;
 
-		if(_frustumLeft.Distance(position) > radius)
-			return false;
+//		if(_frustumLeft.Distance(position) > radius)
+//			return false;
 
-		if(_frustumRight.Distance(position) > radius)
+/*		if(_frustumRight.Distance(position) > radius)
 			return false;
 
 		if(_frustumTop.Distance(position) > radius)
@@ -660,7 +633,7 @@ namespace RN
 			return false;
 		
 		if(_frustumFar.Distance(position) > radius)
-			return false;
+			return false;*/
 
 		return true;
 	}
