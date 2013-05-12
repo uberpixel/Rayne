@@ -13,19 +13,23 @@
 
 #ifdef RN_LIGHTING
 
-uniform isamplerBuffer lightPointList;
-//uniform isamplerBuffer lightPointListOffset;
-//uniform samplerBuffer lightPointListData;
+#define USE_UBOs 0
 
-uniform lightPointLists
+uniform isamplerBuffer lightPointList;
+#if !USE_UBOs
+uniform isamplerBuffer lightPointListOffset;
+uniform samplerBuffer lightPointListData;
+#else
+uniform lightPointListOffsetUBO
 {
 	ivec4 lightPointListOffset[32*32];
 };
 
-uniform lightPointListData
+uniform lightPointListDataUBO
 {
 	vec4 lightPointData[2048];
 };
+#endif
 
 uniform isamplerBuffer lightSpotList;
 uniform isamplerBuffer lightSpotListOffset;
@@ -49,7 +53,7 @@ vec4 rn_Lighting()
 	}
 	vec3 posdiff = vec3(0.0);
 	float attenuation = 0.0;
-	vec3 light = vec3(0.1);
+	vec3 light = vec3(0.0);
 	vec4 lightpos;
 	vec3 lightcolor;
 	vec4 lightdir;
@@ -59,19 +63,37 @@ vec4 rn_Lighting()
 	
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 	
-	listoffset = lightPointListOffset[tileindex].xy;// texelFetch(lightPointListOffset, tileindex).xy;
+#if USE_UBOs
+	listoffset = lightPointListOffset[tileindex].xy;
+#else
+	listoffset = texelFetch(lightPointListOffset, tileindex).xy;
+#endif
 	for(int i=0; i<listoffset.y; i++)
 	{
 		lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;
 
-		lightpos   = lightPointData[lightindex];//texelFetch(lightPointListData, lightindex);
-		lightcolor = lightPointData[lightindex+1].xyz;//texelFetch(lightPointListData, lightindex + 1).xyz;
+#if USE_UBOs
+		lightpos   = lightPointData[lightindex];
+		lightcolor = lightPointData[lightindex+1].xyz;
+#else
+		lightpos   = texelFetch(lightPointListData, lightindex);
+		lightcolor = texelFetch(lightPointListData, lightindex + 1).xyz;
+#endif
 		
 		posdiff     = lightpos.xyz-outLightPosition;
-		attenuation = max((lightpos.w-length(posdiff))/lightpos.w, 0.0);
+		attenuation = min(max(1.0-length(posdiff)/lightpos.w, 0.0), 1.0);
 		
-		light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation;
+		light += 0.5;//lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation*2.0;
 	}
+	
+	if(listoffset.y < 5)
+		light *= vec3(1.0);
+	else if(listoffset.y < 10)
+		light *= vec3(0.0, 1.0, 0.0);
+	else if(listoffset.y < 15)
+		light *= vec3(0.0, 0.0, 1.0);
+	else
+		light *= vec3(1.0, 0.0, 0.0);
 
 /*	listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
 	for(int i=0; i<listoffset.y; i++)
