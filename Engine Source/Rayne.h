@@ -73,6 +73,7 @@
 #include "RNThread.h"
 #include "RNThreadPool.h"
 #include "RNFunction.h"
+#include "RNScopeGuard.h"
 #include "RNSpinLock.h"
 #include "RNMutex.h"
 #include "RNWindow.h"
