@@ -42,6 +42,11 @@ namespace RN
 
 		RNAPI float Determinant() const;
 		RNAPI float DeterminantSubmatrix(const int k) const;
+		
+		RNAPI void SetTranslation(const Vector3& other);
+		RNAPI void SetTranslation(const Vector4& other);
+		RNAPI void SetScale(const Vector3& other);
+		RNAPI void SetScale(const Vector4& other);
 
 		RNAPI void Translate(const Vector3& trans);
 		RNAPI void Translate(const Vector4& trans);

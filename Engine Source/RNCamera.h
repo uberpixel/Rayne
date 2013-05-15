@@ -38,7 +38,8 @@ namespace RN
 			FlagInheritProjection = (1 << 6),
 			FlagUpdateStorageFrame = (1 << 7),
 			FlagOrthogonal = (1 << 8),
-			FlagHidden = (1<<9),
+			FlagHidden = (1 << 9),
+			FlagNoSorting = (1 << 10),
 			
 			
 			FlagDefaults = (FlagFullscreen | FlagUpdateAspect | FlagUpdateStorageFrame),

@@ -212,17 +212,17 @@ namespace RN
 		
 		_frame ++;
 		_renderer->BeginFrame(_delta);
+		_input->DispatchInputEvents();
+		
+		Application::SharedInstance()->GameUpdate(_delta);
 
 		if(_world)
 		{
-			Application::SharedInstance()->GameUpdate(_delta);
-			
 			_world->StepWorld(_frame, _delta);
-			_input->DispatchInputEvents();
-			_uiserver->Render(_renderer);
-
 			Application::SharedInstance()->WorldUpdate(_delta);
 		}
+		
+		_uiserver->Render(_renderer);
 		
 		_renderer->FinishFrame();
 		

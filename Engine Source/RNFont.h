@@ -44,7 +44,7 @@ namespace RN
 	friend class Glyph;
 	public:
 		Font(const std::string& name, float size);
-		virtual ~Font();
+		~Font() override;
 		
 		static Font *WithName(const std::string& name, float size);
 		

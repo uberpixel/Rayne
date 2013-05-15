@@ -425,6 +425,12 @@ namespace RN
 				GetUniformLocation(clipPlanes);
 				GetUniformLocation(discardThreshold);
 				
+				GetUniformLocation(ambient);
+				GetUniformLocation(diffuse);
+				GetUniformLocation(specular);
+				GetUniformLocation(emissive);
+				GetUniformLocation(shininess);
+				
 				GetUniformLocation(viewPosition);
 				
 				GetUniformLocation(lightPointCount);

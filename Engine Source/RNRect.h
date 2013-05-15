@@ -149,12 +149,12 @@ namespace RN
 	
 	RN_INLINE float Rect::Top() const
 	{
-		return y;
+		return y + height;
 	}
 	
 	RN_INLINE float Rect::Bottom() const
 	{
-		return y + height;
+		return y;
 	}
 	
 	RN_INLINE float Rect::Left() const

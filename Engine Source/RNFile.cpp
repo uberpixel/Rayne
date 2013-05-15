@@ -10,7 +10,7 @@
 #include "RNPathManager.h"
 #include "RNBaseInternal.h"
 
-#define kRNFileBufferSize 256
+#define kRNFileBufferSize 1024
 
 namespace RN
 {

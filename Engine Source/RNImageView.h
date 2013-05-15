@@ -11,18 +11,28 @@
 
 #include "RNBase.h"
 #include "RNView.h"
-#include "RNTexture.h"
-#include "RNMaterial.h"
+#include "RNImage.h"
 
 namespace RN
 {
 	class ImageView : public View
 	{
 	public:
+		ImageView();
+		ImageView(const Rect& frame);
+		ImageView(Image *image);
+		~ImageView() override;
+		
+		void SetImage(Image *image);
+		
+	protected:
+		bool Render(RenderingObject& object) override;
 		
 	private:
-		Material *_material;
-		Texture *_image;
+		void Initialize();
+		
+		Image *_image;
+		Mesh *_mesh;
 	};
 }
 

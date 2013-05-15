@@ -20,6 +20,12 @@ namespace RN
 		Initialize();
 	}
 	
+	Widget::Widget(const Rect& frame) :
+		_frame(frame)
+	{
+		Initialize();
+	}
+	
 	Widget::~Widget()
 	{
 		_contentView->Release();
@@ -27,9 +33,12 @@ namespace RN
 	
 	void Widget::Initialize()
 	{
-		_contentView = EmptyContentView();
+		_contentView = EmptyContentView()->Retain();
 		_dirtyLayout = true;
 		_server = 0;
+		
+		_minimumSize = Vector2(0.0f, 0.0f);
+		_maximumSize = Vector2(FLT_MAX, FLT_MAX);
 	}
 	
 	
@@ -41,6 +50,7 @@ namespace RN
 	View *Widget::EmptyContentView()
 	{
 		View *view = new View(Rect(Vector2(0.0f), ContentSize()));
+		view->_widget = this;
 		return view->Autorelease();
 	}
 	
@@ -57,19 +67,55 @@ namespace RN
 		_contentView->_widget = this;
 		
 		_contentView->ViewHierarchyChanged();
+		
+		ConstraintContentView();
 		NeedsLayoutUpdate();
 	}
 	
 	void Widget::SetMinimumSize(const Vector2& size)
 	{
 		_minimumSize = size;
-		NeedsLayoutUpdate();
+		ConstraintFrame();
 	}
 	
 	void Widget::SetMaximumSize(const Vector2& size)
 	{
 		_maximumSize = size;
-		NeedsLayoutUpdate();
+		ConstraintFrame();
+	}
+	
+	void Widget::SetFrame(const Rect& frame)
+	{
+		_frame = frame;
+		ConstraintFrame();
+	}
+	
+	void Widget::ConstraintContentView()
+	{
+		return;
+		
+		Rect frame = _contentView->Frame();
+		Vector2 size = ContentSize();
+		
+		frame.width  = size.x;
+		frame.height = size.y;
+		
+		_contentView->SetFrame(frame);
+	}
+	
+	void Widget::ConstraintFrame()
+	{
+		Rect frame = _frame;
+		frame.width  = MIN(_maximumSize.x, MAX(_minimumSize.x, frame.width));
+		frame.height = MIN(_maximumSize.y, MAX(_minimumSize.y, frame.height));
+		
+		if(frame != _frame)
+		{
+			_frame = frame;
+			
+			ConstraintContentView();
+			NeedsLayoutUpdate();
+		}
 	}
 	
 	// ---------------------
@@ -79,28 +125,30 @@ namespace RN
 	
 	void Widget::Show()
 	{
-		if(!_server)
+		if(_server)
 		{
-			_server = UIServer::SharedInstance();
-			_server->AddWidget(this);
+			OrderFront();
+			return;
 		}
+		
+		UIServer::SharedInstance()->AddWidget(this);
 	}
 	
 	void Widget::Close()
 	{
 		if(_server)
-		{
 			_server->RemoveWidget(this);
-			_server = 0;
-		}
 	}
 	
 	void Widget::OrderFront()
 	{
-		if(_server)
+		if(!_server)
 		{
-			_server->MoveWidgetToFront(this);
+			Show();
+			return;
 		}
+		
+		_server->MoveWidgetToFront(this);
 	}
 	
 	// ---------------------
@@ -115,12 +163,21 @@ namespace RN
 	
 	void Widget::UpdateLayout()
 	{
-		
-		_dirtyLayout = false;
+		if(_server)
+		{
+			_finalTransform = transform;
+			_finalTransform.Translate(Vector3(_frame.x, _server->Height() - _frame.height - _frame.y, 0.0f));
+			_finalTransform.Scale(Vector3(_frame.width, _frame.height, 1.0f));
+			
+			_dirtyLayout = false;
+		}
 	}
 	
 	void Widget::Render(Renderer *renderer)
 	{
+		if(!_server)
+			return;
+		
 		if(_dirtyLayout)
 			UpdateLayout();
 		

@@ -22,7 +22,10 @@ namespace RN
 	friend class Kernel;
 	public:
 		UIServer();
-		virtual ~UIServer();
+		~UIServer() override;
+		
+		uint32 Height() const;
+		uint32 Width() const;
 		
 	protected:
 		void Render(Renderer *renderer);

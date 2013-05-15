@@ -27,12 +27,15 @@ namespace RN
 	public:
 		View();
 		View(const Rect& frame);
-		virtual ~View();
+		~View() override;
 		
-		const Rect& Frame() const;
+		Rect ConvertRectToView(View *view, const Rect& frame);
+		
+		const Rect& Frame() const { return _frame; }
 		const Rect& Bounds() const;
 		
 		void SetFrame(const Rect& frame);
+		void SetBackgroundColor(const Color& color);
 		
 		void AddSubview(View *subview);
 		void RemoveSubview(View *subview);
@@ -42,27 +45,37 @@ namespace RN
 		void NeedsLayoutUpdate();
 		
 	protected:
+		static Mesh *BasicMesh();
+		
 		virtual void Update();
 		virtual bool Render(RenderingObject& object);
 		
 		Material *DrawMaterial() { return _material; }
+		
+		Matrix transform;
 		
 	private:
 		void Initialize();
 		void ViewHierarchyChanged();
 		void Render(Renderer *renderer);
 		
+		void PrepareRendering(RenderingObject& object);
+		
 		View *_superview;
 		Widget *_widget;
 		Material *_material;
+		Material *_viewMaterial;
+		
+		Mesh *_mesh;
 		
 		Array<View *> _subviews;
 		
 		bool _dirtyLayout;
 		
 		Rect _frame;
-		Matrix _transform;
+		
 		Matrix _finalTransform;
+		Matrix _intermediateTransform;
 		
 		RNDefineMeta(View, Responder)
 	};

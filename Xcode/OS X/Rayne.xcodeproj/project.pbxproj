@@ -122,6 +122,8 @@
 		E9B1742A16CACA5A00732DCE /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9B1742816CACA5A00732DCE /* RNDebug.cpp */; };
 		E9B1742B16CACA5A00732DCE /* RNDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = E9B1742916CACA5A00732DCE /* RNDebug.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9BEF3BB1743CF560090C9CB /* RNScopeGuard.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BEF3B91743CF560090C9CB /* RNScopeGuard.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9BEF3C21744442A0090C9CB /* RNImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9BEF3C01744442A0090C9CB /* RNImage.cpp */; };
+		E9BEF3C31744442A0090C9CB /* RNImage.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BEF3C11744442A0090C9CB /* RNImage.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9C6F0A716B207E1006288D5 /* RNModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F0A516B207E1006288D5 /* RNModel.cpp */; };
 		E9C6F0A816B207E1006288D5 /* RNModel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C6F0A616B207E1006288D5 /* RNModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9C7DB271710D0F3006AD768 /* RNInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C7DB261710CE2C006AD768 /* RNInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -305,6 +307,8 @@
 		E9B1742816CACA5A00732DCE /* RNDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDebug.cpp; sourceTree = "<group>"; };
 		E9B1742916CACA5A00732DCE /* RNDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDebug.h; sourceTree = "<group>"; };
 		E9BEF3B91743CF560090C9CB /* RNScopeGuard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNScopeGuard.h; sourceTree = "<group>"; };
+		E9BEF3C01744442A0090C9CB /* RNImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNImage.cpp; sourceTree = "<group>"; };
+		E9BEF3C11744442A0090C9CB /* RNImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNImage.h; sourceTree = "<group>"; };
 		E9C6F0A516B207E1006288D5 /* RNModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNModel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9C6F0A616B207E1006288D5 /* RNModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNModel.h; sourceTree = "<group>"; };
 		E9C7DB261710CE2C006AD768 /* RNInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNInterpolation.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -472,6 +476,8 @@
 			children = (
 				E9E83F3E172A4F7D0075559B /* RNFont.cpp */,
 				E9E83F3F172A4F7D0075559B /* RNFont.h */,
+				E9BEF3C01744442A0090C9CB /* RNImage.cpp */,
+				E9BEF3C11744442A0090C9CB /* RNImage.h */,
 				E9586E651730855600D24737 /* RNImageView.cpp */,
 				E9586E661730855600D24737 /* RNImageView.h */,
 				E9586E60173072B700D24737 /* RNResponder.cpp */,
@@ -725,6 +731,7 @@
 				E9586E63173072B700D24737 /* RNResponder.h in Headers */,
 				E9586E681730855600D24737 /* RNImageView.h in Headers */,
 				E9BEF3BB1743CF560090C9CB /* RNScopeGuard.h in Headers */,
+				E9BEF3C31744442A0090C9CB /* RNImage.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -883,6 +890,7 @@
 				E9586E5E172FD40C00D24737 /* RNUIServer.cpp in Sources */,
 				E9586E62173072B700D24737 /* RNResponder.cpp in Sources */,
 				E9586E671730855600D24737 /* RNImageView.cpp in Sources */,
+				E9BEF3C21744442A0090C9CB /* RNImage.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -22,9 +22,11 @@ namespace RN
 	class Widget : public Responder
 	{
 	friend class UIServer;
+	friend class View;
 	public:
 		Widget();
-		virtual ~Widget();
+		Widget(const Rect& frame);
+		~Widget() override;
 		
 		void SetContentView(View *view);
 		void SetMinimumSize(const Vector2& size);
@@ -48,8 +50,13 @@ namespace RN
 	protected:
 		void Render(Renderer *renderer);
 		
+		Matrix transform;
+		
 	private:
 		void Initialize();
+		void ConstraintFrame();
+		void ConstraintContentView();
+		
 		View *EmptyContentView();
 		void UpdateLayout();
 		
@@ -59,6 +66,8 @@ namespace RN
 		View *_contentView;
 		Vector2 _minimumSize;
 		Vector2 _maximumSize;
+		
+		Matrix _finalTransform;
 		
 		UIServer *_server;
 		

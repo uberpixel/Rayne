@@ -250,7 +250,7 @@ namespace TG
 #endif
 		
 #if TGWorldFeatureLights
-		RN::Light *light;
+		/*RN::Light *light;
 		//srand(time(0));
 		
 		light = new RN::Light();
@@ -261,9 +261,9 @@ namespace TG
 		light = new RN::Light();
 		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));*/
 		
-		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
+		/*_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->_lightcam = _camera;
 		_sunLight->ActivateSunShadows(true);
@@ -272,7 +272,7 @@ namespace TG
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(0.9f);
-		_spotLight->SetColor(RN::Color(0.5f));
+		_spotLight->SetColor(RN::Color(0.5f));*/
 		
 #if TGWorldFeatureFreeCamera
 		_camera->AttachChild(_spotLight);
@@ -280,17 +280,17 @@ namespace TG
 		_player->AttachChild(_spotLight);
 #endif
 		
-		for(int i=0; i<200; i++)
+		/*for(int i=0; i<200; i++)
 		{
 			light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 140.0f - 70.0f, TGWorldRandom * 100.0f-20.0f, TGWorldRandom * 80.0f - 40.0f));
 			light->SetRange((TGWorldRandom * 20.0f) + 10.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 			
-			/*light->SetAction([](RN::Transform *transform, float delta) {
+			light->SetAction([](RN::Transform *transform, float delta) {
 				transform->Translate(RN::Vector3(0.5f * delta, 0.0f, 0.0));
-			});*/
-		}
+			});
+		}*/
 #endif
 		
 		RN::Billboard *billboard = new RN::Billboard();

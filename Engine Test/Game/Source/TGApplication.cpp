@@ -32,7 +32,7 @@ namespace TG
 		RN::Window::SharedInstance()->SetConfiguration(configuration, 0);
 		//RN::Window::SharedInstance()->HideCursor();
 		
-		_world = new World();
+		//_world = new World();
 	}
 	
 	void Application::WillExit()

@@ -178,6 +178,7 @@ namespace RN
 		
 		size_t _instancingVBOSize;
 		GLuint _instancingVBO;
+		SpinLock _lock;
 	};
 	
 	RN_INLINE uint32 Renderer::BindTexture(Texture *texture)

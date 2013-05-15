@@ -967,44 +967,47 @@ namespace RN
 			if(!(camera->CameraFlags() & Camera::FlagDrawTarget))
 			{				
 				// Sort the objects
-				_frame.SortUsingFunction([](const RenderingObject& a, const RenderingObject& b) {
-					// Sort by material
-					const Material *materialA = a.material;
-					const Material *materialB = b.material;
-					
-					if(materialA->blending != materialB->blending)
-					{
-						if(!materialB->blending)
+				if(!(camera->CameraFlags() & Camera::FlagNoSorting))
+				{
+					_frame.SortUsingFunction([](const RenderingObject& a, const RenderingObject& b) {
+						// Sort by material
+						const Material *materialA = a.material;
+						const Material *materialB = b.material;
+						
+						if(materialA->blending != materialB->blending)
+						{
+							if(!materialB->blending)
+								return kRNCompareGreaterThan;
+							
+							if(!materialA->blending)
+								return kRNCompareLessThan;
+						}
+						
+						if(materialA->discard != materialB->discard)
+						{
+							if(!materialB->discard)
+								return kRNCompareGreaterThan;
+							
+							if(!materialA->discard)
+								return kRNCompareLessThan;
+						}
+						
+						if(materialA->Shader() > materialB->Shader())
 							return kRNCompareGreaterThan;
 						
-						if(!materialA->blending)
+						if(materialB->Shader() > materialA->Shader())
 							return kRNCompareLessThan;
-					}
-					
-					if(materialA->discard != materialB->discard)
-					{
-						if(!materialB->discard)
+						
+						// Sort by mesh
+						if(a.mesh > b.mesh)
 							return kRNCompareGreaterThan;
 						
-						if(!materialA->discard)
+						if(b.mesh > a.mesh)
 							return kRNCompareLessThan;
-					}
-					
-					if(materialA->Shader() > materialB->Shader())
-						return kRNCompareGreaterThan;
-					
-					if(materialB->Shader() > materialA->Shader())
-						return kRNCompareLessThan;
-					
-					// Sort by mesh
-					if(a.mesh > b.mesh)
-						return kRNCompareGreaterThan;
-					
-					if(b.mesh > a.mesh)
-						return kRNCompareLessThan;
-					
-					return kRNCompareEqualTo;
-				}, skyCubeMeshes);
+						
+						return kRNCompareEqualTo;
+					}, skyCubeMeshes);
+				}
 				
 				Material *surfaceMaterial = camera->Material();
 					
@@ -1176,6 +1179,21 @@ namespace RN
 								glUniform1i(program->lightSpotListData, textureUnit);
 							}
 						}
+						
+						if(program->ambient != -1)
+							glUniform4fv(program->ambient, 1, &material->ambient.r);
+						
+						if(program->diffuse != -1)
+							glUniform4fv(program->diffuse, 1, &material->diffuse.r);
+						
+						if(program->emissive != -1)
+							glUniform4fv(program->emissive, 1, &material->emissive.r);
+						
+						if(program->specular != -1)
+							glUniform4fv(program->specular, 1, &material->specular.r);
+						
+						if(program->shininess != -1)
+							glUniform1f(program->shininess, material->shininess);
 					}
 
 					if(wantsInstancing)
@@ -1295,11 +1313,15 @@ namespace RN
 	
 	void Renderer::RenderObject(const RenderingObject& object)
 	{
+		_lock.Lock();
 		_frame.AddObject(object);
+		_lock.Unlock();
 	}
 	
 	void Renderer::RenderLight(Light *light)
 	{
+		_lock.Lock();
+		
 		switch(light->LightType())
 		{
 			case Light::TypePointLight:
@@ -1317,5 +1339,7 @@ namespace RN
 			default:
 				break;
 		}
+		
+		_lock.Unlock();
 	}
 }
