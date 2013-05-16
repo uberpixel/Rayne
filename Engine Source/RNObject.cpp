@@ -19,9 +19,8 @@ namespace RN
 	}
 	
 	Object::~Object()
-	{
-		//class MetaClass *meta = Class(); // Just there so that it shows up on the stack
-		RN_ASSERT(_refCount <= 1, "refCount must be <= 1 upon destructor call. Use object->Release(); instead of delete object;");
+	{		
+		RN_ASSERT(_refCount.load() <= 1, "refCount must be <= 1 upon destructor call. Use object->Release(); instead of delete object;");
 	
 		for(auto i=_associatedObjects.begin(); i!=_associatedObjects.end(); i++)
 		{
@@ -44,18 +43,16 @@ namespace RN
 	
 	Object *Object::Retain()
 	{
-		_lock.Lock();
 		_refCount ++;
-		_lock.Unlock();
-		
 		return this;
 	}
 	
 	Object *Object::Release()
 	{
 		_lock.Lock();
+		_refCount --;
 		
-		if((-- _refCount) == 0)
+		if(_refCount.load() == 0)
 		{
 			_lock.Unlock();
 			
