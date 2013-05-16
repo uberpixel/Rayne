@@ -64,6 +64,7 @@ namespace RN
 			_mesh = BasicMesh()->Retain();
 			_image = 0;
 		}
+
 		
 		
 		void ImageView::SetImage(Image *image)

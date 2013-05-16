@@ -56,6 +56,7 @@ namespace RN
 			_superview = 0;
 			_widget = 0;
 			_dirtyLayout = true;
+			_scaleWithFrame = true;
 			
 			_material = new Material();
 			_material->depthtest = false;
@@ -235,6 +236,12 @@ namespace RN
 			NeedsLayoutUpdate();
 		}
 		
+		void View::SetScaleWithFrame(bool scale)
+		{
+			_scaleWithFrame = scale;
+			_dirtyLayout = true;
+		}
+		
 		void View::NeedsLayoutUpdate()
 		{
 			_dirtyLayout = true;
@@ -270,7 +277,9 @@ namespace RN
 				
 				_finalTransform = _intermediateTransform;
 				_finalTransform.Translate(Vector3(converted.x, serverHeight - _frame.height - converted.y, 0.0f));
-				_finalTransform.Scale(Vector3(_frame.width, _frame.height, 1.0f));
+				
+				if(_scaleWithFrame)
+					_finalTransform.Scale(Vector3(_frame.width, _frame.height, 1.0f));
 				
 				_dirtyLayout = false;
 			}
@@ -300,8 +309,8 @@ namespace RN
 			}
 			else
 			{
-				object.material = _viewMaterial;
 				object.mesh = _mesh;
+				object.material = _viewMaterial;
 				renderer->RenderObject(object);
 			}
 			

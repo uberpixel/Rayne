@@ -62,6 +62,11 @@ namespace RN
 			}
 		}
 		
+		void Image::SetEdgeInsets(const EdgeInsets& insets)
+		{
+			_insets = insets;
+		}
+		
 		uint32 Image::Width(bool atlasApplied) const
 		{
 			uint32 width = _texture->Width();

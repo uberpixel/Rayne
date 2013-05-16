@@ -32,6 +32,7 @@ namespace RN
 			
 		private:
 			void Initialize();
+			Mesh *UpdateMeshForImage();
 			
 			Image *_image;
 			Mesh *_mesh;

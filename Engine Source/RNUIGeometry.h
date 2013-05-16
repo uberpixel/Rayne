@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNVector.h"
+#include "RNMath.h"
 
 namespace RN
 {
@@ -29,6 +30,28 @@ namespace RN
 				bottom = tbottom;
 				left = tleft;
 				right = tright;
+			}
+			
+			bool operator ==(const EdgeInsets& other)
+			{
+				if(Math::FastAbs(top - other.top) >= kRNEpsilonFloat)
+					return false;
+				
+				if(Math::FastAbs(bottom - other.bottom) >= kRNEpsilonFloat)
+					return false;
+				
+				if(Math::FastAbs(left - other.left) >= kRNEpsilonFloat)
+					return false;
+				
+				if(Math::FastAbs(right - other.right) >= kRNEpsilonFloat)
+					return false;
+				
+				return true;
+			}
+			
+			bool operator !=(const EdgeInsets& other)
+			{
+				return !(*this == other);
 			}
 			
 			float top, bottom, left, right;

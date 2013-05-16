@@ -52,6 +52,8 @@ namespace RN
 			virtual void Update();
 			virtual bool Render(RenderingObject& object);
 			
+			void SetScaleWithFrame(bool scale);
+			
 			Material *DrawMaterial() { return _material; }
 			
 			Matrix transform;
@@ -73,6 +75,7 @@ namespace RN
 			Array<View *> _subviews;
 			
 			bool _dirtyLayout;
+			bool _scaleWithFrame;
 			
 			Rect _frame;
 			

@@ -28,8 +28,11 @@ namespace RN
 			static Image *WithFile(const std::string& file);
 			
 			void SetAtlas(const Atlas& atlas, bool normalized=true);
+			void SetEdgeInsets(const EdgeInsets& insets);
 			
 			const Atlas& Atlas() const { return _atlas; }
+			const EdgeInsets& Insets() const { return _insets; }
+			
 			Texture *Texture() const { return _texture; }
 			
 			uint32 Width(bool atlasApplied=true) const;
@@ -38,6 +41,7 @@ namespace RN
 		private:
 			class Texture *_texture;
 			class Atlas _atlas;
+			EdgeInsets _insets;
 			
 			RNDefineConstructorlessMeta(Image, Object)
 		};
