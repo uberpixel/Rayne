@@ -83,17 +83,17 @@ vec4 rn_Lighting()
 		posdiff     = lightpos.xyz-outLightPosition;
 		attenuation = min(max(1.0-length(posdiff)/lightpos.w, 0.0), 1.0);
 		
-		light += 0.5;//lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation*2.0;
+		light += lightcolor*max(dot(normal, normalize(posdiff)), 0.0)*attenuation*attenuation*2.0;
 	}
 	
-	if(listoffset.y < 5)
+/*	if(listoffset.y < 5)
 		light *= vec3(1.0);
 	else if(listoffset.y < 10)
 		light *= vec3(0.0, 1.0, 0.0);
 	else if(listoffset.y < 15)
 		light *= vec3(0.0, 0.0, 1.0);
 	else
-		light *= vec3(1.0, 0.0, 0.0);
+		light *= vec3(1.0, 0.0, 0.0);*/
 
 /*	listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
 	for(int i=0; i<listoffset.y; i++)

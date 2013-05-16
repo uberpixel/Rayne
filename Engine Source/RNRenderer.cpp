@@ -312,15 +312,15 @@ namespace RN
 		std::vector<size_t> indicesCount(tileCount);
 		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
 		
-//		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
-//		pool->BeginTaskBatch();
+		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
+		pool->BeginTaskBatch();
 		
 		for(int y=0; y<tilesHeight; y++)
 		{
 			for(int x=0; x<tilesWidth; x++)
 			{
 				size_t index = i ++;
-//				pool->AddTask([&, x, y, index]() {
+				pool->AddTask([&, x, y, index]() {
 					Plane plleft;
 					Plane plright;
 					Plane pltop;
@@ -334,7 +334,7 @@ namespace RN
 					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
 					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
 					
-					plnear.SetPlane(camPosition + camdir * depthArray[index * 2 + 0], camdir);
+					plnear.SetPlane(camPosition, camdir);// + camdir * depthArray[index * 2 + 0], camdir);
 					plfar.SetPlane(camPosition + camdir * depthArray[index * 2 + 1], camdir);
 					
 					size_t lightIndicesCount = 0;
@@ -357,28 +357,28 @@ namespace RN
 						dt = distance;
 						
 						float sqrange = range*range;
-						if(dr*dr+db*db > sqrange)
+						if(dr > 0.0f && db < 0.0f && dr*dr+db*db > sqrange)
 							continue;
-						if(dr*dr+dt*dt > sqrange)
+						if(dr > 0.0f && dt > 0.0f && dr*dr+dt*dt > sqrange)
 							continue;
-						if(dl*dl+db*db > sqrange)
+						if(dl < 0.0f && db < 0.0f && dl*dl+db*db > sqrange)
 							continue;
-						if(dl*dl+dt*dt > sqrange)
+						if(dl < 0.0f && dt > 0.0f && dl*dl+dt*dt > sqrange)
 							continue;
 						
 						//seems to work, but might not cull enough lights
-//						Distance(plnear, >, range);
+						Distance(plnear, >, range);
 //						Distance(plfar, <, -range);
 						
 						lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
 					}
 					
 					indicesCount[index] = lightIndicesCount;
-//				});
+				});
 			}
 		}
 		
-//		pool->CommitTaskBatch(true);
+		pool->CommitTaskBatch(true);
 		
 		size_t lightIndicesCount = 0;
 		size_t lightIndexOffsetCount = 0;
