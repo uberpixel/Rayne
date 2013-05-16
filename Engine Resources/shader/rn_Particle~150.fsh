@@ -24,4 +24,5 @@ void main()
 	rn_Discard(color);
 
 	fragColor0 = fragColor * color;
+	fragColor0.rgb *= fragColor0.a;
 }
