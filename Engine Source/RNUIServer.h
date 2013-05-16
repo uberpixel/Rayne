@@ -11,35 +11,39 @@
 
 #include "RNBase.h"
 #include "RNCamera.h"
-#include "RNWidget.h"
+#include "RNUIWidget.h"
 
 namespace RN
 {
 	class Kernel;
-	class UIServer : public Singleton<UIServer>
+	
+	namespace UI
 	{
-	friend class Widget;
-	friend class Kernel;
-	public:
-		UIServer();
-		~UIServer() override;
-		
-		uint32 Height() const;
-		uint32 Width() const;
-		
-	protected:
-		void Render(Renderer *renderer);
-		
-	private:
-		void AddWidget(Widget *widget);
-		void RemoveWidget(Widget *widget);
-		void MoveWidgetToFront(Widget *widget);
-		
-		Camera *_camera;
-		Rect _frame;
-		
-		std::deque<Widget *> _widgets;
-	};
+		class Server : public Singleton<Server>
+		{
+		friend class Widget;
+		friend class Kernel;
+		public:
+			Server();
+			~Server() override;
+			
+			uint32 Height() const;
+			uint32 Width() const;
+			
+		protected:
+			void Render(Renderer *renderer);
+			
+		private:
+			void AddWidget(Widget *widget);
+			void RemoveWidget(Widget *widget);
+			void MoveWidgetToFront(Widget *widget);
+			
+			Camera *_camera;
+			Rect _frame;
+			
+			std::deque<Widget *> _widgets;
+		};
+	}
 }
 
 #endif /* __RAYNE_UISERVER_H__ */

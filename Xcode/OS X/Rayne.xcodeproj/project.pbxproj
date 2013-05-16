@@ -16,6 +16,7 @@
 		E9145CAD16BA9076004BDEC8 /* RNAutoreleasePool.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9145CB316BAB82D004BDEC8 /* RNInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9145CB116BAB82D004BDEC8 /* RNInput.cpp */; };
 		E9145CB416BAB82D004BDEC8 /* RNInput.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CB216BAB82D004BDEC8 /* RNInput.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E917AC211744A00F00331D9B /* RNUIGeometry.h in Headers */ = {isa = PBXBuildFile; fileRef = E917AC2017449AAF00331D9B /* RNUIGeometry.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E91F784216CE336000FFD318 /* RNThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E91F784016CE336000FFD318 /* RNThreadPool.cpp */; };
 		E91F784316CE336000FFD318 /* RNThreadPool.h in Headers */ = {isa = PBXBuildFile; fileRef = E91F784116CE336000FFD318 /* RNThreadPool.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E92A62BD16DF2267006E68AF /* RNOpenGLExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = E9AB7F0E16D42522006BB4CB /* RNOpenGLExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -36,10 +37,10 @@
 		E9580BD416AB8BEA0056DEF2 /* RNEntity.h in Headers */ = {isa = PBXBuildFile; fileRef = E9580BD216AB8BEA0056DEF2 /* RNEntity.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9586E5E172FD40C00D24737 /* RNUIServer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9586E5C172FD40C00D24737 /* RNUIServer.cpp */; };
 		E9586E5F172FD40C00D24737 /* RNUIServer.h in Headers */ = {isa = PBXBuildFile; fileRef = E9586E5D172FD40C00D24737 /* RNUIServer.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9586E62173072B700D24737 /* RNResponder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9586E60173072B700D24737 /* RNResponder.cpp */; };
-		E9586E63173072B700D24737 /* RNResponder.h in Headers */ = {isa = PBXBuildFile; fileRef = E9586E61173072B700D24737 /* RNResponder.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9586E671730855600D24737 /* RNImageView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9586E651730855600D24737 /* RNImageView.cpp */; };
-		E9586E681730855600D24737 /* RNImageView.h in Headers */ = {isa = PBXBuildFile; fileRef = E9586E661730855600D24737 /* RNImageView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9586E62173072B700D24737 /* RNUIResponder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9586E60173072B700D24737 /* RNUIResponder.cpp */; };
+		E9586E63173072B700D24737 /* RNUIResponder.h in Headers */ = {isa = PBXBuildFile; fileRef = E9586E61173072B700D24737 /* RNUIResponder.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9586E671730855600D24737 /* RNUIImageView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9586E651730855600D24737 /* RNUIImageView.cpp */; };
+		E9586E681730855600D24737 /* RNUIImageView.h in Headers */ = {isa = PBXBuildFile; fileRef = E9586E661730855600D24737 /* RNUIImageView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E959282B170CBAAD00935AC8 /* RNWorldAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9592829170CBAAD00935AC8 /* RNWorldAttachment.cpp */; };
 		E959282C170CBAAD00935AC8 /* RNWorldAttachment.h in Headers */ = {isa = PBXBuildFile; fileRef = E959282A170CBAAD00935AC8 /* RNWorldAttachment.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E281696157E00DA187E /* RNArray.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619DF41696157E00DA187E /* RNArray.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -122,8 +123,8 @@
 		E9B1742A16CACA5A00732DCE /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9B1742816CACA5A00732DCE /* RNDebug.cpp */; };
 		E9B1742B16CACA5A00732DCE /* RNDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = E9B1742916CACA5A00732DCE /* RNDebug.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9BEF3BB1743CF560090C9CB /* RNScopeGuard.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BEF3B91743CF560090C9CB /* RNScopeGuard.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9BEF3C21744442A0090C9CB /* RNImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9BEF3C01744442A0090C9CB /* RNImage.cpp */; };
-		E9BEF3C31744442A0090C9CB /* RNImage.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BEF3C11744442A0090C9CB /* RNImage.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9BEF3C21744442A0090C9CB /* RNUIImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9BEF3C01744442A0090C9CB /* RNUIImage.cpp */; };
+		E9BEF3C31744442A0090C9CB /* RNUIImage.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BEF3C11744442A0090C9CB /* RNUIImage.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9C6F0A716B207E1006288D5 /* RNModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F0A516B207E1006288D5 /* RNModel.cpp */; };
 		E9C6F0A816B207E1006288D5 /* RNModel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C6F0A616B207E1006288D5 /* RNModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9C7DB271710D0F3006AD768 /* RNInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C7DB261710CE2C006AD768 /* RNInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -132,13 +133,13 @@
 		E9D3CEE717203FA100F4BF36 /* RNBillboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D3CEE517203FA100F4BF36 /* RNBillboard.cpp */; };
 		E9D3CEE817203FA100F4BF36 /* RNBillboard.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D3CEE617203FA100F4BF36 /* RNBillboard.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9D4BF7B16EEAF8F00513938 /* RNError.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D4BF7A16EEAF8F00513938 /* RNError.cpp */; };
-		E9D7DA78172F9C0D00A858CB /* RNWidget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D7DA76172F9C0D00A858CB /* RNWidget.cpp */; };
-		E9D7DA79172F9C0D00A858CB /* RNWidget.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D7DA77172F9C0D00A858CB /* RNWidget.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9D7DA7C172F9C7700A858CB /* RNView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D7DA7A172F9C7700A858CB /* RNView.cpp */; };
-		E9D7DA7D172F9C7700A858CB /* RNView.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D7DA7B172F9C7700A858CB /* RNView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9D7DA78172F9C0D00A858CB /* RNUIWidget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D7DA76172F9C0D00A858CB /* RNUIWidget.cpp */; };
+		E9D7DA79172F9C0D00A858CB /* RNUIWidget.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D7DA77172F9C0D00A858CB /* RNUIWidget.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9D7DA7C172F9C7700A858CB /* RNUIView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D7DA7A172F9C7700A858CB /* RNUIView.cpp */; };
+		E9D7DA7D172F9C7700A858CB /* RNUIView.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D7DA7B172F9C7700A858CB /* RNUIView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9D820A51717143B0080CD17 /* RNAABB.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D820A41717143B0080CD17 /* RNAABB.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9E83F40172A4F7D0075559B /* RNFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E83F3E172A4F7D0075559B /* RNFont.cpp */; };
-		E9E83F41172A4F7D0075559B /* RNFont.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E83F3F172A4F7D0075559B /* RNFont.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9E83F40172A4F7D0075559B /* RNUIFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E83F3E172A4F7D0075559B /* RNUIFont.cpp */; };
+		E9E83F41172A4F7D0075559B /* RNUIFont.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E83F3F172A4F7D0075559B /* RNUIFont.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E83F45172A4FD70075559B /* RNTextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */; };
 		E9E83F46172A4FD70075559B /* RNTextureAtlas.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E83F44172A4FD70075559B /* RNTextureAtlas.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E83F48172A51310075559B /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9E83F47172A51310075559B /* libfreetype.a */; };
@@ -196,6 +197,7 @@
 		E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAutoreleasePool.h; sourceTree = "<group>"; };
 		E9145CB116BAB82D004BDEC8 /* RNInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNInput.cpp; sourceTree = "<group>"; };
 		E9145CB216BAB82D004BDEC8 /* RNInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNInput.h; sourceTree = "<group>"; };
+		E917AC2017449AAF00331D9B /* RNUIGeometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNUIGeometry.h; sourceTree = "<group>"; };
 		E91F784016CE336000FFD318 /* RNThreadPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNThreadPool.cpp; sourceTree = "<group>"; };
 		E91F784116CE336000FFD318 /* RNThreadPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNThreadPool.h; sourceTree = "<group>"; };
 		E92A626816DEA8C1006E68AF /* RNModule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNModule.cpp; sourceTree = "<group>"; };
@@ -221,10 +223,10 @@
 		E9580BD516AC8DAA0056DEF2 /* RNSceneNode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSceneNode.h; sourceTree = "<group>"; };
 		E9586E5C172FD40C00D24737 /* RNUIServer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIServer.cpp; sourceTree = "<group>"; };
 		E9586E5D172FD40C00D24737 /* RNUIServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIServer.h; sourceTree = "<group>"; };
-		E9586E60173072B700D24737 /* RNResponder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNResponder.cpp; sourceTree = "<group>"; };
-		E9586E61173072B700D24737 /* RNResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNResponder.h; sourceTree = "<group>"; };
-		E9586E651730855600D24737 /* RNImageView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNImageView.cpp; sourceTree = "<group>"; };
-		E9586E661730855600D24737 /* RNImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNImageView.h; sourceTree = "<group>"; };
+		E9586E60173072B700D24737 /* RNUIResponder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIResponder.cpp; sourceTree = "<group>"; };
+		E9586E61173072B700D24737 /* RNUIResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIResponder.h; sourceTree = "<group>"; };
+		E9586E651730855600D24737 /* RNUIImageView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIImageView.cpp; sourceTree = "<group>"; };
+		E9586E661730855600D24737 /* RNUIImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIImageView.h; sourceTree = "<group>"; };
 		E9592829170CBAAD00935AC8 /* RNWorldAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWorldAttachment.cpp; sourceTree = "<group>"; };
 		E959282A170CBAAD00935AC8 /* RNWorldAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWorldAttachment.h; sourceTree = "<group>"; };
 		E9619DF41696157E00DA187E /* RNArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNArray.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -307,8 +309,8 @@
 		E9B1742816CACA5A00732DCE /* RNDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDebug.cpp; sourceTree = "<group>"; };
 		E9B1742916CACA5A00732DCE /* RNDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDebug.h; sourceTree = "<group>"; };
 		E9BEF3B91743CF560090C9CB /* RNScopeGuard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNScopeGuard.h; sourceTree = "<group>"; };
-		E9BEF3C01744442A0090C9CB /* RNImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNImage.cpp; sourceTree = "<group>"; };
-		E9BEF3C11744442A0090C9CB /* RNImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNImage.h; sourceTree = "<group>"; };
+		E9BEF3C01744442A0090C9CB /* RNUIImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIImage.cpp; sourceTree = "<group>"; };
+		E9BEF3C11744442A0090C9CB /* RNUIImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIImage.h; sourceTree = "<group>"; };
 		E9C6F0A516B207E1006288D5 /* RNModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNModel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9C6F0A616B207E1006288D5 /* RNModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNModel.h; sourceTree = "<group>"; };
 		E9C7DB261710CE2C006AD768 /* RNInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNInterpolation.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -317,13 +319,13 @@
 		E9D3CEE517203FA100F4BF36 /* RNBillboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNBillboard.cpp; sourceTree = "<group>"; };
 		E9D3CEE617203FA100F4BF36 /* RNBillboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBillboard.h; sourceTree = "<group>"; };
 		E9D4BF7A16EEAF8F00513938 /* RNError.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNError.cpp; sourceTree = "<group>"; };
-		E9D7DA76172F9C0D00A858CB /* RNWidget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWidget.cpp; sourceTree = "<group>"; };
-		E9D7DA77172F9C0D00A858CB /* RNWidget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWidget.h; sourceTree = "<group>"; };
-		E9D7DA7A172F9C7700A858CB /* RNView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNView.cpp; sourceTree = "<group>"; };
-		E9D7DA7B172F9C7700A858CB /* RNView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNView.h; sourceTree = "<group>"; };
+		E9D7DA76172F9C0D00A858CB /* RNUIWidget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIWidget.cpp; sourceTree = "<group>"; };
+		E9D7DA77172F9C0D00A858CB /* RNUIWidget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIWidget.h; sourceTree = "<group>"; };
+		E9D7DA7A172F9C7700A858CB /* RNUIView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIView.cpp; sourceTree = "<group>"; };
+		E9D7DA7B172F9C7700A858CB /* RNUIView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIView.h; sourceTree = "<group>"; };
 		E9D820A41717143B0080CD17 /* RNAABB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAABB.h; sourceTree = "<group>"; };
-		E9E83F3E172A4F7D0075559B /* RNFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNFont.cpp; sourceTree = "<group>"; };
-		E9E83F3F172A4F7D0075559B /* RNFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNFont.h; sourceTree = "<group>"; };
+		E9E83F3E172A4F7D0075559B /* RNUIFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIFont.cpp; sourceTree = "<group>"; };
+		E9E83F3F172A4F7D0075559B /* RNUIFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIFont.h; sourceTree = "<group>"; };
 		E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTextureAtlas.cpp; sourceTree = "<group>"; };
 		E9E83F44172A4FD70075559B /* RNTextureAtlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTextureAtlas.h; sourceTree = "<group>"; };
 		E9E83F47172A51310075559B /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfreetype.a; path = "../../Vendor/freetype-2.4.11/lib/osx/libfreetype.a"; sourceTree = "<group>"; };
@@ -474,20 +476,21 @@
 		E9E83F42172A4FB60075559B /* UI */ = {
 			isa = PBXGroup;
 			children = (
-				E9E83F3E172A4F7D0075559B /* RNFont.cpp */,
-				E9E83F3F172A4F7D0075559B /* RNFont.h */,
-				E9BEF3C01744442A0090C9CB /* RNImage.cpp */,
-				E9BEF3C11744442A0090C9CB /* RNImage.h */,
-				E9586E651730855600D24737 /* RNImageView.cpp */,
-				E9586E661730855600D24737 /* RNImageView.h */,
-				E9586E60173072B700D24737 /* RNResponder.cpp */,
-				E9586E61173072B700D24737 /* RNResponder.h */,
+				E9E83F3E172A4F7D0075559B /* RNUIFont.cpp */,
+				E9E83F3F172A4F7D0075559B /* RNUIFont.h */,
+				E917AC2017449AAF00331D9B /* RNUIGeometry.h */,
+				E9BEF3C01744442A0090C9CB /* RNUIImage.cpp */,
+				E9BEF3C11744442A0090C9CB /* RNUIImage.h */,
+				E9586E651730855600D24737 /* RNUIImageView.cpp */,
+				E9586E661730855600D24737 /* RNUIImageView.h */,
+				E9586E60173072B700D24737 /* RNUIResponder.cpp */,
+				E9586E61173072B700D24737 /* RNUIResponder.h */,
 				E9586E5C172FD40C00D24737 /* RNUIServer.cpp */,
 				E9586E5D172FD40C00D24737 /* RNUIServer.h */,
-				E9D7DA7A172F9C7700A858CB /* RNView.cpp */,
-				E9D7DA7B172F9C7700A858CB /* RNView.h */,
-				E9D7DA76172F9C0D00A858CB /* RNWidget.cpp */,
-				E9D7DA77172F9C0D00A858CB /* RNWidget.h */,
+				E9D7DA7A172F9C7700A858CB /* RNUIView.cpp */,
+				E9D7DA7B172F9C7700A858CB /* RNUIView.h */,
+				E9D7DA76172F9C0D00A858CB /* RNUIWidget.cpp */,
+				E9D7DA77172F9C0D00A858CB /* RNUIWidget.h */,
 			);
 			name = UI;
 			sourceTree = "<group>";
@@ -722,16 +725,17 @@
 				E9D3CEE817203FA100F4BF36 /* RNBillboard.h in Headers */,
 				E99A955E1729AE1800605C68 /* RNInstancingNode.h in Headers */,
 				E99A9562172A002100605C68 /* RNNumber.h in Headers */,
-				E9E83F41172A4F7D0075559B /* RNFont.h in Headers */,
+				E9E83F41172A4F7D0075559B /* RNUIFont.h in Headers */,
 				E9E83F46172A4FD70075559B /* RNTextureAtlas.h in Headers */,
 				E97C3EB1172B11C7006EA63A /* RNString.h in Headers */,
-				E9D7DA79172F9C0D00A858CB /* RNWidget.h in Headers */,
-				E9D7DA7D172F9C7700A858CB /* RNView.h in Headers */,
+				E9D7DA79172F9C0D00A858CB /* RNUIWidget.h in Headers */,
+				E9D7DA7D172F9C7700A858CB /* RNUIView.h in Headers */,
 				E9586E5F172FD40C00D24737 /* RNUIServer.h in Headers */,
-				E9586E63173072B700D24737 /* RNResponder.h in Headers */,
-				E9586E681730855600D24737 /* RNImageView.h in Headers */,
+				E9586E63173072B700D24737 /* RNUIResponder.h in Headers */,
+				E9586E681730855600D24737 /* RNUIImageView.h in Headers */,
 				E9BEF3BB1743CF560090C9CB /* RNScopeGuard.h in Headers */,
-				E9BEF3C31744442A0090C9CB /* RNImage.h in Headers */,
+				E9BEF3C31744442A0090C9CB /* RNUIImage.h in Headers */,
+				E917AC211744A00F00331D9B /* RNUIGeometry.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -882,15 +886,15 @@
 				E9D3CEE717203FA100F4BF36 /* RNBillboard.cpp in Sources */,
 				E99A955D1729AE1800605C68 /* RNInstancingNode.cpp in Sources */,
 				E99A9561172A002100605C68 /* RNNumber.cpp in Sources */,
-				E9E83F40172A4F7D0075559B /* RNFont.cpp in Sources */,
+				E9E83F40172A4F7D0075559B /* RNUIFont.cpp in Sources */,
 				E9E83F45172A4FD70075559B /* RNTextureAtlas.cpp in Sources */,
 				E97C3EB0172B11C7006EA63A /* RNString.cpp in Sources */,
-				E9D7DA78172F9C0D00A858CB /* RNWidget.cpp in Sources */,
-				E9D7DA7C172F9C7700A858CB /* RNView.cpp in Sources */,
+				E9D7DA78172F9C0D00A858CB /* RNUIWidget.cpp in Sources */,
+				E9D7DA7C172F9C7700A858CB /* RNUIView.cpp in Sources */,
 				E9586E5E172FD40C00D24737 /* RNUIServer.cpp in Sources */,
-				E9586E62173072B700D24737 /* RNResponder.cpp in Sources */,
-				E9586E671730855600D24737 /* RNImageView.cpp in Sources */,
-				E9BEF3C21744442A0090C9CB /* RNImage.cpp in Sources */,
+				E9586E62173072B700D24737 /* RNUIResponder.cpp in Sources */,
+				E9586E671730855600D24737 /* RNUIImageView.cpp in Sources */,
+				E9BEF3C21744442A0090C9CB /* RNUIImage.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

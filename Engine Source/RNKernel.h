@@ -64,7 +64,7 @@ namespace RN
 		Renderer *_renderer;
 		Input *_input;
 		World *_world;
-		UIServer *_uiserver;
+		UI::Server *_uiserver;
 
 		bool _resetDelta;
 		bool _shouldExit;

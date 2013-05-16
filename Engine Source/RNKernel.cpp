@@ -84,7 +84,7 @@ namespace RN
 		
 		_renderer = Renderer::SharedInstance();
 		_input    = Input::SharedInstance();
-		_uiserver = UIServer::SharedInstance();
+		_uiserver = UI::Server::SharedInstance();
 		
 		_world = 0;
 		_window = Window::SharedInstance();
