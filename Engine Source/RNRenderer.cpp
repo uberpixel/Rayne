@@ -959,7 +959,10 @@ namespace RN
 		while(camera)
 		{
 			camera->Bind();
+			SetDepthWriteEnabled(true);
 			camera->PrepareForRendering();
+			if(_currentMaterial)
+				SetDepthWriteEnabled(_currentMaterial->depthwrite);
 			
 			_currentCamera = camera;
 			changedCamera  = true;
