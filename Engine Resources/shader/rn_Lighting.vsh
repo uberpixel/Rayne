@@ -14,13 +14,13 @@
 
 #ifdef RN_LIGHTING
 
-out vec3 outLightNormal;
-out vec3 outLightPosition;
+out vec3 outNormal;
+out vec3 outPosition;
 
 void rn_Lighting(vec3 position, vec3 normal)
 {
-	outLightNormal = (matModel * vec4(normal, 0.0)).xyz;
-	outLightPosition = (matModel * vec4(position, 1.0)).xyz;
+	outNormal = (matModel * vec4(normal, 0.0)).xyz;
+	outPosition = (matModel * vec4(position, 1.0)).xyz;
 
 #ifdef RN_DIRECTIONAL_SHADOWS
 	rn_ShadowDir1(vec4(position, 1.0));

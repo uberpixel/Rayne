@@ -13,23 +13,9 @@
 
 #ifdef RN_LIGHTING
 
-#define USE_UBOs 0
-
 uniform isamplerBuffer lightPointList;
-#if !USE_UBOs
 uniform isamplerBuffer lightPointListOffset;
 uniform samplerBuffer lightPointListData;
-#else
-uniform lightPointListOffsetUBO
-{
-	ivec4 lightPointListOffset[32*32];
-};
-
-uniform lightPointListDataUBO
-{
-	vec4 lightPointData[2048];
-};
-#endif
 
 uniform isamplerBuffer lightSpotList;
 uniform isamplerBuffer lightSpotListOffset;
@@ -42,18 +28,13 @@ uniform vec4 lightDirectionalColor[10];
 uniform vec4 lightTileSize;
 uniform vec4 ambient;
 
-in vec3 outLightNormal;
-in vec3 outLightPosition;
+in vec3 outNormal;
+in vec3 outPosition;
 
 vec3 rn_PointLight(int index, vec3 normal, vec3 position)
 {
-#if USE_UBOs
-	vec4 lightpos   = lightPointData[index];
-	vec3 lightcolor = lightPointData[index+1].xyz;
-#else
 	vec4 lightpos   = texelFetch(lightPointListData, index);
 	vec3 lightcolor = texelFetch(lightPointListData, index + 1).xyz;
-#endif
 	
 	vec3 posdiff = lightpos.xyz-position;
 	float dist = length(posdiff);
@@ -94,7 +75,7 @@ vec3 rn_DirectionalLight(int index, vec3 normal)
 
 vec4 rn_Lighting()
 {
-	vec3 normal = normalize(outLightNormal);
+	vec3 normal = normalize(outNormal);
 	if(!gl_FrontFacing)
 	{
 		normal *= -1.0;
@@ -103,33 +84,18 @@ vec4 rn_Lighting()
 	vec3 light = ambient.rgb;
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 	
-#if USE_UBOs
-	ivec2 listoffset = lightPointListOffset[tileindex].xy;
-#else
 	ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
-#endif
-	int count = listoffset.y;
-	for(int i=0; i<count; i++)
+	for(int i=0; i<listoffset.y; i++)
 	{
 		int lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;		
-		light += rn_PointLight(lightindex, normal, outLightPosition);
+		light += rn_PointLight(lightindex, normal, outPosition);
 	}
-/*
-	if(listoffset.y < 5)
-		light *= vec3(1.0);
-	else if(listoffset.y < 10)
-		light *= vec3(0.0, 1.0, 0.0);
-	else if(listoffset.y < 15)
-		light *= vec3(0.0, 0.0, 1.0);
-	else
-		light *= vec3(1.0, 0.0, 0.0);
-*/
 	
 	listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
 	for(int i=0; i<listoffset.y; i++)
 	{
 		int lightindex = (texelFetch(lightSpotList, listoffset.x + i).r) * 3;
-		light += rn_SpotLight(lightindex, normal, outLightPosition);
+		light += rn_SpotLight(lightindex, normal, outPosition);
 	}
 	
 	for(int i=0; i<lightDirectionalCount; i++)

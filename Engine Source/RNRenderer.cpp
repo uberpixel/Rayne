@@ -15,8 +15,6 @@
 
 #define kRNRendererMaxVAOAge 300
 
-#define kRNLightingUBO 0
-
 #define kRNRendererPointLightListIndicesIndex 0
 #define kRNRendererPointLightListOffsetIndex  1
 #define kRNRendererPointLightListDataIndex    2
@@ -121,7 +119,6 @@ namespace RN
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
 		
-#if !kRNLightingUBO
 		// Light indices
 		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
@@ -131,7 +128,6 @@ namespace RN
 		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListDataIndex]);
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
-#endif
 		
 		// Spot lights
 		_lightSpotDataSize = 0;
@@ -270,12 +266,7 @@ namespace RN
 		size_t tileCount = tilesWidth * tilesHeight;
 		
 		size_t lightindicesSize = tilesWidth * tilesHeight * lightCount;
-#if !kRNLightingUBO
 		size_t lightindexoffsetSize = tilesWidth * tilesHeight * 2;
-#else
-		//4 is needed for block alignement
-		size_t lightindexoffsetSize = tilesWidth * tilesHeight * 4;
-#endif
 		
 		if(lightCount == 0)
 		{
@@ -289,16 +280,10 @@ namespace RN
 			glBufferData(GL_TEXTURE_BUFFER, 1 * sizeof(int), 0, GL_DYNAMIC_DRAW);
 			glBufferData(GL_TEXTURE_BUFFER, 1 * sizeof(int), _lightIndicesBuffer, GL_DYNAMIC_DRAW);
 			
-#if !kRNLightingUBO
 			// Offsets
 			glBindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
 			glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
 			glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetSize * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
- #else
-			glBindBuffer(GL_UNIFORM_BUFFER, offsetBuffer);
-			glBufferData(GL_UNIFORM_BUFFER, lightindexoffsetSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
-			glBufferData(GL_UNIFORM_BUFFER, lightindexoffsetSize * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
-#endif
 			
 			return;
 		}
@@ -406,11 +391,6 @@ namespace RN
 			}
 			
 			_lightOffsetBuffer[lightIndexOffsetCount ++] = static_cast<int>(lightIndicesCount - previous);
-			
-#if kRNLightingUBO
-			_lightOffsetBuffer[lightIndexOffsetCount ++] = 0;
-			_lightOffsetBuffer[lightIndexOffsetCount ++] = 0;
-#endif
 		}
 		
 		// Indices
@@ -421,16 +401,10 @@ namespace RN
 		glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
 		glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), _lightIndicesBuffer, GL_DYNAMIC_DRAW);
 		
-#if !kRNLightingUBO
 		// Offsets
 		glBindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
 		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
 		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
-#else
-		glBindBuffer(GL_UNIFORM_BUFFER, offsetBuffer);
-		glBufferData(GL_UNIFORM_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
-		glBufferData(GL_UNIFORM_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
-#endif
 	}
 	
 	int Renderer::CreatePointLightList(Camera *camera)
@@ -454,7 +428,6 @@ namespace RN
 			if(lightDataSize == 0) // Makes sure that we don't end up with an empty buffer
 				lightDataSize = 2 * sizeof(Vector4);
 			
-#if !kRNLightingUBO
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
 			if(lightDataSize > _lightPointDataSize)
 			{
@@ -478,32 +451,6 @@ namespace RN
 			 
 			 glUnmapBuffer(GL_TEXTURE_BUFFER);
 			 glBindBuffer(GL_TEXTURE_BUFFER, 0);
-#else
-			
-			glBindBuffer(GL_UNIFORM_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
-			if(lightDataSize > _lightPointDataSize)
-			{
-				glBufferData(GL_UNIFORM_BUFFER, _lightPointDataSize, 0, GL_DYNAMIC_DRAW);
-				glBufferData(GL_UNIFORM_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
-				
-				_lightPointDataSize = lightDataSize;
-			}
-			
-			lightData = (Vector4 *)glMapBufferRange(GL_UNIFORM_BUFFER, 0, _lightPointDataSize, GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT);
-			
-			for(machine_uint i=0; i<lightCount; i++)
-			{
-				Light *light = lights[i];
-				const Vector3& position = light->WorldPosition();
-				const Vector3& color = light->ResultColor();
-				
-				lightData[i * 2 + 0] = Vector4(position, light->Range());
-				lightData[i * 2 + 1] = Vector4(color, 0.0f);
-			}
-			
-			glUnmapBuffer(GL_UNIFORM_BUFFER);
-			glBindBuffer(GL_UNIFORM_BUFFER, 0);
-#endif
 		}
 		else
 		{
@@ -1187,38 +1134,17 @@ namespace RN
 							glUniform1i(program->lightPointList, textureUnit);
 						}
 						
-#if !kRNLightingUBO
 						if(program->lightPointListOffset != -1)
 						{
 							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
 							glUniform1i(program->lightPointListOffset, textureUnit);
 						}
-#else
-						if(program->lightPointListOffsetUBO != -1)
-						{
-							glBindBuffer(GL_UNIFORM_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
-							glUniformBlockBinding(program->program, program->lightPointListOffsetUBO, 0);
-							glBindBufferBase( GL_UNIFORM_BUFFER, 0, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
-							glBindBuffer(GL_UNIFORM_BUFFER, 0);
-						}
-#endif
 						
-#if !kRNLightingUBO
 						if(program->lightPointListData != -1)
 						{
 							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListDataIndex]);
 							glUniform1i(program->lightPointListData, textureUnit);
 						}
-#else
-						
-						if(program->lightPointListDataUBO != -1)
-						{
-							glBindBuffer(GL_UNIFORM_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
-							glUniformBlockBinding(program->program, program->lightPointListDataUBO, 1);
-							glBindBufferBase(GL_UNIFORM_BUFFER, 1, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
-							glBindBuffer(GL_UNIFORM_BUFFER, 0);
-						}
-#endif
 						
 						// Spot lights
 						if(program->lightSpotList != -1)

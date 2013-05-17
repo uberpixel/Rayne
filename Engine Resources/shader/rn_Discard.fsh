@@ -14,8 +14,8 @@
 uniform float discardThreshold;
 
 #define rn_Discard(color) \
-	 if(color.a < discardThreshold) \
-	 	discard
+	if(color.a < discardThreshold) \
+		discard
 
 #else
 #define rn_Discard(color)

@@ -13,10 +13,6 @@
 #include "RNObject.h"
 
 #define kRNResourceKeyTexture1Shader       "kRNResourceKeyTexture1Shader"
-#define kRNResourceKeyTexture2Shader       "kRNResourceKeyTexture2Shader"
-#define kRNResourceKeyTexture1NormalShader "kRNResourceKeyTexture1NormalShader"
-#define kRNResourceKeyColor1Shader         "kRNResourceKeyColor1Shader"
-#define kRNResourceKeyColor2Shader         "kRNResourceKeyColor2Shader"
 #define kRNResourceKeyParticleShader       "kRNResourceKeyParticleShader"
 #define kRNResourceKeyBillboardShader      "kRNResourceKeyBillboardShader"
 
