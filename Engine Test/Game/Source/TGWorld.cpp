@@ -177,6 +177,8 @@ namespace TG
 		}
 		
 		_camera->AttachChild(_finalcam);
+		_camera->SetPriority(10);
+		_camera->Rotate(RN::Vector3(90.0f, 0.0f, 0.0f));
 		
 #else
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);

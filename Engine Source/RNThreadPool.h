@@ -16,6 +16,7 @@
 #include "RNArray.h"
 #include "RNContext.h"
 #include "RNKernel.h"
+#include "RNAutoreleasePool.h"
 
 #define kRNThreadPoolLocalQueueMaxSize 25
 
@@ -140,7 +141,11 @@ namespace RN
 				_workQueue.push_back(std::move(temp));
 				_lock.Unlock();
 				
-				_waitCondition.notify_one();
+				do {
+					std::unique_lock<std::mutex> lock(_waitMutex);
+					_waitCondition.notify_one();
+					lock.unlock();
+				} while(0);
 			}
 			else
 			{
@@ -334,6 +339,7 @@ namespace RN
 		{
 			Thread *thread = Thread::CurrentThread();
 			Context *context = new Context(Kernel::SharedInstance()->Context());
+			AutoreleasePool *pool = new AutoreleasePool();
 			
 			context->MakeActiveContext();
 			
@@ -385,6 +391,9 @@ namespace RN
 					
 					if(_workQueue.size() == 0)
 					{
+						delete pool;
+						pool = new AutoreleasePool();
+						
 						// TODO: Check if we can steal tasks from other threads
 						std::unique_lock<std::mutex> lock(_waitMutex);
 						
@@ -429,6 +438,7 @@ namespace RN
 			}
 			
 			context->Release();
+			delete pool;
 			
 			_resigned ++;
 			_tearDownCondition.notify_all();

@@ -9,6 +9,7 @@
 #include "RNShader.h"
 #include "RNKernel.h"
 #include "RNPathManager.h"
+#include "RNScopeGuard.h"
 
 namespace RN
 {
@@ -271,6 +272,19 @@ namespace RN
 			
 			_programs[type] = program;
 			
+			ScopeGuard defineGuard = ScopeGuard([&]() {
+				Undefine("RN_INSTANCING");
+				Undefine("RN_ANIMATION");
+				Undefine("RN_LIGHTING");
+				Undefine("RN_DISCARD");
+			});
+			
+			ScopeGuard programGuard = ScopeGuard([&]() {
+				delete program;
+				_programs[type] = 0;
+			});
+			
+			
 			// Prepare the state
 			if(type & ShaderProgram::TypeInstanced)
 				Define("RN_INSTANCING");
@@ -285,50 +299,31 @@ namespace RN
 				Define("RN_DISCARD");
 			
 			// Compile all required shaders
-			try
+			if(_vertexShader.length() > 0)
 			{
-				if(_vertexShader.length() > 0)
-				{
-					CompileShader(GL_VERTEX_SHADER, &shader[0]);
-					glAttachShader(program->program, shader[0]);
-				}
-				
-				if(_fragmentShader.length() > 0)
-				{
-					CompileShader(GL_FRAGMENT_SHADER, &shader[1]);
-					glAttachShader(program->program, shader[1]);
-				}
+				CompileShader(GL_VERTEX_SHADER, &shader[0]);
+				glAttachShader(program->program, shader[0]);
+			}
 			
+			if(_fragmentShader.length() > 0)
+			{
+				CompileShader(GL_FRAGMENT_SHADER, &shader[1]);
+				glAttachShader(program->program, shader[1]);
+			}
+		
 #ifdef GL_GEOMETRY_SHADER
-				if(_geometryShader.length() > 0)
-				{
-					CompileShader(GL_GEOMETRY_SHADER, &shader[2]);
-					glAttachShader(program->program, shader[2]);
-				}
-#endif
-			}
-			catch(ErrorException e)
+			if(_geometryShader.length() > 0)
 			{
-				Undefine("RN_INSTANCING");
-				Undefine("RN_ANIMATION");
-				Undefine("RN_LIGHTING");
-				Undefine("RN_DISCARD");
-				
-				delete program;
-				_programs[type] = 0;
-				
-				throw e;
+				CompileShader(GL_GEOMETRY_SHADER, &shader[2]);
+				glAttachShader(program->program, shader[2]);
 			}
+#endif
 			
+			programGuard.Commit();
+		
 			// Link the program
 			glLinkProgram(program->program);
 			RN_CHECKOPENGL();
-			
-			// Clean up
-			Undefine("RN_INSTANCING");
-			Undefine("RN_ANIMATION");
-			Undefine("RN_LIGHTING");
-			Undefine("RN_DISCARD");
 			
 			for(int i=0; i<3; i++)
 			{
@@ -430,6 +425,12 @@ namespace RN
 				GetUniformLocation(frameSize);
 				GetUniformLocation(clipPlanes);
 				GetUniformLocation(discardThreshold);
+				
+				GetUniformLocation(ambient);
+				GetUniformLocation(diffuse);
+				GetUniformLocation(specular);
+				GetUniformLocation(emissive);
+				GetUniformLocation(shininess);
 				
 				GetUniformLocation(viewPosition);
 				

@@ -16,28 +16,14 @@ namespace RN
 	SceneNode::SceneNode() :
 		_scale(Vector3(1.0f))
 	{
-		_parent = 0;
-		_world  = 0;
-		_lastFrame = 0;
-		
-		group = 0;
-		
-		DidUpdate();
-		World::SharedInstance()->AddSceneNode(this);
+		Initialize();
 	}
 	
 	SceneNode::SceneNode(const Vector3& position) :
 		_position(position),
 		_scale(Vector3(1.0f))
 	{
-		_parent = 0;
-		_world  = 0;
-		_lastFrame = 0;
-		
-		group = 0;
-		
-		DidUpdate();
-		World::SharedInstance()->AddSceneNode(this);
+		Initialize();
 	}
 	
 	SceneNode::SceneNode(const Vector3& position, const Quaternion& rotation) :
@@ -46,14 +32,7 @@ namespace RN
 		_rotation(rotation),
 		_euler(rotation.EulerAngle())
 	{
-		_parent = 0;
-		_world  = 0;
-		_lastFrame = 0;
-		
-		group = 0;
-		
-		DidUpdate();
-		World::SharedInstance()->AddSceneNode(this);
+		Initialize();
 	}
 	
 	SceneNode::~SceneNode()
@@ -62,6 +41,20 @@ namespace RN
 		
 		if(_world)
 			_world->RemoveSceneNode(this);
+	}
+	
+	void SceneNode::Initialize()
+	{
+		_parent = 0;
+		_world  = 0;
+		_lastFrame = 0;
+		
+		group = 0;
+		
+		DidUpdate();
+		
+		if(World::SharedInstance())
+			World::SharedInstance()->AddSceneNode(this);
 	}
 	
 	

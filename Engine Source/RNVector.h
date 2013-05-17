@@ -200,10 +200,10 @@ namespace RN
 
 	RN_INLINE bool Vector2::operator== (const Vector2 &other) const
 	{
-		if(fabs(x - other.x) > kRNEpsilonFloat)
+		if(fabs(x - other.x) > k::EpsilonFloat)
 			return false;
 
-		if(fabs(y - other.y) > kRNEpsilonFloat)
+		if(fabs(y - other.y) > k::EpsilonFloat)
 			return false;
 
 		return true;
@@ -211,7 +211,7 @@ namespace RN
 
 	RN_INLINE bool Vector2::operator!= (const Vector2 &other) const
 	{
-		if(fabs(x - other.x) <= kRNEpsilonFloat && fabs(y - other.y) <= kRNEpsilonFloat)
+		if(fabs(x - other.x) <= k::EpsilonFloat && fabs(y - other.y) <= k::EpsilonFloat)
 			return false;
 
 		return true;
@@ -342,13 +342,13 @@ namespace RN
 
 	RN_INLINE bool Vector3::operator== (const Vector3 &other) const
 	{
-		if(fabs(x - other.x) > kRNEpsilonFloat)
+		if(fabs(x - other.x) > k::EpsilonFloat)
 			return false;
 
-		if(fabs(y - other.y) > kRNEpsilonFloat)
+		if(fabs(y - other.y) > k::EpsilonFloat)
 			return false;
 
-		if(fabs(z - other.z) > kRNEpsilonFloat)
+		if(fabs(z - other.z) > k::EpsilonFloat)
 			return false;
 
 		return true;
@@ -356,7 +356,7 @@ namespace RN
 
 	RN_INLINE bool Vector3::operator!= (const Vector3 &other) const
 	{
-		if(fabs(x - other.x) <= kRNEpsilonFloat && fabs(y - other.y) <= kRNEpsilonFloat && fabs(z - other.z) <= kRNEpsilonFloat)
+		if(fabs(x - other.x) <= k::EpsilonFloat && fabs(y - other.y) <= k::EpsilonFloat && fabs(z - other.z) <= k::EpsilonFloat)
 			return false;
 
 		return true;
@@ -534,16 +534,16 @@ namespace RN
 
 	RN_INLINE bool Vector4::operator== (const Vector4 &other) const
 	{
-		if(fabs(x - other.x) > kRNEpsilonFloat)
+		if(fabs(x - other.x) > k::EpsilonFloat)
 			return false;
 
-		if(fabs(y - other.y) > kRNEpsilonFloat)
+		if(fabs(y - other.y) > k::EpsilonFloat)
 			return false;
 
-		if(fabs(z - other.z) > kRNEpsilonFloat)
+		if(fabs(z - other.z) > k::EpsilonFloat)
 			return false;
 
-		if(fabs(w - other.w) > kRNEpsilonFloat)
+		if(fabs(w - other.w) > k::EpsilonFloat)
 			return false;
 
 		return true;
@@ -551,7 +551,7 @@ namespace RN
 
 	RN_INLINE bool Vector4::operator!= (const Vector4 &other) const
 	{
-		if(fabs(x - other.x) <= kRNEpsilonFloat && fabs(y - other.y) <= kRNEpsilonFloat && fabs(z - other.z) <= kRNEpsilonFloat && fabs(w - other.w) <= kRNEpsilonFloat)
+		if(fabs(x - other.x) <= k::EpsilonFloat && fabs(y - other.y) <= k::EpsilonFloat && fabs(z - other.z) <= k::EpsilonFloat && fabs(w - other.w) <= k::EpsilonFloat)
 			return false;
 
 		return true;

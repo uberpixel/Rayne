@@ -38,7 +38,8 @@ namespace RN
 			FlagInheritProjection = (1 << 6),
 			FlagUpdateStorageFrame = (1 << 7),
 			FlagOrthogonal = (1 << 8),
-			FlagHidden = (1<<9),
+			FlagHidden = (1 << 9),
+			FlagNoSorting = (1 << 10),
 			
 			
 			FlagDefaults = (FlagFullscreen | FlagUpdateAspect | FlagUpdateStorageFrame),
@@ -108,6 +109,7 @@ namespace RN
 		RNAPI void SetLODCamera(Camera *camera);
 		RNAPI void SetUseInstancing(bool activate);
 		RNAPI void SetPriority(uint32 priority);
+		RNAPI void SetUseBlending(bool useBlending);
 		
 		RNAPI void AddStage(Camera *stage);
 		RNAPI void InsertStage(Camera *stage);
@@ -130,6 +132,8 @@ namespace RN
 		RNAPI bool InFrustum(const Sphere& sphere);
 		RNAPI bool InFrustum(const AABB& aabb);
 		
+		RNAPI bool RequiresRendering() const;
+		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
 		const Vector3& FrustumCenter() const { return _frustumCenter; }
@@ -143,6 +147,7 @@ namespace RN
 		Flags CameraFlags() const { return _flags; }
 		Camera *LODCamera() const { return _lodCamera; }
 		uint32 Priority() const { return _priority; }
+		bool UseBlending() const { return _blend; }
 		
 		Vector2 LightTiles() const { return _lightTiles; }
 		Model *SkyCube() const { return _skycube; }
@@ -210,6 +215,8 @@ namespace RN
 		Vector2 _lightTiles;
 		
 		bool _allowDepthWrite;
+		bool _isStage;
+		bool _blend;
 		
 		class Material *_material;
 		RenderStorage *_storage;

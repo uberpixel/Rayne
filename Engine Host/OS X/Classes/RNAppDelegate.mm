@@ -31,6 +31,30 @@
 	[NSApp terminate:self];
 }
 
+- (void)failWithException:(RN::ErrorException)e
+{
+	NSMutableString *description = [NSMutableString string];
+	
+	[description appendFormat:@"%s\n", e.Description().c_str()];
+	[description appendFormat:@"%s\n\n", e.AdditionalDetails().c_str()];
+	[description appendString:@"Callstack:\n"];
+	
+	const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.CallStack();
+	for(auto i=callstack.begin(); i!=callstack.end(); i++)
+	{
+		std::pair<uintptr_t, std::string> pair = *i;
+		[description appendFormat:@"0x%8lx %s\n", pair.first, pair.second.c_str()];
+	}
+	
+	
+	NSAlert *alert = [[NSAlert alloc] init];
+	[alert setMessageText:@"Failed to start Rayne"];
+	[alert setInformativeText:description];
+	[alert runModal];
+	
+	[NSApp terminate:self];
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
 	[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"ApplePersistenceIgnoreState"];
@@ -53,7 +77,7 @@
 				break;
 				
 			default:
-				[self failWithError:@"Unknown error"];
+				[self failWithException:e];
 				break;
 		}
 	}

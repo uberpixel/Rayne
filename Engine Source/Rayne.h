@@ -59,7 +59,15 @@
 #include "RNTextureAtlas.h"
 
 #include "RNString.h"
-#include "RNFont.h"
+
+#include "RNUIFont.h"
+#include "RNUIImage.h"
+#include "RNUIGeometry.h"
+#include "RNUIServer.h"
+#include "RNUIResponder.h"
+#include "RNUIWidget.h"
+#include "RNUIView.h"
+#include "RNUIImageView.h"
 
 #include "RNWorld.h"
 #include "RNSceneNode.h"
@@ -73,6 +81,7 @@
 #include "RNThread.h"
 #include "RNThreadPool.h"
 #include "RNFunction.h"
+#include "RNScopeGuard.h"
 #include "RNSpinLock.h"
 #include "RNMutex.h"
 #include "RNWindow.h"

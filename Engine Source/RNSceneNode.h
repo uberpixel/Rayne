@@ -81,6 +81,7 @@ namespace RN
 		machine_uint Childs() const { return _childs.Count(); }
 		SceneNode *Parent() const { return _parent; }
 		FrameID LastFrame() const { return _lastFrame; }
+		World *Container() const { return _world; }
 		
 		template<typename T=SceneNode>
 		T *ChildAtIndex(machine_uint index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
@@ -124,6 +125,8 @@ namespace RN
 		Sphere _boundingSphere;
 		
 	private:
+		void Initialize();
+		
 		World *_world;
 		SceneNode *_parent;
 		Array<SceneNode *> _childs;

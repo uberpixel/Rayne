@@ -37,7 +37,7 @@ namespace RN
 			float distance = 0.0f;
 			Camera *distanceCamera = (camera->LODCamera()) ? camera->LODCamera() : camera;
 			
-			WorldPosition().Distance(distanceCamera->WorldPosition());
+			distance = WorldPosition().Distance(distanceCamera->WorldPosition());
 			distance /= distanceCamera->clipfar;
 			
 			

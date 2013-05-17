@@ -15,6 +15,7 @@
 #include "RNRenderer.h"
 #include "RNWindow.h"
 #include "RNInput.h"
+#include "RNUIServer.h"
 
 namespace RN
 {
@@ -63,6 +64,7 @@ namespace RN
 		Renderer *_renderer;
 		Input *_input;
 		World *_world;
+		UI::Server *_uiserver;
 
 		bool _resetDelta;
 		bool _shouldExit;

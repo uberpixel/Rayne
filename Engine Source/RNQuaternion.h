@@ -106,12 +106,12 @@ namespace RN
 		euler += other;
 //		printf("x: %f, y: %f, z: %f\n", euler.x, euler.y, euler.z);
 
-/*		float fSinPitch = sin(atan2(2.0f * (y * w - x * z), 1.0f - 2.0f * (y*y + z*z))*0.5f+other.x*kRNPI/360.0f);
-		float fCosPitch = cos(atan2(2.0f * (y * w - x * z), 1.0f - 2.0f * (y*y + z*z))*0.5f+other.x*kRNPI/360.0f);
-		float fSinYaw   = sin(asin(2.0f * (x * y + z * w))*0.5f+other.y*kRNPI/360.0f);
-		float fCosYaw   = cos(asin(2.0f * (x * y + z * w))*0.5f+other.y*kRNPI/360.0f);
-		float fSinRoll  = sin(atan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (x*x + z*z))*0.5f+other.z*kRNPI/360.0f);
-		float fCosRoll  = cos(atan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (x*x + z*z))*0.5f+other.z*kRNPI/360.0f);
+/*		float fSinPitch = sin(atan2(2.0f * (y * w - x * z), 1.0f - 2.0f * (y*y + z*z))*0.5f+other.x*k::Pi/360.0f);
+		float fCosPitch = cos(atan2(2.0f * (y * w - x * z), 1.0f - 2.0f * (y*y + z*z))*0.5f+other.x*k::Pi/360.0f);
+		float fSinYaw   = sin(asin(2.0f * (x * y + z * w))*0.5f+other.y*k::Pi/360.0f);
+		float fCosYaw   = cos(asin(2.0f * (x * y + z * w))*0.5f+other.y*k::Pi/360.0f);
+		float fSinRoll  = sin(atan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (x*x + z*z))*0.5f+other.z*k::Pi/360.0f);
+		float fCosRoll  = cos(atan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (x*x + z*z))*0.5f+other.z*k::Pi/360.0f);
 		
 		float fCosPitchCosYaw = fCosPitch * fCosYaw;
 		float fSinPitchSinYaw = fSinPitch * fSinYaw;
@@ -244,14 +244,14 @@ namespace RN
 	
 	RN_INLINE void Quaternion::MakeEulerAngle(const Vector3& euler)
 	{
-		const float kRNPI_360(kRNPI / 360.0f);
+		const float Pi_360(k::Pi / 360.0f);
 		
-		float fSinPitch = Math::Sin(euler.x * kRNPI_360);
-		float fCosPitch = Math::Cos(euler.x * kRNPI_360);
-		float fSinYaw   = Math::Sin(euler.y * kRNPI_360);
-		float fCosYaw   = Math::Cos(euler.y * kRNPI_360);
-		float fSinRoll  = Math::Sin(euler.z * kRNPI_360);
-		float fCosRoll  = Math::Cos(euler.z * kRNPI_360);
+		float fSinPitch = Math::Sin(euler.x * Pi_360);
+		float fCosPitch = Math::Cos(euler.x * Pi_360);
+		float fSinYaw   = Math::Sin(euler.y * Pi_360);
+		float fCosYaw   = Math::Cos(euler.y * Pi_360);
+		float fSinRoll  = Math::Sin(euler.z * Pi_360);
+		float fCosRoll  = Math::Cos(euler.z * Pi_360);
 		
 		float fCosPitchCosYaw = fCosPitch * fCosYaw;
 		float fSinPitchSinYaw = fSinPitch * fSinYaw;
@@ -266,7 +266,7 @@ namespace RN
 	
 	RN_INLINE void Quaternion::MakeAxisAngle(const Vector4& axis)
 	{
-		float half = axis.w * kRNPI / 360.0f;
+		float half = axis.w * k::Pi / 360.0f;
 		float fsin = Math::Sin(half);
 		
 		w = Math::Cos(half);
@@ -310,8 +310,8 @@ namespace RN
 		else
 		{
 			quat2 = Quaternion(-quat1.y, quat1.x, -quat1.w, quat1.z);
-			scale = Math::Sin(kRNPI * (0.5f - factor));
-			inverseScale = Math::Sin(kRNPI * factor);
+			scale = Math::Sin(k::Pi * (0.5f - factor));
+			inverseScale = Math::Sin(k::Pi * factor);
 		}
 		
 		*this = (quat1 * scale) + (quat2 * inverseScale);
@@ -476,7 +476,7 @@ namespace RN
 //		printf("dafuq: %f\n", clamped);
 		if(clamped > 0.4999f)
 		{
-			result.x = 2.0f * atan2(x, w) * 180.0f / kRNPI;
+			result.x = 2.0f * atan2(x, w) * 180.0f / k::Pi;
 			result.y = 90.0f;
 			result.z = 0.0f;
 			
@@ -485,7 +485,7 @@ namespace RN
 		
 		if(clamped < -0.4999f)
 		{
-			result.x = -2.0f * atan2(x, w) * 180.0f / kRNPI;
+			result.x = -2.0f * atan2(x, w) * 180.0f / k::Pi;
 			result.y = -90.0f;
 			result.z = 0.0f;
 			
@@ -495,7 +495,7 @@ namespace RN
 		result.x = (float)(atan2(2.0f * (y * w - x * z), 1.0f - 2.0f * (sqy + sqz)));
 		result.y = asin(2.0f*clamped);
 		result.z = (float)(atan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (sqx + sqz)));
-		result *= 180.0f / kRNPI;
+		result *= 180.0f / k::Pi;
 		
 		return result;
 	}
@@ -515,7 +515,7 @@ namespace RN
 		else
 		{
 			const float invscale = 1.0f / scale;
-			res.w = (360.0f / kRNPI) * acos(w);
+			res.w = (360.0f / k::Pi) * acos(w);
 			res.x = x * invscale;
 			res.y = y * invscale;
 			res.z = z * invscale;

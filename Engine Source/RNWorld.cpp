@@ -22,6 +22,7 @@ namespace RN
 		
 		_renderer = Renderer::SharedInstance();
 		_sceneManager = sceneManager->Retain();
+		_cameraClass  = Camera::MetaClass();
 	}
 	
 	World::World(const std::string& sceneManager) :
@@ -99,6 +100,9 @@ namespace RN
 		
 		for(Camera *camera : _cameras)
 		{
+			if(!camera->RequiresRendering())
+				continue;
+			
 			camera->PostUpdate();
 			_renderer->BeginCamera(camera);
 			
@@ -126,20 +130,7 @@ namespace RN
 		for(auto i=_addedNodes.begin(); i!=_addedNodes.end(); i++)
 		{
 			SceneNode *node = *i;
-			
-			if(_nodes.find(node) == _nodes.end())
-			{
-				node->_world = this;
-				
-				_nodes.insert(node);
-				_sceneManager->AddSceneNode(node);
-				
-				for(machine_uint i=0; i<_attachments.Count(); i++)
-				{
-					WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
-					attachment->DidAddSceneNode(node);
-				}
-			}
+			ForceInsertNode(node);
 		}
 		
 		_addedNodes.clear();
@@ -161,15 +152,16 @@ namespace RN
 	
 	void World::AddSceneNode(SceneNode *node)
 	{
-		if(!node)
+		if(!node || node->_world != 0)
 			return;
 		
+		node->_world = this;
 		_addedNodes.push_back(node);
 	}
 	
 	void World::RemoveSceneNode(SceneNode *node)
 	{
-		if(!node)
+		if(!node || node->_world != this)
 			return;
 		
 		auto iterator = _nodes.find(node);
@@ -179,6 +171,12 @@ namespace RN
 			{
 				WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
 				attachment->WillRemoveSceneNode(node);
+			}
+			
+			if(node->IsKindOfClass(_cameraClass))
+			{
+				Camera *camera = static_cast<Camera *>(node);
+				_cameras.erase(std::remove(_cameras.begin(), _cameras.end(), camera), _cameras.end());
 			}
 			
 			_sceneManager->RemoveSceneNode(node);
@@ -193,27 +191,37 @@ namespace RN
 	
 	void World::SceneNodeUpdated(SceneNode *node)
 	{
+		if(node->_world != this)
+			return;
+		
 		auto iterator = std::find(_addedNodes.begin(), _addedNodes.end(), node);
 		if(iterator != _addedNodes.end())
 		{
 			_addedNodes.erase(iterator);
-			
-			_nodes.insert(node);
-			_sceneManager->AddSceneNode(node);
+			ForceInsertNode(node);
 		}
 		
 		_sceneManager->UpdateSceneNode(node);
 	}
 	
-	
-	
-	void World::AddCamera(Camera *camera)
+	void World::ForceInsertNode(SceneNode *node)
 	{
-		_cameras.push_back(camera);
-	}
-	
-	void World::RemoveCamera(Camera *camera)
-	{
-		_cameras.erase(std::remove(_cameras.begin(), _cameras.end(), camera), _cameras.end());
+		if(_nodes.find(node) == _nodes.end())
+		{
+			_nodes.insert(node);
+			_sceneManager->AddSceneNode(node);
+			
+			for(machine_uint i=0; i<_attachments.Count(); i++)
+			{
+				WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+				attachment->DidAddSceneNode(node);
+			}
+			
+			if(node->IsKindOfClass(_cameraClass))
+			{
+				Camera *camera = static_cast<Camera *>(node);
+				_cameras.push_back(camera);
+			}
+		}
 	}
 }

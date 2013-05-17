@@ -63,14 +63,15 @@ namespace RN
 			}
 			
 			MetaType() :
-				MetaClass(0, "Object")
+				MetaClass(0, "Object", __PRETTY_FUNCTION__)
 			{}
 		};
 		
 		void __RemoveAssociatedOject(const void *key);
 		
 		SpinLock _lock;
-		machine_int _refCount;
+		std::atomic<machine_uint> _refCount;
+		
 		static MetaType *__metaClass;
 		
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
@@ -82,7 +83,7 @@ namespace RN
 		{ \
 		public: \
 			MetaType() : \
-				MetaClass(super::MetaClass(), #cls) \
+				MetaClass(super::MetaClass(), #cls, __PRETTY_FUNCTION__) \
 			{} \
 			virtual cls *Construct() \
 			{ \

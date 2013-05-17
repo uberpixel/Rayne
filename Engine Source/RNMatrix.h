@@ -249,7 +249,7 @@ namespace RN
 		MakeIdentity();
 		
 		float xFac, yFac;
-		yFac = tanf(arc * kRNPI / 360.0f);
+		yFac = tanf(arc * k::Pi / 360.0f);
 		xFac = yFac * aspect;
 		
 		m[0] = 1.0f / xFac;
@@ -265,7 +265,7 @@ namespace RN
 		MakeIdentity();
 		
 		float xFac, yFac;
-		yFac = tanf(arc * kRNPI / 360.0f);
+		yFac = tanf(arc * k::Pi / 360.0f);
 		xFac = yFac * aspect;
 		
 		m[0] = xFac;
@@ -305,6 +305,35 @@ namespace RN
 		return det;
 	}
 	
+	RN_INLINE void Matrix::SetTranslation(const Vector3& trans)
+	{
+		m[12] = trans.x;
+		m[13] = trans.y;
+		m[14] = trans.z;
+	}
+	
+	RN_INLINE void Matrix::SetTranslation(const Vector4& trans)
+	{
+		m[12] = trans.x;
+		m[13] = trans.y;
+		m[14] = trans.z;
+		m[15] = trans.w;
+	}
+	
+	RN_INLINE void Matrix::SetScale(const Vector3& scal)
+	{
+		m[0] = scal.x;
+		m[5] = scal.y;
+		m[10] = scal.z;
+	}
+	
+	RN_INLINE void Matrix::SetScale(const Vector4& scal)
+	{
+		m[0] = scal.x;
+		m[5] = scal.y;
+		m[10] = scal.z;
+		m[15] = scal.w;
+	}
 	
 	RN_INLINE void Matrix::Translate(const Vector3& trans)
 	{

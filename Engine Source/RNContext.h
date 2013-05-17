@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNThread.h"
+#include "RNColor.h"
 
 namespace RN
 {

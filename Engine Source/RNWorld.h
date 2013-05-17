@@ -21,12 +21,14 @@
 namespace RN
 {
 	class Kernel;
+	class UIServer;
 	
 	class World : public NonConstructingSingleton<World>
 	{
 	friend class SceneNode;
 	friend class Kernel;
 	friend class Camera;
+	friend class UIServer;
 	public:
 		RNAPI World(SceneManager *sceneManager);
 		RNAPI World(const std::string& sceneManager);
@@ -37,6 +39,9 @@ namespace RN
 		RNAPI void AddAttachment(WorldAttachment *attachment);
 		RNAPI void RemoveAttachment(WorldAttachment *attachment);
 		
+		RNAPI void AddSceneNode(SceneNode *node);
+		RNAPI void RemoveSceneNode(SceneNode *node);
+		
 		RNAPI virtual void Update(float delta);
 		RNAPI virtual void NodesUpdated();
 		
@@ -45,13 +50,9 @@ namespace RN
 	private:
 		static class SceneManager *SceneManagerWithName(const std::string& name);
 		void StepWorld(FrameID frame, float delta);
+		void ForceInsertNode(SceneNode *node);
 		
 		void ApplyNodes();
-		void AddSceneNode(SceneNode *node);
-		void RemoveSceneNode(SceneNode *node);
-		
-		void AddCamera(Camera *camera);
-		void RemoveCamera(Camera *camera);
 		
 		Kernel *_kernel;
 		
@@ -64,6 +65,7 @@ namespace RN
 		
 		Renderer *_renderer;
 		class SceneManager *_sceneManager;
+		class MetaClass *_cameraClass;
 	};
 }
 

@@ -26,6 +26,7 @@
 	typedef unsigned __int64		uint64;
 
 	#define RN_NORETURN __declspec(noreturn)
+	#define RN_INLINE inline
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __declspec(dllexport)
@@ -48,6 +49,7 @@
 	typedef unsigned long long		uint64;
 
 	#define RN_NORETURN __attribute__((noreturn))
+	#define RN_INLINE inline __attribute__((__always_inline__))
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __attribute__((visibility("default")))

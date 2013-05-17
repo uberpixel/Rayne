@@ -147,29 +147,21 @@ namespace RN
 	void Texture::Bind()
 	{
 		Thread *thread = Thread::CurrentThread();
-		
-		if(thread->CurrentTexture() != this)
+		if(thread->SetOpenGLBinding(_glType, _name) == 1)
+		{
 			glBindTexture(_glType, _name);
-		
-		thread->PushTexture(this);
+		}
 	}
 	
 	void Texture::Unbind()
 	{
 		Thread *thread = Thread::CurrentThread();
-		if(thread->CurrentTexture() == this)
+		thread->SetOpenGLBinding(_glType, 0);
+
+		if(_hasChanged && _isCompleteTexture)
 		{
-			if(_hasChanged && _isCompleteTexture)
-			{
-				glFlush();
-				_hasChanged = false;
-			}
-			
-			thread->PopTexture();
-			
-			Texture *other = thread->CurrentTexture();
-			if(other && other != this)
-				glBindTexture(other->_glType, other->_name);
+			glFlush();
+			_hasChanged = false;
 		}
 	}
 	

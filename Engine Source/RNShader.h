@@ -61,6 +61,12 @@ namespace RN
 		GLuint clipPlanes;
 		GLuint discardThreshold;
 		
+		GLuint ambient;
+		GLuint diffuse;
+		GLuint specular;
+		GLuint emissive;
+		GLuint shininess;
+		
 		GLuint viewPosition;
 		
 		GLuint lightPointCount;
