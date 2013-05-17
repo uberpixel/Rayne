@@ -334,7 +334,7 @@ namespace RN
 					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
 					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
 					
-					plnear.SetPlane(camPosition, camdir);// + camdir * depthArray[index * 2 + 0], camdir);
+					plnear.SetPlane(camPosition + camdir * depthArray[index * 2 + 0], camdir);
 					plfar.SetPlane(camPosition + camdir * depthArray[index * 2 + 1], camdir);
 					
 					size_t lightIndicesCount = 0;
@@ -368,7 +368,7 @@ namespace RN
 						
 						//seems to work, but might not cull enough lights
 						Distance(plnear, >, range);
-//						Distance(plfar, <, -range);
+						Distance(plfar, <, -range);
 						
 						lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
 					}

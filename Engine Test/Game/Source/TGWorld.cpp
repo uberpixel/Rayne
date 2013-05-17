@@ -259,7 +259,7 @@ namespace TG
 		RN::Light *light;
 		//srand(time(0));
 		
-		light = new RN::Light();
+/*		light = new RN::Light();
 		light->SetPosition(RN::Vector3(-15.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
@@ -267,7 +267,7 @@ namespace TG
 		light = new RN::Light();
 		light->SetPosition(RN::Vector3(15.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));*/
 		
 		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
@@ -286,11 +286,11 @@ namespace TG
 		_player->AttachChild(_spotLight);
 #endif
 		
-		for(int i=0; i<200; i++)
+		for(int i=0; i<500; i++)
 		{
 			light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 70.0f - 35.0f, TGWorldRandom * 50.0f-10.0f, TGWorldRandom * 40.0f - 20.0f));
-			light->SetRange((TGWorldRandom * 10.0f) + 5.0f);
+			light->SetRange((TGWorldRandom * 5.0f) + 2.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 			
 			/*light->SetAction([](RN::Transform *transform, float delta) {
