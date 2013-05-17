@@ -247,9 +247,16 @@ namespace RN
 	}
 	
 #define Distance(plane, op, r) { \
-	float dot = (position.x * plane.normal.x + position.y * plane.normal.y + position.z * plane.normal.z);\
+	float dot = (position.x * plane.normal.x + position.y * plane.normal.y + position.z * plane.normal.z); \
 	distance = dot - plane.d; \
 	if(distance op r) \
+		continue; \
+	}
+	
+#define DistanceExpect(plane, op, r, c) { \
+	float dot = (position.x * plane.normal.x + position.y * plane.normal.y + position.z * plane.normal.z); \
+	distance = dot - plane.d; \
+	if(__builtin_expect((distance op r), c)) \
 		continue; \
 	}
 	
@@ -347,16 +354,17 @@ namespace RN
 						const Vector3& position = light->_worldPosition;
 						const float range = light->_range;
 						float distance, dr, dl, dt, db;
-						Distance(plright, >, range);
+						DistanceExpect(plright, >, range, true);
 						dr = distance;
-						Distance(plleft, <, -range);
+						DistanceExpect(plleft, <, -range, true);
 						dl = distance;
-						Distance(plbottom, <, -range);
+						DistanceExpect(plbottom, <, -range, true);
 						db = distance;
-						Distance(pltop, >, range);
+						DistanceExpect(pltop, >, range, true);
 						dt = distance;
 						
 						float sqrange = range*range;
+						
 						if(dr > 0.0f && db < 0.0f && dr*dr+db*db > sqrange)
 							continue;
 						if(dr > 0.0f && dt > 0.0f && dr*dr+dt*dt > sqrange)
