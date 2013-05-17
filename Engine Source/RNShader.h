@@ -25,7 +25,8 @@ namespace RN
 			TypeInstanced = (1 << 1),
 			TypeAnimated  = (1 << 2),
 			TypeLighting = (1 << 3),
-			TypeDiscard   = (1 << 4)
+			TypeDiscard   = (1 << 4),
+			TypeDirectionalShadows = (1 << 5)
 		};
 		
 		GLuint program;

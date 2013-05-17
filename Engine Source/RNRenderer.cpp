@@ -575,7 +575,7 @@ namespace RN
 			const Vector3& direction = light->Forward();
 			
 			_lightDirectionalDirection.AddObject(direction);
-			_lightDirectionalColor.AddObject(color);
+			_lightDirectionalColor.AddObject(Vector4(color, light->_shadow?1.0:0.0));
 			
 			if(light->_shadow)
 			{
@@ -1127,7 +1127,12 @@ namespace RN
 						programTypes |= ShaderProgram::TypeAnimated;
 					
 					if(material->lighting && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
+					{
 						programTypes |= ShaderProgram::TypeLighting;
+						
+						if(_lightDirectionalDepth.Count() > 0)
+							programTypes |= ShaderProgram::TypeDirectionalShadows;
+					}
 					
 					if(wantsInstancing)
 						programTypes |= ShaderProgram::TypeInstanced;
@@ -1166,7 +1171,7 @@ namespace RN
 							glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)_lightDirectionalDirection.Data());
 						
 						if(program->lightDirectionalColor != -1)
-							glUniform3fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.Data());
+							glUniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.Data());
 						
 						if(program->lightDirectionalMatrix != -1)
 						{

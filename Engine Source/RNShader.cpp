@@ -277,6 +277,7 @@ namespace RN
 				Undefine("RN_ANIMATION");
 				Undefine("RN_LIGHTING");
 				Undefine("RN_DISCARD");
+				Undefine("RN_DIRECTIONAL_SHADOWS");
 			});
 			
 			ScopeGuard programGuard = ScopeGuard([&]() {
@@ -297,6 +298,9 @@ namespace RN
 			
 			if(type & ShaderProgram::TypeDiscard)
 				Define("RN_DISCARD");
+			
+			if(type & ShaderProgram::TypeDirectionalShadows)
+				Define("RN_DIRECTIONAL_SHADOWS");
 			
 			// Compile all required shaders
 			if(_vertexShader.length() > 0)
@@ -626,6 +630,7 @@ namespace RN
 		_supportedPrograms |= (data.find("#ifdef RN_ANIMATION") != std::string::npos) ? (ShaderProgram::TypeAnimated) : 0;
 		_supportedPrograms |= (data.find("#ifdef RN_LIGHTING") != std::string::npos) ? (ShaderProgram::TypeLighting) : 0;
 		_supportedPrograms |= (data.find("#ifdef RN_DISCARD") != std::string::npos) ? (ShaderProgram::TypeDiscard) : 0;
+		_supportedPrograms |= (data.find("#ifdef RN_DIRECTIONAL_SHADOWS") != std::string::npos) ? (ShaderProgram::TypeDirectionalShadows) : 0;
 		
 		switch(type)
 		{

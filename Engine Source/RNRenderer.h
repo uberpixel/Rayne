@@ -172,7 +172,7 @@ namespace RN
 		GLuint _lightSpotBuffers[3];
 		
 		Array<Vector3> _lightDirectionalDirection;
-		Array<Vector3> _lightDirectionalColor;
+		Array<Vector4> _lightDirectionalColor;
 		Array<Matrix> _lightDirectionalMatrix;
 		Array<Texture*> _lightDirectionalDepth;
 		

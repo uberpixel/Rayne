@@ -36,8 +36,8 @@ namespace TG
 		AddAttachment(_physicsAttachment->Autorelease());
 		
 		CreateCameras();
-//		CreateWorld();
-		CreateForest();
+		CreateWorld();
+//		CreateForest();
 		
 		RN::Input::SharedInstance()->Activate();
 	}
@@ -469,7 +469,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->_lightcam = _camera;
-//		_sunLight->ActivateSunShadows(true);
+		_sunLight->ActivateSunShadows(true);
 		
 /*		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
