@@ -81,7 +81,7 @@ vec3 rn_SpotLight(int index, vec3 normal, vec3 position)
 
 vec3 rn_DirectionalLight(int index, vec3 normal)
 {
-	return lightDirectionalColor[index]*max(dot(normal, lightDirectionalDirection[index]), 0.0)*rn_ShadowDir1();
+	return lightDirectionalColor[index]*max(dot(normal, lightDirectionalDirection[index]), 0.0)*2.0;//*rn_ShadowDir1();
 }
 
 vec4 rn_Lighting()
@@ -126,7 +126,7 @@ vec4 rn_Lighting()
 	
 	for(int i=0; i<lightDirectionalCount; i++)
 	{
-//		light += rn_DirectionalLight(i, normal);
+		light += rn_DirectionalLight(i, normal);
 	}
 	
 	return vec4(light, 1.0);
