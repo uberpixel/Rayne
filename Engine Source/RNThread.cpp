@@ -8,7 +8,6 @@
 
 #include "RNThread.h"
 #include "RNSpinLock.h"
-#include "RNMutex.h"
 #include "RNArray.h"
 #include "RNContext.h"
 
@@ -24,7 +23,7 @@ namespace RN
 	
 	static SpinLock __ThreadLock;
 	static std::unordered_map<std::thread::id, Thread *> __ThreadMap;
-	static Array<Thread> __ThreadBin;
+	static std::atomic<uint32> __ThreadAtomicIDs;
 	
 	Thread::Thread()
 	{
@@ -40,33 +39,17 @@ namespace RN
 	
 	Thread::~Thread()
 	{
-		_mutex->Release();
-		
-		_textures->Release();
-		_cameras->Release();
-		_meshes->Release();
-		_storages->Release();
-		
 		if(_context)
 			_context->DeactivateContext();
 	}
 	
 	void Thread::Initialize()
 	{
-		_textures = new Array<Texture>();
-		_cameras  = new Array<Camera>();
-		_meshes   = new Array<Mesh>();
-		_storages = new Array<RenderStorage>();
-		
-		_mutex = new Mutex();
 		_context = 0;
 		_pool    = 0;
 		
-		_isRunning = true;
+		_isRunning   = false;
 		_isCancelled = false;
-		
-		RN_ASSERT0(_textures && _cameras && _meshes && _storages);
-		RN_ASSERT0(_mutex != 0);
 		
 		Retain();
 		ThreadCoordinator::SharedInstance()->ConsumeConcurrency();
@@ -89,20 +72,6 @@ namespace RN
 	}
 	
 	
-	void Thread::Exit()
-	{
-		__ThreadLock.Lock();
-		
-		auto iterator = __ThreadMap.find(_id);
-		__ThreadMap.erase(iterator);
-		
-		__ThreadLock.Unlock();
-		_isRunning = false;
-		
-		ThreadCoordinator::SharedInstance()->RestoreConcurrency();
-		Release();
-	}
-	
 	void Thread::Entry()
 	{
 		_id = std::this_thread::get_id();
@@ -112,9 +81,57 @@ namespace RN
 		__ThreadLock.Unlock();
 	}
 	
+	void Thread::Exit()
+	{
+		__ThreadLock.Lock();
+		
+		auto iterator = __ThreadMap.find(_id);
+		__ThreadMap.erase(iterator);
+		
+		__ThreadLock.Unlock();
+		_isRunning.store(false);
+		
+		ThreadCoordinator::SharedInstance()->RestoreConcurrency();
+		Release();
+	}
+	
+	
+	void Thread::AutoAssignName()
+	{
+		uint32 tid = __ThreadAtomicIDs.fetch_add(1);
+		char buffer[32];
+		sprintf(buffer, "Thread %u", tid);
+		
+		_name = std::string(buffer);
+	}
+	
+	void Thread::Detach()
+	{
+		if(_isRunning.exchange(true) == true)
+			throw ErrorException(0);
+		
+		std::thread([&]() {
+			Entry();
+			
+			try
+			{
+				_function();
+			}
+			catch (ErrorException e)
+			{
+				__HandleException(e);
+			}
+			
+			Exit();
+		}).detach();
+
+	}
+	
+	
+	
 	void Thread::Cancel()
 	{
-		_isCancelled = true;
+		_isCancelled.store(true);
 	}
 	
 	bool Thread::OnThread() const
@@ -131,38 +148,60 @@ namespace RN
 	
 	void Thread::SetName(const std::string& name)
 	{
-		_mutex->Lock();
+		_mutex.Lock();
 		_name = std::string(name);
-		_mutex->Unlock();
+		_mutex.Unlock();
 	}
 	
-	const std::string Thread::Name() const
+	const std::string Thread::Name()
 	{
-		_mutex->Lock();
+		_mutex.Lock();
 		std::string name = _name;
-		_mutex->Unlock();
+		_mutex.Unlock();
 		
 		return name;
 	}
 	
-	
-	void Thread::PushTexture(Texture *texture)
+	uint32 Thread::SetOpenGLBinding(GLenum target, GLuint object)
 	{
-		_textures->AddObject(texture);
+		auto iterator = _glBindings.find(target);
+		
+		if(iterator != _glBindings.end())
+		{
+			std::tuple<GLuint, uint32>& tuple = iterator->second;
+			
+			if(object != 0)
+			{
+				if(std::get<0>(tuple) != object)
+					throw ErrorException(0);
+				
+				uint32& references = std::get<1>(tuple);
+				return references;
+			}
+			else
+			{
+				uint32& references = std::get<1>(tuple);
+				
+				if((-- references) == 0)
+				{
+					_glBindings.erase(iterator);
+					return 0;
+				}
+				
+				return references;
+			}
+		}
+		
+		if(object == 0)
+			return 0;
+		
+		_glBindings.insert(std::unordered_map<GLenum, std::tuple<GLuint, uint32>>::value_type(target, std::make_tuple(object, 1)));
+		return 1;
 	}
 	
-	void Thread::PushCamera(Camera *camera)
+	GLuint Thread::GetOpenGLBinding(GLenum target)
 	{
-		_cameras->AddObject(camera);
-	}
-	
-	void Thread::PushMesh(Mesh *mesh)
-	{
-		_meshes->AddObject(mesh);
-	}
-	
-	void Thread::PushStorage(RenderStorage *storage)
-	{
-		_storages->AddObject(storage);
+		auto iterator = _glBindings.find(target);
+		return (iterator != _glBindings.end()) ? std::get<0>(iterator->second) : 0;
 	}
 }

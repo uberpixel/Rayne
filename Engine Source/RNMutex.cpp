@@ -10,20 +10,13 @@
 
 namespace RN
 {
-	RNDeclareMeta(Mutex)
-	
 	Mutex::Mutex()
 	{
 #if RN_PLATFORM_POSIX
-		int error = 0;
-		
-		error = pthread_mutexattr_init(&_attribute);
-		RN_ASSERT0(error == 0);
-		
+		pthread_mutexattr_init(&_attribute);
 		pthread_mutexattr_settype(&_attribute, PTHREAD_MUTEX_NORMAL);
 		
-		error = pthread_mutex_init(&_mutex, &_attribute);
-		RN_ASSERT0(error == 0);
+		pthread_mutex_init(&_mutex, &_attribute);
 #endif
 		
 #if RN_PLATFORM_WINDOWS

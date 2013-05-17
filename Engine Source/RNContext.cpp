@@ -290,11 +290,11 @@ namespace RN
 		Thread *thread = Thread::CurrentThread();
 		RN_ASSERT0(thread);
 
-		thread->_mutex->Lock();
+		thread->_mutex.Lock();
 
 		if(thread->_context == this)
 		{
-			thread->_mutex->Unlock();
+			thread->_mutex.Unlock();
 			return;
 		}
 
@@ -313,7 +313,7 @@ namespace RN
 		this->_thread = thread;
 
 		thread->_context = this;
-		thread->_mutex->Unlock();
+		thread->_mutex.Unlock();
 	}
 
 	void Context::DeactivateContext()
@@ -321,7 +321,7 @@ namespace RN
 		Thread *thread = Thread::CurrentThread();
 		RN_ASSERT0(thread);
 
-		thread->_mutex->Lock();
+		thread->_mutex.Lock();
 
 		this->_active = false;
 		this->_thread = 0;
@@ -329,7 +329,7 @@ namespace RN
 		this->Deactivate();
 
 		thread->_context = 0;
-		thread->_mutex->Unlock();
+		thread->_mutex.Unlock();
 	}
 	
 	

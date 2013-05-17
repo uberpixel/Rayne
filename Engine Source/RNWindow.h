@@ -10,9 +10,10 @@
 #define __RAYNE_WINDOW_H__
 
 #include "RNBase.h"
-
 #include "RNObject.h"
 #include "RNContext.h"
+#include "RNArray.h"
+#include "RNRect.h"
 
 namespace RN
 {

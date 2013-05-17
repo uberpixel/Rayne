@@ -180,25 +180,16 @@ namespace RN
 	void RenderStorage::Bind()
 	{
 		Thread *thread = Thread::CurrentThread();
-		
-		if(thread->CurrentStorage() != this)
+		if(thread->SetOpenGLBinding(GL_FRAMEBUFFER, _framebuffer) == 1)
+		{
 			glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-		
-		thread->PushStorage(this);
+		}
 	}
 	
 	void RenderStorage::Unbind()
 	{
 		Thread *thread = Thread::CurrentThread();
-		
-		if(thread->CurrentStorage() == this)
-		{
-			thread->PopStorage();
-			
-			RenderStorage *other = thread->CurrentStorage();
-			if(other && other != this)
-				glBindFramebuffer(GL_FRAMEBUFFER, other->_framebuffer);
-		}
+		thread->SetOpenGLBinding(GL_FRAMEBUFFER, 0);
 	}
 	
 	void RenderStorage::CheckFramebufferStatus()
