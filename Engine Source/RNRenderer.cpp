@@ -974,9 +974,332 @@ namespace RN
 		_textureUnit     = 0;
 	}
 	
+	void Renderer::DrawCamera(Camera *camera, Camera *source, uint32 skyCubeMeshes)
+	{
+		bool changedCamera = true;
+		bool changedShader;
+		bool changedMaterial;
+		
+		SetDepthWriteEnabled(true);
+		
+		camera->Bind();
+		camera->PrepareForRendering();
+		
+		if(_currentMaterial)
+			SetDepthWriteEnabled(_currentMaterial->depthwrite);
+		
+		_currentCamera = camera;
+		
+		if(!source)
+		{
+			// Sort the objects
+			if(!(camera->CameraFlags() & Camera::FlagNoSorting))
+			{
+				_frame.SortUsingFunction([](const RenderingObject& a, const RenderingObject& b) {
+					// Sort by material
+					const Material *materialA = a.material;
+					const Material *materialB = b.material;
+					
+					if(materialA->blending != materialB->blending)
+					{
+						if(!materialB->blending)
+							return kRNCompareGreaterThan;
+						
+						if(!materialA->blending)
+							return kRNCompareLessThan;
+					}
+					
+					if(materialA->discard != materialB->discard)
+					{
+						if(!materialB->discard)
+							return kRNCompareGreaterThan;
+						
+						if(!materialA->discard)
+							return kRNCompareLessThan;
+					}
+					
+					if(materialA->Shader() > materialB->Shader())
+						return kRNCompareGreaterThan;
+					
+					if(materialB->Shader() > materialA->Shader())
+						return kRNCompareLessThan;
+					
+					// Sort by mesh
+					if(a.mesh > b.mesh)
+						return kRNCompareGreaterThan;
+					
+					if(b.mesh > a.mesh)
+						return kRNCompareLessThan;
+					
+					return kRNCompareEqualTo;
+				}, skyCubeMeshes);
+			}
+			
+			Material *surfaceMaterial = camera->Material();
+			
+			// Create the light lists for the camera
+			int lightPointCount = CreatePointLightList(camera);
+			int lightSpotCount  = CreateSpotLightList(camera);
+			int lightDirectionalCount = CreateDirectionalLightList(camera);
+			
+			// Update the shader
+			const Matrix& projectionMatrix = camera->projectionMatrix;
+			const Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix;
+			
+			const Matrix& viewMatrix = camera->viewMatrix;
+			const Matrix& inverseViewMatrix = camera->inverseViewMatrix;
+			
+			Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
+			Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
+			
+			machine_uint objectsCount = _frame.Count();
+			for(machine_uint i=0; i<objectsCount; i++)
+			{
+				RenderingObject& object = _frame.ObjectAtIndex(i);
+				
+				Mesh *mesh = object.mesh;
+				Material *material = object.material;
+				Shader *shader = surfaceMaterial ? surfaceMaterial->Shader() : material->Shader();
+				
+				Matrix& transform = (Matrix &)*object.transform;
+				Matrix inverseTransform = transform.Inverse();
+				
+				// Check if we can use instancing here
+				bool wantsInstancing = (object.type == RenderingObject::TypeInstanced);
+				if(wantsInstancing)
+				{
+					if(!shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
+						continue;
+				}
+				
+				// Grab the correct shader program
+				uint32 programTypes = 0;
+				ShaderProgram *program = 0;
+				
+				bool wantsDiscard = material->discard;
+				if(surfaceMaterial && !(material->override & Material::OverrideDiscard))
+					wantsDiscard = surfaceMaterial->discard;
+				
+				if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
+					programTypes |= ShaderProgram::TypeAnimated;
+				
+				if(material->lighting && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
+					programTypes |= ShaderProgram::TypeLighting;
+				
+				if(wantsInstancing)
+					programTypes |= ShaderProgram::TypeInstanced;
+				
+				if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
+					programTypes |= ShaderProgram::TypeDiscard;
+				
+				program = shader->ProgramOfType(programTypes);
+				
+				changedShader = (_currentProgram != program);
+				changedMaterial = (_currentMaterial != material);
+				
+				BindMaterial(material, program);
+				
+				// Update the shader data
+				if(changedShader || changedCamera)
+				{
+					UpdateShaderData();
+					changedCamera = false;
+					changedShader = true;
+				}
+				
+				if(changedShader)
+				{
+					// Light data
+					if(program->lightPointCount != -1)
+						glUniform1i(program->lightPointCount, lightPointCount);
+					
+					if(program->lightSpotCount != -1)
+						glUniform1i(program->lightSpotCount, lightSpotCount);
+					
+					if(program->lightDirectionalCount != -1)
+						glUniform1i(program->lightDirectionalCount, lightDirectionalCount);
+					
+					if(program->lightDirectionalDirection != -1)
+						glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)_lightDirectionalDirection.Data());
+					
+					if(program->lightDirectionalColor != -1)
+						glUniform3fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.Data());
+					
+					if(program->lightDirectionalMatrix != -1)
+					{
+						float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.Data());
+						glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.Count(), GL_FALSE, data);
+					}
+					
+					if(camera->DepthTiles() != 0)
+					{
+						if(program->lightTileSize != -1)
+						{
+							Rect rect = camera->Frame();
+							int tilesWidth  = rect.width / camera->LightTiles().x;
+							int tilesHeight = rect.height / camera->LightTiles().y;
+							
+							Vector2 lightTilesSize = camera->LightTiles() * _scaleFactor;
+							Vector2 lightTilesCount = Vector2(tilesWidth, tilesHeight);
+							
+							glUniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
+						}
+					}
+					
+					if(program->discardThreshold != -1)
+					{
+						float threshold = material->discardThreshold;
+						
+						if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
+							threshold = surfaceMaterial->discardThreshold;
+						
+						glUniform1f(program->discardThreshold, threshold);
+					}
+				}
+				
+				if(changedShader || changedMaterial)
+				{
+					if(program->lightDirectionalDepth != -1 && _lightDirectionalDepth.Count() > 0)
+					{
+						uint32 textureUnit = BindTexture(_lightDirectionalDepth.FirstObject());
+						glUniform1i(program->lightDirectionalDepth, textureUnit);
+					}
+					
+					if(camera->DepthTiles() != 0)
+					{
+						// Point lights
+						if(program->lightPointList != -1)
+						{
+							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListIndicesIndex]);
+							glUniform1i(program->lightPointList, textureUnit);
+						}
+						
+#if !kRNLightingUBO
+						if(program->lightPointListOffset != -1)
+						{
+							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
+							glUniform1i(program->lightPointListOffset, textureUnit);
+						}
+#else
+						if(program->lightPointListOffsetUBO != -1)
+						{
+							glBindBuffer(GL_UNIFORM_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
+							glUniformBlockBinding(program->program, program->lightPointListOffsetUBO, 0);
+							glBindBufferBase( GL_UNIFORM_BUFFER, 0, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
+							glBindBuffer(GL_UNIFORM_BUFFER, 0);
+						}
+#endif
+						
+#if !kRNLightingUBO
+						if(program->lightPointListData != -1)
+						{
+							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListDataIndex]);
+							glUniform1i(program->lightPointListData, textureUnit);
+						}
+#else
+						
+						if(program->lightPointListDataUBO != -1)
+						{
+							glBindBuffer(GL_UNIFORM_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
+							glUniformBlockBinding(program->program, program->lightPointListDataUBO, 1);
+							glBindBufferBase(GL_UNIFORM_BUFFER, 1, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
+							glBindBuffer(GL_UNIFORM_BUFFER, 0);
+						}
+#endif
+						
+						// Spot lights
+						if(program->lightSpotList != -1)
+						{
+							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListIndicesIndex]);
+							glUniform1i(program->lightSpotList, textureUnit);
+						}
+						
+						if(program->lightSpotListOffset!= -1)
+						{
+							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListOffsetIndex]);
+							glUniform1i(program->lightSpotListOffset, textureUnit);
+						}
+						
+						if(program->lightSpotListData != -1)
+						{
+							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListDataIndex]);
+							glUniform1i(program->lightSpotListData, textureUnit);
+						}
+					}
+					
+					if(program->ambient != -1)
+						glUniform4fv(program->ambient, 1, &material->ambient.r);
+					
+					if(program->diffuse != -1)
+						glUniform4fv(program->diffuse, 1, &material->diffuse.r);
+					
+					if(program->emissive != -1)
+						glUniform4fv(program->emissive, 1, &material->emissive.r);
+					
+					if(program->specular != -1)
+						glUniform4fv(program->specular, 1, &material->specular.r);
+					
+					if(program->shininess != -1)
+						glUniform1f(program->shininess, material->shininess);
+				}
+				
+				if(wantsInstancing)
+				{
+					DrawMeshInstanced(object);
+					continue;
+				}
+				
+				// More updates
+				if(object.skeleton && program->matBones != -1)
+				{
+					float *data = reinterpret_cast<float *>(object.skeleton->Matrices().Data());
+					glUniformMatrix4fv(program->matBones, object.skeleton->NumBones(), GL_FALSE, data);
+				}
+				
+				if(program->matModel != -1)
+					glUniformMatrix4fv(program->matModel, 1, GL_FALSE, transform.m);
+				
+				if(program->matModelInverse != -1)
+					glUniformMatrix4fv(program->matModelInverse, 1, GL_FALSE, inverseTransform.m);
+				
+				if(program->matViewModel != -1)
+				{
+					Matrix viewModel = viewMatrix * transform;
+					glUniformMatrix4fv(program->matViewModel, 1, GL_FALSE, viewModel.m);
+				}
+				
+				if(program->matViewModelInverse != -1)
+				{
+					Matrix viewModel = inverseViewMatrix * inverseTransform;
+					glUniformMatrix4fv(program->matViewModelInverse, 1, GL_FALSE, viewModel.m);
+				}
+				
+				if(program->matProjViewModel != -1)
+				{
+					Matrix projViewModel = projectionViewMatrix * transform;
+					glUniformMatrix4fv(program->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+				}
+				
+				if(program->matProjViewModelInverse != -1)
+				{
+					Matrix projViewModelInverse = inverseProjectionViewMatrix * inverseTransform;
+					glUniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
+				}
+				
+				DrawMesh(mesh, object.offset, object.count);
+			}
+		}
+		else
+		{
+			DrawCameraStage(source, camera);
+		}
+		
+		camera->Unbind();
+	}
+	
 	void Renderer::FinishCamera()
 	{
-		Camera *previous = 0;
+		Camera *previous = _frameCamera;
 		Camera *camera = _frameCamera;
 		
 		// Skycube
@@ -1018,334 +1341,43 @@ namespace RN
         });
 		
 		// Render loop
-		bool changedCamera;
-		bool changedShader;
-		bool changedMaterial;
+		DrawCamera(camera, 0, skyCubeMeshes);
 		
-		while(camera)
+		auto pipelines = camera->PostProcessingPipelines();
+		
+		for(auto i=pipelines.begin(); i!=pipelines.end(); i++)
 		{
-			camera->Bind();
-			SetDepthWriteEnabled(true);
-			camera->PrepareForRendering();
-			if(_currentMaterial)
-				SetDepthWriteEnabled(_currentMaterial->depthwrite);
+			PostProcessingPipeline *pipeline = *i;
 			
-			_currentCamera = camera;
-			changedCamera  = true;
-			
-			if(!(camera->CameraFlags() & Camera::FlagDrawTarget))
-			{				
-				// Sort the objects
-				if(!(camera->CameraFlags() & Camera::FlagNoSorting))
-				{
-					_frame.SortUsingFunction([](const RenderingObject& a, const RenderingObject& b) {
-						// Sort by material
-						const Material *materialA = a.material;
-						const Material *materialB = b.material;
-						
-						if(materialA->blending != materialB->blending)
-						{
-							if(!materialB->blending)
-								return kRNCompareGreaterThan;
-							
-							if(!materialA->blending)
-								return kRNCompareLessThan;
-						}
-						
-						if(materialA->discard != materialB->discard)
-						{
-							if(!materialB->discard)
-								return kRNCompareGreaterThan;
-							
-							if(!materialA->discard)
-								return kRNCompareLessThan;
-						}
-						
-						if(materialA->Shader() > materialB->Shader())
-							return kRNCompareGreaterThan;
-						
-						if(materialB->Shader() > materialA->Shader())
-							return kRNCompareLessThan;
-						
-						// Sort by mesh
-						if(a.mesh > b.mesh)
-							return kRNCompareGreaterThan;
-						
-						if(b.mesh > a.mesh)
-							return kRNCompareLessThan;
-						
-						return kRNCompareEqualTo;
-					}, skyCubeMeshes);
-				}
-				
-				Material *surfaceMaterial = camera->Material();
-					
-				// Create the light lists for the camera
-				int lightPointCount = CreatePointLightList(camera);
-				int lightSpotCount  = CreateSpotLightList(camera);
-				int lightDirectionalCount = CreateDirectionalLightList(camera);
-				
-				// Update the shader
-				const Matrix& projectionMatrix = camera->projectionMatrix;
-				const Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix;
-				
-				const Matrix& viewMatrix = camera->viewMatrix;
-				const Matrix& inverseViewMatrix = camera->inverseViewMatrix;
-				
-				Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
-				Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
-				
-				machine_uint objectsCount = _frame.Count();
-				for(machine_uint i=0; i<objectsCount; i++)
-				{
-					RenderingObject& object = _frame.ObjectAtIndex(i);
-					
-					Mesh *mesh = object.mesh;
-					Material *material = object.material;
-					Shader *shader = surfaceMaterial ? surfaceMaterial->Shader() : material->Shader();
-					
-					Matrix& transform = (Matrix &)*object.transform;
-					Matrix inverseTransform = transform.Inverse();
-					
-					// Check if we can use instancing here
-					bool wantsInstancing = (object.type == RenderingObject::TypeInstanced);
-					if(wantsInstancing)
-					{
-						if(!shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
-							continue;
-					}
-					
-					// Grab the correct shader program
-					uint32 programTypes = 0;
-					ShaderProgram *program = 0;
-					
-					bool wantsDiscard = material->discard;
-					if(surfaceMaterial && !(material->override & Material::OverrideDiscard))
-						wantsDiscard = surfaceMaterial->discard;
-					
-					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
-						programTypes |= ShaderProgram::TypeAnimated;
-					
-					if(material->lighting && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
-						programTypes |= ShaderProgram::TypeLighting;
-					
-					if(wantsInstancing)
-						programTypes |= ShaderProgram::TypeInstanced;
-					
-					if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
-						programTypes |= ShaderProgram::TypeDiscard;
-		
-					program = shader->ProgramOfType(programTypes);
-					
-					changedShader = (_currentProgram != program);
-					changedMaterial = (_currentMaterial != material);
-					
-					BindMaterial(material, program);
-					
-					// Update the shader data
-					if(changedShader || changedCamera)
-					{
-						UpdateShaderData();
-						changedCamera = false;
-						changedShader = true;
-					}
-					
-					if(changedShader)
-					{
-						// Light data
-						if(program->lightPointCount != -1)
-							glUniform1i(program->lightPointCount, lightPointCount);
-						
-						if(program->lightSpotCount != -1)
-							glUniform1i(program->lightSpotCount, lightSpotCount);
-						
-						if(program->lightDirectionalCount != -1)
-							glUniform1i(program->lightDirectionalCount, lightDirectionalCount);
-						
-						if(program->lightDirectionalDirection != -1)
-							glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)_lightDirectionalDirection.Data());
-						
-						if(program->lightDirectionalColor != -1)
-							glUniform3fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.Data());
-						
-						if(program->lightDirectionalMatrix != -1)
-						{
-							float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.Data());
-							glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.Count(), GL_FALSE, data);
-						}
-						
-						if(camera->DepthTiles() != 0)
-						{
-							if(program->lightTileSize != -1)
-							{
-								Rect rect = camera->Frame();
-								int tilesWidth  = rect.width / camera->LightTiles().x;
-								int tilesHeight = rect.height / camera->LightTiles().y;
-								
-								Vector2 lightTilesSize = camera->LightTiles() * _scaleFactor;
-								Vector2 lightTilesCount = Vector2(tilesWidth, tilesHeight);
-								
-								glUniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
-							}
-						}
-						
-						if(program->discardThreshold != -1)
-						{
-							float threshold = material->discardThreshold;
-							
-							if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
-								threshold = surfaceMaterial->discardThreshold;
-							
-							glUniform1f(program->discardThreshold, threshold);
-						}
-					}
-					
-					if(changedShader || changedMaterial)
-					{
-						if(program->lightDirectionalDepth != -1 && _lightDirectionalDepth.Count() > 0)
-						{
-							uint32 textureUnit = BindTexture(_lightDirectionalDepth.FirstObject());
-							glUniform1i(program->lightDirectionalDepth, textureUnit);
-						}
-						
-						if(camera->DepthTiles() != 0)
-						{
-							// Point lights
-							if(program->lightPointList != -1)
-							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListIndicesIndex]);
-								glUniform1i(program->lightPointList, textureUnit);
-							}
-							
-#if !kRNLightingUBO
-							if(program->lightPointListOffset != -1)
-							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
-								glUniform1i(program->lightPointListOffset, textureUnit);
-							}
-#else
-							if(program->lightPointListOffsetUBO != -1)
-							{
-								glBindBuffer(GL_UNIFORM_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
-								glUniformBlockBinding(program->program, program->lightPointListOffsetUBO, 0);
-								glBindBufferBase( GL_UNIFORM_BUFFER, 0, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
-								glBindBuffer(GL_UNIFORM_BUFFER, 0);
-							}
-#endif
-							
-#if !kRNLightingUBO
-							if(program->lightPointListData != -1)
-							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListDataIndex]);
-								glUniform1i(program->lightPointListData, textureUnit);
-							}
-#else
-							
-							if(program->lightPointListDataUBO != -1)
-							{
-								glBindBuffer(GL_UNIFORM_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
-								glUniformBlockBinding(program->program, program->lightPointListDataUBO, 1);
-								glBindBufferBase(GL_UNIFORM_BUFFER, 1, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
-								glBindBuffer(GL_UNIFORM_BUFFER, 0);
-							}
-#endif
-							
-							// Spot lights
-							if(program->lightSpotList != -1)
-							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListIndicesIndex]);
-								glUniform1i(program->lightSpotList, textureUnit);
-							}
-							
-							if(program->lightSpotListOffset!= -1)
-							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListOffsetIndex]);
-								glUniform1i(program->lightSpotListOffset, textureUnit);
-							}
-							
-							if(program->lightSpotListData != -1)
-							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListDataIndex]);
-								glUniform1i(program->lightSpotListData, textureUnit);
-							}
-						}
-						
-						if(program->ambient != -1)
-							glUniform4fv(program->ambient, 1, &material->ambient.r);
-						
-						if(program->diffuse != -1)
-							glUniform4fv(program->diffuse, 1, &material->diffuse.r);
-						
-						if(program->emissive != -1)
-							glUniform4fv(program->emissive, 1, &material->emissive.r);
-						
-						if(program->specular != -1)
-							glUniform4fv(program->specular, 1, &material->specular.r);
-						
-						if(program->shininess != -1)
-							glUniform1f(program->shininess, material->shininess);
-					}
-
-					if(wantsInstancing)
-					{
-						DrawMeshInstanced(object);
-						continue;
-					}
-					
-					// More updates
-					if(object.skeleton && program->matBones != -1)
-					{
-						float *data = reinterpret_cast<float *>(object.skeleton->Matrices().Data());
-						glUniformMatrix4fv(program->matBones, object.skeleton->NumBones(), GL_FALSE, data);
-					}
-					
-					if(program->matModel != -1)
-						glUniformMatrix4fv(program->matModel, 1, GL_FALSE, transform.m);
-					
-					if(program->matModelInverse != -1)
-						glUniformMatrix4fv(program->matModelInverse, 1, GL_FALSE, inverseTransform.m);
-					
-					if(program->matViewModel != -1)
-					{
-						Matrix viewModel = viewMatrix * transform;
-						glUniformMatrix4fv(program->matViewModel, 1, GL_FALSE, viewModel.m);
-					}
-					
-					if(program->matViewModelInverse != -1)
-					{
-						Matrix viewModel = inverseViewMatrix * inverseTransform;
-						glUniformMatrix4fv(program->matViewModelInverse, 1, GL_FALSE, viewModel.m);
-					}
-					
-					if(program->matProjViewModel != -1)
-					{
-						Matrix projViewModel = projectionViewMatrix * transform;
-						glUniformMatrix4fv(program->matProjViewModel, 1, GL_FALSE, projViewModel.m);
-					}
-					
-					if(program->matProjViewModelInverse != -1)
-					{
-						Matrix projViewModelInverse = inverseProjectionViewMatrix * inverseTransform;
-						glUniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
-					}
-					
-					DrawMesh(mesh, object.offset, object.count);
-				}
-			}
-			else
+			for(auto j=pipeline->_stages.begin(); j!=pipeline->_stages.end(); j++)
 			{
-				if(previous)
-					DrawCameraStage(previous, camera);
+				Camera *stage = j->Camera();
+				
+				switch(j->StageMode())
+				{
+					case RenderStage::Mode::ReRender:
+						DrawCamera(stage, 0, skyCubeMeshes);
+						break;
+						
+					case RenderStage::Mode::ReUseConnection:
+						DrawCamera(stage, j->Connection(), skyCubeMeshes);
+						break;
+						
+					case RenderStage::Mode::ReUseCamera:
+						DrawCamera(stage, camera, skyCubeMeshes);
+						break;
+						
+					case RenderStage::Mode::ReUsePreviousStage:
+						DrawCamera(stage, previous, skyCubeMeshes);
+						break;
+				}
+				
+				previous = stage;
 			}
-			
-			previous = camera;
-			
-			camera->Unbind();
-			camera = camera->Stage();
-
-			if(!camera && !(previous->CameraFlags() & Camera::FlagHidden))
-				_flushCameras.push_back(previous);
 		}
+		
+		 if(!(previous->CameraFlags() & Camera::FlagHidden))
+			 _flushCameras.push_back(previous);
 		
 		// Cleanup of the frame
 		_frameCamera = 0;

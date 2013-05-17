@@ -92,6 +92,7 @@ namespace RN
 		
 	protected:
 		RNAPI void UpdateShaderData();
+		RNAPI void DrawCamera(Camera *camera, Camera *source, uint32 skyCubeMeshes);
 		RNAPI void DrawMesh(Mesh *mesh, uint32 offset, uint32 count);
 		RNAPI void DrawMeshInstanced(const RenderingObject& object);
 		RNAPI void BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple);

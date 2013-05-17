@@ -16,8 +16,144 @@ namespace RN
 {
 	RNDeclareMeta(Camera)
 	
+	
+	RenderStage::RenderStage(class Camera *camera, class Camera *connection, Mode mode)
+	{
+		_camera = camera->Retain();
+		_connection = 0;
+		_mode = mode;
+		
+		Connect(connection);
+		InsertCamera(camera);
+	}
+	
+	RenderStage::RenderStage(const RenderStage& other)
+	{
+		_camera = other._camera->Retain();
+		_connection = 0;
+		_mode = other._mode;
+		
+		Connect(other._connection);
+		InsertCamera(_camera);
+	}
+	
+	RenderStage::~RenderStage()
+	{
+		RemoveCamera(_camera);
+		RemoveCamera(_connection);
+		
+		_camera->Release();
+		
+		if(_connection)
+			_connection->Release();
+	}
+	
+	void RenderStage::Connect(class Camera *other)
+	{
+		if(_connection)
+		{
+			RemoveCamera(_connection);
+			_connection->Release();
+		}
+		
+		_connection = other ? other->Retain() : 0;
+		InsertCamera(_connection);
+	}
+	
+	void RenderStage::InsertCamera(class Camera *camera)
+	{
+		if(!camera)
+			return;
+		
+		if((camera->_stageCount ++) == 0)
+			World::SharedInstance()->RemoveSceneNode(camera);
+	}
+	
+	void RenderStage::RemoveCamera(class Camera *camera)
+	{
+		if(!camera)
+			return;
+		
+		if((-- camera->_stageCount) == 0)
+			World::SharedInstance()->AddSceneNode(camera);
+	}
+	
+	
+	
+	PostProcessingPipeline::PostProcessingPipeline(const std::string& name) :
+		_name(name)
+	{
+	}
+	
+	RenderStage *PostProcessingPipeline::AddStage(Camera *camera, RenderStage::Mode mode)
+	{
+		Camera *previous = 0;
+		if(_stages.size() > 0)
+		{
+			RenderStage& stage = _stages[_stages.size() - 1];
+			previous = stage.Camera();
+		}
+		
+		return AddStage(camera, previous, mode);
+	}
+	
+	RenderStage *PostProcessingPipeline::AddStage(Camera *camera, Camera *connection, RenderStage::Mode mode)
+	{
+		_stages.emplace_back(camera, connection, mode);
+		return &_stages[_stages.size() - 1];
+	}
+	
+	void PostProcessingPipeline::PushUpdate(float delta)
+	{
+		for(auto i=_stages.begin(); i!=_stages.end(); i++)
+		{
+			Camera *camera = i->Camera();
+			camera->Update(delta);
+		}
+	}
+	
+	void PostProcessingPipeline::PostUpdate(const Vector3& position, const Quaternion& rotation, const Rect& frame)
+	{
+		for(auto i=_stages.begin(); i!=_stages.end(); i++)
+		{
+			Camera *camera = i->Camera();
+			
+			if(camera->_flags & Camera::FlagInheritFrame)
+				camera->SetFrame(frame);
+			
+			if(camera->_flags & Camera::FlagInheritPosition)
+			{
+				camera->SetWorldPosition(position);
+				camera->SetWorldRotation(rotation);
+			}
+			
+			camera->PostUpdate();
+		}
+	}
+	
+	void PostProcessingPipeline::PushProjectionUpdate(Camera *source)
+	{
+		for(auto i=_stages.begin(); i!=_stages.end(); i++)
+		{
+			Camera *stage = i->Camera();
+			
+			if(stage->_flags & Camera::FlagInheritProjection)
+			{
+				stage->aspect = source->aspect;
+				stage->fov    = source->fov;
+				
+				stage->clipfar  = source->clipfar;
+				stage->clipnear = source->clipnear;
+				
+				stage->UpdateProjection();
+			}
+		}
+	}
+	
+	
+	
 	Camera::Camera(const Vector2& size) :
-	Camera(size, TextureParameter::Format::RGBA8888)
+		Camera(size, TextureParameter::Format::RGBA8888)
 	{}
 
 
@@ -86,11 +222,14 @@ namespace RN
 		if(_material)
 			_material->Release();
 		
-		if(_stage)
-			_stage->Release();
-		
 		if(_depthTiles)
 			_depthTiles->Release();
+		
+		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
+		{
+			PostProcessingPipeline *pipeline = *i;
+			delete pipeline;
+		}
 	}
 
 
@@ -111,7 +250,7 @@ namespace RN
 		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
 
 		_material = 0;
-		_stage = 0;
+		_stageCount = 0;
 
 		_lightTiles = Vector2(32, 32);
 		_depthTiles = 0;
@@ -276,84 +415,42 @@ namespace RN
 		_blend = useBlending;
 	}
 	
-	// Stages
-	void Camera::AddStage(Camera *stage)
+	// Post Processing
+	
+	PostProcessingPipeline *Camera::AddPostProcessingPipeline(const std::string& name)
 	{
-		if(!_stage)
+		if(PostProcessingPipelineWithName(name))
+			throw ErrorException(0);
+		
+		PostProcessingPipeline *pipeline = new PostProcessingPipeline(name);
+		
+		_PPPipelines.push_back(pipeline);
+		_namedPPPipelines.insert(std::map<std::string, PostProcessingPipeline *>::value_type(name, pipeline));
+		
+		return pipeline;
+	}
+	
+	PostProcessingPipeline *Camera::PostProcessingPipelineWithName(const std::string& name)
+	{
+		auto iterator = _namedPPPipelines.find(name);
+		return (iterator != _namedPPPipelines.end()) ? iterator->second : 0;
+	}
+	
+	void Camera::RemovePostProcessingPipeline(PostProcessingPipeline *pipeline)
+	{
+		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
-			InsertStage(stage);
-			return;
-		}
-
-		Camera *temp = _stage;
-		while(temp)
-		{
-			if(!temp->_stage)
+			if(*i == pipeline)
 			{
-				temp->InsertStage(stage);
-				return;
+				_PPPipelines.erase(i);
+				_namedPPPipelines.erase(pipeline->_name);
+				
+				delete pipeline;
+				break;
 			}
-
-			temp = temp->_stage;
 		}
 	}
-
-	void Camera::InsertStage(Camera *stage)
-	{
-		if(_stage)
-			_stage->Release();
-		
-		_stage = stage ? stage->Retain() : 0;
-		
-		World::SharedInstance()->RemoveSceneNode(_stage);
-		UpdateProjection();
-	}
-
-	void Camera::ReplaceStage(Camera *stage)
-	{
-		Camera *temp = _stage ? _stage->_stage->Retain() : 0;
-
-		if(_stage)
-			_stage->Release();
-		
-		_stage = stage ? stage->Retain() : 0;
-
-		if(_stage->_stage)
-			_stage->RemoveStage(_stage->_stage);
-
-		_stage->_stage = temp;
-
-		UpdateProjection();
-	}
-
-	void Camera::RemoveStage(Camera *stage)
-	{
-		if(_stage == stage)
-		{
-			stage = stage->_stage ? stage->_stage->Retain() : 0;
-
-			_stage->Release();
-			_stage = stage;
-
-			return;
-		}
-
-		Camera *temp = _stage;
-		while(temp)
-		{
-			if(temp->_stage == stage)
-			{
-				stage = stage->_stage ? stage->_stage->Retain() : 0;
-
-				temp->_stage->Release();
-				temp->_stage = stage;
-
-				return;
-			}
-
-			temp = temp->_stage;
-		}
-	}
+	
 	
 	Matrix Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
 	{
@@ -401,10 +498,13 @@ namespace RN
 	// Helper
 	void Camera::Update(float delta)
 	{
-		if(_stage)
-			_stage->Update(delta);
-		
 		SceneNode::Update(delta);
+		
+		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
+		{
+			PostProcessingPipeline *pipeline = *i;
+			pipeline->PushUpdate(delta);
+		}
 	}
 	
 	void Camera::PostUpdate()
@@ -420,20 +520,10 @@ namespace RN
 			SetFrame(frame);
 		}
 
-		if(_stage)
+		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
-			if(_stage->_flags & FlagInheritFrame)
-			{
-				_stage->SetFrame(_frame);
-			}
-			
-			if(_stage->_flags & FlagInheritPosition)
-			{
-				_stage->SetWorldPosition(WorldPosition());
-				_stage->SetWorldRotation(WorldRotation());
-			}
-
-			_stage->PostUpdate();
+			PostProcessingPipeline *pipeline = *i;
+			pipeline->PostUpdate(WorldPosition(), WorldRotation(), _frame);
 		}
 	}
 
@@ -451,15 +541,10 @@ namespace RN
 		projectionMatrix.MakeProjectionPerspective(fov, aspect, clipnear, clipfar);
 		inverseProjectionMatrix = projectionMatrix.Inverse();
 
-		if(_stage && _stage->_flags & FlagInheritProjection)
+		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
-			_stage->aspect = aspect;
-			_stage->fov    = fov;
-
-			_stage->clipfar  = clipfar;
-			_stage->clipnear = clipnear;
-
-			_stage->UpdateProjection();
+			PostProcessingPipeline *pipeline = *i;
+			pipeline->PushProjectionUpdate(this);
 		}
 	}
 

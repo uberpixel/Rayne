@@ -24,8 +24,65 @@
 namespace RN
 {
 	class Light;
+	class Camera;
+	class Renderer;
+	
+	class RenderStage
+	{
+	friend class Renderer;
+	public:
+		enum class Mode
+		{
+			ReRender,
+			ReUseConnection,
+			ReUsePreviousStage,
+			ReUseCamera
+		};
+		
+		RenderStage(Camera *camera, Camera *conenction, Mode mode);
+		RenderStage(const RenderStage& other);
+		~RenderStage();
+		
+		void Connect(Camera *other);
+		
+		Camera *Connection() const { return _connection; }
+		Camera *Camera() const { return _camera; }
+		Mode StageMode() const { return _mode; }
+		
+	private:
+		void InsertCamera(class Camera *camera);
+		void RemoveCamera(class Camera *camera);
+		
+		class Camera *_connection;
+		class Camera *_camera;
+		
+		Mode _mode;
+	};
+	
+	class PostProcessingPipeline
+	{
+	friend class Camera;
+	friend class Renderer;
+	public:
+		PostProcessingPipeline(const std::string& name);
+		
+		RenderStage *AddStage(Camera *camera, RenderStage::Mode mode);
+		RenderStage *AddStage(Camera *camera, Camera *connection, RenderStage::Mode mode);
+		
+	private:
+		void PushUpdate(float delta);
+		void PostUpdate(const Vector3& position, const Quaternion& rotation, const Rect& frame);
+		void PushProjectionUpdate(Camera *source);
+		
+		std::string _name;
+		std::vector<RenderStage> _stages;
+	};
+	
+	
 	class Camera : public SceneNode
 	{
+	friend class RenderStage;
+	friend class PostProcessingPipeline;
 	public:
 		enum
 		{
@@ -111,11 +168,6 @@ namespace RN
 		RNAPI void SetPriority(uint32 priority);
 		RNAPI void SetUseBlending(bool useBlending);
 		
-		RNAPI void AddStage(Camera *stage);
-		RNAPI void InsertStage(Camera *stage);
-		RNAPI void ReplaceStage(Camera *stage);
-		RNAPI void RemoveStage(Camera *stage);
-		
 		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		RNAPI void ActivateTiledLightLists(Texture *depthTiles);
 		Texture *DepthTiles() { return _depthTiles; }
@@ -143,7 +195,6 @@ namespace RN
 		const Color& ClearColor() const { return _clearColor; }
 		const Rect& Frame();
 		Material *Material() const { return _material; }
-		Camera *Stage() const { return _stage; }
 		Flags CameraFlags() const { return _flags; }
 		Camera *LODCamera() const { return _lodCamera; }
 		uint32 Priority() const { return _priority; }
@@ -162,6 +213,12 @@ namespace RN
 		
 		float *DepthArray();
 		machine_uint MaxLightsPerTile() const { return _maxLights; }
+		
+		PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name);
+		PostProcessingPipeline *PostProcessingPipelineWithName(const std::string& name);
+		void RemovePostProcessingPipeline(PostProcessingPipeline *pipeline);
+		
+		const std::vector<PostProcessingPipeline *>& PostProcessingPipelines() const { return _PPPipelines; }
 		
 		float fov;
 		float aspect;
@@ -220,7 +277,6 @@ namespace RN
 		
 		class Material *_material;
 		RenderStorage *_storage;
-		Camera *_stage;
 		Camera *_lodCamera;
 		
 		bool _useInstancing;
@@ -232,6 +288,10 @@ namespace RN
 		size_t _depthSize;
 		
 		machine_uint _maxLights;
+		uint32 _stageCount;
+		
+		std::vector<PostProcessingPipeline *> _PPPipelines;
+		std::map<std::string, PostProcessingPipeline *> _namedPPPipelines;
 		
 		RNDefineConstructorlessMeta(Camera, SceneNode)
 	};
