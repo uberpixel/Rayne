@@ -21,6 +21,7 @@ namespace TG
 	{
 		_colorInterpolator.SetDuration(lifespan);
 		_colorInterpolator.SetValues(RN::Color(49, 131, 217), RN::Color(90, 130, 182, 0));
+		color = _colorInterpolator.ByValue(0.0f);
 	}
 	
 	void DustParticle::Update(float delta)
