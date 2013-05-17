@@ -26,5 +26,5 @@ void main()
 	fragColor0.r = min(depth1.r, min(depth2.r, min(depth3.r, depth4.r)));
 	fragColor0.g = max(depth1.r, max(depth2.r, max(depth3.r, depth4.r)));
 	
-	fragColor0.rg = (clipPlanes.x * clipPlanes.y)/(clipPlanes.y-fragColor0.rg*(clipPlanes.y-clipPlanes.x));
+	fragColor0.rg = (clipPlanes.x * clipPlanes.y)/(fragColor0.rg*(clipPlanes.y-clipPlanes.x)-clipPlanes.y);
 }

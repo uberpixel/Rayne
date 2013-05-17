@@ -15,6 +15,8 @@
 
 #define kRNRendererMaxVAOAge 300
 
+#define kRNLightingUBO 0
+
 #define kRNRendererPointLightListIndicesIndex 0
 #define kRNRendererPointLightListOffsetIndex  1
 #define kRNRendererPointLightListDataIndex    2
@@ -119,6 +121,7 @@ namespace RN
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
 		
+#if !kRNLightingUBO
 		// Light indices
 		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
@@ -128,6 +131,7 @@ namespace RN
 		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListDataIndex]);
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
+#endif
 		
 		// Spot lights
 		_lightSpotDataSize = 0;
@@ -244,7 +248,7 @@ namespace RN
 	
 #define Distance(plane, op, r) { \
 	float dot = (position.x * plane.normal.x + position.y * plane.normal.y + position.z * plane.normal.z);\
-	float distance = dot - plane.d; \
+	distance = dot - plane.d; \
 	if(distance op r) \
 		continue; \
 	}
@@ -259,7 +263,12 @@ namespace RN
 		size_t tileCount = tilesWidth * tilesHeight;
 		
 		size_t lightindicesSize = tilesWidth * tilesHeight * lightCount;
+#if !kRNLightingUBO
 		size_t lightindexoffsetSize = tilesWidth * tilesHeight * 2;
+#else
+		//4 is needed for block alignement
+		size_t lightindexoffsetSize = tilesWidth * tilesHeight * 4;
+#endif
 		
 		if(lightCount == 0)
 		{
@@ -273,10 +282,16 @@ namespace RN
 			glBufferData(GL_TEXTURE_BUFFER, 1 * sizeof(int), 0, GL_DYNAMIC_DRAW);
 			glBufferData(GL_TEXTURE_BUFFER, 1 * sizeof(int), _lightIndicesBuffer, GL_DYNAMIC_DRAW);
 			
+#if !kRNLightingUBO
 			// Offsets
 			glBindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
 			glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
 			glBufferData(GL_TEXTURE_BUFFER, lightindexoffsetSize * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
+ #else
+			glBindBuffer(GL_UNIFORM_BUFFER, offsetBuffer);
+			glBufferData(GL_UNIFORM_BUFFER, lightindexoffsetSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
+			glBufferData(GL_UNIFORM_BUFFER, lightindexoffsetSize * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
+#endif
 			
 			return;
 		}
@@ -286,15 +301,13 @@ namespace RN
 		Vector3 corner2 = camera->ToWorld(Vector3(1.0f, -1.0f, 1.0f));
 		Vector3 corner3 = camera->ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
 		
-		Vector3 dirx = (corner2-corner1) / tilesWidth;
-		Vector3 diry = (corner3-corner1) / tilesHeight;
+		Vector3 dirx = (corner2-corner1) / static_cast<float>(tilesWidth);
+		Vector3 diry = (corner3-corner1) / static_cast<float>(tilesHeight);
 		
 		const Vector3& camPosition = camera->WorldPosition();
 		float *depthArray = camera->DepthArray();
 		
-		Vector3 camdir = camera->WorldRotation().RotateVector(RN::Vector3(0.0, 0.0, -1.0));
-		Vector3 far = camera->ToWorld(Vector3(1.0f, 1.0f, 1.0f));
-		far = far-camPosition;
+		Vector3 camdir = camera->Forward();
 		
 		std::vector<size_t> indicesCount(tileCount);
 		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
@@ -316,10 +329,10 @@ namespace RN
 					Plane plfar;
 					Plane plnear;
 					
-					plleft.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
-					plright.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
-					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
-					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
+					plright.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
+					plleft.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
+					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
+					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
 					
 					plnear.SetPlane(camPosition + camdir * depthArray[index * 2 + 0], camdir);
 					plfar.SetPlane(camPosition + camdir * depthArray[index * 2 + 1], camdir);
@@ -333,14 +346,29 @@ namespace RN
 						
 						const Vector3& position = light->_worldPosition;
 						const float range = light->_range;
+						float distance, dr, dl, dt, db;
+						Distance(plright, >, range);
+						dr = distance;
+						Distance(plleft, <, -range);
+						dl = distance;
+						Distance(plbottom, <, -range);
+						db = distance;
+						Distance(pltop, >, range);
+						dt = distance;
 						
-						Distance(plleft, >, range);
-						Distance(plright, <, -range);
-						Distance(pltop, <, -range);
-						Distance(plbottom, >, range);
+						float sqrange = range*range;
+						if(dr > 0.0f && db < 0.0f && dr*dr+db*db > sqrange)
+							continue;
+						if(dr > 0.0f && dt > 0.0f && dr*dr+dt*dt > sqrange)
+							continue;
+						if(dl < 0.0f && db < 0.0f && dl*dl+db*db > sqrange)
+							continue;
+						if(dl < 0.0f && dt > 0.0f && dl*dl+dt*dt > sqrange)
+							continue;
 						
-						Distance(plnear, <, -range);
-						Distance(plfar, >, range);
+						//seems to work, but might not cull enough lights
+						Distance(plnear, >, range);
+						Distance(plfar, <, -range);
 						
 						lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
 					}
@@ -357,19 +385,24 @@ namespace RN
 		
 		for(i=0; i<tileCount; i++)
 		{
-			size_t tileCount = indicesCount[i];
+			size_t tileIndicesCount = indicesCount[i];
 			int *tileIndices = _tempLightIndicesBuffer + (i * lightCount);
 			
 			size_t previous = lightIndicesCount;
 			_lightOffsetBuffer[lightIndexOffsetCount ++] = static_cast<int>(previous);
 			
-			if(tileCount > 0)
+			if(tileIndicesCount > 0)
 			{
-				std::copy(tileIndices, tileIndices + tileCount, _lightIndicesBuffer + lightIndicesCount);
-				lightIndicesCount += tileCount;
+				std::copy(tileIndices, tileIndices + tileIndicesCount, _lightIndicesBuffer + lightIndicesCount);
+				lightIndicesCount += tileIndicesCount;
 			}
 			
 			_lightOffsetBuffer[lightIndexOffsetCount ++] = static_cast<int>(lightIndicesCount - previous);
+			
+#if kRNLightingUBO
+			_lightOffsetBuffer[lightIndexOffsetCount ++] = 0;
+			_lightOffsetBuffer[lightIndexOffsetCount ++] = 0;
+#endif
 		}
 		
 		// Indices
@@ -380,10 +413,16 @@ namespace RN
 		glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
 		glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), _lightIndicesBuffer, GL_DYNAMIC_DRAW);
 		
+#if !kRNLightingUBO
 		// Offsets
 		glBindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
 		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
 		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
+#else
+		glBindBuffer(GL_UNIFORM_BUFFER, offsetBuffer);
+		glBufferData(GL_UNIFORM_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
+		glBufferData(GL_UNIFORM_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
+#endif
 	}
 	
 	int Renderer::CreatePointLightList(Camera *camera)
@@ -407,6 +446,7 @@ namespace RN
 			if(lightDataSize == 0) // Makes sure that we don't end up with an empty buffer
 				lightDataSize = 2 * sizeof(Vector4);
 			
+#if !kRNLightingUBO
 			glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
 			if(lightDataSize > _lightPointDataSize)
 			{
@@ -415,8 +455,33 @@ namespace RN
 				
 				_lightPointDataSize = lightDataSize;
 			}
+ 
+			 lightData = (Vector4 *)glMapBufferRange(GL_TEXTURE_BUFFER, 0, _lightPointDataSize, GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT);
+			 
+			 for(machine_uint i=0; i<lightCount; i++)
+			 {
+				 Light *light = lights[i];
+				 const Vector3& position = light->WorldPosition();
+				 const Vector3& color = light->ResultColor();
+				 
+				 lightData[i * 2 + 0] = Vector4(position, light->Range());
+				 lightData[i * 2 + 1] = Vector4(color, 0.0f);
+			 }
+			 
+			 glUnmapBuffer(GL_TEXTURE_BUFFER);
+			 glBindBuffer(GL_TEXTURE_BUFFER, 0);
+#else
 			
-			lightData = (Vector4 *)glMapBufferRange(GL_TEXTURE_BUFFER, 0, _lightPointDataSize, GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT);
+			glBindBuffer(GL_UNIFORM_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
+			if(lightDataSize > _lightPointDataSize)
+			{
+				glBufferData(GL_UNIFORM_BUFFER, _lightPointDataSize, 0, GL_DYNAMIC_DRAW);
+				glBufferData(GL_UNIFORM_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
+				
+				_lightPointDataSize = lightDataSize;
+			}
+			
+			lightData = (Vector4 *)glMapBufferRange(GL_UNIFORM_BUFFER, 0, _lightPointDataSize, GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT);
 			
 			for(machine_uint i=0; i<lightCount; i++)
 			{
@@ -428,8 +493,9 @@ namespace RN
 				lightData[i * 2 + 1] = Vector4(color, 0.0f);
 			}
 			
-			glUnmapBuffer(GL_TEXTURE_BUFFER);
-			glBindBuffer(GL_TEXTURE_BUFFER, 0);
+			glUnmapBuffer(GL_UNIFORM_BUFFER);
+			glBindBuffer(GL_UNIFORM_BUFFER, 0);
+#endif
 		}
 		else
 		{
@@ -867,10 +933,10 @@ namespace RN
 		glEnableVertexAttribArray(program->vertTexcoord0);
 		glVertexAttribPointer(program->vertTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
-		uint32 targetmaps = MIN((uint32)program->targetmaplocations.Count(), camera->RenderTargets());
+		uint32 targetmaps = MIN((uint32)program->targetmaplocations.Count(), stage->RenderTargets());
 		for(uint32 i=0; i<targetmaps; i++)
 		{
-			Texture *texture = camera->RenderTarget(i);
+			Texture *texture = stage->RenderTarget(i);
 			GLuint location = program->targetmaplocations.ObjectAtIndex(i);
 			
 			glUniform1i(location, BindTexture(texture));
@@ -878,7 +944,7 @@ namespace RN
 		
 		if(program->depthmap != -1)
 		{
-			Texture *depthmap = camera->Storage()->DepthTarget();
+			Texture *depthmap = stage->Storage()->DepthTarget();
 			if(depthmap)
 			{
 				glUniform1i(program->depthmap, BindTexture(depthmap));
@@ -1151,17 +1217,38 @@ namespace RN
 								glUniform1i(program->lightPointList, textureUnit);
 							}
 							
+#if !kRNLightingUBO
 							if(program->lightPointListOffset != -1)
 							{
 								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
 								glUniform1i(program->lightPointListOffset, textureUnit);
 							}
+#else
+							if(program->lightPointListOffsetUBO != -1)
+							{
+								glBindBuffer(GL_UNIFORM_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
+								glUniformBlockBinding(program->program, program->lightPointListOffsetUBO, 0);
+								glBindBufferBase( GL_UNIFORM_BUFFER, 0, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
+								glBindBuffer(GL_UNIFORM_BUFFER, 0);
+							}
+#endif
 							
+#if !kRNLightingUBO
 							if(program->lightPointListData != -1)
 							{
 								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListDataIndex]);
 								glUniform1i(program->lightPointListData, textureUnit);
 							}
+#else
+							
+							if(program->lightPointListDataUBO != -1)
+							{
+								glBindBuffer(GL_UNIFORM_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
+								glUniformBlockBinding(program->program, program->lightPointListDataUBO, 1);
+								glBindBufferBase(GL_UNIFORM_BUFFER, 1, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
+								glBindBuffer(GL_UNIFORM_BUFFER, 0);
+							}
+#endif
 							
 							// Spot lights
 							if(program->lightSpotList != -1)

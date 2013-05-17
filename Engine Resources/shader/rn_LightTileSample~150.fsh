@@ -22,6 +22,6 @@ void main()
 	vec4 depth3 = texture(mTexture0, texcoord-0.5*frameSize.xy*vec2(-1.0, 1.0));
 	vec4 depth4 = texture(mTexture0, texcoord+0.5*frameSize.xy*vec2(-1.0, 1.0));
 	
-	fragColor0.r = min(depth1.r, min(depth2.r, min(depth3.r, depth4.r)));
-	fragColor0.g = max(depth1.g, max(depth2.g, max(depth3.g, depth4.g)));
+	fragColor0.r = max(depth1.r, max(depth2.r, max(depth3.r, depth4.r)));
+	fragColor0.g = min(depth1.g, min(depth2.g, min(depth3.g, depth4.g)));
 }

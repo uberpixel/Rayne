@@ -157,6 +157,12 @@ namespace RN
 	{
 		Thread *thread = Thread::CurrentThread();
 		thread->SetOpenGLBinding(_glType, 0);
+
+		if(_hasChanged && _isCompleteTexture)
+		{
+			glFlush();
+			_hasChanged = false;
+		}
 	}
 	
 	

@@ -397,6 +397,7 @@ namespace RN
 				
 #define GetUniformLocation(uniform) program->uniform = glGetUniformLocation(program->program, #uniform)
 #define GetAttributeLocation(attribute) program->attribute = glGetAttribLocation(program->program, #attribute)
+#define GetBlockLocation(block) program->block = glGetUniformBlockIndex(program->program, #block)
 				
 				// Get uniforms
 				GetUniformLocation(matProj);
@@ -437,6 +438,9 @@ namespace RN
 				GetUniformLocation(lightPointList);
 				GetUniformLocation(lightPointListOffset);
 				GetUniformLocation(lightPointListData);
+				
+				GetBlockLocation(lightPointListOffsetUBO);
+				GetBlockLocation(lightPointListDataUBO);
 				
 				GetUniformLocation(lightSpotCount);
 				GetUniformLocation(lightSpotList);
@@ -511,6 +515,7 @@ namespace RN
 				
 #undef GetUniformLocation
 #undef GetAttributeLocation
+#undef GetBlockLocation
 				
 				RN_CHECKOPENGL();
 				glFlush();

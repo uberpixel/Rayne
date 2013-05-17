@@ -74,6 +74,9 @@ namespace RN
 		GLuint lightPointListOffset;
 		GLuint lightPointListData;
 		
+		GLuint lightPointListOffsetUBO;
+		GLuint lightPointListDataUBO;
+		
 		GLuint lightSpotCount;
 		GLuint lightSpotList;
 		GLuint lightSpotListOffset;

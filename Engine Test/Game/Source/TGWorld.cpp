@@ -12,9 +12,9 @@
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
 #define TGWorldFeatureFreeCamera    1
-#define TGWorldFeatureZPrePass		0
+#define TGWorldFeatureZPrePass		1
 
-#define TGWorldFeatureParticles     1
+#define TGWorldFeatureParticles     0
 #define TGForestFeatureTrees 500
 #define TGForestFeatureGras  10000
 
@@ -36,8 +36,8 @@ namespace TG
 		AddAttachment(_physicsAttachment->Autorelease());
 		
 		CreateCameras();
-//		CreateWorld();
-		CreateForest();
+		CreateWorld();
+//		CreateForest();
 		
 		RN::Input::SharedInstance()->Activate();
 	}
@@ -68,7 +68,7 @@ namespace TG
 		}
 		
 #if TGWorldFeatureFreeCamera
-		RN::Vector3 translation;
+		/*RN::Vector3 translation;
 		RN::Vector3 rotation;
 		
 		const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
@@ -80,7 +80,7 @@ namespace TG
 		translation.z = (input->KeyPressed('s') - input->KeyPressed('w')) * 16.0f;
 		
 		_camera->Rotate(rotation);
-		_camera->TranslateLocal(translation * delta);
+		_camera->TranslateLocal(translation * delta);*/
 #endif
 		
 		if(_sunLight != 0)
@@ -97,7 +97,13 @@ namespace TG
 	{
 #if TGWorldFeatureZPrePass
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth|RN::RenderStorage::BufferFormatStencil);
-		RN::Texture *depthtex = new RN::Texture(RN::TextureParameter::Format::DepthStencil);
+		
+		RN::TextureParameter depthparam;
+		depthparam.format = RN::TextureParameter::Format::DepthStencil;
+		depthparam.generateMipMaps = false;
+		depthparam.mipMaps = 0;
+		depthparam.wrapMode = RN::TextureParameter::WrapMode::Clamp;
+		RN::Texture *depthtex = new RN::Texture(depthparam);
 		storage->SetDepthTarget(depthtex);
 		
 		RN::Shader *depthShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightDepthShader);
@@ -112,7 +118,7 @@ namespace TG
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
 		downsampleMaterial2x->AddTexture(depthtex);
 		
-		RN::Camera *downsample2x = new RN::Camera(RN::Vector2(_camera->Frame().width/2, _camera->Frame().height/2), RN::TextureParameter::Format::RG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatComplete);
+		RN::Camera *downsample2x = new RN::Camera(RN::Vector2(_camera->Frame().width/2, _camera->Frame().height/2), RN::TextureParameter::Format::RG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
 		_camera->AddStage(downsample2x);
 		downsample2x->SetMaterial(downsampleMaterial2x);
 		
@@ -154,23 +160,25 @@ namespace TG
 			_camera->AddStage(downsample64x);
 			downsample64x->SetMaterial(downsampleMaterial64x);
 		}
-		
+
 		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
 		_finalcam->Storage()->SetDepthTarget(depthtex);
 		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
 		_finalcam->renderGroup |= RN::Camera::RenderGroup1;
 		
-/*		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
+		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
 		{
 			_finalcam->ActivateTiledLightLists(downsample64x->Storage()->RenderTarget());
 		}
 		else
 		{
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
-		}*/
+		}
 		
 		_camera->AttachChild(_finalcam);
+		_camera->SetPriority(10);
+		_camera->Rotate(RN::Vector3(90.0f, 0.0f, 0.0f));
 		
 #else
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
@@ -250,29 +258,29 @@ namespace TG
 #endif
 		
 #if TGWorldFeatureLights
-		/*RN::Light *light;
+		RN::Light *light;
 		//srand(time(0));
 		
-		light = new RN::Light();
-		light->SetPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
+/*		light = new RN::Light();
+		light->SetPosition(RN::Vector3(-15.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		
 		light = new RN::Light();
-		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
+		light->SetPosition(RN::Vector3(15.0f, 0.0f, 0.0f));
 		light->SetRange(80.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));*/
 		
-		/*_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
+		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->_lightcam = _camera;
-		_sunLight->ActivateSunShadows(true);
+//		_sunLight->ActivateSunShadows(true);
 		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(0.9f);
-		_spotLight->SetColor(RN::Color(0.5f));*/
+		_spotLight->SetColor(RN::Color(0.5f));
 		
 #if TGWorldFeatureFreeCamera
 		_camera->AttachChild(_spotLight);
@@ -280,17 +288,17 @@ namespace TG
 		_player->AttachChild(_spotLight);
 #endif
 		
-		/*for(int i=0; i<200; i++)
+		for(int i=0; i<500; i++)
 		{
 			light = new RN::Light();
-			light->SetPosition(RN::Vector3(TGWorldRandom * 140.0f - 70.0f, TGWorldRandom * 100.0f-20.0f, TGWorldRandom * 80.0f - 40.0f));
-			light->SetRange((TGWorldRandom * 20.0f) + 10.0f);
+			light->SetPosition(RN::Vector3(TGWorldRandom * 70.0f - 35.0f, TGWorldRandom * 50.0f-10.0f, TGWorldRandom * 40.0f - 20.0f));
+			light->SetRange((TGWorldRandom * 5.0f) + 2.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 			
-			light->SetAction([](RN::Transform *transform, float delta) {
+			/*light->SetAction([](RN::Transform *transform, float delta) {
 				transform->Translate(RN::Vector3(0.5f * delta, 0.0f, 0.0));
-			});
-		}*/
+			});*/
+		}
 #endif
 		
 		RN::Billboard *billboard = new RN::Billboard();
