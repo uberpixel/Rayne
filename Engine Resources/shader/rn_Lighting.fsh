@@ -37,9 +37,10 @@ uniform samplerBuffer lightSpotListData;
 
 uniform int lightDirectionalCount;
 uniform vec3 lightDirectionalDirection[10];
-uniform vec3 lightDirectionalColor[10];
+uniform vec4 lightDirectionalColor[10];
 
 uniform vec4 lightTileSize;
+uniform vec4 ambient;
 
 in vec3 outLightNormal;
 in vec3 outLightPosition;
@@ -81,7 +82,14 @@ vec3 rn_SpotLight(int index, vec3 normal, vec3 position)
 
 vec3 rn_DirectionalLight(int index, vec3 normal)
 {
-	return lightDirectionalColor[index]*max(dot(normal, lightDirectionalDirection[index]), 0.0)*rn_ShadowDir1();
+	vec3 light = lightDirectionalColor[index].rgb*max(dot(normal, lightDirectionalDirection[index]), 0.0)*2.0;
+	
+#ifdef RN_DIRECTIONAL_SHADOWS
+	if(lightDirectionalColor[index].a > 0.5)
+		return light*rn_ShadowDir1();
+	else
+#endif
+		return light;
 }
 
 vec4 rn_Lighting()
@@ -92,7 +100,7 @@ vec4 rn_Lighting()
 		normal *= -1.0;
 	}
 	
-	vec3 light = vec3(0.0);
+	vec3 light = ambient.rgb;
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 	
 #if USE_UBOs
@@ -126,7 +134,7 @@ vec4 rn_Lighting()
 	
 	for(int i=0; i<lightDirectionalCount; i++)
 	{
-//		light += rn_DirectionalLight(i, normal);
+		light += rn_DirectionalLight(i, normal);
 	}
 	
 	return vec4(light, 1.0);

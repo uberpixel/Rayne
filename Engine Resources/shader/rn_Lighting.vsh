@@ -22,7 +22,9 @@ void rn_Lighting(vec3 position, vec3 normal)
 	outLightNormal = (matModel * vec4(normal, 0.0)).xyz;
 	outLightPosition = (matModel * vec4(position, 1.0)).xyz;
 
+#ifdef RN_DIRECTIONAL_SHADOWS
 	rn_ShadowDir1(vec4(position, 1.0));
+#endif
 }
 
 #else
