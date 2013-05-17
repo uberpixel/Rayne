@@ -645,10 +645,10 @@ namespace RN
 
 	void Camera::UpdateFrustum()
 	{
-		Vector3 pos2 = ToWorld(Vector3(-0.5f, 1.0f, 1.0));
-		Vector3 pos3 = ToWorld(Vector3(-0.5f, -1.0f, 1.0));
-		Vector3 pos5 = ToWorld(Vector3(0.0f, 0.0f, 1.0));
-		Vector3 pos6 = ToWorld(Vector3(0.0f, -0.0f, 1.0));
+		Vector3 pos2 = ToWorld(Vector3(-1.0f, 1.0f, 1.0));
+		Vector3 pos3 = ToWorld(Vector3(-1.0f, -1.0f, 1.0));
+		Vector3 pos5 = ToWorld(Vector3(1.0f, 1.0f, 1.0));
+		Vector3 pos6 = ToWorld(Vector3(1.0f, -1.0f, 1.0));
 		
 		const Vector3& position = WorldPosition();
 		Vector3 direction = WorldRotation().RotateVector(RN::Vector3(0.0, 0.0, -1.0));
@@ -692,13 +692,13 @@ namespace RN
 
 	bool Camera::InFrustum(const Vector3& position, float radius)
 	{
-//		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
-//			return false;
+		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
+			return false;
 
-//		if(_frustumLeft.Distance(position) > radius)
-//			return false;
+		if(_frustumLeft.Distance(position) > radius)
+			return false;
 
-/*		if(_frustumRight.Distance(position) > radius)
+		if(_frustumRight.Distance(position) > radius)
 			return false;
 
 		if(_frustumTop.Distance(position) > radius)
@@ -711,7 +711,7 @@ namespace RN
 			return false;
 		
 		if(_frustumFar.Distance(position) > radius)
-			return false;*/
+			return false;
 
 		return true;
 	}
