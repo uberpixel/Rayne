@@ -304,7 +304,8 @@ namespace RN
 			_stage->Release();
 		
 		_stage = stage ? stage->Retain() : 0;
-
+		
+		World::SharedInstance()->RemoveSceneNode(_stage);
 		UpdateProjection();
 	}
 

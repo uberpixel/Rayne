@@ -68,7 +68,7 @@ namespace TG
 		}
 		
 #if TGWorldFeatureFreeCamera
-		/*RN::Vector3 translation;
+		RN::Vector3 translation;
 		RN::Vector3 rotation;
 		
 		const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
@@ -80,7 +80,7 @@ namespace TG
 		translation.z = (input->KeyPressed('s') - input->KeyPressed('w')) * 16.0f;
 		
 		_camera->Rotate(rotation);
-		_camera->TranslateLocal(translation * delta);*/
+		_camera->TranslateLocal(translation * delta);
 #endif
 		
 		if(_sunLight != 0)
