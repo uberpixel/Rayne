@@ -91,8 +91,8 @@ namespace RN
 	
 	RN_INLINE bool Rect::operator== (const Rect& other)
 	{
-		if(abs(x - other.x) > kRNEpsilonFloat || abs(y - other.y) > kRNEpsilonFloat ||
-		   abs(width - other.width) > kRNEpsilonFloat || abs(height - other.height) > kRNEpsilonFloat)
+		if(abs(x - other.x) > k::EpsilonFloat || abs(y - other.y) > k::EpsilonFloat ||
+		   abs(width - other.width) > k::EpsilonFloat || abs(height - other.height) > k::EpsilonFloat)
 			return false;
 		
 		return true;
@@ -100,8 +100,8 @@ namespace RN
 	
 	RN_INLINE bool Rect::operator!= (const Rect& other)
 	{
-		if(abs(x - other.x) > kRNEpsilonFloat || abs(y - other.y) > kRNEpsilonFloat ||
-		   abs(width - other.width) > kRNEpsilonFloat || abs(height - other.height) > kRNEpsilonFloat)
+		if(abs(x - other.x) > k::EpsilonFloat || abs(y - other.y) > k::EpsilonFloat ||
+		   abs(width - other.width) > k::EpsilonFloat || abs(height - other.height) > k::EpsilonFloat)
 			return true;
 		
 		return false;

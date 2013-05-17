@@ -39,6 +39,7 @@
 
 #include "RNPlatform.h"
 #include "RNDefines.h"
+#include "RNConstants.h"
 #include "RNError.h"
 
 // ---------------------------
@@ -115,13 +116,9 @@ typedef int8 ComparisonResult;
 #define kRNCompareEqualTo       0
 #define kRNCompareGreaterThan   1
 
-#define kRNNotFound static_cast<machine_uint>(-1)
-
 namespace RN
 {
 #ifndef NDEBUG
-	RNAPI RN_NORETURN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
-
 	#if RN_PLATFORM_POSIX
 		#define RN_ASSERT(e, ...) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, __VA_ARGS__) : (void)0
 		#define RN_ASSERT0(e) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, 0) : (void)0
@@ -137,7 +134,8 @@ namespace RN
 	#define RN_ASSERT0(e) (void)0
 #endif
 
-	RNAPI RN_NORETURN void __HandleExcption(const ErrorException& e);
+	RNAPI RN_NORETURN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
+	RNAPI RN_NORETURN void __HandleException(const ErrorException& e);
 	
 	class Range
 	{

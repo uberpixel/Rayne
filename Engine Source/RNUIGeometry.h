@@ -34,16 +34,16 @@ namespace RN
 			
 			bool operator ==(const EdgeInsets& other)
 			{
-				if(Math::FastAbs(top - other.top) >= kRNEpsilonFloat)
+				if(Math::FastAbs(top - other.top) >= k::EpsilonFloat)
 					return false;
 				
-				if(Math::FastAbs(bottom - other.bottom) >= kRNEpsilonFloat)
+				if(Math::FastAbs(bottom - other.bottom) >= k::EpsilonFloat)
 					return false;
 				
-				if(Math::FastAbs(left - other.left) >= kRNEpsilonFloat)
+				if(Math::FastAbs(left - other.left) >= k::EpsilonFloat)
 					return false;
 				
-				if(Math::FastAbs(right - other.right) >= kRNEpsilonFloat)
+				if(Math::FastAbs(right - other.right) >= k::EpsilonFloat)
 					return false;
 				
 				return true;

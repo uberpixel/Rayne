@@ -69,8 +69,8 @@ namespace RN
 			
 			SIMD::StoreX(_mm_mul_ss(_mm_andnot_ps(mask, r), vector), &result);
 			return result;
-			
 #endif
+			
 			return sqrtf(x);
 		}
 		

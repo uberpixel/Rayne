@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
 	}
 	catch(RN::ErrorException e)
 	{
-		RN::__HandleExcption(e);
+		RN::__HandleException(e);
 	}
 	
 	return result;

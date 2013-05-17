@@ -147,7 +147,7 @@ namespace RN
 	
 	uint32 Model::LODStageForDistance(float distance) const
 	{
-		if(_groups.size() == 1 || distance <= kRNEpsilonFloat)
+		if(_groups.size() == 1 || distance <= k::EpsilonFloat)
 			return 0;
 		
 		uint32 result = 0;

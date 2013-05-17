@@ -33,7 +33,7 @@ namespace RN
 		abort();
 	}
 	
-	void __HandleExcption(const ErrorException& e)
+	void __HandleException(const ErrorException& e)
 	{
 		const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.CallStack();
 		

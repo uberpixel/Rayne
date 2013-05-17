@@ -249,7 +249,7 @@ namespace RN
 		MakeIdentity();
 		
 		float xFac, yFac;
-		yFac = tanf(arc * kRNPI / 360.0f);
+		yFac = tanf(arc * k::Pi / 360.0f);
 		xFac = yFac * aspect;
 		
 		m[0] = 1.0f / xFac;
@@ -265,7 +265,7 @@ namespace RN
 		MakeIdentity();
 		
 		float xFac, yFac;
-		yFac = tanf(arc * kRNPI / 360.0f);
+		yFac = tanf(arc * k::Pi / 360.0f);
 		xFac = yFac * aspect;
 		
 		m[0] = xFac;

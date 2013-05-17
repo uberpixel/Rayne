@@ -121,15 +121,15 @@ namespace RN
 					
 				// Sinusoidal easing
 				case InterpolationTypeSinusoidalEaseIn:
-					return _startValue + (-_difference * Math::Cos(time / _duration * kRNPI_2) + _difference);
+					return _startValue + (-_difference * Math::Cos(time / _duration * k::Pi_2) + _difference);
 					break;
 				
 				case InterpolationTypeSinusoidalEaseOut:
-					return _startValue + (_difference * Math::Sin(time / _duration * kRNPI_2));
+					return _startValue + (_difference * Math::Sin(time / _duration * k::Pi_2));
 					break;
 					
 				case InterpolationTypeSinusoidalEaseInOut:
-					return _startValue + (-_difference / 2.0 * (Math::Cos(kRNPI * time / _duration) - 1.0));
+					return _startValue + (-_difference / 2.0 * (Math::Cos(k::Pi * time / _duration) - 1.0));
 					break;
 					
 				// Exponential easing

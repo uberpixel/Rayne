@@ -81,7 +81,7 @@ namespace RN
 		float absB = Math::FastAbs(b - other.b);
 		float absA = Math::FastAbs(a - other.a);
 
-		return (absR <= kRNEpsilonFloat && absG <= kRNEpsilonFloat && absB <= kRNEpsilonFloat && absA <= kRNEpsilonFloat);
+		return (absR <= k::EpsilonFloat && absG <= k::EpsilonFloat && absB <= k::EpsilonFloat && absA <= k::EpsilonFloat);
 	}
 
 	RN_INLINE bool Color::operator!= (const Color& other)
@@ -91,7 +91,7 @@ namespace RN
 		float absB = Math::FastAbs(b - other.b);
 		float absA = Math::FastAbs(a - other.a);
 
-		return (absR > kRNEpsilonFloat || absG > kRNEpsilonFloat || absB > kRNEpsilonFloat || absA > kRNEpsilonFloat);
+		return (absR > k::EpsilonFloat || absG > k::EpsilonFloat || absB > k::EpsilonFloat || absA > k::EpsilonFloat);
 	}
 
 	RN_INLINE Color Color::operator- () const
