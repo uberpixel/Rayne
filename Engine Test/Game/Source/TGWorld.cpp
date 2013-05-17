@@ -14,7 +14,7 @@
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		1
 
-#define TGWorldFeatureParticles     0
+#define TGWorldFeatureParticles     1
 #define TGForestFeatureTrees 500
 #define TGForestFeatureGras  10000
 
@@ -26,6 +26,8 @@ namespace TG
 	World::World() :
 		RN::World("GenericSceneManager")
 	{
+//		srand(time(0));
+		
 		_sunLight = 0;
 		_finalcam = 0;
 		_camera = 0;
@@ -87,7 +89,7 @@ namespace TG
 		{
 			RN::Vector3 sunrot;
 			sunrot.x = (input->KeyPressed('e') - input->KeyPressed('q')) * 5.0f;
-			sunrot.z = (input->KeyPressed('r') - input->KeyPressed('f')) * 2.0f;
+			sunrot.z = (input->KeyPressed('r') - input->KeyPressed('t')) * 2.0f;
 			_sunLight->Rotate(sunrot);
 		}
 	}
@@ -247,7 +249,8 @@ namespace TG
 		material->minVelocity = RN::Vector3(0.0f, 0.5f, 0.0f);
 		material->maxVelocity = RN::Vector3(0.0f, 0.15f, 0.0f);
 		
-		material->discard = true;
+		material->discard = false;
+		material->depthwrite = false;
 		material->blending = true;
 		material->SetBlendMode(RN::Material::BlendMode::Interpolative);
 		
@@ -258,23 +261,11 @@ namespace TG
 #endif
 		
 #if TGWorldFeatureLights
-		RN::Light *light;
-		//srand(time(0));
-		
-/*		light = new RN::Light();
-		light->SetPosition(RN::Vector3(-15.0f, 0.0f, 0.0f));
-		light->SetRange(80.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		
-		light = new RN::Light();
-		light->SetPosition(RN::Vector3(15.0f, 0.0f, 0.0f));
-		light->SetRange(80.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));*/
-		
-/*		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
+		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
-		_sunLight->_lightcam = _camera;*/
-//		_sunLight->ActivateSunShadows(true);
+		_sunLight->_lightcam = _camera;
+		_sunLight->ActivateSunShadows(true);
+		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
@@ -290,14 +281,10 @@ namespace TG
 		
 		for(int i=0; i<500; i++)
 		{
-			light = new RN::Light();
+			RN::Light *light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 70.0f - 35.0f, TGWorldRandom * 50.0f-10.0f, TGWorldRandom * 40.0f - 20.0f));
 			light->SetRange((TGWorldRandom * 5.0f) + 2.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-			
-			/*light->SetAction([](RN::Transform *transform, float delta) {
-				transform->Translate(RN::Vector3(0.5f * delta, 0.0f, 0.0));
-			});*/
 		}
 #endif
 		
@@ -431,13 +418,6 @@ namespace TG
 			node->AttachChild(ent);
 		}
 		
-		
-/*		RN::Model *farm = RN::Model::WithFile("models/arteria/Farm/farmbase.sgm");
-		RN::Entity *ent = new RN::Entity();
-		ent->SetModel(farm);
-		ent->SetPosition(RN::Vector3(0.0f, 20.0f, 0.0f));
-		ent->SetScale(RN::Vector3(0.1f, 0.1f, 0.1f));*/
-		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
 		RN::Skeleton *playerSkeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
@@ -453,39 +433,26 @@ namespace TG
 #endif
 		
 #if TGWorldFeatureLights
-		//RN::Light *light;
-		//srand(time(0));
-		
-/*		light = new RN::Light();
-		light->SetPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
-		light->SetRange(80.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		
-		light = new RN::Light();
-		light->SetPosition(RN::Vector3(30.0f, 0.0f, 0.0f));
-		light->SetRange(80.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));*/
-		
 		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->_lightcam = _camera;
 		_sunLight->ActivateSunShadows(true);
 		
-/*		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
+		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(0.9f);
-		_spotLight->SetColor(RN::Color(0.5f, 0.5f, 0.5f));*/
+		_spotLight->SetColor(RN::Color(0.5f, 0.5f, 0.5f));
 		
-/*#if TGWorldFeatureFreeCamera
+#if TGWorldFeatureFreeCamera
 		_camera->AttachChild(_spotLight);
 #else
 		_player->AttachChild(_spotLight);
-#endif*/
+#endif
 		
 /*		for(int i=0; i<200; i++)
 		{
-			light = new RN::Light();
+			RN::Light *light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 140.0f - 70.0f, TGWorldRandom * 100.0f-20.0f, TGWorldRandom * 80.0f - 40.0f));
 			light->SetRange((TGWorldRandom * 20.0f) + 10.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
