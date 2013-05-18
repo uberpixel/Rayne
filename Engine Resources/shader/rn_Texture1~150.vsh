@@ -11,13 +11,18 @@ precision highp float;
 
 #include "rn_Matrices.vsh"
 #include "rn_Animation.vsh"
-#include "rn_Lighting.vsh"
+#include "rn_Shadow.vsh"
 
 in vec3 vertPosition;
 in vec3 vertNormal;
 in vec2 vertTexcoord0;
 
 out vec2 outTexcoord;
+
+#ifdef RN_LIGHTING
+out vec3 outNormal;
+out vec3 outPosition;
+#endif
 
 void main()
 {
@@ -27,7 +32,16 @@ void main()
 	vec4 normal   = rn_Animate(vec4(vertNormal, 0.0));
 
 	normal.w = 0.0;
-
-	rn_Lighting(position.xyz, normal.xyz);
+	position.w = 1.0;
+	
+#ifdef RN_LIGHTING
+	outNormal = (matModel * normal).xyz;
+	outPosition = (matModel * position).xyz;
+#endif
+	
+#if defined(RN_DIRECTIONAL_SHADOWS) && defined(RN_LIGHTING)
+	rn_ShadowDir1(position);
+#endif
+	
 	gl_Position = matProjViewModel * vec4(position.xyz, 1.0);
 }

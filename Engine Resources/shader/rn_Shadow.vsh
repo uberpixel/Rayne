@@ -6,9 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#ifndef RN_SHADOW_VSH
 #define RN_SHADOW_VSH
-
-#ifdef RN_LIGHTING
 
 uniform mat4 lightDirectionalMatrix[4];
 out vec4 outDirLightProj[4];
