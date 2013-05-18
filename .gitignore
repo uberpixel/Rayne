@@ -48,11 +48,13 @@ xcuserdata
 /Build/
 
 /Xcode/OS X/DerivedData/
+/Documentation/html/
 /Engine Test/Game/Game-ios.xcodeproj/project.xcworkspace/
 /Engine Test/Game/DerivedData/
-/Engine Modules/Build/
 /Engine Test/Game/Resources/modules/
+/Engine Test/Game/Resources/libGame.dylib
 /Engine Modules/rayne-bullet/bullet/
+/Engine Modules/Build/
 /Vendor/freetype-2.4.11/objs/
 /Vendor/freetype-2.4.11/docs/
 /Vendor/freetype-2.4.11/vms_make.com
@@ -62,4 +64,3 @@ xcuserdata
 /Vendor/freetype-2.4.11/ChangeLog.21
 /Vendor/freetype-2.4.11/ChangeLog.20
 /Vendor/freetype-2.4.11/ChangeLog
-/Engine Test/Game/Resources/libGame.dylib

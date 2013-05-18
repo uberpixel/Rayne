@@ -17,7 +17,11 @@ namespace RN
 {
 	class Quaternion;
 	//column fucking major!!!!!111111
+#if __RN_GENERATING_DOXYGEN
+	class Matrix
+#else
 	class alignas(16) Matrix
+#endif
 	{
 	public:
 		RNAPI Matrix();

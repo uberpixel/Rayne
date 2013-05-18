@@ -100,10 +100,10 @@ namespace RN
 		};
 	};
 	
-#if RN_SIMD
-	class alignas(16) Vector4
-#else
+#if __RN_GENERATING_DOXYGEN
 	class Vector4
+#else
+	class alignas(16) Vector4
 #endif
 	{
 	public:
