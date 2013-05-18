@@ -15,6 +15,12 @@ precision highp float;
 uniform sampler2D mTexture0;
 
 in vec2 outTexcoord;
+
+#ifdef RN_LIGHTING
+in vec3 outNormal;
+in vec3 outPosition;
+#endif
+
 out vec4 fragColor0;
 
 void main()
@@ -22,5 +28,9 @@ void main()
 	vec4 color0 = texture(mTexture0, outTexcoord);
 	rn_Discard(color0);
 
-	fragColor0 = color0 * rn_Lighting();
+#ifdef RN_LIGHTING
+	fragColor0 = rn_Lighting(color0, normalize(outNormal), outPosition);
+#else
+	fragColor0 = color0;
+#endif
 }

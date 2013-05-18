@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#ifndef RN_SHADOW_FSH
 #define RN_SHADOW_FSH
 
 #ifdef RN_LIGHTING
@@ -78,7 +79,7 @@ float rn_ShadowDir1()
 }
 
 #else
-
 #define rn_ShadowDir1() (1.0)
+#endif
 
 #endif
