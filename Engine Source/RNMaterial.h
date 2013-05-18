@@ -64,7 +64,14 @@ namespace RN
 		RNAPI void RemoveTexture(Texture *texture);
 		RNAPI void RemoveTextures();
 		
+		RNAPI void Define(const std::string& define);
+		RNAPI void Define(const std::string& define, const std::string& value);
+		RNAPI void Define(const std::string& define, int32 value);
+		RNAPI void Define(const std::string& define, float value);
+		RNAPI void Undefine(const std::string& define);
+		
 		RNAPI Array<Texture> *Textures() const;
+		RNAPI const ShaderLookup& Lookup() const { return _lookup; }
 		
 		bool culling;
 		bool lighting;
@@ -97,9 +104,13 @@ namespace RN
 		
 	private:
 		void Initialize();
+		void UpdateLookupRequest();
 		
 		RN::Shader *_shader;
 		Array<Texture> *_textures;
+		
+		ShaderLookup _lookup;
+		std::vector<ShaderDefine> _defines;
 		
 		RNDefineMeta(Material, Object)
 	};

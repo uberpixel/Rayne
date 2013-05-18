@@ -1052,7 +1052,7 @@ namespace RN
 				if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
 					programTypes |= ShaderProgram::TypeDiscard;
 				
-				program = shader->ProgramOfType(programTypes);
+				program = shader->ProgramWithLookup(material->Lookup() + ShaderLookup(programTypes));
 				
 				changedShader = (_currentProgram != program);
 				changedMaterial = (_currentMaterial != material);

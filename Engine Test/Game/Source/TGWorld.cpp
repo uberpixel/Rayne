@@ -414,6 +414,7 @@ namespace TG
 		grass->MaterialAtIndex(0, 0)->culling = false;
 		grass->MaterialAtIndex(0, 0)->discard = true;
 		grass->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		grass->MaterialAtIndex(0, 0)->Define("PURPLE");
 		
 		node = new RN::InstancingNode(grass);
 		

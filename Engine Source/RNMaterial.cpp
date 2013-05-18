@@ -12,7 +12,8 @@ namespace RN
 {
 	RNDeclareMeta(Material)
 	
-	Material::Material()
+	Material::Material() :
+		_lookup(0)
 	{
 		_shader = 0;
 		_textures = new Array<Texture>();
@@ -20,7 +21,8 @@ namespace RN
 		Initialize();
 	}
 	
-	Material::Material(RN::Shader *shader)
+	Material::Material(RN::Shader *shader) :
+		_lookup(0)
 	{
 		_shader = shader ? shader->Retain() : 0;
 		_textures = new Array<Texture>();
@@ -35,6 +37,37 @@ namespace RN
 		
 		if(_textures)
 			_textures->Release();
+	}
+	
+	void Material::Initialize()
+	{
+		override = 0;
+		lighting = true;
+		
+		culling  = true;
+		cullmode = GL_CCW;
+		
+		blending = false;
+		blendSource = GL_ONE;
+		blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+		
+		polygonOffset = false;
+		polygonOffsetFactor = 1.0f;
+		polygonOffsetUnits = 1.0f;
+		
+		ambient = Color(0.2f, 0.2f, 0.2f, 1.0f);
+		diffuse = Color(0.8f, 0.8f, 0.8f, 1.0f);
+		specular = Color(0.0f, 0.0f, 0.0f, 0.0f);
+		emissive = Color(0.0f, 0.0f, 0.0f, 0.0f);
+		
+		shininess = 0.0f;
+		
+		depthtest = true;
+		depthtestmode = GL_LEQUAL;
+		depthwrite = true;
+		
+		discard = false;
+		discardThreshold = 0.3f;
 	}
 	
 	
@@ -79,6 +112,7 @@ namespace RN
 	}
 	
 	
+	
 	void Material::AddTexture(Texture *texture)
 	{
 		_textures->AddObject(texture);
@@ -95,40 +129,58 @@ namespace RN
 	}
 	
 	
-	Array<Texture> *Material::Textures() const
+	
+	void Material::UpdateLookupRequest()
 	{
-		return _textures;
+		_lookup = ShaderLookup(_defines);
 	}
 	
 	
-	void Material::Initialize()
+	void Material::Define(const std::string& define)
 	{
-		override = 0;
-		lighting = true;
+		_defines.emplace_back(ShaderDefine(define, ""));
+		UpdateLookupRequest();
+	}
+	
+	void Material::Define(const std::string& define, const std::string& value)
+	{
+		_defines.emplace_back(ShaderDefine(define, value));
+		UpdateLookupRequest();
+	}
+	
+	void Material::Define(const std::string& define, int32 value)
+	{
+		char buffer[32];
+		sprintf(buffer, "%i", value);
 		
-		culling  = true;
-		cullmode = GL_CCW;
+		Define(define, buffer);
+	}
+	
+	void Material::Define(const std::string& define, float value)
+	{
+		char buffer[32];
+		sprintf(buffer, "%f", value);
 		
-		blending = false;
-		blendSource = GL_ONE;
-		blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-		
-		polygonOffset = false;
-		polygonOffsetFactor = 1.0f;
-		polygonOffsetUnits = 1.0f;
-		
-		ambient = Color(0.2f, 0.2f, 0.2f, 1.0f);
-		diffuse = Color(0.8f, 0.8f, 0.8f, 1.0f);
-		specular = Color(0.0f, 0.0f, 0.0f, 0.0f);
-		emissive = Color(0.0f, 0.0f, 0.0f, 0.0f);
-		
-		shininess = 0.0f;
-		
-		depthtest = true;
-		depthtestmode = GL_LEQUAL;
-		depthwrite = true;
-		
-		discard = false;
-		discardThreshold = 0.3f;
+		_defines.emplace_back(ShaderDefine(define, buffer));
+	}
+	
+	void Material::Undefine(const std::string& name)
+	{
+		for(auto i=_defines.begin(); i!=_defines.end(); i++)
+		{
+			if(name == i->name)
+			{
+				_defines.erase(i);
+				UpdateLookupRequest();
+				return;
+			}
+		}
+	}
+	
+	
+	
+	Array<Texture> *Material::Textures() const
+	{
+		return _textures;
 	}
 }

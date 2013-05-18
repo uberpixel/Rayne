@@ -125,6 +125,7 @@
 		E9BEF3BB1743CF560090C9CB /* RNScopeGuard.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BEF3B91743CF560090C9CB /* RNScopeGuard.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9BEF3C21744442A0090C9CB /* RNUIImage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9BEF3C01744442A0090C9CB /* RNUIImage.cpp */; };
 		E9BEF3C31744442A0090C9CB /* RNUIImage.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BEF3C11744442A0090C9CB /* RNUIImage.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9C01BB41746CE6A00B3577B /* RNShaderLookup.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C01BB31746CE6A00B3577B /* RNShaderLookup.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9C328F71745E4B200FAE32F /* RNConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C328F61745E4B100FAE32F /* RNConstants.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9C6F0A716B207E1006288D5 /* RNModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F0A516B207E1006288D5 /* RNModel.cpp */; };
 		E9C6F0A816B207E1006288D5 /* RNModel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C6F0A616B207E1006288D5 /* RNModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -312,6 +313,7 @@
 		E9BEF3B91743CF560090C9CB /* RNScopeGuard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNScopeGuard.h; sourceTree = "<group>"; };
 		E9BEF3C01744442A0090C9CB /* RNUIImage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIImage.cpp; sourceTree = "<group>"; };
 		E9BEF3C11744442A0090C9CB /* RNUIImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIImage.h; sourceTree = "<group>"; };
+		E9C01BB31746CE6A00B3577B /* RNShaderLookup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNShaderLookup.h; sourceTree = "<group>"; };
 		E9C328F61745E4B100FAE32F /* RNConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNConstants.h; sourceTree = "<group>"; };
 		E9C6F0A516B207E1006288D5 /* RNModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNModel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9C6F0A616B207E1006288D5 /* RNModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNModel.h; sourceTree = "<group>"; };
@@ -584,6 +586,7 @@
 				E92B859016FC6027002FA04D /* RNRenderStorage.h */,
 				E9619E1A1696157E00DA187E /* RNShader.cpp */,
 				E9619E1B1696157E00DA187E /* RNShader.h */,
+				E9C01BB31746CE6A00B3577B /* RNShaderLookup.h */,
 				E9619E1D1696157E00DA187E /* RNTexture.cpp */,
 				E9619E1E1696157E00DA187E /* RNTexture.h */,
 				E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */,
@@ -740,6 +743,7 @@
 				E9BEF3C31744442A0090C9CB /* RNUIImage.h in Headers */,
 				E917AC211744A00F00331D9B /* RNUIGeometry.h in Headers */,
 				E9C328F71745E4B200FAE32F /* RNConstants.h in Headers */,
+				E9C01BB41746CE6A00B3577B /* RNShaderLookup.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

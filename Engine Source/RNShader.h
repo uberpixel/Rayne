@@ -13,6 +13,7 @@
 #include "RNObject.h"
 #include "RNFile.h"
 #include "RNArray.h"
+#include "RNShaderLookup.h"
 
 namespace RN
 {
@@ -122,15 +123,11 @@ namespace RN
 		RNAPI void SetGeometryShader(File *file);
 		
 		RNAPI ShaderProgram *ProgramOfType(uint32 type);
+		RNAPI ShaderProgram *ProgramWithLookup(const ShaderLookup& lookup);
+		
 		RNAPI bool SupportsProgramOfType(uint32 type);
 		
 	private:
-		struct ShaderDefine
-		{
-			std::string name;
-			std::string value;
-		};
-		
 		void SetShaderForType(const std::string& path, GLenum type);
 		void SetShaderForType(File *file, GLenum type);
 		void AddDefines();
@@ -140,11 +137,13 @@ namespace RN
 		std::string PreProcessFile(File *file);
 		
 		void CompileShader(GLenum type, GLuint *outShader);
+		void DumpLinkStatusAndDie(ShaderProgram *program);
 		
-		Array<ShaderDefine> _defines;
+		std::vector<ShaderDefine> _defines;
+		std::vector<ShaderDefine> _temporaryDefines;
 		
 		uint32 _supportedPrograms;
-		std::unordered_map<uint32, ShaderProgram *> _programs;
+		std::unordered_map<ShaderLookup, ShaderProgram *> _programs;
 		
 		std::string _vertexFile;
 		std::string _vertexShader;
