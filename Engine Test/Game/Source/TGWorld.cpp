@@ -9,8 +9,7 @@
 #include "TGWorld.h"
 
 #define TGWorldFeatureLights        1
-#define TGWorldFeatureNormalMapping 0
-#define TGWorldFeatureInstancing    0
+#define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		1
 
@@ -339,20 +338,30 @@ namespace TG
 		ent->SetModel(building);
 		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
 		
-#if TGWorldFeatureNormalMapping && TGWorldFeatureLights
-		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
-		
+#if TGWorldFeatureNormalMapping && TGWorldFeatureLights		
 		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/brick2-NM.png"));
-		building->MaterialAtIndex(0, 0)->SetShader(normalshader);
+		building->MaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		building->MaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
 		
 		building->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_A-NM.png"));
-		building->MaterialAtIndex(0, 1)->SetShader(normalshader);
+		building->MaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
+		building->MaterialAtIndex(0, 1)->Define("RN_SPECULARITY");
 		
 		building->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_B-NM.png"));
-		building->MaterialAtIndex(0, 2)->SetShader(normalshader);
+		building->MaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
+		building->MaterialAtIndex(0, 2)->Define("RN_SPECULARITY");
 		
 		building->MaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_C-NM.png"));
-		building->MaterialAtIndex(0, 3)->SetShader(normalshader);
+		building->MaterialAtIndex(0, 3)->Define("RN_NORMALMAP");
+		building->MaterialAtIndex(0, 3)->Define("RN_SPECULARITY");
+		
+		building->MaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/Sebastian/props-NM.png"));
+		building->MaterialAtIndex(0, 4)->Define("RN_NORMALMAP");
+		building->MaterialAtIndex(0, 4)->Define("RN_SPECULARITY");
+		
+		building->MaterialAtIndex(0, 5)->AddTexture(RN::Texture::WithFile("models/Sebastian/Rooftiles_A-NM.png"));
+		building->MaterialAtIndex(0, 5)->Define("RN_NORMALMAP");
+		building->MaterialAtIndex(0, 5)->Define("RN_SPECULARITY");
 #endif
 		
 		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsDecals.sgm");
@@ -368,6 +377,16 @@ namespace TG
 		ent->SetModel(building);
 		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
 		
+#if TGWorldFeatureNormalMapping && TGWorldFeatureLights
+		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/Decals-NM.png"));
+		building->MaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		building->MaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
+		
+		building->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Decals-NM.png"));
+		building->MaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
+		building->MaterialAtIndex(0, 1)->Define("RN_SPECULARITY");
+#endif
+		
 		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsPlants.sgm");
 		building->MaterialAtIndex(0, 0)->culling = false;
 		building->MaterialAtIndex(0, 0)->discard = true;
@@ -376,6 +395,12 @@ namespace TG
 		ent = new RN::Entity();
 		ent->SetModel(building);
 		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
+		
+#if TGWorldFeatureNormalMapping && TGWorldFeatureLights
+		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/plants-NM.png"));
+		building->MaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		building->MaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
+#endif
 		
 		RN::Model *tree = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
 		tree->MaterialAtIndex(0, 0)->culling = false;

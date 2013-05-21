@@ -18,6 +18,8 @@ uniform sampler2D mTexture0;
 uniform sampler2D mTexture1;
 #endif
 
+uniform vec4 specular;
+
 in vec2 vertTexcoord;
 
 #ifdef RN_LIGHTING
@@ -46,11 +48,11 @@ void main()
 	matTangentInv[2] = normalize(vertNormal);
 	normal = normalize(matTangentInv*normal);
 	
-	fragColor0 = rn_Lighting(color0, vec3(normalspec.a), normal, vertPosition);
+	rn_Lighting(color0, specular.rgb*normalspec.a, normal, vertPosition);
 	#else
-	fragColor0 = rn_Lighting(color0, vec3(1.0), normalize(vertNormal), vertPosition);
+	rn_Lighting(color0, specular.rgb, normalize(vertNormal), vertPosition);
 	#endif
-#else
-	fragColor0 = color0;
 #endif
+	
+	fragColor0 = color0;
 }
