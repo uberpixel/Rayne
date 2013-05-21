@@ -753,13 +753,6 @@ namespace RN
 		
 		for(const DebugMarker& marker : markers)
 		{
-			printf("Marker: %u:%u, %s\n", marker.line, marker.offset, marker.file.c_str());
-		}
-		
-		printf("%s", _fragmentShader.c_str());
-		
-		for(const DebugMarker& marker : markers)
-		{
 			if(marker.line > line)
 				break;
 			
