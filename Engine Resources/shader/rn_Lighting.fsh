@@ -19,6 +19,13 @@ uniform isamplerBuffer lightSpotList;
 uniform isamplerBuffer lightSpotListOffset;
 uniform samplerBuffer lightSpotListData;
 
+uniform vec4 lightPointPosition[10];
+uniform vec3 lightPointColor[10];
+
+uniform vec4 lightSpotPosition[10];
+uniform vec4 lightSpotDirection[10];
+uniform vec3 lightSpotColor[10];
+
 uniform int lightDirectionalCount;
 uniform vec3 lightDirectionalDirection[10];
 uniform vec4 lightDirectionalColor[10];
@@ -86,21 +93,38 @@ vec4 rn_Lighting(vec4 color, vec3 normal, vec3 position)
 	}
 	
 	vec3 light = ambient.rgb;
-	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 	
+#ifdef !(RN_POINT_LIGHTS_FASTPATH || RN_SPOT_LIGHTS_FASTPATH)
+	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
+#endif
+	
+#ifndef RN_POINT_LIGHTS_FASTPATH
 	ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
 	for(int i=0; i<listoffset.y; i++)
 	{
 		int lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;		
 		light += rn_PointLightTiled(lightindex, normal, position);
 	}
+#else
+	for(int i=0; i<RN_POINT_LIGHTS; i++)
+	{
+		light += rn_PointLight(lightPointPosition[i], lightPointColor[i], normal, position);
+	}
+#endif
 	
+#ifdef RN_SPOT_LIGHTS_FASTPATH
 	listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
 	for(int i=0; i<listoffset.y; i++)
 	{
 		int lightindex = (texelFetch(lightSpotList, listoffset.x + i).r) * 3;
 		light += rn_SpotLightTiled(lightindex, normal, position);
 	}
+#else
+	for(int i=0; i<RN_SPOT_LIGHTS; i++)
+	{
+		light += rn_SpotLight(lightSpotPosition[i], lightSpotColor[i], lightSpotDirection[i], normal, position);
+	}
+#endif
 	
 	for(int i=0; i<lightDirectionalCount; i++)
 	{

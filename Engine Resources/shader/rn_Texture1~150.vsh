@@ -16,12 +16,17 @@ precision highp float;
 in vec3 attPosition;
 in vec3 attNormal;
 in vec2 attTexcoord0;
+in vec4 attTangent;
 
 out vec2 vertTexcoord;
 
 #ifdef RN_LIGHTING
-out vec3 vertNormal;
 out vec3 vertPosition;
+#ifdef RN_NORMALMAP
+out mat3 vertMatInvTangent;
+#else
+out vec3 vertNormal;
+#endif
 #endif
 
 void main()
@@ -35,7 +40,14 @@ void main()
 	position.w = 1.0;
 	
 #ifdef RN_LIGHTING
+	#ifdef RN_NORMALMAP
+	vec4 tangent = rn_Animate(vec4(attTangent.xyz, 0.0));
+	vertMatInvTangent[0] = normalize((matModel*tangent).xyz);
+	vertMatInvTangent[2] = normalize((matModel*normal).xyz);
+	vertMatInvTangent[1] = normalize(cross(vertMatInvTangent[0], vertMatInvTangent[2])*attTangent.w);
+	#else
 	vertNormal = (matModel * normal).xyz;
+	#endif
 	vertPosition = (matModel * position).xyz;
 #endif
 	

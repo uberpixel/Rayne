@@ -23,7 +23,7 @@ in vec2 vertTexcoord;
 #ifdef RN_LIGHTING
 in vec3 vertPosition;
 #ifdef RN_NORMALMAP
-in mat3 vertMatInvTangent
+in mat3 vertMatInvTangent;
 #else
 in vec3 vertNormal;
 #endif
@@ -39,9 +39,9 @@ void main()
 #ifdef RN_LIGHTING
 	#ifdef RN_NORMALMAP
 	vec3 normal = texture(mTexture1, vertTexcoord).xyz*2.0-1.0;
-	normal = vertMatInvTangent*normal;
+	normal = vertMatInvTangent*normalize(normal);
 	
-	fragColor0 = rn_Lighting(color0, normalize(normal), vertPosition);
+	fragColor0 = vec4(normal, 1.0);//rn_Lighting(color0, normalize(normal), vertPosition);
 	#else
 	fragColor0 = rn_Lighting(color0, normalize(vertNormal), vertPosition);
 	#endif

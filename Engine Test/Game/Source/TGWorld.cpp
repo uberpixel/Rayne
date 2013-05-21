@@ -9,7 +9,7 @@
 #include "TGWorld.h"
 
 #define TGWorldFeatureLights        1
-#define TGWorldFeatureNormalMapping 0
+#define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureInstancing    0
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		1
@@ -220,11 +220,10 @@ namespace TG
 		model->MaterialAtIndex(0, 17)->override = RN::Material::OverrideGroupDiscard;
 		
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
-		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
-		RN::Texture *normalmap = RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png", RN::Texture::FormatRGBA8888);
+		RN::Texture *normalmap = RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png");
 		
+		model->MaterialAtIndex(0, 3)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 3)->AddTexture(normalmap);
-		model->MaterialAtIndex(0, 3)->SetShader(normalshader);
 #endif
 		
 		RN::bullet::Shape *sponzaShape = new RN::bullet::TriangelMeshShape(model);
@@ -342,16 +341,16 @@ namespace TG
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
 		RN::Shader *normalshader = RN::Shader::WithFile("shader/rn_Texture1Normal");
 		
-		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/brick2-NM.png", RN::Texture::FormatRGBA8888));
+		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/brick2-NM.png"));
 		building->MaterialAtIndex(0, 0)->SetShader(normalshader);
 		
-		building->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_A-NM.png", RN::Texture::FormatRGBA8888));
+		building->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_A-NM.png"));
 		building->MaterialAtIndex(0, 1)->SetShader(normalshader);
 		
-		building->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_B-NM.png", RN::Texture::FormatRGBA8888));
+		building->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_B-NM.png"));
 		building->MaterialAtIndex(0, 2)->SetShader(normalshader);
 		
-		building->MaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_C-NM.png", RN::Texture::FormatRGBA8888));
+		building->MaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_C-NM.png"));
 		building->MaterialAtIndex(0, 3)->SetShader(normalshader);
 #endif
 		
@@ -414,7 +413,7 @@ namespace TG
 		grass->MaterialAtIndex(0, 0)->culling = false;
 		grass->MaterialAtIndex(0, 0)->discard = true;
 		grass->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		grass->MaterialAtIndex(0, 0)->Define("PURPLE");
+		//grass->MaterialAtIndex(0, 0)->Define("PURPLE");
 		
 		node = new RN::InstancingNode(grass);
 		
