@@ -94,7 +94,7 @@ vec4 rn_Lighting(vec4 color, vec3 normal, vec3 position)
 	
 	vec3 light = ambient.rgb;
 	
-#ifdef !(RN_POINT_LIGHTS_FASTPATH || RN_SPOT_LIGHTS_FASTPATH)
+#if !(defined(RN_POINT_LIGHTS_FASTPATH) || defined(RN_SPOT_LIGHTS_FASTPATH))
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 #endif
 	
@@ -112,7 +112,7 @@ vec4 rn_Lighting(vec4 color, vec3 normal, vec3 position)
 	}
 #endif
 	
-#ifdef RN_SPOT_LIGHTS_FASTPATH
+#ifndef RN_SPOT_LIGHTS_FASTPATH
 	listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
 	for(int i=0; i<listoffset.y; i++)
 	{
