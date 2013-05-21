@@ -891,7 +891,7 @@ namespace RN
 		uint32 targetmaps = MIN((uint32)program->targetmaplocations.Count(), stage->RenderTargets());
 		for(uint32 i=0; i<targetmaps; i++)
 		{
-			Texture *texture = stage->RenderTarget(i);
+			Texture *texture = camera->RenderTarget(i);
 			GLuint location = program->targetmaplocations.ObjectAtIndex(i);
 			
 			glUniform1i(location, BindTexture(texture));
