@@ -12,14 +12,14 @@ precision highp float;
 uniform mat4 matProj;
 uniform mat4 matModelInverse;
 
-in vec3 vertPosition;
-in vec2 vertTexcoord0;
+in vec3 attPosition;
+in vec2 attTexcoord0;
 
-out vec2 outTexcoord;
+out vec2 vertTexcoord;
 
 void main()
 {
-	outTexcoord = vertTexcoord0;
+	vertTexcoord = attTexcoord0;
 	
-	gl_Position = matProj * matModelInverse * vec4(vertPosition, 1.0);
+	gl_Position = matProj * matModelInverse * vec4(attPosition, 1.0);
 }

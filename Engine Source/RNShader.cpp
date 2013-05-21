@@ -447,18 +447,18 @@ namespace RN
 		GetUniformLocation(depthmap);
 		
 		// Get attributes
-		GetAttributeLocation(vertPosition);
-		GetAttributeLocation(vertNormal);
-		GetAttributeLocation(vertTangent);
+		GetAttributeLocation(attPosition);
+		GetAttributeLocation(attNormal);
+		GetAttributeLocation(attTangent);
 		
-		GetAttributeLocation(vertTexcoord0);
-		GetAttributeLocation(vertTexcoord1);
+		GetAttributeLocation(attTexcoord0);
+		GetAttributeLocation(attTexcoord1);
 		
-		GetAttributeLocation(vertColor0);
-		GetAttributeLocation(vertColor1);
+		GetAttributeLocation(attColor0);
+		GetAttributeLocation(attColor1);
 		
-		GetAttributeLocation(vertBoneWeights);
-		GetAttributeLocation(vertBoneIndices);
+		GetAttributeLocation(attBoneWeights);
+		GetAttributeLocation(attBoneIndices);
 		
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 		do

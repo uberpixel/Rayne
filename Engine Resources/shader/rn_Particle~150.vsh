@@ -11,17 +11,17 @@ precision highp float;
 
 uniform mat4 matView;
 
-in vec3 vertPosition;
-in vec4 vertColor0;
-in vec2 vertTexcoord0;
+in vec3 attPosition;
+in vec4 attColor0;
+in vec2 attTexcoord0;
 
-out vec4 geoColor;
-out vec2 geoSize;
+out vec4 vertColor;
+out vec2 vertSize;
 
 void main()
 {
-	geoColor = vertColor0;
-	geoSize  = vertTexcoord0;
+	vertColor = attColor0;
+	vertSize  = attTexcoord0;
 
-	gl_Position = matView * vec4(vertPosition, 1.0);
+	gl_Position = matView * vec4(attPosition, 1.0);
 }

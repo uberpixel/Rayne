@@ -12,14 +12,14 @@ precision highp float;
 #include "rn_Matrices.vsh"
 #include "rn_Animation.vsh"
 
-in vec3 vertPosition;
-in vec2 vertTexcoord0;
+in vec3 attPosition;
+in vec2 attTexcoord0;
 
 out vec2 vertTexcoord;
 
 void main()
 {
-	vertTexcoord = vertTexcoord0;
-	vec4 pos = rn_Animate(vec4(vertPosition, 1.0));
+	vertTexcoord = attTexcoord0;
+	vec4 pos = rn_Animate(vec4(attPosition, 1.0));
 	gl_Position = matProjViewModel * pos;
 }

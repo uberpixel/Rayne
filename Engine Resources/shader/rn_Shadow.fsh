@@ -13,7 +13,7 @@
 uniform sampler2DArrayShadow lightDirectionalDepth;
 
 uniform vec4 frameSize;
-in vec4 outDirLightProj[4];
+in vec4 vertDirLightProj[4];
 
 //a textureOffset lookup for a 2DArrayShader sampler
 float rn_textureOffset(sampler2DArrayShadow map, vec4 loc, vec2 offset)
@@ -63,10 +63,10 @@ float rn_ShadowPCF4x4(sampler2DArrayShadow map, vec4 projected)
 float rn_ShadowDir1()
 {
 	vec3 proj[4];
-	proj[0] = outDirLightProj[0].xyz/outDirLightProj[0].w;
-	proj[1] = outDirLightProj[1].xyz/outDirLightProj[1].w;
-	proj[2] = outDirLightProj[2].xyz/outDirLightProj[2].w;
-	proj[3] = outDirLightProj[3].xyz/outDirLightProj[3].w;
+	proj[0] = vertDirLightProj[0].xyz/vertDirLightProj[0].w;
+	proj[1] = vertDirLightProj[1].xyz/vertDirLightProj[1].w;
+	proj[2] = vertDirLightProj[2].xyz/vertDirLightProj[2].w;
+	proj[3] = vertDirLightProj[3].xyz/vertDirLightProj[3].w;
 	
 	vec4 dist = vec4(dot(proj[0], proj[0]), dot(proj[1], proj[1]), dot(proj[2], proj[2]), dot(proj[3], proj[3]));
 	vec4 zGreater = vec4(greaterThan(dist, vec4(1.0)));

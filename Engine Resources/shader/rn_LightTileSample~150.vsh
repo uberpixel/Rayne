@@ -11,13 +11,13 @@ precision highp float;
 
 #include "rn_Matrices.vsh"
 
-in vec2 vertPosition;
-in vec2 vertTexcoord0;
+in vec2 attPosition;
+in vec2 attTexcoord0;
 
-out vec2 texcoord;
+out vec2 vertTexcoord;
 
 void main()
 {
-	texcoord = vertTexcoord0;
-	gl_Position = vec4(vertPosition, 0.0, 1.0);
+	vertTexcoord = attTexcoord0;
+	gl_Position = vec4(attPosition, 0.0, 1.0);
 }

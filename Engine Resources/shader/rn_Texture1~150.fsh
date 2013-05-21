@@ -14,26 +14,37 @@ precision highp float;
 
 uniform sampler2D mTexture0;
 
-in vec2 outTexcoord;
+#ifdef RN_NORMALMAP
+uniform sampler2D mTexture1;
+#endif
+
+in vec2 vertTexcoord;
 
 #ifdef RN_LIGHTING
-in vec3 outNormal;
-in vec3 outPosition;
+in vec3 vertPosition;
+#ifdef RN_NORMALMAP
+in mat3 vertMatInvTangent
+#else
+in vec3 vertNormal;
+#endif
 #endif
 
 out vec4 fragColor0;
 
 void main()
 {
-#ifndef PURPLE
-	vec4 color0 = texture(mTexture0, outTexcoord);
+	vec4 color0 = texture(mTexture0, vertTexcoord);
 	rn_Discard(color0);
-#else
-	vec4 color0 = vec4(0.851, 0.283, 0.744, 1.000);
-#endif
 
 #ifdef RN_LIGHTING
-	fragColor0 = rn_Lighting(color0, normalize(outNormal), outPosition);
+	#ifdef RN_NORMALMAP
+	vec3 normal = texture(mTexture1, vertTexcoord).xyz*2.0-1.0;
+	normal = vertMatInvTangent*normal;
+	
+	fragColor0 = rn_Lighting(color0, normalize(normal), vertPosition);
+	#else
+	fragColor0 = rn_Lighting(color0, normalize(vertNormal), vertPosition);
+	#endif
 #else
 	fragColor0 = color0;
 #endif

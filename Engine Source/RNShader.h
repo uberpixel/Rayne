@@ -48,15 +48,15 @@ namespace RN
 		
 		GLuint instancingData;
 		
-		GLuint vertPosition;
-		GLuint vertNormal;
-		GLuint vertTangent;
-		GLuint vertTexcoord0;
-		GLuint vertTexcoord1;
-		GLuint vertColor0;
-		GLuint vertColor1;
-		GLuint vertBoneWeights;
-		GLuint vertBoneIndices;
+		GLuint attPosition;
+		GLuint attNormal;
+		GLuint attTangent;
+		GLuint attTexcoord0;
+		GLuint attTexcoord1;
+		GLuint attColor0;
+		GLuint attColor1;
+		GLuint attBoneWeights;
+		GLuint attBoneIndices;
 		
 		GLuint time;
 		GLuint frameSize;

@@ -13,16 +13,16 @@ precision highp float;
 
 uniform sampler2D mTexture0;
 
-in vec4 fragColor;
-in vec2 texCoord;
+in vec4 geoColor;
+in vec2 geoTexcoord;
 
 out vec4 fragColor0;
 
 void main()
 {
-	vec4 color = texture(mTexture0, texCoord);
+	vec4 color = texture(mTexture0, geoTexcoord);
 	rn_Discard(color);
 
-	fragColor0 = fragColor * color;
+	fragColor0 = geoColor * color;
 	fragColor0.rgb *= fragColor0.a;
 }

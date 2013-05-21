@@ -13,13 +13,13 @@ precision highp float;
 
 uniform sampler2D mTexture0;
 
-in vec2 outTexcoord;
+in vec2 vertTexcoord;
 out vec4 fragColor0;
 
 void main()
 {
 #ifdef RN_DISCARD
-	vec4 color0 = texture(mTexture0, outTexcoord);
+	vec4 color0 = texture(mTexture0, vertTexcoord);
 	rn_Discard(color0);
 #endif
 

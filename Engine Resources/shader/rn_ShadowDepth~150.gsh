@@ -16,7 +16,7 @@ layout (triangles) in;
 layout (triangle_strip, max_vertices = 12) out;
 
 in vec2 vertTexcoord[3];
-out vec2 outTexcoord;
+out vec2 geoTexcoord;
 
 void main(void)
 {
@@ -87,17 +87,17 @@ void main(void)
 		if(count < 3.5)
 		{
 			gl_Layer = 0;
-			outTexcoord = vertTexcoord[0];
+			geoTexcoord = vertTexcoord[0];
 			gl_Position = pos[0];
 			EmitVertex();
 			
 			gl_Layer = 0;
-			outTexcoord = vertTexcoord[1];
+			geoTexcoord = vertTexcoord[1];
 			gl_Position = pos[1];
 			EmitVertex();
 			
 			gl_Layer = 0;
-			outTexcoord = vertTexcoord[2];
+			geoTexcoord = vertTexcoord[2];
 			gl_Position = pos[2];
 			EmitVertex();
 			EndPrimitive();
@@ -126,17 +126,17 @@ void main(void)
 		if(count < 3.5)
 		{
 			gl_Layer = 1;
-			outTexcoord = vertTexcoord[0];
+			geoTexcoord = vertTexcoord[0];
 			gl_Position = pos[0];
 			EmitVertex();
 			
 			gl_Layer = 1;
-			outTexcoord = vertTexcoord[1];
+			geoTexcoord = vertTexcoord[1];
 			gl_Position = pos[1];
 			EmitVertex();
 			
 			gl_Layer = 1;
-			outTexcoord = vertTexcoord[2];
+			geoTexcoord = vertTexcoord[2];
 			gl_Position = pos[2];
 			EmitVertex();
 			EndPrimitive();
@@ -165,17 +165,17 @@ void main(void)
 		if(count < 3.5)
 		{
 			gl_Layer = 2;
-			outTexcoord = vertTexcoord[0];
+			geoTexcoord = vertTexcoord[0];
 			gl_Position = pos[0];
 			EmitVertex();
 			
 			gl_Layer = 2;
-			outTexcoord = vertTexcoord[1];
+			geoTexcoord = vertTexcoord[1];
 			gl_Position = pos[1];
 			EmitVertex();
 			
 			gl_Layer = 2;
-			outTexcoord = vertTexcoord[2];
+			geoTexcoord = vertTexcoord[2];
 			gl_Position = pos[2];
 			EmitVertex();
 			EndPrimitive();
@@ -204,17 +204,17 @@ void main(void)
 		if(count < 3.5)
 		{
 			gl_Layer = 3;
-			outTexcoord = vertTexcoord[0];
+			geoTexcoord = vertTexcoord[0];
 			gl_Position = pos[0];
 			EmitVertex();
 			
 			gl_Layer = 3;
-			outTexcoord = vertTexcoord[1];
+			geoTexcoord = vertTexcoord[1];
 			gl_Position = pos[1];
 			EmitVertex();
 			
 			gl_Layer = 3;
-			outTexcoord = vertTexcoord[2];
+			geoTexcoord = vertTexcoord[2];
 			gl_Position = pos[2];
 			EmitVertex();
 			EndPrimitive();

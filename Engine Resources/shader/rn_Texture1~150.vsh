@@ -13,30 +13,30 @@ precision highp float;
 #include "rn_Animation.vsh"
 #include "rn_Shadow.vsh"
 
-in vec3 vertPosition;
-in vec3 vertNormal;
-in vec2 vertTexcoord0;
+in vec3 attPosition;
+in vec3 attNormal;
+in vec2 attTexcoord0;
 
-out vec2 outTexcoord;
+out vec2 vertTexcoord;
 
 #ifdef RN_LIGHTING
-out vec3 outNormal;
-out vec3 outPosition;
+out vec3 vertNormal;
+out vec3 vertPosition;
 #endif
 
 void main()
 {
-	outTexcoord = vertTexcoord0;
+	vertTexcoord = attTexcoord0;
 
-	vec4 position = rn_Animate(vec4(vertPosition, 1.0));
-	vec4 normal   = rn_Animate(vec4(vertNormal, 0.0));
+	vec4 position = rn_Animate(vec4(attPosition, 1.0));
+	vec4 normal   = rn_Animate(vec4(attNormal, 0.0));
 
 	normal.w = 0.0;
 	position.w = 1.0;
 	
 #ifdef RN_LIGHTING
-	outNormal = (matModel * normal).xyz;
-	outPosition = (matModel * position).xyz;
+	vertNormal = (matModel * normal).xyz;
+	vertPosition = (matModel * position).xyz;
 #endif
 	
 #if defined(RN_DIRECTIONAL_SHADOWS) && defined(RN_LIGHTING)

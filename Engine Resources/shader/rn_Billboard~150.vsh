@@ -12,27 +12,27 @@ precision highp float;
 #include "rn_Matrices.vsh"
 #include "rn_Shadow.vsh"
 
-in vec2 vertPosition;
-in vec2 vertTexcoord0;
-in float vertNormal;
+in vec2 attPosition;
+in vec2 attTexcoord0;
+in float attNormal;
 
-out vec2 outTexcoord;
+out vec2 vertTexcoord;
 
 #ifdef RN_LIGHTING
-out vec3 outNormal;
-out vec3 outPosition;
+out vec3 vertNormal;
+out vec3 vertPosition;
 #endif
 
 void main()
 {
-	outTexcoord = vertTexcoord0;
+	vertTexcoord = attTexcoord0;
 	
 	vec4 normal = vec4(1.0, 0.0, 0.0, 0.0);
-	vec4 position = vec4(vertPosition, 0.0, 1.0);
+	vec4 position = vec4(attPosition, 0.0, 1.0);
 	
 #ifdef RN_LIGHTING
-	outNormal = (matModel * normal).xyz;
-	outPosition = (matModel * position).xyz;
+	vertNormal = (matModel * normal).xyz;
+	vertPosition = (matModel * position).xyz;
 #endif
 	
 #if defined(RN_DIRECTIONAL_SHADOWS) && defined(RN_LIGHTING)

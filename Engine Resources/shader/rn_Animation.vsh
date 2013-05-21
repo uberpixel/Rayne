@@ -15,19 +15,19 @@
 #define RN_MAX_MATBONES 60
 #endif
 
-in vec4 vertBoneWeights;
-in vec4 vertBoneIndices;
+in vec4 attBoneWeights;
+in vec4 attBoneIndices;
 
 uniform mat4 matBones[RN_MAX_MATBONES];
 
 vec4 rn_Animate(vec4 position)
 {
-	vec4 pos1 = matBones[int(vertBoneIndices.x)] * position;
-	vec4 pos2 = matBones[int(vertBoneIndices.y)] * position;
-	vec4 pos3 = matBones[int(vertBoneIndices.z)] * position;
-	vec4 pos4 = matBones[int(vertBoneIndices.w)] * position;
+	vec4 pos1 = matBones[int(attBoneIndices.x)] * position;
+	vec4 pos2 = matBones[int(attBoneIndices.y)] * position;
+	vec4 pos3 = matBones[int(attBoneIndices.z)] * position;
+	vec4 pos4 = matBones[int(attBoneIndices.w)] * position;
 
-	vec4 pos = pos1 * vertBoneWeights.x + pos2 * vertBoneWeights.y + pos3 * vertBoneWeights.z + pos4 * vertBoneWeights.w;
+	vec4 pos = pos1 * attBoneWeights.x + pos2 * attBoneWeights.y + pos3 * attBoneWeights.z + pos4 * attBoneWeights.w;
 	pos.w = 1.0;
 
 	return pos;

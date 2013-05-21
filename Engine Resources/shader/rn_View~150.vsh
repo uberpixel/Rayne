@@ -11,9 +11,9 @@ precision highp float;
 
 #include "rn_Matrices.vsh"
 
-in vec2 vertPosition;
+in vec2 attPosition;
 
 void main()
 {
-	gl_Position = matProjViewModel * vec4(vertPosition, 1.0, 1.0);
+	gl_Position = matProjViewModel * vec4(attPosition, 1.0, 1.0);
 }

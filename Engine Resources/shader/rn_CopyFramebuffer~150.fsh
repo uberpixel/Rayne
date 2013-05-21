@@ -11,11 +11,11 @@ precision highp float;
 
 uniform sampler2D targetmap0;
 
-in vec2 texcoord;
+in vec2 vertTexcoord;
 out vec4 fragColor0;
 
 void main()
 {
-	vec4 color0 = texture(targetmap0, texcoord);
+	vec4 color0 = texture(targetmap0, vertTexcoord);
 	fragColor0 = color0; // pow(color0, vec4(0.454545455));
 }

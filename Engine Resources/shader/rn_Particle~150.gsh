@@ -14,36 +14,36 @@ layout(triangle_strip, max_vertices = 4) out;
 
 uniform mat4 matProj;
 
-in vec2 geoSize[1];
-in vec4 geoColor[1];
+in vec2 vertSize[1];
+in vec4 vertColor[1];
 
-out vec4 fragColor;
-out vec2 texCoord;
+out vec4 geoColor;
+out vec2 geoTexcoord;
 
 void main()
 {
 	vec4 base = gl_in[0].gl_Position;
-	vec2 size = geoSize[0] * vec2(0.5);
+	vec2 size = vertSize[0] * vec2(0.5);
 
 	gl_Position = matProj * (base + vec4(size.x, size.y, 0.0, 0.0));
-	texCoord = vec2(0.0, 1.0);
-	fragColor = geoColor[0];
+	geoTexcoord = vec2(0.0, 1.0);
+	geoColor = vertColor[0];
 
 	EmitVertex();
 
 	gl_Position = matProj * (base + vec4(-size.x, size.y, 0.0, 0.0));
-	texCoord = vec2(0.0, 0.0);
-	fragColor = geoColor[0];
+	geoTexcoord = vec2(0.0, 0.0);
+	geoColor = vertColor[0];
 	EmitVertex();
 
 	gl_Position = matProj * (base + vec4(size.x, -size.y, 0.0, 0.0));
-	texCoord = vec2(1.0, 1.0);
-	fragColor = geoColor[0];
+	geoTexcoord = vec2(1.0, 1.0);
+	geoColor = vertColor[0];
 	EmitVertex();
 
 	gl_Position = matProj * (base + vec4(-size.x, -size.y, 0.0, 0.0));
-	texCoord = vec2(1.0, 0.0);
-	fragColor = geoColor[0];
+	geoTexcoord = vec2(1.0, 0.0);
+	geoColor = vertColor[0];
 	EmitVertex();
 
 	EndPrimitive();
