@@ -55,5 +55,5 @@ void main()
 	rn_ShadowDir1(position);
 #endif
 	
-	gl_Position = matProjViewModel * vec4(position.xyz, 1.0);
+	gl_Position = matProjViewModel * position;
 }
