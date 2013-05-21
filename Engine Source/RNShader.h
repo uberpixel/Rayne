@@ -102,7 +102,16 @@ namespace RN
 	
 	class Shader : public Object
 	{
-	public:		
+	public:
+		enum class ShaderType
+		{
+			VertexShader,
+			FragmentShader,
+			GeometryShader,
+			TessellationControlShader,
+			TessellationEvaluationShader
+		};
+		
 		RNAPI Shader();
 		RNAPI Shader(const std::string& shader);
 		RNAPI virtual ~Shader();
@@ -115,14 +124,8 @@ namespace RN
 		RNAPI void Define(const std::string& define, float value);
 		RNAPI void Undefine(const std::string& define);
 		
-		RNAPI void SetVertexShader(const std::string& path);
-		RNAPI void SetVertexShader(File *file);
-		
-		RNAPI void SetFragmentShader(const std::string& path);
-		RNAPI void SetFragmentShader(File *file);
-		
-		RNAPI void SetGeometryShader(const std::string& path);
-		RNAPI void SetGeometryShader(File *file);
+		RNAPI void SetShaderForType(const std::string& path, ShaderType type);
+		RNAPI void SetShaderForType(File *file, ShaderType type);
 		
 		RNAPI ShaderProgram *ProgramOfType(uint32 type);
 		RNAPI ShaderProgram *ProgramWithLookup(const ShaderLookup& lookup);
@@ -130,16 +133,54 @@ namespace RN
 		RNAPI bool SupportsProgramOfType(uint32 type);
 		
 	private:
-		void SetShaderForType(const std::string& path, GLenum type);
-		void SetShaderForType(File *file, GLenum type);
+		struct DebugMarker
+		{
+			DebugMarker(uint32 tline, uint32 toffset, File *tfile)
+			{
+				line   = tline;
+				offset = toffset;
+				file   = tfile->Name() + "." + tfile->Extension();
+			}
+			
+			DebugMarker(uint32 tline, uint32 toffset, const std::string& tfile)
+			{
+				line   = tline;
+				offset = toffset;
+				file   = tfile;
+			}
+			
+			uint32 line;
+			uint32 offset;
+			std::string file;
+		};
+		
+		struct PreProcessedFile
+		{
+			std::string data;
+			std::string fullpath;
+			std::vector<DebugMarker> marker;
+			uint32 lines;
+			uint32 offset;
+		};
+		
+		enum IncludeMode
+		{
+			CurrentDir,
+			IncludeDir
+		};
+		
 		void AddDefines();
 		
 		std::string PreProcessedShaderSource(const std::string& source);
-		std::string IncludeShader(File *source, const std::string& name);
-		std::string PreProcessFile(File *file);
 		
-		void CompileShader(GLenum type, GLuint *outShader);
+		void IncludeShader(const std::string& name, IncludeMode mode, File *parent, PreProcessedFile& output);
+		void PreProcessFile(File *file, PreProcessedFile& output);
+		
+		void CompileShader(ShaderType type, const std::string& file, GLuint *outShader);
 		void DumpLinkStatusAndDie(ShaderProgram *program);
+		
+		GLenum GLTypeForShaderType(ShaderType type);
+		DebugMarker ResolveFileForLine(ShaderType type, uint32 line);
 		
 		std::vector<ShaderDefine> _defines;
 		std::vector<ShaderDefine> _temporaryDefines;
@@ -149,12 +190,15 @@ namespace RN
 		
 		std::string _vertexFile;
 		std::string _vertexShader;
+		std::vector<DebugMarker> _vertexMarker;
 		
 		std::string _fragmentFile;
 		std::string _fragmentShader;
+		std::vector<DebugMarker> _fragmentMarker;
 		
 		std::string _geometryFile;
 		std::string _geometryShader;
+		std::vector<DebugMarker> _geometryMarker;
 		
 		RNDefineMeta(Shader, Object)
 	};

@@ -314,8 +314,8 @@ namespace TG
 	{
 		// Ground
 		RN::Shader *terrainShader = new RN::Shader();
-		terrainShader->SetFragmentShader("shader/rn_Terrain.fsh");
-		terrainShader->SetVertexShader("shader/rn_Texture1.vsh");
+		terrainShader->SetShaderForType("shader/rn_Terrain.fsh", RN::Shader::ShaderType::FragmentShader);
+		terrainShader->SetShaderForType("shader/rn_Texture1.vsh", RN::Shader::ShaderType::VertexShader);
 		
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
 		ground->MaterialAtIndex(0, 0)->SetShader(terrainShader);

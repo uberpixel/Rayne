@@ -26,8 +26,8 @@ namespace RN
 		_supportedPrograms = 0;
 		AddDefines();
 		
-		SetVertexShader(PathManager::PathForName(shader + ".vsh"));
-		SetFragmentShader(PathManager::PathForName(shader + ".fsh"));
+		SetShaderForType(PathManager::PathForName(shader + ".vsh"), ShaderType::VertexShader);
+		SetShaderForType(PathManager::PathForName(shader + ".fsh"), ShaderType::FragmentShader);
 		
 #if GL_GEOMETRY_SHADER
 		std::string path = "";
@@ -41,7 +41,7 @@ namespace RN
 		}
 		
 		if(path.length() > 0)
-			SetGeometryShader(path);
+			SetShaderForType(path, ShaderType::GeometryShader);
 #endif
 		
 		ProgramOfType(ShaderProgram::TypeNormal);
@@ -169,35 +169,36 @@ namespace RN
 		return data;
 	}
 	
-	void Shader::CompileShader(GLenum type, GLuint *outShader)
+	void Shader::CompileShader(ShaderType type, const std::string& file, GLuint *outShader)
 	{
 		std::string source;
 		
 		switch(type)
 		{
-			case GL_VERTEX_SHADER:
+			case ShaderType::VertexShader:
 				_temporaryDefines.emplace_back(ShaderDefine("RN_VERTEX_SHADER", "1"));
 				source = PreProcessedShaderSource(_vertexShader);
 				_temporaryDefines.pop_back();
 				break;
 				
-			case GL_FRAGMENT_SHADER:
+			case ShaderType::FragmentShader:
 				_temporaryDefines.emplace_back(ShaderDefine("RN_FRAGMENT_SHADER", "1"));
 				source = PreProcessedShaderSource(_fragmentShader);
 				_temporaryDefines.pop_back();
 				break;
 				
-#ifdef GL_GEOMETRY_SHADER
-			case GL_GEOMETRY_SHADER:
+			case ShaderType::GeometryShader:
 				_temporaryDefines.emplace_back(ShaderDefine("RN_GEOMETRY_SHADER", "1"));
 				source = PreProcessedShaderSource(_geometryShader);
 				_temporaryDefines.pop_back();
 				break;
-#endif
+				
+			default:
+				throw ErrorException(0);
 		}
 		
 		const GLchar *data = source.c_str();
-		GLuint shader = glCreateShader(type);
+		GLuint shader = glCreateShader(GLTypeForShaderType(type));
 		
 		glShaderSource(shader, 1, &data, NULL);
 		glCompileShader(shader);
@@ -212,35 +213,65 @@ namespace RN
 		{
 			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
 			
-			GLchar *log = new GLchar[length];
-			glGetShaderInfoLog(shader, length, &length, log);
+			char *log = new char[length];
+			glGetShaderInfoLog(shader, length, &length, (GLchar *)log);
 			glDeleteShader(shader);
 			
 			*outShader = 0;
+
+			std::string result(log);
+			std::string tlog = "Failed to compile " + file + ".\n" + result;
 			
-			std::string compilerLog = std::string((char *)log) + "\nShader source:\n" + source;
-			delete [] log;
+			// Parse the error
+			std::regex regex("ERROR: [0-9]{0,}:[0-9]{0,}: .*\n", std::regex_constants::ECMAScript | std::regex_constants::icase);
 			
-			std::string tlog;
-			
-			switch(type)
+			if(std::regex_search(result, regex))
 			{
-				case GL_VERTEX_SHADER:
-					tlog = "Failed to compile " + _vertexFile + ".\n";
-					break;
+				std::regex lineRegex("[0-9]{0,}:[0-9]{0,}:", std::regex_constants::ECMAScript | std::regex_constants::icase);
+				std::string parsedError = "";
+				
+				for(auto i=std::sregex_iterator(result.begin(), result.end(), regex); i!=std::sregex_iterator(); i++)
+				{
+					std::string match = i->str();
+					std::smatch lineMatch;
 					
-				case GL_FRAGMENT_SHADER:
-					tlog = "Failed to compile " + _fragmentFile + ".\n";
-					break;
+					std::regex_search(match, lineMatch, lineRegex);
+					std::string lineString = lineMatch.str();
 					
-#ifdef GL_GEOMETRY_SHADER
-				case GL_GEOMETRY_SHADER:
-					tlog = "Failed to compile " + _geometryFile + ".\n";
-					break;
-#endif
+					bool skippedColumn = false;
+					uint32 line = 0;
+					
+					for(size_t i=0; i<lineString.length()-1; i++)
+					{
+						if(!skippedColumn && lineString[i] == ':')
+						{
+							skippedColumn = true;
+							continue;
+						}
+						
+						if(skippedColumn)
+						{
+							std::string temp = lineString.substr(i, (lineString.length() - 1) - i);
+							line = atoi(temp.c_str());
+							
+							break;
+						}
+					}
+					
+					
+					DebugMarker marker = ResolveFileForLine(type, line);
+					char buffer[32];
+					
+					sprintf(buffer, "%u", marker.line);
+					parsedError += marker.file + " " + buffer + ", Error: " + match.substr(lineString.length() + 8) + "\n";
+				}
+				
+				result = parsedError;
 			}
 			
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, tlog, compilerLog);
+			// Clean up and throw the exception
+			delete [] log;
+			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, tlog, result);
 		}
 	}
 	
@@ -315,23 +346,21 @@ namespace RN
 		
 		if(_vertexShader.length() > 0)
 		{
-			CompileShader(GL_VERTEX_SHADER, &shader[0]);
+			CompileShader(ShaderType::VertexShader, _vertexFile, &shader[0]);
 			glAttachShader(program->program, shader[0]);
 		}
 		
 		if(_fragmentShader.length() > 0)
 		{
-			CompileShader(GL_FRAGMENT_SHADER, &shader[1]);
+			CompileShader(ShaderType::FragmentShader, _fragmentFile, &shader[1]);
 			glAttachShader(program->program, shader[1]);
 		}
 		
-#ifdef GL_GEOMETRY_SHADER
 		if(_geometryShader.length() > 0)
 		{
-			CompileShader(GL_GEOMETRY_SHADER, &shader[2]);
+			CompileShader(ShaderType::GeometryShader, _geometryFile, &shader[2]);
 			glAttachShader(program->program, shader[2]);
 		}
-#endif
 		
 		// Link the program
 		glLinkProgram(program->program);
@@ -339,7 +368,7 @@ namespace RN
 		
 		for(int i=0; i<3; i++)
 		{
-			if(shader[i] != 0)
+			if(shader[i])
 			{
 				glDetachShader(program->program, shader[i]);
 				glDeleteShader(shader[i]);
@@ -506,117 +535,158 @@ namespace RN
 	// MARK: Setter
 	// ---------------------
 	
-	void Shader::SetVertexShader(const std::string& path)
-	{
-		SetShaderForType(path, GL_VERTEX_SHADER);
-	}
-	
-	void Shader::SetVertexShader(File *file)
-	{
-		SetShaderForType(file, GL_VERTEX_SHADER);
-	}
-	
-	void Shader::SetFragmentShader(const std::string& path)
-	{
-		SetShaderForType(path, GL_FRAGMENT_SHADER);
-	}
-	
-	void Shader::SetFragmentShader(File *file)
-	{
-		SetShaderForType(file, GL_FRAGMENT_SHADER);
-	}
-	
-	void Shader::SetGeometryShader(const std::string& path)
-	{
-#ifdef GL_GEOMETRY_SHADER
-		SetShaderForType(path, GL_GEOMETRY_SHADER);
-#else
-		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
-#endif
-	}
-	
-	void Shader::SetGeometryShader(File *file)
-	{
-#ifdef GL_GEOMETRY_SHADER
-		SetShaderForType(file, GL_GEOMETRY_SHADER);
-#else
-		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
-#endif
-	}
-	
-	std::string Shader::IncludeShader(File *source, const std::string& name)
+	void Shader::IncludeShader(const std::string& name, IncludeMode mode, File *parent, PreProcessedFile& output)
 	{
 		File *includeFile = 0;
 		
 		try
 		{
-			std::string path = PathManager::PathForName(PathManager::Join(source->Path(), name));
+			std::string path = PathManager::PathForName(PathManager::Join(parent->Path(), name));
 			includeFile = new File(path);
 			includeFile->Autorelease();
 		}
 		catch(ErrorException e)
 		{
-			throw ErrorException(e.Error(), "Couldn't include file " + name, "Failed to pre-process " + source->Name() + "." + source->Extension());
+			throw ErrorException(e.Error(), "Couldn't include file " + name, "Failed to pre-process " + parent->Name() + "." + parent->Extension());
 		}
 		
-		
-		return PreProcessFile(includeFile);
+		output.fullpath = includeFile->FullPath();
+		PreProcessFile(includeFile, output);
 	}
 	
-	std::string Shader::PreProcessFile(File *file)
+	void Shader::PreProcessFile(File *file, PreProcessedFile& output)
 	{
 		std::string data = file->String();
-		size_t index = 0;
+		size_t index = -1;
 		
-		// Search for includes files
-		while((index = data.find("#include \"", index)) != std::string::npos)
+		uint32 lines = 0;
+		uint32 offset = 0;
+		
+		bool atEnd = false;
+		output.marker.push_back(DebugMarker(0, offset, file));
+		
+		// Scan the file line by line...
+		do
 		{
-			std::string::iterator iterator = data.begin() + (index + 10);
-			size_t length = 0;
-			while(*iterator != '"')
+			if(atEnd)
 			{
-				length ++;
-				iterator ++;
+				lines ++;
+				offset ++;
+				continue;
 			}
 			
-			std::string name = data.substr(index + 10, length);
-			data.erase(index, length + 11);
-			data.insert(index, IncludeShader(file, name));
-		}
+			size_t next = data.find("\n", index + 1);
+			size_t include = data.find("#include", index + 1);
+			
+			if(include == std::string::npos)
+			{
+				lines ++;
+				offset ++;
+				atEnd = true;
+				
+				continue;
+			}
+			else
+			if(include < next)
+			{
+				size_t begin = include + 8;
+				while(data[begin] == ' ')
+					begin ++;
+				
+				IncludeMode mode;
+				switch(data[begin])
+				{
+					case '"':
+						mode = IncludeMode::CurrentDir;
+						begin ++;
+						break;
+						
+					case '<':
+						mode = IncludeMode::IncludeDir;
+						begin ++;
+						break;
+						
+					default:
+						throw ErrorException(0);
+						break;
+				}
+				
+				size_t end = 0;
+				switch(mode)
+				{
+					case IncludeMode::CurrentDir:
+						end = data.find("\"", begin);
+						break;
+						
+					case IncludeMode::IncludeDir:
+						end = data.find(">", begin);
+						break;
+				}
+				
+				if(end == std::string::npos)
+					throw ErrorException(0);
+				
+				// Include the file
+				std::string name = data.substr(begin, end - begin);
+				data.erase(include, (end + 1) - include);
+				
+				PreProcessedFile result;
+				IncludeShader(name, mode, file, result);
+				
+				data.insert(include, result.data);
+				
+				// Copy the markers over
+				for(const DebugMarker& marker : result.marker)
+				{
+					output.marker.emplace_back(DebugMarker(lines + marker.line, marker.offset, marker.file));
+				}
+				
+				lines  += result.lines;
+				index  += result.data.length();
+				
+				output.marker.emplace_back(DebugMarker(lines, offset, file));
+			}
+			
+			lines ++;
+			offset ++;
+		} while((index = data.find("\n", index + 1)) != std::string::npos);
 		
-		return data;
+		output.data = std::move(data);
+		output.lines = lines;
 	}
 	
-	void Shader::SetShaderForType(File *file, GLenum type)
+	void Shader::SetShaderForType(File *file, ShaderType type)
 	{		
 		// Preprocess the shader
-		std::string data = PreProcessFile(file);
+		PreProcessedFile result;
+		PreProcessFile(file, result);
 		
 		// Check what program types the shader supports
-		_supportedPrograms |= (data.find("#ifdef RN_INSTANCING") != std::string::npos) ? (ShaderProgram::TypeInstanced) : 0;
-		_supportedPrograms |= (data.find("#ifdef RN_ANIMATION") != std::string::npos) ? (ShaderProgram::TypeAnimated) : 0;
-		_supportedPrograms |= (data.find("#ifdef RN_LIGHTING") != std::string::npos) ? (ShaderProgram::TypeLighting) : 0;
-		_supportedPrograms |= (data.find("#ifdef RN_DISCARD") != std::string::npos) ? (ShaderProgram::TypeDiscard) : 0;
-		_supportedPrograms |= (data.find("#ifdef RN_DIRECTIONAL_SHADOWS") != std::string::npos) ? (ShaderProgram::TypeDirectionalShadows) : 0;
+		_supportedPrograms |= (result.data.find("#ifdef RN_INSTANCING") != std::string::npos) ? (ShaderProgram::TypeInstanced) : 0;
+		_supportedPrograms |= (result.data.find("#ifdef RN_ANIMATION") != std::string::npos) ? (ShaderProgram::TypeAnimated) : 0;
+		_supportedPrograms |= (result.data.find("#ifdef RN_LIGHTING") != std::string::npos) ? (ShaderProgram::TypeLighting) : 0;
+		_supportedPrograms |= (result.data.find("#ifdef RN_DISCARD") != std::string::npos) ? (ShaderProgram::TypeDiscard) : 0;
+		_supportedPrograms |= (result.data.find("#ifdef RN_DIRECTIONAL_SHADOWS") != std::string::npos) ? (ShaderProgram::TypeDirectionalShadows) : 0;
 		
 		switch(type)
 		{
-			case GL_VERTEX_SHADER:
-				_vertexShader = data;
+			case ShaderType::VertexShader:
+				_vertexShader = std::move(result.data);
+				_vertexMarker = std::move(result.marker);
 				_vertexFile   = file->Name() + "." + file->Extension();
 				break;
 				
-			case GL_FRAGMENT_SHADER:
-				_fragmentShader = data;
+			case ShaderType::FragmentShader:
+				_fragmentShader = std::move(result.data);
+				_fragmentMarker = std::move(result.marker);
 				_fragmentFile   = file->Name() + "." + file->Extension();
 				break;
 				
-#ifdef GL_GEOMETRY_SHADER
-			case GL_GEOMETRY_SHADER:
-				_geometryShader = data;
+			case ShaderType::GeometryShader:
+				_geometryShader = std::move(result.data);
+				_geometryMarker = std::move(result.marker);
 				_geometryFile   = file->Name() + "." + file->Extension();
 				break;
-#endif
 				
 			default:
 				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
@@ -624,10 +694,71 @@ namespace RN
 		}
 	}
 	
-	void Shader::SetShaderForType(const std::string& path, GLenum type)
+	void Shader::SetShaderForType(const std::string& path, ShaderType type)
 	{
 		File *file = new File(path);
 		SetShaderForType(file, type);
 		file->Release();
+	}
+	
+	// ---------------------
+	// MARK: -
+	// MARK: helper
+	// ---------------------
+	
+	GLenum Shader::GLTypeForShaderType(ShaderType type)
+	{
+		switch(type)
+		{
+			case ShaderType::VertexShader:
+				return GL_VERTEX_SHADER;
+				
+			case ShaderType::FragmentShader:
+				return GL_FRAGMENT_SHADER;
+				
+			case ShaderType::GeometryShader:
+				return GL_GEOMETRY_SHADER;
+				
+			default:
+				break;
+		}
+		
+		throw ErrorException(0);
+	}
+	
+	Shader::DebugMarker Shader::ResolveFileForLine(ShaderType type, uint32 line)
+	{
+		std::vector<DebugMarker>& markers = _vertexMarker;
+		DebugMarker closestMarker = markers[0];
+		
+		switch(type)
+		{
+			case ShaderType::VertexShader:
+				markers = _vertexMarker;
+				break;
+				
+			case ShaderType::FragmentShader:
+				markers = _fragmentMarker;
+				break;
+				
+			case ShaderType::GeometryShader:
+				markers = _geometryMarker;
+				break;
+				
+			default:
+				throw ErrorException(0);
+				break;
+		}
+		
+		for(const DebugMarker& marker : markers)
+		{
+			if(marker.line > line)
+				break;
+			
+			closestMarker = marker;
+		}
+		
+		uint32 rline = (line - closestMarker.line) + closestMarker.offset;
+		return DebugMarker(rline, 0, closestMarker.file);
 	}
 }

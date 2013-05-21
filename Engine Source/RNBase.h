@@ -29,6 +29,7 @@
 #include <tuple>
 #include <chrono>
 #include <utility>
+#include <regex>
 #include <thread>
 #include <future>
 #include <mutex>
