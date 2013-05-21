@@ -100,7 +100,7 @@ namespace RN
 	{
 		uint32 tid = __ThreadAtomicIDs.fetch_add(1);
 		char buffer[32];
-		sprintf(buffer, "Thread %u", tid);
+		sprintf(buffer, "RN::Thread %u", tid);
 		
 		_name = std::string(buffer);
 	}
@@ -115,6 +115,17 @@ namespace RN
 			
 			try
 			{
+				_mutex.Lock();
+				
+#if RN_PLATFORM_MAC_OS
+				pthread_setname_np(_name.c_str());
+#endif
+#if RN_PLATFORM_LINUX
+				pthread_setname_np(pthread_self(), _name.c_str());
+#endif
+				
+				_mutex.Unlock();
+				
 				_function();
 			}
 			catch (ErrorException e)
