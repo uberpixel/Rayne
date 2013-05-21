@@ -559,15 +559,17 @@ namespace RN
 		std::string data = file->String();
 		size_t index = -1;
 		
-		uint32 lines = 0;
+		uint32 lines = output.offset;
 		uint32 offset = 0;
 		
 		bool atEnd = false;
-		output.marker.push_back(DebugMarker(0, offset, file));
+		output.marker.push_back(DebugMarker(lines, offset, file));
 		
 		// Scan the file line by line...
 		do
 		{
+			index ++;
+			
 			if(atEnd)
 			{
 				lines ++;
@@ -575,8 +577,8 @@ namespace RN
 				continue;
 			}
 			
-			size_t next = data.find("\n", index + 1);
-			size_t include = data.find("#include", index + 1);
+			size_t next = data.find("\n", index);
+			size_t include = data.find("#include", index);
 			
 			if(include == std::string::npos)
 			{
@@ -631,15 +633,12 @@ namespace RN
 				data.erase(include, (end + 1) - include);
 				
 				PreProcessedFile result;
+				result.offset = lines;
+				
 				IncludeShader(name, mode, file, result);
 				
 				data.insert(include, result.data);
-				
-				// Copy the markers over
-				for(const DebugMarker& marker : result.marker)
-				{
-					output.marker.emplace_back(DebugMarker(lines + marker.line, marker.offset, marker.file));
-				}
+				output.marker.insert(output.marker.end(), result.marker.begin(), result.marker.end());
 				
 				lines  += result.lines;
 				index  += result.data.length();
@@ -649,16 +648,18 @@ namespace RN
 			
 			lines ++;
 			offset ++;
-		} while((index = data.find("\n", index + 1)) != std::string::npos);
+		} while((index = data.find("\n", index)) != std::string::npos);
 		
 		output.data = std::move(data);
-		output.lines = lines;
+		output.lines = (lines - 1) - output.offset;
 	}
 	
 	void Shader::SetShaderForType(File *file, ShaderType type)
 	{		
 		// Preprocess the shader
 		PreProcessedFile result;
+		result.offset = 0;
+		
 		PreProcessFile(file, result);
 		
 		// Check what program types the shader supports
@@ -749,6 +750,13 @@ namespace RN
 				throw ErrorException(0);
 				break;
 		}
+		
+		for(const DebugMarker& marker : markers)
+		{
+			printf("Marker: %u:%u, %s\n", marker.line, marker.offset, marker.file.c_str());
+		}
+		
+		printf("%s", _fragmentShader.c_str());
 		
 		for(const DebugMarker& marker : markers)
 		{
