@@ -220,7 +220,7 @@ namespace RN
 			*outShader = 0;
 
 			std::string result(log);
-			std::string tlog = "Failed to compile " + file + ".\n" + result;
+			std::string tlog = "Failed to compile " + file;
 			
 			// Parse the error
 			std::regex regex("ERROR: [0-9]{0,}:[0-9]{0,}: .*\n", std::regex_constants::ECMAScript | std::regex_constants::icase);
