@@ -180,8 +180,6 @@ vec4 rn_Lighting(vec4 color, vec3 specularity, vec3 normal, vec3 position)
 		light += rn_DirectionalLight(lightDirectionalDirection[i], lightDirectionalColor[i], normal);
 	}
 	
-	color.rgb *= light;
-	
 #ifdef RN_SPECULARITY
 	return vec4(color.rgb*light+specsum*specularity, color.a);
 #else

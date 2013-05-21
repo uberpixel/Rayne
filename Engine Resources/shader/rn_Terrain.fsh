@@ -28,7 +28,7 @@ void main()
 	vec4 color0 = texture(mTexture0, texcoord);
 
 #ifdef RN_LIGHTING
-	fragColor0 = rn_Lighting(color0, normalize(vertNormal), vertPosition, vec3(1.0));
+	fragColor0 = rn_Lighting(color0, vec3(1.0), normalize(vertNormal), vertPosition);
 #else
 	fragColor0 = color0;
 #endif
