@@ -30,19 +30,32 @@ uniform int lightDirectionalCount;
 uniform vec3 lightDirectionalDirection[10];
 uniform vec4 lightDirectionalColor[10];
 
+uniform vec3 viewPosition;
+
 uniform vec4 lightTileSize;
 uniform vec4 ambient;
 
-vec3 rn_PointLight(vec4 lightpos, vec3 lightcolor, vec3 normal, vec3 position)
+vec3 rn_PointLight(in vec3 viewdir, in vec4 lightpos, in vec3 lightcolor, in vec3 normal, in vec3 position, out vec3 specularity)
 {
 	vec3 posdiff = lightpos.xyz-position;
 	float dist = length(posdiff);
 	float attenuation = min(max(1.0-dist/lightpos.w, 0.0), 1.0);
 	
+#ifdef RN_SPECULARITY
+	if(attenuation < 0.0001)
+	{
+		specularity = vec3(0.0);
+		return vec3(0.0);
+	}
+	
+	vec3 halfvec = normalize(viewdir+posdiff);
+	specularity = pow(min(max(dot(halfvec, normal), 0.0), 1.0), 32.0)*lightcolor*attenuation;
+#endif
+	
 	return lightcolor*max(dot(normal, posdiff/dist), 0.0)*attenuation*attenuation*2.0;
 }
 
-vec3 rn_SpotLight(vec4 lightpos, vec3 lightcolor, vec4 lightdir, vec3 normal, vec3 position)
+vec3 rn_SpotLight(in vec3 viewdir, in vec4 lightpos, in vec3 lightcolor, in vec4 lightdir, in vec3 normal, in vec3 position, out vec3 specularity)
 {
 	vec3 posdiff = lightpos.xyz-position;
 	float dist = length(posdiff);
@@ -51,7 +64,20 @@ vec3 rn_SpotLight(vec4 lightpos, vec3 lightcolor, vec4 lightdir, vec3 normal, ve
 	float dirfac = dot(posdiff, lightdir.xyz);
 	
 	if(dirfac > lightdir.w)
+	{
+#ifdef RN_SPECULARITY
+		if(attenuation < 0.0001)
+		{
+			specularity = vec3(0.0);
+			return vec3(0.0);
+		}
+		
+		vec3 halfvec = normalize(viewdir+posdiff);
+		specularity = pow(min(max(dot(halfvec, normal), 0.0), 1.0), 32.0)*lightcolor*attenuation;
+#endif
+		
 		return lightcolor*max(dot(normal, posdiff), 0.0)*attenuation*attenuation;
+	}
 	
 	return vec3(0.0);
 }
@@ -66,26 +92,37 @@ vec3 rn_DirectionalLight(vec3 lightdir, vec4 lightcolor, vec3 normal)
 	else
 #endif
 		return light;
+	
+/*#ifdef RN_SPECULARITY
+	if(attenuation < 0.0001)
+	{
+		specularity = vec3(0.0);
+		return vec3(0.0);
+	}
+	
+	vec3 halfvec = normalize(viewdir+lightdir);
+	specularity = pow(min(max(dot(halfvec, normal), 0.0), 1.0), 32.0)*lightcolor*attenuation;
+#endif*/
 }
 
-vec3 rn_PointLightTiled(int index, vec3 normal, vec3 position)
+vec3 rn_PointLightTiled(in int index, in vec3 viewdir, in vec3 normal, in vec3 position, out vec3 specularity)
 {
 	vec4 lightpos   = texelFetch(lightPointListData, index);
 	vec3 lightcolor = texelFetch(lightPointListData, index + 1).xyz;
 	
-	return rn_PointLight(lightpos, lightcolor, normal, position);
+	return rn_PointLight(viewdir, lightpos, lightcolor, normal, position, specularity);
 }
 
-vec3 rn_SpotLightTiled(int index, vec3 normal, vec3 position)
+vec3 rn_SpotLightTiled(int index, vec3 viewdir, vec3 normal, vec3 position, vec3 specularity)
 {
 	vec4 lightpos   = texelFetch(lightSpotListData, index);
 	vec3 lightcolor = texelFetch(lightSpotListData, index + 1).xyz;
 	vec4 lightdir   = texelFetch(lightSpotListData, index + 2);
 	
-	return rn_SpotLight(lightpos, lightcolor, lightdir, normal, position);
+	return rn_SpotLight(viewdir, lightpos, lightcolor, lightdir, normal, position, specularity);
 }
 
-vec4 rn_Lighting(vec4 color, vec3 normal, vec3 position)
+vec4 rn_Lighting(vec4 color, vec3 specularity, vec3 normal, vec3 position)
 {
 	if(!gl_FrontFacing)
 	{
@@ -93,6 +130,8 @@ vec4 rn_Lighting(vec4 color, vec3 normal, vec3 position)
 	}
 	
 	vec3 light = ambient.rgb;
+	vec3 specsum = vec3(0.0);
+	vec3 viewdir = viewPosition-position;
 	
 #if !(defined(RN_POINT_LIGHTS_FASTPATH) || defined(RN_SPOT_LIGHTS_FASTPATH))
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
@@ -102,13 +141,18 @@ vec4 rn_Lighting(vec4 color, vec3 normal, vec3 position)
 	ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
 	for(int i=0; i<listoffset.y; i++)
 	{
-		int lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;		
-		light += rn_PointLightTiled(lightindex, normal, position);
+		int lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;
+		
+		vec3 spec;
+		light += rn_PointLightTiled(lightindex, viewdir, normal, position, spec);
+		specsum += spec;
 	}
 #else
 	for(int i=0; i<RN_POINT_LIGHTS; i++)
 	{
-		light += rn_PointLight(lightPointPosition[i], lightPointColor[i], normal, position);
+		vec3 spec;
+		light += rn_PointLight(viewdir, lightPointPosition[i], lightPointColor[i], normal, position, spec);
+		specsum += spec;
 	}
 #endif
 	
@@ -117,12 +161,17 @@ vec4 rn_Lighting(vec4 color, vec3 normal, vec3 position)
 	for(int i=0; i<listoffset.y; i++)
 	{
 		int lightindex = (texelFetch(lightSpotList, listoffset.x + i).r) * 3;
-		light += rn_SpotLightTiled(lightindex, normal, position);
+		
+		vec3 spec;
+		light += rn_SpotLightTiled(lightindex, viewdir, normal, position, spec);
+		specsum += spec;
 	}
 #else
 	for(int i=0; i<RN_SPOT_LIGHTS; i++)
 	{
-		light += rn_SpotLight(lightSpotPosition[i], lightSpotColor[i], lightSpotDirection[i], normal, position);
+		vec3 spec;
+		light += rn_SpotLight(viewdir, lightSpotPosition[i], lightSpotColor[i], lightSpotDirection[i], normal, position, spec);
+		specsum += spec;
 	}
 #endif
 	
@@ -132,6 +181,11 @@ vec4 rn_Lighting(vec4 color, vec3 normal, vec3 position)
 	}
 	
 	color.rgb *= light;
-	return color;
+	
+#ifdef RN_SPECULARITY
+	return vec4(color.rgb*light+specsum*specularity, color.a);
+#else
+	return vec4(color.rgb*light, color.a);
+#endif
 }
 #endif

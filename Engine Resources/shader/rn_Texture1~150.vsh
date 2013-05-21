@@ -22,10 +22,10 @@ out vec2 vertTexcoord;
 
 #ifdef RN_LIGHTING
 out vec3 vertPosition;
-#ifdef RN_NORMALMAP
-out mat3 vertMatInvTangent;
-#else
 out vec3 vertNormal;
+#ifdef RN_NORMALMAP
+out vec3 vertBitangent;
+out vec3 vertTangent;
 #endif
 #endif
 
@@ -40,15 +40,15 @@ void main()
 	position.w = 1.0;
 	
 #ifdef RN_LIGHTING
+	vertPosition = (matModel * position).xyz;
+	vertNormal = (matModel * normal).xyz;
+	
 	#ifdef RN_NORMALMAP
 	vec4 tangent = rn_Animate(vec4(attTangent.xyz, 0.0));
-	vertMatInvTangent[0] = normalize((matModel*tangent).xyz);
-	vertMatInvTangent[2] = normalize((matModel*normal).xyz);
-	vertMatInvTangent[1] = normalize(cross(vertMatInvTangent[0], vertMatInvTangent[2])*attTangent.w);
-	#else
-	vertNormal = (matModel * normal).xyz;
+	tangent.w = 0.0;
+	vertTangent = (matModel*tangent).xyz;
+	vertBitangent = cross(vertNormal, vertTangent)*attTangent.w;
 	#endif
-	vertPosition = (matModel * position).xyz;
 #endif
 	
 #if defined(RN_DIRECTIONAL_SHADOWS) && defined(RN_LIGHTING)

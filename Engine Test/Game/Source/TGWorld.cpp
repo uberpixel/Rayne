@@ -9,7 +9,7 @@
 #include "TGWorld.h"
 
 #define TGWorldFeatureLights        1
-#define TGWorldFeatureNormalMapping 1
+#define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureInstancing    0
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		1
@@ -38,8 +38,8 @@ namespace TG
 		AddAttachment(_physicsAttachment->Autorelease());
 		
 		CreateCameras();
-		CreateWorld();
-//		CreateForest();
+//		CreateWorld();
+		CreateForest();
 		
 		RN::Input::SharedInstance()->Activate();
 	}
@@ -223,6 +223,7 @@ namespace TG
 		RN::Texture *normalmap = RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png");
 		
 		model->MaterialAtIndex(0, 3)->Define("RN_NORMALMAP");
+		model->MaterialAtIndex(0, 3)->Define("RN_SPECULARITY");
 		model->MaterialAtIndex(0, 3)->AddTexture(normalmap);
 #endif
 		
