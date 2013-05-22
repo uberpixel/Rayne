@@ -16,15 +16,15 @@
 #include "RNTexture.h"
 
 namespace RN
-{	
+{
+	class ParticleEmitter;
 	class Particle
 	{
 	public:
 		Particle();
-		Particle(const Vector3& position);
 		virtual ~Particle();
 		
-		virtual void Initialize();
+		virtual void Initialize(ParticleEmitter *emitter);
 		virtual void Update(float delta);
 		
 		float time;
@@ -38,6 +38,9 @@ namespace RN
 			Vector2 size;
 			Color color;
 		};
+		
+	protected:
+		ParticleEmitter *emitter;
 	};
 }
 

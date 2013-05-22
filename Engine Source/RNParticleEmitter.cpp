@@ -41,8 +41,6 @@ namespace RN
 	{
 		particle->lifespan = _rng->RandomFloatRange(lifespan, lifespan + lifespanVariance);
 		particle->velocity = _rng->RandomVector3Range(minVelocity, maxVelocity);
-		
-		particle->Initialize();
 	}
 	
 	void ParticleMaterial::SetGenerator(RandomNumberGenerator *generator)
@@ -168,6 +166,8 @@ namespace RN
 		for(int i=0; i<particles; i++)
 		{
 			Particle *particle = CreateParticle();
+			particle->Initialize(this);
+			
 			_material->InitializeParticle(particle);
 			
 			spawned[i] = particle;
@@ -179,7 +179,7 @@ namespace RN
 	
 	Particle *ParticleEmitter::CreateParticle()
 	{
-		return new Particle(WorldPosition());
+		return new Particle();
 	}
 	
 	void ParticleEmitter::UpdateParticles(float delta)

@@ -8,18 +8,11 @@
 
 #include "RNParticle.h"
 #include "RNRandom.h"
+#include "RNParticleEmitter.h"
 
 namespace RN
 {
 	Particle::Particle() :
-		size(Vector2(1.0f))
-	{
-		lifespan = 1.0f;
-		time = 0.0f;
-	}
-	
-	Particle::Particle(const Vector3& tposition) :
-		position(tposition),
 		size(Vector2(1.0f))
 	{
 		lifespan = 1.0f;
@@ -31,8 +24,10 @@ namespace RN
 	}
 	
 	
-	void Particle::Initialize()
+	void Particle::Initialize(ParticleEmitter *temitter)
 	{
+		emitter = temitter;
+		position = emitter->WorldPosition();
 	}
 			 
 	void Particle::Update(float delta)

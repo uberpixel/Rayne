@@ -13,7 +13,10 @@ namespace TG
 	class SmokeParticle : public RN::Particle
 	{
 	public:
-		
+		virtual void Initialize(RN::ParticleEmitter *emitter) override
+		{
+			RN::Particle::Initialize(emitter);
+		}
 	};
 	
 	class SmokeParticleEmitter : public RN::ParticleEmitter
@@ -22,7 +25,6 @@ namespace TG
 		RN::Particle *CreateParticle() override
 		{
 			SmokeParticle *particle = new SmokeParticle();
-			
 			return particle;
 		}
 	};
@@ -38,11 +40,11 @@ namespace TG
 		_material->blendSource = GL_ONE;
 		_material->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
 		_material->minVelocity = RN::Vector3(0.0f, 0.4f, 0.0f);
-		_material->minVelocity = RN::Vector3(0.0f, 4.4f, 0.0f);
+		_material->maxVelocity = RN::Vector3(0.0f, 4.4f, 0.0f);
 		
 		_emitter = new SmokeParticleEmitter();
 		_emitter->SetMaterial(_material);
-		_emitter->SetParticlesPerSecond(1000);
+		_emitter->SetParticlesPerSecond(60);
 		_emitter->SetMaxParticles(1000 * 60);
 		_emitter->group = 1;
 		
