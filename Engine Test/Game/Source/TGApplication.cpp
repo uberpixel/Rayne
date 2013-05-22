@@ -29,6 +29,9 @@ namespace TG
 		
 		RN::WindowConfiguration *configuration = configurations.ObjectAtIndex(0);
 		
+		if(RN::Kernel::SharedInstance()->ScaleFactor() <= 1.4f)
+			configuration = configurations.ObjectAtIndex(configurations.Count() - 2);
+		
 		RN::Window::SharedInstance()->SetConfiguration(configuration, 0);
 		//RN::Window::SharedInstance()->HideCursor();
 		
