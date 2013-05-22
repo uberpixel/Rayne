@@ -49,6 +49,9 @@ mat4 imatModel(int iOffset)
 uniform mat4 matModel;
 uniform mat4 matModelInverse;
 
+uniform mat4 matViewModel;
+uniform mat4 matViewModelInverse;
+
 uniform mat4 matProjViewModel;
 uniform mat4 matProjViewModelInverse;
 
