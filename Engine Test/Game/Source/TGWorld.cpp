@@ -341,47 +341,69 @@ namespace TG
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
 		model->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/sponza/lion_ddn.png"));
 		model->MaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
-		model->MaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
 		
 		model->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/sponza/background_ddn.png"));
 		model->MaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
-		model->MaterialAtIndex(0, 1)->Define("RN_SPECULARITY");
 		
 		model->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_ddn.png"));
+		model->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_spec.png"));
+		model->MaterialAtIndex(0, 2)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 2)->Define("RN_SPECULARITY");
+		model->MaterialAtIndex(0, 2)->Define("RN_SPECMAP");
 		
 		model->MaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png"));
+		model->MaterialAtIndex(0, 3)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 3)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 3)->Define("RN_SPECULARITY");
 		
 		model->MaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/sponza/vase_ddn.png"));
 		model->MaterialAtIndex(0, 4)->Define("RN_NORMALMAP");
-		model->MaterialAtIndex(0, 4)->Define("RN_SPECULARITY");
 		
 		model->MaterialAtIndex(0, 5)->AddTexture(RN::Texture::WithFile("models/sponza/chain_texture_ddn.png"));
+		model->MaterialAtIndex(0, 5)->specular = RN::Color(0.5f, 0.5f, 0.5f, 1.0f);
 		model->MaterialAtIndex(0, 5)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 5)->Define("RN_SPECULARITY");
 		
+		model->MaterialAtIndex(0, 6)->AddTexture(RN::Texture::WithFile("models/sponza/vase_plant_spec.png"));
+		model->MaterialAtIndex(0, 6)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
+		model->MaterialAtIndex(0, 6)->Define("RN_SPECMAP");
+		model->MaterialAtIndex(0, 6)->Define("RN_SPECULARITY");
+		
 		model->MaterialAtIndex(0, 7)->AddTexture(RN::Texture::WithFile("models/sponza/vase_round_ddn.png"));
+		model->MaterialAtIndex(0, 7)->AddTexture(RN::Texture::WithFile("models/sponza/vase_round_spec.png"));
+		model->MaterialAtIndex(0, 7)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 7)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 7)->Define("RN_SPECULARITY");
+		model->MaterialAtIndex(0, 7)->Define("RN_SPECMAP");
 		
 		model->MaterialAtIndex(0, 9)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_arch_ddn.png"));
+		model->MaterialAtIndex(0, 9)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_arch_spec.png"));
+		model->MaterialAtIndex(0, 9)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 9)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 9)->Define("RN_SPECULARITY");
+		model->MaterialAtIndex(0, 9)->Define("RN_SPECMAP");
 		
 		model->MaterialAtIndex(0, 11)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_b_ddn.png"));
+		model->MaterialAtIndex(0, 11)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_b_spec.png"));
+		model->MaterialAtIndex(0, 11)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 11)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 11)->Define("RN_SPECULARITY");
+		model->MaterialAtIndex(0, 11)->Define("RN_SPECMAP");
 		
 		model->MaterialAtIndex(0, 15)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_a_ddn.png"));
+		model->MaterialAtIndex(0, 15)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_a_spec.png"));
+		model->MaterialAtIndex(0, 15)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 15)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 15)->Define("RN_SPECULARITY");
+		model->MaterialAtIndex(0, 15)->Define("RN_SPECMAP");
 		
 		model->MaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_ddn.png"));
+		model->MaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_spec.png"));
+		model->MaterialAtIndex(0, 17)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 17)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 17)->Define("RN_SPECULARITY");
+		model->MaterialAtIndex(0, 17)->Define("RN_SPECMAP");
 #endif
 		
 		RN::bullet::Shape *sponzaShape = new RN::bullet::TriangelMeshShape(model);
