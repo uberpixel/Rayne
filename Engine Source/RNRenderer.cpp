@@ -861,7 +861,8 @@ namespace RN
 	void Renderer::DrawCameraStage(Camera *camera, Camera *stage)
 	{
 		Material *material = stage->Material();
-		ShaderProgram *program = material->Shader()->ProgramOfType(ShaderProgram::TypeNormal);
+		
+		ShaderProgram *program = material->Shader()->ProgramWithLookup(material->Lookup() + ShaderLookup(ShaderProgram::TypeNormal));
 		
 		_currentCamera = stage;
 		_textureUnit = 0;

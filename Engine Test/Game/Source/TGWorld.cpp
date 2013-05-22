@@ -12,6 +12,7 @@
 #define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		1
+#define TGWorldFeatureBloom			1
 
 #define TGWorldFeatureParticles     1
 #define TGForestFeatureTrees 500
@@ -37,8 +38,8 @@ namespace TG
 		AddAttachment(_physicsAttachment->Autorelease());
 		
 		CreateCameras();
-//		CreateWorld();
-		CreateForest();
+		CreateWorld();
+//		CreateForest();
 		
 		RN::Input::SharedInstance()->Activate();
 	}
@@ -194,6 +195,49 @@ namespace TG
 		_camera->AttachChild(_finalcam);
 		_camera->SetPriority(10);
 		_camera->Rotate(RN::Vector3(90.0f, 0.0f, 0.0f));
+		
+#ifdef TGWorldFeatureBloom
+		RN::PostProcessingPipeline *bloom = _finalcam->AddPostProcessingPipeline("Bloom");
+		
+		RN::Shader *filterBrightShader = RN::Shader::WithFile("shader/rn_FilterBright");
+		RN::Material *filterBrightMaterial = new RN::Material(filterBrightShader);
+		RN::Camera *filterBright = new RN::Camera(RN::Vector2(_camera->Frame().width, _camera->Frame().height)/4.0f, RN::TextureParameter::Format::RGBA8888, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		filterBright->SetMaterial(filterBrightMaterial);
+		
+		bloom->AddStage(filterBright, RN::RenderStage::Mode::ReUsePreviousStage);
+		
+		
+		RN::Camera *upSample = new RN::Camera(RN::Vector2(_camera->Frame().width, _camera->Frame().height), RN::TextureParameter::Format::RGBA8888, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		upSample->SetMaterial(filterBrightMaterial);
+		
+		bloom->AddStage(upSample, RN::RenderStage::Mode::ReUsePreviousStage);
+		
+		
+		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
+		
+		RN::Material *blurXMaterial = new RN::Material(blurShader);
+		blurXMaterial->Define("RN_BLURX");
+		RN::Camera *blurX = new RN::Camera(RN::Vector2(_camera->Frame().width, _camera->Frame().height), RN::TextureParameter::Format::RGBA8888, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		blurX->SetMaterial(blurXMaterial);
+		
+		bloom->AddStage(blurX, RN::RenderStage::Mode::ReUsePreviousStage);
+		
+		RN::Material *blurYMaterial = new RN::Material(blurShader);
+		blurYMaterial->Define("RN_BLURY");
+		RN::Camera *blurY = new RN::Camera(RN::Vector2(_camera->Frame().width, _camera->Frame().height), RN::TextureParameter::Format::RGBA8888, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		blurY->SetMaterial(blurYMaterial);
+		
+		bloom->AddStage(blurY, RN::RenderStage::Mode::ReUsePreviousStage);
+		
+		
+		RN::Shader *ppAddShader = RN::Shader::WithFile("shader/rn_PPAdd");
+		RN::Material *ppAddMaterial = new RN::Material(ppAddShader);
+		ppAddMaterial->AddTexture(blurY->Storage()->RenderTarget());
+		RN::Camera *ppAdd = new RN::Camera(RN::Vector2(_camera->Frame().width, _camera->Frame().height), RN::TextureParameter::Format::RGBA8888, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		ppAdd->SetMaterial(ppAddMaterial);
+		
+		bloom->AddStage(ppAdd, RN::RenderStage::Mode::ReUseCamera);
+#endif
 		
 #else
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
