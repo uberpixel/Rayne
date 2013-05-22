@@ -70,6 +70,12 @@ namespace TG
 			fpressed = false;
 		}
 		
+		RN::Texture *depthTexture = (RN::Kernel::SharedInstance()->CurrentFrame() % 2) ? _depth1Texture : _depth2Texture;
+		for(RN::RenderStorage *storage : _depthStorages)
+		{
+			storage->SetDepthTarget(depthTexture);
+		}
+		
 #if TGWorldFeatureFreeCamera
 		RN::Vector3 translation;
 		RN::Vector3 rotation;
@@ -105,8 +111,14 @@ namespace TG
 		depthparam.generateMipMaps = false;
 		depthparam.mipMaps = 0;
 		depthparam.wrapMode = RN::TextureParameter::WrapMode::Clamp;
-		RN::Texture *depthtex = new RN::Texture(depthparam);
+		
+		_depth1Texture = new RN::Texture(depthparam);
+		_depth2Texture = new RN::Texture(depthparam);
+		
+		RN::Texture *depthtex = _depth1Texture;
 		storage->SetDepthTarget(depthtex);
+		
+		_depthStorages.push_back(storage);
 		
 		RN::Shader *depthShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightDepthShader);
 		RN::Material *depthMaterial = new RN::Material(depthShader);
@@ -119,7 +131,7 @@ namespace TG
 		RN::Shader *downsampleShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleShader);
 		RN::Shader *downsampleFirstShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleFirstShader);
 		
-		uint32 flags = RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagInheritProjection;
+		uint32 flags = RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritProjection;
 		
 		// 2x
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
@@ -194,6 +206,8 @@ namespace TG
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
 		}
 		
+		_depthStorages.push_back(_finalcam->Storage());
+		
 		_camera->AttachChild(_finalcam);
 		_camera->SetPriority(10);
 		_camera->Rotate(RN::Vector3(90.0f, 0.0f, 0.0f));
@@ -219,6 +233,7 @@ namespace TG
 		RN::Camera *normalsCamera = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatComplete);
 		normalsCamera->SetMaterial(surfaceMaterial);
 		normalsCamera->Storage()->SetDepthTarget(depthtex);
+		_depthStorages.push_back(normalsCamera->Storage());
 		
 		// SSAO stage
 		RN::Texture *ssaoNoise = RN::Texture::WithFile("textures/rn_SSAONoise.png");

@@ -40,6 +40,11 @@ namespace TG
 		RN::Light *_spotLight;
 		RN::Light *_sunLight;
 		
+		RN::Texture *_depth1Texture;
+		RN::Texture *_depth2Texture;
+		
+		std::vector<RN::RenderStorage *> _depthStorages;
+		
 		Player *_player;
 	};
 }
