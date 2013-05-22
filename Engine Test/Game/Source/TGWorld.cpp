@@ -233,6 +233,8 @@ namespace TG
 		RN::Camera *normalsCamera = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatComplete);
 		normalsCamera->SetMaterial(surfaceMaterial);
 		normalsCamera->Storage()->SetDepthTarget(depthtex);
+		normalsCamera->SetClearMask(RN::Camera::ClearFlagColor);
+		
 		_depthStorages.push_back(normalsCamera->Storage());
 		
 		// SSAO stage
