@@ -86,7 +86,6 @@ namespace RN
 	public:
 		enum
 		{
-			FlagDrawTarget = (1 << 0),
 			FlagUpdateAspect = (1 << 1),
 			FlagFullscreen = (1 << 2),
 			FlagNoClear = (1 << 3),

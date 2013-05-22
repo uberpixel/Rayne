@@ -119,11 +119,13 @@ namespace TG
 		RN::Shader *downsampleShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleShader);
 		RN::Shader *downsampleFirstShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleFirstShader);
 		
+		uint32 flags = RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagInheritProjection;
+		
 		// 2x
 		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
 		downsampleMaterial2x->AddTexture(depthtex);
 		
-		RN::Camera *downsample2x = new RN::Camera(RN::Vector2(_camera->Frame().width/2, _camera->Frame().height/2), RN::TextureParameter::Format::RG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *downsample2x = new RN::Camera(_camera->Frame().Size() / 2.0f, RN::TextureParameter::Format::RG32F, flags, RN::RenderStorage::BufferFormatColor);
 		downsample2x->SetMaterial(downsampleMaterial2x);
 		
 		pipeline->AddStage(downsample2x, RN::RenderStage::Mode::ReUsePreviousStage);
@@ -132,7 +134,7 @@ namespace TG
 		RN::Material *downsampleMaterial4x = new RN::Material(downsampleShader);
 		downsampleMaterial4x->AddTexture(downsample2x->Storage()->RenderTarget());
 		
-		RN::Camera *downsample4x = new RN::Camera(RN::Vector2(_camera->Frame().width/4, _camera->Frame().height/4), RN::TextureParameter::Format::RG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *downsample4x = new RN::Camera(_camera->Frame().Size() / 4.0f, RN::TextureParameter::Format::RG32F, flags, RN::RenderStorage::BufferFormatColor);
 		downsample4x->SetMaterial(downsampleMaterial4x);
 		
 		pipeline->AddStage(downsample4x, RN::RenderStage::Mode::ReUsePreviousStage);
@@ -141,7 +143,7 @@ namespace TG
 		RN::Material *downsampleMaterial8x = new RN::Material(downsampleShader);
 		downsampleMaterial8x->AddTexture(downsample4x->Storage()->RenderTarget());
 		
-		RN::Camera *downsample8x = new RN::Camera(RN::Vector2(_camera->Frame().width/8, _camera->Frame().height/8), RN::TextureParameter::Format::RG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *downsample8x = new RN::Camera(_camera->Frame().Size() / 8.0f, RN::TextureParameter::Format::RG32F, flags, RN::RenderStorage::BufferFormatColor);
 		downsample8x->SetMaterial(downsampleMaterial8x);
 		
 		pipeline->AddStage(downsample8x, RN::RenderStage::Mode::ReUsePreviousStage);
@@ -150,7 +152,7 @@ namespace TG
 		RN::Material *downsampleMaterial16x = new RN::Material(downsampleShader);
 		downsampleMaterial16x->AddTexture(downsample8x->Storage()->RenderTarget());
 		
-		RN::Camera *downsample16x = new RN::Camera(RN::Vector2(_camera->Frame().width/16, _camera->Frame().height/16), RN::TextureParameter::Format::RG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *downsample16x = new RN::Camera(_camera->Frame().Size() / 16.0f, RN::TextureParameter::Format::RG32F, flags, RN::RenderStorage::BufferFormatColor);
 		downsample16x->SetMaterial(downsampleMaterial16x);
 		
 		pipeline->AddStage(downsample16x, RN::RenderStage::Mode::ReUsePreviousStage);
@@ -159,7 +161,7 @@ namespace TG
 		RN::Material *downsampleMaterial32x = new RN::Material(downsampleShader);
 		downsampleMaterial32x->AddTexture(downsample16x->Storage()->RenderTarget());
 		
-		RN::Camera *downsample32x = new RN::Camera(RN::Vector2(_camera->Frame().width/32, _camera->Frame().height/32), RN::TextureParameter::Format::RG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *downsample32x = new RN::Camera(_camera->Frame().Size() / 32.0f, RN::TextureParameter::Format::RG32F, flags, RN::RenderStorage::BufferFormatColor);
 		downsample32x->SetMaterial(downsampleMaterial32x);
 		
 		pipeline->AddStage(downsample32x, RN::RenderStage::Mode::ReUsePreviousStage);
@@ -171,7 +173,7 @@ namespace TG
 			RN::Material *downsampleMaterial64x = new RN::Material(downsampleShader);
 			downsampleMaterial64x->AddTexture(downsample32x->Storage()->RenderTarget());
 			
-			downsample64x = new RN::Camera(RN::Vector2(_camera->Frame().width/64, _camera->Frame().height/64), RN::TextureParameter::Format::RG32F, RN::Camera::FlagUpdateStorageFrame|RN::Camera::FlagDrawTarget|RN::Camera::FlagInheritProjection, RN::RenderStorage::BufferFormatColor);
+			downsample64x = new RN::Camera(_camera->Frame().Size() / 64.0f, RN::TextureParameter::Format::RG32F, flags, RN::RenderStorage::BufferFormatColor);
 			downsample64x->SetMaterial(downsampleMaterial64x);
 			
 			pipeline->AddStage(downsample64x, RN::RenderStage::Mode::ReUsePreviousStage);
