@@ -25,6 +25,8 @@ namespace RN
 		lifespan = 1.0f;
 		lifespanVariance = 0.0f;
 		
+		depthwrite = false;
+		
 		_rng = new RandomNumberGenerator(RandomNumberGenerator::TypeLCG);
 		
 		SetShader(ResourcePool::SharedInstance()->ResourceWithName<class Shader>(kRNResourceKeyParticleShader));

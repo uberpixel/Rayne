@@ -15,7 +15,6 @@
 #define TGWorldFeatureBloom			1
 #define TGWorldFeatureSSAO          0
 
-#define TGWorldFeatureParticles     1
 #define TGForestFeatureTrees 500
 #define TGForestFeatureGras  10000
 
@@ -397,6 +396,8 @@ namespace TG
 		sponza->SetRotation(RN::Quaternion(RN::Vector3(0.0, 0.0, -90.0)));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
+		SmokeGrenade *smoke = new TG::SmokeGrenade();
+		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
 		RN::Skeleton *playerSkeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
@@ -409,27 +410,6 @@ namespace TG
 		_player->SetCamera(_camera);
 		
 		_camera->SetTarget(_player);
-#endif
-				
-#if TGWorldFeatureParticles
-		RN::Texture *texture = RN::Texture::WithFile("textures/particle.png");
-		
-		RN::ParticleMaterial *material = new RN::ParticleMaterial();
-		material->AddTexture(texture);
-		
-		material->lifespan = 10.0f;
-		material->minVelocity = RN::Vector3(0.0f, 0.5f, 0.0f);
-		material->maxVelocity = RN::Vector3(0.0f, 0.15f, 0.0f);
-		
-		material->discard = false;
-		material->depthwrite = false;
-		material->blending = true;
-		material->SetBlendMode(RN::Material::BlendMode::Interpolative);
-		
-		DustEmitter *emitter = new DustEmitter();
-		emitter->SetMaterial(material);
-		emitter->Cook(100.0f, 10);
-		emitter->group = 1;
 #endif
 		
 #if TGWorldFeatureLights

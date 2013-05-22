@@ -16,7 +16,7 @@
 
 #include "TGPlayer.h"
 #include "TGThirdPersonCamera.h"
-#include "TGDustEmitter.h"
+#include "TGSmokeGrenade.h"
 
 namespace TG
 {

@@ -15,10 +15,10 @@
 		E959283A170DB40600935AC8 /* librayne-bullet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9592839170DB40600935AC8 /* librayne-bullet.dylib */; };
 		E959285C170F9AEC00935AC8 /* TGPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E959285A170F9AEB00935AC8 /* TGPlayer.cpp */; };
 		E959285D170F9AEC00935AC8 /* TGPlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = E959285B170F9AEC00935AC8 /* TGPlayer.h */; };
+		E98EA255174D21B20029B82F /* TGSmokeGrenade.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E98EA253174D21B20029B82F /* TGSmokeGrenade.cpp */; };
+		E98EA256174D21B20029B82F /* TGSmokeGrenade.h in Headers */ = {isa = PBXBuildFile; fileRef = E98EA254174D21B20029B82F /* TGSmokeGrenade.h */; };
 		E9C7DB2A1710E641006AD768 /* TGThirdPersonCamera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C7DB281710E641006AD768 /* TGThirdPersonCamera.cpp */; };
 		E9C7DB2B1710E641006AD768 /* TGThirdPersonCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C7DB291710E641006AD768 /* TGThirdPersonCamera.h */; };
-		E9D3CEDF171FA84C00F4BF36 /* TGDustEmitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D3CEDD171FA84C00F4BF36 /* TGDustEmitter.cpp */; };
-		E9D3CEE0171FA84C00F4BF36 /* TGDustEmitter.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D3CEDE171FA84C00F4BF36 /* TGDustEmitter.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,10 +33,10 @@
 		E9592839170DB40600935AC8 /* librayne-bullet.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "librayne-bullet.dylib"; path = "Resources/modules/rayne-bullet/librayne-bullet.dylib"; sourceTree = "<group>"; };
 		E959285A170F9AEB00935AC8 /* TGPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGPlayer.cpp; sourceTree = "<group>"; };
 		E959285B170F9AEC00935AC8 /* TGPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGPlayer.h; sourceTree = "<group>"; };
+		E98EA253174D21B20029B82F /* TGSmokeGrenade.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGSmokeGrenade.cpp; sourceTree = "<group>"; };
+		E98EA254174D21B20029B82F /* TGSmokeGrenade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGSmokeGrenade.h; sourceTree = "<group>"; };
 		E9C7DB281710E641006AD768 /* TGThirdPersonCamera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGThirdPersonCamera.cpp; sourceTree = "<group>"; };
 		E9C7DB291710E641006AD768 /* TGThirdPersonCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGThirdPersonCamera.h; sourceTree = "<group>"; };
-		E9D3CEDD171FA84C00F4BF36 /* TGDustEmitter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGDustEmitter.cpp; sourceTree = "<group>"; };
-		E9D3CEDE171FA84C00F4BF36 /* TGDustEmitter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGDustEmitter.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,8 +81,8 @@
 				E959285B170F9AEC00935AC8 /* TGPlayer.h */,
 				E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */,
 				E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */,
-				E9D3CEDD171FA84C00F4BF36 /* TGDustEmitter.cpp */,
-				E9D3CEDE171FA84C00F4BF36 /* TGDustEmitter.h */,
+				E98EA253174D21B20029B82F /* TGSmokeGrenade.cpp */,
+				E98EA254174D21B20029B82F /* TGSmokeGrenade.h */,
 			);
 			path = Source;
 			sourceTree = "<group>";
@@ -108,7 +108,7 @@
 				E92AE1DF16B5281D00EFE1E8 /* TGWorld.h in Headers */,
 				E959285D170F9AEC00935AC8 /* TGPlayer.h in Headers */,
 				E9C7DB2B1710E641006AD768 /* TGThirdPersonCamera.h in Headers */,
-				E9D3CEE0171FA84C00F4BF36 /* TGDustEmitter.h in Headers */,
+				E98EA256174D21B20029B82F /* TGSmokeGrenade.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -200,7 +200,7 @@
 				E92AE1DE16B5281D00EFE1E8 /* TGWorld.cpp in Sources */,
 				E959285C170F9AEC00935AC8 /* TGPlayer.cpp in Sources */,
 				E9C7DB2A1710E641006AD768 /* TGThirdPersonCamera.cpp in Sources */,
-				E9D3CEDF171FA84C00F4BF36 /* TGDustEmitter.cpp in Sources */,
+				E98EA255174D21B20029B82F /* TGSmokeGrenade.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
