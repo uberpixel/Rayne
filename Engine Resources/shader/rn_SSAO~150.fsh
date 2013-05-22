@@ -19,8 +19,11 @@ float offset = 18.0;
 float falloff = 0.000002;
 float rad = 0.0006;
 
+#ifndef SSAO_SAMPLES
 #define SSAO_SAMPLES 10
-const float invSamples = -1.38/SSAO_SAMPLES;
+#endif
+
+const float invSamples = -1.38 / SSAO_SAMPLES;
 
 out vec4 fragColor0;
 
@@ -49,7 +52,7 @@ void main()
 		occluderFragment = texture(targetmap0, ep.xy + sign(dot(ray, norm)) * ray.xy);
 		depthDifference = currentPixelDepth - occluderFragment.a;
 
-		bl += step(falloff, depthDifference)*(1.0-dot(occluderFragment.xyz,norm))*(1.0-smoothstep(falloff,strength,depthDifference));
+		bl += step(falloff, depthDifference) * (1.0 - dot(occluderFragment.xyz, norm)) * (1.0 - smoothstep(falloff, strength, depthDifference));
 	}
 
 	float ao = 1.0 + bl * invSamples;
