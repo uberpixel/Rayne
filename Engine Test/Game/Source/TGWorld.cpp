@@ -70,12 +70,6 @@ namespace TG
 			fpressed = false;
 		}
 		
-		RN::Texture *depthTexture = (RN::Kernel::SharedInstance()->CurrentFrame() % 2) ? _depth1Texture : _depth2Texture;
-		for(RN::RenderStorage *storage : _depthStorages)
-		{
-			storage->SetDepthTarget(depthTexture);
-		}
-		
 #if TGWorldFeatureFreeCamera
 		RN::Vector3 translation;
 		RN::Vector3 rotation;
@@ -112,13 +106,8 @@ namespace TG
 		depthparam.mipMaps = 0;
 		depthparam.wrapMode = RN::TextureParameter::WrapMode::Clamp;
 		
-		_depth1Texture = new RN::Texture(depthparam);
-		_depth2Texture = new RN::Texture(depthparam);
-		
-		RN::Texture *depthtex = _depth1Texture;
+		RN::Texture *depthtex = new RN::Texture(depthparam);
 		storage->SetDepthTarget(depthtex);
-		
-		_depthStorages.push_back(storage);
 		
 		RN::Shader *depthShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightDepthShader);
 		RN::Material *depthMaterial = new RN::Material(depthShader);
@@ -206,8 +195,6 @@ namespace TG
 			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
 		}
 		
-		_depthStorages.push_back(_finalcam->Storage());
-		
 		_camera->AttachChild(_finalcam);
 		_camera->SetPriority(10);
 		_camera->Rotate(RN::Vector3(90.0f, 0.0f, 0.0f));
@@ -234,8 +221,6 @@ namespace TG
 		normalsCamera->SetMaterial(surfaceMaterial);
 		normalsCamera->Storage()->SetDepthTarget(depthtex);
 		normalsCamera->SetClearMask(RN::Camera::ClearFlagColor);
-		
-		_depthStorages.push_back(normalsCamera->Storage());
 		
 		// SSAO stage
 		RN::Texture *ssaoNoise = RN::Texture::WithFile("textures/rn_SSAONoise.png");
