@@ -95,7 +95,7 @@ namespace RN
 		
 		TextureParameter parameter = target->Parameter();
 		
-		parameter.filter = TextureParameter::Filter::Nearest;
+		parameter.filter = TextureParameter::Filter::Linear;
 		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
 		parameter.mipMaps = 0;
 		parameter.generateMipMaps = false;
@@ -113,7 +113,7 @@ namespace RN
 		TextureParameter parameter;
 		
 		parameter.format = format;
-		parameter.filter = TextureParameter::Filter::Nearest;
+		parameter.filter = TextureParameter::Filter::Linear;
 		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
 		parameter.mipMaps = 0;
 		parameter.generateMipMaps = false;
