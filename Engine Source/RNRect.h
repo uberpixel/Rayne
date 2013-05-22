@@ -38,6 +38,11 @@ namespace RN
 		RNAPI float Left() const;
 		RNAPI float Right() const;
 		
+		RNAPI Vector2 Size() const
+		{
+			return Vector2(width, height);
+		}
+		
 		struct
 		{
 			float x;

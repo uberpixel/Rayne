@@ -1,5 +1,5 @@
 //
-//  rn_CopyFramebuffer.vsh
+//  rn_PPCombine.vsh
 //  Rayne
 //
 //  Copyright 2013 by Überpixel. All rights reserved.
