@@ -46,7 +46,7 @@ namespace RN
 		if(png_sig_cmp((png_const_bytep)header, 0, 8))
 			return false;
 		
-		int transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_PACKING;
+		int transforms = PNG_TRANSFORM_STRIP_16 | PNG_TRANSFORM_EXPAND | PNG_TRANSFORM_PACKING | PNG_TRANSFORM_GRAY_TO_RGB;
 	
 		png_structp pngPointer = png_create_read_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
 		png_infop pngInfo = png_create_info_struct(pngPointer);

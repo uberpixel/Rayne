@@ -16,9 +16,18 @@ uniform sampler2D mTexture0;
 
 #ifdef RN_NORMALMAP
 uniform sampler2D mTexture1;
+#ifdef RN_SPECMAP && RN_SPECULARITY
+uniform sampler2D mTexture2;
+#endif
+#else
+#ifdef RN_SPECMAP && RN_SPECULARITY
+uniform sampler2D mTexture1;
+#endif
 #endif
 
+#ifdef RN_SPECULARITY
 uniform vec4 specular;
+#endif
 
 in vec2 vertTexcoord;
 
@@ -48,9 +57,29 @@ void main()
 	matTangentInv[2] = normalize(vertNormal);
 	normal = normalize(matTangentInv*normal);
 	
-	rn_Lighting(color0, specular.rgb*normalspec.a, normal, vertPosition);
+	#ifdef RN_SPECMAP && RN_SPECULARITY
+	vec3 spec = specular.rgb*texture(mTexture2, vertTexcoord).rgb;
 	#else
-	rn_Lighting(color0, specular.rgb, normalize(vertNormal), vertPosition);
+	#ifdef RN_SPECULARITY
+	vec3 spec = specular.rgb*normalspec.a;
+	#else
+	vec3 spec = vec3(0.0);
+	#endif
+	#endif
+	
+	rn_Lighting(color0, spec, normal, vertPosition);
+	
+	#else
+	#ifdef RN_SPECMAP && RN_SPECULARITY
+	vec3 spec = specular.rgb*texture(mTexture1, vertTexcoord).rgb;
+	#else
+	#ifdef RN_SPECULARITY
+	vec3 spec = specular.rgb;
+	#else
+	vec3 spec = vec3(0.0);
+	#endif
+	#endif
+	rn_Lighting(color0, spec, normalize(vertNormal), vertPosition);
 	#endif
 #endif
 	
