@@ -200,12 +200,16 @@ namespace TG
 		
 		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
 		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
+		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
 		
 		RN::Material *blurXMaterial = new RN::Material(blurShader);
 		blurXMaterial->Define("RN_BLURX");
 		
 		RN::Material *blurYMaterial = new RN::Material(blurShader);
 		blurYMaterial->Define("RN_BLURY");
+		
+		RN::Material *updownMaterial = new RN::Material(updownShader);
+		
 		
 #if TGWorldFeatureSSAO
 		// Surface normals
@@ -255,12 +259,16 @@ namespace TG
 		// Filter bright
 		RN::Shader *filterBrightShader = RN::Shader::WithFile("shader/rn_FilterBright");
 		RN::Material *filterBrightMaterial = new RN::Material(filterBrightShader);
-		RN::Camera *filterBright = new RN::Camera(_camera->Frame().Size() / 4.0f, RN::TextureParameter::Format::RGB888, RN::Camera::FlagInheritProjection | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *filterBright = new RN::Camera(_camera->Frame().Size() / 2.0f, RN::TextureParameter::Format::RGB888, RN::Camera::FlagInheritProjection | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		filterBright->SetMaterial(filterBrightMaterial);
+		
+		// Down sample
+		RN::Camera *downSample = new RN::Camera(filterBright->Frame().Size()/2.0f, RN::TextureParameter::Format::RGB888, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		downSample->SetMaterial(updownMaterial);
 		
 		// Up sample
 		RN::Camera *upSample = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGB888, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		upSample->SetMaterial(filterBrightMaterial);
+		upSample->SetMaterial(updownMaterial);
 		
 		// Blur X
 		RN::Camera *bloomBlurX = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGB888, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
@@ -272,17 +280,18 @@ namespace TG
 	
 		// Combine
 		RN::Material *bloomCombineMaterial = new RN::Material(combineShader);
-		bloomCombineMaterial->AddTexture(bloomBlurY->Storage()->RenderTarget());
+		bloomCombineMaterial->AddTexture(_finalcam->Storage()->RenderTarget());
 		
 		RN::Camera *bloomCombine = new RN::Camera(RN::Vector2(0.0f), RN::TextureParameter::Format::RGB888, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomCombine->SetMaterial(bloomCombineMaterial);
 		
 		RN::PostProcessingPipeline *bloom = _finalcam->AddPostProcessingPipeline("Bloom");
 		bloom->AddStage(filterBright, RN::RenderStage::Mode::ReUsePreviousStage);
+		bloom->AddStage(downSample, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(upSample, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomBlurX, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomBlurY, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomCombine, ssaoCombineCamera, RN::RenderStage::Mode::ReUseConnection);
+		bloom->AddStage(bloomCombine, RN::RenderStage::Mode::ReUsePreviousStage);
 #endif
 		
 #else
