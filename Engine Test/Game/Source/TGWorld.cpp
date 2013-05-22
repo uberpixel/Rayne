@@ -267,7 +267,7 @@ namespace TG
 		ssaoPipeline->AddStage(ssaoCamera, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(ssaoBlurX, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(ssaoBlurY, RN::RenderStage::Mode::ReUsePreviousStage);
-		ssaoPipeline->AddStage(ssaoCombineCamera, RN::RenderStage::Mode::ReUseCamera);
+		ssaoPipeline->AddStage(ssaoCombineCamera, RN::RenderStage::Mode::ReUsePipeline);
 #endif
 		
 #if TGWorldFeatureBloom
@@ -306,7 +306,7 @@ namespace TG
 		bloom->AddStage(upSample, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomBlurX, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomBlurY, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomCombine, RN::RenderStage::Mode::ReUsePreviousStage);
+		bloom->AddStage(bloomCombine, RN::RenderStage::Mode::ReUsePipeline);
 #endif
 		
 #else

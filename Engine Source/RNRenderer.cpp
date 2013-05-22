@@ -1282,6 +1282,7 @@ namespace RN
 		
 		// Render loop
 		DrawCamera(camera, 0, skyCubeMeshes);
+		Camera *lastPipeline = camera;
 		
 		auto pipelines = camera->PostProcessingPipelines();
 		
@@ -1307,6 +1308,10 @@ namespace RN
 						DrawCamera(stage, camera, skyCubeMeshes);
 						break;
 						
+					case RenderStage::Mode::ReUsePipeline:
+						DrawCamera(stage, lastPipeline, skyCubeMeshes);
+						break;
+						
 					case RenderStage::Mode::ReUsePreviousStage:
 						DrawCamera(stage, previous, skyCubeMeshes);
 						break;
@@ -1314,6 +1319,8 @@ namespace RN
 				
 				previous = stage;
 			}
+			
+			lastPipeline = previous;
 		}
 		
 		 if(!(previous->CameraFlags() & Camera::FlagHidden))

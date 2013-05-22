@@ -36,6 +36,7 @@ namespace RN
 			ReRender,
 			ReUseConnection,
 			ReUsePreviousStage,
+			ReUsePipeline,
 			ReUseCamera
 		};
 		
