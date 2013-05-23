@@ -16,6 +16,19 @@ namespace TG
 		virtual void Initialize(RN::ParticleEmitter *emitter) override
 		{
 			RN::Particle::Initialize(emitter);
+			position = emitter->Position()+RN::Vector3(rand()/(float)RAND_MAX-0.5f, rand()/(float)RAND_MAX-0.5f, rand()/(float)RAND_MAX-0.5f)*0.5;
+			size = 0.01f;
+			color.a = 0.5f;
+		}
+		
+		virtual void Update(float dt) override
+		{
+			RN::Vector3 dir = position-emitter->Position();
+			position += dir*dt;
+			size += dt*2.0f;
+			color.a -= dt*0.2;
+			if(color.a <= 0.0)
+				lifespan = 0.0f;
 		}
 	};
 	
@@ -39,12 +52,12 @@ namespace TG
 		_material->blending = true;
 		_material->blendSource = GL_ONE;
 		_material->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-		_material->minVelocity = RN::Vector3(0.0f, 0.4f, 0.0f);
-		_material->maxVelocity = RN::Vector3(0.0f, 4.4f, 0.0f);
+//		_material->minVelocity = RN::Vector3(0.0f, 0.4f, 0.0f);
+//		_material->maxVelocity = RN::Vector3(0.0f, 4.4f, 0.0f);
 		
 		_emitter = new SmokeParticleEmitter();
 		_emitter->SetMaterial(_material);
-		_emitter->SetParticlesPerSecond(60);
+		_emitter->SetParticlesPerSecond(10);
 		_emitter->SetMaxParticles(1000 * 60);
 		_emitter->group = 1;
 		
