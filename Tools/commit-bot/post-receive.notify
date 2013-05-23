@@ -1,0 +1,11 @@
+#!/bin/bash
+
+botdir="/home/rayne/commit-bot"
+
+while read oldrev newrev ref
+do
+	pwd=`pwd`
+
+	cmd="$botdir/receive.py -o $oldrev -n $newrev -g $pwd"
+	$cmd
+done
