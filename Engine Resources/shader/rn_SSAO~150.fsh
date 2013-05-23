@@ -14,7 +14,7 @@ uniform sampler2D targetmap0; // Scene
 
 in vec2 vertTexcoord;
 
-float strength = 0.09;
+float strength = 0.07;
 float offset = 18.0;
 float falloff = 0.000002;
 float rad = 0.0006;
