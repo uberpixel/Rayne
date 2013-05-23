@@ -28,7 +28,6 @@ void main()
 	gl_Position = matProj * (base + vec4(size.x, size.y, 0.0, 0.0));
 	geoTexcoord = vec2(0.0, 1.0);
 	geoColor = vertColor[0];
-
 	EmitVertex();
 
 	gl_Position = matProj * (base + vec4(-size.x, size.y, 0.0, 0.0));

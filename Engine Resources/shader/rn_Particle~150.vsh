@@ -12,8 +12,8 @@ precision highp float;
 uniform mat4 matView;
 
 in vec3 attPosition;
-in vec4 attColor0;
 in vec2 attTexcoord0;
+in vec4 attColor0;
 
 out vec4 vertColor;
 out vec2 vertSize;
