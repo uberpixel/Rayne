@@ -152,10 +152,12 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 		rn_PointLightTiled(lightindex, viewdir, normal, position, specularity.a, light, specsum);
 	}
 #else
+#ifdef RN_POINT_LIGHTS
 	for(int i=0; i<RN_POINT_LIGHTS; i++)
 	{
 		rn_PointLight(viewdir, lightPointPosition[i], lightPointColor[i], normal, position, specularity.a, light, specsum);
 	}
+#endif
 #endif
 	
 #ifndef RN_SPOT_LIGHTS_FASTPATH
@@ -166,16 +168,20 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 		rn_SpotLightTiled(lightindex, viewdir, normal, position, specularity.a, light, specsum);
 	}
 #else
+#ifdef RN_SPOT_LIGHTS
 	for(int i=0; i<RN_SPOT_LIGHTS; i++)
 	{
 		rn_SpotLight(viewdir, lightSpotPosition[i], lightSpotColor[i], lightSpotDirection[i], normal, position, specularity.a, light, specsum);
 	}
 #endif
+#endif
 	
-	for(int i=0; i<lightDirectionalCount; i++)
+#ifdef RN_DIRECTIONAL_LIGHTS
+	for(int i=0; i<RN_DIRECTIONAL_LIGHTS; i++)
 	{
 		rn_DirectionalLight(viewdir, lightDirectionalDirection[i], lightDirectionalColor[i], normal, specularity.a, light, specsum);
 	}
+#endif
 	
 #ifdef RN_SPECULARITY
 	color.rgb = color.rgb*light+specsum*specularity.rgb;
