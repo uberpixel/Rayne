@@ -40,7 +40,6 @@ def GitCommand(command, dir):
 def GitCommitsInRange(since, until, dir):
 	data = GitCommand('git log {0}..{1} --format="%H"'.format(since, until), dir)
 	result = data.split('\n')
-	del result[-1]
 
 	return result
 
