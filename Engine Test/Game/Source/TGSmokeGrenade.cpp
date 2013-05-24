@@ -13,20 +13,24 @@ namespace TG
 	class SmokeParticle : public RN::Particle
 	{
 	public:
-		virtual void Initialize(RN::ParticleEmitter *emitter) override
+		virtual void Initialize(RN::ParticleEmitter *emitter, RN::ParticleMaterial *material) override
 		{
-			RN::Particle::Initialize(emitter);
-			position = emitter->Position()+RN::Vector3(rand()/(float)RAND_MAX-0.5f, rand()/(float)RAND_MAX-0.5f, rand()/(float)RAND_MAX-0.5f)*0.5;
+			RN::Particle::Initialize(emitter, material);
+			
+			position += emitter->Generator()->RandomVector3Range(RN::Vector3(-0.2f), RN::Vector3(0.2f));
+			
 			size = 0.01f;
 			color.a = 0.5f;
 		}
 		
-		virtual void Update(float dt) override
+		virtual void Update(float delta) override
 		{
 			RN::Vector3 dir = position-emitter->Position();
-			position += dir*dt;
-			size += dt*2.0f;
-			color.a -= dt*0.2;
+			position += dir * delta;
+			size += delta * 2.0f;
+			
+			color.a -= delta * 0.2f;
+			
 			if(color.a <= 0.0)
 				lifespan = 0.0f;
 		}

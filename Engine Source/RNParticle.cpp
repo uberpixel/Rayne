@@ -24,10 +24,16 @@ namespace RN
 	}
 	
 	
-	void Particle::Initialize(ParticleEmitter *temitter)
+	void Particle::Initialize(ParticleEmitter *temitter, ParticleMaterial *tmaterial)
 	{
-		emitter = temitter;
+		emitter  = temitter;
+		material = tmaterial;
 		position = emitter->WorldPosition();
+		
+		RandomNumberGenerator *rng = emitter->Generator();
+		
+		lifespan = rng->RandomFloatRange(material->lifespan, material->lifespan + material->lifespanVariance);
+		velocity = rng->RandomVector3Range(material->minVelocity, material->maxVelocity);
 	}
 			 
 	void Particle::Update(float delta)

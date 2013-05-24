@@ -26,29 +26,11 @@ namespace RN
 		lifespanVariance = 0.0f;
 		
 		depthwrite = false;
-		
-		_rng = new RandomNumberGenerator(RandomNumberGenerator::TypeLCG);
-		
 		SetShader(ResourcePool::SharedInstance()->ResourceWithName<class Shader>(kRNResourceKeyParticleShader));
 	}
 	
 	ParticleMaterial::~ParticleMaterial()
 	{
-		_rng->Release();
-	}
-	
-	void ParticleMaterial::InitializeParticle(Particle *particle)
-	{
-		particle->lifespan = _rng->RandomFloatRange(lifespan, lifespan + lifespanVariance);
-		particle->velocity = _rng->RandomVector3Range(minVelocity, maxVelocity);
-	}
-	
-	void ParticleMaterial::SetGenerator(RandomNumberGenerator *generator)
-	{
-		if(_rng)
-			_rng->Release();
-		
-		_rng = generator->Retain();
 	}
 	
 	// ---------------------
@@ -67,6 +49,7 @@ namespace RN
 	{
 		_mesh = 0;
 		_material = 0;
+		_rng = new RandomNumberGenerator(RandomNumberGenerator::TypeLCG);
 		
 		SetParticlesPerSecond(1);
 		SetMaxParticles(100);
@@ -84,6 +67,9 @@ namespace RN
 		
 		if(_mesh)
 			_mesh->Release();
+		
+		if(_rng)
+			_rng->Release();
 	}
 	
 	void ParticleEmitter::Cook(float time, int steps)
@@ -149,6 +135,13 @@ namespace RN
 		_material = material ? material->Retain() : 0;
 	}
 	
+	void ParticleEmitter::SetGenerator(RandomNumberGenerator *generator)
+	{
+		if(_rng)
+			_rng->Release();
+		
+		_rng = generator->Retain();
+	}
 	
 	void ParticleEmitter::SpawnParticles(uint32 particles)
 	{
@@ -160,9 +153,7 @@ namespace RN
 		for(int i=0; i<particles; i++)
 		{
 			Particle *particle = CreateParticle();
-			particle->Initialize(this);
-			
-			_material->InitializeParticle(particle);
+			particle->Initialize(this, _material);
 			
 			spawned[i] = particle;
 		}

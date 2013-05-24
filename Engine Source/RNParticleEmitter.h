@@ -24,21 +24,13 @@ namespace RN
 	{
 	public:
 		ParticleMaterial();
-		virtual ~ParticleMaterial();
-		
-		virtual void InitializeParticle(Particle *particle);
-		
-		void SetGenerator(RandomNumberGenerator *generator);
-		RandomNumberGenerator *Generator() { return _rng; }
+		~ParticleMaterial() override;
 		
 		Vector3 minVelocity;
 		Vector3 maxVelocity;
 		
 		float lifespan;
 		float lifespanVariance;
-		
-	private:
-		RandomNumberGenerator *_rng;
 		
 		RNDefineMeta(ParticleMaterial, Material)
 	};
@@ -47,14 +39,17 @@ namespace RN
 	{
 	public:
 		ParticleEmitter();
-		virtual ~ParticleEmitter();
+		~ParticleEmitter() override;
 		
 		void Cook(float time, int steps);
 		void SetMaterial(ParticleMaterial *material);
+		void SetGenerator(RandomNumberGenerator *generator);
 		
 		void SetSpawnRate(float spawnRate);
 		void SetParticlesPerSecond(uint32 particles);
 		void SetMaxParticles(uint32 maxParticles);
+		
+		RandomNumberGenerator *Generator() { return _rng; }
 		
 		void SpawnParticles(uint32 particles);
 		virtual Particle *CreateParticle();
@@ -62,6 +57,9 @@ namespace RN
 		virtual void Update(float delta);
 		virtual bool IsVisibleInCamera(Camera *camera);
 		virtual void Render(Renderer *renderer, Camera *camera);
+		
+	protected:
+		RandomNumberGenerator *_rng;
 		
 	private:
 		void UpdateParticles(float delta);

@@ -18,13 +18,15 @@
 namespace RN
 {
 	class ParticleEmitter;
+	class ParticleMaterial;
+	
 	class Particle
 	{
 	public:
 		Particle();
 		virtual ~Particle();
 		
-		virtual void Initialize(ParticleEmitter *emitter);
+		virtual void Initialize(ParticleEmitter *emitter, ParticleMaterial *material);
 		virtual void Update(float delta);
 		
 		float time;
@@ -41,6 +43,7 @@ namespace RN
 		
 	protected:
 		ParticleEmitter *emitter;
+		ParticleMaterial *material;
 	};
 }
 
