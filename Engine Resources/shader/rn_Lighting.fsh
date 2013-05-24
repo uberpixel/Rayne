@@ -19,16 +19,22 @@ uniform isamplerBuffer lightSpotList;
 uniform isamplerBuffer lightSpotListOffset;
 uniform samplerBuffer lightSpotListData;
 
-uniform vec4 lightPointPosition[10];
-uniform vec3 lightPointColor[10];
+#ifdef RN_POINT_LIGHTS
+uniform vec4 lightPointPosition[RN_POINT_LIGHTS];
+uniform vec4 lightPointColor[RN_POINT_LIGHTS];
+#endif
 
-uniform vec4 lightSpotPosition[10];
-uniform vec4 lightSpotDirection[10];
-uniform vec3 lightSpotColor[10];
+#ifdef RN_SPOT_LIGHTS
+uniform vec4 lightSpotPosition[RN_SPOT_LIGHTS];
+uniform vec4 lightSpotDirection[RN_SPOT_LIGHTS];
+uniform vec4 lightSpotColor[RN_SPOT_LIGHTS];
+#endif
 
+#ifdef RN_DIRECTIONAL_LIGHTS
 uniform int lightDirectionalCount;
-uniform vec3 lightDirectionalDirection[10];
-uniform vec4 lightDirectionalColor[10];
+uniform vec3 lightDirectionalDirection[RN_DIRECTIONAL_LIGHTS];
+uniform vec4 lightDirectionalColor[RN_DIRECTIONAL_LIGHTS];
+#endif
 
 uniform vec3 viewPosition;
 
@@ -140,7 +146,7 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 	vec3 specsum = vec3(0.0);
 	vec3 viewdir = normalize(viewPosition-position);
 	
-#if !(defined(RN_POINT_LIGHTS_FASTPATH) || defined(RN_SPOT_LIGHTS_FASTPATH))
+#if (!defined(RN_POINT_LIGHTS_FASTPATH) || !defined(RN_SPOT_LIGHTS_FASTPATH))
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
 #endif
 	
@@ -155,7 +161,7 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 #ifdef RN_POINT_LIGHTS
 	for(int i=0; i<RN_POINT_LIGHTS; i++)
 	{
-		rn_PointLight(viewdir, lightPointPosition[i], lightPointColor[i], normal, position, specularity.a, light, specsum);
+		rn_PointLight(viewdir, lightPointPosition[i], lightPointColor[i].rgb, normal, position, specularity.a, light, specsum);
 	}
 #endif
 #endif
@@ -171,7 +177,7 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 #ifdef RN_SPOT_LIGHTS
 	for(int i=0; i<RN_SPOT_LIGHTS; i++)
 	{
-		rn_SpotLight(viewdir, lightSpotPosition[i], lightSpotColor[i], lightSpotDirection[i], normal, position, specularity.a, light, specsum);
+		rn_SpotLight(viewdir, lightSpotPosition[i], lightSpotColor[i].rgb, lightSpotDirection[i], normal, position, specularity.a, light, specsum);
 	}
 #endif
 #endif

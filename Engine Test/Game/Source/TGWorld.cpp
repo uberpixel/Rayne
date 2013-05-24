@@ -38,8 +38,8 @@ namespace TG
 		AddAttachment(_physicsAttachment->Autorelease());
 		
 		CreateCameras();
-//		CreateWorld();
-		CreateForest();
+		CreateWorld();
+//		CreateForest();
 		
 		RN::Input::SharedInstance()->Activate();
 	}

@@ -14,6 +14,7 @@
 #include "RNThreadPool.h"
 
 #define kRNRendererMaxVAOAge 300
+#define kRNRendererFastPathLightCount 10
 
 #define kRNRendererPointLightListIndicesIndex 0
 #define kRNRendererPointLightListOffsetIndex  1
@@ -413,6 +414,9 @@ namespace RN
 		
 		lightCount = MIN(camera->MaxLightsPerTile(), lightCount);
 		
+		_lightPointPosition.RemoveAllObjects();
+		_lightPointColor.RemoveAllObjects();
+		
 		if(camera->DepthTiles())
 		{
 			GLuint indicesBuffer = _lightPointBuffers[kRNRendererPointLightListIndicesIndex];
@@ -444,6 +448,12 @@ namespace RN
 				 const Vector3& position = light->WorldPosition();
 				 const Vector3& color = light->ResultColor();
 				 
+				 if(i < kRNRendererFastPathLightCount)
+				 {
+					 _lightPointPosition.AddObject(Vector4(position, light->Range()));
+					 _lightPointColor.AddObject(Vector4(color, 0.0f));
+				 }
+				 
 				 lightData[i * 2 + 0] = Vector4(position, light->Range());
 				 lightData[i * 2 + 1] = Vector4(color, 0.0f);
 			 }
@@ -465,6 +475,10 @@ namespace RN
 		machine_uint lightCount = _spotLights.Count();
 		
 		lightCount = MIN(camera->MaxLightsPerTile(), lightCount);
+		
+		_lightSpotPosition.RemoveAllObjects();
+		_lightSpotDirection.RemoveAllObjects();
+		_lightSpotColor.RemoveAllObjects();
 		
 		if(camera->DepthTiles())
 		{
@@ -497,6 +511,13 @@ namespace RN
 				const Vector3& position  = light->WorldPosition();
 				const Vector3& color     = light->ResultColor();
 				const Vector3& direction = light->Forward();
+				
+				if(i < kRNRendererFastPathLightCount)
+				{
+					_lightSpotPosition.AddObject(Vector4(position, light->Range()));
+					_lightSpotDirection.AddObject(Vector4(direction, light->Angle()));
+					_lightSpotColor.AddObject(Vector4(color, 0.0f));
+				}
 				
 				lightData[i * 3 + 0] = Vector4(position, light->Range());
 				lightData[i * 3 + 1] = Vector4(color, 0.0f);
@@ -1052,7 +1073,21 @@ namespace RN
 				if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
 					programTypes |= ShaderProgram::TypeDiscard;
 				
-				program = shader->ProgramWithLookup(material->Lookup() + ShaderLookup(programTypes));
+				// Set lighting defines
+				std::vector<ShaderDefine> defines;
+				if(lightPointCount > 0)
+					defines.emplace_back(ShaderDefine("RN_POINT_LIGHTS", MIN(lightPointCount, kRNRendererFastPathLightCount)));
+				if(lightSpotCount > 0)
+					defines.emplace_back(ShaderDefine("RN_SPOT_LIGHTS", MIN(lightSpotCount, kRNRendererFastPathLightCount)));
+				if(lightDirectionalCount > 0)
+					defines.emplace_back(ShaderDefine("RN_DIRECTIONAL_LIGHTS", lightDirectionalCount));
+				
+				if(lightPointCount < kRNRendererFastPathLightCount)
+					defines.emplace_back(ShaderDefine("RN_POINT_LIGHTS_FASTPATH", ""));
+				if(lightSpotCount < kRNRendererFastPathLightCount)
+					defines.emplace_back(ShaderDefine("RN_SPOT_LIGHTS_FASTPATH", ""));
+				
+				program = shader->ProgramWithLookup(material->Lookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
 				
 				changedShader = (_currentProgram != program);
 				changedMaterial = (_currentMaterial != material);
@@ -1073,8 +1108,25 @@ namespace RN
 					if(program->lightPointCount != -1)
 						glUniform1i(program->lightPointCount, lightPointCount);
 					
+					if(program->lightPointPosition != -1)
+						glUniform4fv(program->lightPointPosition, lightPointCount, (float*)_lightPointPosition.Data());
+					
+					if(program->lightPointColor != -1)
+						glUniform4fv(program->lightPointColor, lightPointCount, (float*)_lightPointColor.Data());
+					
+					
 					if(program->lightSpotCount != -1)
 						glUniform1i(program->lightSpotCount, lightSpotCount);
+					
+					if(program->lightSpotPosition != -1)
+						glUniform4fv(program->lightSpotPosition, lightSpotCount, (float*)_lightSpotPosition.Data());
+					
+					if(program->lightSpotDirection != -1)
+						glUniform4fv(program->lightSpotDirection, lightSpotCount, (float*)_lightSpotDirection.Data());
+					
+					if(program->lightSpotColor != -1)
+						glUniform4fv(program->lightSpotColor, lightSpotCount, (float*)_lightSpotColor.Data());
+					
 					
 					if(program->lightDirectionalCount != -1)
 						glUniform1i(program->lightDirectionalCount, lightDirectionalCount);

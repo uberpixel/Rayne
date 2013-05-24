@@ -177,6 +177,13 @@ namespace RN
 		Array<Matrix> _lightDirectionalMatrix;
 		Array<Texture*> _lightDirectionalDepth;
 		
+		Array<Vector4> _lightSpotPosition;
+		Array<Vector4> _lightSpotDirection;
+		Array<Vector4> _lightSpotColor;
+		
+		Array<Vector4> _lightPointPosition;
+		Array<Vector4> _lightPointColor;
+		
 		size_t _instancingVBOSize;
 		GLuint _instancingVBO;
 		SpinLock _lock;
