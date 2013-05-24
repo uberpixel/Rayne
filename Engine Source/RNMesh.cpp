@@ -320,17 +320,15 @@ namespace RN
 		MeshDescriptor *descriptor = Descriptor(kMeshFeatureVertices);
 		uint8 *pointer = _meshData + descriptor->offset;
 		
-		Vector3 *vertices = reinterpret_cast<Vector3 *>(pointer);
-		if(vertices)
+		Vector3 *vertex = reinterpret_cast<Vector3 *>(pointer);
+		if(vertex)
 		{
-			max = min = *vertices;
+			max = min = *vertex;
 			
 			for(size_t i=1; i<descriptor->elementCount; i++)
 			{
 				pointer += _stride;
-				vertices = reinterpret_cast<Vector3 *>(pointer);;
-				
-				Vector3 *vertex = vertices + i;
+				vertex = reinterpret_cast<Vector3 *>(pointer);
 				
 				min.x = MIN(vertex->x, min.x);
 				min.y = MIN(vertex->y, min.y);
