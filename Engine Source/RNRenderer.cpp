@@ -359,7 +359,6 @@ namespace RN
 						if(dl < 0.0f && dt > 0.0f && dl*dl+dt*dt > sqrange)
 							continue;
 						
-						//seems to work, but might not cull enough lights
 						Distance(plnear, >, range);
 						Distance(plfar, <, -range);
 						

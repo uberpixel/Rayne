@@ -201,6 +201,7 @@ namespace RN
 		bool UseBlending() const { return _blend; }
 		
 		Vector2 LightTiles() const { return _lightTiles; }
+		void SetLightTiles(const Vector2 &size) { _lightTiles = size; }
 		Model *SkyCube() const { return _skycube; }
 		
 		uint32 RenderTargets() const { return (uint32)_storage->_renderTargets->Count(); }

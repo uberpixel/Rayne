@@ -33,6 +33,8 @@ namespace TG
 		void CreateWorld();
 		void CreateForest();
 		
+		RN::Camera *CreateDownsampleChain(RN::Camera *cam, RN::Shader *shader, int level, RN::TextureParameter::Format format, RN::Shader *firstshader, RN::Texture *tex);
+		
 		RN::bullet::PhysicsWorld *_physicsAttachment;
 		
 		ThirdPersonCamera *_camera;

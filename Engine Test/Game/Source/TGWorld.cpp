@@ -94,6 +94,40 @@ namespace TG
 		}
 	}
 	
+	RN::Camera *World::CreateDownsampleChain(RN::Camera *cam, RN::Shader *shader, int level, RN::TextureParameter::Format format, RN::Shader *firstshader, RN::Texture *tex)
+	{
+		uint32 flags = RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritProjection;
+		
+		RN::PostProcessingPipeline *pipeline = cam->AddPostProcessingPipeline("Downsample");
+		
+		RN::Material *tempmat;
+		RN::Camera *tempcam;
+		int fac = 1;
+		for(int i = 0; i < level; i++)
+		{
+			fac *= 2;
+			if(firstshader != nullptr && i == 0)
+			{
+				tempmat = new RN::Material(firstshader);
+			}
+			else
+			{
+				tempmat = new RN::Material(shader);
+			}
+			
+			if(tex != nullptr)
+			{
+				tempmat->AddTexture(tex);
+			}
+			
+			tempcam = new RN::Camera(_camera->Frame().Size() / fac, format, flags, RN::RenderStorage::BufferFormatColor);
+			tempcam->SetMaterial(tempmat);
+			pipeline->AddStage(tempcam, RN::RenderStage::Mode::ReUsePreviousStage);
+		}
+		
+		return tempcam;
+	}
+	
 	void World::CreateCameras()
 	{
 #if TGWorldFeatureZPrePass
@@ -114,85 +148,18 @@ namespace TG
 		_camera = new ThirdPersonCamera(storage);
 		_camera->SetMaterial(depthMaterial);
 		
-		RN::PostProcessingPipeline *pipeline = _camera->AddPostProcessingPipeline("Downsample");
-		
 		RN::Shader *downsampleShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleShader);
 		RN::Shader *downsampleFirstShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleFirstShader);
-		
-		uint32 flags = RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritProjection;
-		
-		// 2x
-		RN::Material *downsampleMaterial2x = new RN::Material(downsampleFirstShader);
-		downsampleMaterial2x->AddTexture(depthtex);
-		
-		RN::Camera *downsample2x = new RN::Camera(_camera->Frame().Size() / 2.0f, RN::TextureParameter::Format::RG32F, flags, RN::RenderStorage::BufferFormatColor);
-		downsample2x->SetMaterial(downsampleMaterial2x);
-		
-		pipeline->AddStage(downsample2x, RN::RenderStage::Mode::ReUsePreviousStage);
-		
-		// 4x
-		RN::Material *downsampleMaterial4x = new RN::Material(downsampleShader);
-		downsampleMaterial4x->AddTexture(downsample2x->Storage()->RenderTarget());
-		
-		RN::Camera *downsample4x = new RN::Camera(_camera->Frame().Size() / 4.0f, RN::TextureParameter::Format::RG32F, flags, RN::RenderStorage::BufferFormatColor);
-		downsample4x->SetMaterial(downsampleMaterial4x);
-		
-		pipeline->AddStage(downsample4x, RN::RenderStage::Mode::ReUsePreviousStage);
-		
-		// 8x
-		RN::Material *downsampleMaterial8x = new RN::Material(downsampleShader);
-		downsampleMaterial8x->AddTexture(downsample4x->Storage()->RenderTarget());
-		
-		RN::Camera *downsample8x = new RN::Camera(_camera->Frame().Size() / 8.0f, RN::TextureParameter::Format::RG32F, flags, RN::RenderStorage::BufferFormatColor);
-		downsample8x->SetMaterial(downsampleMaterial8x);
-		
-		pipeline->AddStage(downsample8x, RN::RenderStage::Mode::ReUsePreviousStage);
-		
-		// 16x
-		RN::Material *downsampleMaterial16x = new RN::Material(downsampleShader);
-		downsampleMaterial16x->AddTexture(downsample8x->Storage()->RenderTarget());
-		
-		RN::Camera *downsample16x = new RN::Camera(_camera->Frame().Size() / 16.0f, RN::TextureParameter::Format::RG32F, flags, RN::RenderStorage::BufferFormatColor);
-		downsample16x->SetMaterial(downsampleMaterial16x);
-		
-		pipeline->AddStage(downsample16x, RN::RenderStage::Mode::ReUsePreviousStage);
-		
-		// 32x
-		RN::Material *downsampleMaterial32x = new RN::Material(downsampleShader);
-		downsampleMaterial32x->AddTexture(downsample16x->Storage()->RenderTarget());
-		
-		RN::Camera *downsample32x = new RN::Camera(_camera->Frame().Size() / 32.0f, RN::TextureParameter::Format::RG32F, flags, RN::RenderStorage::BufferFormatColor);
-		downsample32x->SetMaterial(downsampleMaterial32x);
-		
-		pipeline->AddStage(downsample32x, RN::RenderStage::Mode::ReUsePreviousStage);
-		
-		// 64x
-		RN::Camera *downsample64x;
-		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
-		{
-			RN::Material *downsampleMaterial64x = new RN::Material(downsampleShader);
-			downsampleMaterial64x->AddTexture(downsample32x->Storage()->RenderTarget());
-			
-			downsample64x = new RN::Camera(_camera->Frame().Size() / 64.0f, RN::TextureParameter::Format::RG32F, flags, RN::RenderStorage::BufferFormatColor);
-			downsample64x->SetMaterial(downsampleMaterial64x);
-			
-			pipeline->AddStage(downsample64x, RN::RenderStage::Mode::ReUsePreviousStage);
-		}
 
 		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
 		_finalcam->Storage()->SetDepthTarget(depthtex);
 		//_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
 		_finalcam->renderGroup |= RN::Camera::RenderGroup1;
-		
-		if(RN::Kernel::SharedInstance()->ScaleFactor() == 2.0f)
-		{
-			_finalcam->ActivateTiledLightLists(downsample64x->Storage()->RenderTarget());
-		}
-		else
-		{
-			_finalcam->ActivateTiledLightLists(downsample32x->Storage()->RenderTarget());
-		}
+		_finalcam->SetLightTiles(RN::Vector2(32.0f, 32.0f));
+		int level = RN::Kernel::SharedInstance()->ScaleFactor()+log2(_finalcam->LightTiles().x)-1;
+		RN::Camera *laststage = CreateDownsampleChain(_camera, downsampleShader, level, RN::TextureParameter::Format::RG32F, downsampleFirstShader, depthtex);
+		_finalcam->ActivateTiledLightLists(laststage->Storage()->RenderTarget());
 		
 		_camera->AttachChild(_finalcam);
 		_camera->SetPriority(10);
