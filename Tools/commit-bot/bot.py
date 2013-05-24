@@ -37,18 +37,38 @@ def GitCommand(command, dir):
 
 	return out.strip()
 
+def GitCommitsInRange(since, until, dir):
+	data = GitCommand('git log {0}..{1} --format="%H"'.format(since, until), dir)
+	result = data.split('\n')
+	del result[-1]
+
+	return result
+
+def GitCommitData(commit, dir):
+	author  = GitCommand('git show --quiet --format="%an" {0}'.format(commit), gitdir)
+	subject = GitCommand('git show --quiet --format="%s" {0}'.format(commit), gitdir)
+
+	return '{0} - {1}'.format(subject, author)
+
 def ParseCommit(gitdir, oldrev, revision):
 	if revision == '0000000000000000000000000000000000000000':
-		return 'Deleted branch'
+		return 'Deleted a branch'
 
 	branch  = GitCommand('git branch --contains {0}'.format(revision), gitdir)
-	subject = GitCommand('git show --quiet --format="%s" {0}'.format(revision), gitdir)
 	author  = GitCommand('git show --quiet --format="%an" {0}'.format(revision), gitdir)
 
 	if oldrev == '0000000000000000000000000000000000000000':
-		return '{0} created {1}'.format(author, branch)
+		return '{0} published branch {1}'.format(author, branch)
 
-	return '{0} pushed to {1}\n{2}'.format(author, branch, subject)
+
+	commits = GitCommitsInRange(oldrev, newrev, gitdir)
+	message = '{0} pushed {1} commit(s) to {2}'.format(author, len(commits), branch)
+
+	for commit in commits:
+		message += '\n'
+		message += GitCommitData(commit, gitdir)
+
+	return message
 
 if __name__ == '__main__':
 	optp = OptionParser()
