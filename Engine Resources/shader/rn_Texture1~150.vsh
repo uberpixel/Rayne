@@ -31,7 +31,11 @@ out vec3 vertTangent;
 
 void main()
 {
+#ifdef RN_TEXTURE_TILING
+	vertTexcoord = attTexcoord0*RN_TEXTURE_TILING;
+#else
 	vertTexcoord = attTexcoord0;
+#endif
 
 	vec4 position = rn_Animate(vec4(attPosition, 1.0));
 	vec4 normal   = rn_Animate(vec4(attNormal, 0.0));

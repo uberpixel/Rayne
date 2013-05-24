@@ -29,7 +29,7 @@ void main()
 	rn_Discard(color0);
 
 #ifdef RN_LIGHTING
-	rn_Lighting(color0, vec3(1.0), normalize(vertNormal), vertPosition);
+	rn_Lighting(color0, vec4(1.0), normalize(vertNormal), vertPosition);
 #endif
 	fragColor0 = color0;
 }

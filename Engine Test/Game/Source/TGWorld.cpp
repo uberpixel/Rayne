@@ -38,8 +38,8 @@ namespace TG
 		AddAttachment(_physicsAttachment->Autorelease());
 		
 		CreateCameras();
-		CreateWorld();
-//		CreateForest();
+//		CreateWorld();
+		CreateForest();
 		
 		RN::Input::SharedInstance()->Activate();
 	}
@@ -441,12 +441,8 @@ namespace TG
 	void World::CreateForest()
 	{
 		// Ground
-		RN::Shader *terrainShader = new RN::Shader();
-		terrainShader->SetShaderForType("shader/rn_Terrain.fsh", RN::Shader::ShaderType::FragmentShader);
-		terrainShader->SetShaderForType("shader/rn_Texture1.vsh", RN::Shader::ShaderType::VertexShader);
-		
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
-		ground->MaterialAtIndex(0, 0)->SetShader(terrainShader);
+		ground->MaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
 		
 		RN::bullet::Shape *groundShape = new RN::bullet::TriangelMeshShape(ground);
 		RN::bullet::PhysicsMaterial *groundMaterial = new RN::bullet::PhysicsMaterial();

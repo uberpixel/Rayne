@@ -58,12 +58,16 @@ void main()
 	normal = normalize(matTangentInv*normal);
 	
 	#ifdef RN_SPECMAP && RN_SPECULARITY
-	vec3 spec = specular.rgb*texture(mTexture2, vertTexcoord).rgb;
+	vec4 spec;
+	spec.rgb = specular.rgb*texture(mTexture2, vertTexcoord).rgb;
+	spec.a = specular.a*128.0;
 	#else
 	#ifdef RN_SPECULARITY
-	vec3 spec = specular.rgb*normalspec.a;
+	vec4 spec;
+	spec.rgb = specular.rgb*normalspec.a;
+	spec.a = specular.a*128.0;
 	#else
-	vec3 spec = vec3(0.0);
+	vec4 spec = vec4(0.0);
 	#endif
 	#endif
 	
@@ -71,12 +75,16 @@ void main()
 	
 	#else
 	#ifdef RN_SPECMAP && RN_SPECULARITY
-	vec3 spec = specular.rgb*texture(mTexture1, vertTexcoord).rgb;
+	vec4 spec;
+	spec.rgb = specular.rgb*texture(mTexture1, vertTexcoord).rgb;
+	spec.a = specular.a*128.0;
 	#else
 	#ifdef RN_SPECULARITY
-	vec3 spec = specular.rgb;
+	vec4 spec;
+	spec.rgb = specular.rgb;
+	spec.a = specular.a*128.0;
 	#else
-	vec3 spec = vec3(0.0);
+	vec4 spec = vec4(0.0);
 	#endif
 	#endif
 	rn_Lighting(color0, spec, normalize(vertNormal), vertPosition);
