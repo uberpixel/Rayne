@@ -45,8 +45,8 @@ def GitCommitsInRange(since, until, dir):
 	return result
 
 def GitCommitData(commit, dir):
-	author  = GitCommand('git show --quiet --format="%an" {0}'.format(commit), gitdir)
-	subject = GitCommand('git show --quiet --format="%s" {0}'.format(commit), gitdir)
+	author  = GitCommand('git show --quiet --format="%an" {0}'.format(commit), dir)
+	subject = GitCommand('git show --quiet --format="%s" {0}'.format(commit), dir)
 
 	return '{0} - {1}'.format(subject, author)
 
@@ -61,7 +61,7 @@ def ParseCommit(gitdir, oldrev, revision):
 		return '{0} published branch {1}'.format(author, branch)
 
 
-	commits = GitCommitsInRange(oldrev, newrev, gitdir)
+	commits = GitCommitsInRange(oldrev, revision, gitdir)
 	message = '{0} pushed {1} commit(s) to {2}'.format(author, len(commits), branch)
 
 	for commit in commits:
