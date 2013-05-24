@@ -39,6 +39,7 @@ void rn_PointLight(in vec3 viewdir, in vec4 lightpos, in vec3 lightcolor, in vec
 {
 	vec3 posdiff = lightpos.xyz-position;
 	float dist = length(posdiff);
+	posdiff /= dist;
 	float attenuation = min(max(1.0-dist/lightpos.w, 0.0), 1.0);
 	
 #ifdef RN_SPECULARITY
@@ -51,7 +52,7 @@ void rn_PointLight(in vec3 viewdir, in vec4 lightpos, in vec3 lightcolor, in vec
 	specularity += pow(min(max(dot(halfvec, normal), 0.0), 1.0), 32.0)*lightcolor*attenuation;
 #endif
 	
-	lighting += lightcolor*max(dot(normal, posdiff/dist), 0.0)*attenuation*attenuation*2.0;
+	lighting += lightcolor*max(dot(normal, posdiff), 0.0)*attenuation*attenuation*2.0;
 }
 
 void rn_SpotLight(in vec3 viewdir, in vec4 lightpos, in vec3 lightcolor, in vec4 lightdir, in vec3 normal, in vec3 position, inout vec3 lighting, inout vec3 specularity)
@@ -137,7 +138,7 @@ void rn_Lighting(inout vec4 color, in vec3 specularity, in vec3 normal, in vec3 
 	
 	vec3 light = ambient.rgb;
 	vec3 specsum = vec3(0.0);
-	vec3 viewdir = viewPosition-position;
+	vec3 viewdir = normalize(viewPosition-position);
 	
 #if !(defined(RN_POINT_LIGHTS_FASTPATH) || defined(RN_SPOT_LIGHTS_FASTPATH))
 	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
