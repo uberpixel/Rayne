@@ -17,6 +17,7 @@ class XMPPBot(sleekxmpp.ClientXMPP):
 		self.msg = msg
 
 		self.add_event_handler('session_start', self.start)
+		self.add_event_handler('message', self.message)
 
 		self.register_plugin('xep_0030')
 		self.register_plugin('xep_0199')
@@ -37,21 +38,16 @@ def GitCommand(command, dir):
 
 	return out.strip()
 
-def GitCommitsInRange(since, until, dir):
-	data = GitCommand('git log {0}..{1} --format="%H"'.format(since, until), dir)
-	result = data.split('\n')
 
-	return result
+def GitCommitData(since, until, dir):
+	data = GitCommand('git log {0}..{1} --format="%s - %an"'.format(since, until), dir)
+	result = data.strip()
+	return result.split('\n')
 
-def GitCommitData(commit, dir):
-	author  = GitCommand('git show --quiet --format="%an" {0}'.format(commit), dir)
-	subject = GitCommand('git show --quiet --format="%s" {0}'.format(commit), dir)
-
-	return '{0} - {1}'.format(subject, author)
 
 def ParseCommit(gitdir, oldrev, revision):
 	if revision == '0000000000000000000000000000000000000000':
-		return 'Deleted a branch'
+		return None
 
 	branch  = GitCommand('git branch --contains {0}'.format(revision), gitdir)
 	author  = GitCommand('git show --quiet --format="%an" {0}'.format(revision), gitdir)
@@ -60,14 +56,16 @@ def ParseCommit(gitdir, oldrev, revision):
 		return '{0} published branch {1}'.format(author, branch)
 
 
-	commits = GitCommitsInRange(oldrev, revision, gitdir)
-	message = '{0} pushed {1} commit(s) to {2}'.format(author, len(commits), branch)
+	commits = GitCommitData(oldrev, revision, gitdir)
+	verb    = 'commit' if len(commits) == 1 else 'commits'
+	message = '{0} pushed {1} {2} to {3}'.format(author, len(commits), verb, branch)
 
 	for commit in commits:
 		message += '\n'
-		message += GitCommitData(commit, gitdir)
+		message += commit
 
 	return message
+
 
 if __name__ == '__main__':
 	optp = OptionParser()
@@ -78,7 +76,8 @@ if __name__ == '__main__':
 	(opts, args) = optp.parse_args()
 
 	message = ParseCommit(opts.git, opts.oldrev, opts.newrev)
-	xmpp = XMPPBot(config['sender']['jid'], config['sender']['pw'], message)
+	if message is not None:
+		xmpp = XMPPBot(config['sender']['jid'], config['sender']['pw'], message)
 
-	if xmpp.connect():
-		xmpp.process(block=True)
+		if xmpp.connect():
+			xmpp.process(block=True)
