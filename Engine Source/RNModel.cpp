@@ -328,97 +328,104 @@ namespace RN
 			unsigned char hastangent = file->ReadUint8();
 			unsigned char hasbones = file->ReadUint8();
 			
-			Array<MeshDescriptor> descriptors;
+			std::vector<MeshDescriptor> descriptors;
+			size_t size = 0;
 			
-			MeshDescriptor meshDescriptor;
-			meshDescriptor.feature = kMeshFeatureVertices;
+			MeshDescriptor meshDescriptor(kMeshFeatureVertices);
 			meshDescriptor.elementCount = numverts;
 			meshDescriptor.elementSize = sizeof(Vector3);
 			meshDescriptor.elementMember = 3;
-			meshDescriptor.offset = 0;
-			descriptors.AddObject(meshDescriptor);
-			meshDescriptor.offset += sizeof(Vector3);
 			
-			meshDescriptor.feature = kMeshFeatureNormals;
+			descriptors.push_back(meshDescriptor);
+			size += meshDescriptor.elementSize;
+			
+			meshDescriptor = MeshDescriptor(kMeshFeatureNormals);
 			meshDescriptor.elementCount = numverts;
 			meshDescriptor.elementSize = sizeof(Vector3);
 			meshDescriptor.elementMember = 3;
-			descriptors.AddObject(meshDescriptor);
-			meshDescriptor.offset += sizeof(Vector3);
 			
-			meshDescriptor.feature = kMeshFeatureUVSet0;
+			descriptors.push_back(meshDescriptor);
+			size += meshDescriptor.elementSize;
+			
+			meshDescriptor = MeshDescriptor(kMeshFeatureUVSet0);
 			meshDescriptor.elementCount = numverts;
 			meshDescriptor.elementSize = sizeof(Vector2);
 			meshDescriptor.elementMember = 2;
-			descriptors.AddObject(meshDescriptor);
-			meshDescriptor.offset += sizeof(Vector2);
+			
+			descriptors.push_back(meshDescriptor);
+			size += meshDescriptor.elementSize;
 			
 			if(hastangent == 1)
 			{
-				meshDescriptor.feature = kMeshFeatureTangents;
+				meshDescriptor = MeshDescriptor(kMeshFeatureTangents);
 				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
-				descriptors.AddObject(meshDescriptor);
-				meshDescriptor.offset += sizeof(Vector4);
+				
+				descriptors.push_back(meshDescriptor);
+				size += meshDescriptor.elementSize;
 			}
 			if(uvcount > 1)
 			{
-				meshDescriptor.feature = kMeshFeatureUVSet1;
+				meshDescriptor = MeshDescriptor(kMeshFeatureUVSet1);
 				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector2);
 				meshDescriptor.elementMember = 2;
-				descriptors.AddObject(meshDescriptor);
-				meshDescriptor.offset += sizeof(Vector2);
+				
+				descriptors.push_back(meshDescriptor);
+				size += meshDescriptor.elementSize;
 			}
 			if(datacount == 4)
 			{
-				meshDescriptor.feature = kMeshFeatureColor0;
+				meshDescriptor = MeshDescriptor(kMeshFeatureColor0);
 				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
-				descriptors.AddObject(meshDescriptor);
-				meshDescriptor.offset += sizeof(Vector4);
+				
+				descriptors.push_back(meshDescriptor);
+				size += meshDescriptor.elementSize;
 			}
 			if(hasbones > 0)
 			{
-				meshDescriptor.feature = kMeshFeatureBoneWeights;
+				meshDescriptor = MeshDescriptor(kMeshFeatureBoneWeights);
 				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
-				descriptors.AddObject(meshDescriptor);
-				meshDescriptor.offset += sizeof(Vector4);
 				
-				meshDescriptor.feature = kMeshFeatureBoneIndices;
+				descriptors.push_back(meshDescriptor);
+				size += meshDescriptor.elementSize;
+				
+				meshDescriptor = MeshDescriptor(kMeshFeatureBoneIndices);
 				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
-				descriptors.AddObject(meshDescriptor);
-				meshDescriptor.offset += sizeof(Vector4);
+				
+				descriptors.push_back(meshDescriptor);
+				size += meshDescriptor.elementSize;
 			}
 			
-			size_t size = meshDescriptor.offset * numverts;
 			
-			uint8 *vertexdata = new uint8[size];
-			file->ReadIntoBuffer(vertexdata, meshDescriptor.offset * numverts);
+			size *= numverts;
+			
+			uint8 *vertexData = new uint8[size];
+			file->ReadIntoBuffer(vertexData, size);
 			
 			uint32 numindices = file->ReadUint32();
 			uint8 sizeindices = file->ReadUint8();
 			
-			meshDescriptor.feature = kMeshFeatureIndices;
+			meshDescriptor = MeshDescriptor(kMeshFeatureIndices);
 			meshDescriptor.elementCount = numindices;
 			meshDescriptor.elementSize = sizeindices;
 			meshDescriptor.elementMember = 1;
-			meshDescriptor.offset = 0;
-			descriptors.AddObject(meshDescriptor);
+			descriptors.push_back(meshDescriptor);
 			
-			Mesh *mesh = new Mesh(descriptors, vertexdata);
-			void *data = mesh->MutableData<void>(kMeshFeatureIndices);
+			Mesh *mesh = new Mesh(descriptors, vertexData);
+			void *data = mesh->Element<void>(kMeshFeatureIndices);
 			
-			file->ReadIntoBuffer(data, numindices*sizeindices);
-			mesh->ReleaseData(kMeshFeatureIndices);
+			file->ReadIntoBuffer(data, numindices * sizeindices);
 			
-			delete[] vertexdata;
+			mesh->ReleaseElement(kMeshFeatureIndices);
+			mesh->UpdateMesh();
 			
 			MeshGroup *meshGroup = new MeshGroup(mesh->Autorelease(), material, "Unnamed");
 			group->groups.push_back(meshGroup);

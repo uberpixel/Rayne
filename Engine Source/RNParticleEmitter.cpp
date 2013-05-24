@@ -116,31 +116,25 @@ namespace RN
 		if(_mesh)
 			_mesh->Release();
 		
-		MeshDescriptor vertexDescriptor;
-		vertexDescriptor.feature = kMeshFeatureVertices;
+		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
 		vertexDescriptor.elementMember = 3;
 		vertexDescriptor.elementSize   = sizeof(Vector3);
 		vertexDescriptor.elementCount  = maxParticles;
 		vertexDescriptor.offset        = 0;
 		
-		MeshDescriptor sizeDescriptor;
-		sizeDescriptor.feature = kMeshFeatureUVSet0;
+		MeshDescriptor sizeDescriptor(kMeshFeatureUVSet0);
 		sizeDescriptor.elementMember = 2;
 		sizeDescriptor.elementSize   = sizeof(Vector2);
 		sizeDescriptor.elementCount  = maxParticles;
 		sizeDescriptor.offset        = sizeof(Vector3);
 		
-		MeshDescriptor colorDescriptor;
-		colorDescriptor.feature = kMeshFeatureColor0;
+		MeshDescriptor colorDescriptor(kMeshFeatureColor0);
 		colorDescriptor.elementMember = 4;
 		colorDescriptor.elementSize   = sizeof(Color);
 		colorDescriptor.elementCount  = maxParticles;
 		colorDescriptor.offset        = sizeDescriptor.offset + sizeof(Vector2);
 		
-		Array<MeshDescriptor> descriptors;
-		descriptors.AddObject(vertexDescriptor);
-		descriptors.AddObject(sizeDescriptor);
-		descriptors.AddObject(colorDescriptor);
+		std::vector<MeshDescriptor> descriptors = { vertexDescriptor, sizeDescriptor, colorDescriptor };
 		
 		_mesh = new Mesh(descriptors);
 		_mesh->SetVBOUsage(GL_DYNAMIC_DRAW);

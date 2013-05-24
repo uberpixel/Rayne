@@ -38,27 +38,23 @@ namespace RN
 		static std::once_flag onceFlag;
 		
 		std::call_once(onceFlag, []() {
-			MeshDescriptor vertexDescriptor;
-			vertexDescriptor.feature = kMeshFeatureVertices;
+			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
 			vertexDescriptor.elementMember = 2;
 			vertexDescriptor.elementSize   = sizeof(Vector2);
 			vertexDescriptor.elementCount  = 10;
 			
-			MeshDescriptor uvDescriptor;
-			uvDescriptor.feature = kMeshFeatureUVSet0;
+			MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
 			uvDescriptor.elementMember = 2;
 			uvDescriptor.elementSize   = sizeof(Vector2);
 			uvDescriptor.elementCount  = 10;
 			
-			Array<MeshDescriptor> descriptors;
-			descriptors.AddObject(vertexDescriptor);
-			descriptors.AddObject(uvDescriptor);
+			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor };
 			
 			Mesh *mesh = new Mesh(descriptors);
 			mesh->SetMode(GL_TRIANGLE_STRIP);
 			
-			Vector2 *vertices = mesh->MutableData<Vector2>(kMeshFeatureVertices);
-			Vector2 *uvCoords = mesh->MutableData<Vector2>(kMeshFeatureUVSet0);
+			Vector2 *vertices = mesh->Element<Vector2>(kMeshFeatureVertices);
+			Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
 			
 			*vertices ++ = Vector2(0.5f, 0.5f);
 			*vertices ++ = Vector2(-0.5f, 0.5f);
@@ -87,8 +83,9 @@ namespace RN
 			*uvCoords ++ = Vector2(1.0f, 1.0f);
 			*uvCoords ++ = Vector2(0.0f, 1.0f);
 			
-			mesh->ReleaseData(kMeshFeatureVertices);
-			mesh->ReleaseData(kMeshFeatureUVSet0);
+			mesh->ReleaseElement(kMeshFeatureVertices);
+			mesh->ReleaseElement(kMeshFeatureUVSet0);
+			mesh->UpdateMesh();
 			
 			ResourcePool::SharedInstance()->AddResource(mesh, kRNBillboardMeshResourceName);
 		});

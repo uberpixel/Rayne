@@ -19,30 +19,37 @@
 
 namespace RN
 {
-	typedef enum
+	enum
 	{
-		kMeshFeatureVertices = 0,
-		kMeshFeatureNormals = 1,
-		kMeshFeatureTangents = 2,
-		kMeshFeatureColor0 = 3,
-		kMeshFeatureColor1 = 4,
-		kMeshFeatureUVSet0 = 5,
-		kMeshFeatureUVSet1 = 6,
-		kMeshFeatureBoneWeights = 7,
-		kMeshFeatureBoneIndices = 8,
-		kMeshFeatureIndices = 9,
+		kMeshFeatureVertices,
+		kMeshFeatureNormals,
+		kMeshFeatureTangents,
+		kMeshFeatureColor0,
+		kMeshFeatureColor1,
+		kMeshFeatureUVSet0,
+		kMeshFeatureUVSet1,
+		kMeshFeatureBoneWeights,
+		kMeshFeatureBoneIndices,
+		kMeshFeatureIndices,
 		
-		__kMaxMeshFeatures = 10
-	} MeshFeature;
+		kMeshFeatureCustom = kMeshFeatureIndices + 1
+	};
 	
-	class Mesh;
+	enum DescriptorFlags
+	{
+		DescriptorFlagSIMDAlignment
+	};
+	
+	typedef uint32 MeshFeature;
+	
 	struct MeshDescriptor
 	{
 	friend class Mesh;
 	public:
-		MeshDescriptor();
+		MeshDescriptor(MeshFeature feature, uint32 flags=0);
 		
 		MeshFeature feature;
+		uint32 flags;
 		
 		int32 elementMember;
 		size_t elementSize;
@@ -51,62 +58,70 @@ namespace RN
 		size_t offset;
 		
 	private:
-		uint8 *_pointer;
 		size_t _size;
-		uint32 _useCount;
+		size_t _alignment;
 		
-		bool _available;
-		bool _dirty;
+		uint8 *_pointer;
+		size_t _useCount;
 	};
+	
+	
 	
 	class Mesh : public Object
 	{
 	public:
-		RNAPI Mesh(const Array<MeshDescriptor>& descriptor);
-		RNAPI Mesh(const Array<MeshDescriptor>& descriptor, const void *data);
+		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor);
+		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor, const void *data);
 		RNAPI virtual ~Mesh();
 		
-		template <typename T>
-		T *MutableData(MeshFeature feature)
+		RNAPI void AddDescriptor(const std::vector<MeshDescriptor>& descriptor);
+		RNAPI void RemoveDescriptor(MeshFeature feature);
+		RNAPI MeshDescriptor *Descriptor(MeshFeature feature);
+		
+		RNAPI void UpdateMesh(bool force=false);
+							
+		template<typename T>
+		T *Element(MeshFeature feature, size_t index)
 		{
-			return reinterpret_cast<T *>(FetchDataForFeature(feature));
+			return reinterpret_cast<T *>(FetchElement(feature, index));
 		}
 		
-		template <typename T>
-		const T *Data(MeshFeature feature)
+		template<typename T>
+		T *Element(MeshFeature feature)
 		{
-			return reinterpret_cast<const T *>(FetchConstDataForFeature(feature));
+			return reinterpret_cast<T *>(CopyElement(feature));
 		}
 		
-		template <typename T>
+		template<typename T>
 		T *MeshData()
 		{
-			if(!_meshData)
-				_meshData = static_cast<uint8 *>(Memory::AllocateSIMD(_meshSize));
-			
+			_dirty = true;
 			return reinterpret_cast<T *>(_meshData);
 		}
 		
-		MeshDescriptor *Descriptor(MeshFeature feature)
+		template<typename T>
+		T *IndicesData()
 		{
-			return &_descriptor[(int32)feature];
+			_dirtyIndices = true;
+			return reinterpret_cast<T *>(_indices);
 		}
-		
-		RNAPI void UpdateMesh();
 		
 		RNAPI void SetMode(GLenum mode);
 		RNAPI void SetVBOUsage(GLenum usage);
 		RNAPI void SetIBOUsage(GLenum usage);
+		RNAPI void SetElement(MeshFeature feature, void *data);
 		
+		RNAPI void ReleaseElement(MeshFeature feature);
 		RNAPI void CalculateBoundingBox();
-		RNAPI void ReleaseData(MeshFeature feature);
 		
 		RNAPI bool SupportsFeature(MeshFeature feature);
 		RNAPI size_t OffsetForFeature(MeshFeature feature);
+		
 		size_t Stride() const { return _stride; };
 		
-		GLuint VBO() const { return _vbo; }
-		GLuint IBO() const { return _ibo; }
+		GLuint VBO();
+		GLuint IBO();
+		
 		GLenum Mode() const { return _mode; }
 		
 		const AABB& BoundingBox() const { return _boundingBox; }
@@ -117,11 +132,12 @@ namespace RN
 		RNAPI static Mesh *CubeMesh(const Vector3& size, const Color& color);
 		
 	private:
-		void Initialize(const Array<MeshDescriptor>& descriptor);
-		void GenerateMesh();
+		void Initialize();
+		void AllocateStorage();
+		void RecalculateInternalData();
 		
-		const void *FetchConstDataForFeature(MeshFeature feature);
-		void *FetchDataForFeature(MeshFeature feature);
+		void *FetchElement(MeshFeature feature, size_t index);
+		void *CopyElement(MeshFeature feature);
 		
 		struct
 		{
@@ -143,8 +159,11 @@ namespace RN
 		
 		uint8 *_meshData;
 		uint8 *_indices;
-		MeshDescriptor _descriptor[__kMaxMeshFeatures];
 		
+		bool _dirty;
+		bool _dirtyIndices;
+		
+		std::vector<MeshDescriptor> _descriptor;
 		RNDefineConstructorlessMeta(Mesh, Object)
 	};
 }

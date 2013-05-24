@@ -14,42 +14,63 @@ namespace RN
 {
 	RNDeclareMeta(Mesh)
 	
-	MeshDescriptor::MeshDescriptor()
+	MeshDescriptor::MeshDescriptor(MeshFeature tfeature, uint32 tflags)
 	{
+		feature = tfeature;
+		flags   = tflags;
+		
 		elementMember = 0;
-		elementSize = 0;
-		elementCount = 0;
+		elementSize   = 0;
+		elementCount  = 0;
+		
 		offset = -1;
 		
-		_pointer = 0;
 		_size = 0;
+		_alignment = (flags & DescriptorFlagSIMDAlignment) ? 16 : 0;
+		
+		_pointer = 0;
 		_useCount = 0;
-		_available = false;
-		_dirty = false;
+	}
+
+	
+	
+	Mesh::Mesh(const std::vector<MeshDescriptor>& descriptor)
+	{
+		Initialize();
+		AddDescriptor(descriptor);
 	}
 	
-	Mesh::Mesh(const Array<MeshDescriptor>& descriptor)
+	Mesh::Mesh(const std::vector<MeshDescriptor>& descriptor, const void *data)
 	{
-		Initialize(descriptor);
+		Initialize();
+		AddDescriptor(descriptor);
+		
+		uint8 *mdata = MeshData<uint8>();
+		uint8 *source = reinterpret_cast<uint8 *>(const_cast<void *>(data));
+		
+		std::copy(source, source + _meshSize, mdata);
+		_dirty = true;
 	}
 	
-	Mesh::Mesh(const Array<MeshDescriptor>& descriptor, const void *data)
+	Mesh::~Mesh()
 	{
-		Initialize(descriptor);
+		glDeleteBuffers(2, &_vbo);
 		
-		_meshData = MeshData<uint8>();
-		
-		const uint8 *meshData = static_cast<const uint8 *>(data);
-		std::copy(meshData, meshData + _meshSize, _meshData);
-		
-		for(int i=0; i<__kMaxMeshFeatures; i++)
+		for(auto i=_descriptor.begin(); i!=_descriptor.end(); i++)
 		{
-			if(_descriptor[i]._available)
-				_descriptor[i]._dirty = true;
+			if(i->_pointer)
+				Memory::FreeSIMD(i->_pointer);
 		}
+		
+		if(_meshData)
+			Memory::FreeSIMD(_meshData);
+		
+		if(_indices)
+			Memory::FreeSIMD(_indices);
 	}
 	
-	void Mesh::Initialize(const Array<MeshDescriptor>& descriptor)
+	
+	void Mesh::Initialize()
 	{
 		_meshSize = 0;
 		_meshData = 0;
@@ -65,54 +86,89 @@ namespace RN
 		
 		glGenBuffers(2, &_vbo);
 		RN_CHECKOPENGL();
-		
-		size_t offset = 0;
-		
-		for(int i=0; i<descriptor.Count(); i++)
+	}
+	
+	
+	
+	void Mesh::AddDescriptor(const std::vector<MeshDescriptor>& descriptor)
+	{
+		if(descriptor.size() > 0)
 		{
-			size_t size = descriptor[i].elementSize * descriptor[i].elementCount;
-			int index   = (int)descriptor[i].feature;
-			
-			if(!_descriptor[index]._available)
+			_descriptor.insert(_descriptor.end(), descriptor.begin(), descriptor.end());
+			RecalculateInternalData();
+		}
+	}
+	
+	void Mesh::RemoveDescriptor(MeshFeature feature)
+	{
+		for(auto i=_descriptor.begin(); i!=_descriptor.end(); i++)
+		{
+			if(i->feature == feature)
 			{
-				_descriptor[index] = descriptor[i];
-				_descriptor[index]._available = true;
-				_descriptor[index]._size = size;
+				_descriptor.erase(i);
 				
-				if(_descriptor[index].feature != kMeshFeatureIndices)
-				{
-					_meshSize += size;
-					_stride   += descriptor[i].elementSize;
-					
-					if(_descriptor[index].offset == -1)
-					{
-						_descriptor[index].offset = offset;
-						offset += _descriptor[index].elementSize;
-					}
-				}
-				else
-				{
-					_indicesSize += size;
-				}
+				RecalculateInternalData();
+				return;
 			}
 		}
 	}
 	
-	Mesh::~Mesh()
+	void Mesh::RecalculateInternalData()
 	{
-		glDeleteBuffers(2, &_vbo);
+		size_t offset = 0;
 		
-		for(int i=0; i<__kMaxMeshFeatures; i++)
-		{
-			delete [] _descriptor[i]._pointer;
-		}
+		_stride = 0;
+		
+		_meshSize    = 0;
+		_indicesSize = 0;
+		
+		_dirty = _dirtyIndices = true;
 		
 		if(_meshData)
+		{
 			Memory::FreeSIMD(_meshData);
+			_meshSize = 0;
+		}
 		
 		if(_indices)
+		{
 			Memory::FreeSIMD(_indices);
+			_indices = 0;
+		}
+		
+		
+		for(auto i=_descriptor.begin(); i!=_descriptor.end(); i++)
+		{
+			i->_size = i->elementSize * i->elementCount;
+			
+			if(i->feature != kMeshFeatureIndices)
+			{
+				i->offset = offset;
+				offset += i->elementSize;
+				
+				_meshSize += i->_size;
+				_stride += i->elementSize;
+			}
+			else
+			{
+				_indicesSize += i->_size;
+				i->offset = 0;
+			}
+		}
+		
+		AllocateStorage();
 	}
+	
+	void Mesh::AllocateStorage()
+	{
+		if(!_meshData && _meshSize > 0)
+			_meshData = static_cast<uint8 *>(Memory::AllocateSIMD(_meshSize));
+		
+		if(!_indices && _indicesSize > 0)
+			_indices = static_cast<uint8 *>(Memory::AllocateSIMD(_indicesSize));
+	}
+	
+	
 	
 	void Mesh::SetMode(GLenum mode)
 	{
@@ -129,100 +185,127 @@ namespace RN
 		_iboUsage = usage;
 	}
 	
-	const void *Mesh::FetchConstDataForFeature(MeshFeature feature)
+	void Mesh::SetElement(MeshFeature feature, void *tdata)
 	{
-		int32 index = (int32)feature;
-		if(!_descriptor[index]._available)
-			return 0;
-		
-		if(_descriptor[index]._pointer)
-			return _descriptor[index]._pointer;
-		
-		uint8 *data = static_cast<uint8 *>(Memory::AllocateSIMD(_descriptor[index]._size));
-		
-		if(feature == kMeshFeatureIndices)
+		for(auto i=_descriptor.begin(); i!=_descriptor.end(); i++)
 		{
-			uint8 *indicesData = static_cast<uint8 *>(_indices);
-			
-			if(indicesData)
-				std::copy(indicesData, indicesData + _indicesSize, data);
-		}
-		else
-		{
-			uint8 *meshData = static_cast<uint8 *>(_meshData);
-			
-			if(meshData)
+			if(i->feature == feature)
 			{
-				size_t offset = OffsetForFeature(feature);
-				size_t size   = _descriptor[feature].elementSize;
-				
-				uint8 *tdata = data;
-				
-				while(offset < _meshSize)
+				if(feature != kMeshFeatureIndices)
 				{
-					std::copy(meshData + offset, meshData + (offset + size), tdata);
+					uint8 *data = static_cast<uint8 *>(tdata);
+					uint8 *buffer = _meshData + i->offset;
 					
-					offset += _stride;
-					tdata  += size;
-				}
-			}
-		}
-		
-		_descriptor[index]._pointer = data;
-		_descriptor[index]._dirty = true;
-		_descriptor[index]._useCount ++;
-		
-		return (const void *)data;
-	}
-	
-	void *Mesh::FetchDataForFeature(MeshFeature feature)
-	{
-		int32 index = (int32)feature;
-		
-		if(!_descriptor[index]._available)
-			return 0;
-		
-		_descriptor[index]._dirty = true;
-		return (void *)FetchConstDataForFeature(feature);
-	}
-	
-	void Mesh::ReleaseData(MeshFeature feature)
-	{
-		int32 index = (int32)feature;
-		if((--_descriptor[index]._useCount) == 0)
-		{
-			bool regenerateMesh = true;
-			bool hasDirtyMesh = false;
-			
-			for(int i=0; i<__kMaxMeshFeatures; i++)
-			{
-				if(_descriptor[i]._useCount > 0)
-				{
-					regenerateMesh = false;
-					break;
-				}
-				
-				if(_descriptor[i]._dirty)
-					hasDirtyMesh = true;
-			}
-			
-			if(regenerateMesh && hasDirtyMesh)
-			{
-				GenerateMesh();
-				
-				for(int i=0; i<__kMaxMeshFeatures; i++)
-				{
-					if(i == kMeshFeatureVertices)
-						continue;
-					
-					if(_descriptor[i]._pointer)
+					for(size_t j=0; j<i->elementCount; j++)
 					{
-						Memory::FreeSIMD(_descriptor[i]._pointer);
+						std::copy(data, data + i->elementSize, buffer);
 						
-						_descriptor[i]._pointer = 0;
-						_descriptor[i]._dirty = false;
+						buffer += _stride;
+						data += i->elementSize;
+					}
+					
+					_dirty = true;
+				}
+				else
+				{
+					uint8 *data = static_cast<uint8 *>(tdata);
+					std::copy(data, data + _indicesSize, _indices);
+					
+					_dirtyIndices = true;
+				}
+				
+				if(i->_pointer)
+				{
+					uint8 *data = static_cast<uint8 *>(tdata);
+					std::copy(data, data + i->_size, i->_pointer);
+				}
+				
+				break;
+			}
+		}
+	}
+	
+	
+	
+	void *Mesh::FetchElement(MeshFeature feature, size_t index)
+	{
+		for(auto i=_descriptor.begin(); i!=_descriptor.end(); i++)
+		{
+			if(i->feature == feature)
+			{
+				if(feature != kMeshFeatureIndices)
+				{
+					_dirty = true;
+					
+					uint8 *data = _meshData + i->offset;
+					return data + (index * _stride);
+				}
+				else
+				{
+					_dirtyIndices = true;
+					return _indices + (index * i->elementSize);
+				}
+			}
+		}
+		
+		return 0;
+	}
+	
+	void *Mesh::CopyElement(MeshFeature feature)
+	{		
+		for(auto i=_descriptor.begin(); i!=_descriptor.end(); i++)
+		{
+			if(i->feature == feature)
+			{
+				if(!i->_pointer)
+				{
+					if(feature != kMeshFeatureIndices)
+					{
+						uint8 *data = static_cast<uint8 *>(Memory::AllocateSIMD(i->_size));
+						uint8 *buffer = _meshData + i->offset;
+						
+						i->_pointer = data;
+						
+						for(size_t j=0; j<i->elementCount; j++)
+						{
+							std::copy(buffer, buffer + i->elementSize, data);
+							
+							buffer += _stride;
+							data += i->elementSize;
+						}
+					}
+					else
+					{
+						i->_pointer = static_cast<uint8 *>(Memory::AllocateSIMD(_indicesSize));
+						std::copy(_indices, _indices + _indicesSize, i->_pointer);
 					}
 				}
+				
+				i->_useCount ++;
+				return i->_pointer;
+			}
+		}
+		
+		return 0;
+	}
+	
+	
+	void Mesh::ReleaseElement(MeshFeature feature)
+	{
+		for(auto i=_descriptor.begin(); i!=_descriptor.end(); i++)
+		{
+			if(i->feature == feature)
+			{
+				if((-- i->_useCount) == 0)
+				{
+					void *data = i->_pointer;
+					i->_pointer = 0;
+					
+					SetElement(feature, data);
+					Memory::FreeSIMD(data);
+				}
+				
+				break;
 			}
 		}
 	}
@@ -232,17 +315,22 @@ namespace RN
 		Vector3 min = Vector3();
 		Vector3 max = Vector3();
 		
-		bool wasDirty = _descriptor[kMeshFeatureVertices]._dirty;
+		bool wasDirty = _dirty;
 		
-		const Vector3 *vertices = Data<Vector3>(kMeshFeatureVertices);
+		MeshDescriptor *descriptor = Descriptor(kMeshFeatureVertices);
+		uint8 *pointer = _meshData + descriptor->offset;
+		
+		Vector3 *vertices = reinterpret_cast<Vector3 *>(pointer);
 		if(vertices)
 		{
 			max = min = *vertices;
 			
-			size_t count = _descriptor[kMeshFeatureVertices].elementCount;
-			for(size_t i=1; i<count; i++)
+			for(size_t i=1; i<descriptor->elementCount; i++)
 			{
-				const Vector3 *vertex = vertices + i;
+				pointer += _stride;
+				vertices = reinterpret_cast<Vector3 *>(pointer);;
+				
+				Vector3 *vertex = vertices + i;
 				
 				min.x = MIN(vertex->x, min.x);
 				min.y = MIN(vertex->y, min.y);
@@ -254,139 +342,112 @@ namespace RN
 			}
 		}
 		
+		_dirty = wasDirty;
+		
 		_boundingBox = AABB(min, max);
 		_boundingSphere = Sphere(_boundingBox);
-		
-		_descriptor[kMeshFeatureVertices]._useCount --;
-		_descriptor[kMeshFeatureVertices]._dirty = wasDirty;
 	}
 	
-	void Mesh::UpdateMesh()
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-		glBufferData(GL_ARRAY_BUFFER, _meshSize, 0, _vboUsage);
-		glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, _vboUsage);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
-		glFlush();
-	}
 	
-	void Mesh::GenerateMesh()
+	void Mesh::UpdateMesh(bool force)
 	{
-		if(!_meshData)
-			_meshData = static_cast<uint8 *>(Memory::AllocateSIMD(_meshSize));
-		
-		if(!_indices && _indicesSize > 0)
-			_indices = static_cast<uint8 *>(Memory::AllocateSIMD(_indicesSize));
-		
-		bool meshChanged = false;
-		bool indicesChanged = false;
-		
-		uint8 *bytes = static_cast<uint8 *>(_meshData);
-		uint8 *bytesEnd = bytes + _meshSize;
-		
-		uint8 *buffer[kMeshFeatureIndices];
-		
-		for(int i=0; i<kMeshFeatureIndices; i++)
-			buffer[i] = _descriptor[i]._pointer;
-		
-		// Fill the mesh buffer
-		while(bytes < bytesEnd)
-		{
-			for(int i=0; i<kMeshFeatureIndices; i++)
-			{
-				if(_descriptor[i]._available)
-				{
-					if(_descriptor[i]._dirty)
-					{
-						if(_descriptor[i]._pointer)
-						{
-							std::copy(buffer[i], buffer[i] + _descriptor[i].elementSize, bytes);
-							buffer[i] += _descriptor[i].elementSize;
-						}
-						
-						meshChanged = true;
-					}
-					
-					bytes += _descriptor[i].elementSize;
-				}
-			}
-		}
-		
-		// Fill the indices buffer
-		if(_descriptor[kMeshFeatureIndices]._available && _descriptor[kMeshFeatureIndices]._dirty)
-		{
-			uint8 *indices = _descriptor[kMeshFeatureIndices]._pointer;
-			std::copy(indices, indices + _indicesSize, static_cast<uint8 *>(_indices));
-			
-			indicesChanged = true;
-		}
-		
-		if(meshChanged)
-		{
-			glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-			glBufferData(GL_ARRAY_BUFFER, _meshSize, 0, _vboUsage);
-			glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, _vboUsage);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			RN_CHECKOPENGL();
-		}
-		
-		if(indicesChanged)
+		if((_dirtyIndices || force) && _indices)
 		{
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, 0, _iboUsage);
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, _iboUsage);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-			RN_CHECKOPENGL();
+			
+			_dirtyIndices = false;
+		}
+		
+		if((_dirty || force) && _meshData)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+			glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, _vboUsage);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			
+			_dirty = false;
+			CalculateBoundingBox();
 		}
 		
 		glFlush();
-		CalculateBoundingBox();
+	}
+	
+	
+	
+	GLuint Mesh::VBO()
+	{
+		UpdateMesh();
+		return _vbo;
+	}
+	
+	GLuint Mesh::IBO()
+	{
+		UpdateMesh();
+		return _ibo;
 	}
 
+	
+	
 	bool Mesh::SupportsFeature(MeshFeature feature)
 	{
-		return _descriptor[(int32)feature]._available;
+		for(size_t i=0; i<_descriptor.size(); i++)
+		{
+			if(_descriptor[i].feature == feature)
+				return true;
+		}
+		
+		return false;
 	}
 	
 	size_t Mesh::OffsetForFeature(MeshFeature feature)
 	{
-		return _descriptor[(int32)feature].offset;
+		for(size_t i=0; i<_descriptor.size(); i++)
+		{
+			if(_descriptor[i].feature == feature)
+				return _descriptor[i].offset;
+		}
+		
+		return -1;
 	}
+	
+	MeshDescriptor *Mesh::Descriptor(MeshFeature feature)
+	{
+		for(size_t i=0; i<_descriptor.size(); i++)
+		{
+			if(_descriptor[i].feature == feature)
+				return &_descriptor[i];
+		}
+		
+		return 0;
+	}
+	
 	
 	
 	
 	Mesh *Mesh::PlaneMesh(const Vector3& size, const Vector3& rotation)
 	{
-		MeshDescriptor vertexDescriptor;
-		vertexDescriptor.feature = kMeshFeatureVertices;
+		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
 		vertexDescriptor.elementMember = 3;
 		vertexDescriptor.elementCount  = 4;
 		
-		MeshDescriptor texcoordDescriptor;
-		texcoordDescriptor.feature = kMeshFeatureUVSet0;
+		MeshDescriptor texcoordDescriptor(kMeshFeatureUVSet0);
 		texcoordDescriptor.elementSize = sizeof(Vector2);
 		texcoordDescriptor.elementMember = 2;
 		texcoordDescriptor.elementCount  = 4;
 		
-		MeshDescriptor indicesDescriptor;
-		indicesDescriptor.feature = kMeshFeatureIndices;
+		MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
 		indicesDescriptor.elementSize = sizeof(uint16);
 		indicesDescriptor.elementMember = 1;
 		indicesDescriptor.elementCount  = 6;
+
+		std::vector<MeshDescriptor> descriptor = { vertexDescriptor, indicesDescriptor, texcoordDescriptor };
+		Mesh *mesh = new Mesh(descriptor);
 		
-		Array<MeshDescriptor> descriptors;
-		descriptors.AddObject(vertexDescriptor);
-		descriptors.AddObject(indicesDescriptor);
-		descriptors.AddObject(texcoordDescriptor);
-		
-		
-		Mesh *mesh = new Mesh(descriptors);
-		
-		Vector3 *vertices  = mesh->MutableData<Vector3>(kMeshFeatureVertices);
-		Vector2 *texcoords = mesh->MutableData<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = mesh->MutableData<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = mesh->Element<Vector3>(kMeshFeatureVertices);
+		Vector2 *texcoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = mesh->Element<uint16>(kMeshFeatureIndices);
 		
 		Matrix rotmat;
 		rotmat.MakeRotate(rotation);
@@ -408,52 +469,43 @@ namespace RN
 		*indices ++ = 1;
 		*indices ++ = 3;
 		
-		mesh->ReleaseData(kMeshFeatureVertices);
-		mesh->ReleaseData(kMeshFeatureUVSet0);
-		mesh->ReleaseData(kMeshFeatureIndices);
+		mesh->ReleaseElement(kMeshFeatureVertices);
+		mesh->ReleaseElement(kMeshFeatureUVSet0);
+		mesh->ReleaseElement(kMeshFeatureIndices);
+		mesh->UpdateMesh();
 		
 		return mesh;
 	}
 	
 	Mesh *Mesh::CubeMesh(const Vector3& size)
 	{
-		MeshDescriptor vertexDescriptor;
-		vertexDescriptor.feature = kMeshFeatureVertices;
+		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
 		vertexDescriptor.elementMember = 3;
 		vertexDescriptor.elementCount  = 24;
 		
-		MeshDescriptor normalDescriptor;
-		normalDescriptor.feature = kMeshFeatureNormals;
+		MeshDescriptor normalDescriptor(kMeshFeatureNormals);
 		normalDescriptor.elementSize = sizeof(Vector3);
 		normalDescriptor.elementMember = 3;
 		normalDescriptor.elementCount  = 24;
 		
-		MeshDescriptor texcoordDescriptor;
-		texcoordDescriptor.feature = kMeshFeatureUVSet0;
+		MeshDescriptor texcoordDescriptor(kMeshFeatureUVSet0);
 		texcoordDescriptor.elementSize = sizeof(Vector2);
 		texcoordDescriptor.elementMember = 2;
 		texcoordDescriptor.elementCount  = 24;
 		
-		MeshDescriptor indicesDescriptor;
-		indicesDescriptor.feature = kMeshFeatureIndices;
+		MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
 		indicesDescriptor.elementSize = sizeof(uint16);
 		indicesDescriptor.elementMember = 1;
 		indicesDescriptor.elementCount  = 36;
 		
-		Array<MeshDescriptor> descriptors;
-		descriptors.AddObject(vertexDescriptor);
-		descriptors.AddObject(normalDescriptor);
-		descriptors.AddObject(indicesDescriptor);
-		descriptors.AddObject(texcoordDescriptor);
+		std::vector<MeshDescriptor> descriptor = { vertexDescriptor, normalDescriptor, indicesDescriptor, texcoordDescriptor };
+		Mesh *mesh = new Mesh(descriptor);
 		
-		
-		Mesh *mesh = new Mesh(descriptors);
-		
-		Vector3 *vertices  = mesh->MutableData<Vector3>(kMeshFeatureVertices);
-		Vector3 *normals   = mesh->MutableData<Vector3>(kMeshFeatureNormals);
-		Vector2 *texcoords = mesh->MutableData<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = mesh->MutableData<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = mesh->Element<Vector3>(kMeshFeatureVertices);
+		Vector3 *normals   = mesh->Element<Vector3>(kMeshFeatureNormals);
+		Vector2 *texcoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = mesh->Element<uint16>(kMeshFeatureIndices);
 		
 		*vertices ++ = Vector3(-size.x,  size.y, size.z);
 		*vertices ++ = Vector3( size.x,  size.y, size.z);
@@ -587,61 +639,50 @@ namespace RN
 		*indices ++ = 21;
 		*indices ++ = 22;
 		
-		mesh->ReleaseData(kMeshFeatureVertices);
-		mesh->ReleaseData(kMeshFeatureUVSet0);
-		mesh->ReleaseData(kMeshFeatureNormals);
-		mesh->ReleaseData(kMeshFeatureIndices);
+		mesh->ReleaseElement(kMeshFeatureVertices);
+		mesh->ReleaseElement(kMeshFeatureUVSet0);
+		mesh->ReleaseElement(kMeshFeatureNormals);
+		mesh->ReleaseElement(kMeshFeatureIndices);
+		mesh->UpdateMesh();
 		
 		return mesh;
 	}
 	
 	Mesh *Mesh::CubeMesh(const Vector3& size, const Color& color)
 	{
-		MeshDescriptor vertexDescriptor;
-		vertexDescriptor.feature = kMeshFeatureVertices;
+		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
 		vertexDescriptor.elementMember = 3;
 		vertexDescriptor.elementCount  = 24;
 		
-		MeshDescriptor normalDescriptor;
-		normalDescriptor.feature = kMeshFeatureNormals;
+		MeshDescriptor normalDescriptor(kMeshFeatureNormals);
 		normalDescriptor.elementSize = sizeof(Vector3);
 		normalDescriptor.elementMember = 3;
 		normalDescriptor.elementCount  = 24;
 		
-		MeshDescriptor colorDescriptor;
-		colorDescriptor.feature = kMeshFeatureColor0;
+		MeshDescriptor colorDescriptor(kMeshFeatureColor0);
 		colorDescriptor.elementSize = sizeof(Color);
 		colorDescriptor.elementMember = 4;
 		colorDescriptor.elementCount  = 24;
 		
-		MeshDescriptor texcoordDescriptor;
-		texcoordDescriptor.feature = kMeshFeatureUVSet0;
+		MeshDescriptor texcoordDescriptor(kMeshFeatureUVSet0);
 		texcoordDescriptor.elementSize = sizeof(Vector2);
 		texcoordDescriptor.elementMember = 2;
 		texcoordDescriptor.elementCount  = 24;
 		
-		MeshDescriptor indicesDescriptor;
-		indicesDescriptor.feature = kMeshFeatureIndices;
+		MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
 		indicesDescriptor.elementSize = sizeof(uint16);
 		indicesDescriptor.elementMember = 1;
 		indicesDescriptor.elementCount  = 36;
 		
-		Array<MeshDescriptor> descriptors;
-		descriptors.AddObject(vertexDescriptor);
-		descriptors.AddObject(normalDescriptor);
-		descriptors.AddObject(colorDescriptor);
-		descriptors.AddObject(indicesDescriptor);
-		descriptors.AddObject(texcoordDescriptor);
+		std::vector<MeshDescriptor> descriptor = { vertexDescriptor, normalDescriptor, colorDescriptor, indicesDescriptor, texcoordDescriptor };
+		Mesh *mesh = new Mesh(descriptor);
 		
-		
-		Mesh *mesh = new Mesh(descriptors);
-		
-		Vector3 *vertices  = mesh->MutableData<Vector3>(kMeshFeatureVertices);
-		Vector3 *normals   = mesh->MutableData<Vector3>(kMeshFeatureNormals);
-		Color *colors      = mesh->MutableData<Color>(kMeshFeatureColor0);
-		Vector2 *texcoords = mesh->MutableData<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = mesh->MutableData<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = mesh->Element<Vector3>(kMeshFeatureVertices);
+		Vector3 *normals   = mesh->Element<Vector3>(kMeshFeatureNormals);
+		Color *colors      = mesh->Element<Color>(kMeshFeatureColor0);
+		Vector2 *texcoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = mesh->Element<uint16>(kMeshFeatureIndices);
 		
 		*vertices ++ = Vector3(-size.x,  size.y, size.z);
 		*vertices ++ = Vector3( size.x,  size.y, size.z);
@@ -805,11 +846,12 @@ namespace RN
 		*indices ++ = 21;
 		*indices ++ = 22;
 		
-		mesh->ReleaseData(kMeshFeatureVertices);
-		mesh->ReleaseData(kMeshFeatureUVSet0);
-		mesh->ReleaseData(kMeshFeatureNormals);
-		mesh->ReleaseData(kMeshFeatureColor0);
-		mesh->ReleaseData(kMeshFeatureIndices);
+		mesh->ReleaseElement(kMeshFeatureVertices);
+		mesh->ReleaseElement(kMeshFeatureUVSet0);
+		mesh->ReleaseElement(kMeshFeatureNormals);
+		mesh->ReleaseElement(kMeshFeatureColor0);
+		mesh->ReleaseElement(kMeshFeatureIndices);
+		mesh->UpdateMesh();
 		
 		return mesh;
 	}
