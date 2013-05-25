@@ -260,8 +260,8 @@ namespace RN
 	void Renderer::CullLights(Camera *camera, Light **lights, machine_uint lightCount, GLuint indicesBuffer, GLuint offsetBuffer)
 	{
 		Rect rect = camera->Frame();
-		int tilesWidth  = rect.width / camera->LightTiles().x;
-		int tilesHeight = rect.height / camera->LightTiles().y;
+		int tilesWidth  = ceil(rect.width / camera->LightTiles().x);
+		int tilesHeight = ceil(rect.height / camera->LightTiles().y);
 		
 		size_t i = 0;
 		size_t tileCount = tilesWidth * tilesHeight;
@@ -294,8 +294,8 @@ namespace RN
 		Vector3 corner2 = camera->ToWorld(Vector3(1.0f, -1.0f, 1.0f));
 		Vector3 corner3 = camera->ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
 		
-		Vector3 dirx = (corner2-corner1) / static_cast<float>(tilesWidth);
-		Vector3 diry = (corner3-corner1) / static_cast<float>(tilesHeight);
+		Vector3 dirx = (corner2-corner1)/rect.width*camera->LightTiles().x;
+		Vector3 diry = (corner3-corner1)/rect.height*camera->LightTiles().y;
 		
 		const Vector3& camPosition = camera->WorldPosition();
 		float *depthArray = camera->DepthArray();
@@ -360,8 +360,8 @@ namespace RN
 						if(dl < 0.0f && dt > 0.0f && dl*dl+dt*dt > sqrange)
 							continue;
 						
-						Distance(plnear, >, range);
-						Distance(plfar, <, -range);
+//						Distance(plnear, >, range);
+//						Distance(plfar, <, -range);
 						
 						lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
 					}
@@ -1150,8 +1150,8 @@ namespace RN
 						if(program->lightTileSize != -1)
 						{
 							Rect rect = camera->Frame();
-							int tilesWidth  = rect.width / camera->LightTiles().x;
-							int tilesHeight = rect.height / camera->LightTiles().y;
+							int tilesWidth  = ceil(rect.width / camera->LightTiles().x);
+							int tilesHeight = ceil(rect.height / camera->LightTiles().y);
 							
 							Vector2 lightTilesSize = camera->LightTiles() * _scaleFactor;
 							Vector2 lightTilesCount = Vector2(tilesWidth, tilesHeight);

@@ -234,7 +234,7 @@ namespace RN
 		for(auto i=stages.begin(); i!=stages.end(); i++)
 		{
 			factor <<= 1;
-			i->Camera()->SetFrame(Rect(Vector2(0.0f), _frame.Size() / factor));
+			i->Camera()->SetFrame(Rect(Vector2(0.0f), Vector2(ceil(_frame.Size().x / factor), ceil(_frame.Size().y / factor))));
 		}
 	}
 	
@@ -365,7 +365,7 @@ namespace RN
 		_material = 0;
 		_stageCount = 0;
 
-		_wantedLightTiles = Vector2(32, 32);
+		_lightTiles = Vector2(32, 32);
 		_depthTiles = 0;
 		_skycube = 0;
 		
@@ -432,12 +432,6 @@ namespace RN
 		if(_frame != frame)
 		{
 			_frame = frame;
-			
-			_lightTiles = _frame.Size() / _wantedLightTiles;
-			_lightTiles.x = ceilf(_lightTiles.x);
-			_lightTiles.y = ceilf(_lightTiles.y);
-			
-			_lightTiles = _frame.Size() / _lightTiles;
 
 			if(_flags & FlagUpdateStorageFrame)
 				_storage->SetFrame(frame);
