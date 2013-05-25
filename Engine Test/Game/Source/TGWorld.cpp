@@ -13,7 +13,7 @@
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		1
 #define TGWorldFeatureBloom			1
-#define TGWorldFeatureSSAO          1
+#define TGWorldFeatureSSAO          0
 
 #define TGForestFeatureTrees 500
 #define TGForestFeatureGras  10000
