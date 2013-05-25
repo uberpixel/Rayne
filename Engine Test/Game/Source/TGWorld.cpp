@@ -94,40 +94,6 @@ namespace TG
 		}
 	}
 	
-	RN::Camera *World::CreateDownsampleChain(RN::Camera *cam, RN::Shader *shader, int level, RN::TextureParameter::Format format, RN::Shader *firstshader, RN::Texture *tex)
-	{
-		uint32 flags = RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritProjection;
-		
-		RN::PostProcessingPipeline *pipeline = cam->AddPostProcessingPipeline("Downsample");
-		
-		RN::Material *tempmat;
-		RN::Camera *tempcam;
-		int fac = 1;
-		for(int i = 0; i < level; i++)
-		{
-			fac *= 2;
-			if(firstshader != nullptr && i == 0)
-			{
-				tempmat = new RN::Material(firstshader);
-			}
-			else
-			{
-				tempmat = new RN::Material(shader);
-			}
-			
-			if(tex != nullptr)
-			{
-				tempmat->AddTexture(tex);
-			}
-			
-			tempcam = new RN::Camera(_camera->Frame().Size() / fac, format, flags, RN::RenderStorage::BufferFormatColor);
-			tempcam->SetMaterial(tempmat);
-			pipeline->AddStage(tempcam, RN::RenderStage::Mode::ReUsePreviousStage);
-		}
-		
-		return tempcam;
-	}
-	
 	void World::CreateCameras()
 	{
 #if TGWorldFeatureZPrePass
@@ -157,9 +123,10 @@ namespace TG
 		//_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
 		_finalcam->renderGroup |= RN::Camera::RenderGroup1;
 		_finalcam->SetLightTiles(RN::Vector2(32.0f, 32.0f));
-		int level = RN::Kernel::SharedInstance()->ScaleFactor()+log2(_finalcam->LightTiles().x)-1;
-		RN::Camera *laststage = CreateDownsampleChain(_camera, downsampleShader, level, RN::TextureParameter::Format::RG32F, downsampleFirstShader, depthtex);
-		_finalcam->ActivateTiledLightLists(laststage->Storage()->RenderTarget());
+		
+		RN::DownsamplePostProcessingPipeline *downsamplePipeline = new RN::DownsamplePostProcessingPipeline("downsample", _finalcam, depthtex, downsampleFirstShader, downsampleShader, RN::TextureParameter::Format::RG32F);
+		_camera->AttachPostProcessingPipeline(downsamplePipeline);
+		_finalcam->ActivateTiledLightLists(downsamplePipeline->LastTarget());
 		
 		_camera->AttachChild(_finalcam);
 		_camera->SetPriority(10);

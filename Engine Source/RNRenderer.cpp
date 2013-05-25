@@ -1341,7 +1341,7 @@ namespace RN
 		{
 			PostProcessingPipeline *pipeline = *i;
 			
-			for(auto j=pipeline->_stages.begin(); j!=pipeline->_stages.end(); j++)
+			for(auto j=pipeline->stages.begin(); j!=pipeline->stages.end(); j++)
 			{
 				Camera *stage = j->Camera();
 				

@@ -66,17 +66,54 @@ namespace RN
 	friend class Renderer;
 	public:
 		PostProcessingPipeline(const std::string& name);
+		virtual ~PostProcessingPipeline();
 		
 		RenderStage *AddStage(Camera *camera, RenderStage::Mode mode);
 		RenderStage *AddStage(Camera *camera, Camera *connection, RenderStage::Mode mode);
 		
+		const std::vector<RenderStage>& Stages() const { return stages; }
+		RenderStage *LastStage() { return &stages[stages.size() - 1]; }
+		
+	protected:
+		virtual void Initialize();
+		virtual void PushUpdate(float delta);
+		
+		Camera *host;
+		std::vector<RenderStage> stages;
+		
 	private:
-		void PushUpdate(float delta);
 		void PostUpdate(const Vector3& position, const Quaternion& rotation, const Rect& frame);
 		void PushProjectionUpdate(Camera *source);
 		
 		std::string _name;
-		std::vector<RenderStage> _stages;
+	};
+	
+	
+	class DownsamplePostProcessingPipeline : public PostProcessingPipeline
+	{
+	public:
+		DownsamplePostProcessingPipeline(const std::string& name, Camera *camera, Texture *texture, Shader *firstShader, Shader *shader, TextureParameter::Format format);
+		~DownsamplePostProcessingPipeline();
+		
+		Texture *LastTarget() { return _lastTarget; }
+		
+	protected:
+		void Initialize() override;
+		void PushUpdate(float delta) override;
+		
+	private:
+		void UpdateStages();
+		void RecreateStages();
+		
+		int _level;
+		Rect _frame;
+		
+		Camera *_camera;
+		TextureParameter::Format _format;
+		Texture *_texture;
+		Texture *_lastTarget;
+		Shader *_firstShader;
+		Shader *_shader;
 	};
 	
 	
@@ -217,6 +254,7 @@ namespace RN
 		
 		PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name);
 		PostProcessingPipeline *PostProcessingPipelineWithName(const std::string& name);
+		void AttachPostProcessingPipeline(PostProcessingPipeline *pipeline);
 		void RemovePostProcessingPipeline(PostProcessingPipeline *pipeline);
 		
 		const std::vector<PostProcessingPipeline *>& PostProcessingPipelines() const { return _PPPipelines; }
@@ -271,6 +309,7 @@ namespace RN
 		};
 		
 		Vector2 _lightTiles;
+		Vector2 _wantedLightTiles;
 		
 		bool _allowDepthWrite;
 		bool _isStage;
