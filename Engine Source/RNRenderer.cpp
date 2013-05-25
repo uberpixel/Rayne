@@ -1029,7 +1029,9 @@ namespace RN
 			Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
 			
 			machine_uint objectsCount = _frame.Count();
-			for(machine_uint i=0; i<objectsCount; i++)
+			machine_uint i = (camera->_flags & Camera::FlagNoSky) ? skyCubeMeshes : 0;
+			
+			for(; i<objectsCount; i++)
 			{
 				RenderingObject& object = _frame.ObjectAtIndex(i);
 				

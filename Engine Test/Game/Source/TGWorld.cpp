@@ -13,7 +13,7 @@
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		1
 #define TGWorldFeatureBloom			1
-#define TGWorldFeatureSSAO          0
+#define TGWorldFeatureSSAO          1
 
 #define TGForestFeatureTrees 500
 #define TGForestFeatureGras  10000
@@ -120,7 +120,7 @@ namespace TG
 		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
 		_finalcam->Storage()->SetDepthTarget(depthtex);
-		//_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
+		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
 		_finalcam->renderGroup |= RN::Camera::RenderGroup1;
 		_finalcam->SetLightTiles(RN::Vector2(32.0f, 32.0f));
 		
@@ -150,7 +150,7 @@ namespace TG
 		RN::Shader *surfaceShader = RN::Shader::WithFile("shader/rn_SurfaceNormals");
 		RN::Material *surfaceMaterial = new RN::Material(surfaceShader);
 		
-		RN::Camera *normalsCamera = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatComplete);
+		RN::Camera *normalsCamera = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagNoSky | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatComplete);
 		normalsCamera->SetMaterial(surfaceMaterial);
 		normalsCamera->Storage()->SetDepthTarget(depthtex);
 		normalsCamera->SetClearMask(RN::Camera::ClearFlagColor);

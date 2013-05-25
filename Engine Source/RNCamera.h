@@ -119,11 +119,13 @@ namespace RN
 	
 	class Camera : public SceneNode
 	{
+	friend class Renderer;
 	friend class RenderStage;
 	friend class PostProcessingPipeline;
 	public:
 		enum
 		{
+			FlagNoSky = (1 << 0),
 			FlagUpdateAspect = (1 << 1),
 			FlagFullscreen = (1 << 2),
 			FlagNoClear = (1 << 3),
