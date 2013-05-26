@@ -177,7 +177,7 @@ namespace RN
 	
 	void Skeleton::Init()
 	{
-		if(_matrices.Count() > 0)
+		if(_matrices.size() > 0)
 			return;
 		
 		for(int i = 0; i < bones.size(); i++)
@@ -190,7 +190,7 @@ namespace RN
 		
 		for(int i = 0; i < bones.size(); i++)
 		{
-			_matrices.AddObject(bones[i].finalMatrix);
+			_matrices.push_back(bones[i].finalMatrix);
 			if(bones[i].isRoot)
 			{
 				bones[i].Init();
@@ -210,7 +210,7 @@ namespace RN
 		
 		for(int i = 0; i < bones.size(); i++)
 		{
-			_matrices.ReplaceObjectAtIndex(i, bones[i].finalMatrix);
+			_matrices[i] = bones[i].finalMatrix;
 		}
 	}
 	

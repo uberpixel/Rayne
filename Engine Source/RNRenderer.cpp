@@ -1243,7 +1243,7 @@ namespace RN
 				// More updates
 				if(object.skeleton && program->matBones != -1)
 				{
-					float *data = reinterpret_cast<float *>(object.skeleton->Matrices().Data());
+					const float *data = reinterpret_cast<const float *>(object.skeleton->Matrices().data());
 					glUniformMatrix4fv(program->matBones, object.skeleton->NumBones(), GL_FALSE, data);
 				}
 				

@@ -91,12 +91,12 @@ namespace RN
 		void Init();
 		void Update(float timestep);
 		void SetAnimation(const std::string &animname);
-		uint16 NumBones() const {return bones.size();}
-		const Array<Matrix>& Matrices() const {return _matrices;}
+		uint16 NumBones() const { return bones.size(); }
+		const std::vector<Matrix>& Matrices() const { return _matrices; }
 		
 		std::vector<Bone> bones;
 		std::map<std::string, Animation*> animations;
-		Array<Matrix> _matrices;
+		std::vector<Matrix> _matrices;
 		
 	private:
 		void ReadSkeletonVersion1(File *file);

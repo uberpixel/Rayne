@@ -33,14 +33,6 @@ namespace RN
 	
 	InstancingNode::~InstancingNode()
 	{
-		for(auto i=_data.begin(); i!=_data.end(); i++)
-		{
-			GLuint texture = i->texture;
-			GLuint buffer = i->buffer;
-			
-			glDeleteTextures(1, &texture);
-			glDeleteBuffers(1, &buffer);
-		}
 	}
 	
 	
@@ -134,19 +126,19 @@ namespace RN
 	
 	
 	
-	void InstancingNode::GenerateDataForMesh(const Array<Entity *>& entities, Mesh *mesh, Material *material)
+	void InstancingNode::GenerateDataForMesh(const std::vector<Entity *>& entities, Mesh *mesh, Material *material)
 	{		
-		size_t count = entities.Count();
+		size_t count = entities.size();
 		
 		GLuint texture;
 		GLuint buffer;
 		
 		Matrix *matrices = new Matrix[count * 2];
 		
-		for(machine_uint i=0; i<count; i++)
+		for(size_t i=0; i<count; i++)
 		{
-			matrices[(int)((i * 2) + 0)] = entities[(int)i]->WorldTransform();
-			matrices[(int)((i * 2) + 1)] = entities[(int)i]->WorldTransform().Inverse();
+			matrices[(int)((i * 2) + 0)] = entities[i]->WorldTransform();
+			matrices[(int)((i * 2) + 1)] = entities[i]->WorldTransform().Inverse();
 		}
 		
 		glGenTextures(1, &texture);
@@ -194,20 +186,12 @@ namespace RN
 	
 	void InstancingNode::RecalculateData()
 	{
-		Array<Entity *> entities;
-		
-		for(auto i=_data.begin(); i!=_data.end(); i++)
-		{
-			GLuint texture = i->texture;
-			GLuint buffer = i->buffer;
-			
-			glDeleteTextures(1, &texture);
-			glDeleteBuffers(1, &buffer);
-		}
-		
+		std::vector<Entity *> entities;
 		_data.clear();
 		
 		machine_uint childs = Childs();
+		entities.reserve(childs);
+		
 		for(machine_uint i=0; i<childs; i++)
 		{
 			SceneNode *node = ChildAtIndex(i);
@@ -221,17 +205,17 @@ namespace RN
 				
 				if(entityModel == _model)
 				{
-					uint32 index = static_cast<uint32>(entities.Count());
+					uint32 index = static_cast<uint32>(entities.size());
 					
 					entity->_ignoreDrawing = true;
 					entity->SetAssociatedObject(kRNInstancingNodeAssociatedIndexKey, Number::WithUint32(index), Object::MemoryPolicy::Retain);
 					
-					entities.AddObject(entity);
+					entities.push_back(entity);
 				}
 			}
 		}
 		
-		if(entities.Count() > 0)
+		if(entities.size() > 0)
 		{
 			uint32 count = _model->Meshes(0);
 			for(uint32 i=0; i<count; i++)
