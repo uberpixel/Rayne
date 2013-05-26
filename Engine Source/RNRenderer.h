@@ -26,8 +26,8 @@ namespace RN
 		enum class Type
 		{
 			Object,
-			Instanced
-			//Custom
+			Instanced,
+			Custom
 		};
 		
 		RenderingObject(Type ttype=Type::Object) :
@@ -54,7 +54,7 @@ namespace RN
 		Skeleton *skeleton;
 		
 		GLuint instancingData;
-		//std::function<void (const RenderingObject&)> callback;
+		std::function<void (const RenderingObject&)> callback;
 	};
 	
 	class Renderer : public Singleton<Renderer>

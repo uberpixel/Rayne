@@ -1270,11 +1270,11 @@ namespace RN
 					glUniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
 				}
 				
-				/*if(object.type == RenderingObject::Type::Instanced)
+				if(object.type == RenderingObject::Type::Instanced)
 				{
 					object.callback(object);
 					continue;
-				}*/
+				}
 				
 				DrawMesh(mesh, object.offset, object.count);
 			}
