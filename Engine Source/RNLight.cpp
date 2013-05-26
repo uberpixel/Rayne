@@ -164,7 +164,7 @@ namespace RN
 			if(_shadowcam != 0)
 				_shadowcam->SetRotation(Rotation());
 			
-			_shadowmats.RemoveAllObjects();
+			_shadowmats.clear();
 			
 			for(int i = 0; i < _shadowSplits; i++)
 			{
@@ -174,13 +174,14 @@ namespace RN
 				
 				if(_shadowcam != 0)
 				{
-					_shadowmats.AddObject(_shadowcam->MakeShadowSplit(_lightcam, this, near, far));
+					_shadowmats.push_back(std::move(_shadowcam->MakeShadowSplit(_lightcam, this, near, far)));
 				}
 				else
 				{
-					Camera *tempcam = _shadowcams.ObjectAtIndex(i);
+					Camera *tempcam = _shadowcams[i];
 					tempcam->SetRotation(Rotation());
-					_shadowmats.AddObject(tempcam->MakeShadowSplit(_lightcam, this, near, far));
+					
+					_shadowmats.push_back(std::move(tempcam->MakeShadowSplit(_lightcam, this, near, far)));
 				}
 				
 				near = far;
