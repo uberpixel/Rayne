@@ -29,8 +29,6 @@
 		E92B859516FC8E42002FA04D /* RNCatalogue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92B859316FC8E42002FA04D /* RNCatalogue.cpp */; };
 		E92B859616FC8E42002FA04D /* RNCatalogue.h in Headers */ = {isa = PBXBuildFile; fileRef = E92B859416FC8E42002FA04D /* RNCatalogue.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9319D3416BFE560001FA38F /* RNBaseInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = E9319D3316BFE560001FA38F /* RNBaseInternal.h */; settings = {ATTRIBUTES = (); }; };
-		E957BAB41714DE7400AD7A54 /* RNOctree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E957BAB21714DE7400AD7A54 /* RNOctree.cpp */; };
-		E957BAB51714DE7400AD7A54 /* RNOctree.h in Headers */ = {isa = PBXBuildFile; fileRef = E957BAB31714DE7400AD7A54 /* RNOctree.h */; };
 		E957BAB81714F61400AD7A54 /* RNSceneManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E957BAB61714F61400AD7A54 /* RNSceneManager.cpp */; };
 		E957BAB91714F61400AD7A54 /* RNSceneManager.h in Headers */ = {isa = PBXBuildFile; fileRef = E957BAB71714F61400AD7A54 /* RNSceneManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */; };
@@ -214,8 +212,6 @@
 		E9543FA1168167A100F53C4F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		E9543FA2168167A100F53C4F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		E9543FA3168167A100F53C4F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		E957BAB21714DE7400AD7A54 /* RNOctree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOctree.cpp; sourceTree = "<group>"; };
-		E957BAB31714DE7400AD7A54 /* RNOctree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOctree.h; sourceTree = "<group>"; };
 		E957BAB61714F61400AD7A54 /* RNSceneManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSceneManager.cpp; sourceTree = "<group>"; };
 		E957BAB71714F61400AD7A54 /* RNSceneManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSceneManager.h; sourceTree = "<group>"; };
 		E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNEntity.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -538,8 +534,6 @@
 				E99A9560172A002100605C68 /* RNNumber.h */,
 				E97C3EAE172B11C7006EA63A /* RNString.cpp */,
 				E97C3EAF172B11C7006EA63A /* RNString.h */,
-				E957BAB21714DE7400AD7A54 /* RNOctree.cpp */,
-				E957BAB31714DE7400AD7A54 /* RNOctree.h */,
 			);
 			name = Container;
 			sourceTree = "<group>";
@@ -708,7 +702,6 @@
 				E92B859616FC8E42002FA04D /* RNCatalogue.h in Headers */,
 				E995F3CD1709B9F20051223B /* RNPathManager.h in Headers */,
 				E9C7DB271710D0F3006AD768 /* RNInterpolation.h in Headers */,
-				E957BAB51714DE7400AD7A54 /* RNOctree.h in Headers */,
 				E957BAB91714F61400AD7A54 /* RNSceneManager.h in Headers */,
 				E9D820A51717143B0080CD17 /* RNAABB.h in Headers */,
 				E9B083B5171724A0009AD83F /* RNSphere.h in Headers */,
@@ -874,7 +867,6 @@
 				E92B859516FC8E42002FA04D /* RNCatalogue.cpp in Sources */,
 				E995F3CC1709B9F20051223B /* RNPathManager.cpp in Sources */,
 				E959282B170CBAAD00935AC8 /* RNWorldAttachment.cpp in Sources */,
-				E957BAB41714DE7400AD7A54 /* RNOctree.cpp in Sources */,
 				E957BAB81714F61400AD7A54 /* RNSceneManager.cpp in Sources */,
 				E9B083BB171761FB009AD83F /* RNMath.cpp in Sources */,
 				E9B083F117188E29009AD83F /* RNCPU.cpp in Sources */,

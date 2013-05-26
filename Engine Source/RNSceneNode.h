@@ -129,7 +129,7 @@ namespace RN
 		
 		World *_world;
 		SceneNode *_parent;
-		Array<SceneNode *> _childs;
+		Array _childs;
 		
 		bool _updated;
 		
@@ -346,7 +346,7 @@ namespace RN
 			machine_uint count = _childs.Count();
 			for(machine_uint i=0; i<count; i++)
 			{
-				SceneNode *child = _childs.ObjectAtIndex(i);
+				SceneNode *child = _childs.ObjectAtIndex<SceneNode>(i);
 				child->DidUpdate();
 			}
 			

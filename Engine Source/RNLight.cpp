@@ -178,7 +178,7 @@ namespace RN
 				}
 				else
 				{
-					Camera *tempcam = _shadowcams[i];
+					Camera *tempcam = _shadowcams.ObjectAtIndex<Camera>(i);
 					tempcam->SetRotation(Rotation());
 					
 					_shadowmats.push_back(std::move(tempcam->MakeShadowSplit(_lightcam, this, near, far)));

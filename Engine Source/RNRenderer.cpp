@@ -570,7 +570,7 @@ namespace RN
 					}
 					else
 					{
-						_lightDirectionalDepth.push_back(light->_shadowcams.ObjectAtIndex(0)->Storage()->DepthTarget());
+						_lightDirectionalDepth.push_back(light->_shadowcams.FirstObject<Camera>()->Storage()->DepthTarget());
 					}
 				}
 			}
@@ -724,7 +724,7 @@ namespace RN
 		{
 			_textureUnit = 0;
 			
-			const Array<Texture>& textures = (material->override & Material::OverrideTextures) ? material->Textures() : surfaceMaterial->Textures();
+			const Array& textures = (material->override & Material::OverrideTextures) ? material->Textures() : surfaceMaterial->Textures();
 			const std::vector<GLuint>& textureLocations = program->texlocations;
 			
 			if(textureLocations.size() > 0)
@@ -734,7 +734,7 @@ namespace RN
 				for(machine_uint i=0; i<textureCount; i++)
 				{
 					GLint location = textureLocations[i];
-					Texture *texture = textures[i];
+					Texture *texture = textures.ObjectAtIndex<Texture>(i);
 					
 					glUniform1i(location, BindTexture(texture));
 				}
@@ -924,7 +924,7 @@ namespace RN
 		
 		if(program->depthmap != -1)
 		{
-			Texture *depthmap = stage->Storage()->DepthTarget();
+			Texture *depthmap = camera->Storage()->DepthTarget();
 			if(depthmap)
 			{
 				glUniform1i(program->depthmap, BindTexture(depthmap));

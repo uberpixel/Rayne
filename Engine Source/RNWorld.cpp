@@ -60,7 +60,7 @@ namespace RN
 		
 		for(machine_uint i=0; i<_attachments.Count(); i++)
 		{
-			WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+			WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 			attachment->StepWorld(delta);
 		}
 		
@@ -89,7 +89,7 @@ namespace RN
 		
 		for(machine_uint i=0; i<_attachments.Count(); i++)
 		{
-			WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+			WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 			attachment->SceneNodesUpdated();
 		}
 		
@@ -108,7 +108,7 @@ namespace RN
 			
 			for(machine_uint i=0; i<_attachments.Count(); i++)
 			{
-				WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+				WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 				attachment->BeginCamera(camera);
 			}
 			
@@ -116,7 +116,7 @@ namespace RN
 			
 			for(machine_uint i=0; i<_attachments.Count(); i++)
 			{
-				WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+				WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 				attachment->WillFinishCamera(camera);
 			}
 			
@@ -169,7 +169,7 @@ namespace RN
 		{
 			for(machine_uint i=0; i<_attachments.Count(); i++)
 			{
-				WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+				WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 				attachment->WillRemoveSceneNode(node);
 			}
 			
@@ -213,7 +213,7 @@ namespace RN
 			
 			for(machine_uint i=0; i<_attachments.Count(); i++)
 			{
-				WorldAttachment *attachment = _attachments.ObjectAtIndex(i);
+				WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 				attachment->DidAddSceneNode(node);
 			}
 			

@@ -165,14 +165,14 @@ namespace RN
 			_shape = new btBvhTriangleMeshShape(_triangleMesh, true);
 		}
 		
-		TriangelMeshShape::TriangelMeshShape(const Array<Mesh>& meshes)
+		TriangelMeshShape::TriangelMeshShape(const Array& meshes)
 		{
 			_triangleMesh = new btTriangleMesh();
 			
 			uint32 count = static_cast<uint32>(meshes.Count());
 			for(uint32 i=0; i<count; i++)
 			{
-				Mesh *mesh = meshes.ObjectAtIndex(i);
+				Mesh *mesh = meshes.ObjectAtIndex<Mesh>(i);
 				AddMesh(mesh);
 			}
 			

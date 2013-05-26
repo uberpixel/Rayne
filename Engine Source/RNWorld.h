@@ -56,7 +56,7 @@ namespace RN
 		
 		Kernel *_kernel;
 		
-		Array<WorldAttachment> _attachments;
+		Array _attachments;
 		
 		std::unordered_set<SceneNode *> _nodes;
 		std::deque<SceneNode *> _addedNodes;
