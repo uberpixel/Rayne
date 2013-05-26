@@ -51,7 +51,7 @@ void main()
 			tangent.w = 0.0;
 		#endif
 	#else //RN_BILLBOARD
-		vec4 normal = vec4(0.0, 0.0, -1.0, 0.0);
+		vec4 normal = vec4(0.0, 0.0, 1.0, 0.0);
 		vec4 position = vec4(attPosition, 0.0, 1.0);
 		#if defined(RN_NORMALMAP)
 			vec4 tangent = vec4(1.0, 0.0, 0.0, 0.0);

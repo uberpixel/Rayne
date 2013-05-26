@@ -399,9 +399,9 @@ namespace TG
 		RN::Billboard *billboard = new RN::Billboard();
 		
 		billboard->SetTexture(RN::Texture::WithFile("textures/billboard.png"));
-		billboard->SetScale(RN::Vector3(0.2f));
-		billboard->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, 0.0f)));
-		billboard->TranslateLocal(RN::Vector3(0.0f, 4.5f, 0.0f));
+		billboard->SetScale(RN::Vector3(0.1f));
+		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
+		billboard->Translate(RN::Vector3(-14.0f, 9.0f, 0.0f));
 	}
 	
 	

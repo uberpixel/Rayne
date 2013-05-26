@@ -32,8 +32,6 @@ namespace RN
 	{
 		_material = new RN::Material();
 		_material->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyTexture1Shader));
-		//_material->culling = true;
-		//_material->lighting = false;
 		_material->Define("RN_BILLBOARD");
 		
 		static std::once_flag onceFlag;
@@ -42,12 +40,12 @@ namespace RN
 			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
 			vertexDescriptor.elementMember = 2;
 			vertexDescriptor.elementSize   = sizeof(Vector2);
-			vertexDescriptor.elementCount  = 4;
+			vertexDescriptor.elementCount  = 10;
 			
 			MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
 			uvDescriptor.elementMember = 2;
 			uvDescriptor.elementSize   = sizeof(Vector2);
-			uvDescriptor.elementCount  = 4;
+			uvDescriptor.elementCount  = 10;
 			
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor };
 			
@@ -61,6 +59,23 @@ namespace RN
 			*vertices ++ = Vector2(-0.5f, 0.5f);
 			*vertices ++ = Vector2(0.5f, -0.5f);
 			*vertices ++ = Vector2(-0.5f, -0.5f);
+			
+			*vertices ++ = Vector2(-0.5f, -0.5f);
+			*vertices ++ = Vector2(-0.5f, 0.5f);
+			
+			*vertices ++ = Vector2(-0.5f, 0.5f);
+			*vertices ++ = Vector2(0.5f, 0.5f);
+			*vertices ++ = Vector2(-0.5f, -0.5f);
+			*vertices ++ = Vector2(0.5f, -0.5f);
+			
+			
+			*uvCoords ++ = Vector2(1.0f, 0.0f);
+			*uvCoords ++ = Vector2(0.0f, 0.0f);
+			*uvCoords ++ = Vector2(1.0f, 1.0f);
+			*uvCoords ++ = Vector2(0.0f, 1.0f);
+			
+			*uvCoords ++ = Vector2(0.0f, 1.0f);
+			*uvCoords ++ = Vector2(1.0f, 0.0f);
 			
 			*uvCoords ++ = Vector2(1.0f, 0.0f);
 			*uvCoords ++ = Vector2(0.0f, 0.0f);
@@ -95,7 +110,7 @@ namespace RN
 	void Billboard::Render(Renderer *renderer, Camera *camera)
 	{
 		_transform = WorldTransform();
-		_transform.Scale(Vector3(_size.x, _size.y, 0.0f));
+		_transform.Scale(Vector3(_size.x, _size.y, 1.0f));
 		
 		RenderingObject object;
 		
