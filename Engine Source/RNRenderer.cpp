@@ -924,7 +924,7 @@ namespace RN
 		
 		if(program->depthmap != -1)
 		{
-			Texture *depthmap = stage->Storage()->DepthTarget();
+			Texture *depthmap = camera->Storage()->DepthTarget();
 			if(depthmap)
 			{
 				glUniform1i(program->depthmap, BindTexture(depthmap));
