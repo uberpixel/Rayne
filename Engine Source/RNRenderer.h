@@ -23,35 +23,38 @@ namespace RN
 	class RenderingObject
 	{
 	public:
-		enum Type
+		enum class Type
 		{
-			TypeObject,
-			TypeInstanced
+			Object,
+			Instanced
+			//Custom
 		};
 		
-		RenderingObject(Type ttype=TypeObject)
+		RenderingObject(Type ttype=Type::Object) :
+			type(ttype)
 		{
 			offset = 0;
 			count  = 0;
-			type = ttype;
-			texture = 0;
 			
-			mesh = 0;
-			material = 0;
+			instancingData = 0;
+			
+			mesh      = 0;
+			material  = 0;
 			transform = 0;
-			skeleton = 0;
+			skeleton  = 0;
 		}
+		
+		Type type;
+		uint32 offset;
+		uint32 count;
 		
 		Mesh     *mesh;
 		Material *material;
 		Matrix   *transform;
 		Skeleton *skeleton;
 		
-		GLuint texture;
-		
-		Type type;
-		uint32 offset;
-		uint32 count;
+		GLuint instancingData;
+		//std::function<void (const RenderingObject&)> callback;
 	};
 	
 	class Renderer : public Singleton<Renderer>
@@ -66,7 +69,7 @@ namespace RN
 		RNAPI void BeginCamera(Camera *camera);
 		RNAPI void FinishCamera();
 		
-		RNAPI void RenderObject(const RenderingObject& object);
+		RNAPI void RenderObject(RenderingObject object);
 		RNAPI void RenderLight(Light *light);
 		
 		RNAPI void SetDefaultFBO(GLuint fbo);
@@ -139,10 +142,10 @@ namespace RN
 		float _polygonOffsetUnits;
 		
 		Camera *_frameCamera;
-		Array<RenderingObject> _frame;
-		Array<Light *> _pointLights;
-		Array<Light *> _spotLights;
-		Array<Light *> _directionalLights;
+		std::vector<RenderingObject> _frame;
+		std::vector<Light *> _pointLights;
+		std::vector<Light *> _spotLights;
+		std::vector<Light *> _directionalLights;
 		
 	private:
 		void Initialize();
@@ -172,17 +175,17 @@ namespace RN
 		GLuint _lightSpotTextures[3];
 		GLuint _lightSpotBuffers[3];
 		
-		Array<Vector3> _lightDirectionalDirection;
-		Array<Vector4> _lightDirectionalColor;
-		Array<Matrix> _lightDirectionalMatrix;
-		Array<Texture*> _lightDirectionalDepth;
+		std::vector<Vector3> _lightDirectionalDirection;
+		std::vector<Vector4> _lightDirectionalColor;
+		std::vector<Matrix> _lightDirectionalMatrix;
+		std::vector<Texture *> _lightDirectionalDepth;
 		
-		Array<Vector4> _lightSpotPosition;
-		Array<Vector4> _lightSpotDirection;
-		Array<Vector4> _lightSpotColor;
+		std::vector<Vector4> _lightSpotPosition;
+		std::vector<Vector4> _lightSpotDirection;
+		std::vector<Vector4> _lightSpotColor;
 		
-		Array<Vector4> _lightPointPosition;
-		Array<Vector4> _lightPointColor;
+		std::vector<Vector4> _lightPointPosition;
+		std::vector<Vector4> _lightPointColor;
 		
 		size_t _instancingVBOSize;
 		GLuint _instancingVBO;

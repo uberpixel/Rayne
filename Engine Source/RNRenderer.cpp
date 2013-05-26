@@ -409,13 +409,13 @@ namespace RN
 	
 	int Renderer::CreatePointLightList(Camera *camera)
 	{
-		Light **lights = _pointLights.Data();
-		machine_uint lightCount = _pointLights.Count();
+		Light **lights = _pointLights.data();
+		machine_uint lightCount = _pointLights.size();
 		
 		lightCount = MIN(camera->MaxLightsPerTile(), lightCount);
 		
-		_lightPointPosition.RemoveAllObjects();
-		_lightPointColor.RemoveAllObjects();
+		_lightPointPosition.clear();
+		_lightPointColor.clear();
 		
 		if(camera->DepthTiles())
 		{
@@ -450,8 +450,8 @@ namespace RN
 				 
 				 if(i < kRNRendererFastPathLightCount)
 				 {
-					 _lightPointPosition.AddObject(Vector4(position, light->Range()));
-					 _lightPointColor.AddObject(Vector4(color, 0.0f));
+					 _lightPointPosition.emplace_back(Vector4(position, light->Range()));
+					 _lightPointColor.emplace_back(Vector4(color, 0.0f));
 				 }
 				 
 				 lightData[i * 2 + 0] = Vector4(position, light->Range());
@@ -471,14 +471,14 @@ namespace RN
 	
 	int Renderer::CreateSpotLightList(Camera *camera)
 	{
-		Light **lights = _spotLights.Data();
-		machine_uint lightCount = _spotLights.Count();
+		Light **lights = _spotLights.data();
+		machine_uint lightCount = _spotLights.size();
 		
 		lightCount = MIN(camera->MaxLightsPerTile(), lightCount);
 		
-		_lightSpotPosition.RemoveAllObjects();
-		_lightSpotDirection.RemoveAllObjects();
-		_lightSpotColor.RemoveAllObjects();
+		_lightSpotPosition.clear();
+		_lightSpotDirection.clear();
+		_lightSpotColor.clear();
 		
 		if(camera->DepthTiles())
 		{
@@ -514,9 +514,9 @@ namespace RN
 				
 				if(i < kRNRendererFastPathLightCount)
 				{
-					_lightSpotPosition.AddObject(Vector4(position, light->Range()));
-					_lightSpotDirection.AddObject(Vector4(direction, light->Angle()));
-					_lightSpotColor.AddObject(Vector4(color, 0.0f));
+					_lightSpotPosition.emplace_back(Vector4(position, light->Range()));
+					_lightSpotDirection.emplace_back(Vector4(direction, light->Angle()));
+					_lightSpotColor.emplace_back(Vector4(color, 0.0f));
 				}
 				
 				lightData[i * 3 + 0] = Vector4(position, light->Range());
@@ -537,11 +537,11 @@ namespace RN
 	
 	int Renderer::CreateDirectionalLightList(Camera *camera)
 	{
-		Light **lights = _directionalLights.Data();
-		machine_uint lightCount = _directionalLights.Count();
+		Light **lights = _directionalLights.data();
+		machine_uint lightCount = _directionalLights.size();
 		
-		_lightDirectionalDirection.RemoveAllObjects();
-		_lightDirectionalColor.RemoveAllObjects();
+		_lightDirectionalDirection.clear();
+		_lightDirectionalColor.clear();
 		
 		for(machine_uint i=0; i<lightCount; i++)
 		{
@@ -549,25 +549,25 @@ namespace RN
 			const Vector3& color = light->ResultColor();
 			const Vector3& direction = light->Forward();
 			
-			_lightDirectionalDirection.AddObject(direction);
-			_lightDirectionalColor.AddObject(Vector4(color, light->_shadow ? 1.0f : 0.0f));
+			_lightDirectionalDirection.push_back(direction);
+			_lightDirectionalColor.emplace_back(Vector4(color, light->_shadow ? 1.0f : 0.0f));
 			
 			if(light->_shadow)
 			{
 				if(camera == light->_shadowcam || light->_shadowcams.ContainsObject(camera))
 				{
-					_lightDirectionalMatrix.RemoveAllObjects();
-					_lightDirectionalDepth.RemoveAllObjects();
+					_lightDirectionalMatrix.clear();
+					_lightDirectionalDepth.clear();
 					
 					for(int i = 0; i < 4; i++)
 					{
-						_lightDirectionalMatrix.AddObject(light->_shadowmats.ObjectAtIndex(i));
+						_lightDirectionalMatrix.push_back(light->_shadowmats.ObjectAtIndex(i));
 					}
 					
 					if(light->_shadowcam != 0)
-						_lightDirectionalDepth.AddObject(light->_shadowcam->Storage()->DepthTarget());
+						_lightDirectionalDepth.push_back(light->_shadowcam->Storage()->DepthTarget());
 					else
-						_lightDirectionalDepth.AddObject(light->_shadowcams.ObjectAtIndex(0)->Storage()->DepthTarget());
+						_lightDirectionalDepth.push_back(light->_shadowcams.ObjectAtIndex(0)->Storage()->DepthTarget());
 				}
 			}
 		}
@@ -966,51 +966,42 @@ namespace RN
 		
 		_currentCamera = camera;
 		
+		Matrix identityMatrix;
+		
 		if(!source)
 		{
 			// Sort the objects
 			if(!(camera->CameraFlags() & Camera::FlagNoSorting))
 			{
-				_frame.SortUsingFunction([](const RenderingObject& a, const RenderingObject& b) {
-					// Sort by material
+				std::sort(_frame.begin(), _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
 					const Material *materialA = a.material;
 					const Material *materialB = b.material;
 					
 					if(materialA->blending != materialB->blending)
 					{
 						if(!materialB->blending)
-							return kRNCompareGreaterThan;
+							return true;
 						
-						if(!materialA->blending)
-							return kRNCompareLessThan;
+						return false;
 					}
 					
 					if(materialA->discard != materialB->discard)
 					{
 						if(!materialB->discard)
-							return kRNCompareGreaterThan;
+							return true;
 						
-						if(!materialA->discard)
-							return kRNCompareLessThan;
+						return false;
 					}
 					
-					if(materialA->Shader() > materialB->Shader())
-						return kRNCompareGreaterThan;
+					if(materialA->Shader() != materialB->Shader())
+					{
+						return (materialA->Shader() < materialB->Shader());
+					}
 					
-					if(materialB->Shader() > materialA->Shader())
-						return kRNCompareLessThan;
-					
-					// Sort by mesh
-					if(a.mesh > b.mesh)
-						return kRNCompareGreaterThan;
-					
-					if(b.mesh > a.mesh)
-						return kRNCompareLessThan;
-					
-					return kRNCompareEqualTo;
-				}, skyCubeMeshes);
+					return a.mesh < b.mesh;
+				});
 			}
-			
+
 			Material *surfaceMaterial = camera->Material();
 			
 			// Create the light lists for the camera
@@ -1028,22 +1019,22 @@ namespace RN
 			Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
 			Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
 			
-			machine_uint objectsCount = _frame.Count();
-			machine_uint i = (camera->_flags & Camera::FlagNoSky) ? skyCubeMeshes : 0;
+			size_t objectsCount = _frame.size();
+			size_t i = (camera->_flags & Camera::FlagNoSky) ? skyCubeMeshes : 0;
 			
 			for(; i<objectsCount; i++)
 			{
-				RenderingObject& object = _frame.ObjectAtIndex(i);
+				RenderingObject& object = _frame[i];
 				
-				Mesh *mesh = object.mesh;
+				Mesh     *mesh = object.mesh;
 				Material *material = object.material;
-				Shader *shader = surfaceMaterial ? surfaceMaterial->Shader() : material->Shader();
+				Shader   *shader = surfaceMaterial ? surfaceMaterial->Shader() : material->Shader();
 				
-				Matrix& transform = (Matrix &)*object.transform;
+				Matrix& transform = object.transform ? *object.transform : identityMatrix;
 				Matrix inverseTransform = transform.Inverse();
 				
 				// Check if we can use instancing here
-				bool wantsInstancing = (object.type == RenderingObject::TypeInstanced);
+				bool wantsInstancing = (object.type == RenderingObject::Type::Instanced);
 				if(wantsInstancing)
 				{
 					if(!shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
@@ -1065,7 +1056,7 @@ namespace RN
 				{
 					programTypes |= ShaderProgram::TypeLighting;
 					
-					if(_lightDirectionalDepth.Count() > 0)
+					if(_lightDirectionalDepth.size() > 0)
 						programTypes |= ShaderProgram::TypeDirectionalShadows;
 				}
 				
@@ -1091,7 +1082,7 @@ namespace RN
 				
 				program = shader->ProgramWithLookup(material->Lookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
 				
-				changedShader = (_currentProgram != program);
+				changedShader   = (_currentProgram != program);
 				changedMaterial = (_currentMaterial != material);
 				
 				BindMaterial(material, program);
@@ -1111,38 +1102,38 @@ namespace RN
 						glUniform1i(program->lightPointCount, lightPointCount);
 					
 					if(program->lightPointPosition != -1)
-						glUniform4fv(program->lightPointPosition, lightPointCount, (float*)_lightPointPosition.Data());
+						glUniform4fv(program->lightPointPosition, lightPointCount, (float*)_lightPointPosition.data());
 					
 					if(program->lightPointColor != -1)
-						glUniform4fv(program->lightPointColor, lightPointCount, (float*)_lightPointColor.Data());
+						glUniform4fv(program->lightPointColor, lightPointCount, (float*)_lightPointColor.data());
 					
 					
 					if(program->lightSpotCount != -1)
 						glUniform1i(program->lightSpotCount, lightSpotCount);
 					
 					if(program->lightSpotPosition != -1)
-						glUniform4fv(program->lightSpotPosition, lightSpotCount, (float*)_lightSpotPosition.Data());
+						glUniform4fv(program->lightSpotPosition, lightSpotCount, (float*)_lightSpotPosition.data());
 					
 					if(program->lightSpotDirection != -1)
-						glUniform4fv(program->lightSpotDirection, lightSpotCount, (float*)_lightSpotDirection.Data());
+						glUniform4fv(program->lightSpotDirection, lightSpotCount, (float*)_lightSpotDirection.data());
 					
 					if(program->lightSpotColor != -1)
-						glUniform4fv(program->lightSpotColor, lightSpotCount, (float*)_lightSpotColor.Data());
+						glUniform4fv(program->lightSpotColor, lightSpotCount, (float*)_lightSpotColor.data());
 					
 					
 					if(program->lightDirectionalCount != -1)
 						glUniform1i(program->lightDirectionalCount, lightDirectionalCount);
 					
 					if(program->lightDirectionalDirection != -1)
-						glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)_lightDirectionalDirection.Data());
+						glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)_lightDirectionalDirection.data());
 					
 					if(program->lightDirectionalColor != -1)
-						glUniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.Data());
+						glUniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.data());
 					
 					if(program->lightDirectionalMatrix != -1)
 					{
-						float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.Data());
-						glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.Count(), GL_FALSE, data);
+						float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.data());
+						glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.size(), GL_FALSE, data);
 					}
 					
 					if(camera->DepthTiles() != 0)
@@ -1173,9 +1164,9 @@ namespace RN
 				
 				if(changedShader || changedMaterial)
 				{
-					if(program->lightDirectionalDepth != -1 && _lightDirectionalDepth.Count() > 0)
+					if(program->lightDirectionalDepth != -1 && _lightDirectionalDepth.size() > 0)
 					{
-						uint32 textureUnit = BindTexture(_lightDirectionalDepth.FirstObject());
+						uint32 textureUnit = BindTexture(_lightDirectionalDepth.front());
 						glUniform1i(program->lightDirectionalDepth, textureUnit);
 					}
 					
@@ -1279,6 +1270,12 @@ namespace RN
 					glUniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
 				}
 				
+				/*if(object.type == RenderingObject::Type::Instanced)
+				{
+					object.callback(object);
+					continue;
+				}*/
+				
 				DrawMesh(mesh, object.offset, object.count);
 			}
 		}
@@ -1304,9 +1301,7 @@ namespace RN
 		
 		if(skyCube)
 		{
-			Array<RenderingObject> skyCubeObejcts;
-			
-			skyCubeMeshes = skyCube->Meshes(0);
+			skyCubeMeshes = 0; //skyCube->Meshes(0);
 			
 			for(uint32 j=0; j<skyCubeMeshes; j++)
 			{
@@ -1317,20 +1312,12 @@ namespace RN
 				object.transform = &cameraRotation;
 				object.skeleton = 0;
 				
-				skyCubeObejcts.AddObject(object);
+				//_frame.insert(_frame.begin(), std::move(object));
 			}
-			
-			_frame.InsertObjectsAtIndex(skyCubeObejcts, 0);
 		}
 		
-		_directionalLights.SortUsingFunction([](Light *a, Light *b) {
-            if(a->Shadow())
-                return kRNCompareLessThan;
-            
-            if(b->Shadow())
-                return kRNCompareGreaterThan;
-            
-            return kRNCompareEqualTo;
+		std::sort(_directionalLights.begin(), _directionalLights.end(), [](Light *a, Light *b) {
+			return (a->Shadow());
         });
 		
 		// Render loop
@@ -1339,10 +1326,8 @@ namespace RN
 		
 		auto pipelines = camera->PostProcessingPipelines();
 		
-		for(auto i=pipelines.begin(); i!=pipelines.end(); i++)
+		for(PostProcessingPipeline *pipeline : pipelines)
 		{
-			PostProcessingPipeline *pipeline = *i;
-			
 			for(auto j=pipeline->stages.begin(); j!=pipeline->stages.end(); j++)
 			{
 				Camera *stage = j->Camera();
@@ -1382,10 +1367,10 @@ namespace RN
 		// Cleanup of the frame
 		_frameCamera = 0;
 		
-		_frame.RemoveAllObjects();
-		_pointLights.RemoveAllObjects();
-		_spotLights.RemoveAllObjects();
-		_directionalLights.RemoveAllObjects();
+		_frame.clear();
+		_pointLights.clear();
+		_spotLights.clear();
+		_directionalLights.clear();
 	}
 	
 	void Renderer::DrawMesh(Mesh *mesh, uint32 offset, uint32 count)
@@ -1418,7 +1403,7 @@ namespace RN
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
 		RN_ASSERT0(_currentProgram->instancingData != -1);
 		
-		uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, object.texture);
+		uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, object.instancingData);
 		glUniform1i(_currentProgram->instancingData, textureUnit);
 		
 		if(descriptor)
@@ -1433,35 +1418,29 @@ namespace RN
 		}
 	}
 	
-	void Renderer::RenderObject(const RenderingObject& object)
+	void Renderer::RenderObject(RenderingObject object)
 	{
-		_lock.Lock();
-		_frame.AddObject(object);
-		_lock.Unlock();
+		_frame.push_back(std::move(object));
 	}
 	
 	void Renderer::RenderLight(Light *light)
 	{
-		_lock.Lock();
-		
 		switch(light->LightType())
 		{
 			case Light::TypePointLight:
-				_pointLights.AddObject(light);
+				_pointLights.push_back(light);
 				break;
 				
 			case Light::TypeSpotLight:
-				_spotLights.AddObject(light);
+				_spotLights.push_back(light);
 				break;
 				
 			case Light::TypeDirectionalLight:
-				_directionalLights.AddObject(light);
+				_directionalLights.push_back(light);
 				break;
 				
 			default:
 				break;
 		}
-		
-		_lock.Unlock();
 	}
 }
