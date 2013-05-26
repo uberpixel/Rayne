@@ -25,7 +25,7 @@ namespace TG
 		
 		virtual void Update(float delta) override
 		{
-			RN::Vector3 dir = position-emitter->Position();
+			RN::Vector3 dir = position-emitter->WorldPosition();
 			position += dir * delta;
 			size += delta * 2.0f;
 			
@@ -61,7 +61,7 @@ namespace TG
 		
 		_emitter = new SmokeParticleEmitter();
 		_emitter->SetMaterial(_material);
-		_emitter->SetParticlesPerSecond(10);
+		_emitter->SetParticlesPerSecond(5);
 		_emitter->SetMaxParticles(1000 * 60);
 		_emitter->group = 1;
 		

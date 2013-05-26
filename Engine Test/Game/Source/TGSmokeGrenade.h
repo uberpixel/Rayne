@@ -19,6 +19,8 @@ namespace TG
 		SmokeGrenade();
 		~SmokeGrenade() override;
 		
+		RN::Material *Material(){return _material;}
+		
 	private:
 		RN::ParticleEmitter *_emitter;
 		RN::ParticleMaterial *_material;

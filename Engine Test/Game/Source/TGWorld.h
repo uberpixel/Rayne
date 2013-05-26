@@ -41,6 +41,7 @@ namespace TG
 		RN::Camera *_finalcam;
 		RN::Light *_spotLight;
 		RN::Light *_sunLight;
+		RN::Texture *_depthtex;
 		
 		Player *_player;
 	};

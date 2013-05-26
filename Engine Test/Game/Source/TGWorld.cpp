@@ -105,8 +105,8 @@ namespace TG
 		depthparam.mipMaps = 0;
 		depthparam.wrapMode = RN::TextureParameter::WrapMode::Clamp;
 		
-		RN::Texture *depthtex = new RN::Texture(depthparam);
-		storage->SetDepthTarget(depthtex);
+		_depthtex = new RN::Texture(depthparam);
+		storage->SetDepthTarget(_depthtex);
 		
 		RN::Shader *depthShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightDepthShader);
 		RN::Material *depthMaterial = new RN::Material(depthShader);
@@ -119,12 +119,12 @@ namespace TG
 
 		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
-		_finalcam->Storage()->SetDepthTarget(depthtex);
+		_finalcam->Storage()->SetDepthTarget(_depthtex);
 		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
 		_finalcam->renderGroup |= RN::Camera::RenderGroup1;
 		_finalcam->SetLightTiles(RN::Vector2(32.0f, 32.0f));
 		
-		RN::DownsamplePostProcessingPipeline *downsamplePipeline = new RN::DownsamplePostProcessingPipeline("downsample", _finalcam, depthtex, downsampleFirstShader, downsampleShader, RN::TextureParameter::Format::RG32F);
+		RN::DownsamplePostProcessingPipeline *downsamplePipeline = new RN::DownsamplePostProcessingPipeline("downsample", _finalcam, _depthtex, downsampleFirstShader, downsampleShader, RN::TextureParameter::Format::RG32F);
 		_camera->AttachPostProcessingPipeline(downsamplePipeline);
 		_finalcam->ActivateTiledLightLists(downsamplePipeline->LastTarget());
 		
@@ -353,6 +353,9 @@ namespace TG
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
 		SmokeGrenade *smoke = new TG::SmokeGrenade();
+		smoke->Material()->AddTexture(_depthtex);
+		smoke->Material()->Define("RN_SOFTPARTICLE");
+		smoke->SetPosition(RN::Vector3(0.0f, -8.0f, 0.0f));
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
@@ -399,9 +402,15 @@ namespace TG
 		RN::Billboard *billboard = new RN::Billboard();
 		
 		billboard->SetTexture(RN::Texture::WithFile("textures/billboard.png"));
-		billboard->SetScale(RN::Vector3(0.1f));
+		billboard->SetScale(RN::Vector3(0.04f));
+		billboard->Material()->blending = true;
+		billboard->Material()->blendSource = GL_SRC_ALPHA;
+		billboard->Material()->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+		billboard->Material()->depthwrite = false;
+		billboard->Material()->depthtest = true;
+		billboard->group = 1;
 		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
-		billboard->Translate(RN::Vector3(-14.0f, 9.0f, 0.0f));
+		billboard->Translate(RN::Vector3(-14.4f, 8.5f, 0.1f));
 	}
 	
 	

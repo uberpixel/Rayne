@@ -13,6 +13,10 @@ precision highp float;
 
 uniform sampler2D mTexture0;
 
+#if defined(RN_SOFTPARTICLE)
+	uniform sampler2D mTexture1;
+#endif
+
 in vec4 geoColor;
 in vec2 geoTexcoord;
 
@@ -22,6 +26,12 @@ void main()
 {
 	vec4 color = texture(mTexture0, geoTexcoord);
 	rn_Discard(color);
+	
+#if defined(RN_SOFTPARTICLE)
+	float depth = texelFetch(mTexture1, ivec2(gl_FragCoord.xy), 0).r;
+	float diff = depth-gl_FragCoord.z;
+	color.a *= min(diff*200.0, 1.0);
+#endif
 
 	fragColor0 = geoColor * color;
 	fragColor0.rgb *= fragColor0.a;
