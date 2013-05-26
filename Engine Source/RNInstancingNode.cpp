@@ -120,11 +120,11 @@ namespace RN
 		
 		for(auto i=_data.begin(); i!=_data.end(); i++)
 		{
-			RenderingObject object(RenderingObject::TypeInstanced);
+			RenderingObject object(RenderingObject::Type::Instanced);
 			
 			object.mesh = i->mesh;
 			object.material = i->material;
-			object.texture = i->texture;
+			object.instancingData = i->texture;
 			object.count = i->count;
 			object.transform = (Matrix *)&WorldTransform();
 			
