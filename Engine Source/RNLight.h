@@ -55,8 +55,9 @@ namespace RN
 		
 		class Camera *_shadowcam;
 		class Camera *_lightcam;
-		Array<Matrix> _shadowmats;
-		Array<Camera*> _shadowcams;
+		
+		std::vector<Matrix> _shadowmats;
+		Array<Camera> _shadowcams;
 	
 	private:
 		void ReCalculateColor();

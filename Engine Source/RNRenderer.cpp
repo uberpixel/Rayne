@@ -561,13 +561,17 @@ namespace RN
 					
 					for(int i = 0; i < 4; i++)
 					{
-						_lightDirectionalMatrix.push_back(light->_shadowmats.ObjectAtIndex(i));
+						_lightDirectionalMatrix.push_back(light->_shadowmats[i]);
 					}
 					
 					if(light->_shadowcam != 0)
+					{
 						_lightDirectionalDepth.push_back(light->_shadowcam->Storage()->DepthTarget());
+					}
 					else
+					{
 						_lightDirectionalDepth.push_back(light->_shadowcams.ObjectAtIndex(0)->Storage()->DepthTarget());
+					}
 				}
 			}
 		}
@@ -720,17 +724,17 @@ namespace RN
 		{
 			_textureUnit = 0;
 			
-			Array<Texture> *textures = (material->override & Material::OverrideTextures) ? material->Textures() : surfaceMaterial->Textures();
-			Array<GLuint> *textureLocations = &program->texlocations;
+			const Array<Texture>& textures = (material->override & Material::OverrideTextures) ? material->Textures() : surfaceMaterial->Textures();
+			const std::vector<GLuint>& textureLocations = program->texlocations;
 			
-			if(textureLocations->Count() > 0)
+			if(textureLocations.size() > 0)
 			{
-				machine_uint textureCount = MIN(textureLocations->Count(), textures->Count());
+				machine_uint textureCount = MIN(textureLocations.size(), textures.Count());
 				
 				for(machine_uint i=0; i<textureCount; i++)
 				{
-					GLint location = textureLocations->ObjectAtIndex(i);
-					Texture *texture = textures->ObjectAtIndex(i);
+					GLint location = textureLocations[i];
+					Texture *texture = textures[i];
 					
 					glUniform1i(location, BindTexture(texture));
 				}
@@ -863,11 +867,11 @@ namespace RN
 		glEnableVertexAttribArray(program->attTexcoord0);
 		glVertexAttribPointer(program->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
-		uint32 targetmaps = MIN((uint32)program->targetmaplocations.Count(), camera->RenderTargets());
+		uint32 targetmaps = MIN((uint32)program->targetmaplocations.size(), camera->RenderTargets());
 		if(targetmaps >= 1)
 		{
 			Texture *texture = camera->RenderTarget(0);
-			GLuint location = program->targetmaplocations.ObjectAtIndex(0);
+			GLuint location = program->targetmaplocations.front();
 			
 			glUniform1i(location, BindTexture(texture));
 		}
@@ -909,11 +913,11 @@ namespace RN
 		glEnableVertexAttribArray(program->attTexcoord0);
 		glVertexAttribPointer(program->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
-		uint32 targetmaps = MIN((uint32)program->targetmaplocations.Count(), stage->RenderTargets());
+		uint32 targetmaps = MIN((uint32)program->targetmaplocations.size(), stage->RenderTargets());
 		for(uint32 i=0; i<targetmaps; i++)
 		{
 			Texture *texture = camera->RenderTarget(i);
-			GLuint location = program->targetmaplocations.ObjectAtIndex(i);
+			GLuint location = program->targetmaplocations[i];
 			
 			glUniform1i(location, BindTexture(texture));
 		}
@@ -973,24 +977,27 @@ namespace RN
 			// Sort the objects
 			if(!(camera->CameraFlags() & Camera::FlagNoSorting))
 			{
-				std::sort(_frame.begin(), _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
+				auto begin = _frame.begin();
+				std::advance(begin, skyCubeMeshes);
+			
+				std::sort(begin, _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
 					const Material *materialA = a.material;
 					const Material *materialB = b.material;
 					
 					if(materialA->blending != materialB->blending)
 					{
 						if(!materialB->blending)
-							return true;
+							return false;
 						
-						return false;
+						return true;
 					}
 					
 					if(materialA->discard != materialB->discard)
 					{
 						if(!materialB->discard)
-							return true;
+							return false;
 						
-						return false;
+						return true;
 					}
 					
 					if(materialA->Shader() != materialB->Shader())
@@ -1236,7 +1243,7 @@ namespace RN
 				// More updates
 				if(object.skeleton && program->matBones != -1)
 				{
-					float *data = reinterpret_cast<float *>(object.skeleton->Matrices().Data());
+					const float *data = reinterpret_cast<const float *>(object.skeleton->Matrices().data());
 					glUniformMatrix4fv(program->matBones, object.skeleton->NumBones(), GL_FALSE, data);
 				}
 				
@@ -1270,11 +1277,11 @@ namespace RN
 					glUniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
 				}
 				
-				/*if(object.type == RenderingObject::Type::Instanced)
+				if(object.type == RenderingObject::Type::Instanced)
 				{
 					object.callback(object);
 					continue;
-				}*/
+				}
 				
 				DrawMesh(mesh, object.offset, object.count);
 			}
@@ -1301,7 +1308,7 @@ namespace RN
 		
 		if(skyCube)
 		{
-			skyCubeMeshes = 0; //skyCube->Meshes(0);
+			skyCubeMeshes = skyCube->Meshes(0);
 			
 			for(uint32 j=0; j<skyCubeMeshes; j++)
 			{
@@ -1312,7 +1319,7 @@ namespace RN
 				object.transform = &cameraRotation;
 				object.skeleton = 0;
 				
-				//_frame.insert(_frame.begin(), std::move(object));
+				_frame.insert(_frame.begin(), std::move(object));
 			}
 		}
 		

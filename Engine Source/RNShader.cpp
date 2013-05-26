@@ -461,12 +461,12 @@ namespace RN
 			if(location == -1)
 				break;
 			
-			program->targetmaplocations.AddObject(location);
+			program->targetmaplocations.push_back(location);
 			
 			sprintf(string, "targetmap%iInfo", (int)i);
 			location = glGetUniformLocation(program->program, string);
 			if(location != -1)
-				program->targetmapinfolocations.AddObject(location);
+				program->targetmapinfolocations.push_back(location);
 		}
 		
 		for(machine_uint i=0; ; i++)
@@ -477,12 +477,12 @@ namespace RN
 			if(location == -1)
 				break;
 			
-			program->texlocations.AddObject(location);
+			program->texlocations.push_back(location);
 			
 			sprintf(string, "mTexture%iInfo", (int)i);
 			location = glGetUniformLocation(program->program, string);
 			if(location != -1)
-				program->texinfolocations.AddObject(location);
+				program->texinfolocations.push_back(location);
 		}
 		
 		GetUniformLocation(depthmap);
@@ -515,7 +515,7 @@ namespace RN
 				if(location == -1)
 					break;
 				
-				program->fraglocations.AddObject(location);
+				program->fraglocations.push_back(location);
 			}
 		} while(0);
 #endif

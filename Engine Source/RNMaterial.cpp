@@ -16,8 +16,6 @@ namespace RN
 		_lookup(0)
 	{
 		_shader = 0;
-		_textures = new Array<Texture>();
-		
 		Initialize();
 	}
 	
@@ -25,8 +23,6 @@ namespace RN
 		_lookup(0)
 	{
 		_shader = shader ? shader->Retain() : 0;
-		_textures = new Array<Texture>();
-		
 		Initialize();
 	}
 	
@@ -34,9 +30,6 @@ namespace RN
 	{
 		if(_shader)
 			_shader->Release();
-		
-		if(_textures)
-			_textures->Release();
 	}
 	
 	void Material::Initialize()
@@ -115,17 +108,17 @@ namespace RN
 	
 	void Material::AddTexture(Texture *texture)
 	{
-		_textures->AddObject(texture);
+		_textures.AddObject(texture);
 	}
 	
 	void Material::RemoveTexture(Texture *texture)
 	{
-		_textures->RemoveObject(texture);
+		_textures.RemoveObject(texture);
 	}
 	
 	void Material::RemoveTextures()
 	{
-		_textures->RemoveAllObjects();
+		_textures.RemoveAllObjects();
 	}
 	
 	
@@ -175,12 +168,5 @@ namespace RN
 				return;
 			}
 		}
-	}
-	
-	
-	
-	Array<Texture> *Material::Textures() const
-	{
-		return _textures;
 	}
 }

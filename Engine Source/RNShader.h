@@ -94,11 +94,11 @@ namespace RN
 		
 		GLuint lightTileSize;
 		
-		Array<GLuint> texlocations;
-		Array<GLuint> texinfolocations;
-		Array<GLuint> targetmaplocations;
-		Array<GLuint> targetmapinfolocations;
-		Array<GLuint> fraglocations;
+		std::vector<GLuint> texlocations;
+		std::vector<GLuint> texinfolocations;
+		std::vector<GLuint> targetmaplocations;
+		std::vector<GLuint> targetmapinfolocations;
+		std::vector<GLuint> fraglocations;
 		GLuint depthmap;
 	};
 	

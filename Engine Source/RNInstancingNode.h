@@ -20,21 +20,27 @@ namespace RN
 	public:
 		InstancingNode();
 		InstancingNode(Model *model);
-		virtual ~InstancingNode();
+		~InstancingNode() override;
 		
 		RNAPI void SetModel(Model *model);
 		
-		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
-		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
+		RNAPI bool IsVisibleInCamera(Camera *camera) override;
+		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		
 	protected:
-		RNAPI virtual void ChildDidUpdate(SceneNode *child);
-		RNAPI virtual void DidAddChild(SceneNode *child);
-		RNAPI virtual void WillRemoveChild(SceneNode *child);
+		RNAPI void ChildDidUpdate(SceneNode *child) override;
+		RNAPI void DidAddChild(SceneNode *child) override;
+		RNAPI void WillRemoveChild(SceneNode *child) override;
 		
 	private:
 		struct InstancedMesh
 		{
+			~InstancedMesh()
+			{
+				glDeleteTextures(1, &texture);
+				glDeleteBuffers(1, &buffer);
+			}
+			
 			Mesh *mesh;
 			Material *material;
 			
@@ -45,7 +51,7 @@ namespace RN
 		};
 		
 		void MarkChildDirty(SceneNode *child, bool canRecover);
-		void GenerateDataForMesh(const Array<Entity *>& entities, Mesh *mesh, Material *material);
+		void GenerateDataForMesh(const std::vector<Entity *>& entities, Mesh *mesh, Material *material);
 		void UpdateDataForMesh(Entity *entity, const InstancedMesh& mesh, uint32 index);
 		void RecalculateData();
 		
