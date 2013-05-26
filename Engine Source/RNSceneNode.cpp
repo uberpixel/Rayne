@@ -111,7 +111,7 @@ namespace RN
 		
 		for(machine_uint i=0; i<count; i++)
 		{
-			SceneNode *child = _childs.ObjectAtIndex(i);
+			SceneNode *child = _childs.ObjectAtIndex<SceneNode>(i);
 			WillRemoveChild(child);
 			
 			child->_parent = 0;

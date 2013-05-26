@@ -95,7 +95,7 @@ namespace RN
 		{
 			for(machine_uint i=0; i<_threads.Count(); i++)
 			{
-				Thread *thread = _threads.ObjectAtIndex(i);
+				Thread *thread = _threads.ObjectAtIndex<Thread>(i);
 				thread->Cancel();
 			}
 			
@@ -450,7 +450,7 @@ namespace RN
 		BatchID _currentID;
 		Batch  *_currentBatch;
 		
-		Array<Thread> _threads;
+		Array _threads;
 		machine_uint _resigned;
 		
 		std::deque<Task> _workQueue;

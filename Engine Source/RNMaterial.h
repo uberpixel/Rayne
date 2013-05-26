@@ -70,7 +70,7 @@ namespace RN
 		RNAPI void Define(const std::string& define, float value);
 		RNAPI void Undefine(const std::string& define);
 		
-		RNAPI const Array<Texture>& Textures() const { return _textures; }
+		RNAPI const Array& Textures() const { return _textures; }
 		RNAPI const ShaderLookup& Lookup() const { return _lookup; }
 		
 		bool culling;
@@ -107,7 +107,7 @@ namespace RN
 		void UpdateLookupRequest();
 		
 		RN::Shader *_shader;
-		Array<Texture> _textures;
+		Array _textures;
 		
 		ShaderLookup _lookup;
 		std::vector<ShaderDefine> _defines;

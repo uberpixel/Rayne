@@ -33,8 +33,6 @@ namespace RN
 		
 		View::~View()
 		{
-			RemoveAllSubviews();
-			
 			_material->Release();
 			_viewMaterial->Release();
 			_mesh->Retain();
@@ -165,7 +163,7 @@ namespace RN
 			machine_uint count = _subviews.Count();
 			for(machine_uint i=0; i<count; i++)
 			{
-				View *subview = _subviews.ObjectAtIndex(i);
+				View *subview = _subviews.ObjectAtIndex<View>(i);
 				subview->ViewHierarchyChanged();
 			}
 			
@@ -194,7 +192,6 @@ namespace RN
 				
 				subview->_superview = 0;
 				subview->_widget = 0;
-				subview->Release();
 				
 				NeedsLayoutUpdate();
 			}
@@ -205,11 +202,10 @@ namespace RN
 			machine_uint count = _subviews.Count();
 			for(machine_uint i=0; i<count; i++)
 			{
-				View *subview = _subviews.ObjectAtIndex(i);
+				View *subview = _subviews.ObjectAtIndex<View>(i);
 				
 				subview->_superview = 0;
 				subview->_widget = 0;
-				subview->Release();
 			}
 			
 			_subviews.RemoveAllObjects();
@@ -246,7 +242,7 @@ namespace RN
 			machine_uint count = _subviews.Count();
 			for(machine_uint i=0; i<count; i++)
 			{
-				View *subview = _subviews.ObjectAtIndex(i);
+				View *subview = _subviews.ObjectAtIndex<View>(i);
 				subview->NeedsLayoutUpdate();
 			}
 		}
@@ -314,7 +310,7 @@ namespace RN
 			machine_uint count = _subviews.Count();
 			for(machine_uint i=0; i<count; i++)
 			{
-				View *subview = _subviews.ObjectAtIndex(i);
+				View *subview = _subviews.ObjectAtIndex<View>(i);
 				subview->Render(renderer);
 			}
 		}

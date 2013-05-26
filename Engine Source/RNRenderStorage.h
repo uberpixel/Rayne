@@ -50,7 +50,7 @@ namespace RN
 		bool HasStencilbuffer() const { return (_format & BufferFormatStencil); }
 		
 		uint32 RenderTargets() const { return (uint32)_renderTargets->Count(); }
-		Texture *RenderTarget(uint32 index=0) const { return _renderTargets->ObjectAtIndex(index); }
+		Texture *RenderTarget(uint32 index=0) const { return _renderTargets->ObjectAtIndex<Texture>(index); }
 		Texture *DepthTarget() const { return _depthTexture; }
 		
 		RNAPI static uint32 MaxRenderTargets();
@@ -66,7 +66,7 @@ namespace RN
 		Rect _frame;
 		BufferFormat _format;
 		
-		Array<Texture> *_renderTargets;
+		Array *_renderTargets;
 		uint32 _boundRenderTargets;
 		Texture *_depthTexture;
 		uint32 _depthLayer;

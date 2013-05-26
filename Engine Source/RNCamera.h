@@ -244,7 +244,7 @@ namespace RN
 		Model *SkyCube() const { return _skycube; }
 		
 		uint32 RenderTargets() const { return (uint32)_storage->_renderTargets->Count(); }
-		Texture *RenderTarget(uint32 index=0) const { return _storage->_renderTargets->ObjectAtIndex(index); }
+		Texture *RenderTarget(uint32 index=0) const { return _storage->_renderTargets->ObjectAtIndex<Texture>(index); }
 		
 		bool HasDepthbuffer() const { return _storage->HasDepthbuffer(); }
 		bool HasStencilbuffer() const { return _storage->HasStencilbuffer(); }

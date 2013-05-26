@@ -72,7 +72,7 @@ namespace RN
 			
 			Mesh *_mesh;
 			
-			Array<View *> _subviews;
+			Array _subviews;
 			
 			bool _dirtyLayout;
 			bool _scaleWithFrame;

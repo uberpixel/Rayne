@@ -112,7 +112,7 @@ namespace RN
 		public:
 			TriangelMeshShape(Model *model);
 			TriangelMeshShape(Mesh *mesh);
-			TriangelMeshShape(const Array<Mesh>& meshes);
+			TriangelMeshShape(const Array& meshes);
 			virtual ~TriangelMeshShape();
 			
 		private:

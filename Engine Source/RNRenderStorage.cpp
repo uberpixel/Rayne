@@ -20,7 +20,7 @@ namespace RN
 		_renderTargetsChanged = true;
 		
 		_boundRenderTargets = 0;
-		_renderTargets = new Array<Texture>();
+		_renderTargets = new Array();
 		_depthTexture = depthTexture ? depthTexture->Retain() : 0;
 		_depthLayer = -1;
 		
@@ -383,7 +383,7 @@ namespace RN
 			// Bind all render targetst to the framebuffer
 			for(machine_uint i=0; i<_renderTargets->Count(); i++)
 			{
-				Texture *texture = _renderTargets->ObjectAtIndex(i);
+				Texture *texture = _renderTargets->ObjectAtIndex<Texture>(i);
 				GLenum attachment = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
 				
 				glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->Name(), 0);
@@ -403,7 +403,7 @@ namespace RN
 			
 			for(machine_uint i=0; i<_renderTargets->Count(); i++)
 			{
-				Texture *texture = _renderTargets->ObjectAtIndex(i);
+				Texture *texture = _renderTargets->ObjectAtIndex<Texture>(i);
 				
 				texture->Bind();
 				texture->SetData(0, width, height, TextureParameter::Format::RGBA8888);
