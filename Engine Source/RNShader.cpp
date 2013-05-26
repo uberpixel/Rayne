@@ -462,6 +462,11 @@ namespace RN
 				break;
 			
 			program->targetmaplocations.AddObject(location);
+			
+			sprintf(string, "targetmap%iInfo", (int)i);
+			location = glGetUniformLocation(program->program, string);
+			if(location != -1)
+				program->targetmapinfolocations.AddObject(location);
 		}
 		
 		for(machine_uint i=0; ; i++)
@@ -473,6 +478,11 @@ namespace RN
 				break;
 			
 			program->texlocations.AddObject(location);
+			
+			sprintf(string, "mTexture%iInfo", (int)i);
+			location = glGetUniformLocation(program->program, string);
+			if(location != -1)
+				program->texinfolocations.AddObject(location);
 		}
 		
 		GetUniformLocation(depthmap);

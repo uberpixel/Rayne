@@ -95,7 +95,9 @@ namespace RN
 		GLuint lightTileSize;
 		
 		Array<GLuint> texlocations;
+		Array<GLuint> texinfolocations;
 		Array<GLuint> targetmaplocations;
+		Array<GLuint> targetmapinfolocations;
 		Array<GLuint> fraglocations;
 		GLuint depthmap;
 	};
