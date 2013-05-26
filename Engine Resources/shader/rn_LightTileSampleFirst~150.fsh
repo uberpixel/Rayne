@@ -18,10 +18,10 @@ out vec4 fragColor0;
 
 void main()
 {
-	vec4 depth1 = texture(mTexture0, vertTexcoord-0.5*frameSize.xy);
-	vec4 depth2 = texture(mTexture0, vertTexcoord+0.5*frameSize.xy);
-	vec4 depth3 = texture(mTexture0, vertTexcoord-0.5*frameSize.xy*vec2(-1.0, 1.0));
-	vec4 depth4 = texture(mTexture0, vertTexcoord+0.5*frameSize.xy*vec2(-1.0, 1.0));
+	vec4 depth1 = texelFetch(mTexture0, ivec2(int(gl_FragCoord.x)*2, int(gl_FragCoord.y)*2), 0);
+	vec4 depth2 = texelFetch(mTexture0, ivec2(int(gl_FragCoord.x)*2+1, int(gl_FragCoord.y)*2+1), 0);
+	vec4 depth3 = texelFetch(mTexture0, ivec2(int(gl_FragCoord.x)*2, int(gl_FragCoord.y)*2+1), 0);
+	vec4 depth4 = texelFetch(mTexture0, ivec2(int(gl_FragCoord.x)*2+1, int(gl_FragCoord.y)*2), 0);
 	
 	fragColor0.r = min(depth1.r, min(depth2.r, min(depth3.r, depth4.r)));
 	fragColor0.g = max(depth1.r, max(depth2.r, max(depth3.r, depth4.r)));

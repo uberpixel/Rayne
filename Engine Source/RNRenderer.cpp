@@ -360,8 +360,8 @@ namespace RN
 						if(dl < 0.0f && dt > 0.0f && dl*dl+dt*dt > sqrange)
 							continue;
 						
-//						Distance(plnear, >, range);
-//						Distance(plfar, <, -range);
+						Distance(plnear, >, range);
+						Distance(plfar, <, -range);
 						
 						lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
 					}

@@ -234,7 +234,7 @@ namespace RN
 		for(auto i=stages.begin(); i!=stages.end(); i++)
 		{
 			factor <<= 1;
-			i->Camera()->SetFrame(Rect(Vector2(0.0f), Vector2(ceil(_frame.Size().x / factor), ceil(_frame.Size().y / factor))));
+			i->Camera()->SetFrame(Rect(Vector2(0.0f), Vector2(_frame.Size().x / factor, _frame.Size().y / factor)));
 		}
 	}
 	
@@ -423,7 +423,7 @@ namespace RN
 		}
 		
 		glColorMask((_colorMask & ColorFlagRed), (_colorMask & ColorFlagGreen), (_colorMask & ColorFlagBlue), (_colorMask & ColorFlagAlpha));
-		glViewport(0, 0, _frame.width * _scaleFactor, _frame.height * _scaleFactor);
+		glViewport(0, 0, ceil(_frame.width * _scaleFactor), ceil(_frame.height * _scaleFactor));
 	}
 
 	// Setter

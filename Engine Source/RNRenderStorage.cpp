@@ -398,8 +398,8 @@ namespace RN
 		// Allocate storage for the buffers
 		if(_frameChanged)
 		{
-			uint32 width  = (uint32)(_frame.width  * _scaleFactor);
-			uint32 height = (uint32)(_frame.height * _scaleFactor);
+			uint32 width  = (uint32)ceil(_frame.width  * _scaleFactor);
+			uint32 height = (uint32)ceil(_frame.height * _scaleFactor);
 			
 			for(machine_uint i=0; i<_renderTargets->Count(); i++)
 			{
