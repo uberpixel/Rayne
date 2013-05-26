@@ -17,7 +17,6 @@ namespace RN
 		AddResource(Shader::WithFile("shader/rn_Texture1"), kRNResourceKeyTexture1Shader);
 		
 		AddResource(Shader::WithFile("shader/rn_Particle"), kRNResourceKeyParticleShader);
-		AddResource(Shader::WithFile("shader/rn_Billboard"), kRNResourceKeyBillboardShader);
 		
 		AddResource(Shader::WithFile("shader/rn_LightTileSampleFirst"), kRNResourceKeyLightTileSampleFirstShader);
 		AddResource(Shader::WithFile("shader/rn_LightTileSample"), kRNResourceKeyLightTileSampleShader);

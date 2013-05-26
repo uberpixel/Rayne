@@ -14,7 +14,6 @@
 
 #define kRNResourceKeyTexture1Shader       "kRNResourceKeyTexture1Shader"
 #define kRNResourceKeyParticleShader       "kRNResourceKeyParticleShader"
-#define kRNResourceKeyBillboardShader      "kRNResourceKeyBillboardShader"
 
 #define kRNResourceKeyLightTileSampleFirstShader "kRNResourceKeyLightTileSampleFirstShader"
 #define kRNResourceKeyLightTileSampleShader      "kRNResourceKeyLightTileSampleShader"

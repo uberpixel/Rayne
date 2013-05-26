@@ -30,7 +30,7 @@ namespace TG
 		
 	private:
 		void CreateCameras();
-		void CreateWorld();
+		void CreateSponza();
 		void CreateForest();
 		
 		RN::Camera *CreateDownsampleChain(RN::Camera *cam, RN::Shader *shader, int level, RN::TextureParameter::Format format, RN::Shader *firstshader, RN::Texture *tex);

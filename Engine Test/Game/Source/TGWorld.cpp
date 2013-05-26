@@ -38,7 +38,7 @@ namespace TG
 		AddAttachment(_physicsAttachment->Autorelease());
 		
 		CreateCameras();
-		CreateWorld();
+		CreateSponza();
 //		CreateForest();
 		
 		RN::Input::SharedInstance()->Activate();
@@ -256,7 +256,7 @@ namespace TG
 #endif
 	}
 	
-	void World::CreateWorld()
+	void World::CreateSponza()
 	{
 		// Sponza
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
@@ -400,8 +400,8 @@ namespace TG
 		
 		billboard->SetTexture(RN::Texture::WithFile("textures/billboard.png"));
 		billboard->SetScale(RN::Vector3(0.2f));
-		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
-		billboard->TranslateLocal(RN::Vector3(0.0f, 9.0f, 57.0f));
+		billboard->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, 0.0f)));
+		billboard->TranslateLocal(RN::Vector3(0.0f, 4.5f, 0.0f));
 	}
 	
 	
