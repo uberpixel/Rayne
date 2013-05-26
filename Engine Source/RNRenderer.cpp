@@ -977,24 +977,27 @@ namespace RN
 			// Sort the objects
 			if(!(camera->CameraFlags() & Camera::FlagNoSorting))
 			{
-				std::sort(_frame.begin(), _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
+				auto begin = _frame.begin();
+				std::advance(begin, skyCubeMeshes);
+			
+				std::sort(begin, _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
 					const Material *materialA = a.material;
 					const Material *materialB = b.material;
 					
 					if(materialA->blending != materialB->blending)
 					{
 						if(!materialB->blending)
-							return true;
+							return false;
 						
-						return false;
+						return true;
 					}
 					
 					if(materialA->discard != materialB->discard)
 					{
 						if(!materialB->discard)
-							return true;
+							return false;
 						
-						return false;
+						return true;
 					}
 					
 					if(materialA->Shader() != materialB->Shader())
@@ -1305,7 +1308,7 @@ namespace RN
 		
 		if(skyCube)
 		{
-			skyCubeMeshes = 0; //skyCube->Meshes(0);
+			skyCubeMeshes = skyCube->Meshes(0);
 			
 			for(uint32 j=0; j<skyCubeMeshes; j++)
 			{
@@ -1316,7 +1319,7 @@ namespace RN
 				object.transform = &cameraRotation;
 				object.skeleton = 0;
 				
-				//_frame.insert(_frame.begin(), std::move(object));
+				_frame.insert(_frame.begin(), std::move(object));
 			}
 		}
 		
