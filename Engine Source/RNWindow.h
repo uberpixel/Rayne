@@ -24,6 +24,7 @@ namespace RN
 	public:
 #if RN_PLATFORM_MAC_OS
 		RNAPI WindowConfiguration(CGDisplayModeRef mode);
+		RNAPI WindowConfiguration(const WindowConfiguration& other);
 		RNAPI ~WindowConfiguration();
 #endif
 #if RN_PLATFORM_LINUX
@@ -63,13 +64,13 @@ namespace RN
 		RNAPI virtual ~Window();
 
 		RNAPI void SetTitle(const std::string& title);
-		RNAPI void SetConfiguration(WindowConfiguration *configuration, WindowMask mask);
+		RNAPI void SetConfiguration(const WindowConfiguration& configuration, WindowMask mask);
 		
 		RNAPI void ShowCursor();
 		RNAPI void HideCursor();
 
-		WindowConfiguration *ActiveConfiguration() const { return _activeConfiguration; }
-		const Array<WindowConfiguration *>& Configurations() const { return _configurations; }
+		const WindowConfiguration& ActiveConfiguration() const { return _activeConfiguration; }
+		const std::vector<WindowConfiguration>& Configurations() const { return _configurations; }
 		
 		RNAPI Rect Frame() const;
 
@@ -105,8 +106,8 @@ namespace RN
 		bool _cursorVisible;
 		
 		WindowMask _mask;
-		WindowConfiguration *_activeConfiguration;
-		Array<WindowConfiguration *> _configurations;
+		WindowConfiguration _activeConfiguration;
+		std::vector<WindowConfiguration> _configurations;
 	};
 }
 

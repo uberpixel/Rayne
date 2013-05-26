@@ -340,6 +340,14 @@ namespace RN
 		_height = (uint32)CGDisplayModeGetPixelHeight(_mode);
 	}
 	
+	WindowConfiguration::WindowConfiguration(const WindowConfiguration& other)
+	{
+		_mode = CGDisplayModeRetain(other._mode);
+		
+		_width  = other._width;
+		_height = other._height;
+	}
+	
 	WindowConfiguration::WindowConfiguration(uint32 width, uint32 height)
 	{
 		_mode = 0;
@@ -379,7 +387,8 @@ namespace RN
 	// MARK: Window
 	// ---------------------
 	
-	Window::Window()
+	Window::Window() :
+		_activeConfiguration(WindowConfiguration(1024, 768))
 	{
 		_kernel = Kernel::SharedInstance();
 		_context = _kernel->Context();
@@ -413,18 +422,13 @@ namespace RN
 						
 						if(CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), 0) == kCFCompareEqualTo)
 						{
-							WindowConfiguration *configuration = new WindowConfiguration(mode);
+							uint32 width  = (uint32)CGDisplayModeGetPixelWidth(mode);
+							uint32 height = (uint32)CGDisplayModeGetPixelHeight(mode);
 							
-							// So not going to support post stamps
-							if(configuration->Width() < 1024 || configuration->Height() < 768)
+							if(width >= 1024 && height >= 768)
 							{
-								delete configuration;
-								CFRelease(encoding);
-								
-								continue;
+								_configurations.emplace_back(WindowConfiguration(mode));
 							}
-							
-							_configurations.AddObject(configuration);
 						}
 						
 						CFRelease(encoding);
@@ -475,24 +479,18 @@ namespace RN
 		XFreePixmap(_dpy, sourcePixmap);
 #endif
 		
-		_configurations.SortUsingFunction([](WindowConfiguration *configurationA, WindowConfiguration *configurationB) {
-			if(configurationA->Width() > configurationB->Width())
-				return kRNCompareGreaterThan;
+		std::sort(_configurations.begin(), _configurations.end(), [](const WindowConfiguration& a, const WindowConfiguration& b) {
+			if(a.Width() < b.Width())
+				return true;
 			
-			if(configurationB->Width() > configurationA->Width())
-				return kRNCompareLessThan;
+			if(a.Width() == b.Width() && a.Height() < b.Height())
+				return true;
 			
-			if(configurationA->Height() > configurationB->Height())
-				return kRNCompareGreaterThan;
-			
-			if(configurationB->Height() > configurationA->Height())
-				return kRNCompareLessThan;
-			
-			return kRNCompareEqualTo;
+			return false;
 		});
-		
+
 		SetTitle("");
-		SetConfiguration(_configurations.ObjectAtIndex(0), _mask);
+		SetConfiguration(_configurations.front(), _mask);
 	}
 
 	Window::~Window()
@@ -504,12 +502,6 @@ namespace RN
 #if RN_PLATFORM_LINUX
 		XRRFreeScreenConfigInfo(_screenConfig);
 #endif
-		
-		for(machine_uint i=0; i<_configurations.Count(); i++)
-		{
-			WindowConfiguration *configuration = _configurations.ObjectAtIndex(i);
-			delete configuration;
-		}
 	}
 
 	void Window::SetTitle(const std::string& title)
@@ -525,10 +517,10 @@ namespace RN
 #endif
 	}
 	
-	void Window::SetConfiguration(WindowConfiguration *configuration, WindowMask mask)
+	void Window::SetConfiguration(const WindowConfiguration& configuration, WindowMask mask)
 	{
-		uint32 width  = configuration->Width();
-		uint32 height = configuration->Height();
+		uint32 width  = configuration.Width();
+		uint32 height = configuration.Height();
 		
 		Renderer *renderer = Renderer::SharedInstance();
 		
@@ -550,7 +542,7 @@ namespace RN
 		else
 		{
 			NSUInteger windowStyleMask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
-			_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, configuration->Width(), configuration->Height()) andStyleMask:windowStyleMask];
+			_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, configuration.Width(), configuration.Height()) andStyleMask:windowStyleMask];
 			
 			[(RNNativeWindow *)_nativeWindow center];
 			
@@ -625,7 +617,7 @@ namespace RN
 
 	Rect Window::Frame() const
 	{
-		return Rect(0, 0, _activeConfiguration->Width(), _activeConfiguration->Height());
+		return Rect(0, 0, _activeConfiguration.Width(), _activeConfiguration.Height());
 	}
 
 	void Window::ShowCursor()
