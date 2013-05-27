@@ -101,7 +101,7 @@ namespace TG
 		RN::Debug::EndLine();
 		
 		RN::Debug::DrawBox(RN::Vector3(-1.0f), RN::Vector3(1.0f), RN::Color::Red());
-		RN::Debug::DrawBox(_sponza->BoundingBox(), RN::Color::Red());
+		RN::Debug::DrawBox(_sponza->BoundingBox()*0.2f, RN::Color::Red());
 	}
 	
 	void World::CreateCameras()
@@ -217,10 +217,6 @@ namespace TG
 		RN::Camera *downSample8x = new RN::Camera(_camera->Frame().Size() / 8.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		downSample8x->SetMaterial(downMaterial);
 		
-		// Down sample
-		RN::Camera *downSample16x = new RN::Camera(_camera->Frame().Size() / 16.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		downSample16x->SetMaterial(downMaterial);
-		
 		// Blur X
 		RN::Camera *bloomBlurXlow = new RN::Camera(_camera->Frame().Size() / 16.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurXlow->SetMaterial(blurXMaterial);
@@ -228,10 +224,18 @@ namespace TG
 		// Blur Y
 		RN::Camera *bloomBlurYlow = new RN::Camera(_camera->Frame().Size() / 16.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurYlow->SetMaterial(blurYMaterial);
+		
+		// Blur X
+		RN::Camera *bloomBlurXhigh = new RN::Camera(_camera->Frame().Size() / 4.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		bloomBlurXhigh->SetMaterial(blurXMaterial);
+		
+		// Blur Y
+		RN::Camera *bloomBlurYhigh = new RN::Camera(_camera->Frame().Size() / 4.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		bloomBlurYhigh->SetMaterial(blurYMaterial);
 	
 		// Combine
 		RN::Material *bloomCombineMaterial = new RN::Material(combineShader);
-		bloomCombineMaterial->AddTexture(bloomBlurYlow->Storage()->RenderTarget());
+		bloomCombineMaterial->AddTexture(bloomBlurYhigh->Storage()->RenderTarget());
 		
 		RN::Camera *bloomCombine = new RN::Camera(RN::Vector2(0.0f), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomCombine->SetMaterial(bloomCombineMaterial);
@@ -240,9 +244,10 @@ namespace TG
 		bloom->AddStage(filterBright, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(downSample4x, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(downSample8x, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(downSample16x, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomBlurXlow, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomBlurYlow, RN::RenderStage::Mode::ReUsePreviousStage);
+		bloom->AddStage(bloomBlurXhigh, RN::RenderStage::Mode::ReUsePreviousStage);
+		bloom->AddStage(bloomBlurYhigh, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomCombine, RN::RenderStage::Mode::ReUsePipeline);
 #endif
 		

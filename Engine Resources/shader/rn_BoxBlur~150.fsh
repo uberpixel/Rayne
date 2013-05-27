@@ -9,7 +9,7 @@
 #version 150
 
 #ifndef RN_KERNELSIZE
-#define RN_KERNELSIZE 4.0
+#define RN_KERNELSIZE 4.5
 #endif
 
 precision highp float;
