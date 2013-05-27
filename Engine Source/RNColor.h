@@ -42,6 +42,13 @@ namespace RN
 		RNAPI Color operator- (float other) const;
 		RNAPI Color operator* (float other) const;
 		RNAPI Color operator/ (float other) const;
+		
+		static Color Red() { return Color(1.0f, 0.0f, 0.0f); }
+		static Color Green() { return Color(0.0f, 1.0f, 0.0f); }
+		static Color Blue() { return Color(0.0f, 0.0f, 1.0f); }
+		static Color Black() { return Color(0.0f, 0.0f, 0.0f); }
+		static Color White() { return Color(1.0f, 1.0f, 1.0f); }
+		static Color Gray() { return Color(0.5f, 0.5f, 0.5f); }
 
 		struct
 		{
