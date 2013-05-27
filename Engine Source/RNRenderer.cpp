@@ -1064,6 +1064,8 @@ namespace RN
 			for(; i<objectsCount; i++)
 			{
 				RenderingObject& object = _frame[i];
+				if(object.prepare)
+					object.prepare(this, object);
 				
 				Mesh     *mesh = object.mesh;
 				Material *material = object.material;

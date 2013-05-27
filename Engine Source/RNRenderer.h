@@ -55,6 +55,7 @@ namespace RN
 		Skeleton *skeleton;
 		
 		GLuint instancingData;
+		std::function<void (Renderer *renderer, RenderingObject&)> prepare;
 		std::function<void (Renderer *renderer, const RenderingObject&)> callback;
 	};
 	
