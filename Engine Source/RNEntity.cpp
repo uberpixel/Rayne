@@ -45,6 +45,7 @@ namespace RN
 			
 			uint32 lodStage = _model->LODStageForDistance(distance);
 			
+			object.rotation = (Quaternion*)&WorldRotation();
 			object.transform = (Matrix *)&WorldTransform();
 			object.skeleton  = Skeleton();
 			

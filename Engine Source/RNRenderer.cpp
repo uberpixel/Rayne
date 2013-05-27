@@ -1287,6 +1287,15 @@ namespace RN
 				if(program->matModelInverse != -1)
 					glUniformMatrix4fv(program->matModelInverse, 1, GL_FALSE, inverseTransform.m);
 				
+				if(object.rotation)
+				{
+					if(program->matNormal != -1)
+						glUniformMatrix4fv(program->matNormal, 1, GL_FALSE, object.rotation->RotationMatrix().m);
+					
+					if(program->matNormalInverse != -1)
+						glUniformMatrix4fv(program->matNormalInverse, 1, GL_FALSE, object.rotation->RotationMatrix().Inverse().m);
+				}
+				
 				if(program->matViewModel != -1)
 				{
 					Matrix viewModel = viewMatrix * transform;

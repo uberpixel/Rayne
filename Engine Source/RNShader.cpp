@@ -404,6 +404,9 @@ namespace RN
 		GetUniformLocation(matModel);
 		GetUniformLocation(matModelInverse);
 		
+		GetUniformLocation(matNormal);
+		GetUniformLocation(matNormalInverse);
+		
 		GetUniformLocation(matViewModel);
 		GetUniformLocation(matViewModelInverse);
 		

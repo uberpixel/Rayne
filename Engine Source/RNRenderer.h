@@ -41,6 +41,7 @@ namespace RN
 			
 			mesh      = 0;
 			material  = 0;
+			rotation  = 0;
 			transform = 0;
 			skeleton  = 0;
 		}
@@ -51,6 +52,7 @@ namespace RN
 		
 		Mesh     *mesh;
 		Material *material;
+		Quaternion *rotation;
 		Matrix   *transform;
 		Skeleton *skeleton;
 		

@@ -116,6 +116,7 @@ namespace RN
 		
 		object.mesh = _mesh;
 		object.material = _material;
+		object.rotation = (Quaternion*)&WorldRotation();
 		object.transform = &_transform;
 		
 		renderer->RenderObject(object);
