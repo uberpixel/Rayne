@@ -96,6 +96,8 @@ namespace RN
 		
 		GLuint lightTileSize;
 		
+		GLuint hdrSettings;
+		
 		std::vector<GLuint> texlocations;
 		std::vector<GLuint> texinfolocations;
 		std::vector<GLuint> targetmaplocations;

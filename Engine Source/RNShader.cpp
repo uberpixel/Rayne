@@ -455,6 +455,8 @@ namespace RN
 		
 		GetUniformLocation(lightTileSize);
 		
+		GetUniformLocation(hdrSettings);
+		
 		char string[32];
 		for(machine_uint i=0; ; i++)
 		{

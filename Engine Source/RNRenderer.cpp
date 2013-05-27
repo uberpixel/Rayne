@@ -40,6 +40,9 @@ namespace RN
 		_time = 0.0f;
 		_mode = Mode::ModeWorld;
 		
+		_hdrExposure = 1.0f;
+		_hdrWhitePoint = 1.0f;
+		
 		// Default OpenGL state
 		// TODO: Those initial values are gathered from the OpenGL 4.0 man pages, not sure if they are true for all versions!
 		_cullingEnabled   = false;
@@ -188,6 +191,9 @@ namespace RN
 			const Rect& frame = _currentCamera->Frame();
 			glUniform4f(_currentProgram->frameSize, 1.0f/frame.width/_scaleFactor, 1.0f/frame.height/_scaleFactor, frame.width * _scaleFactor, frame.height * _scaleFactor);
 		}
+		
+		if(_currentProgram->hdrSettings != -1)
+			glUniform4f(_currentProgram->hdrSettings, _hdrExposure, _hdrWhitePoint, 0.0f, 0.0f);
 		
 		if(_currentProgram->clipPlanes != -1)
 			glUniform2f(_currentProgram->clipPlanes, _currentCamera->clipnear, _currentCamera->clipfar);

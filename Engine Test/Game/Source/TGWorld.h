@@ -44,6 +44,9 @@ namespace TG
 		RN::Texture *_depthtex;
 		RN::Entity *_sponza;
 		
+		float _exposure;
+		float _whitepoint;
+		
 		Player *_player;
 	};
 }

@@ -93,6 +93,9 @@ namespace RN
 		RNAPI void BindVAO(GLuint vao);
 		RNAPI void UseShader(ShaderProgram *shader);
 		
+		RNAPI void SetHdrExposure(float exposure);
+		RNAPI void SetHdrWhitePoint(float whitepoint);
+		
 		RNAPI void SetCullingEnabled(bool enabled);
 		RNAPI void SetDepthTestEnabled(bool enabled);
 		RNAPI void SetDepthWriteEnabled(bool enabled);
@@ -126,6 +129,9 @@ namespace RN
 		
 		float _scaleFactor;
 		float _time;
+		
+		float _hdrExposure;
+		float _hdrWhitePoint;
 		
 		std::map<std::tuple<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
 		std::vector<Camera *> _flushCameras;
@@ -257,6 +263,17 @@ namespace RN
 			
 			_currentProgram = shader;
 		}
+	}
+	
+	
+	RN_INLINE void Renderer::SetHdrExposure(float exposure)
+	{
+		_hdrExposure = exposure;
+	}
+	
+	RN_INLINE void Renderer::SetHdrWhitePoint(float whitepoint)
+	{
+		_hdrWhitePoint = whitepoint;
 	}
 	
 	

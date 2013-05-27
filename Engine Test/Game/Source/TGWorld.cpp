@@ -35,6 +35,9 @@ namespace TG
 		_player = 0;
 		_sponza = 0;
 		
+		_exposure = 1.0f;
+		_whitepoint = 1.0f;
+		
 		_physicsAttachment = new RN::bullet::PhysicsWorld();
 		AddAttachment(_physicsAttachment->Autorelease());
 		
@@ -93,6 +96,13 @@ namespace TG
 			sunrot.z = (input->KeyPressed('r') - input->KeyPressed('t')) * 2.0f;
 			_sunLight->Rotate(sunrot);
 		}
+		
+		_exposure += (input->KeyPressed('z') - input->KeyPressed('x')) * delta*2.0f;
+		_exposure = MIN(MAX(0.01f, _exposure), 10.0f);
+		_whitepoint += (input->KeyPressed('c') - input->KeyPressed('v')) * delta;
+		_whitepoint = MIN(MAX(0.01f, _whitepoint), 5.0f);
+		RN::Renderer::SharedInstance()->SetHdrExposure(_exposure);
+		RN::Renderer::SharedInstance()->SetHdrWhitePoint(_whitepoint);
 		
 		RN::Debug::AddLinePoint(RN::Vector2(0.0), RN::Color::Green());
 		RN::Debug::AddLinePoint(RN::Vector2(100.0, 0.0), RN::Color::Green());
