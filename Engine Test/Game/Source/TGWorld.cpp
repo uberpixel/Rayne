@@ -142,7 +142,9 @@ namespace TG
 		RN::Material *blurYMaterial = new RN::Material(blurShader);
 		blurYMaterial->Define("RN_BLURY");
 		
-		RN::Material *updownMaterial = new RN::Material(updownShader);
+		RN::Material *downMaterial = new RN::Material(updownShader);
+		downMaterial->Define("RN_DOWNSAMPLE");
+		RN::Material *upMaterial = new RN::Material(updownShader);
 		
 		
 #if TGWorldFeatureSSAO
@@ -199,15 +201,15 @@ namespace TG
 		
 		// Down sample
 		RN::Camera *downSample4x = new RN::Camera(_camera->Frame().Size() / 4.0f, RN::TextureParameter::Format::RGB888, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		downSample4x->SetMaterial(updownMaterial);
+		downSample4x->SetMaterial(downMaterial);
 		
 		// Down sample
 		RN::Camera *downSample8x = new RN::Camera(_camera->Frame().Size() / 8.0f, RN::TextureParameter::Format::RGB888, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		downSample8x->SetMaterial(updownMaterial);
+		downSample8x->SetMaterial(downMaterial);
 		
 		// Down sample
 		RN::Camera *downSample16x = new RN::Camera(_camera->Frame().Size() / 16.0f, RN::TextureParameter::Format::RGB888, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		downSample16x->SetMaterial(updownMaterial);
+		downSample16x->SetMaterial(downMaterial);
 		
 		// Blur X
 		RN::Camera *bloomBlurXlow = new RN::Camera(_camera->Frame().Size() / 16.0f, RN::TextureParameter::Format::RGB888, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
@@ -216,22 +218,10 @@ namespace TG
 		// Blur Y
 		RN::Camera *bloomBlurYlow = new RN::Camera(_camera->Frame().Size() / 16.0f, RN::TextureParameter::Format::RGB888, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurYlow->SetMaterial(blurYMaterial);
-		
-		// Up sample
-		RN::Camera *upSample = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGB888, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		upSample->SetMaterial(updownMaterial);
-		
-		// Blur X
-		RN::Camera *bloomBlurX = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGB888, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		bloomBlurX->SetMaterial(blurXMaterial);
-		
-		// Blur Y
-		RN::Camera *bloomBlurY = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGB888, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		bloomBlurY->SetMaterial(blurYMaterial);
 	
 		// Combine
 		RN::Material *bloomCombineMaterial = new RN::Material(combineShader);
-		bloomCombineMaterial->AddTexture(bloomBlurY->Storage()->RenderTarget());
+		bloomCombineMaterial->AddTexture(bloomBlurYlow->Storage()->RenderTarget());
 		
 		RN::Camera *bloomCombine = new RN::Camera(RN::Vector2(0.0f), RN::TextureParameter::Format::RGB888, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomCombine->SetMaterial(bloomCombineMaterial);
@@ -243,9 +233,6 @@ namespace TG
 		bloom->AddStage(downSample16x, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomBlurXlow, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomBlurYlow, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(upSample, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomBlurX, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomBlurY, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomCombine, RN::RenderStage::Mode::ReUsePipeline);
 #endif
 		
@@ -273,28 +260,28 @@ namespace TG
 		model->MaterialAtIndex(0, 17)->override = RN::Material::OverrideGroupDiscard;
 		
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
-		model->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/sponza/lion_ddn.png"));
+		model->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/sponza/lion_ddn.png", true));
 		model->MaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
 		
-		model->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/sponza/background_ddn.png"));
+		model->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/sponza/background_ddn.png", true));
 		model->MaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
 		
-		model->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_ddn.png"));
+		model->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_ddn.png", true));
 		model->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_spec.png"));
 		model->MaterialAtIndex(0, 2)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 2)->Define("RN_SPECULARITY");
 		model->MaterialAtIndex(0, 2)->Define("RN_SPECMAP");
 		
-		model->MaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png"));
+		model->MaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png", true));
 		model->MaterialAtIndex(0, 3)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 3)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 3)->Define("RN_SPECULARITY");
 		
-		model->MaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/sponza/vase_ddn.png"));
+		model->MaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/sponza/vase_ddn.png", true));
 		model->MaterialAtIndex(0, 4)->Define("RN_NORMALMAP");
 		
-		model->MaterialAtIndex(0, 5)->AddTexture(RN::Texture::WithFile("models/sponza/chain_texture_ddn.png"));
+		model->MaterialAtIndex(0, 5)->AddTexture(RN::Texture::WithFile("models/sponza/chain_texture_ddn.png", true));
 		model->MaterialAtIndex(0, 5)->specular = RN::Color(0.5f, 0.5f, 0.5f, 1.0f);
 		model->MaterialAtIndex(0, 5)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 5)->Define("RN_SPECULARITY");
@@ -304,35 +291,35 @@ namespace TG
 		model->MaterialAtIndex(0, 6)->Define("RN_SPECMAP");
 		model->MaterialAtIndex(0, 6)->Define("RN_SPECULARITY");
 		
-		model->MaterialAtIndex(0, 7)->AddTexture(RN::Texture::WithFile("models/sponza/vase_round_ddn.png"));
+		model->MaterialAtIndex(0, 7)->AddTexture(RN::Texture::WithFile("models/sponza/vase_round_ddn.png", true));
 		model->MaterialAtIndex(0, 7)->AddTexture(RN::Texture::WithFile("models/sponza/vase_round_spec.png"));
 		model->MaterialAtIndex(0, 7)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 7)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 7)->Define("RN_SPECULARITY");
 		model->MaterialAtIndex(0, 7)->Define("RN_SPECMAP");
 		
-		model->MaterialAtIndex(0, 9)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_arch_ddn.png"));
+		model->MaterialAtIndex(0, 9)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_arch_ddn.png", true));
 		model->MaterialAtIndex(0, 9)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_arch_spec.png"));
 		model->MaterialAtIndex(0, 9)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 9)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 9)->Define("RN_SPECULARITY");
 		model->MaterialAtIndex(0, 9)->Define("RN_SPECMAP");
 		
-		model->MaterialAtIndex(0, 11)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_b_ddn.png"));
+		model->MaterialAtIndex(0, 11)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_b_ddn.png", true));
 		model->MaterialAtIndex(0, 11)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_b_spec.png"));
 		model->MaterialAtIndex(0, 11)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 11)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 11)->Define("RN_SPECULARITY");
 		model->MaterialAtIndex(0, 11)->Define("RN_SPECMAP");
 		
-		model->MaterialAtIndex(0, 15)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_a_ddn.png"));
+		model->MaterialAtIndex(0, 15)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_a_ddn.png", true));
 		model->MaterialAtIndex(0, 15)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_a_spec.png"));
 		model->MaterialAtIndex(0, 15)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 15)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 15)->Define("RN_SPECULARITY");
 		model->MaterialAtIndex(0, 15)->Define("RN_SPECMAP");
 		
-		model->MaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_ddn.png"));
+		model->MaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_ddn.png", true));
 		model->MaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_spec.png"));
 		model->MaterialAtIndex(0, 17)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
 		model->MaterialAtIndex(0, 17)->Define("RN_NORMALMAP");
@@ -352,7 +339,30 @@ namespace TG
 		sponza->SetRotation(RN::Quaternion(RN::Vector3(0.0, 0.0, -90.0)));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
+		RN::AABB box = sponza->BoundingBox();
+		
 		SmokeGrenade *smoke = new TG::SmokeGrenade();
+		smoke->Material()->AddTexture(_depthtex);
+		smoke->Material()->Define("RN_SOFTPARTICLE");
+		smoke->SetPosition(box.origin+box.offset*0.2f+RN::Vector3(box.halfWidth.x, -box.halfWidth.y, box.halfWidth.z)*0.2f);
+		
+		smoke = new TG::SmokeGrenade();
+		smoke->Material()->AddTexture(_depthtex);
+		smoke->Material()->Define("RN_SOFTPARTICLE");
+		smoke->SetPosition(box.origin+box.offset*0.2f+RN::Vector3(-box.halfWidth.x, -box.halfWidth.y, box.halfWidth.z)*0.2f);
+		
+		smoke = new TG::SmokeGrenade();
+		smoke->Material()->AddTexture(_depthtex);
+		smoke->Material()->Define("RN_SOFTPARTICLE");
+		smoke->SetPosition(box.origin+box.offset*0.2f+RN::Vector3(box.halfWidth.x, -box.halfWidth.y, -box.halfWidth.z)*0.2f);
+		
+		smoke = new TG::SmokeGrenade();
+		smoke->Material()->AddTexture(_depthtex);
+		smoke->Material()->Define("RN_SOFTPARTICLE");
+		smoke->SetPosition(box.origin+box.offset*0.2f+RN::Vector3(-box.halfWidth.x, -box.halfWidth.y, -box.halfWidth.z)*0.2f);
+		
+		
+		smoke = new TG::SmokeGrenade();
 		smoke->Material()->AddTexture(_depthtex);
 		smoke->Material()->Define("RN_SOFTPARTICLE");
 		smoke->SetPosition(RN::Vector3(0.0f, -8.0f, 0.0f));

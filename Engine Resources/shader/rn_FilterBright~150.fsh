@@ -17,5 +17,5 @@ out vec4 fragColor0;
 void main()
 {
 	vec4 color0 = texture(targetmap0, vertTexcoord);
-	fragColor0 = (dot(color0.rgb, vec3(0.299, 0.587, 0.114))>0.8)?color0:vec4(vec3(0.0), 1.0);
+	fragColor0 = (dot(color0.rgb, vec3(0.299, 0.587, 0.114))>0.7)?color0:vec4(vec3(0.0), 1.0);
 }

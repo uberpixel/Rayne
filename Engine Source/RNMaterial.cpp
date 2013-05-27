@@ -48,7 +48,7 @@ namespace RN
 		polygonOffsetFactor = 1.0f;
 		polygonOffsetUnits = 1.0f;
 		
-		ambient = Color(0.2f, 0.2f, 0.2f, 1.0f);
+		ambient = Color(0.03f, 0.03f, 0.03f, 1.0f);
 		diffuse = Color(0.8f, 0.8f, 0.8f, 1.0f);
 		specular = Color(0.1f, 0.1f, 0.1f, 0.1f);
 		emissive = Color(0.0f, 0.0f, 0.0f, 0.0f);

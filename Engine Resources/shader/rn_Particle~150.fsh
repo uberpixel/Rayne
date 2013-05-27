@@ -15,6 +15,7 @@ uniform sampler2D mTexture0;
 
 #if defined(RN_SOFTPARTICLE)
 	uniform sampler2D mTexture1;
+	uniform vec2 clipPlanes;
 #endif
 
 in vec4 geoColor;
@@ -28,9 +29,12 @@ void main()
 	rn_Discard(color);
 	
 #if defined(RN_SOFTPARTICLE)
-	float depth = texelFetch(mTexture1, ivec2(gl_FragCoord.xy), 0).r;
-	float diff = depth-gl_FragCoord.z;
-	color.a *= min(diff*200.0, 1.0);
+	vec2 depth;
+	depth.x = texelFetch(mTexture1, ivec2(gl_FragCoord.xy), 0).r;
+	depth.y = gl_FragCoord.z;
+	depth = (clipPlanes.x * clipPlanes.y)/(depth*(clipPlanes.y-clipPlanes.x)-clipPlanes.y);
+	float diff = depth.y-depth.x;
+	color.a *= min(diff*10.0, 1.0);
 #endif
 
 	fragColor0 = geoColor * color;

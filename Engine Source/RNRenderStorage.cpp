@@ -163,7 +163,7 @@ namespace RN
         parameter.mipMaps = 0;
         parameter.generateMipMaps = false;
         
-        Texture *target = new Texture(parameter);
+        Texture *target = new Texture(parameter, true);
         
         try
         {

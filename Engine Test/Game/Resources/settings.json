@@ -1,5 +1,5 @@
 {
-	"RNGammaCorrection": false,
+	"RNGammaCorrection": true,
 	"RNGameModule": "libGame",
 	"RNModules": [
 		"modules/rayne-bullet/librayne-bullet"

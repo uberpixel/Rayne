@@ -25,12 +25,14 @@ namespace TG
 	void Application::Start()
 	{
 		RN::Window *window = RN::Window::SharedInstance();
-		const std::vector<RN::WindowConfiguration>& configurations = window->Configurations();
+/*		const std::vector<RN::WindowConfiguration>& configurations = window->Configurations();
 		
 		size_t index = (RN::Kernel::SharedInstance()->ScaleFactor() <= 1.4f) ? (configurations.size() - 2) : 0;
 
-		RN::Window::SharedInstance()->SetConfiguration(configurations.at(index), 0);
+		RN::Window::SharedInstance()->SetConfiguration(configurations.at(index), 0);*/
 		//RN::Window::SharedInstance()->HideCursor();
+		
+		RN::Window::SharedInstance()->SetConfiguration(RN::WindowConfiguration(840, 525), 0);
 		
 		_world = new World();
 	}
