@@ -94,7 +94,7 @@ namespace TG
 		}
 		
 		
-		RN::Debug::AddLinePoint(RN::Vector3(0.0), RN::Color::Red());
+		/*RN::Debug::AddLinePoint(RN::Vector3(0.0), RN::Color::Red());
 		RN::Debug::AddLinePoint(RN::Vector3(0.0, 1.0, 0.0), RN::Color::Red());
 		RN::Debug::AddLinePoint(RN::Vector3(0.0, 1.0, 1.0), RN::Color::Red());
 		RN::Debug::AddLinePoint(RN::Vector3(0.0, 0.0, 1.0), RN::Color::Red());
@@ -106,7 +106,10 @@ namespace TG
 		RN::Debug::AddLinePoint(RN::Vector2(100.0, 100.0), RN::Color::Green());
 		RN::Debug::AddLinePoint(RN::Vector2(0.0, 100.0), RN::Color::Green());
 		RN::Debug::AddLinePoint(RN::Vector2(0.0), RN::Color::Green());
-		RN::Debug::EndLine();
+		RN::Debug::EndLine();*/
+		
+		RN::Debug::DrawBox(RN::Vector3(-1.0f), RN::Vector3(1.0f), RN::Color::Red());
+		RN::Debug::DrawBox(_sponza->BoundingBox(), RN::Color::Red());
 	}
 	
 	void World::CreateCameras()
@@ -354,33 +357,9 @@ namespace TG
 		sponza->SetRotation(RN::Quaternion(RN::Vector3(0.0, 0.0, -90.0)));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
+		_sponza = sponza;
 		
-		
-		RN::AABB box = sponza->BoundingBox();
-		
-		SmokeGrenade *smoke = new TG::SmokeGrenade();
-		smoke->Material()->AddTexture(_depthtex);
-		smoke->Material()->Define("RN_SOFTPARTICLE");
-		smoke->SetPosition(box.origin+box.offset*0.2f+RN::Vector3(box.halfWidth.x, -box.halfWidth.y, box.halfWidth.z)*0.2f);
-		
-		smoke = new TG::SmokeGrenade();
-		smoke->Material()->AddTexture(_depthtex);
-		smoke->Material()->Define("RN_SOFTPARTICLE");
-		smoke->SetPosition(box.origin+box.offset*0.2f+RN::Vector3(-box.halfWidth.x, -box.halfWidth.y, box.halfWidth.z)*0.2f);
-		
-		smoke = new TG::SmokeGrenade();
-		smoke->Material()->AddTexture(_depthtex);
-		smoke->Material()->Define("RN_SOFTPARTICLE");
-		smoke->SetPosition(box.origin+box.offset*0.2f+RN::Vector3(box.halfWidth.x, -box.halfWidth.y, -box.halfWidth.z)*0.2f);
-		
-		smoke = new TG::SmokeGrenade();
-		smoke->Material()->AddTexture(_depthtex);
-		smoke->Material()->Define("RN_SOFTPARTICLE");
-		smoke->SetPosition(box.origin+box.offset*0.2f+RN::Vector3(-box.halfWidth.x, -box.halfWidth.y, -box.halfWidth.z)*0.2f);
-		
-		
-		
-		smoke = new TG::SmokeGrenade();
+		TG::SmokeGrenade *smoke = new TG::SmokeGrenade();
 		smoke->Material()->AddTexture(_depthtex);
 		smoke->Material()->Define("RN_SOFTPARTICLE");
 		smoke->SetPosition(RN::Vector3(0.0f, -8.0f, 0.0f));
