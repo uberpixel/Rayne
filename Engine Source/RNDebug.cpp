@@ -51,6 +51,7 @@ namespace RN
 		static Material *__Line3DMaterial;
 		static Material *__Line2DMaterial;
 		static Shader   *__LineShader;
+		static Matrix    __LineTransform;
 		
 		static std::atomic<bool> __Line3DHandlerState;
 		static std::atomic<bool> __Line2DHandlerState;
@@ -119,12 +120,21 @@ namespace RN
 			if(!__Line2DHandlerState.exchange(true))
 			{
 				RenderingObject object(RenderingObject::Type::Custom);
-				object.material = __Line2DMaterial;
+				object.material  = __Line2DMaterial;
+				object.transform = &__LineTransform;
+				
 				object.callback = [](Renderer *renderer, const RenderingObject& object) {
 					DrawLine<Point2D, Vector2, Line2D>(renderer, __Line2D);
 					
 					__Line2D.clear();
 					__Line2DHandlerState.store(false);
+				};
+				
+				object.prepare = [](Renderer *renderer, RenderingObject& object) {
+					Camera *camera = renderer->ActiveCamera();
+					float height = camera->Frame().height - 1.0f;
+					
+					__LineTransform.MakeTranslate(Vector3(0.0f, height, 0.0f));
 				};
 				
 				Renderer::SharedInstance()->RenderDebugObject(object, Renderer::Mode::ModeUI);
@@ -157,7 +167,7 @@ namespace RN
 		
 		void AddLinePoint(const Vector2& point, const Color& color)
 		{
-			__AddLinePoint<Vector2, Line2D, Point2D>(point, color, kRNDebugDebugDrawLine2DKey);
+			__AddLinePoint<Vector2, Line2D, Point2D>(Vector2(point.x, -point.y), color, kRNDebugDebugDrawLine2DKey);
 		}
 		
 		void CloseLine()

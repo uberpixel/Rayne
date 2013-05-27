@@ -93,20 +93,12 @@ namespace TG
 			_sunLight->Rotate(sunrot);
 		}
 		
-		
-		/*RN::Debug::AddLinePoint(RN::Vector3(0.0), RN::Color::Red());
-		RN::Debug::AddLinePoint(RN::Vector3(0.0, 1.0, 0.0), RN::Color::Red());
-		RN::Debug::AddLinePoint(RN::Vector3(0.0, 1.0, 1.0), RN::Color::Red());
-		RN::Debug::AddLinePoint(RN::Vector3(0.0, 0.0, 1.0), RN::Color::Red());
-		RN::Debug::AddLinePoint(RN::Vector3(0.0), RN::Color::Red());
-		RN::Debug::EndLine();
-		
 		RN::Debug::AddLinePoint(RN::Vector2(0.0), RN::Color::Green());
 		RN::Debug::AddLinePoint(RN::Vector2(100.0, 0.0), RN::Color::Green());
 		RN::Debug::AddLinePoint(RN::Vector2(100.0, 100.0), RN::Color::Green());
 		RN::Debug::AddLinePoint(RN::Vector2(0.0, 100.0), RN::Color::Green());
 		RN::Debug::AddLinePoint(RN::Vector2(0.0), RN::Color::Green());
-		RN::Debug::EndLine();*/
+		RN::Debug::EndLine();
 		
 		RN::Debug::DrawBox(RN::Vector3(-1.0f), RN::Vector3(1.0f), RN::Color::Red());
 		RN::Debug::DrawBox(_sponza->BoundingBox(), RN::Color::Red());
