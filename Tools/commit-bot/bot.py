@@ -58,7 +58,7 @@ def ParseCommit(gitdir, oldrev, revision):
 	verb    = 'commit' if len(commits) == 1 else 'commits'
 	message = '{0} pushed {1} {2} to {3}'.format(author, len(commits), verb, branch)
 
-	for commit in commits:
+	for commit in reversed(commits):
 		message += '\n'
 		message += commit
 
