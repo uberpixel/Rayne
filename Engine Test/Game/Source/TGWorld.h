@@ -42,6 +42,7 @@ namespace TG
 		RN::Light *_spotLight;
 		RN::Light *_sunLight;
 		RN::Texture *_depthtex;
+		RN::Entity *_sponza;
 		
 		Player *_player;
 	};

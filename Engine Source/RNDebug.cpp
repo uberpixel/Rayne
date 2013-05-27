@@ -105,6 +105,8 @@ namespace RN
 				object.material = __Line3DMaterial;
 				object.callback = [](Renderer *renderer, const RenderingObject& object) {
 					DrawLine<Point3D, Vector3, Line3D>(renderer, __Line3D);
+					
+					__Line3D.clear();
 					__Line3DHandlerState.store(false);
 				};
 				
@@ -120,6 +122,8 @@ namespace RN
 				object.material = __Line2DMaterial;
 				object.callback = [](Renderer *renderer, const RenderingObject& object) {
 					DrawLine<Point2D, Vector2, Line2D>(renderer, __Line2D);
+					
+					__Line2D.clear();
 					__Line2DHandlerState.store(false);
 				};
 				
@@ -156,6 +160,22 @@ namespace RN
 			__AddLinePoint<Vector2, Line2D, Point2D>(point, color, kRNDebugDebugDrawLine2DKey);
 		}
 		
+		void CloseLine()
+		{
+			Line3D *line3D = Thread::CurrentThread()->ObjectForKey<Line3D>(kRNDebugDebugDrawLine3DKey);
+			Line2D *line2D = Thread::CurrentThread()->ObjectForKey<Line2D>(kRNDebugDebugDrawLine2DKey);
+			
+			if(line3D)
+			{
+				line3D->erase(line3D->end() - 1);
+			}
+			
+			if(line2D)
+			{
+				line2D->erase(line2D->end() - 1);
+			}
+		}
+		
 		void EndLine()
 		{
 			Line3D *line3D = Thread::CurrentThread()->ObjectForKey<Line3D>(kRNDebugDebugDrawLine3DKey);
@@ -163,6 +183,8 @@ namespace RN
 			
 			if(line3D)
 			{
+				line3D->erase(line3D->end() - 1);
+				
 				Line3D temp;
 				std::swap(temp, *line3D);
 				
@@ -175,6 +197,8 @@ namespace RN
 			
 			if(line2D)
 			{
+				line2D->erase(line2D->end() - 1);
+				
 				Line2D temp;
 				std::swap(temp, *line2D);
 				
@@ -186,6 +210,51 @@ namespace RN
 			}
 		}
 		
+		void DrawBox(const AABB& box, const Color& color)
+		{
+			Vector3 min = box.Position() - box.halfWidth;
+			Vector3 max = box.Position() + box.halfWidth;
+			
+			DrawBox(min, max, color);
+		}
+		
+		void DrawBox(const Vector3& tmin, const Vector3& tmax, const Color& color)
+		{
+			Vector3 min = Vector3(MIN(tmin.x, tmax.x), MIN(tmin.y, tmax.y), MIN(tmin.z, tmax.z));
+			Vector3 max = Vector3(MAX(tmin.x, tmax.x), MAX(tmin.y, tmax.y), MAX(tmin.z, tmax.z));
+			
+			// Top and bottom
+			AddLinePoint(min, color);
+			AddLinePoint(Vector3(max.x, min.y, min.z), color);
+			AddLinePoint(Vector3(max.x, min.y, max.z), color);
+			AddLinePoint(Vector3(min.x, min.y, max.z), color);
+			AddLinePoint(min, color);
+			CloseLine();
+			
+			AddLinePoint(Vector3(min.x, max.y, min.z), color);
+			AddLinePoint(Vector3(max.x, max.y, min.z), color);
+			AddLinePoint(Vector3(max.x, max.y, max.z), color);
+			AddLinePoint(Vector3(min.x, max.y, max.z), color);
+			AddLinePoint(Vector3(min.x, max.y, min.z), color);
+			CloseLine();
+			
+			// Edges
+			AddLinePoint(Vector3(min.x, min.y, min.z), color);
+			AddLinePoint(Vector3(min.x, max.y, min.z), color);
+			CloseLine();
+			
+			AddLinePoint(Vector3(max.x, min.y, min.z), color);
+			AddLinePoint(Vector3(max.x, max.y, min.z), color);
+			CloseLine();
+			
+			AddLinePoint(Vector3(min.x, min.y, max.z), color);
+			AddLinePoint(Vector3(min.x, max.y, max.z), color);
+			CloseLine();
+			
+			AddLinePoint(Vector3(max.x, min.y, max.z), color);
+			AddLinePoint(Vector3(max.x, max.y, max.z), color);
+			EndLine();
+		}
 		
 		// ---------------------
 		// MARK: -
