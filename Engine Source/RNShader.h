@@ -100,6 +100,7 @@ namespace RN
 		std::vector<GLuint> targetmapinfolocations;
 		std::vector<GLuint> fraglocations;
 		GLuint depthmap;
+		GLuint depthmapinfo;
 	};
 	
 	class Shader : public Object

@@ -737,6 +737,10 @@ namespace RN
 					Texture *texture = textures.ObjectAtIndex<Texture>(i);
 					
 					glUniform1i(location, BindTexture(texture));
+					
+					location = program->texinfolocations[i];
+					if(location != -1)
+						glUniform4f(location, 1.0f/static_cast<float>(texture->Width()), 1.0f/static_cast<float>(texture->Height()), texture->Width(), texture->Height());
 				}
 			}
 		}
@@ -874,6 +878,10 @@ namespace RN
 			GLuint location = program->targetmaplocations.front();
 			
 			glUniform1i(location, BindTexture(texture));
+			
+			location = program->targetmapinfolocations.front();
+			if(location != -1)
+				glUniform4f(location, 1.0f/static_cast<float>(texture->Width()), 1.0f/static_cast<float>(texture->Height()), texture->Width(), texture->Height());
 		}
 		
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
@@ -920,6 +928,10 @@ namespace RN
 			GLuint location = program->targetmaplocations[i];
 			
 			glUniform1i(location, BindTexture(texture));
+			
+			location = program->targetmapinfolocations[i];
+			if(location != -1)
+				glUniform4f(location, 1.0f/static_cast<float>(texture->Width()), 1.0f/static_cast<float>(texture->Height()), texture->Width(), texture->Height());
 		}
 		
 		if(program->depthmap != -1)
@@ -928,6 +940,9 @@ namespace RN
 			if(depthmap)
 			{
 				glUniform1i(program->depthmap, BindTexture(depthmap));
+				
+				if(program->depthmapinfo != -1)
+					glUniform4f(program->depthmapinfo, 1.0f/static_cast<float>(depthmap->Width()), 1.0f/static_cast<float>(depthmap->Height()), depthmap->Width(), depthmap->Height());
 			}
 		}
 		

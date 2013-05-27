@@ -465,8 +465,7 @@ namespace RN
 			
 			sprintf(string, "targetmap%iInfo", (int)i);
 			location = glGetUniformLocation(program->program, string);
-			if(location != -1)
-				program->targetmapinfolocations.push_back(location);
+			program->targetmapinfolocations.push_back(location);
 		}
 		
 		for(machine_uint i=0; ; i++)
@@ -481,11 +480,11 @@ namespace RN
 			
 			sprintf(string, "mTexture%iInfo", (int)i);
 			location = glGetUniformLocation(program->program, string);
-			if(location != -1)
-				program->texinfolocations.push_back(location);
+			program->texinfolocations.push_back(location);
 		}
 		
 		GetUniformLocation(depthmap);
+		GetUniformLocation(depthmapinfo);
 		
 		// Get attributes
 		GetAttributeLocation(attPosition);
