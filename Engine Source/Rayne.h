@@ -74,6 +74,7 @@
 #include "RNEntity.h"
 #include "RNLight.h"
 #include "RNBillboard.h"
+#include "RNWater.h"
 #include "RNInstancingNode.h"
 #include "RNParticleEmitter.h"
 #include "RNParticle.h"

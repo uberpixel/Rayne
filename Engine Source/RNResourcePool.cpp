@@ -15,6 +15,7 @@ namespace RN
 	void ResourcePool::LoadDefaultResources()
 	{
 		AddResource(Shader::WithFile("shader/rn_Texture1"), kRNResourceKeyTexture1Shader);
+		AddResource(Shader::WithFile("shader/rn_Water"), kRNResourceKeyWaterShader);
 		
 		AddResource(Shader::WithFile("shader/rn_Particle"), kRNResourceKeyParticleShader);
 		

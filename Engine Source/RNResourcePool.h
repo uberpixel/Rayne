@@ -13,6 +13,7 @@
 #include "RNObject.h"
 
 #define kRNResourceKeyTexture1Shader       "kRNResourceKeyTexture1Shader"
+#define kRNResourceKeyWaterShader       "kRNResourceKeyWaterShader"
 #define kRNResourceKeyParticleShader       "kRNResourceKeyParticleShader"
 
 #define kRNResourceKeyLightTileSampleFirstShader "kRNResourceKeyLightTileSampleFirstShader"

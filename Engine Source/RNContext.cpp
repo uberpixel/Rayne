@@ -402,10 +402,10 @@ namespace RN
 			glGetFloatv(GL_COLOR_CLEAR_VALUE, &_clearColor.r);
 			
 #if GL_FRAMEBUFFER_SRGB
-			if(Settings::SharedInstance()->GammaCorrection())
+/*			if(Settings::SharedInstance()->GammaCorrection())
 			{
 				glEnable(GL_FRAMEBUFFER_SRGB);
-			}
+			}*/
 #endif
 		}
 	}
