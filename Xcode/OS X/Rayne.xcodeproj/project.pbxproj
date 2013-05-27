@@ -33,6 +33,7 @@
 		E9319D3416BFE560001FA38F /* RNBaseInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = E9319D3316BFE560001FA38F /* RNBaseInternal.h */; settings = {ATTRIBUTES = (); }; };
 		E94D18B91753CE8A00F3B10D /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E94D18B71753CE8A00F3B10D /* RNDebug.cpp */; };
 		E94D18BA1753CE8A00F3B10D /* RNDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = E94D18B81753CE8A00F3B10D /* RNDebug.h */; };
+		E94D18BC1753D26400F3B10D /* RNSynchronization.h in Headers */ = {isa = PBXBuildFile; fileRef = E996A0B616F30B05000EFB03 /* RNSynchronization.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E957BAB81714F61400AD7A54 /* RNSceneManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E957BAB61714F61400AD7A54 /* RNSceneManager.cpp */; };
 		E957BAB91714F61400AD7A54 /* RNSceneManager.h in Headers */ = {isa = PBXBuildFile; fileRef = E957BAB71714F61400AD7A54 /* RNSceneManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */; };
@@ -752,6 +753,7 @@
 				E9C328F71745E4B200FAE32F /* RNConstants.h in Headers */,
 				E9C01BB41746CE6A00B3577B /* RNShaderLookup.h in Headers */,
 				E94D18BA1753CE8A00F3B10D /* RNDebug.h in Headers */,
+				E94D18BC1753D26400F3B10D /* RNSynchronization.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
