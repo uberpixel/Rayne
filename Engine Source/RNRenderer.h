@@ -20,6 +20,7 @@
 
 namespace RN
 {
+	class Renderer;
 	class RenderingObject
 	{
 	public:
@@ -54,12 +55,18 @@ namespace RN
 		Skeleton *skeleton;
 		
 		GLuint instancingData;
-		std::function<void (const RenderingObject&)> callback;
+		std::function<void (Renderer *renderer, const RenderingObject&)> callback;
 	};
 	
 	class Renderer : public Singleton<Renderer>
 	{
 	public:
+		enum class Mode
+		{
+			ModeWorld,
+			ModeUI
+		};
+		
 		RNAPI Renderer();
 		RNAPI ~Renderer();
 		
@@ -70,6 +77,7 @@ namespace RN
 		RNAPI void FinishCamera();
 		
 		RNAPI void RenderObject(RenderingObject object);
+		RNAPI void RenderDebugObject(RenderingObject object, Mode mode);
 		RNAPI void RenderLight(Light *light);
 		
 		RNAPI void SetDefaultFBO(GLuint fbo);
@@ -87,11 +95,16 @@ namespace RN
 		RNAPI void SetDepthWriteEnabled(bool enabled);
 		RNAPI void SetBlendingEnabled(bool enabled);
 		RNAPI void SetPolygonOffsetEnabled(bool enabled);
+		RNAPI void SetMode(Mode mode);
 		
 		RNAPI void SetCullMode(GLenum cullMode);
 		RNAPI void SetDepthFunction(GLenum depthFunction);
 		RNAPI void SetBlendFunction(GLenum blendSource, GLenum blendDestination);
 		RNAPI void SetPolygonOffset(float factor, float units);
+		
+		Camera *ActiveCamera() const { return _currentCamera; }
+		Material *ActiveMaterial() const { return _currentMaterial; }
+		ShaderProgram *ActiveProgram() const { return _currentProgram; }
 		
 	protected:
 		RNAPI void UpdateShaderData();
@@ -143,6 +156,10 @@ namespace RN
 		
 		Camera *_frameCamera;
 		std::vector<RenderingObject> _frame;
+		
+		std::vector<RenderingObject> _debugFrameWorld;
+		std::vector<RenderingObject> _debugFrameUI;
+		
 		std::vector<Light *> _pointLights;
 		std::vector<Light *> _spotLights;
 		std::vector<Light *> _directionalLights;
@@ -152,6 +169,8 @@ namespace RN
 		void FlushCamera(Camera *camera);
 		void DrawCameraStage(Camera *camera, Camera *stage);
 		void AllocateLightBufferStorage(size_t indicesSize, size_t offsetSize);
+		
+		Mode _mode;
 		
 		Shader *_copyShader;
 		GLuint _copyVAO;
@@ -187,8 +206,6 @@ namespace RN
 		std::vector<Vector4> _lightPointPosition;
 		std::vector<Vector4> _lightPointColor;
 		
-		size_t _instancingVBOSize;
-		GLuint _instancingVBO;
 		SpinLock _lock;
 	};
 	
