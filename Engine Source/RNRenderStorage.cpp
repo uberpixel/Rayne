@@ -13,7 +13,7 @@ namespace RN
 {
 	RNDeclareMeta(RenderStorage)
 	
-	RenderStorage::RenderStorage(BufferFormat format, Texture *depthTexture)
+	RenderStorage::RenderStorage(BufferFormat format, Texture *depthTexture, float scaleFactor)
 	{
 		_formatChanged = true;
 		_frameChanged  = true;
@@ -25,7 +25,7 @@ namespace RN
 		_depthLayer = -1;
 		
 		_framebuffer = _depthbuffer = _stencilbuffer = 0;
-		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
+		_scaleFactor = (scaleFactor > 0.0f)? scaleFactor : Kernel::SharedInstance()->ScaleFactor();
 		_format      = format;
 		
 		glGenFramebuffers(1, &_framebuffer);

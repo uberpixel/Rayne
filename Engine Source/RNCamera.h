@@ -182,9 +182,9 @@ namespace RN
 		
 		RNAPI Camera(const Vector2& size, TextureParameter::Format targetFormat);
 		RNAPI Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags);
-		RNAPI Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format);
+		RNAPI Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f);
 		
-		RNAPI Camera(const Vector2& size, RenderStorage *storage, Flags flags);
+		RNAPI Camera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f);
 		
 		RNAPI virtual ~Camera();
 		

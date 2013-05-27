@@ -33,6 +33,7 @@ namespace TG
 		_camera = 0;
 		_spotLight = 0;
 		_player = 0;
+		_sponza = 0;
 		
 		_physicsAttachment = new RN::bullet::PhysicsWorld();
 		AddAttachment(_physicsAttachment->Autorelease());
@@ -100,8 +101,11 @@ namespace TG
 		RN::Debug::AddLinePoint(RN::Vector2(0.0), RN::Color::Green());
 		RN::Debug::EndLine();
 		
-		RN::Debug::DrawBox(RN::Vector3(-1.0f), RN::Vector3(1.0f), RN::Color::Red());
-		RN::Debug::DrawBox(_sponza->BoundingBox()*0.2f, RN::Color::Red());
+		if(_sponza != 0)
+		{
+			RN::Debug::DrawBox(RN::Vector3(-1.0f), RN::Vector3(1.0f), RN::Color::Red());
+			RN::Debug::DrawBox(_sponza->BoundingBox()*0.2f, RN::Color::Red());
+		}
 	}
 	
 	void World::CreateCameras()

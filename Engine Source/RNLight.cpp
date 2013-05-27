@@ -135,10 +135,10 @@ namespace RN
 				
 				for(int i = 0; i < _shadowSplits; i++)
 				{
-					storage = new RenderStorage(RenderStorage::BufferFormatDepth);
+					storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 					storage->SetDepthTarget(depthtex, i);
 					
-					Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
+					Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden, 1.0f);
 					tempcam->SetMaterial(depthMaterial);
 					tempcam->SetUseInstancing(true);
 					tempcam->SetLODCamera(_lightcam);

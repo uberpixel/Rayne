@@ -30,7 +30,7 @@ namespace RN
 		};
 		typedef uint32 BufferFormat;
 		
-		RNAPI RenderStorage(BufferFormat format, Texture *depthTexture=0);
+		RNAPI RenderStorage(BufferFormat format, Texture *depthTexture=0, float scaleFactor=0.0f);
 		RNAPI virtual ~RenderStorage();
 		
 		RNAPI void SetFrame(const Rect& frame);

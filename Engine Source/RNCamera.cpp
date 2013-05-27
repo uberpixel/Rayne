@@ -301,9 +301,10 @@ namespace RN
 		Initialize();
 	}
 
-	Camera::Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format) :
+	Camera::Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor) :
 		_frame(Vector2(0.0f, 0.0f), size),
-		_flags(flags)
+		_flags(flags),
+		_scaleFactor(scaleFactor)
 	{
 		_storage = 0;
 
@@ -314,9 +315,10 @@ namespace RN
 		Initialize();
 	}
 
-	Camera::Camera(const Vector2& size, RenderStorage *storage, Flags flags) :
+	Camera::Camera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor) :
 		_frame(Vector2(0.0f, 0.0f), size),
-		_flags(flags)
+		_flags(flags),
+		_scaleFactor(scaleFactor)
 	{
 		_storage = 0;
 
@@ -360,7 +362,7 @@ namespace RN
 		orthotop = 100.0f;
 
 		_clearColor  = Color(0.193f, 0.435f, 0.753f, 1.0f);
-		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
+		_scaleFactor = (_scaleFactor>0.0f)? _scaleFactor : Kernel::SharedInstance()->ScaleFactor();
 
 		_material = 0;
 		_stageCount = 0;
