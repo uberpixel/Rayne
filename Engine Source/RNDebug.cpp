@@ -106,8 +106,13 @@ namespace RN
 				line = new Line3D();
 				Thread::CurrentThread()->SetObjectForKey(line, kRNDebugDebugDrawLine3DKey);
 			}
+
+			line->emplace_back(Point3D(point, color));
 			
-			line->push_back(Point3D(point, color));
+			if((line->size() % 2) == 0)
+			{
+				line->emplace_back(Point3D(point, color));
+			}
 		}
 		
 		void EndLine()
