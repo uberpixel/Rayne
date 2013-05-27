@@ -24,8 +24,8 @@ namespace RN
 		RNAPI Vector2();
 		RNAPI Vector2(const float n);
 		RNAPI Vector2(const float x, const float y);
-		RNAPI Vector2(const Vector3& other);
-		RNAPI Vector2(const Vector4& other);
+		RNAPI explicit Vector2(const Vector3& other);
+		RNAPI explicit Vector2(const Vector4& other);
 
 		RNAPI bool operator== (const Vector2 &other) const;
 		RNAPI bool operator!= (const Vector2 &other) const;
@@ -63,8 +63,8 @@ namespace RN
 		RNAPI Vector3();
 		RNAPI Vector3(const float n);
 		RNAPI Vector3(const float x, const float y, const float z);
-		RNAPI Vector3(const Vector2& other, float z=0.0f);
-		RNAPI Vector3(const Vector4& other);
+		RNAPI explicit Vector3(const Vector2& other, float z=0.0f);
+		RNAPI explicit Vector3(const Vector4& other);
 		
 		RNAPI bool operator== (const Vector3 &other) const;
 		RNAPI bool operator!= (const Vector3 &other) const;
@@ -110,8 +110,8 @@ namespace RN
 		RNAPI Vector4();
 		RNAPI Vector4(const float n);
 		RNAPI Vector4(const float x, const float y, const float z, const float w);
-		RNAPI Vector4(const Vector2& other, float z=0.0f, float w=0.0f);
-		RNAPI Vector4(const Vector3& other, float w=0.0f);
+		RNAPI explicit Vector4(const Vector2& other, float z=0.0f, float w=0.0f);
+		RNAPI explicit Vector4(const Vector3& other, float w=0.0f);
 		
 #if RN_SIMD
 		RNAPI Vector4(const SIMD::VecFloat& other);
