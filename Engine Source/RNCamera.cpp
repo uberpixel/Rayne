@@ -681,14 +681,14 @@ namespace RN
 		Vector3 ndcPos(dir.x, dir.y, dir.z*2.0f-1.0f);
 		if(_flags & FlagOrthogonal)
 		{
-			Vector4 temp = ndcPos*0.5f;
+			Vector4 temp = Vector4(ndcPos*0.5f);
 			temp += 0.5f;
 			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 1.0f-temp.z, 0.0f);
 			Vector4 vec = Vector4(ortholeft, orthobottom, -clipnear, 1.0f)*temp2;
 			vec += Vector4(orthoright, orthotop, -clipfar, 1.0f)*temp;
 			
 			vec = inverseViewMatrix.Transform(vec);
-			return vec;
+			return Vector3(vec);
 		}
 		else
 		{
@@ -698,7 +698,7 @@ namespace RN
 			
 			Vector4 temp = inverseProjectionMatrix.Transform(clipPos);
 			temp = inverseViewMatrix.Transform(temp);
-			return temp;
+			return Vector3(temp);
 		}
 	}
 	
@@ -708,13 +708,13 @@ namespace RN
 		Vector3 ndcPos(dir.x, dir.y, 0.0f);
 		if(_flags & FlagOrthogonal)
 		{
-			Vector4 temp = ndcPos*0.5f;
+			Vector4 temp = Vector4(ndcPos*0.5f);
 			temp += 0.5f;
 			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 0.0f, 0.0f);
 			Vector4 vec = Vector4(ortholeft, orthobottom, -dir.z, 1.0f)*temp2;
 			vec += Vector4(orthoright, orthotop, -dir.z, 1.0f)*temp;
 			vec = inverseViewMatrix.Transform(vec);
-			return vec;
+			return Vector3(vec);
 		}
 		else
 		{
@@ -726,7 +726,7 @@ namespace RN
 			temp *= -dir.z/temp.z;
 			temp.w = 1.0f;
 			temp = inverseViewMatrix.Transform(temp);
-			return temp;
+			return Vector3(temp);
 		}
 	}
 	
