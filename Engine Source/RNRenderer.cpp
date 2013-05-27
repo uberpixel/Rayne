@@ -831,6 +831,7 @@ namespace RN
 		}
 		
 		_flushCameras.clear();
+		_debugFrame.clear();
 	}
 	
 	void Renderer::FlushCamera(Camera *camera)
@@ -1025,6 +1026,10 @@ namespace RN
 			}
 
 			Material *surfaceMaterial = camera->Material();
+			if(!surfaceMaterial)
+			{
+				_frame.insert(_frame.end(), _debugFrame.begin(), _debugFrame.end());
+			}
 			
 			// Create the light lists for the camera
 			int lightPointCount = CreatePointLightList(camera);
@@ -1292,7 +1297,7 @@ namespace RN
 					glUniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
 				}
 				
-				if(object.type == RenderingObject::Type::Instanced)
+				if(object.type == RenderingObject::Type::Custom)
 				{
 					object.callback(this, object);
 					continue;
@@ -1443,6 +1448,11 @@ namespace RN
 	void Renderer::RenderObject(RenderingObject object)
 	{
 		_frame.push_back(std::move(object));
+	}
+	
+	void Renderer::RenderDebugObject(RenderingObject object)
+	{
+		_debugFrame.push_back(std::move(object));
 	}
 	
 	void Renderer::RenderLight(Light *light)

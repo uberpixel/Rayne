@@ -89,6 +89,8 @@
 		E97C3EB0172B11C7006EA63A /* RNString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E97C3EAE172B11C7006EA63A /* RNString.cpp */; };
 		E97C3EB1172B11C7006EA63A /* RNString.h in Headers */ = {isa = PBXBuildFile; fileRef = E97C3EAF172B11C7006EA63A /* RNString.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E97DE03816F2574C0009128F /* Rayne.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1E016B5286500EFE1E8 /* Rayne.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E991D015175388500002FF37 /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E991D013175388500002FF37 /* RNDebug.cpp */; };
+		E991D016175388500002FF37 /* RNDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = E991D014175388500002FF37 /* RNDebug.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E991F1BF16BB231000B205A1 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E991F1BE16BB231000B205A1 /* IOKit.framework */; };
 		E991F1C616BB707300B205A1 /* RNMessage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E991F1C416BB707300B205A1 /* RNMessage.cpp */; };
 		E991F1C716BB707300B205A1 /* RNMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = E991F1C516BB707300B205A1 /* RNMessage.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -273,6 +275,8 @@
 		E97C3EAE172B11C7006EA63A /* RNString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNString.cpp; sourceTree = "<group>"; };
 		E97C3EAF172B11C7006EA63A /* RNString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNString.h; sourceTree = "<group>"; };
 		E98D1E581673A6E200889F3B /* libRayne.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libRayne.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		E991D013175388500002FF37 /* RNDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDebug.cpp; sourceTree = "<group>"; };
+		E991D014175388500002FF37 /* RNDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDebug.h; sourceTree = "<group>"; };
 		E991F1BE16BB231000B205A1 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		E991F1C416BB707300B205A1 /* RNMessage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNMessage.cpp; sourceTree = "<group>"; };
 		E991F1C516BB707300B205A1 /* RNMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMessage.h; sourceTree = "<group>"; };
@@ -363,6 +367,7 @@
 				E9C6F0A416B207BF006288D5 /* Assets */,
 				E9F80709169704CC00773A34 /* Base */,
 				E9F8070A169704DC00773A34 /* Container */,
+				E991D0121753883D0002FF37 /* Debug */,
 				E9F8070B169704F700773A34 /* Math */,
 				E9BA20A4170AF3DF000CADF2 /* Modules */,
 				E9B083F31718A2E0009AD83F /* Objects */,
@@ -401,6 +406,15 @@
 				E98D1E581673A6E200889F3B /* libRayne.dylib */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E991D0121753883D0002FF37 /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				E991D013175388500002FF37 /* RNDebug.cpp */,
+				E991D014175388500002FF37 /* RNDebug.h */,
+			);
+			name = Debug;
 			sourceTree = "<group>";
 		};
 		E995E408169497DB00B2E0C3 /* Vendor */ = {
@@ -730,6 +744,7 @@
 				E917AC211744A00F00331D9B /* RNUIGeometry.h in Headers */,
 				E9C328F71745E4B200FAE32F /* RNConstants.h in Headers */,
 				E9C01BB41746CE6A00B3577B /* RNShaderLookup.h in Headers */,
+				E991D016175388500002FF37 /* RNDebug.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -887,6 +902,7 @@
 				E9586E62173072B700D24737 /* RNUIResponder.cpp in Sources */,
 				E9586E671730855600D24737 /* RNUIImageView.cpp in Sources */,
 				E9BEF3C21744442A0090C9CB /* RNUIImage.cpp in Sources */,
+				E991D015175388500002FF37 /* RNDebug.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -92,6 +92,11 @@ namespace TG
 			sunrot.z = (input->KeyPressed('r') - input->KeyPressed('t')) * 2.0f;
 			_sunLight->Rotate(sunrot);
 		}
+		
+		
+		RN::Debug::AddLinePoint(RN::Vector3(0.0), RN::Color::Red());
+		RN::Debug::AddLinePoint(RN::Vector3(0.0, 1.0, 0.0), RN::Color::Red());
+		RN::Debug::EndLine();
 	}
 	
 	void World::CreateCameras()

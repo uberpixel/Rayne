@@ -71,6 +71,7 @@ namespace RN
 		RNAPI void FinishCamera();
 		
 		RNAPI void RenderObject(RenderingObject object);
+		RNAPI void RenderDebugObject(RenderingObject object);
 		RNAPI void RenderLight(Light *light);
 		
 		RNAPI void SetDefaultFBO(GLuint fbo);
@@ -148,6 +149,8 @@ namespace RN
 		
 		Camera *_frameCamera;
 		std::vector<RenderingObject> _frame;
+		std::vector<RenderingObject> _debugFrame;
+		
 		std::vector<Light *> _pointLights;
 		std::vector<Light *> _spotLights;
 		std::vector<Light *> _directionalLights;

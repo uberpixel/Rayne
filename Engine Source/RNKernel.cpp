@@ -34,6 +34,11 @@ namespace RN
 	}
 #endif
 	
+	namespace Debug
+	{
+		extern void InstallDebugDraw();
+	}
+	
 	Kernel::Kernel()
 	{
 #if RN_PLATFORM_LINUX
@@ -67,6 +72,7 @@ namespace RN
 		threadPool->AddTask([] {
 			AutoreleasePool *tpool = new AutoreleasePool();
 			ResourcePool::SharedInstance()->LoadDefaultResources();
+			Debug::InstallDebugDraw();
 			delete tpool;
 		});
 		
