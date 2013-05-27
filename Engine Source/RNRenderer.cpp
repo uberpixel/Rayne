@@ -1294,7 +1294,7 @@ namespace RN
 				
 				if(object.type == RenderingObject::Type::Instanced)
 				{
-					object.callback(object);
+					object.callback(this, object);
 					continue;
 				}
 				

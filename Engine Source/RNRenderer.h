@@ -20,6 +20,7 @@
 
 namespace RN
 {
+	class Renderer;
 	class RenderingObject
 	{
 	public:
@@ -54,7 +55,7 @@ namespace RN
 		Skeleton *skeleton;
 		
 		GLuint instancingData;
-		std::function<void (const RenderingObject&)> callback;
+		std::function<void (Renderer *renderer, const RenderingObject&)> callback;
 	};
 	
 	class Renderer : public Singleton<Renderer>
@@ -92,6 +93,10 @@ namespace RN
 		RNAPI void SetDepthFunction(GLenum depthFunction);
 		RNAPI void SetBlendFunction(GLenum blendSource, GLenum blendDestination);
 		RNAPI void SetPolygonOffset(float factor, float units);
+		
+		Camera *ActiveCamera() const { return _currentCamera; }
+		Material *ActiveMaterial() const { return _currentMaterial; }
+		ShaderProgram *ActiveProgram() const { return _currentProgram; }
 		
 	protected:
 		RNAPI void UpdateShaderData();
