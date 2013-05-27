@@ -72,9 +72,6 @@ namespace RN
 		
 		void Server::Render(Renderer *renderer)
 		{
-			if(_widgets.size() == 0)
-				return;
-			
 			Rect actualFrame = Window::SharedInstance()->Frame();
 			if(_frame != actualFrame)
 			{
@@ -90,6 +87,7 @@ namespace RN
 			}
 			
 			// Draw all widgets into the camera
+			renderer->SetMode(Renderer::Mode::ModeUI);
 			renderer->BeginCamera(_camera);
 			
 			for(Widget *widget : _widgets)

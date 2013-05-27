@@ -38,6 +38,7 @@ namespace RN
 		
 		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
 		_time = 0.0f;
+		_mode = Mode::ModeWorld;
 		
 		// Default OpenGL state
 		// TODO: Those initial values are gathered from the OpenGL 4.0 man pages, not sure if they are true for all versions!
@@ -105,9 +106,6 @@ namespace RN
 		
 		gl::BindVertexArray(0);
 		
-		_instancingVBOSize = 1;
-		glGenBuffers(1, &_instancingVBO);
-		
 #if !(RN_PLATFORM_IOS)
 		// Point lights
 		_lightPointDataSize = 0;
@@ -167,6 +165,10 @@ namespace RN
 		_defaultHeight = height;
 	}
 	
+	void Renderer::SetMode(Mode mode)
+	{
+		_mode = mode;
+	}
 	
 	// ---------------------
 	// MARK: -
@@ -831,7 +833,8 @@ namespace RN
 		}
 		
 		_flushCameras.clear();
-		_debugFrame.clear();
+		_debugFrameUI.clear();
+		_debugFrameWorld.clear();
 	}
 	
 	void Renderer::FlushCamera(Camera *camera)
@@ -1028,7 +1031,16 @@ namespace RN
 			Material *surfaceMaterial = camera->Material();
 			if(!surfaceMaterial)
 			{
-				_frame.insert(_frame.end(), _debugFrame.begin(), _debugFrame.end());
+				switch(_mode)
+				{
+					case Mode::ModeWorld:
+						_frame.insert(_frame.end(), _debugFrameWorld.begin(), _debugFrameWorld.end());
+						break;
+						
+					case Mode::ModeUI:
+						_frame.insert(_frame.end(), _debugFrameUI.begin(), _debugFrameUI.end());
+						break;
+				}
 			}
 			
 			// Create the light lists for the camera
@@ -1450,9 +1462,18 @@ namespace RN
 		_frame.push_back(std::move(object));
 	}
 	
-	void Renderer::RenderDebugObject(RenderingObject object)
+	void Renderer::RenderDebugObject(RenderingObject object, Mode mode)
 	{
-		_debugFrame.push_back(std::move(object));
+		switch(mode)
+		{
+			case Mode::ModeWorld:
+				_debugFrameWorld.push_back(std::move(object));
+				break;
+				
+			case Mode::ModeUI:
+				_debugFrameUI.push_back(std::move(object));
+				break;
+		}		
 	}
 	
 	void Renderer::RenderLight(Light *light)

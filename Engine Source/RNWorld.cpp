@@ -98,6 +98,8 @@ namespace RN
 			return (left->Priority() > right->Priority());
 		});
 		
+		_renderer->SetMode(Renderer::Mode::ModeWorld);
+		
 		for(Camera *camera : _cameras)
 		{
 			if(!camera->RequiresRendering())

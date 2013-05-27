@@ -61,9 +61,7 @@ namespace RN
 					
 					glEnableVertexAttribArray(program->attPosition);
 					glEnableVertexAttribArray(program->attColor0);
-					
-					RN_CHECKOPENGL_AGGRESSIVE();
-					
+
 					for(const Line3D& line : __Line3D)
 					{
 						glBufferData(GL_ARRAY_BUFFER, line.size() * sizeof(Point3D), line.data(), GL_STREAM_DRAW);
@@ -73,11 +71,7 @@ namespace RN
 						
 						glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(line.size()));
 						glBufferData(GL_ARRAY_BUFFER, line.size() * sizeof(Point3D), 0, GL_STREAM_DRAW);
-						
-						RN_CHECKOPENGL_AGGRESSIVE();
 					}
-					
-					RN_CHECKOPENGL_AGGRESSIVE();
 					
 					glDisableVertexAttribArray(program->attPosition);
 					glDisableVertexAttribArray(program->attColor0);
@@ -89,12 +83,10 @@ namespace RN
 					glDeleteVertexArrays(1, &vao);
 					glDeleteBuffers(1, &vbo);
 					
-					RN_CHECKOPENGL_AGGRESSIVE();
-					
 					__Line3DHandlerState.store(false);
 				};
 				
-				Renderer::SharedInstance()->RenderDebugObject(object);
+				Renderer::SharedInstance()->RenderDebugObject(object, Renderer::Mode::ModeWorld);
 			}
 		}
 		
