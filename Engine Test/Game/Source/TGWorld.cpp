@@ -100,6 +100,13 @@ namespace TG
 		RN::Debug::AddLinePoint(RN::Vector3(0.0, 0.0, 1.0), RN::Color::Red());
 		RN::Debug::AddLinePoint(RN::Vector3(0.0), RN::Color::Red());
 		RN::Debug::EndLine();
+		
+		RN::Debug::AddLinePoint(RN::Vector2(0.0), RN::Color::Green());
+		RN::Debug::AddLinePoint(RN::Vector2(100.0, 0.0), RN::Color::Green());
+		RN::Debug::AddLinePoint(RN::Vector2(100.0, 100.0), RN::Color::Green());
+		RN::Debug::AddLinePoint(RN::Vector2(0.0, 100.0), RN::Color::Green());
+		RN::Debug::AddLinePoint(RN::Vector2(0.0), RN::Color::Green());
+		RN::Debug::EndLine();
 	}
 	
 	void World::CreateCameras()
