@@ -31,6 +31,8 @@
 		E92B859516FC8E42002FA04D /* RNCatalogue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92B859316FC8E42002FA04D /* RNCatalogue.cpp */; };
 		E92B859616FC8E42002FA04D /* RNCatalogue.h in Headers */ = {isa = PBXBuildFile; fileRef = E92B859416FC8E42002FA04D /* RNCatalogue.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9319D3416BFE560001FA38F /* RNBaseInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = E9319D3316BFE560001FA38F /* RNBaseInternal.h */; settings = {ATTRIBUTES = (); }; };
+		E94D18B91753CE8A00F3B10D /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E94D18B71753CE8A00F3B10D /* RNDebug.cpp */; };
+		E94D18BA1753CE8A00F3B10D /* RNDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = E94D18B81753CE8A00F3B10D /* RNDebug.h */; };
 		E957BAB81714F61400AD7A54 /* RNSceneManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E957BAB61714F61400AD7A54 /* RNSceneManager.cpp */; };
 		E957BAB91714F61400AD7A54 /* RNSceneManager.h in Headers */ = {isa = PBXBuildFile; fileRef = E957BAB71714F61400AD7A54 /* RNSceneManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */; };
@@ -213,6 +215,8 @@
 		E92B859316FC8E42002FA04D /* RNCatalogue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNCatalogue.cpp; sourceTree = "<group>"; };
 		E92B859416FC8E42002FA04D /* RNCatalogue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNCatalogue.h; sourceTree = "<group>"; };
 		E9319D3316BFE560001FA38F /* RNBaseInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBaseInternal.h; sourceTree = "<group>"; };
+		E94D18B71753CE8A00F3B10D /* RNDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDebug.cpp; sourceTree = "<group>"; };
+		E94D18B81753CE8A00F3B10D /* RNDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDebug.h; sourceTree = "<group>"; };
 		E9543FA1168167A100F53C4F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		E9543FA2168167A100F53C4F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		E9543FA3168167A100F53C4F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -361,12 +365,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E94D18BB1753CE8E00F3B10D /* Debug */ = {
+			isa = PBXGroup;
+			children = (
+				E94D18B71753CE8A00F3B10D /* RNDebug.cpp */,
+				E94D18B81753CE8A00F3B10D /* RNDebug.h */,
+			);
+			name = Debug;
+			sourceTree = "<group>";
+		};
 		E9619DF31696157E00DA187E /* Engine Source */ = {
 			isa = PBXGroup;
 			children = (
 				E9C6F0A416B207BF006288D5 /* Assets */,
 				E9F80709169704CC00773A34 /* Base */,
 				E9F8070A169704DC00773A34 /* Container */,
+				E94D18BB1753CE8E00F3B10D /* Debug */,
 				E9F8070B169704F700773A34 /* Math */,
 				E9BA20A4170AF3DF000CADF2 /* Modules */,
 				E9B083F31718A2E0009AD83F /* Objects */,
@@ -737,6 +751,7 @@
 				E917AC211744A00F00331D9B /* RNUIGeometry.h in Headers */,
 				E9C328F71745E4B200FAE32F /* RNConstants.h in Headers */,
 				E9C01BB41746CE6A00B3577B /* RNShaderLookup.h in Headers */,
+				E94D18BA1753CE8A00F3B10D /* RNDebug.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -895,6 +910,7 @@
 				E9586E671730855600D24737 /* RNUIImageView.cpp in Sources */,
 				E9BEF3C21744442A0090C9CB /* RNUIImage.cpp in Sources */,
 				C094DF871753A2BA002A2C88 /* RNWater.cpp in Sources */,
+				E94D18B91753CE8A00F3B10D /* RNDebug.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
