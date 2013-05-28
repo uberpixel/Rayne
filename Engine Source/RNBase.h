@@ -106,6 +106,7 @@
 #include "RNOpenGL.h"
 #include "RNMath.h"
 #include "RNSIMD.h"
+#include "RNSpinLock.h"
 
 // ---------------------------
 // Helper macros
@@ -158,9 +159,12 @@ namespace RN
 	public:
 		static T *SharedInstance()
 		{
+			_lock.Lock();
+			
 			if(!_instance)
 				_instance = new T();
 
+			_lock.Unlock();
 			return _instance;
 		}
 
@@ -170,16 +174,23 @@ namespace RN
 
 		virtual ~Singleton()
 		{
+			_lock.Lock();
+			
 			if(_instance == this)
 				_instance = 0;
+			
+			_lock.Unlock();
 		}
 
 	private:
 		static T *_instance;
+		static SpinLock _lock;
 	};
 
 	template <typename T>
 	T * Singleton<T>::_instance = 0;
+	template <typename T>
+	SpinLock Singleton<T>::_lock;
 
 	template <typename T>
 	class NonConstructingSingleton
