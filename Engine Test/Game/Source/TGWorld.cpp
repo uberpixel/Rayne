@@ -36,7 +36,7 @@ namespace TG
 		_sponza = 0;
 		
 		_exposure = 1.0f;
-		_whitepoint = 1.0f;
+		_whitepoint = 5.0f;
 		
 		_physicsAttachment = new RN::bullet::PhysicsWorld();
 		AddAttachment(_physicsAttachment->Autorelease());
@@ -100,7 +100,7 @@ namespace TG
 		_exposure += (input->KeyPressed('z') - input->KeyPressed('x')) * delta*2.0f;
 		_exposure = MIN(MAX(0.01f, _exposure), 10.0f);
 		_whitepoint += (input->KeyPressed('c') - input->KeyPressed('v')) * delta;
-		_whitepoint = MIN(MAX(0.01f, _whitepoint), 5.0f);
+		_whitepoint = MIN(MAX(0.01f, _whitepoint), 10.0f);
 		RN::Renderer::SharedInstance()->SetHdrExposure(_exposure);
 		RN::Renderer::SharedInstance()->SetHdrWhitePoint(_whitepoint);
 		
@@ -144,7 +144,14 @@ namespace TG
 		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
 		_finalcam->Storage()->SetDepthTarget(_depthtex);
-		_finalcam->SetSkyCube(RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png"));
+		RN::Model *sky = RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png");
+		sky->MaterialAtIndex(0, 0)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->MaterialAtIndex(0, 1)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->MaterialAtIndex(0, 2)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->MaterialAtIndex(0, 3)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->MaterialAtIndex(0, 4)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->MaterialAtIndex(0, 5)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		_finalcam->SetSkyCube(sky);
 		_finalcam->renderGroup |= RN::Camera::RenderGroup1;
 		_finalcam->SetLightTiles(RN::Vector2(32.0f, 32.0f));
 		
@@ -178,7 +185,7 @@ namespace TG
 		
 		RN::Camera *normalsCamera = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagNoSky | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatComplete);
 		normalsCamera->SetMaterial(surfaceMaterial);
-		normalsCamera->Storage()->SetDepthTarget(depthtex);
+		normalsCamera->Storage()->SetDepthTarget(_depthtex);
 		normalsCamera->SetClearMask(RN::Camera::ClearFlagColor);
 		
 		// SSAO stage
@@ -393,7 +400,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->_lightcam = _camera;
-		_sunLight->ActivateSunShadows(true);
+		_sunLight->ActivateSunShadows(true, 1024.0f);
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);

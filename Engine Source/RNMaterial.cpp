@@ -50,7 +50,7 @@ namespace RN
 		
 		ambient = Color(0.02f, 0.02f, 0.02f, 1.0f);
 		diffuse = Color(0.8f, 0.8f, 0.8f, 1.0f);
-		specular = Color(0.1f, 0.1f, 0.1f, 0.1f);
+		specular = Color(0.01f, 0.01f, 0.01f, 1.0f);
 		emissive = Color(0.0f, 0.0f, 0.0f, 0.0f);
 		
 		shininess = 0.0f;

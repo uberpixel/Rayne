@@ -20,7 +20,7 @@ namespace RN
 		_color = RN::Color(1.0f, 1.0f, 1.0f);
 		_range = 1.0f;
 		_angle = 0.5f;
-		_intensity = 1.0f;
+		_intensity = 10.0f;
 
 		_shadow = false;
 		_shadowcam = 0;

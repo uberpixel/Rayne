@@ -48,17 +48,19 @@ void rn_PointLight(in vec3 viewdir, in vec4 lightpos, in vec3 lightcolor, in vec
 	posdiff /= dist;
 	float attenuation = min(max(1.0-dist/lightpos.w, 0.0), 1.0);
 	
+	if(attenuation < 0.0001)
+	{
+		return;
+	}
+	
+	float lightfac = min(max(dot(normal, posdiff), 0.0), 1.0);
+	
 	#if defined(RN_SPECULARITY)
-		if(attenuation < 0.0001)
-		{
-			return;
-		}
-		
 		vec3 halfvec = normalize(viewdir+posdiff);
-		specularity += pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*lightcolor*attenuation;
+		specularity += pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*lightcolor*attenuation*lightfac;
 	#endif
 	
-	lighting += lightcolor*max(dot(normal, posdiff), 0.0)*attenuation*attenuation*2.0;
+	lighting += lightfac*lightcolor*attenuation*attenuation;
 }
 
 void rn_SpotLight(in vec3 viewdir, in vec4 lightpos, in vec3 lightcolor, in vec4 lightdir, in vec3 normal, in vec3 position, in float specpow, inout vec3 lighting, inout vec3 specularity)
@@ -71,49 +73,47 @@ void rn_SpotLight(in vec3 viewdir, in vec4 lightpos, in vec3 lightcolor, in vec4
 	
 	if(dirfac > lightdir.w)
 	{
+		if(attenuation < 0.0001)
+		{
+			return;
+		}
+		
+		float lightfac = min(max(dot(normal, posdiff), 0.0), 1.0);
+		
 		#if defined(RN_SPECULARITY)
-			if(attenuation < 0.0001)
-			{
-				return;
-			}
-			
 			vec3 halfvec = normalize(viewdir+posdiff);
-			specularity += pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*lightcolor*attenuation;
+			specularity += pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*lightcolor*attenuation*lightfac;
 		#endif
 		
-		lighting += lightcolor*max(dot(normal, posdiff), 0.0)*attenuation*attenuation;
+		lighting += lightfac*lightcolor*attenuation*attenuation;
 	}
 }
 
 void rn_DirectionalLight(in vec3 viewdir, in vec3 lightdir, in vec4 lightcolor, in vec3 normal, in float specpow, inout vec3 lighting, inout vec3 specularity)
 {
+	float lightfac = min(max(dot(normal, lightdir), 0.0), 1.0);
+	vec3 light = lightcolor.rgb*lightfac;
+	
+#if defined(RN_SPECULARITY)
+	vec3 halfvec = normalize(viewdir+lightdir);
+	vec3 spec = pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*lightcolor.rgb*lightfac;
+#endif
+	
 	#if defined(RN_DIRECTIONAL_SHADOWS)
 		if(lightcolor.a > 0.5)
 		{
 			float shadow = rn_ShadowDir1();
-			
-			if(shadow > 0.0001)
-			{
-				vec3 light = lightcolor.rgb*max(dot(normal, lightdir), 0.0)*2.0;
-				
-				#if defined(RN_SPECULARITY)
-					vec3 halfvec = normalize(viewdir+lightdir);
-					specularity += pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*lightcolor.rgb*shadow;
-				#endif
-				
-				lighting += light*shadow;
-			}
+			#if defined(RN_SPECULARITY)
+				specularity += spec*shadow;
+			#endif
+			lighting += light*shadow;
 		}
 		else
 	#endif
 	{
-		vec3 light = lightcolor.rgb*max(dot(normal, lightdir), 0.0)*2.0;
-		
 		#if defined(RN_SPECULARITY)
-			vec3 halfvec = normalize(viewdir+lightdir);
-			specularity += pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*lightcolor.rgb;
+			specularity += spec;
 		#endif
-		
 		lighting += light;
 	}
 }
@@ -186,7 +186,7 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 	#endif
 	
 	#if defined(RN_SPECULARITY)
-		color.rgb = color.rgb*light+specsum*specularity.rgb;
+		color.rgb = color.rgb*light+specsum*specularity.rgb*(specularity.a+1.0)/(2.0*3.1514);
 	#else
 		color.rgb = color.rgb*light;
 	#endif

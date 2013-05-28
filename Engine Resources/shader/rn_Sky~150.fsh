@@ -11,11 +11,13 @@ precision highp float;
 
 uniform sampler2D mTexture0;
 
+uniform vec4 ambient;
+
 in vec2 vertTexcoord;
 out vec4 fragColor0;
 
 void main()
 {
-	vec4 color0 = texture(mTexture0, vertTexcoord);
+	vec4 color0 = texture(mTexture0, vertTexcoord)*ambient;
 	fragColor0 = color0;
 }

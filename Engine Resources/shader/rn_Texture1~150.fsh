@@ -60,11 +60,11 @@ void main()
 			#if defined(RN_SPECMAP) && defined(RN_SPECULARITY)
 				vec4 spec;
 				spec.rgb = specular.rgb*texture(mTexture2, vertTexcoord).rgb;
-				spec.a = specular.a*128.0;
+				spec.a = specular.a;
 			#elif defined(RN_SPECULARITY)
 				vec4 spec;
 				spec.rgb = specular.rgb*normalspec.a;
-				spec.a = specular.a*128.0;
+				spec.a = specular.a;
 			#else
 				vec4 spec = vec4(0.0);
 			#endif
@@ -74,11 +74,11 @@ void main()
 			#if defined(RN_SPECMAP) && defined(RN_SPECULARITY)
 				vec4 spec;
 				spec.rgb = specular.rgb*texture(mTexture1, vertTexcoord).rgb;
-				spec.a = specular.a*128.0;
+				spec.a = specular.a;
 			#elif defined(RN_SPECULARITY)
 				vec4 spec;
 				spec.rgb = specular.rgb;
-				spec.a = specular.a*128.0;
+				spec.a = specular.a;
 			#else
 				vec4 spec = vec4(0.0);
 			#endif
