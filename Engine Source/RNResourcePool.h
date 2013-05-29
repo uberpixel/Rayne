@@ -11,9 +11,10 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNThreadPool.h"
 
 #define kRNResourceKeyTexture1Shader       "kRNResourceKeyTexture1Shader"
-#define kRNResourceKeyWaterShader       "kRNResourceKeyWaterShader"
+#define kRNResourceKeyWaterShader          "kRNResourceKeyWaterShader"
 #define kRNResourceKeyParticleShader       "kRNResourceKeyParticleShader"
 
 #define kRNResourceKeyLightTileSampleFirstShader "kRNResourceKeyLightTileSampleFirstShader"
@@ -42,7 +43,9 @@ namespace RN
 		Object *ObjectWithName(const std::string& name);
 		void __RemoveResource(const std::string& name);
 		
-		void LoadDefaultResources();
+		void LoadDefaultResources(ThreadPool::Batch& batch);
+		void LoadShader(const std::string& name, const std::string& key);
+		void LoadFont(const std::string& name, const std::string& key);
 		
 		SpinLock _lock;
 		std::unordered_map<std::string, Object *> _objects;

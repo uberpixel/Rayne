@@ -68,9 +68,10 @@ namespace RN
 		
 		_resourceBatch = ThreadPool::SharedInstance()->OpenBatch();
 		_resourceBatch->AddTask([] {
-			ResourcePool::SharedInstance()->LoadDefaultResources();
 			Debug::InstallDebugDraw();
 		});
+		
+		ResourcePool::SharedInstance()->LoadDefaultResources(_resourceBatch);
 		
 		_resourceBatch->Commit();
 
