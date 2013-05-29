@@ -76,18 +76,18 @@ namespace TG
 			fpressed = false;
 		}
 		
-		static bool xpressed = false;
-		if(input->KeyPressed('x'))
+		static bool hpressed = false;
+		if(input->KeyPressed('h'))
 		{
-			if(!xpressed)
+			if(!hpressed)
 			{
 				_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _camera);
-				xpressed = true;
+				hpressed = true;
 			}
 		}
 		else
 		{
-			xpressed = false;
+			hpressed = false;
 		}
 		
 #if TGWorldFeatureFreeCamera
