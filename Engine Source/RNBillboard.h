@@ -21,14 +21,13 @@ namespace RN
 	{
 	public:
 		Billboard();
-		virtual ~Billboard();
+		~Billboard() override;
 		
 		void SetTexture(Texture *texture);
 		
 		Material *Material() const { return _material; }
 		
-		virtual bool IsVisibleInCamera(Camera *camera) override;
-		virtual void Render(Renderer *renderer, Camera *camera) override;
+		void Render(Renderer *renderer, Camera *camera) override;
 		
 	private:
 		void Initialize();
@@ -37,6 +36,8 @@ namespace RN
 		Mesh *_mesh;
 		Matrix _transform;
 		class Material *_material;
+		
+		RNDefineMeta(Billboard, SceneNode);
 	};
 }
 

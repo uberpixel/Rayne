@@ -11,6 +11,8 @@
 
 #include "RNBase.h"
 #include "RNVector.h"
+#include "RNMatrix.h"
+#include "RNQuaternion.h"
 
 namespace RN
 {
@@ -33,6 +35,8 @@ namespace RN
 		
 		float Width() const { return width.x; }
 		float Height() const { return width.y; }
+		
+		void Rotate(const Quaternion& rotation);
 		
 		RN_INLINE Vector3 Position() const { return origin + offset; }
 		
@@ -164,6 +168,47 @@ namespace RN
 		
 				origin.z - halfWidth.z <= other.origin.z - other.halfWidth.z &&
 				origin.z + halfWidth.z >= other.origin.z + halfWidth.z;
+	}
+	
+	RN_INLINE void AABB::Rotate(const Quaternion& rotation)
+	{
+		Matrix matrix = rotation.RotationMatrix();
+		
+		Vector3 edge1(origin + Vector3(-halfWidth.x, 0.0f, -halfWidth.z));
+		Vector3 edge2(origin + Vector3(-halfWidth.x, 0.0f, halfWidth.z));
+		Vector3 edge3(origin + Vector3(halfWidth.x, 0.0f, halfWidth.z));
+		Vector3 edge4(origin + Vector3(halfWidth.x, 0.0f, -halfWidth.z));
+		
+		Vector3 limit(0.0f, halfWidth.y, 0.0f);
+		
+		Vector3 edges[8];
+		edges[0] = std::move(matrix.Transform(edge1 - limit));
+		edges[1] = std::move(matrix.Transform(edge2 - limit));
+		edges[2] = std::move(matrix.Transform(edge3 - limit));
+		edges[3] = std::move(matrix.Transform(edge4 - limit));
+		
+		edges[4] = std::move(matrix.Transform(edge1 + limit));
+		edges[5] = std::move(matrix.Transform(edge2 + limit));
+		edges[6] = std::move(matrix.Transform(edge3 + limit));
+		edges[7] = std::move(matrix.Transform(edge4 + limit));
+		
+		Vector3 min = edges[0];
+		Vector3 max = edges[0];
+		
+		for(size_t i=1; i<8; i++)
+		{
+			min.x = MIN(edges[i].x, min.x);
+			min.y = MIN(edges[i].y, min.y);
+			min.z = MIN(edges[i].z, min.z);
+			
+			max.x = MAX(edges[i].x, max.x);
+			max.y = MAX(edges[i].y, max.y);
+			max.z = MAX(edges[i].z, max.z);
+		}
+		
+		width = (max - min);
+		halfWidth = width * 0.5f;
+		origin = min + halfWidth;
 	}
 }
 

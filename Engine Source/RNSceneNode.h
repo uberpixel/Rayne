@@ -141,6 +141,9 @@ namespace RN
 		Vector3 _worldScale;
 		Vector3 _worldEuler;
 		
+		AABB _transformedBoundingBox;
+		Sphere _transformedBoundingSphere;
+		
 		Matrix _worldTransform;
 		Matrix _localTransform;
 		
@@ -301,13 +304,13 @@ namespace RN
 	RN_INLINE const AABB& SceneNode::BoundingBox()
 	{
 		UpdateInternalData();
-		return _boundingBox;
+		return _transformedBoundingBox;
 	}
 	
 	RN_INLINE const Sphere& SceneNode::BoundingSphere()
 	{
 		UpdateInternalData();
-		return _boundingSphere;
+		return _transformedBoundingSphere;
 	}
 	
 	
@@ -340,8 +343,15 @@ namespace RN
 				_worldTransform = _localTransform;
 			}
 			
-			_boundingBox.offset = _worldPosition;
-			_boundingSphere.offset = _worldPosition;
+			_transformedBoundingBox = _boundingBox;
+			
+			_transformedBoundingBox.offset = _worldPosition;
+			_transformedBoundingBox *= _worldScale;
+			_transformedBoundingBox.Rotate(_worldRotation);
+			
+			_transformedBoundingSphere = _boundingSphere;
+			_transformedBoundingSphere.offset = _worldPosition;
+			_transformedBoundingSphere *= _worldScale;
 			
 			machine_uint count = _childs.Count();
 			for(machine_uint i=0; i<count; i++)

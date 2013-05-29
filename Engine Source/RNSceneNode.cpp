@@ -49,6 +49,8 @@ namespace RN
 		_world  = 0;
 		_lastFrame = 0;
 		
+		SetBoundingBox(AABB(Vector3(-1.0f), Vector3(1.0f)));
+		
 		group = 0;
 		
 		DidUpdate();
@@ -60,7 +62,7 @@ namespace RN
 	
 	bool SceneNode::IsVisibleInCamera(Camera *camera)
 	{
-		return camera->InFrustum(_boundingSphere*_worldScale);
+		return camera->InFrustum(_transformedBoundingSphere);
 	}
 	
 	void SceneNode::Render(Renderer *renderer, Camera *camera)

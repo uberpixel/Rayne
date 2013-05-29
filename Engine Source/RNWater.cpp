@@ -13,6 +13,8 @@
 
 namespace RN
 {
+	RNDeclareMeta(Water)
+	
 	Water::Water()
 	{
 		_mesh = 0;

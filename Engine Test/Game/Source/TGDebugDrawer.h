@@ -27,7 +27,9 @@ namespace TG
 	private:
 		bool _canDraw;
 		RN::Camera *_camera;
+		
 		RN::MetaClass *_lightClass;
+		RN::MetaClass *_cameraClass;
 	};
 }
 

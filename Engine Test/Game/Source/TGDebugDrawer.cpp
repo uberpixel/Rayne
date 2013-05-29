@@ -15,7 +15,8 @@ namespace TG
 		_canDraw = false;
 		_camera = nullptr;
 		
-		_lightClass = RN::Catalogue::SharedInstance()->ClassWithName("RN::Light");
+		_lightClass  = RN::Catalogue::SharedInstance()->ClassWithName("RN::Light");
+		_cameraClass = RN::Catalogue::SharedInstance()->ClassWithName("RN::Camera");
 	}
 	
 	void DebugDrawer::SetCamera(RN::Camera *camera)
@@ -34,8 +35,13 @@ namespace TG
 	{
 		if(_canDraw)
 		{
+			if(node->IsKindOfClass(_cameraClass))
+				return;
+			
 			if(node->IsKindOfClass(_lightClass))
 			{
+				return;
+				
 				RN::Light *light = static_cast<RN::Light *>(node);
 				RN::Debug::DrawBox(node->BoundingBox(), RN::Color::Yellow());
 			}

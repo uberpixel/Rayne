@@ -37,6 +37,8 @@ namespace RN
 		Mesh *_mesh;
 		Matrix _transform;
 		class Material *_material;
+		
+		RNDefineMeta(Water, SceneNode)
 	};
 }
 

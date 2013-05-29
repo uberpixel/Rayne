@@ -13,6 +13,8 @@
 
 namespace RN
 {
+	RNDeclareMeta(Billboard)
+	
 	Billboard::Billboard()
 	{
 		_mesh = 0;
@@ -99,12 +101,8 @@ namespace RN
 		
 		_size = Vector2(texture->Width(), texture->Height());
 		_size *= 0.1f;
-	}
-	
-	
-	bool Billboard::IsVisibleInCamera(Camera *camera)
-	{
-		return true;
+		
+		SetBoundingBox(_mesh->BoundingBox() * Vector3(_size.x, 1.0f, _size.y));
 	}
 	
 	void Billboard::Render(Renderer *renderer, Camera *camera)

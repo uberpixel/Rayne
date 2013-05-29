@@ -81,7 +81,7 @@ namespace TG
 		{
 			if(!hpressed)
 			{
-				_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _camera);
+				_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _finalcam);
 				hpressed = true;
 			}
 		}
