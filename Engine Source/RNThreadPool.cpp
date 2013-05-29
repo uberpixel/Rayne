@@ -9,7 +9,8 @@
 #include "RNThreadPool.h"
 #include "RNKernel.h"
 
-#define kRNThreadPoolTasksBuffer 4068
+#define kRNThreadPoolTasksBuffer       4068
+#define kRNThreadPoolLocalQueueMaxSize 25
 
 namespace RN
 {
@@ -122,18 +123,22 @@ namespace RN
 		}
 	}
 	
-	ThreadPool::Task ThreadPool::ReadTask()
+	void ThreadPool::ReadTasks(std::vector<Task>& tasks)
 	{
 		std::unique_lock<std::mutex> lock(_workMutex);
 		_workAvailableCondition.wait(lock, [&]{ return (_tasks.size() > 0); });
 		
-		Task task = std::move(_tasks.front());		
-		_tasks.pop();
+		size_t move = std::min<size_t>(kRNThreadPoolLocalQueueMaxSize, std::max<size_t>(1, _tasks.size() / _threads.Count()));
+		tasks.reserve(move);
+		
+		for(size_t i=0; i<move; i++)
+		{
+			tasks.push_back(std::move(_tasks.front()));
+			_tasks.pop();
+		}
 		
 		lock.unlock();
 		_consumerCondition.notify_one();
-		
-		return task;
 	}
 	
 	void ThreadPool::Consumer()
@@ -146,17 +151,22 @@ namespace RN
 		
 		while(!thread->IsCancelled())
 		{
-			Task task = std::move(ReadTask());
-			task.function();
+			std::vector<Task> tasks;
+			ReadTasks(tasks);
 			
-			if(Batch batch = task.batch.lock())
+			for(Task& task : tasks)
 			{
-				uint32 tasksLeft = batch->_openTasks.fetch_sub(1);
+				task.function();
 				
-				if(tasksLeft == 1)
+				if(Batch batch = task.batch.lock())
 				{
-					std::lock_guard<std::mutex> lock(batch->_lock);
-					batch->_waitCondition.notify_all();
+					uint32 tasksLeft = batch->_openTasks.fetch_sub(1);
+					
+					if(tasksLeft == 1)
+					{
+						std::lock_guard<std::mutex> lock(batch->_lock);
+						batch->_waitCondition.notify_all();
+					}
 				}
 			}
 		}

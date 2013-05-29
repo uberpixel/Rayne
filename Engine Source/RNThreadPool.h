@@ -121,8 +121,8 @@ namespace RN
 		
 		Thread *CreateThread();
 		
-		Task ReadTask();
 		void Consumer();
+		void ReadTasks(std::vector<Task>& tasks);
 		void FeedTasks(std::vector<Task>& tasks);
 		
 		Array _threads;
