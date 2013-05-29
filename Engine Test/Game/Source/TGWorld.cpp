@@ -77,7 +77,7 @@ namespace TG
 		}
 		
 		static bool hpressed = false;
-		if(input->KeyPressed('h'))
+		if(input->KeyPressed('x'))
 		{
 			if(!hpressed)
 			{
@@ -110,13 +110,13 @@ namespace TG
 		{
 			RN::Vector3 sunrot;
 			sunrot.x = (input->KeyPressed('e') - input->KeyPressed('q')) * 5.0f;
-			sunrot.z = (input->KeyPressed('r') - input->KeyPressed('t')) * 2.0f;
+			sunrot.z = (input->KeyPressed('t') - input->KeyPressed('g')) * 2.0f;
 			_sunLight->Rotate(sunrot);
 		}
 		
-		_exposure += (input->KeyPressed('z') - input->KeyPressed('x')) * delta*2.0f;
+		_exposure += (input->KeyPressed('u') - input->KeyPressed('j')) * delta*2.0f;
 		_exposure = MIN(MAX(0.01f, _exposure), 10.0f);
-		_whitepoint += (input->KeyPressed('c') - input->KeyPressed('v')) * delta;
+		_whitepoint += (input->KeyPressed('i') - input->KeyPressed('k')) * delta;
 		_whitepoint = MIN(MAX(0.01f, _whitepoint), 10.0f);
 		RN::Renderer::SharedInstance()->SetHdrExposure(_exposure);
 		RN::Renderer::SharedInstance()->SetHdrWhitePoint(_whitepoint);
