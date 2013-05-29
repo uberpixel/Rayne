@@ -12,6 +12,7 @@
 #include "RNCamera.h"
 #include "RNKernel.h"
 #include "RNThreadPool.h"
+#include "RNAlgorithm.h"
 
 #define kRNRendererMaxVAOAge 300
 #define kRNRendererFastPathLightCount 10
@@ -313,15 +314,14 @@ namespace RN
 		std::vector<size_t> indicesCount(tileCount);
 		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
 		
-		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
-		pool->BeginTaskBatch();
+		ThreadPool::Batch batch = ThreadPool::SharedInstance()->OpenBatch();
 		
 		for(int y=0; y<tilesHeight; y++)
 		{
 			for(int x=0; x<tilesWidth; x++)
 			{
 				size_t index = i ++;
-				pool->AddTask([&, x, y, index]() {
+				batch->AddTask([&, x, y, index]() {
 					Plane plleft;
 					Plane plright;
 					Plane pltop;
@@ -379,7 +379,8 @@ namespace RN
 			}
 		}
 		
-		pool->CommitTaskBatch(true);
+		batch->Commit();
+		batch->Wait();
 		
 		size_t lightIndicesCount = 0;
 		size_t lightIndexOffsetCount = 0;

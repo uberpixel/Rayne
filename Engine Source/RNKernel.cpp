@@ -64,19 +64,15 @@ namespace RN
 		ReadOpenGLExtensions();
 		ResourcePool::SharedInstance();
 		
-		ThreadPool *threadPool = ThreadCoordinator::SharedInstance()->GlobalPool();
-		
 		_scaleFactor = 1.0f;
-		_resourceBatch = threadPool->BeginTaskBatch();
 		
-		threadPool->AddTask([] {
-			AutoreleasePool *tpool = new AutoreleasePool();
+		_resourceBatch = ThreadPool::SharedInstance()->OpenBatch();
+		_resourceBatch->AddTask([] {
 			ResourcePool::SharedInstance()->LoadDefaultResources();
 			Debug::InstallDebugDraw();
-			delete tpool;
 		});
 		
-		threadPool->CommitTaskBatch();
+		_resourceBatch->Commit();
 
 #if RN_PLATFORM_IOS
 		_scaleFactor = [[UIScreen mainScreen] scale];
@@ -171,8 +167,8 @@ namespace RN
 
 	void Kernel::Initialize()
 	{
-		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
-		pool->WaitForBatch(_resourceBatch);
+		_resourceBatch->Wait();
+		_resourceBatch.reset();
 		
 		_app->Start();
 		_window->SetTitle(_app->Title());

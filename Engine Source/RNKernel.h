@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNApplication.h"
+#include "RNThreadPool.h"
 #include "RNRenderer.h"
 #include "RNWindow.h"
 #include "RNInput.h"
@@ -51,7 +52,7 @@ namespace RN
 		void LoadApplicationModule(const std::string& module);
 		void *_appHandle;
 		
-		uint32 _resourceBatch;
+		ThreadPool::Batch _resourceBatch;
 		FrameID _frame;
 		float _scaleFactor;
 

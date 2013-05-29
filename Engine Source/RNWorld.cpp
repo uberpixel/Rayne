@@ -64,25 +64,24 @@ namespace RN
 			attachment->StepWorld(delta);
 		}
 		
-		ThreadPool *pool = ThreadCoordinator::SharedInstance()->GlobalPool();
-		
 		// Add the Transform updates to the thread pool
-		pool->BeginTaskBatch();
+		ThreadPool::Batch batch = ThreadPool::SharedInstance()->OpenBatch();
 		
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
 			SceneNode *node = *i;
 			node->Retain();
 			
-			pool->AddTaskWithPredicate([&, node]() {
+			batch->AddTask([&, node]() {
 				node->Update(delta);
 				node->WorldTransform(); // Make sure that transforms matrices get updated within the thread pool
 				node->UpdatedToFrame(frame);
 				node->Release();
-			}, [&, node]() { return node->CanUpdate(frame); });
+			});
 		}
 		
-		pool->CommitTaskBatch(true);
+		batch->Commit();
+		batch->Wait();
 		
 		ApplyNodes();
 		NodesUpdated();
