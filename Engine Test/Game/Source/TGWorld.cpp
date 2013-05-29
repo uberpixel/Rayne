@@ -39,7 +39,10 @@ namespace TG
 		_whitepoint = 5.0f;
 		
 		_physicsAttachment = new RN::bullet::PhysicsWorld();
+		_debugAttachment = new DebugDrawer();
+		
 		AddAttachment(_physicsAttachment->Autorelease());
+		AddAttachment(_debugAttachment);
 		
 		CreateCameras();
 		CreateSponza();
@@ -73,6 +76,20 @@ namespace TG
 			fpressed = false;
 		}
 		
+		static bool xpressed = false;
+		if(input->KeyPressed('x'))
+		{
+			if(!xpressed)
+			{
+				_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _camera);
+				xpressed = true;
+			}
+		}
+		else
+		{
+			xpressed = false;
+		}
+		
 #if TGWorldFeatureFreeCamera
 		RN::Vector3 translation;
 		RN::Vector3 rotation;
@@ -103,19 +120,6 @@ namespace TG
 		_whitepoint = MIN(MAX(0.01f, _whitepoint), 10.0f);
 		RN::Renderer::SharedInstance()->SetHdrExposure(_exposure);
 		RN::Renderer::SharedInstance()->SetHdrWhitePoint(_whitepoint);
-		
-		RN::Debug::AddLinePoint(RN::Vector2(0.0), RN::Color::Green());
-		RN::Debug::AddLinePoint(RN::Vector2(100.0, 0.0), RN::Color::Green());
-		RN::Debug::AddLinePoint(RN::Vector2(100.0, 100.0), RN::Color::Green());
-		RN::Debug::AddLinePoint(RN::Vector2(0.0, 100.0), RN::Color::Green());
-		RN::Debug::AddLinePoint(RN::Vector2(0.0), RN::Color::Green());
-		RN::Debug::EndLine();
-		
-		if(_sponza != 0)
-		{
-			RN::Debug::DrawBox(RN::Vector3(-1.0f), RN::Vector3(1.0f), RN::Color::Red());
-			RN::Debug::DrawBox(_sponza->BoundingBox()*0.2f, RN::Color::Red());
-		}
 	}
 	
 	void World::CreateCameras()
