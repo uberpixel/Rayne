@@ -1006,7 +1006,7 @@ namespace RN
 				auto begin = _frame.begin();
 				std::advance(begin, skyCubeMeshes);
 			
-				std::sort(begin, _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
+				ParallelSort(begin, _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
 					const Material *materialA = a.material;
 					const Material *materialB = b.material;
 					
@@ -1373,7 +1373,7 @@ namespace RN
 			}
 		}
 		
-		std::sort(_directionalLights.begin(), _directionalLights.end(), [](Light *a, Light *b) {
+		ParallelSort(_directionalLights.begin(), _directionalLights.end(), [](Light *a, Light *b) {
 			return (a->Shadow());
         });
 		
