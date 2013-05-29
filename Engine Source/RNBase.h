@@ -22,6 +22,7 @@
 #include <type_traits>
 #include <algorithm>
 #include <string>
+#include <iterator>
 #include <vector>
 #include <map>
 #include <list>

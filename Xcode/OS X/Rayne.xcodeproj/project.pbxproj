@@ -94,6 +94,7 @@
 		E97C3EB0172B11C7006EA63A /* RNString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E97C3EAE172B11C7006EA63A /* RNString.cpp */; };
 		E97C3EB1172B11C7006EA63A /* RNString.h in Headers */ = {isa = PBXBuildFile; fileRef = E97C3EAF172B11C7006EA63A /* RNString.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E97DE03816F2574C0009128F /* Rayne.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1E016B5286500EFE1E8 /* Rayne.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E97F7B8317552724001236E5 /* RNRingbuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = E97F7B8117552724001236E5 /* RNRingbuffer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E991F1BF16BB231000B205A1 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E991F1BE16BB231000B205A1 /* IOKit.framework */; };
 		E991F1C616BB707300B205A1 /* RNMessage.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E991F1C416BB707300B205A1 /* RNMessage.cpp */; };
 		E991F1C716BB707300B205A1 /* RNMessage.h in Headers */ = {isa = PBXBuildFile; fileRef = E991F1C516BB707300B205A1 /* RNMessage.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -281,6 +282,7 @@
 		E9780FBF16D82913001AE2ED /* RNSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSettings.h; sourceTree = "<group>"; };
 		E97C3EAE172B11C7006EA63A /* RNString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNString.cpp; sourceTree = "<group>"; };
 		E97C3EAF172B11C7006EA63A /* RNString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNString.h; sourceTree = "<group>"; };
+		E97F7B8117552724001236E5 /* RNRingbuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRingbuffer.h; sourceTree = "<group>"; };
 		E98D1E581673A6E200889F3B /* libRayne.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libRayne.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		E991F1BE16BB231000B205A1 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		E991F1C416BB707300B205A1 /* RNMessage.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNMessage.cpp; sourceTree = "<group>"; };
@@ -387,6 +389,7 @@
 				E9B083F31718A2E0009AD83F /* Objects */,
 				E9F8070C1697050D00773A34 /* Rendering */,
 				E9F8070D1697051C00773A34 /* Scene */,
+				E97F7B7F175526E5001236E5 /* STL */,
 				E9F8070E1697052500773A34 /* System */,
 				E9E83F42172A4FB60075559B /* UI */,
 				E92AE1E016B5286500EFE1E8 /* Rayne.h */,
@@ -401,6 +404,14 @@
 				E9619F7E1696FDC000DA187E /* libpng.a */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E97F7B7F175526E5001236E5 /* STL */ = {
+			isa = PBXGroup;
+			children = (
+				E97F7B8117552724001236E5 /* RNRingbuffer.h */,
+			);
+			name = STL;
 			sourceTree = "<group>";
 		};
 		E98D1E4F1673A6E200889F3B = {
@@ -754,6 +765,7 @@
 				E9C01BB41746CE6A00B3577B /* RNShaderLookup.h in Headers */,
 				E94D18BA1753CE8A00F3B10D /* RNDebug.h in Headers */,
 				E94D18BC1753D26400F3B10D /* RNSynchronization.h in Headers */,
+				E97F7B8317552724001236E5 /* RNRingbuffer.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
