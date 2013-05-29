@@ -44,18 +44,20 @@ namespace RN
 		
 		RNAPI virtual void Update(float delta);
 		RNAPI virtual void NodesUpdated();
+		RNAPI virtual void WillRenderSceneNode(SceneNode *node);
 		
 		RNAPI SceneManager *SceneManager() const { return _sceneManager; }
 		
 	private:
 		static class SceneManager *SceneManagerWithName(const std::string& name);
 		void StepWorld(FrameID frame, float delta);
+		
 		void ForceInsertNode(SceneNode *node);
+		void SceneNodeWillRender(SceneNode *node);
 		
 		void ApplyNodes();
 		
 		Kernel *_kernel;
-		
 		Array _attachments;
 		
 		std::unordered_set<SceneNode *> _nodes;

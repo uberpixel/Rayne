@@ -65,6 +65,8 @@ namespace RN
 	
 	void SceneNode::Render(Renderer *renderer, Camera *camera)
 	{
+		if(_world)
+			_world->SceneNodeWillRender(this);
 	}
 	
 	

@@ -229,6 +229,8 @@ namespace RN
 	
 	void ParticleEmitter::Render(Renderer *renderer, Camera *camera)
 	{
+		SceneNode::Render(renderer, camera);
+		
 		RenderingObject object;
 		object.mesh = _mesh;
 		object.count = static_cast<uint32>(_particles.size());

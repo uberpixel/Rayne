@@ -87,6 +87,8 @@ namespace RN
 	
 	void Water::Render(Renderer *renderer, Camera *camera)
 	{
+		SceneNode::Render(renderer, camera);
+		
 		_transform = WorldTransform();
 		_transform.Scale(Vector3(200.0f, 200.0f, 200.0f));
 		

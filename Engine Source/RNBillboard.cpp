@@ -109,6 +109,8 @@ namespace RN
 	
 	void Billboard::Render(Renderer *renderer, Camera *camera)
 	{
+		SceneNode::Render(renderer, camera);
+		
 		_transform = WorldTransform();
 		_transform.Scale(Vector3(_size.x, _size.y, 1.0f));
 		

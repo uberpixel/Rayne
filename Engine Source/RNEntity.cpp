@@ -32,6 +32,8 @@ namespace RN
 	
 	void Entity::Render(Renderer *renderer, Camera *camera)
 	{
+		SceneNode::Render(renderer, camera);
+		
 		if(_model && !_ignoreDrawing)
 		{
 			float distance = 0.0f;

@@ -51,6 +51,8 @@ namespace RN
 	void World::NodesUpdated()
 	{}
 	
+	void World::WillRenderSceneNode(SceneNode *node)
+	{}
 
 	
 	void World::StepWorld(FrameID frame, float delta)
@@ -135,6 +137,17 @@ namespace RN
 		}
 		
 		_addedNodes.clear();
+	}
+	
+	void World::SceneNodeWillRender(SceneNode *node)
+	{
+		for(machine_uint i=0; i<_attachments.Count(); i++)
+		{
+			WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
+			attachment->WillRenderSceneNode(node);
+		}
+		
+		WillRenderSceneNode(node);
 	}
 
 	

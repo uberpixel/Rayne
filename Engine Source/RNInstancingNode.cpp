@@ -123,6 +123,8 @@ namespace RN
 			
 			renderer->RenderObject(object);
 		}
+		
+		SceneNode::Render(renderer, camera);
 	}
 	
 	
