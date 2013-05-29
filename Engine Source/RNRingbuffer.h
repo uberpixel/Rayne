@@ -13,7 +13,7 @@
 
 namespace RN
 {
-	namespace STL
+	namespace stl
 	{
 		template<class T, class Alloc=std::allocator<T>>
 		class ring_buffer
