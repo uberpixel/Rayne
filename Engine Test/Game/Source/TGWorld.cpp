@@ -304,7 +304,7 @@ namespace TG
 		
 		model->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_ddn.png", true));
 		model->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_spec.png"));
-		model->MaterialAtIndex(0, 2)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
+		model->MaterialAtIndex(0, 2)->specular = RN::Color(1.0f, 1.0f, 1.0f, 5.0f);
 		model->MaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
 		model->MaterialAtIndex(0, 2)->Define("RN_SPECULARITY");
 		model->MaterialAtIndex(0, 2)->Define("RN_SPECMAP");
@@ -355,6 +355,9 @@ namespace TG
 		model->MaterialAtIndex(0, 15)->Define("RN_SPECULARITY");
 		model->MaterialAtIndex(0, 15)->Define("RN_SPECMAP");
 		
+		model->MaterialAtIndex(0, 16)->specular = RN::Color(0.02f, 0.02f, 0.02f, 32.0f);
+		model->MaterialAtIndex(0, 16)->Define("RN_SPECULARITY");
+		
 		model->MaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_ddn.png", true));
 		model->MaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_spec.png"));
 		model->MaterialAtIndex(0, 17)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
@@ -400,7 +403,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->_lightcam = _camera;
-		_sunLight->ActivateSunShadows(true, 1024.0f);
+		_sunLight->ActivateSunShadows(true, 2048.0f);
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
