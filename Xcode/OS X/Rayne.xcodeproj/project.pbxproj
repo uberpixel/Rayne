@@ -110,6 +110,8 @@
 		E9A872D717573D5800E06C27 /* RNArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872D617573D5800E06C27 /* RNArray.cpp */; };
 		E9A872DA17573D7100E06C27 /* RNDictionary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872D817573D7100E06C27 /* RNDictionary.cpp */; };
 		E9A872DB17573D7100E06C27 /* RNDictionary.h in Headers */ = {isa = PBXBuildFile; fileRef = E9A872D917573D7100E06C27 /* RNDictionary.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9A872E4175759E300E06C27 /* RNJSONSerialization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872E2175759E300E06C27 /* RNJSONSerialization.cpp */; };
+		E9A872E5175759E300E06C27 /* RNJSONSerialization.h in Headers */ = {isa = PBXBuildFile; fileRef = E9A872E3175759E300E06C27 /* RNJSONSerialization.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9A872E81757627500E06C27 /* RNData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872E61757627500E06C27 /* RNData.cpp */; };
 		E9A872E91757627500E06C27 /* RNData.h in Headers */ = {isa = PBXBuildFile; fileRef = E9A872E71757627500E06C27 /* RNData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9AB0DAB16D679DC000D1CF0 /* RNSceneNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AB0DAA16D679DC000D1CF0 /* RNSceneNode.cpp */; };
@@ -301,6 +303,8 @@
 		E9A872D617573D5800E06C27 /* RNArray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNArray.cpp; sourceTree = "<group>"; };
 		E9A872D817573D7100E06C27 /* RNDictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDictionary.cpp; sourceTree = "<group>"; };
 		E9A872D917573D7100E06C27 /* RNDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDictionary.h; sourceTree = "<group>"; };
+		E9A872E2175759E300E06C27 /* RNJSONSerialization.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNJSONSerialization.cpp; sourceTree = "<group>"; };
+		E9A872E3175759E300E06C27 /* RNJSONSerialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNJSONSerialization.h; sourceTree = "<group>"; };
 		E9A872E61757627500E06C27 /* RNData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNData.cpp; sourceTree = "<group>"; };
 		E9A872E71757627500E06C27 /* RNData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNData.h; sourceTree = "<group>"; };
 		E9AB0DAA16D679DC000D1CF0 /* RNSceneNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSceneNode.cpp; sourceTree = "<group>"; };
@@ -456,6 +460,8 @@
 				E9A872E71757627500E06C27 /* RNData.h */,
 				E9A872D817573D7100E06C27 /* RNDictionary.cpp */,
 				E9A872D917573D7100E06C27 /* RNDictionary.h */,
+				E9A872E2175759E300E06C27 /* RNJSONSerialization.cpp */,
+				E9A872E3175759E300E06C27 /* RNJSONSerialization.h */,
 				E99A955F172A002100605C68 /* RNNumber.cpp */,
 				E99A9560172A002100605C68 /* RNNumber.h */,
 				E9619E0D1696157E00DA187E /* RNObject.cpp */,
@@ -761,6 +767,7 @@
 				E911D6FA1754060E00DD1F55 /* RNAlgorithm.h in Headers */,
 				E97F7B8317552724001236E5 /* RNRingbuffer.h in Headers */,
 				E9A872DB17573D7100E06C27 /* RNDictionary.h in Headers */,
+				E9A872E5175759E300E06C27 /* RNJSONSerialization.h in Headers */,
 				E9A872E91757627500E06C27 /* RNData.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -920,6 +927,7 @@
 				E94D18B91753CE8A00F3B10D /* RNDebug.cpp in Sources */,
 				E9A872D717573D5800E06C27 /* RNArray.cpp in Sources */,
 				E9A872DA17573D7100E06C27 /* RNDictionary.cpp in Sources */,
+				E9A872E4175759E300E06C27 /* RNJSONSerialization.cpp in Sources */,
 				E9A872E81757627500E06C27 /* RNData.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

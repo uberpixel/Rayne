@@ -16,6 +16,7 @@
 #include "RNDictionary.h"
 #include "RNData.h"
 #include "RNNumber.h"
+#include "RNJSONSerialization.h"
 
 #include "RNKernel.h"
 #include "RNApplication.h"
