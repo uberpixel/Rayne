@@ -10,6 +10,14 @@
 #define __RAYNE_SETTINGS_H__
 
 #include "RNBase.h"
+#include "RNDictionary.h"
+#include "RNString.h"
+#include "RNNumber.h"
+#include "RNArray.h"
+
+#define kRNSettingsGammaCorrectionKey RNSTR("RNGammaCorrection")
+#define KRNSettingsModulesKey         RNSTR("RNModules")
+#define kRNSettingsGameModuleKey      RNSTR("RNGameModule")
 
 namespace RN
 {
@@ -19,14 +27,20 @@ namespace RN
 		RNAPI Settings();
 		RNAPI ~Settings();
 		
-		bool GammaCorrection() const { return _gammaCorrection; }
-		const std::string& GameModule() const { return _gameModule; }
-		const std::vector<std::string>& Modules() const { return _modules; }
+		template<class T=Object>
+		T *ObjectForKey(String *key)
+		{
+			return _settings->ObjectForKey<T>(key);
+		}
+		
+		bool BoolForKey(String *key)
+		{
+			Number *number = ObjectForKey<Number>(key);
+			return number ? number->BoolValue() : false;
+		}
 		
 	private:
-		bool _gammaCorrection;
-		std::string _gameModule;
-		std::vector<std::string> _modules;
+		Dictionary *_settings;
 	};
 }
 

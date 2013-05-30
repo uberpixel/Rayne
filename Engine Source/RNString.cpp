@@ -463,6 +463,40 @@ namespace RN
 	
 	// ---------------------
 	// MARK: -
+	// MARK: Object system
+	// ---------------------
+	
+	machine_hash String::Hash() const
+	{
+		const uint8 *p = _buffer;
+		machine_hash hash = 0;
+		machine_hash g;
+		
+		for(size_t i=0; i<_size; i++)
+		{
+			hash = (hash << 4) + p[i];
+			g = hash & 0xf0000000L;
+			
+			if(g)
+				hash ^= g >> 24;
+			
+			hash &= ~g;
+		}
+		
+		return hash;
+	}
+	
+	bool String::IsEqual(Object *other) const
+	{
+		if(!other->IsKindOfClass(String::MetaClass()))
+		   return false;
+		   
+		String *string = static_cast<String *>(other);
+		return (Compare(string) == kRNCompareEqualTo);
+	}
+	
+	// ---------------------
+	// MARK: -
 	// MARK: Mutation
 	// ---------------------
 	

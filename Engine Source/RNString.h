@@ -49,6 +49,9 @@ namespace RN
 		static String *WithBytes(const void *bytes, Encoding encoding);
 		static String *WithBytes(const void *bytes, size_t length, Encoding encoding);
 		
+		machine_hash Hash() const override;
+		bool IsEqual(Object *other) const override;
+		
 		bool operator ==(const String& other) const;
 		bool operator !=(const String& other) const;
 		

@@ -75,9 +75,13 @@ namespace RN
 		RNAPI uint32 Uint32Value() const;
 		RNAPI uint64 Uint64Value() const;
 		
+		RNAPI machine_hash Hash() const override;
+		RNAPI bool IsEqual(Object *other) const override;
+		
 		Type NumberType() const { return _type; }
 		
-	private:		
+	private:
+		static size_t SizeForType(Type type);
 		void CopyData(const void *data, size_t size, Type type);
 		
 		uint8 *_buffer;

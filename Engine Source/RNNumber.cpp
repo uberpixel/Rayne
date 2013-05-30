@@ -13,6 +13,10 @@ namespace RN
 	RNDeclareMeta(Number)
 	
 #define NumberPrimitiveAccess(type, target) static_cast<target>(*((type *)_buffer))
+#define NumberIsSignedInteger(type) (type == Type::Int8 || type == Type::Int16 || type == Type::Int32 || type == Type::Int64)
+#define NumberIsUnsignedInteger(type) (type == Type::Uint8 || type == Type::Uint16 || type == Type::Uint32 || type == Type::Uint64)
+#define NumberIsReal(type) (type == Type::Float32 || type == Type::Float64)
+#define NumberIsBoolean(type) (type == Type::Boolean)
 
 #define NumberAccessAndConvert(var, type) \
 	do { \
@@ -259,6 +263,87 @@ namespace RN
 		NumberAccessAndConvert(value, uint64);
 		
 		return value;
+	}
+	
+	size_t Number::SizeForType(Type type)
+	{
+		switch(type)
+		{
+			case Type::Int8:
+			case Type::Uint8:
+				return 1;
+				
+			case Type::Int16:
+			case Type::Uint16:
+				return 2;
+				
+			case Type::Int32:
+			case Type::Uint32:
+			case Type::Float32:
+				return 4;
+			
+			case Type::Int64:
+			case Type::Uint64:
+			case Type::Float64:
+				return 8;
+				
+			case Type::Boolean:
+				return sizeof(bool);
+		}
+	}
+	
+	machine_hash Number::Hash() const
+	{
+		const uint8 *bytes = _buffer;
+		const uint8 *end = bytes + SizeForType(_type);
+		
+		machine_hash hash = 0;
+		
+		while(bytes < end)
+		{
+			hash ^= (hash << 5) + (hash >> 2) + *bytes;
+			bytes ++;
+		}
+		
+		return hash;
+	}
+	bool Number::IsEqual(Object *other) const
+	{
+		if(!other->IsKindOfClass(Number::MetaClass()))
+			return false;
+		
+		Number *number = static_cast<Number *>(other);
+		
+		bool integer = ((NumberIsSignedInteger(_type) || NumberIsUnsignedInteger(_type)) && (NumberIsSignedInteger(number->_type) || NumberIsUnsignedInteger(number->_type)));
+		if(integer)
+		{
+			if((NumberIsSignedInteger(_type) && NumberIsSignedInteger(number->_type)) || (NumberIsUnsignedInteger(_type) && NumberIsUnsignedInteger(number->_type)))
+			{
+				return (Uint64Value() == number->Uint64Value());
+			}
+			
+			if(NumberIsSignedInteger(_type))
+			{
+				return (Int64Value() == number->Uint64Value());
+			}
+			
+			if(!NumberIsSignedInteger(_type))
+			{
+				return (Uint64Value() == number->Int64Value());
+			}
+		}
+		
+		if(NumberIsReal(_type) && NumberIsReal(number->_type))
+		{
+			return (DoubleValue() == number->DoubleValue());
+		}
+		
+		if(NumberIsBoolean(_type) && NumberIsBoolean(number->_type))
+		{
+			return (BoolValue() == number->BoolValue());
+		}
+		
+		return false;
 	}
 	
 #undef NumberPrimitiveAccess
