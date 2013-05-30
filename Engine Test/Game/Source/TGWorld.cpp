@@ -19,7 +19,7 @@
 #define TGForestFeatureGras  10000
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
-#define TGWorldSpotLightRange 95.0f
+#define TGWorldSpotLightRange 30.0f
 
 namespace TG
 {

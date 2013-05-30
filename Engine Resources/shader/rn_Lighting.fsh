@@ -70,6 +70,7 @@ void rn_SpotLight(in vec3 viewdir, in vec4 lightpos, in vec3 lightcolor, in vec4
 	posdiff /= dist;
 	float attenuation = min(max(1.0-dist/lightpos.w, 0.0), 1.0);
 	float dirfac = dot(posdiff, lightdir.xyz);
+	attenuation *= 1.0-(1.0-dirfac)/(1.0-lightdir.w);
 	
 	if(dirfac > lightdir.w)
 	{
