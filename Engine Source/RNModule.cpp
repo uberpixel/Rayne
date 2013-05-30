@@ -80,12 +80,15 @@ namespace RN
 	
 	ModuleCoordinator::ModuleCoordinator()
 	{
-		const std::vector<std::string>& moduleNames = Settings::SharedInstance()->Modules();
-		
-		for(auto i=moduleNames.begin(); i!=moduleNames.end(); i++)
+		Array *array = Settings::SharedInstance()->ObjectForKey<Array>(KRNSettingsModulesKey);
+		if(array)
 		{
-			Module *module = new Module(*i);
-			_modules.push_back(module);
+			array->Enumerate([&](Object *file, size_t index, bool *stop) {
+				String *string = static_cast<String *>(file);
+				char *path = reinterpret_cast<char *>(string->BytesWithEncoding(String::Encoding::UTF8, false, nullptr));
+				
+				_modules.emplace_back(new Module(path));
+			});
 		}
 		
 		for(auto i=_modules.begin(); i!=_modules.end(); i++)

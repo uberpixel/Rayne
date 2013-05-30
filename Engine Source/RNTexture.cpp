@@ -25,7 +25,7 @@ namespace RN
 		_width = _height = 0;
 		_depth = 1;
 		
-		_isLinear = (!Settings::SharedInstance()->GammaCorrection()) ? true : isLinear;
+		_isLinear = (!Settings::SharedInstance()->BoolForKey(kRNSettingsGammaCorrectionKey)) ? true : isLinear;
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		
@@ -48,7 +48,7 @@ namespace RN
 		_width = _height = 0;
 		_depth = 1;
 		
-		_isLinear = (!Settings::SharedInstance()->GammaCorrection()) ? true : isLinear;
+		_isLinear = (!Settings::SharedInstance()->BoolForKey(kRNSettingsGammaCorrectionKey)) ? true : isLinear;
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		
@@ -67,7 +67,7 @@ namespace RN
 		_width = _height = 0;
 		_depth = 1;
 		
-		_isLinear = (!Settings::SharedInstance()->GammaCorrection()) ? true : isLinear;
+		_isLinear = (!Settings::SharedInstance()->BoolForKey(kRNSettingsGammaCorrectionKey)) ? true : isLinear;
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		
@@ -101,7 +101,7 @@ namespace RN
 		_width = _height = 0;
 		_depth = 1;
 		
-		_isLinear = (!Settings::SharedInstance()->GammaCorrection()) ? true : isLinear;
+		_isLinear = (!Settings::SharedInstance()->BoolForKey(kRNSettingsGammaCorrectionKey)) ? true : isLinear;
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		

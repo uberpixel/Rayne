@@ -105,7 +105,7 @@ namespace RN
 		_shouldExit  = false;
 
 		ModuleCoordinator::SharedInstance();
-		LoadApplicationModule(Settings::SharedInstance()->GameModule());
+		LoadApplicationModule(Settings::SharedInstance()->ObjectForKey<String>(kRNSettingsGameModuleKey));
 		
 		delete pool;
 	}
@@ -134,10 +134,10 @@ namespace RN
 		_mainThread->Release();
 	}
 
-	void Kernel::LoadApplicationModule(const std::string& module)
+	void Kernel::LoadApplicationModule(String *module)
 	{
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
-		std::string moduleName = module;
+		std::string moduleName = reinterpret_cast<char *>(module->BytesWithEncoding(String::Encoding::UTF8, false, nullptr));
 		
 #if RN_PLATFORM_MAC_OS
 		moduleName += ".dylib";

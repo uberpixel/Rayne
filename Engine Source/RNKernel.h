@@ -17,6 +17,7 @@
 #include "RNWindow.h"
 #include "RNInput.h"
 #include "RNUIServer.h"
+#include "RNString.h"
 
 namespace RN
 {
@@ -49,7 +50,7 @@ namespace RN
 
 	private:
 		void Initialize();
-		void LoadApplicationModule(const std::string& module);
+		void LoadApplicationModule(String *module);
 		void *_appHandle;
 		
 		ThreadPool::Batch _resourceBatch;
