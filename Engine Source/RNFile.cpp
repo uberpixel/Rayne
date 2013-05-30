@@ -257,9 +257,14 @@ namespace RN
 		}
 
 
-		_fullPath = PathManager::PathForName(path);
-		if(_fullPath.size() == 0)
+		try
+		{
+			_fullPath = PathManager::PathForName(path, !(mode == Write || mode == ReadWrite));
+		}
+		catch(ErrorException)
+		{
 			return false;
+		}
 		
 		_path = PathManager::Basepath(_fullPath);
 		_name = PathManager::Basename(_fullPath);

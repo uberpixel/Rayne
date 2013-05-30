@@ -56,6 +56,23 @@ namespace RN
 		return path;
 	}
 	
+	std::string PathManager::Base(const std::string& path)
+	{
+		size_t marker = path.size();
+		size_t i = marker;
+		
+		while((i --) > 0)
+		{
+			if(path[i] == '/')
+			{
+				i ++;
+				break;
+			}
+		}
+		
+		return path.substr(i, marker - i);
+	}
+	
 	std::string PathManager::Basename(const std::string& path)
 	{
 		bool hasExtension = false;
@@ -277,7 +294,7 @@ namespace RN
 		}
 	}
 	
-	std::string PathManager::PathForName(const std::string& path)
+	std::string PathManager::PathForName(const std::string& path, bool strict)
 	{
 		if(PathExists(path))
 			return path;
@@ -324,9 +341,20 @@ namespace RN
 				return base;
 		}
 		
-		std::string error = "Couldn't find file ";
-		error += path;
+		if(!strict)
+		{
+			try
+			{
+				std::string tpath = Basepath(path);
+				tpath = PathForName(tpath);
+				
+				return Join(tpath, Base(path));
+			}
+			catch(ErrorException)
+			{}
+		}
 		
+		std::string error = "Couldn't resolve path " + path;
 		throw ErrorException(0, error);
 	}
 	

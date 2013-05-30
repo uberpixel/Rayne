@@ -18,11 +18,12 @@ namespace RN
 	public:
 		RNAPI static std::string Join(const std::string& path1, const std::string& path2);
 		RNAPI static std::string PathByRemovingExtension(const std::string& path);
+		RNAPI static std::string Base(const std::string& path);
 		RNAPI static std::string Basename(const std::string& path);
 		RNAPI static std::string Basepath(const std::string& path);
 		RNAPI static std::string Extension(const std::string& path);
 		
-		RNAPI static std::string PathForName(const std::string& name);
+		RNAPI static std::string PathForName(const std::string& name, bool strict=true);
 		RNAPI static void AddSearchPath(const std::string& path);
 		RNAPI static bool PathExists(const std::string& path);
 		RNAPI static bool PathExists(const std::string& path, bool *isDirectory);
