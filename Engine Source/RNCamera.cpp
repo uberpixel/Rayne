@@ -520,7 +520,7 @@ namespace RN
 		_useInstancing = activate;
 	}
 	
-	void Camera::SetPriority(uint32 priority)
+	void Camera::SetPriority(int32 priority)
 	{
 		_priority = priority;
 	}

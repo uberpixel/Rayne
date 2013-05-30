@@ -204,7 +204,7 @@ namespace RN
 		RNAPI void SetCameraFlags(Flags flags);
 		RNAPI void SetLODCamera(Camera *camera);
 		RNAPI void SetUseInstancing(bool activate);
-		RNAPI void SetPriority(uint32 priority);
+		RNAPI void SetPriority(int32 priority);
 		RNAPI void SetUseBlending(bool useBlending);
 		
 		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
@@ -236,7 +236,7 @@ namespace RN
 		Material *Material() const { return _material; }
 		Flags CameraFlags() const { return _flags; }
 		Camera *LODCamera() const { return _lodCamera; }
-		uint32 Priority() const { return _priority; }
+		int32 Priority() const { return _priority; }
 		bool UseBlending() const { return _blend; }
 		
 		Vector2 LightTiles() const { return _lightTiles; }
@@ -288,7 +288,7 @@ namespace RN
 		ColorFlags _colorMask;
 		GLuint _clearMask;
 		float _scaleFactor;
-		uint32 _priority;
+		int32 _priority;
 		
 		Vector3 _frustumCenter;
 		float _frustumRadius;
