@@ -37,8 +37,6 @@ namespace RN
 	
 	SceneNode::~SceneNode()
 	{
-		DetachAllChilds();
-		
 		if(_world)
 			_world->RemoveSceneNode(this);
 	}
@@ -86,7 +84,6 @@ namespace RN
 	
 	void SceneNode::AttachChild(SceneNode *child)
 	{
-		child->Retain();
 		child->DetachFromParent();
 		
 		_childs.AddObject(child);
@@ -105,7 +102,6 @@ namespace RN
 			
 			child->_parent = 0;
 			child->DidUpdate();
-			child->Release();
 		}
 	}
 	
@@ -120,7 +116,6 @@ namespace RN
 			
 			child->_parent = 0;
 			child->DidUpdate();
-			child->Release();
 		}
 		
 		_childs.RemoveAllObjects();
