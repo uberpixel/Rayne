@@ -261,6 +261,8 @@ namespace RN
 		Object **_data;
 		machine_uint _count;
 		machine_uint _size;
+		
+		RNDefineMeta(Array, Object)
 	};
 }
 

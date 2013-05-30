@@ -11,8 +11,10 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNNumber.h"
 #include "RNAutoreleasePool.h"
+#include "RNArray.h"
+#include "RNDictionary.h"
+#include "RNNumber.h"
 
 #include "RNKernel.h"
 #include "RNApplication.h"
@@ -29,8 +31,6 @@
 #include "RNSkeleton.h"
 #include "RNModel.h"
 #include "RNTextureLoader.h"
-
-#include "RNArray.h"
 
 #include "RNMath.h"
 #include "RNSIMD.h"

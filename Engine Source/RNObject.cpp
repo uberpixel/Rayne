@@ -86,7 +86,16 @@ namespace RN
 	
 	machine_hash Object::Hash() const
 	{
-		return (machine_hash)this;
+		machine_hash hash = (machine_hash)this;
+		
+		hash = ~hash + (hash << 15);
+		hash = hash ^ (hash >> 12);
+		hash = hash + (hash << 2);
+		hash = hash ^ (hash >> 4);
+		hash = hash * 2057;
+		hash = hash ^ (hash >> 16);
+		
+		return hash;
 	}
 	
 	
