@@ -61,7 +61,11 @@
 	
 	try
 	{
-		kernel = new RN::Kernel();
+		NSString *name = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
+		if(!name)
+			name = [[NSRunningApplication currentApplication] localizedName];
+		
+		kernel = new RN::Kernel(std::string([name UTF8String]));
 		[NSTimer scheduledTimerWithTimeInterval:0.0 target:self selector:@selector(runGameLoop:) userInfo:nil repeats:YES];
 	}
 	catch(RN::ErrorException e)

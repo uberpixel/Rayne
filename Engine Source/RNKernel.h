@@ -25,7 +25,7 @@ namespace RN
 	class Kernel : public NonConstructingSingleton<Kernel>
 	{
 	public:
-		RNAPI Kernel();
+		RNAPI Kernel(const std::string& title);
 		RNAPI virtual ~Kernel();
 
 		RNAPI bool Tick();
@@ -37,6 +37,7 @@ namespace RN
 		RNAPI void Exit();
 
 		float ScaleFactor() const { return _scaleFactor; }
+		const std::string& Title() const { return _title; }
 
 		Window *Window() const { return _window; }
 		Context *Context() const { return _context; }
@@ -53,6 +54,7 @@ namespace RN
 		void LoadApplicationModule(String *module);
 		void *_appHandle;
 		
+		std::string _title;
 		ThreadPool::Batch _resourceBatch;
 		FrameID _frame;
 		float _scaleFactor;

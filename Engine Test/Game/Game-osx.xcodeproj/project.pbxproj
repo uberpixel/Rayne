@@ -291,6 +291,10 @@
 					"\"$(SRCROOT)/../../Build\"",
 					"\"$(SRCROOT)/Resources/modules/rayne-bullet\"",
 				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-msse4.1",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -309,6 +313,10 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Build\"",
 					"\"$(SRCROOT)/Resources/modules/rayne-bullet\"",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-msse4.1",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -356,6 +364,10 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Build\"",
 					"\"$(SRCROOT)/Resources/modules/rayne-bullet\"",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(OTHER_CFLAGS)",
+					"-msse4.1",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

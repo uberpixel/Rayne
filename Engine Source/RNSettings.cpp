@@ -8,6 +8,7 @@
 
 #include "RNSettings.h"
 #include "RNData.h"
+#include "RNPathManager.h"
 #include "RNJSONSerialization.h"
 
 namespace RN
@@ -16,7 +17,12 @@ namespace RN
 	{
 		try
 		{
-			Data *data = Data::WithContentsOfFile("settings.json");
+			std::string path = SettingsLocation();
+			
+			if(!PathManager::PathExists(path))
+				path = PathManager::PathForName("settings.json");
+			
+			Data *data = Data::WithContentsOfFile(path);
 			_settings = static_cast<Dictionary *>(JSONSerialization::JSONObjectFromData(data));
 			_settings->Retain();
 		}
@@ -28,6 +34,52 @@ namespace RN
 	
 	Settings::~Settings()
 	{
+		Flush();
 		_settings->Release();
+	}
+	
+	
+	std::string Settings::SettingsLocation() const
+	{
+		return PathManager::Join(PathManager::SaveDirectory(), "settings.json");
+	}
+	
+	void Settings::Flush()
+	{
+		_lock.Lock();
+		
+		if(_mutated)
+		{
+			if(!PathManager::CreatePath(PathManager::Basepath(SettingsLocation()), true))
+			{
+				_lock.Unlock();
+				throw ErrorException(0);
+			}
+			
+			Data *data = JSONSerialization::JSONDataFromObject(_settings, JSONSerialization::PrettyPrint);
+			data->WriteToFile(SettingsLocation());
+		
+			_mutated = false;
+		}
+		
+		_lock.Unlock();
+	}
+	
+	
+	
+	void Settings::SetObjectForKey(Object *object, String *key)
+	{
+		_lock.Lock();
+		_settings->SetObjectForKey(object, key);
+		_mutated = true;
+		_lock.Unlock();
+	}
+	
+	void Settings::RemoveObjectForKey(String *key)
+	{
+		_lock.Lock();
+		_settings->RemoveObjectForKey(key);
+		_mutated = true;
+		_lock.Unlock();
 	}
 }

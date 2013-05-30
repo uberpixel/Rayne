@@ -10,6 +10,7 @@
 #define __RAYNE_SETTINGS_H__
 
 #include "RNBase.h"
+#include "RNSpinLock.h"
 #include "RNDictionary.h"
 #include "RNString.h"
 #include "RNNumber.h"
@@ -30,7 +31,11 @@ namespace RN
 		template<class T=Object>
 		T *ObjectForKey(String *key)
 		{
-			return _settings->ObjectForKey<T>(key);
+			_lock.Lock();
+			T *object = _settings->ObjectForKey<T>(key)->Retain()->Autorelease();
+			_lock.Unlock();
+			
+			return object;
 		}
 		
 		bool BoolForKey(String *key)
@@ -39,7 +44,16 @@ namespace RN
 			return number ? number->BoolValue() : false;
 		}
 		
+		RNAPI void SetObjectForKey(Object *object, String *key);
+		RNAPI void RemoveObjectForKey(String *key);
+		
 	private:
+		void Flush();
+		std::string SettingsLocation() const;
+		
+		bool _mutated;
+		SpinLock _lock;
+		
 		Dictionary *_settings;
 	};
 }

@@ -8,11 +8,13 @@
 
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 #include "RNBaseInternal.h"
 
 #include "RNPathManager.h"
 #include "RNApplication.h"
 #include "RNFile.h"
+#include "RNKernel.h"
 
 namespace RN
 {
@@ -54,6 +56,29 @@ namespace RN
 		}
 			
 		return path;
+	}
+	
+	std::vector<std::string> PathManager::PathComoponents(const std::string& path)
+	{
+		const char *cstr = path.c_str();
+		std::vector<std::string> result;
+		
+		while(1)
+		{
+			const char *end = strpbrk(cstr, "/\\");
+			if(!end)
+			{
+				if(strlen(end) > 0)
+					result.push_back(cstr);
+				
+				break;
+			}
+			
+			result.emplace_back(std::string(cstr, end - cstr));
+			cstr = end + 1;
+		}
+		
+		return result;
 	}
 	
 	std::string PathManager::Base(const std::string& path)
@@ -155,6 +180,60 @@ namespace RN
 			*isDirectory = S_ISDIR(buf.st_mode);
 		
 		return true;
+	}
+	
+	static inline bool MakeDirectory(const char *path)
+	{
+		struct stat buf;		
+		if(stat(path, &buf) != 0)
+		{
+			if(mkdir(path, 0777) != 0 && errno != EEXIST)
+				return false;
+		}
+		else if(!S_ISDIR(buf.st_mode))
+		{
+			errno = ENOTDIR;
+			return false;
+		}
+		
+		return true;
+	}
+	
+	bool PathManager::CreatePath(const std::string& tpath, bool createIntermediateDirectories)
+	{
+		bool isDirectory;
+		
+		if(PathExists(tpath, &isDirectory))
+			return isDirectory;
+		
+		char *path = new char[tpath.length()];
+		strcpy(path, tpath.c_str());
+		
+		char *temp = path;
+		char *temp2;
+		
+		bool status = true;
+		
+		if(createIntermediateDirectories)
+		{
+			while(status && (temp2 = strpbrk(temp, "/\\")))
+			{
+				if(temp != temp2)
+				{
+					*temp2 = '\0';
+					status = MakeDirectory(temp);
+					*temp2 = '/';
+				}
+				
+				temp = temp2 + 1;
+			}
+		}
+		
+		if(status)
+			status = MakeDirectory(path);
+		
+		delete[] path;
+		return status;
 	}
 	
 	
@@ -386,7 +465,7 @@ namespace RN
 	
 	std::string PathManager::SaveDirectory()
 	{
-		std::string title = Application::SharedInstance()->Title();
+		std::string title = Kernel::SharedInstance()->Title();
 		
 #if RN_PLATFORM_MAC_OS
 		NSString *path = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) objectAtIndex:0];

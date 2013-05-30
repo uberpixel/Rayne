@@ -40,9 +40,6 @@ namespace TG
 			
 			if(node->IsKindOfClass(_lightClass))
 			{
-				return;
-				
-				RN::Light *light = static_cast<RN::Light *>(node);
 				RN::Debug::DrawBox(node->BoundingBox(), RN::Color::Yellow());
 			}
 			else

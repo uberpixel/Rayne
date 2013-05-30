@@ -39,7 +39,8 @@ namespace RN
 		extern void InstallDebugDraw();
 	}
 	
-	Kernel::Kernel()
+	Kernel::Kernel(const std::string& title) :
+		_title(title)
 	{
 #if RN_PLATFORM_LINUX
 		XInitThreads();

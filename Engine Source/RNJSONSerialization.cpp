@@ -8,6 +8,7 @@
 
 #include <jansson.h>
 #include "RNJSONSerialization.h"
+#include "RNAutoreleasePool.h"
 #include "RNArray.h"
 #include "RNDictionary.h"
 #include "RNNumber.h"
@@ -239,13 +240,15 @@ namespace RN
 		json_t *root = json_loads(reinterpret_cast<char *>(data->Bytes()), flags, &error);
 		
 		if(!root)
-		{
 			throw ErrorException(0, error.text);
-		}
 		
-		Object *object = DeserializeObject(root);
+		AutoreleasePool *pool = new AutoreleasePool();
+		
+		Object *object = DeserializeObject(root)->Retain();
 		json_decref(root);
 		
-		return object;
+		delete pool;
+		
+		return object->Autorelease();
 	}
 }

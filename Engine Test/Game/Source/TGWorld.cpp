@@ -179,7 +179,7 @@ namespace TG
 		
 		RN::Material *downMaterial = new RN::Material(updownShader);
 		downMaterial->Define("RN_DOWNSAMPLE");
-		RN::Material *upMaterial = new RN::Material(updownShader);
+		//RN::Material *upMaterial = new RN::Material(updownShader);
 		
 		
 #if TGWorldFeatureSSAO
