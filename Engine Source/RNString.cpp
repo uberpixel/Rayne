@@ -10,6 +10,7 @@
 #include <locale>
 
 #include "RNString.h"
+#include "RNData.h"
 
 #define kRNStringExpansionSize 64
 
@@ -900,6 +901,8 @@ namespace RN
 	
 	uint8 *String::BytesWithEncoding(Encoding encoding, bool lossy, size_t *outLength) const
 	{
+		uint8 *data = nullptr;
+		
 		switch(encoding)
 		{
 			case Encoding::ASCII:
@@ -926,7 +929,7 @@ namespace RN
 				if(outLength)
 					*outLength = _length;
 				
-				return reinterpret_cast<uint8 *>(buffer);
+				data = reinterpret_cast<uint8 *>(buffer);
 				break;
 			}
 				
@@ -939,7 +942,7 @@ namespace RN
 				if(outLength)
 					*outLength = _occupied;
 				
-				return buffer;
+				data = buffer;
 				break;
 			}
 				
@@ -960,17 +963,25 @@ namespace RN
 				}
 				
 				char16_t *buffer = new char16_t[string.size() + 1];
-				const char16_t *data = string.data();
+				const char16_t *temp = string.data();
 				
-				std::copy(data, data + string.size(), buffer);
+				std::copy(temp, temp + string.size(), buffer);
 				buffer[string.size()] = '\0';
 				
 				if(outLength)
 					*outLength = string.size() * sizeof(char16_t);
 				
-				return reinterpret_cast<uint8 *>(buffer);
+				data = reinterpret_cast<uint8 *>(buffer);
 				break;
 			}
+		}
+		
+		if(data)
+		{
+			Data *container = new Data(data, 0, true, true);
+			container->Autorelease();
+			
+			return data;
 		}
 		
 		throw ErrorException(0);
