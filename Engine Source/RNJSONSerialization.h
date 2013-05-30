@@ -30,6 +30,7 @@ namespace RN
 		static bool IsValidJSONObject(Object *object);
 		
 	private:
+		static Object *DeserializeObject(void *);
 		static void *SerializeObject(Object *object);
 	};
 }

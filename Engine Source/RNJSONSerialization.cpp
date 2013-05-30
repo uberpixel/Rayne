@@ -130,6 +130,83 @@ namespace RN
 		return json;
 	}
 	
+	Object *JSONSerialization::DeserializeObject(void *temp)
+	{
+		Object *data = nullptr;
+		json_t *json = static_cast<json_t *>(temp);
+		
+		switch(json_typeof(json))
+		{
+			case JSON_OBJECT:
+			{
+				Dictionary *dict = new Dictionary();
+				
+				void *iterator = json_object_iter(json);
+				while(iterator)
+				{
+					const char *key = json_object_iter_key(iterator);
+					json_t *value = json_object_iter_value(iterator);
+					
+					Object *object = DeserializeObject(value);
+					dict->SetObjectForKey(object, RNSTR(key));
+					
+					iterator = json_object_iter_next(json, iterator);
+				}
+				
+				data = dict;
+				break;
+			}
+				
+			case JSON_ARRAY:
+			{
+				size_t size = json_array_size(json);
+				Array *array = new Array(size);
+				
+				for(size_t i=0; i<size; i++)
+				{
+					json_t *value = json_array_get(json, i);
+					Object *object = DeserializeObject(value);
+					
+					array->AddObject(object);
+				}
+				
+				data = array;
+				break;
+			}
+				
+			case JSON_TRUE:
+				data = new Number(true);
+				break;
+			
+			case JSON_FALSE:
+				data = new Number(false);
+				break;
+				
+			case JSON_INTEGER:
+				data = new Number(json_integer_value(json));
+				break;
+				
+			case JSON_REAL:
+				data = new Number(json_real_value(json));
+				break;
+				
+			case JSON_STRING:
+			{
+				String *string = new String(json_string_value(json), String::Encoding::UTF8);
+				data = string;
+				
+				break;
+			}
+				
+			case JSON_NULL:
+				break;
+		}
+		
+		return data ? data->Autorelease() : data;
+	}
+	
+	
+	
 	Data *JSONSerialization::JSONDataFromObject(Object *root, SerializerOptions options)
 	{
 		JSONReadClasses();
@@ -150,11 +227,25 @@ namespace RN
 		Data *temp = new Data(reinterpret_cast<uint8 *>(data), strlen(data));
 		free(data);
 		
+		json_decref(json);
+		
 		return temp->Autorelease();
 	}
 	
-	Object *JSONObjectFromData(Data *data)
+	Object *JSONSerialization::JSONObjectFromData(Data *data)
 	{
-		return 0;
+		json_error_t error;
+		size_t flags = JSON_DISABLE_EOF_CHECK;
+		json_t *root = json_loads(reinterpret_cast<char *>(data->Bytes()), flags, &error);
+		
+		if(!root)
+		{
+			throw ErrorException(0, error.text);
+		}
+		
+		Object *object = DeserializeObject(root);
+		json_decref(root);
+		
+		return object;
 	}
 }
