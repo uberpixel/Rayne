@@ -44,6 +44,11 @@ namespace RN
 		String(const String *string);
 		virtual ~String();
 		
+		static String *WithString(const char *string);
+		static String *WithString(const char *string, size_t length);
+		static String *WithBytes(const void *bytes, Encoding encoding);
+		static String *WithBytes(const void *bytes, size_t length, Encoding encoding);
+		
 		bool operator ==(const String& other) const;
 		bool operator !=(const String& other) const;
 		
@@ -107,5 +112,7 @@ namespace RN
 		RNDefineMeta(String, Object)
 	};
 }
+
+#define RNSTR(cstr) RN::String::WithString(cstr)
 
 #endif /* __RAYNE_STRING_H__ */

@@ -205,6 +205,29 @@ namespace RN
 	
 	
 	
+	String *String::WithString(const char *string)
+	{
+		String *temp = new String(string);
+		return temp->Autorelease();
+	}
+	
+	String *String::WithString(const char *string, size_t length)
+	{
+		String *temp = new String(string, length);
+		return temp->Autorelease();
+	}
+	
+	String *String::WithBytes(const void *bytes, Encoding encoding)
+	{
+		String *string = new String(bytes, encoding);
+		return string->Autorelease();
+	}
+	
+	String *String::WithBytes(const void *bytes, size_t length, Encoding encoding)
+	{
+		String *string = new String(bytes, length, encoding);
+		return string->Autorelease();
+	}
 	
 	
 	void String::Initialize()
