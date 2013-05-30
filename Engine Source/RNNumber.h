@@ -17,6 +17,20 @@ namespace RN
 	class Number : public Object
 	{
 	public:
+		enum class Type
+		{
+			Int8,
+			Int16,
+			Int32,
+			Int64,
+			Uint8,
+			Uint16,
+			Uint32,
+			Uint64,
+			Float32,
+			Float64
+		};
+		
 		RNAPI Number(float value);
 		RNAPI Number(double value);
 		
@@ -58,21 +72,9 @@ namespace RN
 		RNAPI uint32 Uint32Value() const;
 		RNAPI uint64 Uint64Value() const;
 		
-	private:		
-		enum Type
-		{
-			TypeInt8,
-			TypeInt16,
-			TypeInt32,
-			TypeInt64,
-			TypeUint8,
-			TypeUint16,
-			TypeUint32,
-			TypeUint64,
-			TypeFloat32,
-			TypeFloat64
-		};
+		Type NumberType() const { return _type; }
 		
+	private:		
 		void CopyData(const void *data, size_t size, Type type);
 		
 		uint8 *_buffer;

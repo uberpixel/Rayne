@@ -68,6 +68,18 @@ namespace RN
 		}
 		
 		
+		void Enumerate(const std::function<void (Object *, size_t, bool *)>& callback)
+		{
+			bool stop = false;
+			for(size_t i=0; i<_count; i++)
+			{
+				callback(_data[i], i, &stop);
+				
+				if(stop)
+					break;
+			}
+		}
+		
 		
 		void AddObject(Object *object)
 		{

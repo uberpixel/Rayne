@@ -302,4 +302,26 @@ namespace RN
 			CollapseIfPossible();
 		}
 	}
+	
+	void Dictionary::Enumerate(const std::function<void (Object *, Object *, bool *)>& callback)
+	{
+		bool stop = false;
+		
+		for(size_t i=0; i<_capacity; i++)
+		{
+			Bucket *bucket = _buckets[i];
+			while(bucket)
+			{
+				if(bucket->key)
+				{
+					callback(bucket->object, bucket->key, &stop);
+					
+					if(stop)
+						return;
+				}
+				
+				bucket = bucket->next;
+			}
+		}
+	}
 }

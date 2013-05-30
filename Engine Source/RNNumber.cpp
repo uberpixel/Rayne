@@ -17,34 +17,34 @@ namespace RN
 	do { \
 		switch(_type) \
 		{ \
-			case TypeInt8: \
+			case Type::Int8: \
 				var = NumberPrimitiveAccess(int8, type); \
 				break; \
-			case TypeUint8: \
+			case Type::Uint8: \
 				var = NumberPrimitiveAccess(uint8, type); \
 				break; \
-			case TypeInt16: \
+			case Type::Int16: \
 				var = NumberPrimitiveAccess(int16, type); \
 				break; \
-			case TypeUint16: \
+			case Type::Uint16: \
 				var = NumberPrimitiveAccess(uint16, type); \
 				break; \
-			case TypeInt32: \
+			case Type::Int32: \
 				var = NumberPrimitiveAccess(int32, type); \
 				break; \
-			case TypeUint32: \
+			case Type::Uint32: \
 				var = NumberPrimitiveAccess(uint32, type); \
 				break; \
-			case TypeInt64: \
+			case Type::Int64: \
 				var = NumberPrimitiveAccess(int64, type); \
 				break; \
-			case TypeUint64: \
+			case Type::Uint64: \
 				var = NumberPrimitiveAccess(uint64, type); \
 				break; \
-			case TypeFloat32: \
+			case Type::Float32: \
 				var = NumberPrimitiveAccess(float, type); \
 				break; \
-			case TypeFloat64: \
+			case Type::Float64: \
 				var = NumberPrimitiveAccess(double, type); \
 				break; \
 			} \
@@ -53,45 +53,45 @@ namespace RN
 	
 	Number::Number(float value)
 	{
-		CopyData(&value, sizeof(float), TypeFloat32);
+		CopyData(&value, sizeof(float), Type::Float32);
 	}
 	Number::Number(double value)
 	{
-		CopyData(&value, sizeof(double), TypeFloat64);
+		CopyData(&value, sizeof(double), Type::Float64);
 	}
 	
 	Number::Number(int8 value)
 	{
-		CopyData(&value, sizeof(int8), TypeInt8);
+		CopyData(&value, sizeof(int8), Type::Int8);
 	}
 	Number::Number(int16 value)
 	{
-		CopyData(&value, sizeof(int16), TypeInt16);
+		CopyData(&value, sizeof(int16), Type::Int16);
 	}
 	Number::Number(int32 value)
 	{
-		CopyData(&value, sizeof(int32), TypeInt32);
+		CopyData(&value, sizeof(int32), Type::Int32);
 	}
 	Number::Number(int64 value)
 	{
-		CopyData(&value, sizeof(int64), TypeInt64);
+		CopyData(&value, sizeof(int64), Type::Int64);
 	}
 	
 	Number::Number(uint8 value)
 	{
-		CopyData(&value, sizeof(uint8), TypeUint8);
+		CopyData(&value, sizeof(uint8), Type::Uint8);
 	}
 	Number::Number(uint16 value)
 	{
-		CopyData(&value, sizeof(uint16), TypeUint16);
+		CopyData(&value, sizeof(uint16), Type::Uint16);
 	}
 	Number::Number(uint32 value)
 	{
-		CopyData(&value, sizeof(uint32), TypeUint32);
+		CopyData(&value, sizeof(uint32), Type::Uint32);
 	}
 	Number::Number(uint64 value)
 	{
-		CopyData(&value, sizeof(uint64), TypeUint64);
+		CopyData(&value, sizeof(uint64), Type::Uint64);
 	}
 	
 	Number::~Number()
