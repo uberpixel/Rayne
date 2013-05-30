@@ -65,6 +65,7 @@ namespace RN
 		
 		// Misc
 		FILE *FilePointer() { return _file; }
+		size_t Size() const { return static_cast<size_t>(_size); }
 
 		RNAPI const std::string& Path() { return _path; }
 		RNAPI const std::string& Name() { return _name; }

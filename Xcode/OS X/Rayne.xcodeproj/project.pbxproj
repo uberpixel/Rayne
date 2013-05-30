@@ -110,6 +110,8 @@
 		E9A872D717573D5800E06C27 /* RNArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872D617573D5800E06C27 /* RNArray.cpp */; };
 		E9A872DA17573D7100E06C27 /* RNDictionary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872D817573D7100E06C27 /* RNDictionary.cpp */; };
 		E9A872DB17573D7100E06C27 /* RNDictionary.h in Headers */ = {isa = PBXBuildFile; fileRef = E9A872D917573D7100E06C27 /* RNDictionary.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9A872E81757627500E06C27 /* RNData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872E61757627500E06C27 /* RNData.cpp */; };
+		E9A872E91757627500E06C27 /* RNData.h in Headers */ = {isa = PBXBuildFile; fileRef = E9A872E71757627500E06C27 /* RNData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9AB0DAB16D679DC000D1CF0 /* RNSceneNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AB0DAA16D679DC000D1CF0 /* RNSceneNode.cpp */; };
 		E9B03FEB16F277600016176B /* RNModule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92A626816DEA8C1006E68AF /* RNModule.cpp */; };
 		E9B03FEC16F279E40016176B /* RNModule.h in Headers */ = {isa = PBXBuildFile; fileRef = E92A626916DEA8C1006E68AF /* RNModule.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -299,6 +301,8 @@
 		E9A872D617573D5800E06C27 /* RNArray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNArray.cpp; sourceTree = "<group>"; };
 		E9A872D817573D7100E06C27 /* RNDictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDictionary.cpp; sourceTree = "<group>"; };
 		E9A872D917573D7100E06C27 /* RNDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDictionary.h; sourceTree = "<group>"; };
+		E9A872E61757627500E06C27 /* RNData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNData.cpp; sourceTree = "<group>"; };
+		E9A872E71757627500E06C27 /* RNData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNData.h; sourceTree = "<group>"; };
 		E9AB0DAA16D679DC000D1CF0 /* RNSceneNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSceneNode.cpp; sourceTree = "<group>"; };
 		E9AB7F0E16D42522006BB4CB /* RNOpenGLExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNOpenGLExtensions.h; sourceTree = "<group>"; };
 		E9B083B417172486009AD83F /* RNSphere.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSphere.h; sourceTree = "<group>"; };
@@ -448,6 +452,8 @@
 				E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */,
 				E92B859316FC8E42002FA04D /* RNCatalogue.cpp */,
 				E92B859416FC8E42002FA04D /* RNCatalogue.h */,
+				E9A872E61757627500E06C27 /* RNData.cpp */,
+				E9A872E71757627500E06C27 /* RNData.h */,
 				E9A872D817573D7100E06C27 /* RNDictionary.cpp */,
 				E9A872D917573D7100E06C27 /* RNDictionary.h */,
 				E99A955F172A002100605C68 /* RNNumber.cpp */,
@@ -755,6 +761,7 @@
 				E911D6FA1754060E00DD1F55 /* RNAlgorithm.h in Headers */,
 				E97F7B8317552724001236E5 /* RNRingbuffer.h in Headers */,
 				E9A872DB17573D7100E06C27 /* RNDictionary.h in Headers */,
+				E9A872E91757627500E06C27 /* RNData.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -913,6 +920,7 @@
 				E94D18B91753CE8A00F3B10D /* RNDebug.cpp in Sources */,
 				E9A872D717573D5800E06C27 /* RNArray.cpp in Sources */,
 				E9A872DA17573D7100E06C27 /* RNDictionary.cpp in Sources */,
+				E9A872E81757627500E06C27 /* RNData.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -14,6 +14,7 @@
 #include "RNAutoreleasePool.h"
 #include "RNArray.h"
 #include "RNDictionary.h"
+#include "RNData.h"
 #include "RNNumber.h"
 
 #include "RNKernel.h"
