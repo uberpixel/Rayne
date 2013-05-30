@@ -28,9 +28,11 @@ namespace RN
 			Uint32,
 			Uint64,
 			Float32,
-			Float64
+			Float64,
+			Boolean
 		};
 		
+		RNAPI explicit Number(bool value);
 		RNAPI Number(float value);
 		RNAPI Number(double value);
 		
@@ -45,6 +47,7 @@ namespace RN
 		RNAPI Number(uint64 value);
 		RNAPI virtual ~Number();
 		
+		RNAPI static Number *WithBool(bool value);
 		RNAPI static Number *WithFloat(float value);
 		RNAPI static Number *WithDouble(double value);
 		
@@ -58,7 +61,7 @@ namespace RN
 		RNAPI static Number *WithUint32(uint32 value);
 		RNAPI static Number *WithUint64(uint64 value);
 		
-		
+		RNAPI bool BoolValue() const;
 		RNAPI float FloatValue() const;
 		RNAPI double DoubleValue() const;
 		

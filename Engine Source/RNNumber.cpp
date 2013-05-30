@@ -13,10 +13,14 @@ namespace RN
 	RNDeclareMeta(Number)
 	
 #define NumberPrimitiveAccess(type, target) static_cast<target>(*((type *)_buffer))
+
 #define NumberAccessAndConvert(var, type) \
 	do { \
 		switch(_type) \
 		{ \
+			case Type::Boolean: \
+				var = NumberPrimitiveAccess(bool, type); \
+				break; \
 			case Type::Int8: \
 				var = NumberPrimitiveAccess(int8, type); \
 				break; \
@@ -51,6 +55,10 @@ namespace RN
 		} while(0)
 
 	
+	Number::Number(bool value)
+	{
+		CopyData(&value, sizeof(bool), Type::Boolean);
+	}
 	Number::Number(float value)
 	{
 		CopyData(&value, sizeof(float), Type::Float32);
@@ -100,6 +108,11 @@ namespace RN
 	}
 	
 	
+	Number *Number::WithBool(bool value)
+	{
+		Number *number = new Number(value);
+		return number->Autorelease();
+	}
 	Number *Number::WithFloat(float value)
 	{
 		Number *number = new Number(value);
@@ -176,6 +189,14 @@ namespace RN
 	{
 		double value;
 		NumberAccessAndConvert(value, double);
+		
+		return value;
+	}
+	
+	bool Number::BoolValue() const
+	{
+		bool value;
+		NumberAccessAndConvert(value, bool);
 		
 		return value;
 	}
