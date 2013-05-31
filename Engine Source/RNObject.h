@@ -69,11 +69,10 @@ namespace RN
 		
 		void __RemoveAssociatedOject(const void *key);
 		
-		SpinLock _lock;
-		std::atomic<machine_uint> _refCount;
-		
 		static MetaType *__metaClass;
+		SpinLock _lock;
 		
+		std::atomic<machine_uint> _refCount;
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 	};
 	

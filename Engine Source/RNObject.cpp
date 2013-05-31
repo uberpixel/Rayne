@@ -49,18 +49,12 @@ namespace RN
 	
 	Object *Object::Release()
 	{
-		_lock.Lock();
-		_refCount --;
-		
-		if(_refCount.load() == 0)
+		if(_refCount.fetch_sub(1) == 1)
 		{
-			_lock.Unlock();
-			
 			delete this;
 			return 0;
 		}
 		
-		_lock.Unlock();
 		return this;
 	}
 	
