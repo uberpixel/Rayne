@@ -20,12 +20,15 @@ namespace RN
 	class Water : public SceneNode
 	{
 	public:
-		Water();
+		Water(Camera *cam);
 		virtual ~Water();
 		
 		void SetTexture(Texture *texture);
 		
 		Material *Material() const { return _material; }
+		
+		void Update(float delta);
+		bool CanUpdate(FrameID frameid);
 		
 		virtual bool IsVisibleInCamera(Camera *camera) override;
 		virtual void Render(Renderer *renderer, Camera *camera) override;
@@ -38,7 +41,10 @@ namespace RN
 		Matrix _transform;
 		class Material *_material;
 		
-		RNDefineMeta(Water, SceneNode)
+		Camera *_camera;
+		Camera *_reflection;
+		
+		RNDefineConstructorlessMeta(Water, SceneNode)
 	};
 }
 

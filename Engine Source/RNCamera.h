@@ -271,6 +271,14 @@ namespace RN
 		float orthotop;
 		float orthobottom;
 		
+		bool usefog;
+		float fognear;
+		float fogfar;
+		Color fogcolor;
+		
+		bool useclipplane;
+		Vector4 clipplane;
+		
 		Matrix projectionMatrix;
 		Matrix inverseProjectionMatrix;
 		Matrix viewMatrix;

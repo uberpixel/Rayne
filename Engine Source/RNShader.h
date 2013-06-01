@@ -27,7 +27,9 @@ namespace RN
 			TypeAnimated  = (1 << 2),
 			TypeLighting = (1 << 3),
 			TypeDiscard   = (1 << 4),
-			TypeDirectionalShadows = (1 << 5)
+			TypeDirectionalShadows = (1 << 5),
+			TypeFog = (1 << 6),
+			TypeClipPlane = (1 << 7)
 		};
 		
 		GLuint program;
@@ -64,6 +66,10 @@ namespace RN
 		GLuint frameSize;
 		GLuint clipPlanes;
 		GLuint discardThreshold;
+		
+		GLuint fogPlanes;
+		GLuint fogColor;
+		GLuint clipPlane;
 		
 		GLuint ambient;
 		GLuint diffuse;

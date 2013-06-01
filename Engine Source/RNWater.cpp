@@ -15,10 +15,13 @@ namespace RN
 {
 	RNDeclareMeta(Water)
 	
-	Water::Water()
+	Water::Water(Camera *cam)
 	{
 		_mesh = 0;
 		_material = 0;
+		_reflection = 0;
+		_camera = cam;
+		group = 2;
 		
 		Initialize();
 	}
@@ -70,6 +73,26 @@ namespace RN
 		});
 		
 		_mesh = ResourcePool::SharedInstance()->ResourceWithName<Mesh>(kRNWaterMeshResourceName)->Retain();
+		
+		if(_camera != 0)
+		{
+			_reflection = new Camera(Vector2(512, 512), TextureParameter::Format::RGBA8888, Camera::FlagDefaults|Camera::FlagHidden, RenderStorage::BufferFormatComplete, 1.0f);
+			_reflection->SetPriority(-20);
+			_reflection->SetSkyCube(_camera->SkyCube());
+			
+			
+			RN::Shader *shad = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyTexture1Shader);
+			
+			RN::Material *mat = new RN::Material(shad);
+			mat->lighting = false;
+			mat->override |= Material::OverrideTextures;
+			_reflection->SetMaterial(mat);
+			_reflection->useclipplane = true;
+			_reflection->clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+			
+			_material->AddTexture(_reflection->Storage()->RenderTarget());
+			_material->AddTexture(RN::Texture::WithFile("textures/waterbump.png", true));
+		}
 	}
 	
 	void Water::SetTexture(Texture *texture)
@@ -84,6 +107,26 @@ namespace RN
 	
 	bool Water::IsVisibleInCamera(Camera *camera)
 	{
+		return true;
+	}
+	
+	void Water::Update(float delta)
+	{
+		SceneNode::Update(delta);
+		
+		if(_reflection != 0)
+		{
+			_reflection->SetPosition(Vector3(1.0f, -1.0f, 1.0f)*_camera->Position());
+			Vector3 rot = _camera->EulerAngle();
+			_reflection->SetRotation(Vector3(rot.x, rot.y, -rot.z));
+		}
+	}
+	
+	bool Water::CanUpdate(FrameID frameid)
+	{
+		if(frameid < 5)
+			return false;
+		
 		return true;
 	}
 	
