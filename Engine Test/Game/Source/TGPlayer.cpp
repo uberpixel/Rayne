@@ -29,7 +29,7 @@ namespace TG
 		RN::Vector3 translation;
 		RN::Vector3 rotation;
 		
-		const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
+		const RN::Vector2& mouseDelta = input->MouseDelta();
 		rotation.x = mouseDelta.x;
 		
 		if(_camera)

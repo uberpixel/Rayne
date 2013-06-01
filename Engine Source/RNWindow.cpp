@@ -38,26 +38,32 @@
 
 - (void)keyDown:(NSEvent *)theEvent
 {
+	RN::Input::SharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)keyUp:(NSEvent *)theEvent
 {
+	RN::Input::SharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
+	RN::Input::SharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)mouseMoved:(NSEvent *)theEvent
 {
-}
-
-- (void)mouseUp:(NSEvent *)theEvent
-{
+	RN::Input::SharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
+	RN::Input::SharedInstance()->HandleEvent(theEvent);
+}
+
+- (void)mouseUp:(NSEvent *)theEvent
+{
+	RN::Input::SharedInstance()->HandleEvent(theEvent);
 }
 
 

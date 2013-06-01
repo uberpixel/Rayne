@@ -214,26 +214,6 @@ namespace RN
 		}
 #endif
 		
-		_frame ++;
-		_renderer->BeginFrame(_delta);
-		_input->DispatchInputEvents();
-		
-		Application::SharedInstance()->GameUpdate(_delta);
-
-		if(_world)
-		{
-			_world->StepWorld(_frame, _delta);
-			Application::SharedInstance()->WorldUpdate(_delta);
-		}
-		
-		_uiserver->Render(_renderer);
-		
-		_renderer->FinishFrame();
-		
-#if RN_PLATFORM_MAC_OS
-		CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
-#endif
-		
 #if RN_PLATFORM_LINUX
 		XEvent event;
 		Atom wmDeleteMessage = XInternAtom(_context->_dpy, "WM_DELETE_WINDOW", False);
@@ -251,12 +231,33 @@ namespace RN
 					break;
 					
 				default:
-					_input->HandleXInputEvents(&event);
+					_input->HandleEvent(&event);
 					break;
 			}
 		}
+#endif
 		
+		_frame ++;
+		_renderer->BeginFrame(_delta);
+		_input->DispatchInputEvents();
 		
+		Application::SharedInstance()->GameUpdate(_delta);
+
+		if(_world)
+		{
+			_world->StepWorld(_frame, _delta);
+			Application::SharedInstance()->WorldUpdate(_delta);
+		}
+		
+		_uiserver->Render(_renderer);
+		_renderer->FinishFrame();
+		_input->InvalidateFrame();
+		
+#if RN_PLATFORM_MAC_OS
+		CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
+#endif
+		
+#if RN_PLATFORM_LINUX
 		glXSwapBuffers(_context->_dpy, _context->_win);
 #endif
 		

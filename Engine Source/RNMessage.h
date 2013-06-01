@@ -11,6 +11,8 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNString.h"
+#include "RNDictionary.h"
 #include "RNThread.h"
 
 namespace RN
@@ -18,52 +20,43 @@ namespace RN
 	class Message : public Object
 	{
 	public:
-		typedef enum
-		{
-			MessageGroupInput
-		} MessageGroup;
+		Message(String *name, Object *object, Dictionary *info);
+		~Message() override;
 		
-		typedef uint32 MessageSubgroup;
-		
-		MessageGroup Group() const { return _group; }
-		MessageSubgroup Subgroup() const { return _subgroup; }
+		String *Name() const { return _name; }
+		Object *Object() const { return _object; }
+		Dictionary *Info() const { return _info; }
 		
 	protected:
-		Message(MessageGroup group, MessageSubgroup subgroup);
-		virtual ~Message();
+		String *_name;
+		class Object *_object;
+		Dictionary *_info;
 		
-		MessageGroup _group;
-		MessageSubgroup _subgroup;
-	};
-	
-	
-	
-	class MessageObserver
-	{
-	public:
-		virtual void HandleMessage(Message *message);
+		RNDefineConstructorlessMeta(Message, Object)
 	};
 	
 	class MessageCenter : public Singleton<MessageCenter>
 	{
 	public:
+		typedef std::function<void (Message *)> CallbackType;
+		
 		RNAPI void PostMessage(Message *message);
+		RNAPI void PostMessage(String *name, Object *object, Dictionary *info);
 		
-		RNAPI void AddObserver(MessageObserver *observer, Message::MessageGroup group);
-		RNAPI void AddObserver(MessageObserver *observer, Message::MessageGroup group, Message::MessageSubgroup subgroup);
+		RNAPI void AddObserver(String *name, CallbackType callback, void *cookie);
 		
-		RNAPI void RemoveObserver(MessageObserver *observer);
-		RNAPI void RemoveObserver(MessageObserver *observer, Message::MessageGroup group);
-		RNAPI void RemoveObserver(MessageObserver *observer, Message::MessageGroup group, Message::MessageSubgroup subgroup);
+		RNAPI void RemoveObserver(void *cookie);
+		RNAPI void RemoveObserver(void *cookie, String *name);
 		
 	private:		
 		struct MessageObserverProxy
 		{
-			MessageObserver *observer;
-			Message::MessageGroup observingGroup;
-			Message::MessageSubgroup observingSubgroup;
+			CallbackType callback;
+			void *cookie;
+			String *name;
 		};
 		
+		SpinLock _lock;
 		std::vector<MessageObserverProxy> _observer;
 	};
 }

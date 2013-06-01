@@ -94,13 +94,15 @@ namespace TG
 		RN::Vector3 translation;
 		RN::Vector3 rotation;
 		
-		const RN::Vector3& mouseDelta = input->MouseDelta() * -0.2f;
+		const RN::Vector2& mouseDelta = input->MouseDelta();
 		
 		rotation.x = mouseDelta.x;
 		rotation.z = mouseDelta.y;
 		
 		translation.x = (input->KeyPressed('d') - input->KeyPressed('a')) * 16.0f;
 		translation.z = (input->KeyPressed('s') - input->KeyPressed('w')) * 16.0f;
+		
+		translation *= (input->ModifierKeys() & RN::KeyModifier::KeyShift) ? 2.0f : 1.0f;
 		
 		_camera->Rotate(rotation);
 		_camera->TranslateLocal(translation * delta);

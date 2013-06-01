@@ -17,89 +17,7 @@
 namespace RN
 {
 	RNDeclareMeta(String)
-	
-	// ---------------------
-	// MARK: -
-	// MARK: CodePoint
-	// ---------------------
-	
-	class CodePoint
-	{
-	public:
-		CodePoint() {}
-		CodePoint(char character)
-		{
-			_codePoint = static_cast<UniChar>(character);
-		}
-		
-		CodePoint(UniChar codepoint)
-		{
-			_codePoint = codepoint;
-		}
-		
-		CodePoint& operator =(uint32 point)
-		{
-			_codePoint = point;
-			return *this;
-		}
-		
-		bool operator ==(const CodePoint& other) const
-		{
-			return (_codePoint == other._codePoint);
-		}
-		
-		bool operator >(const CodePoint& other) const
-		{
-			return _codePoint > other._codePoint;
-		}
-		
-		bool operator <(const CodePoint& other) const
-		{
-			return _codePoint < other._codePoint;
-		}
-		
-		operator uint32()
-		{
-			return _codePoint;
-		}
-		
-		UniChar LowerCase();
-		UniChar UpperCase();
-		
-	private:
-		UniChar _codePoint;
-	};
-	
-	UniChar CodePoint::LowerCase()
-	{
-		if(_codePoint <= 0x7f)
-		{
-			char character = static_cast<char>(_codePoint);
-			if(character >= 'A' && character <= 'Z')
-			{
-				character = tolower(character);
-				return CodePoint(character);
-			}
-		}
-		
-		return *this;
-	}
-	
-	UniChar CodePoint::UpperCase()
-	{
-		if(_codePoint <= 0x7f)
-		{
-			char character = static_cast<char>(_codePoint);
-			if(character >= 'a' && character <= 'z')
-			{
-				character = toupper(character);
-				return CodePoint(character);
-			}
-		}
-		
-		return *this;
-	}
-	
+
 	// ---------------------
 	// MARK: -
 	// MARK: String
@@ -643,11 +561,6 @@ namespace RN
 		string += length; \
 	} while(0)
 	
-	Range String::RangeOfString(const String& string)
-	{
-		return RangeOfString(&string, 0, Range(0, _length));
-	}
-	
 	Range String::RangeOfString(const String& string, ComparisonMode mode)
 	{
 		return RangeOfString(&string, mode, Range(0, _length));
@@ -658,12 +571,6 @@ namespace RN
 		return RangeOfString(&string, mode, range);
 	}
 	
-	
-	
-	Range String::RangeOfString(const String *string)
-	{
-		return RangeOfString(string, 0, Range(0, _length));
-	}
 	
 	Range String::RangeOfString(const String *string, ComparisonMode mode)
 	{
@@ -765,11 +672,6 @@ namespace RN
 	}
 	
 	
-	ComparisonResult String::Compare(const String& other) const
-	{
-		return Compare(&other, 0, Range(0, _length));
-	}
-	
 	ComparisonResult String::Compare(const String& other, ComparisonMode mode) const
 	{
 		return Compare(&other, mode, Range(0, _length));
@@ -780,11 +682,6 @@ namespace RN
 		return Compare(&other, mode, range);
 	}
 	
-	
-	ComparisonResult String::Compare(const String *other) const
-	{
-		return Compare(other, 0, Range(0, _length));
-	}
 	
 	ComparisonResult String::Compare(const String *other, ComparisonMode mode) const
 	{

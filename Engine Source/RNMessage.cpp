@@ -10,100 +10,104 @@
 
 namespace RN
 {
-	Message::Message(MessageGroup group, MessageSubgroup subgroup) :
-		_group(group),
-		_subgroup(subgroup)
-	{}
+	RNDeclareMeta(Message)
+	
+	Message::Message(String *name, class Object *object, Dictionary *info)
+	{
+		_name   = name ? name->Retain() : nullptr;
+		_object = object ? object->Retain() : nullptr;
+		_info   = info ? info->Retain() : nullptr;
+	}
 	
 	Message::~Message()
-	{}
-	
-	void MessageObserver::HandleMessage(Message *message)
 	{
+		if(_name)
+			_name->Release();
+		
+		if(_object)
+			_object->Release();
+		
+		if(_info)
+			_info->Release();
 	}
 	
 	
 	
 	void MessageCenter::PostMessage(Message *message)
 	{
-		Message::MessageGroup group = message->Group();
-		Message::MessageSubgroup subgroup = message->Subgroup();
+		String *name = message->Name();
+		machine_hash hash = name->Hash();
+		
+		_lock.Lock();
 		
 		for(auto i=_observer.begin(); i!=_observer.end(); i++)
 		{
-			if(i->observingGroup == group && (i->observingSubgroup & subgroup))
+			if(i->name->Hash() == hash && i->name->IsEqual(name))
 			{
-				i->observer->HandleMessage(message);
-			}
-		}
-	}
-	
-	
-	void MessageCenter::AddObserver(MessageObserver *observer, Message::MessageGroup group)
-	{
-		AddObserver(observer, group, 0xffffffff);
-	}
-	
-	void MessageCenter::AddObserver(MessageObserver *observer, Message::MessageGroup group, Message::MessageSubgroup subgroup)
-	{
-		for(auto i=_observer.begin(); i!=_observer.end(); i++)
-		{
-			while(i->observer == observer && i->observingGroup == group)
-			{
-				i->observingSubgroup |= subgroup;
-				return;
+				i->callback(message);
 			}
 		}
 		
+		_lock.Unlock();
+	}
+	
+	void MessageCenter::PostMessage(String *name, Object *object, Dictionary *info)
+	{
+		Message *message = new Message(name, object, info);
+		PostMessage(message);
+		message->Release();
+	}
+	
+	
+	
+	
+	void MessageCenter::AddObserver(String *name, CallbackType callback, void *cookie)
+	{
 		MessageObserverProxy proxy;
-		proxy.observer = observer;
-		proxy.observingGroup = group;
-		proxy.observingSubgroup = subgroup;
+		proxy.cookie = cookie;
+		proxy.name = name->Retain();
+		proxy.callback = std::move(callback);
 		
-		_observer.push_back(proxy);
+		_lock.Lock();
+		_observer.push_back(std::move(proxy));
+		_lock.Unlock();
 	}
 	
-	
-	void MessageCenter::RemoveObserver(MessageObserver *observer)
+	void MessageCenter::RemoveObserver(void *cookie)
 	{
-		for(auto i=_observer.begin(); i!=_observer.end(); i++)
+		_lock.Lock();
+		
+		for(auto i=_observer.begin(); i!=_observer.end();)
 		{
-			while(i->observer == observer)
+			if(i->cookie == cookie)
 			{
 				i = _observer.erase(i);
-				
-				if(i == _observer.end())
-					return;
+				continue;
 			}
+			
+			i++;
 		}
+		
+		_lock.Unlock();
 	}
 	
-	void MessageCenter::RemoveObserver(MessageObserver *observer, Message::MessageGroup group)
+	void MessageCenter::RemoveObserver(void *cookie, String *name)
 	{
-		for(auto i=_observer.begin(); i!=_observer.end(); i++)
-		{			
-			if(i->observer == observer && i->observingGroup == group)
-			{
-				_observer.erase(i);
-				break;
-			}
-		}
-	}
-	
-	void MessageCenter::RemoveObserver(MessageObserver *observer, Message::MessageGroup group, Message::MessageSubgroup subgroup)
-	{
-		for(auto i=_observer.begin(); i!=_observer.end(); i++)
+		machine_hash hash = name->Hash();
+		
+		_lock.Lock();
+		
+		for(auto i=_observer.begin(); i!=_observer.end();)
 		{
-			if(i->observer == observer && i->observingGroup == group)
+			if(i->cookie == cookie && i->name->Hash() == hash && i->name->IsEqual(name))
 			{
-				i->observingSubgroup &= ~subgroup;
-				
-				if(i->observingSubgroup == 0)
-				{
-					_observer.erase(i);
-					break;
-				}
+				i = _observer.erase(i);
+				continue;
 			}
+			
+			i++;
 		}
+		
+		_lock.Unlock();
 	}
 }

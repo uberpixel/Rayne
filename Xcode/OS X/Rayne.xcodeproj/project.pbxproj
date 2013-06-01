@@ -34,6 +34,8 @@
 		E9319D3416BFE560001FA38F /* RNBaseInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = E9319D3316BFE560001FA38F /* RNBaseInternal.h */; settings = {ATTRIBUTES = (); }; };
 		E94D18B91753CE8A00F3B10D /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E94D18B71753CE8A00F3B10D /* RNDebug.cpp */; };
 		E94D18BA1753CE8A00F3B10D /* RNDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = E94D18B81753CE8A00F3B10D /* RNDebug.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9551B1817593EE500CF5E10 /* RNUnicode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9551B1617593EE500CF5E10 /* RNUnicode.cpp */; };
+		E9551B1917593EE500CF5E10 /* RNUnicode.h in Headers */ = {isa = PBXBuildFile; fileRef = E9551B1717593EE500CF5E10 /* RNUnicode.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E957BAB81714F61400AD7A54 /* RNSceneManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E957BAB61714F61400AD7A54 /* RNSceneManager.cpp */; };
 		E957BAB91714F61400AD7A54 /* RNSceneManager.h in Headers */ = {isa = PBXBuildFile; fileRef = E957BAB71714F61400AD7A54 /* RNSceneManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */; };
@@ -227,6 +229,8 @@
 		E9543FA1168167A100F53C4F /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
 		E9543FA2168167A100F53C4F /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
 		E9543FA3168167A100F53C4F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		E9551B1617593EE500CF5E10 /* RNUnicode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUnicode.cpp; sourceTree = "<group>"; };
+		E9551B1717593EE500CF5E10 /* RNUnicode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUnicode.h; sourceTree = "<group>"; };
 		E957BAB61714F61400AD7A54 /* RNSceneManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSceneManager.cpp; sourceTree = "<group>"; };
 		E957BAB71714F61400AD7A54 /* RNSceneManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSceneManager.h; sourceTree = "<group>"; };
 		E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNEntity.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -385,6 +389,17 @@
 			name = Debug;
 			sourceTree = "<group>";
 		};
+		E9551B1117593B2200CF5E10 /* String */ = {
+			isa = PBXGroup;
+			children = (
+				E97C3EAE172B11C7006EA63A /* RNString.cpp */,
+				E97C3EAF172B11C7006EA63A /* RNString.h */,
+				E9551B1617593EE500CF5E10 /* RNUnicode.cpp */,
+				E9551B1717593EE500CF5E10 /* RNUnicode.h */,
+			);
+			name = String;
+			sourceTree = "<group>";
+		};
 		E9619DF31696157E00DA187E /* Engine Source */ = {
 			isa = PBXGroup;
 			children = (
@@ -452,6 +467,7 @@
 		E9B083F31718A2E0009AD83F /* Objects */ = {
 			isa = PBXGroup;
 			children = (
+				E9551B1117593B2200CF5E10 /* String */,
 				E9A872D617573D5800E06C27 /* RNArray.cpp */,
 				E9619DF41696157E00DA187E /* RNArray.h */,
 				E9145CAA16BA9076004BDEC8 /* RNAutoreleasePool.cpp */,
@@ -468,8 +484,6 @@
 				E99A9560172A002100605C68 /* RNNumber.h */,
 				E9619E0D1696157E00DA187E /* RNObject.cpp */,
 				E9619E0E1696157E00DA187E /* RNObject.h */,
-				E97C3EAE172B11C7006EA63A /* RNString.cpp */,
-				E97C3EAF172B11C7006EA63A /* RNString.h */,
 				E96654601758D2BA00C3562E /* RNWrappingObject.h */,
 			);
 			name = Objects;
@@ -773,6 +787,7 @@
 				E9A872E5175759E300E06C27 /* RNJSONSerialization.h in Headers */,
 				E9A872E91757627500E06C27 /* RNData.h in Headers */,
 				E96654621758D2BA00C3562E /* RNWrappingObject.h in Headers */,
+				E9551B1917593EE500CF5E10 /* RNUnicode.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -933,6 +948,7 @@
 				E9A872DA17573D7100E06C27 /* RNDictionary.cpp in Sources */,
 				E9A872E4175759E300E06C27 /* RNJSONSerialization.cpp in Sources */,
 				E9A872E81757627500E06C27 /* RNData.cpp in Sources */,
+				E9551B1817593EE500CF5E10 /* RNUnicode.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

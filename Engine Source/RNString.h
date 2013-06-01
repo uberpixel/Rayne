@@ -11,11 +11,10 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNUnicode.h"
 
 namespace RN
 {
-	typedef uint32 UniChar;
-	
 	class String : public Object
 	{
 	public:
@@ -72,20 +71,16 @@ namespace RN
 		void ReplaceOccurrencesOfString(const String& string, const String& replacement);
 		void ReplaceOccurrencesOfString(const String *string, const String *replacement);
 		
-		Range RangeOfString(const String& string);
-		Range RangeOfString(const String& string, ComparisonMode mode);
+		Range RangeOfString(const String& string, ComparisonMode mode=0);
 		Range RangeOfString(const String& string, ComparisonMode mode, const Range& range);
 		
-		Range RangeOfString(const String *string);
-		Range RangeOfString(const String *string, ComparisonMode mode);
+		Range RangeOfString(const String *string, ComparisonMode mode=0);
 		Range RangeOfString(const String *string, ComparisonMode mode, const Range& range);
 		
-		ComparisonResult Compare(const String& other) const;
-		ComparisonResult Compare(const String& other, ComparisonMode mode) const;
+		ComparisonResult Compare(const String& other, ComparisonMode mode=0) const;
 		ComparisonResult Compare(const String& other, ComparisonMode mode, const Range& range) const;
 		
-		ComparisonResult Compare(const String *other) const;
-		ComparisonResult Compare(const String *other, ComparisonMode mode) const;
+		ComparisonResult Compare(const String *other, ComparisonMode mode=0) const;
 		ComparisonResult Compare(const String *other, ComparisonMode mode, const Range& range) const;
 		
 		String Substring(const Range& range) const;
