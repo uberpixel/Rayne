@@ -40,11 +40,14 @@ namespace TG
 		DebugDrawer *_debugAttachment;
 		
 		ThirdPersonCamera *_camera;
+		RN::Camera *_lightcam;
 		RN::Camera *_finalcam;
 		RN::Light *_spotLight;
 		RN::Light *_sunLight;
 		RN::Texture *_depthtex;
 		RN::Entity *_sponza;
+		
+		RN::PostProcessingPipeline *_refractPipeline;
 		
 		float _exposure;
 		float _whitepoint;

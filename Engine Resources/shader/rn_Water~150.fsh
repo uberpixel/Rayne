@@ -11,7 +11,12 @@ precision highp float;
 
 uniform sampler2D mTexture0;
 uniform sampler2D mTexture1;
+uniform sampler2D mTexture2;
+
+uniform vec3 viewPosition;
+
 in vec3 vertProjPos;
+in vec3 vertPosition;
 in vec2 vertTexcoord;
 
 out vec4 fragColor0;
@@ -48,13 +53,28 @@ float noise(vec3 p) //Thx to Las^Mercury
 	return mix(a.x, a.y, f.z);
 }*/
 
+/*float fresnel(float NdotL, float fresnelBias, float fresnelPow)
+{
+	float facing = (1.0 - NdotL);
+	return max(fresnelBias + (1.0 - fresnelBias) * pow(facing, fresnelPow), 0.0);
+}*/
 
 void main()
 {
 	vec3 normals = normalize(texture(mTexture1, vertTexcoord).xyz*2.0f-1.0f);
 	
 	vec2 coords = vertProjPos.xy/vertProjPos.z*0.5+0.5;
+	vec4 refraction = texture(mTexture2, coords-normals.xy*0.02);
 	coords.y = 1.0-coords.y;
-	vec4 color0 = texture(mTexture0, coords*0.5+normals.xy*0.02);
+	vec4 reflection = texture(mTexture0, coords*0.5+normals.xy*0.02);
+
+	vec3 viewdir = normalize(viewPosition-vertPosition);
+	float base = 1 - dot(viewdir, vec3(0.0, 1.0, 0.0));
+	float exponential = pow(base, 5.0);
+	float fresnel = exponential + 0.01 * (1.0 - exponential);
+	
+	
+//	float NdotL = max(dot(viewdir, normals.xzy), 0);
+	vec4 color0 = mix(refraction, reflection, fresnel);//(NdotL, 0.2, 5.0));
 	fragColor0 = color0;
 }

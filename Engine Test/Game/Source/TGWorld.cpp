@@ -122,6 +122,21 @@ namespace TG
 	void World::CreateCameras()
 	{
 #if TGWorldFeatureZPrePass
+		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
+		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
+		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
+		
+		RN::Material *blurXMaterial = new RN::Material(blurShader);
+		blurXMaterial->Define("RN_BLURX");
+		
+		RN::Material *blurYMaterial = new RN::Material(blurShader);
+		blurYMaterial->Define("RN_BLURY");
+		
+		RN::Material *downMaterial = new RN::Material(updownShader);
+		downMaterial->Define("RN_DOWNSAMPLE");
+		//RN::Material *upMaterial = new RN::Material(updownShader);
+		
+		
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth|RN::RenderStorage::BufferFormatStencil);
 		
 		RN::TextureParameter depthparam;
@@ -142,9 +157,9 @@ namespace TG
 		RN::Shader *downsampleShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleShader);
 		RN::Shader *downsampleFirstShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleFirstShader);
 
-		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
-		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
-		_finalcam->Storage()->SetDepthTarget(_depthtex);
+		_lightcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
+		_lightcam->SetClearMask(RN::Camera::ClearFlagColor);
+		_lightcam->Storage()->SetDepthTarget(_depthtex);
 		RN::Model *sky = RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png");
 		sky->MaterialAtIndex(0, 0)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
 		sky->MaterialAtIndex(0, 1)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
@@ -152,32 +167,33 @@ namespace TG
 		sky->MaterialAtIndex(0, 3)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
 		sky->MaterialAtIndex(0, 4)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
 		sky->MaterialAtIndex(0, 5)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		_finalcam->SetSkyCube(sky);
-		_finalcam->renderGroup |= RN::Camera::RenderGroup1|RN::Camera::RenderGroup2;
-		_finalcam->SetLightTiles(RN::Vector2(32.0f, 32.0f));
+		_lightcam->SetSkyCube(sky);
+		_lightcam->renderGroup |= RN::Camera::RenderGroup1;//|RN::Camera::RenderGroup2;
+		_lightcam->SetLightTiles(RN::Vector2(32.0f, 32.0f));
 		
-		RN::DownsamplePostProcessingPipeline *downsamplePipeline = new RN::DownsamplePostProcessingPipeline("downsample", _finalcam, _depthtex, downsampleFirstShader, downsampleShader, RN::TextureParameter::Format::RG32F);
+		RN::DownsamplePostProcessingPipeline *downsamplePipeline = new RN::DownsamplePostProcessingPipeline("downsample", _lightcam, _depthtex, downsampleFirstShader, downsampleShader, RN::TextureParameter::Format::RG32F);
 		_camera->AttachPostProcessingPipeline(downsamplePipeline);
-		_finalcam->ActivateTiledLightLists(downsamplePipeline->LastTarget());
+		_lightcam->ActivateTiledLightLists(downsamplePipeline->LastTarget());
+		_lightcam->SetPriority(5);
 		
+		// Copy refraction to another texture
+		RN::Camera *copyRefract = new RN::Camera(_camera->Frame().Size() / 2.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		copyRefract->SetMaterial(downMaterial);
+		_refractPipeline = _lightcam->AddPostProcessingPipeline("refractioncopy");
+		_refractPipeline->AddStage(copyRefract, RN::RenderStage::Mode::ReUsePreviousStage);
+		
+		
+		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
+		_finalcam->SetClearMask(0);
+		_finalcam->Storage()->SetDepthTarget(_depthtex);
+		_finalcam->Storage()->SetRenderTarget(_lightcam->Storage()->RenderTarget());
+		_finalcam->renderGroup = RN::Camera::RenderGroup2;
+		_finalcam->SetPriority(0);
+		
+		_camera->AttachChild(_lightcam);
 		_camera->AttachChild(_finalcam);
 		_camera->SetPriority(10);
 		_camera->Rotate(RN::Vector3(90.0f, 0.0f, 0.0f));
-		
-		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
-		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
-		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
-		
-		RN::Material *blurXMaterial = new RN::Material(blurShader);
-		blurXMaterial->Define("RN_BLURX");
-		
-		RN::Material *blurYMaterial = new RN::Material(blurShader);
-		blurYMaterial->Define("RN_BLURY");
-		
-		RN::Material *downMaterial = new RN::Material(updownShader);
-		downMaterial->Define("RN_DOWNSAMPLE");
-		//RN::Material *upMaterial = new RN::Material(updownShader);
-		
 		
 #if TGWorldFeatureSSAO
 		// Surface normals
@@ -443,10 +459,12 @@ namespace TG
 		
 		_camera->clipfar = 100.0f;
 		_camera->UpdateProjection();
+		_lightcam->clipfar = 100.0f;
+		_lightcam->UpdateProjection();
 		_finalcam->clipfar = 100.0f;
 		_finalcam->UpdateProjection();
 		
-		RN::Water *water = new RN::Water((RN::Camera*)_camera);
+		RN::Water *water = new RN::Water((RN::Camera*)_finalcam, _refractPipeline->LastStage()->Camera()->Storage()->RenderTarget());
 	}
 	
 	

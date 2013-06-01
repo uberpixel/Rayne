@@ -20,7 +20,7 @@ namespace RN
 	class Water : public SceneNode
 	{
 	public:
-		Water(Camera *cam);
+		Water(Camera *cam, Texture *refract);
 		virtual ~Water();
 		
 		void SetTexture(Texture *texture);
@@ -43,6 +43,7 @@ namespace RN
 		
 		Camera *_camera;
 		Camera *_reflection;
+		Texture *_refraction;
 		
 		RNDefineConstructorlessMeta(Water, SceneNode)
 	};

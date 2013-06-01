@@ -15,11 +15,12 @@ namespace RN
 {
 	RNDeclareMeta(Water)
 	
-	Water::Water(Camera *cam)
+	Water::Water(Camera *cam, Texture *refract)
 	{
 		_mesh = 0;
 		_material = 0;
 		_reflection = 0;
+		_refraction = refract;
 		_camera = cam;
 		group = 2;
 		
@@ -76,9 +77,11 @@ namespace RN
 		
 		if(_camera != 0)
 		{
-			_reflection = new Camera(Vector2(512, 512), TextureParameter::Format::RGBA8888, Camera::FlagDefaults|Camera::FlagHidden, RenderStorage::BufferFormatComplete, 1.0f);
-			_reflection->SetPriority(-20);
-			_reflection->SetSkyCube(_camera->SkyCube());
+			
+			
+			_reflection = new Camera(Vector2(512, 512), TextureParameter::Format::RGBA8888, Camera::FlagFullscreen|Camera::FlagUpdateAspect|Camera::FlagUpdateStorageFrame|Camera::FlagHidden, RenderStorage::BufferFormatComplete, 1.0f);
+			_reflection->SetPriority(100);
+//			_reflection->SetSkyCube(_camera->SkyCube());
 			
 			
 			RN::Shader *shad = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyTexture1Shader);
@@ -92,6 +95,9 @@ namespace RN
 			
 			_material->AddTexture(_reflection->Storage()->RenderTarget());
 			_material->AddTexture(RN::Texture::WithFile("textures/waterbump.png", true));
+			
+			if(_refraction != 0)
+				_material->AddTexture(_refraction);
 		}
 	}
 	
@@ -116,8 +122,8 @@ namespace RN
 		
 		if(_reflection != 0)
 		{
-			_reflection->SetPosition(Vector3(1.0f, -1.0f, 1.0f)*_camera->Position());
-			Vector3 rot = _camera->EulerAngle();
+			_reflection->SetPosition(Vector3(1.0f, -1.0f, 1.0f)*_camera->WorldPosition());
+			Vector3 rot = _camera->WorldEulerAngle();
 			_reflection->SetRotation(Vector3(rot.x, rot.y, -rot.z));
 		}
 	}
