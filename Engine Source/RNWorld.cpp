@@ -67,23 +67,61 @@ namespace RN
 		}
 		
 		// Add the Transform updates to the thread pool
-		ThreadPool::Batch batch = ThreadPool::SharedInstance()->OpenBatch();
+		ThreadPool::Batch batch[3];
+		std::vector<SceneNode *> resubmit;
+		
+		batch[0] = ThreadPool::SharedInstance()->OpenBatch();
+		batch[1] = ThreadPool::SharedInstance()->OpenBatch();
+		batch[2] = ThreadPool::SharedInstance()->OpenBatch();
+		
+#define BuildLambda(t) [&, t]() { \
+			if(!t->CanUpdate(frame)) \
+			{ \
+				resubmit.push_back(t); \
+				return; \
+			} \
+			t->Update(delta); \
+			t->WorldTransform(); \
+			t->UpdatedToFrame(frame); \
+			t->Release(); \
+		}
 		
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
 			SceneNode *node = *i;
 			node->Retain();
 			
-			batch->AddTask([&, node]() {
-				node->Update(delta);
-				node->WorldTransform(); // Make sure that transforms matrices get updated within the thread pool
-				node->UpdatedToFrame(frame);
-				node->Release();
-			});
+			batch[static_cast<size_t>(node->UpdatePriority())]->AddTask(BuildLambda(node));
 		}
 		
-		batch->Commit();
-		batch->Wait();
+		for(size_t i=0; i<3; i++)
+		{
+			if(batch[i]->TaskCount() == 0)
+				continue;
+			
+			bool rerun;
+			do
+			{				
+				rerun = false;
+				
+				batch[i]->Commit();
+				batch[i]->Wait();
+				
+				if(resubmit.size() > 0)
+				{
+					batch[i] = ThreadPool::SharedInstance()->OpenBatch();
+					
+					for(SceneNode *node : resubmit)
+					{
+						batch[i]->AddTask(BuildLambda(node));
+					}
+					
+					resubmit.clear();
+					rerun = true;
+				}
+				
+			} while(rerun);
+		}
 		
 		ApplyNodes();
 		NodesUpdated();

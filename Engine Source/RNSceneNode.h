@@ -29,6 +29,13 @@ namespace RN
 	friend class Renderer;
 	friend class World;
 	public:
+		enum class Priority
+		{
+			UpdateEarly,
+			UpdateDontCare,
+			UpdateLate
+		};
+		
 		RNAPI SceneNode();
 		RNAPI SceneNode(const Vector3& position);
 		RNAPI SceneNode(const Vector3& position, const Quaternion& rotation);
@@ -51,6 +58,7 @@ namespace RN
 		
 		RNAPI void SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere=true);
 		RNAPI void SetBoundingSphere(const Sphere& boundingSphere);
+		RNAPI void SetUpdatePriority(Priority priority);
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
@@ -82,6 +90,7 @@ namespace RN
 		SceneNode *Parent() const { return _parent; }
 		FrameID LastFrame() const { return _lastFrame; }
 		World *Container() const { return _world; }
+		Priority UpdatePriority() const { return _priority; }
 		
 		template<typename T=SceneNode>
 		T *ChildAtIndex(machine_uint index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
@@ -132,6 +141,7 @@ namespace RN
 		Array _childs;
 		
 		bool _updated;
+		Priority _priority;
 		
 		std::function<void (SceneNode *, float)> _action;
 		

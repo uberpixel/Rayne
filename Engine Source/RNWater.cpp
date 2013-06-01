@@ -36,6 +36,8 @@ namespace RN
 	
 	void Water::Initialize()
 	{
+		SetUpdatePriority(SceneNode::Priority::UpdateLate);
+		
 		_material = new RN::Material();
 		_material->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyWaterShader));
 		

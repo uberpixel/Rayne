@@ -78,6 +78,8 @@ namespace RN
 			void Commit();
 			void Wait();
 			
+			size_t TaskCount() const { return _tasks.size(); }
+			
 		private:
 			__Batch(ThreadPool *pool) :
 				_openTasks(0)

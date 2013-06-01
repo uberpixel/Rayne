@@ -47,10 +47,10 @@ namespace RN
 		_world  = 0;
 		_lastFrame = 0;
 		
-		SetBoundingBox(AABB(Vector3(-1.0f), Vector3(1.0f)));
-		
+		_priority = Priority::UpdateDontCare;
 		group = 0;
 		
+		SetBoundingBox(AABB(Vector3(-1.0f), Vector3(1.0f)));
 		DidUpdate();
 		
 		if(World::SharedInstance())
@@ -79,6 +79,11 @@ namespace RN
 	void SceneNode::SetBoundingSphere(const Sphere& boundingSphere)
 	{
 		_boundingSphere = boundingSphere;
+	}
+	
+	void SceneNode::SetUpdatePriority(Priority priority)
+	{
+		_priority = priority;
 	}
 	
 	
