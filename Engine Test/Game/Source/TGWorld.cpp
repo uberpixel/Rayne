@@ -49,11 +49,35 @@ namespace TG
 //		CreateForest();
 		
 		RN::Input::SharedInstance()->Activate();
+		RN::MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, [&](RN::Message *message) {
+			
+			RN::Event *event = static_cast<RN::Event *>(message);
+			if(event->EventType() == RN::Event::Type::KeyUp)
+			{
+				switch(event->Character())
+				{
+					case 'f':
+						if(_spotLight)
+							_spotLight->SetRange(_spotLight->Range() > 1.0f ? 0.0f : TGWorldSpotLightRange);
+						break;
+						
+					case 'x':
+						_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _finalcam);
+						break;
+						
+					default:
+						break;
+				}
+			}
+			
+		}, this);
 	}
 	
 	World::~World()
 	{
 		RN::Input::SharedInstance()->Deactivate();
+		RN::MessageCenter::SharedInstance()->RemoveObserver(this);
+		
 		_camera->Release();
 	}
 	
@@ -61,35 +85,6 @@ namespace TG
 	{
 		RN::Input *input = RN::Input::SharedInstance();
 
-		static bool fpressed = false;
-		if(input->KeyPressed('f'))
-		{
-			if(!fpressed)
-			{
-				if(_spotLight)
-					_spotLight->SetRange(_spotLight->Range() > 1.0f ? 0.0f : TGWorldSpotLightRange);
-				fpressed = true;
-			}
-		}
-		else
-		{
-			fpressed = false;
-		}
-		
-		static bool hpressed = false;
-		if(input->KeyPressed('x'))
-		{
-			if(!hpressed)
-			{
-				_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _finalcam);
-				hpressed = true;
-			}
-		}
-		else
-		{
-			hpressed = false;
-		}
-		
 #if TGWorldFeatureFreeCamera
 		RN::Vector3 translation;
 		RN::Vector3 rotation;
