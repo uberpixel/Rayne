@@ -28,7 +28,6 @@ namespace RN
 		Material *Material() const { return _material; }
 		
 		void Update(float delta);
-		bool CanUpdate(FrameID frameid);
 		
 		virtual bool IsVisibleInCamera(Camera *camera) override;
 		virtual void Render(Renderer *renderer, Camera *camera) override;

@@ -128,14 +128,6 @@ namespace RN
 		}
 	}
 	
-	bool Water::CanUpdate(FrameID frameid)
-	{
-		if(frameid < 5)
-			return false;
-		
-		return true;
-	}
-	
 	void Water::Render(Renderer *renderer, Camera *camera)
 	{
 		SceneNode::Render(renderer, camera);
