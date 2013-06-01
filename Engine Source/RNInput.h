@@ -38,7 +38,16 @@ namespace RN
 		KeyUp = 0xF700,
 		KeyDown,
 		KeyLeft,
-		KeyRight
+		KeyRight,
+		
+		KeyDelete = 0xF727,
+		KeyBegin = 0xF72A,
+		KeyEnd,
+		
+		KeyPageUp = 0xF72C,
+		KeyPageDown,
+		
+		KeyPrintScreen = 0xF72E
 	};
 	
 	enum KeyModifier
