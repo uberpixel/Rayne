@@ -668,6 +668,11 @@ namespace RN
 		output.lines = (lines - 1) - output.offset;
 	}
 	
+	bool Shader::IsDefined(const std::string& source, const std::string& define)
+	{
+		return (source.find("#ifdef " + define) != std::string::npos || source.find("defined(" + define + ")") != std::string::npos);
+	}
+	
 	void Shader::SetShaderForType(File *file, ShaderType type)
 	{		
 		// Preprocess the shader
@@ -677,11 +682,11 @@ namespace RN
 		PreProcessFile(file, result);
 		
 		// Check what program types the shader supports
-		_supportedPrograms |= (result.data.find("#ifdef RN_INSTANCING") != std::string::npos) ? (ShaderProgram::TypeInstanced) : 0;
-		_supportedPrograms |= (result.data.find("#ifdef RN_ANIMATION") != std::string::npos) ? (ShaderProgram::TypeAnimated) : 0;
-		_supportedPrograms |= (result.data.find("#ifdef RN_LIGHTING") != std::string::npos) ? (ShaderProgram::TypeLighting) : 0;
-		_supportedPrograms |= (result.data.find("#ifdef RN_DISCARD") != std::string::npos) ? (ShaderProgram::TypeDiscard) : 0;
-		_supportedPrograms |= (result.data.find("#ifdef RN_DIRECTIONAL_SHADOWS") != std::string::npos) ? (ShaderProgram::TypeDirectionalShadows) : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_INSTANCING") ? ShaderProgram::TypeInstanced : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_ANIMATION") ? ShaderProgram::TypeAnimated : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_LIGHTING") ? ShaderProgram::TypeLighting : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_DISCARD") ? ShaderProgram::TypeDiscard : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_DIRECTIONAL_SHADOWS") ? ShaderProgram::TypeDirectionalShadows : 0;
 		
 		switch(type)
 		{

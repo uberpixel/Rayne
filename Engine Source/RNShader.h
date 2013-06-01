@@ -185,6 +185,7 @@ namespace RN
 		
 		void CompileShader(ShaderType type, const std::string& file, GLuint *outShader);
 		void DumpLinkStatusAndDie(ShaderProgram *program);
+		bool IsDefined(const std::string& source, const std::string& define);
 		
 		GLenum GLTypeForShaderType(ShaderType type);
 		DebugMarker ResolveFileForLine(ShaderType type, uint32 line);
