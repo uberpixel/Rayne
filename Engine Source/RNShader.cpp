@@ -697,8 +697,8 @@ namespace RN
 		_supportedPrograms |= IsDefined(result.data, "RN_LIGHTING") ? ShaderProgram::TypeLighting : 0;
 		_supportedPrograms |= IsDefined(result.data, "RN_DISCARD") ? ShaderProgram::TypeDiscard : 0;
 		_supportedPrograms |= IsDefined(result.data, "RN_DIRECTIONAL_SHADOWS") ? ShaderProgram::TypeDirectionalShadows : 0;
-		_supportedPrograms |= IsDefined("RN_FOG") ? ShaderProgram::TypeFog : 0;
-		_supportedPrograms |= IsDefined("RN_CLIPPLANE") ? ShaderProgram::TypeClipPlane : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_FOG") ? ShaderProgram::TypeFog : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_CLIPPLANE") ? ShaderProgram::TypeClipPlane : 0;
 		
 		switch(type)
 		{
