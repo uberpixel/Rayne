@@ -58,7 +58,9 @@ namespace RN
 		for(NSUInteger i=0; i<[characters length]; i++)
 		{
 			UniChar character = static_cast<UniChar>([characters characterAtIndex:i]);
-			callback(character);
+			CodePoint codePoint(character);
+			
+			callback(codePoint.LowerCase());
 		}
 	}
 	
