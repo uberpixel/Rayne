@@ -29,6 +29,15 @@ uniform sampler2D mTexture0;
 	uniform vec4 specular;
 #endif
 
+#if defined(RN_FOG)
+	uniform vec2 fogPlanes;
+	uniform vec4 fogColor;
+#endif
+
+#if defined(RN_CLIPPLANE)
+	uniform vec4 clipPlane;
+#endif
+
 in vec2 vertTexcoord;
 
 #if defined(RN_LIGHTING)
@@ -38,12 +47,21 @@ in vec2 vertTexcoord;
 		in vec3 vertTangent;
 		in vec3 vertBitangent;
 	#endif
+#else
+	#if defined(RN_FOG) || defined(RN_CLIPPLANE)
+		in vec3 vertPosition;
+	#endif
 #endif
 
 out vec4 fragColor0;
 
 void main()
 {
+	#if defined(RN_CLIPPLANE)
+		if(dot(clipPlane.xyz, vertPosition)-clipPlane.w < 0.0)
+			discard;
+	#endif
+	
 	vec4 color0 = texture(mTexture0, vertTexcoord);
 	rn_Discard(color0);
 
@@ -84,6 +102,11 @@ void main()
 			#endif
 			rn_Lighting(color0, spec, normalize(vertNormal), vertPosition);
 		#endif
+	#endif
+	
+	#if defined(RN_FOG)
+		float camdist = max(min((length(vertPosition-viewPosition)-fogPlanes.x)*fogPlanes.y, 1.0), 0.0);
+		color0 = mix(color0, fogColor, camdist);
 	#endif
 	
 	fragColor0 = color0;

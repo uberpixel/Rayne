@@ -199,6 +199,16 @@ namespace RN
 		if(_currentProgram->clipPlanes != -1)
 			glUniform2f(_currentProgram->clipPlanes, _currentCamera->clipnear, _currentCamera->clipfar);
 		
+		
+		if(_currentProgram->fogPlanes != -1)
+			glUniform2f(_currentProgram->fogPlanes, _currentCamera->fognear, 1.0f/(_currentCamera->fogfar-_currentCamera->fognear));
+		
+		if(_currentProgram->fogColor != -1)
+			glUniform4fv(_currentProgram->fogColor, 1, &_currentCamera->fogcolor.r);
+		
+		if(_currentProgram->clipPlane != -1)
+			glUniform4fv(_currentProgram->clipPlane, 1, &_currentCamera->clipplane.x);
+		
 		if(_currentProgram->matProj != -1)
 			glUniformMatrix4fv(_currentProgram->matProj, 1, GL_FALSE, projectionMatrix.m);
 		
@@ -733,7 +743,7 @@ namespace RN
 		{
 			_textureUnit = 0;
 			
-			const Array& textures = (material->override & Material::OverrideTextures) ? material->Textures() : surfaceMaterial->Textures();
+			const Array& textures = (surfaceMaterial->override & Material::OverrideTextures) ? material->Textures() : surfaceMaterial->Textures();
 			const std::vector<GLuint>& textureLocations = program->texlocations;
 			
 			if(textureLocations.size() > 0)
@@ -996,6 +1006,9 @@ namespace RN
 		
 		_currentCamera = camera;
 		
+		bool wantsFog = _currentCamera->usefog;
+		bool wantsClipPlane = _currentCamera->useclipplane;
+		
 		Matrix identityMatrix;
 		
 		if(!source)
@@ -1100,13 +1113,25 @@ namespace RN
 				if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
 					programTypes |= ShaderProgram::TypeAnimated;
 				
-				if(material->lighting && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
+				bool wantsLighting = material->lighting;
+				if(surfaceMaterial)
+				{
+					wantsLighting = surfaceMaterial->lighting;
+				}
+				
+				if(wantsLighting && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
 				{
 					programTypes |= ShaderProgram::TypeLighting;
 					
 					if(_lightDirectionalDepth.size() > 0)
 						programTypes |= ShaderProgram::TypeDirectionalShadows;
 				}
+				
+				if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::TypeFog))
+					programTypes |= ShaderProgram::TypeFog;
+				
+				if(wantsClipPlane && shader->SupportsProgramOfType(ShaderProgram::TypeClipPlane))
+					programTypes |= ShaderProgram::TypeClipPlane;
 				
 				if(wantsInstancing)
 					programTypes |= ShaderProgram::TypeInstanced;

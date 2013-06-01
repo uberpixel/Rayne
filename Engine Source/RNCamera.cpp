@@ -360,6 +360,13 @@ namespace RN
 		orthoright = 100.0f;
 		orthobottom = -100.0f;
 		orthotop = 100.0f;
+		
+		usefog = true;
+		fognear = 100.0f;
+		fogfar = 500.0f;
+		
+		useclipplane = false;
+		clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
 
 		_clearColor  = Color(0.193f, 0.435f, 0.753f, 1.0f);
 		_scaleFactor = (_scaleFactor>0.0f)? _scaleFactor : Kernel::SharedInstance()->ScaleFactor();

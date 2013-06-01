@@ -339,6 +339,12 @@ namespace RN
 		if(lookup.type & ShaderProgram::TypeDirectionalShadows)
 			_temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_SHADOWS", ""));
 		
+		if(lookup.type & ShaderProgram::TypeFog)
+			_temporaryDefines.emplace_back(ShaderDefine("RN_FOG", ""));
+		
+		if(lookup.type & ShaderProgram::TypeClipPlane)
+			_temporaryDefines.emplace_back(ShaderDefine("RN_CLIPPLANE", ""));
+		
 		_temporaryDefines.insert(_temporaryDefines.end(), lookup.defines.begin(), lookup.defines.end());
 		
 		// Compile all required shaders
@@ -423,6 +429,10 @@ namespace RN
 		GetUniformLocation(frameSize);
 		GetUniformLocation(clipPlanes);
 		GetUniformLocation(discardThreshold);
+		
+		GetUniformLocation(fogPlanes);
+		GetUniformLocation(fogColor);
+		GetUniformLocation(clipPlane);
 		
 		GetUniformLocation(ambient);
 		GetUniformLocation(diffuse);
@@ -677,11 +687,13 @@ namespace RN
 		PreProcessFile(file, result);
 		
 		// Check what program types the shader supports
-		_supportedPrograms |= (result.data.find("#ifdef RN_INSTANCING") != std::string::npos) ? (ShaderProgram::TypeInstanced) : 0;
-		_supportedPrograms |= (result.data.find("#ifdef RN_ANIMATION") != std::string::npos) ? (ShaderProgram::TypeAnimated) : 0;
-		_supportedPrograms |= (result.data.find("#ifdef RN_LIGHTING") != std::string::npos) ? (ShaderProgram::TypeLighting) : 0;
-		_supportedPrograms |= (result.data.find("#ifdef RN_DISCARD") != std::string::npos) ? (ShaderProgram::TypeDiscard) : 0;
-		_supportedPrograms |= (result.data.find("#ifdef RN_DIRECTIONAL_SHADOWS") != std::string::npos) ? (ShaderProgram::TypeDirectionalShadows) : 0;
+		_supportedPrograms |= (result.data.find("RN_INSTANCING") != std::string::npos) ? (ShaderProgram::TypeInstanced) : 0;
+		_supportedPrograms |= (result.data.find("RN_ANIMATION") != std::string::npos) ? (ShaderProgram::TypeAnimated) : 0;
+		_supportedPrograms |= (result.data.find("RN_LIGHTING") != std::string::npos) ? (ShaderProgram::TypeLighting) : 0;
+		_supportedPrograms |= (result.data.find("RN_DISCARD") != std::string::npos) ? (ShaderProgram::TypeDiscard) : 0;
+		_supportedPrograms |= (result.data.find("RN_DIRECTIONAL_SHADOWS") != std::string::npos) ? (ShaderProgram::TypeDirectionalShadows) : 0;
+		_supportedPrograms |= (result.data.find("RN_FOG") != std::string::npos) ? (ShaderProgram::TypeFog) : 0;
+		_supportedPrograms |= (result.data.find("RN_CLIPPLANE") != std::string::npos) ? (ShaderProgram::TypeClipPlane) : 0;
 		
 		switch(type)
 		{

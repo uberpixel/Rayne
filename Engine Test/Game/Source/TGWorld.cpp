@@ -156,7 +156,7 @@ namespace TG
 		sky->MaterialAtIndex(0, 4)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
 		sky->MaterialAtIndex(0, 5)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
 		_finalcam->SetSkyCube(sky);
-		_finalcam->renderGroup |= RN::Camera::RenderGroup1;
+		_finalcam->renderGroup |= RN::Camera::RenderGroup1|RN::Camera::RenderGroup2;
 		_finalcam->SetLightTiles(RN::Vector2(32.0f, 32.0f));
 		
 		RN::DownsamplePostProcessingPipeline *downsamplePipeline = new RN::DownsamplePostProcessingPipeline("downsample", _finalcam, _depthtex, downsampleFirstShader, downsampleShader, RN::TextureParameter::Format::RG32F);
@@ -444,8 +444,12 @@ namespace TG
 		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
 		billboard->Translate(RN::Vector3(-14.4f, 8.5f, 0.1f));
 		
+		_camera->clipfar = 100.0f;
+		_camera->UpdateProjection();
+		_finalcam->clipfar = 100.0f;
+		_finalcam->UpdateProjection();
 		
-//		RN::Water *water = new RN::Water();
+		RN::Water *water = new RN::Water((RN::Camera*)_camera);
 	}
 	
 	

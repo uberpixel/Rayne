@@ -31,6 +31,10 @@ out vec2 vertTexcoord;
 		out vec3 vertBitangent;
 		out vec3 vertTangent;
 	#endif
+#else
+	#if defined(RN_FOG) || defined(RN_CLIPPLANE)
+		out vec3 vertPosition;
+	#endif
 #endif
 
 void main()
@@ -65,6 +69,10 @@ void main()
 		#if defined(RN_NORMALMAP)
 			vertTangent = (matModel*tangent).xyz;
 			vertBitangent = cross(vertNormal, vertTangent)*attTangent.w;
+		#endif
+	#else
+		#if defined(RN_FOG) || defined(RN_CLIPPLANE)
+			vertPosition = (matModel * position).xyz;
 		#endif
 	#endif
 	

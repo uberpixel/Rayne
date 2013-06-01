@@ -9,12 +9,14 @@
 #version 150
 precision highp float;
 
-//uniform sampler2D mTexture0;
+uniform sampler2D mTexture0;
+uniform sampler2D mTexture1;
+in vec3 vertProjPos;
 in vec2 vertTexcoord;
 
 out vec4 fragColor0;
 
-float hash( float n )
+/*float hash( float n )
 {
     return fract(sin(n)*43758.5453);
 }
@@ -35,7 +37,7 @@ float noise( in vec3 x )
     return res;
 }
 
-/*
+
 float noise(vec3 p) //Thx to Las^Mercury
 {
 	vec3 i = floor(p);
@@ -49,6 +51,10 @@ float noise(vec3 p) //Thx to Las^Mercury
 
 void main()
 {
-	vec4 color0 = vec4(0.0, 0.0, noise(vec3(vertTexcoord.x, 0.0, vertTexcoord.y))*0.5+0.5, 1.0);
+	vec3 normals = normalize(texture(mTexture1, vertTexcoord).xyz*2.0f-1.0f);
+	
+	vec2 coords = vertProjPos.xy/vertProjPos.z*0.5+0.5;
+	coords.y = 1.0-coords.y;
+	vec4 color0 = texture(mTexture0, coords*0.5+normals.xy*0.02);
 	fragColor0 = color0;
 }
