@@ -88,7 +88,6 @@ namespace RN
 			
 			RN::Material *mat = new RN::Material(shad);
 			mat->lighting = false;
-			mat->override |= Material::OverrideTextures;
 			_reflection->SetMaterial(mat);
 			_reflection->useclipplane = true;
 			_reflection->clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);

@@ -743,7 +743,7 @@ namespace RN
 		{
 			_textureUnit = 0;
 			
-			const Array& textures = (surfaceMaterial->override & Material::OverrideTextures) ? material->Textures() : surfaceMaterial->Textures();
+			const Array& textures = !(surfaceMaterial->override & Material::OverrideTextures)? material->Textures() : surfaceMaterial->Textures();
 			const std::vector<GLuint>& textureLocations = program->texlocations;
 			
 			if(textureLocations.size() > 0)

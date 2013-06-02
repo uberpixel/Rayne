@@ -12,7 +12,7 @@
 #define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		1
-#define TGWorldFeatureBloom			0
+#define TGWorldFeatureBloom			1
 #define TGWorldFeatureSSAO          0
 
 #define TGForestFeatureTrees 500
@@ -45,8 +45,8 @@ namespace TG
 		AddAttachment(_debugAttachment);
 		
 		CreateCameras();
-//		CreateSponza();
-		CreateForest();
+		CreateSponza();
+//		CreateForest();
 		
 		RN::Input::SharedInstance()->Activate();
 		RN::MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, [&](RN::Message *message) {
@@ -420,7 +420,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->_lightcam = _camera;
-		_sunLight->ActivateSunShadows(true, 2048.0f);
+		_sunLight->ActivateSunShadows(true, 512.0f);
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
@@ -496,26 +496,32 @@ namespace TG
 		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/brick2-NM.png"));
 		building->MaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
 		building->MaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
+		building->MaterialAtIndex(0, 0)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 		
 		building->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_A-NM.png"));
 		building->MaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
 		building->MaterialAtIndex(0, 1)->Define("RN_SPECULARITY");
+		building->MaterialAtIndex(0, 1)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 		
 		building->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_B-NM.png"));
 		building->MaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
 		building->MaterialAtIndex(0, 2)->Define("RN_SPECULARITY");
+		building->MaterialAtIndex(0, 2)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 		
 		building->MaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_C-NM.png"));
 		building->MaterialAtIndex(0, 3)->Define("RN_NORMALMAP");
 		building->MaterialAtIndex(0, 3)->Define("RN_SPECULARITY");
+		building->MaterialAtIndex(0, 3)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 		
 		building->MaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/Sebastian/props-NM.png"));
 		building->MaterialAtIndex(0, 4)->Define("RN_NORMALMAP");
 		building->MaterialAtIndex(0, 4)->Define("RN_SPECULARITY");
+		building->MaterialAtIndex(0, 4)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 		
 		building->MaterialAtIndex(0, 5)->AddTexture(RN::Texture::WithFile("models/Sebastian/Rooftiles_A-NM.png"));
 		building->MaterialAtIndex(0, 5)->Define("RN_NORMALMAP");
 		building->MaterialAtIndex(0, 5)->Define("RN_SPECULARITY");
+		building->MaterialAtIndex(0, 5)->specular = RN::Color(0.1f, 0.1f, 0.1f, 20.0f);
 #endif
 		
 		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsDecals.sgm");
@@ -535,10 +541,12 @@ namespace TG
 		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/Decals-NM.png"));
 		building->MaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
 		building->MaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
+		building->MaterialAtIndex(0, 0)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 		
 		building->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Decals-NM.png"));
 		building->MaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
 		building->MaterialAtIndex(0, 1)->Define("RN_SPECULARITY");
+		building->MaterialAtIndex(0, 1)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 #endif
 		
 		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsPlants.sgm");
@@ -554,6 +562,7 @@ namespace TG
 		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/plants-NM.png"));
 		building->MaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
 		building->MaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
+		building->MaterialAtIndex(0, 0)->specular = RN::Color(0.2f, 0.2f, 0.2f, 30.0f);
 #endif
 		
 		RN::Model *tree = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
