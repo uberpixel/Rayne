@@ -9,8 +9,8 @@
 #include "RNThreadPool.h"
 #include "RNKernel.h"
 
-#define kRNThreadPoolTasksBuffer       4068
-#define kRNThreadPoolLocalQueueMaxSize 25
+#define kRNThreadPoolTasksBuffer       4096
+#define kRNThreadPoolLocalQueueMaxSize 40
 
 namespace RN
 {
@@ -98,6 +98,7 @@ namespace RN
 	void ThreadPool::FeedTasks(std::vector<Task>& tasks)
 	{
 		size_t toWrite = tasks.size();
+		size_t offset  = 0;
 		
 		while(toWrite > 0)
 		{
@@ -105,20 +106,23 @@ namespace RN
 			
 			if(_tasks.size() == _tasks.capacity())
 			{
-				std::unique_lock<std::mutex> lock(_consumerMutex);
 				feedlock.unlock();
+				
+				std::unique_lock<std::mutex> lock(_consumerMutex);
 				_consumerCondition.wait(lock);
 				
 				continue;
 			}
 			
 			size_t pushable = std::min(_tasks.capacity() - _tasks.size(), toWrite);
+			toWrite -= pushable;
+			
 			for(size_t i=0; i<pushable; i++)
 			{
-				_tasks.push(std::move(tasks[i]));
-				toWrite --;
+				_tasks.push(std::move(tasks[offset + i]));
 			}
 			
+			offset += pushable;
 			_workAvailableCondition.notify_all();
 		}
 	}
@@ -137,7 +141,6 @@ namespace RN
 			_tasks.pop();
 		}
 		
-		lock.unlock();
 		_consumerCondition.notify_one();
 	}
 	
@@ -154,8 +157,12 @@ namespace RN
 			std::vector<Task> tasks;
 			ReadTasks(tasks);
 			
-			for(Task& task : tasks)
+			size_t size = tasks.size();
+			
+			for(size_t i=0; i<size; i++)
 			{
+				Task& task = tasks[i];
+				
 				task.function();
 				
 				if(Batch batch = task.batch.lock())
