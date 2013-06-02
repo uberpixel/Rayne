@@ -68,6 +68,7 @@ namespace RN
 		
 		// Add the Transform updates to the thread pool
 		ThreadPool::Batch batch[3];
+		SpinLock lock;
 		std::vector<SceneNode *> resubmit;
 		
 		batch[0] = ThreadPool::SharedInstance()->OpenBatch();
@@ -77,7 +78,9 @@ namespace RN
 #define BuildLambda(t) [&, t]() { \
 			if(!t->CanUpdate(frame)) \
 			{ \
+				lock.Lock(); \
 				resubmit.push_back(t); \
+				lock.Unlock(); \
 				return; \
 			} \
 			t->Update(delta); \
