@@ -307,10 +307,11 @@ namespace RN
 			case NSMouseMoved:
 			{
 				Vector2 position = std::move(TranslateMouseEvent(nsevent));
-				Vector2 delta = _mousePosition - position;
+				Vector2 delta = _realMousePosition - position;
 				
 				_mouseDelta += delta;
-				_mousePosition = std::move(ClampMousePosition(position));
+				_realMousePosition = std::move(position);
+				_mousePosition = std::move(ClampMousePosition(_realMousePosition));
 				
 				event->_type = Event::Type::MouseMoved;
 				event->_mouseDelta = delta;

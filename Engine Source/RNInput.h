@@ -142,6 +142,7 @@ namespace RN
 		Vector2 ClampMousePosition(const Vector2& position) const;
 		
 		Vector2 _mousePosition;
+		Vector2 _realMousePosition;
 		Vector2 _mouseDelta;
 		Vector2 _mouseWheel;
 		
