@@ -308,7 +308,7 @@ namespace RN
 	{
 		_storage = 0;
 
-		RenderStorage *storage = new RenderStorage(format);
+		RenderStorage *storage = new RenderStorage(format, 0, scaleFactor);
 		storage->AddRenderTarget(targetFormat);
 		
 		SetRenderStorage(storage);

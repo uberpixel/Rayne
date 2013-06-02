@@ -66,7 +66,7 @@ void main()
 	vec2 coords = vertProjPos.xy/vertProjPos.z*0.5+0.5;
 	vec4 refraction = texture(mTexture2, coords-normals.xy*0.02);
 	coords.y = 1.0-coords.y;
-	vec4 reflection = texture(mTexture0, coords*0.5+normals.xy*0.02);
+	vec4 reflection = texture(mTexture0, coords+normals.xy*0.02);
 
 	vec3 viewdir = normalize(viewPosition-vertPosition);
 	float base = 1 - dot(viewdir, vec3(0.0, 1.0, 0.0));

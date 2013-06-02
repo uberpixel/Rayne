@@ -79,10 +79,8 @@ namespace RN
 		
 		if(_camera != 0)
 		{
-			
-			
-			_reflection = new Camera(Vector2(512, 512), TextureParameter::Format::RGBA8888, Camera::FlagFullscreen|Camera::FlagUpdateAspect|Camera::FlagUpdateStorageFrame|Camera::FlagHidden, RenderStorage::BufferFormatComplete, 1.0f);
-			_reflection->SetPriority(100);
+			_reflection = new Camera(Vector2(512, 512), TextureParameter::Format::RGBA8888, Camera::FlagUpdateStorageFrame|Camera::FlagHidden, RenderStorage::BufferFormatComplete, 1.0f);
+			_reflection->SetPriority(9);
 //			_reflection->SetSkyCube(_camera->SkyCube());
 			
 			
@@ -127,6 +125,9 @@ namespace RN
 			_reflection->SetPosition(Vector3(1.0f, -1.0f, 1.0f)*_camera->WorldPosition());
 			Vector3 rot = _camera->WorldEulerAngle();
 			_reflection->SetRotation(Vector3(rot.x, rot.y, -rot.z));
+			
+			_reflection->aspect = _camera->aspect;
+			_reflection->UpdateProjection();
 		}
 	}
 	

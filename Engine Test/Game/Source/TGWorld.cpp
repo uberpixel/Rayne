@@ -12,7 +12,7 @@
 #define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		1
-#define TGWorldFeatureBloom			1
+#define TGWorldFeatureBloom			0
 #define TGWorldFeatureSSAO          0
 
 #define TGForestFeatureTrees 500
