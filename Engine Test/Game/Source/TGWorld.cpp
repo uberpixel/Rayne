@@ -45,8 +45,8 @@ namespace TG
 		AddAttachment(_debugAttachment);
 		
 		CreateCameras();
-		CreateSponza();
-//		CreateForest();
+//		CreateSponza();
+		CreateForest();
 		
 		RN::Input::SharedInstance()->Activate();
 		RN::MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, [&](RN::Message *message) {

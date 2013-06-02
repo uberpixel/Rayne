@@ -68,9 +68,28 @@ float rn_ShadowDir1()
 	proj[2] = vertDirLightProj[2].xyz/vertDirLightProj[2].w;
 	proj[3] = vertDirLightProj[3].xyz/vertDirLightProj[3].w;
 	
-	vec4 dist = vec4(dot(proj[0], proj[0]), dot(proj[1], proj[1]), dot(proj[2], proj[2]), dot(proj[3], proj[3]));
-	vec4 zGreater = vec4(greaterThan(dist, vec4(1.0)));
-	float mapToUse = dot(zGreater, vec4(1.0f));
+//	vec4 dist = vec4(dot(proj[0], proj[0]), dot(proj[1], proj[1]), dot(proj[2], proj[2]), dot(proj[3], proj[3]));
+//	vec4 zGreater = vec4(lessThan(dist, vec4(1.0)));
+	
+	float mapToUse = 3;
+	
+	bvec3 inMap[3];
+	inMap[2] = lessThan(proj[2]*proj[2], vec3(1.0));
+	inMap[1] = lessThan(proj[1]*proj[1], vec3(1.0));
+	inMap[0] = lessThan(proj[0]*proj[0], vec3(1.0));
+	
+	if(inMap[2].x && inMap[2].y && inMap[2].z)
+		mapToUse = 2;
+	
+	if(inMap[1].x && inMap[1].y && inMap[1].z)
+		mapToUse = 1;
+	
+	if(inMap[0].x && inMap[0].y && inMap[0].z)
+		mapToUse = 0;
+	
+/*	mapToUse = (zGreater.z > 0.5)? 2:mapToUse;
+	mapToUse = (zGreater.y > 0.5)? 1:mapToUse;
+	mapToUse = (zGreater.x > 0.5)? 0:mapToUse;*/
 	
 	vec4 projected = vec4(proj[int(mapToUse)]*0.5+0.5, mapToUse);
 //	return rn_textureOffset(lightDirectionalDepth, projected, vec2(0.0));
