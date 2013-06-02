@@ -33,6 +33,11 @@ namespace RN
 	
 	InstancingNode::~InstancingNode()
 	{
+		for(InstancedMesh& mesh : _data)
+		{
+			glDeleteTextures(1, &mesh.texture);
+			glDeleteBuffers(1, &mesh.buffer);
+		}
 	}
 	
 	
@@ -170,7 +175,7 @@ namespace RN
 		imesh.buffer = buffer;
 		imesh.count = static_cast<uint32>(count);
 		
-		_data.push_back(imesh);
+		_data.push_back(std::move(imesh));
 	}
 	
 	void InstancingNode::UpdateDataForMesh(Entity *entity, const InstancedMesh& mesh, uint32 index)
@@ -190,7 +195,12 @@ namespace RN
 	void InstancingNode::RecalculateData()
 	{
 		std::vector<Entity *> entities;
-		_data.clear();
+		
+		for(InstancedMesh& mesh : _data)
+		{
+			glDeleteTextures(1, &mesh.texture);
+			glDeleteBuffers(1, &mesh.buffer);
+		}
 		
 		machine_uint childs = Childs();
 		entities.reserve(childs);

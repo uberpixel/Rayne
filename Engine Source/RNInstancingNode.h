@@ -35,12 +35,6 @@ namespace RN
 	private:
 		struct InstancedMesh
 		{
-			~InstancedMesh()
-			{
-				glDeleteTextures(1, &texture);
-				glDeleteBuffers(1, &buffer);
-			}
-			
 			Mesh *mesh;
 			Material *material;
 			
