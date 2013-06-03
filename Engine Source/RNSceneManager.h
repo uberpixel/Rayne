@@ -54,7 +54,7 @@ namespace RN
 		class MetaClass *_entityClass;
 		class MetaClass *_lightClass;
 		
-		RNDefineMetaWithTraits(GenericSceneManager, SceneManager, MetaClassTraitCreatable);
+		RNDefineMetaWithTraits(GenericSceneManager, SceneManager, MetaClassTraitCronstructable);
 	};
 }
 

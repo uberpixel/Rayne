@@ -274,7 +274,7 @@ namespace RN
 		machine_uint _count;
 		machine_uint _size;
 		
-		RNDefineMetaWithTraits(Array, Object, MetaClassTraitCreatable)
+		RNDefineMetaWithTraits(Array, Object, MetaClassTraitCronstructable)
 	};
 }
 

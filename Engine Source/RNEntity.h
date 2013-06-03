@@ -45,7 +45,7 @@ namespace RN
 		
 		bool _ignoreDrawing;
 		
-		RNDefineMetaWithTraits(Entity, SceneNode, MetaClassTraitCreatable)
+		RNDefineMetaWithTraits(Entity, SceneNode, MetaClassTraitCronstructable)
 	};
 }
 

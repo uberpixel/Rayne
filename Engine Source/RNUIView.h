@@ -82,7 +82,7 @@ namespace RN
 			Matrix _finalTransform;
 			Matrix _intermediateTransform;
 			
-			RNDefineMetaWithTraits(View, Responder, MetaClassTraitCreatable)
+			RNDefineMetaWithTraits(View, Responder, MetaClassTraitCronstructable)
 		};
 	}
 }

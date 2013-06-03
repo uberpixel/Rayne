@@ -48,7 +48,7 @@ namespace RN
 		bool _freeData;
 		bool _ownsData;
 		
-		RNDefineMetaWithTraits(Data, Object, MetaClassTraitCreatable)
+		RNDefineMetaWithTraits(Data, Object, MetaClassTraitCronstructable)
 	};
 }
 

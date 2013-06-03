@@ -40,7 +40,7 @@ namespace RN
 	};
 	
 	template<class T>
-	class MetaClassTraitCreatable : public virtual MetaClass
+	class MetaClassTraitCronstructable : public virtual MetaClass
 	{
 	public:
 		T *Construct() override
