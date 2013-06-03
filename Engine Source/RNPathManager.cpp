@@ -466,10 +466,11 @@ namespace RN
 	std::string PathManager::SaveDirectory()
 	{
 		std::string title = Kernel::SharedInstance()->Title();
+		std::string path;
 		
 #if RN_PLATFORM_MAC_OS
-		NSString *path = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) objectAtIndex:0];
-		return Join(std::string([path UTF8String]), title);
+		NSString *basepath = [NSSearchPathForDirectoriesInDomains(NSApplicationSupportDirectory, NSUserDomainMask, YES) objectAtIndex:0];
+		path = std::move(Join(std::string([basepath UTF8String]), title));
 #endif
 		
 #if RN_PLATFORM_LINUX
@@ -478,10 +479,11 @@ namespace RN
 		wordexp_t result;
 		wordexp(basepath.c_str(), &result, 0);
 		
-		std::string path = std::string(result.we_wordv[0]);
+		path = std::string(result.we_wordv[0]);
 		wordfree(&result);
-		
-		return path;
 #endif
+		
+		CreatePath(path);
+		return path;
 	}
 }
