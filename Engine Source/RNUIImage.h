@@ -43,7 +43,7 @@ namespace RN
 			class Atlas _atlas;
 			EdgeInsets _insets;
 			
-			RNDefineConstructorlessMeta(Image, Object)
+			RNDefineMeta(Image, Object)
 		};
 	}
 }

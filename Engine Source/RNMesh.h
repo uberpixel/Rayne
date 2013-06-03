@@ -164,7 +164,7 @@ namespace RN
 		bool _dirtyIndices;
 		
 		std::vector<MeshDescriptor> _descriptor;
-		RNDefineConstructorlessMeta(Mesh, Object)
+		RNDefineMeta(Mesh, Object)
 	};
 }
 

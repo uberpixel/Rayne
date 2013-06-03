@@ -81,7 +81,7 @@ namespace RN
 			Vector3 _inertia;
 			float _mass;
 			
-			RNDefineConstructorlessMeta(RigidBody, CollisionObject);
+			RNDefineMeta(RigidBody, CollisionObject);
 		};
 	}
 }

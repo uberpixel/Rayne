@@ -32,7 +32,7 @@ namespace RN
 		
 		Renderer *_renderer;
 		
-		RNDefineConstructorlessMeta(SceneManager, Object)
+		RNDefineMeta(SceneManager, Object)
 	};
 	
 	class GenericSceneManager : public SceneManager
@@ -54,7 +54,7 @@ namespace RN
 		class MetaClass *_entityClass;
 		class MetaClass *_lightClass;
 		
-		RNDefineMeta(GenericSceneManager, SceneManager);
+		RNDefineMetaWithTraits(GenericSceneManager, SceneManager, MetaClassTraitCreatable);
 	};
 }
 

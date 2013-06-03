@@ -72,7 +72,7 @@ namespace RN
 			Matrix _finalTransform;
 			Server *_server;
 			
-			RNDefineMeta(Widget, Responder)
+			RNDefineMetaWithTraits(Widget, Responder, MetaClassTraitCreatable)
 		};
 	}
 }

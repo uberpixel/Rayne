@@ -31,7 +31,7 @@ namespace TG
 		float _distance;
 		float _pitch;
 		
-		RNDefineConstructorlessMeta(ThirdPersonCamera, RN::Camera)
+		RNDefineMeta(ThirdPersonCamera, RN::Camera)
 	};
 }
 

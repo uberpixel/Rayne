@@ -112,7 +112,7 @@ namespace RN
 		ShaderLookup _lookup;
 		std::vector<ShaderDefine> _defines;
 		
-		RNDefineMeta(Material, Object)
+		RNDefineMetaWithTraits(Material, Object, MetaClassTraitCreatable)
 	};
 }
 

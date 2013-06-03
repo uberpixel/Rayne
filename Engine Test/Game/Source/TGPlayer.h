@@ -28,7 +28,7 @@ namespace TG
 	private:
 		ThirdPersonCamera *_camera;
 		
-		RNDefineConstructorlessMeta(Player, RN::bullet::KinematicController)
+		RNDefineMeta(Player, RN::bullet::KinematicController)
 	};
 }
 

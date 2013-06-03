@@ -54,43 +54,27 @@ namespace RN
 	
 	
 	
-	MetaClass *Catalogue::__ClassWithName(const std::string& name, const char *namespaceBlob) const
+	MetaClass *Catalogue::ClassWithName(const std::string& name) const
 	{
 		auto iterator = _metaClasses.find(name);
 		if(iterator != _metaClasses.end())
 			return iterator->second;
 		
-		std::vector<std::string> namespaces;
-		std::vector<std::string> names;
-		
-		ParsePrettyFunction(namespaceBlob, namespaces);
-		
-		for(size_t i=namespaces.size(); i>0; i--)
-		{
-			std::string temp;
-			
-			for(size_t j=0; j<i; j++)
-			{
-				temp += namespaces[j];
-				temp += "::";
-			}
-			
-			temp += name;
-			names.push_back(std::move(temp));
-		}
-		
-		for(auto i=names.begin(); i!=names.end(); i++)
-		{
-			auto iterator = _metaClasses.find(*i);
-			
-			if(iterator != _metaClasses.end())
-				return iterator->second;
-		}
-		
 		return 0;
-		
-		
 	}
+	
+	void Catalogue::EnumerateClasses(const std::function<void (MetaClass *meta, bool *stop)>& enumerator)
+	{
+		bool stop = false;
+		
+		for(auto i=_metaClasses.begin(); i!=_metaClasses.end(); i++)
+		{
+			enumerator(i->second, &stop);
+			if(stop)
+				break;
+		}
+	}
+	
 	
 	void Catalogue::AddMetaClass(MetaClass *meta)
 	{

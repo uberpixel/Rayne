@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNSerialization.h"
 #include "RNAutoreleasePool.h"
 #include "RNArray.h"
 #include "RNDictionary.h"

@@ -85,7 +85,7 @@ namespace RN
 		FILE *_file;
 		long _size;
 		
-		RNDefineConstructorlessMeta(File, Object)
+		RNDefineMeta(File, Object)
 	};
 }
 

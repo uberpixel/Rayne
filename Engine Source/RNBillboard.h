@@ -37,7 +37,7 @@ namespace RN
 		Matrix _transform;
 		class Material *_material;
 		
-		RNDefineMeta(Billboard, SceneNode);
+		RNDefineMetaWithTraits(Billboard, SceneNode, MetaClassTraitCreatable);
 	};
 }
 

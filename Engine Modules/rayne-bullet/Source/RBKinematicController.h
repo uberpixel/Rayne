@@ -59,7 +59,7 @@ namespace RN
 			btKinematicCharacterController *_controller;
 			float _stepHeight;
 			
-			RNDefineConstructorlessMeta(KinematicController, CollisionObject)
+			RNDefineMeta(KinematicController, CollisionObject)
 		};
 	}
 }

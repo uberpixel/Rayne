@@ -54,14 +54,9 @@ namespace RN
 		Object *AssociatedObject(const void *key);
 		
 	private:
-		class MetaType : public MetaClass
+		class MetaType : public ConcreteMetaClass<Object>
 		{
 		public:
-			virtual Object *Construct()
-			{
-				return new Object();
-			}
-			
 			MetaType() :
 				MetaClass(0, "Object", __PRETTY_FUNCTION__)
 			{}
@@ -76,27 +71,30 @@ namespace RN
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 	};
 	
-#define __RNDefineMetaPrivate(cls, super, cnstr) \
+#define __RNDefineMetaPrivate(cls, super) \
 	private: \
-		class MetaType : public RN::MetaClass \
+		class MetaType : public RN::ConcreteMetaClass<cls> \
 		{ \
 		public: \
 			MetaType() : \
 				MetaClass(super::MetaClass(), #cls, __PRETTY_FUNCTION__) \
 			{} \
-			virtual cls *Construct() \
-			{ \
-				return cnstr; \
-			} \
 		}; \
 		static MetaType *__##cls##__metaClass; \
-	
+
+#define __RNDefineMetaPrivateWithTraits(cls, super, ...) \
+	private: \
+		class MetaType : public RN::ConcreteMetaClass<cls, __VA_ARGS__> \
+		{ \
+		public: \
+			MetaType() : \
+				MetaClass(super::MetaClass(), #cls, __PRETTY_FUNCTION__) \
+			{} \
+		}; \
+		static MetaType *__##cls##__metaClass; \
+
 #define __RNDefineMetaPublic(cls) \
 	public: \
-		virtual class RN::MetaClass *Class() const \
-		{ \
-			return cls::__##cls##__metaClass; \
-		} \
 		cls *Retain() \
 		{ \
 			return static_cast<cls *>(Object::Retain()); \
@@ -109,6 +107,10 @@ namespace RN
 		{ \
 			return static_cast<cls *>(Object::Autorelease()); \
 		} \
+		class RN::MetaClass *Class() const override \
+		{ \
+			return cls::__##cls##__metaClass; \
+		} \
 		static class RN::MetaClass *MetaClass() \
 		{ \
 			if(!cls::__##cls##__metaClass) \
@@ -117,14 +119,13 @@ namespace RN
 		}
 	
 #define RNDefineMeta(cls, super) \
-	__RNDefineMetaPrivate(cls, super, new cls()) \
+	__RNDefineMetaPrivate(cls, super) \
 	__RNDefineMetaPublic(cls)
 	
-	
-#define RNDefineConstructorlessMeta(cls, super) \
-	__RNDefineMetaPrivate(cls, super, 0) \
+#define RNDefineMetaWithTraits(cls, super, ...) \
+	__RNDefineMetaPrivateWithTraits(cls, super, __VA_ARGS__) \
 	__RNDefineMetaPublic(cls)
-	
+
 #define RNDeclareMeta(cls) \
 	cls::MetaType *cls::__##cls##__metaClass = 0; \
 	void __##cls##__load() __attribute((constructor)); \

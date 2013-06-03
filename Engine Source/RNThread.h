@@ -106,7 +106,7 @@ namespace RN
 		std::map<std::string, void *> _dictionary;
 		std::unordered_map<GLenum, std::tuple<GLuint, uint32>> _glBindings;
 		
-		RNDefineConstructorlessMeta(Thread, Object)
+		RNDefineMeta(Thread, Object)
 	};
 }
 

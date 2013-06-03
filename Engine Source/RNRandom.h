@@ -165,7 +165,7 @@ namespace RN
 	private:
 		Random::Generator *_generator;
 		
-		RNDefineConstructorlessMeta(RandomNumberGenerator, Object)
+		RNDefineMeta(RandomNumberGenerator, Object)
 	};
 }
 

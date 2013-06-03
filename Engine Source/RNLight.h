@@ -73,7 +73,7 @@ namespace RN
 		int _shadowSplits;
 		float _shadowDistFac;
 		
-		RNDefineMeta(Light, SceneNode)
+		RNDefineMetaWithTraits(Light, SceneNode, MetaClassTraitCreatable)
 	};
 }
 

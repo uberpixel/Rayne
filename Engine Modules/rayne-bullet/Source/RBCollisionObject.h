@@ -61,7 +61,7 @@ namespace RN
 		private:			
 			std::once_flag _objetFlag;
 			
-			RNDefineConstructorlessMeta(CollisionObject, Entity);
+			RNDefineMeta(CollisionObject, Entity);
 		};
 	}
 }

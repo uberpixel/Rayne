@@ -214,7 +214,7 @@ namespace RN
 		std::string _geometryShader;
 		std::vector<DebugMarker> _geometryMarker;
 		
-		RNDefineMeta(Shader, Object)
+		RNDefineMetaWithTraits(Shader, Object, MetaClassTraitCreatable)
 	};
 }
 

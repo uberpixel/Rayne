@@ -157,7 +157,7 @@ namespace RN
 		Matrix _worldTransform;
 		Matrix _localTransform;
 		
-		RNDefineMeta(SceneNode, Object)
+		RNDefineMetaWithTraits(SceneNode, Object, MetaClassTraitCreatable)
 	};
 	
 	

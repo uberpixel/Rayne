@@ -106,7 +106,7 @@ namespace RN
 		
 		std::vector<LODGroup *> _groups;
 		
-		RNDefineMeta(Model, Object)
+		RNDefineMetaWithTraits(Model, Object, MetaClassTraitCreatable)
 	};
 }
 

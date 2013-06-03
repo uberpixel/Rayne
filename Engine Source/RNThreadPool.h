@@ -17,8 +17,6 @@
 #include "RNAutoreleasePool.h"
 #include "RNRingbuffer.h"
 
-#define kRNThreadPoolLocalQueueMaxSize 25
-
 namespace RN
 {
 	class ThreadPool;

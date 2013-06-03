@@ -343,7 +343,7 @@ namespace RN
 		std::vector<PostProcessingPipeline *> _PPPipelines;
 		std::map<std::string, PostProcessingPipeline *> _namedPPPipelines;
 		
-		RNDefineConstructorlessMeta(Camera, SceneNode)
+		RNDefineMeta(Camera, SceneNode)
 	};
 }
 

@@ -44,7 +44,7 @@ namespace RN
 		Camera *_reflection;
 		Texture *_refraction;
 		
-		RNDefineConstructorlessMeta(Water, SceneNode)
+		RNDefineMeta(Water, SceneNode)
 	};
 }
 

@@ -32,7 +32,7 @@ namespace RN
 		class Object *_object;
 		Dictionary *_info;
 		
-		RNDefineConstructorlessMeta(Message, Object)
+		RNDefineMeta(Message, Object)
 	};
 	
 	class MessageCenter : public Singleton<MessageCenter>

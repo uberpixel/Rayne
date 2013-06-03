@@ -70,7 +70,7 @@ namespace RN
 			TextureAtlas *_texture;
 			std::unordered_map<UniChar, Glyph> _glyphs;
 			
-			RNDefineConstructorlessMeta(Font, Object)
+			RNDefineMeta(Font, Object)
 		};
 	}
 }

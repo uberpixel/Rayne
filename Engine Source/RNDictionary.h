@@ -74,7 +74,7 @@ namespace RN
 		size_t _count;
 		size_t _primitive;
 		
-		RNDefineMeta(Dictionary, Object)
+		RNDefineMetaWithTraits(Dictionary, Object, MetaClassTraitCreatable)
 	};
 }
 

@@ -87,7 +87,7 @@ namespace RN
 		uint8 *_buffer;
 		Type _type;
 		
-		RNDefineConstructorlessMeta(Number, Object);
+		RNDefineMeta(Number, Object);
 	};
 }
 

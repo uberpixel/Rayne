@@ -149,7 +149,7 @@ namespace RN
 		
 		static uint32 _defaultAnisotropy;
 		
-		RNDefineConstructorlessMeta(Texture, Object)
+		RNDefineMeta(Texture, Object)
 	};
 }
 

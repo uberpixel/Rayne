@@ -110,7 +110,7 @@ namespace RN
 		Vector2 _mousePosition;
 		Vector2 _mouseWheel;
 		
-		RNDefineConstructorlessMeta(Event, Message)
+		RNDefineMeta(Event, Message)
 	};
 	
 	class Input : public Singleton<Input>
