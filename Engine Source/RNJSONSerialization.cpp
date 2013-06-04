@@ -225,7 +225,7 @@ namespace RN
 		json_t *json = static_cast<json_t *>(SerializeObject(root));
 		char *data = json_dumps(json, flags);
 		
-		Data *temp = new Data(reinterpret_cast<uint8 *>(data), strlen(data));
+		Data *temp = new Data(data, strlen(data));
 		free(data);
 		
 		json_decref(json);

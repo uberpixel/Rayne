@@ -18,8 +18,8 @@ namespace RN
 	{
 	public:
 		Data();
-		Data(const uint8 *bytes, size_t length);
-		Data(const uint8 *bytes, size_t length, bool noCopy, bool deleteWhenDone);
+		Data(const void *bytes, size_t length);
+		Data(const void *bytes, size_t length, bool noCopy, bool deleteWhenDone);
 		Data(const std::string& file);
 		Data(const Data& other);
 		Data(Data *other);
@@ -28,17 +28,17 @@ namespace RN
 		static Data *WithBytes(const uint8 *bytes, size_t length);
 		static Data *WithContentsOfFile(const std::string& file);
 
-		void Append(const uint8 *bytes, size_t length);
+		void Append(const void *bytes, size_t length);
 		void Append(Data *other);
 		
 		void WriteToFile(const std::string& file);
 		
-		void BytesInRange(uint8 *buffer, Range range) const;
-		uint8 *Bytes() const { return _bytes; }
+		void BytesInRange(void *buffer, Range range) const;
+		void *Bytes() const { return static_cast<void *>(_bytes); }
 		size_t Length() const { return _length; }
 		
 	private:
-		void Initialize(const uint8 *bytes, size_t length);
+		void Initialize(const void *bytes, size_t length);
 		void AssertSize(size_t minimumLength);
 		
 		uint8 *_bytes;

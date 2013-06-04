@@ -24,16 +24,16 @@ namespace RN
 		_ownsData = _freeData = true;
 	}
 	
-	Data::Data(const uint8 *bytes, size_t length) :
+	Data::Data(const void *bytes, size_t length) :
 		Data(bytes, length, false, true)
 	{
 	}
 	
-	Data::Data(const uint8 *bytes, size_t length, bool noCopy, bool deleteWhenDone)
+	Data::Data(const void *bytes, size_t length, bool noCopy, bool deleteWhenDone)
 	{
 		if(noCopy)
 		{
-			_bytes = const_cast<uint8 *>(bytes);
+			_bytes = const_cast<uint8 *>(static_cast<const uint8 *>(bytes));
 			_allocated = 0;
 			_length    = length;
 			
@@ -86,7 +86,7 @@ namespace RN
 	}
 	
 	
-	void Data::Initialize(const uint8 *bytes, size_t length)
+	void Data::Initialize(const void *bytes, size_t length)
 	{
 		_ownsData = true;
 		_freeData = true;
@@ -97,7 +97,10 @@ namespace RN
 		_bytes = new uint8[_allocated];
 		
 		if(bytes)
-			std::copy(bytes, bytes + _length, _bytes);
+		{
+			const uint8 *data = static_cast<const uint8 *>(bytes);
+			std::copy(data, data + _length, _bytes);
+		}
 	}
 	
 	void Data::AssertSize(size_t minimumLength)
@@ -117,11 +120,12 @@ namespace RN
 	}
 	
 	
-	void Data::Append(const uint8 *bytes, size_t length)
+	void Data::Append(const void *bytes, size_t length)
 	{
 		AssertSize(_length + length);
-		std::copy(bytes + _length, bytes + _length + length, _bytes);
+		const uint8 *data = static_cast<const uint8 *>(bytes);
 		
+		std::copy(data, data + length, _bytes + _length);
 		_length += length;
 	}
 	
@@ -138,11 +142,12 @@ namespace RN
 		file->Release();
 	}
 	
-	void Data::BytesInRange(uint8 *buffer, Range range) const
+	void Data::BytesInRange(void *buffer, Range range) const
 	{
 		if(range.origin + range.length >= _length)
 			throw ErrorException(0);
 		
-		std::copy(buffer, buffer + range.length, _bytes + range.origin);
+		const uint8 *data = static_cast<const uint8 *>(buffer);
+		std::copy(data, data + range.length, _bytes + range.origin);
 	}
 }
