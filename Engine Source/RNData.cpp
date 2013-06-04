@@ -134,6 +134,14 @@ namespace RN
 		Append(other->_bytes, other->_length);
 	}
 	
+	void Data::ReplaceBytes(const void *bytes, const Range& range)
+	{
+		if(range.origin + range.length >= _length)
+			throw ErrorException(0);
+		
+		const uint8 *data = static_cast<const uint8 *>(bytes);
+		std::copy(data, data + range.length, _bytes + range.origin);
+	}
 	
 	void Data::WriteToFile(const std::string& name)
 	{
@@ -142,12 +150,24 @@ namespace RN
 		file->Release();
 	}
 	
-	void Data::BytesInRange(void *buffer, Range range) const
+	Data *Data::DataInRange(Range range) const
 	{
-		if(range.origin + range.length >= _length)
+		if(range.origin + range.length > _length)
 			throw ErrorException(0);
 		
-		const uint8 *data = static_cast<const uint8 *>(buffer);
-		std::copy(data, data + range.length, _bytes + range.origin);
+		uint8 *data = new uint8[range.length];
+		std::copy(_bytes + range.origin, _bytes + range.origin + range.length, data);
+		
+		Data *temp = new Data(data, range.length, true, true);
+		return temp->Autorelease();
+	}
+	
+	void Data::BytesInRange(void *buffer, Range range) const
+	{
+		if(range.origin + range.length > _length)
+			throw ErrorException(0);
+		
+		uint8 *data = static_cast<uint8 *>(buffer);
+		std::copy(_bytes + range.origin, _bytes + range.origin + range.length, data);
 	}
 }

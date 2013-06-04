@@ -89,6 +89,7 @@ namespace RN
 		uint32 Length() const { return _length; }
 		
 		uint8 *BytesWithEncoding(Encoding encoding, bool lossy, size_t *length) const;
+		char *UTF8String() const { return reinterpret_cast<char *>(BytesWithEncoding(Encoding::UTF8, false, nullptr)); }
 		
 	private:
 		void Initialize();

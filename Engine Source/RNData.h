@@ -31,9 +31,12 @@ namespace RN
 		void Append(const void *bytes, size_t length);
 		void Append(Data *other);
 		
+		void ReplaceBytes(const void *bytes, const Range& range);
+		
 		void WriteToFile(const std::string& file);
 		
 		void BytesInRange(void *buffer, Range range) const;
+		Data *DataInRange(Range range) const;
 		void *Bytes() const { return static_cast<void *>(_bytes); }
 		size_t Length() const { return _length; }
 		
