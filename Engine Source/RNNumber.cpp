@@ -58,6 +58,19 @@ namespace RN
 			} \
 		} while(0)
 
+	Number::Number(Serializer *serializer)
+	{
+		size_t size;
+		uint8 *bytes = static_cast<uint8 *>(serializer->DecodeBytes(&size));
+		
+		_type = static_cast<Type>(*bytes);
+		
+		bytes ++;
+		size = SizeForType(_type);
+		
+		_buffer = new uint8[size];
+		std::copy(bytes, bytes + size, _buffer);
+	}
 	
 	Number::Number(bool value)
 	{
@@ -170,6 +183,23 @@ namespace RN
 		return number->Autorelease();
 	}
 	
+	
+	
+	void Number::Serialize(Serializer *serializer)
+	{
+		struct __attribute__((packed))
+		{
+			char type;
+			char bytes[32];
+		} data;
+		
+		size_t size = SizeForType(_type);
+		
+		data.type = static_cast<char>(_type);
+		std::copy(_buffer, _buffer + size, data.bytes);
+		
+		serializer->EncodeBytes(&data, size + sizeof(char));
+	}
 	
 	void Number::CopyData(const void *data, size_t size, Type type)
 	{

@@ -15,6 +15,7 @@
 
 namespace RN
 {
+	class Serializer;
 	class Object
 	{
 	public:
@@ -29,6 +30,8 @@ namespace RN
 		RNAPI virtual machine_hash Hash() const;
 		RNAPI bool IsKindOfClass(MetaClass *other) const;
 		RNAPI bool IsMemberOfClass(MetaClass *other) const;
+		
+		RNAPI virtual void Serialize(Serializer *serializer);
 		
 		virtual class MetaClass *Class() const
 		{

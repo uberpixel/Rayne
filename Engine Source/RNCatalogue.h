@@ -26,6 +26,9 @@ namespace RN
 		virtual Object *Construct() { throw ErrorException(0); }
 		virtual Object *ConstructWithSerializer(Serializer *) { throw ErrorException(0); }
 		
+		virtual bool SupportsConstruction() const { return false; }
+		virtual bool SupportsSerialization() const { return false; }
+		
 		RNAPI bool InheritsFromClass(MetaClass *other) const;
 	
 	protected:
@@ -47,6 +50,8 @@ namespace RN
 		{
 			return new T();
 		}
+		
+		bool SupportsConstruction() const override { return true; }
 	};
 	
 	template<class T>
@@ -57,6 +62,8 @@ namespace RN
 		{
 			return new T(serializer);
 		}
+		
+		bool SupportsSerialization() const override { return true; }
 	};
 	
 	template<class T, template <typename Type> class... Traits>

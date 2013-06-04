@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNSerialization.h"
 
 namespace RN
 {
@@ -32,6 +33,7 @@ namespace RN
 			Boolean
 		};
 		
+		RNAPI Number(Serializer *serializer);
 		RNAPI explicit Number(bool value);
 		RNAPI explicit Number(float value);
 		RNAPI explicit Number(double value);
@@ -61,6 +63,8 @@ namespace RN
 		RNAPI static Number *WithUint32(uint32 value);
 		RNAPI static Number *WithUint64(uint64 value);
 		
+		RNAPI void Serialize(Serializer *serializer) override;
+		
 		RNAPI bool BoolValue() const;
 		RNAPI float FloatValue() const;
 		RNAPI double DoubleValue() const;
@@ -87,7 +91,7 @@ namespace RN
 		uint8 *_buffer;
 		Type _type;
 		
-		RNDefineMeta(Number, Object);
+		RNDefineMetaWithTraits(Number, Object, MetaClassTraitSerializable);
 	};
 }
 

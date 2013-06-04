@@ -11,28 +11,28 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNData.h"
 #include "RNVector.h"
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
 
 namespace RN
 {
-	class Serializer;
-	
-	class Archivable : public Object
-	{
-	public:
-		virtual void Deserialize(Serializer *deserializer);
-		virtual void Serialize(Serializer *serializer) const;
-	};
-	
+	class Data;
+	class Dictionary;
+	class String;
 	
 	class Serializer
 	{
 	public:
+		enum class Mode
+		{
+			Serialize,
+			Deserialize
+		};
+		
 		virtual void EncodeBytes(void *data, size_t size);
-		virtual void EncodeObject(Archivable *object);
+		virtual void EncodeObject(Object *object);
+		virtual void EncodeRootObject(Object *object);
 		
 		virtual void EncodeBool(bool value);
 		virtual void EncodeDouble(double value);
@@ -48,7 +48,7 @@ namespace RN
 		virtual void EncodeQuarternion(const Quaternion& value);
 		
 		virtual void *DecodeBytes(size_t *length);
-		virtual Archivable *DecodeObject();
+		virtual Object *DecodeObject();
 		
 		virtual bool DecodeBool();
 		virtual double DecodeDouble();
@@ -64,6 +64,50 @@ namespace RN
 		virtual Quaternion DecodeQuaternion();
 		
 		virtual uint32 AppVersion() const;
+		
+		Mode SerializerMode() const { return _mode; }
+		
+	protected:
+		Serializer(Mode mode);
+		virtual ~Serializer();
+		
+	private:
+		Mode _mode;
+	};
+	
+	class FlatSerializer : public Serializer
+	{
+	public:		
+		FlatSerializer();
+		FlatSerializer(Data *data);
+		~FlatSerializer() override;
+		
+		void EncodeBytes(void *data, size_t size) override;
+		void EncodeObject(Object *object) override;
+		void EncodeRootObject(Object *object) override;
+		
+		void EncodeBool(bool value) override;
+		void EncodeDouble(double value) override;
+		void EncodeFloat(float value) override;
+		
+		void *DecodeBytes(size_t *length) override;
+		Object *DecodeObject() override;
+		
+		Data *SerializedData() const;
+		
+	private:
+		void AssertType(char expected, size_t *size);
+		void PeekHeader(char *type, size_t *size);
+		void DecodeHeader(char *type, size_t *size);
+		void DecodeData(void *buffer, size_t size);
+		
+		void EncodeData(char type, size_t size, const void *data);
+		
+		uint32 EncodeClassName(String *name);
+		
+		Data *_data;
+		Dictionary *_nametable;
+		size_t _index;
 	};
 }
 

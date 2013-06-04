@@ -72,6 +72,11 @@ namespace RN
 	}
 	
 	
+	void Object::Serialize(Serializer *serializer)
+	{
+		throw ErrorException(0);
+	}
+	
 	
 	bool Object::IsEqual(Object *other) const
 	{
