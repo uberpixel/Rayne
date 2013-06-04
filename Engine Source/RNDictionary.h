@@ -33,7 +33,7 @@ namespace RN
 		RNAPI void SetObjectForKey(Object *object, Object *key);
 		RNAPI void RemoveObjectForKey(Object *key);
 		
-		RNAPI void Enumerate(const std::function<void (Object *, Object *, bool *)>& callback);
+		RNAPI void Enumerate(const std::function<void (Object *object, Object *key, bool *stop)>& callback);
 		
 		RNAPI Array *AllObjects() const;
 		RNAPI Array *AllKeys() const;
