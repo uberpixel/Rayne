@@ -89,9 +89,31 @@ namespace RN
 		void EncodeBool(bool value) override;
 		void EncodeDouble(double value) override;
 		void EncodeFloat(float value) override;
+		void EncodeInt32(int32 value) override;
+		void EncodeInt64(int64 value) override;
+		
+		void EncodeVector2(const Vector2& value) override;
+		void EncodeVector3(const Vector3& value) override;
+		void EncodeVector4(const Vector4& value) override;
+		
+		void EncodeMatrix(const Matrix& value) override;
+		void EncodeQuarternion(const Quaternion& value) override;
 		
 		void *DecodeBytes(size_t *length) override;
 		Object *DecodeObject() override;
+		
+		bool DecodeBool() override;
+		double DecodeDouble() override;
+		float DecodeFloat() override;
+		int32 DecodeInt32() override;
+		int64 DecodeInt64() override;
+		
+		Vector2 DecodeVector2() override;
+		Vector3 DecodeVector3() override;
+		Vector4 DecodeVector4() override;
+		
+		Matrix DecodeMatrix() override;
+		Quaternion DecodeQuaternion() override;
 		
 		Data *SerializedData() const;
 		
@@ -99,7 +121,7 @@ namespace RN
 		void AssertType(char expected, size_t *size);
 		void PeekHeader(char *type, size_t *size);
 		void DecodeHeader(char *type, size_t *size);
-		void DecodeData(void *buffer, size_t size);
+		void DecodeData(char expected, void *buffer, size_t size);
 		
 		void EncodeData(char type, size_t size, const void *data);
 		

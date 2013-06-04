@@ -235,7 +235,39 @@ namespace RN
 	
 	void FlatSerializer::EncodeFloat(float value)
 	{
-		EncodeDouble(static_cast<double>(value));
+		EncodeData('f', sizeof(double), &value);
+	}
+	
+	void FlatSerializer::EncodeInt32(int32 value)
+	{
+		EncodeData('i', sizeof(int32), &value);
+	}
+	
+	void FlatSerializer::EncodeInt64(int64 value)
+	{
+		EncodeData('l', sizeof(int64), &value);
+	}
+	
+	void FlatSerializer::EncodeVector2(const Vector2& value)
+	{
+		EncodeData('2', sizeof(Vector2), &value);
+	}
+	void FlatSerializer::EncodeVector3(const Vector3& value)
+	{
+		EncodeData('3', sizeof(Vector2), &value);
+	}
+	void FlatSerializer::EncodeVector4(const Vector4& value)
+	{
+		EncodeData('4', sizeof(Vector2), &value);
+	}
+	
+	void FlatSerializer::EncodeMatrix(const Matrix& value)
+	{
+		EncodeData('m', sizeof(Matrix), &value);
+	}
+	void FlatSerializer::EncodeQuarternion(const Quaternion& value)
+	{
+		EncodeData('q', sizeof(Quaternion), &value);
 	}
 	
 	
@@ -349,6 +381,84 @@ namespace RN
 		return result;
 	}
 	
+	bool FlatSerializer::DecodeBool()
+	{
+		bool result;
+		DecodeData('b', &result, sizeof(bool));
+		
+		return result;
+	}
+	
+	double FlatSerializer::DecodeDouble()
+	{
+		double result;
+		DecodeData('d', &result, sizeof(double));
+		
+		return result;
+	}
+	
+	float FlatSerializer::DecodeFloat()
+	{
+		float result;
+		DecodeData('f', &result, sizeof(float));
+		
+		return result;
+	}
+	
+	int32 FlatSerializer::DecodeInt32()
+	{
+		int32 result;
+		DecodeData('i', &result, sizeof(int32));
+		
+		return result;
+	}
+	
+	int64 FlatSerializer::DecodeInt64()
+	{
+		int64 result;
+		DecodeData('l', &result, sizeof(int64));
+		
+		return result;
+	}
+	
+	Vector2 FlatSerializer::DecodeVector2()
+	{
+		Vector2 result;
+		DecodeData('2', &result, sizeof(Vector2));
+		
+		return result;
+	}
+	Vector3 FlatSerializer::DecodeVector3()
+	{
+		Vector3 result;
+		DecodeData('3', &result, sizeof(Vector3));
+		
+		return result;
+	}
+	Vector4 FlatSerializer::DecodeVector4()
+	{
+		int64 result;
+		DecodeData('4', &result, sizeof(Vector4));
+		
+		return result;
+	}
+	
+	Matrix FlatSerializer::DecodeMatrix()
+	{
+		Matrix result;
+		DecodeData('m', &result, sizeof(Matrix));
+		
+		return result;
+	}
+	Quaternion FlatSerializer::DecodeQuaternion()
+	{
+		Quaternion result;
+		DecodeData('q', &result, sizeof(Quaternion));
+		
+		return result;
+	}
+	
+	
 	void FlatSerializer::PeekHeader(char *type, size_t *size)
 	{
 		RN_ASSERT(SerializerMode() == Mode::Deserialize, "PeekHeader() only works with deserializing serializers!");
@@ -376,9 +486,12 @@ namespace RN
 		_index += 5;
 	}
 	
-	void FlatSerializer::DecodeData(void *buffer, size_t size)
+	void FlatSerializer::DecodeData(char expected, void *buffer, size_t size)
 	{
 		RN_ASSERT(SerializerMode() == Mode::Deserialize, "DecodeHeader() only works with deserializing serializers!");
+		
+		size_t tsize;
+		AssertType(expected, &tsize);
 		
 		_data->BytesInRange(buffer, Range(_index, size));
 		_index += size;
