@@ -33,19 +33,19 @@ namespace RN
 		};
 		
 		RNAPI explicit Number(bool value);
-		RNAPI Number(float value);
-		RNAPI Number(double value);
+		RNAPI explicit Number(float value);
+		RNAPI explicit Number(double value);
 		
-		RNAPI Number(int8 value);
-		RNAPI Number(int16 value);
-		RNAPI Number(int32 value);
-		RNAPI Number(int64 value);
+		RNAPI explicit Number(int8 value);
+		RNAPI explicit Number(int16 value);
+		RNAPI explicit Number(int32 value);
+		RNAPI explicit Number(int64 value);
 		
-		RNAPI Number(uint8 value);
-		RNAPI Number(uint16 value);
-		RNAPI Number(uint32 value);
-		RNAPI Number(uint64 value);
-		RNAPI virtual ~Number();
+		RNAPI explicit Number(uint8 value);
+		RNAPI explicit Number(uint16 value);
+		RNAPI explicit Number(uint32 value);
+		RNAPI explicit Number(uint64 value);
+		RNAPI ~Number() override;
 		
 		RNAPI static Number *WithBool(bool value);
 		RNAPI static Number *WithFloat(float value);
