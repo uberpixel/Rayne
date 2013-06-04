@@ -10,6 +10,9 @@
 precision highp float;
 
 uniform sampler2D targetmap0;
+#if defined(RN_COPYDEPTH)
+	uniform sampler2D depthmap;
+#endif
 
 in vec2 vertTexcoord;
 out vec4 fragColor0;
@@ -17,5 +20,8 @@ out vec4 fragColor0;
 void main()
 {
 	vec4 color = texture(targetmap0, vertTexcoord);
+	#if defined(RN_COPYDEPTH)
+		color.a = texture(depthmap, vertTexcoord).r;
+	#endif
 	fragColor0 = color;
 }

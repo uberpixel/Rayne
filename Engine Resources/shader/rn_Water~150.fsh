@@ -14,50 +14,13 @@ uniform sampler2D mTexture1;
 uniform sampler2D mTexture2;
 
 uniform vec3 viewPosition;
+uniform vec2 clipPlanes;
 
 in vec3 vertProjPos;
 in vec3 vertPosition;
 in vec2 vertTexcoord;
 
 out vec4 fragColor0;
-
-/*float hash( float n )
-{
-    return fract(sin(n)*43758.5453);
-}
-
-float noise( in vec3 x )
-{
-    vec3 p = floor(x);
-    vec3 f = fract(x);
-	
-    f = f*f*(3.0-2.0*f);
-	
-    float n = p.x + p.y*57.0 + 113.0*p.z;
-	
-    float res = mix(mix(mix( hash(n+  0.0), hash(n+  1.0),f.x),
-                        mix( hash(n+ 57.0), hash(n+ 58.0),f.x),f.y),
-                    mix(mix( hash(n+113.0), hash(n+114.0),f.x),
-                        mix( hash(n+170.0), hash(n+171.0),f.x),f.y),f.z);
-    return res;
-}
-
-
-float noise(vec3 p) //Thx to Las^Mercury
-{
-	vec3 i = floor(p);
-	vec4 a = dot(i, vec3(1., 57., 21.)) + vec4(0., 57., 21., 78.);
-	vec3 f = cos((p-i)*acos(-1.))*(-.5)+.5;
-	a = mix(sin(cos(a)*a),sin(cos(1.+a)*(1.+a)), f.x);
-	a.xy = mix(a.xz, a.yw, f.y);
-	return mix(a.x, a.y, f.z);
-}*/
-
-/*float fresnel(float NdotL, float fresnelBias, float fresnelPow)
-{
-	float facing = (1.0 - NdotL);
-	return max(fresnelBias + (1.0 - fresnelBias) * pow(facing, fresnelPow), 0.0);
-}*/
 
 void main()
 {
@@ -73,8 +36,15 @@ void main()
 	float exponential = pow(base, 5.0);
 	float fresnel = exponential + 0.01 * (1.0 - exponential);
 	
+	vec2 depth;
+	depth.x = refraction.a;
+	depth.y = gl_FragCoord.z;
+	depth = (clipPlanes.x * clipPlanes.y)/(depth*(clipPlanes.y-clipPlanes.x)-clipPlanes.y);
+	float depthdiff = depth.y-depth.x;
+	depthdiff *= 0.18;
 	
-//	float NdotL = max(dot(viewdir, normals.xzy), 0);
-	vec4 color0 = mix(refraction, reflection, fresnel);//(NdotL, 0.2, 5.0));
-	fragColor0 = color0;
+	refraction = mix(refraction, vec4(0.0, 0.0, 0.0, 1.0), min(pow(depthdiff, 1.0/2.2), 1.0));
+	vec4 color0 = refraction+reflection*fresnel;
+	color0.a = 1.0;
+	fragColor0 = refraction;
 }

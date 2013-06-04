@@ -38,7 +38,7 @@ namespace RN
 		RNAPI void SetColor(const Color& color);
 		RNAPI void SetAngle(float angle);
 		RNAPI void SetIntensity(float intensity);
-		RNAPI void ActivateSunShadows(bool shadow=true, float resolution=512.0f, int splits=4, float distfac=0.05f, float biasfac=2.0f, float biasunits=512.0f);
+		RNAPI void ActivateSunShadows(bool shadow=true, float resolution=1024.0f, int splits=4, float distfac=0.05f, float biasfac=2.0f, float biasunits=512.0f);
 		
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
 		RNAPI virtual void Update(float delta);

@@ -177,8 +177,10 @@ namespace TG
 		_lightcam->SetPriority(5);
 		
 		// Copy refraction to another texture
-		RN::Camera *copyRefract = new RN::Camera(_camera->Frame().Size() / 2.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		copyRefract->SetMaterial(downMaterial);
+		RN::Material *copyFBOMaterial = new RN::Material(updownShader);
+		copyFBOMaterial->Define("RN_COPYDEPTH");
+		RN::Camera *copyRefract = new RN::Camera(_camera->Frame().Size(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		copyRefract->SetMaterial(copyFBOMaterial);
 		_refractPipeline = _lightcam->AddPostProcessingPipeline("refractioncopy");
 		_refractPipeline->AddStage(copyRefract, RN::RenderStage::Mode::ReUsePreviousStage);
 		
@@ -420,7 +422,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->_lightcam = _camera;
-		_sunLight->ActivateSunShadows(true, 512.0f);
+		_sunLight->ActivateSunShadows(true, 1024.0f);
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
