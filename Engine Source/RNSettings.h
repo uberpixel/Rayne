@@ -32,7 +32,9 @@ namespace RN
 		T *ObjectForKey(String *key)
 		{
 			_lock.Lock();
-			T *object = _settings->ObjectForKey<T>(key)->Retain()->Autorelease();
+			T *object = _settings->ObjectForKey<T>(key);
+			if(object)
+				object->Retain()->Autorelease();
 			_lock.Unlock();
 			
 			return object;
