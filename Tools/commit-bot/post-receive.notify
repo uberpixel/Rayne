@@ -5,7 +5,8 @@ botdir="/home/rayne/commit-bot"
 while read oldrev newrev ref
 do
 	pwd=`pwd`
+	reponame=`basename "$pwd" | sed s/\.git$//`
 
-	cmd="$botdir/receive.py -o $oldrev -n $newrev -g $pwd"
+	cmd="$botdir/receive.py -o $oldrev -n $newrev -g $pwd -x $reponame"
 	$cmd
 done

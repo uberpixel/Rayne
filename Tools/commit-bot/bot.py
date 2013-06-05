@@ -43,7 +43,7 @@ def GitCommitData(since, until, dir):
 	return result.split('\n')
 
 
-def ParseCommit(gitdir, oldrev, revision):
+def ParseCommit(name, gitdir, oldrev, revision):
 	if revision == '0000000000000000000000000000000000000000':
 		return None
 
@@ -51,12 +51,12 @@ def ParseCommit(gitdir, oldrev, revision):
 	author  = GitCommand('git show --quiet --format="%an" {0}'.format(revision), gitdir)
 
 	if oldrev == '0000000000000000000000000000000000000000':
-		return '{0} published branch {1}'.format(author, branch)
+		return '{0} published branch {1}/{2}'.format(author, name, branch)
 
 
 	commits = GitCommitData(oldrev, revision, gitdir)
 	verb    = 'commit' if len(commits) == 1 else 'commits'
-	message = '{0} pushed {1} {2} to {3}'.format(author, len(commits), verb, branch)
+	message = '{0} pushed {1} {2} to {3}/{4}'.format(author, len(commits), verb, name, branch)
 
 	for commit in reversed(commits):
 		message += '\n'
@@ -70,10 +70,11 @@ if __name__ == '__main__':
 	optp.add_option("-o", "--oldrev", dest="oldrev", help="The old revision")
 	optp.add_option("-n", "--newrev", dest="newrev", help="The new revision")
 	optp.add_option("-g", "--git", dest="git", help="The repo directory")
+	optp.add_option("-x", "--name", dest="name", help="The repo name")
 
 	(opts, args) = optp.parse_args()
 
-	message = ParseCommit(opts.git, opts.oldrev, opts.newrev)
+	message = ParseCommit(opts.name, opts.git, opts.oldrev, opts.newrev)
 	if message is not None:
 		xmpp = XMPPBot(config['sender']['jid'], config['sender']['pw'], message)
 
