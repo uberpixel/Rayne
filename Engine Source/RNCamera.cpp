@@ -860,7 +860,7 @@ namespace RN
 	
 	bool Camera::InFrustum(const AABB& aabb)
 	{
-		Plane *planes = &_frustumLeft;
+/*		Plane *planes = &_frustumLeft;
 		Plane *absPlanes = &_absFrustumLeft;
 	
 		Vector3 position = aabb.Position();
@@ -877,7 +877,7 @@ namespace RN
 			
 			if(Math::IsNegative(dpr))
 				return false;
-		}
+		}*/
 		
 		return true;
 	}

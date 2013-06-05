@@ -62,7 +62,7 @@ namespace TG
 						break;
 						
 					case 'x':
-						_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _finalcam);
+						_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _lightcam);
 						break;
 						
 					default:

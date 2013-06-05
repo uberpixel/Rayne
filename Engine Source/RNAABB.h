@@ -21,7 +21,7 @@ namespace RN
 	public:
 		AABB();
 		AABB(const Vector3& min, const Vector3& max);
-		AABB(const Vector3& origin, float width);
+		AABB(const Vector3& pos, const float radius);
 		AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
 		
 		AABB operator+ (const AABB& other) const;
@@ -31,19 +31,17 @@ namespace RN
 		AABB& operator*= (const Vector3& other);
 		
 		bool Intersects(const AABB& other);
-		bool Contains(const AABB& other);
-		
-		float Width() const { return width.x; }
-		float Height() const { return width.y; }
 		
 		void Rotate(const Quaternion& rotation);
 		
-		RN_INLINE Vector3 Position() const { return origin + offset; }
+		RN_INLINE Vector3 Position() const { return position; }
 		
-		Vector3 offset;
-		Vector3 origin;
-		Vector3 halfWidth;
-		Vector3 width;
+		Vector3 position;
+		Vector3 minExtend;
+		Vector3 maxExtend;
+		
+		Vector3 minExtendBase;
+		Vector3 maxExtendBase;
 	};
 	
 	RN_INLINE AABB::AABB()
@@ -51,27 +49,28 @@ namespace RN
 	}
 	
 	RN_INLINE AABB::AABB(const Vector3& tmin, const Vector3& tmax)
-	{
-		Vector3 min;
-		Vector3 max;
+	{		
+		minExtendBase.x = MIN(tmin.x, tmax.x);
+		minExtendBase.y = MIN(tmin.y, tmax.y);
+		minExtendBase.z = MIN(tmin.z, tmax.z);
 		
-		min.x = MIN(tmin.x, tmax.x);
-		min.y = MIN(tmin.x, tmax.y);
-		min.z = MIN(tmin.x, tmax.z);
+		maxExtendBase.x = MAX(tmin.x, tmax.x);
+		maxExtendBase.y = MAX(tmin.y, tmax.y);
+		maxExtendBase.z = MAX(tmin.z, tmax.z);
 		
-		max.x = MAX(tmin.x, tmax.x);
-		max.y = MAX(tmin.x, tmax.y);
-		max.z = MAX(tmin.x, tmax.z);
-		
-		width = (max - min);
-		halfWidth = width * 0.5f;
-		origin = min + halfWidth;
+		minExtend = minExtendBase;
+		maxExtend = maxExtendBase;
 	}
 	
-	RN_INLINE AABB::AABB(const Vector3& torigin, float width) :
-		origin(torigin),
-		halfWidth(Vector3(width))
+	RN_INLINE AABB::AABB(const Vector3& pos, const float radius)
 	{
+		Vector3 dist = radius;
+		dist /= 1.7321f;
+		
+		minExtendBase = pos-dist;
+		maxExtendBase = pos+dist;
+		minExtend = minExtendBase;
+		maxExtend = maxExtendBase;
 	}
 	
 	RN_INLINE AABB::AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) :
@@ -83,19 +82,13 @@ namespace RN
 		Vector3 min;
 		Vector3 max;
 		
-		Vector3 min1(origin - halfWidth);
-		Vector3 min2(other.origin - other.halfWidth);
+		min.x = MIN(minExtend.x, other.minExtend.x);
+		min.y = MIN(minExtend.y, other.minExtend.y);
+		min.z = MIN(minExtend.z, other.minExtend.z);
 		
-		Vector3 max1(origin + halfWidth);
-		Vector3 max2(other.origin + other.halfWidth);
-		
-		min.x = MIN(min1.x, min2.x);
-		min.y = MIN(min1.x, min2.y);
-		min.z = MIN(min1.x, min2.z);
-		
-		max.x = MAX(max1.x, max2.x);
-		max.y = MAX(max1.x, max2.y);
-		max.z = MAX(max1.x, max2.z);
+		max.x = MAX(maxExtend.x, other.maxExtend.x);
+		max.y = MAX(maxExtend.y, other.maxExtend.y);
+		max.z = MAX(maxExtend.z, other.maxExtend.z);
 		
 		return AABB(min, max);
 	}
@@ -105,23 +98,16 @@ namespace RN
 		Vector3 min;
 		Vector3 max;
 		
-		Vector3 min1(origin - halfWidth);
-		Vector3 min2(other.origin - other.halfWidth);
+		min.x = MIN(minExtend.x, other.minExtend.x);
+		min.y = MIN(minExtend.y, other.minExtend.y);
+		min.z = MIN(minExtend.z, other.minExtend.z);
 		
-		Vector3 max1(origin + halfWidth);
-		Vector3 max2(other.origin + other.halfWidth);
+		max.x = MAX(maxExtend.x, other.maxExtend.x);
+		max.y = MAX(maxExtend.y, other.maxExtend.y);
+		max.z = MAX(maxExtend.z, other.maxExtend.z);
 		
-		min.x = MIN(min1.x, min2.x);
-		min.y = MIN(min1.x, min2.y);
-		min.z = MIN(min1.x, min2.z);
-		
-		max.x = MAX(max1.x, max2.x);
-		max.y = MAX(max1.x, max2.y);
-		max.z = MAX(max1.x, max2.z);
-		
-		width = (max - min);
-		halfWidth = width * 0.5f;
-		origin = min + halfWidth;
+		minExtendBase = minExtend = min;
+		maxExtendBase = maxExtend = max;
 		
 		return *this;
 	}
@@ -129,86 +115,59 @@ namespace RN
 	RN_INLINE AABB AABB::operator* (const Vector3& other) const
 	{
 		AABB result = *this;
-		result.width *= other;
-		result.halfWidth *= other;
+		result.minExtend *= other;
+		result.maxExtend *= other;
+		result.minExtendBase *= other;
+		result.maxExtendBase *= other;
 		
 		return result;
 	}
 	
 	RN_INLINE AABB& AABB::operator*= (const Vector3& other)
 	{
-		width *= other;
-		halfWidth *= other;
+		minExtend *= other;
+		maxExtend *= other;
+		minExtendBase *= other;
+		maxExtendBase *= other;
 		
 		return *this;
 	}
-
-	
-	
 	
 	RN_INLINE bool AABB::Intersects(const AABB& other)
 	{
-		if(fabsf(origin.x - other.origin.x) > (halfWidth.x + other.halfWidth.x))
+		if(fabsf(position.x - other.position.x) > (minExtend.x+other.maxExtend.x))
 			return false;
-		if(fabsf(origin.y - other.origin.y) > (halfWidth.y + other.halfWidth.y))
+		if(fabsf(position.y - other.position.y) > (minExtend.x+other.maxExtend.y))
 			return false;
-		if(fabsf(origin.z - other.origin.z) > (halfWidth.z + other.halfWidth.z))
+		if(fabsf(position.z - other.position.z) > (minExtend.x+other.maxExtend.z))
 			return false;
 		
 		return true;
-	}
-	
-	RN_INLINE bool AABB::Contains(const AABB& other)
-	{
-		return  origin.x - halfWidth.x <= other.origin.x - other.halfWidth.x &&
-				origin.x + halfWidth.x >= other.origin.x + halfWidth.x &&
-		
-				origin.y - halfWidth.y <= other.origin.y - other.halfWidth.y &&
-				origin.y + halfWidth.y >= other.origin.y + halfWidth.y &&
-		
-				origin.z - halfWidth.z <= other.origin.z - other.halfWidth.z &&
-				origin.z + halfWidth.z >= other.origin.z + halfWidth.z;
 	}
 	
 	RN_INLINE void AABB::Rotate(const Quaternion& rotation)
 	{
 		Matrix matrix = rotation.RotationMatrix();
 		
-		Vector3 edge1(origin + Vector3(-halfWidth.x, 0.0f, -halfWidth.z));
-		Vector3 edge2(origin + Vector3(-halfWidth.x, 0.0f, halfWidth.z));
-		Vector3 edge3(origin + Vector3(halfWidth.x, 0.0f, halfWidth.z));
-		Vector3 edge4(origin + Vector3(halfWidth.x, 0.0f, -halfWidth.z));
+		Vector3 corners[4];
+		corners[0] = matrix.Transform(Vector3(minExtendBase.x, minExtendBase.y, maxExtendBase.z));
+		corners[1] = matrix.Transform(Vector3(minExtendBase.x, maxExtendBase.y, maxExtendBase.z));
+		corners[2] = matrix.Transform(Vector3(maxExtendBase.x, maxExtendBase.y, minExtendBase.z));
+		corners[3] = matrix.Transform(Vector3(maxExtendBase.x, minExtendBase.y, minExtendBase.z));
 		
-		Vector3 limit(0.0f, halfWidth.y, 0.0f);
+		minExtend = matrix.Transform(minExtendBase);
+		maxExtend = matrix.Transform(maxExtendBase);
 		
-		Vector3 edges[8];
-		edges[0] = std::move(matrix.Transform(edge1 - limit));
-		edges[1] = std::move(matrix.Transform(edge2 - limit));
-		edges[2] = std::move(matrix.Transform(edge3 - limit));
-		edges[3] = std::move(matrix.Transform(edge4 - limit));
-		
-		edges[4] = std::move(matrix.Transform(edge1 + limit));
-		edges[5] = std::move(matrix.Transform(edge2 + limit));
-		edges[6] = std::move(matrix.Transform(edge3 + limit));
-		edges[7] = std::move(matrix.Transform(edge4 + limit));
-		
-		Vector3 min = edges[0];
-		Vector3 max = edges[0];
-		
-		for(size_t i=1; i<8; i++)
+		for(size_t i=0; i<4; i++)
 		{
-			min.x = MIN(edges[i].x, min.x);
-			min.y = MIN(edges[i].y, min.y);
-			min.z = MIN(edges[i].z, min.z);
+			minExtend.x = MIN(corners[i].x, minExtend.x);
+			minExtend.y = MIN(corners[i].y, minExtend.y);
+			minExtend.z = MIN(corners[i].z, minExtend.z);
 			
-			max.x = MAX(edges[i].x, max.x);
-			max.y = MAX(edges[i].y, max.y);
-			max.z = MAX(edges[i].z, max.z);
+			maxExtend.x = MAX(corners[i].x, maxExtend.x);
+			maxExtend.y = MAX(corners[i].y, maxExtend.y);
+			maxExtend.z = MAX(corners[i].z, maxExtend.z);
 		}
-		
-		width = (max - min);
-		halfWidth = width * 0.5f;
-		origin = min + halfWidth;
 	}
 }
 

@@ -355,7 +355,7 @@ namespace RN
 			
 			_transformedBoundingBox = _boundingBox;
 			
-			_transformedBoundingBox.offset = _worldPosition;
+			_transformedBoundingBox.position = _worldPosition;
 			_transformedBoundingBox *= _worldScale;
 			_transformedBoundingBox.Rotate(_worldRotation);
 			

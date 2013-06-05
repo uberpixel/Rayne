@@ -222,8 +222,8 @@ namespace RN
 		
 		void DrawBox(const AABB& box, const Color& color)
 		{
-			Vector3 min = box.Position() - box.halfWidth;
-			Vector3 max = box.Position() + box.halfWidth;
+			Vector3 min = box.Position() + box.minExtend;
+			Vector3 max = box.Position() + box.maxExtend;
 			
 			DrawBox(min, max, color);
 		}

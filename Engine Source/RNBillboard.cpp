@@ -102,7 +102,7 @@ namespace RN
 		_size = Vector2(texture->Width(), texture->Height());
 		_size *= 0.1f;
 		
-		SetBoundingBox(_mesh->BoundingBox() * Vector3(_size.x, 1.0f, _size.y));
+		SetBoundingBox(_mesh->BoundingBox() * Vector3(_size.x, _size.y, 1.0f));
 	}
 	
 	void Billboard::Render(Renderer *renderer, Camera *camera)

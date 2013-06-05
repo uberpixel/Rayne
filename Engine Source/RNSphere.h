@@ -46,8 +46,8 @@ namespace RN
 	}
 	
 	RN_INLINE Sphere::Sphere(const AABB& aabb) :
-		origin(aabb.origin),
-		radius(aabb.halfWidth.Length())
+		origin(aabb.maxExtend*0.5+aabb.minExtend*0.5),
+		radius(((aabb.maxExtend-aabb.minExtend)*0.5).Length())
 	{
 	}
 	
@@ -71,6 +71,7 @@ namespace RN
 		Sphere result(*this);
 		float scale = MAX(MAX(other.x, other.y), other.z);
 		result.radius *= scale;
+		result.origin *= scale;
 		
 		return result;
 	}
@@ -79,6 +80,7 @@ namespace RN
 	{
 		float scale = MAX(MAX(other.x, other.y), other.z);
 		radius *= scale;
+		origin *= scale;
 		return *this;
 	}
 }
