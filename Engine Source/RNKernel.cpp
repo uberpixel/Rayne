@@ -43,7 +43,10 @@ namespace RN
 		_title(title)
 	{
 		Prepare();
+		
+		AutoreleasePool *pool = new AutoreleasePool();
 		LoadApplicationModule(Settings::SharedInstance()->ObjectForKey<String>(kRNSettingsGameModuleKey));
+		delete pool;
 	}
 	
 	Kernel::Kernel(Application *app) :

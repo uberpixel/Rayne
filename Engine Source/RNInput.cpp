@@ -154,15 +154,12 @@ namespace RN
 	
 	void Input::FlushEventQueue()
 	{
-		_lock.Lock();
-		
 		for(Event *event : _pendingEvents)
 		{
 			event->Release();
 		}
 		
 		_pendingEvents.clear();
-		_lock.Unlock();
 	}
 	
 	void Input::DispatchInputEvents()
