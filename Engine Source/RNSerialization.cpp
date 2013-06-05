@@ -235,7 +235,7 @@ namespace RN
 	
 	void FlatSerializer::EncodeFloat(float value)
 	{
-		EncodeData('f', sizeof(double), &value);
+		EncodeData('f', sizeof(float), &value);
 	}
 	
 	void FlatSerializer::EncodeInt32(int32 value)
@@ -392,7 +392,29 @@ namespace RN
 	double FlatSerializer::DecodeDouble()
 	{
 		double result;
-		DecodeData('d', &result, sizeof(double));
+		char type;
+		
+		PeekHeader(&type, nullptr);
+		switch(type)
+		{
+			case 'd':
+				DecodeData(type, &result, sizeof(double));
+				break;
+				
+			case 'f':
+			{
+				float temp;
+				DecodeData(type, &temp, sizeof(float));
+				result = temp;
+				
+				break;
+			}
+				
+			default:
+				AssertType('d', nullptr);
+				result = 0.0; // Silence compiler warning
+				break;
+		}
 		
 		return result;
 	}
@@ -400,7 +422,29 @@ namespace RN
 	float FlatSerializer::DecodeFloat()
 	{
 		float result;
-		DecodeData('f', &result, sizeof(float));
+		char type;
+		
+		PeekHeader(&type, nullptr);
+		switch(type)
+		{
+			case 'f':
+				DecodeData(type, &result, sizeof(float));
+				break;
+				
+			case 'd':
+			{
+				double temp;
+				DecodeData(type, &temp, sizeof(double));
+				result = temp;
+				
+				break;
+			}
+				
+			default:
+				AssertType('f', nullptr);
+				result = 0.0f; // Silence compiler warning
+				break;
+		}
 		
 		return result;
 	}
@@ -408,7 +452,29 @@ namespace RN
 	int32 FlatSerializer::DecodeInt32()
 	{
 		int32 result;
-		DecodeData('i', &result, sizeof(int32));
+		char type;
+		
+		PeekHeader(&type, nullptr);
+		switch(type)
+		{
+			case 'i':
+				DecodeData(type, &result, sizeof(int32));
+				break;
+				
+			case 'l':
+			{
+				int64 temp;
+				DecodeData(type, &temp, sizeof(int64));
+				result = static_cast<int32>(temp);
+				
+				break;
+			}
+				
+			default:
+				AssertType('i', nullptr);
+				result = 0; // Silence compiler warning
+				break;
+		}
 		
 		return result;
 	}
@@ -416,7 +482,29 @@ namespace RN
 	int64 FlatSerializer::DecodeInt64()
 	{
 		int64 result;
-		DecodeData('l', &result, sizeof(int64));
+		char type;
+		
+		PeekHeader(&type, nullptr);
+		switch(type)
+		{
+			case 'l':
+				DecodeData(type, &result, sizeof(int64));
+				break;
+				
+			case 'i':
+			{
+				int32 temp;
+				DecodeData(type, &temp, sizeof(int64));
+				result = static_cast<int64>(temp);
+				
+				break;
+			}
+				
+			default:
+				AssertType('l', nullptr);
+				result = 0; // Silence compiler warning
+				break;
+		}
 		
 		return result;
 	}
@@ -492,6 +580,8 @@ namespace RN
 		
 		size_t tsize;
 		AssertType(expected, &tsize);
+		
+		RN_ASSERT0(tsize == size);
 		
 		_data->BytesInRange(buffer, Range(_index, size));
 		_index += size;
