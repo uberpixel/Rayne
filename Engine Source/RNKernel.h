@@ -26,6 +26,7 @@ namespace RN
 	{
 	public:
 		RNAPI Kernel(const std::string& title);
+		RNAPI Kernel(Application *app);
 		RNAPI virtual ~Kernel();
 
 		RNAPI bool Tick();
@@ -50,6 +51,7 @@ namespace RN
 		FrameID CurrentFrame() const { return _frame; }
 
 	private:
+		void Prepare();
 		void Initialize();
 		void LoadApplicationModule(String *module);
 		void *_appHandle;

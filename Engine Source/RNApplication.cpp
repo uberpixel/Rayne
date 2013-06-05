@@ -26,12 +26,7 @@ namespace RN
 	
 	void Application::Start()
 	{}
-	
-	bool Application::CanExit()
-	{
-		return true;
-	}
-	
+
 	void Application::WillExit()
 	{}
 	

@@ -21,7 +21,6 @@ namespace RN
 		RNAPI virtual ~Application();
 		
 		RNAPI virtual void Start();
-		RNAPI virtual bool CanExit();
 		RNAPI virtual void WillExit();
 		
 		RNAPI virtual void GameUpdate(float delta);

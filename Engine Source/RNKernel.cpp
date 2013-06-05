@@ -42,73 +42,15 @@ namespace RN
 	Kernel::Kernel(const std::string& title) :
 		_title(title)
 	{
-#if RN_PLATFORM_LINUX
-		XInitThreads();
-#endif
-		
-#if RN_PLATFORM_INTEL
-		X86_64::GetCPUInfo();
-		X86_64::Capabilities caps = X86_64::Caps();
-		
-		if(!(caps & X86_64::CAP_SSE) || !(caps & X86_64::CAP_SSE2))
-			throw ErrorException(kErrorGroupSystem, kSystemGroupGeneric, kSystemCPUUnsupported);
-#endif
-		_mainThread = new Thread();
-		
-		AutoreleasePool *pool = new AutoreleasePool();
-		Settings::SharedInstance();
-		ThreadCoordinator::SharedInstance();
-
-		_context = new class Context();
-		_context->MakeActiveContext();
-
-		ReadOpenGLExtensions();
-		ResourcePool::SharedInstance();
-		
-		_scaleFactor = 1.0f;
-		
-		_resourceBatch = ThreadPool::SharedInstance()->OpenBatch();
-		_resourceBatch->AddTask([] {
-			Debug::InstallDebugDraw();
-		});
-		
-		ResourcePool::SharedInstance()->LoadDefaultResources(_resourceBatch);
-		
-		_resourceBatch->Commit();
-
-#if RN_PLATFORM_IOS
-		_scaleFactor = [[UIScreen mainScreen] scale];
-#endif
-#if RN_PLATFORM_MAC_OS
-		if([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)])
-		{
-			_scaleFactor = [NSScreen mainScreen].backingScaleFactor;
-		}
-#endif
-		
-		_renderer = Renderer::SharedInstance();
-		_input    = Input::SharedInstance();
-		_uiserver = UI::Server::SharedInstance();
-		
-		_world = 0;
-		_window = Window::SharedInstance();
-		_frame  = 0;
-
-		_delta = 0.0f;
-		_time  = 0.0f;
-		_scaledTime = 0.0f;
-		_timeScale  = 1.0f;
-
-		_lastFrame  = std::chrono::steady_clock::now();
-		_resetDelta = true;
-
-		_initialized = false;
-		_shouldExit  = false;
-
-		ModuleCoordinator::SharedInstance();
+		Prepare();
 		LoadApplicationModule(Settings::SharedInstance()->ObjectForKey<String>(kRNSettingsGameModuleKey));
-		
-		delete pool;
+	}
+	
+	Kernel::Kernel(Application *app) :
+		_title(app->Title())
+	{
+		Prepare();
+		_app = app;
 	}
 
 	Kernel::~Kernel()
@@ -134,11 +76,78 @@ namespace RN
 		_mainThread->Exit();
 		_mainThread->Release();
 	}
+	
+	void Kernel::Prepare()
+	{
+#if RN_PLATFORM_LINUX
+		XInitThreads();
+#endif
+		
+#if RN_PLATFORM_INTEL
+		X86_64::GetCPUInfo();
+		X86_64::Capabilities caps = X86_64::Caps();
+		
+		if(!(caps & X86_64::CAP_SSE) || !(caps & X86_64::CAP_SSE2))
+			throw ErrorException(kErrorGroupSystem, kSystemGroupGeneric, kSystemCPUUnsupported);
+#endif
+		_mainThread = new Thread();
+		
+		AutoreleasePool *pool = new AutoreleasePool();
+		Settings::SharedInstance();
+		ThreadCoordinator::SharedInstance();
+		
+		_context = new class Context();
+		_context->MakeActiveContext();
+		
+		ReadOpenGLExtensions();
+		ResourcePool::SharedInstance();
+		
+		_scaleFactor = 1.0f;
+		
+		_resourceBatch = ThreadPool::SharedInstance()->OpenBatch();
+		_resourceBatch->AddTask([] {
+			Debug::InstallDebugDraw();
+		});
+		
+		ResourcePool::SharedInstance()->LoadDefaultResources(_resourceBatch);
+		
+		_resourceBatch->Commit();
+		
+#if RN_PLATFORM_IOS
+		_scaleFactor = [[UIScreen mainScreen] scale];
+#endif
+#if RN_PLATFORM_MAC_OS
+		if([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)])
+			_scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
+#endif
+		
+		_renderer = Renderer::SharedInstance();
+		_input    = Input::SharedInstance();
+		_uiserver = UI::Server::SharedInstance();
+		
+		_world = nullptr;
+		_window = Window::SharedInstance();
+		_frame  = 0;
+		
+		_delta = 0.0f;
+		_time  = 0.0f;
+		_scaledTime = 0.0f;
+		_timeScale  = 1.0f;
+		
+		_lastFrame  = std::chrono::steady_clock::now();
+		_resetDelta = true;
+		
+		_initialized = false;
+		_shouldExit  = false;
+		
+		ModuleCoordinator::SharedInstance();
+		delete pool;
+	}	
 
 	void Kernel::LoadApplicationModule(String *module)
 	{
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
-		std::string moduleName = reinterpret_cast<char *>(module->BytesWithEncoding(String::Encoding::UTF8, false, nullptr));
+		std::string moduleName = std::string(module->UTF8String());
 		
 #if RN_PLATFORM_MAC_OS
 		moduleName += ".dylib";
@@ -153,8 +162,7 @@ namespace RN
 		_appHandle = dlopen(path.c_str(), RTLD_LAZY);
 		if(!_appHandle)
 			throw ErrorException(0, 0, 0, std::string(dlerror()));
-								 
-		dlerror();
+		
 		__ApplicationEntry = (RNApplicationEntryPointer)dlsym(_appHandle, "RNApplicationCreate");
 
 		RN_ASSERT(__ApplicationEntry, "The game module must provide an application entry point (RNApplicationCreate())");
@@ -176,6 +184,8 @@ namespace RN
 		_window->SetTitle(_app->Title());
 	}
 
+	
+	
 	bool Kernel::Tick()
 	{
 		std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
@@ -286,8 +296,7 @@ namespace RN
 
 	void Kernel::Exit()
 	{
-		if(_app->CanExit())
-			_shouldExit = true;
+		_shouldExit = true;
 	}
 
 
