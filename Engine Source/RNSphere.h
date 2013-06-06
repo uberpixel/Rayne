@@ -30,6 +30,8 @@ namespace RN
 		
 		void Rotate(const Quaternion& rotation);
 		
+		bool IntersectsRay(const Vector3 &position, const Vector3 &direction) const;
+		
 		Vector3 position;
 		Vector3 offset;
 		Vector3 offsetBase;
@@ -95,6 +97,12 @@ namespace RN
 	RN_INLINE void Sphere::Rotate(const Quaternion& rotation)
 	{
 		offset = rotation.RotateVector(offsetBase);
+	}
+	
+	RN_INLINE bool Sphere::IntersectsRay(const Vector3 &position, const Vector3 &direction) const
+	{
+		float dist = direction.Cross(position-Position()).Length()/direction.Length();
+		return (dist <= radius);
 	}
 }
 

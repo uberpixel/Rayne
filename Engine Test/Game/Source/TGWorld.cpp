@@ -65,6 +65,9 @@ namespace TG
 						_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _lightcam);
 						break;
 						
+					case 'c':
+						SceneManager()->CastRay(_camera->Position(), _camera->Forward());
+						
 					default:
 						break;
 				}

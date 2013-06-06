@@ -52,7 +52,6 @@ namespace RN
 	}
 	
 	
-	
 	void GenericSceneManager::RenderSceneNode(Camera *camera, SceneNode *node)
 	{
 		if(!(camera->renderGroup & (1 << node->group)))
@@ -80,6 +79,19 @@ namespace RN
 			if(!node->Parent())
 			{
 				RenderSceneNode(camera, node);
+			}
+		}
+	}
+	
+	void GenericSceneManager::CastRay(const Vector3 &position, const Vector3 &direction)
+	{
+		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
+		{
+			SceneNode *node = *i;
+			if(node->BoundingSphere().IntersectsRay(position, direction))
+			{
+				if(node->IsKindOfClass(RN::Catalogue::SharedInstance()->ClassWithName("RN::Entity")))
+					printf("found an intersection\n");
 			}
 		}
 	}
