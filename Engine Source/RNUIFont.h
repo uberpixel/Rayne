@@ -28,6 +28,21 @@ namespace RN
 		public:
 			
 			UniChar Character() const { return _character; }
+			float Kerning(UniChar character) const;
+			
+			size_t Width() const  { return _region.width; }
+			size_t Height() const { return _region.height; }
+			
+			int OffsetX() const { return _offset_x; }
+			int OffsetY() const { return _offset_y; }
+			
+			float AdvanceX() const { return _advance_x; }
+			float AdvanceY() const { return _advance_y; }
+			
+			float U0() const { return _u0; }
+			float U1() const { return _u1; }
+			float V0() const { return _v0; }
+			float V1() const { return _v1; }
 			
 		private:
 			UniChar _character;
@@ -40,6 +55,8 @@ namespace RN
 			float _advance_y;
 			
 			float _u0, _v0, _u1, _v1;
+			
+			std::unordered_map<UniChar, float> _kerning;
 		};
 		
 		class Font : public Object
@@ -63,6 +80,7 @@ namespace RN
 			
 			void RenderGlyph(UniChar character);
 			void RenderGlyphsFromString(String *string);
+			void UpdateKerning();
 			
 			void *_finternals;
 			

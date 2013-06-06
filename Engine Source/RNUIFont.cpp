@@ -21,6 +21,13 @@ namespace RN
 	namespace UI
 	{
 		RNDeclareMeta(Font)
+		
+		float Glyph::Kerning(UniChar character) const
+		{
+			auto iterator = _kerning.find(character);
+			return (iterator != _kerning.end()) ? iterator->second : 0.0f;
+		}
+		
 
 		struct FontInternals
 		{
@@ -224,8 +231,8 @@ namespace RN
 			glyph._character = character;
 			glyph._region    = rect;
 			
-			glyph._offset_x = slot->bitmap_top;
-			glyph._offset_y = slot->bitmap_left;
+			glyph._offset_x = slot->bitmap_left;
+			glyph._offset_y = slot->bitmap_top;
 			
 			glyph._u0 = rect.x / _texture->Width();
 			glyph._v0 = rect.y / _texture->Height();
@@ -241,6 +248,31 @@ namespace RN
 			_glyphs.insert(std::unordered_map<wchar_t, Glyph>::value_type(glyph._character, glyph));
 		}
 		
+		void Font::UpdateKerning()
+		{
+			for(auto i=_glyphs.begin(); i!=_glyphs.end(); i++)
+			{
+				FT_UInt glyphIndex = FT_Get_Char_Index(_internals->face, i->first);
+				
+				for(auto j=_glyphs.begin(); j!=_glyphs.end(); j++)
+				{
+					if(j->second._kerning.find(j->first) != j->second._kerning.end())
+						continue;
+					
+					FT_Vector kerning;
+					FT_UInt otherIndex = FT_Get_Char_Index(_internals->face, j->first);
+					
+					FT_Get_Kerning(_internals->face, otherIndex, glyphIndex, FT_KERNING_UNFITTED, &kerning);
+					
+					if(kerning.x)
+					{
+						float value = kerning.x / (64.0f * 64.0f);
+						i->second._kerning.insert(std::unordered_map<UniChar, float>::value_type(j->first, value));
+					}
+				}
+			}
+		}
+		
 		void Font::RenderGlyphsFromString(String *string)
 		{
 			InitializeInternals();
@@ -254,6 +286,7 @@ namespace RN
 				RenderGlyph(character);
 			}
 			
+			UpdateKerning();
 			DropInternals();
 		}
 		
