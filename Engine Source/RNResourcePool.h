@@ -17,6 +17,8 @@
 #define kRNResourceKeyWaterShader          "kRNResourceKeyWaterShader"
 #define kRNResourceKeyParticleShader       "kRNResourceKeyParticleShader"
 
+#define kRNResourceKeyUIImageShader        "kRNResourceKeyUIImageShader"
+
 #define kRNResourceKeyLightTileSampleFirstShader "kRNResourceKeyLightTileSampleFirstShader"
 #define kRNResourceKeyLightTileSampleShader      "kRNResourceKeyLightTileSampleShader"
 #define kRNResourceKeyLightDepthShader           "kRNResourceKeyLightDepthShader"

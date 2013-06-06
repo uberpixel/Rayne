@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNCamera.h"
 #include "RNUIWidget.h"
+#include "RNUIResponder.h"
 
 namespace RN
 {
@@ -27,8 +28,8 @@ namespace RN
 			Server();
 			~Server() override;
 			
-			uint32 Height() const;
-			uint32 Width() const;
+			uint32 Height() const { return _frame.height; }
+			uint32 Width() const { return _frame.width; }
 			
 		protected:
 			void Render(Renderer *renderer);
@@ -40,6 +41,8 @@ namespace RN
 			
 			Camera *_camera;
 			Rect _frame;
+			
+			Widget *_mainWidget;
 			
 			std::deque<Widget *> _widgets;
 		};

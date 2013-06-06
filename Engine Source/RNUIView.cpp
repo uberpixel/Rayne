@@ -11,7 +11,6 @@
 #include "RNUIServer.h"
 #include "RNResourcePool.h"
 
-#define kRNViewMeshResourceName "kRNViewMeshResourceName"
 #define kRNViewShaderResourceName "kRNViewShaderResourceName"
 
 namespace RN
@@ -34,8 +33,6 @@ namespace RN
 		View::~View()
 		{
 			_material->Release();
-			_viewMaterial->Release();
-			_mesh->Retain();
 		}
 		
 		// ---------------------
@@ -54,69 +51,54 @@ namespace RN
 			_superview = 0;
 			_widget = 0;
 			_dirtyLayout = true;
-			_scaleWithFrame = true;
 			
-			_material = new Material();
+			_material = new Material(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNViewShaderResourceName));
 			_material->depthtest = false;
 			_material->depthwrite = false;
-			_material->blending = false;
+			_material->blending = true;
 			_material->lighting = false;
-			
-			_viewMaterial = new Material(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNViewShaderResourceName));
-			_viewMaterial->depthtest = false;
-			_viewMaterial->depthwrite = false;
-			_viewMaterial->blending = false;
-			_viewMaterial->lighting = false;
-			_viewMaterial->diffuse = Color(1.0f, 1.0f, 1.0f, 1.0f);
-			
-			_mesh = BasicMesh()->Retain();
+			_material->diffuse = Color(1.0f, 1.0f, 1.0f, 1.0f);
 		}
 		
 		void View::SetBackgroundColor(const Color& color)
 		{
-			_viewMaterial->diffuse = color;
+			_material->diffuse = color;
 		}
 		
-		Mesh *View::BasicMesh()
+		Mesh *View::BasicMesh(const Vector2& size)
 		{
-			static std::once_flag flag;
-			std::call_once(flag, []() {
-				MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
-				vertexDescriptor.feature = kMeshFeatureVertices;
-				vertexDescriptor.elementMember = 2;
-				vertexDescriptor.elementSize   = sizeof(Vector2);
-				vertexDescriptor.elementCount  = 4;
-				
-				MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
-				uvDescriptor.elementMember = 2;
-				uvDescriptor.elementSize   = sizeof(Vector2);
-				uvDescriptor.elementCount  = 4;
-				
-				std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor };
-				Mesh *mesh = new Mesh(descriptors);
-				mesh->SetMode(GL_TRIANGLE_STRIP);
-				
-				Vector2 *vertices = mesh->Element<Vector2>(kMeshFeatureVertices);
-				Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
-				
-				*vertices ++ = Vector2(1.0f, 1.0f);
-				*vertices ++ = Vector2(0.0f, 1.0f);
-				*vertices ++ = Vector2(1.0f, 0.0f);
-				*vertices ++ = Vector2(0.0f, 0.0f);
-				
-				*uvCoords ++ = Vector2(1.0f, 0.0f);
-				*uvCoords ++ = Vector2(0.0f, 0.0f);
-				*uvCoords ++ = Vector2(1.0f, 1.0f);
-				*uvCoords ++ = Vector2(0.0f, 1.0f);
-				
-				mesh->ReleaseElement(kMeshFeatureVertices);
-				mesh->ReleaseElement(kMeshFeatureUVSet0);
-				mesh->UpdateMesh();
-				
-				ResourcePool::SharedInstance()->AddResource(mesh, kRNViewMeshResourceName);
-			});
+			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+			vertexDescriptor.elementMember = 2;
+			vertexDescriptor.elementSize   = sizeof(Vector2);
+			vertexDescriptor.elementCount  = 4;
 			
-			return ResourcePool::SharedInstance()->ResourceWithName<Mesh>(kRNViewMeshResourceName);
+			MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
+			uvDescriptor.elementMember = 2;
+			uvDescriptor.elementSize   = sizeof(Vector2);
+			uvDescriptor.elementCount  = 4;
+			
+			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor };
+			Mesh *mesh = new Mesh(descriptors);
+			mesh->SetMode(GL_TRIANGLE_STRIP);
+			
+			Vector2 *vertices = mesh->Element<Vector2>(kMeshFeatureVertices);
+			Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
+			
+			*vertices ++ = Vector2(size.x, size.y);
+			*vertices ++ = Vector2(0.0f, size.y);
+			*vertices ++ = Vector2(size.x, 0.0f);
+			*vertices ++ = Vector2(0.0f, 0.0f);
+			
+			*uvCoords ++ = Vector2(1.0f, 0.0f);
+			*uvCoords ++ = Vector2(0.0f, 0.0f);
+			*uvCoords ++ = Vector2(1.0f, 1.0f);
+			*uvCoords ++ = Vector2(0.0f, 1.0f);
+			
+			mesh->ReleaseElement(kMeshFeatureVertices);
+			mesh->ReleaseElement(kMeshFeatureUVSet0);
+			mesh->UpdateMesh();
+			
+			return mesh->Autorelease();
 		}
 		
 		
@@ -125,9 +107,9 @@ namespace RN
 		// MARK: Coordinate systems
 		// ---------------------
 		
-		Rect View::ConvertRectToView(View *view, const Rect& frame)
+		Vector2 View::ConvertPointToView(View *view, const Vector2& point)
 		{
-			Rect converted = frame;
+			Vector2 converted = point;
 			View *temp = _superview;
 			
 			while(temp)
@@ -146,6 +128,51 @@ namespace RN
 				converted.x += _widget->_frame.x;
 				converted.y += _widget->_frame.y;
 			}
+			
+			return converted;
+		}
+		
+		Vector2 View::ConvertPointFromView(View *view, const Vector2& point)
+		{
+			std::vector<View *> path;
+			View *temp = _superview;
+			
+			while(temp)
+			{
+				path.push_back(temp);
+				
+				if(temp == view)
+					break;
+				
+				temp = temp->_superview;
+			}
+			
+
+			Vector2 converted = point;
+			
+			if(!view && _widget)
+			{
+				converted.x -= _widget->_frame.x;
+				converted.y -= _widget->_frame.y;
+			}
+			
+			for(View *temp : path)
+			{
+				converted.x -= temp->_frame.x;
+				converted.y -= temp->_frame.y;
+			}
+			
+			return converted;
+		}
+		
+		
+		Rect View::ConvertRectToView(View *view, const Rect& frame)
+		{
+			Rect converted = frame;
+			Vector2 point = ConvertPointToView(view, Vector2(frame.x, frame.y));
+			
+			converted.x = point.x;
+			converted.y = point.y;
 			
 			return converted;
 		}
@@ -229,12 +256,6 @@ namespace RN
 			NeedsLayoutUpdate();
 		}
 		
-		void View::SetScaleWithFrame(bool scale)
-		{
-			_scaleWithFrame = scale;
-			_dirtyLayout = true;
-		}
-		
 		void View::NeedsLayoutUpdate()
 		{
 			_dirtyLayout = true;
@@ -271,9 +292,6 @@ namespace RN
 				_finalTransform = _intermediateTransform;
 				_finalTransform.Translate(Vector3(converted.x, serverHeight - _frame.height - converted.y, 0.0f));
 				
-				if(_scaleWithFrame)
-					_finalTransform.Scale(Vector3(_frame.width, _frame.height, 1.0f));
-				
 				_dirtyLayout = false;
 			}
 		}
@@ -297,15 +315,7 @@ namespace RN
 			PrepareRendering(object);
 			
 			if(Render(object))
-			{
 				renderer->RenderObject(object);
-			}
-			else
-			{
-				object.mesh = _mesh;
-				object.material = _viewMaterial;
-				renderer->RenderObject(object);
-			}
 			
 			machine_uint count = _subviews.Count();
 			for(machine_uint i=0; i<count; i++)

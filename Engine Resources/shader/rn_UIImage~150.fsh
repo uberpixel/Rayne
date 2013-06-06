@@ -1,5 +1,5 @@
 //
-//  rn_ImageView.vsh
+//  rn_UIImage.fsh
 //  Rayne
 //
 //  Copyright 2013 by Überpixel. All rights reserved.
@@ -9,15 +9,17 @@
 #version 150
 precision highp float;
 
-#include "rn_Matrices.vsh"
+#include "rn_Discard.fsh"
 
-in vec2 attPosition;
-in vec2 attTexcoord0;
+uniform sampler2D mTexture0;
 
-out vec2 vertTexcoord;
+in vec2 vertTexcoord;
+out vec4 fragColor0;
 
 void main()
 {
-	vertTexcoord = attTexcoord0;
-	gl_Position = matProjViewModel * vec4(attPosition, 1.0, 1.0);
+	vec4 color = texture(mTexture0, vertTexcoord);
+	rn_Discard(color);
+
+	fragColor0 = color;
 }

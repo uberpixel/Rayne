@@ -31,6 +31,9 @@ namespace RN
 			View(const Rect& frame);
 			~View() override;
 			
+			Vector2 ConvertPointToView(View *view, const Vector2& point);
+			Vector2 ConvertPointFromView(View *view, const Vector2& point);
+			
 			Rect ConvertRectToView(View *view, const Rect& frame);
 			
 			const Rect& Frame() const { return _frame; }
@@ -47,14 +50,11 @@ namespace RN
 			void NeedsLayoutUpdate();
 			
 		protected:
-			static Mesh *BasicMesh();
+			Mesh *BasicMesh(const Vector2& size);
+			Material *DrawMaterial() { return _material; }
 			
 			virtual void Update();
 			virtual bool Render(RenderingObject& object);
-			
-			void SetScaleWithFrame(bool scale);
-			
-			Material *DrawMaterial() { return _material; }
 			
 			Matrix transform;
 			
@@ -68,15 +68,10 @@ namespace RN
 			View *_superview;
 			Widget *_widget;
 			Material *_material;
-			Material *_viewMaterial;
-			
-			Mesh *_mesh;
-			
+
 			Array _subviews;
 			
-			bool _dirtyLayout;
-			bool _scaleWithFrame;
-			
+			bool _dirtyLayout;			
 			Rect _frame;
 			
 			Matrix _finalTransform;

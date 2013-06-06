@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNTexture.h"
+#include "RNMesh.h"
 #include "RNUIGeometry.h"
 
 namespace RN
@@ -34,6 +35,7 @@ namespace RN
 			const EdgeInsets& Insets() const { return _insets; }
 			
 			Texture *Texture() const { return _texture; }
+			Mesh *FittingMesh();
 			
 			uint32 Width(bool atlasApplied=true) const;
 			uint32 Height(bool atlasApplied=true) const;
@@ -42,6 +44,9 @@ namespace RN
 			class Texture *_texture;
 			class Atlas _atlas;
 			EdgeInsets _insets;
+			
+			bool _mutated;
+			Mesh *_mesh;
 			
 			RNDefineMeta(Image, Object)
 		};

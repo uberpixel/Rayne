@@ -33,7 +33,7 @@ namespace RN
 			if(image)
 			{
 				Rect frame = Frame();
-				frame.width = image->Width();
+				frame.width  = image->Width();
 				frame.height = image->Height();
 				
 				SetFrame(frame);
@@ -43,7 +43,8 @@ namespace RN
 		
 		ImageView::~ImageView()
 		{
-			_mesh->Release();
+			if(_mesh)
+				_mesh->Release();
 			
 			if(_image)
 				_image->Release();
@@ -52,16 +53,10 @@ namespace RN
 		
 		void ImageView::Initialize()
 		{
-			static std::once_flag flag;
-			std::call_once(flag, []() {
-				Shader *shader = new Shader("shader/rn_ImageView");
-				ResourcePool::SharedInstance()->AddResource(shader, kRNImageViewShaderResourceName);
-			});
-			
-			Shader *shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNImageViewShaderResourceName);
+			Shader *shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUIImageShader);
 			DrawMaterial()->SetShader(shader);
 			
-			_mesh = BasicMesh()->Retain();
+			_mesh  = nullptr;
 			_image = 0;
 		}
 
@@ -72,16 +67,23 @@ namespace RN
 			DrawMaterial()->RemoveTextures();
 			
 			if(_image)
+			{
 				_image->Release();
+				_image = nullptr;
+			}
+			
+			if(_mesh)
+			{
+				_mesh->Release();
+				_mesh = nullptr;
+			}
 			
 			if(image)
 			{
 				DrawMaterial()->AddTexture(image->Texture());
+				
 				_image = image->Retain();
-			}
-			else
-			{
-				_image = 0;
+				_mesh  = _image->FittingMesh()->Retain();
 			}
 		}
 		

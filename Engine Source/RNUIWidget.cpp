@@ -14,9 +14,7 @@ namespace RN
 	namespace UI
 	{
 		RNDeclareMeta(Widget)
-		
-		static Widget *__MainWidget = 0;
-		
+
 		Widget::Widget()
 		{
 			Initialize();

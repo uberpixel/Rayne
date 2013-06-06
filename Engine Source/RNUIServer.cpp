@@ -26,21 +26,13 @@ namespace RN
 			
 			if(_camera->Container())
 				_camera->Container()->RemoveSceneNode(_camera);
+			
+			_mainWidget = nullptr;
 		}
 		
 		Server::~Server()
 		{
 			_camera->Release();
-		}
-		
-		uint32 Server::Height() const
-		{
-			return _frame.height;
-		}
-		
-		uint32 Server::Width() const
-		{
-			return _frame.width;
 		}
 		
 		void Server::AddWidget(Widget *widget)

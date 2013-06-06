@@ -28,12 +28,14 @@ namespace RN
 			virtual bool ResignFirstResponder();
 			
 			bool IsFirstResponder() const;
-			static Responder *FirstResponder();
+			static Responder *FirstResponder() { return _firstResponder; }
 			
 		protected:
 			Responder();
-			virtual ~Responder();
-	};
+			~Responder() override;
+			
+			static Responder *_firstResponder;
+		};
 	}
 }
 

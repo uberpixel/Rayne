@@ -35,7 +35,7 @@ namespace RN
 			Mesh *UpdateMeshForImage();
 			
 			Image *_image;
-			Mesh *_mesh;
+			Mesh  *_mesh;
 		};
 	}
 }

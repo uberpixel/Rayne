@@ -12,14 +12,17 @@ namespace RN
 {
 	namespace UI
 	{
-		static Responder *__FirstResponder = 0;
+		Responder *Responder::_firstResponder = 0;
 		
 		Responder::Responder()
-		{
-		}
+		{}
 		
 		Responder::~Responder()
 		{
+			if(_firstResponder == this)
+			{
+				_firstResponder = 0;
+			}
 		}
 		
 		
@@ -37,30 +40,31 @@ namespace RN
 		
 		bool Responder::CanResignFirstReponder() const
 		{
-			return (this == __FirstResponder);
+			return (this == _firstResponder);
 		}
+		
 		
 		
 		bool Responder::BecomeFirstResponder()
 		{
-			if(__FirstResponder)
+			if(_firstResponder)
 			{
-				if(!__FirstResponder->CanResignFirstReponder())
+				if(!_firstResponder->CanResignFirstReponder())
 					return false;
 				
-				if(!__FirstResponder->ResignFirstResponder())
+				if(!_firstResponder->ResignFirstResponder())
 					return false;
 			}
 			
-			__FirstResponder = this;
+			_firstResponder = this;
 			return true;
 		}
 		
 		bool Responder::ResignFirstResponder()
 		{
-			if(this == __FirstResponder)
+			if(_firstResponder == this)
 			{
-				__FirstResponder = 0;
+				_firstResponder = 0;
 				return true;
 			}
 			
@@ -71,12 +75,7 @@ namespace RN
 		
 		bool Responder::IsFirstResponder() const
 		{
-			return (this == __FirstResponder);
-		}
-		
-		Responder *Responder::FirstResponder()
-		{
-			return __FirstResponder;
+			return (this == _firstResponder);
 		}
 	}
 }
