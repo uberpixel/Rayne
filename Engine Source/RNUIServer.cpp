@@ -75,17 +75,17 @@ namespace RN
 			if(event->IsMouse())
 			{
 				const Vector2& position = event->MousePosition();
-				//printf("Position {%i, %i}\n", (int)position.x, (int)position.y);
 				
 				for(Widget *widget : _widgets)
 				{
 					if(widget->Frame().ContainsPoint(position))
 					{
-						printf("Is inside\n");
+						Vector2 transformed = widget->ContentView()->ConvertPointFromView(nullptr, position);
+						View *hit = widget->ContentView()->HitTest(transformed, event);
+						
 					}
 				}
 			}
-			//printf("Event...\n");
 		}
 		
 		

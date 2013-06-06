@@ -162,6 +162,9 @@ namespace RN
 				converted.y -= temp->_frame.y;
 			}
 			
+			converted.x -= _frame.x;
+			converted.y -= _frame.y;
+
 			return converted;
 		}
 		
@@ -175,6 +178,51 @@ namespace RN
 			converted.y = point.y;
 			
 			return converted;
+		}
+		
+		// ---------------------
+		// MARK: -
+		// MARK: Hit test
+		// ---------------------
+		
+		View *View::HitTest(const Vector2& tpoint, Event *event)
+		{
+			bool traverse = true;
+			View *potential = this;
+			Vector2 point = tpoint;
+			
+			while(traverse)
+			{
+				traverse = false;
+				
+				size_t count = potential->_subviews.Count();
+				for(size_t i=0; i<count; i++)
+				{
+					View *view = potential->_subviews.ObjectAtIndex<View>((count - 1) - i);
+					Vector2 transformed = std::move(view->ConvertPointFromView(potential, point));
+					
+					if(view->PointInside(transformed, event))
+					{
+						potential = view;
+						point = transformed;
+						
+						traverse = true;
+						break;
+					}
+				}
+			}
+			
+			return potential;
+		}
+		
+		bool View::PointInside(const Vector2& point, Event *event)
+		{
+			return Bounds().ContainsPoint(point);
+		}
+		
+		const Rect View::Bounds() const
+		{
+			return Rect(0.0f, 0.0f, _frame.width, _frame.height);
 		}
 		
 		// ---------------------

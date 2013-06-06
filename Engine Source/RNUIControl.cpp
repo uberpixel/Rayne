@@ -12,6 +12,8 @@ namespace RN
 {
 	namespace UI
 	{
+		RNDeclareMeta(Control)
+		
 		Control::Control()
 		{
 			_state = Control::Normal;

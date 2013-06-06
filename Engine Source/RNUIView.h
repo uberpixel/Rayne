@@ -16,6 +16,7 @@
 #include "RNRect.h"
 #include "RNCamera.h"
 #include "RNRenderer.h"
+#include "RNInput.h"
 #include "RNUIResponder.h"
 
 namespace RN
@@ -37,7 +38,7 @@ namespace RN
 			Rect ConvertRectToView(View *view, const Rect& frame);
 			
 			const Rect& Frame() const { return _frame; }
-			const Rect& Bounds() const;
+			const Rect Bounds() const;
 			
 			void SetFrame(const Rect& frame);
 			void SetBackgroundColor(const Color& color);
@@ -48,6 +49,9 @@ namespace RN
 			void RemoveFromSuperview();
 			
 			void NeedsLayoutUpdate();
+			
+			View *HitTest(const Vector2& point, Event *event);
+			virtual bool PointInside(const Vector2& point, Event *event);
 			
 		protected:
 			Mesh *BasicMesh(const Vector2& size);

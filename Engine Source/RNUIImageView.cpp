@@ -15,6 +15,8 @@ namespace RN
 {
 	namespace UI
 	{
+		RNDeclareMeta(ImageView)
+		
 		ImageView::ImageView()
 		{
 			Initialize();
