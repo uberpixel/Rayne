@@ -13,6 +13,8 @@
 #include "RNCamera.h"
 #include "RNUIWidget.h"
 #include "RNUIResponder.h"
+#include "RNUIControl.h"
+#include "RNInput.h"
 
 namespace RN
 {
@@ -25,6 +27,13 @@ namespace RN
 		friend class Widget;
 		friend class Kernel;
 		public:
+			enum class Mode
+			{
+				Deactivated,
+				SingleTracking,
+				MultiTracking
+			};
+			
 			Server();
 			~Server() override;
 			
@@ -39,11 +48,14 @@ namespace RN
 			void RemoveWidget(Widget *widget);
 			void MoveWidgetToFront(Widget *widget);
 			
+			void HandleEvent(Message *event);
+			
 			Camera *_camera;
 			Rect _frame;
+			Mode _mode;
 			
 			Widget *_mainWidget;
-			
+			Control *_activeControl;
 			std::deque<Widget *> _widgets;
 		};
 	}

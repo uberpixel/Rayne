@@ -70,6 +70,8 @@
 #include "RNUIResponder.h"
 #include "RNUIWidget.h"
 #include "RNUIView.h"
+#include "RNUIControl.h"
+#include "RNUIButton.h"
 #include "RNUIImageView.h"
 
 #include "RNWorld.h"

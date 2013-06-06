@@ -28,10 +28,15 @@ namespace RN
 				_camera->Container()->RemoveSceneNode(_camera);
 			
 			_mainWidget = nullptr;
+			_activeControl = nullptr;
+			_mode = Mode::SingleTracking;
+			
+			MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, std::bind(&Server::HandleEvent, this, std::placeholders::_1), this);
 		}
 		
 		Server::~Server()
 		{
+			MessageCenter::SharedInstance()->RemoveObserver(this);
 			_camera->Release();
 		}
 		
@@ -59,6 +64,28 @@ namespace RN
 			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
 			_widgets.push_front(widget);
+		}
+		
+		
+		
+		void Server::HandleEvent(Message *message)
+		{
+			Event *event = static_cast<Event *>(message);
+			
+			if(event->IsMouse())
+			{
+				const Vector2& position = event->MousePosition();
+				//printf("Position {%i, %i}\n", (int)position.x, (int)position.y);
+				
+				for(Widget *widget : _widgets)
+				{
+					if(widget->Frame().ContainsPoint(position))
+					{
+						printf("Is inside\n");
+					}
+				}
+			}
+			//printf("Event...\n");
 		}
 		
 		
