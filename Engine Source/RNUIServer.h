@@ -49,6 +49,7 @@ namespace RN
 			void MoveWidgetToFront(Widget *widget);
 			
 			void HandleEvent(Message *event);
+			void NotifyHitControl(Control *control, Event *event);
 			
 			Camera *_camera;
 			Rect _frame;

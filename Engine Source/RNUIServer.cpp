@@ -67,6 +67,22 @@ namespace RN
 		}
 		
 		
+		void Server::NotifyHitControl(Control *control, Event *event)
+		{
+			if(control == _activeControl)
+			{
+				control->ContinueTrackingEvent(event);
+				return;
+			}
+			
+			if(!_activeControl)
+			{
+				control->BeginTrackingEvent(event);
+				_activeControl = control;
+				
+				return;
+			}
+		}
 		
 		void Server::HandleEvent(Message *message)
 		{
@@ -75,15 +91,28 @@ namespace RN
 			if(event->IsMouse())
 			{
 				const Vector2& position = event->MousePosition();
+				View *hit = nullptr;
 				
 				for(Widget *widget : _widgets)
 				{
 					if(widget->Frame().ContainsPoint(position))
 					{
 						Vector2 transformed = widget->ContentView()->ConvertPointFromView(nullptr, position);
-						View *hit = widget->ContentView()->HitTest(transformed, event);
+						hit = widget->ContentView()->HitTest(transformed, event);
 						
+						break;
 					}
+				}
+				
+				if(hit && hit->IsKindOfClass(Control::MetaClass()))
+				{
+					Control *control = static_cast<Control *>(hit);
+					NotifyHitControl(control, event);
+				}
+				else if(_activeControl)
+				{
+					_activeControl->EndTrackingEvent(event);
+					_activeControl = nullptr;
 				}
 			}
 		}
