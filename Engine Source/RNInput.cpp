@@ -98,7 +98,7 @@ namespace RN
 	
 	Input::Input()
 	{
-		_active = false;
+		_active = true;
 	}
 	
 	Input::~Input()

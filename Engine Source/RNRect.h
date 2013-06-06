@@ -120,7 +120,7 @@ namespace RN
 	
 	RN_INLINE bool Rect::ContainsPoint(const Vector2& point) const
 	{
-		return ((x >= point.x && x <= point.x + width) && (y >= point.y && y <= point.y + height));
+		return ((point.x >= x && point.x <= x + width) && (point.y >= y && point.y <= y + height));
 	}
 	
 	RN_INLINE bool Rect::IntersectsRect(const Rect& other) const
