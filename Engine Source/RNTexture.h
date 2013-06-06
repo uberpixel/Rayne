@@ -114,6 +114,7 @@ namespace RN
 		
 		RNAPI void SetDepth(uint32 depth);
 		RNAPI void SetData(const void *data, uint32 width, uint32 height, TextureParameter::Format format);
+		void GetData(void *data, GLuint format, GLuint type);
 		RNAPI void UpdateData(const void *data, TextureParameter::Format format);
 		RNAPI void UpdateRegion(const void *data, const Rect& region, TextureParameter::Format format);
 		RNAPI void UpdateMipmaps();

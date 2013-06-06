@@ -290,6 +290,13 @@ namespace RN
 			free(converted);
 	}
 	
+	void Texture::GetData(void *data, GLuint format, GLuint type)
+	{
+		Bind();
+		glGetTexImage(_glType, 0, format, type, data);
+		Unbind();
+	}
+	
 	void Texture::UpdateData(const void *data, TextureParameter::Format format)
 	{
 		if(!_isCompleteTexture)
