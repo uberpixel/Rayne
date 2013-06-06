@@ -13,6 +13,8 @@ namespace RN
 {
 	namespace UI
 	{
+		RNDeclareMeta(Button)
+		
 		Button::Button()
 		{
 			Initialize();

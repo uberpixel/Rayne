@@ -36,8 +36,7 @@ namespace RN
 				MouseUpInside,
 				MouseUpOutside,
 				
-				ValueChanged,
-				StateChanged
+				ValueChanged
 			};
 			
 			typedef std::function<void (Control *, EventType)> Callback;
@@ -49,7 +48,6 @@ namespace RN
 			bool IsHighlighted() const { return _state & Control::Highlighted; }
 			bool IsSelected() const { return _state & Control::Selected; }
 			bool IsEnabled() const { return !(_state & Control::Disabled); }
-			bool IsTracking() const { return _tracking; }
 			
 			State ControlState() const { return _state; }
 			
@@ -66,14 +64,17 @@ namespace RN
 			~Control() override;
 			
 			virtual void StateChanged(State state);
+			
 			void PostEvent(EventType event);
+			bool IsEventWithinBounds(Event *event);
 			
-			Vector2 LocationOfEvent(Event *event);
-			bool EventIsInsideFrame(Event *event);
+		private:
+			void ConsumeMouseClicks(Event *event);
+			void ConsumeMouseMove(Event *event);
 			
-		private:			
-			bool _tracking;
 			State _state;
+			
+			bool _mouseDown;
 			
 			struct EventListener
 			{
@@ -82,6 +83,8 @@ namespace RN
 			};
 			
 			std::map<EventType, std::vector<EventListener>> _listener;
+			
+			RNDefineMeta(Control, View)
 		};
 	}
 }

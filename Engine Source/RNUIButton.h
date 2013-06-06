@@ -39,6 +39,8 @@ namespace RN
 			
 			Image *_activeImage;
 			Mesh  *_mesh;
+			
+			RNDefineMeta(Button, Control)
 		};
 	}
 }

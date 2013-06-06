@@ -318,12 +318,17 @@ namespace RN
 		bool wasDirty = _dirty;
 		
 		MeshDescriptor *descriptor = Descriptor(kMeshFeatureVertices);
+		
+		bool is3D = (descriptor->elementMember == 3);
 		uint8 *pointer = _meshData + descriptor->offset;
 		
 		Vector3 *vertex = reinterpret_cast<Vector3 *>(pointer);
 		if(vertex)
 		{
 			max = min = *vertex;
+			
+			if(!is3D)
+				max.z = min.z = 0.0f;
 			
 			for(size_t i=1; i<descriptor->elementCount; i++)
 			{
@@ -332,11 +337,15 @@ namespace RN
 				
 				min.x = MIN(vertex->x, min.x);
 				min.y = MIN(vertex->y, min.y);
-				min.z = MIN(vertex->z, min.z);
 				
 				max.x = MAX(vertex->x, max.x);
 				max.y = MAX(vertex->y, max.y);
-				max.z = MAX(vertex->z, max.z);
+				
+				if(is3D)
+				{
+					min.z = MIN(vertex->z, min.z);
+					max.z = MAX(vertex->z, max.z);
+				}
 			}
 		}
 		

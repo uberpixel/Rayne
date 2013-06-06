@@ -36,6 +36,8 @@ namespace RN
 			
 			Image *_image;
 			Mesh  *_mesh;
+			
+			RNDefineMeta(ImageView, View)
 		};
 	}
 }
