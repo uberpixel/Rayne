@@ -41,8 +41,10 @@ namespace RN
 				lineBreakMode = LineBreakMode::WordWrapping;
 				maxLines = 1;
 				
-				constraintWidth = true;
+				constraintWidth  = true;
 				constraintHeight = true;
+				
+				kerning = true;
 			}
 			
 			TextAlignment alignment;
@@ -51,6 +53,7 @@ namespace RN
 			size_t maxLines;
 			bool constraintWidth;
 			bool constraintHeight;
+			bool kerning;
 		};
 	}
 }

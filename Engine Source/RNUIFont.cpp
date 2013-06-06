@@ -277,6 +277,8 @@ namespace RN
 		{
 			InitializeInternals();
 			
+			bool addedGlyphs = false;
+			
 			for(uint32 i=0; i<string->Length(); i++)
 			{
 				UniChar character = string->CharacterAtIndex(i);
@@ -284,9 +286,12 @@ namespace RN
 					continue;
 				
 				RenderGlyph(character);
+				addedGlyphs = true;
 			}
 			
-			UpdateKerning();
+			if(addedGlyphs)
+				UpdateKerning();
+			
 			DropInternals();
 		}
 		
@@ -314,28 +319,39 @@ namespace RN
 			Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
 			
 			// Generate a mesh for each glyph
-			size_t offsetX = 0;
-			size_t offsetY = 0;
+			float offsetX = 0;
+			float offsetY = 0;
 			
 			for(size_t i=0; i<string->Length(); i++)
 			{
 				UniChar character = string->CharacterAtIndex(static_cast<uint32>(i));
 				Glyph& glyph = _glyphs.at(character);
 				
-				size_t width  = glyph._region.width;
-				size_t height = glyph._region.height;
+				float x0 = offsetX + glyph.OffsetX();
+				float y1 = offsetY + glyph.OffsetY();
+				float x1 = x0 + glyph.Width();
+				float y0 = y1 - glyph.Height();
 				
 				if(i > 0)
 				{
+					if(style.kerning)
+					{
+						UniChar previous = string->CharacterAtIndex(static_cast<uint32>(i - 1));
+						float kerning = glyph.Kerning(previous);
+						
+						offsetX += kerning;
+						x0 += kerning;
+					}
+					
 					// Complete previous degenaration
-					*vertices ++ = Vector2(offsetX + width, offsetY + height);
+					*vertices ++ = Vector2(x1, y1);
 					*uvCoords ++ = Vector2(glyph._u1, glyph._v0);
 				}
 				
-				*vertices ++ = Vector2(offsetX + width, offsetY + height);
-				*vertices ++ = Vector2(offsetX, offsetY + height);
-				*vertices ++ = Vector2(offsetX + width, offsetY);
-				*vertices ++ = Vector2(offsetX, offsetY);
+				*vertices ++ = Vector2(x1, y1);
+				*vertices ++ = Vector2(x0, y1);
+				*vertices ++ = Vector2(x1, y0);
+				*vertices ++ = Vector2(x0, y0);
 				
 				*uvCoords ++ = Vector2(glyph._u1, glyph._v0);
 				*uvCoords ++ = Vector2(glyph._u0, glyph._v0);
@@ -346,11 +362,11 @@ namespace RN
 				{
 					// Degenerate the vertex
 					
-					*vertices ++ = Vector2(offsetX, offsetY);
+					*vertices ++ = Vector2(x0, y0);
 					*uvCoords ++ = Vector2(glyph._u0, glyph._v1);
 				}
 				
-				offsetX += width + 1;
+				offsetX += glyph.AdvanceX();
 			}
 			
 			mesh->ReleaseElement(kMeshFeatureVertices);

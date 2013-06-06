@@ -28,10 +28,10 @@ namespace RN
 		public:
 			
 			UniChar Character() const { return _character; }
-			float Kerning(UniChar character) const;
+			float Kerning(UniChar character) const; // Returns the kerning for this glyph rendered after the given character
 			
-			size_t Width() const  { return _region.width; }
-			size_t Height() const { return _region.height; }
+			float Width() const  { return _region.width; }
+			float Height() const { return _region.height; }
 			
 			int OffsetX() const { return _offset_x; }
 			int OffsetY() const { return _offset_y; }
