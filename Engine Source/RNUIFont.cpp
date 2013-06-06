@@ -54,7 +54,7 @@ namespace RN
 			_filterWeights[4] = 0x10;
 			
 			ResolveFontName(name);
-			RenderCharactersFromString(String(kRNCommonCharacters));
+			RenderGlyphsFromString(RNSTR(kRNCommonCharacters));
 		}
 		
 		Font::~Font()
@@ -241,13 +241,13 @@ namespace RN
 			_glyphs.insert(std::unordered_map<wchar_t, Glyph>::value_type(glyph._character, glyph));
 		}
 		
-		void Font::RenderCharactersFromString(const String& string)
+		void Font::RenderGlyphsFromString(String *string)
 		{
 			InitializeInternals();
 			
-			for(uint32 i=0; i<string.Length(); i++)
+			for(uint32 i=0; i<string->Length(); i++)
 			{
-				UniChar character = string.CharacterAtIndex(i);
+				UniChar character = string->CharacterAtIndex(i);
 				if(_glyphs.find(character) != _glyphs.end())
 					continue;
 				
@@ -255,6 +255,77 @@ namespace RN
 			}
 			
 			DropInternals();
+		}
+		
+		Mesh *Font::RenderString(String *string, const TextStyle& style)
+		{
+			RenderGlyphsFromString(string);
+			
+			size_t vertexCount = (string->Length() * 6) - 2; // Account for degenerated vertices
+			
+			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+			vertexDescriptor.elementMember = 2;
+			vertexDescriptor.elementSize   = sizeof(Vector2);
+			vertexDescriptor.elementCount  = vertexCount;
+			
+			MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
+			uvDescriptor.elementMember = 2;
+			uvDescriptor.elementSize   = sizeof(Vector2);
+			uvDescriptor.elementCount  = vertexCount;
+			
+			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor };
+			Mesh *mesh = new Mesh(descriptors);
+			
+			
+			Vector2 *vertices = mesh->Element<Vector2>(kMeshFeatureVertices);
+			Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
+			
+			// Generate a mesh for each glyph
+			size_t offsetX = 0;
+			size_t offsetY = 0;
+			
+			for(size_t i=0; i<string->Length(); i++)
+			{
+				UniChar character = string->CharacterAtIndex(static_cast<uint32>(i));
+				Glyph& glyph = _glyphs.at(character);
+				
+				size_t width  = glyph._region.width;
+				size_t height = glyph._region.height;
+				
+				if(i > 0)
+				{
+					// Complete previous degenaration
+					*vertices ++ = Vector2(offsetX + width, offsetY + height);
+					*uvCoords ++ = Vector2(glyph._u1, glyph._v0);
+				}
+				
+				*vertices ++ = Vector2(offsetX + width, offsetY + height);
+				*vertices ++ = Vector2(offsetX, offsetY + height);
+				*vertices ++ = Vector2(offsetX + width, offsetY);
+				*vertices ++ = Vector2(offsetX, offsetY);
+				
+				*uvCoords ++ = Vector2(glyph._u1, glyph._v0);
+				*uvCoords ++ = Vector2(glyph._u0, glyph._v0);
+				*uvCoords ++ = Vector2(glyph._u1, glyph._v1);
+				*uvCoords ++ = Vector2(glyph._u0, glyph._v1);
+				
+				if(i < string->Length() - 1)
+				{
+					// Degenerate the vertex
+					
+					*vertices ++ = Vector2(offsetX, offsetY);
+					*uvCoords ++ = Vector2(glyph._u0, glyph._v1);
+				}
+				
+				offsetX += width + 1;
+			}
+			
+			mesh->ReleaseElement(kMeshFeatureVertices);
+			mesh->ReleaseElement(kMeshFeatureUVSet0);
+			mesh->UpdateMesh();
+			mesh->SetMode(GL_TRIANGLE_STRIP);
+			
+			return mesh->Autorelease();
 		}
 	}
 	

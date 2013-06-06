@@ -14,6 +14,8 @@
 #include "RNTextureAtlas.h"
 #include "RNArray.h"
 #include "RNString.h"
+#include "RNMesh.h"
+#include "RNUITextStyle.h"
 
 namespace RN
 {
@@ -49,8 +51,10 @@ namespace RN
 			
 			static Font *WithName(const std::string& name, float size);
 			
-			void RenderCharactersFromString(const String& string);
-			TextureAtlas *Texture() const { return _texture; }
+			
+			
+			Mesh *RenderString(String *string, const TextStyle& style);
+			Texture *Texture() const { return _texture; }
 			
 		private:
 			void ResolveFontName(const std::string& name);
@@ -58,6 +62,7 @@ namespace RN
 			void DropInternals();
 			
 			void RenderGlyph(UniChar character);
+			void RenderGlyphsFromString(String *string);
 			
 			void *_finternals;
 			

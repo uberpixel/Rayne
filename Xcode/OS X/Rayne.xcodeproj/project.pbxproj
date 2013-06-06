@@ -122,6 +122,9 @@
 		E9A872E81757627500E06C27 /* RNData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872E61757627500E06C27 /* RNData.cpp */; };
 		E9A872E91757627500E06C27 /* RNData.h in Headers */ = {isa = PBXBuildFile; fileRef = E9A872E71757627500E06C27 /* RNData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9AB0DAB16D679DC000D1CF0 /* RNSceneNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AB0DAA16D679DC000D1CF0 /* RNSceneNode.cpp */; };
+		E9AD2A7F17610E8F00BC3E8F /* RNUILabel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AD2A7D17610E8F00BC3E8F /* RNUILabel.cpp */; };
+		E9AD2A8017610E8F00BC3E8F /* RNUILabel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9AD2A7E17610E8F00BC3E8F /* RNUILabel.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9AD2A8217612F8000BC3E8F /* RNUITextStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = E9AD2A811761165400BC3E8F /* RNUITextStyle.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9B03FEB16F277600016176B /* RNModule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92A626816DEA8C1006E68AF /* RNModule.cpp */; };
 		E9B03FEC16F279E40016176B /* RNModule.h in Headers */ = {isa = PBXBuildFile; fileRef = E92A626916DEA8C1006E68AF /* RNModule.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9B083B5171724A0009AD83F /* RNSphere.h in Headers */ = {isa = PBXBuildFile; fileRef = E9B083B417172486009AD83F /* RNSphere.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -325,6 +328,9 @@
 		E9A872E71757627500E06C27 /* RNData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNData.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E9AB0DAA16D679DC000D1CF0 /* RNSceneNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSceneNode.cpp; sourceTree = "<group>"; };
 		E9AB7F0E16D42522006BB4CB /* RNOpenGLExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNOpenGLExtensions.h; sourceTree = "<group>"; };
+		E9AD2A7D17610E8F00BC3E8F /* RNUILabel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUILabel.cpp; sourceTree = "<group>"; };
+		E9AD2A7E17610E8F00BC3E8F /* RNUILabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUILabel.h; sourceTree = "<group>"; };
+		E9AD2A811761165400BC3E8F /* RNUITextStyle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNUITextStyle.h; sourceTree = "<group>"; };
 		E9B083B417172486009AD83F /* RNSphere.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSphere.h; sourceTree = "<group>"; };
 		E9B083B61717503E009AD83F /* RNMath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNMath.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E9B083B817175354009AD83F /* RNSIMD.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSIMD.h; sourceTree = "<group>"; };
@@ -557,10 +563,13 @@
 				E9BEF3C11744442A0090C9CB /* RNUIImage.h */,
 				E9586E651730855600D24737 /* RNUIImageView.cpp */,
 				E9586E661730855600D24737 /* RNUIImageView.h */,
+				E9AD2A7D17610E8F00BC3E8F /* RNUILabel.cpp */,
+				E9AD2A7E17610E8F00BC3E8F /* RNUILabel.h */,
 				E9586E60173072B700D24737 /* RNUIResponder.cpp */,
 				E9586E61173072B700D24737 /* RNUIResponder.h */,
 				E9586E5C172FD40C00D24737 /* RNUIServer.cpp */,
 				E9586E5D172FD40C00D24737 /* RNUIServer.h */,
+				E9AD2A811761165400BC3E8F /* RNUITextStyle.h */,
 				E9D7DA7A172F9C7700A858CB /* RNUIView.cpp */,
 				E9D7DA7B172F9C7700A858CB /* RNUIView.h */,
 				E9D7DA76172F9C0D00A858CB /* RNUIWidget.cpp */,
@@ -809,6 +818,8 @@
 				E9F361FB175AB84800365C12 /* RNSerialization.h in Headers */,
 				E91C8CDA176006A300E9E8F2 /* RNUIControl.h in Headers */,
 				E91C8CDE176023EC00E9E8F2 /* RNUIButton.h in Headers */,
+				E9AD2A8017610E8F00BC3E8F /* RNUILabel.h in Headers */,
+				E9AD2A8217612F8000BC3E8F /* RNUITextStyle.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -973,6 +984,7 @@
 				E9F361FA175AB84800365C12 /* RNSerialization.cpp in Sources */,
 				E91C8CD9176006A300E9E8F2 /* RNUIControl.cpp in Sources */,
 				E91C8CDD176023EC00E9E8F2 /* RNUIButton.cpp in Sources */,
+				E9AD2A7F17610E8F00BC3E8F /* RNUILabel.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
