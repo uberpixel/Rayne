@@ -40,10 +40,12 @@ namespace TG
 			
 			if(node->IsKindOfClass(_lightClass))
 			{
-				RN::Debug::DrawBox(node->BoundingBox(), RN::Color::Yellow());
+				RN::Debug::DrawSphere(node->BoundingSphere(), RN::Color::Yellow(), 10);
+//				RN::Debug::DrawBox(node->BoundingBox(), RN::Color::Blue());
 			}
 			else
 			{
+				RN::Debug::DrawSphere(node->BoundingSphere(), RN::Color::Green());
 				RN::Debug::DrawBox(node->BoundingBox(), RN::Color::Red());
 			}
 		}

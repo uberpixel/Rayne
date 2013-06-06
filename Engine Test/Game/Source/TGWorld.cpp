@@ -419,11 +419,11 @@ namespace TG
 #endif
 		
 #if TGWorldFeatureLights
-		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
+/*		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->_lightcam = _camera;
 		_sunLight->ActivateSunShadows(true, 1024.0f);
-		_sunLight->SetColor(RN::Color(170, 170, 170));
+		_sunLight->SetColor(RN::Color(170, 170, 170));*/
 		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
@@ -436,19 +436,13 @@ namespace TG
 #else
 		_player->AttachChild(_spotLight);
 #endif
-		
-		RN::Light *light = new RN::Light();
-		light->SetPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
-		light->SetRange(10.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		
-/*		for(int i=0; i<10; i++)
+		for(int i=0; i<500; i++)
 		{
 			RN::Light *light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 70.0f - 35.0f, TGWorldRandom * 50.0f-10.0f, TGWorldRandom * 40.0f - 20.0f));
 			light->SetRange((TGWorldRandom * 5.0f) + 2.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		}*/
+		}
 #endif
 		
 		RN::Billboard *billboard = new RN::Billboard();

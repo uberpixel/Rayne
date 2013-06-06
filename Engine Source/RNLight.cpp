@@ -51,7 +51,7 @@ namespace RN
 		_range = range;
 		
 		SetBoundingSphere(Sphere(Vector3(), range));
-		SetBoundingBox(AABB(Vector3(), range));
+		SetBoundingBox(AABB(Vector3(), range), false);
 	}
 	
 	void Light::SetColor(const class Color& color)

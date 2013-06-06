@@ -13,6 +13,7 @@
 #include "RNVector.h"
 #include "RNColor.h"
 #include "RNAABB.h"
+#include "RNSphere.h"
 
 namespace RN
 {
@@ -25,6 +26,9 @@ namespace RN
 		
 		void DrawBox(const AABB& box, const Color& color);
 		void DrawBox(const Vector3& min, const Vector3& max, const Color& color);
+		
+		void DrawSphere(const Sphere& sphere, const Color& color, const int tesselation=20);
+		void DrawSphere(const Vector3 &pos, const float radius, const Color &color, const int tesselation=20);
 	}
 }
 

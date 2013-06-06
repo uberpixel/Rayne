@@ -266,6 +266,40 @@ namespace RN
 			EndLine();
 		}
 		
+		void DrawSphere(const Sphere& sphere, const Color& color, const int tesselation)
+		{
+			DrawSphere(sphere.Position(), sphere.radius, RN::Color::Yellow(), tesselation);
+		}
+		
+		void DrawSphere(const Vector3 &pos, const float radius, const Color &color, const int tesselation)
+		{
+			Quaternion rot;
+			Vector3 point(0.0f, 0.0f, radius);
+			Vector3 temp;
+			float offset = 360.0f/tesselation;
+			for(float pan = 0.0f; pan <= 180.0f; pan += offset)
+			{
+				for(float tilt = 0.0f; tilt <= 360.0f; tilt += offset)
+				{
+					rot.MakeEulerAngle(Vector3(pan, tilt, 0.0f));
+					temp = pos+rot.RotateVector(point);
+					AddLinePoint(temp, color);
+				}
+				CloseLine();
+			}
+			
+			for(float tilt = 0.0f; tilt <= 180.0f; tilt += offset)
+			{
+				for(float pan = 0.0f; pan <= 360.0f; pan += offset)
+				{
+					rot.MakeEulerAngle(Vector3(pan, tilt, 0.0f));
+					temp = pos+rot.RotateVector(point);
+					AddLinePoint(temp, color);
+				}
+				CloseLine();
+			}
+		}
+		
 		// ---------------------
 		// MARK: -
 		// MARK: Helper

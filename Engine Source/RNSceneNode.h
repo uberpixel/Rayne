@@ -360,8 +360,9 @@ namespace RN
 			_transformedBoundingBox.Rotate(_worldRotation);
 			
 			_transformedBoundingSphere = _boundingSphere;
-			_transformedBoundingSphere.offset = _worldPosition;
+			_transformedBoundingSphere.position = _worldPosition;
 			_transformedBoundingSphere *= _worldScale;
+			_transformedBoundingSphere.Rotate(_worldRotation);
 			
 			machine_uint count = _childs.Count();
 			for(machine_uint i=0; i<count; i++)
