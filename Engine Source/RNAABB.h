@@ -65,7 +65,6 @@ namespace RN
 	RN_INLINE AABB::AABB(const Vector3& pos, const float radius)
 	{
 		Vector3 dist = radius;
-		dist /= 1.7321f;
 		
 		minExtendBase = pos-dist;
 		maxExtendBase = pos+dist;

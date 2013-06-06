@@ -437,13 +437,18 @@ namespace TG
 		_player->AttachChild(_spotLight);
 #endif
 		
-		for(int i=0; i<500; i++)
+		RN::Light *light = new RN::Light();
+		light->SetPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
+		light->SetRange(10.0f);
+		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		
+/*		for(int i=0; i<10; i++)
 		{
 			RN::Light *light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 70.0f - 35.0f, TGWorldRandom * 50.0f-10.0f, TGWorldRandom * 40.0f - 20.0f));
 			light->SetRange((TGWorldRandom * 5.0f) + 2.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		}
+		}*/
 #endif
 		
 		RN::Billboard *billboard = new RN::Billboard();
@@ -466,7 +471,7 @@ namespace TG
 		_finalcam->clipfar = 100.0f;
 		_finalcam->UpdateProjection();
 		
-		RN::Water *water = new RN::Water((RN::Camera*)_finalcam, _refractPipeline->LastStage()->Camera()->Storage()->RenderTarget());
+//		RN::Water *water = new RN::Water((RN::Camera*)_finalcam, _refractPipeline->LastStage()->Camera()->Storage()->RenderTarget());
 	}
 	
 	
