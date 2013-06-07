@@ -19,12 +19,13 @@ namespace RN
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_Particle", kRNResourceKeyParticleShader));
 		
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_UIImage", kRNResourceKeyUIImageShader));
+		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_UIText", kRNResourceKeyUITextShader));
 
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_LightTileSampleFirst", kRNResourceKeyLightTileSampleFirstShader));
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_LightTileSample", kRNResourceKeyLightTileSampleShader));
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_LightDepth", kRNResourceKeyLightDepthShader));
 		
-		batch->AddTask(std::bind(&ResourcePool::LoadFont, this, "American Typewrite", kRNResourceKeyDefaultFont));
+		batch->AddTask(std::bind(&ResourcePool::LoadFont, this, "Helvetica Neue", kRNResourceKeyDefaultFont));
 	}
 	
 	void ResourcePool::LoadShader(const std::string& name, const std::string& key)
@@ -35,7 +36,7 @@ namespace RN
 	
 	void ResourcePool::LoadFont(const std::string& name, const std::string& key)
 	{
-		UI::Font *font = UI::Font::WithName(name, 12.0f);
+		UI::Font *font = UI::Font::WithName(name, 16.0f);
 		AddResource(font, key);
 	}
 	

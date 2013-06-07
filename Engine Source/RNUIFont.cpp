@@ -164,59 +164,56 @@ namespace RN
 			}
 			
 			error = FT_Load_Glyph(_internals->face, glyphIndex, flags);
-			
+			FT_Render_Glyph(_internals->face->glyph, FT_RENDER_MODE_NORMAL);
 			
 			FT_GlyphSlot slot = _internals->face->glyph;
 			FT_Bitmap bitmap  = slot->bitmap;
 			
-			size_t size = bitmap.width * bitmap.rows;
 			uint32 width  = bitmap.width;
 			uint32 height = bitmap.rows;
 
-			uint8 *data = new uint8[size * 4];
-			uint8 *temp = data;
+			uint8 *data = new uint8[width * height * 4];
 			
 			switch(bitmap.pixel_mode)
 			{
 				case FT_PIXEL_MODE_MONO:
-					for(size_t i=0; i<size; i++)
+					for(uint32 y=0; y<height; y++)
 					{
-						uint8 pixel = (bitmap.buffer[i] > 0) ? 255 : 0;
+						uint8 *source = bitmap.buffer + (y * bitmap.pitch);
+						uint8 *dest   = data + width * 4 * y;
 						
-						*temp ++ = pixel;
-						*temp ++ = pixel;
-						*temp ++ = pixel;
-						*temp ++ = pixel;
+						for(uint32 x=0; x<width; x++)
+						{
+							dest[x * 4] = (source[x / 8] & (0x80 >> (x & 7))) ? 255 : 0;
+							dest[x * 4 + 1] = dest[x * 4];
+							dest[x * 4 + 1] = dest[x * 4];
+							dest[x * 4 + 1] = dest[x * 4];
+						}
 					}
+					
 					break;
 					
 				case FT_PIXEL_MODE_GRAY:
-					for(size_t i=0; i<size; i++)
+					for(uint32 y=0; y<height; y++)
 					{
-						*temp ++ = bitmap.buffer[i];
-						*temp ++ = bitmap.buffer[i];
-						*temp ++ = bitmap.buffer[i];
-						*temp ++ = bitmap.buffer[i];
-					}
-					break;
-					
-				case FT_PIXEL_MODE_LCD:
-				{
-					width /= 3;
-					
-					for(size_t i=0; i<size; i++)
-					{
-						*temp ++ = bitmap.buffer[(i * 3) + 0];
-						*temp ++ = bitmap.buffer[(i * 3) + 1];
-						*temp ++ = bitmap.buffer[(i * 3) + 2];
+						uint8 *source = bitmap.buffer + (y * bitmap.pitch);
+						uint8 *dest   = data + width * 4 * y;
 						
-						*temp ++ = 255;
+						for(uint32 x=0; x<width; x++)
+						{
+							*dest ++ = *source;
+							*dest ++ = *source;
+							*dest ++ = *source;
+							*dest ++ = *source;
+							
+							source ++;
+						}
 					}
 					
 					break;
-				}
 					
 				default:
+					throw ErrorException(0);
 					return;
 			}
 			

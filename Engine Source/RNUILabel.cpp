@@ -37,11 +37,11 @@ namespace RN
 			_text = new String();
 			
 			_font  = nullptr;
-			_color = Color::White();
 			
 			SetFont(ResourcePool::SharedInstance()->ResourceWithName<Font>(kRNResourceKeyDefaultFont));
+			SetTextColor(Color::White());
 			
-			DrawMaterial()->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUIImageShader));
+			DrawMaterial()->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUITextShader));
 		}
 		
 		void Label::SetFont(Font *font)
@@ -63,6 +63,12 @@ namespace RN
 			
 			_text = text ? text->Retain() : new String();
 			_isDirty = true;
+		}
+		
+		void Label::SetTextColor(const Color& color)
+		{
+			_color = color;
+			DrawMaterial()->ambient = _color;
 		}
 		
 
