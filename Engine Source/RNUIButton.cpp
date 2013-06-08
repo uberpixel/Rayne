@@ -22,9 +22,6 @@ namespace RN
 		
 		Button::~Button()
 		{
-			if(_mesh)
-				_mesh->Release();
-			
 			for(auto i=_images.begin(); i!=_images.end(); i++)
 			{
 				i->second->Release();
@@ -33,8 +30,10 @@ namespace RN
 		
 		void Button::Initialize()
 		{
-			_mesh = nullptr;
-			_activeImage = nullptr;
+			_image = new ImageView();
+			_image->SetFrame(Bounds());
+			
+			AddSubview(_image);
 			
 			StateChanged(ControlState());
 			DrawMaterial()->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUIImageShader));
@@ -61,13 +60,45 @@ namespace RN
 			auto iterator = _images.find(state);
 			if(iterator != _images.end())
 			{
-				SetActiveImage(iterator->second);
+				_image->SetImage(iterator->second);
 				return true;
 			}
 			
 			return false;
 		}
 		
+		
+		void Button::SetFrame(const Rect& frame)
+		{
+			Control::SetFrame(frame);
+			_image->SetFrame(Bounds());
+		}
+		
+		
+		void Button::SetTitleForState(String *title, State state)
+		{
+			auto iterator = _titles.find(state);
+			if(iterator != _titles.end())
+			{
+				iterator->second->Release();
+				
+				if(title)
+				{
+					iterator->second = title->Retain();
+					
+					StateChanged(ControlState());
+					return;
+				}
+				
+				_titles.erase(iterator);
+				
+				StateChanged(ControlState());
+				return;
+			}
+			
+			_titles.insert(std::map<State, String *>::value_type(state, title->Retain()));
+			StateChanged(ControlState());
+		}
 		
 		void Button::SetImageForState(Image *image, State state)
 		{
@@ -92,35 +123,6 @@ namespace RN
 			
 			_images.insert(std::map<State, Image *>::value_type(state, image->Retain()));
 			StateChanged(ControlState());
-		}
-		
-		void Button::SetActiveImage(Image *image)
-		{
-			if(_mesh)
-			{
-				_mesh->Release();
-				_mesh = nullptr;
-			}
-			
-			_activeImage = image;
-			if(!image)
-				return;
-			
-			_mesh = image->FittingMesh(Frame().Size())->Retain();
-			
-			Rect frame = Frame();
-			frame.width  = image->Width();
-			frame.height = image->Height();
-			
-			SetFrame(frame);
-			DrawMaterial()->RemoveTextures();
-			DrawMaterial()->AddTexture(_activeImage->Texture());
-		}
-		
-		bool Button::Render(RenderingObject& object)
-		{
-			object.mesh = _mesh;
-			return (_activeImage != 0);
 		}
 	}
 }

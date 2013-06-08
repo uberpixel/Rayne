@@ -301,14 +301,9 @@ namespace RN
 			DropInternals();
 		}
 		
-		Vector2 Font::SizeOfString(String *string, const TextStyle& style)
+		float Font::WidthOfString(String *string)
 		{
-			RenderGlyphsFromString(string);
-			
 			float offsetX = 0.0f;
-			float offsetY = 0.0f;
-			
-			float lineHeight = 0.0f;
 			
 			for(size_t i=0; i<string->Length(); i++)
 			{
@@ -316,11 +311,27 @@ namespace RN
 				Glyph& glyph = _glyphs.at(character);
 				
 				offsetX += glyph.AdvanceX();
-				lineHeight = std::max(glyph.Height(), lineHeight);
 			}
 			
-			offsetY += lineHeight;			
-			return Vector2(offsetX, offsetY);
+			return offsetX;
+		}
+		
+		Vector2 Font::SizeOfString(String *string, const TextStyle& style)
+		{
+			RenderGlyphsFromString(string);
+			
+			float offsetX = 0.0f;
+			size_t lines = 1;
+			
+			for(size_t i=0; i<string->Length(); i++)
+			{
+				UniChar character = string->CharacterAtIndex(static_cast<uint32>(i));
+				Glyph& glyph = _glyphs.at(character);
+				
+				offsetX += glyph.AdvanceX();
+			}
+				
+			return Vector2(offsetX, lines * _height);
 		}
 		
 		Mesh *Font::RenderString(String *string, const TextStyle& style)

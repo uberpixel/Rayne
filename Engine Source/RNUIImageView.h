@@ -26,13 +26,17 @@ namespace RN
 			~ImageView() override;
 			
 			void SetImage(Image *image);
+			void SetFrame(const Rect& frame) override;
 			
 		protected:
+			void Update() override;
 			bool Render(RenderingObject& object) override;
 			
 		private:
 			void Initialize();
 			Mesh *UpdateMeshForImage();
+			
+			bool _isDirty;
 			
 			Image *_image;
 			Mesh  *_mesh;

@@ -10,6 +10,7 @@
 #include "RNUIWidget.h"
 #include "RNUIServer.h"
 #include "RNResourcePool.h"
+#include "RNDebug.h"
 
 #define kRNViewShaderResourceName "kRNViewShaderResourceName"
 
@@ -232,13 +233,11 @@ namespace RN
 		
 		void View::ViewHierarchyChanged()
 		{
-			if(_superview)
-				_widget = _superview->_widget;
-			
 			machine_uint count = _subviews.Count();
 			for(machine_uint i=0; i<count; i++)
 			{
 				View *subview = _subviews.ObjectAtIndex<View>(i);
+				subview->_widget = _widget;
 				subview->ViewHierarchyChanged();
 			}
 			
@@ -255,6 +254,7 @@ namespace RN
 			subview->_superview = this;
 			subview->_widget = _widget;
 			
+			subview->ViewHierarchyChanged();
 			NeedsLayoutUpdate();
 		}
 		
@@ -325,7 +325,7 @@ namespace RN
 		{
 			if(_dirtyLayout)
 			{
-				Rect converted = ConvertRectToView(0, _frame);
+				Rect converted = ConvertRectToView(nullptr, _frame);
 				float serverHeight = (_widget && _widget->_server) ? _widget->_server->Height() : 0.0f;
 				
 				if(_superview)
@@ -361,6 +361,15 @@ namespace RN
 		{
 			RenderingObject object;
 			PrepareRendering(object);
+			
+			Rect frame = ConvertRectToView(nullptr, _frame);
+			
+			Debug::AddLinePoint(Vector2(frame.Left(), frame.Top()), Color::Red());
+			Debug::AddLinePoint(Vector2(frame.Right(), frame.Top()), Color::Red());
+			Debug::AddLinePoint(Vector2(frame.Right(), frame.Bottom()), Color::Red());
+			Debug::AddLinePoint(Vector2(frame.Left(), frame.Bottom()), Color::Red());
+			Debug::AddLinePoint(Vector2(frame.Left(), frame.Top()), Color::Red());
+			Debug::EndLine();
 			
 			if(Render(object))
 				renderer->RenderObject(object);

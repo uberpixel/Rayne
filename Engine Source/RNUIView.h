@@ -40,7 +40,7 @@ namespace RN
 			const Rect& Frame() const { return _frame; }
 			const Rect Bounds() const;
 			
-			void SetFrame(const Rect& frame);
+			virtual void SetFrame(const Rect& frame);
 			void SetBackgroundColor(const Color& color);
 			
 			void AddSubview(View *subview);

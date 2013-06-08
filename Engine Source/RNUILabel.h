@@ -28,6 +28,10 @@ namespace RN
 			void SetTextColor(const Color& color);
 			void SetFont(Font *font);
 			
+			String *Text() const { return _text; }
+			Color TextColor() const { return _color; }
+			Font *TextFont() const { return _font; }
+			
 		protected:
 			void Update() override;
 			bool Render(RenderingObject& object) override;

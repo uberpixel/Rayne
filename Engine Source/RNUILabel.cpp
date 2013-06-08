@@ -93,6 +93,9 @@ namespace RN
 				TextStyle style(Vector2(Frame().width, Frame().height));
 				_mesh = _font->RenderString(_text, style)->Retain();
 				_isDirty = false;
+				
+				//Vector2 size = _font->SizeOfString(_text, style);
+				//printf("Size: {%f, %f}\n", size.x, size.y);
 			}
 		}
 		

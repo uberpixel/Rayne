@@ -11,8 +11,11 @@
 
 #include "RNBase.h"
 #include "RNMesh.h"
+#include "RNString.h"
 #include "RNUIImage.h"
 #include "RNUIControl.h"
+#include "RNUIImageView.h"
+#include "RNUILabel.h"
 
 namespace RN
 {
@@ -24,11 +27,13 @@ namespace RN
 			Button();
 			~Button() override;
 			
+			void SetTitleForState(String *title, State state);
 			void SetImageForState(Image *image, State state);
+			
+			void SetFrame(const Rect& frame) override;
 			
 		protected:
 			void StateChanged(State state) override;
-			bool Render(RenderingObject& object) override;
 			
 		private:
 			void Initialize();
@@ -36,9 +41,10 @@ namespace RN
 			void SetActiveImage(Image *image);
 			
 			std::map<State, Image *> _images;
+			std::map<State, String *> _titles;
 			
-			Image *_activeImage;
-			Mesh  *_mesh;
+			ImageView *_image;
+			Label *_label;
 			
 			RNDefineMeta(Button, Control)
 		};

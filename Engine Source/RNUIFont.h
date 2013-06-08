@@ -82,6 +82,7 @@ namespace RN
 			void RenderGlyph(UniChar character);
 			void RenderGlyphsFromString(String *string);
 			void UpdateKerning();
+			float WidthOfString(String *string);
 			
 			void *_finternals;
 			

@@ -31,6 +31,7 @@ namespace RN
 		ImageView::ImageView(Image *image)
 		{
 			Initialize();
+			_isDirty = true;
 			
 			if(image)
 			{
@@ -63,6 +64,11 @@ namespace RN
 		}
 
 		
+		void ImageView::SetFrame(const Rect& frame)
+		{
+			View::SetFrame(frame);
+			_isDirty = true;
+		}
 		
 		void ImageView::SetImage(Image *image)
 		{
@@ -73,19 +79,35 @@ namespace RN
 				_image->Release();
 				_image = nullptr;
 			}
-			
-			if(_mesh)
-			{
-				_mesh->Release();
-				_mesh = nullptr;
-			}
-			
+
 			if(image)
 			{
 				DrawMaterial()->AddTexture(image->Texture());
-				
 				_image = image->Retain();
-				_mesh  = _image->FittingMesh(Frame().Size())->Retain();
+			}
+			
+			_isDirty = true;
+		}
+		
+		void ImageView::Update()
+		{
+			View::Update();
+			
+			if(_isDirty)
+			{
+				if(_mesh)
+				{
+					_mesh->Release();
+					_mesh = nullptr;
+				}
+				
+				if(_image)
+				{
+					DrawMaterial()->AddTexture(_image->Texture());
+					_mesh = _image->FittingMesh(Frame().Size())->Retain();
+				}
+				
+				_isDirty = false;
 			}
 		}
 		

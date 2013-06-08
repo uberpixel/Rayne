@@ -49,7 +49,6 @@ namespace RN
 				yverts += 1;
 			if(_insets.bottom > 0.0f)
 				yverts += 1;
-				
 			
 			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
 			vertexDescriptor.elementMember = 2;
@@ -101,7 +100,7 @@ namespace RN
 					
 					*vertices ++ = Vector2(xpos, ypos);
 					
-					*uvCoords ++ = Vector2(xpos/Width()/(_atlas.u2-_atlas.u1)+_atlas.u1, 1.0-ypos/Height()/(_atlas.v2-_atlas.v1)+_atlas.v1);
+					*uvCoords ++ = Vector2(xpos/Width()/(_atlas.u2-_atlas.u1)+_atlas.u1, 1.0f-ypos/Height()/(_atlas.v2-_atlas.v1)+_atlas.v1);
 				}
 			}
 			for(uint16 x = 0; x < xverts-1; x++)
