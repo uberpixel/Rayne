@@ -117,6 +117,8 @@ namespace RN
 		RNAPI bool SupportsFeature(MeshFeature feature);
 		RNAPI size_t OffsetForFeature(MeshFeature feature);
 		
+		RNAPI float IntersectsRay(const Vector3 &position, const Vector3 &direction);
+		
 		size_t Stride() const { return _stride; };
 		
 		GLuint VBO();
@@ -135,6 +137,8 @@ namespace RN
 		void Initialize();
 		void AllocateStorage();
 		void RecalculateInternalData();
+		
+		float RayTriangleIntersection(const Vector3 &pos, const Vector3 &dir, const Vector3 &vert1, const Vector3 &vert2, const Vector3 &vert3);
 		
 		void *FetchElement(MeshFeature feature, size_t index);
 		void *CopyElement(MeshFeature feature);

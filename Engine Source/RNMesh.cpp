@@ -9,6 +9,7 @@
 #include "RNMesh.h"
 #include "RNKernel.h"
 #include "RNMemory.h"
+#include "RNDebug.h"
 
 namespace RN
 {
@@ -861,5 +862,82 @@ namespace RN
 		mesh->UpdateMesh();
 		
 		return mesh;
+	}
+	
+	float Mesh::RayTriangleIntersection(const Vector3 &pos, const Vector3 &dir, const Vector3 &vert1, const Vector3 &vert2, const Vector3 &vert3)
+	{
+		float u, v;
+		Vector3 edge1, edge2, tvec, pvec, qvec;
+		float det, inv_det;
+		
+		edge1 = vert2-vert1;
+		edge2 = vert3-vert1;
+		
+		pvec = dir.Cross(edge2);
+		det = pvec.Dot(edge1);
+		
+		if(det > -k::EpsilonFloat && det < k::EpsilonFloat)
+			return -1.0f;
+		
+		inv_det = 1.0f/det;
+		
+		tvec = pos-vert1;
+		u = tvec.Dot(pvec)*inv_det;
+		
+		if(u < 0.0f || u > 1.0f)
+			return -1.0f;
+		
+		qvec = tvec.Cross(edge1);
+		v = dir.Dot(qvec)*inv_det;
+		
+		if(v < 0.0f || u+v > 1.0f)
+			return -1.0f;
+		
+		//distance
+		float t = edge2.Dot(qvec)*inv_det;
+		return t;
+	}
+	
+	float Mesh::IntersectsRay(const Vector3 &position, const Vector3 &direction)
+	{
+		MeshDescriptor *posdescriptor = Descriptor(kMeshFeatureVertices);
+		MeshDescriptor *inddescriptor = Descriptor(kMeshFeatureIndices);
+		
+		bool is3D = (posdescriptor->elementMember == 3);
+		if(!is3D)
+			return -1.0f;
+		
+		uint8 *pospointer = _meshData + posdescriptor->offset;
+		uint8 *indpointer = _indices + inddescriptor->offset;
+		
+		float dist = -1.0f;
+			
+		for(size_t i=0; i < inddescriptor->elementCount; i += 3)
+		{
+			uint16 *index = reinterpret_cast<uint16*>(indpointer+i*inddescriptor->elementSize);
+			Vector3 *vertex = reinterpret_cast<Vector3 *>(pospointer+_stride*(*index));
+			Vector3 vert1 = *vertex;
+			
+			index = reinterpret_cast<uint16*>(indpointer+(i+1)*inddescriptor->elementSize);
+			vertex = reinterpret_cast<Vector3 *>(pospointer+_stride*(*index));
+			Vector3 vert2 = *vertex;
+			
+			index = reinterpret_cast<uint16*>(indpointer+(i+2)*inddescriptor->elementSize);
+			vertex = reinterpret_cast<Vector3 *>(pospointer+_stride*(*index));
+			Vector3 vert3 = *vertex;
+			
+			float result = RayTriangleIntersection(position, direction, vert1, vert2, vert3);
+			
+			if(result >= 0.0f)
+			{
+				if(dist < 0.0f)
+					dist = result;
+			
+				if(result < dist)
+					dist = result;
+			}
+		}
+		
+		return dist;
 	}
 }

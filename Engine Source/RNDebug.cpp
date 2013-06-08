@@ -298,6 +298,8 @@ namespace RN
 				}
 				CloseLine();
 			}
+			
+			EndLine();
 		}
 		
 		// ---------------------

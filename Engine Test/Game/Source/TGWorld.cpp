@@ -47,6 +47,7 @@ namespace TG
 		CreateCameras();
 		CreateSponza();
 //		CreateForest();
+//		CreateTest();
 		
 		RN::Input::SharedInstance()->Activate();
 		RN::MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, [&](RN::Message *message) {
@@ -66,7 +67,7 @@ namespace TG
 						break;
 						
 					case 'c':
-						SceneManager()->CastRay(_camera->Position(), _camera->Forward());
+						SceneManager()->CastRay(_camera->Position(), -_camera->Forward());
 						
 					default:
 						break;
@@ -120,6 +121,10 @@ namespace TG
 		_whitepoint = MIN(MAX(0.01f, _whitepoint), 10.0f);
 		RN::Renderer::SharedInstance()->SetHdrExposure(_exposure);
 		RN::Renderer::SharedInstance()->SetHdrWhitePoint(_whitepoint);
+		
+		float dist = SceneManager()->CastRay(_camera->Position(), -_camera->Forward());
+		RN::Sphere sphere(_camera->Position()-_camera->Forward()*dist, 1.0f);
+		RN::Debug::DrawSphere(sphere, RN::Color::Red(), 10.0f);
 	}
 	
 	void World::CreateCameras()
@@ -669,6 +674,22 @@ namespace TG
 			 });
 		}*/
 #endif
+	}
+	
+	void World::CreateTest()
+	{
+		// Ground
+		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
+		ground->MaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
+		
+		RN::Entity *ent = new RN::Entity();
+		ent->SetModel(ground);
+		
+		
+		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
+		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
+		_sunLight->_lightcam = _camera;
+		_sunLight->ActivateSunShadows(true);
 	}
 
 }

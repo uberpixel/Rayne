@@ -45,7 +45,7 @@ namespace TG
 			}
 			else
 			{
-				RN::Debug::DrawSphere(node->BoundingSphere(), RN::Color::Green());
+//				RN::Debug::DrawSphere(node->BoundingSphere(), RN::Color::Green());
 				RN::Debug::DrawBox(node->BoundingBox(), RN::Color::Red());
 			}
 		}

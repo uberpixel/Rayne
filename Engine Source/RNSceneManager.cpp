@@ -83,16 +83,44 @@ namespace RN
 		}
 	}
 	
-	void GenericSceneManager::CastRay(const Vector3 &position, const Vector3 &direction)
+	float GenericSceneManager::CastRay(const Vector3 &position, const Vector3 &direction)
 	{
+		float dist = -1.0f;
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
 			SceneNode *node = *i;
 			if(node->BoundingSphere().IntersectsRay(position, direction))
 			{
 				if(node->IsKindOfClass(RN::Catalogue::SharedInstance()->ClassWithName("RN::Entity")))
-					printf("found an intersection\n");
+				{
+					Entity *ent = static_cast<Entity*>(node);
+					Model *model = ent->Model();
+					if(model == NULL)
+						continue;
+					
+					Matrix matModelInv = ent->WorldTransform().Inverse();
+					
+					Vector3 temppos = matModelInv.Transform(position);
+					Vector4 tempdir = matModelInv.Transform(Vector4(direction, 0.0f));
+					
+					size_t meshcount = model->Meshes(0);
+					for(int i = 0; i < meshcount; i++)
+					{
+						float result = model->MeshAtIndex(0, i)->IntersectsRay(temppos, Vector3(tempdir));
+						
+						if(result >= 0.0f)
+						{
+							if(dist < 0.0f)
+								dist = result;
+						
+							if(result < dist)
+								dist = result;
+						}
+					}
+				}
 			}
 		}
+		
+		return dist;
 	}
 }

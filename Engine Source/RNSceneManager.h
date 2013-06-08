@@ -25,7 +25,7 @@ namespace RN
 		virtual void UpdateSceneNode(SceneNode *node) = 0;
 		
 		virtual void RenderScene(Camera *camera) = 0;
-		virtual void CastRay(const Vector3 &position, const Vector3 &direction) = 0;
+		virtual float CastRay(const Vector3 &position, const Vector3 &direction) = 0;
 		
 	protected:
 		SceneManager();
@@ -48,7 +48,7 @@ namespace RN
 		
 		virtual void RenderScene(Camera *camera);
 		
-		virtual void CastRay(const Vector3 &position, const Vector3 &direction);
+		virtual float CastRay(const Vector3 &position, const Vector3 &direction);
 		
 	private:
 		void RenderSceneNode(Camera *camera, SceneNode *node);
