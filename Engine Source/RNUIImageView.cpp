@@ -85,7 +85,7 @@ namespace RN
 				DrawMaterial()->AddTexture(image->Texture());
 				
 				_image = image->Retain();
-				_mesh  = _image->FittingMesh()->Retain();
+				_mesh  = _image->FittingMesh(Frame().Size())->Retain();
 			}
 		}
 		

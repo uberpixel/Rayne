@@ -35,7 +35,7 @@ namespace RN
 			const EdgeInsets& Insets() const { return _insets; }
 			
 			Texture *Texture() const { return _texture; }
-			Mesh *FittingMesh();
+			Mesh *FittingMesh(const Vector2& size);
 			
 			uint32 Width(bool atlasApplied=true) const;
 			uint32 Height(bool atlasApplied=true) const;
@@ -44,9 +44,6 @@ namespace RN
 			class Texture *_texture;
 			class Atlas _atlas;
 			EdgeInsets _insets;
-			
-			bool _mutated;
-			Mesh *_mesh;
 			
 			RNDefineMeta(Image, Object)
 		};

@@ -106,7 +106,7 @@ namespace RN
 			if(!image)
 				return;
 			
-			_mesh = image->FittingMesh()->Retain();
+			_mesh = image->FittingMesh(Frame().Size())->Retain();
 			
 			Rect frame = Frame();
 			frame.width  = image->Width();
