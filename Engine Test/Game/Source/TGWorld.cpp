@@ -122,9 +122,9 @@ namespace TG
 		RN::Renderer::SharedInstance()->SetHdrExposure(_exposure);
 		RN::Renderer::SharedInstance()->SetHdrWhitePoint(_whitepoint);
 		
-		float dist = SceneManager()->CastRay(_camera->Position(), -_camera->Forward());
+		/*float dist = SceneManager()->CastRay(_camera->Position(), -_camera->Forward());
 		RN::Sphere sphere(_camera->Position()-_camera->Forward()*dist, 1.0f);
-		RN::Debug::DrawSphere(sphere, RN::Color::Red(), 10.0f);
+		RN::Debug::DrawSphere(sphere, RN::Color::Red(), 50);*/
 	}
 	
 	void World::CreateCameras()

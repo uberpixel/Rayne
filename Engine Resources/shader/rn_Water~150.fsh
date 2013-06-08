@@ -15,6 +15,7 @@ uniform sampler2D mTexture2;
 
 uniform vec3 viewPosition;
 uniform vec2 clipPlanes;
+uniform vec4 frameSize;
 
 in vec3 vertProjPos;
 in vec3 vertPosition;
@@ -35,16 +36,13 @@ void main()
 	float base = 1 - dot(viewdir, vec3(0.0, 1.0, 0.0));
 	float exponential = pow(base, 5.0);
 	float fresnel = exponential + 0.01 * (1.0 - exponential);
-	
-	vec2 depth;
-	depth.x = refraction.a;
-	depth.y = gl_FragCoord.z;
-	depth = (clipPlanes.x * clipPlanes.y)/(depth*(clipPlanes.y-clipPlanes.x)-clipPlanes.y);
-	float depthdiff = depth.y-depth.x;
-	depthdiff *= 0.18;
-	
-	refraction = mix(refraction, vec4(0.0, 0.0, 0.0, 1.0), min(pow(depthdiff, 1.0/2.2), 1.0));
+
+	float depth1 = -(2.0f * clipPlanes.y * clipPlanes.x) / (clipPlanes.y - clipPlanes.x)/(refraction.a*2.0-1.0-(clipPlanes.y + clipPlanes.x) / (clipPlanes.y - clipPlanes.x));
+	float depth2 = 1.0/gl_FragCoord.w;// length(vertPosition-viewPosition);
+	float depthdiff = depth1-depth2;
+
+	refraction.rgb *= max(min(exp(-vec3(0.8, 0.4, 0.3)*depthdiff*2.0), 1.0), 0.0);
 	vec4 color0 = refraction+reflection*fresnel;
 	color0.a = 1.0;
-	fragColor0 = refraction;
+	fragColor0 = color0;
 }
