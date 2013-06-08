@@ -61,6 +61,7 @@ namespace RN
 			_filterWeights[4] = 0x10;
 			
 			ResolveFontName(name);
+			ReadMetrics();
 			RenderGlyphsFromString(RNSTR(kRNCommonCharacters));
 		}
 		
@@ -77,6 +78,14 @@ namespace RN
 		}
 		
 		
+		void Font::ReadMetrics()
+		{
+			InitializeInternals();
+			
+			_height = _internals->face->size->metrics.height / 64.0f;
+			
+			DropInternals();
+		}
 		
 		void Font::ResolveFontName(const std::string& name)
 		{
@@ -292,6 +301,28 @@ namespace RN
 			DropInternals();
 		}
 		
+		Vector2 Font::SizeOfString(String *string, const TextStyle& style)
+		{
+			RenderGlyphsFromString(string);
+			
+			float offsetX = 0.0f;
+			float offsetY = 0.0f;
+			
+			float lineHeight = 0.0f;
+			
+			for(size_t i=0; i<string->Length(); i++)
+			{
+				UniChar character = string->CharacterAtIndex(static_cast<uint32>(i));
+				Glyph& glyph = _glyphs.at(character);
+				
+				offsetX += glyph.AdvanceX();
+				lineHeight = std::max(glyph.Height(), lineHeight);
+			}
+			
+			offsetY += lineHeight;			
+			return Vector2(offsetX, offsetY);
+		}
+		
 		Mesh *Font::RenderString(String *string, const TextStyle& style)
 		{
 			RenderGlyphsFromString(string);
@@ -316,8 +347,8 @@ namespace RN
 			Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
 			
 			// Generate a mesh for each glyph
-			float offsetX = 0;
-			float offsetY = 0;
+			float offsetX = 0.0f;
+			float offsetY = 0.0f;
 			
 			for(size_t i=0; i<string->Length(); i++)
 			{
@@ -325,7 +356,7 @@ namespace RN
 				Glyph& glyph = _glyphs.at(character);
 				
 				float x0 = offsetX + glyph.OffsetX();
-				float y1 = offsetY + glyph.OffsetY();
+				float y1 = offsetY + glyph.OffsetY() + (style.size.y - _height);
 				float x1 = x0 + glyph.Width();
 				float y0 = y1 - glyph.Height();
 				
@@ -338,6 +369,18 @@ namespace RN
 						
 						offsetX += kerning;
 						x0 += kerning;
+					}
+					
+					if(style.constraintWidth && x0 >= style.size.x)
+					{
+						x0 = glyph.OffsetX();
+						x1 = glyph.Width();
+						
+						y0 -= _height;
+						y1 -= _height;
+						
+						offsetX = 0.0f;
+						offsetY -= _height;
 					}
 					
 					// Complete previous degenaration

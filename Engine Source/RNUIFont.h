@@ -68,13 +68,14 @@ namespace RN
 			
 			static Font *WithName(const std::string& name, float size);
 			
-			
-			
+			Vector2 SizeOfString(String *string, const TextStyle& style);
 			Mesh *RenderString(String *string, const TextStyle& style);
+			
 			Texture *Texture() const { return _texture; }
 			
 		private:
 			void ResolveFontName(const std::string& name);
+			void ReadMetrics();
 			void InitializeInternals();
 			void DropInternals();
 			
@@ -86,6 +87,7 @@ namespace RN
 			
 			std::string _fontPath;
 			float _size;
+			float _height;
 			
 			bool _filtering;
 			uint8 _filterWeights[5];
