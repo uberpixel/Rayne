@@ -409,6 +409,8 @@ namespace RN
 		CGGetActiveDisplayList(0, 0, &count);
 		CGDirectDisplayID *table = new CGDirectDisplayID[count];
 		
+		CGSize maxSize = [[NSScreen mainScreen] frame].size;
+		
 		CGGetActiveDisplayList(count, table, &count);
 		for(machine_uint i=0; i<count; i++)
 		{
@@ -431,7 +433,14 @@ namespace RN
 							uint32 width  = (uint32)CGDisplayModeGetPixelWidth(mode);
 							uint32 height = (uint32)CGDisplayModeGetPixelHeight(mode);
 							
-							if(width >= 1024 && height >= 768)
+							if(Kernel::SharedInstance()->ScaleFactor() >= 1.5f)
+							{
+								width  >>= 1;
+								height >>= 1;
+								
+								_configurations.emplace_back(WindowConfiguration(width, height));
+							}
+							else if(width >= 1024 && height >= 768)
 							{
 								_configurations.emplace_back(WindowConfiguration(mode));
 							}
@@ -494,7 +503,7 @@ namespace RN
 			
 			return false;
 		});
-
+		
 		SetTitle("");
 		SetConfiguration(_configurations.front(), _mask);
 	}
