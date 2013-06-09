@@ -42,6 +42,7 @@ namespace RN
 			
 			virtual void SetFrame(const Rect& frame);
 			void SetBackgroundColor(const Color& color);
+			void SetInteractionEnabled(bool enabled);
 			
 			void AddSubview(View *subview);
 			void RemoveSubview(View *subview);
@@ -75,6 +76,7 @@ namespace RN
 
 			Array _subviews;
 			
+			bool _interactionEnabled;
 			bool _dirtyLayout;			
 			Rect _frame;
 			

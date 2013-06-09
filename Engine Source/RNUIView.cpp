@@ -52,6 +52,7 @@ namespace RN
 			_superview = 0;
 			_widget = 0;
 			_dirtyLayout = true;
+			_interactionEnabled = true;
 			
 			_material = new Material(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNViewShaderResourceName));
 			_material->depthtest = false;
@@ -199,10 +200,10 @@ namespace RN
 				size_t count = potential->_subviews.Count();
 				for(size_t i=0; i<count; i++)
 				{
-					View *view = potential->_subviews.ObjectAtIndex<View>((count - 1) - i);
+					View *view = potential->_subviews.ObjectAtIndex<View>(i);
 					Vector2 transformed = std::move(view->ConvertPointFromView(potential, point));
 					
-					if(view->PointInside(transformed, event))
+					if(view->_interactionEnabled && view->PointInside(transformed, event))
 					{
 						potential = view;
 						point = transformed;
@@ -213,12 +214,17 @@ namespace RN
 				}
 			}
 			
-			return potential;
+			return (potential && potential->_interactionEnabled) ? potential : nullptr;
 		}
 		
 		bool View::PointInside(const Vector2& point, Event *event)
 		{
 			return Bounds().ContainsPoint(point);
+		}
+		
+		void View::SetInteractionEnabled(bool enabled)
+		{
+			_interactionEnabled = enabled;
 		}
 		
 		const Rect View::Bounds() const

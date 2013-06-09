@@ -31,7 +31,6 @@ namespace RN
 		ImageView::ImageView(Image *image)
 		{
 			Initialize();
-			_isDirty = true;
 			
 			if(image)
 			{
@@ -58,9 +57,11 @@ namespace RN
 		{
 			Shader *shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUIImageShader);
 			DrawMaterial()->SetShader(shader);
+			SetInteractionEnabled(false);
 			
 			_mesh  = nullptr;
 			_image = 0;
+			_isDirty = true;
 		}
 
 		
@@ -71,21 +72,14 @@ namespace RN
 		}
 		
 		void ImageView::SetImage(Image *image)
-		{
-			DrawMaterial()->RemoveTextures();
-			
+		{			
 			if(_image)
 			{
 				_image->Release();
 				_image = nullptr;
 			}
-
-			if(image)
-			{
-				DrawMaterial()->AddTexture(image->Texture());
-				_image = image->Retain();
-			}
 			
+			_image = image ? image->Retain() : nullptr;
 			_isDirty = true;
 		}
 		

@@ -40,6 +40,7 @@ namespace RN
 			
 			SetFont(ResourcePool::SharedInstance()->ResourceWithName<Font>(kRNResourceKeyDefaultFont));
 			SetTextColor(Color::White());
+			SetInteractionEnabled(false);
 			
 			DrawMaterial()->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUITextShader));
 		}

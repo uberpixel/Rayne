@@ -82,6 +82,15 @@ namespace RN
 				
 				return;
 			}
+			
+			if(control != _activeControl)
+			{
+				_activeControl->EndTrackingEvent(event);
+				_activeControl = control;
+			
+				_activeControl->BeginTrackingEvent(event);
+				return;
+			}
 		}
 		
 		void Server::HandleEvent(Message *message)
