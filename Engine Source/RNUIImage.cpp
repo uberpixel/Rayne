@@ -79,28 +79,53 @@ namespace RN
 				{
 					float xpos;
 					float ypos;
+					float xuv;
+					float yuv;
 					if(x == 0)
+					{
 						xpos = 0.0f;
+						xuv = 0.0f;
+					}
 					if(y == 0)
+					{
 						ypos = size.y;
+						yuv = 0.0f;
+					}
 					
 					if(x == xverts-1)
+					{
 						xpos = size.x;
+						xuv = 1.0f;
+					}
 					if(y == yverts-1)
+					{
 						ypos = 0.0f;
+						yuv = 1.0f;
+					}
 					
 					if(_insets.left > 0.0f && x == 1)
+					{
 						xpos = _insets.left;
+						xuv = _insets.left/Width();
+					}
 					if(_insets.right > 0.0f && x == xverts-2)
+					{
 						xpos = size.x-_insets.right;
+						xuv = 1.0f-_insets.right/Width();
+					}
 					if(_insets.top > 0.0f && y == 1)
+					{
 						ypos = size.y-_insets.top;
+						yuv = _insets.top/Height();
+					}
 					if(_insets.bottom > 0.0f && y == yverts-2)
+					{
 						ypos = _insets.bottom;
+						yuv = 1.0f-_insets.bottom/Height();
+					}
 					
 					*vertices ++ = Vector2(xpos, ypos);
-					
-					*uvCoords ++ = Vector2(xpos/Width()/(_atlas.u2-_atlas.u1)+_atlas.u1, 1.0f-ypos/Height()/(_atlas.v2-_atlas.v1)+_atlas.v1);
+					*uvCoords ++ = Vector2(xuv*(_atlas.u2-_atlas.u1)+_atlas.u1, yuv*(_atlas.v2-_atlas.v1)+_atlas.v1);
 				}
 			}
 			for(uint16 x = 0; x < xverts-1; x++)
@@ -135,7 +160,6 @@ namespace RN
 		
 		void Image::SetAtlas(const struct Atlas& atlas, bool normalized)
 		{
-//			_mutated = true;
 			_atlas   = atlas;
 			
 			if(!normalized)
@@ -144,17 +168,16 @@ namespace RN
 				uint32 height = Height(false);
 				
 				_atlas.u1 /= width;
-				_atlas.u2 = (width - _atlas.u2) / width;
+				_atlas.u2 /= width;
 				
 				_atlas.v1 /= height;
-				_atlas.v2 = (height - _atlas.v2) / height;
+				_atlas.v2 /= height;
 			}
 		}
 		
 		void Image::SetEdgeInsets(const EdgeInsets& insets)
 		{
 			_insets  = insets;
-//			_mutated = true;
 		}
 		
 		uint32 Image::Width(bool atlasApplied) const
