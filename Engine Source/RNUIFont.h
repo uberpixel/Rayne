@@ -68,6 +68,12 @@ namespace RN
 			
 			static Font *WithName(const std::string& name, float size);
 			
+			void SetHinting(bool hintingEnabled);
+			void SetFiltering(bool filteringEnabled);
+			
+			bool Hinting() const { return _hinting; }
+			bool Filtering() const { return _filtering; };
+			
 			Vector2 SizeOfString(String *string, const TextStyle& style);
 			Mesh *RenderString(String *string, const TextStyle& style);
 			
@@ -91,6 +97,7 @@ namespace RN
 			float _height;
 			
 			bool _filtering;
+			bool _hinting;
 			uint8 _filterWeights[5];
 			
 			TextureAtlas *_texture;

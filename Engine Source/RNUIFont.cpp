@@ -44,16 +44,18 @@ namespace RN
 			
 			parameter.mipMaps = 0;
 			parameter.generateMipMaps = false;
-			parameter.format = TextureParameter::Format::RGBA8888;
+			parameter.format = TextureParameter::Format::R8;
 			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
 			parameter.filter = TextureParameter::Filter::Nearest;
 			
-			_texture = new TextureAtlas(1024, 1024, parameter);
+			_texture = new TextureAtlas(4096, 4096, parameter);
 			
 			_finternals = 0;
 			_size = size;
 			
+			_hinting   = true;
 			_filtering = false;
+			
 			_filterWeights[0] = 0x10;
 			_filterWeights[1] = 0x40;
 			_filterWeights[2] = 0x70;
@@ -159,7 +161,7 @@ namespace RN
 		
 		void Font::RenderGlyph(UniChar character)
 		{
-			FT_Int32 flags = FT_LOAD_RENDER | FT_LOAD_FORCE_AUTOHINT;
+			FT_Int32 flags = FT_LOAD_RENDER;
 			FT_Error error;
 			
 			FT_UInt glyphIndex = FT_Get_Char_Index(_internals->face, character);
@@ -172,6 +174,8 @@ namespace RN
 				flags |= FT_LOAD_TARGET_LCD;
 			}
 			
+			flags |= (_hinting) ? FT_LOAD_FORCE_AUTOHINT : FT_LOAD_NO_HINTING | FT_LOAD_NO_AUTOHINT;
+			
 			error = FT_Load_Glyph(_internals->face, glyphIndex, flags);
 			FT_Render_Glyph(_internals->face->glyph, FT_RENDER_MODE_NORMAL);
 			
@@ -181,7 +185,7 @@ namespace RN
 			uint32 width  = bitmap.width;
 			uint32 height = bitmap.rows;
 
-			uint8 *data = new uint8[width * height * 4];
+			uint8 *data = new uint8[width * height];
 			
 			switch(bitmap.pixel_mode)
 			{
@@ -194,9 +198,6 @@ namespace RN
 						for(uint32 x=0; x<width; x++)
 						{
 							dest[x * 4] = (source[x / 8] & (0x80 >> (x & 7))) ? 255 : 0;
-							dest[x * 4 + 1] = dest[x * 4];
-							dest[x * 4 + 1] = dest[x * 4];
-							dest[x * 4 + 1] = dest[x * 4];
 						}
 					}
 					
@@ -206,16 +207,11 @@ namespace RN
 					for(uint32 y=0; y<height; y++)
 					{
 						uint8 *source = bitmap.buffer + (y * bitmap.pitch);
-						uint8 *dest   = data + width * 4 * y;
+						uint8 *dest   = data + width * y;
 						
 						for(uint32 x=0; x<width; x++)
 						{
-							*dest ++ = *source;
-							*dest ++ = *source;
-							*dest ++ = *source;
-							*dest ++ = *source;
-							
-							source ++;
+							*dest ++ = *source ++;
 						}
 					}
 					
@@ -230,7 +226,7 @@ namespace RN
 			rect.width  -= 1.0f;
 			rect.height -= 1.0f;
 			
-			_texture->SetRegionData(rect, data, TextureParameter::Format::RGBA8888);
+			_texture->SetRegionData(rect, data, TextureParameter::Format::R8);
 			delete [] data;
 			
 			Glyph glyph;
