@@ -93,6 +93,8 @@ namespace RN
 		bool Alt() const { return (_modifierKeys & KeyModifier::KeyAlt); }
 		bool Command() const { return (_modifierKeys & KeyModifier::KeyCommand); }
 		
+		uint32 Button() const { return _button; }
+		
 		bool IsKeyboard() const;
 		bool IsMouse() const;
 		
