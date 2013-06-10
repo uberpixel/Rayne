@@ -51,7 +51,17 @@
 	RN::Input::SharedInstance()->HandleEvent(theEvent);
 }
 
+- (void)rightMouseDown:(NSEvent *)theEvent
+{
+	RN::Input::SharedInstance()->HandleEvent(theEvent);
+}
+
 - (void)mouseMoved:(NSEvent *)theEvent
+{
+	RN::Input::SharedInstance()->HandleEvent(theEvent);
+}
+
+- (void)rightMouseMoved:(NSEvent *)theEvent
 {
 	RN::Input::SharedInstance()->HandleEvent(theEvent);
 }
@@ -61,7 +71,17 @@
 	RN::Input::SharedInstance()->HandleEvent(theEvent);
 }
 
+- (void)rightMouseDragged:(NSEvent *)theEvent
+{
+	RN::Input::SharedInstance()->HandleEvent(theEvent);
+}
+
 - (void)mouseUp:(NSEvent *)theEvent
+{
+	RN::Input::SharedInstance()->HandleEvent(theEvent);
+}
+
+- (void)rightMouseUp:(NSEvent *)theEvent
 {
 	RN::Input::SharedInstance()->HandleEvent(theEvent);
 }
