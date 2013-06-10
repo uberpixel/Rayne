@@ -9,8 +9,6 @@
 #version 150
 precision highp float;
 
-#include "rn_Discard.fsh"
-
 uniform sampler2D mTexture0;
 uniform vec4 ambient;
 
@@ -19,9 +17,7 @@ out vec4 fragColor0;
 
 void main()
 {
-	vec4 color = texture(mTexture0, vertTexcoord);
-	rn_Discard(color);
-
-	vec4 result = color * pow(color.a, -0.8);
+	float color = texture(mTexture0, vertTexcoord).r;
+	vec4 result = vec4(vec3(1.0) * pow(color, 1), color);
 	fragColor0 = result;
 }
