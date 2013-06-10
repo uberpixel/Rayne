@@ -50,6 +50,7 @@
 #include "RNRect.h"
 #include "RNVector.h"
 #include "RNInterpolation.h"
+#include "RNHit.h"
 
 #include "RNRenderer.h"
 

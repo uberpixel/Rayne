@@ -16,6 +16,7 @@
 #include "RNColor.h"
 #include "RNAABB.h"
 #include "RNSphere.h"
+#include "RNHit.h"
 
 namespace RN
 {
@@ -117,7 +118,7 @@ namespace RN
 		RNAPI bool SupportsFeature(MeshFeature feature);
 		RNAPI size_t OffsetForFeature(MeshFeature feature);
 		
-		RNAPI float IntersectsRay(const Vector3 &position, const Vector3 &direction);
+		RNAPI Hit IntersectsRay(const Vector3 &position, const Vector3 &direction);
 		
 		size_t Stride() const { return _stride; };
 		

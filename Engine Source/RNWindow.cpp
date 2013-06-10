@@ -409,8 +409,6 @@ namespace RN
 		CGGetActiveDisplayList(0, 0, &count);
 		CGDirectDisplayID *table = new CGDirectDisplayID[count];
 		
-		CGSize maxSize = [[NSScreen mainScreen] frame].size;
-		
 		CGGetActiveDisplayList(count, table, &count);
 		for(machine_uint i=0; i<count; i++)
 		{
@@ -438,7 +436,8 @@ namespace RN
 								width  >>= 1;
 								height >>= 1;
 								
-								_configurations.emplace_back(WindowConfiguration(width, height));
+								if(width >= 512 && height >= 384)
+									_configurations.emplace_back(WindowConfiguration(width, height));
 							}
 							else if(width >= 1024 && height >= 768)
 							{

@@ -14,6 +14,7 @@
 #include "RNCamera.h"
 #include "RNEntity.h"
 #include "RNRenderer.h"
+#include "RNHit.h"
 
 namespace RN
 {
@@ -25,7 +26,7 @@ namespace RN
 		virtual void UpdateSceneNode(SceneNode *node) = 0;
 		
 		virtual void RenderScene(Camera *camera) = 0;
-		virtual float CastRay(const Vector3 &position, const Vector3 &direction) = 0;
+		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, unsigned long ignore = 0xffffffff) = 0;
 		
 	protected:
 		SceneManager();
@@ -48,7 +49,7 @@ namespace RN
 		
 		virtual void RenderScene(Camera *camera);
 		
-		virtual float CastRay(const Vector3 &position, const Vector3 &direction);
+		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, unsigned long ignore = 0xffffffff);
 		
 	private:
 		void RenderSceneNode(Camera *camera, SceneNode *node);

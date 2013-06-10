@@ -83,12 +83,15 @@ namespace RN
 		}
 	}
 	
-	float GenericSceneManager::CastRay(const Vector3 &position, const Vector3 &direction)
+	Hit GenericSceneManager::CastRay(const Vector3 &position, const Vector3 &direction, unsigned long ignore)
 	{
-		float dist = -1.0f;
+		Hit hit;
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
 			SceneNode *node = *i;
+			if(!(ignore & (1 << node->group)))
+				continue;
+				
 			if(node->BoundingSphere().IntersectsRay(position, direction))
 			{
 				if(node->IsKindOfClass(RN::Catalogue::SharedInstance()->ClassWithName("RN::Entity")))
@@ -106,21 +109,23 @@ namespace RN
 					size_t meshcount = model->Meshes(0);
 					for(int i = 0; i < meshcount; i++)
 					{
-						float result = model->MeshAtIndex(0, i)->IntersectsRay(temppos, Vector3(tempdir));
+						Hit result = model->MeshAtIndex(0, i)->IntersectsRay(temppos, Vector3(tempdir));
+						result.node = node;
+						result.meshid = i;
 						
-						if(result >= 0.0f)
+						if(result.distance >= 0.0f)
 						{
-							if(dist < 0.0f)
-								dist = result;
+							if(hit.distance < 0.0f)
+								hit = result;
 						
-							if(result < dist)
-								dist = result;
+							if(result.distance < hit.distance)
+								hit = result;
 						}
 					}
 				}
 			}
 		}
 		
-		return dist;
+		return hit;
 	}
 }

@@ -300,6 +300,24 @@ namespace RN
 				
 				break;
 			}
+			
+			case NSRightMouseDragged:
+			case NSLeftMouseDragged:
+			case NSOtherMouseDragged:
+			{
+				Vector2 position = std::move(TranslateMouseEvent(nsevent));
+				Vector2 delta = _realMousePosition - position;
+				
+				_mouseDelta += delta;
+				_realMousePosition = std::move(position);
+				_mousePosition = std::move(ClampMousePosition(_realMousePosition));
+				
+				event->_button = static_cast<uint32>([nsevent buttonNumber]);
+				event->_type = Event::Type::MouseDragged;
+				event->_mouseDelta = delta;
+				event->_mousePosition = _mousePosition;
+				break;
+			}
 				
 			case NSMouseMoved:
 			{

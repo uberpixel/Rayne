@@ -60,18 +60,20 @@ namespace RN
 			uvDescriptor.elementSize   = sizeof(Vector2);
 			uvDescriptor.elementCount  = xverts*yverts;
 			
-			MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+/*			MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
 			indicesDescriptor.elementMember = 1;
 			indicesDescriptor.elementSize = sizeof(uint16);
-			indicesDescriptor.elementCount = (xverts-1)*(yverts-1)*3*2;
-			
-			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor, indicesDescriptor };
+			indicesDescriptor.elementCount = (xverts-1)*(yverts-1)*3*2;*/
+	
+			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor };
 			Mesh *mesh = new Mesh(descriptors);
-			mesh->SetMode(GL_TRIANGLES);
+			mesh->SetMode(GL_TRIANGLE_STRIP);
+			
+			printf("%i, %i\n", (xverts-1)*(yverts-1)*3*2, xverts*yverts);
 			
 			Vector2 *vertices = mesh->Element<Vector2>(kMeshFeatureVertices);
 			Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
-			uint16 *indices = mesh->Element<uint16>(kMeshFeatureIndices);
+//			uint16 *indices = mesh->Element<uint16>(kMeshFeatureIndices);
 			
 			for(uint16 x = 0; x < xverts; x++)
 			{
@@ -128,7 +130,8 @@ namespace RN
 					*uvCoords ++ = Vector2(xuv*(_atlas.u2-_atlas.u1)+_atlas.u1, yuv*(_atlas.v2-_atlas.v1)+_atlas.v1);
 				}
 			}
-			for(uint16 x = 0; x < xverts-1; x++)
+			
+/*			for(uint16 x = 0; x < xverts-1; x++)
 			{
 				for(uint16 y = 0; y < yverts-1; y++)
 				{
@@ -140,11 +143,11 @@ namespace RN
 					*indices ++ = x*yverts+y+1;
 					*indices ++ = (x+1)*yverts+y+1;
 				}
-			}
+			}*/
 			
 			mesh->ReleaseElement(kMeshFeatureVertices);
 			mesh->ReleaseElement(kMeshFeatureUVSet0);
-			mesh->ReleaseElement(kMeshFeatureIndices);
+//			mesh->ReleaseElement(kMeshFeatureIndices);
 			mesh->UpdateMesh();
 				
 			return mesh->Autorelease();

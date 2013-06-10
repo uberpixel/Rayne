@@ -370,12 +370,12 @@ namespace RN
 			
 			Rect frame = ConvertRectToView(nullptr, _frame);
 			
-			Debug::AddLinePoint(Vector2(frame.Left(), frame.Top()), Color::Red());
+/*			Debug::AddLinePoint(Vector2(frame.Left(), frame.Top()), Color::Red());
 			Debug::AddLinePoint(Vector2(frame.Right(), frame.Top()), Color::Red());
 			Debug::AddLinePoint(Vector2(frame.Right(), frame.Bottom()), Color::Red());
 			Debug::AddLinePoint(Vector2(frame.Left(), frame.Bottom()), Color::Red());
 			Debug::AddLinePoint(Vector2(frame.Left(), frame.Top()), Color::Red());
-			Debug::EndLine();
+			Debug::EndLine();*/
 			
 			if(Render(object))
 				renderer->RenderObject(object);

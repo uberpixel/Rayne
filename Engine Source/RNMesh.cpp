@@ -898,19 +898,19 @@ namespace RN
 		return t;
 	}
 	
-	float Mesh::IntersectsRay(const Vector3 &position, const Vector3 &direction)
+	Hit Mesh::IntersectsRay(const Vector3 &position, const Vector3 &direction)
 	{
+		Hit hit;
+		
 		MeshDescriptor *posdescriptor = Descriptor(kMeshFeatureVertices);
 		MeshDescriptor *inddescriptor = Descriptor(kMeshFeatureIndices);
 		
 		bool is3D = (posdescriptor->elementMember == 3);
 		if(!is3D)
-			return -1.0f;
+			return hit;
 		
 		uint8 *pospointer = _meshData + posdescriptor->offset;
 		uint8 *indpointer = _indices + inddescriptor->offset;
-		
-		float dist = -1.0f;
 			
 		for(size_t i=0; i < inddescriptor->elementCount; i += 3)
 		{
@@ -930,14 +930,20 @@ namespace RN
 			
 			if(result >= 0.0f)
 			{
-				if(dist < 0.0f)
-					dist = result;
+				if(hit.distance < 0.0f)
+				{
+					hit.distance = result;
+				}
 			
-				if(result < dist)
-					dist = result;
+				if(result < hit.distance)
+				{
+					hit.distance = result;
+				}
 			}
 		}
 		
-		return dist;
+		hit.position = position+direction*hit.distance;
+		
+		return hit;
 	}
 }
