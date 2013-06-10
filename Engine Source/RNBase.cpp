@@ -11,11 +11,16 @@
 #include "RNBaseInternal.h"
 #include "RNError.h"
 #include "RNThread.h"
+#include "RNSpinLock.h"
 
 namespace RN
 {
+	static SpinLock __DieLock;
+	
 	void __Assert(const char *func, int line, const char *expression, const char *message, ...)
 	{
+		__DieLock.Lock();
+		
 		fprintf(stderr, "%s(), assertion '%s' failed!\n", func, expression);
 		
 		if(message)
@@ -31,10 +36,13 @@ namespace RN
 		}
 		
 		abort();
+		__DieLock.Unlock();
 	}
 	
 	void __HandleException(const ErrorException& e)
 	{
+		__DieLock.Lock();
+		
 		const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.CallStack();
 		
 		fprintf(stderr, "Caught exception %i|%i|%i.\nReason: %s\nDetails: %s\n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str(), e.AdditionalDetails().c_str());
@@ -48,5 +56,6 @@ namespace RN
 		
 		fflush(stderr);
 		abort();
+		__DieLock.Unlock();
 	}		
 }
