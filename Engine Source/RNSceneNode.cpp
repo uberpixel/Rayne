@@ -48,7 +48,8 @@ namespace RN
 		_lastFrame = 0;
 		
 		_priority = Priority::UpdateDontCare;
-		group = 0;
+		renderGroup = 0;
+		collisionGroup = 0;
 		
 		SetBoundingBox(AABB(Vector3(-1.0f), Vector3(1.0f)));
 		DidUpdate();

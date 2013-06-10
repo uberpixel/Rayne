@@ -112,7 +112,8 @@ namespace RN
 			return true;
 		}
 		
-		int8 group;
+		int8 renderGroup;
+		int8 collisionGroup;
 		
 	protected:
 		RNAPI void DidUpdate();

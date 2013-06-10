@@ -462,7 +462,7 @@ namespace TG
 		billboard->Material()->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
 		billboard->Material()->depthwrite = false;
 		billboard->Material()->depthtest = true;
-		billboard->group = 1;
+		billboard->renderGroup = 1;
 		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
 		billboard->Translate(RN::Vector3(-14.4f, 8.5f, 0.1f));
 		

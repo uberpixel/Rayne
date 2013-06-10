@@ -54,7 +54,7 @@ namespace RN
 	
 	void GenericSceneManager::RenderSceneNode(Camera *camera, SceneNode *node)
 	{
-		if(!(camera->renderGroup & (1 << node->group)))
+		if(!(camera->renderGroup & (1 << node->renderGroup)))
 			return;
 		
 		if(node->IsVisibleInCamera(camera))
@@ -83,13 +83,13 @@ namespace RN
 		}
 	}
 	
-	Hit GenericSceneManager::CastRay(const Vector3 &position, const Vector3 &direction, unsigned long ignore)
+	Hit GenericSceneManager::CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask)
 	{
 		Hit hit;
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
 			SceneNode *node = *i;
-			if(!(ignore & (1 << node->group)))
+			if(!(mask & (1 << node->collisionGroup)))
 				continue;
 				
 			if(node->BoundingSphere().IntersectsRay(position, direction))

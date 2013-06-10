@@ -26,7 +26,7 @@ namespace RN
 		virtual void UpdateSceneNode(SceneNode *node) = 0;
 		
 		virtual void RenderScene(Camera *camera) = 0;
-		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, unsigned long ignore = 0xffffffff) = 0;
+		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0xffff) = 0;
 		
 	protected:
 		SceneManager();
@@ -49,7 +49,7 @@ namespace RN
 		
 		virtual void RenderScene(Camera *camera);
 		
-		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, unsigned long ignore = 0xffffffff);
+		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0xffff);
 		
 	private:
 		void RenderSceneNode(Camera *camera, SceneNode *node);

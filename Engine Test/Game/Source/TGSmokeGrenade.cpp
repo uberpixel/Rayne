@@ -63,7 +63,7 @@ namespace TG
 		_emitter->SetMaterial(_material);
 		_emitter->SetParticlesPerSecond(5);
 		_emitter->SetMaxParticles(1000 * 60);
-		_emitter->group = 1;
+		_emitter->renderGroup = 1;
 		
 		AttachChild(_emitter);
 	}
