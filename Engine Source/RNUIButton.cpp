@@ -31,9 +31,15 @@ namespace RN
 		void Button::Initialize()
 		{
 			_image = new ImageView();
+			_label = new Label();
+			
 			_image->SetFrame(Bounds());
+			_label->SetFrame(Bounds());
+			
+			_label->SetTextColor(Color::White());
 			
 			AddSubview(_image);
+			AddSubview(_label);
 			
 			StateChanged(ControlState());
 			DrawMaterial()->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUIImageShader));
@@ -43,16 +49,31 @@ namespace RN
 		{
 			Control::StateChanged(state);
 			
-			if((state & Control::Disabled) && ActivateImage(Control::Disabled))
-				return;
+			do {
+				if((state & Control::Disabled) && ActivateImage(Control::Disabled))
+					break;
+				
+				if((state & Control::Selected) && ActivateImage(Control::Selected))
+					break;
+				
+				if((state & Control::Highlighted) && ActivateImage(Control::Highlighted))
+					break;
+				
+				ActivateImage(Control::Normal);
+			} while(0);
 			
-			if((state & Control::Selected) && ActivateImage(Control::Selected))
-				return;
-			
-			if((state & Control::Highlighted) && ActivateImage(Control::Highlighted))
-				return;
-			
-			ActivateImage(Control::Normal);
+			do {
+				if((state & Control::Disabled) && ActivateTitle(Control::Disabled))
+					break;
+				
+				if((state & Control::Selected) && ActivateTitle(Control::Selected))
+					break;
+				
+				if((state & Control::Highlighted) && ActivateTitle(Control::Highlighted))
+					break;
+				
+				ActivateTitle(Control::Normal);
+			} while(0);
 		}
 		
 		bool Button::ActivateImage(State state)
@@ -67,13 +88,27 @@ namespace RN
 			return false;
 		}
 		
+		bool Button::ActivateTitle(State state)
+		{
+			auto iterator = _titles.find(state);
+			if(iterator != _titles.end())
+			{
+				_label->SetText(iterator->second);
+				return true;
+			}
+			
+			return false;
+		}
+		
+		
 		
 		void Button::SetFrame(const Rect& frame)
 		{
 			Control::SetFrame(frame);
+			
 			_image->SetFrame(Bounds());
+			_label->SetFrame(Bounds());
 		}
-		
 		
 		void Button::SetTitleForState(String *title, State state)
 		{

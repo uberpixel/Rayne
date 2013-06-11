@@ -37,8 +37,9 @@ namespace RN
 			
 		private:
 			void Initialize();
+			
 			bool ActivateImage(State state);
-			void SetActiveImage(Image *image);
+			bool ActivateTitle(State state);
 			
 			std::map<State, Image *> _images;
 			std::map<State, String *> _titles;
