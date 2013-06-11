@@ -25,6 +25,8 @@ namespace RN
 		_shadow = false;
 		_shadowcam = 0;
 		_lightcam = 0;
+		
+		collisionGroup = 25;
 
 		ReCalculateColor();
 	}

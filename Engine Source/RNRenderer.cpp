@@ -482,7 +482,12 @@ namespace RN
 		}
 		else
 		{
-			return 0;
+			lightCount = _pointLights.size();
+			for(machine_uint i = 0; i < lightCount; i++)
+			{
+				_lightPointPosition.emplace_back(Vector4(_pointLights[i]->Position(), _pointLights[i]->Range()));
+				_lightPointColor.emplace_back(Vector4(_pointLights[i]->Color().r, _pointLights[i]->Color().g, _pointLights[i]->Color().b, 0.0f));
+			}
 		}
 		
 		return static_cast<int>(lightCount);

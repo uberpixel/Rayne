@@ -26,7 +26,7 @@ namespace RN
 		virtual void UpdateSceneNode(SceneNode *node) = 0;
 		
 		virtual void RenderScene(Camera *camera) = 0;
-		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0xffff) = 0;
+		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0x00ff) = 0;
 		
 	protected:
 		SceneManager();

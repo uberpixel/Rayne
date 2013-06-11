@@ -123,6 +123,10 @@ namespace RN
 						}
 					}
 				}
+				else if(node->IsKindOfClass(RN::Catalogue::SharedInstance()->ClassWithName("RN::Light")))
+				{
+					hit.node = node;
+				}
 			}
 		}
 		
