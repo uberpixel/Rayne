@@ -37,6 +37,7 @@ namespace RN
 			_text = new String();
 			
 			_font  = nullptr;
+			_alignment = TextAlignment::Left;
 			
 			SetFont(ResourcePool::SharedInstance()->ResourceWithName<Font>(kRNResourceKeyDefaultFont));
 			SetTextColor(Color::White());
@@ -72,6 +73,12 @@ namespace RN
 			DrawMaterial()->ambient = _color;
 		}
 		
+		void Label::SetAlignment(TextAlignment alignment)
+		{
+			_alignment = alignment;
+			_isDirty = true;
+		}
+		
 
 		void Label::Update()
 		{
@@ -92,11 +99,10 @@ namespace RN
 				}
 				
 				TextStyle style(Vector2(Frame().width, Frame().height));
+				style.alignment = _alignment;
+				
 				_mesh = _font->RenderString(_text, style)->Retain();
 				_isDirty = false;
-				
-				//Vector2 size = _font->SizeOfString(_text, style);
-				//printf("Size: {%f, %f}\n", size.x, size.y);
 			}
 		}
 		

@@ -27,10 +27,12 @@ namespace RN
 			void SetText(String *text);
 			void SetTextColor(const Color& color);
 			void SetFont(Font *font);
+			void SetAlignment(TextAlignment alignment);
 			
 			String *Text() const { return _text; }
 			Color TextColor() const { return _color; }
 			Font *TextFont() const { return _font; }
+			TextAlignment Alignment() const { return _alignment; }
 			
 		protected:
 			void Update() override;
@@ -39,6 +41,7 @@ namespace RN
 		private:
 			void Initialize();
 			
+			TextAlignment _alignment;
 			Font *_font;
 			Color _color;
 			

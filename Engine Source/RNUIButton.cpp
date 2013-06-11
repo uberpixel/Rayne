@@ -37,6 +37,7 @@ namespace RN
 			_label->SetFrame(Bounds());
 			
 			_label->SetTextColor(Color::White());
+			_label->SetAlignment(TextAlignment::Center);
 			
 			AddSubview(_image);
 			AddSubview(_label);
