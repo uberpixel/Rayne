@@ -1473,7 +1473,26 @@ namespace RN
 		
 		if(usesIndices)
 		{
-			GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+			GLenum type;
+			switch(descriptor->elementSize)
+			{
+				case 1:
+					type = GL_UNSIGNED_BYTE;
+					break;
+					
+				case 2:
+					type = GL_UNSIGNED_SHORT;
+					break;
+					
+				case 4:
+					type = GL_UNSIGNED_INT;
+					break;
+					
+				default:
+					throw ErrorException(0);
+					break;
+			}
+			
 			glDrawElements(mesh->Mode(), glCount, type, (void *)offset);
 		}
 		else
@@ -1495,7 +1514,26 @@ namespace RN
 		
 		if(descriptor)
 		{
-			GLenum type = (descriptor->elementSize == 2) ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT;
+			GLenum type;
+			switch(descriptor->elementSize)
+			{
+				case 1:
+					type = GL_UNSIGNED_BYTE;
+					break;
+					
+				case 2:
+					type = GL_UNSIGNED_SHORT;
+					break;
+					
+				case 4:
+					type = GL_UNSIGNED_INT;
+					break;
+					
+				default:
+					throw ErrorException(0);
+					break;
+			}
+			
 			glDrawElementsInstanced(mesh->Mode(), (GLsizei)descriptor->elementCount, type, 0, (GLsizei)object.count);
 		}
 		else
