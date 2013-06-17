@@ -410,6 +410,9 @@ namespace RN
 		   return false;
 		   
 		String *string = static_cast<String *>(other);
+		if(string->_length != _length)
+			return false;
+		
 		return (Compare(string) == kRNCompareEqualTo);
 	}
 	
@@ -690,6 +693,9 @@ namespace RN
 	
 	ComparisonResult String::Compare(const String *other, ComparisonMode mode, const Range& range) const
 	{
+		if(other->_length < range.origin + range.length)
+			return kRNCompareGreaterThan;
+		
 		const uint8 *data = _buffer;
 		const uint8 *dataEnd = _buffer + _occupied;
 		
