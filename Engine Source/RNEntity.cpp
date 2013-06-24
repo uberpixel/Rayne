@@ -9,6 +9,7 @@
 #include "RNEntity.h"
 #include "RNKernel.h"
 #include "RNWorld.h"
+#include "RNHit.h"
 
 namespace RN
 {
@@ -81,5 +82,39 @@ namespace RN
 			_skeleton->Release();
 		
 		_skeleton = skeleton ? (class Skeleton *)skeleton->Retain() : 0;
+	}
+	
+	Hit Entity::CastRay(const Vector3 &position, const Vector3 &direction)
+	{
+		Hit hit;
+		
+		if(_model == NULL)
+			return hit;
+			
+		if(BoundingSphere().IntersectsRay(position, direction))
+		{
+			Matrix matModelInv = WorldTransform().Inverse();
+			
+			Vector3 temppos = matModelInv.Transform(position);
+			Vector4 tempdir = matModelInv.Transform(Vector4(direction, 0.0f));
+			
+			size_t meshcount = _model->Meshes(0);
+			for(int i = 0; i < meshcount; i++)
+			{
+				Hit result = _model->MeshAtIndex(0, i)->IntersectsRay(temppos, Vector3(tempdir));
+				result.node = this;
+				result.meshid = i;
+				
+				if(result.distance >= 0.0f)
+				{
+					if(hit.distance < 0.0f)
+						hit = result;
+					
+					if(result.distance < hit.distance)
+						hit = result;
+				}
+			}
+		}
+		return hit;
 	}
 }

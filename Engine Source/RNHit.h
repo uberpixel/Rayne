@@ -13,23 +13,22 @@
 #include "RNVector.h"
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
-#include "RNSceneNode.h"
 
 namespace RN
 {
 	class Hit
 	{
 	public:
-		Hit(SceneNode *node=0, float dist = -1.0f, const Vector3 &pos=Vector3(), const Vector3 &norm=Vector3());
+		Hit(class SceneNode *node=0, float dist = -1.0f, const Vector3 &pos=Vector3(), const Vector3 &norm=Vector3());
 		
 		float distance;
 		Vector3 position;
 		Vector3 normal;
-		SceneNode *node;
+		class SceneNode *node;
 		uint32 meshid;
 	};
 	
-	RN_INLINE Hit::Hit(SceneNode *node, float dist, const Vector3 &pos, const Vector3 &norm)
+	RN_INLINE Hit::Hit(class SceneNode *node, float dist, const Vector3 &pos, const Vector3 &norm)
 	: node(node), distance(dist), position(pos), normal(norm), meshid(-1)
 	{
 		

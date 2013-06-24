@@ -8,6 +8,7 @@
 
 #include "RNSceneNode.h"
 #include "RNWorld.h"
+#include "RNHit.h"
 
 namespace RN
 {
@@ -148,5 +149,17 @@ namespace RN
 	void SceneNode::SetAction(const std::function<void (SceneNode *, float)>& action)
 	{
 		_action = action;
+	}
+	
+	Hit SceneNode::CastRay(const Vector3 &position, const Vector3 &direction)
+	{
+		Hit hit;
+		hit = BoundingSphere().CastRay(position, direction);
+		if(hit.distance > 0.0f)
+		{
+			hit.node = this;
+		}
+		
+		return hit;
 	}
 }

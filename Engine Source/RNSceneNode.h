@@ -95,6 +95,8 @@ namespace RN
 		template<typename T=SceneNode>
 		T *ChildAtIndex(machine_uint index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
 		
+		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction);
+		
 		RNAPI const Matrix& WorldTransform();
 		RNAPI const Matrix& LocalTransform();
 		

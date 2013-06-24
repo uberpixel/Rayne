@@ -135,7 +135,7 @@
 		E9619F101696170700DA187E /* RNMutex.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNMutex.cpp; sourceTree = "<group>"; };
 		E9619F111696170700DA187E /* RNMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMutex.h; sourceTree = "<group>"; };
 		E9619F121696170700DA187E /* RNObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNObject.cpp; sourceTree = "<group>"; };
-		E9619F131696170700DA187E /* RNObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNObject.h; sourceTree = "<group>"; };
+		E9619F131696170700DA187E /* RNObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNObject.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E9619F161696170700DA187E /* RNPlatform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPlatform.h; sourceTree = "<group>"; };
 		E9619F181696170700DA187E /* RNQuaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNQuaternion.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E9619F191696170700DA187E /* RNRect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRect.h; sourceTree = "<group>"; };

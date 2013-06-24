@@ -66,9 +66,6 @@ namespace TG
 						_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _lightcam);
 						break;
 						
-					case 'c':
-						SceneManager()->CastRay(_camera->Position(), -_camera->Forward());
-						
 					default:
 						break;
 				}
@@ -121,10 +118,6 @@ namespace TG
 		_whitepoint = MIN(MAX(0.01f, _whitepoint), 10.0f);
 		RN::Renderer::SharedInstance()->SetHdrExposure(_exposure);
 		RN::Renderer::SharedInstance()->SetHdrWhitePoint(_whitepoint);
-		
-		/*float dist = SceneManager()->CastRay(_camera->Position(), -_camera->Forward());
-		RN::Sphere sphere(_camera->Position()-_camera->Forward()*dist, 1.0f);
-		RN::Debug::DrawSphere(sphere, RN::Color::Red(), 50);*/
 	}
 	
 	void World::CreateCameras()

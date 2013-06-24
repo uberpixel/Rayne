@@ -92,41 +92,15 @@ namespace RN
 			if(!(mask & (1 << node->collisionGroup)))
 				continue;
 				
-			if(node->BoundingSphere().IntersectsRay(position, direction))
+			Hit result = node->CastRay(position, direction);
+			
+			if(result.distance >= 0.0f)
 			{
-				if(node->IsKindOfClass(RN::Catalogue::SharedInstance()->ClassWithName("RN::Entity")))
-				{
-					Entity *ent = static_cast<Entity*>(node);
-					Model *model = ent->Model();
-					if(model == NULL)
-						continue;
-					
-					Matrix matModelInv = ent->WorldTransform().Inverse();
-					
-					Vector3 temppos = matModelInv.Transform(position);
-					Vector4 tempdir = matModelInv.Transform(Vector4(direction, 0.0f));
-					
-					size_t meshcount = model->Meshes(0);
-					for(int i = 0; i < meshcount; i++)
-					{
-						Hit result = model->MeshAtIndex(0, i)->IntersectsRay(temppos, Vector3(tempdir));
-						result.node = node;
-						result.meshid = i;
-						
-						if(result.distance >= 0.0f)
-						{
-							if(hit.distance < 0.0f)
-								hit = result;
-						
-							if(result.distance < hit.distance)
-								hit = result;
-						}
-					}
-				}
-				else if(node->IsKindOfClass(RN::Catalogue::SharedInstance()->ClassWithName("RN::Light")))
-				{
-					hit.node = node;
-				}
+				if(hit.distance < 0.0f)
+					hit = result;
+				
+				if(result.distance < hit.distance)
+					hit = result;
 			}
 		}
 		

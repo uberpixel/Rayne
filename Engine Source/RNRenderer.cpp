@@ -1499,6 +1499,8 @@ namespace RN
 		{
 			glDrawArrays(mesh->Mode(), 0, glCount);
 		}
+		
+		BindVAO(0);
 	}
 	
 	void Renderer::DrawMeshInstanced(const RenderingObject& object)
