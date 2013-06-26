@@ -96,8 +96,8 @@ namespace RN
 	{
 		_copyShader = new Shader("shader/rn_CopyFramebuffer");
 		
-		gl::GenVertexArrays(1, &_copyVAO);
-		gl::BindVertexArray(_copyVAO);
+		glGenVertexArrays(1, &_copyVAO);
+		glBindVertexArray(_copyVAO);
 		
 		glGenBuffers(1, &_copyVBO);
 		glGenBuffers(1, &_copyIBO);
@@ -108,7 +108,7 @@ namespace RN
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLshort), _copyIndices, GL_STATIC_DRAW);
 		
-		gl::BindVertexArray(0);
+		glBindVertexArray(0);
 		
 #if !(RN_PLATFORM_IOS)
 		// Point lights
@@ -620,16 +620,16 @@ namespace RN
 			ShaderProgram *shader = std::get<0>(tuple);
 			Mesh *mesh = std::get<1>(tuple);
 			
-			gl::GenVertexArrays(1, &vao);
-			gl::BindVertexArray(vao);
+			GLuint vbo = mesh->VBO();
+			GLuint ibo = mesh->IBO();
 			
-			glBindBuffer(GL_ARRAY_BUFFER, mesh->VBO());
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
+			
+			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			
 			if(mesh->SupportsFeature(kMeshFeatureIndices))
-			{
-				GLuint ibo = mesh->IBO();
 				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-			}
 			
 			// Vertices
 			if(shader->attPosition != -1 && mesh->SupportsFeature(kMeshFeatureVertices))
@@ -879,7 +879,7 @@ namespace RN
 		
 		if(_currentVAO != _copyVAO)
 		{
-			gl::BindVertexArray(_copyVAO);
+			glBindVertexArray(_copyVAO);
 			_currentVAO = _copyVAO;
 			
 			glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
@@ -931,7 +931,7 @@ namespace RN
 		
 		if(_currentVAO != _copyVAO)
 		{
-			gl::BindVertexArray(_copyVAO);
+			glBindVertexArray(_copyVAO);
 			_currentVAO = _copyVAO;
 			
 			glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);

@@ -215,7 +215,7 @@ namespace RN
 					_dirtyIndices = true;
 				}
 				
-				if(i->_pointer)
+				if(i->_pointer && i->_pointer != tdata)
 				{
 					uint8 *data = static_cast<uint8 *>(tdata);
 					std::copy(data, data + i->_size, i->_pointer);
@@ -299,11 +299,10 @@ namespace RN
 			{
 				if((-- i->_useCount) == 0)
 				{
-					void *data = i->_pointer;
-					i->_pointer = 0;
+					SetElement(feature, i->_pointer);
+					Memory::FreeSIMD(i->_pointer);
 					
-					SetElement(feature, data);
-					Memory::FreeSIMD(data);
+					i->_pointer = nullptr;
 				}
 				
 				break;

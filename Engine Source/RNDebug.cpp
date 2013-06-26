@@ -96,6 +96,8 @@ namespace RN
 			
 			glDeleteVertexArrays(1, &vao);
 			glDeleteBuffers(1, &vbo);
+			
+			renderer->BindVAO(0);
 		}
 		
 		void InstallLine3DHandler()

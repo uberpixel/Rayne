@@ -220,7 +220,7 @@ namespace RN
 	
 	RN_INLINE uint32 Renderer::BindTexture(Texture *texture)
 	{
-		glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+		glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + _textureUnit));
 		glBindTexture(texture->GLType(), texture->Name());
 		
 		uint32 unit = _textureUnit;
@@ -233,7 +233,7 @@ namespace RN
 	
 	RN_INLINE uint32 Renderer::BindTexture(GLenum type, GLuint texture)
 	{
-		glActiveTexture((GLenum)(GL_TEXTURE0 + _textureUnit));
+		glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + _textureUnit));
 		glBindTexture(type, texture);
 		
 		uint32 unit = _textureUnit;
@@ -248,7 +248,7 @@ namespace RN
 	{
 		if(_currentVAO != vao)
 		{
-			gl::BindVertexArray(vao);
+			glBindVertexArray(vao);
 			_currentVAO = vao;
 		}
 	}
