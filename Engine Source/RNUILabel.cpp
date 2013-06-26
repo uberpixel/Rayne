@@ -51,7 +51,7 @@ namespace RN
 			if(_font)
 				_font->Release();
 			
-			_font = font->Retain();
+			_font    = font->Retain();
 			_isDirty = true;
 			
 			DrawMaterial()->RemoveTextures();
@@ -60,6 +60,14 @@ namespace RN
 		
 		void Label::SetText(String *text)
 		{
+			if(_text->IsEqual(text))
+			{
+				// Switch the text objects anyways, but don't mark it as dirty since we don't need to update the rendered text
+				_text->Release();
+				_text = text->Retain();
+				return;
+			}
+			
 			if(_text)
 				_text->Release();
 			
@@ -98,7 +106,7 @@ namespace RN
 					return;
 				}
 				
-				TextStyle style(Vector2(Frame().width, Frame().height));
+				TextStyle style(Frame().Size());
 				style.alignment = _alignment;
 				
 				_mesh = _font->RenderString(_text, style)->Retain();
