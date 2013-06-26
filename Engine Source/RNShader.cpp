@@ -150,17 +150,22 @@ namespace RN
 			index = 0;
 		}
 		
-		for(auto i=_defines.begin(); i!=_defines.end(); i++)
+		std::unordered_map<std::string, ShaderDefine> cleanedDefines;
+		
+		for(ShaderDefine& define : _defines)
 		{
-			std::string exploded = "#define " + i->name + " " + i->value + "\n";
-			
-			data.insert(index, exploded);
-			index += exploded.length();
+			cleanedDefines.insert(std::unordered_map<std::string, ShaderDefine>::value_type(define.name, define));
 		}
 		
-		for(auto i=_temporaryDefines.begin(); i!=_temporaryDefines.end(); i++)
+		for(ShaderDefine& define : _temporaryDefines)
 		{
-			std::string exploded = "#define " + i->name + " " + i->value + "\n";
+			cleanedDefines.insert(std::unordered_map<std::string, ShaderDefine>::value_type(define.name, define));
+		}
+		
+		
+		for(auto i=cleanedDefines.begin(); i!=cleanedDefines.end(); i++)
+		{
+			std::string exploded = "#define " + i->second.name + " " + i->second.value + "\n";
 			
 			data.insert(index, exploded);
 			index += exploded.length();
