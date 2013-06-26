@@ -27,6 +27,7 @@ namespace RN
 			~Image() override;
 			
 			static Image *WithFile(const std::string& file);
+			static Image *WithTexture(Texture *texture);
 			
 			void SetAtlas(const Atlas& atlas, bool normalized=true);
 			void SetEdgeInsets(const EdgeInsets& insets);

@@ -158,6 +158,11 @@ namespace RN
 			return image->Autorelease();
 		}
 		
+		Image *Image::WithTexture(class Texture *texture)
+		{
+			Image *image = new Image(texture);
+			return image->Autorelease();
+		}
 		
 		void Image::SetAtlas(const struct Atlas& atlas, bool normalized)
 		{
