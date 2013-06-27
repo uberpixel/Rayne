@@ -17,6 +17,7 @@
 #include "RNPathManager.h"
 #include "RNCPU.h"
 #include "RNResourcePool.h"
+#include "RNRenderer32.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -124,7 +125,7 @@ namespace RN
 			_scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
 #endif
 		
-		_renderer = Renderer::SharedInstance();
+		_renderer = new Renderer32();
 		_input    = Input::SharedInstance();
 		_uiserver = UI::Server::SharedInstance();
 		

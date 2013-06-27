@@ -97,6 +97,8 @@
 		E9619E5B1696157E00DA187E /* RNWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E271696157E00DA187E /* RNWorld.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619F841696FDE100DA187E /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F7E1696FDC000DA187E /* libpng.a */; };
 		E96654621758D2BA00C3562E /* RNWrappingObject.h in Headers */ = {isa = PBXBuildFile; fileRef = E96654601758D2BA00C3562E /* RNWrappingObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E96C5664177C8AC3007FAF7C /* RNRenderer32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E96C5662177C8AC3007FAF7C /* RNRenderer32.cpp */; };
+		E96C5665177C8AC3007FAF7C /* RNRenderer32.h in Headers */ = {isa = PBXBuildFile; fileRef = E96C5663177C8AC3007FAF7C /* RNRenderer32.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9780FC016D82913001AE2ED /* RNSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9780FBE16D82913001AE2ED /* RNSettings.cpp */; };
 		E9780FC116D82913001AE2ED /* RNSettings.h in Headers */ = {isa = PBXBuildFile; fileRef = E9780FBF16D82913001AE2ED /* RNSettings.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E97C3EB0172B11C7006EA63A /* RNString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E97C3EAE172B11C7006EA63A /* RNString.cpp */; };
@@ -303,6 +305,8 @@
 		E9619E271696157E00DA187E /* RNWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWorld.h; sourceTree = "<group>"; };
 		E9619F791696FDC000DA187E /* png-osx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "png-osx.xcodeproj"; path = "../../Vendor/libpng/png-osx.xcodeproj"; sourceTree = "<group>"; };
 		E96654601758D2BA00C3562E /* RNWrappingObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWrappingObject.h; sourceTree = "<group>"; };
+		E96C5662177C8AC3007FAF7C /* RNRenderer32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRenderer32.cpp; sourceTree = "<group>"; };
+		E96C5663177C8AC3007FAF7C /* RNRenderer32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRenderer32.h; sourceTree = "<group>"; };
 		E9780FBE16D82913001AE2ED /* RNSettings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSettings.cpp; sourceTree = "<group>"; };
 		E9780FBF16D82913001AE2ED /* RNSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSettings.h; sourceTree = "<group>"; };
 		E97C3EAE172B11C7006EA63A /* RNString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNString.cpp; sourceTree = "<group>"; };
@@ -649,6 +653,8 @@
 				E9619E0A1696157E00DA187E /* RNMesh.h */,
 				E996A0B216F2CE97000EFB03 /* RNRenderer.cpp */,
 				E996A0B316F2CE97000EFB03 /* RNRenderer.h */,
+				E96C5662177C8AC3007FAF7C /* RNRenderer32.cpp */,
+				E96C5663177C8AC3007FAF7C /* RNRenderer32.h */,
 				E92B858F16FC6027002FA04D /* RNRenderStorage.cpp */,
 				E92B859016FC6027002FA04D /* RNRenderStorage.h */,
 				E9619E1A1696157E00DA187E /* RNShader.cpp */,
@@ -824,6 +830,7 @@
 				E91C8CDE176023EC00E9E8F2 /* RNUIButton.h in Headers */,
 				E9AD2A8017610E8F00BC3E8F /* RNUILabel.h in Headers */,
 				E9AD2A8217612F8000BC3E8F /* RNUITextStyle.h in Headers */,
+				E96C5665177C8AC3007FAF7C /* RNRenderer32.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -989,6 +996,7 @@
 				E91C8CD9176006A300E9E8F2 /* RNUIControl.cpp in Sources */,
 				E91C8CDD176023EC00E9E8F2 /* RNUIButton.cpp in Sources */,
 				E9AD2A7F17610E8F00BC3E8F /* RNUILabel.cpp in Sources */,
+				E96C5664177C8AC3007FAF7C /* RNRenderer32.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -116,8 +116,8 @@ namespace TG
 		_exposure = MIN(MAX(0.01f, _exposure), 10.0f);
 		_whitepoint += (input->KeyPressed('i') - input->KeyPressed('k')) * delta;
 		_whitepoint = MIN(MAX(0.01f, _whitepoint), 10.0f);
-		RN::Renderer::SharedInstance()->SetHdrExposure(_exposure);
-		RN::Renderer::SharedInstance()->SetHdrWhitePoint(_whitepoint);
+		RN::Renderer::SharedInstance()->SetHDRExposure(_exposure);
+		RN::Renderer::SharedInstance()->SetHDRWhitePoint(_whitepoint);
 	}
 	
 	void World::CreateCameras()
@@ -158,9 +158,6 @@ namespace TG
 		RN::Shader *downsampleShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleShader);
 		RN::Shader *downsampleFirstShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleFirstShader);
 
-		_lightcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
-		_lightcam->SetClearMask(RN::Camera::ClearFlagColor);
-		_lightcam->Storage()->SetDepthTarget(_depthtex);
 		RN::Model *sky = RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png");
 		sky->MaterialAtIndex(0, 0)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
 		sky->MaterialAtIndex(0, 1)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
@@ -168,6 +165,10 @@ namespace TG
 		sky->MaterialAtIndex(0, 3)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
 		sky->MaterialAtIndex(0, 4)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
 		sky->MaterialAtIndex(0, 5)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		
+		_lightcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
+		_lightcam->SetClearMask(RN::Camera::ClearFlagColor);
+		_lightcam->Storage()->SetDepthTarget(_depthtex);
 		_lightcam->SetSkyCube(sky);
 		_lightcam->renderGroup |= RN::Camera::RenderGroup1;//|RN::Camera::RenderGroup2;
 		_lightcam->SetLightTiles(RN::Vector2(32.0f, 32.0f));
@@ -197,6 +198,9 @@ namespace TG
 		_camera->AttachChild(_finalcam);
 		_camera->SetPriority(10);
 		_camera->Rotate(RN::Vector3(90.0f, 0.0f, 0.0f));
+		
+		
+		_finalcam->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
 		
 #if TGWorldFeatureSSAO
 		// Surface normals

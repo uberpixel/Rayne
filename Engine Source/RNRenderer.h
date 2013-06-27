@@ -61,7 +61,7 @@ namespace RN
 		std::function<void (Renderer *renderer, const RenderingObject&)> callback;
 	};
 	
-	class Renderer : public Singleton<Renderer>
+	class Renderer : public NonConstructingSingleton<Renderer>
 	{
 	public:
 		enum class Mode
@@ -71,30 +71,30 @@ namespace RN
 		};
 		
 		RNAPI Renderer();
-		RNAPI ~Renderer();
-		
-		RNAPI void BeginFrame(float delta);
-		RNAPI void FinishFrame();
-		
-		RNAPI void BeginCamera(Camera *camera);
-		RNAPI void FinishCamera();
-		
-		RNAPI void RenderObject(RenderingObject object);
-		RNAPI void RenderDebugObject(RenderingObject object, Mode mode);
-		RNAPI void RenderLight(Light *light);
+		RNAPI virtual ~Renderer();
 		
 		RNAPI void SetDefaultFBO(GLuint fbo);
 		RNAPI void SetDefaultFrame(uint32 width, uint32 height);
 		
-		RNAPI void BindMaterial(Material *material, ShaderProgram *program);
+		RNAPI virtual void BeginFrame(float delta);
+		RNAPI virtual void FinishFrame();
+		
+		RNAPI virtual void BeginCamera(Camera *camera);
+		RNAPI virtual void FinishCamera();
+		
+		RNAPI virtual void RenderObject(RenderingObject object);
+		RNAPI virtual void RenderDebugObject(RenderingObject object, Mode mode);
+		RNAPI virtual void RenderLight(Light *light);
+		
+		RNAPI virtual void BindMaterial(Material *material, ShaderProgram *program);
 		
 		RNAPI uint32 BindTexture(Texture *texture);
 		RNAPI uint32 BindTexture(GLenum type, GLuint texture);
 		RNAPI void BindVAO(GLuint vao);
 		RNAPI void UseShader(ShaderProgram *shader);
 		
-		RNAPI void SetHdrExposure(float exposure);
-		RNAPI void SetHdrWhitePoint(float whitepoint);
+		RNAPI void SetHDRExposure(float exposure);
+		RNAPI void SetHDRWhitePoint(float whitepoint);
 		
 		RNAPI void SetCullingEnabled(bool enabled);
 		RNAPI void SetDepthTestEnabled(bool enabled);
@@ -112,18 +112,16 @@ namespace RN
 		Material *ActiveMaterial() const { return _currentMaterial; }
 		ShaderProgram *ActiveProgram() const { return _currentProgram; }
 		
+		float HDRExposure() const { return _hdrExposure; }
+		float HDRWhitepoint() const { return _hdrWhitePoint; }
+		
 	protected:
-		RNAPI void UpdateShaderData();
-		RNAPI void DrawCamera(Camera *camera, Camera *source, uint32 skyCubeMeshes);
-		RNAPI void DrawMesh(Mesh *mesh, uint32 offset, uint32 count);
-		RNAPI void DrawMeshInstanced(const RenderingObject& object);
-		RNAPI void BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple);
+		RNAPI virtual void UpdateShaderData();
+		RNAPI virtual void DrawCamera(Camera *camera, Camera *source, uint32 skyCubeMeshes);
+		RNAPI virtual void BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple);
 		
-		RNAPI void CullLights(Camera *camera, Light **lights, machine_uint lightCount, GLuint indicesBuffer, GLuint offsetBuffer);
-		
-		RNAPI int CreatePointLightList(Camera *camera);
-		RNAPI int CreateSpotLightList(Camera *camera);
-		RNAPI int CreateDirectionalLightList(Camera *camera);
+		RNAPI virtual void FlushCamera(Camera *camera, Shader *drawShader);
+		RNAPI virtual void DrawCameraStage(Camera *camera, Camera *stage);
 		
 		bool _hasValidFramebuffer;
 		
@@ -132,9 +130,6 @@ namespace RN
 		
 		float _hdrExposure;
 		float _hdrWhitePoint;
-		
-		std::map<std::tuple<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
-		std::vector<std::pair<Camera *, Shader *>> _flushCameras;
 		
 		GLuint _defaultFBO;
 		uint32 _defaultWidth;
@@ -147,6 +142,9 @@ namespace RN
 		Material      *_currentMaterial;
 		ShaderProgram *_currentProgram;
 		GLuint         _currentVAO;
+		
+		bool _gammaCorrection;
+		Mode _mode;
 		
 		bool _cullingEnabled;
 		bool _depthTestEnabled;
@@ -173,47 +171,9 @@ namespace RN
 		std::vector<Light *> _spotLights;
 		std::vector<Light *> _directionalLights;
 		
-	private:
-		void Initialize();
-		void FlushCamera(Camera *camera, Shader *drawShader);
-		void DrawCameraStage(Camera *camera, Camera *stage);
-		void AllocateLightBufferStorage(size_t indicesSize, size_t offsetSize);
-		
-		bool _gammaCorrection;
-		Mode _mode;
-		
-		GLuint _copyVAO;
-		GLuint _copyVBO;
-		GLuint _copyIBO;
-		
-		Vector4 _copyVertices[4];
-		GLshort _copyIndices[6];
-		
-		int *_lightIndicesBuffer;
-		int *_tempLightIndicesBuffer;
-		int *_lightOffsetBuffer;
-		size_t _lightIndicesBufferSize;
-		size_t _lightOffsetBufferSize;
-		
-		size_t _lightPointDataSize;
-		GLuint _lightPointTextures[3];
-		GLuint _lightPointBuffers[3];
-		
-		size_t _lightSpotDataSize;
-		GLuint _lightSpotTextures[3];
-		GLuint _lightSpotBuffers[3];
-		
-		std::vector<Vector3> _lightDirectionalDirection;
-		std::vector<Vector4> _lightDirectionalColor;
-		std::vector<Matrix> _lightDirectionalMatrix;
-		std::vector<Texture *> _lightDirectionalDepth;
-		
-		std::vector<Vector4> _lightSpotPosition;
-		std::vector<Vector4> _lightSpotDirection;
-		std::vector<Vector4> _lightSpotColor;
-		
-		std::vector<Vector4> _lightPointPosition;
-		std::vector<Vector4> _lightPointColor;
+	private:		
+		std::map<std::tuple<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
+		std::vector<std::pair<Camera *, Shader *>> _flushCameras;
 		
 		SpinLock _lock;
 	};
@@ -266,12 +226,12 @@ namespace RN
 	}
 	
 	
-	RN_INLINE void Renderer::SetHdrExposure(float exposure)
+	RN_INLINE void Renderer::SetHDRExposure(float exposure)
 	{
 		_hdrExposure = exposure;
 	}
 	
-	RN_INLINE void Renderer::SetHdrWhitePoint(float whitepoint)
+	RN_INLINE void Renderer::SetHDRWhitePoint(float whitepoint)
 	{
 		_hdrWhitePoint = whitepoint;
 	}
@@ -328,7 +288,7 @@ namespace RN
 		if(_cullMode == cullMode)
 			return;
 		
-		glCullFace(cullMode);
+		glFrontFace(cullMode);
 		_cullMode = cullMode;
 	}
 	
@@ -359,7 +319,7 @@ namespace RN
 			glPolygonOffset(factor, units);
 			
 			_polygonOffsetFactor = factor;
-			_polygonOffsetUnits = units;
+			_polygonOffsetUnits  = units;
 		}
 	}
 	
