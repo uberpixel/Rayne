@@ -1158,7 +1158,16 @@ namespace RN
 				if(lightSpotCount < kRNRendererFastPathLightCount)
 					defines.emplace_back(ShaderDefine("RN_SPOT_LIGHTS_FASTPATH", ""));
 				
-				program = shader->ProgramWithLookup(material->Lookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
+				if(surfaceMaterial && !(material->override & Material::OverrideDefines))
+				{
+					program = shader->ProgramWithLookup(surfaceMaterial->Lookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
+				}
+				else
+				{
+					program = shader->ProgramWithLookup(material->Lookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
+				}
+				
+				RN_ASSERT0(program);
 				
 				changedShader   = (_currentProgram != program);
 				changedMaterial = (_currentMaterial != material);

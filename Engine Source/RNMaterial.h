@@ -47,6 +47,7 @@ namespace RN
 			OverrideDiscardThreshold = (1 << 13),
 			OverrideTextures = (1 << 14),
 			OverridePolygonOffset = (1 << 15),
+			OverrideDefines = (1 << 16)
 			
 			OverrideGroupDiscard = OverrideDiscard | OverrideDiscardThreshold | OverrideTextures
 		};
