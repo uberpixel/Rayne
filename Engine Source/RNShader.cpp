@@ -350,6 +350,9 @@ namespace RN
 		if(lookup.type & ShaderProgram::TypeClipPlane)
 			_temporaryDefines.emplace_back(ShaderDefine("RN_CLIPPLANE", ""));
 		
+		if(lookup.type & ShaderProgram::TypeGammaCorrection)
+			_temporaryDefines.emplace_back(ShaderDefine("RN_GAMMA_CORRECTION", ""));
+		
 		_temporaryDefines.insert(_temporaryDefines.end(), lookup.defines.begin(), lookup.defines.end());
 		
 		// Compile all required shaders
@@ -689,7 +692,7 @@ namespace RN
 	}
 	
 	void Shader::SetShaderForType(File *file, ShaderType type)
-	{		
+	{
 		// Preprocess the shader
 		PreProcessedFile result;
 		result.offset = 0;
@@ -704,6 +707,7 @@ namespace RN
 		_supportedPrograms |= IsDefined(result.data, "RN_DIRECTIONAL_SHADOWS") ? ShaderProgram::TypeDirectionalShadows : 0;
 		_supportedPrograms |= IsDefined(result.data, "RN_FOG") ? ShaderProgram::TypeFog : 0;
 		_supportedPrograms |= IsDefined(result.data, "RN_CLIPPLANE") ? ShaderProgram::TypeClipPlane : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_GAMMA_CORRECTION") ? ShaderProgram::TypeGammaCorrection : 0;
 		
 		switch(type)
 		{

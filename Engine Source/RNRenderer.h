@@ -134,7 +134,7 @@ namespace RN
 		float _hdrWhitePoint;
 		
 		std::map<std::tuple<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
-		std::vector<Camera *> _flushCameras;
+		std::vector<std::pair<Camera *, Shader *>> _flushCameras;
 		
 		GLuint _defaultFBO;
 		uint32 _defaultWidth;
@@ -175,13 +175,13 @@ namespace RN
 		
 	private:
 		void Initialize();
-		void FlushCamera(Camera *camera);
+		void FlushCamera(Camera *camera, Shader *drawShader);
 		void DrawCameraStage(Camera *camera, Camera *stage);
 		void AllocateLightBufferStorage(size_t indicesSize, size_t offsetSize);
 		
+		bool _gammaCorrection;
 		Mode _mode;
 		
-		Shader *_copyShader;
 		GLuint _copyVAO;
 		GLuint _copyVBO;
 		GLuint _copyIBO;

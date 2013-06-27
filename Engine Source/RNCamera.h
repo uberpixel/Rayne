@@ -206,6 +206,7 @@ namespace RN
 		RNAPI void SetUseInstancing(bool activate);
 		RNAPI void SetPriority(int32 priority);
 		RNAPI void SetUseBlending(bool useBlending);
+		RNAPI void SetDrawFramebufferShader(Shader *shader);
 		
 		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		RNAPI void ActivateTiledLightLists(Texture *depthTiles);
@@ -238,6 +239,7 @@ namespace RN
 		Camera *LODCamera() const { return _lodCamera; }
 		int32 Priority() const { return _priority; }
 		bool UseBlending() const { return _blend; }
+		Shader *DrawFramebufferShader() const { return _blitShader; }
 		
 		Vector2 LightTiles() const { return _lightTiles; }
 		void SetLightTiles(const Vector2 &size) { _lightTiles = size; }
@@ -324,6 +326,8 @@ namespace RN
 		bool _allowDepthWrite;
 		bool _isStage;
 		bool _blend;
+		
+		Shader *_blitShader;
 		
 		class Material *_material;
 		RenderStorage *_storage;

@@ -29,7 +29,8 @@ namespace RN
 			TypeDiscard   = (1 << 4),
 			TypeDirectionalShadows = (1 << 5),
 			TypeFog = (1 << 6),
-			TypeClipPlane = (1 << 7)
+			TypeClipPlane = (1 << 7),
+			TypeGammaCorrection = (1 << 8)
 		};
 		
 		GLuint program;

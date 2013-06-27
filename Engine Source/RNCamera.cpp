@@ -11,6 +11,7 @@
 #include "RNKernel.h"
 #include "RNWorld.h"
 #include "RNLight.h"
+#include "RNResourcePool.h"
 
 namespace RN
 {
@@ -340,6 +341,8 @@ namespace RN
 		if(_depthTiles)
 			_depthTiles->Release();
 		
+		_blitShader->Release();
+		
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
 			PostProcessingPipeline *pipeline = *i;
@@ -390,6 +393,8 @@ namespace RN
 		_useInstancing = true;
 		_isStage = false;
 		_blend = false;
+		
+		_blitShader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyDrawFramebufferShader)->Retain();
 		
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
 		_colorMask = ColorFlagRed | ColorFlagGreen | ColorFlagBlue | ColorFlagAlpha;
@@ -535,6 +540,14 @@ namespace RN
 	void Camera::SetUseBlending(bool useBlending)
 	{
 		_blend = useBlending;
+	}
+	
+	void Camera::SetDrawFramebufferShader(Shader *shader)
+	{
+		RN_ASSERT(shader, "Shader musn't be NULL!");
+		
+		_blitShader->Release();
+		_blitShader = shader->Retain();
 	}
 	
 	// Post Processing

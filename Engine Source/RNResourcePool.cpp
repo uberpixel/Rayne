@@ -17,7 +17,7 @@ namespace RN
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_Texture1", kRNResourceKeyTexture1Shader));
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_Water", kRNResourceKeyWaterShader));
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_Particle", kRNResourceKeyParticleShader));
-		
+
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_UIImage", kRNResourceKeyUIImageShader));
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_UIText", kRNResourceKeyUITextShader));
 
@@ -26,6 +26,9 @@ namespace RN
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_LightDepth", kRNResourceKeyLightDepthShader));
 		
 		batch->AddTask(std::bind(&ResourcePool::LoadFont, this, "Helvetica Neue", kRNResourceKeyDefaultFont));
+		
+		// Must be done on this thread and blocking because there are cameras created that require this shader
+		LoadShader("shader/rn_DrawFramebuffer", kRNResourceKeyDrawFramebufferShader);
 	}
 	
 	void ResourcePool::LoadShader(const std::string& name, const std::string& key)
@@ -36,7 +39,7 @@ namespace RN
 	
 	void ResourcePool::LoadFont(const std::string& name, const std::string& key)
 	{
-		UI::Font *font = UI::Font::WithName(name, 16.0f);
+		UI::Font *font = UI::Font::WithName(name, 14.0f);
 		AddResource(font, key);
 	}
 	

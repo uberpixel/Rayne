@@ -13,6 +13,7 @@
 #include "RNKernel.h"
 #include "RNThreadPool.h"
 #include "RNAlgorithm.h"
+#include "RNSettings.h"
 
 #define kRNRendererMaxVAOAge 300
 #define kRNRendererFastPathLightCount 10
@@ -57,9 +58,7 @@ namespace RN
 		_blendSource      = GL_ONE;
 		_blendDestination = GL_ZERO;
 		
-		// Setup framebuffer copy stuff
-		_copyShader = 0;
-		
+		// Setup framebuffer copy stuff		
 		_copyVertices[0] = Vector4(-1.0f, 1.0f, 0.0f, 1.0f);
 		_copyVertices[1] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 		_copyVertices[2] = Vector4(1.0f, -1.0f, 1.0f, 0.0f);
@@ -93,9 +92,7 @@ namespace RN
 	}
 	
 	void Renderer::Initialize()
-	{
-		_copyShader = new Shader("shader/rn_CopyFramebuffer");
-		
+	{		
 		glGenVertexArrays(1, &_copyVAO);
 		glBindVertexArray(_copyVAO);
 		
@@ -152,8 +149,9 @@ namespace RN
 		glBindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListDataIndex]);
 		glBindBuffer(GL_TEXTURE_BUFFER, _lightSpotBuffers[kRNRendererSpotLightListDataIndex]);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightSpotBuffers[kRNRendererSpotLightListDataIndex]);
-		
 #endif
+		
+		_gammaCorrection = Settings::SharedInstance()->BoolForKey(kRNSettingsGammaCorrectionKey);
 	}
 	
 	
@@ -850,8 +848,10 @@ namespace RN
 		
 		for(auto iterator=_flushCameras.begin(); iterator!=_flushCameras.end(); iterator++)
 		{
-			Camera *camera  = *iterator;
-			FlushCamera(camera);
+			Camera *camera = iterator->first;
+			Shader *shader = iterator->second;
+			
+			FlushCamera(camera, shader);
 		}
 		
 		_flushCameras.clear();
@@ -859,7 +859,7 @@ namespace RN
 		_debugFrameWorld.clear();
 	}
 	
-	void Renderer::FlushCamera(Camera *camera)
+	void Renderer::FlushCamera(Camera *camera, Shader *drawShader)
 	{
 		_currentCamera = camera;
 		_textureUnit = 0;
@@ -886,7 +886,12 @@ namespace RN
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _copyIBO);
 		}
 		
-		ShaderProgram *program = _copyShader->ProgramOfType(ShaderProgram::TypeNormal);
+		uint32 type = ShaderProgram::TypeNormal;		
+
+		if(_gammaCorrection && drawShader->SupportsProgramOfType(ShaderProgram::TypeGammaCorrection))
+			type = ShaderProgram::TypeGammaCorrection;
+		
+		ShaderProgram *program = drawShader->ProgramOfType(type);
 		
 		UseShader(program);
 		UpdateShaderData();
@@ -1458,7 +1463,7 @@ namespace RN
 		}
 		
 		 if(!(previous->CameraFlags() & Camera::FlagHidden))
-			 _flushCameras.push_back(previous);
+			 _flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->DrawFramebufferShader()));
 		
 		// Cleanup of the frame
 		_frameCamera = 0;

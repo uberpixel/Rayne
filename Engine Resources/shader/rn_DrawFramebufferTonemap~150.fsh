@@ -1,5 +1,5 @@
 //
-//  rn_CopyFramebuffer.fsh
+//  rn_DrawFramebufferTonemape.fsh
 //  Rayne
 //
 //  Copyright 2013 by Überpixel. All rights reserved.
@@ -29,9 +29,16 @@ vec3 Uncharted2Tonemap(vec3 x)
 
 void main()
 {
+#ifdef RN_GAMMA_CORRECTION
 	vec4 color0 = texture(targetmap0, vertTexcoord);
 	
 	vec3 tonemapped = Uncharted2Tonemap(hdrSettings.x*color0.rgb)/Uncharted2Tonemap(vec3(hdrSettings.y));
 	fragColor0.rgb = pow(tonemapped, vec3(1.0/2.2));
 	fragColor0.a = color0.a;
+#else
+	vec4 color0 = texture(targetmap0, vertTexcoord);
+	
+	fragColor0.rgb = Uncharted2Tonemap(hdrSettings.x*color0.rgb)/Uncharted2Tonemap(vec3(hdrSettings.y));
+	fragColor0.a = color0.a;
+#endif
 }
