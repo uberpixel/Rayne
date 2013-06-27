@@ -59,16 +59,8 @@ namespace RN
 		float Sqrt(float x)
 		{
 #if RN_SIMD
-			float result;
-			
-			SIMD::VecFloat vector = SIMD::LoadScalar(&x);
-			SIMD::VecFloat mask   = SIMD::Cmplt(vector, SIMD::LoadConstant<0x800000>());
-			
-			SIMD::VecFloat r = _mm_rsqrt_ss(vector);
-			r = _mm_mul_ss(_mm_mul_ss(_mm_sub_ss(SIMD::LoadConstant<0x40400000>(), _mm_mul_ss(vector, _mm_mul_ss(r, r))), r), SIMD::LoadConstant<0x3f000001>());
-			
-			SIMD::StoreX(_mm_mul_ss(_mm_andnot_ps(mask, r), vector), &result);
-			return result;
+			SIMD::StoreX(_mm_sqrt_ss(SIMD::LoadScalar(&x)), &x);
+			return x;
 #endif
 			
 			return sqrtf(x);

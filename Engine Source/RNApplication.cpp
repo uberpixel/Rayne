@@ -8,12 +8,6 @@
 
 #include "RNApplication.h"
 
-#include "RNThreadPool.h"
-#include "RNUIServer.h"
-#include "RNUIImageView.h"
-
-#include "Rayne.h"
-
 namespace RN
 {
 	Application::Application()
