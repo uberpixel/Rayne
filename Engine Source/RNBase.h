@@ -139,6 +139,7 @@ namespace RN
 
 	RNAPI RN_NORETURN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
 	RNAPI RN_NORETURN void __HandleException(const ErrorException& e);
+	RNAPI void ParseCommandLine(int argc, char *argv[]);
 	
 	class Range
 	{

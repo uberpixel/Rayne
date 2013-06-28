@@ -12,6 +12,7 @@
 #include "RNError.h"
 #include "RNThread.h"
 #include "RNSpinLock.h"
+#include "RNPathManager.h"
 
 namespace RN
 {
@@ -57,5 +58,17 @@ namespace RN
 		fflush(stderr);
 		abort();
 		__DieLock.Unlock();
-	}		
+	}
+	
+	void ParseCommandLine(int argc, char *argv[])
+	{
+		for(int i=0; i<argc; i++)
+		{
+			if(strcmp(argv[i], "-r") == 0 && i < argc - 1)
+			{
+				char *path = argv[++ i];
+				PathManager::AddSearchPath(path);
+			}
+		}
+	}
 }

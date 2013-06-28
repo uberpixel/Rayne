@@ -12,17 +12,9 @@ int main(int argc, char *argv[])
 {
 	int result = 0;
 	
-	for(int i=1; i<argc; i++)
-	{
-		if(strcmp(argv[i], "-r") == 0 && i < argc - 1)
-		{
-			char *path = argv[++ i];
-			RN::PathManager::AddSearchPath(path);
-		}
-	}
-	
 	try
 	{
+		RN::ParseCommandLine(argc, argv);
 		result = NSApplicationMain(argc, (const char **)argv);
 	}
 	catch(RN::ErrorException e)
