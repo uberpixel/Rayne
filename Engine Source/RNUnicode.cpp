@@ -37,6 +37,24 @@ namespace RN
 	}
 	
 	
+	bool CodePoint::IsNewline() const
+	{
+		switch(_codePoint)
+		{
+			case 0x0a:
+			case 0x0b:
+			case 0x0c:
+			case 0x0d:
+			case 0x85:
+			case 0x2028:
+			case 0x2029:
+				return true;
+				
+			default:
+				return false;
+		}
+	}
+	
 	UniChar CodePoint::LowerCase() const
 	{
 		if(_codePoint <= 0x7f)

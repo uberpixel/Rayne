@@ -24,9 +24,12 @@ namespace RN
 		
 		static UniChar ConvertCharacter(char character);
 		static char ConverToCharacter(UniChar character);
+		static UniChar Ellipsis() { return 0x2026; }
 		
 		char ASCIICharacter() const;
 		UniChar Character() const { return _codePoint; }
+		
+		bool IsNewline() const;
 		
 		UniChar UpperCase() const;
 		UniChar LowerCase() const;

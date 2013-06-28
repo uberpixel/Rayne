@@ -25,8 +25,8 @@ namespace RN
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_LightTileSample", kRNResourceKeyLightTileSampleShader));
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_LightDepth", kRNResourceKeyLightDepthShader));
 		
-		batch->AddTask(std::bind(&ResourcePool::LoadFont, this, "Helvetica Neue", kRNResourceKeyDefaultFont));
-		batch->AddTask(std::bind(&ResourcePool::LoadFont, this, "Helvetica Neue Bold", kRNResourceKeyDefaultFontBold));
+		batch->AddTask(std::bind(&ResourcePool::LoadFont, this, "Helvetica", kRNResourceKeyDefaultFont));
+		batch->AddTask(std::bind(&ResourcePool::LoadFont, this, "Helvetica Bold", kRNResourceKeyDefaultFontBold));
 		
 		// Must be done on this thread and blocking because there are cameras created that require this shader
 		LoadShader("shader/rn_DrawFramebuffer", kRNResourceKeyDrawFramebufferShader);

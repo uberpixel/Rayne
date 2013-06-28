@@ -284,6 +284,10 @@ namespace RN
 			for(uint32 i=0; i<string->Length(); i++)
 			{
 				UniChar character = string->CharacterAtIndex(i);
+				
+				if(CodePoint(character).IsNewline())
+					continue;
+				
 				if(_glyphs.find(character) != _glyphs.end())
 					continue;
 				
@@ -330,12 +334,60 @@ namespace RN
 			return Vector2(offsetX, lines * _height);
 		}
 		
+		void Font::AlignLine(Vector2 *begin, Vector2 *end, const TextStyle& style)
+		{
+			if(begin == end)
+				return;
+			
+			float width  = (end - 4)->x - (begin + 1)->x;
+			float offset;
+			
+			switch(style.alignment)
+			{
+				case TextAlignment::Left:
+					return;
+					
+				case TextAlignment::Center:
+					offset = (style.size.x * 0.5f) - (width * 0.5f);
+					break;
+					
+				case TextAlignment::Right:
+					offset = roundf(style.size.x - width);
+					break;
+			}
+			
+			while(begin < end)
+			{
+				begin->x += offset;
+				begin ++;
+			}
+		}
+		
+		size_t Font::RenderableCharactersInString(String *string)
+		{
+			size_t size = 0;
+			
+			for(size_t i=0; i<string->Length(); i++)
+			{
+				UniChar character = string->CharacterAtIndex(static_cast<uint32>(i));
+				
+				if(CodePoint(character).IsNewline())
+					continue;
+				
+				size ++;
+			}
+			
+			return size;
+		}
+		
 		Mesh *Font::RenderString(String *string, const TextStyle& style)
 		{
 			RenderGlyphsFromString(string);
 			
-			size_t vertexCount  = string->Length() * 4;
-			size_t indicesCount = string->Length() * 6;
+			size_t visibleLength = RenderableCharactersInString(string);
+			
+			size_t vertexCount  = visibleLength * 4;
+			size_t indicesCount = visibleLength * 6;
 			
 			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
 			vertexDescriptor.elementMember = 2;
@@ -359,15 +411,34 @@ namespace RN
 			Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
 			uint16 *indices   = mesh->Element<uint16>(kMeshFeatureIndices);
 			
-			//Vector2 *lineBegin = vertices;
+			bool isOnNewLine = true;
+			Vector2 *lineBegin = vertices;
+			
+#define InsertNewLine() do { \
+			AlignLine(lineBegin, vertices, style); \
+			\
+			offsetX = 0.0f; \
+			offsetY -= _height; \
+			\
+			lineBegin = vertices; \
+			isOnNewLine = true; \
+		} while(0)
 			
 			// Generate a mesh for each glyph
 			float offsetX = 0.0f;
 			float offsetY = 0.0f;
 			
+			size_t iOffset = 0;
+			
 			for(size_t i=0; i<string->Length(); i++)
 			{
 				UniChar character = string->CharacterAtIndex(static_cast<uint32>(i));
+				if(CodePoint(character).IsNewline())
+				{
+					InsertNewLine();
+					continue;
+				}
+				
 				Glyph& glyph = _glyphs.at(character);
 				
 				float x0 = offsetX + glyph.OffsetX();
@@ -375,7 +446,7 @@ namespace RN
 				float x1 = x0 + glyph.Width();
 				float y0 = y1 - glyph.Height();
 				
-				if(i > 0)
+				if(!isOnNewLine)
 				{
 					if(style.kerning)
 					{
@@ -394,8 +465,7 @@ namespace RN
 						y0 -= _height;
 						y1 -= _height;
 						
-						offsetX = 0.0f;
-						offsetY -= _height;
+						InsertNewLine();
 					}
 				}
 				
@@ -409,24 +479,30 @@ namespace RN
 				*uvCoords ++ = Vector2(glyph._u1, glyph._v1);
 				*uvCoords ++ = Vector2(glyph._u0, glyph._v1);
 				
-				*indices ++ = (i * 4) + 0;
-				*indices ++ = (i * 4) + 1;
-				*indices ++ = (i * 4) + 2;
+				*indices ++ = (iOffset * 4) + 0;
+				*indices ++ = (iOffset * 4) + 1;
+				*indices ++ = (iOffset * 4) + 2;
 				
-				*indices ++ = (i * 4) + 1;
-				*indices ++ = (i * 4) + 3;
-				*indices ++ = (i * 4) + 2;
+				*indices ++ = (iOffset * 4) + 1;
+				*indices ++ = (iOffset * 4) + 3;
+				*indices ++ = (iOffset * 4) + 2;
 				
 				offsetX += glyph.AdvanceX();
+				
+				isOnNewLine = false;
+				iOffset ++;
 			}
+			
+			AlignLine(lineBegin, vertices, style);
 			
 			mesh->ReleaseElement(kMeshFeatureVertices);
 			mesh->ReleaseElement(kMeshFeatureUVSet0);
 			mesh->ReleaseElement(kMeshFeatureIndices);
 			mesh->UpdateMesh();
-			mesh->SetMode(GL_TRIANGLES);
 			
 			return mesh->Autorelease();
+			
+#undef InsertNewLine
 		}
 	}
 	

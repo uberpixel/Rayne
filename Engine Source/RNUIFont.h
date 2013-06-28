@@ -26,7 +26,6 @@ namespace RN
 		{
 		friend class Font;
 		public:
-			
 			UniChar Character() const { return _character; }
 			float Kerning(UniChar character) const; // Returns the kerning for this glyph rendered after the given character
 			
@@ -88,6 +87,9 @@ namespace RN
 			void RenderGlyph(UniChar character);
 			void RenderGlyphsFromString(String *string);
 			void UpdateKerning();
+			
+			size_t RenderableCharactersInString(String *string);
+			void AlignLine(Vector2 *begin, Vector2 *end, const TextStyle& style);
 			float WidthOfString(String *string);
 			
 			void *_finternals;
