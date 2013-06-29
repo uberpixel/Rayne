@@ -17,7 +17,15 @@ out vec4 fragColor0;
 
 void main()
 {
+#ifdef RN_SUBPIXEL_ANTIALIAS
+	vec3 color  = texture(mTexture0, vertTexcoord).rgb;
+	color = pow(color, vec3(1.0/1.0));
+
+	fragColor0.rgb = color;
+	fragColor0.a = (color.r + color.g + color.b) / 3.0;
+#else
 	float color = texture(mTexture0, vertTexcoord).r;
 	vec4 result = vec4(vec3(1.0) * pow(color, 1), color);
 	fragColor0 = result;
+#endif
 }

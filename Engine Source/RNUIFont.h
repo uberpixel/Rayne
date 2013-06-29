@@ -71,7 +71,7 @@ namespace RN
 			FontDescriptor()
 			{
 				hinting = true;
-				filtering = false;
+				filtering = true;
 				style = 0;
 			}
 			

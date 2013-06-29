@@ -56,6 +56,11 @@ namespace RN
 			
 			DrawMaterial()->RemoveTextures();
 			DrawMaterial()->AddTexture(_font->Texture());
+			
+			DrawMaterial()->Undefine("RN_SUBPIXEL_ANTIALIAS");
+			
+			if(_font->Filtering())
+				DrawMaterial()->Define("RN_SUBPIXEL_ANTIALIAS");
 		}
 		
 		void Label::SetText(String *text)

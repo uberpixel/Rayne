@@ -50,12 +50,12 @@ namespace RN
 			
 			parameter.mipMaps = 0;
 			parameter.generateMipMaps = false;
-			parameter.format = TextureParameter::Format::R8;
+			parameter.format   = Filtering() ? TextureParameter::Format::RGB888 : TextureParameter::Format::R8;
 			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
-			parameter.filter = TextureParameter::Filter::Nearest;
+			parameter.filter   = TextureParameter::Filter::Nearest;
 			
 			_scale = Kernel::SharedInstance()->ScaleFactor();
-			_texture = new TextureAtlas(4096 * _scale, 4096 * _scale, parameter);
+			_texture = new TextureAtlas(4096 * _scale, 4096 * _scale, true, parameter);
 			
 			_finternals = 0;
 			_size       = size;
@@ -258,14 +258,16 @@ namespace RN
 			FT_GlyphSlot slot = _internals->face->glyph;
 			FT_Bitmap bitmap  = slot->bitmap;
 			
-			uint32 width  = bitmap.width;
+			uint32 width  = (bitmap.pixel_mode == FT_PIXEL_MODE_LCD) ? bitmap.width / 3 : bitmap.width;
 			uint32 height = bitmap.rows;
 
-			uint8 *data = new uint8[width * height];
+			uint8 *data;
 			
 			switch(bitmap.pixel_mode)
 			{
 				case FT_PIXEL_MODE_MONO:
+					data = new uint8[width * height];
+					
 					for(uint32 y=0; y<height; y++)
 					{
 						uint8 *source = bitmap.buffer + (y * bitmap.pitch);
@@ -280,19 +282,34 @@ namespace RN
 					break;
 					
 				case FT_PIXEL_MODE_GRAY:
+					data = new uint8[width * height];
+					
 					for(uint32 y=0; y<height; y++)
 					{
 						uint8 *source = bitmap.buffer + (y * bitmap.pitch);
 						uint8 *dest   = data + width * y;
 						
-						for(uint32 x=0; x<width; x++)
-						{
-							*dest ++ = *source ++;
-						}
+						std::copy(source, source + width, dest);
 					}
 					
 					break;
 					
+				case FT_PIXEL_MODE_LCD:
+				{
+					data = new uint8[bitmap.width * height];
+					
+					for(uint32 y=0; y<height; y++)
+					{
+						uint8 *source = bitmap.buffer + (y * bitmap.pitch);
+						uint8 *dest = data + (y * bitmap.width);
+						
+						std::copy(source, source + bitmap.width, dest);
+					}
+					
+					
+					break;
+				}
+				
 				default:
 					throw ErrorException(0);
 					return;
@@ -301,8 +318,8 @@ namespace RN
 			Rect rect = _texture->AllocateRegion(width + 1, height + 1);
 			rect.width  -= 1.0f;
 			rect.height -= 1.0f;
-			
-			_texture->SetRegionData(rect, data, TextureParameter::Format::R8);
+
+			_texture->SetRegionData(rect, data, Filtering() ? TextureParameter::Format::RGB888 : TextureParameter::Format::R8);
 			delete [] data;
 			
 			Glyph glyph;
