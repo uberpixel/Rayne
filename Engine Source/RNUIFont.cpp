@@ -295,7 +295,6 @@ namespace RN
 					break;
 					
 				case FT_PIXEL_MODE_LCD:
-				{
 					data = new uint8[bitmap.width * height];
 					
 					for(uint32 y=0; y<height; y++)
@@ -306,9 +305,7 @@ namespace RN
 						std::copy(source, source + bitmap.width, dest);
 					}
 					
-					
 					break;
-				}
 				
 				default:
 					throw ErrorException(0);

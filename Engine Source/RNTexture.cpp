@@ -290,10 +290,18 @@ namespace RN
 			free(converted);
 	}
 	
-	void Texture::GetData(void *data, GLuint format, GLuint type)
+	void Texture::Data(void *ptr, TextureParameter::Format format)
 	{
 		Bind();
-		glGetTexImage(_glType, 0, format, type, data);
+		
+		GLuint glFormat, glType;
+		GLint glInternalFormat;
+		
+		ConvertFormat(format, _isLinear, &glFormat, &glInternalFormat, &glType);
+		
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glGetTexImage(_glType, 0, glFormat, glType, ptr);
+		
 		Unbind();
 	}
 	
