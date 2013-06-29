@@ -63,8 +63,7 @@ namespace RN
 			_filterWeights[4] = 0x10;
 			
 			ResolveFontName(name);
-			ReadMetrics();
-			RenderGlyphsFromString(RNSTR(kRNCommonCharacters));
+			Initialize();
 		}
 		
 		Font::~Font()
@@ -80,12 +79,18 @@ namespace RN
 		}
 		
 		
-		void Font::ReadMetrics()
+		void Font::Initialize()
 		{
 			InitializeInternals();
 			
 			_height = _internals->face->size->metrics.height / 64.0f;
 			
+			for(size_t i=0; i<strlen(kRNCommonCharacters); i++)
+			{
+				RenderGlyph(CodePoint::ConvertCharacter(kRNCommonCharacters[i]));
+			}
+			
+			RenderGlyph(CodePoint::Ellipsis());
 			DropInternals();
 		}
 		

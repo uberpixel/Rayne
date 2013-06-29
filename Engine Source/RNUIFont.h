@@ -80,7 +80,7 @@ namespace RN
 			
 		private:
 			void ResolveFontName(const std::string& name);
-			void ReadMetrics();
+			void Initialize();
 			void InitializeInternals();
 			void DropInternals();
 			
