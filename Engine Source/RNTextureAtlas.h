@@ -21,6 +21,7 @@ namespace RN
 	{
 	public:
 		TextureAtlas(uint32 width, uint32 height, const TextureParameter& parameter);
+		TextureAtlas(uint32 width, uint32 height, bool linear, const TextureParameter& parameter);
 		virtual ~TextureAtlas();
 		
 		Rect AllocateRegion(uint32 width, uint32 height);

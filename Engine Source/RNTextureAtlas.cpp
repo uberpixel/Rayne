@@ -27,6 +27,23 @@ namespace RN
 		_data = static_cast<uint8 *>(calloc(width * height * 4, 1));
 	}
 	
+	TextureAtlas::TextureAtlas(uint32 width, uint32 height, bool isLinear, const TextureParameter& parameter) :
+		Texture(parameter, isLinear)
+	{
+		SetData(0, width, height, parameter.format);
+		
+		TextureRegion region;
+		
+		region.rect = Rect(0.0f, 0.0f, width, height);
+		region.rect.Inset(1.0f, 1.0f);
+		region.rect.Integral();
+		
+		region.isFree = true;
+		
+		_regions.push_back(region);
+		_data = static_cast<uint8 *>(calloc(width * height * 4, 1));
+	}
+	
 	TextureAtlas::~TextureAtlas()
 	{
 		if(_data)
