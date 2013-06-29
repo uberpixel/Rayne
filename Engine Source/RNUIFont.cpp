@@ -13,6 +13,7 @@
 #include "RNUIFont.h"
 #include "RNPathManager.h"
 #include "RNBaseInternal.h"
+#include "RNKernel.h"
 
 const char *kRNCommonCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890.,-;:_-+*/!\"§$%&()=?<>' ";
 
@@ -39,7 +40,7 @@ namespace RN
 #define _internals (reinterpret_cast<FontInternals *>(_finternals))
 		
 		Font::Font(const std::string& name, float size)
-		{		
+		{
 			TextureParameter parameter;
 			
 			parameter.mipMaps = 0;
@@ -48,10 +49,11 @@ namespace RN
 			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
 			parameter.filter = TextureParameter::Filter::Nearest;
 			
-			_texture = new TextureAtlas(4096, 4096, parameter);
+			_scale = Kernel::SharedInstance()->ScaleFactor();
+			_texture = new TextureAtlas(4096 * _scale, 4096 * _scale, parameter);
 			
 			_finternals = 0;
-			_size = size;
+			_size       = size;
 			
 			_hinting   = true;
 			_filtering = false;
@@ -83,7 +85,12 @@ namespace RN
 		{
 			InitializeInternals();
 			
-			_height = _internals->face->size->metrics.height / 64.0f;
+			_height     = (_internals->face->size->metrics.height / 64.0f) / _scale;
+			_ascent     = (_internals->face->size->metrics.ascender / 64.0f) / _scale;
+			_descent    = (_internals->face->size->metrics.descender / 64.0f) / _scale;
+			_unitsPerEM = _internals->face->units_per_EM;
+			
+			printf("Height: %f, Ascent: %f, Descent: %f\n", _height, _ascent, _descent);
 			
 			for(size_t i=0; i<strlen(kRNCommonCharacters); i++)
 			{
@@ -124,6 +131,11 @@ namespace RN
 			_fontPath = path;
 		}
 		
+		// ---------------------
+		// MARK: -
+		// MARK: FreeType related
+		// ---------------------
+		
 		void Font::InitializeInternals()
 		{
 			if(_finternals)
@@ -145,7 +157,7 @@ namespace RN
 			FT_New_Face(_internals->library, _fontPath.c_str(), 0, &_internals->face);
 			
 			FT_Select_Charmap(_internals->face, FT_ENCODING_UNICODE);
-			FT_Set_Char_Size(_internals->face, (int)(_size * 64.0f), 0, 72 * hres, 72);
+			FT_Set_Char_Size(_internals->face, (int)((_size * _scale) * 64.0f), 0, 72 * hres, 72);
 			
 			FT_Set_Transform(_internals->face, &matrix, 0);
 		}
@@ -163,6 +175,11 @@ namespace RN
 			_finternals = 0;
 		}
 		
+		
+		// ---------------------
+		// MARK: -
+		// MARK: Glyph handling
+		// ---------------------
 		
 		void Font::RenderGlyph(UniChar character)
 		{
@@ -237,9 +254,11 @@ namespace RN
 			Glyph glyph;
 			glyph._character = character;
 			glyph._region    = rect;
+			glyph._region.width  /= _scale;
+			glyph._region.height /= _scale;
 			
-			glyph._offset_x = slot->bitmap_left;
-			glyph._offset_y = slot->bitmap_top;
+			glyph._offset_x = slot->bitmap_left / _scale;
+			glyph._offset_y = slot->bitmap_top  / _scale;
 			
 			glyph._u0 = rect.x / _texture->Width();
 			glyph._v0 = rect.y / _texture->Height();
@@ -249,8 +268,8 @@ namespace RN
 			FT_Load_Glyph(_internals->face, glyphIndex, FT_LOAD_RENDER | FT_LOAD_NO_HINTING);
 			slot = _internals->face->glyph;
 			
-			glyph._advance_x = slot->advance.x / 64.0f;
-			glyph._advance_y = slot->advance.y / 64.0f;
+			glyph._advance_x = (slot->advance.x / 64.0f) / _scale;
+			glyph._advance_y = (slot->advance.y / 64.0f) / _scale;
 			
 			_glyphs.insert(std::unordered_map<UniChar, Glyph>::value_type(glyph._character, glyph));
 		}
@@ -305,6 +324,22 @@ namespace RN
 			
 			DropInternals();
 		}
+		
+		const Glyph& Font::GlyphForCharacter(UniChar character)
+		{
+			auto iterator = _glyphs.find(character);
+			if(iterator == _glyphs.end())
+			{
+				RenderGlyph(character);
+				UpdateKerning();
+				
+				return _glyphs.at(character);
+			}
+			
+			return iterator->second;
+		}
+		
+		
 		
 		float Font::WidthOfString(String *string)
 		{

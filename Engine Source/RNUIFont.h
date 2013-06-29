@@ -67,16 +67,20 @@ namespace RN
 			
 			static Font *WithName(const std::string& name, float size);
 			
-			void SetHinting(bool hintingEnabled);
-			void SetFiltering(bool filteringEnabled);
-			
 			bool Hinting() const { return _hinting; }
 			bool Filtering() const { return _filtering; };
 			
-			Vector2 SizeOfString(String *string, const TextStyle& style);
-			Mesh *RenderString(String *string, const TextStyle& style);
+			float Ascent() const { return _ascent; }
+			float Descent() const { return _descent; }
+			float UnitsPerEM() const { return _unitsPerEM; }
 			
 			Texture *Texture() const { return _texture; }
+			
+			const Glyph& GlyphForCharacter(UniChar character);
+			void RenderGlyphsFromString(String *string);
+			
+			Vector2 SizeOfString(String *string, const TextStyle& style);
+			Mesh *RenderString(String *string, const TextStyle& style);
 			
 		private:
 			void ResolveFontName(const std::string& name);
@@ -85,18 +89,22 @@ namespace RN
 			void DropInternals();
 			
 			void RenderGlyph(UniChar character);
-			void RenderGlyphsFromString(String *string);
 			void UpdateKerning();
 			
 			size_t RenderableCharactersInString(String *string);
 			void AlignLine(Vector2 *begin, Vector2 *end, const TextStyle& style);
 			float WidthOfString(String *string);
 			
+			std::string _fontPath;
 			void *_finternals;
 			
-			std::string _fontPath;
 			float _size;
+			float _scale;
 			float _height;
+			
+			float _ascent;
+			float _descent;
+			float _unitsPerEM;
 			
 			bool _filtering;
 			bool _hinting;
