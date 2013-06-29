@@ -72,7 +72,10 @@ namespace RN
 			
 			float Ascent() const { return _ascent; }
 			float Descent() const { return _descent; }
+			float Leading() const { return _leading; }
+			float Size() const { return _size; }
 			float UnitsPerEM() const { return _unitsPerEM; }
+			float DefaultLineHeight() const;
 			
 			Texture *Texture() const { return _texture; }
 			
@@ -91,6 +94,8 @@ namespace RN
 			void RenderGlyph(UniChar character);
 			void UpdateKerning();
 			
+			float ConvertFontUnit(float unit) const;
+			
 			size_t RenderableCharactersInString(String *string);
 			void AlignLine(Vector2 *begin, Vector2 *end, const TextStyle& style);
 			float WidthOfString(String *string);
@@ -104,6 +109,7 @@ namespace RN
 			
 			float _ascent;
 			float _descent;
+			float _leading;
 			float _unitsPerEM;
 			
 			bool _filtering;

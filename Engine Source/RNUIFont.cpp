@@ -81,16 +81,18 @@ namespace RN
 		}
 		
 		
+		
+		
 		void Font::Initialize()
 		{
 			InitializeInternals();
 			
-			_height     = (_internals->face->size->metrics.height / 64.0f) / _scale;
-			_ascent     = (_internals->face->size->metrics.ascender / 64.0f) / _scale;
-			_descent    = (_internals->face->size->metrics.descender / 64.0f) / _scale;
 			_unitsPerEM = _internals->face->units_per_EM;
 			
-			printf("Height: %f, Ascent: %f, Descent: %f\n", _height, _ascent, _descent);
+			_height  = ConvertFontUnit(_internals->face->height);
+			_ascent  = ConvertFontUnit(_internals->face->ascender);
+			_descent = ConvertFontUnit(_internals->face->descender);
+			_leading = _height - _ascent + _descent;
 			
 			for(size_t i=0; i<strlen(kRNCommonCharacters); i++)
 			{
@@ -175,6 +177,10 @@ namespace RN
 			_finternals = 0;
 		}
 		
+		float Font::ConvertFontUnit(float unit) const
+		{
+			return unit * _size / _unitsPerEM;
+		}
 		
 		// ---------------------
 		// MARK: -
@@ -339,6 +345,28 @@ namespace RN
 			return iterator->second;
 		}
 		
+		// ---------------------
+		// MARK: -
+		// MARK: Helper
+		// ---------------------
+		
+		float Font::DefaultLineHeight() const
+		{
+			float ascent  = _ascent;
+			float descent = _descent;
+			float leading = _leading;
+			float lineHeight;
+			
+			if(leading < 0.0f)
+				leading = 0.0f;
+			
+			leading = floorf(leading + 0.5f);
+			lineHeight = floorf(ascent + 0.5f) - floor(descent * 0.5f) + leading;
+			
+			float ascenderDelta = (leading > 0.0f) ? 0.0f : floorf(0.2f * lineHeight + 0.5f);
+			return lineHeight + ascenderDelta;
+		}
+		
 		
 		
 		float Font::WidthOfString(String *string)
@@ -371,7 +399,7 @@ namespace RN
 				offsetX += glyph.AdvanceX();
 			}
 				
-			return Vector2(offsetX, lines * _height);
+			return Vector2(offsetX, lines * DefaultLineHeight());
 		}
 		
 		void Font::AlignLine(Vector2 *begin, Vector2 *end, const TextStyle& style)
@@ -458,7 +486,7 @@ namespace RN
 			AlignLine(lineBegin, vertices, style); \
 			\
 			offsetX = 0.0f; \
-			offsetY -= _height; \
+			offsetY -= height; \
 			\
 			lineBegin = vertices; \
 			isOnNewLine = true; \
@@ -469,6 +497,7 @@ namespace RN
 			float offsetY = 0.0f;
 			
 			size_t iOffset = 0;
+			float height = DefaultLineHeight();
 			
 			for(size_t i=0; i<string->Length(); i++)
 			{
@@ -482,7 +511,7 @@ namespace RN
 				Glyph& glyph = _glyphs.at(character);
 				
 				float x0 = offsetX + glyph.OffsetX();
-				float y1 = offsetY + glyph.OffsetY() + (style.size.y - _height);
+				float y1 = offsetY + glyph.OffsetY() + (style.size.y - height);
 				float x1 = x0 + glyph.Width();
 				float y0 = y1 - glyph.Height();
 				
@@ -502,8 +531,8 @@ namespace RN
 						x0 = glyph.OffsetX();
 						x1 = glyph.Width();
 						
-						y0 -= _height;
-						y1 -= _height;
+						y0 -= height;
+						y1 -= height;
 						
 						InsertNewLine();
 					}
