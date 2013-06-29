@@ -25,9 +25,9 @@ namespace TG
 	void Application::Start()
 	{
 		RN::Window *window = RN::Window::SharedInstance();
+		RN::UI::Server::SharedInstance()->DebugWidget()->Show();
 		
 		auto configs = RN::Window::SharedInstance()->Configurations();
-		
 		window->SetConfiguration(configs.at(configs.size() - 2), 0);
 		
 		_world = new World();

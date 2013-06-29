@@ -9,6 +9,7 @@
 #include "RNUIServer.h"
 #include "RNWorld.h"
 #include "RNWindow.h"
+#include "RNUILabel.h"
 
 namespace RN
 {
@@ -31,6 +32,8 @@ namespace RN
 			_activeControl = nullptr;
 			_mode = Mode::SingleTracking;
 			
+			_debugWidget = nullptr;
+			
 			MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, std::bind(&Server::HandleEvent, this, std::placeholders::_1), this);
 		}
 		
@@ -42,7 +45,7 @@ namespace RN
 		
 		void Server::AddWidget(Widget *widget)
 		{
-			RN_ASSERT0(widget->_server == 0);
+			RN_ASSERT0(widget->_server == nullptr);
 			
 			_widgets.push_front(widget);
 			widget->_server = this;
@@ -54,7 +57,7 @@ namespace RN
 			RN_ASSERT0(widget->_server == this);
 			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
-			widget->_server = 0;
+			widget->_server = nullptr;
 			widget->Release();
 		}
 		
@@ -126,7 +129,6 @@ namespace RN
 			}
 		}
 		
-		
 		void Server::Render(Renderer *renderer)
 		{
 			Rect actualFrame = Window::SharedInstance()->Frame();
@@ -153,6 +155,27 @@ namespace RN
 			}
 			
 			renderer->FinishCamera();
+		}
+		
+		
+		
+		Widget *Server::DebugWidget()
+		{
+			if(!_debugWidget)
+			{
+				Label *fpsLabel = new Label();
+				fpsLabel->SetText(RNSTR("Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus."));
+				fpsLabel->SetFrame(Rect(0.0f, 0.0f, 250.0f, 24.0f));
+				fpsLabel->SetTextColor(Color::Black());
+				fpsLabel->SetAlignment(TextAlignment::Center);
+				
+				_debugWidget = new Widget(Rect(10.0f, 10.0f, 250.0f, 180.0f));
+				_debugWidget->ContentView()->AddSubview(fpsLabel);
+				
+				fpsLabel->Release();
+			}
+			
+			return _debugWidget;
 		}
 	}
 }

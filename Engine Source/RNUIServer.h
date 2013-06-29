@@ -40,6 +40,8 @@ namespace RN
 			uint32 Height() const { return _frame.height; }
 			uint32 Width() const { return _frame.width; }
 			
+			Widget *DebugWidget();
+			
 		protected:
 			void Render(Renderer *renderer);
 			
@@ -58,6 +60,8 @@ namespace RN
 			Widget *_mainWidget;
 			Control *_activeControl;
 			std::deque<Widget *> _widgets;
+			
+			Widget *_debugWidget;
 		};
 	}
 }
