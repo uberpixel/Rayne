@@ -51,7 +51,7 @@ namespace RN
 		
 		void LoadDefaultResources(ThreadPool::Batch& batch);
 		void LoadShader(const std::string& name, const std::string& key);
-		void LoadFont(const std::string& name, const std::string& key);
+		void LoadFont(const std::string& name, float size, uint32 traits, const std::string& key);
 		
 		SpinLock _lock;
 		std::unordered_map<std::string, Object *> _objects;

@@ -58,17 +58,41 @@ namespace RN
 			std::unordered_map<UniChar, float> _kerning;
 		};
 		
+		class FontDescriptor
+		{
+		public:
+			enum
+			{
+				FontStyleItalic = (1 << 0),
+				FontStyleBold = (1 << 1)
+			};
+			typedef uint32 FontStyle;
+			
+			FontDescriptor()
+			{
+				hinting = true;
+				filtering = false;
+				style = 0;
+			}
+			
+			bool hinting;
+			bool filtering;
+			FontStyle style;
+		};
+		
 		class Font : public Object
 		{
 		friend class Glyph;
 		public:
 			Font(const std::string& name, float size);
+			Font(const std::string& name, float size, const FontDescriptor& descriptor);
 			~Font() override;
 			
 			static Font *WithName(const std::string& name, float size);
+			static Font *WithNameAndDescriptor(const std::string& name, float size, const FontDescriptor& descriptor);
 			
-			bool Hinting() const { return _hinting; }
-			bool Filtering() const { return _filtering; };
+			bool Hinting() const { return _descriptor.hinting; }
+			bool Filtering() const { return _descriptor.filtering; };
 			
 			float Ascent() const { return _ascent; }
 			float Descent() const { return _descent; }
@@ -102,6 +126,7 @@ namespace RN
 			
 			std::string _fontPath;
 			void *_finternals;
+			size_t _faceIndex;
 			
 			float _size;
 			float _scale;
@@ -112,8 +137,7 @@ namespace RN
 			float _leading;
 			float _unitsPerEM;
 			
-			bool _filtering;
-			bool _hinting;
+			FontDescriptor _descriptor;
 			uint8 _filterWeights[5];
 			
 			TextureAtlas *_texture;

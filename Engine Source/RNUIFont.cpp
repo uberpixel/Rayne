@@ -39,7 +39,12 @@ namespace RN
 		
 #define _internals (reinterpret_cast<FontInternals *>(_finternals))
 		
-		Font::Font(const std::string& name, float size)
+		Font::Font(const std::string& name, float size) :
+			Font(name, size, FontDescriptor())
+		{}
+		
+		Font::Font(const std::string& name, float size, const FontDescriptor& descriptor) :
+			_descriptor(descriptor)
 		{
 			TextureParameter parameter;
 			
@@ -54,9 +59,7 @@ namespace RN
 			
 			_finternals = 0;
 			_size       = size;
-			
-			_hinting   = true;
-			_filtering = false;
+			_faceIndex  = 0;
 			
 			_filterWeights[0] = 0x10;
 			_filterWeights[1] = 0x40;
@@ -67,6 +70,7 @@ namespace RN
 			ResolveFontName(name);
 			Initialize();
 		}
+		
 		
 		Font::~Font()
 		{
@@ -80,6 +84,11 @@ namespace RN
 			return font->Autorelease();
 		}
 		
+		Font *Font::WithNameAndDescriptor(const std::string& name, float size, const FontDescriptor& descriptor)
+		{
+			Font *font = new Font(name, size, descriptor);
+			return font->Autorelease();
+		}
 		
 		
 		
@@ -116,21 +125,61 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 				@autoreleasepool
 				{
+					CTFontSymbolicTraits traits = 0;
+					traits |= (_descriptor.style & FontDescriptor::FontStyleBold) ? kCTFontTraitBold : 0;
+					traits |= (_descriptor.style & FontDescriptor::FontStyleItalic) ? kCTFontTraitItalic : 0;
+					
 					CFStringRef fontName = CFStringCreateWithCString(kCFAllocatorDefault, name.c_str(), kCFStringEncodingASCII);
-					CTFontRef font = CTFontCreateWithName(fontName, 12.0f, 0);
+					CTFontRef source = CTFontCreateWithName(fontName, _size, nullptr);
+					CTFontRef font = CTFontCreateCopyWithSymbolicTraits(source, 0.0f, nullptr, traits, kCTFontTraitBold | kCTFontTraitItalic);
+					
+					if(!font)
+						font = static_cast<CTFontRef>(CFRetain(source));
 					
 					NSURL *url = reinterpret_cast<NSURL *>(const_cast<void *>(CTFontCopyAttribute(font, kCTFontURLAttribute)));
 					path = [[url path] UTF8String];
-					
+
 					[url release];
 					
 					CFRelease(font);
+					CFRelease(source);
 					CFRelease(fontName);
 				}
 #endif
 			}
 			
 			_fontPath = path;
+			
+			// Find the correct face
+			_finternals = new FontInternals;
+			
+			FT_Long flags = static_cast<FT_Long>(_descriptor.style); // FontStyle has the same values as FT_STYLE_FLAG_XXX
+			FT_Long faces = 0;
+			
+			FT_Init_FreeType(&_internals->library);
+			FT_New_Face(_internals->library, _fontPath.c_str(), 0, &_internals->face);
+			
+			faces = _internals->face->num_faces;
+			
+			// Some fonts have multiple font faces, with different features.
+			// Helvetica on OS X for example, is made out of one file with all features (italics, bold, etc) in different faces
+			// We can't tell FreeType which features we want, so we have to check all faces and see if they have what we need
+			if(faces > 0)
+			{
+				for(size_t i=0; i<faces; i++)
+				{
+					FT_Done_Face(_internals->face);
+					FT_New_Face(_internals->library, _fontPath.c_str(), i, &_internals->face);
+					
+					if(_internals->face->style_flags == flags)
+					{
+						_faceIndex = i;
+						break;
+					}
+				}
+			}
+			
+			DropInternals();
 		}
 		
 		// ---------------------
@@ -156,7 +205,7 @@ namespace RN
 			matrix.yx = 0.0f;
 			matrix.yy = (FT_Fixed)(1.0f * 0x10000L);
 			
-			FT_New_Face(_internals->library, _fontPath.c_str(), 0, &_internals->face);
+			FT_New_Face(_internals->library, _fontPath.c_str(), _faceIndex, &_internals->face);
 			
 			FT_Select_Charmap(_internals->face, FT_ENCODING_UNICODE);
 			FT_Set_Char_Size(_internals->face, (int)((_size * _scale) * 64.0f), 0, 72 * hres, 72);
@@ -173,7 +222,6 @@ namespace RN
 			FT_Done_FreeType(_internals->library);
 			
 			delete _internals;
-			
 			_finternals = 0;
 		}
 		
@@ -194,7 +242,7 @@ namespace RN
 			
 			FT_UInt glyphIndex = FT_Get_Char_Index(_internals->face, character);
 			
-			if(_filtering)
+			if(_descriptor.filtering)
 			{
 				FT_Library_SetLcdFilter(_internals->library, FT_LCD_FILTER_LIGHT);
 				FT_Library_SetLcdFilterWeights(_internals->library, _filterWeights);
@@ -202,7 +250,7 @@ namespace RN
 				flags |= FT_LOAD_TARGET_LCD;
 			}
 			
-			flags |= (_hinting) ? FT_LOAD_FORCE_AUTOHINT : FT_LOAD_NO_HINTING | FT_LOAD_NO_AUTOHINT;
+			flags |= (_descriptor.hinting) ? FT_LOAD_FORCE_AUTOHINT : FT_LOAD_NO_HINTING | FT_LOAD_NO_AUTOHINT;
 			
 			error = FT_Load_Glyph(_internals->face, glyphIndex, flags);
 			FT_Render_Glyph(_internals->face->glyph, FT_RENDER_MODE_NORMAL);
@@ -352,8 +400,6 @@ namespace RN
 		
 		float Font::DefaultLineHeight() const
 		{
-			float ascent  = _ascent;
-			float descent = _descent;
 			float leading = _leading;
 			float lineHeight;
 			
@@ -361,7 +407,7 @@ namespace RN
 				leading = 0.0f;
 			
 			leading = floorf(leading + 0.5f);
-			lineHeight = floorf(ascent + 0.5f) - floor(descent * 0.5f) + leading;
+			lineHeight = floorf(_ascent + 0.5f) - floor(_descent * 0.5f) + leading;
 			
 			float ascenderDelta = (leading > 0.0f) ? 0.0f : floorf(0.2f * lineHeight + 0.5f);
 			return lineHeight + ascenderDelta;

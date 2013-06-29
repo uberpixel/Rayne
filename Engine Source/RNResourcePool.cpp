@@ -25,8 +25,8 @@ namespace RN
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_LightTileSample", kRNResourceKeyLightTileSampleShader));
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_LightDepth", kRNResourceKeyLightDepthShader));
 		
-		batch->AddTask(std::bind(&ResourcePool::LoadFont, this, "Helvetica", kRNResourceKeyDefaultFont));
-		batch->AddTask(std::bind(&ResourcePool::LoadFont, this, "Helvetica Bold", kRNResourceKeyDefaultFontBold));
+		batch->AddTask(std::bind(&ResourcePool::LoadFont, this, "Helvetica", 12.0f, 0, kRNResourceKeyDefaultFont));
+		batch->AddTask(std::bind(&ResourcePool::LoadFont, this, "Helvetica", 12.0f, UI::FontDescriptor::FontStyleBold, kRNResourceKeyDefaultFontBold));
 		
 		// Must be done on this thread and blocking because there are cameras created that require this shader
 		LoadShader("shader/rn_DrawFramebuffer", kRNResourceKeyDrawFramebufferShader);
@@ -38,9 +38,12 @@ namespace RN
 		AddResource(shader, key);
 	}
 	
-	void ResourcePool::LoadFont(const std::string& name, const std::string& key)
+	void ResourcePool::LoadFont(const std::string& name, float size, uint32 traits, const std::string& key)
 	{
-		UI::Font *font = UI::Font::WithName(name, 14.0f);
+		UI::FontDescriptor descriptor;
+		descriptor.style = traits;
+		
+		UI::Font *font = UI::Font::WithNameAndDescriptor(name, size, descriptor);
 		AddResource(font, key);
 	}
 	
