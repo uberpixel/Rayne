@@ -19,77 +19,73 @@ namespace RN
 	namespace stl
 	{
 		template <class T>
-		class Interval
+		class interval_tree
 		{
 		public:
-			Interval(const Range& trange, const T& tvalue) :
-				range(trange),
-				value(tvalue)
-			{}
+			class interval
+			{
+			public:
+				interval(const Range& trange, const T& tvalue) :
+					range(trange),
+					value(tvalue)
+				{}
+				
+				Range range;
+				T value;
+			};
 			
-			Range range;
-			T value;
-		};
-
-		template <class T>
-		class IntervalTree
-		{
-		public:
-			
-			IntervalTree()
+			interval_tree()
 			{
 				_center = 0;
 				_nodes[0] = _nodes[1] = nullptr;
 			}
 			
-			IntervalTree(const IntervalTree<T>& other) :
+			interval_tree(const interval_tree<T>& other) :
 				_intervals(other._intervals)
 			{
-				_center = other._center;
+				_center      = other._center;
+				_leftextent  = other._leftextent;
+				_rightextent = other._rightextent;
 				
 				for(size_t i=0; i<2; i++)
 				{
-					_nodes[i] = (other._nodes[i]) ? new IntervalTree<T>(*other._nodes[i]) : nullptr;
+					_nodes[i] = (other._nodes[i]) ? new interval_tree<T>(*other._nodes[i]) : nullptr;
 				}
 			}
 			
-			IntervalTree(const std::vector<Interval<T>>& intervals, uint32 depth=16, uint32 minbucket=64, int leftextent=0, int rightextent=0, uint32 maxbucket=512) :
-				IntervalTree(std::move(std::vector<Interval<T>>(intervals)), depth, minbucket, leftextent, rightextent, maxbucket)
+			interval_tree(const std::vector<interval>& intervals, uint32 depth=16, uint32 minbucket=64, int32 leftextent=0, int32 rightextent=0, uint32 maxbucket=512) :
+				interval_tree(std::move(std::vector<interval>(intervals)), depth, minbucket, leftextent, rightextent, maxbucket)
 			{}
 			
-			IntervalTree(std::vector<Interval<T>>&& intervals, uint32 depth=16, uint32 minbucket=64, int leftextent=0, int rightextent=0, uint32 maxbucket=512)
+			interval_tree(std::vector<interval>&& intervals, uint32 depth=16, uint32 minbucket=64, int32 leftextent=0, int32 rightextent=0, uint32 maxbucket=512)
 			{
-				_center = 0;
+				if(leftextent == 0 && rightextent == 0)
+				{
+					ParallelSort(intervals.begin(), intervals.end(), [](const interval& a, const interval& b) {
+						return a.range.origin < b.range.origin;
+					});
+					
+					std::vector<machine_uint> stops;
+					stops.resize(intervals.size());
+					std::transform(intervals.begin(), intervals.end(), stops.begin(), [](const interval& interval) {
+						return interval.range.End();
+					});
+					
+					_leftextent  = static_cast<int>(intervals.front().range.origin);
+					_rightextent = static_cast<int>(*std::max_element(stops.begin(), stops.end()));
+				}
+				
+				_center = static_cast<int>(intervals.at(intervals.size() / 2).range.origin);
 				_nodes[0] = _nodes[1] = nullptr;
 				
-				depth --;
-				
-				if(depth == 0 || (intervals.size() < minbucket && intervals.size() < maxbucket))
+				if((--depth) == 0 || (intervals.size() < minbucket && intervals.size() < maxbucket))
 				{
 					_intervals = std::move(intervals);
 				}
 				else
-				{				
-					if(leftextent == 0 && rightextent == 0)
-					{
-						ParallelSort(intervals.begin(), intervals.end(), [](const Interval<T>& a, const Interval<T>& b) {
-							return a.range.origin < b.range.origin;
-						});
-						
-						std::vector<machine_uint> stops;
-						stops.resize(intervals.size());
-						std::transform(intervals.begin(), intervals.end(), stops.begin(), [](const Interval<T>& interval) {
-							return interval.range.End();
-						});
-						
-						leftextent  = static_cast<int>(intervals.front().range.origin);
-						rightextent = static_cast<int>(*std::max_element(stops.begin(), stops.end()));
-					}
-					
-					_center = static_cast<int>(intervals.at(intervals.size() / 2).range.origin);
-					
-					std::vector<Interval<T>> left;
-					std::vector<Interval<T>> right;
+				{
+					std::vector<interval> left;
+					std::vector<interval> right;
 					
 					for(auto i=intervals.begin(); i!=intervals.end(); i++)
 					{
@@ -108,39 +104,46 @@ namespace RN
 					}
 
 					if(!left.empty())
-					{
-						_nodes[0] = new IntervalTree<T>(left, depth, minbucket, leftextent, _center);
-					}
+						_nodes[0] = new interval_tree<T>(left, depth, minbucket, _leftextent, _center);
 					
 					if(!right.empty())
-					{
-						_nodes[1] = new IntervalTree<T>(right, depth, minbucket, rightextent, _center);
-					}
+						_nodes[1] = new interval_tree<T>(right, depth, minbucket, _rightextent, _center);
 				}
 				
 			}
 			
-			~IntervalTree()
+			~interval_tree()
 			{
 				delete _nodes[0];
 				delete _nodes[1];
 			}
 			
-			IntervalTree& operator=(const IntervalTree<T>& other)
+			interval_tree& operator=(const interval_tree<T>& other)
 			{
-				_center = other._center;
-				_intervals = other._intervals;
+				_center      = other._center;
+				_leftextent  = other._leftextent;
+				_rightextent = other._rightextent;
+				_intervals   = other._intervals;
 				
 				for(size_t i=0; i<2; i++)
 				{
-					_nodes[i] = (other._nodes[i]) ? new IntervalTree<T>(*other._nodes[i]) : nullptr;
+					_nodes[i] = (other._nodes[i]) ? new interval_tree<T>(*other._nodes[i]) : nullptr;
 				}
 				
 				return *this;
 			}
+			
+			int32 min() const
+			{
+				return _leftextent;
+			}
 					
+			int32 max() const
+			{
+				return _rightextent;
+			}
 					
-			void FindContained(const Range& range, std::vector<Interval<T>>& contained)
+			void find_contained(const Range& range, std::vector<interval>& contained)
 			{
 				if(!_intervals.empty())
 				{
@@ -154,13 +157,13 @@ namespace RN
 				}
 				
 				if(_nodes[0] && range.origin <= _center)
-					_nodes[0]->FindContained(range, contained);
+					_nodes[0]->find_contained(range, contained);
 				
 				if(_nodes[1] && range.End() >= _center)
-					_nodes[1]->FindContained(range, contained);
+					_nodes[1]->find_contained(range, contained);
 			}
 					
-			void FindOverlapping(const Range& range, std::vector<Interval<T>>& overlapping)
+			void find_overlapping(const Range& range, std::vector<interval>& overlapping)
 			{
 				if(!_intervals.empty())
 				{
@@ -174,16 +177,17 @@ namespace RN
 				}
 				
 				if(_nodes[0] && range.origin <= _center)
-					_nodes[0]->FindOverlapping(range, overlapping);
+					_nodes[0]->find_overlapping(range, overlapping);
 				
 				if(_nodes[1] && range.End() >= _center)
-					_nodes[1]->FindOverlapping(range, overlapping);
+					_nodes[1]->find_overlapping(range, overlapping);
 			}
 			
 		private:
-			IntervalTree<T> *_nodes[2];
-			std::vector<Interval<T>> _intervals;
-			int _center;
+			interval_tree<T> *_nodes[2];
+			std::vector<interval> _intervals;
+			int32 _center;
+			int32 _leftextent, _rightextent;
 		};
 	}
 }
