@@ -151,6 +151,21 @@ namespace RN
 			length = tlength;
 		}
 		
+		machine_uint End() const
+		{
+			return origin + length;
+		}
+		
+		bool Contains(const Range& other)
+		{
+			return (other.origin >= origin && End() <= other.End());
+		}
+		
+		bool Overlaps(const Range& other)
+		{
+			return (End() >= other.origin && origin <= other.End());
+		}
+		
 		machine_uint origin;
 		machine_uint length;
 	};
