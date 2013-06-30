@@ -83,7 +83,7 @@ namespace RN
 		ComparisonResult Compare(const String *other, ComparisonMode mode=0) const;
 		ComparisonResult Compare(const String *other, ComparisonMode mode, const Range& range) const;
 		
-		String Substring(const Range& range) const;
+		String *Substring(const Range& range) const;
 		UniChar CharacterAtIndex(uint32 index) const;
 		
 		uint32 Length() const { return _length; }

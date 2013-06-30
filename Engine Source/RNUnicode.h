@@ -30,6 +30,7 @@ namespace RN
 		UniChar Character() const { return _codePoint; }
 		
 		bool IsNewline() const;
+		bool IsWhitespace() const;
 		
 		UniChar UpperCase() const;
 		UniChar LowerCase() const;

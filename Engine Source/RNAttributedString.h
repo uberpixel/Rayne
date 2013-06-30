@@ -66,6 +66,7 @@ namespace RN
 		bool _editing;
 		std::vector<stl::interval_tree<Attribute>::interval> _queuedAttributes;
 		
+		RNDefineMeta(AttributedString, Object)
 	};
 }
 

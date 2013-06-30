@@ -10,6 +10,8 @@
 
 namespace RN
 {
+	RNDeclareMeta(AttributedString)
+	
 	AttributedString::AttributedString(class String *string)
 	{
 		_string = string->Retain();

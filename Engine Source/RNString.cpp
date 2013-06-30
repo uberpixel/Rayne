@@ -802,7 +802,7 @@ namespace RN
 	// MARK: Conversion / Access
 	// ---------------------
 	
-	String String::Substring(const Range& range) const
+	String *String::Substring(const Range& range) const
 	{
 		const uint8 *data = _buffer;
 		const uint8 *dataEnd = _buffer + _occupied;
@@ -829,7 +829,7 @@ namespace RN
 				throw ErrorException(0, 0, 0);
 		}
 		
-		return String(data, bytes, Encoding::UTF8);
+		return new String(data, bytes, Encoding::UTF8);
 	}
 	
 	UniChar String::CharacterAtIndex(uint32 index) const
