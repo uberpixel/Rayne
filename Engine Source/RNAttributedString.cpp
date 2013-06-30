@@ -40,6 +40,20 @@ namespace RN
 			ApplyUpdates();
 	}
 	
+	void AttributedString::AddAttributes(Dictionary *attributes, const Range& range)
+	{
+		attributes->Enumerate([&](Object *value, Object *key, bool *stop) {
+			if(key->IsKindOfClass(RN::String::MetaClass()))
+			{
+				class String *sKey = static_cast<class String *>(key);
+				_queuedAttributes.emplace_back(stl::interval_tree<Attribute>::interval(range, Attribute(sKey, value)));
+			}
+		});
+		
+		if(!_editing)
+			ApplyUpdates();
+	}
+	
 	void AttributedString::ApplyUpdates()
 	{
 		if(!_queuedAttributes.empty())
