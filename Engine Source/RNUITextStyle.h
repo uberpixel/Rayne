@@ -32,6 +32,13 @@ namespace RN
 			Center
 		};
 		
+		enum class TextTruncation
+		{
+			Start,
+			End,
+			Middle
+		};
+		
 		struct TextStyle
 		{
 			TextStyle(const Vector2& constraints) :

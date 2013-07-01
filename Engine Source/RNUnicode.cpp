@@ -29,10 +29,10 @@ namespace RN
 	
 	char CodePoint::ConverToCharacter(UniChar character)
 	{
-		char c = static_cast<char>(character);
-		if(c > 0x7f)
-			c = '?';
+		if(character >= 0x7f)
+			return '?';
 		
+		char c = static_cast<char>(character);
 		return c;
 	}
 	
