@@ -262,9 +262,11 @@ namespace RN
 		}
 		LineSegment::LineSegment(LineSegment&& other)
 		{
-			_font    = other._font ? other._font->Retain() : nullptr;
+			_font    = other._font;
 			_glyphs  = std::move(other._glyphs);
 			_extents = std::move(other._extents);
+			
+			other._font = nullptr;
 		}
 		
 		LineSegment::~LineSegment()
@@ -284,10 +286,11 @@ namespace RN
 		}
 		LineSegment& LineSegment::operator= (LineSegment&& other)
 		{
-			_font    = other._font ? other._font->Retain() : nullptr;
+			_font    = other._font;
 			_glyphs  = std::move(other._glyphs);
 			_extents = std::move(other._extents);
 			
+			other._font = nullptr;
 			return *this;
 		}
 		
