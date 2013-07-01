@@ -458,64 +458,74 @@ namespace RN
 			if(_truncated && _extents.x > _truncationWidth)
 			{
 				std::vector<LineSegment> truncated;
+				float truncateWidth = _truncationWidth;
+				bool truncateMiddle = false;
 				
-				switch(_truncationType)
+				if(_truncationType == TextTruncation::Middle)
 				{
-					case TextTruncation::Start:
+					truncateWidth  = _truncationWidth * 0.5f;
+					truncateMiddle = true;
+				}
+				
+				
+				if(_truncationType == TextTruncation::End || _truncationType == TextTruncation::Middle)
+				{
+					float filled = 0.0f;
+					for(auto i=_segments.begin(); i!=_segments.end(); i++)
 					{
-						float filled = 0.0f;
-						for(auto i=_segments.rbegin(); i!=_segments.rend(); i++)
+						if(filled + i->Extents().x >= truncateWidth)
 						{
-							if(filled + i->Extents().x >= _truncationWidth)
+							// This is the segment we need to truncated
+							float left;
+							
+							if(truncateMiddle)
 							{
-								// This is the segment we need to truncated
-								float left = _truncationWidth - (filled + TokenWidthInSegment(*i));
+								float tokenWidth = TokenWidthInSegment(*i) * 0.5f;
 								
-								LineSegment segment = std::move(i->SegmentWithWidth(left, true));
+								left = truncateWidth - (filled + tokenWidth);
+								truncateWidth -= tokenWidth;
+							}
+							else
+								left = truncateWidth - (filled + TokenWidthInSegment(*i));
+							
+							LineSegment segment = std::move(i->SegmentWithWidth(left, false));
+							segment.AddGlyph(font->GlyphForCharacter(_truncationToken));
+							
+							truncated.push_back(segment);
+							break;
+						}
+						
+						filled += i->Extents().x;
+						truncated.push_back(*i);
+					}
+				}
+				
+				if(_truncationType == TextTruncation::Start || _truncationType == TextTruncation::Middle)
+				{
+					float filled = 0.0f;
+					for(auto i=_segments.rbegin(); i!=_segments.rend(); i++)
+					{
+						if(filled + i->Extents().x >= truncateWidth)
+						{
+							// This is the segment we need to truncated
+							float left;
+							left = truncateMiddle ? truncateWidth - filled : truncateWidth - (filled + TokenWidthInSegment(*i));
+							
+							LineSegment segment = std::move(i->SegmentWithWidth(left, true));
+							
+							if(!truncateMiddle)
 								segment.InsertGlyph(font->GlyphForCharacter(_truncationToken));
-								
-								truncated.push_back(segment);
-								break;
-							}
 							
-							filled += i->Extents().x;
-							truncated.push_back(*i);
+							truncated.push_back(segment);
+							break;
 						}
 						
-						break;
+						filled += i->Extents().x;
+						truncated.push_back(*i);
 					}
-						
-					case TextTruncation::End:
-					{
-						float filled = 0.0f;
-						for(auto i=_segments.begin(); i!=_segments.end(); i++)
-						{
-							if(filled + i->Extents().x >= _truncationWidth)
-							{
-								// This is the segment we need to truncated
-								float left = _truncationWidth - (filled + TokenWidthInSegment(*i));
-								
-								LineSegment segment = std::move(i->SegmentWithWidth(left, false));
-								segment.AddGlyph(font->GlyphForCharacter(_truncationToken));
-								
-								truncated.push_back(segment);
-								break;
-							}
-							
-							filled += i->Extents().x;
-							truncated.push_back(*i);
-						}
-						
-						break;
-					}
-						
-					default:
-						throw ErrorException(0);
-						break;
 				}
 				
 				std::swap(_segments, truncated);
-				
 				UpdateExtents();
 			}
 		}
