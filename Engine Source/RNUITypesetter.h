@@ -38,8 +38,12 @@ namespace RN
 			
 			Vector2 Dimensions();
 			
+			const std::vector<Line *>& Lines();
+			const std::vector<Line *>& VisibleLines();
+			
 		private:
 			void Clear();
+			void CalculateVisibleLines();
 			void LayoutText();
 			
 			static Font *FontForAttributes(Dictionary *attributes);
@@ -51,7 +55,9 @@ namespace RN
 			Rect _frame;
 			
 			bool _dirty;
+			bool _frameChanged;
 			std::vector<Line *> _lines;
+			std::vector<Line *> _visibleLines;
 		};
 		
 		class LineSegment
@@ -78,7 +84,7 @@ namespace RN
 			Font *GlyphFont() const { return _font; }
 			const std::vector<Glyph>& Glyphs() const { return _glyphs; }
 			const Vector2& Extents() const { return _extents; }
-
+			
 		private:
 			Font *_font;
 			std::vector<Glyph> _glyphs;
@@ -88,25 +94,27 @@ namespace RN
 		class Line
 		{
 		public:
-			friend class Typesetter;
-			
-			Line(Typesetter *typesetter, const Range& range);
+			Line(AttributedString *string, const Range& range);
 			~Line();
 		
 			void Truncate(float width, TextTruncation truncation, UniChar token);
-			void RemoveTruncation();
+			
+			const std::vector<LineSegment>& Segments();
+			const Vector2& Extents();
 			
 		private:
 			void LayoutLine();
 			void UpdateExtents();
+			
 			float TokenWidthInSegment(const LineSegment& segment);
 			
-			Typesetter *_typesetter;
+			AttributedString *_string;
 			Range _range;
 			
 			Vector2 _extents;
 			std::vector<LineSegment> _segments;
 			
+			bool _dirty;
 			bool _truncated;
 			float _truncationWidth;
 			UniChar _truncationToken;

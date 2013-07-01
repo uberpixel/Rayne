@@ -15,6 +15,11 @@ namespace RN
 {
 	namespace UI
 	{
+		// ---------------------
+		// MARK: -
+		// MARK: Typesetter
+		// ---------------------
+		
 		Typesetter::Typesetter(AttributedString *string, const Rect& frame) :
 			_frame(frame)
 		{
@@ -79,6 +84,14 @@ namespace RN
 		
 		void Typesetter::SetFrame(const Rect& frame)
 		{
+			if(Math::FastAbs(frame.width - _frame.width) < k::EpsilonFloat && Math::FastAbs(frame.height - _frame.height) < k::EpsilonFloat)
+			{
+				_frameChanged = true;
+				_frame = frame;
+				
+				return;
+			}
+			
 			_frame = frame;
 			_dirty = true;
 		}
@@ -87,8 +100,29 @@ namespace RN
 		Vector2 Typesetter::Dimensions()
 		{
 			LayoutText();
-			return Vector2();
+			
+			Vector2 extents;
+			for(Line *line : _lines)
+			{
+				extents.x = std::max(line->Extents().x, extents.x);
+				extents.y += line->Extents().y;
+			}
+			
+			return extents;
 		}
+		
+		const std::vector<Line *>& Typesetter::Lines()
+		{
+			LayoutText();
+			return _lines;
+		}
+		
+		const std::vector<Line *>& Typesetter::VisibleLines()
+		{
+			CalculateVisibleLines();
+			return _visibleLines;
+		}
+		
 		
 		
 		void Typesetter::Clear()
@@ -97,6 +131,38 @@ namespace RN
 				delete *i;
 			
 			_lines.clear();
+			_visibleLines.clear();
+		}
+		
+		void Typesetter::CalculateVisibleLines()
+		{
+			LayoutText();
+			
+			if(!_frameChanged)
+				return;
+			
+			_visibleLines.clear();
+			
+			float offset = 0.0f;
+			float height = 0.0f;
+			
+			for(Line *line : _lines)
+			{
+				float lineHeight = line->Extents().y;
+				
+				if(offset >= _frame.y)
+				{
+					_visibleLines.push_back(line);
+					height += lineHeight;
+					
+					if(height >= _frame.height)
+						break;
+				}
+				else
+					offset += lineHeight;
+			}
+			
+			_frameChanged = false;
 		}
 		
 		void Typesetter::LayoutText()
@@ -142,7 +208,7 @@ namespace RN
 			}
 			
 #define SubmitLine() { \
-				Line *line = new Line(this, range); \
+				Line *line = new Line(_string, range); \
 				_lines.push_back(line); \
 				\
 				if(truncateLine) \
@@ -235,14 +301,18 @@ namespace RN
 			
 		finishLayout:
 			delete pool;
-
+			pool = new AutoreleasePool();
+			
 			for(auto i=_lines.begin(); i!=_lines.end(); i++)
 			{
 				Line *line = *i;
-				line->LayoutLine();
+				line->Extents();
 			}
 			
+			delete pool;
+			
 			_dirty = false;
+			_frameChanged = true;
 		}
 		
 		// ---------------------
@@ -390,21 +460,26 @@ namespace RN
 			segment.AddGlyphs(glyphs);
 			return segment;
 		}
-		
+
 		// ---------------------
 		// MARK: -
 		// MARK: Lines
 		// ---------------------
 		
-		Line::Line(Typesetter *typesetter, const Range& range) :
-			_typesetter(typesetter),
+		Line::Line(AttributedString *string, const Range& range) :
 			_range(range)
 		{
-			_truncated = false;
+			RN_ASSERT(string, "String mustn't be NULL!");
+			_string = string->Retain();
+			_dirty  = true;
 		}
 		
 		Line::~Line()
-		{}
+		{
+			if(_string)
+				_string->Release();
+		}
+		
 		
 		float Line::TokenWidthInSegment(const LineSegment& segment)
 		{
@@ -414,13 +489,37 @@ namespace RN
 			return glyph.AdvanceX();
 		}
 		
+		void Line::Truncate(float width, TextTruncation truncation, UniChar token)
+		{
+			_truncated = true;
+			_truncationWidth = width;
+			_truncationType  = truncation;
+			_truncationToken = token;
+			
+			_dirty = true;
+		}
+		
+		const std::vector<LineSegment>& Line::Segments()
+		{
+			LayoutLine();
+			return _segments;
+		}
+		
+		const Vector2& Line::Extents()
+		{
+			LayoutLine();
+			return _extents;
+		}
+		
 		void Line::LayoutLine()
 		{
-			AttributedString *attributedString = _typesetter->_string;
-			String *string = attributedString->String();
-			Font   *font = nullptr;
+			if(!_dirty)
+				return;
 			
 			_segments.clear();
+			
+			String *string = _string->String();
+			Font   *font = nullptr;
 			
 			AutoreleasePool *pool = new AutoreleasePool();
 			LineSegment segment;
@@ -429,7 +528,7 @@ namespace RN
 			for(size_t i=0; i<_range.length; i++)
 			{
 				UniChar character = string->CharacterAtIndex(static_cast<uint32>(_range.origin + i));
-				Dictionary *attributes = attributedString->AttributesAtIndex(_range.origin + i);
+				Dictionary *attributes = _string->AttributesAtIndex(_range.origin + i);
 				
 				Font *glyphFont = Typesetter::FontForAttributes(attributes);
 				if(glyphFont != font)
@@ -456,7 +555,7 @@ namespace RN
 			
 			delete pool;
 			UpdateExtents();
-			
+
 			// Apply truncation
 			if(_truncated && _extents.x > _truncationWidth)
 			{
@@ -531,6 +630,8 @@ namespace RN
 				std::swap(_segments, truncated);
 				UpdateExtents();
 			}
+			
+			_dirty = false;
 		}
 		
 		void Line::UpdateExtents()
@@ -542,19 +643,6 @@ namespace RN
 				_extents.x += segment.Extents().x;
 				_extents.y = std::max(_extents.y, segment.Extents().y);
 			}
-		}
-		
-		void Line::Truncate(float width, TextTruncation truncation, UniChar token)
-		{
-			_truncated = true;
-			_truncationWidth = width;
-			_truncationType  = truncation;
-			_truncationToken = token;
-		}
-		
-		void Line::RemoveTruncation()
-		{
-			_truncated = false;
 		}
 	}
 }
