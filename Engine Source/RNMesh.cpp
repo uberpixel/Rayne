@@ -467,6 +467,8 @@ namespace RN
 			Memory::FreeSIMD(_meshData);
 			_meshData = tdata;
 			_meshSize += mesh->_meshSize;
+			
+			_dirty = true;
 		}
 		
 		if(_indices)
@@ -478,9 +480,9 @@ namespace RN
 			Memory::FreeSIMD(_indices);
 			_indices = tdata;
 			_indicesSize += mesh->_indicesSize;
+			
+			_dirtyIndices = true;
 		}
-		
-		UpdateMesh(true);
 	}
 	
 	
