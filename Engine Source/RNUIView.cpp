@@ -348,6 +348,18 @@ namespace RN
 				
 				_dirtyLayout = false;
 			}
+			
+			if(_widget && _widget->_server && _widget->_server->DrawDebugFrames())
+			{
+				Rect frame = ConvertRectToView(nullptr, _frame);
+				
+				Debug::AddLinePoint(Vector2(frame.Left(), frame.Top()), Color::Red());
+				Debug::AddLinePoint(Vector2(frame.Right(), frame.Top()), Color::Red());
+				Debug::AddLinePoint(Vector2(frame.Right(), frame.Bottom()), Color::Red());
+				Debug::AddLinePoint(Vector2(frame.Left(), frame.Bottom()), Color::Red());
+				Debug::AddLinePoint(Vector2(frame.Left(), frame.Top()), Color::Red());
+				Debug::EndLine();
+			}
 		}
 		
 		void View::PrepareRendering(RenderingObject& object)
@@ -371,18 +383,11 @@ namespace RN
 			if(Render(object))
 				renderer->RenderObject(object);
 			
-			if(_widget && _widget->_server && _widget->_server->DrawDebugFrames())
-			{
-				Rect frame = ConvertRectToView(nullptr, _frame);
-				
-				Debug::AddLinePoint(Vector2(frame.Left(), frame.Top()), Color::Red());
-				Debug::AddLinePoint(Vector2(frame.Right(), frame.Top()), Color::Red());
-				Debug::AddLinePoint(Vector2(frame.Right(), frame.Bottom()), Color::Red());
-				Debug::AddLinePoint(Vector2(frame.Left(), frame.Bottom()), Color::Red());
-				Debug::AddLinePoint(Vector2(frame.Left(), frame.Top()), Color::Red());
-				Debug::EndLine();
-			}
-			
+			RenderChilds(renderer);
+		}
+		
+		void View::RenderChilds(Renderer *renderer)
+		{
 			machine_uint count = _subviews.Count();
 			for(machine_uint i=0; i<count; i++)
 			{
