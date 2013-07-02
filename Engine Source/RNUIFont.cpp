@@ -398,9 +398,12 @@ namespace RN
 			auto iterator = _glyphs.find(character);
 			if(iterator == _glyphs.end())
 			{
+				InitializeInternals();
+				
 				RenderGlyph(character);
 				UpdateKerning();
 				
+				DropInternals();
 				return _glyphs.at(character);
 			}
 			

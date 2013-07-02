@@ -33,6 +33,7 @@ namespace RN
 			_mode = Mode::SingleTracking;
 			
 			_debugWidget = nullptr;
+			_drawDebugFrames = false;
 			
 			MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, std::bind(&Server::HandleEvent, this, std::placeholders::_1), this);
 		}
@@ -41,6 +42,11 @@ namespace RN
 		{
 			MessageCenter::SharedInstance()->RemoveObserver(this);
 			_camera->Release();
+		}
+		
+		void Server::SetDrawDebugFrames(bool drawDebugFrames)
+		{
+			_drawDebugFrames = drawDebugFrames;
 		}
 		
 		void Server::AddWidget(Widget *widget)

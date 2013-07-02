@@ -60,13 +60,13 @@ namespace RN
 			
 			virtual void Update();
 			virtual bool Render(RenderingObject& object);
+			virtual void Render(Renderer *renderer);
 			
 			Matrix transform;
 			
 		private:
 			void Initialize();
 			void ViewHierarchyChanged();
-			void Render(Renderer *renderer);
 			
 			void PrepareRendering(RenderingObject& object);
 			

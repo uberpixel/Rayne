@@ -24,9 +24,10 @@ namespace RN
 	{
 		class Server : public Singleton<Server>
 		{
-		friend class Widget;
-		friend class Kernel;
 		public:
+			friend class Widget;
+			friend class Kernel;
+			
 			enum class Mode
 			{
 				Deactivated,
@@ -37,8 +38,12 @@ namespace RN
 			Server();
 			~Server() override;
 			
+			void SetDrawDebugFrames(bool drawDebugFrames);
+			
 			uint32 Height() const { return _frame.height; }
 			uint32 Width() const { return _frame.width; }
+			
+			bool DrawDebugFrames() const { return _drawDebugFrames; }
 			
 			Widget *DebugWidget();
 			
@@ -62,6 +67,7 @@ namespace RN
 			std::deque<Widget *> _widgets;
 			
 			Widget *_debugWidget;
+			bool _drawDebugFrames;
 		};
 	}
 }
