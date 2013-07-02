@@ -65,6 +65,7 @@
 #include "RNString.h"
 
 #include "RNUIFont.h"
+#include "RNUITypesetter.h"
 #include "RNUIImage.h"
 #include "RNUIGeometry.h"
 #include "RNUIServer.h"

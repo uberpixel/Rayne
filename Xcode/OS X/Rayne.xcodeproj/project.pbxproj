@@ -103,7 +103,7 @@
 		E96C5664177C8AC3007FAF7C /* RNRenderer32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E96C5662177C8AC3007FAF7C /* RNRenderer32.cpp */; };
 		E96C5665177C8AC3007FAF7C /* RNRenderer32.h in Headers */ = {isa = PBXBuildFile; fileRef = E96C5663177C8AC3007FAF7C /* RNRenderer32.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E96C566E177E4FD8007FAF7C /* RNUITypesetter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E96C566C177E4FD8007FAF7C /* RNUITypesetter.cpp */; };
-		E96C566F177E4FD8007FAF7C /* RNUITypesetter.h in Headers */ = {isa = PBXBuildFile; fileRef = E96C566D177E4FD8007FAF7C /* RNUITypesetter.h */; };
+		E96C566F177E4FD8007FAF7C /* RNUITypesetter.h in Headers */ = {isa = PBXBuildFile; fileRef = E96C566D177E4FD8007FAF7C /* RNUITypesetter.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9780FC016D82913001AE2ED /* RNSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9780FBE16D82913001AE2ED /* RNSettings.cpp */; };
 		E9780FC116D82913001AE2ED /* RNSettings.h in Headers */ = {isa = PBXBuildFile; fileRef = E9780FBF16D82913001AE2ED /* RNSettings.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E97C3EB0172B11C7006EA63A /* RNString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E97C3EAE172B11C7006EA63A /* RNString.cpp */; };
