@@ -33,8 +33,10 @@ namespace RN
 			_font      = nullptr;
 			_model     = nullptr;
 			
-			_alignment = TextAlignment::Left;
-			_string    = new AttributedString(RNSTR(""));
+			_alignment  = TextAlignment::Left;
+			_lineBreak  = LineBreakMode::TruncateTail;
+			_lineNumber = 1;
+			_string     = new AttributedString(RNSTR(""));
 			
 			SetFont(ResourcePool::SharedInstance()->ResourceWithName<Font>(kRNResourceKeyDefaultFont));
 			SetTextColor(Color::White());
@@ -85,6 +87,18 @@ namespace RN
 			_isDirty = true;
 		}
 		
+		void Label::SetLineBreak(LineBreakMode mode)
+		{
+			_lineBreak = mode;
+			_isDirty = true;
+		}
+		
+		void Label::SetLineNumber(uint32 lines)
+		{
+			_lineNumber = lines;
+			_isDirty = true;
+		}
+		
 
 		void Label::Update()
 		{
@@ -103,8 +117,8 @@ namespace RN
 				
 				Typesetter typesetter(_string, Bounds());
 				
-				typesetter.SetMaximumLines(1);
-				typesetter.SetLineBreak(LineBreakMode::TruncateMiddle);
+				typesetter.SetMaximumLines(_lineNumber);
+				typesetter.SetLineBreak(_lineBreak);
 				typesetter.SetAlignment(_alignment);
 				
 				_model = typesetter.LineModel()->Retain();
