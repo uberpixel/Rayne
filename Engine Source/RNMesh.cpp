@@ -443,7 +443,7 @@ namespace RN
 			if(dA.feature != dB.feature || dA.offset != dB.offset)
 				return false;
 			
-			if(dA.elementMember != dB.elementMember || dA.elementSize != dB.elementMember || dA.elementCount != dB.elementCount)
+			if(dA.elementMember != dB.elementMember || dA.elementSize != dB.elementSize)
 				return false;
 		
 			if(dA._useCount > 0 || dB._useCount)
