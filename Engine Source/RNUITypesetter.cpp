@@ -31,12 +31,17 @@ namespace RN
 			_lineBreak = LineBreakMode::CharacterWrapping;
 			_maxLines  = 0;
 			
+			_model = nullptr;
 			_dirty = true;
 		}
 		
 		Typesetter::~Typesetter()
 		{
 			_string->Release();
+			
+			if(_model)
+				_model->Release();
+			
 			Clear();
 		}
 		
@@ -109,6 +114,12 @@ namespace RN
 			}
 			
 			return extents;
+		}
+		
+		Model *Typesetter::LineModel()
+		{
+			LayoutText();
+			return _model;
 		}
 		
 		const std::vector<Line *>& Typesetter::Lines()
@@ -309,10 +320,61 @@ namespace RN
 				line->Extents();
 			}
 			
+			MergeMeshes();
 			delete pool;
 			
 			_dirty = false;
 			_frameChanged = true;
+		}
+		
+		void Typesetter::MergeMeshes()
+		{
+			Dictionary *meshes = new Dictionary();
+			
+			for(Line *line : _lines)
+			{
+				Dictionary *mergeDict = line->Meshes();
+				
+				mergeDict->Enumerate([&](Object *object, Object *key, bool *stop) {
+					Array *mergees  = static_cast<Array *>(object);
+					Mesh *container = meshes->ObjectForKey<Mesh>(key);
+					
+					bool skipFirstIndex = false;
+					
+					if(!container)
+					{
+						container = mergees->ObjectAtIndex<Mesh>(0);
+						skipFirstIndex = true;
+					}
+					
+					mergees->Enumerate([&](Object *object, size_t index, bool *stop) {
+						if(skipFirstIndex && index == 0)
+							return;
+						
+						container->MergeMesh(static_cast<Mesh *>(object));
+					});
+				});
+			}
+			
+			
+			if(_model)
+				_model->Release();
+			
+			_model = new Model();
+			
+			meshes->Enumerate([&](Object *object, Object *key, bool *stop) {
+				Mesh *mesh = static_cast<Mesh *>(object);
+				Font *font = static_cast<Font *>(key);
+				
+				Material *material = new Material(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUITextShader));
+				material->AddTexture(font->Texture());
+				material->depthtest = false;
+				material->depthwrite = false;
+				material->blending = true;
+				material->lighting = false;
+				
+				_model->AddMesh(mesh, material->Autorelease(), 0);
+			});
 		}
 		
 		// ---------------------
@@ -373,8 +435,26 @@ namespace RN
 			_extents.y = _font->DefaultLineHeight();
 		}
 		
+		void LineSegment::SetOffset(const Vector2& offset)
+		{
+			_offset = offset;
+		}
+		
+		bool LineSegment::IsValidGlyph(const Glyph& glyph) const
+		{
+			CodePoint point(glyph.Character());
+			
+			if(point.IsNewline())
+				return false;
+			
+			return true;
+		}
+		
 		void LineSegment::AddGlyph(const Glyph& glyph)
 		{
+			if(!IsValidGlyph(glyph))
+				return;
+			
 			_glyphs.push_back(glyph);
 			_extents.x += glyph.AdvanceX();
 			
@@ -389,6 +469,8 @@ namespace RN
 			for(size_t i=0; i<glyphs.size(); i++)
 			{
 				const Glyph& glyph = glyphs[i];
+				if(!IsValidGlyph(glyph))
+					continue;
 				
 				_extents.x += glyph.AdvanceX();
 				
@@ -406,6 +488,9 @@ namespace RN
 		
 		void LineSegment::InsertGlyph(const Glyph& glyph)
 		{
+			if(!IsValidGlyph(glyph))
+				return;
+			
 			_extents.x += glyph.AdvanceX();
 			
 			if(!_glyphs.empty())
@@ -460,6 +545,53 @@ namespace RN
 			segment.AddGlyphs(glyphs);
 			return segment;
 		}
+		
+		void LineSegment::CreateGlyphMesh(Vector2 *vertices, Vector2 *uvCoords, uint16 *indices)
+		{
+			float offsetX = _offset.x;
+			float offsetY = _offset.y;
+			
+			UniChar previous;
+			
+			for(size_t i=0; i<_glyphs.size(); i++)
+			{
+				Glyph& glyph = _glyphs[i];
+				
+				float x0 = offsetX + glyph.OffsetX();
+				float y1 = offsetY + glyph.OffsetY() - _extents.y;
+				float x1 = x0 + glyph.Width();
+				float y0 = y1 - glyph.Height();
+				
+				if(i > 0)
+				{
+					float kerning = glyph.Kerning(previous);
+					
+					offsetX += kerning;
+					x0 += kerning;
+				}
+				
+				*vertices ++ = Vector2(x1, y1);
+				*vertices ++ = Vector2(x0, y1);
+				*vertices ++ = Vector2(x1, y0);
+				*vertices ++ = Vector2(x0, y0);
+				
+				*uvCoords ++ = Vector2(glyph.U1(), glyph.V0());
+				*uvCoords ++ = Vector2(glyph.U0(), glyph.V0());
+				*uvCoords ++ = Vector2(glyph.U1(), glyph.V1());
+				*uvCoords ++ = Vector2(glyph.U0(), glyph.V1());
+				
+				*indices ++ = (i * 4) + 0;
+				*indices ++ = (i * 4) + 1;
+				*indices ++ = (i * 4) + 2;
+				
+				*indices ++ = (i * 4) + 1;
+				*indices ++ = (i * 4) + 3;
+				*indices ++ = (i * 4) + 2;
+				
+				offsetX += glyph.AdvanceX();
+				previous = glyph.Character();
+			}
+		}
 
 		// ---------------------
 		// MARK: -
@@ -470,6 +602,7 @@ namespace RN
 			_range(range)
 		{
 			RN_ASSERT(string, "String mustn't be NULL!");
+			
 			_string = string->Retain();
 			_dirty  = true;
 		}
@@ -511,18 +644,24 @@ namespace RN
 			return _extents;
 		}
 		
+		Dictionary *Line::Meshes()
+		{
+			LayoutLine();
+			return GenerateMeshes();
+		}
+		
 		void Line::LayoutLine()
 		{
 			if(!_dirty)
 				return;
-			
-			_segments.clear();
 			
 			String *string = _string->String();
 			Font   *font = nullptr;
 			
 			AutoreleasePool *pool = new AutoreleasePool();
 			LineSegment segment;
+			
+			_segments.clear();
 			
 			// Create all segments of the line
 			for(size_t i=0; i<_range.length; i++)
@@ -569,7 +708,7 @@ namespace RN
 					truncateMiddle = true;
 				}
 				
-				
+				// Truncate the left
 				if(_truncationType == TextTruncation::End || _truncationType == TextTruncation::Middle)
 				{
 					float filled = 0.0f;
@@ -602,6 +741,7 @@ namespace RN
 					}
 				}
 				
+				// Truncate the right
 				if(_truncationType == TextTruncation::Start || _truncationType == TextTruncation::Middle)
 				{
 					float filled = 0.0f;
@@ -632,6 +772,7 @@ namespace RN
 			}
 			
 			_dirty = false;
+			GenerateMeshes();
 		}
 		
 		void Line::UpdateExtents()
@@ -643,6 +784,95 @@ namespace RN
 				_extents.x += segment.Extents().x;
 				_extents.y = std::max(_extents.y, segment.Extents().y);
 			}
+		}
+		
+		void Line::GenerateMesh(Dictionary *dictionary, Font *font, const std::vector<LineSegment *>& segments)
+		{
+			size_t glyphCount = 0;
+			size_t offset = 0;
+			
+			for(LineSegment *segment : segments)
+				glyphCount += segment->Glyphs().size();
+			
+			
+			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+			vertexDescriptor.elementMember = 2;
+			vertexDescriptor.elementSize   = sizeof(Vector2);
+			vertexDescriptor.elementCount  = glyphCount * 4;
+			
+			MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
+			uvDescriptor.elementMember = 2;
+			uvDescriptor.elementSize   = sizeof(Vector2);
+			uvDescriptor.elementCount  = glyphCount * 4;
+			
+			MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+			indicesDescriptor.elementMember = 1;
+			indicesDescriptor.elementSize   = sizeof(uint16);
+			indicesDescriptor.elementCount  = glyphCount * 6;
+			
+			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor, indicesDescriptor };
+			Mesh *mesh = new Mesh(descriptors);
+			
+			Vector2 *vertices = mesh->Element<Vector2>(kMeshFeatureVertices);
+			Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
+			uint16 *indices   = mesh->Element<uint16>(kMeshFeatureIndices);
+			
+			for(LineSegment *segment : segments)
+			{
+				Vector2 *sVertices = vertices + (offset * 4);
+				Vector2 *sUVCoords = uvCoords + (offset * 4);
+				uint16 *sIndices   = indices  + (offset * 6);
+				
+				segment->CreateGlyphMesh(sVertices, sUVCoords, sIndices);
+				offset += segment->Glyphs().size();
+			}
+			
+			mesh->ReleaseElement(kMeshFeatureVertices);
+			mesh->ReleaseElement(kMeshFeatureUVSet0);
+			mesh->ReleaseElement(kMeshFeatureIndices);
+			
+			Array *meshes = dictionary->ObjectForKey<Array>(font);
+			if(!meshes)
+			{
+				meshes = new Array();
+				meshes->Autorelease();
+				
+				dictionary->SetObjectForKey(meshes, font);
+			}
+			
+			meshes->AddObject(mesh->Autorelease());
+		}
+		
+		Dictionary *Line::GenerateMeshes()
+		{
+			Dictionary *meshes = new Dictionary();
+			
+			float offset = 0.0f;
+			std::unordered_map<Font *, std::vector<LineSegment *>> segments;
+			
+			for(const LineSegment& segment : _segments)
+			{
+				LineSegment *psegment = const_cast<LineSegment *>(&segment);
+				Font *font = psegment->GlyphFont();
+				
+				auto iterator = segments.find(font);
+				
+				if(iterator == segments.end())
+				{
+					std::vector<LineSegment *> tsegments = { psegment };
+					segments.insert(std::unordered_map<Font *, std::vector<LineSegment *>>::value_type(font, std::move(tsegments)));
+				}
+				else
+					iterator->second.push_back(psegment);
+				
+				psegment->SetOffset(Vector2(offset, 0.0f));
+				offset += psegment->Extents().x;
+			}
+			
+			for(auto i=segments.begin(); i!=segments.end(); i++)
+				GenerateMesh(meshes, i->first, i->second);
+			
+			return meshes->Autorelease();
 		}
 	}
 }

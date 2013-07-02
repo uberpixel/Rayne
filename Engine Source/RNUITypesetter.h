@@ -13,6 +13,7 @@
 #include "RNAttributedString.h"
 #include "RNUITextStyle.h"
 #include "RNUIFont.h"
+#include "RNModel.h"
 
 #define kRNTypesetterFontAttribute  RNSTR("kRNTypesetterFontAttribute")
 #define kRNTypesetterColorAttribute RNSTR("kRNTypesetterColorAttribute")
@@ -37,6 +38,7 @@ namespace RN
 			void SetFrame(const Rect& frame);
 			
 			Vector2 Dimensions();
+			Model *LineModel();
 			
 			const std::vector<Line *>& Lines();
 			const std::vector<Line *>& VisibleLines();
@@ -45,6 +47,7 @@ namespace RN
 			void Clear();
 			void CalculateVisibleLines();
 			void LayoutText();
+			void MergeMeshes();
 			
 			static Font *FontForAttributes(Dictionary *attributes);
 			
@@ -58,6 +61,8 @@ namespace RN
 			bool _frameChanged;
 			std::vector<Line *> _lines;
 			std::vector<Line *> _visibleLines;
+			
+			Model *_model;
 		};
 		
 		class LineSegment
@@ -72,6 +77,7 @@ namespace RN
 			LineSegment& operator= (LineSegment&& other);
 			
 			void SetFont(Font *font);
+			void SetOffset(const Vector2& offset);
 			
 			void AddGlyph(const Glyph& glyph);
 			void AddGlyphs(const std::vector<Glyph>& glyphs);
@@ -84,10 +90,17 @@ namespace RN
 			Font *GlyphFont() const { return _font; }
 			const std::vector<Glyph>& Glyphs() const { return _glyphs; }
 			const Vector2& Extents() const { return _extents; }
+			const Vector2& Offset() const { return _offset; }
+			
+			void CreateGlyphMesh(Vector2 *vertices, Vector2 *uvCoords, uint16 *indices);
 			
 		private:
+			bool IsValidGlyph(const Glyph& glyph) const;
+			
 			Font *_font;
 			std::vector<Glyph> _glyphs;
+			
+			Vector2 _offset;
 			Vector2 _extents;
 		};
 		
@@ -101,10 +114,14 @@ namespace RN
 			
 			const std::vector<LineSegment>& Segments();
 			const Vector2& Extents();
+			Dictionary *Meshes();
 			
 		private:
 			void LayoutLine();
 			void UpdateExtents();
+			
+			void GenerateMesh(Dictionary *meshes, Font *font, const std::vector<LineSegment *>& segments);
+			Dictionary *GenerateMeshes();
 			
 			float TokenWidthInSegment(const LineSegment& segment);
 			
