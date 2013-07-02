@@ -483,6 +483,14 @@ namespace RN
 			
 			_dirtyIndices = true;
 		}
+		
+		for(size_t i=0; i!=_descriptor.size(); i++)
+		{
+			MeshDescriptor& dA = _descriptor[i];
+			MeshDescriptor& dB = mesh->_descriptor[i];
+			
+			dA.elementCount += dB.elementCount;
+		}
 	}
 	
 	
