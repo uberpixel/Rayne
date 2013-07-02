@@ -345,6 +345,8 @@ namespace RN
 					{
 						container = mergees->ObjectAtIndex<Mesh>(0);
 						skipFirstIndex = true;
+						
+						meshes->SetObjectForKey(container, key);
 					}
 					
 					mergees->Enumerate([&](Object *object, size_t index, bool *stop) {
@@ -362,19 +364,26 @@ namespace RN
 			
 			_model = new Model();
 			
+			Shader *shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUITextShader);
+			
 			meshes->Enumerate([&](Object *object, Object *key, bool *stop) {
 				Mesh *mesh = static_cast<Mesh *>(object);
 				Font *font = static_cast<Font *>(key);
 				
-				Material *material = new Material(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUITextShader));
+				Material *material = new Material(shader);
 				material->AddTexture(font->Texture());
 				material->depthtest = false;
 				material->depthwrite = false;
 				material->blending = true;
 				material->lighting = false;
 				
+				if(font->Filtering())
+					material->Define("RN_SUBPIXEL_ANTIALIAS");
+				
 				_model->AddMesh(mesh, material->Autorelease(), 0);
 			});
+			
+			meshes->Release();
 		}
 		
 		// ---------------------
@@ -546,7 +555,7 @@ namespace RN
 			return segment;
 		}
 		
-		void LineSegment::CreateGlyphMesh(Vector2 *vertices, Vector2 *uvCoords, uint16 *indices)
+		void LineSegment::CreateGlyphMesh(Vector2 *vertices, Vector2 *uvCoords, uint16 *indices, size_t offset)
 		{
 			float offsetX = _offset.x;
 			float offsetY = _offset.y;
@@ -554,11 +563,11 @@ namespace RN
 			UniChar previous;
 			
 			for(size_t i=0; i<_glyphs.size(); i++)
-			{
+			{				
 				Glyph& glyph = _glyphs[i];
 				
 				float x0 = offsetX + glyph.OffsetX();
-				float y1 = offsetY + glyph.OffsetY() - _extents.y;
+				float y1 = offsetY + glyph.OffsetY(); // - _extents.y;
 				float x1 = x0 + glyph.Width();
 				float y0 = y1 - glyph.Height();
 				
@@ -580,13 +589,13 @@ namespace RN
 				*uvCoords ++ = Vector2(glyph.U1(), glyph.V1());
 				*uvCoords ++ = Vector2(glyph.U0(), glyph.V1());
 				
-				*indices ++ = (i * 4) + 0;
-				*indices ++ = (i * 4) + 1;
-				*indices ++ = (i * 4) + 2;
+				*indices ++ = ((i + offset) * 4) + 0;
+				*indices ++ = ((i + offset) * 4) + 1;
+				*indices ++ = ((i + offset) * 4) + 2;
 				
-				*indices ++ = (i * 4) + 1;
-				*indices ++ = (i * 4) + 3;
-				*indices ++ = (i * 4) + 2;
+				*indices ++ = ((i + offset) * 4) + 1;
+				*indices ++ = ((i + offset) * 4) + 3;
+				*indices ++ = ((i + offset) * 4) + 2;
 				
 				offsetX += glyph.AdvanceX();
 				previous = glyph.Character();
@@ -730,7 +739,7 @@ namespace RN
 								left = truncateWidth - (filled + TokenWidthInSegment(*i));
 							
 							LineSegment segment = std::move(i->SegmentWithWidth(left, false));
-							segment.AddGlyph(font->GlyphForCharacter(_truncationToken));
+							segment.AddGlyph(segment.GlyphFont()->GlyphForCharacter(_truncationToken));
 							
 							truncated.push_back(segment);
 							break;
@@ -756,7 +765,7 @@ namespace RN
 							LineSegment segment = std::move(i->SegmentWithWidth(left, true));
 							
 							if(!truncateMiddle)
-								segment.InsertGlyph(font->GlyphForCharacter(_truncationToken));
+								segment.InsertGlyph(segment.GlyphFont()->GlyphForCharacter(_truncationToken));
 							
 							truncated.push_back(segment);
 							break;
@@ -772,7 +781,6 @@ namespace RN
 			}
 			
 			_dirty = false;
-			GenerateMeshes();
 		}
 		
 		void Line::UpdateExtents()
@@ -823,7 +831,7 @@ namespace RN
 				Vector2 *sUVCoords = uvCoords + (offset * 4);
 				uint16 *sIndices   = indices  + (offset * 6);
 				
-				segment->CreateGlyphMesh(sVertices, sUVCoords, sIndices);
+				segment->CreateGlyphMesh(sVertices, sUVCoords, sIndices, offset);
 				offset += segment->Glyphs().size();
 			}
 			

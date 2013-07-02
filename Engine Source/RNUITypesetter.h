@@ -92,7 +92,7 @@ namespace RN
 			const Vector2& Extents() const { return _extents; }
 			const Vector2& Offset() const { return _offset; }
 			
-			void CreateGlyphMesh(Vector2 *vertices, Vector2 *uvCoords, uint16 *indices);
+			void CreateGlyphMesh(Vector2 *vertices, Vector2 *uvCoords, uint16 *indices, size_t offset);
 			
 		private:
 			bool IsValidGlyph(const Glyph& glyph) const;
