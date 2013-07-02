@@ -79,6 +79,9 @@ namespace RN
 		RNAPI void RemoveDescriptor(MeshFeature feature);
 		RNAPI MeshDescriptor *Descriptor(MeshFeature feature);
 		
+		RNAPI bool CanMergeMesh(Mesh *mesh);
+		RNAPI void MergeMesh(Mesh *mesh);
+		
 		RNAPI void UpdateMesh(bool force=false);
 							
 		template<typename T>

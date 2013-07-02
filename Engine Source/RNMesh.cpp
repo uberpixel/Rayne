@@ -430,6 +430,59 @@ namespace RN
 	}
 	
 	
+	bool Mesh::CanMergeMesh(Mesh *mesh)
+	{
+		if(_descriptor.size() != mesh->_descriptor.size() || _stride != mesh->_stride || _mode != mesh->_mode)
+			return false;
+		
+		for(size_t i=0; i!=_descriptor.size(); i++)
+		{
+			const MeshDescriptor& dA = _descriptor[i];
+			const MeshDescriptor& dB = mesh->_descriptor[i];
+			
+			if(dA.feature != dB.feature || dA.offset != dB.offset)
+				return false;
+			
+			if(dA.elementMember != dB.elementMember || dA.elementSize != dB.elementMember || dA.elementCount != dB.elementCount)
+				return false;
+		
+			if(dA._useCount > 0 || dB._useCount)
+				return false;
+		}
+		
+		return true;
+	}
+	
+	void Mesh::MergeMesh(Mesh *mesh)
+	{
+		if(!CanMergeMesh(mesh))
+			throw ErrorException(0);
+		
+		if(_meshData)
+		{
+			uint8 *tdata = static_cast<uint8 *>(Memory::AllocateSIMD(_meshSize + mesh->_meshSize));
+			std::copy(_meshData, _meshData + _meshSize, tdata);
+			std::copy(mesh->_meshData, mesh->_meshData + mesh->_meshSize, tdata + _meshSize);
+			
+			Memory::FreeSIMD(_meshData);
+			_meshData = tdata;
+			_meshSize += mesh->_meshSize;
+		}
+		
+		if(_indices)
+		{
+			uint8 *tdata = static_cast<uint8 *>(Memory::AllocateSIMD(_indicesSize + mesh->_indicesSize));
+			std::copy(_indices, _indices + _indicesSize, tdata);
+			std::copy(mesh->_indices, mesh->_indices + mesh->_indicesSize, tdata + _indicesSize);
+			
+			Memory::FreeSIMD(_indices);
+			_indices = tdata;
+			_indicesSize += mesh->_indicesSize;
+		}
+		
+		UpdateMesh(true);
+	}
+	
 	
 	
 	Mesh *Mesh::PlaneMesh(const Vector3& size, const Vector3& rotation)
