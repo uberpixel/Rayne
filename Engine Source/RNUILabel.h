@@ -13,6 +13,7 @@
 #include "RNColor.h"
 #include "RNUIView.h"
 #include "RNUIFont.h"
+#include "RNUITypesetter.h"
 
 namespace RN
 {
@@ -29,14 +30,14 @@ namespace RN
 			void SetFont(Font *font);
 			void SetAlignment(TextAlignment alignment);
 			
-			String *Text() const { return _text; }
+			String *Text() const { return _string->String(); }
 			Color TextColor() const { return _color; }
 			Font *TextFont() const { return _font; }
 			TextAlignment Alignment() const { return _alignment; }
 			
 		protected:
 			void Update() override;
-			bool Render(RenderingObject& object) override;
+			void Render(Renderer *renderer) override;
 			
 		private:
 			void Initialize();
@@ -45,8 +46,8 @@ namespace RN
 			Font *_font;
 			Color _color;
 			
-			String *_text;
-			Mesh *_mesh;
+			AttributedString *_string;
+			Model *_model;
 			
 			bool _isDirty;
 			

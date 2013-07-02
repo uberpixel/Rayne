@@ -22,10 +22,7 @@ namespace RN
 		
 		Label::~Label()
 		{
-			if(_mesh)
-				_mesh->Release();
-			
-			_text->Release();
+			_string->Release();
 			_font->Release();
 		}
 		
@@ -33,17 +30,15 @@ namespace RN
 		{
 			_isDirty = false;
 			
-			_mesh = nullptr;
-			_text = new String();
+			_font      = nullptr;
+			_model     = nullptr;
 			
-			_font  = nullptr;
 			_alignment = TextAlignment::Left;
+			_string    = new AttributedString(RNSTR(""));
 			
 			SetFont(ResourcePool::SharedInstance()->ResourceWithName<Font>(kRNResourceKeyDefaultFont));
 			SetTextColor(Color::White());
 			SetInteractionEnabled(false);
-			
-			DrawMaterial()->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUITextShader));
 		}
 		
 		void Label::SetFont(Font *font)
@@ -53,30 +48,28 @@ namespace RN
 			
 			_font    = font->Retain();
 			_isDirty = true;
-			
-			DrawMaterial()->RemoveTextures();
-			DrawMaterial()->AddTexture(_font->Texture());
-			
-			DrawMaterial()->Undefine("RN_SUBPIXEL_ANTIALIAS");
-			
-			if(_font->Filtering())
-				DrawMaterial()->Define("RN_SUBPIXEL_ANTIALIAS");
+
+			if(_string)
+			{
+				String *text = _string->String()->Retain();
+				SetText(text);
+				text->Release();
+			}
 		}
 		
 		void Label::SetText(String *text)
 		{
-			if(_text->IsEqual(text))
+			RN_ASSERT(text, "Text mustn't be NULL!");
+			
+			if(_string)
 			{
-				// Switch the text objects anyways, but don't mark it as dirty since we don't need to update the rendered text
-				_text->Release();
-				_text = text->Retain();
-				return;
+				_string->Release();
+				_string = nullptr;
 			}
 			
-			if(_text)
-				_text->Release();
+			_string = new AttributedString(text);
+			_string->AddAttribute(kRNTypesetterFontAttribute, _font, Range(0, text->Length()));
 			
-			_text = text ? text->Retain() : new String();
 			_isDirty = true;
 		}
 		
@@ -99,30 +92,47 @@ namespace RN
 			
 			if(_isDirty)
 			{
-				if(_mesh)
+				if(_model)
 				{
-					_mesh->Release();
-					_mesh = nullptr;
+					_model->Release();
+					_model = nullptr;
 				}
 				
-				if(_text->Length() == 0)
-				{
-					_isDirty = false;
+				if(!_string)
 					return;
-				}
 				
-				TextStyle style(Frame().Size());
-				style.alignment = _alignment;
+				Typesetter typesetter(_string, Bounds());
 				
-				_mesh = _font->RenderString(_text, style)->Retain();
+				typesetter.SetMaximumLines(1);
+				typesetter.SetLineBreak(LineBreakMode::TruncateMiddle);
+				typesetter.SetAlignment(_alignment);
+				
+				_model = typesetter.LineModel()->Retain();
 				_isDirty = false;
 			}
 		}
 		
-		bool Label::Render(RenderingObject& object)
+		void Label::Render(Renderer *renderer)
 		{
-			object.mesh = _mesh;
-			return (_mesh != 0);
+			Update();
+			
+			if(_model)
+			{
+				RenderingObject object;
+				
+				object.transform = &_finalTransform;
+				
+				uint32 count = _model->Meshes(0);
+				for(uint32 i=0; i<count; i++)
+				{
+					object.mesh     = _model->MeshAtIndex(0, i);
+					object.material = _model->MaterialAtIndex(0, i);
+					
+					renderer->RenderObject(object);
+				}
+			}
+			
+			RenderChilds(renderer);
 		}
 	}
 }

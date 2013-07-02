@@ -106,9 +106,6 @@ namespace RN
 			const Glyph& GlyphForCharacter(UniChar character);
 			void RenderGlyphsFromString(String *string);
 			
-			Vector2 SizeOfString(String *string, const TextStyle& style);
-			Mesh *RenderString(String *string, const TextStyle& style);
-			
 		private:
 			void ResolveFontName(const std::string& name);
 			void Initialize();
@@ -119,10 +116,6 @@ namespace RN
 			void UpdateKerning();
 			
 			float ConvertFontUnit(float unit) const;
-			
-			size_t RenderableCharactersInString(String *string);
-			void AlignLine(Vector2 *begin, Vector2 *end, const TextStyle& style);
-			float WidthOfString(String *string);
 			
 			std::string _fontPath;
 			void *_finternals;

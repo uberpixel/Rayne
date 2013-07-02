@@ -38,30 +38,6 @@ namespace RN
 			End,
 			Middle
 		};
-		
-		struct TextStyle
-		{
-			TextStyle(const Vector2& constraints) :
-				size(constraints)
-			{
-				alignment = TextAlignment::Left;
-				lineBreakMode = LineBreakMode::WordWrapping;
-				maxLines = 1;
-				
-				constraintWidth  = true;
-				constraintHeight = true;
-				
-				kerning = true;
-			}
-			
-			TextAlignment alignment;
-			LineBreakMode lineBreakMode;
-			Vector2 size;
-			size_t maxLines;
-			bool constraintWidth;
-			bool constraintHeight;
-			bool kerning;
-		};
 	}
 }
 
