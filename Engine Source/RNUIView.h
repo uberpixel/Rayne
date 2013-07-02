@@ -61,8 +61,10 @@ namespace RN
 			virtual void Update();
 			virtual bool Render(RenderingObject& object);
 			virtual void Render(Renderer *renderer);
+			void RenderChilds(Renderer *renderer);
 			
 			Matrix transform;
+			Matrix _finalTransform;
 			
 		private:
 			void Initialize();
@@ -80,7 +82,6 @@ namespace RN
 			bool _dirtyLayout;			
 			Rect _frame;
 			
-			Matrix _finalTransform;
 			Matrix _intermediateTransform;
 			
 			RNDefineMetaWithTraits(View, Responder, MetaClassTraitCronstructable)
