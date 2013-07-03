@@ -314,10 +314,15 @@ namespace RN
 			delete pool;
 			pool = new AutoreleasePool();
 			
+			float offset = 0.0f;
+			
 			for(auto i=_lines.begin(); i!=_lines.end(); i++)
 			{
 				Line *line = *i;
 				line->Extents();
+				line->SetLineOffset(offset);
+				
+				offset += line->Extents().y;
 			}
 			
 			MergeMeshes();
@@ -558,7 +563,7 @@ namespace RN
 		void LineSegment::CreateGlyphMesh(Vector2 *vertices, Vector2 *uvCoords, uint16 *indices, size_t offset)
 		{
 			float offsetX = _offset.x;
-			float offsetY = _offset.y;
+			float offsetY = -_offset.y;
 			
 			UniChar previous;
 			
@@ -614,6 +619,7 @@ namespace RN
 			
 			_string = string->Retain();
 			_dirty  = true;
+			_offset = 0.0f;
 		}
 		
 		Line::~Line()
@@ -639,6 +645,11 @@ namespace RN
 			_truncationToken = token;
 			
 			_dirty = true;
+		}
+		
+		void Line::SetLineOffset(float offset)
+		{
+			_offset = offset;
 		}
 		
 		const std::vector<LineSegment>& Line::Segments()
@@ -873,7 +884,7 @@ namespace RN
 				else
 					iterator->second.push_back(psegment);
 				
-				psegment->SetOffset(Vector2(offset, 0.0f));
+				psegment->SetOffset(Vector2(offset, _offset));
 				offset += psegment->Extents().x;
 			}
 			

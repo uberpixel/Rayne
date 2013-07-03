@@ -446,7 +446,7 @@ namespace RN
 			if(dA.elementMember != dB.elementMember || dA.elementSize != dB.elementSize)
 				return false;
 		
-			if(dA._useCount > 0 || dB._useCount)
+			if(dA._useCount || dB._useCount)
 				return false;
 		}
 		
@@ -476,6 +476,43 @@ namespace RN
 			uint8 *tdata = static_cast<uint8 *>(Memory::AllocateSIMD(_indicesSize + mesh->_indicesSize));
 			std::copy(_indices, _indices + _indicesSize, tdata);
 			std::copy(mesh->_indices, mesh->_indices + mesh->_indicesSize, tdata + _indicesSize);
+			
+			MeshDescriptor *verticesDescriptor = Descriptor(kMeshFeatureVertices);
+			MeshDescriptor *indicesDescriptor  = Descriptor(kMeshFeatureIndices);
+			
+			switch(indicesDescriptor->elementSize)
+			{
+				case 2:
+				{
+					size_t count = mesh->_indicesSize / 2;
+					uint16 *indices = reinterpret_cast<uint16 *>(tdata) + indicesDescriptor->elementCount;
+					
+					for(size_t i=0; i<count; i++)
+					{
+						*indices += verticesDescriptor->elementCount;
+						indices ++;
+					}
+					
+					break;
+				}
+					
+				case 4:
+				{
+					size_t count = mesh->_indicesSize / 4;
+					uint32 *indices = reinterpret_cast<uint32 *>(tdata) + indicesDescriptor->elementCount;
+					
+					for(size_t i=0; i<count; i++)
+					{
+						*indices += verticesDescriptor->elementCount;
+						indices ++;
+					}
+					
+					break;
+				}
+					
+				default:
+					throw ErrorException(0);
+			}
 			
 			Memory::FreeSIMD(_indices);
 			_indices = tdata;
