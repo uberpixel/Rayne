@@ -26,6 +26,7 @@ namespace RN
 			~Label();
 			
 			void SetText(String *text);
+			void SetAttributedText(AttributedString *text);
 			void SetTextColor(const Color& color);
 			void SetFont(Font *font);
 			void SetAlignment(TextAlignment alignment);

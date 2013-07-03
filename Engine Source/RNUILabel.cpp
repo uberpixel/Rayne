@@ -64,14 +64,22 @@ namespace RN
 			RN_ASSERT(text, "Text mustn't be NULL!");
 			
 			if(_string)
-			{
 				_string->Release();
-				_string = nullptr;
-			}
 			
 			_string = new AttributedString(text);
 			_string->AddAttribute(kRNTypesetterFontAttribute, _font, Range(0, text->Length()));
 			
+			_isDirty = true;
+		}
+		
+		void Label::SetAttributedText(AttributedString *text)
+		{
+			RN_ASSERT(text, "Text mustn't be NULL!");
+			
+			if(_string)
+				_string->Release();
+			
+			_string  = text->Retain();
 			_isDirty = true;
 		}
 		
