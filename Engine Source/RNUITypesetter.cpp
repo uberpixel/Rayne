@@ -33,6 +33,7 @@ namespace RN
 			
 			_model = nullptr;
 			_dirty = true;
+			_allowClippedLines = true;
 		}
 		
 		Typesetter::~Typesetter()
@@ -87,6 +88,12 @@ namespace RN
 			_dirty = true;
 		}
 		
+		void Typesetter::SetAllowPartiallyClippedLined(bool allowClippedLines)
+		{
+			_allowClippedLines = allowClippedLines;
+			_frameChanged = true;
+		}
+		
 		void Typesetter::SetFrame(const Rect& frame)
 		{
 			if(Math::FastAbs(frame.width - _frame.width) < k::EpsilonFloat && Math::FastAbs(frame.height - _frame.height) < k::EpsilonFloat)
@@ -130,6 +137,7 @@ namespace RN
 		
 		const std::vector<Line *>& Typesetter::VisibleLines()
 		{
+			LayoutText();
 			CalculateVisibleLines();
 			return _visibleLines;
 		}
@@ -147,30 +155,28 @@ namespace RN
 		
 		void Typesetter::CalculateVisibleLines()
 		{
-			LayoutText();
-			
 			if(!_frameChanged)
 				return;
 			
 			_visibleLines.clear();
 			
 			float offset = 0.0f;
-			float height = 0.0f;
 			
 			for(Line *line : _lines)
 			{
-				float lineHeight = line->Extents().y;
+				Rect lineRect(_frame.x, offset, _frame.width, line->Extents().y);
+				offset += lineRect.height;
 				
-				if(offset >= _frame.y)
+				if(_allowClippedLines)
 				{
-					_visibleLines.push_back(line);
-					height += lineHeight;
-					
-					if(height >= _frame.height)
-						break;
+					if(_frame.IntersectsRect(lineRect))
+						_visibleLines.push_back(line);
 				}
 				else
-					offset += lineHeight;
+				{
+					if(_frame.ContainsRect(lineRect))
+						_visibleLines.push_back(line);
+				}
 			}
 			
 			_frameChanged = false;
@@ -320,23 +326,25 @@ namespace RN
 			{
 				Line *line = *i;
 				line->Extents();
-				line->SetLineOffset(offset);
+				line->SetLineOffset(-_frame.height + offset);
 				
 				offset += line->Extents().y;
 			}
 			
-			MergeMeshes();
-			delete pool;
-			
 			_dirty = false;
 			_frameChanged = true;
+			
+			CalculateVisibleLines();
+			MergeMeshes();
+			
+			delete pool;
 		}
 		
 		void Typesetter::MergeMeshes()
 		{
 			Dictionary *meshes = new Dictionary();
 			
-			for(Line *line : _lines)
+			for(Line *line : _visibleLines)
 			{
 				Dictionary *mergeDict = line->Meshes();
 				
@@ -572,7 +580,7 @@ namespace RN
 				Glyph& glyph = _glyphs[i];
 				
 				float x0 = offsetX + glyph.OffsetX();
-				float y1 = offsetY + glyph.OffsetY(); // - _extents.y;
+				float y1 = offsetY + glyph.OffsetY() - _extents.y;
 				float x1 = x0 + glyph.Width();
 				float y0 = y1 - glyph.Height();
 				

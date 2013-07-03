@@ -35,6 +35,7 @@ namespace RN
 			void SetAlignment(TextAlignment alignment);
 			void SetLineBreak(LineBreakMode lineBreak);
 			void SetMaximumLines(uint32 maxLines);
+			void SetAllowPartiallyClippedLined(bool allowClippedLines);
 			void SetFrame(const Rect& frame);
 			
 			Vector2 Dimensions();
@@ -58,6 +59,7 @@ namespace RN
 			Rect _frame;
 			
 			bool _dirty;
+			bool _allowClippedLines;
 			bool _frameChanged;
 			std::vector<Line *> _lines;
 			std::vector<Line *> _visibleLines;

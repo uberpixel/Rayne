@@ -131,7 +131,7 @@ namespace RN
 	
 	RN_INLINE bool Rect::ContainsRect(const Rect& other) const
 	{
-		return ((x <= other.x && x + width >= other.x + other.width) && (y <= other.y && y + height >= other.x + other.height));
+		return ((x <= other.x && x + width >= other.x + other.width) && (y <= other.y && y + height >= other.y + other.height));
 	}
 	
 	

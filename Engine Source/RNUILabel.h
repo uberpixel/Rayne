@@ -31,14 +31,14 @@ namespace RN
 			void SetFont(Font *font);
 			void SetAlignment(TextAlignment alignment);
 			void SetLineBreak(LineBreakMode mode);
-			void SetLineNumber(uint32 lines);
+			void SetNumberOfLines(uint32 lines);
 			
 			String *Text() const { return _string->String(); }
 			Color TextColor() const { return _color; }
 			Font *TextFont() const { return _font; }
 			TextAlignment Alignment() const { return _alignment; }
 			LineBreakMode LineBreak() const { return _lineBreak; }
-			uint32 LineNumber() const { return _lineNumber; }
+			uint32 NumberOfLines() const { return _lines; }
 			
 		protected:
 			void Update() override;
@@ -49,7 +49,7 @@ namespace RN
 			
 			TextAlignment _alignment;
 			LineBreakMode _lineBreak;
-			uint32 _lineNumber;
+			uint32 _lines;
 			Font *_font;
 			Color _color;
 			
