@@ -45,8 +45,8 @@ namespace TG
 		AddAttachment(_debugAttachment);
 		
 		CreateCameras();
-		CreateSponza();
-//		CreateForest();
+//		CreateSponza();
+		CreateForest();
 //		CreateTest();
 		
 		RN::Input::SharedInstance()->Activate();
@@ -575,6 +575,7 @@ namespace TG
 		tree->MaterialAtIndex(0, 0)->culling = false;
 		tree->MaterialAtIndex(0, 0)->discard = true;
 		tree->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		tree->MaterialAtIndex(0, 0)->Define("RN_VEGETATION");
 		
 		RN::InstancingNode *node;
 		RN::Random::DualPhaseLCG dualPhaseLCG;
@@ -608,7 +609,6 @@ namespace TG
 		grass->MaterialAtIndex(0, 0)->culling = false;
 		grass->MaterialAtIndex(0, 0)->discard = true;
 		grass->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		//grass->MaterialAtIndex(0, 0)->Define("PURPLE");
 		
 		node = new RN::InstancingNode(grass);
 		

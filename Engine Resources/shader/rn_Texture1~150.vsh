@@ -37,6 +37,10 @@ out vec2 vertTexcoord;
 	#endif
 #endif
 
+#if defined(RN_VEGETATION)
+	uniform float time;
+#endif
+
 void main()
 {
 	#if defined(RN_TEXTURE_TILING)
@@ -60,6 +64,11 @@ void main()
 		#if defined(RN_NORMALMAP)
 			vec4 tangent = vec4(1.0, 0.0, 0.0, 0.0);
 		#endif
+	#endif
+	
+	#if defined(RN_VEGETATION)
+		position.x += sin(time)*position.y*0.02;
+		position.z += cos(time)*position.y*0.02;
 	#endif
 	
 	#if defined(RN_LIGHTING)
