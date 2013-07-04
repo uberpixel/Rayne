@@ -110,10 +110,22 @@ namespace RN
 		
 		_buffer = new uint8[string._size];
 		_length = string._length;
-		_size = string._size;
+		_size   = string._size;
 		_occupied = string._occupied;
 		
 		std::copy(string._buffer, string._buffer + _length + 1, _buffer);
+	}
+	
+	String::String(const String *string)
+	{
+		Initialize();
+		
+		_buffer = new uint8[string->_size];
+		_length = string->_length;
+		_size   = string->_size;
+		_occupied = string->_occupied;
+		
+		std::copy(string->_buffer, string->_buffer + _length + 1, _buffer);
 	}
 	
 	String::~String()

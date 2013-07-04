@@ -72,9 +72,9 @@ namespace RN
 	class MetaClassTraitCopyable : public virtual MetaClassBase
 	{
 	public:
-		T *ConstructWithCopy(T *source) override
+		T *ConstructWithCopy(Object *source) override
 		{
-			return new T(source);
+			return new T(static_cast<T *>(source));
 		}
 		
 		bool SupportsCopying() const override { return true; }
