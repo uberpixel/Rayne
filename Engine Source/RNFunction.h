@@ -17,26 +17,35 @@ namespace RN
 	{
 	public:
 		template<typename F>
-		Function(F&& f) :
+		explicit Function(F&& f) :
 			_implementation(new ImplementationType<F>(std::move(f)))
 		{}
-		
-		void operator() () { _implementation->Call(); }
-		
-		Function() = default;
+		Function(const Function& other) :
+			_implementation(other._implementation)
+		{}
 		Function(Function&& other) :
 			_implementation(std::move(other._implementation))
 		{}
+		Function() = default;
 		
-		Function& operator=(Function&& other)
+		template<typename F>
+		Function& operator= (F&& f)
+		{
+			_implementation = std::shared_ptr<Base>(new ImplementationType<F>(std::move(f)));
+			return *this;
+		}
+		Function& operator= (const Function& other)
+		{
+			_implementation = other._implementation;
+			return *this;
+		}
+		Function& operator= (Function&& other)
 		{
 			_implementation = std::move(other._implementation);
 			return *this;
 		}
 		
-		Function(const Function&) = delete;
-		Function(Function&) = delete;
-		Function& operator= (const Function&) = delete;
+		void operator() () { _implementation->Call(); }
 		
 	private:
 		struct Base
@@ -52,16 +61,14 @@ namespace RN
 				function(std::move(f))
 			{}
 			
-			void Call()
-			{
-				function();
-			}
+			void Call() override { function(); }
 			
 			F function;
 		};
 		
-		std::unique_ptr<Base> _implementation;
+		std::shared_ptr<Base> _implementation;
 	};
+
 }
 
 #endif
