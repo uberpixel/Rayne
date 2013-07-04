@@ -940,6 +940,8 @@ namespace RN
 			descriptor = mesh->Descriptor(kMeshFeatureVertices);
 			glDrawArraysInstanced(mesh->Mode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)object.count);
 		}
+		
+		BindVAO(0);
 	}
 	
 	// ---------------------
