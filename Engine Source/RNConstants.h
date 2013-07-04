@@ -29,7 +29,7 @@ namespace RN
 		
 		static const float EpsilonFloat = FLT_EPSILON;
 		
-		static const machine_uint NotFound = static_cast<machine_uint>(-1);
+		static const size_t NotFound = static_cast<size_t>(-1);
 	}
 }
 

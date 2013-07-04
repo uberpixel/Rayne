@@ -188,10 +188,10 @@ namespace RN
 		}
 		
 		_buffer = temp;
-		_size = static_cast<uint32>(size);
+		_size = static_cast<size_t>(size);
 	}
 	
-	void String::CheckAndExpandBuffer(uint32 minium)
+	void String::CheckAndExpandBuffer(size_t minium)
 	{
 		if(_occupied + minium > _size)
 		{
@@ -280,9 +280,9 @@ namespace RN
 	
 	void String::CopyUTF8Bytes(const uint8 *bytes, size_t length)
 	{
-		CheckAndExpandBuffer(static_cast<uint32>(length) + 1);
+		CheckAndExpandBuffer(static_cast<size_t>(length) + 1);
 		
-		uint32 characters = 0;
+		size_t characters = 0;
 		const uint8 *end = bytes + length;
 		
 		for(size_t i=0; i<length;)
@@ -316,7 +316,7 @@ namespace RN
 	
 	void String::CopyBytesWithEncoding(const void *bytes, size_t length, Encoding encoding)
 	{
-		CheckAndExpandBuffer(static_cast<uint32>(length) + 1);
+		CheckAndExpandBuffer(static_cast<size_t>(length) + 1);
 		
 		switch(encoding)
 		{
@@ -325,8 +325,8 @@ namespace RN
 				const uint8 *data = static_cast<const uint8 *>(bytes);
 				std::copy(data, data + length, _buffer + _occupied);
 				
-				_length += static_cast<uint32>(length);
-				_occupied += static_cast<uint32>(length);
+				_length += static_cast<size_t>(length);
+				_occupied += static_cast<size_t>(length);
 				
 				_buffer[_occupied] = '\0';
 				break;
@@ -444,12 +444,12 @@ namespace RN
 	}
 	
 	
-	void String::Insert(const String& string, uint32 index)
+	void String::Insert(const String& string, size_t index)
 	{
 		ReplaceCharacters(string, Range(index, 0));
 	}
 	
-	void String::Insert(const String *string, uint32 index)
+	void String::Insert(const String *string, size_t index)
 	{
 		ReplaceCharacters(string, Range(index, 0));
 	}
@@ -475,11 +475,11 @@ namespace RN
 		
 		RN_ASSERT0(range.origin + range.length <= _length);
 		
-		uint32 intialOccupied = 0;
-		uint32 appendixLength = 0;
+		size_t intialOccupied = 0;
+		size_t appendixLength = 0;
 		
 		// Skip the first n characters
-		for(machine_uint i=0; i<range.origin; i++)
+		for(size_t i=0; i<range.origin; i++)
 		{
 			size_t length = UTF8TrailingBytes[*data] + 1;
 			data += length;
@@ -494,7 +494,7 @@ namespace RN
 		uint8 *end = data;
 		
 		// Find the beginning of the end
-		for(machine_uint i=0; i<range.length; i++)
+		for(size_t i=0; i<range.length; i++)
 		{
 			size_t length = UTF8TrailingBytes[*end] + 1;
 			end += length;
@@ -517,12 +517,12 @@ namespace RN
 		}
 		
 		// Copy everything back together
-		_length   = static_cast<uint32>(range.origin);
+		_length   = static_cast<size_t>(range.origin);
 		_occupied = intialOccupied;
 		
 		if(replacement->_length > 0)
 		{
-			uint32 rSize = replacement->_occupied;
+			size_t rSize = replacement->_occupied;
 			std::copy(replacement->_buffer, replacement->_buffer + rSize, begin);
 			
 			_length   += replacement->_length;
@@ -610,7 +610,7 @@ namespace RN
 		stringDataTemp = stringData;
 		
 		// Skip the first n characters
-		for(machine_uint i=0; i<range.origin; i++)
+		for(size_t i=0; i<range.origin; i++)
 		{
 			size_t length;
 			
@@ -625,7 +625,7 @@ namespace RN
 		do {
 			const uint8 *temp = data;
 			
-			for(machine_uint i=0; i<range.length; i++)
+			for(size_t i=0; i<range.length; i++)
 			{
 				size_t length;
 				
@@ -640,7 +640,7 @@ namespace RN
 		} while(0);
 		
 		Range result = Range(kRNNotFound, 0);
-		machine_uint index = range.origin;
+		size_t index = range.origin;
 		
 		while(data < dataEnd)
 		{
@@ -719,7 +719,7 @@ namespace RN
 		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
 		
 		// Skip the first n characters
-		for(machine_uint i=0; i<range.origin; i++)
+		for(size_t i=0; i<range.origin; i++)
 		{
 			size_t length = UTF8TrailingBytes[*data] + 1;
 			data += length;
@@ -732,7 +732,7 @@ namespace RN
 		do {
 			const uint8 *temp = data;
 			
-			for(machine_uint i=0; i<range.length; i++)
+			for(size_t i=0; i<range.length; i++)
 			{
 				size_t length = UTF8TrailingBytes[*temp] + 1;
 				temp += length;
@@ -819,7 +819,7 @@ namespace RN
 		const uint8 *data = _buffer;
 		const uint8 *dataEnd = _buffer + _occupied;
 		
-		for(machine_uint i=0; i<range.origin; i++)
+		for(size_t i=0; i<range.origin; i++)
 		{
 			size_t length = UTF8TrailingBytes[*data] + 1;
 			data += length;
@@ -831,7 +831,7 @@ namespace RN
 		size_t bytes = 0;
 		const uint8 *temp = data;
 		
-		for(machine_uint i=0; i<range.length; i++)
+		for(size_t i=0; i<range.length; i++)
 		{
 			size_t length = UTF8TrailingBytes[*temp] + 1;
 			temp  += length;
@@ -844,11 +844,11 @@ namespace RN
 		return new String(data, bytes, Encoding::UTF8);
 	}
 	
-	UniChar String::CharacterAtIndex(uint32 index) const
+	UniChar String::CharacterAtIndex(size_t index) const
 	{
 		uint8 *data = _buffer;
 		
-		for(uint32 i=0; i<_length; i++)
+		for(size_t i=0; i<_length; i++)
 		{
 			if(i == index)
 			{
@@ -882,7 +882,7 @@ namespace RN
 				char *buffer = new char[_length + 1];
 				const uint8 *temp = _buffer;
 				
-				for(uint32 i=0; i<_length; i++)
+				for(size_t i=0; i<_length; i++)
 				{
 					size_t length = UTF8TrailingBytes[*temp] + 1;
 					

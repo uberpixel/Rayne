@@ -86,14 +86,14 @@ namespace RN
 		
 		RNAPI void SetAction(const std::function<void (SceneNode *, float)>& action);
 		
-		machine_uint Childs() const { return _childs.Count(); }
+		size_t Childs() const { return _childs.Count(); }
 		SceneNode *Parent() const { return _parent; }
 		FrameID LastFrame() const { return _lastFrame; }
 		World *Container() const { return _world; }
 		Priority UpdatePriority() const { return _priority; }
 		
 		template<typename T=SceneNode>
-		T *ChildAtIndex(machine_uint index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
+		T *ChildAtIndex(size_t index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
 		
 		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction);
 		
@@ -367,8 +367,8 @@ namespace RN
 			_transformedBoundingSphere *= _worldScale;
 			_transformedBoundingSphere.Rotate(_worldRotation);
 			
-			machine_uint count = _childs.Count();
-			for(machine_uint i=0; i<count; i++)
+			size_t count = _childs.Count();
+			for(size_t i=0; i<count; i++)
 			{
 				SceneNode *child = _childs.ObjectAtIndex<SceneNode>(i);
 				child->DidUpdate();

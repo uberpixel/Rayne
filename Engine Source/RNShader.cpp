@@ -475,7 +475,7 @@ namespace RN
 		GetUniformLocation(hdrSettings);
 		
 		char string[32];
-		for(machine_uint i=0; ; i++)
+		for(size_t i=0; ; i++)
 		{
 			sprintf(string, "targetmap%i", (int)i);
 			GLuint location = glGetUniformLocation(program->program, string);
@@ -490,7 +490,7 @@ namespace RN
 			program->targetmapinfolocations.push_back(location);
 		}
 		
-		for(machine_uint i=0; ; i++)
+		for(size_t i=0; ; i++)
 		{
 			sprintf(string, "mTexture%i", (int)i);
 			GLuint location = glGetUniformLocation(program->program, string);

@@ -68,7 +68,7 @@ namespace RN
 		Update(delta);
 		ApplyNodes();
 		
-		for(machine_uint i=0; i<_attachments.Count(); i++)
+		for(size_t i=0; i<_attachments.Count(); i++)
 		{
 			WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 			attachment->StepWorld(delta);
@@ -137,7 +137,7 @@ namespace RN
 		ApplyNodes();
 		NodesUpdated();
 		
-		for(machine_uint i=0; i<_attachments.Count(); i++)
+		for(size_t i=0; i<_attachments.Count(); i++)
 		{
 			WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 			attachment->SceneNodesUpdated();
@@ -158,7 +158,7 @@ namespace RN
 			camera->PostUpdate();
 			_renderer->BeginCamera(camera);
 			
-			for(machine_uint i=0; i<_attachments.Count(); i++)
+			for(size_t i=0; i<_attachments.Count(); i++)
 			{
 				WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 				attachment->BeginCamera(camera);
@@ -166,7 +166,7 @@ namespace RN
 			
 			_sceneManager->RenderScene(camera);
 			
-			for(machine_uint i=0; i<_attachments.Count(); i++)
+			for(size_t i=0; i<_attachments.Count(); i++)
 			{
 				WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 				attachment->WillFinishCamera(camera);
@@ -190,7 +190,7 @@ namespace RN
 	
 	void World::SceneNodeWillRender(SceneNode *node)
 	{
-		for(machine_uint i=0; i<_attachments.Count(); i++)
+		for(size_t i=0; i<_attachments.Count(); i++)
 		{
 			WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 			attachment->WillRenderSceneNode(node);
@@ -230,7 +230,7 @@ namespace RN
 		auto iterator = _nodes.find(node);
 		if(iterator != _nodes.end())
 		{
-			for(machine_uint i=0; i<_attachments.Count(); i++)
+			for(size_t i=0; i<_attachments.Count(); i++)
 			{
 				WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 				attachment->WillRemoveSceneNode(node);
@@ -274,7 +274,7 @@ namespace RN
 			_nodes.insert(node);
 			_sceneManager->AddSceneNode(node);
 			
-			for(machine_uint i=0; i<_attachments.Count(); i++)
+			for(size_t i=0; i<_attachments.Count(); i++)
 			{
 				WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
 				attachment->DidAddSceneNode(node);

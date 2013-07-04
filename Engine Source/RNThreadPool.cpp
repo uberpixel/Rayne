@@ -21,7 +21,7 @@ namespace RN
 		// This means that even on single core CPUs we spawn up to three threads in the base
 		// implementation using a thread pool with threads equal to the amount of concurrency available.
 		// I'm not sure if that's a good idea, and I lack the hardware to test it...
-		_baseConcurrency = MAX((machine_int)std::thread::hardware_concurrency(), 2);
+		_baseConcurrency = std::max(static_cast<int32>(std::thread::hardware_concurrency()), 2);
 		_consumedConcurrency = 0;
 	}
 	
@@ -35,9 +35,9 @@ namespace RN
 		_consumedConcurrency --;
 	}
 	
-	machine_int ThreadCoordinator::AvailableConcurrency()
+	int32 ThreadCoordinator::AvailableConcurrency()
 	{
-		machine_int concurrency = _baseConcurrency - _consumedConcurrency.load();
+		int32 concurrency = _baseConcurrency - _consumedConcurrency.load();
 		return concurrency;
 	}
 	
@@ -47,7 +47,7 @@ namespace RN
 	// ---------------------
 	
 	
-	ThreadPool::ThreadPool(machine_uint maxJobs, machine_uint maxThreads) :
+	ThreadPool::ThreadPool(size_t maxJobs, size_t maxThreads) :
 		_tasks(maxJobs != 0 ? maxJobs : kRNThreadPoolTasksBuffer)
 	{
 		_resigned.store(0);
@@ -55,7 +55,7 @@ namespace RN
 		if(!maxThreads)
 			maxThreads = ThreadCoordinator::SharedInstance()->BaseConcurrency();
 		
-		for(machine_uint i=0; i<maxThreads; i++)
+		for(size_t i=0; i<maxThreads; i++)
 		{
 			Thread *thread = CreateThread();
 			thread->Detach();

@@ -141,7 +141,7 @@ namespace RN
 		continue; \
 	}
 	
-	void Renderer32::CullLights(Camera *camera, Light **lights, machine_uint lightCount, GLuint indicesBuffer, GLuint offsetBuffer)
+	void Renderer32::CullLights(Camera *camera, Light **lights, size_t lightCount, GLuint indicesBuffer, GLuint offsetBuffer)
 	{
 		Rect rect = camera->Frame();
 		int tilesWidth  = ceil(rect.width / camera->LightTiles().x);
@@ -293,7 +293,7 @@ namespace RN
 	int Renderer32::CreatePointLightList(Camera *camera)
 	{
 		Light **lights = _pointLights.data();
-		machine_uint lightCount = _pointLights.size();
+		size_t lightCount = _pointLights.size();
 		
 		lightCount = MIN(camera->MaxLightsPerTile(), lightCount);
 		
@@ -325,7 +325,7 @@ namespace RN
 			
 			lightData = (Vector4 *)glMapBufferRange(GL_TEXTURE_BUFFER, 0, _lightPointDataSize, GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT);
 			
-			for(machine_uint i=0; i<lightCount; i++)
+			for(size_t i=0; i<lightCount; i++)
 			{
 				Light *light = lights[i];
 				const Vector3& position = light->WorldPosition();
@@ -347,7 +347,7 @@ namespace RN
 		else
 		{
 			lightCount = _pointLights.size();
-			for(machine_uint i = 0; i < lightCount; i++)
+			for(size_t i = 0; i < lightCount; i++)
 			{
 				_lightPointPosition.emplace_back(Vector4(_pointLights[i]->Position(), _pointLights[i]->Range()));
 				_lightPointColor.emplace_back(Vector4(_pointLights[i]->Color().r, _pointLights[i]->Color().g, _pointLights[i]->Color().b, 0.0f));
@@ -360,7 +360,7 @@ namespace RN
 	int Renderer32::CreateSpotLightList(Camera *camera)
 	{
 		Light **lights = _spotLights.data();
-		machine_uint lightCount = _spotLights.size();
+		size_t lightCount = _spotLights.size();
 		
 		lightCount = MIN(camera->MaxLightsPerTile(), lightCount);
 		
@@ -393,7 +393,7 @@ namespace RN
 			
 			lightData = (Vector4 *)glMapBufferRange(GL_TEXTURE_BUFFER, 0, _lightSpotDataSize, GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT);
 			
-			for(machine_uint i=0; i<lightCount; i++)
+			for(size_t i=0; i<lightCount; i++)
 			{
 				Light *light = lights[i];
 				const Vector3& position  = light->WorldPosition();
@@ -426,12 +426,12 @@ namespace RN
 	int Renderer32::CreateDirectionalLightList(Camera *camera)
 	{
 		Light **lights = _directionalLights.data();
-		machine_uint lightCount = _directionalLights.size();
+		size_t lightCount = _directionalLights.size();
 		
 		_lightDirectionalDirection.clear();
 		_lightDirectionalColor.clear();
 		
-		for(machine_uint i=0; i<lightCount; i++)
+		for(size_t i=0; i<lightCount; i++)
 		{
 			Light *light = lights[i];
 			const Vector3& color = light->ResultColor();

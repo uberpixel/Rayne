@@ -115,9 +115,9 @@ namespace RN
 	
 	void SceneNode::DetachAllChilds()
 	{
-		machine_uint count = _childs.Count();
+		size_t count = _childs.Count();
 		
-		for(machine_uint i=0; i<count; i++)
+		for(size_t i=0; i<count; i++)
 		{
 			SceneNode *child = _childs.ObjectAtIndex<SceneNode>(i);
 			WillRemoveChild(child);

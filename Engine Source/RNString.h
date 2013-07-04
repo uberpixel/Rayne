@@ -60,8 +60,8 @@ namespace RN
 		void Append(const String& string);
 		void Append(const String *string);
 		
-		void Insert(const String& string, uint32 index);
-		void Insert(const String *string, uint32 index);
+		void Insert(const String& string, size_t index);
+		void Insert(const String *string, size_t index);
 		
 		void DeleteCharacters(const Range& range);
 		
@@ -84,9 +84,9 @@ namespace RN
 		ComparisonResult Compare(const String *other, ComparisonMode mode, const Range& range) const;
 		
 		String *Substring(const Range& range) const;
-		UniChar CharacterAtIndex(uint32 index) const;
+		UniChar CharacterAtIndex(size_t index) const;
 		
-		uint32 Length() const { return _length; }
+		size_t Length() const { return _length; }
 		
 		uint8 *BytesWithEncoding(Encoding encoding, bool lossy, size_t *length) const;
 		char *UTF8String() const { return reinterpret_cast<char *>(BytesWithEncoding(Encoding::UTF8, false, nullptr)); }
@@ -94,7 +94,7 @@ namespace RN
 	private:
 		void Initialize();
 		void AllocateBuffer(size_t size);
-		void CheckAndExpandBuffer(uint32 minium);
+		void CheckAndExpandBuffer(size_t minium);
 		
 		bool IsLegalUTF8(const uint8 *sequence, int length) const;
 		
@@ -104,9 +104,9 @@ namespace RN
 		void CopyBytesWithEncoding(const void *bytes, size_t length, Encoding encoding);
 
 		uint8 *_buffer;
-		uint32 _length;
-		uint32 _size;
-		uint32 _occupied;
+		size_t _length;
+		size_t _size;
+		size_t _occupied;
 		
 		RNDefineMetaWithTraits(String, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};

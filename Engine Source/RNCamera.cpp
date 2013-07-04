@@ -512,7 +512,7 @@ namespace RN
 		_skycube = skycube ? skycube->Retain() : 0;
 	}
 	
-	void Camera::SetMaxLightsPerTile(machine_uint lights)
+	void Camera::SetMaxLightsPerTile(size_t lights)
 	{
 		_maxLights = lights;
 	}

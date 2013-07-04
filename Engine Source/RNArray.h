@@ -25,7 +25,7 @@ namespace RN
 			_data = new Object *[_size];
 		}
 		
-		Array(machine_uint size)
+		Array(size_t size)
 		{
 			_size  = size > 5 ? size : 5;
 			_count = 0;
@@ -40,7 +40,7 @@ namespace RN
 			
 			_data = new Object *[_size];
 			
-			for(machine_uint i=0; i<_count; i++)
+			for(size_t i=0; i<_count; i++)
 			{
 				_data[i] = other._data[i]->Retain();
 			}
@@ -53,7 +53,7 @@ namespace RN
 			
 			_data = new Object *[_size];
 			
-			for(machine_uint i=0; i<_count; i++)
+			for(size_t i=0; i<_count; i++)
 			{
 				_data[i] = other->_data[i]->Retain();
 			}
@@ -61,7 +61,7 @@ namespace RN
 		
 		~Array() override
 		{
-			for(machine_uint i=0; i<_count; i++)
+			for(size_t i=0; i<_count; i++)
 			{
 				_data[i]->Release();
 			}
@@ -75,7 +75,7 @@ namespace RN
 			return _data[index];
 		}
 		
-		Object *operator [](machine_uint index) const
+		Object *operator [](size_t index) const
 		{
 			return _data[index];
 		}
@@ -100,7 +100,7 @@ namespace RN
 			_data[_count ++] = object->Retain();
 		}
 		
-		void InsertObjectAtIndex(Object *object, machine_uint index)
+		void InsertObjectAtIndex(Object *object, size_t index)
 		{
 			UpdateSizeIfNeeded(_count + 1);
 			
@@ -111,7 +111,7 @@ namespace RN
 			_count ++;
 		}
 		
-		void InsertObjectsAtIndex(const Array& other, machine_uint index)
+		void InsertObjectsAtIndex(const Array& other, size_t index)
 		{
 			UpdateSizeIfNeeded(_count + other._count);
 			
@@ -121,13 +121,13 @@ namespace RN
 			std::copy(other._data, other._data + other._count, begin);
 			_count += other._count;
 			
-			for(machine_uint i=0; i<other._count; i++)
+			for(size_t i=0; i<other._count; i++)
 			{
 				_data[index + i]->Retain();
 			}
 		}
 		
-		void ReplaceObjectAtIndex(machine_uint index, Object *object)
+		void ReplaceObjectAtIndex(size_t index, Object *object)
 		{
 			_data[index]->Release();
 			_data[index] = object->Retain();
@@ -136,7 +136,7 @@ namespace RN
 		
 		void RemoveObject(Object *object)
 		{
-			for(machine_uint i=0; i<_count; i++)
+			for(size_t i=0; i<_count; i++)
 			{
 				if(object->IsEqual(_data[i]))
 				{
@@ -146,7 +146,7 @@ namespace RN
 			}
 		}
 		
-		void RemoveObjectAtIndex(machine_uint index)
+		void RemoveObjectAtIndex(size_t index)
 		{
 			_data[index]->Release();
 			std::move(_data + (index + 1), _data + _count, _data + index);
@@ -157,7 +157,7 @@ namespace RN
 		
 		void RemoveAllObjects()
 		{
-			for(machine_uint i=0; i<_count; i++)
+			for(size_t i=0; i<_count; i++)
 			{
 				_data[i]->Release();
 			}
@@ -166,9 +166,9 @@ namespace RN
 		}
 		
 		
-		machine_uint IndexOfObject(Object *object) const
+		size_t IndexOfObject(Object *object) const
 		{
-			for(machine_uint i=0; i<_count; i++)
+			for(size_t i=0; i<_count; i++)
 			{
 				if(object->IsEqual(_data[i]))
 					return i;
@@ -179,7 +179,7 @@ namespace RN
 		
 		bool ContainsObject(Object *object) const
 		{
-			for(machine_uint i=0; i<_count; i++)
+			for(size_t i=0; i<_count; i++)
 			{
 				if(object->IsEqual(_data[i]))
 					return true;
@@ -190,7 +190,7 @@ namespace RN
 		
 		
 		template<typename T=Object>
-		T *ObjectAtIndex(machine_uint index) const
+		T *ObjectAtIndex(size_t index) const
 		{
 			return _data[index]->Downcast<T>();
 		}
@@ -215,12 +215,12 @@ namespace RN
 		
 		
 		
-		machine_uint Count() const
+		size_t Count() const
 		{
 			return _count;
 		}
 		
-		machine_uint Capacity() const
+		size_t Capacity() const
 		{
 			return _size;
 		}
@@ -250,7 +250,7 @@ namespace RN
 		{
 			if(required >= _size)
 			{
-				machine_uint tsize = MAX(required, _size * 2);
+				size_t tsize = MAX(required, _size * 2);
 				Object **tdata = new Object *[tsize];
 				
 				if(tdata)
@@ -265,7 +265,7 @@ namespace RN
 				return;
 			}
 			
-			machine_uint tsize = _size >> 1;
+			size_t tsize = _size >> 1;
 			
 			if(tsize >= required && tsize > 5)
 			{
@@ -284,8 +284,8 @@ namespace RN
 
 		
 		Object **_data;
-		machine_uint _count;
-		machine_uint _size;
+		size_t _count;
+		size_t _size;
 		
 		RNDefineMetaWithTraits(Array, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};

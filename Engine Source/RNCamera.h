@@ -200,7 +200,7 @@ namespace RN
 		RNAPI void SetColorMask(ColorFlags mask);
 		RNAPI void SetAllowsDepthWrite(bool flag);
 		RNAPI void SetSkyCube(Model *skycube);
-		RNAPI void SetMaxLightsPerTile(machine_uint lights);
+		RNAPI void SetMaxLightsPerTile(size_t lights);
 		RNAPI void SetCameraFlags(Flags flags);
 		RNAPI void SetLODCamera(Camera *camera);
 		RNAPI void SetUseInstancing(bool activate);
@@ -254,7 +254,7 @@ namespace RN
 		bool AllowsDepthWrite() const { return _allowDepthWrite; }
 		
 		float *DepthArray();
-		machine_uint MaxLightsPerTile() const { return _maxLights; }
+		size_t MaxLightsPerTile() const { return _maxLights; }
 		
 		PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name);
 		PostProcessingPipeline *PostProcessingPipelineWithName(const std::string& name);
@@ -341,7 +341,7 @@ namespace RN
 		FrameID _depthFrame;
 		size_t _depthSize;
 		
-		machine_uint _maxLights;
+		size_t _maxLights;
 		uint32 _stageCount;
 		
 		std::vector<PostProcessingPipeline *> _PPPipelines;

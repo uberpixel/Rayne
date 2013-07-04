@@ -29,7 +29,7 @@ namespace RN
 		RNAPI void DrawMesh(Mesh *mesh, uint32 offset, uint32 count);
 		RNAPI void DrawMeshInstanced(const RenderingObject& object);
 		
-		RNAPI virtual void CullLights(Camera *camera, Light **lights, machine_uint lightCount, GLuint indicesBuffer, GLuint offsetBuffer);
+		RNAPI virtual void CullLights(Camera *camera, Light **lights, size_t lightCount, GLuint indicesBuffer, GLuint offsetBuffer);
 		RNAPI virtual int CreatePointLightList(Camera *camera);
 		RNAPI virtual int CreateSpotLightList(Camera *camera);
 		RNAPI virtual int CreateDirectionalLightList(Camera *camera);

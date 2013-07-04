@@ -145,13 +145,13 @@ namespace RN
 	{
 	public:
 		Range() {}
-		Range(machine_uint torigin, machine_uint tlength)
+		Range(size_t torigin, size_t tlength)
 		{
 			origin = torigin;
 			length = tlength;
 		}
 		
-		machine_uint End() const
+		size_t End() const
 		{
 			return origin + length;
 		}
@@ -166,8 +166,8 @@ namespace RN
 			return (End() >= other.origin && origin <= other.End());
 		}
 		
-		machine_uint origin;
-		machine_uint length;
+		size_t origin;
+		size_t length;
 	};
 	
 	template <typename T>

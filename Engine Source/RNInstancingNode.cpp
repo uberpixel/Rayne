@@ -202,10 +202,10 @@ namespace RN
 			glDeleteBuffers(1, &mesh.buffer);
 		}
 		
-		machine_uint childs = Childs();
+		size_t childs = Childs();
 		entities.reserve(childs);
 		
-		for(machine_uint i=0; i<childs; i++)
+		for(size_t i=0; i<childs; i++)
 		{
 			SceneNode *node = ChildAtIndex(i);
 			

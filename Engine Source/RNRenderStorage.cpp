@@ -374,14 +374,14 @@ namespace RN
 		if(_renderTargetsChanged && (_format & BufferFormatColor))
 		{
 			// Unbind no longer used render targets
-			for(machine_uint i=_renderTargets->Count(); i<_boundRenderTargets; i++)
+			for(size_t i=_renderTargets->Count(); i<_boundRenderTargets; i++)
 			{
 				GLenum attachment = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, 0, 0);
 			}
 			
 			// Bind all render targetst to the framebuffer
-			for(machine_uint i=0; i<_renderTargets->Count(); i++)
+			for(size_t i=0; i<_renderTargets->Count(); i++)
 			{
 				Texture *texture = _renderTargets->ObjectAtIndex<Texture>(i);
 				GLenum attachment = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
@@ -401,7 +401,7 @@ namespace RN
 			uint32 width  = (uint32)ceil(_frame.width  * _scaleFactor);
 			uint32 height = (uint32)ceil(_frame.height * _scaleFactor);
 			
-			for(machine_uint i=0; i<_renderTargets->Count(); i++)
+			for(size_t i=0; i<_renderTargets->Count(); i++)
 			{
 				Texture *texture = _renderTargets->ObjectAtIndex<Texture>(i);
 				

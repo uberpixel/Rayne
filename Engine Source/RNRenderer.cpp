@@ -305,9 +305,9 @@ namespace RN
 			
 			if(textureLocations.size() > 0)
 			{
-				machine_uint textureCount = MIN(textureLocations.size(), textures.Count());
+				size_t textureCount = MIN(textureLocations.size(), textures.Count());
 				
-				for(machine_uint i=0; i<textureCount; i++)
+				for(size_t i=0; i<textureCount; i++)
 				{
 					GLint location = textureLocations[i];
 					Texture *texture = textures.ObjectAtIndex<Texture>(i);

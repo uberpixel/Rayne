@@ -65,7 +65,7 @@ namespace RN
 						return a.range.origin < b.range.origin;
 					});
 					
-					std::vector<machine_uint> stops;
+					std::vector<size_t> stops;
 					stops.resize(intervals.size());
 					std::transform(intervals.begin(), intervals.end(), stops.begin(), [](const interval& interval) {
 						return interval.range.End();

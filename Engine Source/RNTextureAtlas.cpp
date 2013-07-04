@@ -67,7 +67,7 @@ namespace RN
 	Rect TextureAtlas::AllocateRegion(uint32 width, uint32 height)
 	{
 		size_t biggestDimension = 0;
-		machine_uint biggestIndex = kRNNotFound;
+		size_t biggestIndex = kRNNotFound;
 		
 		for(size_t i=0; i<_regions.size(); i++)
 		{

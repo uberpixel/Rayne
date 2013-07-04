@@ -27,15 +27,15 @@ namespace RN
 	public:
 		RNAPI ThreadCoordinator();
 		
-		RNAPI machine_int AvailableConcurrency();
-		RNAPI machine_int BaseConcurrency() const { return _baseConcurrency; }
+		RNAPI int32 AvailableConcurrency();
+		RNAPI int32 BaseConcurrency() const { return _baseConcurrency; }
 		
 	private:
 		void ConsumeConcurrency();
 		void RestoreConcurrency();
 		
-		machine_int _baseConcurrency;
-		std::atomic<machine_int> _consumedConcurrency;
+		int32 _baseConcurrency;
+		std::atomic<int32> _consumedConcurrency;
 	};
 	
 	class ThreadPool : public Singleton<ThreadPool>
@@ -102,7 +102,7 @@ namespace RN
 		friend class __Batch;
 		
 		
-		ThreadPool(machine_uint maxJobs=0, machine_uint maxThreads=0);
+		ThreadPool(size_t maxJobs=0, size_t maxThreads=0);
 		~ThreadPool() override;
 		
 		Batch OpenBatch();

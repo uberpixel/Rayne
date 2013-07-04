@@ -81,7 +81,7 @@ namespace RN
 		static MetaType *__metaClass;
 		SpinLock _lock;
 		
-		std::atomic<machine_uint> _refCount;
+		std::atomic<size_t> _refCount;
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 	};
 	

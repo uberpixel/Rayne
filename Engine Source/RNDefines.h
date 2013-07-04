@@ -64,15 +64,9 @@
 
 #if RN_PLATFORM_32BIT
 
-	typedef int32 machine_int;
-	typedef uint32 machine_uint;
-
 	typedef size_t machine_hash;
 
 #elif RN_PLATFORM_64BIT
-
-	typedef int64 machine_int;
-	typedef uint64 machine_uint;
 
 	typedef size_t machine_hash;
 

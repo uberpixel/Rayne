@@ -239,8 +239,8 @@ namespace RN
 		
 		void View::ViewHierarchyChanged()
 		{
-			machine_uint count = _subviews.Count();
-			for(machine_uint i=0; i<count; i++)
+			size_t count = _subviews.Count();
+			for(size_t i=0; i<count; i++)
 			{
 				View *subview = _subviews.ObjectAtIndex<View>(i);
 				subview->_widget = _widget;
@@ -266,7 +266,7 @@ namespace RN
 		
 		void View::RemoveSubview(View *subview)
 		{
-			machine_uint index = _subviews.IndexOfObject(subview);
+			size_t index = _subviews.IndexOfObject(subview);
 			if(index != kRNNotFound)
 			{
 				_subviews.RemoveObjectAtIndex(index);
@@ -280,8 +280,8 @@ namespace RN
 		
 		void View::RemoveAllSubviews()
 		{
-			machine_uint count = _subviews.Count();
-			for(machine_uint i=0; i<count; i++)
+			size_t count = _subviews.Count();
+			for(size_t i=0; i<count; i++)
 			{
 				View *subview = _subviews.ObjectAtIndex<View>(i);
 				
@@ -314,8 +314,8 @@ namespace RN
 		{
 			_dirtyLayout = true;
 			
-			machine_uint count = _subviews.Count();
-			for(machine_uint i=0; i<count; i++)
+			size_t count = _subviews.Count();
+			for(size_t i=0; i<count; i++)
 			{
 				View *subview = _subviews.ObjectAtIndex<View>(i);
 				subview->NeedsLayoutUpdate();
@@ -388,8 +388,8 @@ namespace RN
 		
 		void View::RenderChilds(Renderer *renderer)
 		{
-			machine_uint count = _subviews.Count();
-			for(machine_uint i=0; i<count; i++)
+			size_t count = _subviews.Count();
+			for(size_t i=0; i<count; i++)
 			{
 				View *subview = _subviews.ObjectAtIndex<View>(i);
 				subview->Render(renderer);

@@ -430,7 +430,7 @@ namespace RN
 		CGDirectDisplayID *table = new CGDirectDisplayID[count];
 		
 		CGGetActiveDisplayList(count, table, &count);
-		for(machine_uint i=0; i<count; i++)
+		for(size_t i=0; i<count; i++)
 		{
 			CGDirectDisplayID displayID = table[i];
 			
@@ -439,7 +439,7 @@ namespace RN
 				CFArrayRef array = CGDisplayCopyAllDisplayModes(displayID, 0);
 				CFIndex count = CFArrayGetCount(array);
 				
-				for(machine_uint i=0; i<count; i++)
+				for(size_t i=0; i<count; i++)
 				{
 					CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(array, i);
 					if(CFGetTypeID(mode) == CGDisplayModeGetTypeID())
