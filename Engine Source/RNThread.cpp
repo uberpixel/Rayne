@@ -108,7 +108,7 @@ namespace RN
 	void Thread::Detach()
 	{
 		if(_isRunning.exchange(true) == true)
-			throw ErrorException(0);
+			throw Exception(Exception::Type::InconsistencyException, "Can't detach already detached thread!");
 		
 		std::thread([&]() {
 			Entry();
@@ -128,7 +128,7 @@ namespace RN
 				
 				_function();
 			}
-			catch (ErrorException e)
+			catch(Exception e)
 			{
 				__HandleException(e);
 			}
@@ -184,7 +184,7 @@ namespace RN
 			if(object != 0)
 			{
 				if(std::get<0>(tuple) != object)
-					throw ErrorException(0);
+					throw Exception(Exception::Type::InconsistencyException, "Tried to retain a binding that doesn't exist!");
 				
 				uint32& references = std::get<1>(tuple);
 				return references;

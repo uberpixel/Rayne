@@ -40,12 +40,11 @@
 	[NSApp terminate:self];
 }
 
-- (void)failWithException:(RN::ErrorException)e
+- (void)failWithException:(RN::Exception)e
 {
 	NSMutableString *description = [NSMutableString string];
 	
-	[description appendFormat:@"%s\n", e.Description().c_str()];
-	[description appendFormat:@"%s\n\n", e.AdditionalDetails().c_str()];
+	[description appendFormat:@"%s\n", e.Reason().c_str()];
 	[description appendString:@"Callstack:\n"];
 	
 	const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.CallStack();
@@ -77,17 +76,17 @@
 		kernel = new RN::Kernel(std::string([name UTF8String]));
 		[NSTimer scheduledTimerWithTimeInterval:0.0 target:self selector:@selector(runGameLoop:) userInfo:nil repeats:YES];
 	}
-	catch(RN::ErrorException e)
+	catch(RN::Exception e)
 	{
-		switch(e.Error())
+		switch(e.ExceptionType())
 		{
-			case RNErrorError(RN::kErrorGroupSystem, RN::kSystemGroupGeneric, RN::kSystemCPUUnsupported):
+			/*case RNErrorError(RN::kErrorGroupSystem, RN::kSystemGroupGeneric, RN::kSystemCPUUnsupported):
 				[self failWithError:@"Your CPU is unsupported! Your CPU needs to support at least SSE and SSE2"];
 				break;
 				
 			case RNErrorError(RN::kErrorGroupGraphics, RN::kGraphicsFramebufferGenericError, RN::kGraphicsNoHardware):
 				[self failWithError:@"Your Graphics Card is unsupported! You need a GPU with support for at least OpenGL 3.2"];
-				break;
+				break;*/
 				
 			default:
 				[self failWithException:e];

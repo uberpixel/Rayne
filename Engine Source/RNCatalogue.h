@@ -23,8 +23,8 @@ namespace RN
 		const std::string& Name() const { return _name; }
 		RNAPI std::string Fullname() const;
 		
-		virtual Object *Construct() { throw ErrorException(0); }
-		virtual Object *ConstructWithSerializer(Serializer *) { throw ErrorException(0); }
+		virtual Object *Construct() { throw Exception(Exception::Type::GenericException, ""); }
+		virtual Object *ConstructWithSerializer(Serializer *) { throw Exception(Exception::Type::GenericException, ""); }
 		
 		virtual bool SupportsConstruction() const { return false; }
 		virtual bool SupportsSerialization() const { return false; }

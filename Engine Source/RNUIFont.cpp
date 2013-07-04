@@ -120,7 +120,7 @@ namespace RN
 			{
 				path = PathManager::PathForName(name);
 			}
-			catch(ErrorException e)
+			catch(Exception e)
 			{
 #if RN_PLATFORM_MAC_OS
 				@autoreleasepool
@@ -308,7 +308,7 @@ namespace RN
 					break;
 				
 				default:
-					throw ErrorException(0);
+					throw Exception(Exception::Type::InconsistencyException, "FreeType pixel mode unsupported!");
 					return;
 			}
 			

@@ -92,7 +92,7 @@ namespace RN
 		X86_64::Capabilities caps = X86_64::Caps();
 		
 		if(!(caps & X86_64::CAP_SSE) || !(caps & X86_64::CAP_SSE2))
-			throw ErrorException(kErrorGroupSystem, kSystemGroupGeneric, kSystemCPUUnsupported);
+			throw Exception(Exception::Type::NoCPUException, "The CPU doesn't support SSE and/or SSE2!");
 #endif
 		_mainThread = new Thread();
 		
@@ -165,7 +165,7 @@ namespace RN
 
 		_appHandle = dlopen(path.c_str(), RTLD_LAZY);
 		if(!_appHandle)
-			throw ErrorException(0, 0, 0, std::string(dlerror()));
+			throw Exception(Exception::Type::ApplicationNotFoundException, std::string(dlerror()));
 		
 		__ApplicationEntry = (RNApplicationEntryPointer)dlsym(_appHandle, "RNApplicationCreate");
 

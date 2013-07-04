@@ -91,7 +91,7 @@ namespace RN
 		RN_ASSERT0(_format & BufferFormatColor);
 		
 		if(_renderTargets->Count() >= MaxRenderTargets())
-			throw ErrorException(0, 0, 0);
+			throw Exception(Exception::Type::InconsistencyException, "Can't attach any more render targets to the render storage!");
 		
 		TextureParameter parameter = target->Parameter();
 		
@@ -125,7 +125,7 @@ namespace RN
 			AddRenderTarget(target);
 			target->Release();
 		}
-		catch(ErrorException e)
+		catch(Exception e)
 		{
 			target->Release();
 		}
@@ -170,7 +170,7 @@ namespace RN
             SetDepthTarget(target);
             target->Release();
         }
-        catch(ErrorException e)
+        catch(Exception e)
         {
             target->Release();
         }
@@ -202,31 +202,31 @@ namespace RN
 			switch(status)
 			{
 				case GL_FRAMEBUFFER_UNDEFINED:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferUndefined, "GL_FRAMEBUFFER_UNDEFINED");
+					throw Exception(Exception::Type::FramebufferException, "");
 					break;
 					
 				case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteAttachment, "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+					throw Exception(Exception::Type::FramebufferIncompleteAttachmentException, "");
 					break;
 					
 				case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteMissingAttachment, "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+					throw Exception(Exception::Type::FramebufferIncompleteMissingAttachmentException, "");
 					break;
 					
 				case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteDrawBuffer, "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER");
+					throw Exception(Exception::Type::FramebufferIncompleteDrawbufferException, "");
 					break;
 					
 				case GL_FRAMEBUFFER_UNSUPPORTED:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferUnsupported, "GL_FRAMEBUFFER_UNSUPPORTED");
+					throw Exception(Exception::Type::FramebufferUnsupportedException, "");
 					break;
 					
 				case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteMultisample, "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE");
+					throw Exception(Exception::Type::FramebufferIncompleteMultisampleException, "");
 					break;
 					
 				case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferIncompleteLayerTargets, "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS");
+					throw Exception(Exception::Type::FramebufferIncompleteLayerException, "");
 					break;
 					
 				default:
@@ -234,7 +234,7 @@ namespace RN
 					char buffer[128];
 					sprintf(buffer, "Unknown framebuffer status %i\n", status);
 					
-					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferGenericError, std::string(buffer));
+					Exception(Exception::Type::GenericException, buffer);
 					break;
 				}
 			}

@@ -26,7 +26,7 @@ int main(int argc, char *argv[])
 		RN::ParseCommandLine(argc, argv);
 		result = NSApplicationMain(argc, (const char **)argv);
 	}
-	catch(RN::ErrorException e)
+	catch(RN::Exception e)
 	{
 		RN::__HandleException(e);
 	}

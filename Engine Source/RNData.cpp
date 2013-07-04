@@ -106,7 +106,7 @@ namespace RN
 	void Data::AssertSize(size_t minimumLength)
 	{
 		if(!_ownsData)
-			throw ErrorException(0);
+			throw Exception(Exception::Type::InconsistencyException, "The Data object doesn't own it's data and can't modify it!");
 		
 		if(_allocated < minimumLength)
 		{
@@ -137,7 +137,7 @@ namespace RN
 	void Data::ReplaceBytes(const void *bytes, const Range& range)
 	{
 		if(range.origin + range.length >= _length)
-			throw ErrorException(0);
+			throw Exception(Exception::Type::RangeException, "range is not within the datas bounds!");
 		
 		const uint8 *data = static_cast<const uint8 *>(bytes);
 		std::copy(data, data + range.length, _bytes + range.origin);
@@ -153,7 +153,7 @@ namespace RN
 	Data *Data::DataInRange(Range range) const
 	{
 		if(range.origin + range.length > _length)
-			throw ErrorException(0);
+			throw Exception(Exception::Type::RangeException, "range is not within the datas bounds!");
 		
 		uint8 *data = new uint8[range.length];
 		std::copy(_bytes + range.origin, _bytes + range.origin + range.length, data);
@@ -165,7 +165,7 @@ namespace RN
 	void Data::BytesInRange(void *buffer, Range range) const
 	{
 		if(range.origin + range.length > _length)
-			throw ErrorException(0);
+			throw Exception(Exception::Type::RangeException, "range is not within the datas bounds!");
 		
 		uint8 *data = static_cast<uint8 *>(buffer);
 		std::copy(_bytes + range.origin, _bytes + range.origin + range.length, data);

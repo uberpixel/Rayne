@@ -84,7 +84,7 @@ namespace RN
 			SetParameter(parameter);
 			SetData(loader.Data(), loader.Width(), loader.Height(), loader.Format());
 		}
-		catch (ErrorException e)
+		catch (Exception e)
 		{
 			Unbind();
 			throw e;
@@ -115,7 +115,7 @@ namespace RN
 			TextureLoader loader = TextureLoader(name);
 			SetData(loader.Data(), loader.Width(), loader.Height(), loader.Format());
 		}
-		catch (ErrorException e)
+		catch(Exception e)
 		{
 			Unbind();
 			throw e;
@@ -512,7 +512,7 @@ namespace RN
 				break;
 				
 			default:
-				throw ErrorException(0, 0, 0); // Todo throw an actual error exception!
+				throw Exception(Exception::Type::TextureFormatUnsupportedException, "");
 				break;
 		}
 	}
@@ -619,7 +619,7 @@ namespace RN
 			}
 				
 			default:
-				throw ErrorException(0, 0, 0);
+				throw Exception(Exception::Type::GenericException, "");
 				break;
 		}
 		
@@ -770,7 +770,7 @@ namespace RN
 			}
 				
 			default:
-				throw ErrorException(0, 0, 0); // Todo throw an actual error exception!
+				throw Exception(Exception::Type::TextureFormatUnsupportedException, "");
 				break;
 		}
 		
@@ -789,7 +789,7 @@ namespace RN
 			ConvertFormat(format, true, &glFormat, &glInternalFormat, &glType);
 			return true;
 		}
-		catch(ErrorException e)
+		catch(Exception e)
 		{
 			return false;
 		}

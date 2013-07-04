@@ -36,9 +36,8 @@ namespace RN
 		{
 			path = PathManager::PathForName(shader + ".gsh");
 		}
-		catch(ErrorException e)
-		{
-		}
+		catch(Exception)
+		{}
 		
 		if(path.length() > 0)
 			SetShaderForType(path, ShaderType::GeometryShader);
@@ -199,7 +198,7 @@ namespace RN
 				break;
 				
 			default:
-				throw ErrorException(0);
+				throw Exception(Exception::Type::ShaderUnsupportedException, "");
 		}
 		
 		const GLchar *data = source.c_str();
@@ -225,7 +224,7 @@ namespace RN
 			*outShader = 0;
 
 			std::string result(log);
-			std::string tlog = "Failed to compile " + file;
+			std::string tlog = "Failed to compile " + file + "\n";
 			
 			// Parse the error
 			std::regex regex("ERROR: [0-9]{0,}:[0-9]{0,}: .*\n", std::regex_constants::ECMAScript | std::regex_constants::icase);
@@ -276,7 +275,7 @@ namespace RN
 			
 			// Clean up and throw the exception
 			delete [] log;
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderCompilingFailed, tlog, result);
+			throw Exception(Exception::Type::ShaderCompilationFailedException, tlog + result);
 		}
 	}
 	
@@ -294,7 +293,7 @@ namespace RN
 		std::string tlog = std::string((char *)log);
 		delete [] log;
 		
-		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderLinkingFailed, tlog);
+		throw Exception(Exception::Type::ShaderLinkingFailedException, tlog);
 	}
 	
 	ShaderProgram *Shader::ProgramWithLookup(const ShaderLookup& lookup)
@@ -314,7 +313,7 @@ namespace RN
 			delete program;
 			
 			RN_CHECKOPENGL();				
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderLinkingFailed, "Couldn't create program");
+			throw Exception(Exception::Type::ShaderLinkingFailedException, "");
 		}
 		
 		_programs[lookup] = program;
@@ -577,9 +576,9 @@ namespace RN
 			includeFile = new File(path);
 			includeFile->Autorelease();
 		}
-		catch(ErrorException e)
+		catch(Exception e)
 		{
-			throw ErrorException(e.Error(), "Couldn't include file " + name, "Failed to pre-process " + parent->Name() + "." + parent->Extension());
+			throw Exception(e.ExceptionType(), "Couldn't include file " + name);
 		}
 		
 		output.fullpath = includeFile->FullPath();
@@ -641,7 +640,7 @@ namespace RN
 						break;
 						
 					default:
-						throw ErrorException(0);
+						throw Exception(Exception::Type::GenericException, "");
 						break;
 				}
 				
@@ -658,7 +657,7 @@ namespace RN
 				}
 				
 				if(end == std::string::npos)
-					throw ErrorException(0);
+					throw Exception(Exception::Type::GenericException, "");
 				
 				// Include the file
 				std::string name = data.substr(begin, end - begin);
@@ -730,7 +729,7 @@ namespace RN
 				break;
 				
 			default:
-				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsShaderTypeNotSupported);
+				throw Exception(Exception::Type::ShaderUnsupportedException, "");
 				break;
 		}
 	}
@@ -764,7 +763,7 @@ namespace RN
 				break;
 		}
 		
-		throw ErrorException(0);
+		throw Exception(Exception::Type::ShaderUnsupportedException, "");
 	}
 	
 	Shader::DebugMarker Shader::ResolveFileForLine(ShaderType type, uint32 line)
@@ -787,7 +786,7 @@ namespace RN
 				break;
 				
 			default:
-				throw ErrorException(0);
+				throw Exception(Exception::Type::ShaderUnsupportedException, "");
 				break;
 		}
 		

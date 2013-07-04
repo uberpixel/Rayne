@@ -80,7 +80,7 @@ namespace RN
 	{
 		auto iterator = _metaClasses.find(meta->Fullname());
 		if(iterator != _metaClasses.end())
-			throw ErrorException(0, 0, 0);
+			throw Exception(Exception::Type::InvalidArgumentException, "A MetaClass of the same name already exists!");
 		
 		_metaClasses.insert(std::unordered_map<std::string, MetaClass *>::value_type(meta->Fullname(), meta));
 	}

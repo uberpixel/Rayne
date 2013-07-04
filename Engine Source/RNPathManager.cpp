@@ -429,12 +429,11 @@ namespace RN
 				
 				return Join(tpath, Base(path));
 			}
-			catch(ErrorException)
+			catch(Exception)
 			{}
 		}
 		
-		std::string error = "Couldn't resolve path " + path;
-		throw ErrorException(0, error);
+		throw Exception(Exception::Type::GenericException, "Couldn't resolve path " + path);
 	}
 	
 	std::string PathManager::ExecutableDirectory()

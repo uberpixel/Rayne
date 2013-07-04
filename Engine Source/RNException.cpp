@@ -1,53 +1,43 @@
 //
-//  RNError.cpp
+//  RNException.cpp
 //  Rayne
 //
 //  Copyright 2013 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNError.h"
-#include "RNThread.h"
-
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <stdlib.h>
 #include <dlfcn.h>
 
-#define kRNErrorExceptionMaxSymbols 30
+#include "RNException.h"
+#include "RNThread.h"
+
+#define kRNExceptionMaxSymbols 32
 
 namespace RN
 {
-	ErrorException::ErrorException(ErrorCode error, const std::string& description, const std::string& detail) :
-		_description(description),
-		_additionalDetail(detail)
+	Exception::Exception(Type type, const std::string& reason) :
+		_type(type),
+		_reason(reason)
 	{
-		_error = error;
 		GatherInfo();
 	}
 	
-	ErrorException::ErrorException(uint32 group, uint32 subgroup, uint32 code, const std::string& description, const std::string& detail) :
-		_description(description),
-		_additionalDetail(detail)
+	void Exception::GatherInfo()
 	{
-		_error = RNErrorGroup(group) | RNErrorSubgroup(subgroup) | code;
-		GatherInfo();
-	}
-	
-	
-	void ErrorException::GatherInfo()
-	{
-		void *symbols[kRNErrorExceptionMaxSymbols];
+		void *symbols[kRNExceptionMaxSymbols];
 		size_t size;
 		
-		size = backtrace(symbols, kRNErrorExceptionMaxSymbols);
+		size = backtrace(symbols, kRNExceptionMaxSymbols);
 		std::string unknwonSymbol = std::string("<???>");
 		
-		for(size_t i=0; i<size; i++)
+		for(size_t i=1; i<size; i++)
 		{
 			Dl_info info;
 			int status = dladdr(symbols[i], &info);
-
+			
 			if(status != 0)
 			{
 				const char *symbol = abi::__cxa_demangle((char *)info.dli_sname, 0, 0, 0);

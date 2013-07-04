@@ -559,7 +559,7 @@ namespace RN
 		{
 			AttachPostProcessingPipeline(pipeline);
 		}
-		catch(ErrorException e)
+		catch(Exception e)
 		{
 			delete pipeline;
 			throw e;
@@ -577,7 +577,7 @@ namespace RN
 	void Camera::AttachPostProcessingPipeline(PostProcessingPipeline *pipeline)
 	{
 		if(PostProcessingPipelineWithName(pipeline->_name) || pipeline->host)
-			throw ErrorException(0);
+			throw Exception(Exception::Type::InvalidArgumentException, "A pipeline with this name already exists, or the pipeline is already associated with a camera!");
 		
 		_PPPipelines.push_back(pipeline);
 		_namedPPPipelines.insert(std::map<std::string, PostProcessingPipeline *>::value_type(pipeline->_name, pipeline));

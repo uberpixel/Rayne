@@ -48,7 +48,7 @@ namespace RN
 		{
 			_handle = dlopen(_path.c_str(), RTLD_LAZY);
 			if(!_handle)
-				throw ErrorException(0, 0, 0, std::string(dlerror()));
+				throw Exception(Exception::Type::ModuleNotFoundException, std::string(dlerror()));
 			
 			_constructor = (bool (*)(ModuleExports *))(FunctionAddress("RNModuleConstructor"));
 			_destructor  = (void (*)())(FunctionAddress("RNModuleDestructor"));

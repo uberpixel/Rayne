@@ -42,7 +42,7 @@
 #include "RNPlatform.h"
 #include "RNDefines.h"
 #include "RNConstants.h"
-#include "RNError.h"
+#include "RNException.h"
 
 // ---------------------------
 // Platform dependent includes
@@ -138,7 +138,7 @@ namespace RN
 #endif
 
 	RNAPI RN_NORETURN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
-	RNAPI RN_NORETURN void __HandleException(const ErrorException& e);
+	RNAPI RN_NORETURN void __HandleException(const Exception& e);
 	RNAPI void ParseCommandLine(int argc, char *argv[]);
 	
 	class Range

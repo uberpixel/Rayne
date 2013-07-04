@@ -23,115 +23,115 @@ namespace RN
 	
 	void Serializer::EncodeBytes(void *data, size_t size)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	void Serializer::EncodeObject(Object *object)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	void Serializer::EncodeRootObject(Object *object)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	
 	void Serializer::EncodeBool(bool value)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	void Serializer::EncodeDouble(double value)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	void Serializer::EncodeFloat(float value)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	void Serializer::EncodeInt32(int32 value)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	void Serializer::EncodeInt64(int64 value)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	
 	void Serializer::EncodeVector2(const Vector2& value)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	void Serializer::EncodeVector3(const Vector3& value)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	void Serializer::EncodeVector4(const Vector4& value)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	
 	void Serializer::EncodeMatrix(const Matrix& value)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	void Serializer::EncodeQuarternion(const Quaternion& value)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	
 	void *Serializer::DecodeBytes(size_t *length)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	Object *Serializer::DecodeObject()
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	
 	bool Serializer::DecodeBool()
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	double Serializer::DecodeDouble()
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	float Serializer::DecodeFloat()
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	int32 Serializer::DecodeInt32()
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	int64 Serializer::DecodeInt64()
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	
 	Vector2 Serializer::DecodeVector2()
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	Vector3 Serializer::DecodeVector3()
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	Vector4 Serializer::DecodeVector4()
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	
 	Matrix Serializer::DecodeMatrix()
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	Quaternion Serializer::DecodeQuaternion()
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	
 	uint32 Serializer::AppVersion() const
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
 	}
 	
 	

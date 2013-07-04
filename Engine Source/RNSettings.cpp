@@ -26,7 +26,7 @@ namespace RN
 			_settings = static_cast<Dictionary *>(JSONSerialization::JSONObjectFromData(data));
 			_settings->Retain();
 		}
-		catch(ErrorException e)
+		catch(Exception e)
 		{
 			__HandleException(e);
 		}
@@ -53,7 +53,7 @@ namespace RN
 			if(!PathManager::CreatePath(PathManager::Basepath(SettingsLocation()), true))
 			{
 				_lock.Unlock();
-				throw ErrorException(0);
+				throw Exception(Exception::Type::InconsistencyException, "Failed to flush Settings down to disk!");
 			}
 			
 			Data *data = JSONSerialization::JSONDataFromObject(_settings, JSONSerialization::PrettyPrint);

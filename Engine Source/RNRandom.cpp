@@ -329,7 +329,7 @@ namespace RN
 		
 		void Secure::Seed(uint32 seed)
 		{
-			throw ErrorException(0);
+			throw Exception(Exception::Type::InvalidArgumentException, "The Secure RNG cannot be seeded!");
 		}
 		
 		int32 Secure::RandomInt32()

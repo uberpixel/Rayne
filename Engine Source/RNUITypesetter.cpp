@@ -307,7 +307,7 @@ namespace RN
 						break;
 						
 					default:
-						throw ErrorException(0);
+						throw Exception(Exception::Type::ShaderUnsupportedException, "");
 				}
 			}
 			

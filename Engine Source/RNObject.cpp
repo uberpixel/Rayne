@@ -74,7 +74,7 @@ namespace RN
 	
 	void Object::Serialize(Serializer *serializer)
 	{
-		throw ErrorException(0);
+		throw Exception(Exception::Type::GenericException, "Serialization not supported!");
 	}
 	
 	

@@ -139,7 +139,7 @@ namespace RN
 			return rect;
 		}
 		
-		throw ErrorException(0, 0, 0);
+		throw Exception(Exception::Type::RangeException, "Not enough free space found in atlas texture!");
 	}
 	
 	void TextureAtlas::SetRegionData(const Rect& region, void *data, TextureParameter::Format format)

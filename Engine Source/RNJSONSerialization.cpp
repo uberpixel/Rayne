@@ -240,7 +240,7 @@ namespace RN
 		json_t *root = json_loads(reinterpret_cast<char *>(data->Bytes()), flags, &error);
 		
 		if(!root)
-			throw ErrorException(0, error.text);
+			throw Exception(Exception::Type::GenericException, "");
 		
 		AutoreleasePool *pool = new AutoreleasePool();
 		

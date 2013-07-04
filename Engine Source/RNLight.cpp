@@ -82,10 +82,13 @@ namespace RN
 			return;
 		
 		_shadow = shadow;
+		
 		if(_shadow)
 		{
 			_shadowSplits = splits;
 			_shadowDistFac = distfac;
+			
+			_shadowcams.RemoveAllObjects();
 			
 			TextureParameter parameter;
 			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
@@ -101,56 +104,27 @@ namespace RN
 			
 			RenderStorage *storage;
 			
-/*			try
+			Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepthSingle");
+			Material *depthMaterial = new Material(depthShader);
+			depthMaterial->polygonOffset = true;
+			depthMaterial->polygonOffsetFactor = biasfac;
+			depthMaterial->polygonOffsetUnits = biasunits;
+			
+			for(int i = 0; i < _shadowSplits; i++)
 			{
-				storage = new RenderStorage(RenderStorage::BufferFormatDepth);
-				storage->SetDepthTarget(depthtex);
-				storage->SetFrame(Rect(0.0f, 0.0f, 256.0f, 256.0f));
+				storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
+				storage->SetDepthTarget(depthtex, i);
 				
-				storage->Bind();
-				storage->UpdateBuffer();
-				storage->Unbind();
-				
-				Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepth");
-				Material *depthMaterial = new Material(depthShader);
-				depthMaterial->polygonOffset = true;
-				depthMaterial->polygonOffsetFactor = biasfac;
-				depthMaterial->polygonOffsetUnits = biasunits;
-				
-				_shadowcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden);
-				
-				_shadowcam->SetMaterial(depthMaterial);
-				_shadowcam->SetUseInstancing(false);
-				_shadowcam->SetLODCamera(_lightcam);
-				_shadowcam->clipfar = 1000.0f;
-				_shadowcam->clipnear = 1.0f;
-			}
-			catch(ErrorException e)*/
-			{
-//				storage->Unbind();
-//				storage->Release();
-				
-				Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepthSingle");
-				Material *depthMaterial = new Material(depthShader);
-				depthMaterial->polygonOffset = true;
-				depthMaterial->polygonOffsetFactor = biasfac;
-				depthMaterial->polygonOffsetUnits = biasunits;
-				
-				for(int i = 0; i < _shadowSplits; i++)
-				{
-					storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
-					storage->SetDepthTarget(depthtex, i);
-					
-					Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden, 1.0f);
-					tempcam->SetMaterial(depthMaterial);
-					tempcam->SetUseInstancing(true);
-					tempcam->SetLODCamera(_lightcam);
-					tempcam->SetPriority(kRNShadowCameraPriority);
-					tempcam->clipnear = 1.0f;
+				Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden, 1.0f);
+				tempcam->SetMaterial(depthMaterial);
+				tempcam->SetUseInstancing(true);
+				tempcam->SetLODCamera(_lightcam);
+				tempcam->SetPriority(kRNShadowCameraPriority);
+				tempcam->clipnear = 1.0f;
 //					tempcam->clipfar = 10000.0f;
-	
-					_shadowcams.AddObject(tempcam);
-				}
+
+				_shadowcams.AddObject(tempcam->Autorelease());
+				storage->Autorelease();
 			}
 		}
 	}

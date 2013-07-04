@@ -23,7 +23,7 @@ namespace RN
 		_mode = mode;
 
 		if(!OpenPath(path, mode))
-			throw ErrorException(0, 0, 0, "Could not open file \"" + path + "\"");
+			throw Exception(Exception::Type::GenericException, "Could not open file \"" + path + "\"");
 
 		fseek(_file, 0, SEEK_END);
 		_size = ftell(_file);
@@ -55,9 +55,7 @@ namespace RN
 			read += tread;
 
 			if(tread < kRNFileBufferSize && read < _size)
-			{
-				throw ErrorException(0, 0, 0);
-			}
+				throw Exception(Exception::Type::GenericException, "Failed to read data from file!");
 
 			string.append(buffer, tread);
 		}
@@ -261,7 +259,7 @@ namespace RN
 		{
 			_fullPath = PathManager::PathForName(path, !(mode == Write || mode == ReadWrite));
 		}
-		catch(ErrorException)
+		catch(Exception)
 		{
 			return false;
 		}

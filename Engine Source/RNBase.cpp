@@ -9,7 +9,6 @@
 #include <execinfo.h>
 #include "RNBase.h"
 #include "RNBaseInternal.h"
-#include "RNError.h"
 #include "RNThread.h"
 #include "RNSpinLock.h"
 #include "RNPathManager.h"
@@ -40,14 +39,14 @@ namespace RN
 		__DieLock.Unlock();
 	}
 	
-	void __HandleException(const ErrorException& e)
+	void __HandleException(const Exception& e)
 	{
 		__DieLock.Lock();
 		
 		const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.CallStack();
 		
-		fprintf(stderr, "Caught exception %i|%i|%i.\nReason: %s\nDetails: %s\n", e.Group(), e.Subgroup(), e.Code(), e.Description().c_str(), e.AdditionalDetails().c_str());
-		fprintf(stderr, "Chrashing Thread: %s\nBacktrace:\n", e.Thread()->Name().c_str());
+		fprintf(stderr, "Caught exception %i\nReason: %s\n", static_cast<uint32>(e.ExceptionType()), e.Reason().c_str());
+		fprintf(stderr, "Chrashing Thread: %s\nBacktrace:\n", e.ExceptionThread()->Name().c_str());
 		
 		for(auto i=callstack.begin(); i!=callstack.end(); i++)
 		{

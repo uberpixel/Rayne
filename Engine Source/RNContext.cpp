@@ -44,11 +44,11 @@ namespace RN
 
 		_oglPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes];
 		if(!_oglPixelFormat)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
+			throw Exception(Exception::Type::NoGPUException, "Failed to create a OpenGL context!");
 
 		_oglContext = [[NSOpenGLContext alloc] initWithFormat:(NSOpenGLPixelFormat *)_oglPixelFormat shareContext:_shared ? (NSOpenGLContext *)_shared->_oglContext : nil];
 		if(!_oglContext)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+			throw Exception(Exception::Type::NoGPUException, "Failed to create a OpenGL context!");
 
 		_cglContext = (CGLContextObj)[(NSOpenGLContext *)_oglContext CGLContextObj];
 		CGLEnable((CGLContextObj)_cglContext, kCGLCEMPEngine);

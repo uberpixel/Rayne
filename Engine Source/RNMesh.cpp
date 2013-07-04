@@ -456,7 +456,7 @@ namespace RN
 	void Mesh::MergeMesh(Mesh *mesh)
 	{
 		if(!CanMergeMesh(mesh))
-			throw ErrorException(0);
+			throw Exception(Exception::Type::InconsistencyException, "The meshes cannot be merged!");
 		
 		if(_meshData)
 		{
@@ -511,7 +511,7 @@ namespace RN
 				}
 					
 				default:
-					throw ErrorException(0);
+					throw Exception(Exception::Type::InconsistencyException, "The indices element size is not supported (uint16 and uint32 support only)");
 			}
 			
 			Memory::FreeSIMD(_indices);

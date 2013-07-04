@@ -165,7 +165,7 @@ namespace RN
 	{
 		uint8 *temp = new uint8[size];
 		if(!temp)
-			throw ErrorException(0, 0, 0);
+			throw Exception(Exception::Type::InconsistencyException, "Failed to allocate memory for string!");
 		
 		if(_buffer)
 		{
@@ -292,7 +292,7 @@ namespace RN
 			}
 			else
 			{
-				throw ErrorException(0, 0, 0);
+				throw Exception(Exception::Type::InvalidArgumentException, "Buffer contains invliad UTF8 characters!");
 			}
 			
 			i += trailing + 1;
@@ -475,7 +475,7 @@ namespace RN
 			appendixLength ++;
 			
 			if(data > dataEnd)
-				throw ErrorException(0, 0, 0);
+				throw Exception(Exception::Type::RangeException, "");
 		}
 		
 		uint8 *begin = data;
@@ -489,7 +489,7 @@ namespace RN
 			appendixLength ++; 
 			
 			if(end > dataEnd)
-				throw ErrorException(0, 0, 0);
+				throw Exception(Exception::Type::RangeException, "");
 		}
 		
 		appendixLength = (_length - appendixLength);
@@ -606,7 +606,7 @@ namespace RN
 			data += length;
 			
 			if(data > dataEnd)
-				throw ErrorException(0, 0, 0);
+				throw Exception(Exception::Type::RangeException, "");
 		}
 		
 		// Calculate the new end
@@ -621,7 +621,7 @@ namespace RN
 				temp += length;
 				
 				if(temp > dataEnd)
-					throw ErrorException(0, 0, 0);
+					throw Exception(Exception::Type::RangeException, "");
 			}
 			
 			dataEnd = temp;
@@ -713,7 +713,7 @@ namespace RN
 			data += length;
 			
 			if(data > dataEnd)
-				throw ErrorException(0, 0, 0);
+				throw Exception(Exception::Type::RangeException, "");
 		}
 		
 		// Calculate the new end
@@ -726,7 +726,7 @@ namespace RN
 				temp += length;
 
 				if(temp > dataEnd)
-					throw ErrorException(0, 0, 0);
+					throw Exception(Exception::Type::RangeException, "");
 			}
 			
 			dataEnd = temp;
@@ -813,7 +813,7 @@ namespace RN
 			data += length;
 			
 			if(data > dataEnd)
-				throw ErrorException(0, 0, 0);
+				throw Exception(Exception::Type::RangeException, "");
 		}
 		
 		size_t bytes = 0;
@@ -826,7 +826,7 @@ namespace RN
 			bytes += length;
 			
 			if(temp > dataEnd)
-				throw ErrorException(0, 0, 0);
+				throw Exception(Exception::Type::RangeException, "");
 		}
 		
 		return new String(data, bytes, Encoding::UTF8);
@@ -856,7 +856,7 @@ namespace RN
 			data += length;
 		}
 		
-		throw ErrorException(0, 0, 0);
+		throw Exception(Exception::Type::RangeException, "");
 	}
 	
 	uint8 *String::BytesWithEncoding(Encoding encoding, bool lossy, size_t *outLength) const
@@ -944,6 +944,6 @@ namespace RN
 			return data;
 		}
 		
-		throw ErrorException(0);
+		return nullptr;
 	}
 }
