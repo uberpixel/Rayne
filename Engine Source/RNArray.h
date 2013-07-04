@@ -179,7 +179,7 @@ namespace RN
 		template<typename T=Object>
 		T *ObjectAtIndex(machine_uint index) const
 		{
-			return static_cast<T *>(_data[index]);
+			return _data[index]->Downcast<T>();
 		}
 		
 		template<typename T=Object>
@@ -188,7 +188,7 @@ namespace RN
 			if(this->_count == 0)
 				return 0;
 			
-			return static_cast<T *>(this->_data[0]);
+			return _data[0]->Downcast<T>();
 		}
 		
 		template<typename T=Object>
@@ -197,7 +197,7 @@ namespace RN
 			if(this->_count == 0)
 				return 0;
 			
-			return static_cast<T *>(_data[_count - 1]);
+			return _data[_count - 1]->Downcast<T>();
 		}
 		
 		

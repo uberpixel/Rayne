@@ -24,6 +24,7 @@ namespace RN
 			InvalidArgumentException,
 			RangeException,
 			InconsistencyException,
+			DowncastException,
 			
 			ApplicationNotFoundException,
 			ModuleNotFoundException,

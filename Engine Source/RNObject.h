@@ -33,6 +33,17 @@ namespace RN
 		
 		RNAPI virtual void Serialize(Serializer *serializer);
 		
+		template<class T>
+		T *Downcast()
+		{
+			static_assert(std::is_base_of<Object, T>::value, "T must inherit from Object!");
+			
+			if(IsKindOfClass(T::MetaClass()))
+				return static_cast<T *>(this);
+			
+			throw Exception(Exception::Type::DowncastException, "No possible cast possible!");
+		}
+		
 		virtual class MetaClass *Class() const
 		{
 			return Object::__metaClass;
