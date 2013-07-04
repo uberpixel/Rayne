@@ -51,6 +51,26 @@ namespace RN
 		
 		std::sort(first, last, comp);
 	}
+	
+	template<class T>
+	void HashCombine(machine_hash& seed, const T& value)
+	{		
+		// This function is equivalent to boost::hash_combine()
+		std::hash<T> hasher;
+		seed ^= static_cast<machine_hash>(hasher(value)) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+	}
+	
+	template<class Iterator>
+	machine_hash HashRange(Iterator first, Iterator last)
+	{
+		machine_hash hash = 0;
+		for(; first != last; first ++)
+		{
+			HashCombine(hash, *first);
+		}
+		
+		return hash;
+	}
 }
 
 #endif /* __RAYNE_ALGORITHM_H__ */
