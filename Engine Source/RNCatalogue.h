@@ -25,9 +25,11 @@ namespace RN
 		
 		virtual Object *Construct() { throw Exception(Exception::Type::GenericException, ""); }
 		virtual Object *ConstructWithSerializer(Serializer *) { throw Exception(Exception::Type::GenericException, ""); }
+		virtual Object *ConstructWithCopy(Object *) { throw Exception(Exception::Type::GenericException, ""); }
 		
 		virtual bool SupportsConstruction() const { return false; }
 		virtual bool SupportsSerialization() const { return false; }
+		virtual bool SupportsCopying() const { return false; }
 		
 		RNAPI bool InheritsFromClass(MetaClassBase *other) const;
 	
@@ -65,6 +67,19 @@ namespace RN
 		
 		bool SupportsSerialization() const override { return true; }
 	};
+	
+	template<class T>
+	class MetaClassTraitCopyable : public virtual MetaClassBase
+	{
+	public:
+		T *ConstructWithCopy(T *source) override
+		{
+			return new T(source);
+		}
+		
+		bool SupportsCopying() const override { return true; }
+	};
+	
 	
 	template<class T, template <typename Type> class... Traits>
 	class ConcreteMetaClass : public virtual MetaClassBase, public Traits<T>...

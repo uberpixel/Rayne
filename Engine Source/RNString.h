@@ -108,7 +108,7 @@ namespace RN
 		uint32 _size;
 		uint32 _occupied;
 		
-		RNDefineMetaWithTraits(String, Object, MetaClassTraitCronstructable)
+		RNDefineMetaWithTraits(String, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 }
 

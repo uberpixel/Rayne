@@ -152,6 +152,7 @@ namespace RN
 				break;
 				
 			case MemoryPolicy::Copy:
+				object = value->MetaClass()->ConstructWithCopy(value);
 				break;
 		}
 		

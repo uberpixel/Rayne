@@ -46,6 +46,19 @@ namespace RN
 			}
 		}
 		
+		Array(Array *other)
+		{
+			_size  = other->_size;
+			_count = other->_count;
+			
+			_data = new Object *[_size];
+			
+			for(machine_uint i=0; i<_count; i++)
+			{
+				_data[i] = other->_data[i]->Retain();
+			}
+		}
+		
 		~Array() override
 		{
 			for(machine_uint i=0; i<_count; i++)
@@ -274,7 +287,7 @@ namespace RN
 		machine_uint _count;
 		machine_uint _size;
 		
-		RNDefineMetaWithTraits(Array, Object, MetaClassTraitCronstructable)
+		RNDefineMetaWithTraits(Array, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 }
 
