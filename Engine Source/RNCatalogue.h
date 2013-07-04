@@ -16,10 +16,10 @@ namespace RN
 	class Object;
 	class Serializer;
 	
-	class MetaClass
+	class MetaClassBase
 	{
 	public:
-		MetaClass *SuperClass() const { return _superClass; }
+		MetaClassBase *SuperClass() const { return _superClass; }
 		const std::string& Name() const { return _name; }
 		RNAPI std::string Fullname() const;
 		
@@ -29,21 +29,21 @@ namespace RN
 		virtual bool SupportsConstruction() const { return false; }
 		virtual bool SupportsSerialization() const { return false; }
 		
-		RNAPI bool InheritsFromClass(MetaClass *other) const;
+		RNAPI bool InheritsFromClass(MetaClassBase *other) const;
 	
 	protected:
-		RNAPI MetaClass() {}
-		RNAPI MetaClass(MetaClass *parent, const std::string& name, const char *namespaceBlob);
-		RNAPI ~MetaClass();
+		RNAPI MetaClassBase() {}
+		RNAPI MetaClassBase(MetaClassBase *parent, const std::string& name, const char *namespaceBlob);
+		RNAPI ~MetaClassBase();
 		
 	private:
-		MetaClass *_superClass;
+		MetaClassBase *_superClass;
 		std::string _name;
 		std::vector<std::string> _namespace;
 	};
 	
 	template<class T>
-	class MetaClassTraitCronstructable : public virtual MetaClass
+	class MetaClassTraitCronstructable : public virtual MetaClassBase
 	{
 	public:
 		T *Construct() override
@@ -55,7 +55,7 @@ namespace RN
 	};
 	
 	template<class T>
-	class MetaClassTraitSerializable : public virtual MetaClass
+	class MetaClassTraitSerializable : public virtual MetaClassBase
 	{
 	public:
 		T *ConstructWithSerializer(Serializer *serializer) override
@@ -67,23 +67,24 @@ namespace RN
 	};
 	
 	template<class T, template <typename Type> class... Traits>
-	class ConcreteMetaClass : public virtual MetaClass, public Traits<T>...
+	class ConcreteMetaClass : public virtual MetaClassBase, public Traits<T>...
 	{};
 	
 	class Catalogue : public Singleton<Catalogue>
 	{
-	friend class MetaClass;
 	public:
-		RNAPI MetaClass *ClassWithName(const std::string& name) const;
-		RNAPI void EnumerateClasses(const std::function<void (MetaClass *meta, bool *stop)>& enumerator);
+		friend class MetaClassBase;
+		
+		RNAPI MetaClassBase *ClassWithName(const std::string& name) const;
+		RNAPI void EnumerateClasses(const std::function<void (MetaClassBase *meta, bool *stop)>& enumerator);
 		
 	private:
-		void AddMetaClass(MetaClass *meta);
-		void RemoveMetaClass(MetaClass *meta);
+		void AddMetaClass(MetaClassBase *meta);
+		void RemoveMetaClass(MetaClassBase *meta);
 		
 		static void ParsePrettyFunction(const char *string, std::vector<std::string>& namespaces);
 		
-		std::unordered_map<std::string, MetaClass *> _metaClasses;
+		std::unordered_map<std::string, MetaClassBase *> _metaClasses;
 	};
 }
 

@@ -56,7 +56,7 @@ namespace RN
 			btOverlappingPairCallback *_pairCallback;
 			
 			std::unordered_set<CollisionObject *> _collisionObjects;
-			class MetaClass *_collisionObjectClass;
+			MetaClassBase *_collisionObjectClass;
 			
 			RNDefineMeta(PhysicsWorld, WorldAttachment);
 		};

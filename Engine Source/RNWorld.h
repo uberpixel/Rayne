@@ -67,7 +67,7 @@ namespace RN
 		
 		Renderer *_renderer;
 		class SceneManager *_sceneManager;
-		class MetaClass *_cameraClass;
+		MetaClassBase *_cameraClass;
 	};
 }
 

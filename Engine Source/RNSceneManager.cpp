@@ -29,7 +29,7 @@ namespace RN
 	GenericSceneManager::GenericSceneManager()
 	{
 		_entityClass = Entity::MetaClass();
-		_lightClass = Light::MetaClass();
+		_lightClass  = Light::MetaClass();
 	}
 	
 	GenericSceneManager::~GenericSceneManager()

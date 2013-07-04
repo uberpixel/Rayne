@@ -39,8 +39,8 @@ namespace RN
 	
 	class SceneManager *World::SceneManagerWithName(const std::string& name)
 	{
-		class MetaClass *meta = 0;
-		Catalogue::SharedInstance()->EnumerateClasses([&](MetaClass *mclass, bool *stop) {
+		MetaClassBase *meta = 0;
+		Catalogue::SharedInstance()->EnumerateClasses([&](MetaClassBase *mclass, bool *stop) {
 			if(mclass->Name() == name)
 			{
 				meta = mclass;

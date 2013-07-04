@@ -16,10 +16,10 @@
 
 namespace RN
 {
-	static MetaClass *__JSONArrayClass = 0;
-	static MetaClass *__JSONDictionaryClass = 0;
-	static MetaClass *__JSONNumberClass = 0;
-	static MetaClass *__JSONStringClass = 0;
+	static MetaClassBase *__JSONArrayClass = 0;
+	static MetaClassBase *__JSONDictionaryClass = 0;
+	static MetaClassBase *__JSONNumberClass = 0;
+	static MetaClassBase *__JSONStringClass = 0;
 	
 	void JSONReadClasses()
 	{

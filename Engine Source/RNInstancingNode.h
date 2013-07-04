@@ -53,7 +53,7 @@ namespace RN
 		Model *_model;
 		std::vector<InstancedMesh> _data;
 		
-		class MetaClass *_entityClass;
+		MetaClassBase *_entityClass;
 	};
 }
 

@@ -375,7 +375,7 @@ namespace RN
 		_index += sizeof(uint32);
 		
 		String *name = _nametable->ObjectForKey<String>(Number::WithUint32(index));
-		MetaClass *mclass = Catalogue::SharedInstance()->ClassWithName(name->UTF8String());
+		MetaClassBase *mclass = Catalogue::SharedInstance()->ClassWithName(name->UTF8String());
 		
 		Object *result = mclass->ConstructWithSerializer(this);
 		return result;

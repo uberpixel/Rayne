@@ -98,12 +98,12 @@ namespace RN
 	}
 	
 	
-	bool Object::IsKindOfClass(class MetaClass *other) const
+	bool Object::IsKindOfClass(MetaClassBase *other) const
 	{
 		return Class()->InheritsFromClass(other);
 	}
 	
-	bool Object::IsMemberOfClass(class MetaClass *other) const
+	bool Object::IsMemberOfClass(MetaClassBase *other) const
 	{
 		return (Class() == other);
 	}

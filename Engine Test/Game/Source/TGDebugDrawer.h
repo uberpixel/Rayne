@@ -28,8 +28,8 @@ namespace TG
 		bool _canDraw;
 		RN::Camera *_camera;
 		
-		RN::MetaClass *_lightClass;
-		RN::MetaClass *_cameraClass;
+		RN::MetaClassBase *_lightClass;
+		RN::MetaClassBase *_cameraClass;
 	};
 }
 

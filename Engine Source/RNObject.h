@@ -28,8 +28,8 @@ namespace RN
 		
 		RNAPI virtual bool IsEqual(Object *other) const;
 		RNAPI virtual machine_hash Hash() const;
-		RNAPI bool IsKindOfClass(MetaClass *other) const;
-		RNAPI bool IsMemberOfClass(MetaClass *other) const;
+		RNAPI bool IsKindOfClass(MetaClassBase *other) const;
+		RNAPI bool IsMemberOfClass(MetaClassBase *other) const;
 		
 		RNAPI virtual void Serialize(Serializer *serializer);
 		
@@ -44,11 +44,11 @@ namespace RN
 			throw Exception(Exception::Type::DowncastException, "No possible cast possible!");
 		}
 		
-		virtual class MetaClass *Class() const
+		virtual class MetaClassBase *Class() const
 		{
 			return Object::__metaClass;
 		}
-		static class MetaClass *MetaClass()
+		static class MetaClassBase *MetaClass()
 		{
 			if(!__metaClass)
 				__metaClass = new MetaType();
@@ -72,7 +72,7 @@ namespace RN
 		{
 		public:
 			MetaType() :
-				MetaClass(0, "Object", __PRETTY_FUNCTION__)
+				MetaClassBase(0, "Object", __PRETTY_FUNCTION__)
 			{}
 		};
 		
@@ -91,7 +91,7 @@ namespace RN
 		{ \
 		public: \
 			MetaType() : \
-				MetaClass(super::MetaClass(), #cls, __PRETTY_FUNCTION__) \
+				MetaClassBase(super::MetaClass(), #cls, __PRETTY_FUNCTION__) \
 			{} \
 		}; \
 		static MetaType *__##cls##__metaClass; \
@@ -102,7 +102,7 @@ namespace RN
 		{ \
 		public: \
 			MetaType() : \
-				MetaClass(super::MetaClass(), #cls, __PRETTY_FUNCTION__) \
+				MetaClassBase(super::MetaClass(), #cls, __PRETTY_FUNCTION__) \
 			{} \
 		}; \
 		static MetaType *__##cls##__metaClass; \
@@ -121,11 +121,11 @@ namespace RN
 		{ \
 			return static_cast<cls *>(Object::Autorelease()); \
 		} \
-		class RN::MetaClass *Class() const override \
+		class RN::MetaClassBase *Class() const override \
 		{ \
 			return cls::__##cls##__metaClass; \
 		} \
-		static class RN::MetaClass *MetaClass() \
+		static class RN::MetaClassBase *MetaClass() \
 		{ \
 			if(!cls::__##cls##__metaClass) \
 				cls::__##cls##__metaClass = new cls::MetaType(); \
