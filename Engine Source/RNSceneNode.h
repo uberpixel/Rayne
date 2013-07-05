@@ -67,17 +67,18 @@ namespace RN
 		const Vector3& Scale() const { return _scale; }
 		const Vector3& EulerAngle() const { return _euler; }
 		const Quaternion& Rotation() const { return _rotation; }
-		const Vector3 Forward();
-		const Vector3 Up();
-		const Vector3 Right();
 		
-		RNAPI const Vector3& WorldPosition();
-		RNAPI const Vector3& WorldScale();
-		RNAPI const Vector3& WorldEulerAngle();
-		RNAPI const Quaternion& WorldRotation();
+		RNAPI const Vector3 Forward() const;
+		RNAPI const Vector3 Up() const;
+		RNAPI const Vector3 Right() const;
 		
-		RNAPI const AABB& BoundingBox();
-		RNAPI const Sphere& BoundingSphere();
+		RNAPI const Vector3& WorldPosition() const;
+		RNAPI const Vector3& WorldScale() const;
+		RNAPI const Vector3& WorldEulerAngle() const;
+		RNAPI const Quaternion& WorldRotation() const;
+		
+		RNAPI const AABB& BoundingBox() const;
+		RNAPI const Sphere& BoundingSphere() const;
 		
 		RNAPI void AttachChild(SceneNode *child);
 		RNAPI void DetachChild(SceneNode *child);
@@ -97,8 +98,8 @@ namespace RN
 		
 		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction);
 		
-		RNAPI const Matrix& WorldTransform();
-		RNAPI const Matrix& LocalTransform();
+		RNAPI const Matrix& WorldTransform() const;
+		RNAPI const Matrix& LocalTransform() const;
 		
 		virtual void Update(float delta)
 		{
@@ -119,7 +120,7 @@ namespace RN
 		
 	protected:
 		RNAPI void DidUpdate();
-		RNAPI void UpdateInternalData();
+		RNAPI void UpdateInternalData() const;
 		
 		RNAPI virtual void ChildDidUpdate(SceneNode *child) {}
 		RNAPI virtual void DidAddChild(SceneNode *child)  {}
@@ -143,22 +144,22 @@ namespace RN
 		SceneNode *_parent;
 		Array _childs;
 		
-		bool _updated;
+		FrameID _lastFrame;
 		Priority _priority;
 		
 		std::function<void (SceneNode *, float)> _action;
 		
-		FrameID _lastFrame;
-		Vector3 _worldPosition;
-		Quaternion _worldRotation;
-		Vector3 _worldScale;
-		Vector3 _worldEuler;
+		mutable bool _updated;
+		mutable Vector3 _worldPosition;
+		mutable Quaternion _worldRotation;
+		mutable Vector3 _worldScale;
+		mutable Vector3 _worldEuler;
 		
-		AABB _transformedBoundingBox;
-		Sphere _transformedBoundingSphere;
+		mutable AABB _transformedBoundingBox;
+		mutable Sphere _transformedBoundingSphere;
 		
-		Matrix _worldTransform;
-		Matrix _localTransform;
+		mutable Matrix _worldTransform;
+		mutable Matrix _localTransform;
 		
 		RNDefineMetaWithTraits(SceneNode, Object, MetaClassTraitCronstructable)
 	};
@@ -260,41 +261,41 @@ namespace RN
 		DidUpdate();
 	}
 	
-	RN_INLINE const Vector3 SceneNode::Forward()
+	RN_INLINE const Vector3 SceneNode::Forward() const
 	{
 		Vector3 forward = WorldRotation().RotateVector(Vector3(0.0, 0.0, 1.0));
 		return forward;
 	}
 	
-	RN_INLINE const Vector3 SceneNode::Up()
+	RN_INLINE const Vector3 SceneNode::Up() const
 	{
 		Vector3 up = WorldRotation().RotateVector(Vector3(0.0, 1.0, 0.0));
 		return up;
 	}
 	
-	RN_INLINE const Vector3 SceneNode::Right()
+	RN_INLINE const Vector3 SceneNode::Right() const
 	{
 		Vector3 right = WorldRotation().RotateVector(Vector3(1.0, 0.0, 0.0));
 		return right;
 	}
 	
 	
-	RN_INLINE const Vector3& SceneNode::WorldPosition()
+	RN_INLINE const Vector3& SceneNode::WorldPosition() const
 	{
 		UpdateInternalData();
 		return _worldPosition;
 	}
-	RN_INLINE const Vector3& SceneNode::WorldScale()
+	RN_INLINE const Vector3& SceneNode::WorldScale() const
 	{
 		UpdateInternalData();
 		return _worldScale;
 	}
-	RN_INLINE const Vector3& SceneNode::WorldEulerAngle()
+	RN_INLINE const Vector3& SceneNode::WorldEulerAngle() const
 	{
 		UpdateInternalData();
 		return _worldEuler;
 	}
-	RN_INLINE const Quaternion& SceneNode::WorldRotation()
+	RN_INLINE const Quaternion& SceneNode::WorldRotation() const
 	{
 		UpdateInternalData();
 		return _worldRotation;
@@ -302,32 +303,32 @@ namespace RN
 	
 
 	
-	RN_INLINE const Matrix& SceneNode::LocalTransform()
+	RN_INLINE const Matrix& SceneNode::LocalTransform() const
 	{
 		UpdateInternalData();
 		return _localTransform;
 	}
 	
-	RN_INLINE const Matrix& SceneNode::WorldTransform()
+	RN_INLINE const Matrix& SceneNode::WorldTransform() const
 	{
 		UpdateInternalData();
 		return _worldTransform;
 	}
 	
-	RN_INLINE const AABB& SceneNode::BoundingBox()
+	RN_INLINE const AABB& SceneNode::BoundingBox() const
 	{
 		UpdateInternalData();
 		return _transformedBoundingBox;
 	}
 	
-	RN_INLINE const Sphere& SceneNode::BoundingSphere()
+	RN_INLINE const Sphere& SceneNode::BoundingSphere() const
 	{
 		UpdateInternalData();
 		return _transformedBoundingSphere;
 	}
 	
 	
-	RN_INLINE void SceneNode::UpdateInternalData()
+	RN_INLINE void SceneNode::UpdateInternalData() const
 	{
 		if(_updated)
 		{
