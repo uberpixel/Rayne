@@ -54,9 +54,9 @@ namespace RN
 		void SpawnParticles(uint32 particles);
 		virtual Particle *CreateParticle();
 		
-		virtual void Update(float delta);
-		virtual bool IsVisibleInCamera(Camera *camera);
-		virtual void Render(Renderer *renderer, Camera *camera);
+		void Update(float delta) override;
+		bool IsVisibleInCamera(Camera *camera) override;
+		void Render(Renderer *renderer, Camera *camera) override;
 		
 	protected:
 		RandomNumberGenerator *_rng;

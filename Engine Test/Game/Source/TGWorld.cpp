@@ -426,7 +426,7 @@ namespace TG
 #if TGWorldFeatureLights
 		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
-		_sunLight->_lightcam = _camera;
+		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateSunShadows(true, 1024.0f);
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
@@ -644,7 +644,7 @@ namespace TG
 #if TGWorldFeatureLights
 		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
-		_sunLight->_lightcam = _camera;
+		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateSunShadows(true);
 		
 		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
@@ -685,7 +685,7 @@ namespace TG
 		
 		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
-		_sunLight->_lightcam = _camera;
+		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateSunShadows(true);
 	}
 

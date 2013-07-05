@@ -9,6 +9,7 @@
 #include "RNLight.h"
 #include "RNWorld.h"
 #include "RNCamera.h"
+#include "RNResourcePool.h"
 
 namespace RN
 {
@@ -23,8 +24,8 @@ namespace RN
 		_intensity = 10.0f;
 
 		_shadow = false;
-		_shadowcam = 0;
-		_lightcam = 0;
+		_shadowcam = nullptr;
+		_lightcam  = nullptr;
 		
 		collisionGroup = 25;
 
@@ -32,7 +33,13 @@ namespace RN
 	}
 	
 	Light::~Light()
-	{}
+	{
+		if(_shadowcam)
+			_shadowcam->Release();
+		
+		if(_lightcam)
+			_lightcam->Release();
+	}
 	
 	bool Light::IsVisibleInCamera(Camera *camera)
 	{
@@ -73,6 +80,22 @@ namespace RN
 		_angle = angle;
 	}
 	
+	void Light::SetShadowCamera(Camera *shadowCamera)
+	{
+		if(_shadowcam)
+			_shadowcam->Release();
+		
+		_shadowcam = shadowCamera ? shadowCamera->Retain() : nullptr;
+	}
+	
+	void Light::SetLightCamera(Camera *lightCamera)
+	{
+		if(_lightcam)
+			_lightcam->Release();
+		
+		_lightcam = lightCamera ? lightCamera->Retain() : nullptr;
+	}
+	
 	void Light::ActivateSunShadows(bool shadow, float resolution, int splits, float distfac, float biasfac, float biasunits)
 	{
 		if(_lightType != TypeDirectionalLight)
@@ -82,13 +105,12 @@ namespace RN
 			return;
 		
 		_shadow = shadow;
+		_shadowcams.RemoveAllObjects();
 		
 		if(_shadow)
 		{
-			_shadowSplits = splits;
+			_shadowSplits  = splits;
 			_shadowDistFac = distfac;
-			
-			_shadowcams.RemoveAllObjects();
 			
 			TextureParameter parameter;
 			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
@@ -101,18 +123,17 @@ namespace RN
 			
 			Texture *depthtex = new Texture(parameter);
 			depthtex->SetDepth(splits);
+			depthtex->Autorelease();
 			
-			RenderStorage *storage;
-			
-			Shader *depthShader = Shader::WithFile("shader/rn_ShadowDepthSingle");
+			Shader   *depthShader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyShadowDepthShader);
 			Material *depthMaterial = new Material(depthShader);
 			depthMaterial->polygonOffset = true;
 			depthMaterial->polygonOffsetFactor = biasfac;
-			depthMaterial->polygonOffsetUnits = biasunits;
+			depthMaterial->polygonOffsetUnits  = biasunits;
 			
 			for(int i = 0; i < _shadowSplits; i++)
 			{
-				storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
+				RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 				storage->SetDepthTarget(depthtex, i);
 				
 				Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden, 1.0f);
@@ -121,10 +142,12 @@ namespace RN
 				tempcam->SetLODCamera(_lightcam);
 				tempcam->SetPriority(kRNShadowCameraPriority);
 				tempcam->clipnear = 1.0f;
-//					tempcam->clipfar = 10000.0f;
+//				tempcam->clipfar = 10000.0f;
 
-				_shadowcams.AddObject(tempcam->Autorelease());
-				storage->Autorelease();
+				_shadowcams.AddObject(tempcam);
+				
+				tempcam->Release();
+				storage->Release();
 			}
 		}
 	}
@@ -133,12 +156,12 @@ namespace RN
 	{
 		SceneNode::Update(delta);
 		
-		if(_shadow)
+		if(_shadow && _lightcam)
 		{
 			float near = _lightcam->clipnear;
 			float far;
 			
-			if(_shadowcam != 0)
+			if(_shadowcam)
 				_shadowcam->SetRotation(Rotation());
 			
 			_shadowmats.clear();
@@ -149,7 +172,7 @@ namespace RN
 				float log = _lightcam->clipnear*powf(_lightcam->clipfar/_lightcam->clipnear, (i+1.0f)/float(_shadowSplits));
 				far = linear*_shadowDistFac+log*(1.0f-_shadowDistFac);
 				
-				if(_shadowcam != 0)
+				if(_shadowcam)
 				{
 					_shadowmats.push_back(std::move(_shadowcam->MakeShadowSplit(_lightcam, this, near, far)));
 				}
@@ -164,7 +187,7 @@ namespace RN
 				near = far;
 			}
 			
-			if(_shadowcam != 0)
+			if(_shadowcam)
 			{
 				_shadowcam->MakeShadowSplit(_lightcam, this, _lightcam->clipnear, _lightcam->clipfar);
 			}

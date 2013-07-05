@@ -30,18 +30,21 @@ namespace RN
 		};
 		
 		RNAPI Light(Type type = TypePointLight);
-		RNAPI virtual ~Light();
+		RNAPI ~Light() override;
 		
-		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
+		RNAPI void ActivateSunShadows(bool shadow=true, float resolution=1024.0f, int splits=4, float distfac=0.05f, float biasfac=2.0f, float biasunits=512.0f);
+		
+		RNAPI void Render(Renderer *renderer, Camera *camera) override;
+		RNAPI void Update(float delta) override;
+		
+		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		
 		RNAPI void SetRange(float range);
 		RNAPI void SetColor(const Color& color);
 		RNAPI void SetAngle(float angle);
 		RNAPI void SetIntensity(float intensity);
-		RNAPI void ActivateSunShadows(bool shadow=true, float resolution=1024.0f, int splits=4, float distfac=0.05f, float biasfac=2.0f, float biasunits=512.0f);
-		
-		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
-		RNAPI virtual void Update(float delta);
+		RNAPI void SetShadowCamera(Camera *shadowCamera);
+		RNAPI void SetLightCamera(Camera *lightCamera);
 		
 		const Color& Color() const { return _color; }
 		const Vector3& ResultColor() { return _resultColor; }
@@ -50,14 +53,13 @@ namespace RN
 		float Range() const { return _range; }
 		float Angle() const { return _angle; }
 		float Intensity() const { return _intensity; }
+		bool Shadow() const { return _shadow; }
 		
-		const bool Shadow() const { return _shadow; }
+		Camera *ShadowCamera() const { return _shadowcam; }
+		Camera *LightCamera() const { return _lightcam; }
 		
-		class Camera *_shadowcam;
-		class Camera *_lightcam;
-		
-		std::vector<Matrix> _shadowmats;
-		Array _shadowcams;
+		const std::vector<Matrix> ShadowMatrices() const { return _shadowmats; }
+		const Array *ShadowCameras() const { return &_shadowcams; }
 	
 	private:
 		void ReCalculateColor();
@@ -69,6 +71,11 @@ namespace RN
 		float _intensity;
 		float _range;
 		float _angle;
+		
+		Camera *_shadowcam;
+		Camera *_lightcam;
+		std::vector<Matrix> _shadowmats;
+		Array _shadowcams;
 		bool _shadow;
 		int _shadowSplits;
 		float _shadowDistFac;

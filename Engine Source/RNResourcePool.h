@@ -25,6 +25,7 @@
 #define kRNResourceKeyLightTileSampleFirstShader "kRNResourceKeyLightTileSampleFirstShader"
 #define kRNResourceKeyLightTileSampleShader      "kRNResourceKeyLightTileSampleShader"
 #define kRNResourceKeyLightDepthShader           "kRNResourceKeyLightDepthShader"
+#define kRNResourceKeyShadowDepthShader          "kRNResourceKeyShadowDepthShader"
 
 #define kRNResourceKeyDefaultFont     "kRNResourceKeyDefaultFont"
 #define kRNResourceKeyDefaultFontBold "kRNResourceKeyDefaultFontBold"

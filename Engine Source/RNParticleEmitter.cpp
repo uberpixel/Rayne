@@ -185,6 +185,9 @@ namespace RN
 			i ++;
 		}
 		
+		if(_spawnRate < k::EpsilonFloat)
+			return;
+		
 		int spawn = floorf((_accDelta + delta) / _spawnRate);
 		_accDelta = fmodf((_accDelta + delta), _spawnRate);
 		

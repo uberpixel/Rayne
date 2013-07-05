@@ -442,23 +442,23 @@ namespace RN
 			
 			if(light->Shadow())
 			{
-				if(camera == light->_shadowcam || light->_shadowcams.ContainsObject(camera))
+				if(camera == light->ShadowCamera() || light->ShadowCameras()->ContainsObject(camera))
 				{
 					_lightDirectionalMatrix.clear();
 					_lightDirectionalDepth.clear();
 					
 					for(int i = 0; i < 4; i++)
 					{
-						_lightDirectionalMatrix.push_back(light->_shadowmats[i]);
+						_lightDirectionalMatrix.push_back(light->ShadowMatrices()[i]);
 					}
 					
-					if(light->_shadowcam != 0)
+					if(light->ShadowCamera())
 					{
-						_lightDirectionalDepth.push_back(light->_shadowcam->Storage()->DepthTarget());
+						_lightDirectionalDepth.push_back(light->ShadowCamera()->Storage()->DepthTarget());
 					}
 					else
 					{
-						_lightDirectionalDepth.push_back(light->_shadowcams.FirstObject<Camera>()->Storage()->DepthTarget());
+						_lightDirectionalDepth.push_back(light->ShadowCameras()->FirstObject<Camera>()->Storage()->DepthTarget());
 					}
 				}
 			}
