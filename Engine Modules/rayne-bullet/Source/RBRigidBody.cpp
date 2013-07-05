@@ -204,7 +204,7 @@ namespace RN
 		}
 		
 		
-		void RigidBody::getWorldTransform(btTransform& worldTrans)
+		void RigidBody::getWorldTransform(btTransform& worldTrans) const
 		{
 			const Quaternion& rotation = WorldRotation();
 			const Vector3& position = WorldPosition();

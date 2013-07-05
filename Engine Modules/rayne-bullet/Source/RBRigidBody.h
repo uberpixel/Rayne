@@ -68,7 +68,7 @@ namespace RN
 			btRigidBody *bulletRigidBody() { return bulletCollisionObject<btRigidBody>(); }
 			
 		protected:			
-			virtual void getWorldTransform(btTransform& worldTrans);
+			virtual void getWorldTransform(btTransform& worldTrans) const;
 			virtual void setWorldTransform(const btTransform& worldTrans);
 			
 			virtual btCollisionObject *CreateCollisionObject();

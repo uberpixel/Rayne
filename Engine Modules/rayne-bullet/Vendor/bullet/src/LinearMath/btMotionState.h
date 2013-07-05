@@ -29,7 +29,7 @@ class	btMotionState
 			
 		}
 		
-		virtual void	getWorldTransform(btTransform& worldTrans ) =0;
+		virtual void	getWorldTransform(btTransform& worldTrans ) const =0;
 
 		//Bullet only calls the update of worldtransform for active objects
 		virtual void	setWorldTransform(const btTransform& worldTrans)=0;
