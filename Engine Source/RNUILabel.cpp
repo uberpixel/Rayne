@@ -36,7 +36,7 @@ namespace RN
 			_alignment  = TextAlignment::Left;
 			_lineBreak  = LineBreakMode::TruncateTail;
 			_lines      = 1;
-			_string     = new AttributedString(RNSTR(""));
+			_string     = new AttributedString(RNCSTR(""));
 			
 			SetFont(ResourcePool::SharedInstance()->ResourceWithName<Font>(kRNResourceKeyDefaultFont));
 			SetTextColor(Color::White());

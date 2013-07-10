@@ -113,11 +113,12 @@
 // Helper macros
 // ---------------------------
 typedef uint32 FrameID;
-typedef int8 ComparisonResult;
-
-#define kRNCompareLessThan     -1
-#define kRNCompareEqualTo       0
-#define kRNCompareGreaterThan   1
+enum class ComparisonResult : int
+{
+	LessThan   = -1,
+	EqualTo     = 0,
+	GreaterThan = 1
+};
 
 namespace RN
 {

@@ -6,13 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include <codecvt>
-#include <locale>
-
 #include "RNString.h"
-#include "RNData.h"
-
-#define kRNStringExpansionSize 64
+#include "RNBasicString.h"
 
 namespace RN
 {
@@ -23,372 +18,117 @@ namespace RN
 	// MARK: String
 	// ---------------------
 	
-	static const char UTF8TrailingBytes[256] = {
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-		1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,
-		2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
-	};
-	
-	typedef std::codecvt_utf8_utf16<char16_t, 0x10ffff, std::little_endian> UTF16LEFacet;
-	typedef std::codecvt_utf8_utf16<char16_t, 0x10ffff> UTF16BEFacet;
-	
+#define _ainternal static_cast<BasicString *>(_internal)
 	
 	String::String()
 	{
-		Initialize();
-		AllocateBuffer(32);
+		_internal = StringFactory::EmptyString()->Retain();
+		_encoding = _ainternal->CharacterEncoding();
 	}
 	
-	String::String(const char *string)
+	String::String(const char *string, va_list args)
 	{
-		Initialize();
-		CopyBytesWithEncoding(string, strlen(string), Encoding::ASCII);
-	}
-	
-	String::String(const char *string, size_t length)
-	{
-		Initialize();
-		CopyBytesWithEncoding(string, length, Encoding::ASCII);
-	}
-	
-	String::String(const void *bytes, Encoding encoding)
-	{
-		Initialize();
+		va_list temp;
+		va_copy(temp, args);
 		
-		switch(encoding)
-		{
-			case Encoding::ASCII:
-			{
-				size_t length = strlen(static_cast<const char *>(bytes));
-				CopyBytesWithEncoding(bytes, length, Encoding::ASCII);
-				break;
-			}
-				
-			case Encoding::UTF8:
-			{
-				CopyBytesWithEncoding(bytes, UTF8ByteLength(static_cast<const uint8 *>(bytes)), Encoding::UTF8);
-				break;
-			}
-	
-			case Encoding::UTF16LE:
-			case Encoding::UTF16BE:
-			{
-				std::string converted;
-				
-				if(encoding == Encoding::UTF16LE)
-				{
-					std::wstring_convert<UTF16LEFacet, char16_t> convert;
-					converted = convert.to_bytes(static_cast<const char16_t *>(bytes));
-				}
-				else
-				{
-					std::wstring_convert<UTF16BEFacet, char16_t> convert;
-					converted = convert.to_bytes(static_cast<const char16_t *>(bytes));
-				}
-				
-				const uint8 *data = (const uint8 *)converted.data();
-				CopyBytesWithEncoding(data, UTF8ByteLength(data), Encoding::UTF8);
-				break;
-			}
-		}
-	}
-	
-	String::String(const void *bytes, size_t length, Encoding encoding)
-	{
-		Initialize();
-		CopyBytesWithEncoding(bytes, length, encoding);
-	}
-	
-	String::String(const String& string)
-	{
-		Initialize();
+		size_t size = vsnprintf(nullptr, 0, string, temp);
+		char *formatted = new char[size + 1];
 		
-		_buffer = new uint8[string._size];
-		_length = string._length;
-		_size   = string._size;
-		_occupied = string._occupied;
+		vsnprintf(formatted, size, string, args);
+		va_end(temp);
 		
-		std::copy(string._buffer, string._buffer + _length + 1, _buffer);
+		_internal = StringFactory::ConstructString(formatted, Encoding::ASCII, StringTraits::Mutable);
+		_encoding = _ainternal->CharacterEncoding();
+		
+		delete [] formatted;
 	}
+	
+	String::String(const char *string, bool constant)
+	{
+		StringTraits traits = constant ? StringTraits::Constant : StringTraits::Mutable;
+		
+		_internal = StringFactory::ConstructString(string, Encoding::ASCII, traits);
+		_encoding = _ainternal->CharacterEncoding();
+	}
+	
+	String::String(const char *string, size_t length, bool constant)
+	{
+		StringTraits traits = constant ? StringTraits::Constant : StringTraits::Mutable;
+		
+		_internal = StringFactory::ConstructString(string, length, Encoding::ASCII, traits);
+		_encoding = _ainternal->CharacterEncoding();
+	}
+	
+	String::String(const void *bytes, Encoding encoding, bool constant)
+	{
+		StringTraits traits = constant ? StringTraits::Constant : StringTraits::Mutable;
+		
+		_internal = StringFactory::ConstructString(bytes, encoding, traits);
+		_encoding = _ainternal->CharacterEncoding();
+	}
+	
+	String::String(const void *bytes, size_t length, Encoding encoding, bool constant)
+	{
+		StringTraits traits = constant ? StringTraits::Constant : StringTraits::Mutable;
+		
+		_internal = StringFactory::ConstructString(bytes, length, encoding, traits);
+		_encoding = _ainternal->CharacterEncoding();
+	}
+	
+	String::String(void *internal)
+	{
+		_internal = internal;
+		_encoding = _ainternal->CharacterEncoding();
+	}
+
+	
 	
 	String::String(const String *string)
 	{
-		Initialize();
-		
-		_buffer = new uint8[string->_size];
-		_length = string->_length;
-		_size   = string->_size;
-		_occupied = string->_occupied;
-		
-		std::copy(string->_buffer, string->_buffer + _length + 1, _buffer);
+		BasicString *other = static_cast<BasicString *>(string->_internal);
+		_internal = other->Copy();
 	}
 	
 	String::~String()
 	{
-		delete [] _buffer;
+		_ainternal->Release();
 	}
 	
 	
 	
-	String *String::WithString(const char *string)
+	String *String::WithFormat(const char *string, ...)
 	{
-		String *temp = new String(string);
+		va_list args;
+		va_start(args, string);
+		
+		String *temp = new String(string, args);
+		va_end(args);
+		
 		return temp->Autorelease();
 	}
 	
-	String *String::WithString(const char *string, size_t length)
+	String *String::WithString(const char *string, bool constant)
 	{
-		String *temp = new String(string, length);
+		String *temp = new String(string, constant);
 		return temp->Autorelease();
 	}
 	
-	String *String::WithBytes(const void *bytes, Encoding encoding)
+	String *String::WithString(const char *string, size_t length, bool constant)
 	{
-		String *string = new String(bytes, encoding);
+		String *temp = new String(string, length, constant);
+		return temp->Autorelease();
+	}
+	
+	String *String::WithBytes(const void *bytes, Encoding encoding, bool constant)
+	{
+		String *string = new String(bytes, encoding, constant);
 		return string->Autorelease();
 	}
 	
-	String *String::WithBytes(const void *bytes, size_t length, Encoding encoding)
+	String *String::WithBytes(const void *bytes, size_t length, Encoding encoding, bool constant)
 	{
-		String *string = new String(bytes, length, encoding);
+		String *string = new String(bytes, length, encoding, constant);
 		return string->Autorelease();
-	}
-	
-	
-	void String::Initialize()
-	{
-		_buffer = 0;
-		_length = 0;
-		_size = 0;
-		_occupied = 0;
-	}
-	
-	// ---------------------
-	// MARK: -
-	// MARK: Low Level handling
-	// ---------------------
-	
-	void String::AllocateBuffer(size_t size)
-	{
-		uint8 *temp = new uint8[size];
-		if(!temp)
-			throw Exception(Exception::Type::InconsistencyException, "Failed to allocate memory for string!");
-		
-		if(_buffer)
-		{
-			size_t copy = MIN(size, _occupied);
-			std::copy(_buffer, _buffer + copy, temp);
-			
-			delete [] _buffer;
-		}
-		
-		_buffer = temp;
-		_size = static_cast<size_t>(size);
-	}
-	
-	void String::CheckAndExpandBuffer(size_t minium)
-	{
-		if(_occupied + minium > _size)
-		{
-			size_t newSize = _occupied + minium + kRNStringExpansionSize;
-			if(_size == 0)
-				newSize = minium;
-			
-			AllocateBuffer(newSize);
-		}
-	}
-	
-	bool String::IsLegalUTF8(const uint8 *sequence, int length) const
-	{
-		const uint8 *end = sequence + length;
-		uint8 character;
-		
-		switch(length)
-		{
-			case 4:
-				if((character = (*--end)) < 0x80 || character > 0xBF)
-					return false;
-			case 3:
-				if((character = (*--end)) < 0x80 || character > 0xBF)
-					return false;
-			case 2:
-				if((character = (*--end)) > 0xBF)
-					return false;
-				
-			switch(*sequence)
-			{
-				case 0xe0:
-					if(character < 0xa0)
-						return false;
-					break;
-					
-				case 0xed:
-					if(character > 0x9f)
-						return false;
-					break;
-					
-				case 0xf0:
-					if(character< 0x90)
-						return false;
-					break;
-					
-				case 0xf4:
-					if(character > 0x8f)
-						return false;
-					break;
-						
-				default:
-					if(character < 0x80)
-						return false;
-					break;
-			}
-				
-			case 1:
-				if(*sequence >= 0x80 && *sequence < 0xc2)
-					return false;
-				break;
-				
-			default:
-				return false;
-		}
-		
-		if(*sequence > 0xf4)
-			return false;
-		
-		return true;
-	}
-	
-	size_t String::UTF8ByteLength(const uint8 *bytes) const
-	{
-		size_t length = 0;
-		
-		while(*bytes != '\0')
-		{
-			size_t cbytes = (UTF8TrailingBytes[*bytes] + 1);
-			
-			bytes += cbytes;
-			length += cbytes;
-		}
-		
-		return length;
-	}
-	
-	void String::CopyUTF8Bytes(const uint8 *bytes, size_t length)
-	{
-		CheckAndExpandBuffer(static_cast<size_t>(length) + 1);
-		
-		size_t characters = 0;
-		const uint8 *end = bytes + length;
-		
-		for(size_t i=0; i<length;)
-		{
-			int trailing = UTF8TrailingBytes[bytes[i]];
-			
-			if(bytes + i + trailing >= end)
-				break;
-			
-			if(*(bytes + i) == 0)
-				break;
-			
-			if(IsLegalUTF8(bytes + i, trailing + 1))
-			{
-				std::copy(bytes + i, bytes + (i + trailing + 1), _buffer + _occupied);
-				_occupied += trailing + 1;
-				
-				characters ++;
-			}
-			else
-			{
-				throw Exception(Exception::Type::InvalidArgumentException, "Buffer contains invliad UTF8 characters!");
-			}
-			
-			i += trailing + 1;
-		}
-		
-		_buffer[_occupied] = '\0';
-		_length += characters;
-	}
-	
-	void String::CopyBytesWithEncoding(const void *bytes, size_t length, Encoding encoding)
-	{
-		CheckAndExpandBuffer(static_cast<size_t>(length) + 1);
-		
-		switch(encoding)
-		{
-			case Encoding::ASCII:
-			{
-				const uint8 *data = static_cast<const uint8 *>(bytes);
-				std::copy(data, data + length, _buffer + _occupied);
-				
-				_length += static_cast<size_t>(length);
-				_occupied += static_cast<size_t>(length);
-				
-				_buffer[_occupied] = '\0';
-				break;
-			}
-				
-			case Encoding::UTF8:
-			{
-				const uint8 *tbytes = static_cast<const uint8 *>(bytes);
-				CopyUTF8Bytes(tbytes, length);
-				break;
-			}
-				
-			case Encoding::UTF16LE:
-			case Encoding::UTF16BE:
-			{
-				std::string converted;
-				
-				if(encoding == Encoding::UTF16LE)
-				{
-					std::wstring_convert<UTF16LEFacet, char16_t> convert;
-					converted = convert.to_bytes(static_cast<const char16_t *>(bytes));
-				}
-				else
-				{
-					std::wstring_convert<UTF16BEFacet, char16_t> convert;
-					converted = convert.to_bytes(static_cast<const char16_t *>(bytes));
-				}
-				
-				const uint8 *data = (const uint8 *)converted.data();
-				CopyUTF8Bytes(data, length);
-				break;
-			}
-		}
-	}
-	
-	// ---------------------
-	// MARK: -
-	// MARK: Operator
-	// ---------------------
-	
-	bool String::operator ==(const String& other) const
-	{
-		return (Compare(other) == kRNCompareEqualTo);
-	}
-	
-	bool String::operator !=(const String& other) const
-	{
-		return (Compare(other) != kRNCompareEqualTo);
-	}
-	
-	String& String::operator +=(const String& other)
-	{
-		Append(other);
-		return *this;
-	}
-	
-	String String::operator +(const String& other) const
-	{
-		String result(*this);
-		result += other;
-		
-		return result;
 	}
 	
 	// ---------------------
@@ -398,22 +138,7 @@ namespace RN
 	
 	machine_hash String::Hash() const
 	{
-		const uint8 *p = _buffer;
-		machine_hash hash = 0;
-		machine_hash g;
-		
-		for(size_t i=0; i<_size; i++)
-		{
-			hash = (hash << 4) + p[i];
-			g = hash & 0xf0000000L;
-			
-			if(g)
-				hash ^= g >> 24;
-			
-			hash &= ~g;
-		}
-		
-		return hash;
+		return _ainternal->Hash();
 	}
 	
 	bool String::IsEqual(Object *other) const
@@ -422,10 +147,10 @@ namespace RN
 		   return false;
 		   
 		String *string = static_cast<String *>(other);
-		if(string->_length != _length)
+		if(string->Length() != Length())
 			return false;
 		
-		return (Compare(string) == kRNCompareEqualTo);
+		return (Compare(string) == ComparisonResult::EqualTo);
 	}
 	
 	// ---------------------
@@ -433,119 +158,59 @@ namespace RN
 	// MARK: Mutation
 	// ---------------------
 	
-	void String::Append(const String& string)
+	void String::PromoteStringIfNeeded(Encoding encoding)
 	{
-		CopyUTF8Bytes(string._buffer, string._occupied);
+		if(!_ainternal->IsMutable())
+			throw Exception(Exception::Type::InconsistencyException, "Can't mutate a constant string!");
+		
+		bool needsReEncoding = (_encoding == Encoding::ASCII && encoding != Encoding::ASCII);
+		if(needsReEncoding)
+		{
+			BasicString *copy = StringFactory::ConstructString(_ainternal, encoding);
+			
+			_ainternal->Release();
+			_internal = copy;
+		}
+	}
+	
+	void String::Append(const char *string, ...)
+	{
+		va_list args;
+		va_start(args, string);
+		
+		String *temp = new String(string, args);
+		Append(temp);
+		temp->Release();
+		
+		va_end(args);
 	}
 	
 	void String::Append(const String *string)
 	{
-		CopyUTF8Bytes(string->_buffer, string->_occupied);
-	}
-	
-	
-	void String::Insert(const String& string, size_t index)
-	{
-		ReplaceCharacters(string, Range(index, 0));
+		BasicString *other = static_cast<BasicString *>(string->_internal);
+		
+		PromoteStringIfNeeded(other->CharacterEncoding());
+		_ainternal->ReplaceCharactersInRange(Range(Length(), 0), other);
 	}
 	
 	void String::Insert(const String *string, size_t index)
 	{
+		PromoteStringIfNeeded(_ainternal->CharacterEncoding());
 		ReplaceCharacters(string, Range(index, 0));
 	}
 	
-	
 	void String::DeleteCharacters(const Range& range)
 	{
-		ReplaceCharacters(String(), range);
-	}
-	
-	
-	void String::ReplaceCharacters(const String& replacement, const Range& range)
-	{
-		ReplaceCharacters(&replacement, range);
+		PromoteStringIfNeeded(_ainternal->CharacterEncoding());
+		_ainternal->ReplaceCharactersInRange(range, nullptr);
 	}
 	
 	void String::ReplaceCharacters(const String *replacement, const Range& range)
 	{
-		CheckAndExpandBuffer(replacement->_length);
+		BasicString *other = static_cast<BasicString *>(replacement->_internal);
 		
-		uint8 *data = _buffer;
-		uint8 *dataEnd = _buffer + _occupied;
-		
-		RN_ASSERT0(range.origin + range.length <= _length);
-		
-		size_t intialOccupied = 0;
-		size_t appendixLength = 0;
-		
-		// Skip the first n characters
-		for(size_t i=0; i<range.origin; i++)
-		{
-			size_t length = UTF8TrailingBytes[*data] + 1;
-			data += length;
-			intialOccupied += length;
-			appendixLength ++;
-			
-			if(data > dataEnd)
-				throw Exception(Exception::Type::RangeException, "");
-		}
-		
-		uint8 *begin = data;
-		uint8 *end = data;
-		
-		// Find the beginning of the end
-		for(size_t i=0; i<range.length; i++)
-		{
-			size_t length = UTF8TrailingBytes[*end] + 1;
-			end += length;
-			appendixLength ++; 
-			
-			if(end > dataEnd)
-				throw Exception(Exception::Type::RangeException, "");
-		}
-		
-		appendixLength = (_length - appendixLength);
-		
-		// Copy the appendix of this string into a temporary buffer
-		size_t bytes = dataEnd - end;
-		uint8 *temp = 0;
-		
-		if(bytes > 0)
-		{
-			temp = new uint8[bytes];
-			std::copy(end, dataEnd, temp);
-		}
-		
-		// Copy everything back together
-		_length   = static_cast<size_t>(range.origin);
-		_occupied = intialOccupied;
-		
-		if(replacement->_length > 0)
-		{
-			size_t rSize = replacement->_occupied;
-			std::copy(replacement->_buffer, replacement->_buffer + rSize, begin);
-			
-			_length   += replacement->_length;
-			_occupied += rSize;
-			
-			begin += rSize;
-		}
-		
-		if(temp)
-		{
-			_length   += appendixLength;
-			_occupied += bytes;
-			
-			std::copy(temp, temp + bytes, begin);
-			delete [] temp;
-		}
-		
-		_buffer[_occupied] = '\0';
-	}
-	
-	void String::ReplaceOccurrencesOfString(const String& string, const String& replacement)
-	{
-		ReplaceOccurrencesOfString(&string, &replacement);
+		PromoteStringIfNeeded(other->CharacterEncoding());
+		_ainternal->ReplaceCharactersInRange(range, other);
 	}
 	
 	void String::ReplaceOccurrencesOfString(const String *string, const String *replacement)
@@ -565,191 +230,164 @@ namespace RN
 	// MARK: Comparison
 	// ---------------------
 	
-#define PeekCharacter(point, string) do { \
-		uint8 temp[5] = { 0 }; \
-		size_t length = UTF8TrailingBytes[*(string)] + 1; \
-		\
-		std::copy(string, string + length, temp); \
-		std::basic_string<char32_t> converted = convert.from_bytes((const char *)temp); \
-		\
-		point = CodePoint(static_cast<uint32>(converted[0])); \
-		string += length; \
-	} while(0)
-	
-	Range String::RangeOfString(const String& string, ComparisonMode mode)
-	{
-		return RangeOfString(&string, mode, Range(0, _length));
-	}
-	
-	Range String::RangeOfString(const String& string, ComparisonMode mode, const Range& range)
-	{
-		return RangeOfString(&string, mode, range);
-	}
-	
+#define kStringUniCharFetch 128
 	
 	Range String::RangeOfString(const String *string, ComparisonMode mode)
-	{
-		return RangeOfString(string, mode, Range(0, _length));
+	{		
+		return RangeOfString(string, mode, Range(0, Length()));
 	}
 	
 	Range String::RangeOfString(const String *string, ComparisonMode mode, const Range& range)
 	{
-		const uint8 *data = _buffer;
-		const uint8 *dataEnd = _buffer + _occupied;
+		size_t length = string->Length();
 		
-		const uint8 *stringData = string->_buffer;
-		const uint8 *stringDataTemp;
+		if(range.length < length)
+			return Range(kRNNotFound, 0);
 		
-		RN_ASSERT0(range.origin + range.length <= _length);
+		UniChar characters[kStringUniCharFetch];
+		UniChar *compare = new UniChar[length];
 		
-		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
+		BasicString *other = static_cast<BasicString *>(string->_internal);
+		other->CharactersInRange(compare, Range(0, length));
 		
-		CodePoint first;
-		PeekCharacter(first, stringData);
-		
-		stringDataTemp = stringData;
-		
-		// Skip the first n characters
-		for(size_t i=0; i<range.origin; i++)
-		{
-			size_t length;
-			
-			length = UTF8TrailingBytes[*data] + 1;
-			data += length;
-			
-			if(data > dataEnd)
-				throw Exception(Exception::Type::RangeException, "");
-		}
-		
-		// Calculate the new end
-		do {
-			const uint8 *temp = data;
-			
-			for(size_t i=0; i<range.length; i++)
-			{
-				size_t length;
-				
-				length = UTF8TrailingBytes[*temp] + 1;
-				temp += length;
-				
-				if(temp > dataEnd)
-					throw Exception(Exception::Type::RangeException, "");
-			}
-			
-			dataEnd = temp;
-		} while(0);
+		bool found = false;
+		size_t left   = range.length;
+		size_t offset = range.origin;
+		size_t j = 1;
 		
 		Range result = Range(kRNNotFound, 0);
-		size_t index = range.origin;
+		CodePoint first = CodePoint(compare[0]);
 		
-		while(data < dataEnd)
+		while(left > 0 && !found)
 		{
-			CodePoint point;
-			PeekCharacter(point, data);
+			size_t read = std::min(left, static_cast<size_t>(kStringUniCharFetch));
+			_ainternal->CharactersInRange(characters, Range(offset, read));
 			
-			if(result.origin == kRNNotFound)
+			for(size_t i = 0; i < read; i ++)
 			{
-				if(point == first)
-				{
-					result.origin = index;
-					result.length = 1;
-				}
-			}
-			else
-			{
-				CodePoint read;
-				PeekCharacter(read, stringData);
+				CodePoint point = characters[i];
 				
-				if(mode & ComparisonModeCaseInsensitive)
+				if(result.origin == kRNNotFound)
 				{
-					read  = read.LowerCase();
-					point = point.LowerCase();
-				}
-				
-				if(read != point)
-				{
-					stringData = stringDataTemp;
-					result = Range(kRNNotFound, 0);
+					if(point == first)
+					{
+						result.origin = offset + i;
+						result.length = 1;
+						
+						if(result.length >= length)
+						{
+							found = true;
+							break;
+						}
+					}
 				}
 				else
 				{
-					result.length ++;
+					CodePoint tpoint = CodePoint(compare[j]);
 					
-					if(result.length >= string->_length)
-						break;
+					if(mode & ComparisonModeCaseInsensitive)
+					{
+						point  = point.LowerCase();
+						tpoint = tpoint.LowerCase();
+					}
+					
+					if(tpoint != point)
+					{
+						j = 1;
+						result = Range(kRNNotFound, 0);
+					}
+					else
+					{
+						result.length ++;
+						j ++;
+						
+						if(result.length >= length)
+						{
+							found = true;
+							break;
+						}
+					}
 				}
 			}
 			
-			index ++;
+			offset += read;
+			left   -= read;
 		}
 		
+		delete [] compare;
 		return result;
 	}
 	
-	
-	ComparisonResult String::Compare(const String& other, ComparisonMode mode) const
-	{
-		return Compare(&other, mode, Range(0, _length));
-	}
-	
-	ComparisonResult String::Compare(const String& other, ComparisonMode mode, const Range& range) const
-	{
-		return Compare(&other, mode, range);
-	}
-	
-	
 	ComparisonResult String::Compare(const String *other, ComparisonMode mode) const
 	{
-		return Compare(other, mode, Range(0, _length));
+		return Compare(other, mode, Range(0, Length()));
 	}
 	
 	ComparisonResult String::Compare(const String *other, ComparisonMode mode, const Range& range) const
 	{
-		if(other->_length < range.origin + range.length)
-			return kRNCompareGreaterThan;
+		if(range.length < other->Length())
+			return ComparisonResult::GreaterThan;
 		
-		const uint8 *data = _buffer;
-		const uint8 *dataEnd = _buffer + _occupied;
+		if(range.length > other->Length())
+			return ComparisonResult::LessThan;
 		
-		const uint8 *compareData = other->_buffer;
-		const uint8 *compareDataEnd = other->_buffer + other->_occupied;
+		UniChar charactersA[kStringUniCharFetch];
+		UniChar charactersB[kStringUniCharFetch];
 		
-		RN_ASSERT0(range.origin + range.length <= _length);
+		BasicString *internalA = static_cast<BasicString *>(_internal);
+		BasicString *internalB = static_cast<BasicString *>(other->_internal);
 		
-		std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
+		size_t iA = 0;
+		size_t iB = 0;
 		
-		// Skip the first n characters
-		for(size_t i=0; i<range.origin; i++)
+		size_t offsetA = range.origin;
+		size_t offsetB = 0;
+		
+		size_t readA = 0;
+		size_t readB = 0;
+		
+		size_t leftA = range.length;
+		size_t leftB = range.length;
+		
+#define ReadCharacterA() \
+		do { \
+			if(offsetA + iA >= readA) \
+			{ \
+				if(leftA == 0) \
+					goto endComparison; \
+					\
+				readA = std::min(leftA, static_cast<size_t>(kStringUniCharFetch)); \
+				offsetA += iA; \
+				internalA->CharactersInRange(charactersA, Range(offsetA, readA)); \
+				\
+				leftA -= readA; \
+				iA = 0; \
+			} \
+		} while(0)
+		
+#define ReadCharacterB() \
+		do { \
+			if(offsetB + iB >= readB) \
+			{ \
+				if(leftB == 0) \
+					goto endComparison; \
+				\
+				readB = std::min(leftB, static_cast<size_t>(kStringUniCharFetch)); \
+				offsetB += iB; \
+				internalB->CharactersInRange(charactersB, Range(offsetB, readB)); \
+				\
+				leftB -= readB; \
+				iB = 0; \
+			} \
+		} while(0)
+		
+		while(1)
 		{
-			size_t length = UTF8TrailingBytes[*data] + 1;
-			data += length;
+			ReadCharacterA();
+			ReadCharacterB();
 			
-			if(data > dataEnd)
-				throw Exception(Exception::Type::RangeException, "");
-		}
-		
-		// Calculate the new end
-		do {
-			const uint8 *temp = data;
-			
-			for(size_t i=0; i<range.length; i++)
-			{
-				size_t length = UTF8TrailingBytes[*temp] + 1;
-				temp += length;
-
-				if(temp > dataEnd)
-					throw Exception(Exception::Type::RangeException, "");
-			}
-			
-			dataEnd = temp;
-		} while(0);
-
-		while(data < dataEnd && compareData < compareDataEnd)
-		{
-			CodePoint a, b;
-			
-			PeekCharacter(a, data);
-			PeekCharacter(b, compareData);
+			CodePoint a = charactersA[iA ++];
+			CodePoint b = charactersB[iB ++];
 			
 			if(mode & ComparisonModeCaseInsensitive)
 			{
@@ -770,24 +408,28 @@ namespace RN
 						uint32 numB = 0;
 						
 						do {
-							char ca = static_cast<char>(a);
 							numA = numA * 10 + (ca - '0');
 							
-							PeekCharacter(a, data);
-						} while(ca <= '9' && ca >= '0' && data < dataEnd);
+							ReadCharacterA();
+							a = charactersA[iA ++];
+							
+							ca = static_cast<char>(a);
+						} while(ca <= '9' && ca >= '0');
 						
 						do {
-							char cb = static_cast<char>(b);
 							numB = numB * 10 + (cb - '0');
 							
-							PeekCharacter(b, compareData);
-						} while(cb <= '9' && cb >= '0' && compareData < compareDataEnd);
+							ReadCharacterB();
+							b = charactersB[iB ++];
+							
+							cb = static_cast<char>(b);
+						} while(cb <= '9' && cb >= '0');
 						
 						if(numA > numB)
-							return kRNCompareGreaterThan;
+							return ComparisonResult::GreaterThan;
 						
 						if(numB > numA)
-							return kRNCompareLessThan;
+							return ComparisonResult::LessThan;
 						
 						continue;
 					}
@@ -797,165 +439,57 @@ namespace RN
 			if(a != b)
 			{
 				if(a > b)
-					return kRNCompareGreaterThan;
+					return ComparisonResult::GreaterThan;
 				
 				if(b > a)
-					return kRNCompareLessThan;
+					return ComparisonResult::LessThan;
 			}
 		}
 		
-		return kRNCompareEqualTo;
-	}
+#undef ReadCharacterA
+#undef ReadCharacterB
+		
+	endComparison:
 	
-#undef PeekCharacter
+		if(leftA && !leftB)
+			return ComparisonResult::GreaterThan;
+		
+		if(leftB && !leftA)
+			return ComparisonResult::LessThan;
+	
+		return ComparisonResult::EqualTo;
+	}
 	
 	// ---------------------
 	// MARK: -
 	// MARK: Conversion / Access
 	// ---------------------
 	
+	size_t String::Length() const
+	{
+		return _ainternal->Length();
+	}
+	
+	char *String::UTF8String() const
+	{
+		return static_cast<char *>(_ainternal->BytesWithEncoding(Encoding::UTF8, false, nullptr));
+	}
+	
 	String *String::Substring(const Range& range) const
 	{
-		const uint8 *data = _buffer;
-		const uint8 *dataEnd = _buffer + _occupied;
+		void *string = static_cast<void *>(_ainternal->Substring(range));
+		String *substring = new String(string);
 		
-		for(size_t i=0; i<range.origin; i++)
-		{
-			size_t length = UTF8TrailingBytes[*data] + 1;
-			data += length;
-			
-			if(data > dataEnd)
-				throw Exception(Exception::Type::RangeException, "");
-		}
-		
-		size_t bytes = 0;
-		const uint8 *temp = data;
-		
-		for(size_t i=0; i<range.length; i++)
-		{
-			size_t length = UTF8TrailingBytes[*temp] + 1;
-			temp  += length;
-			bytes += length;
-			
-			if(temp > dataEnd)
-				throw Exception(Exception::Type::RangeException, "");
-		}
-		
-		return new String(data, bytes, Encoding::UTF8);
+		return substring->Autorelease();
 	}
 	
 	UniChar String::CharacterAtIndex(size_t index) const
 	{
-		uint8 *data = _buffer;
-		
-		for(size_t i=0; i<_length; i++)
-		{
-			if(i == index)
-			{
-				uint8 temp[5] = { 0 };
-				size_t length = UTF8TrailingBytes[*data] + 1;
-				
-				std::copy(data, data + length, temp);
-				
-				std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> convert;
-				std::basic_string<char32_t> converted = convert.from_bytes((const char *)temp);
-				
-				UniChar character = static_cast<UniChar>(converted[0]);
-				return character;
-			}
-			
-			size_t length = UTF8TrailingBytes[*data] + 1;
-			data += length;
-		}
-		
-		throw Exception(Exception::Type::RangeException, "");
+		return _ainternal->CharacterAtIndex(index);
 	}
 	
 	uint8 *String::BytesWithEncoding(Encoding encoding, bool lossy, size_t *outLength) const
-	{
-		uint8 *data = nullptr;
-		
-		switch(encoding)
-		{
-			case Encoding::ASCII:
-			{
-				char *buffer = new char[_length + 1];
-				const uint8 *temp = _buffer;
-				
-				for(size_t i=0; i<_length; i++)
-				{
-					size_t length = UTF8TrailingBytes[*temp] + 1;
-					
-					if((*temp > 0x7f || length > 1) && !lossy)
-					{
-						delete [] buffer;
-						return 0;
-					}
-					
-					buffer[i] = (*temp <= 0x7f) ? static_cast<char>(*temp) : '?';
-					temp += length;
-				}
-				
-				buffer[_length] = '\0';
-				
-				if(outLength)
-					*outLength = _length;
-				
-				data = reinterpret_cast<uint8 *>(buffer);
-				break;
-			}
-				
-			case Encoding::UTF8:
-			{
-				uint8 *buffer = new uint8[_occupied];
-				std::copy(_buffer, _buffer + _occupied, buffer);
-				buffer[_occupied] = '\0';
-				
-				if(outLength)
-					*outLength = _occupied;
-				
-				data = buffer;
-				break;
-			}
-				
-			case Encoding::UTF16BE:
-			case Encoding::UTF16LE:
-			{
-				std::basic_string<char16_t> string;
-				
-				if(encoding == Encoding::UTF16LE)
-				{
-					std::wstring_convert<UTF16LEFacet, char16_t> convert;
-					string = convert.from_bytes(reinterpret_cast<char *>(_buffer));
-				}
-				else
-				{
-					std::wstring_convert<UTF16BEFacet, char16_t> convert;
-					string = convert.from_bytes(reinterpret_cast<char *>(_buffer));
-				}
-				
-				char16_t *buffer = new char16_t[string.size() + 1];
-				const char16_t *temp = string.data();
-				
-				std::copy(temp, temp + string.size(), buffer);
-				buffer[string.size()] = '\0';
-				
-				if(outLength)
-					*outLength = string.size() * sizeof(char16_t);
-				
-				data = reinterpret_cast<uint8 *>(buffer);
-				break;
-			}
-		}
-		
-		if(data)
-		{
-			Data *container = new Data(data, 0, true, true);
-			container->Autorelease();
-			
-			return data;
-		}
-		
-		return nullptr;
+	{		
+		return static_cast<uint8 *>(_ainternal->BytesWithEncoding(encoding, lossy, outLength));
 	}
 }

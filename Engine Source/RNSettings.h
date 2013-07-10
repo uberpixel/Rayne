@@ -16,9 +16,9 @@
 #include "RNNumber.h"
 #include "RNArray.h"
 
-#define kRNSettingsGammaCorrectionKey RNSTR("RNGammaCorrection")
-#define KRNSettingsModulesKey         RNSTR("RNModules")
-#define kRNSettingsGameModuleKey      RNSTR("RNGameModule")
+#define kRNSettingsGammaCorrectionKey RNCSTR("RNGammaCorrection")
+#define KRNSettingsModulesKey         RNCSTR("RNModules")
+#define kRNSettingsGameModuleKey      RNCSTR("RNGameModule")
 
 namespace RN
 {

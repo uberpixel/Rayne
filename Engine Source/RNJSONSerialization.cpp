@@ -95,7 +95,7 @@ namespace RN
 		if(object->IsKindOfClass(__JSONStringClass))
 		{
 			String *string = static_cast<String *>(object);
-			const char *utf8 = reinterpret_cast<const char *>(string->BytesWithEncoding(String::Encoding::UTF8, false, nullptr));
+			const char *utf8 = reinterpret_cast<const char *>(string->BytesWithEncoding(Encoding::UTF8, false, nullptr));
 			
 			json = json_string_nocheck(utf8);
 		}
@@ -120,7 +120,7 @@ namespace RN
 				if(key->IsKindOfClass(__JSONStringClass))
 				{
 					String *string = static_cast<String *>(key);
-					const char *utf8 = reinterpret_cast<const char *>(string->BytesWithEncoding(String::Encoding::UTF8, false, nullptr));
+					const char *utf8 = reinterpret_cast<const char *>(string->BytesWithEncoding(Encoding::UTF8, false, nullptr));
 					
 					json_t *data = static_cast<json_t *>(SerializeObject(object));
 					json_object_set_new_nocheck(json, utf8, data);
@@ -149,7 +149,7 @@ namespace RN
 					json_t *value = json_object_iter_value(iterator);
 					
 					Object *object = DeserializeObject(value);
-					dict->SetObjectForKey(object, RNSTR(key));
+					dict->SetObjectForKey(object, RNUTF8STR(key));
 					
 					iterator = json_object_iter_next(json, iterator);
 				}
@@ -193,7 +193,7 @@ namespace RN
 				
 			case JSON_STRING:
 			{
-				String *string = new String(json_string_value(json), String::Encoding::UTF8);
+				String *string = new String(json_string_value(json), Encoding::UTF8);
 				data = string;
 				
 				break;

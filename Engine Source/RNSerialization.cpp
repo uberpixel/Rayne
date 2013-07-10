@@ -174,7 +174,7 @@ namespace RN
 			Number *index = static_cast<Number *>(value);
 			
 			size_t length;
-			uint8 *tname = name->BytesWithEncoding(String::Encoding::UTF8, false, &length);
+			uint8 *tname = name->BytesWithEncoding(Encoding::UTF8, false, &length);
 			
 			temp = static_cast<uint32>(length);
 			
@@ -332,7 +332,7 @@ namespace RN
 			_data->BytesInRange(&temp, Range(_index, sizeof(uint32)));
 			_index += sizeof(uint32);
 			
-			String *name = String::WithBytes(buffer, String::Encoding::UTF8);
+			String *name = String::WithBytes(buffer, Encoding::UTF8);
 			Number *index = Number::WithUint32(temp);
 			
 			delete[] buffer;

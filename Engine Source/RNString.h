@@ -26,59 +26,35 @@ namespace RN
 		};
 		typedef uint32 ComparisonMode;
 		
-		enum class Encoding
-		{
-			ASCII,
-			UTF8,
-			UTF16LE,
-			UTF16BE
-		};
-		
 		String();
-		String(const char *string);
-		String(const char *string, size_t length);
-		String(const void *bytes, Encoding encoding);
-		String(const void *bytes, size_t length, Encoding encoding);
-		String(const String& string);
+		String(const char *string, va_list args);
+		String(const char *string, bool constant=false);
+		String(const char *string, size_t length, bool constant=false);
+		String(const void *bytes, Encoding encoding, bool constant=false);
+		String(const void *bytes, size_t length, Encoding encoding, bool constant=false);
 		String(const String *string);
-		virtual ~String();
+		~String() override;
 		
-		static String *WithString(const char *string);
-		static String *WithString(const char *string, size_t length);
-		static String *WithBytes(const void *bytes, Encoding encoding);
-		static String *WithBytes(const void *bytes, size_t length, Encoding encoding);
+		static String *WithFormat(const char *string, ...);
+		static String *WithString(const char *string, bool constant=false);
+		static String *WithString(const char *string, size_t length, bool constant=false);
+		static String *WithBytes(const void *bytes, Encoding encoding, bool constant=false);
+		static String *WithBytes(const void *bytes, size_t length, Encoding encoding, bool constant=false);
 		
 		machine_hash Hash() const override;
 		bool IsEqual(Object *other) const override;
 		
-		bool operator ==(const String& other) const;
-		bool operator !=(const String& other) const;
-		
-		String& operator +=(const String& other);
-		String operator +(const String& other) const;
-		
-		void Append(const String& string);
 		void Append(const String *string);
-		
-		void Insert(const String& string, size_t index);
+		void Append(const char *string, ...);
 		void Insert(const String *string, size_t index);
 		
 		void DeleteCharacters(const Range& range);
 		
-		void ReplaceCharacters(const String& replacement, const Range& range);
 		void ReplaceCharacters(const String *replacement, const Range& range);
-		
-		void ReplaceOccurrencesOfString(const String& string, const String& replacement);
 		void ReplaceOccurrencesOfString(const String *string, const String *replacement);
-		
-		Range RangeOfString(const String& string, ComparisonMode mode=0);
-		Range RangeOfString(const String& string, ComparisonMode mode, const Range& range);
 		
 		Range RangeOfString(const String *string, ComparisonMode mode=0);
 		Range RangeOfString(const String *string, ComparisonMode mode, const Range& range);
-		
-		ComparisonResult Compare(const String& other, ComparisonMode mode=0) const;
-		ComparisonResult Compare(const String& other, ComparisonMode mode, const Range& range) const;
 		
 		ComparisonResult Compare(const String *other, ComparisonMode mode=0) const;
 		ComparisonResult Compare(const String *other, ComparisonMode mode, const Range& range) const;
@@ -86,32 +62,26 @@ namespace RN
 		String *Substring(const Range& range) const;
 		UniChar CharacterAtIndex(size_t index) const;
 		
-		size_t Length() const { return _length; }
+		size_t Length() const;
 		
 		uint8 *BytesWithEncoding(Encoding encoding, bool lossy, size_t *length) const;
-		char *UTF8String() const { return reinterpret_cast<char *>(BytesWithEncoding(Encoding::UTF8, false, nullptr)); }
+		char *UTF8String() const;
 		
 	private:
-		void Initialize();
-		void AllocateBuffer(size_t size);
-		void CheckAndExpandBuffer(size_t minium);
+		String(void *internal);
+		void PromoteStringIfNeeded(Encoding encoding);
 		
-		bool IsLegalUTF8(const uint8 *sequence, int length) const;
-		
-		
-		size_t UTF8ByteLength(const uint8 *bytes) const;
-		void CopyUTF8Bytes(const uint8 *bytes, size_t length);
-		void CopyBytesWithEncoding(const void *bytes, size_t length, Encoding encoding);
-
-		uint8 *_buffer;
-		size_t _length;
-		size_t _size;
-		size_t _occupied;
+		Encoding _encoding;
+		void *_internal; // Of abstract type BasicString
 		
 		RNDefineMetaWithTraits(String, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 }
 
-#define RNSTR(cstr) RN::String::WithString(cstr)
+#define RNSTR(...)  RN::String::WithFormat(__VA_ARGS__)
+#define RNCSTR(cstr) RN::String::WithString(cstr, true)
+
+#define RNUTF8STR(str)  RN::String::WithBytes(str, Encoding::UTF8)
+#define RNCUTF8STR(str) RN::String::WithBytes(str, Encoding::UTF8, true)
 
 #endif /* __RAYNE_STRING_H__ */

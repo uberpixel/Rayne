@@ -58,6 +58,13 @@ namespace RN
 	private:
 		UniChar _codePoint;
 	};
+	
+	enum class Encoding
+	{
+		ASCII,
+		UTF8,
+		UTF16
+	};
 }
 
 #endif /* __RAYNE_UNICODE_H__ */

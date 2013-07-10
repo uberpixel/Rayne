@@ -84,8 +84,8 @@ namespace RN
 		if(array)
 		{
 			array->Enumerate([&](Object *file, size_t index, bool *stop) {
-				String *string = static_cast<String *>(file);
-				char *path = reinterpret_cast<char *>(string->BytesWithEncoding(String::Encoding::UTF8, false, nullptr));
+				String *string = file->Downcast<String>();
+				char   *path   = string->UTF8String();
 				
 				_modules.emplace_back(new Module(path));
 			});

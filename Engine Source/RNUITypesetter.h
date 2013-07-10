@@ -15,8 +15,8 @@
 #include "RNUIFont.h"
 #include "RNModel.h"
 
-#define kRNTypesetterFontAttribute  RNSTR("kRNTypesetterFontAttribute")
-#define kRNTypesetterColorAttribute RNSTR("kRNTypesetterColorAttribute")
+#define kRNTypesetterFontAttribute  RNCSTR("kRNTypesetterFontAttribute")
+#define kRNTypesetterColorAttribute RNCSTR("kRNTypesetterColorAttribute")
 
 namespace RN
 {
