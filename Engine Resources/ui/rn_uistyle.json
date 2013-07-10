@@ -3,6 +3,12 @@
 		{
 			"name": "RNRoundedRect",
 			"texture": "ui/rn_uikit.png",
+			"insets": {
+				"top": 0.0,
+				"bottom": 0.0,
+				"left": 13.0,
+				"right": 14.0
+			},
 			"states": [
 				{
 					"name": "normal",
@@ -11,12 +17,6 @@
 						"y": 0.0,
 						"width": 97.0,
 						"height": 30.0
-					},
-					"insets": {
-						"top": 0.0,
-						"bottom": 0.0,
-						"left": 13.0,
-						"right": 14.0
 					}
 				},
 				{
@@ -26,12 +26,6 @@
 						"y": 0.0,
 						"width": 97.0,
 						"height": 30.0
-					},
-					"insets": {
-						"top": 0.0,
-						"bottom": 0.0,
-						"left": 13.0,
-						"right": 14.0
 					}
 				},
 				{
@@ -41,12 +35,6 @@
 						"y": 0.0,
 						"width": 97.0,
 						"height": 30.0
-					},
-					"insets": {
-						"top": 0.0,
-						"bottom": 0.0,
-						"left": 13.0,
-						"right": 14.0
 					}
 				}
 			]
@@ -54,6 +42,12 @@
 		{
 			"name": "RNPushButton",
 			"texture": "ui/rn_uikit.png",
+			"insets": {
+				"top": 0.0,
+				"bottom": 0.0,
+				"left": 5.0,
+				"right": 5.0
+			},
 			"states": [
 				{
 					"name": "normal",
@@ -62,12 +56,6 @@
 						"y": 30.0,
 						"width": 97.0,
 						"height": 30.0
-					},
-					"insets": {
-						"top": 0.0,
-						"bottom": 0.0,
-						"left": 5.0,
-						"right": 5.0
 					}
 				},
 				{
@@ -77,12 +65,6 @@
 						"y": 30.0,
 						"width": 97.0,
 						"height": 30.0
-					},
-					"insets": {
-						"top": 0.0,
-						"bottom": 0.0,
-						"left": 5.0,
-						"right": 5.0
 					}
 				},
 				{
@@ -92,12 +74,6 @@
 						"y": 30.0,
 						"width": 97.0,
 						"height": 30.0
-					},
-					"insets": {
-						"top": 0.0,
-						"bottom": 0.0,
-						"left": 5.0,
-						"right": 5.0
 					}
 				}
 			]

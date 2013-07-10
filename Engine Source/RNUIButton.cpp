@@ -28,6 +28,7 @@ namespace RN
 			
 			Style *styleSheet = Style::SharedInstance();
 			Texture *texture = styleSheet->TextureWithName(style->ObjectForKey<String>(RNCSTR("texture")));
+			Dictionary *tlInsets = style->ObjectForKey<Dictionary>(RNCSTR("insets"));
 			
 			Array *states = style->ObjectForKey<Array>(RNCSTR("states"));
 			states->Enumerate([&](Object *object, size_t index, bool *stop) {
@@ -36,6 +37,9 @@ namespace RN
 				String *name = state->ObjectForKey<String>(RNCSTR("name"));
 				Dictionary *atlas  = state->ObjectForKey<Dictionary>(RNCSTR("atlas"));
 				Dictionary *insets = state->ObjectForKey<Dictionary>(RNCSTR("insets"));
+				
+				if(!insets)
+					insets = tlInsets;
 				
 				State tstate;
 				if(name->IsEqual(RNCSTR("normal")))
