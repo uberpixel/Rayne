@@ -240,7 +240,12 @@ namespace RN
 		json_t *root = json_loads(reinterpret_cast<char *>(data->Bytes()), flags, &error);
 		
 		if(!root)
-			throw Exception(Exception::Type::GenericException, "");
+		{
+			char buffer[256];
+			sprintf(buffer, "%s\nLine: %i, column: %i", error.text, error.line, error.column);
+			
+			throw Exception(Exception::Type::GenericException, buffer);
+		}
 		
 		AutoreleasePool *pool = new AutoreleasePool();
 		

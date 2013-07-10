@@ -19,10 +19,19 @@ namespace RN
 	{
 		Style::Style()
 		{
-			String *path = Settings::SharedInstance()->ObjectForKey<String>(kRNSettingsUIStyleKey);
-			Object *data = JSONSerialization::JSONObjectFromData(Data::WithContentsOfFile(path->UTF8String()));
+			try
+			{
+				String *path = Settings::SharedInstance()->ObjectForKey<String>(kRNSettingsUIStyleKey);
+				Object *data = JSONSerialization::JSONObjectFromData(Data::WithContentsOfFile(path->UTF8String()));
+				
+				_data = data->Downcast<Dictionary>()->Retain();
+			}
+			catch(Exception e)
+			{
+				__HandleException(e);
+			}
 			
-			_data = data->Downcast<Dictionary>()->Retain();
+			
 			_textures = new Dictionary();
 		}
 		
