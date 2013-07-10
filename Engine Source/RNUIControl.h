@@ -22,10 +22,10 @@ namespace RN
 		public:
 			enum
 			{
-				Normal = 0,
-				Highlighted,
-				Selected,
-				Disabled
+				Normal = (1 << 0),
+				Highlighted = (1 << 1),
+				Selected = (1 << 2),
+				Disabled = (1 << 3)
 			};
 			typedef uint32 State;
 			

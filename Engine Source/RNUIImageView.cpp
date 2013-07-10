@@ -97,7 +97,9 @@ namespace RN
 				
 				if(_image)
 				{
+					DrawMaterial()->RemoveTextures();
 					DrawMaterial()->AddTexture(_image->Texture());
+					
 					_mesh = _image->FittingMesh(Frame().Size())->Retain();
 				}
 				
