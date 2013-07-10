@@ -21,8 +21,7 @@ namespace RN
 		enum
 		{
 			ComparisonModeCaseInsensitive = (1 << 0),
-			ComparisonModeNumerically = (1 << 1),
-			ComparisonModeBackwards = (1 << 2)
+			ComparisonModeNumerically = (1 << 1)
 		};
 		typedef uint32 ComparisonMode;
 		
