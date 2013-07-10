@@ -7,7 +7,9 @@
 //
 
 #include "RNUIButton.h"
+#include "RNUIStyle.h"
 #include "RNResourcePool.h"
+#include "RNNumber.h"
 
 namespace RN
 {
@@ -20,6 +22,59 @@ namespace RN
 			Initialize();
 		}
 		
+		Button::Button(Dictionary *style)
+		{
+			Initialize();
+			
+			Style *styleSheet = Style::SharedInstance();
+			Texture *texture = styleSheet->TextureWithName(style->ObjectForKey<String>(RNCSTR("texture")));
+			
+			Array *states = style->ObjectForKey<Array>(RNCSTR("states"));
+			states->Enumerate([&](Object *object, size_t index, bool *stop) {
+				Dictionary *state = object->Downcast<Dictionary>();
+				
+				String *name = state->ObjectForKey<String>(RNCSTR("name"));
+				Dictionary *atlas  = state->ObjectForKey<Dictionary>(RNCSTR("atlas"));
+				Dictionary *insets = state->ObjectForKey<Dictionary>(RNCSTR("insets"));
+				
+				State tstate;
+				if(name->IsEqual(RNCSTR("normal")))
+					tstate = Normal;
+				else
+				if(name->IsEqual(RNCSTR("selected")))
+					tstate = Selected;
+				else
+				if(name->IsEqual(RNCSTR("highlighted")))
+					tstate = Highlighted;
+				else
+					return;
+				
+				Image *image = new Image(texture);
+				
+				if(atlas)
+				{
+					float x = atlas->ObjectForKey<Number>(RNCSTR("x"))->FloatValue();
+					float y = atlas->ObjectForKey<Number>(RNCSTR("y"))->FloatValue();
+					float width  = atlas->ObjectForKey<Number>(RNCSTR("width"))->FloatValue();
+					float height = atlas->ObjectForKey<Number>(RNCSTR("height"))->FloatValue();
+					
+					image->SetAtlas(Atlas(x, y, width, height), false);
+				}
+				
+				if(insets)
+				{
+					float top = insets->ObjectForKey<Number>(RNCSTR("top"))->FloatValue();
+					float bottom = insets->ObjectForKey<Number>(RNCSTR("bottom"))->FloatValue();
+					float left  = insets->ObjectForKey<Number>(RNCSTR("left"))->FloatValue();
+					float right = insets->ObjectForKey<Number>(RNCSTR("right"))->FloatValue();
+					
+					image->SetEdgeInsets(EdgeInsets(top, bottom, left, right));
+				}
+				
+				this->SetImageForState(image->Autorelease(), tstate);
+			});
+		}
+		
 		Button::~Button()
 		{
 			for(auto i=_images.begin(); i!=_images.end(); i++)
@@ -27,6 +82,22 @@ namespace RN
 				i->second->Release();
 			}
 		}
+		
+		Button *Button::WithType(Type type)
+		{
+			Dictionary *style = nullptr;
+			
+			switch(type)
+			{
+				case Type::RoundedRect:
+					style = Style::SharedInstance()->ButtonStyle(RNCSTR("RNRoundedRect"));
+					break;
+			}
+			
+			Button *button = new Button(style);
+			return button->Autorelease();
+		}
+		
 		
 		void Button::Initialize()
 		{

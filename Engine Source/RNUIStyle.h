@@ -13,14 +13,24 @@
 #include "RNObject.h"
 #include "RNDictionary.h"
 #include "RNString.h"
+#include "RNTexture.h"
 
 namespace RN
 {
 	namespace UI
 	{
-		class Style
+		class Style : public Singleton<Style>
 		{
 		public:
+			Style();
+			~Style() override;
+			
+			Texture *TextureWithName(String *name);
+			Dictionary *ButtonStyle(String *name);
+			
+		private:
+			Dictionary *_data;
+			Dictionary *_textures;
 		};
 	}
 }

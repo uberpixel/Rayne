@@ -1,0 +1,55 @@
+{
+	"buttons": [
+		{
+			"name": "RNRoundedRect",
+			"texture": "ui/rn_uikit.png",
+			"states": [
+				{
+					"name": "normal",
+					"atlas": {
+						"x": 0.0,
+						"y": 0.0,
+						"width": 97.0,
+						"height": 30.0
+					},
+					"insets": {
+						"top": 0.0,
+						"bottom": 0.0,
+						"left": 13.0,
+						"right": 14.0
+					}
+				},
+				{
+					"name": "selected",
+					"atlas": {
+						"x": 97.0,
+						"y": 0.0,
+						"width": 97.0,
+						"height": 30.0
+					},
+					"insets": {
+						"top": 0.0,
+						"bottom": 0.0,
+						"left": 13.0,
+						"right": 14.0
+					}
+				},
+				{
+					"name": "highlighted",
+					"atlas": {
+						"x": 194.0,
+						"y": 0.0,
+						"width": 97.0,
+						"height": 30.0
+					},
+					"insets": {
+						"top": 0.0,
+						"bottom": 0.0,
+						"left": 13.0,
+						"right": 14.0
+					}
+				}
+			]
+		}
+	]
+}

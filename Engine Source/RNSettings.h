@@ -19,6 +19,7 @@
 #define kRNSettingsGammaCorrectionKey RNCSTR("RNGammaCorrection")
 #define KRNSettingsModulesKey         RNCSTR("RNModules")
 #define kRNSettingsGameModuleKey      RNCSTR("RNGameModule")
+#define kRNSettingsUIStyleKey         RNCSTR("RNUIStyle")
 
 namespace RN
 {

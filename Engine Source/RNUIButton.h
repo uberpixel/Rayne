@@ -24,8 +24,16 @@ namespace RN
 		class Button : public Control
 		{
 		public:
+			enum class Type
+			{
+				RoundedRect
+			};
+			
 			Button();
+			Button(Dictionary *style);
 			~Button() override;
+			
+			static Button *WithType(Type type);
 			
 			void SetTitleForState(String *title, State state);
 			void SetImageForState(Image *image, State state);
