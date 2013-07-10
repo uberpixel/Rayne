@@ -31,7 +31,7 @@ namespace RN
 		va_list temp;
 		va_copy(temp, args);
 		
-		size_t size = vsnprintf(nullptr, 0, string, temp);
+		size_t size = vsnprintf(nullptr, 0, string, temp) + 1;
 		char *formatted = new char[size + 1];
 		
 		vsnprintf(formatted, size, string, args);
