@@ -896,8 +896,6 @@ namespace RN
 		{
 			glDrawArrays(mesh->Mode(), 0, glCount);
 		}
-		
-		BindVAO(0);
 	}
 	
 	void Renderer32::DrawMeshInstanced(const RenderingObject& object)
@@ -940,8 +938,6 @@ namespace RN
 			descriptor = mesh->Descriptor(kMeshFeatureVertices);
 			glDrawArraysInstanced(mesh->Mode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)object.count);
 		}
-		
-		BindVAO(0);
 	}
 	
 	// ---------------------

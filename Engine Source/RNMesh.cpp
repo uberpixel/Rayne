@@ -10,6 +10,7 @@
 #include "RNKernel.h"
 #include "RNMemory.h"
 #include "RNDebug.h"
+#include "RNRenderer.h"
 
 namespace RN
 {
@@ -55,6 +56,8 @@ namespace RN
 	
 	Mesh::~Mesh()
 	{
+		Renderer::SharedInstance()->RelinquishMesh(this);
+		
 		glDeleteBuffers(2, &_vbo);
 		
 		for(auto i=_descriptor.begin(); i!=_descriptor.end(); i++)
@@ -358,6 +361,8 @@ namespace RN
 	
 	void Mesh::UpdateMesh(bool force)
 	{
+		Renderer::SharedInstance()->BindVAO(0);
+		
 		if((_dirtyIndices || force) && _indices)
 		{
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);

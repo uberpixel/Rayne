@@ -156,6 +156,46 @@ namespace RN
 			glUniform3fv(_currentProgram->viewPosition, 1, &position.x);
 		}
 	}
+	
+	void Renderer::RelinquishMesh(Mesh *mesh)
+	{
+		for(auto i=_autoVAOs.begin(); i!=_autoVAOs.end();)
+		{
+			if(std::get<1>(i->first) == mesh)
+			{
+				GLuint vao = std::get<0>(i->second);
+				if(vao == _currentVAO)
+					BindVAO(0);
+				
+				glDeleteVertexArrays(1, &vao);
+				
+				i = _autoVAOs.erase(i);
+				continue;
+			}
+			
+			i ++;
+		}
+	}
+	
+	void Renderer::RelinquishProgram(ShaderProgram *program)
+	{
+		for(auto i=_autoVAOs.begin(); i!=_autoVAOs.end();)
+		{
+			if(std::get<0>(i->first) == program)
+			{
+				GLuint vao = std::get<0>(i->second);
+				if(vao == _currentVAO)
+					BindVAO(0);
+				
+				glDeleteVertexArrays(1, &vao);
+				
+				i = _autoVAOs.erase(i);
+				continue;
+			}
+			
+			i ++;
+		}
+	}
 		
 	// ---------------------
 	// MARK: -

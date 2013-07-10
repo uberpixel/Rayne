@@ -108,6 +108,9 @@ namespace RN
 		RNAPI void SetBlendFunction(GLenum blendSource, GLenum blendDestination);
 		RNAPI void SetPolygonOffset(float factor, float units);
 		
+		RNAPI void RelinquishMesh(Mesh *mesh);
+		RNAPI void RelinquishProgram(ShaderProgram *program);
+		
 		Camera *ActiveCamera() const { return _currentCamera; }
 		Material *ActiveMaterial() const { return _currentMaterial; }
 		ShaderProgram *ActiveProgram() const { return _currentProgram; }
