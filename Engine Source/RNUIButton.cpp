@@ -92,6 +92,10 @@ namespace RN
 				case Type::RoundedRect:
 					style = Style::SharedInstance()->ButtonStyle(RNCSTR("RNRoundedRect"));
 					break;
+					
+				case Type::PushButton:
+					style = Style::SharedInstance()->ButtonStyle(RNCSTR("RNPushButton"));
+					break;
 			}
 			
 			Button *button = new Button(style);

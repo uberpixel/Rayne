@@ -26,7 +26,8 @@ namespace RN
 		public:
 			enum class Type
 			{
-				RoundedRect
+				RoundedRect,
+				PushButton
 			};
 			
 			Button();
