@@ -325,10 +325,26 @@ namespace RN
 			for(auto i=_lines.begin(); i!=_lines.end(); i++)
 			{
 				Line *line = *i;
-				line->Extents();
-				line->SetLineOffset(-_frame.height + offset);
+				const Vector2& extents = line->Extents();
+				float widthOffset = 0.0f;
 				
-				offset += line->Extents().y;
+				switch(_alignment)
+				{
+					case TextAlignment::Center:
+						widthOffset = (_frame.width * 0.5f) - (extents.x * 0.5f);
+						break;
+						
+					case TextAlignment::Right:
+						widthOffset = _frame.width - extents.x;
+						break;
+						
+					default:
+						break;
+				}
+				
+				line->SetLineOffset(Vector2(widthOffset, -_frame.height + offset));
+				
+				offset += extents.y;
 			}
 			
 			_dirty = false;
@@ -655,7 +671,7 @@ namespace RN
 			_dirty = true;
 		}
 		
-		void Line::SetLineOffset(float offset)
+		void Line::SetLineOffset(const Vector2& offset)
 		{
 			_offset = offset;
 		}
@@ -892,7 +908,7 @@ namespace RN
 				else
 					iterator->second.push_back(psegment);
 				
-				psegment->SetOffset(Vector2(offset, _offset));
+				psegment->SetOffset(Vector2(offset + _offset.x, _offset.y));
 				offset += psegment->Extents().x;
 			}
 			

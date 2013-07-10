@@ -113,7 +113,7 @@ namespace RN
 			~Line();
 		
 			void Truncate(float width, TextTruncation truncation, UniChar token);
-			void SetLineOffset(float offset);
+			void SetLineOffset(const Vector2& offset);
 			
 			const std::vector<LineSegment>& Segments();
 			const Vector2& Extents();
@@ -131,7 +131,7 @@ namespace RN
 			AttributedString *_string;
 			Range _range;
 			
-			float _offset;
+			Vector2	_offset;
 			Vector2 _extents;
 			
 			std::vector<LineSegment> _segments;
