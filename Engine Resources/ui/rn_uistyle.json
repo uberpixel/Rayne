@@ -7,7 +7,7 @@
 				"top": 0.0,
 				"bottom": 0.0,
 				"left": 13.0,
-				"right": 14.0
+				"right": 13.0
 			},
 			"states": [
 				{
@@ -15,26 +15,26 @@
 					"atlas": {
 						"x": 0.0,
 						"y": 0.0,
-						"width": 97.0,
-						"height": 30.0
+						"width": 31.0,
+						"height": 28.0
 					}
 				},
 				{
 					"name": "selected",
 					"atlas": {
-						"x": 97.0,
+						"x": 31.0,
 						"y": 0.0,
-						"width": 97.0,
-						"height": 30.0
+						"width": 31.0,
+						"height": 28.0
 					}
 				},
 				{
 					"name": "highlighted",
 					"atlas": {
-						"x": 194.0,
+						"x": 62.0,
 						"y": 0.0,
-						"width": 97.0,
-						"height": 30.0
+						"width": 31.0,
+						"height": 28.0
 					}
 				}
 			]
@@ -52,28 +52,28 @@
 				{
 					"name": "normal",
 					"atlas": {
-						"x": 0.0,
-						"y": 30.0,
-						"width": 97.0,
-						"height": 30.0
+						"x": 93.0,
+						"y": 0.0,
+						"width": 11.0,
+						"height": 28.0
 					}
 				},
 				{
 					"name": "selected",
 					"atlas": {
-						"x": 97.0,
-						"y": 30.0,
-						"width": 97.0,
-						"height": 30.0
+						"x": 115.0,
+						"y": 0.0,
+						"width": 11.0,
+						"height": 28.0
 					}
 				},
 				{
 					"name": "highlighted",
 					"atlas": {
-						"x": 194.0,
-						"y": 30.0,
-						"width": 97.0,
-						"height": 30.0
+						"x": 104.0,
+						"y": 0.0,
+						"width": 11.0,
+						"height": 28.0
 					}
 				}
 			]
