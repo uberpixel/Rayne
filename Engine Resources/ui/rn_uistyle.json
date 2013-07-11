@@ -4,8 +4,8 @@
 			"name": "RNRoundedRect",
 			"texture": "ui/rn_uikit.png",
 			"insets": {
-				"top": 0.0,
-				"bottom": 0.0,
+				"top": 12.0,
+				"bottom": 12.0,
 				"left": 13.0,
 				"right": 13.0
 			},
@@ -43,8 +43,8 @@
 			"name": "RNPushButton",
 			"texture": "ui/rn_uikit.png",
 			"insets": {
-				"top": 0.0,
-				"bottom": 0.0,
+				"top": 5.0,
+				"bottom": 5.0,
 				"left": 5.0,
 				"right": 5.0
 			},
