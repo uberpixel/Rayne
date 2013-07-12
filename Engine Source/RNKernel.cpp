@@ -278,24 +278,6 @@ namespace RN
 #if RN_PLATFORM_LINUX
 		glXSwapBuffers(_context->_dpy, _context->_win);
 #endif
-		
-		
-		static float totalTime = 0.0f;
-		static int count = 0;
-		
-		totalTime += _delta;
-		count ++;
-		
-		if(totalTime >= 1.0f)
-		{
-			float average = totalTime / count;
-			
-			printf("Drew %i frames in the last %f seconds. Average frame time: %f\n", count, totalTime, average);
-			
-			totalTime = 0.0f;
-			count = 0;
-		}
-		
 		_lastFrame = now;
 
 		delete pool;
