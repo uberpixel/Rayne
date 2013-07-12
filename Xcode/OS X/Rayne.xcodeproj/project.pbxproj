@@ -21,6 +21,8 @@
 		E9145CB316BAB82D004BDEC8 /* RNInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9145CB116BAB82D004BDEC8 /* RNInput.cpp */; };
 		E9145CB416BAB82D004BDEC8 /* RNInput.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CB216BAB82D004BDEC8 /* RNInput.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E917AC211744A00F00331D9B /* RNUIGeometry.h in Headers */ = {isa = PBXBuildFile; fileRef = E917AC2017449AAF00331D9B /* RNUIGeometry.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E919598F17901180004B5880 /* RNUIUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E919598D17901180004B5880 /* RNUIUtilities.cpp */; };
+		E919599017901180004B5880 /* RNUIUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = E919598E17901180004B5880 /* RNUIUtilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E91C8CD9176006A300E9E8F2 /* RNUIControl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E91C8CD7176006A200E9E8F2 /* RNUIControl.cpp */; };
 		E91C8CDA176006A300E9E8F2 /* RNUIControl.h in Headers */ = {isa = PBXBuildFile; fileRef = E91C8CD8176006A200E9E8F2 /* RNUIControl.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E91C8CDD176023EC00E9E8F2 /* RNUIButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E91C8CDB176023EC00E9E8F2 /* RNUIButton.cpp */; };
@@ -235,6 +237,8 @@
 		E9145CB116BAB82D004BDEC8 /* RNInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNInput.cpp; sourceTree = "<group>"; };
 		E9145CB216BAB82D004BDEC8 /* RNInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNInput.h; sourceTree = "<group>"; };
 		E917AC2017449AAF00331D9B /* RNUIGeometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNUIGeometry.h; sourceTree = "<group>"; };
+		E919598D17901180004B5880 /* RNUIUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIUtilities.cpp; sourceTree = "<group>"; };
+		E919598E17901180004B5880 /* RNUIUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIUtilities.h; sourceTree = "<group>"; };
 		E91C8CD7176006A200E9E8F2 /* RNUIControl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIControl.cpp; sourceTree = "<group>"; };
 		E91C8CD8176006A200E9E8F2 /* RNUIControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIControl.h; sourceTree = "<group>"; };
 		E91C8CDB176023EC00E9E8F2 /* RNUIButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIButton.cpp; sourceTree = "<group>"; };
@@ -611,6 +615,8 @@
 				E9AD2A811761165400BC3E8F /* RNUITextStyle.h */,
 				E96C566C177E4FD8007FAF7C /* RNUITypesetter.cpp */,
 				E96C566D177E4FD8007FAF7C /* RNUITypesetter.h */,
+				E919598D17901180004B5880 /* RNUIUtilities.cpp */,
+				E919598E17901180004B5880 /* RNUIUtilities.h */,
 				E9D7DA7A172F9C7700A858CB /* RNUIView.cpp */,
 				E9D7DA7B172F9C7700A858CB /* RNUIView.h */,
 				E9D7DA76172F9C0D00A858CB /* RNUIWidget.cpp */,
@@ -869,6 +875,7 @@
 				E95EEE511784FC5E00CDCA6E /* RNException.h in Headers */,
 				E945AB431788D97A00C7B30A /* RNUTF8String.h in Headers */,
 				E945AB61178D7D1200C7B30A /* RNUIStyle.h in Headers */,
+				E919599017901180004B5880 /* RNUIUtilities.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1041,6 +1048,7 @@
 				E95EEE501784FC5E00CDCA6E /* RNException.cpp in Sources */,
 				E945AB421788D97A00C7B30A /* RNUTF8String.cpp in Sources */,
 				E945AB60178D7D1200C7B30A /* RNUIStyle.cpp in Sources */,
+				E919598F17901180004B5880 /* RNUIUtilities.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

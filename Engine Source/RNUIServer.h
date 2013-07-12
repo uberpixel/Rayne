@@ -45,8 +45,6 @@ namespace RN
 			
 			bool DrawDebugFrames() const { return _drawDebugFrames; }
 			
-			Widget *DebugWidget();
-			
 		protected:
 			void Render(Renderer *renderer);
 			

@@ -76,6 +76,7 @@
 #include "RNUIButton.h"
 #include "RNUILabel.h"
 #include "RNUIImageView.h"
+#include "RNUIUtilities.h"
 
 #include "RNWorld.h"
 #include "RNSceneNode.h"

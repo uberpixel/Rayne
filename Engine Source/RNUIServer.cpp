@@ -7,9 +7,11 @@
 //
 
 #include "RNUIServer.h"
+#include "RNKernel.h"
 #include "RNWorld.h"
 #include "RNWindow.h"
 #include "RNUILabel.h"
+#include "RNUIButton.h"
 
 namespace RN
 {
@@ -161,27 +163,6 @@ namespace RN
 			}
 			
 			renderer->FinishCamera();
-		}
-		
-		
-		
-		Widget *Server::DebugWidget()
-		{
-			if(!_debugWidget)
-			{
-				Label *fpsLabel = new Label();
-				fpsLabel->SetText(RNSTR("Praesent commodo cursus magna, vel scelerisque nisl consectetur et. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Integer posuere erat a ante venenatis dapibus posuere velit aliquet. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus."));
-				fpsLabel->SetFrame(Rect(0.0f, 0.0f, 250.0f, 24.0f));
-				fpsLabel->SetTextColor(Color::Black());
-				fpsLabel->SetAlignment(TextAlignment::Center);
-				
-				_debugWidget = new Widget(Rect(10.0f, 10.0f, 250.0f, 180.0f));
-				_debugWidget->ContentView()->AddSubview(fpsLabel);
-				
-				fpsLabel->Release();
-			}
-			
-			return _debugWidget;
 		}
 	}
 }
