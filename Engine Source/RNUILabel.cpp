@@ -45,6 +45,8 @@ namespace RN
 		
 		void Label::SetFont(Font *font)
 		{
+			RN_ASSERT(font, "Font mustn't be NULL!");
+			
 			if(_font)
 				_font->Release();
 			

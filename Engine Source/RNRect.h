@@ -30,8 +30,8 @@ namespace RN
 		RNAPI bool IntersectsRect(const Rect& other) const;
 		RNAPI bool ContainsRect(const Rect& other) const;
 		
-		RNAPI void Inset(float dx, float dy);
-		RNAPI void Integral();
+		RNAPI Rect& Inset(float dx, float dy);
+		RNAPI Rect& Integral();
 		
 		RNAPI float Top() const;
 		RNAPI float Bottom() const;
@@ -135,7 +135,7 @@ namespace RN
 	}
 	
 	
-	RN_INLINE void Rect::Inset(float dx, float dy)
+	RN_INLINE Rect& Rect::Inset(float dx, float dy)
 	{
 		float hx = dx * 0.5f;
 		float hy = dy * 0.5f;
@@ -145,15 +145,19 @@ namespace RN
 		
 		width  -= hx;
 		height -= hy;
+		
+		return *this;
 	}
 	
-	RN_INLINE void Rect::Integral()
+	RN_INLINE Rect& Rect::Integral()
 	{
 		x = roundf(x);
 		y = roundf(y);
 		
 		width  = roundf(width);
 		height = roundf(height);
+		
+		return *this;
 	}
 	
 	
