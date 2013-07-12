@@ -25,9 +25,6 @@ namespace RN
 			
 			ContentView()->AddSubview(_fpsLabel->Autorelease());
 			
-			Image *image = Image::WithFile("textures/pixelart.png");
-			image->SetAtlas(Atlas(0.0f, 0.0f, 32.0f, 32.0f), false);
-			
 			_fpsCheckbox = Button::WithType(Button::Type::CheckBox);
 			_fpsCheckbox->SetFrame(Rect(5.0f, 50.0f, 0.0f, 0.0f));
 			_fpsCheckbox->SetTitleForState(RNCSTR("Show avg. FPS"), Control::Normal);
