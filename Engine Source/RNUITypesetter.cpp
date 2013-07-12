@@ -116,12 +116,27 @@ namespace RN
 			Vector2 extents;
 			for(Line *line : _lines)
 			{
+				extents.x = std::max(line->UntruncatedExtents().x, extents.x);
+				extents.y += line->UntruncatedExtents().y;
+			}
+			
+			return extents;
+		}
+		
+		Vector2 Typesetter::VisibleDimensions()
+		{
+			LayoutText();
+			
+			Vector2 extents;
+			for(Line *line : _visibleLines)
+			{
 				extents.x = std::max(line->Extents().x, extents.x);
 				extents.y += line->Extents().y;
 			}
 			
 			return extents;
 		}
+		
 		
 		Model *Typesetter::LineModel()
 		{
@@ -688,6 +703,12 @@ namespace RN
 			return _extents;
 		}
 		
+		const Vector2& Line::UntruncatedExtents()
+		{
+			LayoutLine();
+			return _untruncatedExtents;
+		}
+		
 		Dictionary *Line::Meshes()
 		{
 			LayoutLine();
@@ -738,6 +759,8 @@ namespace RN
 			
 			delete pool;
 			UpdateExtents();
+			
+			_untruncatedExtents = _extents;
 
 			// Apply truncation
 			if(_truncated && _extents.x > _truncationWidth)

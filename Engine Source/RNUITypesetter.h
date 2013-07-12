@@ -39,6 +39,8 @@ namespace RN
 			void SetFrame(const Rect& frame);
 			
 			Vector2 Dimensions();
+			Vector2 VisibleDimensions();
+			
 			Model *LineModel();
 			
 			const std::vector<Line *>& Lines();
@@ -117,6 +119,7 @@ namespace RN
 			
 			const std::vector<LineSegment>& Segments();
 			const Vector2& Extents();
+			const Vector2& UntruncatedExtents();
 			Dictionary *Meshes();
 			
 		private:
@@ -133,6 +136,7 @@ namespace RN
 			
 			Vector2	_offset;
 			Vector2 _extents;
+			Vector2 _untruncatedExtents;
 			
 			std::vector<LineSegment> _segments;
 			
