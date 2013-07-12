@@ -251,6 +251,8 @@ namespace RN
 		}
 #endif
 		
+		MessageCenter::SharedInstance()->PostMessage(kRNKernelWillBeginFrameMessage, nullptr, nullptr);
+		
 		_frame ++;
 		_renderer->BeginFrame(_delta);
 		_input->DispatchInputEvents();
@@ -266,6 +268,8 @@ namespace RN
 		_uiserver->Render(_renderer);
 		_renderer->FinishFrame();
 		_input->InvalidateFrame();
+		
+		MessageCenter::SharedInstance()->PostMessage(kRNKernelDidEndFrameMessage, nullptr, nullptr);
 		
 #if RN_PLATFORM_MAC_OS
 		CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);

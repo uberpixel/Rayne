@@ -21,6 +21,9 @@
 
 namespace RN
 {
+#define kRNKernelWillBeginFrameMessage RNCSTR("kRNKernelWillBeginFrameMessage")
+#define kRNKernelDidEndFrameMessage    RNCSTR("kRNKernelDidEndFrameMessage")
+	
 	class World;
 	class Kernel : public NonConstructingSingleton<Kernel>
 	{
