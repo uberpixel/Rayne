@@ -10,6 +10,12 @@
 				"left": 13.0,
 				"right": 13.0
 			},
+			"contentInsets": {
+				"top": 8.0,
+				"bottom": 8.0,
+				"left": 8.0,
+				"right": 8.0
+			},
 			"states": [
 				{
 					"name": "normal",
@@ -50,6 +56,12 @@
 				"left": 5.0,
 				"right": 5.0
 			},
+			"contentInsets": {
+				"top": 5.0,
+				"bottom": 5.0,
+				"left": 5.0,
+				"right": 5.0
+			},
 			"states": [
 				{
 					"name": "normal",
@@ -84,7 +96,13 @@
 			"name": "RNCheckBox",
 			"mode": "switch",
 			"texture": "ui/rn_uikit.png",
-			"fixed": true,
+			"background": false,
+			"contentInsets": {
+				"top": 0.0,
+				"bottom": 0.0,
+				"left": 0.0,
+				"right": 0.0
+			},
 			"states": [
 				{
 					"name": "normal",

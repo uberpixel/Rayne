@@ -32,6 +32,7 @@ namespace RN
 			void SetAlignment(TextAlignment alignment);
 			void SetLineBreak(LineBreakMode mode);
 			void SetNumberOfLines(uint32 lines);
+			void SetFrame(const Rect& frame) override;
 			
 			String *Text() const { return _string->String(); }
 			Color TextColor() const { return _color; }
@@ -39,6 +40,8 @@ namespace RN
 			TextAlignment Alignment() const { return _alignment; }
 			LineBreakMode LineBreak() const { return _lineBreak; }
 			uint32 NumberOfLines() const { return _lines; }
+			
+			Vector2 SizeThatFits() override;
 			
 		protected:
 			void Update() override;
@@ -53,6 +56,7 @@ namespace RN
 			Font *_font;
 			Color _color;
 			
+			Typesetter *_typesetter;
 			AttributedString *_string;
 			Model *_model;
 			

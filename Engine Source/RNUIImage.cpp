@@ -28,7 +28,7 @@ namespace RN
 			parameter.mipMaps = 0;
 			parameter.generateMipMaps = false;
 			
-			_texture = new RN::Texture(file, parameter, true);
+			_texture = new RN::Texture(file, parameter);
 		}
 		
 		Image::~Image()
@@ -37,7 +37,7 @@ namespace RN
 		}
 		
 		
-		Mesh *Image::FittingMesh(const Vector2& size)
+		Mesh *Image::FittingMesh(const Vector2& size, const Vector2& offset)
 		{
 			uint16 xverts = 2;
 			uint16 yverts = 2;
@@ -124,7 +124,7 @@ namespace RN
 						yuv = 1.0f-_insets.bottom/Height();
 					}
 					
-					*vertices ++ = Vector2(xpos, ypos);
+					*vertices ++ = Vector2(xpos, ypos) + offset;
 					*uvCoords ++ = Vector2(xuv*(_atlas.u2-_atlas.u1)+_atlas.u1, yuv*(_atlas.v2-_atlas.v1)+_atlas.v1);
 				}
 			}
@@ -166,12 +166,12 @@ namespace RN
 		
 		void Image::SetAtlas(const struct Atlas& atlas, bool normalized)
 		{
-			_atlas   = atlas;
+			_atlas = atlas;
 			
 			if(!normalized)
 			{
-				uint32 width = Width(false);
-				uint32 height = Height(false);
+				uint32 width = _texture->Width();
+				uint32 height = _texture->Height();
 				
 				_atlas.u1 /= width;
 				_atlas.u2 /= width;
@@ -183,30 +183,24 @@ namespace RN
 		
 		void Image::SetEdgeInsets(const EdgeInsets& insets)
 		{
-			_insets  = insets;
+			_insets = insets;
 		}
 		
-		uint32 Image::Width(bool atlasApplied) const
+		uint32 Image::Width() const
 		{
 			uint32 width = _texture->Width();
-			if(atlasApplied)
-			{
-				float nwidth  = _atlas.u2 - _atlas.u1;
-				width = nwidth * width;
-			}
+			float nwidth  = _atlas.u2 - _atlas.u1;
 			
+			width = nwidth * width;
 			return width;
 		}
 		
-		uint32 Image::Height(bool atlasApplied) const
+		uint32 Image::Height() const
 		{
 			uint32 height = _texture->Height();
-			if(atlasApplied)
-			{
-				float nheight = _atlas.v2 - _atlas.v1;
-				height = nheight * height;
-			}
-			
+			float nheight = _atlas.v2 - _atlas.v1;
+				
+			height = nheight * height;
 			return height;
 		}
 	}

@@ -137,14 +137,11 @@ namespace RN
 	
 	RN_INLINE Rect& Rect::Inset(float dx, float dy)
 	{
-		float hx = dx * 0.5f;
-		float hy = dy * 0.5f;
+		x += dx;
+		y += dy;
 		
-		x += hx;
-		y += hy;
-		
-		width  -= hx;
-		height -= hy;
+		width  -= dx * 2;
+		height -= dy * 2;
 		
 		return *this;
 	}

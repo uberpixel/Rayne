@@ -51,6 +51,9 @@ namespace RN
 			
 			void NeedsLayoutUpdate();
 			
+			void SizeToFit();
+			virtual Vector2 SizeThatFits();
+			
 			View *HitTest(const Vector2& point, Event *event);
 			virtual bool PointInside(const Vector2& point, Event *event);
 			

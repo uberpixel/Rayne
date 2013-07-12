@@ -21,9 +21,20 @@ namespace RN
 		
 			_fpsLabel = new Label();
 			_fpsLabel->SetFrame(Rect(0.0f, 5.0f, 180.0f, 28.0f).Inset(5.0f, 0.0f));
-			_fpsLabel->SetNumberOfLines(2);
+			_fpsLabel->SetNumberOfLines(0);
 			
 			ContentView()->AddSubview(_fpsLabel->Autorelease());
+			
+			Image *image = Image::WithFile("textures/pixelart.png");
+			image->SetAtlas(Atlas(0.0f, 0.0f, 32.0f, 32.0f), false);
+			
+			_fpsCheckbox = Button::WithType(Button::Type::CheckBox);
+			_fpsCheckbox->SetFrame(Rect(5.0f, 50.0f, 0.0f, 0.0f));
+			_fpsCheckbox->SetTitleForState(RNCSTR("Show avg. FPS"), Control::Normal);
+			_fpsCheckbox->SizeToFit();
+			_fpsCheckbox->SetSelected(true);
+			
+			ContentView()->AddSubview(_fpsCheckbox);
 		}
 		
 		DebugWidget::~DebugWidget()
@@ -52,7 +63,10 @@ namespace RN
 			if(delta > 0.0f)
 				_fps.push(1.0f / delta);
 			
-			_fpsLabel->SetText(RNSTR("Frame: %3.4fs\nAvg. FPS: %3.4f", kernel->Delta(), AverageFPS()));
+			float fps = _fpsCheckbox->IsSelected() ? AverageFPS() : 1.0f / delta;
+			const char *fpsText = _fpsCheckbox->IsSelected() ? "Avg. FPS:" : "FPS:";
+			
+			_fpsLabel->SetText(RNSTR("Frame: %3.4fs\n\%s %3.4f", kernel->Delta(), fpsText, fps));
 		}
 	}
 }

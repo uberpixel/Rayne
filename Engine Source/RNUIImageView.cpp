@@ -66,7 +66,7 @@ namespace RN
 		}
 
 		Vector2 ImageView::FittingImageSize(const Vector2& tsize)
-		{
+		{			
 			Vector2 size = tsize;
 			
 			float width = static_cast<float>(_image->Width());
@@ -103,6 +103,13 @@ namespace RN
 		}
 		
 		
+		Vector2 ImageView::SizeThatFits()
+		{
+			if(!_image)
+				return Vector2(0.0f, 0.0f);
+			
+			return Vector2(_image->Width(), _image->Height());
+		}
 		
 		void ImageView::SetFrame(const Rect& frame)
 		{
@@ -146,7 +153,9 @@ namespace RN
 					DrawMaterial()->AddTexture(_image->Texture());
 					
 					Vector2 size = std::move(FittingImageSize(Frame().Size()));
-					_mesh = _image->FittingMesh(size)->Retain();
+					Vector2 offset = (Frame().Size() - size) * 0.5f;
+					
+					_mesh = _image->FittingMesh(size, offset)->Retain();
 				}
 				
 				_isDirty = false;

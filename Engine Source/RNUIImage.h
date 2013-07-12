@@ -36,10 +36,10 @@ namespace RN
 			const EdgeInsets& Insets() const { return _insets; }
 			
 			Texture *Texture() const { return _texture; }
-			Mesh *FittingMesh(const Vector2& size);
+			Mesh *FittingMesh(const Vector2& size, const Vector2& offset=Vector2());
 			
-			uint32 Width(bool atlasApplied=true) const;
-			uint32 Height(bool atlasApplied=true) const;
+			uint32 Width() const;
+			uint32 Height() const;
 			
 		private:
 			class Texture *_texture;

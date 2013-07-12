@@ -304,6 +304,21 @@ namespace RN
 		// MARK: Layout engine
 		// ---------------------
 		
+		void View::SizeToFit()
+		{
+			Vector2 size = std::move(SizeThatFits());
+			_frame.width  = size.x;
+			_frame.height = size.y;
+			
+			SetFrame(_frame);
+			NeedsLayoutUpdate();
+		}
+		
+		Vector2 View::SizeThatFits()
+		{
+			return _frame.Size();
+		}
+		
 		void View::SetFrame(const Rect& frame)
 		{
 			_frame = frame;

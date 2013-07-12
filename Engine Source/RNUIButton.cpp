@@ -11,11 +11,28 @@
 #include "RNResourcePool.h"
 #include "RNNumber.h"
 
+#define kRNUIButtonContentGap 5.0f
+
 namespace RN
 {
 	namespace UI
 	{
 		RNDeclareMeta(Button)
+		
+		EdgeInsets ParseInsets(Dictionary *insets)
+		{
+			if(insets)
+			{
+				float top = insets->ObjectForKey<Number>(RNCSTR("top"))->FloatValue();
+				float bottom = insets->ObjectForKey<Number>(RNCSTR("bottom"))->FloatValue();
+				float left  = insets->ObjectForKey<Number>(RNCSTR("left"))->FloatValue();
+				float right = insets->ObjectForKey<Number>(RNCSTR("right"))->FloatValue();
+				
+				return EdgeInsets(top, bottom, left, right);
+			}
+			
+			return EdgeInsets();
+		}
 		
 		Button::Button()
 		{
@@ -30,6 +47,9 @@ namespace RN
 			Texture *texture = styleSheet->TextureWithName(style->ObjectForKey<String>(RNCSTR("texture")));
 			Dictionary *tlInsets = style->ObjectForKey<Dictionary>(RNCSTR("insets"));
 			String *mode = style->ObjectForKey<String>(RNCSTR("mode"));
+			Number *background = style->ObjectForKey<Number>(RNCSTR("background"));
+			
+			bool useBackground = background ? background->BoolValue() : true;
 			
 			if(mode->IsEqual(RNCSTR("momentarily")))
 				SetBehavior(Behavior::Momentarily);
@@ -72,29 +92,38 @@ namespace RN
 					image->SetAtlas(Atlas(x, y, width, height), false);
 				}
 				
-				if(insets)
-				{
-					float top = insets->ObjectForKey<Number>(RNCSTR("top"))->FloatValue();
-					float bottom = insets->ObjectForKey<Number>(RNCSTR("bottom"))->FloatValue();
-					float left  = insets->ObjectForKey<Number>(RNCSTR("left"))->FloatValue();
-					float right = insets->ObjectForKey<Number>(RNCSTR("right"))->FloatValue();
-					
-					image->SetEdgeInsets(EdgeInsets(top, bottom, left, right));
-				}
+				image->SetEdgeInsets(ParseInsets(insets));
 				
-				this->SetImageForState(image->Autorelease(), tstate);
+				if(useBackground)
+					this->SetBackgroundImageForState(image->Autorelease(), tstate);
+				else
+					this->SetImageForState(image->Autorelease(), tstate);
 			});
+			
+			SetContentInsets(ParseInsets(style->ObjectForKey<Dictionary>(RNCSTR("contentInsets"))));
+			SizeToFit();
 		}
 		
 		Button::~Button()
 		{
+			for(auto i=_titles.begin(); i!=_titles.end(); i++)
+			{
+				i->second->Release();
+			}
+			
 			for(auto i=_images.begin(); i!=_images.end(); i++)
+			{
+				i->second->Release();
+			}
+			
+			for(auto i=_backgroundImages.begin(); i!=_backgroundImages.end(); i++)
 			{
 				i->second->Release();
 			}
 			
 			_label->Release();
 			_image->Release();
+			_backgroundImage->Release();
 		}
 		
 		Button *Button::WithType(Type type)
@@ -123,36 +152,61 @@ namespace RN
 		
 		void Button::Initialize()
 		{
-			_behavior = Behavior::Momentarily;
+			_currentBackground = nullptr;
+			_currentImage = nullptr;
+			_currentTitle = nullptr;
 			
+			_behavior = Behavior::Momentarily;
+			_position = ImagePosition::Left;
+			
+			_backgroundImage = new ImageView();
 			_image = new ImageView();
 			_label = new Label();
 			
-			_image->SetFrame(Bounds());
-			_label->SetFrame(Bounds());
+			_backgroundImage->SetFrame(Bounds());
 			
+			_label->SetFrame(Bounds());
 			_label->SetTextColor(Color::White());
 			_label->SetAlignment(TextAlignment::Center);
 			
+			_image->SetFrame(Bounds());
+			_image->SetScaleMode(ScaleMode::ProportionallyDown);
+			
+			AddSubview(_backgroundImage);
 			AddSubview(_image);
 			AddSubview(_label);
 			
 			StateChanged(ControlState());
-			DrawMaterial()->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUIImageShader));
 		}
 		
 		void Button::StateChanged(State state)
 		{
-			Control::StateChanged(state);
-
+#define TryActivatingBackgroundImage(s) \
+			if((state & s) && ActivateBackgroundImage(s)) \
+				break
+			
 #define TryActivatingImage(s) \
 			if((state & s) && ActivateImage(s)) \
 				break
-			
+
 #define TryActivatingTitle(s) \
 			if((state & s) && ActivateTitle(s)) \
 				break
 	
+			_backgroundImage->SetImage(nullptr);
+			_image->SetImage(nullptr);
+			_label->SetText(RNCSTR(""));
+			
+			_currentTitle = nullptr;
+			_currentImage = _currentBackground = nullptr;
+			
+			do {
+				TryActivatingBackgroundImage(Control::Disabled);
+				TryActivatingBackgroundImage(Control::Selected);
+				TryActivatingBackgroundImage(Control::Highlighted);
+				
+				ActivateBackgroundImage(Control::Normal);
+			} while(0);
 			
 			do {
 				TryActivatingImage(Control::Disabled);
@@ -169,6 +223,22 @@ namespace RN
 				
 				ActivateTitle(Control::Normal);
 			} while(0);
+			
+			_dirty = true;
+		}
+		
+		bool Button::ActivateBackgroundImage(State state)
+		{
+			auto iterator = _backgroundImages.find(state);
+			if(iterator != _backgroundImages.end())
+			{
+				_backgroundImage->SetImage(iterator->second);
+				_currentBackground = iterator->second;
+				
+				return true;
+			}
+			
+			return false;
 		}
 		
 		bool Button::ActivateImage(State state)
@@ -177,6 +247,8 @@ namespace RN
 			if(iterator != _images.end())
 			{
 				_image->SetImage(iterator->second);
+				_currentImage = iterator->second;
+				
 				return true;
 			}
 			
@@ -189,6 +261,8 @@ namespace RN
 			if(iterator != _titles.end())
 			{
 				_label->SetText(iterator->second);
+				_currentTitle = iterator->second;
+				
 				return true;
 			}
 			
@@ -200,9 +274,14 @@ namespace RN
 		void Button::SetFrame(const Rect& frame)
 		{
 			Control::SetFrame(frame);
-			
-			_image->SetFrame(Bounds());
-			_label->SetFrame(Bounds());
+			_backgroundImage->SetFrame(Bounds());
+			_dirty = true;
+		}
+		
+		void Button::SetContentInsets(const EdgeInsets& insets)
+		{
+			_contentInsets = insets;
+			_dirty = true;
 		}
 		
 		void Button::SetTitleForState(String *title, State state)
@@ -227,6 +306,31 @@ namespace RN
 			}
 			
 			_titles.insert(std::map<State, String *>::value_type(state, title->Retain()));
+			StateChanged(ControlState());
+		}
+		
+		void Button::SetBackgroundImageForState(Image *image, State state)
+		{
+			auto iterator = _backgroundImages.find(state);
+			if(iterator != _backgroundImages.end())
+			{
+				iterator->second->Release();
+				
+				if(image)
+				{
+					iterator->second = image->Retain();
+					
+					StateChanged(ControlState());
+					return;
+				}
+				
+				_backgroundImages.erase(iterator);
+				
+				StateChanged(ControlState());
+				return;
+			}
+			
+			_backgroundImages.insert(std::map<State, Image *>::value_type(state, image->Retain()));
 			StateChanged(ControlState());
 		}
 		
@@ -260,6 +364,30 @@ namespace RN
 			_behavior = behavior;
 		}
 		
+		void Button::SetImagePosition(ImagePosition position)
+		{
+			_position = position;
+			
+			switch(_position)
+			{
+				case ImagePosition::NoImage:
+					_image->RemoveFromSuperview();
+					AddSubview(_label);
+					break;
+					
+				case ImagePosition::ImageOnly:
+					_label->RemoveFromSuperview();
+					AddSubview(_image);
+					break;
+					
+				default:
+					AddSubview(_label);
+					AddSubview(_image);
+					break;
+			}
+		}
+		
+		
 		bool Button::PostEvent(EventType event)
 		{
 			if(!IsEnabled())
@@ -292,6 +420,119 @@ namespace RN
 			}
 			
 			return Control::PostEvent(event);
+		}
+		
+		Vector2 Button::SizeThatFits()
+		{
+			State temp = ControlState();
+			StateChanged(Control::Normal);
+			
+			Vector2 size = Vector2(_contentInsets.left + _contentInsets.right, _contentInsets.top + _contentInsets.bottom);
+			
+			Vector2 titleSize = std::move(_label->SizeThatFits());
+			Vector2 imageSize = std::move(_image->SizeThatFits());
+			
+			Vector2 max;
+			max.x = std::max(titleSize.x, imageSize.x);
+			max.y = std::max(titleSize.y, imageSize.y);
+			
+			switch(_position)
+			{
+				case ImagePosition::NoImage:
+					size += titleSize;
+					break;
+					
+				case ImagePosition::ImageOnly:
+					size += imageSize;
+					break;
+					
+				case ImagePosition::Overlaps:
+					size += max;
+					break;
+					
+				case ImagePosition::Left:
+				case ImagePosition::Right:
+					size.x += titleSize.x + imageSize.x + size.x + kRNUIButtonContentGap;
+					size.y += max.y;
+					break;
+					
+				case ImagePosition::Above:
+				case ImagePosition::Below:
+					size.x += max.x;
+					size.y += titleSize.y + imageSize.y + size.y + kRNUIButtonContentGap;
+					break;
+			}
+			
+			StateChanged(temp);
+			return size;
+		}
+		
+		void Button::Update()
+		{
+			Control::Update();
+			
+			if(_dirty)
+			{
+				Vector2 titleSize = std::move(_label->SizeThatFits());
+				Vector2 imageSize = std::move(_image->SizeThatFits());
+				
+				Vector2 insetSize = Vector2(_contentInsets.left + _contentInsets.right, _contentInsets.top + _contentInsets.bottom);
+				Vector2 size = Frame().Size();
+				Vector2 truncatedSize = size - insetSize;
+				
+				titleSize.x = truncatedSize.x > titleSize.x ? titleSize.x : truncatedSize.x;
+				titleSize.y = truncatedSize.y > titleSize.y ? titleSize.y : truncatedSize.y;
+				
+				imageSize.x = truncatedSize.x > imageSize.x ? imageSize.x : truncatedSize.x;
+				imageSize.y = truncatedSize.y > imageSize.y ? imageSize.y : truncatedSize.y;
+				
+				Vector2 halfTitle = titleSize * 0.5f;
+				Vector2 halfImage = imageSize * 0.5f;
+				
+				Vector2 center = size * 0.5f;
+				
+				Vector2 centeredTitle = center - halfTitle;
+				Vector2 centeredImage = center - halfImage;
+				
+				bool simpleCenter = (_position == ImagePosition::Overlaps || _position == ImagePosition::NoImage || _position == ImagePosition::ImageOnly);
+				
+				_label->SetFrame(Rect(_contentInsets.left, centeredTitle.y, size.x - insetSize.x, titleSize.y));
+				_image->SetFrame(Rect(_contentInsets.left, centeredImage.y, size.x - insetSize.x, imageSize.y));
+				
+				if(!_currentImage || !_currentTitle || simpleCenter)
+					return;
+				
+				bool fitsHorizontally = (size.x - insetSize.x > titleSize.x + (imageSize.x * 2));
+				//bool fitsVertically   = (size.y >= (titleSize.y + imageSize.y) - insetSize.y);
+				
+				switch(_position)
+				{
+					case ImagePosition::Left:
+						if(!fitsHorizontally || _label->Alignment() == TextAlignment::Left)
+						{
+							Rect titleRect = Rect(_contentInsets.left + imageSize.x, centeredTitle.y, size.x - (imageSize.x + insetSize.x), titleSize.y);
+							_label->SetFrame(titleRect);
+						}
+						
+						_image->SetFrame(Rect(_contentInsets.left, centeredImage.y, imageSize.x, imageSize.y));
+						break;
+						
+					case ImagePosition::Right:
+						if(!fitsHorizontally || _label->Alignment() == TextAlignment::Right)
+						{
+							Rect titleRect = Rect(_contentInsets.left, centeredTitle.y, size.x - (imageSize.x + insetSize.x), titleSize.y);
+							_label->SetFrame(titleRect);
+						}
+						
+						_image->SetFrame(Rect(size.x - imageSize.x - _contentInsets.right, centeredImage.y, imageSize.x, imageSize.y));
+						break;
+						
+					default:
+						throw Exception(Exception::Type::GenericException, "Fix it, you lazy bastard!");
+				}
+			
+				_dirty = false;
+			}
 		}
 	}
 }

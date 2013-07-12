@@ -29,6 +29,8 @@ namespace RN
 			void SetScaleMode(ScaleMode mode);
 			void SetFrame(const Rect& frame) override;
 			
+			Vector2 SizeThatFits() override;
+			
 		protected:
 			void Update() override;
 			bool Render(RenderingObject& object) override;

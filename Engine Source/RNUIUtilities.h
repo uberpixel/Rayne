@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNUIWidget.h"
 #include "RNUILabel.h"
+#include "RNUIButton.h"
 #include "RNRingbuffer.h"
 
 namespace RN
@@ -30,6 +31,7 @@ namespace RN
 			float AverageFPS();
 			
 			Label *_fpsLabel;
+			Button *_fpsCheckbox;
 			stl::ring_buffer<float> _fps;
 		};
 	}

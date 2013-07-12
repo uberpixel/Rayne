@@ -87,6 +87,17 @@ namespace RN
 			ProportionallyUpOrDown,
 			AxisIndependently
 		};
+		
+		enum class ImagePosition
+		{
+			NoImage,
+			ImageOnly,
+			Left,
+			Right,
+			Below,
+			Above,
+			Overlaps
+		};
 	}
 }
 

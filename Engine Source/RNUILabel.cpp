@@ -24,6 +24,8 @@ namespace RN
 		{
 			_string->Release();
 			_font->Release();
+			
+			delete _typesetter;
 		}
 		
 		void Label::Initialize()
@@ -33,14 +35,17 @@ namespace RN
 			_font      = nullptr;
 			_model     = nullptr;
 			
-			_alignment  = TextAlignment::Left;
-			_lineBreak  = LineBreakMode::TruncateTail;
-			_lines      = 1;
 			_string     = new AttributedString(RNCSTR(""));
+			_typesetter = new Typesetter(_string, Bounds());
+			_typesetter->SetAllowPartiallyClippedLined(false);
 			
 			SetFont(ResourcePool::SharedInstance()->ResourceWithName<Font>(kRNResourceKeyDefaultFont));
 			SetTextColor(Color::White());
 			SetInteractionEnabled(false);
+			
+			SetAlignment(TextAlignment::Left);
+			SetLineBreak(LineBreakMode::TruncateTail);
+			SetNumberOfLines(1);
 		}
 		
 		void Label::SetFont(Font *font)
@@ -71,6 +76,7 @@ namespace RN
 			_string = new AttributedString(text);
 			_string->AddAttribute(kRNTypesetterFontAttribute, _font, Range(0, text->Length()));
 			
+			_typesetter->SetText(_string);
 			_isDirty = true;
 		}
 		
@@ -83,6 +89,8 @@ namespace RN
 			
 			_string  = text->Retain();
 			_isDirty = true;
+			
+			_typesetter->SetText(_string);
 		}
 		
 		void Label::SetTextColor(const Color& color)
@@ -94,22 +102,37 @@ namespace RN
 		void Label::SetAlignment(TextAlignment alignment)
 		{
 			_alignment = alignment;
+			_typesetter->SetAlignment(_alignment);
 			_isDirty = true;
 		}
 		
 		void Label::SetLineBreak(LineBreakMode mode)
 		{
 			_lineBreak = mode;
+			_typesetter->SetLineBreak(_lineBreak);
 			_isDirty = true;
 		}
 		
 		void Label::SetNumberOfLines(uint32 lines)
 		{
 			_lines = lines;
+			_typesetter->SetMaximumLines(_lines);
 			_isDirty = true;
 		}
 		
-
+		Vector2 Label::SizeThatFits()
+		{
+			return _typesetter->Dimensions();
+		}
+		
+		void Label::SetFrame(const Rect& frame)
+		{
+			View::SetFrame(frame);
+			
+			_typesetter->SetFrame(Bounds());
+			_isDirty = true;
+		}
+		
 		void Label::Update()
 		{
 			View::Update();
@@ -125,14 +148,7 @@ namespace RN
 				if(!_string)
 					return;
 				
-				Typesetter typesetter(_string, Bounds());
-				
-				typesetter.SetMaximumLines(_lines);
-				typesetter.SetLineBreak(_lineBreak);
-				typesetter.SetAlignment(_alignment);
-				typesetter.SetAllowPartiallyClippedLined(false);
-				
-				_model = typesetter.LineModel()->Retain();
+				_model = _typesetter->LineModel()->Retain();
 				_isDirty = false;
 			}
 		}
