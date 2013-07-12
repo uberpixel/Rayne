@@ -29,6 +29,13 @@ namespace RN
 			Style *styleSheet = Style::SharedInstance();
 			Texture *texture = styleSheet->TextureWithName(style->ObjectForKey<String>(RNCSTR("texture")));
 			Dictionary *tlInsets = style->ObjectForKey<Dictionary>(RNCSTR("insets"));
+			String *mode = style->ObjectForKey<String>(RNCSTR("mode"));
+			
+			if(mode->IsEqual(RNCSTR("momentarily")))
+				SetBehavior(Behavior::Momentarily);
+			
+			if(mode->IsEqual(RNCSTR("switch")))
+				SetBehavior(Behavior::Switch);
 			
 			Array *states = style->ObjectForKey<Array>(RNCSTR("states"));
 			states->Enumerate([&](Object *object, size_t index, bool *stop) {
@@ -85,6 +92,9 @@ namespace RN
 			{
 				i->second->Release();
 			}
+			
+			_label->Release();
+			_image->Release();
 		}
 		
 		Button *Button::WithType(Type type)
@@ -100,6 +110,10 @@ namespace RN
 				case Type::PushButton:
 					style = Style::SharedInstance()->ButtonStyle(RNCSTR("RNPushButton"));
 					break;
+					
+				case Type::CheckBox:
+					style = Style::SharedInstance()->ButtonStyle(RNCSTR("RNCheckBox"));
+					break;
 			}
 			
 			Button *button = new Button(style);
@@ -109,6 +123,8 @@ namespace RN
 		
 		void Button::Initialize()
 		{
+			_behavior = Behavior::Momentarily;
+			
 			_image = new ImageView();
 			_label = new Label();
 			
@@ -128,29 +144,28 @@ namespace RN
 		void Button::StateChanged(State state)
 		{
 			Control::StateChanged(state);
+
+#define TryActivatingImage(s) \
+			if((state & s) && ActivateImage(s)) \
+				break
+			
+#define TryActivatingTitle(s) \
+			if((state & s) && ActivateTitle(s)) \
+				break
+	
 			
 			do {
-				if((state & Control::Disabled) && ActivateImage(Control::Disabled))
-					break;
-				
-				if((state & Control::Selected) && ActivateImage(Control::Selected))
-					break;
-				
-				if((state & Control::Highlighted) && ActivateImage(Control::Highlighted))
-					break;
+				TryActivatingImage(Control::Disabled);
+				TryActivatingImage(Control::Selected);
+				TryActivatingImage(Control::Highlighted);
 				
 				ActivateImage(Control::Normal);
 			} while(0);
 			
 			do {
-				if((state & Control::Disabled) && ActivateTitle(Control::Disabled))
-					break;
-				
-				if((state & Control::Selected) && ActivateTitle(Control::Selected))
-					break;
-				
-				if((state & Control::Highlighted) && ActivateTitle(Control::Highlighted))
-					break;
+				TryActivatingTitle(Control::Disabled);
+				TryActivatingTitle(Control::Selected);
+				TryActivatingTitle(Control::Highlighted);
 				
 				ActivateTitle(Control::Normal);
 			} while(0);
@@ -238,6 +253,45 @@ namespace RN
 			
 			_images.insert(std::map<State, Image *>::value_type(state, image->Retain()));
 			StateChanged(ControlState());
+		}
+		
+		void Button::SetBehavior(Behavior behavior)
+		{
+			_behavior = behavior;
+		}
+		
+		bool Button::PostEvent(EventType event)
+		{
+			if(!IsEnabled())
+				return true;
+			
+			if(_behavior == Behavior::Switch)
+			{
+				switch(event)
+				{
+					case Control::EventType::MouseEntered:
+					case Control::EventType::MouseLeft:
+						return true;
+						
+					case Control::EventType::MouseDown:
+						SetHighlighted(true);
+						return true;
+						
+					case Control::EventType::MouseUpInside:
+						SetSelected(!IsSelected());
+						SetHighlighted(false);
+						return true;
+						
+					case Control::EventType::MouseUpOutside:
+						SetHighlighted(false);
+						return true;
+						
+					default:
+						break;
+				}
+			}
+			
+			return Control::PostEvent(event);
 		}
 	}
 }

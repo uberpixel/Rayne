@@ -27,7 +27,11 @@ namespace RN
 		template<typename T=Object>
 		T *ObjectForKey(Object *key)
 		{
-			return static_cast<T *>(PrimitiveObjectForKey(key));
+			Object *object = PrimitiveObjectForKey(key);
+			if(object)
+				return object->Downcast<T>();
+			
+			return nullptr;
 		}
 		
 		RNAPI void SetObjectForKey(Object *object, Object *key);

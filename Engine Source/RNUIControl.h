@@ -22,10 +22,10 @@ namespace RN
 		public:
 			enum
 			{
-				Normal = (1 << 0),
-				Highlighted = (1 << 1),
-				Selected = (1 << 2),
-				Disabled = (1 << 3)
+				Normal = 0,
+				Highlighted = (1 << 0),
+				Selected = (1 << 1),
+				Disabled = (1 << 2)
 			};
 			typedef uint32 State;
 			
@@ -35,6 +35,9 @@ namespace RN
 				MouseDownRepeat,
 				MouseUpInside,
 				MouseUpOutside,
+				
+				MouseEntered,
+				MouseLeft,
 				
 				ValueChanged
 			};
@@ -63,18 +66,22 @@ namespace RN
 			Control();
 			~Control() override;
 			
-			virtual void StateChanged(State state);
-			
-			void PostEvent(EventType event);
+			void SetState(State state);
 			bool IsEventWithinBounds(Event *event);
 			
-		private:
+			virtual void StateChanged(State state);
+			virtual bool PostEvent(EventType event);
+			void DispatchEvent(EventType event);
+			
+			
+		private:			
 			void ConsumeMouseClicks(Event *event);
 			void ConsumeMouseMove(Event *event);
 			
 			State _state;
 			
 			bool _mouseDown;
+			bool _mouseInside;
 			
 			struct EventListener
 			{

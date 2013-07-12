@@ -27,7 +27,14 @@ namespace RN
 			enum class Type
 			{
 				RoundedRect,
-				PushButton
+				PushButton,
+				CheckBox
+			};
+			
+			enum class Behavior
+			{
+				Momentarily,
+				Switch
 			};
 			
 			Button();
@@ -38,10 +45,12 @@ namespace RN
 			
 			void SetTitleForState(String *title, State state);
 			void SetImageForState(Image *image, State state);
+			void SetBehavior(Behavior behavior);
 			
 			void SetFrame(const Rect& frame) override;
 			
 		protected:
+			bool PostEvent(EventType event) override;
 			void StateChanged(State state) override;
 			
 		private:
@@ -52,6 +61,8 @@ namespace RN
 			
 			std::map<State, Image *> _images;
 			std::map<State, String *> _titles;
+			
+			Behavior _behavior;
 			
 			ImageView *_image;
 			Label *_label;

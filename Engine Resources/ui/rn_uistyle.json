@@ -2,6 +2,7 @@
 	"buttons": [
 		{
 			"name": "RNRoundedRect",
+			"mode": "momentarily",
 			"texture": "ui/rn_uikit.png",
 			"insets": {
 				"top": 12.0,
@@ -22,7 +23,7 @@
 				{
 					"name": "selected",
 					"atlas": {
-						"x": 31.0,
+						"x": 62.0,
 						"y": 0.0,
 						"width": 31.0,
 						"height": 28.0
@@ -31,7 +32,7 @@
 				{
 					"name": "highlighted",
 					"atlas": {
-						"x": 62.0,
+						"x": 31.0,
 						"y": 0.0,
 						"width": 31.0,
 						"height": 28.0
@@ -41,6 +42,7 @@
 		},
 		{
 			"name": "RNPushButton",
+			"mode": "momentarily",
 			"texture": "ui/rn_uikit.png",
 			"insets": {
 				"top": 5.0,
@@ -61,7 +63,7 @@
 				{
 					"name": "selected",
 					"atlas": {
-						"x": 115.0,
+						"x": 104.0,
 						"y": 0.0,
 						"width": 11.0,
 						"height": 28.0
@@ -70,10 +72,45 @@
 				{
 					"name": "highlighted",
 					"atlas": {
-						"x": 104.0,
+						"x": 115.0,
 						"y": 0.0,
 						"width": 11.0,
 						"height": 28.0
+					}
+				}
+			]
+		},
+		{
+			"name": "RNCheckBox",
+			"mode": "switch",
+			"texture": "ui/rn_uikit.png",
+			"fixed": true,
+			"states": [
+				{
+					"name": "normal",
+					"atlas": {
+						"x": 126.0,
+						"y": 16.0,
+						"width": 15.0,
+						"height": 15.0
+					}
+				},
+				{
+					"name": "selected",
+					"atlas": {
+						"x": 126.0,
+						"y": 0.0,
+						"width": 15.0,
+						"height": 15.0
+					}
+				},
+				{
+					"name": "highlighted",
+					"atlas": {
+						"x": 142.0,
+						"y": 0.0,
+						"width": 15.0,
+						"height": 15.0
 					}
 				}
 			]

@@ -17,7 +17,9 @@ namespace RN
 		Control::Control()
 		{
 			_state = Control::Normal;
+			
 			_mouseDown = false;
+			_mouseInside = false;
 		}
 		Control::~Control()
 		{
@@ -52,10 +54,21 @@ namespace RN
 			_state &= ~Control::Disabled;
 			
 			if(!enabled)
+			{
 				_state |= Control::Disabled;
+				_mouseDown = false;
+			}
 			
 			if(_state != oldState)
 				StateChanged(_state);
+		}
+		
+		void Control::SetState(State state)
+		{
+			_state = state;
+			
+			if(!IsEnabled())
+				_mouseDown = false;
 		}
 		
 		void Control::StateChanged(State state)
@@ -108,11 +121,48 @@ namespace RN
 			RemoveListener(EventType::MouseUpInside, cookie);
 			RemoveListener(EventType::MouseUpOutside, cookie);
 			
+			RemoveListener(EventType::MouseEntered, cookie);
+			RemoveListener(EventType::MouseLeft, cookie);
+			
 			RemoveListener(EventType::ValueChanged, cookie);
 		}
 		
-		void Control::PostEvent(EventType event)
+		bool Control::PostEvent(EventType event)
 		{
+			if(_state & Control::Disabled)
+				return false;
+			
+			switch(event)
+			{
+				case EventType::MouseDown:
+					SetSelected(true);
+					break;
+					
+				case EventType::MouseUpInside:
+				case EventType::MouseUpOutside:
+					SetSelected(false);
+					break;
+					
+				case EventType::MouseEntered:
+					SetHighlighted(true);
+					break;
+					
+				case EventType::MouseLeft:
+					SetHighlighted(false);
+					break;
+					
+				default:
+					break;
+			}
+			
+			return true;
+		}
+		
+		void Control::DispatchEvent(EventType event)
+		{
+			if(!PostEvent(event))
+				return;
+			
 			auto iterator = _listener.find(event);
 			if(iterator == _listener.end())
 				return;
@@ -130,18 +180,17 @@ namespace RN
 			Vector2 point = std::move(ConvertPointFromView(nullptr, event->MousePosition()));
 			return Bounds().ContainsPoint(point);
 		}
+	
 		
 		
 		void Control::ConsumeMouseClicks(Event *event)
 		{
-			if(event->EventType() == Event::Type::MouseUp)
+			if(event->EventType() == Event::Type::MouseUp && _mouseDown)
 			{
 				_mouseDown = false;
 				
 				EventType type = IsEventWithinBounds(event) ? EventType::MouseUpInside : EventType::MouseUpOutside;
-				
-				SetSelected(false);
-				PostEvent(type);
+				DispatchEvent(type);
 				return;
 			}
 			
@@ -150,13 +199,11 @@ namespace RN
 				if(!_mouseDown)
 				{
 					_mouseDown = true;
-					
-					SetSelected(true);
-					PostEvent(EventType::MouseDown);
+					DispatchEvent(EventType::MouseDown);
 				}
 				else
 				{
-					PostEvent(EventType::MouseDownRepeat);
+					DispatchEvent(EventType::MouseDownRepeat);
 				}
 			}
 		}
@@ -166,9 +213,21 @@ namespace RN
 			if(event->EventType() == Event::Type::MouseMoved)
 			{
 				bool isWithinBounds = IsEventWithinBounds(event);
-				SetHighlighted(isWithinBounds);
+				
+				if(!_mouseInside && isWithinBounds)
+				{
+					DispatchEvent(EventType::MouseEntered);
+					_mouseInside = true;
+				}
+				
+				if(_mouseInside && !isWithinBounds)
+				{
+					DispatchEvent(EventType::MouseLeft);
+					_mouseInside = false;
+				}
 			}
 		}
+		
 		
 		
 		void Control::BeginTrackingEvent(Event *event)
@@ -196,13 +255,6 @@ namespace RN
 				ConsumeMouseClicks(event);
 				ConsumeMouseMove(event);
 			}
-			
-			_mouseDown = false;
-			
-			_state &= ~Control::Highlighted;
-			_state &= ~Control::Selected;
-			
-			StateChanged(_state);
 		}
 	}
 }
