@@ -47,7 +47,11 @@ namespace RN
 			Texture *texture = _textures->ObjectForKey<Texture>(name);
 			if(!texture)
 			{
-				texture = new Texture(name->UTF8String());
+				TextureParameter parameter;
+				parameter.generateMipMaps = false;
+				parameter.mipMaps = 0;
+				
+				texture = new Texture(name->UTF8String(), parameter);
 				_textures->SetObjectForKey(texture->Autorelease(), name);
 			}
 			
