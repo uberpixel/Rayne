@@ -45,6 +45,12 @@ namespace RN
 		
 		RNAPI void AddObserver(String *name, CallbackType callback, void *cookie);
 		
+		template<class Function, class Receiver>
+		void AddObserver(String *name, Function&& function, Receiver receiver, void *cookie)
+		{
+			AddObserver(name, std::bind(function, receiver, std::placeholders::_1), cookie);
+		}
+		
 		RNAPI void RemoveObserver(void *cookie);
 		RNAPI void RemoveObserver(void *cookie, String *name);
 		

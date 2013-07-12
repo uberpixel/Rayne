@@ -35,7 +35,7 @@ namespace RN
 			_debugWidget = nullptr;
 			_drawDebugFrames = false;
 			
-			MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, std::bind(&Server::HandleEvent, this, std::placeholders::_1), this);
+			MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, &Server::HandleEvent, this, this);
 		}
 		
 		Server::~Server()
