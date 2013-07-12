@@ -26,6 +26,7 @@ namespace RN
 			~ImageView() override;
 			
 			void SetImage(Image *image);
+			void SetScaleMode(ScaleMode mode);
 			void SetFrame(const Rect& frame) override;
 			
 		protected:
@@ -34,10 +35,11 @@ namespace RN
 			
 		private:
 			void Initialize();
-			Mesh *UpdateMeshForImage();
+			Vector2 FittingImageSize(const Vector2& tsize);
 			
 			bool _isDirty;
 			
+			ScaleMode _scaleMode;
 			Image *_image;
 			Mesh  *_mesh;
 			

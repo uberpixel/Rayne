@@ -62,12 +62,57 @@ namespace RN
 			_mesh  = nullptr;
 			_image = 0;
 			_isDirty = true;
+			_scaleMode = ScaleMode::AxisIndependently;
 		}
 
+		Vector2 ImageView::FittingImageSize(const Vector2& tsize)
+		{
+			Vector2 size = tsize;
+			
+			float width = static_cast<float>(_image->Width());
+			float height = static_cast<float>(_image->Height());
+			
+			switch(_scaleMode)
+			{
+				case ScaleMode::ProportionallyDown:
+					size.x = std::min(size.x, width);
+					size.y = std::min(size.y, height);
+					
+				case ScaleMode::ProportionallyUpOrDown:
+					if(size.x > size.y)
+					{
+						float factor = size.x / width;
+						size.y = height * factor;
+					}
+					else
+					{
+						float factor = size.y / height;
+						size.x = width * factor;
+					}
+					break;
+					
+				case ScaleMode::None:
+					size = Vector2(width, height);
+					break;
+					
+				default:
+					break;
+			}
+			
+			return size;
+		}
+		
+		
 		
 		void ImageView::SetFrame(const Rect& frame)
 		{
 			View::SetFrame(frame);
+			_isDirty = true;
+		}
+		
+		void ImageView::SetScaleMode(ScaleMode mode)
+		{
+			_scaleMode = mode;
 			_isDirty = true;
 		}
 		
@@ -100,7 +145,8 @@ namespace RN
 					DrawMaterial()->RemoveTextures();
 					DrawMaterial()->AddTexture(_image->Texture());
 					
-					_mesh = _image->FittingMesh(Frame().Size())->Retain();
+					Vector2 size = std::move(FittingImageSize(Frame().Size()));
+					_mesh = _image->FittingMesh(size)->Retain();
 				}
 				
 				_isDirty = false;

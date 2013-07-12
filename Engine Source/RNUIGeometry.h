@@ -79,6 +79,14 @@ namespace RN
 			
 			float u1, v1, u2, v2;
 		};
+		
+		enum class ScaleMode
+		{
+			None,
+			ProportionallyDown,
+			ProportionallyUpOrDown,
+			AxisIndependently
+		};
 	}
 }
 
