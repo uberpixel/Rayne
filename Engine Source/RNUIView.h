@@ -49,6 +49,8 @@ namespace RN
 			void RemoveAllSubviews();
 			void RemoveFromSuperview();
 			
+			Array *Subivews() { return &_subviews; }
+			
 			void NeedsLayoutUpdate();
 			
 			void SizeToFit();
@@ -65,6 +67,11 @@ namespace RN
 			virtual bool Render(RenderingObject& object);
 			virtual void Render(Renderer *renderer);
 			void RenderChilds(Renderer *renderer);
+			
+			virtual void DidAddSubview(View *subview);
+			virtual void WillRemoveSubview(View *subview);
+			virtual void WillMoveToSuperview(View *superview);
+			virtual void DidMoveToSuperview(View *superview);
 			
 			Matrix transform;
 			Matrix _finalTransform;
@@ -84,6 +91,7 @@ namespace RN
 			bool _interactionEnabled;
 			bool _dirtyLayout;			
 			Rect _frame;
+			Rect _scissorRect;
 			
 			Matrix _intermediateTransform;
 			

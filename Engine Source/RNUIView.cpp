@@ -252,15 +252,23 @@ namespace RN
 		
 		void View::AddSubview(View *subview)
 		{
+			subview->Retain();
+			
 			if(subview->_superview)
 				subview->RemoveFromSuperview();
 			
-			_subviews.AddObject(subview->Retain());
+			subview->WillMoveToSuperview(this);
+			
+			_subviews.AddObject(subview);
 			
 			subview->_superview = this;
 			subview->_widget = _widget;
 			
 			subview->ViewHierarchyChanged();
+			subview->DidMoveToSuperview(this);
+			subview->Release();
+			
+			DidAddSubview(subview);
 			NeedsLayoutUpdate();
 		}
 		
@@ -269,10 +277,18 @@ namespace RN
 			size_t index = _subviews.IndexOfObject(subview);
 			if(index != kRNNotFound)
 			{
+				WillRemoveSubview(subview);
+				
+				subview->Retain();
+				subview->WillMoveToSuperview(nullptr);
+				
 				_subviews.RemoveObjectAtIndex(index);
 				
 				subview->_superview = 0;
 				subview->_widget = 0;
+				
+				subview->DidMoveToSuperview(nullptr);
+				subview->Release();
 				
 				NeedsLayoutUpdate();
 			}
@@ -285,8 +301,13 @@ namespace RN
 			{
 				View *subview = _subviews.ObjectAtIndex<View>(i);
 				
+				WillRemoveSubview(subview);
+				subview->WillMoveToSuperview(nullptr);
+				
 				subview->_superview = 0;
 				subview->_widget = 0;
+				
+				subview->DidMoveToSuperview(nullptr);
 			}
 			
 			_subviews.RemoveAllObjects();
@@ -298,6 +319,16 @@ namespace RN
 			_superview->RemoveSubview(this);
 		}
 		
+		
+		void View::DidAddSubview(View *subview)
+		{}
+		void View::WillRemoveSubview(View *subview)
+		{}
+		
+		void View::WillMoveToSuperview(View *superview)
+		{}
+		void View::DidMoveToSuperview(View *superview)
+		{}
 		
 		// ---------------------
 		// MARK: -
