@@ -526,6 +526,7 @@ namespace RN
 		bool changedMaterial;
 		
 		SetDepthWriteEnabled(true);
+		SetScissorEnabled(false);
 		
 		camera->Bind();
 		camera->PrepareForRendering();

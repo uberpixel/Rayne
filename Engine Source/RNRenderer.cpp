@@ -439,6 +439,8 @@ namespace RN
 			_hasValidFramebuffer = true;
 		}
 		
+		SetScissorEnabled(false);
+		
 		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
 		glClear(GL_COLOR_BUFFER_BIT);
 		
