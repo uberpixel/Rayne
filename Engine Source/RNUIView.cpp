@@ -50,9 +50,10 @@ namespace RN
 			});
 			
 			_superview = 0;
-			_widget = 0;
-			_dirtyLayout = true;
+			_widget    = 0;
+			_dirtyLayout        = true;
 			_interactionEnabled = true;
+			_clipSubviews       = false;
 			
 			_material = new Material(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNViewShaderResourceName));
 			_material->depthtest = false;
@@ -237,6 +238,15 @@ namespace RN
 		// MARK: Subviews
 		// ---------------------
 		
+		void View::SetClipSubviews(bool clipping)
+		{
+			if(_clipSubviews == clipping)
+				return;
+			
+			_clipSubviews = clipping;
+			NeedsLayoutUpdate();
+		}
+		
 		void View::ViewHierarchyChanged()
 		{
 			size_t count = _subviews.Count();
@@ -389,8 +399,27 @@ namespace RN
 					_intermediateTransform = _widget->transform * transform;
 				}
 				
-				_finalTransform = _intermediateTransform;
-				_finalTransform.Translate(Vector3(converted.x, serverHeight - _frame.height - converted.y, 0.0f));
+				finalTransform = _intermediateTransform;
+				finalTransform.Translate(Vector3(converted.x, serverHeight - _frame.height - converted.y, 0.0f));
+				
+				scissorRect = converted;
+				scissorRect.y = serverHeight - _frame.height - converted.y;
+				
+				View *view = _superview;
+				while(view)
+				{
+					if(view->_clipSubviews)
+					{
+						scissorRect.x     = std::max(scissorRect.x, view->scissorRect.x);
+						scissorRect.width = std::min(scissorRect.width, view->scissorRect.Right() - scissorRect.x);
+						
+						scissorRect.y      = std::max(scissorRect.y, view->scissorRect.y);						
+						scissorRect.height = std::min(scissorRect.height, view->scissorRect.Top() - scissorRect.y);
+						break;
+					}
+					
+					view = view->_superview;
+				}
 				
 				_dirtyLayout = false;
 			}
@@ -408,12 +437,18 @@ namespace RN
 			}
 		}
 		
+		void View::PopulateRenderingObject(RenderingObject& object)
+		{
+			object.material = _material;
+			object.transform = &finalTransform;
+			object.scissorRect = scissorRect;
+			object.scissorTest = true;
+		}
+		
 		void View::PrepareRendering(RenderingObject& object)
 		{
 			Update();
-			
-			object.material = _material;
-			object.transform = &_finalTransform;
+			PopulateRenderingObject(object);
 		}
 		
 		bool View::Render(RenderingObject& object)
@@ -427,7 +462,7 @@ namespace RN
 			PrepareRendering(object);
 			
 			if(Render(object))
-				renderer->RenderObject(object);
+				renderer->RenderObject(std::move(object));
 			
 			RenderChilds(renderer);
 		}

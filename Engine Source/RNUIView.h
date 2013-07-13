@@ -43,6 +43,7 @@ namespace RN
 			virtual void SetFrame(const Rect& frame);
 			void SetBackgroundColor(const Color& color);
 			void SetInteractionEnabled(bool enabled);
+			void SetClipSubviews(bool clipping);
 			
 			void AddSubview(View *subview);
 			void RemoveSubview(View *subview);
@@ -67,6 +68,7 @@ namespace RN
 			virtual bool Render(RenderingObject& object);
 			virtual void Render(Renderer *renderer);
 			void RenderChilds(Renderer *renderer);
+			void PopulateRenderingObject(RenderingObject& object);
 			
 			virtual void DidAddSubview(View *subview);
 			virtual void WillRemoveSubview(View *subview);
@@ -74,7 +76,8 @@ namespace RN
 			virtual void DidMoveToSuperview(View *superview);
 			
 			Matrix transform;
-			Matrix _finalTransform;
+			Matrix finalTransform;
+			Rect scissorRect;
 			
 		private:
 			void Initialize();
@@ -89,9 +92,9 @@ namespace RN
 			Array _subviews;
 			
 			bool _interactionEnabled;
-			bool _dirtyLayout;			
+			bool _dirtyLayout;
+			bool _clipSubviews;
 			Rect _frame;
-			Rect _scissorRect;
 			
 			Matrix _intermediateTransform;
 			

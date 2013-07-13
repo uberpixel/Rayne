@@ -160,8 +160,7 @@ namespace RN
 			if(_model)
 			{
 				RenderingObject object;
-				
-				object.transform = &_finalTransform;
+				PopulateRenderingObject(object);
 				
 				uint32 count = _model->Meshes(0);
 				for(uint32 i=0; i<count; i++)
