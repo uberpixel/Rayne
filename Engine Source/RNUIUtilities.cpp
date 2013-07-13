@@ -8,6 +8,7 @@
 
 #include "RNUIUtilities.h"
 #include "RNKernel.h"
+#include "RNRenderer.h"
 
 namespace RN
 {
@@ -20,13 +21,13 @@ namespace RN
 			MessageCenter::SharedInstance()->AddObserver(kRNKernelDidEndFrameMessage, &DebugWidget::HandleMessage, this, this);
 		
 			_fpsLabel = new Label();
-			_fpsLabel->SetFrame(Rect(0.0f, 5.0f, 180.0f, 28.0f).Inset(5.0f, 0.0f));
+			_fpsLabel->SetFrame(Rect(0.0f, 5.0f, 180.0f, 128.0f).Inset(5.0f, 0.0f));
 			_fpsLabel->SetNumberOfLines(0);
 			
 			ContentView()->AddSubview(_fpsLabel->Autorelease());
 			
 			_fpsCheckbox = Button::WithType(Button::Type::CheckBox);
-			_fpsCheckbox->SetFrame(Rect(5.0f, 50.0f, 0.0f, 0.0f));
+			_fpsCheckbox->SetFrame(Rect(5.0f, 120.0f, 0.0f, 0.0f));
 			_fpsCheckbox->SetTitleForState(RNCSTR("Show avg. FPS"), Control::Normal);
 			_fpsCheckbox->SizeToFit();
 			_fpsCheckbox->SetSelected(true);
@@ -55,6 +56,8 @@ namespace RN
 		void DebugWidget::HandleMessage(Message *message)
 		{
 			Kernel *kernel = Kernel::SharedInstance();
+			Renderer *renderer = Renderer::SharedInstance();
+			
 			float delta = kernel->Delta();
 			
 			if(delta > 0.0f)
@@ -63,7 +66,7 @@ namespace RN
 			float fps = _fpsCheckbox->IsSelected() ? AverageFPS() : 1.0f / delta;
 			const char *fpsText = _fpsCheckbox->IsSelected() ? "Avg. FPS:" : "FPS:";
 			
-			_fpsLabel->SetText(RNSTR("Frame: %3.4fs\n\%s %3.4f", kernel->Delta(), fpsText, fps));
+			_fpsLabel->SetText(RNSTR("Frame: %3.4fs\n\%s %3.4f\nLights: %u\nVertices: %uk", kernel->Delta(), fpsText, fps, renderer->RenderedLights(), renderer->RenderedVertices() / 1000));
 		}
 	}
 }

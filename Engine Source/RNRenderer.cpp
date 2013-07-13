@@ -42,6 +42,7 @@ namespace RN
 		_blendingEnabled  = false;
 		_depthWrite       = false;
 		_polygonOffsetEnabled = false;
+		_scissorTest      = false;
 		
 		_cullMode  = GL_CCW;
 		_depthFunc = GL_LESS;
@@ -405,6 +406,9 @@ namespace RN
 	void Renderer::BeginFrame(float delta)
 	{
 		_time += delta;
+		
+		_renderedLights   = 0;
+		_renderedVertices = 0;
 		
 		for(auto i=_autoVAOs.begin(); i!=_autoVAOs.end();)
 		{

@@ -44,6 +44,8 @@ namespace RN
 			rotation  = 0;
 			transform = 0;
 			skeleton  = 0;
+			
+			scissorTest = false;
 		}
 		
 		Type type;
@@ -55,6 +57,9 @@ namespace RN
 		Quaternion *rotation;
 		Matrix   *transform;
 		Skeleton *skeleton;
+		
+		bool scissorTest;
+		Rect scissorRect;
 		
 		GLuint instancingData;
 		std::function<void (Renderer *renderer, RenderingObject&)> prepare;
@@ -102,6 +107,8 @@ namespace RN
 		RNAPI void SetBlendingEnabled(bool enabled);
 		RNAPI void SetPolygonOffsetEnabled(bool enabled);
 		RNAPI void SetMode(Mode mode);
+		RNAPI void SetScissorEnabled(bool enabled);
+		RNAPI void SetScissorRect(const Rect& rect);
 		
 		RNAPI void SetCullMode(GLenum cullMode);
 		RNAPI void SetDepthFunction(GLenum depthFunction);
@@ -118,6 +125,9 @@ namespace RN
 		float HDRExposure() const { return _hdrExposure; }
 		float HDRWhitepoint() const { return _hdrWhitePoint; }
 		
+		uint32 RenderedVertices() const { return _renderedVertices; }
+		uint32 RenderedLights() const { return _renderedLights; }
+		
 	protected:
 		RNAPI virtual void UpdateShaderData();
 		RNAPI virtual void DrawCamera(Camera *camera, Camera *source, uint32 skyCubeMeshes);
@@ -127,6 +137,9 @@ namespace RN
 		RNAPI virtual void DrawCameraStage(Camera *camera, Camera *stage);
 		
 		bool _hasValidFramebuffer;
+		
+		uint32 _renderedLights;
+		uint32 _renderedVertices;
 		
 		float _scaleFactor;
 		float _time;
@@ -154,6 +167,7 @@ namespace RN
 		bool _blendingEnabled;
 		bool _depthWrite;
 		bool _polygonOffsetEnabled;
+		bool _scissorTest;
 		
 		GLenum _cullMode;
 		GLenum _depthFunc;
@@ -228,6 +242,19 @@ namespace RN
 		}
 	}
 	
+	RN_INLINE void Renderer::SetScissorEnabled(bool enabled)
+	{
+		if(_scissorTest == enabled)
+			return;
+		
+		_scissorTest = enabled;
+		_scissorTest ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
+	}
+	
+	RN_INLINE void Renderer::SetScissorRect(const Rect& rect)
+	{
+		glScissor(rect.x, rect.y, rect.width, rect.height);
+	}
 	
 	RN_INLINE void Renderer::SetHDRExposure(float exposure)
 	{

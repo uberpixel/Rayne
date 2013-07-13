@@ -547,6 +547,8 @@ namespace RN
 			int lightSpotCount  = CreateSpotLightList(camera);
 			int lightDirectionalCount = CreateDirectionalLightList(camera);
 			
+			_renderedLights += lightPointCount + lightSpotCount + lightDirectionalCount;
+			
 			// Update the shader
 			const Matrix& projectionMatrix = camera->projectionMatrix;
 			const Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix;
@@ -565,6 +567,11 @@ namespace RN
 				RenderingObject& object = _frame[i];
 				if(object.prepare)
 					object.prepare(this, object);
+				
+				SetScissorEnabled(object.scissorTest);
+				
+				if(_scissorTest)
+					SetScissorRect(object.scissorRect);
 				
 				Mesh     *mesh = object.mesh;
 				Material *material = object.material;
@@ -897,6 +904,7 @@ namespace RN
 			glDrawArrays(mesh->Mode(), 0, glCount);
 		}
 		
+		_renderedVertices += glCount;
 		BindVAO(0);
 	}
 	
@@ -941,6 +949,7 @@ namespace RN
 			glDrawArraysInstanced(mesh->Mode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)object.count);
 		}
 		
+		_renderedVertices += descriptor->elementCount * object.count;
 		BindVAO(0);
 	}
 	
