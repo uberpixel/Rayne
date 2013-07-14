@@ -21,6 +21,8 @@
 		E9145CB316BAB82D004BDEC8 /* RNInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9145CB116BAB82D004BDEC8 /* RNInput.cpp */; };
 		E9145CB416BAB82D004BDEC8 /* RNInput.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CB216BAB82D004BDEC8 /* RNInput.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E917AC211744A00F00331D9B /* RNUIGeometry.h in Headers */ = {isa = PBXBuildFile; fileRef = E917AC2017449AAF00331D9B /* RNUIGeometry.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E917F07F1791FC7C003765C1 /* RNUIScrollView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E917F07D1791FC7C003765C1 /* RNUIScrollView.cpp */; };
+		E917F0801791FC7C003765C1 /* RNUIScrollView.h in Headers */ = {isa = PBXBuildFile; fileRef = E917F07E1791FC7C003765C1 /* RNUIScrollView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E919598F17901180004B5880 /* RNUIUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E919598D17901180004B5880 /* RNUIUtilities.cpp */; };
 		E919599017901180004B5880 /* RNUIUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = E919598E17901180004B5880 /* RNUIUtilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E91C8CD9176006A300E9E8F2 /* RNUIControl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E91C8CD7176006A200E9E8F2 /* RNUIControl.cpp */; };
@@ -237,6 +239,8 @@
 		E9145CB116BAB82D004BDEC8 /* RNInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNInput.cpp; sourceTree = "<group>"; };
 		E9145CB216BAB82D004BDEC8 /* RNInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNInput.h; sourceTree = "<group>"; };
 		E917AC2017449AAF00331D9B /* RNUIGeometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNUIGeometry.h; sourceTree = "<group>"; };
+		E917F07D1791FC7C003765C1 /* RNUIScrollView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIScrollView.cpp; sourceTree = "<group>"; };
+		E917F07E1791FC7C003765C1 /* RNUIScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIScrollView.h; sourceTree = "<group>"; };
 		E919598D17901180004B5880 /* RNUIUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIUtilities.cpp; sourceTree = "<group>"; };
 		E919598E17901180004B5880 /* RNUIUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIUtilities.h; sourceTree = "<group>"; };
 		E91C8CD7176006A200E9E8F2 /* RNUIControl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIControl.cpp; sourceTree = "<group>"; };
@@ -608,6 +612,8 @@
 				E9AD2A7E17610E8F00BC3E8F /* RNUILabel.h */,
 				E9586E60173072B700D24737 /* RNUIResponder.cpp */,
 				E9586E61173072B700D24737 /* RNUIResponder.h */,
+				E917F07D1791FC7C003765C1 /* RNUIScrollView.cpp */,
+				E917F07E1791FC7C003765C1 /* RNUIScrollView.h */,
 				E9586E5C172FD40C00D24737 /* RNUIServer.cpp */,
 				E9586E5D172FD40C00D24737 /* RNUIServer.h */,
 				E945AB5E178D7D1200C7B30A /* RNUIStyle.cpp */,
@@ -876,6 +882,7 @@
 				E945AB431788D97A00C7B30A /* RNUTF8String.h in Headers */,
 				E945AB61178D7D1200C7B30A /* RNUIStyle.h in Headers */,
 				E919599017901180004B5880 /* RNUIUtilities.h in Headers */,
+				E917F0801791FC7C003765C1 /* RNUIScrollView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1049,6 +1056,7 @@
 				E945AB421788D97A00C7B30A /* RNUTF8String.cpp in Sources */,
 				E945AB60178D7D1200C7B30A /* RNUIStyle.cpp in Sources */,
 				E919598F17901180004B5880 /* RNUIUtilities.cpp in Sources */,
+				E917F07F1791FC7C003765C1 /* RNUIScrollView.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
