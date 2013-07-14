@@ -26,7 +26,8 @@ namespace RN
 		}
 		
 		View::View(const Rect& frame) :
-			_frame(frame)
+			_frame(frame),
+			_bounds(0.0f, 0.0f, frame.width, frame.height)
 		{
 			Initialize();
 		}
@@ -58,11 +59,11 @@ namespace RN
 			_clipSubviews       = false;
 			
 			_material = new Material(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNViewShaderResourceName));
-			_material->depthtest = false;
+			_material->depthtest  = false;
 			_material->depthwrite = false;
-			_material->blending = true;
-			_material->lighting = false;
-			_material->diffuse = Color(1.0f, 1.0f, 1.0f, 1.0f);
+			_material->blending   = true;
+			_material->lighting   = false;
+			_material->diffuse    = Color(1.0f, 1.0f, 1.0f, 1.0f);
 		}
 		
 		void View::SetBackgroundColor(const Color& color)
@@ -112,72 +113,75 @@ namespace RN
 		// MARK: Coordinate systems
 		// ---------------------
 		
-		Vector2 View::ConvertPointToView(View *view, const Vector2& point)
+		void View::ConvertPointToWidget(Vector2& point)
+		{
+			View *view = _superview;
+			while(view)
+			{
+				point.x += view->_frame.x - view->_bounds.x;
+				point.y += view->_frame.y - view->_bounds.y;
+				
+				view = view->_superview;
+			}
+			
+			point.x += _frame.x - _bounds.x;
+			point.y += _frame.y - _bounds.y;
+		}
+		
+		void View::ConvertPointFromWidget(Vector2& point)
+		{
+			View *view = _superview;
+			while(view)
+			{
+				point.x -= view->_frame.x - view->_bounds.x;
+				point.y -= view->_frame.y - view->_bounds.y;
+				
+				view = view->_superview;
+			}
+			
+			point.x -= _frame.x - _bounds.x;
+			point.y -= _frame.y - _bounds.y;
+		}
+		
+		Vector2 View::ConvertPointToView(const Vector2& point, View *view)
 		{
 			Vector2 converted = point;
-			View *temp = _superview;
+			ConvertPointToWidget(converted);
 			
-			while(temp)
-			{
-				converted.x += temp->_frame.x;
-				converted.y += temp->_frame.y;
-				
-				if(temp == view)
-					break;
-				
-				temp = temp->_superview;
-			}
+			if(!view)
+				return converted;
 			
-			if(!view && _widget)
-			{
-				converted.x += _widget->_frame.x;
-				converted.y += _widget->_frame.y;
-			}
-			
+			view->ConvertPointFromWidget(converted);
 			return converted;
 		}
 		
-		Vector2 View::ConvertPointFromView(View *view, const Vector2& point)
+		Vector2 View::ConvertPointFromView(const Vector2& point, View *view)
 		{
-			std::vector<View *> path;
-			View *temp = _superview;
-			
-			while(temp)
-			{
-				path.push_back(temp);
-				
-				if(temp == view)
-					break;
-				
-				temp = temp->_superview;
-			}
-			
-
 			Vector2 converted = point;
 			
-			if(!view && _widget)
-			{
-				converted.x -= _widget->_frame.x;
-				converted.y -= _widget->_frame.y;
-			}
+			if(view)
+				view->ConvertPointToWidget(converted);
 			
-			for(View *temp : path)
-			{
-				converted.x -= temp->_frame.x;
-				converted.y -= temp->_frame.y;
-			}
-			
-			converted.x -= _frame.x;
-			converted.y -= _frame.y;
-
+			ConvertPointFromWidget(converted);
 			return converted;
 		}
 		
 		
-		Rect View::ConvertRectToView(View *view, const Rect& frame)
+		Rect View::ConvertRectToView(const Rect& frame, View *view)
 		{
 			Rect converted = frame;
-			Vector2 point = ConvertPointToView(view, Vector2(frame.x, frame.y));
+			Vector2 point  = ConvertPointToView(Vector2(frame.x, frame.y), view);
+			
+			converted.x = point.x;
+			converted.y = point.y;
+			
+			return converted;
+		}
+		
+		Rect View::ConvertRectFromView(const Rect& frame, View *view)
+		{
+			Rect converted = frame;
+			Vector2 point  = ConvertPointFromView(Vector2(frame.x, frame.y), view);
 			
 			converted.x = point.x;
 			converted.y = point.y;
@@ -194,7 +198,7 @@ namespace RN
 		{
 			bool traverse = true;
 			View *potential = this;
-			Vector2 point = tpoint;
+			Vector2 point = ConvertPointToView(tpoint, nullptr);
 			
 			while(traverse)
 			{
@@ -204,13 +208,11 @@ namespace RN
 				for(size_t i=0; i<count; i++)
 				{
 					View *view = potential->_subviews.ObjectAtIndex<View>(i);
-					Vector2 transformed = std::move(view->ConvertPointFromView(potential, point));
+					Vector2 transformed = std::move(view->ConvertPointFromView(point, nullptr));
 					
 					if(view->_interactionEnabled && view->PointInside(transformed, event))
 					{
 						potential = view;
-						point = transformed;
-						
 						traverse = true;
 						break;
 					}
@@ -222,17 +224,12 @@ namespace RN
 		
 		bool View::PointInside(const Vector2& point, Event *event)
 		{
-			return Bounds().ContainsPoint(point);
+			return _bounds.ContainsPoint(point);
 		}
 		
 		void View::SetInteractionEnabled(bool enabled)
 		{
 			_interactionEnabled = enabled;
-		}
-		
-		const Rect View::Bounds() const
-		{
-			return Rect(0.0f, 0.0f, _frame.width, _frame.height);
 		}
 		
 		// ---------------------
@@ -365,6 +362,20 @@ namespace RN
 		void View::SetFrame(const Rect& frame)
 		{
 			_frame = frame;
+			
+			_bounds.width  = frame.width;
+			_bounds.height = frame.height;
+			
+			NeedsLayoutUpdate();
+		}
+		
+		void View::SetBounds(const Rect& bounds)
+		{
+			_frame.width  = bounds.width;
+			_frame.height = bounds.height;
+			
+			_bounds = bounds;
+			
 			NeedsLayoutUpdate();
 		}
 		
@@ -385,12 +396,52 @@ namespace RN
 		// MARK: Rendering
 		// ---------------------
 		
+		void View::CalculateScissorRect()
+		{
+			float serverHeight = (_widget && _widget->_server) ? _widget->_server->Height() : 0.0f;
+			Vector2 origin = _frame.Origin();
+			
+			_clippingView = nullptr;
+			
+			View *view = _superview;
+			while(view)
+			{
+				if(!_clippingView && view->_clipSubviews)
+					_clippingView = view;
+				
+				origin.x += view->_frame.x;
+				origin.y += view->_frame.y;
+				
+				view = view->_superview;
+			}
+			
+			if(_widget)
+			{
+				origin.x += _widget->_frame.x;
+				origin.y += _widget->_frame.y;
+			}
+			
+			_scissorRect.x = origin.x;
+			_scissorRect.y = serverHeight - _frame.height - origin.y;
+			_scissorRect.width  = _frame.width;
+			_scissorRect.height = _frame.height;
+			
+			if(_clippingView)
+			{
+				_scissorRect.x     = std::max(_scissorRect.x, _clippingView->_scissorRect.x);
+				_scissorRect.width = std::min(_scissorRect.width, _clippingView->_scissorRect.Right() - _scissorRect.x);
+				
+				_scissorRect.y      = std::max(_scissorRect.y, _clippingView->_scissorRect.y);
+				_scissorRect.height = std::min(_scissorRect.height, _clippingView->_scissorRect.Top() - _scissorRect.y);
+			}
+		}
+		
 		void View::Update()
 		{
 			if(_dirtyLayout)
 			{
-				Rect converted = ConvertRectToView(nullptr, _frame);
-				float serverHeight = (_widget && _widget->_server) ? _widget->_server->Height() : 0.0f;
+				Vector2 converted = ConvertPointToView(Vector2(), nullptr);
+				float serverHeight = 0.0f;
 				
 				if(_superview)
 				{
@@ -401,40 +452,32 @@ namespace RN
 					_intermediateTransform = _widget->transform * transform;
 				}
 				
+				if(_widget)
+				{
+					converted.x += _widget->_frame.x;
+					converted.y += _widget->_frame.y;
+					
+					if(_widget->_server)
+						serverHeight = _widget->_server->Height();
+				}
+				
 				_finalTransform = _intermediateTransform;
 				_finalTransform.Translate(Vector3(converted.x, serverHeight - _frame.height - converted.y, 0.0f));
 				
-				_scissorRect.x = converted.x;
-				_scissorRect.y = serverHeight - _frame.height - converted.y;
-				_scissorRect.width  = converted.width;
-				_scissorRect.height = converted.height;
-				
-				_clippingView = nullptr;
-				
-				View *view = _superview;
-				while(view)
-				{
-					if(view->_clipSubviews)
-					{
-						_scissorRect.x     = std::max(_scissorRect.x, view->_scissorRect.x);
-						_scissorRect.width = std::min(_scissorRect.width, view->_scissorRect.Right() - _scissorRect.x);
-						
-						_scissorRect.y      = std::max(_scissorRect.y, view->_scissorRect.y);
-						_scissorRect.height = std::min(_scissorRect.height, view->_scissorRect.Top() - _scissorRect.y);
-						
-						_clippingView = view;
-						break;
-					}
-					
-					view = view->_superview;
-				}
-				
 				_dirtyLayout = false;
+				
+				CalculateScissorRect();
 			}
 			
 			if(_widget && _widget->_server && _widget->_server->DrawDebugFrames())
 			{
-				Rect frame = ConvertRectToView(nullptr, _frame);
+				Rect frame = ConvertRectToView(Bounds(), nullptr);
+				
+				if(_widget)
+				{
+					frame.x += _widget->_frame.x;
+					frame.y += _widget->_frame.y;
+				}
 				
 				Debug::AddLinePoint(Vector2(frame.Left(), frame.Top()), Color::Red());
 				Debug::AddLinePoint(Vector2(frame.Right(), frame.Top()), Color::Red());

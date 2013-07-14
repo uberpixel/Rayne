@@ -117,9 +117,11 @@ namespace RN
 				{
 					if(widget->Frame().ContainsPoint(position))
 					{
-						Vector2 transformed = widget->ContentView()->ConvertPointFromView(nullptr, position);
-						hit = widget->ContentView()->HitTest(transformed, event);
+						Vector2 transformed = position;
+						transformed.x -= widget->_frame.x;
+						transformed.y -= widget->_frame.y;
 						
+						hit = widget->ContentView()->HitTest(transformed, event);
 						break;
 					}
 				}

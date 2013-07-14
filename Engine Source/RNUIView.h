@@ -17,13 +17,13 @@
 #include "RNCamera.h"
 #include "RNRenderer.h"
 #include "RNInput.h"
+#include "RNUIWidget.h"
 #include "RNUIResponder.h"
 
 namespace RN
 {
 	namespace UI
 	{
-		class Widget;
 		class View : public Responder
 		{
 		friend class Widget;
@@ -32,15 +32,18 @@ namespace RN
 			View(const Rect& frame);
 			~View() override;
 			
-			Vector2 ConvertPointToView(View *view, const Vector2& point);
-			Vector2 ConvertPointFromView(View *view, const Vector2& point);
+			Vector2 ConvertPointToView(const Vector2& point, View *view);
+			Vector2 ConvertPointFromView(const Vector2& point, View *view);
 			
-			Rect ConvertRectToView(View *view, const Rect& frame);
+			Rect ConvertRectToView(const Rect& frame, View *view);
+			Rect ConvertRectFromView(const Rect& frame, View *view);
 			
 			const Rect& Frame() const { return _frame; }
-			const Rect Bounds() const;
+			const Rect& Bounds() const { return _bounds; }
 			
 			virtual void SetFrame(const Rect& frame);
+			virtual void SetBounds(const Rect& bounds);
+			
 			void SetBackgroundColor(const Color& color);
 			void SetInteractionEnabled(bool enabled);
 			void SetClipSubviews(bool clipping);
@@ -51,6 +54,7 @@ namespace RN
 			void RemoveFromSuperview();
 			
 			Array *Subivews() { return &_subviews; }
+			Widget *Container() { return _widget; }
 			
 			void NeedsLayoutUpdate();
 			
@@ -80,8 +84,11 @@ namespace RN
 		private:
 			void Initialize();
 			void ViewHierarchyChanged();
+			void CalculateScissorRect();
 			
 			void PrepareRendering(RenderingObject& object);
+			void ConvertPointToWidget(Vector2& point);
+			void ConvertPointFromWidget(Vector2& point);
 			
 			View *_superview;
 			View *_clippingView;
@@ -96,6 +103,7 @@ namespace RN
 			bool _clipSubviews;
 			
 			Rect _frame;
+			Rect _bounds;
 			
 			Rect _scissorRect;
 			

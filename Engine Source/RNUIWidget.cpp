@@ -8,6 +8,7 @@
 
 #include "RNUIWidget.h"
 #include "RNUIServer.h"
+#include "RNUIView.h"
 
 namespace RN
 {

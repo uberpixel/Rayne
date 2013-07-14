@@ -12,15 +12,18 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNRect.h"
+#include "RNMatrix.h"
+#include "RNRenderer.h"
 #include "RNVector.h"
 #include "RNUIResponder.h"
-#include "RNUIView.h"
 
 namespace RN
 {
 	namespace UI
 	{
 		class Server;
+		class View;
+		
 		class Widget : public Responder
 		{
 		friend class Server;
