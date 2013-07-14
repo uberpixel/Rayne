@@ -76,8 +76,6 @@ namespace RN
 			virtual void DidMoveToSuperview(View *superview);
 			
 			Matrix transform;
-			Matrix finalTransform;
-			Rect scissorRect;
 			
 		private:
 			void Initialize();
@@ -86,6 +84,8 @@ namespace RN
 			void PrepareRendering(RenderingObject& object);
 			
 			View *_superview;
+			View *_clippingView;
+			
 			Widget *_widget;
 			Material *_material;
 
@@ -94,9 +94,13 @@ namespace RN
 			bool _interactionEnabled;
 			bool _dirtyLayout;
 			bool _clipSubviews;
+			
 			Rect _frame;
 			
+			Rect _scissorRect;
+			
 			Matrix _intermediateTransform;
+			Matrix _finalTransform;
 			
 			RNDefineMetaWithTraits(View, Responder, MetaClassTraitCronstructable)
 		};

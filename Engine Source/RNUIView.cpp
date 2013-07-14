@@ -49,8 +49,10 @@ namespace RN
 				ResourcePool::SharedInstance()->AddResource(shader, kRNViewShaderResourceName);
 			});
 			
-			_superview = 0;
-			_widget    = 0;
+			_superview    = nullptr;
+			_widget       = nullptr;
+			_clippingView = nullptr;
+			
 			_dirtyLayout        = true;
 			_interactionEnabled = true;
 			_clipSubviews       = false;
@@ -399,22 +401,28 @@ namespace RN
 					_intermediateTransform = _widget->transform * transform;
 				}
 				
-				finalTransform = _intermediateTransform;
-				finalTransform.Translate(Vector3(converted.x, serverHeight - _frame.height - converted.y, 0.0f));
+				_finalTransform = _intermediateTransform;
+				_finalTransform.Translate(Vector3(converted.x, serverHeight - _frame.height - converted.y, 0.0f));
 				
-				scissorRect = converted;
-				scissorRect.y = serverHeight - _frame.height - converted.y;
+				_scissorRect.x = converted.x;
+				_scissorRect.y = serverHeight - _frame.height - converted.y;
+				_scissorRect.width  = converted.width;
+				_scissorRect.height = converted.height;
+				
+				_clippingView = nullptr;
 				
 				View *view = _superview;
 				while(view)
 				{
 					if(view->_clipSubviews)
 					{
-						scissorRect.x     = std::max(scissorRect.x, view->scissorRect.x);
-						scissorRect.width = std::min(scissorRect.width, view->scissorRect.Right() - scissorRect.x);
+						_scissorRect.x     = std::max(_scissorRect.x, view->_scissorRect.x);
+						_scissorRect.width = std::min(_scissorRect.width, view->_scissorRect.Right() - _scissorRect.x);
 						
-						scissorRect.y      = std::max(scissorRect.y, view->scissorRect.y);						
-						scissorRect.height = std::min(scissorRect.height, view->scissorRect.Top() - scissorRect.y);
+						_scissorRect.y      = std::max(_scissorRect.y, view->_scissorRect.y);
+						_scissorRect.height = std::min(_scissorRect.height, view->_scissorRect.Top() - _scissorRect.y);
+						
+						_clippingView = view;
 						break;
 					}
 					
@@ -440,9 +448,20 @@ namespace RN
 		void View::PopulateRenderingObject(RenderingObject& object)
 		{
 			object.material = _material;
-			object.transform = &finalTransform;
-			object.scissorRect = scissorRect;
+			object.transform = &_finalTransform;
 			object.scissorTest = true;
+			
+			if(_clippingView)
+			{
+				object.scissorRect = _clippingView->_scissorRect;
+			}
+			else if(_widget)
+			{
+				float serverHeight = (_widget->_server) ? _widget->_server->Height() : 0.0f;
+				
+				object.scissorRect = _widget->Frame();
+				object.scissorRect.y = serverHeight - object.scissorRect.height - object.scissorRect.y;
+			}
 		}
 		
 		void View::PrepareRendering(RenderingObject& object)
