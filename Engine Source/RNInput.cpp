@@ -341,6 +341,7 @@ namespace RN
 				
 				event->_type = Event::Type::MouseWheel;
 				event->_mouseWheel = _mouseWheel;
+				event->_mousePosition = _mousePosition;
 				break;
 			}
 				

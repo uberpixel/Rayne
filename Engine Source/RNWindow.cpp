@@ -86,6 +86,11 @@
 	RN::Input::SharedInstance()->HandleEvent(theEvent);
 }
 
+- (void)scrollWheel:(NSEvent *)theEvent
+{
+	RN::Input::SharedInstance()->HandleEvent(theEvent);
+}
+
 
 - (BOOL)canBecomeKeyWindow
 {
