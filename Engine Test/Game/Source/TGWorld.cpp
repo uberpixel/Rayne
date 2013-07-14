@@ -92,8 +92,11 @@ namespace TG
 		
 		const RN::Vector2& mouseDelta = input->MouseDelta();
 		
-		rotation.x = mouseDelta.x;
-		rotation.z = mouseDelta.y;
+		if(!(input->ModifierKeys() & RN::KeyModifier::KeyControl))
+		{
+			rotation.x = mouseDelta.x;
+			rotation.z = mouseDelta.y;
+		}
 		
 		translation.x = (input->KeyPressed('d') - input->KeyPressed('a')) * 16.0f;
 		translation.z = (input->KeyPressed('s') - input->KeyPressed('w')) * 16.0f;
