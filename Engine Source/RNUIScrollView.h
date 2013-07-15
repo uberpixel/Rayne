@@ -26,9 +26,13 @@ namespace RN
 			void SetContentOffset(const Vector2& offset);
 			void SetContentSize(const Vector2& size);
 			
+			void ScrollWheel(Event *event) override;
+			void SetFrame(const Rect& frame) override;
+			
 		private:
 			Vector2 _offset;
 			Vector2 _size;
+			Vector2 _end;
 			
 			RNDefineMeta(ScrollView, View)
 		};
