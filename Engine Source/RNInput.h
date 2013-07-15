@@ -86,7 +86,7 @@ namespace RN
 		
 		const Vector2& MouseDelta() const { return _mouseDelta; }
 		const Vector2& MousePosition() const { return _mousePosition; }
-		const Vector2& MouseWheel() const { return _mousePosition; }
+		const Vector2& MouseWheel() const { return _mouseWheel; }
 		
 		bool Shift() const { return (_modifierKeys & KeyModifier::KeyShift); }
 		bool Control() const { return (_modifierKeys & KeyModifier::KeyControl); }
