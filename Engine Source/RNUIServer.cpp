@@ -134,6 +134,14 @@ namespace RN
 							hit->ScrollWheel(event);
 							break;
 							
+						case Event::Type::MouseDown:
+							hit->MouseDown(event);
+							break;
+							
+						case Event::Type::MouseUp:
+							hit->MouseUp(event);
+							break;
+							
 						default:
 							break;
 					}

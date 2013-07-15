@@ -31,6 +31,9 @@ namespace RN
 			bool IsFirstResponder() const;
 			static Responder *FirstResponder() { return _firstResponder; }
 			
+			virtual void MouseDown(Event *event);
+			virtual void MouseUp(Event *event);
+			
 			virtual void ScrollWheel(Event *event);
 			
 		protected:

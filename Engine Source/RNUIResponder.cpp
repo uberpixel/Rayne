@@ -78,6 +78,19 @@ namespace RN
 		
 		
 		
+		void Responder::MouseDown(Event *event)
+		{
+			Responder *next = NextResponder();
+			if(next)
+				next->MouseDown(event);
+		}
+		
+		void Responder::MouseUp(Event *event)
+		{
+			Responder *next = NextResponder();
+			if(next)
+				next->MouseUp(event);
+		}
 		
 		void Responder::ScrollWheel(Event *event)
 		{
