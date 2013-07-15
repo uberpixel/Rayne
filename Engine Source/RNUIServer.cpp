@@ -126,10 +126,23 @@ namespace RN
 					}
 				}
 				
-				if(hit && hit->IsKindOfClass(Control::MetaClass()))
+				if(hit)
 				{
-					Control *control = static_cast<Control *>(hit);
-					NotifyHitControl(control, event);
+					switch(event->EventType())
+					{
+						case Event::Type::MouseWheel:
+							hit->ScrollWheel(event);
+							break;
+							
+						default:
+							break;
+					}
+					
+					if(hit->IsKindOfClass(Control::MetaClass()))
+					{
+						Control *control = static_cast<Control *>(hit);
+						NotifyHitControl(control, event);
+					}
 				}
 				else if(_activeControl)
 				{

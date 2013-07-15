@@ -71,11 +71,19 @@ namespace RN
 			return false;
 		}
 		
-		
-		
 		bool Responder::IsFirstResponder() const
 		{
 			return (this == _firstResponder);
+		}
+		
+		
+		
+		
+		void Responder::ScrollWheel(Event *event)
+		{
+			Responder *next = NextResponder();
+			if(next)
+				next->ScrollWheel(event);
 		}
 	}
 }

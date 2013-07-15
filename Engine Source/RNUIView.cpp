@@ -107,6 +107,13 @@ namespace RN
 			return mesh->Autorelease();
 		}
 		
+		Responder *View::NextResponder() const
+		{
+			if(_superview)
+				return _superview;
+			
+			return _widget;
+		}
 		
 		// ---------------------
 		// MARK: -

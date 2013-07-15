@@ -64,6 +64,8 @@ namespace RN
 			View *HitTest(const Vector2& point, Event *event);
 			virtual bool PointInside(const Vector2& point, Event *event);
 			
+			Responder *NextResponder() const override;
+			
 		protected:
 			Mesh *BasicMesh(const Vector2& size);
 			Material *DrawMaterial() { return _material; }

@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNInput.h"
 
 namespace RN
 {
@@ -29,6 +30,8 @@ namespace RN
 			
 			bool IsFirstResponder() const;
 			static Responder *FirstResponder() { return _firstResponder; }
+			
+			virtual void ScrollWheel(Event *event);
 			
 		protected:
 			Responder();
