@@ -40,7 +40,7 @@ namespace RN
 		
 		bool Responder::CanResignFirstReponder() const
 		{
-			return (this == _firstResponder);
+			return true;
 		}
 		
 		
@@ -56,14 +56,24 @@ namespace RN
 					return false;
 			}
 			
-			_firstResponder = this;
-			return true;
+			if(CanBecomeFirstResponder())
+			{
+				printf("Became first responder");
+				
+				_firstResponder = this;
+				return true;
+			}
+			
+			return false;
 		}
 		
 		bool Responder::ResignFirstResponder()
 		{
 			if(_firstResponder == this)
 			{
+				if(!CanResignFirstReponder())
+					return false;
+				
 				_firstResponder = 0;
 				return true;
 			}
@@ -84,12 +94,36 @@ namespace RN
 			if(next)
 				next->MouseDown(event);
 		}
-		
 		void Responder::MouseUp(Event *event)
 		{
 			Responder *next = NextResponder();
 			if(next)
 				next->MouseUp(event);
+		}
+		void Responder::MouseMoved(Event *event)
+		{
+			Responder *next = NextResponder();
+			if(next)
+				next->MouseMoved(event);
+		}
+		
+		void Responder::KeyDown(Event *event)
+		{
+			Responder *next = NextResponder();
+			if(next)
+				next->KeyDown(event);
+		}
+		void Responder::KeyUp(Event *event)
+		{
+			Responder *next = NextResponder();
+			if(next)
+				next->KeyUp(event);
+		}
+		void Responder::KeyRepeat(Event *event)
+		{
+			Responder *next = NextResponder();
+			if(next)
+				next->KeyRepeat(event);
 		}
 		
 		void Responder::ScrollWheel(Event *event)

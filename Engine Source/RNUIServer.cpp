@@ -31,11 +31,10 @@ namespace RN
 				_camera->Container()->RemoveSceneNode(_camera);
 			
 			_mainWidget = nullptr;
-			_activeControl = nullptr;
 			_mode = Mode::SingleTracking;
 			
 			_debugWidget = nullptr;
-			_drawDebugFrames = false;
+			_drawDebugFrames = true;
 			
 			MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, &Server::HandleEvent, this, this);
 		}
@@ -78,38 +77,19 @@ namespace RN
 		}
 		
 		
-		void Server::NotifyHitControl(Control *control, Event *event)
-		{
-			if(control == _activeControl)
-			{
-				control->ContinueTrackingEvent(event);
-				return;
-			}
-			
-			if(!_activeControl)
-			{
-				control->BeginTrackingEvent(event);
-				_activeControl = control;
-				
-				return;
-			}
-			
-			if(control != _activeControl)
-			{
-				_activeControl->EndTrackingEvent(event);
-				_activeControl = control;
-			
-				_activeControl->BeginTrackingEvent(event);
-				return;
-			}
-		}
-		
 		void Server::HandleEvent(Message *message)
 		{
 			Event *event = static_cast<Event *>(message);
+			Responder *responder = Responder::FirstResponder();
 			
 			if(event->IsMouse())
 			{
+				if(responder && event->EventType() == Event::Type::MouseMoved)
+				{
+					responder->MouseMoved(event);
+					return;
+				}
+				
 				const Vector2& position = event->MousePosition();
 				View *hit = nullptr;
 				
@@ -145,17 +125,27 @@ namespace RN
 						default:
 							break;
 					}
-					
-					if(hit->IsKindOfClass(Control::MetaClass()))
-					{
-						Control *control = static_cast<Control *>(hit);
-						NotifyHitControl(control, event);
-					}
 				}
-				else if(_activeControl)
+			}
+			
+			if(responder && event->IsKeyboard())
+			{
+				switch(event->EventType())
 				{
-					_activeControl->EndTrackingEvent(event);
-					_activeControl = nullptr;
+					case Event::Type::KeyDown:
+						responder->KeyDown(event);
+						break;
+						
+					case Event::Type::KeyUp:
+						responder->KeyUp(event);
+						break;
+						
+					case Event::Type::KeyRepeat:
+						responder->KeyRepeat(event);
+						break;
+						
+					default:
+						break;
 				}
 			}
 		}

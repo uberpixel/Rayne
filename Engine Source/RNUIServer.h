@@ -54,14 +54,12 @@ namespace RN
 			void MoveWidgetToFront(Widget *widget);
 			
 			void HandleEvent(Message *event);
-			void NotifyHitControl(Control *control, Event *event);
 			
 			Camera *_camera;
 			Rect _frame;
 			Mode _mode;
 			
 			Widget *_mainWidget;
-			Control *_activeControl;
 			std::deque<Widget *> _widgets;
 			
 			Widget *_debugWidget;

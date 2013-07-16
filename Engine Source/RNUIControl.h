@@ -61,6 +61,10 @@ namespace RN
 			virtual void BeginTrackingEvent(Event *event);
 			virtual void ContinueTrackingEvent(Event *event);
 			virtual void EndTrackingEvent(Event *event);
+			
+			void MouseDown(Event *event) override;
+			void MouseMoved(Event *event) override;
+			void MouseUp(Event *event) override;
 		
 		protected:
 			Control();

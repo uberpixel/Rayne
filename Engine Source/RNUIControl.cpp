@@ -263,5 +263,20 @@ namespace RN
 				ConsumeMouseMove(event);
 			}
 		}
+		
+		
+		void Control::MouseDown(Event *event)
+		{
+			BecomeFirstResponder();
+			BeginTrackingEvent(event);
+		}
+		void Control::MouseMoved(Event *event)
+		{
+			ContinueTrackingEvent(event);
+		}
+		void Control::MouseUp(Event *event)
+		{
+			EndTrackingEvent(event);
+		}
 	}
 }
