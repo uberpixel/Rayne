@@ -51,7 +51,7 @@ namespace RN
 		static inline VecFloat NegativeZero()
 		{
 #if __SSE__
-			static const unsigned int alignas(16) negativeZero[4] = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
+			alignas(16) static const unsigned int negativeZero[4] = {0x80000000, 0x80000000, 0x80000000, 0x80000000};
 			return _mm_load_ps(reinterpret_cast<const float *>(negativeZero));
 #endif
 		}
@@ -268,7 +268,7 @@ namespace RN
 		static inline VecFloat LoadConstant()
 		{
 #if __SSE__
-			static const unsigned int alignas(16) values[4] = {value, value, value, value};
+			alignas(16) static const unsigned int values[4] = {value, value, value, value};
 			return _mm_load_ps(reinterpret_cast<const float *>(values));
 #endif
 		}

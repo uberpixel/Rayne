@@ -26,7 +26,7 @@ namespace RN
 		{
 		public:
 			friend class Widget;
-			friend class Kernel;
+			friend class RN::Kernel;
 			
 			enum class Mode
 			{
