@@ -898,7 +898,7 @@ namespace RN
 					break;
 			}
 			
-			glDrawElements(mesh->Mode(), glCount, type, (void *)offset);
+			glDrawElements(mesh->Mode(), glCount, type, reinterpret_cast<void *>(offset));
 		}
 		else
 		{

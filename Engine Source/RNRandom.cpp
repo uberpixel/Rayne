@@ -343,7 +343,7 @@ namespace RN
 			std::copy(_bytes + _offset, _bytes + _offset + 1, &result);
 			_offset ++;
 			
-			return result & (1 << 31) - 1;
+			return (result & (1 << 31)) - 1;
 		}
 		
 		bool Secure::UsesHardware()
