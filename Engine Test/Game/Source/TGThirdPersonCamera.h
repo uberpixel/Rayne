@@ -21,7 +21,7 @@ namespace TG
 	
 		void SetTarget(RN::Entity *target);
 		virtual void Update(float delta);
-		virtual bool CanUpdate(FrameID frame);
+		virtual bool CanUpdate(RN::FrameID frame);
 		
 		void SetPitch(float pitch) { _pitch = pitch; }
 		float Pitch() const { return _pitch; }
