@@ -1114,6 +1114,7 @@
 				GCC_INPUT_FILETYPE = automatic;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
 					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
@@ -1204,6 +1205,7 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = automatic;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
 					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
@@ -1231,6 +1233,7 @@
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = automatic;
 				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
 					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
