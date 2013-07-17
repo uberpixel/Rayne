@@ -123,6 +123,9 @@ namespace RN
 			case 4:
 				result = (*bytes ^ 0xf0);
 				break;
+				
+			default:
+				throw Exception(Exception::Type::InconsistencyException, "");
 		}
 		
 		bytes ++;

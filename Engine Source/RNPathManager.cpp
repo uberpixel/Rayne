@@ -68,7 +68,7 @@ namespace RN
 			const char *end = strpbrk(cstr, "/\\");
 			if(!end)
 			{
-				if(strlen(end) > 0)
+				if(strlen(cstr) > 0)
 					result.push_back(cstr);
 				
 				break;

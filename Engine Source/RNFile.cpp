@@ -73,7 +73,7 @@ namespace RN
 		std::string temp(buffer);
 		std::swap(temp, string);
 		
-		delete buffer;
+		delete[] buffer;
 	}
 	
 	void File::ReadIntoBuffer(void *buffer, size_t size)
