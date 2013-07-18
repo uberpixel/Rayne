@@ -41,22 +41,20 @@ namespace RN
 	{
 	public:
 		GenericSceneManager();
-		virtual ~GenericSceneManager();
+		~GenericSceneManager() override;
 		
-		virtual void AddSceneNode(SceneNode *node);
-		virtual void RemoveSceneNode(SceneNode *node);
-		virtual void UpdateSceneNode(SceneNode *node);
+		void AddSceneNode(SceneNode *node) override;
+		void RemoveSceneNode(SceneNode *node) override;
+		void UpdateSceneNode(SceneNode *node) override;
 		
-		virtual void RenderScene(Camera *camera);
+		void RenderScene(Camera *camera) override;
 		
-		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0xffff);
+		Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0xffff) override;
 		
 	private:
 		void RenderSceneNode(Camera *camera, SceneNode *node);
 		
 		std::unordered_set<SceneNode *> _nodes;
-		MetaClassBase *_entityClass;
-		MetaClassBase *_lightClass;
 		
 		RNDefineMetaWithTraits(GenericSceneManager, SceneManager, MetaClassTraitCronstructable);
 	};

@@ -7,7 +7,6 @@
 //
 
 #include "RNSceneManager.h"
-#include "RNLight.h"
 
 namespace RN
 {
@@ -27,14 +26,10 @@ namespace RN
 	
 	
 	GenericSceneManager::GenericSceneManager()
-	{
-		_entityClass = Entity::MetaClass();
-		_lightClass  = Light::MetaClass();
-	}
+	{}
 	
 	GenericSceneManager::~GenericSceneManager()
-	{
-	}
+	{}
 	
 	
 	void GenericSceneManager::AddSceneNode(SceneNode *node)

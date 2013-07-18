@@ -192,7 +192,6 @@ namespace RN
 		std::map<std::tuple<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
 		std::vector<std::pair<Camera *, Shader *>> _flushCameras;
 		
-		SpinLock _lock;
 	};
 	
 	RN_INLINE uint32 Renderer::BindTexture(Texture *texture)

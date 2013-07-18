@@ -584,7 +584,7 @@ namespace RN
 				
 				// Check if we can use instancing here
 				bool wantsInstancing = (object.type == RenderingObject::Type::Instanced);
-				if(wantsInstancing)
+				if(RN_EXPECT_FALSE(wantsInstancing))
 				{
 					if(!shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
 						continue;
@@ -603,10 +603,8 @@ namespace RN
 				
 				bool wantsLighting = material->lighting;
 				if(surfaceMaterial)
-				{
 					wantsLighting = surfaceMaterial->lighting;
-				}
-				
+
 				if(wantsLighting && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
 				{
 					programTypes |= ShaderProgram::TypeLighting;
@@ -668,43 +666,21 @@ namespace RN
 				if(changedShader)
 				{
 					// Light data
-					if(program->lightPointCount != -1)
-						glUniform1i(program->lightPointCount, lightPointCount);
+					glUniform1i(program->lightPointCount, lightPointCount);
+					glUniform4fv(program->lightPointPosition, lightPointCount, (float*)_lightPointPosition.data());
+					glUniform4fv(program->lightPointColor, lightPointCount, (float*)_lightPointColor.data());
 					
-					if(program->lightPointPosition != -1)
-						glUniform4fv(program->lightPointPosition, lightPointCount, (float*)_lightPointPosition.data());
+					glUniform1i(program->lightSpotCount, lightSpotCount);
+					glUniform4fv(program->lightSpotPosition, lightSpotCount, (float*)_lightSpotPosition.data());
+					glUniform4fv(program->lightSpotDirection, lightSpotCount, (float*)_lightSpotDirection.data());
+					glUniform4fv(program->lightSpotColor, lightSpotCount, (float*)_lightSpotColor.data());
 					
-					if(program->lightPointColor != -1)
-						glUniform4fv(program->lightPointColor, lightPointCount, (float*)_lightPointColor.data());
+					glUniform1i(program->lightDirectionalCount, lightDirectionalCount);
+					glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)_lightDirectionalDirection.data());
+					glUniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.data());
 					
-					
-					if(program->lightSpotCount != -1)
-						glUniform1i(program->lightSpotCount, lightSpotCount);
-					
-					if(program->lightSpotPosition != -1)
-						glUniform4fv(program->lightSpotPosition, lightSpotCount, (float*)_lightSpotPosition.data());
-					
-					if(program->lightSpotDirection != -1)
-						glUniform4fv(program->lightSpotDirection, lightSpotCount, (float*)_lightSpotDirection.data());
-					
-					if(program->lightSpotColor != -1)
-						glUniform4fv(program->lightSpotColor, lightSpotCount, (float*)_lightSpotColor.data());
-					
-					
-					if(program->lightDirectionalCount != -1)
-						glUniform1i(program->lightDirectionalCount, lightDirectionalCount);
-					
-					if(program->lightDirectionalDirection != -1)
-						glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)_lightDirectionalDirection.data());
-					
-					if(program->lightDirectionalColor != -1)
-						glUniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.data());
-					
-					if(program->lightDirectionalMatrix != -1)
-					{
-						float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.data());
-						glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.size(), GL_FALSE, data);
-					}
+					float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.data());
+					glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.size(), GL_FALSE, data);
 					
 					if(camera->DepthTiles() != 0)
 					{
@@ -740,7 +716,7 @@ namespace RN
 						glUniform1i(program->lightDirectionalDepth, textureUnit);
 					}
 					
-					if(camera->DepthTiles() != 0)
+					if(camera->DepthTiles())
 					{
 						// Point lights
 						if(program->lightPointList != -1)
@@ -781,40 +757,28 @@ namespace RN
 						}
 					}
 					
-					if(program->ambient != -1)
-						glUniform4fv(program->ambient, 1, &material->ambient.r);
-					
-					if(program->diffuse != -1)
-						glUniform4fv(program->diffuse, 1, &material->diffuse.r);
-					
-					if(program->emissive != -1)
-						glUniform4fv(program->emissive, 1, &material->emissive.r);
-					
-					if(program->specular != -1)
-						glUniform4fv(program->specular, 1, &material->specular.r);
-					
-					if(program->shininess != -1)
-						glUniform1f(program->shininess, material->shininess);
+					glUniform4fv(program->ambient, 1, &material->ambient.r);
+					glUniform4fv(program->diffuse, 1, &material->diffuse.r);
+					glUniform4fv(program->emissive, 1, &material->emissive.r);
+					glUniform4fv(program->specular, 1, &material->specular.r);
+					glUniform1f(program->shininess, material->shininess);
 				}
 				
-				if(wantsInstancing)
+				if(RN_EXPECT_FALSE(wantsInstancing))
 				{
 					DrawMeshInstanced(object);
 					continue;
 				}
 				
 				// More updates
-				if(object.skeleton && program->matBones != -1)
+				if(object.skeleton)
 				{
 					const float *data = reinterpret_cast<const float *>(object.skeleton->Matrices().data());
 					glUniformMatrix4fv(program->matBones, object.skeleton->NumBones(), GL_FALSE, data);
 				}
 				
-				if(program->matModel != -1)
-					glUniformMatrix4fv(program->matModel, 1, GL_FALSE, transform.m);
-				
-				if(program->matModelInverse != -1)
-					glUniformMatrix4fv(program->matModelInverse, 1, GL_FALSE, inverseTransform.m);
+				glUniformMatrix4fv(program->matModel, 1, GL_FALSE, transform.m);
+				glUniformMatrix4fv(program->matModelInverse, 1, GL_FALSE, inverseTransform.m);
 				
 				if(object.rotation)
 				{
@@ -849,7 +813,7 @@ namespace RN
 					glUniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
 				}
 				
-				if(object.type == RenderingObject::Type::Custom)
+				if(RN_EXPECT_FALSE(object.type == RenderingObject::Type::Custom))
 				{
 					object.callback(this, object);
 					continue;
