@@ -131,6 +131,9 @@ namespace RN
 	#define RN_ASSERT0(e) (void)0
 #endif
 
+#define RN_EXPECT_TRUE(x)  __builtin_expect(!!(x), 1)
+#define RN_EXPECT_FALSE(x) __builtin_expect(!!(x), 0)
+	
 	RNAPI RN_NORETURN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
 	RNAPI RN_NORETURN void __HandleException(const Exception& e);
 	RNAPI void ParseCommandLine(int argc, char *argv[]);

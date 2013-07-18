@@ -60,7 +60,6 @@
 	#pragma warning(disable: 4800)
 
 
-
 	#if defined(_WIN64) || defined(__amd64__)
 			#undef RN_PLATFORM_INTEL
 			#undef RN_PLATFORM_64BIT
