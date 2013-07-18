@@ -12,7 +12,7 @@
 
 namespace RN
 {
-	void ResourcePool::LoadDefaultResources(ThreadPool::Batch& batch)
+	void ResourcePool::LoadDefaultResources(ThreadPool::Batch *batch)
 	{
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_Texture1", kRNResourceKeyTexture1Shader));
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_Water", kRNResourceKeyWaterShader));

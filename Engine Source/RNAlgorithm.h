@@ -26,7 +26,7 @@ namespace RN
 		if((count / threads) > kRNParallelSortMinBatchCount)
 		{
 			size_t batches = count / kRNParallelSortMaxBatchSize;
-			ThreadPool::Batch batch = ThreadPool::SharedInstance()->OpenBatch();
+			ThreadPool::Batch *batch = ThreadPool::SharedInstance()->OpenBatch();
 			
 			auto begin = first;
 			

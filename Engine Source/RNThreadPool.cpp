@@ -87,9 +87,23 @@ namespace RN
 	
 	
 	
-	ThreadPool::Batch ThreadPool::OpenBatch()
+	ThreadPool::Batch *ThreadPool::OpenBatch()
 	{
-		Batch batch(new __Batch(this));
+		Batch *batch = nullptr;
+		
+		_batchLock.Lock();
+		
+		if(!_batchPool.empty())
+		{
+			batch = _batchPool.front();
+			_batchPool.pop_front();
+		}
+		
+		_batchLock.Unlock();
+		
+		if(!batch)
+			batch = new Batch(this);
+		
 		return batch;
 	}
 	
@@ -162,18 +176,14 @@ namespace RN
 			for(size_t i=0; i<size; i++)
 			{
 				Task& task = tasks[i];
-				
 				task.function();
 				
-				if(Batch batch = task.batch.lock())
+				uint32 tasksLeft = task.batch->_openTasks.fetch_sub(1);
+				if(tasksLeft == 1)
 				{
-					uint32 tasksLeft = batch->_openTasks.fetch_sub(1);
-					
-					if(tasksLeft == 1)
-					{
-						std::lock_guard<std::mutex> lock(batch->_lock);
-						batch->_waitCondition.notify_all();
-					}
+					std::lock_guard<std::mutex> lock(task.batch->_lock);
+					task.batch->_waitCondition.notify_all();
+					task.batch->TryFeedingBack();
 				}
 			}
 		}
@@ -191,15 +201,33 @@ namespace RN
 	// MARK: Batch
 	// ---------------------
 	
-	void ThreadPool::__Batch::Commit()
+	void ThreadPool::Batch::Commit()
 	{
 		_openTasks.store(static_cast<uint32>(_tasks.size()));
 		_pool->FeedTasks(_tasks);
+		
+		std::vector<Task> temp;
+		std::swap(temp, _tasks);
 	}
 	
-	void ThreadPool::__Batch::Wait()
+	void ThreadPool::Batch::Wait()
 	{
+		_listener ++;
+		
 		std::unique_lock<std::mutex> lock(_lock);
 		_waitCondition.wait(lock, [&]{ return (_openTasks.load() == 0); });
+		
+		_listener --;
+		TryFeedingBack();
+	}
+	
+	void ThreadPool::Batch::TryFeedingBack()
+	{
+		if(_listener.load() == 0)
+		{
+			_pool->_batchLock.Lock();
+			_pool->_batchPool.push_back(this);
+			_pool->_batchLock.Unlock();
+		}
 	}
 }

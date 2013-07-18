@@ -42,7 +42,7 @@ namespace RN
 	{
 	class Task;
 	public:
-		class __Batch : public std::enable_shared_from_this<__Batch>
+		class Batch
 		{
 		friend class ThreadPool;
 		public:
@@ -51,7 +51,7 @@ namespace RN
 			{
 				Task temp;
 				temp.function = std::move(f);
-				temp.batch    = SharedPointer();
+				temp.batch    = this;
 				
 				_tasks.push_back(std::move(temp));
 			}
@@ -66,47 +66,48 @@ namespace RN
 				
 				Task temp;
 				temp.function = std::move(task);
-				temp.batch    = SharedPointer();
+				temp.batch    = this;
 				
 				_tasks.push_back(std::move(temp));
 				
 				return result;
 			}
 			
-			void Commit();
-			void Wait();
+			RNAPI void Commit();
+			RNAPI void Wait();
+			
+			void Reserve(size_t size)
+			{
+				_tasks.reserve(size);
+			}
 			
 			size_t TaskCount() const { return _tasks.size(); }
 			
 		private:
-			__Batch(ThreadPool *pool) :
+			Batch(ThreadPool *pool) :
 				_openTasks(0)
 			{
 				_pool = pool;
 			}
 			
-			std::shared_ptr<__Batch> SharedPointer()
-			{
-				return shared_from_this();
-			}
+			void TryFeedingBack();
 			
 			ThreadPool *_pool;
 			
 			std::vector<Task> _tasks;
 			std::atomic<uint32> _openTasks;
+			std::atomic<uint32> _listener;
 			
 			std::mutex _lock;
 			std::condition_variable _waitCondition;
 		};
-		typedef std::shared_ptr<__Batch> Batch;
-		friend class __Batch;
 		
+		friend class Batch;
 		
 		ThreadPool(size_t maxJobs=0, size_t maxThreads=0);
 		~ThreadPool() override;
 		
-		Batch OpenBatch();
-		
+		Batch *OpenBatch();
 		
 	private:		
 		class Task
@@ -116,7 +117,7 @@ namespace RN
 			{}
 			
 			Function function;
-			std::weak_ptr<__Batch> batch;
+			Batch *batch;
 		};
 		
 		Thread *CreateThread();
@@ -129,6 +130,9 @@ namespace RN
 		std::atomic<uint32> _resigned;
 		
 		stl::ring_buffer<Task> _tasks;
+		
+		SpinLock _batchLock;
+		std::deque<Batch *> _batchPool;
 		
 		std::mutex _workMutex;
 		std::mutex _teardownMutex;

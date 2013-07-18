@@ -60,7 +60,7 @@ namespace RN
 		void *_appHandle;
 		
 		std::string _title;
-		ThreadPool::Batch _resourceBatch;
+		ThreadPool::Batch *_resourceBatch;
 		FrameID _frame;
 		float _scaleFactor;
 

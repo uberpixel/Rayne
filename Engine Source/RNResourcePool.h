@@ -50,7 +50,7 @@ namespace RN
 		Object *ObjectWithName(const std::string& name);
 		void __RemoveResource(const std::string& name);
 		
-		void LoadDefaultResources(ThreadPool::Batch& batch);
+		void LoadDefaultResources(ThreadPool::Batch *batch);
 		void LoadShader(const std::string& name, const std::string& key);
 		void LoadFont(const std::string& name, float size, uint32 traits, const std::string& key);
 		

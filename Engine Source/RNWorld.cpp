@@ -75,7 +75,7 @@ namespace RN
 		}
 		
 		// Add the Transform updates to the thread pool
-		ThreadPool::Batch batch[3];
+		ThreadPool::Batch *batch[3];
 		SpinLock lock;
 		std::vector<SceneNode *> resubmit;
 		

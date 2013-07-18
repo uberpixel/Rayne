@@ -182,7 +182,7 @@ namespace RN
 	void Kernel::Initialize()
 	{
 		_resourceBatch->Wait();
-		_resourceBatch.reset();
+		_resourceBatch = nullptr;
 		
 		_app->Start();
 		_window->SetTitle(_app->Title());

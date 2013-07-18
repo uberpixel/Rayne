@@ -188,7 +188,8 @@ namespace RN
 		std::vector<size_t> indicesCount(tileCount);
 		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
 		
-		ThreadPool::Batch batch = ThreadPool::SharedInstance()->OpenBatch();
+		ThreadPool::Batch *batch = ThreadPool::SharedInstance()->OpenBatch();
+		batch->Reserve(tilesHeight * tilesWidth);
 		
 		for(int y=0; y<tilesHeight; y++)
 		{
