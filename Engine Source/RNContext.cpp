@@ -323,13 +323,21 @@ namespace RN
 
 		thread->_mutex.Lock();
 
-		this->_active = false;
-		this->_thread = 0;
+		_active = false;
+		_thread = 0;
 
-		this->Deactivate();
+		Deactivate();
 
 		thread->_context = 0;
 		thread->_mutex.Unlock();
+	}
+	
+	void Context::ForceDeactivate()
+	{
+		_active = false;
+		_thread = 0;
+		
+		Deactivate();
 	}
 	
 	

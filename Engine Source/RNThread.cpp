@@ -38,10 +38,7 @@ namespace RN
 	}
 	
 	Thread::~Thread()
-	{
-		if(_context)
-			_context->DeactivateContext();
-	}
+	{}
 	
 	void Thread::Initialize()
 	{
@@ -83,6 +80,12 @@ namespace RN
 	
 	void Thread::Exit()
 	{
+		if(_context)
+		{
+			_context->ForceDeactivate();
+			_context = nullptr;
+		}
+		
 		__ThreadLock.Lock();
 		
 		auto iterator = __ThreadMap.find(_id);

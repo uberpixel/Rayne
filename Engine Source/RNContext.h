@@ -19,9 +19,11 @@ namespace RN
 	class Window;
 	class Context : public Object
 	{
-	friend class Window;
-	friend class Kernel;
 	public:
+		friend class Window;
+		friend class Kernel;
+		friend class Thread;
+		
 		RNAPI Context(Context *shared=0);
 		RNAPI virtual ~Context();
 
@@ -39,6 +41,8 @@ namespace RN
 		RNAPI void Deactivate();
 
 	private:
+		void ForceDeactivate();
+		
 		bool _active;
 		Thread *_thread;
 		Context *_shared;
