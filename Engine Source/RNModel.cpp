@@ -427,6 +427,8 @@ namespace RN
 			mesh->ReleaseElement(kMeshFeatureIndices);
 			mesh->UpdateMesh();
 			
+			delete [] vertexData;
+			
 			MeshGroup *meshGroup = new MeshGroup(mesh->Autorelease(), material, "Unnamed");
 			group->groups.push_back(meshGroup);
 		}

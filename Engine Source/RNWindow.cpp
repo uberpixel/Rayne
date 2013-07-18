@@ -474,6 +474,7 @@ namespace RN
 					}
 				}
 				
+				CFRelease(array);
 				break;
 			}
 		}
