@@ -46,6 +46,7 @@ namespace RN
 		RNDefineMeta(BasicString, Object)
 	};
 	
+	class String;
 	class StringFactory
 	{
 	public:
@@ -54,10 +55,16 @@ namespace RN
 		static BasicString *ConstructString(BasicString *string, Encoding encoding);
 		static BasicString *EmptyString();
 		
-	private:
-		static BasicString *DequeConstantString(void *data, Encoding encoding);
+		static String *DequeueConstantString(void *data, Encoding encoding);
 		
-		static std::unordered_map<void *, BasicString *> _stringTable;
+	private:
+		static BasicString *DequeConstantBasicString(void *data, Encoding encoding);
+		
+		
+		static std::unordered_map<void *, BasicString *> _basicStringTable;
+		static std::unordered_map<void *, String *> _stringTable;
+		
+		static SpinLock _basicStringTableLock;
 		static SpinLock _stringTableLock;
 	};
 }

@@ -25,6 +25,7 @@ namespace RN
 		void CharactersInRange(UniChar *buffer, const Range& range) const override;
 		
 		size_t Length() const override;
+		machine_hash Hash() const override;
 		
 		void *Data() const override;
 		void *BytesWithEncoding(Encoding encoding, bool lossy, size_t *length) const override;

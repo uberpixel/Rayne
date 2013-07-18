@@ -8,6 +8,7 @@
 
 #include "RNASCIIString.h"
 #include "RNData.h"
+#include "RNAlgorithm.h"
 
 #define kMutableASCIIStringIncreaseSize 32
 
@@ -52,6 +53,19 @@ namespace RN
 		{
 			buffer[i] = static_cast<UniChar>(_string[i + range.origin]);
 		}
+	}
+	
+	machine_hash ConstantASCIIString::Hash() const
+	{
+		size_t length = Length();
+		machine_hash hash = 0;
+		
+		for(size_t i=0; i<length; i++)
+		{
+			HashCombine(hash, static_cast<UniChar>(_string[i]));
+		}
+		
+		return hash;
 	}
 	
 	size_t ConstantASCIIString::Length() const

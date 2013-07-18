@@ -9,6 +9,7 @@
 #include "RNBasicString.h"
 #include "RNASCIIString.h"
 #include "RNUTF8String.h"
+#include "RNString.h"
 #include "RNAlgorithm.h"
 
 namespace RN
@@ -92,7 +93,10 @@ namespace RN
 	
 	
 	
-	std::unordered_map<void *, BasicString *> StringFactory::_stringTable;
+	std::unordered_map<void *, BasicString *> StringFactory::_basicStringTable;
+	std::unordered_map<void *, String *> StringFactory::_stringTable;
+	
+	SpinLock StringFactory::_basicStringTableLock;
 	SpinLock StringFactory::_stringTableLock;
 	
 	BasicString *StringFactory::EmptyString()
@@ -107,12 +111,12 @@ namespace RN
 		return string;
 	}
 	
-	BasicString *StringFactory::DequeConstantString(void *data, Encoding encoding)
+	BasicString *StringFactory::DequeConstantBasicString(void *data, Encoding encoding)
 	{
-		_stringTableLock.Lock();
+		_basicStringTableLock.Lock();
 		
-		auto i = _stringTable.find(data);
-		if(i == _stringTable.end())
+		auto i = _basicStringTable.find(data);
+		if(i == _basicStringTable.end())
 		{
 			BasicString *string;
 			
@@ -131,7 +135,28 @@ namespace RN
 					break;
 			}
 			
-			_stringTable.insert(std::unordered_map<void *, BasicString *>::value_type(data, string));
+			_basicStringTable.insert(std::unordered_map<void *, BasicString *>::value_type(data, string));
+			_basicStringTableLock.Unlock();
+			
+			string->Retain();
+			return string;
+		}
+		
+		_basicStringTableLock.Unlock();
+		return i->second->Retain();
+	}
+	
+	String *StringFactory::DequeueConstantString(void *data, Encoding encoding)
+	{
+		_stringTableLock.Lock();
+		
+		auto i = _stringTable.find(data);
+		if(i == _stringTable.end())
+		{
+			BasicString *core = DequeConstantBasicString(data, encoding);
+			String *string = new String(static_cast<void *>(core));
+			
+			_stringTable.insert(std::unordered_map<void *, String *>::value_type(data, string));
 			_stringTableLock.Unlock();
 			
 			string->Retain();
@@ -154,7 +179,7 @@ namespace RN
 				switch(traits)
 				{
 					case StringTraits::Constant:
-						return DequeConstantString(string, encoding);
+						return DequeConstantBasicString(string, encoding);
 						break;
 						
 					case StringTraits::Mutable:
@@ -172,7 +197,7 @@ namespace RN
 				switch(traits)
 				{
 					case StringTraits::Constant:
-						return DequeConstantString(string, encoding);
+						return DequeConstantBasicString(string, encoding);
 						break;
 						
 					case StringTraits::Mutable:

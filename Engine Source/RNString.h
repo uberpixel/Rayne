@@ -15,9 +15,12 @@
 
 namespace RN
 {
+	class StringFactory;
 	class String : public Object
 	{
 	public:
+		friend class StringFactory;
+		
 		enum
 		{
 			ComparisonModeCaseInsensitive = (1 << 0),

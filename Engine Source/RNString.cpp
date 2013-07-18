@@ -109,25 +109,37 @@ namespace RN
 	
 	String *String::WithString(const char *string, bool constant)
 	{
-		String *temp = new String(string, constant);
+		if(constant)
+		{
+			void *data = const_cast<char *>(string);
+			return StringFactory::DequeueConstantString(data, Encoding::ASCII);
+		}
+		
+		String *temp = new String(string, false);
 		return temp->Autorelease();
 	}
 	
 	String *String::WithString(const char *string, size_t length, bool constant)
 	{
-		String *temp = new String(string, length, constant);
+		String *temp = new String(string, length, false);
 		return temp->Autorelease();
 	}
 	
 	String *String::WithBytes(const void *bytes, Encoding encoding, bool constant)
 	{
-		String *string = new String(bytes, encoding, constant);
+		if(constant)
+		{
+			void *data = const_cast<void *>(bytes);
+			return StringFactory::DequeueConstantString(data, encoding);
+		}
+		
+		String *string = new String(bytes, encoding, false);
 		return string->Autorelease();
 	}
 	
 	String *String::WithBytes(const void *bytes, size_t length, Encoding encoding, bool constant)
 	{
-		String *string = new String(bytes, length, encoding, constant);
+		String *string = new String(bytes, length, encoding, false);
 		return string->Autorelease();
 	}
 	
@@ -149,6 +161,9 @@ namespace RN
 		String *string = static_cast<String *>(other);
 		if(string->Length() != Length())
 			return false;
+		
+		if(_internal == string->_internal)
+			return true;
 		
 		return (Compare(string) == ComparisonResult::EqualTo);
 	}
