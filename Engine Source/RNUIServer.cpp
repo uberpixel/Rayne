@@ -34,7 +34,7 @@ namespace RN
 			_mode = Mode::SingleTracking;
 			
 			_debugWidget = nullptr;
-			_drawDebugFrames = true;
+			_drawDebugFrames = false;
 			
 			MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, &Server::HandleEvent, this, this);
 		}
@@ -93,8 +93,10 @@ namespace RN
 				const Vector2& position = event->MousePosition();
 				View *hit = nullptr;
 				
-				for(Widget *widget : _widgets)
+				for(auto i = _widgets.rbegin(); i != _widgets.rend(); i ++)
 				{
+					Widget *widget = *i;
+					
 					if(widget->Frame().ContainsPoint(position))
 					{
 						Vector2 transformed = position;
