@@ -19,6 +19,9 @@ namespace RN
 	public:
 		ConstantUTF8String(const uint8 *string);
 		
+		BasicString *Copy() const override;
+		BasicString *MutableCopy() const override;
+		
 		UniChar CharacterAtIndex(size_t index) const override;
 		void CharactersInRange(UniChar *buffer, const Range& range) const override;
 		
@@ -50,6 +53,8 @@ namespace RN
 		UTF8String(const uint8 *bytes, size_t size);
 		
 		~UTF8String() override;
+		
+		BasicString *Copy() const override;
 		
 		void ReplaceCharactersInRange(const Range& range, BasicString *string) override;
 		bool IsMutable() const override;

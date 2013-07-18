@@ -25,6 +25,16 @@ namespace RN
 		_length = strlen(string);
 	}
 	
+	BasicString *ConstantASCIIString::Copy() const
+	{
+		return new ConstantASCIIString(_string);
+	}
+	
+	BasicString *ConstantASCIIString::MutableCopy() const
+	{
+		return new ASCIIString(_string, _length);
+	}
+	
 	UniChar ConstantASCIIString::CharacterAtIndex(size_t index) const
 	{
 		if(index > _length)
@@ -105,6 +115,7 @@ namespace RN
 	
 	
 	
+	
 	ASCIIString::ASCIIString(const char *string)
 	{
 		_length = strlen(string);
@@ -128,6 +139,11 @@ namespace RN
 	ASCIIString::~ASCIIString()
 	{
 		delete [] _string;
+	}
+	
+	BasicString *ASCIIString::Copy() const
+	{
+		return new ASCIIString(_string, _length);
 	}
 	
 	void ASCIIString::AllocateSpace(size_t size)

@@ -172,6 +172,15 @@ namespace RN
 		}
 	}
 	
+	BasicString *ConstantUTF8String::Copy() const
+	{
+		return new ConstantUTF8String(_string);
+	}
+	
+	BasicString *ConstantUTF8String::MutableCopy() const
+	{
+		return new UTF8String(_string, _size);
+	}
 	
 	void *ConstantUTF8String::BytesWithEncoding(Encoding encoding, bool lossy, size_t *length) const
 	{
@@ -333,6 +342,11 @@ namespace RN
 	UTF8String::~UTF8String()
 	{
 		delete [] _string;
+	}
+	
+	BasicString *UTF8String::Copy() const
+	{
+		return new UTF8String(_string, Size());
 	}
 	
 	void UTF8String::AllocateSpace(size_t size)

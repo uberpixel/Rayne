@@ -26,6 +26,7 @@ namespace RN
 	public:
 		virtual ~BasicString();
 		virtual BasicString *Copy() const;
+		virtual BasicString *MutableCopy() const;
 		
 		virtual UniChar CharacterAtIndex(size_t index) const;
 		virtual void CharactersInRange(UniChar *buffer, const Range& range) const;
@@ -52,6 +53,12 @@ namespace RN
 		static BasicString *ConstructString(const void *data, size_t length, Encoding encoding, StringTraits traits);
 		static BasicString *ConstructString(BasicString *string, Encoding encoding);
 		static BasicString *EmptyString();
+		
+	private:
+		static BasicString *DequeConstantString(void *data, Encoding encoding);
+		
+		static std::unordered_map<void *, BasicString *> _stringTable;
+		static SpinLock _stringTableLock;
 	};
 }
 

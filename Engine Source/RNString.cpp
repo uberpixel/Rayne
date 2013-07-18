@@ -161,7 +161,12 @@ namespace RN
 	void String::PromoteStringIfNeeded(Encoding encoding)
 	{
 		if(!_ainternal->IsMutable())
-			throw Exception(Exception::Type::InconsistencyException, "Can't mutate a constant string!");
+		{
+			BasicString *copy = _ainternal->MutableCopy();
+			
+			_ainternal->Release();
+			_internal = copy;
+		}
 		
 		bool needsReEncoding = (_encoding == Encoding::ASCII && encoding != Encoding::ASCII);
 		if(needsReEncoding)

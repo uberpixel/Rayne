@@ -23,6 +23,11 @@ namespace RN
 		throw Exception(Exception::Type::GenericException, "");
 	}
 	
+	BasicString *BasicString::MutableCopy() const
+	{
+		throw Exception(Exception::Type::GenericException, "");
+	}
+	
 	UniChar BasicString::CharacterAtIndex(size_t index) const
 	{
 		throw Exception(Exception::Type::GenericException, "");
@@ -87,6 +92,9 @@ namespace RN
 	
 	
 	
+	std::unordered_map<void *, BasicString *> StringFactory::_stringTable;
+	SpinLock StringFactory::_stringTableLock;
+	
 	BasicString *StringFactory::EmptyString()
 	{
 		static BasicString *string;
@@ -99,6 +107,42 @@ namespace RN
 		return string;
 	}
 	
+	BasicString *StringFactory::DequeConstantString(void *data, Encoding encoding)
+	{
+		_stringTableLock.Lock();
+		
+		auto i = _stringTable.find(data);
+		if(i == _stringTable.end())
+		{
+			BasicString *string;
+			
+			switch(encoding)
+			{
+				case Encoding::ASCII:
+					string = new ConstantASCIIString(static_cast<char *>(data));
+					break;
+					
+				case Encoding::UTF8:
+					string = new ConstantUTF8String(static_cast<uint8 *>(data));
+					break;
+					
+				default:
+					throw Exception(Exception::Type::GenericException, "");
+					break;
+			}
+			
+			_stringTable.insert(std::unordered_map<void *, BasicString *>::value_type(data, string));
+			_stringTableLock.Unlock();
+			
+			string->Retain();
+			return string;
+		}
+		
+		_stringTableLock.Unlock();
+		return i->second->Retain();
+	}
+	
+	
 	BasicString *StringFactory::ConstructString(const void *data, Encoding encoding, StringTraits traits)
 	{
 		switch(encoding)
@@ -110,7 +154,7 @@ namespace RN
 				switch(traits)
 				{
 					case StringTraits::Constant:
-						return new ConstantASCIIString(string);
+						return DequeConstantString(string, encoding);
 						break;
 						
 					case StringTraits::Mutable:
@@ -128,7 +172,7 @@ namespace RN
 				switch(traits)
 				{
 					case StringTraits::Constant:
-						return new ConstantUTF8String(string);
+						return DequeConstantString(string, encoding);
 						break;
 						
 					case StringTraits::Mutable:
