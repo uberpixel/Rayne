@@ -253,7 +253,7 @@ namespace RN
 	
 	RN_INLINE void Renderer::SetScissorRect(const Rect& rect)
 	{
-		glScissor(rect.x, rect.y, rect.width, rect.height);
+		glScissor(rect.x*_scaleFactor, rect.y*_scaleFactor, rect.width*_scaleFactor, rect.height*_scaleFactor);
 	}
 	
 	RN_INLINE void Renderer::SetHDRExposure(float exposure)
