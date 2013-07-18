@@ -68,13 +68,11 @@ namespace RN
 		{
 			_dictionaryLock.Lock();
 			
-			Object *object = _dictionary.ObjectForKey(key);
-			if(object)
-				object->Retain()->Autorelease();
-			
+			T *object = _dictionary.ObjectForKey<T>(key);
+
 			_dictionaryLock.Unlock();
 			
-			return object ? object->Downcast<T>() : nullptr;
+			return object;
 		}
 		
 		void SetObjectForKey(Object *object, Object *key)
