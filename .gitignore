@@ -2,6 +2,7 @@
 [Tt]humbs.db
 *.DS_Store
 *.orig
+*.xccheckout
 
 # Xcode Project files
 /xcuserdata/
