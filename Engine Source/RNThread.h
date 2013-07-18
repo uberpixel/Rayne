@@ -13,6 +13,7 @@
 #include "RNObject.h"
 #include "RNMutex.h"
 #include "RNFunction.h"
+#include "RNDictionary.h"
 
 namespace RN
 {
@@ -63,20 +64,30 @@ namespace RN
 		RNAPI GLuint GetOpenGLBinding(GLenum target);
 		
 		template <typename T>
-		T *ObjectForKey(const std::string& key)
+		T *ObjectForKey(Object *key)
 		{
 			_dictionaryLock.Lock();
-			void *object = _dictionary[key];
+			
+			Object *object = _dictionary.ObjectForKey(key);
+			if(object)
+				object->Retain()->Autorelease();
+			
 			_dictionaryLock.Unlock();
 			
-			return static_cast<T *>(object);
+			return object ? object->Downcast<T>() : nullptr;
 		}
 		
-		template <typename T>
-		void SetObjectForKey(T *object, const std::string& key)
+		void SetObjectForKey(Object *object, Object *key)
 		{
 			_dictionaryLock.Lock();
-			_dictionary[key] = static_cast<void *>(object);
+			_dictionary.SetObjectForKey(object, key);
+			_dictionaryLock.Unlock();
+		}
+		
+		void RemoveObjectForKey(Object *key)
+		{
+			_dictionaryLock.Lock();
+			_dictionary.RemoveObjectForKey(key);
 			_dictionaryLock.Unlock();
 		}
 		
@@ -103,7 +114,7 @@ namespace RN
 		std::thread::id _id;
 		
 		std::string _name;
-		std::map<std::string, void *> _dictionary;
+		Dictionary _dictionary;
 		std::unordered_map<GLenum, std::tuple<GLuint, uint32>> _glBindings;
 		
 		RNDefineMeta(Thread, Object)

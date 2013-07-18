@@ -20,6 +20,9 @@ namespace RN
 	public:
 		typedef std::function<void (WrappingObject<T> *)> DeallocCallback;
 		
+		WrappingObject()
+		{}
+		
 		WrappingObject(const T& data) :
 			_data(data)
 		{}
@@ -34,7 +37,7 @@ namespace RN
 				_dealloc(this);
 		}
 		
-		T& Data() const { return _data; }
+		T& Data() { return _data; }
 		
 		void SetDealloc(DeallocCallback callback)
 		{

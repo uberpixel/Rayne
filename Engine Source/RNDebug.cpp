@@ -10,9 +10,11 @@
 #include "RNMaterial.h"
 #include "RNRenderer.h"
 #include "RNThread.h"
+#include "RNString.h"
+#include "RNWrappingObject.h"
 
-#define kRNDebugDebugDrawLine2DKey "kRNDebugDebugDrawLine2DKey"
-#define kRNDebugDebugDrawLine3DKey "kRNDebugDebugDrawLine3DKey"
+#define kRNDebugDebugDrawLine2DKey RNCSTR("kRNDebugDebugDrawLine2DKey")
+#define kRNDebugDebugDrawLine3DKey RNCSTR("kRNDebugDebugDrawLine3DKey")
 
 namespace RN
 {
@@ -145,20 +147,24 @@ namespace RN
 		
 		
 		template<typename Vector, typename Line, typename Point>
-		void __AddLinePoint(const Vector& point, const Color& color, const char *key)
+		void __AddLinePoint(const Vector& point, const Color& color, String *key)
 		{
-			Line *line = Thread::CurrentThread()->ObjectForKey<Line>(key);
+			WrappingObject<Line> *line = Thread::CurrentThread()->ObjectForKey<WrappingObject<Line>>(key);
 			if(!line)
 			{
-				line = new Line();
+				line = new WrappingObject<Line>();
 				Thread::CurrentThread()->SetObjectForKey(line, key);
+				
+				line->Release();
 			}
 			
-			line->emplace_back(Point(point, color));
+			Line& data = line->Data();
 			
-			if((line->size() % 2) == 0)
+			data.emplace_back(Point(point, color));
+			
+			if((data.size() % 2) == 0)
 			{
-				line->emplace_back(Point(point, color));
+				data.emplace_back(Point(point, color));
 			}
 		}
 		
@@ -174,50 +180,52 @@ namespace RN
 		
 		void CloseLine()
 		{
-			Line3D *line3D = Thread::CurrentThread()->ObjectForKey<Line3D>(kRNDebugDebugDrawLine3DKey);
-			Line2D *line2D = Thread::CurrentThread()->ObjectForKey<Line2D>(kRNDebugDebugDrawLine2DKey);
+			WrappingObject<Line3D> *tline3D = Thread::CurrentThread()->ObjectForKey<WrappingObject<Line3D>>(kRNDebugDebugDrawLine3DKey);
+			WrappingObject<Line2D> *tline2D = Thread::CurrentThread()->ObjectForKey<WrappingObject<Line2D>>(kRNDebugDebugDrawLine2DKey);
 			
-			if(line3D)
+			if(tline3D)
 			{
-				line3D->erase(line3D->end() - 1);
+				Line3D& line3D = tline3D->Data();
+				line3D.erase(line3D.end() - 1);
 			}
 			
-			if(line2D)
+			if(tline2D)
 			{
-				line2D->erase(line2D->end() - 1);
+				Line2D& line2D = tline2D->Data();
+				line2D.erase(line2D.end() - 1);
 			}
 		}
 		
 		void EndLine()
 		{
-			Line3D *line3D = Thread::CurrentThread()->ObjectForKey<Line3D>(kRNDebugDebugDrawLine3DKey);
-			Line2D *line2D = Thread::CurrentThread()->ObjectForKey<Line2D>(kRNDebugDebugDrawLine2DKey);
+			WrappingObject<Line3D> *tline3D = Thread::CurrentThread()->ObjectForKey<WrappingObject<Line3D>>(kRNDebugDebugDrawLine3DKey);
+			WrappingObject<Line2D> *tline2D = Thread::CurrentThread()->ObjectForKey<WrappingObject<Line2D>>(kRNDebugDebugDrawLine2DKey);
 			
-			if(line3D)
+			if(tline3D)
 			{
-				line3D->erase(line3D->end() - 1);
+				Line3D& line3D = tline3D->Data();
+				line3D.erase(line3D.end() - 1);
 				
 				Line3D temp;
-				std::swap(temp, *line3D);
+				std::swap(temp, line3D);
 				
 				__Line3D.push_back(std::move(temp));
-				delete line3D;
 				
-				Thread::CurrentThread()->SetObjectForKey<Line3D>(nullptr, kRNDebugDebugDrawLine3DKey);
+				Thread::CurrentThread()->RemoveObjectForKey(kRNDebugDebugDrawLine3DKey);
 				InstallLine3DHandler();
 			}
 			
-			if(line2D)
+			if(tline2D)
 			{
-				line2D->erase(line2D->end() - 1);
+				Line2D& line2D = tline2D->Data();
+				line2D.erase(line2D.end() - 1);
 				
 				Line2D temp;
-				std::swap(temp, *line2D);
+				std::swap(temp, line2D);
 				
 				__Line2D.push_back(std::move(temp));
-				delete line2D;
 				
-				Thread::CurrentThread()->SetObjectForKey<Line2D>(nullptr, kRNDebugDebugDrawLine2DKey);
+				Thread::CurrentThread()->RemoveObjectForKey(kRNDebugDebugDrawLine2DKey);
 				InstallLine2DHandler();
 			}
 		}
