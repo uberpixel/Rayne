@@ -162,6 +162,14 @@ namespace RN
 			if(_shadowcam && _shadowcam->LastFrame() != frame)
 				return false;
 			
+			for(int i = 0; i < _shadowSplits; i++)
+			{
+				Camera *tempcam = _shadowcams.ObjectAtIndex<Camera>(i);
+				
+				if(tempcam->LastFrame() != frame)
+					return false;
+			}
+			
 			return true;
 		}
 		
