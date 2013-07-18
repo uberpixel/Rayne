@@ -152,6 +152,22 @@ namespace RN
 		}
 	}
 	
+	bool Light::CanUpdate(FrameID frame)
+	{
+		if(_shadow && _lightcam)
+		{
+			if(_lightcam->LastFrame() != frame)
+				return false;
+			
+			if(_shadowcam && _shadowcam->LastFrame() != frame)
+				return false;
+			
+			return true;
+		}
+		
+		return true;
+	}
+	
 	void Light::Update(float delta)
 	{
 		SceneNode::Update(delta);
