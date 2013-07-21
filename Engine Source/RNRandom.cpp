@@ -43,8 +43,8 @@ namespace RN
 		
 		int32 Generator::RandomInt32Range(int32 min, int32 max)
 		{
-			RN_ASSERT0(min >= Min());
-			RN_ASSERT0(max <= Max());
+			RN_ASSERT(min >= Min(), "");
+			RN_ASSERT(max <= Max(), "");
 			
 			while(1)
 			{

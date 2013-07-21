@@ -288,7 +288,7 @@ namespace RN
 	void Context::MakeActiveContext()
 	{
 		Thread *thread = Thread::CurrentThread();
-		RN_ASSERT0(thread);
+		RN_ASSERT(thread, "");
 
 		thread->_mutex.Lock();
 
@@ -319,7 +319,7 @@ namespace RN
 	void Context::DeactivateContext()
 	{
 		Thread *thread = Thread::CurrentThread();
-		RN_ASSERT0(thread);
+		RN_ASSERT(thread, "");
 
 		thread->_mutex.Lock();
 
@@ -376,7 +376,7 @@ namespace RN
 	Context *Context::ActiveContext()
 	{
 		Thread *thread = Thread::CurrentThread();
-		RN_ASSERT0(thread);
+		RN_ASSERT(thread, "");
 
 		return thread->_context;
 	}
@@ -385,12 +385,10 @@ namespace RN
 	{
 #if RN_PLATFORM_MAC_OS
 		[(NSOpenGLContext *)_oglContext makeCurrentContext];
-		RN_ASSERT0([NSOpenGLContext currentContext] == _oglContext);
 #endif
 
 #if RN_PLATFORM_IOS
-		BOOL result = [EAGLContext setCurrentContext:(EAGLContext *)_oglContext];
-		RN_ASSERT0(result);
+		[EAGLContext setCurrentContext:(EAGLContext *)_oglContext];
 #endif
 
 #if RN_PLATFORM_WINDOWS

@@ -117,24 +117,22 @@ namespace RN
 {
 #ifndef NDEBUG
 	#if RN_PLATFORM_POSIX
-		#define RN_ASSERT(e, ...) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, __VA_ARGS__) : (void)0
-		#define RN_ASSERT0(e) __builtin_expect(!(e), 0) ? __Assert(__func__, __LINE__, #e, 0) : (void)0
+		#define RN_ASSERT(e, ...) __builtin_expect(!(e), 0) ? __Assert(__PRETTY_FUNCTION__, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
 	#endif
 
 	#if RN_PLATFORM_WINDOWS
-		#define RN_ASSERT(e, ...) (!(e)) ? __Assert(__FUNCTION__, __LINE__, #e, __VA_ARGS__) : (void)0
-		#define RN_ASSERT0(e) (!(e)) ? __Assert(__FUNCTION__, __LINE__, #e, 0) : (void)0
+		#define RN_ASSERT(e, ...) (!(e)) ? __Assert(__FUNCTION__, __FILE__, __LINE__, this, #e, __VA_ARGS__) : (void)0
 	#endif
 
 #else
 	#define RN_ASSERT(e, message, ...) (void)0
-	#define RN_ASSERT0(e) (void)0
 #endif
 
 #define RN_EXPECT_TRUE(x)  __builtin_expect(!!(x), 1)
 #define RN_EXPECT_FALSE(x) __builtin_expect(!!(x), 0)
 	
-	RNAPI RN_NORETURN void __Assert(const char *func, int line, const char *expression, const char *message, ...);
+	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
+	
 	RNAPI RN_NORETURN void __HandleException(const Exception& e);
 	RNAPI void ParseCommandLine(int argc, char *argv[]);
 	
@@ -227,7 +225,7 @@ namespace RN
 	protected:
 		NonConstructingSingleton()
 		{
-			RN_ASSERT0(_instance == 0);
+			RN_ASSERT(_instance == 0, "");
 			_instance = static_cast<T *>(this);
 		}
 

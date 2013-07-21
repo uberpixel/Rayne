@@ -52,7 +52,7 @@ namespace RN
 		
 		void Server::AddWidget(Widget *widget)
 		{
-			RN_ASSERT0(widget->_server == nullptr);
+			RN_ASSERT(widget->_server == nullptr, "");
 			
 			_widgets.push_front(widget);
 			widget->_server = this;
@@ -61,7 +61,7 @@ namespace RN
 		
 		void Server::RemoveWidget(Widget *widget)
 		{
-			RN_ASSERT0(widget->_server == this);
+			RN_ASSERT(widget->_server == this, "");
 			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
 			widget->_server = nullptr;
@@ -70,7 +70,7 @@ namespace RN
 		
 		void Server::MoveWidgetToFront(Widget *widget)
 		{
-			RN_ASSERT0(widget->_server == this);
+			RN_ASSERT(widget->_server == this, "");
 			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
 			_widgets.push_front(widget);

@@ -107,16 +107,6 @@ namespace RN
 		ResourcePool::SharedInstance();
 		
 		_scaleFactor = 1.0f;
-		
-		_resourceBatch = ThreadPool::SharedInstance()->OpenBatch();
-		_resourceBatch->AddTask([] {
-			Debug::InstallDebugDraw();
-		});
-		
-		ResourcePool::SharedInstance()->LoadDefaultResources(_resourceBatch);
-		
-		_resourceBatch->Commit();
-		
 #if RN_PLATFORM_IOS
 		_scaleFactor = [[UIScreen mainScreen] scale];
 #endif
@@ -124,6 +114,14 @@ namespace RN
 		if([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)])
 			_scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
 #endif
+		
+		_resourceBatch = ThreadPool::SharedInstance()->OpenBatch();
+		_resourceBatch->AddTask([] {
+			Debug::InstallDebugDraw();
+		});
+		
+		ResourcePool::SharedInstance()->LoadDefaultResources(_resourceBatch);
+		_resourceBatch->Commit();
 		
 		_renderer = new Renderer32();
 		_input    = Input::SharedInstance();

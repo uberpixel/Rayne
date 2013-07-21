@@ -63,7 +63,7 @@ namespace RN
 	
 	void RenderStorage::SetRenderTarget(Texture *target, uint32 index)
 	{
-		RN_ASSERT0(_format & BufferFormatColor);
+		RN_ASSERT(_format & BufferFormatColor, "Need a color buffer to change render targets");
 		
 		TextureParameter parameter = target->Parameter();
 		
@@ -80,7 +80,7 @@ namespace RN
 	
 	void RenderStorage::RemoveRenderTarget(Texture *target)
 	{
-		RN_ASSERT0(_format & BufferFormatColor);
+		RN_ASSERT(_format & BufferFormatColor, "Need a color buffer to change render targets");
 		
 		_renderTargets->RemoveObject(target);
 		_renderTargetsChanged = true;
@@ -88,7 +88,7 @@ namespace RN
 	
 	void RenderStorage::AddRenderTarget(Texture *target)
 	{
-		RN_ASSERT0(_format & BufferFormatColor);
+		RN_ASSERT(_format & BufferFormatColor, "Need a color buffer to change render targets");
 		
 		if(_renderTargets->Count() >= MaxRenderTargets())
 			throw Exception(Exception::Type::InconsistencyException, "Can't attach any more render targets to the render storage!");
@@ -108,7 +108,7 @@ namespace RN
 	
 	void RenderStorage::AddRenderTarget(TextureParameter::Format format)
 	{
-		RN_ASSERT0(_format & BufferFormatColor);
+		RN_ASSERT(_format & BufferFormatColor, "Need a color buffer to change render targets");
 		
 		TextureParameter parameter;
 		
@@ -136,15 +136,6 @@ namespace RN
 		if(depthTexture)
 		{
 			RN_ASSERT(_format & BufferFormatDepth, "Depth textures are only supported for render storages with depth support");
-			
-			if(_format & BufferFormatStencil)
-			{
-				RN_ASSERT0(depthTexture->Parameter().format == TextureParameter::Format::DepthStencil);
-			}
-			else
-			{
-				RN_ASSERT0(depthTexture->Parameter().format == TextureParameter::Format::Depth);
-			}
 		}
 		
 		if(_depthTexture)

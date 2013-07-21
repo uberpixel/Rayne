@@ -136,8 +136,8 @@ namespace RN
 	
 	void Object::SetAssociatedObject(const void *key, Object *value, MemoryPolicy policy)
 	{
-		RN_ASSERT0(value);
-		RN_ASSERT0(key);
+		RN_ASSERT(value, "Value mustn't be NULL!");
+		RN_ASSERT(key, "Key mustn't be NULL!");
 		
 		Object *object = 0;
 		

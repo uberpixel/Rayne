@@ -17,26 +17,21 @@ namespace RN
 {
 	static SpinLock __DieLock;
 	
-	void __Assert(const char *func, int line, const char *expression, const char *message, ...)
+	void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...)
 	{
 		__DieLock.Lock();
-		
-		fprintf(stderr, "%s(), assertion '%s' failed!\n", func, expression);
-		
-		if(message)
-		{
-			va_list args;
-			va_start(args, message);
-			
-			fprintf(stderr, "Reason: \"");
-			vfprintf(stderr, message, args);
-			fprintf(stderr, "\"\n");
-			
-			va_end(args);
-		}
-		
-		abort();
+		fprintf(stderr, "Assertion '%s' failed in %s, %s:%i", expression, func, file, line);
 		__DieLock.Unlock();
+		
+		va_list args;
+		va_start(args, message);
+		
+		char reason[1024];
+		vsprintf(reason, message, args);
+		
+		va_end(args);
+		
+		throw Exception(Exception::Type::InconsistencyException, reason);
 	}
 	
 	void __HandleException(const Exception& e)

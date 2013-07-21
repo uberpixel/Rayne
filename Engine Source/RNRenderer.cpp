@@ -549,7 +549,7 @@ namespace RN
 	
 	void Renderer::BeginCamera(Camera *camera)
 	{
-		RN_ASSERT0(_frameCamera == 0);
+		RN_ASSERT(_frameCamera == 0, "");
 		_frameCamera = camera;
 		
 		_currentProgram  = 0;

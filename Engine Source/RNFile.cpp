@@ -79,7 +79,7 @@ namespace RN
 	void File::ReadIntoBuffer(void *buffer, size_t size)
 	{
 		size_t read = fread(buffer, size, 1, _file);
-		RN_ASSERT0(read == 1);
+		RN_ASSERT(read == 1, "");
 	}
 	
 	void File::Seek(size_t offset)
@@ -174,7 +174,7 @@ namespace RN
 		const char *cstring = string.c_str();
 
 		size_t written = fwrite(cstring, 1, length, _file);
-		RN_ASSERT0(written == length);
+		RN_ASSERT(written == length, "");
 	}
 	
 	void File::WriteBuffer(const void *buffer, size_t size)
@@ -182,7 +182,7 @@ namespace RN
 		const char *data = static_cast<const char *>(buffer);
 
 		size_t written = fwrite(data, 1, size, _file);
-		RN_ASSERT0(written == size);
+		RN_ASSERT(written == size, "");
 	}
 	
 	void File::WriteUint8(uint8 value)

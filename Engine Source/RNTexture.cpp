@@ -400,7 +400,7 @@ namespace RN
 	
 	void Texture::ConvertFormat(TextureParameter::Format format, bool isLinear, GLenum *glFormat, GLint *glInternalFormat, GLenum *glType)
 	{
-		RN_ASSERT0(glFormat != 0 && glInternalFormat != 0 && glType != 0);
+		RN_ASSERT(glFormat != 0 && glInternalFormat != 0 && glType != 0, "");
 		
 		switch(format)
 		{
@@ -525,7 +525,7 @@ namespace RN
 	
 	RN_INLINE uint8 *ReadPixel(uint8 *data, TextureParameter::Format format, uint32 *r, uint32 *g, uint32 *b, uint32 *a)
 	{
-		RN_ASSERT0(r && g && b && a);
+		RN_ASSERT(r && g && b && a, "");
 		
 		switch(format)
 		{
@@ -631,7 +631,7 @@ namespace RN
 		if(current == target)
 			return (void *)data;
 		
-		RN_ASSERT0(data && width > 0 && height > 0);
+		RN_ASSERT(data && width > 0 && height > 0, "");
 		
 		size_t pixel = width * height;
 		

@@ -62,7 +62,7 @@ namespace RN
 		
 		png_get_IHDR(pngPointer, pngInfo, &width, &height, &depth, &colorType, &interlaceType, 0, 0);
 		
-		RN_ASSERT0(width > 0 && height > 0);
+		RN_ASSERT(width > 0 && height > 0, "");
 		png_bytepp rows = png_get_rows(pngPointer, pngInfo);
 		
 		switch(colorType)

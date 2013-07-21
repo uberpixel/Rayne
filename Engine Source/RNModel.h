@@ -57,7 +57,7 @@ namespace RN
 			MeshGroup(Mesh *tmesh, Material *tmaterial, const std::string& tname) :
 				name(tname)
 			{
-				RN_ASSERT0(tmesh && tmaterial);
+				RN_ASSERT(tmesh && tmaterial, "Mesh and Material must not be NULL");
 				
 				mesh = tmesh->Retain();
 				material = tmaterial->Retain();

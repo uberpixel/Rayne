@@ -17,7 +17,7 @@ namespace RN
 		Image::Image(class Texture *texture) :
 			_atlas(UI::Atlas(Vector2(0.0f), Vector2(1.0f)))
 		{
-			RN_ASSERT0(texture);
+			RN_ASSERT(texture, "Texture mustn't be NULL");
 			_texture = texture->Retain();
 		}
 		

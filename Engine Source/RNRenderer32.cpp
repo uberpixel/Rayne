@@ -648,7 +648,7 @@ namespace RN
 					program = shader->ProgramWithLookup(material->Lookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
 				}
 				
-				RN_ASSERT0(program);
+				RN_ASSERT(program, "");
 				
 				changedShader   = (_currentProgram != program);
 				changedMaterial = (_currentMaterial != material);
@@ -880,7 +880,7 @@ namespace RN
 		MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureIndices);
 		
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
-		RN_ASSERT0(_currentProgram->instancingData != -1);
+		RN_ASSERT(_currentProgram->instancingData != -1, "");
 		
 		uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, object.instancingData);
 		glUniform1i(_currentProgram->instancingData, textureUnit);

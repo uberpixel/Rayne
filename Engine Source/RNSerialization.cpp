@@ -581,7 +581,7 @@ namespace RN
 		size_t tsize;
 		AssertType(expected, &tsize);
 		
-		RN_ASSERT0(tsize == size);
+		RN_ASSERT(tsize == size, "");
 		
 		_data->BytesInRange(buffer, Range(_index, size));
 		_index += size;
