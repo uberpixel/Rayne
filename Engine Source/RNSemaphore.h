@@ -16,9 +16,14 @@ namespace RN
 	class Semaphore
 	{
 	public:
-		Semaphore(uint32 count)
+		Semaphore(uint32 count) :
+			_count(count),
+			_initial(count)
+		{}
+		
+		~Semaphore()
 		{
-			_count = count;
+			RN_ASSERT(_count >= _initial, "Semaphore destructor called while semaphore is still in use.");
 		}
 		
 		void Signal()
@@ -53,6 +58,8 @@ namespace RN
 		
 	private:
 		uint32 _count;
+		uint32 _initial;
+		
 		std::condition_variable _condition;
 		std::mutex _mutex;
 	};
