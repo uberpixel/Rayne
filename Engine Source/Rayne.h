@@ -91,10 +91,11 @@
 
 #include "RNThread.h"
 #include "RNThreadPool.h"
-#include "RNFunction.h"
-#include "RNScopeGuard.h"
+#include "RNSemaphore.h"
 #include "RNSpinLock.h"
 #include "RNMutex.h"
+#include "RNFunction.h"
+#include "RNScopeGuard.h"
 #include "RNWindow.h"
 
 #endif /* __RAYNE_H__ */
