@@ -1118,6 +1118,7 @@
 				GCC_INPUT_FILETYPE = automatic;
 				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
+				GCC_UNROLL_LOOPS = YES;
 				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
@@ -1130,6 +1131,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Vendor/freetype-2.4.11/lib/osx\"",
 				);
+				LLVM_VECTORIZE_LOOPS = YES;
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-x",
@@ -1209,6 +1211,7 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = automatic;
+				GCC_UNROLL_LOOPS = YES;
 				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
@@ -1221,6 +1224,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Vendor/freetype-2.4.11/lib/osx\"",
 				);
+				LLVM_VECTORIZE_LOOPS = YES;
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-x",
@@ -1237,6 +1241,7 @@
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = automatic;
 				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_UNROLL_LOOPS = YES;
 				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
 				HEADER_SEARCH_PATHS = (
 					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
@@ -1249,6 +1254,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Vendor/freetype-2.4.11/lib/osx\"",
 				);
+				LLVM_VECTORIZE_LOOPS = YES;
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-x",
