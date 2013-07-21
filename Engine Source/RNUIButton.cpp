@@ -19,21 +19,6 @@ namespace RN
 	{
 		RNDeclareMeta(Button)
 		
-		EdgeInsets ParseInsets(Dictionary *insets)
-		{
-			if(insets)
-			{
-				float top = insets->ObjectForKey<Number>(RNCSTR("top"))->FloatValue();
-				float bottom = insets->ObjectForKey<Number>(RNCSTR("bottom"))->FloatValue();
-				float left  = insets->ObjectForKey<Number>(RNCSTR("left"))->FloatValue();
-				float right = insets->ObjectForKey<Number>(RNCSTR("right"))->FloatValue();
-				
-				return EdgeInsets(top, bottom, left, right);
-			}
-			
-			return EdgeInsets();
-		}
-		
 		Button::Button()
 		{
 			Initialize();
@@ -68,31 +53,14 @@ namespace RN
 				if(!insets)
 					insets = tlInsets;
 				
-				State tstate;
-				if(name->IsEqual(RNCSTR("normal")))
-					tstate = Normal;
-				else
-				if(name->IsEqual(RNCSTR("selected")))
-					tstate = Selected;
-				else
-				if(name->IsEqual(RNCSTR("highlighted")))
-					tstate = Highlighted;
-				else
-					return;
-				
+				State tstate = Style::ParseState(name);
 				Image *image = new Image(texture);
 				
 				if(atlas)
-				{
-					float x = atlas->ObjectForKey<Number>(RNCSTR("x"))->FloatValue();
-					float y = atlas->ObjectForKey<Number>(RNCSTR("y"))->FloatValue();
-					float width  = atlas->ObjectForKey<Number>(RNCSTR("width"))->FloatValue();
-					float height = atlas->ObjectForKey<Number>(RNCSTR("height"))->FloatValue();
-					
-					image->SetAtlas(Atlas(x, y, width, height), false);
-				}
+					image->SetAtlas(Style::ParseAtlas(atlas), false);
 				
-				image->SetEdgeInsets(ParseInsets(insets));
+				if(insets)
+					image->SetEdgeInsets(Style::ParseEdgeInsets(insets));
 				
 				if(useBackground)
 					this->SetBackgroundImageForState(image->Autorelease(), tstate);
@@ -100,7 +68,7 @@ namespace RN
 					this->SetImageForState(image->Autorelease(), tstate);
 			});
 			
-			SetContentInsets(ParseInsets(style->ObjectForKey<Dictionary>(RNCSTR("contentInsets"))));
+			SetContentInsets(Style::ParseEdgeInsets(style->ObjectForKey<Dictionary>(RNCSTR("contentInsets"))));
 			SizeToFit();
 		}
 		

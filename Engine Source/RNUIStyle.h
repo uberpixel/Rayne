@@ -14,6 +14,8 @@
 #include "RNDictionary.h"
 #include "RNString.h"
 #include "RNTexture.h"
+#include "RNUIGeometry.h"
+#include "RNUIControl.h"
 
 namespace RN
 {
@@ -26,7 +28,13 @@ namespace RN
 			~Style() override;
 			
 			Texture *TextureWithName(String *name);
+			
 			Dictionary *ButtonStyle(String *name);
+			Dictionary *TextfieldStyle(String *name);
+			
+			static EdgeInsets ParseEdgeInsets(Dictionary *insets);
+			static Atlas ParseAtlas(Dictionary *atlas);
+			static Control::State ParseState(String *string);
 			
 		private:
 			Dictionary *_data;
