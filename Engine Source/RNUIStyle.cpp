@@ -47,15 +47,20 @@ namespace RN
 		{
 			if(insets)
 			{
-				Number *top    = insets->ObjectForKey<Number>(RNCSTR("top"));
-				Number *bottom = insets->ObjectForKey<Number>(RNCSTR("bottom"));
-				Number *left   = insets->ObjectForKey<Number>(RNCSTR("left"));
-				Number *right  = insets->ObjectForKey<Number>(RNCSTR("right"));
-				
-				if(top && bottom && left && right)
+				try
 				{
-					return EdgeInsets(top->FloatValue(), bottom->FloatValue(), left->FloatValue(), right->FloatValue());
+					Number *top    = insets->ObjectForKey<Number>(RNCSTR("top"));
+					Number *bottom = insets->ObjectForKey<Number>(RNCSTR("bottom"));
+					Number *left   = insets->ObjectForKey<Number>(RNCSTR("left"));
+					Number *right  = insets->ObjectForKey<Number>(RNCSTR("right"));
+					
+					if(top && bottom && left && right)
+					{
+						return EdgeInsets(top->FloatValue(), bottom->FloatValue(), left->FloatValue(), right->FloatValue());
+					}
 				}
+				catch(Exception e)
+				{}
 			}
 			
 			return EdgeInsets();
@@ -65,15 +70,20 @@ namespace RN
 		{
 			if(atlas)
 			{
-				Number *x = atlas->ObjectForKey<Number>(RNCSTR("x"));
-				Number *y = atlas->ObjectForKey<Number>(RNCSTR("y"));
-				Number *width  = atlas->ObjectForKey<Number>(RNCSTR("width"));
-				Number *height = atlas->ObjectForKey<Number>(RNCSTR("height"));
-				
-				if(x && y && width && height)
+				try
 				{
-					return Atlas(x->FloatValue(), y->FloatValue(), width->FloatValue(), height->FloatValue());
+					Number *x = atlas->ObjectForKey<Number>(RNCSTR("x"));
+					Number *y = atlas->ObjectForKey<Number>(RNCSTR("y"));
+					Number *width  = atlas->ObjectForKey<Number>(RNCSTR("width"));
+					Number *height = atlas->ObjectForKey<Number>(RNCSTR("height"));
+					
+					if(x && y && width && height)
+					{
+						return Atlas(x->FloatValue(), y->FloatValue(), width->FloatValue(), height->FloatValue());
+					}
 				}
+				catch(Exception e)
+				{}
 			}
 			
 			return Atlas(0.0f, 0.0f, 1.0f, 1.0f);
