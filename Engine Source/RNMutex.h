@@ -10,7 +10,6 @@
 #define __RAYNE_MUTEX_H__
 
 #include "RNBase.h"
-#include "RNObject.h"
 
 namespace RN
 {
@@ -18,7 +17,10 @@ namespace RN
 	{
 	public:
 		RNAPI Mutex();
-		RNAPI virtual ~Mutex();
+		RNAPI ~Mutex();
+		
+		Mutex(const Mutex& other) = delete;
+		Mutex& operator =(const Mutex& other) = delete;
 		
 		RNAPI void Lock();
 		RNAPI bool TryLock();
