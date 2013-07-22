@@ -38,6 +38,7 @@ namespace RN
 			{
 				_center = 0;
 				_nodes[0] = _nodes[1] = nullptr;
+				_size = 0;
 			}
 			
 			interval_tree(const interval_tree<T>& other) :
@@ -46,6 +47,7 @@ namespace RN
 				_center      = other._center;
 				_leftextent  = other._leftextent;
 				_rightextent = other._rightextent;
+				_size        = other._size;
 				
 				for(size_t i=0; i<2; i++)
 				{
@@ -110,6 +112,7 @@ namespace RN
 						_nodes[1] = new interval_tree<T>(right, depth, minbucket, _rightextent, _center);
 				}
 				
+				_size = _intervals.size();
 			}
 			
 			~interval_tree()
@@ -142,7 +145,12 @@ namespace RN
 			{
 				return _rightextent;
 			}
-					
+			
+			size_t size() const
+			{
+				return _size;
+			}
+			
 			void find_contained(const Range& range, std::vector<interval>& contained)
 			{
 				if(!_intervals.empty())
@@ -188,6 +196,8 @@ namespace RN
 			std::vector<interval> _intervals;
 			int32 _center;
 			int32 _leftextent, _rightextent;
+			
+			size_t _size;
 		};
 	}
 }
