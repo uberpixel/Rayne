@@ -160,12 +160,12 @@ namespace RN
 			return origin + length;
 		}
 		
-		bool Contains(const Range& other)
+		bool Contains(const Range& other) const
 		{
 			return (other.origin >= origin && End() <= other.End());
 		}
 		
-		bool Overlaps(const Range& other)
+		bool Overlaps(const Range& other) const
 		{
 			return (End() >= other.origin && origin <= other.End());
 		}
