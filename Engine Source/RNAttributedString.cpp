@@ -56,6 +56,50 @@ namespace RN
 			ApplyUpdates();
 	}
 	
+	void AttributedString::RemoveAttribute(class String *key, const Range& range)
+	{
+		if(_attributes.size() > 0)
+		{
+			_attributes.find_overlapping(Range(_attributes.min(), (_attributes.max() - _attributes.min())), _queuedAttributes);
+			_attributes = stl::interval_tree<Attribute>();
+		}
+		
+		for(auto i = _queuedAttributes.begin(); i != _queuedAttributes.end();)
+		{
+			if(range.Overlaps(i->range))
+			{
+				if(i->value == key)
+				{
+					if(i->range.origin < range.origin)
+					{
+						Range temp;
+						temp.origin = i->range.origin;
+						temp.length = range.origin - temp.origin;
+						
+						_queuedAttributes.emplace_back(stl::interval_tree<Attribute>::interval(range, i->value));
+					}
+					
+					if(i->range.End() > range.End())
+					{
+						Range temp;
+						temp.origin = range.End();
+						temp.length = i->range.End() - temp.origin;
+						
+						_queuedAttributes.emplace_back(stl::interval_tree<Attribute>::interval(range, i->value));
+					}
+					
+					i = _queuedAttributes.erase(i);
+					continue;
+				}
+			}
+			
+			i ++;
+		}
+		
+		if(!_editing)
+			ApplyUpdates();
+	}
+	
 	void AttributedString::ApplyUpdates()
 	{
 		if(!_queuedAttributes.empty())

@@ -27,6 +27,7 @@ namespace RN
 		
 		RNAPI void AddAttribute(String *key, Object *value, const Range& range);
 		RNAPI void AddAttributes(Dictionary *attributes, const Range& range);
+		RNAPI void RemoveAttribute(String *key, const Range& range);
 		RNAPI Dictionary *AttributesAtIndex(size_t index);
 		
 		size_t Length() const { return _string->Length(); }
@@ -52,6 +53,11 @@ namespace RN
 			{
 				key->Release();
 				value->Release();
+			}
+			
+			bool operator== (class String *string)
+			{
+				return key->IsEqual(string);
 			}
 			
 			class String *key;
