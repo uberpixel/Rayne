@@ -57,7 +57,7 @@ namespace RN
 			bool PostEvent(EventType event) override;
 			void StateChanged(State state) override;
 			
-			void Update() override;
+			void LayoutSubviews() override;
 			
 		private:
 			void Initialize();
@@ -69,8 +69,6 @@ namespace RN
 			std::map<State, Image *> _backgroundImages;
 			std::map<State, Image *> _images;
 			std::map<State, String *> _titles;
-			
-			bool _dirty;
 			
 			ImagePosition _position;
 			Behavior _behavior;

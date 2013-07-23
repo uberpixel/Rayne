@@ -56,7 +56,7 @@ namespace RN
 			Array *Subivews() { return &_subviews; }
 			Widget *Container() { return _widget; }
 			
-			void NeedsLayoutUpdate();
+			void SetNeedsLayoutUpdate();
 			
 			void SizeToFit();
 			virtual Vector2 SizeThatFits();
@@ -73,6 +73,7 @@ namespace RN
 			virtual void Update();
 			virtual bool Render(RenderingObject& object);
 			virtual void Render(Renderer *renderer);
+			
 			void RenderChilds(Renderer *renderer);
 			void PopulateRenderingObject(RenderingObject& object);
 			
@@ -80,6 +81,8 @@ namespace RN
 			virtual void WillRemoveSubview(View *subview);
 			virtual void WillMoveToSuperview(View *superview);
 			virtual void DidMoveToSuperview(View *superview);
+			
+			virtual void LayoutSubviews();
 			
 			Matrix transform;
 			

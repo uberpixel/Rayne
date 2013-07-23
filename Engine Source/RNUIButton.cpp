@@ -192,7 +192,7 @@ namespace RN
 				ActivateTitle(Control::Normal);
 			} while(0);
 			
-			_dirty = true;
+			SetNeedsLayoutUpdate();
 		}
 		
 		bool Button::ActivateBackgroundImage(State state)
@@ -243,13 +243,12 @@ namespace RN
 		{
 			Control::SetFrame(frame);
 			_backgroundImage->SetFrame(Bounds());
-			_dirty = true;
 		}
 		
 		void Button::SetContentInsets(const EdgeInsets& insets)
 		{
 			_contentInsets = insets;
-			_dirty = true;
+			SetNeedsLayoutUpdate();
 		}
 		
 		void Button::SetTitleForState(String *title, State state)
@@ -435,71 +434,66 @@ namespace RN
 			return size;
 		}
 		
-		void Button::Update()
+		void Button::LayoutSubviews()
 		{
-			Control::Update();
+			Control::LayoutSubviews();
 			
-			if(_dirty)
+			Vector2 titleSize = std::move(_label->SizeThatFits());
+			Vector2 imageSize = std::move(_image->SizeThatFits());
+			
+			Vector2 insetSize = Vector2(_contentInsets.left + _contentInsets.right, _contentInsets.top + _contentInsets.bottom);
+			Vector2 size = Frame().Size();
+			Vector2 truncatedSize = size - insetSize;
+			
+			titleSize.x = truncatedSize.x > titleSize.x ? titleSize.x : truncatedSize.x;
+			titleSize.y = truncatedSize.y > titleSize.y ? titleSize.y : truncatedSize.y;
+			
+			imageSize.x = truncatedSize.x > imageSize.x ? imageSize.x : truncatedSize.x;
+			imageSize.y = truncatedSize.y > imageSize.y ? imageSize.y : truncatedSize.y;
+			
+			Vector2 halfTitle = titleSize * 0.5f;
+			Vector2 halfImage = imageSize * 0.5f;
+			
+			Vector2 center = size * 0.5f;
+			
+			Vector2 centeredTitle = center - halfTitle;
+			Vector2 centeredImage = center - halfImage;
+			
+			bool simpleCenter = (_position == ImagePosition::Overlaps || _position == ImagePosition::NoImage || _position == ImagePosition::ImageOnly);
+			
+			_label->SetFrame(Rect(_contentInsets.left, centeredTitle.y, size.x - insetSize.x, titleSize.y));
+			_image->SetFrame(Rect(_contentInsets.left, centeredImage.y, size.x - insetSize.x, imageSize.y));
+			
+			if(!_currentImage || !_currentTitle || simpleCenter)
+				return;
+			
+			bool fitsHorizontally = (size.x - insetSize.x > titleSize.x + (imageSize.x * 2));
+			//bool fitsVertically   = (size.y >= (titleSize.y + imageSize.y) - insetSize.y);
+			
+			switch(_position)
 			{
-				Vector2 titleSize = std::move(_label->SizeThatFits());
-				Vector2 imageSize = std::move(_image->SizeThatFits());
-				
-				Vector2 insetSize = Vector2(_contentInsets.left + _contentInsets.right, _contentInsets.top + _contentInsets.bottom);
-				Vector2 size = Frame().Size();
-				Vector2 truncatedSize = size - insetSize;
-				
-				titleSize.x = truncatedSize.x > titleSize.x ? titleSize.x : truncatedSize.x;
-				titleSize.y = truncatedSize.y > titleSize.y ? titleSize.y : truncatedSize.y;
-				
-				imageSize.x = truncatedSize.x > imageSize.x ? imageSize.x : truncatedSize.x;
-				imageSize.y = truncatedSize.y > imageSize.y ? imageSize.y : truncatedSize.y;
-				
-				Vector2 halfTitle = titleSize * 0.5f;
-				Vector2 halfImage = imageSize * 0.5f;
-				
-				Vector2 center = size * 0.5f;
-				
-				Vector2 centeredTitle = center - halfTitle;
-				Vector2 centeredImage = center - halfImage;
-				
-				bool simpleCenter = (_position == ImagePosition::Overlaps || _position == ImagePosition::NoImage || _position == ImagePosition::ImageOnly);
-				
-				_label->SetFrame(Rect(_contentInsets.left, centeredTitle.y, size.x - insetSize.x, titleSize.y));
-				_image->SetFrame(Rect(_contentInsets.left, centeredImage.y, size.x - insetSize.x, imageSize.y));
-				
-				if(!_currentImage || !_currentTitle || simpleCenter)
-					return;
-				
-				bool fitsHorizontally = (size.x - insetSize.x > titleSize.x + (imageSize.x * 2));
-				//bool fitsVertically   = (size.y >= (titleSize.y + imageSize.y) - insetSize.y);
-				
-				switch(_position)
-				{
-					case ImagePosition::Left:
-						if(!fitsHorizontally || _label->Alignment() == TextAlignment::Left)
-						{
-							Rect titleRect = Rect(_contentInsets.left + imageSize.x, centeredTitle.y, size.x - (imageSize.x + insetSize.x), titleSize.y);
-							_label->SetFrame(titleRect);
-						}
-						
-						_image->SetFrame(Rect(_contentInsets.left, centeredImage.y, imageSize.x, imageSize.y));
-						break;
-						
-					case ImagePosition::Right:
-						if(!fitsHorizontally || _label->Alignment() == TextAlignment::Right)
-						{
-							Rect titleRect = Rect(_contentInsets.left, centeredTitle.y, size.x - (imageSize.x + insetSize.x), titleSize.y);
-							_label->SetFrame(titleRect);
-						}
-						
-						_image->SetFrame(Rect(size.x - imageSize.x - _contentInsets.right, centeredImage.y, imageSize.x, imageSize.y));
-						break;
-						
-					default:
-						throw Exception(Exception::Type::GenericException, "Fix it, you lazy bastard!");
-				}
-			
-				_dirty = false;
+				case ImagePosition::Left:
+					if(!fitsHorizontally || _label->Alignment() == TextAlignment::Left)
+					{
+						Rect titleRect = Rect(_contentInsets.left + imageSize.x, centeredTitle.y, size.x - (imageSize.x + insetSize.x), titleSize.y);
+						_label->SetFrame(titleRect);
+					}
+					
+					_image->SetFrame(Rect(_contentInsets.left, centeredImage.y, imageSize.x, imageSize.y));
+					break;
+					
+				case ImagePosition::Right:
+					if(!fitsHorizontally || _label->Alignment() == TextAlignment::Right)
+					{
+						Rect titleRect = Rect(_contentInsets.left, centeredTitle.y, size.x - (imageSize.x + insetSize.x), titleSize.y);
+						_label->SetFrame(titleRect);
+					}
+					
+					_image->SetFrame(Rect(size.x - imageSize.x - _contentInsets.right, centeredImage.y, imageSize.x, imageSize.y));
+					break;
+					
+				default:
+					throw Exception(Exception::Type::GenericException, "Fix it, you lazy bastard!");
 			}
 		}
 	}

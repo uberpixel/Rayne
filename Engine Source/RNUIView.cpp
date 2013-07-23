@@ -250,7 +250,7 @@ namespace RN
 				return;
 			
 			_clipSubviews = clipping;
-			NeedsLayoutUpdate();
+			SetNeedsLayoutUpdate();
 		}
 		
 		void View::ViewHierarchyChanged()
@@ -285,7 +285,7 @@ namespace RN
 			subview->Release();
 			
 			DidAddSubview(subview);
-			NeedsLayoutUpdate();
+			SetNeedsLayoutUpdate();
 		}
 		
 		void View::RemoveSubview(View *subview)
@@ -306,7 +306,7 @@ namespace RN
 				subview->DidMoveToSuperview(nullptr);
 				subview->Release();
 				
-				NeedsLayoutUpdate();
+				SetNeedsLayoutUpdate();
 			}
 		}
 		
@@ -327,7 +327,7 @@ namespace RN
 			}
 			
 			_subviews.RemoveAllObjects();
-			NeedsLayoutUpdate();
+			SetNeedsLayoutUpdate();
 		}
 		
 		void View::RemoveFromSuperview()
@@ -358,7 +358,7 @@ namespace RN
 			_frame.height = size.y;
 			
 			SetFrame(_frame);
-			NeedsLayoutUpdate();
+			SetNeedsLayoutUpdate();
 		}
 		
 		Vector2 View::SizeThatFits()
@@ -373,7 +373,7 @@ namespace RN
 			_bounds.width  = frame.width;
 			_bounds.height = frame.height;
 			
-			NeedsLayoutUpdate();
+			SetNeedsLayoutUpdate();
 		}
 		
 		void View::SetBounds(const Rect& bounds)
@@ -383,10 +383,10 @@ namespace RN
 			
 			_bounds = bounds;
 			
-			NeedsLayoutUpdate();
+			SetNeedsLayoutUpdate();
 		}
 		
-		void View::NeedsLayoutUpdate()
+		void View::SetNeedsLayoutUpdate()
 		{
 			_dirtyLayout = true;
 			
@@ -394,7 +394,7 @@ namespace RN
 			for(size_t i=0; i<count; i++)
 			{
 				View *subview = _subviews.ObjectAtIndex<View>(i);
-				subview->NeedsLayoutUpdate();
+				subview->SetNeedsLayoutUpdate();
 			}
 		}
 		
@@ -443,6 +443,9 @@ namespace RN
 			}
 		}
 		
+		void View::LayoutSubviews()
+		{}
+		
 		void View::Update()
 		{
 			if(_dirtyLayout)
@@ -474,6 +477,7 @@ namespace RN
 				_dirtyLayout = false;
 				
 				CalculateScissorRect();
+				LayoutSubviews();
 			}
 			
 			if(_widget && _widget->_server && _widget->_server->DrawDebugFrames())
