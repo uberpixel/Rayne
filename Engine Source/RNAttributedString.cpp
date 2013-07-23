@@ -105,6 +105,26 @@ namespace RN
 			ApplyUpdates();
 	}
 	
+	void AttributedString::RemoveAttributes(Array *keys, const Range& range)
+	{
+		bool wasEditing = _editing;
+		
+		keys->Enumerate([&](Object *object, size_t index, bool *stop) {
+			if(object->IsKindOfClass(RN::String::MetaClass()))
+			{
+				class String *key = static_cast<class String *>(object);
+				RemoveAttribute(key, range);
+				
+			}
+		});
+		
+		_editing = wasEditing;
+		if(!_editing)
+			ApplyUpdates();
+	}
+	
+	
+	
 	void AttributedString::MergeAttributes()
 	{
 		typedef stl::interval_tree<Attribute>::interval Interval;
