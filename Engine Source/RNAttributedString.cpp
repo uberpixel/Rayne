@@ -15,8 +15,8 @@ namespace RN
 	
 	AttributedString::AttributedString(class String *string)
 	{
-		_string = string->Retain();
-		_editing = false;
+		_string  = string->Retain();
+		_editing = 0;
 	}
 	AttributedString::~AttributedString()
 	{
@@ -26,13 +26,15 @@ namespace RN
 	
 	void AttributedString::BeginEditing()
 	{
-		_editing = true;
+		_editing ++;
 	}
 	
 	void AttributedString::EndEditing()
 	{
-		_editing = false;
-		ApplyUpdates();
+		_editing --;
+		
+		if(!_editing)
+			ApplyUpdates();
 	}
 	
 	void AttributedString::AddAttribute(class String *key, Object *value, const Range& range)
@@ -71,7 +73,7 @@ namespace RN
 		{
 			if(range.Overlaps(i->range))
 			{
-				if(i->value == key)
+				if(!key || i->value == key)
 				{
 					if(i->range.origin < range.origin)
 					{
@@ -107,7 +109,7 @@ namespace RN
 	
 	void AttributedString::RemoveAttributes(Array *keys, const Range& range)
 	{
-		bool wasEditing = _editing;
+		BeginEditing();
 		
 		keys->Enumerate([&](Object *object, size_t index, bool *stop) {
 			if(object->IsKindOfClass(RN::String::MetaClass()))
@@ -118,9 +120,113 @@ namespace RN
 			}
 		});
 		
-		_editing = wasEditing;
-		if(!_editing)
+		EndEditing();
+	}
+	
+	
+	void AttributedString::SetAttributes(Dictionary *attributes, const Range& range)
+	{
+		BeginEditing();
+		
+		RemoveAttribute(nullptr, range);
+		AddAttributes(attributes, range);
+		
+		EndEditing();
+	}
+	
+	
+	void AttributedString::ReplaceCharacters(class String *string, const Range& range)
+	{
+		size_t index = range.origin;
+		
+		if(index == Length() && Length() > 0)
+			index --;
+			
+		Dictionary *attributes = AttributesAtIndex(index);
+		ReplaceCharacters(string, range, attributes);
+	}
+	
+	void AttributedString::ReplaceCharacters(class String *string, const Range& range, Dictionary *attributes)
+	{
+		_string->ReplaceCharacters(string, range);
+		
+		ApplyUpdates();
+		
+		ptrdiff_t offset = (string ? string->Length() : 0) - range.length;
+		
+		std::vector<stl::interval_tree<Attribute>::interval> original;
+		std::vector<stl::interval_tree<Attribute>::interval> shift;
+		
+		_attributes.find_overlapping(Range(0, range.origin), original);
+		_attributes.find_overlapping(Range(range.End(), Length() - range.End()), shift);
+		
+		_attributes = stl::interval_tree<Attribute>();
+		
+		// Adjust the left side so that it cuts of at the replacement range
+		for(auto i = original.begin(); i != original.end(); i ++)
+		{
+			if(i->range.End() > range.origin)
+			{
+				i->range.length = range.origin - i->range.origin;
+			}
+		}
+		
+		// Adjust and shift the right side
+		for(auto i = shift.begin(); i != shift.end();)
+		{
+			if(range.Contains(i->range))
+			{
+				i = shift.erase(i);
+				continue;
+			}
+			
+			if(i->range.origin < range.origin)
+			{
+				size_t diff = range.origin + range.length - i->range.origin;
+				
+				i->range.origin += diff;
+				i->range.length -= diff;
+			}
+			
+			if(i->range.length == 0)
+			{
+				i = shift.erase(i);
+				continue;
+			}
+			
+			i->range.origin += offset;
+			i ++;
+		}
+		
+		_queuedAttributes.insert(_queuedAttributes.end(), original.begin(), original.end());
+		_queuedAttributes.insert(_queuedAttributes.end(), shift.begin(), shift.end());
+		
+		if(string)
+			AddAttributes(attributes, Range(range.origin, string->Length()));
+	}
+	
+	
+	Dictionary *AttributedString::AttributesAtIndex(size_t index)
+	{
+		if(_editing)
 			ApplyUpdates();
+		
+		if(index >= Length())
+			throw Exception(Exception::Type::RangeException, "index outside of range");
+		
+		std::vector<stl::interval_tree<Attribute>::interval> overlapping;
+		_attributes.find_overlapping(Range(index, 1), overlapping);
+		
+		if(overlapping.empty())
+			return (new Dictionary())->Autorelease();
+		
+		Dictionary *attributes = new Dictionary(overlapping.size());
+		for(auto i = overlapping.begin(); i != overlapping.end(); i ++)
+		{
+			attributes->SetObjectForKey(i->value.value, i->value.key);
+		}
+		
+		return attributes->Autorelease();
 	}
 	
 	
@@ -162,7 +268,10 @@ namespace RN
 				for(auto i = data.begin() + 1; i != data.end();)
 				{
 					if(!i->value.value->IsEqual(interval.value.value))
+					{
+						i ++;
 						continue;
+					}
 					
 					bool subsequent = false;
 					
@@ -205,22 +314,5 @@ namespace RN
 			_attributes = stl::interval_tree<Attribute>(std::move(_queuedAttributes));
 			_queuedAttributes.clear();
 		}
-	}
-	
-	Dictionary *AttributedString::AttributesAtIndex(size_t index)
-	{
-		std::vector<stl::interval_tree<Attribute>::interval> overlapping;
-		_attributes.find_overlapping(Range(index, 1), overlapping);
-		
-		if(overlapping.empty())
-			return (new Dictionary())->Autorelease();
-		
-		Dictionary *attributes = new Dictionary(overlapping.size());
-		for(auto i=overlapping.begin(); i!=overlapping.end(); i++)
-		{
-			attributes->SetObjectForKey(i->value.value, i->value.key);
-		}
-		
-		return attributes->Autorelease();
 	}
 }

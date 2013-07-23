@@ -31,6 +31,11 @@ namespace RN
 		RNAPI void RemoveAttributes(Array *keys, const Range& range);
 		RNAPI Dictionary *AttributesAtIndex(size_t index);
 		
+		RNAPI void SetAttributes(Dictionary *attributes, const Range& range);
+		
+		RNAPI void ReplaceCharacters(String *string, const Range& range);
+		RNAPI void ReplaceCharacters(String *string, const Range& range, Dictionary *attributes);
+		
 		size_t Length() const { return _string->Length(); }
 		String *String() const { return _string; }
 		
@@ -113,7 +118,7 @@ namespace RN
 		class String *_string;
 		stl::interval_tree<Attribute> _attributes;
 		
-		bool _editing;
+		int _editing;
 		std::vector<stl::interval_tree<Attribute>::interval> _queuedAttributes;
 		
 		RNDefineMeta(AttributedString, Object)
