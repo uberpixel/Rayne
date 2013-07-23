@@ -49,10 +49,52 @@ namespace RN
 				value = other.value->Retain();
 			}
 			
+			Attribute(Attribute&& other)
+			{
+				key   = other.key;
+				value = other.value;
+				
+				other.key   = nullptr;
+				other.value = nullptr;
+			}
+			
+			Attribute& operator= (const Attribute& other)
+			{
+				if(key)
+					key->Release();
+				
+				if(value)
+					value->Release();
+				
+				key   = other.key->Retain();
+				value = other.value->Retain();
+				return *this;
+			}
+			
+			Attribute& operator= (Attribute&& other)
+			{
+				if(key)
+					key->Release();
+				
+				if(value)
+					value->Release();
+				
+				key   = other.key;
+				value = other.value;
+				
+				other.key   = nullptr;
+				other.value = nullptr;
+				
+				return *this;
+			}
+			
 			~Attribute()
 			{
-				key->Release();
-				value->Release();
+				if(key)
+					key->Release();
+				
+				if(value)
+					value->Release();
 			}
 			
 			bool operator== (class String *string)
@@ -65,6 +107,7 @@ namespace RN
 		};
 		
 		void ApplyUpdates();
+		void MergeAttributes();
 		
 		class String *_string;
 		stl::interval_tree<Attribute> _attributes;

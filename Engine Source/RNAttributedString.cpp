@@ -7,6 +7,7 @@
 //
 
 #include "RNAttributedString.h"
+#include "RNWrappingObject.h"
 
 namespace RN
 {
@@ -64,6 +65,8 @@ namespace RN
 			_attributes = stl::interval_tree<Attribute>();
 		}
 		
+		std::vector<stl::interval_tree<Attribute>::interval> additions;
+		
 		for(auto i = _queuedAttributes.begin(); i != _queuedAttributes.end();)
 		{
 			if(range.Overlaps(i->range))
@@ -76,7 +79,7 @@ namespace RN
 						temp.origin = i->range.origin;
 						temp.length = range.origin - temp.origin;
 						
-						_queuedAttributes.emplace_back(stl::interval_tree<Attribute>::interval(range, i->value));
+						additions.emplace_back(stl::interval_tree<Attribute>::interval(temp, i->value));
 					}
 					
 					if(i->range.End() > range.End())
@@ -85,7 +88,7 @@ namespace RN
 						temp.origin = range.End();
 						temp.length = i->range.End() - temp.origin;
 						
-						_queuedAttributes.emplace_back(stl::interval_tree<Attribute>::interval(range, i->value));
+						additions.emplace_back(stl::interval_tree<Attribute>::interval(temp, i->value));
 					}
 					
 					i = _queuedAttributes.erase(i);
@@ -96,8 +99,80 @@ namespace RN
 			i ++;
 		}
 		
+		_queuedAttributes.insert(_queuedAttributes.end(), additions.begin(), additions.end());
+		
 		if(!_editing)
 			ApplyUpdates();
+	}
+	
+	void AttributedString::MergeAttributes()
+	{
+		typedef stl::interval_tree<Attribute>::interval Interval;
+		typedef WrappingObject<std::deque<stl::interval_tree<Attribute>::interval>> Wrapper;
+		
+		Dictionary *temp = new Dictionary(_queuedAttributes.size());
+		
+		for(auto i = _queuedAttributes.begin(); i != _queuedAttributes.end(); i ++)
+		{
+			Wrapper *object = temp->ObjectForKey<Wrapper>(i->value.key);
+			
+			if(!object)
+			{
+				object = new Wrapper();
+				temp->SetObjectForKey(object, i->value.key);
+			}
+			
+			object->Data().push_back(std::move(*i));
+		}
+		
+		_queuedAttributes.clear();
+		
+		temp->Enumerate([&](Object *value, Object *key, bool *stop) {
+			Wrapper *object = static_cast<Wrapper *>(value);
+			auto data = object->Data();
+			
+			std::sort(data.begin(), data.end(), [](const Interval& left, const Interval& right) {
+				return (left.range.origin < right.range.origin);
+			});
+			
+			while(!data.empty())
+			{
+				auto interval = data.at(0);
+				
+				for(auto i = data.begin() + 1; i != data.end();)
+				{
+					if(!i->value.value->IsEqual(interval.value.value))
+						continue;
+					
+					bool subsequent = false;
+					
+					if(!subsequent)
+						subsequent = (i->range.origin == interval.range.End() + 1);
+					
+					if(!subsequent)
+						subsequent = (interval.range.origin == i->range.End() + 1);
+					
+					if(subsequent || interval.range.Overlaps(i->range))
+					{
+						size_t origin = std::min(i->range.origin, interval.range.origin);
+						size_t length = std::max(i->range.End(), interval.range.End()) - origin;
+						
+						interval.range.origin = origin;
+						interval.range.length = length;
+						
+						i = data.erase(i);
+						continue;
+					}
+					
+					break;
+				}
+				
+				_queuedAttributes.push_back(std::move(data.at(0)));
+				data.erase(data.begin());
+			}
+		});
+		
+		temp->Release();
 	}
 	
 	void AttributedString::ApplyUpdates()
@@ -105,9 +180,10 @@ namespace RN
 		if(!_queuedAttributes.empty())
 		{
 			_attributes.find_overlapping(Range(_attributes.min(), (_attributes.max() - _attributes.min())), _queuedAttributes);
-			_attributes = stl::interval_tree<Attribute>(std::move(_queuedAttributes));
+			MergeAttributes();
 			
-			_queuedAttributes = std::vector<stl::interval_tree<Attribute>::interval>();
+			_attributes = stl::interval_tree<Attribute>(std::move(_queuedAttributes));
+			_queuedAttributes.clear();
 		}
 	}
 	
