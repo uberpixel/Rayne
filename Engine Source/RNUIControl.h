@@ -77,7 +77,6 @@ namespace RN
 			virtual bool PostEvent(EventType event);
 			void DispatchEvent(EventType event);
 			
-			
 		private:			
 			void ConsumeMouseClicks(Event *event);
 			void ConsumeMouseMove(Event *event);

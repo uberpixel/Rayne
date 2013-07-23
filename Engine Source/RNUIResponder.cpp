@@ -58,8 +58,6 @@ namespace RN
 			
 			if(CanBecomeFirstResponder())
 			{
-				printf("Became first responder");
-				
 				_firstResponder = this;
 				return true;
 			}
