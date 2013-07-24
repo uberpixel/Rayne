@@ -133,5 +133,55 @@
 				}
 			]
 		}
+	],
+	"textfields": [
+		{
+			"name": "RNRoundedRect",
+			"contentInsets": {
+				"top": 0.0,
+				"bottom": 0.0,
+				"left": 5.0,
+				"right": 5.0
+			},
+			"background": {
+				"texture": "ui/rn_uikit.png",
+				"atlas": {
+					"x": 1.0,
+					"y": 49.0,
+					"width": 27.0,
+					"height": 25.0
+				},
+				"insets": {
+					"top": 12.0,
+					"bottom": 12.0,
+					"left": 13.0,
+					"right": 13.0
+				}
+			}
+		},
+		{
+			"name": "RNBezel",
+			"contentInsets": {
+				"top": 0.0,
+				"bottom": 0.0,
+				"left": 2.0,
+				"right": 2.0
+			},
+			"background": {
+				"texture": "ui/rn_uikit.png",
+				"atlas": {
+					"x": 29.0,
+					"y": 49.0,
+					"width": 10.0,
+					"height": 9.0
+				},
+				"insets": {
+					"top": 4.0,
+					"bottom": 4.0,
+					"left": 4.0,
+					"right": 4.0
+				}
+			}
+		}
 	]
 }
