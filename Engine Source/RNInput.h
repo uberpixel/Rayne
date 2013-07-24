@@ -40,7 +40,7 @@ namespace RN
 		KeyLeft,
 		KeyRight,
 		
-		KeyDelete = 0xF727,
+		KeyDelete = 0x07F,
 		KeyBegin = 0xF72A,
 		KeyEnd,
 		

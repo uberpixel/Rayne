@@ -54,13 +54,11 @@ namespace RN
 	
 	void TranslateKeyboardEvent(NSEvent *event, const std::function<void (UniChar)>& callback)
 	{
-		NSString *characters = [event charactersIgnoringModifiers];
+		NSString *characters = [event characters];
 		for(NSUInteger i=0; i<[characters length]; i++)
 		{
 			UniChar character = static_cast<UniChar>([characters characterAtIndex:i]);
-			CodePoint codePoint(character);
-			
-			callback(codePoint.LowerCase());
+			callback(character);
 		}
 	}
 	
@@ -243,7 +241,7 @@ namespace RN
 					switch(type)
 					{
 						case Event::Type::KeyDown:
-							_pressedKeys.insert(character);
+							_pressedKeys.insert(CodePoint(character).LowerCase());
 							break;
 							
 						case Event::Type::KeyUp:
@@ -262,7 +260,7 @@ namespace RN
 								i++;
 							}
 							
-							_pressedKeys.erase(character);
+							_pressedKeys.erase(CodePoint(character).LowerCase());
 							break;
 						}
 							
