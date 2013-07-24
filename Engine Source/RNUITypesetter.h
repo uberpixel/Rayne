@@ -38,6 +38,8 @@ namespace RN
 			void SetAllowPartiallyClippedLined(bool allowClippedLines);
 			void SetFrame(const Rect& frame);
 			
+			void InvalidateStringInRange(const Range& range);
+			
 			Vector2 Dimensions();
 			Vector2 VisibleDimensions();
 			

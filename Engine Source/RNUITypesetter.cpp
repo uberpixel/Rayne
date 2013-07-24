@@ -109,6 +109,12 @@ namespace RN
 		}
 		
 		
+		void Typesetter::InvalidateStringInRange(const Range& range)
+		{
+			_dirty = true;
+		}
+		
+		
 		Vector2 Typesetter::Dimensions()
 		{
 			LayoutText();
