@@ -227,9 +227,14 @@ namespace RN
 	
 	void String::ReplaceCharacters(const String *replacement, const Range& range)
 	{
-		BasicString *other = static_cast<BasicString *>(replacement->_internal);
+		BasicString *other = nullptr;
 		
-		PromoteStringIfNeeded(other->CharacterEncoding());
+		if(replacement)
+		{
+			other = static_cast<BasicString *>(replacement->_internal);
+			PromoteStringIfNeeded(other->CharacterEncoding());
+		}
+		
 		_ainternal->ReplaceCharactersInRange(range, other);
 	}
 	

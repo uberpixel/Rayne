@@ -201,7 +201,8 @@ namespace RN
 			_string[size] = '\0';
 			_length = size;
 			
-			std::copy(_string + range.origin + range.length, _string + _length, _string + range.origin);
+			if(range.origin < size)
+				std::copy(_string + range.origin + range.length, _string + _length, _string + range.origin);
 		}
 	}
 	
