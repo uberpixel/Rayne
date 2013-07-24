@@ -36,6 +36,7 @@
 	[alert setMessageText:@"Failed to start Rayne"];
 	[alert setInformativeText:error];
 	[alert runModal];
+	[alert release];
 	
 	[NSApp terminate:self];
 }
@@ -59,6 +60,7 @@
 	[alert setMessageText:@"Failed to start Rayne"];
 	[alert setInformativeText:description];
 	[alert runModal];
+	[alert release];
 	
 	[NSApp terminate:self];
 }
