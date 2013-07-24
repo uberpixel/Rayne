@@ -22,6 +22,7 @@ namespace RN
 			_selection = Range(0, 0);
 			_typesetter = new Typesetter(_string, Frame());
 			_isDirty = true;
+			_model = nullptr;
 		}
 		
 		TextEditor::~TextEditor()
