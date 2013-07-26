@@ -117,11 +117,11 @@ namespace RN
 {
 #ifndef NDEBUG
 	#if RN_PLATFORM_POSIX
-		#define RN_ASSERT(e, ...) __builtin_expect(!(e), 0) ? __Assert(__PRETTY_FUNCTION__, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
+		#define RN_ASSERT(e, ...) __builtin_expect(!(e), 0) ? RN::__Assert(__PRETTY_FUNCTION__, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
 	#endif
 
 	#if RN_PLATFORM_WINDOWS
-		#define RN_ASSERT(e, ...) (!(e)) ? __Assert(__FUNCTION__, __FILE__, __LINE__, this, #e, __VA_ARGS__) : (void)0
+		#define RN_ASSERT(e, ...) (!(e)) ? RN::__Assert(__FUNCTION__, __FILE__, __LINE__, this, #e, __VA_ARGS__) : (void)0
 	#endif
 
 #else
