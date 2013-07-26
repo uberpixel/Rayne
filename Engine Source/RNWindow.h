@@ -14,6 +14,9 @@
 #include "RNContext.h"
 #include "RNArray.h"
 #include "RNRect.h"
+#include "RNMessage.h"
+
+#define kRNWindowConfigurationChanged RNCSTR("kRNWindowConfigurationChanged")
 
 namespace RN
 {

@@ -663,6 +663,7 @@ namespace RN
 		_activeConfiguration = configuration;
 		
 		SetTitle(_title);
+		MessageCenter::SharedInstance()->PostMessage(kRNWindowConfigurationChanged, nullptr, nullptr);
 	}
 
 	Rect Window::Frame() const
