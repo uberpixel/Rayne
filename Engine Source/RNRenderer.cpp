@@ -442,9 +442,9 @@ namespace RN
 		SetScissorEnabled(false);
 		
 		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
-		glClear(GL_COLOR_BUFFER_BIT);
 		
 		glViewport(0, 0, _defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor);
+		glClear(GL_COLOR_BUFFER_BIT);
 		
 		for(auto iterator=_flushCameras.begin(); iterator!=_flushCameras.end(); iterator++)
 		{
