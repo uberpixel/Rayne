@@ -33,6 +33,9 @@ namespace RN
 		
 		RNAPI virtual void Serialize(Serializer *serializer);
 		
+		RNAPI void Lock();
+		RNAPI void Unlock();
+		
 		template<class T>
 		T *Downcast()
 		{

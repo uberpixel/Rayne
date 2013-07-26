@@ -187,4 +187,15 @@ namespace RN
 		
 		return object;			
 	}
+	
+	
+	void Object::Lock()
+	{
+		_lock.Lock();
+	}
+	
+	void Object::Unlock()
+	{
+		_lock.Unlock();
+	}
 }
