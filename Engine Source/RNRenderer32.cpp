@@ -488,6 +488,9 @@ namespace RN
 		glEnableVertexAttribArray(_currentProgram->attTexcoord0);
 		glVertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
+		const Rect& frame = camera->Frame();
+		
+		glViewport(frame.x, frame.y, frame.width, frame.height);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		
 		glDisableVertexAttribArray(_currentProgram->attPosition);
