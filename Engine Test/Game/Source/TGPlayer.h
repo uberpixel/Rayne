@@ -10,7 +10,6 @@
 #define __Game__TGPlayer__
 
 #include <Rayne.h>
-#include <RBKinematicController.h>
 
 #include "TGThirdPersonCamera.h"
 
@@ -28,7 +27,7 @@ namespace TG
 	private:
 		ThirdPersonCamera *_camera;
 		
-		RNDefineMeta(Player, RN::bullet::KinematicController)
+		RNDefineMeta(Player, RN::Entity)
 	};
 }
 

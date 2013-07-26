@@ -475,8 +475,8 @@ namespace TG
 		ground->MaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
 		
 		RN::Entity *groundBody = new RN::Entity();
-		groundbody->SetModel(ground);
-		groundbody->SetScale(RN::Vector3(20.0f));
+		groundBody->SetModel(ground);
+		groundBody->SetScale(RN::Vector3(20.0f));
 		
 		
 		RN::Entity *ent;
