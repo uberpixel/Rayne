@@ -12,8 +12,8 @@ namespace TG
 {
 	RNDeclareMeta(Player)
 	
-	Player::Player(RN::Model *model) :
-		RN::bullet::KinematicController(RN::bullet::CapsuleShape::WithRadius((model->BoundingBox().maxExtend-model->BoundingBox().minExtend).Length() * 0.5f*0.4f, (model->BoundingBox().maxExtend-model->BoundingBox().minExtend).y*0.5f*0.4f), 0.45f)
+	Player::Player(RN::Model *model) //:
+		//RN::bullet::KinematicController(RN::bullet::CapsuleShape::WithRadius((model->BoundingBox().maxExtend-model->BoundingBox().minExtend).Length() * 0.5f*0.4f, (model->BoundingBox().maxExtend-model->BoundingBox().minExtend).y*0.5f*0.4f), 0.45f)
 	{
 		SetModel(model);
 		_camera = 0;
@@ -25,7 +25,7 @@ namespace TG
 	
 	void Player::Update(float delta)
 	{
-		RN::Input *input = RN::Input::SharedInstance();
+		/*RN::Input *input = RN::Input::SharedInstance();
 		RN::Vector3 translation;
 		RN::Vector3 rotation;
 		
@@ -55,6 +55,6 @@ namespace TG
 		Rotate(rotation);
 		SetWalkDirection(WorldRotation().RotateVector(translation));
 		
-		RN::bullet::KinematicController::Update(delta);
+		RN::bullet::KinematicController::Update(delta);*/
 	}
 }

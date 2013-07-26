@@ -3,6 +3,5 @@
 	"RNGameModule": "libGame",
 	"RNUIStyle": "ui/rn_uistyle.json",
 	"RNModules": [
-		"modules/rayne-bullet/librayne-bullet"
 	]
 }

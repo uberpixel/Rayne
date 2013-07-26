@@ -10,9 +10,6 @@
 #define __Game__TGWorld__
 
 #include <Rayne.h>
-#include <RBPhysicsWorld.h>
-#include <RBRigidBody.h>
-#include <RBKinematicController.h>
 
 #include "TGPlayer.h"
 #include "TGThirdPersonCamera.h"
@@ -37,7 +34,6 @@ namespace TG
 		
 		RN::Camera *CreateDownsampleChain(RN::Camera *cam, RN::Shader *shader, int level, RN::TextureParameter::Format format, RN::Shader *firstshader, RN::Texture *tex);
 		
-		RN::bullet::PhysicsWorld *_physicsAttachment;
 		DebugDrawer *_debugAttachment;
 		
 		ThirdPersonCamera *_camera;

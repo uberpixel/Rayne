@@ -12,7 +12,6 @@
 		E92AE1CE16B524B600EFE1E8 /* TGApplication.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1CC16B524B600EFE1E8 /* TGApplication.h */; };
 		E92AE1DE16B5281D00EFE1E8 /* TGWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */; };
 		E92AE1DF16B5281D00EFE1E8 /* TGWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */; };
-		E959283A170DB40600935AC8 /* librayne-bullet.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9592839170DB40600935AC8 /* librayne-bullet.dylib */; };
 		E959285C170F9AEC00935AC8 /* TGPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E959285A170F9AEB00935AC8 /* TGPlayer.cpp */; };
 		E959285D170F9AEC00935AC8 /* TGPlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = E959285B170F9AEC00935AC8 /* TGPlayer.h */; };
 		E95A4E5417567BCC00D81739 /* TGDebugDrawer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E95A4E5217567BCC00D81739 /* TGDebugDrawer.cpp */; };
@@ -32,7 +31,6 @@
 		E92AE1DC16B5281D00EFE1E8 /* TGWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGWorld.cpp; sourceTree = "<group>"; };
 		E92AE1DD16B5281D00EFE1E8 /* TGWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGWorld.h; sourceTree = "<group>"; };
 		E92D60EF16B7496E00BFCC44 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		E9592839170DB40600935AC8 /* librayne-bullet.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "librayne-bullet.dylib"; path = "Resources/modules/rayne-bullet/librayne-bullet.dylib"; sourceTree = "<group>"; };
 		E959285A170F9AEB00935AC8 /* TGPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGPlayer.cpp; sourceTree = "<group>"; };
 		E959285B170F9AEC00935AC8 /* TGPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TGPlayer.h; sourceTree = "<group>"; };
 		E95A4E5217567BCC00D81739 /* TGDebugDrawer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TGDebugDrawer.cpp; sourceTree = "<group>"; };
@@ -49,7 +47,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				E92A62C716DF2474006E68AF /* libRayne.dylib in Frameworks */,
-				E959283A170DB40600935AC8 /* librayne-bullet.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -98,7 +95,6 @@
 			children = (
 				E92D60EF16B7496E00BFCC44 /* Foundation.framework */,
 				E92A62C516DF244C006E68AF /* libRayne.dylib */,
-				E9592839170DB40600935AC8 /* librayne-bullet.dylib */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -281,15 +277,11 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = automatic;
-				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/../../Engine Source\"",
-					"\"$(SRCROOT)/Resources/modules/rayne-bullet/include\"",
-				);
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Engine Source\"";
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Build\"",
-					"\"$(SRCROOT)/Resources/modules/rayne-bullet\"",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -304,15 +296,11 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = automatic;
-				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/../../Engine Source\"",
-					"\"$(SRCROOT)/Resources/modules/rayne-bullet/include\"",
-				);
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Engine Source\"";
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Build\"",
-					"\"$(SRCROOT)/Resources/modules/rayne-bullet\"",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
@@ -355,15 +343,11 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = automatic;
-				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/../../Engine Source\"",
-					"\"$(SRCROOT)/Resources/modules/rayne-bullet/include\"",
-				);
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Engine Source\"";
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/../../Build\"",
-					"\"$(SRCROOT)/Resources/modules/rayne-bullet\"",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",

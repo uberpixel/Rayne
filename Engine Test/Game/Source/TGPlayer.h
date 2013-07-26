@@ -16,7 +16,7 @@
 
 namespace TG
 {
-	class Player : public RN::bullet::KinematicController
+	class Player : public RN::Entity /*RN::bullet::KinematicController*/
 	{
 	public:
 		Player(RN::Model *model);

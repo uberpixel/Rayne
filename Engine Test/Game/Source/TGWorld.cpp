@@ -38,10 +38,7 @@ namespace TG
 		_exposure = 1.0f;
 		_whitepoint = 5.0f;
 		
-		_physicsAttachment = new RN::bullet::PhysicsWorld();
 		_debugAttachment = new DebugDrawer();
-		
-		AddAttachment(_physicsAttachment->Autorelease());
 		AddAttachment(_debugAttachment);
 		
 		CreateCameras();
@@ -393,15 +390,9 @@ namespace TG
 		model->MaterialAtIndex(0, 17)->Define("RN_SPECMAP");
 #endif
 		
-		RN::bullet::Shape *sponzaShape = new RN::bullet::TriangelMeshShape(model);
-		RN::bullet::PhysicsMaterial *sponzaMaterial = new RN::bullet::PhysicsMaterial();
-		
-		sponzaShape->SetScale(RN::Vector3(0.2f));
-		
-		RN::bullet::RigidBody *sponza = new RN::bullet::RigidBody(sponzaShape, 0.0f);
+		RN::Entity *sponza = new RN::Entity();
 		sponza->SetModel(model);
 		sponza->SetScale(RN::Vector3(0.2f));
-		sponza->SetMaterial(sponzaMaterial);
 		sponza->SetRotation(RN::Quaternion(RN::Vector3(0.0, 0.0, -90.0)));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
@@ -483,15 +474,9 @@ namespace TG
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
 		ground->MaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
 		
-		RN::bullet::Shape *groundShape = new RN::bullet::TriangelMeshShape(ground);
-		RN::bullet::PhysicsMaterial *groundMaterial = new RN::bullet::PhysicsMaterial();
-		
-		groundShape->SetScale(RN::Vector3(20.0f));
-		
-		RN::bullet::RigidBody *groundbody = new RN::bullet::RigidBody(groundShape, 0.0f);
+		RN::Entity *groundBody = new RN::Entity();
 		groundbody->SetModel(ground);
 		groundbody->SetScale(RN::Vector3(20.0f));
-		groundbody->SetMaterial(groundMaterial);
 		
 		
 		RN::Entity *ent;
