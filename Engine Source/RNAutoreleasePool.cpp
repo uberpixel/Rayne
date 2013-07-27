@@ -12,13 +12,13 @@
 
 namespace RN
 {
-	AutoreleasePool::AutoreleasePool() :
-		_objects(kRNAutoreleasePoolGrowthRate)
+	AutoreleasePool::AutoreleasePool()
 	{
 		_owner  = Thread::CurrentThread();
 		_parent = AutoreleasePool::CurrentPool();
 		
 		_owner->_pool = this;
+		_objects.reserve(kRNAutoreleasePoolGrowthRate);
 	}
 	
 	AutoreleasePool::~AutoreleasePool()
