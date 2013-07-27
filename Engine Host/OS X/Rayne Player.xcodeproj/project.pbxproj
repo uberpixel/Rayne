@@ -9,8 +9,8 @@
 /* Begin PBXBuildFile section */
 		E91B886F1697551E001B7F22 /* Engine Resources in Resources */ = {isa = PBXBuildFile; fileRef = E91B886E1697551E001B7F22 /* Engine Resources */; };
 		E92A62BC16DF21EC006E68AF /* libRayne.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E92A62BA16DF21DF006E68AF /* libRayne.dylib */; };
-		E92A62C016DF235A006E68AF /* libRayne.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = E92A62BA16DF21DF006E68AF /* libRayne.dylib */; };
 		E976D4D216F1A3EC009FC9D6 /* Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = E976D4D116F1A3EC009FC9D6 /* Icon.icns */; };
+		E994CC6717A321C3004BAA46 /* libRayne.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F751696FD1200DA187E /* libRayne.dylib */; };
 		E9A5C10716EFB828007806EC /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = E9A5C10516EFB828007806EC /* main.mm */; };
 		E9ED4F6E1696091E00DAD683 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ED4F6D1696091E00DAD683 /* Cocoa.framework */; };
 		E9ED4FA4169609B400DAD683 /* RNAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E9ED4F9D169609B400DAD683 /* RNAppDelegate.mm */; };
@@ -42,7 +42,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				E92A62C016DF235A006E68AF /* libRayne.dylib in Copy Frameworks */,
+				E994CC6717A321C3004BAA46 /* libRayne.dylib in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -171,7 +171,6 @@
 				E9ED4F671696091E00DAD683 /* Frameworks */,
 				E9ED4F681696091E00DAD683 /* Resources */,
 				E92A62BF16DF2348006E68AF /* Copy Frameworks */,
-				E92A628B16DEF515006E68AF /* Install player */,
 			);
 			buildRules = (
 			);
@@ -239,23 +238,6 @@
 		};
 /* End PBXResourcesBuildPhase section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		E92A628B16DEF515006E68AF /* Install player */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Install player";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "exec \"$PROJECT_DIR/build.sh\"";
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		E9ED4F661696091E00DAD683 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -312,10 +294,7 @@
 				GCC_PREFIX_HEADER = "Supporting files/Rayne Player-Prefix.pch";
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Build/include\"";
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../Build\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-msse4.1",
@@ -392,10 +371,7 @@
 				GCC_PREFIX_HEADER = "Supporting files/Rayne Player-Prefix.pch";
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Build/include\"";
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../Build\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-msse4.1",
@@ -413,10 +389,7 @@
 				GCC_PREFIX_HEADER = "Supporting files/Rayne Player-Prefix.pch";
 				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Build/include\"";
 				INFOPLIST_FILE = "Supporting files/Rayne Player-Info.plist";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(SRCROOT)/../../Build\"",
-				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-msse4.1",
