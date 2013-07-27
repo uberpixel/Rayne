@@ -489,7 +489,6 @@ namespace RN
 		glVertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
 		const Rect& frame = camera->Frame();
-		printf("Frame: {%f, %f} {%f, %f}\n", frame.x, frame.y, frame.width, frame.height);
 		
 		glViewport(frame.x * _scaleFactor, frame.y * _scaleFactor, frame.width * _scaleFactor, frame.height * _scaleFactor);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
