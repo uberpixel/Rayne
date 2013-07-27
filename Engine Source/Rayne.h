@@ -76,6 +76,8 @@
 #include "RNUIScrollView.h"
 #include "RNUIButton.h"
 #include "RNUILabel.h"
+#include "RNUITextField.h"
+#include "RNUITextEditor.h"
 #include "RNUIImageView.h"
 #include "RNUIUtilities.h"
 
