@@ -8,41 +8,18 @@
 
 #include "RNAutoreleasePool.h"
 
+#define kRNAutoreleasePoolGrowthRate 128
+
 namespace RN
 {
-	RetainPool::RetainPool()
-	{}
-	
-	RetainPool::~RetainPool()
-	{
-		Drain();
-	}
-	
-	void RetainPool::AddObject(Object *object)
-	{
-		object->Retain();
-		_objects.push_back(object);
-	}
-	
-	void RetainPool::Drain()
-	{
-		for(auto i=_objects.begin(); i!=_objects.end(); i++)
-		{
-			Object *object = *i;
-			object->Release();
-		}
-		
-		_objects.clear();
-	}
-	
-	
-	
 	AutoreleasePool::AutoreleasePool()
 	{
 		_owner  = Thread::CurrentThread();
 		_parent = AutoreleasePool::CurrentPool();
 		
 		_owner->_pool = this;
+		
+		_objects.reserve(kRNAutoreleasePoolGrowthRate);
 	}
 	
 	AutoreleasePool::~AutoreleasePool()
@@ -56,6 +33,9 @@ namespace RN
 	void AutoreleasePool::AddObject(Object *object)
 	{
 		_objects.push_back(object);
+		
+		if((_objects.size() % kRNAutoreleasePoolGrowthRate) == 0)
+			_objects.reserve(_objects.size() + kRNAutoreleasePoolGrowthRate);
 	}
 	
 	void AutoreleasePool::Drain()
