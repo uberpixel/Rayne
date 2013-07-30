@@ -26,13 +26,12 @@ namespace RN
 		// Setup framebuffer copy stuff
 		_copyVertices[0] = Vector4(-1.0f, -1.0f, 0.0f, 0.0f);
 		_copyVertices[1] = Vector4(1.0f, -1.0f,  1.0f, 0.0f);
-		
 		_copyVertices[2] = Vector4(-1.0f, 1.0f,  0.0f, 1.0f);
 		_copyVertices[3] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 		
-		_lightIndicesBuffer     = 0;
-		_lightOffsetBuffer      = 0;
-		_tempLightIndicesBuffer = 0;
+		_lightIndicesBuffer     = nullptr;
+		_lightOffsetBuffer      = nullptr;
+		_tempLightIndicesBuffer = nullptr;
 		
 		_lightIndicesBufferSize = 0;
 		_lightOffsetBufferSize  = 0;
@@ -96,6 +95,18 @@ namespace RN
 	
 	Renderer32::~Renderer32()
 	{
+		glDeleteBuffers(3, _lightPointBuffers);
+		glDeleteTextures(3, _lightPointTextures);
+		
+		glDeleteBuffers(3, _lightSpotBuffers);
+		glDeleteTextures(3, _lightSpotTextures);
+		
+		glDeleteBuffers(1, &_copyVBO);
+		glDeleteVertexArrays(1, &_copyVAO);
+		
+		delete [] _lightIndicesBuffer;
+		delete [] _lightOffsetBuffer;
+		delete [] _tempLightIndicesBuffer;
 	}
 	
 	
