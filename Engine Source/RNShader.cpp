@@ -18,13 +18,11 @@ namespace RN
 	Shader::Shader()
 	{
 		_supportedPrograms = 0;
-		AddDefines();
 	}
 	
 	Shader::Shader(const std::string& shader)
 	{
 		_supportedPrograms = 0;
-		AddDefines();
 		
 		SetShaderForType(PathManager::PathForName(shader + ".vsh"), ShaderType::VertexShader);
 		SetShaderForType(PathManager::PathForName(shader + ".fsh"), ShaderType::FragmentShader);
@@ -69,23 +67,6 @@ namespace RN
 	// MARK: Defines
 	// ---------------------
 	
-	void Shader::AddDefines()
-	{
-#ifdef DEBUG
-		Define("DEBUG", 1);
-#endif
-#ifdef NDEBUG
-		Define("NDEBUG", 1);
-#endif
-		
-#if RN_TARGET_OPENGL
-		Define("OPENGL", 1);
-#endif
-#if RN_TARGET_OPENGL_ES
-		Define("OPENGLES", 1);
-#endif
-	}
-	
 	void Shader::Define(const std::string& define)
 	{
 		_defines.emplace_back(ShaderDefine(define, ""));
@@ -114,7 +95,7 @@ namespace RN
 	
 	void Shader::Undefine(const std::string& name)
 	{
-		for(auto i=_defines.begin(); i!=_defines.end(); i++)
+		for(auto i = _defines.begin(); i != _defines.end(); i ++)
 		{
 			if(name == i->name)
 			{
@@ -128,156 +109,6 @@ namespace RN
 	// MARK: -
 	// MARK: Program creation
 	// ---------------------
-	
-	std::string Shader::PreProcessedShaderSource(const std::string& source)
-	{
-		std::string data = source;
-		size_t index = data.find("#version");
-		
-		if(index != std::string::npos)
-		{
-			index += 8;
-			
-			do {
-				index ++;
-			} while(data[index] != '\n');
-			
-			index ++;
-		}
-		else
-		{
-			index = 0;
-		}
-		
-		std::unordered_map<std::string, ShaderDefine> cleanedDefines;
-		
-		for(ShaderDefine& define : _defines)
-		{
-			cleanedDefines.insert(std::unordered_map<std::string, ShaderDefine>::value_type(define.name, define));
-		}
-		
-		for(ShaderDefine& define : _temporaryDefines)
-		{
-			cleanedDefines.insert(std::unordered_map<std::string, ShaderDefine>::value_type(define.name, define));
-		}
-		
-		
-		for(auto i=cleanedDefines.begin(); i!=cleanedDefines.end(); i++)
-		{
-			std::string exploded = "#define " + i->second.name + " " + i->second.value + "\n";
-			
-			data.insert(index, exploded);
-			index += exploded.length();
-		}
-		
-		return data;
-	}
-	
-	void Shader::CompileShader(ShaderType type, const std::string& file, GLuint *outShader)
-	{
-		std::string source;
-		
-		switch(type)
-		{
-			case ShaderType::VertexShader:
-				_temporaryDefines.emplace_back(ShaderDefine("RN_VERTEX_SHADER", "1"));
-				source = PreProcessedShaderSource(_vertexShader);
-				_temporaryDefines.pop_back();
-				break;
-				
-			case ShaderType::FragmentShader:
-				_temporaryDefines.emplace_back(ShaderDefine("RN_FRAGMENT_SHADER", "1"));
-				source = PreProcessedShaderSource(_fragmentShader);
-				_temporaryDefines.pop_back();
-				break;
-				
-			case ShaderType::GeometryShader:
-				_temporaryDefines.emplace_back(ShaderDefine("RN_GEOMETRY_SHADER", "1"));
-				source = PreProcessedShaderSource(_geometryShader);
-				_temporaryDefines.pop_back();
-				break;
-				
-			default:
-				throw Exception(Exception::Type::ShaderUnsupportedException, "");
-		}
-		
-		const GLchar *data = source.c_str();
-		GLuint shader = glCreateShader(GLTypeForShaderType(type));
-		
-		glShaderSource(shader, 1, &data, NULL);
-		glCompileShader(shader);
-		
-		*outShader = shader;
-		
-		// Check the compilation status of the shader
-		GLint status, length;
-		glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
-		
-		if(!status)
-		{
-			glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-			
-			char *log = new char[length];
-			glGetShaderInfoLog(shader, length, &length, (GLchar *)log);
-			glDeleteShader(shader);
-			
-			*outShader = 0;
-
-			std::string result(log);
-			std::string tlog = "Failed to compile " + file + "\n";
-			
-			// Parse the error
-			std::regex regex("ERROR: [0-9]{0,}:[0-9]{0,}: .*\n", std::regex_constants::ECMAScript | std::regex_constants::icase);
-			
-			if(std::regex_search(result, regex))
-			{
-				std::regex lineRegex("[0-9]{0,}:[0-9]{0,}:", std::regex_constants::ECMAScript | std::regex_constants::icase);
-				std::string parsedError = "";
-				
-				for(auto i=std::sregex_iterator(result.begin(), result.end(), regex); i!=std::sregex_iterator(); i++)
-				{
-					std::string match = i->str();
-					std::smatch lineMatch;
-					
-					std::regex_search(match, lineMatch, lineRegex);
-					std::string lineString = lineMatch.str();
-					
-					bool skippedColumn = false;
-					uint32 line = 0;
-					
-					for(size_t i=0; i<lineString.length()-1; i++)
-					{
-						if(!skippedColumn && lineString[i] == ':')
-						{
-							skippedColumn = true;
-							continue;
-						}
-						
-						if(skippedColumn)
-						{
-							std::string temp = lineString.substr(i, (lineString.length() - 1) - i);
-							line = atoi(temp.c_str());
-							
-							break;
-						}
-					}
-					
-					
-					DebugMarker marker = ResolveFileForLine(type, line);
-					char buffer[32];
-					
-					sprintf(buffer, "%u", marker.line);
-					parsedError += marker.file + " " + buffer + ", Error: " + match.substr(lineString.length() + 8) + "\n";
-				}
-				
-				result = parsedError;
-			}
-			
-			// Clean up and throw the exception
-			delete [] log;
-			throw Exception(Exception::Type::ShaderCompilationFailedException, tlog + result);
-		}
-	}
 	
 	void Shader::DumpLinkStatusAndDie(ShaderProgram *program)
 	{
@@ -355,37 +186,28 @@ namespace RN
 		_temporaryDefines.insert(_temporaryDefines.end(), lookup.defines.begin(), lookup.defines.end());
 		
 		// Compile all required shaders
-		GLuint shader[3] = {0};
 		
-		if(_vertexShader.length() > 0)
-		{
-			CompileShader(ShaderType::VertexShader, _vertexFile, &shader[0]);
-			glAttachShader(program->program, shader[0]);
-		}
+		std::vector<ShaderUnit *> units;
 		
-		if(_fragmentShader.length() > 0)
+		for(auto i = _shaderData.begin(); i != _shaderData.end(); i ++)
 		{
-			CompileShader(ShaderType::FragmentShader, _fragmentFile, &shader[1]);
-			glAttachShader(program->program, shader[1]);
-		}
-		
-		if(_geometryShader.length() > 0)
-		{
-			CompileShader(ShaderType::GeometryShader, _geometryFile, &shader[2]);
-			glAttachShader(program->program, shader[2]);
+			ShaderUnit *unit = new ShaderUnit(this, i->first);
+			unit->Compile(_temporaryDefines);
+			
+			units.push_back(unit);
+			glAttachShader(program->program, unit->GetShader());
 		}
 		
 		// Link the program
 		glLinkProgram(program->program);
 		RN_CHECKOPENGL();
 		
-		for(int i=0; i<3; i++)
+		for(auto i = units.begin(); i != units.end(); i ++)
 		{
-			if(shader[i])
-			{
-				glDetachShader(program->program, shader[i]);
-				glDeleteShader(shader[i]);
-			}
+			ShaderUnit *unit = *i;
+			glDetachShader(program->program, unit->GetShader());
+			
+			delete unit;
 		}
 		
 		// Get the program link status
@@ -475,7 +297,7 @@ namespace RN
 		GetUniformLocation(hdrSettings);
 		
 		char string[32];
-		for(size_t i=0; ; i++)
+		for(size_t i = 0; i < 32; i ++)
 		{
 			sprintf(string, "targetmap%i", (int)i);
 			GLuint location = glGetUniformLocation(program->program, string);
@@ -490,7 +312,7 @@ namespace RN
 			program->targetmapinfolocations.push_back(location);
 		}
 		
-		for(size_t i=0; ; i++)
+		for(size_t i = 0; i < 32; i ++)
 		{
 			sprintf(string, "mTexture%i", (int)i);
 			GLuint location = glGetUniformLocation(program->program, string);
@@ -522,13 +344,13 @@ namespace RN
 		GetAttributeLocation(attBoneWeights);
 		GetAttributeLocation(attBoneIndices);
 		
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
+#if RN_TARGET_OPENGL
 		do
 		{
 			GLint maxDrawbuffers;
 			glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawbuffers);
 			
-			for(GLint i=0; i<maxDrawbuffers; i++)
+			for(GLint i = 0; i < maxDrawbuffers; i ++)
 			{
 				sprintf(string, "fragColor%i", i);
 				GLint location = glGetFragDataLocation(program->program, string);
@@ -558,7 +380,7 @@ namespace RN
 	
 	bool Shader::SupportsProgramOfType(uint32 type)
 	{
-		return (_supportedPrograms & type || type == 0);
+		return ((_supportedPrograms & type) == type || type == 0);
 	}
 	
 	// ---------------------
@@ -708,30 +530,12 @@ namespace RN
 		_supportedPrograms |= IsDefined(result.data, "RN_CLIPPLANE") ? ShaderProgram::TypeClipPlane : 0;
 		_supportedPrograms |= IsDefined(result.data, "RN_GAMMA_CORRECTION") ? ShaderProgram::TypeGammaCorrection : 0;
 		
-		switch(type)
-		{
-			case ShaderType::VertexShader:
-				_vertexShader = std::move(result.data);
-				_vertexMarker = std::move(result.marker);
-				_vertexFile   = file->Name() + "." + file->Extension();
-				break;
-				
-			case ShaderType::FragmentShader:
-				_fragmentShader = std::move(result.data);
-				_fragmentMarker = std::move(result.marker);
-				_fragmentFile   = file->Name() + "." + file->Extension();
-				break;
-				
-			case ShaderType::GeometryShader:
-				_geometryShader = std::move(result.data);
-				_geometryMarker = std::move(result.marker);
-				_geometryFile   = file->Name() + "." + file->Extension();
-				break;
-				
-			default:
-				throw Exception(Exception::Type::ShaderUnsupportedException, "");
-				break;
-		}
+		ShaderData data;
+		data.shader = std::move(result.data);
+		data.marker = std::move(result.marker);
+		data.file   = file->Name() + "." + file->Extension();
+		
+		_shaderData.insert(std::map<ShaderType, ShaderData>::value_type(type, std::move(data)));
 	}
 	
 	void Shader::SetShaderForType(const std::string& path, ShaderType type)
@@ -746,49 +550,15 @@ namespace RN
 	// MARK: helper
 	// ---------------------
 	
-	GLenum Shader::GLTypeForShaderType(ShaderType type)
+	const std::string& Shader::ShaderSource(ShaderType type)
 	{
-		switch(type)
-		{
-			case ShaderType::VertexShader:
-				return GL_VERTEX_SHADER;
-				
-			case ShaderType::FragmentShader:
-				return GL_FRAGMENT_SHADER;
-				
-			case ShaderType::GeometryShader:
-				return GL_GEOMETRY_SHADER;
-				
-			default:
-				break;
-		}
-		
-		throw Exception(Exception::Type::ShaderUnsupportedException, "");
+		return _shaderData[type].shader;
 	}
 	
 	Shader::DebugMarker Shader::ResolveFileForLine(ShaderType type, uint32 line)
 	{
-		std::vector<DebugMarker>& markers = _vertexMarker;
+		std::vector<DebugMarker>& markers = _shaderData[type].marker;
 		DebugMarker closestMarker = markers[0];
-		
-		switch(type)
-		{
-			case ShaderType::VertexShader:
-				markers = _vertexMarker;
-				break;
-				
-			case ShaderType::FragmentShader:
-				markers = _fragmentMarker;
-				break;
-				
-			case ShaderType::GeometryShader:
-				markers = _geometryMarker;
-				break;
-				
-			default:
-				throw Exception(Exception::Type::ShaderUnsupportedException, "");
-				break;
-		}
 		
 		for(const DebugMarker& marker : markers)
 		{

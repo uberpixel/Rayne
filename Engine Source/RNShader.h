@@ -14,6 +14,7 @@
 #include "RNFile.h"
 #include "RNArray.h"
 #include "RNShaderLookup.h"
+#include "RNShaderUnit.h"
 
 namespace RN
 {
@@ -117,14 +118,7 @@ namespace RN
 	class Shader : public Object
 	{
 	public:
-		enum class ShaderType
-		{
-			VertexShader,
-			FragmentShader,
-			GeometryShader,
-			TessellationControlShader,
-			TessellationEvaluationShader
-		};
+		friend class ShaderUnit;
 		
 		RNAPI Shader();
 		RNAPI Shader(const std::string& shader);
@@ -145,6 +139,8 @@ namespace RN
 		RNAPI ShaderProgram *ProgramWithLookup(const ShaderLookup& lookup);
 		
 		RNAPI bool SupportsProgramOfType(uint32 type);
+		
+		RNAPI const std::string& ShaderSource(ShaderType type);
 		
 	private:
 		struct DebugMarker
@@ -177,13 +173,18 @@ namespace RN
 			uint32 offset;
 		};
 		
+		struct ShaderData
+		{
+			std::string file;
+			std::string shader;
+			std::vector<DebugMarker> marker;
+		};
+		
 		enum IncludeMode
 		{
 			CurrentDir,
 			IncludeDir
 		};
-		
-		void AddDefines();
 		
 		std::string PreProcessedShaderSource(const std::string& source);
 		
@@ -194,26 +195,15 @@ namespace RN
 		void DumpLinkStatusAndDie(ShaderProgram *program);
 		bool IsDefined(const std::string& source, const std::string& define);
 		
-		GLenum GLTypeForShaderType(ShaderType type);
 		DebugMarker ResolveFileForLine(ShaderType type, uint32 line);
 		
 		std::vector<ShaderDefine> _defines;
 		std::vector<ShaderDefine> _temporaryDefines;
 		
 		uint32 _supportedPrograms;
+		
 		std::unordered_map<ShaderLookup, ShaderProgram *> _programs;
-		
-		std::string _vertexFile;
-		std::string _vertexShader;
-		std::vector<DebugMarker> _vertexMarker;
-		
-		std::string _fragmentFile;
-		std::string _fragmentShader;
-		std::vector<DebugMarker> _fragmentMarker;
-		
-		std::string _geometryFile;
-		std::string _geometryShader;
-		std::vector<DebugMarker> _geometryMarker;
+		std::map<ShaderType, ShaderData> _shaderData;
 		
 		RNDefineMetaWithTraits(Shader, Object, MetaClassTraitCronstructable)
 	};

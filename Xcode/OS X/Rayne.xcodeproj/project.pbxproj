@@ -54,6 +54,8 @@
 		E94D18BA1753CE8A00F3B10D /* RNDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = E94D18B81753CE8A00F3B10D /* RNDebug.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9551B1817593EE500CF5E10 /* RNUnicode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9551B1617593EE500CF5E10 /* RNUnicode.cpp */; };
 		E9551B1917593EE500CF5E10 /* RNUnicode.h in Headers */ = {isa = PBXBuildFile; fileRef = E9551B1717593EE500CF5E10 /* RNUnicode.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E955495F17A7B1470048FBBC /* RNShaderUnit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E955495D17A7B1470048FBBC /* RNShaderUnit.cpp */; };
+		E955496017A7B1470048FBBC /* RNShaderUnit.h in Headers */ = {isa = PBXBuildFile; fileRef = E955495E17A7B1470048FBBC /* RNShaderUnit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E957BAB81714F61400AD7A54 /* RNSceneManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E957BAB61714F61400AD7A54 /* RNSceneManager.cpp */; };
 		E957BAB91714F61400AD7A54 /* RNSceneManager.h in Headers */ = {isa = PBXBuildFile; fileRef = E957BAB71714F61400AD7A54 /* RNSceneManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */; };
@@ -281,6 +283,8 @@
 		E9543FA3168167A100F53C4F /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E9551B1617593EE500CF5E10 /* RNUnicode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUnicode.cpp; sourceTree = "<group>"; };
 		E9551B1717593EE500CF5E10 /* RNUnicode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUnicode.h; sourceTree = "<group>"; };
+		E955495D17A7B1470048FBBC /* RNShaderUnit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNShaderUnit.cpp; sourceTree = "<group>"; };
+		E955495E17A7B1470048FBBC /* RNShaderUnit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNShaderUnit.h; sourceTree = "<group>"; };
 		E957BAB61714F61400AD7A54 /* RNSceneManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSceneManager.cpp; sourceTree = "<group>"; };
 		E957BAB71714F61400AD7A54 /* RNSceneManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSceneManager.h; sourceTree = "<group>"; };
 		E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNEntity.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -719,6 +723,8 @@
 				E9619E1A1696157E00DA187E /* RNShader.cpp */,
 				E9619E1B1696157E00DA187E /* RNShader.h */,
 				E9C01BB31746CE6A00B3577B /* RNShaderLookup.h */,
+				E955495D17A7B1470048FBBC /* RNShaderUnit.cpp */,
+				E955495E17A7B1470048FBBC /* RNShaderUnit.h */,
 				E9619E1D1696157E00DA187E /* RNTexture.cpp */,
 				E9619E1E1696157E00DA187E /* RNTexture.h */,
 				E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */,
@@ -841,6 +847,7 @@
 				E97DE03816F2574C0009128F /* Rayne.h in Headers */,
 				E9B03FEC16F279E40016176B /* RNModule.h in Headers */,
 				E92B858E16FC4C9E002FA04D /* RNFunction.h in Headers */,
+				E955496017A7B1470048FBBC /* RNShaderUnit.h in Headers */,
 				E92B859216FC6027002FA04D /* RNRenderStorage.h in Headers */,
 				E959282C170CBAAD00935AC8 /* RNWorldAttachment.h in Headers */,
 				E92B859616FC8E42002FA04D /* RNCatalogue.h in Headers */,
@@ -1009,6 +1016,7 @@
 				C050166916C3FDE600326514 /* RNLight.cpp in Sources */,
 				E91F784216CE336000FFD318 /* RNThreadPool.cpp in Sources */,
 				E9AB0DAB16D679DC000D1CF0 /* RNSceneNode.cpp in Sources */,
+				E955495F17A7B1470048FBBC /* RNShaderUnit.cpp in Sources */,
 				E9780FC016D82913001AE2ED /* RNSettings.cpp in Sources */,
 				C01BCEC816E6698E0009834F /* RNSkeleton.cpp in Sources */,
 				E9B03FEB16F277600016176B /* RNModule.cpp in Sources */,

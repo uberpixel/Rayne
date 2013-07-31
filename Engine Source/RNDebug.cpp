@@ -323,8 +323,8 @@ namespace RN
 			__Line2DHandlerState.store(false);
 			
 			__LineShader = new Shader();
-			__LineShader->SetShaderForType("shader/rn_DebugDraw.vsh", Shader::ShaderType::VertexShader);
-			__LineShader->SetShaderForType("shader/rn_DebugDraw.fsh", Shader::ShaderType::FragmentShader);
+			__LineShader->SetShaderForType("shader/rn_DebugDraw.vsh", ShaderType::VertexShader);
+			__LineShader->SetShaderForType("shader/rn_DebugDraw.fsh", ShaderType::FragmentShader);
 			
 			__Line3DMaterial = new Material(__LineShader);
 			__Line3DMaterial->Define("RN_DEBUG_3D");

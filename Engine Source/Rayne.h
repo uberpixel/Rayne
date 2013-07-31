@@ -59,6 +59,7 @@
 #include "RNMaterial.h"
 #include "RNMesh.h"
 #include "RNShader.h"
+#include "RNShaderUnit.h"
 #include "RNTexture.h"
 #include "RNTextureAtlas.h"
 
