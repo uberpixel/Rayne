@@ -58,6 +58,18 @@ namespace RN
 	#define RN_CHECKOPENGL_AGGRESSIVE() (void)0
 #endif
 
+#if RN_PLATFORM_MAC
+	#ifndef GL_TESS_CONTROL_SHADER
+		#define GL_TESS_CONTROL_SHADER 0x8E88
+	#endif
+	#ifndef GL_TESS_EVALUATION_SHADER
+		#define GL_TESS_EVALUATION_SHADER 0x8E87
+	#endif
+	#ifndef GL_PATCHES
+		#define GL_PATCHES 0x000E
+#endif
+#endif
+
 #if RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
 
 extern "C"

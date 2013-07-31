@@ -198,6 +198,16 @@ namespace RN
 			case ShaderType::GeometryShader:
 				return GL_GEOMETRY_SHADER;
 				
+#ifdef GL_TESS_CONTROL_SHADER
+			case ShaderType::TessellationControlShader:
+				return GL_TESS_CONTROL_SHADER;
+#endif
+				
+#ifdef GL_TESS_EVALUATION_SHADER
+			case ShaderType::TessellationEvaluationShader:
+				return GL_TESS_EVALUATION_SHADER;
+#endif
+				
 			default:
 				throw Exception(Exception::Type::ShaderUnsupportedException, "");
 		}
