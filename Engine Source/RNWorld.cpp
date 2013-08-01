@@ -136,7 +136,7 @@ namespace RN
 	
 		for(size_t i = 0; i < 3; i ++)
 		{
-			batch[i]->Retain();
+			batch[i]->Release();
 		}
 		
 		ApplyNodes();
