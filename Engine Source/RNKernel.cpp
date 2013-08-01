@@ -180,6 +180,7 @@ namespace RN
 	void Kernel::Initialize()
 	{
 		_resourceBatch->Wait();
+		_resourceBatch->Release();
 		_resourceBatch = nullptr;
 		
 		_app->Start();

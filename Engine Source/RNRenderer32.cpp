@@ -267,6 +267,7 @@ namespace RN
 		
 		batch->Commit();
 		batch->Wait();
+		batch->Release();
 		
 		size_t lightIndicesCount = 0;
 		size_t lightIndexOffsetCount = 0;

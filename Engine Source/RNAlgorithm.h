@@ -47,6 +47,7 @@ namespace RN
 			
 			batch->Commit();
 			batch->Wait();
+			batch->Release();
 		}
 		
 		std::sort(first, last, comp);

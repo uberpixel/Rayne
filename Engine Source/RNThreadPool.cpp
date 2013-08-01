@@ -104,6 +104,7 @@ namespace RN
 		if(!batch)
 			batch = new Batch(this);
 		
+		batch->Retain();
 		return batch;
 	}
 	
@@ -173,7 +174,7 @@ namespace RN
 		size_t move = std::min<size_t>(kRNThreadPoolLocalQueueMaxSize, std::max<size_t>(1, _tasks.size() / _threads.Count()));
 		tasks.reserve(move);
 		
-		for(size_t i=0; i<move; i++)
+		for(size_t i = 0; i < move; i ++)
 		{
 			tasks.push_back(std::move(_tasks.front()));
 			_tasks.pop();
@@ -227,6 +228,17 @@ namespace RN
 	// MARK: -
 	// MARK: Batch
 	// ---------------------
+	
+	void ThreadPool::Batch::Retain()
+	{
+		_listener ++;
+	}
+	
+	void ThreadPool::Batch::Release()
+	{
+		_listener --;
+		TryFeedingBack();
+	}
 	
 	void ThreadPool::Batch::Commit()
 	{

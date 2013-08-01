@@ -105,7 +105,7 @@ namespace RN
 			batch[static_cast<size_t>(node->UpdatePriority())]->AddTask(BuildLambda(node));
 		}
 		
-		for(size_t i=0; i<3; i++)
+		for(size_t i = 0; i < 3; i ++)
 		{
 			if(batch[i]->TaskCount() == 0)
 				continue;
@@ -132,6 +132,11 @@ namespace RN
 				}
 				
 			} while(rerun);
+		}
+	
+		for(size_t i = 0; i < 3; i ++)
+		{
+			batch[i]->Retain();
 		}
 		
 		ApplyNodes();

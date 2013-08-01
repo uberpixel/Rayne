@@ -76,6 +76,9 @@ namespace RN
 			RNAPI void Commit();
 			RNAPI void Wait();
 			
+			RNAPI void Retain();
+			RNAPI void Release();
+			
 			void Reserve(size_t size)
 			{
 				_tasks.reserve(size);
