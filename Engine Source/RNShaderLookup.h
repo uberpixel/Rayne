@@ -77,6 +77,34 @@ namespace RN
 			
 			return lookup;
 		}
+		
+		
+		
+		ShaderLookup NoFastPath() const
+		{
+			std::vector<ShaderDefine> tdefines;
+			
+			for(auto i = defines.begin(); i != defines.end(); i ++)
+			{
+				if(i->name.find("FASTPATH") != std::string::npos)
+					continue;
+				
+				tdefines.push_back(*i);
+			}
+			
+			return ShaderLookup(tdefines);
+		}
+		
+		bool IsFastPath() const
+		{
+			for(auto i = defines.begin(); i != defines.end(); i ++)
+			{
+				if(i->name.find("FASTPATH") != std::string::npos)
+					return true;
+			}
+			
+			return false;
+		}
 
 		uint32 type;
 		size_t hash;
