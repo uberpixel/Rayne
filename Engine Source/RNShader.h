@@ -103,7 +103,6 @@ namespace RN
 		GLuint lightDirectionalDepth;
 		
 		GLuint lightTileSize;
-		
 		GLuint hdrSettings;
 		
 		std::vector<GLuint> texlocations;
@@ -113,6 +112,8 @@ namespace RN
 		std::vector<GLuint> fraglocations;
 		GLuint depthmap;
 		GLuint depthmapinfo;
+		
+		void ReadLocations();
 	};
 	
 	class Shader : public Object

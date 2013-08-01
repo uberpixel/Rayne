@@ -15,6 +15,152 @@ namespace RN
 {
 	RNDeclareMeta(Shader)
 	
+	void ShaderProgram::ReadLocations()
+	{
+#define GetUniformLocation(uniform) uniform = glGetUniformLocation(program, #uniform)
+#define GetAttributeLocation(attribute) attribute = glGetAttribLocation(program, #attribute)
+#define GetBlockLocation(block) block = glGetUniformBlockIndex(program, #block)
+		
+		// Get uniforms
+		GetUniformLocation(matProj);
+		GetUniformLocation(matProjInverse);
+		
+		GetUniformLocation(matView);
+		GetUniformLocation(matViewInverse);
+		
+		GetUniformLocation(matModel);
+		GetUniformLocation(matModelInverse);
+		
+		GetUniformLocation(matNormal);
+		GetUniformLocation(matNormalInverse);
+		
+		GetUniformLocation(matViewModel);
+		GetUniformLocation(matViewModelInverse);
+		
+		GetUniformLocation(matProjView);
+		GetUniformLocation(matProjViewInverse);
+		
+		GetUniformLocation(matProjViewModel);
+		GetUniformLocation(matProjViewModelInverse);
+		
+		GetUniformLocation(matBones);
+		GetUniformLocation(instancingData);
+		
+		GetUniformLocation(time);
+		GetUniformLocation(frameSize);
+		GetUniformLocation(clipPlanes);
+		GetUniformLocation(discardThreshold);
+		
+		GetUniformLocation(fogPlanes);
+		GetUniformLocation(fogColor);
+		GetUniformLocation(clipPlane);
+		
+		GetUniformLocation(ambient);
+		GetUniformLocation(diffuse);
+		GetUniformLocation(specular);
+		GetUniformLocation(emissive);
+		GetUniformLocation(shininess);
+		
+		GetUniformLocation(viewPosition);
+		
+		GetUniformLocation(lightPointCount);
+		GetUniformLocation(lightPointPosition);
+		GetUniformLocation(lightPointColor);
+		GetUniformLocation(lightPointList);
+		GetUniformLocation(lightPointListOffset);
+		GetUniformLocation(lightPointListData);
+		
+		GetUniformLocation(lightSpotCount);
+		GetUniformLocation(lightSpotPosition);
+		GetUniformLocation(lightSpotColor);
+		GetUniformLocation(lightSpotDirection);
+		GetUniformLocation(lightSpotList);
+		GetUniformLocation(lightSpotListOffset);
+		GetUniformLocation(lightSpotListData);
+		
+		GetUniformLocation(lightDirectionalDirection);
+		GetUniformLocation(lightDirectionalColor);
+		GetUniformLocation(lightDirectionalCount);
+		GetUniformLocation(lightDirectionalMatrix);
+		GetUniformLocation(lightDirectionalDepth);
+		
+		GetUniformLocation(lightTileSize);
+		GetUniformLocation(hdrSettings);
+		
+		char string[32];
+		for(size_t i = 0; i < 32; i ++)
+		{
+			sprintf(string, "targetmap%i", (int)i);
+			GLuint location = glGetUniformLocation(program, string);
+			
+			if(location == -1)
+				break;
+			
+			targetmaplocations.push_back(location);
+			
+			sprintf(string, "targetmap%iInfo", static_cast<int>(i));
+			location = glGetUniformLocation(program, string);
+			targetmapinfolocations.push_back(location);
+		}
+		
+		for(size_t i = 0; i < 32; i ++)
+		{
+			sprintf(string, "mTexture%i", static_cast<int>(i));
+			GLuint location = glGetUniformLocation(program, string);
+			
+			if(location == -1)
+				break;
+			
+			texlocations.push_back(location);
+			
+			sprintf(string, "mTexture%iInfo", static_cast<int>(i));
+			location = glGetUniformLocation(program, string);
+			texinfolocations.push_back(location);
+		}
+		
+		GetUniformLocation(depthmap);
+		GetUniformLocation(depthmapinfo);
+		
+		// Get attributes
+		GetAttributeLocation(attPosition);
+		GetAttributeLocation(attNormal);
+		GetAttributeLocation(attTangent);
+		
+		GetAttributeLocation(attTexcoord0);
+		GetAttributeLocation(attTexcoord1);
+		
+		GetAttributeLocation(attColor0);
+		GetAttributeLocation(attColor1);
+		
+		GetAttributeLocation(attBoneWeights);
+		GetAttributeLocation(attBoneIndices);
+		
+#if RN_TARGET_OPENGL
+		do
+		{
+			GLint maxDrawbuffers;
+			glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawbuffers);
+			
+			for(GLint i = 0; i < maxDrawbuffers; i ++)
+			{
+				sprintf(string, "fragColor%i", static_cast<int>(i));
+				GLint location = glGetFragDataLocation(program, string);
+				
+				if(location == -1)
+					break;
+				
+				fraglocations.push_back(location);
+			}
+		} while(0);
+#endif
+		
+#undef GetUniformLocation
+#undef GetAttributeLocation
+#undef GetBlockLocation
+	}
+	
+	
+	
 	Shader::Shader()
 	{
 		_supportedPrograms = 0;
@@ -224,148 +370,7 @@ namespace RN
 		scopeGuard.Commit();
 		_temporaryDefines.clear();
 		
-		// Get Shader data
-#define GetUniformLocation(uniform) program->uniform = glGetUniformLocation(program->program, #uniform)
-#define GetAttributeLocation(attribute) program->attribute = glGetAttribLocation(program->program, #attribute)
-#define GetBlockLocation(block) program->block = glGetUniformBlockIndex(program->program, #block)
-		
-		// Get uniforms
-		GetUniformLocation(matProj);
-		GetUniformLocation(matProjInverse);
-		
-		GetUniformLocation(matView);
-		GetUniformLocation(matViewInverse);
-		
-		GetUniformLocation(matModel);
-		GetUniformLocation(matModelInverse);
-		
-		GetUniformLocation(matNormal);
-		GetUniformLocation(matNormalInverse);
-		
-		GetUniformLocation(matViewModel);
-		GetUniformLocation(matViewModelInverse);
-		
-		GetUniformLocation(matProjView);
-		GetUniformLocation(matProjViewInverse);
-		
-		GetUniformLocation(matProjViewModel);
-		GetUniformLocation(matProjViewModelInverse);
-		
-		GetUniformLocation(matBones);
-		GetUniformLocation(instancingData);
-		
-		GetUniformLocation(time);
-		GetUniformLocation(frameSize);
-		GetUniformLocation(clipPlanes);
-		GetUniformLocation(discardThreshold);
-		
-		GetUniformLocation(fogPlanes);
-		GetUniformLocation(fogColor);
-		GetUniformLocation(clipPlane);
-		
-		GetUniformLocation(ambient);
-		GetUniformLocation(diffuse);
-		GetUniformLocation(specular);
-		GetUniformLocation(emissive);
-		GetUniformLocation(shininess);
-		
-		GetUniformLocation(viewPosition);
-		
-		GetUniformLocation(lightPointCount);
-		GetUniformLocation(lightPointPosition);
-		GetUniformLocation(lightPointColor);
-		GetUniformLocation(lightPointList);
-		GetUniformLocation(lightPointListOffset);
-		GetUniformLocation(lightPointListData);
-		
-		GetUniformLocation(lightSpotCount);
-		GetUniformLocation(lightSpotPosition);
-		GetUniformLocation(lightSpotColor);
-		GetUniformLocation(lightSpotDirection);
-		GetUniformLocation(lightSpotList);
-		GetUniformLocation(lightSpotListOffset);
-		GetUniformLocation(lightSpotListData);
-		
-		GetUniformLocation(lightDirectionalDirection);
-		GetUniformLocation(lightDirectionalColor);
-		GetUniformLocation(lightDirectionalCount);
-		GetUniformLocation(lightDirectionalMatrix);
-		GetUniformLocation(lightDirectionalDepth);
-		
-		GetUniformLocation(lightTileSize);
-		
-		GetUniformLocation(hdrSettings);
-		
-		char string[32];
-		for(size_t i = 0; i < 32; i ++)
-		{
-			sprintf(string, "targetmap%i", (int)i);
-			GLuint location = glGetUniformLocation(program->program, string);
-			
-			if(location == -1)
-				break;
-			
-			program->targetmaplocations.push_back(location);
-			
-			sprintf(string, "targetmap%iInfo", (int)i);
-			location = glGetUniformLocation(program->program, string);
-			program->targetmapinfolocations.push_back(location);
-		}
-		
-		for(size_t i = 0; i < 32; i ++)
-		{
-			sprintf(string, "mTexture%i", (int)i);
-			GLuint location = glGetUniformLocation(program->program, string);
-			
-			if(location == -1)
-				break;
-			
-			program->texlocations.push_back(location);
-			
-			sprintf(string, "mTexture%iInfo", (int)i);
-			location = glGetUniformLocation(program->program, string);
-			program->texinfolocations.push_back(location);
-		}
-		
-		GetUniformLocation(depthmap);
-		GetUniformLocation(depthmapinfo);
-		
-		// Get attributes
-		GetAttributeLocation(attPosition);
-		GetAttributeLocation(attNormal);
-		GetAttributeLocation(attTangent);
-		
-		GetAttributeLocation(attTexcoord0);
-		GetAttributeLocation(attTexcoord1);
-		
-		GetAttributeLocation(attColor0);
-		GetAttributeLocation(attColor1);
-		
-		GetAttributeLocation(attBoneWeights);
-		GetAttributeLocation(attBoneIndices);
-		
-#if RN_TARGET_OPENGL
-		do
-		{
-			GLint maxDrawbuffers;
-			glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawbuffers);
-			
-			for(GLint i = 0; i < maxDrawbuffers; i ++)
-			{
-				sprintf(string, "fragColor%i", i);
-				GLint location = glGetFragDataLocation(program->program, string);
-				
-				if(location == -1)
-					break;
-				
-				program->fraglocations.push_back(location);
-			}
-		} while(0);
-#endif
-		
-#undef GetUniformLocation
-#undef GetAttributeLocation
-#undef GetBlockLocation
+		program->ReadLocations();
 		
 		RN_CHECKOPENGL();
 		glFlush();
