@@ -107,6 +107,33 @@ namespace RN
 		ThreadPool(size_t maxJobs=0, size_t maxThreads=0);
 		~ThreadPool() override;
 		
+		template<class F>
+		void AddTask(F&& f)
+		{
+			Task temp;
+			temp.function = std::move(f);
+			temp.batch    = nullptr;
+			
+			FeedTaskFastPath(std::move(temp));
+		}
+		
+		template<class F>
+		std::future<typename std::result_of<F()>::type> AddTaskWithFuture(F&& f)
+		{
+			typedef typename std::result_of<F()>::type resultType;
+			
+			std::packaged_task<resultType ()> task(std::move(f));
+			std::future<resultType> result(task.get_future());
+			
+			Task temp;
+			temp.function = std::move(task);
+			temp.batch    = nullptr;
+			
+			FeedTaskFastPath(std::move(temp));
+			
+			return result;
+		}
+		
 		Batch *OpenBatch();
 		
 	private:		
@@ -125,6 +152,7 @@ namespace RN
 		void Consumer();
 		void ReadTasks(std::vector<Task>& tasks);
 		void FeedTasks(std::vector<Task>& tasks);
+		void FeedTaskFastPath(Task&& task);
 		
 		Array _threads;
 		std::atomic<uint32> _resigned;

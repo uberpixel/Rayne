@@ -141,6 +141,30 @@ namespace RN
 		}
 	}
 	
+	void ThreadPool::FeedTaskFastPath(Task&& task)
+	{
+		while(1)
+		{
+			std::unique_lock<std::mutex> feedlock(_workMutex);
+			
+			if(_tasks.size() == _tasks.capacity())
+			{
+				feedlock.unlock();
+				
+				std::unique_lock<std::mutex> lock(_consumerMutex);
+				_consumerCondition.wait(lock);
+				
+				continue;
+			}
+			
+			
+			_tasks.push(std::move(task));
+			_workAvailableCondition.notify_one();
+			
+			break;
+		}
+	}
+	
 	void ThreadPool::ReadTasks(std::vector<Task>& tasks)
 	{
 		std::unique_lock<std::mutex> lock(_workMutex);
@@ -173,17 +197,20 @@ namespace RN
 			
 			size_t size = tasks.size();
 			
-			for(size_t i=0; i<size; i++)
+			for(size_t i = 0; i < size; i ++)
 			{
 				Task& task = tasks[i];
 				task.function();
 				
-				uint32 tasksLeft = task.batch->_openTasks.fetch_sub(1);
-				if(tasksLeft == 1)
+				if(task.batch)
 				{
-					std::lock_guard<std::mutex> lock(task.batch->_lock);
-					task.batch->_waitCondition.notify_all();
-					task.batch->TryFeedingBack();
+					uint32 tasksLeft = task.batch->_openTasks.fetch_sub(1);
+					if(tasksLeft == 1)
+					{
+						std::lock_guard<std::mutex> lock(task.batch->_lock);
+						task.batch->_waitCondition.notify_all();
+						task.batch->TryFeedingBack();
+					}
 				}
 			}
 		}
