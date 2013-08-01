@@ -120,8 +120,6 @@ namespace RN
 				
 				if(resubmit.size() > 0)
 				{
-					batch[i] = ThreadPool::SharedInstance()->OpenBatch();
-					
 					for(SceneNode *node : resubmit)
 					{
 						batch[i]->AddTask(BuildLambda(node));
