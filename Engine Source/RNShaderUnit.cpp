@@ -172,7 +172,7 @@ namespace RN
 					Shader::DebugMarker marker = _host->ResolveFileForLine(_type, line);
 					char buffer[32];
 					
-					sprintf(buffer, "%u", marker.line);
+					sprintf(buffer, "%u", static_cast<uint32>(marker.line - offst));
 					parsedError += marker.file + " " + buffer + ", Error: " + match.substr(lineString.length() + 8) + "\n";
 				}
 				
