@@ -13,61 +13,53 @@
 #include "RNOpenGLExtensions.h"
 
 #ifndef APIENTRY
-#define APIENTRY
+	#define APIENTRY
 #endif
 #ifndef APIENTRYP
-#define APIENTRYP APIENTRY *
+	#define APIENTRYP APIENTRY *
 #endif
 #ifndef GLAPI
-#define GLAPI extern
+	#define GLAPI extern
 #endif
 
 namespace RN
 {
-	typedef enum
-	{
-		kOpenGLFeatureVertexArrays,
-		kOpenGLFeatureBlitFramebuffer,
-		kOpenGLFeatureInstancing,
-		
-		__kOpenGLFeatureMax
-	} OpenGLFeature;
-	
-	RNAPI void CheckOpenGLError(const char *file, int line);
-	RNAPI void ReadOpenGLExtensions();
-	RNAPI bool SupportsOpenGLFeature(OpenGLFeature feature);
-	
 	namespace gl
 	{
-		extern void (APIENTRYP GenVertexArrays)(GLsizei n, GLuint *arrays);
-		extern void (APIENTRYP DeleteVertexArrays)(GLsizei n, const GLuint *arrays);
-		extern void (APIENTRYP BindVertexArray)(GLuint array);
+		enum class Version
+		{
+#if RN_TARGET_OPENGL_ES
+			ES2,
+#endif
+#if RN_TARGET_OPENGL
+			Core3_2,
+			Core4_1
+#endif
+		};
 		
-		extern void (APIENTRYP BlitFramebuffer)(GLint srcX0, GLint srcY0, GLint srcX1, GLint srcY1, GLint dstX0, GLint dstY0, GLint dstX1, GLint dstY1, GLbitfield mask, GLenum filter);
-	
-		extern void (APIENTRYP VertexAttribDivisor)(GLuint index, GLuint divisor);
-		extern void (APIENTRYP DrawElementsInstanced)(GLenum mode, GLsizei count, GLenum type, const GLvoid *indices, GLsizei primcount);
+		enum class Feature : int
+		{
+			VertexArrays,
+			GeometryShaders,
+			TessellationShaders,
+			AnisotropicFilter
+		};
+		
+		RNAPI Version MaximumVersion();
+		RNAPI Version WantedVersion();
+		
+		RNAPI void CheckForError(const char *file, int line);
+		RNAPI bool SupportsFeature(Feature feature);
+		RNAPI bool SupportsExtensions(const std::string& extension);
 	}
 }
 
 #ifndef NDEBUG
-	#define RN_CHECKOPENGL() RN::CheckOpenGLError(__FILE__, __LINE__)
-	#define RN_CHECKOPENGL_AGGRESSIVE() RN::CheckOpenGLError(__FILE__, __LINE__)
+	#define RN_CHECKOPENGL() RN::gl::CheckForError(__FILE__, __LINE__)
+	#define RN_CHECKOPENGL_AGGRESSIVE() RN::gl::CheckForError(__FILE__, __LINE__)
 #else
 	#define RN_CHECKOPENGL() (void)0
 	#define RN_CHECKOPENGL_AGGRESSIVE() (void)0
-#endif
-
-#if RN_PLATFORM_MAC
-	#ifndef GL_TESS_CONTROL_SHADER
-		#define GL_TESS_CONTROL_SHADER 0x8E88
-	#endif
-	#ifndef GL_TESS_EVALUATION_SHADER
-		#define GL_TESS_EVALUATION_SHADER 0x8E87
-	#endif
-	#ifndef GL_PATCHES
-		#define GL_PATCHES 0x000E
-#endif
 #endif
 
 #if RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX
@@ -156,6 +148,6 @@ extern "C"
 	extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 }
 
-#endif
+#endif /* RN_PLATFORM_WINDOWS || RN_PLATFORM_LINUX */
 
 #endif /* __RAYNE_OPENGL_H__ */

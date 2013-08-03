@@ -25,6 +25,7 @@
 #include <iterator>
 #include <vector>
 #include <map>
+#include <set>
 #include <list>
 #include <deque>
 #include <tuple>
@@ -60,20 +61,10 @@
 #if RN_PLATFORM_MAC_OS
 	#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED 1
 
-	#include <IOKit/IOKitLib.h>
-	#include <IOKit/IOCFPlugIn.h>
-
-	#include <IOKit/hid/IOHIDBase.h>
-	#include <IOKit/hid/IOHIDKeys.h>
-	#include <IOKit/hid/IOHIDUsageTables.h>
-	#include <IOKit/hid/IOHIDLib.h>
-
-	#include <IOKit/graphics/IOGraphicsLib.h>
-
-	#include <CoreGraphics/CoreGraphics.h>
-
 	#include <OpenGL/gl3.h>
 	#include <OpenGL/gl3ext.h>
+
+	#include <CoreGraphics/CoreGraphics.h>
 #endif
 
 #if RN_PLATFORM_IOS
@@ -81,6 +72,7 @@
 	#include <OpenGLES/ES2/glext.h>
 
 	#include <libkern/OSAtomic.h>
+	#include "glext.h"
 #endif
 
 #if RN_PLATFORM_WINDOWS

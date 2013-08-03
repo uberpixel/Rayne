@@ -21,16 +21,17 @@ namespace RN
 	
 #if RN_PLATFORM_LINUX
 	Display *Context::_dpy = 0;
-#endif 
+#endif
 	
-	Context::Context(Context *shared)
-	{
-		_active = false;
-		_thread = 0;
-		_shared = shared ? shared->Retain() : 0;
-		_firstActivation = true;
-
 #if RN_PLATFORM_MAC_OS
+	void CreateOpenGLContext(gl::Version version, NSOpenGLContext **outContext, NSOpenGLPixelFormat **outFormat)
+	{
+		RN_ASSERT(outContext, "");
+		RN_ASSERT(outFormat, "");
+		
+		*outContext = nil;
+		*outFormat  = nil;
+		
 		static NSOpenGLPixelFormatAttribute formatAttributes[] =
 		{
 			NSOpenGLPFAClosestPolicy,
@@ -41,25 +42,65 @@ namespace RN
 			NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core,
 			0
 		};
-
-		_oglPixelFormat = [[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes];
-		if(!_oglPixelFormat)
-			throw Exception(Exception::Type::NoGPUException, "Failed to create a OpenGL context!");
-
-		_oglContext = [[NSOpenGLContext alloc] initWithFormat:(NSOpenGLPixelFormat *)_oglPixelFormat shareContext:_shared ? (NSOpenGLContext *)_shared->_oglContext : nil];
-		if(!_oglContext)
-			throw Exception(Exception::Type::NoGPUException, "Failed to create a OpenGL context!");
-
-		_cglContext = (CGLContextObj)[(NSOpenGLContext *)_oglContext CGLContextObj];
-		CGLEnable((CGLContextObj)_cglContext, kCGLCEMPEngine);
 		
-		if(_shared)
+		switch(version)
 		{
-			if(_shared->_active && shared->_thread->OnThread())
-			{
-				_shared->Deactivate();
-				_shared->Activate();
-			}
+			case gl::Version::Core4_1:
+				throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+				break;
+				
+			default:
+				break;
+		}
+		
+		NSOpenGLPixelFormat *format = [[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes];
+		if(!format)
+			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+		
+		NSOpenGLContext *context = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
+		if(!context)
+			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+		
+		CGLEnable(static_cast<CGLContextObj>([context CGLContextObj]), kCGLCEMPEngine);
+		
+		*outContext = context;
+		*outFormat  = format;
+	}
+#endif
+	
+	Context::Context(gl::Version version)
+	{
+		Initialize(version);
+		
+#if RN_PLATFORM_MAC_OS
+		CreateOpenGLContext(version, reinterpret_cast<NSOpenGLContext **>(&_oglContext), reinterpret_cast<NSOpenGLPixelFormat **>(&_oglPixelFormat));
+
+		_cglContext = [static_cast<NSOpenGLContext *>(_oglContext) CGLContextObj];
+#endif
+	}
+	
+	Context::Context(Context *shared)
+	{
+		RN_ASSERT(shared, "Creating a shared context but no context to share with provided!");
+		Initialize(shared->_version);
+		
+		_shared = shared->Retain();
+
+#if RN_PLATFORM_MAC_OS
+		_oglPixelFormat = [static_cast<NSOpenGLPixelFormat *>(_shared->_oglPixelFormat) retain];
+		
+		_oglContext = [[NSOpenGLContext alloc] initWithFormat:static_cast<NSOpenGLPixelFormat *>(_oglPixelFormat)
+												 shareContext:static_cast<NSOpenGLContext *>(_shared->_oglContext)];
+		
+		if(!_oglContext)
+			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+		
+		_cglContext = [static_cast<NSOpenGLContext *>(_oglContext) CGLContextObj];
+		
+		if(_shared->_active && shared->_thread->OnThread())
+		{
+			_shared->Deactivate();
+			_shared->Activate();
 		}
 
 #elif RN_PLATFORM_IOS
@@ -71,6 +112,7 @@ namespace RN
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 
 #elif RN_PLATFORM_WINDOWS
+		
 		RNRegisterWindow();
 
 		_hWnd = CreateOffscreenWindow();
@@ -118,7 +160,6 @@ namespace RN
 			wglMakeCurrent(_hDC, 0);
 			wglDeleteContext(_temp);
 		}
-
 
 		int attributes[] =
 		{
@@ -228,7 +269,6 @@ namespace RN
 
 	Context::~Context()
 	{
-		
 		DeactivateContext();
 
 		if(_shared)
@@ -249,6 +289,21 @@ namespace RN
 #endif
 	}
 
+	void Context::Initialize(gl::Version version)
+	{
+		_active  = false;
+		_thread  = nullptr;
+		_shared  = nullptr;
+		_version = version;
+		_firstActivation = true;
+		
+#if RN_PLATFORM_MAC_OS
+		_oglContext = nullptr;
+		_oglPixelFormat = nullptr;
+#endif
+	}
+	
+	
 #if RN_PLATFORM_WINDOWS
 	HWND Context::CreateOffscreenWindow()
 	{

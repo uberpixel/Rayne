@@ -40,6 +40,12 @@ namespace RN
 		extern void InstallDebugDraw();
 	}
 	
+	namespace gl
+	{
+		extern Context *Initialize();
+	}
+	
+	
 	Kernel::Kernel(const std::string& title) :
 		_title(title)
 	{
@@ -100,10 +106,8 @@ namespace RN
 		Settings::SharedInstance();
 		ThreadCoordinator::SharedInstance();
 		
-		_context = new class Context();
-		_context->MakeActiveContext();
+		_context = gl::Initialize();
 		
-		ReadOpenGLExtensions();
 		ResourcePool::SharedInstance();
 		
 		_scaleFactor = 1.0f;

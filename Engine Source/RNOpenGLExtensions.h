@@ -166,4 +166,18 @@
 #define GL_HALF_FLOAT GL_HALF_FLOAT_OES
 #endif
 
+// OS X Tessellation shader
+
+#if RN_PLATFORM_MAC_OS
+	#ifndef GL_TESS_CONTROL_SHADER
+		#define GL_TESS_CONTROL_SHADER 0x8E88
+	#endif
+	#ifndef GL_TESS_EVALUATION_SHADER
+		#define GL_TESS_EVALUATION_SHADER 0x8E87
+	#endif
+	#ifndef GL_PATCHES
+		#define GL_PATCHES 0x000E
+	#endif
+#endif
+
 #endif /* __RAYNE_OPENGLEXTENSIONS_H__ */

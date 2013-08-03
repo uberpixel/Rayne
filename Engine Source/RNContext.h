@@ -24,8 +24,10 @@ namespace RN
 		friend class Kernel;
 		friend class Thread;
 		
-		RNAPI Context(Context *shared=0);
-		RNAPI virtual ~Context();
+		RNAPI Context(Context *shared);
+		RNAPI Context(gl::Version version);
+		
+		RNAPI ~Context() override;
 
 		RNAPI void MakeActiveContext();
 		RNAPI void DeactivateContext();
@@ -34,6 +36,8 @@ namespace RN
 		RNAPI void SetStencilClear(GLint stencil);
 		RNAPI void SetClearColor(const Color& color);
 		
+		gl::Version Version() const { return _version; }
+		
 		static Context *ActiveContext();
 
 	protected:
@@ -41,7 +45,10 @@ namespace RN
 		RNAPI void Deactivate();
 
 	private:
+		void Initialize(gl::Version version);
 		void ForceDeactivate();
+		
+		gl::Version _version;
 		
 		bool _active;
 		Thread *_thread;
