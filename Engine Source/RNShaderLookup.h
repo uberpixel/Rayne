@@ -86,7 +86,10 @@ namespace RN
 				tdefines.push_back(*i);
 			}
 			
-			return ShaderLookup(tdefines);
+			ShaderLookup lookup(tdefines);
+			lookup.type = type;
+			
+			return lookup;
 		}
 		
 		bool IsFastPath() const
