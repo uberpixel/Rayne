@@ -114,8 +114,6 @@ namespace RN
 		GLuint depthmap;
 		GLuint depthmapinfo;
 		
-		std::atomic<bool> __status;
-		
 		void ReadLocations();
 	};
 	
@@ -192,8 +190,7 @@ namespace RN
 		
 		std::string PreProcessedShaderSource(const std::string& source);
 		
-		void CompileProgram(const ShaderLookup& lookup);
-		ShaderProgram *AccessProgram(const ShaderLookup& lookup, bool waitForCompletion);
+		ShaderProgram *CompileProgram(const ShaderLookup& lookup);
 		
 		void IncludeShader(const std::string& name, IncludeMode mode, File *parent, PreProcessedFile& output);
 		void PreProcessFile(File *file, PreProcessedFile& output);
@@ -207,9 +204,6 @@ namespace RN
 		std::vector<ShaderDefine> _defines;
 		
 		uint32 _supportedPrograms;
-		
-		std::mutex _programLock;
-		std::condition_variable _waitCondition;
 		
 		std::unordered_map<ShaderLookup, ShaderProgram *> _programs;
 		std::map<ShaderType, ShaderData> _shaderData;

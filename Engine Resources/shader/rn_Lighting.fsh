@@ -19,15 +19,15 @@ uniform isamplerBuffer lightSpotList;
 uniform isamplerBuffer lightSpotListOffset;
 uniform samplerBuffer lightSpotListData;
 
-#if defined(RN_POINT_LIGHTS_FASTPATH)
-	uniform vec4 lightPointPosition[RN_POINT_LIGHTS_FASTPATH];
-	uniform vec4 lightPointColor[RN_POINT_LIGHTS_FASTPATH];
+#if defined(RN_POINT_LIGHTS)
+	uniform vec4 lightPointPosition[RN_POINT_LIGHTS];
+	uniform vec4 lightPointColor[RN_POINT_LIGHTS];
 #endif
 
-#if defined(RN_SPOT_LIGHTS_FASTPATH)
-	uniform vec4 lightSpotPosition[RN_SPOT_LIGHTS_FASTPATH];
-	uniform vec4 lightSpotDirection[RN_SPOT_LIGHTS_FASTPATH];
-	uniform vec4 lightSpotColor[RN_SPOT_LIGHTS_FASTPATH];
+#if defined(RN_SPOT_LIGHTS)
+	uniform vec4 lightSpotPosition[RN_SPOT_LIGHTS];
+	uniform vec4 lightSpotDirection[RN_SPOT_LIGHTS];
+	uniform vec4 lightSpotColor[RN_SPOT_LIGHTS];
 #endif
 
 #if defined(RN_DIRECTIONAL_LIGHTS)
@@ -153,32 +153,28 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 	#endif
 		
 	#if !defined(RN_POINT_LIGHTS_FASTPATH)
+		ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
+		for(int i=0; i<listoffset.y; i++)
 		{
-			ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
-			for(int i=0; i<listoffset.y; i++)
-			{
-				int lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;
-				rn_PointLightTiled(lightindex, viewdir, normal, position, specularity.a, light, specsum);
-			}
+			int lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;
+			rn_PointLightTiled(lightindex, viewdir, normal, position, specularity.a, light, specsum);
 		}
-	#else
-		for(int i=0; i<RN_POINT_LIGHTS_FASTPATH; i++)
+	#elif defined(RN_POINT_LIGHTS)
+		for(int i=0; i<RN_POINT_LIGHTS; i++)
 		{
 			rn_PointLight(viewdir, lightPointPosition[i], lightPointColor[i].rgb, normal, position, specularity.a, light, specsum);
 		}
 	#endif
 		
 	#if !defined(RN_SPOT_LIGHTS_FASTPATH)
+		listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
+		for(int i=0; i<listoffset.y; i++)
 		{
-			ivec2 listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
-			for(int i=0; i<listoffset.y; i++)
-			{
-				int lightindex = (texelFetch(lightSpotList, listoffset.x + i).r) * 3;
-				rn_SpotLightTiled(lightindex, viewdir, normal, position, specularity.a, light, specsum);
-			}
+			int lightindex = (texelFetch(lightSpotList, listoffset.x + i).r) * 3;
+			rn_SpotLightTiled(lightindex, viewdir, normal, position, specularity.a, light, specsum);
 		}
-	#else
-		for(int i=0; i<RN_SPOT_LIGHTS_FASTPATH; i++)
+	#elif defined(RN_SPOT_LIGHTS)
+		for(int i=0; i<RN_SPOT_LIGHTS; i++)
 		{
 			rn_SpotLight(viewdir, lightSpotPosition[i], lightSpotColor[i].rgb, lightSpotDirection[i], normal, position, specularity.a, light, specsum);
 		}

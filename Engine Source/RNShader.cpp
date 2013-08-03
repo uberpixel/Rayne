@@ -14,9 +14,6 @@
 
 namespace RN
 {
-#define kRNShaderInvalidProgram reinterpret_cast<ShaderProgram *>(0x1)
-	
-	
 	RNDeclareMeta(Shader)
 	
 	void ShaderProgram::ReadLocations()
@@ -277,44 +274,17 @@ namespace RN
 		throw Exception(Exception::Type::ShaderLinkingFailedException, tlog);
 	}
 	
-	ShaderProgram *Shader::AccessProgram(const ShaderLookup& lookup, bool waitForCompletion)
+	ShaderProgram *Shader::CompileProgram(const ShaderLookup& lookup)
 	{
-		std::unique_lock<std::mutex> lock(_programLock);
-		
 		auto iterator = _programs.find(lookup);
 		if(iterator != _programs.end())
 		{
 			ShaderProgram *program = iterator->second;
-			
-			if(waitForCompletion)
-			{
-				while(!program->__status.load())
-					_waitCondition.wait(lock);
-				
-				return program;
-			}
-			else
-			{
-				return program->__status.load() ? program : kRNShaderInvalidProgram;
-			}
+			return program;
 		}
-		
-		return nullptr;
-	}
-	
-	void Shader::CompileProgram(const ShaderLookup& lookup)
-	{
-		std::unique_lock<std::mutex> lock(_programLock);
-		
-		auto iterator = _programs.find(lookup);
-		if(iterator != _programs.end())
-			return;
 
 		ShaderProgram *program = new ShaderProgram;
-		program->__status.store(false);
-		
 		_programs[lookup] = program;
-		lock.unlock();
 		
 		program->program = glCreateProgram();
 		
@@ -322,9 +292,7 @@ namespace RN
 			glDeleteProgram(program->program);
 			delete program;
 			
-			lock.lock();
 			_programs.erase(lookup);
-			lock.unlock();
 		});
 		
 		std::vector<ShaderDefine> temporaryDefines;
@@ -387,7 +355,7 @@ namespace RN
 		if(!status)
 		{
 			DumpLinkStatusAndDie(program);
-			return;
+			return nullptr;
 		}
 		
 		// Dump the scope guard and clear all defines that were just visible in this compilation unit
@@ -397,8 +365,7 @@ namespace RN
 		RN_CHECKOPENGL();
 		glFlush();
 		
-		program->__status.store(true);
-		_waitCondition.notify_all();
+		return program;
 	}
 	
 	ShaderProgram *Shader::ProgramWithLookup(const ShaderLookup& lookup)
@@ -406,39 +373,7 @@ namespace RN
 		if(!SupportsProgramOfType(lookup.type))
 			return 0;
 		
-		ShaderProgram *program = AccessProgram(lookup, false);
-		if(program && (program != kRNShaderInvalidProgram))
-			return program;
-		
-		// Check if we can dump the fast path
-		if(lookup.IsFastPath())
-		{
-			ShaderLookup nFastPathLookup = std::move(lookup.NoFastPath());
-			ShaderProgram *fastPath = AccessProgram(nFastPathLookup, false);
-			
-			if(fastPath && (fastPath != kRNShaderInvalidProgram))
-			{
-				if(!program)
-				{
-					ThreadPool::SharedInstance()->AddTask([&, lookup]() {
-						CompileProgram(lookup);
-					});
-				}
-				
-				return fastPath;
-			}
-			else if(!fastPath)
-			{
-				ThreadPool::SharedInstance()->AddTask([&, nFastPathLookup]() {
-					CompileProgram(nFastPathLookup);
-				});
-			}
-		}
-		
-		if(!program)
-			CompileProgram(lookup);
-		
-		return AccessProgram(lookup, true);
+		return CompileProgram(lookup);
 	}
 	
 	ShaderProgram *Shader::ProgramOfType(uint32 type)
