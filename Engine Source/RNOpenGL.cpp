@@ -13,6 +13,17 @@ namespace RN
 {
 	namespace gl
 	{
+		// Extensions
+		PFNGLGETPROGRAMBINARYPROC GetProgramBinary = nullptr;
+		PFNGLPROGRAMBINARYPROC ProgramBinary = nullptr;
+		PFNGLPROGRAMPARAMETERIPROC ProgramParameteri = nullptr;
+		
+		PFNGLBINDVERTEXARRAYPROC BindVertexArray = nullptr;
+		PFNGLDELETEVERTEXARRAYSPROC DeleteVertexArrays = nullptr;
+		PFNGLGENVERTEXARRAYSPROC GenVertexArrays = nullptr;
+		PFNGLISVERTEXARRAYPROC IsVertexArray = nullptr;
+		
+		//
 		std::set<Feature> __features;
 		std::unordered_set<std::string> __extensions;
 		
@@ -109,6 +120,46 @@ namespace RN
 			throw Exception(Exception::Type::NoGPUException, "Couldn't create a valid OpenGL context!");
 		}
 		
+		void *BindOpenGLFunction(const char *tname)
+		{
+			static std::vector<std::string> extensions;
+			static std::once_flag flag;
+			
+			std::call_once(flag, []{
+				extensions.emplace_back("");
+#if RN_TARGET_OPENGL
+				extensions.emplace_back("ARB");
+				extensions.emplace_back("EXT");
+#endif
+#if RN_TARGET_OPENGL_ES
+				extensions.emplace_back("OES");
+#endif
+			});
+			
+			void *ptr;
+			
+			for(auto i = extensions.begin(); i != extensions.end(); i ++)
+			{
+				std::string symbol(tname);
+				symbol += *i;
+				
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
+				ptr = dlsym(RTLD_DEFAULT, symbol.c_str());
+#endif
+				
+				if(ptr)
+					return ptr;
+			}
+			
+			return nullptr;
+		}
+		
+		template<class T>
+		void BindOpenGLFunction(T& ptr, const char *name)
+		{
+			ptr = reinterpret_cast<T>(BindOpenGLFunction(name));
+		}
+		
 		Context *Initialize()
 		{
 			InitializeSupportedOpenGLVersions();
@@ -131,34 +182,54 @@ namespace RN
 			// Get all features
 			switch(version)
 			{
+#if RN_TARGET_OPENGL
 				case Version::Core4_1:
 					AddFeature(Feature::TessellationShaders);
+					AddFeature(Feature::ShaderBinary);
 					
 				case Version::Core3_2:
 					AddFeature(Feature::VertexArrays);
 					AddFeature(Feature::GeometryShaders);
 					
-				if(SupportsExtensions("GL_EXT_texture_filter_anisotropic"))
-				{
-					AddFeature(Feature::AnisotropicFilter);
-				}
+					if(SupportsExtensions("GL_EXT_texture_filter_anisotropic"))
+					{
+						AddFeature(Feature::AnisotropicFilter);
+					}
+					
+					if(SupportsExtensions("GL_ARB_get_program_binary"))
+					{
+						AddFeature(Feature::ShaderBinary);
+					}
 					
 #if RN_PLATFORM_MAC_OS
-				{
-					GLuint temp = glCreateShader(GL_TESS_CONTROL_SHADER);
-					if(temp != 0)
 					{
-						AddFeature(Feature::TessellationShaders);
-						glDeleteShader(temp);
+						GLuint temp = glCreateShader(GL_TESS_CONTROL_SHADER);
+						if(temp != 0)
+						{
+							AddFeature(Feature::TessellationShaders);
+							glDeleteShader(temp);
+						}
 					}
-				}
 #endif
 					break;
 					
-				default:
-					break;
+#endif
 			}
 			
+			if(SupportsFeature(Feature::VertexArrays))
+			{
+				BindOpenGLFunction(BindVertexArray, "glBindVertexArray");
+				BindOpenGLFunction(DeleteVertexArrays, "glDeleteVertexArrays");
+				BindOpenGLFunction(GenVertexArrays, "glGenVertexArrays");
+				BindOpenGLFunction(IsVertexArray, "glIsVertexArray");
+			}
+			
+			if(SupportsFeature(Feature::ShaderBinary))
+			{
+				BindOpenGLFunction(GetProgramBinary, "glGetProgramBinary");
+				BindOpenGLFunction(ProgramBinary, "glProgramBinary");
+				BindOpenGLFunction(ProgramParameteri, "glProgramParameteri");
+			}
 			
 			return context;
 		}
