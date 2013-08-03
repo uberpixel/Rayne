@@ -136,6 +136,13 @@ namespace RN
 	RNAPI RN_NORETURN void __HandleException(const Exception& e);
 	RNAPI void ParseCommandLine(int argc, char *argv[]);
 	
+	RNAPI uint32 Version();
+	RNAPI uint32 VersionMake(uint32 major, uint32 minor, uint32 patch);
+	
+	RNAPI uint32 VersionMajor();
+	RNAPI uint32 VersionMinor();
+	RNAPI uint32 VersionPatch();
+	
 	typedef uint32 FrameID;
 	
 	enum class ComparisonResult : int

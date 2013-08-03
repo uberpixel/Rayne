@@ -13,6 +13,10 @@
 #include "RNSpinLock.h"
 #include "RNPathManager.h"
 
+#define kRNVersionMajor 0
+#define kRNVersionMinor 1
+#define kRNVersionPatch 0
+
 namespace RN
 {
 	static SpinLock __DieLock;
@@ -64,5 +68,33 @@ namespace RN
 				PathManager::AddSearchPath(path);
 			}
 		}
+	}
+	
+	
+	
+	uint32 Version()
+	{
+		return VersionMake(kRNVersionMajor, kRNVersionMinor, kRNVersionPatch);
+	}
+	
+	uint32 VersionMake(uint32 major, uint32 minor, uint32 patch)
+	{
+		return static_cast<uint32>((major << 16) | (minor << 8) | (patch));
+	}
+	
+	
+	uint32 VersionMajor()
+	{
+		return kRNVersionMajor;
+	}
+	
+	uint32 VersionMinor()
+	{
+		return kRNVersionMinor;
+	}
+	
+	uint32 VersionPatch()
+	{
+		return kRNVersionPatch;
 	}
 }
