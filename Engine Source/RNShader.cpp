@@ -8,11 +8,15 @@
 
 #include "RNShader.h"
 #include "RNKernel.h"
+#include "RNThreadPool.h"
 #include "RNPathManager.h"
 #include "RNScopeGuard.h"
 
 namespace RN
 {
+#define kRNShaderInvalidProgram reinterpret_cast<ShaderProgram *>(0x1)
+	
+	
 	RNDeclareMeta(Shader)
 	
 	void ShaderProgram::ReadLocations()
@@ -273,72 +277,92 @@ namespace RN
 		throw Exception(Exception::Type::ShaderLinkingFailedException, tlog);
 	}
 	
-	ShaderProgram *Shader::ProgramWithLookup(const ShaderLookup& lookup)
+	ShaderProgram *Shader::AccessProgram(const ShaderLookup& lookup, bool waitForCompletion)
 	{
-		if(!SupportsProgramOfType(lookup.type))
-			return 0;
+		std::unique_lock<std::mutex> lock(_programLock);
 		
 		auto iterator = _programs.find(lookup);
 		if(iterator != _programs.end())
-			return iterator->second;
-		
-		ShaderProgram *program = new ShaderProgram;
-		program->program = glCreateProgram();
-		
-		if(program->program == 0)
 		{
-			delete program;
+			ShaderProgram *program = iterator->second;
 			
-			RN_CHECKOPENGL();				
-			throw Exception(Exception::Type::ShaderLinkingFailedException, "");
+			if(waitForCompletion)
+			{
+				while(!program->__status.load())
+					_waitCondition.wait(lock);
+				
+				return program;
+			}
+			else
+			{
+				return program->__status.load() ? program : kRNShaderInvalidProgram;
+			}
 		}
 		
+		return nullptr;
+	}
+	
+	void Shader::CompileProgram(const ShaderLookup& lookup)
+	{
+		std::unique_lock<std::mutex> lock(_programLock);
+		
+		auto iterator = _programs.find(lookup);
+		if(iterator != _programs.end())
+			return;
+
+		ShaderProgram *program = new ShaderProgram;
+		program->__status.store(false);
+		
 		_programs[lookup] = program;
+		lock.unlock();
+		
+		program->program = glCreateProgram();
 		
 		ScopeGuard scopeGuard = ScopeGuard([&]() {
 			glDeleteProgram(program->program);
 			delete program;
 			
+			lock.lock();
 			_programs.erase(lookup);
-			_temporaryDefines.clear();
+			lock.unlock();
 		});
 		
+		std::vector<ShaderDefine> temporaryDefines;
 		
 		// Prepare the state
 		if(lookup.type & ShaderProgram::TypeInstanced)
-			_temporaryDefines.emplace_back(ShaderDefine("RN_INSTANCING", ""));
+			temporaryDefines.emplace_back(ShaderDefine("RN_INSTANCING", ""));
 		
 		if(lookup.type & ShaderProgram::TypeAnimated)
-			_temporaryDefines.emplace_back(ShaderDefine("RN_ANIMATION", ""));
+			temporaryDefines.emplace_back(ShaderDefine("RN_ANIMATION", ""));
 		
 		if(lookup.type & ShaderProgram::TypeLighting)
-			_temporaryDefines.emplace_back(ShaderDefine("RN_LIGHTING", ""));
+			temporaryDefines.emplace_back(ShaderDefine("RN_LIGHTING", ""));
 		
 		if(lookup.type & ShaderProgram::TypeDiscard)
-			_temporaryDefines.emplace_back(ShaderDefine("RN_DISCARD", ""));
+			temporaryDefines.emplace_back(ShaderDefine("RN_DISCARD", ""));
 		
 		if(lookup.type & ShaderProgram::TypeDirectionalShadows)
-			_temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_SHADOWS", ""));
+			temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_SHADOWS", ""));
 		
 		if(lookup.type & ShaderProgram::TypeFog)
-			_temporaryDefines.emplace_back(ShaderDefine("RN_FOG", ""));
+			temporaryDefines.emplace_back(ShaderDefine("RN_FOG", ""));
 		
 		if(lookup.type & ShaderProgram::TypeClipPlane)
-			_temporaryDefines.emplace_back(ShaderDefine("RN_CLIPPLANE", ""));
+			temporaryDefines.emplace_back(ShaderDefine("RN_CLIPPLANE", ""));
 		
 		if(lookup.type & ShaderProgram::TypeGammaCorrection)
-			_temporaryDefines.emplace_back(ShaderDefine("RN_GAMMA_CORRECTION", ""));
+			temporaryDefines.emplace_back(ShaderDefine("RN_GAMMA_CORRECTION", ""));
 		
-		_temporaryDefines.insert(_temporaryDefines.end(), lookup.defines.begin(), lookup.defines.end());
+		temporaryDefines.insert(temporaryDefines.end(), lookup.defines.begin(), lookup.defines.end());
 		
-		// Compile all required shaders
-		
+		// Compile all units
 		std::vector<ShaderUnit *> units;
 		
 		for(auto i = _shaderData.begin(); i != _shaderData.end(); i ++)
 		{
 			ShaderUnit *unit = new ShaderUnit(this, i->first);
-			unit->Compile(_temporaryDefines);
+			unit->Compile(temporaryDefines);
 			
 			units.push_back(unit);
 			glAttachShader(program->program, unit->GetShader());
@@ -363,19 +387,58 @@ namespace RN
 		if(!status)
 		{
 			DumpLinkStatusAndDie(program);
-			return 0;
+			return;
 		}
 		
 		// Dump the scope guard and clear all defines that were just visible in this compilation unit
 		scopeGuard.Commit();
-		_temporaryDefines.clear();
-		
 		program->ReadLocations();
 		
 		RN_CHECKOPENGL();
 		glFlush();
 		
-		return program;
+		program->__status.store(true);
+		_waitCondition.notify_all();
+	}
+	
+	ShaderProgram *Shader::ProgramWithLookup(const ShaderLookup& lookup)
+	{
+		if(!SupportsProgramOfType(lookup.type))
+			return 0;
+		
+		ShaderProgram *program = AccessProgram(lookup, false);
+		if(program && (program != kRNShaderInvalidProgram))
+			return program;
+		
+		// Check if we can dump the fast path
+		if(lookup.IsFastPath())
+		{
+			ShaderLookup nFastPathLookup = std::move(lookup.NoFastPath());
+			ShaderProgram *fastPath = AccessProgram(nFastPathLookup, false);
+			
+			if(fastPath && (fastPath != kRNShaderInvalidProgram))
+			{
+				if(!program)
+				{
+					ThreadPool::SharedInstance()->AddTask([&, lookup]() {
+						CompileProgram(lookup);
+					});
+				}
+				
+				return fastPath;
+			}
+			else if(!fastPath)
+			{
+				ThreadPool::SharedInstance()->AddTask([&, nFastPathLookup]() {
+					CompileProgram(nFastPathLookup);
+				});
+			}
+		}
+		
+		if(!program)
+			CompileProgram(lookup);
+		
+		return AccessProgram(lookup, true);
 	}
 	
 	ShaderProgram *Shader::ProgramOfType(uint32 type)

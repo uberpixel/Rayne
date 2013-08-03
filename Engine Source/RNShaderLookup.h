@@ -63,18 +63,12 @@ namespace RN
 		
 		ShaderLookup operator +(const ShaderLookup& other) const
 		{
-			ShaderLookup lookup(*this);
-			std::hash<std::string> hash_fn;
+			std::vector<ShaderDefine> tdefines(defines);
+			tdefines.insert(tdefines.end(), other.defines.begin(), other.defines.end());
 			
-			if(other.mangledDefines.length() > 0)
-			{
-				lookup.defines.insert(lookup.defines.end(), other.defines.begin(), other.defines.end());
-				lookup.mangledDefines += other.mangledDefines;
-				lookup.hash = hash_fn(lookup.mangledDefines);
-			}
+			ShaderLookup lookup(std::move(ShaderLookup(tdefines)));
 			
-			lookup.type |= other.type;
-			
+			lookup.type = (type | other.type);
 			return lookup;
 		}
 		

@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNMutex.h"
 #include "RNFile.h"
 #include "RNArray.h"
 #include "RNShaderLookup.h"
@@ -113,6 +114,8 @@ namespace RN
 		GLuint depthmap;
 		GLuint depthmapinfo;
 		
+		std::atomic<bool> __status;
+		
 		void ReadLocations();
 	};
 	
@@ -189,6 +192,9 @@ namespace RN
 		
 		std::string PreProcessedShaderSource(const std::string& source);
 		
+		void CompileProgram(const ShaderLookup& lookup);
+		ShaderProgram *AccessProgram(const ShaderLookup& lookup, bool waitForCompletion);
+		
 		void IncludeShader(const std::string& name, IncludeMode mode, File *parent, PreProcessedFile& output);
 		void PreProcessFile(File *file, PreProcessedFile& output);
 		
@@ -199,9 +205,11 @@ namespace RN
 		DebugMarker ResolveFileForLine(ShaderType type, uint32 line);
 		
 		std::vector<ShaderDefine> _defines;
-		std::vector<ShaderDefine> _temporaryDefines;
 		
 		uint32 _supportedPrograms;
+		
+		std::mutex _programLock;
+		std::condition_variable _waitCondition;
 		
 		std::unordered_map<ShaderLookup, ShaderProgram *> _programs;
 		std::map<ShaderType, ShaderData> _shaderData;
