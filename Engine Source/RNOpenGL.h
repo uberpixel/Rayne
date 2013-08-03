@@ -53,16 +53,18 @@ namespace RN
 		RNAPI bool SupportsFeature(Feature feature);
 		RNAPI bool SupportsExtensions(const std::string& extension);
 		
-		// GL_ARB_get_program_binary
+#ifdef GL_ARB_get_program_binary
 		extern PFNGLGETPROGRAMBINARYPROC GetProgramBinary;
 		extern PFNGLPROGRAMBINARYPROC ProgramBinary;
 		extern PFNGLPROGRAMPARAMETERIPROC ProgramParameteri;
+#endif
 		
-		// GL_ARB_vertex_array_object
+#ifdef GL_ARB_vertex_array_object
 		extern PFNGLBINDVERTEXARRAYPROC BindVertexArray;
 		extern PFNGLDELETEVERTEXARRAYSPROC DeleteVertexArrays;
 		extern PFNGLGENVERTEXARRAYSPROC GenVertexArrays;
 		extern PFNGLISVERTEXARRAYPROC IsVertexArray;
+#endif
 	}
 }
 

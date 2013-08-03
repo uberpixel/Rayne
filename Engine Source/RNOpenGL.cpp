@@ -14,14 +14,18 @@ namespace RN
 	namespace gl
 	{
 		// Extensions
+#ifdef GL_ARB_get_program_binary
 		PFNGLGETPROGRAMBINARYPROC GetProgramBinary = nullptr;
 		PFNGLPROGRAMBINARYPROC ProgramBinary = nullptr;
 		PFNGLPROGRAMPARAMETERIPROC ProgramParameteri = nullptr;
+#endif
 		
+#ifdef GL_ARB_vertex_array_object
 		PFNGLBINDVERTEXARRAYPROC BindVertexArray = nullptr;
 		PFNGLDELETEVERTEXARRAYSPROC DeleteVertexArrays = nullptr;
 		PFNGLGENVERTEXARRAYSPROC GenVertexArrays = nullptr;
 		PFNGLISVERTEXARRAYPROC IsVertexArray = nullptr;
+#endif
 		
 		//
 		std::set<Feature> __features;
@@ -218,17 +222,21 @@ namespace RN
 			
 			if(SupportsFeature(Feature::VertexArrays))
 			{
+#ifdef GL_ARB_vertex_array_object
 				BindOpenGLFunction(BindVertexArray, "glBindVertexArray");
 				BindOpenGLFunction(DeleteVertexArrays, "glDeleteVertexArrays");
 				BindOpenGLFunction(GenVertexArrays, "glGenVertexArrays");
 				BindOpenGLFunction(IsVertexArray, "glIsVertexArray");
+#endif
 			}
 			
 			if(SupportsFeature(Feature::ShaderBinary))
 			{
+#ifdef GL_ARB_get_program_binary
 				BindOpenGLFunction(GetProgramBinary, "glGetProgramBinary");
 				BindOpenGLFunction(ProgramBinary, "glProgramBinary");
 				BindOpenGLFunction(ProgramParameteri, "glProgramParameteri");
+#endif
 			}
 			
 			return context;
