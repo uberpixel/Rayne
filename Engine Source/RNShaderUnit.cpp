@@ -200,16 +200,24 @@ namespace RN
 				
 #ifdef GL_TESS_CONTROL_SHADER
 			case ShaderType::TessellationControlShader:
-				return GL_TESS_CONTROL_SHADER;
+				if(gl::SupportsFeature(gl::Feature::TessellationShaders))
+				   return GL_TESS_CONTROL_SHADER;
+				
+				break;
 #endif
 				
 #ifdef GL_TESS_EVALUATION_SHADER
 			case ShaderType::TessellationEvaluationShader:
-				return GL_TESS_EVALUATION_SHADER;
+			   if(gl::SupportsFeature(gl::Feature::TessellationShaders))
+				  return GL_TESS_CONTROL_SHADER;
+				  
+				break;
 #endif
 				
 			default:
-				throw Exception(Exception::Type::ShaderUnsupportedException, "");
+				   break;
 		}
+				   
+		throw Exception(Exception::Type::ShaderUnsupportedException, "");
 	}
 }
