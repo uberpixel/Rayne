@@ -921,6 +921,7 @@
 				E98D1E541673A6E200889F3B /* Sources */,
 				E98D1E551673A6E200889F3B /* Frameworks */,
 				E98D1E561673A6E200889F3B /* Headers */,
+				E9B4DA2917AD929700C54A10 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -985,6 +986,22 @@
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E9B4DA2917AD929700C54A10 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "BUILD_DIR=\"$PROJECT_DIR/../../Build\"\nINCLUDE_DIR=\"$BUILT_PRODUCTS_DIR/usr/local/include\"\n\nmkdir -p \"$BUILD_DIR\"\nmkdir -p \"$BUILD_DIR/include\"\n\ncp \"$BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\" \"$BUILD_DIR/$EXECUTABLE_NAME\"\nrsync -avz \"$INCLUDE_DIR\" \"$BUILD_DIR\"";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		E98D1E541673A6E200889F3B /* Sources */ = {
