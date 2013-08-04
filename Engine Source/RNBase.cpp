@@ -44,7 +44,7 @@ namespace RN
 		
 		const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.CallStack();
 		
-		fprintf(stderr, "Caught exception %i\nReason: %s\n", static_cast<uint32>(e.ExceptionType()), e.Reason().c_str());
+		fprintf(stderr, "Caught exception %i, reason: %s\n", static_cast<uint32>(e.ExceptionType()), e.Reason().c_str());
 		fprintf(stderr, "Chrashing Thread: %s\nBacktrace:\n", e.ExceptionThread()->Name().c_str());
 		
 		for(auto i=callstack.begin(); i!=callstack.end(); i++)
