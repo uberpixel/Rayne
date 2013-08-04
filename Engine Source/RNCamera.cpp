@@ -773,7 +773,7 @@ namespace RN
 	
 	Rect Camera::RenderingFrame()
 	{
-		if(_renderingFrame.x + _renderingFrame.y + _renderingFrame.width + _renderingFrame.y <= k::EpsilonFloat)
+		if(_renderingFrame.x + _renderingFrame.y + _renderingFrame.width + _renderingFrame.height <= k::EpsilonFloat)
 			return Frame();
 		
 		return _renderingFrame;
