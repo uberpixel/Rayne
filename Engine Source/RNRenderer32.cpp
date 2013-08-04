@@ -582,10 +582,9 @@ namespace RN
 		bool changedMaterial;
 		
 		SetDepthWriteEnabled(true);
-		SetScissorEnabled(false);
 		
 		camera->Bind();
-		camera->PrepareForRendering();
+		camera->PrepareForRendering(this);
 		
 		if(_currentMaterial)
 			SetDepthWriteEnabled(_currentMaterial->depthwrite);

@@ -190,7 +190,7 @@ namespace RN
 		
 		RNAPI void Bind();
 		RNAPI void Unbind();
-		RNAPI void PrepareForRendering();
+		RNAPI void PrepareForRendering(Renderer *renderer);
 		
 		RNAPI void SetFrame(const Rect& frame);
 		RNAPI void SetRenderingFrame(const Rect& offset);

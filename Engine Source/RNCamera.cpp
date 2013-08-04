@@ -421,9 +421,17 @@ namespace RN
 		_storage->Unbind();
 	}
 
-	void Camera::PrepareForRendering()
+	void Camera::PrepareForRendering(Renderer *renderer)
 	{
 		_storage->UpdateBuffer();
+		
+		Rect rect = std::move(RenderingFrame());
+		
+		float x = ceilf(rect.x * _scaleFactor);
+		float y = ceilf(rect.y * _scaleFactor);
+		
+		float width  = ceilf(rect.width * _scaleFactor);
+		float height = ceilf(rect.height * _scaleFactor);
 
 		if(!(_flags & FlagNoClear))
 		{
@@ -433,14 +441,14 @@ namespace RN
 			context->SetStencilClear(0);
 			context->SetClearColor(_clearColor);
 			
+			renderer->SetScissorEnabled(true);
+			glScissor(x, y, width, height);
+			
 			glClear(_clearMask);
 		}
 		
-		Rect rect = std::move(RenderingFrame());
-		
 		glColorMask((_colorMask & ColorFlagRed), (_colorMask & ColorFlagGreen), (_colorMask & ColorFlagBlue), (_colorMask & ColorFlagAlpha));
-		glViewport(ceilf(rect.x * _scaleFactor), ceilf(rect.y * _scaleFactor),
-				   ceilf(rect.width * _scaleFactor), ceilf(rect.height * _scaleFactor));
+		glViewport(x, y, width, height);
 	}
 
 	// Setter
