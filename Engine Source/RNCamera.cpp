@@ -402,7 +402,7 @@ namespace RN
 		renderGroup = RenderGroup0;
 
 		if(_flags & FlagUpdateStorageFrame)
-			_storage->SetFrame(_frame);
+			_storage->SetSize(_frame.Size());
 		
 		Update(0.0f);
 		UpdateProjection();
@@ -437,7 +437,7 @@ namespace RN
 		}
 		
 		glColorMask((_colorMask & ColorFlagRed), (_colorMask & ColorFlagGreen), (_colorMask & ColorFlagBlue), (_colorMask & ColorFlagAlpha));
-		glViewport(0, 0, ceil(_frame.width * _scaleFactor), ceil(_frame.height * _scaleFactor));
+		glViewport(_renderingOffset.x * _scaleFactor, _renderingOffset.y * _scaleFactor, ceil(_frame.width * _scaleFactor), ceil(_frame.height * _scaleFactor));
 	}
 
 	// Setter
@@ -448,7 +448,7 @@ namespace RN
 			_frame = frame;
 
 			if(_flags & FlagUpdateStorageFrame)
-				_storage->SetFrame(frame);
+				_storage->SetSize(frame.Size());
 
 			UpdateProjection();
 		}
@@ -477,7 +477,7 @@ namespace RN
 		_storage =storage->Retain();
 
 		if(_flags & FlagUpdateStorageFrame)
-			_storage->SetFrame(_frame);
+			_storage->SetSize(_frame.Size());
 	}
 	
 	void Camera::SetClearMask(ClearFlags mask)
@@ -548,6 +548,11 @@ namespace RN
 		
 		_blitShader->Release();
 		_blitShader = shader->Retain();
+	}
+	
+	void Camera::SetRenderingOffset(const Vector2& offset)
+	{
+		_renderingOffset = offset;
 	}
 	
 	// Post Processing

@@ -207,6 +207,7 @@ namespace RN
 		RNAPI void SetPriority(int32 priority);
 		RNAPI void SetUseBlending(bool useBlending);
 		RNAPI void SetDrawFramebufferShader(Shader *shader);
+		RNAPI void SetRenderingOffset(const Vector2& offset);
 		
 		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		RNAPI void ActivateTiledLightLists(Texture *depthTiles);
@@ -299,6 +300,7 @@ namespace RN
 		GLuint _clearMask;
 		float _scaleFactor;
 		int32 _priority;
+		Vector2 _renderingOffset;
 		
 		Vector3 _frustumCenter;
 		float _frustumRadius;
