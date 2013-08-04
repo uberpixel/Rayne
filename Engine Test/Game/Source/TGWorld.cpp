@@ -8,11 +8,11 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureLights        1
-#define TGWorldFeatureNormalMapping 1
+#define TGWorldFeatureLights        0
+#define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureFreeCamera    1
-#define TGWorldFeatureZPrePass		1
-#define TGWorldFeatureBloom			1
+#define TGWorldFeatureZPrePass		0
+#define TGWorldFeatureBloom			0
 #define TGWorldFeatureSSAO          0
 
 #define TGForestFeatureTrees 500

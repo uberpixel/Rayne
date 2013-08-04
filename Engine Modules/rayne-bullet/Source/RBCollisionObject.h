@@ -35,6 +35,8 @@ namespace RN
 			void SetMaterial(PhysicsMaterial *material);
 			PhysicsMaterial *Material() const { return _material; }
 			
+			void SetOffset(Vector3 offset);
+			
 			template<typename T=btCollisionObject>
 			T *bulletCollisionObject()
 			{
@@ -57,6 +59,8 @@ namespace RN
 			
 			PhysicsMaterial *_material;
 			btCollisionObject *_object;
+			
+			Vector3 _offset;
 			
 		private:			
 			std::once_flag _objetFlag;

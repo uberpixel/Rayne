@@ -25,7 +25,7 @@ namespace RN
 		
 		KinematicController::KinematicController(Shape *shape, float stepHeight)
 		{
-			RN_ASSERT0(shape);
+			RN_ASSERT(shape, "There already is a shape!");
 			
 			_shape = shape->Retain();
 			_controller = 0;
@@ -45,7 +45,7 @@ namespace RN
 			bulletCollisionObject();
 			
 			const Vector3& wPosition = WorldPosition();
-			_controller->warp(btVector3(wPosition.x, wPosition.y, wPosition.z));
+			_controller->warp(btVector3(wPosition.x-_offset.x, wPosition.y-_offset.y, wPosition.z-_offset.z));
 		}
 		
 		void KinematicController::SetWorldPosition(const Vector3& position)
@@ -53,7 +53,7 @@ namespace RN
 			Entity::SetWorldPosition(position);
 			bulletCollisionObject();
 			
-			_controller->warp(btVector3(position.x, position.y, position.z));
+			_controller->warp(btVector3(position.x-_offset.x, position.y-_offset.y, position.z-_offset.z));
 		}
 		
 		
@@ -96,7 +96,7 @@ namespace RN
 			
 			btVector3& position = transform.getOrigin();
 			
-			Entity::SetWorldPosition(Vector3(position.x(), position.y(), position.z()));
+			Entity::SetWorldPosition(Vector3(position.x(), position.y(), position.z())+_offset);
 			Entity::Update(delta);
 		}
 		
@@ -109,7 +109,7 @@ namespace RN
 			ghost->setCollisionFlags(ghost->getCollisionFlags() | btCollisionObject::CF_CHARACTER_OBJECT);
 			
 			_controller = new btKinematicCharacterController(ghost, static_cast<btConvexShape *>(_shape->bulletShape()), _stepHeight);
-			_controller->warp(btVector3(position.x, position.y, position.z));
+			_controller->warp(btVector3(position.x-_offset.x, position.y-_offset.y, position.z-_offset.z));
 			_controller->setJumpSpeed(9.81);
 			_controller->setGravity(9.81);
 			

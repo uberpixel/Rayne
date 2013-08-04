@@ -51,12 +51,17 @@ namespace RN
 			if(_material)
 			{
 				_material->AddListener(this, [this](PhysicsMaterial *material) {
-					RN_ASSERT0(material == _material);
+					RN_ASSERT(material == _material, "The material is already set!");
 					ApplyPhysicsMaterial(_material);
 				});
 				
 				ApplyPhysicsMaterial(_material);
 			}
+		}
+		
+		void CollisionObject::SetOffset(Vector3 offset)
+		{
+			_offset = offset;
 		}
 		
 		void CollisionObject::ApplyPhysicsMaterial(PhysicsMaterial *material)

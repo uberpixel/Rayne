@@ -25,7 +25,7 @@ namespace RN
 		
 		RigidBody::RigidBody(Shape *shape, float mass)
 		{
-			RN_ASSERT0(shape);
+			RN_ASSERT(shape, "There already is a shape!");
 			
 			_shape   = shape->Retain();
 			_mass    = mass;
@@ -34,7 +34,7 @@ namespace RN
 		
 		RigidBody::RigidBody(Shape *shape, float mass, const Vector3& inertia)
 		{
-			RN_ASSERT0(shape);
+			RN_ASSERT(shape, "There already is a shape!");
 			
 			_shape   = shape->Retain();
 			_mass    = mass;
@@ -82,7 +82,7 @@ namespace RN
 		
 		void RigidBody::SetCollisionShape(Shape *shape)
 		{
-			RN_ASSERT0(shape);
+			RN_ASSERT(shape, "There already is a shape!");
 			
 			_shape->Release();
 			_shape = shape->Retain();
@@ -207,7 +207,7 @@ namespace RN
 		void RigidBody::getWorldTransform(btTransform& worldTrans) const
 		{
 			const Quaternion& rotation = WorldRotation();
-			const Vector3& position = WorldPosition();
+			const Vector3& position = WorldPosition()-_offset;
 			
 			worldTrans.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
 			worldTrans.setOrigin(btVector3(position.x, position.y, position.z));
@@ -219,7 +219,7 @@ namespace RN
 			btVector3 position = worldTrans.getOrigin();
 			
 			Entity::SetWorldRotation(Quaternion(rotation.x(), rotation.y(), rotation.z(), rotation.w()));
-			Entity::SetWorldPosition(Vector3(position.x(), position.y(), position.z()));
+			Entity::SetWorldPosition(Vector3(position.x(), position.y(), position.z())+_offset);
 		}
 	}
 }

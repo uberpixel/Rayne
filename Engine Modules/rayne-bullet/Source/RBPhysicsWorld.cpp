@@ -26,7 +26,8 @@ namespace RN
 		
 		PhysicsWorld::PhysicsWorld(const Vector3& gravity)
 		{
-			_collisionObjectClass = Catalogue::SharedInstance()->ClassWithName("CollisionObject");
+			_collisionObjectClass = Catalogue::SharedInstance()->ClassWithName("RN::bullet::CollisionObject");
+			RN_ASSERT(_collisionObjectClass, "");
 			
 			BuildDynamicsWorld();
 			SetGravity(gravity);
