@@ -19,15 +19,19 @@ uniform isamplerBuffer lightSpotList;
 uniform isamplerBuffer lightSpotListOffset;
 uniform samplerBuffer lightSpotListData;
 
-#if defined(RN_POINT_LIGHTS)
-	uniform vec4 lightPointPosition[RN_POINT_LIGHTS];
-	uniform vec4 lightPointColor[RN_POINT_LIGHTS];
+#if defined(RN_POINT_LIGHTS_FASTPATH)
+	#if (RN_POINT_LIGHTS_FASTPATH > 0)
+		uniform vec4 lightPointPosition[RN_POINT_LIGHTS_FASTPATH];
+		uniform vec4 lightPointColor[RN_POINT_LIGHTS_FASTPATH];
+	#endif
 #endif
 
-#if defined(RN_SPOT_LIGHTS)
-	uniform vec4 lightSpotPosition[RN_SPOT_LIGHTS];
-	uniform vec4 lightSpotDirection[RN_SPOT_LIGHTS];
-	uniform vec4 lightSpotColor[RN_SPOT_LIGHTS];
+#if defined(RN_SPOT_LIGHTS_FASTPATH)
+	#if (RN_SPOT_LIGHTS_FASTPATH > 0)
+		uniform vec4 lightSpotPosition[RN_SPOT_LIGHTS_FASTPATH];
+		uniform vec4 lightSpotDirection[RN_SPOT_LIGHTS_FASTPATH];
+		uniform vec4 lightSpotColor[RN_SPOT_LIGHTS_FASTPATH];
+	#endif
 #endif
 
 #if defined(RN_DIRECTIONAL_LIGHTS)
@@ -55,10 +59,10 @@ void rn_PointLight(in vec3 viewdir, in vec4 lightpos, in vec3 lightcolor, in vec
 	
 	float lightfac = min(max(dot(normal, posdiff), 0.0), 1.0);
 	
-	#if defined(RN_SPECULARITY)
-		vec3 halfvec = normalize(viewdir+posdiff);
-		specularity += pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*lightcolor*attenuation*lightfac;
-	#endif
+#if defined(RN_SPECULARITY)
+	vec3 halfvec = normalize(viewdir+posdiff);
+	specularity += pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*lightcolor*attenuation*lightfac;
+#endif
 	
 	lighting += lightfac*lightcolor*attenuation*attenuation;
 }
@@ -82,10 +86,10 @@ void rn_SpotLight(in vec3 viewdir, in vec4 lightpos, in vec3 lightcolor, in vec4
 		
 		float lightfac = min(max(dot(normal, posdiff), 0.0), 1.0);
 		
-		#if defined(RN_SPECULARITY)
-			vec3 halfvec = normalize(viewdir+posdiff);
-			specularity += pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*lightcolor*attenuation*lightfac;
-		#endif
+#if defined(RN_SPECULARITY)
+		vec3 halfvec = normalize(viewdir+posdiff);
+		specularity += pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*lightcolor*attenuation*lightfac;
+#endif
 		
 		lighting += lightfac*lightcolor*attenuation*attenuation;
 	}
@@ -101,17 +105,17 @@ void rn_DirectionalLight(in vec3 viewdir, in vec3 lightdir, in vec4 lightcolor, 
 	vec3 spec = pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*lightcolor.rgb*lightfac;
 #endif
 	
-	#if defined(RN_DIRECTIONAL_SHADOWS)
-		if(lightcolor.a > 0.5)
-		{
-			float shadow = rn_ShadowDir1();
-			#if defined(RN_SPECULARITY)
-				specularity += spec*shadow;
-			#endif
-			lighting += light*shadow;
-		}
-		else
-	#endif
+#if defined(RN_DIRECTIONAL_SHADOWS)
+	if(lightcolor.a > 0.5)
+	{
+		float shadow = rn_ShadowDir1();
+		#if defined(RN_SPECULARITY)
+			specularity += spec*shadow;
+		#endif
+		lighting += light*shadow;
+	}
+	else
+#endif
 	{
 		#if defined(RN_SPECULARITY)
 			specularity += spec;
@@ -148,49 +152,53 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 	vec3 specsum = vec3(0.0);
 	vec3 viewdir = normalize(viewPosition-position);
 	
-	#if (!defined(RN_POINT_LIGHTS_FASTPATH) || !defined(RN_SPOT_LIGHTS_FASTPATH))
-		int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
-	#endif
-		
-	#if !defined(RN_POINT_LIGHTS_FASTPATH)
+#if (!defined(RN_POINT_LIGHTS_FASTPATH) || !defined(RN_SPOT_LIGHTS_FASTPATH))
+	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
+#endif
+	
+#if !defined(RN_POINT_LIGHTS_FASTPATH)
+	{
 		ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
 		for(int i=0; i<listoffset.y; i++)
 		{
 			int lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;
 			rn_PointLightTiled(lightindex, viewdir, normal, position, specularity.a, light, specsum);
 		}
-	#elif defined(RN_POINT_LIGHTS)
-		for(int i=0; i<RN_POINT_LIGHTS; i++)
-		{
-			rn_PointLight(viewdir, lightPointPosition[i], lightPointColor[i].rgb, normal, position, specularity.a, light, specsum);
-		}
-	#endif
-		
-	#if !defined(RN_SPOT_LIGHTS_FASTPATH)
-		listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
+	}
+#elif (RN_POINT_LIGHTS_FASTPATH > 0)
+	for(int i=0; i<RN_POINT_LIGHTS_FASTPATH; i++)
+	{
+		rn_PointLight(viewdir, lightPointPosition[i], lightPointColor[i].rgb, normal, position, specularity.a, light, specsum);
+	}
+#endif
+	
+#if !defined(RN_SPOT_LIGHTS_FASTPATH)
+	{
+		ivec2 listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
 		for(int i=0; i<listoffset.y; i++)
 		{
 			int lightindex = (texelFetch(lightSpotList, listoffset.x + i).r) * 3;
 			rn_SpotLightTiled(lightindex, viewdir, normal, position, specularity.a, light, specsum);
 		}
-	#elif defined(RN_SPOT_LIGHTS)
-		for(int i=0; i<RN_SPOT_LIGHTS; i++)
-		{
-			rn_SpotLight(viewdir, lightSpotPosition[i], lightSpotColor[i].rgb, lightSpotDirection[i], normal, position, specularity.a, light, specsum);
-		}
-	#endif
-		
-	#if defined(RN_DIRECTIONAL_LIGHTS)
-		for(int i=0; i<RN_DIRECTIONAL_LIGHTS; i++)
-		{
-			rn_DirectionalLight(viewdir, lightDirectionalDirection[i], lightDirectionalColor[i], normal, specularity.a, light, specsum);
-		}
-	#endif
+	}
+#elif (RN_SPOT_LIGHTS_FASTPATH > 0)
+	for(int i=0; i<RN_SPOT_LIGHTS_FASTPATH; i++)
+	{
+		rn_SpotLight(viewdir, lightSpotPosition[i], lightSpotColor[i].rgb, lightSpotDirection[i], normal, position, specularity.a, light, specsum);
+	}
+#endif
 	
-	#if defined(RN_SPECULARITY)
-		color.rgb = color.rgb*light+specsum*specularity.rgb*(specularity.a+1.0)/(2.0*3.1514);
-	#else
-		color.rgb = color.rgb*light;
-	#endif
+#if defined(RN_DIRECTIONAL_LIGHTS)
+	for(int i=0; i<RN_DIRECTIONAL_LIGHTS; i++)
+	{
+		rn_DirectionalLight(viewdir, lightDirectionalDirection[i], lightDirectionalColor[i], normal, specularity.a, light, specsum);
+	}
+#endif
+
+#if defined(RN_SPECULARITY)
+	color.rgb = color.rgb*light+specsum*specularity.rgb*(specularity.a+1.0)/(2.0*3.1514);
+#else
+	color.rgb = color.rgb*light;
+#endif
 }
 #endif

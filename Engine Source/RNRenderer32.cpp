@@ -642,17 +642,14 @@ namespace RN
 				
 				// Set lighting defines
 				std::vector<ShaderDefine> defines;
-				if(lightPointCount > 0)
-					defines.emplace_back(ShaderDefine("RN_POINT_LIGHTS", MIN(lightPointCount, _maxLightFastPath)));
-				if(lightSpotCount > 0)
-					defines.emplace_back(ShaderDefine("RN_SPOT_LIGHTS", MIN(lightSpotCount, _maxLightFastPath)));
 				if(lightDirectionalCount > 0)
 					defines.emplace_back(ShaderDefine("RN_DIRECTIONAL_LIGHTS", lightDirectionalCount));
 				
 				if(lightPointCount < _maxLightFastPath)
-					defines.emplace_back(ShaderDefine("RN_POINT_LIGHTS_FASTPATH", ""));
+					defines.emplace_back(ShaderDefine("RN_POINT_LIGHTS_FASTPATH", lightPointCount));
+				
 				if(lightSpotCount < _maxLightFastPath)
-					defines.emplace_back(ShaderDefine("RN_SPOT_LIGHTS_FASTPATH", ""));
+					defines.emplace_back(ShaderDefine("RN_SPOT_LIGHTS_FASTPATH", lightSpotCount));
 				
 				if(surfaceMaterial)
 				{
