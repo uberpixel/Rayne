@@ -436,8 +436,11 @@ namespace RN
 			glClear(_clearMask);
 		}
 		
+		Rect rect = std::move(RenderingFrame());
+		
 		glColorMask((_colorMask & ColorFlagRed), (_colorMask & ColorFlagGreen), (_colorMask & ColorFlagBlue), (_colorMask & ColorFlagAlpha));
-		glViewport(_renderingOffset.x * _scaleFactor, _renderingOffset.y * _scaleFactor, ceil(_frame.width * _scaleFactor), ceil(_frame.height * _scaleFactor));
+		glViewport(ceilf(rect.x * _scaleFactor), ceilf(rect.y * _scaleFactor),
+				   ceilf(rect.width * _scaleFactor), ceilf(rect.height * _scaleFactor));
 	}
 
 	// Setter
@@ -454,6 +457,11 @@ namespace RN
 		}
 	}
 
+	void Camera::SetRenderingFrame(const Rect& frame)
+	{
+		_renderingFrame = frame;
+	}
+	
 	void Camera::SetClearColor(const Color& clearColor)
 	{
 		_clearColor = clearColor;
@@ -548,11 +556,6 @@ namespace RN
 		
 		_blitShader->Release();
 		_blitShader = shader->Retain();
-	}
-	
-	void Camera::SetRenderingOffset(const Vector2& offset)
-	{
-		_renderingOffset = offset;
 	}
 	
 	// Post Processing
@@ -766,6 +769,14 @@ namespace RN
 		}
 		
 		return _frame;
+	}
+	
+	Rect Camera::RenderingFrame()
+	{
+		if(_renderingFrame.x + _renderingFrame.y + _renderingFrame.width + _renderingFrame.y <= k::EpsilonFloat)
+			return Frame();
+		
+		return _renderingFrame;
 	}
 	
 	float *Camera::DepthArray()

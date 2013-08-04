@@ -193,6 +193,7 @@ namespace RN
 		RNAPI void PrepareForRendering();
 		
 		RNAPI void SetFrame(const Rect& frame);
+		RNAPI void SetRenderingFrame(const Rect& offset);
 		RNAPI void SetClearColor(const Color& color);
 		RNAPI void SetMaterial(Material *material);
 		RNAPI void SetRenderStorage(RenderStorage *storage);
@@ -207,7 +208,6 @@ namespace RN
 		RNAPI void SetPriority(int32 priority);
 		RNAPI void SetUseBlending(bool useBlending);
 		RNAPI void SetDrawFramebufferShader(Shader *shader);
-		RNAPI void SetRenderingOffset(const Vector2& offset);
 		
 		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		RNAPI void ActivateTiledLightLists(Texture *depthTiles);
@@ -235,13 +235,13 @@ namespace RN
 		RenderStorage *Storage() const { return _storage; }
 		const Color& ClearColor() const { return _clearColor; }
 		const Rect& Frame();
+		Rect RenderingFrame();
 		Material *Material() const { return _material; }
 		Flags CameraFlags() const { return _flags; }
 		Camera *LODCamera() const { return _lodCamera; }
 		int32 Priority() const { return _priority; }
 		bool UseBlending() const { return _blend; }
 		Shader *DrawFramebufferShader() const { return _blitShader; }
-		const Vector2& RenderingOffset() const { return _renderingOffset; }
 		
 		Vector2 LightTiles() const { return _lightTiles; }
 		void SetLightTiles(const Vector2 &size) { _lightTiles = size; }
@@ -295,13 +295,13 @@ namespace RN
 		
 	private:
 		Rect _frame;
+		Rect _renderingFrame;
 		Color _clearColor;
 		Flags _flags;
 		ColorFlags _colorMask;
 		GLuint _clearMask;
 		float _scaleFactor;
 		int32 _priority;
-		Vector2 _renderingOffset;
 		
 		Vector3 _frustumCenter;
 		float _frustumRadius;

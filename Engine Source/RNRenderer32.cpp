@@ -490,10 +490,10 @@ namespace RN
 	void Renderer32::AdjustDrawBuffer(Camera *camera, Camera *target)
 	{
 		const Vector2& size = camera->Storage()->Size();
-		const Vector2& offset = camera->RenderingOffset();
+		const Rect& offset = camera->RenderingFrame();
 		const Rect& frame = camera->Frame();
 		
-		Vector4 atlas = Vector4(offset.x / size.x, offset.y / size.y, (offset.x + frame.width) / size.x, (offset.y + frame.height) / size.y);
+		Vector4 atlas = Vector4(offset.x / size.x, offset.y / size.y, (offset.x + offset.width) / size.x, (offset.y + offset.height) / size.y);
 		
 		_copyVertices[0] = Vector4(-1.0f, -1.0f, atlas.x, atlas.y);
 		_copyVertices[1] = Vector4(1.0f, -1.0f,  atlas.z, atlas.y);
@@ -505,13 +505,23 @@ namespace RN
 		
 		if(!target)
 		{
-			glViewport(ceilf((frame.x * _scaleFactor) * _defaultWidthFactor), ceilf((frame.y * _scaleFactor) * _defaultHeightFactor),
-					   ceilf((frame.width * _scaleFactor) * _defaultWidthFactor), ceilf((frame.height * _scaleFactor) * _defaultHeightFactor));
+			float width  = ceilf((frame.width * _scaleFactor) * _defaultWidthFactor);
+			float height = ceilf((frame.height * _scaleFactor) * _defaultHeightFactor);
+			
+			float x = ceilf((frame.x * _scaleFactor) * _defaultWidthFactor);
+			float y = ceilf((frame.y * _scaleFactor) * _defaultHeightFactor);
+			
+			glViewport(x, y, width, height);
 		}
 		else
 		{
-			glViewport(ceilf(frame.x * _scaleFactor), ceilf(frame.y * _scaleFactor),
-					   ceilf(frame.width * _scaleFactor), ceilf(frame.height * _scaleFactor));
+			float width  = ceilf(frame.width * _scaleFactor);
+			float height = ceilf(frame.height * _scaleFactor);
+			
+			float x = ceilf(frame.x * _scaleFactor);
+			float y = ceilf(frame.y * _scaleFactor);
+			
+			glViewport(x, y, width, height);
 		}
 	}
 	
