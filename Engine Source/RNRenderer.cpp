@@ -659,10 +659,16 @@ namespace RN
         });
 		
 		// Render loop
-		DrawCamera(camera, 0, skyCubeMeshes);
+		if(!(camera->CameraFlags() & Camera::FlagNoRender))
+			DrawCamera(camera, 0, skyCubeMeshes);
+		
 		Camera *lastPipeline = camera;
 		
+		if(camera->CameraFlags() & Camera::FlagForceFlush)
+			 _flushCameras.push_back(std::pair<Camera *, Shader *>(camera, camera->DrawFramebufferShader()));
+		
 		auto pipelines = camera->PostProcessingPipelines();
+		bool flushesStage = false;
 		
 		for(PostProcessingPipeline *pipeline : pipelines)
 		{
@@ -693,13 +699,20 @@ namespace RN
 						break;
 				}
 				
+				flushesStage = false;
 				previous = stage;
+				
+				if(stage->CameraFlags() & Camera::FlagForceFlush)
+				{
+					_flushCameras.push_back(std::pair<Camera *, Shader *>(stage, camera->DrawFramebufferShader()));
+					flushesStage = true;
+				}
 			}
 			
 			lastPipeline = previous;
 		}
 		
-		 if(!(previous->CameraFlags() & Camera::FlagHidden))
+		 if(!flushesStage && !(previous->CameraFlags() & Camera::FlagHidden))
 			 _flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->DrawFramebufferShader()));
 		
 		// Cleanup of the frame

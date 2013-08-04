@@ -136,6 +136,8 @@ namespace RN
 			FlagOrthogonal = (1 << 8),
 			FlagHidden = (1 << 9),
 			FlagNoSorting = (1 << 10),
+			FlagNoRender = (1 << 11),
+			FlagForceFlush = (1 << 12),
 			
 			
 			FlagDefaults = (FlagFullscreen | FlagUpdateAspect | FlagUpdateStorageFrame),
