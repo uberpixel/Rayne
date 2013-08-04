@@ -371,7 +371,6 @@
 		E97DE02E16F251250009128F /* libbullet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E92E06FE16F24B4500304133 /* libbullet.a */; };
 		E97DE03316F2519E0009128F /* RBMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E97DE03116F2519E0009128F /* RBMain.cpp */; };
 		E97DE03416F2519E0009128F /* RBMain.h in Headers */ = {isa = PBXBuildFile; fileRef = E97DE03216F2519E0009128F /* RBMain.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E97DE03616F252B90009128F /* libRayne.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E97DE03516F252B90009128F /* libRayne.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -752,7 +751,6 @@
 		E97DE02716F24FEF0009128F /* librayne-bullet.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "librayne-bullet.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E97DE03116F2519E0009128F /* RBMain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RBMain.cpp; sourceTree = "<group>"; };
 		E97DE03216F2519E0009128F /* RBMain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RBMain.h; sourceTree = "<group>"; };
-		E97DE03516F252B90009128F /* libRayne.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libRayne.dylib; path = ../../../Build/libRayne.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -768,7 +766,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				E97DE02E16F251250009128F /* libbullet.a in Frameworks */,
-				E97DE03616F252B90009128F /* libRayne.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -796,7 +793,6 @@
 		E92E070216F24B9C00304133 /* Vendor */ = {
 			isa = PBXGroup;
 			children = (
-				E97DE03516F252B90009128F /* libRayne.dylib */,
 				E92E070316F24B9C00304133 /* bullet */,
 			);
 			path = Vendor;
@@ -1924,18 +1920,19 @@
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/../../Build/include\"",
+					"\"$(HOME)/Library/Application Support/Rayne/include\"",
 					"\"$(SRCROOT)/Vendor/bullet/src\"",
 				);
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../Build\"",
+					"\"$(HOME)/Library/Application Support/Rayne\"",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-msse4.1",
 				);
+				OTHER_LDFLAGS = "-lRayne";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -1945,18 +1942,19 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
 				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/../../Build/include\"",
+					"\"$(HOME)/Library/Application Support/Rayne/include\"",
 					"\"$(SRCROOT)/Vendor/bullet/src\"",
 				);
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../Build\"",
+					"\"$(HOME)/Library/Application Support/Rayne\"",
 				);
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-msse4.1",
 				);
+				OTHER_LDFLAGS = "-lRayne";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
