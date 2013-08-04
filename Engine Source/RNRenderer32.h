@@ -38,6 +38,8 @@ namespace RN
 		RNAPI void DrawCameraStage(Camera *camera, Camera *stage) override;
 		RNAPI void DrawCamera(Camera *camera, Camera *source, uint32 skyCubeMeshes) override;
 		
+		RNAPI void AdjustDrawBuffer(Camera *camera, Camera *target);
+		
 		GLuint _copyVAO;
 		GLuint _copyVBO;
 		Vector4 _copyVertices[4];

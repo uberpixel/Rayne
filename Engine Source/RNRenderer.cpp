@@ -508,6 +508,7 @@ namespace RN
 		}
 	}
 	
+	// Camera gets drawn into stage
 	void Renderer::DrawCameraStage(Camera *camera, Camera *stage)
 	{
 		Material *material = stage->Material();

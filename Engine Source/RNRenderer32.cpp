@@ -42,7 +42,7 @@ namespace RN
 		glGenBuffers(1, &_copyVBO);
 		
 		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
-		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STREAM_DRAW);
 		
 		glBindVertexArray(0);
 		
@@ -487,6 +487,34 @@ namespace RN
 	// MARK: Camera rendering
 	// ---------------------
 	
+	void Renderer32::AdjustDrawBuffer(Camera *camera, Camera *target)
+	{
+		const Vector2& size = camera->Storage()->Size();
+		const Vector2& offset = camera->RenderingOffset();
+		const Rect& frame = camera->Frame();
+		
+		Vector4 atlas = Vector4(offset.x / size.x, offset.y / size.y, (offset.x + frame.width) / size.x, (offset.y + frame.height) / size.y);
+		
+		_copyVertices[0] = Vector4(-1.0f, -1.0f, atlas.x, atlas.y);
+		_copyVertices[1] = Vector4(1.0f, -1.0f,  atlas.z, atlas.y);
+		_copyVertices[2] = Vector4(-1.0f, 1.0f,  atlas.x, atlas.w);
+		_copyVertices[3] = Vector4(1.0f, 1.0f,   atlas.z, atlas.w);
+		
+		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STREAM_DRAW);
+		
+		if(!target)
+		{
+			glViewport(ceilf((frame.x * _scaleFactor) * _defaultWidthFactor), ceilf((frame.y * _scaleFactor) * _defaultHeightFactor),
+					   ceilf((frame.width * _scaleFactor) * _defaultWidthFactor), ceilf((frame.height * _scaleFactor) * _defaultHeightFactor));
+		}
+		else
+		{
+			glViewport(ceilf(frame.x * _scaleFactor), ceilf(frame.y * _scaleFactor),
+					   ceilf(frame.width * _scaleFactor), ceilf(frame.height * _scaleFactor));
+		}
+	}
+	
 	void Renderer32::FlushCamera(Camera *camera, Shader *drawShader)
 	{
 		Renderer::FlushCamera(camera, drawShader);
@@ -494,16 +522,14 @@ namespace RN
 		BindVAO(_copyVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
 		
+		AdjustDrawBuffer(camera, nullptr);
+		
 		glEnableVertexAttribArray(_currentProgram->attPosition);
 		glVertexAttribPointer(_currentProgram->attPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
 		
 		glEnableVertexAttribArray(_currentProgram->attTexcoord0);
 		glVertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
-		const Rect& frame = camera->Frame();
-		
-		glViewport((frame.x * _scaleFactor) * _defaultWidthFactor, (frame.y * _scaleFactor) * _defaultHeightFactor,
-				   (frame.width * _scaleFactor) * _defaultWidthFactor, (frame.height * _scaleFactor) * _defaultHeightFactor);
 		
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		
@@ -517,6 +543,8 @@ namespace RN
 		
 		BindVAO(_copyVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+		
+		AdjustDrawBuffer(stage, camera);
 		
 		glEnableVertexAttribArray(_currentProgram->attPosition);
 		glVertexAttribPointer(_currentProgram->attPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);

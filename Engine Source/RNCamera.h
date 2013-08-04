@@ -241,6 +241,7 @@ namespace RN
 		int32 Priority() const { return _priority; }
 		bool UseBlending() const { return _blend; }
 		Shader *DrawFramebufferShader() const { return _blitShader; }
+		const Vector2& RenderingOffset() const { return _renderingOffset; }
 		
 		Vector2 LightTiles() const { return _lightTiles; }
 		void SetLightTiles(const Vector2 &size) { _lightTiles = size; }
