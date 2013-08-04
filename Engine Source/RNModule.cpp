@@ -84,10 +84,19 @@ namespace RN
 		if(array)
 		{
 			array->Enumerate([&](Object *file, size_t index, bool *stop) {
-				String *string = file->Downcast<String>();
-				char   *path   = string->UTF8String();
 				
-				_modules.emplace_back(new Module(path));
+				try
+				{
+					String *string = file->Downcast<String>();
+					char   *path   = string->UTF8String();
+					
+					_modules.emplace_back(new Module(path));
+				}
+				catch(Exception e)
+				{
+					printf("Failed to load module. Reason: %s", e.Reason().c_str());
+				}
+				
 			});
 		}
 		

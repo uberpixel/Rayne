@@ -33,7 +33,7 @@ namespace RN
 		RNAPI RenderStorage(BufferFormat format, Texture *depthTexture=0, float scaleFactor=0.0f);
 		RNAPI virtual ~RenderStorage();
 		
-		RNAPI void SetFrame(const Rect& frame);
+		RNAPI void SetSize(const Vector2& size);
 		RNAPI void SetRenderTarget(Texture *target, uint32 index=0);
 		RNAPI void AddRenderTarget(Texture *target);
 		RNAPI void AddRenderTarget(TextureParameter::Format format);
@@ -52,6 +52,7 @@ namespace RN
 		uint32 RenderTargets() const { return (uint32)_renderTargets->Count(); }
 		Texture *RenderTarget(uint32 index=0) const { return _renderTargets->ObjectAtIndex<Texture>(index); }
 		Texture *DepthTarget() const { return _depthTexture; }
+		const Vector2& Size() const { return _size; }
 		
 		RNAPI static uint32 MaxRenderTargets();
 		
@@ -63,7 +64,7 @@ namespace RN
 		GLuint _depthbuffer;
 		GLuint _stencilbuffer;
 		
-		Rect _frame;
+		Vector2 _size;
 		BufferFormat _format;
 		
 		Array *_renderTargets;
@@ -71,7 +72,7 @@ namespace RN
 		Texture *_depthTexture;
 		uint32 _depthLayer;
 		
-		bool _frameChanged;
+		bool _sizeChanged;
 		bool _formatChanged;
 		bool _renderTargetsChanged;
 		float _scaleFactor;

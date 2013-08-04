@@ -16,7 +16,7 @@ namespace RN
 	RenderStorage::RenderStorage(BufferFormat format, Texture *depthTexture, float scaleFactor)
 	{
 		_formatChanged = true;
-		_frameChanged  = true;
+		_sizeChanged   = true;
 		_renderTargetsChanged = true;
 		
 		_boundRenderTargets = 0;
@@ -51,12 +51,12 @@ namespace RN
 	}
 	
 	
-	void RenderStorage::SetFrame(const Rect& frame)
+	void RenderStorage::SetSize(const Vector2& size)
 	{
-		if(_frame != frame)
+		if(_size != size)
 		{
-			_frameChanged = true;
-			_frame = frame;
+			_sizeChanged = true;
+			_size = size;
 		}
 	}
 	
@@ -359,7 +359,7 @@ namespace RN
 			}
 			
 			_formatChanged = false;
-			_frameChanged  = true;
+			_sizeChanged   = true;
 		}
 		
 		if(_renderTargetsChanged && (_format & BufferFormatColor))
@@ -387,10 +387,10 @@ namespace RN
 		}
 		
 		// Allocate storage for the buffers
-		if(_frameChanged)
+		if(_sizeChanged)
 		{
-			uint32 width  = (uint32)ceil(_frame.width  * _scaleFactor);
-			uint32 height = (uint32)ceil(_frame.height * _scaleFactor);
+			uint32 width  = (uint32)ceil(_size.x  * _scaleFactor);
+			uint32 height = (uint32)ceil(_size.y * _scaleFactor);
 			
 			for(size_t i=0; i<_renderTargets->Count(); i++)
 			{
@@ -416,7 +416,7 @@ namespace RN
 			}
 			
 			CheckFramebufferStatus();
-			_frameChanged = false;
+			_sizeChanged = false;
 		}
 	}
 	
