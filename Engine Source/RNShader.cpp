@@ -397,7 +397,19 @@ namespace RN
 		
 		try
 		{
-			std::string path = PathManager::PathForName(PathManager::Join(parent->Path(), name));
+			std::string path;
+			
+			switch(mode)
+			{
+				case IncludeMode::CurrentDir:
+					path = PathManager::PathForName(PathManager::Join(parent->Path(), name));
+					break;
+					
+				case IncludeMode::IncludeDir:
+					path = PathManager::PathForName(name);
+					break;
+			}
+			
 			includeFile = new File(path);
 			includeFile->Autorelease();
 		}
