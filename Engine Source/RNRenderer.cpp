@@ -23,6 +23,7 @@ namespace RN
 	{
 		_defaultFBO = 0;
 		_defaultWidth = _defaultHeight = 0;
+		_defaultWidthFactor = _defaultHeightFactor = 1.0f;
 		
 		_currentMaterial = 0;
 		_currentProgram	 = 0;
@@ -85,6 +86,12 @@ namespace RN
 	{
 		_defaultWidth  = width;
 		_defaultHeight = height;
+	}
+	
+	void Renderer::SetDefaultFactor(float width, float height)
+	{
+		_defaultWidthFactor = width;
+		_defaultHeightFactor = height;
 	}
 	
 	void Renderer::SetMode(Mode mode)

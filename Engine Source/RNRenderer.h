@@ -80,6 +80,7 @@ namespace RN
 		
 		RNAPI void SetDefaultFBO(GLuint fbo);
 		RNAPI void SetDefaultFrame(uint32 width, uint32 height);
+		RNAPI void SetDefaultFactor(float width, float height);
 		
 		RNAPI virtual void BeginFrame(float delta);
 		RNAPI virtual void FinishFrame();
@@ -150,6 +151,8 @@ namespace RN
 		GLuint _defaultFBO;
 		uint32 _defaultWidth;
 		uint32 _defaultHeight;
+		float _defaultWidthFactor;
+		float _defaultHeightFactor;
 		
 		uint32 _textureUnit;
 		uint32 _maxTextureUnits;

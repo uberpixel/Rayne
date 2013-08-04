@@ -502,7 +502,9 @@ namespace RN
 		
 		const Rect& frame = camera->Frame();
 		
-		glViewport(frame.x * _scaleFactor, frame.y * _scaleFactor, frame.width * _scaleFactor, frame.height * _scaleFactor);
+		glViewport((frame.x * _scaleFactor) * _defaultWidthFactor, (frame.y * _scaleFactor) * _defaultHeightFactor,
+				   (frame.width * _scaleFactor) * _defaultWidthFactor, (frame.height * _scaleFactor) * _defaultHeightFactor);
+		
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		
 		glDisableVertexAttribArray(_currentProgram->attPosition);
