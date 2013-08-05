@@ -586,12 +586,6 @@ namespace RN
 		camera->Bind();
 		camera->PrepareForRendering(this);
 		
-		if((camera->CameraFlags() & Camera::FlagNoRender))
-		{
-			camera->Unbind();
-			return;
-		}
-		
 		if(_currentMaterial)
 			SetDepthWriteEnabled(_currentMaterial->depthwrite);
 		
@@ -600,7 +594,7 @@ namespace RN
 		
 		Matrix identityMatrix;
 		
-		if(!source)
+		if(!source && !(camera->CameraFlags() & Camera::FlagNoRender))
 		{
 			Material *surfaceMaterial = camera->Material();
 
@@ -879,7 +873,7 @@ namespace RN
 				DrawMesh(mesh, object.offset, object.count);
 			}
 		}
-		else
+		else if(source)
 		{
 			DrawCameraStage(source, camera);
 		}
