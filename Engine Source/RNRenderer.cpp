@@ -440,6 +440,8 @@ namespace RN
 			if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 			{
 				_flushCameras.clear();
+				_flushedCameras.clear();
+				
 				return;
 			}
 			
@@ -462,6 +464,8 @@ namespace RN
 		}
 		
 		_flushCameras.clear();
+		_flushedCameras.clear();
+		
 		_debugFrameUI.clear();
 		_debugFrameWorld.clear();
 	}
@@ -661,12 +665,14 @@ namespace RN
 		// Render loop
 		DrawCamera(camera, 0, skyCubeMeshes);
 		Camera *lastPipeline = camera;
-		bool flushesStage = false;
 		
 		if(camera->CameraFlags() & Camera::FlagForceFlush)
 		{
-			 _flushCameras.push_back(std::pair<Camera *, Shader *>(camera, camera->DrawFramebufferShader()));
-			flushesStage = true;
+			if(_flushedCameras.find(camera) == _flushedCameras.end())
+			{
+				_flushCameras.push_back(std::pair<Camera *, Shader *>(camera, camera->DrawFramebufferShader()));
+				_flushedCameras.insert(camera);
+			}
 		}
 		
 		auto pipelines = camera->PostProcessingPipelines();
@@ -680,41 +686,51 @@ namespace RN
 				switch(j->StageMode())
 				{
 					case RenderStage::Mode::ReRender:
+					case RenderStage::Mode::ReRender_NoRemoval:
 						DrawCamera(stage, 0, skyCubeMeshes);
 						break;
 						
 					case RenderStage::Mode::ReUseConnection:
+					case RenderStage::Mode::ReUseConnection_NoRemoval:
 						DrawCamera(stage, j->Connection(), skyCubeMeshes);
 						break;
 						
 					case RenderStage::Mode::ReUseCamera:
+					case RenderStage::Mode::ReUseCamera_NoRemoval:
 						DrawCamera(stage, camera, skyCubeMeshes);
 						break;
 						
 					case RenderStage::Mode::ReUsePipeline:
+					case RenderStage::Mode::ReUsePipeline_NoRemoval:
 						DrawCamera(stage, lastPipeline, skyCubeMeshes);
 						break;
 						
 					case RenderStage::Mode::ReUsePreviousStage:
+					case RenderStage::Mode::ReUsePreviousStage_NoRemoval:
 						DrawCamera(stage, previous, skyCubeMeshes);
 						break;
 				}
 				
-				flushesStage = false;
 				previous = stage;
 				
-				if(stage->CameraFlags() & Camera::FlagForceFlush)
+				if(previous->CameraFlags() & Camera::FlagForceFlush)
 				{
-					_flushCameras.push_back(std::pair<Camera *, Shader *>(stage, camera->DrawFramebufferShader()));
-					flushesStage = true;
+					if(_flushedCameras.find(camera) == _flushedCameras.end())
+					{
+						_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->DrawFramebufferShader()));
+						_flushedCameras.insert(previous);
+					}
 				}
 			}
 			
 			lastPipeline = previous;
 		}
 		
-		 if(!flushesStage && !(previous->CameraFlags() & Camera::FlagHidden))
-			 _flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->DrawFramebufferShader()));
+		if(!(previous->CameraFlags() & Camera::FlagHidden) && _flushedCameras.find(camera) == _flushedCameras.end())
+		{
+			_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->DrawFramebufferShader()));
+			_flushedCameras.insert(previous);
+		}
 		
 		// Cleanup of the frame
 		_frameCamera = 0;

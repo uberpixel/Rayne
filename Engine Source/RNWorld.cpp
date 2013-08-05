@@ -155,9 +155,6 @@ namespace RN
 		
 		for(Camera *camera : _cameras)
 		{
-			if(!camera->RequiresRendering())
-				continue;
-			
 			camera->PostUpdate();
 			_renderer->BeginCamera(camera);
 			

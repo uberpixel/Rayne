@@ -37,7 +37,13 @@ namespace RN
 			ReUseConnection,
 			ReUsePreviousStage,
 			ReUsePipeline,
-			ReUseCamera
+			ReUseCamera,
+			
+			ReRender_NoRemoval,
+			ReUseConnection_NoRemoval,
+			ReUsePreviousStage_NoRemoval,
+			ReUsePipeline_NoRemoval,
+			ReUseCamera_NoRemoval
 		};
 		
 		RenderStage(Camera *camera, Camera *conenction, Mode mode);
@@ -76,13 +82,13 @@ namespace RN
 		
 	protected:
 		virtual void Initialize();
-		virtual void PushUpdate(float delta);
+		virtual void PushUpdate(Camera *source, float delta);
 		
 		Camera *host;
 		std::vector<RenderStage> stages;
 		
 	private:
-		void PostUpdate(const Vector3& position, const Quaternion& rotation, const Rect& frame);
+		void PostUpdate(Camera *source, const Vector3& position, const Quaternion& rotation, const Rect& frame);
 		void PushProjectionUpdate(Camera *source);
 		
 		std::string _name;
@@ -99,7 +105,7 @@ namespace RN
 		
 	protected:
 		void Initialize() override;
-		void PushUpdate(float delta) override;
+		void PushUpdate(Camera *camera, float delta) override;
 		
 	private:
 		void UpdateStages();
@@ -196,6 +202,7 @@ namespace RN
 		
 		RNAPI void SetFrame(const Rect& frame);
 		RNAPI void SetRenderingFrame(const Rect& offset);
+		RNAPI void SetFlags(Flags flags);
 		RNAPI void SetClearColor(const Color& color);
 		RNAPI void SetMaterial(Material *material);
 		RNAPI void SetRenderStorage(RenderStorage *storage);
@@ -226,8 +233,6 @@ namespace RN
 		RNAPI bool InFrustum(const Vector3& position, float radius);
 		RNAPI bool InFrustum(const Sphere& sphere);
 		RNAPI bool InFrustum(const AABB& aabb);
-		
-		RNAPI bool RequiresRendering() const;
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
@@ -329,7 +334,6 @@ namespace RN
 		Vector2 _wantedLightTiles;
 		
 		bool _allowDepthWrite;
-		bool _isStage;
 		bool _blend;
 		
 		Shader *_blitShader;

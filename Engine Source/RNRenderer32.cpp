@@ -554,7 +554,7 @@ namespace RN
 		BindVAO(_copyVAO);
 		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
 		
-		AdjustDrawBuffer(stage, camera);
+		AdjustDrawBuffer(camera, stage);
 		
 		glEnableVertexAttribArray(_currentProgram->attPosition);
 		glVertexAttribPointer(_currentProgram->attPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);

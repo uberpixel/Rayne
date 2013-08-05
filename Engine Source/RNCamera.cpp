@@ -63,7 +63,7 @@ namespace RN
 	
 	void RenderStage::InsertCamera(class Camera *camera)
 	{
-		if(!camera)
+		if(!camera || _mode > Mode::ReUseCamera)
 			return;
 		
 		if((camera->_stageCount ++) == 0)
@@ -72,7 +72,7 @@ namespace RN
 	
 	void RenderStage::RemoveCamera(class Camera *camera)
 	{
-		if(!camera)
+		if(!camera || _mode > Mode::ReUseCamera)
 			return;
 		
 		if((-- camera->_stageCount) == 0)
@@ -89,6 +89,10 @@ namespace RN
 	}
 	
 	PostProcessingPipeline::~PostProcessingPipeline()
+	{
+	}
+	
+	void PostProcessingPipeline::Initialize()
 	{
 	}
 	
@@ -111,24 +115,25 @@ namespace RN
 		return &stages[stages.size() - 1];
 	}
 	
-	void PostProcessingPipeline::PushUpdate(float delta)
+	void PostProcessingPipeline::PushUpdate(Camera *source, float delta)
 	{
 		for(auto i=stages.begin(); i!=stages.end(); i++)
 		{
 			Camera *camera = i->Camera();
+			if(camera == source)
+				continue;
+			
 			camera->Update(delta);
 		}
 	}
 	
-	void PostProcessingPipeline::Initialize()
-	{
-	}
-	
-	void PostProcessingPipeline::PostUpdate(const Vector3& position, const Quaternion& rotation, const Rect& frame)
+	void PostProcessingPipeline::PostUpdate(Camera *source, const Vector3& position, const Quaternion& rotation, const Rect& frame)
 	{
 		for(auto i=stages.begin(); i!=stages.end(); i++)
 		{
 			Camera *camera = i->Camera();
+			if(camera  == source)
+				continue;
 			
 			if(camera->_flags & Camera::FlagInheritFrame)
 				camera->SetFrame(frame);
@@ -148,6 +153,8 @@ namespace RN
 		for(auto i=stages.begin(); i!=stages.end(); i++)
 		{
 			Camera *stage = i->Camera();
+			if(stage == source)
+				continue;
 			
 			if(stage->_flags & Camera::FlagInheritProjection)
 			{
@@ -194,10 +201,10 @@ namespace RN
 		_level = 0;
 		_frame = Rect();
 		
-		PushUpdate(0.0f);
+		PushUpdate(nullptr, 0.0f);
 	}
 	
-	void DownsamplePostProcessingPipeline::PushUpdate(float delta)
+	void DownsamplePostProcessingPipeline::PushUpdate(Camera *source, float delta)
 	{
 		bool needsUpdate = false;
 		bool needsRecreation = false;
@@ -225,7 +232,7 @@ namespace RN
 			UpdateStages();
 		}
 		
-		PostProcessingPipeline::PushUpdate(delta);
+		PostProcessingPipeline::PushUpdate(source, delta);
 	}
 	
 	void DownsamplePostProcessingPipeline::UpdateStages()
@@ -391,7 +398,6 @@ namespace RN
 		_allowDepthWrite = true;
 		_lodCamera = 0;
 		_useInstancing = true;
-		_isStage = false;
 		_blend = false;
 		
 		_blitShader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyDrawFramebufferShader)->Retain();
@@ -473,6 +479,11 @@ namespace RN
 	void Camera::SetClearColor(const Color& clearColor)
 	{
 		_clearColor = clearColor;
+	}
+	
+	void Camera::SetFlags(Flags flags)
+	{
+		_flags = flags;
 	}
 
 	void Camera::SetMaterial(class Material *material)
@@ -669,7 +680,7 @@ namespace RN
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
 			PostProcessingPipeline *pipeline = *i;
-			pipeline->PushUpdate(delta);
+			pipeline->PushUpdate(this, delta);
 		}
 	}
 	
@@ -689,7 +700,7 @@ namespace RN
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
 			PostProcessingPipeline *pipeline = *i;
-			pipeline->PostUpdate(WorldPosition(), WorldRotation(), _frame);
+			pipeline->PostUpdate(this, WorldPosition(), WorldRotation(), _frame);
 		}
 	}
 
@@ -922,10 +933,5 @@ namespace RN
 	bool Camera::IsVisibleInCamera(Camera *camera)
 	{
 		return true;
-	}
-	
-	bool Camera::RequiresRendering() const
-	{
-		return (_isStage == false);
 	}
 }

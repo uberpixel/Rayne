@@ -194,6 +194,7 @@ namespace RN
 	private:		
 		std::map<std::tuple<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
 		std::vector<std::pair<Camera *, Shader *>> _flushCameras;
+		std::unordered_set<Camera *> _flushedCameras;
 		
 	};
 	
