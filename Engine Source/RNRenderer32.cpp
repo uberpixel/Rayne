@@ -586,6 +586,12 @@ namespace RN
 		camera->Bind();
 		camera->PrepareForRendering(this);
 		
+		if((camera->CameraFlags() & Camera::FlagNoRender))
+		{
+			camera->Unbind();
+			return;
+		}
+		
 		if(_currentMaterial)
 			SetDepthWriteEnabled(_currentMaterial->depthwrite);
 		

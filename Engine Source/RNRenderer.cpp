@@ -659,16 +659,17 @@ namespace RN
         });
 		
 		// Render loop
-		if(!(camera->CameraFlags() & Camera::FlagNoRender))
-			DrawCamera(camera, 0, skyCubeMeshes);
-		
+		DrawCamera(camera, 0, skyCubeMeshes);
 		Camera *lastPipeline = camera;
+		bool flushesStage = false;
 		
 		if(camera->CameraFlags() & Camera::FlagForceFlush)
+		{
 			 _flushCameras.push_back(std::pair<Camera *, Shader *>(camera, camera->DrawFramebufferShader()));
+			flushesStage = true;
+		}
 		
 		auto pipelines = camera->PostProcessingPipelines();
-		bool flushesStage = false;
 		
 		for(PostProcessingPipeline *pipeline : pipelines)
 		{
