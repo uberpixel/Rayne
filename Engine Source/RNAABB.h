@@ -134,11 +134,11 @@ namespace RN
 	
 	RN_INLINE bool AABB::Intersects(const AABB& other)
 	{
-		if(fabsf(position.x - other.position.x) > (minExtend.x+other.maxExtend.x))
+		if(Math::FastAbs(position.x - other.position.x) > (minExtend.x + other.maxExtend.x))
 			return false;
-		if(fabsf(position.y - other.position.y) > (minExtend.x+other.maxExtend.y))
+		if(Math::FastAbs(position.y - other.position.y) > (minExtend.y + other.maxExtend.y))
 			return false;
-		if(fabsf(position.z - other.position.z) > (minExtend.x+other.maxExtend.z))
+		if(Math::FastAbs(position.z - other.position.z) > (minExtend.z + other.maxExtend.z))
 			return false;
 		
 		return true;
