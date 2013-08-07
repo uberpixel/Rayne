@@ -379,7 +379,7 @@ namespace RN
 		clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
 
 		_clearColor  = Color(0.193f, 0.435f, 0.753f, 1.0f);
-		_scaleFactor = (_scaleFactor>0.0f)? _scaleFactor : Kernel::SharedInstance()->ScaleFactor();
+		_scaleFactor = (_scaleFactor > 0.0f) ? _scaleFactor : Kernel::SharedInstance()->ScaleFactor();
 
 		_material = 0;
 		_stageCount = 0;
@@ -401,6 +401,7 @@ namespace RN
 		_blend = false;
 		
 		_blitShader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyDrawFramebufferShader)->Retain();
+		_blitMode   = BlitMode::Stretched;
 		
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
 		_colorMask = ColorFlagRed | ColorFlagGreen | ColorFlagBlue | ColorFlagAlpha;

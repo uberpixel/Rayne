@@ -500,29 +500,50 @@ namespace RN
 		_copyVertices[2] = Vector4(-1.0f, 1.0f,  atlas.x, atlas.w);
 		_copyVertices[3] = Vector4(1.0f, 1.0f,   atlas.z, atlas.w);
 		
-		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
-		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STREAM_DRAW);
+		Camera::BlitMode blitMode = camera->GetBlitMode();
+		bool stretchHorizontal = (blitMode == Camera::BlitMode::StretchedHorizontal || blitMode == Camera::BlitMode::Stretched);
+		bool stretchVertical   = (blitMode == Camera::BlitMode::StretchedVertical   || blitMode == Camera::BlitMode::Stretched);
+		
+		float x, y;
+		float width, height;
+		
 		
 		if(!target)
 		{
-			float width  = ceilf((frame.width * _scaleFactor) * _defaultWidthFactor);
-			float height = ceilf((frame.height * _scaleFactor) * _defaultHeightFactor);
+			x = stretchHorizontal ? ceilf((frame.x * _scaleFactor) * _defaultWidthFactor) : 0.0f;
+			y = stretchVertical   ? ceilf((frame.y * _scaleFactor) * _defaultHeightFactor) : 0.0f;
 			
-			float x = ceilf((frame.x * _scaleFactor) * _defaultWidthFactor);
-			float y = ceilf((frame.y * _scaleFactor) * _defaultHeightFactor);
-			
-			glViewport(x, y, width, height);
+			width  = stretchHorizontal ? ceilf((frame.width  * _scaleFactor) * _defaultWidthFactor) : _defaultWidth * _scaleFactor;
+			height = stretchVertical   ?  ceilf((frame.height * _scaleFactor) * _defaultHeightFactor) : _defaultHeight * _scaleFactor;
 		}
 		else
 		{
-			float width  = ceilf(frame.width * _scaleFactor);
-			float height = ceilf(frame.height * _scaleFactor);
+			Rect tframe(frame);
+			const Rect& targetFrame = target->Frame();
 			
-			float x = ceilf(frame.x * _scaleFactor);
-			float y = ceilf(frame.y * _scaleFactor);
+			if(stretchHorizontal)
+			{
+				tframe.x = targetFrame.x;
+				tframe.width = targetFrame.width;
+			}
 			
-			glViewport(x, y, width, height);
+			if(stretchVertical)
+			{
+				tframe.y = targetFrame.y;
+				tframe.height = targetFrame.height;
+			}
+			
+			x = ceilf(tframe.x * _scaleFactor);
+			y = ceilf(tframe.y * _scaleFactor);
+			
+			width  = ceilf(tframe.width * _scaleFactor);
+			height = ceilf(tframe.height * _scaleFactor);
 		}
+		
+		glViewport(x, y, width, height);
+		
+		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STREAM_DRAW);
 	}
 	
 	void Renderer32::FlushCamera(Camera *camera, Shader *drawShader)

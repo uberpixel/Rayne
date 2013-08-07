@@ -125,10 +125,11 @@ namespace RN
 	
 	class Camera : public SceneNode
 	{
-	friend class Renderer;
-	friend class RenderStage;
-	friend class PostProcessingPipeline;
 	public:
+		friend class Renderer;
+		friend class RenderStage;
+		friend class PostProcessingPipeline;
+		
 		enum
 		{
 			FlagNoSky = (1 << 0),
@@ -181,6 +182,14 @@ namespace RN
 			RenderGroup9 = (1 << 9)
 		};
 		typedef uint32 RenderGroups;
+		
+		enum class BlitMode
+		{
+			Stretched,
+			StretchedVertical,
+			StretchedHorizontal,
+			Unstretched
+		};
 		
 		RNAPI Camera(const Vector2& size);
 		
@@ -249,6 +258,7 @@ namespace RN
 		int32 Priority() const { return _priority; }
 		bool UseBlending() const { return _blend; }
 		Shader *DrawFramebufferShader() const { return _blitShader; }
+		BlitMode GetBlitMode() const { return _blitMode; }
 		
 		Vector2 LightTiles() const { return _lightTiles; }
 		void SetLightTiles(const Vector2 &size) { _lightTiles = size; }
@@ -307,6 +317,7 @@ namespace RN
 		Flags _flags;
 		ColorFlags _colorMask;
 		GLuint _clearMask;
+		BlitMode _blitMode;
 		float _scaleFactor;
 		int32 _priority;
 		
