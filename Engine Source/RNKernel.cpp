@@ -311,6 +311,9 @@ namespace RN
 	
 	float Kernel::GetActiveScaleFactor() const
 	{
+		if(!_window)
+			return _scaleFactor;
+		
 		return _window->GetActiveScreen()->GetScaleFactor();
 	}
 }
