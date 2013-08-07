@@ -318,6 +318,7 @@ namespace RN
 		GLuint _clearMask;
 		BlitMode _blitMode;
 		float _scaleFactor;
+		bool _fixedScaleFactor;
 		int32 _priority;
 		
 		Vector3 _frustumCenter;

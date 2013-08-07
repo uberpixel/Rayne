@@ -76,6 +76,7 @@ namespace RN
 		bool _formatChanged;
 		bool _renderTargetsChanged;
 		float _scaleFactor;
+		bool _fixedScaleFactor;
 		
 		RNDefineMeta(RenderStorage, Object)
 	};

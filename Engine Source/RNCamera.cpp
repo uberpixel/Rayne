@@ -215,7 +215,7 @@ namespace RN
 			needsUpdate = true;
 		}
 		
-		int level = Kernel::SharedInstance()->ScaleFactor() + log2(_camera->LightTiles().x) - 1;
+		int level = Kernel::SharedInstance()->GetActiveScaleFactor() + log2(_camera->LightTiles().x) - 1;
 		if(level != _level)
 		{
 			_level = level;
@@ -355,6 +355,8 @@ namespace RN
 			PostProcessingPipeline *pipeline = *i;
 			delete pipeline;
 		}
+		
+		MessageCenter::SharedInstance()->RemoveObserver(this);
 	}
 
 
@@ -379,7 +381,9 @@ namespace RN
 		clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
 
 		_clearColor  = Color(0.193f, 0.435f, 0.753f, 1.0f);
-		_scaleFactor = (_scaleFactor > 0.0f) ? _scaleFactor : Kernel::SharedInstance()->ScaleFactor();
+		
+		_fixedScaleFactor = (_scaleFactor > 0.0f);
+		_scaleFactor = _fixedScaleFactor ? _scaleFactor : Kernel::SharedInstance()->GetActiveScaleFactor();
 
 		_material = 0;
 		_stageCount = 0;
@@ -413,6 +417,10 @@ namespace RN
 		Update(0.0f);
 		UpdateProjection();
 		UpdateFrustum();
+		
+		MessageCenter::SharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](RN::Message *message) {
+			_scaleFactor = Kernel::SharedInstance()->GetActiveScaleFactor();
+		}, this);
 	}
 
 

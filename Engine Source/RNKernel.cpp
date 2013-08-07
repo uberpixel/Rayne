@@ -308,4 +308,9 @@ namespace RN
 		_resetDelta = true;
 		_delta = 0.0f;
 	}
+	
+	float Kernel::GetActiveScaleFactor() const
+	{
+		return _window->GetActiveScreen()->GetScaleFactor();
+	}
 }

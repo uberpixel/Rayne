@@ -25,10 +25,17 @@ namespace RN
 		_depthLayer = -1;
 		
 		_framebuffer = _depthbuffer = _stencilbuffer = 0;
-		_scaleFactor = (scaleFactor > 0.0f)? scaleFactor : Kernel::SharedInstance()->ScaleFactor();
 		_format      = format;
 		
+		_fixedScaleFactor = (scaleFactor > 0.0f);
+		_scaleFactor = _fixedScaleFactor ? scaleFactor : Kernel::SharedInstance()->GetActiveScaleFactor();
+		
 		glGenFramebuffers(1, &_framebuffer);
+		
+		MessageCenter::SharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](RN::Message *message) {
+			_scaleFactor = Kernel::SharedInstance()->GetActiveScaleFactor();
+			_sizeChanged = true;
+		}, this);
 	}
 	
 	RenderStorage::~RenderStorage()
@@ -48,6 +55,8 @@ namespace RN
 		
 		if(_depthTexture)
 			_depthTexture->Release();
+		
+		MessageCenter::SharedInstance()->RemoveObserver(this);
 	}
 	
 	

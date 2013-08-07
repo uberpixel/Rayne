@@ -30,7 +30,7 @@ namespace RN
 		_currentCamera   = 0;
 		_currentVAO      = 0;
 		
-		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
+		_scaleFactor = Kernel::SharedInstance()->GetActiveScaleFactor();
 		_time = 0.0f;
 		_mode = Mode::ModeWorld;
 		
@@ -71,10 +71,16 @@ namespace RN
 		
 		_hasValidFramebuffer = false;
 		_frameCamera = 0;
+		
+		MessageCenter::SharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](RN::Message *message) {
+			_scaleFactor = Kernel::SharedInstance()->GetActiveScaleFactor();
+		}, this);
 	}
 	
 	Renderer::~Renderer()
-	{}
+	{
+		MessageCenter::SharedInstance()->RemoveObserver(this);
+	}
 	
 	void Renderer::SetDefaultFBO(GLuint fbo)
 	{

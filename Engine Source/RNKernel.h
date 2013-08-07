@@ -41,6 +41,8 @@ namespace RN
 		RNAPI void Exit();
 
 		float ScaleFactor() const { return _scaleFactor; }
+		float GetActiveScaleFactor() const;
+		
 		const std::string& Title() const { return _title; }
 
 		Window *Window() const { return _window; }
