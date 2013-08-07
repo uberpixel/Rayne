@@ -721,7 +721,7 @@ namespace RN
 	}
 
 #if RN_PLATFORM_MAC_OS
-	Screen *Window::GetSCreenWithID(CGDirectDisplayID display)
+	Screen *Window::GetScreenWithID(CGDirectDisplayID display)
 	{
 		for(Screen *screen : _screens)
 		{

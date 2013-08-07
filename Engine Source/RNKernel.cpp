@@ -107,6 +107,7 @@ namespace RN
 		ThreadCoordinator::SharedInstance();
 		
 		_context = gl::Initialize();
+		_window  = nullptr;
 		
 		ResourcePool::SharedInstance();
 		

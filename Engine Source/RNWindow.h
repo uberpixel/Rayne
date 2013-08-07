@@ -99,7 +99,7 @@ namespace RN
 		Screen *GetMainScreen() const { return _mainScreen; }
 		
 #if RN_PLATFORM_MAC_OS
-		Screen *GetSCreenWithID(CGDirectDisplayID display);
+		Screen *GetScreenWithID(CGDirectDisplayID display);
 #endif
 		
 		const WindowConfiguration *GetConfiguration() const { return _activeConfiguration; }
