@@ -534,6 +534,8 @@ namespace RN
 		BindMaterial(material, program);
 		UpdateShaderData();
 		
+		material->ApplyUniforms(program);
+		
 		uint32 targetmaps = MIN((uint32)program->targetmaplocations.size(), stage->RenderTargets());
 		for(uint32 i=0; i<targetmaps; i++)
 		{

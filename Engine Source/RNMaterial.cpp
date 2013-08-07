@@ -23,23 +23,23 @@ namespace RN
 	{}
 	
 	Material::ShaderUniform::ShaderUniform(const std::string& name, const Vector2& vec2) :
-		ShaderUniform(name, Type::Matrix, const_cast<Vector2 *>(&vec2), sizeof(Vector2), true)
+		ShaderUniform(name, Type::Float2, const_cast<Vector2 *>(&vec2), sizeof(Vector2), true)
 	{}
 	Material::ShaderUniform::ShaderUniform(const std::string& name, const Vector3& vec3) :
-		ShaderUniform(name, Type::Matrix, const_cast<Vector3 *>(&vec3), sizeof(Vector3), true)
+		ShaderUniform(name, Type::Float3, const_cast<Vector3 *>(&vec3), sizeof(Vector3), true)
 	{}
 	Material::ShaderUniform::ShaderUniform(const std::string& name, const Vector4& vec4) :
-		ShaderUniform(name, Type::Matrix, const_cast<Vector4 *>(&vec4), sizeof(Vector4), true)
+		ShaderUniform(name, Type::Float4, const_cast<Vector4 *>(&vec4), sizeof(Vector4), true)
 	{}
 	
 	Material::ShaderUniform::ShaderUniform(const std::string& name, float fValue) :
-		ShaderUniform(name, Type::Matrix, &fValue, sizeof(float), true)
+		ShaderUniform(name, Type::Float1, &fValue, sizeof(float), true)
 	{}
 	Material::ShaderUniform::ShaderUniform(const std::string& name, int32 iValue) :
-		ShaderUniform(name, Type::Matrix, &iValue, sizeof(int32), true)
+		ShaderUniform(name, Type::Int1, &iValue, sizeof(int32), true)
 	{}
 	Material::ShaderUniform::ShaderUniform(const std::string& name, uint32 uiValue) :
-		ShaderUniform(name, Type::Matrix, &uiValue, sizeof(uint32), true)
+		ShaderUniform(name, Type::UInt1, &uiValue, sizeof(uint32), true)
 	{}
 	
 	
