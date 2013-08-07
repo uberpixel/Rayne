@@ -140,9 +140,9 @@ namespace RN
 		ApplyNodes();
 		NodesUpdated();
 		
-		for(size_t i=0; i<_attachments.Count(); i++)
+		for(size_t i = 0; i < _attachments.Count(); i ++)
 		{
-			WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
+			WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 			attachment->SceneNodesUpdated();
 		}
 		
@@ -158,17 +158,17 @@ namespace RN
 			camera->PostUpdate();
 			_renderer->BeginCamera(camera);
 			
-			for(size_t i=0; i<_attachments.Count(); i++)
+			for(size_t i = 0; i < _attachments.Count(); i ++)
 			{
-				WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
+				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->BeginCamera(camera);
 			}
 			
 			_sceneManager->RenderScene(camera);
 			
-			for(size_t i=0; i<_attachments.Count(); i++)
+			for(size_t i = 0; i < _attachments.Count(); i ++)
 			{
-				WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
+				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->WillFinishCamera(camera);
 			}
 			
@@ -190,9 +190,9 @@ namespace RN
 	
 	void World::SceneNodeWillRender(SceneNode *node)
 	{
-		for(size_t i=0; i<_attachments.Count(); i++)
+		for(size_t i = 0; i < _attachments.Count(); i ++)
 		{
-			WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
+			WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 			attachment->WillRenderSceneNode(node);
 		}
 		
@@ -230,9 +230,9 @@ namespace RN
 		auto iterator = _nodes.find(node);
 		if(iterator != _nodes.end())
 		{
-			for(size_t i=0; i<_attachments.Count(); i++)
+			for(size_t i = 0; i < _attachments.Count(); i ++)
 			{
-				WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
+				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->WillRemoveSceneNode(node);
 			}
 			
@@ -264,6 +264,12 @@ namespace RN
 			ForceInsertNode(node);
 		}
 		
+		for(size_t i = 0; i < _attachments.Count(); i ++)
+		{
+			WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
+			attachment->SceneNodeDidUpdate(node);
+		}
+		
 		_sceneManager->UpdateSceneNode(node);
 	}
 	
@@ -274,9 +280,9 @@ namespace RN
 			_nodes.insert(node);
 			_sceneManager->AddSceneNode(node);
 			
-			for(size_t i=0; i<_attachments.Count(); i++)
+			for(size_t i = 0; i < _attachments.Count(); i ++)
 			{
-				WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
+				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->DidAddSceneNode(node);
 			}
 			

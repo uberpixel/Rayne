@@ -32,4 +32,7 @@ namespace RN
 	
 	void WorldAttachment::WillRenderSceneNode(SceneNode *node)
 	{}
+	
+	void WorldAttachment::SceneNodeDidUpdate(SceneNode *node)
+	{}
 }

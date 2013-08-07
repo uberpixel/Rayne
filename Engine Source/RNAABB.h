@@ -30,7 +30,7 @@ namespace RN
 		AABB operator* (const Vector3& other) const;
 		AABB& operator*= (const Vector3& other);
 		
-		bool Intersects(const AABB& other);
+		bool Intersects(const AABB& other) const;
 		
 		void Rotate(const Quaternion& rotation);
 		
@@ -132,7 +132,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE bool AABB::Intersects(const AABB& other)
+	RN_INLINE bool AABB::Intersects(const AABB& other) const
 	{
 		if(Math::FastAbs(position.x - other.position.x) > (minExtend.x + other.maxExtend.x))
 			return false;

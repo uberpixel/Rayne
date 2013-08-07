@@ -91,6 +91,7 @@
 #include "RNInstancingNode.h"
 #include "RNParticleEmitter.h"
 #include "RNParticle.h"
+#include "RNTriggerZone.h"
 
 #include "RNThread.h"
 #include "RNThreadPool.h"
