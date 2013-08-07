@@ -478,6 +478,12 @@ namespace RN
 		});
 	}
 	
+	Screen::~Screen()
+	{
+		for(WindowConfiguration *configuration : _configurations)
+			delete configuration;
+	}
+	
 	// ---------------------
 	// MARK: -
 	// MARK: Window
@@ -714,6 +720,19 @@ namespace RN
 		return Rect(0, 0, _activeConfiguration->GetWidth(), _activeConfiguration->GetHeight());
 	}
 
+#if RN_PLATFORM_MAC_OS
+	Screen *Window::GetSCreenWithID(CGDirectDisplayID display)
+	{
+		for(Screen *screen : _screens)
+		{
+			if(screen->_display == display)
+				return screen;
+		}
+		
+		return nullptr;
+	}
+#endif
+	
 	void Window::ShowCursor()
 	{
 		if(_cursorVisible)

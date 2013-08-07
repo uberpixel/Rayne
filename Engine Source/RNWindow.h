@@ -50,6 +50,8 @@ namespace RN
 	public:
 		friend class Window;
 		
+		~Screen();
+		
 		uint32 GetWidth() const { return _width; }
 		uint32 GetHeight() const { return _height; }
 		
@@ -95,6 +97,10 @@ namespace RN
 		
 		Screen *GetActiveScreen() const { return _activeScreen; }
 		Screen *GetMainScreen() const { return _mainScreen; }
+		
+#if RN_PLATFORM_MAC_OS
+		Screen *GetSCreenWithID(CGDirectDisplayID display);
+#endif
 		
 		const WindowConfiguration *GetConfiguration() const { return _activeConfiguration; }
 		const std::vector<Screen *>& GetScreens() const { return _screens; }
