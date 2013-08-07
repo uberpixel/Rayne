@@ -16,6 +16,18 @@ namespace RN
 {
 	RNDeclareMeta(Shader)
 	
+	GLuint ShaderProgram::GetCustomLocation(const std::string& name)
+	{
+		auto iterator = _customLocations.find(name);
+		if(iterator != _customLocations.end())
+			return iterator->second;
+		
+		GLuint location = glGetUniformLocation(program, name.c_str());
+		_customLocations.insert(std::unordered_map<std::string, GLuint>::value_type(name, location));
+		
+		return location;
+	}
+	
 	void ShaderProgram::ReadLocations()
 	{
 #define GetUniformLocation(uniform) uniform = glGetUniformLocation(program, #uniform)

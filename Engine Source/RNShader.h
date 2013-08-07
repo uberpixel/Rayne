@@ -114,6 +114,9 @@ namespace RN
 		GLuint depthmap;
 		GLuint depthmapinfo;
 		
+		std::unordered_map<std::string, GLuint> _customLocations;
+		
+		GLuint GetCustomLocation(const std::string& name);
 		void ReadLocations();
 	};
 	
