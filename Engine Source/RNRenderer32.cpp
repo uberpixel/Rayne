@@ -510,11 +510,11 @@ namespace RN
 		
 		if(!target)
 		{
-			x = stretchHorizontal ? ceilf((frame.x * _scaleFactor) * _defaultWidthFactor) : 0.0f;
-			y = stretchVertical   ? ceilf((frame.y * _scaleFactor) * _defaultHeightFactor) : 0.0f;
+			x = !stretchHorizontal ? ceilf((frame.x * _scaleFactor) * _defaultWidthFactor) : 0.0f;
+			y = !stretchVertical   ? ceilf((frame.y * _scaleFactor) * _defaultHeightFactor) : 0.0f;
 			
-			width  = stretchHorizontal ? ceilf((frame.width  * _scaleFactor) * _defaultWidthFactor) : _defaultWidth * _scaleFactor;
-			height = stretchVertical   ?  ceilf((frame.height * _scaleFactor) * _defaultHeightFactor) : _defaultHeight * _scaleFactor;
+			width  = !stretchHorizontal ? ceilf((frame.width  * _scaleFactor) * _defaultWidthFactor) : _defaultWidth * _scaleFactor;
+			height = !stretchVertical   ? ceilf((frame.height * _scaleFactor) * _defaultHeightFactor) : _defaultHeight * _scaleFactor;
 		}
 		else
 		{
@@ -536,7 +536,7 @@ namespace RN
 			x = ceilf(tframe.x * _scaleFactor);
 			y = ceilf(tframe.y * _scaleFactor);
 			
-			width  = ceilf(tframe.width * _scaleFactor);
+			width  = ceilf(tframe.width  * _scaleFactor);
 			height = ceilf(tframe.height * _scaleFactor);
 		}
 		

@@ -397,7 +397,6 @@ namespace RN
 		
 		_allowDepthWrite = true;
 		_lodCamera = 0;
-		_useInstancing = true;
 		_blend = false;
 		
 		_blitShader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyDrawFramebufferShader)->Retain();
@@ -555,11 +554,6 @@ namespace RN
 		_lodCamera = camera;
 	}
 	
-	void Camera::SetUseInstancing(bool activate)
-	{
-		_useInstancing = activate;
-	}
-	
 	void Camera::SetPriority(int32 priority)
 	{
 		_priority = priority;
@@ -576,6 +570,11 @@ namespace RN
 		
 		_blitShader->Release();
 		_blitShader = shader->Retain();
+	}
+	
+	void Camera::SetBlitMode(BlitMode mode)
+	{
+		_blitMode = mode;
 	}
 	
 	// Post Processing

@@ -222,15 +222,14 @@ namespace RN
 		RNAPI void SetMaxLightsPerTile(size_t lights);
 		RNAPI void SetCameraFlags(Flags flags);
 		RNAPI void SetLODCamera(Camera *camera);
-		RNAPI void SetUseInstancing(bool activate);
 		RNAPI void SetPriority(int32 priority);
 		RNAPI void SetUseBlending(bool useBlending);
 		RNAPI void SetDrawFramebufferShader(Shader *shader);
+		RNAPI void SetBlitMode(BlitMode mode);
 		
 		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		RNAPI void ActivateTiledLightLists(Texture *depthTiles);
 		Texture *DepthTiles() { return _depthTiles; }
-		RNAPI bool UseInstancing() { return _useInstancing; }
 		
 		RNAPI void Update(float delta);
 		RNAPI void PostUpdate();
@@ -353,7 +352,6 @@ namespace RN
 		RenderStorage *_storage;
 		Camera *_lodCamera;
 		
-		bool _useInstancing;
 		Texture *_depthTiles;
 		Model *_skycube;
 		

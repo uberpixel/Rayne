@@ -138,7 +138,6 @@ namespace RN
 				
 				Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden, 1.0f);
 				tempcam->SetMaterial(depthMaterial);
-				tempcam->SetUseInstancing(true);
 				tempcam->SetLODCamera(_lightcam);
 				tempcam->SetPriority(kRNShadowCameraPriority);
 				tempcam->clipnear = 1.0f;
