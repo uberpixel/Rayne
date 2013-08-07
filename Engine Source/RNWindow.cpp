@@ -369,74 +369,129 @@ namespace RN
 {
 	// ---------------------
 	// MARK: -
-	// MARK: DisplayConfiguration
+	// MARK: WindowConfiguration
 	// ---------------------
 	
-#if RN_PLATFORM_MAC_OS
-	WindowConfiguration::WindowConfiguration(CGDisplayModeRef mode)
-	{
-		_mode = CGDisplayModeRetain(mode);
-		
-		_width  = (uint32)CGDisplayModeGetPixelWidth(_mode);
-		_height = (uint32)CGDisplayModeGetPixelHeight(_mode);
-	}
+	WindowConfiguration::WindowConfiguration(uint32 width, uint32 height) :
+		WindowConfiguration(width, height, nullptr)
+	{}
 	
-	WindowConfiguration::WindowConfiguration(const WindowConfiguration& other)
+	WindowConfiguration::WindowConfiguration(uint32 width, uint32 height, Screen *screen)
 	{
-		_mode = CGDisplayModeRetain(other._mode);
-		
-		_width  = other._width;
-		_height = other._height;
-	}
-	
-	WindowConfiguration::WindowConfiguration(uint32 width, uint32 height)
-	{
-		_mode = 0;
-		
 		_width  = width;
 		_height = height;
-	}
-	
-	WindowConfiguration::~WindowConfiguration()
-	{
-		if(_mode)
-			CGDisplayModeRelease(_mode);
-	}
-#endif
-	
-#if RN_PLATFORM_LINUX
-	WindowConfiguration::WindowConfiguration(int32 index, uint32 width, uint32 height)
-	{
-		_modeIndex = index;
 		
-		_width  = width;
-		_height = height;
+		_screen = screen ? screen : Window::SharedInstance()->GetMainScreen();
 	}
 	
-	WindowConfiguration::WindowConfiguration(uint32 width, uint32 height)
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Screen
+	// ---------------------
+	
+	Screen::Screen(CGDirectDisplayID display) :
+		_display(display)
 	{
-		_modeIndex = -1;
+		// Find the NSScreen that corresponds to this screen
+		NSArray *screens = [NSScreen screens];
+		NSScreen *thisScreen = nil;
 		
-		_width  = width;
-		_height = height;
+		for(NSScreen *screen in screens)
+		{
+			NSRect frame = [screen frame];
+			
+			CGDirectDisplayID displayIDs[5];
+			uint32 displayCount = 0;
+			
+			CGError error = CGGetDisplaysWithRect(NSRectToCGRect(frame), 5, displayIDs, &displayCount);
+			if(error == kCGErrorSuccess)
+			{
+				for(uint32 i = 0; i < displayCount; i ++)
+				{
+					if(displayIDs[i] == display)
+					{
+						thisScreen = screen;
+						
+						_frame = Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+						_width  = _frame.width;
+						_height = _frame.height;
+						
+						break;
+					}
+				}
+				
+				if(thisScreen)
+					break;
+			}
+		}
+		
+		if(!thisScreen)
+			throw Exception(Exception::Type::InconsistencyException, "Couldn't find NSScreen matching CGDirectDisplayID");
+		
+		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
+		_scaleFactor = std::min(_scaleFactor, static_cast<float>([thisScreen backingScaleFactor]));
+		
+		// Enumerate through all supported modes
+		CFArrayRef array = CGDisplayCopyAllDisplayModes(display, 0);
+		CFIndex count    = CFArrayGetCount(array);
+		
+		for(size_t i = 0; i < count; i ++)
+		{
+			CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(array, i);
+			if(CFGetTypeID(mode) == CGDisplayModeGetTypeID())
+			{
+				CFStringRef encoding = CGDisplayModeCopyPixelEncoding(mode);
+				
+				if(CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), 0) == kCFCompareEqualTo)
+				{
+					uint32 width  = static_cast<uint32>(CGDisplayModeGetPixelWidth(mode));
+					uint32 height = static_cast<uint32>(CGDisplayModeGetPixelHeight(mode));
+					
+					if(width >= 1024 && height >= 768)
+					{
+						if(_scaleFactor >= 1.5f)
+						{
+							width  >>= 1;
+							height >>= 1;
+						}
+						
+						_configurations.emplace_back(new WindowConfiguration(width, height, this));
+					}
+				}
+				
+				CFRelease(encoding);
+			}
+		}
+		
+		CFRelease(array);
+		
+		// Sort the configurations
+		std::sort(_configurations.begin(), _configurations.end(), [](WindowConfiguration *a, WindowConfiguration *b) {
+			if(a->GetWidth() < b->GetWidth())
+				return true;
+			
+			if(a->GetWidth() == b->GetWidth() && a->GetHeight() < b->GetHeight())
+				return true;
+			
+			return false;
+		});
 	}
-#endif
-	
 	
 	// ---------------------
 	// MARK: -
 	// MARK: Window
 	// ---------------------
 	
-	Window::Window() :
-		_activeConfiguration(WindowConfiguration(1024, 768))
+	Window::Window()
 	{
-		_kernel = Kernel::SharedInstance();
+		_kernel  = Kernel::SharedInstance();
 		_context = _kernel->Context();
 		
 		_mask = 0;
-		_activeConfiguration = 0;
 		_cursorVisible = true;
+		_activeScreen  = nullptr;
+		_activeConfiguration = nullptr;
 		
 #if RN_PLATFORM_MAC_OS
 		CGDisplayCount count;
@@ -445,48 +500,20 @@ namespace RN
 		CGDirectDisplayID *table = new CGDirectDisplayID[count];
 		
 		CGGetActiveDisplayList(count, table, &count);
-		for(size_t i=0; i<count; i++)
+		for(size_t i = 0; i < count; i ++)
 		{
-			CGDirectDisplayID displayID = table[i];
-			
-			if(CGDisplayIsMain(displayID))
+			try
 			{
-				CFArrayRef array = CGDisplayCopyAllDisplayModes(displayID, 0);
-				CFIndex count = CFArrayGetCount(array);
+				CGDirectDisplayID displayID = table[i];
+				Screen *screen = new Screen(displayID);
 				
-				for(size_t i=0; i<count; i++)
-				{
-					CGDisplayModeRef mode = (CGDisplayModeRef)CFArrayGetValueAtIndex(array, i);
-					if(CFGetTypeID(mode) == CGDisplayModeGetTypeID())
-					{
-						CFStringRef encoding = CGDisplayModeCopyPixelEncoding(mode);
-						
-						if(CFStringCompare(encoding, CFSTR(IO32BitDirectPixels), 0) == kCFCompareEqualTo)
-						{
-							uint32 width  = (uint32)CGDisplayModeGetPixelWidth(mode);
-							uint32 height = (uint32)CGDisplayModeGetPixelHeight(mode);
-							
-							if(Kernel::SharedInstance()->ScaleFactor() >= 1.5f)
-							{
-								width  >>= 1;
-								height >>= 1;
-								
-								if(width >= 512 && height >= 384)
-									_configurations.emplace_back(WindowConfiguration(width, height));
-							}
-							else if(width >= 1024 && height >= 768)
-							{
-								_configurations.emplace_back(WindowConfiguration(mode));
-							}
-						}
-						
-						CFRelease(encoding);
-					}
-				}
+				_screens.push_back(screen);
 				
-				CFRelease(array);
-				break;
+				if(CGDisplayIsMain(displayID))
+					_mainScreen = screen;
 			}
+			catch(Exception e)
+			{}
 		}
 		
 		delete[] table;
@@ -529,18 +556,8 @@ namespace RN
 		XFreePixmap(_dpy, sourcePixmap);
 #endif
 		
-		std::sort(_configurations.begin(), _configurations.end(), [](const WindowConfiguration& a, const WindowConfiguration& b) {
-			if(a.Width() < b.Width())
-				return true;
-			
-			if(a.Width() == b.Width() && a.Height() < b.Height())
-				return true;
-			
-			return false;
-		});
-		
 		SetTitle("");
-		SetConfiguration(_configurations.front(), _mask);
+		SetConfiguration(_mainScreen->GetConfigurations().at(0), _mask);
 	}
 
 	Window::~Window()
@@ -552,6 +569,11 @@ namespace RN
 #if RN_PLATFORM_LINUX
 		XRRFreeScreenConfigInfo(_screenConfig);
 #endif
+		
+		for(Screen *screen : _screens)
+		{
+			delete screen;
+		}
 	}
 
 	void Window::SetTitle(const std::string& title)
@@ -567,36 +589,46 @@ namespace RN
 #endif
 	}
 	
-	void Window::SetConfiguration(const WindowConfiguration& configuration, WindowMask mask)
+	void Window::SetConfiguration(const WindowConfiguration *tconfiguration, WindowMask mask)
 	{
-		uint32 width  = configuration.Width();
-		uint32 height = configuration.Height();
+		if(tconfiguration == _activeConfiguration)
+			return;
 		
+		WindowConfiguration *configuration = const_cast<WindowConfiguration *>(tconfiguration);
 		Renderer *renderer = Renderer::SharedInstance();
+		
+		Screen *screen = configuration->GetScreen();
+		
+		uint32 width  = configuration->GetWidth();
+		uint32 height = configuration->GetHeight();
 		
 #if RN_PLATFORM_MAC_OS
 		[(RNNativeWindow *)_nativeWindow release];
 		
 		if(mask & WindowMaskFullscreen)
 		{
-			NSRect displayRect = [[NSScreen mainScreen] frame];
+			const Rect& rect = screen->GetFrame();
 			
-			_nativeWindow = [[RNNativeWindow alloc] initWithFrame:displayRect andStyleMask:NSBorderlessWindowMask];
+			_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(rect.x, rect.y, rect.width, rect.height) andStyleMask:NSBorderlessWindowMask];
 			[(RNNativeWindow *)_nativeWindow setLevel:NSMainMenuWindowLevel + 1];
 			[(RNNativeWindow *)_nativeWindow setBackgroundColor:[NSColor blackColor]];
 			[(RNNativeWindow *)_nativeWindow setOpaque:YES];
 			[(RNNativeWindow *)_nativeWindow setHidesOnDeactivate:YES];
 			
-			renderer->SetDefaultFrame(displayRect.size.width, displayRect.size.height);
+			renderer->SetDefaultFrame(rect.width, rect.height);
+			renderer->SetDefaultFactor(rect.width / width, rect.height / height);
 		}
 		else
 		{
 			NSUInteger windowStyleMask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
-			_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(0, 0, configuration.Width(), configuration.Height()) andStyleMask:windowStyleMask];
 			
-			[(RNNativeWindow *)_nativeWindow center];
+			uint32 x = screen->GetFrame().x + ((screen->GetWidth()  / 2.0f) - (width / 2.0f));
+			uint32 y = screen->GetFrame().y + ((screen->GetHeight() / 2.0f) - (height / 2.0f));
+			
+			_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(x, y, width, height) andStyleMask:windowStyleMask];
 			
 			renderer->SetDefaultFrame(width, height);
+			renderer->SetDefaultFactor(1.0f, 1.0f);
 		}
 		
 		[(RNNativeWindow *)_nativeWindow setReleasedWhenClosed:NO];
@@ -659,16 +691,27 @@ namespace RN
 		}
 #endif
 		
+		bool screenChanged = (_activeScreen != screen);
+		bool scaleChanged = (!_activeScreen || Math::FastAbs(_activeScreen->GetScaleFactor() - screen->GetScaleFactor()) > k::EpsilonFloat);
+		
 		_mask = mask;
 		_activeConfiguration = configuration;
+		_activeScreen = screen;
 		
 		SetTitle(_title);
+		
 		MessageCenter::SharedInstance()->PostMessage(kRNWindowConfigurationChanged, nullptr, nullptr);
+		
+		if(screenChanged)
+			MessageCenter::SharedInstance()->PostMessage(kRNWindowScreenChanged, nullptr, nullptr);
+		
+		if(scaleChanged)
+			MessageCenter::SharedInstance()->PostMessage(kRNWindowScaleFactorChanged, nullptr, nullptr);
 	}
 
 	Rect Window::Frame() const
 	{
-		return Rect(0, 0, _activeConfiguration.Width(), _activeConfiguration.Height());
+		return Rect(0, 0, _activeConfiguration->GetWidth(), _activeConfiguration->GetHeight());
 	}
 
 	void Window::ShowCursor()

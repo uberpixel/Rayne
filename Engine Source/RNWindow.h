@@ -16,40 +16,59 @@
 #include "RNRect.h"
 #include "RNMessage.h"
 
-#define kRNWindowConfigurationChanged RNCSTR("kRNWindowConfigurationChanged")
+#define kRNWindowConfigurationChanged   RNCSTR("kRNWindowConfigurationChanged")
+#define kRNWindowScaleFactorChanged     RNCSTR("kRNWindowScaleFactorChanged")
+#define kRNWindowScreenChanged          RNCSTR("kRNWindowScreenChanged")
 
 namespace RN
 {
 	class Window;
+	class Screen;
+	
 	class WindowConfiguration
 	{
-	friend class Window;
 	public:
-#if RN_PLATFORM_MAC_OS
-		RNAPI WindowConfiguration(CGDisplayModeRef mode);
-		RNAPI WindowConfiguration(const WindowConfiguration& other);
-		RNAPI ~WindowConfiguration();
-#endif
-#if RN_PLATFORM_LINUX
-		RNAPI WindowConfiguration(int32 index, uint32 width, uint32 height);
-#endif
+		friend class Window;
+		friend class Screen;
 		
 		RNAPI WindowConfiguration(uint32 width, uint32 height);
+		RNAPI WindowConfiguration(uint32 width, uint32 height, Screen *screen);
 		
-		uint32 Width() const { return _width; }
-		uint32 Height() const { return _height; }
+		Screen *GetScreen() const { return _screen; }
+		uint32 GetWidth()  const { return _width; }
+		uint32 GetHeight() const { return _height; }
 		
 	private:
+		Screen *_screen;
+		
+		uint32 _width;
+		uint32 _height;
+	};
+	
+	class Screen
+	{
+	public:
+		friend class Window;
+		
+		uint32 GetWidth() const { return _width; }
+		uint32 GetHeight() const { return _height; }
+		
+		float GetScaleFactor() const { return _scaleFactor; }
+		const Rect GetFrame() const { return _frame; }
+		
+		const std::vector<WindowConfiguration *>& GetConfigurations() const { return _configurations; }
+		
+	private:
+		Screen(CGDirectDisplayID display);
+		
 		uint32 _width;
 		uint32 _height;
 		
-#if RN_PLATFORM_MAC_OS
-		CGDisplayModeRef _mode;
-#endif
+		Rect _frame;
+		float _scaleFactor;
 		
-#if RN_PLATFORM_LINUX
-		int32 _modeIndex;
-#endif
+		CGDirectDisplayID _display;
+		std::vector<WindowConfiguration *> _configurations;
 	};
 	
 	class Kernel;
@@ -64,18 +83,21 @@ namespace RN
 		typedef uint32 WindowMask;
 		
 		RNAPI Window();
-		RNAPI virtual ~Window();
+		RNAPI ~Window() override;
 
 		RNAPI void SetTitle(const std::string& title);
-		RNAPI void SetConfiguration(const WindowConfiguration& configuration, WindowMask mask);
+		RNAPI void SetConfiguration(const WindowConfiguration *configuration, WindowMask mask);
 		
 		RNAPI void ShowCursor();
 		RNAPI void HideCursor();
 
-		const WindowConfiguration& ActiveConfiguration() const { return _activeConfiguration; }
-		const std::vector<WindowConfiguration>& Configurations() const { return _configurations; }
-		
 		RNAPI Rect Frame() const;
+		
+		Screen *GetActiveScreen() const { return _activeScreen; }
+		Screen *GetMainScreen() const { return _mainScreen; }
+		
+		const WindowConfiguration *GetConfiguration() const { return _activeConfiguration; }
+		const std::vector<Screen *>& GetScreens() const { return _screens; }
 
 	private:
 #if RN_PLATFORM_MAC_OS
@@ -106,11 +128,15 @@ namespace RN
 		Kernel *_kernel;
 		
 		std::string _title;
+		WindowMask _mask;
+		
 		bool _cursorVisible;
 		
-		WindowMask _mask;
-		WindowConfiguration _activeConfiguration;
-		std::vector<WindowConfiguration> _configurations;
+		std::vector<Screen *> _screens;
+		Screen *_mainScreen;
+		Screen *_activeScreen;
+		
+		WindowConfiguration *_activeConfiguration;
 	};
 }
 
