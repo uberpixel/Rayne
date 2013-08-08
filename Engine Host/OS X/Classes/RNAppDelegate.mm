@@ -24,6 +24,7 @@
 	if(!kernel->Tick())
 	{
 		delete kernel;
+		kernel = nullptr;
 		
 		[timer invalidate];
 		[NSApp terminate:self];
