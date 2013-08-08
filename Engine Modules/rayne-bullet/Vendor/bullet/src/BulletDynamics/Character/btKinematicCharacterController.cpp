@@ -139,7 +139,7 @@ btKinematicCharacterController::btKinematicCharacterController (btPairCachingGho
 	m_convexShape=convexShape;	
 	m_useWalkDirection = true;	// use walk direction by default, legacy behavior
 	m_velocityTimeInterval = 0.0;
-	m_verticalVelocity = 0.0;
+	m_verticalVelocity = -1.0;
 	m_verticalOffset = 0.0;
 	m_gravity = 9.8 * 3 ; // 3G acceleration.
 	m_fallSpeed = 55.0; // Terminal velocity of a sky diver in m/s.
@@ -531,6 +531,8 @@ void btKinematicCharacterController::playerStep (  btCollisionWorld* collisionWo
 	}
 
 	m_wasOnGround = onGround();
+	if(m_wasOnGround && m_walkDirection.length() < 0.0001f)
+		return;
 
 	// Update fall velocity.
 	m_verticalVelocity -= m_gravity * dt;

@@ -122,8 +122,8 @@ namespace RN
 			
 			_controller = new btKinematicCharacterController(ghost, static_cast<btConvexShape *>(_shape->bulletShape()), _stepHeight);
 			_controller->warp(btVector3(position.x-_offset.x, position.y-_offset.y, position.z-_offset.z));
-			_controller->setJumpSpeed(9.81);
-			_controller->setGravity(9.81);
+			_controller->setJumpSpeed(5.0f);
+			_controller->setGravity(9.81f);
 			
 			return ghost;
 		}
