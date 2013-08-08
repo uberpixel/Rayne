@@ -88,6 +88,18 @@ namespace RN
 		}
 		
 		
+		bool KinematicController::IsOnGround()
+		{
+			bulletCollisionObject();
+			return _controller->canJump();
+		}
+		
+		void KinematicController::Jump()
+		{
+			bulletCollisionObject();
+			_controller->jump();
+		}
+		
 		
 		void KinematicController::Update(float delta)
 		{
