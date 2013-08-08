@@ -518,7 +518,7 @@ namespace RN
 		}
 		else
 		{
-			Rect tframe(frame);
+			Rect tframe(target->RenderingFrame());
 			const Rect& targetFrame = target->Frame();
 			
 			if(stretchHorizontal)
