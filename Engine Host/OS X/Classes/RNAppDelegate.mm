@@ -97,4 +97,9 @@
 	}
 }
 
+- (void)applicationWillTerminate:(NSNotification *)notification
+{
+	delete kernel;
+}
+
 @end
