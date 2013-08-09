@@ -31,6 +31,8 @@
 #include "RNModule.h"
 #include "RNWorldAttachment.h"
 
+#include "RNResourceCoordinator.h"
+#include "RNResource.h"
 #include "RNSkeleton.h"
 #include "RNModel.h"
 #include "RNTextureLoader.h"
