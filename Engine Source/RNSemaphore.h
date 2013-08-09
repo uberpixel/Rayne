@@ -16,7 +16,7 @@ namespace RN
 	class Semaphore
 	{
 	public:
-		Semaphore(uint32 count) :
+		Semaphore(size_t count) :
 			_count(count),
 			_initial(count)
 		{}
@@ -57,8 +57,8 @@ namespace RN
 		}
 		
 	private:
-		uint32 _count;
-		uint32 _initial;
+		size_t _count;
+		size_t _initial;
 		
 		std::condition_variable _condition;
 		std::mutex _mutex;
