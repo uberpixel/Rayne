@@ -147,6 +147,7 @@ btKinematicCharacterController::btKinematicCharacterController (btPairCachingGho
 	m_wasOnGround = false;
 	m_wasJumping = false;
 	setMaxSlope(btRadians(45.0));
+	m_wasBlocked = false;
 }
 
 btKinematicCharacterController::~btKinematicCharacterController ()
@@ -331,6 +332,7 @@ void btKinematicCharacterController::stepForwardAndStrafe ( btCollisionWorld* co
 
 	int maxIter = 10;
 
+	m_wasBlocked = false;
 	while (fraction > btScalar(0.01) && maxIter-- > 0)
 	{
 		start.setOrigin (m_currentPosition);
@@ -366,7 +368,7 @@ void btKinematicCharacterController::stepForwardAndStrafe ( btCollisionWorld* co
 			hitDistance = (callback.m_hitPointWorld - m_currentPosition).length();
 
 //			m_currentPosition.setInterpolate3 (m_currentPosition, m_targetPosition, callback.m_closestHitFraction);
-
+			m_wasBlocked = true;
 			updateTargetPositionBasedOnCollision (callback.m_hitNormalWorld);
 			btVector3 currentDir = m_targetPosition - m_currentPosition;
 			distance2 = currentDir.length2();
@@ -642,6 +644,11 @@ btScalar btKinematicCharacterController::getMaxSlope() const
 bool btKinematicCharacterController::onGround () const
 {
 	return m_verticalVelocity == 0.0 && m_verticalOffset == 0.0;
+}
+
+bool btKinematicCharacterController::wasBlocked() const
+{
+	return m_wasBlocked;
 }
 
 

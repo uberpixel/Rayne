@@ -46,6 +46,7 @@ namespace RN
 			virtual void Update(float delta);
 			
 			bool IsOnGround();
+			bool WasBlocked();
 			void Jump();
 			
 			Shape *CollisionShape() const { return _shape; }

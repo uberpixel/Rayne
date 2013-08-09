@@ -94,6 +94,12 @@ namespace RN
 			return _controller->canJump();
 		}
 		
+		bool KinematicController::WasBlocked()
+		{
+			bulletCollisionObject();
+			return _controller->wasBlocked();
+		}
+		
 		void KinematicController::Jump()
 		{
 			bulletCollisionObject();

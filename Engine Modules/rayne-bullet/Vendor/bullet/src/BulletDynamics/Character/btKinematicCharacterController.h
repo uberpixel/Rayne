@@ -77,6 +77,7 @@ protected:
 	bool  m_wasJumping;
 	bool	m_useGhostObjectSweepTest;
 	bool	m_useWalkDirection;
+	bool m_wasBlocked;
 	btScalar	m_velocityTimeInterval;
 	int m_upAxis;
 
@@ -161,6 +162,8 @@ public:
 	}
 
 	bool onGround () const;
+	
+	bool wasBlocked() const;
 };
 
 #endif // BT_KINEMATIC_CHARACTER_CONTROLLER_H
