@@ -152,4 +152,25 @@ namespace RN
 	}
 }
 
+namespace std
+{
+	template<>
+	struct hash<RN::Object>
+	{
+		size_t operator()(const RN::Object *object) const
+		{
+			return static_cast<size_t>(object->Hash());
+		}
+	};
+	
+	template<>
+	struct equal_to<RN::Object>
+	{
+		bool operator()(const RN::Object *object1, const RN::Object *object2) const
+		{
+			return object1->IsEqual(const_cast<RN::Object *>(object2));
+		}
+	};
+}
+
 #endif /* __RAYNE_OBJECT_H__ */
