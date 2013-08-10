@@ -15,6 +15,8 @@
 		C094DF871753A2BA002A2C88 /* RNWater.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C094DF851753A2BA002A2C88 /* RNWater.cpp */; };
 		C094DF881753A2BA002A2C88 /* RNWater.h in Headers */ = {isa = PBXBuildFile; fileRef = C094DF861753A2BA002A2C88 /* RNWater.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C0C3AD351764B6C4007FADC9 /* RNHit.h in Headers */ = {isa = PBXBuildFile; fileRef = C0C3AD341764B6C4007FADC9 /* RNHit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D522CAFB17B6A0FD00DF64F3 /* RNGamepad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D522CAF917B6A0FD00DF64F3 /* RNGamepad.cpp */; };
+		D522CAFC17B6A0FD00DF64F3 /* RNGamepad.h in Headers */ = {isa = PBXBuildFile; fileRef = D522CAFA17B6A0FD00DF64F3 /* RNGamepad.h */; };
 		E911D6FA1754060E00DD1F55 /* RNAlgorithm.h in Headers */ = {isa = PBXBuildFile; fileRef = E911D6F91754060E00DD1F55 /* RNAlgorithm.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9145CAC16BA9076004BDEC8 /* RNAutoreleasePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9145CAA16BA9076004BDEC8 /* RNAutoreleasePool.cpp */; };
 		E9145CAD16BA9076004BDEC8 /* RNAutoreleasePool.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -246,6 +248,8 @@
 		C094DF851753A2BA002A2C88 /* RNWater.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWater.cpp; sourceTree = "<group>"; };
 		C094DF861753A2BA002A2C88 /* RNWater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWater.h; sourceTree = "<group>"; };
 		C0C3AD341764B6C4007FADC9 /* RNHit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNHit.h; sourceTree = "<group>"; };
+		D522CAF917B6A0FD00DF64F3 /* RNGamepad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNGamepad.cpp; sourceTree = "<group>"; };
+		D522CAFA17B6A0FD00DF64F3 /* RNGamepad.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNGamepad.h; sourceTree = "<group>"; };
 		E911D6F91754060E00DD1F55 /* RNAlgorithm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAlgorithm.h; sourceTree = "<group>"; };
 		E9145CAA16BA9076004BDEC8 /* RNAutoreleasePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNAutoreleasePool.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAutoreleasePool.h; sourceTree = "<group>"; };
@@ -809,6 +813,8 @@
 				E91F784116CE336000FFD318 /* RNThreadPool.h */,
 				E9619E241696157E00DA187E /* RNWindow.cpp */,
 				E9619E251696157E00DA187E /* RNWindow.h */,
+				D522CAF917B6A0FD00DF64F3 /* RNGamepad.cpp */,
+				D522CAFA17B6A0FD00DF64F3 /* RNGamepad.h */,
 			);
 			name = System;
 			sourceTree = "<group>";
@@ -918,6 +924,7 @@
 				E9BEC9CF179CDFCB00C05623 /* RNUITextEditor.h in Headers */,
 				E9AD2A8217612F8000BC3E8F /* RNUITextStyle.h in Headers */,
 				E96C5665177C8AC3007FAF7C /* RNRenderer32.h in Headers */,
+				D522CAFC17B6A0FD00DF64F3 /* RNGamepad.h in Headers */,
 				E96C566F177E4FD8007FAF7C /* RNUITypesetter.h in Headers */,
 				E940FAC6178072FA00C69B88 /* RNIntervalTree.h in Headers */,
 				E940FAD0178084D100C69B88 /* RNAttributedString.h in Headers */,
@@ -1029,6 +1036,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D522CAFB17B6A0FD00DF64F3 /* RNGamepad.cpp in Sources */,
 				E9619E291696157E00DA187E /* RNBase.cpp in Sources */,
 				E9619E2B1696157E00DA187E /* RNCamera.cpp in Sources */,
 				E9619E2E1696157E00DA187E /* RNContext.cpp in Sources */,
