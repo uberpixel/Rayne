@@ -44,12 +44,12 @@ namespace RN
 		struct PCMPackage
 		{
 			uint32 bitRate;
-			std::vector<std::vector<float>> samples;
-			size_t sampleCount;
+			std::vector<std::vector<uint8>> samples;
+			size_t length;
 		};
 		
 		virtual double GetDuration() = 0;
-		virtual PCMPackage GetPCMData(size_t maxSamples) = 0;
+		virtual PCMPackage GetPCMData(size_t maxBytes) = 0;
 		
 		virtual uint32 GetChannels() = 0;
 		virtual uint32 GetBitRate() = 0;
