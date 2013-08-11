@@ -48,6 +48,7 @@ namespace RN
 		Vector2 axis1;
 		float trigger0;
 		float trigger1;
+		IOHIDDeviceRef device;
 		
 		void SetButton(unsigned char button, bool state)
 		{
@@ -76,7 +77,9 @@ namespace RN
 		int GetIntDeviceProperty(IOHIDDeviceRef device, CFStringRef key);
 		float MapAnalogAxis(IOHIDValueRef value, IOHIDElementRef element);
 		
-		Gamepad *gamepad;
+		Gamepad *GetGamepad(int gamepad);
+		
+		std::vector<Gamepad *> gamepads;
 		
 	private:
 		static void OnDeviceConnected(void* context, IOReturn result, void* sender, IOHIDDeviceRef device);

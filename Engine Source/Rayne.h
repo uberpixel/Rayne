@@ -23,6 +23,7 @@
 #include "RNApplication.h"
 #include "RNResourcePool.h"
 #include "RNInput.h"
+#include "RNGamepad.h"
 #include "RNMessage.h"
 #include "RNFile.h"
 #include "RNPathManager.h"

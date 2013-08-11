@@ -15,7 +15,6 @@
 #include "RNInput.h"
 
 #if RN_PLATFORM_MAC_OS
-#include "RNGamepad.h"
 
 // ---------------------
 // MARK: -
@@ -25,7 +24,6 @@
 @interface RNNativeWindow : NSWindow <NSWindowDelegate>
 {
 	NSOpenGLView *_openGLView;
-	RN::GamepadManager *_gamepadManager;
 }
 
 @end
@@ -133,15 +131,12 @@
 		[self setContentView:_openGLView];
 		[self setDelegate:self];
 	}
-	
-	_gamepadManager = new RN::GamepadManager();
 
 	return self;
 }
 
 - (void)dealloc
 {
-	delete _gamepadManager;
 	[_openGLView release];
 	[super dealloc];
 }
