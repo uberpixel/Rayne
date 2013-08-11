@@ -81,6 +81,7 @@ namespace RN
 		if(!bestMatch)
 			return nullptr;
 		
+		file->Seek(0);
 		return bestMatch->ResourceForFile(file, info)->Autorelease();
 	}
 	
