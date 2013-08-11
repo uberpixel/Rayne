@@ -68,6 +68,9 @@ namespace RN
 		AutoreleasePool *pool = new AutoreleasePool();
 		_app->WillExit();
 		
+		ModuleCoordinator *coordinator = ModuleCoordinator::SharedInstance();
+		
+		delete coordinator;
 		delete _app;
 
 		delete _renderer;

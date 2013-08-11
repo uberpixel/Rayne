@@ -107,6 +107,14 @@ namespace RN
 		}
 	}
 	
+	ModuleCoordinator::~ModuleCoordinator()
+	{
+		for(Module *module : _modules)
+		{
+			delete module;
+		}
+	}
+	
 	Module *ModuleCoordinator::ModuleWithName(const std::string& name)
 	{
 		for(auto i=_modules.begin(); i!=_modules.end(); i++)

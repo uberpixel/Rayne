@@ -74,6 +74,7 @@ namespace RN
 	{
 	public:
 		ModuleCoordinator();
+		~ModuleCoordinator() override;
 		
 		Module *ModuleWithName(const std::string& name);
 		
