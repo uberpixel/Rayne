@@ -373,6 +373,8 @@
 
 namespace RN
 {
+	RNDeclareMeta(WindowConfiguration)
+	
 	// ---------------------
 	// MARK: -
 	// MARK: WindowConfiguration
@@ -462,7 +464,8 @@ namespace RN
 							height >>= 1;
 						}
 						
-						_configurations.emplace_back(new WindowConfiguration(width, height, this));
+						WindowConfiguration *configuration = new WindowConfiguration(width, height, this);
+						_configurations.AddObject(configuration->Autorelease());
 					}
 				}
 				
@@ -472,23 +475,20 @@ namespace RN
 		
 		CFRelease(array);
 		
-		// Sort the configurations
-		std::sort(_configurations.begin(), _configurations.end(), [](WindowConfiguration *a, WindowConfiguration *b) {
-			if(a->GetWidth() < b->GetWidth())
-				return true;
+		_configurations.Sort<WindowConfiguration>([](const WindowConfiguration *left, const WindowConfiguration *right) {
 			
-			if(a->GetWidth() == b->GetWidth() && a->GetHeight() < b->GetHeight())
-				return true;
+			if(left->GetWidth() < right->GetWidth())
+				return ComparisonResult::LessThan;
 			
-			return false;
+			if(left->GetWidth() == right->GetWidth() && left->GetHeight() < right->GetHeight())
+				return ComparisonResult::LessThan;
+			
+			return ComparisonResult::GreaterThan;
 		});
 	}
 	
 	Screen::~Screen()
-	{
-		for(WindowConfiguration *configuration : _configurations)
-			delete configuration;
-	}
+	{}
 	
 	// ---------------------
 	// MARK: -
@@ -502,6 +502,7 @@ namespace RN
 		
 		_mask = 0;
 		_cursorVisible = true;
+		_mouseCaptured = false;
 		_activeScreen  = nullptr;
 		_activeConfiguration = nullptr;
 		
@@ -529,8 +530,7 @@ namespace RN
 		}
 		
 		delete[] table;
-		
-		_nativeWindow = 0;
+		_nativeWindow = nullptr;
 #endif
 		
 #if RN_PLATFORM_LINUX
@@ -569,7 +569,7 @@ namespace RN
 #endif
 		
 		SetTitle("");
-		SetConfiguration(_mainScreen->GetConfigurations().at(0), _mask);
+		SetConfiguration(_mainScreen->GetConfigurations().ObjectAtIndex<WindowConfiguration>(0), _mask);
 	}
 
 	Window::~Window()
@@ -586,6 +586,8 @@ namespace RN
 		{
 			delete screen;
 		}
+		
+		_activeConfiguration->Release();
 	}
 
 	void Window::SetTitle(const std::string& title)
@@ -603,7 +605,7 @@ namespace RN
 	
 	void Window::SetConfiguration(const WindowConfiguration *tconfiguration, WindowMask mask)
 	{
-		if(tconfiguration == _activeConfiguration)
+		if(tconfiguration->IsEqual(_activeConfiguration))
 			return;
 		
 		WindowConfiguration *configuration = const_cast<WindowConfiguration *>(tconfiguration);
@@ -707,7 +709,11 @@ namespace RN
 		bool scaleChanged = (!_activeScreen || Math::FastAbs(_activeScreen->GetScaleFactor() - screen->GetScaleFactor()) > k::EpsilonFloat);
 		
 		_mask = mask;
-		_activeConfiguration = configuration;
+		
+		if(_activeConfiguration)
+			_activeConfiguration->Release();
+		
+		_activeConfiguration = configuration->Retain();
 		_activeScreen = screen;
 		
 		SetTitle(_title);
@@ -757,6 +763,11 @@ namespace RN
 	
 	void Window::HideCursor()
 	{
+		if(!_cursorVisible)
+			return;
+		
+		_cursorVisible = false;
+		
 #if RN_PLATFORM_MAC_OS
 		[NSCursor hide];
 #endif
@@ -765,8 +776,29 @@ namespace RN
 		XDefineCursor(_dpy, _win, _emptyCursor);
 #endif
 	}
+	
+	void Window::CaptureMouse()
+	{
+		if(_mouseCaptured)
+			return;
+		
+		_mouseCaptured = true;
+		
+#if RN_PLATFORM_MAC_OS
+#endif
+	}
+	
+	void Window::ReleaseMouse()
+	{
+		if(!_mouseCaptured)
+			return;
+		
+		_mouseCaptured = false;
+		
+#if RN_PLATFORM_MAC_OS
+#endif
+	}
 }
-
 
 
 #if RN_PLATFORM_WINDOWS

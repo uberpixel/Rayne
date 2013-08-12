@@ -25,7 +25,7 @@ namespace RN
 	class Window;
 	class Screen;
 	
-	class WindowConfiguration
+	class WindowConfiguration : public Object
 	{
 	public:
 		friend class Window;
@@ -43,6 +43,8 @@ namespace RN
 		
 		uint32 _width;
 		uint32 _height;
+		
+		RNDefineMeta(WindowConfiguration, Object)
 	};
 	
 	class Screen
@@ -58,7 +60,7 @@ namespace RN
 		float GetScaleFactor() const { return _scaleFactor; }
 		const Rect GetFrame() const { return _frame; }
 		
-		const std::vector<WindowConfiguration *>& GetConfigurations() const { return _configurations; }
+		const Array& GetConfigurations() const { return _configurations; }
 		
 	private:
 		Screen(CGDirectDisplayID display);
@@ -70,7 +72,7 @@ namespace RN
 		float _scaleFactor;
 		
 		CGDirectDisplayID _display;
-		std::vector<WindowConfiguration *> _configurations;
+		Array _configurations;
 	};
 	
 	class Kernel;
@@ -92,6 +94,9 @@ namespace RN
 		
 		RNAPI void ShowCursor();
 		RNAPI void HideCursor();
+		
+		RNAPI void CaptureMouse();
+		RNAPI void ReleaseMouse();
 
 		RNAPI Rect Frame() const;
 		
@@ -137,6 +142,7 @@ namespace RN
 		WindowMask _mask;
 		
 		bool _cursorVisible;
+		bool _mouseCaptured;
 		
 		std::vector<Screen *> _screens;
 		Screen *_mainScreen;
