@@ -59,6 +59,7 @@ namespace RN
 		RNAPI void SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere=true);
 		RNAPI void SetBoundingSphere(const Sphere& boundingSphere);
 		RNAPI void SetUpdatePriority(Priority priority);
+		RNAPI void SetDebugName(const std::string& name);
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
@@ -79,6 +80,8 @@ namespace RN
 		
 		RNAPI const AABB& BoundingBox() const;
 		RNAPI const Sphere& BoundingSphere() const;
+		
+		const std::string& DebugName() { return _debugName; }
 		
 		RNAPI void AttachChild(SceneNode *child);
 		RNAPI void DetachChild(SceneNode *child);
@@ -148,6 +151,7 @@ namespace RN
 		Priority _priority;
 		
 		std::function<void (SceneNode *, float)> _action;
+		std::string _debugName;
 		
 		mutable bool _updated;
 		mutable Vector3 _worldPosition;

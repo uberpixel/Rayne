@@ -89,6 +89,11 @@ namespace RN
 		_priority = priority;
 	}
 	
+	void SceneNode::SetDebugName(const std::string& name)
+	{
+		_debugName = name;
+	}
+	
 	
 	void SceneNode::AttachChild(SceneNode *child)
 	{
