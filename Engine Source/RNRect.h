@@ -32,6 +32,7 @@ namespace RN
 		
 		RNAPI Rect& Inset(float dx, float dy);
 		RNAPI Rect& Integral();
+		RNAPI Rect Integral() const;
 		
 		RNAPI float Top() const;
 		RNAPI float Bottom() const;
@@ -148,13 +149,26 @@ namespace RN
 	
 	RN_INLINE Rect& Rect::Integral()
 	{
-		x = roundf(x);
-		y = roundf(y);
+		x = floorf(x);
+		y = floorf(y);
 		
-		width  = roundf(width);
-		height = roundf(height);
+		width  = floorf(width);
+		height = floorf(height);
 		
 		return *this;
+	}
+	
+	RN_INLINE Rect Rect::Integral() const
+	{
+		Rect result(*this);
+		
+		result.x = floorf(result.x);
+		result.y = floorf(result.y);
+		
+		result.width  = floorf(result.width);
+		result.height = floorf(result.height);
+		
+		return result;
 	}
 	
 	
