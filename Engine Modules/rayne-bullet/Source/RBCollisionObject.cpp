@@ -16,7 +16,6 @@
 //
 
 #include "RBCollisionObject.h"
-#include "RBPhysicsWorld.h"
 
 namespace RN
 {

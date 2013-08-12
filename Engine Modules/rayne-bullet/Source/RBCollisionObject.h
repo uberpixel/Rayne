@@ -58,7 +58,7 @@ namespace RN
 			virtual void InsertIntoWorld(btDynamicsWorld *world);
 			virtual void RemoveFromWorld(btDynamicsWorld *world);
 			
-			PhysicsWorld *_world;
+			btDynamicsWorld *_world;
 			
 			PhysicsMaterial *_material;
 			btCollisionObject *_object;
