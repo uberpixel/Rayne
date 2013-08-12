@@ -470,7 +470,7 @@ namespace RN
 	{
 		if(_frame != frame)
 		{
-			_frame = frame;
+			_frame = std::move(frame.Integral());
 
 			if(_flags & FlagUpdateStorageFrame)
 				_storage->SetSize(frame.Size());
@@ -481,7 +481,7 @@ namespace RN
 
 	void Camera::SetRenderingFrame(const Rect& frame)
 	{
-		_renderingFrame = frame;
+		_renderingFrame = std::move(frame.Integral());
 	}
 	
 	void Camera::SetClearColor(const Color& clearColor)
