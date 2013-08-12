@@ -140,6 +140,8 @@
 		E99A955E1729AE1800605C68 /* RNInstancingNode.h in Headers */ = {isa = PBXBuildFile; fileRef = E99A955C1729AE1800605C68 /* RNInstancingNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E99A9561172A002100605C68 /* RNNumber.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E99A955F172A002100605C68 /* RNNumber.cpp */; };
 		E99A9562172A002100605C68 /* RNNumber.h in Headers */ = {isa = PBXBuildFile; fileRef = E99A9560172A002100605C68 /* RNNumber.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E99D971417B982130066B0AE /* libangelscript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E99D971317B982070066B0AE /* libangelscript.a */; };
+		E99D971A17B9823D0066B0AE /* angelscript.h in Headers */ = {isa = PBXBuildFile; fileRef = E99D971917B9823D0066B0AE /* angelscript.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9A872D717573D5800E06C27 /* RNArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872D617573D5800E06C27 /* RNArray.cpp */; };
 		E9A872DA17573D7100E06C27 /* RNDictionary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872D817573D7100E06C27 /* RNDictionary.cpp */; };
 		E9A872DB17573D7100E06C27 /* RNDictionary.h in Headers */ = {isa = PBXBuildFile; fileRef = E9A872D917573D7100E06C27 /* RNDictionary.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -222,6 +224,20 @@
 			proxyType = 1;
 			remoteGlobalIDString = E995E39B169496FA00B2E0C3;
 			remoteInfo = png;
+		};
+		E99D971217B982070066B0AE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E99D966717B980520066B0AE;
+			remoteInfo = angelscript;
+		};
+		E99D971517B982180066B0AE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E99D966617B980520066B0AE;
+			remoteInfo = angelscript;
 		};
 		E9ECEEB716D7F09800C6CF09 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -378,6 +394,8 @@
 		E99A955C1729AE1800605C68 /* RNInstancingNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNInstancingNode.h; sourceTree = "<group>"; };
 		E99A955F172A002100605C68 /* RNNumber.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNNumber.cpp; sourceTree = "<group>"; };
 		E99A9560172A002100605C68 /* RNNumber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNNumber.h; sourceTree = "<group>"; };
+		E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "angelscript-osx.xcodeproj"; path = "../../Vendor/angelscript/angelscript-osx.xcodeproj"; sourceTree = "<group>"; };
+		E99D971917B9823D0066B0AE /* angelscript.h */ = {isa = PBXFileReference; lastKnownFileType = file; name = angelscript.h; path = ../../Vendor/angelscript/include/angelscript.h; sourceTree = "<group>"; };
 		E9A872D617573D5800E06C27 /* RNArray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNArray.cpp; sourceTree = "<group>"; };
 		E9A872D817573D7100E06C27 /* RNDictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDictionary.cpp; sourceTree = "<group>"; };
 		E9A872D917573D7100E06C27 /* RNDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNDictionary.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -450,6 +468,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E99D971417B982130066B0AE /* libangelscript.a in Frameworks */,
 				E9E83F4A172A51440075559B /* libbz2.dylib in Frameworks */,
 				E9F6B5AC167FE6CF00EBE826 /* Cocoa.framework in Frameworks */,
 				E991F1BF16BB231000B205A1 /* IOKit.framework in Frameworks */,
@@ -549,10 +568,20 @@
 		E995E408169497DB00B2E0C3 /* Vendor */ = {
 			isa = PBXGroup;
 			children = (
+				E99D971917B9823D0066B0AE /* angelscript.h */,
+				E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */,
 				E9ECEEB316D7F09800C6CF09 /* jansson-osx.xcodeproj */,
 				E9619F791696FDC000DA187E /* png-osx.xcodeproj */,
 			);
 			name = Vendor;
+			sourceTree = "<group>";
+		};
+		E99D970F17B982060066B0AE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E99D971317B982070066B0AE /* libangelscript.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		E9B083F31718A2E0009AD83F /* Objects */ = {
@@ -849,6 +878,7 @@
 				E9619E541696157E00DA187E /* RNTextureLoader.h in Headers */,
 				E9619E561696157E00DA187E /* RNThread.h in Headers */,
 				E9619E571696157E00DA187E /* RNVector.h in Headers */,
+				E99D971A17B9823D0066B0AE /* angelscript.h in Headers */,
 				E9619E591696157E00DA187E /* RNWindow.h in Headers */,
 				E9619E5B1696157E00DA187E /* RNWorld.h in Headers */,
 				E9F77799169C5CF8006EE702 /* RNOpenGL.h in Headers */,
@@ -954,6 +984,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				E99D971617B982180066B0AE /* PBXTargetDependency */,
 				E9ECEEBB16D7F0ED00C6CF09 /* PBXTargetDependency */,
 				E9619F831696FDD700DA187E /* PBXTargetDependency */,
 			);
@@ -983,6 +1014,10 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+					ProductGroup = E99D970F17B982060066B0AE /* Products */;
+					ProjectRef = E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */;
+				},
+				{
 					ProductGroup = E9ECEEB416D7F09800C6CF09 /* Products */;
 					ProjectRef = E9ECEEB316D7F09800C6CF09 /* jansson-osx.xcodeproj */;
 				},
@@ -1004,6 +1039,13 @@
 			fileType = archive.ar;
 			path = libpng.a;
 			remoteRef = E9619F7D1696FDC000DA187E /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		E99D971317B982070066B0AE /* libangelscript.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libangelscript.a;
+			remoteRef = E99D971217B982070066B0AE /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		E9ECEEB816D7F09800C6CF09 /* libjansson.a */ = {
@@ -1127,6 +1169,11 @@
 			isa = PBXTargetDependency;
 			name = png;
 			targetProxy = E9619F821696FDD700DA187E /* PBXContainerItemProxy */;
+		};
+		E99D971617B982180066B0AE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = angelscript;
+			targetProxy = E99D971517B982180066B0AE /* PBXContainerItemProxy */;
 		};
 		E9ECEEBB16D7F0ED00C6CF09 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
