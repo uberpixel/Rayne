@@ -30,8 +30,9 @@ namespace RN
 		class PhysicsWorld;
 		class CollisionObject : public Entity
 		{
-		friend class PhysicsWorld;
-		public:			
+		public:
+			friend class PhysicsWorld;
+			
 			void SetMaterial(PhysicsMaterial *material);
 			PhysicsMaterial *Material() const { return _material; }
 			
@@ -54,8 +55,10 @@ namespace RN
 			virtual btCollisionObject *CreateCollisionObject() = 0;
 			virtual void ApplyPhysicsMaterial(PhysicsMaterial *material);
 			
-			virtual void InsertIntoWorld(btDynamicsWorld *world) {}
-			virtual void RemoveFromWorld(btDynamicsWorld *world) {}
+			virtual void InsertIntoWorld(btDynamicsWorld *world);
+			virtual void RemoveFromWorld(btDynamicsWorld *world);
+			
+			PhysicsWorld *_world;
 			
 			PhysicsMaterial *_material;
 			btCollisionObject *_object;

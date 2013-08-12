@@ -39,6 +39,8 @@ namespace RN
 			void AddCollisionObject(CollisionObject *object);
 			void RemoveCollisionObject(CollisionObject *object);
 			
+			Hit RayTrace(const Vector3& from, const Vector3& to);
+			
 			virtual void StepWorld(float delta);
 			virtual void DidAddSceneNode(SceneNode *node);
 			virtual void WillRemoveSceneNode(SceneNode *node);

@@ -54,6 +54,8 @@ namespace RN
 			btRigidBody::btRigidBodyConstructionInfo info(_mass, this, _shape->bulletShape(), btVector3(_inertia.x, _inertia.y, _inertia.z));
 			btRigidBody *rigidBody = new btRigidBody(info);
 			
+			rigidBody->setUserPointer(this);
+			
 			return rigidBody;
 		}
 		

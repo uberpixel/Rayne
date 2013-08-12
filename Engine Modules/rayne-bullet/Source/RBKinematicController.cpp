@@ -125,6 +125,7 @@ namespace RN
 			
 			ghost->setCollisionShape(_shape->bulletShape());
 			ghost->setCollisionFlags(ghost->getCollisionFlags() | btCollisionObject::CF_CHARACTER_OBJECT);
+			ghost->setUserPointer(this);
 			
 			_controller = new btKinematicCharacterController(ghost, static_cast<btConvexShape *>(_shape->bulletShape()), _stepHeight);
 			_controller->warp(btVector3(position.x-_offset.x, position.y-_offset.y, position.z-_offset.z));

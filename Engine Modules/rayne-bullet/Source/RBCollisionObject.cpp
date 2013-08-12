@@ -16,6 +16,7 @@
 //
 
 #include "RBCollisionObject.h"
+#include "RBPhysicsWorld.h"
 
 namespace RN
 {
@@ -27,6 +28,7 @@ namespace RN
 		{
 			_material = 0;
 			_object = 0;
+			_world = nullptr;
 		}
 		
 		CollisionObject::~CollisionObject()
@@ -70,6 +72,16 @@ namespace RN
 			
 			_object->setFriction(_material->Friction());
 			_object->setRestitution(_material->Restitution());
+		}
+		
+		void CollisionObject::InsertIntoWorld(btDynamicsWorld *world)
+		{
+			_world = world;
+		}
+		
+		void CollisionObject::RemoveFromWorld(btDynamicsWorld *world)
+		{
+			_world = nullptr;
 		}
 	}
 }

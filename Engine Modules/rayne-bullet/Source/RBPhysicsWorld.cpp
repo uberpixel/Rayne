@@ -70,6 +70,28 @@ namespace RN
 			}
 		}
 		
+		Hit PhysicsWorld::RayTrace(const Vector3& from, const Vector3& to)
+		{
+			btVector3 btRayFrom = btVector3(from.x, from.y, from.z);
+			btVector3 btRayTo   = btVector3(to.x, to.y, to.z);
+			
+			btCollisionWorld::ClosestRayResultCallback rayCallback(btRayFrom, btRayTo);
+			_dynamicsWorld->rayTest(btRayFrom, btRayTo, rayCallback);
+			
+			Hit hit;
+			
+			if(rayCallback.hasHit())
+			{
+				CollisionObject *body = reinterpret_cast<CollisionObject *>(rayCallback.m_collisionObject->getUserPointer());
+			
+				hit.node = body;
+				hit.position = Vector3(rayCallback.m_hitPointWorld.x(), rayCallback.m_hitPointWorld.y(), rayCallback.m_hitPointWorld.z());
+				hit.normal   = Vector3(rayCallback.m_hitNormalWorld.x(), rayCallback.m_hitNormalWorld.y(), rayCallback.m_hitNormalWorld.z());
+			}
+			
+			return hit;
+		}
+		
 		
 		void PhysicsWorld::BuildDynamicsWorld()
 		{
