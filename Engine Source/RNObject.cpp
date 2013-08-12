@@ -51,8 +51,10 @@ namespace RN
 	{
 		if(_refCount.fetch_sub(1) == 1)
 		{
+			CleanUp();
+			
 			delete this;
-			return 0;
+			return nullptr;
 		}
 		
 		return this;
@@ -71,6 +73,9 @@ namespace RN
 		return this;
 	}
 	
+	
+	void Object::CleanUp()
+	{}
 	
 	void Object::Serialize(Serializer *serializer)
 	{

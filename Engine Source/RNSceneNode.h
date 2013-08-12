@@ -124,6 +124,7 @@ namespace RN
 	protected:
 		RNAPI void DidUpdate();
 		RNAPI void UpdateInternalData() const;
+		RNAPI void CleanUp() override;
 		
 		RNAPI virtual void ChildDidUpdate(SceneNode *child) {}
 		RNAPI virtual void DidAddChild(SceneNode *child)  {}

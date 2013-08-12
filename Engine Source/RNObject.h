@@ -70,6 +70,9 @@ namespace RN
 		void RemoveAssociatedOject(const void *key);
 		Object *AssociatedObject(const void *key);
 		
+	protected:
+		virtual void CleanUp();
+		
 	private:
 		class MetaType : public ConcreteMetaClass<Object>
 		{

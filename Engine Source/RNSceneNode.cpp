@@ -37,10 +37,7 @@ namespace RN
 	}
 	
 	SceneNode::~SceneNode()
-	{
-		if(_world)
-			_world->RemoveSceneNode(this);
-	}
+	{}
 	
 	void SceneNode::Initialize()
 	{
@@ -58,6 +55,13 @@ namespace RN
 		if(World::SharedInstance())
 			World::SharedInstance()->AddSceneNode(this);
 	}
+	
+	void SceneNode::CleanUp()
+	{
+		if(_world)
+			_world->RemoveSceneNode(this);
+	}
+	
 	
 	
 	bool SceneNode::IsVisibleInCamera(Camera *camera)
