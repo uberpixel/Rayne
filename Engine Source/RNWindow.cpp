@@ -113,6 +113,12 @@
 }
 
 
+- (void)windowDidBecomeKey:(NSNotification *)notification
+{
+	RN::Input::SharedInstance()->InvalidateMouse();
+}
+
+
 - (void)setOpenGLContext:(NSOpenGLContext *)context andPixelFormat:(NSOpenGLPixelFormat *)pixelFormat
 {
 	[_openGLView setOpenGLContext:context];

@@ -128,6 +128,7 @@ namespace RN
 		
 		RNAPI void DispatchInputEvents();
 		RNAPI void InvalidateFrame();
+		RNAPI void InvalidateMouse();
 		RNAPI void HandleEvent(void *data);
 		
 		const Vector2& MouseDelta() const { return _mouseDelta; }
@@ -155,6 +156,7 @@ namespace RN
 		
 		SpinLock _lock;
 		bool _active;
+		bool _invalidateMouse;
 	};
 }
 

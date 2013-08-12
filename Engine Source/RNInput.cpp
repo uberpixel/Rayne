@@ -91,12 +91,28 @@ namespace RN
 		return result;
 	}
 	
+	Vector2 TranslateMouseDelta(NSEvent *event, bool& ignoreDelta)
+	{
+		if(ignoreDelta)
+		{
+			ignoreDelta = false;
+			return Vector2();
+		}
+		
+		Vector2 delta;
+		
+		delta.x = -[event deltaX];
+		delta.y = -[event deltaY];
+		
+		return delta;
+	}
 	
 	
 	
 	Input::Input()
 	{
 		_active = true;
+		_invalidateMouse = true;
 	}
 	
 	Input::~Input()
@@ -202,6 +218,11 @@ namespace RN
 		_mouseWheel = Vector2(0.0f);
 	}
 	
+	void Input::InvalidateMouse()
+	{
+		_invalidateMouse = true;
+	}
+	
 	void Input::HandleEvent(void *data)
 	{
 		AutoreleasePool *pool = new AutoreleasePool();
@@ -304,7 +325,7 @@ namespace RN
 			case NSOtherMouseDragged:
 			{
 				Vector2 position = std::move(TranslateMouseEvent(nsevent));
-				Vector2 delta = _realMousePosition - position;
+				Vector2 delta    = std::move(TranslateMouseDelta(nsevent, _invalidateMouse));
 				
 				_mouseDelta += delta;
 				_realMousePosition = std::move(position);
@@ -320,7 +341,7 @@ namespace RN
 			case NSMouseMoved:
 			{
 				Vector2 position = std::move(TranslateMouseEvent(nsevent));
-				Vector2 delta = _realMousePosition - position;
+				Vector2 delta    = std::move(TranslateMouseDelta(nsevent, _invalidateMouse));
 				
 				_mouseDelta += delta;
 				_realMousePosition = std::move(position);
