@@ -245,6 +245,15 @@ namespace RN
 			}
 		}
 		
+		template<class T=Object>
+		void Sort(const std::function<ComparisonResult (const T *left, const T *right)>& function)
+		{
+			std::sort(_data, _data + _count, [&](const Object *left, const Object *right) -> bool {
+				ComparisonResult result = function(static_cast<const T *>(left), static_cast<const T *>(right));
+				return (result == ComparisonResult::LessThan);
+			});
+		}
+		
 	private:
 		void UpdateSizeIfNeeded(size_t required)
 		{
