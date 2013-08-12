@@ -25,12 +25,12 @@ namespace TG
 	void Application::Start()
 	{
 		RN::Window *window = RN::Window::SharedInstance();
-		RN::UI::DebugWidget *widget = new RN::UI::DebugWidget();
-		widget->Show();
+		//RN::UI::DebugWidget *widget = new RN::UI::DebugWidget();
+		//widget->Show();
 		
-		auto configs = RN::Window::SharedInstance()->Configurations();
-		window->SetConfiguration(configs.at(configs.size() - 3), 0);
-		
+		auto configs = RN::Window::SharedInstance()->GetMainScreen()->GetConfigurations();
+		window->SetConfiguration(configs.ObjectAtIndex<RN::WindowConfiguration>(configs.Count() - 2), 0);
+			
 		_world = new World();
 	}
 	
