@@ -25,6 +25,10 @@ namespace RN
 		lifespan = 1.0f;
 		lifespanVariance = 0.0f;
 		
+		blending = true;
+		blendSource = GL_ONE;
+		blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+		
 		depthwrite = false;
 		SetShader(ResourcePool::SharedInstance()->ResourceWithName<class Shader>(kRNResourceKeyParticleShader));
 	}
@@ -143,6 +147,17 @@ namespace RN
 		_rng = generator->Retain();
 	}
 	
+	
+	Particle *ParticleEmitter::SpawnParticle()
+	{
+		Particle *particle = CreateParticle();
+		particle->Initialize(this, _material);
+		
+		_particles.push_back(particle);
+		
+		return particle;
+	}
+	
 	void ParticleEmitter::SpawnParticles(uint32 particles)
 	{
 		if(particles == 0)
@@ -203,8 +218,14 @@ namespace RN
 	void ParticleEmitter::UpdateMesh()
 	{
 		ParticleData *data = _mesh->MeshData<ParticleData>();
-		for(Particle *particle : _particles)
+		
+		for(size_t i = 0; i < _particles.size(); i ++)
 		{
+			if(i >= _maxParticles)
+				break;
+			
+			Particle *particle = _particles[i];
+			
 			data->position = particle->position;
 			data->size     = particle->size;
 			data->color    = particle->color;

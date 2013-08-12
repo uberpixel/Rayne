@@ -52,6 +52,7 @@ namespace RN
 		RandomNumberGenerator *Generator() { return _rng; }
 		
 		void SpawnParticles(uint32 particles);
+		Particle *SpawnParticle();
 		virtual Particle *CreateParticle();
 		
 		void Update(float delta) override;
