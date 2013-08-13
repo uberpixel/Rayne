@@ -117,7 +117,10 @@ namespace RN
 			temp.function = std::move(f);
 			temp.batch    = nullptr;
 			
-			FeedTaskFastPath(std::move(temp));
+			std::vector<Task> tasks;
+			tasks.push_back(std::move(temp));
+			
+			FeedTasks(tasks);
 		}
 		
 		template<class F>
@@ -132,7 +135,10 @@ namespace RN
 			temp.function = std::move(task);
 			temp.batch    = nullptr;
 			
-			FeedTaskFastPath(std::move(temp));
+			std::vector<Task> tasks;
+			tasks.push_back(std::move(temp));
+			
+			FeedTasks(tasks);
 			
 			return result;
 		}
@@ -150,28 +156,33 @@ namespace RN
 			Batch *batch;
 		};
 		
-		Thread *CreateThread();
+		struct ThreadContext
+		{
+			ThreadContext(size_t size) :
+				hose(size)
+			{}
+			
+			stl::ring_buffer<Task> hose;
+			std::mutex lock;
+			std::condition_variable condition;
+		};
+		
+		Thread *CreateThread(size_t index);
 		
 		void Consumer();
-		void ReadTasks(std::vector<Task>& tasks);
 		void FeedTasks(std::vector<Task>& tasks);
-		void FeedTaskFastPath(Task&& task);
 		
 		Array _threads;
-		std::atomic<uint32> _resigned;
+		size_t _threadCount;
 		
-		stl::ring_buffer<Task> _tasks;
+		std::atomic<uint32> _resigned;
+		std::vector<ThreadContext *> _threadData;
 		
 		SpinLock _batchLock;
 		std::deque<Batch *> _batchPool;
 		
-		std::mutex _workMutex;
-		std::mutex _teardownMutex;
-		std::mutex _consumerMutex;
-		
-		std::condition_variable _workAvailableCondition;
-		std::condition_variable _teardownCondition;
-		std::condition_variable _consumerCondition;
+		std::mutex _feederLock;
+		std::condition_variable _feederCondition;
 	};
 }
 

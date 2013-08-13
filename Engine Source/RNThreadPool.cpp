@@ -7,10 +7,10 @@
 //
 
 #include "RNThreadPool.h"
+#include "RNNumber.h"
 #include "RNKernel.h"
 
-#define kRNThreadPoolTasksBuffer       4096
-#define kRNThreadPoolLocalQueueMaxSize 40
+#define kRNThreadPoolTasksBuffer 1024
 
 namespace RN
 {
@@ -47,17 +47,20 @@ namespace RN
 	// ---------------------
 	
 	
-	ThreadPool::ThreadPool(size_t maxJobs, size_t maxThreads) :
-		_tasks(maxJobs != 0 ? maxJobs : kRNThreadPoolTasksBuffer)
+	ThreadPool::ThreadPool(size_t maxJobs, size_t maxThreads)
 	{
 		_resigned.store(0);
 		
-		if(!maxThreads)
-			maxThreads = ThreadCoordinator::SharedInstance()->BaseConcurrency();
+		if(!maxJobs)
+			maxJobs = kRNThreadPoolTasksBuffer;
 		
-		for(size_t i=0; i<maxThreads; i++)
+		_threadCount = (maxThreads > 0) ? maxThreads : ThreadCoordinator::SharedInstance()->BaseConcurrency();
+		
+		for(size_t i = 0; i < _threadCount; i ++)
 		{
-			Thread *thread = CreateThread();
+			_threadData.push_back(new ThreadContext(maxJobs));
+			
+			Thread *thread = CreateThread(i);
 			thread->Detach();
 		}
 	}
@@ -72,15 +75,20 @@ namespace RN
 			thread->Cancel();
 		}
 		
-		std::unique_lock<std::mutex> lock(_teardownMutex);
-		_teardownCondition.wait(lock, [&]{ return (_resigned.load() == toResign); });
+		//std::unique_lock<std::mutex> lock(_teardownMutex);
+		//_teardownCondition.wait(lock, [&]{ return (_resigned.load() == toResign); });
+		
+		for(ThreadContext *context : _threadData)
+			delete context;
 	}
 	
 	
-	Thread *ThreadPool::CreateThread()
+	Thread *ThreadPool::CreateThread(size_t index)
 	{
 		Thread *thread = new Thread(std::bind(&ThreadPool::Consumer, this), false);
 		_threads.AddObject(thread);
+		
+		thread->SetObjectForKey(Number::WithUint32(static_cast<uint32>(index)), RNCSTR("__kThreadID"));
 		
 		return thread->Autorelease();
 	}
@@ -117,70 +125,38 @@ namespace RN
 		
 		while(toWrite > 0)
 		{
-			std::unique_lock<std::mutex> feedlock(_workMutex);
+			size_t perThread = toWrite / _threadCount;
 			
-			if(_tasks.size() == _tasks.capacity())
+			if(!perThread)
+				perThread = toWrite;
+			
+			
+			for(size_t i = 0; (i < _threadCount && toWrite > 0); i ++)
 			{
-				feedlock.unlock();
+				ThreadContext *context = _threadData[i];
 				
-				std::unique_lock<std::mutex> lock(_consumerMutex);
-				_consumerCondition.wait(lock);
-				
-				continue;
+				if(context->lock.try_lock())
+				{
+					size_t pushable = std::min(context->hose.capacity() - context->hose.size(), perThread);
+					
+					for(size_t j = 0; j < pushable; j ++)
+						context->hose.push(std::move(tasks[offset ++]));
+					
+					context->lock.unlock();
+					context->condition.notify_one();
+					
+					toWrite -= pushable;
+				}
 			}
 			
-			size_t pushable = std::min(_tasks.capacity() - _tasks.size(), toWrite);
-			toWrite -= pushable;
-			
-			for(size_t i=0; i<pushable; i++)
+			if(toWrite > 0)
 			{
-				_tasks.push(std::move(tasks[offset + i]));
+				std::unique_lock<std::mutex> lock(_feederLock);
+				_feederCondition.wait(lock);
 			}
-			
-			offset += pushable;
-			_workAvailableCondition.notify_all();
-		}
-	}
-	
-	void ThreadPool::FeedTaskFastPath(Task&& task)
-	{
-		while(1)
-		{
-			std::unique_lock<std::mutex> feedlock(_workMutex);
-			
-			if(_tasks.size() == _tasks.capacity())
-			{
-				feedlock.unlock();
-				
-				std::unique_lock<std::mutex> lock(_consumerMutex);
-				_consumerCondition.wait(lock);
-				
-				continue;
-			}
-			
-			
-			_tasks.push(std::move(task));
-			_workAvailableCondition.notify_one();
-			
-			break;
-		}
-	}
-	
-	void ThreadPool::ReadTasks(std::vector<Task>& tasks)
-	{
-		std::unique_lock<std::mutex> lock(_workMutex);
-		_workAvailableCondition.wait(lock, [&]{ return (_tasks.size() > 0); });
-		
-		size_t move = std::min<size_t>(kRNThreadPoolLocalQueueMaxSize, std::max<size_t>(1, _tasks.size() / _threads.Count()));
-		tasks.reserve(move);
-		
-		for(size_t i = 0; i < move; i ++)
-		{
-			tasks.push_back(std::move(_tasks.front()));
-			_tasks.pop();
 		}
 		
-		_consumerCondition.notify_one();
+		tasks.clear();
 	}
 	
 	void ThreadPool::Consumer()
@@ -191,16 +167,17 @@ namespace RN
 		
 		context->MakeActiveContext();
 		
+		size_t threadID = thread->ObjectForKey<Number>(RNCSTR("__kThreadID"))->Uint32Value();
+		ThreadContext *local = _threadData[threadID];
+		
 		while(!thread->IsCancelled())
 		{
-			std::vector<Task> tasks;
-			ReadTasks(tasks);
+			std::unique_lock<std::mutex> lock(local->lock);
+			local->condition.wait(lock, [&]() { return (local->hose.size() > 0); });
 			
-			size_t size = tasks.size();
-			
-			for(size_t i = 0; i < size; i ++)
+			for(size_t i = 0; i < local->hose.size(); i ++)
 			{
-				Task& task = tasks[i];
+				Task& task = local->hose.front();
 				task.function();
 				
 				if(task.batch)
@@ -213,15 +190,22 @@ namespace RN
 						task.batch->TryFeedingBack();
 					}
 				}
+				
+				local->hose.pop();
 			}
+			
+			
+			lock.unlock();
+			_feederCondition.notify_one();
 		}
 		
 		context->DeactivateContext();
+		
 		delete context;
 		delete pool;
 		
 		_resigned ++;
-		_teardownCondition.notify_one();
+		//_teardownCondition.notify_one();
 	}
 	
 	// ---------------------
