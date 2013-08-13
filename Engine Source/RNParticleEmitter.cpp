@@ -255,6 +255,9 @@ namespace RN
 	{
 		SceneNode::Render(renderer, camera);
 		
+		if(_particles.empty())
+			return;
+		
 		RenderingObject object;
 		object.mesh = _mesh;
 		object.count = static_cast<uint32>(_particles.size());
