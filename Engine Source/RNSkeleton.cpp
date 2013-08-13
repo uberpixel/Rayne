@@ -301,7 +301,7 @@ namespace RN
 			
 			if(inrange)
 			{
-				AnimationBone *newfirstbone = new AnimationBone(0, 0, bone->time, bone->position, bone->scale, bone->rotation);
+				AnimationBone *newfirstbone = new AnimationBone(0, 0, bone->time-start, bone->position, bone->scale, bone->rotation);
 				AnimationBone *newcurrbone = newfirstbone;
 				while(bone->nextFrame && maxtime <= bone->time)
 				{
@@ -310,7 +310,7 @@ namespace RN
 					if(bone->time > end)
 						break;
 					
-					newcurrbone = new AnimationBone(newcurrbone, 0, bone->time, bone->position, bone->scale, bone->rotation);
+					newcurrbone = new AnimationBone(newcurrbone, 0, bone->time-start, bone->position, bone->scale, bone->rotation);
 					newcurrbone->prevFrame->nextFrame = newcurrbone;
 				}
 				newcurrbone->nextFrame = newfirstbone;
