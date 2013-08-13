@@ -10,6 +10,7 @@
 #define __RAYNE_KERNEL_H__
 
 #include "RNBase.h"
+#include "RNAutoreleasePool.h"
 #include "RNObject.h"
 #include "RNApplication.h"
 #include "RNThreadPool.h"
@@ -72,6 +73,7 @@ namespace RN
 		class Window *_window;
 		class Context *_context;
 		
+		AutoreleasePool *_pool;
 		Renderer *_renderer;
 		Input *_input;
 		World *_world;

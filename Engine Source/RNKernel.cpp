@@ -10,7 +10,6 @@
 #include "RNBaseInternal.h"
 #include "RNWorld.h"
 #include "RNOpenGL.h"
-#include "RNAutoreleasePool.h"
 #include "RNThreadPool.h"
 #include "RNSettings.h"
 #include "RNModule.h"
@@ -50,10 +49,7 @@ namespace RN
 		_title(title)
 	{
 		Prepare();
-		
-		AutoreleasePool *pool = new AutoreleasePool();
 		LoadApplicationModule(Settings::SharedInstance()->ObjectForKey<String>(kRNSettingsGameModuleKey));
-		delete pool;
 	}
 	
 	Kernel::Kernel(Application *app) :
@@ -65,7 +61,6 @@ namespace RN
 
 	Kernel::~Kernel()
 	{
-		AutoreleasePool *pool = new AutoreleasePool();
 		_app->WillExit();
 		
 		ModuleCoordinator *coordinator = ModuleCoordinator::SharedInstance();
@@ -85,7 +80,8 @@ namespace RN
 		_context->Release();
 #endif
 
-		delete pool;
+		delete _pool;
+		
 		_mainThread->Exit();
 		_mainThread->Release();
 	}
@@ -104,8 +100,8 @@ namespace RN
 			throw Exception(Exception::Type::NoCPUException, "The CPU doesn't support SSE and/or SSE2!");
 #endif
 		_mainThread = new Thread();
+		_pool = new AutoreleasePool();
 		
-		AutoreleasePool *pool = new AutoreleasePool();
 		Settings::SharedInstance();
 		ThreadCoordinator::SharedInstance();
 		
@@ -151,7 +147,6 @@ namespace RN
 		_shouldExit  = false;
 		
 		ModuleCoordinator::SharedInstance();
-		delete pool;
 	}	
 
 	void Kernel::LoadApplicationModule(String *module)
@@ -200,7 +195,6 @@ namespace RN
 	bool Kernel::Tick()
 	{
 		std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
-		AutoreleasePool *pool = new AutoreleasePool();
 
 		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
 		float trueDelta = milliseconds / 1000.0f;
@@ -286,8 +280,8 @@ namespace RN
 		glXSwapBuffers(_context->_dpy, _context->_win);
 #endif
 		_lastFrame = now;
-
-		delete pool;
+		_pool->Drain();
+		
 		return (_shouldExit == false);
 	}
 
