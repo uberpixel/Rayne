@@ -7,11 +7,44 @@
 //
 
 #include "RNResourcePool.h"
+#include "RNPathManager.h"
+#include "RNJSONSerialization.h"
+
+#include "RNModel.h"
+#include "RNTexture.h"
 #include "RNShader.h"
 #include "RNUIFont.h"
 
 namespace RN
 {
+	ResourcePool::ResourcePool()
+	{
+		try
+		{
+			Data *data = Data::WithContentsOfFile("resources.json");
+			_sections = JSONSerialization::JSONObjectFromData(data)->Downcast<Dictionary>();
+			_sections->Retain();
+		}
+		catch(Exception e)
+		{
+			_sections = new Dictionary();
+		}
+		
+		AddResourceLoader(new CallbackResourceLoader([](String *file, Dictionary *info) -> Object * {
+			return Model::WithFile(file->UTF8String());
+		}), "sgm");
+		
+		AddResourceLoader(new CallbackResourceLoader([](String *file, Dictionary *info) -> Object * {
+			return Texture::WithFile(file->UTF8String());
+		}), "png");
+	}
+	
+	ResourcePool::~ResourcePool()
+	{
+		_sections->Release();
+	}
+	
+	
 	void ResourcePool::LoadDefaultResources(ThreadPool::Batch *batch)
 	{
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_Texture1", kRNResourceKeyTexture1Shader));
@@ -69,6 +102,92 @@ namespace RN
 		_objects.RemoveObjectForKey(key);
 	}
 	
+	
+	
+	void ResourcePool::AddResourceLoader(ResourceLoader *loader, const std::string& extension)
 	{
+		_lock.Lock();
+		_loader[extension] = loader;
+		_lock.Unlock();
+	}
+	
+	void ResourcePool::RemoveResourceLoader(const std::string& extension)
+	{
+		_lock.Lock();
+		_loader.erase(extension);
+		_lock.Unlock();
+	}
+	
+	
+	void ResourcePool::LoadResource(String *file, String *key, Dictionary *info)
+	{
+		std::string path = file->UTF8String();
+		std::string extension = PathManager::Extension(path);
+		
+		_lock.Lock();
+		auto iterator = _loader.find(extension);
+		ResourceLoader *loader = (iterator != _loader.end()) ? iterator->second : nullptr;
+		_lock.Unlock();
+		
+		if(loader)
+		{
+			Object *resource = loader->LoadResource(file, info);
+			
+			if(resource)
+				AddResource(resource, key);
+		}
+	}
+	
+	void ResourcePool::LoadResourceSection(String *name)
+	{
+		Array *section = _sections->ObjectForKey<Array>(name);
+		RN::ThreadPool::Batch *batch = RN::ThreadPool::SharedInstance()->OpenBatch();
+		
+		if(section)
+		{
+			section->Enumerate([&](Object *value, size_t index, bool *stop) {
+				try
+				{
+					Dictionary *object = value->Downcast<Dictionary>();
+					String *key = object->ObjectForKey<String>(RNCSTR("key"));
+					String *file = object->ObjectForKey<String>(RNCSTR("file"));
+					
+					if(key && file)
+						batch->AddTask(std::bind(&ResourcePool::LoadResource, this, file, key, object));
+				}
+				catch(Exception e)
+				{}
+			});
+		}
+		
+		batch->Commit();
+		batch->Wait();
+		batch->Release();
+	}
+	
+	void ResourcePool::UnloadResourceSection(String *name)
+	{
+		_lock.Lock();
+		
+		AutoreleasePool pool;
+		Array *section = _sections->ObjectForKey<Array>(name);
+		
+		if(section)
+		{
+			section->Enumerate([&](Object *value, size_t index, bool *stop) {
+				try
+				{
+					Dictionary *object = value->Downcast<Dictionary>();
+					String *key = object->ObjectForKey<String>(RNCSTR("key"));
+					
+					if(key)
+						_objects.RemoveObjectForKey(key);
+				}
+				catch(Exception e)
+				{}
+			});
+		}
+		
+		_lock.Unlock();
 	}
 }

@@ -35,13 +35,50 @@
 namespace RN
 {
 	class Kernel;
+	class ResourceLoader
+	{
+	public:
+		virtual ~ResourceLoader() {}
+		
+		virtual Object *LoadResource(String *file, Dictionary *info) = 0;
+		
+	protected:
+		ResourceLoader() {}
+	};
+	
+	class CallbackResourceLoader : public ResourceLoader
+	{
+	public:
+		CallbackResourceLoader(const std::function<Object * (String *, Dictionary *)>& callback) :
+			_callback(callback)
+		{}
+		
+		Object *LoadResource(String *file, Dictionary *info)
+		{
+			return _callback(file, info);
+		}
+		
+	private:
+		std::function<Object * (String *, Dictionary *)> _callback;
+	};
+	
+	
 	class ResourcePool : public Singleton<ResourcePool>
 	{
 	public:
 		friend class Kernel;
 		
+		ResourcePool();
+		~ResourcePool();
+		
 		void AddResource(Object *resource, String *key);
 		void RemoveResource(String *key);
+		
+		void AddResourceLoader(ResourceLoader *loader, const std::string& extension);
+		void RemoveResourceLoader(const std::string& extension);
+		
+		void LoadResourceSection(String *name);
+		void UnloadResourceSection(String *name);
 		
 		template<typename T>
 		T *ResourceWithName(String *key)
@@ -62,8 +99,13 @@ namespace RN
 		void LoadShader(const std::string& name, String *key);
 		void LoadFont(const std::string& name, float size, uint32 traits, String *key);
 		
+		void LoadResource(String *file, String *key, Dictionary *info);
+		
 		SpinLock _lock;
 		Dictionary _objects;
+		Dictionary *_sections;
+		
+		std::unordered_map<std::string, ResourceLoader *> _loader;
 	};
 }
 
