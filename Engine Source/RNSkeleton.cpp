@@ -193,7 +193,18 @@ namespace RN
 		for(auto anim : animations)
 			anim.second->Retain();
 		
-		Init();
+		for(int i = 0; i < bones.size(); i++)
+		{
+			for(int n = 0; n < bones[i].tempChildren.size(); n++)
+			{
+				bones[i].children.push_back(&(bones[bones[i].tempChildren[n]]));
+			}
+		}
+		
+		for(int i = 0; i < bones.size(); i++)
+		{
+			_matrices.push_back(bones[i].finalMatrix);
+		}
 	}
 	
 	Skeleton::~Skeleton()
