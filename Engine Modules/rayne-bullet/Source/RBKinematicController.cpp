@@ -27,6 +27,9 @@ namespace RN
 		{
 			RN_ASSERT(shape, "There already is a shape!");
 			
+			SetCollisionFilter(btBroadphaseProxy::CharacterFilter);
+			SetCollisionFilterMask(btBroadphaseProxy::StaticFilter | btBroadphaseProxy::DefaultFilter);
+			
 			_shape = shape->Retain();
 			_controller = 0;
 			_stepHeight = stepHeight;
@@ -137,14 +140,18 @@ namespace RN
 		
 		void KinematicController::InsertIntoWorld(btDynamicsWorld *world)
 		{
+			CollisionObject::InsertIntoWorld(world);
+			
 			btPairCachingGhostObject *ghost = bulletCollisionObject<btPairCachingGhostObject>();
 			
-			world->addCollisionObject(ghost, btBroadphaseProxy::CharacterFilter, btBroadphaseProxy::StaticFilter | btBroadphaseProxy::DefaultFilter);
+			world->addCollisionObject(ghost, CollisionFilter(), CollisionFilterMask());
 			world->addAction(_controller);
 		}
 		
 		void KinematicController::RemoveFromWorld(btDynamicsWorld *world)
 		{
+			CollisionObject::RemoveFromWorld(world);
+			
 			btPairCachingGhostObject *ghost = bulletCollisionObject<btPairCachingGhostObject>();
 			
 			world->removeCollisionObject(ghost);

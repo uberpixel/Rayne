@@ -28,6 +28,9 @@ namespace RN
 			_material = 0;
 			_object = 0;
 			_world = nullptr;
+			
+			_collisionFilter = btBroadphaseProxy::DefaultFilter;
+			_collisionFilterMask = btBroadphaseProxy::AllFilter;
 		}
 		
 		CollisionObject::~CollisionObject()
@@ -65,12 +68,34 @@ namespace RN
 			_offset = offset;
 		}
 		
+		void CollisionObject::SetCollisionFilter(short int filter)
+		{
+			_collisionFilter = filter;
+			
+			if(_world)
+				ReinsertIntoWorld(_world);
+		}
+		
+		void CollisionObject::SetCollisionFilterMask(short int mask)
+		{
+			_collisionFilterMask = mask;
+			
+			if(_world)
+				ReinsertIntoWorld(_world);
+		}
+		
 		void CollisionObject::ApplyPhysicsMaterial(PhysicsMaterial *material)
 		{
 			bulletCollisionObject();
 			
 			_object->setFriction(_material->Friction());
 			_object->setRestitution(_material->Restitution());
+		}
+		
+		void CollisionObject::ReinsertIntoWorld(btDynamicsWorld *world)
+		{
+			RemoveFromWorld(world);
+			InsertIntoWorld(world);
 		}
 		
 		void CollisionObject::InsertIntoWorld(btDynamicsWorld *world)

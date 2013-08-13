@@ -48,6 +48,12 @@ namespace RN
 				return static_cast<T *>(_object);
 			}
 			
+			void SetCollisionFilter(short int filter);
+			void SetCollisionFilterMask(short int mask);
+			
+			short int CollisionFilter() const { return _collisionFilter; }
+			short int CollisionFilterMask() const { return _collisionFilterMask; }
+			
 		protected:
 			CollisionObject();
 			virtual ~CollisionObject();
@@ -55,6 +61,7 @@ namespace RN
 			virtual btCollisionObject *CreateCollisionObject() = 0;
 			virtual void ApplyPhysicsMaterial(PhysicsMaterial *material);
 			
+			virtual void ReinsertIntoWorld(btDynamicsWorld *world);
 			virtual void InsertIntoWorld(btDynamicsWorld *world);
 			virtual void RemoveFromWorld(btDynamicsWorld *world);
 			
@@ -62,6 +69,9 @@ namespace RN
 			
 			PhysicsMaterial *_material;
 			btCollisionObject *_object;
+			
+			short int _collisionFilter;
+			short int _collisionFilterMask;
 			
 			Vector3 _offset;
 			

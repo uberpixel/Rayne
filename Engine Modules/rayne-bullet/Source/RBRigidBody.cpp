@@ -197,11 +197,15 @@ namespace RN
 		
 		void RigidBody::InsertIntoWorld(btDynamicsWorld *world)
 		{
-			world->addRigidBody(bulletRigidBody());
+			CollisionObject::InsertIntoWorld(world);
+			
+			world->addRigidBody(bulletRigidBody(), CollisionFilter(), CollisionFilterMask());
 		}
 		
 		void RigidBody::RemoveFromWorld(btDynamicsWorld *world)
 		{
+			CollisionObject::RemoveFromWorld(world);
+			
 			world->removeRigidBody(bulletRigidBody());
 		}
 		
