@@ -213,7 +213,7 @@ namespace RN
 		void RigidBody::getWorldTransform(btTransform& worldTrans) const
 		{
 			const Quaternion& rotation = WorldRotation();
-			const Vector3& position = WorldPosition()-_offset;
+			const Vector3& position = WorldPosition() - WorldRotation().RotateVector(_offset);
 			
 			worldTrans.setRotation(btQuaternion(rotation.x, rotation.y, rotation.z, rotation.w));
 			worldTrans.setOrigin(btVector3(position.x, position.y, position.z));
@@ -225,7 +225,7 @@ namespace RN
 			btVector3 position = worldTrans.getOrigin();
 			
 			Entity::SetWorldRotation(Quaternion(rotation.x(), rotation.y(), rotation.z(), rotation.w()));
-			Entity::SetWorldPosition(Vector3(position.x(), position.y(), position.z())+_offset);
+			Entity::SetWorldPosition(Vector3(position.x(), position.y(), position.z()) + WorldRotation().RotateVector(_offset));
 		}
 	}
 }
