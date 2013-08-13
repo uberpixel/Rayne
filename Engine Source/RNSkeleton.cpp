@@ -184,6 +184,18 @@ namespace RN
 		Init();
 	}
 	
+	Skeleton::Skeleton(const Skeleton *other)
+	{
+		for(int i = 0; i < other->bones.size(); i++)
+			bones.push_back(other->bones[i]);
+		
+		animations = other->animations;
+		for(auto anim : animations)
+			anim.second->Retain();
+		
+		Init();
+	}
+	
 	Skeleton::~Skeleton()
 	{
 		for (std::map<std::string, Animation*>::iterator it = animations.begin(); it != animations.end(); ++it)
@@ -250,6 +262,60 @@ namespace RN
 		}
 	}
 	
+	void Skeleton::CopyAnimation(const std::string &from, const std::string &to, float start, float end)
+	{
+		Animation *fromanim = animations[from];
+		Animation *toanim = new Animation(to);
+		animations.insert(std::pair<std::string, Animation*>(to, toanim));
+		toanim->Autorelease();
+		toanim->Retain();
+		
+		for(auto firstbone : fromanim->bones)
+		{
+			auto bone = firstbone.second;
+			float maxtime = bone->time;
+			bool inrange = false;
+			while(bone->time <= start && bone->time < end)
+			{
+				if(!bone->nextFrame || maxtime > bone->time)
+				{
+					inrange = false;
+					break;
+				}
+				
+				inrange = true;
+				maxtime = bone->time;
+				bone = bone->nextFrame;
+			}
+			
+			if(inrange)
+			{
+				AnimationBone *newfirstbone = new AnimationBone(0, 0, bone->time, bone->position, bone->scale, bone->rotation);
+				AnimationBone *newcurrbone = newfirstbone;
+				while(bone->nextFrame && maxtime <= bone->time)
+				{
+					maxtime = bone->time;
+					bone = bone->nextFrame;
+					if(bone->time > end)
+						break;
+					
+					newcurrbone = new AnimationBone(newcurrbone, 0, bone->time, bone->position, bone->scale, bone->rotation);
+					newcurrbone->prevFrame->nextFrame = newcurrbone;
+				}
+				newcurrbone->nextFrame = newfirstbone;
+				newfirstbone->prevFrame = newcurrbone;
+				toanim->bones.insert(std::pair<int, AnimationBone*>(firstbone.first, newfirstbone));
+			}
+		}
+	}
+	
+	void Skeleton::RemoveAnimation(const std::string &animname)
+	{
+		Animation *anim = animations[animname];
+		animations.erase(animname);
+		anim->Release();
+	}
+	
 	Skeleton *Skeleton::WithFile(const std::string& path)
 	{
 		Skeleton *skeleton = new Skeleton(path);
@@ -259,6 +325,12 @@ namespace RN
 	Skeleton *Skeleton::Empty()
 	{
 		Skeleton *skeleton = new Skeleton();
+		return (Skeleton *)skeleton->Autorelease();
+	}
+	
+	Skeleton *Skeleton::WithSkeleton(const Skeleton *other)
+	{
+		Skeleton *skeleton = new Skeleton(other);
 		return (Skeleton *)skeleton->Autorelease();
 	}
 	
@@ -302,6 +374,8 @@ namespace RN
 			file->ReadIntoBuffer(animname, lenanimname);
 			
 			Animation *anim = new Animation(animname);
+			anim->Autorelease();
+			anim->Retain();
 			animations.insert(std::pair<std::string, Animation*>(animname, anim));
 			delete[] animname;
 			

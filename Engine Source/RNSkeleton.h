@@ -82,15 +82,19 @@ namespace RN
 	public:
 		Skeleton();
 		Skeleton(const std::string& path);
+		Skeleton(const Skeleton *other);
 		
 		virtual ~Skeleton();
 		
 		static Skeleton *WithFile(const std::string& path);
+		static Skeleton *WithSkeleton(const Skeleton *other);
 		static Skeleton *Empty();
 		
 		void Init();
 		void Update(float timestep);
 		void SetAnimation(const std::string &animname);
+		void CopyAnimation(const std::string &from, const std::string &to, float start, float end);
+		void RemoveAnimation(const std::string &animname);
 		uint16 NumBones() const { return bones.size(); }
 		const std::vector<Matrix>& Matrices() const { return _matrices; }
 		
