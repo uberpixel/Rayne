@@ -47,7 +47,9 @@ namespace RN
 		
 		void PhysicsWorld::SetGravity(const Vector3& gravity)
 		{
+			Lock();
 			_dynamicsWorld->setGravity(btVector3(gravity.x, gravity.y, gravity.z));
+			Unlock();
 		}
 		
 		void PhysicsWorld::AddCollisionObject(CollisionObject *object)
@@ -55,7 +57,10 @@ namespace RN
 			auto iterator = _collisionObjects.find(object);
 			if(iterator == _collisionObjects.end())
 			{
+				Lock();
 				object->InsertIntoWorld(_dynamicsWorld);
+				Unlock();
+				
 				_collisionObjects.insert(object);
 			}
 		}
@@ -65,7 +70,10 @@ namespace RN
 			auto iterator = _collisionObjects.find(object);
 			if(iterator != _collisionObjects.end())
 			{
-				object->RemoveFromWorld(_dynamicsWorld);				
+				Lock();
+				object->RemoveFromWorld(_dynamicsWorld);
+				Unlock();
+				
 				_collisionObjects.erase(iterator);
 			}
 		}
@@ -76,7 +84,10 @@ namespace RN
 			btVector3 btRayTo   = btVector3(to.x, to.y, to.z);
 			
 			btCollisionWorld::ClosestRayResultCallback rayCallback(btRayFrom, btRayTo);
+			
+			Lock();
 			_dynamicsWorld->rayTest(btRayFrom, btRayTo, rayCallback);
+			Unlock();
 			
 			Hit hit;
 			
