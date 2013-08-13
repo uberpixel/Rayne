@@ -12,7 +12,7 @@
 #ifdef RN_ANIMATION
 
 #ifndef RN_MAX_MATBONES
-#define RN_MAX_MATBONES 60
+#define RN_MAX_MATBONES 120
 #endif
 
 in vec4 attBoneWeights;

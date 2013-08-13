@@ -8,6 +8,9 @@
 
 #include "RNSkeleton.h"
 #include "RNFile.h"
+#include "RNDebug.h"
+
+//#define RNDebugDrawSkeleton
 
 namespace RN
 {
@@ -122,8 +125,22 @@ namespace RN
 		
 		for(int i = 0; i < children.size(); i++)
 		{
+#if defined(RNDebugDrawSkeleton)
+			RN::Vector3 pos1 = finalMatrix.Transform(RN::Vector3())*0.0088889f;
+			RN::Debug::AddLinePoint(pos1, RN::Color::Red());
+#endif
+			
 			children[i]->Update(this, timestep);
 		}
+		
+#if defined(RNDebugDrawSkeleton)
+		if(children.size() == 0)
+		{
+			RN::Vector3 pos1 = finalMatrix.Transform(RN::Vector3())*0.0088889f;
+			RN::Debug::AddLinePoint(pos1, RN::Color::Red());
+			RN::Debug::CloseLine();
+		}
+#endif
 		
 		finalMatrix = finalMatrix*invBaseMatrix;
 	}
@@ -212,6 +229,10 @@ namespace RN
 		{
 			_matrices[i] = bones[i].finalMatrix;
 		}
+		
+#if defined(RNDebugDrawSkeleton)
+		RN::Debug::EndLine();
+#endif
 	}
 	
 	void Skeleton::SetAnimation(const std::string &animname)
