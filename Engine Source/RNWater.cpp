@@ -9,7 +9,7 @@
 #include "RNWater.h"
 #include "RNResourcePool.h"
 
-#define kRNWaterMeshResourceName "kRNWaterMeshResourceName"
+#define kRNWaterMeshResourceName RNCSTR("kRNWaterMeshResourceName")
 
 namespace RN
 {

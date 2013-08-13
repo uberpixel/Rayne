@@ -33,13 +33,13 @@ namespace RN
 		LoadShader("shader/rn_DrawFramebuffer", kRNResourceKeyDrawFramebufferShader);
 	}
 	
-	void ResourcePool::LoadShader(const std::string& name, const std::string& key)
+	void ResourcePool::LoadShader(const std::string& name, String *key)
 	{
 		Shader *shader = Shader::WithFile(name);
 		AddResource(shader, key);
 	}
 	
-	void ResourcePool::LoadFont(const std::string& name, float size, uint32 traits, const std::string& key)
+	void ResourcePool::LoadFont(const std::string& name, float size, uint32 traits, String *key)
 	{
 		UI::FontDescriptor descriptor;
 		descriptor.style = traits;
@@ -50,48 +50,25 @@ namespace RN
 	
 	
 	
-	void ResourcePool::AddResource(Object *resource, const std::string& name)
+	void ResourcePool::AddResource(Object *resource, String *key)
 	{
 		_lock.Lock();
-		
-		__RemoveResource(name);
-		if(resource)
-		{
-			_objects.insert(std::unordered_map<std::string, Object *>::value_type(name, resource));
-			resource->Retain();
-		}
-		
+		_objects.SetObjectForKey(resource, key);
 		_lock.Unlock();
 	}
 	
-	void ResourcePool::RemoveResource(const std::string& name)
+	void ResourcePool::RemoveResource(String *key)
 	{
 		_lock.Lock();
-		__RemoveResource(name);
+		_objects.RemoveObjectForKey(key);
 		_lock.Unlock();
 	}
 	
-	void ResourcePool::__RemoveResource(const std::string& name)
+	void ResourcePool::__RemoveResource(String *key)
 	{
-		auto iterator = _objects.find(name);
-		if(iterator != _objects.end())
-		{
-			Object *object = iterator->second;
-			object->Release();
-			
-			_objects.erase(iterator);
-		}
+		_objects.RemoveObjectForKey(key);
 	}
 	
-	Object *ResourcePool::ObjectWithName(const std::string& name)
 	{
-		_lock.Lock();
-		
-		auto iterator = _objects.find(name);
-		Object *object = (iterator != _objects.end()) ? iterator->second : 0;
-		
-		_lock.Unlock();
-		
-		return object;
 	}
 }

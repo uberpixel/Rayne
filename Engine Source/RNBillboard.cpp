@@ -9,7 +9,7 @@
 #include "RNBillboard.h"
 #include "RNResourcePool.h"
 
-#define kRNBillboardMeshResourceName "kRNBillboardMeshResourceName"
+#define kRNBillboardMeshResourceName RNCSTR("kRNBillboardMeshResourceName")
 
 namespace RN
 {

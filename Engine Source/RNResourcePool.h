@@ -12,50 +12,58 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNThreadPool.h"
+#include "RNString.h"
+#include "RNDictionary.h"
 
-#define kRNResourceKeyTexture1Shader       "kRNResourceKeyTexture1Shader"
-#define kRNResourceKeyWaterShader          "kRNResourceKeyWaterShader"
-#define kRNResourceKeyParticleShader       "kRNResourceKeyParticleShader"
+#define kRNResourceKeyTexture1Shader       RNCSTR("kRNResourceKeyTexture1Shader")
+#define kRNResourceKeyWaterShader          RNCSTR("kRNResourceKeyWaterShader")
+#define kRNResourceKeyParticleShader       RNCSTR("kRNResourceKeyParticleShader")
 
-#define kRNResourceKeyDrawFramebufferShader "kRNResourceKeyDrawFramebufferShader"
+#define kRNResourceKeyDrawFramebufferShader RNCSTR("kRNResourceKeyDrawFramebufferShader")
 
-#define kRNResourceKeyUIImageShader        "kRNResourceKeyUIImageShader"
-#define kRNResourceKeyUITextShader         "kRNResourceKeyUITextShader"
+#define kRNResourceKeyUIImageShader        RNCSTR("kRNResourceKeyUIImageShader")
+#define kRNResourceKeyUITextShader         RNCSTR("kRNResourceKeyUITextShader")
 
-#define kRNResourceKeyLightTileSampleFirstShader "kRNResourceKeyLightTileSampleFirstShader"
-#define kRNResourceKeyLightTileSampleShader      "kRNResourceKeyLightTileSampleShader"
-#define kRNResourceKeyLightDepthShader           "kRNResourceKeyLightDepthShader"
-#define kRNResourceKeyShadowDepthShader          "kRNResourceKeyShadowDepthShader"
+#define kRNResourceKeyLightTileSampleFirstShader RNCSTR("kRNResourceKeyLightTileSampleFirstShader")
+#define kRNResourceKeyLightTileSampleShader      RNCSTR("kRNResourceKeyLightTileSampleShader")
+#define kRNResourceKeyLightDepthShader           RNCSTR("kRNResourceKeyLightDepthShader")
+#define kRNResourceKeyShadowDepthShader          RNCSTR("kRNResourceKeyShadowDepthShader")
 
-#define kRNResourceKeyDefaultFont     "kRNResourceKeyDefaultFont"
-#define kRNResourceKeyDefaultFontBold "kRNResourceKeyDefaultFontBold"
+#define kRNResourceKeyDefaultFont     RNCSTR("kRNResourceKeyDefaultFont")
+#define kRNResourceKeyDefaultFontBold RNCSTR("kRNResourceKeyDefaultFontBold")
 
 namespace RN
 {
 	class Kernel;
 	class ResourcePool : public Singleton<ResourcePool>
 	{
-	friend class Kernel;
 	public:
-		void AddResource(Object *resource, const std::string& name);
-		void RemoveResource(const std::string& name);
+		friend class Kernel;
+		
+		void AddResource(Object *resource, String *key);
+		void RemoveResource(String *key);
 		
 		template<typename T>
-		T *ResourceWithName(const std::string& name)
+		T *ResourceWithName(String *key)
 		{
-			return static_cast<T *>(ObjectWithName(name));
+			T *object;
+			
+			_lock.Lock();
+			object = _objects.ObjectForKey<T>(key);
+			_lock.Unlock();
+			
+			return object;
 		}
 		
 	private:
-		Object *ObjectWithName(const std::string& name);
-		void __RemoveResource(const std::string& name);
+		void __RemoveResource(String *key);
 		
 		void LoadDefaultResources(ThreadPool::Batch *batch);
-		void LoadShader(const std::string& name, const std::string& key);
-		void LoadFont(const std::string& name, float size, uint32 traits, const std::string& key);
+		void LoadShader(const std::string& name, String *key);
+		void LoadFont(const std::string& name, float size, uint32 traits, String *key);
 		
 		SpinLock _lock;
-		std::unordered_map<std::string, Object *> _objects;
+		Dictionary _objects;
 	};
 }
 

@@ -12,7 +12,7 @@
 #include "RNResourcePool.h"
 #include "RNDebug.h"
 
-#define kRNViewShaderResourceName "kRNViewShaderResourceName"
+#define kRNViewShaderResourceName RNCSTR("kRNViewShaderResourceName")
 
 namespace RN
 {
