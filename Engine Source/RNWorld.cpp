@@ -114,37 +114,37 @@ namespace RN
 		
 		for(size_t i = 0; i < 3; i ++)
 		{
-			if(batch[i]->TaskCount() == 0)
-				continue;
-			
-			bool rerun;
-			do
-			{				
-				rerun = false;
-				
-				batch[i]->Commit();
-				batch[i]->Wait();
-				
-				batch[i]->Release();
-				batch[i] = ThreadPool::SharedInstance()->CreateBatch();
-				
-				if(resubmit.size() > 0)
-				{
-					for(SceneNode *node : resubmit)
+			if(batch[i]->TaskCount() > 0)
+			{
+				bool rerun;
+				do
+				{				
+					rerun = false;
+					
+					batch[i]->Commit();
+					batch[i]->Wait();
+					
+					batch[i]->Release();
+					batch[i] = nullptr;
+					
+					if(resubmit.size() > 0)
 					{
-						batch[i]->AddTask(BuildLambda(node));
+						batch[i] = ThreadPool::SharedInstance()->CreateBatch();
+						
+						for(SceneNode *node : resubmit)
+						{
+							batch[i]->AddTask(BuildLambda(node));
+						}
+						
+						resubmit.clear();
+						rerun = true;
 					}
 					
-					resubmit.clear();
-					rerun = true;
-				}
-				
-			} while(rerun);
-		}
-	
-		for(size_t i = 0; i < 3; i ++)
-		{
-			batch[i]->Release();
+				} while(rerun);
+			}
+			
+			if(batch[i])
+				batch[i]->Release();
 		}
 	
 		_removedNodes.clear();
@@ -278,13 +278,18 @@ namespace RN
 		if(node->_world != this)
 			return;
 		
+		_nodeLock.Lock();
 
 		auto iterator = std::find(_addedNodes.begin(), _addedNodes.end(), node);
-		if(iterator != _addedNodes.end())
-		{
+		bool forceInsert = (iterator != _addedNodes.end());
+		
+		if(forceInsert)
 			_addedNodes.erase(iterator);
+		
+		_nodeLock.Unlock();
+		
+		if(forceInsert)
 			ForceInsertNode(node);
-		}
 		
 		
 		for(size_t i = 0; i < _attachments.Count(); i ++)
