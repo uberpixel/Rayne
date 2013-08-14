@@ -25,7 +25,7 @@ namespace RN
 {
 	namespace bullet
 	{
-		class PhysicsMaterial : Object
+		class PhysicsMaterial : public Object
 		{
 		public:
 			PhysicsMaterial();
