@@ -96,8 +96,10 @@ namespace RN
 		void Init();
 		bool Update(float timestep, bool restart = true);
 		void SetAnimation(const std::string &animname);
+		void SetBlendAnimation(const std::string &to, float time = 0.0f);
 		void CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop = true);
 		void RemoveAnimation(const std::string &animname);
+		Bone *GetBone(const std::string name);
 		uint16 NumBones() const { return bones.size(); }
 		const std::vector<Matrix>& Matrices() const { return _matrices; }
 		
@@ -108,6 +110,8 @@ namespace RN
 	private:
 		void ReadSkeletonVersion1(File *file);
 		void ReadBVH(File *file);
+		
+		Animation *_tempanim;
 	};
 }
 

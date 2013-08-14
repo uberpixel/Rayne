@@ -189,10 +189,12 @@ namespace RN
 	
 	
 	Skeleton::Skeleton()
+		: _tempanim(NULL)
 	{
 	}
 
 	Skeleton::Skeleton(const std::string& path)
+		: _tempanim(NULL)
 	{
 		File *file = new File(path);
 		
@@ -219,6 +221,7 @@ namespace RN
 	}
 	
 	Skeleton::Skeleton(const Skeleton *other)
+		: _tempanim(NULL)
 	{
 		for(int i = 0; i < other->bones.size(); i++)
 			bones.push_back(other->bones[i]);
@@ -247,6 +250,9 @@ namespace RN
 		{
 			it->second->Release();
 		}
+		
+		if(_tempanim)
+			_tempanim->Release();
 	}
 	
 	void Skeleton::Init()
@@ -366,6 +372,20 @@ namespace RN
 		Animation *anim = animations[animname];
 		animations.erase(animname);
 		anim->Release();
+	}
+	
+	void Skeleton::SetBlendAnimation(const std::string &to, float time)
+	{
+		//_tempanim =
+	}
+	
+	Bone *Skeleton::GetBone(const std::string name)
+	{
+		for(int i = 0; i < bones.size(); i++)
+			if(bones[i].name == name)
+				return &bones[i];
+		
+		return NULL;
 	}
 	
 	Skeleton *Skeleton::WithFile(const std::string& path)
