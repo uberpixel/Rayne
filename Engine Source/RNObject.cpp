@@ -13,7 +13,8 @@ namespace RN
 {
 	Object::MetaType *Object::__metaClass = 0;
 	
-	Object::Object()
+	Object::Object() :
+		_cleanUpFlag(ATOMIC_FLAG_INIT)
 	{
 		_refCount = 1;
 	}
@@ -51,11 +52,12 @@ namespace RN
 	{
 		if(_refCount.fetch_sub(1) == 1)
 		{
-			std::call_once(_cleanUpFlag, [&] {
+			if(!_cleanUpFlag.test_and_set())
+			{
 				CleanUp();
 				delete this;
-			});
-			
+			}
+				
 			return nullptr;
 		}
 		

@@ -150,8 +150,6 @@ namespace RN
 				batch[i]->Release();
 		}
 	
-		_removedNodes.clear();
-	
 		ApplyNodes();
 		NodesUpdated();
 		
@@ -194,6 +192,7 @@ namespace RN
 	
 	void World::ApplyNodes()
 	{
+		// Added nodes
 		for(auto i=_addedNodes.begin(); i!=_addedNodes.end(); i++)
 		{
 			SceneNode *node = *i;
@@ -201,6 +200,28 @@ namespace RN
 		}
 		
 		_addedNodes.clear();
+		
+		// Updated nodes
+		LockGuard<Array> lock(_attachments);
+		
+		for(auto i = _updatedNodes.begin(); i != _updatedNodes.end(); i ++)
+		{
+			SceneNode *node = *i;
+			
+			if(_removedNodes.find(node) != _removedNodes.end())
+				continue;
+			
+			for(size_t i = 0; i < _attachments.Count(); i ++)
+			{
+				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
+				attachment->SceneNodeDidUpdate(node);
+			}
+			
+			_sceneManager->UpdateSceneNode(node);
+		}
+		
+		_updatedNodes.clear();
+		_removedNodes.clear();
 	}
 	
 	void World::SceneNodeWillRender(SceneNode *node)
@@ -286,9 +307,6 @@ namespace RN
 	
 	void World::SceneNodeUpdated(SceneNode *node)
 	{
-		if(node->_world != this)
-			return;
-		
 		_nodeLock.Lock();
 
 		auto iterator = std::find(_addedNodes.begin(), _addedNodes.end(), node);
@@ -300,20 +318,12 @@ namespace RN
 		_nodeLock.Unlock();
 		
 		if(forceInsert)
-			ForceInsertNode(node);
-		
-		
-		LockGuard<Array> lock(_attachments);
-		
-		for(size_t i = 0; i < _attachments.Count(); i ++)
 		{
-			WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
-			attachment->SceneNodeDidUpdate(node);
+			ForceInsertNode(node);
+			return;
 		}
 		
-		lock.Unlock();
-		
-		_sceneManager->UpdateSceneNode(node);
+		_updatedNodes.insert(node);
 	}
 	
 	void World::ForceInsertNode(SceneNode *node)
