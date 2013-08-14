@@ -95,24 +95,9 @@ namespace RN
 	
 	
 	
-	ThreadPool::Batch *ThreadPool::OpenBatch()
+	ThreadPool::Batch *ThreadPool::CreateBatch()
 	{
-		Batch *batch = nullptr;
-		
-		_batchLock.Lock();
-		
-		if(!_batchPool.empty())
-		{
-			batch = _batchPool.front();
-			_batchPool.pop_front();
-		}
-		
-		_batchLock.Unlock();
-		
-		if(!batch)
-			batch = new Batch(this);
-		
-		batch->Retain();
+		Batch *batch = new Batch(this);
 		return batch;
 	}
 	
@@ -173,9 +158,13 @@ namespace RN
 		while(!thread->IsCancelled())
 		{
 			std::unique_lock<std::mutex> lock(local->lock);
-			local->condition.wait(lock, [&]() { return (local->hose.size() > 0); });
 			
-			for(size_t i = 0; i < local->hose.size(); i ++)
+			if(local->hose.size() == 0)
+				local->condition.wait(lock, [&]() { return (local->hose.size() > 0); });
+			
+			size_t count = local->hose.size();
+			
+			for(size_t i = 0; i < count; i ++)
 			{
 				Task& task = local->hose.front();
 				task.function();
@@ -186,8 +175,9 @@ namespace RN
 					if(tasksLeft == 1)
 					{
 						std::lock_guard<std::mutex> lock(task.batch->_lock);
+						
 						task.batch->_waitCondition.notify_all();
-						task.batch->TryFeedingBack();
+						task.batch->Release();
 					}
 				}
 				
@@ -220,39 +210,34 @@ namespace RN
 	
 	void ThreadPool::Batch::Release()
 	{
-		_listener --;
-		TryFeedingBack();
+		if((-- _listener) == 0)
+		{
+			delete this;
+		}
+		
 	}
 	
 	void ThreadPool::Batch::Commit()
 	{
+		RN_ASSERT(_commited == false, "A batch can only be committed once!");
+		
+		Retain();
+		
 		_openTasks.store(static_cast<uint32>(_tasks.size()));
 		_pool->FeedTasks(_tasks);
 		
-		std::vector<Task> temp;
-		std::swap(temp, _tasks);
+		_commited = true;
 	}
 	
 	void ThreadPool::Batch::Wait()
 	{
-		_listener ++;
+		Retain();
 		
 		std::unique_lock<std::mutex> lock(_lock);
 		
 		if(_openTasks.load() > 0)
 			_waitCondition.wait(lock, [&]{ return (_openTasks.load() == 0); });
 		
-		_listener --;
-		TryFeedingBack();
-	}
-	
-	void ThreadPool::Batch::TryFeedingBack()
-	{
-		if(_listener.load() == 0)
-		{
-			_pool->_batchLock.Lock();
-			_pool->_batchPool.push_back(this);
-			_pool->_batchLock.Unlock();
-		}
+		Release();
 	}
 }

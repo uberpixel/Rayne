@@ -51,9 +51,11 @@ namespace RN
 	{
 		if(_refCount.fetch_sub(1) == 1)
 		{
-			CleanUp();
+			std::call_once(_cleanUpFlag, [&] {
+				CleanUp();
+				delete this;
+			});
 			
-			delete this;
 			return nullptr;
 		}
 		

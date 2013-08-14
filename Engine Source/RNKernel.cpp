@@ -119,7 +119,7 @@ namespace RN
 			_scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
 #endif
 		
-		_resourceBatch = ThreadPool::SharedInstance()->OpenBatch();
+		_resourceBatch = ThreadPool::SharedInstance()->CreateBatch();
 		_resourceBatch->AddTask([] {
 			Debug::InstallDebugDraw();
 		});

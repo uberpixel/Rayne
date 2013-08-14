@@ -88,6 +88,7 @@ namespace RN
 		SpinLock _lock;
 		
 		std::atomic<size_t> _refCount;
+		std::once_flag _cleanUpFlag;
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 	};
 	

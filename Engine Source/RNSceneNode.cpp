@@ -60,6 +60,8 @@ namespace RN
 	{
 		if(_world)
 			_world->RemoveSceneNode(this);
+		
+		DetachAllChilds();
 	}
 	
 	

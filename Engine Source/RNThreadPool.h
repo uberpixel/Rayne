@@ -91,12 +91,13 @@ namespace RN
 				_openTasks(0)
 			{
 				_pool = pool;
+				_listener = 1;
+				_commited = false;
 			}
-			
-			void TryFeedingBack();
 			
 			ThreadPool *_pool;
 			
+			bool _commited;
 			std::vector<Task> _tasks;
 			std::atomic<uint32> _openTasks;
 			std::atomic<uint32> _listener;
@@ -143,7 +144,7 @@ namespace RN
 			return result;
 		}
 		
-		Batch *OpenBatch();
+		Batch *CreateBatch();
 		
 	private:		
 		class Task
@@ -177,9 +178,6 @@ namespace RN
 		
 		std::atomic<uint32> _resigned;
 		std::vector<ThreadContext *> _threadData;
-		
-		SpinLock _batchLock;
-		std::deque<Batch *> _batchPool;
 		
 		std::mutex _feederLock;
 		std::condition_variable _feederCondition;

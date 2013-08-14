@@ -79,16 +79,25 @@ namespace RN
 		SpinLock lock;
 		std::vector<SceneNode *> resubmit;
 		
-		batch[0] = ThreadPool::SharedInstance()->OpenBatch();
-		batch[1] = ThreadPool::SharedInstance()->OpenBatch();
-		batch[2] = ThreadPool::SharedInstance()->OpenBatch();
+		batch[0] = ThreadPool::SharedInstance()->CreateBatch();
+		batch[1] = ThreadPool::SharedInstance()->CreateBatch();
+		batch[2] = ThreadPool::SharedInstance()->CreateBatch();
 		
 #define BuildLambda(t) [&, t]() { \
+			_deleteLock.Lock(); \
+			if(_removedNodes.find(t) != _removedNodes.end()) \
+			{ \
+				_deleteLock.Unlock(); \
+				return; \
+			} \
+			t->Retain(); \
+			_deleteLock.Unlock(); \
 			if(!t->CanUpdate(frame)) \
 			{ \
 				lock.Lock(); \
 				resubmit.push_back(t); \
 				lock.Unlock(); \
+				t->Release(); \
 				return; \
 			} \
 			t->Update(delta); \
@@ -100,8 +109,6 @@ namespace RN
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
 			SceneNode *node = *i;
-			node->Retain();
-			
 			batch[static_cast<size_t>(node->UpdatePriority())]->AddTask(BuildLambda(node));
 		}
 		
@@ -117,6 +124,9 @@ namespace RN
 				
 				batch[i]->Commit();
 				batch[i]->Wait();
+				
+				batch[i]->Release();
+				batch[i] = ThreadPool::SharedInstance()->CreateBatch();
 				
 				if(resubmit.size() > 0)
 				{
@@ -136,7 +146,9 @@ namespace RN
 		{
 			batch[i]->Release();
 		}
-		
+	
+		_removedNodes.clear();
+	
 		ApplyNodes();
 		NodesUpdated();
 		
@@ -218,14 +230,22 @@ namespace RN
 		if(!node || node->_world != 0)
 			return;
 		
+		_nodeLock.Lock();
 		node->_world = this;
 		_addedNodes.push_back(node);
+		_nodeLock.Unlock();
 	}
 	
 	void World::RemoveSceneNode(SceneNode *node)
 	{
 		if(!node || node->_world != this)
 			return;
+		
+		_deleteLock.Lock();
+		_removedNodes.insert(node);
+		_deleteLock.Unlock();
+		
+		_nodeLock.Lock();
 		
 		auto iterator = _nodes.find(node);
 		if(iterator != _nodes.end())
@@ -249,6 +269,7 @@ namespace RN
 		}
 		
 		_addedNodes.erase(std::remove(_addedNodes.begin(), _addedNodes.end(), node), _addedNodes.end());
+		_nodeLock.Unlock();
 	}
 	
 	
@@ -257,12 +278,14 @@ namespace RN
 		if(node->_world != this)
 			return;
 		
+
 		auto iterator = std::find(_addedNodes.begin(), _addedNodes.end(), node);
 		if(iterator != _addedNodes.end())
 		{
 			_addedNodes.erase(iterator);
 			ForceInsertNode(node);
 		}
+		
 		
 		for(size_t i = 0; i < _attachments.Count(); i ++)
 		{

@@ -60,7 +60,11 @@ namespace RN
 		Kernel *_kernel;
 		Array _attachments;
 		
+		SpinLock _nodeLock;
+		SpinLock _deleteLock;
+		
 		std::unordered_set<SceneNode *> _nodes;
+		std::unordered_set<SceneNode *> _removedNodes;
 		std::deque<SceneNode *> _addedNodes;
 		
 		std::vector<Camera *> _cameras;

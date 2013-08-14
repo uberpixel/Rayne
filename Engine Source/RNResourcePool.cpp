@@ -141,7 +141,7 @@ namespace RN
 	void ResourcePool::LoadResourceSection(String *name)
 	{
 		Array *section = _sections->ObjectForKey<Array>(name);
-		RN::ThreadPool::Batch *batch = RN::ThreadPool::SharedInstance()->OpenBatch();
+		RN::ThreadPool::Batch *batch = RN::ThreadPool::SharedInstance()->CreateBatch();
 		
 		if(section)
 		{
