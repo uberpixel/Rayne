@@ -238,7 +238,9 @@ namespace RN
 		_listener ++;
 		
 		std::unique_lock<std::mutex> lock(_lock);
-		_waitCondition.wait(lock, [&]{ return (_openTasks.load() == 0); });
+		
+		if(_openTasks.load() > 0)
+			_waitCondition.wait(lock, [&]{ return (_openTasks.load() == 0); });
 		
 		_listener --;
 		TryFeedingBack();
