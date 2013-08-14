@@ -40,6 +40,8 @@ namespace RN
 		Animation(const std::string &animname);
 		~Animation();
 		
+		void MakeLoop();
+		
 		std::string name;
 		std::map<int, AnimationBone*> bones;
 	};
@@ -51,7 +53,7 @@ namespace RN
 		Bone(const Bone &other);
 		
 		void Init(Bone *parent = 0);
-		void Update(Bone *parent = 0, float timestep = 0.01f);
+		bool Update(Bone *parent, float timestep, bool restart);
 		
 		void SetAnimation(AnimationBone *anim);
 		
@@ -75,6 +77,7 @@ namespace RN
 		
 		float currTime;
 		float timeDiff;
+		bool finished;
 	};
 	
 	class Skeleton : public Object
@@ -91,9 +94,9 @@ namespace RN
 		static Skeleton *Empty();
 		
 		void Init();
-		void Update(float timestep);
+		bool Update(float timestep, bool restart = true);
 		void SetAnimation(const std::string &animname);
-		void CopyAnimation(const std::string &from, const std::string &to, float start, float end);
+		void CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop = true);
 		void RemoveAnimation(const std::string &animname);
 		uint16 NumBones() const { return bones.size(); }
 		const std::vector<Matrix>& Matrices() const { return _matrices; }

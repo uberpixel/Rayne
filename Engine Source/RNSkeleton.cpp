@@ -49,6 +49,16 @@ namespace RN
 		}
 	}
 	
+	void Animation::MakeLoop()
+	{
+		for(auto bone : bones)
+		{
+			AnimationBone *temp = bone.second;
+			temp->prevFrame->nextFrame = new AnimationBone(temp->prevFrame, temp, temp->prevFrame->time+1+temp->time, temp->position, temp->scale, temp->rotation);
+			temp->prevFrame = temp->prevFrame->nextFrame;
+		}
+	}
+	
 	Bone::Bone(Vector3 &pos, std::string bonename, bool root)
 	{
 		invBaseMatrix.MakeTranslate(pos*(-1.0f));
@@ -63,6 +73,7 @@ namespace RN
 		currFrame = 0;
 		nextFrame = 0;
 		currTime = 0.0f;
+		finished = false;
 	}
 	
 	Bone::Bone(const Bone &other)
@@ -79,6 +90,7 @@ namespace RN
 		currFrame = 0;
 		nextFrame = 0;
 		currTime = 0.0f;
+		finished = false;
 	}
 	
 	void Bone::Init(Bone *parent)
@@ -94,15 +106,35 @@ namespace RN
 		position = 0.0f;
 	}
 	
-	void Bone::Update(Bone *parent, float timestep)
+	bool Bone::Update(Bone *parent, float timestep, bool restart)
 	{
+		bool running = true;
 		if(currFrame != 0 && nextFrame != 0)
 		{
+			if(finished && restart)
+			{
+				finished = false;
+				currTime = 0.0f;
+			}
+			
 			currTime += timestep;
+			
 			while(currTime > nextFrame->time)
 			{
 				if(currFrame->time > nextFrame->time)
-					currTime = nextFrame->time;
+				{
+					if(restart)
+					{
+						currTime -= currFrame->time;
+					}
+					else
+					{
+						finished = true;
+						running = false;
+						currTime = currFrame->time;
+						break;
+					}
+				}
 				currFrame = nextFrame;
 				nextFrame = nextFrame->nextFrame;
 				timeDiff = nextFrame->time-currFrame->time;
@@ -130,7 +162,8 @@ namespace RN
 			RN::Debug::AddLinePoint(pos1, RN::Color::Red());
 #endif
 			
-			children[i]->Update(this, timestep);
+			if(children[i]->Update(this, timestep, restart))
+				running = true;
 		}
 		
 #if defined(RNDebugDrawSkeleton)
@@ -143,6 +176,7 @@ namespace RN
 #endif
 		
 		finalMatrix = finalMatrix*invBaseMatrix;
+		return running;
 	}
 	
 	void Bone::SetAnimation(AnimationBone *animbone)
@@ -238,13 +272,15 @@ namespace RN
 		}
 	}
 	
-	void Skeleton::Update(float timestep)
+	bool Skeleton::Update(float timestep, bool restart)
 	{
+		bool running = false;
 		for(int i = 0; i < bones.size(); i++)
 		{
 			if(bones[i].isRoot)
 			{
-				bones[i].Update(0, timestep);
+				if(bones[i].Update(0, timestep, restart))
+					running = true;
 			}
 		}
 		
@@ -256,6 +292,8 @@ namespace RN
 #if defined(RNDebugDrawSkeleton)
 		RN::Debug::EndLine();
 #endif
+		
+		return running;
 	}
 	
 	void Skeleton::SetAnimation(const std::string &animname)
@@ -273,7 +311,7 @@ namespace RN
 		}
 	}
 	
-	void Skeleton::CopyAnimation(const std::string &from, const std::string &to, float start, float end)
+	void Skeleton::CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop)
 	{
 		Animation *fromanim = animations[from];
 		Animation *toanim = new Animation(to);
@@ -318,6 +356,9 @@ namespace RN
 				toanim->bones.insert(std::pair<int, AnimationBone*>(firstbone.first, newfirstbone));
 			}
 		}
+		
+		if(loop)
+			toanim->MakeLoop();
 	}
 	
 	void Skeleton::RemoveAnimation(const std::string &animname)
