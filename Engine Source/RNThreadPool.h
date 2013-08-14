@@ -177,6 +177,9 @@ namespace RN
 		size_t _threadCount;
 		
 		std::atomic<uint32> _resigned;
+		std::mutex _teardownLock;
+		std::condition_variable _teardownCondition;
+		
 		std::vector<ThreadContext *> _threadData;
 		
 		std::mutex _feederLock;

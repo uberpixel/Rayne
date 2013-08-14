@@ -75,8 +75,8 @@ namespace RN
 			thread->Cancel();
 		}
 		
-		//std::unique_lock<std::mutex> lock(_teardownMutex);
-		//_teardownCondition.wait(lock, [&]{ return (_resigned.load() == toResign); });
+		std::unique_lock<std::mutex> lock(_teardownLock);
+		_teardownCondition.wait(lock, [&]{ return (_resigned.load() == _threadCount); });
 		
 		for(ThreadContext *context : _threadData)
 			delete context;
@@ -92,8 +92,6 @@ namespace RN
 		
 		return thread->Autorelease();
 	}
-	
-	
 	
 	ThreadPool::Batch *ThreadPool::CreateBatch()
 	{
@@ -137,7 +135,7 @@ namespace RN
 			if(toWrite > 0)
 			{
 				std::unique_lock<std::mutex> lock(_feederLock);
-				_feederCondition.wait(lock);
+				_feederCondition.wait_for(lock, std::chrono::microseconds(500));
 			}
 		}
 		
@@ -186,7 +184,11 @@ namespace RN
 			
 			
 			lock.unlock();
-			_feederCondition.notify_one();
+			
+			{
+				std::lock_guard<std::mutex> lock(_feederLock);
+				_feederCondition.notify_one();
+			}
 		}
 		
 		context->DeactivateContext();
@@ -195,7 +197,7 @@ namespace RN
 		delete pool;
 		
 		_resigned ++;
-		//_teardownCondition.notify_one();
+		_teardownCondition.notify_one();
 	}
 	
 	// ---------------------
