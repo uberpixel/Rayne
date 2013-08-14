@@ -31,6 +31,7 @@
 		E91C8CDA176006A300E9E8F2 /* RNUIControl.h in Headers */ = {isa = PBXBuildFile; fileRef = E91C8CD8176006A200E9E8F2 /* RNUIControl.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E91C8CDD176023EC00E9E8F2 /* RNUIButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E91C8CDB176023EC00E9E8F2 /* RNUIButton.cpp */; };
 		E91C8CDE176023EC00E9E8F2 /* RNUIButton.h in Headers */ = {isa = PBXBuildFile; fileRef = E91C8CDC176023EC00E9E8F2 /* RNUIButton.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E91DBD6C17BC29A00071B512 /* RNLockGuard.h in Headers */ = {isa = PBXBuildFile; fileRef = E91DBD6B17BC29850071B512 /* RNLockGuard.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E91F784216CE336000FFD318 /* RNThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E91F784016CE336000FFD318 /* RNThreadPool.cpp */; };
 		E91F784316CE336000FFD318 /* RNThreadPool.h in Headers */ = {isa = PBXBuildFile; fileRef = E91F784116CE336000FFD318 /* RNThreadPool.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E92A62BD16DF2267006E68AF /* RNOpenGLExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = E9AB7F0E16D42522006BB4CB /* RNOpenGLExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -280,6 +281,7 @@
 		E91C8CD8176006A200E9E8F2 /* RNUIControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIControl.h; sourceTree = "<group>"; };
 		E91C8CDB176023EC00E9E8F2 /* RNUIButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIButton.cpp; sourceTree = "<group>"; };
 		E91C8CDC176023EC00E9E8F2 /* RNUIButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIButton.h; sourceTree = "<group>"; };
+		E91DBD6B17BC29850071B512 /* RNLockGuard.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNLockGuard.h; sourceTree = "<group>"; };
 		E91F784016CE336000FFD318 /* RNThreadPool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNThreadPool.cpp; sourceTree = "<group>"; };
 		E91F784116CE336000FFD318 /* RNThreadPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNThreadPool.h; sourceTree = "<group>"; };
 		E92A626816DEA8C1006E68AF /* RNModule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNModule.cpp; sourceTree = "<group>"; };
@@ -395,7 +397,7 @@
 		E99A955F172A002100605C68 /* RNNumber.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNNumber.cpp; sourceTree = "<group>"; };
 		E99A9560172A002100605C68 /* RNNumber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNNumber.h; sourceTree = "<group>"; };
 		E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "angelscript-osx.xcodeproj"; path = "../../Vendor/angelscript/angelscript-osx.xcodeproj"; sourceTree = "<group>"; };
-		E99D971917B9823D0066B0AE /* angelscript.h */ = {isa = PBXFileReference; lastKnownFileType = file; name = angelscript.h; path = ../../Vendor/angelscript/include/angelscript.h; sourceTree = "<group>"; };
+		E99D971917B9823D0066B0AE /* angelscript.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = angelscript.h; path = ../../Vendor/angelscript/include/angelscript.h; sourceTree = "<group>"; };
 		E9A872D617573D5800E06C27 /* RNArray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNArray.cpp; sourceTree = "<group>"; };
 		E9A872D817573D7100E06C27 /* RNDictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDictionary.cpp; sourceTree = "<group>"; };
 		E9A872D917573D7100E06C27 /* RNDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNDictionary.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -824,6 +826,7 @@
 				E9619E001696157E00DA187E /* RNFile.h */,
 				E9145CB116BAB82D004BDEC8 /* RNInput.cpp */,
 				E9145CB216BAB82D004BDEC8 /* RNInput.h */,
+				E91DBD6B17BC29850071B512 /* RNLockGuard.h */,
 				E991F1C416BB707300B205A1 /* RNMessage.cpp */,
 				E991F1C516BB707300B205A1 /* RNMessage.h */,
 				E9619E0B1696157E00DA187E /* RNMutex.cpp */,
@@ -886,6 +889,7 @@
 				E9C6F0A816B207E1006288D5 /* RNModel.h in Headers */,
 				E9145CAD16BA9076004BDEC8 /* RNAutoreleasePool.h in Headers */,
 				E9145CB416BAB82D004BDEC8 /* RNInput.h in Headers */,
+				E91DBD6C17BC29A00071B512 /* RNLockGuard.h in Headers */,
 				E991F1C716BB707300B205A1 /* RNMessage.h in Headers */,
 				E9BEC908179B8B3200C05623 /* RNSemaphore.h in Headers */,
 				E9319D3416BFE560001FA38F /* RNBaseInternal.h in Headers */,

@@ -101,6 +101,7 @@
 #include "RNSemaphore.h"
 #include "RNSpinLock.h"
 #include "RNMutex.h"
+#include "RNLockGuard.h"
 #include "RNFunction.h"
 #include "RNScopeGuard.h"
 #include "RNWindow.h"

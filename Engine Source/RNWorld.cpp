@@ -9,6 +9,7 @@
 #include "RNWorld.h"
 #include "RNKernel.h"
 #include "RNAutoreleasePool.h"
+#include "RNLockGuard.h"
 #include "RNThreadPool.h"
 #include "RNEntity.h"
 #include "RNLight.h"
@@ -216,16 +217,16 @@ namespace RN
 	
 	void World::AddAttachment(WorldAttachment *attachment)
 	{
-		_attachmentLock.Lock();
+		LockGuard<Array> lock(_attachments);
+		
 		_attachments.AddObject(attachment);
-		_attachmentLock.Unlock();
 	}
 	
 	void World::RemoveAttachment(WorldAttachment *attachment)
 	{
-		_attachmentLock.Lock();
+		LockGuard<Array> lock(_attachments);
+		
 		_attachments.RemoveObject(attachment);
-		_attachmentLock.Unlock();
 	}
 	
 	
@@ -256,7 +257,7 @@ namespace RN
 		auto iterator = _nodes.find(node);
 		if(iterator != _nodes.end())
 		{
-			_attachmentLock.Lock();
+			LockGuard<Array> lock(_attachments);
 			
 			for(size_t i = 0; i < _attachments.Count(); i ++)
 			{
@@ -264,7 +265,7 @@ namespace RN
 				attachment->WillRemoveSceneNode(node);
 			}
 			
-			_attachmentLock.Unlock();
+			lock.Unlock();
 			
 			if(node->IsKindOfClass(_cameraClass))
 			{
@@ -302,7 +303,7 @@ namespace RN
 			ForceInsertNode(node);
 		
 		
-		_attachmentLock.Lock();
+		LockGuard<Array> lock(_attachments);
 		
 		for(size_t i = 0; i < _attachments.Count(); i ++)
 		{
@@ -310,7 +311,7 @@ namespace RN
 			attachment->SceneNodeDidUpdate(node);
 		}
 		
-		_attachmentLock.Unlock();
+		lock.Unlock();
 		
 		_sceneManager->UpdateSceneNode(node);
 	}
@@ -322,7 +323,7 @@ namespace RN
 			_nodes.insert(node);
 			_sceneManager->AddSceneNode(node);
 			
-			_attachmentLock.Lock();
+			LockGuard<Array> lock(_attachments);
 			
 			for(size_t i = 0; i < _attachments.Count(); i ++)
 			{
@@ -330,7 +331,7 @@ namespace RN
 				attachment->DidAddSceneNode(node);
 			}
 			
-			_attachmentLock.Unlock();
+			lock.Unlock();
 			
 			if(node->IsKindOfClass(_cameraClass))
 			{
