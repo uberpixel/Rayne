@@ -113,7 +113,7 @@ namespace RN
 		virtual bool CanUpdate(FrameID frame)
 		{
 			if(_parent)
-				return (_parent->_lastFrame == frame);
+				return (_parent->_lastFrame >= frame);
 			
 			return true;
 		}
@@ -155,6 +155,7 @@ namespace RN
 		std::string _debugName;
 		
 		mutable bool _updated;
+		mutable SpinLock _updateLock;
 		mutable Vector3 _worldPosition;
 		mutable Quaternion _worldRotation;
 		mutable Vector3 _worldScale;
@@ -335,6 +336,8 @@ namespace RN
 	
 	RN_INLINE void SceneNode::UpdateInternalData() const
 	{
+		_updateLock.Lock();
+		
 		if(_updated)
 		{
 			_localTransform.MakeTranslate(_position);
@@ -373,6 +376,9 @@ namespace RN
 			_transformedBoundingSphere *= _worldScale;
 			_transformedBoundingSphere.Rotate(_worldRotation);
 			
+			_updated = false;
+			_updateLock.Unlock();
+			
 			size_t count = _childs.Count();
 			for(size_t i=0; i<count; i++)
 			{
@@ -380,8 +386,10 @@ namespace RN
 				child->DidUpdate();
 			}
 			
-			_updated = false;
+			return;
 		}
+		
+		_updateLock.Unlock();
 	}
 }
 

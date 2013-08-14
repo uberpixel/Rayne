@@ -71,9 +71,7 @@ namespace RN
 		_model = model ? model->Retain() : 0;
 		
 		if(_model)
-		{
 			SetBoundingBox(_model->BoundingBox(), true);
-		}
 	}
 	
 	void Entity::SetSkeleton(class Skeleton *skeleton)

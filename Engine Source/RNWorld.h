@@ -62,6 +62,7 @@ namespace RN
 		
 		SpinLock _nodeLock;
 		SpinLock _deleteLock;
+		SpinLock _attachmentLock;
 		
 		std::unordered_set<SceneNode *> _nodes;
 		std::unordered_set<SceneNode *> _removedNodes;

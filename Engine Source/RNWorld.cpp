@@ -100,9 +100,11 @@ namespace RN
 				t->Release(); \
 				return; \
 			} \
+			t->Lock(); \
 			t->Update(delta); \
 			t->WorldTransform(); \
 			t->UpdatedToFrame(frame); \
+			t->Unlock(); \
 			t->Release(); \
 		}
 		
@@ -214,12 +216,16 @@ namespace RN
 	
 	void World::AddAttachment(WorldAttachment *attachment)
 	{
+		_attachmentLock.Lock();
 		_attachments.AddObject(attachment);
+		_attachmentLock.Unlock();
 	}
 	
 	void World::RemoveAttachment(WorldAttachment *attachment)
 	{
+		_attachmentLock.Lock();
 		_attachments.RemoveObject(attachment);
+		_attachmentLock.Unlock();
 	}
 	
 	
@@ -250,11 +256,15 @@ namespace RN
 		auto iterator = _nodes.find(node);
 		if(iterator != _nodes.end())
 		{
+			_attachmentLock.Lock();
+			
 			for(size_t i = 0; i < _attachments.Count(); i ++)
 			{
 				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->WillRemoveSceneNode(node);
 			}
+			
+			_attachmentLock.Unlock();
 			
 			if(node->IsKindOfClass(_cameraClass))
 			{
@@ -292,11 +302,15 @@ namespace RN
 			ForceInsertNode(node);
 		
 		
+		_attachmentLock.Lock();
+		
 		for(size_t i = 0; i < _attachments.Count(); i ++)
 		{
 			WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 			attachment->SceneNodeDidUpdate(node);
 		}
+		
+		_attachmentLock.Unlock();
 		
 		_sceneManager->UpdateSceneNode(node);
 	}
@@ -308,11 +322,15 @@ namespace RN
 			_nodes.insert(node);
 			_sceneManager->AddSceneNode(node);
 			
+			_attachmentLock.Lock();
+			
 			for(size_t i = 0; i < _attachments.Count(); i ++)
 			{
 				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->DidAddSceneNode(node);
 			}
+			
+			_attachmentLock.Unlock();
 			
 			if(node->IsKindOfClass(_cameraClass))
 			{

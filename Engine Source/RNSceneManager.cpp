@@ -34,17 +34,20 @@ namespace RN
 	
 	void GenericSceneManager::AddSceneNode(SceneNode *node)
 	{
+		Lock();
 		_nodes.insert(node);
+		Unlock();
 	}
 	
 	void GenericSceneManager::RemoveSceneNode(SceneNode *node)
 	{
+		Lock();
 		_nodes.erase(node);
+		Unlock();
 	}
 	
 	void GenericSceneManager::UpdateSceneNode(SceneNode *node)
-	{
-	}
+	{}
 	
 	
 	void GenericSceneManager::RenderSceneNode(Camera *camera, SceneNode *node)
