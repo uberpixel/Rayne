@@ -163,34 +163,34 @@ namespace RN
 				break;
 		}
 		
-		_lock.Lock();
+		Lock();
 		__RemoveAssociatedOject(key);
 		
 		std::tuple<Object *, MemoryPolicy> tuple = std::tuple<Object *, MemoryPolicy>(object, policy);
 		_associatedObjects.insert(std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>>::value_type((void *)key, tuple));
 		
-		_lock.Unlock();
+		Unlock();
 	}
 	
 	void Object::RemoveAssociatedOject(const void *key)
 	{
-		_lock.Lock();
+		Lock();
 		__RemoveAssociatedOject(key);
-		_lock.Unlock();
+		Unlock();
 	}
 	
 	Object *Object::AssociatedObject(const void *key)
 	{
 		Object *object = 0;
 		
-		_lock.Lock();
+		Lock();
 		
 		auto iterator = _associatedObjects.find((void *)key);
 		
 		if(iterator != _associatedObjects.end())
 			object = std::get<0>(iterator->second);
 		
-		_lock.Unlock();
+		Unlock();
 		
 		return object;			
 	}
@@ -198,11 +198,11 @@ namespace RN
 	
 	void Object::Lock()
 	{
-		_lock.Lock();
+		_lock.lock();
 	}
 	
 	void Object::Unlock()
 	{
-		_lock.Unlock();
+		_lock.unlock();
 	}
 }
