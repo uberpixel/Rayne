@@ -34,25 +34,36 @@ namespace RN
 		
 		void PhysicsMaterial::AddListener(void *handle, const std::function<void (PhysicsMaterial *)>& callback)
 		{
+			Lock();
 			_listener.insert(std::map<void *, std::function<void (PhysicsMaterial *)>>::value_type(handle, callback));
+			Unlock();
 		}
 		
 		void PhysicsMaterial::RemoveListener(void *handle)
 		{
+			Lock();
+			
 			auto iterator = _listener.find(handle);
 			if(iterator != _listener.end())
 			{
 				_listener.erase(handle);
 			}
+			
+			Unlock();
 		}
 		
 		void PhysicsMaterial::NotifyListener()
 		{
-			for(auto i=_listener.begin(); i!=_listener.end(); i++)
+			Lock();
+			auto listener = _listener;
+			Unlock();
+			
+			for(auto i = listener.begin(); i != listener.end(); i ++)
 			{
 				i->second(this);
 			}
 		}
+		
 		
 		void PhysicsMaterial::SetLinearDamping(float damping)
 		{
