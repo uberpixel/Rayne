@@ -319,7 +319,6 @@ namespace RN
 		{
 			_blendanim->Release();
 			_blendanim = 0;
-			SetAnimation(_curranim);
 			SetTime(_blendtime);
 		}
 		
