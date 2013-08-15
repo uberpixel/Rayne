@@ -102,7 +102,7 @@ namespace RN
 		void SetProgress(float progress);
 		void SetAnimation(const std::string &animname);
 		void SetAnimation(Animation *anim);
-		void SetBlendAnimation(const std::string &to, float time = 0.0f);
+		void SetBlendAnimation(const std::string &to, float blendtime, float targettime = 0.0f);
 		void CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop = true);
 		void RemoveAnimation(const std::string &animname);
 		Bone *GetBone(const std::string name);

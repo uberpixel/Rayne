@@ -431,7 +431,7 @@ namespace RN
 		anim->Release();
 	}
 	
-	void Skeleton::SetBlendAnimation(const std::string &to, float time)
+	void Skeleton::SetBlendAnimation(const std::string &to, float blendtime, float targettime)
 	{
 		_curranim = animations[to];
 		_blendanim = new Animation("blend_to_"+to);
@@ -445,15 +445,15 @@ namespace RN
 			
 			Bone tempbone(currbone);
 			tempbone.SetAnimation(bone.second);
-			tempbone.Update(0, time, true);
+			tempbone.Update(0, targettime, true);
 			
-			AnimationBone *tobone = new AnimationBone(frombone, frombone, 1.0f, tempbone.position, tempbone.scale, tempbone.rotation);
+			AnimationBone *tobone = new AnimationBone(frombone, frombone, blendtime, tempbone.position, tempbone.scale, tempbone.rotation);
 			frombone->prevFrame = tobone;
 			frombone->nextFrame = tobone;
 			_blendanim->bones.insert(std::pair<int, AnimationBone *>(bone.first, frombone));
 		}
 		
-		_blendtime = time;
+		_blendtime = targettime;
 		SetAnimation(_blendanim);
 	}
 	
