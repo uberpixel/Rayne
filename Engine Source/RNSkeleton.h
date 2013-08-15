@@ -41,6 +41,7 @@ namespace RN
 		~Animation();
 		
 		void MakeLoop();
+		float GetLength();
 		
 		std::string name;
 		std::map<int, AnimationBone*> bones;
@@ -78,6 +79,8 @@ namespace RN
 		float currTime;
 		float timeDiff;
 		bool finished;
+		
+	private:
 	};
 	
 	class Skeleton : public Object
@@ -95,7 +98,10 @@ namespace RN
 		
 		void Init();
 		bool Update(float timestep, bool restart = true);
+		void SetTime(float time);
+		void SetProgress(float progress);
 		void SetAnimation(const std::string &animname);
+		void SetAnimation(Animation *anim);
 		void SetBlendAnimation(const std::string &to, float time = 0.0f);
 		void CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop = true);
 		void RemoveAnimation(const std::string &animname);
@@ -111,7 +117,9 @@ namespace RN
 		void ReadSkeletonVersion1(File *file);
 		void ReadBVH(File *file);
 		
-		Animation *_tempanim;
+		Animation *_blendanim;
+		float _blendtime;
+		Animation *_curranim;
 	};
 }
 

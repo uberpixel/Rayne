@@ -59,6 +59,17 @@ namespace RN
 		}
 	}
 	
+	float Animation::GetLength()
+	{
+		float length = 0.0f;
+		for(auto bone : bones)
+		{
+			if(bone.second->prevFrame)
+				length = fmaxf(length, bone.second->prevFrame->time);
+		}
+		return length;
+	}
+	
 	Bone::Bone(Vector3 &pos, std::string bonename, bool root)
 	{
 		invBaseMatrix.MakeTranslate(pos*(-1.0f));
@@ -189,12 +200,12 @@ namespace RN
 	
 	
 	Skeleton::Skeleton()
-		: _tempanim(NULL)
+		: _blendanim(0), _curranim(0)
 	{
 	}
 
 	Skeleton::Skeleton(const std::string& path)
-		: _tempanim(NULL)
+		: _blendanim(0), _curranim(0)
 	{
 		File *file = new File(path);
 		
@@ -221,7 +232,7 @@ namespace RN
 	}
 	
 	Skeleton::Skeleton(const Skeleton *other)
-		: _tempanim(NULL)
+		: _blendanim(0), _curranim(0)
 	{
 		for(int i = 0; i < other->bones.size(); i++)
 			bones.push_back(other->bones[i]);
@@ -251,8 +262,8 @@ namespace RN
 			it->second->Release();
 		}
 		
-		if(_tempanim)
-			_tempanim->Release();
+		if(_blendanim)
+			_blendanim->Release();
 	}
 	
 	void Skeleton::Init()
@@ -280,6 +291,11 @@ namespace RN
 	
 	bool Skeleton::Update(float timestep, bool restart)
 	{
+		if(_blendanim)
+		{
+			restart = false;
+		}
+		
 		bool running = false;
 		for(int i = 0; i < bones.size(); i++)
 		{
@@ -299,12 +315,40 @@ namespace RN
 		RN::Debug::EndLine();
 #endif
 		
+		if(!running && _blendanim)
+		{
+			_blendanim->Release();
+			_blendanim = 0;
+			SetAnimation(_curranim);
+			SetTime(_blendtime);
+		}
+		
 		return running;
+	}
+	
+	void Skeleton::SetTime(float time)
+	{
+		SetAnimation(_curranim);
+		Update(time);
+	}
+	
+	void Skeleton::SetProgress(float progress)
+	{
+		if(_curranim)
+		{
+			float length = _curranim->GetLength();
+			SetTime(progress*length);
+		}
 	}
 	
 	void Skeleton::SetAnimation(const std::string &animname)
 	{
 		Animation *anim = animations[animname];
+		SetAnimation(anim);
+	}
+	
+	void Skeleton::SetAnimation(Animation *anim)
+	{
 		if(!anim)
 		{
 			return;
@@ -314,6 +358,16 @@ namespace RN
 			AnimationBone *temp = anim->bones[i];
 			if(temp)
 				bones[i].SetAnimation(temp);
+		}
+		
+		if(anim != _blendanim)
+		{
+			_curranim = anim;
+			if(_blendanim != 0)
+			{
+				_blendanim->Release();
+				_blendanim = 0;
+			}
 		}
 	}
 	
@@ -370,13 +424,37 @@ namespace RN
 	void Skeleton::RemoveAnimation(const std::string &animname)
 	{
 		Animation *anim = animations[animname];
+		if(anim == _curranim)
+			_curranim = 0;
+		
 		animations.erase(animname);
 		anim->Release();
 	}
 	
 	void Skeleton::SetBlendAnimation(const std::string &to, float time)
 	{
-		//_tempanim =
+		_curranim = animations[to];
+		_blendanim = new Animation("blend_to_"+to);
+		_blendanim->Autorelease();
+		_blendanim->Retain();
+		
+		for(auto bone : _curranim->bones)
+		{
+			Bone &currbone = bones[bone.first];
+			AnimationBone *frombone = new AnimationBone(0, 0, 0.0f, currbone.position, currbone.scale, currbone.rotation);
+			
+			Bone tempbone(currbone);
+			tempbone.SetAnimation(bone.second);
+			tempbone.Update(0, time, true);
+			
+			AnimationBone *tobone = new AnimationBone(frombone, frombone, 1.0f, tempbone.position, tempbone.scale, tempbone.rotation);
+			frombone->prevFrame = tobone;
+			frombone->nextFrame = tobone;
+			_blendanim->bones.insert(std::pair<int, AnimationBone *>(bone.first, frombone));
+		}
+		
+		_blendtime = time;
+		SetAnimation(_blendanim);
 	}
 	
 	Bone *Skeleton::GetBone(const std::string name)
@@ -385,7 +463,7 @@ namespace RN
 			if(bones[i].name == name)
 				return &bones[i];
 		
-		return NULL;
+		return 0;
 	}
 	
 	Skeleton *Skeleton::WithFile(const std::string& path)
