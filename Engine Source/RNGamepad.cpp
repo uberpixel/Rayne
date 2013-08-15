@@ -107,8 +107,15 @@ namespace RN
 	{
 		GamepadManager *manager = static_cast<GamepadManager *>(context);
 		IOHIDDeviceRegisterInputValueCallback(device, OnDeviceValueChanged, manager);
-		manager->gamepads.push_back(new Gamepad());
-		manager->gamepads.back()->device = device;
+		
+		int vendorID = manager->GetIntDeviceProperty(device, CFSTR(kIOHIDVendorIDKey));
+		
+		//Logitech or Sony
+		if(vendorID == 0x046D || vendorID == 0x054C)
+		{
+			manager->gamepads.push_back(new Gamepad());
+			manager->gamepads.back()->device = device;
+		}
 	}
 	
 	void GamepadManager::OnDeviceRemoved(void* context, IOReturn result, void* sender, IOHIDDeviceRef device)
