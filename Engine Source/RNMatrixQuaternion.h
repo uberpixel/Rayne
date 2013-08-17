@@ -126,7 +126,7 @@ namespace RN
 		RNAPI void MakeLerpS(const Quaternion& start, const Quaternion& end, float factor);
 		RNAPI void MakeLerpN(const Quaternion& start, const Quaternion& end, float factor);
 
-		RNAPI void LookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f));
+		RNAPI void LookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
 		RNAPI void Normalize();
 		RNAPI void Conjugate();
 

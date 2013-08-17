@@ -323,19 +323,25 @@ namespace RN
 		*this = (end * factor) + (start * inverseFactor);
 	}
 	
-	RN_INLINE void Quaternion::LookAt(const Vector3& tdir, const Vector3& tup)
+	RN_INLINE void Quaternion::LookAt(const Vector3& tdir, const Vector3& tup, bool forceup)
 	{
 		Vector3 dir = Vector3(tdir);
 		Vector3 up  = Vector3(tup);
-		
-	
-		dir.Normalize();
-		
 		Vector3 right = up.Cross(dir);
 		right.Normalize();
 		
-		up = dir.Cross(right);
-		up.Normalize();
+		if(forceup)
+		{
+			dir = up.Cross(right);
+			up.Normalize();
+			dir.Normalize();
+		}
+		else
+		{
+			up = dir.Cross(right);
+			up.Normalize();
+			dir.Normalize();
+		}
 		
 		// Algorithm in Ken Shoemake's article in 1987 SIGGRAPH course notes
 		// article "Quaternion Calculus and Fast Animation".
