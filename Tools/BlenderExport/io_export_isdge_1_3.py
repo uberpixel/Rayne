@@ -5,7 +5,7 @@ bl_info = {
 	'name': 'iSDGE model format (.sgm)',
 	'author': 'Nils Daumann',
 	'blender': (2, 6, 5),
-	'version': '1.2',
+	'version': '1.3',
 	'description': 'Exports an object in iSDGEs .sgm file format.',
 	'category': 'Import-Export',
 	'location': 'File -> Export -> iSDGE model (.sgm)'}
@@ -14,7 +14,7 @@ bl_info = {
 #Structure of exported mesh files (.sgm)
 ############################################################
 #magic number - uint32 - 352658064
-#version - uint8 - 1
+#version - uint8 - 2
 #number of materials - uint8
 #material id - uint8
 #	number of textures - uint8
@@ -24,7 +24,7 @@ bl_info = {
 #number of meshs - uint8
 #mesh id - uint8
 #	used materials id - uint8
-#	number of vertices - uint16
+#	number of vertices - uint32
 #	texcoord count - uint8
 #	texdata count - uint8
 #	has tangents - uint8 0 if not, 1 otherwise
@@ -104,6 +104,15 @@ bl_info = {
 #-crashes on exporting vertex colors
 #-scaled armatures and different origin of model and armature are problematic
 ##
+#################################
+##V1.3 2013/08/17
+#-32bit indices are now fully supported
+#Known Problems:
+#-crashes on exporting vertex colors
+#-scaled armatures and different origin of model and armature are problematic
+#-polygons other than tris aren´t working
+##
+
 
 #################################
 #ToDO
@@ -344,8 +353,8 @@ class c_object(object):
 		file = open(filename, 'wb')
 
 		file.write(struct.pack('<L', 352658064))
-		print("write file format version number: 1")
-		file.write(struct.pack('<B', 1))
+		print("write file format version number: 2")
+		file.write(struct.pack('<B', 2))
 		
 		print("write materials")
 		file.write(struct.pack('<B', len(self.meshs)))  #number of materials
@@ -369,7 +378,7 @@ class c_object(object):
 				
 			file.write(struct.pack('<B', i))	#mesh id
 			file.write(struct.pack('<B', i))	#material id
-			file.write(struct.pack('<H', len(mesh.vertices)))   #vertexnum
+			file.write(struct.pack('<I', len(mesh.vertices)))   #vertexnum
 			file.write(struct.pack('<B', len(mesh.images))) #texcoord count
 			file.write(struct.pack('<B', datachannels)) #texdata count
 			
@@ -423,7 +432,10 @@ class c_object(object):
 				file.write(struct.pack('<B', 2))
 
 			for ind in mesh.indices:
-				bindata = struct.pack('<H', ind)
+				if maxval > 65535:
+					bindata = struct.pack('<I', ind)
+				else:
+					bindata = struct.pack('<H', ind)
 				file.write(bindata)
 				
 		print("write animation reference")

@@ -96,6 +96,7 @@ namespace RN
 		
 		void ReadFileAtPath(const std::string& path, LODGroup *group);
 		void ReadModelVersion1(File *file, LODGroup *group);
+		void ReadModelVersion2(File *file, LODGroup *group);
 		void CalculateBoundingBox();
 		
 		Shader *PickShaderForMaterialAndMesh(Material *material, Mesh *mesh);
