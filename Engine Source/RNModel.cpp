@@ -483,7 +483,7 @@ namespace RN
 			//MeshGroup group;
 			Material *material = materials[file->ReadUint8()];
 			
-			unsigned short numverts = file->ReadUint32();
+			unsigned int numverts = file->ReadUint32();
 			unsigned char uvcount = file->ReadUint8();
 			unsigned char datacount = file->ReadUint8();
 			unsigned char hastangent = file->ReadUint8();
