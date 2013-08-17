@@ -315,6 +315,7 @@ namespace RN
 		if(forceInsert)
 			_addedNodes.erase(iterator);
 		
+		_updatedNodes.insert(node);
 		_nodeLock.Unlock();
 		
 		if(forceInsert)
@@ -322,8 +323,6 @@ namespace RN
 			ForceInsertNode(node);
 			return;
 		}
-		
-		_updatedNodes.insert(node);
 	}
 	
 	void World::ForceInsertNode(SceneNode *node)
