@@ -24,15 +24,20 @@ namespace RN
 		_renderer = Renderer::SharedInstance();
 		_sceneManager = sceneManager->Retain();
 		_cameraClass  = Camera::MetaClass();
+		
+		_releaseSceneNodesOnDestructor = false;
+		_droppingNodes = false;
 	}
 	
 	World::World(const std::string& sceneManager) :
 		World(World::SceneManagerWithName(sceneManager))
-	{
-	}
+	{}
 	
 	World::~World()
 	{
+		if(_releaseSceneNodesOnDestructor)
+			DropSceneNodes();
+		
 		_kernel->SetWorld(0);
 		_sceneManager->Release();
 	}
@@ -53,6 +58,11 @@ namespace RN
 	}
 	
 	
+	void World::SetReleaseSceneNodesOnDestruction(bool releaseSceneNodes)
+	{
+		_releaseSceneNodesOnDestructor = releaseSceneNodes;
+	}
+	
 	
 	void World::Update(float delta)
 	{}
@@ -62,6 +72,12 @@ namespace RN
 	
 	void World::WillRenderSceneNode(SceneNode *node)
 	{}
+	
+	
+	void World::Reset()
+	{
+		DropSceneNodes();
+	}
 
 	
 	void World::StepWorld(FrameID frame, float delta)
@@ -234,24 +250,6 @@ namespace RN
 		
 		WillRenderSceneNode(node);
 	}
-
-	
-	void World::AddAttachment(WorldAttachment *attachment)
-	{
-		LockGuard<Array> lock(_attachments);
-		
-		_attachments.AddObject(attachment);
-	}
-	
-	void World::RemoveAttachment(WorldAttachment *attachment)
-	{
-		LockGuard<Array> lock(_attachments);
-		
-		_attachments.RemoveObject(attachment);
-	}
-	
-	
-	
 	
 	void World::AddSceneNode(SceneNode *node)
 	{
@@ -268,6 +266,21 @@ namespace RN
 	{
 		if(!node || node->_world != this)
 			return;
+		
+		if(_droppingNodes)
+		{
+			_removedNodes.insert(node);
+			
+			for(size_t i = 0; i < _attachments.Count(); i ++)
+			{
+				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
+				attachment->WillRemoveSceneNode(node);
+			}
+			
+			_sceneManager->RemoveSceneNode(node);
+			node->_world = nullptr;
+			return;
+		}
 		
 		_deleteLock.Lock();
 		_removedNodes.insert(node);
@@ -307,6 +320,9 @@ namespace RN
 	
 	void World::SceneNodeUpdated(SceneNode *node)
 	{
+		if(_droppingNodes)
+			return;
+		
 		_nodeLock.Lock();
 
 		auto iterator = std::find(_addedNodes.begin(), _addedNodes.end(), node);
@@ -348,5 +364,57 @@ namespace RN
 				_cameras.push_back(camera);
 			}
 		}
+	}
+
+	void World::DropSceneNodes()
+	{
+		LockGuard<SpinLock> nodeLock(_nodeLock);
+		LockGuard<SpinLock> deleteLock(_deleteLock);
+		LockGuard<Array> attachmentLock(_attachments);
+		
+		_removedNodes.reserve(_nodes.size());
+		_droppingNodes = true;
+		
+		for(SceneNode *node : _nodes)
+		{
+			if(_removedNodes.find(node) != _removedNodes.end())
+				continue;
+			
+			for(size_t i = 0; i < _attachments.Count(); i ++)
+			{
+				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
+				attachment->WillRemoveSceneNode(node);
+			}
+			
+			_removedNodes.insert(node);
+			_sceneManager->RemoveSceneNode(node);
+			
+			node->_world = nullptr;
+			node->Release();
+		}
+		
+		_droppingNodes = false;
+		
+		_nodes.clear();
+		_updatedNodes.clear();
+		_addedNodes.clear();
+		_cameras.clear();
+	}
+
+
+
+
+	void World::AddAttachment(WorldAttachment *attachment)
+	{
+		LockGuard<Array> lock(_attachments);
+		
+		_attachments.AddObject(attachment);
+	}
+
+	void World::RemoveAttachment(WorldAttachment *attachment)
+	{
+		LockGuard<Array> lock(_attachments);
+		
+		_attachments.RemoveObject(attachment);
 	}
 }

@@ -35,16 +35,19 @@ namespace RN
 		RNAPI virtual ~World();
 		
 		RNAPI void SceneNodeUpdated(SceneNode *node);
+		RNAPI void SetReleaseSceneNodesOnDestruction(bool releaseSceneNodes);
 		
 		RNAPI void AddAttachment(WorldAttachment *attachment);
 		RNAPI void RemoveAttachment(WorldAttachment *attachment);
 		
 		RNAPI void AddSceneNode(SceneNode *node);
 		RNAPI void RemoveSceneNode(SceneNode *node);
+		RNAPI void DropSceneNodes();
 		
 		RNAPI virtual void Update(float delta);
 		RNAPI virtual void NodesUpdated();
 		RNAPI virtual void WillRenderSceneNode(SceneNode *node);
+		RNAPI virtual void Reset();
 		
 		RNAPI SceneManager *SceneManager() const { return _sceneManager; }
 		
@@ -59,6 +62,9 @@ namespace RN
 		
 		Kernel *_kernel;
 		Array _attachments;
+		
+		bool _droppingNodes;
+		bool _releaseSceneNodesOnDestructor;
 		
 		SpinLock _nodeLock;
 		SpinLock _deleteLock;
