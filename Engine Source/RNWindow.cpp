@@ -653,6 +653,7 @@ namespace RN
 		
 		GLint sync = (mask & WindowMaskVSync) ? 1 : 0;
 		[(NSOpenGLContext *)_context->_oglContext setValues:&sync forParameter:NSOpenGLCPSwapInterval];
+		[(NSOpenGLContext *)_context->_oglContext update];
 #endif
 		
 #if RN_PLATFORM_LINUX
