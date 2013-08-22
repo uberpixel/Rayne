@@ -1825,35 +1825,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		E92E06F516F24B2B00304133 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
-				CLANG_CXX_LIBRARY = "libc++";
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
-				GCC_OPTIMIZATION_LEVEL = 0;
-				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
-				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				ONLY_ACTIVE_ARCH = YES;
-				SDKROOT = macosx;
-			};
-			name = Debug;
-		};
 		E92E06F616F24B2B00304133 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1880,23 +1851,6 @@
 			};
 			name = Release;
 		};
-		E92E070016F24B4500304133 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				EXECUTABLE_PREFIX = lib;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"$(inherited)",
-					USE_SIMD,
-				);
-				GCC_VERSION = "";
-				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
-				GCC_WARN_UNINITIALIZED_AUTOS = NO;
-				GCC_WARN_UNUSED_VARIABLE = NO;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/Vendor/bullet/src\"";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
 		E92E070116F24B4500304133 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1910,32 +1864,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
-		};
-		E97DE02916F24FEF0009128F /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				EXECUTABLE_PREFIX = lib;
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				HEADER_SEARCH_PATHS = (
-					"\"$(HOME)/Library/Application Support/Rayne/include\"",
-					"\"$(SRCROOT)/Vendor/bullet/src\"",
-				);
-				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
-				LIBRARY_SEARCH_PATHS = (
-					"$(inherited)",
-					"\"$(HOME)/Library/Application Support/Rayne\"",
-				);
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-msse4.1",
-				);
-				OTHER_LDFLAGS = "-lRayne";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
 		};
 		E97DE02A16F24FEF0009128F /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -1965,7 +1893,6 @@
 		E92E06EE16F24B2B00304133 /* Build configuration list for PBXProject "rayne-bullet" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E92E06F516F24B2B00304133 /* Debug */,
 				E92E06F616F24B2B00304133 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -1974,7 +1901,6 @@
 		E92E06FF16F24B4500304133 /* Build configuration list for PBXNativeTarget "bullet" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E92E070016F24B4500304133 /* Debug */,
 				E92E070116F24B4500304133 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -1983,7 +1909,6 @@
 		E97DE02816F24FEF0009128F /* Build configuration list for PBXNativeTarget "rayne-bullet" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				E97DE02916F24FEF0009128F /* Debug */,
 				E97DE02A16F24FEF0009128F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
