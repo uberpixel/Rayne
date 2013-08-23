@@ -132,7 +132,7 @@ namespace RN
 		node->Retain();
 		
 		_watchedNodes.insert(node);
-		ValidateNodeUpdate(node);
+		ValidateSceneNode(node);
 	}
 	
 	void TriggerZone::RemoveWatchedNode(SceneNode *node)
@@ -147,7 +147,7 @@ namespace RN
 	{
 		if(_watchedNodes.find(node) != _watchedNodes.end())
 		{
-			ValidateNodeUpdate(node);
+			ValidateSceneNode(node);
 		}
 	}
 }
