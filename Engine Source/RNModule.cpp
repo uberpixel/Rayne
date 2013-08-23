@@ -95,7 +95,7 @@ namespace RN
 				}
 				catch(Exception e)
 				{
-					printf("Failed to load module. Reason: %s", e.GetReason().c_str());
+					printf("Failed to load module. Reason: %s\n", e.GetReason().c_str());
 				}
 				
 			});
@@ -104,7 +104,15 @@ namespace RN
 		for(auto i=_modules.begin(); i!=_modules.end(); i++)
 		{
 			Module *module = *i;
-			module->Load();
+			
+			try
+			{
+				module->Load();
+			}
+			catch(Exception e)
+			{
+				printf("Failed to load module. Reason: %s\n", e.GetReason().c_str());
+			}
 		}
 	}
 	
