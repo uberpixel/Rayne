@@ -100,6 +100,7 @@
 #include "RNMath.h"
 #include "RNSIMD.h"
 #include "RNSpinLock.h"
+#include "RNLockGuard.h"
 
 // ---------------------------
 // Helper macros
@@ -179,12 +180,11 @@ namespace RN
 	public:
 		static T *GetSharedInstance()
 		{
-			_lock.Lock();
+			LockGuard<SpinLock> lock(_lock);
 			
 			if(!_instance)
 				_instance = new T();
 
-			_lock.Unlock();
 			return _instance;
 		}
 
@@ -194,12 +194,10 @@ namespace RN
 
 		virtual ~Singleton()
 		{
-			_lock.Lock();
+			LockGuard<SpinLock> lock(_lock);
 			
 			if(_instance == this)
-				_instance = 0;
-			
-			_lock.Unlock();
+				_instance = nullptr;
 		}
 
 	private:
