@@ -19,15 +19,15 @@ namespace RN
 		{
 			Initialize();
 			
-			Style *styleSheet = Style::SharedInstance();
+			Style *styleSheet = Style::GetSharedInstance();
 			
-			Dictionary *background = style->ObjectForKey<Dictionary>(RNCSTR("background"));
+			Dictionary *background = style->GetObjectForKey<Dictionary>(RNCSTR("background"));
 			
 			if(background)
 			{
-				Atlas atlas = Style::ParseAtlas(background->ObjectForKey<Dictionary>(RNCSTR("atlas")));
-				EdgeInsets insets = Style::ParseEdgeInsets(background->ObjectForKey<Dictionary>(RNCSTR("insets")));
-				Texture *texture = styleSheet->TextureWithName(background->ObjectForKey<String>(RNCSTR("texture")));
+				Atlas atlas = Style::ParseAtlas(background->GetObjectForKey<Dictionary>(RNCSTR("atlas")));
+				EdgeInsets insets = Style::ParseEdgeInsets(background->GetObjectForKey<Dictionary>(RNCSTR("insets")));
+				Texture *texture = styleSheet->TextureWithName(background->GetObjectForKey<String>(RNCSTR("texture")));
 				
 				Image *image = new Image(texture);
 				image->SetAtlas(atlas, false);

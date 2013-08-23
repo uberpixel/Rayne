@@ -42,10 +42,10 @@ namespace RN
 	{
 		__DieLock.Lock();
 		
-		const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.CallStack();
+		const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.GetCallStack();
 		
-		fprintf(stderr, "Caught exception %i, reason: %s\n", static_cast<uint32>(e.ExceptionType()), e.Reason().c_str());
-		fprintf(stderr, "Chrashing Thread: %s\nBacktrace:\n", e.ExceptionThread()->Name().c_str());
+		fprintf(stderr, "Caught exception %i, reason: %s\n", static_cast<uint32>(e.GetType()), e.GetReason().c_str());
+		fprintf(stderr, "Chrashing Thread: %s\nBacktrace:\n", e.GetThread()->GetName().c_str());
 		
 		for(auto i=callstack.begin(); i!=callstack.end(); i++)
 		{

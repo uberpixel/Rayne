@@ -32,8 +32,8 @@ namespace RN
 	
 	void Billboard::Initialize()
 	{
-		_material = new RN::Material();
-		_material->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyTexture1Shader));
+		_material = new Material();
+		_material->SetShader(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader));
 		_material->Define("RN_BILLBOARD");
 		
 		static std::once_flag onceFlag;
@@ -54,8 +54,8 @@ namespace RN
 			Mesh *mesh = new Mesh(descriptors);
 			mesh->SetMode(GL_TRIANGLE_STRIP);
 			
-			Vector2 *vertices = mesh->Element<Vector2>(kMeshFeatureVertices);
-			Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
+			Vector2 *vertices = mesh->GetElement<Vector2>(kMeshFeatureVertices);
+			Vector2 *uvCoords = mesh->GetElement<Vector2>(kMeshFeatureUVSet0);
 			
 			*vertices ++ = Vector2(0.5f, 0.5f);
 			*vertices ++ = Vector2(-0.5f, 0.5f);
@@ -88,10 +88,10 @@ namespace RN
 			mesh->ReleaseElement(kMeshFeatureUVSet0);
 			mesh->UpdateMesh();
 			
-			ResourcePool::SharedInstance()->AddResource(mesh, kRNBillboardMeshResourceName);
+			ResourcePool::GetSharedInstance()->AddResource(mesh, kRNBillboardMeshResourceName);
 		});
 		
-		_mesh = ResourcePool::SharedInstance()->ResourceWithName<Mesh>(kRNBillboardMeshResourceName)->Retain();
+		_mesh = ResourcePool::GetSharedInstance()->GetResourceWithName<Mesh>(kRNBillboardMeshResourceName)->Retain();
 	}
 	
 	void Billboard::SetTexture(Texture *texture)
@@ -99,24 +99,24 @@ namespace RN
 		_material->RemoveTextures();
 		_material->AddTexture(texture);
 		
-		_size = Vector2(texture->Width(), texture->Height());
+		_size = Vector2(texture->GetWidth(), texture->GetHeight());
 		_size *= 0.1f;
 		
-		SetBoundingBox(_mesh->BoundingBox() * Vector3(_size.x, _size.y, 1.0f));
+		SetBoundingBox(_mesh->GetBoundingBox() * Vector3(_size.x, _size.y, 1.0f));
 	}
 	
 	void Billboard::Render(Renderer *renderer, Camera *camera)
 	{
 		SceneNode::Render(renderer, camera);
 		
-		_transform = WorldTransform();
+		_transform = GetWorldTransform();
 		_transform.Scale(Vector3(_size.x, _size.y, 1.0f));
 		
 		RenderingObject object;
 		
 		object.mesh = _mesh;
 		object.material = _material;
-		object.rotation = (Quaternion*)&WorldRotation();
+		object.rotation = (Quaternion*)&GetWorldRotation();
 		object.transform = &_transform;
 		
 		renderer->RenderObject(object);

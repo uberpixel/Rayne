@@ -47,7 +47,7 @@ namespace RN
 			static std::once_flag flag;
 			std::call_once(flag, []() {
 				Shader *shader = new Shader("shader/rn_View");
-				ResourcePool::SharedInstance()->AddResource(shader, kRNViewShaderResourceName);
+				ResourcePool::GetSharedInstance()->AddResource(shader, kRNViewShaderResourceName);
 			});
 			
 			_superview    = nullptr;
@@ -58,7 +58,7 @@ namespace RN
 			_interactionEnabled = true;
 			_clipSubviews       = false;
 			
-			_material = new Material(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNViewShaderResourceName));
+			_material = new Material(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
 			_material->depthtest  = false;
 			_material->depthwrite = false;
 			_material->blending   = true;
@@ -87,8 +87,8 @@ namespace RN
 			Mesh *mesh = new Mesh(descriptors);
 			mesh->SetMode(GL_TRIANGLE_STRIP);
 			
-			Vector2 *vertices = mesh->Element<Vector2>(kMeshFeatureVertices);
-			Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
+			Vector2 *vertices = mesh->GetElement<Vector2>(kMeshFeatureVertices);
+			Vector2 *uvCoords = mesh->GetElement<Vector2>(kMeshFeatureUVSet0);
 			
 			*vertices ++ = Vector2(size.x, size.y);
 			*vertices ++ = Vector2(0.0f, size.y);
@@ -211,10 +211,10 @@ namespace RN
 			{
 				traverse = false;
 				
-				size_t count = potential->_subviews.Count();
+				size_t count = potential->_subviews.GetCount();
 				for(size_t i=0; i<count; i++)
 				{
-					View *view = potential->_subviews.ObjectAtIndex<View>(i);
+					View *view = potential->_subviews.GetObjectAtIndex<View>(i);
 					Vector2 transformed = std::move(view->ConvertPointFromView(point, nullptr));
 					
 					if(view->_interactionEnabled && view->PointInside(transformed, event))
@@ -255,10 +255,10 @@ namespace RN
 		
 		void View::ViewHierarchyChanged()
 		{
-			size_t count = _subviews.Count();
+			size_t count = _subviews.GetCount();
 			for(size_t i=0; i<count; i++)
 			{
-				View *subview = _subviews.ObjectAtIndex<View>(i);
+				View *subview = _subviews.GetObjectAtIndex<View>(i);
 				subview->_widget = _widget;
 				subview->ViewHierarchyChanged();
 			}
@@ -290,7 +290,7 @@ namespace RN
 		
 		void View::RemoveSubview(View *subview)
 		{
-			size_t index = _subviews.IndexOfObject(subview);
+			size_t index = _subviews.GetIndexOfObject(subview);
 			if(index != kRNNotFound)
 			{
 				WillRemoveSubview(subview);
@@ -312,10 +312,10 @@ namespace RN
 		
 		void View::RemoveAllSubviews()
 		{
-			size_t count = _subviews.Count();
+			size_t count = _subviews.GetCount();
 			for(size_t i=0; i<count; i++)
 			{
-				View *subview = _subviews.ObjectAtIndex<View>(i);
+				View *subview = _subviews.GetObjectAtIndex<View>(i);
 				
 				WillRemoveSubview(subview);
 				subview->WillMoveToSuperview(nullptr);
@@ -390,10 +390,10 @@ namespace RN
 		{
 			_dirtyLayout = true;
 			
-			size_t count = _subviews.Count();
+			size_t count = _subviews.GetCount();
 			for(size_t i=0; i<count; i++)
 			{
-				View *subview = _subviews.ObjectAtIndex<View>(i);
+				View *subview = _subviews.GetObjectAtIndex<View>(i);
 				subview->SetNeedsLayoutUpdate();
 			}
 		}
@@ -436,10 +436,10 @@ namespace RN
 			if(_clippingView)
 			{
 				_scissorRect.x     = std::max(_scissorRect.x, _clippingView->_scissorRect.x);
-				_scissorRect.width = std::min(_scissorRect.width, _clippingView->_scissorRect.Right() - _scissorRect.x);
+				_scissorRect.width = std::min(_scissorRect.width, _clippingView->_scissorRect.GetRight() - _scissorRect.x);
 				
 				_scissorRect.y      = std::max(_scissorRect.y, _clippingView->_scissorRect.y);
-				_scissorRect.height = std::min(_scissorRect.height, _clippingView->_scissorRect.Top() - _scissorRect.y);
+				_scissorRect.height = std::min(_scissorRect.height, _clippingView->_scissorRect.GetBottom() - _scissorRect.y);
 			}
 		}
 		
@@ -490,11 +490,11 @@ namespace RN
 					frame.y += _widget->_frame.y;
 				}
 				
-				Debug::AddLinePoint(Vector2(frame.Left(), frame.Top()), Color::Red());
-				Debug::AddLinePoint(Vector2(frame.Right(), frame.Top()), Color::Red());
-				Debug::AddLinePoint(Vector2(frame.Right(), frame.Bottom()), Color::Red());
-				Debug::AddLinePoint(Vector2(frame.Left(), frame.Bottom()), Color::Red());
-				Debug::AddLinePoint(Vector2(frame.Left(), frame.Top()), Color::Red());
+				Debug::AddLinePoint(Vector2(frame.GetLeft(), frame.GetBottom()), Color::Red());
+				Debug::AddLinePoint(Vector2(frame.GetRight(), frame.GetBottom()), Color::Red());
+				Debug::AddLinePoint(Vector2(frame.GetRight(), frame.GetTop()), Color::Red());
+				Debug::AddLinePoint(Vector2(frame.GetLeft(), frame.GetTop()), Color::Red());
+				Debug::AddLinePoint(Vector2(frame.GetLeft(), frame.GetBottom()), Color::Red());
 				Debug::EndLine();
 			}
 		}
@@ -542,10 +542,10 @@ namespace RN
 		
 		void View::RenderChilds(Renderer *renderer)
 		{
-			size_t count = _subviews.Count();
+			size_t count = _subviews.GetCount();
 			for(size_t i=0; i<count; i++)
 			{
-				View *subview = _subviews.ObjectAtIndex<View>(i);
+				View *subview = _subviews.GetObjectAtIndex<View>(i);
 				subview->Render(renderer);
 			}
 		}

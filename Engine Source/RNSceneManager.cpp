@@ -15,7 +15,7 @@ namespace RN
 	
 	SceneManager::SceneManager()
 	{
-		_renderer = Renderer::SharedInstance();
+		_renderer = Renderer::GetSharedInstance();
 	}
 	
 	SceneManager::~SceneManager()
@@ -59,11 +59,11 @@ namespace RN
 		{
 			node->Render(_renderer, camera);
 			
-			size_t childs = node->Childs();
+			size_t childs = node->GetChildCount();
 			
 			for(size_t i=0; i<childs; i++)
 			{
-				SceneNode *child = node->ChildAtIndex(i);
+				SceneNode *child = node->GetChildAtIndex(i);
 				RenderSceneNode(camera, child);
 			}
 		}
@@ -74,7 +74,7 @@ namespace RN
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
 			SceneNode *node = *i;
-			if(!node->Parent())
+			if(!node->GetParent())
 			{
 				RenderSceneNode(camera, node);
 			}

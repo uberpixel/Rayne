@@ -19,12 +19,12 @@ namespace RN
 		_namespace.pop_back();
 		_namespace.pop_back();
 		
-		Catalogue::SharedInstance()->AddMetaClass(this);
+		Catalogue::GetSharedInstance()->AddMetaClass(this);
 	}
 	
 	MetaClassBase::~MetaClassBase()
 	{
-		Catalogue::SharedInstance()->RemoveMetaClass(this);
+		Catalogue::GetSharedInstance()->RemoveMetaClass(this);
 	}
 	
 	bool MetaClassBase::InheritsFromClass(MetaClassBase *other) const
@@ -54,7 +54,7 @@ namespace RN
 	
 	
 	
-	MetaClassBase *Catalogue::ClassWithName(const std::string& name) const
+	MetaClassBase *Catalogue::GetClassWithName(const std::string& name) const
 	{
 		auto iterator = _metaClasses.find(name);
 		if(iterator != _metaClasses.end())

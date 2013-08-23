@@ -23,13 +23,13 @@ namespace RN
 		Message(String *name, Object *object, Dictionary *info);
 		~Message() override;
 		
-		String *Name() const { return _name; }
-		Object *Object() const { return _object; }
-		Dictionary *Info() const { return _info; }
+		String *GetName() const { return _name; }
+		Object *GetObject() const { return _object; }
+		Dictionary *GetInfo() const { return _info; }
 		
 	protected:
 		String *_name;
-		class Object *_object;
+		Object *_object;
 		Dictionary *_info;
 		
 		RNDefineMeta(Message, Object)

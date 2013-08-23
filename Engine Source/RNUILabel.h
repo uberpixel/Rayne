@@ -34,7 +34,7 @@ namespace RN
 			void SetNumberOfLines(uint32 lines);
 			void SetFrame(const Rect& frame) override;
 			
-			String *Text() const { return _string->String(); }
+			String *Text() const { return _string->GetString(); }
 			Color TextColor() const { return _color; }
 			Font *TextFont() const { return _font; }
 			TextAlignment Alignment() const { return _alignment; }

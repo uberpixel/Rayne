@@ -46,7 +46,7 @@ namespace RN
 	
 	void ConstantASCIIString::CharactersInRange(UniChar *buffer, const Range& range) const
 	{
-		if(range.End() > _length)
+		if(range.GetEnd() > _length)
 			throw Exception(Exception::Type::RangeException, "");
 		
 		for(size_t i=0; i<range.length; i++)
@@ -106,7 +106,7 @@ namespace RN
 			RN::Data *temp = new RN::Data(data, size, true, true);
 			temp->Autorelease();
 			
-			return temp->Bytes();
+			return temp->GetBytes();
 		}
 		
 		return nullptr;

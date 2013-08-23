@@ -38,25 +38,25 @@ namespace RN
 		if(_model && !_ignoreDrawing)
 		{
 			float distance = 0.0f;
-			Camera *distanceCamera = (camera->LODCamera()) ? camera->LODCamera() : camera;
+			Camera *distanceCamera = (camera->GetLODCamera()) ? camera->GetLODCamera() : camera;
 			
-			distance = WorldPosition().Distance(distanceCamera->WorldPosition());
+			distance = GetWorldPosition().Distance(distanceCamera->GetWorldPosition());
 			distance /= distanceCamera->clipfar;
 			
 			
 			RenderingObject object;
 			
-			uint32 lodStage = _model->LODStageForDistance(distance);
+			uint32 lodStage = _model->GetLODStageForDistance(distance);
 			
-			object.rotation = (Quaternion*)&WorldRotation();
-			object.transform = (Matrix *)&WorldTransform();
-			object.skeleton  = Skeleton();
+			object.rotation = (Quaternion*)&GetWorldRotation();
+			object.transform = (Matrix *)&GetWorldTransform();
+			object.skeleton  = GetSkeleton();
 			
-			uint32 count = _model->Meshes(lodStage);
+			uint32 count = _model->GetMeshCount(lodStage);
 			for(uint32 i=0; i<count; i++)
 			{
-				object.mesh = _model->MeshAtIndex(lodStage, i);
-				object.material = _model->MaterialAtIndex(lodStage, i);
+				object.mesh = _model->GetMeshAtIndex(lodStage, i);
+				object.material = _model->GetMaterialAtIndex(lodStage, i);
 				
 				renderer->RenderObject(object);
 			}
@@ -71,7 +71,7 @@ namespace RN
 		_model = model ? model->Retain() : 0;
 		
 		if(_model)
-			SetBoundingBox(_model->BoundingBox(), true);
+			SetBoundingBox(_model->GetBoundingBox(), true);
 	}
 	
 	void Entity::SetSkeleton(class Skeleton *skeleton)
@@ -89,17 +89,17 @@ namespace RN
 		if(_model == NULL)
 			return hit;
 			
-		if(BoundingSphere().IntersectsRay(position, direction))
+		if(GetBoundingSphere().IntersectsRay(position, direction))
 		{
-			Matrix matModelInv = WorldTransform().Inverse();
+			Matrix matModelInv = GetWorldTransform().GetInverse();
 			
 			Vector3 temppos = matModelInv.Transform(position);
 			Vector4 tempdir = matModelInv.Transform(Vector4(direction, 0.0f));
 			
-			size_t meshcount = _model->Meshes(0);
+			size_t meshcount = _model->GetMeshCount(0);
 			for(int i = 0; i < meshcount; i++)
 			{
-				Hit result = _model->MeshAtIndex(0, i)->IntersectsRay(temppos, Vector3(tempdir));
+				Hit result = _model->GetMeshAtIndex(0, i)->IntersectsRay(temppos, Vector3(tempdir));
 				result.node = this;
 				result.meshid = i;
 				

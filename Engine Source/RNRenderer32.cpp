@@ -154,9 +154,9 @@ namespace RN
 	
 	void Renderer32::CullLights(Camera *camera, Light **lights, size_t lightCount, GLuint indicesBuffer, GLuint offsetBuffer)
 	{
-		Rect rect = camera->Frame();
-		int tilesWidth  = ceil(rect.width / camera->LightTiles().x);
-		int tilesHeight = ceil(rect.height / camera->LightTiles().y);
+		Rect rect = camera->GetFrame();
+		int tilesWidth  = ceil(rect.width / camera->GetLightTiles().x);
+		int tilesHeight = ceil(rect.height / camera->GetLightTiles().y);
 		
 		size_t i = 0;
 		size_t tileCount = tilesWidth * tilesHeight;
@@ -188,18 +188,18 @@ namespace RN
 		Vector3 corner2 = camera->ToWorld(Vector3(1.0f, -1.0f, 1.0f));
 		Vector3 corner3 = camera->ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
 		
-		Vector3 dirx = (corner2-corner1)/rect.width*camera->LightTiles().x;
-		Vector3 diry = (corner3-corner1)/rect.height*camera->LightTiles().y;
+		Vector3 dirx = (corner2-corner1)/rect.width*camera->GetLightTiles().x;
+		Vector3 diry = (corner3-corner1)/rect.height*camera->GetLightTiles().y;
 		
-		const Vector3& camPosition = camera->WorldPosition();
-		float *depthArray = camera->DepthArray();
+		const Vector3& camPosition = camera->GetWorldPosition();
+		float *depthArray = camera->GetDepthArray();
 		
 		Vector3 camdir = camera->Forward();
 		
 		std::vector<size_t> indicesCount(tileCount);
 		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
 		
-		ThreadPool::Batch *batch = ThreadPool::SharedInstance()->CreateBatch();
+		ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch();
 		batch->Reserve(tilesHeight * tilesWidth);
 		
 		for(int y=0; y<tilesHeight; y++)
@@ -231,8 +231,8 @@ namespace RN
 					{
 						Light *light = lights[i];
 						
-						const Vector3& position = light->WorldPosition();
-						const float range = light->Range();
+						const Vector3& position = light->GetWorldPosition();
+						const float range = light->GetRange();
 						float distance, dr, dl, dt, db;
 						DistanceExpect(plright, >, range, true);
 						dr = distance;
@@ -308,12 +308,12 @@ namespace RN
 		Light **lights = _pointLights.data();
 		size_t lightCount = _pointLights.size();
 		
-		lightCount = MIN(camera->MaxLightsPerTile(), lightCount);
+		lightCount = MIN(camera->GetMaxLightsPerTile(), lightCount);
 		
 		_lightPointPosition.clear();
 		_lightPointColor.clear();
 		
-		if(camera->DepthTiles())
+		if(camera->GetDepthTiles())
 		{
 			GLuint indicesBuffer = _lightPointBuffers[kRNRendererPointLightListIndicesIndex];
 			GLuint offsetBuffer = _lightPointBuffers[kRNRendererPointLightListOffsetIndex];
@@ -341,16 +341,16 @@ namespace RN
 			for(size_t i=0; i<lightCount; i++)
 			{
 				Light *light = lights[i];
-				const Vector3& position = light->WorldPosition();
-				const Vector3& color = light->ResultColor();
+				const Vector3& position = light->GetWorldPosition();
+				const Vector3& color = light->GetResultColor();
 				
 				if(i < _maxLightFastPath)
 				{
-					_lightPointPosition.emplace_back(Vector4(position, light->Range()));
+					_lightPointPosition.emplace_back(Vector4(position, light->GetRange()));
 					_lightPointColor.emplace_back(Vector4(color, 0.0f));
 				}
 				
-				lightData[i * 2 + 0] = Vector4(position, light->Range());
+				lightData[i * 2 + 0] = Vector4(position, light->GetRange());
 				lightData[i * 2 + 1] = Vector4(color, 0.0f);
 			}
 			
@@ -362,8 +362,8 @@ namespace RN
 			lightCount = _pointLights.size();
 			for(size_t i = 0; i < lightCount; i++)
 			{
-				_lightPointPosition.emplace_back(Vector4(_pointLights[i]->Position(), _pointLights[i]->Range()));
-				_lightPointColor.emplace_back(Vector4(_pointLights[i]->Color().r, _pointLights[i]->Color().g, _pointLights[i]->Color().b, 0.0f));
+				_lightPointPosition.emplace_back(Vector4(_pointLights[i]->GetPosition(), _pointLights[i]->GetRange()));
+				_lightPointColor.emplace_back(Vector4(_pointLights[i]->GetColor().r, _pointLights[i]->GetColor().g, _pointLights[i]->GetColor().b, 0.0f));
 			}
 		}
 		
@@ -375,13 +375,13 @@ namespace RN
 		Light **lights = _spotLights.data();
 		size_t lightCount = _spotLights.size();
 		
-		lightCount = MIN(camera->MaxLightsPerTile(), lightCount);
+		lightCount = MIN(camera->GetMaxLightsPerTile(), lightCount);
 		
 		_lightSpotPosition.clear();
 		_lightSpotDirection.clear();
 		_lightSpotColor.clear();
 		
-		if(camera->DepthTiles())
+		if(camera->GetDepthTiles())
 		{
 			GLuint indicesBuffer = _lightSpotBuffers[kRNRendererSpotLightListIndicesIndex];
 			GLuint offsetBuffer = _lightSpotBuffers[kRNRendererSpotLightListOffsetIndex];
@@ -409,20 +409,20 @@ namespace RN
 			for(size_t i=0; i<lightCount; i++)
 			{
 				Light *light = lights[i];
-				const Vector3& position  = light->WorldPosition();
-				const Vector3& color     = light->ResultColor();
+				const Vector3& position  = light->GetWorldPosition();
+				const Vector3& color     = light->GetResultColor();
 				const Vector3& direction = light->Forward();
 				
 				if(i < _maxLightFastPath)
 				{
-					_lightSpotPosition.emplace_back(Vector4(position, light->Range()));
-					_lightSpotDirection.emplace_back(Vector4(direction, light->Angle()));
+					_lightSpotPosition.emplace_back(Vector4(position, light->GetRange()));
+					_lightSpotDirection.emplace_back(Vector4(direction, light->GetAngle()));
 					_lightSpotColor.emplace_back(Vector4(color, 0.0f));
 				}
 				
-				lightData[i * 3 + 0] = Vector4(position, light->Range());
+				lightData[i * 3 + 0] = Vector4(position, light->GetRange());
 				lightData[i * 3 + 1] = Vector4(color, 0.0f);
-				lightData[i * 3 + 2] = Vector4(direction, light->Angle());
+				lightData[i * 3 + 2] = Vector4(direction, light->GetAngle());
 			}
 			
 			glUnmapBuffer(GL_TEXTURE_BUFFER);
@@ -447,7 +447,7 @@ namespace RN
 		for(size_t i=0; i<lightCount; i++)
 		{
 			Light *light = lights[i];
-			const Vector3& color = light->ResultColor();
+			const Vector3& color = light->GetResultColor();
 			const Vector3& direction = light->Forward();
 			
 			_lightDirectionalDirection.push_back(direction);
@@ -455,23 +455,23 @@ namespace RN
 			
 			if(light->Shadow())
 			{
-				if(camera == light->ShadowCamera() || light->ShadowCameras()->ContainsObject(camera))
+				if(camera == light->GetShadowCamera() || light->GetShadowCameras()->ContainsObject(camera))
 				{
 					_lightDirectionalMatrix.clear();
 					_lightDirectionalDepth.clear();
 					
 					for(int i = 0; i < 4; i++)
 					{
-						_lightDirectionalMatrix.push_back(light->ShadowMatrices()[i]);
+						_lightDirectionalMatrix.push_back(light->GetShadowMatrices()[i]);
 					}
 					
-					if(light->ShadowCamera())
+					if(light->GetShadowCamera())
 					{
-						_lightDirectionalDepth.push_back(light->ShadowCamera()->Storage()->DepthTarget());
+						_lightDirectionalDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
 					}
 					else
 					{
-						_lightDirectionalDepth.push_back(light->ShadowCameras()->FirstObject<Camera>()->Storage()->DepthTarget());
+						_lightDirectionalDepth.push_back(light->GetShadowCameras()->GetFirstObject<Camera>()->GetStorage()->GetDepthTarget());
 					}
 				}
 			}
@@ -489,9 +489,9 @@ namespace RN
 	
 	void Renderer32::AdjustDrawBuffer(Camera *camera, Camera *target)
 	{
-		const Vector2& size = camera->Storage()->Size();
-		const Rect& offset = camera->RenderingFrame();
-		const Rect& frame = camera->Frame();
+		const Vector2& size = camera->GetStorage()->GetSize();
+		const Rect& offset = camera->GetRenderingFrame();
+		const Rect& frame = camera->GetFrame();
 		
 		Vector4 atlas = Vector4(offset.x / size.x, offset.y / size.y, (offset.x + offset.width) / size.x, (offset.y + offset.height) / size.y);
 		
@@ -518,8 +518,8 @@ namespace RN
 		}
 		else
 		{
-			Rect tframe(target->RenderingFrame());
-			const Rect& targetFrame = target->Frame();
+			Rect tframe(target->GetRenderingFrame());
+			const Rect& targetFrame = target->GetFrame();
 			
 			if(stretchHorizontal)
 			{
@@ -615,9 +615,9 @@ namespace RN
 		
 		Matrix identityMatrix;
 		
-		if(!source && !(camera->CameraFlags() & Camera::FlagNoRender))
+		if(!source && !(camera->GetFlags() & Camera::FlagNoRender))
 		{
-			Material *surfaceMaterial = camera->Material();
+			Material *surfaceMaterial = camera->GetMaterial();
 
 			// Create the light lists for the camera
 			int lightPointCount = CreatePointLightList(camera);
@@ -637,7 +637,7 @@ namespace RN
 			Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
 			
 			size_t objectsCount = _frame.size();
-			size_t i = (camera->CameraFlags() & Camera::FlagNoSky) ? skyCubeMeshes : 0;
+			size_t i = (camera->GetFlags() & Camera::FlagNoSky) ? skyCubeMeshes : 0;
 			
 			for(; i<objectsCount; i++)
 			{
@@ -652,10 +652,10 @@ namespace RN
 				
 				Mesh     *mesh = object.mesh;
 				Material *material = object.material;
-				Shader   *shader = surfaceMaterial ? surfaceMaterial->Shader() : material->Shader();
+				Shader   *shader = surfaceMaterial ? surfaceMaterial->GetShader() : material->GetShader();
 				
 				Matrix& transform = object.transform ? *object.transform : identityMatrix;
-				Matrix inverseTransform = transform.Inverse();
+				Matrix inverseTransform = transform.GetInverse();
 				
 				// Check if we can use instancing here
 				bool wantsInstancing = (object.type == RenderingObject::Type::Instanced);
@@ -713,11 +713,11 @@ namespace RN
 				
 				if(surfaceMaterial)
 				{
-					program = shader->ProgramWithLookup(surfaceMaterial->Lookup() + material->Lookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
+					program = shader->GetProgramWithLookup(surfaceMaterial->GetLookup() + material->GetLookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
 				}
 				else
 				{
-					program = shader->ProgramWithLookup(material->Lookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
+					program = shader->GetProgramWithLookup(material->GetLookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
 				}
 				
 				RN_ASSERT(program, "");
@@ -754,15 +754,15 @@ namespace RN
 					float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.data());
 					glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.size(), GL_FALSE, data);
 					
-					if(camera->DepthTiles() != 0)
+					if(camera->GetDepthTiles() != 0)
 					{
 						if(program->lightTileSize != -1)
 						{
-							Rect rect = camera->Frame();
-							int tilesWidth  = ceil(rect.width / camera->LightTiles().x);
-							int tilesHeight = ceil(rect.height / camera->LightTiles().y);
+							Rect rect = camera->GetFrame();
+							int tilesWidth  = ceil(rect.width / camera->GetLightTiles().x);
+							int tilesHeight = ceil(rect.height / camera->GetLightTiles().y);
 							
-							Vector2 lightTilesSize = camera->LightTiles() * _scaleFactor;
+							Vector2 lightTilesSize = camera->GetLightTiles() * _scaleFactor;
 							Vector2 lightTilesCount = Vector2(tilesWidth, tilesHeight);
 							
 							glUniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
@@ -788,7 +788,7 @@ namespace RN
 						glUniform1i(program->lightDirectionalDepth, textureUnit);
 					}
 					
-					if(camera->DepthTiles())
+					if(camera->GetDepthTiles())
 					{
 						// Point lights
 						if(program->lightPointList != -1)
@@ -847,8 +847,8 @@ namespace RN
 				// More updates
 				if(object.skeleton)
 				{
-					const float *data = reinterpret_cast<const float *>(object.skeleton->Matrices().data());
-					glUniformMatrix4fv(program->matBones, object.skeleton->NumBones(), GL_FALSE, data);
+					const float *data = reinterpret_cast<const float *>(object.skeleton->GetMatrices().data());
+					glUniformMatrix4fv(program->matBones, object.skeleton->GetBoneCount(), GL_FALSE, data);
 				}
 				
 				glUniformMatrix4fv(program->matModel, 1, GL_FALSE, transform.m);
@@ -857,10 +857,10 @@ namespace RN
 				if(object.rotation)
 				{
 					if(program->matNormal != -1)
-						glUniformMatrix4fv(program->matNormal, 1, GL_FALSE, object.rotation->RotationMatrix().m);
+						glUniformMatrix4fv(program->matNormal, 1, GL_FALSE, object.rotation->GetRotationMatrix().m);
 					
 					if(program->matNormalInverse != -1)
-						glUniformMatrix4fv(program->matNormalInverse, 1, GL_FALSE, object.rotation->RotationMatrix().Inverse().m);
+						glUniformMatrix4fv(program->matNormalInverse, 1, GL_FALSE, object.rotation->GetRotationMatrix().GetInverse().m);
 				}
 				
 				if(program->matViewModel != -1)
@@ -907,7 +907,7 @@ namespace RN
 	void Renderer32::DrawMesh(Mesh *mesh, uint32 offset, uint32 count)
 	{
 		bool usesIndices = mesh->SupportsFeature(kMeshFeatureIndices);
-		MeshDescriptor *descriptor = usesIndices ? mesh->Descriptor(kMeshFeatureIndices) : mesh->Descriptor(kMeshFeatureVertices);
+		MeshDescriptor *descriptor = usesIndices ? mesh->GetDescriptor(kMeshFeatureIndices) : mesh->GetDescriptor(kMeshFeatureVertices);
 		
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
 		
@@ -937,11 +937,11 @@ namespace RN
 					break;
 			}
 			
-			glDrawElements(mesh->Mode(), glCount, type, reinterpret_cast<void *>(offset));
+			glDrawElements(mesh->GetMode(), glCount, type, reinterpret_cast<void *>(offset));
 		}
 		else
 		{
-			glDrawArrays(mesh->Mode(), 0, glCount);
+			glDrawArrays(mesh->GetMode(), 0, glCount);
 		}
 		
 		_renderedVertices += glCount;
@@ -951,7 +951,7 @@ namespace RN
 	void Renderer32::DrawMeshInstanced(const RenderingObject& object)
 	{
 		Mesh *mesh = object.mesh;
-		MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureIndices);
+		MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureIndices);
 		
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
 		RN_ASSERT(_currentProgram->instancingData != -1, "");
@@ -981,12 +981,12 @@ namespace RN
 					break;
 			}
 			
-			glDrawElementsInstanced(mesh->Mode(), (GLsizei)descriptor->elementCount, type, 0, (GLsizei)object.count);
+			glDrawElementsInstanced(mesh->GetMode(), (GLsizei)descriptor->elementCount, type, 0, (GLsizei)object.count);
 		}
 		else
 		{
-			descriptor = mesh->Descriptor(kMeshFeatureVertices);
-			glDrawArraysInstanced(mesh->Mode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)object.count);
+			descriptor = mesh->GetDescriptor(kMeshFeatureVertices);
+			glDrawArraysInstanced(mesh->GetMode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)object.count);
 		}
 		
 		_renderedVertices += descriptor->elementCount * object.count;

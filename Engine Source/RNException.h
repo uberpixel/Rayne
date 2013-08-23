@@ -50,11 +50,11 @@ namespace RN
 		
 		Exception(Type type, const std::string& reason);
 		
-		Type ExceptionType() const { return _type; }
-		Thread *ExceptionThread() const { return _thread; }
+		Type GetType() const { return _type; }
+		Thread *GetThread() const { return _thread; }
 		
-		const std::string& Reason() const { return _reason; }
-		const std::vector<std::pair<uintptr_t, std::string>>& CallStack() const { return _callStack; }
+		const std::string& GetReason() const { return _reason; }
+		const std::vector<std::pair<uintptr_t, std::string>>& GetCallStack() const { return _callStack; }
 		
 	private:
 		void GatherInfo();

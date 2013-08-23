@@ -79,7 +79,7 @@ namespace RN
 		if(child->IsKindOfClass(_entityClass))
 		{
 			Entity *entity = static_cast<Entity *>(child);
-			Model *entityModel = entity->Model();
+			Model *entityModel = entity->GetModel();
 			
 			if(entityModel == _model)
 			{
@@ -88,12 +88,12 @@ namespace RN
 					if(_dirty)
 						return;
 					
-					Number *index = (Number *)entity->AssociatedObject(kRNInstancingNodeAssociatedIndexKey);
+					Number *index = (Number *)entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey);
 					
 					size_t size = _data.size();
 					
 					for(size_t i=0; i<size; i++)
-						UpdateDataForMesh(entity, _data[i], index->Uint32Value());
+						UpdateDataForMesh(entity, _data[i], index->GetUint32Value());
 				}
 				else
 				{
@@ -123,8 +123,8 @@ namespace RN
 			object.material = i->material;
 			object.instancingData = i->texture;
 			object.count = i->count;
-			object.rotation = (Quaternion*)&WorldRotation();
-			object.transform = (Matrix *)&WorldTransform();
+			object.rotation = (Quaternion*)&GetWorldRotation();
+			object.transform = (Matrix *)&GetWorldTransform();
 			
 			renderer->RenderObject(object);
 		}
@@ -145,8 +145,8 @@ namespace RN
 		
 		for(size_t i=0; i<count; i++)
 		{
-			matrices[(int)((i * 2) + 0)] = entities[i]->WorldTransform();
-			matrices[(int)((i * 2) + 1)] = entities[i]->WorldTransform().Inverse();
+			matrices[(int)((i * 2) + 0)] = entities[i]->GetWorldTransform();
+			matrices[(int)((i * 2) + 1)] = entities[i]->GetWorldTransform().GetInverse();
 		}
 		
 		glGenTextures(1, &texture);
@@ -181,8 +181,8 @@ namespace RN
 	void InstancingNode::UpdateDataForMesh(Entity *entity, const InstancedMesh& mesh, uint32 index)
 	{
 		Matrix matrices[2];
-		matrices[0] = entity->WorldTransform();
-		matrices[1] = entity->WorldTransform().Inverse();
+		matrices[0] = entity->GetWorldTransform();
+		matrices[1] = entity->GetWorldTransform().GetInverse();
 		
 		size_t offset = index * (sizeof(Matrix) * 2);
 		
@@ -202,17 +202,17 @@ namespace RN
 			glDeleteBuffers(1, &mesh.buffer);
 		}
 		
-		size_t childs = Childs();
+		size_t childs = GetChildCount();
 		entities.reserve(childs);
 		
 		for(size_t i=0; i<childs; i++)
 		{
-			SceneNode *node = ChildAtIndex(i);
+			SceneNode *node = GetChildAtIndex(i);
 			
 			if(node->IsKindOfClass(_entityClass))
 			{
 				Entity *entity = static_cast<Entity *>(node);
-				Model *entityModel = entity->Model();
+				Model *entityModel = entity->GetModel();
 				
 				entity->_ignoreDrawing = false;
 				
@@ -230,11 +230,11 @@ namespace RN
 		
 		if(entities.size() > 0)
 		{
-			uint32 count = _model->Meshes(0);
+			uint32 count = _model->GetMeshCount(0);
 			for(uint32 i=0; i<count; i++)
 			{
-				Mesh *mesh = _model->MeshAtIndex(0, i);
-				Material *material = _model->MaterialAtIndex(0, i);
+				Mesh *mesh = _model->GetMeshAtIndex(0, i);
+				Material *material = _model->GetMaterialAtIndex(0, i);
 				
 				GenerateDataForMesh(entities, mesh, material);
 			}

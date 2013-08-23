@@ -81,12 +81,12 @@ namespace RN
 		void UnloadResourceSection(String *name);
 		
 		template<typename T>
-		T *ResourceWithName(String *key)
+		T *GetResourceWithName(String *key)
 		{
 			T *object;
 			
 			_lock.Lock();
-			object = _objects.ObjectForKey<T>(key);
+			object = _objects.GetObjectForKey<T>(key);
 			_lock.Unlock();
 			
 			return object;

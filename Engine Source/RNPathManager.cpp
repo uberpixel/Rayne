@@ -464,7 +464,7 @@ namespace RN
 	
 	std::string PathManager::SaveDirectory()
 	{
-		std::string title = Kernel::SharedInstance()->Title();
+		std::string title = Kernel::GetSharedInstance()->GetTitle();
 		std::string path;
 		
 #if RN_PLATFORM_MAC_OS

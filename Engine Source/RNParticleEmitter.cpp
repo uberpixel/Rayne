@@ -30,7 +30,7 @@ namespace RN
 		blendDestination = GL_ONE_MINUS_SRC_ALPHA;
 		
 		depthwrite = false;
-		SetShader(ResourcePool::SharedInstance()->ResourceWithName<class Shader>(kRNResourceKeyParticleShader));
+		SetShader(ResourcePool::GetSharedInstance()->GetResourceWithName<class Shader>(kRNResourceKeyParticleShader));
 	}
 	
 	ParticleMaterial::~ParticleMaterial()
@@ -53,7 +53,7 @@ namespace RN
 	{
 		_mesh = 0;
 		_material = 0;
-		_rng = new RandomNumberGenerator(RandomNumberGenerator::TypeLCG);
+		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::LCG);
 		
 		SetParticlesPerSecond(1);
 		SetMaxParticles(100);
@@ -217,7 +217,7 @@ namespace RN
 	
 	void ParticleEmitter::UpdateMesh()
 	{
-		ParticleData *data = _mesh->MeshData<ParticleData>();
+		ParticleData *data = _mesh->GetMeshData<ParticleData>();
 		
 		for(size_t i = 0; i < _particles.size(); i ++)
 		{
@@ -262,7 +262,7 @@ namespace RN
 		object.mesh = _mesh;
 		object.count = static_cast<uint32>(_particles.size());
 		object.material = _material;
-		object.transform = (Matrix *)&WorldTransform();
+		object.transform = (Matrix *)&GetWorldTransform();
 		
 		renderer->RenderObject(object);
 	}

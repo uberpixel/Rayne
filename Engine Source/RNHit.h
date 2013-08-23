@@ -28,11 +28,9 @@ namespace RN
 		uint32 meshid;
 	};
 	
-	RN_INLINE Hit::Hit(class SceneNode *node, float dist, const Vector3 &pos, const Vector3 &norm)
-	: node(node), distance(dist), position(pos), normal(norm), meshid(-1)
-	{
-		
-	}
+	RN_INLINE Hit::Hit(class SceneNode *node, float dist, const Vector3 &pos, const Vector3 &norm) :
+		node(node), distance(dist), position(pos), normal(norm), meshid(-1)
+	{}
 }
 
 #endif /* __RAYNE_HIT_H__ */

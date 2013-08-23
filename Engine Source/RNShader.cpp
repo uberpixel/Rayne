@@ -200,7 +200,7 @@ namespace RN
 			SetShaderForType(path, ShaderType::GeometryShader);
 #endif
 		
-		ProgramOfType(ShaderProgram::TypeNormal);
+		GetProgramOfType(ShaderProgram::TypeNormal);
 	}
 	
 	Shader::~Shader()
@@ -380,7 +380,7 @@ namespace RN
 		return program;
 	}
 	
-	ShaderProgram *Shader::ProgramWithLookup(const ShaderLookup& lookup)
+	ShaderProgram *Shader::GetProgramWithLookup(const ShaderLookup& lookup)
 	{
 		if(!SupportsProgramOfType(lookup.type))
 			return 0;
@@ -388,9 +388,9 @@ namespace RN
 		return CompileProgram(lookup);
 	}
 	
-	ShaderProgram *Shader::ProgramOfType(uint32 type)
+	ShaderProgram *Shader::GetProgramOfType(uint32 type)
 	{
-		return ProgramWithLookup(ShaderLookup(type));
+		return GetProgramWithLookup(ShaderLookup(type));
 	}
 	
 	bool Shader::SupportsProgramOfType(uint32 type)
@@ -414,7 +414,7 @@ namespace RN
 			switch(mode)
 			{
 				case IncludeMode::CurrentDir:
-					path = PathManager::PathForName(PathManager::Join(parent->Path(), name));
+					path = PathManager::PathForName(PathManager::Join(parent->GetPath(), name));
 					break;
 					
 				case IncludeMode::IncludeDir:
@@ -427,16 +427,16 @@ namespace RN
 		}
 		catch(Exception e)
 		{
-			throw Exception(e.ExceptionType(), "Couldn't include file " + name);
+			throw Exception(e.GetType(), "Couldn't include file " + name);
 		}
 		
-		output.fullpath = includeFile->FullPath();
+		output.fullpath = includeFile->GetFullPath();
 		PreProcessFile(includeFile, output);
 	}
 	
 	void Shader::PreProcessFile(File *file, PreProcessedFile& output)
 	{
-		std::string data = file->String();
+		std::string data = file->GetString();
 		size_t index = -1;
 		
 		uint32 lines = output.offset;
@@ -560,7 +560,7 @@ namespace RN
 		ShaderData data;
 		data.shader = std::move(result.data);
 		data.marker = std::move(result.marker);
-		data.file   = file->Name() + "." + file->Extension();
+		data.file   = file->GetName() + "." + file->GetExtension();
 		
 		_shaderData.insert(std::map<ShaderType, ShaderData>::value_type(type, std::move(data)));
 	}
@@ -577,7 +577,7 @@ namespace RN
 	// MARK: helper
 	// ---------------------
 	
-	const std::string& Shader::ShaderSource(ShaderType type)
+	const std::string& Shader::GetShaderSource(ShaderType type)
 	{
 		return _shaderData[type].shader;
 	}

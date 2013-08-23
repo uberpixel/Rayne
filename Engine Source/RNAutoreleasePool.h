@@ -24,7 +24,7 @@ namespace RN
 		RNAPI void AddObject(Object *object);
 		RNAPI void Drain();
 		
-		RNAPI static AutoreleasePool *CurrentPool();
+		RNAPI static AutoreleasePool *GetCurrentPool();
 		
 	private:
 		Thread *_owner;

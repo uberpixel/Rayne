@@ -63,31 +63,31 @@ namespace RN
 			{
 				case Number::Type::Float32:
 				case Number::Type::Float64:
-					json = json_real(number->DoubleValue());
+					json = json_real(number->GetDoubleValue());
 					break;
 					
 				case Number::Type::Uint8:
 				case Number::Type::Uint16:
 				case Number::Type::Uint32:
-					json = json_integer(number->Uint32Value());
+					json = json_integer(number->GetUint32Value());
 					break;
 					
 				case Number::Type::Int8:
 				case Number::Type::Int16:
 				case Number::Type::Int32:
-					json = json_integer(number->Int32Value());
+					json = json_integer(number->GetInt32Value());
 					break;
 					
 				case Number::Type::Uint64:
-					json = json_integer(number->Uint64Value());
+					json = json_integer(number->GetUint64Value());
 					break;
 					
 				case Number::Type::Int64:
-					json = json_integer(number->Int64Value());
+					json = json_integer(number->GetInt64Value());
 					break;
 					
 				case Number::Type::Boolean:
-					json = json_boolean(number->BoolValue());
+					json = json_boolean(number->GetBoolValue());
 					break;
 			}
 		}
@@ -95,7 +95,7 @@ namespace RN
 		if(object->IsKindOfClass(__JSONStringClass))
 		{
 			String *string = static_cast<String *>(object);
-			const char *utf8 = reinterpret_cast<const char *>(string->BytesWithEncoding(Encoding::UTF8, false, nullptr));
+			const char *utf8 = reinterpret_cast<const char *>(string->GetBytesWithEncoding(Encoding::UTF8, false, nullptr));
 			
 			json = json_string_nocheck(utf8);
 		}
@@ -120,7 +120,7 @@ namespace RN
 				if(key->IsKindOfClass(__JSONStringClass))
 				{
 					String *string = static_cast<String *>(key);
-					const char *utf8 = reinterpret_cast<const char *>(string->BytesWithEncoding(Encoding::UTF8, false, nullptr));
+					const char *utf8 = reinterpret_cast<const char *>(string->GetBytesWithEncoding(Encoding::UTF8, false, nullptr));
 					
 					json_t *data = static_cast<json_t *>(SerializeObject(object));
 					json_object_set_new_nocheck(json, utf8, data);
@@ -237,7 +237,7 @@ namespace RN
 	{
 		json_error_t error;
 		size_t flags = JSON_DISABLE_EOF_CHECK;
-		json_t *root = json_loads(reinterpret_cast<char *>(data->Bytes()), flags, &error);
+		json_t *root = json_loads(reinterpret_cast<char *>(data->GetBytes()), flags, &error);
 		
 		if(!root)
 		{

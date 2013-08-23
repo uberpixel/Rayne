@@ -55,7 +55,7 @@ namespace RN
 				break;
 		}
 		
-		auto source = std::move(PreProcessedShaderSource(_host->ShaderSource(_type), defines));
+		auto source = std::move(PreProcessedShaderSource(_host->GetShaderSource(_type), defines));
 		const GLchar *data = source.first.c_str();
 		
 		if(_shader)

@@ -44,7 +44,7 @@ namespace RN
 		RNAPI Vector2& operator*= (const Vector2& other);
 		RNAPI Vector2& operator/= (const Vector2& other);
 
-		RNAPI float Length() const;
+		RNAPI float GetLength() const;
 		RNAPI float Dot (const Vector2& other) const;
 		RNAPI bool IsEqual(const Vector2& other, float epsilon) const;
 
@@ -83,7 +83,7 @@ namespace RN
 		RNAPI Vector3& operator*= (const Vector3& other);
 		RNAPI Vector3& operator/= (const Vector3& other);
 		
-		RNAPI float Length() const;
+		RNAPI float GetLength() const;
 		RNAPI float Dot(const Vector3& other) const;
 		RNAPI Vector3 Cross(const Vector3& other) const;
 		RNAPI bool IsEqual(const Vector3& other, float epsilon) const;
@@ -138,7 +138,7 @@ namespace RN
 		RNAPI Vector4& operator*= (const Vector4& other);
 		RNAPI Vector4& operator/= (const Vector4& other);
 		
-		RNAPI float Length() const;
+		RNAPI float GetLength() const;
 		RNAPI float Dot(const Vector4& other) const;
 		RNAPI Vector4 Cross(const Vector4& other) const;
 		RNAPI bool IsEqual(const Vector4& other, float epsilon) const;
@@ -276,7 +276,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE float Vector2::Length() const
+	RN_INLINE float Vector2::GetLength() const
 	{
 		return Math::Sqrt(x * x + y * y);
 	}
@@ -299,7 +299,7 @@ namespace RN
 
 	RN_INLINE Vector2& Vector2::Normalize(const float n)
 	{
-		float length = Length();
+		float length = GetLength();
 		x *= n/length;
 		y *= n/length;
 
@@ -425,7 +425,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE float Vector3::Length() const
+	RN_INLINE float Vector3::GetLength() const
 	{
 		return Math::Sqrt(x * x + y * y + z * z);
 	}
@@ -462,7 +462,7 @@ namespace RN
 
 	RN_INLINE Vector3& Vector3::Normalize(const float n)
 	{
-		float length = n/Length();
+		float length = n / GetLength();
 		x *= length;
 		y *= length;
 		z *= length;
@@ -472,8 +472,8 @@ namespace RN
 
 	RN_INLINE float Vector3::Distance(const Vector3 &other) const
 	{
-		Vector3 difference = *this-other;
-		return difference.Length();
+		Vector3 difference = *this - other;
+		return difference.GetLength();
 	}
 
 	RN_INLINE Vector3 Vector3::Lerp(const Vector3 &other, float factor) const
@@ -672,18 +672,18 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE float Vector4::Length() const
+	RN_INLINE float Vector4::GetLength() const
 	{
 #if RN_SIMD
 	#ifdef __SSE4_1__
-		if(X86_64::Caps() & X86_64::CAP_SSE41)
+		if(X86_64::GetCapabilites() & X86_64::CAP_SSE41)
 		{
 			return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(simd, simd, 0xFF)));
 		}
 	#endif
 		
 	#ifdef __SSE3__
-		if(X86_64::Caps() & X86_64::CAP_SSE3)
+		if(X86_64::GetCapabilites() & X86_64::CAP_SSE3)
 		{
 			float result;
 			
@@ -704,14 +704,14 @@ namespace RN
 	{
 #if RN_SIMD
 	#ifdef __SSE4_1__
-		if(X86_64::Caps() & X86_64::CAP_SSE41)
+		if(X86_64::GetCapabilites() & X86_64::CAP_SSE41)
 		{
 			return _mm_cvtss_f32(_mm_dp_ps(simd, other.simd, 0xFF));
 		}
 	#endif
 		
 	#ifdef __SSE3__
-		if(X86_64::Caps() & X86_64::CAP_SSE3)
+		if(X86_64::GetCapabilites() & X86_64::CAP_SSE3)
 		{
 			float result;
 			SIMD::VecFloat r1 = SIMD::Mul(simd, other.simd);
@@ -765,7 +765,7 @@ namespace RN
 	{
 #if RN_SIMD
 	#ifdef __SSE4_1__
-		if(X86_64::Caps() & X86_64::CAP_SSE41)
+		if(X86_64::GetCapabilites() & X86_64::CAP_SSE41)
 		{
 			float length = n / _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(simd, simd, 0xFF)));
 			simd = SIMD::Mul(simd, SIMD::Set(length));
@@ -775,7 +775,7 @@ namespace RN
 	#endif
 #endif
 		
-		float length = n/Length();
+		float length = n / GetLength();
 		x *= length;
 		y *= length;
 		z *= length;

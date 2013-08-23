@@ -84,11 +84,11 @@ namespace RN
 						additions.emplace_back(stl::interval_tree<Attribute>::interval(temp, i->value));
 					}
 					
-					if(i->range.End() > range.End())
+					if(i->range.GetEnd() > range.GetEnd())
 					{
 						Range temp;
-						temp.origin = range.End();
-						temp.length = i->range.End() - temp.origin;
+						temp.origin = range.GetEnd();
+						temp.length = i->range.GetEnd() - temp.origin;
 						
 						additions.emplace_back(stl::interval_tree<Attribute>::interval(temp, i->value));
 					}
@@ -139,10 +139,10 @@ namespace RN
 	{
 		size_t index = range.origin;
 		
-		if(index == Length() && Length() > 0)
+		if(index == GetLength() && GetLength() > 0)
 			index --;
 			
-		Dictionary *attributes = AttributesAtIndex(index);
+		Dictionary *attributes = GetAttributesAtIndex(index);
 		ReplaceCharacters(string, range, attributes);
 	}
 	
@@ -152,20 +152,20 @@ namespace RN
 		
 		ApplyUpdates();
 		
-		ptrdiff_t offset = (string ? string->Length() : 0) - range.length;
+		ptrdiff_t offset = (string ? string->GetLength() : 0) - range.length;
 		
 		std::vector<stl::interval_tree<Attribute>::interval> original;
 		std::vector<stl::interval_tree<Attribute>::interval> shift;
 		
 		_attributes.find_overlapping(Range(0, range.origin), original);
-		_attributes.find_overlapping(Range(range.End(), Length() - range.End()), shift);
+		_attributes.find_overlapping(Range(range.GetEnd(), GetLength() - range.GetEnd()), shift);
 		
 		_attributes = stl::interval_tree<Attribute>();
 		
 		// Adjust the left side so that it cuts of at the replacement range
 		for(auto i = original.begin(); i != original.end(); i ++)
 		{
-			if(i->range.End() > range.origin)
+			if(i->range.GetEnd() > range.origin)
 			{
 				i->range.length = range.origin - i->range.origin;
 			}
@@ -202,16 +202,16 @@ namespace RN
 		_queuedAttributes.insert(_queuedAttributes.end(), shift.begin(), shift.end());
 		
 		if(string)
-			AddAttributes(attributes, Range(range.origin, string->Length()));
+			AddAttributes(attributes, Range(range.origin, string->GetLength()));
 	}
 	
 	
-	Dictionary *AttributedString::AttributesAtIndex(size_t index)
+	Dictionary *AttributedString::GetAttributesAtIndex(size_t index)
 	{
 		if(_editing)
 			ApplyUpdates();
 		
-		if(index >= Length())
+		if(index >= GetLength())
 			throw Exception(Exception::Type::RangeException, "index outside of range");
 		
 		std::vector<stl::interval_tree<Attribute>::interval> overlapping;
@@ -240,7 +240,7 @@ namespace RN
 		
 		for(auto i = _queuedAttributes.begin(); i != _queuedAttributes.end(); i ++)
 		{
-			Wrapper *object = temp->ObjectForKey<Wrapper>(i->value.key);
+			Wrapper *object = temp->GetObjectForKey<Wrapper>(i->value.key);
 			
 			if(!object)
 			{
@@ -248,14 +248,14 @@ namespace RN
 				temp->SetObjectForKey(object, i->value.key);
 			}
 			
-			object->Data().push_back(std::move(*i));
+			object->GetData().push_back(std::move(*i));
 		}
 		
 		_queuedAttributes.clear();
 		
 		temp->Enumerate([&](Object *value, Object *key, bool *stop) {
 			Wrapper *object = static_cast<Wrapper *>(value);
-			auto data = object->Data();
+			auto data = object->GetData();
 			
 			std::sort(data.begin(), data.end(), [](const Interval& left, const Interval& right) {
 				return (left.range.origin < right.range.origin);
@@ -276,15 +276,15 @@ namespace RN
 					bool subsequent = false;
 					
 					if(!subsequent)
-						subsequent = (i->range.origin == interval.range.End() + 1);
+						subsequent = (i->range.origin == interval.range.GetEnd() + 1);
 					
 					if(!subsequent)
-						subsequent = (interval.range.origin == i->range.End() + 1);
+						subsequent = (interval.range.origin == i->range.GetEnd() + 1);
 					
 					if(subsequent || interval.range.Overlaps(i->range))
 					{
 						size_t origin = std::min(i->range.origin, interval.range.origin);
-						size_t length = std::max(i->range.End(), interval.range.End()) - origin;
+						size_t length = std::max(i->range.GetEnd(), interval.range.GetEnd()) - origin;
 						
 						interval.range.origin = origin;
 						interval.range.length = length;

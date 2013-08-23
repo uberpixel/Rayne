@@ -169,8 +169,8 @@ namespace RN
 		for(int i = 0; i < children.size(); i++)
 		{
 #if defined(RNDebugDrawSkeleton)
-			RN::Vector3 pos1 = finalMatrix.Transform(RN::Vector3())*0.0088889f;
-			RN::Debug::AddLinePoint(pos1, RN::Color::Red());
+			Vector3 pos1 = finalMatrix.Transform(Vector3())*0.0088889f;
+			Debug::AddLinePoint(pos1, Color::Red());
 #endif
 			
 			if(children[i]->Update(this, timestep, restart))
@@ -180,9 +180,9 @@ namespace RN
 #if defined(RNDebugDrawSkeleton)
 		if(children.size() == 0)
 		{
-			RN::Vector3 pos1 = finalMatrix.Transform(RN::Vector3())*0.0088889f;
-			RN::Debug::AddLinePoint(pos1, RN::Color::Red());
-			RN::Debug::CloseLine();
+			Vector3 pos1 = finalMatrix.Transform(Vector3())*0.0088889f;
+			Debug::AddLinePoint(pos1, Color::Red());
+			Debug::CloseLine();
 		}
 #endif
 		
@@ -312,7 +312,7 @@ namespace RN
 		}
 		
 #if defined(RNDebugDrawSkeleton)
-		RN::Debug::EndLine();
+		Debug::EndLine();
 #endif
 		
 		if(!running && _blendanim)

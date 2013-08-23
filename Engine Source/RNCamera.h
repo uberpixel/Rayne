@@ -52,16 +52,16 @@ namespace RN
 		
 		void Connect(Camera *other);
 		
-		Camera *Connection() const { return _connection; }
-		Camera *Camera() const { return _camera; }
-		Mode StageMode() const { return _mode; }
+		Camera *GetConnection() const { return _connection; }
+		Camera *GetCamera() const { return _camera; }
+		Mode GetMode() const { return _mode; }
 		
 	private:
 		void InsertCamera(class Camera *camera);
 		void RemoveCamera(class Camera *camera);
 		
-		class Camera *_connection;
-		class Camera *_camera;
+		Camera *_connection;
+		Camera *_camera;
 		
 		Mode _mode;
 	};
@@ -77,8 +77,8 @@ namespace RN
 		RenderStage *AddStage(Camera *camera, RenderStage::Mode mode);
 		RenderStage *AddStage(Camera *camera, Camera *connection, RenderStage::Mode mode);
 		
-		const std::vector<RenderStage>& Stages() const { return stages; }
-		RenderStage *LastStage() { return &stages[stages.size() - 1]; }
+		const std::vector<RenderStage>& GetStages() const { return stages; }
+		RenderStage *GetLastStage() { return &stages[stages.size() - 1]; }
 		
 	protected:
 		virtual void Initialize();
@@ -101,7 +101,7 @@ namespace RN
 		DownsamplePostProcessingPipeline(const std::string& name, Camera *camera, Texture *texture, Shader *firstShader, Shader *shader, TextureParameter::Format format);
 		~DownsamplePostProcessingPipeline();
 		
-		Texture *LastTarget() { return _lastTarget; }
+		Texture *GetLastTarget() { return _lastTarget; }
 		
 	protected:
 		void Initialize() override;
@@ -229,7 +229,8 @@ namespace RN
 		
 		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		RNAPI void ActivateTiledLightLists(Texture *depthTiles);
-		Texture *DepthTiles() { return _depthTiles; }
+		
+		Texture *GetDepthTiles() { return _depthTiles; }
 		
 		RNAPI void Update(float delta);
 		RNAPI void PostUpdate();
@@ -244,42 +245,42 @@ namespace RN
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
-		const Vector3& FrustumCenter() const { return _frustumCenter; }
-		float const FrustumRadius() const { return _frustumRadius; }
+		const Vector3& GetFrustumCenter() const { return _frustumCenter; }
+		float const GetFrustumRadius() const { return _frustumRadius; }
 		
-		RenderStorage *Storage() const { return _storage; }
-		const Color& ClearColor() const { return _clearColor; }
-		const Rect& Frame();
-		Rect RenderingFrame();
-		Material *Material() const { return _material; }
-		Flags CameraFlags() const { return _flags; }
-		Camera *LODCamera() const { return _lodCamera; }
-		int32 Priority() const { return _priority; }
+		RenderStorage *GetStorage() const { return _storage; }
+		const Color& GetClearColor() const { return _clearColor; }
+		const Rect& GetFrame();
+		Rect GetRenderingFrame();
+		Material *GetMaterial() const { return _material; }
+		Flags GetFlags() const { return _flags; }
+		Camera *GetLODCamera() const { return _lodCamera; }
+		int32 GetPriority() const { return _priority; }
 		bool UseBlending() const { return _blend; }
-		Shader *DrawFramebufferShader() const { return _blitShader; }
+		Shader *GetDrawFramebufferShader() const { return _blitShader; }
 		BlitMode GetBlitMode() const { return _blitMode; }
 		
-		Vector2 LightTiles() const { return _lightTiles; }
+		Vector2 GetLightTiles() const { return _lightTiles; }
 		void SetLightTiles(const Vector2 &size) { _lightTiles = size; }
-		Model *SkyCube() const { return _skycube; }
+		Model *GetSkyCube() const { return _skycube; }
 		
-		uint32 RenderTargets() const { return (uint32)_storage->_renderTargets->Count(); }
-		Texture *RenderTarget(uint32 index=0) const { return _storage->_renderTargets->ObjectAtIndex<Texture>(index); }
+		uint32 GetRenderTargetCount() const { return (uint32)_storage->_renderTargets->GetCount(); }
+		Texture *GetRenderTarget(uint32 index=0) const { return _storage->_renderTargets->GetObjectAtIndex<Texture>(index); }
 		
 		bool HasDepthbuffer() const { return _storage->HasDepthbuffer(); }
 		bool HasStencilbuffer() const { return _storage->HasStencilbuffer(); }
 		
 		bool AllowsDepthWrite() const { return _allowDepthWrite; }
 		
-		float *DepthArray();
-		size_t MaxLightsPerTile() const { return _maxLights; }
+		float *GetDepthArray();
+		size_t GetMaxLightsPerTile() const { return _maxLights; }
 		
 		PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name);
 		PostProcessingPipeline *PostProcessingPipelineWithName(const std::string& name);
 		void AttachPostProcessingPipeline(PostProcessingPipeline *pipeline);
 		void RemovePostProcessingPipeline(PostProcessingPipeline *pipeline);
 		
-		const std::vector<PostProcessingPipeline *>& PostProcessingPipelines() const { return _PPPipelines; }
+		const std::vector<PostProcessingPipeline *>& GetPostProcessingPipelines() const { return _PPPipelines; }
 		
 		float fov;
 		float aspect;
@@ -332,13 +333,6 @@ namespace RN
 			Plane _frustumBottom;
 			Plane _frustumFar;
 			Plane _frustumNear;
-			
-			Plane _absFrustumLeft;
-			Plane _absFrustumRight;
-			Plane _absFrustumTop;
-			Plane _absFrustumBottom;
-			Plane _absFrustumFar;
-			Plane _absFrustumNear;
 		};
 		
 		Vector2 _lightTiles;
@@ -349,7 +343,7 @@ namespace RN
 		
 		Shader *_blitShader;
 		
-		class Material *_material;
+		Material *_material;
 		RenderStorage *_storage;
 		Camera *_lodCamera;
 		

@@ -79,21 +79,21 @@ namespace RN
 			KeyHeld
 		};
 		
-		Type EventType() const { return _type; }
+		Type GetType() const { return _type; }
 		
-		char Character() const { return CodePoint::ConverToCharacter(_key); }
-		UniChar Code() const { return _key; }
+		char GetCharacter() const { return CodePoint::ConverToCharacter(_key); }
+		UniChar GetCode() const { return _key; }
 		
-		const Vector2& MouseDelta() const { return _mouseDelta; }
-		const Vector2& MousePosition() const { return _mousePosition; }
-		const Vector2& MouseWheel() const { return _mouseWheel; }
+		const Vector2& GetMouseDelta() const { return _mouseDelta; }
+		const Vector2& GetMousePosition() const { return _mousePosition; }
+		const Vector2& GetMouseWheel() const { return _mouseWheel; }
 		
-		bool Shift() const { return (_modifierKeys & KeyModifier::KeyShift); }
-		bool Control() const { return (_modifierKeys & KeyModifier::KeyControl); }
-		bool Alt() const { return (_modifierKeys & KeyModifier::KeyAlt); }
-		bool Command() const { return (_modifierKeys & KeyModifier::KeyCommand); }
+		bool IsShift() const { return (_modifierKeys & KeyModifier::KeyShift); }
+		bool IsControl() const { return (_modifierKeys & KeyModifier::KeyControl); }
+		bool IsAlt() const { return (_modifierKeys & KeyModifier::KeyAlt); }
+		bool IsCommand() const { return (_modifierKeys & KeyModifier::KeyCommand); }
 		
-		uint32 Button() const { return _button; }
+		uint32 GetButton() const { return _button; }
 		
 		bool IsKeyboard() const;
 		bool IsMouse() const;
@@ -131,14 +131,14 @@ namespace RN
 		RNAPI void InvalidateMouse();
 		RNAPI void HandleEvent(void *data);
 		
-		const Vector2& MouseDelta() const { return _mouseDelta; }
-		const Vector2& MousePosition() const { return _mousePosition; }
-		const Vector2& MouseWheel() const { return _mouseWheel; }
+		const Vector2& GetMouseDelta() const { return _mouseDelta; }
+		const Vector2& GetMousePosition() const { return _mousePosition; }
+		const Vector2& GetMouseWheel() const { return _mouseWheel; }
 		
-		uint32 ModifierKeys() const { return _modifierKeys; }
+		uint32 GetModifierKeys() const { return _modifierKeys; }
 		
-		RNAPI bool KeyPressed(char key) const;
-		RNAPI bool KeyPressed(UniChar key) const;
+		RNAPI bool IsKeyPressed(char key) const;
+		RNAPI bool IsKeyPressed(UniChar key) const;
 
 	private:
 		void FlushEventQueue();

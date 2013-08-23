@@ -90,7 +90,7 @@ namespace RN
 	public:
 		friend class MetaClassBase;
 		
-		RNAPI MetaClassBase *ClassWithName(const std::string& name) const;
+		RNAPI MetaClassBase *GetClassWithName(const std::string& name) const;
 		RNAPI void EnumerateClasses(const std::function<void (MetaClassBase *meta, bool *stop)>& enumerator);
 		
 	private:

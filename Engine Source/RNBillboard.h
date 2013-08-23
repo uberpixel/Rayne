@@ -25,9 +25,9 @@ namespace RN
 		
 		void SetTexture(Texture *texture);
 		
-		Material *Material() const { return _material; }
-		
 		void Render(Renderer *renderer, Camera *camera) override;
+		
+		Material *GetMaterial() const { return _material; }
 		
 	private:
 		void Initialize();
@@ -35,7 +35,7 @@ namespace RN
 		Vector2 _size;
 		Mesh *_mesh;
 		Matrix _transform;
-		class Material *_material;
+		Material *_material;
 		
 		RNDefineMetaWithTraits(Billboard, SceneNode, MetaClassTraitCronstructable);
 	};

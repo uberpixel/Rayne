@@ -49,10 +49,10 @@ namespace RN
 		_isCancelled = false;
 		
 		Retain();
-		ThreadCoordinator::SharedInstance()->ConsumeConcurrency();
+		ThreadCoordinator::GetSharedInstance()->ConsumeConcurrency();
 	}
 	
-	Thread *Thread::CurrentThread()
+	Thread *Thread::GetCurrentThread()
 	{
 		Thread *thread = 0;
 		
@@ -94,7 +94,7 @@ namespace RN
 		__ThreadLock.Unlock();
 		_isRunning.store(false);
 		
-		ThreadCoordinator::SharedInstance()->RestoreConcurrency();
+		ThreadCoordinator::GetSharedInstance()->RestoreConcurrency();
 		Release();
 	}
 	
@@ -167,7 +167,7 @@ namespace RN
 		_mutex.Unlock();
 	}
 	
-	const std::string Thread::Name()
+	const std::string Thread::GetName()
 	{
 		_mutex.Lock();
 		std::string name = _name;

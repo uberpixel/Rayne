@@ -29,15 +29,16 @@ namespace RN
 		RNAPI void AddAttributes(Dictionary *attributes, const Range& range);
 		RNAPI void RemoveAttribute(String *key, const Range& range);
 		RNAPI void RemoveAttributes(Array *keys, const Range& range);
-		RNAPI Dictionary *AttributesAtIndex(size_t index);
+		
+		RNAPI Dictionary *GetAttributesAtIndex(size_t index);
 		
 		RNAPI void SetAttributes(Dictionary *attributes, const Range& range);
 		
 		RNAPI void ReplaceCharacters(String *string, const Range& range);
 		RNAPI void ReplaceCharacters(String *string, const Range& range, Dictionary *attributes);
 		
-		size_t Length() const { return _string->Length(); }
-		String *String() const { return _string; }
+		size_t GetLength() const { return _string->GetLength(); }
+		String *GetString() const { return _string; }
 		
 	private:
 		class Attribute

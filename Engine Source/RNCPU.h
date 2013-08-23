@@ -44,8 +44,8 @@ namespace RN
 			uint32 edx;
 		};
 		
-		RNAPI Vendors Vendor();
-		RNAPI Capabilities Caps();
+		RNAPI Vendors GetVendor();
+		RNAPI Capabilities GetCapabilites();
 		
 		void CPUID(CPUIDRegisters *registers);
 	}

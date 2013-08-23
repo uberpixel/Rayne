@@ -212,14 +212,14 @@ namespace RN
 	}
 	
 	
-	float Number::FloatValue() const
+	float Number::GetFloatValue() const
 	{
 		float value;
 		NumberAccessAndConvert(value, float);
 		
 		return value;
 	}
-	double Number::DoubleValue() const
+	double Number::GetDoubleValue() const
 	{
 		double value;
 		NumberAccessAndConvert(value, double);
@@ -227,7 +227,7 @@ namespace RN
 		return value;
 	}
 	
-	bool Number::BoolValue() const
+	bool Number::GetBoolValue() const
 	{
 		bool value;
 		NumberAccessAndConvert(value, bool);
@@ -236,28 +236,28 @@ namespace RN
 	}
 	
 	
-	int8 Number::Int8Value() const
+	int8 Number::GetInt8Value() const
 	{
 		int8 value;
 		NumberAccessAndConvert(value, int8);
 		
 		return value;
 	}
-	int16 Number::Int16Value() const
+	int16 Number::GetInt16Value() const
 	{
 		int16 value;
 		NumberAccessAndConvert(value, int16);
 		
 		return value;
 	}
-	int32 Number::Int32Value() const
+	int32 Number::GetInt32Value() const
 	{
 		int32 value;
 		NumberAccessAndConvert(value, int32);
 		
 		return value;
 	}
-	int64 Number::Int64Value() const
+	int64 Number::GetInt64Value() const
 	{
 		int64 value;
 		NumberAccessAndConvert(value, int64);
@@ -266,28 +266,28 @@ namespace RN
 	}
 	
 	
-	uint8 Number::Uint8Value() const
+	uint8 Number::GetUint8Value() const
 	{
 		uint8 value;
 		NumberAccessAndConvert(value, uint8);
 		
 		return value;
 	}
-	uint16 Number::Uint16Value() const
+	uint16 Number::GetUint16Value() const
 	{
 		uint16 value;
 		NumberAccessAndConvert(value, uint16);
 		
 		return value;
 	}
-	uint32 Number::Uint32Value() const
+	uint32 Number::GetUint32Value() const
 	{
 		uint32 value;
 		NumberAccessAndConvert(value, uint32);
 		
 		return value;
 	}
-	uint64 Number::Uint64Value() const
+	uint64 Number::GetUint64Value() const
 	{
 		uint64 value;
 		NumberAccessAndConvert(value, uint64);
@@ -322,7 +322,7 @@ namespace RN
 		}
 	}
 	
-	machine_hash Number::Hash() const
+	machine_hash Number::GetHash() const
 	{
 		const uint8 *bytes = _buffer;
 		const uint8 *end = bytes + SizeForType(_type);
@@ -349,28 +349,28 @@ namespace RN
 		{
 			if((NumberIsSignedInteger(_type) && NumberIsSignedInteger(number->_type)) || (NumberIsUnsignedInteger(_type) && NumberIsUnsignedInteger(number->_type)))
 			{
-				return (Uint64Value() == number->Uint64Value());
+				return (GetUint64Value() == number->GetUint64Value());
 			}
 			
 			if(NumberIsSignedInteger(_type))
 			{
-				return (Int64Value() == number->Uint64Value());
+				return (GetInt64Value() == number->GetUint64Value());
 			}
 			
 			if(!NumberIsSignedInteger(_type))
 			{
-				return (Uint64Value() == number->Int64Value());
+				return (GetUint64Value() == number->GetInt64Value());
 			}
 		}
 		
 		if(NumberIsReal(_type) && NumberIsReal(number->_type))
 		{
-			return (DoubleValue() == number->DoubleValue());
+			return (GetDoubleValue() == number->GetDoubleValue());
 		}
 		
 		if(NumberIsBoolean(_type) && NumberIsBoolean(number->_type))
 		{
-			return (BoolValue() == number->BoolValue());
+			return (GetBoolValue() == number->GetBoolValue());
 		}
 		
 		return false;

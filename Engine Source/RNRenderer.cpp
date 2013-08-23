@@ -30,7 +30,7 @@ namespace RN
 		_currentCamera   = 0;
 		_currentVAO      = 0;
 		
-		_scaleFactor = Kernel::SharedInstance()->GetActiveScaleFactor();
+		_scaleFactor = Kernel::GetSharedInstance()->GetActiveScaleFactor();
 		_time = 0.0f;
 		_mode = Mode::ModeWorld;
 		
@@ -67,19 +67,19 @@ namespace RN
 		
 		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, (GLint *)&_maxTextureUnits); RN_CHECKOPENGL();
 		_textureUnit     = 0;
-		_gammaCorrection = Settings::SharedInstance()->BoolForKey(kRNSettingsGammaCorrectionKey);
+		_gammaCorrection = Settings::GetSharedInstance()->GetBoolForKey(kRNSettingsGammaCorrectionKey);
 		
 		_hasValidFramebuffer = false;
 		_frameCamera = 0;
 		
-		MessageCenter::SharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](RN::Message *message) {
-			_scaleFactor = Kernel::SharedInstance()->GetActiveScaleFactor();
+		MessageCenter::GetSharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](Message *message) {
+			_scaleFactor = Kernel::GetSharedInstance()->GetActiveScaleFactor();
 		}, this);
 	}
 	
 	Renderer::~Renderer()
 	{
-		MessageCenter::SharedInstance()->RemoveObserver(this);
+		MessageCenter::GetSharedInstance()->RemoveObserver(this);
 	}
 	
 	void Renderer::SetDefaultFBO(GLuint fbo)
@@ -120,7 +120,7 @@ namespace RN
 		
 		if(_currentProgram->frameSize != -1)
 		{
-			const Rect& frame = _currentCamera->Frame();
+			const Rect& frame = _currentCamera->GetFrame();
 			glUniform4f(_currentProgram->frameSize, 1.0f/frame.width/_scaleFactor, 1.0f/frame.height/_scaleFactor, frame.width * _scaleFactor, frame.height * _scaleFactor);
 		}
 		
@@ -166,7 +166,7 @@ namespace RN
 		
 		if(_currentProgram->viewPosition != -1)
 		{
-			const Vector3& position = _currentCamera->WorldPosition();
+			const Vector3& position = _currentCamera->GetWorldPosition();
 			glUniform3fv(_currentProgram->viewPosition, 1, &position.x);
 		}
 	}
@@ -226,8 +226,8 @@ namespace RN
 			ShaderProgram *shader = std::get<0>(tuple);
 			Mesh *mesh = std::get<1>(tuple);
 			
-			GLuint vbo = mesh->VBO();
-			GLuint ibo = mesh->IBO();
+			GLuint vbo = mesh->GetVBO();
+			GLuint ibo = mesh->GetIBO();
 			
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
@@ -240,91 +240,91 @@ namespace RN
 			// Vertices
 			if(shader->attPosition != -1 && mesh->SupportsFeature(kMeshFeatureVertices))
 			{
-				MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureVertices);
+				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureVertices);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureVertices);
 				
 				glEnableVertexAttribArray(shader->attPosition);
-				glVertexAttribPointer(shader->attPosition, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->attPosition, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Normals
 			if(shader->attNormal != -1 && mesh->SupportsFeature(kMeshFeatureNormals))
 			{
-				MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureNormals);
+				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureNormals);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureNormals);
 				
 				glEnableVertexAttribArray(shader->attNormal);
-				glVertexAttribPointer(shader->attNormal, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->attNormal, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Tangents
 			if(shader->attTangent != -1 && mesh->SupportsFeature(kMeshFeatureTangents))
 			{
-				MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureTangents);
+				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureTangents);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureTangents);
 				
 				glEnableVertexAttribArray(shader->attTangent);
-				glVertexAttribPointer(shader->attTangent, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->attTangent, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Texcoord0
 			if(shader->attTexcoord0 != -1 && mesh->SupportsFeature(kMeshFeatureUVSet0))
 			{
-				MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureUVSet0);
+				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureUVSet0);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureUVSet0);
 				
 				glEnableVertexAttribArray(shader->attTexcoord0);
-				glVertexAttribPointer(shader->attTexcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->attTexcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Texcoord1
 			if(shader->attTexcoord1 != -1 && mesh->SupportsFeature(kMeshFeatureUVSet1))
 			{
-				MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureUVSet1);
+				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureUVSet1);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureUVSet1);
 				
 				glEnableVertexAttribArray(shader->attTexcoord1);
-				glVertexAttribPointer(shader->attTexcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->attTexcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Color0
 			if(shader->attColor0 != -1 && mesh->SupportsFeature(kMeshFeatureColor0))
 			{
-				MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureColor0);
+				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureColor0);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureColor0);
 				
 				glEnableVertexAttribArray(shader->attColor0);
-				glVertexAttribPointer(shader->attColor0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->attColor0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Color1
 			if(shader->attColor1 != -1 && mesh->SupportsFeature(kMeshFeatureColor1))
 			{
-				MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureColor1);
+				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureColor1);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureColor1);
 				
 				glEnableVertexAttribArray(shader->attColor1);
-				glVertexAttribPointer(shader->attColor1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->attColor1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Bone Weights
 			if(shader->attBoneWeights != -1 && mesh->SupportsFeature(kMeshFeatureBoneWeights))
 			{
-				MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureBoneWeights);
+				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureBoneWeights);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureBoneWeights);
 				
 				glEnableVertexAttribArray(shader->attBoneWeights);
-				glVertexAttribPointer(shader->attBoneWeights, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->attBoneWeights, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Bone Indices
 			if(shader->attBoneIndices != -1 && mesh->SupportsFeature(kMeshFeatureBoneIndices))
 			{
-				MeshDescriptor *descriptor = mesh->Descriptor(kMeshFeatureBoneIndices);
+				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureBoneIndices);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureBoneIndices);
 				
 				glEnableVertexAttribArray(shader->attBoneIndices);
-				glVertexAttribPointer(shader->attBoneIndices, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->Stride(), (const void *)offset);
+				glVertexAttribPointer(shader->attBoneIndices, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			_autoVAOs[tuple] = std::tuple<GLuint, uint32>(vao, 0);
@@ -346,7 +346,7 @@ namespace RN
 		bool changedShader = (program != _currentProgram);
 		UseShader(program);
 		
-		Material *surfaceMaterial = _currentCamera->Material();
+		Material *surfaceMaterial = _currentCamera->GetMaterial();
 		if(!surfaceMaterial)
 			surfaceMaterial = material;
 		
@@ -354,23 +354,23 @@ namespace RN
 		{
 			_textureUnit = 0;
 			
-			const Array& textures = !(surfaceMaterial->override & Material::OverrideTextures)? material->Textures() : surfaceMaterial->Textures();
+			const Array& textures = !(surfaceMaterial->override & Material::OverrideTextures)? material->GetTextures() : surfaceMaterial->GetTextures();
 			const std::vector<GLuint>& textureLocations = program->texlocations;
 			
 			if(textureLocations.size() > 0)
 			{
-				size_t textureCount = MIN(textureLocations.size(), textures.Count());
+				size_t textureCount = MIN(textureLocations.size(), textures.GetCount());
 				
 				for(size_t i=0; i<textureCount; i++)
 				{
 					GLint location = textureLocations[i];
-					Texture *texture = textures.ObjectAtIndex<Texture>(i);
+					Texture *texture = textures.GetObjectAtIndex<Texture>(i);
 					
 					glUniform1i(location, BindTexture(texture));
 					
 					location = program->texinfolocations[i];
 					if(location != -1)
-						glUniform4f(location, 1.0f/static_cast<float>(texture->Width()), 1.0f/static_cast<float>(texture->Height()), texture->Width(), texture->Height());
+						glUniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
 				}
 			}
 		}
@@ -499,30 +499,30 @@ namespace RN
 		if(_gammaCorrection && drawShader->SupportsProgramOfType(ShaderProgram::TypeGammaCorrection))
 			type = ShaderProgram::TypeGammaCorrection;
 		
-		ShaderProgram *program = drawShader->ProgramOfType(type);
+		ShaderProgram *program = drawShader->GetProgramOfType(type);
 		
 		UseShader(program);
 		UpdateShaderData();
 		
-		uint32 targetmaps = MIN((uint32)program->targetmaplocations.size(), camera->RenderTargets());
+		uint32 targetmaps = MIN((uint32)program->targetmaplocations.size(), camera->GetRenderTargetCount());
 		if(targetmaps >= 1)
 		{
-			Texture *texture = camera->RenderTarget(0);
+			Texture *texture = camera->GetRenderTarget(0);
 			GLuint location  = program->targetmaplocations.front();
 			
 			glUniform1i(location, BindTexture(texture));
 			
 			location = program->targetmapinfolocations.front();
 			if(location != -1)
-				glUniform4f(location, 1.0f/static_cast<float>(texture->Width()), 1.0f/static_cast<float>(texture->Height()), texture->Width(), texture->Height());
+				glUniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
 		}
 	}
 	
 	// Camera gets drawn into stage
 	void Renderer::DrawCameraStage(Camera *camera, Camera *stage)
 	{
-		Material *material = stage->Material();
-		ShaderProgram *program = material->Shader()->ProgramWithLookup(material->Lookup() + ShaderLookup(ShaderProgram::TypeNormal));
+		Material *material = stage->GetMaterial();
+		ShaderProgram *program = material->GetShader()->GetProgramWithLookup(material->GetLookup() + ShaderLookup(ShaderProgram::TypeNormal));
 		
 		_currentCamera = stage;
 		_textureUnit = 0;
@@ -536,28 +536,28 @@ namespace RN
 		
 		material->ApplyUniforms(program);
 		
-		uint32 targetmaps = MIN((uint32)program->targetmaplocations.size(), stage->RenderTargets());
+		uint32 targetmaps = MIN((uint32)program->targetmaplocations.size(), stage->GetRenderTargetCount());
 		for(uint32 i=0; i<targetmaps; i++)
 		{
-			Texture *texture = camera->RenderTarget(i);
+			Texture *texture = camera->GetRenderTarget(i);
 			GLuint location  = program->targetmaplocations[i];
 			
 			glUniform1i(location, BindTexture(texture));
 			
 			location = program->targetmapinfolocations[i];
 			if(location != -1)
-				glUniform4f(location, 1.0f/static_cast<float>(texture->Width()), 1.0f/static_cast<float>(texture->Height()), texture->Width(), texture->Height());
+				glUniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
 		}
 		
 		if(program->depthmap != -1)
 		{
-			Texture *depthmap = camera->Storage()->DepthTarget();
+			Texture *depthmap = camera->GetStorage()->GetDepthTarget();
 			if(depthmap)
 			{
 				glUniform1i(program->depthmap, BindTexture(depthmap));
 				
 				if(program->depthmapinfo != -1)
-					glUniform4f(program->depthmapinfo, 1.0f/static_cast<float>(depthmap->Width()), 1.0f/static_cast<float>(depthmap->Height()), depthmap->Width(), depthmap->Height());
+					glUniform4f(program->depthmapinfo, 1.0f/static_cast<float>(depthmap->GetWidth()), 1.0f/static_cast<float>(depthmap->GetHeight()), depthmap->GetWidth(), depthmap->GetHeight());
 			}
 		}
 	}
@@ -584,7 +584,7 @@ namespace RN
 		if(!source)
 		{
 			// Sort the objects
-			if(!(camera->CameraFlags() & Camera::FlagNoSorting))
+			if(!(camera->GetFlags() & Camera::FlagNoSorting))
 			{
 				auto begin = _frame.begin();
 				std::advance(begin, skyCubeMeshes);
@@ -609,16 +609,16 @@ namespace RN
 						return true;
 					}
 					
-					if(materialA->Shader() != materialB->Shader())
+					if(materialA->GetShader() != materialB->GetShader())
 					{
-						return (materialA->Shader() < materialB->Shader());
+						return (materialA->GetShader() < materialB->GetShader());
 					}
 					
 					return a.mesh < b.mesh;
 				});
 			}
 
-			Material *surfaceMaterial = camera->Material();
+			Material *surfaceMaterial = camera->GetMaterial();
 			if(!surfaceMaterial)
 			{
 				switch(_mode)
@@ -643,22 +643,22 @@ namespace RN
 		Camera *camera = _frameCamera;
 		
 		// Skycube
-		Model *skyCube = camera->SkyCube();
+		Model *skyCube = camera->GetSkyCube();
 		uint32 skyCubeMeshes = 0;
 		
 		Matrix cameraRotation;
-		cameraRotation.MakeRotate(camera->WorldRotation());
+		cameraRotation.MakeRotate(camera->GetWorldRotation());
 		
 		if(skyCube)
 		{
-			skyCubeMeshes = skyCube->Meshes(0);
+			skyCubeMeshes = skyCube->GetMeshCount(0);
 			
 			for(uint32 j=0; j<skyCubeMeshes; j++)
 			{
 				RenderingObject object;
 				
-				object.mesh = skyCube->MeshAtIndex(0, j);
-				object.material = skyCube->MaterialAtIndex(0, j);
+				object.mesh = skyCube->GetMeshAtIndex(0, j);
+				object.material = skyCube->GetMaterialAtIndex(0, j);
 				object.transform = &cameraRotation;
 				object.skeleton = 0;
 				
@@ -674,24 +674,24 @@ namespace RN
 		DrawCamera(camera, 0, skyCubeMeshes);
 		Camera *lastPipeline = camera;
 		
-		if(camera->CameraFlags() & Camera::FlagForceFlush)
+		if(camera->GetFlags() & Camera::FlagForceFlush)
 		{
 			if(_flushedCameras.find(camera) == _flushedCameras.end())
 			{
-				_flushCameras.push_back(std::pair<Camera *, Shader *>(camera, camera->DrawFramebufferShader()));
+				_flushCameras.push_back(std::pair<Camera *, Shader *>(camera, camera->GetDrawFramebufferShader()));
 				_flushedCameras.insert(camera);
 			}
 		}
 		
-		auto pipelines = camera->PostProcessingPipelines();
+		auto pipelines = camera->GetPostProcessingPipelines();
 		
 		for(PostProcessingPipeline *pipeline : pipelines)
 		{
 			for(auto j=pipeline->stages.begin(); j!=pipeline->stages.end(); j++)
 			{
-				Camera *stage = j->Camera();
+				Camera *stage = j->GetCamera();
 				
-				switch(j->StageMode())
+				switch(j->GetMode())
 				{
 					case RenderStage::Mode::ReRender:
 					case RenderStage::Mode::ReRender_NoRemoval:
@@ -700,7 +700,7 @@ namespace RN
 						
 					case RenderStage::Mode::ReUseConnection:
 					case RenderStage::Mode::ReUseConnection_NoRemoval:
-						DrawCamera(stage, j->Connection(), skyCubeMeshes);
+						DrawCamera(stage, j->GetConnection(), skyCubeMeshes);
 						break;
 						
 					case RenderStage::Mode::ReUseCamera:
@@ -721,11 +721,11 @@ namespace RN
 				
 				previous = stage;
 				
-				if(previous->CameraFlags() & Camera::FlagForceFlush)
+				if(previous->GetFlags() & Camera::FlagForceFlush)
 				{
 					if(_flushedCameras.find(camera) == _flushedCameras.end())
 					{
-						_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->DrawFramebufferShader()));
+						_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->GetDrawFramebufferShader()));
 						_flushedCameras.insert(previous);
 					}
 				}
@@ -734,9 +734,9 @@ namespace RN
 			lastPipeline = previous;
 		}
 		
-		if(!(previous->CameraFlags() & Camera::FlagHidden) && _flushedCameras.find(camera) == _flushedCameras.end())
+		if(!(previous->GetFlags() & Camera::FlagHidden) && _flushedCameras.find(camera) == _flushedCameras.end())
 		{
-			_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->DrawFramebufferShader()));
+			_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->GetDrawFramebufferShader()));
 			_flushedCameras.insert(previous);
 		}
 		
@@ -772,17 +772,17 @@ namespace RN
 	
 	void Renderer::RenderLight(Light *light)
 	{
-		switch(light->LightType())
+		switch(light->GetType())
 		{
-			case Light::TypePointLight:
+			case Light::Type::PointLight:
 				_pointLights.push_back(light);
 				break;
 				
-			case Light::TypeSpotLight:
+			case Light::Type::SpotLight:
 				_spotLights.push_back(light);
 				break;
 				
-			case Light::TypeDirectionalLight:
+			case Light::Type::DirectionalLight:
 				_directionalLights.push_back(light);
 				break;
 				

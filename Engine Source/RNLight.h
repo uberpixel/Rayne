@@ -22,14 +22,14 @@ namespace RN
 	{
 	friend class Renderer;
 	public:
-		enum Type
+		enum class Type
 		{
-			TypePointLight = 0,
-			TypeSpotLight = 1,
-			TypeDirectionalLight = 2
+			PointLight ,
+			SpotLight,
+			DirectionalLight
 		};
 		
-		RNAPI Light(Type type = TypePointLight);
+		RNAPI Light(Type type = Type::PointLight);
 		RNAPI ~Light() override;
 		
 		RNAPI void ActivateSunShadows(bool shadow=true, float resolution=1024.0f, int splits=4, float distfac=0.05f, float biasfac=2.0f, float biasunits=512.0f);
@@ -47,26 +47,27 @@ namespace RN
 		RNAPI void SetShadowCamera(Camera *shadowCamera);
 		RNAPI void SetLightCamera(Camera *lightCamera);
 		
-		const Color& Color() const { return _color; }
-		const Vector3& ResultColor() { return _resultColor; }
+		const Color& GetColor() const { return _color; }
+		const Vector3& GetResultColor() { return _resultColor; }
 		
-		const Type LightType() const { return _lightType; }
-		float Range() const { return _range; }
-		float Angle() const { return _angle; }
-		float Intensity() const { return _intensity; }
+		const Type GetType() const { return _lightType; }
+		float GetRange() const { return _range; }
+		float GetAngle() const { return _angle; }
+		float GetIntensity() const { return _intensity; }
+		
 		bool Shadow() const { return _shadow; }
 		
-		Camera *ShadowCamera() const { return _shadowcam; }
-		Camera *LightCamera() const { return _lightcam; }
+		Camera *GetShadowCamera() const { return _shadowcam; }
+		Camera *GetLightCamera() const { return _lightcam; }
 		
-		const std::vector<Matrix> ShadowMatrices() const { return _shadowmats; }
-		const Array *ShadowCameras() const { return &_shadowcams; }
+		const std::vector<Matrix> GetShadowMatrices() const { return _shadowmats; }
+		const Array *GetShadowCameras() const { return &_shadowcams; }
 	
 	private:
 		void ReCalculateColor();
 		
 		Type _lightType;
-		class Color _color;
+		Color _color;
 		Vector3 _resultColor;
 		Vector3 _direction;
 		float _intensity;

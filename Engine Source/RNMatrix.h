@@ -146,15 +146,15 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE Matrix Matrix::Inverse() const
+	RN_INLINE Matrix Matrix::GetInverse() const
 	{
 		Matrix result;
 		
-		float det = Determinant();
+		float det = GetDeterminant();
 		
 		for(int i=0; i<16; i++)
 		{
-			result.m[i] = DeterminantSubmatrix(i) / det;
+			result.m[i] = GetDeterminantSubmatrix(i) / det;
 		}
 		
 		return result;
@@ -207,19 +207,19 @@ namespace RN
 	RN_INLINE void Matrix::MakeRotate(const Vector3& rot)
 	{
 		Quaternion quat(rot);
-		*this = quat.RotationMatrix();
+		*this = quat.GetRotationMatrix();
 	}
 	
 	RN_INLINE void Matrix::MakeRotate(const Vector4& rot)
 	{
 		Quaternion quat(rot);
-		*this = quat.RotationMatrix();
+		*this = quat.GetRotationMatrix();
 	}
 	
 	RN_INLINE void Matrix::MakeRotate(const Quaternion& rot)
 	{
 		Quaternion quat(rot);
-		*this = quat.RotationMatrix();
+		*this = quat.GetRotationMatrix();
 	}
 
 	
@@ -276,7 +276,7 @@ namespace RN
 		m[15] = (clipfar + clipnear) / (2.0f * clipfar * clipnear);
 	}
 	
-	RN_INLINE float Matrix::Determinant() const
+	RN_INLINE float Matrix::GetDeterminant() const
 	{
 		float det = m[0] * (m[5]*m[10]*m[15] + m[6]*m[11]*m[13] + m[7]*m[9]*m[14] - m[7]*m[10]*m[13] - m[6]*m[9]*m[15] - m[5]*m[11]*m[14]);
 		det -= m[1] * (m[4]*m[10]*m[15] + m[6]*m[11]*m[12] + m[7]*m[8]*m[14] - m[7]*m[10]*m[12] - m[6]*m[8]*m[15] - m[4]*m[11]*m[14]);
@@ -285,7 +285,7 @@ namespace RN
 		return det;
 	}
 
-	RN_INLINE float Matrix::DeterminantSubmatrix(const int k) const
+	RN_INLINE float Matrix::GetDeterminantSubmatrix(const int k) const
 	{
 		int i = k%4; // i <=> j
 		int j = k/4;

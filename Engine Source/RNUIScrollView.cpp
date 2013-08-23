@@ -31,8 +31,8 @@ namespace RN
 			Subivews()->Enumerate([&](Object *tview, size_t index, bool *stop) {
 				View *view = tview->Downcast<View>();
 				
-				_size.x = std::max(view->Frame().Right(), _size.x);
-				_size.y = std::max(view->Frame().Top(),   _size.y);
+				_size.x = std::max(view->Frame().GetRight(), _size.x);
+				_size.y = std::max(view->Frame().GetBottom(),   _size.y);
 			});
 			
 			SetContentSize(_size);
@@ -67,7 +67,7 @@ namespace RN
 		
 		void ScrollView::ScrollWheel(Event *event)
 		{
-			Vector2 delta = event->MouseWheel();
+			Vector2 delta = event->GetMouseWheel();
 			delta.x = -delta.x;
 			delta += _offset;
 			

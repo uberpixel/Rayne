@@ -38,7 +38,7 @@ namespace RN
 
 	// Reading operations
 
-	std::string File::String()
+	std::string File::GetString()
 	{
 		long read = 0;
 		long offset = ftell(_file);

@@ -112,7 +112,7 @@ namespace RN
 		static Shader *shader = 0;
 		if(!shader)
 		{
-			shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyTexture1Shader);
+			shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader);
 		}
 		
 		return shader->Retain();
@@ -147,9 +147,47 @@ namespace RN
 		delete *iterator;
 		_groups.erase(iterator);
 	}
+
 	
 	
-	uint32 Model::LODStageForDistance(float distance) const
+	
+	void Model::AddMesh(Mesh *mesh, Material *material, uint32 lodStage, const std::string& name)
+	{
+		if(!material)
+			material = PickMaterialForMesh(mesh);
+		
+		if(!material->GetShader())
+			material->SetShader(PickShaderForMaterialAndMesh(material, mesh));
+			
+		MeshGroup *group = new MeshGroup(mesh, material, name);
+		_groups[lodStage]->groups.push_back(group);
+		
+		if(lodStage == 0)
+		{
+			_boundingBox += mesh->GetBoundingBox();
+			_boundingSphere = Sphere(_boundingBox);
+		}
+	}
+	
+	void Model::RemoveMesh(Mesh *mesh, uint32 lodStage)
+	{
+	}
+	
+	void Model::CalculateBoundingBox()
+	{
+		_boundingBox = AABB();
+		
+		for(MeshGroup *group : _groups[0]->groups)
+		{
+			_boundingBox += group->mesh->GetBoundingBox();
+		}
+		
+		_boundingSphere = Sphere(_boundingBox);
+	}
+	
+	
+	
+	uint32 Model::GetLODStageForDistance(float distance) const
 	{
 		if(_groups.size() == 1 || distance <= k::EpsilonFloat)
 			return 0;
@@ -166,53 +204,17 @@ namespace RN
 		return result - 1;
 	}
 	
-	
-	void Model::AddMesh(Mesh *mesh, Material *material, uint32 lodStage, const std::string& name)
-	{
-		if(!material)
-			material = PickMaterialForMesh(mesh);
-		
-		if(!material->Shader())
-			material->SetShader(PickShaderForMaterialAndMesh(material, mesh));
-			
-		MeshGroup *group = new MeshGroup(mesh, material, name);
-		_groups[lodStage]->groups.push_back(group);
-		
-		if(lodStage == 0)
-		{
-			_boundingBox += mesh->BoundingBox();
-			_boundingSphere = Sphere(_boundingBox);
-		}
-	}
-	
-	void Model::RemoveMesh(Mesh *mesh, uint32 lodStage)
-	{
-	}
-	
-	void Model::CalculateBoundingBox()
-	{
-		_boundingBox = AABB();
-		
-		for(MeshGroup *group : _groups[0]->groups)
-		{
-			_boundingBox += group->mesh->BoundingBox();
-		}
-		
-		_boundingSphere = Sphere(_boundingBox);
-	}
-	
-	
-	uint32 Model::Meshes(uint32 lodStage) const
+	uint32 Model::GetMeshCount(uint32 lodStage) const
 	{
 		return (uint32)_groups[lodStage]->groups.size();
 	}
 	
-	Mesh *Model::MeshAtIndex(uint32 lodStage, uint32 index) const
+	Mesh *Model::GetMeshAtIndex(uint32 lodStage, uint32 index) const
 	{
 		return _groups[lodStage]->groups[index]->mesh;
 	}
 	
-	Material *Model::MaterialAtIndex(uint32 lodStage, uint32 index) const
+	Material *Model::GetMaterialAtIndex(uint32 lodStage, uint32 index) const
 	{
 		return _groups[lodStage]->groups[index]->material;
 	}
@@ -293,7 +295,7 @@ namespace RN
 	{
 		//Get materials
 		uint8 countmats = file->ReadUint8();
-		Shader *shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyTexture1Shader);
+		Shader *shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader);
 		
 		std::vector<Material *> materials;
 		
@@ -308,7 +310,7 @@ namespace RN
 				std::string textureFile;
 				file->ReadIntoString(textureFile, file->ReadUint16());
 				
-				std::string path = file->Path();
+				std::string path = file->GetPath();
 				Texture *texture = new Texture(PathManager::Join(path, textureFile));
 				material->AddTexture(texture);
 				texture->Release();
@@ -424,7 +426,7 @@ namespace RN
 			descriptors.push_back(meshDescriptor);
 			
 			Mesh *mesh = new Mesh(descriptors, vertexData);
-			void *data = mesh->Element<void>(kMeshFeatureIndices);
+			void *data = mesh->GetElement<void>(kMeshFeatureIndices);
 			
 			file->ReadIntoBuffer(data, numindices * sizeindices);
 			
@@ -450,7 +452,7 @@ namespace RN
 	{
 		//Get materials
 		uint8 countmats = file->ReadUint8();
-		Shader *shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyTexture1Shader);
+		Shader *shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader);
 		
 		std::vector<Material *> materials;
 		
@@ -465,7 +467,7 @@ namespace RN
 				std::string textureFile;
 				file->ReadIntoString(textureFile, file->ReadUint16());
 				
-				std::string path = file->Path();
+				std::string path = file->GetPath();
 				Texture *texture = new Texture(PathManager::Join(path, textureFile));
 				material->AddTexture(texture);
 				texture->Release();
@@ -581,7 +583,7 @@ namespace RN
 			descriptors.push_back(meshDescriptor);
 			
 			Mesh *mesh = new Mesh(descriptors, vertexData);
-			void *data = mesh->Element<void>(kMeshFeatureIndices);
+			void *data = mesh->GetElement<void>(kMeshFeatureIndices);
 			
 			file->ReadIntoBuffer(data, numindices * sizeindices);
 			

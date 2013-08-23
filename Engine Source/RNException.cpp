@@ -55,6 +55,6 @@ namespace RN
 			
 		}
 		
-		_thread = Thread::CurrentThread();
+		_thread = Thread::GetCurrentThread();
 	}
 }

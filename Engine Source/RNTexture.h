@@ -109,9 +109,9 @@ namespace RN
 		RNAPI virtual void Bind();
 		RNAPI virtual void Unbind();
 		
-		GLuint Name() { return _name; }
-		GLuint GLType() { return _glType; }
-		RNAPI void Data(void *ptr, TextureParameter::Format format);
+		GLuint GetName() { return _name; }
+		GLuint GetGLType() { return _glType; }
+		RNAPI void GetData(void *ptr, TextureParameter::Format format);
 		
 		RNAPI void SetDepth(uint32 depth);
 		RNAPI void SetData(const void *data, uint32 width, uint32 height, TextureParameter::Format format);
@@ -120,16 +120,16 @@ namespace RN
 		RNAPI void UpdateMipmaps();
 		
 		RNAPI void SetParameter(const TextureParameter& parameter);
-		RNAPI const TextureParameter& Parameter() const { return _parameter; }
+		RNAPI const TextureParameter& GetParameter() const { return _parameter; }
 		
 		RNAPI static bool PlatformSupportsFormat(TextureParameter::Format format);
 		RNAPI static void SetDefaultAnisotropyLevel(uint32 level);
 		
-		RNAPI static uint32 MaxAnisotropyLevel();
-		RNAPI static uint32 DefaultAnisotropyLevel();
+		RNAPI static uint32 GetMaxAnisotropyLevel();
+		RNAPI static uint32 GetDefaultAnisotropyLevel();
 		
-		uint32 Width() const { return _width; }
-		uint32 Height() const { return _height; }
+		uint32 GetWidth() const { return _width; }
+		uint32 GetHeight() const { return _height; }
 		
 	protected:
 		GLuint _name;

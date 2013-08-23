@@ -21,12 +21,12 @@ namespace RN
 	void ParallelSort(Iterator first, Iterator last, Compare comp)
 	{
 		size_t count   = std::distance(first, last);
-		size_t threads = ThreadCoordinator::SharedInstance()->BaseConcurrency();
+		size_t threads = ThreadCoordinator::GetSharedInstance()->GetBaseConcurrency();
 		
 		if((count / threads) > kRNParallelSortMinBatchCount)
 		{
 			size_t batches = count / kRNParallelSortMaxBatchSize;
-			ThreadPool::Batch *batch = ThreadPool::SharedInstance()->CreateBatch();
+			ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch();
 			
 			auto begin = first;
 			

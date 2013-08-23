@@ -25,7 +25,7 @@ namespace RN
 		_width = _height = 0;
 		_depth = 1;
 		
-		_isLinear = (!Settings::SharedInstance()->BoolForKey(kRNSettingsGammaCorrectionKey)) ? true : isLinear;
+		_isLinear = (!Settings::GetSharedInstance()->GetBoolForKey(kRNSettingsGammaCorrectionKey)) ? true : isLinear;
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		
@@ -48,7 +48,7 @@ namespace RN
 		_width = _height = 0;
 		_depth = 1;
 		
-		_isLinear = (!Settings::SharedInstance()->BoolForKey(kRNSettingsGammaCorrectionKey)) ? true : isLinear;
+		_isLinear = (!Settings::GetSharedInstance()->GetBoolForKey(kRNSettingsGammaCorrectionKey)) ? true : isLinear;
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		
@@ -67,7 +67,7 @@ namespace RN
 		_width = _height = 0;
 		_depth = 1;
 		
-		_isLinear = (!Settings::SharedInstance()->BoolForKey(kRNSettingsGammaCorrectionKey)) ? true : isLinear;
+		_isLinear = (!Settings::GetSharedInstance()->GetBoolForKey(kRNSettingsGammaCorrectionKey)) ? true : isLinear;
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		
@@ -79,10 +79,10 @@ namespace RN
 		try
 		{
 			TextureLoader loader = TextureLoader(name);
-			parameter.format = loader.Format();
+			parameter.format = loader.GetFormat();
 			
 			SetParameter(parameter);
-			SetData(loader.Data(), loader.Width(), loader.Height(), loader.Format());
+			SetData(loader.GetData(), loader.GetWidth(), loader.GetHeight(), parameter.format);
 		}
 		catch (Exception e)
 		{
@@ -101,7 +101,7 @@ namespace RN
 		_width = _height = 0;
 		_depth = 1;
 		
-		_isLinear = (!Settings::SharedInstance()->BoolForKey(kRNSettingsGammaCorrectionKey)) ? true : isLinear;
+		_isLinear = (!Settings::GetSharedInstance()->GetBoolForKey(kRNSettingsGammaCorrectionKey)) ? true : isLinear;
 		_isCompleteTexture = false;
 		_hasChanged = false;
 		
@@ -113,7 +113,7 @@ namespace RN
 		try
 		{
 			TextureLoader loader = TextureLoader(name);
-			SetData(loader.Data(), loader.Width(), loader.Height(), loader.Format());
+			SetData(loader.GetData(), loader.GetWidth(), loader.GetHeight(), loader.GetFormat());
 		}
 		catch(Exception e)
 		{
@@ -146,7 +146,7 @@ namespace RN
 	
 	void Texture::Bind()
 	{
-		Thread *thread = Thread::CurrentThread();
+		Thread *thread = Thread::GetCurrentThread();
 		if(thread->SetOpenGLBinding(_glType, _name) == 1)
 		{
 			glBindTexture(_glType, _name);
@@ -155,7 +155,7 @@ namespace RN
 	
 	void Texture::Unbind()
 	{
-		Thread *thread = Thread::CurrentThread();
+		Thread *thread = Thread::GetCurrentThread();
 		thread->SetOpenGLBinding(_glType, 0);
 
 		if(_hasChanged && _isCompleteTexture)
@@ -290,7 +290,7 @@ namespace RN
 			free(converted);
 	}
 	
-	void Texture::Data(void *ptr, TextureParameter::Format format)
+	void Texture::GetData(void *ptr, TextureParameter::Format format)
 	{
 		Bind();
 		
@@ -795,7 +795,7 @@ namespace RN
 		}
 	}
 	
-	uint32 Texture::MaxAnisotropyLevel()
+	uint32 Texture::GetMaxAnisotropyLevel()
 	{
 		GLint max;
 		glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &max);
@@ -803,7 +803,7 @@ namespace RN
 		return max;
 	}
 	
-	uint32 Texture::DefaultAnisotropyLevel()
+	uint32 Texture::GetDefaultAnisotropyLevel()
 	{
 		return _defaultAnisotropy;
 	}

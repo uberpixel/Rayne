@@ -84,7 +84,7 @@ namespace RN
 		}
 	}
 	
-	UniChar CodePoint::LowerCase() const
+	UniChar CodePoint::GetLowerCase() const
 	{
 		if(_codePoint <= 0x7f)
 		{
@@ -99,7 +99,7 @@ namespace RN
 		return *this;
 	}
 	
-	UniChar CodePoint::UpperCase() const
+	UniChar CodePoint::GetUpperCase() const
 	{
 		if(_codePoint <= 0x7f)
 		{

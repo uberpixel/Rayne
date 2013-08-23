@@ -31,11 +31,11 @@ namespace RN
 		}
 		
 		AddResourceLoader(new CallbackResourceLoader([](String *file, Dictionary *info) -> Object * {
-			return Model::WithFile(file->UTF8String());
+			return Model::WithFile(file->GetUTF8String());
 		}), "sgm");
 		
 		AddResourceLoader(new CallbackResourceLoader([](String *file, Dictionary *info) -> Object * {
-			return Texture::WithFile(file->UTF8String());
+			return Texture::WithFile(file->GetUTF8String());
 		}), "png");
 	}
 	
@@ -121,7 +121,7 @@ namespace RN
 	
 	void ResourcePool::LoadResource(String *file, String *key, Dictionary *info)
 	{
-		std::string path = file->UTF8String();
+		std::string path = file->GetUTF8String();
 		std::string extension = PathManager::Extension(path);
 		
 		_lock.Lock();
@@ -140,8 +140,8 @@ namespace RN
 	
 	void ResourcePool::LoadResourceSection(String *name)
 	{
-		Array *section = _sections->ObjectForKey<Array>(name);
-		RN::ThreadPool::Batch *batch = RN::ThreadPool::SharedInstance()->CreateBatch();
+		Array *section = _sections->GetObjectForKey<Array>(name);
+		ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch();
 		
 		if(section)
 		{
@@ -149,8 +149,8 @@ namespace RN
 				try
 				{
 					Dictionary *object = value->Downcast<Dictionary>();
-					String *key = object->ObjectForKey<String>(RNCSTR("key"));
-					String *file = object->ObjectForKey<String>(RNCSTR("file"));
+					String *key = object->GetObjectForKey<String>(RNCSTR("key"));
+					String *file = object->GetObjectForKey<String>(RNCSTR("file"));
 					
 					if(key && file)
 						batch->AddTask(std::bind(&ResourcePool::LoadResource, this, file, key, object));
@@ -170,7 +170,7 @@ namespace RN
 		_lock.Lock();
 		
 		AutoreleasePool pool;
-		Array *section = _sections->ObjectForKey<Array>(name);
+		Array *section = _sections->GetObjectForKey<Array>(name);
 		
 		if(section)
 		{
@@ -178,7 +178,7 @@ namespace RN
 				try
 				{
 					Dictionary *object = value->Downcast<Dictionary>();
-					String *key = object->ObjectForKey<String>(RNCSTR("key"));
+					String *key = object->GetObjectForKey<String>(RNCSTR("key"));
 					
 					if(key)
 						_objects.RemoveObjectForKey(key);

@@ -17,7 +17,7 @@ namespace TG
 		{
 			RN::Particle::Initialize(emitter, material);
 			
-			position += emitter->Generator()->RandomVector3Range(RN::Vector3(-0.2f), RN::Vector3(0.2f));
+			position += emitter->GetGenerator()->RandomVector3Range(RN::Vector3(-0.2f), RN::Vector3(0.2f));
 			
 			size = 0.01f;
 			color.a = 0.5f;
@@ -25,7 +25,7 @@ namespace TG
 		
 		virtual void Update(float delta) override
 		{
-			RN::Vector3 dir = position-emitter->WorldPosition();
+			RN::Vector3 dir = position-emitter->GetWorldPosition();
 			position += dir * delta;
 			size += delta * 2.0f;
 			

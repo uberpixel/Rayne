@@ -28,13 +28,13 @@ namespace RN
 		{
 			Initialize();
 			
-			Style *styleSheet = Style::SharedInstance();
-			Texture *texture = styleSheet->TextureWithName(style->ObjectForKey<String>(RNCSTR("texture")));
-			Dictionary *tlInsets = style->ObjectForKey<Dictionary>(RNCSTR("insets"));
-			String *mode = style->ObjectForKey<String>(RNCSTR("mode"));
-			Number *background = style->ObjectForKey<Number>(RNCSTR("background"));
+			Style *styleSheet = Style::GetSharedInstance();
+			Texture *texture = styleSheet->TextureWithName(style->GetObjectForKey<String>(RNCSTR("texture")));
+			Dictionary *tlInsets = style->GetObjectForKey<Dictionary>(RNCSTR("insets"));
+			String *mode = style->GetObjectForKey<String>(RNCSTR("mode"));
+			Number *background = style->GetObjectForKey<Number>(RNCSTR("background"));
 			
-			bool useBackground = background ? background->BoolValue() : true;
+			bool useBackground = background ? background->GetBoolValue() : true;
 			
 			if(mode->IsEqual(RNCSTR("momentarily")))
 				SetBehavior(Behavior::Momentarily);
@@ -42,13 +42,13 @@ namespace RN
 			if(mode->IsEqual(RNCSTR("switch")))
 				SetBehavior(Behavior::Switch);
 			
-			Array *states = style->ObjectForKey<Array>(RNCSTR("states"));
+			Array *states = style->GetObjectForKey<Array>(RNCSTR("states"));
 			states->Enumerate([&](Object *object, size_t index, bool *stop) {
 				Dictionary *state = object->Downcast<Dictionary>();
 				
-				String *name = state->ObjectForKey<String>(RNCSTR("name"));
-				Dictionary *atlas  = state->ObjectForKey<Dictionary>(RNCSTR("atlas"));
-				Dictionary *insets = state->ObjectForKey<Dictionary>(RNCSTR("insets"));
+				String *name = state->GetObjectForKey<String>(RNCSTR("name"));
+				Dictionary *atlas  = state->GetObjectForKey<Dictionary>(RNCSTR("atlas"));
+				Dictionary *insets = state->GetObjectForKey<Dictionary>(RNCSTR("insets"));
 				
 				if(!insets)
 					insets = tlInsets;
@@ -68,7 +68,7 @@ namespace RN
 					this->SetImageForState(image->Autorelease(), tstate);
 			});
 			
-			SetContentInsets(Style::ParseEdgeInsets(style->ObjectForKey<Dictionary>(RNCSTR("contentInsets"))));
+			SetContentInsets(Style::ParseEdgeInsets(style->GetObjectForKey<Dictionary>(RNCSTR("contentInsets"))));
 			SizeToFit();
 		}
 		
@@ -101,15 +101,15 @@ namespace RN
 			switch(type)
 			{
 				case Type::RoundedRect:
-					style = Style::SharedInstance()->ButtonStyle(RNCSTR("RNRoundedRect"));
+					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNRoundedRect"));
 					break;
 					
 				case Type::PushButton:
-					style = Style::SharedInstance()->ButtonStyle(RNCSTR("RNPushButton"));
+					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNPushButton"));
 					break;
 					
 				case Type::CheckBox:
-					style = Style::SharedInstance()->ButtonStyle(RNCSTR("RNCheckBox"));
+					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNCheckBox"));
 					break;
 			}
 			

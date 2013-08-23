@@ -34,8 +34,6 @@ namespace RN
 		
 		void Rotate(const Quaternion& rotation);
 		
-		RN_INLINE Vector3 Position() const { return position; }
-		
 		Vector3 position;
 		Vector3 minExtend;
 		Vector3 maxExtend;
@@ -146,7 +144,7 @@ namespace RN
 	
 	RN_INLINE void AABB::Rotate(const Quaternion& rotation)
 	{
-		Matrix matrix = rotation.RotationMatrix();
+		Matrix matrix = rotation.GetRotationMatrix();
 		
 		Vector3 corners[4];
 		corners[0] = matrix.Transform(Vector3(minExtendBase.x, minExtendBase.y, maxExtendBase.z));

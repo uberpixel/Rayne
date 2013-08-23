@@ -24,7 +24,7 @@ namespace RN
 	void ResourceCoordinator::RegisterReader(ResourceReader *reader)
 	{
 		std::lock_guard<std::mutex> lock(_readerLock);
-		if(_reader.ObjectForKey(reader->GetUUID()))
+		if(_reader.GetObjectForKey(reader->GetUUID()))
 		{
 			throw Exception(Exception::Type::InconsistencyException, "A reader with the specified UUID exists already!");
 			return;

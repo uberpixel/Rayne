@@ -24,16 +24,17 @@ namespace RN
 		
 		static UniChar ConvertCharacter(char character);
 		static char ConverToCharacter(UniChar character);
+		
 		static UniChar Ellipsis() { return 0x2026; }
 		
-		char ASCIICharacter() const;
-		UniChar Character() const { return _codePoint; }
+		char GetASCIICharacter() const;
+		UniChar GetCharacter() const { return _codePoint; }
 		
 		bool IsNewline() const;
 		bool IsWhitespace() const;
 		
-		UniChar UpperCase() const;
-		UniChar LowerCase() const;
+		UniChar GetUpperCase() const;
+		UniChar GetLowerCase() const;
 		
 		bool operator ==(const CodePoint& other) const
 		{

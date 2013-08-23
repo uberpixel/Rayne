@@ -342,7 +342,7 @@ namespace RN
 
 	void Context::MakeActiveContext()
 	{
-		Thread *thread = Thread::CurrentThread();
+		Thread *thread = Thread::GetCurrentThread();
 		RN_ASSERT(thread, "");
 
 		thread->_mutex.Lock();
@@ -373,7 +373,7 @@ namespace RN
 
 	void Context::DeactivateContext()
 	{
-		Thread *thread = Thread::CurrentThread();
+		Thread *thread = Thread::GetCurrentThread();
 		RN_ASSERT(thread, "");
 
 		thread->_mutex.Lock();
@@ -428,9 +428,9 @@ namespace RN
 	}
 	
 
-	Context *Context::ActiveContext()
+	Context *Context::GetActiveContext()
 	{
-		Thread *thread = Thread::CurrentThread();
+		Thread *thread = Thread::GetCurrentThread();
 		RN_ASSERT(thread, "");
 
 		return thread->_context;
@@ -463,7 +463,7 @@ namespace RN
 			glGetFloatv(GL_COLOR_CLEAR_VALUE, &_clearColor.r);
 			
 #if GL_FRAMEBUFFER_SRGB
-/*			if(Settings::SharedInstance()->GammaCorrection())
+/*			if(Settings::GetSharedInstance()->GammaCorrection())
 			{
 				glEnable(GL_FRAMEBUFFER_SRGB);
 			}*/

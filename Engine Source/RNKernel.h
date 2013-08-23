@@ -41,20 +41,20 @@ namespace RN
 		RNAPI void DidSleepForSignificantTime();
 		RNAPI void Exit();
 
-		float ScaleFactor() const { return _scaleFactor; }
+		float GetScaleFactor() const { return _scaleFactor; }
 		float GetActiveScaleFactor() const;
 		
-		const std::string& Title() const { return _title; }
+		const std::string& GetTitle() const { return _title; }
 
-		Window *Window() const { return _window; }
-		Context *Context() const { return _context; }
+		Window *GetWindow() const { return _window; }
+		Context *GetContext() const { return _context; }
 
-		float Delta() const { return _delta; }
-		float Time() const { return _time; }
-		float ScaledTime() const { return _scaledTime; }
-		float TimeScale() const { return _timeScale; }
+		float GetDelta() const { return _delta; }
+		float GetTime() const { return _time; }
+		float GetScaledTime() const { return _scaledTime; }
+		float GetTimeScale() const { return _timeScale; }
 		
-		FrameID CurrentFrame() const { return _frame; }
+		FrameID GetCurrentFrame() const { return _frame; }
 
 	private:
 		void Prepare();

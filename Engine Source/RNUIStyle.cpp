@@ -22,8 +22,8 @@ namespace RN
 		{
 			try
 			{
-				String *path = Settings::SharedInstance()->ObjectForKey<String>(kRNSettingsUIStyleKey);
-				Object *data = JSONSerialization::JSONObjectFromData(Data::WithContentsOfFile(path->UTF8String()));
+				String *path = Settings::GetSharedInstance()->GetObjectForKey<String>(kRNSettingsUIStyleKey);
+				Object *data = JSONSerialization::JSONObjectFromData(Data::WithContentsOfFile(path->GetUTF8String()));
 				
 				_data = data->Downcast<Dictionary>()->Retain();
 			}
@@ -49,14 +49,14 @@ namespace RN
 			{
 				try
 				{
-					Number *top    = insets->ObjectForKey<Number>(RNCSTR("top"));
-					Number *bottom = insets->ObjectForKey<Number>(RNCSTR("bottom"));
-					Number *left   = insets->ObjectForKey<Number>(RNCSTR("left"));
-					Number *right  = insets->ObjectForKey<Number>(RNCSTR("right"));
+					Number *top    = insets->GetObjectForKey<Number>(RNCSTR("top"));
+					Number *bottom = insets->GetObjectForKey<Number>(RNCSTR("bottom"));
+					Number *left   = insets->GetObjectForKey<Number>(RNCSTR("left"));
+					Number *right  = insets->GetObjectForKey<Number>(RNCSTR("right"));
 					
 					if(top && bottom && left && right)
 					{
-						return EdgeInsets(top->FloatValue(), bottom->FloatValue(), left->FloatValue(), right->FloatValue());
+						return EdgeInsets(top->GetFloatValue(), bottom->GetFloatValue(), left->GetFloatValue(), right->GetFloatValue());
 					}
 				}
 				catch(Exception e)
@@ -72,14 +72,14 @@ namespace RN
 			{
 				try
 				{
-					Number *x = atlas->ObjectForKey<Number>(RNCSTR("x"));
-					Number *y = atlas->ObjectForKey<Number>(RNCSTR("y"));
-					Number *width  = atlas->ObjectForKey<Number>(RNCSTR("width"));
-					Number *height = atlas->ObjectForKey<Number>(RNCSTR("height"));
+					Number *x = atlas->GetObjectForKey<Number>(RNCSTR("x"));
+					Number *y = atlas->GetObjectForKey<Number>(RNCSTR("y"));
+					Number *width  = atlas->GetObjectForKey<Number>(RNCSTR("width"));
+					Number *height = atlas->GetObjectForKey<Number>(RNCSTR("height"));
 					
 					if(x && y && width && height)
 					{
-						return Atlas(x->FloatValue(), y->FloatValue(), width->FloatValue(), height->FloatValue());
+						return Atlas(x->GetFloatValue(), y->GetFloatValue(), width->GetFloatValue(), height->GetFloatValue());
 					}
 				}
 				catch(Exception e)
@@ -93,14 +93,14 @@ namespace RN
 		
 		Texture *Style::TextureWithName(String *name)
 		{
-			Texture *texture = _textures->ObjectForKey<Texture>(name);
+			Texture *texture = _textures->GetObjectForKey<Texture>(name);
 			if(!texture)
 			{
 				TextureParameter parameter;
 				parameter.generateMipMaps = false;
 				parameter.mipMaps = 0;
 				
-				texture = new Texture(name->UTF8String(), parameter);
+				texture = new Texture(name->GetUTF8String(), parameter);
 				_textures->SetObjectForKey(texture->Autorelease(), name);
 			}
 			
@@ -111,12 +111,12 @@ namespace RN
 		
 		Dictionary *Style::ButtonStyle(String *name)
 		{
-			Array *buttons = _data->ObjectForKey<Array>(kRNUIStyleButtonsKey);
+			Array *buttons = _data->GetObjectForKey<Array>(kRNUIStyleButtonsKey);
 			Dictionary *style = nullptr;
 			
 			buttons->Enumerate([&](Object *object, size_t index, bool *stop) {
 				Dictionary *dict = object->Downcast<Dictionary>();
-				String *tname = dict->ObjectForKey<String>(kRNUIStyleNameKey);
+				String *tname = dict->GetObjectForKey<String>(kRNUIStyleNameKey);
 				
 				if(tname->IsEqual(name))
 				{
@@ -130,12 +130,12 @@ namespace RN
 		
 		Dictionary *Style::TextfieldStyle(String *name)
 		{
-			Array *textfields = _data->ObjectForKey<Array>(kRNUIStyleTextfieldKey);
+			Array *textfields = _data->GetObjectForKey<Array>(kRNUIStyleTextfieldKey);
 			Dictionary *style = nullptr;
 			
 			textfields->Enumerate([&](Object *object, size_t index, bool *stop) {
 				Dictionary *dict = object->Downcast<Dictionary>();
-				String *tname = dict->ObjectForKey<String>(kRNUIStyleNameKey);
+				String *tname = dict->GetObjectForKey<String>(kRNUIStyleNameKey);
 				
 				if(tname->IsEqual(name))
 				{

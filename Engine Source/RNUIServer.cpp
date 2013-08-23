@@ -27,8 +27,8 @@ namespace RN
 			
 			_camera->clipnear = -500.0f;
 			
-			if(_camera->Container())
-				_camera->Container()->RemoveSceneNode(_camera);
+			if(_camera->GetWorld())
+				_camera->GetWorld()->RemoveSceneNode(_camera);
 			
 			_mainWidget = nullptr;
 			_mode = Mode::SingleTracking;
@@ -36,12 +36,12 @@ namespace RN
 			_debugWidget = nullptr;
 			_drawDebugFrames = false;
 			
-			MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, &Server::HandleEvent, this, this);
+			MessageCenter::GetSharedInstance()->AddObserver(kRNInputEventMessage, &Server::HandleEvent, this, this);
 		}
 		
 		Server::~Server()
 		{
-			MessageCenter::SharedInstance()->RemoveObserver(this);
+			MessageCenter::GetSharedInstance()->RemoveObserver(this);
 			_camera->Release();
 		}
 		
@@ -84,13 +84,13 @@ namespace RN
 			
 			if(event->IsMouse())
 			{
-				if(responder && event->EventType() == Event::Type::MouseMoved)
+				if(responder && event->GetType() == Event::Type::MouseMoved)
 				{
 					responder->MouseMoved(event);
 					return;
 				}
 				
-				const Vector2& position = event->MousePosition();
+				const Vector2& position = event->GetMousePosition();
 				View *hit = nullptr;
 				
 				for(auto i = _widgets.rbegin(); i != _widgets.rend(); i ++)
@@ -110,7 +110,7 @@ namespace RN
 				
 				if(hit)
 				{
-					switch(event->EventType())
+					switch(event->GetType())
 					{
 						case Event::Type::MouseWheel:
 							hit->ScrollWheel(event);
@@ -132,7 +132,7 @@ namespace RN
 			
 			if(responder && event->IsKeyboard())
 			{
-				switch(event->EventType())
+				switch(event->GetType())
 				{
 					case Event::Type::KeyDown:
 						responder->KeyDown(event);
@@ -154,15 +154,15 @@ namespace RN
 		
 		void Server::Render(Renderer *renderer)
 		{
-			Rect actualFrame = Window::SharedInstance()->Frame();
+			Rect actualFrame = Window::GetSharedInstance()->GetFrame();
 			if(_frame != actualFrame)
 			{
 				_frame = actualFrame;
 					
-				_camera->ortholeft   = _frame.Left();
-				_camera->orthobottom = _frame.Bottom();
-				_camera->orthoright  = _frame.Right();
-				_camera->orthotop    = _frame.Top();
+				_camera->ortholeft   = _frame.GetLeft();
+				_camera->orthobottom = _frame.GetTop();
+				_camera->orthoright  = _frame.GetRight();
+				_camera->orthotop    = _frame.GetBottom();
 				
 				_camera->SetFrame(_frame);
 				_camera->PostUpdate();

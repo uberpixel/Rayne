@@ -70,7 +70,7 @@ namespace RN
 					std::vector<size_t> stops;
 					stops.resize(intervals.size());
 					std::transform(intervals.begin(), intervals.end(), stops.begin(), [](const interval& interval) {
-						return interval.range.End();
+						return interval.range.GetEnd();
 					});
 					
 					_leftextent  = static_cast<int>(intervals.front().range.origin);
@@ -91,11 +91,11 @@ namespace RN
 					
 					for(auto i=intervals.begin(); i!=intervals.end(); i++)
 					{
-						if(i->range.End() < _center)
+						if(i->range.GetEnd() < _center)
 						{
 							left.push_back(std::move(*i));
 						}
-						else if(i->range.End() > _center)
+						else if(i->range.GetEnd() > _center)
 						{
 							right.push_back(std::move(*i));
 						}
@@ -167,7 +167,7 @@ namespace RN
 				if(_nodes[0] && range.origin <= _center)
 					_nodes[0]->find_contained(range, contained);
 				
-				if(_nodes[1] && range.End() >= _center)
+				if(_nodes[1] && range.GetEnd() >= _center)
 					_nodes[1]->find_contained(range, contained);
 			}
 					
@@ -187,7 +187,7 @@ namespace RN
 				if(_nodes[0] && range.origin <= _center)
 					_nodes[0]->find_overlapping(range, overlapping);
 				
-				if(_nodes[1] && range.End() >= _center)
+				if(_nodes[1] && range.GetEnd() >= _center)
 					_nodes[1]->find_overlapping(range, overlapping);
 			}
 			

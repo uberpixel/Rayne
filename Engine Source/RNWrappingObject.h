@@ -37,7 +37,7 @@ namespace RN
 				_dealloc(this);
 		}
 		
-		T& Data() { return _data; }
+		T& GetData() { return _data; }
 		
 		void SetDealloc(DeallocCallback callback)
 		{

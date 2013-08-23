@@ -148,7 +148,7 @@ namespace RN
 	// MARK: Object system
 	// ---------------------
 	
-	machine_hash String::Hash() const
+	machine_hash String::GetHash() const
 	{
 		return _ainternal->Hash();
 	}
@@ -159,7 +159,7 @@ namespace RN
 		   return false;
 		   
 		String *string = static_cast<String *>(other);
-		if(string->Length() != Length())
+		if(string->GetLength() != GetLength())
 			return false;
 		
 		if(_internal == string->_internal)
@@ -210,7 +210,7 @@ namespace RN
 		BasicString *other = static_cast<BasicString *>(string->_internal);
 		
 		PromoteStringIfNeeded(other->CharacterEncoding());
-		_ainternal->ReplaceCharactersInRange(Range(Length(), 0), other);
+		_ainternal->ReplaceCharactersInRange(Range(GetLength(), 0), other);
 	}
 	
 	void String::Insert(const String *string, size_t index)
@@ -242,7 +242,7 @@ namespace RN
 	{
 		while(1)
 		{
-			Range range = RangeOfString(string);
+			Range range = GetRangeOfString(string);
 			if(range.origin == kRNNotFound)
 				break;
 			
@@ -257,14 +257,14 @@ namespace RN
 	
 #define kStringUniCharFetch 128
 	
-	Range String::RangeOfString(const String *string, ComparisonMode mode)
+	Range String::GetRangeOfString(const String *string, ComparisonMode mode)
 	{		
-		return RangeOfString(string, mode, Range(0, Length()));
+		return GetRangeOfString(string, mode, Range(0, GetLength()));
 	}
 	
-	Range String::RangeOfString(const String *string, ComparisonMode mode, const Range& range)
+	Range String::GetRangeOfString(const String *string, ComparisonMode mode, const Range& range)
 	{
-		size_t length = string->Length();
+		size_t length = string->GetLength();
 		
 		if(range.length < length)
 			return Range(kRNNotFound, 0);
@@ -312,8 +312,8 @@ namespace RN
 					
 					if(mode & ComparisonModeCaseInsensitive)
 					{
-						point  = point.LowerCase();
-						tpoint = tpoint.LowerCase();
+						point  = point.GetLowerCase();
+						tpoint = tpoint.GetLowerCase();
 					}
 					
 					if(tpoint != point)
@@ -345,15 +345,15 @@ namespace RN
 	
 	ComparisonResult String::Compare(const String *other, ComparisonMode mode) const
 	{
-		return Compare(other, mode, Range(0, Length()));
+		return Compare(other, mode, Range(0, GetLength()));
 	}
 	
 	ComparisonResult String::Compare(const String *other, ComparisonMode mode, const Range& range) const
 	{
-		if(range.length < other->Length())
+		if(range.length < other->GetLength())
 			return ComparisonResult::GreaterThan;
 		
-		if(range.length > other->Length())
+		if(range.length > other->GetLength())
 			return ComparisonResult::LessThan;
 		
 		UniChar charactersA[kStringUniCharFetch];
@@ -416,8 +416,8 @@ namespace RN
 			
 			if(mode & ComparisonModeCaseInsensitive)
 			{
-				a = a.LowerCase();
-				b = b.LowerCase();
+				a = a.GetLowerCase();
+				b = b.GetLowerCase();
 			}
 			
 			if(mode & ComparisonModeNumerically)
@@ -490,17 +490,17 @@ namespace RN
 	// MARK: Conversion / Access
 	// ---------------------
 	
-	size_t String::Length() const
+	size_t String::GetLength() const
 	{
 		return _ainternal->Length();
 	}
 	
-	char *String::UTF8String() const
+	char *String::GetUTF8String() const
 	{
 		return static_cast<char *>(_ainternal->BytesWithEncoding(Encoding::UTF8, false, nullptr));
 	}
 	
-	String *String::Substring(const Range& range) const
+	String *String::GetSubstring(const Range& range) const
 	{
 		void *string = static_cast<void *>(_ainternal->Substring(range));
 		String *substring = new String(string);
@@ -508,12 +508,12 @@ namespace RN
 		return substring->Autorelease();
 	}
 	
-	UniChar String::CharacterAtIndex(size_t index) const
+	UniChar String::GetCharacterAtIndex(size_t index) const
 	{
 		return _ainternal->CharacterAtIndex(index);
 	}
 	
-	uint8 *String::BytesWithEncoding(Encoding encoding, bool lossy, size_t *outLength) const
+	uint8 *String::GetBytesWithEncoding(Encoding encoding, bool lossy, size_t *outLength) const
 	{		
 		return static_cast<uint8 *>(_ainternal->BytesWithEncoding(encoding, lossy, outLength));
 	}

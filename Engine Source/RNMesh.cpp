@@ -47,7 +47,7 @@ namespace RN
 		Initialize();
 		AddDescriptor(descriptor);
 		
-		uint8 *mdata = MeshData<uint8>();
+		uint8 *mdata = GetMeshData<uint8>();
 		uint8 *source = reinterpret_cast<uint8 *>(const_cast<void *>(data));
 		
 		std::copy(source, source + _meshSize, mdata);
@@ -56,7 +56,7 @@ namespace RN
 	
 	Mesh::~Mesh()
 	{
-		Renderer::SharedInstance()->RelinquishMesh(this);
+		Renderer::GetSharedInstance()->RelinquishMesh(this);
 		
 		glDeleteBuffers(2, &_vbo);
 		
@@ -320,7 +320,7 @@ namespace RN
 		
 		bool wasDirty = _dirty;
 		
-		MeshDescriptor *descriptor = Descriptor(kMeshFeatureVertices);
+		MeshDescriptor *descriptor = GetDescriptor(kMeshFeatureVertices);
 		
 		bool is3D = (descriptor->elementMember == 3);
 		uint8 *pointer = _meshData + descriptor->offset;
@@ -361,7 +361,7 @@ namespace RN
 	
 	void Mesh::UpdateMesh(bool force)
 	{
-		Renderer::SharedInstance()->BindVAO(0);
+		Renderer::GetSharedInstance()->BindVAO(0);
 		
 		if((_dirtyIndices || force) && _indices)
 		{
@@ -387,13 +387,13 @@ namespace RN
 	
 	
 	
-	GLuint Mesh::VBO()
+	GLuint Mesh::GetVBO()
 	{
 		UpdateMesh();
 		return _vbo;
 	}
 	
-	GLuint Mesh::IBO()
+	GLuint Mesh::GetIBO()
 	{
 		UpdateMesh();
 		return _ibo;
@@ -423,7 +423,7 @@ namespace RN
 		return -1;
 	}
 	
-	MeshDescriptor *Mesh::Descriptor(MeshFeature feature)
+	MeshDescriptor *Mesh::GetDescriptor(MeshFeature feature)
 	{
 		for(size_t i=0; i<_descriptor.size(); i++)
 		{
@@ -482,8 +482,8 @@ namespace RN
 			std::copy(_indices, _indices + _indicesSize, tdata);
 			std::copy(mesh->_indices, mesh->_indices + mesh->_indicesSize, tdata + _indicesSize);
 			
-			MeshDescriptor *verticesDescriptor = Descriptor(kMeshFeatureVertices);
-			MeshDescriptor *indicesDescriptor  = Descriptor(kMeshFeatureIndices);
+			MeshDescriptor *verticesDescriptor = GetDescriptor(kMeshFeatureVertices);
+			MeshDescriptor *indicesDescriptor  = GetDescriptor(kMeshFeatureIndices);
 			
 			switch(indicesDescriptor->elementSize)
 			{
@@ -557,9 +557,9 @@ namespace RN
 		std::vector<MeshDescriptor> descriptor = { vertexDescriptor, indicesDescriptor, texcoordDescriptor };
 		Mesh *mesh = new Mesh(descriptor);
 		
-		Vector3 *vertices  = mesh->Element<Vector3>(kMeshFeatureVertices);
-		Vector2 *texcoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = mesh->Element<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = mesh->GetElement<Vector3>(kMeshFeatureVertices);
+		Vector2 *texcoords = mesh->GetElement<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = mesh->GetElement<uint16>(kMeshFeatureIndices);
 		
 		Matrix rotmat;
 		rotmat.MakeRotate(rotation);
@@ -614,10 +614,10 @@ namespace RN
 		std::vector<MeshDescriptor> descriptor = { vertexDescriptor, normalDescriptor, indicesDescriptor, texcoordDescriptor };
 		Mesh *mesh = new Mesh(descriptor);
 		
-		Vector3 *vertices  = mesh->Element<Vector3>(kMeshFeatureVertices);
-		Vector3 *normals   = mesh->Element<Vector3>(kMeshFeatureNormals);
-		Vector2 *texcoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = mesh->Element<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = mesh->GetElement<Vector3>(kMeshFeatureVertices);
+		Vector3 *normals   = mesh->GetElement<Vector3>(kMeshFeatureNormals);
+		Vector2 *texcoords = mesh->GetElement<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = mesh->GetElement<uint16>(kMeshFeatureIndices);
 		
 		*vertices ++ = Vector3(-size.x,  size.y, size.z);
 		*vertices ++ = Vector3( size.x,  size.y, size.z);
@@ -790,11 +790,11 @@ namespace RN
 		std::vector<MeshDescriptor> descriptor = { vertexDescriptor, normalDescriptor, colorDescriptor, indicesDescriptor, texcoordDescriptor };
 		Mesh *mesh = new Mesh(descriptor);
 		
-		Vector3 *vertices  = mesh->Element<Vector3>(kMeshFeatureVertices);
-		Vector3 *normals   = mesh->Element<Vector3>(kMeshFeatureNormals);
-		Color *colors      = mesh->Element<Color>(kMeshFeatureColor0);
-		Vector2 *texcoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
-		uint16 *indices    = mesh->Element<uint16>(kMeshFeatureIndices);
+		Vector3 *vertices  = mesh->GetElement<Vector3>(kMeshFeatureVertices);
+		Vector3 *normals   = mesh->GetElement<Vector3>(kMeshFeatureNormals);
+		Color *colors      = mesh->GetElement<Color>(kMeshFeatureColor0);
+		Vector2 *texcoords = mesh->GetElement<Vector2>(kMeshFeatureUVSet0);
+		uint16 *indices    = mesh->GetElement<uint16>(kMeshFeatureIndices);
 		
 		*vertices ++ = Vector3(-size.x,  size.y, size.z);
 		*vertices ++ = Vector3( size.x,  size.y, size.z);
@@ -1006,8 +1006,8 @@ namespace RN
 	{
 		Hit hit;
 		
-		MeshDescriptor *posdescriptor = Descriptor(kMeshFeatureVertices);
-		MeshDescriptor *inddescriptor = Descriptor(kMeshFeatureIndices);
+		MeshDescriptor *posdescriptor = GetDescriptor(kMeshFeatureVertices);
+		MeshDescriptor *inddescriptor = GetDescriptor(kMeshFeatureIndices);
 		
 		bool is3D = (posdescriptor->elementMember == 3);
 		if(!is3D)

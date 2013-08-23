@@ -32,7 +32,7 @@ namespace RN
 	public:
 		RNAPI World(SceneManager *sceneManager);
 		RNAPI World(const std::string& sceneManager);
-		RNAPI virtual ~World();
+		RNAPI ~World() override;
 		
 		RNAPI void SceneNodeUpdated(SceneNode *node);
 		RNAPI void SetReleaseSceneNodesOnDestruction(bool releaseSceneNodes);
@@ -49,7 +49,7 @@ namespace RN
 		RNAPI virtual void WillRenderSceneNode(SceneNode *node);
 		RNAPI virtual void Reset();
 		
-		RNAPI SceneManager *SceneManager() const { return _sceneManager; }
+		RNAPI SceneManager *GetSceneManager() const { return _sceneManager; }
 		
 	private:
 		static class SceneManager *SceneManagerWithName(const std::string& name);

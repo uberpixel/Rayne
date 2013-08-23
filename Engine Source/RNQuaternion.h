@@ -102,7 +102,7 @@ namespace RN
 	
 	RN_INLINE Quaternion& Quaternion::operator+= (const Vector3& other)
 	{
-		Vector3 euler = EulerAngle();
+		Vector3 euler = GetEulerAngle();
 		euler += other;
 //		printf("x: %f, y: %f, z: %f\n", euler.x, euler.y, euler.z);
 
@@ -129,7 +129,7 @@ namespace RN
 	
 	RN_INLINE Quaternion& Quaternion::operator-= (const Vector3& other)
 	{
-		Vector3 euler = EulerAngle();
+		Vector3 euler = GetEulerAngle();
 		euler -= other;
 		
 		MakeEulerAngle(euler);
@@ -206,7 +206,7 @@ namespace RN
 	
 	RN_INLINE Quaternion Quaternion::operator+ (const Vector3& other) const
 	{
-		Vector3 euler = EulerAngle();
+		Vector3 euler = GetEulerAngle();
 		euler += other;
 		
 		return Quaternion(euler);
@@ -214,7 +214,7 @@ namespace RN
 	
 	RN_INLINE Quaternion Quaternion::operator- (const Vector3& other) const
 	{
-		Vector3 euler = EulerAngle();
+		Vector3 euler = GetEulerAngle();
 		euler -= other;
 		
 		return Quaternion(euler);
@@ -400,7 +400,7 @@ namespace RN
 	
 	RN_INLINE void Quaternion::Normalize()
 	{
-		float length = Length();
+		float length = GetLength();
 		if(length != 0.0f)
 		{
 			float fac = 1.0f / length;
@@ -436,15 +436,15 @@ namespace RN
 	
 	RN_INLINE Vector3 Quaternion::RotateVector(const Vector3& vector) const
 	{
-		return RotationMatrix().Transform(vector);
+		return GetRotationMatrix().Transform(vector);
 	}
 	
 	RN_INLINE Vector4 Quaternion::RotateVector(const Vector4& vector) const
 	{
-		return RotationMatrix().Transform(vector);
+		return GetRotationMatrix().Transform(vector);
 	}
 	
-	RN_INLINE Matrix Quaternion::RotationMatrix() const
+	RN_INLINE Matrix Quaternion::GetRotationMatrix() const
 	{
 		Matrix result;
 		
@@ -471,7 +471,7 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE Vector3 Quaternion::EulerAngle() const
+	RN_INLINE Vector3 Quaternion::GetEulerAngle() const
 	{
 		Vector3 result;
 		float sqx = x * x;
@@ -506,7 +506,7 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE Vector4 Quaternion::AxisAngle() const
+	RN_INLINE Vector4 Quaternion::GetAxisAngle() const
 	{
 		Vector4 res;
 		const float scale = Math::Sqrt(x * x + y * y + z * z);
@@ -529,7 +529,7 @@ namespace RN
 		return res;
 	}
 	
-	RN_INLINE float Quaternion::Length() const
+	RN_INLINE float Quaternion::GetLength() const
 	{
 		return Math::Sqrt(x * x + y * y + z * z + w * w);
 	}

@@ -18,7 +18,7 @@ namespace RN
 			Widget(Rect(10.0f, 10.0f, 180.0f, 220.0f)),
 			_fps(60)
 		{
-			MessageCenter::SharedInstance()->AddObserver(kRNKernelDidEndFrameMessage, &DebugWidget::HandleMessage, this, this);
+			MessageCenter::GetSharedInstance()->AddObserver(kRNKernelDidEndFrameMessage, &DebugWidget::HandleMessage, this, this);
 		
 			_fpsLabel = new Label();
 			_fpsLabel->SetFrame(Rect(0.0f, 5.0f, 180.0f, 128.0f).Inset(5.0f, 0.0f));
@@ -37,7 +37,7 @@ namespace RN
 		
 		DebugWidget::~DebugWidget()
 		{
-			MessageCenter::SharedInstance()->RemoveObserver(this);
+			MessageCenter::GetSharedInstance()->RemoveObserver(this);
 		}
 		
 		
@@ -55,10 +55,10 @@ namespace RN
 		
 		void DebugWidget::HandleMessage(Message *message)
 		{
-			Kernel *kernel = Kernel::SharedInstance();
-			Renderer *renderer = Renderer::SharedInstance();
+			Kernel *kernel = Kernel::GetSharedInstance();
+			Renderer *renderer = Renderer::GetSharedInstance();
 			
-			float delta = kernel->Delta();
+			float delta = kernel->GetDelta();
 			
 			if(delta > 0.0f)
 				_fps.push(1.0f / delta);
@@ -66,7 +66,7 @@ namespace RN
 			float fps = _fpsCheckbox->IsSelected() ? AverageFPS() : 1.0f / delta;
 			const char *fpsText = _fpsCheckbox->IsSelected() ? "Avg. FPS:" : "FPS:";
 			
-			_fpsLabel->SetText(RNSTR("Frame: %3.4fs\n\%s %3.4f\nLights: %u\nVertices: %uk", kernel->Delta(), fpsText, fps, renderer->RenderedLights(), renderer->RenderedVertices() / 1000));
+			_fpsLabel->SetText(RNSTR("Frame: %3.4fs\n\%s %3.4f\nLights: %u\nVertices: %uk", kernel->GetDelta(), fpsText, fps, renderer->GetRenderedLights(), renderer->GetRenderedVertices() / 1000));
 		}
 	}
 }

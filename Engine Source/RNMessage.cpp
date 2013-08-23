@@ -12,7 +12,7 @@ namespace RN
 {
 	RNDeclareMeta(Message)
 	
-	Message::Message(String *name, class Object *object, Dictionary *info)
+	Message::Message(String *name, Object *object, Dictionary *info)
 	{
 		_name   = name ? name->Retain() : nullptr;
 		_object = object ? object->Retain() : nullptr;
@@ -35,14 +35,14 @@ namespace RN
 	
 	void MessageCenter::PostMessage(Message *message)
 	{
-		String *name = message->Name();
-		machine_hash hash = name->Hash();
+		String *name = message->GetName();
+		machine_hash hash = name->GetHash();
 		
 		_lock.Lock();
 		
 		for(auto i=_observer.begin(); i!=_observer.end(); i++)
 		{
-			if(i->name->Hash() == hash && i->name->IsEqual(name))
+			if(i->name->GetHash() == hash && i->name->IsEqual(name))
 			{
 				i->callback(message);
 			}
@@ -93,13 +93,13 @@ namespace RN
 	
 	void MessageCenter::RemoveObserver(void *cookie, String *name)
 	{
-		machine_hash hash = name->Hash();
+		machine_hash hash = name->GetHash();
 		
 		_lock.Lock();
 		
 		for(auto i=_observer.begin(); i!=_observer.end();)
 		{
-			if(i->cookie == cookie && i->name->Hash() == hash && i->name->IsEqual(name))
+			if(i->cookie == cookie && i->name->GetHash() == hash && i->name->IsEqual(name))
 			{
 				i = _observer.erase(i);
 				continue;

@@ -55,7 +55,7 @@ namespace RN
 		
 		void ImageView::Initialize()
 		{
-			Shader *shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUIImageShader);
+			Shader *shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUIImageShader);
 			DrawMaterial()->SetShader(shader);
 			SetInteractionEnabled(false);
 			

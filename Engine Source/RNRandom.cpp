@@ -27,7 +27,7 @@ namespace RN
 		{
 		}
 		
-		uint32 Generator::SeedValue()
+		uint32 Generator::GetSeedValue()
 		{
 			time_t now = time(0);
 			uint8 *p = reinterpret_cast<uint8 *>(&now);
@@ -43,21 +43,21 @@ namespace RN
 		
 		int32 Generator::RandomInt32Range(int32 min, int32 max)
 		{
-			RN_ASSERT(min >= Min(), "");
-			RN_ASSERT(max <= Max(), "");
+			RN_ASSERT(min >= GetMin(), "");
+			RN_ASSERT(max <= GetMax(), "");
 			
 			while(1)
 			{
 				int32 base = RandomInt32();
 				
-				if(base == Max())
+				if(base == GetMax())
 					continue;
 				
 				int32 range = max - min;
-				int32 remainder = Max() % range;
-				int32 bucket    = Max() / range;
+				int32 remainder = GetMax() % range;
+				int32 bucket    = GetMax() / range;
 				
-				if(base < Max() - remainder)
+				if(base < GetMax() - remainder)
 					return min + base / bucket;
 			}
 		}
@@ -75,7 +75,7 @@ namespace RN
 		
 		double Generator::UniformDeviate(int32 seed)
 		{
-			return seed * (1.0 / (Max() + 1.0));
+			return seed * (1.0 / (GetMax() + 1.0));
 		}
 		
 		// ---------------------
@@ -91,16 +91,16 @@ namespace RN
 			_Q = (_M / _A);
 			_R = (_M % _A);
 			
-			Seed(SeedValue());
+			Seed(GetSeedValue());
 		}
 		
 		
-		int32 LCG::Min() const
+		int32 LCG::GetMin() const
 		{
 			return 0;
 		}
 		
-		int32 LCG::Max() const
+		int32 LCG::GetMax() const
 		{
 			return INT32_MAX;
 		}
@@ -138,15 +138,15 @@ namespace RN
 			_R1 = (_M1 % _A1);
 			_R2 = (_M2 % _A2);
 			
-			Seed(SeedValue());
+			Seed(GetSeedValue());
 		}
 		
-		int32 DualPhaseLCG::Min() const
+		int32 DualPhaseLCG::GetMin() const
 		{
 			return 0;
 		}
 		
-		int32 DualPhaseLCG::Max() const
+		int32 DualPhaseLCG::GetMax() const
 		{
 			return INT32_MAX;
 		}
@@ -189,7 +189,7 @@ namespace RN
 			_L = 0x7fffffffUL;
 			
 			_bytes  = new uint32[_N];
-			Seed(SeedValue());
+			Seed(GetSeedValue());
 		}
 		
 		MersenneTwister::~MersenneTwister()
@@ -197,12 +197,12 @@ namespace RN
 			delete [] _bytes;
 		}
 		
-		int32 MersenneTwister::Min() const
+		int32 MersenneTwister::GetMin() const
 		{
 			return 0;
 		}
 		
-		int32 MersenneTwister::Max() const
+		int32 MersenneTwister::GetMax() const
 		{
 			return INT32_MAX;
 		}
@@ -249,107 +249,6 @@ namespace RN
 			
 			return static_cast<int32>(y & (1 << 31) - 1);
 		}
-		
-		// ---------------------
-		// MARK: -
-		// MARK: Secure
-		// ---------------------
-		
-		Secure::Secure()
-		{
-			_offset = 0;
-			_size   = 0;
-			_bytes  = new uint32[kRNSecureRNGSize];
-		}
-		
-		Secure::~Secure()
-		{
-			delete [] _bytes;
-		}
-		
-		int Secure::ReadRDRAND()
-		{
-			int status;
-			int32 result;
-			
-			__asm__ volatile("rdrand %%eax \n"
-							 "movl $1, %%edx \n"
-							 "cmovae %%eax, %%edx \n"
-							 "movl %%edx, %1 \n"
-							 "movl %%eax, %0" : "=r" (result), "=r" (status) :: "%eax", "%edx");
-			if(status)
-			{
-				*(_bytes + _size) = result;
-				_size ++;
-			}
-			
-			return status;
-		}
-		
-		void Secure::FillBuffer()
-		{
-			_offset = 0;
-			_size   = 0;
-			
-			if((X86_64::Caps() & X86_64::CAP_RDRAND))
-			{
-				while(_size < kRNSecureRNGSize)
-				{
-					int result = ReadRDRAND();
-					if(!result)
-					{
-						if(_size > 0)
-							break;
-						
-						std::this_thread::yield(); // We need at least one int of new data
-					}
-				}
-			}
-			else
-			{
-				FILE *file = fopen("/dev/random", "rb");
-				fread(_bytes, kRNSecureRNGSize, 4, file);
-				fclose(file);
-				
-				_size = kRNSecureRNGSize;
-			}
-		}
-		
-		
-		int32 Secure::Min() const
-		{
-			return 0;
-		}
-		
-		int32 Secure::Max() const
-		{
-			return INT32_MAX;
-		}
-		
-		
-		void Secure::Seed(uint32 seed)
-		{
-			throw Exception(Exception::Type::InvalidArgumentException, "The Secure RNG cannot be seeded!");
-		}
-		
-		int32 Secure::RandomInt32()
-		{
-			if(_offset >= _size)
-			{
-				FillBuffer();
-			}
-			
-			int32 result;
-			std::copy(_bytes + _offset, _bytes + _offset + 1, &result);
-			_offset ++;
-			
-			return (result & (1 << 31)) - 1;
-		}
-		
-		bool Secure::UsesHardware()
-		{
-			return (X86_64::Caps() & X86_64::CAP_RDRAND);
-		}
 	}
 	
 	RNDeclareMeta(RandomNumberGenerator)
@@ -358,20 +257,16 @@ namespace RN
 	{
 		switch(type)
 		{
-			case TypeLCG:
+			case Type::LCG:
 				_generator = new Random::LCG();
 				break;
 				
-			case TypeDualPhaseLCG:
+			case Type::DualPhaseLCG:
 				_generator = new Random::DualPhaseLCG();
 				break;
 				
-			case TypeMersenneTwister:
+			case Type::MersenneTwister:
 				_generator = new Random::MersenneTwister();
-				break;
-				
-			case TypeSecure:
-				_generator = new Random::Secure();
 				break;
 		}
 	}
@@ -381,14 +276,15 @@ namespace RN
 		delete _generator;
 	}
 	
-	int32 RandomNumberGenerator::Min() const
+	
+	int32 RandomNumberGenerator::GetMin() const
 	{
-		return _generator->Max();
+		return _generator->GetMin();
 	}
 	
-	int32 RandomNumberGenerator::Max() const
+	int32 RandomNumberGenerator::GetMax() const
 	{
-		return _generator->Max();
+		return _generator->GetMax();
 	}
 	
 	void RandomNumberGenerator::Seed(uint32 seed)

@@ -49,12 +49,12 @@ namespace RN
 		bool HasDepthbuffer() const { return (_format & BufferFormatDepth); }
 		bool HasStencilbuffer() const { return (_format & BufferFormatStencil); }
 		
-		uint32 RenderTargets() const { return (uint32)_renderTargets->Count(); }
-		Texture *RenderTarget(uint32 index=0) const { return _renderTargets->ObjectAtIndex<Texture>(index); }
-		Texture *DepthTarget() const { return _depthTexture; }
-		const Vector2& Size() const { return _size; }
+		uint32 GetRenderTargets() const { return (uint32)_renderTargets->GetCount(); }
+		Texture *GetRenderTarget(uint32 index=0) const { return _renderTargets->GetObjectAtIndex<Texture>(index); }
+		Texture *GetDepthTarget() const { return _depthTexture; }
+		const Vector2& GetSize() const { return _size; }
 		
-		RNAPI static uint32 MaxRenderTargets();
+		RNAPI static uint32 GetMaxRenderTargets();
 		
 	private:
 		void UpdateDrawBuffers(uint32 count);

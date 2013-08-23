@@ -49,17 +49,17 @@ namespace RN
 		void SetParticlesPerSecond(uint32 particles);
 		void SetMaxParticles(uint32 maxParticles);
 		
-		RandomNumberGenerator *Generator() { return _rng; }
+		RandomNumberGenerator *GetGenerator() { return _rng; }
 		
 		void SpawnParticles(uint32 particles);
 		Particle *SpawnParticle();
-		virtual Particle *CreateParticle();
 		
 		void Update(float delta) override;
 		bool IsVisibleInCamera(Camera *camera) override;
 		void Render(Renderer *renderer, Camera *camera) override;
 		
 	protected:
+		virtual Particle *CreateParticle();
 		RandomNumberGenerator *_rng;
 		
 	private:

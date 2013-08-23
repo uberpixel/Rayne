@@ -36,9 +36,8 @@ namespace RN
 		RNAPI void SetStencilClear(GLint stencil);
 		RNAPI void SetClearColor(const Color& color);
 		
-		gl::Version Version() const { return _version; }
-		
-		static Context *ActiveContext();
+		gl::Version GetVersion() const { return _version; }
+		static Context *GetActiveContext();
 
 	protected:
 		RNAPI void Activate();

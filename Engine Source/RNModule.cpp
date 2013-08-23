@@ -31,8 +31,8 @@ namespace RN
 		_handle = 0;
 		
 		_exports.module = this;
-		_exports.kernel = Kernel::SharedInstance();
-		_exports.application = Application::SharedInstance();
+		_exports.kernel = Kernel::GetSharedInstance();
+		_exports.application = Application::GetSharedInstance();
 	}
 	
 	Module::~Module()
@@ -50,8 +50,8 @@ namespace RN
 			if(!_handle)
 				throw Exception(Exception::Type::ModuleNotFoundException, std::string(dlerror()));
 			
-			_constructor = (bool (*)(ModuleExports *))(FunctionAddress("RNModuleConstructor"));
-			_destructor  = (void (*)())(FunctionAddress("RNModuleDestructor"));
+			_constructor = (bool (*)(ModuleExports *))(GetFunctionAddress("RNModuleConstructor"));
+			_destructor  = (void (*)())(GetFunctionAddress("RNModuleDestructor"));
 			
 			if(!_constructor(&_exports))
 				Unload();
@@ -71,16 +71,17 @@ namespace RN
 	}
 	
 	
-	void *Module::FunctionAddress(const std::string& name)
+	void *Module::GetFunctionAddress(const std::string& name)
 	{
 		return dlsym(_handle, name.c_str());
 	}
 	
 	
 	
+	
 	ModuleCoordinator::ModuleCoordinator()
 	{
-		Array *array = Settings::SharedInstance()->ObjectForKey<Array>(KRNSettingsModulesKey);
+		Array *array = Settings::GetSharedInstance()->GetObjectForKey<Array>(KRNSettingsModulesKey);
 		if(array)
 		{
 			array->Enumerate([&](Object *file, size_t index, bool *stop) {
@@ -88,13 +89,13 @@ namespace RN
 				try
 				{
 					String *string = file->Downcast<String>();
-					char   *path   = string->UTF8String();
+					char   *path   = string->GetUTF8String();
 					
 					_modules.emplace_back(new Module(path));
 				}
 				catch(Exception e)
 				{
-					printf("Failed to load module. Reason: %s", e.Reason().c_str());
+					printf("Failed to load module. Reason: %s", e.GetReason().c_str());
 				}
 				
 			});
@@ -115,13 +116,13 @@ namespace RN
 		}
 	}
 	
-	Module *ModuleCoordinator::ModuleWithName(const std::string& name)
+	Module *ModuleCoordinator::GetModuleWithName(const std::string& name)
 	{
 		for(auto i=_modules.begin(); i!=_modules.end(); i++)
 		{
 			Module *module = *i;
 			
-			if(name.compare(module->Name()) == 0)
+			if(name.compare(module->GetName()) == 0)
 			   return module;
 		}
 		

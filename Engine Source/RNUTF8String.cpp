@@ -242,7 +242,7 @@ namespace RN
 			RN::Data *temp = new RN::Data(data, size, true, true);
 			temp->Autorelease();
 			
-			return temp->Bytes();
+			return temp->GetBytes();
 		}
 		
 		return nullptr;
@@ -279,7 +279,7 @@ namespace RN
 	
 	void ConstantUTF8String::CharactersInRange(UniChar *buffer, const Range& range) const
 	{
-		if(range.End() > _length)
+		if(range.GetEnd() > _length)
 			throw Exception(Exception::Type::RangeException, "Range must be within string bounds");
 		
 		const uint8 *bytes = SkipCharacters(_string, range.origin);

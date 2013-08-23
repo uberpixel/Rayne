@@ -17,7 +17,7 @@ namespace RN
 		_data = 0;
 		
 		File *file = new File(name);
-		FILE *rfile = file->FilePointer();
+		FILE *rfile = file->GetFilePointer();
 		bool result = false;
 		
 		result = LoadPNGTexture(rfile);

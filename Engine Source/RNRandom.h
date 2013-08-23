@@ -24,12 +24,13 @@ namespace RN
 			Generator();
 			virtual ~Generator();
 			
-			virtual uint32 SeedValue();
+			virtual uint32 GetSeedValue();
 			
-			virtual int32 Min() const = 0;
-			virtual int32 Max() const = 0;
+			virtual int32 GetMin() const = 0;
+			virtual int32 GetMax() const = 0;
 			
 			virtual void Seed(uint32 seed) = 0;
+			
 			virtual int32 RandomInt32() = 0;
 			virtual int32 RandomInt32Range(int32 min, int32 max);
 			
@@ -44,8 +45,8 @@ namespace RN
 		public:
 			LCG();
 			
-			virtual int32 Min() const;
-			virtual int32 Max() const;
+			virtual int32 GetMin() const;
+			virtual int32 GetMax() const;
 			
 			virtual void Seed(uint32 seed);
 			virtual int32 RandomInt32();
@@ -63,8 +64,8 @@ namespace RN
 		public:
 			DualPhaseLCG();
 			
-			virtual int32 Min() const;
-			virtual int32 Max() const;
+			virtual int32 GetMin() const;
+			virtual int32 GetMax() const;
 			
 			virtual void Seed(uint32 seed);
 			virtual int32 RandomInt32();
@@ -89,8 +90,8 @@ namespace RN
 			MersenneTwister();
 			~MersenneTwister();
 			
-			virtual int32 Min() const;
-			virtual int32 Max() const;
+			virtual int32 GetMin() const;
+			virtual int32 GetMax() const;
 			
 			virtual void Seed(uint32 seed);
 			virtual int32 RandomInt32();
@@ -105,47 +106,23 @@ namespace RN
 			uint32 *_bytes;
 			int32 _offset;
 		};
-		
-		class Secure : public Generator
-		{
-		public:
-			Secure();
-			virtual ~Secure();
-			
-			virtual int32 Min() const;
-			virtual int32 Max() const;
-			
-			virtual void Seed(uint32 seed);
-			virtual int32 RandomInt32();
-			
-			static bool UsesHardware();
-			
-		private:
-			void FillBuffer();
-			int ReadRDRAND();
-			
-			uint32 *_bytes;
-			int32 _offset;
-			int32 _size;
-		};
 	}
 	
 	class RandomNumberGenerator : public Object
 	{
 	public:
-		typedef enum
+		enum class Type
 		{
-			TypeLCG,
-			TypeDualPhaseLCG,
-			TypeMersenneTwister,
-			TypeSecure
-		} Type;
+			LCG,
+			DualPhaseLCG,
+			MersenneTwister
+		};
 		
 		RandomNumberGenerator(Type type);
-		virtual ~RandomNumberGenerator();
+		~RandomNumberGenerator() override;
 		
-		int32 Min() const;
-		int32 Max() const;
+		int32 GetMin() const;
+		int32 GetMax() const;
 		
 		void Seed(uint32 seed);
 		int32 RandomInt32();
@@ -155,7 +132,6 @@ namespace RN
 		float RandomFloatRange(float min, float max);
 		
 		double UniformDeviate(int32 seed);
-		
 		Color RandomColor();
 		
 		Vector2 RandomVector2Range(const Vector2& min, const Vector2& max);

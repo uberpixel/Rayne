@@ -154,19 +154,19 @@ namespace RN
 			length = tlength;
 		}
 		
-		size_t End() const
+		size_t GetEnd() const
 		{
 			return origin + length;
 		}
 		
 		bool Contains(const Range& other) const
 		{
-			return (other.origin >= origin && End() <= other.End());
+			return (other.origin >= origin && GetEnd() <= other.GetEnd());
 		}
 		
 		bool Overlaps(const Range& other) const
 		{
-			return (End() >= other.origin && origin <= other.End());
+			return (GetEnd() >= other.origin && origin <= other.GetEnd());
 		}
 		
 		size_t origin;
@@ -177,7 +177,7 @@ namespace RN
 	class Singleton
 	{
 	public:
-		static T *SharedInstance()
+		static T *GetSharedInstance()
 		{
 			_lock.Lock();
 			
@@ -216,7 +216,7 @@ namespace RN
 	class NonConstructingSingleton
 	{
 	public:
-		static T *SharedInstance()
+		static T *GetSharedInstance()
 		{
 			return _instance;
 		}

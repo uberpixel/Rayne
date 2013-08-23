@@ -28,9 +28,9 @@ namespace RN
 	{
 		emitter  = temitter;
 		material = tmaterial;
-		position = emitter->WorldPosition();
+		position = emitter->GetWorldPosition();
 		
-		RandomNumberGenerator *rng = emitter->Generator();
+		RandomNumberGenerator *rng = emitter->GetGenerator();
 		
 		lifespan = rng->RandomFloatRange(material->lifespan, material->lifespan + material->lifespanVariance);
 		velocity = rng->RandomVector3Range(material->minVelocity, material->maxVelocity);

@@ -40,15 +40,14 @@ namespace RN
 		void AddMesh(Mesh *mesh, Material *material, uint32 lodStage, const std::string& name="Unnamed");
 		void RemoveMesh(Mesh *mesh, uint32 lodStage);
 		
-		uint32 LODStageForDistance(float distance) const;
+		uint32 GetLODStageForDistance(float distance) const;
+		uint32 GetMeshCount(uint32 lodStage) const;
 		
-		uint32 Meshes(uint32 lodStage) const;
+		Mesh *GetMeshAtIndex(uint32 lodStage, uint32 index) const;
+		Material *GetMaterialAtIndex(uint32 lodStage, uint32 index) const;
 		
-		Mesh *MeshAtIndex(uint32 lodStage, uint32 index) const;
-		Material *MaterialAtIndex(uint32 lodStage, uint32 index) const;
-		
-		const AABB& BoundingBox() const { return _boundingBox; }
-		const Sphere& BoundingSphere() const { return _boundingSphere; }
+		const AABB& GetBoundingBox() const { return _boundingBox; }
+		const Sphere& GetBoundingSphere() const { return _boundingSphere; }
 		
 	private:
 		class MeshGroup

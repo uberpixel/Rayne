@@ -30,21 +30,23 @@ namespace RN
 		RNAPI ~Settings();
 		
 		template<class T=Object>
-		T *ObjectForKey(String *key)
+		T *GetObjectForKey(String *key)
 		{
 			_lock.Lock();
-			T *object = _settings->ObjectForKey<T>(key);
+			T *object = _settings->GetObjectForKey<T>(key);
+			
 			if(object)
 				object->Retain()->Autorelease();
+			
 			_lock.Unlock();
 			
 			return object;
 		}
 		
-		bool BoolForKey(String *key)
+		bool GetBoolForKey(String *key)
 		{
-			Number *number = ObjectForKey<Number>(key);
-			return number ? number->BoolValue() : false;
+			Number *number = GetObjectForKey<Number>(key);
+			return number ? number->GetBoolValue() : false;
 		}
 		
 		RNAPI void SetObjectForKey(Object *object, String *key);

@@ -166,7 +166,7 @@ namespace RN
 		}
 		
 		
-		size_t IndexOfObject(Object *object) const
+		size_t GetIndexOfObject(Object *object) const
 		{
 			for(size_t i=0; i<_count; i++)
 			{
@@ -190,43 +190,43 @@ namespace RN
 		
 		
 		template<typename T=Object>
-		T *ObjectAtIndex(size_t index) const
+		T *GetObjectAtIndex(size_t index) const
 		{
 			return _data[index]->Downcast<T>();
 		}
 		
 		template<typename T=Object>
-		T* FirstObject() const
+		T* GetFirstObject() const
 		{
 			if(this->_count == 0)
-				return 0;
+				return nullptr;
 			
 			return _data[0]->Downcast<T>();
 		}
 		
 		template<typename T=Object>
-		T* LastObject() const
+		T* GetLastObject() const
 		{
 			if(this->_count == 0)
-				return 0;
+				return nullptr;
 			
 			return _data[_count - 1]->Downcast<T>();
 		}
 		
 		
 		
-		size_t Count() const
+		size_t GetCount() const
 		{
 			return _count;
 		}
 		
-		size_t Capacity() const
+		size_t GetCapacity() const
 		{
 			return _size;
 		}
 		
 		template<typename T=Object>
-		const T *Data() const
+		const T *GetData() const
 		{
 			return _data;
 		}

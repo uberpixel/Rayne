@@ -49,7 +49,7 @@ namespace RN
 		void TextEditor::SetSelection(const Range& selection)
 		{
 			_selection = selection;
-			SetTypingAttributes(_string->AttributesAtIndex(_selection.origin));
+			SetTypingAttributes(_string->GetAttributesAtIndex(_selection.origin));
 		}
 		
 		
@@ -83,12 +83,12 @@ namespace RN
 		
 		void TextEditor::ProcessEvent(Event *event)
 		{
-			switch(event->EventType())
+			switch(event->GetType())
 			{
 				case Event::Type::KeyDown:
 				case Event::Type::KeyRepeat:
 				{
-					switch(event->Code())
+					switch(event->GetCode())
 					{
 						case KeyDelete:
 							InsertString(nullptr);
@@ -98,7 +98,7 @@ namespace RN
 						{
 							char character[2];
 							
-							character[0] = event->Character();
+							character[0] = event->GetCharacter();
 							character[1] = '\0';
 							
 							String *string = new String(character);
@@ -145,11 +145,11 @@ namespace RN
 				RenderingObject object;
 				PopulateRenderingObject(object);
 				
-				uint32 count = _model->Meshes(0);
+				uint32 count = _model->GetMeshCount(0);
 				for(uint32 i=0; i<count; i++)
 				{
-					object.mesh     = _model->MeshAtIndex(0, i);
-					object.material = _model->MaterialAtIndex(0, i);
+					object.mesh     = _model->GetMeshAtIndex(0, i);
+					object.material = _model->GetMaterialAtIndex(0, i);
 					
 					renderer->RenderObject(object);
 				}

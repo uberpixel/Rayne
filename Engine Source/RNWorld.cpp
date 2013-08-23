@@ -18,10 +18,10 @@ namespace RN
 {
 	World::World(class SceneManager *sceneManager)
 	{
-		_kernel = Kernel::SharedInstance();
+		_kernel = Kernel::GetSharedInstance();
 		_kernel->SetWorld(this);
 		
-		_renderer = Renderer::SharedInstance();
+		_renderer = Renderer::GetSharedInstance();
 		_sceneManager = sceneManager->Retain();
 		_cameraClass  = Camera::MetaClass();
 		
@@ -46,7 +46,7 @@ namespace RN
 	class SceneManager *World::SceneManagerWithName(const std::string& name)
 	{
 		MetaClassBase *meta = 0;
-		Catalogue::SharedInstance()->EnumerateClasses([&](MetaClassBase *mclass, bool *stop) {
+		Catalogue::GetSharedInstance()->EnumerateClasses([&](MetaClassBase *mclass, bool *stop) {
 			if(mclass->Name() == name)
 			{
 				meta = mclass;
@@ -85,9 +85,9 @@ namespace RN
 		Update(delta);
 		ApplyNodes();
 		
-		for(size_t i=0; i<_attachments.Count(); i++)
+		for(size_t i=0; i<_attachments.GetCount(); i++)
 		{
-			WorldAttachment *attachment = _attachments.ObjectAtIndex<WorldAttachment>(i);
+			WorldAttachment *attachment = _attachments.GetObjectAtIndex<WorldAttachment>(i);
 			attachment->StepWorld(delta);
 		}
 		
@@ -96,9 +96,9 @@ namespace RN
 		SpinLock lock;
 		std::vector<SceneNode *> resubmit;
 		
-		batch[0] = ThreadPool::SharedInstance()->CreateBatch();
-		batch[1] = ThreadPool::SharedInstance()->CreateBatch();
-		batch[2] = ThreadPool::SharedInstance()->CreateBatch();
+		batch[0] = ThreadPool::GetSharedInstance()->CreateBatch();
+		batch[1] = ThreadPool::GetSharedInstance()->CreateBatch();
+		batch[2] = ThreadPool::GetSharedInstance()->CreateBatch();
 		
 #define BuildLambda(t) [&, t]() { \
 			_deleteLock.Lock(); \
@@ -119,7 +119,7 @@ namespace RN
 			} \
 			t->Lock(); \
 			t->Update(delta); \
-			t->WorldTransform(); \
+			t->GetWorldTransform(); \
 			t->UpdatedToFrame(frame); \
 			t->Unlock(); \
 			t->Release(); \
@@ -128,12 +128,12 @@ namespace RN
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
 			SceneNode *node = *i;
-			batch[static_cast<size_t>(node->UpdatePriority())]->AddTask(BuildLambda(node));
+			batch[static_cast<size_t>(node->GetUpdatePriority())]->AddTask(BuildLambda(node));
 		}
 		
 		for(size_t i = 0; i < 3; i ++)
 		{
-			if(batch[i]->TaskCount() > 0)
+			if(batch[i]->GetTaskCount() > 0)
 			{
 				bool rerun;
 				do
@@ -148,7 +148,7 @@ namespace RN
 					
 					if(resubmit.size() > 0)
 					{
-						batch[i] = ThreadPool::SharedInstance()->CreateBatch();
+						batch[i] = ThreadPool::GetSharedInstance()->CreateBatch();
 						
 						for(SceneNode *node : resubmit)
 						{
@@ -169,7 +169,7 @@ namespace RN
 		ApplyNodes();
 		NodesUpdated();
 		
-		for(size_t i = 0; i < _attachments.Count(); i ++)
+		for(size_t i = 0; i < _attachments.GetCount(); i ++)
 		{
 			WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 			attachment->SceneNodesUpdated();
@@ -177,7 +177,7 @@ namespace RN
 		
 		// Iterate over all cameras and render the visible nodes
 		std::stable_sort(_cameras.begin(), _cameras.end(), [](const Camera *left, const Camera *right) {
-			return (left->Priority() > right->Priority());
+			return (left->GetPriority() > right->GetPriority());
 		});
 		
 		_renderer->SetMode(Renderer::Mode::ModeWorld);
@@ -187,7 +187,7 @@ namespace RN
 			camera->PostUpdate();
 			_renderer->BeginCamera(camera);
 			
-			for(size_t i = 0; i < _attachments.Count(); i ++)
+			for(size_t i = 0; i < _attachments.GetCount(); i ++)
 			{
 				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->BeginCamera(camera);
@@ -195,7 +195,7 @@ namespace RN
 			
 			_sceneManager->RenderScene(camera);
 			
-			for(size_t i = 0; i < _attachments.Count(); i ++)
+			for(size_t i = 0; i < _attachments.GetCount(); i ++)
 			{
 				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->WillFinishCamera(camera);
@@ -227,7 +227,7 @@ namespace RN
 			if(_removedNodes.find(node) != _removedNodes.end())
 				continue;
 			
-			for(size_t i = 0; i < _attachments.Count(); i ++)
+			for(size_t i = 0; i < _attachments.GetCount(); i ++)
 			{
 				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->SceneNodeDidUpdate(node);
@@ -242,7 +242,7 @@ namespace RN
 	
 	void World::SceneNodeWillRender(SceneNode *node)
 	{
-		for(size_t i = 0; i < _attachments.Count(); i ++)
+		for(size_t i = 0; i < _attachments.GetCount(); i ++)
 		{
 			WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 			attachment->WillRenderSceneNode(node);
@@ -271,7 +271,7 @@ namespace RN
 		{
 			_removedNodes.insert(node);
 			
-			for(size_t i = 0; i < _attachments.Count(); i ++)
+			for(size_t i = 0; i < _attachments.GetCount(); i ++)
 			{
 				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->WillRemoveSceneNode(node);
@@ -293,7 +293,7 @@ namespace RN
 		{
 			LockGuard<Array> lock(_attachments);
 			
-			for(size_t i = 0; i < _attachments.Count(); i ++)
+			for(size_t i = 0; i < _attachments.GetCount(); i ++)
 			{
 				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->WillRemoveSceneNode(node);
@@ -350,7 +350,7 @@ namespace RN
 			
 			LockGuard<Array> lock(_attachments);
 			
-			for(size_t i = 0; i < _attachments.Count(); i ++)
+			for(size_t i = 0; i < _attachments.GetCount(); i ++)
 			{
 				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->DidAddSceneNode(node);
@@ -380,7 +380,7 @@ namespace RN
 			if(_removedNodes.find(node) != _removedNodes.end())
 				continue;
 			
-			for(size_t i = 0; i < _attachments.Count(); i ++)
+			for(size_t i = 0; i < _attachments.GetCount(); i ++)
 			{
 				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->WillRemoveSceneNode(node);

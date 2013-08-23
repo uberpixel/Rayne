@@ -35,7 +35,7 @@ namespace RN
 		_consumedConcurrency --;
 	}
 	
-	int32 ThreadCoordinator::AvailableConcurrency()
+	int32 ThreadCoordinator::GetAvailableConcurrency()
 	{
 		int32 concurrency = _baseConcurrency - _consumedConcurrency.load();
 		return concurrency;
@@ -54,7 +54,7 @@ namespace RN
 		if(!maxJobs)
 			maxJobs = kRNThreadPoolTasksBuffer;
 		
-		_threadCount = (maxThreads > 0) ? maxThreads : ThreadCoordinator::SharedInstance()->BaseConcurrency();
+		_threadCount = (maxThreads > 0) ? maxThreads : ThreadCoordinator::GetSharedInstance()->GetBaseConcurrency();
 		
 		for(size_t i = 0; i < _threadCount; i ++)
 		{
@@ -67,11 +67,11 @@ namespace RN
 	
 	ThreadPool::~ThreadPool()
 	{
-		uint32 toResign = static_cast<uint32>(_threads.Count());
+		uint32 toResign = static_cast<uint32>(_threads.GetCount());
 		
 		for(uint32 i=0; i<toResign; i++)
 		{
-			Thread *thread = _threads.ObjectAtIndex<Thread>(i);
+			Thread *thread = _threads.GetObjectAtIndex<Thread>(i);
 			thread->Cancel();
 		}
 		
@@ -144,13 +144,13 @@ namespace RN
 	
 	void ThreadPool::Consumer()
 	{
-		Thread *thread = Thread::CurrentThread();
-		Context *context = new Context(Kernel::SharedInstance()->Context());
+		Thread *thread = Thread::GetCurrentThread();
+		Context *context = new Context(Kernel::GetSharedInstance()->GetContext());
 		AutoreleasePool *pool = new AutoreleasePool();
 		
 		context->MakeActiveContext();
 		
-		size_t threadID = thread->ObjectForKey<Number>(RNCSTR("__kThreadID"))->Uint32Value();
+		size_t threadID = thread->GetObjectForKey<Number>(RNCSTR("__kThreadID"))->GetUint32Value();
 		ThreadContext *local = _threadData[threadID];
 		
 		while(!thread->IsCancelled())

@@ -38,8 +38,8 @@ namespace TG
 	{
 		if(_target)
 		{
-			RN::Quaternion rotation = _target->WorldRotation();
-			const RN::Vector3& position = _target->WorldPosition();
+			RN::Quaternion rotation = _target->GetWorldRotation();
+			const RN::Vector3& position = _target->GetWorldPosition();
 			
 			rotation *= RN::Quaternion(RN::Vector3(0.0f, 0.0f, _pitch));
 			
@@ -59,7 +59,7 @@ namespace TG
 			return false;
 		
 		if(_target)
-			return (_target->LastFrame() == frame);
+			return (_target->GetLastFrame() == frame);
 		
 		return true;
 	}

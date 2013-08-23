@@ -66,7 +66,7 @@ namespace RN
 	
 	Object *Object::Autorelease()
 	{
-		AutoreleasePool *pool = AutoreleasePool::CurrentPool();
+		AutoreleasePool *pool = AutoreleasePool::GetCurrentPool();
 		if(!pool)
 		{
 			printf("Autorelease() with no pool in place, %p will leak!\n", this);
@@ -92,7 +92,7 @@ namespace RN
 		return (this == other);
 	}
 	
-	machine_hash Object::Hash() const
+	machine_hash Object::GetHash() const
 	{
 		machine_hash hash = (machine_hash)this;
 		
@@ -181,7 +181,7 @@ namespace RN
 		Unlock();
 	}
 	
-	Object *Object::AssociatedObject(const void *key)
+	Object *Object::GetAssociatedObject(const void *key)
 	{
 		Object *object = 0;
 		

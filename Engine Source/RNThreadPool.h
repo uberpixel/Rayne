@@ -27,8 +27,8 @@ namespace RN
 	public:
 		RNAPI ThreadCoordinator();
 		
-		RNAPI int32 AvailableConcurrency();
-		RNAPI int32 BaseConcurrency() const { return _baseConcurrency; }
+		RNAPI int32 GetAvailableConcurrency();
+		RNAPI int32 GetBaseConcurrency() const { return _baseConcurrency; }
 		
 	private:
 		void ConsumeConcurrency();
@@ -84,7 +84,7 @@ namespace RN
 				_tasks.reserve(size);
 			}
 			
-			size_t TaskCount() const { return _tasks.size(); }
+			size_t GetTaskCount() const { return _tasks.size(); }
 			
 		private:
 			Batch(ThreadPool *pool) :

@@ -65,21 +65,21 @@ namespace RN
 		
 		RNAPI void Serialize(Serializer *serializer) override;
 		
-		RNAPI bool BoolValue() const;
-		RNAPI float FloatValue() const;
-		RNAPI double DoubleValue() const;
+		RNAPI bool GetBoolValue() const;
+		RNAPI float GetFloatValue() const;
+		RNAPI double GetDoubleValue() const;
 		
-		RNAPI int8 Int8Value() const;
-		RNAPI int16 Int16Value() const;
-		RNAPI int32 Int32Value() const;
-		RNAPI int64 Int64Value() const;
+		RNAPI int8 GetInt8Value() const;
+		RNAPI int16 GetInt16Value() const;
+		RNAPI int32 GetInt32Value() const;
+		RNAPI int64 GetInt64Value() const;
 		
-		RNAPI uint8 Uint8Value() const;
-		RNAPI uint16 Uint16Value() const;
-		RNAPI uint32 Uint32Value() const;
-		RNAPI uint64 Uint64Value() const;
+		RNAPI uint8 GetUint8Value() const;
+		RNAPI uint16 GetUint16Value() const;
+		RNAPI uint32 GetUint32Value() const;
+		RNAPI uint64 GetUint64Value() const;
 		
-		RNAPI machine_hash Hash() const override;
+		RNAPI machine_hash GetHash() const override;
 		RNAPI bool IsEqual(Object *other) const override;
 		
 		Type NumberType() const { return _type; }

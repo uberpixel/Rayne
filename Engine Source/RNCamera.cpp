@@ -18,7 +18,7 @@ namespace RN
 	RNDeclareMeta(Camera)
 	
 	
-	RenderStage::RenderStage(class Camera *camera, class Camera *connection, Mode mode)
+	RenderStage::RenderStage(Camera *camera, Camera *connection, Mode mode)
 	{
 		_camera = camera->Retain();
 		_connection = 0;
@@ -61,22 +61,22 @@ namespace RN
 		InsertCamera(_connection);
 	}
 	
-	void RenderStage::InsertCamera(class Camera *camera)
+	void RenderStage::InsertCamera(Camera *camera)
 	{
 		if(!camera || _mode > Mode::ReUseCamera)
 			return;
 		
 		if((camera->_stageCount ++) == 0)
-			World::SharedInstance()->RemoveSceneNode(camera);
+			World::GetSharedInstance()->RemoveSceneNode(camera);
 	}
 	
-	void RenderStage::RemoveCamera(class Camera *camera)
+	void RenderStage::RemoveCamera(Camera *camera)
 	{
 		if(!camera || _mode > Mode::ReUseCamera)
 			return;
 		
 		if((-- camera->_stageCount) == 0)
-			World::SharedInstance()->AddSceneNode(camera);
+			World::GetSharedInstance()->AddSceneNode(camera);
 	}
 	
 	
@@ -103,7 +103,7 @@ namespace RN
 		if(stages.size() > 0)
 		{
 			RenderStage& stage = stages[stages.size() - 1];
-			previous = stage.Camera();
+			previous = stage.GetCamera();
 		}
 		
 		return AddStage(camera, previous, mode);
@@ -119,7 +119,7 @@ namespace RN
 	{
 		for(auto i=stages.begin(); i!=stages.end(); i++)
 		{
-			Camera *camera = i->Camera();
+			Camera *camera = i->GetCamera();
 			if(camera == source)
 				continue;
 			
@@ -131,7 +131,7 @@ namespace RN
 	{
 		for(auto i=stages.begin(); i!=stages.end(); i++)
 		{
-			Camera *camera = i->Camera();
+			Camera *camera = i->GetCamera();
 			if(camera  == source)
 				continue;
 			
@@ -152,7 +152,7 @@ namespace RN
 	{
 		for(auto i=stages.begin(); i!=stages.end(); i++)
 		{
-			Camera *stage = i->Camera();
+			Camera *stage = i->GetCamera();
 			if(stage == source)
 				continue;
 			
@@ -209,13 +209,13 @@ namespace RN
 		bool needsUpdate = false;
 		bool needsRecreation = false;
 		
-		if(_frame != host->Frame())
+		if(_frame != host->GetFrame())
 		{
-			_frame = host->Frame();
+			_frame = host->GetFrame();
 			needsUpdate = true;
 		}
 		
-		int level = Kernel::SharedInstance()->GetActiveScaleFactor() + log2(_camera->LightTiles().x) - 1;
+		int level = Kernel::GetSharedInstance()->GetActiveScaleFactor() + log2(_camera->GetLightTiles().x) - 1;
 		if(level != _level)
 		{
 			_level = level;
@@ -242,14 +242,14 @@ namespace RN
 		for(auto i=stages.begin(); i!=stages.end(); i++)
 		{
 			factor <<= 1;
-			i->Camera()->SetFrame(Rect(Vector2(0.0f), Vector2(_frame.Size().x / factor, _frame.Size().y / factor)));
+			i->GetCamera()->SetFrame(Rect(Vector2(0.0f), Vector2(_frame.Size().x / factor, _frame.Size().y / factor)));
 		}
 	}
 	
 	void DownsamplePostProcessingPipeline::RecreateStages()
 	{
 		stages.clear();
-		uint32 flags = RN::Camera::FlagUpdateStorageFrame | RN::Camera::FlagInheritProjection;
+		uint32 flags = Camera::FlagUpdateStorageFrame | Camera::FlagInheritProjection;
 		
 		for(int i=0; i<_level; i++)
 		{
@@ -260,7 +260,7 @@ namespace RN
 			camera->SetMaterial(temp);
 			
 			if(i == _level - 1)
-				camera->Storage()->SetRenderTarget(_lastTarget);
+				camera->GetStorage()->SetRenderTarget(_lastTarget);
 			
 			AddStage(camera, RenderStage::Mode::ReUsePreviousStage);
 			
@@ -356,7 +356,7 @@ namespace RN
 			delete pipeline;
 		}
 		
-		MessageCenter::SharedInstance()->RemoveObserver(this);
+		MessageCenter::GetSharedInstance()->RemoveObserver(this);
 	}
 
 
@@ -383,7 +383,7 @@ namespace RN
 		_clearColor  = Color(0.193f, 0.435f, 0.753f, 1.0f);
 		
 		_fixedScaleFactor = (_scaleFactor > 0.0f);
-		_scaleFactor = _fixedScaleFactor ? _scaleFactor : Kernel::SharedInstance()->GetActiveScaleFactor();
+		_scaleFactor = _fixedScaleFactor ? _scaleFactor : Kernel::GetSharedInstance()->GetActiveScaleFactor();
 
 		_material = 0;
 		_stageCount = 0;
@@ -403,7 +403,7 @@ namespace RN
 		_lodCamera = 0;
 		_blend = false;
 		
-		_blitShader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyDrawFramebufferShader)->Retain();
+		_blitShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDrawFramebufferShader)->Retain();
 		_blitMode   = BlitMode::Stretched;
 		
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
@@ -418,8 +418,8 @@ namespace RN
 		UpdateProjection();
 		UpdateFrustum();
 		
-		MessageCenter::SharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](RN::Message *message) {
-			_scaleFactor = Kernel::SharedInstance()->GetActiveScaleFactor();
+		MessageCenter::GetSharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](Message *message) {
+			_scaleFactor = Kernel::GetSharedInstance()->GetActiveScaleFactor();
 		}, this);
 	}
 
@@ -439,7 +439,7 @@ namespace RN
 	{
 		_storage->UpdateBuffer();
 		
-		Rect rect = std::move(RenderingFrame());
+		Rect rect = std::move(GetRenderingFrame());
 		
 		float x = ceilf(rect.x * _scaleFactor);
 		float y = ceilf(rect.y * _scaleFactor);
@@ -449,7 +449,7 @@ namespace RN
 
 		if(!(_flags & FlagNoClear))
 		{
-			Context *context = Context::ActiveContext();
+			Context *context = Context::GetActiveContext();
 			
 			context->SetDepthClear(1.0f);
 			context->SetStencilClear(0);
@@ -650,8 +650,8 @@ namespace RN
 		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
 		Vector3 pos = center+light->Forward()*500.0f;
 		
-		Matrix rot = light->WorldRotation().RotationMatrix();
-		pos = rot.Inverse()*pos;
+		Matrix rot = light->GetWorldRotation().GetRotationMatrix();
+		pos = rot.GetInverse()*pos;
 		
 		pos /= pixelsize;
 		pos.x = floorf(pos.x);
@@ -668,7 +668,7 @@ namespace RN
 		orthotop = dist;
 		UpdateProjection();
 		
-		Matrix projview = projectionMatrix*WorldTransform().Inverse();
+		Matrix projview = projectionMatrix*GetWorldTransform().GetInverse();
 		return projview;
 	}
 	
@@ -696,19 +696,19 @@ namespace RN
 	{
 		UpdateFrustum();
 		
-		inverseViewMatrix = WorldTransform();
-		viewMatrix = inverseViewMatrix.Inverse();
+		inverseViewMatrix = GetWorldTransform();
+		viewMatrix = inverseViewMatrix.GetInverse();
 		
 		if(_flags & FlagFullscreen)
 		{
-			Rect frame = Kernel::SharedInstance()->Window()->Frame();
+			Rect frame = Kernel::GetSharedInstance()->GetWindow()->GetFrame();
 			SetFrame(frame);
 		}
 
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
 			PostProcessingPipeline *pipeline = *i;
-			pipeline->PostUpdate(this, WorldPosition(), WorldRotation(), _frame);
+			pipeline->PostUpdate(this, GetWorldPosition(), GetWorldRotation(), _frame);
 		}
 	}
 
@@ -724,7 +724,7 @@ namespace RN
 			aspect = _frame.width / _frame.height;
 
 		projectionMatrix.MakeProjectionPerspective(fov, aspect, clipnear, clipfar);
-		inverseProjectionMatrix = projectionMatrix.Inverse();
+		inverseProjectionMatrix = projectionMatrix.GetInverse();
 
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
@@ -787,35 +787,35 @@ namespace RN
 		}
 	}
 	
-	const Rect& Camera::Frame()
+	const Rect& Camera::GetFrame()
 	{
 		if(_flags & FlagFullscreen)
 		{
-			Rect frame = Kernel::SharedInstance()->Window()->Frame();
+			Rect frame = Kernel::GetSharedInstance()->GetWindow()->GetFrame();
 			SetFrame(frame);
 		}
 		
 		return _frame;
 	}
 	
-	Rect Camera::RenderingFrame()
+	Rect Camera::GetRenderingFrame()
 	{
 		if(_renderingFrame.x + _renderingFrame.y + _renderingFrame.width + _renderingFrame.height <= k::EpsilonFloat)
-			return Frame();
+			return GetFrame();
 		
 		return _renderingFrame;
 	}
 	
-	float *Camera::DepthArray()
+	float *Camera::GetDepthArray()
 	{
 		if(!_depthTiles)
 			return 0;
 		
-		if(Kernel::SharedInstance()->CurrentFrame() == _depthFrame)
+		if(Kernel::GetSharedInstance()->GetCurrentFrame() == _depthFrame)
 			return _depthArray;
 		
-		int width  = (int)_depthTiles->Width();
-		int height = (int)_depthTiles->Height();
+		int width  = (int)_depthTiles->GetWidth();
+		int height = (int)_depthTiles->GetHeight();
 		
 		size_t size = width * height * 2;
 		if(size > _depthSize)
@@ -832,7 +832,7 @@ namespace RN
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, _depthArray);
 		_depthTiles->Unbind();
 		
-		_depthFrame = Kernel::SharedInstance()->CurrentFrame();
+		_depthFrame = Kernel::GetSharedInstance()->GetCurrentFrame();
 		return _depthArray;
 	}
 
@@ -843,8 +843,8 @@ namespace RN
 		Vector3 pos5 = ToWorld(Vector3(1.0f, 1.0f, 1.0));
 		Vector3 pos6 = ToWorld(Vector3(1.0f, -1.0f, 1.0));
 		
-		const Vector3& position = WorldPosition();
-		Vector3 direction = WorldRotation().RotateVector(RN::Vector3(0.0, 0.0, -1.0));
+		const Vector3& position = GetWorldPosition();
+		Vector3 direction = GetWorldRotation().RotateVector(Vector3(0.0, 0.0, -1.0));
 
 		Vector3 vmax;
 		Vector3 vmin;
@@ -865,22 +865,6 @@ namespace RN
 		_frustumBottom.SetPlane(position, pos3, pos6, 1.0f);
 		_frustumNear.SetPlane(position + direction * clipnear, -direction);
 		_frustumFar.SetPlane(position + direction * clipfar, direction);
-		
-#define CopyAndAbsPlane(dest, source) \
-		dest = source; \
-		dest.normal.x = Math::FastAbs(dest.normal.x); \
-		dest.normal.y = Math::FastAbs(dest.normal.y); \
-		dest.normal.z = Math::FastAbs(dest.normal.z)
-		
-		CopyAndAbsPlane(_absFrustumLeft, _frustumLeft);
-		CopyAndAbsPlane(_absFrustumRight, _frustumRight);
-		CopyAndAbsPlane(_absFrustumTop, _frustumTop);
-		CopyAndAbsPlane(_absFrustumBottom, _frustumBottom);
-		CopyAndAbsPlane(_absFrustumFar, _frustumFar);
-		CopyAndAbsPlane(_absFrustumNear, _frustumNear);
-		
-#undef CopyAndAbsPlane
-		
 	}
 
 	bool Camera::InFrustum(const Vector3& position, float radius)
@@ -888,22 +872,22 @@ namespace RN
 		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
 			return false;
 
-		if(_frustumLeft.Distance(position) > radius)
+		if(_frustumLeft.GetDistance(position) > radius)
 			return false;
 
-		if(_frustumRight.Distance(position) > radius)
+		if(_frustumRight.GetDistance(position) > radius)
 			return false;
 
-		if(_frustumTop.Distance(position) > radius)
+		if(_frustumTop.GetDistance(position) > radius)
 			return false;
 
-		if(_frustumBottom.Distance(position) > radius)
+		if(_frustumBottom.GetDistance(position) > radius)
 			return false;
 		
-		if(_frustumNear.Distance(position) > radius)
+		if(_frustumNear.GetDistance(position) > radius)
 			return false;
 		
-		if(_frustumFar.Distance(position) > radius)
+		if(_frustumFar.GetDistance(position) > radius)
 			return false;
 
 		return true;
@@ -911,7 +895,7 @@ namespace RN
 	
 	bool Camera::InFrustum(const Sphere& sphere)
 	{
-		return InFrustum(sphere.Position(), sphere.radius);
+		return InFrustum(sphere.position, sphere.radius);
 	}
 	
 	bool Camera::InFrustum(const AABB& aabb)

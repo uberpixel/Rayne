@@ -14,8 +14,8 @@ namespace RN
 {
 	AutoreleasePool::AutoreleasePool()
 	{
-		_owner  = Thread::CurrentThread();
-		_parent = AutoreleasePool::CurrentPool();
+		_owner  = Thread::GetCurrentThread();
+		_parent = AutoreleasePool::GetCurrentPool();
 		
 		_owner->_pool = this;
 		_objects.reserve(kRNAutoreleasePoolGrowthRate);
@@ -48,9 +48,9 @@ namespace RN
 		_objects.clear();
 	}
 	
-	AutoreleasePool *AutoreleasePool::CurrentPool()
+	AutoreleasePool *AutoreleasePool::GetCurrentPool()
 	{
-		Thread *thread = Thread::CurrentThread();
+		Thread *thread = Thread::GetCurrentThread();
 		return thread->_pool;
 	}
 }

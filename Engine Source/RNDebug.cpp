@@ -73,7 +73,7 @@ namespace RN
 			glBindBuffer(GL_ARRAY_BUFFER, vbo);
 			
 			// Enable the VAO state
-			ShaderProgram *program = renderer->ActiveProgram();
+			ShaderProgram *program = renderer->GetActiveProgram();
 			
 			glEnableVertexAttribArray(program->attPosition);
 			glEnableVertexAttribArray(program->attColor0);
@@ -115,7 +115,7 @@ namespace RN
 					__Line3DHandlerState.store(false);
 				};
 				
-				Renderer::SharedInstance()->RenderDebugObject(object, Renderer::Mode::ModeWorld);
+				Renderer::GetSharedInstance()->RenderDebugObject(object, Renderer::Mode::ModeWorld);
 			}
 		}
 		
@@ -135,13 +135,13 @@ namespace RN
 				};
 				
 				object.prepare = [](Renderer *renderer, RenderingObject& object) {
-					Camera *camera = renderer->ActiveCamera();
-					float height = camera->Frame().height - 1.0f;
+					Camera *camera = renderer->GetActiveCamera();
+					float height = camera->GetFrame().height - 1.0f;
 					
 					__LineTransform.MakeTranslate(Vector3(0.0f, height, 0.0f));
 				};
 				
-				Renderer::SharedInstance()->RenderDebugObject(object, Renderer::Mode::ModeUI);
+				Renderer::GetSharedInstance()->RenderDebugObject(object, Renderer::Mode::ModeUI);
 			}
 		}
 		
@@ -149,16 +149,16 @@ namespace RN
 		template<typename Vector, typename Line, typename Point>
 		void __AddLinePoint(const Vector& point, const Color& color, String *key)
 		{
-			WrappingObject<Line> *line = Thread::CurrentThread()->ObjectForKey<WrappingObject<Line>>(key);
+			WrappingObject<Line> *line = Thread::GetCurrentThread()->GetObjectForKey<WrappingObject<Line>>(key);
 			if(!line)
 			{
 				line = new WrappingObject<Line>();
-				Thread::CurrentThread()->SetObjectForKey(line, key);
+				Thread::GetCurrentThread()->SetObjectForKey(line, key);
 				
 				line->Release();
 			}
 			
-			Line& data = line->Data();
+			Line& data = line->GetData();
 			
 			data.emplace_back(Point(point, color));
 			
@@ -180,30 +180,30 @@ namespace RN
 		
 		void CloseLine()
 		{
-			WrappingObject<Line3D> *tline3D = Thread::CurrentThread()->ObjectForKey<WrappingObject<Line3D>>(kRNDebugDebugDrawLine3DKey);
-			WrappingObject<Line2D> *tline2D = Thread::CurrentThread()->ObjectForKey<WrappingObject<Line2D>>(kRNDebugDebugDrawLine2DKey);
+			WrappingObject<Line3D> *tline3D = Thread::GetCurrentThread()->GetObjectForKey<WrappingObject<Line3D>>(kRNDebugDebugDrawLine3DKey);
+			WrappingObject<Line2D> *tline2D = Thread::GetCurrentThread()->GetObjectForKey<WrappingObject<Line2D>>(kRNDebugDebugDrawLine2DKey);
 			
 			if(tline3D)
 			{
-				Line3D& line3D = tline3D->Data();
+				Line3D& line3D = tline3D->GetData();
 				line3D.erase(line3D.end() - 1);
 			}
 			
 			if(tline2D)
 			{
-				Line2D& line2D = tline2D->Data();
+				Line2D& line2D = tline2D->GetData();
 				line2D.erase(line2D.end() - 1);
 			}
 		}
 		
 		void EndLine()
 		{
-			WrappingObject<Line3D> *tline3D = Thread::CurrentThread()->ObjectForKey<WrappingObject<Line3D>>(kRNDebugDebugDrawLine3DKey);
-			WrappingObject<Line2D> *tline2D = Thread::CurrentThread()->ObjectForKey<WrappingObject<Line2D>>(kRNDebugDebugDrawLine2DKey);
+			WrappingObject<Line3D> *tline3D = Thread::GetCurrentThread()->GetObjectForKey<WrappingObject<Line3D>>(kRNDebugDebugDrawLine3DKey);
+			WrappingObject<Line2D> *tline2D = Thread::GetCurrentThread()->GetObjectForKey<WrappingObject<Line2D>>(kRNDebugDebugDrawLine2DKey);
 			
 			if(tline3D)
 			{
-				Line3D& line3D = tline3D->Data();
+				Line3D& line3D = tline3D->GetData();
 				line3D.erase(line3D.end() - 1);
 				
 				Line3D temp;
@@ -211,13 +211,13 @@ namespace RN
 				
 				__Line3D.push_back(std::move(temp));
 				
-				Thread::CurrentThread()->RemoveObjectForKey(kRNDebugDebugDrawLine3DKey);
+				Thread::GetCurrentThread()->RemoveObjectForKey(kRNDebugDebugDrawLine3DKey);
 				InstallLine3DHandler();
 			}
 			
 			if(tline2D)
 			{
-				Line2D& line2D = tline2D->Data();
+				Line2D& line2D = tline2D->GetData();
 				line2D.erase(line2D.end() - 1);
 				
 				Line2D temp;
@@ -225,15 +225,15 @@ namespace RN
 				
 				__Line2D.push_back(std::move(temp));
 				
-				Thread::CurrentThread()->RemoveObjectForKey(kRNDebugDebugDrawLine2DKey);
+				Thread::GetCurrentThread()->RemoveObjectForKey(kRNDebugDebugDrawLine2DKey);
 				InstallLine2DHandler();
 			}
 		}
 		
 		void DrawBox(const AABB& box, const Color& color)
 		{
-			Vector3 min = box.Position() + box.minExtend;
-			Vector3 max = box.Position() + box.maxExtend;
+			Vector3 min = box.position + box.minExtend;
+			Vector3 max = box.position + box.maxExtend;
 			
 			DrawBox(min, max, color);
 		}
@@ -278,7 +278,7 @@ namespace RN
 		
 		void DrawSphere(const Sphere& sphere, const Color& color, const int tesselation)
 		{
-			DrawSphere(sphere.Position(), sphere.radius, RN::Color::Yellow(), tesselation);
+			DrawSphere(sphere.position, sphere.radius, Color::Yellow(), tesselation);
 		}
 		
 		void DrawSphere(const Vector3 &pos, const float radius, const Color &color, const int tesselation)

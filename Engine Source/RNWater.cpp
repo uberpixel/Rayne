@@ -39,7 +39,7 @@ namespace RN
 		SetUpdatePriority(SceneNode::Priority::UpdateLate);
 		
 		_material = new RN::Material();
-		_material->SetShader(ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyWaterShader));
+		_material->SetShader(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyWaterShader));
 		
 		static std::once_flag onceFlag;
 		
@@ -54,7 +54,7 @@ namespace RN
 			Mesh *mesh = new Mesh(descriptors);
 			mesh->SetMode(GL_TRIANGLE_STRIP);
 			
-			Vector3 *vertices = mesh->Element<Vector3>(kMeshFeatureVertices);
+			Vector3 *vertices = mesh->GetElement<Vector3>(kMeshFeatureVertices);
 			
 			*vertices ++ = Vector3(0.5f, 0.0f, 0.5f);
 			*vertices ++ = Vector3(-0.5f, 0.0f, 0.5f);
@@ -72,10 +72,10 @@ namespace RN
 			mesh->ReleaseElement(kMeshFeatureVertices);
 			mesh->UpdateMesh();
 			
-			ResourcePool::SharedInstance()->AddResource(mesh, kRNWaterMeshResourceName);
+			ResourcePool::GetSharedInstance()->AddResource(mesh, kRNWaterMeshResourceName);
 		});
 		
-		_mesh = ResourcePool::SharedInstance()->ResourceWithName<Mesh>(kRNWaterMeshResourceName)->Retain();
+		_mesh = ResourcePool::GetSharedInstance()->GetResourceWithName<Mesh>(kRNWaterMeshResourceName)->Retain();
 		
 		if(_camera != 0)
 		{
@@ -84,7 +84,7 @@ namespace RN
 //			_reflection->SetSkyCube(_camera->SkyCube());
 			
 			
-			RN::Shader *shad = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyTexture1Shader);
+			RN::Shader *shad = RN::ResourcePool::GetSharedInstance()->GetResourceWithName<RN::Shader>(kRNResourceKeyTexture1Shader);
 			
 			RN::Material *mat = new RN::Material(shad);
 			mat->lighting = false;
@@ -92,7 +92,7 @@ namespace RN
 			_reflection->useclipplane = true;
 			_reflection->clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
 			
-			_material->AddTexture(_reflection->Storage()->RenderTarget());
+			_material->AddTexture(_reflection->GetStorage()->GetRenderTarget());
 			_material->AddTexture(RN::Texture::WithFile("textures/waterbump.png", true));
 			
 			if(_refraction != 0)
@@ -105,7 +105,7 @@ namespace RN
 		_material->RemoveTextures();
 		_material->AddTexture(texture);
 		
-		_size = Vector2(texture->Width(), texture->Height());
+		_size = Vector2(texture->GetWidth(), texture->GetHeight());
 		_size *= 0.1f;
 	}
 	
@@ -121,8 +121,9 @@ namespace RN
 		
 		if(_reflection != 0)
 		{
-			_reflection->SetPosition(Vector3(1.0f, -1.0f, 1.0f)*_camera->WorldPosition());
-			Vector3 rot = _camera->WorldEulerAngle();
+			Vector3 rot = _camera->GetWorldEulerAngle();
+			
+			_reflection->SetPosition(Vector3(1.0f, -1.0f, 1.0f)*_camera->GetWorldPosition());
 			_reflection->SetRotation(Vector3(rot.x, rot.y, -rot.z));
 			
 			_reflection->aspect = _camera->aspect;
@@ -134,14 +135,14 @@ namespace RN
 	{
 		SceneNode::Render(renderer, camera);
 		
-		_transform = WorldTransform();
+		_transform = GetWorldTransform();
 		_transform.Scale(Vector3(200.0f, 200.0f, 200.0f));
 		
 		RenderingObject object;
 		
 		object.mesh = _mesh;
 		object.material = _material;
-		object.rotation = (Quaternion*)&WorldRotation();
+		object.rotation = (Quaternion *)&GetWorldRotation();
 		object.transform = &_transform;
 		
 		renderer->RenderObject(object);

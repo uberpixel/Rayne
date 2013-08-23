@@ -73,11 +73,11 @@ namespace RN
 	public:
 		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor);
 		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor, const void *data);
-		RNAPI virtual ~Mesh();
+		RNAPI ~Mesh() override;
 		
 		RNAPI void AddDescriptor(const std::vector<MeshDescriptor>& descriptor);
 		RNAPI void RemoveDescriptor(MeshFeature feature);
-		RNAPI MeshDescriptor *Descriptor(MeshFeature feature);
+		RNAPI MeshDescriptor *GetDescriptor(MeshFeature feature);
 		
 		RNAPI bool CanMergeMesh(Mesh *mesh);
 		RNAPI void MergeMesh(Mesh *mesh);
@@ -85,26 +85,26 @@ namespace RN
 		RNAPI void UpdateMesh(bool force=false);
 							
 		template<typename T>
-		T *Element(MeshFeature feature, size_t index)
+		T *GetElement(MeshFeature feature, size_t index)
 		{
 			return reinterpret_cast<T *>(FetchElement(feature, index));
 		}
 		
 		template<typename T>
-		T *Element(MeshFeature feature)
+		T *GetElement(MeshFeature feature)
 		{
 			return reinterpret_cast<T *>(CopyElement(feature));
 		}
 		
 		template<typename T>
-		T *MeshData()
+		T *GetMeshData()
 		{
 			_dirty = true;
 			return reinterpret_cast<T *>(_meshData);
 		}
 		
 		template<typename T>
-		T *IndicesData()
+		T *GetIndicesData()
 		{
 			_dirtyIndices = true;
 			return reinterpret_cast<T *>(_indices);
@@ -123,15 +123,15 @@ namespace RN
 		
 		RNAPI Hit IntersectsRay(const Vector3 &position, const Vector3 &direction);
 		
-		size_t Stride() const { return _stride; };
+		size_t GetStride() const { return _stride; };
 		
-		GLuint VBO();
-		GLuint IBO();
+		GLuint GetVBO();
+		GLuint GetIBO();
 		
-		GLenum Mode() const { return _mode; }
+		GLenum GetMode() const { return _mode; }
 		
-		const AABB& BoundingBox() const { return _boundingBox; }
-		const Sphere& BoundingSphere() const { return _boundingSphere; }
+		const AABB& GetBoundingBox() const { return _boundingBox; }
+		const Sphere& GetBoundingSphere() const { return _boundingSphere; }
 		
 		RNAPI static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0, 1.0, 1.0), const Vector3& rotation = Vector3(0.0f, 0.0f, 0.0f));
 		RNAPI static Mesh *CubeMesh(const Vector3& size);

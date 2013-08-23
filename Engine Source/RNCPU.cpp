@@ -17,12 +17,12 @@ namespace RN
 		static Capabilities CPUCaps = 0;
 		
 		
-		Vendors Vendor()
+		Vendors GetVendor()
 		{
 			return CPUVendor;
 		}
 		
-		Capabilities Caps()
+		Capabilities GetCapabilites()
 		{
 			return CPUCaps;
 		}

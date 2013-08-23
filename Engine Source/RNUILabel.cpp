@@ -39,7 +39,7 @@ namespace RN
 			_typesetter = new Typesetter(_string, Bounds());
 			_typesetter->SetAllowPartiallyClippedLined(false);
 			
-			SetFont(ResourcePool::SharedInstance()->ResourceWithName<Font>(kRNResourceKeyDefaultFont));
+			SetFont(ResourcePool::GetSharedInstance()->GetResourceWithName<Font>(kRNResourceKeyDefaultFont));
 			SetTextColor(Color::White());
 			SetInteractionEnabled(false);
 			
@@ -60,7 +60,7 @@ namespace RN
 
 			if(_string)
 			{
-				String *text = _string->String()->Retain();
+				String *text = _string->GetString()->Retain();
 				SetText(text);
 				text->Release();
 			}
@@ -74,7 +74,7 @@ namespace RN
 				_string->Release();
 			
 			_string = new AttributedString(text);
-			_string->AddAttribute(kRNTypesetterFontAttribute, _font, Range(0, text->Length()));
+			_string->AddAttribute(kRNTypesetterFontAttribute, _font, Range(0, text->GetLength()));
 			
 			_typesetter->SetText(_string);
 			_isDirty = true;
@@ -162,11 +162,11 @@ namespace RN
 				RenderingObject object;
 				PopulateRenderingObject(object);
 				
-				uint32 count = _model->Meshes(0);
+				uint32 count = _model->GetMeshCount(0);
 				for(uint32 i=0; i<count; i++)
 				{
-					object.mesh     = _model->MeshAtIndex(0, i);
-					object.material = _model->MaterialAtIndex(0, i);
+					object.mesh     = _model->GetMeshAtIndex(0, i);
+					object.material = _model->GetMaterialAtIndex(0, i);
 					
 					renderer->RenderObject(object);
 				}

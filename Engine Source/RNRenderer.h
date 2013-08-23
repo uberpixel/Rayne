@@ -119,15 +119,15 @@ namespace RN
 		RNAPI void RelinquishMesh(Mesh *mesh);
 		RNAPI void RelinquishProgram(ShaderProgram *program);
 		
-		Camera *ActiveCamera() const { return _currentCamera; }
-		Material *ActiveMaterial() const { return _currentMaterial; }
-		ShaderProgram *ActiveProgram() const { return _currentProgram; }
+		Camera *GetActiveCamera() const { return _currentCamera; }
+		Material *GetActiveMaterial() const { return _currentMaterial; }
+		ShaderProgram *GetActiveProgram() const { return _currentProgram; }
 		
-		float HDRExposure() const { return _hdrExposure; }
-		float HDRWhitepoint() const { return _hdrWhitePoint; }
+		float GetHDRExposure() const { return _hdrExposure; }
+		float GetHDRWhitepoint() const { return _hdrWhitePoint; }
 		
-		uint32 RenderedVertices() const { return _renderedVertices; }
-		uint32 RenderedLights() const { return _renderedLights; }
+		uint32 GetRenderedVertices() const { return _renderedVertices; }
+		uint32 GetRenderedLights() const { return _renderedLights; }
 		
 	protected:
 		RNAPI virtual void UpdateShaderData();
@@ -201,7 +201,7 @@ namespace RN
 	RN_INLINE uint32 Renderer::BindTexture(Texture *texture)
 	{
 		glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + _textureUnit));
-		glBindTexture(texture->GLType(), texture->Name());
+		glBindTexture(texture->GetGLType(), texture->GetName());
 		
 		uint32 unit = _textureUnit;
 		

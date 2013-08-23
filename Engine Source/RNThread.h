@@ -58,17 +58,17 @@ namespace RN
 		bool IsRunning() const { return _isRunning.load(); }
 		
 		RNAPI void SetName(const std::string& name);
-		RNAPI const std::string Name();
+		RNAPI const std::string GetName();
 		
 		RNAPI uint32 SetOpenGLBinding(GLenum target, GLuint object);
 		RNAPI GLuint GetOpenGLBinding(GLenum target);
 		
 		template <typename T>
-		T *ObjectForKey(Object *key)
+		T *GetObjectForKey(Object *key)
 		{
 			_dictionaryLock.Lock();
 			
-			T *object = _dictionary.ObjectForKey<T>(key);
+			T *object = _dictionary.GetObjectForKey<T>(key);
 
 			_dictionaryLock.Unlock();
 			
@@ -89,7 +89,7 @@ namespace RN
 			_dictionaryLock.Unlock();
 		}
 		
-		RNAPI static Thread *CurrentThread();
+		RNAPI static Thread *GetCurrentThread();
 		
 	private:
 		Thread();

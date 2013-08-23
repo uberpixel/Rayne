@@ -105,9 +105,10 @@ namespace RN
 		void SetBlendAnimation(const std::string &to, float blendtime, float targettime = 0.0f);
 		void CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop = true);
 		void RemoveAnimation(const std::string &animname);
+		
 		Bone *GetBone(const std::string name);
-		uint16 NumBones() const { return bones.size(); }
-		const std::vector<Matrix>& Matrices() const { return _matrices; }
+		uint16 GetBoneCount() const { return bones.size(); }
+		const std::vector<Matrix>& GetMatrices() const { return _matrices; }
 		
 		std::vector<Bone> bones;
 		std::map<std::string, Animation*> animations;

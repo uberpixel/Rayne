@@ -64,24 +64,24 @@ namespace RN
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
 		
-		const Vector3& Position() const { return _position; }
-		const Vector3& Scale() const { return _scale; }
-		const Vector3& EulerAngle() const { return _euler; }
-		const Quaternion& Rotation() const { return _rotation; }
+		const Vector3& GetPosition() const { return _position; }
+		const Vector3& GetScale() const { return _scale; }
+		const Vector3& GetEulerAngle() const { return _euler; }
+		const Quaternion& GetRotation() const { return _rotation; }
 		
 		RNAPI const Vector3 Forward() const;
 		RNAPI const Vector3 Up() const;
 		RNAPI const Vector3 Right() const;
 		
-		RNAPI const Vector3& WorldPosition() const;
-		RNAPI const Vector3& WorldScale() const;
-		RNAPI const Vector3& WorldEulerAngle() const;
-		RNAPI const Quaternion& WorldRotation() const;
+		RNAPI const Vector3& GetWorldPosition() const;
+		RNAPI const Vector3& GetWorldScale() const;
+		RNAPI const Vector3& GetWorldEulerAngle() const;
+		RNAPI const Quaternion& GetWorldRotation() const;
 		
-		RNAPI const AABB& BoundingBox() const;
-		RNAPI const Sphere& BoundingSphere() const;
+		RNAPI const AABB& GetBoundingBox() const;
+		RNAPI const Sphere& GetBoundingSphere() const;
 		
-		const std::string& DebugName() { return _debugName; }
+		const std::string& GetDebugName() { return _debugName; }
 		
 		RNAPI void AttachChild(SceneNode *child);
 		RNAPI void DetachChild(SceneNode *child);
@@ -90,19 +90,19 @@ namespace RN
 		
 		RNAPI void SetAction(const std::function<void (SceneNode *, float)>& action);
 		
-		size_t Childs() const { return _childs.Count(); }
-		SceneNode *Parent() const { return _parent; }
-		FrameID LastFrame() const { return _lastFrame; }
-		World *Container() const { return _world; }
-		Priority UpdatePriority() const { return _priority; }
+		size_t GetChildCount() const { return _childs.GetCount(); }
+		SceneNode *GetParent() const { return _parent; }
+		FrameID GetLastFrame() const { return _lastFrame; }
+		World *GetWorld() const { return _world; }
+		Priority GetUpdatePriority() const { return _priority; }
 		
 		template<typename T=SceneNode>
-		T *ChildAtIndex(size_t index) const { return static_cast<T *>(_childs.ObjectAtIndex(index)); }
+		T *GetChildAtIndex(size_t index) const { return static_cast<T *>(_childs[index]); }
 		
 		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction);
 		
-		RNAPI const Matrix& WorldTransform() const;
-		RNAPI const Matrix& LocalTransform() const;
+		RNAPI const Matrix& GetWorldTransform() const;
+		RNAPI const Matrix& GetLocalTransform() const;
 		
 		virtual void Update(float delta)
 		{
@@ -219,7 +219,7 @@ namespace RN
 	
 	RN_INLINE void SceneNode::SetRotation(const Quaternion& rot)
 	{
-		_euler = rot.EulerAngle();
+		_euler = rot.GetEulerAngle();
 		_rotation = rot;
 		
 		DidUpdate();
@@ -235,9 +235,9 @@ namespace RN
 		}
 		
 		Quaternion temp;
-		temp = temp / _parent->WorldRotation();
+		temp = temp / _parent->GetWorldRotation();
 		
-		_position = temp.RotateVector(pos) - temp.RotateVector(WorldPosition());
+		_position = temp.RotateVector(pos) - temp.RotateVector(GetWorldPosition());
 		DidUpdate();
 	}
 	
@@ -249,7 +249,7 @@ namespace RN
 			return;
 		}
 		
-		_scale = scal - WorldScale();
+		_scale = scal - GetWorldScale();
 		DidUpdate();
 	}
 	
@@ -261,47 +261,48 @@ namespace RN
 			return;
 		}
 		
-		_rotation = rot / WorldRotation();
-		_euler = _rotation.EulerAngle();
+		_rotation = rot / GetWorldRotation();
+		_euler = _rotation.GetEulerAngle();
 		
 		DidUpdate();
 	}
 	
+	
 	RN_INLINE const Vector3 SceneNode::Forward() const
 	{
-		Vector3 forward = WorldRotation().RotateVector(Vector3(0.0, 0.0, 1.0));
+		Vector3 forward = GetWorldRotation().RotateVector(Vector3(0.0, 0.0, 1.0));
 		return forward;
 	}
 	
 	RN_INLINE const Vector3 SceneNode::Up() const
 	{
-		Vector3 up = WorldRotation().RotateVector(Vector3(0.0, 1.0, 0.0));
+		Vector3 up = GetWorldRotation().RotateVector(Vector3(0.0, 1.0, 0.0));
 		return up;
 	}
 	
 	RN_INLINE const Vector3 SceneNode::Right() const
 	{
-		Vector3 right = WorldRotation().RotateVector(Vector3(1.0, 0.0, 0.0));
+		Vector3 right = GetWorldRotation().RotateVector(Vector3(1.0, 0.0, 0.0));
 		return right;
 	}
 	
 	
-	RN_INLINE const Vector3& SceneNode::WorldPosition() const
+	RN_INLINE const Vector3& SceneNode::GetWorldPosition() const
 	{
 		UpdateInternalData();
 		return _worldPosition;
 	}
-	RN_INLINE const Vector3& SceneNode::WorldScale() const
+	RN_INLINE const Vector3& SceneNode::GetWorldScale() const
 	{
 		UpdateInternalData();
 		return _worldScale;
 	}
-	RN_INLINE const Vector3& SceneNode::WorldEulerAngle() const
+	RN_INLINE const Vector3& SceneNode::GetWorldEulerAngle() const
 	{
 		UpdateInternalData();
 		return _worldEuler;
 	}
-	RN_INLINE const Quaternion& SceneNode::WorldRotation() const
+	RN_INLINE const Quaternion& SceneNode::GetWorldRotation() const
 	{
 		UpdateInternalData();
 		return _worldRotation;
@@ -309,25 +310,25 @@ namespace RN
 	
 
 	
-	RN_INLINE const Matrix& SceneNode::LocalTransform() const
+	RN_INLINE const Matrix& SceneNode::GetLocalTransform() const
 	{
 		UpdateInternalData();
 		return _localTransform;
 	}
 	
-	RN_INLINE const Matrix& SceneNode::WorldTransform() const
+	RN_INLINE const Matrix& SceneNode::GetWorldTransform() const
 	{
 		UpdateInternalData();
 		return _worldTransform;
 	}
 	
-	RN_INLINE const AABB& SceneNode::BoundingBox() const
+	RN_INLINE const AABB& SceneNode::GetBoundingBox() const
 	{
 		UpdateInternalData();
 		return _transformedBoundingBox;
 	}
 	
-	RN_INLINE const Sphere& SceneNode::BoundingSphere() const
+	RN_INLINE const Sphere& SceneNode::GetBoundingSphere() const
 	{
 		UpdateInternalData();
 		return _transformedBoundingSphere;
@@ -379,10 +380,10 @@ namespace RN
 			_updated = false;
 			_updateLock.Unlock();
 			
-			size_t count = _childs.Count();
+			size_t count = _childs.GetCount();
 			for(size_t i=0; i<count; i++)
 			{
-				SceneNode *child = _childs.ObjectAtIndex<SceneNode>(i);
+				SceneNode *child = _childs.GetObjectAtIndex<SceneNode>(i);
 				child->DidUpdate();
 			}
 			

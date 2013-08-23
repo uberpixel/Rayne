@@ -8,11 +8,11 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureLights        0
+#define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 0
 #define TGWorldFeatureFreeCamera    1
-#define TGWorldFeatureZPrePass		0
-#define TGWorldFeatureBloom			0
+#define TGWorldFeatureZPrePass		1
+#define TGWorldFeatureBloom			1
 #define TGWorldFeatureSSAO          0
 
 #define TGForestFeatureTrees 500
@@ -46,17 +46,17 @@ namespace TG
 		CreateForest();
 //		CreateTest();
 		
-		RN::Input::SharedInstance()->Activate();
-		RN::MessageCenter::SharedInstance()->AddObserver(kRNInputEventMessage, [&](RN::Message *message) {
+		RN::Input::GetSharedInstance()->Activate();
+		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNInputEventMessage, [&](RN::Message *message) {
 			
 			RN::Event *event = static_cast<RN::Event *>(message);
-			if(event->EventType() == RN::Event::Type::KeyUp)
+			if(event->GetType() == RN::Event::Type::KeyUp)
 			{
-				switch(event->Character())
+				switch(event->GetCharacter())
 				{
 					case 'f':
 						if(_spotLight)
-							_spotLight->SetRange(_spotLight->Range() > 1.0f ? 0.0f : TGWorldSpotLightRange);
+							_spotLight->SetRange(_spotLight->GetRange() > 1.0f ? 0.0f : TGWorldSpotLightRange);
 						break;
 						
 					case 'x':
@@ -73,32 +73,32 @@ namespace TG
 	
 	World::~World()
 	{
-		RN::Input::SharedInstance()->Deactivate();
-		RN::MessageCenter::SharedInstance()->RemoveObserver(this);
+		RN::Input::GetSharedInstance()->Deactivate();
+		RN::MessageCenter::GetSharedInstance()->RemoveObserver(this);
 		
 		_camera->Release();
 	}
 	
 	void World::Update(float delta)
 	{
-		RN::Input *input = RN::Input::SharedInstance();
+		RN::Input *input = RN::Input::GetSharedInstance();
 
 #if TGWorldFeatureFreeCamera
 		RN::Vector3 translation;
 		RN::Vector3 rotation;
 		
-		const RN::Vector2& mouseDelta = input->MouseDelta();
+		const RN::Vector2& mouseDelta = input->GetMouseDelta();
 		
-		if(!(input->ModifierKeys() & RN::KeyModifier::KeyControl))
+		if(!(input->GetModifierKeys() & RN::KeyModifier::KeyControl))
 		{
 			rotation.x = mouseDelta.x;
 			rotation.z = mouseDelta.y;
 		}
 		
-		translation.x = (input->KeyPressed('d') - input->KeyPressed('a')) * 16.0f;
-		translation.z = (input->KeyPressed('s') - input->KeyPressed('w')) * 16.0f;
+		translation.x = (input->IsKeyPressed('d') - input->IsKeyPressed('a')) * 16.0f;
+		translation.z = (input->IsKeyPressed('s') - input->IsKeyPressed('w')) * 16.0f;
 		
-		translation *= (input->ModifierKeys() & RN::KeyModifier::KeyShift) ? 2.0f : 1.0f;
+		translation *= (input->GetModifierKeys() & RN::KeyModifier::KeyShift) ? 2.0f : 1.0f;
 		
 		_camera->Rotate(rotation);
 		_camera->TranslateLocal(translation * delta);
@@ -107,17 +107,17 @@ namespace TG
 		if(_sunLight != 0)
 		{
 			RN::Vector3 sunrot;
-			sunrot.x = (input->KeyPressed('e') - input->KeyPressed('q')) * 5.0f;
-			sunrot.z = (input->KeyPressed('t') - input->KeyPressed('g')) * 2.0f;
+			sunrot.x = (input->IsKeyPressed('e') - input->IsKeyPressed('q')) * 0.5f;
+			sunrot.z = (input->IsKeyPressed('t') - input->IsKeyPressed('g')) * 0.5f;
 			_sunLight->Rotate(sunrot);
 		}
 		
-		_exposure += (input->KeyPressed('u') - input->KeyPressed('j')) * delta*2.0f;
+		_exposure += (input->IsKeyPressed('u') - input->IsKeyPressed('j')) * delta*2.0f;
 		_exposure = MIN(MAX(0.01f, _exposure), 10.0f);
-		_whitepoint += (input->KeyPressed('i') - input->KeyPressed('k')) * delta;
+		_whitepoint += (input->IsKeyPressed('i') - input->IsKeyPressed('k')) * delta;
 		_whitepoint = MIN(MAX(0.01f, _whitepoint), 10.0f);
-		RN::Renderer::SharedInstance()->SetHDRExposure(_exposure);
-		RN::Renderer::SharedInstance()->SetHDRWhitePoint(_whitepoint);
+		RN::Renderer::GetSharedInstance()->SetHDRExposure(_exposure);
+		RN::Renderer::GetSharedInstance()->SetHDRWhitePoint(_whitepoint);
 	}
 	
 	void World::CreateCameras()
@@ -149,39 +149,39 @@ namespace TG
 		_depthtex = new RN::Texture(depthparam);
 		storage->SetDepthTarget(_depthtex);
 		
-		RN::Shader *depthShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightDepthShader);
+		RN::Shader *depthShader = RN::ResourcePool::GetSharedInstance()->GetResourceWithName<RN::Shader>(kRNResourceKeyLightDepthShader);
 		RN::Material *depthMaterial = new RN::Material(depthShader);
 		
 		_camera = new ThirdPersonCamera(storage);
 		_camera->SetMaterial(depthMaterial);
 		
-		RN::Shader *downsampleShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleShader);
-		RN::Shader *downsampleFirstShader = RN::ResourcePool::SharedInstance()->ResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleFirstShader);
+		RN::Shader *downsampleShader = RN::ResourcePool::GetSharedInstance()->GetResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleShader);
+		RN::Shader *downsampleFirstShader = RN::ResourcePool::GetSharedInstance()->GetResourceWithName<RN::Shader>(kRNResourceKeyLightTileSampleFirstShader);
 
 		RN::Model *sky = RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png");
-		sky->MaterialAtIndex(0, 0)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->MaterialAtIndex(0, 1)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->MaterialAtIndex(0, 2)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->MaterialAtIndex(0, 3)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->MaterialAtIndex(0, 4)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->MaterialAtIndex(0, 5)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->GetMaterialAtIndex(0, 0)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->GetMaterialAtIndex(0, 1)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->GetMaterialAtIndex(0, 2)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->GetMaterialAtIndex(0, 3)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->GetMaterialAtIndex(0, 4)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->GetMaterialAtIndex(0, 5)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
 		
 		_lightcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
 		_lightcam->SetClearMask(RN::Camera::ClearFlagColor);
-		_lightcam->Storage()->SetDepthTarget(_depthtex);
+		_lightcam->GetStorage()->SetDepthTarget(_depthtex);
 		_lightcam->SetSkyCube(sky);
 		_lightcam->renderGroup |= RN::Camera::RenderGroup1;//|RN::Camera::RenderGroup2;
 		_lightcam->SetLightTiles(RN::Vector2(32.0f, 32.0f));
 		
 		RN::DownsamplePostProcessingPipeline *downsamplePipeline = new RN::DownsamplePostProcessingPipeline("downsample", _lightcam, _depthtex, downsampleFirstShader, downsampleShader, RN::TextureParameter::Format::RG32F);
 		_camera->AttachPostProcessingPipeline(downsamplePipeline);
-		_lightcam->ActivateTiledLightLists(downsamplePipeline->LastTarget());
+		_lightcam->ActivateTiledLightLists(downsamplePipeline->GetLastTarget());
 		_lightcam->SetPriority(5);
 		
 		// Copy refraction to another texture
 		RN::Material *copyFBOMaterial = new RN::Material(updownShader);
 		copyFBOMaterial->Define("RN_COPYDEPTH");
-		RN::Camera *copyRefract = new RN::Camera(_camera->Frame().Size(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *copyRefract = new RN::Camera(_camera->GetFrame().Size(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		copyRefract->SetMaterial(copyFBOMaterial);
 		_refractPipeline = _lightcam->AddPostProcessingPipeline("refractioncopy");
 		_refractPipeline->AddStage(copyRefract, RN::RenderStage::Mode::ReUsePreviousStage);
@@ -189,8 +189,8 @@ namespace TG
 		
 		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(0);
-		_finalcam->Storage()->SetDepthTarget(_depthtex);
-		_finalcam->Storage()->SetRenderTarget(_lightcam->Storage()->RenderTarget());
+		_finalcam->GetStorage()->SetDepthTarget(_depthtex);
+		_finalcam->GetStorage()->SetRenderTarget(_lightcam->GetStorage()->GetRenderTarget());
 		_finalcam->renderGroup = RN::Camera::RenderGroup2;
 		_finalcam->SetPriority(0);
 		
@@ -251,36 +251,36 @@ namespace TG
 		// Filter bright
 		RN::Shader *filterBrightShader = RN::Shader::WithFile("shader/rn_FilterBright");
 		RN::Material *filterBrightMaterial = new RN::Material(filterBrightShader);
-		RN::Camera *filterBright = new RN::Camera(_camera->Frame().Size() / 2.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *filterBright = new RN::Camera(_camera->GetFrame().Size() / 2.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		filterBright->SetMaterial(filterBrightMaterial);
 		
 		// Down sample
-		RN::Camera *downSample4x = new RN::Camera(_camera->Frame().Size() / 4.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *downSample4x = new RN::Camera(_camera->GetFrame().Size() / 4.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		downSample4x->SetMaterial(downMaterial);
 		
 		// Down sample
-		RN::Camera *downSample8x = new RN::Camera(_camera->Frame().Size() / 8.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *downSample8x = new RN::Camera(_camera->GetFrame().Size() / 8.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		downSample8x->SetMaterial(downMaterial);
 		
 		// Blur X
-		RN::Camera *bloomBlurXlow = new RN::Camera(_camera->Frame().Size() / 8.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomBlurXlow = new RN::Camera(_camera->GetFrame().Size() / 8.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurXlow->SetMaterial(blurXMaterial);
 		
 		// Blur Y
-		RN::Camera *bloomBlurYlow = new RN::Camera(_camera->Frame().Size() / 8.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomBlurYlow = new RN::Camera(_camera->GetFrame().Size() / 8.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurYlow->SetMaterial(blurYMaterial);
 		
 		// Blur X
-		RN::Camera *bloomBlurXhigh = new RN::Camera(_camera->Frame().Size() / 4.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomBlurXhigh = new RN::Camera(_camera->GetFrame().Size() / 4.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurXhigh->SetMaterial(blurXMaterial);
 		
 		// Blur Y
-		RN::Camera *bloomBlurYhigh = new RN::Camera(_camera->Frame().Size() / 4.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomBlurYhigh = new RN::Camera(_camera->GetFrame().Size() / 4.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurYhigh->SetMaterial(blurYMaterial);
 	
 		// Combine
 		RN::Material *bloomCombineMaterial = new RN::Material(combineShader);
-		bloomCombineMaterial->AddTexture(bloomBlurYhigh->Storage()->RenderTarget());
+		bloomCombineMaterial->AddTexture(bloomBlurYhigh->GetStorage()->GetRenderTarget());
 		
 		RN::Camera *bloomCombine = new RN::Camera(RN::Vector2(0.0f), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomCombine->SetMaterial(bloomCombineMaterial);
@@ -307,87 +307,87 @@ namespace TG
 	{
 		// Sponza
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
-		model->MaterialAtIndex(0, 5)->discard = true;
-		model->MaterialAtIndex(0, 5)->culling = false;
-		model->MaterialAtIndex(0, 5)->override = RN::Material::OverrideGroupDiscard;
+		model->GetMaterialAtIndex(0, 5)->discard = true;
+		model->GetMaterialAtIndex(0, 5)->culling = false;
+		model->GetMaterialAtIndex(0, 5)->override = RN::Material::OverrideGroupDiscard;
 		
-		model->MaterialAtIndex(0, 6)->discard = true;
-		model->MaterialAtIndex(0, 6)->culling = false;
-		model->MaterialAtIndex(0, 6)->override = RN::Material::OverrideGroupDiscard;
+		model->GetMaterialAtIndex(0, 6)->discard = true;
+		model->GetMaterialAtIndex(0, 6)->culling = false;
+		model->GetMaterialAtIndex(0, 6)->override = RN::Material::OverrideGroupDiscard;
 		
-		model->MaterialAtIndex(0, 17)->discard = true;
-		model->MaterialAtIndex(0, 17)->culling = false;
-		model->MaterialAtIndex(0, 17)->override = RN::Material::OverrideGroupDiscard;
+		model->GetMaterialAtIndex(0, 17)->discard = true;
+		model->GetMaterialAtIndex(0, 17)->culling = false;
+		model->GetMaterialAtIndex(0, 17)->override = RN::Material::OverrideGroupDiscard;
 		
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
-		model->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/sponza/lion_ddn.png", true));
-		model->MaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		model->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/sponza/lion_ddn.png", true));
+		model->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
 		
-		model->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/sponza/background_ddn.png", true));
-		model->MaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
+		model->GetMaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/sponza/background_ddn.png", true));
+		model->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
 		
-		model->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_ddn.png", true));
-		model->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_spec.png"));
-		model->MaterialAtIndex(0, 2)->specular = RN::Color(1.0f, 1.0f, 1.0f, 5.0f);
-		model->MaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
-		model->MaterialAtIndex(0, 2)->Define("RN_SPECULARITY");
-		model->MaterialAtIndex(0, 2)->Define("RN_SPECMAP");
+		model->GetMaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_ddn.png", true));
+		model->GetMaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_spec.png"));
+		model->GetMaterialAtIndex(0, 2)->specular = RN::Color(1.0f, 1.0f, 1.0f, 5.0f);
+		model->GetMaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
+		model->GetMaterialAtIndex(0, 2)->Define("RN_SPECULARITY");
+		model->GetMaterialAtIndex(0, 2)->Define("RN_SPECMAP");
 		
-		model->MaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png", true));
-		model->MaterialAtIndex(0, 3)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->MaterialAtIndex(0, 3)->Define("RN_NORMALMAP");
-		model->MaterialAtIndex(0, 3)->Define("RN_SPECULARITY");
+		model->GetMaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png", true));
+		model->GetMaterialAtIndex(0, 3)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
+		model->GetMaterialAtIndex(0, 3)->Define("RN_NORMALMAP");
+		model->GetMaterialAtIndex(0, 3)->Define("RN_SPECULARITY");
 		
-		model->MaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/sponza/vase_ddn.png", true));
-		model->MaterialAtIndex(0, 4)->Define("RN_NORMALMAP");
+		model->GetMaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/sponza/vase_ddn.png", true));
+		model->GetMaterialAtIndex(0, 4)->Define("RN_NORMALMAP");
 		
-		model->MaterialAtIndex(0, 5)->AddTexture(RN::Texture::WithFile("models/sponza/chain_texture_ddn.png", true));
-		model->MaterialAtIndex(0, 5)->specular = RN::Color(0.5f, 0.5f, 0.5f, 1.0f);
-		model->MaterialAtIndex(0, 5)->Define("RN_NORMALMAP");
-		model->MaterialAtIndex(0, 5)->Define("RN_SPECULARITY");
+		model->GetMaterialAtIndex(0, 5)->AddTexture(RN::Texture::WithFile("models/sponza/chain_texture_ddn.png", true));
+		model->GetMaterialAtIndex(0, 5)->specular = RN::Color(0.5f, 0.5f, 0.5f, 1.0f);
+		model->GetMaterialAtIndex(0, 5)->Define("RN_NORMALMAP");
+		model->GetMaterialAtIndex(0, 5)->Define("RN_SPECULARITY");
 		
-		model->MaterialAtIndex(0, 6)->AddTexture(RN::Texture::WithFile("models/sponza/vase_plant_spec.png"));
-		model->MaterialAtIndex(0, 6)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->MaterialAtIndex(0, 6)->Define("RN_SPECMAP");
-		model->MaterialAtIndex(0, 6)->Define("RN_SPECULARITY");
+		model->GetMaterialAtIndex(0, 6)->AddTexture(RN::Texture::WithFile("models/sponza/vase_plant_spec.png"));
+		model->GetMaterialAtIndex(0, 6)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
+		model->GetMaterialAtIndex(0, 6)->Define("RN_SPECMAP");
+		model->GetMaterialAtIndex(0, 6)->Define("RN_SPECULARITY");
 		
-		model->MaterialAtIndex(0, 7)->AddTexture(RN::Texture::WithFile("models/sponza/vase_round_ddn.png", true));
-		model->MaterialAtIndex(0, 7)->AddTexture(RN::Texture::WithFile("models/sponza/vase_round_spec.png"));
-		model->MaterialAtIndex(0, 7)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->MaterialAtIndex(0, 7)->Define("RN_NORMALMAP");
-		model->MaterialAtIndex(0, 7)->Define("RN_SPECULARITY");
-		model->MaterialAtIndex(0, 7)->Define("RN_SPECMAP");
+		model->GetMaterialAtIndex(0, 7)->AddTexture(RN::Texture::WithFile("models/sponza/vase_round_ddn.png", true));
+		model->GetMaterialAtIndex(0, 7)->AddTexture(RN::Texture::WithFile("models/sponza/vase_round_spec.png"));
+		model->GetMaterialAtIndex(0, 7)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
+		model->GetMaterialAtIndex(0, 7)->Define("RN_NORMALMAP");
+		model->GetMaterialAtIndex(0, 7)->Define("RN_SPECULARITY");
+		model->GetMaterialAtIndex(0, 7)->Define("RN_SPECMAP");
 		
-		model->MaterialAtIndex(0, 9)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_arch_ddn.png", true));
-		model->MaterialAtIndex(0, 9)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_arch_spec.png"));
-		model->MaterialAtIndex(0, 9)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->MaterialAtIndex(0, 9)->Define("RN_NORMALMAP");
-		model->MaterialAtIndex(0, 9)->Define("RN_SPECULARITY");
-		model->MaterialAtIndex(0, 9)->Define("RN_SPECMAP");
+		model->GetMaterialAtIndex(0, 9)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_arch_ddn.png", true));
+		model->GetMaterialAtIndex(0, 9)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_arch_spec.png"));
+		model->GetMaterialAtIndex(0, 9)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
+		model->GetMaterialAtIndex(0, 9)->Define("RN_NORMALMAP");
+		model->GetMaterialAtIndex(0, 9)->Define("RN_SPECULARITY");
+		model->GetMaterialAtIndex(0, 9)->Define("RN_SPECMAP");
 		
-		model->MaterialAtIndex(0, 11)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_b_ddn.png", true));
-		model->MaterialAtIndex(0, 11)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_b_spec.png"));
-		model->MaterialAtIndex(0, 11)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->MaterialAtIndex(0, 11)->Define("RN_NORMALMAP");
-		model->MaterialAtIndex(0, 11)->Define("RN_SPECULARITY");
-		model->MaterialAtIndex(0, 11)->Define("RN_SPECMAP");
+		model->GetMaterialAtIndex(0, 11)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_b_ddn.png", true));
+		model->GetMaterialAtIndex(0, 11)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_b_spec.png"));
+		model->GetMaterialAtIndex(0, 11)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
+		model->GetMaterialAtIndex(0, 11)->Define("RN_NORMALMAP");
+		model->GetMaterialAtIndex(0, 11)->Define("RN_SPECULARITY");
+		model->GetMaterialAtIndex(0, 11)->Define("RN_SPECMAP");
 		
-		model->MaterialAtIndex(0, 15)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_a_ddn.png", true));
-		model->MaterialAtIndex(0, 15)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_a_spec.png"));
-		model->MaterialAtIndex(0, 15)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->MaterialAtIndex(0, 15)->Define("RN_NORMALMAP");
-		model->MaterialAtIndex(0, 15)->Define("RN_SPECULARITY");
-		model->MaterialAtIndex(0, 15)->Define("RN_SPECMAP");
+		model->GetMaterialAtIndex(0, 15)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_a_ddn.png", true));
+		model->GetMaterialAtIndex(0, 15)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_a_spec.png"));
+		model->GetMaterialAtIndex(0, 15)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
+		model->GetMaterialAtIndex(0, 15)->Define("RN_NORMALMAP");
+		model->GetMaterialAtIndex(0, 15)->Define("RN_SPECULARITY");
+		model->GetMaterialAtIndex(0, 15)->Define("RN_SPECMAP");
 		
-		model->MaterialAtIndex(0, 16)->specular = RN::Color(0.02f, 0.02f, 0.02f, 32.0f);
-		model->MaterialAtIndex(0, 16)->Define("RN_SPECULARITY");
+		model->GetMaterialAtIndex(0, 16)->specular = RN::Color(0.02f, 0.02f, 0.02f, 32.0f);
+		model->GetMaterialAtIndex(0, 16)->Define("RN_SPECULARITY");
 		
-		model->MaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_ddn.png", true));
-		model->MaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_spec.png"));
-		model->MaterialAtIndex(0, 17)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->MaterialAtIndex(0, 17)->Define("RN_NORMALMAP");
-		model->MaterialAtIndex(0, 17)->Define("RN_SPECULARITY");
-		model->MaterialAtIndex(0, 17)->Define("RN_SPECMAP");
+		model->GetMaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_ddn.png", true));
+		model->GetMaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_spec.png"));
+		model->GetMaterialAtIndex(0, 17)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
+		model->GetMaterialAtIndex(0, 17)->Define("RN_NORMALMAP");
+		model->GetMaterialAtIndex(0, 17)->Define("RN_SPECULARITY");
+		model->GetMaterialAtIndex(0, 17)->Define("RN_SPECMAP");
 #endif
 		
 		RN::Entity *sponza = new RN::Entity();
@@ -418,13 +418,13 @@ namespace TG
 #endif
 		
 #if TGWorldFeatureLights
-		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
+		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateSunShadows(true, 1024.0f);
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
-		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
+		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(0.9f);
@@ -435,7 +435,8 @@ namespace TG
 #else
 		_player->AttachChild(_spotLight);
 #endif
-		for(int i=0; i<300; i++)
+		
+		for(int i=0; i<200; i++)
 		{
 			RN::Light *light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 70.0f - 35.0f, TGWorldRandom * 30.0f-10.0f, TGWorldRandom * 40.0f - 20.0f));
@@ -448,11 +449,11 @@ namespace TG
 		
 		billboard->SetTexture(RN::Texture::WithFile("textures/billboard.png"));
 		billboard->SetScale(RN::Vector3(0.04f));
-		billboard->Material()->blending = true;
-		billboard->Material()->blendSource = GL_SRC_ALPHA;
-		billboard->Material()->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-		billboard->Material()->depthwrite = false;
-		billboard->Material()->depthtest = true;
+		billboard->GetMaterial()->blending = true;
+		billboard->GetMaterial()->blendSource = GL_SRC_ALPHA;
+		billboard->GetMaterial()->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+		billboard->GetMaterial()->depthwrite = false;
+		billboard->GetMaterial()->depthtest = true;
 		billboard->renderGroup = 1;
 		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
 		billboard->Translate(RN::Vector3(-14.4f, 8.5f, 0.1f));
@@ -472,7 +473,7 @@ namespace TG
 	{
 		// Ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
-		ground->MaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
+		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
 		
 		RN::Entity *groundBody = new RN::Entity();
 		groundBody->SetModel(ground);
@@ -487,83 +488,83 @@ namespace TG
 		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
 		
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights		
-		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/brick2-NM.png"));
-		building->MaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
-		building->MaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
-		building->MaterialAtIndex(0, 0)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
+		building->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/brick2-NM.png"));
+		building->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		building->GetMaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
+		building->GetMaterialAtIndex(0, 0)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 		
-		building->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_A-NM.png"));
-		building->MaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
-		building->MaterialAtIndex(0, 1)->Define("RN_SPECULARITY");
-		building->MaterialAtIndex(0, 1)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
+		building->GetMaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_A-NM.png"));
+		building->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
+		building->GetMaterialAtIndex(0, 1)->Define("RN_SPECULARITY");
+		building->GetMaterialAtIndex(0, 1)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 		
-		building->MaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_B-NM.png"));
-		building->MaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
-		building->MaterialAtIndex(0, 2)->Define("RN_SPECULARITY");
-		building->MaterialAtIndex(0, 2)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
+		building->GetMaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_B-NM.png"));
+		building->GetMaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
+		building->GetMaterialAtIndex(0, 2)->Define("RN_SPECULARITY");
+		building->GetMaterialAtIndex(0, 2)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 		
-		building->MaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_C-NM.png"));
-		building->MaterialAtIndex(0, 3)->Define("RN_NORMALMAP");
-		building->MaterialAtIndex(0, 3)->Define("RN_SPECULARITY");
-		building->MaterialAtIndex(0, 3)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
+		building->GetMaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_C-NM.png"));
+		building->GetMaterialAtIndex(0, 3)->Define("RN_NORMALMAP");
+		building->GetMaterialAtIndex(0, 3)->Define("RN_SPECULARITY");
+		building->GetMaterialAtIndex(0, 3)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 		
-		building->MaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/Sebastian/props-NM.png"));
-		building->MaterialAtIndex(0, 4)->Define("RN_NORMALMAP");
-		building->MaterialAtIndex(0, 4)->Define("RN_SPECULARITY");
-		building->MaterialAtIndex(0, 4)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
+		building->GetMaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/Sebastian/props-NM.png"));
+		building->GetMaterialAtIndex(0, 4)->Define("RN_NORMALMAP");
+		building->GetMaterialAtIndex(0, 4)->Define("RN_SPECULARITY");
+		building->GetMaterialAtIndex(0, 4)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 		
-		building->MaterialAtIndex(0, 5)->AddTexture(RN::Texture::WithFile("models/Sebastian/Rooftiles_A-NM.png"));
-		building->MaterialAtIndex(0, 5)->Define("RN_NORMALMAP");
-		building->MaterialAtIndex(0, 5)->Define("RN_SPECULARITY");
-		building->MaterialAtIndex(0, 5)->specular = RN::Color(0.1f, 0.1f, 0.1f, 20.0f);
+		building->GetMaterialAtIndex(0, 5)->AddTexture(RN::Texture::WithFile("models/Sebastian/Rooftiles_A-NM.png"));
+		building->GetMaterialAtIndex(0, 5)->Define("RN_NORMALMAP");
+		building->GetMaterialAtIndex(0, 5)->Define("RN_SPECULARITY");
+		building->GetMaterialAtIndex(0, 5)->specular = RN::Color(0.1f, 0.1f, 0.1f, 20.0f);
 #endif
 		
 		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsDecals.sgm");
-		building->MaterialAtIndex(0, 0)->culling = false;
-		building->MaterialAtIndex(0, 0)->discard = true;
-		building->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard;
+		building->GetMaterialAtIndex(0, 0)->culling = false;
+		building->GetMaterialAtIndex(0, 0)->discard = true;
+		building->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard;
 		
-		building->MaterialAtIndex(0, 1)->culling = false;
-		building->MaterialAtIndex(0, 1)->discard = true;
-		building->MaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard;
+		building->GetMaterialAtIndex(0, 1)->culling = false;
+		building->GetMaterialAtIndex(0, 1)->discard = true;
+		building->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard;
 		
 		ent = new RN::Entity();
 		ent->SetModel(building);
 		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
 		
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
-		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/Decals-NM.png"));
-		building->MaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
-		building->MaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
-		building->MaterialAtIndex(0, 0)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
+		building->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/Decals-NM.png"));
+		building->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		building->GetMaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
+		building->GetMaterialAtIndex(0, 0)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 		
-		building->MaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Decals-NM.png"));
-		building->MaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
-		building->MaterialAtIndex(0, 1)->Define("RN_SPECULARITY");
-		building->MaterialAtIndex(0, 1)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
+		building->GetMaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Decals-NM.png"));
+		building->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
+		building->GetMaterialAtIndex(0, 1)->Define("RN_SPECULARITY");
+		building->GetMaterialAtIndex(0, 1)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
 #endif
 		
 		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsPlants.sgm");
-		building->MaterialAtIndex(0, 0)->culling = false;
-		building->MaterialAtIndex(0, 0)->discard = true;
-		building->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard;
+		building->GetMaterialAtIndex(0, 0)->culling = false;
+		building->GetMaterialAtIndex(0, 0)->discard = true;
+		building->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard;
 		
 		ent = new RN::Entity();
 		ent->SetModel(building);
 		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
 		
 #if TGWorldFeatureNormalMapping && TGWorldFeatureLights
-		building->MaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/plants-NM.png"));
-		building->MaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
-		building->MaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
-		building->MaterialAtIndex(0, 0)->specular = RN::Color(0.2f, 0.2f, 0.2f, 30.0f);
+		building->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/plants-NM.png"));
+		building->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		building->GetMaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
+		building->GetMaterialAtIndex(0, 0)->specular = RN::Color(0.2f, 0.2f, 0.2f, 30.0f);
 #endif
 		
 		RN::Model *tree = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
-		tree->MaterialAtIndex(0, 0)->culling = false;
-		tree->MaterialAtIndex(0, 0)->discard = true;
-		tree->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		tree->MaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		tree->GetMaterialAtIndex(0, 0)->culling = false;
+		tree->GetMaterialAtIndex(0, 0)->discard = true;
+		tree->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		tree->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
 		
 		RN::InstancingNode *node;
 		RN::Random::DualPhaseLCG dualPhaseLCG;
@@ -574,7 +575,7 @@ namespace TG
 		for(int i = 0; i < TGForestFeatureTrees; i += 1)
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
-			if(pos.Length() < 10.0f)
+			if(pos.GetLength() < 10.0f)
 				continue;
 			
 			ent = new RN::Entity();
@@ -584,26 +585,19 @@ namespace TG
 			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.0f, 365.0f), 0.0f, 0.0f));
 			
 			node->AttachChild(ent);
-			
-			if(i == 10)
-			{
-				ent->SetAction([](RN::SceneNode *node, float delta) {
-					node->Translate(RN::Vector3(0.0f, 1.0f * delta, 0.0f));
-				});
-			}
 		}
 		
 		RN::Model *grass = RN::Model::WithFile("models/dexfuck/grass01.sgm");
-		grass->MaterialAtIndex(0, 0)->culling = false;
-		grass->MaterialAtIndex(0, 0)->discard = true;
-		grass->MaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		grass->GetMaterialAtIndex(0, 0)->culling = false;
+		grass->GetMaterialAtIndex(0, 0)->discard = true;
+		grass->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		
 		node = new RN::InstancingNode(grass);
 		
 		for(int i=0; i<TGForestFeatureGras; i++)
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-50.0f, 50.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-50.0f, 50.0f));
-			if(pos.Length() < 5.0f)
+			if(pos.GetLength() < 5.0f)
 				continue;
 			
 			ent = new RN::Entity();
@@ -630,12 +624,12 @@ namespace TG
 #endif
 		
 #if TGWorldFeatureLights
-		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
+		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateSunShadows(true);
 		
-		_spotLight = new RN::Light(RN::Light::TypeSpotLight);
+		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(0.9f);
@@ -665,13 +659,13 @@ namespace TG
 	{
 		// Ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
-		ground->MaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
+		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
 		
 		RN::Entity *ent = new RN::Entity();
 		ent->SetModel(ground);
 		
 		
-		_sunLight = new RN::Light(RN::Light::TypeDirectionalLight);
+		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
 		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateSunShadows(true);

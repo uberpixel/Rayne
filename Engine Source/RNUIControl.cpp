@@ -178,7 +178,7 @@ namespace RN
 		bool Control::IsEventWithinBounds(Event *event)
 		{
 			const Rect& frame = Container()->Frame();
-			Vector2 point = event->MousePosition();
+			Vector2 point = event->GetMousePosition();
 			
 			point.x -= frame.x;
 			point.y -= frame.y;
@@ -192,7 +192,7 @@ namespace RN
 		
 		void Control::ConsumeMouseClicks(Event *event)
 		{
-			if(event->EventType() == Event::Type::MouseUp && _mouseDown)
+			if(event->GetType() == Event::Type::MouseUp && _mouseDown)
 			{
 				_mouseDown = false;
 				
@@ -201,7 +201,7 @@ namespace RN
 				return;
 			}
 			
-			if(event->EventType() == Event::Type::MouseDown && IsEventWithinBounds(event))
+			if(event->GetType() == Event::Type::MouseDown && IsEventWithinBounds(event))
 			{
 				if(!_mouseDown)
 				{
@@ -217,7 +217,7 @@ namespace RN
 		
 		void Control::ConsumeMouseMove(Event *event)
 		{
-			if(event->EventType() == Event::Type::MouseMoved)
+			if(event->GetType() == Event::Type::MouseMoved)
 			{
 				bool isWithinBounds = IsEventWithinBounds(event);
 				

@@ -43,7 +43,7 @@ namespace RN
 		static String *WithBytes(const void *bytes, Encoding encoding, bool constant=false);
 		static String *WithBytes(const void *bytes, size_t length, Encoding encoding, bool constant=false);
 		
-		machine_hash Hash() const override;
+		machine_hash GetHash() const override;
 		bool IsEqual(Object *other) const override;
 		
 		void Append(const String *string);
@@ -55,19 +55,19 @@ namespace RN
 		void ReplaceCharacters(const String *replacement, const Range& range);
 		void ReplaceOccurrencesOfString(const String *string, const String *replacement);
 		
-		Range RangeOfString(const String *string, ComparisonMode mode=0);
-		Range RangeOfString(const String *string, ComparisonMode mode, const Range& range);
+		Range GetRangeOfString(const String *string, ComparisonMode mode=0);
+		Range GetRangeOfString(const String *string, ComparisonMode mode, const Range& range);
 		
 		ComparisonResult Compare(const String *other, ComparisonMode mode=0) const;
 		ComparisonResult Compare(const String *other, ComparisonMode mode, const Range& range) const;
 		
-		String *Substring(const Range& range) const;
-		UniChar CharacterAtIndex(size_t index) const;
+		String *GetSubstring(const Range& range) const;
+		UniChar GetCharacterAtIndex(size_t index) const;
 		
-		size_t Length() const;
+		size_t GetLength() const;
 		
-		uint8 *BytesWithEncoding(Encoding encoding, bool lossy, size_t *length) const;
-		char *UTF8String() const;
+		uint8 *GetBytesWithEncoding(Encoding encoding, bool lossy, size_t *length) const;
+		char *GetUTF8String() const;
 		
 	private:
 		String(void *internal);

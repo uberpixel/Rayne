@@ -132,7 +132,7 @@ namespace RN
 				return;
 			}
 			
-			Server::SharedInstance()->AddWidget(this);
+			Server::GetSharedInstance()->AddWidget(this);
 		}
 		
 		void Widget::Close()

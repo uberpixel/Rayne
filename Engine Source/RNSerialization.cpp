@@ -166,7 +166,7 @@ namespace RN
 		
 		uint32 temp;
 		
-		temp = static_cast<uint32>(_nametable->Count());
+		temp = static_cast<uint32>(_nametable->GetCount());
 		result->Append(&temp, sizeof(uint32));
 		
 		_nametable->Enumerate([&](Object *value, Object *key, bool *stop) {
@@ -174,14 +174,14 @@ namespace RN
 			Number *index = static_cast<Number *>(value);
 			
 			size_t length;
-			uint8 *tname = name->BytesWithEncoding(Encoding::UTF8, false, &length);
+			uint8 *tname = name->GetBytesWithEncoding(Encoding::UTF8, false, &length);
 			
 			temp = static_cast<uint32>(length);
 			
 			result->Append(&temp, sizeof(uint32));
 			result->Append(tname, temp);
 			
-			temp = index->Uint32Value();
+			temp = index->GetUint32Value();
 			result->Append(&temp, sizeof(uint32));
 		});
 		
@@ -203,10 +203,10 @@ namespace RN
 		uint32 index = EncodeClassName(String::WithString(object->Class()->Fullname().c_str()));
 		EncodeData('@', sizeof(uint32), &index);
 		
-		uint32 temp = static_cast<uint32>(_data->Length());
+		uint32 temp = static_cast<uint32>(_data->GetLength());
 		object->Serialize(this);
 		
-		uint32 length = static_cast<uint32>(_data->Length()) - temp;
+		uint32 length = static_cast<uint32>(_data->GetLength()) - temp;
 		_data->ReplaceBytes(&length, Range(temp - (sizeof(uint32) * 2), sizeof(uint32))); // Replace the encoded size for index
 	}
 	
@@ -290,14 +290,14 @@ namespace RN
 	
 	uint32 FlatSerializer::EncodeClassName(String *name)
 	{
-		Number *index = _nametable->ObjectForKey<Number>(name);
+		Number *index = _nametable->GetObjectForKey<Number>(name);
 		if(!index)
 		{
-			index = Number::WithUint32(static_cast<uint32>(_nametable->Count()));
+			index = Number::WithUint32(static_cast<uint32>(_nametable->GetCount()));
 			_nametable->SetObjectForKey(index, name);
 		}
 		
-		return index->Uint32Value();
+		return index->GetUint32Value();
 	}
 	
 	
@@ -314,22 +314,22 @@ namespace RN
 		
 		// Decode the name table
 		uint32 names;
-		_data->BytesInRange(&names, Range(_index, sizeof(uint32)));
+		_data->GetBytesInRange(&names, Range(_index, sizeof(uint32)));
 		_index += sizeof(uint32);
 		
 		_nametable = new Dictionary(names);
 		for(uint32 i=0; i<names; i++)
 		{
 			uint32 length, temp;
-			_data->BytesInRange(&length, Range(_index, sizeof(uint32)));
+			_data->GetBytesInRange(&length, Range(_index, sizeof(uint32)));
 			_index += sizeof(uint32);
 			
 			char *buffer = new char[length + 1];
-			_data->BytesInRange(buffer, Range(_index, length));
+			_data->GetBytesInRange(buffer, Range(_index, length));
 			_index += length;
 			
 			buffer[length] = '\0';
-			_data->BytesInRange(&temp, Range(_index, sizeof(uint32)));
+			_data->GetBytesInRange(&temp, Range(_index, sizeof(uint32)));
 			_index += sizeof(uint32);
 			
 			String *name = String::WithBytes(buffer, Encoding::UTF8);
@@ -356,13 +356,13 @@ namespace RN
 		size_t size;
 		AssertType('+', &size);
 		
-		Data *data = _data->DataInRange(Range(_index, size));
+		Data *data = _data->GetDataInRange(Range(_index, size));
 		_index += size;
 		
 		if(length)
 			*length = size;
 		
-		return data->Bytes();
+		return data->GetBytes();
 	}
 	
 	Object *FlatSerializer::DecodeObject()
@@ -371,11 +371,11 @@ namespace RN
 		uint32 index;
 		AssertType('@', &size);
 		
-		_data->BytesInRange(&index, Range(_index, sizeof(uint32)));
+		_data->GetBytesInRange(&index, Range(_index, sizeof(uint32)));
 		_index += sizeof(uint32);
 		
-		String *name = _nametable->ObjectForKey<String>(Number::WithUint32(index));
-		MetaClassBase *mclass = Catalogue::SharedInstance()->ClassWithName(name->UTF8String());
+		String *name = _nametable->GetObjectForKey<String>(Number::WithUint32(index));
+		MetaClassBase *mclass = Catalogue::GetSharedInstance()->GetClassWithName(name->GetUTF8String());
 		
 		Object *result = mclass->ConstructWithSerializer(this);
 		return result;
@@ -557,7 +557,7 @@ namespace RN
 			uint32 size;
 		} header;
 		
-		_data->BytesInRange(&header, Range(_index, sizeof(header)));
+		_data->GetBytesInRange(&header, Range(_index, sizeof(header)));
 		
 		if(type)
 			*type = header.type;
@@ -583,7 +583,7 @@ namespace RN
 		
 		RN_ASSERT(tsize == size, "");
 		
-		_data->BytesInRange(buffer, Range(_index, size));
+		_data->GetBytesInRange(buffer, Range(_index, size));
 		_index += size;
 	}
 }

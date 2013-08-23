@@ -140,12 +140,11 @@ namespace RN
 		RNAPI void SetShaderForType(const std::string& path, ShaderType type);
 		RNAPI void SetShaderForType(File *file, ShaderType type);
 		
-		RNAPI ShaderProgram *ProgramOfType(uint32 type);
-		RNAPI ShaderProgram *ProgramWithLookup(const ShaderLookup& lookup);
+		RNAPI ShaderProgram *GetProgramOfType(uint32 type);
+		RNAPI ShaderProgram *GetProgramWithLookup(const ShaderLookup& lookup);
 		
 		RNAPI bool SupportsProgramOfType(uint32 type);
-		
-		RNAPI const std::string& ShaderSource(ShaderType type);
+		RNAPI const std::string& GetShaderSource(ShaderType type);
 		
 	private:
 		struct DebugMarker
@@ -154,7 +153,7 @@ namespace RN
 			{
 				line   = tline;
 				offset = toffset;
-				file   = tfile->Name() + "." + tfile->Extension();
+				file   = tfile->GetName() + "." + tfile->GetExtension();
 			}
 			
 			DebugMarker(uint32 tline, uint32 toffset, const std::string& tfile)

@@ -13,42 +13,44 @@
 
 namespace RN
 {
-	typedef enum
-	{
-		InterpolationTypeLinear,
-		InterpolationTypeQuadraticEaseIn,
-		InterpolationTypeQuadraticEaseOut,
-		InterpolationTypeQuadraticEaseInOut,
-		InterpolationTypeSinusoidalEaseIn,
-		InterpolationTypeSinusoidalEaseOut,
-		InterpolationTypeSinusoidalEaseInOut,
-		InterpolationTypeExponentialEaseIn,
-		InterpolationTypeExponentialEaseOut,
-		InterpolationTypeExponentialEaseInOut,
-		InterpolationTypeCircularEaseIn,
-		InterpolationTypeCircularEaseOut,
-		InterpolationTypeCircularEaseInOut,
-		InterpolationTypeCubicEaseIn,
-		InterpolationTypeCubicEaseOut,
-		InterpolationTypeCubicEaseInOut,
-		InterpolationTypeQuarticEaseIn,
-		InterpolationTypeQuarticEaseOut,
-		InterpolationTypeQuarticEaseInOut,
-		InterpolationTypeQuinticEaseIn,
-		InterpolationTypeQuinticEaseOut,
-		InterpolationTypeQuinticEaseInOut
-	} InterpolationType;
+	
 	
 	template <typename T, typename TimeType=float>
 	class Interpolator
 	{
 	public:
-		Interpolator(InterpolationType type=InterpolationTypeLinear)
+		enum class Type
+		{
+			Linear,
+			QuadraticEaseIn,
+			QuadraticEaseOut,
+			QuadraticEaseInOut,
+			SinusoidalEaseIn,
+			SinusoidalEaseOut,
+			SinusoidalEaseInOut,
+			ExponentialEaseIn,
+			ExponentialEaseOut,
+			ExponentialEaseInOut,
+			CircularEaseIn,
+			CircularEaseOut,
+			CircularEaseInOut,
+			CubicEaseIn,
+			CubicEaseOut,
+			CubicEaseInOut,
+			QuarticEaseIn,
+			QuarticEaseOut,
+			QuarticEaseInOut,
+			QuinticEaseIn,
+			QuinticEaseOut,
+			QuinticEaseInOut
+		};
+		
+		Interpolator(Type type = Type::Linear)
 		{
 			_type = type;
 		}
 		
-		Interpolator(T start, T end, TimeType duration, InterpolationType type=InterpolationTypeLinear)
+		Interpolator(T start, T end, TimeType duration, Type type = Type::Linear)
 		{
 			_startValue = start;
 			_endValue   = end;
@@ -82,34 +84,35 @@ namespace RN
 			_duration = duration;
 		}
 		
-		static T ByValueAtPoint(T start, T end, TimeType time, TimeType duration, InterpolationType type=InterpolationTypeLinear)
+		
+		static T GetValueAtPoint(T start, T end, TimeType time, TimeType duration, Type type=Type::Linear)
 		{
 			Interpolator temp(start, end, duration, type);
-			return temp.ByValue(time);
+			return temp.GetValue(time);
 		}
 		
-		T ByValue(TimeType time) const
+		T GetValue(TimeType time) const
 		{
 			switch(_type)
 			{
-				case InterpolationTypeLinear:
+				case Type::Linear:
 					return _startValue + (_difference * time / _duration);
 					break;
 					
 				// Quadratic easing
-				case InterpolationTypeQuadraticEaseIn:
+				case Type::QuadraticEaseIn:
 				{
 					TimeType t = time / _duration;
 					return _startValue + (_difference * t * t);
 				}
 				
-				case InterpolationTypeQuadraticEaseOut:
+				case Type::QuadraticEaseOut:
 				{
 					TimeType t = time / _duration;
 					return _startValue + (-_difference * t * (t - 2.0));
 				}
 					
-				case InterpolationTypeQuadraticEaseInOut:
+				case Type::QuadraticEaseInOut:
 				{
 					TimeType t = time / (_duration / 2.0);
 					if(t < 1.0)
@@ -120,28 +123,28 @@ namespace RN
 				}
 					
 				// Sinusoidal easing
-				case InterpolationTypeSinusoidalEaseIn:
+				case Type::SinusoidalEaseIn:
 					return _startValue + (-_difference * Math::Cos(time / _duration * k::Pi_2) + _difference);
 					break;
 				
-				case InterpolationTypeSinusoidalEaseOut:
+				case Type::SinusoidalEaseOut:
 					return _startValue + (_difference * Math::Sin(time / _duration * k::Pi_2));
 					break;
 					
-				case InterpolationTypeSinusoidalEaseInOut:
+				case Type::SinusoidalEaseInOut:
 					return _startValue + (-_difference / 2.0 * (Math::Cos(k::Pi * time / _duration) - 1.0));
 					break;
 					
 				// Exponential easing
-				case InterpolationTypeExponentialEaseIn:
+				case Type::ExponentialEaseIn:
 					return _startValue + (_difference * pow(2.0, 10 * (time / _duration - 1.0)));
 					break;
 					
-				case InterpolationTypeExponentialEaseOut:
+				case Type::ExponentialEaseOut:
 					return _startValue + (_difference * (-pow(2.0, - 10.0 * time / _duration) + 1.0));
 					break;
 					
-				case InterpolationTypeExponentialEaseInOut:
+				case Type::ExponentialEaseInOut:
 				{
 					TimeType t = time / (_duration / 2.0);
 					if(t < 1.0)
@@ -152,19 +155,19 @@ namespace RN
 				}
 					
 				// Circular easing
-				case InterpolationTypeCircularEaseIn:
+				case Type::CircularEaseIn:
 				{
 					TimeType t = time / _duration;
 					return _startValue + (-_difference * (Math::Sqrt(1.0 - t * t) - 1.0));
 				}
 					
-				case InterpolationTypeCircularEaseOut:
+				case Type::CircularEaseOut:
 				{
 					TimeType t = (time / _duration) - 1.0;
 					return _startValue + (_difference * Math::Sqrt(1.0 - t * t));
 				}
 					
-				case InterpolationTypeCircularEaseInOut:
+				case Type::CircularEaseInOut:
 				{
 					TimeType t = time / (_duration / 2.0);
 					if(t < 1.0)
@@ -175,19 +178,19 @@ namespace RN
 				}
 				
 				// Cubic easing
-				case InterpolationTypeCubicEaseIn:
+				case Type::CubicEaseIn:
 				{
 					TimeType t = time / _duration;
 					return _startValue + (_difference * t * t * t);
 				}
 					
-				case InterpolationTypeCubicEaseOut:
+				case Type::CubicEaseOut:
 				{
 					TimeType t = (time / _duration) - 1.0;
 					return _startValue + (_difference * (t * t * t + 1.0));
 				}
 					
-				case InterpolationTypeCubicEaseInOut:
+				case Type::CubicEaseInOut:
 				{
 					TimeType t = time / (_duration / 2.0);
 					if(t < 1.0)
@@ -198,19 +201,19 @@ namespace RN
 				}
 					
 				// Quartic easing
-				case InterpolationTypeQuarticEaseIn:
+				case Type::QuarticEaseIn:
 				{
 					TimeType t = time / _duration;
 					return _startValue + (_difference * t * t * t * t);
 				}
 					
-				case InterpolationTypeQuarticEaseOut:
+				case Type::QuarticEaseOut:
 				{
 					TimeType t = (time / _duration) - 1.0;
 					return _startValue + (-_difference * (t * t * t * t - 1.0));
 				}
 					
-				case InterpolationTypeQuarticEaseInOut:
+				case Type::QuarticEaseInOut:
 				{
 					TimeType t = time / (_duration / 2.0);
 					if(t < 1.0)
@@ -221,19 +224,19 @@ namespace RN
 				}
 					
 				// Quintic easing
-				case InterpolationTypeQuinticEaseIn:
+				case Type::QuinticEaseIn:
 				{
 					TimeType t = time / _duration;
 					return _startValue + (_difference * t * t * t * t * t);
 				}
 					
-				case InterpolationTypeQuinticEaseOut:
+				case Type::QuinticEaseOut:
 				{
 					TimeType t = (time / _duration) - 1.0;
 					return _startValue + (_difference * (t * t * t * t * t + 1.0));
 				}
 					
-				case InterpolationTypeQuinticEaseInOut:
+				case Type::QuinticEaseInOut:
 				{
 					TimeType t = time / (_duration / 2.0);
 					if(t < 1.0)
@@ -251,23 +254,23 @@ namespace RN
 			_difference = (_endValue - _startValue);
 		}
 		
-		T StartValue() const
+		const T& GetStartValue() const
 		{
 			return _startValue;
 		}
 		
-		T EndValue() const
+		const T& GetEndValue() const
 		{
 			return _endValue;
 		}
 		
-		InterpolationType Type() const
+		Type GetType() const
 		{
 			return _type;
 		}
 		
 	private:
-		InterpolationType _type;
+		Type _type;
 		TimeType _duration;
 		
 		T _startValue;

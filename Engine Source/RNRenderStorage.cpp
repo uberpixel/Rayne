@@ -28,12 +28,12 @@ namespace RN
 		_format      = format;
 		
 		_fixedScaleFactor = (scaleFactor > 0.0f);
-		_scaleFactor = _fixedScaleFactor ? scaleFactor : Kernel::SharedInstance()->GetActiveScaleFactor();
+		_scaleFactor = _fixedScaleFactor ? scaleFactor : Kernel::GetSharedInstance()->GetActiveScaleFactor();
 		
 		glGenFramebuffers(1, &_framebuffer);
 		
-		MessageCenter::SharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](RN::Message *message) {
-			_scaleFactor = Kernel::SharedInstance()->GetActiveScaleFactor();
+		MessageCenter::GetSharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](Message *message) {
+			_scaleFactor = Kernel::GetSharedInstance()->GetActiveScaleFactor();
 			_sizeChanged = true;
 		}, this);
 	}
@@ -56,7 +56,7 @@ namespace RN
 		if(_depthTexture)
 			_depthTexture->Release();
 		
-		MessageCenter::SharedInstance()->RemoveObserver(this);
+		MessageCenter::GetSharedInstance()->RemoveObserver(this);
 	}
 	
 	
@@ -74,7 +74,7 @@ namespace RN
 	{
 		RN_ASSERT(_format & BufferFormatColor, "Need a color buffer to change render targets");
 		
-		TextureParameter parameter = target->Parameter();
+		TextureParameter parameter = target->GetParameter();
 		
 		parameter.filter = TextureParameter::Filter::Nearest;
 		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
@@ -99,10 +99,10 @@ namespace RN
 	{
 		RN_ASSERT(_format & BufferFormatColor, "Need a color buffer to change render targets");
 		
-		if(_renderTargets->Count() >= MaxRenderTargets())
+		if(_renderTargets->GetCount() >= GetMaxRenderTargets())
 			throw Exception(Exception::Type::InconsistencyException, "Can't attach any more render targets to the render storage!");
 		
-		TextureParameter parameter = target->Parameter();
+		TextureParameter parameter = target->GetParameter();
 		
 		parameter.filter = TextureParameter::Filter::Linear;
 		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
@@ -179,7 +179,7 @@ namespace RN
 	
 	void RenderStorage::Bind()
 	{
-		Thread *thread = Thread::CurrentThread();
+		Thread *thread = Thread::GetCurrentThread();
 		if(thread->SetOpenGLBinding(GL_FRAMEBUFFER, _framebuffer) == 1)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
@@ -188,7 +188,7 @@ namespace RN
 	
 	void RenderStorage::Unbind()
 	{
-		Thread *thread = Thread::CurrentThread();
+		Thread *thread = Thread::GetCurrentThread();
 		thread->SetOpenGLBinding(GL_FRAMEBUFFER, 0);
 	}
 	
@@ -326,42 +326,42 @@ namespace RN
 			{
 				if(_format & BufferFormatDepth)
 				{
-					switch(_depthTexture->GLType())
+					switch(_depthTexture->GetGLType())
 					{
 						case GL_TEXTURE_2D_ARRAY:
 							if(_depthLayer != -1)
 							{
-								glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->Name(), 0, _depthLayer);
+								glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0, _depthLayer);
 							}
 							else
 							{
-								glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->Name(), 0);
+								glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
 							}
 							break;
 							
 						case GL_TEXTURE_2D:
-							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->Name(), 0);
+							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->GetName(), 0);
 							break;
 					}
 				}
 				
 				if(_format & BufferFormatStencil)
 				{
-					switch(_depthTexture->GLType())
+					switch(_depthTexture->GetGLType())
 					{
 						case GL_TEXTURE_2D_ARRAY:
 							if(_depthLayer != -1)
 							{
-								glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->Name(), 0, _depthLayer);
+								glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0, _depthLayer);
 							}
 							else
 							{
-								glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->Name(), 0);
+								glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
 							}
 							break;
 							
 						case GL_TEXTURE_2D:
-							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->Name(), 0);
+							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->GetName(), 0);
 							break;
 					}
 				}
@@ -374,22 +374,22 @@ namespace RN
 		if(_renderTargetsChanged && (_format & BufferFormatColor))
 		{
 			// Unbind no longer used render targets
-			for(size_t i=_renderTargets->Count(); i<_boundRenderTargets; i++)
+			for(size_t i=_renderTargets->GetCount(); i<_boundRenderTargets; i++)
 			{
 				GLenum attachment = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, 0, 0);
 			}
 			
 			// Bind all render targetst to the framebuffer
-			for(size_t i=0; i<_renderTargets->Count(); i++)
+			for(size_t i=0; i<_renderTargets->GetCount(); i++)
 			{
-				Texture *texture = _renderTargets->ObjectAtIndex<Texture>(i);
+				Texture *texture = _renderTargets->GetObjectAtIndex<Texture>(i);
 				GLenum attachment = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
 				
-				glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->Name(), 0);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->GetName(), 0);
 			}
 			
-			_boundRenderTargets = (uint32)_renderTargets->Count();
+			_boundRenderTargets = (uint32)_renderTargets->GetCount();
 			_renderTargetsChanged = false;
 			
 			UpdateDrawBuffers(_boundRenderTargets);
@@ -401,9 +401,9 @@ namespace RN
 			uint32 width  = (uint32)ceil(_size.x  * _scaleFactor);
 			uint32 height = (uint32)ceil(_size.y * _scaleFactor);
 			
-			for(size_t i=0; i<_renderTargets->Count(); i++)
+			for(size_t i=0; i<_renderTargets->GetCount(); i++)
 			{
-				Texture *texture = _renderTargets->ObjectAtIndex<Texture>(i);
+				Texture *texture = _renderTargets->GetObjectAtIndex<Texture>(i);
 				
 				texture->Bind();
 				texture->SetData(0, width, height, TextureParameter::Format::RGBA8888);
@@ -429,7 +429,7 @@ namespace RN
 		}
 	}
 	
-	uint32 RenderStorage::MaxRenderTargets()
+	uint32 RenderStorage::GetMaxRenderTargets()
 	{
 #if GL_MAX_COLOR_ATTACHMENTS
 		static GLint maxDrawbuffers = 0;

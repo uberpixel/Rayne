@@ -27,7 +27,7 @@ namespace RN
 		RNAPI Object *Autorelease();
 		
 		RNAPI virtual bool IsEqual(Object *other) const;
-		RNAPI virtual machine_hash Hash() const;
+		RNAPI virtual machine_hash GetHash() const;
 		RNAPI bool IsKindOfClass(MetaClassBase *other) const;
 		RNAPI bool IsMemberOfClass(MetaClassBase *other) const;
 		
@@ -68,7 +68,7 @@ namespace RN
 		
 		void SetAssociatedObject(const void *key, Object *value, MemoryPolicy policy);
 		void RemoveAssociatedOject(const void *key);
-		Object *AssociatedObject(const void *key);
+		Object *GetAssociatedObject(const void *key);
 		
 	protected:
 		virtual void CleanUp();
@@ -163,7 +163,7 @@ namespace std
 	{
 		size_t operator()(const RN::Object *object) const
 		{
-			return static_cast<size_t>(object->Hash());
+			return static_cast<size_t>(object->GetHash());
 		}
 	};
 	

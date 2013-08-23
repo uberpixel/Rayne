@@ -35,15 +35,14 @@ namespace RN
 		RNAPI void SetSkeleton(class Skeleton *skeleton);
 		
 		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction);
-		
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
 		
-		Model *Model() const { return _model; }
-		Skeleton *Skeleton() const { return _skeleton; }
+		Model *GetModel() const { return _model; }
+		Skeleton *GetSkeleton() const { return _skeleton; }
 
 	private:
-		class Model *_model;
-		class Skeleton *_skeleton;
+		Model *_model;
+		Skeleton *_skeleton;
 		
 		bool _ignoreDrawing;
 		

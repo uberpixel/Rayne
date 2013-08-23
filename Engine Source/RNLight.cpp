@@ -18,7 +18,7 @@ namespace RN
 	Light::Light(Type lighttype) :
 		_lightType(lighttype)
 	{
-		_color = RN::Color(1.0f, 1.0f, 1.0f);
+		_color = Color(1.0f, 1.0f, 1.0f);
 		_range = 1.0f;
 		_angle = 0.5f;
 		_intensity = 10.0f;
@@ -43,7 +43,7 @@ namespace RN
 	
 	bool Light::IsVisibleInCamera(Camera *camera)
 	{
-		if(_lightType == TypeDirectionalLight)
+		if(_lightType == Type::DirectionalLight)
 			return true;
 		
 		return SceneNode::IsVisibleInCamera(camera);
@@ -98,7 +98,7 @@ namespace RN
 	
 	void Light::ActivateSunShadows(bool shadow, float resolution, int splits, float distfac, float biasfac, float biasunits)
 	{
-		if(_lightType != TypeDirectionalLight)
+		if(_lightType != Type::DirectionalLight)
 			return;
 		
 		if(_shadow == shadow)
@@ -125,7 +125,7 @@ namespace RN
 			depthtex->SetDepth(splits);
 			depthtex->Autorelease();
 			
-			Shader   *depthShader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyShadowDepthShader);
+			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyShadowDepthShader);
 			Material *depthMaterial = new Material(depthShader);
 			depthMaterial->polygonOffset = true;
 			depthMaterial->polygonOffsetFactor = biasfac;
@@ -155,17 +155,17 @@ namespace RN
 	{
 		if(_shadow && _lightcam)
 		{
-			if(_lightcam->LastFrame() != frame)
+			if(_lightcam->GetLastFrame() != frame)
 				return false;
 			
-			if(_shadowcam && _shadowcam->LastFrame() != frame)
+			if(_shadowcam && _shadowcam->GetLastFrame() != frame)
 				return false;
 			
 			for(int i = 0; i < _shadowSplits; i++)
 			{
-				Camera *tempcam = _shadowcams.ObjectAtIndex<Camera>(i);
+				Camera *tempcam = _shadowcams.GetObjectAtIndex<Camera>(i);
 				
-				if(tempcam->LastFrame() != frame)
+				if(tempcam->GetLastFrame() != frame)
 					return false;
 			}
 			
@@ -185,7 +185,7 @@ namespace RN
 			float far;
 			
 			if(_shadowcam)
-				_shadowcam->SetRotation(Rotation());
+				_shadowcam->SetRotation(GetRotation());
 			
 			_shadowmats.clear();
 			
@@ -201,8 +201,8 @@ namespace RN
 				}
 				else
 				{
-					Camera *tempcam = _shadowcams.ObjectAtIndex<Camera>(i);
-					tempcam->SetRotation(Rotation());
+					Camera *tempcam = _shadowcams.GetObjectAtIndex<Camera>(i);
+					tempcam->SetRotation(GetRotation());
 					
 					_shadowmats.push_back(std::move(tempcam->MakeShadowSplit(_lightcam, this, near, far)));
 				}

@@ -27,8 +27,6 @@ namespace RN
 		Sphere operator* (const Vector3& other) const;
 		Sphere& operator*= (const Vector3& other);
 		
-		RN_INLINE Vector3 Position() const { return position + offset; }
-		
 		void Rotate(const Quaternion& rotation);
 		
 		Hit CastRay(const Vector3 &position, const Vector3 &direction) const;
@@ -56,7 +54,7 @@ namespace RN
 	RN_INLINE Sphere::Sphere(const AABB& aabb) :
 		offset(aabb.maxExtend*0.5+aabb.minExtend*0.5),
 		offsetBase(aabb.maxExtend*0.5+aabb.minExtend*0.5),
-		radius(((aabb.maxExtend-aabb.minExtend)*0.5).Length())
+		radius(((aabb.maxExtend-aabb.minExtend)*0.5).GetLength())
 	{
 	}
 	
@@ -160,9 +158,9 @@ namespace RN
 		}
 	}
 	
-	RN_INLINE bool Sphere::IntersectsRay(const Vector3 &position, const Vector3 &direction) const
+	RN_INLINE bool Sphere::IntersectsRay(const Vector3 &tposition, const Vector3 &direction) const
 	{
-				float dist = direction.Cross(position-Position()).Length()/direction.Length();
+				float dist = direction.Cross(tposition - position).GetLength()/direction.GetLength();
 		 
 		 return (dist <= radius);
 	}

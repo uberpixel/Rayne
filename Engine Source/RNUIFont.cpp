@@ -54,7 +54,7 @@ namespace RN
 			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
 			parameter.filter   = TextureParameter::Filter::Nearest;
 			
-			_scale = Kernel::SharedInstance()->ScaleFactor();
+			_scale = Kernel::GetSharedInstance()->GetScaleFactor();
 			_texture = new TextureAtlas(4096 * _scale, 4096 * _scale, true, parameter);
 			
 			_finternals = 0;
@@ -328,10 +328,10 @@ namespace RN
 			glyph._offset_x = slot->bitmap_left / _scale;
 			glyph._offset_y = slot->bitmap_top  / _scale;
 			
-			glyph._u0 = rect.x / _texture->Width();
-			glyph._v0 = rect.y / _texture->Height();
-			glyph._u1 = (rect.x + rect.width) / _texture->Width();
-			glyph._v1 = (rect.y + rect.height) / _texture->Height();
+			glyph._u0 = rect.x / _texture->GetWidth();
+			glyph._v0 = rect.y / _texture->GetHeight();
+			glyph._u1 = (rect.x + rect.width) / _texture->GetWidth();
+			glyph._v1 = (rect.y + rect.height) / _texture->GetHeight();
 			
 			FT_Load_Glyph(_internals->face, glyphIndex, FT_LOAD_RENDER | FT_LOAD_NO_HINTING);
 			slot = _internals->face->glyph;
@@ -373,9 +373,9 @@ namespace RN
 			
 			bool addedGlyphs = false;
 			
-			for(uint32 i=0; i<string->Length(); i++)
+			for(uint32 i=0; i<string->GetLength(); i++)
 			{
-				UniChar character = string->CharacterAtIndex(i);
+				UniChar character = string->GetCharacterAtIndex(i);
 				
 				if(CodePoint(character).IsNewline())
 					continue;

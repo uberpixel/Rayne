@@ -32,73 +32,73 @@
 
 - (BOOL)windowShouldClose:(id)sender
 {
-	RN::Kernel::SharedInstance()->Exit();
+	RN::Kernel::GetSharedInstance()->Exit();
 	return NO;
 }
 
 - (void)keyDown:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)keyUp:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)mouseMoved:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)mouseDown:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)rightMouseDown:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)otherMouseDown:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)rightMouseDragged:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)otherMouseDragged:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)mouseUp:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)rightMouseUp:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)otherMouseUp:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 - (void)scrollWheel:(NSEvent *)theEvent
 {
-	RN::Input::SharedInstance()->HandleEvent(theEvent);
+	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
 }
 
 
@@ -115,7 +115,7 @@
 
 - (void)windowDidBecomeKey:(NSNotification *)notification
 {
-	RN::Input::SharedInstance()->InvalidateMouse();
+	RN::Input::GetSharedInstance()->InvalidateMouse();
 }
 
 
@@ -202,7 +202,7 @@
 		temp.location = RN::Vector2(location.x, location.y);
 		temp.previousLocation = RN::Vector2();
 
-		RN::Input::SharedInstance()->HandleTouchEvent(temp);
+		RN::Input::GetSharedInstance()->HandleTouchEvent(temp);
 	}
 }
 
@@ -218,7 +218,7 @@
 		temp.location = RN::Vector2(location.x, location.y);
 		temp.previousLocation = RN::Vector2(prevLocation.x, prevLocation.y);
 
-		RN::Input::SharedInstance()->HandleTouchEvent(temp);
+		RN::Input::GetSharedInstance()->HandleTouchEvent(temp);
 	}
 }
 
@@ -234,7 +234,7 @@
 		temp.location = RN::Vector2(location.x, location.y);
 		temp.previousLocation = RN::Vector2(prevLocation.x, prevLocation.y);
 
-		RN::Input::SharedInstance()->HandleTouchEvent(temp);
+		RN::Input::GetSharedInstance()->HandleTouchEvent(temp);
 	}
 }
 
@@ -250,7 +250,7 @@
 		temp.location = RN::Vector2(location.x, location.y);
 		temp.previousLocation = RN::Vector2(prevLocation.x, prevLocation.y);
 
-		RN::Input::SharedInstance()->HandleTouchEvent(temp);
+		RN::Input::GetSharedInstance()->HandleTouchEvent(temp);
 	}
 }
 
@@ -288,7 +288,7 @@
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH,  &_backingWidth);
 	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &_backingHeight);
 
-	float scaleFactor = RN::Kernel::SharedInstance()->ScaleFactor();
+	float scaleFactor = RN::Kernel::GetSharedInstance()->ScaleFactor();
 
 	_backingWidth  /= scaleFactor;
 	_backingHeight /= scaleFactor;
@@ -314,7 +314,7 @@
 
 		_renderLayer = (CAEAGLLayer *)[self layer];
 
-		[_renderLayer setContentsScale:RN::Kernel::SharedInstance()->ScaleFactor()];
+		[_renderLayer setContentsScale:RN::Kernel::GetSharedInstance()->ScaleFactor()];
 		[_renderLayer setDrawableProperties:properties];
 		[_renderLayer setOpaque:YES];
 	}
@@ -389,7 +389,7 @@ namespace RN
 		_width  = width;
 		_height = height;
 		
-		_screen = screen ? screen : Window::SharedInstance()->GetMainScreen();
+		_screen = screen ? screen : Window::GetSharedInstance()->GetMainScreen();
 	}
 	
 	
@@ -437,7 +437,7 @@ namespace RN
 		if(!thisScreen)
 			throw Exception(Exception::Type::InconsistencyException, "Couldn't find NSScreen matching CGDirectDisplayID");
 		
-		_scaleFactor = Kernel::SharedInstance()->ScaleFactor();
+		_scaleFactor = Kernel::GetSharedInstance()->GetScaleFactor();
 		_scaleFactor = std::min(_scaleFactor, static_cast<float>([thisScreen backingScaleFactor]));
 		
 		// Enumerate through all supported modes
@@ -497,8 +497,8 @@ namespace RN
 	
 	Window::Window()
 	{
-		_kernel  = Kernel::SharedInstance();
-		_context = _kernel->Context();
+		_kernel  = Kernel::GetSharedInstance();
+		_context = _kernel->GetContext();
 		
 		_mask = 0;
 		_cursorVisible = true;
@@ -569,7 +569,7 @@ namespace RN
 #endif
 		
 		SetTitle("");
-		SetConfiguration(_mainScreen->GetConfigurations().ObjectAtIndex<WindowConfiguration>(0), _mask);
+		SetConfiguration(_mainScreen->GetConfigurations().GetObjectAtIndex<WindowConfiguration>(0), _mask);
 	}
 
 	Window::~Window()
@@ -609,7 +609,7 @@ namespace RN
 			return;
 		
 		WindowConfiguration *configuration = const_cast<WindowConfiguration *>(tconfiguration);
-		Renderer *renderer = Renderer::SharedInstance();
+		Renderer *renderer = Renderer::GetSharedInstance();
 		
 		Screen *screen = configuration->GetScreen();
 		
@@ -719,16 +719,16 @@ namespace RN
 		
 		SetTitle(_title);
 		
-		MessageCenter::SharedInstance()->PostMessage(kRNWindowConfigurationChanged, nullptr, nullptr);
+		MessageCenter::GetSharedInstance()->PostMessage(kRNWindowConfigurationChanged, nullptr, nullptr);
 		
 		if(screenChanged)
-			MessageCenter::SharedInstance()->PostMessage(kRNWindowScreenChanged, nullptr, nullptr);
+			MessageCenter::GetSharedInstance()->PostMessage(kRNWindowScreenChanged, nullptr, nullptr);
 		
 		if(scaleChanged)
-			MessageCenter::SharedInstance()->PostMessage(kRNWindowScaleFactorChanged, nullptr, nullptr);
+			MessageCenter::GetSharedInstance()->PostMessage(kRNWindowScaleFactorChanged, nullptr, nullptr);
 	}
 
-	Rect Window::Frame() const
+	Rect Window::GetFrame() const
 	{
 		return Rect(0, 0, _activeConfiguration->GetWidth(), _activeConfiguration->GetHeight());
 	}
@@ -815,7 +815,7 @@ LRESULT CALLBACK RNWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam
 		case WM_DESTROY:
 			if(window)
 			{
-				RN::Kernel::SharedInstance()->Exit();
+				RN::Kernel::GetSharedInstance()->Exit();
 			}
 			break;
 

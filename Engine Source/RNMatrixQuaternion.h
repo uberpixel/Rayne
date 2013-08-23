@@ -44,8 +44,8 @@ namespace RN
 		RNAPI void MakeProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
 		RNAPI void MakeInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
 
-		RNAPI float Determinant() const;
-		RNAPI float DeterminantSubmatrix(const int k) const;
+		RNAPI float GetDeterminant() const;
+		RNAPI float GetDeterminantSubmatrix(const int k) const;
 		
 		RNAPI void SetTranslation(const Vector3& other);
 		RNAPI void SetTranslation(const Vector4& other);
@@ -65,7 +65,7 @@ namespace RN
 		RNAPI Vector3 Transform(const Vector3& other) const;
 		RNAPI Vector4 Transform(const Vector4& other) const;
 
-		RNAPI Matrix Inverse() const;
+		RNAPI Matrix GetInverse() const;
 	
 #if RN_SIMD
 		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
@@ -136,12 +136,12 @@ namespace RN
 		RNAPI Vector3 RotateVector(const Vector3& vec) const;
 		RNAPI Vector4 RotateVector(const Vector4& vec) const;
 
-		RNAPI Matrix RotationMatrix() const;
+		RNAPI Matrix GetRotationMatrix() const;
 
-		RNAPI Vector3 EulerAngle() const;
-		RNAPI Vector4 AxisAngle() const;
+		RNAPI Vector3 GetEulerAngle() const;
+		RNAPI Vector4 GetAxisAngle() const;
 
-		RNAPI float Length() const;
+		RNAPI float GetLength() const;
 		RNAPI float Dot(const Quaternion& other) const;
 
 		struct

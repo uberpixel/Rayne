@@ -87,7 +87,7 @@ namespace RN
 	
 	Dictionary::Bucket *Dictionary::FindBucket(Object *key, bool createIfNeeded)
 	{
-		machine_hash hash = key->Hash();
+		machine_hash hash = key->GetHash();
 		size_t index = hash % _capacity;
 		
 		Bucket *bucket = _buckets[index];
@@ -150,7 +150,7 @@ namespace RN
 				
 				if(bucket->key)
 				{
-					machine_hash hash = bucket->key->Hash();
+					machine_hash hash = bucket->key->GetHash();
 					size_t index = hash % _capacity;
 					
 					bucket->next = _buckets[index];
@@ -219,7 +219,7 @@ namespace RN
 	}
 	
 	
-	Array *Dictionary::AllObjects() const
+	Array *Dictionary::GetAllObjects() const
 	{
 		Array *array = new Array(_count);
 		
@@ -238,7 +238,7 @@ namespace RN
 		return array->Autorelease();
 	}
 	
-	Array *Dictionary::AllKeys() const
+	Array *Dictionary::GetAllKeys() const
 	{
 		Array *array = new Array(_count);
 		

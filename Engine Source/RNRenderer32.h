@@ -21,8 +21,7 @@ namespace RN
 		RNAPI ~Renderer32() override;
 		
 		RNAPI void SetMaxLightFastPathCount(uint32 maxLights);
-		
-		uint32 MaxLightFastPathCount() const { return _maxLightFastPath; }
+		uint32 GetMaxLightFastPathCount() const { return _maxLightFastPath; }
 	
 	protected:
 		RNAPI void AllocateLightBufferStorage(size_t indicesSize, size_t offsetSize);

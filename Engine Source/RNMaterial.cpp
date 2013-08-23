@@ -170,7 +170,7 @@ namespace RN
 		Initialize();
 	}
 	
-	Material::Material(RN::Shader *shader) :
+	Material::Material(Shader *shader) :
 		_lookup(0)
 	{
 		_shader = shader ? shader->Retain() : 0;
@@ -216,7 +216,7 @@ namespace RN
 	
 	
 	
-	void Material::SetShader(RN::Shader *shader)
+	void Material::SetShader(Shader *shader)
 	{
 		if(_shader)
 			_shader->Release();
@@ -253,7 +253,7 @@ namespace RN
 		}
 	}
 	
-	Shader *Material::Shader() const
+	Shader *Material::GetShader() const
 	{
 		return _shader;
 	}

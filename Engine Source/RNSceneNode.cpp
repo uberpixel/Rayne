@@ -31,7 +31,7 @@ namespace RN
 		_position(position),
 		_scale(Vector3(1.0f)),
 		_rotation(rotation),
-		_euler(rotation.EulerAngle())
+		_euler(rotation.GetEulerAngle())
 	{
 		Initialize();
 	}
@@ -41,8 +41,8 @@ namespace RN
 	
 	void SceneNode::Initialize()
 	{
-		_parent = 0;
-		_world  = 0;
+		_parent = nullptr;
+		_world  = nullptr;
 		_lastFrame = 0;
 		
 		_priority = Priority::UpdateDontCare;
@@ -52,8 +52,8 @@ namespace RN
 		SetBoundingBox(AABB(Vector3(-1.0f), Vector3(1.0f)));
 		DidUpdate();
 		
-		if(World::SharedInstance())
-			World::SharedInstance()->AddSceneNode(this);
+		if(World::GetSharedInstance())
+			World::GetSharedInstance()->AddSceneNode(this);
 	}
 	
 	void SceneNode::CleanUp()
@@ -119,21 +119,21 @@ namespace RN
 			WillRemoveChild(child);
 			_childs.RemoveObject(child);
 			
-			child->_parent = 0;
+			child->_parent = nullptr;
 			child->DidUpdate();
 		}
 	}
 	
 	void SceneNode::DetachAllChilds()
 	{
-		size_t count = _childs.Count();
+		size_t count = _childs.GetCount();
 		
 		for(size_t i=0; i<count; i++)
 		{
-			SceneNode *child = _childs.ObjectAtIndex<SceneNode>(i);
+			SceneNode *child = _childs.GetObjectAtIndex<SceneNode>(i);
 			WillRemoveChild(child);
 			
-			child->_parent = 0;
+			child->_parent = nullptr;
 			child->DidUpdate();
 		}
 		
@@ -165,7 +165,7 @@ namespace RN
 	Hit SceneNode::CastRay(const Vector3 &position, const Vector3 &direction)
 	{
 		Hit hit;
-		hit = BoundingSphere().CastRay(position, direction);
+		hit = GetBoundingSphere().CastRay(position, direction);
 		if(hit.distance > 0.0f)
 		{
 			hit.node = this;

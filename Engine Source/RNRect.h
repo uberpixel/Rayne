@@ -34,10 +34,10 @@ namespace RN
 		RNAPI Rect& Integral();
 		RNAPI Rect Integral() const;
 		
-		RNAPI float Top() const;
-		RNAPI float Bottom() const;
-		RNAPI float Left() const;
-		RNAPI float Right() const;
+		RNAPI float GetTop() const;
+		RNAPI float GetBottom() const;
+		RNAPI float GetLeft() const;
+		RNAPI float GetRight() const;
 		
 		RNAPI Vector2 Origin() const
 		{
@@ -172,22 +172,23 @@ namespace RN
 	}
 	
 	
-	RN_INLINE float Rect::Top() const
-	{
-		return y + height;
-	}
 	
-	RN_INLINE float Rect::Bottom() const
+	RN_INLINE float Rect::GetTop() const
 	{
 		return y;
 	}
 	
-	RN_INLINE float Rect::Left() const
+	RN_INLINE float Rect::GetBottom() const
+	{
+		return y + height;
+	}
+	
+	RN_INLINE float Rect::GetLeft() const
 	{
 		return x;
 	}
 	
-	RN_INLINE float Rect::Right() const
+	RN_INLINE float Rect::GetRight() const
 	{
 		return x + width;
 	}

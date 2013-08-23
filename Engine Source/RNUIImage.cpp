@@ -69,9 +69,9 @@ namespace RN
 			Mesh *mesh = new Mesh(descriptors);
 			mesh->SetMode(GL_TRIANGLES);
 			
-			Vector2 *vertices = mesh->Element<Vector2>(kMeshFeatureVertices);
-			Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
-			uint16 *indices = mesh->Element<uint16>(kMeshFeatureIndices);
+			Vector2 *vertices = mesh->GetElement<Vector2>(kMeshFeatureVertices);
+			Vector2 *uvCoords = mesh->GetElement<Vector2>(kMeshFeatureUVSet0);
+			uint16 *indices = mesh->GetElement<uint16>(kMeshFeatureIndices);
 			
 			for(uint16 x = 0; x < xverts; x++)
 			{
@@ -170,8 +170,8 @@ namespace RN
 			
 			if(!normalized)
 			{
-				uint32 width = _texture->Width();
-				uint32 height = _texture->Height();
+				uint32 width = _texture->GetWidth();
+				uint32 height = _texture->GetHeight();
 				
 				_atlas.u1 /= width;
 				_atlas.u2 /= width;
@@ -188,7 +188,7 @@ namespace RN
 		
 		uint32 Image::Width() const
 		{
-			uint32 width = _texture->Width();
+			uint32 width = _texture->GetWidth();
 			float nwidth  = _atlas.u2 - _atlas.u1;
 			
 			width = nwidth * width;
@@ -197,7 +197,7 @@ namespace RN
 		
 		uint32 Image::Height() const
 		{
-			uint32 height = _texture->Height();
+			uint32 height = _texture->GetHeight();
 			float nheight = _atlas.v2 - _atlas.v1;
 				
 			height = nheight * height;

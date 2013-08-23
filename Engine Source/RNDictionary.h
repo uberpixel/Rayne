@@ -25,7 +25,7 @@ namespace RN
 		RNAPI bool IsEqual(Object *other) const override;
 		
 		template<typename T=Object>
-		T *ObjectForKey(Object *key)
+		T *GetObjectForKey(Object *key)
 		{
 			Object *object = PrimitiveObjectForKey(key);
 			if(object)
@@ -39,10 +39,10 @@ namespace RN
 		
 		RNAPI void Enumerate(const std::function<void (Object *object, Object *key, bool *stop)>& callback);
 		
-		RNAPI Array *AllObjects() const;
-		RNAPI Array *AllKeys() const;
+		RNAPI Array *GetAllObjects() const;
+		RNAPI Array *GetAllKeys() const;
 		
-		size_t Count() const { return _count; }
+		size_t GetCount() const { return _count; }
 		
 	private:
 		struct Bucket
@@ -65,7 +65,6 @@ namespace RN
 		void Initialize(size_t primitive);
 		
 		Bucket *FindBucket(Object *key, bool createIfNeeded);
-		
 		Object *PrimitiveObjectForKey(Object *key);
 		
 		void GrowIfPossible();

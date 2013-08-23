@@ -49,7 +49,7 @@ namespace RN
 	Data::Data(const std::string& name)
 	{
 		File *file = new File(name, File::FileMode::Read);
-		size_t length = file->Size();
+		size_t length = file->GetSize();
 		
 		Initialize(nullptr, length);
 		file->ReadIntoBuffer(_bytes, length);
@@ -150,7 +150,8 @@ namespace RN
 		file->Release();
 	}
 	
-	Data *Data::DataInRange(Range range) const
+	
+	Data *Data::GetDataInRange(Range range) const
 	{
 		if(range.origin + range.length > _length)
 			throw Exception(Exception::Type::RangeException, "range is not within the datas bounds!");
@@ -162,7 +163,7 @@ namespace RN
 		return temp->Autorelease();
 	}
 	
-	void Data::BytesInRange(void *buffer, Range range) const
+	void Data::GetBytesInRange(void *buffer, Range range) const
 	{
 		if(range.origin + range.length > _length)
 			throw Exception(Exception::Type::RangeException, "range is not within the datas bounds!");

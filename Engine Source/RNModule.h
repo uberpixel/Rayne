@@ -51,12 +51,12 @@ namespace RN
 		RNAPI void Unload();
 		bool IsLoaded() const { return (_handle != 0); }
 		
-		uint32 Type() const { return _exports.type; }
+		uint32 GetType() const { return _exports.type; }
 		
-		const std::string& Name() const { return _name; }
-		const std::string& Path() const { return _path; }
+		const std::string& GetName() const { return _name; }
+		const std::string& GetPath() const { return _path; }
 		
-		RNAPI void *FunctionAddress(const std::string& name);
+		RNAPI void *GetFunctionAddress(const std::string& name);
 		
 	private:
 		void *_handle;
@@ -76,7 +76,7 @@ namespace RN
 		ModuleCoordinator();
 		~ModuleCoordinator() override;
 		
-		Module *ModuleWithName(const std::string& name);
+		Module *GetModuleWithName(const std::string& name);
 		
 	private:
 		std::vector<Module *> _modules;

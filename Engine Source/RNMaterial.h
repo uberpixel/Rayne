@@ -119,7 +119,7 @@ namespace RN
 		RNAPI void SetShader(Shader *shader);
 		RNAPI void SetBlendMode(BlendMode mode);
 		
-		RNAPI Shader *Shader() const;
+		RNAPI Shader *GetShader() const;
 		RNAPI void ApplyUniforms(ShaderProgram *program);
 		
 		RNAPI void AddTexture(Texture *texture);
@@ -132,8 +132,8 @@ namespace RN
 		RNAPI void Define(const std::string& define, float value);
 		RNAPI void Undefine(const std::string& define);
 		
-		RNAPI const Array& Textures() const { return _textures; }
-		RNAPI const ShaderLookup& Lookup() const { return _lookup; }
+		RNAPI const Array& GetTextures() const { return _textures; }
+		RNAPI const ShaderLookup& GetLookup() const { return _lookup; }
 		
 		template<class ... Args>
 		ShaderUniform *AddShaderUniform(Args&&... args)

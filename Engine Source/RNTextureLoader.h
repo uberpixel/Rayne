@@ -22,11 +22,11 @@ namespace RN
 		RNAPI TextureLoader(const std::string& name);
 		RNAPI ~TextureLoader();
 		
-		uint32 Width() const { return _width; }
-		uint32 Height() const { return _height; }
+		uint32 GetWidth() const { return _width; }
+		uint32 GetHeight() const { return _height; }
 		
-		const void *Data() const { return _data; }
-		TextureParameter::Format Format() const { return _format; }
+		const void *GetData() const { return _data; }
+		TextureParameter::Format GetFormat() const { return _format; }
 		
 	private:
 		bool LoadPNGTexture(FILE *file);

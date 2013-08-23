@@ -13,7 +13,7 @@ namespace TG
 	Application::Application()
 	{
 		_world = 0;
-		RN::Texture::SetDefaultAnisotropyLevel(RN::Texture::MaxAnisotropyLevel());
+		RN::Texture::SetDefaultAnisotropyLevel(RN::Texture::GetMaxAnisotropyLevel());
 		
 		SetTitle("Super Awesome Game");
 	}
@@ -24,12 +24,12 @@ namespace TG
 	
 	void Application::Start()
 	{
-		RN::Window *window = RN::Window::SharedInstance();
-		//RN::UI::DebugWidget *widget = new RN::UI::DebugWidget();
-		//widget->Show();
+		RN::Window *window = RN::Window::GetSharedInstance();
+		RN::UI::DebugWidget *widget = new RN::UI::DebugWidget();
+		widget->Show();
 		
-		auto configs = RN::Window::SharedInstance()->GetMainScreen()->GetConfigurations();
-		window->SetConfiguration(configs.ObjectAtIndex<RN::WindowConfiguration>(configs.Count() - 2), 0);
+		auto configs = RN::Window::GetSharedInstance()->GetMainScreen()->GetConfigurations();
+		window->SetConfiguration(configs.GetObjectAtIndex<RN::WindowConfiguration>(configs.GetCount() - 2), 0);
 			
 		_world = new World();
 	}

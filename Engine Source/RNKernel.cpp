@@ -49,7 +49,7 @@ namespace RN
 		_title(title)
 	{
 		Prepare();
-		LoadApplicationModule(Settings::SharedInstance()->ObjectForKey<String>(kRNSettingsGameModuleKey));
+		LoadApplicationModule(Settings::GetSharedInstance()->GetObjectForKey<String>(kRNSettingsGameModuleKey));
 	}
 	
 	Kernel::Kernel(Application *app) :
@@ -63,7 +63,7 @@ namespace RN
 	{
 		_app->WillExit();
 		
-		ModuleCoordinator *coordinator = ModuleCoordinator::SharedInstance();
+		ModuleCoordinator *coordinator = ModuleCoordinator::GetSharedInstance();
 		
 		delete coordinator;
 		delete _app;
@@ -94,7 +94,7 @@ namespace RN
 		
 #if RN_PLATFORM_INTEL
 		X86_64::GetCPUInfo();
-		X86_64::Capabilities caps = X86_64::Caps();
+		X86_64::Capabilities caps = X86_64::GetCapabilites();
 		
 		if(!(caps & X86_64::CAP_SSE) || !(caps & X86_64::CAP_SSE2))
 			throw Exception(Exception::Type::NoCPUException, "The CPU doesn't support SSE and/or SSE2!");
@@ -102,13 +102,13 @@ namespace RN
 		_mainThread = new Thread();
 		_pool = new AutoreleasePool();
 		
-		Settings::SharedInstance();
-		ThreadCoordinator::SharedInstance();
+		Settings::GetSharedInstance();
+		ThreadCoordinator::GetSharedInstance();
 		
 		_context = gl::Initialize();
 		_window  = nullptr;
 		
-		ResourcePool::SharedInstance();
+		ResourcePool::GetSharedInstance();
 		
 		_scaleFactor = 1.0f;
 #if RN_PLATFORM_IOS
@@ -119,20 +119,20 @@ namespace RN
 			_scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
 #endif
 		
-		_resourceBatch = ThreadPool::SharedInstance()->CreateBatch();
+		_resourceBatch = ThreadPool::GetSharedInstance()->CreateBatch();
 		_resourceBatch->AddTask([] {
 			Debug::InstallDebugDraw();
 		});
 		
-		ResourcePool::SharedInstance()->LoadDefaultResources(_resourceBatch);
+		ResourcePool::GetSharedInstance()->LoadDefaultResources(_resourceBatch);
 		_resourceBatch->Commit();
 		
 		_renderer = new Renderer32();
-		_input    = Input::SharedInstance();
-		_uiserver = UI::Server::SharedInstance();
+		_input    = Input::GetSharedInstance();
+		_uiserver = UI::Server::GetSharedInstance();
 		
 		_world = nullptr;
-		_window = Window::SharedInstance();
+		_window = Window::GetSharedInstance();
 		_frame  = 0;
 		
 		_delta = 0.0f;
@@ -146,13 +146,13 @@ namespace RN
 		_initialized = false;
 		_shouldExit  = false;
 		
-		ModuleCoordinator::SharedInstance();
+		ModuleCoordinator::GetSharedInstance();
 	}	
 
 	void Kernel::LoadApplicationModule(String *module)
 	{
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
-		std::string moduleName = std::string(module->UTF8String());
+		std::string moduleName = std::string(module->GetUTF8String());
 		
 #if RN_PLATFORM_MAC_OS
 		moduleName += ".dylib";
@@ -252,25 +252,25 @@ namespace RN
 		}
 #endif
 		
-		MessageCenter::SharedInstance()->PostMessage(kRNKernelWillBeginFrameMessage, nullptr, nullptr);
+		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelWillBeginFrameMessage, nullptr, nullptr);
 		
 		_frame ++;
 		_renderer->BeginFrame(_delta);
 		_input->DispatchInputEvents();
 		
-		Application::SharedInstance()->GameUpdate(_delta);
+		Application::GetSharedInstance()->GameUpdate(_delta);
 
 		if(_world)
 		{
 			_world->StepWorld(_frame, _delta);
-			Application::SharedInstance()->WorldUpdate(_delta);
+			Application::GetSharedInstance()->WorldUpdate(_delta);
 		}
 		
 		_uiserver->Render(_renderer);
 		_renderer->FinishFrame();
 		_input->InvalidateFrame();
 		
-		MessageCenter::SharedInstance()->PostMessage(kRNKernelDidEndFrameMessage, nullptr, nullptr);
+		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidEndFrameMessage, nullptr, nullptr);
 		
 #if RN_PLATFORM_MAC_OS
 		CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);

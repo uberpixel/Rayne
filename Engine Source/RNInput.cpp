@@ -143,12 +143,12 @@ namespace RN
 	
 	
 	
-	bool Input::KeyPressed(char key) const
+	bool Input::IsKeyPressed(char key) const
 	{
-		return KeyPressed(CodePoint::ConvertCharacter(key));
+		return IsKeyPressed(CodePoint::ConvertCharacter(key));
 	}
 	
-	bool Input::KeyPressed(UniChar key) const
+	bool Input::IsKeyPressed(UniChar key) const
 	{
 		return (_pressedKeys.find(key) != _pressedKeys.end());
 	}
@@ -156,7 +156,7 @@ namespace RN
 	
 	Vector2 Input::ClampMousePosition(const Vector2& position) const
 	{
-		Rect frame = Window::SharedInstance()->Frame();
+		Rect frame = Window::GetSharedInstance()->GetFrame();
 		Vector2 result;
 		
 		result.x = roundf(std::min(frame.width, std::max(0.0f, position.x)));
@@ -186,7 +186,7 @@ namespace RN
 			return;
 		}
 		
-		MessageCenter *messageCenter = MessageCenter::SharedInstance();
+		MessageCenter *messageCenter = MessageCenter::GetSharedInstance();
 		
 		std::vector<Event *> events;
 		std::swap(events, _pendingEvents);
@@ -262,7 +262,7 @@ namespace RN
 					switch(type)
 					{
 						case Event::Type::KeyDown:
-							_pressedKeys.insert(CodePoint(character).LowerCase());
+							_pressedKeys.insert(CodePoint(character).GetLowerCase());
 							break;
 							
 						case Event::Type::KeyUp:
@@ -281,7 +281,7 @@ namespace RN
 								i++;
 							}
 							
-							_pressedKeys.erase(CodePoint(character).LowerCase());
+							_pressedKeys.erase(CodePoint(character).GetLowerCase());
 							break;
 						}
 							

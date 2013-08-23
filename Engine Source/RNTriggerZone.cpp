@@ -17,7 +17,7 @@ namespace RN
 	public:
 		TriggerZoneManager()
 		{
-			World::SharedInstance()->AddAttachment(this);
+			World::GetSharedInstance()->AddAttachment(this);
 		}
 		
 		~TriggerZoneManager()
@@ -54,14 +54,14 @@ namespace RN
 	
 	TriggerZone::TriggerZone()
 	{
-		TriggerZoneManager::SharedInstance()->AddZone(this);
+		TriggerZoneManager::GetSharedInstance()->AddZone(this);
 		
 		_predicate = 0;
 	}
 	
 	TriggerZone::~TriggerZone()
 	{
-		TriggerZoneManager::SharedInstance()->RemoveZone(this);
+		TriggerZoneManager::GetSharedInstance()->RemoveZone(this);
 		
 		for(auto i = _watchedNodes.begin(); i != _watchedNodes.end(); i ++)
 		{
@@ -105,7 +105,7 @@ namespace RN
 	
 	void TriggerZone::ValidateSceneNode(SceneNode *node)
 	{
-		if(BoundingBox().Intersects(node->BoundingBox()))
+		if(GetBoundingBox().Intersects(node->GetBoundingBox()))
 		{
 			if(_trackingNodes.find(node) != _trackingNodes.end())
 			{

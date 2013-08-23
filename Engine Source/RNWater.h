@@ -21,12 +21,10 @@ namespace RN
 	{
 	public:
 		Water(Camera *cam, Texture *refract);
-		virtual ~Water();
+		~Water() override;
 		
 		void SetTexture(Texture *texture);
-		
-		Material *Material() const { return _material; }
-		
+
 		void Update(float delta);
 		
 		virtual bool IsVisibleInCamera(Camera *camera) override;

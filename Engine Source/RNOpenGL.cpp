@@ -169,7 +169,7 @@ namespace RN
 			InitializeSupportedOpenGLVersions();
 			
 			Context *context = new Context(WantedVersion());
-			Version version = context->Version();
+			Version version = context->GetVersion();
 			
 			context->MakeActiveContext();
 			

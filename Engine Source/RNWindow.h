@@ -98,7 +98,7 @@ namespace RN
 		RNAPI void CaptureMouse();
 		RNAPI void ReleaseMouse();
 
-		RNAPI Rect Frame() const;
+		RNAPI Rect GetFrame() const;
 		
 		Screen *GetActiveScreen() const { return _activeScreen; }
 		Screen *GetMainScreen() const { return _mainScreen; }

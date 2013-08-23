@@ -52,10 +52,10 @@ namespace RN
 			static std::once_flag flag;
 			
 			std::call_once(flag, [&]() {
-				defaultFont = ResourcePool::SharedInstance()->ResourceWithName<Font>(kRNResourceKeyDefaultFont);
+				defaultFont = ResourcePool::GetSharedInstance()->GetResourceWithName<Font>(kRNResourceKeyDefaultFont);
 			});
 			
-			Font *font = attributes->ObjectForKey<Font>(kRNTypesetterFontAttribute);
+			Font *font = attributes->GetObjectForKey<Font>(kRNTypesetterFontAttribute);
 			return font ? font : defaultFont;
 		}
 		
@@ -210,8 +210,8 @@ namespace RN
 			
 			Clear();
 			
-			size_t length  = _string->Length();
-			String *string = _string->String();
+			size_t length  = _string->GetLength();
+			String *string = _string->GetString();
 			
 			Range range(0, 0);
 			
@@ -266,7 +266,7 @@ namespace RN
 			
 			for(size_t i=0; i<length; i++)
 			{
-				UniChar character = string->CharacterAtIndex(static_cast<uint32>(i));
+				UniChar character = string->GetCharacterAtIndex(static_cast<uint32>(i));
 				CodePoint point = CodePoint(character);
 				
 				if(point.IsNewline())
@@ -288,7 +288,7 @@ namespace RN
 					continue;
 				}
 				
-				Font *font = FontForAttributes(_string->AttributesAtIndex(i));
+				Font *font = FontForAttributes(_string->GetAttributesAtIndex(i));
 				const Glyph& glyph = font->GlyphForCharacter(character);
 				
 				float width = glyph.AdvanceX();
@@ -387,13 +387,13 @@ namespace RN
 				
 				mergeDict->Enumerate([&](Object *object, Object *key, bool *stop) {
 					Array *mergees  = static_cast<Array *>(object);
-					Mesh *container = meshes->ObjectForKey<Mesh>(key);
+					Mesh *container = meshes->GetObjectForKey<Mesh>(key);
 					
 					bool skipFirstIndex = false;
 					
 					if(!container)
 					{
-						container = mergees->ObjectAtIndex<Mesh>(0);
+						container = mergees->GetObjectAtIndex<Mesh>(0);
 						skipFirstIndex = true;
 						
 						meshes->SetObjectForKey(container, key);
@@ -414,7 +414,7 @@ namespace RN
 			
 			_model = new Model();
 			
-			Shader *shader = ResourcePool::SharedInstance()->ResourceWithName<Shader>(kRNResourceKeyUITextShader);
+			Shader *shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUITextShader);
 			
 			meshes->Enumerate([&](Object *object, Object *key, bool *stop) {
 				Mesh *mesh = static_cast<Mesh *>(object);
@@ -726,7 +726,7 @@ namespace RN
 			if(!_dirty)
 				return;
 			
-			String *string = _string->String();
+			String *string = _string->GetString();
 			Font   *font = nullptr;
 			
 			AutoreleasePool *pool = new AutoreleasePool();
@@ -737,8 +737,8 @@ namespace RN
 			// Create all segments of the line
 			for(size_t i=0; i<_range.length; i++)
 			{
-				UniChar character = string->CharacterAtIndex(static_cast<uint32>(_range.origin + i));
-				Dictionary *attributes = _string->AttributesAtIndex(_range.origin + i);
+				UniChar character = string->GetCharacterAtIndex(static_cast<uint32>(_range.origin + i));
+				Dictionary *attributes = _string->GetAttributesAtIndex(_range.origin + i);
 				
 				Font *glyphFont = Typesetter::FontForAttributes(attributes);
 				if(glyphFont != font)
@@ -885,9 +885,9 @@ namespace RN
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor, indicesDescriptor };
 			Mesh *mesh = new Mesh(descriptors);
 			
-			Vector2 *vertices = mesh->Element<Vector2>(kMeshFeatureVertices);
-			Vector2 *uvCoords = mesh->Element<Vector2>(kMeshFeatureUVSet0);
-			uint16 *indices   = mesh->Element<uint16>(kMeshFeatureIndices);
+			Vector2 *vertices = mesh->GetElement<Vector2>(kMeshFeatureVertices);
+			Vector2 *uvCoords = mesh->GetElement<Vector2>(kMeshFeatureUVSet0);
+			uint16 *indices   = mesh->GetElement<uint16>(kMeshFeatureIndices);
 			
 			for(LineSegment *segment : segments)
 			{
@@ -903,7 +903,7 @@ namespace RN
 			mesh->ReleaseElement(kMeshFeatureUVSet0);
 			mesh->ReleaseElement(kMeshFeatureIndices);
 			
-			Array *meshes = dictionary->ObjectForKey<Array>(font);
+			Array *meshes = dictionary->GetObjectForKey<Array>(font);
 			if(!meshes)
 			{
 				meshes = new Array();

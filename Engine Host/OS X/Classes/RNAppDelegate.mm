@@ -46,10 +46,10 @@
 {
 	NSMutableString *description = [NSMutableString string];
 	
-	[description appendFormat:@"%s\n", e.Reason().c_str()];
+	[description appendFormat:@"%s\n", e.GetReason().c_str()];
 	[description appendString:@"Callstack:\n"];
 	
-	const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.CallStack();
+	const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.GetCallStack();
 	for(auto i=callstack.begin(); i!=callstack.end(); i++)
 	{
 		std::pair<uintptr_t, std::string> pair = *i;
@@ -81,16 +81,8 @@
 	}
 	catch(RN::Exception e)
 	{
-		switch(e.ExceptionType())
+		switch(e.GetType())
 		{
-			/*case RNErrorError(RN::kErrorGroupSystem, RN::kSystemGroupGeneric, RN::kSystemCPUUnsupported):
-				[self failWithError:@"Your CPU is unsupported! Your CPU needs to support at least SSE and SSE2"];
-				break;
-				
-			case RNErrorError(RN::kErrorGroupGraphics, RN::kGraphicsFramebufferGenericError, RN::kGraphicsNoHardware):
-				[self failWithError:@"Your Graphics Card is unsupported! You need a GPU with support for at least OpenGL 3.2"];
-				break;*/
-				
 			default:
 				[self failWithException:e];
 				break;
