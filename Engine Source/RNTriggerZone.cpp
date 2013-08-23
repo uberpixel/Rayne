@@ -114,7 +114,7 @@ namespace RN
 			}
 			
 			BeginTrackingSceneNode(node);
-			_watchedNodes.insert(node);
+			_trackingNodes.insert(node);
 		}
 		else
 		{
