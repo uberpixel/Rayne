@@ -146,10 +146,10 @@ namespace RN
 		{
 			_triangleMesh = new btTriangleMesh();
 			
-			uint32 meshes = model->Meshes(0);
+			uint32 meshes = model->GetMeshCount(0);
 			for(uint32 i=0; i<meshes; i++)
 			{
-				Mesh *mesh = model->MeshAtIndex(0, i);
+				Mesh *mesh = model->GetMeshAtIndex(0, i);
 				AddMesh(mesh);
 			}
 			
@@ -169,10 +169,10 @@ namespace RN
 		{
 			_triangleMesh = new btTriangleMesh();
 			
-			uint32 count = static_cast<uint32>(meshes.Count());
+			uint32 count = static_cast<uint32>(meshes.GetCount());
 			for(uint32 i=0; i<count; i++)
 			{
-				Mesh *mesh = meshes.ObjectAtIndex<Mesh>(i);
+				Mesh *mesh = meshes.GetObjectAtIndex<Mesh>(i);
 				AddMesh(mesh);
 			}
 			
@@ -186,13 +186,13 @@ namespace RN
 		
 		void TriangelMeshShape::AddMesh(Mesh *mesh)
 		{
-			MeshDescriptor *iDescriptor = mesh->Descriptor(kMeshFeatureIndices);
+			MeshDescriptor *iDescriptor = mesh->GetDescriptor(kMeshFeatureIndices);
 			
 			for(size_t i=0; i<iDescriptor->elementCount; i+=3)
 			{
-				Vector3 *vertex0 = mesh->Element<Vector3>(kMeshFeatureVertices, *mesh->Element<uint16>(kMeshFeatureIndices, i + 0));
-				Vector3 *vertex1 = mesh->Element<Vector3>(kMeshFeatureVertices, *mesh->Element<uint16>(kMeshFeatureIndices, i + 1));
-				Vector3 *vertex2 = mesh->Element<Vector3>(kMeshFeatureVertices, *mesh->Element<uint16>(kMeshFeatureIndices, i + 2));
+				Vector3 *vertex0 = mesh->GetElement<Vector3>(kMeshFeatureVertices, *mesh->GetElement<uint16>(kMeshFeatureIndices, i + 0));
+				Vector3 *vertex1 = mesh->GetElement<Vector3>(kMeshFeatureVertices, *mesh->GetElement<uint16>(kMeshFeatureIndices, i + 1));
+				Vector3 *vertex2 = mesh->GetElement<Vector3>(kMeshFeatureVertices, *mesh->GetElement<uint16>(kMeshFeatureIndices, i + 2));
 				
 				_triangleMesh->addTriangle(btVector3(vertex0->x, vertex0->y, vertex0->z), btVector3(vertex1->x, vertex1->y, vertex1->z), btVector3(vertex2->x, vertex2->y, vertex2->z));
 			}

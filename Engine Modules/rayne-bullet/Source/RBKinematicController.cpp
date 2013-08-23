@@ -47,7 +47,7 @@ namespace RN
 			Entity::SetPosition(position);
 			bulletCollisionObject();
 			
-			const Vector3& wPosition = WorldPosition();
+			const Vector3& wPosition = GetWorldPosition();
 			_controller->warp(btVector3(wPosition.x-_offset.x, wPosition.y-_offset.y, wPosition.z-_offset.z));
 		}
 		
@@ -123,7 +123,7 @@ namespace RN
 		
 		btCollisionObject *KinematicController::CreateCollisionObject()
 		{
-			const Vector3& position = WorldPosition();
+			const Vector3& position = GetWorldPosition();
 			btPairCachingGhostObject *ghost = new btPairCachingGhostObject();
 			
 			ghost->setCollisionShape(_shape->bulletShape());
