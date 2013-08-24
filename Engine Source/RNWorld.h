@@ -63,7 +63,7 @@ namespace RN
 		Kernel *_kernel;
 		Array _attachments;
 		
-		bool _droppingNodes;
+		bool _isDroppingSceneNodes;
 		bool _releaseSceneNodesOnDestructor;
 		
 		SpinLock _nodeLock;

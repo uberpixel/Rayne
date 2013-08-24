@@ -26,7 +26,7 @@ namespace RN
 		_cameraClass  = Camera::MetaClass();
 		
 		_releaseSceneNodesOnDestructor = false;
-		_droppingNodes = false;
+		_isDroppingSceneNodes = false;
 	}
 	
 	World::World(const std::string& sceneManager) :
@@ -256,6 +256,9 @@ namespace RN
 		if(!node || node->_world != 0)
 			return;
 		
+		if(_isDroppingSceneNodes)
+			return;
+		
 		_nodeLock.Lock();
 		node->_world = this;
 		_addedNodes.push_back(node);
@@ -267,20 +270,8 @@ namespace RN
 		if(!node || node->_world != this)
 			return;
 		
-		if(_droppingNodes)
-		{
-			_removedNodes.insert(node);
-			
-			for(size_t i = 0; i < _attachments.GetCount(); i ++)
-			{
-				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
-				attachment->WillRemoveSceneNode(node);
-			}
-			
-			_sceneManager->RemoveSceneNode(node);
-			node->_world = nullptr;
+		if(_isDroppingSceneNodes)
 			return;
-		}
 		
 		_deleteLock.Lock();
 		_removedNodes.insert(node);
@@ -320,7 +311,7 @@ namespace RN
 	
 	void World::SceneNodeUpdated(SceneNode *node)
 	{
-		if(_droppingNodes)
+		if(_isDroppingSceneNodes)
 			return;
 		
 		_nodeLock.Lock();
@@ -372,33 +363,40 @@ namespace RN
 		LockGuard<SpinLock> deleteLock(_deleteLock);
 		LockGuard<Array> attachmentLock(_attachments);
 		
-		_removedNodes.reserve(_nodes.size());
-		_droppingNodes = true;
+		for(SceneNode *node : _removedNodes)
+			_nodes.erase(node);
+		
+		_removedNodes.clear();
+		_isDroppingSceneNodes = true;
+		
+		std::vector<SceneNode *> dropNodes;
 		
 		for(SceneNode *node : _nodes)
 		{
-			if(_removedNodes.find(node) != _removedNodes.end())
-				continue;
-			
 			for(size_t i = 0; i < _attachments.GetCount(); i ++)
 			{
 				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
 				attachment->WillRemoveSceneNode(node);
 			}
 			
-			_removedNodes.insert(node);
 			_sceneManager->RemoveSceneNode(node);
 			
+			if(!node->GetParent())
+				dropNodes.push_back(node);
+		}
+		
+		for(SceneNode *node : dropNodes)
+		{
 			node->_world = nullptr;
 			node->Release();
 		}
-		
-		_droppingNodes = false;
 		
 		_nodes.clear();
 		_updatedNodes.clear();
 		_addedNodes.clear();
 		_cameras.clear();
+		
+		_isDroppingSceneNodes = false;
 	}
 
 
