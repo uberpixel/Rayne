@@ -16,6 +16,7 @@
 //
 
 #include "RBKinematicController.h"
+#include "RBPhysicsWorld.h"
 
 namespace RN
 {
@@ -138,24 +139,26 @@ namespace RN
 			return ghost;
 		}
 		
-		void KinematicController::InsertIntoWorld(btDynamicsWorld *world)
+		void KinematicController::InsertIntoWorld(PhysicsWorld *world)
 		{
 			CollisionObject::InsertIntoWorld(world);
 			
 			btPairCachingGhostObject *ghost = bulletCollisionObject<btPairCachingGhostObject>();
+			auto bulletWorld = world->bulletDynamicsWorld();
 			
-			world->addCollisionObject(ghost, CollisionFilter(), CollisionFilterMask());
-			world->addAction(_controller);
+			bulletWorld->addCollisionObject(ghost, CollisionFilter(), CollisionFilterMask());
+			bulletWorld->addAction(_controller);
 		}
 		
-		void KinematicController::RemoveFromWorld(btDynamicsWorld *world)
+		void KinematicController::RemoveFromWorld(PhysicsWorld *world)
 		{
 			CollisionObject::RemoveFromWorld(world);
 			
 			btPairCachingGhostObject *ghost = bulletCollisionObject<btPairCachingGhostObject>();
+			auto bulletWorld = world->bulletDynamicsWorld();
 			
-			world->removeCollisionObject(ghost);
-			world->removeAction(_controller);
+			bulletWorld->removeCollisionObject(ghost);
+			bulletWorld->removeAction(_controller);
 		}
 	}
 }

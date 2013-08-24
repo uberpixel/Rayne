@@ -54,28 +54,30 @@ namespace RN
 		
 		void PhysicsWorld::AddCollisionObject(CollisionObject *object)
 		{
+			Lock();
+			
 			auto iterator = _collisionObjects.find(object);
 			if(iterator == _collisionObjects.end())
 			{
-				Lock();
-				object->InsertIntoWorld(_dynamicsWorld);
-				Unlock();
-				
+				object->InsertIntoWorld(this);
 				_collisionObjects.insert(object);
 			}
+			
+			Unlock();
 		}
 		
 		void PhysicsWorld::RemoveCollisionObject(CollisionObject *object)
 		{
+			Lock();
+			
 			auto iterator = _collisionObjects.find(object);
 			if(iterator != _collisionObjects.end())
 			{
-				Lock();
-				object->RemoveFromWorld(_dynamicsWorld);
-				Unlock();
-				
+				object->RemoveFromWorld(this);
 				_collisionObjects.erase(iterator);
 			}
+			
+			Unlock();
 		}
 		
 		Hit PhysicsWorld::RayTrace(const Vector3& from, const Vector3& to)
