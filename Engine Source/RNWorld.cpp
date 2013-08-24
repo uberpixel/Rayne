@@ -339,7 +339,7 @@ namespace RN
 			_nodes.insert(node);
 			_sceneManager->AddSceneNode(node);
 			
-			LockGuard<Array> lock(_attachments);
+			//LockGuard<Array> lock(_attachments);
 			
 			for(size_t i = 0; i < _attachments.GetCount(); i ++)
 			{
@@ -347,7 +347,7 @@ namespace RN
 				attachment->DidAddSceneNode(node);
 			}
 			
-			lock.Unlock();
+			//lock.Unlock();
 			
 			if(node->IsKindOfClass(_cameraClass))
 			{
