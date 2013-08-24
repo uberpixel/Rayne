@@ -38,12 +38,16 @@ namespace RN
 		void SceneNodeDidUpdate(SceneNode *node) override
 		{
 			LockGuard<TriggerZoneManager *> lock(this);
+			std::vector<TriggerZone *> zonesCopy(_zones);
 			
-			for(size_t i = 0; i < _zones.size(); i ++)
+			lock.Unlock();
+			
+			
+			for(size_t i = 0; i < zonesCopy.size(); i ++)
 			{
 				try
 				{
-					_zones[i]->ValidateNodeUpdate(node);
+					zonesCopy[i]->ValidateNodeUpdate(node);
 				}
 				catch(Exception e)
 				{}
@@ -149,13 +153,18 @@ namespace RN
 	
 	void TriggerZone::ValidateNodeUpdate(SceneNode *node)
 	{
+		LockGuard<TriggerZone *> lock(this);
+		
 		if(_watchedNodes.find(node) != _watchedNodes.end())
 		{
+			lock.Unlock();
+			
 			bool result = ValidateSceneNode(node);
+			
+			lock.Lock();
+			
 			if(result)
 			{
-				LockGuard<TriggerZone *> lock(this);
-				
 				if(_trackingNodes.find(node) != _trackingNodes.end())
 				{
 					lock.Unlock();
@@ -171,7 +180,6 @@ namespace RN
 			}
 			else if(_trackingNodes.find(node) != _trackingNodes.end())
 			{
-				LockGuard<TriggerZone *> lock(this);
 				_trackingNodes.erase(node);
 				lock.Unlock();
 				
