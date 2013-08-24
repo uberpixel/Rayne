@@ -52,9 +52,9 @@ namespace RN
 			Shape *CollisionShape() const { return _shape; }
 			
 		protected:
-			virtual btCollisionObject *CreateCollisionObject();
-			virtual void InsertIntoWorld(btDynamicsWorld *world);
-			virtual void RemoveFromWorld(btDynamicsWorld *world);
+			btCollisionObject *CreateCollisionObject() override;
+			void InsertIntoWorld(PhysicsWorld *world) override;
+			void RemoveFromWorld(PhysicsWorld *world) override;
 			
 			Shape *_shape;
 			btKinematicCharacterController *_controller;

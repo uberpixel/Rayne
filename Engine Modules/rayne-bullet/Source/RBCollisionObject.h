@@ -61,11 +61,11 @@ namespace RN
 			virtual btCollisionObject *CreateCollisionObject() = 0;
 			virtual void ApplyPhysicsMaterial(PhysicsMaterial *material);
 			
-			virtual void ReinsertIntoWorld(btDynamicsWorld *world);
-			virtual void InsertIntoWorld(btDynamicsWorld *world);
-			virtual void RemoveFromWorld(btDynamicsWorld *world);
+			virtual void ReinsertIntoWorld();
+			virtual void InsertIntoWorld(PhysicsWorld *world);
+			virtual void RemoveFromWorld(PhysicsWorld *world);
 			
-			btDynamicsWorld *_world;
+			PhysicsWorld *_world;
 			
 			PhysicsMaterial *_material;
 			btCollisionObject *_object;

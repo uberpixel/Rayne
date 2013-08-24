@@ -71,11 +71,11 @@ namespace RN
 			virtual void getWorldTransform(btTransform& worldTrans) const;
 			virtual void setWorldTransform(const btTransform& worldTrans);
 			
-			virtual btCollisionObject *CreateCollisionObject();
-			virtual void ApplyPhysicsMaterial(PhysicsMaterial *material);
+			btCollisionObject *CreateCollisionObject() override;
+			void ApplyPhysicsMaterial(PhysicsMaterial *material) override;
 			
-			virtual void InsertIntoWorld(btDynamicsWorld *world);
-			virtual void RemoveFromWorld(btDynamicsWorld *world);
+			void InsertIntoWorld(PhysicsWorld *world) override;
+			void RemoveFromWorld(PhysicsWorld *world) override;
 			
 			Shape *_shape;
 			Vector3 _inertia;

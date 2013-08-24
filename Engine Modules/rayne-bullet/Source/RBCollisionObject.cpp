@@ -16,6 +16,7 @@
 //
 
 #include "RBCollisionObject.h"
+#include "RBPhysicsWorld.h"
 
 namespace RN
 {
@@ -27,7 +28,7 @@ namespace RN
 		{
 			_material = 0;
 			_object = 0;
-			_world = nullptr;
+			_world  = nullptr;
 			
 			_collisionFilter = btBroadphaseProxy::DefaultFilter;
 			_collisionFilterMask = btBroadphaseProxy::AllFilter;
@@ -71,17 +72,13 @@ namespace RN
 		void CollisionObject::SetCollisionFilter(short int filter)
 		{
 			_collisionFilter = filter;
-			
-			if(_world)
-				ReinsertIntoWorld(_world);
+			ReinsertIntoWorld();
 		}
 		
 		void CollisionObject::SetCollisionFilterMask(short int mask)
 		{
 			_collisionFilterMask = mask;
-			
-			if(_world)
-				ReinsertIntoWorld(_world);
+			ReinsertIntoWorld();
 		}
 		
 		void CollisionObject::ApplyPhysicsMaterial(PhysicsMaterial *material)
@@ -92,18 +89,28 @@ namespace RN
 			_object->setRestitution(_material->Restitution());
 		}
 		
-		void CollisionObject::ReinsertIntoWorld(btDynamicsWorld *world)
+		
+		void CollisionObject::ReinsertIntoWorld()
 		{
+			if(!_world)
+				return;
+			
+			PhysicsWorld *world = _world;
+			
+			world->Lock();
+			
 			RemoveFromWorld(world);
 			InsertIntoWorld(world);
+			
+			world->Unlock();
 		}
 		
-		void CollisionObject::InsertIntoWorld(btDynamicsWorld *world)
+		void CollisionObject::InsertIntoWorld(PhysicsWorld *world)
 		{
 			_world = world;
 		}
 		
-		void CollisionObject::RemoveFromWorld(btDynamicsWorld *world)
+		void CollisionObject::RemoveFromWorld(PhysicsWorld *world)
 		{
 			_world = nullptr;
 		}
