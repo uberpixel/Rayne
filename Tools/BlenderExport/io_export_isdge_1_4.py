@@ -5,7 +5,7 @@ bl_info = {
 	'name': 'iSDGE model format (.sgm)',
 	'author': 'Nils Daumann',
 	'blender': (2, 6, 5),
-	'version': '1.3',
+	'version': '1.4',
 	'description': 'Exports an object in iSDGEs .sgm file format.',
 	'category': 'Import-Export',
 	'location': 'File -> Export -> iSDGE model (.sgm)'}
@@ -112,6 +112,14 @@ bl_info = {
 #-scaled armatures and different origin of model and armature are problematic
 #-polygons other than tris aren´t working
 ##
+#################################
+##V1.4 2013/08/24
+#-improved performance
+#Known Problems:
+#-crashes on exporting vertex colors
+#-scaled armatures and different origin of model and armature are problematic
+#-polygons other than tris aren´t working
+##
 
 
 #################################
@@ -167,17 +175,16 @@ class c_mesh(object):
 	
 	#doublicates face vertices with different uv coords and sets the new index
 	def uvsplit(self):
+		inddict = {}
 		for tri in self.triangles:
 			ind = []
 			for trivert in tri.vertices:
-				check = 0
-				for i, vert in enumerate(self.vertices):
-					if vert.position == trivert.position and vert.uvs == trivert.uvs:#vert == trivert:
-						ind.append(i)
-						check = 1
-						break
-				if check == 0:
+				uvtuple = tuple(trivert.uvs)
+				if (trivert.position, uvtuple) in inddict:
+					ind.append(inddict[(trivert.position, uvtuple)])
+				else:
 					ind.append(len(self.vertices))
+					inddict[(trivert.position, uvtuple)] = len(self.vertices)
 					self.vertices.append(trivert)
 			
 			self.indices.append(ind[0])
