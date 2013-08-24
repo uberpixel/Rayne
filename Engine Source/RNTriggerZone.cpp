@@ -25,19 +25,28 @@ namespace RN
 		
 		void AddZone(TriggerZone *zone)
 		{
+			LockGuard<TriggerZoneManager *> lock(this);
 			_zones.push_back(zone);
 		}
 		
 		void RemoveZone(TriggerZone *zone)
 		{
+			LockGuard<TriggerZoneManager *> lock(this);
 			_zones.erase(std::find(_zones.begin(), _zones.end(), zone));
 		}
 		
 		void SceneNodeDidUpdate(SceneNode *node) override
 		{
+			LockGuard<TriggerZoneManager *> lock(this);
+			
 			for(size_t i = 0; i < _zones.size(); i ++)
 			{
-				_zones[i]->ValidateNodeUpdate(node);
+				try
+				{
+					_zones[i]->ValidateNodeUpdate(node);
+				}
+				catch(Exception e)
+				{}
 			}
 		}
 		
@@ -76,9 +85,8 @@ namespace RN
 		_predicate = predicate;
 	}
 	
-	void TriggerZone::Trigger(SceneNode *node)
-	{
-	}
+	void TriggerZone::Trigger(SceneNode *node, Predicate reason)
+	{}
 	
 	
 	
@@ -86,68 +94,89 @@ namespace RN
 	{
 		if((_predicate & OnEnter))
 		{
-			Trigger(node);
+			Trigger(node, OnEnter);
+		}
+		
+		if((_predicate & OnAllEnter) && _watchedNodes.size() == _trackingNodes.size())
+		{
+			Trigger(node, OnAllEnter);
 		}
 	}
 	
 	void TriggerZone::ContinueTrackingSceneNode(SceneNode *node)
-	{
-	}
+	{}
 	
 	void TriggerZone::EndTrackingSceneNode(SceneNode *node)
 	{
 		if((_predicate & OnLeave))
 		{
-			Trigger(node);
+			Trigger(node, OnLeave);
 		}
 	}
 	
 	
-	void TriggerZone::ValidateSceneNode(SceneNode *node)
+	
+	bool TriggerZone::ValidateSceneNode(SceneNode *node)
 	{
-		if(GetBoundingBox().Intersects(node->GetBoundingBox()))
-		{
-			if(_trackingNodes.find(node) != _trackingNodes.end())
-			{
-				ContinueTrackingSceneNode(node);
-				return;
-			}
-			
-			BeginTrackingSceneNode(node);
-			_trackingNodes.insert(node);
-		}
-		else
-		{
-			if(_trackingNodes.find(node) != _trackingNodes.end())
-			{
-				EndTrackingSceneNode(node);
-				_trackingNodes.erase(node);
-			}
-		}
+		return GetBoundingBox().Intersects(node->GetBoundingBox());
 	}
+	
 	
 	
 	void TriggerZone::AddWatchedNode(SceneNode *node)
 	{
+		Lock();
+		
 		node->Retain();
 		
 		_watchedNodes.insert(node);
 		ValidateSceneNode(node);
+		
+		Unlock();
 	}
 	
 	void TriggerZone::RemoveWatchedNode(SceneNode *node)
 	{
+		Lock();
+		
 		_trackingNodes.erase(node);
 		_watchedNodes.erase(node);
 		
 		node->Release();
+		
+		Unlock();
 	}
 	
 	void TriggerZone::ValidateNodeUpdate(SceneNode *node)
 	{
 		if(_watchedNodes.find(node) != _watchedNodes.end())
 		{
-			ValidateSceneNode(node);
+			bool result = ValidateSceneNode(node);
+			if(result)
+			{
+				LockGuard<TriggerZone *> lock(this);
+				
+				if(_trackingNodes.find(node) != _trackingNodes.end())
+				{
+					lock.Unlock();
+					
+					ContinueTrackingSceneNode(node);
+					return;
+				}
+				
+				_trackingNodes.insert(node);
+				lock.Unlock();
+				
+				BeginTrackingSceneNode(node);
+			}
+			else if(_trackingNodes.find(node) != _trackingNodes.end())
+			{
+				LockGuard<TriggerZone *> lock(this);
+				_trackingNodes.erase(node);
+				lock.Unlock();
+				
+				EndTrackingSceneNode(node);
+			}
 		}
 	}
 }

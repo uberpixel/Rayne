@@ -23,19 +23,20 @@ namespace RN
 		enum
 		{
 			OnEnter = (1 << 0),
-			OnLeave = (1 << 1)
+			OnLeave = (1 << 1),
+			OnAllEnter = (1 << 2)
 		};
 		typedef uint32 Predicate;
 		
 		TriggerZone();
 		~TriggerZone() override;
 		
-		virtual void Trigger(SceneNode *node);
+		virtual void Trigger(SceneNode *node, Predicate reason);
 		
 		virtual void BeginTrackingSceneNode(SceneNode *node);
 		virtual void ContinueTrackingSceneNode(SceneNode *node);
 		virtual void EndTrackingSceneNode(SceneNode *node);
-		virtual void ValidateSceneNode(SceneNode *node);
+		virtual bool ValidateSceneNode(SceneNode *node);
 		
 		void AddWatchedNode(SceneNode *node);
 		void RemoveWatchedNode(SceneNode *node);
