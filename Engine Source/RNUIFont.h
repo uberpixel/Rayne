@@ -73,10 +73,15 @@ namespace RN
 				hinting = true;
 				filtering = true;
 				style = 0;
+				
+				textureFilter = false;
+				mipMaps = false;
 			}
 			
 			bool hinting;
 			bool filtering;
+			bool textureFilter;
+			bool mipMaps;
 			FontStyle style;
 		};
 		

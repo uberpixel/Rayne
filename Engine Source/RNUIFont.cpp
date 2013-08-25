@@ -48,14 +48,13 @@ namespace RN
 		{
 			TextureParameter parameter;
 			
-			parameter.mipMaps = 0;
-			parameter.generateMipMaps = false;
+			parameter.generateMipMaps = descriptor.mipMaps;
 			parameter.format   = Filtering() ? TextureParameter::Format::RGB888 : TextureParameter::Format::R8;
 			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
-			parameter.filter   = TextureParameter::Filter::Nearest;
+			parameter.filter   = descriptor.textureFilter ? TextureParameter::Filter::Linear : TextureParameter::Filter::Nearest;
 			
 			_scale = Kernel::GetSharedInstance()->GetScaleFactor();
-			_texture = new TextureAtlas(4096 * _scale, 4096 * _scale, true, parameter);
+			_texture = new TextureAtlas(1024 * _scale, 1024 * _scale, true, parameter);
 			
 			_finternals = 0;
 			_size       = size;
