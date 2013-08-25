@@ -83,7 +83,7 @@ namespace RN
 #define RNSTR(...)  RN::String::WithFormat(__VA_ARGS__)
 #define RNCSTR(cstr) RN::String::WithString(cstr, true)
 
-#define RNUTF8STR(str)  RN::String::WithBytes(str, Encoding::UTF8)
-#define RNCUTF8STR(str) RN::String::WithBytes(str, Encoding::UTF8, true)
+#define RNUTF8STR(str)  RN::String::WithBytes(str, RN::Encoding::UTF8)
+#define RNCUTF8STR(str) RN::String::WithBytes(str, RN::Encoding::UTF8, true)
 
 #endif /* __RAYNE_STRING_H__ */
