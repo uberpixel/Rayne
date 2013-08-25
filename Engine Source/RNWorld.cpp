@@ -188,9 +188,11 @@ namespace RN
 					continue;
 				}
 				
+				node->Retain();
 				node->Update(delta);
 				node->UpdatedToFrame(frame);
 				node->GetWorldPosition();
+				node->Release();
 			}
 			
 			while(retry.size() > 0)
@@ -213,9 +215,11 @@ namespace RN
 						continue;
 					}
 					
+					node->Retain();
 					node->Update(delta);
 					node->UpdatedToFrame(frame);
 					node->GetWorldPosition();
+					node->Release();
 				}
 			}
 		}
