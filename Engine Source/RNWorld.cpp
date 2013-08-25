@@ -190,6 +190,7 @@ namespace RN
 				
 				node->Update(delta);
 				node->UpdatedToFrame(frame);
+				node->GetWorldPosition();
 			}
 			
 			while(retry.size() > 0)
@@ -214,6 +215,7 @@ namespace RN
 					
 					node->Update(delta);
 					node->UpdatedToFrame(frame);
+					node->GetWorldPosition();
 				}
 			}
 		}
