@@ -92,7 +92,7 @@ namespace RN
 		}
 		
 		// Add the Transform updates to the thread pool
-		ThreadPool::Batch *batch[3];
+		/*ThreadPool::Batch *batch[3];
 		SpinLock lock;
 		std::vector<SceneNode *> resubmit;
 		
@@ -164,6 +164,58 @@ namespace RN
 			
 			if(batch[i])
 				batch[i]->Release();
+		}*/
+		
+		std::vector<SceneNode *> nodes(_nodes.begin(), _nodes.end());
+		
+		for(size_t j = 0; j < 3; j ++)
+		{
+			std::vector<SceneNode *> retry;
+			
+			for(auto i=nodes.begin(); i!=nodes.end(); i++)
+			{
+				SceneNode *node = *i;
+				
+				if(_removedNodes.find(node) != _removedNodes.end())
+					continue;
+				
+				if(static_cast<size_t>(node->GetUpdatePriority()) != j)
+					continue;
+				
+				if(!node->CanUpdate(frame))
+				{
+					retry.push_back(node);
+					continue;
+				}
+				
+				node->Update(delta);
+				node->UpdatedToFrame(frame);
+			}
+			
+			while(retry.size() > 0)
+			{
+				std::random_shuffle(retry.begin(), retry.end());
+				
+				std::vector<SceneNode *> copy(retry);
+				retry.clear();
+				
+				for(auto i=copy.begin(); i!=copy.end(); i++)
+				{
+					SceneNode *node = *i;
+					
+					if(_removedNodes.find(node) != _removedNodes.end())
+						continue;
+					
+					if(!node->CanUpdate(frame))
+					{
+						retry.push_back(node);
+						continue;
+					}
+					
+					node->Update(delta);
+					node->UpdatedToFrame(frame);
+				}
+			}
 		}
 	
 		ApplyNodes();
