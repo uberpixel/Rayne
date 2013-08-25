@@ -257,6 +257,8 @@ namespace RN
 	private:
 		void UpdateSizeIfNeeded(size_t required)
 		{
+			size_t toCopy = std::min(_count, required);
+			
 			if(required >= _size)
 			{
 				size_t tsize = MAX(required, _size * 2);
@@ -264,7 +266,7 @@ namespace RN
 				
 				if(tdata)
 				{
-					std::move(_data, _data + _count, tdata);
+					std::move(_data, _data + toCopy, tdata);
 					delete [] _data;
 					
 					_size = tsize;
@@ -282,7 +284,7 @@ namespace RN
 				
 				if(tdata)
 				{
-					std::move(_data, _data + _count, tdata);
+					std::move(_data, _data + toCopy, tdata);
 					delete [] _data;
 					
 					_size = tsize;
