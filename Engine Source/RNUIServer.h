@@ -45,6 +45,8 @@ namespace RN
 			
 			bool DrawDebugFrames() const { return _drawDebugFrames; }
 			
+			Camera *GetCamera() const { return _camera; }
+			
 		protected:
 			void Render(Renderer *renderer);
 			
