@@ -95,6 +95,7 @@
 #include "RNParticleEmitter.h"
 #include "RNParticle.h"
 #include "RNTriggerZone.h"
+#include "RNTextNode.h"
 
 #include "RNThread.h"
 #include "RNThreadPool.h"

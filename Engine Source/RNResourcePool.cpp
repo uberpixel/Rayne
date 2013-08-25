@@ -76,6 +76,8 @@ namespace RN
 	{
 		UI::FontDescriptor descriptor;
 		descriptor.style = traits;
+		descriptor.mipMaps = true;
+		descriptor.filtering = true;
 		
 		UI::Font *font = UI::Font::WithNameAndDescriptor(name, size, descriptor);
 		AddResource(font, key);
