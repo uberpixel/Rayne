@@ -60,6 +60,12 @@ namespace RN
 			_controller->warp(btVector3(position.x-_offset.x, position.y-_offset.y, position.z-_offset.z));
 		}
 		
+		void KinematicController::SetGravity(const Vector3& gravity)
+		{
+			bulletCollisionObject();
+			_controller->setGravity(gravity.y);
+		}
+		
 		
 		void KinematicController::SetWalkDirection(const Vector3& direction)
 		{

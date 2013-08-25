@@ -36,7 +36,8 @@ namespace RN
 			void SetMaterial(PhysicsMaterial *material);
 			PhysicsMaterial *Material() const { return _material; }
 			
-			void SetOffset(Vector3 offset);
+			void SetOffset(const Vector3& offset);
+			virtual void SetGravity(const Vector3& gravity);
 			
 			template<typename T=btCollisionObject>
 			T *bulletCollisionObject()

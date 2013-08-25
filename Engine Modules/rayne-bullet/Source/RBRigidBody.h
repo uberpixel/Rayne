@@ -41,11 +41,12 @@ namespace RN
 			void SetMass(float mass, const Vector3& inertia);
 			
 			void SetCollisionShape(Shape *shape);
+			void SetGravity(const Vector3& gravity) override;
 			
-			virtual void SetPosition(const Vector3& position);
-			virtual void SetRotation(const Quaternion& rotation);
-			virtual void SetWorldPosition(const Vector3& position);
-			virtual void SetWorldRotation(const Quaternion& rotation);
+			void SetPosition(const Vector3& position) override;
+			void SetRotation(const Quaternion& rotation) override;
+			void SetWorldPosition(const Vector3& position) override;
+			void SetWorldRotation(const Quaternion& rotation) override;
 			
 			void SetLinearVelocity(const Vector3& velocity);
 			void SetAngularVelocity(const Vector3& velocity);

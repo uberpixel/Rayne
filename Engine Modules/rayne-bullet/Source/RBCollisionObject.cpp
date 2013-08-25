@@ -64,10 +64,13 @@ namespace RN
 			}
 		}
 		
-		void CollisionObject::SetOffset(Vector3 offset)
+		void CollisionObject::SetOffset(const Vector3& offset)
 		{
 			_offset = offset;
 		}
+		
+		void CollisionObject::SetGravity(const Vector3& gravity)
+		{}
 		
 		void CollisionObject::SetCollisionFilter(short int filter)
 		{

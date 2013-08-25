@@ -135,6 +135,11 @@ namespace RN
 			bulletRigidBody()->setCenterOfMassTransform(transform);
 		}
 		
+		void RigidBody::SetGravity(const Vector3& gravity)
+		{
+			bulletRigidBody()->setGravity(btVector3(gravity.x, gravity.y, gravity.z));
+		}
+		
 		
 		void RigidBody::SetLinearVelocity(const Vector3& velocity)
 		{

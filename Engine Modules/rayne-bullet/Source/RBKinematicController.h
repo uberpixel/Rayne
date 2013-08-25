@@ -34,8 +34,9 @@ namespace RN
 			KinematicController(Shape *shape, float stepHeight);
 			virtual ~KinematicController();
 			
-			virtual void SetPosition(const Vector3& position);
-			virtual void SetWorldPosition(const Vector3& position);
+			void SetPosition(const Vector3& position) override;
+			void SetWorldPosition(const Vector3& position) override;
+			void SetGravity(const Vector3& gravity) override;
 			
 			void SetWalkDirection(const Vector3& direction);
 			void SetFallSpeed(float speed);
