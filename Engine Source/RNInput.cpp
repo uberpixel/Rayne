@@ -128,6 +128,7 @@ namespace RN
 	{
 		_lock.Lock();
 		_active = true;
+		_invalidateMouse = true;
 		_lock.Unlock();
 	}
 	
@@ -138,6 +139,9 @@ namespace RN
 		_active = false;
 		FlushEventQueue();
 		
+		
+		_pressedKeys.clear();
+		_modifierKeys = 0;
 		_lock.Unlock();
 	}
 	
@@ -225,6 +229,9 @@ namespace RN
 	
 	void Input::HandleEvent(void *data)
 	{
+		if(!_active)
+			return;
+		
 		AutoreleasePool *pool = new AutoreleasePool();
 		
 		NSEvent *nsevent = static_cast<NSEvent *>(data);

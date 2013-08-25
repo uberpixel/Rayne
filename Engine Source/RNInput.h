@@ -136,6 +136,7 @@ namespace RN
 		const Vector2& GetMouseWheel() const { return _mouseWheel; }
 		
 		uint32 GetModifierKeys() const { return _modifierKeys; }
+		bool IsActive() const { return _active; }
 		
 		RNAPI bool IsKeyPressed(char key) const;
 		RNAPI bool IsKeyPressed(UniChar key) const;

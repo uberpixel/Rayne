@@ -7,6 +7,7 @@
 //
 
 #include "RNGamepad.h"
+#include "RNInput.h"
 
 namespace RN
 {
@@ -136,6 +137,9 @@ namespace RN
 	
 	void GamepadManager::OnDeviceValueChanged(void* context, IOReturn result, void* sender, IOHIDValueRef value)
 	{
+		if(!Input::GetSharedInstance()->IsActive())
+			return;
+		
 		IOHIDElementRef element = IOHIDValueGetElement(value);
 		IOHIDDeviceRef device = IOHIDElementGetDevice(element);
 		
