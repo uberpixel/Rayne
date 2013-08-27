@@ -29,6 +29,7 @@ namespace RN
 		
 		// Reading operations
 		RNAPI std::string GetString();
+		RNAPI std::vector<uint8> GetBytes();
 		
 		RNAPI void ReadIntoBuffer(void *buffer, size_t size);
 		RNAPI void ReadIntoString(std::string& string, size_t size, bool appendNull=true);

@@ -44,7 +44,7 @@ namespace RN
 		long offset = ftell(_file);
 		fseek(_file, 0, SEEK_SET);
 
-		std::string string = std::string();
+		std::string string;
 		char buffer[kRNFileBufferSize];
 
 		string.reserve(_size);
@@ -64,6 +64,32 @@ namespace RN
 		return string;
 	}
 
+	std::vector<uint8> File::GetBytes()
+	{
+		long read = 0;
+		long offset = ftell(_file);
+		fseek(_file, 0, SEEK_SET);
+		
+		std::vector<uint8> bytes;
+		bytes.reserve(_size);
+		
+		uint8 *temp = bytes.data();
+		
+		while(read < _size)
+		{
+			long tread = fread(temp, 1, kRNFileBufferSize, _file);
+			read += tread;
+			temp += tread;
+			
+			if(tread < kRNFileBufferSize && read < _size)
+				throw Exception(Exception::Type::GenericException, "Failed to read data from file!");
+		}
+		
+		fseek(_file, offset, SEEK_SET);
+		return bytes;
+	}
+	
+	
 	void File::ReadIntoString(std::string& string, size_t size, bool appendNull)
 	{
 		char *buffer = new char[size + 1];
