@@ -72,6 +72,38 @@ namespace RN
 		
 		return hash;
 	}
+	
+	static uint32 NextPowerOfTwo(uint32 value)
+	{
+		value--;
+		
+		value |= value >> 1;
+		value |= value >> 2;
+		value |= value >> 4;
+		value |= value >> 8;
+		value |= value >> 16;
+		
+		return (value + 1);
+	}
+	
+	static uint64 NextPowerOfTwo(uint64 value)
+	{
+		value--;
+		
+		value |= value >> 1;
+		value |= value >> 2;
+		value |= value >> 4;
+		value |= value >> 8;
+		value |= value >> 16;
+		value |= value >> 32;
+		
+		return (value + 1);
+	}
+	
+	static bool IsPowerOfTwo(uint32 value)
+	{
+		return ((value & (value - 1)) == 0);
+	}
 }
 
 #endif /* __RAYNE_ALGORITHM_H__ */
