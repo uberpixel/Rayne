@@ -426,6 +426,7 @@ namespace RN
 				material->depthwrite = false;
 				material->blending = true;
 				material->lighting = false;
+				material->ambient = Color::White();
 				
 				if(font->Filtering())
 					material->Define("RN_SUBPIXEL_ANTIALIAS");
