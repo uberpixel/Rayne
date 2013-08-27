@@ -7,6 +7,7 @@
 //
 
 #include "RNString.h"
+#include "RNFile.h"
 #include "RNBasicString.h"
 
 namespace RN
@@ -140,6 +141,16 @@ namespace RN
 	String *String::WithBytes(const void *bytes, size_t length, Encoding encoding, bool constant)
 	{
 		String *string = new String(bytes, length, encoding, false);
+		return string->Autorelease();
+	}
+	
+	String *String::WithContentsOfFile(const std::string& tfile, Encoding encoding)
+	{
+		File *file = new File(tfile);
+		std::vector<uint8> bytes = std::move(file->GetBytes());
+		file->Release();
+		
+		String *string = new String(bytes.data(), encoding, false);
 		return string->Autorelease();
 	}
 	
@@ -374,42 +385,26 @@ namespace RN
 		size_t leftA = range.length;
 		size_t leftB = range.length;
 		
-#define ReadCharacterA() \
+#define ReadCharacter(Side) \
 		do { \
-			if(offsetA + iA >= readA) \
+			if(offset##Side + i##Side >= read##Side) \
 			{ \
-				if(leftA == 0) \
+				if(left##Side == 0) \
 					goto endComparison; \
 					\
-				readA = std::min(leftA, static_cast<size_t>(kStringUniCharFetch)); \
-				offsetA += iA; \
-				internalA->CharactersInRange(charactersA, Range(offsetA, readA)); \
+				read##Side = std::min(left##Side, static_cast<size_t>(kStringUniCharFetch)); \
+				offset##Side += i##Side; \
+				internal##Side->CharactersInRange(characters##Side, Range(offset##Side, read##Side)); \
 				\
-				leftA -= readA; \
-				iA = 0; \
-			} \
-		} while(0)
-		
-#define ReadCharacterB() \
-		do { \
-			if(offsetB + iB >= readB) \
-			{ \
-				if(leftB == 0) \
-					goto endComparison; \
-				\
-				readB = std::min(leftB, static_cast<size_t>(kStringUniCharFetch)); \
-				offsetB += iB; \
-				internalB->CharactersInRange(charactersB, Range(offsetB, readB)); \
-				\
-				leftB -= readB; \
-				iB = 0; \
+				left##Side -= read##Side; \
+				i##Side = 0; \
 			} \
 		} while(0)
 		
 		while(1)
 		{
-			ReadCharacterA();
-			ReadCharacterB();
+			ReadCharacter(A);
+			ReadCharacter(B);
 			
 			CodePoint a = charactersA[iA ++];
 			CodePoint b = charactersB[iB ++];
@@ -435,7 +430,7 @@ namespace RN
 						do {
 							numA = numA * 10 + (ca - '0');
 							
-							ReadCharacterA();
+							ReadCharacter(A);
 							a = charactersA[iA ++];
 							
 							ca = static_cast<char>(a);
@@ -444,7 +439,7 @@ namespace RN
 						do {
 							numB = numB * 10 + (cb - '0');
 							
-							ReadCharacterB();
+							ReadCharacter(B);
 							b = charactersB[iB ++];
 							
 							cb = static_cast<char>(b);
@@ -471,8 +466,7 @@ namespace RN
 			}
 		}
 		
-#undef ReadCharacterA
-#undef ReadCharacterB
+#undef ReadCharacter
 		
 	endComparison:
 	

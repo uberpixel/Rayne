@@ -42,6 +42,7 @@ namespace RN
 		static String *WithString(const char *string, size_t length, bool constant=false);
 		static String *WithBytes(const void *bytes, Encoding encoding, bool constant=false);
 		static String *WithBytes(const void *bytes, size_t length, Encoding encoding, bool constant=false);
+		static String *WithContentsOfFile(const std::string& file, Encoding encoding);
 		
 		machine_hash GetHash() const override;
 		bool IsEqual(Object *other) const override;
