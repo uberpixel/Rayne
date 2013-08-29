@@ -54,7 +54,7 @@ namespace RN
 			parameter.filter   = descriptor.textureFilter ? TextureParameter::Filter::Linear : TextureParameter::Filter::Nearest;
 			
 			_scale = Kernel::GetSharedInstance()->GetScaleFactor();
-			_texture = new TextureAtlas(512 * _scale, 512 * _scale, true, parameter);
+			_texture = new TextureAtlas(128 * _scale, 128 * _scale, true, parameter);
 			_texture->SetMaxSize(4096 * _scale, 4096 * _scale);
 			
 			_textureTag = _texture->GetTag();
