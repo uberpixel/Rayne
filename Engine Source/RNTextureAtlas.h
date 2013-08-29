@@ -22,22 +22,31 @@ namespace RN
 	public:
 		TextureAtlas(uint32 width, uint32 height, const TextureParameter& parameter);
 		TextureAtlas(uint32 width, uint32 height, bool linear, const TextureParameter& parameter);
-		virtual ~TextureAtlas();
+		~TextureAtlas() override;
 		
 		Rect AllocateRegion(uint32 width, uint32 height);
 		void SetRegionData(const Rect& region, void *data, TextureParameter::Format format);
 		
-		virtual void Bind();
+		void SetMaxSize(uint32 maxWidth, uint32 maxHeight);
+		uint32 GetTag() const { return _tag; }
 	
 	private:
+		void Initialize(uint32 width, uint32 height);
+		
+		Rect TryAllocateRegion(uint32 width, uint32 height);
+		void IncreaseSize();
+		bool CanIncreaseSize();
+		
 		struct TextureRegion
 		{
 			Rect rect;
 			bool isFree;
 		};
 		
+		uint32 _tag;
+		uint32 _width, _height;
+		uint32 _maxWidth, _maxHeight;
 		std::vector<TextureRegion> _regions;
-		uint8 *_data;
 	};
 }
 

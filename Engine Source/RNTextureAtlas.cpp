@@ -7,6 +7,7 @@
 //
 
 #include "RNTextureAtlas.h"
+#include "RNAlgorithm.h"
 
 namespace RN
 {
@@ -14,57 +15,116 @@ namespace RN
 		Texture(parameter)
 	{
 		SetData(0, width, height, parameter.format);
-		
-		TextureRegion region;
-		
-		region.rect = Rect(0.0f, 0.0f, width, height);
-		region.rect.Inset(1.0f, 1.0f);
-		region.rect.Integral();
-		
-		region.isFree = true;
-		
-		_regions.push_back(region);
-		_data = static_cast<uint8 *>(calloc(width * height * 4, 1));
+		Initialize(width, height);
 	}
 	
 	TextureAtlas::TextureAtlas(uint32 width, uint32 height, bool isLinear, const TextureParameter& parameter) :
 		Texture(parameter, isLinear)
 	{
 		SetData(0, width, height, parameter.format);
-		
-		TextureRegion region;
-		
-		region.rect = Rect(0.0f, 0.0f, width, height);
-		region.rect.Inset(1.0f, 1.0f);
-		region.rect.Integral();
-		
-		region.isFree = true;
-		
-		_regions.push_back(region);
-		_data = static_cast<uint8 *>(calloc(width * height * 4, 1));
+		Initialize(width, height);
 	}
 	
 	TextureAtlas::~TextureAtlas()
-	{
-		if(_data)
-			free(_data);
-	}
+	{}
 	
-	
-	void TextureAtlas::Bind()
+	void TextureAtlas::Initialize(uint32 width, uint32 height)
 	{
-		/*if(_data)
-		{
-			SetData(_data, Width(), Height(), Texture::FormatRGBA8888);
-			free(_data);
-			
-			_data = 0;
-		}*/
+		TextureRegion region;
+		region.rect = Rect(0.0f, 0.0f, width, height);
+		region.isFree = true;
 		
-		Texture::Bind();
+		_regions.push_back(region);
+		_width = _maxWidth = width;
+		_height = _maxHeight = height;
+		_tag = 0;
 	}
 	
-	Rect TextureAtlas::AllocateRegion(uint32 width, uint32 height)
+	
+	void TextureAtlas::SetRegionData(const Rect& region, void *data, TextureParameter::Format format)
+	{
+		UpdateRegion(data, region, format);
+	}
+	
+	void TextureAtlas::SetMaxSize(uint32 maxWidth, uint32 maxHeight)
+	{
+		RN_ASSERT(maxWidth >= _width && maxHeight >= _height, "The maximum size must be greater than the current size");
+		
+		_maxWidth  = maxWidth;
+		_maxHeight = maxHeight;
+	}
+	
+	
+	void TextureAtlas::IncreaseSize()
+	{
+		uint32 nWidth = _width;
+		uint32 nHeight = _height;
+		
+		if(_width < _maxWidth)
+			nWidth = NextPowerOfTwo(_width + 1);
+		
+		if(_height < _maxHeight)
+			nHeight = NextPowerOfTwo(_height + 1);
+		
+		// Insert free regions
+		if(nWidth > _width)
+		{
+			TextureRegion region;
+			region.rect = Rect(_width, 0, nWidth - _width, _height);
+			region.isFree = true;
+			
+			_regions.push_back(region);
+		}
+		
+		if(nHeight > _height)
+		{
+			TextureRegion region;
+			region.rect = Rect(0, _height, _width, nHeight - _height);
+			region.isFree = true;
+			
+			_regions.push_back(region);
+		}
+		
+		if(nWidth > _width && nHeight > _height)
+		{
+			TextureRegion region;
+			region.rect = Rect(_width, _height, nWidth - _width, nHeight - _height);
+			region.isFree = true;
+			
+			_regions.push_back(region);
+		}
+		
+		// Update the data
+		uint8 *data = new uint8[_width * _height * 4];
+		uint8 *nData = new uint8[nWidth * nHeight * 4];
+		
+		memset(nData, 0, nWidth * nHeight * 4);
+		GetData(data, TextureParameter::Format::RGBA8888);
+		
+		for(uint32 y = 0; y < _height; y ++)
+		{
+			uint8 *row = data + (y * _width * 4);
+			uint8 *nrow = nData + (y * nWidth * 4);
+			
+			std::copy(row, row + (_width * 4), nrow);
+		}
+		
+		SetData(nData, nWidth, nHeight, TextureParameter::Format::RGBA8888);
+		
+		delete [] nData;
+		delete [] data;
+		
+		_width = nWidth;
+		_height = nHeight;
+		_tag ++;
+	}
+	
+	bool TextureAtlas::CanIncreaseSize()
+	{
+		return (_width < _maxWidth || _height < _maxHeight);
+	}
+	
+	Rect TextureAtlas::TryAllocateRegion(uint32 width, uint32 height)
 	{
 		size_t biggestDimension = 0;
 		size_t biggestIndex = kRNNotFound;
@@ -142,14 +202,25 @@ namespace RN
 		throw Exception(Exception::Type::RangeException, "Not enough free space found in atlas texture!");
 	}
 	
-	void TextureAtlas::SetRegionData(const Rect& region, void *data, TextureParameter::Format format)
+	Rect TextureAtlas::AllocateRegion(uint32 width, uint32 height)
 	{
-		/*if(!_data)
+		while(1)
 		{
-			_data = static_cast<uint8 *>(calloc(Width() * Height() * 4, 1));
-			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA_INTEGER, GL_UNSIGNED_BYTE, _data);
-		}*/
-		
-		UpdateRegion(data, region, format);
+			try
+			{
+				Rect rect = TryAllocateRegion(width, height);
+				return rect;
+			}
+			catch(Exception e)
+			{
+				if(CanIncreaseSize())
+				{
+					IncreaseSize();
+					continue;
+				}
+				
+				throw e;
+			}
+		}
 	}
 }
