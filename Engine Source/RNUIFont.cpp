@@ -54,7 +54,10 @@ namespace RN
 			parameter.filter   = descriptor.textureFilter ? TextureParameter::Filter::Linear : TextureParameter::Filter::Nearest;
 			
 			_scale = Kernel::GetSharedInstance()->GetScaleFactor();
-			_texture = new TextureAtlas(1024 * _scale, 1024 * _scale, true, parameter);
+			_texture = new TextureAtlas(512 * _scale, 512 * _scale, true, parameter);
+			_texture->SetMaxSize(4096 * _scale, 4096 * _scale);
+			
+			_textureTag = _texture->GetTag();
 			
 			_finternals = 0;
 			_size       = size;
@@ -108,6 +111,7 @@ namespace RN
 			}
 			
 			RenderGlyph(CodePoint::Ellipsis());
+			UpdateAtlas();
 			DropInternals();
 		}
 		
@@ -320,7 +324,7 @@ namespace RN
 			
 			Glyph glyph;
 			glyph._character = character;
-			glyph._region    = rect;
+			glyph._region = rect;
 			glyph._region.width  /= _scale;
 			glyph._region.height /= _scale;
 			
@@ -339,6 +343,27 @@ namespace RN
 			glyph._advance_y = (slot->advance.y / 64.0f) / _scale;
 			
 			_glyphs.insert(std::unordered_map<UniChar, Glyph>::value_type(glyph._character, glyph));
+		}
+		
+		void Font::UpdateAtlas()
+		{
+			if(_textureTag == _texture->GetTag())
+				return;
+			
+			for(auto temp : _glyphs)
+			{
+				Glyph& glyph = temp.second;
+				
+				float width  = glyph._region.width  * _scale;
+				float height = glyph._region.height * _scale;
+				
+				glyph._u0 = glyph._region.x / _texture->GetWidth();
+				glyph._v0 = glyph._region.y / _texture->GetHeight();
+				glyph._u1 = (glyph._region.x + width)  / _texture->GetWidth();
+				glyph._v1 = (glyph._region.y + height) / _texture->GetHeight();
+			}
+			
+			_textureTag = _texture->GetTag();
 		}
 		
 		void Font::UpdateKerning()
@@ -389,6 +414,7 @@ namespace RN
 			if(addedGlyphs)
 				UpdateKerning();
 			
+			UpdateAtlas();
 			DropInternals();
 		}
 		
@@ -402,6 +428,7 @@ namespace RN
 				RenderGlyph(character);
 				UpdateKerning();
 				
+				UpdateAtlas();
 				DropInternals();
 				return _glyphs.at(character);
 			}

@@ -119,6 +119,7 @@ namespace RN
 			
 			void RenderGlyph(UniChar character);
 			void UpdateKerning();
+			void UpdateAtlas();
 			
 			float ConvertFontUnit(float unit) const;
 			
@@ -140,6 +141,7 @@ namespace RN
 			
 			TextureAtlas *_texture;
 			std::unordered_map<UniChar, Glyph> _glyphs;
+			uint32 _textureTag;
 			
 			RNDefineMeta(Font, Object)
 		};
