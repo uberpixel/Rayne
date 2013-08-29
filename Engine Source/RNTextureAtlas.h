@@ -44,6 +44,7 @@ namespace RN
 		};
 		
 		uint32 _tag;
+		uint32 _mutations;
 		uint32 _width, _height;
 		uint32 _maxWidth, _maxHeight;
 		std::vector<TextureRegion> _regions;

@@ -38,6 +38,7 @@ namespace RN
 		_width = _maxWidth = width;
 		_height = _maxHeight = height;
 		_tag = 0;
+		_mutations = 0;
 	}
 	
 	
@@ -126,80 +127,68 @@ namespace RN
 	
 	Rect TextureAtlas::TryAllocateRegion(uint32 width, uint32 height)
 	{
-		size_t biggestDimension = 0;
-		size_t biggestIndex = kRNNotFound;
+		size_t smallestDimenion = 0;
+		size_t bestIndex = kRNNotFound;
 		
-		for(size_t i=0; i<_regions.size(); i++)
+		for(size_t i = 0; i < _regions.size(); i ++)
 		{
-			TextureRegion& region = _regions[(int)i];
+			TextureRegion& region = _regions[i];
 			
 			if(region.isFree && (region.rect.width >= width && region.rect.height >= height))
 			{
 				size_t dimension = region.rect.width * region.rect.height;
 				
-				if(dimension > biggestDimension)
+				if(dimension < smallestDimenion || smallestDimenion == 0)
 				{
-					biggestDimension = dimension;
-					biggestIndex = i;
+					smallestDimenion = dimension;
+					bestIndex = i;
 				}
 			}
 		}
 		
-		if(biggestIndex != kRNNotFound)
+		if(bestIndex == kRNNotFound)
+			throw Exception(Exception::Type::RangeException, "Not enough free space found in atlas texture!");
+		
+		
+		TextureRegion& source = _regions[bestIndex];
+		
+		if(source.rect.width == width && source.rect.height == height)
 		{
-			TextureRegion& source = _regions[(int)biggestIndex];
-			
-			if(source.rect.width == width && source.rect.height == height)
-			{
-				source.isFree = false;
-				return source.rect;
-			}
-			
-			
-			
-			TextureRegion occupator;
-			Rect rect = Rect(source.rect.x, source.rect.y, width, height);
-			
-			occupator.rect = rect;
-			occupator.isFree = false;
-			
-			if(source.rect.width == width)
-			{
-				source.rect.height -= height;
-				source.rect.y += height;
-				
-				_regions.push_back(occupator);
-				return rect;
-			}
-			
-			if(source.rect.height == height)
-			{
-				source.rect.width -= width;
-				source.rect.x += width;
-				
-				_regions.push_back(occupator);
-				return rect;
-			}
-			
-			
-			TextureRegion next;
-			next.rect.x = occupator.rect.x + occupator.rect.width;
-			next.rect.y = occupator.rect.y;
-			next.rect.width = source.rect.width - width;
-			next.rect.height = height;
-			
-			next.isFree = true;
-			
-			source.rect.height -= height;
-			source.rect.y += height;
-			
-			_regions.push_back(occupator);
-			_regions.push_back(next);
-			
-			return rect;
+			source.isFree = false;
+			return source.rect;
 		}
 		
-		throw Exception(Exception::Type::RangeException, "Not enough free space found in atlas texture!");
+		
+		TextureRegion occupator;
+		occupator.rect   = Rect(source.rect.x, source.rect.y, width, height);
+		occupator.isFree = false;
+		
+		
+		std::vector<TextureRegion> newRegions;
+		newRegions.push_back(occupator);
+		
+		if(source.rect.width > width)
+		{
+			TextureRegion temp;
+			temp.rect = Rect(source.rect.x + width, source.rect.y, source.rect.width - width, height);
+			temp.isFree = true;
+			
+			newRegions.push_back(temp);
+		}
+		
+		source.rect.height -= height;
+		source.rect.y += height;
+		
+		if(source.rect.height <= 0.0f)
+		{
+			auto iterator = _regions.begin() + bestIndex;
+			_regions.erase(iterator);
+		}
+		
+		_regions.insert(_regions.end(), newRegions.begin(), newRegions.end());
+		_mutations ++;
+		
+		return occupator.rect;
 	}
 	
 	Rect TextureAtlas::AllocateRegion(uint32 width, uint32 height)
