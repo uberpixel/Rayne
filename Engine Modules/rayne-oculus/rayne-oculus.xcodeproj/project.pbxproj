@@ -89,7 +89,7 @@
 		D547020817D0ACFF0067DB13 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D547020717D0ACFE0067DB13 /* CoreGraphics.framework */; };
 		D547020A17D0AD1B0067DB13 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D547020917D0AD1B0067DB13 /* IOKit.framework */; };
 		D547021517D0AFE80067DB13 /* ROVRCamera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D547021317D0AFE80067DB13 /* ROVRCamera.cpp */; };
-		D547021617D0AFE80067DB13 /* ROVRCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = D547021417D0AFE80067DB13 /* ROVRCamera.h */; };
+		D547021617D0AFE80067DB13 /* ROVRCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = D547021417D0AFE80067DB13 /* ROVRCamera.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D547FD7C17CFFEC80067DB13 /* ROVRMain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D547FD7A17CFFEC80067DB13 /* ROVRMain.cpp */; };
 		D547FD7D17CFFEC80067DB13 /* ROVRMain.h in Headers */ = {isa = PBXBuildFile; fileRef = D547FD7B17CFFEC80067DB13 /* ROVRMain.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D547FD8017CFFF840067DB13 /* ROVRSystem.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D547FD7E17CFFF840067DB13 /* ROVRSystem.cpp */; };
@@ -377,9 +377,9 @@
 			files = (
 				D547FD8117CFFF840067DB13 /* ROVRSystem.h in Headers */,
 				D547FD7D17CFFEC80067DB13 /* ROVRMain.h in Headers */,
+				D547021617D0AFE80067DB13 /* ROVRCamera.h in Headers */,
 				D54701E917D0AA230067DB13 /* OVR_OSX_HMDDevice.h in Headers */,
 				D54701D617D0AA230067DB13 /* OVR_HIDDevice.h in Headers */,
-				D547021617D0AFE80067DB13 /* ROVRCamera.h in Headers */,
 				D54701B917D0AA230067DB13 /* OVR_Math.h in Headers */,
 				D54701CE17D0AA230067DB13 /* OVR_UTF8Util.h in Headers */,
 				D54701DC17D0AA230067DB13 /* OVR_LatencyTestImpl.h in Headers */,

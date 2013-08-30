@@ -19,13 +19,43 @@
 #define __rayne_oculus__ROVRSystem__
 
 
-#include "OVR.h"
 #include <Rayne.h>
+
+namespace OVR
+{
+	class DeviceManager;
+	class HMDDevice;
+	class SensorDevice;
+	class SensorFusion;
+}
 
 namespace RN
 {
 	namespace oculus
 	{
+		class HMDInfo
+		{
+		public:
+			unsigned HResolution, VResolution;
+			float HScreenSize, VScreenSize;
+			float VScreenCenter;
+			float EyeToScreenDistance;
+			float LensSeparationDistance;
+			float InterpupillaryDistance;
+			float DistortionK[4];
+			float ChromaAbCorrection[4];
+			long DisplayId;
+		};
+		
+		class HMDSensors
+		{
+		public:
+			Quaternion orientation;
+			Vector3 acceleration;
+			Vector3 angularVelocity;
+			Vector3 magnetometer;
+		};
+		
 		class System : public Singleton<System>
 		{
 		public:
@@ -35,18 +65,22 @@ namespace RN
 			bool Initialize(bool vsync=true, bool sensorsOnly=false, bool closePrimary=false);
 			
 			bool GetHMDConnected();
-			OVR::HMDInfo &GetHMDInfo();
-			OVR::SensorFusion &GetHMDSensors();
+			HMDInfo &GetHMDInfo();
+			HMDSensors &GetHMDSensors();
+			
+			void Update(float delta);
 			
 		private:
 			bool _closedPrimary;
 			
-			OVR::Ptr<OVR::DeviceManager> _manager;
-			OVR::Ptr<OVR::HMDDevice> _hmd;
-			OVR::Ptr<OVR::SensorDevice> _sensor;
+			OVR::DeviceManager *_manager;
+			OVR::HMDDevice *_hmd;
+			OVR::SensorDevice *_sensor;
 			
-			OVR::SensorFusion _sensorvalues;
-			OVR::HMDInfo _hmdinfo;
+			OVR::SensorFusion *_sensorfusion;
+			
+			HMDInfo _hmdinfo;
+			HMDSensors _sensordata;
 		};
 	}
 }

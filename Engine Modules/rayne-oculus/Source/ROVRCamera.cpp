@@ -37,7 +37,7 @@ namespace RN
 			
 			if(system->GetHMDConnected())
 			{
-				OVR::HMDInfo info = system->GetHMDInfo();
+				HMDInfo info = system->GetHMDInfo();
 				eyedistance = info.InterpupillaryDistance;
 				screenwidth = info.HScreenSize;
 				screenheight = info.VScreenSize;
@@ -187,11 +187,8 @@ namespace RN
 			System *system = System::GetSharedInstance();
 			if(system->GetHMDConnected())
 			{
-				OVR::Quatf hmdOrient = system->GetHMDSensors().GetPredictedOrientation();
-				_headrotation.x = hmdOrient.x;
-				_headrotation.y = hmdOrient.y;
-				_headrotation.z = hmdOrient.z;
-				_headrotation.w = hmdOrient.w;
+				HMDSensors sensors = system->GetHMDSensors();
+				_headrotation = sensors.orientation;
 			}
 			
 			RN::Quaternion finalrot = GetWorldRotation()*_headrotation;

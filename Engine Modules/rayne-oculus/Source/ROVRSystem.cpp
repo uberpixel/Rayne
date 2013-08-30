@@ -16,34 +16,80 @@
 //
 
 #include "ROVRSystem.h"
+#include "OVR.h"
 
 namespace RN
 {
 	namespace oculus
 	{
 		System::System()
-		: _manager(0), _hmd(0), _sensor(0), _closedPrimary(false)
+		: _manager(0), _hmd(0), _sensor(0), _closedPrimary(false), _sensorfusion(0)
 		{
 			OVR::System::Init(OVR::Log::ConfigureDefaultLog(OVR::LogMask_None));
 		}
 		
 		System::~System()
 		{
-			_sensorvalues.AttachToSensor(NULL);
-			_sensor.Clear();
-			_hmd.Clear();
-			_manager.Clear();
+			if(_closedPrimary)
+				CGDisplayRelease(CGMainDisplayID());
+			
+			if(_sensorfusion)
+			{
+				_sensorfusion->AttachToSensor(NULL);
+				delete _sensorfusion;
+				_sensorfusion = 0;
+			}
+			
+			if(_sensor)
+			{
+				delete _sensor;
+				_sensor = 0;
+			}
+			
+			if(_hmd)
+			{
+				delete _hmd;
+				_hmd = 0;
+			}
+			
+			if(_manager)
+			{
+				delete _manager;
+				_manager = 0;
+			}
 			
 			OVR::System::Destroy();
 		}
 		
 		bool System::Initialize(bool vsync, bool sensorsOnly, bool closePrimary)
 		{
-			_manager = *OVR::DeviceManager::Create();
-			_hmd = *_manager->EnumerateDevices<OVR::HMDDevice>().CreateDevice();
+			if(_manager)
+				return false;
 			
-			if(_manager && _hmd->GetDeviceInfo(&_hmdinfo))
+			_manager = OVR::DeviceManager::Create();
+			_hmd = _manager->EnumerateDevices<OVR::HMDDevice>().CreateDevice();
+			
+			OVR::HMDInfo info;
+			if(_manager && _hmd && _hmd->GetDeviceInfo(&info))
 			{
+				_hmdinfo.HResolution = info.HResolution;
+				_hmdinfo.VResolution = info.VResolution;
+				_hmdinfo.HScreenSize = info.HScreenSize;
+				_hmdinfo.VScreenSize = info.VScreenSize;
+				_hmdinfo.VScreenCenter = info.VScreenCenter;
+				_hmdinfo.EyeToScreenDistance = info.EyeToScreenDistance;
+				_hmdinfo.LensSeparationDistance = info.LensSeparationDistance;
+				_hmdinfo.InterpupillaryDistance = info.InterpupillaryDistance;
+				_hmdinfo.DistortionK[0] = info.DistortionK[0];
+				_hmdinfo.DistortionK[1] = info.DistortionK[1];
+				_hmdinfo.DistortionK[2] = info.DistortionK[2];
+				_hmdinfo.DistortionK[3] = info.DistortionK[3];
+				_hmdinfo.ChromaAbCorrection[0] = info.ChromaAbCorrection[0];
+				_hmdinfo.ChromaAbCorrection[1] = info.ChromaAbCorrection[1];
+				_hmdinfo.ChromaAbCorrection[2] = info.ChromaAbCorrection[2];
+				_hmdinfo.ChromaAbCorrection[3] = info.ChromaAbCorrection[3];
+				_hmdinfo.DisplayId = info.DisplayId;
+				
 				if(closePrimary && !sensorsOnly)
 				{
 					_closedPrimary = true;
@@ -66,13 +112,13 @@ namespace RN
 				
 				RN::Window::GetSharedInstance()->HideCursor();
 				
-				_sensor.Clear();
-				_sensor = *_hmd->GetSensor();
+				_sensor = _hmd->GetSensor();
 				
 				if(_sensor)
 				{
-					_sensorvalues.AttachToSensor(_sensor);
-					_sensorvalues.SetPrediction(0.03);
+					_sensorfusion = new OVR::SensorFusion();
+					_sensorfusion->AttachToSensor(_sensor);
+					_sensorfusion->SetPrediction(0.03);
 				}
 				
 				return true;
@@ -80,19 +126,46 @@ namespace RN
 			return false;
 		}
 		
+		void System::Update(float delta)
+		{
+			if(_sensorfusion)
+			{
+				OVR::Quatf orientation = _sensorfusion->GetPredictedOrientation();
+				_sensordata.orientation.x = orientation.x;
+				_sensordata.orientation.y = orientation.y;
+				_sensordata.orientation.z = orientation.z;
+				_sensordata.orientation.w = orientation.w;
+				
+				OVR::Vector3f acceleration = _sensorfusion->GetAcceleration();
+				_sensordata.acceleration.x = acceleration.x;
+				_sensordata.acceleration.y = acceleration.y;
+				_sensordata.acceleration.z = acceleration.z;
+				
+				OVR::Vector3f angularVelocity = _sensorfusion->GetAngularVelocity();
+				_sensordata.angularVelocity.x = angularVelocity.x;
+				_sensordata.angularVelocity.y = angularVelocity.y;
+				_sensordata.angularVelocity.z = angularVelocity.z;
+				
+				OVR::Vector3f magnetometer = _sensorfusion->GetMagnetometer();
+				_sensordata.magnetometer.x = magnetometer.x;
+				_sensordata.magnetometer.y = magnetometer.y;
+				_sensordata.magnetometer.z = magnetometer.z;
+			}
+		}
+		
 		bool System::GetHMDConnected()
 		{
 			return _sensor;
 		}
 		
-		OVR::HMDInfo &System::GetHMDInfo()
+		HMDInfo &System::GetHMDInfo()
 		{
 			return _hmdinfo;
 		}
 		
-		OVR::SensorFusion &System::GetHMDSensors()
+		HMDSensors &System::GetHMDSensors()
 		{
-			return _sensorvalues;
+			return _sensordata;
 		}
 	}
 }
