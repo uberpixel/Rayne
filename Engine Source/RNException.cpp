@@ -57,4 +57,45 @@ namespace RN
 		
 		_thread = Thread::GetCurrentThread();
 	}
+	
+	
+#define CaseType(type) \
+	case type: \
+		return #type ; \
+		break;
+	
+	const char *Exception::GetStringifiedType() const
+	{
+		switch(_type)
+		{
+			CaseType(Type::GenericException)
+			CaseType(Type::InvalidArgumentException)
+			CaseType(Type::RangeException)
+			CaseType(Type::InconsistencyException)
+			CaseType(Type::DowncastException)
+				
+			CaseType(Type::ApplicationNotFoundException)
+			CaseType(Type::ModuleNotFoundException)
+			CaseType(Type::NoCPUException)
+			CaseType(Type::NoGPUException)
+			CaseType(Type::NoContextException)
+				
+			CaseType(Type::TextureFormatUnsupportedException)
+			
+			CaseType(Type::ShaderUnsupportedException)
+			CaseType(Type::ShaderCompilationFailedException)
+			CaseType(Type::ShaderLinkingFailedException)
+				
+			CaseType(Type::FramebufferException)
+			CaseType(Type::FramebufferUnsupportedException)
+			CaseType(Type::FramebufferIncompleteAttachmentException)
+			CaseType(Type::FramebufferIncompleteMissingAttachmentException)
+			CaseType(Type::FramebufferIncompleteDrawbufferException)
+			CaseType(Type::FramebufferIncompleteDimensionsException)
+			CaseType(Type::FramebufferIncompleteLayerException)
+			CaseType(Type::FramebufferIncompleteMultisampleException)
+		}
+		
+		return nullptr;
+	}
 }

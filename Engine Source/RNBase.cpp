@@ -17,6 +17,8 @@
 #define kRNVersionMinor 1
 #define kRNVersionPatch 0
 
+#define kRNABIVersion 0
+
 namespace RN
 {
 	static SpinLock __DieLock;
@@ -71,6 +73,10 @@ namespace RN
 	}
 	
 	
+	uint32 ABIVersion()
+	{
+		return kRNABIVersion;
+	}
 	
 	uint32 Version()
 	{
