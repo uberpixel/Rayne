@@ -30,6 +30,8 @@ namespace RN
 		
 		System::~System()
 		{
+			RN::MessageCenter::GetSharedInstance()->RemoveObserver(this);
+			
 			if(_closedPrimary)
 				CGDisplayRelease(CGMainDisplayID());
 			
@@ -119,6 +121,8 @@ namespace RN
 					_sensorfusion = new OVR::SensorFusion();
 					_sensorfusion->AttachToSensor(_sensor);
 					_sensorfusion->SetPrediction(0.03);
+					
+					RN::MessageCenter::GetSharedInstance()->AddObserver(kRNKernelWillBeginFrameMessage, &RN::oculus::System::Update, this, this);
 				}
 				
 				return true;
@@ -126,7 +130,7 @@ namespace RN
 			return false;
 		}
 		
-		void System::Update(float delta)
+		void System::Update(RN::Message *message)
 		{
 			if(_sensorfusion)
 			{

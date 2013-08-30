@@ -68,7 +68,7 @@ namespace RN
 			HMDInfo &GetHMDInfo();
 			HMDSensors &GetHMDSensors();
 			
-			void Update(float delta);
+			void Update(RN::Message *message);
 			
 		private:
 			bool _closedPrimary;
