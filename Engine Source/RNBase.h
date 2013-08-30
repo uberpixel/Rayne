@@ -76,7 +76,7 @@
 #endif
 
 #if RN_PLATFORM_WINDOWS
-	#define WINDOWS_LEAN_AND_MEAN // fuck MFC!
+	#define WINDOWS_LEAN_AND_MEAN
 	#include <windows.h>
 
 	#include "gl11.h"
@@ -129,6 +129,7 @@ namespace RN
 	RNAPI RN_NORETURN void __HandleException(const Exception& e);
 	RNAPI void ParseCommandLine(int argc, char *argv[]);
 	
+	RNAPI uint32 ABIVersion();
 	RNAPI uint32 Version();
 	RNAPI uint32 VersionMake(uint32 major, uint32 minor, uint32 patch);
 	
