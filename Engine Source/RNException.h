@@ -53,6 +53,7 @@ namespace RN
 		Type GetType() const { return _type; }
 		Thread *GetThread() const { return _thread; }
 		
+		const char *GetStringifiedType() const;
 		const std::string& GetReason() const { return _reason; }
 		const std::vector<std::pair<uintptr_t, std::string>>& GetCallStack() const { return _callStack; }
 		
