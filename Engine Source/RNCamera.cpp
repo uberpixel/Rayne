@@ -895,7 +895,7 @@ namespace RN
 	
 	bool Camera::InFrustum(const Sphere& sphere)
 	{
-		return InFrustum(sphere.position, sphere.radius);
+		return InFrustum(sphere.position+sphere.offset, sphere.radius);
 	}
 	
 	bool Camera::InFrustum(const AABB& aabb)

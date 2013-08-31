@@ -278,7 +278,7 @@ namespace RN
 		
 		void DrawSphere(const Sphere& sphere, const Color& color, const int tesselation)
 		{
-			DrawSphere(sphere.position, sphere.radius, Color::Yellow(), tesselation);
+			DrawSphere(sphere.position+sphere.offset, sphere.radius, Color::Yellow(), tesselation);
 		}
 		
 		void DrawSphere(const Vector3 &pos, const float radius, const Color &color, const int tesselation)
