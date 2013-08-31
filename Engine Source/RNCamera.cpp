@@ -741,8 +741,10 @@ namespace RN
 			Vector4 temp = Vector4(ndcPos*0.5f);
 			temp += 0.5f;
 			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 1.0f-temp.z, 0.0f);
-			Vector4 vec = Vector4(ortholeft, orthobottom, -clipnear, 1.0f)*temp2;
-			vec += Vector4(orthoright, orthotop, -clipfar, 1.0f)*temp;
+			
+			//I have no idea why the fourth parameter has to be 2, but translation is wrong otherwize...
+			Vector4 vec = Vector4(ortholeft, orthobottom, -clipnear, 2.0f)*temp2;
+			vec += Vector4(orthoright, orthotop, -clipfar, 2.0f)*temp;
 			
 			vec = inverseViewMatrix.Transform(vec);
 			return Vector3(vec);
@@ -768,8 +770,10 @@ namespace RN
 			Vector4 temp = Vector4(ndcPos*0.5f);
 			temp += 0.5f;
 			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 0.0f, 0.0f);
-			Vector4 vec = Vector4(ortholeft, orthobottom, -dir.z, 1.0f)*temp2;
-			vec += Vector4(orthoright, orthotop, -dir.z, 1.0f)*temp;
+			
+			//I have no idea why the fourth parameter has to be 2, but translation is wrong otherwize...
+			Vector4 vec = Vector4(ortholeft, orthobottom, -dir.z, 2.0f)*temp2;
+			vec += Vector4(orthoright, orthotop, -dir.z, 2.0f)*temp;
 			vec = inverseViewMatrix.Transform(vec);
 			return Vector3(vec);
 		}
@@ -838,8 +842,10 @@ namespace RN
 
 	void Camera::UpdateFrustum()
 	{
+		Vector3 pos1 = ToWorld(Vector3(-1.0f, 1.0f, 0.0f));
 		Vector3 pos2 = ToWorld(Vector3(-1.0f, 1.0f, 1.0));
 		Vector3 pos3 = ToWorld(Vector3(-1.0f, -1.0f, 1.0));
+		Vector3 pos4 = ToWorld(Vector3(1.0f, -1.0f, 0.0));
 		Vector3 pos5 = ToWorld(Vector3(1.0f, 1.0f, 1.0));
 		Vector3 pos6 = ToWorld(Vector3(1.0f, -1.0f, 1.0));
 		
@@ -848,21 +854,21 @@ namespace RN
 
 		Vector3 vmax;
 		Vector3 vmin;
-		vmax.x = MAX(position.x, MAX(pos2.x, MAX(pos3.x, MAX(pos5.x, pos6.x))));
-		vmax.y = MAX(position.y, MAX(pos2.y, MAX(pos3.y, MAX(pos5.y, pos6.y))));
-		vmax.z = MAX(position.z, MAX(pos2.z, MAX(pos3.z, MAX(pos5.z, pos6.z))));
-		vmin.x = MIN(position.x, MIN(pos2.x, MIN(pos3.x, MIN(pos5.x, pos6.x))));
-		vmin.y = MIN(position.y, MIN(pos2.y, MIN(pos3.y, MIN(pos5.y, pos6.y))));
-		vmin.z = MIN(position.z, MIN(pos2.z, MIN(pos3.z, MIN(pos5.z, pos6.z))));
+		vmax.x = MAX(pos1.x, MAX(pos4.x, MAX(pos2.x, MAX(pos3.x, MAX(pos5.x, pos6.x)))));
+		vmax.y = MAX(pos1.y, MAX(pos4.y, MAX(pos2.y, MAX(pos3.y, MAX(pos5.y, pos6.y)))));
+		vmax.z = MAX(pos1.z, MAX(pos4.z, MAX(pos2.z, MAX(pos3.z, MAX(pos5.z, pos6.z)))));
+		vmin.x = MIN(pos1.x, MIN(pos4.x, MIN(pos2.x, MIN(pos3.x, MIN(pos5.x, pos6.x)))));
+		vmin.y = MIN(pos1.y, MIN(pos4.y, MIN(pos2.y, MIN(pos3.y, MIN(pos5.y, pos6.y)))));
+		vmin.z = MIN(pos1.z, MIN(pos4.z, MIN(pos2.z, MIN(pos3.z, MIN(pos5.z, pos6.z)))));
 
 		_frustumCenter = vmax + vmin;
 		_frustumCenter = _frustumCenter * 0.5f;
 		_frustumRadius = _frustumCenter.Distance(vmax);
 
-		_frustumLeft.SetPlane(position, pos2, pos3, 1.0f);
-		_frustumRight.SetPlane(position, pos5, pos6, -1.0f);
-		_frustumTop.SetPlane(position, pos2, pos5, -1.0f);
-		_frustumBottom.SetPlane(position, pos3, pos6, 1.0f);
+		_frustumLeft.SetPlane(pos1, pos2, pos3, 1.0f);
+		_frustumRight.SetPlane(pos4, pos5, pos6, -1.0f);
+		_frustumTop.SetPlane(pos1, pos2, pos5, -1.0f);
+		_frustumBottom.SetPlane(pos4, pos3, pos6, 1.0f);
 		_frustumNear.SetPlane(position + direction * clipnear, -direction);
 		_frustumFar.SetPlane(position + direction * clipfar, direction);
 	}
