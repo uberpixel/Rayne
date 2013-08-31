@@ -833,7 +833,6 @@ namespace RN
 					glUniform4fv(program->diffuse, 1, &material->diffuse.r);
 					glUniform4fv(program->emissive, 1, &material->emissive.r);
 					glUniform4fv(program->specular, 1, &material->specular.r);
-					glUniform1f(program->shininess, material->shininess);
 					
 					material->ApplyUniforms(program);
 				}

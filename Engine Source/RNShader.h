@@ -78,7 +78,6 @@ namespace RN
 		GLuint diffuse;
 		GLuint specular;
 		GLuint emissive;
-		GLuint shininess;
 		
 		GLuint viewPosition;
 		

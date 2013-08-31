@@ -96,18 +96,17 @@ namespace RN
 			OverrideCullmode = (1 << 1),
 			OverrideBlending = (1 << 2),
 			OverrideBlendmode = (1 << 3),
-			OverrideShininess = (1 << 4),
-			OverrideAmbient = (1 << 5),
-			OverrideDiffuse = (1 << 6),
-			OverrideSpecular = (1 << 7),
-			OverrideEmissive = (1 << 8),
-			OverrideDepthtest = (1 << 9),
-			OverrideDepthwrite = (1 << 10),
-			OverrideDepthtestMode = (1 << 11),
-			OverrideDiscard = (1 << 12),
-			OverrideDiscardThreshold = (1 << 13),
-			OverrideTextures = (1 << 14),
-			OverridePolygonOffset = (1 << 15),
+			OverrideAmbient = (1 << 4),
+			OverrideDiffuse = (1 << 5),
+			OverrideSpecular = (1 << 6),
+			OverrideEmissive = (1 << 7),
+			OverrideDepthtest = (1 << 8),
+			OverrideDepthwrite = (1 << 9),
+			OverrideDepthtestMode = (1 << 10),
+			OverrideDiscard = (1 << 11),
+			OverrideDiscardThreshold = (1 << 12),
+			OverrideTextures = (1 << 13),
+			OverridePolygonOffset = (1 << 14),
 			
 			OverrideGroupDiscard = OverrideDiscard | OverrideDiscardThreshold | OverrideTextures
 		};
@@ -156,8 +155,6 @@ namespace RN
 		bool polygonOffset;
 		float polygonOffsetFactor;
 		float polygonOffsetUnits;
-		
-		float shininess;
 		
 		Color ambient;
 		Color diffuse;

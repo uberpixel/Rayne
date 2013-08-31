@@ -72,7 +72,6 @@ namespace RN
 		GetUniformLocation(diffuse);
 		GetUniformLocation(specular);
 		GetUniformLocation(emissive);
-		GetUniformLocation(shininess);
 		
 		GetUniformLocation(viewPosition);
 		

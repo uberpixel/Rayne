@@ -204,8 +204,6 @@ namespace RN
 		specular = Color(1.0f, 1.0f, 1.0f, 4.0f);
 		emissive = Color(0.0f, 0.0f, 0.0f, 0.0f);
 		
-		shininess = 0.0f;
-		
 		depthtest = true;
 		depthtestmode = GL_LEQUAL;
 		depthwrite = true;
