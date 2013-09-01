@@ -17,6 +17,7 @@ namespace RN
 		ScrollView::ScrollView()
 		{
 			SetClipSubviews(true);
+			_delegate = nullptr;
 		}
 		
 		ScrollView::~ScrollView()
@@ -38,6 +39,13 @@ namespace RN
 			SetContentSize(_size);
 		}
 		
+		void ScrollView::SetFrame(const Rect& frame)
+		{
+			View::SetFrame(frame);
+			SetContentSize(_size);
+		}
+		
+		
 		
 		void ScrollView::SetContentOffset(const Vector2& offset)
 		{
@@ -48,6 +56,9 @@ namespace RN
 			SetBounds(bounds);
 			
 			_offset = offset;
+			
+			if(_delegate)
+				_delegate->ScrollViewDidScroll(this);
 		}
 		void ScrollView::SetContentSize(const Vector2& size)
 		{
@@ -58,11 +69,6 @@ namespace RN
 			_end.y = std::max(0.0f, _end.y);
 		}
 		
-		void ScrollView::SetFrame(const Rect& frame)
-		{
-			View::SetFrame(frame);
-			SetContentSize(_size);
-		}
 		
 		
 		void ScrollView::ScrollWheel(Event *event)
