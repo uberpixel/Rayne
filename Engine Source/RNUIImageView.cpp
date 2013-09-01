@@ -162,10 +162,19 @@ namespace RN
 			}
 		}
 		
-		bool ImageView::Render(RenderingObject& object)
+		void ImageView::Draw(Renderer *renderer)
 		{
-			object.mesh = _mesh;
-			return (_image != 0);
+			View::Draw(renderer);
+			
+			if(_mesh)
+			{
+				RenderingObject object;
+				PopulateRenderingObject(object);
+				
+				object.mesh = _mesh;
+				
+				renderer->RenderObject(object);
+			}
 		}
 	}
 }

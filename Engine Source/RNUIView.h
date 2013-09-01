@@ -71,8 +71,7 @@ namespace RN
 			Material *DrawMaterial() { return _material; }
 			
 			virtual void Update();
-			virtual bool Render(RenderingObject& object);
-			virtual void Render(Renderer *renderer);
+			virtual void Draw(Renderer *renderer);
 			
 			void RenderChilds(Renderer *renderer);
 			void PopulateRenderingObject(RenderingObject& object);
@@ -90,8 +89,9 @@ namespace RN
 			void Initialize();
 			void ViewHierarchyChanged();
 			void CalculateScissorRect();
+			void DrawChilds(Renderer *renderer);
+			void UpdateAndDraw(Renderer *renderer);
 			
-			void PrepareRendering(RenderingObject& object);
 			void ConvertPointToWidget(Vector2& point);
 			void ConvertPointFromWidget(Vector2& point);
 			
@@ -100,6 +100,7 @@ namespace RN
 			
 			Widget *_widget;
 			Material *_material;
+			Mesh *_mesh;
 
 			Array _subviews;
 			

@@ -53,6 +53,7 @@ namespace RN
 			_superview    = nullptr;
 			_widget       = nullptr;
 			_clippingView = nullptr;
+			_mesh         = nullptr;
 			
 			_dirtyLayout        = true;
 			_interactionEnabled = true;
@@ -63,7 +64,7 @@ namespace RN
 			_material->depthwrite = false;
 			_material->blending   = true;
 			_material->lighting   = false;
-			_material->diffuse    = Color(1.0f, 1.0f, 1.0f, 1.0f);
+			_material->diffuse    = Color(0.128f, 0.128f, 0.128f, 1.0f);
 		}
 		
 		void View::SetBackgroundColor(const Color& color)
@@ -474,6 +475,10 @@ namespace RN
 				_finalTransform = _intermediateTransform;
 				_finalTransform.Translate(Vector3(converted.x, serverHeight - _frame.height - converted.y, 0.0f));
 				
+				if(_mesh)
+					_mesh->Release();
+				
+				_mesh = BasicMesh(_frame.Size())->Retain();
 				_dirtyLayout = false;
 				
 				CalculateScissorRect();
@@ -518,36 +523,36 @@ namespace RN
 			}
 		}
 		
-		void View::PrepareRendering(RenderingObject& object)
+		
+		
+		void View::Draw(Renderer *renderer)
 		{
-			Update();
-			PopulateRenderingObject(object);
+			if(_material->diffuse.a >= k::EpsilonFloat)
+			{
+				RenderingObject object;
+				PopulateRenderingObject(object);
+				
+				object.mesh = _mesh;
+				
+				renderer->RenderObject(object);
+			}
 		}
 		
-		bool View::Render(RenderingObject& object)
-		{
-			return false;
-		}
-		
-		void View::Render(Renderer *renderer)
-		{
-			RenderingObject object;
-			PrepareRendering(object);
-			
-			if(Render(object))
-				renderer->RenderObject(std::move(object));
-			
-			RenderChilds(renderer);
-		}
-		
-		void View::RenderChilds(Renderer *renderer)
+		void View::DrawChilds(Renderer *renderer)
 		{
 			size_t count = _subviews.GetCount();
 			for(size_t i=0; i<count; i++)
 			{
 				View *subview = _subviews.GetObjectAtIndex<View>(i);
-				subview->Render(renderer);
+				subview->UpdateAndDraw(renderer);
 			}
+		}
+		
+		void View::UpdateAndDraw(Renderer *renderer)
+		{
+			Update();
+			Draw(renderer);
+			DrawChilds(renderer);
 		}
 	}
 }

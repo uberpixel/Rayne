@@ -23,6 +23,8 @@ namespace RN
 			_typesetter = new Typesetter(_string, Frame());
 			_isDirty = true;
 			_model = nullptr;
+			
+			SetBackgroundColor(Color::ClearColor());
 		}
 		
 		TextEditor::~TextEditor()
@@ -136,9 +138,9 @@ namespace RN
 			}
 		}
 		
-		void TextEditor::Render(Renderer *renderer)
+		void TextEditor::Draw(Renderer *renderer)
 		{
-			Update();
+			View::Draw(renderer);
 			
 			if(_model)
 			{
@@ -154,8 +156,6 @@ namespace RN
 					renderer->RenderObject(object);
 				}
 			}
-			
-			RenderChilds(renderer);
 		}
 	}
 }

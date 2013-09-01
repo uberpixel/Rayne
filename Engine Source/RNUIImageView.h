@@ -33,7 +33,7 @@ namespace RN
 			
 		protected:
 			void Update() override;
-			bool Render(RenderingObject& object) override;
+			void Draw(Renderer *renderer) override;
 			
 		private:
 			void Initialize();

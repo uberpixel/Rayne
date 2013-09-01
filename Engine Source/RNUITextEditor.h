@@ -38,7 +38,7 @@ namespace RN
 			void ProcessEvent(Event *event);
 			
 		protected:
-			void Render(Renderer *renderer) override;
+			void Draw(Renderer *renderer) override;
 			void Update() override;
 			
 		private:

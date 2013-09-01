@@ -182,7 +182,7 @@ namespace RN
 			if(_dirtyLayout)
 				UpdateLayout();
 			
-			_contentView->Render(renderer);
+			_contentView->UpdateAndDraw(renderer);
 		}
 	}
 }

@@ -42,6 +42,7 @@ namespace RN
 			SetFont(ResourcePool::GetSharedInstance()->GetResourceWithName<Font>(kRNResourceKeyDefaultFont));
 			SetTextColor(Color::White());
 			SetInteractionEnabled(false);
+			SetBackgroundColor(Color::ClearColor());
 			
 			SetAlignment(TextAlignment::Left);
 			SetLineBreak(LineBreakMode::TruncateTail);
@@ -153,9 +154,9 @@ namespace RN
 			}
 		}
 		
-		void Label::Render(Renderer *renderer)
+		void Label::Draw(Renderer *renderer)
 		{
-			Update();
+			View::Draw(renderer);
 			
 			if(_model)
 			{
@@ -171,8 +172,6 @@ namespace RN
 					renderer->RenderObject(object);
 				}
 			}
-			
-			RenderChilds(renderer);
 		}
 	}
 }

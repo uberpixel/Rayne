@@ -45,7 +45,7 @@ namespace RN
 			
 		protected:
 			void Update() override;
-			void Render(Renderer *renderer) override;
+			void Draw(Renderer *renderer) override;
 			
 		private:
 			void Initialize();
