@@ -50,6 +50,7 @@ namespace RN
 		static Color Black() { return Color(0.0f, 0.0f, 0.0f); }
 		static Color White() { return Color(1.0f, 1.0f, 1.0f); }
 		static Color Gray() { return Color(0.5f, 0.5f, 0.5f); }
+		static Color ClearColor() { return Color(0.0f, 0.0f, 0.0f, 0.0f); }
 		
 		struct
 		{
