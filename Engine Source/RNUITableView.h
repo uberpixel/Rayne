@@ -63,6 +63,7 @@ namespace RN
 			IndexSet *GetSelection() const { return _selection; }
 			bool GetAllowsMultipleSelection() const { return _allowsMultipleSelection; }
 			float GetIndentationOffset() const { return _indentationOffset; }
+			Range GetVisibleRange() const;
 			
 			void ReloadData();
 			
@@ -71,10 +72,11 @@ namespace RN
 			void ScrollViewDidScroll(ScrollView *view) override;
 			void EnqueueCell(TableViewCell *cell, bool cleanRowData);
 			
-			size_t RowForContentOffset(float offset);
-			float OffsetForRow(size_t row);
-			float GetIndentationForRow(size_t row);
-			float GetHeightForRow(size_t row);
+			size_t GetRowForContentOffset(float offset) const;
+			float GetOffsetForRow(size_t row) const;
+			float GetIndentationForRow(size_t row) const;
+			float GetHeightForRow(size_t row) const;
+			
 			TableViewCell *GetCellForRow(size_t row);
 			
 			void ClearAllCells();

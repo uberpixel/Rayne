@@ -130,16 +130,19 @@ namespace RN
 		// MARK: Row handling
 		// ---------------------
 		
-		size_t TableView::RowForContentOffset(float offset)
+		size_t TableView::GetRowForContentOffset(float offset) const
 		{
 			if(!_delegate || _rowHeight > 0.0f)
-				return static_cast<size_t>(floorf(offset / _rowHeight));
+			{
+				size_t row = static_cast<size_t>(floorf(offset / _rowHeight));
+				return std::min(_rows, row);
+			}
 			
 			
 			float height = 0.0f;
 			for(size_t i = 0; i < _rows; i ++)
 			{
-				height += _delegate->HeightOfRowInTableView(this, i);
+				height += _delegate->HeightOfRowInTableView(const_cast<TableView *>(this), i);
 				
 				if(height >= offset)
 					return i;
@@ -148,7 +151,7 @@ namespace RN
 			return k::NotFound;
 		}
 		
-		float TableView::OffsetForRow(size_t row)
+		float TableView::GetOffsetForRow(size_t row) const
 		{
 			RN_ASSERT(row <= _rows, "Invalid row number");
 			
@@ -159,21 +162,21 @@ namespace RN
 			
 			for(size_t i = 0; i < row; i ++)
 			{
-				offset += _delegate->HeightOfRowInTableView(this, i);
+				offset += _delegate->HeightOfRowInTableView(const_cast<TableView *>(this), i);
 			}
 			
 			return offset;
 		}
 		
-		float TableView::GetIndentationForRow(size_t row)
+		float TableView::GetIndentationForRow(size_t row) const
 		{
 			if(!_delegate)
 				return 0.0f;
 			
-			return _delegate->IndentationForRowInTableView(this, row) * _indentationOffset;
+			return _delegate->IndentationForRowInTableView(const_cast<TableView *>(this), row) * _indentationOffset;
 		}
 		
-		float TableView::GetHeightForRow(size_t row)
+		float TableView::GetHeightForRow(size_t row) const
 		{
 			if(!_delegate)
 				return _rowHeight;
@@ -181,7 +184,25 @@ namespace RN
 			if(_rowHeight > 0.0)
 				return _rowHeight;
 			
-			return _delegate->HeightOfRowInTableView(this, row);
+			return _delegate->HeightOfRowInTableView(const_cast<TableView *>(this), row);
+		}
+		
+		Range TableView::GetVisibleRange() const
+		{
+			Range range;
+			
+			float offset = GetContentOffset().y;
+			float contentHeight = offset + Frame().height;
+			
+			size_t firstVisibleRow = GetRowForContentOffset(offset);
+			size_t lastVisibleRow  = GetRowForContentOffset(contentHeight);
+			
+			lastVisibleRow = std::min(lastVisibleRow + 1, _rows);
+			
+			range.origin = firstVisibleRow;
+			range.length = lastVisibleRow - firstVisibleRow;
+			
+			return range;
 		}
 		
 		TableViewCell *TableView::GetCellForRow(size_t row)
@@ -203,30 +224,13 @@ namespace RN
 				return;
 			
 			// Find the first and last visible row
-			float offset = GetContentOffset().y;
-			float contentHeight = offset + Frame().height;
-			
-			size_t firstVisibleRow = 0;
-			size_t lastVisibleRow  = 0;
-			
-			float temp = 0.0f;
-			
-			for(size_t i = 0; (i < _rows && temp <= contentHeight); i ++)
-			{
-				if(temp <= offset)
-					firstVisibleRow = i;
-				
-				if(temp <= contentHeight)
-					lastVisibleRow = std::min(i + 1, _rows);
-					
-				temp += GetHeightForRow(i);
-			}
+			Range range = std::move(GetVisibleRange());
 			
 			// Remove invisible rows
 			for(size_t i = 0; i < _cells.GetCount(); i ++)
 			{
 				TableViewCell *cell = _cells.GetObjectAtIndex<TableViewCell>(i);
-				if(cell->_row < firstVisibleRow || cell->_row > lastVisibleRow)
+				if(cell->_row < range.origin || cell->_row > range.GetEnd())
 				{
 					EnqueueCell(cell, true);
 					i --;
@@ -241,11 +245,11 @@ namespace RN
 			}
 			
 			// Insert missing rows
-			for(size_t i = firstVisibleRow; i < lastVisibleRow; i ++)
+			for(size_t i = range.origin; i < range.origin + range.length; i ++)
 			{
 				if(_visibleCells.find(i) == _visibleCells.end())
 				{
-					InsertCellForRow(i, OffsetForRow(i));
+					InsertCellForRow(i, GetOffsetForRow(i));
 				}
 			}
 		}
