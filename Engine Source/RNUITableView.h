@@ -55,9 +55,11 @@ namespace RN
 			
 			void LayoutSubviews() override;
 			void SetFrame(const Rect& frame) override;
-			
+			void SetAllowsMultipleSelection(bool multipleSelection);
 			void SetSelection(IndexSet *selection);
+			
 			IndexSet *GetSelection() const { return _selection; }
+			bool GetAllowsMultipleSelection() const { return _allowsMultipleSelection; }
 			
 			void ReloadData();
 			

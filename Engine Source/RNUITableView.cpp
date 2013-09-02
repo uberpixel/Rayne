@@ -284,6 +284,17 @@ namespace RN
 			__AdoptSelection(selection->Copy());
 		}
 		
+		void TableView::SetAllowsMultipleSelection(bool multipleSelection)
+		{
+			_allowsMultipleSelection = multipleSelection;
+			if(!_allowsMultipleSelection && _selection->GetCount() > 0)
+			{
+				size_t selection = _selection->GetFirstIndex();
+				__AdoptSelection(new IndexSet(selection));
+			}
+		}
+		
+		
 		void TableView::__AdoptSelection(IndexSet *selection)
 		{
 			size_t count = _selection->GetCount();
@@ -321,7 +332,29 @@ namespace RN
 			bool canAdd = (!_delegate || _delegate->CanSelectRowInTableView(this, cell->_row));
 			if(canAdd)
 			{
-				__AdoptSelection(new IndexSet(cell->_row));
+				Input *input = Input::GetSharedInstance();
+				bool ctrlDown = (input->GetModifierKeys() & KeyControl);
+				
+				if(!_allowsMultipleSelection || !ctrlDown)
+				{
+					__AdoptSelection(new IndexSet(cell->_row));
+				}
+				else
+				{
+					if(!_selection->ContainsIndex(cell->_row))
+					{
+						_selection->AddIndex(cell->_row);
+						
+						if(_delegate)
+							_delegate->DidSelectRowInTableView(this, cell->_row);
+						
+						cell->SetSelected(true);
+					}
+					else
+					{
+						DeselectCell(cell);
+					}
+				}
 			}
 		}
 		
