@@ -172,9 +172,12 @@ namespace RN
 		}
 	}
 	
-	BasicString *ConstantUTF8String::Copy() const
+	BasicString *ConstantUTF8String::SimpleCopy() const
 	{
-		return new ConstantUTF8String(_string);
+		BasicString *string = const_cast<BasicString *>(static_cast<const BasicString *>(this));
+		
+		string->Retain();
+		return string;
 	}
 	
 	BasicString *ConstantUTF8String::MutableCopy() const
@@ -344,7 +347,7 @@ namespace RN
 		delete [] _string;
 	}
 	
-	BasicString *UTF8String::Copy() const
+	BasicString *UTF8String::SimpleCopy() const
 	{
 		return new UTF8String(_string, Size());
 	}

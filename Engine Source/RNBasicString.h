@@ -25,7 +25,7 @@ namespace RN
 	{
 	public:
 		virtual ~BasicString();
-		virtual BasicString *Copy() const;
+		virtual BasicString *SimpleCopy() const;
 		virtual BasicString *MutableCopy() const;
 		
 		virtual UniChar CharacterAtIndex(size_t index) const;

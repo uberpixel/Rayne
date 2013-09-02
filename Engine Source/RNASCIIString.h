@@ -18,7 +18,7 @@ namespace RN
 	public:
 		ConstantASCIIString(const char *string);
 		
-		BasicString *Copy() const override;
+		BasicString *SimpleCopy() const override;
 		BasicString *MutableCopy() const override;
 		
 		UniChar CharacterAtIndex(size_t index) const override;
@@ -49,7 +49,7 @@ namespace RN
 		ASCIIString(const char *string, size_t length);
 		~ASCIIString() override;
 		
-		BasicString *Copy() const override;
+		BasicString *SimpleCopy() const override;
 		
 		void ReplaceCharactersInRange(const Range& range, BasicString *string) override;
 		bool IsMutable() const override;

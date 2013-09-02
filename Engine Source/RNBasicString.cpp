@@ -19,7 +19,7 @@ namespace RN
 	BasicString::~BasicString()
 	{}
 	
-	BasicString *BasicString::Copy() const
+	BasicString *BasicString::SimpleCopy() const
 	{
 		throw Exception(Exception::Type::GenericException, "");
 	}

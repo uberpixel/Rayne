@@ -87,7 +87,7 @@ namespace RN
 	String::String(const String *string)
 	{
 		BasicString *other = static_cast<BasicString *>(string->_internal);
-		_internal = other->Copy();
+		_internal = other->SimpleCopy();
 	}
 	
 	String::~String()

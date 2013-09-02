@@ -26,9 +26,12 @@ namespace RN
 		_length = strlen(string);
 	}
 	
-	BasicString *ConstantASCIIString::Copy() const
+	BasicString *ConstantASCIIString::SimpleCopy() const
 	{
-		return new ConstantASCIIString(_string);
+		BasicString *string = const_cast<BasicString *>(static_cast<const BasicString *>(this));
+		
+		string->Retain();
+		return string;
 	}
 	
 	BasicString *ConstantASCIIString::MutableCopy() const
@@ -155,7 +158,7 @@ namespace RN
 		delete [] _string;
 	}
 	
-	BasicString *ASCIIString::Copy() const
+	BasicString *ASCIIString::SimpleCopy() const
 	{
 		return new ASCIIString(_string, _length);
 	}
