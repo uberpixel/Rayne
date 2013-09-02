@@ -45,6 +45,10 @@ namespace RN
 			SetContentSize(_size);
 		}
 		
+		void ScrollView::SetDelegate(ScrollViewDelegate *delegate)
+		{
+			_delegate = delegate;
+		}
 		
 		
 		void ScrollView::SetContentOffset(const Vector2& offset)
