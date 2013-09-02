@@ -44,7 +44,7 @@ namespace RN
 			virtual void SetFrame(const Rect& frame);
 			virtual void SetBounds(const Rect& bounds);
 			
-			void SetBackgroundColor(const Color& color);
+			void SetBackgroundColor(const RN::Color& color);
 			void SetInteractionEnabled(bool enabled);
 			void SetClipSubviews(bool clipping);
 			

@@ -132,16 +132,12 @@ namespace RN
 			_label = new Label();
 			
 			_backgroundImage->SetFrame(Bounds());
-			_backgroundImage->SetBackgroundColor(Color::ClearColor());
 			
 			_label->SetFrame(Bounds());
-			_label->SetTextColor(Color::White());
 			_label->SetAlignment(TextAlignment::Center);
-			_label->SetBackgroundColor(Color::ClearColor());
 			
 			_image->SetFrame(Bounds());
 			_image->SetScaleMode(ScaleMode::ProportionallyDown);
-			_image->SetBackgroundColor(Color::ClearColor());
 			
 			AddSubview(_backgroundImage);
 			AddSubview(_image);

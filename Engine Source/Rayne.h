@@ -74,6 +74,7 @@
 #include "RNUITypesetter.h"
 #include "RNUIImage.h"
 #include "RNUIGeometry.h"
+#include "RNUIColor.h"
 #include "RNUIServer.h"
 #include "RNUIResponder.h"
 #include "RNUIWidget.h"
