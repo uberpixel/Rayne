@@ -15,6 +15,12 @@ namespace RN
 	IndexSet::IndexSet()
 	{}
 	
+	IndexSet::IndexSet(size_t index)
+	{
+		_sortedIndices.push_back(index);
+		_indices.insert(index);
+	}
+	
 	IndexSet::IndexSet(IndexSet *other)
 	{
 		_sortedIndices = other->_sortedIndices;

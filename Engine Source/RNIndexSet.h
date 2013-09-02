@@ -18,6 +18,7 @@ namespace RN
 	{
 	public:
 		IndexSet();
+		IndexSet(size_t index);
 		IndexSet(IndexSet *other);
 		
 		void AddIndex(size_t index);
