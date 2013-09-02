@@ -19,6 +19,7 @@
 #include "RNNumber.h"
 #include "RNJSONSerialization.h"
 #include "RNIndexSet.h"
+#include "RNIndexPath.h"
 
 #include "RNKernel.h"
 #include "RNApplication.h"

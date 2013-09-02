@@ -53,6 +53,8 @@
 		E940FAD0178084D100C69B88 /* RNAttributedString.h in Headers */ = {isa = PBXBuildFile; fileRef = E940FACE178084D100C69B88 /* RNAttributedString.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E945665D17D4922200DEA632 /* RNIndexSet.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E945665B17D4922200DEA632 /* RNIndexSet.cpp */; };
 		E945665E17D4922200DEA632 /* RNIndexSet.h in Headers */ = {isa = PBXBuildFile; fileRef = E945665C17D4922200DEA632 /* RNIndexSet.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E945666117D4990C00DEA632 /* RNIndexPath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E945665F17D4990C00DEA632 /* RNIndexPath.cpp */; };
+		E945666217D4990C00DEA632 /* RNIndexPath.h in Headers */ = {isa = PBXBuildFile; fileRef = E945666017D4990C00DEA632 /* RNIndexPath.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E945AB421788D97A00C7B30A /* RNUTF8String.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E945AB401788D97A00C7B30A /* RNUTF8String.cpp */; };
 		E945AB431788D97A00C7B30A /* RNUTF8String.h in Headers */ = {isa = PBXBuildFile; fileRef = E945AB411788D97A00C7B30A /* RNUTF8String.h */; };
 		E945AB60178D7D1200C7B30A /* RNUIStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E945AB5E178D7D1200C7B30A /* RNUIStyle.cpp */; };
@@ -312,6 +314,8 @@
 		E940FACE178084D100C69B88 /* RNAttributedString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAttributedString.h; sourceTree = "<group>"; };
 		E945665B17D4922200DEA632 /* RNIndexSet.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNIndexSet.cpp; sourceTree = "<group>"; };
 		E945665C17D4922200DEA632 /* RNIndexSet.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNIndexSet.h; sourceTree = "<group>"; };
+		E945665F17D4990C00DEA632 /* RNIndexPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNIndexPath.cpp; sourceTree = "<group>"; };
+		E945666017D4990C00DEA632 /* RNIndexPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNIndexPath.h; sourceTree = "<group>"; };
 		E945AB401788D97A00C7B30A /* RNUTF8String.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUTF8String.cpp; sourceTree = "<group>"; };
 		E945AB411788D97A00C7B30A /* RNUTF8String.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUTF8String.h; sourceTree = "<group>"; };
 		E945AB5E178D7D1200C7B30A /* RNUIStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIStyle.cpp; sourceTree = "<group>"; };
@@ -618,6 +622,8 @@
 				E9A872E71757627500E06C27 /* RNData.h */,
 				E9A872D817573D7100E06C27 /* RNDictionary.cpp */,
 				E9A872D917573D7100E06C27 /* RNDictionary.h */,
+				E945665F17D4990C00DEA632 /* RNIndexPath.cpp */,
+				E945666017D4990C00DEA632 /* RNIndexPath.h */,
 				E945665B17D4922200DEA632 /* RNIndexSet.cpp */,
 				E945665C17D4922200DEA632 /* RNIndexSet.h */,
 				E9A872E2175759E300E06C27 /* RNJSONSerialization.cpp */,
@@ -953,6 +959,7 @@
 				E99A955E1729AE1800605C68 /* RNInstancingNode.h in Headers */,
 				E99A9562172A002100605C68 /* RNNumber.h in Headers */,
 				E9E83F41172A4F7D0075559B /* RNUIFont.h in Headers */,
+				E945666217D4990C00DEA632 /* RNIndexPath.h in Headers */,
 				E9E83F46172A4FD70075559B /* RNTextureAtlas.h in Headers */,
 				E97C3EB1172B11C7006EA63A /* RNString.h in Headers */,
 				E9D7DA79172F9C0D00A858CB /* RNUIWidget.h in Headers */,
@@ -1143,6 +1150,7 @@
 				E955495F17A7B1470048FBBC /* RNShaderUnit.cpp in Sources */,
 				E9780FC016D82913001AE2ED /* RNSettings.cpp in Sources */,
 				C01BCEC816E6698E0009834F /* RNSkeleton.cpp in Sources */,
+				E945666117D4990C00DEA632 /* RNIndexPath.cpp in Sources */,
 				E9B03FEB16F277600016176B /* RNModule.cpp in Sources */,
 				E996A0B416F2CE97000EFB03 /* RNRenderer.cpp in Sources */,
 				E92B859116FC6027002FA04D /* RNRenderStorage.cpp in Sources */,
