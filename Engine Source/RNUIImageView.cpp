@@ -58,6 +58,7 @@ namespace RN
 			Shader *shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUIImageShader);
 			DrawMaterial()->SetShader(shader);
 			SetInteractionEnabled(false);
+			SetBackgroundColor(Color::ClearColor());
 			
 			_mesh  = nullptr;
 			_image = 0;
