@@ -19,7 +19,7 @@ namespace RN
 		{
 			RN_ASSERT(identifier, "TableViewCell needs an identifier!");
 			
-			_identifier = identifier->Retain();
+			_identifier = identifier->Copy();
 			Initialize();
 		}
 		
@@ -27,6 +27,7 @@ namespace RN
 		{
 			_identifier->Release();
 			
+			_contentView->Release();
 			_imageView->Release();
 			_textLabel->Release();
 		}
@@ -38,13 +39,18 @@ namespace RN
 			_offset = 0.0f;
 			_row = 0;
 			
+			_contentView = new View();
+			_contentView->SetBackgroundColor(RN::Color::ClearColor());
+			
+			AddSubview(_contentView);
+			
 			_imageView = new ImageView();
 			_textLabel = new Label();
 			
-			_imageView->SetFrame(Rect(Vector2(), Vector2(15.0f)));
+			_contentView->AddSubview(_imageView);
+			_contentView->AddSubview(_textLabel);
 			
-			AddSubview(_imageView);
-			AddSubview(_textLabel);
+			SetSelected(false);
 		}
 		
 		void TableViewCell::PrepareForReuse()
@@ -55,12 +61,18 @@ namespace RN
 			SetSelected(false);
 		}
 		
+		void TableViewCell::SetFrame(const Rect& frame)
+		{
+			Control::SetFrame(frame);
+			_contentView->SetFrame(Rect(Vector2(), frame.Size()));
+		}
+		
 		void TableViewCell::LayoutSubviews()
 		{
 			Control::LayoutSubviews();
 			
-			Rect ownFrame = Frame();
-			Rect frame = Rect(Vector2(), ownFrame.Size()).Inset(5.0f, 0.0f);
+			Rect contentFrame = _contentView->Frame();
+			Rect frame = Rect(Vector2(), contentFrame.Size()).Inset(5.0f, 2.0f);
 			
 			if(_imageView->GetImage())
 			{
@@ -80,12 +92,42 @@ namespace RN
 			
 			if(selected)
 			{
-				
+				SetBackgroundColor(RN::Color::Blue());
+				_textLabel->SetTextColor(Color::WithRNColor(RN::Color::White()));
 			}
 			else
 			{
-				
+				SetBackgroundColor(RN::Color::White());
+				_textLabel->SetTextColor(Color::WithRNColor(RN::Color::Black()));
 			}
+		}
+		
+		
+		
+		
+		bool TableViewCell::PostEvent(EventType event)
+		{
+			switch(event)
+			{
+				case Control::EventType::MouseEntered:
+				case Control::EventType::MouseLeft:
+					return true;
+					
+				case Control::EventType::MouseDown:
+					return true;
+					
+				case Control::EventType::MouseUpInside:
+					_tableView->ConsiderCellForSelection(this);
+					return true;
+					
+				case Control::EventType::MouseUpOutside:
+					return true;
+					
+				default:
+					break;
+			}
+			
+			return Control::PostEvent(event);
 		}
 	}
 }

@@ -36,7 +36,11 @@ namespace RN
 			Label *GetTextLabel() const { return _textLabel; }
 			
 			void SetSelected(bool selected) override;
+			void SetFrame(const Rect& frame) override;
 			void LayoutSubviews() override;
+			
+		protected:
+			bool PostEvent(EventType event) override;
 			
 		private:
 			void Initialize();
@@ -44,6 +48,7 @@ namespace RN
 			String *_identifier;
 			TableView *_tableView;
 			
+			View *_contentView;
 			ImageView *_imageView;
 			Label *_textLabel;
 			

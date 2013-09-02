@@ -7,6 +7,7 @@
 //
 
 #include "RNUITableView.h"
+#include "RNInput.h"
 
 namespace RN
 {
@@ -19,13 +20,24 @@ namespace RN
 			Initialize();
 		}
 		
+		TableView::~TableView()
+		{
+			_selection->Release();
+		}
+		
 		void TableView::Initialize()
 		{
 			ScrollView::SetDelegate(this);
 			
 			_dataSource = nullptr;
+			_delegate = nullptr;
+			
+			_indentationOffset = 15.0f;
 			_height = 0.0f;
 			_rows = 0;
+			
+			_allowsMultipleSelection = false;
+			_selection = new IndexSet();
 		}
 		
 		
@@ -38,6 +50,13 @@ namespace RN
 			if(_dataSource)
 				ReloadData();
 		}
+		
+		void TableView::SetDelegate(TableViewDelegate *delegate)
+		{
+			_delegate = delegate;
+		}
+		
+		
 		
 		void TableView::ClearAllCells()
 		{
@@ -70,7 +89,6 @@ namespace RN
 				_height += _dataSource->HeightOfRowInTableView(this, i);
 			
 			SetContentSize(Vector2(Frame().width, _height));
-			SetContentOffset(Vector2());
 			UpdateVisibleRows();
 		}
 		
@@ -87,7 +105,10 @@ namespace RN
 		}
 		
 		
-		
+		// ---------------------
+		// MARK: -
+		// MARK: Row handling
+		// ---------------------
 		
 		size_t TableView::RowForContentOffset(float offset)
 		{
@@ -118,9 +139,24 @@ namespace RN
 			return offset;
 		}
 		
+		TableViewCell *TableView::GetCellForRow(size_t row)
+		{
+			for(size_t i = 0; i < _cells.GetCount(); i ++)
+			{
+				TableViewCell *cell = _cells.GetObjectAtIndex<TableViewCell>(i);
+				if(cell->_row == row)
+					return cell;
+			}
+			
+			return nullptr;
+		}
+		
 		
 		void TableView::UpdateVisibleRows()
 		{
+			if(!_dataSource)
+				return;
+			
 			// Find the first and last visible row
 			float offset = GetContentOffset().y;
 			float contentHeight = offset + Frame().height;
@@ -179,11 +215,6 @@ namespace RN
 			}
 		}
 		
-		
-		
-		
-		
-		
 		void TableView::InsertCellForRow(size_t row, float offset)
 		{
 			TableViewCell *cell = _dataSource->CellForRowInTableView(this, row);
@@ -195,6 +226,9 @@ namespace RN
 			cell->_tableView = this;
 			cell->_offset = offset;
 			cell->_row = row;
+			
+			if(_selection->ContainsIndex(row))
+				cell->SetSelected(true);
 			
 			_cells.AddObject(cell);
 			_visibleCells.insert(row);
@@ -236,6 +270,68 @@ namespace RN
 				_cells.RemoveObject(cell);
 				_visibleCells.erase(cell->_row);
 			}
+		}
+		
+		
+		// ---------------------
+		// MARK: -
+		// MARK: Selection
+		// ---------------------
+		
+		void TableView::SetSelection(IndexSet *selection)
+		{
+			RN_ASSERT(selection, "Selection mustn't be NULL!");
+			__AdoptSelection(selection->Copy());
+		}
+		
+		void TableView::__AdoptSelection(IndexSet *selection)
+		{
+			size_t count = _selection->GetCount();
+			for(size_t i = 0; i < count; i ++)
+			{
+				size_t row = _selection->GetIndex(i);
+				
+				if(_delegate)
+					_delegate->WillDeselectRowInTableView(this, row);
+				
+				TableViewCell *cell = GetCellForRow(row);
+				if(cell)
+					cell->SetSelected(false);
+			}
+			
+			_selection->Release();
+			_selection = selection;
+			
+			count = _selection->GetCount();
+			for(size_t i = 0; i < count; i ++)
+			{
+				size_t row = _selection->GetIndex(i);
+				
+				if(_delegate)
+					_delegate->DidSelectRowInTableView(this, row);
+				
+				TableViewCell *cell = GetCellForRow(row);
+				if(cell)
+					cell->SetSelected(true);
+			}
+		}
+		
+		void TableView::ConsiderCellForSelection(TableViewCell *cell)
+		{
+			bool canAdd = (!_delegate || _delegate->CanSelectRowInTableView(this, cell->_row));
+			if(canAdd)
+			{
+				__AdoptSelection(new IndexSet(cell->_row));
+			}
+		}
+		
+		void TableView::DeselectCell(TableViewCell *cell)
+		{
+			if(_delegate)
+				_delegate->WillDeselectRowInTableView(this, cell->_row);
+			
+			_selection->RemoveIndex(cell->_row);
+			cell->SetSelected(false);
 		}
 	}
 }
