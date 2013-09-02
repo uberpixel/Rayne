@@ -127,6 +127,7 @@ namespace RN
 				_leftextent  = other._leftextent;
 				_rightextent = other._rightextent;
 				_intervals   = other._intervals;
+				_size        = other._size;
 				
 				for(size_t i=0; i<2; i++)
 				{
