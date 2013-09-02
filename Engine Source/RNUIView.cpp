@@ -342,6 +342,9 @@ namespace RN
 		
 		void View::RemoveFromSuperview()
 		{
+			if(!_superview)
+				return;
+			
 			_superview->RemoveSubview(this);
 		}
 		

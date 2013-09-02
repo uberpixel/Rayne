@@ -78,6 +78,8 @@
 #include "RNUIView.h"
 #include "RNUIControl.h"
 #include "RNUIScrollView.h"
+#include "RNUITableView.h"
+#include "RNUITableViewCell.h"
 #include "RNUIButton.h"
 #include "RNUILabel.h"
 #include "RNUITextField.h"
