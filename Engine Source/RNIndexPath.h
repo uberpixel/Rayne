@@ -18,6 +18,7 @@ namespace RN
 	{
 	public:
 		IndexPath();
+		IndexPath(IndexPath *other);
 		
 		void AddIndex(size_t index);
 		

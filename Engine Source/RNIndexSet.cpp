@@ -15,6 +15,13 @@ namespace RN
 	IndexSet::IndexSet()
 	{}
 	
+	IndexSet::IndexSet(IndexSet *other)
+	{
+		_sortedIndices = other->_sortedIndices;
+		_indices = other->_indices;
+	}
+	
+	
 	void IndexSet::AddIndex(size_t index)
 	{
 		if(_indices.find(index) == _indices.end())

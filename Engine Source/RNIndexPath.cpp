@@ -15,6 +15,12 @@ namespace RN
 	IndexPath::IndexPath()
 	{}
 	
+	IndexPath::IndexPath(IndexPath *other)
+	{
+		_indices = other->_indices;
+	}
+	
+	
 	void IndexPath::AddIndex(size_t index)
 	{
 		_indices.push_back(index);
