@@ -35,6 +35,7 @@ namespace RN
 			_indentationOffset = 15.0f;
 			_height = 0.0f;
 			_rows = 0;
+			_rowHeight = 20.0f;
 			
 			_allowsMultipleSelection = false;
 			_selection = new IndexSet();
@@ -85,8 +86,15 @@ namespace RN
 			_height = 0.0f;
 			_rows   = _dataSource->NumberOfRowsInTableView(this);
 			
-			for(size_t i = 0; i < _rows; i ++)
-				_height += _dataSource->HeightOfRowInTableView(this, i);
+			if(!_delegate || _rowHeight > 0.0f)
+			{
+				_height = _rows * _rowHeight;
+			}
+			else
+			{
+				for(size_t i = 0; i < _rows; i ++)
+					_height += _delegate->HeightOfRowInTableView(this, i);
+			}
 			
 			SetContentSize(Vector2(Frame().width, _height));
 			UpdateVisibleRows();
@@ -110,6 +118,12 @@ namespace RN
 			UpdateVisibleRows();
 		}
 		
+		void TableView::SetRowHeight(float rowHeight)
+		{
+			_rowHeight = rowHeight;
+			ReloadData();
+		}
+		
 		
 		// ---------------------
 		// MARK: -
@@ -118,11 +132,14 @@ namespace RN
 		
 		size_t TableView::RowForContentOffset(float offset)
 		{
-			float height = 0.0f;
+			if(!_delegate || _rowHeight > 0.0f)
+				return static_cast<size_t>(floorf(offset / _rowHeight));
 			
+			
+			float height = 0.0f;
 			for(size_t i = 0; i < _rows; i ++)
 			{
-				height += _dataSource->HeightOfRowInTableView(this, i);
+				height += _delegate->HeightOfRowInTableView(this, i);
 				
 				if(height >= offset)
 					return i;
@@ -135,11 +152,14 @@ namespace RN
 		{
 			RN_ASSERT(row <= _rows, "Invalid row number");
 			
+			if(!_delegate || _rowHeight > 0.0f)
+				return row * _rowHeight;
+			
 			float offset = 0.0f;
 			
 			for(size_t i = 0; i < row; i ++)
 			{
-				offset += _dataSource->HeightOfRowInTableView(this, i);
+				offset += _delegate->HeightOfRowInTableView(this, i);
 			}
 			
 			return offset;
@@ -151,6 +171,17 @@ namespace RN
 				return 0.0f;
 			
 			return _delegate->IndentationForRowInTableView(this, row) * _indentationOffset;
+		}
+		
+		float TableView::GetHeightForRow(size_t row)
+		{
+			if(!_delegate)
+				return _rowHeight;
+			
+			if(_rowHeight > 0.0)
+				return _rowHeight;
+			
+			return _delegate->HeightOfRowInTableView(this, row);
 		}
 		
 		TableViewCell *TableView::GetCellForRow(size_t row)
@@ -188,7 +219,7 @@ namespace RN
 				if(temp <= contentHeight)
 					lastVisibleRow = std::min(i + 1, _rows);
 					
-				temp += _dataSource->HeightOfRowInTableView(this, i);
+				temp += GetHeightForRow(i);
 			}
 			
 			// Remove invisible rows
@@ -240,7 +271,7 @@ namespace RN
 		{
 			TableViewCell *cell = _dataSource->CellForRowInTableView(this, row);
 			
-			float height = _dataSource->HeightOfRowInTableView(this, row);
+			float height = GetHeightForRow(row);
 			float indentation = GetIndentationForRow(row);
 			float width = Frame().width;
 			

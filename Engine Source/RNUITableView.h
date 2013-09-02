@@ -27,8 +27,6 @@ namespace RN
 		public:
 			virtual size_t NumberOfRowsInTableView(TableView *tableView) = 0;
 			virtual TableViewCell *CellForRowInTableView(TableView *tableView, size_t row) = 0;
-			
-			virtual float HeightOfRowInTableView(TableView *tableView, size_t row) { return 20.0f; }
 		};
 		
 		class TableViewDelegate
@@ -37,7 +35,9 @@ namespace RN
 			virtual bool CanSelectRowInTableView(TableView *tableView, size_t row) { return true; }
 			virtual void DidSelectRowInTableView(TableView *tableView, size_t row) {}
 			virtual void WillDeselectRowInTableView(TableView *tableView, size_t row) {}
+			
 			virtual uint32 IndentationForRowInTableView(TableView *tableView, size_t row) { return 0; }
+			virtual float HeightOfRowInTableView(TableView *tableView, size_t row) { return 20.0f; }
 		};
 		
 		class TableView : public ScrollView, public ScrollViewDelegate
@@ -58,6 +58,7 @@ namespace RN
 			void SetAllowsMultipleSelection(bool multipleSelection);
 			void SetSelection(IndexSet *selection);
 			void SetIndentationOffset(float offset);
+			void SetRowHeight(float rowHeight);
 			
 			IndexSet *GetSelection() const { return _selection; }
 			bool GetAllowsMultipleSelection() const { return _allowsMultipleSelection; }
@@ -73,6 +74,7 @@ namespace RN
 			size_t RowForContentOffset(float offset);
 			float OffsetForRow(size_t row);
 			float GetIndentationForRow(size_t row);
+			float GetHeightForRow(size_t row);
 			TableViewCell *GetCellForRow(size_t row);
 			
 			void ClearAllCells();
@@ -91,6 +93,7 @@ namespace RN
 			std::unordered_set<size_t> _visibleCells;
 			
 			float _height;
+			float _rowHeight;
 			float _indentationOffset;
 			size_t _rows;
 			
