@@ -33,7 +33,7 @@ namespace RN
 		Color *Color::WithRNColor(const RN::Color& tcolor)
 		{
 			Color *color = new Color(tcolor);
-			return color;
+			return color->Autorelease();
 		}
 		
 		
