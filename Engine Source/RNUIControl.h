@@ -44,9 +44,9 @@ namespace RN
 			
 			typedef std::function<void (Control *, EventType)> Callback;
 			
-			void SetHighlighted(bool highlighted);
-			void SetSelected(bool selected);
-			void SetEnabled(bool enabled);
+			virtual void SetHighlighted(bool highlighted);
+			virtual void SetSelected(bool selected);
+			virtual void SetEnabled(bool enabled);
 			
 			bool IsHighlighted() const { return _state & Control::Highlighted; }
 			bool IsSelected() const { return _state & Control::Selected; }
