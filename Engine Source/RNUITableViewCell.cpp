@@ -37,6 +37,7 @@ namespace RN
 		void TableViewCell::Initialize()
 		{
 			_offset = 0.0f;
+			_indentation = 0.0f;
 			_row = 0;
 			
 			_contentView = new View();
@@ -57,6 +58,7 @@ namespace RN
 		{
 			_imageView->SetImage(nullptr);
 			_textLabel->SetText(RNCSTR(""));
+			_indentation = 0.0f;
 			
 			SetSelected(false);
 		}
@@ -67,11 +69,26 @@ namespace RN
 			_contentView->SetFrame(Rect(Vector2(), frame.Size()));
 		}
 		
+		void TableViewCell::SetIndentation(float indentation)
+		{
+			if(Math::FastAbs(_indentation - indentation) > k::EpsilonFloat)
+			{
+				_indentation = indentation;
+				SetNeedsLayoutUpdate();
+			}
+		}
+		
+		
 		void TableViewCell::LayoutSubviews()
 		{
 			Control::LayoutSubviews();
 			
-			Rect contentFrame = _contentView->Frame();
+			Rect contentFrame = Rect(Vector2(), Frame().Size());
+			contentFrame.width -= _indentation;
+			contentFrame.x += _indentation;
+			
+			_contentView->SetFrame(contentFrame);
+			
 			Rect frame = Rect(Vector2(), contentFrame.Size()).Inset(5.0f, 2.0f);
 			
 			if(_imageView->GetImage())

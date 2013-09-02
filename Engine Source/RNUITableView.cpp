@@ -99,6 +99,12 @@ namespace RN
 			UpdateVisibleRows();
 		}
 		
+		void TableView::SetIndentationOffset(float offset)
+		{
+			_indentationOffset = offset;
+			UpdateVisibleRows();
+		}
+		
 		void TableView::ScrollViewDidScroll(ScrollView *view)
 		{
 			UpdateVisibleRows();
@@ -137,6 +143,14 @@ namespace RN
 			}
 			
 			return offset;
+		}
+		
+		float TableView::GetIndentationForRow(size_t row)
+		{
+			if(!_delegate)
+				return 0.0f;
+			
+			return _delegate->IndentationForRowInTableView(this, row) * _indentationOffset;
 		}
 		
 		TableViewCell *TableView::GetCellForRow(size_t row)
@@ -188,6 +202,13 @@ namespace RN
 				}
 			}
 			
+			// Indentation
+			for(size_t i = 0; i < _cells.GetCount(); i ++)
+			{
+				TableViewCell *cell = _cells.GetObjectAtIndex<TableViewCell>(i);
+				cell->SetIndentation(GetIndentationForRow(cell->_row));
+			}
+			
 			// Insert missing rows
 			for(size_t i = firstVisibleRow; i < lastVisibleRow; i ++)
 			{
@@ -219,10 +240,12 @@ namespace RN
 		{
 			TableViewCell *cell = _dataSource->CellForRowInTableView(this, row);
 			
-			float width = Frame().width;
 			float height = _dataSource->HeightOfRowInTableView(this, row);
+			float indentation = GetIndentationForRow(row);
+			float width = Frame().width;
 			
 			cell->SetFrame(Rect(0.0f, offset, width, height));
+			cell->SetIndentation(indentation);
 			cell->_tableView = this;
 			cell->_offset = offset;
 			cell->_row = row;

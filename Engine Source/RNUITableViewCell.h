@@ -44,6 +44,7 @@ namespace RN
 			
 		private:
 			void Initialize();
+			void SetIndentation(float indentation);
 			
 			String *_identifier;
 			TableView *_tableView;
@@ -53,6 +54,7 @@ namespace RN
 			Label *_textLabel;
 			
 			float _offset;
+			float _indentation;
 			size_t _row;
 			
 			RNDefineMeta(TableViewCell, View)

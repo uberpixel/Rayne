@@ -57,9 +57,11 @@ namespace RN
 			void SetFrame(const Rect& frame) override;
 			void SetAllowsMultipleSelection(bool multipleSelection);
 			void SetSelection(IndexSet *selection);
+			void SetIndentationOffset(float offset);
 			
 			IndexSet *GetSelection() const { return _selection; }
 			bool GetAllowsMultipleSelection() const { return _allowsMultipleSelection; }
+			float GetIndentationOffset() const { return _indentationOffset; }
 			
 			void ReloadData();
 			
@@ -70,6 +72,7 @@ namespace RN
 			
 			size_t RowForContentOffset(float offset);
 			float OffsetForRow(size_t row);
+			float GetIndentationForRow(size_t row);
 			TableViewCell *GetCellForRow(size_t row);
 			
 			void ClearAllCells();
