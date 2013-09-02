@@ -29,6 +29,9 @@ namespace RN
 			void SetScaleMode(ScaleMode mode);
 			void SetFrame(const Rect& frame) override;
 			
+			Image *GetImage() const { return _image; }
+			ScaleMode GetScaleMode() const { return _scaleMode; }
+			
 			Vector2 SizeThatFits() override;
 			
 		protected:
