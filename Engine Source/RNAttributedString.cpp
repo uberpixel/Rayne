@@ -13,7 +13,7 @@ namespace RN
 {
 	RNDeclareMeta(AttributedString)
 	
-	AttributedString::AttributedString(class String *string)
+	AttributedString::AttributedString(String *string)
 	{
 		_string  = string->Retain();
 		_editing = 0;
@@ -37,7 +37,7 @@ namespace RN
 			ApplyUpdates();
 	}
 	
-	void AttributedString::AddAttribute(class String *key, Object *value, const Range& range)
+	void AttributedString::AddAttribute(String *key, Object *value, const Range& range)
 	{
 		_queuedAttributes.emplace_back(stl::interval_tree<Attribute>::interval(range, Attribute(key, value)));
 		
@@ -50,7 +50,7 @@ namespace RN
 		attributes->Enumerate([&](Object *value, Object *key, bool *stop) {
 			if(key->IsKindOfClass(RN::String::MetaClass()))
 			{
-				class String *sKey = static_cast<class String *>(key);
+				String *sKey = static_cast<String *>(key);
 				_queuedAttributes.emplace_back(stl::interval_tree<Attribute>::interval(range, Attribute(sKey, value)));
 			}
 		});
@@ -59,7 +59,7 @@ namespace RN
 			ApplyUpdates();
 	}
 	
-	void AttributedString::RemoveAttribute(class String *key, const Range& range)
+	void AttributedString::RemoveAttribute(String *key, const Range& range)
 	{
 		if(_attributes.size() > 0)
 		{
@@ -114,7 +114,7 @@ namespace RN
 		keys->Enumerate([&](Object *object, size_t index, bool *stop) {
 			if(object->IsKindOfClass(RN::String::MetaClass()))
 			{
-				class String *key = static_cast<class String *>(object);
+				String *key = static_cast<String *>(object);
 				RemoveAttribute(key, range);
 				
 			}
@@ -135,7 +135,7 @@ namespace RN
 	}
 	
 	
-	void AttributedString::ReplaceCharacters(class String *string, const Range& range)
+	void AttributedString::ReplaceCharacters(String *string, const Range& range)
 	{
 		size_t index = range.origin;
 		
@@ -146,7 +146,7 @@ namespace RN
 		ReplaceCharacters(string, range, attributes);
 	}
 	
-	void AttributedString::ReplaceCharacters(class String *string, const Range& range, Dictionary *attributes)
+	void AttributedString::ReplaceCharacters(String *string, const Range& range, Dictionary *attributes)
 	{
 		_string->ReplaceCharacters(string, range);
 		
