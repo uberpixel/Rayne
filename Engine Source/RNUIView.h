@@ -100,6 +100,7 @@ namespace RN
 			
 			Widget *_widget;
 			Material *_material;
+			Material *_viewMaterial;
 			Mesh *_mesh;
 
 			Array _subviews;

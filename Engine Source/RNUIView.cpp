@@ -35,6 +35,7 @@ namespace RN
 		View::~View()
 		{
 			_material->Release();
+			_viewMaterial->Release();
 		}
 		
 		// ---------------------
@@ -64,12 +65,20 @@ namespace RN
 			_material->depthwrite = false;
 			_material->blending   = true;
 			_material->lighting   = false;
-			_material->diffuse    = Color(0.128f, 0.128f, 0.128f, 1.0f);
+			
+			_viewMaterial = new Material(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
+			_viewMaterial->depthtest  = false;
+			_viewMaterial->depthwrite = false;
+			_viewMaterial->blending   = true;
+			_viewMaterial->lighting   = false;
+			
+			SetBackgroundColor(Color(0.128f, 0.128f, 0.128f, 1.0f));
 		}
 		
 		void View::SetBackgroundColor(const Color& color)
 		{
 			_material->diffuse = color;
+			_viewMaterial->diffuse = color;
 		}
 		
 		Mesh *View::BasicMesh(const Vector2& size)
@@ -534,6 +543,7 @@ namespace RN
 				PopulateRenderingObject(object);
 				
 				object.mesh = _mesh;
+				object.material = _viewMaterial;
 				
 				renderer->RenderObject(object);
 			}
