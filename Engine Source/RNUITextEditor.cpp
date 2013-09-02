@@ -24,7 +24,7 @@ namespace RN
 			_isDirty = true;
 			_model = nullptr;
 			
-			SetBackgroundColor(Color::ClearColor());
+			SetBackgroundColor(RN::Color::ClearColor());
 		}
 		
 		TextEditor::~TextEditor()

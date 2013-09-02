@@ -97,18 +97,21 @@ namespace RN
 		
 		void Label::SetTextColor(const RN::Color& color)
 		{
-			SetTextColor((new Color(color))->Autorelease());
+			SetTextColor(Color::WithRNColor(color));
 			
 		}
 		
 		void Label::SetTextColor(Color *color)
 		{
 			_color->Release();
-			_color = color->Copy();
+			_color = color->Retain();
 			
-			_string->RemoveAttribute(kRNTypesetterColorAttribute, Range(0, _string->GetLength()));
-			_string->AddAttribute(kRNTypesetterColorAttribute, _color, Range(0, _string->GetLength()));
+			Range range(0, _string->GetLength());
 			
+			_string->RemoveAttribute(kRNTypesetterColorAttribute, range);
+			_string->AddAttribute(kRNTypesetterColorAttribute, _color, range);
+			
+			_typesetter->InvalidateStringInRange(range);
 			_isDirty = true;
 		}
 		

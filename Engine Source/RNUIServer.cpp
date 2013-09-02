@@ -21,7 +21,7 @@ namespace RN
 		{
 			uint32 flags = Camera::FlagOrthogonal | Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagNoSorting;
 			_camera = new Camera(Vector2(0.0f), TextureParameter::Format::RGBA8888, flags, RenderStorage::BufferFormatColor);
-			_camera->SetClearColor(Color(0.0f, 0.0f, 0.0f, 0.0f));
+			_camera->SetClearColor(RN::Color(0.0f, 0.0f, 0.0f, 0.0f));
 			_camera->SetAllowsDepthWrite(false);
 			_camera->SetUseBlending(true);
 			
