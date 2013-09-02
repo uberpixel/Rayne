@@ -100,6 +100,16 @@ namespace RN
 			_data[_count ++] = object->Retain();
 		}
 		
+		void AddObjectsFromArray(const Array *other)
+		{
+			UpdateSizeIfNeeded(_count + other->_count);
+			
+			for(size_t i = 0; i < other->_count; i ++)
+			{
+				_data[_count ++] = other->_data[i]->Retain();
+			}
+		}
+		
 		void InsertObjectAtIndex(Object *object, size_t index)
 		{
 			UpdateSizeIfNeeded(_count + 1);
