@@ -26,6 +26,8 @@ namespace RN
 		RNAPI Object *Release();
 		RNAPI Object *Autorelease();
 		
+		RNAPI Object *Copy() const;
+		
 		RNAPI virtual bool IsEqual(Object *other) const;
 		RNAPI virtual machine_hash GetHash() const;
 		RNAPI bool IsKindOfClass(MetaClassBase *other) const;
@@ -127,6 +129,10 @@ namespace RN
 		cls *Autorelease() \
 		{ \
 			return static_cast<cls *>(Object::Autorelease()); \
+		} \
+		cls *Copy() const \
+		{ \
+			return static_cast<cls *>(Object::Copy()); \
 		} \
 		class RN::MetaClassBase *Class() const override \
 		{ \

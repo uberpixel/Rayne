@@ -42,6 +42,10 @@ namespace RN
 	}
 	
 	
+	void Object::CleanUp()
+	{}
+	
+	
 	Object *Object::Retain()
 	{
 		_refCount ++;
@@ -78,8 +82,12 @@ namespace RN
 	}
 	
 	
-	void Object::CleanUp()
-	{}
+	Object *Object::Copy() const
+	{
+		RN_ASSERT(Class()->SupportsCopying(), "Only Objects that support the copy trait can be copied!\n");
+		return Class()->ConstructWithCopy(const_cast<Object *>(this));
+	}
+	
 	
 	void Object::Serialize(Serializer *serializer)
 	{
