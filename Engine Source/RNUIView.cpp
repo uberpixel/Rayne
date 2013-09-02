@@ -479,10 +479,11 @@ namespace RN
 					_mesh->Release();
 				
 				_mesh = BasicMesh(_frame.Size())->Retain();
-				_dirtyLayout = false;
 				
 				CalculateScissorRect();
 				LayoutSubviews();
+				
+				_dirtyLayout = false;
 			}
 			
 			if(_widget && _widget->_server && _widget->_server->DrawDebugFrames())
