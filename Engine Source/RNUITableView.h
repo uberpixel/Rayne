@@ -51,6 +51,9 @@ namespace RN
 			void SetDataSource(TableViewDataSource *dataSource);
 			void SetDelegate(TableViewDelegate *delegate);
 			
+			void InsertRows(size_t offset, size_t count);
+			void DeleteRows(size_t offset, size_t count);
+			
 			TableViewCell *DequeCellWithIdentifier(String *identifier);
 			
 			void LayoutSubviews() override;
@@ -81,7 +84,9 @@ namespace RN
 			
 			void ClearAllCells();
 			void InsertCellForRow(size_t row, float offset);
-			void UpdateVisibleRows();
+			void InvalidateCellsForRange(const Range& range);
+			void UpdateDimensions();
+			void UpdateVisibleRows(bool updateFrames);
 			
 			void ConsiderCellForSelection(TableViewCell *cell);
 			void DeselectCell(TableViewCell *cell);

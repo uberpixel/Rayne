@@ -81,10 +81,18 @@ namespace RN
 		{
 			RN_ASSERT(_dataSource, "TableView needs a data source!");
 			
-			ClearAllCells();
+			_rows = _dataSource->NumberOfRowsInTableView(this);
 			
+			UpdateDimensions();
+			SetContentSize(Vector2(Frame().width, _height));
+			
+			ClearAllCells();
+			UpdateVisibleRows(false);
+		}
+		
+		void TableView::UpdateDimensions()
+		{
 			_height = 0.0f;
-			_rows   = _dataSource->NumberOfRowsInTableView(this);
 			
 			if(!_delegate || _rowHeight > 0.0f)
 			{
@@ -96,26 +104,24 @@ namespace RN
 					_height += _delegate->HeightOfRowInTableView(this, i);
 			}
 			
-			SetContentSize(Vector2(Frame().width, _height));
-			UpdateVisibleRows();
 		}
 		
 		void TableView::SetFrame(const Rect& frame)
 		{
 			ScrollView::SetFrame(frame);
 			SetContentSize(Vector2(frame.width, _height));
-			UpdateVisibleRows();
+			UpdateVisibleRows(false);
 		}
 		
 		void TableView::SetIndentationOffset(float offset)
 		{
 			_indentationOffset = offset;
-			UpdateVisibleRows();
+			UpdateVisibleRows(false);
 		}
 		
 		void TableView::ScrollViewDidScroll(ScrollView *view)
 		{
-			UpdateVisibleRows();
+			UpdateVisibleRows(false);
 		}
 		
 		void TableView::SetRowHeight(float rowHeight)
@@ -218,7 +224,52 @@ namespace RN
 		}
 		
 		
-		void TableView::UpdateVisibleRows()
+		void TableView::InsertRows(size_t offset, size_t count)
+		{
+			RN_ASSERT(_dataSource, "TableView needs a data source!");
+			
+			size_t temp = _dataSource->NumberOfRowsInTableView(this);
+			RN_ASSERT(_rows + count == temp, "Invalid number of rows!");
+			
+			_rows = temp;
+			
+			InvalidateCellsForRange(GetVisibleRange());
+			UpdateDimensions();
+			UpdateVisibleRows(true);
+		}
+		
+		void TableView::DeleteRows(size_t offset, size_t count)
+		{
+			RN_ASSERT(_dataSource, "TableView needs a data source!");
+			
+			size_t temp = _dataSource->NumberOfRowsInTableView(this);
+			RN_ASSERT(_rows - count == temp, "Invalid number of rows!");
+			
+			_rows = temp;
+			
+			InvalidateCellsForRange(Range(offset, count));
+			UpdateDimensions();
+			UpdateVisibleRows(true);
+		}
+		
+		
+		void TableView::InvalidateCellsForRange(const Range& range)
+		{
+			for(size_t i = 0; i < _cells.GetCount(); i ++)
+			{
+				TableViewCell *cell = _cells.GetObjectAtIndex<TableViewCell>(i);
+				
+				if(cell->_row >= range.origin && cell->_row <= range.GetEnd())
+				{
+					EnqueueCell(cell, true);
+					i --;
+					
+					continue;
+				}
+			}
+		}
+		
+		void TableView::UpdateVisibleRows(bool updateFrames)
 		{
 			if(!_dataSource)
 				return;
@@ -234,14 +285,29 @@ namespace RN
 				{
 					EnqueueCell(cell, true);
 					i --;
+					
+					continue;
+				}
+				
+				if(updateFrames)
+				{
+					float offset = GetOffsetForRow(cell->_row);
+					float height = GetHeightForRow(cell->_row);
+					float width = Frame().width;
+					
+					cell->SetFrame(Rect(0.0f, offset, width, height));
+					cell->SetIndentation(GetIndentationForRow(cell->_row));
 				}
 			}
 			
 			// Indentation
-			for(size_t i = 0; i < _cells.GetCount(); i ++)
+			if(!updateFrames)
 			{
-				TableViewCell *cell = _cells.GetObjectAtIndex<TableViewCell>(i);
-				cell->SetIndentation(GetIndentationForRow(cell->_row));
+				for(size_t i = 0; i < _cells.GetCount(); i ++)
+				{
+					TableViewCell *cell = _cells.GetObjectAtIndex<TableViewCell>(i);
+					cell->SetIndentation(GetIndentationForRow(cell->_row));
+				}
 			}
 			
 			// Insert missing rows
