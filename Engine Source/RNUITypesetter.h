@@ -13,6 +13,7 @@
 #include "RNAttributedString.h"
 #include "RNUITextStyle.h"
 #include "RNUIFont.h"
+#include "RNUIColor.h"
 #include "RNModel.h"
 
 #define kRNTypesetterFontAttribute  RNCSTR("kRNTypesetterFontAttribute")
@@ -55,6 +56,7 @@ namespace RN
 			void MergeMeshes();
 			
 			static Font *FontForAttributes(Dictionary *attributes);
+			static const RN::Color& ColorForAttributes(Dictionary *attributes);
 			
 			AttributedString *_string;
 			TextAlignment _alignment;
@@ -83,6 +85,7 @@ namespace RN
 			LineSegment& operator= (LineSegment&& other);
 			
 			void SetFont(Font *font);
+			void SetColor(const RN::Color& color);
 			void SetOffset(const Vector2& offset);
 			
 			void AddGlyph(const Glyph& glyph);
@@ -91,12 +94,14 @@ namespace RN
 			
 			LineSegment SegmentWithWidth(float width, bool reverse);
 			
+			bool CanMergeWithSegment(const LineSegment& other);
 			bool IsValid() const { return !_glyphs.empty(); }
 			
-			Font *GlyphFont() const { return _font; }
-			const std::vector<Glyph>& Glyphs() const { return _glyphs; }
-			const Vector2& Extents() const { return _extents; }
-			const Vector2& Offset() const { return _offset; }
+			Font *GetFont() const { return _font; }
+			const std::vector<Glyph>& GetGlyphs() const { return _glyphs; }
+			const Vector2& GetExtents() const { return _extents; }
+			const Vector2& GetOffset() const { return _offset; }
+			const RN::Color& GetColor() const { return _color; }
 			
 			void CreateGlyphMesh(Vector2 *vertices, Vector2 *uvCoords, uint16 *indices, size_t offset);
 			
@@ -108,6 +113,7 @@ namespace RN
 			
 			Vector2 _offset;
 			Vector2 _extents;
+			RN::Color _color;
 		};
 		
 		class Line
@@ -119,17 +125,18 @@ namespace RN
 			void Truncate(float width, TextTruncation truncation, UniChar token);
 			void SetLineOffset(const Vector2& offset);
 			
-			const std::vector<LineSegment>& Segments();
-			const Vector2& Extents();
-			const Vector2& UntruncatedExtents();
-			Dictionary *Meshes();
+			const std::vector<LineSegment>& GetSegments();
+			const Vector2& GetExtents();
+			const Vector2& GetUntruncatedExtents();
+			
+			Array *GetMeshes();
 			
 		private:
 			void LayoutLine();
 			void UpdateExtents();
 			
-			void GenerateMesh(Dictionary *meshes, Font *font, const std::vector<LineSegment *>& segments);
-			Dictionary *GenerateMeshes();
+			Dictionary *GenerateMesh(const std::vector<LineSegment *>& segments);
+			Array *GenerateMeshes();
 			
 			float TokenWidthInSegment(const LineSegment& segment);
 			

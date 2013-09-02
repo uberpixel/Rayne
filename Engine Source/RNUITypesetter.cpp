@@ -11,6 +11,8 @@
 #include "RNDictionary.h"
 #include "RNResourcePool.h"
 
+#define kRNTypesetterMeshAttribute RNCSTR("kRNTypesetterMeshAttribute")
+
 namespace RN
 {
 	namespace UI
@@ -57,6 +59,14 @@ namespace RN
 			
 			Font *font = attributes->GetObjectForKey<Font>(kRNTypesetterFontAttribute);
 			return font ? font : defaultFont;
+		}
+		
+		const RN::Color& Typesetter::ColorForAttributes(Dictionary *attributes)
+		{
+			static RN::Color defaultColor = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
+			
+			Color *color = attributes->GetObjectForKey<Color>(kRNTypesetterColorAttribute);
+			return color ? color->GetRNColor() : defaultColor;
 		}
 		
 		
@@ -122,8 +132,8 @@ namespace RN
 			Vector2 extents;
 			for(Line *line : _lines)
 			{
-				extents.x = std::max(line->UntruncatedExtents().x, extents.x);
-				extents.y += line->UntruncatedExtents().y;
+				extents.x = std::max(line->GetUntruncatedExtents().x, extents.x);
+				extents.y += line->GetUntruncatedExtents().y;
 			}
 			
 			return extents;
@@ -136,8 +146,8 @@ namespace RN
 			Vector2 extents;
 			for(Line *line : _visibleLines)
 			{
-				extents.x = std::max(line->Extents().x, extents.x);
-				extents.y += line->Extents().y;
+				extents.x = std::max(line->GetExtents().x, extents.x);
+				extents.y += line->GetExtents().y;
 			}
 			
 			return extents;
@@ -185,7 +195,7 @@ namespace RN
 			
 			for(Line *line : _lines)
 			{
-				Rect lineRect(_frame.x, offset, _frame.width, line->Extents().y);
+				Rect lineRect(_frame.x, offset, _frame.width, line->GetExtents().y);
 				offset += lineRect.height;
 				
 				if(_allowClippedLines)
@@ -346,7 +356,7 @@ namespace RN
 			for(auto i=_lines.begin(); i!=_lines.end(); i++)
 			{
 				Line *line = *i;
-				const Vector2& extents = line->Extents();
+				const Vector2& extents = line->GetExtents();
 				float widthOffset = 0.0f;
 				
 				switch(_alignment)
@@ -379,33 +389,11 @@ namespace RN
 		
 		void Typesetter::MergeMeshes()
 		{
-			Dictionary *meshes = new Dictionary();
+			Array *meshes = new Array();
 			
 			for(Line *line : _visibleLines)
 			{
-				Dictionary *mergeDict = line->Meshes();
-				
-				mergeDict->Enumerate([&](Object *object, Object *key, bool *stop) {
-					Array *mergees  = static_cast<Array *>(object);
-					Mesh *container = meshes->GetObjectForKey<Mesh>(key);
-					
-					bool skipFirstIndex = false;
-					
-					if(!container)
-					{
-						container = mergees->GetObjectAtIndex<Mesh>(0);
-						skipFirstIndex = true;
-						
-						meshes->SetObjectForKey(container, key);
-					}
-					
-					mergees->Enumerate([&](Object *object, size_t index, bool *stop) {
-						if(skipFirstIndex && index == 0)
-							return;
-						
-						container->MergeMesh(static_cast<Mesh *>(object));
-					});
-				});
+				meshes->AddObjectsFromArray(line->GetMeshes());
 			}
 			
 			
@@ -416,9 +404,15 @@ namespace RN
 			
 			Shader *shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUITextShader);
 			
-			meshes->Enumerate([&](Object *object, Object *key, bool *stop) {
-				Mesh *mesh = static_cast<Mesh *>(object);
-				Font *font = static_cast<Font *>(key);
+			meshes->Enumerate([&](Object *object, size_t index, bool *stop) {
+				
+				Dictionary *dict = static_cast<Dictionary *>(object);
+				
+				Mesh *mesh = dict->GetObjectForKey<Mesh>(kRNTypesetterMeshAttribute);
+				Font *font = dict->GetObjectForKey<Font>(kRNTypesetterFontAttribute);
+				Color *color = dict->GetObjectForKey<Color>(kRNTypesetterColorAttribute);
+				
+				RN_ASSERT(mesh && font && color, "Inconsistent mesh data generated!\n");
 				
 				Material *material = new Material(shader);
 				material->AddTexture(font->Texture());
@@ -426,7 +420,7 @@ namespace RN
 				material->depthwrite = false;
 				material->blending = true;
 				material->lighting = false;
-				material->ambient = Color::White();
+				material->ambient = color->GetRNColor();
 				
 				if(font->Filtering())
 					material->Define("RN_SUBPIXEL_ANTIALIAS");
@@ -451,12 +445,14 @@ namespace RN
 			_font    = other._font ? other._font->Retain() : nullptr;
 			_glyphs  = other._glyphs;
 			_extents = other._extents;
+			_color   = other._color;
 		}
 		LineSegment::LineSegment(LineSegment&& other)
 		{
 			_font    = other._font;
 			_glyphs  = std::move(other._glyphs);
 			_extents = std::move(other._extents);
+			_color   = std::move(other._color);
 			
 			other._font = nullptr;
 		}
@@ -473,6 +469,7 @@ namespace RN
 			_font    = other._font ? other._font->Retain() : nullptr;
 			_glyphs  = other._glyphs;
 			_extents = other._extents;
+			_color   = other._color;
 			
 			return *this;
 		}
@@ -481,6 +478,7 @@ namespace RN
 			_font    = other._font;
 			_glyphs  = std::move(other._glyphs);
 			_extents = std::move(other._extents);
+			_color   = std::move(other._color);
 			
 			other._font = nullptr;
 			return *this;
@@ -495,9 +493,20 @@ namespace RN
 			_extents.y = _font->DefaultLineHeight();
 		}
 		
+		void LineSegment::SetColor(const RN::Color& color)
+		{
+			_color = color;
+		}
+		
+		
 		void LineSegment::SetOffset(const Vector2& offset)
 		{
 			_offset = offset;
+		}
+		
+		bool LineSegment::CanMergeWithSegment(const LineSegment& other)
+		{
+			return (_font == other._font && _color == other._color);
 		}
 		
 		bool LineSegment::IsValidGlyph(const Glyph& glyph) const
@@ -677,7 +686,7 @@ namespace RN
 		
 		float Line::TokenWidthInSegment(const LineSegment& segment)
 		{
-			Font *font = segment.GlyphFont();
+			Font *font = segment.GetFont();
 			const Glyph& glyph = font->GlyphForCharacter(_truncationToken);
 			
 			return glyph.AdvanceX();
@@ -696,27 +705,35 @@ namespace RN
 		void Line::SetLineOffset(const Vector2& offset)
 		{
 			_offset = offset;
+			
+			float temp = 0.0f;
+			
+			for(LineSegment& segment : _segments)
+			{
+				segment.SetOffset(Vector2(temp + _offset.x, _offset.y));
+				temp += segment.GetExtents().x;
+			}
 		}
 		
-		const std::vector<LineSegment>& Line::Segments()
+		const std::vector<LineSegment>& Line::GetSegments()
 		{
 			LayoutLine();
 			return _segments;
 		}
 		
-		const Vector2& Line::Extents()
+		const Vector2& Line::GetExtents()
 		{
 			LayoutLine();
 			return _extents;
 		}
 		
-		const Vector2& Line::UntruncatedExtents()
+		const Vector2& Line::GetUntruncatedExtents()
 		{
 			LayoutLine();
 			return _untruncatedExtents;
 		}
 		
-		Dictionary *Line::Meshes()
+		Array *Line::GetMeshes()
 		{
 			LayoutLine();
 			return GenerateMeshes();
@@ -729,6 +746,7 @@ namespace RN
 			
 			String *string = _string->GetString();
 			Font   *font = nullptr;
+			RN::Color color;
 			
 			AutoreleasePool *pool = new AutoreleasePool();
 			LineSegment segment;
@@ -742,19 +760,24 @@ namespace RN
 				Dictionary *attributes = _string->GetAttributesAtIndex(_range.origin + i);
 				
 				Font *glyphFont = Typesetter::FontForAttributes(attributes);
-				if(glyphFont != font)
+				const RN::Color& glyphColor = Typesetter::ColorForAttributes(attributes);
+				
+				if(glyphFont != font || color != glyphColor)
 				{
-					if(font)
+					if(segment.IsValid())
 					{
 						LineSegment temp;
 						std::swap(temp, segment);
 						
-						if(temp.IsValid())
-							_segments.push_back(std::move(temp));
+						_segments.push_back(std::move(temp));
 					}
 					
+					
 					font = glyphFont;
+					color = glyphColor;
+					
 					segment.SetFont(font);
+					segment.SetColor(color);
 				}
 				
 				const Glyph& glyph = font->GlyphForCharacter(character);
@@ -788,7 +811,7 @@ namespace RN
 					float filled = 0.0f;
 					for(auto i=_segments.begin(); i!=_segments.end(); i++)
 					{
-						if(filled + i->Extents().x >= truncateWidth)
+						if(filled + i->GetExtents().x >= truncateWidth)
 						{
 							// This is the segment we need to truncated
 							float left;
@@ -804,13 +827,13 @@ namespace RN
 								left = truncateWidth - (filled + TokenWidthInSegment(*i));
 							
 							LineSegment segment = std::move(i->SegmentWithWidth(left, false));
-							segment.AddGlyph(segment.GlyphFont()->GlyphForCharacter(_truncationToken));
+							segment.AddGlyph(segment.GetFont()->GlyphForCharacter(_truncationToken));
 							
 							truncated.push_back(segment);
 							break;
 						}
 						
-						filled += i->Extents().x;
+						filled += i->GetExtents().x;
 						truncated.push_back(*i);
 					}
 				}
@@ -821,7 +844,7 @@ namespace RN
 					float filled = 0.0f;
 					for(auto i=_segments.rbegin(); i!=_segments.rend(); i++)
 					{
-						if(filled + i->Extents().x >= truncateWidth)
+						if(filled + i->GetExtents().x >= truncateWidth)
 						{
 							// This is the segment we need to truncated
 							float left;
@@ -830,13 +853,13 @@ namespace RN
 							LineSegment segment = std::move(i->SegmentWithWidth(left, true));
 							
 							if(!truncateMiddle)
-								segment.InsertGlyph(segment.GlyphFont()->GlyphForCharacter(_truncationToken));
+								segment.InsertGlyph(segment.GetFont()->GlyphForCharacter(_truncationToken));
 							
 							truncated.push_back(segment);
 							break;
 						}
 						
-						filled += i->Extents().x;
+						filled += i->GetExtents().x;
 						truncated.push_back(*i);
 					}
 				}
@@ -845,6 +868,7 @@ namespace RN
 				UpdateExtents();
 			}
 			
+			SetLineOffset(_offset);
 			_dirty = false;
 		}
 		
@@ -854,18 +878,18 @@ namespace RN
 			
 			for(const LineSegment& segment : _segments)
 			{
-				_extents.x += segment.Extents().x;
-				_extents.y = std::max(_extents.y, segment.Extents().y);
+				_extents.x += segment.GetExtents().x;
+				_extents.y = std::max(_extents.y, segment.GetExtents().y);
 			}
 		}
 		
-		void Line::GenerateMesh(Dictionary *dictionary, Font *font, const std::vector<LineSegment *>& segments)
+		Dictionary *Line::GenerateMesh(const std::vector<LineSegment *>& segments)
 		{
 			size_t glyphCount = 0;
 			size_t offset = 0;
 			
 			for(LineSegment *segment : segments)
-				glyphCount += segment->Glyphs().size();
+				glyphCount += segment->GetGlyphs().size();
 			
 			
 			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
@@ -897,53 +921,56 @@ namespace RN
 				uint16 *sIndices   = indices  + (offset * 6);
 				
 				segment->CreateGlyphMesh(sVertices, sUVCoords, sIndices, offset);
-				offset += segment->Glyphs().size();
+				offset += segment->GetGlyphs().size();
 			}
 			
 			mesh->ReleaseElement(kMeshFeatureVertices);
 			mesh->ReleaseElement(kMeshFeatureUVSet0);
 			mesh->ReleaseElement(kMeshFeatureIndices);
 			
-			Array *meshes = dictionary->GetObjectForKey<Array>(font);
-			if(!meshes)
-			{
-				meshes = new Array();
-				meshes->Autorelease();
-				
-				dictionary->SetObjectForKey(meshes, font);
-			}
 			
-			meshes->AddObject(mesh->Autorelease());
+			Dictionary *dictionary = new Dictionary();
+			dictionary->SetObjectForKey(Color::WithRNColor(segments[0]->GetColor()), kRNTypesetterColorAttribute);
+			dictionary->SetObjectForKey(segments[0]->GetFont(), kRNTypesetterFontAttribute);
+			dictionary->SetObjectForKey(mesh->Autorelease(), kRNTypesetterMeshAttribute);
+			
+			return dictionary->Autorelease();
 		}
 		
-		Dictionary *Line::GenerateMeshes()
+		Array *Line::GenerateMeshes()
 		{
-			Dictionary *meshes = new Dictionary();
+			Array *meshes = new Array();
 			
-			float offset = 0.0f;
-			std::unordered_map<Font *, std::vector<LineSegment *>> segments;
-			
+			std::vector<std::vector<LineSegment *>> segments;
+
 			for(const LineSegment& segment : _segments)
 			{
 				LineSegment *psegment = const_cast<LineSegment *>(&segment);
-				Font *font = psegment->GlyphFont();
+				bool pushed = false;
 				
-				auto iterator = segments.find(font);
-				
-				if(iterator == segments.end())
+				for(auto i = segments.begin(); i != segments.end(); i ++)
 				{
-					std::vector<LineSegment *> tsegments = { psegment };
-					segments.insert(std::unordered_map<Font *, std::vector<LineSegment *>>::value_type(font, std::move(tsegments)));
+					LineSegment *tsegment = (*i)[0];
+					if(tsegment->CanMergeWithSegment(segment))
+					{
+						i->push_back(psegment);
+						
+						pushed = true;
+						break;
+					}
 				}
-				else
-					iterator->second.push_back(psegment);
 				
-				psegment->SetOffset(Vector2(offset + _offset.x, _offset.y));
-				offset += psegment->Extents().x;
+				if(!pushed)
+				{
+					segments.push_back({ psegment });
+				}
 			}
 			
-			for(auto i=segments.begin(); i!=segments.end(); i++)
-				GenerateMesh(meshes, i->first, i->second);
+			for(auto i = segments.begin(); i != segments.end(); i ++)
+			{
+				Dictionary *mesh = GenerateMesh(*i);
+				meshes->AddObject(mesh);
+			}
 			
 			return meshes->Autorelease();
 		}
