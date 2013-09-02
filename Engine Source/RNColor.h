@@ -18,8 +18,8 @@ namespace RN
 		RNAPI Color(float r, float g, float b, float a=1.0f);
 		RNAPI Color(int r, int g, int b, int a=255);
 
-		RNAPI bool operator== (const Color& other);
-		RNAPI bool operator!= (const Color& other);
+		RNAPI bool operator== (const Color& other) const;
+		RNAPI bool operator!= (const Color& other) const;
 
 		RNAPI Color operator- () const;
 
