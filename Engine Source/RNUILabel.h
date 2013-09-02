@@ -14,6 +14,7 @@
 #include "RNUIView.h"
 #include "RNUIFont.h"
 #include "RNUITypesetter.h"
+#include "RNUIColor.h"
 
 namespace RN
 {
@@ -27,7 +28,8 @@ namespace RN
 			
 			void SetText(String *text);
 			void SetAttributedText(AttributedString *text);
-			void SetTextColor(const Color& color);
+			void SetTextColor(const RN::Color& color);
+			void SetTextColor(Color *color);
 			void SetFont(Font *font);
 			void SetAlignment(TextAlignment alignment);
 			void SetLineBreak(LineBreakMode mode);
@@ -35,7 +37,7 @@ namespace RN
 			void SetFrame(const Rect& frame) override;
 			
 			String *Text() const { return _string->GetString(); }
-			Color TextColor() const { return _color; }
+			Color *TextColor() const { return _color; }
 			Font *TextFont() const { return _font; }
 			TextAlignment Alignment() const { return _alignment; }
 			LineBreakMode LineBreak() const { return _lineBreak; }
@@ -54,7 +56,7 @@ namespace RN
 			LineBreakMode _lineBreak;
 			uint32 _lines;
 			Font *_font;
-			Color _color;
+			Color *_color;
 			
 			Typesetter *_typesetter;
 			AttributedString *_string;

@@ -34,15 +34,15 @@ namespace RN
 			
 			_font      = nullptr;
 			_model     = nullptr;
+			_color     = new Color(RN::Color::White());
 			
 			_string     = new AttributedString(RNCSTR(""));
 			_typesetter = new Typesetter(_string, Bounds());
 			_typesetter->SetAllowPartiallyClippedLined(false);
 			
 			SetFont(ResourcePool::GetSharedInstance()->GetResourceWithName<Font>(kRNResourceKeyDefaultFont));
-			SetTextColor(Color::White());
 			SetInteractionEnabled(false);
-			SetBackgroundColor(Color::ClearColor());
+			SetBackgroundColor(RN::Color::ClearColor());
 			
 			SetAlignment(TextAlignment::Left);
 			SetLineBreak(LineBreakMode::TruncateTail);
@@ -76,6 +76,7 @@ namespace RN
 			
 			_string = new AttributedString(text);
 			_string->AddAttribute(kRNTypesetterFontAttribute, _font, Range(0, text->GetLength()));
+			_string->AddAttribute(kRNTypesetterColorAttribute, _color, Range(0, text->GetLength()));
 			
 			_typesetter->SetText(_string);
 			_isDirty = true;
@@ -94,10 +95,21 @@ namespace RN
 			_typesetter->SetText(_string);
 		}
 		
-		void Label::SetTextColor(const Color& color)
+		void Label::SetTextColor(const RN::Color& color)
 		{
-			_color = color;
-			DrawMaterial()->ambient = _color;
+			SetTextColor((new Color(color))->Autorelease());
+			
+		}
+		
+		void Label::SetTextColor(Color *color)
+		{
+			_color->Release();
+			_color = color->Copy();
+			
+			_string->RemoveAttribute(kRNTypesetterColorAttribute, Range(0, _string->GetLength()));
+			_string->AddAttribute(kRNTypesetterColorAttribute, _color, Range(0, _string->GetLength()));
+			
+			_isDirty = true;
 		}
 		
 		void Label::SetAlignment(TextAlignment alignment)
