@@ -32,6 +32,7 @@ namespace RN
 			
 			String *GetIdentifier() const { return _identifier; }
 			
+			View *GetContentView() const { return _contentView; }
 			ImageView *GetImageView() const { return _imageView; }
 			Label *GetTextLabel() const { return _textLabel; }
 			

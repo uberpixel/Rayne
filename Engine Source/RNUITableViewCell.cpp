@@ -61,6 +61,7 @@ namespace RN
 			_indentation = 0.0f;
 			
 			SetSelected(false);
+			SetNeedsLayoutUpdate();
 		}
 		
 		void TableViewCell::SetFrame(const Rect& frame)
