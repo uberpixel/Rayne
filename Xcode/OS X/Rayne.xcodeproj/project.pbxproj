@@ -48,6 +48,8 @@
 		E9319D3416BFE560001FA38F /* RNBaseInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = E9319D3316BFE560001FA38F /* RNBaseInternal.h */; settings = {ATTRIBUTES = (); }; };
 		E93763F71794DD7000859EBA /* RNUITextField.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E93763F51794DD7000859EBA /* RNUITextField.cpp */; };
 		E93763F81794DD7000859EBA /* RNUITextField.h in Headers */ = {isa = PBXBuildFile; fileRef = E93763F61794DD7000859EBA /* RNUITextField.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E93B345917D520D5006607B5 /* RNUIOutlineViewCell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E93B345717D520D5006607B5 /* RNUIOutlineViewCell.cpp */; };
+		E93B345A17D520D5006607B5 /* RNUIOutlineViewCell.h in Headers */ = {isa = PBXBuildFile; fileRef = E93B345817D520D5006607B5 /* RNUIOutlineViewCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E940FAC6178072FA00C69B88 /* RNIntervalTree.h in Headers */ = {isa = PBXBuildFile; fileRef = E940FAC4178072FA00C69B88 /* RNIntervalTree.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E940FACF178084D100C69B88 /* RNAttributedString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E940FACD178084D100C69B88 /* RNAttributedString.cpp */; };
 		E940FAD0178084D100C69B88 /* RNAttributedString.h in Headers */ = {isa = PBXBuildFile; fileRef = E940FACE178084D100C69B88 /* RNAttributedString.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -83,6 +85,8 @@
 		E9586E681730855600D24737 /* RNUIImageView.h in Headers */ = {isa = PBXBuildFile; fileRef = E9586E661730855600D24737 /* RNUIImageView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E959282B170CBAAD00935AC8 /* RNWorldAttachment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9592829170CBAAD00935AC8 /* RNWorldAttachment.cpp */; };
 		E959282C170CBAAD00935AC8 /* RNWorldAttachment.h in Headers */ = {isa = PBXBuildFile; fileRef = E959282A170CBAAD00935AC8 /* RNWorldAttachment.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E95A782F17D51E720031C9A2 /* RNUIOutlineView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E95A782D17D51E720031C9A2 /* RNUIOutlineView.cpp */; };
+		E95A783017D51E720031C9A2 /* RNUIOutlineView.h in Headers */ = {isa = PBXBuildFile; fileRef = E95A782E17D51E720031C9A2 /* RNUIOutlineView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E95EEE481784CFDC00CDCA6E /* RNBasicString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E95EEE461784CFDC00CDCA6E /* RNBasicString.cpp */; };
 		E95EEE491784CFDC00CDCA6E /* RNBasicString.h in Headers */ = {isa = PBXBuildFile; fileRef = E95EEE471784CFDC00CDCA6E /* RNBasicString.h */; };
 		E95EEE4C1784EFAC00CDCA6E /* RNASCIIString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E95EEE4A1784EFAC00CDCA6E /* RNASCIIString.cpp */; };
@@ -311,6 +315,8 @@
 		E9319D3316BFE560001FA38F /* RNBaseInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBaseInternal.h; sourceTree = "<group>"; };
 		E93763F51794DD7000859EBA /* RNUITextField.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUITextField.cpp; sourceTree = "<group>"; };
 		E93763F61794DD7000859EBA /* RNUITextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUITextField.h; sourceTree = "<group>"; };
+		E93B345717D520D5006607B5 /* RNUIOutlineViewCell.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIOutlineViewCell.cpp; sourceTree = "<group>"; };
+		E93B345817D520D5006607B5 /* RNUIOutlineViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIOutlineViewCell.h; sourceTree = "<group>"; };
 		E940FAC4178072FA00C69B88 /* RNIntervalTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNIntervalTree.h; sourceTree = "<group>"; };
 		E940FACD178084D100C69B88 /* RNAttributedString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNAttributedString.cpp; sourceTree = "<group>"; };
 		E940FACE178084D100C69B88 /* RNAttributedString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAttributedString.h; sourceTree = "<group>"; };
@@ -350,6 +356,8 @@
 		E9586E661730855600D24737 /* RNUIImageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIImageView.h; sourceTree = "<group>"; };
 		E9592829170CBAAD00935AC8 /* RNWorldAttachment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWorldAttachment.cpp; sourceTree = "<group>"; };
 		E959282A170CBAAD00935AC8 /* RNWorldAttachment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWorldAttachment.h; sourceTree = "<group>"; };
+		E95A782D17D51E720031C9A2 /* RNUIOutlineView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIOutlineView.cpp; sourceTree = "<group>"; };
+		E95A782E17D51E720031C9A2 /* RNUIOutlineView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIOutlineView.h; sourceTree = "<group>"; };
 		E95EEE461784CFDC00CDCA6E /* RNBasicString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNBasicString.cpp; sourceTree = "<group>"; };
 		E95EEE471784CFDC00CDCA6E /* RNBasicString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNBasicString.h; sourceTree = "<group>"; };
 		E95EEE4A1784EFAC00CDCA6E /* RNASCIIString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNASCIIString.cpp; sourceTree = "<group>"; };
@@ -705,6 +713,10 @@
 				E9586E661730855600D24737 /* RNUIImageView.h */,
 				E9AD2A7D17610E8F00BC3E8F /* RNUILabel.cpp */,
 				E9AD2A7E17610E8F00BC3E8F /* RNUILabel.h */,
+				E95A782D17D51E720031C9A2 /* RNUIOutlineView.cpp */,
+				E95A782E17D51E720031C9A2 /* RNUIOutlineView.h */,
+				E93B345717D520D5006607B5 /* RNUIOutlineViewCell.cpp */,
+				E93B345817D520D5006607B5 /* RNUIOutlineViewCell.h */,
 				E9586E60173072B700D24737 /* RNUIResponder.cpp */,
 				E9586E61173072B700D24737 /* RNUIResponder.h */,
 				E917F07D1791FC7C003765C1 /* RNUIScrollView.cpp */,
@@ -898,6 +910,7 @@
 				E9619E2A1696157E00DA187E /* RNBase.h in Headers */,
 				E9619E2C1696157E00DA187E /* RNCamera.h in Headers */,
 				E9619E2D1696157E00DA187E /* RNColor.h in Headers */,
+				E93B345A17D520D5006607B5 /* RNUIOutlineViewCell.h in Headers */,
 				E9619E2F1696157E00DA187E /* RNContext.h in Headers */,
 				E9619E301696157E00DA187E /* RNDefines.h in Headers */,
 				E9619E341696157E00DA187E /* RNFile.h in Headers */,
@@ -933,6 +946,7 @@
 				C050166A16C3FDE600326514 /* RNLight.h in Headers */,
 				C050167016C45BF100326514 /* RNPlane.h in Headers */,
 				E9780FC116D82913001AE2ED /* RNSettings.h in Headers */,
+				E95A783017D51E720031C9A2 /* RNUIOutlineView.h in Headers */,
 				E92AE1AF16B4D68C00EFE1E8 /* RNApplication.h in Headers */,
 				C01BCEC916E6698E0009834F /* RNSkeleton.h in Headers */,
 				E907DF2B17C9780E00777A38 /* RNTextNode.h in Headers */,
@@ -1133,6 +1147,7 @@
 				E9619E331696157E00DA187E /* RNFile.cpp in Sources */,
 				E9619E351696157E00DA187E /* RNKernel.cpp in Sources */,
 				E9619E391696157E00DA187E /* RNMaterial.cpp in Sources */,
+				E93B345917D520D5006607B5 /* RNUIOutlineViewCell.cpp in Sources */,
 				E9619E3D1696157E00DA187E /* RNMesh.cpp in Sources */,
 				E907DF2A17C9780E00777A38 /* RNTextNode.cpp in Sources */,
 				E9619E3F1696157E00DA187E /* RNMutex.cpp in Sources */,
@@ -1169,6 +1184,7 @@
 				E9B083BB171761FB009AD83F /* RNMath.cpp in Sources */,
 				E9B083F117188E29009AD83F /* RNCPU.cpp in Sources */,
 				E9B083F81718B1D1009AD83F /* RNMemory.cpp in Sources */,
+				E95A782F17D51E720031C9A2 /* RNUIOutlineView.cpp in Sources */,
 				E9F3A6F4171B8D3E0005A79E /* RNParticleEmitter.cpp in Sources */,
 				E951615D17D410CF0006156A /* RNUITableViewCell.cpp in Sources */,
 				E9F3A6F8171B8DA70005A79E /* RNParticle.cpp in Sources */,
