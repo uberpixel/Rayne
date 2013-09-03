@@ -132,6 +132,38 @@
 					}
 				}
 			]
+		},
+		{
+			"name": "RNDisclosureTriangle",
+			"mode": "switch",
+			"texture": "ui/rn_uikit.png",
+			"background": false,
+			"contentInsets": {
+				"top": 0.0,
+				"bottom": 0.0,
+				"left": 0.0,
+				"right": 0.0
+			},
+			"states": [
+				{
+					"name": "normal",
+					"atlas": {
+						"x": 169.0,
+						"y": 0.0,
+						"width": 9.0,
+						"height": 9.0
+					}
+				},
+				{
+					"name": "selected",
+					"atlas": {
+						"x": 159.0,
+						"y": 0.0,
+						"width": 9.0,
+						"height": 9.0
+					}
+				}
+			]
 		}
 	],
 	"textfields": [

@@ -27,6 +27,7 @@ namespace RN
 		Button::Button(Dictionary *style)
 		{
 			Initialize();
+			RN_ASSERT(style, "Button style mustn't be NULL!");
 			
 			Style *styleSheet = Style::GetSharedInstance();
 			Texture *texture = styleSheet->TextureWithName(style->GetObjectForKey<String>(RNCSTR("texture")));
@@ -111,6 +112,10 @@ namespace RN
 				case Type::CheckBox:
 					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNCheckBox"));
 					break;
+					
+				case Type::DisclosureTriangle:
+					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNDisclosureTriangle"));
+					break;
 			}
 			
 			Button *button = new Button(style);
@@ -144,6 +149,7 @@ namespace RN
 			AddSubview(_label);
 			
 			StateChanged(ControlState());
+			SetBackgroundColor(RN::Color::ClearColor());
 		}
 		
 		void Button::StateChanged(State state)

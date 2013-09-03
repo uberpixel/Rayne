@@ -28,7 +28,8 @@ namespace RN
 			{
 				RoundedRect,
 				PushButton,
-				CheckBox
+				CheckBox,
+				DisclosureTriangle
 			};
 			
 			enum class Behavior
