@@ -223,7 +223,7 @@ namespace RN
 		}
 		
 		
-		void TableView::InsertRows(size_t offset, size_t count)
+		void TableView::InsertRows(size_t row, size_t count)
 		{
 			RN_ASSERT(_dataSource, "TableView needs a data source!");
 			
@@ -232,12 +232,12 @@ namespace RN
 			
 			_rows = temp;
 			
-			InvalidateCellsForRange(Range(offset, _rows - offset));
+			InvalidateCellsForRange(Range(row, _rows - row));
 			UpdateDimensions();
 			UpdateVisibleRows(true);
 		}
 		
-		void TableView::DeleteRows(size_t offset, size_t count)
+		void TableView::DeleteRows(size_t row, size_t count)
 		{
 			RN_ASSERT(_dataSource, "TableView needs a data source!");
 			
@@ -246,10 +246,17 @@ namespace RN
 			
 			_rows = temp;
 			
-			InvalidateCellsForRange(Range(offset, _rows - offset));
+			InvalidateCellsForRange(Range(row, _rows - row));
 			UpdateDimensions();
 			UpdateVisibleRows(true);
 		}
+		
+		void TableView::UpdateRows(size_t row, size_t count)
+		{
+			InvalidateCellsForRange(Range(row, count));
+			UpdateVisibleRows(true);
+		}
+		
 		
 		
 		void TableView::InvalidateCellsForRange(const Range& range)

@@ -53,8 +53,9 @@ namespace RN
 			void SetDataSource(TableViewDataSource *dataSource);
 			void SetDelegate(TableViewDelegate *delegate);
 			
-			void InsertRows(size_t offset, size_t count);
-			void DeleteRows(size_t offset, size_t count);
+			void InsertRows(size_t row, size_t count);
+			void DeleteRows(size_t row, size_t count);
+			void UpdateRows(size_t row, size_t count);
 			
 			TableViewCell *DequeCellWithIdentifier(String *identifier);
 			
