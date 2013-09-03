@@ -59,6 +59,7 @@ namespace RN
 			_dirtyLayout        = true;
 			_interactionEnabled = true;
 			_clipSubviews       = false;
+			_hidden             = false;
 			
 			_material = new Material(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
 			_material->depthtest  = false;
@@ -227,7 +228,7 @@ namespace RN
 					View *view = potential->_subviews.GetObjectAtIndex<View>(i);
 					Vector2 transformed = std::move(view->ConvertPointFromView(point, nullptr));
 					
-					if(view->_interactionEnabled && view->PointInside(transformed, event))
+					if(!view->_hidden && view->_interactionEnabled && view->PointInside(transformed, event))
 					{
 						potential = view;
 						traverse = true;
@@ -411,6 +412,11 @@ namespace RN
 			}
 		}
 		
+		void View::SetHidden(bool hidden)
+		{
+			_hidden = hidden;
+		}
+		
 		// ---------------------
 		// MARK: -
 		// MARK: Rendering
@@ -552,21 +558,44 @@ namespace RN
 			}
 		}
 		
-		void View::DrawChilds(Renderer *renderer)
+		
+		void View::UpdateChilds()
 		{
+			Update();
+			
 			size_t count = _subviews.GetCount();
+			
 			for(size_t i=0; i<count; i++)
 			{
 				View *subview = _subviews.GetObjectAtIndex<View>(i);
-				subview->UpdateAndDraw(renderer);
+				subview->UpdateChilds();
 			}
 		}
 		
-		void View::UpdateAndDraw(Renderer *renderer)
+		void View::UpdateAndDrawChilds(Renderer *renderer)
 		{
 			Update();
-			Draw(renderer);
-			DrawChilds(renderer);
+			
+			size_t count = _subviews.GetCount();
+			
+			if(_hidden)
+			{
+				for(size_t i=0; i<count; i++)
+				{
+					View *subview = _subviews.GetObjectAtIndex<View>(i);
+					subview->UpdateChilds();
+				}
+			}
+			else
+			{
+				Draw(renderer);
+				
+				for(size_t i=0; i<count; i++)
+				{
+					View *subview = _subviews.GetObjectAtIndex<View>(i);
+					subview->UpdateAndDrawChilds(renderer);
+				}
+			}
 		}
 	}
 }

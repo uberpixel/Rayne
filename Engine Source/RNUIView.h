@@ -47,6 +47,7 @@ namespace RN
 			void SetBackgroundColor(const RN::Color& color);
 			void SetInteractionEnabled(bool enabled);
 			void SetClipSubviews(bool clipping);
+			void SetHidden(bool hidden);
 			
 			void AddSubview(View *subview);
 			void RemoveSubview(View *subview);
@@ -89,8 +90,8 @@ namespace RN
 			void Initialize();
 			void ViewHierarchyChanged();
 			void CalculateScissorRect();
-			void DrawChilds(Renderer *renderer);
-			void UpdateAndDraw(Renderer *renderer);
+			void UpdateChilds();
+			void UpdateAndDrawChilds(Renderer *renderer);
 			
 			void ConvertPointToWidget(Vector2& point);
 			void ConvertPointFromWidget(Vector2& point);
@@ -108,6 +109,7 @@ namespace RN
 			bool _interactionEnabled;
 			bool _dirtyLayout;
 			bool _clipSubviews;
+			bool _hidden;
 			
 			Rect _frame;
 			Rect _bounds;
