@@ -84,8 +84,6 @@ namespace RN
 			_rows = _dataSource->NumberOfRowsInTableView(this);
 			
 			UpdateDimensions();
-			SetContentSize(Vector2(Frame().width, _height));
-			
 			ClearAllCells();
 			UpdateVisibleRows(false);
 		}
@@ -104,6 +102,7 @@ namespace RN
 					_height += _delegate->HeightOfRowInTableView(this, i);
 			}
 			
+			SetContentSize(Vector2(Frame().width, _height));
 		}
 		
 		void TableView::SetFrame(const Rect& frame)
