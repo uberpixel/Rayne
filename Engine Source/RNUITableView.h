@@ -38,6 +38,8 @@ namespace RN
 			
 			virtual uint32 IndentationForRowInTableView(TableView *tableView, size_t row) { return 0; }
 			virtual float HeightOfRowInTableView(TableView *tableView, size_t row) { return 20.0f; }
+			
+			virtual void WillDisplayCellForRowInTableView(TableView *tableView, TableViewCell *cell, size_t row) {}
 		};
 		
 		class TableView : public ScrollView, public ScrollViewDelegate

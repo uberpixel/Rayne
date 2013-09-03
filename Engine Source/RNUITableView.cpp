@@ -347,6 +347,7 @@ namespace RN
 			
 			cell->SetFrame(Rect(0.0f, offset, width, height));
 			cell->SetIndentation(indentation);
+			cell->SetNeedsLayoutUpdate();
 			cell->_tableView = this;
 			cell->_offset = offset;
 			cell->_row = row;
@@ -356,6 +357,9 @@ namespace RN
 			
 			_cells.AddObject(cell);
 			_visibleCells.insert(row);
+			
+			if(_delegate)
+				_delegate->WillDisplayCellForRowInTableView(this, cell, row);
 			
 			AddSubview(cell);
 		}
