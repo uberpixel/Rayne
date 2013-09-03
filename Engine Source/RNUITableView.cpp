@@ -232,7 +232,7 @@ namespace RN
 			
 			_rows = temp;
 			
-			InvalidateCellsForRange(GetVisibleRange());
+			InvalidateCellsForRange(Range(offset, _rows - offset));
 			UpdateDimensions();
 			UpdateVisibleRows(true);
 		}
@@ -246,7 +246,7 @@ namespace RN
 			
 			_rows = temp;
 			
-			InvalidateCellsForRange(Range(offset, count));
+			InvalidateCellsForRange(Range(offset, _rows - offset));
 			UpdateDimensions();
 			UpdateVisibleRows(true);
 		}
