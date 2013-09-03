@@ -26,7 +26,7 @@ namespace RN
 	void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...)
 	{
 		__DieLock.Lock();
-		fprintf(stderr, "Assertion '%s' failed in %s, %s:%i", expression, func, file, line);
+		fprintf(stderr, "Assertion '%s' failed in %s, %s:%i\n", expression, func, file, line);
 		__DieLock.Unlock();
 		
 		va_list args;
@@ -46,7 +46,7 @@ namespace RN
 		
 		const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.GetCallStack();
 		
-		fprintf(stderr, "Caught exception %i, reason: %s\n", static_cast<uint32>(e.GetType()), e.GetReason().c_str());
+		fprintf(stderr, "Caught exception %s, reason: %s\n", e.GetStringifiedType(), e.GetReason().c_str());
 		fprintf(stderr, "Chrashing Thread: %s\nBacktrace:\n", e.GetThread()->GetName().c_str());
 		
 		for(auto i=callstack.begin(); i!=callstack.end(); i++)
