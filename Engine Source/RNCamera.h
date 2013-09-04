@@ -325,7 +325,7 @@ namespace RN
 		Vector3 _frustumCenter;
 		float _frustumRadius;
 		
-		struct
+		struct frustums
 		{
 			Plane _frustumLeft;
 			Plane _frustumRight;

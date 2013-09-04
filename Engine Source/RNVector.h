@@ -784,9 +784,11 @@ namespace RN
 		return *this;
 	}
 
+	#if !(RN_PLATFORM_LINUX)
 	static_assert(std::is_trivially_copyable<Vector2>::value, "Vector2 must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Vector3>::value, "Vector3 must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Vector4>::value, "Vector4 must be trivially copyable");
+	#endif
 }
 
 #endif /* __RAYNE_VECTOR_H__ */
