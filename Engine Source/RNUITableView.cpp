@@ -33,11 +33,12 @@ namespace RN
 			_delegate = nullptr;
 			
 			_indentationOffset = 15.0f;
-			_height = 0.0f;
-			_rows = 0;
 			_rowHeight = 20.0f;
+			_height = 0.0f;
+			_rows = _changeRows = 0;
 			
 			_allowsMultipleSelection = false;
+			_editing = false;
 			_selection = new IndexSet();
 		}
 		
@@ -80,8 +81,10 @@ namespace RN
 		void TableView::ReloadData()
 		{
 			RN_ASSERT(_dataSource, "TableView needs a data source!");
+			RN_ASSERT(_editing == false, "ReloadData() is forbidden between BeginEditing() EndEditing() calls");
 			
 			_rows = _dataSource->NumberOfRowsInTableView(this);
+			_changeRows = _rows;
 			
 			UpdateDimensions();
 			ClearAllCells();
@@ -223,37 +226,121 @@ namespace RN
 		}
 		
 		
+		void TableView::BegindEditing()
+		{
+			RN_ASSERT(_dataSource, "TableView needs a data source!");
+			RN_ASSERT(_editing == false, "BeginEditing() can't be stacked!\n");
+			
+			_editing = true;
+		}
+		
+		void TableView::EndEditing()
+		{
+			RN_ASSERT(_dataSource, "TableView needs a data source!");
+			RN_ASSERT(_editing, "EndEditing() mustn't be called without a prior BeginEditing() call");
+			
+			_editing = false;
+			CarryOutChanges();
+		}
+		
+		
+		
 		void TableView::InsertRows(size_t row, size_t count)
 		{
 			RN_ASSERT(_dataSource, "TableView needs a data source!");
+			RN_ASSERT(_changeRows >= row + count, "Row range out of bounds");
 			
-			size_t temp = _dataSource->NumberOfRowsInTableView(this);
-			RN_ASSERT(_rows + count == temp, "Invalid number of rows!");
+			_changes.emplace_back(EditingSet(EditingSet::Type::Insertion, row, count));
+			_changeRows += count;
 			
-			_rows = temp;
-			
-			InvalidateCellsForRange(Range(row, _rows - row));
-			UpdateDimensions();
-			UpdateVisibleRows(true);
+			if(!_editing)
+				CarryOutChanges();
 		}
 		
 		void TableView::DeleteRows(size_t row, size_t count)
 		{
 			RN_ASSERT(_dataSource, "TableView needs a data source!");
+			RN_ASSERT(_changeRows >= row + count, "Row range out of bounds");
 			
-			size_t temp = _dataSource->NumberOfRowsInTableView(this);
-			RN_ASSERT(_rows - count == temp, "Invalid number of rows!");
+			_changes.emplace_back(EditingSet(EditingSet::Type::Deletion, row, count));
+			_changeRows -= count;
 			
-			_rows = temp;
-			
-			InvalidateCellsForRange(Range(row, _rows - row));
-			UpdateDimensions();
-			UpdateVisibleRows(true);
+			if(!_editing)
+				CarryOutChanges();
 		}
 		
 		void TableView::UpdateRows(size_t row, size_t count)
 		{
-			InvalidateCellsForRange(Range(row, count));
+			RN_ASSERT(_changeRows >= row + count, "Row range out of bounds");
+			
+			if(!_editing)
+			{
+				InvalidateCellsForRange(Range(row, count));
+				UpdateVisibleRows(true);
+			}
+			else
+			{
+				_changes.emplace_back(EditingSet(EditingSet::Type::Update, row, count));
+			}
+		}
+		
+		void TableView::CarryOutChanges()
+		{
+			size_t insertedRows = 0;
+			size_t deletedRows  = 0;
+			
+			for(size_t i = 0; i < _changes.size(); i ++)
+			{
+				EditingSet& set = _changes[i];
+				
+				size_t row = 0;
+				ptrdiff_t offset = 0;
+				
+				switch(set.type)
+				{
+					case EditingSet::Type::Insertion:
+						row    = set.row;
+						offset = set.count;
+						
+						insertedRows += set.count;
+						break;
+						
+					case EditingSet::Type::Deletion:
+						row    = set.row;
+						offset = -set.count;
+						
+						deletedRows += set.count;
+						break;
+						
+					default:
+						break;
+				}
+				
+				// Apply the new offset if needed
+				if(offset > 0)
+				{
+					for(size_t j = i + 1; j < _changes.size(); j ++)
+					{
+						EditingSet& set = _changes[j];
+						set.row += offset;
+					}
+				}
+			}
+			
+			// Sanity check
+			_rows += insertedRows;
+			_rows -= deletedRows;
+			
+			size_t rows = _dataSource->NumberOfRowsInTableView(this);
+			RN_ASSERT(_rows == rows, "Invalid row count after EndEditing() call");
+			
+			_changeRows = rows;
+			
+			// Update
+			_changes.clear();
+			
+			InvalidateCellsForRange(GetVisibleRange());
+			UpdateDimensions();
 			UpdateVisibleRows(true);
 		}
 		
@@ -274,6 +361,23 @@ namespace RN
 				}
 			}
 		}
+		
+		void TableView::InvalidateCellsForIndexSet(IndexSet *set)
+		{
+			for(size_t i = 0; i < _cells.GetCount(); i ++)
+			{
+				TableViewCell *cell = _cells.GetObjectAtIndex<TableViewCell>(i);
+				
+				if(set->ContainsIndex(cell->_row))
+				{
+					EnqueueCell(cell, true);
+					i --;
+					
+					continue;
+				}
+			}
+		}
+		
 		
 		void TableView::UpdateVisibleRows(bool updateFrames)
 		{

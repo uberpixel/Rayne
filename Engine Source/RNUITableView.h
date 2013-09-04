@@ -53,6 +53,8 @@ namespace RN
 			void SetDataSource(TableViewDataSource *dataSource);
 			void SetDelegate(TableViewDelegate *delegate);
 			
+			void BegindEditing();
+			void EndEditing();
 			void InsertRows(size_t row, size_t count);
 			void DeleteRows(size_t row, size_t count);
 			void UpdateRows(size_t row, size_t count);
@@ -74,6 +76,27 @@ namespace RN
 			void ReloadData();
 			
 		private:
+			struct EditingSet
+			{
+				enum class Type
+				{
+					Insertion,
+					Deletion,
+					Update
+				};
+				
+				EditingSet(Type ttype, size_t trow, size_t tcount)
+				{
+					type  = ttype;
+					row   = trow;
+					count = tcount;
+				}
+				
+				Type type;
+				size_t row;
+				size_t count;
+			};
+			
 			void Initialize();
 			void ScrollViewDidScroll(ScrollView *view) override;
 			void EnqueueCell(TableViewCell *cell, bool cleanRowData);
@@ -88,8 +111,10 @@ namespace RN
 			void ClearAllCells();
 			void InsertCellForRow(size_t row, float offset);
 			void InvalidateCellsForRange(const Range& range);
+			void InvalidateCellsForIndexSet(IndexSet *set);
 			void UpdateDimensions();
 			void UpdateVisibleRows(bool updateFrames);
+			void CarryOutChanges();
 			
 			void ConsiderCellForSelection(TableViewCell *cell);
 			void DeselectCell(TableViewCell *cell);
@@ -108,7 +133,11 @@ namespace RN
 			size_t _rows;
 			
 			bool _allowsMultipleSelection;
+			bool _editing;
 			IndexSet *_selection;
+			
+			std::vector<EditingSet> _changes;
+			size_t _changeRows;
 			
 			RNDefineMeta(TableView, ScrollView)
 		};
