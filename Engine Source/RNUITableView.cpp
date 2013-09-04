@@ -317,7 +317,7 @@ namespace RN
 				}
 				
 				// Apply the new offset if needed
-				if(offset > 0)
+				if(offset != 0)
 				{
 					for(size_t j = i + 1; j < _changes.size(); j ++)
 					{
