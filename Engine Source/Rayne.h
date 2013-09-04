@@ -29,6 +29,7 @@
 #include "RNMessage.h"
 #include "RNFile.h"
 #include "RNPathManager.h"
+#include "RNFileManager.h"
 #include "RNDebug.h"
 
 #include "RNModule.h"
