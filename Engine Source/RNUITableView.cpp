@@ -83,7 +83,7 @@ namespace RN
 			RN_ASSERT(_dataSource, "TableView needs a data source!");
 			RN_ASSERT(_editing == false, "ReloadData() is forbidden between BeginEditing() EndEditing() calls");
 			
-			_rows = _dataSource->NumberOfRowsInTableView(this);
+			_rows = _dataSource->TableViewNumberOfRows(this);
 			_changeRows = _rows;
 			
 			UpdateDimensions();
@@ -93,18 +93,7 @@ namespace RN
 		
 		void TableView::UpdateDimensions()
 		{
-			_height = 0.0f;
-			
-			if(!_delegate || _rowHeight > 0.0f)
-			{
-				_height = _rows * _rowHeight;
-			}
-			else
-			{
-				for(size_t i = 0; i < _rows; i ++)
-					_height += _delegate->HeightOfRowInTableView(this, i);
-			}
-			
+			_height = _rows * _rowHeight;
 			SetContentSize(Vector2(Frame().width, _height));
 		}
 		
@@ -140,40 +129,14 @@ namespace RN
 		
 		size_t TableView::GetRowForContentOffset(float offset) const
 		{
-			if(!_delegate || _rowHeight > 0.0f)
-			{
-				size_t row = static_cast<size_t>(floorf(offset / _rowHeight));
-				return std::min(_rows, row);
-			}
-			
-			
-			float height = 0.0f;
-			for(size_t i = 0; i < _rows; i ++)
-			{
-				height += _delegate->HeightOfRowInTableView(const_cast<TableView *>(this), i);
-				
-				if(height >= offset)
-					return i;
-			}
-			
-			return k::NotFound;
+			size_t row = static_cast<size_t>(floorf(offset / _rowHeight));
+			return std::min(_rows, row);
 		}
 		
 		float TableView::GetOffsetForRow(size_t row) const
 		{
 			RN_ASSERT(row <= _rows, "Invalid row number");
-			
-			if(!_delegate || _rowHeight > 0.0f)
-				return row * _rowHeight;
-			
-			float offset = 0.0f;
-			
-			for(size_t i = 0; i < row; i ++)
-			{
-				offset += _delegate->HeightOfRowInTableView(const_cast<TableView *>(this), i);
-			}
-			
-			return offset;
+			return row * _rowHeight;
 		}
 		
 		float TableView::GetIndentationForRow(size_t row) const
@@ -181,7 +144,7 @@ namespace RN
 			if(!_delegate)
 				return 0.0f;
 			
-			return _delegate->IndentationForRowInTableView(const_cast<TableView *>(this), row) * _indentationOffset;
+			return _delegate->TableViewIndentationForRow(const_cast<TableView *>(this), row) * _indentationOffset;
 		}
 		
 		float TableView::GetHeightForRow(size_t row) const
@@ -189,10 +152,7 @@ namespace RN
 			if(!_delegate)
 				return _rowHeight;
 			
-			if(_rowHeight > 0.0)
-				return _rowHeight;
-			
-			return _delegate->HeightOfRowInTableView(const_cast<TableView *>(this), row);
+			return _rowHeight;
 		}
 		
 		Range TableView::GetVisibleRange() const
@@ -331,7 +291,7 @@ namespace RN
 			_rows += insertedRows;
 			_rows -= deletedRows;
 			
-			size_t rows = _dataSource->NumberOfRowsInTableView(this);
+			size_t rows = _dataSource->TableViewNumberOfRows(this);
 			RN_ASSERT(_rows == rows, "Invalid row count after EndEditing() call");
 			
 			_changeRows = rows;
@@ -449,7 +409,8 @@ namespace RN
 		
 		void TableView::InsertCellForRow(size_t row, float offset)
 		{
-			TableViewCell *cell = _dataSource->CellForRowInTableView(this, row);
+			TableViewCell *cell = _dataSource->TableViewCellForRow(this, row);
+			RN_ASSERT(cell, "TableViewCellForRow() must not return NULL!");
 			
 			float height = GetHeightForRow(row);
 			float indentation = GetIndentationForRow(row);
@@ -469,7 +430,7 @@ namespace RN
 			_visibleCells.insert(row);
 			
 			if(_delegate)
-				_delegate->WillDisplayCellForRowInTableView(this, cell, row);
+				_delegate->TableViewWillDisplayCellForRow(this, cell, row);
 			
 			AddSubview(cell);
 		}
@@ -541,7 +502,7 @@ namespace RN
 				size_t row = _selection->GetIndex(i);
 				
 				if(_delegate)
-					_delegate->WillDeselectRowInTableView(this, row);
+					_delegate->TableViewWillDeselectRow(this, row);
 				
 				TableViewCell *cell = GetCellForRow(row);
 				if(cell)
@@ -557,17 +518,20 @@ namespace RN
 				size_t row = _selection->GetIndex(i);
 				
 				if(_delegate)
-					_delegate->DidSelectRowInTableView(this, row);
+					_delegate->TableViewDidSelectRow(this, row);
 				
 				TableViewCell *cell = GetCellForRow(row);
 				if(cell)
 					cell->SetSelected(true);
 			}
+			
+			if(_delegate)
+				_delegate->TableViewSelectionDidChange(this);
 		}
 		
 		void TableView::ConsiderCellForSelection(TableViewCell *cell)
 		{
-			bool canAdd = (!_delegate || _delegate->CanSelectRowInTableView(this, cell->_row));
+			bool canAdd = (!_delegate || _delegate->TableViewCanSelectRow(this, cell->_row));
 			if(canAdd)
 			{
 				Input *input = Input::GetSharedInstance();
@@ -584,9 +548,12 @@ namespace RN
 						_selection->AddIndex(cell->_row);
 						
 						if(_delegate)
-							_delegate->DidSelectRowInTableView(this, cell->_row);
+							_delegate->TableViewDidSelectRow(this, cell->_row);
 						
 						cell->SetSelected(true);
+						
+						if(_delegate)
+							_delegate->TableViewSelectionDidChange(this);
 					}
 					else
 					{
@@ -599,10 +566,13 @@ namespace RN
 		void TableView::DeselectCell(TableViewCell *cell)
 		{
 			if(_delegate)
-				_delegate->WillDeselectRowInTableView(this, cell->_row);
+				_delegate->TableViewWillDeselectRow(this, cell->_row);
 			
 			_selection->RemoveIndex(cell->_row);
 			cell->SetSelected(false);
+			
+			if(_delegate)
+				_delegate->TableViewSelectionDidChange(this);
 		}
 	}
 }

@@ -25,21 +25,20 @@ namespace RN
 		class TableViewDataSource
 		{
 		public:
-			virtual size_t NumberOfRowsInTableView(TableView *tableView) = 0;
-			virtual TableViewCell *CellForRowInTableView(TableView *tableView, size_t row) = 0;
+			virtual size_t TableViewNumberOfRows(TableView *tableView) = 0;
+			virtual TableViewCell *TableViewCellForRow(TableView *tableView, size_t row) = 0;
 		};
 		
 		class TableViewDelegate
 		{
 		public:
-			virtual bool CanSelectRowInTableView(TableView *tableView, size_t row) { return true; }
-			virtual void DidSelectRowInTableView(TableView *tableView, size_t row) {}
-			virtual void WillDeselectRowInTableView(TableView *tableView, size_t row) {}
+			virtual bool TableViewCanSelectRow(TableView *tableView, size_t row) { return true; }
+			virtual void TableViewDidSelectRow(TableView *tableView, size_t row) {}
+			virtual void TableViewWillDeselectRow(TableView *tableView, size_t row) {}
+			virtual void TableViewSelectionDidChange(TableView *tableView) {}
 			
-			virtual uint32 IndentationForRowInTableView(TableView *tableView, size_t row) { return 0; }
-			virtual float HeightOfRowInTableView(TableView *tableView, size_t row) { return 20.0f; }
-			
-			virtual void WillDisplayCellForRowInTableView(TableView *tableView, TableViewCell *cell, size_t row) {}
+			virtual uint32 TableViewIndentationForRow(TableView *tableView, size_t row) { return 0; }
+			virtual void TableViewWillDisplayCellForRow(TableView *tableView, TableViewCell *cell, size_t row) {}
 		};
 		
 		class TableView : public ScrollView, public ScrollViewDelegate
