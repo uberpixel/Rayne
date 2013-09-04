@@ -84,9 +84,24 @@ namespace RN
 		void Enumerate(const std::function<void (Object *, size_t, bool *)>& callback)
 		{
 			bool stop = false;
-			for(size_t i=0; i<_count; i++)
+			
+			for(size_t i = 0; i < _count; i ++)
 			{
 				callback(_data[i], i, &stop);
+				
+				if(stop)
+					break;
+			}
+		}
+		
+		template<class T>
+		void Enumerate(const std::function<void (T *, size_t, bool *)>& callback)
+		{
+			bool stop = false;
+			
+			for(size_t i = 0; i < _count; i ++)
+			{
+				callback(static_cast<T *>(_data[i]), i, &stop);
 				
 				if(stop)
 					break;
