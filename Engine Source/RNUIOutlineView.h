@@ -73,9 +73,13 @@ namespace RN
 			void PopulateProxyItem(ProxyItem *item);
 			void InvalidateProxyTreeItem(ProxyItem *item);
 			
+			void ExpandProxyItem(ProxyItem *item, size_t row, bool recursively);
+			void CollapseProxyItem(ProxyItem *item, size_t row, bool recursively);
+			
 			ProxyItem *FindProxyItemSlowPath(ProxyItem *item, void *toFind);
 			ProxyItem *FindProxyItemSlowPath(void *item);
 			void GetVisibleItemsForProxyItem(ProxyItem *item, std::vector<ProxyItem *>& items);
+			size_t GetRowForProxyItem(ProxyItem *item);
 			
 			size_t NumberOfRowsInTableView(TableView *tableView) override;
 			TableViewCell *CellForRowInTableView(TableView *tableView, size_t row) override;

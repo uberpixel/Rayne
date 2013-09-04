@@ -69,10 +69,10 @@ namespace RN
 		// MARK: Item expansion
 		// ---------------------
 		
-		void OutlineView::ExpandItem(void *titem, bool expandChildren)
+		void OutlineView::ExpandProxyItem(ProxyItem *item, size_t row, bool recursively)
 		{
-			size_t row = GetRowForItem(titem);
-			ProxyItem *item = (row == k::NotFound) ? FindProxyItemSlowPath(titem) : _rows[row];
+			if(item->isLeaf)
+				return;
 			
 			if(item && !item->expanded)
 			{
@@ -92,12 +92,21 @@ namespace RN
 					TableView::InsertRows(row, childs.size());
 				}
 			}
+			
+			if(recursively)
+			{
+				for(ProxyItem *proxy : item->children)
+				{
+					row = GetRowForProxyItem(proxy);
+					ExpandProxyItem(proxy, row, true);
+				}
+			}
 		}
 		
-		void OutlineView::CollapseItem(void *titem, bool collapseChildren)
+		void OutlineView::CollapseProxyItem(ProxyItem *item, size_t row, bool recursively)
 		{
-			size_t row = GetRowForItem(titem);
-			ProxyItem *item = (row == k::NotFound) ? FindProxyItemSlowPath(titem) : _rows[row];
+			if(item->isLeaf)
+				return;
 			
 			if(item && item->expanded)
 			{
@@ -118,9 +127,80 @@ namespace RN
 					TableView::DeleteRows(row, childs.size());
 				}
 			}
+			
+			if(recursively)
+			{
+				for(ProxyItem *proxy : item->children)
+				{
+					row = GetRowForProxyItem(proxy);
+					CollapseProxyItem(proxy, row, true);
+				}
+			}
 		}
 		
 		
+		
+		
+		void OutlineView::ExpandItem(void *titem, bool expandChildren)
+		{
+			size_t row = GetRowForItem(titem);
+			ProxyItem *item = (row == k::NotFound) ? FindProxyItemSlowPath(titem) : _rows[row];
+			
+			if(titem)
+			{
+				TableView::BegindEditing();
+				ExpandProxyItem(item, row, expandChildren);
+				TableView::EndEditing();
+			}
+			else
+			{
+				TableView::BegindEditing();
+				
+				for(ProxyItem *item : _items)
+				{
+					ExpandProxyItem(item, GetRowForProxyItem(item), expandChildren);
+				}
+				
+				TableView::EndEditing();
+			}
+		}
+		
+		void OutlineView::CollapseItem(void *titem, bool collapseChildren)
+		{
+			size_t row = GetRowForItem(titem);
+			ProxyItem *item = (row == k::NotFound) ? FindProxyItemSlowPath(titem) : _rows[row];
+			
+			if(titem)
+			{
+				TableView::BegindEditing();
+				CollapseProxyItem(item, row, collapseChildren);
+				TableView::EndEditing();
+			}
+			else
+			{
+				TableView::BegindEditing();
+				
+				for(ProxyItem *item : _items)
+				{
+					CollapseProxyItem(item, GetRowForProxyItem(item), collapseChildren);
+				}
+				
+				TableView::EndEditing();
+			}
+		}
+		
+		
+		
+		size_t OutlineView::GetRowForProxyItem(ProxyItem *item)
+		{
+			for(size_t i = 0; i < _rows.size(); i ++)
+			{
+				if(_rows[i] == item)
+					return i;
+			}
+			
+			return k::NotFound;
+		}
 		
 		size_t OutlineView::GetRowForItem(void *item)
 		{
