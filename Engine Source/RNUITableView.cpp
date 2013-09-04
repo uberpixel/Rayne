@@ -248,7 +248,7 @@ namespace RN
 		void TableView::InsertRows(size_t row, size_t count)
 		{
 			RN_ASSERT(_dataSource, "TableView needs a data source!");
-			RN_ASSERT(_changeRows >= row + count, "Row range out of bounds");
+			RN_ASSERT(_changeRows >= row, "Row range out of bounds");
 			
 			_changes.emplace_back(EditingSet(EditingSet::Type::Insertion, row, count));
 			_changeRows += count;
