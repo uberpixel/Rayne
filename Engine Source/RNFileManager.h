@@ -69,6 +69,7 @@ namespace RN
 		~DirectoryProxy() override;
 		
 		FileSystemNode *GetSubNode(const std::string& name) const;
+		Array *GetSubNodes() const { return const_cast<Array *>(&_nodes); }
 		
 		bool IsDirectory() const override { return true; }
 		
@@ -101,6 +102,8 @@ namespace RN
 		
 		bool AddSearchPath(const std::string& path);
 		void RemoveSearchPath(const std::string& path);
+		
+		Array *GetSearchPaths() const { Array *result = new Array(_directories); return result->Autorelease(); }
 		
 	private:
 		Array _directories;
