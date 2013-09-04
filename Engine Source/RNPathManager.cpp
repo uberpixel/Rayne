@@ -63,6 +63,9 @@ namespace RN
 		const char *cstr = path.c_str();
 		std::vector<std::string> result;
 		
+		while((*cstr == '/' || *cstr == '\\'))
+			cstr ++;
+		
 		while(1)
 		{
 			const char *end = strpbrk(cstr, "/\\");
