@@ -35,11 +35,19 @@ namespace RN
 		void OutlineView::Initialize()
 		{
 			_dataSource = nullptr;
+			_delegate   = nullptr;
 		}
+		
+		
 		
 		void OutlineView::SetDataSource(OutlineViewDataSource *dataSource)
 		{
 			_dataSource = dataSource;
+		}
+		
+		void OutlineView::SetDelegate(OutlineViewDelegate *delegate)
+		{
+			_delegate = delegate;
 		}
 		
 		
@@ -53,8 +61,6 @@ namespace RN
 		void OutlineView::ReloadItem(void *item, bool reloadChildren)
 		{
 		}
-		
-		
 		
 		
 		OutlineViewCell *OutlineView::DequeCellWithIdentifier(String *identifier)
@@ -76,8 +82,10 @@ namespace RN
 			
 			if(item && !item->expanded)
 			{
-				item->expanded = true;
+				if(_delegate)
+					_delegate->OutlineViewWillExpandItem(this, item->item);
 				
+				item->expanded = true;
 				PopulateProxyItem(item);
 				
 				if(row != k::NotFound)
@@ -91,6 +99,9 @@ namespace RN
 					_rows.insert(iterator, childs.begin(), childs.end());
 					TableView::InsertRows(row, childs.size());
 				}
+				
+				if(_delegate)
+					_delegate->OutlineViewDidExpandItem(this, item->item);
 			}
 			
 			if(recursively)
@@ -110,6 +121,9 @@ namespace RN
 			
 			if(item && item->expanded)
 			{
+				if(_delegate)
+					_delegate->OutlineViewWillCollapseItem(this, item->item);
+				
 				item->expanded = false;
 				
 				if(row != k::NotFound)
@@ -126,6 +140,9 @@ namespace RN
 					_rows.erase(iterator, last);
 					TableView::DeleteRows(row, childs.size());
 				}
+				
+				if(_delegate)
+					_delegate->OutlineViewDidCollapseItem(this, item->item);
 			}
 			
 			if(recursively)
@@ -329,7 +346,7 @@ namespace RN
 		// MARK: TableViewDataSource
 		// ---------------------
 		
-		size_t OutlineView::NumberOfRowsInTableView(TableView *tableView)
+		size_t OutlineView::TableViewNumberOfRows(TableView *tableView)
 		{
 			if(!_dataSource)
 				return 0;
@@ -337,7 +354,7 @@ namespace RN
 			return _rows.size();
 		}
 		
-		TableViewCell *OutlineView::CellForRowInTableView(TableView *tableView, size_t row)
+		TableViewCell *OutlineView::TableViewCellForRow(TableView *tableView, size_t row)
 		{
 			OutlineViewCell *cell = _dataSource->OutlineViewGetCellForItem(this, _rows[row]->item);
 			return cell;
@@ -348,13 +365,37 @@ namespace RN
 		// MARK: TableViewDelegate
 		// ---------------------
 		
-		uint32 OutlineView::IndentationForRowInTableView(TableView *tableView, size_t row)
+		void OutlineView::TableViewDidSelectRow(TableView *tableView, size_t row)
+		{
+			if(_delegate)
+			{
+				ProxyItem *item = _rows[row];
+				_delegate->OutlineViewDidSelectItem(this, item->item);
+			}
+		}
+		
+		void OutlineView::TableViewWillDeselectRow(TableView *tableView, size_t row)
+		{
+			if(_delegate)
+			{
+				ProxyItem *item = _rows[row];
+				_delegate->OutlineViewWillDeselectItem(this, item->item);
+			}
+		}
+		
+		void OutlineView::TableViewSelectionDidChange(TableView *tableView)
+		{
+			if(_delegate)
+				_delegate->OutlineViewSelectionDidChange(this);
+		}
+		
+		uint32 OutlineView::TableViewIndentationForRow(TableView *tableView, size_t row)
 		{
 			ProxyItem *item = _rows[row];
 			return item->indentation;
 		}
 		
-		void OutlineView::WillDisplayCellForRowInTableView(TableView *tableView, TableViewCell *tcell, size_t row)
+		void OutlineView::TableViewWillDisplayCellForRow(TableView *tableView, TableViewCell *tcell, size_t row)
 		{
 			ProxyItem *item = _rows[row];
 			OutlineViewCell *cell = static_cast<OutlineViewCell *>(tcell);

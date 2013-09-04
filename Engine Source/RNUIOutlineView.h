@@ -28,6 +28,21 @@ namespace RN
 			virtual OutlineViewCell *OutlineViewGetCellForItem(OutlineView *outlineView, void *item) = 0;
 		};
 		
+		class OutlineViewDelegate
+		{
+		public:
+			virtual void OutlineViewWillExpandItem(OutlineView *outlineView, void *item) {}
+			virtual void OutlineViewDidExpandItem(OutlineView *outlineView, void *item) {}
+			virtual void OutlineViewWillCollapseItem(OutlineView *outlineView, void *item) {}
+			virtual void OutlineViewDidCollapseItem(OutlineView *outlineView, void *item) {}
+			
+			virtual void OutlineViewSelectionDidChange(OutlineView *outlineView) {}
+			
+			virtual void OutlineViewWillDeselectItem(OutlineView *outlineView, void *item) {}
+			virtual void OutlineViewDidSelectItem(OutlineView *outlineView, void *item) {}
+		};
+		
+		
 		class OutlineView : public TableView, protected TableViewDelegate, protected TableViewDataSource
 		{
 		public:
@@ -35,6 +50,7 @@ namespace RN
 			~OutlineView();
 			
 			void SetDataSource(OutlineViewDataSource *dataSource);
+			void SetDelegate(OutlineViewDelegate *delegate);
 			
 			void ReloadData();
 			void ReloadItem(void *item, bool reloadChildren);
@@ -81,14 +97,20 @@ namespace RN
 			void GetVisibleItemsForProxyItem(ProxyItem *item, std::vector<ProxyItem *>& items);
 			size_t GetRowForProxyItem(ProxyItem *item);
 			
-			size_t NumberOfRowsInTableView(TableView *tableView) override;
-			TableViewCell *CellForRowInTableView(TableView *tableView, size_t row) override;
 			
-			uint32 IndentationForRowInTableView(TableView *tableView, size_t row) override;
-			void WillDisplayCellForRowInTableView(TableView *tableView, TableViewCell *cell, size_t row) override;
+			size_t TableViewNumberOfRows(TableView *tableView) override;
+			TableViewCell *TableViewCellForRow(TableView *tableView, size_t row) override;
+
+			void TableViewDidSelectRow(TableView *tableView, size_t row) override;
+			void TableViewWillDeselectRow(TableView *tableView, size_t row) override;
+			void TableViewSelectionDidChange(TableView *tableView) override;
+			
+			uint32 TableViewIndentationForRow(TableView *tableView, size_t row) override;
+			void TableViewWillDisplayCellForRow(TableView *tableView, TableViewCell *cell, size_t row) override;
 			
 			
 			OutlineViewDataSource *_dataSource;
+			OutlineViewDelegate *_delegate;
 			
 			std::vector<ProxyItem *> _items;
 			std::vector<ProxyItem *> _rows;
