@@ -108,7 +108,7 @@ namespace RN
 		size_t marker = path.size();
 		size_t i = marker;
 		
-		while((i --) > 0)
+		while((-- i) > 0)
 		{
 			if(!hasExtension && path[i] == '.')
 			{
@@ -133,7 +133,7 @@ namespace RN
 		size_t marker = path.size();
 		size_t i = marker;
 		
-		while((i --) > 0)
+		while((-- i) > 0)
 		{
 			if(path[i] == '/')
 			{
