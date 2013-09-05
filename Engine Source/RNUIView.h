@@ -71,6 +71,8 @@ namespace RN
 			Mesh *BasicMesh(const Vector2& size);
 			Material *DrawMaterial() { return _material; }
 			
+			void UpdateBasicMesh(Mesh *mesh, const Vector2& size);
+			
 			virtual void Update();
 			virtual void Draw(Renderer *renderer);
 			

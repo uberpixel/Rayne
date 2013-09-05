@@ -118,6 +118,19 @@ namespace RN
 			return mesh->Autorelease();
 		}
 		
+		void View::UpdateBasicMesh(Mesh *mesh, const Vector2& size)
+		{
+			Vector2 *vertices = mesh->GetElement<Vector2>(kMeshFeatureVertices);
+			
+			*vertices ++ = Vector2(size.x, size.y);
+			*vertices ++ = Vector2(0.0f, size.y);
+			*vertices ++ = Vector2(size.x, 0.0f);
+			*vertices ++ = Vector2(0.0f, 0.0f);
+			
+			mesh->ReleaseElement(kMeshFeatureVertices);
+			mesh->UpdateMesh();
+		}
+		
 		Responder *View::NextResponder() const
 		{
 			if(_superview)
@@ -494,9 +507,9 @@ namespace RN
 				_finalTransform.Translate(Vector3(converted.x, serverHeight - _frame.height - converted.y, 0.0f));
 				
 				if(_mesh)
-					_mesh->Release();
-				
-				_mesh = BasicMesh(_frame.Size())->Retain();
+					UpdateBasicMesh(_mesh, _frame.Size());
+				else
+					_mesh = BasicMesh(_frame.Size())->Retain();
 				
 				CalculateScissorRect();
 				LayoutSubviews();
