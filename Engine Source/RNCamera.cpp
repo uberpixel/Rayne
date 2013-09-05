@@ -865,12 +865,12 @@ namespace RN
 		_frustumCenter = _frustumCenter * 0.5f;
 		_frustumRadius = _frustumCenter.Distance(vmax);
 
-		_frustumLeft.SetPlane(pos1, pos2, pos3, 1.0f);
-		_frustumRight.SetPlane(pos4, pos5, pos6, -1.0f);
-		_frustumTop.SetPlane(pos1, pos2, pos5, -1.0f);
-		_frustumBottom.SetPlane(pos4, pos3, pos6, 1.0f);
-		_frustumNear.SetPlane(position + direction * clipnear, -direction);
-		_frustumFar.SetPlane(position + direction * clipfar, direction);
+		frustrums._frustumLeft.SetPlane(pos1, pos2, pos3, 1.0f);
+		frustrums._frustumRight.SetPlane(pos4, pos5, pos6, -1.0f);
+		frustrums._frustumTop.SetPlane(pos1, pos2, pos5, -1.0f);
+		frustrums._frustumBottom.SetPlane(pos4, pos3, pos6, 1.0f);
+		frustrums._frustumNear.SetPlane(position + direction * clipnear, -direction);
+		frustrums._frustumFar.SetPlane(position + direction * clipfar, direction);
 	}
 
 	bool Camera::InFrustum(const Vector3& position, float radius)
@@ -878,22 +878,22 @@ namespace RN
 		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
 			return false;
 
-		if(_frustumLeft.GetDistance(position) > radius)
+		if(frustrums._frustumLeft.GetDistance(position) > radius)
 			return false;
 
-		if(_frustumRight.GetDistance(position) > radius)
+		if(frustrums._frustumRight.GetDistance(position) > radius)
 			return false;
 
-		if(_frustumTop.GetDistance(position) > radius)
+		if(frustrums._frustumTop.GetDistance(position) > radius)
 			return false;
 
-		if(_frustumBottom.GetDistance(position) > radius)
+		if(frustrums._frustumBottom.GetDistance(position) > radius)
 			return false;
 		
-		if(_frustumNear.GetDistance(position) > radius)
+		if(frustrums._frustumNear.GetDistance(position) > radius)
 			return false;
 		
-		if(_frustumFar.GetDistance(position) > radius)
+		if(frustrums._frustumFar.GetDistance(position) > radius)
 			return false;
 
 		return true;

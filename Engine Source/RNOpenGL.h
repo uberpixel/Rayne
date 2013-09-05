@@ -155,6 +155,12 @@ extern "C"
 	extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
 	extern PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
 	
+	// VAO
+	extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
+	extern PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
+	extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
+	extern PFNGLISVERTEXARRAYPROC glIsVertexArray;
+	
 	// Textures
 #if RN_PLATFORM_WINDOWS
 	extern PFNGLACTIVETEXTUREPROC glActiveTexture;

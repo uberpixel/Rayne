@@ -325,7 +325,7 @@ namespace RN
 		Vector3 _frustumCenter;
 		float _frustumRadius;
 		
-		struct frustums
+		struct
 		{
 			Plane _frustumLeft;
 			Plane _frustumRight;
@@ -333,7 +333,7 @@ namespace RN
 			Plane _frustumBottom;
 			Plane _frustumFar;
 			Plane _frustumNear;
-		};
+		} frustrums;
 		
 		Vector2 _lightTiles;
 		Vector2 _wantedLightTiles;
