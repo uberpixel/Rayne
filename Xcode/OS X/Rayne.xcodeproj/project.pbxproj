@@ -51,6 +51,7 @@
 		E93763F81794DD7000859EBA /* RNUITextField.h in Headers */ = {isa = PBXBuildFile; fileRef = E93763F61794DD7000859EBA /* RNUITextField.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E93B345917D520D5006607B5 /* RNUIOutlineViewCell.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E93B345717D520D5006607B5 /* RNUIOutlineViewCell.cpp */; };
 		E93B345A17D520D5006607B5 /* RNUIOutlineViewCell.h in Headers */ = {isa = PBXBuildFile; fileRef = E93B345817D520D5006607B5 /* RNUIOutlineViewCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E93CE16617D8804100A7A8A3 /* RNSTL.h in Headers */ = {isa = PBXBuildFile; fileRef = E93CE16517D87F9E00A7A8A3 /* RNSTL.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E940FAC6178072FA00C69B88 /* RNIntervalTree.h in Headers */ = {isa = PBXBuildFile; fileRef = E940FAC4178072FA00C69B88 /* RNIntervalTree.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E940FACF178084D100C69B88 /* RNAttributedString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E940FACD178084D100C69B88 /* RNAttributedString.cpp */; };
 		E940FAD0178084D100C69B88 /* RNAttributedString.h in Headers */ = {isa = PBXBuildFile; fileRef = E940FACE178084D100C69B88 /* RNAttributedString.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -321,6 +322,7 @@
 		E93763F61794DD7000859EBA /* RNUITextField.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUITextField.h; sourceTree = "<group>"; };
 		E93B345717D520D5006607B5 /* RNUIOutlineViewCell.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIOutlineViewCell.cpp; sourceTree = "<group>"; };
 		E93B345817D520D5006607B5 /* RNUIOutlineViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIOutlineViewCell.h; sourceTree = "<group>"; };
+		E93CE16517D87F9E00A7A8A3 /* RNSTL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSTL.h; sourceTree = "<group>"; };
 		E940FAC4178072FA00C69B88 /* RNIntervalTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNIntervalTree.h; sourceTree = "<group>"; };
 		E940FACD178084D100C69B88 /* RNAttributedString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNAttributedString.cpp; sourceTree = "<group>"; };
 		E940FACE178084D100C69B88 /* RNAttributedString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAttributedString.h; sourceTree = "<group>"; };
@@ -583,6 +585,7 @@
 			children = (
 				E940FAC4178072FA00C69B88 /* RNIntervalTree.h */,
 				E97F7B8117552724001236E5 /* RNRingbuffer.h */,
+				E93CE16517D87F9E00A7A8A3 /* RNSTL.h */,
 			);
 			name = STL;
 			sourceTree = "<group>";
@@ -1002,6 +1005,7 @@
 				E9BEF3BB1743CF560090C9CB /* RNScopeGuard.h in Headers */,
 				C094DF881753A2BA002A2C88 /* RNWater.h in Headers */,
 				E9BEF3C31744442A0090C9CB /* RNUIImage.h in Headers */,
+				E93CE16617D8804100A7A8A3 /* RNSTL.h in Headers */,
 				E917AC211744A00F00331D9B /* RNUIGeometry.h in Headers */,
 				E9C328F71745E4B200FAE32F /* RNConstants.h in Headers */,
 				E9C01BB41746CE6A00B3577B /* RNShaderLookup.h in Headers */,
