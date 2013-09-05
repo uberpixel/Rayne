@@ -76,25 +76,32 @@ namespace RN
 		void Widget::SetMinimumSize(const Vector2& size)
 		{
 			_minimumSize = size;
+			
 			ConstraintFrame();
+			ConstraintContentView();
 		}
 		
 		void Widget::SetMaximumSize(const Vector2& size)
 		{
 			_maximumSize = size;
+			
 			ConstraintFrame();
+			ConstraintContentView();
 		}
 		
 		void Widget::SetFrame(const Rect& frame)
 		{
-			_frame = frame;
-			ConstraintFrame();
+			if(_frame != frame)
+			{
+				_frame = frame;
+			
+				ConstraintFrame();
+				ConstraintContentView();
+			}
 		}
 		
 		void Widget::ConstraintContentView()
 		{
-			return;
-			
 			Rect frame = _contentView->Frame();
 			Vector2 size = ContentSize();
 			
@@ -102,6 +109,7 @@ namespace RN
 			frame.height = size.y;
 			
 			_contentView->SetFrame(frame);
+			NeedsLayoutUpdate();
 		}
 		
 		void Widget::ConstraintFrame()
@@ -110,13 +118,7 @@ namespace RN
 			frame.width  = MIN(_maximumSize.x, MAX(_minimumSize.x, frame.width));
 			frame.height = MIN(_maximumSize.y, MAX(_minimumSize.y, frame.height));
 			
-			if(frame != _frame)
-			{
-				_frame = frame;
-				
-				ConstraintContentView();
-				NeedsLayoutUpdate();
-			}
+			_frame = frame;
 		}
 		
 		// ---------------------
