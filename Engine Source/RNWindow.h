@@ -20,6 +20,7 @@
 #define kRNWindowScaleFactorChanged     RNCSTR("kRNWindowScaleFactorChanged")
 #define kRNWindowScreenChanged          RNCSTR("kRNWindowScreenChanged")
 
+
 namespace RN
 {
 	class Window;
@@ -72,6 +73,7 @@ namespace RN
 		float _scaleFactor;
 		
 		CGDirectDisplayID _display;
+		
 		Array _configurations;
 	};
 	

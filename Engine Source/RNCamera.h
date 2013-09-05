@@ -333,7 +333,7 @@ namespace RN
 			Plane _frustumBottom;
 			Plane _frustumFar;
 			Plane _frustumNear;
-		};
+		} frustrums;
 		
 		Vector2 _lightTiles;
 		Vector2 _wantedLightTiles;
