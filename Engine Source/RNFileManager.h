@@ -14,6 +14,7 @@
 #include "RNArray.h"
 #include "RNFile.h"
 
+#define kRNFileSystemSearchPathsChangedMessage RNCSTR("kRNFileSystemSearchPathsChangedMessage")
 #define kRNFileSystemNodeChangedMessage RNCSTR("kRNFileSystemNodeChangedMessage")
 
 #define kRNFileSystemNodeAddedNodesKey   RNCSTR("kRNFileSystemNodeAddedNodesKey")

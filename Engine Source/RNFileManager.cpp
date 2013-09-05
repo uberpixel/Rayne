@@ -404,6 +404,8 @@ namespace RN
 				DirectoryProxy *proxy = new DirectoryProxy(path, true);
 				_directories.AddObject(proxy);
 				proxy->Release();
+				
+				MessageCenter::GetSharedInstance()->PostMessage(kRNFileSystemSearchPathsChangedMessage, nullptr, nullptr);
 			}
 			catch(Exception e)
 			{
@@ -427,6 +429,9 @@ namespace RN
 		});
 		
 		if(index != k::NotFound)
+		{
 			_directories.RemoveObjectAtIndex(index);
+			MessageCenter::GetSharedInstance()->PostMessage(kRNFileSystemSearchPathsChangedMessage, nullptr, nullptr);
+		}
 	}
 }
