@@ -166,6 +166,8 @@ namespace RN
 				
 				_camera->SetFrame(_frame);
 				_camera->PostUpdate();
+				
+				MessageCenter::GetSharedInstance()->PostMessage(kRNUIServerDidResizeMessage, nullptr, nullptr);
 			}
 			
 			// Draw all widgets into the camera

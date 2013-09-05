@@ -16,6 +16,8 @@
 #include "RNUIControl.h"
 #include "RNInput.h"
 
+#define kRNUIServerDidResizeMessage RNCSTR("kRNUIServerDidResizeMessage")
+
 namespace RN
 {
 	class Kernel;
