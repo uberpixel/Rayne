@@ -77,8 +77,7 @@ namespace RN
 		
 		void ScrollView::ScrollWheel(Event *event)
 		{
-			Vector2 delta = event->GetMouseWheel();
-			delta.x = -delta.x;
+			Vector2 delta = -event->GetMouseWheel();
 			delta += _offset;
 			
 			delta.x = std::max(0.0f, delta.x);
