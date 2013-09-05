@@ -13,6 +13,7 @@
 #include "RNUIFont.h"
 #include "RNPathManager.h"
 #include "RNBaseInternal.h"
+#include "RNFileManager.h"
 #include "RNKernel.h"
 
 const char *kRNCommonCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890.,-;:_-+*/!\"§$%&()=?<>' ";
@@ -121,7 +122,7 @@ namespace RN
 			
 			try
 			{
-				path = PathManager::PathForName(name);
+				path = FileManager::GetSharedInstance()->GetFilePathWithName(name);
 			}
 			catch(Exception e)
 			{

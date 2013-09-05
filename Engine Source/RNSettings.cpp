@@ -9,6 +9,7 @@
 #include "RNSettings.h"
 #include "RNData.h"
 #include "RNPathManager.h"
+#include "RNFileManager.h"
 #include "RNJSONSerialization.h"
 
 namespace RN
@@ -17,10 +18,7 @@ namespace RN
 	{
 		try
 		{
-			std::string path = SettingsLocation();
-			
-			if(!PathManager::PathExists(path))
-				path = PathManager::PathForName("settings.json");
+			std::string path = FileManager::GetSharedInstance()->GetFilePathWithName("settings.json");
 			
 			Data *data = Data::WithContentsOfFile(path);
 			_settings = static_cast<Dictionary *>(JSONSerialization::JSONObjectFromData(data));

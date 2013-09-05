@@ -8,6 +8,7 @@
 
 #include "RNFile.h"
 #include "RNPathManager.h"
+#include "RNFileManager.h"
 #include "RNBaseInternal.h"
 
 #define kRNFileBufferSize 1024
@@ -283,7 +284,7 @@ namespace RN
 
 		try
 		{
-			_fullPath = PathManager::PathForName(path, !(mode == Write || mode == ReadWrite));
+			_fullPath = FileManager::GetSharedInstance()->GetFilePathWithName(path, !(mode == Write || mode == ReadWrite));
 		}
 		catch(Exception)
 		{

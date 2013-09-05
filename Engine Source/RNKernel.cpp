@@ -14,6 +14,7 @@
 #include "RNSettings.h"
 #include "RNModule.h"
 #include "RNPathManager.h"
+#include "RNFileManager.h"
 #include "RNCPU.h"
 #include "RNResourcePool.h"
 #include "RNRenderer32.h"
@@ -162,7 +163,7 @@ namespace RN
 		moduleName += ".so";
 #endif
 		
-		std::string path = PathManager::PathForName(moduleName);
+		std::string path = FileManager::GetSharedInstance()->GetFilePathWithName(moduleName);
 
 		_appHandle = dlopen(path.c_str(), RTLD_LAZY);
 		if(!_appHandle)

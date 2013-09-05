@@ -12,6 +12,7 @@
 #include "RNSettings.h"
 #include "RNFile.h"
 #include "RNPathManager.h"
+#include "RNFileManager.h"
 
 namespace RN
 {
@@ -19,11 +20,11 @@ namespace RN
 		_name(name)
 	{
 #if RN_PLATFORM_MAC_OS
-		_path = PathManager::PathForName(_name + ".dylib");
+		_path = FileManager::GetSharedInstance()->GetFilePathWithName(_name + ".dylib");
 #endif
 		
 #if RN_PLATFORM_LINUX
-		_path = PathManager::PathForName(_name + ".so");
+		_path =FileManager::GetSharedInstance()->GetFilePathWithName(_name + ".so");
 #endif
 		
 		memset(&_exports, 0, sizeof(ModuleExports));

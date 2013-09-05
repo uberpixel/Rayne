@@ -9,6 +9,7 @@
 #include "RNModel.h"
 #include "RNFile.h"
 #include "RNPathManager.h"
+#include "RNFileManager.h"
 #include "RNSkeleton.h"
 #include "RNResourcePool.h"
 
@@ -24,7 +25,7 @@ namespace RN
 	
 	Model::Model(const std::string& tpath)
 	{
-		std::string path = PathManager::PathForName(tpath);
+		std::string path = FileManager::GetSharedInstance()->GetFilePathWithName(tpath);
 		std::string base = PathManager::Basepath(path);
 		std::string name = PathManager::Basename(path);
 		std::string extension = PathManager::Extension(path);

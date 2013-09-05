@@ -101,13 +101,22 @@ namespace RN
 		FileManager();
 		~FileManager();
 		
+		FileProxy *GetFileWithName(const std::string& name, bool strict = true);
+		std::string GetFilePathWithName(const std::string& name, bool strict = true);
+		
 		bool AddSearchPath(const std::string& path);
 		void RemoveSearchPath(const std::string& path);
+		
+		void AddFileModifier(const std::string& modifier, const std::string& extension);
+		void AddFileModifier(const std::string& modifier);
 		
 		Array *GetSearchPaths() const { Array *result = new Array(_directories); return result->Autorelease(); }
 		
 	private:
 		Array _directories;
+		
+		std::vector<std::string> _globalModifiers;
+		std::unordered_map<std::string, std::vector<std::string>> _fileModifiers;
 	};
 }
 

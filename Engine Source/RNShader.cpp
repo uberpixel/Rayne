@@ -10,6 +10,7 @@
 #include "RNKernel.h"
 #include "RNThreadPool.h"
 #include "RNPathManager.h"
+#include "RNFileManager.h"
 #include "RNScopeGuard.h"
 
 namespace RN
@@ -182,15 +183,15 @@ namespace RN
 	{
 		_supportedPrograms = 0;
 		
-		SetShaderForType(PathManager::PathForName(shader + ".vsh"), ShaderType::VertexShader);
-		SetShaderForType(PathManager::PathForName(shader + ".fsh"), ShaderType::FragmentShader);
+		SetShaderForType(FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".vsh"), ShaderType::VertexShader);
+		SetShaderForType(FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".fsh"), ShaderType::FragmentShader);
 		
 #if GL_GEOMETRY_SHADER
 		std::string path = "";
 		
 		try
 		{
-			path = PathManager::PathForName(shader + ".gsh");
+			path = FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".gsh");
 		}
 		catch(Exception)
 		{}
@@ -413,11 +414,11 @@ namespace RN
 			switch(mode)
 			{
 				case IncludeMode::CurrentDir:
-					path = PathManager::PathForName(PathManager::Join(parent->GetPath(), name));
+					path = FileManager::GetSharedInstance()->GetFilePathWithName(PathManager::Join(parent->GetPath(), name));
 					break;
 					
 				case IncludeMode::IncludeDir:
-					path = PathManager::PathForName(name);
+					path = FileManager::GetSharedInstance()->GetFilePathWithName(name);
 					break;
 			}
 			

@@ -11,7 +11,7 @@
 #include "RNBaseInternal.h"
 #include "RNThread.h"
 #include "RNSpinLock.h"
-#include "RNPathManager.h"
+#include "RNFileManager.h"
 
 #define kRNVersionMajor 0
 #define kRNVersionMinor 1
@@ -25,10 +25,6 @@ namespace RN
 	
 	void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...)
 	{
-		__DieLock.Lock();
-		fprintf(stderr, "Assertion '%s' failed in %s, %s:%i\n", expression, func, file, line);
-		__DieLock.Unlock();
-		
 		va_list args;
 		va_start(args, message);
 		
@@ -36,6 +32,11 @@ namespace RN
 		vsprintf(reason, message, args);
 		
 		va_end(args);
+		
+		__DieLock.Lock();
+		fprintf(stderr, "Assertion '%s' failed in %s, %s:%i\n", expression, func, file, line);
+		fprintf(stderr, "Reason: %s\n", reason);
+		__DieLock.Unlock();
 		
 		throw Exception(Exception::Type::InconsistencyException, reason);
 	}
@@ -67,7 +68,7 @@ namespace RN
 			if(strcmp(argv[i], "-r") == 0 && i < argc - 1)
 			{
 				char *path = argv[++ i];
-				PathManager::AddSearchPath(path);
+				FileManager::GetSharedInstance()->AddSearchPath(path);
 			}
 		}
 	}
