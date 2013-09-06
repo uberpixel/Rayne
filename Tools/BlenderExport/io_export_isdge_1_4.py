@@ -119,6 +119,7 @@ bl_info = {
 #-crashes on exporting vertex colors
 #-scaled armatures and different origin of model and armature are problematic
 #-polygons other than tris aren´t working
+#-texture and animation filenames currently only support ANSI encoding
 ##
 
 
