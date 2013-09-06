@@ -100,6 +100,14 @@ namespace RN
 			}
 		}
 		
+		void Widget::SetContentSize(const Vector2& size)
+		{
+			Rect frame;
+			frame.width  = size.x;
+			frame.height = size.y;
+			SetFrame(frame);
+		}
+		
 		void Widget::ConstraintContentView()
 		{
 			Rect frame = _contentView->Frame();

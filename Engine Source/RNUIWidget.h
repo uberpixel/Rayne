@@ -33,12 +33,12 @@ namespace RN
 			Widget(const Rect& frame);
 			~Widget() override;
 			
-			void SetContentView(View *view);
+			virtual void SetContentView(View *view);
 			void SetMinimumSize(const Vector2& size);
 			void SetMaximumSize(const Vector2& size);
 			
-			void SetFrame(const Rect& frame);
-			void SetContentSize(const Vector2& size);
+			virtual void SetFrame(const Rect& frame);
+			virtual void SetContentSize(const Vector2& size);
 			
 			const Rect& Frame() const { return _frame; }
 			Vector2 ContentSize() const;
