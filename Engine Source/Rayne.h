@@ -92,6 +92,7 @@
 #include "RNUITextField.h"
 #include "RNUITextEditor.h"
 #include "RNUIImageView.h"
+#include "RNUISegmentView.h"
 #include "RNUIUtilities.h"
 
 #include "RNWorld.h"
