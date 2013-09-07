@@ -81,7 +81,7 @@ namespace RN
 		}
 		
 		
-		void Enumerate(const std::function<void (Object *, size_t, bool *)>& callback)
+		void Enumerate(const std::function<void (Object *, size_t, bool *)>& callback) const
 		{
 			bool stop = false;
 			
@@ -95,7 +95,7 @@ namespace RN
 		}
 		
 		template<class T>
-		void Enumerate(const std::function<void (T *, size_t, bool *)>& callback)
+		void Enumerate(const std::function<void (T *, size_t, bool *)>& callback) const
 		{
 			bool stop = false;
 			
