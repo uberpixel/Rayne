@@ -75,6 +75,12 @@ namespace RN
 					indentation = indent;
 				}
 				
+				~ProxyItem()
+				{
+					for(size_t i = 0; i < children.size(); i ++)
+						delete children[i];
+				}
+				
 				void *item;
 				bool expanded;
 				bool isLeaf;
@@ -87,7 +93,7 @@ namespace RN
 			void Initialize();
 			void RecreateProxyTree();
 			void PopulateProxyItem(ProxyItem *item);
-			void InvalidateProxyTreeItem(ProxyItem *item);
+			void UpdateProxyItem(ProxyItem *item, bool recursively);
 			
 			void ExpandProxyItem(ProxyItem *item, size_t row, bool recursively);
 			void CollapseProxyItem(ProxyItem *item, size_t row, bool recursively);
