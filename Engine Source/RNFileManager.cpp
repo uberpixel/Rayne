@@ -204,6 +204,31 @@ namespace RN
 		return (iterator != _nodeMap.end()) ? iterator->second : nullptr;
 	}
 	
+	Array *DirectoryProxy::GetSubNodesMatchingPredicate(const std::function<bool (FileProxy *file)>& predicate, bool allowFolders) const
+	{
+		Array *result = new Array();
+		
+		_nodes.Enumerate<FileSystemNode>([&](FileSystemNode *node, size_t index, bool *stop) {
+			
+			bool allowed = false;
+			
+			if(node->IsFile())
+			{
+				allowed = predicate(static_cast<FileProxy *>(node));
+			}
+			else
+			if(allowFolders && node->IsDirectory())
+			{
+				allowed = true;
+			}
+			
+			if(allowed)
+				result->AddObject(node);
+		});
+		
+		return result->Autorelease();
+	}
+	
 	void DirectoryProxy::ScanDirectory()
 	{
 #if RN_PLATFORM_POSIX

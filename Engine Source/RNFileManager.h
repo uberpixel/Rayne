@@ -71,6 +71,7 @@ namespace RN
 		
 		FileSystemNode *GetSubNode(const std::string& name) const;
 		Array *GetSubNodes() const { return const_cast<Array *>(&_nodes); }
+		Array *GetSubNodesMatchingPredicate(const std::function<bool (FileProxy *file)>& predicate, bool allowFolders = true) const;
 		
 		bool IsDirectory() const override { return true; }
 		
