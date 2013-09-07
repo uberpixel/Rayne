@@ -126,35 +126,31 @@ namespace RN
 								 const FSEventStreamEventFlags eventFlags[],
 								 const FSEventStreamEventId eventIds[]);
 	
-	DirectoryProxy::DirectoryProxy(const std::string& path, bool watchDirectory) :
+	DirectoryProxy::DirectoryProxy(const std::string& path) :
 		FileSystemNode(PathManager::Basename(path), nullptr)
 	{
 		SetPath(path);
 		ScanDirectory();
 		
 #if RN_PLATFORM_MAC_OS
-		_eventStream = nullptr;
 		
-		if(watchDirectory)
-		{
-			FSEventStreamContext context;
-			context.version			= 0;
-			context.info			= static_cast<void *>(this);
-			context.retain			= NULL;
-			context.release			= NULL;
-			context.copyDescription	= NULL;
-			
-			NSArray *watchedPaths = @[ [NSString stringWithUTF8String:path.c_str()] ];
-			
-			FSEventStreamCreateFlags streamFlags = (kFSEventStreamCreateFlagUseCFTypes | kFSEventStreamCreateFlagWatchRoot);
-			FSEventStreamRef stream = FSEventStreamCreate(kCFAllocatorDefault, &RNEventsCallback, &context, reinterpret_cast<CFArrayRef>(watchedPaths), kFSEventStreamEventIdSinceNow, ((NSTimeInterval)1.5), streamFlags);
+		FSEventStreamContext context;
+		context.version			= 0;
+		context.info			= static_cast<void *>(this);
+		context.retain			= NULL;
+		context.release			= NULL;
+		context.copyDescription	= NULL;
 		
-			FSEventStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-			if(!FSEventStreamStart(stream))
-				throw Exception(Exception::Type::InconsistencyException, "Failed to install fsevents tap!");
-			
-			_eventStream = stream;
-		}
+		NSArray *watchedPaths = @[ [NSString stringWithUTF8String:path.c_str()] ];
+		
+		FSEventStreamCreateFlags streamFlags = (kFSEventStreamCreateFlagUseCFTypes | kFSEventStreamCreateFlagWatchRoot);
+		FSEventStreamRef stream = FSEventStreamCreate(kCFAllocatorDefault, &RNEventsCallback, &context, reinterpret_cast<CFArrayRef>(watchedPaths), kFSEventStreamEventIdSinceNow, ((NSTimeInterval)1.5), streamFlags);
+	
+		FSEventStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+		if(!FSEventStreamStart(stream))
+			throw Exception(Exception::Type::InconsistencyException, "Failed to install fsevents tap!");
+		
+		_eventStream = stream;
 #endif
 	}
 	
@@ -564,7 +560,7 @@ namespace RN
 		{
 			try
 			{
-				DirectoryProxy *proxy = new DirectoryProxy(path, true);
+				DirectoryProxy *proxy = new DirectoryProxy(path);
 				_directories.AddObject(proxy);
 				proxy->Release();
 				

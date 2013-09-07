@@ -77,7 +77,7 @@ namespace RN
 		void __HandleEvent(void *event);
 		
 	private:
-		DirectoryProxy(const std::string& path, bool watchDirectory);
+		DirectoryProxy(const std::string& path);
 		DirectoryProxy(const std::string& name, DirectoryProxy *parent);
 		
 		void ScanDirectory();
