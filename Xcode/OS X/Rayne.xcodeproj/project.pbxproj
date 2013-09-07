@@ -201,6 +201,8 @@
 		E9C6F0A716B207E1006288D5 /* RNModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F0A516B207E1006288D5 /* RNModel.cpp */; };
 		E9C6F0A816B207E1006288D5 /* RNModel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C6F0A616B207E1006288D5 /* RNModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9C7DB271710D0F3006AD768 /* RNInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C7DB261710CE2C006AD768 /* RNInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9D15BA717DB27CA00435078 /* RNOpenPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D15BA517DB27CA00435078 /* RNOpenPanel.cpp */; };
+		E9D15BA817DB27CA00435078 /* RNOpenPanel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D15BA617DB27CA00435078 /* RNOpenPanel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9D3CED5171F907500F4BF36 /* RNResourcePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D3CED3171F907500F4BF36 /* RNResourcePool.cpp */; };
 		E9D3CED6171F907500F4BF36 /* RNResourcePool.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D3CED4171F907500F4BF36 /* RNResourcePool.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9D3CEE717203FA100F4BF36 /* RNBillboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D3CEE517203FA100F4BF36 /* RNBillboard.cpp */; };
@@ -478,6 +480,8 @@
 		E9C6F0A516B207E1006288D5 /* RNModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNModel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9C6F0A616B207E1006288D5 /* RNModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNModel.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E9C7DB261710CE2C006AD768 /* RNInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNInterpolation.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		E9D15BA517DB27CA00435078 /* RNOpenPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenPanel.cpp; sourceTree = "<group>"; };
+		E9D15BA617DB27CA00435078 /* RNOpenPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOpenPanel.h; sourceTree = "<group>"; };
 		E9D3CED3171F907500F4BF36 /* RNResourcePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNResourcePool.cpp; sourceTree = "<group>"; };
 		E9D3CED4171F907500F4BF36 /* RNResourcePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNResourcePool.h; sourceTree = "<group>"; };
 		E9D3CEE517203FA100F4BF36 /* RNBillboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNBillboard.cpp; sourceTree = "<group>"; };
@@ -904,6 +908,8 @@
 				E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */,
 				E9F77797169C5CF8006EE702 /* RNOpenGL.h */,
 				E9AB7F0E16D42522006BB4CB /* RNOpenGLExtensions.h */,
+				E9D15BA517DB27CA00435078 /* RNOpenPanel.cpp */,
+				E9D15BA617DB27CA00435078 /* RNOpenPanel.h */,
 				E995F3CA1709B9F20051223B /* RNPathManager.cpp */,
 				E995F3CB1709B9F20051223B /* RNPathManager.h */,
 				E9BEF3B91743CF560090C9CB /* RNScopeGuard.h */,
@@ -996,6 +1002,7 @@
 				E9B083F217188E29009AD83F /* RNCPU.h in Headers */,
 				E9B083F91718B1D1009AD83F /* RNMemory.h in Headers */,
 				E951615A17D40D930006156A /* RNUITableView.h in Headers */,
+				E9D15BA817DB27CA00435078 /* RNOpenPanel.h in Headers */,
 				E9F3A6F5171B8D3E0005A79E /* RNParticleEmitter.h in Headers */,
 				E9F3A6F9171B8DA70005A79E /* RNParticle.h in Headers */,
 				E9F3A6FD171C489F0005A79E /* RNRandom.h in Headers */,
@@ -1218,6 +1225,7 @@
 				E9F3A6FC171C489F0005A79E /* RNRandom.cpp in Sources */,
 				E9D3CED5171F907500F4BF36 /* RNResourcePool.cpp in Sources */,
 				E9BEC9CE179CDFCB00C05623 /* RNUITextEditor.cpp in Sources */,
+				E9D15BA717DB27CA00435078 /* RNOpenPanel.cpp in Sources */,
 				E9D3CEE717203FA100F4BF36 /* RNBillboard.cpp in Sources */,
 				E99A955D1729AE1800605C68 /* RNInstancingNode.cpp in Sources */,
 				E99A9561172A002100605C68 /* RNNumber.cpp in Sources */,

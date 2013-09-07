@@ -30,6 +30,7 @@
 #include "RNFile.h"
 #include "RNPathManager.h"
 #include "RNFileManager.h"
+#include "RNOpenPanel.h"
 #include "RNDebug.h"
 
 #include "RNModule.h"
