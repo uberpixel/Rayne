@@ -65,12 +65,16 @@ namespace RN
 			_material->depthtest  = false;
 			_material->depthwrite = false;
 			_material->blending   = true;
+			_material->blendSource = GL_SRC_ALPHA;
+			_material->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
 			_material->lighting   = false;
 			
 			_viewMaterial = new Material(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
 			_viewMaterial->depthtest  = false;
 			_viewMaterial->depthwrite = false;
 			_viewMaterial->blending   = true;
+			_viewMaterial->blendSource = GL_SRC_ALPHA;
+			_viewMaterial->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
 			_viewMaterial->lighting   = false;
 			
 			SetBackgroundColor(Color(0.128f, 0.128f, 0.128f, 1.0f));
