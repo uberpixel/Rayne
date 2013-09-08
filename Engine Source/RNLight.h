@@ -13,6 +13,7 @@
 #include "RNColor.h"
 #include "RNSceneNode.h"
 #include "RNCamera.h"
+#include "RNKVOImplementation.h"
 
 #define kRNShadowCameraPriority 1000
 
@@ -70,9 +71,10 @@ namespace RN
 		Color _color;
 		Vector3 _resultColor;
 		Vector3 _direction;
-		float _intensity;
-		float _range;
-		float _angle;
+		
+		Observable<float> _intensity;
+		Observable<float> _range;
+		Observable<float> _angle;
 		
 		Camera *_shadowcam;
 		Camera *_lightcam;

@@ -16,19 +16,22 @@ namespace RN
 	RNDeclareMeta(Light)
 	
 	Light::Light(Type lighttype) :
-		_lightType(lighttype)
+		_lightType(lighttype),
+		_intensity("intensity", 10.0f),
+		_range("range", 1.0f),
+		_angle("angle", 0.5f)
 	{
 		_color = Color(1.0f, 1.0f, 1.0f);
-		_range = 1.0f;
-		_angle = 0.5f;
-		_intensity = 10.0f;
 
 		_shadow = false;
 		_shadowcam = nullptr;
 		_lightcam  = nullptr;
 		
 		collisionGroup = 25;
-
+		
+		AddObservable(&_intensity);
+		AddObservable(&_range);
+		AddObservable(&_angle);
 		ReCalculateColor();
 	}
 	
@@ -220,6 +223,6 @@ namespace RN
 	void Light::ReCalculateColor()
 	{
 		_resultColor = Vector3(_color.r, _color.g, _color.b);
-		_resultColor *= _intensity;
+		_resultColor *= (float)_intensity;
 	}
 }
