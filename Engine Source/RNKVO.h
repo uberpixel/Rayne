@@ -10,19 +10,59 @@
 #define __RAYNE_KVO_H__
 
 #include "RNBase.h"
-#include "RNSTL.h"
 
 #define kRNObservableNewValueKey RNCSTR("kRNObservableNewValueKey")
 
 namespace RN
 {
+	namespace KVO
+	{
+		template<class T>
+		struct hash
+		{};
+		
+		template<class T>
+		struct equal_to
+		{};
+		
+		template<>
+		struct hash<const char *>
+		{
+			size_t operator()(const char *string) const
+			{
+				size_t hash = 0;
+				std::hash<char> hasher;
+				
+				while(*string != '\0')
+				{
+					hash = static_cast<size_t>(hasher(*string)) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+					string ++;
+				}
+				
+				return hash;
+			}
+		};
+		
+		template<>
+		struct equal_to<const char *>
+		{
+			bool operator()(const char *string1, const char *string2) const
+			{
+				return (strcmp(string1, string2) == 0);
+			}
+		};
+	}
+
+	
+	
 	class Object;
 	class Dictionary;
 	class ObservableContainer;
 	
 	enum class ObservableType
 	{
-		Int32
+		Int32,
+		Float
 	};
 	
 	class ObservableBase
@@ -37,22 +77,116 @@ namespace RN
 		virtual void SetValue(Object *value) = 0;
 		virtual Object *GetValue() const = 0;
 		
+		void SetWritable(bool writable) { _writable = writable; }
+		bool IsWritable() const { return _writable; }
+		
 	protected:
 		ObservableBase(const char *name, ObservableType type);
 		
 		void WillChangeValue();
-		void DiDchangeValue();
+		void DidChangeValue();
 		
 	private:
 		const char *_name;
 		ObservableContainer *_observable;
 		ObservableType _type;
+		
+		bool _writable;
 	};
 	
 	template<class T>
 	class ObservableVariable : public ObservableBase
 	{
 	public:
+		
+		bool operator == (const T& other) const
+		{
+			return (*_value == other);
+		}
+		
+		bool operator != (const T& other) const
+		{
+			return (*_value != other);
+		}
+		
+		
+		operator T& ()
+		{
+			return *_value;
+		}
+		
+		operator T() const
+		{
+			return *_value;
+		}
+		
+		
+		
+		T& operator= (const T& other)
+		{
+			WillChangeValue();
+			*_value = other;
+			DidChangeValue();
+			
+			return *_value;
+		}
+		
+		T& operator+= (const T& other)
+		{
+			WillChangeValue();
+			*_value += other;
+			DidChangeValue();
+			
+			return *_value;
+		}
+		
+		T& operator-= (const T& other)
+		{
+			WillChangeValue();
+			*_value -= other;
+			DidChangeValue();
+			
+			return *_value;
+		}
+		
+		T& operator*= (const T& other)
+		{
+			WillChangeValue();
+			*_value *= other;
+			DidChangeValue();
+			
+			return *_value;
+		}
+		
+		T& operator/= (const T& other)
+		{
+			WillChangeValue();
+			*_value /= other;
+			DidChangeValue();
+			
+			return *_value;
+		}
+		
+		
+		T operator+ (const T& other) const
+		{
+			return *_value + other;
+		}
+		
+		T operator- (const T& other) const
+		{
+			return *_value - other;
+		}
+		
+		T operator* (const T& other) const
+		{
+			return *_value * other;
+		}
+		
+		T operator/ (const T& other) const
+		{
+			return *_value / other;
+		}
 		
 	protected:
 		ObservableVariable(T *value, const char *name, ObservableType type) :
@@ -96,6 +230,7 @@ namespace RN
 	protected:
 		ObservableContainer();
 		
+		void AddObservable(ObservableBase *core);
 		ObservableBase *AddObservable(void *ptr, const char *name, ObservableType type);
 		
 		void WillChangeValueForkey(const std::string& key);
@@ -117,8 +252,6 @@ namespace RN
 			void *cookie;
 		};
 		
-		void AddObservable(ObservableBase *core);
-		
 		void WillChangeValueForVariable(ObservableBase *core);
 		void DidChangeValueForVariable(ObservableBase *core);
 		
@@ -127,7 +260,7 @@ namespace RN
 		ObservableBase *GetObservableForKey(const std::string& key) const;
 		std::vector<Observer *>& GetObserversForKey(const std::string& key);
 		
-		std::unordered_map<const char *, ObservableBase *> _variables;
+		std::unordered_map<const char *, ObservableBase *, KVO::hash<const char *>, KVO::equal_to<const char *>> _variables;
 		std::vector<ObservableBase *> _createdObservers;
 		
 		std::vector<Observer> _observer;

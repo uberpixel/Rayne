@@ -7,9 +7,10 @@
 //
 
 #include "RNKVO.h"
-#include "RNKVOInternal.h"
+#include "RNKVOImplementation.h"
 #include "RNDictionary.h"
 #include "RNString.h"
+#include "RNLockGuard.h"
 
 namespace RN
 {
@@ -22,7 +23,9 @@ namespace RN
 		_name(name),
 		_observable(nullptr),
 		_type(type)
-	{}
+	{
+		_writable = true;
+	}
 	
 	ObservableBase::~ObservableBase()
 	{
@@ -33,7 +36,7 @@ namespace RN
 		_observable->WillChangeValueForVariable(this);
 	}
 	
-	void ObservableBase::DiDchangeValue()
+	void ObservableBase::DidChangeValue()
 	{
 		_observable->DidChangeValueForVariable(this);
 	}
@@ -69,6 +72,9 @@ namespace RN
 	void ObservableContainer::SetValueForKey(const std::string& key, Object *value)
 	{
 		ObservableBase *observable = GetObservableForKey(key);
+		if(!observable->IsWritable())
+			throw Exception(Exception::Type::InconsistencyException, "Can't set value for read-only key");
+		
 		observable->SetValue(value);
 	}
 
@@ -92,7 +98,11 @@ namespace RN
 		switch(type)
 		{
 			case ObservableType::Int32:
-				base = new ObservableInt(static_cast<int *>(ptr), name);
+				base = new __ObservableBase<int32>(static_cast<int32 *>(ptr), name);
+				break;
+				
+			case ObservableType::Float:
+				base = new __ObservableBase<float>(static_cast<float *>(ptr), name);
 				break;
 		}
 		
@@ -192,9 +202,14 @@ namespace RN
 	
 	void ObservableContainer::DidChangeValueForVariable(ObservableBase *core)
 	{
-		_lock.Lock();
+		LockGuard<SpinLock> lock(_lock);
+		
+		if(_createdObservers.empty())
+			return;
+		
 		std::vector<Observer *> observers = GetObserversForKey(core->_name);
-		_lock.Unlock();
+		
+		lock.Unlock();
 		
 		if(observers.size() > 0)
 		{

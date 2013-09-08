@@ -10,9 +10,10 @@
 #define __RAYNE_H__
 
 #include "RNBase.h"
-#include "RNObject.h"
 #include "RNSerialization.h"
 #include "RNAutoreleasePool.h"
+#include "RNObject.h"
+#include "RNString.h"
 #include "RNArray.h"
 #include "RNDictionary.h"
 #include "RNData.h"
@@ -20,6 +21,8 @@
 #include "RNJSONSerialization.h"
 #include "RNIndexSet.h"
 #include "RNIndexPath.h"
+#include "RNKVO.h"
+#include "RNKVOImplementation.h"
 
 #include "RNKernel.h"
 #include "RNApplication.h"
@@ -69,8 +72,6 @@
 #include "RNShaderUnit.h"
 #include "RNTexture.h"
 #include "RNTextureAtlas.h"
-
-#include "RNString.h"
 
 #include "RNUIFont.h"
 #include "RNUITypesetter.h"
