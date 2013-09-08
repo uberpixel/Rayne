@@ -17,76 +17,6 @@
 namespace RN
 {
 	template<class T>
-	class __ObservableOperatorsArithmetic : public virtual ObservableVariable<T>
-	{
-		/*T& operator= (const T& other)
-		{
-			WillChangeValue();
-			*_value = other;
-			DidChangeValue();
-			
-			return *_value;
-		}
-		
-		T& operator+= (const T& other)
-		{
-			WillChangeValue();
-			*_value += other;
-			DidChangeValue();
-			
-			return *_value;
-		}
-		
-		T& operator-= (const T& other)
-		{
-			WillChangeValue();
-			*_value -= other;
-			DidChangeValue();
-			
-			return *_value;
-		}
-		
-		T& operator*= (const T& other)
-		{
-			WillChangeValue();
-			*_value *= other;
-			DidChangeValue();
-			
-			return *_value;
-		}
-		
-		T& operator/= (const T& other)
-		{
-			WillChangeValue();
-			*_value /= other;
-			DidChangeValue();
-			
-			return *_value;
-		}
-		
-		
-		T operator+ (const T& other) const
-		{
-			return *_value + other;
-		}
-		
-		T operator- (const T& other) const
-		{
-			return *_value - other;
-		}
-		
-		T operator* (const T& other) const
-		{
-			return *_value * other;
-		}
-		
-		T operator/ (const T& other) const
-		{
-			return *_value / other;
-		}*/
-	};
-
-	template<class T>
 	class __ObservableBase
 	{};
 	
@@ -126,12 +56,118 @@ namespace RN
 			__ObservableBase(&_storage, name), \
 			_storage(initial) \
 		{} \
-		type& operator= (type other) \
+		bool operator == (const type& other) const \
+		{ \
+			return (_storage == other); \
+		} \
+		bool operator != (const type& other) const \
+		{ \
+			return (_storage != other); \
+		} \
+		 \
+		operator type& () \
+		{ \
+			return _storage; \
+		} \
+		operator type() const \
+		{ \
+			return _storage; \
+		} \
+		 \
+		type& operator= (const type& other) \
 		{ \
 			WillChangeValue(); \
 			_storage = other; \
 			DidChangeValue(); \
+			 \
 			return _storage; \
+		} \
+		\
+		type& operator+= (const type& other) \
+		{ \
+			WillChangeValue(); \
+			_storage += other; \
+			DidChangeValue(); \
+			 \
+			return _storage; \
+		} \
+		type& operator-= (const type& other) \
+		{ \
+			WillChangeValue(); \
+			_storage -= other; \
+			DidChangeValue(); \
+			 \
+			return _storage; \
+		} \
+		type& operator*= (const type& other) \
+		{ \
+			WillChangeValue(); \
+			_storage *= other; \
+			DidChangeValue(); \
+			 \
+			return _storage; \
+		} \
+		type& operator/= (const type& other) \
+		{ \
+			WillChangeValue(); \
+			_storage /= other; \
+			DidChangeValue(); \
+			 \
+			return _storage; \
+		} \
+		 \
+		type operator+ (const type& other) const \
+		{ \
+			return _storage + other; \
+		} \
+		type operator- (const type& other) const \
+		{ \
+			return _storage - other; \
+		} \
+		type operator* (const type& other) const \
+		{ \
+			return _storage * other; \
+		} \
+		type operator/ (const type& other) const \
+		{ \
+			return _storage / other; \
+		} \
+		 \
+		type& operator ++() \
+		{ \
+			WillChangeValue(); \
+			++ _storage; \
+			DidChangeValue(); \
+			 \
+			return _storage; \
+		} \
+		type operator ++(int) \
+		{ \
+			type result = _storage; \
+			 \
+			WillChangeValue(); \
+			++ _storage; \
+			DidChangeValue(); \
+			 \
+			return result; \
+		} \
+		type& operator --() \
+		{ \
+			WillChangeValue(); \
+			-- _storage; \
+			DidChangeValue(); \
+			 \
+			return _storage; \
+		} \
+		type operator --(int) \
+		{ \
+			type result = _storage; \
+			 \
+			WillChangeValue(); \
+			-- _storage; \
+			DidChangeValue(); \
+			 \
+			return result; \
 		} \
 	private: \
 		type _storage; \
