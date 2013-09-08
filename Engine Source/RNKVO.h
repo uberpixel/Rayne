@@ -61,8 +61,16 @@ namespace RN
 	
 	enum class ObservableType
 	{
+		Int8,
+		Int16,
 		Int32,
-		Float
+		Int64,
+		Uint8,
+		Uint16,
+		Uint32,
+		Uint64,
+		Float,
+		Double
 	};
 	
 	class ObservableBase

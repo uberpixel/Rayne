@@ -173,8 +173,18 @@ namespace RN
 		type _storage; \
 	};
 
+	__ObservableScalar(int8, Int8)
+	__ObservableScalar(int16, Int16)
 	__ObservableScalar(int32, Int32)
+	__ObservableScalar(int64, Int64)
+	
+	__ObservableScalar(uint8, Uint8)
+	__ObservableScalar(uint16, Uint16)
+	__ObservableScalar(uint32, Uint32)
+	__ObservableScalar(uint64, Uint64)
+	
 	__ObservableScalar(float, Float)
+	__ObservableScalar(double, Double)
 }
 
 #endif /* __RAYNE_KVOIMPLEMENTATION */
