@@ -95,16 +95,28 @@ namespace RN
 	{
 		ObservableBase *base = nullptr;
 		
+#define TypeCase(kvotype, type) \
+		case ObservableType::kvotype: \
+			base = new __ObservableBase<type>(static_cast<type *>(ptr), name); \
+			break;
+		
 		switch(type)
 		{
-			case ObservableType::Int32:
-				base = new __ObservableBase<int32>(static_cast<int32 *>(ptr), name);
-				break;
+			TypeCase(Int8, int8)
+			TypeCase(Int16, int16)
+			TypeCase(Int32, int32)
+			TypeCase(Int64, int64)
 				
-			case ObservableType::Float:
-				base = new __ObservableBase<float>(static_cast<float *>(ptr), name);
-				break;
+			TypeCase(Uint8, uint8)
+			TypeCase(Uint16, uint16)
+			TypeCase(Uint32, uint32)
+			TypeCase(Uint64, uint64)
+				
+			TypeCase(Float, float)
+			TypeCase(Double, double)
 		}
+		
+#undef TypeCase
 		
 		if(base)
 		{
