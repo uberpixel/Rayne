@@ -12,15 +12,16 @@
 #include "RNBase.h"
 #include "RNCatalogue.h"
 #include "RNSpinLock.h"
+#include "RNKVO.h"
 
 namespace RN
 {
 	class Serializer;
-	class Object
+	class Object : public ObservableContainer
 	{
 	public:
 		RNAPI Object();
-		RNAPI virtual ~Object();
+		RNAPI ~Object() override;
 		
 		RNAPI Object *Retain();
 		RNAPI Object *Release();
