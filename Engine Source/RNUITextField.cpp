@@ -17,10 +17,11 @@ namespace RN
 		
 		TextField::TextField(Dictionary *style)
 		{
+			RN_ASSERT(style, "Style mustn't be NULL!");
+			
 			Initialize();
 			
 			Style *styleSheet = Style::GetSharedInstance();
-			
 			Dictionary *background = style->GetObjectForKey<Dictionary>(RNCSTR("background"));
 			
 			if(background)
@@ -43,6 +44,26 @@ namespace RN
 		{
 			_background->Release();
 			_editor->Release();
+		}
+		
+		TextField *TextField::WithType(Type type)
+		{
+			Dictionary *dictionary = nullptr;
+			Style *styleSheet = Style::GetSharedInstance();
+			
+			switch(type)
+			{
+				case Type::RoundedRect:
+					dictionary = styleSheet->TextfieldStyle(RNCSTR("RNRoundedRect"));
+					break;
+					
+				case Type::Bezel:
+					dictionary = styleSheet->TextfieldStyle(RNCSTR("RNBezel"));
+					break;
+			}
+			
+			TextField *textField = new TextField(dictionary);
+			return textField->Autorelease();
 		}
 		
 		
@@ -68,6 +89,7 @@ namespace RN
 		{
 			_editor->ProcessEvent(event);
 		}
+		
 		
 		
 		bool TextField::CanBecomeFirstResponder() const

@@ -22,11 +22,16 @@ namespace RN
 		class TextField : public Control, TextEditorInterface
 		{
 		public:
-			TextField();
+			enum class Type
+			{
+				RoundedRect,
+				Bezel
+			};
+			
 			TextField(Dictionary *style);
 			~TextField() override;
 			
-			static TextField *WithType();
+			static TextField *WithType(Type type);
 			
 			void KeyDown(Event *event) override;
 			void KeyRepeat(Event *event) override;
