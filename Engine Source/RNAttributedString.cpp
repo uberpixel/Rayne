@@ -15,7 +15,7 @@ namespace RN
 	
 	AttributedString::AttributedString(String *string)
 	{
-		_string  = string->Retain();
+		_string  = string->Copy();
 		_editing = 0;
 	}
 	AttributedString::~AttributedString()
