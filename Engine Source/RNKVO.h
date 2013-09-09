@@ -143,7 +143,7 @@ namespace RN
 		void AddObserver(const std::string& key, CallbackType callback, void *cookie);
 		void RemoveObserver(const std::string& key, void *cookie);
 		
-		const std::vector<ObservableBase *>& GetObservables() const { return _createdObservers; }
+		const std::vector<ObservableBase *>& GetObservables() const { return _observerPool; }
 		
 	protected:
 		ObservableContainer();
@@ -180,6 +180,7 @@ namespace RN
 		
 		std::unordered_map<const char *, ObservableBase *, KVO::hash<const char *>, KVO::equal_to<const char *>> _variables;
 		std::vector<ObservableBase *> _createdObservers;
+		std::vector<ObservableBase *> _observerPool;
 		
 		std::vector<Observer> _observer;
 		std::unordered_map<std::string, std::vector<Observer *>> _observerMap;

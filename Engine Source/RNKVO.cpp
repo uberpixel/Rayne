@@ -132,6 +132,7 @@ namespace RN
 		_lock.Lock();
 		core->_observable = this;
 		_variables.insert(std::unordered_map<const char *, ObservableBase *>::value_type(core->_name, core));
+		_observerPool.push_back(core);
 		_lock.Unlock();
 	}
 	
