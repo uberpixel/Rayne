@@ -140,6 +140,8 @@ namespace RN
 		
 		RNAPI bool IsKeyPressed(char key) const;
 		RNAPI bool IsKeyPressed(UniChar key) const;
+		
+		RNAPI bool IsMousePressed(uint32 button) const;
 
 	private:
 		void FlushEventQueue();
@@ -150,10 +152,12 @@ namespace RN
 		Vector2 _mouseDelta;
 		Vector2 _mouseWheel;
 		
+		
 		uint32 _modifierKeys;
 		
 		std::vector<Event *> _pendingEvents;
 		std::unordered_set<UniChar> _pressedKeys;
+		std::unordered_set<uint32> _pressedMouse;
 		
 		SpinLock _lock;
 		bool _active;

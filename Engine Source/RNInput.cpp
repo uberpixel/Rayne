@@ -157,6 +157,11 @@ namespace RN
 		return (_pressedKeys.find(key) != _pressedKeys.end());
 	}
 	
+	bool Input::IsMousePressed(uint32 button) const
+	{
+		return (_pressedMouse.find(button) != _pressedMouse.end());
+	}
+	
 	
 	Vector2 Input::ClampMousePosition(const Vector2& position) const
 	{
@@ -311,7 +316,7 @@ namespace RN
 				event->_button = static_cast<uint32>([nsevent buttonNumber]);
 				event->_mouseDelta = _mouseDelta;
 				event->_mousePosition = _mousePosition;
-				
+				_pressedMouse.insert(event->_button);
 				break;
 			}
 				
@@ -323,7 +328,7 @@ namespace RN
 				event->_button = static_cast<uint32>([nsevent buttonNumber]);
 				event->_mouseDelta = _mouseDelta;
 				event->_mousePosition = _mousePosition;
-				
+				_pressedMouse.erase(event->_button);
 				break;
 			}
 			
