@@ -59,7 +59,7 @@ namespace RN
 		if(object->IsKindOfClass(__JSONNumberClass))
 		{
 			Number *number = static_cast<Number *>(object);
-			switch(number->NumberType())
+			switch(number->GetType())
 			{
 				case Number::Type::Float32:
 				case Number::Type::Float64:
