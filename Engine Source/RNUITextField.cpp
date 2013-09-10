@@ -23,6 +23,7 @@ namespace RN
 			
 			Style *styleSheet = Style::GetSharedInstance();
 			Dictionary *background = style->GetObjectForKey<Dictionary>(RNCSTR("background"));
+			Dictionary *insets = style->GetObjectForKey<Dictionary>(RNCSTR("contentInsets"));
 			
 			if(background)
 			{
@@ -38,6 +39,8 @@ namespace RN
 				
 				image->Release();
 			}
+			
+			_contentInsets = Style::ParseEdgeInsets(insets);
 		}
 		
 		TextField::~TextField()
@@ -104,9 +107,10 @@ namespace RN
 			Control::LayoutSubviews();
 			
 			Rect frame = Frame();
+			Rect editorRect = Rect(_contentInsets.left, _contentInsets.top, frame.width - _contentInsets.right, frame.height - _contentInsets.bottom);
 			
 			_background->SetFrame(Rect(0.0f, 0.0f, frame.width, frame.height));
-			_editor->SetFrame(Rect(0.0f, 0.0f, frame.width, frame.height));
+			_editor->SetFrame(editorRect);
 		}
 	}
 }

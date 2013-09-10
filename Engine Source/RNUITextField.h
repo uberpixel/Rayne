@@ -46,6 +46,7 @@ namespace RN
 			
 			ImageView *_background;
 			TextEditor *_editor;
+			EdgeInsets _contentInsets;
 			
 			RNDefineMeta(TextField, Control)
 		};
