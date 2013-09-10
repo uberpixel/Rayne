@@ -20,10 +20,17 @@ namespace RN
 	{
 	public:
 		virtual String *GetStringForObject(Object *object) = 0;
-		virtual Object *GetObjectForString(String *object) = 0;
+		virtual Object *GetObjectForString(String *string) = 0;
 		virtual AttributedString *GetAttributedStringForObject(Object *object, Dictionary *defaultAttributes);
 		
 		RNDefineMeta(Formatter, Object)
+	};
+	
+	class NumberFormatter : public Formatter
+	{
+	public:
+		String *GetStringForObject(Object *object) override;
+		Object *GetObjectForString(String *string) override;
 	};
 }
 
