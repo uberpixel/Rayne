@@ -24,7 +24,7 @@ namespace RN
 			_fpsLabel->SetFrame(Rect(0.0f, 5.0f, 180.0f, 128.0f).Inset(5.0f, 0.0f));
 			_fpsLabel->SetNumberOfLines(0);
 			
-			ContentView()->AddSubview(_fpsLabel->Autorelease());
+			GetContentView()->AddSubview(_fpsLabel->Autorelease());
 			
 			_fpsCheckbox = Button::WithType(Button::Type::CheckBox);
 			_fpsCheckbox->SetFrame(Rect(5.0f, 120.0f, 0.0f, 0.0f));
@@ -32,7 +32,7 @@ namespace RN
 			_fpsCheckbox->SizeToFit();
 			_fpsCheckbox->SetSelected(true);
 			
-			ContentView()->AddSubview(_fpsCheckbox);
+			GetContentView()->AddSubview(_fpsCheckbox);
 		}
 		
 		DebugWidget::~DebugWidget()

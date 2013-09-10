@@ -29,7 +29,7 @@ namespace RN
 		{
 			_size = Vector2();
 			
-			Subivews()->Enumerate([&](Object *tview, size_t index, bool *stop) {
+			GetSubivews()->Enumerate([&](Object *tview, size_t index, bool *stop) {
 				View *view = tview->Downcast<View>();
 				
 				_size.x = std::max(view->Frame().GetRight(), _size.x);

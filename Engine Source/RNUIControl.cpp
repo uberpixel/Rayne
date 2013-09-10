@@ -177,7 +177,7 @@ namespace RN
 		
 		bool Control::IsEventWithinBounds(Event *event)
 		{
-			const Rect& frame = Container()->Frame();
+			const Rect& frame = GetWidget()->GetFrame();
 			Vector2 point = event->GetMousePosition();
 			
 			point.x -= frame.x;
@@ -267,7 +267,7 @@ namespace RN
 		
 		void Control::MouseDown(Event *event)
 		{
-			BecomeFirstResponder();
+			GetWidget()->MakeFirstResponder(this);
 			BeginTrackingEvent(event);
 		}
 		void Control::MouseMoved(Event *event)

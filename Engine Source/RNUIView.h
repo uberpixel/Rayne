@@ -26,8 +26,9 @@ namespace RN
 	{
 		class View : public Responder
 		{
-		friend class Widget;
 		public:
+			friend class Widget;
+			
 			View();
 			View(const Rect& frame);
 			~View() override;
@@ -54,8 +55,8 @@ namespace RN
 			void RemoveAllSubviews();
 			void RemoveFromSuperview();
 			
-			Array *Subivews() { return &_subviews; }
-			Widget *Container() { return _widget; }
+			Array *GetSubivews() { return &_subviews; }
+			Widget *GetWidget() { return _widget; }
 			
 			void SetNeedsLayoutUpdate();
 			

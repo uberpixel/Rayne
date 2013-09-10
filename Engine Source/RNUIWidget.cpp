@@ -34,9 +34,11 @@ namespace RN
 		
 		void Widget::Initialize()
 		{
-			_contentView = EmptyContentView()->Retain();
+			_contentView = GetEmptyContentView()->Retain();
 			_dirtyLayout = true;
-			_server = 0;
+			
+			_server         = nullptr;
+			_firstResponder = this;
 			
 			_minimumSize = Vector2(0.0f, 0.0f);
 			_maximumSize = Vector2(FLT_MAX, FLT_MAX);
@@ -48,14 +50,14 @@ namespace RN
 		// MARK: Content handling
 		// ---------------------
 		
-		View *Widget::EmptyContentView()
+		View *Widget::GetEmptyContentView()
 		{
-			View *view = new View(Rect(Vector2(0.0f), ContentSize()));
+			View *view = new View(Rect(Vector2(0.0f), GetContentSize()));
 			view->_widget = this;
 			return view->Autorelease();
 		}
 		
-		Vector2 Widget::ContentSize() const
+		Vector2 Widget::GetContentSize() const
 		{
 			return Vector2(_frame.width, _frame.height);
 		}
@@ -64,13 +66,13 @@ namespace RN
 		{
 			_contentView->Release();
 			
-			_contentView = view ? view->Retain() : EmptyContentView();
+			_contentView = view ? view->Retain() : GetEmptyContentView()->Retain();
 			_contentView->_widget = this;
 			
 			_contentView->ViewHierarchyChanged();
 			
 			ConstraintContentView();
-			NeedsLayoutUpdate();
+			SetNeedsLayoutUpdate();
 		}
 		
 		void Widget::SetMinimumSize(const Vector2& size)
@@ -111,13 +113,13 @@ namespace RN
 		void Widget::ConstraintContentView()
 		{
 			Rect frame = _contentView->Frame();
-			Vector2 size = ContentSize();
+			Vector2 size = GetContentSize();
 			
 			frame.width  = size.x;
 			frame.height = size.y;
 			
 			_contentView->SetFrame(frame);
-			NeedsLayoutUpdate();
+			SetNeedsLayoutUpdate();
 		}
 		
 		void Widget::ConstraintFrame()
@@ -127,6 +129,44 @@ namespace RN
 			frame.height = MIN(_maximumSize.y, MAX(_minimumSize.y, frame.height));
 			
 			_frame = frame;
+		}
+		
+		// ---------------------
+		// MARK: -
+		// MARK: First responder
+		// ---------------------
+		
+		bool Widget::MakeFirstResponder(Responder *responder)
+		{
+			printf("Asked to make %p first responder\n", responder);
+			
+			if(responder == _firstResponder)
+				return true;
+			
+			if(_firstResponder && _firstResponder != this)
+			{
+				bool result = _firstResponder->ResignFirstResponder();
+				if(!result)
+					return false;
+				
+				_firstResponder = this;
+			}
+			
+			if(responder)
+			{
+				bool result = responder->BecomeFirstResponder();
+				if(!result)
+					return false;
+				
+				_firstResponder = responder;
+			}
+			
+			return true;
+		}
+		
+		void Widget::ForceResignFirstResponder()
+		{
+			_firstResponder = nullptr;
 		}
 		
 		// ---------------------
@@ -167,7 +207,7 @@ namespace RN
 		// MARK: Layout engine
 		// ---------------------
 		
-		void Widget::NeedsLayoutUpdate()
+		void Widget::SetNeedsLayoutUpdate()
 		{
 			_dirtyLayout = true;
 		}

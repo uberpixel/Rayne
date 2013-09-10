@@ -19,7 +19,7 @@ namespace RN
 {
 	namespace UI
 	{
-		class TextField : public Control, TextEditorInterface
+		class TextField : public Control, TextEditorDelegate
 		{
 		public:
 			enum class Type

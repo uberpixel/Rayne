@@ -12,25 +12,19 @@ namespace RN
 {
 	namespace UI
 	{
-		Responder *Responder::_firstResponder = 0;
-		
 		Responder::Responder()
 		{}
 		
 		Responder::~Responder()
-		{
-			if(_firstResponder == this)
-			{
-				_firstResponder = 0;
-			}
-		}
+		{}
 		
 		
 		
 		Responder *Responder::NextResponder() const
 		{
-			return 0;
+			return nullptr;
 		}
+		
 		
 		
 		bool Responder::CanBecomeFirstResponder() const
@@ -47,42 +41,14 @@ namespace RN
 		
 		bool Responder::BecomeFirstResponder()
 		{
-			if(_firstResponder)
-			{
-				if(!_firstResponder->CanResignFirstReponder())
-					return false;
-				
-				if(!_firstResponder->ResignFirstResponder())
-					return false;
-			}
-			
-			if(CanBecomeFirstResponder())
-			{
-				_firstResponder = this;
-				return true;
-			}
-			
-			return false;
+			return CanBecomeFirstResponder();
 		}
 		
 		bool Responder::ResignFirstResponder()
 		{
-			if(_firstResponder == this)
-			{
-				if(!CanResignFirstReponder())
-					return false;
-				
-				_firstResponder = 0;
-				return true;
-			}
-			
-			return false;
+			return CanResignFirstReponder();
 		}
 		
-		bool Responder::IsFirstResponder() const
-		{
-			return (this == _firstResponder);
-		}
 		
 		
 		

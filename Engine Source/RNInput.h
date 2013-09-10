@@ -22,7 +22,7 @@ namespace RN
 	
 	enum KeyCodes
 	{
-		KeyReturn = 0x24,
+		KeyReturn = 0xD,
 		
 		KeyF1 = 0xF704,
 		KeyF2,

@@ -48,6 +48,7 @@ namespace RN
 			bool DrawDebugFrames() const { return _drawDebugFrames; }
 			
 			Camera *GetCamera() const { return _camera; }
+			Widget *GetMainWidget() const { return _mainWidget; }
 			
 		protected:
 			void Render(Renderer *renderer);
@@ -66,7 +67,6 @@ namespace RN
 			Widget *_mainWidget;
 			std::deque<Widget *> _widgets;
 			
-			Widget *_debugWidget;
 			bool _drawDebugFrames;
 		};
 	}

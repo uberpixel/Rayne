@@ -33,7 +33,6 @@ namespace RN
 			_mainWidget = nullptr;
 			_mode = Mode::SingleTracking;
 			
-			_debugWidget = nullptr;
 			_drawDebugFrames = false;
 			
 			MessageCenter::GetSharedInstance()->AddObserver(kRNInputEventMessage, &Server::HandleEvent, this, this);
@@ -80,7 +79,7 @@ namespace RN
 		void Server::HandleEvent(Message *message)
 		{
 			Event *event = static_cast<Event *>(message);
-			Responder *responder = Responder::FirstResponder();
+			Responder *responder = _mainWidget ? _mainWidget->GetFirstResponder() : nullptr;
 			
 			if(event->IsMouse())
 			{
@@ -91,19 +90,22 @@ namespace RN
 				}
 				
 				const Vector2& position = event->GetMousePosition();
+				
+				Widget *hitWidget = nullptr;
 				View *hit = nullptr;
 				
 				for(auto i = _widgets.rbegin(); i != _widgets.rend(); i ++)
 				{
 					Widget *widget = *i;
 					
-					if(widget->Frame().ContainsPoint(position))
+					if(widget->GetFrame().ContainsPoint(position))
 					{
 						Vector2 transformed = position;
 						transformed.x -= widget->_frame.x;
 						transformed.y -= widget->_frame.y;
 						
-						hit = widget->ContentView()->HitTest(transformed, event);
+						hit = widget->GetContentView()->HitTest(transformed, event);
+						hitWidget = widget;
 						break;
 					}
 				}
@@ -118,6 +120,7 @@ namespace RN
 							
 						case Event::Type::MouseDown:
 							hit->MouseDown(event);
+							_mainWidget = hitWidget;
 							break;
 							
 						case Event::Type::MouseUp:

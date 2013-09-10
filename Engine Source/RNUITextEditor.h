@@ -19,21 +19,24 @@ namespace RN
 	namespace UI
 	{
 		class TextEditor;
-		class TextEditorInterface
+		class TextEditorDelegate
 		{
 		public:
-			virtual void SelectionDidChange(TextEditor *editor, const Range& selection) {}
+			virtual void TextEditorSelectionDidChange(TextEditor *editor, const Range& selection) {}
+			virtual bool TextEditorShouldReturn(TextEditor *editor) { return true; }
 		};
 		
 		class TextEditor : public View
 		{
 		public:
-			TextEditor(TextEditorInterface *interface);
+			TextEditor();
 			~TextEditor() override;
 			
 			void SetFrame(const Rect& frame) override;
 			void SetTypingAttributes(Dictionary *attributes);
 			void SetSelection(const Range& selection);
+			void SetText(String *text);
+			void SetDelegate(TextEditorDelegate *delegate);
 			
 			void ProcessEvent(Event *event);
 			
@@ -44,7 +47,7 @@ namespace RN
 		private:
 			void InsertString(String *string);
 			
-			TextEditorInterface *_interface;
+			TextEditorDelegate *_delegate;
 			Typesetter *_typesetter;
 			
 			bool _isDirty;

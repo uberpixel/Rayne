@@ -71,7 +71,8 @@ namespace RN
 		void TextField::Initialize()
 		{
 			_background = new ImageView();
-			_editor = new TextEditor(this);
+			_editor = new TextEditor();
+			_editor->SetDelegate(this);
 			
 			AddSubview(_background);
 			AddSubview(_editor);

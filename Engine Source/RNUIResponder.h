@@ -28,9 +28,6 @@ namespace RN
 			virtual bool BecomeFirstResponder();
 			virtual bool ResignFirstResponder();
 			
-			bool IsFirstResponder() const;
-			static Responder *FirstResponder() { return _firstResponder; }
-			
 			virtual void MouseDown(Event *event);
 			virtual void MouseUp(Event *event);
 			virtual void MouseMoved(Event *event);
@@ -44,8 +41,6 @@ namespace RN
 		protected:
 			Responder();
 			~Responder() override;
-			
-			static Responder *_firstResponder;
 		};
 	}
 }

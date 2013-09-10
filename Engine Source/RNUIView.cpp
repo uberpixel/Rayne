@@ -36,6 +36,11 @@ namespace RN
 		{
 			_material->Release();
 			_viewMaterial->Release();
+			
+			Widget *widget = GetWidget();
+			
+			if(widget && widget->GetFirstResponder() == this)
+				widget->ForceResignFirstResponder();
 		}
 		
 		// ---------------------
@@ -554,7 +559,7 @@ namespace RN
 			{
 				float serverHeight = (_widget->_server) ? _widget->_server->Height() : 0.0f;
 				
-				object.scissorRect = _widget->Frame();
+				object.scissorRect = _widget->GetFrame();
 				object.scissorRect.y = serverHeight - object.scissorRect.height - object.scissorRect.y;
 			}
 		}

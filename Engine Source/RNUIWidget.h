@@ -26,9 +26,10 @@ namespace RN
 		
 		class Widget : public Responder
 		{
-		friend class Server;
-		friend class View;
 		public:
+			friend class Server;
+			friend class View;
+			
 			Widget();
 			Widget(const Rect& frame);
 			~Widget() override;
@@ -40,12 +41,15 @@ namespace RN
 			virtual void SetFrame(const Rect& frame);
 			virtual void SetContentSize(const Vector2& size);
 			
-			const Rect& Frame() const { return _frame; }
-			Vector2 ContentSize() const;
+			const Rect& GetFrame() const { return _frame; }
+			Vector2 GetContentSize() const;
 			
-			View *ContentView() const { return _contentView; }
+			View *GetContentView() const { return _contentView; }
 			
-			void NeedsLayoutUpdate();
+			void SetNeedsLayoutUpdate();
+			
+			bool MakeFirstResponder(Responder *responder);
+			Responder *GetFirstResponder() const { return _firstResponder; }
 			
 			void Show();
 			void Close();
@@ -62,13 +66,17 @@ namespace RN
 			void ConstraintFrame();
 			void ConstraintContentView();
 			
-			View *EmptyContentView();
+			void ForceResignFirstResponder();
+			
+			View *GetEmptyContentView();
 			void UpdateLayout();
 			
 			Rect _frame;
 			bool _dirtyLayout;
 			
 			View *_contentView;
+			Responder *_firstResponder;
+			
 			Vector2 _minimumSize;
 			Vector2 _maximumSize;
 			
