@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNDictionary.h"
+#include "RNFormatter.h"
 #include "RNUIControl.h"
 #include "RNUIImageView.h"
 #include "RNUITextEditor.h"
@@ -34,7 +35,13 @@ namespace RN
 			static TextField *WithType(Type type);
 			
 			void SetText(String *text);
+			void SetAttributedText(AttributedString *string);
+			void SetFormatter(Formatter *formatter);
+			void SetValue(Object *value);
+			
 			String *GetText() const { return _editor->GetText(); }
+			AttributedString *GetAttributedText() const { return _editor->GetAttributedText(); }
+			Object *GetValue() const;
 			
 			void KeyDown(Event *event) override;
 			void KeyRepeat(Event *event) override;
@@ -43,12 +50,14 @@ namespace RN
 			
 		protected:
 			void LayoutSubviews() override;
+			bool TextEditorShouldReturn(TextEditor *editor) override;
 			
 		private:
 			void Initialize();
 			
 			ImageView *_background;
 			TextEditor *_editor;
+			Formatter *_formatter;
 			EdgeInsets _contentInsets;
 			
 			RNDefineMeta(TextField, Control)

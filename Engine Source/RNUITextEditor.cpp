@@ -21,8 +21,9 @@ namespace RN
 			_selection = Range(0, 0);
 			_typesetter = new Typesetter(_string, Frame());
 			_isDirty = true;
-			_model = nullptr;
-			_delegate = nullptr;
+			
+			_model     = nullptr;
+			_delegate  = nullptr;
 			
 			SetBackgroundColor(RN::Color::ClearColor());
 		}
@@ -61,8 +62,16 @@ namespace RN
 		
 		void TextEditor::SetText(String *text)
 		{
+			AttributedString *temp = new AttributedString(text);
+			SetAttributedText(temp);
+			
+			temp->Release();
+		}
+		
+		void TextEditor::SetAttributedText(AttributedString *text)
+		{
 			_string->Release();
-			_string = new AttributedString(text);
+			_string = text->Retain();
 			
 			_typesetter->SetText(_string);
 			

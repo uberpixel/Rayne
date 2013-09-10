@@ -36,11 +36,14 @@ namespace RN
 			void SetTypingAttributes(Dictionary *attributes);
 			void SetSelection(const Range& selection);
 			void SetText(String *text);
+			void SetAttributedText(AttributedString *text);
 			void SetDelegate(TextEditorDelegate *delegate);
 			
 			void ProcessEvent(Event *event);
 			
 			String *GetText() const { return _string->GetString(); }
+			Dictionary *GetTypingAttributes() const { return _typingAttributes; }
+			AttributedString *GetAttributedText() const { return _string; }
 			
 		protected:
 			void Draw(Renderer *renderer) override;

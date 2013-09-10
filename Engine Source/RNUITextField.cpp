@@ -77,10 +77,66 @@ namespace RN
 			_editor = new TextEditor();
 			_editor->SetDelegate(this);
 			
+			_formatter = nullptr;
+			
 			AddSubview(_background);
 			AddSubview(_editor);
 			
 			SetClipSubviews(true);
+		}
+		
+		
+		
+		void TextField::SetText(String *text)
+		{
+			_editor->SetText(text);
+		}
+		
+		void TextField::SetAttributedText(AttributedString *string)
+		{
+			_editor->SetAttributedText(string);
+		}
+		
+		void TextField::SetValue(Object *object)
+		{
+			RN_ASSERT(_formatter, "SetValue() requires a formatter to be set!");
+			
+			AttributedString *temp = _formatter->GetAttributedStringForObject(object, _editor->GetTypingAttributes());
+			SetAttributedText(temp);
+		}
+		
+		void TextField::SetFormatter(Formatter *formatter)
+		{
+			if(_formatter)
+				_formatter->Release();
+			
+			_formatter = formatter->Retain();
+		}
+		
+		Object *TextField::GetValue() const
+		{
+			RN_ASSERT(_formatter, "Getvalue() requires a formatter to be set!");
+			return _formatter->GetObjectForString(_editor->GetText());
+		}
+		
+		
+		
+		bool TextField::TextEditorShouldReturn(TextEditor *editor)
+		{
+			try
+			{
+				Object *temp = _formatter->GetObjectForString(_editor->GetText());
+				return (temp != nullptr);
+			}
+			catch(Exception e)
+			{
+				return false;
+			}
+		}
+		
+		bool TextField::CanBecomeFirstResponder() const
+		{
+			return true;
 		}
 		
 		
@@ -93,19 +149,6 @@ namespace RN
 		{
 			_editor->ProcessEvent(event);
 		}
-		
-		
-		void TextField::SetText(String *text)
-		{
-			_editor->SetText(text);
-		}
-		
-		
-		bool TextField::CanBecomeFirstResponder() const
-		{
-			return true;
-		}
-		
 		
 		void TextField::LayoutSubviews()
 		{
