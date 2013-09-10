@@ -62,7 +62,7 @@ namespace RN
 	{
 		auto iterator = _variables.find(key.c_str());
 		if(iterator == _variables.end())
-			throw Exception(Exception::Type::InconsistencyException, "No Observable for key " + key);
+			return nullptr;
 		
 		return iterator->second;
 	}
@@ -72,6 +72,12 @@ namespace RN
 	void ObservableContainer::SetValueForKey(const std::string& key, Object *value)
 	{
 		ObservableBase *observable = GetObservableForKey(key);
+		if(!observable)
+		{
+			SetValueForUndefinedKey(key, value);
+			return;
+		}
+		
 		if(!observable->IsWritable())
 			throw Exception(Exception::Type::InconsistencyException, "Can't set value for read-only key");
 		
@@ -81,13 +87,13 @@ namespace RN
 	Object *ObservableContainer::GetValueForKey(const std::string& key) const
 	{
 		ObservableBase *observable = GetObservableForKey(key);
+		if(!observable)
+			return GetValueForUndefinedKey(key);
+		
 		return observable->GetValue();
 	}
 	
-	Object *ObservableContainer::GetValueForKeyPath(const std::string& key) const
-	{
-		return nullptr;
-	}
+	
 	
 	
 	
@@ -210,6 +216,8 @@ namespace RN
 			DidChangeValueForVariable(base);
 	}
 	
+	
+	
 	void ObservableContainer::WillChangeValueForVariable(ObservableBase *core)
 	{}
 	
@@ -238,5 +246,16 @@ namespace RN
 			
 			changes->Release();
 		}
+	}
+	
+	
+	void ObservableContainer::SetValueForUndefinedKey(const std::string& key, Object *value)
+	{
+		throw Exception(Exception::Type::InconsistencyException, "SetValue() for undefined key" + key);
+	}
+	
+	Object *ObservableContainer::GetValueForUndefinedKey(const std::string& key)
+	{
+		throw Exception(Exception::Type::InconsistencyException, "GetValue() for undefined key" + key);
 	}
 }

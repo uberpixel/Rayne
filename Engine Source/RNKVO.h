@@ -130,9 +130,8 @@ namespace RN
 		virtual ~ObservableContainer();
 		
 		Object *GetValueForKey(const std::string& key) const;
-		Object *GetValueForKeyPath(const std::string& key) const;
-		
 		void SetValueForKey(const std::string& key, Object *value);
+		
 		
 		template<class Function, class Receiver>
 		void AddObserver(const std::string& key, Function&& function, Receiver receiver, void *cookie)
@@ -150,6 +149,9 @@ namespace RN
 		
 		void AddObservable(ObservableBase *core);
 		ObservableBase *AddObservable(void *ptr, const char *name, ObservableType type);
+		
+		virtual void SetValueForUndefinedKey(const std::string& key, Object *value);
+		virtual Object *GetValueForUndefinedKey(const std::string& key);
 		
 		void WillChangeValueForkey(const std::string& key);
 		void DidChangeValueForKey(const std::string& key);
