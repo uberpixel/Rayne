@@ -95,6 +95,11 @@ namespace RN
 		}
 		
 		
+		void TextField::SetText(String *text)
+		{
+			_editor->SetText(text);
+		}
+		
 		
 		bool TextField::CanBecomeFirstResponder() const
 		{

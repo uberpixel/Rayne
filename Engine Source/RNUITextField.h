@@ -33,6 +33,9 @@ namespace RN
 			
 			static TextField *WithType(Type type);
 			
+			void SetText(String *text);
+			String *GetText() const { return _editor->GetText(); }
+			
 			void KeyDown(Event *event) override;
 			void KeyRepeat(Event *event) override;
 			

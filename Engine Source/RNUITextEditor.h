@@ -40,6 +40,8 @@ namespace RN
 			
 			void ProcessEvent(Event *event);
 			
+			String *GetText() const { return _string->GetString(); }
+			
 		protected:
 			void Draw(Renderer *renderer) override;
 			void Update() override;
