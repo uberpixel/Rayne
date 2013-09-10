@@ -10,6 +10,7 @@
 #include "RNInput.h"
 #include "RNAutoreleasePool.h"
 #include "RNWindow.h"
+#include "RNUIServer.h"
 
 namespace RN
 {
@@ -196,6 +197,7 @@ namespace RN
 		}
 		
 		MessageCenter *messageCenter = MessageCenter::GetSharedInstance();
+		UI::Server *server = UI::Server::GetSharedInstance();
 		
 		std::vector<Event *> events;
 		std::swap(events, _pendingEvents);
@@ -207,7 +209,21 @@ namespace RN
 		for(Event *event : events)
 		{
 			if(_active)
+			{
+				if(server->ConsumeEvent(event))
+				{
+					if(event->IsKeyboard())
+					{
+						UniChar code = event->GetCode();
+						_pressedKeys.erase(CodePoint(code).GetLowerCase());
+					}
+					
+					event->Release();
+					continue;
+				}
+				
 				messageCenter->PostMessage(event);
+			}
 			
 			if(event->_type == Event::Type::KeyDown)
 			{

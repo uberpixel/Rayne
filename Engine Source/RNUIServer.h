@@ -29,6 +29,7 @@ namespace RN
 		public:
 			friend class Widget;
 			friend class RN::Kernel;
+			friend class RN::Input;
 			
 			enum class Mode
 			{
@@ -58,7 +59,7 @@ namespace RN
 			void RemoveWidget(Widget *widget);
 			void MoveWidgetToFront(Widget *widget);
 			
-			void HandleEvent(Message *event);
+			bool ConsumeEvent(Event *event);
 			
 			Camera *_camera;
 			Rect _frame;

@@ -253,12 +253,11 @@ namespace RN
 		}
 #endif
 		
-		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelWillBeginFrameMessage, nullptr, nullptr);
-		
 		_frame ++;
 		_renderer->BeginFrame(_delta);
 		_input->DispatchInputEvents();
 		
+		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidBeginFrameMessage, nullptr, nullptr);
 		Application::GetSharedInstance()->GameUpdate(_delta);
 
 		if(_world)

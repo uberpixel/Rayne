@@ -34,13 +34,10 @@ namespace RN
 			_mode = Mode::SingleTracking;
 			
 			_drawDebugFrames = false;
-			
-			MessageCenter::GetSharedInstance()->AddObserver(kRNInputEventMessage, &Server::HandleEvent, this, this);
 		}
 		
 		Server::~Server()
 		{
-			MessageCenter::GetSharedInstance()->RemoveObserver(this);
 			_camera->Release();
 		}
 		
@@ -76,9 +73,8 @@ namespace RN
 		}
 		
 		
-		void Server::HandleEvent(Message *message)
+		bool Server::ConsumeEvent(Event *event)
 		{
-			Event *event = static_cast<Event *>(message);
 			Responder *responder = _mainWidget ? _mainWidget->GetFirstResponder() : nullptr;
 			
 			if(event->IsMouse())
@@ -86,7 +82,7 @@ namespace RN
 				if(responder && event->GetType() == Event::Type::MouseMoved)
 				{
 					responder->MouseMoved(event);
-					return;
+					return true;
 				}
 				
 				const Vector2& position = event->GetMousePosition();
@@ -116,16 +112,16 @@ namespace RN
 					{
 						case Event::Type::MouseWheel:
 							hit->ScrollWheel(event);
-							break;
+							return true;
 							
 						case Event::Type::MouseDown:
 							hit->MouseDown(event);
 							_mainWidget = hitWidget;
-							break;
+							return true;
 							
 						case Event::Type::MouseUp:
 							hit->MouseUp(event);
-							break;
+							return true;
 							
 						default:
 							break;
@@ -152,7 +148,11 @@ namespace RN
 					default:
 						break;
 				}
+				
+				return true;
 			}
+			
+			return false;
 		}
 		
 		void Server::Render(Renderer *renderer)

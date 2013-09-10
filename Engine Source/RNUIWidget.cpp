@@ -38,7 +38,7 @@ namespace RN
 			_dirtyLayout = true;
 			
 			_server         = nullptr;
-			_firstResponder = this;
+			_firstResponder = nullptr;
 			
 			_minimumSize = Vector2(0.0f, 0.0f);
 			_maximumSize = Vector2(FLT_MAX, FLT_MAX);
@@ -138,8 +138,6 @@ namespace RN
 		
 		bool Widget::MakeFirstResponder(Responder *responder)
 		{
-			printf("Asked to make %p first responder\n", responder);
-			
 			if(responder == _firstResponder)
 				return true;
 			
@@ -150,7 +148,7 @@ namespace RN
 					return false;
 				
 				_firstResponder->ResignFirstResponder();
-				_firstResponder = this;
+				_firstResponder = nullptr;
 			}
 			
 			if(responder)
