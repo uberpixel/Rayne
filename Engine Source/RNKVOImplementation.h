@@ -242,7 +242,7 @@ namespace RN
 		{ \
 			return _storage; \
 		} \
-		operator type() const \
+		operator const type& () const \
 		{ \
 			return _storage; \
 		} \
