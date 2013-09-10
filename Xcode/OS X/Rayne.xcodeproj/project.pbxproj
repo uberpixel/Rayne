@@ -218,6 +218,8 @@
 		E9DED6C017B383070087038D /* RNResource.h in Headers */ = {isa = PBXBuildFile; fileRef = E9DED6BE17B383070087038D /* RNResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E076D117B4D3BA00E54818 /* RNResourceCoordinator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E076CF17B4D3BA00E54818 /* RNResourceCoordinator.cpp */; };
 		E9E076D217B4D3BA00E54818 /* RNResourceCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E076D017B4D3BA00E54818 /* RNResourceCoordinator.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9E698FF17DF8B9500D30231 /* RNFormatter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E698FD17DF8B9500D30231 /* RNFormatter.cpp */; };
+		E9E6990017DF8B9500D30231 /* RNFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E698FE17DF8B9500D30231 /* RNFormatter.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E83F40172A4F7D0075559B /* RNUIFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E83F3E172A4F7D0075559B /* RNUIFont.cpp */; };
 		E9E83F41172A4F7D0075559B /* RNUIFont.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E83F3F172A4F7D0075559B /* RNUIFont.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E83F45172A4FD70075559B /* RNTextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */; };
@@ -499,6 +501,8 @@
 		E9DED6BE17B383070087038D /* RNResource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNResource.h; sourceTree = "<group>"; };
 		E9E076CF17B4D3BA00E54818 /* RNResourceCoordinator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNResourceCoordinator.cpp; sourceTree = "<group>"; };
 		E9E076D017B4D3BA00E54818 /* RNResourceCoordinator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNResourceCoordinator.h; sourceTree = "<group>"; };
+		E9E698FD17DF8B9500D30231 /* RNFormatter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNFormatter.cpp; sourceTree = "<group>"; };
+		E9E698FE17DF8B9500D30231 /* RNFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNFormatter.h; sourceTree = "<group>"; };
 		E9E83F3E172A4F7D0075559B /* RNUIFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIFont.cpp; sourceTree = "<group>"; };
 		E9E83F3F172A4F7D0075559B /* RNUIFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIFont.h; sourceTree = "<group>"; };
 		E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTextureAtlas.cpp; sourceTree = "<group>"; };
@@ -658,6 +662,8 @@
 				E9A872E71757627500E06C27 /* RNData.h */,
 				E9A872D817573D7100E06C27 /* RNDictionary.cpp */,
 				E9A872D917573D7100E06C27 /* RNDictionary.h */,
+				E9E698FD17DF8B9500D30231 /* RNFormatter.cpp */,
+				E9E698FE17DF8B9500D30231 /* RNFormatter.h */,
 				E945665F17D4990C00DEA632 /* RNIndexPath.cpp */,
 				E945666017D4990C00DEA632 /* RNIndexPath.h */,
 				E945665B17D4922200DEA632 /* RNIndexSet.cpp */,
@@ -1058,6 +1064,7 @@
 				E96C566F177E4FD8007FAF7C /* RNUITypesetter.h in Headers */,
 				E940FAC6178072FA00C69B88 /* RNIntervalTree.h in Headers */,
 				E940FAD0178084D100C69B88 /* RNAttributedString.h in Headers */,
+				E9E6990017DF8B9500D30231 /* RNFormatter.h in Headers */,
 				E95EEE491784CFDC00CDCA6E /* RNBasicString.h in Headers */,
 				E95EEE4D1784EFAC00CDCA6E /* RNASCIIString.h in Headers */,
 				E95EEE511784FC5E00CDCA6E /* RNException.h in Headers */,
@@ -1260,6 +1267,7 @@
 				E91C8CDD176023EC00E9E8F2 /* RNUIButton.cpp in Sources */,
 				E9AD2A7F17610E8F00BC3E8F /* RNUILabel.cpp in Sources */,
 				E96C5664177C8AC3007FAF7C /* RNRenderer32.cpp in Sources */,
+				E9E698FF17DF8B9500D30231 /* RNFormatter.cpp in Sources */,
 				E96C566E177E4FD8007FAF7C /* RNUITypesetter.cpp in Sources */,
 				E940FACF178084D100C69B88 /* RNAttributedString.cpp in Sources */,
 				E95EEE481784CFDC00CDCA6E /* RNBasicString.cpp in Sources */,

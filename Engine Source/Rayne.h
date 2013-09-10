@@ -23,6 +23,7 @@
 #include "RNIndexPath.h"
 #include "RNKVO.h"
 #include "RNKVOImplementation.h"
+#include "RNFormatter.h"
 
 #include "RNKernel.h"
 #include "RNApplication.h"
