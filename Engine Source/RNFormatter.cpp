@@ -34,7 +34,7 @@ namespace RN
 			case Number::Type::Int64:
 			{
 				int64 value = number->GetInt64Value();
-				return RNSTR("%ill", value);
+				return RNSTR("%lli", value);
 			}
 				
 			case Number::Type::Uint8:
@@ -43,7 +43,7 @@ namespace RN
 			case Number::Type::Uint64:
 			{
 				uint64 value = number->GetUint64Value();
-				return RNSTR("%ull", value);
+				return RNSTR("%llu", value);
 			}
 				
 			case Number::Type::Float32:
