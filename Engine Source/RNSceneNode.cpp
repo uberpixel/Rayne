@@ -81,13 +81,17 @@ namespace RN
 	void SceneNode::SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere)
 	{
 		_boundingBox = boundingBox;
+		
 		if(calculateBoundingSphere)
 			_boundingSphere = Sphere(_boundingBox);
+		
+		_updated = true;
 	}
 	
 	void SceneNode::SetBoundingSphere(const Sphere& boundingSphere)
 	{
 		_boundingSphere = boundingSphere;
+		_updated = true;
 	}
 	
 	void SceneNode::SetUpdatePriority(Priority priority)
