@@ -84,7 +84,7 @@ namespace RN
 		observable->SetValue(value);
 	}
 
-	Object *ObservableContainer::GetValueForKey(const std::string& key) const
+	Object *ObservableContainer::GetValueForKey(const std::string& key)
 	{
 		ObservableBase *observable = GetObservableForKey(key);
 		if(!observable)

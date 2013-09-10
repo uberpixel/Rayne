@@ -129,7 +129,7 @@ namespace RN
 		friend class ObservableBase;
 		virtual ~ObservableContainer();
 		
-		Object *GetValueForKey(const std::string& key) const;
+		Object *GetValueForKey(const std::string& key);
 		void SetValueForKey(const std::string& key, Object *value);
 		
 		

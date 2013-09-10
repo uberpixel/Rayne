@@ -120,6 +120,28 @@ namespace RN
 		}
 		
 		
+		void TextField::SetValueForUndefinedKey(const std::string& key, Object *value)
+		{
+			if(_formatter && key == "value")
+			{
+				SetValue(value);
+				return;
+			}
+			
+			Control::SetValueForUndefinedKey(key, value);
+		}
+		
+		Object *TextField::GetValueForUndefinedKey(const std::string& key)
+		{
+			if(_formatter && key == "value")
+			{
+				return GetValue();
+			}
+			
+			return Control::GetValueForUndefinedKey(key);
+		}
+		
+		
 		
 		bool TextField::TextEditorShouldReturn(TextEditor *editor)
 		{

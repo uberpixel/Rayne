@@ -52,6 +52,9 @@ namespace RN
 			void LayoutSubviews() override;
 			bool TextEditorShouldReturn(TextEditor *editor) override;
 			
+			void SetValueForUndefinedKey(const std::string& key, Object *value) override;
+			Object *GetValueForUndefinedKey(const std::string& key) override;
+			
 		private:
 			void Initialize();
 			
