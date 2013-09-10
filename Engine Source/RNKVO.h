@@ -69,8 +69,16 @@ namespace RN
 		Uint16,
 		Uint32,
 		Uint64,
+		
 		Float,
-		Double
+		Double,
+		
+		Vector2,
+		Vector3,
+		Vector4,
+		Color,
+		Matrix,
+		Quaternion
 	};
 	
 	class ObservableBase
