@@ -26,34 +26,43 @@ namespace RN
 
 #define __ObservableScalar(type, kvotype) \
 	template<> \
-	class __ObservableBase<type> : public ObservableVariable<type> \
+	class __ObservableBase<type> : public ObservableBase \
 	{ \
 	public: \
-		__ObservableBase(type *ptr, const char *name) : \
-			ObservableVariable(ptr, name, ObservableType::kvotype) \
-		{} \
+		typedef std::function<void (type)> SetterCallback; \
+		typedef std::function<type (void)> GetterCallback; \
+		__ObservableBase(const char *name, GetterCallback getter, SetterCallback setter) : \
+			ObservableBase(name, ObservableType::kvotype), \
+			_getter(getter), \
+			_setter(setter) \
+		{ \
+			SetWritable(static_cast<bool>(_setter)); \
+		} \
 		void SetValue(Object *value) override \
 		{ \
 			RN_ASSERT(value->IsKindOfClass(Number::MetaClass()), ""); \
 			Number *number = static_cast<Number *>(value); \
 			WillChangeValue(); \
-			*_value = number->Get##kvotype##Value(); \
+			_setter(number->Get##kvotype##Value()); \
 			DidChangeValue();  \
 		} \
 		Object *GetValue() const override \
 		{ \
-			return Number::With##kvotype (*_value); \
+			return Number::With##kvotype (_getter()); \
 		} \
+	protected: \
+		SetterCallback _setter; \
+		GetterCallback _getter; \
 	}; \
 	template<> \
 	class Observable<type> : public __ObservableBase<type> \
 	{ \
 	public: \
-		Observable(const char *name) : \
-			__ObservableBase(&_storage, name) \
+		Observable(const char *name, GetterCallback getter, SetterCallback setter = SetterCallback()) : \
+			__ObservableBase(name, getter, setter) \
 		{} \
-		Observable(const char *name, const type& initial) : \
-			__ObservableBase(&_storage, name), \
+		Observable(const char *name, const type& initial, GetterCallback getter, SetterCallback setter = SetterCallback()) : \
+			__ObservableBase(name, getter, setter), \
 			_storage(initial) \
 		{} \
 		bool operator == (const type& other) const \

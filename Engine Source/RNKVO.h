@@ -102,25 +102,6 @@ namespace RN
 		bool _writable;
 	};
 	
-	template<class T>
-	class ObservableVariable : public ObservableBase
-	{
-	public:
-	protected:
-		ObservableVariable(T *value, const char *name, ObservableType type) :
-			ObservableBase(name, type),
-			_value(value)
-		{
-			RN_ASSERT(value != nullptr, "Value mustn't be NULL!");
-		}
-		
-	protected:
-		T *_value;
-	};
-	
-	
-	
-	
 	class ObservableContainer
 	{
 	public:
@@ -148,7 +129,6 @@ namespace RN
 		ObservableContainer();
 		
 		void AddObservable(ObservableBase *core);
-		ObservableBase *AddObservable(void *ptr, const char *name, ObservableType type);
 		
 		virtual void SetValueForUndefinedKey(const std::string& key, Object *value);
 		virtual Object *GetValueForUndefinedKey(const std::string& key);

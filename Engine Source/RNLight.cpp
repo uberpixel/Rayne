@@ -17,9 +17,9 @@ namespace RN
 	
 	Light::Light(Type lighttype) :
 		_lightType(lighttype),
-		_intensity("intensity", 10.0f),
-		_range("range", 1.0f),
-		_angle("angle", 0.5f)
+		_intensity("intensity", 10.0f, std::bind(&Light::GetIntensity, this), std::bind(&Light::SetIntensity, this, std::placeholders::_1)),
+		_range("range", 10.0f, std::bind(&Light::GetRange, this), std::bind(&Light::SetRange, this, std::placeholders::_1)),
+		_angle("angle", 0.5f, std::bind(&Light::GetAngle, this), std::bind(&Light::SetAngle, this, std::placeholders::_1))
 	{
 		_color = Color(1.0f, 1.0f, 1.0f);
 

@@ -92,47 +92,7 @@ namespace RN
 		
 		return observable->GetValue();
 	}
-	
-	
-	
-	
-	
-	ObservableBase *ObservableContainer::AddObservable(void *ptr, const char *name, ObservableType type)
-	{
-		ObservableBase *base = nullptr;
-		
-#define TypeCase(kvotype, type) \
-		case ObservableType::kvotype: \
-			base = new __ObservableBase<type>(static_cast<type *>(ptr), name); \
-			break;
-		
-		switch(type)
-		{
-			TypeCase(Int8, int8)
-			TypeCase(Int16, int16)
-			TypeCase(Int32, int32)
-			TypeCase(Int64, int64)
-				
-			TypeCase(Uint8, uint8)
-			TypeCase(Uint16, uint16)
-			TypeCase(Uint32, uint32)
-			TypeCase(Uint64, uint64)
-				
-			TypeCase(Float, float)
-			TypeCase(Double, double)
-		}
-		
-#undef TypeCase
-		
-		if(base)
-		{
-			_createdObservers.push_back(base);
-			AddObservable(base);
-		}
-		
-		return base;
-	}
-	
+
 	void ObservableContainer::AddObservable(ObservableBase *core)
 	{
 		_lock.Lock();
