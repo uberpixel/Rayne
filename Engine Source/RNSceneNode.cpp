@@ -15,25 +15,22 @@ namespace RN
 	RNDeclareMeta(SceneNode)
 	
 	SceneNode::SceneNode() :
-		_scale(Vector3(1.0f))
+		_position("position", std::bind(&SceneNode::GetPosition, this), std::bind(&SceneNode::SetPosition, this, std::placeholders::_1)),
+		_scale("scale", Vector3(1.0), std::bind(&SceneNode::GetScale, this), std::bind(&SceneNode::SetScale, this, std::placeholders::_1))
 	{
 		Initialize();
 	}
 	
 	SceneNode::SceneNode(const Vector3& position) :
-		_position(position),
-		_scale(Vector3(1.0f))
+		SceneNode()
 	{
-		Initialize();
+		SetPosition(position);
 	}
 	
 	SceneNode::SceneNode(const Vector3& position, const Quaternion& rotation) :
-		_position(position),
-		_scale(Vector3(1.0f)),
-		_rotation(rotation),
-		_euler(rotation.GetEulerAngle())
+		SceneNode()
 	{
-		Initialize();
+		SetRotation(rotation);
 	}
 	
 	SceneNode::~SceneNode()
@@ -54,6 +51,9 @@ namespace RN
 		
 		if(World::GetSharedInstance())
 			World::GetSharedInstance()->AddSceneNode(this);
+		
+		AddObservable(&_position);
+		AddObservable(&_scale);
 	}
 	
 	void SceneNode::CleanUp()

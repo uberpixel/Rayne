@@ -13,7 +13,6 @@
 #include "RNColor.h"
 #include "RNSceneNode.h"
 #include "RNCamera.h"
-#include "RNKVOImplementation.h"
 
 #define kRNShadowCameraPriority 1000
 

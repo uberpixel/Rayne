@@ -17,6 +17,7 @@
 #include "RNArray.h"
 #include "RNAABB.h"
 #include "RNSphere.h"
+#include "RNKVOImplementation.h"
 
 namespace RN
 {
@@ -64,8 +65,8 @@ namespace RN
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
 		
-		const Vector3& GetPosition() const { return _position; }
-		const Vector3& GetScale() const { return _scale; }
+		const Vector3& GetPosition() const { return static_cast<const Vector3&>(_position); }
+		const Vector3& GetScale() const { return static_cast<const Vector3&>(_scale); }
 		const Vector3& GetEulerAngle() const { return _euler; }
 		const Quaternion& GetRotation() const { return _rotation; }
 		
@@ -133,10 +134,10 @@ namespace RN
 		void UpdatedToFrame(FrameID frame) { _lastFrame = frame; }
 		
 		
-		Vector3 _position;
-		Vector3 _scale;
+		Observable<Vector3> _position;
+		Observable<Vector3> _scale;
 		Quaternion _rotation;
-		Vector3 _euler;	//there has to be a way to fix this in the quaternion class somehow...
+		Vector3 _euler;
 		
 		AABB _boundingBox;
 		Sphere _boundingSphere;
