@@ -27,27 +27,23 @@ namespace RN
 		
 		
 		
-		bool Responder::CanBecomeFirstResponder() const
+		bool Responder::CanBecomeFirstResponder()
 		{
 			return false;
 		}
 		
-		bool Responder::CanResignFirstReponder() const
+		bool Responder::CanResignFirstReponder()
 		{
 			return true;
 		}
 		
 		
 		
-		bool Responder::BecomeFirstResponder()
-		{
-			return CanBecomeFirstResponder();
-		}
+		void Responder::BecomeFirstResponder()
+		{}
 		
-		bool Responder::ResignFirstResponder()
-		{
-			return CanResignFirstReponder();
-		}
+		void Responder::ResignFirstResponder()
+		{}
 		
 		
 		

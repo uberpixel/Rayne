@@ -22,11 +22,11 @@ namespace RN
 		public:
 			virtual Responder *NextResponder() const;
 			
-			virtual bool CanBecomeFirstResponder() const;
-			virtual bool CanResignFirstReponder() const;
+			virtual bool CanBecomeFirstResponder();
+			virtual bool CanResignFirstReponder();
 			
-			virtual bool BecomeFirstResponder();
-			virtual bool ResignFirstResponder();
+			virtual void BecomeFirstResponder();
+			virtual void ResignFirstResponder();
 			
 			virtual void MouseDown(Event *event);
 			virtual void MouseUp(Event *event);

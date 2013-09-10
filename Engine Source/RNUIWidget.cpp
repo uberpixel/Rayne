@@ -145,20 +145,22 @@ namespace RN
 			
 			if(_firstResponder && _firstResponder != this)
 			{
-				bool result = _firstResponder->ResignFirstResponder();
+				bool result = _firstResponder->CanResignFirstReponder();
 				if(!result)
 					return false;
 				
+				_firstResponder->ResignFirstResponder();
 				_firstResponder = this;
 			}
 			
 			if(responder)
 			{
-				bool result = responder->BecomeFirstResponder();
+				bool result = responder->CanBecomeFirstResponder();
 				if(!result)
 					return false;
 				
 				_firstResponder = responder;
+				_firstResponder->BecomeFirstResponder();
 			}
 			
 			return true;
