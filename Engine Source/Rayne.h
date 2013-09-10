@@ -18,6 +18,7 @@
 #include "RNDictionary.h"
 #include "RNData.h"
 #include "RNNumber.h"
+#include "RNValue.h"
 #include "RNJSONSerialization.h"
 #include "RNIndexSet.h"
 #include "RNIndexPath.h"
