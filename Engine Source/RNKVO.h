@@ -125,7 +125,7 @@ namespace RN
 		template<class Function, class Receiver>
 		void AddObserver(const std::string& key, Function&& function, Receiver receiver, void *cookie)
 		{
-			AddObserver(key, std::bind(function, receiver, std::placeholders::_1), cookie);
+			AddObserver(key, std::bind(function, receiver, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), cookie);
 		}
 		
 		void AddObserver(const std::string& key, CallbackType callback, void *cookie);
