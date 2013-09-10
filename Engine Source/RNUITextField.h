@@ -20,6 +20,16 @@ namespace RN
 {
 	namespace UI
 	{
+		class TextField;
+		class TextFieldDelegate
+		{
+		public:
+			virtual bool TextFieldShouldBeginEditing(TextField *textField) { return true; }
+			virtual void TextFieldDidBeginEditing(TextField *textField) {}
+			virtual bool TextFieldShouldEndEditing(TextField *textField) { return true; }
+			virtual void TextFieldDidEndEditing(TextField *textField) {}
+		};
+		
 		class TextField : public Control, TextEditorDelegate
 		{
 		public:
@@ -46,7 +56,9 @@ namespace RN
 			void KeyDown(Event *event) override;
 			void KeyRepeat(Event *event) override;
 			
-			bool CanBecomeFirstResponder() const override;
+			bool CanBecomeFirstResponder() override;
+			void BecomeFirstResponder() override;
+			void ResignFirstResponder() override;
 			
 		protected:
 			void LayoutSubviews() override;
@@ -58,6 +70,7 @@ namespace RN
 		private:
 			void Initialize();
 			
+			TextFieldDelegate *_delegate;
 			ImageView *_background;
 			TextEditor *_editor;
 			Formatter *_formatter;

@@ -78,6 +78,7 @@ namespace RN
 			_editor->SetDelegate(this);
 			
 			_formatter = nullptr;
+			_delegate = nullptr;
 			
 			AddSubview(_background);
 			AddSubview(_editor);
@@ -145,6 +146,9 @@ namespace RN
 		
 		bool TextField::TextEditorShouldReturn(TextEditor *editor)
 		{
+			if(_delegate && !_delegate->TextFieldShouldEndEditing(this))
+				return false;
+			
 			try
 			{
 				Object *temp = _formatter->GetObjectForString(_editor->GetText());
@@ -156,10 +160,30 @@ namespace RN
 			}
 		}
 		
-		bool TextField::CanBecomeFirstResponder() const
+		bool TextField::CanBecomeFirstResponder()
 		{
+			if(_delegate)
+				return _delegate->TextFieldShouldBeginEditing(this);
+				
 			return true;
 		}
+		
+		void TextField::BecomeFirstResponder()
+		{
+			Control::BecomeFirstResponder();
+			
+			if(_delegate)
+				_delegate->TextFieldDidBeginEditing(this);
+		}
+		
+		void TextField::ResignFirstResponder()
+		{
+			Control::ResignFirstResponder();
+			
+			if(_delegate)
+				_delegate->TextFieldDidEndEditing(this);
+		}
+		
 		
 		
 		void TextField::KeyDown(Event *event)
