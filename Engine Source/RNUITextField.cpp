@@ -88,6 +88,11 @@ namespace RN
 		
 		
 		
+		void TextField::SetDelegate(TextFieldDelegate *delegate)
+		{
+			_delegate = delegate;
+		}
+		
 		void TextField::SetText(String *text)
 		{
 			_editor->SetText(text);
@@ -152,12 +157,16 @@ namespace RN
 			try
 			{
 				Object *temp = _formatter->GetObjectForString(_editor->GetText());
-				return (temp != nullptr);
+				if(temp)
+				{
+					SetValue(temp);
+					return true;
+				}
 			}
 			catch(Exception e)
-			{
-				return false;
-			}
+			{}
+			
+			return false;
 		}
 		
 		bool TextField::CanBecomeFirstResponder()

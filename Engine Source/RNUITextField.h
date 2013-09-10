@@ -48,6 +48,7 @@ namespace RN
 			void SetAttributedText(AttributedString *string);
 			void SetFormatter(Formatter *formatter);
 			void SetValue(Object *value);
+			void SetDelegate(TextFieldDelegate *delegate);
 			
 			String *GetText() const { return _editor->GetText(); }
 			AttributedString *GetAttributedText() const { return _editor->GetAttributedText(); }

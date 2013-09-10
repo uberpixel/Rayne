@@ -76,7 +76,7 @@ namespace RN
 			_typesetter->SetText(_string);
 			
 			_isDirty = true;
-			_selection = Range(0, 0);
+			_selection = Range(_string->GetLength(), 0);
 		}
 		
 		
@@ -93,6 +93,9 @@ namespace RN
 			}
 			else
 			{
+				if(_selection.origin == 0)
+					return;
+				
 				_selection.origin --;
 				_selection.length = 1;
 				
@@ -134,8 +137,11 @@ namespace RN
 							character[0] = event->GetCharacter();
 							character[1] = '\0';
 							
-							String *string = RNCSTR(character);
-							InsertString(string);
+							if(isalnum(character[0]))
+							{
+								String *string = RNCSTR(character);
+								InsertString(string);
+							}
 							break;
 						}
 					}
