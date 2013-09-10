@@ -363,7 +363,9 @@ namespace RN
 			for(size_t i = 0; i < lightCount; i++)
 			{
 				_lightPointPosition.emplace_back(Vector4(_pointLights[i]->GetPosition(), _pointLights[i]->GetRange()));
-				_lightPointColor.emplace_back(Vector4(_pointLights[i]->GetColor().r, _pointLights[i]->GetColor().g, _pointLights[i]->GetColor().b, 0.0f));
+				
+				const Vector3& color = _pointLights[i]->GetResultColor();
+				_lightPointColor.emplace_back(Vector4(color, 0.0f));
 			}
 		}
 		
@@ -430,7 +432,17 @@ namespace RN
 		}
 		else
 		{
-			return 0;
+			lightCount = _spotLights.size();
+			for(size_t i = 0; i < lightCount; i++)
+			{
+				_lightSpotPosition.emplace_back(Vector4(_spotLights[i]->GetPosition(), _spotLights[i]->GetRange()));
+				
+				const Vector3& color = _spotLights[i]->GetResultColor();
+				_lightSpotColor.emplace_back(Vector4(color, 0.0f));
+				
+				const Vector3& direction = _spotLights[i]->Forward();
+				_lightSpotDirection.emplace_back(Vector4(direction, _spotLights[i]->GetAngle()));
+			}
 		}
 		
 		return static_cast<int>(lightCount);
