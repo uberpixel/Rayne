@@ -103,6 +103,7 @@ namespace RN
 	}
 	
 	
+	
 	std::vector<ObservableContainer::Observer *>& ObservableContainer::GetObserversForKey(const std::string& key)
 	{
 		auto iterator = _observerMap.find(key);
@@ -121,11 +122,11 @@ namespace RN
 	{
 		_lock.Lock();
 		
-		_observer.emplace_back(Observer(key, callback, cookie));
-		Observer& observer = _observer.back();
+		Observer *observer = new Observer(key, callback, cookie);
+		_observer.push_back(observer);
 		
 		std::vector<Observer *>& vector = GetObserversForKey(key);
-		vector.push_back(&observer);
+		vector.push_back(observer);
 		
 		_lock.Unlock();
 	}
@@ -148,7 +149,9 @@ namespace RN
 		
 		for(auto i = _observer.begin(); i != _observer.end();)
 		{
-			if(i->cookie == cookie && i->key == key)
+			Observer *observer = *i;
+			
+			if(observer->cookie == cookie && observer->key == key)
 			{
 				i = _observer.erase(i);
 				continue;
@@ -185,7 +188,7 @@ namespace RN
 	{
 		LockGuard<SpinLock> lock(_lock);
 		
-		if(_createdObservers.empty())
+		if(_observer.empty())
 			return;
 		
 		std::vector<Observer *> observers = GetObserversForKey(core->_name);

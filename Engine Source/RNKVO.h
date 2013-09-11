@@ -172,7 +172,7 @@ namespace RN
 		std::vector<ObservableBase *> _createdObservers;
 		std::vector<ObservableBase *> _observerPool;
 		
-		std::vector<Observer> _observer;
+		std::vector<Observer *> _observer;
 		std::unordered_map<std::string, std::vector<Observer *>> _observerMap;
 	};
 }
