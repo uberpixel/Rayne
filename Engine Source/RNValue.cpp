@@ -50,6 +50,12 @@ namespace RN
 		return value->Autorelease();
 	}
 	
+	Value *Value::WithColor(const Color& color)
+	{
+		Value *value = new Value(&color, sizeof(Color), typeid(Color));
+		return value->Autorelease();
+	}
+	
 	
 	void Value::GetValue(void *ptr) const
 	{

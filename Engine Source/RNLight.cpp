@@ -17,18 +17,18 @@ namespace RN
 	
 	Light::Light(Type lighttype) :
 		_lightType(lighttype),
+		_color("color", Color(1.0f), std::bind(&Light::GetColor, this), std::bind(&Light::SetColor, this, std::placeholders::_1)),
 		_intensity("intensity", 10.0f, std::bind(&Light::GetIntensity, this), std::bind(&Light::SetIntensity, this, std::placeholders::_1)),
 		_range("range", 10.0f, std::bind(&Light::GetRange, this), std::bind(&Light::SetRange, this, std::placeholders::_1)),
 		_angle("angle", 0.5f, std::bind(&Light::GetAngle, this), std::bind(&Light::SetAngle, this, std::placeholders::_1))
 	{
-		_color = Color(1.0f, 1.0f, 1.0f);
-
 		_shadow = false;
 		_shadowcam = nullptr;
 		_lightcam  = nullptr;
 		
 		collisionGroup = 25;
 		
+		AddObservable(&_color);
 		AddObservable(&_intensity);
 		AddObservable(&_range);
 		AddObservable(&_angle);
@@ -66,7 +66,7 @@ namespace RN
 		SetBoundingBox(AABB(Vector3(), range), false);
 	}
 	
-	void Light::SetColor(const class Color& color)
+	void Light::SetColor(const Color& color)
 	{
 		_color = color;
 		ReCalculateColor();
@@ -222,7 +222,7 @@ namespace RN
 
 	void Light::ReCalculateColor()
 	{
-		_resultColor = Vector3(_color.r, _color.g, _color.b);
+		_resultColor = Vector3((*_color).r, (*_color).g, (*_color).b);
 		_resultColor *= (float)_intensity;
 	}
 }

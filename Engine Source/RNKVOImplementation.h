@@ -246,10 +246,14 @@ namespace RN
 		{ \
 			return _storage; \
 		} \
-		type& operator ->() \
+		type& operator *() \
 		{ \
 			return _storage; \
 		} \
+const type& operator *() const \
+{ \
+	return _storage; \
+} \
 		\
 		type& operator= (const type& other) \
 		{ \
@@ -341,6 +345,10 @@ namespace RN
 	
 	__ObservableValueBegin(Vector4)
 	__ObservableValueBasicArithmetic(Vector4)
+	__ObservableValueEnd()
+	
+	__ObservableValueBegin(Color)
+	__ObservableValueBasicArithmetic(Color)
 	__ObservableValueEnd()
 }
 

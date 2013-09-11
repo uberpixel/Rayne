@@ -13,6 +13,7 @@
 #include "RNObject.h"
 
 #include "RNVector.h"
+#include "RNColor.h"
 
 namespace RN
 {
@@ -26,6 +27,8 @@ namespace RN
 		static Value *WithVector2(const Vector2& vector);
 		static Value *WithVector3(const Vector3& vector);
 		static Value *WithVector4(const Vector4& vector);
+		
+		static Value *WithColor(const Color& color);
 		
 		void GetValue(void *ptr) const;
 		void *GetPointerValue() const;

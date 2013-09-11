@@ -67,7 +67,8 @@ namespace RN
 		void ReCalculateColor();
 		
 		Type _lightType;
-		Color _color;
+		
+		Observable<Color> _color;
 		Vector3 _resultColor;
 		Vector3 _direction;
 		
