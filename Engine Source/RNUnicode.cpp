@@ -84,6 +84,14 @@ namespace RN
 		}
 	}
 	
+	bool CodePoint::IsPrintable() const
+	{
+		if(_codePoint >= 0x20 && _codePoint <= 0x7e)
+			return true;
+		
+		return false;
+	}
+	
 	UniChar CodePoint::GetLowerCase() const
 	{
 		if(_codePoint <= 0x7f)

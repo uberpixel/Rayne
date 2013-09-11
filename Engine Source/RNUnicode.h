@@ -32,6 +32,7 @@ namespace RN
 		
 		bool IsNewline() const;
 		bool IsWhitespace() const;
+		bool IsPrintable() const;
 		
 		UniChar GetUpperCase() const;
 		UniChar GetLowerCase() const;

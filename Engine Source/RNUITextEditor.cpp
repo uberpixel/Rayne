@@ -132,13 +132,13 @@ namespace RN
 							
 						default:
 						{
-							char character[2];
-							
-							character[0] = event->GetCharacter();
-							character[1] = '\0';
-							
-							if(isalnum(character[0]))
+							if(CodePoint(event->GetCode()).IsPrintable())
 							{
+								char character[2];
+								
+								character[0] = event->GetCharacter();
+								character[1] = '\0';
+								
 								String *string = RNCSTR(character);
 								InsertString(string);
 							}
