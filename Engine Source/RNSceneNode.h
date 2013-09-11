@@ -278,7 +278,7 @@ namespace RN
 			return;
 		}
 		
-		_rotation = rot / GetWorldRotation();
+		_rotation = rot / _parent->GetWorldRotation();
 		_euler = _rotation.GetEulerAngle();
 		
 		DidUpdate();
