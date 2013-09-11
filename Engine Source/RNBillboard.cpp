@@ -122,4 +122,22 @@ namespace RN
 
 		renderer->RenderObject(object);
 	}
+	
+	Hit Billboard::CastRay(const Vector3 &position, const Vector3 &direction)
+	{
+		Hit hit;
+		
+		if(_mesh == 0)
+			return hit;
+		
+		Matrix matModelInv = GetWorldTransform().GetInverse();
+		
+		Vector3 temppos = matModelInv.Transform(position);
+		Vector4 tempdir = matModelInv.Transform(Vector4(direction, 0.0f));
+		
+		hit = _mesh->IntersectsRay(temppos, Vector3(tempdir));
+		hit.node = this;
+		
+		return hit;
+	}
 }

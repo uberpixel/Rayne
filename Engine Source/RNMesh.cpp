@@ -1004,33 +1004,71 @@ namespace RN
 	
 	Hit Mesh::IntersectsRay(const Vector3 &position, const Vector3 &direction)
 	{
-		Hit hit;
-		
 		MeshDescriptor *posdescriptor = GetDescriptor(kMeshFeatureVertices);
 		MeshDescriptor *inddescriptor = GetDescriptor(kMeshFeatureIndices);
 		
-		bool is3D = (posdescriptor->elementMember == 3);
-		if(!is3D)
-			return hit;
-		
-		uint8 *pospointer = _meshData + posdescriptor->offset;
-		uint8 *indpointer = _indices + inddescriptor->offset;
-			
-		for(size_t i=0; i < inddescriptor->elementCount; i += 3)
+		switch(posdescriptor->elementMember)
 		{
-			uint16 *index = reinterpret_cast<uint16*>(indpointer+i*inddescriptor->elementSize);
-			Vector3 *vertex = reinterpret_cast<Vector3 *>(pospointer+_stride*(*index));
-			Vector3 vert1 = *vertex;
+			case 2:
+				if(inddescriptor)
+					return IntersectsRay2DWithIndices(posdescriptor, inddescriptor, position, direction);
+				else
+					return IntersectsRay2DWithoutIndices(posdescriptor, position, direction);
+				
+			case 3:
+				if(inddescriptor)
+					return IntersectsRay3DWithIndices(posdescriptor, inddescriptor, position, direction);
+				else
+					return IntersectsRay3DWithoutIndices(posdescriptor, position, direction);
+		}
+		
+		Hit hit;
+		return hit;
+	}
+	
+	Hit Mesh::IntersectsRay3DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction)
+	{
+		Hit hit;
+		
+		uint8 *pospointer = _meshData + positionDescriptor->offset;
+		uint8 *indpointer = _indices + indicesDescriptor->offset;
+		
+		for(size_t i = 0; i < indicesDescriptor->elementCount; i += 3)
+		{
+			Vector3 *vertex1;
+			Vector3 *vertex2;
+			Vector3 *vertex3;
 			
-			index = reinterpret_cast<uint16*>(indpointer+(i+1)*inddescriptor->elementSize);
-			vertex = reinterpret_cast<Vector3 *>(pospointer+_stride*(*index));
-			Vector3 vert2 = *vertex;
+			switch(indicesDescriptor->elementSize)
+			{
+				case 1:
+					vertex1 = reinterpret_cast<Vector3 *>(pospointer + _stride * (*indpointer ++));
+					vertex2 = reinterpret_cast<Vector3 *>(pospointer + _stride * (*indpointer ++));
+					vertex3 = reinterpret_cast<Vector3 *>(pospointer + _stride * (*indpointer ++));
+					break;
+					
+				case 2:
+				{
+					uint16 *index = reinterpret_cast<uint16 *>(indpointer + i * indicesDescriptor->elementSize);
+					
+					vertex1 = reinterpret_cast<Vector3 *>(pospointer + _stride * (*index ++));
+					vertex2 = reinterpret_cast<Vector3 *>(pospointer + _stride * (*index ++));
+					vertex3 = reinterpret_cast<Vector3 *>(pospointer + _stride * (*index ++));
+					break;
+				}
+					
+				case 4:
+				{
+					uint32 *index = reinterpret_cast<uint32 *>(indpointer + i * indicesDescriptor->elementSize);
+					
+					vertex1 = reinterpret_cast<Vector3 *>(pospointer + _stride * (*index ++));
+					vertex2 = reinterpret_cast<Vector3 *>(pospointer + _stride * (*index ++));
+					vertex3 = reinterpret_cast<Vector3 *>(pospointer + _stride * (*index ++));
+					break;
+				}
+			}
 			
-			index = reinterpret_cast<uint16*>(indpointer+(i+2)*inddescriptor->elementSize);
-			vertex = reinterpret_cast<Vector3 *>(pospointer+_stride*(*index));
-			Vector3 vert3 = *vertex;
-			
-			float result = RayTriangleIntersection(position, direction, vert1, vert2, vert3);
+			float result = RayTriangleIntersection(position, direction, *vertex1, *vertex2, *vertex3);
 			
 			if(result >= 0.0f)
 			{
@@ -1038,7 +1076,7 @@ namespace RN
 				{
 					hit.distance = result;
 				}
-			
+				
 				if(result < hit.distance)
 				{
 					hit.distance = result;
@@ -1050,4 +1088,144 @@ namespace RN
 		
 		return hit;
 	}
+
+	
+	Hit Mesh::IntersectsRay2DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction)
+	{
+		Hit hit;
+		
+		uint8 *pospointer = _meshData + positionDescriptor->offset;
+		uint8 *indpointer = _indices + indicesDescriptor->offset;
+		
+		for(size_t i = 0; i < indicesDescriptor->elementCount; i += 3)
+		{
+			Vector2 *vertex1;
+			Vector2 *vertex2;
+			Vector2 *vertex3;
+			
+			switch(indicesDescriptor->elementSize)
+			{
+				case 1:
+					vertex1 = reinterpret_cast<Vector2 *>(pospointer + _stride * (*indpointer ++));
+					vertex2 = reinterpret_cast<Vector2 *>(pospointer + _stride * (*indpointer ++));
+					vertex3 = reinterpret_cast<Vector2 *>(pospointer + _stride * (*indpointer ++));
+					break;
+					
+				case 2:
+				{
+					uint16 *index = reinterpret_cast<uint16 *>(indpointer + i * indicesDescriptor->elementSize);
+					
+					vertex1 = reinterpret_cast<Vector2 *>(pospointer + _stride * (*index ++));
+					vertex2 = reinterpret_cast<Vector2 *>(pospointer + _stride * (*index ++));
+					vertex3 = reinterpret_cast<Vector2 *>(pospointer + _stride * (*index ++));
+					break;
+				}
+					
+				case 4:
+				{
+					uint32 *index = reinterpret_cast<uint32 *>(indpointer + i * indicesDescriptor->elementSize);
+					
+					vertex1 = reinterpret_cast<Vector2 *>(pospointer + _stride * (*index ++));
+					vertex2 = reinterpret_cast<Vector2 *>(pospointer + _stride * (*index ++));
+					vertex3 = reinterpret_cast<Vector2 *>(pospointer + _stride * (*index ++));
+					break;
+				}
+			}
+			
+			float result = RayTriangleIntersection(position, direction, Vector3(*vertex1, 0.0f), Vector3(*vertex2, 0.0f), Vector3(*vertex3, 0.0f));
+			
+			if(result >= 0.0f)
+			{
+				if(hit.distance < 0.0f)
+				{
+					hit.distance = result;
+				}
+				
+				if(result < hit.distance)
+				{
+					hit.distance = result;
+				}
+			}
+		}
+		
+		hit.position = position+direction*hit.distance;
+		
+		return hit;
+	}
+	
+	Hit Mesh::IntersectsRay3DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction)
+	{
+		Hit hit;
+		
+		uint8 *pospointer = _meshData + positionDescriptor->offset;
+		
+		for(size_t i = 0; i < positionDescriptor->elementCount; i += 3)
+		{
+			Vector3 *vertex1;
+			Vector3 *vertex2;
+			Vector3 *vertex3;
+			
+			vertex1 = reinterpret_cast<Vector3 *>(pospointer + _stride * i);
+			vertex2 = reinterpret_cast<Vector3 *>(pospointer + _stride * (i+1));
+			vertex3 = reinterpret_cast<Vector3 *>(pospointer + _stride * (i+2));
+			
+			float result = RayTriangleIntersection(position, direction, *vertex1, *vertex2, *vertex3);
+			
+			if(result >= 0.0f)
+			{
+				if(hit.distance < 0.0f)
+				{
+					hit.distance = result;
+				}
+				
+				if(result < hit.distance)
+				{
+					hit.distance = result;
+				}
+			}
+		}
+		
+		hit.position = position+direction*hit.distance;
+		
+		return hit;
+	}
+	
+	
+	Hit Mesh::IntersectsRay2DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction)
+	{
+		Hit hit;
+		
+		uint8 *pospointer = _meshData + positionDescriptor->offset;
+		
+		for(size_t i = 0; i < positionDescriptor->elementCount; i += 3)
+		{
+			Vector2 *vertex1;
+			Vector2 *vertex2;
+			Vector2 *vertex3;
+			
+			vertex1 = reinterpret_cast<Vector2 *>(pospointer + _stride * i);
+			vertex2 = reinterpret_cast<Vector2 *>(pospointer + _stride * (i+1));
+			vertex3 = reinterpret_cast<Vector2 *>(pospointer + _stride * (i+2));
+			
+			float result = RayTriangleIntersection(position, direction, Vector3(*vertex1, 0.0f), Vector3(*vertex2, 0.0f), Vector3(*vertex3, 0.0f));
+			
+			if(result >= 0.0f)
+			{
+				if(hit.distance < 0.0f)
+				{
+					hit.distance = result;
+				}
+				
+				if(result < hit.distance)
+				{
+					hit.distance = result;
+				}
+			}
+		}
+		
+		hit.position = position+direction*hit.distance;
+		
+		return hit;
+	}
+
 }

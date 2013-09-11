@@ -24,8 +24,8 @@ namespace RN
 		~Billboard() override;
 		
 		void SetTexture(Texture *texture);
-		
 		void Render(Renderer *renderer, Camera *camera) override;
+		Hit CastRay(const Vector3 &position, const Vector3 &direction);
 		
 		Material *GetMaterial() const { return _material; }
 		

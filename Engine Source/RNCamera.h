@@ -245,6 +245,8 @@ namespace RN
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
+		RNAPI virtual Hit CastRay(const Vector3 &position, const Vector3 &direction) {return Hit();}
+		
 		const Vector3& GetFrustumCenter() const { return _frustumCenter; }
 		float const GetFrustumRadius() const { return _frustumRadius; }
 		

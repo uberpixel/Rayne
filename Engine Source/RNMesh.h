@@ -142,6 +142,10 @@ namespace RN
 		void AllocateStorage();
 		void RecalculateInternalData();
 		
+		Hit IntersectsRay3DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction);
+		Hit IntersectsRay2DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction);
+		Hit IntersectsRay3DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction);
+		Hit IntersectsRay2DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction);
 		float RayTriangleIntersection(const Vector3 &pos, const Vector3 &dir, const Vector3 &vert1, const Vector3 &vert2, const Vector3 &vert3);
 		
 		void *FetchElement(MeshFeature feature, size_t index);
