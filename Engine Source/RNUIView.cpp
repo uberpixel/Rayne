@@ -404,7 +404,7 @@ namespace RN
 		
 		void View::SetFrame(const Rect& frame)
 		{
-			_frame = frame;
+			_frame = frame.Integral();
 			
 			_bounds.width  = frame.width;
 			_bounds.height = frame.height;
