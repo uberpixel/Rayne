@@ -330,6 +330,7 @@ namespace RN
 						range.length ++;
 						break;
 						
+					case LineBreakMode::None:
 					case LineBreakMode::TruncateHead:
 					case LineBreakMode::TruncateMiddle:
 					case LineBreakMode::TruncateTail:

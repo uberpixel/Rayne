@@ -18,6 +18,7 @@ namespace RN
 	{
 		enum class LineBreakMode
 		{
+			None,
 			WordWrapping,
 			CharacterWrapping,
 			TruncateHead,
