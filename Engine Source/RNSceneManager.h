@@ -54,7 +54,8 @@ namespace RN
 	private:
 		void RenderSceneNode(Camera *camera, SceneNode *node);
 		
-		std::unordered_set<SceneNode *> _nodes;
+		std::vector<SceneNode *> _nodes;
+		std::unordered_set<SceneNode *> _rootNodes;
 		
 		RNDefineMetaWithTraits(GenericSceneManager, SceneManager, MetaClassTraitCronstructable);
 	};

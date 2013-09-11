@@ -41,7 +41,8 @@ namespace RN
 		enum
 		{
 			FlagDrawLate = (1 << 0),
-			FlagStatic   = (1 << 1)
+			FlagStatic   = (1 << 1),
+			FlagHidden   = (1 << 2)
 		};
 		
 		typedef uint32 Flags;

@@ -35,24 +35,60 @@ namespace RN
 	void GenericSceneManager::AddSceneNode(SceneNode *node)
 	{
 		Lock();
-		_nodes.insert(node);
+		
+		if(!node->GetParent())
+		{
+			_nodes.push_back(node);
+			_rootNodes.insert(node);
+		}
+		
 		Unlock();
 	}
 	
 	void GenericSceneManager::RemoveSceneNode(SceneNode *node)
 	{
 		Lock();
-		_nodes.erase(node);
+		
+		if(_rootNodes.find(node) != _rootNodes.end())
+		{
+			_nodes.erase(std::remove(_nodes.begin(), _nodes.end(), node), _nodes.end());
+			_rootNodes.erase(node);
+		}
+		
 		Unlock();
 	}
 	
 	void GenericSceneManager::UpdateSceneNode(SceneNode *node)
-	{}
-	
+	{
+		Lock();
+		
+		bool hasParent = (node->GetParent());
+		bool markedRoot = (_rootNodes.find(node) != _rootNodes.end());
+		
+		if((!hasParent && markedRoot) || (hasParent && !markedRoot))
+		{
+			Unlock();
+			return;
+		}
+		
+		if(hasParent)
+		{
+			_nodes.erase(std::remove(_nodes.begin(), _nodes.end(), node), _nodes.end());
+			_rootNodes.erase(node);
+		}
+		else
+		{
+			_rootNodes.insert(node);
+			_nodes.push_back(node);
+		}
+		
+		Unlock();
+	}
+
 	
 	void GenericSceneManager::RenderSceneNode(Camera *camera, SceneNode *node)
 	{
-		if(!(camera->renderGroup & (1 << node->renderGroup)))
+		if(!(camera->renderGroup & (1 << node->renderGroup)) || node->GetFlags() & SceneNode::FlagHidden)
 			return;
 		
 		if(node->IsVisibleInCamera(camera))
@@ -61,7 +97,7 @@ namespace RN
 			
 			size_t childs = node->GetChildCount();
 			
-			for(size_t i=0; i<childs; i++)
+			for(size_t i = 0; i < childs; i++)
 			{
 				SceneNode *child = node->GetChildAtIndex(i);
 				RenderSceneNode(camera, child);
@@ -71,13 +107,10 @@ namespace RN
 
 	void GenericSceneManager::RenderScene(Camera *camera)
 	{
-		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
+		for(size_t i = 0; i < _nodes.size(); i ++)
 		{
-			SceneNode *node = *i;
-			if(!node->GetParent())
-			{
-				RenderSceneNode(camera, node);
-			}
+			SceneNode *node = _nodes[i];
+			RenderSceneNode(camera, node);
 		}
 	}
 	
