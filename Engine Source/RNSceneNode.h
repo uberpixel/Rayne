@@ -97,6 +97,7 @@ namespace RN
 		
 		const std::string& GetDebugName() { return _debugName; }
 		
+		RNAPI void LookAt(SceneNode *other);
 		RNAPI void AttachChild(SceneNode *child);
 		RNAPI void DetachChild(SceneNode *child);
 		RNAPI void DetachAllChilds();

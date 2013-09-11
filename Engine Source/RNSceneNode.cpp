@@ -112,6 +112,17 @@ namespace RN
 	}
 	
 	
+	void SceneNode::LookAt(SceneNode *other)
+	{
+		const RN::Vector3& worldPos = GetWorldPosition();
+		const RN::Vector3& point = other->GetWorldPosition();
+		
+		RN::Quaternion rotation;
+		rotation.LookAt(worldPos - point);
+		
+		SetWorldRotation(rotation);
+	}
+	
 	void SceneNode::AttachChild(SceneNode *child)
 	{
 		child->DetachFromParent();
