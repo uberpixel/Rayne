@@ -19,6 +19,7 @@
 #include "RNInput.h"
 #include "RNUIWidget.h"
 #include "RNUIResponder.h"
+#include "RNUIGeometry.h"
 
 namespace RN
 {
@@ -48,6 +49,7 @@ namespace RN
 			void SetBackgroundColor(const RN::Color& color);
 			void SetInteractionEnabled(bool enabled);
 			void SetClipSubviews(bool clipping);
+			void SetClipInsets(const EdgeInsets& insets);
 			void SetHidden(bool hidden);
 			
 			void AddSubview(View *subview);
@@ -116,6 +118,7 @@ namespace RN
 			
 			Rect _frame;
 			Rect _bounds;
+			EdgeInsets _clipInsets;
 			
 			Rect _scissorRect;
 			

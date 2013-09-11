@@ -286,6 +286,12 @@ namespace RN
 			SetNeedsLayoutUpdate();
 		}
 		
+		void View::SetClipInsets(const EdgeInsets& insets)
+		{
+			_clipInsets = insets;
+			SetNeedsLayoutUpdate();
+		}
+		
 		void View::ViewHierarchyChanged()
 		{
 			size_t count = _subviews.GetCount();
@@ -473,6 +479,12 @@ namespace RN
 			_scissorRect.y = serverHeight - _frame.height - origin.y;
 			_scissorRect.width  = _frame.width;
 			_scissorRect.height = _frame.height;
+			
+			_scissorRect.x += _clipInsets.left;
+			_scissorRect.width -= _clipInsets.left + _clipInsets.right;
+			
+			_scissorRect.y += _clipInsets.bottom;
+			_scissorRect.height -= _clipInsets.bottom + _clipInsets.top;
 			
 			if(_clippingView)
 			{
