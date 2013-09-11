@@ -44,6 +44,7 @@ namespace RN
 			String *GetText() const { return _string->GetString(); }
 			Dictionary *GetTypingAttributes() const { return _typingAttributes; }
 			AttributedString *GetAttributedText() const { return _string; }
+			Typesetter *GetTypesetter() const { return _typesetter; }
 			
 		protected:
 			void Draw(Renderer *renderer) override;

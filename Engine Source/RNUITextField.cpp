@@ -24,6 +24,7 @@ namespace RN
 			Style *styleSheet = Style::GetSharedInstance();
 			Dictionary *background = style->GetObjectForKey<Dictionary>(RNCSTR("background"));
 			Dictionary *insets = style->GetObjectForKey<Dictionary>(RNCSTR("contentInsets"));
+			Dictionary *clipInsets = style->GetObjectForKey<Dictionary>(RNCSTR("clipInsets"));
 			
 			if(background)
 			{
@@ -41,6 +42,7 @@ namespace RN
 			}
 			
 			_contentInsets = Style::ParseEdgeInsets(insets);
+			_background->SetClipInsets(Style::ParseEdgeInsets(clipInsets));
 		}
 		
 		TextField::~TextField()
@@ -76,14 +78,15 @@ namespace RN
 			_background = new ImageView();
 			_editor = new TextEditor();
 			_editor->SetDelegate(this);
+			_editor->GetTypesetter()->SetLineBreak(LineBreakMode::None);
 			
 			_formatter = nullptr;
 			_delegate = nullptr;
 			
 			AddSubview(_background);
-			AddSubview(_editor);
 			
-			SetClipSubviews(true);
+			_background->AddSubview(_editor);
+			_background->SetClipSubviews(true);
 		}
 		
 		
@@ -210,8 +213,8 @@ namespace RN
 			Control::LayoutSubviews();
 			
 			Rect frame = Frame();
-			Rect editorRect = Rect(_contentInsets.left, _contentInsets.top, frame.width - _contentInsets.right, frame.height - _contentInsets.bottom);
-			
+			Rect editorRect = Rect(Vector2(_contentInsets.left, _contentInsets.top), _editor->GetTypesetter()->Dimensions());
+
 			_background->SetFrame(Rect(0.0f, 0.0f, frame.width, frame.height));
 			_editor->SetFrame(editorRect);
 		}
