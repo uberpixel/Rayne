@@ -40,6 +40,10 @@ namespace RN
 		
 		_lock.Lock();
 		
+		std::vector<MessageObserverProxy> observer = _observer;
+		
+		_lock.Unlock();
+		
 		for(auto i=_observer.begin(); i!=_observer.end(); i++)
 		{
 			if(i->name->GetHash() == hash && i->name->IsEqual(name))
@@ -47,8 +51,6 @@ namespace RN
 				i->callback(message);
 			}
 		}
-		
-		_lock.Unlock();
 	}
 	
 	void MessageCenter::PostMessage(String *name, Object *object, Dictionary *info)
