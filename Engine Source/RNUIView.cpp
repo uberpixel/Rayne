@@ -561,7 +561,7 @@ namespace RN
 		{
 			object.material = _material;
 			object.transform = &_finalTransform;
-			object.scissorTest = true;
+			object.flags |= RenderingObject::ScissorTest;
 			
 			if(_clippingView)
 			{

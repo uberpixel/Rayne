@@ -139,6 +139,7 @@ namespace RN
 		_transform.Scale(Vector3(200.0f, 200.0f, 200.0f));
 		
 		RenderingObject object;
+		FillRenderingObject(object);
 		
 		object.mesh = _mesh;
 		object.material = _material;

@@ -45,10 +45,11 @@ namespace RN
 			
 			
 			RenderingObject object;
+			FillRenderingObject(object);
 			
 			uint32 lodStage = _model->GetLODStageForDistance(distance);
 			
-			object.rotation = (Quaternion*)&GetWorldRotation();
+			object.rotation  = (Quaternion*)&GetWorldRotation();
 			object.transform = (Matrix *)&GetWorldTransform();
 			object.skeleton  = GetSkeleton();
 			

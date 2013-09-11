@@ -590,6 +590,13 @@ namespace RN
 				std::advance(begin, skyCubeMeshes);
 			
 				ParallelSort(begin, _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
+					
+					bool drawALate = (a.flags & RenderingObject::DrawLate);
+					bool drawBLate = (b.flags & RenderingObject::DrawLate);
+					
+					if(drawALate && drawALate != drawBLate)
+						return false;
+					
 					const Material *materialA = a.material;
 					const Material *materialB = b.material;
 					

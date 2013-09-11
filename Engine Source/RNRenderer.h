@@ -31,6 +31,12 @@ namespace RN
 			Custom
 		};
 		
+		enum
+		{
+			ScissorTest = (1 << 0),
+			DrawLate    = (1 << 1)
+		};
+		
 		RenderingObject(Type ttype=Type::Object) :
 			type(ttype)
 		{
@@ -45,7 +51,7 @@ namespace RN
 			transform = 0;
 			skeleton  = 0;
 			
-			scissorTest = false;
+			flags = 0;
 		}
 		
 		Type type;
@@ -58,7 +64,8 @@ namespace RN
 		Matrix   *transform;
 		Skeleton *skeleton;
 		
-		bool scissorTest;
+		uint32 flags;
+		
 		Rect scissorRect;
 		
 		GLuint instancingData;

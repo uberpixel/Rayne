@@ -179,6 +179,9 @@ namespace RN
 				if(_removedNodes.find(node) != _removedNodes.end())
 					continue;
 				
+				if(node->GetFlags() & SceneNode::FlagStatic)
+					continue;
+				
 				if(static_cast<size_t>(node->GetUpdatePriority()) != j)
 					continue;
 				

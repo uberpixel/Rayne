@@ -25,6 +25,7 @@ namespace RN
 	class Camera;
 	class World;
 	
+	class RenderingObject;
 	class SceneNode : public Object
 	{
 	friend class Renderer;
@@ -37,10 +38,20 @@ namespace RN
 			UpdateLate
 		};
 		
+		enum
+		{
+			FlagDrawLate = (1 << 0),
+			FlagStatic   = (1 << 1)
+		};
+		
+		typedef uint32 Flags;
+		
 		RNAPI SceneNode();
 		RNAPI SceneNode(const Vector3& position);
 		RNAPI SceneNode(const Vector3& position, const Quaternion& rotation);
 		RNAPI virtual ~SceneNode();
+		
+		RNAPI void FillRenderingObject(RenderingObject& object) const;
 		
 		RNAPI void Translate(const Vector3& trans);
 		RNAPI void Scale(const Vector3& scal);
@@ -49,6 +60,7 @@ namespace RN
 		RNAPI void TranslateLocal(const Vector3& trans);
 		RNAPI void ScaleLocal(const Vector3& scal);
 		
+		RNAPI void SetFlags(Flags flags);
 		RNAPI virtual void SetPosition(const Vector3& pos);
 		RNAPI virtual void SetScale(const Vector3& scal);
 		RNAPI virtual void SetRotation(const Quaternion& rot);
@@ -70,6 +82,7 @@ namespace RN
 		const Vector3& GetEulerAngle() const { return _euler; }
 		const Quaternion& GetRotation() const { return _rotation; }
 		
+		RNAPI Flags GetFlags() const { return _flags; }
 		RNAPI const Vector3 Forward() const;
 		RNAPI const Vector3 Up() const;
 		RNAPI const Vector3 Right() const;
@@ -149,6 +162,7 @@ namespace RN
 		SceneNode *_parent;
 		Array _childs;
 		
+		Flags _flags;
 		FrameID _lastFrame;
 		Priority _priority;
 		

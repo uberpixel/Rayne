@@ -7,6 +7,7 @@
 //
 
 #include "RNSceneNode.h"
+#include "RNRenderer.h"
 #include "RNWorld.h"
 #include "RNHit.h"
 
@@ -41,6 +42,7 @@ namespace RN
 		_parent = nullptr;
 		_world  = nullptr;
 		_lastFrame = 0;
+		_flags     = 0;
 		
 		_priority = Priority::UpdateDontCare;
 		renderGroup = 0;
@@ -77,6 +79,11 @@ namespace RN
 			_world->SceneNodeWillRender(this);
 	}
 	
+	
+	void SceneNode::SetFlags(Flags flags)
+	{
+		_flags = flags;
+	}
 	
 	void SceneNode::SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere)
 	{
@@ -165,6 +172,13 @@ namespace RN
 	{
 		_action = action;
 	}
+	
+	void SceneNode::FillRenderingObject(RenderingObject& object) const
+	{
+		if(_flags & FlagDrawLate)
+			object.flags |= RenderingObject::DrawLate;
+	}
+	
 	
 	Hit SceneNode::CastRay(const Vector3 &position, const Vector3 &direction)
 	{

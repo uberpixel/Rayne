@@ -657,7 +657,7 @@ namespace RN
 				if(object.prepare)
 					object.prepare(this, object);
 				
-				SetScissorEnabled(object.scissorTest);
+				SetScissorEnabled(object.flags & RenderingObject::ScissorTest);
 				
 				if(_scissorTest)
 					SetScissorRect(object.scissorRect);

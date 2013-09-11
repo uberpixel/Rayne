@@ -259,6 +259,8 @@ namespace RN
 			return;
 		
 		RenderingObject object;
+		FillRenderingObject(object);
+		
 		object.mesh = _mesh;
 		object.count = static_cast<uint32>(_particles.size());
 		object.material = _material;

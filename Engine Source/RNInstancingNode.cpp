@@ -118,6 +118,7 @@ namespace RN
 		for(auto i=_data.begin(); i!=_data.end(); i++)
 		{
 			RenderingObject object(RenderingObject::Type::Instanced);
+			FillRenderingObject(object);
 			
 			object.mesh = i->mesh;
 			object.material = i->material;

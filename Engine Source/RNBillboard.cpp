@@ -113,12 +113,13 @@ namespace RN
 		_transform.Scale(Vector3(_size.x, _size.y, 1.0f));
 		
 		RenderingObject object;
+		FillRenderingObject(object);
 		
 		object.mesh = _mesh;
 		object.material = _material;
 		object.rotation = (Quaternion*)&GetWorldRotation();
 		object.transform = &_transform;
-		
+
 		renderer->RenderObject(object);
 	}
 }
