@@ -673,9 +673,10 @@ namespace RN
 		{
 			RN_ASSERT(string, "String mustn't be NULL!");
 			
-			_string = string->Retain();
-			_dirty  = true;
-			_offset = 0.0f;
+			_string    = string->Retain();
+			_dirty     = true;
+			_truncated = false;
+			_offset    = 0.0f;
 		}
 		
 		Line::~Line()
