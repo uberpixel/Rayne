@@ -87,6 +87,7 @@ namespace RN
 			Additive,
 			Multiplicative,
 			Interpolative,
+			InterpolativePremultiplied,
 			Cutout
 		};
 		

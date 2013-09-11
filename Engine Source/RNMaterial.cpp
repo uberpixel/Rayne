@@ -240,6 +240,11 @@ namespace RN
 				break;
 				
 			case BlendMode::Interpolative:
+				blendSource = GL_SRC_ALPHA;
+				blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+				break;
+				
+			case BlendMode::InterpolativePremultiplied:
 				blendSource = GL_ONE;
 				blendDestination = GL_ONE_MINUS_SRC_ALPHA;
 				break;
