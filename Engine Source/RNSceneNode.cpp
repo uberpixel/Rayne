@@ -21,6 +21,10 @@ namespace RN
 		_scale("scale", Vector3(1.0), std::bind(&SceneNode::GetScale, this), std::bind(&SceneNode::SetScale, this, std::placeholders::_1))
 	{
 		Initialize();
+		
+		AddObservable(&_position);
+		AddObservable(&_rotation);
+		AddObservable(&_scale);
 	}
 	
 	SceneNode::SceneNode(const Vector3& position) :
@@ -54,9 +58,6 @@ namespace RN
 		
 		if(World::GetSharedInstance())
 			World::GetSharedInstance()->AddSceneNode(this);
-		
-		AddObservable(&_position);
-		AddObservable(&_scale);
 	}
 	
 	void SceneNode::CleanUp()
