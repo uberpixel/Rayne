@@ -238,15 +238,6 @@ namespace RN
 		{ \
 			return _storage; \
 		} \
-		type& operator *() \
-		{ \
-			return _storage; \
-		} \
-const type& operator *() const \
-{ \
-	return _storage; \
-} \
-		\
 		type& operator= (const type& other) \
 		{ \
 			WillChangeValue(); \
@@ -259,8 +250,6 @@ const type& operator *() const \
 		type _storage; \
 	public:
 	
-#define __ObservableValueEnd() \
-		};
 
 #define __ObservableValueComparison(type) \
 	bool operator == (const type& other) const \
@@ -271,6 +260,24 @@ const type& operator *() const \
 	{ \
 		return (_storage != other); \
 	} \
+
+#define __ObservableValuePointerLikes(type) \
+	type& operator *() \
+	{ \
+		return _storage; \
+	} \
+	const type& operator *() const \
+	{ \
+		return _storage; \
+	} \
+	type *operator ->() \
+	{ \
+		return &_storage; \
+	} \
+	const type *operator ->() const \
+	{ \
+		return &_storage; \
+	}
 
 #define __ObservableValueBinaryArithmeticAddition(type) \
 	type& operator+= (const type& other) \
@@ -332,8 +339,11 @@ const type& operator *() const \
 	__ObservableValueBinaryArithmeticAddition(type) \
 	__ObservableValueBinaryArithmeticSubtraction(type) \
 	__ObservableValueBinaryArithmeticMultiplication(type) \
-	__ObservableValueBinaryArithmeticDivision(type) \
+	__ObservableValueBinaryArithmeticDivision(type)
+	
 
+#define __ObservableValueEnd() \
+	};
 	
 	__ObservableScalar(int8, Int8)
 	__ObservableScalar(int16, Int16)
@@ -351,29 +361,35 @@ const type& operator *() const \
 	__ObservableValueBegin(Vector2)
 	__ObservableValueComparison(Vector2)
 	__ObservableValueBinaryArithmetic(Vector2)
+	__ObservableValuePointerLikes(Vector2)
 	__ObservableValueEnd()
 
 	__ObservableValueBegin(Vector3)
 	__ObservableValueComparison(Vector3)
 	__ObservableValueBinaryArithmetic(Vector3)
+	__ObservableValuePointerLikes(Vector3)
 	__ObservableValueEnd()
 	
 	__ObservableValueBegin(Vector4)
 	__ObservableValueComparison(Vector4)
 	__ObservableValueBinaryArithmetic(Vector4)
+	__ObservableValuePointerLikes(Vector4)
 	__ObservableValueEnd()
 	
 	__ObservableValueBegin(Color)
 	__ObservableValueComparison(Color)
 	__ObservableValueBinaryArithmetic(Color)
+	__ObservableValuePointerLikes(Color)
 	__ObservableValueEnd()
 	
 	__ObservableValueBegin(Matrix)
 	__ObservableValueBinaryArithmeticMultiplication(Matrix)
+	__ObservableValuePointerLikes(Matrix)
 	__ObservableValueEnd()
 	
 	__ObservableValueBegin(Quaternion)
 	__ObservableValueBinaryArithmetic(Quaternion)
+	__ObservableValuePointerLikes(Quaternion)
 	__ObservableValueEnd()
 }
 

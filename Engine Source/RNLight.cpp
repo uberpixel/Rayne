@@ -222,7 +222,7 @@ namespace RN
 
 	void Light::ReCalculateColor()
 	{
-		_resultColor = Vector3((*_color).r, (*_color).g, (*_color).b);
+		_resultColor = Vector3(_color->r, _color->g, _color->b);
 		_resultColor *= (float)_intensity;
 	}
 }
