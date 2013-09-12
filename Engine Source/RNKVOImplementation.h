@@ -345,6 +345,87 @@ namespace RN
 #define __ObservableValueEnd() \
 	};
 	
+	template<>
+	class ObservableValue<bool> : public ObservableBase
+	{
+	public:
+		typedef std::function<void (const bool&)> SetterCallback;
+		typedef std::function<bool (void)> GetterCallback;
+		
+		ObservableValue(const char *name, GetterCallback getter, SetterCallback setter) :
+			ObservableBase(name, ObservableType::Bool),
+			_getter(getter),
+			_setter(setter)
+		{
+			SetWritable(static_cast<bool>(_setter));
+		}
+		
+		void SetValue(Object *value) override
+		{
+			RN_ASSERT(value->IsKindOfClass(Number::MetaClass()), "");
+			Number *number = static_cast<Number *>(value);
+		
+			WillChangeValue();
+			_setter(number->GetBoolValue());
+			DidChangeValue();
+		}
+		
+		Object *GetValue() const override
+		{
+			return Number::WithBool(_getter());
+		}
+	protected:
+		SetterCallback _setter;
+		GetterCallback _getter;
+	};
+
+	template<>
+	class Observable<bool> : public ObservableValue<bool>
+	{
+	public:
+		Observable(const char *name, GetterCallback getter, SetterCallback setter = SetterCallback()) :
+			ObservableValue(name, getter, setter)
+		{}
+		Observable(const char *name, const bool& initial, GetterCallback getter, SetterCallback setter = SetterCallback()) :
+			ObservableValue(name, getter, setter),
+			_storage(initial)
+		{}
+		
+		operator bool& ()
+		{
+			return _storage;
+		}
+		operator const bool& () const
+		{
+			return _storage;
+		}
+		
+		bool operator== (const bool other)
+		{
+			return (_storage == other);
+		}
+		
+		bool operator!= (const bool other)
+		{
+			return (_storage != other);
+		}
+		
+		bool& operator= (const bool& other)
+		{
+			WillChangeValue();
+			_storage = other;
+			DidChangeValue();
+		
+			return _storage;
+		}
+		operator bool()
+		{
+			return _storage;
+		}
+	private:
+		bool _storage;
+	};
+
 	__ObservableScalar(int8, Int8)
 	__ObservableScalar(int16, Int16)
 	__ObservableScalar(int32, Int32)

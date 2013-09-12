@@ -61,6 +61,8 @@ namespace RN
 	
 	enum class ObservableType
 	{
+		Bool,
+		
 		Int8,
 		Int16,
 		Int32,
