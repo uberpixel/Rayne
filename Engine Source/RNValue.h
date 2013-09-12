@@ -14,6 +14,7 @@
 
 #include "RNVector.h"
 #include "RNColor.h"
+#include "RNMatrixQuaternion.h"
 
 namespace RN
 {
@@ -29,6 +30,9 @@ namespace RN
 		static Value *WithVector4(const Vector4& vector);
 		
 		static Value *WithColor(const Color& color);
+		
+		static Value *WithQuaternion(const Quaternion& quaternion);
+		static Value *WithMatrix(const Matrix& matrix);
 		
 		void GetValue(void *ptr) const;
 		void *GetPointerValue() const;

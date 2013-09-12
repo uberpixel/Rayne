@@ -229,14 +229,6 @@ namespace RN
 			ObservableValue(name, getter, setter), \
 			_storage(initial) \
 		{} \
-		bool operator == (const type& other) const \
-		{ \
-			return (_storage == other); \
-		} \
-		bool operator != (const type& other) const \
-		{ \
-			return (_storage != other); \
-		} \
 		\
 		operator type& () \
 		{ \
@@ -270,7 +262,17 @@ const type& operator *() const \
 #define __ObservableValueEnd() \
 		};
 
-#define __ObservableValueBasicArithmetic(type) \
+#define __ObservableValueComparison(type) \
+	bool operator == (const type& other) const \
+	{ \
+		return (_storage == other); \
+	} \
+	bool operator != (const type& other) const \
+	{ \
+		return (_storage != other); \
+	} \
+
+#define __ObservableValueBinaryArithmeticAddition(type) \
 	type& operator+= (const type& other) \
 	{ \
 		WillChangeValue(); \
@@ -279,6 +281,12 @@ const type& operator *() const \
 		\
 		return _storage; \
 	} \
+	type operator+ (const type& other) const \
+	{ \
+		return _storage + other; \
+	}
+
+#define __ObservableValueBinaryArithmeticSubtraction(type) \
 	type& operator-= (const type& other) \
 	{ \
 		WillChangeValue(); \
@@ -287,6 +295,12 @@ const type& operator *() const \
 		\
 		return _storage; \
 	} \
+	type operator- (const type& other) const \
+	{ \
+		return _storage - other; \
+	}
+
+#define __ObservableValueBinaryArithmeticMultiplication(type) \
 	type& operator*= (const type& other) \
 	{ \
 		WillChangeValue(); \
@@ -295,6 +309,12 @@ const type& operator *() const \
 		\
 		return _storage; \
 	} \
+	type operator* (const type& other) const \
+	{ \
+		return _storage * other; \
+	}
+
+#define __ObservableValueBinaryArithmeticDivision(type) \
 	type& operator/= (const type& other) \
 	{ \
 		WillChangeValue(); \
@@ -303,23 +323,16 @@ const type& operator *() const \
 		\
 		return _storage; \
 	} \
-	\
-	type operator+ (const type& other) const \
-	{ \
-		return _storage + other; \
-	} \
-	type operator- (const type& other) const \
-	{ \
-		return _storage - other; \
-	} \
-	type operator* (const type& other) const \
-	{ \
-		return _storage * other; \
-	} \
 	type operator/ (const type& other) const \
 	{ \
 		return _storage / other; \
 	}
+	
+#define __ObservableValueBinaryArithmetic(type) \
+	__ObservableValueBinaryArithmeticAddition(type) \
+	__ObservableValueBinaryArithmeticSubtraction(type) \
+	__ObservableValueBinaryArithmeticMultiplication(type) \
+	__ObservableValueBinaryArithmeticDivision(type) \
 
 	
 	__ObservableScalar(int8, Int8)
@@ -336,19 +349,31 @@ const type& operator *() const \
 	__ObservableScalar(double, Double)
 	
 	__ObservableValueBegin(Vector2)
-	__ObservableValueBasicArithmetic(Vector2)
+	__ObservableValueComparison(Vector2)
+	__ObservableValueBinaryArithmetic(Vector2)
 	__ObservableValueEnd()
 
 	__ObservableValueBegin(Vector3)
-	__ObservableValueBasicArithmetic(Vector3)
+	__ObservableValueComparison(Vector3)
+	__ObservableValueBinaryArithmetic(Vector3)
 	__ObservableValueEnd()
 	
 	__ObservableValueBegin(Vector4)
-	__ObservableValueBasicArithmetic(Vector4)
+	__ObservableValueComparison(Vector4)
+	__ObservableValueBinaryArithmetic(Vector4)
 	__ObservableValueEnd()
 	
 	__ObservableValueBegin(Color)
-	__ObservableValueBasicArithmetic(Color)
+	__ObservableValueComparison(Color)
+	__ObservableValueBinaryArithmetic(Color)
+	__ObservableValueEnd()
+	
+	__ObservableValueBegin(Matrix)
+	__ObservableValueBinaryArithmeticMultiplication(Matrix)
+	__ObservableValueEnd()
+	
+	__ObservableValueBegin(Quaternion)
+	__ObservableValueBinaryArithmetic(Quaternion)
 	__ObservableValueEnd()
 }
 

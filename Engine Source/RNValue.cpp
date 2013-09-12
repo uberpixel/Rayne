@@ -56,6 +56,18 @@ namespace RN
 		return value->Autorelease();
 	}
 	
+	Value *Value::WithQuaternion(const Quaternion& quaternion)
+	{
+		Value *value = new Value(&quaternion, sizeof(Quaternion), typeid(Quaternion));
+		return value->Autorelease();
+	}
+	
+	Value *Value::WithMatrix(const Matrix& matrix)
+	{
+		Value *value = new Value(&matrix, sizeof(Matrix), typeid(Matrix));
+		return value->Autorelease();
+	}
+	
 	
 	void Value::GetValue(void *ptr) const
 	{
