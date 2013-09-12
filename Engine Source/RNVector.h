@@ -300,8 +300,11 @@ namespace RN
 	RN_INLINE Vector2& Vector2::Normalize(const float n)
 	{
 		float length = GetLength();
-		x *= n/length;
-		y *= n/length;
+		if(length > k::EpsilonFloat)
+		{
+			x *= n/length;
+			y *= n/length;
+		}
 
 		return *this;
 	}
@@ -462,10 +465,14 @@ namespace RN
 
 	RN_INLINE Vector3& Vector3::Normalize(const float n)
 	{
-		float length = n / GetLength();
-		x *= length;
-		y *= length;
-		z *= length;
+		float length = GetLength();
+		if(length > k::EpsilonFloat)
+		{
+			length = n/length;
+			x *= length;
+			y *= length;
+			z *= length;
+		}
 
 		return *this;
 	}
@@ -767,19 +774,24 @@ namespace RN
 	#ifdef __SSE4_1__
 		if(X86_64::GetCapabilites() & X86_64::CAP_SSE41)
 		{
-			float length = n / _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(simd, simd, 0xFF)));
-			simd = SIMD::Mul(simd, SIMD::Set(length));
+			float length = _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(simd, simd, 0xFF)));
+			if(length > k::EpsilonFloat)
+				simd = SIMD::Mul(simd, SIMD::Set(1/length));
 			
 			return *this;
 		}
 	#endif
 #endif
 		
-		float length = n / GetLength();
-		x *= length;
-		y *= length;
-		z *= length;
-		w *= length;
+		float length = GetLength();
+		if(length > k::EpsilonFloat)
+		{
+			length = 1.0f/length;
+			x *= length;
+			y *= length;
+			z *= length;
+			w *= length;
+		}
 
 		return *this;
 	}
