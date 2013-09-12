@@ -151,7 +151,7 @@ namespace RN
 		
 		Observable<Vector3> _position;
 		Observable<Vector3> _scale;
-		Quaternion _rotation;
+		Observable<Quaternion> _rotation;
 		Vector3 _euler;
 		
 		AABB _boundingBox;
@@ -211,13 +211,13 @@ namespace RN
 	
 	RN_INLINE void SceneNode::TranslateLocal(const Vector3& trans)
 	{
-		_position += _rotation.RotateVector(trans);
+		_position += _rotation->RotateVector(trans);
 		DidUpdate();
 	}
 	
 	RN_INLINE void SceneNode::ScaleLocal(const Vector3& scal)
 	{
-		_scale += _rotation.RotateVector(scal);
+		_scale += _rotation->RotateVector(scal);
 		DidUpdate();
 	}
 	
@@ -279,7 +279,7 @@ namespace RN
 		}
 		
 		_rotation = rot / _parent->GetWorldRotation();
-		_euler = _rotation.GetEulerAngle();
+		_euler = _rotation->GetEulerAngle();
 		
 		DidUpdate();
 	}
