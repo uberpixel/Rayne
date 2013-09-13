@@ -34,8 +34,8 @@ namespace RN
 		RNAPI void SetModel(Model *model);
 		RNAPI void SetSkeleton(class Skeleton *skeleton);
 		
-		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction);
-		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
+		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction) override;
+		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		
 		Model *GetModel() { return _model; }
 		Skeleton *GetSkeleton() { return _skeleton; }
