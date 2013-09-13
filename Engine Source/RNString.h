@@ -50,6 +50,7 @@ namespace RN
 		void Append(const String *string);
 		void Append(const char *string, ...);
 		void Insert(const String *string, size_t index);
+		void Capitalize();
 		
 		void DeleteCharacters(const Range& range);
 		

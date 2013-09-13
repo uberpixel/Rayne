@@ -230,6 +230,49 @@ namespace RN
 		ReplaceCharacters(string, Range(index, 0));
 	}
 	
+	void String::Capitalize()
+	{
+		UniChar buffer[128];
+		
+		size_t read = 0;
+		size_t length = _ainternal->Length();
+		
+		bool needsUppercase = true;
+		
+		while(read < length)
+		{
+			size_t left = std::min(length - read, static_cast<size_t>(128));
+			_ainternal->CharactersInRange(buffer, Range(read, left));
+			
+			for(size_t i = 0; i < left; i ++)
+			{
+				CodePoint point(buffer[i]);
+				CodePoint uppercase = point.GetUpperCase();
+				
+				if(point.IsWhitespace())
+				{
+					needsUppercase = true;
+					continue;
+				}
+				
+				if(needsUppercase && point != uppercase)
+				{
+					UniChar temp[2];
+					temp[0] = uppercase;
+					temp[1] = 0;
+					
+					BasicString *string = StringFactory::ConstructString(temp, _encoding);
+					_ainternal->ReplaceCharactersInRange(Range(read + i, 1), string);
+					string->Release();
+					
+					needsUppercase = false;
+				}
+			}
+			
+			read += left;
+		}
+	}
+	
 	void String::DeleteCharacters(const Range& range)
 	{
 		PromoteStringIfNeeded(_ainternal->CharacterEncoding());
