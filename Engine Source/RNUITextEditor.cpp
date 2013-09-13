@@ -134,13 +134,11 @@ namespace RN
 						{
 							if(CodePoint(event->GetCode()).IsPrintable())
 							{
-								char character[2];
+								UniChar unicode[2];
+								unicode[0] = event->GetCode();
+								unicode[1] = 0;
 								
-								character[0] = event->GetCharacter();
-								character[1] = '\0';
-								
-								String *string = RNCSTR(character);
-								InsertString(string);
+								InsertString(String::WithUnicode(unicode));
 							}
 							break;
 						}
