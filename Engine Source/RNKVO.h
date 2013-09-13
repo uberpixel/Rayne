@@ -80,7 +80,9 @@ namespace RN
 		Vector4,
 		Color,
 		Matrix,
-		Quaternion
+		Quaternion,
+		
+		Object
 	};
 	
 	class ObservableBase

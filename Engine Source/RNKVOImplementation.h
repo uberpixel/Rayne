@@ -18,16 +18,16 @@
 namespace RN
 {
 	template<class T>
-	class ObservableScalar
-	{};
+	class ObservableScalar;
 	
 	template<class T>
-	class ObservableValue
-	{};
+	class ObservableValue;
 	
-	template<class T>
+	template<class T, class specialize = void>
 	class Observable
-	{};
+	{
+		Observable() = delete;
+	};
 
 #define __ObservableScalar(type, kvotype) \
 	template<> \
