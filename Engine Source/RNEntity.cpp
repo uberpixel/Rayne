@@ -15,11 +15,17 @@ namespace RN
 {
 	RNDeclareMeta(Entity)
 	
-	Entity::Entity()
+	Entity::Entity() :
+		_model("model", Object::MemoryPolicy::Retain, std::bind(&Entity::GetModel, this), std::bind(&Entity::SetModel, this, std::placeholders::_1)),
+		_skeleton("sekelton", Object::MemoryPolicy::Retain, std::bind(&Entity::GetSkeleton, this), std::bind(&Entity::SetSkeleton, this, std::placeholders::_1))
 	{
-		_model = 0;
-		_skeleton = 0;
+		_model = nullptr;
+		_skeleton = nullptr;
+		
 		_ignoreDrawing = false;
+		
+		AddObservable(&_model);
+		AddObservable(&_skeleton);
 	}
 	
 	Entity::~Entity()
@@ -87,7 +93,7 @@ namespace RN
 	{
 		Hit hit;
 		
-		if(_model == NULL)
+		if(_model == nullptr)
 			return hit;
 			
 		if(GetBoundingSphere().IntersectsRay(position, direction))

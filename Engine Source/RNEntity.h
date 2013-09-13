@@ -37,12 +37,12 @@ namespace RN
 		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction);
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
 		
-		Model *GetModel() const { return _model; }
-		Skeleton *GetSkeleton() const { return _skeleton; }
+		Model *GetModel() { return _model; }
+		Skeleton *GetSkeleton() { return _skeleton; }
 
 	private:
-		Model *_model;
-		Skeleton *_skeleton;
+		Observable<Model *>_model;
+		Observable<Skeleton *>_skeleton;
 		
 		bool _ignoreDrawing;
 		
