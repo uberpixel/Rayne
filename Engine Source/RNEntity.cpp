@@ -19,13 +19,13 @@ namespace RN
 		_model("model", Object::MemoryPolicy::Retain, std::bind(&Entity::GetModel, this), std::bind(&Entity::SetModel, this, std::placeholders::_1)),
 		_skeleton("sekelton", Object::MemoryPolicy::Retain, std::bind(&Entity::GetSkeleton, this), std::bind(&Entity::SetSkeleton, this, std::placeholders::_1))
 	{
+		AddObservable(&_model);
+		AddObservable(&_skeleton);
+		
 		_model = nullptr;
 		_skeleton = nullptr;
 		
 		_ignoreDrawing = false;
-		
-		AddObservable(&_model);
-		AddObservable(&_skeleton);
 	}
 	
 	Entity::~Entity()
