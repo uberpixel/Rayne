@@ -32,6 +32,7 @@ namespace RN
 		String(const char *string, va_list args);
 		String(const char *string, bool constant=false);
 		String(const char *string, size_t length, bool constant=false);
+		String(const UniChar *string, Encoding encodingHint = Encoding::UTF8);
 		String(const void *bytes, Encoding encoding, bool constant=false);
 		String(const void *bytes, size_t length, Encoding encoding, bool constant=false);
 		String(const String *string);
@@ -40,6 +41,7 @@ namespace RN
 		static String *WithFormat(const char *string, ...);
 		static String *WithString(const char *string, bool constant=false);
 		static String *WithString(const char *string, size_t length, bool constant=false);
+		static String *WithUnicode(const UniChar *string, Encoding encodingHint = Encoding::UTF8);
 		static String *WithBytes(const void *bytes, Encoding encoding, bool constant=false);
 		static String *WithBytes(const void *bytes, size_t length, Encoding encoding, bool constant=false);
 		static String *WithContentsOfFile(const std::string& file, Encoding encoding);

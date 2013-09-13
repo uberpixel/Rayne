@@ -60,6 +60,12 @@ namespace RN
 		_encoding = _ainternal->CharacterEncoding();
 	}
 	
+	String::String(const UniChar *string, Encoding encodingHint)
+	{
+		_internal = StringFactory::ConstructString(const_cast<UniChar *>(string), encodingHint);
+		_encoding = _ainternal->CharacterEncoding();
+	}
+	
 	String::String(const void *bytes, Encoding encoding, bool constant)
 	{
 		StringTraits traits = constant ? StringTraits::Constant : StringTraits::Mutable;
@@ -123,6 +129,12 @@ namespace RN
 	String *String::WithString(const char *string, size_t length, bool constant)
 	{
 		String *temp = new String(string, length, false);
+		return temp->Autorelease();
+	}
+	
+	String *String::WithUnicode(const UniChar *string, Encoding encodingHint)
+	{
+		String *temp = new String(string, encodingHint);
 		return temp->Autorelease();
 	}
 	
