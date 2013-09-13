@@ -419,12 +419,12 @@ namespace RN
 			return _storage;
 		}
 
-		bool operator== (const T *other)
+		bool operator== (T *other)
 		{
 			return (_storage->IsEqual(other));
 		}
 
-		bool operator!= (const bool other)
+		bool operator!= (T *other)
 		{
 			return !(_storage->IsEqual(other));
 		}
