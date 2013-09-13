@@ -51,6 +51,7 @@ namespace RN
 	public:
 		UTF8String(const uint8 *bytes);
 		UTF8String(const uint8 *bytes, size_t size);
+		UTF8String(UniChar *string);
 		
 		~UTF8String() override;
 		

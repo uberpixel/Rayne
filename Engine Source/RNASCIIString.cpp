@@ -153,6 +153,25 @@ namespace RN
 		strcpy(_string, string);
 	}
 	
+	ASCIIString::ASCIIString(UniChar *string)
+	{
+		UniChar *temp = string;
+		while(*temp)
+			temp ++;
+		
+		_length = (temp - string);
+		_size   = _length;
+		
+		_string = new char[_length + 1];
+		_string[_length] = '\0';
+		
+		for(size_t i = 0; i < _length; i ++)
+		{
+			UniChar character = string[i];
+			_string[i] = CodePoint::ConverToCharacter(character);
+		}
+	}
+	
 	ASCIIString::~ASCIIString()
 	{
 		delete [] _string;

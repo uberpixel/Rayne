@@ -52,6 +52,7 @@ namespace RN
 	public:
 		static BasicString *ConstructString(const void *data, Encoding encoding, StringTraits traits);
 		static BasicString *ConstructString(const void *data, size_t length, Encoding encoding, StringTraits traits);
+		static BasicString *ConstructString(UniChar *data, Encoding encoding);
 		static BasicString *ConstructString(BasicString *string, Encoding encoding);
 		static BasicString *EmptyString();
 		

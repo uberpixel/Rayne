@@ -47,6 +47,7 @@ namespace RN
 	public:
 		ASCIIString(const char *string);
 		ASCIIString(const char *string, size_t length);
+		ASCIIString(UniChar *string);
 		~ASCIIString() override;
 		
 		BasicString *SimpleCopy() const override;

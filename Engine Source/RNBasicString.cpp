@@ -242,6 +242,28 @@ namespace RN
 		return nullptr;
 	}
 	
+	BasicString *StringFactory::ConstructString(UniChar *data, Encoding encoding)
+	{
+		switch(encoding)
+		{
+			case Encoding::ASCII:
+			{
+				return new ASCIIString(data);
+				break;
+			}
+				
+			case Encoding::UTF8:
+				return new UTF8String(data);
+				break;
+			
+			default:
+				throw Exception(Exception::Type::GenericException, "");
+				break;
+		}
+		
+		return nullptr;
+	}
+	
 	BasicString *StringFactory::ConstructString(BasicString *other, Encoding encoding)
 	{
 		switch(encoding)
