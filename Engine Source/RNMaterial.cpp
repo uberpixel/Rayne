@@ -164,17 +164,45 @@ namespace RN
 	
 	
 	Material::Material() :
+		culling("culling"),
+		lighting("lighting"),
+		polygonOffset("polygonOffset"),
+		polygonOffsetFactor("polygonOffsetFactor"),
+		polygonOffsetUnits("polygonOffsetUnits"),
+		ambient("ambient"),
+		diffuse("diffuse"),
+		specular("specular"),
+		emissive("emissive"),
+		depthtest("depthtest"),
+		depthwrite("depthwrite"),
+		discard("discard"),
+		discardThreshold("discardThreshold"),
+		_shader("shader", Object::MemoryPolicy::Retain, std::bind(&Material::GetShader, this), std::bind(&Material::SetShader, this, std::placeholders::_1)),
 		_lookup(0)
 	{
-		_shader = 0;
+		AddObservable(&culling);
+		AddObservable(&lighting);
+		AddObservable(&polygonOffset);
+		AddObservable(&polygonOffsetFactor);
+		AddObservable(&polygonOffsetUnits);
+		AddObservable(&ambient);
+		AddObservable(&diffuse);
+		AddObservable(&specular);
+		AddObservable(&emissive);
+		AddObservable(&depthtest);
+		AddObservable(&depthwrite);
+		AddObservable(&discard);
+		AddObservable(&discardThreshold);
+		AddObservable(&_shader);
+		
 		Initialize();
+		_shader = nullptr;
 	}
 	
 	Material::Material(Shader *shader) :
-		_lookup(0)
+		Material()
 	{
-		_shader = shader ? shader->Retain() : 0;
-		Initialize();
+		_shader = shader ? shader->Retain() : nullptr;
 	}
 	
 	Material::~Material()
@@ -225,6 +253,12 @@ namespace RN
 			delete uniform;
 	}
 	
+	Shader *Material::GetShader() const
+	{
+		return const_cast<Shader *>(static_cast<const Shader *>(_shader));
+	}
+	
+	
 	void Material::SetBlendMode(BlendMode mode)
 	{
 		switch(mode)
@@ -255,12 +289,6 @@ namespace RN
 				break;
 		}
 	}
-	
-	Shader *Material::GetShader() const
-	{
-		return _shader;
-	}
-	
 	
 	
 	void Material::AddTexture(Texture *texture)

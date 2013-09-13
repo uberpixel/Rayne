@@ -580,7 +580,7 @@ namespace RN
 		
 		void View::Draw(Renderer *renderer)
 		{
-			if(_material->diffuse.a >= k::EpsilonFloat)
+			if(_material->diffuse->a >= k::EpsilonFloat)
 			{
 				RenderingObject object;
 				PopulateRenderingObject(object);

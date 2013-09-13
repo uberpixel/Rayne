@@ -17,6 +17,7 @@
 #include "RNColor.h"
 #include "RNMatrixQuaternion.h"
 #include "RNVector.h"
+#include "RNKVOImplementation.h"
 
 namespace RN
 {
@@ -144,8 +145,8 @@ namespace RN
 			return uniform;
 		}
 		
-		bool culling;
-		bool lighting;
+		Observable<bool> culling;
+		Observable<bool> lighting;
 		
 		GLenum cullmode;
 		
@@ -153,21 +154,21 @@ namespace RN
 		GLenum blendSource;
 		GLenum blendDestination;
 		
-		bool polygonOffset;
-		float polygonOffsetFactor;
-		float polygonOffsetUnits;
+		Observable<bool> polygonOffset;
+		Observable<float> polygonOffsetFactor;
+		Observable<float> polygonOffsetUnits;
 		
-		Color ambient;
-		Color diffuse;
-		Color specular;
-		Color emissive;
+		Observable<Color> ambient;
+		Observable<Color> diffuse;
+		Observable<Color> specular;
+		Observable<Color> emissive;
 		
-		bool depthtest;
-		bool depthwrite;
+		Observable<bool> depthtest;
+		Observable<bool> depthwrite;
 		GLenum depthtestmode;
 		
-		bool discard;
-		float discardThreshold;
+		Observable<bool> discard;
+		Observable<float> discardThreshold;
 		
 		uint64 override;
 		
@@ -176,7 +177,7 @@ namespace RN
 		void UpdateLookupRequest();
 		void InsertShaderUniform(ShaderUniform *uniform);
 		
-		RN::Shader *_shader;
+		Observable<Shader *> _shader;
 		Array _textures;
 		
 		ShaderLookup _lookup;
