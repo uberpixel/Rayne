@@ -40,9 +40,7 @@ namespace RN
 			ObservableBase(name, ObservableType::kvotype), \
 			_getter(getter), \
 			_setter(setter) \
-		{ \
-			SetWritable(static_cast<bool>(_setter)); \
-		} \
+		{} \
 		void SetValue(Object *value) override \
 		{ \
 			RN_ASSERT(value->IsKindOfClass(Number::MetaClass()), ""); \
@@ -63,13 +61,14 @@ namespace RN
 	class Observable<type> : public ObservableScalar<type> \
 	{ \
 	public: \
-		Observable(const char *name, GetterCallback getter, SetterCallback setter = SetterCallback()) : \
-			ObservableScalar(name, getter, setter) \
+		Observable(const char *name, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) : \
+			ObservableScalar(name, getter ? getter : std::bind(&Observable<type>::__BasicGetter, this), setter ? setter : std::bind(&Observable<type>::__BasicSetter, this, std::placeholders::_1)) \
 		{} \
-		Observable(const char *name, const type& initial, GetterCallback getter, SetterCallback setter = SetterCallback()) : \
-			ObservableScalar(name, getter, setter), \
-			_storage(initial) \
-		{} \
+		Observable(const char *name, const type& initial, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) : \
+			Observable(name, getter, setter) \
+		{ \
+			_storage = initial; \
+		} \
 		bool operator == (const type& other) const \
 		{ \
 			return (_storage == other); \
@@ -78,7 +77,7 @@ namespace RN
 		{ \
 			return (_storage != other); \
 		} \
-		 \
+		\
 		operator type& () \
 		{ \
 			return _storage; \
@@ -87,7 +86,7 @@ namespace RN
 		{ \
 			return _storage; \
 		} \
-		 \
+		\
 		type& operator= (const type& other) \
 		{ \
 			WillChangeValue(); \
@@ -129,7 +128,7 @@ namespace RN
 			 \
 			return _storage; \
 		} \
-		 \
+		\
 		type operator+ (const type& other) const \
 		{ \
 			return _storage + other; \
@@ -146,7 +145,7 @@ namespace RN
 		{ \
 			return _storage / other; \
 		} \
-		 \
+		\
 		type& operator ++() \
 		{ \
 			WillChangeValue(); \
@@ -184,6 +183,14 @@ namespace RN
 			return result; \
 		} \
 	private: \
+		void __BasicSetter(const type& t) \
+		{ \
+			_storage = t; \
+		} \
+		const type& __BasicGetter() \
+		{ \
+			return _storage; \
+		} \
 		type _storage; \
 	};
 
@@ -222,13 +229,14 @@ namespace RN
 	class Observable<type> : public ObservableValue<type> \
 	{ \
 	public: \
-		Observable(const char *name, GetterCallback getter, SetterCallback setter = SetterCallback()) : \
-			ObservableValue(name, getter, setter) \
+		Observable(const char *name, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) : \
+			ObservableValue(name, getter ? getter : std::bind(&Observable<type>::__BasicGetter, this), setter ? setter : std::bind(&Observable<type>::__BasicSetter, this, std::placeholders::_1)) \
 		{} \
 		Observable(const char *name, const type& initial, GetterCallback getter, SetterCallback setter = SetterCallback()) : \
-			ObservableValue(name, getter, setter), \
-			_storage(initial) \
-		{} \
+			Observable(name, getter, setter) \
+		{ \
+			_storage = initial; \
+		} \
 		\
 		operator type& () \
 		{ \
@@ -247,6 +255,14 @@ namespace RN
 			return _storage; \
 		} \
 	private: \
+		void __BasicSetter(const type& other) \
+		{ \
+			_storage = other; \
+		} \
+		type& __BasicGetter() \
+		{ \
+			return _storage; \
+		} \
 		type _storage; \
 	public:
 	
@@ -345,6 +361,113 @@ namespace RN
 #define __ObservableValueEnd() \
 	};
 	
+	template<class T>
+	class Observable<T *, typename std::enable_if<std::is_base_of<Object, T>::value>::type> : public ObservableBase
+	{
+	public:
+		typedef std::function<void (T *)> SetterCallback;
+		typedef std::function<T *(void)> GetterCallback;
+		
+		Observable(const char *name, Object::MemoryPolicy policy, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) :
+			ObservableBase(name, ObservableType::Object),
+			_policy(policy),
+			_getter(getter),
+			_setter(setter),
+			_storage(nullptr)
+		{}
+		
+		void SetValue(Object *object) override
+		{
+			WillChangeValue();
+			
+			if(!_setter)
+			{
+				switch(_policy)
+				{
+					case Object::MemoryPolicy::Assign:
+						_storage = static_cast<T *>(object);
+						break;
+						
+					case Object::MemoryPolicy::Retain:
+						if(_storage)
+							_storage->Release();
+							
+						_storage = static_cast<T *>(object->Retain());
+						break;
+						
+					case Object::MemoryPolicy::Copy:
+						if(_storage)
+							_storage->Release();
+						
+						_storage = static_cast<T *>(object->Copy());
+						break;
+				}
+			}
+			else
+			{
+				_setter(static_cast<T *>(object));
+			}
+		
+			DidChangeValue();
+		}
+	
+		Object *GetValue() const override
+		{
+			if(_getter)
+				return _getter();
+				
+			return _storage;
+		}
+
+		bool operator== (const T *other)
+		{
+			return (_storage->IsEqual(other));
+		}
+
+		bool operator!= (const bool other)
+		{
+			return !(_storage->IsEqual(other));
+		}
+
+		operator bool()
+		{
+			return (_storage != nullptr);
+		}
+
+		operator T* ()
+		{
+			return _storage;
+		}
+		operator const T* () const
+		{
+			return _storage;
+		}
+
+		T *operator= (T *other)
+		{
+			WillChangeValue();
+			_storage = other;
+			DidChangeValue();
+			
+			return _storage;
+		}
+
+		T *operator ->()
+		{
+			return _storage;
+		}
+		const T *operator ->() const
+		{
+			return _storage;
+		}
+
+	private:
+		SetterCallback _setter;
+		GetterCallback _getter;
+		Object::MemoryPolicy _policy;
+		T *_storage;
+	};
+	
 	template<>
 	class ObservableValue<bool> : public ObservableBase
 	{
@@ -356,9 +479,7 @@ namespace RN
 			ObservableBase(name, ObservableType::Bool),
 			_getter(getter),
 			_setter(setter)
-		{
-			SetWritable(static_cast<bool>(_setter));
-		}
+		{}
 		
 		void SetValue(Object *value) override
 		{
@@ -383,21 +504,13 @@ namespace RN
 	class Observable<bool> : public ObservableValue<bool>
 	{
 	public:
-		Observable(const char *name, GetterCallback getter, SetterCallback setter = SetterCallback()) :
-			ObservableValue(name, getter, setter)
+		Observable(const char *name, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) :
+			ObservableValue(name, getter ? getter : std::bind(&Observable<bool>::__BasicGetter, this), setter ? setter : std::bind(&Observable<bool>::__BasicSetter, this, std::placeholders::_1))
 		{}
-		Observable(const char *name, const bool& initial, GetterCallback getter, SetterCallback setter = SetterCallback()) :
-			ObservableValue(name, getter, setter),
-			_storage(initial)
-		{}
-		
-		operator bool& ()
+		Observable(const char *name, const bool& initial, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) :
+			Observable(name, getter, setter)
 		{
-			return _storage;
-		}
-		operator const bool& () const
-		{
-			return _storage;
+			_storage = initial;
 		}
 		
 		bool operator== (const bool other)
@@ -418,11 +531,27 @@ namespace RN
 		
 			return _storage;
 		}
+		
 		operator bool()
 		{
 			return _storage;
 		}
+		
+		operator bool() const
+		{
+			return _storage;
+		}
 	private:
+		void __BasicSetter(bool other)
+		{
+			_storage = other;
+		}
+		
+		bool __BasicGetter()
+		{
+			return _storage;
+		}
+		
 		bool _storage;
 	};
 
