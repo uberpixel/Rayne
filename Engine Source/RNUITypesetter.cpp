@@ -421,7 +421,7 @@ namespace RN
 				material->depthwrite = false;
 				material->blending = true;
 				material->lighting = false;
-				material->ambient = color->GetRNColor();
+				material->ambient  = color->GetRNColor();
 				
 				if(font->Filtering())
 					material->Define("RN_SUBPIXEL_ANTIALIAS");
@@ -573,6 +573,7 @@ namespace RN
 		{
 			LineSegment segment;
 			segment.SetFont(_font);
+			segment.SetColor(_color);
 			
 			float filled = 0.0f;
 			std::vector<Glyph> glyphs;
