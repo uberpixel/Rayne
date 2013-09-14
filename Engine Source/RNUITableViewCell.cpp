@@ -47,6 +47,7 @@ namespace RN
 			
 			_imageView = new ImageView();
 			_textLabel = new Label();
+			_textLabel->SetLineBreak(LineBreakMode::TruncateMiddle);
 			
 			_contentView->AddSubview(_imageView);
 			_contentView->AddSubview(_textLabel);
@@ -98,7 +99,7 @@ namespace RN
 				_imageView->SetFrame(imageFrame);
 				
 				frame.x += frame.height + 5;
-				frame.width -= frame.height + 5;
+				frame.width -= frame.height + 10;
 			}
 			
 			_textLabel->SetFrame(frame);
