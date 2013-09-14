@@ -246,20 +246,18 @@ namespace RN
 	{
 		const float Pi_360(k::Pi / 360.0f);
 		
-		float fSinPitch = Math::Sin(euler.x * Pi_360);
-		float fCosPitch = Math::Cos(euler.x * Pi_360);
-		float fSinYaw   = Math::Sin(euler.y * Pi_360);
-		float fCosYaw   = Math::Cos(euler.y * Pi_360);
+		float fSinYaw = Math::Sin(euler.x * Pi_360);
+		float fCosYaw = Math::Cos(euler.x * Pi_360);
+		float fSinPitch   = Math::Sin(euler.y * Pi_360);
+		float fCosPitch   = Math::Cos(euler.y * Pi_360);
 		float fSinRoll  = Math::Sin(euler.z * Pi_360);
 		float fCosRoll  = Math::Cos(euler.z * Pi_360);
 		
-		float fCosPitchCosYaw = fCosPitch * fCosYaw;
-		float fSinPitchSinYaw = fSinPitch * fSinYaw;
+		Quaternion qx(fSinPitch, 0.0f, 0.0f, fCosPitch);
+		Quaternion qy(0.0f, fSinYaw, 0.0f, fCosYaw);
+		Quaternion qz(0.0f, 0.0f, fSinRoll, fCosRoll);
 		
-		x = fSinRoll * fCosPitchCosYaw     - fCosRoll * fSinPitchSinYaw;
-		y = fCosRoll * fSinPitch * fCosYaw + fSinRoll * fCosPitch * fSinYaw;
-		z = fCosRoll * fCosPitch * fSinYaw - fSinRoll * fSinPitch * fCosYaw;
-		w = fCosRoll * fCosPitchCosYaw     + fSinRoll * fSinPitchSinYaw;
+		*this = qy*qx*qz;
 		
 		Normalize();
 	}
@@ -478,13 +476,27 @@ namespace RN
 		float sqy = y * y;
 		float sqz = z * z;
 		
-		float clamped = (x * y + z * w);
+//		float clamped = (x * y + z * w);
+		
+		float sqw = w*w;
+		
+		result.z = atan2(2.0 * (x*y + z*w), (sqx - sqy - sqz + sqw));
+		result.y = atan2(2.0 * (y*z + x*w), (-sqx - sqy + sqz + sqw));
+		result.x = asin(-2.0 * (x*z - y*w));
+		
+/*		result.y = atan2f(2.0f * (w * x + y * z), 1.0f - 2.0f * (sqx + sqy));
+		result.x = asinf(2.0f * (w * y - z * x));
+		result.z = atan2f(2.0f * (w * z + x * y), 1.0f - 2.0f * (sqy + sqz));*/
+		result *= 180.0f / k::Pi;
+		
+		
+		/*
 //		printf("dafuq: %f\n", clamped);
 		if(clamped > 0.4999f)
 		{
 			result.x = 2.0f * atan2(x, w) * 180.0f / k::Pi;
-			result.y = 90.0f;
-			result.z = 0.0f;
+			result.z = 90.0f;
+			result.y = 0.0f;
 			
 			return result;
 		}
@@ -492,8 +504,8 @@ namespace RN
 		if(clamped < -0.4999f)
 		{
 			result.x = -2.0f * atan2(x, w) * 180.0f / k::Pi;
-			result.y = -90.0f;
-			result.z = 0.0f;
+			result.z = -90.0f;
+			result.y = 0.0f;
 			
 			return result;
 		}
@@ -502,6 +514,11 @@ namespace RN
 		result.y = asin(2.0f*clamped);
 		result.z = (float)(atan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (sqx + sqz)));
 		result *= 180.0f / k::Pi;
+		*/
+		
+//		heading = atan2(2*qy*qw-2*qx*qz , 1 - 2*qy2 - 2*qz2)
+//		attitude = asin(2*qx*qy + 2*qz*qw)
+//		bank = atan2(2*qx*qw-2*qy*qz , 1 - 2*qx2 - 2*qz2)
 		
 		return result;
 	}
