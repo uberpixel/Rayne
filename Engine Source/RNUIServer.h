@@ -24,6 +24,8 @@ namespace RN
 	
 	namespace UI
 	{
+		class View;
+		
 		class Server : public Singleton<Server>
 		{
 		public:
@@ -66,6 +68,7 @@ namespace RN
 			Mode _mode;
 			
 			Widget *_mainWidget;
+			View *_tracking;
 			std::deque<Widget *> _widgets;
 			
 			bool _drawDebugFrames;

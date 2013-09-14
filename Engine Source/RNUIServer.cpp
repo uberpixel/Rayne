@@ -31,6 +31,7 @@ namespace RN
 				_camera->GetWorld()->RemoveSceneNode(_camera);
 			
 			_mainWidget = nullptr;
+			_tracking = nullptr;
 			_mode = Mode::SingleTracking;
 			
 			_drawDebugFrames = false;
@@ -75,13 +76,15 @@ namespace RN
 		
 		bool Server::ConsumeEvent(Event *event)
 		{
-			Responder *responder = _mainWidget ? _mainWidget->GetFirstResponder() : nullptr;
-			
 			if(event->IsMouse())
 			{
-				if(responder && event->GetType() == Event::Type::MouseMoved)
+				if(_tracking && (event->GetType() == Event::Type::MouseMoved || event->GetType() == Event::Type::MouseUp))
 				{
-					responder->MouseMoved(event);
+					_tracking->MouseMoved(event);
+					
+					if(event->GetType() == Event::Type::MouseUp)
+						_tracking = nullptr;
+					
 					return true;
 				}
 				
@@ -116,18 +119,27 @@ namespace RN
 							
 						case Event::Type::MouseDown:
 							hit->MouseDown(event);
+							
 							_mainWidget = hitWidget;
+							_tracking = hit;
 							return true;
 							
 						case Event::Type::MouseUp:
 							hit->MouseUp(event);
+							_tracking = nullptr;
+							
 							return true;
 							
 						default:
 							break;
 					}
 				}
+				
+				return false;
 			}
+			
+			
+			Responder *responder = _mainWidget ? _mainWidget->GetFirstResponder() : nullptr;
 			
 			if(responder && event->IsKeyboard())
 			{
