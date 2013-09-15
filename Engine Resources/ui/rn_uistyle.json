@@ -1,70 +1,59 @@
 {
+	"fonts": {
+		"RNDefaultFont": {
+			"name": "Helvetica",
+			"size": 12.0
+		},
+		"RNDefaultFontBold": {
+			"name": "Helvetica",
+			"size": 12.0,
+			"traits": "bold"
+		},
+		"RNDefaultFontItalics": {
+			"name": "Helvetica",
+			"size": 12.0,
+			"traits": "italics"
+		},
+		"RNDefaultFontBoldItalics": {
+			"name": "Helvetica",
+			"size": 12.0,
+			"traits": "bold+italics"
+		}
+	},
+	"colors": {
+		"RNBackgroundColor": [0.220, 0.220, 0.220, 1.000],
+		"RNTextColor": [0.67, 0.67, 0.678, 1.000],
+		"RNSelectionColor": [0.141, 0.493, 0.741, 0.500]
+	},
 	"buttons": [
 		{
-			"name": "RNRoundedRect",
+			"name": "RNBezel",
 			"mode": "momentarily",
 			"texture": "ui/rn_uikit.png",
 			"insets": {
-				"top": 12.0,
-				"bottom": 12.0,
-				"left": 13.0,
-				"right": 13.0
+				"top": 5.0,
+				"bottom": 5.0,
+				"left": 5.0,
+				"right": 5.0
 			},
 			"contentInsets": {
-				"top": 8.0,
-				"bottom": 8.0,
-				"left": 8.0,
-				"right": 8.0
+				"top": 5.0,
+				"bottom": 5.0,
+				"left": 5.0,
+				"right": 5.0
 			},
 			"states": [
 				{
 					"name": "normal",
 					"atlas": {
-						"x": 0.0,
+						"x": 81.0,
 						"y": 0.0,
-						"width": 31.0,
-						"height": 28.0
-					}
-				},
-				{
-					"name": "selected",
-					"atlas": {
-						"x": 62.0,
-						"y": 0.0,
-						"width": 31.0,
+						"width": 11.0,
 						"height": 28.0
 					}
 				},
 				{
 					"name": "highlighted",
-					"atlas": {
-						"x": 31.0,
-						"y": 0.0,
-						"width": 31.0,
-						"height": 28.0
-					}
-				}
-			]
-		},
-		{
-			"name": "RNPushButton",
-			"mode": "momentarily",
-			"texture": "ui/rn_uikit.png",
-			"insets": {
-				"top": 5.0,
-				"bottom": 5.0,
-				"left": 5.0,
-				"right": 5.0
-			},
-			"contentInsets": {
-				"top": 5.0,
-				"bottom": 5.0,
-				"left": 5.0,
-				"right": 5.0
-			},
-			"states": [
-				{
-					"name": "normal",
 					"atlas": {
 						"x": 93.0,
 						"y": 0.0,
@@ -82,7 +71,7 @@
 					}
 				},
 				{
-					"name": "highlighted",
+					"name": "disabled",
 					"atlas": {
 						"x": 115.0,
 						"y": 0.0,
@@ -130,6 +119,15 @@
 						"width": 15.0,
 						"height": 15.0
 					}
+				},
+				{
+					"name": "disabled",
+					"atlas": {
+						"x": 142.0,
+						"y": 16.0,
+						"width": 15.0,
+						"height": 15.0
+					}
 				}
 			]
 		},
@@ -168,36 +166,19 @@
 	],
 	"textfields": [
 		{
-			"name": "RNRoundedRect",
+			"name": "RNBezel",
+			"texture": "ui/rn_uikit.png",
 			"contentInsets": {
 				"top": 0.0,
 				"bottom": 0.0,
 				"left": 5.0,
 				"right": 5.0
 			},
-			"background": {
-				"texture": "ui/rn_uikit.png",
-				"atlas": {
-					"x": 1.0,
-					"y": 49.0,
-					"width": 27.0,
-					"height": 25.0
-				},
-				"insets": {
-					"top": 12.0,
-					"bottom": 12.0,
-					"left": 13.0,
-					"right": 13.0
-				}
-			}
-		},
-		{
-			"name": "RNBezel",
-			"contentInsets": {
-				"top": 0.0,
-				"bottom": 0.0,
-				"left": 5.0,
-				"right": 5.0
+			"insets": {
+				"top": 4.0,
+				"bottom": 4.0,
+				"left": 4.0,
+				"right": 4.0
 			},
 			"clipInsets": {
 				"top": 0.0,
@@ -205,21 +186,35 @@
 				"left": 2.0,
 				"right": 2.0
 			},
-			"background": {
-				"texture": "ui/rn_uikit.png",
-				"atlas": {
-					"x": 29.0,
-					"y": 49.0,
-					"width": 10.0,
-					"height": 9.0
+			"states": [
+				{
+					"name": "normal",
+					"atlas": {
+						"x": 49.0,
+						"y": 0.0,
+						"width": 10.0,
+						"height": 9.0
+					}
 				},
-				"insets": {
-					"top": 4.0,
-					"bottom": 4.0,
-					"left": 4.0,
-					"right": 4.0
+				{
+					"name": "selected",
+					"atlas": {
+						"x": 60.0,
+						"y": 0.0,
+						"width": 10.0,
+						"height": 9.0
+					}
+				},
+				{
+					"name": "disabled",
+					"atlas": {
+						"x": 71.0,
+						"y": 0.0,
+						"width": 10.0,
+						"height": 9.0
+					}
 				}
-			}
+			]
 		}
 	]
 }
