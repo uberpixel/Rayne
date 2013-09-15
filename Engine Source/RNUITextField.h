@@ -60,6 +60,7 @@ namespace RN
 			bool CanBecomeFirstResponder() override;
 			void BecomeFirstResponder() override;
 			void ResignFirstResponder() override;
+			void StateChanged(State state) override;
 			
 		protected:
 			void LayoutSubviews() override;
@@ -72,6 +73,9 @@ namespace RN
 			void Initialize();
 			
 			TextFieldDelegate *_delegate;
+			
+			ControlStateStore<Image> _backgroundImages;
+			
 			ImageView *_background;
 			TextEditor *_editor;
 			Formatter *_formatter;
