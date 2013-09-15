@@ -96,6 +96,67 @@ namespace RN
 			
 			RNDefineMeta(Control, View)
 		};
+		
+		template<class T>
+		class ControlStateStore
+		{
+		public:
+			ControlStateStore()
+			{}
+			
+			~ControlStateStore()
+			{
+				for(auto i = _values.begin(); i != _values.end(); i ++)
+				{
+					i->second->Release();
+				}
+			}
+			
+			void SetValueForState(T *value, Control::State state)
+			{
+				auto iterator = _values.find(state);
+				if(iterator != _values.end())
+				{
+					iterator->second->Release();
+					
+					if(value)
+					{
+						iterator->second = value->Retain();
+						return;
+					}
+					
+					_values.erase(iterator);
+					return;
+				}
+				
+				_values.insert(typename std::map<Control::State, T *>::value_type(state, value->Retain()));
+			}
+			
+			T *ValueForState(Control::State state)
+			{
+				T *value = nullptr;
+				
+				if((state & Control::Disabled) && (value = ValueForMaskedState(Control::Disabled)))
+					return value;
+				
+				if((state & Control::Selected) && (value = ValueForMaskedState(Control::Selected)))
+					return value;
+				
+				if((state & Control::Highlighted) && (value = ValueForMaskedState(Control::Highlighted)))
+					return value;
+				
+				return ValueForMaskedState(Control::Normal);
+			}
+			
+		private:
+			T *ValueForMaskedState(Control::State state)
+			{
+				auto iterator = _values.find(state);
+				return (iterator != _values.end()) ? iterator->second : nullptr;
+			}
+			
+			std::map<Control::State, T *> _values;
+		};
 	}
 }
 

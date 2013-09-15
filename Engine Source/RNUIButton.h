@@ -27,7 +27,7 @@ namespace RN
 			enum class Type
 			{
 				RoundedRect,
-				PushButton,
+				Bezel,
 				CheckBox,
 				DisclosureTriangle
 			};
@@ -62,14 +62,10 @@ namespace RN
 			
 		private:
 			void Initialize();
-			
-			bool ActivateBackgroundImage(State state);
-			bool ActivateImage(State state);
-			bool ActivateTitle(State state);
-			
-			std::map<State, Image *> _backgroundImages;
-			std::map<State, Image *> _images;
-			std::map<State, String *> _titles;
+
+			ControlStateStore<Image> _backgroundImages;
+			ControlStateStore<Image> _images;
+			ControlStateStore<String> _titles;
 			
 			ImagePosition _position;
 			Behavior _behavior;
@@ -80,9 +76,8 @@ namespace RN
 			
 			EdgeInsets _contentInsets;
 			
-			Image *_currentBackground;
-			Image *_currentImage;
 			String *_currentTitle;
+			Image *_currentImage;
 			
 			RNDefineMeta(Button, Control)
 		};

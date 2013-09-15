@@ -24,7 +24,7 @@ namespace RN
 		
 		void SegmentView::InsertegmentAtIndex(Image *image, size_t index)
 		{
-			Button *segment = Button::WithType(Button::Type::PushButton);
+			Button *segment = Button::WithType(Button::Type::Bezel);
 			segment->SetImageForState(image, Control::Normal);
 			
 			InsertSegment(segment, index);
@@ -32,7 +32,7 @@ namespace RN
 		
 		void SegmentView::InsertSegmentAtIndex(String *title, size_t index)
 		{
-			Button *segment = Button::WithType(Button::Type::PushButton);
+			Button *segment = Button::WithType(Button::Type::Bezel);
 			segment->SetTitleForState(title, Control::Normal);
 			
 			InsertSegment(segment, index);

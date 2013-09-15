@@ -75,21 +75,6 @@ namespace RN
 		
 		Button::~Button()
 		{
-			for(auto i=_titles.begin(); i!=_titles.end(); i++)
-			{
-				i->second->Release();
-			}
-			
-			for(auto i=_images.begin(); i!=_images.end(); i++)
-			{
-				i->second->Release();
-			}
-			
-			for(auto i=_backgroundImages.begin(); i!=_backgroundImages.end(); i++)
-			{
-				i->second->Release();
-			}
-			
 			_label->Release();
 			_image->Release();
 			_backgroundImage->Release();
@@ -105,8 +90,8 @@ namespace RN
 					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNRoundedRect"));
 					break;
 					
-				case Type::PushButton:
-					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNPushButton"));
+				case Type::Bezel:
+					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNBezel"));
 					break;
 					
 				case Type::CheckBox:
@@ -125,10 +110,6 @@ namespace RN
 		
 		void Button::Initialize()
 		{
-			_currentBackground = nullptr;
-			_currentImage = nullptr;
-			_currentTitle = nullptr;
-			
 			_behavior = Behavior::Momentarily;
 			_position = ImagePosition::Left;
 			
@@ -144,6 +125,9 @@ namespace RN
 			_image->SetFrame(Bounds());
 			_image->SetScaleMode(ScaleMode::ProportionallyDown);
 			
+			_currentTitle = nullptr;
+			_currentImage = nullptr;
+			
 			AddSubview(_backgroundImage);
 			AddSubview(_image);
 			AddSubview(_label);
@@ -154,95 +138,19 @@ namespace RN
 		
 		void Button::StateChanged(State state)
 		{
-#define TryActivatingBackgroundImage(s) \
-			if((state & s) && ActivateBackgroundImage(s)) \
-				break
+			String *title = _titles.ValueForState(state);
 			
-#define TryActivatingImage(s) \
-			if((state & s) && ActivateImage(s)) \
-				break
-
-#define TryActivatingTitle(s) \
-			if((state & s) && ActivateTitle(s)) \
-				break
-	
-			_backgroundImage->SetImage(nullptr);
-			_image->SetImage(nullptr);
-			_label->SetText(RNCSTR(""));
+			_backgroundImage->SetImage(_backgroundImages.ValueForState(state));
+			_image->SetImage(_images.ValueForState(state));
+			_label->SetText(title ? title : RNCSTR(""));
 			
-			_currentTitle = nullptr;
-			_currentImage = _currentBackground = nullptr;
-			
-			do {
-				TryActivatingBackgroundImage(Control::Disabled);
-				TryActivatingBackgroundImage(Control::Selected);
-				TryActivatingBackgroundImage(Control::Highlighted);
-				
-				ActivateBackgroundImage(Control::Normal);
-			} while(0);
-			
-			do {
-				TryActivatingImage(Control::Disabled);
-				TryActivatingImage(Control::Selected);
-				TryActivatingImage(Control::Highlighted);
-				
-				ActivateImage(Control::Normal);
-			} while(0);
-			
-			do {
-				TryActivatingTitle(Control::Disabled);
-				TryActivatingTitle(Control::Selected);
-				TryActivatingTitle(Control::Highlighted);
-				
-				ActivateTitle(Control::Normal);
-			} while(0);
+			_currentImage = _image->GetImage();
+			_currentTitle = _label->Text();
 			
 			SetNeedsLayoutUpdate();
 		}
 		
-		bool Button::ActivateBackgroundImage(State state)
-		{
-			auto iterator = _backgroundImages.find(state);
-			if(iterator != _backgroundImages.end())
-			{
-				_backgroundImage->SetImage(iterator->second);
-				_currentBackground = iterator->second;
-				
-				return true;
-			}
-			
-			return false;
-		}
-		
-		bool Button::ActivateImage(State state)
-		{
-			auto iterator = _images.find(state);
-			if(iterator != _images.end())
-			{
-				_image->SetImage(iterator->second);
-				_currentImage = iterator->second;
-				
-				return true;
-			}
-			
-			return false;
-		}
-		
-		bool Button::ActivateTitle(State state)
-		{
-			auto iterator = _titles.find(state);
-			if(iterator != _titles.end())
-			{
-				_label->SetText(iterator->second);
-				_currentTitle = iterator->second;
-				
-				return true;
-			}
-			
-			return false;
-		}
-		
-		
+
 		
 		void Button::SetFrame(const Rect& frame)
 		{
@@ -258,76 +166,19 @@ namespace RN
 		
 		void Button::SetTitleForState(String *title, State state)
 		{
-			auto iterator = _titles.find(state);
-			if(iterator != _titles.end())
-			{
-				iterator->second->Release();
-				
-				if(title)
-				{
-					iterator->second = title->Retain();
-					
-					StateChanged(ControlState());
-					return;
-				}
-				
-				_titles.erase(iterator);
-				
-				StateChanged(ControlState());
-				return;
-			}
-			
-			_titles.insert(std::map<State, String *>::value_type(state, title->Retain()));
+			_titles.SetValueForState(title, state);
 			StateChanged(ControlState());
 		}
 		
 		void Button::SetBackgroundImageForState(Image *image, State state)
 		{
-			auto iterator = _backgroundImages.find(state);
-			if(iterator != _backgroundImages.end())
-			{
-				iterator->second->Release();
-				
-				if(image)
-				{
-					iterator->second = image->Retain();
-					
-					StateChanged(ControlState());
-					return;
-				}
-				
-				_backgroundImages.erase(iterator);
-				
-				StateChanged(ControlState());
-				return;
-			}
-			
-			_backgroundImages.insert(std::map<State, Image *>::value_type(state, image->Retain()));
+			_backgroundImages.SetValueForState(image, state);
 			StateChanged(ControlState());
 		}
 		
 		void Button::SetImageForState(Image *image, State state)
 		{
-			auto iterator = _images.find(state);
-			if(iterator != _images.end())
-			{
-				iterator->second->Release();
-				
-				if(image)
-				{
-					iterator->second = image->Retain();
-					
-					StateChanged(ControlState());
-					return;
-				}
-				
-				_images.erase(iterator);
-				
-				StateChanged(ControlState());
-				return;
-			}
-			
-			_images.insert(std::map<State, Image *>::value_type(state, image->Retain()));
+			_images.SetValueForState(image, state);
 			StateChanged(ControlState());
 		}
 		
