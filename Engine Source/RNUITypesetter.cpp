@@ -125,7 +125,7 @@ namespace RN
 		}
 		
 		
-		Vector2 Typesetter::Dimensions()
+		Vector2 Typesetter::GetDimensions()
 		{
 			LayoutText();
 			
@@ -139,7 +139,7 @@ namespace RN
 			return extents;
 		}
 		
-		Vector2 Typesetter::VisibleDimensions()
+		Vector2 Typesetter::GetVisibleDimensions()
 		{
 			LayoutText();
 			
@@ -154,19 +154,19 @@ namespace RN
 		}
 		
 		
-		Model *Typesetter::LineModel()
+		Model *Typesetter::GetLineModel()
 		{
 			LayoutText();
 			return _model;
 		}
 		
-		const std::vector<Line *>& Typesetter::Lines()
+		const std::vector<Line *>& Typesetter::GetLines()
 		{
 			LayoutText();
 			return _lines;
 		}
 		
-		const std::vector<Line *>& Typesetter::VisibleLines()
+		const std::vector<Line *>& Typesetter::GetVisibleLines()
 		{
 			LayoutText();
 			CalculateVisibleLines();
@@ -299,12 +299,12 @@ namespace RN
 				}
 				
 				Font *font = FontForAttributes(_string->GetAttributesAtIndex(i));
-				const Glyph& glyph = font->GlyphForCharacter(character);
+				const Glyph& glyph = font->GetGlyphForCharacter(character);
 				
-				float width = glyph.AdvanceX();
+				float width = glyph.GetAdvanceX();
 				
 				if(!onNewLine)
-					width += glyph.Kerning(previous);
+					width += glyph.GetKerning(previous);
 				
 				forcedLinebreak = false;
 				onNewLine = false;
@@ -416,14 +416,14 @@ namespace RN
 				RN_ASSERT(mesh && font && color, "Inconsistent mesh data generated!\n");
 				
 				Material *material = new Material(shader);
-				material->AddTexture(font->Texture());
+				material->AddTexture(font->GetTexture());
 				material->depthtest = false;
 				material->depthwrite = false;
 				material->blending = true;
 				material->lighting = false;
 				material->ambient  = color->GetRNColor();
 				
-				if(font->Filtering())
+				if(font->GetFiltering())
 					material->Define("RN_SUBPIXEL_ANTIALIAS");
 				
 				_model->AddMesh(mesh, material->Autorelease(), 0);
@@ -491,7 +491,7 @@ namespace RN
 				_font->Release();
 			
 			_font = font->Retain();
-			_extents.y = _font->DefaultLineHeight();
+			_extents.y = _font->GetDefaultLineHeight();
 		}
 		
 		void LineSegment::SetColor(const RN::Color& color)
@@ -512,7 +512,7 @@ namespace RN
 		
 		bool LineSegment::IsValidGlyph(const Glyph& glyph) const
 		{
-			CodePoint point(glyph.Character());
+			CodePoint point(glyph.GetCharacter());
 			
 			if(point.IsNewline())
 				return false;
@@ -526,10 +526,10 @@ namespace RN
 				return;
 			
 			_glyphs.push_back(glyph);
-			_extents.x += glyph.AdvanceX();
+			_extents.x += glyph.GetAdvanceX();
 			
 			if(_glyphs.size() > 1)
-				_extents.x += glyph.Kerning(_glyphs[_glyphs.size() - 2].Character());
+				_extents.x += glyph.GetKerning(_glyphs[_glyphs.size() - 2].GetCharacter());
 		}
 		
 		void LineSegment::AddGlyphs(const std::vector<Glyph>& glyphs)
@@ -542,16 +542,16 @@ namespace RN
 				if(!IsValidGlyph(glyph))
 					continue;
 				
-				_extents.x += glyph.AdvanceX();
+				_extents.x += glyph.GetAdvanceX();
 				
 				if(i > 0)
-					_extents.x += glyph.Kerning(previous);
+					_extents.x += glyph.GetKerning(previous);
 				
-				previous = glyph.Character();
+				previous = glyph.GetCharacter();
 			}
 			
 			if(!_glyphs.empty())
-				_extents.x += glyphs.at(0).Kerning(_glyphs[_glyphs.size() - 1].Character());
+				_extents.x += glyphs.at(0).GetKerning(_glyphs[_glyphs.size() - 1].GetCharacter());
 			
 			_glyphs.insert(_glyphs.end(), glyphs.begin(), glyphs.end());
 		}
@@ -561,10 +561,10 @@ namespace RN
 			if(!IsValidGlyph(glyph))
 				return;
 			
-			_extents.x += glyph.AdvanceX();
+			_extents.x += glyph.GetAdvanceX();
 			
 			if(!_glyphs.empty())
-				_extents.x += _glyphs[0].Kerning(glyph.Character());
+				_extents.x += _glyphs[0].GetKerning(glyph.GetCharacter());
 			
 			_glyphs.insert(_glyphs.begin(), glyph);
 		}
@@ -582,10 +582,10 @@ namespace RN
 			{
 				for(auto i=_glyphs.begin(); i!=_glyphs.end(); i++)
 				{
-					float glyphWidth = i->AdvanceX();
+					float glyphWidth = i->GetAdvanceX();
 					
 					if(!glyphs.empty())
-						glyphWidth += i->Kerning(glyphs[glyphs.size() - 1].Character());
+						glyphWidth += i->GetKerning(glyphs[glyphs.size() - 1].GetCharacter());
 					
 					if(filled + glyphWidth > width)
 						break;
@@ -598,10 +598,10 @@ namespace RN
 			{
 				for(auto i=_glyphs.rbegin(); i!=_glyphs.rend(); i++)
 				{
-					float glyphWidth = i->AdvanceX();
+					float glyphWidth = i->GetAdvanceX();
 					
 					if(!glyphs.empty())
-						glyphWidth += glyphs[glyphs.size() - 1].Kerning(i->Character());
+						glyphWidth += glyphs[glyphs.size() - 1].GetKerning(i->GetCharacter());
 					
 					if(filled + glyphWidth > width)
 						break;
@@ -628,14 +628,14 @@ namespace RN
 			{				
 				Glyph& glyph = _glyphs[i];
 				
-				float x0 = offsetX + glyph.OffsetX();
-				float y1 = offsetY + glyph.OffsetY() - _extents.y;
-				float x1 = x0 + glyph.Width();
-				float y0 = y1 - glyph.Height();
+				float x0 = offsetX + glyph.GetOffsetX();
+				float y1 = offsetY + glyph.GetOffsetY() - _extents.y;
+				float x1 = x0 + glyph.GetWidth();
+				float y0 = y1 - glyph.GetHeight();
 				
 				if(i > 0)
 				{
-					float kerning = glyph.Kerning(previous);
+					float kerning = glyph.GetKerning(previous);
 					
 					offsetX += kerning;
 					x0 += kerning;
@@ -646,10 +646,10 @@ namespace RN
 				*vertices ++ = Vector2(x1, y0);
 				*vertices ++ = Vector2(x0, y0);
 				
-				*uvCoords ++ = Vector2(glyph.U1(), glyph.V0());
-				*uvCoords ++ = Vector2(glyph.U0(), glyph.V0());
-				*uvCoords ++ = Vector2(glyph.U1(), glyph.V1());
-				*uvCoords ++ = Vector2(glyph.U0(), glyph.V1());
+				*uvCoords ++ = Vector2(glyph.GetU1(), glyph.GetV0());
+				*uvCoords ++ = Vector2(glyph.GetU0(), glyph.GetV0());
+				*uvCoords ++ = Vector2(glyph.GetU1(), glyph.GetV1());
+				*uvCoords ++ = Vector2(glyph.GetU0(), glyph.GetV1());
 				
 				*indices ++ = ((i + offset) * 4) + 0;
 				*indices ++ = ((i + offset) * 4) + 1;
@@ -659,8 +659,8 @@ namespace RN
 				*indices ++ = ((i + offset) * 4) + 3;
 				*indices ++ = ((i + offset) * 4) + 2;
 				
-				offsetX += glyph.AdvanceX();
-				previous = glyph.Character();
+				offsetX += glyph.GetAdvanceX();
+				previous = glyph.GetCharacter();
 			}
 		}
 
@@ -690,9 +690,9 @@ namespace RN
 		float Line::TokenWidthInSegment(const LineSegment& segment)
 		{
 			Font *font = segment.GetFont();
-			const Glyph& glyph = font->GlyphForCharacter(_truncationToken);
+			const Glyph& glyph = font->GetGlyphForCharacter(_truncationToken);
 			
-			return glyph.AdvanceX();
+			return glyph.GetAdvanceX();
 		}
 		
 		void Line::Truncate(float width, TextTruncation truncation, UniChar token)
@@ -783,7 +783,7 @@ namespace RN
 					segment.SetColor(color);
 				}
 				
-				const Glyph& glyph = font->GlyphForCharacter(character);
+				const Glyph& glyph = font->GetGlyphForCharacter(character);
 				segment.AddGlyph(glyph);
 			}
 			
@@ -830,7 +830,7 @@ namespace RN
 								left = truncateWidth - (filled + TokenWidthInSegment(*i));
 							
 							LineSegment segment = std::move(i->SegmentWithWidth(left, false));
-							segment.AddGlyph(segment.GetFont()->GlyphForCharacter(_truncationToken));
+							segment.AddGlyph(segment.GetFont()->GetGlyphForCharacter(_truncationToken));
 							
 							truncated.push_back(segment);
 							break;
@@ -856,7 +856,7 @@ namespace RN
 							LineSegment segment = std::move(i->SegmentWithWidth(left, true));
 							
 							if(!truncateMiddle)
-								segment.InsertGlyph(segment.GetFont()->GlyphForCharacter(_truncationToken));
+								segment.InsertGlyph(segment.GetFont()->GetGlyphForCharacter(_truncationToken));
 							
 							truncated.push_back(segment);
 							break;

@@ -40,8 +40,8 @@ namespace RN
 			Rect ConvertRectToView(const Rect& frame, View *view);
 			Rect ConvertRectFromView(const Rect& frame, View *view);
 			
-			const Rect& Frame() const { return _frame; }
-			const Rect& Bounds() const { return _bounds; }
+			const Rect& GetFrame() const { return _frame; }
+			const Rect& GetBounds() const { return _bounds; }
 			
 			virtual void SetFrame(const Rect& frame);
 			virtual void SetBounds(const Rect& bounds);
@@ -63,12 +63,12 @@ namespace RN
 			void SetNeedsLayoutUpdate();
 			
 			void SizeToFit();
-			virtual Vector2 SizeThatFits();
+			virtual Vector2 GetSizeThatFits();
 			
 			View *HitTest(const Vector2& point, Event *event);
 			virtual bool PointInside(const Vector2& point, Event *event);
 			
-			Responder *NextResponder() const override;
+			Responder *GetNextResponder() const override;
 			
 		protected:
 			Mesh *BasicMesh(const Vector2& size);

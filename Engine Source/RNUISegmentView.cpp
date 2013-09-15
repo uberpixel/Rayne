@@ -113,8 +113,8 @@ namespace RN
 			
 			if(count > 0)
 			{
-				float width  = Frame().width / count;
-				float height = Frame().height;
+				float width  = GetFrame().width / count;
+				float height = GetFrame().height;
 				
 				_segments.Enumerate<Button>([&](Button *button, size_t index, bool *stop) {
 					Rect frame = Rect(index * width, 0, width, height);

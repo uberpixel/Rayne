@@ -37,7 +37,7 @@ namespace RN
 			_color     = new Color(RN::Color::White());
 			
 			_string     = new AttributedString(RNCSTR(""));
-			_typesetter = new Typesetter(_string, Bounds());
+			_typesetter = new Typesetter(_string, GetBounds());
 			_typesetter->SetAllowPartiallyClippedLined(false);
 			
 			SetFont(ResourcePool::GetSharedInstance()->GetResourceWithName<Font>(kRNResourceKeyDefaultFont));
@@ -136,16 +136,16 @@ namespace RN
 			_isDirty = true;
 		}
 		
-		Vector2 Label::SizeThatFits()
+		Vector2 Label::GetSizeThatFits()
 		{
-			return _typesetter->Dimensions();
+			return _typesetter->GetDimensions();
 		}
 		
 		void Label::SetFrame(const Rect& frame)
 		{
 			View::SetFrame(frame);
 			
-			_typesetter->SetFrame(Bounds());
+			_typesetter->SetFrame(GetBounds());
 			_isDirty = true;
 		}
 		
@@ -164,7 +164,7 @@ namespace RN
 				if(!_string)
 					return;
 				
-				_model = _typesetter->LineModel()->Retain();
+				_model = _typesetter->GetLineModel()->Retain();
 				_isDirty = false;
 			}
 		}

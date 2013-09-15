@@ -19,7 +19,7 @@ namespace RN
 			_string = new AttributedString(RNCSTR(""));
 			_typingAttributes = new Dictionary();
 			_selection = Range(0, 0);
-			_typesetter = new Typesetter(_string, Frame());
+			_typesetter = new Typesetter(_string, GetFrame());
 			_isDirty = true;
 			
 			_model     = nullptr;
@@ -166,7 +166,7 @@ namespace RN
 					_model = nullptr;
 				}
 				
-				_model   = _typesetter->LineModel()->Retain();
+				_model   = _typesetter->GetLineModel()->Retain();
 				_isDirty = false;
 			}
 		}

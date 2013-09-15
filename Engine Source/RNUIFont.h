@@ -26,22 +26,22 @@ namespace RN
 		{
 		friend class Font;
 		public:
-			UniChar Character() const { return _character; }
-			float Kerning(UniChar character) const; // Returns the kerning for this glyph rendered after the given character
+			UniChar GetCharacter() const { return _character; }
+			float GetKerning(UniChar character) const; // Returns the kerning for this glyph rendered after the given character
 			
-			float Width() const  { return _region.width; }
-			float Height() const { return _region.height; }
+			float GetWidth() const  { return _region.width; }
+			float GetHeight() const { return _region.height; }
 			
-			int OffsetX() const { return _offset_x; }
-			int OffsetY() const { return _offset_y; }
+			int GetOffsetX() const { return _offset_x; }
+			int GetOffsetY() const { return _offset_y; }
 			
-			float AdvanceX() const { return _advance_x; }
-			float AdvanceY() const { return _advance_y; }
+			float GetAdvanceX() const { return _advance_x; }
+			float GetAdvanceY() const { return _advance_y; }
 			
-			float U0() const { return _u0; }
-			float U1() const { return _u1; }
-			float V0() const { return _v0; }
-			float V1() const { return _v1; }
+			float GetU0() const { return _u0; }
+			float GetU1() const { return _u1; }
+			float GetV0() const { return _v0; }
+			float GetV1() const { return _v1; }
 			
 		private:
 			UniChar _character;
@@ -96,19 +96,19 @@ namespace RN
 			static Font *WithName(const std::string& name, float size);
 			static Font *WithNameAndDescriptor(const std::string& name, float size, const FontDescriptor& descriptor);
 			
-			bool Hinting() const { return _descriptor.hinting; }
-			bool Filtering() const { return _descriptor.filtering; };
+			bool GetHinting() const { return _descriptor.hinting; }
+			bool GetFiltering() const { return _descriptor.filtering; };
 			
-			float Ascent() const { return _ascent; }
-			float Descent() const { return _descent; }
-			float Leading() const { return _leading; }
-			float Size() const { return _size; }
-			float UnitsPerEM() const { return _unitsPerEM; }
-			float DefaultLineHeight() const;
+			float GetAscent() const { return _ascent; }
+			float GetDescent() const { return _descent; }
+			float GetLeading() const { return _leading; }
+			float GetSize() const { return _size; }
+			float GetUnitsPerEM() const { return _unitsPerEM; }
+			float GetDefaultLineHeight() const;
 			
-			Texture *Texture() const { return _texture; }
+			Texture *GetTexture() const { return _texture; }
 			
-			const Glyph& GlyphForCharacter(UniChar character);
+			const Glyph& GetGlyphForCharacter(UniChar character);
 			void RenderGlyphsFromString(String *string);
 			
 		private:

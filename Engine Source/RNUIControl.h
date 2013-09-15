@@ -52,7 +52,7 @@ namespace RN
 			bool IsSelected() const { return _state & Control::Selected; }
 			bool IsEnabled() const { return !(_state & Control::Disabled); }
 			
-			State ControlState() const { return _state; }
+			State GetState() const { return _state; }
 			
 			void AddListener(EventType event, Callback callback, void *cookie);
 			void RemoveListener(EventType event, void *cookie);
@@ -132,24 +132,24 @@ namespace RN
 				_values.insert(typename std::map<Control::State, T *>::value_type(state, value->Retain()));
 			}
 			
-			T *ValueForState(Control::State state)
+			T *GetValueForState(Control::State state)
 			{
 				T *value = nullptr;
 				
-				if((state & Control::Disabled) && (value = ValueForMaskedState(Control::Disabled)))
+				if((state & Control::Disabled) && (value = GetValueForMaskedState(Control::Disabled)))
 					return value;
 				
-				if((state & Control::Selected) && (value = ValueForMaskedState(Control::Selected)))
+				if((state & Control::Selected) && (value = GetValueForMaskedState(Control::Selected)))
 					return value;
 				
-				if((state & Control::Highlighted) && (value = ValueForMaskedState(Control::Highlighted)))
+				if((state & Control::Highlighted) && (value = GetValueForMaskedState(Control::Highlighted)))
 					return value;
 				
-				return ValueForMaskedState(Control::Normal);
+				return GetValueForMaskedState(Control::Normal);
 			}
 			
 		private:
-			T *ValueForMaskedState(Control::State state)
+			T *GetValueForMaskedState(Control::State state)
 			{
 				auto iterator = _values.find(state);
 				return (iterator != _values.end()) ? iterator->second : nullptr;

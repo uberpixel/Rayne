@@ -94,7 +94,7 @@ namespace RN
 		void TableView::UpdateDimensions()
 		{
 			_height = _rows * _rowHeight;
-			SetContentSize(Vector2(Frame().width, _height));
+			SetContentSize(Vector2(GetFrame().width, _height));
 		}
 		
 		void TableView::SetFrame(const Rect& frame)
@@ -160,7 +160,7 @@ namespace RN
 			Range range;
 			
 			float offset = GetContentOffset().y;
-			float contentHeight = offset + Frame().height;
+			float contentHeight = offset + GetFrame().height;
 			
 			size_t firstVisibleRow = GetRowForContentOffset(offset);
 			size_t lastVisibleRow  = GetRowForContentOffset(contentHeight);
@@ -363,7 +363,7 @@ namespace RN
 				{
 					float offset = GetOffsetForRow(cell->_row);
 					float height = GetHeightForRow(cell->_row);
-					float width = Frame().width;
+					float width  = GetFrame().width;
 					
 					cell->SetFrame(Rect(0.0f, offset, width, height));
 					cell->SetIndentation(GetIndentationForRow(cell->_row));
@@ -394,13 +394,13 @@ namespace RN
 		{
 			ScrollView::LayoutSubviews();
 			
-			float width = Frame().width;
+			float width = GetFrame().width;
 			
 			size_t count = _cells.GetCount();
 			for(size_t i = 0; i < count; i ++)
 			{
 				TableViewCell *cell = _cells.GetObjectAtIndex<TableViewCell>(i);
-				Rect frame = cell->Frame();
+				Rect frame = cell->GetFrame();
 				frame.width = width;
 				
 				cell->SetFrame(frame);
@@ -414,7 +414,7 @@ namespace RN
 			
 			float height = GetHeightForRow(row);
 			float indentation = GetIndentationForRow(row);
-			float width = Frame().width;
+			float width = GetFrame().width;
 			
 			cell->SetFrame(Rect(0.0f, offset, width, height));
 			cell->SetIndentation(indentation);

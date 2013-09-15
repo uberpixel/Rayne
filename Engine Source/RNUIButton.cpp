@@ -117,12 +117,12 @@ namespace RN
 			_image = new ImageView();
 			_label = new Label();
 			
-			_backgroundImage->SetFrame(Bounds());
+			_backgroundImage->SetFrame(GetBounds());
 			
-			_label->SetFrame(Bounds());
+			_label->SetFrame(GetBounds());
 			_label->SetAlignment(TextAlignment::Center);
 			
-			_image->SetFrame(Bounds());
+			_image->SetFrame(GetBounds());
 			_image->SetScaleMode(ScaleMode::ProportionallyDown);
 			
 			_currentTitle = nullptr;
@@ -132,20 +132,20 @@ namespace RN
 			AddSubview(_image);
 			AddSubview(_label);
 			
-			StateChanged(ControlState());
+			StateChanged(GetState());
 			SetBackgroundColor(RN::Color::ClearColor());
 		}
 		
 		void Button::StateChanged(State state)
 		{
-			String *title = _titles.ValueForState(state);
+			String *title = _titles.GetValueForState(state);
 			
-			_backgroundImage->SetImage(_backgroundImages.ValueForState(state));
-			_image->SetImage(_images.ValueForState(state));
+			_backgroundImage->SetImage(_backgroundImages.GetValueForState(state));
+			_image->SetImage(_images.GetValueForState(state));
 			_label->SetText(title ? title : RNCSTR(""));
 			
 			_currentImage = _image->GetImage();
-			_currentTitle = _label->Text();
+			_currentTitle = _label->GetText();
 			
 			SetNeedsLayoutUpdate();
 		}
@@ -155,7 +155,7 @@ namespace RN
 		void Button::SetFrame(const Rect& frame)
 		{
 			Control::SetFrame(frame);
-			_backgroundImage->SetFrame(Bounds());
+			_backgroundImage->SetFrame(GetBounds());
 		}
 		
 		void Button::SetContentInsets(const EdgeInsets& insets)
@@ -167,19 +167,19 @@ namespace RN
 		void Button::SetTitleForState(String *title, State state)
 		{
 			_titles.SetValueForState(title, state);
-			StateChanged(ControlState());
+			StateChanged(GetState());
 		}
 		
 		void Button::SetBackgroundImageForState(Image *image, State state)
 		{
 			_backgroundImages.SetValueForState(image, state);
-			StateChanged(ControlState());
+			StateChanged(GetState());
 		}
 		
 		void Button::SetImageForState(Image *image, State state)
 		{
 			_images.SetValueForState(image, state);
-			StateChanged(ControlState());
+			StateChanged(GetState());
 		}
 		
 		void Button::SetBehavior(Behavior behavior)
@@ -245,15 +245,15 @@ namespace RN
 			return Control::PostEvent(event);
 		}
 		
-		Vector2 Button::SizeThatFits()
+		Vector2 Button::GetSizeThatFits()
 		{
-			State temp = ControlState();
+			State temp = GetState();
 			StateChanged(Control::Normal);
 			
 			Vector2 size = Vector2(_contentInsets.left + _contentInsets.right, _contentInsets.top + _contentInsets.bottom);
 			
-			Vector2 titleSize = std::move(_label->SizeThatFits());
-			Vector2 imageSize = std::move(_image->SizeThatFits());
+			Vector2 titleSize = std::move(_label->GetSizeThatFits());
+			Vector2 imageSize = std::move(_image->GetSizeThatFits());
 			
 			Vector2 max;
 			max.x = std::max(titleSize.x, imageSize.x);
@@ -294,11 +294,11 @@ namespace RN
 		{
 			Control::LayoutSubviews();
 			
-			Vector2 titleSize = std::move(_label->SizeThatFits());
-			Vector2 imageSize = std::move(_image->SizeThatFits());
+			Vector2 titleSize = std::move(_label->GetSizeThatFits());
+			Vector2 imageSize = std::move(_image->GetSizeThatFits());
 			
 			Vector2 insetSize = Vector2(_contentInsets.left + _contentInsets.right, _contentInsets.top + _contentInsets.bottom);
-			Vector2 size = Frame().Size();
+			Vector2 size = GetFrame().Size();
 			Vector2 truncatedSize = size - insetSize;
 			
 			titleSize.x = truncatedSize.x > titleSize.x ? titleSize.x : truncatedSize.x;
@@ -329,7 +329,7 @@ namespace RN
 			switch(_position)
 			{
 				case ImagePosition::Left:
-					if(!fitsHorizontally || _label->Alignment() == TextAlignment::Left)
+					if(!fitsHorizontally || _label->GetAlignment() == TextAlignment::Left)
 					{
 						Rect titleRect = Rect(_contentInsets.left + imageSize.x, centeredTitle.y, size.x - (imageSize.x + insetSize.x), titleSize.y);
 						_label->SetFrame(titleRect);
@@ -339,7 +339,7 @@ namespace RN
 					break;
 					
 				case ImagePosition::Right:
-					if(!fitsHorizontally || _label->Alignment() == TextAlignment::Right)
+					if(!fitsHorizontally || _label->GetAlignment() == TextAlignment::Right)
 					{
 						Rect titleRect = Rect(_contentInsets.left, centeredTitle.y, size.x - (imageSize.x + insetSize.x), titleSize.y);
 						_label->SetFrame(titleRect);

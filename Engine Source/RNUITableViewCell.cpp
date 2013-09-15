@@ -85,7 +85,7 @@ namespace RN
 		{
 			Control::LayoutSubviews();
 			
-			Rect contentFrame = Rect(Vector2(), Frame().Size());
+			Rect contentFrame = Rect(Vector2(), GetFrame().Size());
 			contentFrame.width -= _indentation;
 			contentFrame.x += _indentation;
 			

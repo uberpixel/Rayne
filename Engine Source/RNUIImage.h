@@ -32,18 +32,18 @@ namespace RN
 			void SetAtlas(const Atlas& atlas, bool normalized=true);
 			void SetEdgeInsets(const EdgeInsets& insets);
 			
-			const Atlas& Atlas() const { return _atlas; }
-			const EdgeInsets& Insets() const { return _insets; }
+			const Atlas& GetAtlas() const { return _atlas; }
+			const EdgeInsets& GetEdgeInsets() const { return _insets; }
 			
-			Texture *Texture() const { return _texture; }
-			Mesh *FittingMesh(const Vector2& size, const Vector2& offset=Vector2());
+			Texture *GetTexture() const { return _texture; }
+			Mesh *GetFittingMesh(const Vector2& size, const Vector2& offset=Vector2());
 			
-			uint32 Width() const;
-			uint32 Height() const;
+			uint32 GetWidth() const;
+			uint32 GetHeight() const;
 			
 		private:
-			class Texture *_texture;
-			class Atlas _atlas;
+			Texture *_texture;
+			Atlas _atlas;
 			EdgeInsets _insets;
 			
 			RNDefineMeta(Image, Object)

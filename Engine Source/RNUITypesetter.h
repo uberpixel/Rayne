@@ -41,13 +41,13 @@ namespace RN
 			
 			void InvalidateStringInRange(const Range& range);
 			
-			Vector2 Dimensions();
-			Vector2 VisibleDimensions();
+			Vector2 GetDimensions();
+			Vector2 GetVisibleDimensions();
 			
-			Model *LineModel();
+			Model *GetLineModel();
 			
-			const std::vector<Line *>& Lines();
-			const std::vector<Line *>& VisibleLines();
+			const std::vector<Line *>& GetLines();
+			const std::vector<Line *>& GetVisibleLines();
 			
 		private:
 			void Clear();

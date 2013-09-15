@@ -112,7 +112,7 @@ namespace RN
 		
 		void Widget::ConstraintContentView()
 		{
-			Rect frame = _contentView->Frame();
+			Rect frame = _contentView->GetFrame();
 			Vector2 size = GetContentSize();
 			
 			frame.width  = size.x;
@@ -217,7 +217,7 @@ namespace RN
 			if(_server)
 			{
 				_finalTransform = transform;
-				_finalTransform.Translate(Vector3(_frame.x, _server->Height() - _frame.height - _frame.y, 0.0f));
+				_finalTransform.Translate(Vector3(_frame.x, _server->GetHeight() - _frame.height - _frame.y, 0.0f));
 				_finalTransform.Scale(Vector3(_frame.width, _frame.height, 1.0f));
 				
 				_dirtyLayout = false;

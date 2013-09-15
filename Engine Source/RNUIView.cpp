@@ -140,7 +140,7 @@ namespace RN
 			mesh->UpdateMesh();
 		}
 		
-		Responder *View::NextResponder() const
+		Responder *View::GetNextResponder() const
 		{
 			if(_superview)
 				return _superview;
@@ -395,7 +395,7 @@ namespace RN
 		
 		void View::SizeToFit()
 		{
-			Vector2 size = std::move(SizeThatFits());
+			Vector2 size = std::move(GetSizeThatFits());
 			_frame.width  = size.x;
 			_frame.height = size.y;
 			
@@ -403,7 +403,7 @@ namespace RN
 			SetNeedsLayoutUpdate();
 		}
 		
-		Vector2 View::SizeThatFits()
+		Vector2 View::GetSizeThatFits()
 		{
 			return _frame.Size();
 		}
@@ -452,7 +452,7 @@ namespace RN
 		
 		void View::CalculateScissorRect()
 		{
-			float serverHeight = (_widget && _widget->_server) ? _widget->_server->Height() : 0.0f;
+			float serverHeight = (_widget && _widget->_server) ? _widget->_server->GetHeight() : 0.0f;
 			Vector2 origin = _frame.Origin();
 			
 			_clippingView = nullptr;
@@ -521,7 +521,7 @@ namespace RN
 					converted.y += _widget->_frame.y;
 					
 					if(_widget->_server)
-						serverHeight = _widget->_server->Height();
+						serverHeight = _widget->_server->GetHeight();
 				}
 				
 				_finalTransform = _intermediateTransform;
@@ -538,9 +538,9 @@ namespace RN
 				_dirtyLayout = false;
 			}
 			
-			if(_widget && _widget->_server && _widget->_server->DrawDebugFrames())
+			if(_widget && _widget->_server && _widget->_server->GetDrawDebugFrames())
 			{
-				Rect frame = ConvertRectToView(Bounds(), nullptr);
+				Rect frame = ConvertRectToView(GetBounds(), nullptr);
 				
 				if(_widget)
 				{
@@ -569,7 +569,7 @@ namespace RN
 			}
 			else if(_widget)
 			{
-				float serverHeight = (_widget->_server) ? _widget->_server->Height() : 0.0f;
+				float serverHeight = (_widget->_server) ? _widget->_server->GetHeight() : 0.0f;
 				
 				object.scissorRect = _widget->GetFrame();
 				object.scissorRect.y = serverHeight - object.scissorRect.height - object.scissorRect.y;

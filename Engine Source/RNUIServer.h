@@ -45,10 +45,10 @@ namespace RN
 			
 			void SetDrawDebugFrames(bool drawDebugFrames);
 			
-			uint32 Height() const { return _frame.height; }
-			uint32 Width() const { return _frame.width; }
+			uint32 GetHeight() const { return _frame.height; }
+			uint32 GetWidth() const { return _frame.width; }
 			
-			bool DrawDebugFrames() const { return _drawDebugFrames; }
+			bool GetDrawDebugFrames() const { return _drawDebugFrames; }
 			
 			Camera *GetCamera() const { return _camera; }
 			Widget *GetMainWidget() const { return _mainWidget; }

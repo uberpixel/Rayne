@@ -20,7 +20,7 @@ namespace RN
 		
 		
 		
-		Responder *Responder::NextResponder() const
+		Responder *Responder::GetNextResponder() const
 		{
 			return nullptr;
 		}
@@ -50,45 +50,45 @@ namespace RN
 		
 		void Responder::MouseDown(Event *event)
 		{
-			Responder *next = NextResponder();
+			Responder *next = GetNextResponder();
 			if(next)
 				next->MouseDown(event);
 		}
 		void Responder::MouseUp(Event *event)
 		{
-			Responder *next = NextResponder();
+			Responder *next = GetNextResponder();
 			if(next)
 				next->MouseUp(event);
 		}
 		void Responder::MouseMoved(Event *event)
 		{
-			Responder *next = NextResponder();
+			Responder *next = GetNextResponder();
 			if(next)
 				next->MouseMoved(event);
 		}
 		
 		void Responder::KeyDown(Event *event)
 		{
-			Responder *next = NextResponder();
+			Responder *next = GetNextResponder();
 			if(next)
 				next->KeyDown(event);
 		}
 		void Responder::KeyUp(Event *event)
 		{
-			Responder *next = NextResponder();
+			Responder *next = GetNextResponder();
 			if(next)
 				next->KeyUp(event);
 		}
 		void Responder::KeyRepeat(Event *event)
 		{
-			Responder *next = NextResponder();
+			Responder *next = GetNextResponder();
 			if(next)
 				next->KeyRepeat(event);
 		}
 		
 		void Responder::ScrollWheel(Event *event)
 		{
-			Responder *next = NextResponder();
+			Responder *next = GetNextResponder();
 			if(next)
 				next->ScrollWheel(event);
 		}

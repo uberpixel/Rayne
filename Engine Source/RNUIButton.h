@@ -52,7 +52,7 @@ namespace RN
 			void SetContentInsets(const EdgeInsets& insets);
 			
 			void SetFrame(const Rect& frame) override;
-			Vector2 SizeThatFits() override;
+			Vector2 GetSizeThatFits() override;
 			
 		protected:
 			bool PostEvent(EventType event) override;

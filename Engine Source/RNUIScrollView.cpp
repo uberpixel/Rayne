@@ -32,8 +32,8 @@ namespace RN
 			GetSubivews()->Enumerate([&](Object *tview, size_t index, bool *stop) {
 				View *view = tview->Downcast<View>();
 				
-				_size.x = std::max(view->Frame().GetRight(), _size.x);
-				_size.y = std::max(view->Frame().GetBottom(),   _size.y);
+				_size.x = std::max(view->GetFrame().GetRight(), _size.x);
+				_size.y = std::max(view->GetFrame().GetBottom(),   _size.y);
 			});
 			
 			SetContentSize(_size);
@@ -53,7 +53,7 @@ namespace RN
 		
 		void ScrollView::SetContentOffset(const Vector2& offset)
 		{
-			Rect bounds = Bounds();
+			Rect bounds = GetBounds();
 			bounds.x = offset.x;
 			bounds.y = offset.y;
 			
@@ -67,7 +67,7 @@ namespace RN
 		void ScrollView::SetContentSize(const Vector2& size)
 		{
 			_size = size;
-			_end  = _size - Frame().Size();
+			_end  = _size - GetFrame().Size();
 			
 			_end.x = std::max(0.0f, _end.x);
 			_end.y = std::max(0.0f, _end.y);

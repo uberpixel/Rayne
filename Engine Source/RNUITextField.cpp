@@ -52,7 +52,7 @@ namespace RN
 			_contentInsets = Style::ParseEdgeInsets(contentInsets);
 			_background->SetClipInsets(Style::ParseEdgeInsets(clipInsets));
 			
-			StateChanged(ControlState());
+			StateChanged(GetState());
 		}
 		
 		TextField::~TextField()
@@ -102,7 +102,7 @@ namespace RN
 		
 		void TextField::StateChanged(State state)
 		{
-			_background->SetImage(_backgroundImages.ValueForState(state));
+			_background->SetImage(_backgroundImages.GetValueForState(state));
 			SetNeedsLayoutUpdate();
 		}
 		
@@ -229,8 +229,8 @@ namespace RN
 		{
 			Control::LayoutSubviews();
 			
-			Rect frame = Frame();
-			Rect editorRect = Rect(Vector2(_contentInsets.left, _contentInsets.top), _editor->GetTypesetter()->Dimensions());
+			Rect frame = GetFrame();
+			Rect editorRect = Rect(Vector2(_contentInsets.left, _contentInsets.top), _editor->GetTypesetter()->GetDimensions());
 
 			_background->SetFrame(Rect(0.0f, 0.0f, frame.width, frame.height));
 			_editor->SetFrame(editorRect);
