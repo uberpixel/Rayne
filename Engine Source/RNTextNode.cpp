@@ -123,8 +123,8 @@ namespace RN
 		
 		if(_isDirty)
 		{
-			_typesetter->SetFrame(Rect(Vector2(0.0f), _typesetter->Dimensions()));
-			SetModel(_typesetter->LineModel());
+			_typesetter->SetFrame(Rect(Vector2(0.0f), _typesetter->GetDimensions()));
+			SetModel(_typesetter->GetLineModel());
 			
 			Model *model = GetModel();
 			uint32 count = model->GetMeshCount(0);

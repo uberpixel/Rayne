@@ -24,7 +24,7 @@ namespace RN
 	{
 		RNDeclareMeta(Font)
 		
-		float Glyph::Kerning(UniChar character) const
+		float Glyph::GetKerning(UniChar character) const
 		{
 			auto iterator = _kerning.find(character);
 			return (iterator != _kerning.end()) ? iterator->second : 0.0f;
@@ -50,7 +50,7 @@ namespace RN
 			TextureParameter parameter;
 			
 			parameter.generateMipMaps = descriptor.mipMaps;
-			parameter.format   = Filtering() ? TextureParameter::Format::RGB888 : TextureParameter::Format::R8;
+			parameter.format   = GetFiltering() ? TextureParameter::Format::RGB888 : TextureParameter::Format::R8;
 			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
 			parameter.filter   = descriptor.textureFilter ? TextureParameter::Filter::Linear : TextureParameter::Filter::Nearest;
 			
@@ -320,7 +320,7 @@ namespace RN
 			rect.width  -= 1.0f;
 			rect.height -= 1.0f;
 
-			_texture->SetRegionData(rect, data, Filtering() ? TextureParameter::Format::RGB888 : TextureParameter::Format::R8);
+			_texture->SetRegionData(rect, data, GetFiltering() ? TextureParameter::Format::RGB888 : TextureParameter::Format::R8);
 			delete [] data;
 			
 			Glyph glyph;
@@ -419,7 +419,7 @@ namespace RN
 			DropInternals();
 		}
 		
-		const Glyph& Font::GlyphForCharacter(UniChar character)
+		const Glyph& Font::GetGlyphForCharacter(UniChar character)
 		{
 			auto iterator = _glyphs.find(character);
 			if(iterator == _glyphs.end())
@@ -442,7 +442,7 @@ namespace RN
 		// MARK: Helper
 		// ---------------------
 		
-		float Font::DefaultLineHeight() const
+		float Font::GetDefaultLineHeight() const
 		{
 			float leading = _leading;
 			float lineHeight;

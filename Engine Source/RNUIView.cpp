@@ -35,7 +35,6 @@ namespace RN
 		View::~View()
 		{
 			_material->Release();
-			_viewMaterial->Release();
 			
 			Widget *widget = GetWidget();
 			
@@ -65,22 +64,10 @@ namespace RN
 			_interactionEnabled = true;
 			_clipSubviews       = false;
 			_hidden             = false;
+			_autoresizingMask   = 0;
 			
-			_material = new Material(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
-			_material->depthtest  = false;
-			_material->depthwrite = false;
-			_material->blending   = true;
-			_material->blendSource = GL_SRC_ALPHA;
-			_material->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-			_material->lighting   = false;
-			
-			_viewMaterial = new Material(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
-			_viewMaterial->depthtest  = false;
-			_viewMaterial->depthwrite = false;
-			_viewMaterial->blending   = true;
-			_viewMaterial->blendSource = GL_SRC_ALPHA;
-			_viewMaterial->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-			_viewMaterial->lighting   = false;
+			_material = BasicMaterial(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
+			_material->Retain();
 			
 			SetBackgroundColor(Color(0.128f, 0.128f, 0.128f, 1.0f));
 		}
@@ -88,7 +75,6 @@ namespace RN
 		void View::SetBackgroundColor(const Color& color)
 		{
 			_material->diffuse = color;
-			_viewMaterial->diffuse = color;
 		}
 		
 		Mesh *View::BasicMesh(const Vector2& size)
@@ -127,6 +113,19 @@ namespace RN
 			return mesh->Autorelease();
 		}
 		
+		Material *View::BasicMaterial(Shader *shader)
+		{
+			Material *material = new Material(shader);
+			material->depthtest  = false;
+			material->depthwrite = false;
+			material->blending   = true;
+			material->blendSource = GL_SRC_ALPHA;
+			material->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+			material->lighting   = false;
+			
+			return material->Autorelease();
+		}
+		
 		void View::UpdateBasicMesh(Mesh *mesh, const Vector2& size)
 		{
 			Vector2 *vertices = mesh->GetElement<Vector2>(kMeshFeatureVertices);
@@ -140,7 +139,7 @@ namespace RN
 			mesh->UpdateMesh();
 		}
 		
-		Responder *View::NextResponder() const
+		Responder *View::GetNextResponder() const
 		{
 			if(_superview)
 				return _superview;
@@ -395,33 +394,45 @@ namespace RN
 		
 		void View::SizeToFit()
 		{
-			Vector2 size = std::move(SizeThatFits());
-			_frame.width  = size.x;
-			_frame.height = size.y;
+			Vector2 size = std::move(GetSizeThatFits());
+			Rect frame = _frame;
 			
-			SetFrame(_frame);
+			frame.width  = size.x;
+			frame.height = size.y;
+			
+			SetFrame(frame);
 			SetNeedsLayoutUpdate();
 		}
 		
-		Vector2 View::SizeThatFits()
+		Vector2 View::GetSizeThatFits()
 		{
 			return _frame.Size();
 		}
 		
 		void View::SetFrame(const Rect& frame)
 		{
-			_frame = frame.Integral();
+			Vector2 oldSize = _frame.Size();
+			
+			_frame = frame;
 			
 			_bounds.width  = frame.width;
 			_bounds.height = frame.height;
 			
 			SetNeedsLayoutUpdate();
+			ResizeSubviewsFromOldSize(oldSize);
 		}
 		
 		void View::SetBounds(const Rect& bounds)
 		{
-			_frame.width  = bounds.width;
-			_frame.height = bounds.height;
+			if(_frame.Size() != bounds.Size())
+			{
+				Vector2 size = _frame.Size();
+				
+				_frame.width  = bounds.width;
+				_frame.height = bounds.height;
+				
+				ResizeSubviewsFromOldSize(size);
+			}
 			
 			_bounds = bounds;
 			
@@ -431,18 +442,83 @@ namespace RN
 		void View::SetNeedsLayoutUpdate()
 		{
 			_dirtyLayout = true;
-			
-			size_t count = _subviews.GetCount();
-			for(size_t i=0; i<count; i++)
-			{
-				View *subview = _subviews.GetObjectAtIndex<View>(i);
+			_subviews.Enumerate<View>([&](View *subview, size_t index, bool *stop) {
 				subview->SetNeedsLayoutUpdate();
-			}
+			});
 		}
 		
 		void View::SetHidden(bool hidden)
 		{
 			_hidden = hidden;
+		}
+		
+		void View::SetAutoresizingMask(AutoresizingMask mask)
+		{
+			_autoresizingMask = mask;
+		}
+		
+		void View::ResizeSubviewsFromOldSize(const Vector2& oldSize)
+		{
+			Vector2 size = _frame.Size();
+			Vector2 diff = size - oldSize;
+			
+			_subviews.Enumerate<View>([&](View *subview, size_t index, bool *stop) {
+				
+				if(subview->_autoresizingMask == 0)
+					return;
+				
+				Rect frame = subview->GetFrame();
+				
+				uint32 stepsWidth  = 0;
+				uint32 stepsHeight = 0;
+				
+				
+				if(subview->_autoresizingMask & AutoresizingFlexibleLeftMargin)
+					stepsWidth ++;
+				
+				if(subview->_autoresizingMask & AutoresizingFlexibleRightMargin)
+					stepsWidth ++;
+				
+				if(subview->_autoresizingMask & AutoresizingFlexibleWidth)
+					stepsWidth ++;
+				
+				
+				if(subview->_autoresizingMask & AutoresizingFlexibleTopMargin)
+					stepsHeight ++;
+				
+				if(subview->_autoresizingMask & AutoresizingFlexibleBottomMargin)
+					stepsHeight ++;
+				
+				if(subview->_autoresizingMask & AutoresizingFlexibleHeight)
+					stepsHeight ++;
+				
+				
+				
+				if(stepsWidth > 0)
+				{
+					float distribution = diff.x / stepsWidth;
+					
+					if(subview->_autoresizingMask & AutoresizingFlexibleLeftMargin)
+						frame.x += distribution;
+					
+					if(subview->_autoresizingMask & AutoresizingFlexibleWidth)
+						frame.width += distribution;
+				}
+				
+				
+				if(stepsHeight > 0)
+				{
+					float distribution = diff.y / stepsHeight;
+					
+					if(subview->_autoresizingMask & AutoresizingFlexibleTopMargin)
+						frame.y += distribution;
+					
+					if(subview->_autoresizingMask & AutoresizingFlexibleHeight)
+						frame.height += distribution;
+				}
+				
+				subview->SetFrame(frame);
+			});
 		}
 		
 		// ---------------------
@@ -452,7 +528,7 @@ namespace RN
 		
 		void View::CalculateScissorRect()
 		{
-			float serverHeight = (_widget && _widget->_server) ? _widget->_server->Height() : 0.0f;
+			float serverHeight = (_widget && _widget->_server) ? _widget->_server->GetHeight() : 0.0f;
 			Vector2 origin = _frame.Origin();
 			
 			_clippingView = nullptr;
@@ -521,7 +597,7 @@ namespace RN
 					converted.y += _widget->_frame.y;
 					
 					if(_widget->_server)
-						serverHeight = _widget->_server->Height();
+						serverHeight = _widget->_server->GetHeight();
 				}
 				
 				_finalTransform = _intermediateTransform;
@@ -538,9 +614,9 @@ namespace RN
 				_dirtyLayout = false;
 			}
 			
-			if(_widget && _widget->_server && _widget->_server->DrawDebugFrames())
+			if(_widget && _widget->_server && _widget->_server->GetDrawDebugFrames())
 			{
-				Rect frame = ConvertRectToView(Bounds(), nullptr);
+				Rect frame = ConvertRectToView(GetBounds(), nullptr);
 				
 				if(_widget)
 				{
@@ -569,7 +645,7 @@ namespace RN
 			}
 			else if(_widget)
 			{
-				float serverHeight = (_widget->_server) ? _widget->_server->Height() : 0.0f;
+				float serverHeight = (_widget->_server) ? _widget->_server->GetHeight() : 0.0f;
 				
 				object.scissorRect = _widget->GetFrame();
 				object.scissorRect.y = serverHeight - object.scissorRect.height - object.scissorRect.y;
@@ -586,7 +662,7 @@ namespace RN
 				PopulateRenderingObject(object);
 				
 				object.mesh = _mesh;
-				object.material = _viewMaterial;
+				object.material = _material;
 				
 				renderer->RenderObject(object);
 			}

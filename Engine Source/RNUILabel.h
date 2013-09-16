@@ -36,14 +36,14 @@ namespace RN
 			void SetNumberOfLines(uint32 lines);
 			void SetFrame(const Rect& frame) override;
 			
-			String *Text() const { return _string->GetString(); }
-			Color *TextColor() const { return _color; }
-			Font *TextFont() const { return _font; }
-			TextAlignment Alignment() const { return _alignment; }
-			LineBreakMode LineBreak() const { return _lineBreak; }
-			uint32 NumberOfLines() const { return _lines; }
+			String *GetText() const { return _string->GetString(); }
+			Color *GetTextColor() const { return _color; }
+			Font *GetFont() const { return _font; }
+			TextAlignment GetAlignment() const { return _alignment; }
+			LineBreakMode GetLineBreak() const { return _lineBreak; }
+			uint32 GetNumberOfLines() const { return _lines; }
 			
-			Vector2 SizeThatFits() override;
+			Vector2 GetSizeThatFits() override;
 			
 		protected:
 			void Update() override;

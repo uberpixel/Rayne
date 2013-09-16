@@ -185,7 +185,7 @@ namespace RN
 			
 			point = std::move(ConvertPointFromView(point, nullptr));
 			
-			return Bounds().ContainsPoint(point);
+			return GetBounds().ContainsPoint(point);
 		}
 	
 		

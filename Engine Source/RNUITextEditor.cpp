@@ -19,7 +19,7 @@ namespace RN
 			_string = new AttributedString(RNCSTR(""));
 			_typingAttributes = new Dictionary();
 			_selection = Range(0, 0);
-			_typesetter = new Typesetter(_string, Frame());
+			_typesetter = new Typesetter(_string, GetFrame());
 			_isDirty = true;
 			
 			_model     = nullptr;
@@ -134,13 +134,11 @@ namespace RN
 						{
 							if(CodePoint(event->GetCode()).IsPrintable())
 							{
-								char character[2];
+								UniChar unicode[2];
+								unicode[0] = event->GetCode();
+								unicode[1] = 0;
 								
-								character[0] = event->GetCharacter();
-								character[1] = '\0';
-								
-								String *string = RNCSTR(character);
-								InsertString(string);
+								InsertString(String::WithUnicode(unicode));
 							}
 							break;
 						}
@@ -168,7 +166,7 @@ namespace RN
 					_model = nullptr;
 				}
 				
-				_model   = _typesetter->LineModel()->Retain();
+				_model   = _typesetter->GetLineModel()->Retain();
 				_isDirty = false;
 			}
 		}

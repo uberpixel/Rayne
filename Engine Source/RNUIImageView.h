@@ -32,7 +32,7 @@ namespace RN
 			Image *GetImage() const { return _image; }
 			ScaleMode GetScaleMode() const { return _scaleMode; }
 			
-			Vector2 SizeThatFits() override;
+			Vector2 GetSizeThatFits() override;
 			
 		protected:
 			void Update() override;
@@ -40,12 +40,14 @@ namespace RN
 			
 		private:
 			void Initialize();
-			Vector2 FittingImageSize(const Vector2& tsize);
+			Vector2 GetFittingImageSize(const Vector2& tsize);
 			
 			bool _isDirty;
 			
 			ScaleMode _scaleMode;
 			Image *_image;
+			
+			Material *_material;
 			Mesh  *_mesh;
 			
 			RNDefineMeta(ImageView, View)

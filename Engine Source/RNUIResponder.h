@@ -20,7 +20,7 @@ namespace RN
 		class Responder : public Object
 		{
 		public:
-			virtual Responder *NextResponder() const;
+			virtual Responder *GetNextResponder() const;
 			
 			virtual bool CanBecomeFirstResponder();
 			virtual bool CanResignFirstReponder();

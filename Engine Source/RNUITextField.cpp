@@ -22,27 +22,37 @@ namespace RN
 			Initialize();
 			
 			Style *styleSheet = Style::GetSharedInstance();
-			Dictionary *background = style->GetObjectForKey<Dictionary>(RNCSTR("background"));
-			Dictionary *insets = style->GetObjectForKey<Dictionary>(RNCSTR("contentInsets"));
+			Texture *texture = styleSheet->TextureWithName(style->GetObjectForKey<String>(RNCSTR("texture")));
+			Dictionary *contentInsets = style->GetObjectForKey<Dictionary>(RNCSTR("contentInsets"));
 			Dictionary *clipInsets = style->GetObjectForKey<Dictionary>(RNCSTR("clipInsets"));
+			Dictionary *tInsets = style->GetObjectForKey<Dictionary>(RNCSTR("insets"));
 			
-			if(background)
-			{
-				Atlas atlas = Style::ParseAtlas(background->GetObjectForKey<Dictionary>(RNCSTR("atlas")));
-				EdgeInsets insets = Style::ParseEdgeInsets(background->GetObjectForKey<Dictionary>(RNCSTR("insets")));
-				Texture *texture = styleSheet->TextureWithName(background->GetObjectForKey<String>(RNCSTR("texture")));
+			Array *states = style->GetObjectForKey<Array>(RNCSTR("states"));
+			
+			states->Enumerate<Dictionary>([&](Dictionary *state, size_t index, bool *stop) {
+				
+				String *name = state->GetObjectForKey<String>(RNCSTR("name"));
+				Dictionary *atlas  = state->GetObjectForKey<Dictionary>(RNCSTR("atlas"));
+				Dictionary *insets = state->GetObjectForKey<Dictionary>(RNCSTR("insets"));
+				
+				if(!insets)
+					insets = tInsets;
 				
 				Image *image = new Image(texture);
-				image->SetAtlas(atlas, false);
-				image->SetEdgeInsets(insets);
 				
-				_background->SetImage(image);
+				if(atlas)
+					image->SetAtlas(Style::ParseAtlas(atlas), false);
 				
-				image->Release();
-			}
+				if(insets)
+					image->SetEdgeInsets(Style::ParseEdgeInsets(insets));
+				
+				_backgroundImages.SetValueForState(image->Autorelease(), Style::ParseState(name));
+			});
 			
-			_contentInsets = Style::ParseEdgeInsets(insets);
+			_contentInsets = Style::ParseEdgeInsets(contentInsets);
 			_background->SetClipInsets(Style::ParseEdgeInsets(clipInsets));
+			
+			StateChanged(GetState());
 		}
 		
 		TextField::~TextField()
@@ -87,6 +97,13 @@ namespace RN
 			
 			_background->AddSubview(_editor);
 			_background->SetClipSubviews(true);
+		}
+		
+		
+		void TextField::StateChanged(State state)
+		{
+			_background->SetImage(_backgroundImages.GetValueForState(state));
+			SetNeedsLayoutUpdate();
 		}
 		
 		
@@ -212,8 +229,8 @@ namespace RN
 		{
 			Control::LayoutSubviews();
 			
-			Rect frame = Frame();
-			Rect editorRect = Rect(Vector2(_contentInsets.left, _contentInsets.top), _editor->GetTypesetter()->Dimensions());
+			Rect frame = GetFrame();
+			Rect editorRect = Rect(Vector2(_contentInsets.left, _contentInsets.top), _editor->GetTypesetter()->GetDimensions());
 
 			_background->SetFrame(Rect(0.0f, 0.0f, frame.width, frame.height));
 			_editor->SetFrame(editorRect);

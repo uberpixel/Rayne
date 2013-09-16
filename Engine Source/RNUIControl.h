@@ -52,7 +52,7 @@ namespace RN
 			bool IsSelected() const { return _state & Control::Selected; }
 			bool IsEnabled() const { return !(_state & Control::Disabled); }
 			
-			State ControlState() const { return _state; }
+			State GetState() const { return _state; }
 			
 			void AddListener(EventType event, Callback callback, void *cookie);
 			void RemoveListener(EventType event, void *cookie);
@@ -95,6 +95,67 @@ namespace RN
 			std::map<EventType, std::vector<EventListener>> _listener;
 			
 			RNDefineMeta(Control, View)
+		};
+		
+		template<class T>
+		class ControlStateStore
+		{
+		public:
+			ControlStateStore()
+			{}
+			
+			~ControlStateStore()
+			{
+				for(auto i = _values.begin(); i != _values.end(); i ++)
+				{
+					i->second->Release();
+				}
+			}
+			
+			void SetValueForState(T *value, Control::State state)
+			{
+				auto iterator = _values.find(state);
+				if(iterator != _values.end())
+				{
+					iterator->second->Release();
+					
+					if(value)
+					{
+						iterator->second = value->Retain();
+						return;
+					}
+					
+					_values.erase(iterator);
+					return;
+				}
+				
+				_values.insert(typename std::map<Control::State, T *>::value_type(state, value->Retain()));
+			}
+			
+			T *GetValueForState(Control::State state)
+			{
+				T *value = nullptr;
+				
+				if((state & Control::Disabled) && (value = GetValueForMaskedState(Control::Disabled)))
+					return value;
+				
+				if((state & Control::Selected) && (value = GetValueForMaskedState(Control::Selected)))
+					return value;
+				
+				if((state & Control::Highlighted) && (value = GetValueForMaskedState(Control::Highlighted)))
+					return value;
+				
+				return GetValueForMaskedState(Control::Normal);
+			}
+			
+		private:
+			T *GetValueForMaskedState(Control::State state)
+			{
+				auto iterator = _values.find(state);
+				return (iterator != _values.end()) ? iterator->second : nullptr;
+			}
+			
+			std::map<Control::State, T *> _values;
 		};
 	}
 }

@@ -44,7 +44,7 @@ namespace RN
 		RNAPI Vector2& operator*= (const Vector2& other);
 		RNAPI Vector2& operator/= (const Vector2& other);
 
-		RNAPI float GetLength() const;
+		RNAPI float Length() const;
 		RNAPI float Dot (const Vector2& other) const;
 		RNAPI bool IsEqual(const Vector2& other, float epsilon) const;
 
@@ -83,7 +83,7 @@ namespace RN
 		RNAPI Vector3& operator*= (const Vector3& other);
 		RNAPI Vector3& operator/= (const Vector3& other);
 		
-		RNAPI float GetLength() const;
+		RNAPI float Length() const;
 		RNAPI float Dot(const Vector3& other) const;
 		RNAPI Vector3 Cross(const Vector3& other) const;
 		RNAPI bool IsEqual(const Vector3& other, float epsilon) const;
@@ -138,7 +138,7 @@ namespace RN
 		RNAPI Vector4& operator*= (const Vector4& other);
 		RNAPI Vector4& operator/= (const Vector4& other);
 		
-		RNAPI float GetLength() const;
+		RNAPI float Length() const;
 		RNAPI float Dot(const Vector4& other) const;
 		RNAPI Vector4 Cross(const Vector4& other) const;
 		RNAPI bool IsEqual(const Vector4& other, float epsilon) const;
@@ -276,7 +276,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE float Vector2::GetLength() const
+	RN_INLINE float Vector2::Length() const
 	{
 		return Math::Sqrt(x * x + y * y);
 	}
@@ -299,7 +299,7 @@ namespace RN
 
 	RN_INLINE Vector2& Vector2::Normalize(const float n)
 	{
-		float length = GetLength();
+		float length = Length();
 		if(length > k::EpsilonFloat)
 		{
 			x *= n/length;
@@ -428,7 +428,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE float Vector3::GetLength() const
+	RN_INLINE float Vector3::Length() const
 	{
 		return Math::Sqrt(x * x + y * y + z * z);
 	}
@@ -465,7 +465,7 @@ namespace RN
 
 	RN_INLINE Vector3& Vector3::Normalize(const float n)
 	{
-		float length = GetLength();
+		float length = Length();
 		if(length > k::EpsilonFloat)
 		{
 			length = n/length;
@@ -480,7 +480,7 @@ namespace RN
 	RN_INLINE float Vector3::Distance(const Vector3 &other) const
 	{
 		Vector3 difference = *this - other;
-		return difference.GetLength();
+		return difference.Length();
 	}
 
 	RN_INLINE Vector3 Vector3::Lerp(const Vector3 &other, float factor) const
@@ -679,7 +679,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE float Vector4::GetLength() const
+	RN_INLINE float Vector4::Length() const
 	{
 #if RN_SIMD
 	#ifdef __SSE4_1__
@@ -783,7 +783,7 @@ namespace RN
 	#endif
 #endif
 		
-		float length = GetLength();
+		float length = Length();
 		if(length > k::EpsilonFloat)
 		{
 			length = 1.0f/length;

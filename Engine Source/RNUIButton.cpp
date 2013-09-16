@@ -75,21 +75,6 @@ namespace RN
 		
 		Button::~Button()
 		{
-			for(auto i=_titles.begin(); i!=_titles.end(); i++)
-			{
-				i->second->Release();
-			}
-			
-			for(auto i=_images.begin(); i!=_images.end(); i++)
-			{
-				i->second->Release();
-			}
-			
-			for(auto i=_backgroundImages.begin(); i!=_backgroundImages.end(); i++)
-			{
-				i->second->Release();
-			}
-			
 			_label->Release();
 			_image->Release();
 			_backgroundImage->Release();
@@ -105,8 +90,8 @@ namespace RN
 					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNRoundedRect"));
 					break;
 					
-				case Type::PushButton:
-					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNPushButton"));
+				case Type::Bezel:
+					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNBezel"));
 					break;
 					
 				case Type::CheckBox:
@@ -125,10 +110,6 @@ namespace RN
 		
 		void Button::Initialize()
 		{
-			_currentBackground = nullptr;
-			_currentImage = nullptr;
-			_currentTitle = nullptr;
-			
 			_behavior = Behavior::Momentarily;
 			_position = ImagePosition::Left;
 			
@@ -136,118 +117,45 @@ namespace RN
 			_image = new ImageView();
 			_label = new Label();
 			
-			_backgroundImage->SetFrame(Bounds());
+			_backgroundImage->SetFrame(GetBounds());
 			
-			_label->SetFrame(Bounds());
+			_label->SetFrame(GetBounds());
 			_label->SetAlignment(TextAlignment::Center);
 			
-			_image->SetFrame(Bounds());
+			_image->SetFrame(GetBounds());
 			_image->SetScaleMode(ScaleMode::ProportionallyDown);
+			
+			_currentTitle = nullptr;
+			_currentImage = nullptr;
 			
 			AddSubview(_backgroundImage);
 			AddSubview(_image);
 			AddSubview(_label);
 			
-			StateChanged(ControlState());
+			StateChanged(GetState());
 			SetBackgroundColor(RN::Color::ClearColor());
 		}
 		
 		void Button::StateChanged(State state)
 		{
-#define TryActivatingBackgroundImage(s) \
-			if((state & s) && ActivateBackgroundImage(s)) \
-				break
+			String *title = _titles.GetValueForState(state);
 			
-#define TryActivatingImage(s) \
-			if((state & s) && ActivateImage(s)) \
-				break
-
-#define TryActivatingTitle(s) \
-			if((state & s) && ActivateTitle(s)) \
-				break
-	
-			_backgroundImage->SetImage(nullptr);
-			_image->SetImage(nullptr);
-			_label->SetText(RNCSTR(""));
+			_backgroundImage->SetImage(_backgroundImages.GetValueForState(state));
+			_image->SetImage(_images.GetValueForState(state));
+			_label->SetText(title ? title : RNCSTR(""));
 			
-			_currentTitle = nullptr;
-			_currentImage = _currentBackground = nullptr;
-			
-			do {
-				TryActivatingBackgroundImage(Control::Disabled);
-				TryActivatingBackgroundImage(Control::Selected);
-				TryActivatingBackgroundImage(Control::Highlighted);
-				
-				ActivateBackgroundImage(Control::Normal);
-			} while(0);
-			
-			do {
-				TryActivatingImage(Control::Disabled);
-				TryActivatingImage(Control::Selected);
-				TryActivatingImage(Control::Highlighted);
-				
-				ActivateImage(Control::Normal);
-			} while(0);
-			
-			do {
-				TryActivatingTitle(Control::Disabled);
-				TryActivatingTitle(Control::Selected);
-				TryActivatingTitle(Control::Highlighted);
-				
-				ActivateTitle(Control::Normal);
-			} while(0);
+			_currentImage = _image->GetImage();
+			_currentTitle = _label->GetText();
 			
 			SetNeedsLayoutUpdate();
 		}
 		
-		bool Button::ActivateBackgroundImage(State state)
-		{
-			auto iterator = _backgroundImages.find(state);
-			if(iterator != _backgroundImages.end())
-			{
-				_backgroundImage->SetImage(iterator->second);
-				_currentBackground = iterator->second;
-				
-				return true;
-			}
-			
-			return false;
-		}
-		
-		bool Button::ActivateImage(State state)
-		{
-			auto iterator = _images.find(state);
-			if(iterator != _images.end())
-			{
-				_image->SetImage(iterator->second);
-				_currentImage = iterator->second;
-				
-				return true;
-			}
-			
-			return false;
-		}
-		
-		bool Button::ActivateTitle(State state)
-		{
-			auto iterator = _titles.find(state);
-			if(iterator != _titles.end())
-			{
-				_label->SetText(iterator->second);
-				_currentTitle = iterator->second;
-				
-				return true;
-			}
-			
-			return false;
-		}
-		
-		
+
 		
 		void Button::SetFrame(const Rect& frame)
 		{
 			Control::SetFrame(frame);
-			_backgroundImage->SetFrame(Bounds());
+			_backgroundImage->SetFrame(GetBounds());
 		}
 		
 		void Button::SetContentInsets(const EdgeInsets& insets)
@@ -258,77 +166,20 @@ namespace RN
 		
 		void Button::SetTitleForState(String *title, State state)
 		{
-			auto iterator = _titles.find(state);
-			if(iterator != _titles.end())
-			{
-				iterator->second->Release();
-				
-				if(title)
-				{
-					iterator->second = title->Retain();
-					
-					StateChanged(ControlState());
-					return;
-				}
-				
-				_titles.erase(iterator);
-				
-				StateChanged(ControlState());
-				return;
-			}
-			
-			_titles.insert(std::map<State, String *>::value_type(state, title->Retain()));
-			StateChanged(ControlState());
+			_titles.SetValueForState(title, state);
+			StateChanged(GetState());
 		}
 		
 		void Button::SetBackgroundImageForState(Image *image, State state)
 		{
-			auto iterator = _backgroundImages.find(state);
-			if(iterator != _backgroundImages.end())
-			{
-				iterator->second->Release();
-				
-				if(image)
-				{
-					iterator->second = image->Retain();
-					
-					StateChanged(ControlState());
-					return;
-				}
-				
-				_backgroundImages.erase(iterator);
-				
-				StateChanged(ControlState());
-				return;
-			}
-			
-			_backgroundImages.insert(std::map<State, Image *>::value_type(state, image->Retain()));
-			StateChanged(ControlState());
+			_backgroundImages.SetValueForState(image, state);
+			StateChanged(GetState());
 		}
 		
 		void Button::SetImageForState(Image *image, State state)
 		{
-			auto iterator = _images.find(state);
-			if(iterator != _images.end())
-			{
-				iterator->second->Release();
-				
-				if(image)
-				{
-					iterator->second = image->Retain();
-					
-					StateChanged(ControlState());
-					return;
-				}
-				
-				_images.erase(iterator);
-				
-				StateChanged(ControlState());
-				return;
-			}
-			
-			_images.insert(std::map<State, Image *>::value_type(state, image->Retain()));
-			StateChanged(ControlState());
+			_images.SetValueForState(image, state);
+			StateChanged(GetState());
 		}
 		
 		void Button::SetBehavior(Behavior behavior)
@@ -394,15 +245,15 @@ namespace RN
 			return Control::PostEvent(event);
 		}
 		
-		Vector2 Button::SizeThatFits()
+		Vector2 Button::GetSizeThatFits()
 		{
-			State temp = ControlState();
+			State temp = GetState();
 			StateChanged(Control::Normal);
 			
 			Vector2 size = Vector2(_contentInsets.left + _contentInsets.right, _contentInsets.top + _contentInsets.bottom);
 			
-			Vector2 titleSize = std::move(_label->SizeThatFits());
-			Vector2 imageSize = std::move(_image->SizeThatFits());
+			Vector2 titleSize = std::move(_label->GetSizeThatFits());
+			Vector2 imageSize = std::move(_image->GetSizeThatFits());
 			
 			Vector2 max;
 			max.x = std::max(titleSize.x, imageSize.x);
@@ -443,11 +294,11 @@ namespace RN
 		{
 			Control::LayoutSubviews();
 			
-			Vector2 titleSize = std::move(_label->SizeThatFits());
-			Vector2 imageSize = std::move(_image->SizeThatFits());
+			Vector2 titleSize = std::move(_label->GetSizeThatFits());
+			Vector2 imageSize = std::move(_image->GetSizeThatFits());
 			
 			Vector2 insetSize = Vector2(_contentInsets.left + _contentInsets.right, _contentInsets.top + _contentInsets.bottom);
-			Vector2 size = Frame().Size();
+			Vector2 size = GetFrame().Size();
 			Vector2 truncatedSize = size - insetSize;
 			
 			titleSize.x = truncatedSize.x > titleSize.x ? titleSize.x : truncatedSize.x;
@@ -478,7 +329,7 @@ namespace RN
 			switch(_position)
 			{
 				case ImagePosition::Left:
-					if(!fitsHorizontally || _label->Alignment() == TextAlignment::Left)
+					if(!fitsHorizontally || _label->GetAlignment() == TextAlignment::Left)
 					{
 						Rect titleRect = Rect(_contentInsets.left + imageSize.x, centeredTitle.y, size.x - (imageSize.x + insetSize.x), titleSize.y);
 						_label->SetFrame(titleRect);
@@ -488,7 +339,7 @@ namespace RN
 					break;
 					
 				case ImagePosition::Right:
-					if(!fitsHorizontally || _label->Alignment() == TextAlignment::Right)
+					if(!fitsHorizontally || _label->GetAlignment() == TextAlignment::Right)
 					{
 						Rect titleRect = Rect(_contentInsets.left, centeredTitle.y, size.x - (imageSize.x + insetSize.x), titleSize.y);
 						_label->SetFrame(titleRect);

@@ -28,6 +28,8 @@ namespace RN
 		2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2, 3,3,3,3,3,3,3,3,4,4,4,4,5,5,5,5
 	};
 	
+	static const uint8 UTF8FirstByteMark[7] = { 0x00, 0x00, 0xC0, 0xE0, 0xF0, 0xF8, 0xFC };
+	
 	RN_INLINE bool IsLegalUTF8(const uint8 *sequence)
 	{
 		size_t length = UTF8TrailingBytes[*sequence] + 1;
@@ -101,6 +103,20 @@ namespace RN
 		return bytes - begin;
 	}
 	
+	RN_INLINE size_t UTF8ByteLengthForUnichar(UniChar character)
+	{
+		if(character < 0x80)
+			return 1;
+		
+		if(character < 0x800)
+			return 2;
+		
+		if(character < 0x10000)
+			return 3;
+		
+		return 4;
+	}
+	
 	RN_INLINE UniChar UTF8ToUnicode(const uint8 *bytes)
 	{
 		size_t length = UTF8TrailingBytes[*bytes] + 1;
@@ -139,6 +155,30 @@ namespace RN
 		}
 		
 		return result;
+	}
+	
+	RN_INLINE void UnicodeToUTF32(UniChar character, uint8 *bytes)
+	{
+		const UniChar byteMask = 0xbf;
+		const UniChar byteMark = 0x80;
+	
+		size_t toWrite = UTF8ByteLengthForUnichar(character);
+		bytes += toWrite;
+		
+		switch(toWrite)
+		{
+			case 4:
+				*--bytes = static_cast<uint8>(((character | byteMark) & byteMask));
+				character >>= 6;
+			case 3:
+				*--bytes = static_cast<uint8>(((character | byteMark) & byteMask));
+				character >>= 6;
+			case 2:
+				*--bytes = static_cast<uint8>(((character | byteMark) & byteMask));
+				character >>= 6;
+			case 1:
+				*--bytes = static_cast<uint8>((character | UTF8FirstByteMark[toWrite]));
+		}
 	}
 	
 	RN_INLINE uint8 *SkipCharacters(uint8 *string, size_t skip)
@@ -339,6 +379,37 @@ namespace RN
 		{
 			bytes += (UTF8TrailingBytes[*bytes] + 1);
 			_length ++;
+		}
+	}
+	
+	UTF8String::UTF8String(UniChar *string)
+	{
+		_size = 0;
+		_length = 0;
+		
+		UniChar *temp = string;
+		
+		while(*temp)
+		{
+			_size += UTF8ByteLengthForUnichar(*temp);
+			_length ++;
+			
+			temp ++;
+		}
+		
+		_string = new uint8[_size + 1];
+		_string[_size] = '\0';
+		
+		_allocated = _size;
+		
+		uint8 *tstring = _string;
+		
+		for(size_t i = 0; i < _length; i ++)
+		{
+			size_t size = UTF8ByteLengthForUnichar(string[i]);
+			UnicodeToUTF32(string[i], tstring);
+			
+			tstring += size;
 		}
 	}
 	

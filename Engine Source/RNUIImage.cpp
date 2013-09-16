@@ -37,7 +37,7 @@ namespace RN
 		}
 		
 		
-		Mesh *Image::FittingMesh(const Vector2& size, const Vector2& offset)
+		Mesh *Image::GetFittingMesh(const Vector2& size, const Vector2& offset)
 		{
 			uint16 xverts = 2;
 			uint16 yverts = 2;
@@ -106,22 +106,22 @@ namespace RN
 					if(_insets.left > 0.0f && x == 1)
 					{
 						xpos = _insets.left;
-						xuv = _insets.left/Width();
+						xuv = _insets.left/GetWidth();
 					}
 					if(_insets.right > 0.0f && x == xverts-2)
 					{
 						xpos = size.x-_insets.right;
-						xuv = 1.0f-_insets.right/Width();
+						xuv = 1.0f-_insets.right/GetWidth();
 					}
 					if(_insets.top > 0.0f && y == 1)
 					{
 						ypos = size.y-_insets.top;
-						yuv = _insets.top/Height();
+						yuv = _insets.top/GetHeight();
 					}
 					if(_insets.bottom > 0.0f && y == yverts-2)
 					{
 						ypos = _insets.bottom;
-						yuv = 1.0f-_insets.bottom/Height();
+						yuv = 1.0f-_insets.bottom/GetHeight();
 					}
 					
 					*vertices ++ = Vector2(xpos, ypos) + offset;
@@ -164,7 +164,7 @@ namespace RN
 			return image->Autorelease();
 		}
 		
-		void Image::SetAtlas(const struct Atlas& atlas, bool normalized)
+		void Image::SetAtlas(const Atlas& atlas, bool normalized)
 		{
 			_atlas = atlas;
 			
@@ -186,7 +186,7 @@ namespace RN
 			_insets = insets;
 		}
 		
-		uint32 Image::Width() const
+		uint32 Image::GetWidth() const
 		{
 			uint32 width = _texture->GetWidth();
 			float nwidth  = _atlas.u2 - _atlas.u1;
@@ -195,7 +195,7 @@ namespace RN
 			return width;
 		}
 		
-		uint32 Image::Height() const
+		uint32 Image::GetHeight() const
 		{
 			uint32 height = _texture->GetHeight();
 			float nheight = _atlas.v2 - _atlas.v1;

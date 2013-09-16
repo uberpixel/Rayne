@@ -60,6 +60,12 @@ namespace RN
 		_encoding = _ainternal->CharacterEncoding();
 	}
 	
+	String::String(const UniChar *string, Encoding encodingHint)
+	{
+		_internal = StringFactory::ConstructString(const_cast<UniChar *>(string), encodingHint);
+		_encoding = _ainternal->CharacterEncoding();
+	}
+	
 	String::String(const void *bytes, Encoding encoding, bool constant)
 	{
 		StringTraits traits = constant ? StringTraits::Constant : StringTraits::Mutable;
@@ -123,6 +129,12 @@ namespace RN
 	String *String::WithString(const char *string, size_t length, bool constant)
 	{
 		String *temp = new String(string, length, false);
+		return temp->Autorelease();
+	}
+	
+	String *String::WithUnicode(const UniChar *string, Encoding encodingHint)
+	{
+		String *temp = new String(string, encodingHint);
 		return temp->Autorelease();
 	}
 	
@@ -228,6 +240,49 @@ namespace RN
 	{
 		PromoteStringIfNeeded(_ainternal->CharacterEncoding());
 		ReplaceCharacters(string, Range(index, 0));
+	}
+	
+	void String::Capitalize()
+	{
+		UniChar buffer[128];
+		
+		size_t read = 0;
+		size_t length = _ainternal->Length();
+		
+		bool needsUppercase = true;
+		
+		while(read < length)
+		{
+			size_t left = std::min(length - read, static_cast<size_t>(128));
+			_ainternal->CharactersInRange(buffer, Range(read, left));
+			
+			for(size_t i = 0; i < left; i ++)
+			{
+				CodePoint point(buffer[i]);
+				CodePoint uppercase = point.GetUpperCase();
+				
+				if(point.IsWhitespace())
+				{
+					needsUppercase = true;
+					continue;
+				}
+				
+				if(needsUppercase && point != uppercase)
+				{
+					UniChar temp[2];
+					temp[0] = uppercase;
+					temp[1] = 0;
+					
+					BasicString *string = StringFactory::ConstructString(temp, _encoding);
+					_ainternal->ReplaceCharactersInRange(Range(read + i, 1), string);
+					string->Release();
+					
+					needsUppercase = false;
+				}
+			}
+			
+			read += left;
+		}
 	}
 	
 	void String::DeleteCharacters(const Range& range)

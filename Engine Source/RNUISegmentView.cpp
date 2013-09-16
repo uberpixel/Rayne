@@ -24,7 +24,7 @@ namespace RN
 		
 		void SegmentView::InsertegmentAtIndex(Image *image, size_t index)
 		{
-			Button *segment = Button::WithType(Button::Type::PushButton);
+			Button *segment = Button::WithType(Button::Type::Bezel);
 			segment->SetImageForState(image, Control::Normal);
 			
 			InsertSegment(segment, index);
@@ -32,7 +32,7 @@ namespace RN
 		
 		void SegmentView::InsertSegmentAtIndex(String *title, size_t index)
 		{
-			Button *segment = Button::WithType(Button::Type::PushButton);
+			Button *segment = Button::WithType(Button::Type::Bezel);
 			segment->SetTitleForState(title, Control::Normal);
 			
 			InsertSegment(segment, index);
@@ -113,8 +113,8 @@ namespace RN
 			
 			if(count > 0)
 			{
-				float width  = Frame().width / count;
-				float height = Frame().height;
+				float width  = GetFrame().width / count;
+				float height = GetFrame().height;
 				
 				_segments.Enumerate<Button>([&](Button *button, size_t index, bool *stop) {
 					Rect frame = Rect(index * width, 0, width, height);

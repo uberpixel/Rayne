@@ -53,9 +53,9 @@ namespace RN
 			TableViewCell::LayoutSubviews();
 			
 			View *contentView = GetContentView();
-			float disclosureWidth = _disclosureTriangle->Frame().width;
+			float disclosureWidth = _disclosureTriangle->GetFrame().width;
 			
-			Rect contentFrame = contentView->Frame();
+			Rect contentFrame = contentView->GetFrame();
 			Rect disclosureFrame = contentFrame;
 			
 			// Update the content view's frame
@@ -65,10 +65,10 @@ namespace RN
 			contentView->SetFrame(contentFrame);
 			
 			// Center the disclosure triangle vertically
-			Rect frame = Frame();
+			Rect frame = GetFrame();
 			
-			disclosureFrame.width = _disclosureTriangle->Frame().width;
-			disclosureFrame.height = _disclosureTriangle->Frame().height;
+			disclosureFrame.width = _disclosureTriangle->GetFrame().width;
+			disclosureFrame.height = _disclosureTriangle->GetFrame().height;
 			
 			disclosureFrame.y = (frame.height / 2.0f) - (disclosureFrame.height / 2.0f);
 			

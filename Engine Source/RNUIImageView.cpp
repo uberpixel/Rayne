@@ -34,9 +34,9 @@ namespace RN
 			
 			if(image)
 			{
-				Rect frame = Frame();
-				frame.width  = image->Width();
-				frame.height = image->Height();
+				Rect frame = GetFrame();
+				frame.width  = image->GetWidth();
+				frame.height = image->GetHeight();
 				
 				SetFrame(frame);
 				SetImage(image);
@@ -50,28 +50,31 @@ namespace RN
 			
 			if(_image)
 				_image->Release();
+			
+			_material->Release();
 		}
 		
 		
 		void ImageView::Initialize()
 		{
-			Shader *shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUIImageShader);
-			DrawMaterial()->SetShader(shader);
 			SetInteractionEnabled(false);
 			SetBackgroundColor(Color::ClearColor());
 			
 			_mesh  = nullptr;
-			_image = 0;
+			_material = BasicMaterial(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUIImageShader));
+			_material->Retain();
+			
+			_image   = nullptr;
 			_isDirty = true;
 			_scaleMode = ScaleMode::AxisIndependently;
 		}
 
-		Vector2 ImageView::FittingImageSize(const Vector2& tsize)
+		Vector2 ImageView::GetFittingImageSize(const Vector2& tsize)
 		{			
 			Vector2 size = tsize;
 			
-			float width = static_cast<float>(_image->Width());
-			float height = static_cast<float>(_image->Height());
+			float width = static_cast<float>(_image->GetWidth());
+			float height = static_cast<float>(_image->GetHeight());
 			
 			switch(_scaleMode)
 			{
@@ -104,12 +107,12 @@ namespace RN
 		}
 		
 		
-		Vector2 ImageView::SizeThatFits()
+		Vector2 ImageView::GetSizeThatFits()
 		{
 			if(!_image)
 				return Vector2(0.0f, 0.0f);
 			
-			return Vector2(_image->Width(), _image->Height());
+			return Vector2(_image->GetWidth(), _image->GetHeight());
 		}
 		
 		void ImageView::SetFrame(const Rect& frame)
@@ -150,13 +153,13 @@ namespace RN
 				
 				if(_image)
 				{
-					DrawMaterial()->RemoveTextures();
-					DrawMaterial()->AddTexture(_image->Texture());
+					_material->RemoveTextures();
+					_material->AddTexture(_image->GetTexture());
 					
-					Vector2 size = std::move(FittingImageSize(Frame().Size()));
-					Vector2 offset = (Frame().Size() - size) * 0.5f;
+					Vector2 size = std::move(GetFittingImageSize(GetFrame().Size()));
+					Vector2 offset = (GetFrame().Size() - size) * 0.5f;
 					
-					_mesh = _image->FittingMesh(size, offset)->Retain();
+					_mesh = _image->GetFittingMesh(size, offset)->Retain();
 				}
 				
 				_isDirty = false;
@@ -173,6 +176,7 @@ namespace RN
 				PopulateRenderingObject(object);
 				
 				object.mesh = _mesh;
+				object.material = _material;
 				
 				renderer->RenderObject(object);
 			}

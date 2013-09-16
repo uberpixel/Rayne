@@ -47,6 +47,7 @@ namespace RN
 			
 			_imageView = new ImageView();
 			_textLabel = new Label();
+			_textLabel->SetLineBreak(LineBreakMode::TruncateMiddle);
 			
 			_contentView->AddSubview(_imageView);
 			_contentView->AddSubview(_textLabel);
@@ -84,7 +85,7 @@ namespace RN
 		{
 			Control::LayoutSubviews();
 			
-			Rect contentFrame = Rect(Vector2(), Frame().Size());
+			Rect contentFrame = Rect(Vector2(), GetFrame().Size());
 			contentFrame.width -= _indentation;
 			contentFrame.x += _indentation;
 			
@@ -98,7 +99,7 @@ namespace RN
 				_imageView->SetFrame(imageFrame);
 				
 				frame.x += frame.height + 5;
-				frame.width -= frame.height + 5;
+				frame.width -= frame.height + 10;
 			}
 			
 			_textLabel->SetFrame(frame);

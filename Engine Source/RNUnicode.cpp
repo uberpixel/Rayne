@@ -86,6 +86,20 @@ namespace RN
 	
 	bool CodePoint::IsPrintable() const
 	{
+		switch(_codePoint)
+		{
+			case 228:
+			case 196:
+			case 252:
+			case 220:
+			case 246:
+			case 214:
+				return true;
+			
+			default:
+				break;
+		}
+		
 		if(_codePoint >= 0x20 && _codePoint <= 0x7e)
 			return true;
 		
