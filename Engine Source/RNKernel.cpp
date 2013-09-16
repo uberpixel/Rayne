@@ -258,12 +258,13 @@ namespace RN
 		_input->DispatchInputEvents();
 		
 		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidBeginFrameMessage, nullptr, nullptr);
-		Application::GetSharedInstance()->GameUpdate(_delta);
+		
+		_app->GameUpdate(_delta);
 
 		if(_world)
 		{
 			_world->StepWorld(_frame, _delta);
-			Application::GetSharedInstance()->WorldUpdate(_delta);
+			_app->WorldUpdate(_delta);
 		}
 		
 		_uiserver->Render(_renderer);

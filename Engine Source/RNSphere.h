@@ -54,7 +54,7 @@ namespace RN
 	RN_INLINE Sphere::Sphere(const AABB& aabb) :
 		offset(aabb.maxExtend*0.5+aabb.minExtend*0.5),
 		offsetBase(aabb.maxExtend*0.5+aabb.minExtend*0.5),
-		radius(((aabb.maxExtend-aabb.minExtend)*0.5).GetLength())
+		radius(((aabb.maxExtend-aabb.minExtend)*0.5).Length())
 	{
 	}
 	
@@ -160,9 +160,8 @@ namespace RN
 	
 	RN_INLINE bool Sphere::IntersectsRay(const Vector3 &tposition, const Vector3 &direction) const
 	{
-				float dist = direction.Cross(tposition - position).GetLength()/direction.GetLength();
-		 
-		 return (dist <= radius);
+		float dist = direction.Cross(tposition - position).Length()/direction.Length();
+		return (dist <= radius);
 	}
 }
 
