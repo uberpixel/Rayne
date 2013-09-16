@@ -127,8 +127,11 @@ namespace RN
 		RNAPI void MakeLerpN(const Quaternion& start, const Quaternion& end, float factor);
 
 		RNAPI void LookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
-		RNAPI void Normalize();
-		RNAPI void Conjugate();
+		
+		RNAPI Quaternion &Normalize();
+		RNAPI Quaternion Normalize() const;
+		RNAPI Quaternion &Conjugate();
+		RNAPI Quaternion Conjugate() const;
 
 		RNAPI Quaternion LerpS(const Quaternion& other, float factor) const;
 		RNAPI Quaternion LerpN(const Quaternion& other, float factor) const;
@@ -141,7 +144,7 @@ namespace RN
 		RNAPI Vector3 GetEulerAngle() const;
 		RNAPI Vector4 GetAxisAngle() const;
 
-		RNAPI float GetLength() const;
+		RNAPI float Length() const;
 		RNAPI float Dot(const Quaternion& other) const;
 
 		struct
