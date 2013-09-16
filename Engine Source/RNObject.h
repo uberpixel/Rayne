@@ -173,6 +173,12 @@ namespace RN
 			return;
 		}
 	}
+	
+	template<class T>
+	static T *SafeRetain(T *object)
+	{
+		return object ? static_cast<T *>(object->Retain()) : nullptr;
+	}
 }
 
 namespace std
