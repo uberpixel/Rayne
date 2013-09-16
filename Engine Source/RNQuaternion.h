@@ -246,20 +246,19 @@ namespace RN
 	{
 		const float Pi_360(k::Pi / 360.0f);
 		
-		float fSinPitch = Math::Sin(euler.x * Pi_360);
-		float fCosPitch = Math::Cos(euler.x * Pi_360);
-		float fSinYaw   = Math::Sin(euler.y * Pi_360);
-		float fCosYaw   = Math::Cos(euler.y * Pi_360);
+		float fSinYaw = Math::Sin(euler.x * Pi_360);
+		float fCosYaw = Math::Cos(euler.x * Pi_360);
+		float fSinPitch   = Math::Sin(euler.y * Pi_360);
+		float fCosPitch   = Math::Cos(euler.y * Pi_360);
 		float fSinRoll  = Math::Sin(euler.z * Pi_360);
 		float fCosRoll  = Math::Cos(euler.z * Pi_360);
 		
-		float fCosPitchCosYaw = fCosPitch * fCosYaw;
-		float fSinPitchSinYaw = fSinPitch * fSinYaw;
+		//TODO: should be multiplied out for better performance
+		Quaternion qx(fSinPitch, 0.0f, 0.0f, fCosPitch);
+		Quaternion qy(0.0f, fSinYaw, 0.0f, fCosYaw);
+		Quaternion qz(0.0f, 0.0f, fSinRoll, fCosRoll);
 		
-		x = fSinRoll * fCosPitchCosYaw     - fCosRoll * fSinPitchSinYaw;
-		y = fCosRoll * fSinPitch * fCosYaw + fSinRoll * fCosPitch * fSinYaw;
-		z = fCosRoll * fCosPitch * fSinYaw - fSinRoll * fSinPitch * fCosYaw;
-		w = fCosRoll * fCosPitchCosYaw     + fSinRoll * fSinPitchSinYaw;
+		*this = qy*qx*qz;
 		
 		Normalize();
 	}
@@ -398,10 +397,10 @@ namespace RN
 		Normalize();
 	}
 	
-	RN_INLINE void Quaternion::Normalize()
+	RN_INLINE Quaternion &Quaternion::Normalize()
 	{
-		float length = GetLength();
-		if(length != 0.0f)
+		float length = Length();
+		if(length > k::EpsilonFloat)
 		{
 			float fac = 1.0f / length;
 			w *= fac;
@@ -409,13 +408,27 @@ namespace RN
 			y *= fac;
 			z *= fac;
 		}
+		
+		return *this;
 	}
 	
-	RN_INLINE void Quaternion::Conjugate()
+	RN_INLINE Quaternion &Quaternion::Conjugate()
 	{
 		x = -x;
 		y = -y;
 		z = -z;
+		
+		return *this;
+	}
+	
+	RN_INLINE Quaternion Quaternion::Normalize() const
+	{
+		return Quaternion(*this).Normalize();
+	}
+	
+	RN_INLINE Quaternion Quaternion::Conjugate() const
+	{
+		return Quaternion(-x, -y, -z, w);
 	}
 	
 	RN_INLINE Quaternion Quaternion::LerpS(const Quaternion& other, float factor) const
@@ -434,14 +447,19 @@ namespace RN
 		return result;
 	}
 	
+	//TODO: optimize!
 	RN_INLINE Vector3 Quaternion::RotateVector(const Vector3& vector) const
 	{
-		return GetRotationMatrix().Transform(vector);
+		Quaternion vectorquat(vector.x, vector.y, vector.z, 0.0f);
+		Quaternion resultquat = (*this) * vectorquat * Conjugate();
+		return Vector3(resultquat.x, resultquat.y, resultquat.z);
 	}
 	
 	RN_INLINE Vector4 Quaternion::RotateVector(const Vector4& vector) const
 	{
-		return GetRotationMatrix().Transform(vector);
+		Quaternion vectorquat(vector.x, vector.y, vector.z, 0.0f);
+		Quaternion resultquat = (*this) * vectorquat * Conjugate();
+		return Vector4(resultquat.x, resultquat.y, resultquat.z, vector.w);
 	}
 	
 	RN_INLINE Matrix Quaternion::GetRotationMatrix() const
@@ -471,38 +489,33 @@ namespace RN
 		return result;
 	}
 	
+	//TODO: Optimize by reducing the matrix to only the needed fields
 	RN_INLINE Vector3 Quaternion::GetEulerAngle() const
 	{
+		Matrix rotation = GetRotationMatrix();
 		Vector3 result;
-		float sqx = x * x;
-		float sqy = y * y;
-		float sqz = z * z;
 		
-		float clamped = (x * y + z * w);
-//		printf("dafuq: %f\n", clamped);
-		if(clamped > 0.4999f)
+		result.y = asin(fmax(fmin(-rotation.m[9], 1.0), -1.0));
+		double cy = cos(result.y);
+		if(Math::FastAbs(cy) > k::EpsilonFloat)
 		{
-			result.x = 2.0f * atan2(x, w) * 180.0f / k::Pi;
-			result.y = 90.0f;
+			result.x = atan2(rotation.m[8]/cy, rotation.m[10]/cy);
+			result.z = atan2(rotation.m[1]/cy, rotation.m[5]/cy);
+		}
+		else
+		{
 			result.z = 0.0f;
-			
-			return result;
+			if(result.y > 0.0f)
+			{
+				result.x = atan2(rotation.m[4], rotation.m[0]);
+			}
+			else
+			{
+				result.x = atan2(-rotation.m[4], -rotation.m[0]);
+			}
 		}
 		
-		if(clamped < -0.4999f)
-		{
-			result.x = -2.0f * atan2(x, w) * 180.0f / k::Pi;
-			result.y = -90.0f;
-			result.z = 0.0f;
-			
-			return result;
-		}
-		
-		result.x = (float)(atan2(2.0f * (y * w - x * z), 1.0f - 2.0f * (sqy + sqz)));
-		result.y = asin(2.0f*clamped);
-		result.z = (float)(atan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (sqx + sqz)));
 		result *= 180.0f / k::Pi;
-		
 		return result;
 	}
 	
@@ -529,7 +542,7 @@ namespace RN
 		return res;
 	}
 	
-	RN_INLINE float Quaternion::GetLength() const
+	RN_INLINE float Quaternion::Length() const
 	{
 		return Math::Sqrt(x * x + y * y + z * z + w * w);
 	}

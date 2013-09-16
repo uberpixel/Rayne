@@ -92,7 +92,7 @@ namespace TG
 		if(!(input->GetModifierKeys() & RN::KeyModifier::KeyControl))
 		{
 			rotation.x = mouseDelta.x;
-			rotation.z = mouseDelta.y;
+			rotation.y = mouseDelta.y;
 		}
 		
 		translation.x = (input->IsKeyPressed('d') - input->IsKeyPressed('a')) * 16.0f;
@@ -108,7 +108,7 @@ namespace TG
 		{
 			RN::Vector3 sunrot;
 			sunrot.x = (input->IsKeyPressed('e') - input->IsKeyPressed('q')) * 0.5f;
-			sunrot.z = (input->IsKeyPressed('t') - input->IsKeyPressed('g')) * 0.5f;
+			sunrot.y = (input->IsKeyPressed('t') - input->IsKeyPressed('g')) * 0.5f;
 			_sunLight->Rotate(sunrot);
 		}
 		
@@ -419,7 +419,7 @@ namespace TG
 		
 #if TGWorldFeatureLights
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
-		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
+		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateSunShadows(true, 1024.0f);
 		_sunLight->SetColor(RN::Color(170, 170, 170));
@@ -575,7 +575,7 @@ namespace TG
 		for(int i = 0; i < TGForestFeatureTrees; i += 1)
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
-			if(pos.GetLength() < 10.0f)
+			if(pos.Length() < 10.0f)
 				continue;
 			
 			ent = new RN::Entity();
@@ -597,7 +597,7 @@ namespace TG
 		for(int i=0; i<TGForestFeatureGras; i++)
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-50.0f, 50.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-50.0f, 50.0f));
-			if(pos.GetLength() < 5.0f)
+			if(pos.Length() < 5.0f)
 				continue;
 			
 			ent = new RN::Entity();
@@ -625,7 +625,7 @@ namespace TG
 		
 #if TGWorldFeatureLights
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
-		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
+		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateSunShadows(true);
 		
@@ -666,7 +666,7 @@ namespace TG
 		
 		
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
-		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, 0.0f, -90.0f)));
+		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateSunShadows(true);
 	}
