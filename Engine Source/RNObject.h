@@ -161,6 +161,18 @@ namespace RN
 	{ \
 		cls::MetaClass(); \
 	}
+	
+	template<class T>
+	static void SafeRelease(T *&object)
+	{
+		if(object)
+		{
+			object->Release();
+			object = nullptr;
+			
+			return;
+		}
+	}
 }
 
 namespace std
