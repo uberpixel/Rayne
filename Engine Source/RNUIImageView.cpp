@@ -50,18 +50,21 @@ namespace RN
 			
 			if(_image)
 				_image->Release();
+			
+			_material->Release();
 		}
 		
 		
 		void ImageView::Initialize()
 		{
-			Shader *shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUIImageShader);
-			DrawMaterial()->SetShader(shader);
 			SetInteractionEnabled(false);
 			SetBackgroundColor(Color::ClearColor());
 			
 			_mesh  = nullptr;
-			_image = 0;
+			_material = BasicMaterial(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUIImageShader));
+			_material->Retain();
+			
+			_image   = nullptr;
 			_isDirty = true;
 			_scaleMode = ScaleMode::AxisIndependently;
 		}
@@ -150,8 +153,8 @@ namespace RN
 				
 				if(_image)
 				{
-					DrawMaterial()->RemoveTextures();
-					DrawMaterial()->AddTexture(_image->GetTexture());
+					_material->RemoveTextures();
+					_material->AddTexture(_image->GetTexture());
 					
 					Vector2 size = std::move(GetFittingImageSize(GetFrame().Size()));
 					Vector2 offset = (GetFrame().Size() - size) * 0.5f;
@@ -173,6 +176,7 @@ namespace RN
 				PopulateRenderingObject(object);
 				
 				object.mesh = _mesh;
+				object.material = _material;
 				
 				renderer->RenderObject(object);
 			}

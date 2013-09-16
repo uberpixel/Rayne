@@ -86,7 +86,7 @@ namespace RN
 			
 		protected:
 			Mesh *BasicMesh(const Vector2& size);
-			Material *DrawMaterial() { return _material; }
+			Material *BasicMaterial(Shader *shader);
 			
 			void UpdateBasicMesh(Mesh *mesh, const Vector2& size);
 			
@@ -121,7 +121,6 @@ namespace RN
 			
 			Widget *_widget;
 			Material *_material;
-			Material *_viewMaterial;
 			Mesh *_mesh;
 
 			AutoresizingMask _autoresizingMask;

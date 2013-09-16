@@ -46,6 +46,8 @@ namespace RN
 			
 			ScaleMode _scaleMode;
 			Image *_image;
+			
+			Material *_material;
 			Mesh  *_mesh;
 			
 			RNDefineMeta(ImageView, View)

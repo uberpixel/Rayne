@@ -35,7 +35,6 @@ namespace RN
 		View::~View()
 		{
 			_material->Release();
-			_viewMaterial->Release();
 			
 			Widget *widget = GetWidget();
 			
@@ -67,21 +66,8 @@ namespace RN
 			_hidden             = false;
 			_autoresizingMask   = 0;
 			
-			_material = new Material(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
-			_material->depthtest  = false;
-			_material->depthwrite = false;
-			_material->blending   = true;
-			_material->blendSource = GL_SRC_ALPHA;
-			_material->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-			_material->lighting   = false;
-			
-			_viewMaterial = new Material(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
-			_viewMaterial->depthtest  = false;
-			_viewMaterial->depthwrite = false;
-			_viewMaterial->blending   = true;
-			_viewMaterial->blendSource = GL_SRC_ALPHA;
-			_viewMaterial->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-			_viewMaterial->lighting   = false;
+			_material = BasicMaterial(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
+			_material->Retain();
 			
 			SetBackgroundColor(Color(0.128f, 0.128f, 0.128f, 1.0f));
 		}
@@ -89,7 +75,6 @@ namespace RN
 		void View::SetBackgroundColor(const Color& color)
 		{
 			_material->diffuse = color;
-			_viewMaterial->diffuse = color;
 		}
 		
 		Mesh *View::BasicMesh(const Vector2& size)
@@ -126,6 +111,19 @@ namespace RN
 			mesh->UpdateMesh();
 			
 			return mesh->Autorelease();
+		}
+		
+		Material *View::BasicMaterial(Shader *shader)
+		{
+			Material *material = new Material(shader);
+			material->depthtest  = false;
+			material->depthwrite = false;
+			material->blending   = true;
+			material->blendSource = GL_SRC_ALPHA;
+			material->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+			material->lighting   = false;
+			
+			return material->Autorelease();
 		}
 		
 		void View::UpdateBasicMesh(Mesh *mesh, const Vector2& size)
@@ -664,7 +662,7 @@ namespace RN
 				PopulateRenderingObject(object);
 				
 				object.mesh = _mesh;
-				object.material = _viewMaterial;
+				object.material = _material;
 				
 				renderer->RenderObject(object);
 			}
