@@ -65,6 +65,7 @@ namespace RN
 			_interactionEnabled = true;
 			_clipSubviews       = false;
 			_hidden             = false;
+			_autoresizingMask   = 0;
 			
 			_material = new Material(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
 			_material->depthtest  = false;
@@ -396,10 +397,12 @@ namespace RN
 		void View::SizeToFit()
 		{
 			Vector2 size = std::move(GetSizeThatFits());
-			_frame.width  = size.x;
-			_frame.height = size.y;
+			Rect frame = _frame;
 			
-			SetFrame(_frame);
+			frame.width  = size.x;
+			frame.height = size.y;
+			
+			SetFrame(frame);
 			SetNeedsLayoutUpdate();
 		}
 		
@@ -410,18 +413,28 @@ namespace RN
 		
 		void View::SetFrame(const Rect& frame)
 		{
-			_frame = frame.Integral();
+			Vector2 oldSize = _frame.Size();
+			
+			_frame = frame;
 			
 			_bounds.width  = frame.width;
 			_bounds.height = frame.height;
 			
 			SetNeedsLayoutUpdate();
+			ResizeSubviewsFromOldSize(oldSize);
 		}
 		
 		void View::SetBounds(const Rect& bounds)
 		{
-			_frame.width  = bounds.width;
-			_frame.height = bounds.height;
+			if(_frame.Size() != bounds.Size())
+			{
+				Vector2 size = _frame.Size();
+				
+				_frame.width  = bounds.width;
+				_frame.height = bounds.height;
+				
+				ResizeSubviewsFromOldSize(size);
+			}
 			
 			_bounds = bounds;
 			
@@ -431,18 +444,83 @@ namespace RN
 		void View::SetNeedsLayoutUpdate()
 		{
 			_dirtyLayout = true;
-			
-			size_t count = _subviews.GetCount();
-			for(size_t i=0; i<count; i++)
-			{
-				View *subview = _subviews.GetObjectAtIndex<View>(i);
+			_subviews.Enumerate<View>([&](View *subview, size_t index, bool *stop) {
 				subview->SetNeedsLayoutUpdate();
-			}
+			});
 		}
 		
 		void View::SetHidden(bool hidden)
 		{
 			_hidden = hidden;
+		}
+		
+		void View::SetAutoresizingMask(AutoresizingMask mask)
+		{
+			_autoresizingMask = mask;
+		}
+		
+		void View::ResizeSubviewsFromOldSize(const Vector2& oldSize)
+		{
+			Vector2 size = _frame.Size();
+			Vector2 diff = size - oldSize;
+			
+			_subviews.Enumerate<View>([&](View *subview, size_t index, bool *stop) {
+				
+				if(subview->_autoresizingMask == 0)
+					return;
+				
+				Rect frame = subview->GetFrame();
+				
+				uint32 stepsWidth  = 0;
+				uint32 stepsHeight = 0;
+				
+				
+				if(subview->_autoresizingMask & AutoresizingFlexibleLeftMargin)
+					stepsWidth ++;
+				
+				if(subview->_autoresizingMask & AutoresizingFlexibleRightMargin)
+					stepsWidth ++;
+				
+				if(subview->_autoresizingMask & AutoresizingFlexibleWidth)
+					stepsWidth ++;
+				
+				
+				if(subview->_autoresizingMask & AutoresizingFlexibleTopMargin)
+					stepsHeight ++;
+				
+				if(subview->_autoresizingMask & AutoresizingFlexibleBottomMargin)
+					stepsHeight ++;
+				
+				if(subview->_autoresizingMask & AutoresizingFlexibleHeight)
+					stepsHeight ++;
+				
+				
+				
+				if(stepsWidth > 0)
+				{
+					float distribution = diff.x / stepsWidth;
+					
+					if(subview->_autoresizingMask & AutoresizingFlexibleLeftMargin)
+						frame.x += distribution;
+					
+					if(subview->_autoresizingMask & AutoresizingFlexibleWidth)
+						frame.width += distribution;
+				}
+				
+				
+				if(stepsHeight > 0)
+				{
+					float distribution = diff.y / stepsHeight;
+					
+					if(subview->_autoresizingMask & AutoresizingFlexibleTopMargin)
+						frame.y += distribution;
+					
+					if(subview->_autoresizingMask & AutoresizingFlexibleHeight)
+						frame.height += distribution;
+				}
+				
+				subview->SetFrame(frame);
+			});
 		}
 		
 		// ---------------------

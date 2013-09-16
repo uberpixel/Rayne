@@ -30,6 +30,19 @@ namespace RN
 		public:
 			friend class Widget;
 			
+			enum
+			{
+				AutoresizingFlexibleWidth  = (1 << 0),
+				AutoresizingFlexibleHeight = (1 << 1),
+				
+				AutoresizingFlexibleLeftMargin   = (1 << 2),
+				AutoresizingFlexibleRightMargin  = (1 << 3),
+				AutoresizingFlexibleTopMargin    = (1 << 4),
+				AutoresizingFlexibleBottomMargin = (1 << 5)
+			};
+			
+			typedef uint32 AutoresizingMask;
+			
 			View();
 			View(const Rect& frame);
 			~View() override;
@@ -51,6 +64,7 @@ namespace RN
 			void SetClipSubviews(bool clipping);
 			void SetClipInsets(const EdgeInsets& insets);
 			void SetHidden(bool hidden);
+			void SetAutoresizingMask(AutoresizingMask mask);
 			
 			void AddSubview(View *subview);
 			void RemoveSubview(View *subview);
@@ -97,6 +111,7 @@ namespace RN
 			void CalculateScissorRect();
 			void UpdateChilds();
 			void UpdateAndDrawChilds(Renderer *renderer);
+			void ResizeSubviewsFromOldSize(const Vector2& oldSize);
 			
 			void ConvertPointToWidget(Vector2& point);
 			void ConvertPointFromWidget(Vector2& point);
@@ -109,6 +124,7 @@ namespace RN
 			Material *_viewMaterial;
 			Mesh *_mesh;
 
+			AutoresizingMask _autoresizingMask;
 			Array _subviews;
 			
 			bool _interactionEnabled;
