@@ -305,6 +305,48 @@ namespace RN
 		return det;
 	}
 	
+	RN_INLINE Vector3 Matrix::GetEulerAngle() const
+	{
+		Vector3 result;
+		
+		result.y = asin(fmax(fmin(-m[9], 1.0), -1.0));
+		double cy = cos(result.y);
+		if(Math::FastAbs(cy) > k::EpsilonFloat)
+		{
+			result.x = atan2(m[8]/cy, m[10]/cy);
+			result.z = atan2(m[1]/cy, m[5]/cy);
+		}
+		else
+		{
+			result.z = 0.0f;
+			if(result.y > 0.0f)
+			{
+				result.x = atan2(m[4], m[0]);
+			}
+			else
+			{
+				result.x = atan2(-m[4], -m[0]);
+			}
+		}
+		
+		result *= 180.0f / k::Pi;
+		return result;
+	}
+	
+	RN_INLINE Quaternion Matrix::GetQuaternion() const
+	{
+		Quaternion result;
+		
+		float zz = 0.25f - m[0] * 0.25f + m[10] * 0.25f - m[5] * 0.25f;
+		
+		result.x = sqrt(0.5f - m[5] * 0.5f - zz);
+		result.y = sqrt(0.5f - m[0] * 0.5f - zz);
+		result.z = sqrt(zz);
+		result.w = (-0.5f * m[9] + result.y * result.z) / result.x;
+		
+		return result;
+	}
+	
 	RN_INLINE void Matrix::SetTranslation(const Vector3& trans)
 	{
 		m[12] = trans.x;

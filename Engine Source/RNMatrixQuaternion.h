@@ -47,6 +47,9 @@ namespace RN
 		RNAPI float GetDeterminant() const;
 		RNAPI float GetDeterminantSubmatrix(const int k) const;
 		
+		RNAPI Vector3 GetEulerAngle() const;
+		RNAPI Quaternion GetQuaternion() const;
+		
 		RNAPI void SetTranslation(const Vector3& other);
 		RNAPI void SetTranslation(const Vector4& other);
 		RNAPI void SetScale(const Vector3& other);
