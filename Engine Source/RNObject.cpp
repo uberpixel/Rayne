@@ -41,6 +41,8 @@ namespace RN
 		}
 	}
 	
+	void Object::Load(MetaClassBase *meta)
+	{}
 	
 	void Object::CleanUp()
 	{}

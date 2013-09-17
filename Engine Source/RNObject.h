@@ -62,6 +62,8 @@ namespace RN
 			return __metaClass;
 		}
 		
+		static void Load(MetaClassBase *meta);
+		
 		enum class MemoryPolicy
 		{
 			Assign,
@@ -160,6 +162,7 @@ namespace RN
 	void __##cls##__load() \
 	{ \
 		cls::MetaClass(); \
+		cls::Load(cls::MetaClass()); \
 	}
 	
 	template<class T>
