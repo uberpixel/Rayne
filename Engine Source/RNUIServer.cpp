@@ -29,17 +29,23 @@ static const char *__RNUIMenuItemWrapperKey = "__RNUIMenuItemWrapperKey";
 - (void)setItem:(RN::UI::MenuItem *)titem
 {
 	if(item)
+	{
 		item->RemoveAssociatedOject(__RNUIMenuItemWrapperKey);
+		item->Release();
+	}
 	
 	item = titem;
-	item->SetAssociatedObject(__RNUIMenuItemWrapperKey, (RN::Object *)self, RN::Object::MemoryPolicy::Assign);
+	
+	if(item)
+	{
+		item->SetAssociatedObject(__RNUIMenuItemWrapperKey, (RN::Object *)self, RN::Object::MemoryPolicy::Assign);
+		item->Retain();
+	}
 }
 
 - (void)dealloc
 {
-	if(item)
-		item->RemoveAssociatedOject(__RNUIMenuItemWrapperKey);
-	
+	[self setItem:nil];
 	[super dealloc];
 }
 

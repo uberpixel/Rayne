@@ -38,6 +38,8 @@ namespace RN
 			
 			const Array *GetItems() const { return _items; }
 			
+			static void PopUpContextMenu(Menu *menu, const Vector2& location);
+			
 		private:
 			Array *_items;
 			

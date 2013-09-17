@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "RNBaseInternal.h"
 #include "RNUIMenu.h"
 #include "RNUIView.h"
 #include "RNMessage.h"
@@ -16,6 +17,10 @@ namespace RN
 	{
 		RNDeclareMeta(Menu)
 		RNDeclareMeta(MenuItem)
+		
+#if RN_PLATFORM_MAC_OS
+		NSMenu *TranslateRNUIMenuToNSMenu(Menu *menu);
+#endif
 		
 		// ---------------------
 		// MARK: -
@@ -29,7 +34,7 @@ namespace RN
 		
 		Menu::~Menu()
 		{
-			_items->Release();
+			SafeRelease(_items);
 		}
 		
 		void Menu::AddItem(MenuItem *item)
@@ -67,6 +72,36 @@ namespace RN
 			_items->RemoveObjectAtIndex(index);
 			
 			MessageCenter::GetSharedInstance()->PostMessage(kRNMenuChangedMessage, this, nullptr);
+		}
+		
+		
+		void Menu::PopUpContextMenu(Menu *menu, const Vector2& location)
+		{
+			RN_ASSERT(menu, "menu mustn't be NULL");
+			
+#if RN_PLATFORM_MAC_OS
+			menu->Retain();
+			
+			NSWindow *window = [NSApp keyWindow];
+			NSMenu *nsmenu   = TranslateRNUIMenuToNSMenu(menu);
+			
+			CGFloat height = NSHeight([[window contentView] bounds]);
+			
+			NSPoint locationInWindow = NSMakePoint(location.x, height - location.y);
+			NSEvent *fakeMouseEvent = [NSEvent mouseEventWithType:NSLeftMouseDown
+														 location:locationInWindow
+													modifierFlags:0
+														timestamp:0
+													 windowNumber:[window windowNumber]
+														  context:nil
+													  eventNumber:0
+													   clickCount:0
+														 pressure:0];
+			
+			[NSMenu popUpContextMenu:nsmenu withEvent:fakeMouseEvent forView:[window contentView]];
+			
+			menu->Release();
+#endif
 		}
 		
 		// ---------------------
