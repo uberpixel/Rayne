@@ -104,24 +104,6 @@ namespace RN
 	{
 		Vector3 euler = GetEulerAngle();
 		euler += other;
-//		printf("x: %f, y: %f, z: %f\n", euler.x, euler.y, euler.z);
-
-/*		float fSinPitch = sin(atan2(2.0f * (y * w - x * z), 1.0f - 2.0f * (y*y + z*z))*0.5f+other.x*k::Pi/360.0f);
-		float fCosPitch = cos(atan2(2.0f * (y * w - x * z), 1.0f - 2.0f * (y*y + z*z))*0.5f+other.x*k::Pi/360.0f);
-		float fSinYaw   = sin(asin(2.0f * (x * y + z * w))*0.5f+other.y*k::Pi/360.0f);
-		float fCosYaw   = cos(asin(2.0f * (x * y + z * w))*0.5f+other.y*k::Pi/360.0f);
-		float fSinRoll  = sin(atan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (x*x + z*z))*0.5f+other.z*k::Pi/360.0f);
-		float fCosRoll  = cos(atan2(2.0f * (x * w - y * z), 1.0f - 2.0f * (x*x + z*z))*0.5f+other.z*k::Pi/360.0f);
-		
-		float fCosPitchCosYaw = fCosPitch * fCosYaw;
-		float fSinPitchSinYaw = fSinPitch * fSinYaw;
-		
-		x = fSinRoll * fCosPitchCosYaw     - fCosRoll * fSinPitchSinYaw;
-		y = fCosRoll * fSinPitch * fCosYaw + fSinRoll * fCosPitch * fSinYaw;
-		z = fCosRoll * fCosPitch * fSinYaw - fSinRoll * fSinPitch * fCosYaw;
-		w = fCosRoll * fCosPitchCosYaw     + fSinRoll * fSinPitchSinYaw;
-		
-		Normalize();*/
 		
 		MakeEulerAngle(euler);
 		return *this;
@@ -253,12 +235,11 @@ namespace RN
 		float fSinRoll  = Math::Sin(euler.z * Pi_360);
 		float fCosRoll  = Math::Cos(euler.z * Pi_360);
 		
-		//TODO: should be multiplied out for better performance
-		Quaternion qx(fSinPitch, 0.0f, 0.0f, fCosPitch);
-		Quaternion qy(0.0f, fSinYaw, 0.0f, fCosYaw);
-		Quaternion qz(0.0f, 0.0f, fSinRoll, fCosRoll);
-		
-		*this = qy*qx*qz;
+		//qy*qx*qz;
+		w = fSinYaw * fSinPitch * fSinRoll + fCosYaw * fCosPitch * fCosRoll;
+		x = fCosYaw * fSinPitch * fCosRoll + fSinYaw * fCosPitch * fSinRoll;
+		y = -fCosYaw * fSinPitch * fSinRoll + fSinYaw * fCosPitch * fCosRoll;
+		z = -fSinYaw * fSinPitch * fCosRoll + fCosYaw * fCosPitch * fSinRoll;
 		
 		Normalize();
 	}
@@ -447,7 +428,6 @@ namespace RN
 		return result;
 	}
 	
-	//TODO: optimize!
 	RN_INLINE Vector3 Quaternion::RotateVector(const Vector3& vector) const
 	{
 		Quaternion vectorquat(vector.x, vector.y, vector.z, 0.0f);
@@ -489,29 +469,37 @@ namespace RN
 		return result;
 	}
 	
-	//TODO: Optimize by reducing the matrix to only the needed fields
 	RN_INLINE Vector3 Quaternion::GetEulerAngle() const
 	{
-		Matrix rotation = GetRotationMatrix();
+		float xx = x * x;
+		float yy = y * y;
+		float zz = z * z;
+		float xy = x * y;
+		float xz = x * z;
+		float xw = x * w;
+		float yz = y * z;
+		float yw = y * w;
+		float zw = z * w;
+		
 		Vector3 result;
 		
-		result.y = asin(fmax(fmin(-rotation.m[9], 1.0), -1.0));
+		result.y = asin(fmax(fmin(-2.0f * (yz - xw), 1.0), -1.0));
 		double cy = cos(result.y);
 		if(Math::FastAbs(cy) > k::EpsilonFloat)
 		{
-			result.x = atan2(rotation.m[8]/cy, rotation.m[10]/cy);
-			result.z = atan2(rotation.m[1]/cy, rotation.m[5]/cy);
+			result.x = atan2(2.0f * (xz + yw)/cy, (1.0f - 2.0f * (xx + yy))/cy);
+			result.z = atan2(2.0f * (xy + zw)/cy, (1.0f - 2.0f * (xx + zz))/cy);
 		}
 		else
 		{
 			result.z = 0.0f;
 			if(result.y > 0.0f)
 			{
-				result.x = atan2(rotation.m[4], rotation.m[0]);
+				result.x = atan2(2.0f * (xy - zw), 1.0f - 2.0f * (yy + zz));
 			}
 			else
 			{
-				result.x = atan2(-rotation.m[4], -rotation.m[0]);
+				result.x = atan2(-2.0f * (xy - zw), -1.0f - 2.0f * (yy + zz));
 			}
 		}
 		
