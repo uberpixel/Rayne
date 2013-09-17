@@ -28,4 +28,8 @@
 	#import <CoreText/CoreText.h>
 #endif
 
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS
+	#import <objc/objc-runtime.h>
+#endif
+
 #endif /* __RAYNE_BASEINTERNAL_H__ */

@@ -97,6 +97,7 @@
 #include "RNUIImageView.h"
 #include "RNUISegmentView.h"
 #include "RNUIUtilities.h"
+#include "RNUIMenu.h"
 
 #include "RNWorld.h"
 #include "RNSceneNode.h"

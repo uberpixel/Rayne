@@ -13,6 +13,7 @@
 #include "RNTexture.h"
 #include "RNKernel.h"
 #include "RNInput.h"
+#include "RNUIServer.h"
 
 #if RN_PLATFORM_MAC_OS
 
@@ -110,6 +111,12 @@
 - (BOOL)canBecomeMainWindow
 {
 	return YES;
+}
+
+
+- (void)performMenuBarAction:(id)sender
+{
+	RN::UI::Server::GetSharedInstance()->PerformMenuBarAction(sender);
 }
 
 

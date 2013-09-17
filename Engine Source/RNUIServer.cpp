@@ -6,12 +6,52 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "RNBaseInternal.h"
 #include "RNUIServer.h"
 #include "RNKernel.h"
 #include "RNWorld.h"
 #include "RNWindow.h"
 #include "RNUILabel.h"
 #include "RNUIButton.h"
+
+#if RN_PLATFORM_MAC_OS
+
+static const char *__RNUIMenuItemWrapperKey = "__RNUIMenuItemWrapperKey";
+
+@interface __RNUIMenuItemWrapper : NSObject
+@property (nonatomic, assign) RN::UI::MenuItem *item;
++ (__RNUIMenuItemWrapper *)wrapperWithItem:(RN::UI::MenuItem *)item;
+@end
+
+@implementation __RNUIMenuItemWrapper
+@synthesize item;
+
+- (void)setItem:(RN::UI::MenuItem *)titem
+{
+	if(item)
+		item->RemoveAssociatedOject(__RNUIMenuItemWrapperKey);
+	
+	item = titem;
+	item->SetAssociatedObject(__RNUIMenuItemWrapperKey, (RN::Object *)self, RN::Object::MemoryPolicy::Assign);
+}
+
+- (void)dealloc
+{
+	if(item)
+		item->RemoveAssociatedOject(__RNUIMenuItemWrapperKey);
+	
+	[super dealloc];
+}
+
++ (__RNUIMenuItemWrapper *)wrapperWithItem:(RN::UI::MenuItem *)item
+{
+	__RNUIMenuItemWrapper *wrapper = [[__RNUIMenuItemWrapper alloc] init];
+	[wrapper setItem:item];
+	return [wrapper autorelease];
+}
+@end
+
+#endif /* RN_PLATFORM_MAC_OS */
 
 namespace RN
 {
@@ -35,16 +75,28 @@ namespace RN
 			_mode = Mode::SingleTracking;
 			
 			_drawDebugFrames = false;
+			_menu = nullptr;
+			
+			TranslateMenuToPlatform();
 		}
 		
 		Server::~Server()
 		{
 			_camera->Release();
+			SafeRelease(_menu);
 		}
 		
 		void Server::SetDrawDebugFrames(bool drawDebugFrames)
 		{
 			_drawDebugFrames = drawDebugFrames;
+		}
+		
+		void Server::SetMainMenu(Menu *menu)
+		{
+			SafeRelease(_menu);
+			_menu = SafeRetain(menu);
+			
+			TranslateMenuToPlatform();
 		}
 		
 		void Server::AddWidget(Widget *widget)
@@ -196,5 +248,100 @@ namespace RN
 			
 			renderer->FinishCamera();
 		}
+		
+		
+#if RN_PLATFORM_MAC_OS
+		
+		NSMenu *TranslateRNUIMenuToNSMenu(Menu *menu)
+		{
+			NSMenu *temp = [[NSMenu alloc] init];
+			[temp setAutoenablesItems:NO];
+			
+			if(!menu)
+				return [temp autorelease];
+			
+			menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool *stop) {
+				
+				if(!item->IsSeparator())
+				{
+					NSString *title = [NSString stringWithUTF8String:item->GetTitle()->GetUTF8String()];
+					NSString *key   = [NSString stringWithUTF8String:item->GetKeyEquivalent()->GetUTF8String()];
+					
+					NSMenuItem *titem = [[NSMenuItem alloc] initWithTitle:title action:@selector(performMenuBarAction:) keyEquivalent:key];
+					[titem setEnabled:item->IsEnabled()];
+					
+					objc_setAssociatedObject(titem, __RNUIMenuItemWrapperKey, [__RNUIMenuItemWrapper wrapperWithItem:item], OBJC_ASSOCIATION_RETAIN);
+					
+					if(item->GetSubMenu())
+					{
+						NSMenu *subMenu = TranslateRNUIMenuToNSMenu(item->GetSubMenu());
+						[titem setSubmenu:subMenu];
+					}
+					
+					[temp addItem:[titem autorelease]];
+				}
+				else
+				{
+					[temp addItem:[NSMenuItem separatorItem]];
+				}
+			});
+			
+			return [temp autorelease];
+		}
+		
+		NSMenuItem *NSQuitMenuItem()
+		{
+			NSString *quitTitle = [@"Quit " stringByAppendingString:[[NSProcessInfo processInfo] processName]];
+			NSMenuItem *quitMenuItem = [[NSMenuItem alloc] initWithTitle:quitTitle action:@selector(terminate:) keyEquivalent:@"q"];
+			
+			return [quitMenuItem autorelease];
+		}
+		
+		void Server::TranslateMenuToPlatform()
+		{
+			@autoreleasepool
+			{
+				NSMenu *menu = [[NSMenu alloc] init];
+				[menu setAutoenablesItems:NO];
+				
+				NSMenu *quitMenu = [[NSMenu alloc] init];
+				[quitMenu addItem:NSQuitMenuItem()];
+				
+				NSMenuItem *appMenu = [[NSMenuItem alloc] init];
+				[appMenu setSubmenu:[quitMenu autorelease]];
+				
+				[menu addItem:[appMenu autorelease]];
+				
+				if(_menu)
+				{
+					_menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool *stop) {
+						
+						NSMenu *tMenu = TranslateRNUIMenuToNSMenu(item->GetSubMenu());
+						[tMenu setTitle:[NSString stringWithUTF8String:item->GetTitle()->GetUTF8String()]];
+						
+						NSMenuItem *menuItem = [[NSMenuItem alloc] init];
+						[menuItem setSubmenu:tMenu];
+						
+						[menu addItem:[menuItem autorelease]];
+						
+					});
+				}
+				
+				[NSApp setMainMenu:menu];
+			}
+		}
+		
+		void Server::PerformMenuBarAction(void *titem)
+		{
+			NSMenuItem *nsitem = (NSMenuItem *)titem;
+			MenuItem *item = [(__RNUIMenuItemWrapper *)objc_getAssociatedObject(nsitem, __RNUIMenuItemWrapperKey) item];
+			
+			if(item && item->GetCallback())
+			{
+				item->GetCallback()(item);
+			}
+		}
+		
+#endif /* RN_PLATFORM_MAC_OS */
 	}
 }

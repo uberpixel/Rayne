@@ -11,10 +11,11 @@
 
 #include "RNBase.h"
 #include "RNCamera.h"
+#include "RNInput.h"
 #include "RNUIWidget.h"
 #include "RNUIResponder.h"
 #include "RNUIControl.h"
-#include "RNInput.h"
+#include "RNUIMenu.h"
 
 #define kRNUIServerDidResizeMessage RNCSTR("kRNUIServerDidResizeMessage")
 
@@ -44,6 +45,7 @@ namespace RN
 			~Server() override;
 			
 			void SetDrawDebugFrames(bool drawDebugFrames);
+			void SetMainMenu(Menu *menu);
 			
 			uint32 GetHeight() const { return _frame.height; }
 			uint32 GetWidth() const { return _frame.width; }
@@ -52,6 +54,10 @@ namespace RN
 			
 			Camera *GetCamera() const { return _camera; }
 			Widget *GetMainWidget() const { return _mainWidget; }
+			
+#if RN_PLATFORM_MAC_OS
+			void PerformMenuBarAction(void *item);
+#endif
 			
 		protected:
 			void Render(Renderer *renderer);
@@ -63,6 +69,8 @@ namespace RN
 			
 			bool ConsumeEvent(Event *event);
 			
+			void TranslateMenuToPlatform();
+			
 			Camera *_camera;
 			Rect _frame;
 			Mode _mode;
@@ -71,6 +79,7 @@ namespace RN
 			View *_tracking;
 			std::deque<Widget *> _widgets;
 			
+			Menu *_menu;
 			bool _drawDebugFrames;
 		};
 	}
