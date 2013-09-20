@@ -16,6 +16,7 @@
 #include "RNTexture.h"
 #include "RNUIGeometry.h"
 #include "RNUIControl.h"
+#include "RNUIFont.h"
 
 namespace RN
 {
@@ -24,21 +25,34 @@ namespace RN
 		class Style : public Singleton<Style>
 		{
 		public:
+			enum class FontStyle
+			{
+				DefaultFont,
+				DefaultFontBold,
+				DefaultFontItalics,
+				DefaultFontBoldItalics
+			};
+			
 			Style();
 			~Style() override;
 			
-			Texture *TextureWithName(String *name);
+			Texture *GetTextureWithName(String *name);
 			
-			Dictionary *ButtonStyle(String *name);
-			Dictionary *TextfieldStyle(String *name);
+			Font *GetFont(FontStyle style);
+			Dictionary *GetButtonStyle(String *name);
+			Dictionary *GetTextfieldStyle(String *name);
 			
 			static EdgeInsets ParseEdgeInsets(Dictionary *insets);
 			static Atlas ParseAtlas(Dictionary *atlas);
 			static Control::State ParseState(String *string);
 			
 		private:
+			Font *CreateFontFromDictionary(Dictionary *info);
+			
+			SpinLock _lock;
 			Dictionary *_data;
 			Dictionary *_textures;
+			Dictionary *_fonts;
 		};
 	}
 }

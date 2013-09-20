@@ -8,6 +8,7 @@
 
 #include "RNTextNode.h"
 #include "RNResourcePool.h"
+#include "RNUIStyle.h"
 
 namespace RN
 {
@@ -35,7 +36,7 @@ namespace RN
 		_typesetter = new UI::Typesetter(_string, Rect(0.0f, 0.0f, 512.0f, 512.0f));
 		_typesetter->SetAllowPartiallyClippedLined(false);
 		
-		SetFont(ResourcePool::GetSharedInstance()->GetResourceWithName<UI::Font>(kRNResourceKeyDefaultFont));
+		SetFont(UI::Style::GetSharedInstance()->GetFont(UI::Style::FontStyle::DefaultFont));
 		SetTextColor(Color::White());
 		
 		SetAlignment(UI::TextAlignment::Left);

@@ -10,6 +10,7 @@
 #include "RNAlgorithm.h"
 #include "RNDictionary.h"
 #include "RNResourcePool.h"
+#include "RNUIStyle.h"
 
 #define kRNTypesetterMeshAttribute RNCSTR("kRNTypesetterMeshAttribute")
 
@@ -54,7 +55,7 @@ namespace RN
 			static std::once_flag flag;
 			
 			std::call_once(flag, [&]() {
-				defaultFont = ResourcePool::GetSharedInstance()->GetResourceWithName<Font>(kRNResourceKeyDefaultFont);
+				defaultFont = Style::GetSharedInstance()->GetFont(UI::Style::FontStyle::DefaultFont);
 			});
 			
 			Font *font = attributes->GetObjectForKey<Font>(kRNTypesetterFontAttribute);

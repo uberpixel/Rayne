@@ -22,7 +22,7 @@ namespace RN
 			Initialize();
 			
 			Style *styleSheet = Style::GetSharedInstance();
-			Texture *texture = styleSheet->TextureWithName(style->GetObjectForKey<String>(RNCSTR("texture")));
+			Texture *texture = styleSheet->GetTextureWithName(style->GetObjectForKey<String>(RNCSTR("texture")));
 			Dictionary *contentInsets = style->GetObjectForKey<Dictionary>(RNCSTR("contentInsets"));
 			Dictionary *clipInsets = style->GetObjectForKey<Dictionary>(RNCSTR("clipInsets"));
 			Dictionary *tInsets = style->GetObjectForKey<Dictionary>(RNCSTR("insets"));
@@ -69,11 +69,11 @@ namespace RN
 			switch(type)
 			{
 				case Type::RoundedRect:
-					dictionary = styleSheet->TextfieldStyle(RNCSTR("RNRoundedRect"));
+					dictionary = styleSheet->GetTextfieldStyle(RNCSTR("RNRoundedRect"));
 					break;
 					
 				case Type::Bezel:
-					dictionary = styleSheet->TextfieldStyle(RNCSTR("RNBezel"));
+					dictionary = styleSheet->GetTextfieldStyle(RNCSTR("RNBezel"));
 					break;
 			}
 			

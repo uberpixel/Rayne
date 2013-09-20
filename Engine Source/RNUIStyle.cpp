@@ -8,6 +8,7 @@
 
 #include "RNUIStyle.h"
 #include "RNSettings.h"
+#include "RNAutoreleasePool.h"
 #include "RNJSONSerialization.h"
 
 #define kRNUIStyleButtonsKey   RNCSTR("buttons")
@@ -32,14 +33,15 @@ namespace RN
 				__HandleException(e);
 			}
 			
-			
 			_textures = new Dictionary();
+			_fonts = new Dictionary();
 		}
 		
 		Style::~Style()
 		{
 			_data->Release();
 			_textures->Release();
+			_fonts->Release();
 		}
 		
 		
@@ -89,9 +91,76 @@ namespace RN
 			return Atlas(0.0f, 0.0f, 1.0f, 1.0f);
 		}
 		
+		Font *Style::CreateFontFromDictionary(Dictionary *info)
+		{
+			AutoreleasePool pool;
+			
+			String *name = info->GetObjectForKey<String>(RNCSTR("name"));
+			Number *size = info->GetObjectForKey<Number>(RNCSTR("size"));
+			String *traits = info->GetObjectForKey<String>(RNCSTR("traits"));
+			
+			RN_ASSERT(name, "malformed font dictionary!");
+			
+			FontDescriptor descriptor;
+			
+			if(traits)
+			{
+				if(traits->GetRangeOfString(RNCSTR("bold")).origin != k::NotFound)
+					descriptor.style |= FontDescriptor::FontStyleBold;
+				
+				if(traits->GetRangeOfString(RNCSTR("italics")).origin != k::NotFound)
+					descriptor.style |= FontDescriptor::FontStyleItalic;
+			}
+			
+			float fontSize = size ? size->GetDoubleValue() : 12.0f;
+			Font *font = new Font(name->GetUTF8String(), fontSize, descriptor);
+			
+			return font;
+		}
+		
+		Font *Style::GetFont(FontStyle style)
+		{
+			String *identifier = nullptr;
+			
+			switch(style)
+			{
+				case FontStyle::DefaultFont:
+					identifier = RNCSTR("RNDefaultFont");
+					break;
+					
+				case FontStyle::DefaultFontBold:
+					identifier = RNCSTR("RNDefaultFontBold");
+					break;
+					
+				case FontStyle::DefaultFontItalics:
+					identifier = RNCSTR("RNDefaultFontItalics");
+					
+				case FontStyle::DefaultFontBoldItalics:
+					identifier = RNCSTR("RNDefaultFontBoldItalics");
+					break;
+			}
+			
+			RN_ASSERT(identifier, "");
+			
+			LockGuard<SpinLock> lock(_lock);
+			
+			Font *font = _fonts->GetObjectForKey<Font>(identifier);
+			if(!font)
+			{
+				Dictionary *fontDict = _data->GetObjectForKey<Dictionary>(RNCSTR("fonts"));
+				font = CreateFontFromDictionary(fontDict->GetObjectForKey<Dictionary>(identifier));
+				
+				_fonts->SetObjectForKey(font->Autorelease(), identifier);
+			}
+			
+			return font;
+		}
 		
 		
-		Texture *Style::TextureWithName(String *name)
+		
+		
+		
+		Texture *Style::GetTextureWithName(String *name)
 		{
 			Texture *texture = _textures->GetObjectForKey<Texture>(name);
 			if(!texture)
@@ -109,7 +178,7 @@ namespace RN
 		
 		
 		
-		Dictionary *Style::ButtonStyle(String *name)
+		Dictionary *Style::GetButtonStyle(String *name)
 		{
 			Array *buttons = _data->GetObjectForKey<Array>(kRNUIStyleButtonsKey);
 			Dictionary *style = nullptr;
@@ -128,7 +197,7 @@ namespace RN
 			return style;
 		}
 		
-		Dictionary *Style::TextfieldStyle(String *name)
+		Dictionary *Style::GetTextfieldStyle(String *name)
 		{
 			Array *textfields = _data->GetObjectForKey<Array>(kRNUIStyleTextfieldKey);
 			Dictionary *style = nullptr;

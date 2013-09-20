@@ -30,7 +30,7 @@ namespace RN
 			RN_ASSERT(style, "Button style mustn't be NULL!");
 			
 			Style *styleSheet = Style::GetSharedInstance();
-			Texture *texture = styleSheet->TextureWithName(style->GetObjectForKey<String>(RNCSTR("texture")));
+			Texture *texture = styleSheet->GetTextureWithName(style->GetObjectForKey<String>(RNCSTR("texture")));
 			Dictionary *tlInsets = style->GetObjectForKey<Dictionary>(RNCSTR("insets"));
 			String *mode = style->GetObjectForKey<String>(RNCSTR("mode"));
 			Number *background = style->GetObjectForKey<Number>(RNCSTR("background"));
@@ -87,19 +87,19 @@ namespace RN
 			switch(type)
 			{
 				case Type::RoundedRect:
-					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNRoundedRect"));
+					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNRoundedRect"));
 					break;
 					
 				case Type::Bezel:
-					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNBezel"));
+					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNBezel"));
 					break;
 					
 				case Type::CheckBox:
-					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNCheckBox"));
+					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNCheckBox"));
 					break;
 					
 				case Type::DisclosureTriangle:
-					style = Style::GetSharedInstance()->ButtonStyle(RNCSTR("RNDisclosureTriangle"));
+					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNDisclosureTriangle"));
 					break;
 			}
 			

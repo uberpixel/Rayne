@@ -7,7 +7,7 @@
 //
 
 #include "RNUILabel.h"
-#include "RNResourcePool.h"
+#include "RNUIStyle.h"
 
 namespace RN
 {
@@ -40,7 +40,7 @@ namespace RN
 			_typesetter = new Typesetter(_string, GetBounds());
 			_typesetter->SetAllowPartiallyClippedLined(false);
 			
-			SetFont(ResourcePool::GetSharedInstance()->GetResourceWithName<Font>(kRNResourceKeyDefaultFont));
+			SetFont(Style::GetSharedInstance()->GetFont(UI::Style::FontStyle::DefaultFont));
 			SetInteractionEnabled(false);
 			SetBackgroundColor(RN::Color::ClearColor());
 			

@@ -29,9 +29,6 @@
 #define kRNResourceKeyLightDepthShader           RNCSTR("kRNResourceKeyLightDepthShader")
 #define kRNResourceKeyShadowDepthShader          RNCSTR("kRNResourceKeyShadowDepthShader")
 
-#define kRNResourceKeyDefaultFont     RNCSTR("kRNResourceKeyDefaultFont")
-#define kRNResourceKeyDefaultFontBold RNCSTR("kRNResourceKeyDefaultFontBold")
-
 namespace RN
 {
 	class Kernel;
