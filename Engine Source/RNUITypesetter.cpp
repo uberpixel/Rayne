@@ -642,6 +642,11 @@ namespace RN
 					x0 += kerning;
 				}
 				
+				x0 = roundf(x0);
+				x1 = roundf(x1);
+				y0 = roundf(y0);
+				y1 = roundf(y1);
+				
 				*vertices ++ = Vector2(x1, y1);
 				*vertices ++ = Vector2(x0, y1);
 				*vertices ++ = Vector2(x1, y0);
