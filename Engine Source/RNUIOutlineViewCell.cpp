@@ -32,6 +32,7 @@ namespace RN
 			_item = nullptr;
 			
 			_disclosureTriangle = Button::WithType(Button::Type::DisclosureTriangle)->Retain();
+			_disclosureTriangle->SetImagePosition(ImagePosition::ImageOnly);
 			_disclosureTriangle->SizeToFit();
 			_disclosureTriangle->AddListener(Control::EventType::MouseUpInside, [this](Control * control, EventType tyoe) {
 				DisclosureTriangleClicked();
@@ -52,22 +53,25 @@ namespace RN
 		{
 			TableViewCell::LayoutSubviews();
 			
-			View *contentView = GetContentView();
-			float disclosureWidth = _disclosureTriangle->GetFrame().width;
+			View *contentView     = GetContentView();
+			float disclosureWidth = _disclosureTriangle->GetSizeThatFits().x;
 			
 			Rect contentFrame = contentView->GetFrame();
-			Rect disclosureFrame = contentFrame;
+			contentFrame.x += 5.0f;
+			contentFrame.width -= 5.0f;
 			
 			// Update the content view's frame
-			contentFrame.x += disclosureWidth;
-			contentFrame.width -= disclosureWidth;
+			Rect nContentFrame = contentFrame;
+			nContentFrame.x     += disclosureWidth;
+			nContentFrame.width -= disclosureWidth;
 			
-			contentView->SetFrame(contentFrame);
+			contentView->SetFrame(nContentFrame);
 			
 			// Center the disclosure triangle vertically
 			Rect frame = GetFrame();
+			Rect disclosureFrame = contentFrame;
 			
-			disclosureFrame.width = _disclosureTriangle->GetFrame().width;
+			disclosureFrame.width  = _disclosureTriangle->GetFrame().width;
 			disclosureFrame.height = _disclosureTriangle->GetFrame().height;
 			
 			disclosureFrame.y = (frame.height / 2.0f) - (disclosureFrame.height / 2.0f);
