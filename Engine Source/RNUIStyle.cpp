@@ -153,7 +153,7 @@ namespace RN
 			
 			LockGuard<SpinLock> lock(_lock);
 			
-			Dictionary *colorDict = _data->GetObjectForKey<Dictionary>(RNCSTR("fonts"));
+			Dictionary *colorDict = _data->GetObjectForKey<Dictionary>(RNCSTR("colors"));
 			Array *color = colorDict->GetObjectForKey<Array>(identifier);
 			
 			return ParseColor(color);

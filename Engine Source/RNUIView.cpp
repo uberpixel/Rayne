@@ -9,6 +9,7 @@
 #include "RNUIView.h"
 #include "RNUIWidget.h"
 #include "RNUIServer.h"
+#include "RNUIStyle.h"
 #include "RNResourcePool.h"
 #include "RNDebug.h"
 
@@ -69,10 +70,10 @@ namespace RN
 			_material = BasicMaterial(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
 			_material->Retain();
 			
-			SetBackgroundColor(Color(0.128f, 0.128f, 0.128f, 1.0f));
+			SetBackgroundColor(Style::GetSharedInstance()->GetColor(Style::ColorStyle::BackgroundColor)->GetRNColor());
 		}
 		
-		void View::SetBackgroundColor(const Color& color)
+		void View::SetBackgroundColor(const RN::Color& color)
 		{
 			_material->diffuse = color;
 		}
@@ -624,11 +625,11 @@ namespace RN
 					frame.y += _widget->_frame.y;
 				}
 				
-				Debug::AddLinePoint(Vector2(frame.GetLeft(), frame.GetBottom()), Color::Red());
-				Debug::AddLinePoint(Vector2(frame.GetRight(), frame.GetBottom()), Color::Red());
-				Debug::AddLinePoint(Vector2(frame.GetRight(), frame.GetTop()), Color::Red());
-				Debug::AddLinePoint(Vector2(frame.GetLeft(), frame.GetTop()), Color::Red());
-				Debug::AddLinePoint(Vector2(frame.GetLeft(), frame.GetBottom()), Color::Red());
+				Debug::AddLinePoint(Vector2(frame.GetLeft(), frame.GetBottom()), RN::Color::Red());
+				Debug::AddLinePoint(Vector2(frame.GetRight(), frame.GetBottom()), RN::Color::Red());
+				Debug::AddLinePoint(Vector2(frame.GetRight(), frame.GetTop()), RN::Color::Red());
+				Debug::AddLinePoint(Vector2(frame.GetLeft(), frame.GetTop()), RN::Color::Red());
+				Debug::AddLinePoint(Vector2(frame.GetLeft(), frame.GetBottom()), RN::Color::Red());
 				Debug::EndLine();
 			}
 		}

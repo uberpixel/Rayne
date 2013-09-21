@@ -40,9 +40,10 @@ namespace RN
 			_typesetter = new Typesetter(_string, GetBounds());
 			_typesetter->SetAllowPartiallyClippedLined(false);
 			
-			SetFont(Style::GetSharedInstance()->GetFont(UI::Style::FontStyle::DefaultFont));
 			SetInteractionEnabled(false);
 			SetBackgroundColor(RN::Color::ClearColor());
+			SetFont(Style::GetSharedInstance()->GetFont(UI::Style::FontStyle::DefaultFont));
+			SetTextColor(Style::GetSharedInstance()->GetColor(Style::ColorStyle::TextColor));
 			
 			SetAlignment(TextAlignment::Left);
 			SetLineBreak(LineBreakMode::TruncateTail);

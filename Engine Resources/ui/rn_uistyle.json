@@ -21,8 +21,8 @@
 		}
 	},
 	"colors": {
-		"RNBackgroundColor": [0.220, 0.220, 0.220, 1.000],
-		"RNTextColor": [0.67, 0.67, 0.678, 1.000],
+		"RNBackgroundColor": [0.220, 0.220, 0.220],
+		"RNTextColor": [0.67, 0.67, 0.678],
 		"RNSelectionColor": [0.141, 0.493, 0.741, 0.500]
 	},
 	"buttons": [
