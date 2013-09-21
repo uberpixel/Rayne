@@ -32,8 +32,8 @@ namespace RN
 			float GetWidth() const  { return _region.width; }
 			float GetHeight() const { return _region.height; }
 			
-			int GetOffsetX() const { return _offset_x; }
-			int GetOffsetY() const { return _offset_y; }
+			float GetOffsetX() const { return _offset_x; }
+			float GetOffsetY() const { return _offset_y; }
 			
 			float GetAdvanceX() const { return _advance_x; }
 			float GetAdvanceY() const { return _advance_y; }
@@ -47,8 +47,8 @@ namespace RN
 			UniChar _character;
 			Rect _region;
 			
-			int _offset_x;
-			int _offset_y;
+			float _offset_x;
+			float _offset_y;
 			
 			float _advance_x;
 			float _advance_y;

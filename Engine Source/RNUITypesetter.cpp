@@ -642,11 +642,6 @@ namespace RN
 					x0 += kerning;
 				}
 				
-				x0 = floorf(x0);
-				x1 = floorf(x1);
-				y0 = floorf(y0);
-				y1 = floorf(y1);
-				
 				*vertices ++ = Vector2(x1, y1);
 				*vertices ++ = Vector2(x0, y1);
 				*vertices ++ = Vector2(x1, y0);

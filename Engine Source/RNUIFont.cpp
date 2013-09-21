@@ -326,11 +326,12 @@ namespace RN
 			Glyph glyph;
 			glyph._character = character;
 			glyph._region = rect;
+
 			glyph._region.width  /= _scale;
 			glyph._region.height /= _scale;
 			
 			glyph._offset_x = slot->bitmap_left / _scale;
-			glyph._offset_y = slot->bitmap_top  / _scale;
+			glyph._offset_y = slot->bitmap_top / _scale;
 			
 			glyph._u0 = rect.x / _texture->GetWidth();
 			glyph._v0 = rect.y / _texture->GetHeight();
