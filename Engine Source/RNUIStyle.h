@@ -11,12 +11,14 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
+#include "RNArray.h"
 #include "RNDictionary.h"
 #include "RNString.h"
 #include "RNTexture.h"
 #include "RNUIGeometry.h"
 #include "RNUIControl.h"
 #include "RNUIFont.h"
+#include "RNUIColor.h"
 
 namespace RN
 {
@@ -33,18 +35,31 @@ namespace RN
 				DefaultFontBoldItalics
 			};
 			
+			enum class ColorStyle
+			{
+				BackgroundColor,
+				TextColor,
+				SelectionColor
+			};
+			
 			Style();
 			~Style() override;
 			
 			Texture *GetTextureWithName(String *name);
 			
 			Font *GetFont(FontStyle style);
+			Font *GetFontWithIdentifier(String *identifier);
+			
+			Color *GetColor(ColorStyle style);
+			Color *GetColorWithIdentifier(String *identifier);
+			
 			Dictionary *GetButtonStyle(String *name);
 			Dictionary *GetTextfieldStyle(String *name);
 			
 			static EdgeInsets ParseEdgeInsets(Dictionary *insets);
 			static Atlas ParseAtlas(Dictionary *atlas);
 			static Control::State ParseState(String *string);
+			static Color *ParseColor(Array *color);
 			
 		private:
 			Font *CreateFontFromDictionary(Dictionary *info);
