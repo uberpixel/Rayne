@@ -39,6 +39,7 @@ namespace RN
 			};
 			
 			Button();
+			Button(Type type);
 			Button(Dictionary *style);
 			~Button() override;
 			
@@ -62,6 +63,7 @@ namespace RN
 			
 		private:
 			void Initialize();
+			void InitializeFromStyle(Dictionary *style);
 
 			ControlStateStore<Image> _backgroundImages;
 			ControlStateStore<Image> _images;

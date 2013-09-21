@@ -24,9 +24,82 @@ namespace RN
 			Initialize();
 		}
 		
+		Button::Button(Type type)
+		{
+			Dictionary *style = nullptr;
+			switch(type)
+			{
+				case Type::RoundedRect:
+					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNRoundedRect"));
+					break;
+					
+				case Type::Bezel:
+					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNBezel"));
+					break;
+					
+				case Type::CheckBox:
+					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNCheckBox"));
+					break;
+					
+				case Type::DisclosureTriangle:
+					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNDisclosureTriangle"));
+					break;
+			}
+			
+			Initialize();
+			InitializeFromStyle(style);
+		}
+		
 		Button::Button(Dictionary *style)
 		{
 			Initialize();
+			InitializeFromStyle(style);
+		}
+		
+		Button::~Button()
+		{
+			_label->Release();
+			_image->Release();
+			_backgroundImage->Release();
+		}
+		
+		Button *Button::WithType(Type type)
+		{
+			Button *button = new Button(type);
+			return button->Autorelease();
+		}
+		
+		
+		void Button::Initialize()
+		{
+			_behavior = Behavior::Momentarily;
+			_position = ImagePosition::Left;
+			
+			_backgroundImage = new ImageView();
+			_image = new ImageView();
+			_label = new Label();
+			
+			_backgroundImage->SetFrame(GetBounds());
+			
+			_label->SetFrame(GetBounds());
+			_label->SetAlignment(TextAlignment::Center);
+			
+			_image->SetFrame(GetBounds());
+			_image->SetScaleMode(ScaleMode::ProportionallyDown);
+			
+			_currentTitle = nullptr;
+			_currentImage = nullptr;
+			
+			AddSubview(_backgroundImage);
+			AddSubview(_image);
+			AddSubview(_label);
+			
+			StateChanged(GetState());
+			SetBackgroundColor(RN::Color::ClearColor());
+		}
+		
+		void Button::InitializeFromStyle(Dictionary *style)
+		{
 			RN_ASSERT(style, "Button style mustn't be NULL!");
 			
 			Style *styleSheet = Style::GetSharedInstance();
@@ -73,68 +146,7 @@ namespace RN
 			SizeToFit();
 		}
 		
-		Button::~Button()
-		{
-			_label->Release();
-			_image->Release();
-			_backgroundImage->Release();
-		}
 		
-		Button *Button::WithType(Type type)
-		{
-			Dictionary *style = nullptr;
-			
-			switch(type)
-			{
-				case Type::RoundedRect:
-					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNRoundedRect"));
-					break;
-					
-				case Type::Bezel:
-					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNBezel"));
-					break;
-					
-				case Type::CheckBox:
-					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNCheckBox"));
-					break;
-					
-				case Type::DisclosureTriangle:
-					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNDisclosureTriangle"));
-					break;
-			}
-			
-			Button *button = new Button(style);
-			return button->Autorelease();
-		}
-		
-		
-		void Button::Initialize()
-		{
-			_behavior = Behavior::Momentarily;
-			_position = ImagePosition::Left;
-			
-			_backgroundImage = new ImageView();
-			_image = new ImageView();
-			_label = new Label();
-			
-			_backgroundImage->SetFrame(GetBounds());
-			
-			_label->SetFrame(GetBounds());
-			_label->SetAlignment(TextAlignment::Center);
-			
-			_image->SetFrame(GetBounds());
-			_image->SetScaleMode(ScaleMode::ProportionallyDown);
-			
-			_currentTitle = nullptr;
-			_currentImage = nullptr;
-			
-			AddSubview(_backgroundImage);
-			AddSubview(_image);
-			AddSubview(_label);
-			
-			StateChanged(GetState());
-			SetBackgroundColor(RN::Color::ClearColor());
-		}
 		
 		void Button::StateChanged(State state)
 		{
