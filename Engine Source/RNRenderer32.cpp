@@ -472,18 +472,23 @@ namespace RN
 					_lightDirectionalMatrix.clear();
 					_lightDirectionalDepth.clear();
 					
-					for(int i = 0; i < 4; i++)
-					{
-						_lightDirectionalMatrix.push_back(light->GetShadowMatrices()[i]);
-					}
+					const std::vector<Matrix> &matrices = light->GetShadowMatrices();
 					
-					if(light->GetShadowCamera())
+					if(matrices.size() > 0)
 					{
-						_lightDirectionalDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
-					}
-					else
-					{
-						_lightDirectionalDepth.push_back(light->GetShadowCameras()->GetFirstObject<Camera>()->GetStorage()->GetDepthTarget());
+						for(int i = 0; i < 4; i++)
+						{
+							_lightDirectionalMatrix.push_back(matrices[i]);
+						}
+					
+						if(light->GetShadowCamera())
+						{
+							_lightDirectionalDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
+						}
+						else
+						{
+							_lightDirectionalDepth.push_back(light->GetShadowCameras()->GetFirstObject<Camera>()->GetStorage()->GetDepthTarget());
+						}
 					}
 				}
 			}

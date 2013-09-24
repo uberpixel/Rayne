@@ -60,7 +60,7 @@ namespace RN
 		Camera *GetShadowCamera() const { return _shadowcam; }
 		Camera *GetLightCamera() const { return _lightcam; }
 		
-		const std::vector<Matrix> GetShadowMatrices() const { return _shadowmats; }
+		const std::vector<Matrix> &GetShadowMatrices() const { return _shadowmats; }
 		const Array *GetShadowCameras() const { return &_shadowcams; }
 	
 	private:
