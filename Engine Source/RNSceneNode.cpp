@@ -193,7 +193,7 @@ namespace RN
 	}
 	
 	
-	Hit SceneNode::CastRay(const Vector3 &position, const Vector3 &direction)
+	Hit SceneNode::CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
 	{
 		Hit hit;
 		hit = GetBoundingSphere().CastRay(position, direction);

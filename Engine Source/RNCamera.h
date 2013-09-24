@@ -284,6 +284,8 @@ namespace RN
 		
 		const std::vector<PostProcessingPipeline *>& GetPostProcessingPipelines() const { return _PPPipelines; }
 		
+		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone);
+		
 		float fov;
 		float aspect;
 		float clipnear;

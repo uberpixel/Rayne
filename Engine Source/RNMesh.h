@@ -121,7 +121,7 @@ namespace RN
 		RNAPI bool SupportsFeature(MeshFeature feature);
 		RNAPI size_t OffsetForFeature(MeshFeature feature);
 		
-		RNAPI Hit IntersectsRay(const Vector3 &position, const Vector3 &direction);
+		RNAPI Hit IntersectsRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone);
 		
 		size_t GetStride() const { return _stride; };
 		
@@ -142,11 +142,12 @@ namespace RN
 		void AllocateStorage();
 		void RecalculateInternalData();
 		
-		Hit IntersectsRay3DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction);
-		Hit IntersectsRay2DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction);
-		Hit IntersectsRay3DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction);
-		Hit IntersectsRay2DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction);
-		float RayTriangleIntersection(const Vector3 &pos, const Vector3 &dir, const Vector3 &vert1, const Vector3 &vert2, const Vector3 &vert3);
+		Hit IntersectsRay3DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
+		Hit IntersectsRay2DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
+		Hit IntersectsRay3DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
+		Hit IntersectsRay2DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
+		
+		float RayTriangleIntersection(const Vector3 &pos, const Vector3 &dir, const Vector3 &vert1, const Vector3 &vert2, const Vector3 &vert3, Hit::HitMode mode);
 		
 		void *FetchElement(MeshFeature feature, size_t index);
 		void *CopyElement(MeshFeature feature);

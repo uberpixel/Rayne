@@ -932,4 +932,11 @@ namespace RN
 	{
 		return true;
 	}
+	
+	Hit Camera::CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
+	{
+		Hit hit;
+		return hit;
+	}
+
 }

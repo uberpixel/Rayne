@@ -19,6 +19,13 @@ namespace RN
 	class Hit
 	{
 	public:
+		enum HitMode
+		{
+			IgnoreNone,
+			IgnoreBackfaces,
+			IgnoreFrontfaces
+		};
+		
 		Hit(class SceneNode *node=0, float dist = -1.0f, const Vector3 &pos=Vector3(), const Vector3 &norm=Vector3());
 		
 		float distance;

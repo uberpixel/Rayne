@@ -114,7 +114,7 @@ namespace RN
 		}
 	}
 	
-	Hit GenericSceneManager::CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask)
+	Hit GenericSceneManager::CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask, Hit::HitMode mode)
 	{
 		Hit hit;
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
@@ -123,7 +123,7 @@ namespace RN
 			if(!(mask & (1 << node->collisionGroup)))
 				continue;
 				
-			Hit result = node->CastRay(position, direction);
+			Hit result = node->CastRay(position, direction, mode);
 			
 			if(result.distance >= 0.0f)
 			{

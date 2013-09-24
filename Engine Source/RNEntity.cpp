@@ -89,7 +89,7 @@ namespace RN
 		_skeleton = skeleton ? (class Skeleton *)skeleton->Retain() : 0;
 	}
 	
-	Hit Entity::CastRay(const Vector3 &position, const Vector3 &direction)
+	Hit Entity::CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
 	{
 		Hit hit;
 		
@@ -106,7 +106,7 @@ namespace RN
 			size_t meshcount = _model->GetMeshCount(0);
 			for(int i = 0; i < meshcount; i++)
 			{
-				Hit result = _model->GetMeshAtIndex(0, i)->IntersectsRay(temppos, Vector3(tempdir));
+				Hit result = _model->GetMeshAtIndex(0, i)->IntersectsRay(temppos, Vector3(tempdir), mode);
 				result.node = this;
 				result.meshid = i;
 				

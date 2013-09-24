@@ -968,7 +968,7 @@ namespace RN
 		return mesh;
 	}
 	
-	float Mesh::RayTriangleIntersection(const Vector3 &pos, const Vector3 &dir, const Vector3 &vert1, const Vector3 &vert2, const Vector3 &vert3)
+	float Mesh::RayTriangleIntersection(const Vector3 &pos, const Vector3 &dir, const Vector3 &vert1, const Vector3 &vert2, const Vector3 &vert3, Hit::HitMode mode)
 	{
 		float u, v;
 		Vector3 edge1, edge2, tvec, pvec, qvec;
@@ -976,6 +976,21 @@ namespace RN
 		
 		edge1 = vert2-vert1;
 		edge2 = vert3-vert1;
+		
+		if(mode != Hit::HitMode::IgnoreNone)
+		{
+			float facing = edge1.Cross(edge2).Dot(dir);
+			if(mode == Hit::HitMode::IgnoreBackfaces)
+			{
+				if(facing > 0.0f)
+					return -1.0f;
+			}
+			else
+			{
+				if(facing < 0.0f)
+					return -1.0f;
+			}
+		}
 		
 		pvec = dir.Cross(edge2);
 		det = pvec.Dot(edge1);
@@ -1002,7 +1017,7 @@ namespace RN
 		return t;
 	}
 	
-	Hit Mesh::IntersectsRay(const Vector3 &position, const Vector3 &direction)
+	Hit Mesh::IntersectsRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
 	{
 		MeshDescriptor *posdescriptor = GetDescriptor(kMeshFeatureVertices);
 		MeshDescriptor *inddescriptor = GetDescriptor(kMeshFeatureIndices);
@@ -1011,22 +1026,22 @@ namespace RN
 		{
 			case 2:
 				if(inddescriptor)
-					return IntersectsRay2DWithIndices(posdescriptor, inddescriptor, position, direction);
+					return IntersectsRay2DWithIndices(posdescriptor, inddescriptor, position, direction, mode);
 				else
-					return IntersectsRay2DWithoutIndices(posdescriptor, position, direction);
+					return IntersectsRay2DWithoutIndices(posdescriptor, position, direction, mode);
 				
 			case 3:
 				if(inddescriptor)
-					return IntersectsRay3DWithIndices(posdescriptor, inddescriptor, position, direction);
+					return IntersectsRay3DWithIndices(posdescriptor, inddescriptor, position, direction, mode);
 				else
-					return IntersectsRay3DWithoutIndices(posdescriptor, position, direction);
+					return IntersectsRay3DWithoutIndices(posdescriptor, position, direction, mode);
 		}
 		
 		Hit hit;
 		return hit;
 	}
 	
-	Hit Mesh::IntersectsRay3DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction)
+	Hit Mesh::IntersectsRay3DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
 	{
 		Hit hit;
 		
@@ -1068,7 +1083,7 @@ namespace RN
 				}
 			}
 			
-			float result = RayTriangleIntersection(position, direction, *vertex1, *vertex2, *vertex3);
+			float result = RayTriangleIntersection(position, direction, *vertex1, *vertex2, *vertex3, mode);
 			
 			if(result >= 0.0f)
 			{
@@ -1090,7 +1105,7 @@ namespace RN
 	}
 
 	
-	Hit Mesh::IntersectsRay2DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction)
+	Hit Mesh::IntersectsRay2DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
 	{
 		Hit hit;
 		
@@ -1132,7 +1147,7 @@ namespace RN
 				}
 			}
 			
-			float result = RayTriangleIntersection(position, direction, Vector3(*vertex1, 0.0f), Vector3(*vertex2, 0.0f), Vector3(*vertex3, 0.0f));
+			float result = RayTriangleIntersection(position, direction, Vector3(*vertex1, 0.0f), Vector3(*vertex2, 0.0f), Vector3(*vertex3, 0.0f), mode);
 			
 			if(result >= 0.0f)
 			{
@@ -1153,23 +1168,27 @@ namespace RN
 		return hit;
 	}
 	
-	Hit Mesh::IntersectsRay3DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction)
+	Hit Mesh::IntersectsRay3DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
 	{
 		Hit hit;
 		
 		uint8 *pospointer = _meshData + positionDescriptor->offset;
 		
-		for(size_t i = 0; i < positionDescriptor->elementCount; i += 3)
+		int trioffset = 3;
+		if(GetMode() == GL_TRIANGLE_STRIP)
+			trioffset = 1;
+		
+		for(size_t i = 0; i < positionDescriptor->elementCount-2; i += trioffset)
 		{
 			Vector3 *vertex1;
 			Vector3 *vertex2;
 			Vector3 *vertex3;
 			
-			vertex1 = reinterpret_cast<Vector3 *>(pospointer + _stride * i);
+			vertex1 = reinterpret_cast<Vector3 *>(pospointer + _stride * (i+2*(i%2)));
 			vertex2 = reinterpret_cast<Vector3 *>(pospointer + _stride * (i+1));
-			vertex3 = reinterpret_cast<Vector3 *>(pospointer + _stride * (i+2));
+			vertex3 = reinterpret_cast<Vector3 *>(pospointer + _stride * (i+2*((i+1)%2)));
 			
-			float result = RayTriangleIntersection(position, direction, *vertex1, *vertex2, *vertex3);
+			float result = RayTriangleIntersection(position, direction, *vertex1, *vertex2, *vertex3, mode);
 			
 			if(result >= 0.0f)
 			{
@@ -1191,23 +1210,27 @@ namespace RN
 	}
 	
 	
-	Hit Mesh::IntersectsRay2DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction)
+	Hit Mesh::IntersectsRay2DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
 	{
 		Hit hit;
 		
 		uint8 *pospointer = _meshData + positionDescriptor->offset;
 		
-		for(size_t i = 0; i < positionDescriptor->elementCount; i += 3)
+		int trioffset = 3;
+		if(GetMode() == GL_TRIANGLE_STRIP)
+			trioffset = 1;
+		
+		for(size_t i = 0; i < positionDescriptor->elementCount-2; i += trioffset)
 		{
 			Vector2 *vertex1;
 			Vector2 *vertex2;
 			Vector2 *vertex3;
 			
-			vertex1 = reinterpret_cast<Vector2 *>(pospointer + _stride * i);
+			vertex1 = reinterpret_cast<Vector2 *>(pospointer + _stride * (i+2*(i%2)));
 			vertex2 = reinterpret_cast<Vector2 *>(pospointer + _stride * (i+1));
-			vertex3 = reinterpret_cast<Vector2 *>(pospointer + _stride * (i+2));
+			vertex3 = reinterpret_cast<Vector2 *>(pospointer + _stride * (i+2*((i+1)%2)));
 			
-			float result = RayTriangleIntersection(position, direction, Vector3(*vertex1, 0.0f), Vector3(*vertex2, 0.0f), Vector3(*vertex3, 0.0f));
+			float result = RayTriangleIntersection(position, direction, Vector3(*vertex1, 0.0f), Vector3(*vertex2, 0.0f), Vector3(*vertex3, 0.0f), mode);
 			
 			if(result >= 0.0f)
 			{

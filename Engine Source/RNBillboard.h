@@ -25,7 +25,7 @@ namespace RN
 		
 		void SetTexture(Texture *texture);
 		void Render(Renderer *renderer, Camera *camera) override;
-		Hit CastRay(const Vector3 &position, const Vector3 &direction);
+		Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
 		
 		Material *GetMaterial() const { return _material; }
 		
