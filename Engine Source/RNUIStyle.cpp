@@ -309,7 +309,7 @@ namespace RN
 					g = color->GetObjectAtIndex<Number>(1)->GetFloatValue();
 					b = color->GetObjectAtIndex<Number>(2)->GetFloatValue();
 					
-					if(color->GetCount() == 3)
+					if(color->GetCount() == 4)
 						a = color->GetObjectAtIndex<Number>(3)->GetFloatValue();
 				}
 				catch(Exception e)
