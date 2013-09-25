@@ -342,6 +342,17 @@ namespace RN
 						case GL_TEXTURE_2D:
 							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->GetName(), 0);
 							break;
+							
+						case GL_TEXTURE_CUBE_MAP:
+							if(_depthLayer != -1)
+							{
+								glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X+_depthLayer, _depthTexture->GetName(), 0);
+							}
+							else
+							{
+								glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
+							}
+							break;
 					}
 				}
 				
@@ -362,6 +373,17 @@ namespace RN
 							
 						case GL_TEXTURE_2D:
 							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->GetName(), 0);
+							break;
+							
+						case GL_TEXTURE_CUBE_MAP:
+							if(_depthLayer != -1)
+							{
+								glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X+_depthLayer, _depthTexture->GetName(), 0);
+							}
+							else
+							{
+								glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
+							}
 							break;
 					}
 				}

@@ -247,6 +247,9 @@ namespace RN
 			case TextureParameter::Type::Texture2DArray:
 				_glType = GL_TEXTURE_2D_ARRAY;
 				break;
+			case TextureParameter::Type::TextureCube:
+				_glType = GL_TEXTURE_CUBE_MAP;
+				break;
 		}
 	}
 	
@@ -273,6 +276,11 @@ namespace RN
 			case GL_TEXTURE_3D:
 				glTexImage3D(_glType, 0, glInternalFormat, width, height, _depth, 0, glFormat, glType, converted);
 				break;
+				
+			case GL_TEXTURE_CUBE_MAP:
+				for(uint8 i = 0; i < 6; i++)
+					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, glInternalFormat, width, height, 0, glFormat, glType, converted);
+				break;
 		}
 
 		RN_CHECKOPENGL();
@@ -292,6 +300,12 @@ namespace RN
 	
 	void Texture::GetData(void *ptr, TextureParameter::Format format)
 	{
+		if(_glType != GL_TEXTURE_2D)
+		{
+			ptr = 0;
+			return;
+		}
+		
 		Bind();
 		
 		GLuint glFormat, glType;
@@ -330,6 +344,11 @@ namespace RN
 			case GL_TEXTURE_2D_ARRAY:
 			case GL_TEXTURE_3D:
 				glTexSubImage3D(_glType, 0, 0, 0, 0, _width, _height, _depth, glFormat, glType, converted);
+				break;
+				
+			case GL_TEXTURE_CUBE_MAP:
+				for(uint8 i = 0; i < 6; i++)
+					glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, 0, 0, _width, _height, glFormat, glType, converted);
 				break;
 		}
 		

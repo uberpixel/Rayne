@@ -78,7 +78,8 @@ namespace RN
 		{
 			Texture2D,
 			Texture3D,
-			Texture2DArray
+			Texture2DArray,
+			TextureCube
 		};
 		
 		Format format;
