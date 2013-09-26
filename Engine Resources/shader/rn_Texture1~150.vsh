@@ -85,8 +85,10 @@ void main()
 		#endif
 	#endif
 	
-	#if defined(RN_DIRECTIONAL_SHADOWS) && defined(RN_LIGHTING)
-		rn_ShadowDir1(position);
+	#if defined(RN_LIGHTING)
+		#if defined(RN_DIRECTIONAL_SHADOWS)
+			rn_ShadowDirectional0(position);
+		#endif
 	#endif
 	
 	gl_Position = matProjViewModel * position;

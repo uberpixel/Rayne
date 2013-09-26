@@ -99,7 +99,7 @@ namespace RN
 		_lightcam = lightCamera ? lightCamera->Retain() : nullptr;
 	}
 	
-	void Light::ActivateSunShadows(bool shadow, float resolution, int splits, float distfac, float biasfac, float biasunits)
+	void Light::ActivateDirectionalShadows(bool shadow, int resolution, int splits, float distfac, float biasfac, float biasunits)
 	{
 		if(_lightType != Type::DirectionalLight)
 			return;
@@ -154,6 +154,85 @@ namespace RN
 		}
 	}
 	
+	void Light::ActivatePointShadows(bool shadow, int resolution, float biasfac, float biasunits)
+	{
+		if(_lightType != Type::PointLight)
+			return;
+		
+		if(_shadow == shadow)
+			return;
+		
+		_shadow = shadow;
+		_shadowcams.RemoveAllObjects();
+		
+		if(_shadow)
+		{
+			TextureParameter parameter;
+			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+			parameter.filter = TextureParameter::Filter::Linear;
+			parameter.format = TextureParameter::Format::Depth;
+			parameter.type = TextureParameter::Type::TextureCube;
+			parameter.depthCompare = true;
+			parameter.generateMipMaps = false;
+			parameter.mipMaps = 0;
+			
+			Texture *depthtex = new Texture(parameter);
+			depthtex->Autorelease();
+			
+			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyShadowDepthShader);
+			Material *depthMaterial = new Material(depthShader);
+			depthMaterial->polygonOffset = true;
+			depthMaterial->polygonOffsetFactor = biasfac;
+			depthMaterial->polygonOffsetUnits = biasunits;
+			
+			for(int i = 0; i < 6; i++)
+			{
+				RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
+				storage->SetDepthTarget(depthtex, i);
+				
+				Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden, 1.0f);
+				tempcam->SetMaterial(depthMaterial);
+				tempcam->SetPriority(kRNShadowCameraPriority);
+				tempcam->clipnear = 0.01f;
+				tempcam->clipfar = _range;
+				tempcam->fov = 90.0f;
+				tempcam->UpdateProjection();
+				
+				switch(i)
+				{
+					case 0:
+						tempcam->SetRotation(Vector3(90.0f, 0.0f, 0.0f));
+						break;
+						
+					case 1:
+						tempcam->SetRotation(Vector3(-90.0f, 0.0f, 0.0f));
+						break;
+						
+					case 2:
+						tempcam->SetRotation(Vector3(180.0f, -90.0f, 0.0f));
+						break;
+						
+					case 3:
+						tempcam->SetRotation(Vector3(180.0f, 90.0f, 0.0f));
+						break;
+						
+					case 4:
+						tempcam->SetRotation(Vector3(180.0f, 0.0f, 0.0f));
+						break;
+						
+					case 5:
+						tempcam->SetRotation(Vector3(0.0f, 0.0f, 0.0f));
+						break;
+				}
+				
+				_shadowcams.AddObject(tempcam);
+				
+				tempcam->Release();
+				storage->Release();
+			}
+		}
+	}
+	
 	bool Light::CanUpdate(FrameID frame)
 	{
 		if(_shadow && _lightcam)
@@ -182,40 +261,63 @@ namespace RN
 	{
 		SceneNode::Update(delta);
 		
-		if(_shadow && _lightcam)
+		if(_lightType == Type::DirectionalLight)
 		{
-			float near = _lightcam->clipnear;
-			float far;
-			
-			if(_shadowcam)
-				_shadowcam->SetRotation(GetRotation());
-			
-			_shadowmats.clear();
-			
-			for(int i = 0; i < _shadowSplits; i++)
+			if(_shadow && _lightcam)
 			{
-				float linear = _lightcam->clipnear+(_lightcam->clipfar-_lightcam->clipnear)*(i+1.0f)/float(_shadowSplits);
-				float log = _lightcam->clipnear*powf(_lightcam->clipfar/_lightcam->clipnear, (i+1.0f)/float(_shadowSplits));
-				far = linear*_shadowDistFac+log*(1.0f-_shadowDistFac);
+				float near = _lightcam->clipnear;
+				float far;
+				
+				if(_shadowcam)
+					_shadowcam->SetRotation(GetRotation());
+				
+				_shadowmats.clear();
+				
+				for(int i = 0; i < _shadowSplits; i++)
+				{
+					float linear = _lightcam->clipnear+(_lightcam->clipfar-_lightcam->clipnear)*(i+1.0f)/float(_shadowSplits);
+					float log = _lightcam->clipnear*powf(_lightcam->clipfar/_lightcam->clipnear, (i+1.0f)/float(_shadowSplits));
+					far = linear*_shadowDistFac+log*(1.0f-_shadowDistFac);
+					
+					if(_shadowcam)
+					{
+						_shadowmats.push_back(std::move(_shadowcam->MakeShadowSplit(_lightcam, this, near, far)));
+					}
+					else
+					{
+						Camera *tempcam = _shadowcams.GetObjectAtIndex<Camera>(i);
+						tempcam->SetRotation(GetRotation());
+						
+						_shadowmats.push_back(std::move(tempcam->MakeShadowSplit(_lightcam, this, near, far)));
+					}
+					
+					near = far;
+				}
 				
 				if(_shadowcam)
 				{
-					_shadowmats.push_back(std::move(_shadowcam->MakeShadowSplit(_lightcam, this, near, far)));
+					_shadowcam->MakeShadowSplit(_lightcam, this, _lightcam->clipnear, _lightcam->clipfar);
 				}
-				else
+			}
+		}
+		else
+		{
+			if(_shadow)
+			{
+				_shadowmats.clear();
+				
+				if(_shadowcam)
+					_shadowcam->SetPosition(GetPosition());
+				
+				for(int i = 0; i < 6; i++)
 				{
 					Camera *tempcam = _shadowcams.GetObjectAtIndex<Camera>(i);
-					tempcam->SetRotation(GetRotation());
-					
-					_shadowmats.push_back(std::move(tempcam->MakeShadowSplit(_lightcam, this, near, far)));
+					tempcam->clipfar = _range;
+					tempcam->UpdateProjection();
+					tempcam->SetPosition(GetPosition());
 				}
 				
-				near = far;
-			}
-			
-			if(_shadowcam)
-			{
-				_shadowcam->MakeShadowSplit(_lightcam, this, _lightcam->clipnear, _lightcam->clipfar);
+				_shadowmats.push_back(std::move(_shadowcams.GetObjectAtIndex<Camera>(0)->projectionMatrix));
 			}
 		}
 	}

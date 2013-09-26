@@ -11,9 +11,17 @@
 
 #ifdef RN_LIGHTING
 uniform sampler2DArrayShadow lightDirectionalDepth;
+uniform samplerCubeShadow lightPointDepth0;
+uniform samplerCubeShadow lightPointDepth1;
+uniform samplerCubeShadow lightPointDepth2;
+uniform samplerCubeShadow lightPointDepth3;
+uniform samplerCubeShadow lightPointDepth4;
+uniform samplerCubeShadow lightPointDepth5;
 
 uniform vec4 frameSize;
 in vec4 vertDirLightProj[4];
+
+uniform mat4 lightPointMatrix[10];
 
 //a textureOffset lookup for a 2DArrayShader sampler
 float rn_textureOffset(sampler2DArrayShadow map, vec4 loc, vec2 offset)
@@ -60,7 +68,7 @@ float rn_ShadowPCF4x4(sampler2DArrayShadow map, vec4 projected)
 }
 
 //returns the shadow factor for the first directional light
-float rn_ShadowDir1()
+float rn_ShadowDirectional0()
 {
 	vec3 proj[4];
 	proj[0] = vertDirLightProj[0].xyz/vertDirLightProj[0].w;
@@ -90,8 +98,53 @@ float rn_ShadowDir1()
 //	return rn_ShadowPCF4x4(lightDirectionalDepth, projected);
 }
 
+float rn_ShadowPointTextureCubeArrayShadow(int index, vec4 pos)
+{
+	if(index == 0)
+		return texture(lightPointDepth0, pos);
+	else if(index == 1)
+		return texture(lightPointDepth1, pos);
+	else if(index == 2)
+		return texture(lightPointDepth2, pos);
+	else if(index == 3)
+		return texture(lightPointDepth3, pos);
+	else if(index == 4)
+		return texture(lightPointDepth4, pos);
+	else if(index == 5)
+		return texture(lightPointDepth5, pos);
+	else return 1.0;
+}
+
+float rn_ShadowPointPCF2x2(int index, vec4 pos)
+{
+	float result = rn_ShadowPointTextureCubeArrayShadow(index, pos);
+	result += rn_ShadowPointTextureCubeArrayShadow(index, pos+vec4(0.01, 0.01, 0.01, 0.0));
+	result += rn_ShadowPointTextureCubeArrayShadow(index, pos-vec4(0.01, 0.01, 0.01, 0.0));
+	result += rn_ShadowPointTextureCubeArrayShadow(index, pos+vec4(0.01, -0.01, 0.01, 0.0));
+	result += rn_ShadowPointTextureCubeArrayShadow(index, pos-vec4(0.01, -0.01, -0.01, 0.0));
+	return result*0.2;
+}
+
+float rn_ShadowPoint(int light, vec3 dir)
+{
+	float dist = -max(abs(dir.x), max(abs(dir.y), abs(dir.z)));
+	mat4 tempmat = lightPointMatrix[light];
+	float proj = (tempmat[2][2]*dist+tempmat[3][2])/-dist*0.5+0.5;
+	vec4 lookup = vec4(vec3(dir.x, dir.y, -dir.z), proj);
+	
+//	return rn_ShadowPointTextureCubeArrayShadow(light, lookup);
+	return rn_ShadowPointPCF2x2(light, lookup);
+}
+
+float rn_ShadowSpot0()
+{
+	return 1.0;
+}
+
 #else
-#define rn_ShadowDir1() (1.0)
+#define rn_ShadowDirectional0() (1.0)
+#define rn_ShadowPoint0(dir) (1.0)
+#define rn_ShadowSpot0() (1.0)
 #endif
 
 #endif

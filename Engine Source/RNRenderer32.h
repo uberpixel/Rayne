@@ -70,6 +70,8 @@ namespace RN
 		
 		std::vector<Vector4> _lightPointPosition;
 		std::vector<Vector4> _lightPointColor;
+		std::vector<Matrix> _lightPointMatrix;
+		std::vector<Texture *> _lightPointDepth;
 	};
 }
 

@@ -313,6 +313,9 @@ namespace RN
 		_lightPointPosition.clear();
 		_lightPointColor.clear();
 		
+		_lightPointDepth.clear();
+		_lightPointMatrix.clear();
+		
 		if(camera->GetDepthTiles())
 		{
 			GLuint indicesBuffer = _lightPointBuffers[kRNRendererPointLightListIndicesIndex];
@@ -347,11 +350,11 @@ namespace RN
 				if(i < _maxLightFastPath)
 				{
 					_lightPointPosition.emplace_back(Vector4(position, light->GetRange()));
-					_lightPointColor.emplace_back(Vector4(color, 0.0f));
+					_lightPointColor.emplace_back(Vector4(color, light->Shadow()?static_cast<float>(i):-1.0f));
 				}
 				
 				lightData[i * 2 + 0] = Vector4(position, light->GetRange());
-				lightData[i * 2 + 1] = Vector4(color, 0.0f);
+				lightData[i * 2 + 1] = Vector4(color, light->Shadow()?static_cast<float>(i):-1.0f);
 			}
 			
 			glUnmapBuffer(GL_TEXTURE_BUFFER);
@@ -362,10 +365,30 @@ namespace RN
 			lightCount = _pointLights.size();
 			for(size_t i = 0; i < lightCount; i++)
 			{
-				_lightPointPosition.emplace_back(Vector4(_pointLights[i]->GetPosition(), _pointLights[i]->GetRange()));
+				Light *light = _pointLights[i];
+				_lightPointPosition.emplace_back(Vector4(light->GetPosition(), light->GetRange()));
 				
-				const Vector3& color = _pointLights[i]->GetResultColor();
-				_lightPointColor.emplace_back(Vector4(color, 0.0f));
+				const Vector3& color = light->GetResultColor();
+				_lightPointColor.emplace_back(Vector4(color, light->Shadow()?static_cast<float>(i):-1.0f));
+				
+				if(light->Shadow())
+				{
+					const std::vector<Matrix> &matrices = light->GetShadowMatrices();
+					
+					if(matrices.size() > 0)
+					{
+						_lightPointMatrix.push_back(matrices[0]);
+					}
+					
+					if(light->GetShadowCamera())
+					{
+						_lightPointDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
+					}
+					else
+					{
+						_lightPointDepth.push_back(light->GetShadowCameras()->GetFirstObject<Camera>()->GetStorage()->GetDepthTarget());
+					}
+				}
 			}
 		}
 		
@@ -463,7 +486,7 @@ namespace RN
 			const Vector3& direction = light->Forward();
 			
 			_lightDirectionalDirection.push_back(direction);
-			_lightDirectionalColor.emplace_back(Vector4(color, light->Shadow() ? 1.0f : 0.0f));
+			_lightDirectionalColor.emplace_back(Vector4(color, light->Shadow() ? static_cast<float>(i):-1.0f));
 			
 			if(light->Shadow())
 			{
@@ -703,6 +726,8 @@ namespace RN
 					
 					if(_lightDirectionalDepth.size() > 0)
 						programTypes |= ShaderProgram::TypeDirectionalShadows;
+					if(_lightPointDepth.size() > 0)
+						programTypes |= ShaderProgram::TypePointShadows;
 				}
 				
 				if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::TypeFog))
@@ -759,6 +784,9 @@ namespace RN
 					glUniform4fv(program->lightPointPosition, lightPointCount, (float*)_lightPointPosition.data());
 					glUniform4fv(program->lightPointColor, lightPointCount, (float*)_lightPointColor.data());
 					
+					float *data = reinterpret_cast<float *>(_lightPointMatrix.data());
+					glUniformMatrix4fv(program->lightPointMatrix, (GLuint)_lightPointMatrix.size(), GL_FALSE, data);
+					
 					glUniform1i(program->lightSpotCount, lightSpotCount);
 					glUniform4fv(program->lightSpotPosition, lightSpotCount, (float*)_lightSpotPosition.data());
 					glUniform4fv(program->lightSpotDirection, lightSpotCount, (float*)_lightSpotDirection.data());
@@ -768,7 +796,7 @@ namespace RN
 					glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)_lightDirectionalDirection.data());
 					glUniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.data());
 					
-					float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.data());
+					data = reinterpret_cast<float *>(_lightDirectionalMatrix.data());
 					glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.size(), GL_FALSE, data);
 					
 					if(camera->GetDepthTiles() != 0)
@@ -803,6 +831,31 @@ namespace RN
 					{
 						uint32 textureUnit = BindTexture(_lightDirectionalDepth.front());
 						glUniform1i(program->lightDirectionalDepth, textureUnit);
+					}
+					
+					if(_lightPointDepth.size() > 0)
+					{
+						const std::vector<GLuint>& lightPointDepthLocations = program->lightPointDepthLocations;
+						
+						if(lightPointDepthLocations.size() > 0)
+						{
+							size_t textureCount = MIN(lightPointDepthLocations.size(), _lightPointDepth.size());
+							
+							
+							uint32 lastpointdepth = 0;
+							for(size_t i=0; i<textureCount; i++)
+							{
+								GLint location = lightPointDepthLocations[i];
+								lastpointdepth = BindTexture(_lightPointDepth[i]);
+								glUniform1i(location, lastpointdepth);
+							}
+							
+							for(size_t i = textureCount; i < lightPointDepthLocations.size(); i++)
+							{
+								GLint location = lightPointDepthLocations[i];
+								glUniform1i(location, lastpointdepth);
+							}
+						}
 					}
 					
 					if(camera->GetDepthTiles())

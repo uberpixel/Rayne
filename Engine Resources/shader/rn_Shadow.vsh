@@ -12,7 +12,7 @@
 uniform mat4 lightDirectionalMatrix[4];
 out vec4 vertDirLightProj[4];
 
-void rn_ShadowDir1(vec4 position)
+void rn_ShadowDirectional0(vec4 position)
 {
 	vec4 pos = matModel*position;
 	vertDirLightProj[0] = lightDirectionalMatrix[0]*pos;

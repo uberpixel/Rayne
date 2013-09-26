@@ -30,9 +30,10 @@ namespace RN
 			TypeLighting = (1 << 3),
 			TypeDiscard   = (1 << 4),
 			TypeDirectionalShadows = (1 << 5),
-			TypeFog = (1 << 6),
-			TypeClipPlane = (1 << 7),
-			TypeGammaCorrection = (1 << 8)
+			TypePointShadows = (1 << 6),
+			TypeFog = (1 << 7),
+			TypeClipPlane = (1 << 8),
+			TypeGammaCorrection = (1 << 9)
 		};
 		
 		GLuint program;
@@ -87,6 +88,8 @@ namespace RN
 		GLuint lightPointList;
 		GLuint lightPointListOffset;
 		GLuint lightPointListData;
+		std::vector<GLuint> lightPointDepthLocations;
+		GLuint lightPointMatrix;
 		
 		GLuint lightSpotCount;
 		GLuint lightSpotPosition;

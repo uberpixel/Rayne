@@ -32,7 +32,8 @@ namespace RN
 		RNAPI Light(Type type = Type::PointLight);
 		RNAPI ~Light() override;
 		
-		RNAPI void ActivateSunShadows(bool shadow=true, float resolution=1024.0f, int splits=4, float distfac=0.05f, float biasfac=2.0f, float biasunits=512.0f);
+		RNAPI void ActivateDirectionalShadows(bool shadow=true, int resolution=1024, int splits=4, float distfac=0.05f, float biasfac=2.0f, float biasunits=512.0f);
+		RNAPI void ActivatePointShadows(bool shadow=true, int resolution=1024, float biasfac=3.0f, float biasunits=128.0f);
 		
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI void Update(float delta) override;
