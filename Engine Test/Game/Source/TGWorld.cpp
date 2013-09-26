@@ -42,8 +42,8 @@ namespace TG
 		AddAttachment(_debugAttachment);
 		
 		CreateCameras();
-//		CreateSponza();
-		CreateForest();
+		CreateSponza();
+//		CreateForest();
 //		CreateTest();
 		
 		RN::Input::GetSharedInstance()->Activate();
@@ -393,7 +393,7 @@ namespace TG
 		RN::Entity *sponza = new RN::Entity();
 		sponza->SetModel(model);
 		sponza->SetScale(RN::Vector3(0.2f));
-		sponza->SetRotation(RN::Quaternion(RN::Vector3(0.0, 0.0, -90.0)));
+		sponza->SetRotation(RN::Quaternion(RN::Vector3(0.0, -90.0, 0.0)));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
 		_sponza = sponza;
@@ -421,7 +421,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateSunShadows(true, 1024.0f);
+		_sunLight->ActivateDirectionalShadows();
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
 		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
@@ -627,7 +627,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateSunShadows(true);
+		_sunLight->ActivateDirectionalShadows();
 		
 		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
@@ -668,7 +668,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateSunShadows(true);
+		_sunLight->ActivateDirectionalShadows();
 	}
 
 }
