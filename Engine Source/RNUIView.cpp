@@ -250,7 +250,7 @@ namespace RN
 					View *view = potential->_subviews.GetObjectAtIndex<View>(i);
 					Vector2 transformed = std::move(view->ConvertPointFromView(point, nullptr));
 					
-					if(!view->_hidden && view->_interactionEnabled && view->PointInside(transformed, event))
+					if(!view->_hidden && view->_interactionEnabled && view->IsPointInside(transformed, event))
 					{
 						potential = view;
 						traverse = true;
@@ -262,7 +262,7 @@ namespace RN
 			return (potential && potential->_interactionEnabled) ? potential : nullptr;
 		}
 		
-		bool View::PointInside(const Vector2& point, Event *event)
+		bool View::IsPointInside(const Vector2& point, Event *event)
 		{
 			return _bounds.ContainsPoint(point);
 		}

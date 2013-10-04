@@ -71,8 +71,8 @@ namespace RN
 			void RemoveAllSubviews();
 			void RemoveFromSuperview();
 			
-			Array *GetSubivews() { return &_subviews; }
-			Widget *GetWidget() { return _widget; }
+			const Array *GetSubivews() const { return &_subviews; }
+			Widget *GetWidget() const { return _widget; }
 			
 			void SetNeedsLayoutUpdate();
 			
@@ -80,7 +80,7 @@ namespace RN
 			virtual Vector2 GetSizeThatFits();
 			
 			View *HitTest(const Vector2& point, Event *event);
-			virtual bool PointInside(const Vector2& point, Event *event);
+			virtual bool IsPointInside(const Vector2& point, Event *event);
 			
 			Responder *GetNextResponder() const override;
 			
