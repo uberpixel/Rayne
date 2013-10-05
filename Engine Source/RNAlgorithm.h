@@ -73,7 +73,7 @@ namespace RN
 		return hash;
 	}
 	
-	static uint32 NextPowerOfTwo(uint32 value)
+	static inline uint32 NextPowerOfTwo(uint32 value)
 	{
 		value--;
 		
@@ -86,7 +86,7 @@ namespace RN
 		return (value + 1);
 	}
 	
-	static uint64 NextPowerOfTwo(uint64 value)
+	static inline uint64 NextPowerOfTwo(uint64 value)
 	{
 		value--;
 		
@@ -100,7 +100,7 @@ namespace RN
 		return (value + 1);
 	}
 	
-	static bool IsPowerOfTwo(uint32 value)
+	static inline bool IsPowerOfTwo(uint32 value)
 	{
 		return ((value & (value - 1)) == 0);
 	}

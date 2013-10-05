@@ -11,6 +11,7 @@
 
 #include "RNSIMD.h"
 #include "RNDefines.h"
+#include "RNConstants.h"
 
 #ifndef MAX
 	#define MAX(a, b) ({ __typeof__ (a) _a = (a); __typeof__ (b) _b = (b); _a > _b ? _a : _b; })
@@ -74,6 +75,16 @@ namespace RN
 			
 			tval.dval = val;
 			return (tval.ival & (1LL << 63));
+		}
+		
+		static inline bool Compare(float x, float y, float delta = k::EpsilonFloat)
+		{
+			return (FastAbs(x - y) < delta);
+		}
+		
+		static inline bool Compare(double x, double y, float delta = k::EpsilonFloat)
+		{
+			return (FastAbs(x - y) < delta);
 		}
 		
 		static inline float RadiansToDegrees(float radians)
