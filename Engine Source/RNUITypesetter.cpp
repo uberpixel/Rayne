@@ -273,11 +273,23 @@ namespace RN
 					goto finishLayout; \
 			}
 			
+#define LineBreakOnCharacter() { \
+				SubmitLine(); \
+				LineBreak(false); \
+				range.origin += range.length; \
+				range.length = 0; \
+				i --; \
+			}
+			
+			
 			AutoreleasePool *pool = new AutoreleasePool();
 			
-			for(size_t i=0; i<length; i++)
+			float wordWidth = 0.0f;
+			Range wordRange = Range(k::NotFound, 0);
+			
+			for(size_t i = 0; i < length; i++)
 			{
-				UniChar character = string->GetCharacterAtIndex(static_cast<uint32>(i));
+				UniChar character = string->GetCharacterAtIndex(i);
 				CodePoint point = CodePoint(character);
 				
 				if(point.IsNewline())
@@ -316,14 +328,7 @@ namespace RN
 					case LineBreakMode::CharacterWrapping:
 						if(offsetX + width >= _frame.width)
 						{
-							SubmitLine();
-							LineBreak(true);
-							
-							range.origin += range.length;
-							range.length = 0;
-							
-							// Re-process the character
-							i --;
+							LineBreakOnCharacter();
 							continue;
 						}
 						
@@ -335,6 +340,54 @@ namespace RN
 					case LineBreakMode::TruncateHead:
 					case LineBreakMode::TruncateMiddle:
 					case LineBreakMode::TruncateTail:
+						offsetX += width;
+						range.length ++;
+						break;
+						
+					case LineBreakMode::WordWrapping:
+						
+						if(point.IsWhitespace() || onNewLine)
+							wordRange.origin = k::NotFound;
+						
+						// Look ahead the next complete word
+						if(wordRange.origin == k::NotFound && !point.IsWhitespace() && !point.IsNewline())
+						{
+							wordRange = Range(i, 0);
+							wordWidth = 0.0f;
+							
+							for(size_t j = i; j < length; j ++)
+							{
+								CodePoint temp = CodePoint(string->GetCharacterAtIndex(j));
+								
+								if(temp.IsWhitespace() || temp.IsNewline())
+									break;
+								
+								const Glyph& tglyph = font->GetGlyphForCharacter(character);
+								wordWidth += tglyph.GetAdvanceX();
+								wordRange.length ++;
+							}
+							
+							if(wordRange.length > 0)
+							{
+								if(offsetX + wordWidth >= _frame.width)
+								{
+									LineBreakOnCharacter();
+									continue;
+								}
+							}
+							else
+							{
+								wordRange.origin = k::NotFound;
+							}
+						}
+						
+						// We still have to break on characters for words wich are longer than one line
+						if(offsetX + width >= _frame.width)
+						{
+							LineBreakOnCharacter();
+							continue;
+						}
+						
 						offsetX += width;
 						range.length ++;
 						break;
