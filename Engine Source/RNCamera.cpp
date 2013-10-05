@@ -938,5 +938,11 @@ namespace RN
 		Hit hit;
 		return hit;
 	}
+	
+	
+	bool CubemapCamera::InFrustum(const RN::Vector3 &position, float radius)
+	{
+		return (GetWorldPosition().Distance(position) < clipfar + radius);
+	}
 
 }

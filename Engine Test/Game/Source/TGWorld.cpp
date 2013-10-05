@@ -436,6 +436,42 @@ namespace TG
 		_player->AttachChild(_spotLight);
 #endif
 		
+		RN::Light *light = new RN::Light();
+		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
+		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
+		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		light->ActivatePointShadows();
+		
+		light = new RN::Light();
+		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
+		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
+		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		light->ActivatePointShadows();
+		
+		light = new RN::Light();
+		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
+		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
+		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		light->ActivatePointShadows();
+		
+		light = new RN::Light();
+		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
+		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
+		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		light->ActivatePointShadows();
+		
+		light = new RN::Light();
+		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
+		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
+		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		light->ActivatePointShadows();
+		
+		light = new RN::Light();
+		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
+		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
+		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+		light->ActivatePointShadows();
+		
 		for(int i=0; i<200; i++)
 		{
 			RN::Light *light = new RN::Light();

@@ -33,7 +33,7 @@ namespace RN
 		RNAPI ~Light() override;
 		
 		RNAPI void ActivateDirectionalShadows(bool shadow=true, int resolution=1024, int splits=4, float distfac=0.05f, float biasfac=2.0f, float biasunits=512.0f);
-		RNAPI void ActivatePointShadows(bool shadow=true, int resolution=1024, float biasfac=3.0f, float biasunits=128.0f);
+		RNAPI void ActivatePointShadows(bool shadow=true, int resolution=1024);
 		
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI void Update(float delta) override;
@@ -45,7 +45,6 @@ namespace RN
 		RNAPI void SetColor(const Color& color);
 		RNAPI void SetAngle(float angle);
 		RNAPI void SetIntensity(float intensity);
-		RNAPI void SetShadowCamera(Camera *shadowCamera);
 		RNAPI void SetLightCamera(Camera *lightCamera);
 		
 		const Color& GetColor() const { return _color; }

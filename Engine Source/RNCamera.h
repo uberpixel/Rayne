@@ -239,9 +239,9 @@ namespace RN
 		RNAPI Vector3 ToWorld(const Vector3& dir);
 		RNAPI Vector3 ToWorldZ(const Vector3& dir);
 		RNAPI void UpdateFrustum();
-		RNAPI bool InFrustum(const Vector3& position, float radius);
-		RNAPI bool InFrustum(const Sphere& sphere);
-		RNAPI bool InFrustum(const AABB& aabb);
+		RNAPI virtual bool InFrustum(const Vector3& position, float radius);
+		RNAPI virtual bool InFrustum(const Sphere& sphere);
+		RNAPI virtual bool InFrustum(const AABB& aabb);
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
@@ -365,6 +365,24 @@ namespace RN
 		std::map<std::string, PostProcessingPipeline *> _namedPPPipelines;
 		
 		RNDefineMeta(Camera, SceneNode)
+	};
+	
+	class CubemapCamera : public Camera
+	{
+	public:
+	/*	RNAPI CubemapCamera(const Vector2& size) : Camera(size){}
+		
+		RNAPI CubemapCamera(const Vector2& size, Texture *target) : Camera(size, target){}
+		RNAPI CubemapCamera(const Vector2& size, Texture *target, Flags flags) : Camera(size, target, flags){}
+		RNAPI CubemapCamera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format) : Camera(size, target, flags, format){}
+		
+		RNAPI CubemapCamera(const Vector2& size, TextureParameter::Format targetFormat) : Camera(size, targetFormat){}
+		RNAPI CubemapCamera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags) : Camera(size, targetFormat, flags){}
+		RNAPI CubemapCamera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f) : Camera(size, targetFormat, flags, format, scaleFactor){}*/
+		
+		RNAPI CubemapCamera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f) : Camera(size, storage, flags, scaleFactor){}
+		
+		bool InFrustum(const Vector3& position, float radius) override;
 	};
 }
 

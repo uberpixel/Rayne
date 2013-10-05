@@ -89,7 +89,7 @@ namespace RN
 		GLuint lightPointListOffset;
 		GLuint lightPointListData;
 		std::vector<GLuint> lightPointDepthLocations;
-		GLuint lightPointMatrix;
+		GLuint lightPointRanges;
 		
 		GLuint lightSpotCount;
 		GLuint lightSpotPosition;

@@ -82,7 +82,7 @@ namespace RN
 		GetUniformLocation(lightPointList);
 		GetUniformLocation(lightPointListOffset);
 		GetUniformLocation(lightPointListData);
-		GetUniformLocation(lightPointMatrix);
+		GetUniformLocation(lightPointRanges);
 		
 		GetUniformLocation(lightSpotCount);
 		GetUniformLocation(lightSpotPosition);

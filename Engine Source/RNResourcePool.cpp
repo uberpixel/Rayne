@@ -57,7 +57,8 @@ namespace RN
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_LightTileSampleFirst", kRNResourceKeyLightTileSampleFirstShader));
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_LightTileSample", kRNResourceKeyLightTileSampleShader));
 		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_LightDepth", kRNResourceKeyLightDepthShader));
-		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_ShadowDepthSingle", kRNResourceKeyShadowDepthShader));
+		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_ShadowDepthSingle", kRNResourceKeyDirectionalShadowDepthShader));
+		batch->AddTask(std::bind(&ResourcePool::LoadShader, this, "shader/rn_ShadowDepthCube", kRNResourceKeyPointShadowDepthShader));
 		
 		// Must be done on this thread and blocking because there are cameras created that require this shader
 		LoadShader("shader/rn_DrawFramebuffer", kRNResourceKeyDrawFramebufferShader);

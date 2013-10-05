@@ -27,7 +27,8 @@
 #define kRNResourceKeyLightTileSampleFirstShader RNCSTR("kRNResourceKeyLightTileSampleFirstShader")
 #define kRNResourceKeyLightTileSampleShader      RNCSTR("kRNResourceKeyLightTileSampleShader")
 #define kRNResourceKeyLightDepthShader           RNCSTR("kRNResourceKeyLightDepthShader")
-#define kRNResourceKeyShadowDepthShader          RNCSTR("kRNResourceKeyShadowDepthShader")
+#define kRNResourceKeyDirectionalShadowDepthShader          RNCSTR("kRNResourceKeyDirectionalShadowDepthShader")
+#define kRNResourceKeyPointShadowDepthShader          RNCSTR("kRNResourceKeyPointShadowDepthShader")
 
 namespace RN
 {

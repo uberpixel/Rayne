@@ -55,7 +55,8 @@ namespace RN
 			RGB32F,
 			RGBA32F,
 			
-			Depth,
+			Depth24I,
+			Depth32F,
 			DepthStencil,
 			
 			PVRTC4,

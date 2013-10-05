@@ -83,14 +83,6 @@ namespace RN
 		_angle = angle;
 	}
 	
-	void Light::SetShadowCamera(Camera *shadowCamera)
-	{
-		if(_shadowcam)
-			_shadowcam->Release();
-		
-		_shadowcam = shadowCamera ? shadowCamera->Retain() : nullptr;
-	}
-	
 	void Light::SetLightCamera(Camera *lightCamera)
 	{
 		if(_lightcam)
@@ -118,7 +110,7 @@ namespace RN
 			TextureParameter parameter;
 			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
 			parameter.filter = TextureParameter::Filter::Linear;
-			parameter.format = TextureParameter::Format::Depth;
+			parameter.format = TextureParameter::Format::Depth24I;
 			parameter.type = TextureParameter::Type::Texture2DArray;
 			parameter.depthCompare = true;
 			parameter.generateMipMaps = false;
@@ -128,7 +120,7 @@ namespace RN
 			depthtex->SetDepth(splits);
 			depthtex->Autorelease();
 			
-			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyShadowDepthShader);
+			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader);
 			Material *depthMaterial = new Material(depthShader);
 			depthMaterial->polygonOffset = true;
 			depthMaterial->polygonOffsetFactor = biasfac;
@@ -154,7 +146,7 @@ namespace RN
 		}
 	}
 	
-	void Light::ActivatePointShadows(bool shadow, int resolution, float biasfac, float biasunits)
+	void Light::ActivatePointShadows(bool shadow, int resolution)
 	{
 		if(_lightType != Type::PointLight)
 			return;
@@ -170,66 +162,32 @@ namespace RN
 			TextureParameter parameter;
 			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
 			parameter.filter = TextureParameter::Filter::Linear;
-			parameter.format = TextureParameter::Format::Depth;
+			parameter.format = TextureParameter::Format::Depth24I;
 			parameter.type = TextureParameter::Type::TextureCube;
-			parameter.depthCompare = true;
+			parameter.depthCompare = false;//true;
 			parameter.generateMipMaps = false;
 			parameter.mipMaps = 0;
 			
 			Texture *depthtex = new Texture(parameter);
 			depthtex->Autorelease();
 			
-			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyShadowDepthShader);
+			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyPointShadowDepthShader);
 			Material *depthMaterial = new Material(depthShader);
-			depthMaterial->polygonOffset = true;
-			depthMaterial->polygonOffsetFactor = biasfac;
-			depthMaterial->polygonOffsetUnits = biasunits;
 			
-			for(int i = 0; i < 6; i++)
-			{
-				RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
-				storage->SetDepthTarget(depthtex, i);
-				
-				Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden, 1.0f);
-				tempcam->SetMaterial(depthMaterial);
-				tempcam->SetPriority(kRNShadowCameraPriority);
-				tempcam->clipnear = 0.01f;
-				tempcam->clipfar = _range;
-				tempcam->fov = 90.0f;
-				tempcam->UpdateProjection();
-				
-				switch(i)
-				{
-					case 0:
-						tempcam->SetRotation(Vector3(90.0f, 0.0f, 0.0f));
-						break;
-						
-					case 1:
-						tempcam->SetRotation(Vector3(-90.0f, 0.0f, 0.0f));
-						break;
-						
-					case 2:
-						tempcam->SetRotation(Vector3(180.0f, -90.0f, 0.0f));
-						break;
-						
-					case 3:
-						tempcam->SetRotation(Vector3(180.0f, 90.0f, 0.0f));
-						break;
-						
-					case 4:
-						tempcam->SetRotation(Vector3(180.0f, 0.0f, 0.0f));
-						break;
-						
-					case 5:
-						tempcam->SetRotation(Vector3(0.0f, 0.0f, 0.0f));
-						break;
-				}
-				
-				_shadowcams.AddObject(tempcam);
-				
-				tempcam->Release();
-				storage->Release();
-			}
+			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
+			storage->SetDepthTarget(depthtex, -1);
+			
+			_shadowcam = new CubemapCamera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden, 1.0f);
+			_shadowcam->Retain();
+			_shadowcam->Autorelease();
+			_shadowcam->SetMaterial(depthMaterial);
+			_shadowcam->SetPriority(kRNShadowCameraPriority);
+			_shadowcam->clipnear = 0.01f;
+			_shadowcam->clipfar = _range;
+			_shadowcam->fov = 90.0f;
+			_shadowcam->UpdateProjection();
+			_shadowcam->SetRotation(Vector3(0.0f, 0.0f, 0.0f));
+			storage->Release();
 		}
 	}
 	
@@ -302,22 +260,11 @@ namespace RN
 		}
 		else
 		{
-			if(_shadow)
+			if(_shadow && _shadowcam)
 			{
-				_shadowmats.clear();
-				
-				if(_shadowcam)
-					_shadowcam->SetPosition(GetPosition());
-				
-				for(int i = 0; i < 6; i++)
-				{
-					Camera *tempcam = _shadowcams.GetObjectAtIndex<Camera>(i);
-					tempcam->clipfar = _range;
-					tempcam->UpdateProjection();
-					tempcam->SetPosition(GetPosition());
-				}
-				
-				_shadowmats.push_back(std::move(_shadowcams.GetObjectAtIndex<Camera>(0)->projectionMatrix));
+				_shadowcam->SetPosition(GetPosition());
+				_shadowcam->clipfar = _range;
+				_shadowcam->UpdateProjection();
 			}
 		}
 	}

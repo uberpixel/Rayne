@@ -518,11 +518,16 @@ namespace RN
 				*glType = GL_HALF_FLOAT;
 				break;
 				
-			case TextureParameter::Format::Depth:
+			case TextureParameter::Format::Depth24I:
 				*glFormat = GL_DEPTH_COMPONENT;
 				*glInternalFormat = GL_DEPTH_COMPONENT24;
 				*glType = GL_UNSIGNED_BYTE;
 				break;
+				
+			case TextureParameter::Format::Depth32F:
+				*glFormat = GL_DEPTH_COMPONENT;
+				*glInternalFormat = GL_DEPTH_COMPONENT32F;
+				*glType = GL_FLOAT;
 				
 			case TextureParameter::Format::DepthStencil:
 				*glFormat = GL_DEPTH_STENCIL;

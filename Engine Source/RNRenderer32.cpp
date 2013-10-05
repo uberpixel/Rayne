@@ -314,7 +314,7 @@ namespace RN
 		_lightPointColor.clear();
 		
 		_lightPointDepth.clear();
-		_lightPointMatrix.clear();
+		_lightPointRanges.clear();
 		
 		if(camera->GetDepthTiles())
 		{
@@ -355,6 +355,15 @@ namespace RN
 				
 				lightData[i * 2 + 0] = Vector4(position, light->GetRange());
 				lightData[i * 2 + 1] = Vector4(color, light->Shadow()?static_cast<float>(i):-1.0f);
+				
+				if(light->Shadow())
+				{
+					_lightPointRanges.push_back(light->GetRange());
+					if(light->GetShadowCamera())
+					{
+						_lightPointDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
+					}
+				}
 			}
 			
 			glUnmapBuffer(GL_TEXTURE_BUFFER);
@@ -373,20 +382,10 @@ namespace RN
 				
 				if(light->Shadow())
 				{
-					const std::vector<Matrix> &matrices = light->GetShadowMatrices();
-					
-					if(matrices.size() > 0)
-					{
-						_lightPointMatrix.push_back(matrices[0]);
-					}
-					
+					_lightPointRanges.push_back(light->GetRange());
 					if(light->GetShadowCamera())
 					{
 						_lightPointDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
-					}
-					else
-					{
-						_lightPointDepth.push_back(light->GetShadowCameras()->GetFirstObject<Camera>()->GetStorage()->GetDepthTarget());
 					}
 				}
 			}
@@ -784,8 +783,8 @@ namespace RN
 					glUniform4fv(program->lightPointPosition, lightPointCount, (float*)_lightPointPosition.data());
 					glUniform4fv(program->lightPointColor, lightPointCount, (float*)_lightPointColor.data());
 					
-					float *data = reinterpret_cast<float *>(_lightPointMatrix.data());
-					glUniformMatrix4fv(program->lightPointMatrix, (GLuint)_lightPointMatrix.size(), GL_FALSE, data);
+					float *data = reinterpret_cast<float *>(_lightPointRanges.data());
+					glUniform1fv(program->lightPointRanges, (GLuint)_lightPointRanges.size(), data);
 					
 					glUniform1i(program->lightSpotCount, lightSpotCount);
 					glUniform4fv(program->lightSpotPosition, lightSpotCount, (float*)_lightSpotPosition.data());
