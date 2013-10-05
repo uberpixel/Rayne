@@ -136,7 +136,6 @@ namespace RN
 				tempcam->SetLODCamera(_lightcam);
 				tempcam->SetPriority(kRNShadowCameraPriority);
 				tempcam->clipnear = 1.0f;
-//				tempcam->clipfar = 10000.0f;
 
 				_shadowcams.AddObject(tempcam);
 				
@@ -164,7 +163,7 @@ namespace RN
 			parameter.filter = TextureParameter::Filter::Linear;
 			parameter.format = TextureParameter::Format::Depth24I;
 			parameter.type = TextureParameter::Type::TextureCube;
-			parameter.depthCompare = false;//true;
+			parameter.depthCompare = false;
 			parameter.generateMipMaps = false;
 			parameter.mipMaps = 0;
 			
