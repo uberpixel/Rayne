@@ -65,6 +65,7 @@ namespace RN
 			void SetClipInsets(const EdgeInsets& insets);
 			void SetHidden(bool hidden);
 			void SetAutoresizingMask(AutoresizingMask mask);
+			void SetTransform(const Matrix& transform);
 			
 			void AddSubview(View *subview);
 			void RemoveSubview(View *subview);
@@ -73,6 +74,7 @@ namespace RN
 			
 			const Array *GetSubivews() const { return &_subviews; }
 			Widget *GetWidget() const { return _widget; }
+			const Matrix& GetTransform() const { return _transform; }
 			
 			void SetNeedsLayoutUpdate();
 			
@@ -103,8 +105,6 @@ namespace RN
 			
 			virtual void LayoutSubviews();
 			
-			Matrix transform;
-			
 		private:
 			void Initialize();
 			void ViewHierarchyChanged();
@@ -122,6 +122,7 @@ namespace RN
 			Widget *_widget;
 			Material *_material;
 			Mesh *_mesh;
+			Matrix _transform;
 
 			AutoresizingMask _autoresizingMask;
 			Array _subviews;

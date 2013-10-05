@@ -458,6 +458,12 @@ namespace RN
 			_autoresizingMask = mask;
 		}
 		
+		void View::SetTransform(const Matrix& transform)
+		{
+			_transform = transform;
+			SetNeedsLayoutUpdate();
+		}
+		
 		void View::ResizeSubviewsFromOldSize(const Vector2& oldSize)
 		{
 			Vector2 size = _frame.Size();
@@ -585,11 +591,11 @@ namespace RN
 				
 				if(_superview)
 				{
-					_intermediateTransform = _superview->_intermediateTransform * transform;
+					_intermediateTransform = _superview->_intermediateTransform * _transform;
 				}
 				else if(_widget)
 				{
-					_intermediateTransform = _widget->transform * transform;
+					_intermediateTransform = _widget->transform * _transform;
 				}
 				
 				if(_widget)
