@@ -177,13 +177,8 @@ namespace RN
 		
 		bool Control::IsEventWithinBounds(Event *event)
 		{
-			const Rect& frame = GetWidget()->GetFrame();
 			Vector2 point = event->GetMousePosition();
-			
-			point.x -= frame.x;
-			point.y -= frame.y;
-			
-			point = std::move(ConvertPointFromView(point, nullptr));
+			point = std::move(ConvertPointFromBase(point));
 			
 			return GetBounds().ContainsPoint(point);
 		}

@@ -206,6 +206,33 @@ namespace RN
 			return converted;
 		}
 		
+		Vector2 View::ConvertPointToBase(const Vector2& point)
+		{
+			Vector2 converted = point;
+			ConvertPointToWidget(converted);
+			
+			if(_widget)
+			{
+				converted.x += _widget->_frame.x;
+				converted.y += _widget->_frame.y;
+			}
+			
+			return converted;
+		}
+		
+		Vector2 View::ConvertPointFromBase(const Vector2& point)
+		{
+			Vector2 converted = point;
+			if(_widget)
+			{
+				converted.x -= _widget->_frame.x;
+				converted.y -= _widget->_frame.y;
+			}
+			
+			ConvertPointFromWidget(converted);
+			return converted;
+		}
+		
 		
 		Rect View::ConvertRectToView(const Rect& frame, View *view)
 		{

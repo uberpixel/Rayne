@@ -50,6 +50,9 @@ namespace RN
 			Vector2 ConvertPointToView(const Vector2& point, View *view);
 			Vector2 ConvertPointFromView(const Vector2& point, View *view);
 			
+			Vector2 ConvertPointToBase(const Vector2& point);
+			Vector2 ConvertPointFromBase(const Vector2& point);
+			
 			Rect ConvertRectToView(const Rect& frame, View *view);
 			Rect ConvertRectFromView(const Rect& frame, View *view);
 			
