@@ -159,8 +159,8 @@ namespace RN
 		if(_shadow)
 		{
 			TextureParameter parameter;
-			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
-			parameter.filter = TextureParameter::Filter::Linear;
+			parameter.wrapMode = TextureParameter::WrapMode::Repeat;
+			parameter.filter = TextureParameter::Filter::Nearest;
 			parameter.format = TextureParameter::Format::Depth24I;
 			parameter.type = TextureParameter::Type::TextureCube;
 			parameter.depthCompare = false;
@@ -185,7 +185,52 @@ namespace RN
 			_shadowcam->clipfar = _range;
 			_shadowcam->fov = 90.0f;
 			_shadowcam->UpdateProjection();
-			_shadowcam->SetRotation(Vector3(0.0f, 0.0f, 0.0f));
+			_shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
+			storage->Release();
+		}
+	}
+	
+	void Light::ActivateSpotShadows(bool shadow, int resolution)
+	{
+		if(_lightType != Type::SpotLight)
+		return;
+		
+		if(_shadow == shadow)
+		return;
+		
+		_shadow = shadow;
+		_shadowcams.RemoveAllObjects();
+		
+		if(_shadow)
+		{
+			TextureParameter parameter;
+			parameter.wrapMode = TextureParameter::WrapMode::Repeat;
+			parameter.filter = TextureParameter::Filter::Nearest;
+			parameter.format = TextureParameter::Format::Depth24I;
+			parameter.type = TextureParameter::Type::TextureCube;
+			parameter.depthCompare = false;
+			parameter.generateMipMaps = false;
+			parameter.mipMaps = 0;
+			
+			Texture *depthtex = new Texture(parameter);
+			depthtex->Autorelease();
+			
+			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyPointShadowDepthShader);
+			Material *depthMaterial = new Material(depthShader);
+			
+			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
+			storage->SetDepthTarget(depthtex, -1);
+			
+			_shadowcam = new CubemapCamera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden, 1.0f);
+			_shadowcam->Retain();
+			_shadowcam->Autorelease();
+			_shadowcam->SetMaterial(depthMaterial);
+			_shadowcam->SetPriority(kRNShadowCameraPriority);
+			_shadowcam->clipnear = 0.01f;
+			_shadowcam->clipfar = _range;
+			_shadowcam->fov = 90.0f;
+			_shadowcam->UpdateProjection();
+			_shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
 			storage->Release();
 		}
 	}
@@ -226,7 +271,7 @@ namespace RN
 				float far;
 				
 				if(_shadowcam)
-					_shadowcam->SetRotation(GetRotation());
+					_shadowcam->SetWorldRotation(GetWorldRotation());
 				
 				_shadowmats.clear();
 				
@@ -243,7 +288,7 @@ namespace RN
 					else
 					{
 						Camera *tempcam = _shadowcams.GetObjectAtIndex<Camera>(i);
-						tempcam->SetRotation(GetRotation());
+						tempcam->SetWorldRotation(GetWorldRotation());
 						
 						_shadowmats.push_back(std::move(tempcam->MakeShadowSplit(_lightcam, this, near, far)));
 					}
@@ -261,7 +306,7 @@ namespace RN
 		{
 			if(_shadow && _shadowcam)
 			{
-				_shadowcam->SetPosition(GetPosition());
+				_shadowcam->SetWorldPosition(GetWorldPosition());
 				_shadowcam->clipfar = _range;
 				_shadowcam->UpdateProjection();
 			}

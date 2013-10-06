@@ -34,6 +34,7 @@ namespace RN
 		
 		RNAPI void ActivateDirectionalShadows(bool shadow=true, int resolution=1024, int splits=4, float distfac=0.05f, float biasfac=2.0f, float biasunits=512.0f);
 		RNAPI void ActivatePointShadows(bool shadow=true, int resolution=1024);
+		RNAPI void ActivateSpotShadows(bool shadow=true, int resolution=1024);
 		
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI void Update(float delta) override;

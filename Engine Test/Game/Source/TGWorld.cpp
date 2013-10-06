@@ -429,6 +429,7 @@ namespace TG
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(0.9f);
 		_spotLight->SetColor(RN::Color(0.5f));
+		_spotLight->ActivateSpotShadows();
 		
 #if TGWorldFeatureFreeCamera
 		_camera->AttachChild(_spotLight);
@@ -437,18 +438,6 @@ namespace TG
 #endif
 		
 		RN::Light *light = new RN::Light();
-		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
-		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		light->ActivatePointShadows();
-		
-		light = new RN::Light();
-		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
-		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		light->ActivatePointShadows();
-		
-		light = new RN::Light();
 		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
 		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
@@ -670,6 +659,7 @@ namespace TG
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(0.9f);
 		_spotLight->SetColor(RN::Color(0.5f, 0.5f, 0.5f));
+		_spotLight->ActivateSpotShadows();
 		
 #if TGWorldFeatureFreeCamera
 		_camera->AttachChild(_spotLight);

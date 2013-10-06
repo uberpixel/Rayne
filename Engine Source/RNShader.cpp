@@ -91,6 +91,7 @@ namespace RN
 		GetUniformLocation(lightSpotList);
 		GetUniformLocation(lightSpotListOffset);
 		GetUniformLocation(lightSpotListData);
+		GetUniformLocation(lightSpotRanges);
 		
 		GetUniformLocation(lightDirectionalDirection);
 		GetUniformLocation(lightDirectionalColor);
@@ -141,6 +142,17 @@ namespace RN
 				break;
 			
 			lightPointDepthLocations.push_back(location);
+		}
+		
+		for(size_t i = 0; i < 32; i ++)
+		{
+			sprintf(string, "lightSpotDepth%i", static_cast<int>(i));
+			GLuint location = glGetUniformLocation(program, string);
+			
+			if(location == -1)
+			break;
+			
+			lightSpotDepthLocations.push_back(location);
 		}
 		
 		GetUniformLocation(depthmap);
@@ -338,6 +350,8 @@ namespace RN
 			temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_SHADOWS", ""));
 		if(lookup.type & ShaderProgram::TypePointShadows)
 			temporaryDefines.emplace_back(ShaderDefine("RN_POINT_SHADOWS", ""));
+		if(lookup.type & ShaderProgram::TypeSpotShadows)
+			temporaryDefines.emplace_back(ShaderDefine("RN_SPOT_SHADOWS", ""));
 		
 		if(lookup.type & ShaderProgram::TypeFog)
 			temporaryDefines.emplace_back(ShaderDefine("RN_FOG", ""));
@@ -568,6 +582,7 @@ namespace RN
 		_supportedPrograms |= IsDefined(result.data, "RN_DISCARD") ? ShaderProgram::TypeDiscard : 0;
 		_supportedPrograms |= IsDefined(result.data, "RN_DIRECTIONAL_SHADOWS") ? ShaderProgram::TypeDirectionalShadows : 0;
 		_supportedPrograms |= IsDefined(result.data, "RN_POINT_SHADOWS") ? ShaderProgram::TypePointShadows : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_SPOT_SHADOWS") ? ShaderProgram::TypeSpotShadows : 0;
 		_supportedPrograms |= IsDefined(result.data, "RN_FOG") ? ShaderProgram::TypeFog : 0;
 		_supportedPrograms |= IsDefined(result.data, "RN_CLIPPLANE") ? ShaderProgram::TypeClipPlane : 0;
 		_supportedPrograms |= IsDefined(result.data, "RN_GAMMA_CORRECTION") ? ShaderProgram::TypeGammaCorrection : 0;

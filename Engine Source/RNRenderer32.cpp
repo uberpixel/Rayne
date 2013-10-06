@@ -405,6 +405,9 @@ namespace RN
 		_lightSpotDirection.clear();
 		_lightSpotColor.clear();
 		
+		_lightSpotDepth.clear();
+		_lightSpotRanges.clear();
+		
 		if(camera->GetDepthTiles())
 		{
 			GLuint indicesBuffer = _lightSpotBuffers[kRNRendererSpotLightListIndicesIndex];
@@ -441,12 +444,21 @@ namespace RN
 				{
 					_lightSpotPosition.emplace_back(Vector4(position, light->GetRange()));
 					_lightSpotDirection.emplace_back(Vector4(direction, light->GetAngle()));
-					_lightSpotColor.emplace_back(Vector4(color, 0.0f));
+					_lightSpotColor.emplace_back(Vector4(color, light->Shadow()?static_cast<float>(i):-1.0f));
 				}
 				
 				lightData[i * 3 + 0] = Vector4(position, light->GetRange());
 				lightData[i * 3 + 1] = Vector4(color, 0.0f);
 				lightData[i * 3 + 2] = Vector4(direction, light->GetAngle());
+				
+				if(light->Shadow())
+				{
+					_lightSpotRanges.push_back(light->GetRange());
+					if(light->GetShadowCamera())
+					{
+						_lightSpotDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
+					}
+				}
 			}
 			
 			glUnmapBuffer(GL_TEXTURE_BUFFER);
@@ -457,13 +469,23 @@ namespace RN
 			lightCount = _spotLights.size();
 			for(size_t i = 0; i < lightCount; i++)
 			{
-				_lightSpotPosition.emplace_back(Vector4(_spotLights[i]->GetPosition(), _spotLights[i]->GetRange()));
+				Light *light = _spotLights[i];
+				_lightSpotPosition.emplace_back(Vector4(light->GetPosition(), light->GetRange()));
 				
-				const Vector3& color = _spotLights[i]->GetResultColor();
-				_lightSpotColor.emplace_back(Vector4(color, 0.0f));
+				const Vector3& color = light->GetResultColor();
+				_lightSpotColor.emplace_back(Vector4(color, light->Shadow()?static_cast<float>(i):-1.0f));
 				
-				const Vector3& direction = _spotLights[i]->Forward();
-				_lightSpotDirection.emplace_back(Vector4(direction, _spotLights[i]->GetAngle()));
+				const Vector3& direction = light->Forward();
+				_lightSpotDirection.emplace_back(Vector4(direction, light->GetAngle()));
+				
+				if(light->Shadow())
+				{
+					_lightSpotRanges.push_back(light->GetRange());
+					if(light->GetShadowCamera())
+					{
+						_lightSpotDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
+					}
+				}
 			}
 		}
 		
@@ -727,6 +749,8 @@ namespace RN
 						programTypes |= ShaderProgram::TypeDirectionalShadows;
 					if(_lightPointDepth.size() > 0)
 						programTypes |= ShaderProgram::TypePointShadows;
+					if(_lightSpotDepth.size() > 0)
+						programTypes |= ShaderProgram::TypeSpotShadows;
 				}
 				
 				if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::TypeFog))
@@ -791,6 +815,9 @@ namespace RN
 					glUniform4fv(program->lightSpotDirection, lightSpotCount, (float*)_lightSpotDirection.data());
 					glUniform4fv(program->lightSpotColor, lightSpotCount, (float*)_lightSpotColor.data());
 					
+					data = reinterpret_cast<float *>(_lightSpotRanges.data());
+					glUniform1fv(program->lightSpotRanges, (GLuint)_lightSpotRanges.size(), data);
+					
 					glUniform1i(program->lightDirectionalCount, lightDirectionalCount);
 					glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)_lightDirectionalDirection.data());
 					glUniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.data());
@@ -853,6 +880,31 @@ namespace RN
 							{
 								GLint location = lightPointDepthLocations[i];
 								glUniform1i(location, lastpointdepth);
+							}
+						}
+					}
+					
+					if(_lightSpotDepth.size() > 0)
+					{
+						const std::vector<GLuint>& lightSpotDepthLocations = program->lightSpotDepthLocations;
+						
+						if(lightSpotDepthLocations.size() > 0)
+						{
+							size_t textureCount = MIN(lightSpotDepthLocations.size(), _lightSpotDepth.size());
+							
+							
+							uint32 lastspotdepth = 0;
+							for(size_t i=0; i<textureCount; i++)
+							{
+								GLint location = lightSpotDepthLocations[i];
+								lastspotdepth = BindTexture(_lightSpotDepth[i]);
+								glUniform1i(location, lastspotdepth);
+							}
+							
+							for(size_t i = textureCount; i < lightSpotDepthLocations.size(); i++)
+							{
+								GLint location = lightSpotDepthLocations[i];
+								glUniform1i(location, lastspotdepth);
 							}
 						}
 					}

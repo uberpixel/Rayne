@@ -15,13 +15,16 @@ uniform samplerCube lightPointDepth0;
 uniform samplerCube lightPointDepth1;
 uniform samplerCube lightPointDepth2;
 uniform samplerCube lightPointDepth3;
-uniform samplerCube lightPointDepth4;
-uniform samplerCube lightPointDepth5;
+uniform samplerCube lightSpotDepth0;
+uniform samplerCube lightSpotDepth1;
+uniform samplerCube lightSpotDepth2;
+uniform samplerCube lightSpotDepth3;
 
 uniform vec4 frameSize;
 in vec4 vertDirLightProj[4];
 
 uniform float lightPointRanges[10];
+uniform float lightSpotRanges[10];
 
 //a textureOffset lookup for a 2DArrayShader sampler
 float rn_textureOffset(sampler2DArrayShadow map, vec4 loc, vec2 offset)
@@ -108,12 +111,9 @@ float rn_ShadowPointTextureCubeArrayShadow(int index, vec3 pos)
 		return texture(lightPointDepth2, pos).r;
 	else if(index == 3)
 		return texture(lightPointDepth3, pos).r;
-	else if(index == 4)
-		return texture(lightPointDepth4, pos).r;
-	else if(index == 5)
-		return texture(lightPointDepth5, pos).r;
 	else return 1.0;
 }
+
 /*
 float rn_ShadowPointPCF2x2(int index, vec4 pos)
 {
@@ -151,9 +151,24 @@ float rn_ShadowPoint(int light, vec3 dir)
 //	return rn_ShadowPointPCF2x2(light, lookup);
 }
 
-float rn_ShadowSpot0()
+float rn_ShadowSpotTextureCubeArrayShadow(int index, vec3 pos)
 {
-	return 1.0;
+	if(index == 0)
+		return texture(lightSpotDepth0, pos).r;
+	else if(index == 1)
+		return texture(lightSpotDepth1, pos).r;
+	else if(index == 2)
+		return texture(lightSpotDepth2, pos).r;
+	else if(index == 3)
+		return texture(lightSpotDepth3, pos).r;
+	else return 1.0;
+}
+
+float rn_ShadowSpot(int light, vec3 dir)
+{
+	float occluder = rn_ShadowSpotTextureCubeArrayShadow(light, dir)*lightSpotRanges[light];
+	float receiver = length(dir);
+	return min(1.0, max(0.0, exp((occluder-receiver)*15.0)));
 }
 
 #else

@@ -90,9 +90,9 @@ void rn_SpotLight(in vec3 viewdir, in vec4 lightpos, in vec4 lightcolor, in vec4
 {
 	vec3 posdiff = lightpos.xyz-position;
 	float dist = length(posdiff);
-	posdiff /= dist;
+	vec3 dir = posdiff/dist;
 	float attenuation = min(max(1.0-dist/lightpos.w, 0.0), 1.0);
-	float dirfac = dot(posdiff, lightdir.xyz);
+	float dirfac = dot(dir, lightdir.xyz);
 	
 	if(dirfac > lightdir.w)
 	{
@@ -103,19 +103,19 @@ void rn_SpotLight(in vec3 viewdir, in vec4 lightpos, in vec4 lightcolor, in vec4
 		
 		attenuation *= 1.0-(1.0-dirfac)/(1.0-lightdir.w);
 		
-		float lightfac = min(max(dot(normal, posdiff), 0.0), 1.0);
+		float lightfac = min(max(dot(normal, dir), 0.0), 1.0);
 		vec3 light = lightfac*lightcolor.rgb*attenuation;
 		
 #if defined(RN_SPECULARITY)
-		vec3 halfvec = normalize(viewdir+posdiff);
+		vec3 halfvec = normalize(viewdir+dir);
 		vec3 spec = pow(min(max(dot(halfvec, normal), 0.0), 1.0), specpow)*light;
 #endif
 		light *= attenuation;
 		
-#if defined(RN_POINT_SHADOWS)
+#if defined(RN_SPOT_SHADOWS)
 		if(lightcolor.a > -0.5)
 		{
-			float shadow = rn_ShadowSpot0();
+			float shadow = rn_ShadowSpot(int(lightcolor.a+0.1), posdiff);
 #if defined(RN_SPECULARITY)
 			specularity += spec*shadow;
 #endif
