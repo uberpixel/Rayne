@@ -20,6 +20,7 @@ namespace RN
 	public:
 		RNAPI Dictionary();
 		RNAPI Dictionary(size_t capacity);
+		RNAPI Dictionary(const Dictionary *other);
 		RNAPI ~Dictionary() override;
 		
 		RNAPI bool IsEqual(Object *other) const override;
@@ -47,6 +48,21 @@ namespace RN
 	private:
 		struct Bucket
 		{
+			Bucket()
+			{
+				key    = nullptr;
+				object = nullptr;
+				next   = nullptr;
+			}
+			
+			Bucket(const Bucket *other)
+			{
+				key    = SafeRetain(other->key);
+				object = SafeRetain(other->object);
+				
+				next = nullptr;
+			}
+			
 			~Bucket()
 			{
 				if(key)
@@ -77,7 +93,7 @@ namespace RN
 		size_t _count;
 		size_t _primitive;
 		
-		RNDefineMetaWithTraits(Dictionary, Object, MetaClassTraitCronstructable)
+		RNDefineMetaWithTraits(Dictionary, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 }
 

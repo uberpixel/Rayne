@@ -46,7 +46,7 @@ namespace RN
 	
 	Dictionary::Dictionary(size_t capacity)
 	{
-		for(size_t i=0; i<kRNDictionaryPrimitiveCount; i++)
+		for(size_t i = 0; i < kRNDictionaryPrimitiveCount; i ++)
 		{
 			if(DictionaryCapacity[i] > capacity || i == kRNDictionaryPrimitiveCount - 1)
 			{
@@ -56,9 +56,39 @@ namespace RN
 		}
 	}
 	
+	Dictionary::Dictionary(const Dictionary *other)
+	{
+		_primitive = other->_primitive;
+		_capacity  = other->_capacity;
+		_count     = other->_count;
+		
+		_buckets = new Bucket *[_capacity];
+		
+		for(size_t i = 0; i < _capacity; i ++)
+		{
+			Bucket *temp = nullptr;
+			Bucket *bucket = other->_buckets[i];
+			while(bucket)
+			{
+				if(bucket->key && bucket->object)
+				{
+					Bucket *copy = new Bucket(bucket);
+					if(temp)
+						temp->next = copy;
+					
+					temp = copy;
+				}
+				
+				bucket = bucket->next;
+			}
+			
+			_buckets[i] = temp;
+		}
+	}
+	
 	Dictionary::~Dictionary()
 	{
-		for(size_t i=0; i<_capacity; i++)
+		for(size_t i = 0; i < _capacity; i ++)
 		{
 			Bucket *bucket = _buckets[i];
 			while(bucket)
@@ -112,9 +142,7 @@ namespace RN
 				return empty;
 			
 			bucket = new Bucket();
-			bucket->key    = nullptr;
-			bucket->object = nullptr;
-			bucket->next   = _buckets[index];
+			bucket->next = _buckets[index];
 			
 			_buckets[index] = bucket;
 		}
