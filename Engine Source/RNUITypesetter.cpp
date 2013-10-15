@@ -308,9 +308,9 @@ namespace RN
 					goto finishLayout; \
 			}
 			
-#define LineBreakOnCharacter() { \
+#define LineBreakOnCharacter(forced) { \
 				SubmitLine(); \
-				LineBreak(false); \
+				LineBreak(forced); \
 				range.origin += range.length; \
 				range.length = 0; \
 				i --; \
@@ -363,7 +363,7 @@ namespace RN
 					case LineBreakMode::CharacterWrapping:
 						if(offsetX + width >= _frame.width)
 						{
-							LineBreakOnCharacter();
+							LineBreakOnCharacter(true);
 							continue;
 						}
 						
@@ -406,7 +406,7 @@ namespace RN
 							{
 								if(offsetX + wordWidth >= _frame.width)
 								{
-									LineBreakOnCharacter();
+									LineBreakOnCharacter(false);
 									continue;
 								}
 							}
@@ -419,7 +419,7 @@ namespace RN
 						// We still have to break on characters for words wich are longer than one line
 						if(offsetX + width >= _frame.width)
 						{
-							LineBreakOnCharacter();
+							LineBreakOnCharacter(true);
 							continue;
 						}
 						
@@ -433,9 +433,7 @@ namespace RN
 			}
 			
 			if(range.origin < length && (_maxLines == 0 || lines < _maxLines))
-			{
 				SubmitLine();
-			}
 			
 		finishLayout:
 			delete pool;
@@ -443,9 +441,8 @@ namespace RN
 			
 			float offset = 0.0f;
 			
-			for(auto i=_lines.begin(); i!=_lines.end(); i++)
+			for(Line *line : _lines)
 			{
-				Line *line = *i;
 				const Vector2& extents = line->GetExtents();
 				float widthOffset = 0.0f;
 				
@@ -464,7 +461,6 @@ namespace RN
 				}
 				
 				line->SetLineOffset(Vector2(widthOffset, offset));
-				
 				offset += extents.y;
 			}
 			
