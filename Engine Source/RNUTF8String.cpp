@@ -205,11 +205,13 @@ namespace RN
 		
 		const uint8 *bytes = string;
 		
-		for(size_t i=0; i<size; i++)
+		for(size_t i = 0; i < size; i ++)
 		{
 			bytes += (UTF8TrailingBytes[*bytes] + 1);
 			_length ++;
 		}
+		
+		UpdateHash();
 	}
 	
 	BasicString *ConstantUTF8String::SimpleCopy() const
@@ -334,20 +336,23 @@ namespace RN
 		}
 	}
 	
-	machine_hash ConstantUTF8String::Hash() const
+	void ConstantUTF8String::UpdateHash()
 	{
 		size_t length = Length();
-		machine_hash hash = 0;
+		_hash = 0;
 		
 		uint8 *bytes = _string;
 		
 		for(size_t i=0; i<length; i++)
 		{
-			HashCombine(hash, UTF8ToUnicode(bytes));
+			HashCombine(_hash, UTF8ToUnicode(bytes));
 			bytes += (UTF8TrailingBytes[*bytes] + 1);
 		}
-		
-		return hash;
+	}
+	
+	machine_hash ConstantUTF8String::Hash() const
+	{
+		return _hash;
 	}
 	
 	BasicString *ConstantUTF8String::Substring(const Range& range) const
@@ -380,6 +385,8 @@ namespace RN
 			bytes += (UTF8TrailingBytes[*bytes] + 1);
 			_length ++;
 		}
+		
+		UpdateHash();
 	}
 	
 	UTF8String::UTF8String(UniChar *string)
@@ -411,6 +418,8 @@ namespace RN
 			
 			tstring += size;
 		}
+		
+		UpdateHash();
 	}
 	
 	UTF8String::~UTF8String()
@@ -501,6 +510,8 @@ namespace RN
 			
 			_string[_size] = '\0';
 		}
+		
+		UpdateHash();
 	}
 	
 	bool UTF8String::IsMutable() const

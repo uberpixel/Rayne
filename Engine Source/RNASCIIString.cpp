@@ -24,6 +24,8 @@ namespace RN
 	{
 		_string = const_cast<char *>(string);
 		_length = strlen(string);
+		
+		UpdateHash();
 	}
 	
 	BasicString *ConstantASCIIString::SimpleCopy() const
@@ -58,17 +60,20 @@ namespace RN
 		}
 	}
 	
-	machine_hash ConstantASCIIString::Hash() const
+	void ConstantASCIIString::UpdateHash()
 	{
-		size_t length = Length();
-		machine_hash hash = 0;
+		_hash = 0;
 		
+		size_t length = Length();
 		for(size_t i=0; i<length; i++)
 		{
-			HashCombine(hash, static_cast<UniChar>(_string[i]));
+			HashCombine(_hash, static_cast<UniChar>(_string[i]));
 		}
+	}
 		
-		return hash;
+	machine_hash ConstantASCIIString::Hash() const
+	{
+		return _hash;
 	}
 	
 	size_t ConstantASCIIString::Length() const
@@ -140,6 +145,7 @@ namespace RN
 		_string = new char[_length + 1];
 		
 		strcpy(_string, string);
+		UpdateHash();
 	}
 	
 	ASCIIString::ASCIIString(const char *string, size_t length)
@@ -151,6 +157,7 @@ namespace RN
 		_string[_length] = '\0';
 		
 		strlcpy(_string, string, length + 1);
+		UpdateHash();
 	}
 	
 	ASCIIString::ASCIIString(UniChar *string)
@@ -170,6 +177,8 @@ namespace RN
 			UniChar character = string[i];
 			_string[i] = CodePoint::ConverToCharacter(character);
 		}
+		
+		UpdateHash();
 	}
 	
 	ASCIIString::~ASCIIString()
@@ -226,6 +235,8 @@ namespace RN
 			if(range.origin < size)
 				std::copy(_string + range.origin + range.length, _string + _length, _string + range.origin);
 		}
+		
+		UpdateHash();
 	}
 	
 	bool ASCIIString::IsMutable() const
