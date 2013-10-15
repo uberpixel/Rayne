@@ -125,8 +125,8 @@ namespace RN
 		void Widget::ConstraintFrame()
 		{
 			Rect frame = _frame;
-			frame.width  = MIN(_maximumSize.x, MAX(_minimumSize.x, frame.width));
-			frame.height = MIN(_maximumSize.y, MAX(_minimumSize.y, frame.height));
+			frame.width  = std::min(_maximumSize.x, std::max(_minimumSize.x, frame.width));
+			frame.height = std::min(_maximumSize.y, std::max(_minimumSize.y, frame.height));
 			
 			_frame = frame;
 		}

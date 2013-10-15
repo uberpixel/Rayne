@@ -308,7 +308,7 @@ namespace RN
 		Light **lights = _pointLights.data();
 		size_t lightCount = _pointLights.size();
 		
-		lightCount = MIN(camera->GetMaxLightsPerTile(), lightCount);
+		lightCount = std::min(camera->GetMaxLightsPerTile(), lightCount);
 		
 		_lightPointPosition.clear();
 		_lightPointColor.clear();
@@ -399,7 +399,7 @@ namespace RN
 		Light **lights = _spotLights.data();
 		size_t lightCount = _spotLights.size();
 		
-		lightCount = MIN(camera->GetMaxLightsPerTile(), lightCount);
+		lightCount = std::min(camera->GetMaxLightsPerTile(), lightCount);
 		
 		_lightSpotPosition.clear();
 		_lightSpotDirection.clear();
@@ -865,7 +865,7 @@ namespace RN
 						
 						if(lightPointDepthLocations.size() > 0)
 						{
-							size_t textureCount = MIN(lightPointDepthLocations.size(), _lightPointDepth.size());
+							size_t textureCount = std::min(lightPointDepthLocations.size(), _lightPointDepth.size());
 							
 							
 							uint32 lastpointdepth = 0;
@@ -890,7 +890,7 @@ namespace RN
 						
 						if(lightSpotDepthLocations.size() > 0)
 						{
-							size_t textureCount = MIN(lightSpotDepthLocations.size(), _lightSpotDepth.size());
+							size_t textureCount = std::min(lightSpotDepthLocations.size(), _lightSpotDepth.size());
 							
 							
 							uint32 lastspotdepth = 0;
@@ -1033,7 +1033,7 @@ namespace RN
 		
 		GLsizei glCount = static_cast<GLsizei>(descriptor->elementCount);
 		if(count != 0)
-			glCount = MIN(glCount, count);
+			glCount = std::min(glCount, static_cast<GLsizei>(count));
 		
 		if(usesIndices)
 		{

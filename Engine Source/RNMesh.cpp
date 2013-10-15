@@ -338,16 +338,16 @@ namespace RN
 				pointer += _stride;
 				vertex = reinterpret_cast<Vector3 *>(pointer);
 				
-				min.x = MIN(vertex->x, min.x);
-				min.y = MIN(vertex->y, min.y);
+				min.x = std::min(vertex->x, min.x);
+				min.y = std::min(vertex->y, min.y);
 				
-				max.x = MAX(vertex->x, max.x);
-				max.y = MAX(vertex->y, max.y);
+				max.x = std::max(vertex->x, max.x);
+				max.y = std::max(vertex->y, max.y);
 				
 				if(is3D)
 				{
-					min.z = MIN(vertex->z, min.z);
-					max.z = MAX(vertex->z, max.z);
+					min.z = std::min(vertex->z, min.z);
+					max.z = std::max(vertex->z, max.z);
 				}
 			}
 		}

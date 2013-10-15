@@ -359,7 +359,7 @@ namespace RN
 			
 			if(textureLocations.size() > 0)
 			{
-				size_t textureCount = MIN(textureLocations.size(), textures.GetCount());
+				size_t textureCount = std::min(textureLocations.size(), textures.GetCount());
 				
 				for(size_t i=0; i<textureCount; i++)
 				{
@@ -504,7 +504,7 @@ namespace RN
 		UseShader(program);
 		UpdateShaderData();
 		
-		uint32 targetmaps = MIN((uint32)program->targetmaplocations.size(), camera->GetRenderTargetCount());
+		uint32 targetmaps = std::min((uint32)program->targetmaplocations.size(), camera->GetRenderTargetCount());
 		if(targetmaps >= 1)
 		{
 			Texture *texture = camera->GetRenderTarget(0);
@@ -536,7 +536,7 @@ namespace RN
 		
 		material->ApplyUniforms(program);
 		
-		uint32 targetmaps = MIN((uint32)program->targetmaplocations.size(), stage->GetRenderTargetCount());
+		uint32 targetmaps = std::min((uint32)program->targetmaplocations.size(), stage->GetRenderTargetCount());
 		for(uint32 i=0; i<targetmaps; i++)
 		{
 			Texture *texture = camera->GetRenderTarget(i);

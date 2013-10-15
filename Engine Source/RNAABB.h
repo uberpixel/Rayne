@@ -48,13 +48,13 @@ namespace RN
 	
 	RN_INLINE AABB::AABB(const Vector3& tmin, const Vector3& tmax)
 	{		
-		minExtendBase.x = MIN(tmin.x, tmax.x);
-		minExtendBase.y = MIN(tmin.y, tmax.y);
-		minExtendBase.z = MIN(tmin.z, tmax.z);
+		minExtendBase.x = std::min(tmin.x, tmax.x);
+		minExtendBase.y = std::min(tmin.y, tmax.y);
+		minExtendBase.z = std::min(tmin.z, tmax.z);
 		
-		maxExtendBase.x = MAX(tmin.x, tmax.x);
-		maxExtendBase.y = MAX(tmin.y, tmax.y);
-		maxExtendBase.z = MAX(tmin.z, tmax.z);
+		maxExtendBase.x = std::max(tmin.x, tmax.x);
+		maxExtendBase.y = std::max(tmin.y, tmax.y);
+		maxExtendBase.z = std::max(tmin.z, tmax.z);
 		
 		minExtend = minExtendBase;
 		maxExtend = maxExtendBase;
@@ -79,13 +79,13 @@ namespace RN
 		Vector3 min;
 		Vector3 max;
 		
-		min.x = MIN(minExtend.x, other.minExtend.x);
-		min.y = MIN(minExtend.y, other.minExtend.y);
-		min.z = MIN(minExtend.z, other.minExtend.z);
+		min.x = std::min(minExtend.x, other.minExtend.x);
+		min.y = std::min(minExtend.y, other.minExtend.y);
+		min.z = std::min(minExtend.z, other.minExtend.z);
 		
-		max.x = MAX(maxExtend.x, other.maxExtend.x);
-		max.y = MAX(maxExtend.y, other.maxExtend.y);
-		max.z = MAX(maxExtend.z, other.maxExtend.z);
+		max.x = std::max(maxExtend.x, other.maxExtend.x);
+		max.y = std::max(maxExtend.y, other.maxExtend.y);
+		max.z = std::max(maxExtend.z, other.maxExtend.z);
 		
 		return AABB(min, max);
 	}
@@ -95,13 +95,13 @@ namespace RN
 		Vector3 min;
 		Vector3 max;
 		
-		min.x = MIN(minExtend.x, other.minExtend.x);
-		min.y = MIN(minExtend.y, other.minExtend.y);
-		min.z = MIN(minExtend.z, other.minExtend.z);
+		min.x = std::min(minExtend.x, other.minExtend.x);
+		min.y = std::min(minExtend.y, other.minExtend.y);
+		min.z = std::min(minExtend.z, other.minExtend.z);
 		
-		max.x = MAX(maxExtend.x, other.maxExtend.x);
-		max.y = MAX(maxExtend.y, other.maxExtend.y);
-		max.z = MAX(maxExtend.z, other.maxExtend.z);
+		max.x = std::max(maxExtend.x, other.maxExtend.x);
+		max.y = std::max(maxExtend.y, other.maxExtend.y);
+		max.z = std::max(maxExtend.z, other.maxExtend.z);
 		
 		minExtendBase = minExtend = min;
 		maxExtendBase = maxExtend = max;
@@ -157,13 +157,13 @@ namespace RN
 		
 		for(size_t i=0; i<4; i++)
 		{
-			minExtend.x = MIN(corners[i].x, minExtend.x);
-			minExtend.y = MIN(corners[i].y, minExtend.y);
-			minExtend.z = MIN(corners[i].z, minExtend.z);
+			minExtend.x = std::min(corners[i].x, minExtend.x);
+			minExtend.y = std::min(corners[i].y, minExtend.y);
+			minExtend.z = std::min(corners[i].z, minExtend.z);
 			
-			maxExtend.x = MAX(corners[i].x, maxExtend.x);
-			maxExtend.y = MAX(corners[i].y, maxExtend.y);
-			maxExtend.z = MAX(corners[i].z, maxExtend.z);
+			maxExtend.x = std::max(corners[i].x, maxExtend.x);
+			maxExtend.y = std::max(corners[i].y, maxExtend.y);
+			maxExtend.z = std::max(corners[i].z, maxExtend.z);
 		}
 	}
 }

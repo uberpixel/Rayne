@@ -77,7 +77,7 @@ namespace RN
 	RN_INLINE Sphere Sphere::operator* (const Vector3& other) const
 	{
 		Sphere result(*this);
-		float scale = MAX(MAX(other.x, other.y), other.z);
+		float scale = std::max(std::max(other.x, other.y), other.z);
 		result.radius *= scale;
 		result.offset *= scale;
 		result.offsetBase *= scale;
@@ -87,7 +87,7 @@ namespace RN
 	
 	RN_INLINE Sphere& Sphere::operator*= (const Vector3& other)
 	{
-		float scale = MAX(MAX(other.x, other.y), other.z);
+		float scale = std::max(std::max(other.x, other.y), other.z);
 		radius *= scale;
 		offset *= scale;
 		offsetBase *= scale;

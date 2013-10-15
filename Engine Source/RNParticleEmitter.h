@@ -46,12 +46,12 @@ namespace RN
 		void SetGenerator(RandomNumberGenerator *generator);
 		
 		void SetSpawnRate(float spawnRate);
-		void SetParticlesPerSecond(uint32 particles);
-		void SetMaxParticles(uint32 maxParticles);
+		void SetParticlesPerSecond(size_t particles);
+		void SetMaxParticles(size_t maxParticles);
 		
 		RandomNumberGenerator *GetGenerator() { return _rng; }
 		
-		void SpawnParticles(uint32 particles);
+		void SpawnParticles(size_t particles);
 		Particle *SpawnParticle();
 		
 		void Update(float delta) override;
@@ -67,7 +67,7 @@ namespace RN
 		void UpdateMesh();
 		
 		std::vector<Particle *> _particles;
-		uint32 _maxParticles;
+		size_t _maxParticles;
 		
 		ParticleMaterial *_material;
 		Mesh *_mesh;
