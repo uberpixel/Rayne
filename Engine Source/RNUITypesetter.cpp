@@ -33,6 +33,7 @@ namespace RN
 			_alignment = TextAlignment::Left;
 			_lineBreak = LineBreakMode::CharacterWrapping;
 			_maxLines  = 0;
+			_ellipsis  = CodePoint::Ellipsis();
 			
 			_model = nullptr;
 			_dirty = true;
@@ -78,7 +79,7 @@ namespace RN
 			
 			_string->Release();
 			_string = string->Retain();
-			_dirty = true;
+			_dirty  = true;
 		}
 		
 		void Typesetter::SetAlignment(TextAlignment alignment)
@@ -107,7 +108,7 @@ namespace RN
 		
 		void Typesetter::SetFrame(const Rect& frame)
 		{
-			if(Math::FastAbs(frame.width - _frame.width) < k::EpsilonFloat && Math::FastAbs(frame.height - _frame.height) < k::EpsilonFloat)
+			if(Math::Compare(frame.width, _frame.width) && Math::Compare(frame.height, _frame.height))
 			{
 				_frameChanged = true;
 				_frame = frame;
@@ -119,12 +120,46 @@ namespace RN
 			_dirty = true;
 		}
 		
+		void Typesetter::SetEllipsis(UniChar character)
+		{
+			_ellipsis = character;
+			_dirty    = true;
+		}
+		
 		
 		void Typesetter::InvalidateStringInRange(const Range& range)
 		{
 			_dirty = true;
 		}
 		
+		
+		Line *Typesetter::GetLineAtPoint(const Vector2& point)
+		{
+			LayoutText();
+			
+			Vector2 dimensions = std::move(GetDimensions());
+			if(point.x > dimensions.x || point.y > dimensions.y)
+				return nullptr;
+			
+			for(Line *line : _lines)
+			{
+				if(line->GetFrame().ContainsPoint(point))
+					return line;
+			}
+			
+			return nullptr;
+		}
+		
+		Range Typesetter::GetRangeOfCharactersAtPoint(const Vector2& point)
+		{
+			LayoutText();
+			
+			Line *line = GetLineAtPoint(point);
+			if(line)
+				return line->GetRangeOfCharactersAtPoint(point);
+			
+			return Range(k::NotFound, 0);
+		}
 		
 		Vector2 Typesetter::GetDimensions()
 		{
@@ -178,7 +213,7 @@ namespace RN
 		
 		void Typesetter::Clear()
 		{
-			for(auto i=_lines.begin(); i!=_lines.end(); i++)
+			for(auto i = _lines.begin(); i != _lines.end(); i ++)
 				delete *i;
 			
 			_lines.clear();
@@ -261,7 +296,7 @@ namespace RN
 				_lines.push_back(line); \
 				\
 				if(truncateLine) \
-					line->Truncate(_frame.width, truncation, CodePoint::Ellipsis()); \
+					line->Truncate(_frame.width, truncation, _ellipsis); \
 			}
 			
 #define LineBreak(forced) { \
@@ -428,7 +463,7 @@ namespace RN
 						break;
 				}
 				
-				line->SetLineOffset(Vector2(widthOffset, -_frame.height + offset));
+				line->SetLineOffset(Vector2(widthOffset, offset));
 				
 				offset += extents.y;
 			}
@@ -447,15 +482,14 @@ namespace RN
 			Array *meshes = new Array();
 			
 			for(Line *line : _visibleLines)
-			{
-				meshes->AddObjectsFromArray(line->GetMeshes());
-			}
+				meshes->AddObjectsFromArray(line->GetMeshes(_frame.height));
 			
 			
 			if(_model)
 				_model->Release();
 			
 			_model = new Model();
+			
 			
 			Shader *shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUITextShader);
 			
@@ -467,7 +501,7 @@ namespace RN
 				Font *font = dict->GetObjectForKey<Font>(kRNTypesetterFontAttribute);
 				Color *color = dict->GetObjectForKey<Color>(kRNTypesetterColorAttribute);
 				
-				RN_ASSERT(mesh && font && color, "Inconsistent mesh data generated!\n");
+				RN_ASSERT(mesh && font && color, "Inconsistent mesh data generated!");
 				
 				Material *material = new Material(shader);
 				material->AddTexture(font->GetTexture());
@@ -494,6 +528,7 @@ namespace RN
 		LineSegment::LineSegment()
 		{
 			_font = nullptr;
+			_range = Range(0, 0);
 		}
 		LineSegment::LineSegment(const LineSegment& other)
 		{
@@ -501,6 +536,7 @@ namespace RN
 			_glyphs  = other._glyphs;
 			_extents = other._extents;
 			_color   = other._color;
+			_range   = other._range;
 		}
 		LineSegment::LineSegment(LineSegment&& other)
 		{
@@ -508,6 +544,7 @@ namespace RN
 			_glyphs  = std::move(other._glyphs);
 			_extents = std::move(other._extents);
 			_color   = std::move(other._color);
+			_range   = std::move(other._range);
 			
 			other._font = nullptr;
 		}
@@ -525,6 +562,7 @@ namespace RN
 			_glyphs  = other._glyphs;
 			_extents = other._extents;
 			_color   = other._color;
+			_range   = other._range;
 			
 			return *this;
 		}
@@ -534,6 +572,7 @@ namespace RN
 			_glyphs  = std::move(other._glyphs);
 			_extents = std::move(other._extents);
 			_color   = std::move(other._color);
+			_range   = std::move(other._range);
 			
 			other._font = nullptr;
 			return *this;
@@ -553,10 +592,14 @@ namespace RN
 			_color = color;
 		}
 		
-		
 		void LineSegment::SetOffset(const Vector2& offset)
 		{
 			_offset = offset;
+		}
+		
+		void LineSegment::SetRangeOffset(size_t offset)
+		{
+			_range.origin = offset;
 		}
 		
 		bool LineSegment::CanMergeWithSegment(const LineSegment& other)
@@ -574,7 +617,40 @@ namespace RN
 			return true;
 		}
 		
-		void LineSegment::AddGlyph(const Glyph& glyph)
+		Range LineSegment::GetRangeOfCharactersAtPoint(const Vector2& point) const
+		{
+			float offset = 0;
+			Range range = Range(k::NotFound, 0);
+			
+			for(size_t i = 0; i < _range.length; i ++)
+			{
+				const Glyph& glyph = _glyphs[i];
+				float width = glyph.GetAdvanceX();
+				
+				if(i > 0)
+					width += glyph.GetKerning(_glyphs[i - 1].GetCharacter());
+				
+				Rect frame = Rect(_offset.x + offset, _offset.y, width, _extents.y);
+				
+				if(frame.ContainsPoint(point))
+				{
+					if(range.origin == k::NotFound)
+						range.origin = _range.origin + i;
+					
+					range.length ++;
+				}
+				else if(range.origin != k::NotFound)
+				{
+					break;
+				}
+				
+				offset += width;
+			}
+			
+			return range;
+		}
+		
+		void LineSegment::AppendGlyph(const Glyph& glyph)
 		{
 			if(!IsValidGlyph(glyph))
 				return;
@@ -584,13 +660,15 @@ namespace RN
 			
 			if(_glyphs.size() > 1)
 				_extents.x += glyph.GetKerning(_glyphs[_glyphs.size() - 2].GetCharacter());
+			
+			_range.length ++;
 		}
 		
-		void LineSegment::AddGlyphs(const std::vector<Glyph>& glyphs)
+		void LineSegment::AppendGlyphs(const std::vector<Glyph>& glyphs)
 		{
 			UniChar previous;
 			
-			for(size_t i=0; i<glyphs.size(); i++)
+			for(size_t i = 0; i < glyphs.size(); i ++)
 			{
 				const Glyph& glyph = glyphs[i];
 				if(!IsValidGlyph(glyph))
@@ -608,9 +686,10 @@ namespace RN
 				_extents.x += glyphs.at(0).GetKerning(_glyphs[_glyphs.size() - 1].GetCharacter());
 			
 			_glyphs.insert(_glyphs.end(), glyphs.begin(), glyphs.end());
+			_range.length += glyphs.size();
 		}
 		
-		void LineSegment::InsertGlyph(const Glyph& glyph)
+		void LineSegment::PrependGlyph(const Glyph& glyph)
 		{
 			if(!IsValidGlyph(glyph))
 				return;
@@ -621,7 +700,9 @@ namespace RN
 				_extents.x += _glyphs[0].GetKerning(glyph.GetCharacter());
 			
 			_glyphs.insert(_glyphs.begin(), glyph);
+			_range.length ++;
 		}
+		
 		
 		LineSegment LineSegment::SegmentWithWidth(float width, bool reverse)
 		{
@@ -632,9 +713,11 @@ namespace RN
 			float filled = 0.0f;
 			std::vector<Glyph> glyphs;
 			
+			size_t start = 0;
+			
 			if(!reverse)
 			{
-				for(auto i=_glyphs.begin(); i!=_glyphs.end(); i++)
+				for(auto i = _glyphs.begin(); i != _glyphs.end(); i ++)
 				{
 					float glyphWidth = i->GetAdvanceX();
 					
@@ -650,7 +733,9 @@ namespace RN
 			}
 			else
 			{
-				for(auto i=_glyphs.rbegin(); i!=_glyphs.rend(); i++)
+				start = _glyphs.size() - 1;
+				
+				for(auto i = _glyphs.rbegin(); i != _glyphs.rend(); i ++)
 				{
 					float glyphWidth = i->GetAdvanceX();
 					
@@ -661,13 +746,17 @@ namespace RN
 						break;
 					
 					filled += glyphWidth;
+					start  --;
+					
 					glyphs.push_back(*i);
 				}
 				
 				std::reverse(glyphs.begin(), glyphs.end());
 			}
 			
-			segment.AddGlyphs(glyphs);
+			segment.AppendGlyphs(glyphs);
+			segment.SetRangeOffset(start);
+			
 			return segment;
 		}
 		
@@ -678,7 +767,7 @@ namespace RN
 			
 			UniChar previous;
 			
-			for(size_t i=0; i<_glyphs.size(); i++)
+			for(size_t i = 0; i < _glyphs.size(); i ++)
 			{				
 				Glyph& glyph = _glyphs[i];
 				
@@ -790,10 +879,29 @@ namespace RN
 			return _untruncatedExtents;
 		}
 		
-		Array *Line::GetMeshes()
+		Range Line::GetRangeOfCharactersAtPoint(const Vector2& point)
 		{
 			LayoutLine();
-			return GenerateMeshes();
+			
+			for(const LineSegment& segment : _segments)
+			{
+				if(segment.GetFrame().ContainsPoint(point))
+					return segment.GetRangeOfCharactersAtPoint(point);
+			}
+			
+			return Range(k::NotFound, 0);
+		}
+		
+		Rect Line::GetFrame()
+		{
+			LayoutLine();
+			return Rect(_offset, _extents);
+		}
+		
+		Array *Line::GetMeshes(float offset)
+		{
+			LayoutLine();
+			return GenerateMeshes(offset);
 		}
 		
 		void Line::LayoutLine()
@@ -811,7 +919,7 @@ namespace RN
 			_segments.clear();
 			
 			// Create all segments of the line
-			for(size_t i=0; i<_range.length; i++)
+			for(size_t i = 0; i < _range.length; i++)
 			{
 				UniChar character = string->GetCharacterAtIndex(static_cast<uint32>(_range.origin + i));
 				Dictionary *attributes = _string->GetAttributesAtIndex(_range.origin + i);
@@ -835,10 +943,11 @@ namespace RN
 					
 					segment.SetFont(font);
 					segment.SetColor(color);
+					segment.SetRangeOffset(_range.origin + i);
 				}
 				
 				const Glyph& glyph = font->GetGlyphForCharacter(character);
-				segment.AddGlyph(glyph);
+				segment.AppendGlyph(glyph);
 			}
 			
 			if(segment.IsValid())
@@ -884,7 +993,7 @@ namespace RN
 								left = truncateWidth - (filled + TokenWidthInSegment(*i));
 							
 							LineSegment segment = std::move(i->SegmentWithWidth(left, false));
-							segment.AddGlyph(segment.GetFont()->GetGlyphForCharacter(_truncationToken));
+							segment.AppendGlyph(segment.GetFont()->GetGlyphForCharacter(_truncationToken));
 							
 							truncated.push_back(segment);
 							break;
@@ -910,7 +1019,7 @@ namespace RN
 							LineSegment segment = std::move(i->SegmentWithWidth(left, true));
 							
 							if(!truncateMiddle)
-								segment.InsertGlyph(segment.GetFont()->GetGlyphForCharacter(_truncationToken));
+								segment.PrependGlyph(segment.GetFont()->GetGlyphForCharacter(_truncationToken));
 							
 							truncated.push_back(segment);
 							break;
@@ -940,7 +1049,7 @@ namespace RN
 			}
 		}
 		
-		Dictionary *Line::GenerateMesh(const std::vector<LineSegment *>& segments)
+		Dictionary *Line::GenerateMesh(const std::vector<LineSegment *>& segments, float lineOffset)
 		{
 			size_t glyphCount = 0;
 			size_t offset = 0;
@@ -981,6 +1090,12 @@ namespace RN
 				offset += segment->GetGlyphs().size();
 			}
 			
+			for(size_t i = 0; i < glyphCount * 4; i ++)
+			{
+				vertices->y = vertices->y + lineOffset;
+				vertices ++;
+			}
+			
 			mesh->ReleaseElement(kMeshFeatureVertices);
 			mesh->ReleaseElement(kMeshFeatureUVSet0);
 			mesh->ReleaseElement(kMeshFeatureIndices);
@@ -994,7 +1109,7 @@ namespace RN
 			return dictionary->Autorelease();
 		}
 		
-		Array *Line::GenerateMeshes()
+		Array *Line::GenerateMeshes(float offset)
 		{
 			Array *meshes = new Array();
 			
@@ -1025,7 +1140,7 @@ namespace RN
 			
 			for(auto i = segments.begin(); i != segments.end(); i ++)
 			{
-				Dictionary *mesh = GenerateMesh(*i);
+				Dictionary *mesh = GenerateMesh(*i, offset);
 				meshes->AddObject(mesh);
 			}
 			
