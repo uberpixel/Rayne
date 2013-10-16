@@ -192,9 +192,9 @@ namespace RN
 		Vector3 diry = (corner3-corner1)/rect.height*camera->GetLightTiles().y;
 		
 		const Vector3& camPosition = camera->GetWorldPosition();
-		float *depthArray = camera->GetDepthArray();
+		//float *depthArray = camera->GetDepthArray();
 		
-		Vector3 camdir = camera->Forward();
+		//Vector3 camdir = camera->Forward();
 		
 		std::vector<size_t> indicesCount(tileCount);
 		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
@@ -221,8 +221,8 @@ namespace RN
 					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
 					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
 					
-					plnear.SetPlane(camPosition + camdir * depthArray[index * 2 + 0], camdir);
-					plfar.SetPlane(camPosition + camdir * depthArray[index * 2 + 1], camdir);
+		//			plnear.SetPlane(camPosition + camdir * depthArray[index * 2 + 0], camdir);
+		//			plfar.SetPlane(camPosition + camdir * depthArray[index * 2 + 1], camdir);
 					
 					size_t lightIndicesCount = 0;
 					int *lightPointIndices = _tempLightIndicesBuffer + (index * lightCount);
@@ -254,8 +254,8 @@ namespace RN
 						if(dl < 0.0f && dt > 0.0f && dl*dl+dt*dt > sqrange)
 							continue;
 						
-						Distance(plnear, >, range);
-						Distance(plfar, <, -range);
+				//		Distance(plnear, >, range);
+				//		Distance(plfar, <, -range);
 						
 						lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
 					}
