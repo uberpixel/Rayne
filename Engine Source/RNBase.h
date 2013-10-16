@@ -238,6 +238,41 @@ namespace RN
 
 	template <typename T>
 	T * NonConstructingSingleton<T>::_instance = 0;
+		
+		
+	template <class T>
+	class PIMPL
+	{
+	public:
+		PIMPL() :
+			_ptr(new T)
+		{}
+		
+		PIMPL(T *val) :
+			_ptr(val)
+		{}
+		
+		operator T* ()
+		{
+			return _ptr.get();
+		}
+		operator const T* () const
+		{
+			return _ptr.get();
+		}
+		
+		T *operator ->()
+		{
+			return _ptr.get();
+		}
+		const T *operator ->() const
+		{
+			return _ptr.get();
+		}
+		
+	private:
+		std::unique_ptr<T> _ptr;
+	};
 }
 
 #endif /* __RAYNE_BASE_H__ */
