@@ -6,10 +6,12 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#if RN_PLATFORM_POSIX
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <stdlib.h>
 #include <dlfcn.h>
+#endif
 
 #include "RNException.h"
 #include "RNThread.h"
@@ -30,10 +32,11 @@ namespace RN
 		void *symbols[kRNExceptionMaxSymbols];
 		size_t size;
 		
+#if RN_PLATFORM_POSIX
 		size = backtrace(symbols, kRNExceptionMaxSymbols);
 		std::string unknwonSymbol = std::string("<???>");
 		
-		for(size_t i=1; i<size; i++)
+		for(size_t i = 1; i < size; i ++)
 		{
 			Dl_info info;
 			int status = dladdr(symbols[i], &info);
@@ -54,6 +57,17 @@ namespace RN
 			}
 			
 		}
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		size = ::CaptureStackBackTrace(0, kRNExceptionMaxSymbols, symbols, nullptr);
+		std::string unknwonSymbol = std::string("<???>");
+		
+		for(size_t i = 1; i < size; i ++)
+		{
+			_callStack.push_back(std::pair<uintptr_t, std::string>((uintptr_t)symbols[i], unknwonSymbol));
+		}
+#endif
 		
 		_thread = Thread::GetCurrentThread();
 	}
