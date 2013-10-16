@@ -62,7 +62,7 @@ namespace RN
 			return __metaClass;
 		}
 		
-		static void Load(MetaClassBase *meta);
+		static void InitialWakeUp(MetaClassBase *meta);
 		
 		enum class MemoryPolicy
 		{
@@ -162,7 +162,7 @@ namespace RN
 	void __##cls##__load() \
 	{ \
 		cls::MetaClass(); \
-		cls::Load(cls::MetaClass()); \
+		cls::InitialWakeUp(cls::MetaClass()); \
 	}
 	
 	template<class T>
