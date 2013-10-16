@@ -16,6 +16,24 @@
 
 namespace RN
 {
+	RNDeclareMeta(Module)
+	
+	struct ModuleInternals
+	{
+#if RN_PLATFORM_POSIX
+		void *handle;
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		HMODULE handle;
+#endif
+	};
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Module
+	// ---------------------
+	
 	Module::Module(const std::string& name) :
 		_name(name)
 	{
@@ -24,12 +42,16 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_LINUX
-		_path =FileManager::GetSharedInstance()->GetFilePathWithName(_name + ".so");
+		_path = FileManager::GetSharedInstance()->GetFilePathWithName(_name + ".so");
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		_path = FileManager::GetSharedInstance()->GetFilePathWithName(_name + ".dll");
 #endif
 		
 		memset(&_exports, 0, sizeof(ModuleExports));
 		
-		_handle = 0;
+		_internals->handle = nullptr;
 		
 		_exports.module = this;
 		_exports.kernel = Kernel::GetSharedInstance();
@@ -42,20 +64,45 @@ namespace RN
 	}
 	
 	
-	
 	void Module::Load()
 	{
 		if(!IsLoaded())
 		{
-			_handle = dlopen(_path.c_str(), RTLD_LAZY);
-			if(!_handle)
+#if RN_PLATFORM_POSIX
+			_internals->handle = dlopen(_path.c_str(), RTLD_LAZY);
+			if(!_internals->handle)
 				throw Exception(Exception::Type::ModuleNotFoundException, std::string(dlerror()));
+#endif
+			
+#if RN_PLATFORM_WINDOWS
+			_internals->handle = LoadLibrary(_path.c_str());
+			if(!_internals->handle)
+			{
+				DWORD lastError = ::GetLastError();
+				TCHAR buffer[256] = _T("?");
+				
+				if(lastError)
+					::FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, lastError, MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT), buffer, STR_ELEMS(buffer) - 1, NULL);
+				
+				throw Exception(Exception::Type::ModuleNotFoundException, std::string(buffer));
+			}
+#endif
 			
 			_constructor = (bool (*)(ModuleExports *))(GetFunctionAddress("RNModuleConstructor"));
 			_destructor  = (void (*)())(GetFunctionAddress("RNModuleDestructor"));
 			
 			if(!_constructor(&_exports))
+			{
 				Unload();
+				throw Exception(Exception::Type::ModuleConstructFailedException, "Module " + _name + " failed to construct");
+			}
+			
+			// Sanity check
+			if(_exports.version != ABIVersion())
+			{
+				Unload();
+				throw Exception(Exception::Type::ModuleUnsupportedABIException, "Module " + _name + " uses an unuspported ABI version");
+			}
 		}
 	}
 	
@@ -66,19 +113,39 @@ namespace RN
 			if(_destructor)
 				_destructor();
 			
-			dlclose(_handle);
-			_handle = 0;
+#if RN_PLATFORM_POSIX
+			dlclose(_internals->handle);
+			_internals->handle = nullptr;
+#endif
+			
+#if RN_PLATFORM_WINDOWS
+			::FreeLibrary(_internals->handle);
+			_internals->handle = nullptr;
+#endif
 		}
 	}
 	
-	
 	void *Module::GetFunctionAddress(const std::string& name)
 	{
-		return dlsym(_handle, name.c_str());
+#if RN_PLATFORM_POSIX
+		return dlsym(_internals->handle, name.c_str());
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		return ::GetProcAddress(_internals->handle, name.c_str());
+#endif
+	}
+	
+	bool Module::IsLoaded() const
+	{
+		return (_internals->handle != nullptr);
 	}
 	
 	
-	
+	// ---------------------
+	// MARK: -
+	// MARK: ModuleCoordinator
+	// ---------------------
 	
 	ModuleCoordinator::ModuleCoordinator()
 	{
@@ -92,7 +159,8 @@ namespace RN
 					String *string = file->Downcast<String>();
 					char   *path   = string->GetUTF8String();
 					
-					_modules.emplace_back(new Module(path));
+					Module *module = new Module(path);
+					_modules.AddObject(module->Autorelease());
 				}
 				catch(Exception e)
 				{
@@ -102,9 +170,7 @@ namespace RN
 			});
 		}
 		
-		for(auto i=_modules.begin(); i!=_modules.end(); i++)
-		{
-			Module *module = *i;
+		_modules.Enumerate<Module>([&](Module *module, size_t index, bool *stop) {
 			
 			try
 			{
@@ -114,27 +180,41 @@ namespace RN
 			{
 				printf("Failed to load module. Reason: %s\n", e.GetReason().c_str());
 			}
-		}
+			
+		});
 	}
 	
 	ModuleCoordinator::~ModuleCoordinator()
-	{
-		for(Module *module : _modules)
-		{
-			delete module;
-		}
-	}
+	{}
 	
 	Module *ModuleCoordinator::GetModuleWithName(const std::string& name)
 	{
-		for(auto i=_modules.begin(); i!=_modules.end(); i++)
-		{
-			Module *module = *i;
-			
-			if(name.compare(module->GetName()) == 0)
-			   return module;
-		}
+		Module *module = nullptr;
 		
-		return 0;
+		_modules.Enumerate<Module>([&](Module *temp, size_t index, bool *stop) {
+			if(temp->GetName().compare(name) == 0)
+			{
+				module = temp;
+				*stop = true;
+			}
+		});
+		
+		if(module)
+			return module;
+		
+		
+		module = new Module(name);
+		try
+		{
+			module->Load();
+			_modules.AddObject(module->Autorelease());
+			
+			return module;
+		}
+		catch(Exception e)
+		{
+			delete module;
+			throw e;
+		}
 	}
 }

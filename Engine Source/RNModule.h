@@ -10,56 +10,45 @@
 #define __RAYNE_MODULE_H__
 
 #include "RNBase.h"
-
-#define kRNModuleCurrentVersion 1
+#include "RNObject.h"
+#include "RNArray.h"
 
 namespace RN
 {
 	class Kernel;
 	class Application;
 	class Module;
-
+	struct ModuleInternals;
+	
 	
 	struct ModuleExports
 	{
-		int version;
+		uint32 version;
+		
 		Module *module;
 		Kernel *kernel;
 		Application *application;
-		
-		uint32 type;
-		
-		// File modules
-		bool (*_supportsFileType)(const std::string& file);
 	};
 	
-	class Module
+	class Module : public Object
 	{
 	public:
-		enum
-		{
-			ModuleTypeFile = (1 << 0),
-			ModuleTypeTexture = ModuleTypeFile | (1 << 1),
-			
-			ModuleTypePhysics = (1 << 10)
-		};
-		
 		RNAPI Module(const std::string& name);
 		RNAPI ~Module();
 		
 		RNAPI void Load();
 		RNAPI void Unload();
-		bool IsLoaded() const { return (_handle != 0); }
-		
-		uint32 GetType() const { return _exports.type; }
+		RNAPI bool IsLoaded() const;
 		
 		const std::string& GetName() const { return _name; }
 		const std::string& GetPath() const { return _path; }
 		
+		uint32 GetABIVersion() const { return _exports.version; }
+		
 		RNAPI void *GetFunctionAddress(const std::string& name);
 		
 	private:
-		void *_handle;
+		PIMPL<ModuleInternals> _internals;
 		
 		std::string _name;
 		std::string _path;
@@ -68,18 +57,21 @@ namespace RN
 		void (*_destructor)();
 		
 		ModuleExports _exports;
+		
+		RNDefineMeta(Module, Object)
 	};
 	
 	class ModuleCoordinator : public Singleton<ModuleCoordinator>
 	{
 	public:
-		ModuleCoordinator();
-		~ModuleCoordinator() override;
+		RNAPI ModuleCoordinator();
+		RNAPI ~ModuleCoordinator() override;
 		
-		Module *GetModuleWithName(const std::string& name);
+		RNAPI Module *GetModuleWithName(const std::string& name);
+		const Array *GetModules() const { return &_modules; }
 		
 	private:
-		std::vector<Module *> _modules;
+		Array _modules;
 	};
 }
 
