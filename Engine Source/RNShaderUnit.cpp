@@ -125,59 +125,28 @@ namespace RN
 		return std::pair<std::string, size_t>(data, cleanedDefines.size());
 	}
 	
-	void ShaderUnit::ParseErrorAndThrow(const std::string& error, size_t offst)
+	void ShaderUnit::ParseErrorAndThrow(const std::string& error, size_t offset)
 	{
 		std::string result(error);
 		
 		// Parse the error
 		if(_host)
 		{
-			std::string log = "Failed to compile shader\n";
-			std::regex regex("ERROR: [0-9]{0,}:[0-9]{0,}: .*\n", std::regex_constants::ECMAScript | std::regex_constants::icase);
+			std::stringstream stream;
+			std::regex regex("ERROR: ([0-9]{0,}):([0-9]{0,}): (.*)", std::regex_constants::ECMAScript | std::regex_constants::icase);
 			
-			if(std::regex_search(error, regex))
+			for(auto i = std::sregex_iterator(error.begin(), error.end(), regex); i != std::sregex_iterator(); i ++)
 			{
-				std::regex lineRegex("[0-9]{0,}:[0-9]{0,}:", std::regex_constants::ECMAScript | std::regex_constants::icase);
-				std::string parsedError = "";
+				std::smatch match = *i;
+				uint32_t line;
 				
-				for(auto i = std::sregex_iterator(error.begin(), error.end(), regex); i != std::sregex_iterator(); i ++)
-				{
-					std::string match = i->str();
-					std::smatch lineMatch;
-					
-					std::regex_search(match, lineMatch, lineRegex);
-					std::string lineString = lineMatch.str();
-					
-					bool skippedColumn = false;
-					uint32 line = 0;
-					
-					for(size_t j = 0; j < lineString.length() - 1; j ++)
-					{
-						if(!skippedColumn && lineString[j] == ':')
-						{
-							skippedColumn = true;
-							continue;
-						}
-						
-						if(skippedColumn)
-						{
-							std::string temp = lineString.substr(j, (lineString.length() - 1) - j);
-							line = atoi(temp.c_str());
-							
-							break;
-						}
-					}
-					
-					
-					Shader::DebugMarker marker = _host->ResolveFileForLine(_type, line);
-					char buffer[32];
-					
-					sprintf(buffer, "%u", static_cast<uint32>(marker.line - offst));
-					parsedError += marker.file + " " + buffer + ", Error: " + match.substr(lineString.length() + 8) + "\n";
-				}
+				std::istringstream(match[2]) >> line;
 				
-				result = parsedError;
+				Shader::DebugMarker marker = _host->ResolveFileForLine(_type, line);
+				stream << marker.file << " " << marker.line - offset << ":" << match[1] << ", Error: " << match[3] << "\n";
 			}
+			
+			result = stream.str();
 		}
 		
 		throw Exception(Exception::Type::ShaderCompilationFailedException, result);
