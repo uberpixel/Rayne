@@ -38,8 +38,6 @@ namespace RN
 		};
 		
 		
-#define _internals (reinterpret_cast<FontInternals *>(_finternals))
-		
 		Font::Font(const std::string& name, float size) :
 			Font(name, size, FontDescriptor())
 		{}
@@ -60,7 +58,6 @@ namespace RN
 			
 			_textureTag = _texture->GetTag();
 			
-			_finternals = 0;
 			_size       = size;
 			_faceIndex  = 0;
 			
@@ -150,13 +147,69 @@ namespace RN
 					CFRelease(fontName);
 				}
 #endif
+				
+#if RN_PLATFORM_WINDOWS
+				HKEY hKey;
+				LONG result;
+				
+				std::wstring faceName(name.begin(), name.end());
+				
+				result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts", 0, KEY_READ, &hKey);
+				if(result != ERROR_SUCCESS)
+					throw e;
+				
+				DWORD maxValueNameSize, maxValueDataSize;
+				result = RegQueryInfoKey(hKey, 0, 0, 0, 0, 0, 0, 0, &maxValueNameSize, &maxValueDataSize, 0, 0);
+				if(result != ERROR_SUCCESS)
+					throw e;
+				
+				LPWSTR valueName = new WCHAR[maxValueNameSize];
+				LPBYTE valueData = new BYTE[maxValueDataSize];
+				DWORD valueIndex = 0;
+				DWORD valueNameSize, valueDataSize, valueType;
+				std::wstring fontFile;
+				
+				do {
+					
+					fontFile.clear();
+					valueDataSize = maxValueDataSize;
+					valueNameSize = maxValueNameSize;
+					
+					result = RegEnumValue(hKey, valueIndex, valueName, &valueNameSize, 0, &valueType, valueData, &valueDataSize);
+					valueIndex ++;
+					
+					if(result != ERROR_SUCCESS || valueType != REG_SZ)
+						continue;
+					
+					std::wstring wsValueName(valueName, valueNameSize);
+					
+					if(_wcsnicmp(faceName.c_str(), wsValueName.c_str(), faceName.length()) == 0)
+					{
+						fontFile.assign((LPWSTR)valueData, valueDataSize);
+						break;
+					}
+					
+				} while(result != ERROR_NO_MORE_ITEMS)
+				
+				delete [] valueName;
+				delete [] valueData;
+				
+				RegCloseKey(hKey);
+				
+				WCHAR winDir[MAX_PATH];
+				GetWindowsDirectory(winDir, MAX_PATH);
+				
+				std::wstringstream ss;
+				ss << winDir << "\\Fonts\\" << wsFontFile;
+				
+				fontFile = ss.str();
+				path     = std::string(fontFile.begin(), fontFile.end());
+#endif
 			}
 			
 			_fontPath = path;
 			
 			// Find the correct face
-			_finternals = new FontInternals;
-			
 			FT_Long flags = static_cast<FT_Long>(_descriptor.style); // FontStyle has the same values as FT_STYLE_FLAG_XXX
 			FT_Long faces = 0;
 			
@@ -193,12 +246,6 @@ namespace RN
 		
 		void Font::InitializeInternals()
 		{
-			if(_finternals)
-				return;
-			
-			_finternals = new FontInternals;
-			
-			//FT_Error error;
 			FT_Init_FreeType(&_internals->library);
 			
 			FT_UInt hres = 64;
@@ -219,14 +266,8 @@ namespace RN
 		
 		void Font::DropInternals()
 		{
-			if(!_finternals)
-				return;
-			
 			FT_Done_Face(_internals->face);
 			FT_Done_FreeType(_internals->library);
-			
-			delete _internals;
-			_finternals = 0;
 		}
 		
 		float Font::ConvertFontUnit(float unit) const
@@ -458,7 +499,5 @@ namespace RN
 			return lineHeight + ascenderDelta;
 		}
 	}
-	
-#undef _internals
 }
 

@@ -85,6 +85,8 @@ namespace RN
 			FontStyle style;
 		};
 		
+		struct FontInternals;
+		
 		class Font : public Object
 		{
 		friend class Glyph;
@@ -124,8 +126,8 @@ namespace RN
 			float ConvertFontUnit(float unit) const;
 			
 			std::string _fontPath;
-			void *_finternals;
 			size_t _faceIndex;
+			PIMPL<FontInternals> _internals;
 			
 			float _size;
 			float _scale;
