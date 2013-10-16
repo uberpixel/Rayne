@@ -6,15 +6,15 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "RNException.h"
+#include "RNThread.h"
+
 #if RN_PLATFORM_POSIX
 #include <cxxabi.h>
 #include <execinfo.h>
 #include <stdlib.h>
 #include <dlfcn.h>
 #endif
-
-#include "RNException.h"
-#include "RNThread.h"
 
 #define kRNExceptionMaxSymbols 32
 
