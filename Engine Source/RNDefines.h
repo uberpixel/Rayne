@@ -26,9 +26,11 @@
 #define RN_TARGET_OPENGL_ES 0
 
 #if defined(__APPLE__) && defined(__MACH__)
+
+	#include <TargetConditionals.h>
 	#define RN_PLATFORM_POSIX 1
 
-	#ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
+	#ifdef TARGET_OS_MAC
 		#undef RN_PLATFORM_MAC_OS
 		#undef RN_PLATFORM_INTEL
 		#undef RN_TARGET_OPENGL
@@ -44,7 +46,7 @@
 		#define RN_PLATFORM_IOS     1
 		#define RN_PLATFORM_ARM     1
 		#define RN_TARGET_OPENGL_ES 1
-	#endif /* __MAC_OS_X_VERSION_MAX_ALLOWED */
+	#endif /* TARGET_OS_MAC */
 
 	#ifdef __LP64__
 		#undef  RN_PLATFORM_64BIT
@@ -53,7 +55,6 @@
 		#undef  RN_PLATFORM_32BIT
 		#define RN_PLATFORM_32BIT 1
 	#endif /* __LP64__ */
-
 #endif /* defined(__APPLE__) && defined(__MACH__) */
 
 #if defined(_WIN32)
@@ -106,7 +107,6 @@
 #endif /* defined(__linux__) */
 
 
-
 #if defined(_MSC_VER)
 
 	typedef signed char				int8;
@@ -152,7 +152,6 @@
 	#else
 		#define RNAPI
 	#endif
-
 #else
 	#error "Unsupported compiler."
 #endif
