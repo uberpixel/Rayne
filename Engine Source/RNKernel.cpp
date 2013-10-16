@@ -8,6 +8,7 @@
 
 #include "RNKernel.h"
 #include "RNBaseInternal.h"
+#include "RNContextInternal.h"
 #include "RNWorld.h"
 #include "RNOpenGL.h"
 #include "RNThreadPool.h"
@@ -274,7 +275,7 @@ namespace RN
 		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidEndFrameMessage, nullptr, nullptr);
 		
 #if RN_PLATFORM_MAC_OS
-		CGLFlushDrawable((CGLContextObj)[(NSOpenGLContext *)_context->_oglContext CGLContextObj]);
+		CGLFlushDrawable(_context->_internals->cglContext);
 #endif
 		
 #if RN_PLATFORM_LINUX

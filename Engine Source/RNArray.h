@@ -221,18 +221,18 @@ namespace RN
 		}
 		
 		template<typename T=Object>
-		T* GetFirstObject() const
+		T *GetFirstObject() const
 		{
-			if(this->_count == 0)
+			if(_count == 0)
 				return nullptr;
 			
 			return _data[0]->Downcast<T>();
 		}
 		
 		template<typename T=Object>
-		T* GetLastObject() const
+		T *GetLastObject() const
 		{
-			if(this->_count == 0)
+			if(_count == 0)
 				return nullptr;
 			
 			return _data[_count - 1]->Downcast<T>();

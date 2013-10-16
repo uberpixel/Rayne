@@ -137,9 +137,9 @@ namespace RN
 					image->SetEdgeInsets(Style::ParseEdgeInsets(insets));
 				
 				if(useBackground)
-					this->SetBackgroundImageForState(image->Autorelease(), tstate);
+					SetBackgroundImageForState(image->Autorelease(), tstate);
 				else
-					this->SetImageForState(image->Autorelease(), tstate);
+					SetImageForState(image->Autorelease(), tstate);
 			});
 			
 			SetContentInsets(Style::ParseEdgeInsets(style->GetObjectForKey<Dictionary>(RNCSTR("contentInsets"))));

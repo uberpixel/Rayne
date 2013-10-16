@@ -325,10 +325,10 @@ namespace RN
 			other->Deactivate();
 		}
 
-		this->Activate();
+		Activate();
 
-		this->_active = true;
-		this->_thread = thread;
+		_active = true;
+		_thread = thread;
 
 		thread->_context = this;
 		thread->_mutex.Unlock();
