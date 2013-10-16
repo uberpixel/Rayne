@@ -240,8 +240,8 @@ namespace RN
 		
 		void DrawBox(const Vector3& tmin, const Vector3& tmax, const Color& color)
 		{
-			Vector3 min = Vector3(MIN(tmin.x, tmax.x), MIN(tmin.y, tmax.y), MIN(tmin.z, tmax.z));
-			Vector3 max = Vector3(MAX(tmin.x, tmax.x), MAX(tmin.y, tmax.y), MAX(tmin.z, tmax.z));
+			Vector3 min = Vector3(std::min(tmin.x, tmax.x), std::min(tmin.y, tmax.y), std::min(tmin.z, tmax.z));
+			Vector3 max = Vector3(std::max(tmin.x, tmax.x), std::max(tmin.y, tmax.y), std::max(tmin.z, tmax.z));
 			
 			// Top and bottom
 			AddLinePoint(min, color);

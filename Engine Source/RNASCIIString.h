@@ -36,8 +36,11 @@ namespace RN
 	protected:
 		ConstantASCIIString();
 		
+		void UpdateHash();
+		
 		char *_string;
 		size_t _length;
+		machine_hash _hash;
 		
 		RNDefineMeta(ConstantASCIIString, BasicString)
 	};

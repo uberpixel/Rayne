@@ -94,12 +94,12 @@ namespace RN
 		_spawnRate = spawnRate;
 	}
 	
-	void ParticleEmitter::SetParticlesPerSecond(uint32 particles)
+	void ParticleEmitter::SetParticlesPerSecond(size_t particles)
 	{
 		_spawnRate = 1.0f / particles;
 	}
 	
-	void ParticleEmitter::SetMaxParticles(uint32 maxParticles)
+	void ParticleEmitter::SetMaxParticles(size_t maxParticles)
 	{
 		_maxParticles = maxParticles;
 		
@@ -158,7 +158,7 @@ namespace RN
 		return particle;
 	}
 	
-	void ParticleEmitter::SpawnParticles(uint32 particles)
+	void ParticleEmitter::SpawnParticles(size_t particles)
 	{
 		if(particles == 0)
 			return;
@@ -203,13 +203,13 @@ namespace RN
 		if(_spawnRate < k::EpsilonFloat)
 			return;
 		
-		int spawn = floorf((_accDelta + delta) / _spawnRate);
+		size_t spawn = floorf((_accDelta + delta) / _spawnRate);
 		_accDelta = fmodf((_accDelta + delta), _spawnRate);
 		
 		if(spawn > 0)
 		{
 			if(_maxParticles > 0)
-				spawn = MIN(_maxParticles - (uint32)_particles.size(), spawn);
+				spawn = std::min(_maxParticles - _particles.size(), spawn);
 			
 			SpawnParticles(spawn);
 		}

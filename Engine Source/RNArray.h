@@ -286,7 +286,7 @@ namespace RN
 			
 			if(required >= _size)
 			{
-				size_t tsize = MAX(required, _size * 2);
+				size_t tsize = std::max(required, _size * 2);
 				Object **tdata = new Object *[tsize];
 				
 				if(tdata)

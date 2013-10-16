@@ -39,9 +39,12 @@ namespace RN
 		ConstantUTF8String();
 		ConstantUTF8String(const uint8 *string, size_t size);
 		
+		void UpdateHash();
+		
 		uint8 *_string;
 		size_t _length;
 		size_t _size;
+		machine_hash _hash;
 		
 		RNDefineMeta(ConstantUTF8String, BasicString)
 	};

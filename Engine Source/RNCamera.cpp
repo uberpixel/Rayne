@@ -854,12 +854,12 @@ namespace RN
 
 		Vector3 vmax;
 		Vector3 vmin;
-		vmax.x = MAX(pos1.x, MAX(pos4.x, MAX(pos2.x, MAX(pos3.x, MAX(pos5.x, pos6.x)))));
-		vmax.y = MAX(pos1.y, MAX(pos4.y, MAX(pos2.y, MAX(pos3.y, MAX(pos5.y, pos6.y)))));
-		vmax.z = MAX(pos1.z, MAX(pos4.z, MAX(pos2.z, MAX(pos3.z, MAX(pos5.z, pos6.z)))));
-		vmin.x = MIN(pos1.x, MIN(pos4.x, MIN(pos2.x, MIN(pos3.x, MIN(pos5.x, pos6.x)))));
-		vmin.y = MIN(pos1.y, MIN(pos4.y, MIN(pos2.y, MIN(pos3.y, MIN(pos5.y, pos6.y)))));
-		vmin.z = MIN(pos1.z, MIN(pos4.z, MIN(pos2.z, MIN(pos3.z, MIN(pos5.z, pos6.z)))));
+		vmax.x = std::max(pos1.x, std::max(pos4.x, std::max(pos2.x, std::max(pos3.x, std::max(pos5.x, pos6.x)))));
+		vmax.y = std::max(pos1.y, std::max(pos4.y, std::max(pos2.y, std::max(pos3.y, std::max(pos5.y, pos6.y)))));
+		vmax.z = std::max(pos1.z, std::max(pos4.z, std::max(pos2.z, std::max(pos3.z, std::max(pos5.z, pos6.z)))));
+		vmin.x = std::min(pos1.x, std::min(pos4.x, std::min(pos2.x, std::min(pos3.x, std::min(pos5.x, pos6.x)))));
+		vmin.y = std::min(pos1.y, std::min(pos4.y, std::min(pos2.y, std::min(pos3.y, std::min(pos5.y, pos6.y)))));
+		vmin.z = std::min(pos1.z, std::min(pos4.z, std::min(pos2.z, std::min(pos3.z, std::min(pos5.z, pos6.z)))));
 
 		_frustumCenter = vmax + vmin;
 		_frustumCenter = _frustumCenter * 0.5f;

@@ -333,8 +333,8 @@ namespace RN
 	{
 		Vector2 result;
 		
-		result.x = _generator->RandomFloatRange(MIN(min.x, max.x), MAX(min.x, max.x));
-		result.y = _generator->RandomFloatRange(MIN(min.y, max.y), MAX(min.y, max.y));
+		result.x = _generator->RandomFloatRange(std::min(min.x, max.x), std::max(min.x, max.x));
+		result.y = _generator->RandomFloatRange(std::min(min.y, max.y), std::max(min.y, max.y));
 		
 		return result;
 	}
@@ -343,9 +343,9 @@ namespace RN
 	{
 		Vector3 result;
 		
-		result.x = _generator->RandomFloatRange(MIN(min.x, max.x), MAX(min.x, max.x));
-		result.y = _generator->RandomFloatRange(MIN(min.y, max.y), MAX(min.y, max.y));
-		result.z = _generator->RandomFloatRange(MIN(min.z, max.z), MAX(min.z, max.z));
+		result.x = _generator->RandomFloatRange(std::min(min.x, max.x), std::max(min.x, max.x));
+		result.y = _generator->RandomFloatRange(std::min(min.y, max.y), std::max(min.y, max.y));
+		result.z = _generator->RandomFloatRange(std::min(min.z, max.z), std::max(min.z, max.z));
 		
 		return result;
 	}
@@ -354,10 +354,10 @@ namespace RN
 	{
 		Vector4 result;
 		
-		result.x = _generator->RandomFloatRange(MIN(min.x, max.x), MAX(min.x, max.x));
-		result.y = _generator->RandomFloatRange(MIN(min.y, max.y), MAX(min.y, max.y));
-		result.z = _generator->RandomFloatRange(MIN(min.z, max.z), MAX(min.z, max.z));
-		result.w = _generator->RandomFloatRange(MIN(min.w, max.w), MAX(min.w, max.w));
+		result.x = _generator->RandomFloatRange(std::min(min.x, max.x), std::max(min.x, max.x));
+		result.y = _generator->RandomFloatRange(std::min(min.y, max.y), std::max(min.y, max.y));
+		result.z = _generator->RandomFloatRange(std::min(min.z, max.z), std::max(min.z, max.z));
+		result.w = _generator->RandomFloatRange(std::min(min.w, max.w), std::max(min.w, max.w));
 		
 		return result;
 	}
