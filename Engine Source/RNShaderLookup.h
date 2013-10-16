@@ -24,7 +24,7 @@ namespace RN
 			name(tname)
 		{
 			std::stringstream stream;
-			stream << value;
+			stream << tvalue;
 			
 			value = stream.str();
 		}
