@@ -24,7 +24,7 @@ namespace RN
 	public:
 		enum class Type
 		{
-			PointLight ,
+			PointLight,
 			SpotLight,
 			DirectionalLight
 		};
