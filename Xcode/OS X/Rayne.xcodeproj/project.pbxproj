@@ -856,6 +856,7 @@
 			children = (
 				E9619DFA1696157E00DA187E /* RNContext.cpp */,
 				E9619DFB1696157E00DA187E /* RNContext.h */,
+				E93F7052180E064400593EF6 /* RNContextInternal.h */,
 				E9619E051696157E00DA187E /* RNMaterial.cpp */,
 				E9619E061696157E00DA187E /* RNMaterial.h */,
 				E9619E091696157E00DA187E /* RNMesh.cpp */,
