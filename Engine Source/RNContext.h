@@ -17,6 +17,8 @@
 namespace RN
 {
 	class Window;
+	struct ContextInternals;
+	
 	class Context : public Object
 	{
 	public:
@@ -57,33 +59,8 @@ namespace RN
 		GLfloat _depthClear;
 		GLint _stencilClear;
 		Color _clearColor;
-		
-#if RN_PLATFORM_MAC_OS
-		void *_oglContext;
-		void *_oglPixelFormat;
-		void *_cglContext;
-#endif
 
-#if RN_PLATFORM_IOS
-		void *_oglContext;
-#endif
-
-#if RN_PLATFORM_WINDOWS
-		HWND CreateOffscreenWindow();
-
-		HWND _hWnd;
-		HDC _hDC;
-		HGLRC _context;
-		int _pixelFormat;
-#endif
-
-#if RN_PLATFORM_LINUX
-		static Display *_dpy;
-
-		XVisualInfo *_vi;
-		GLXContext _context;
-		XID _win;
-#endif
+		PIMPL<ContextInternals> _internals;
 		
 		RNDefineMeta(Context, Object)
 	};

@@ -8,6 +8,7 @@
 
 #include "RNWindow.h"
 #include "RNBaseInternal.h"
+#include "RNContextInternal.h"
 
 #include "RNFile.h"
 #include "RNTexture.h"
@@ -381,6 +382,38 @@
 namespace RN
 {
 	RNDeclareMeta(WindowConfiguration)
+
+	// ---------------------
+	// MARK: -
+	// MARK: WindowInternals
+	// ---------------------
+	
+	struct WindowInternals
+	{
+#if RN_PLATFORM_MAC_OS
+		RNNativeWindow *nativeWindow;
+#endif
+		
+#if RN_PLATFORM_IOS
+		UIWindow *nativeWindow;
+		UIViewController *rootViewController;
+		UIView *renderingView;
+#endif
+		
+#if RN_PLATFORM_LINUX
+		Display *dpy;
+		XID win;
+		XRRScreenConfiguration *screenConfig;
+		SizeID originalSize;
+		Rotation originalRotation;
+		Cursor emptyCursor;
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		HWND _hWnd;
+		HDC _hDC;
+#endif
+	};
 	
 	// ---------------------
 	// MARK: -
@@ -537,7 +570,7 @@ namespace RN
 		}
 		
 		delete[] table;
-		_nativeWindow = nullptr;
+		_internals->nativeWindow = nil;
 #endif
 		
 #if RN_PLATFORM_LINUX
@@ -582,17 +615,15 @@ namespace RN
 	Window::~Window()
 	{
 #if RN_PLATFORM_MAC_OS
-		[(RNNativeWindow *)_nativeWindow release];
+		[_internals->nativeWindow release];
 #endif
 
 #if RN_PLATFORM_LINUX
-		XRRFreeScreenConfigInfo(_screenConfig);
+		XRRFreeScreenConfigInfo(_internals->screenConfig);
 #endif
 		
 		for(Screen *screen : _screens)
-		{
 			delete screen;
-		}
 		
 		_activeConfiguration->Release();
 	}
@@ -602,11 +633,11 @@ namespace RN
 		_title = title;
 		
 #if RN_PLATFORM_MAC_OS
-		[(RNNativeWindow *)_nativeWindow setTitle:[NSString stringWithUTF8String:title.c_str()]];
+		[_internals->nativeWindow setTitle:[NSString stringWithUTF8String:title.c_str()]];
 #endif
 		
 #if RN_PLATFORM_LINUX
-		XStoreName(_dpy, _win, title.c_str());	
+		XStoreName(_internals->dpy, _internals->win, title.c_str());
 #endif
 	}
 	
@@ -624,17 +655,17 @@ namespace RN
 		uint32 height = configuration->GetHeight();
 		
 #if RN_PLATFORM_MAC_OS
-		[(RNNativeWindow *)_nativeWindow release];
+		[_internals->nativeWindow release];
 		
 		if(mask & WindowMaskFullscreen)
 		{
 			const Rect& rect = screen->GetFrame();
 			
-			_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(rect.x, rect.y, rect.width, rect.height) andStyleMask:NSBorderlessWindowMask];
-			[(RNNativeWindow *)_nativeWindow setLevel:NSMainMenuWindowLevel + 1];
-			[(RNNativeWindow *)_nativeWindow setBackgroundColor:[NSColor blackColor]];
-			[(RNNativeWindow *)_nativeWindow setOpaque:YES];
-			[(RNNativeWindow *)_nativeWindow setHidesOnDeactivate:YES];
+			_internals->nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(rect.x, rect.y, rect.width, rect.height) andStyleMask:NSBorderlessWindowMask];
+			[_internals->nativeWindow setLevel:NSMainMenuWindowLevel + 1];
+			[_internals->nativeWindow setBackgroundColor:[NSColor blackColor]];
+			[_internals->nativeWindow setOpaque:YES];
+			[_internals->nativeWindow setHidesOnDeactivate:YES];
 			
 			renderer->SetDefaultFrame(rect.width, rect.height);
 			renderer->SetDefaultFactor(rect.width / width, rect.height / height);
@@ -646,51 +677,51 @@ namespace RN
 			uint32 x = screen->GetFrame().x + ((screen->GetWidth()  / 2.0f) - (width / 2.0f));
 			uint32 y = screen->GetFrame().y + ((screen->GetHeight() / 2.0f) - (height / 2.0f));
 			
-			_nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(x, y, width, height) andStyleMask:windowStyleMask];
+			_internals->nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(x, y, width, height) andStyleMask:windowStyleMask];
 			
 			renderer->SetDefaultFrame(width, height);
 			renderer->SetDefaultFactor(1.0f, 1.0f);
 		}
 		
-		[(RNNativeWindow *)_nativeWindow setReleasedWhenClosed:NO];
-		[(RNNativeWindow *)_nativeWindow setAcceptsMouseMovedEvents:YES];
-		[(RNNativeWindow *)_nativeWindow setOpenGLContext:(NSOpenGLContext *)_context->_oglContext andPixelFormat:(NSOpenGLPixelFormat *)_context->_oglPixelFormat];
+		[_internals->nativeWindow setReleasedWhenClosed:NO];
+		[_internals->nativeWindow setAcceptsMouseMovedEvents:YES];
+		[_internals->nativeWindow setOpenGLContext:_context->_internals->context andPixelFormat:_context->_internals->pixelFormat];
 		
-		[(RNNativeWindow *)_nativeWindow makeKeyAndOrderFront:nil];
+		[_internals->nativeWindow makeKeyAndOrderFront:nil];
 		
 		GLint sync = (mask & WindowMaskVSync) ? 1 : 0;
-		[(NSOpenGLContext *)_context->_oglContext setValues:&sync forParameter:NSOpenGLCPSwapInterval];
-		[(NSOpenGLContext *)_context->_oglContext update];
+		[_context->_internals->context setValues:&sync forParameter:NSOpenGLCPSwapInterval];
+		[_context->_internals->context update];
 #endif
 		
 #if RN_PLATFORM_LINUX
 		XSetWindowAttributes windowAttributes;
-		XID rootWindow = DefaultRootWindow(_dpy);
+		XID rootWindow = DefaultRootWindow(_internals->dpy);
 		
-		XUnmapWindow(_dpy, _win);
+		XUnmapWindow(_internals->dpy, _internals->win);
 		bool displayChanged = false;
 		
 		if(mask & WindowMaskFullscreen)
 		{
-			XRRSetScreenConfig(_win, _screenConfig, rootWindow, configuration->_modeIndex, RR_Rotate_0, CurrentTime);
-			XMoveResizeWindow(_dpy, _win, 0, 0, width, height);
+			XRRSetScreenConfig(_internals->win, _internals->screenConfig, rootWindow, configuration->_modeIndex, RR_Rotate_0, CurrentTime);
+			XMoveResizeWindow(_internals->dpy, _internals->win, 0, 0, width, height);
 			
 			windowAttributes.override_redirect = true;
-			XChangeWindowAttributes(_dpy, _win, CWOverrideRedirect, &windowAttributes);
+			XChangeWindowAttributes(_internals->dpy, _internals->win, CWOverrideRedirect, &windowAttributes);
 		}
 		else
 		{
-			XRRSetScreenConfig(_dpy, _screenConfig, rootWindow, _originalSize, _originalRotation, CurrentTime);
+			XRRSetScreenConfig(_internals->dpy, _internals->screenConfig, rootWindow, _internals->originalSize, _internals->originalRotation, CurrentTime);
 				
 			windowAttributes.override_redirect = false;
-			XChangeWindowAttributes(_dpy, _win, CWOverrideRedirect, &windowAttributes);
+			XChangeWindowAttributes(_internals->dpy, _internals->win, CWOverrideRedirect, &windowAttributes);
 			
-			Screen *screen = DefaultScreenOfDisplay(_dpy);
+			Screen *screen = DefaultScreenOfDisplay(_internals->dpy);
 			
 			uint32 originX = (WidthOfScreen(screen) / 2) - (width / 2);
 			uint32 originY = (HeightOfScreen(screen) / 2) - (height / 2);
 			
-			XMoveResizeWindow(_dpy, _win, originX, originY, width, height);
+			XMoveResizeWindow(_internals->dpy, _internals->win, originX, originY, width, height);
 		}
 		
 		renderer->SetDefaultFrame(width, height);
@@ -702,15 +733,13 @@ namespace RN
 		sizeHints->min_height = height;
 		sizeHints->max_width  = width;
 		sizeHints->max_height = height;
-		XSetWMNormalHints(_dpy, _win, sizeHints);
+		XSetWMNormalHints(_internals->dpy, _internals->win, sizeHints);
 		XFree(sizeHints);
 		
-		XMapRaised(_dpy, _win);
+		XMapRaised(_internals->dpy, _internals->win);
 		
 		if(mask & WindowMaskFullscreen)
-		{
-			XSetInputFocus(_dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
-		}
+			XSetInputFocus(_internals->dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
 #endif
 		
 		bool screenChanged = (_activeScreen != screen);
@@ -765,7 +794,7 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_LINUX
-		XUndefineCursor(_dpy, _win);
+		XUndefineCursor(_internals->dpy, _internals->win);
 #endif
 	}
 	
@@ -781,7 +810,7 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_LINUX
-		XDefineCursor(_dpy, _win, _emptyCursor);
+		XDefineCursor(_internals->dpy, _internals->win, _internals->emptyCursor);
 #endif
 	}
 	

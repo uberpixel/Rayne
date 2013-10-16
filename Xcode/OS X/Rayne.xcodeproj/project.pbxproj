@@ -338,6 +338,7 @@
 		E93CE16117D83DB700A7A8A3 /* RNKVO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNKVO.cpp; sourceTree = "<group>"; };
 		E93CE16217D83DB700A7A8A3 /* RNKVO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNKVO.h; sourceTree = "<group>"; };
 		E93CE16517D87F9E00A7A8A3 /* RNSTL.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSTL.h; sourceTree = "<group>"; };
+		E93F7052180E064400593EF6 /* RNContextInternal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNContextInternal.h; sourceTree = "<group>"; };
 		E940FAC4178072FA00C69B88 /* RNIntervalTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNIntervalTree.h; sourceTree = "<group>"; };
 		E940FACD178084D100C69B88 /* RNAttributedString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNAttributedString.cpp; sourceTree = "<group>"; };
 		E940FACE178084D100C69B88 /* RNAttributedString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAttributedString.h; sourceTree = "<group>"; };

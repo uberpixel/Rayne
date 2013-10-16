@@ -7,6 +7,7 @@
 //
 
 #include "RNContext.h"
+#include "RNContextInternal.h"
 #include "RNBaseInternal.h"
 #include "RNMutex.h"
 #include "RNSettings.h"
@@ -73,9 +74,9 @@ namespace RN
 		Initialize(version);
 		
 #if RN_PLATFORM_MAC_OS
-		CreateOpenGLContext(version, reinterpret_cast<NSOpenGLContext **>(&_oglContext), reinterpret_cast<NSOpenGLPixelFormat **>(&_oglPixelFormat));
+		CreateOpenGLContext(version, &_internals->context, &_internals->pixelFormat);
 
-		_cglContext = [static_cast<NSOpenGLContext *>(_oglContext) CGLContextObj];
+		_internals->cglContext = static_cast<CGLContextObj>([_internals->context CGLContextObj]);
 #endif
 	}
 	
@@ -87,15 +88,14 @@ namespace RN
 		_shared = shared->Retain();
 
 #if RN_PLATFORM_MAC_OS
-		_oglPixelFormat = [static_cast<NSOpenGLPixelFormat *>(_shared->_oglPixelFormat) retain];
+		_internals->pixelFormat = [_shared->_internals->pixelFormat retain];
 		
-		_oglContext = [[NSOpenGLContext alloc] initWithFormat:static_cast<NSOpenGLPixelFormat *>(_oglPixelFormat)
-												 shareContext:static_cast<NSOpenGLContext *>(_shared->_oglContext)];
+		_internals->context = [[NSOpenGLContext alloc] initWithFormat:_internals->pixelFormat shareContext:_shared->_internals->context];
 		
-		if(!_oglContext)
+		if(!_internals->context)
 			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
 		
-		_cglContext = [static_cast<NSOpenGLContext *>(_oglContext) CGLContextObj];
+		_internals->cglContext = static_cast<CGLContextObj>([_internals->context CGLContextObj]);
 		
 		if(_shared->_active && shared->_thread->OnThread())
 		{
@@ -275,8 +275,8 @@ namespace RN
 			_shared->Release();
 
 #if RN_PLATFORM_MAC_OS
-		[(id)_oglContext release];
-		[(id)_oglPixelFormat release];
+		[_internals->context release];
+		[_internals->pixelFormat release];
 #endif
 
 #if RN_PLATFORM_IOS
@@ -298,47 +298,10 @@ namespace RN
 		_firstActivation = true;
 		
 #if RN_PLATFORM_MAC_OS
-		_oglContext = nullptr;
-		_oglPixelFormat = nullptr;
+		_internals->context = nil;
+		_internals->pixelFormat = nil;
 #endif
 	}
-	
-	
-#if RN_PLATFORM_WINDOWS
-	HWND Context::CreateOffscreenWindow()
-	{
-		DWORD dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-		DWORD dwStyle = WS_OVERLAPPED | WS_CAPTION  | WS_SYSMENU | WS_MINIMIZEBOX | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
-
-		HINSTANCE hInstance = (HINSTANCE)GetModuleHandle(0);
-		RECT windowRect;
-
-		windowRect.left = 0;
-		windowRect.right = 1024;
-		windowRect.top = 0;
-		windowRect.bottom = 768;
-
-		AdjustWindowRectEx(&windowRect, dwStyle, false, dwExStyle);
-
-		HWND desktop = GetDesktopWindow();
-		RECT desktopRect;
-
-		GetWindowRect(desktop, &desktopRect);
-
-
-		LONG desktopWidth = desktopRect.right - desktopRect.left;
-		LONG desktopHeight = desktopRect.bottom - desktopRect.top;
-
-		LONG width = windowRect.right - windowRect.left;
-		LONG height = windowRect.bottom - windowRect.top;
-
-		windowRect.left = (desktopWidth / 2) - (width / 2);
-		windowRect.top = (desktopHeight / 2) - (height / 2);
-
-		HWND hWnd = CreateWindowExA(dwExStyle, "RNWindowClass", "", dwStyle, windowRect.left, windowRect.top, width, height, 0, 0, hInstance, 0);
-		return hWnd;
-	}
-#endif
 
 	void Context::MakeActiveContext()
 	{
@@ -439,7 +402,7 @@ namespace RN
 	void Context::Activate()
 	{
 #if RN_PLATFORM_MAC_OS
-		[(NSOpenGLContext *)_oglContext makeCurrentContext];
+		[_internals->context makeCurrentContext];
 #endif
 
 #if RN_PLATFORM_IOS
@@ -461,13 +424,6 @@ namespace RN
 			glGetFloatv(GL_DEPTH_CLEAR_VALUE, &_depthClear);
 			glGetIntegerv(GL_STENCIL_CLEAR_VALUE, &_stencilClear);
 			glGetFloatv(GL_COLOR_CLEAR_VALUE, &_clearColor.r);
-			
-#if GL_FRAMEBUFFER_SRGB
-/*			if(Settings::GetSharedInstance()->GammaCorrection())
-			{
-				glEnable(GL_FRAMEBUFFER_SRGB);
-			}*/
-#endif
 		}
 	}
 

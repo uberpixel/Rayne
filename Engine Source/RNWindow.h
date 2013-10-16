@@ -78,6 +78,8 @@ namespace RN
 	};
 	
 	class Kernel;
+	struct WindowInternals;
+	
 	class Window : public Singleton<Window>
 	{
 	public:
@@ -113,32 +115,10 @@ namespace RN
 		const std::vector<Screen *>& GetScreens() const { return _screens; }
 
 	private:
-#if RN_PLATFORM_MAC_OS
-		void *_nativeWindow;
-#endif
-
-#if RN_PLATFORM_IOS
-		void *_nativeWindow;
-		void *_rootViewController;
-		void *_renderingView;
-#endif
-		
-#if RN_PLATFORM_LINUX
-		Display *_dpy;
-		XID _win;
-		XRRScreenConfiguration *_screenConfig;
-		SizeID _originalSize;
-		Rotation _originalRotation;
-		Cursor _emptyCursor;
-#endif
-		
-#if RN_PLATFORM_WINDOWS
-		HWND _hWnd;
-		HDC _hDC;
-#endif
+		PIMPL<WindowInternals> _internals;
 
 		Context *_context;
-		Kernel *_kernel;
+		Kernel  *_kernel;
 		
 		std::string _title;
 		WindowMask _mask;
