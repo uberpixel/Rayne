@@ -10,7 +10,102 @@
 #define __RAYNE_DEFINES_H__
 
 #include <type_traits>
-#include "RNPlatform.h"
+
+#define RN_PLATFORM_MAC_OS  0
+#define RN_PLATFORM_WINDOWS 0
+#define RN_PLATFORM_IOS     0
+#define RN_PLATFORM_LINUX	0
+
+#define RN_PLATFORM_ARM   0
+#define RN_PLATFORM_INTEL 0
+
+#define RN_PLATFORM_32BIT 0
+#define RN_PLATFORM_64BIT 0
+
+#define RN_TARGET_OPENGL    0
+#define RN_TARGET_OPENGL_ES 0
+
+#if defined(__APPLE__) && defined(__MACH__)
+	#define RN_PLATFORM_POSIX 1
+
+	#ifdef __MAC_OS_X_VERSION_MAX_ALLOWED
+		#undef RN_PLATFORM_MAC_OS
+		#undef RN_PLATFORM_INTEL
+		#undef RN_TARGET_OPENGL
+
+		#define RN_PLATFORM_MAC_OS 1
+		#define RN_PLATFORM_INTEL  1
+		#define RN_TARGET_OPENGL   1
+	#else
+		#undef RN_PLATFORM_IOS
+		#undef RN_PLATFORM_ARM
+		#undef RN_TARGET_OPENGL_ES
+
+		#define RN_PLATFORM_IOS     1
+		#define RN_PLATFORM_ARM     1
+		#define RN_TARGET_OPENGL_ES 1
+	#endif /* __MAC_OS_X_VERSION_MAX_ALLOWED */
+
+	#ifdef __LP64__
+		#undef  RN_PLATFORM_64BIT
+		#define RN_PLATFORM_64BIT 1
+	#else
+		#undef  RN_PLATFORM_32BIT
+		#define RN_PLATFORM_32BIT 1
+	#endif /* __LP64__ */
+
+#endif /* defined(__APPLE__) && defined(__MACH__) */
+
+#if defined(_WIN32)
+	#undef RN_PLATFORM_WINDOWS
+	#undef RN_TARGET_OPENGL
+
+	#define RN_PLATFORM_WINDOWS 1
+	#define RN_TARGET_OPENGL    1
+
+	#pragma section(".CRT$XCU",read)
+	#pragma warning(disable: 4800)
+
+	#if defined(_WIN64)
+		#undef RN_PLATFORM_INTEL
+		#undef RN_PLATFORM_64BIT
+
+		#define RN_PLATFORM_INTEL 1
+		#define RN_PLATFORM_64BIT 1
+	#else
+		#undef RN_PLATFORM_INTEL
+		#undef RN_PLATFORM_32BIT
+
+		#define RN_PLATFORM_INTEL 1
+		#define RN_PLATFORM_32BIT 1
+	#endif /* defined(_WIN64) || defined(__amd64__) */
+#endif /* defined(_WIN32) */
+
+#if defined(__linux__)
+	#define RN_PLATFORM_POSIX 1
+
+	#undef RN_PLATFORM_LINUX
+	#undef RN_TARGET_OPENGL
+
+	#define RN_PLATFORM_LINUX 1
+	#define RN_TARGET_OPENGL 1
+
+	#if defined(__x86_64__)
+		#undef RN_PLATFORM_INTEL
+		#undef RN_PLATFORM_64BIT
+
+		#define RN_PLATFORM_INTEL 1
+		#define RN_PLATFORM_64BIT 1
+	#else
+		#undef RN_PLATFORM_INTEL
+		#undef RN_PLATFORM_32BIT
+
+		#define RN_PLATFORM_INTEL 1
+		#define RN_PLATFORM_32BIT 1
+	#endif /* defined(_x86_64__) */
+#endif /* defined(__linux__) */
+
+
 
 #if defined(_MSC_VER)
 
@@ -63,13 +158,9 @@
 #endif
 
 #if RN_PLATFORM_32BIT
-
 	typedef size_t machine_hash;
-
 #elif RN_PLATFORM_64BIT
-
 	typedef size_t machine_hash;
-
 #else
 	#error Unknown platform
 #endif

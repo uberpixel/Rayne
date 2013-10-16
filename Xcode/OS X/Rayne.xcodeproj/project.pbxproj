@@ -124,7 +124,6 @@
 		E9619E401696157E00DA187E /* RNMutex.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E0C1696157E00DA187E /* RNMutex.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E411696157E00DA187E /* RNObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619E0D1696157E00DA187E /* RNObject.cpp */; };
 		E9619E421696157E00DA187E /* RNObject.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E0E1696157E00DA187E /* RNObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9619E451696157E00DA187E /* RNPlatform.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E111696157E00DA187E /* RNPlatform.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E471696157E00DA187E /* RNQuaternion.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E131696157E00DA187E /* RNQuaternion.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E481696157E00DA187E /* RNRect.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E141696157E00DA187E /* RNRect.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E4E1696157E00DA187E /* RNShader.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619E1A1696157E00DA187E /* RNShader.cpp */; };
@@ -413,7 +412,6 @@
 		E9619E0C1696157E00DA187E /* RNMutex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMutex.h; sourceTree = "<group>"; };
 		E9619E0D1696157E00DA187E /* RNObject.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNObject.cpp; sourceTree = "<group>"; };
 		E9619E0E1696157E00DA187E /* RNObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNObject.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		E9619E111696157E00DA187E /* RNPlatform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPlatform.h; sourceTree = "<group>"; };
 		E9619E131696157E00DA187E /* RNQuaternion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNQuaternion.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E9619E141696157E00DA187E /* RNRect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRect.h; sourceTree = "<group>"; };
 		E9619E1A1696157E00DA187E /* RNShader.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNShader.cpp; sourceTree = "<group>"; };
@@ -820,7 +818,6 @@
 				E9619E021696157E00DA187E /* RNKernel.h */,
 				E9B083F61718B1D0009AD83F /* RNMemory.cpp */,
 				E9B083F71718B1D1009AD83F /* RNMemory.h */,
-				E9619E111696157E00DA187E /* RNPlatform.h */,
 				E9780FBE16D82913001AE2ED /* RNSettings.cpp */,
 				E9780FBF16D82913001AE2ED /* RNSettings.h */,
 				E9B083B817175354009AD83F /* RNSIMD.h */,
@@ -978,7 +975,6 @@
 				E9619E3E1696157E00DA187E /* RNMesh.h in Headers */,
 				E9619E401696157E00DA187E /* RNMutex.h in Headers */,
 				E9619E421696157E00DA187E /* RNObject.h in Headers */,
-				E9619E451696157E00DA187E /* RNPlatform.h in Headers */,
 				E9619E471696157E00DA187E /* RNQuaternion.h in Headers */,
 				E9619E481696157E00DA187E /* RNRect.h in Headers */,
 				E9619E4F1696157E00DA187E /* RNShader.h in Headers */,

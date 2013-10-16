@@ -40,7 +40,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "RNPlatform.h"
 #include "RNDefines.h"
 #include "RNConstants.h"
 #include "RNException.h"
