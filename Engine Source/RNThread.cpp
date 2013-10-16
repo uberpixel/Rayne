@@ -101,11 +101,10 @@ namespace RN
 	
 	void Thread::AutoAssignName()
 	{
-		uint32 tid = __ThreadAtomicIDs.fetch_add(1);
-		char buffer[32];
-		sprintf(buffer, "RN::Thread %u", tid);
+		std::stringstream stream;
+		stream << "RN::Thread " << __ThreadAtomicIDs.fetch_add(1);
 		
-		_name = std::string(buffer);
+		_name = stream.str();
 	}
 	
 	void Thread::Detach()

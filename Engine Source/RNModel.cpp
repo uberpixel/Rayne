@@ -41,10 +41,10 @@ namespace RN
 		
 		while(stage < 5)
 		{
-			char buffer[32];
-			sprintf(buffer, "_lod%i.", stage);
+			std::stringstream stream;
+			stream << "_lod" << stage;
 			
-			std::string lodPath = PathManager::Join(base, (name + buffer + extension));
+			std::string lodPath = PathManager::Join(base, (name + stream.str() + extension));
 			
 			if(PathManager::PathExists(lodPath))
 			{

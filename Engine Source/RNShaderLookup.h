@@ -19,12 +19,14 @@ namespace RN
 			name(tname),
 			value(tvalue)
 		{}
+		
 		ShaderDefine(const std::string& tname, const int tvalue) :
-		name(tname)
+			name(tname)
 		{
-			char buffer[32];
-			sprintf(buffer, "%i", tvalue);
-			value = buffer;
+			std::stringstream stream;
+			stream << value;
+			
+			value = stream.str();
 		}
 		
 		

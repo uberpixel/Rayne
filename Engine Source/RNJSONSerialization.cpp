@@ -241,10 +241,10 @@ namespace RN
 		
 		if(!root)
 		{
-			char buffer[256];
-			sprintf(buffer, "%s\nLine: %i, column: %i", error.text, error.line, error.column);
-			
-			throw Exception(Exception::Type::GenericException, buffer);
+			std::stringstream stream;
+			stream << error.text << "\nLine: " << error.line << ", column: " << error.column;
+
+			throw Exception(Exception::Type::GenericException, stream.str());
 		}
 		
 		AutoreleasePool *pool = new AutoreleasePool();

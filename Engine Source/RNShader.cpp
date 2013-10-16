@@ -262,18 +262,18 @@ namespace RN
 	
 	void Shader::Define(const std::string& define, int32 value)
 	{
-		char buffer[32];
-		sprintf(buffer, "%i", value);
+		std::stringstream stream;
+		stream << value;
 		
-		Define(define, buffer);
+		Define(define, stream.str());
 	}
 	
 	void Shader::Define(const std::string& define, float value)
 	{
-		char buffer[32];
-		sprintf(buffer, "%f", value);
+		std::stringstream stream;
+		stream << value;
 		
-		_defines.emplace_back(ShaderDefine(define, buffer));
+		Define(define, stream.str());
 	}	
 	
 	void Shader::Undefine(const std::string& name)

@@ -231,10 +231,10 @@ namespace RN
 					
 				default:
 				{
-					char buffer[128];
-					sprintf(buffer, "Unknown framebuffer status %i\n", status);
+					std::stringstream stream;
+					stream << "Unknown framebuffer status " << status;
 					
-					Exception(Exception::Type::GenericException, buffer);
+					Exception(Exception::Type::GenericException, stream.str());
 					break;
 				}
 			}
