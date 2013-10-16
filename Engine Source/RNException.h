@@ -27,10 +27,13 @@ namespace RN
 			DowncastException,
 			
 			ApplicationNotFoundException,
-			ModuleNotFoundException,
 			NoCPUException,
 			NoGPUException,
 			NoContextException,
+			
+			ModuleNotFoundException,
+			ModuleUnsupportedABIException,
+			ModuleConstructFailedException,
 			
 			TextureFormatUnsupportedException,
 			

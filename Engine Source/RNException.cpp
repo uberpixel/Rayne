@@ -75,10 +75,13 @@ namespace RN
 			CaseType(Type::DowncastException)
 				
 			CaseType(Type::ApplicationNotFoundException)
-			CaseType(Type::ModuleNotFoundException)
 			CaseType(Type::NoCPUException)
 			CaseType(Type::NoGPUException)
 			CaseType(Type::NoContextException)
+				
+			CaseType(Type::ModuleNotFoundException)
+			CaseType(Type::ModuleUnsupportedABIException)
+			CaseType(Type::ModuleConstructFailedException)
 				
 			CaseType(Type::TextureFormatUnsupportedException)
 			
