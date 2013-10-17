@@ -580,7 +580,6 @@
 				E9F80709169704CC00773A34 /* Base */,
 				E94D18BB1753CE8E00F3B10D /* Debug */,
 				E9F8070B169704F700773A34 /* Math */,
-				E9BA20A4170AF3DF000CADF2 /* Modules */,
 				E9B083F31718A2E0009AD83F /* Objects */,
 				E9F8070C1697050D00773A34 /* Rendering */,
 				E9F8070D1697051C00773A34 /* Scene */,
@@ -704,15 +703,6 @@
 				E995E40E1694A0B300B2E0C3 /* libz.dylib */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		E9BA20A4170AF3DF000CADF2 /* Modules */ = {
-			isa = PBXGroup;
-			children = (
-				E92A626816DEA8C1006E68AF /* RNModule.cpp */,
-				E92A626916DEA8C1006E68AF /* RNModule.h */,
-			);
-			name = Modules;
 			sourceTree = "<group>";
 		};
 		E9C6F0A416B207BF006288D5 /* Assets */ = {
@@ -922,6 +912,8 @@
 				E91DBD6B17BC29850071B512 /* RNLockGuard.h */,
 				E991F1C416BB707300B205A1 /* RNMessage.cpp */,
 				E991F1C516BB707300B205A1 /* RNMessage.h */,
+				E92A626816DEA8C1006E68AF /* RNModule.cpp */,
+				E92A626916DEA8C1006E68AF /* RNModule.h */,
 				E9619E0B1696157E00DA187E /* RNMutex.cpp */,
 				E9619E0C1696157E00DA187E /* RNMutex.h */,
 				E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */,
