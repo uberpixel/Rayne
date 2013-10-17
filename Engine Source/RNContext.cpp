@@ -12,16 +12,16 @@
 #include "RNMutex.h"
 #include "RNSettings.h"
 
-#if RN_PLATFORM_WINDOWS
-extern void RNRegisterWindow();
-#endif
-
 namespace RN
 {
 	RNDeclareMeta(Context)
 	
 #if RN_PLATFORM_LINUX
 	Display *Context::_dpy = 0;
+#endif
+	
+#if RN_PLATFORM_WINDOWS
+	extern void RegisterWindowClass();
 #endif
 	
 #if RN_PLATFORM_MAC_OS
@@ -69,14 +69,99 @@ namespace RN
 	}
 #endif
 	
+#if RN_PLATFORM_WINDOWS
+	void CreateOpenGLContext(gl::Version version, HDC hDC, HGLRC shared, HGLRC *outContext)
+	{
+		int attributes[] =
+		{
+			WGL_CONTEXT_MAJOR_VERSION_ARB, 0,
+			WGL_CONTEXT_MINOR_VERSION_ARB, 0,
+			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+			0
+		};
+		
+		switch(version)
+		{
+			case gl::Version::Core4_1:
+				attributes[1] = 4;
+				attributes[3] = 1;
+				break;
+				
+			case gl::Version::Core3_2:
+				attributes[1] = 3;
+				attributes[3] = 2;
+				break;
+		}
+		
+		
+		HGLRC context = wglCreateContextAttribsARB(hDC, shared, attributes);
+		if(!context)
+			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+	}
+#endif
+	
+	
 	Context::Context(gl::Version version)
 	{
 		Initialize(version);
 		
 #if RN_PLATFORM_MAC_OS
 		CreateOpenGLContext(version, &_internals->context, &_internals->pixelFormat);
-
+		
 		_internals->cglContext = static_cast<CGLContextObj>([_internals->context CGLContextObj]);
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		RegisterWindowClass();
+		
+		_internals->hWnd = CreateOffscreenWindow();
+		_internals->hDC  = ::GetDC(_internals->hWnd);
+		
+		
+		PIXELFORMATDESCRIPTOR descriptor;
+		memset(&descriptor, 0, sizeof(PIXELFORMATDESCRIPTOR));
+		
+		descriptor.nSize      = sizeof(PIXELFORMATDESCRIPTOR);
+		descriptor.nVersion   = 1;
+		descriptor.dwFlags    = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+		descriptor.iPixelType = PFD_TYPE_RGBA;
+		descriptor.cColorBits = 24;
+		descriptor.cAlphaBits = 8;
+		descriptor.iLayerType = PFD_MAIN_PLANE;
+		
+		_internals->pixelFormat = ::ChoosePixelFormat(_internals->hDC, &descriptor);
+		if(!_internals->pixelFormat)
+			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+		
+		::SetPixelFormat(_internals->hDC, _internals->pixelFormat, &descriptor);
+		
+		
+		if(!wglCreateContextAttribsARB)
+		{
+			HGLRC tempContext = wglCreateContext(_internals->hDC);
+			wglMakeCurrent(_internals->hDC, tempContext);
+			
+			wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
+			if(!wglGetExtensionsStringARB)
+				throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+			
+			std::string extensions = std::string(static_cast<const char *>(wglGetExtensionsStringARB(_internals->hDC)));
+			
+			auto createContext = extensions.find("WGL_ARB_create_context");
+			auto coreProfile   = extensions.find("WGL_ARB_create_context_profile");
+			
+			if(createContext == std::string::npos || coreProfile == std::string::npos)
+				throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+			
+			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
+			wglChoosePixelFormatARB    = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+			wglSwapIntervalEXT         = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+			
+			wglMakeCurrent(_internals->hDC, 0);
+			wglDeleteContext(tempContext);
+		}
+		
+		CreateOpenGLContext(version, _internals->hDC, 0, &_internals->context);
 #endif
 	}
 	
@@ -102,96 +187,37 @@ namespace RN
 			_shared->Deactivate();
 			_shared->Activate();
 		}
+#endif
 
-#elif RN_PLATFORM_IOS
+#if RN_PLATFORM_IOS
 
 		EAGLSharegroup *sharegroup = _shared ? [(EAGLContext *)_shared->_oglContext sharegroup] : nil;
 
 		_oglContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2 sharegroup:sharegroup];
 		if(!_oglContext)
 			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
+#endif
 
-#elif RN_PLATFORM_WINDOWS
+#if RN_PLATFORM_WINDOWS
 		
-		RNRegisterWindow();
+		_internals->hWnd = CreateOffscreenWindow();
+		_internals->hDC  = ::GetDC(_internals->hWnd);
+		
+		_internals->pixelFormat = _shared->_internals->pixelFormat;
+		
+		::SetPixelFormat(_internals->hDC, _internals->pixelFormat, &descriptor);
+		CreateOpenGLContext(_version, _internals->hDC, _shared->_internals->context, &context);
 
-		_hWnd = CreateOffscreenWindow();
-		_hDC  = GetDC(_hWnd);
-
-		PIXELFORMATDESCRIPTOR descriptor;
-		memset(&descriptor, 0, sizeof(PIXELFORMATDESCRIPTOR));
-
-		descriptor.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-		descriptor.nVersion = 1;
-		descriptor.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-		descriptor.iPixelType = PFD_TYPE_RGBA;
-		descriptor.cColorBits = 24;
-		descriptor.cAlphaBits = 8;
-		descriptor.iLayerType = PFD_MAIN_PLANE;
-
-		_pixelFormat = ChoosePixelFormat(_hDC, &descriptor);
-		if(!_pixelFormat)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
-
-		SetPixelFormat(_hDC, _pixelFormat, &descriptor);
-
-		if(!wglCreateContextAttribsARB)
+		if(_shared->_active && shared->_thread->OnThread())
 		{
-			// Create a temporary pointer to get the right function pointer
-			HGLRC _temp = wglCreateContext(_hDC);
-			wglMakeCurrent(_hDC, _temp);
-
-			wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
-			if(!wglGetExtensionsStringARB)
-				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
-
-			std::string extensions = std::string((const char *)wglGetExtensionsStringARB(_hDC));
-
-			auto createContext = extensions.find("WGL_ARB_create_context");
-			auto coreProfile = extensions.find("WGL_ARB_create_context_profile");
-
-			if(createContext == std::string::npos || coreProfile == std::string::npos)
-				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsNoHardware);
-
-			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
-			wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
-			wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-
-			wglMakeCurrent(_hDC, 0);
-			wglDeleteContext(_temp);
+			_shared->Deactivate();
+			_shared->Activate();
 		}
 
-		int attributes[] =
-		{
-			WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-			WGL_CONTEXT_MINOR_VERSION_ARB, 2,
-			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-			0
-		};
+		wglShareLists(_internals->context, _shared->_internals->context);
+#endif
 
-		_context = wglCreateContextAttribsARB(_hDC, _shared ? _shared->_context : 0, attributes);
-		if(!_context)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
-
-		if(wglSwapIntervalEXT)
-		{
-			wglMakeCurrent(_hDC, _context);
-			wglSwapIntervalEXT(1);
-			wglMakeCurrent(_hDC, 0);
-		}
-
-		if(_shared)
-		{
-			if(_shared->_active && shared->_thread->OnThread())
-			{
-				_shared->Deactivate();
-				_shared->Activate();
-			}
-
-			wglShareLists(_context, _shared->_context);
-		}
-
-#elif RN_PLATFORM_LINUX
+#if RN_PLATFORM_LINUX
 
 		// TODO: identify which other attributes are needed here
 		Colormap             cmap;
@@ -260,10 +286,6 @@ namespace RN
 				_shared->Activate();
 			}
 		}
-
-
-#else
-		throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed);
 #endif
 	}
 

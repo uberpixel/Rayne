@@ -835,53 +835,49 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 #endif
 	}
-}
-
-
+	
 #if RN_PLATFORM_WINDOWS
-
-void RNRegisterWindow();
-
-LRESULT CALLBACK RNWndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	RN::Window *window = (RN::Window *)GetWindowLongPtr(hWnd, GWL_USERDATA);
-
-	switch(message)
+	LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
-		case WM_DESTROY:
-			if(window)
-			{
-				RN::Kernel::GetSharedInstance()->Exit();
-			}
-			break;
-
-		default:
-			return DefWindowProc(hWnd, message, wParam, lParam);
+		RN::Window *window = (RN::Window *)GetWindowLongPtr(hWnd, GWL_USERDATA);
+		
+		switch(message)
+		{
+			case WM_DESTROY:
+				if(window)
+				{
+					RN::Kernel::GetSharedInstance()->Exit();
+				}
+				break;
+				
+			default:
+				return DefWindowProc(hWnd, message, wParam, lParam);
+		}
+		
+		return 0;
 	}
-
-	return 0;
-}
-
-void RNRegisterWindow()
-{
-	static bool registered = false;
-	if(!registered)
+	
+	void RegisterWindowClass()
 	{
-		WNDCLASSEXA windowClass;
-		memset(&windowClass, 0, sizeof(WNDCLASSEXA));
-
-		windowClass.cbSize = sizeof(WNDCLASSEXA);
-		windowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-		windowClass.lpfnWndProc = RNWndProc;
-		windowClass.hInstance = (HINSTANCE)GetModuleHandle(0);
-		windowClass.hIcon = LoadIcon(0, IDI_APPLICATION);
-		windowClass.hCursor = LoadCursor(0, IDC_ARROW);
-		windowClass.lpszClassName = "RNWindowClass";
-		windowClass.hIconSm = LoadIcon(0, IDI_WINLOGO);
-
-		RegisterClassExA(&windowClass);
-		registered = true;
+		static std::once_flag token;
+		std::call_once([]{
+			
+			WNDCLASSEXA windowClass;
+			memset(&windowClass, 0, sizeof(WNDCLASSEXA));
+			
+			windowClass.cbSize = sizeof(WNDCLASSEXA);
+			windowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+			windowClass.lpfnWndProc = WindowProc;
+			windowClass.hInstance = (HINSTANCE)GetModuleHandle(0);
+			windowClass.hIcon = LoadIcon(0, IDI_APPLICATION);
+			windowClass.hCursor = LoadCursor(0, IDC_ARROW);
+			windowClass.lpszClassName = "RNWindowClass";
+			windowClass.hIconSm = LoadIcon(0, IDI_WINLOGO);
+			
+			RegisterClassExA(&windowClass);
+			
+		});
 	}
+	
+#endif /* RN_PLATFORM_WINDOWS */
 }
-
-#endif // RN_PLATFORM_WINDOWS
