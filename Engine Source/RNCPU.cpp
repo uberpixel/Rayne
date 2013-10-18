@@ -36,6 +36,9 @@ namespace RN
 #if RN_PLATFORM_POSIX
 			__asm__ volatile("cpuid" : "=a" (regs[0]), "=b" (regs[1]), "=c" (regs[2]), "=d" (regs[3]) : "a" (code), "c" (0));
 #endif
+#if RN_PLATFORM_WINDOWS
+			__cpuid(regs, code);
+#endif
 		}
 		
 		
