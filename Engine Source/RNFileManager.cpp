@@ -6,10 +6,6 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#import <Foundation/Foundation.h>
-#import <CoreServices/CoreServices.h>
-#include <dirent.h>
-
 #include "RNFileManager.h"
 #include "RNPathManager.h"
 #include "RNMessage.h"
@@ -119,12 +115,14 @@ namespace RN
 	// MARK: DirectoryProxy
 	// ---------------------
 	
+#if RN_PLATFORM_MAC_OS
 	static void RNEventsCallback(ConstFSEventStreamRef streamRef,
 								 void *callbackCtxInfo,
 								 size_t numEvents,
 								 void *eventPaths, // CFArrayRef
 								 const FSEventStreamEventFlags eventFlags[],
 								 const FSEventStreamEventId eventIds[]);
+#endif
 	
 	DirectoryProxy::DirectoryProxy(const std::string& path) :
 		FileSystemNode(PathManager::Basename(path), nullptr)
@@ -133,7 +131,6 @@ namespace RN
 		ScanDirectory();
 		
 #if RN_PLATFORM_MAC_OS
-		
 		FSEventStreamContext context;
 		context.version			= 0;
 		context.info			= static_cast<void *>(this);
@@ -268,18 +265,57 @@ namespace RN
 		
 		closedir(dir);
 #endif
+		
+#if RN_PLATFORM_WINDOWS
+		HANDLE hFind = INVALID_HANDLE_VALUE;
+		TCHAR szDir[MAX_PATH];
+		WIN32_FIND_DATA ffd;
+		
+		hFind = ::FindFirstFile(szDir, &ffd);
+		
+		if(hFind == INVALID_HANDLE_VALUE)
+			return;
+		
+		do {
+			
+			if(ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN || strlen(ffd.cFilename) == 0)
+				continue;
+			
+			FileSystemNode *node = nullptr;
+			
+			if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			{
+				node = new DirectoryProxy(ffd.cFileName, this);
+			}
+			else
+			{
+				node = new FileProxy(ffd.cFileName, this);
+			}
+			
+			if(node)
+			{
+				_nodes.AddObject(node);
+				_nodeMap.insert(std::unordered_map<std::string, FileSystemNode *>::value_type(node->GetName(), node));
+				
+				node->Release();
+			}
+			
+		} while(::FindNextFile(hFind, &ffd));
+		
+		::FindClose(hFind);
+#endif
 	}
 	
 	void DirectoryProxy::MergeDirectory()
 	{
-#if RN_PLATFORM_POSIX
-		DIR *dir = opendir(GetPath().c_str());
-		RN_ASSERT(dir, "Couldn't open directory '%s'!", GetPath().c_str());
-		
 		std::unordered_map<std::string, FileSystemNode *> _currentMap = _nodeMap;
 		
 		Array *addedNodes = new Array();
 		Array *removedNodes = new Array();
+		
+#if RN_PLATFORM_POSIX
+		DIR *dir = opendir(GetPath().c_str());
+		RN_ASSERT(dir, "Couldn't open directory '%s'!", GetPath().c_str());
 		
 		struct dirent *ent;
 		while((ent = readdir(dir)))
@@ -313,6 +349,58 @@ namespace RN
 						default:
 							break;
 					}
+					
+					if(node)
+					{
+						_nodes.AddObject(node);
+						_nodeMap.insert(std::unordered_map<std::string, FileSystemNode *>::value_type(node->GetName(), node));
+						
+						node->Release();
+						addedNodes->AddObject(node);
+					}
+				}
+			}
+		}
+		
+		closedir(dir);
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		HANDLE hFind = INVALID_HANDLE_VALUE;
+		TCHAR szDir[MAX_PATH];
+		WIN32_FIND_DATA ffd;
+		
+		hFind = ::FindFirstFile(szDir, &ffd);
+		
+		if(hFind == INVALID_HANDLE_VALUE)
+			return;
+		
+		do {
+			
+			if(ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN || strlen(ffd.cFilename) == 0)
+				continue;
+			
+			FileSystemNode *node = nullptr;
+			bool createNode = false;
+			
+			if(_currentMap.find(ffd.cFileName) != _currentMap.end())
+			{
+				_currentMap.erase(ffd.cFileName);
+			}
+			else
+			{
+				createNode = true;
+			}
+			
+			if(createNode)
+			{
+				if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+				{
+					node = new DirectoryProxy(ffd.cFileName, this);
+				}
+				else
+				{
+					node = new FileProxy(ffd.cFileName, this);
 				}
 				
 				if(node)
@@ -324,9 +412,11 @@ namespace RN
 					addedNodes->AddObject(node);
 				}
 			}
-		}
+			
+		} while(::FindNextFile(hFind, &ffd));
 		
-		closedir(dir);
+		::FindClose(hFind);
+#endif
 		
 		// Remove all removed nodes
 		for(auto i = _currentMap.begin(); i != _currentMap.end(); i ++)
@@ -347,7 +437,6 @@ namespace RN
 		changes->Release();
 		addedNodes->Release();
 		removedNodes->Release();
-#endif
 	}
 	
 	void DirectoryProxy::__HandleEvent(void *tevent)
@@ -356,7 +445,6 @@ namespace RN
 		
 		if(!event->NeedsRescan())
 			return;
-		
 		
 		MergeDirectory();
 		
@@ -423,6 +511,46 @@ namespace RN
 		
 		AddFileModifier("~mac");
 #endif
+		
+#if RN_PLATFORM_WINDOWS
+		char buffer[MAX_PATH];
+		DWORD size = MAX_PATH;
+		
+		::GetModuleFileNameA(0, buffer, size);
+		
+		char *temp = buffer + strlen(buffer);
+		while(temp != buffer)
+		{
+			temp --;
+			
+			if(*temp == '\\')
+			{
+				*temp = '\0';
+				break;
+			}
+		}
+		
+		AddSearchPath(std::string(buffer));
+		AddSearchPath(std::string(buffer) + "/Engine Resources");
+		
+		AddFileModifier("~win");
+		
+#ifndef NDEBUG
+		while(temp != buffer)
+		{
+			temp --;
+			
+			if(*temp == '\\')
+			{
+				*temp = '\0';
+				break;
+			}
+		}
+		
+		AddSearchPath(std::string(buffer));
+		AddSearchPath(std::string(buffer) + "/Engine Resources");
+#endif /* NDEBUG */
+#endif /* RN_PLATFORM_WINDOWS */
 		
 #if RN_PLATFORM_LINUX || RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 		AddFileModifier("~150", "vsh");

@@ -19,13 +19,14 @@
 #if RN_PLATFORM_IOS
 	#import <UIKit/UIKit.h>
 	#import <QuartzCore/QuartzCore.h>
-	//#import <CoreMotion/CoreMotion.h>
 #endif
 
 #if RN_PLATFORM_MAC_OS
 	#import <Cocoa/Cocoa.h>
 	#import <OpenGL/OpenGL.h>
 	#import <CoreText/CoreText.h>
+	#import <Foundation/Foundation.h>
+	#import <CoreServices/CoreServices.h>
 #endif
 
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_IOS

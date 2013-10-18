@@ -56,6 +56,7 @@
 	#include <stdarg.h>
 	#include <unistd.h>
 	#include <wordexp.h>
+	#include <dirent.h>
 #endif
 
 #if RN_PLATFORM_MAC_OS
