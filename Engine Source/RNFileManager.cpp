@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include "RNBaseInternal.h"
 #include "RNFileManager.h"
 #include "RNPathManager.h"
 #include "RNMessage.h"
