@@ -18,6 +18,16 @@ namespace RN
 		_string  = string->Copy();
 		_editing = 0;
 	}
+	
+	AttributedString::AttributedString(const AttributedString *string)
+	{
+		_string  = string->_string->Copy();
+		_editing = string->_editing;
+		
+		_attributes = string->_attributes;
+		_queuedAttributes = string->_queuedAttributes;
+	}
+	
 	AttributedString::~AttributedString()
 	{
 		_string->Release();

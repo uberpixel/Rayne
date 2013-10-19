@@ -20,6 +20,7 @@ namespace RN
 	{
 	public:
 		RNAPI AttributedString(String *string);
+		RNAPI AttributedString(const AttributedString *string);
 		RNAPI ~AttributedString() override;
 		
 		RNAPI void BeginEditing();
@@ -116,13 +117,13 @@ namespace RN
 		void ApplyUpdates();
 		void MergeAttributes();
 		
-		class String *_string;
+		String *_string;
 		stl::interval_tree<Attribute> _attributes;
 		
 		int _editing;
 		std::vector<stl::interval_tree<Attribute>::interval> _queuedAttributes;
 		
-		RNDefineMeta(AttributedString, Object)
+		RNDefineMetaWithTraits(AttributedString, Object, MetaClassTraitCopyable)
 	};
 }
 
