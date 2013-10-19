@@ -35,7 +35,7 @@ namespace RN
 		std::vector<size_t> _sortedIndices;
 		std::unordered_set<size_t> _indices;
 		
-		RNDefineMeta(IndexSet, Object)
+		RNDefineMetaWithTraits(IndexSet, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 }
 

@@ -72,6 +72,11 @@ namespace RN
 		std::copy(bytes, bytes + size, _buffer);
 	}
 	
+	Number::Number(const Number *number)
+	{
+		CopyData(number->_buffer, SizeForType(number->_type), number->_type);
+	}
+	
 	Number::Number(bool value)
 	{
 		CopyData(&value, sizeof(bool), Type::Boolean);

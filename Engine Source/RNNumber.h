@@ -34,6 +34,7 @@ namespace RN
 		};
 		
 		RNAPI Number(Serializer *serializer);
+		RNAPI Number(const Number *number);
 		RNAPI explicit Number(bool value);
 		RNAPI explicit Number(float value);
 		RNAPI explicit Number(double value);
