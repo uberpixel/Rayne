@@ -26,6 +26,15 @@ namespace RN
 		Value(&ptr, sizeof(const void *), typeid(const void *))
 	{}
 	
+	Value::Value(const Value *other)
+	{
+		_typeinfo = other->_typeinfo;
+		_size     = other->_size;
+		_buffer   = new uint8[size];
+		
+		std::copy(other->_buffer, other->_buffer + _size, _buffer);
+	}
+	
 	Value::~Value()
 	{
 		delete [] _buffer;

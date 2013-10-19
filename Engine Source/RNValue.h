@@ -23,6 +23,7 @@ namespace RN
 	public:
 		Value(const void *ptr, size_t size, const std::type_info& typeinfo);
 		Value(const void *ptr);
+		Value(const Value *other);
 		~Value() override;
 		
 		static Value *WithVector2(const Vector2& vector);
@@ -55,7 +56,7 @@ namespace RN
 		uint8 *_buffer;
 		size_t _size;
 		
-		RNDefineMeta(Value, Object)
+		RNDefineMetaWithTraits(Value, Object, MetaClassTraitCopyable)
 	};
 }
 
