@@ -169,8 +169,7 @@ namespace RN
 				
 				if(task.batch)
 				{
-					uint32 tasksLeft = task.batch->_openTasks.fetch_sub(1);
-					if(tasksLeft == 1)
+					if((-- task.batch->_openTasks) == 0)
 					{
 						std::unique_lock<std::mutex> lock(task.batch->_lock);
 						
