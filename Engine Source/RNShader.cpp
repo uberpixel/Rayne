@@ -82,7 +82,6 @@ namespace RN
 		GetUniformLocation(lightPointList);
 		GetUniformLocation(lightPointListOffset);
 		GetUniformLocation(lightPointListData);
-		GetUniformLocation(lightPointRanges);
 		
 		GetUniformLocation(lightSpotCount);
 		GetUniformLocation(lightSpotPosition);
@@ -91,7 +90,6 @@ namespace RN
 		GetUniformLocation(lightSpotList);
 		GetUniformLocation(lightSpotListOffset);
 		GetUniformLocation(lightSpotListData);
-		GetUniformLocation(lightSpotRanges);
 		
 		GetUniformLocation(lightDirectionalDirection);
 		GetUniformLocation(lightDirectionalColor);

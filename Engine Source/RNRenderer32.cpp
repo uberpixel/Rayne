@@ -314,7 +314,6 @@ namespace RN
 		_lightPointColor.clear();
 		
 		_lightPointDepth.clear();
-		_lightPointRanges.clear();
 		
 		if(camera->GetDepthTiles())
 		{
@@ -358,7 +357,6 @@ namespace RN
 				
 				if(light->Shadow())
 				{
-					_lightPointRanges.push_back(light->GetRange());
 					if(light->GetShadowCamera())
 					{
 						_lightPointDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
@@ -375,14 +373,13 @@ namespace RN
 			for(size_t i = 0; i < lightCount; i++)
 			{
 				Light *light = _pointLights[i];
-				_lightPointPosition.emplace_back(Vector4(light->GetPosition(), light->GetRange()));
+				_lightPointPosition.emplace_back(Vector4(light->GetWorldPosition(), light->GetRange()));
 				
 				const Vector3& color = light->GetResultColor();
 				_lightPointColor.emplace_back(Vector4(color, light->Shadow()?static_cast<float>(i):-1.0f));
 				
 				if(light->Shadow())
 				{
-					_lightPointRanges.push_back(light->GetRange());
 					if(light->GetShadowCamera())
 					{
 						_lightPointDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
@@ -406,7 +403,6 @@ namespace RN
 		_lightSpotColor.clear();
 		
 		_lightSpotDepth.clear();
-		_lightSpotRanges.clear();
 		
 		if(camera->GetDepthTiles())
 		{
@@ -453,7 +449,6 @@ namespace RN
 				
 				if(light->Shadow())
 				{
-					_lightSpotRanges.push_back(light->GetRange());
 					if(light->GetShadowCamera())
 					{
 						_lightSpotDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
@@ -470,7 +465,7 @@ namespace RN
 			for(size_t i = 0; i < lightCount; i++)
 			{
 				Light *light = _spotLights[i];
-				_lightSpotPosition.emplace_back(Vector4(light->GetPosition(), light->GetRange()));
+				_lightSpotPosition.emplace_back(Vector4(light->GetWorldPosition(), light->GetRange()));
 				
 				const Vector3& color = light->GetResultColor();
 				_lightSpotColor.emplace_back(Vector4(color, light->Shadow()?static_cast<float>(i):-1.0f));
@@ -480,7 +475,6 @@ namespace RN
 				
 				if(light->Shadow())
 				{
-					_lightSpotRanges.push_back(light->GetRange());
 					if(light->GetShadowCamera())
 					{
 						_lightSpotDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
@@ -807,22 +801,16 @@ namespace RN
 					glUniform4fv(program->lightPointPosition, lightPointCount, (float*)_lightPointPosition.data());
 					glUniform4fv(program->lightPointColor, lightPointCount, (float*)_lightPointColor.data());
 					
-					float *data = reinterpret_cast<float *>(_lightPointRanges.data());
-					glUniform1fv(program->lightPointRanges, (GLuint)_lightPointRanges.size(), data);
-					
 					glUniform1i(program->lightSpotCount, lightSpotCount);
 					glUniform4fv(program->lightSpotPosition, lightSpotCount, (float*)_lightSpotPosition.data());
 					glUniform4fv(program->lightSpotDirection, lightSpotCount, (float*)_lightSpotDirection.data());
 					glUniform4fv(program->lightSpotColor, lightSpotCount, (float*)_lightSpotColor.data());
 					
-					data = reinterpret_cast<float *>(_lightSpotRanges.data());
-					glUniform1fv(program->lightSpotRanges, (GLuint)_lightSpotRanges.size(), data);
-					
 					glUniform1i(program->lightDirectionalCount, lightDirectionalCount);
 					glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)_lightDirectionalDirection.data());
 					glUniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.data());
 					
-					data = reinterpret_cast<float *>(_lightDirectionalMatrix.data());
+					float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.data());
 					glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.size(), GL_FALSE, data);
 					
 					if(camera->GetDepthTiles() != 0)
