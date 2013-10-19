@@ -6,40 +6,48 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
 #include "RNBaseInternal.h"
-
 #include "RNPathManager.h"
 #include "RNApplication.h"
 #include "RNFile.h"
 #include "RNKernel.h"
 
+#if RN_PLATFORM_POSIX
+	#define RNIsPathDelimiter(c) (c == '/')
+	#define RNPathDelimiter '/'
+	#define RNPathDelimiterTokens "/"
+#endif
+
+#if RN_PLATFORM_WINDOWS
+	#define RNIsPathDelimiter(c) (c == '/' || c == '\\')
+	#define RNPathDelimiter '\\'
+	#define RNPathDelimiterTokens "/\\"
+#endif
+
 namespace RN
 {
 	std::string PathManager::Join(const std::string& path1, const std::string& path2)
 	{
-		std::string result = Basepath(path1);
+		std::stringstream result(Basepath(path1));
 		
-		bool endSeperator = (result[result.size() - 1] == '/');
-		bool startSeperator = (path2[0] == '/');
+		bool endSeperator = RNIsPathDelimiter(result[result.size() - 1]);
+		bool startSeperator = RNIsPathDelimiter(path2[0]);
 		
 		if(endSeperator && startSeperator)
 		{
-			result += path2.substr(1);
+			result << path2.substr(1);
 		}
 		else if(endSeperator || startSeperator)
 		{
-			result += path2;
+			result << path2;
 		}
 		else
 		{
-			result += "/";
-			result += path2;
+			result << RNPathDelimiter;
+			result << path2;
 		}
 		
-		return result;
+		return result.str();
 	}
 	
 	std::string PathManager::PathByRemovingExtension(const std::string& path)
@@ -59,12 +67,12 @@ namespace RN
 		const char *cstr = path.c_str();
 		std::vector<std::string> result;
 		
-		while((*cstr == '/' || *cstr == '\\'))
+		while(RNIsPathDelimiter(*cstr))
 			cstr ++;
 		
 		while(1)
 		{
-			const char *end = strpbrk(cstr, "/\\");
+			const char *end = strpbrk(cstr, RNPathDelimiterTokens);
 			if(!end)
 			{
 				if(strlen(cstr) > 0)
@@ -82,15 +90,15 @@ namespace RN
 	
 	std::string PathManager::PathByJoiningComponents(const std::vector<std::string>& components)
 	{
-		std::string result;
+		std::stringstream result;
 		
 		for(const std::string& component : components)
 		{
-			result += component;
-			result += "/";
+			result << component;
+			result << RNPathDelimiter;
 		}
 		
-		return result;
+		return result.str();
 	}
 	
 	std::string PathManager::Base(const std::string& path)
@@ -100,7 +108,7 @@ namespace RN
 		
 		while((i --) > 0)
 		{
-			if(path[i] == '/')
+			if(RNIsPathDelimiter(path[i]))
 			{
 				i ++;
 				break;
@@ -125,7 +133,7 @@ namespace RN
 				hasExtension = true;
 			}
 			
-			if(path[i] == '/')
+			if(RNIsPathDelimiter(path[i]))
 			{
 				i ++;
 				break;
@@ -144,7 +152,7 @@ namespace RN
 		
 		while((-- i) > 0)
 		{
-			if(path[i] == '/')
+			if(RNIsPathDelimiter(path[i]))
 			{
 				marker = i;
 				break;
@@ -182,6 +190,7 @@ namespace RN
 	
 	bool PathManager::PathExists(const std::string& path, bool *isDirectory)
 	{
+#if RN_PLATFORM_POSIX
 		struct stat buf;
 		int result = stat(path.c_str(), &buf);
 		
@@ -192,11 +201,25 @@ namespace RN
 			*isDirectory = S_ISDIR(buf.st_mode);
 		
 		return true;
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		DWORD attributes = ::GetFileAttributes(path.c_str());
+		
+		if(attributes == INVALID_FILE_ATTRIBUTES)
+			return false;
+		
+		if(isDirectory)
+			*isDirectory = (attributes & FILE_ATTRIBUTE_DIRECTORY);
+		
+		return true;
+#endif
 	}
 	
 	static inline bool MakeDirectory(const char *path)
 	{
-		struct stat buf;		
+#if RN_PLATFORM_POSIX
+		struct stat buf;
 		if(stat(path, &buf) != 0)
 		{
 			if(mkdir(path, 0777) != 0 && errno != EEXIST)
@@ -209,6 +232,15 @@ namespace RN
 		}
 		
 		return true;
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		bool isDirectory;
+		if(PathExists(path, &isDirectory))
+			return isDirectory;
+		
+		return ::CreateDirectory(path, NULL);
+#endif
 	}
 	
 	bool PathManager::CreatePath(const std::string& tpath, bool createIntermediateDirectories)
@@ -228,13 +260,13 @@ namespace RN
 		
 		if(createIntermediateDirectories)
 		{
-			while(status && (temp2 = strpbrk(temp, "/\\")))
+			while(status && (temp2 = strpbrk(temp, RNPathDelimiterTokens)))
 			{
 				if(temp != temp2)
 				{
 					*temp2 = '\0';
 					status = MakeDirectory(temp);
-					*temp2 = '/';
+					*temp2 = RNPathDelimiter;
 				}
 				
 				temp = temp2 + 1;
@@ -261,7 +293,7 @@ namespace RN
 		{
 			temp --;
 			
-			if(*temp == '\\')
+			if(RNIsPathDelimiter(*temp))
 			{
 				*temp = '\0';
 				break;
@@ -292,6 +324,14 @@ namespace RN
 		
 		path = std::string(result.we_wordv[0]);
 		wordfree(&result);
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		TCHAR tpath[MAX_PATH];
+		::SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, tpath);
+		
+		std::stringstream stream;
+		stream << tpath << RNPathDelimiter << title;
 #endif
 		
 		CreatePath(path);

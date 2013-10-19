@@ -514,25 +514,10 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_WINDOWS
-		char buffer[MAX_PATH];
-		DWORD size = MAX_PATH;
+		std::string base = PathManager::GetExecutableDirectory();
 		
-		::GetModuleFileNameA(0, buffer, size);
-		
-		char *temp = buffer + strlen(buffer);
-		while(temp != buffer)
-		{
-			temp --;
-			
-			if(*temp == '\\')
-			{
-				*temp = '\0';
-				break;
-			}
-		}
-		
-		AddSearchPath(std::string(buffer));
-		AddSearchPath(std::string(buffer) + "/Engine Resources");
+		AddSearchPath(base);
+		AddSearchPath(base + "/Engine Resources");
 		
 		AddFileModifier("~win");
 		

@@ -33,4 +33,10 @@
 	#import <objc/objc-runtime.h>
 #endif
 
+#if RN_PLATFORM_POSIX
+	#include <sys/stat.h>
+	#include <sys/types.h>
+	#include <unistd.h>
+#endif
+
 #endif /* __RAYNE_BASEINTERNAL_H__ */
