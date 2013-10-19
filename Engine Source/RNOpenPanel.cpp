@@ -98,9 +98,10 @@ namespace RN
 		
 #if RN_PLATFORM_WINDOWS
 		TCHAR szFile[MAX_PATH];
+		TCHAR szFilter[1024];
 		OPENFILENAME ofn;
 		
-		ZeroMemory(szFile ,MAX_PATH);
+		ZeroMemory(szFile, MAX_PATH);
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		
 		ofn.lStructSize = sizeof(OPENFILENAME);
@@ -117,6 +118,24 @@ namespace RN
 		if(_allowsFiles)
 			ofn.Flags |= OFN_FILEMUSTEXIST;
 		
+		if(!_allowedFileTypes.empty())
+		{
+			ZeroMemory(szFilter, 1024);
+			TCHAR *temp = szFile;
+			
+			for(const std::string& type : _allowedFileTypes)
+			{
+				strcpy(temp, type.c_str());
+				temp += type.size() + 1;
+				
+				std::string filter = "*." + type;
+				
+				strcpy(temp, filter.c_str());
+				temp += filter.size() + 1;
+			}
+			
+			ofn.lpstrFilter = szFilter;
+		}
 			
 		bool result = ::GetOpenFileName(&ofn);
 		std::vector<std::string> files;
