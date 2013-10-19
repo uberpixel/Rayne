@@ -61,6 +61,7 @@ namespace RN
 	
 	void OpenPanel::Show(std::function<void (bool result, const std::vector<std::string>& paths)> callback)
 	{
+#if RN_PLATFORM_MAC_OS
 		NSOpenPanel *panel = [NSOpenPanel openPanel];
 		
 		[panel setAllowsMultipleSelection:_allowsMultipleSelection];
@@ -93,5 +94,57 @@ namespace RN
 		 
 			callback(result, files);
 		}];
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		TCHAR szFile[MAX_PATH];
+		OPENFILENAME ofn;
+		
+		ZeroMemory(szFile ,MAX_PATH);
+		ZeroMemory(&ofn, sizeof(OPENFILENAME));
+		
+		ofn.lStructSize = sizeof(OPENFILENAME);
+		ofn.hwndOwner   = hWnd;
+		ofn.lpstrTitle  = _title.c_str();
+		ofn.lpstrFile   = szFile;
+		ofn.lpstrFilter = "All Files (*.*)\0*.*\0\0";
+		ofn.nMaxFile    = MAX_PATH;
+		ofn.Flags       = OFN_PATHMUSTEXIST | OFN_EXPLORER;
+		
+		if(_allowsMultipleSelection)
+			ofn.Flags |= OFN_ALLOWMULTISELECT;
+		
+		if(_allowsFiles)
+			ofn.Flags |= OFN_FILEMUSTEXIST;
+		
+			
+		bool result = ::GetOpenFileName(&ofn);
+		std::vector<std::string> files;
+		
+		if(result)
+		{
+			if(_allowsMultipleSelection)
+			{
+				char *base = szFile;
+				char *temp = base + strlen(base) + 1;
+				
+				while(*temp)
+				{
+					std::stringstream stream;
+					stream << base << temp;
+					
+					files.push_back(stream.str());
+					
+					temp += strlen(temp) + 1;
+				}
+			}
+			else
+			{
+				files.push_back(szFile);
+			}
+		}
+		
+		callback(result, files);
+#endif
 	}
 }
