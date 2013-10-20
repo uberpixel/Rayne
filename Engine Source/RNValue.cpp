@@ -30,7 +30,7 @@ namespace RN
 	{
 		_typeinfo = other->_typeinfo;
 		_size     = other->_size;
-		_buffer   = new uint8[size];
+		_buffer   = new uint8[_size];
 		
 		std::copy(other->_buffer, other->_buffer + _size, _buffer);
 	}
