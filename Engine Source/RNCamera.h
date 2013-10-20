@@ -229,9 +229,6 @@ namespace RN
 		RNAPI void SetBlitMode(BlitMode mode);
 		
 		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
-		RNAPI void ActivateTiledLightLists(Texture *depthTiles);
-		
-		Texture *GetDepthTiles() { return _depthTiles; }
 		
 		RNAPI void Update(float delta);
 		RNAPI void PostUpdate();
@@ -263,8 +260,8 @@ namespace RN
 		Shader *GetDrawFramebufferShader() const { return _blitShader; }
 		BlitMode GetBlitMode() const { return _blitMode; }
 		
-		Vector2 GetLightTiles() const { return _lightTiles; }
-		void SetLightTiles(const Vector2 &size) { _lightTiles = size; }
+		Vector3 GetLightTiles() const { return _lightTiles; }
+		void SetLightTiles(const Vector3 &size) { _lightTiles = size; }
 		Model *GetSkyCube() const { return _skycube; }
 		
 		uint32 GetRenderTargetCount() const { return (uint32)_storage->_renderTargets->GetCount(); }
@@ -340,8 +337,7 @@ namespace RN
 			Plane _frustumNear;
 		} frustrums;
 		
-		Vector2 _lightTiles;
-		Vector2 _wantedLightTiles;
+		Vector3 _lightTiles;
 		
 		bool _allowDepthWrite;
 		bool _blend;
@@ -352,7 +348,6 @@ namespace RN
 		RenderStorage *_storage;
 		Camera *_lodCamera;
 		
-		Texture *_depthTiles;
 		Model *_skycube;
 		
 		float *_depthArray;

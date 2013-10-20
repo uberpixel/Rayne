@@ -345,9 +345,6 @@ namespace RN
 		if(_material)
 			_material->Release();
 		
-		if(_depthTiles)
-			_depthTiles->Release();
-		
 		_blitShader->Release();
 		
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
@@ -388,8 +385,7 @@ namespace RN
 		_material = 0;
 		_stageCount = 0;
 
-		_lightTiles = Vector2(32, 32);
-		_depthTiles = 0;
+		_lightTiles = Vector3(32, 32, 16);
 		_skycube = 0;
 		
 		_depthArray = 0;
@@ -672,14 +668,6 @@ namespace RN
 		return projview;
 	}
 	
-	void Camera::ActivateTiledLightLists(Texture *depthTiles)
-	{
-		if(_depthTiles)
-			_depthTiles->Release();
-		
-		_depthTiles = depthTiles ? depthTiles->Retain() : 0;
-	}
-	
 	// Helper
 	void Camera::Update(float delta)
 	{
@@ -808,36 +796,6 @@ namespace RN
 			return GetFrame();
 		
 		return _renderingFrame;
-	}
-	
-	float *Camera::GetDepthArray()
-	{
-		if(!_depthTiles)
-			return 0;
-		
-		if(Kernel::GetSharedInstance()->GetCurrentFrame() == _depthFrame)
-			return _depthArray;
-		
-		int width  = (int)_depthTiles->GetWidth();
-		int height = (int)_depthTiles->GetHeight();
-		
-		size_t size = width * height * 2;
-		if(size > _depthSize)
-		{
-			delete _depthArray;
-			
-			_depthArray = new float[size];
-			_depthSize  = size;
-		}
-		
-		_depthTiles->Bind();
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RG, GL_FLOAT, _depthArray);
-		_depthTiles->Unbind();
-		
-		_depthFrame = Kernel::GetSharedInstance()->GetCurrentFrame();
-		return _depthArray;
 	}
 
 	void Camera::UpdateFrustum()

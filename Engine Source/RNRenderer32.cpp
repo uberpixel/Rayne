@@ -157,7 +157,7 @@ namespace RN
 		Rect rect = camera->GetFrame();
 		int tilesWidth  = ceil(rect.width / camera->GetLightTiles().x);
 		int tilesHeight = ceil(rect.height / camera->GetLightTiles().y);
-		int tilesDepth = 10;
+		int tilesDepth = 15;//camera->GetLightTiles().z;
 		
 		size_t i = 0;
 		size_t tileCount = tilesWidth * tilesHeight * tilesDepth;
@@ -317,7 +317,7 @@ namespace RN
 		
 		_lightPointDepth.clear();
 		
-		if(camera->GetDepthTiles())
+		if(lightCount > _maxLightFastPath)
 		{
 			GLuint indicesBuffer = _lightPointBuffers[kRNRendererPointLightListIndicesIndex];
 			GLuint offsetBuffer = _lightPointBuffers[kRNRendererPointLightListOffsetIndex];
@@ -409,7 +409,7 @@ namespace RN
 		
 		_lightSpotDepth.clear();
 		
-		if(camera->GetDepthTiles())
+		if(lightCount > _maxLightFastPath)
 		{
 			GLuint indicesBuffer = _lightSpotBuffers[kRNRendererSpotLightListIndicesIndex];
 			GLuint offsetBuffer = _lightSpotBuffers[kRNRendererSpotLightListOffsetIndex];
@@ -821,16 +821,18 @@ namespace RN
 					float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.data());
 					glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.size(), GL_FALSE, data);
 					
-					if(camera->GetDepthTiles() != 0)
+					if(lightPointCount > _maxLightFastPath || lightSpotCount > _maxLightFastPath)
 					{
 						if(program->lightTileSize != -1)
 						{
 							Rect rect = camera->GetFrame();
 							int tilesWidth  = ceil(rect.width / camera->GetLightTiles().x);
-							int tilesHeight = ceil(rect.height / camera->GetLightTiles().y);
+							int tilesDepth = 15;//camera->GetLightTiles().z;
 							
-							Vector2 lightTilesSize = camera->GetLightTiles() * _scaleFactor;
-							Vector2 lightTilesCount = Vector2(tilesWidth, tilesHeight);
+							Vector2 lightTilesSize;
+							lightTilesSize.x = camera->GetLightTiles().x * _scaleFactor;
+							lightTilesSize.y = camera->GetLightTiles().y * _scaleFactor;
+							Vector2 lightTilesCount = Vector2(tilesWidth, tilesDepth);
 							
 							glUniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
 						}
@@ -905,7 +907,7 @@ namespace RN
 						}
 					}
 					
-					if(camera->GetDepthTiles())
+					if(lightPointCount > _maxLightFastPath || lightSpotCount > _maxLightFastPath)
 					{
 						// Point lights
 						if(program->lightPointList != -1)
