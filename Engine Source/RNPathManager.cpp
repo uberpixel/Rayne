@@ -29,23 +29,22 @@ namespace RN
 	std::string PathManager::Join(const std::string& path1, const std::string& path2)
 	{
 		std::string path = std::move(Basepath(path1));
-		std::stringstream result(path);
+		std::stringstream result;
 		
 		bool endSeperator   = RNIsPathDelimiter(path[path.size() - 1]);
 		bool startSeperator = RNIsPathDelimiter(path2[0]);
 		
 		if(endSeperator && startSeperator)
 		{
-			result << path2.substr(1);
+			result << path << path2.substr(1);
 		}
 		else if(endSeperator || startSeperator)
 		{
-			result << path2;
+			result << path << path2;
 		}
 		else
 		{
-			result << RNPathDelimiter;
-			result << path2;
+			result << path << RNPathDelimiter << path2;
 		}
 		
 		return result.str();
