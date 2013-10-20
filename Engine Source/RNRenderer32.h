@@ -68,10 +68,12 @@ namespace RN
 		std::vector<Vector4> _lightSpotDirection;
 		std::vector<Vector4> _lightSpotColor;
 		std::vector<Texture *> _lightSpotDepth;
+		std::vector<Vector4> _lightSpotData;
 		
 		std::vector<Vector4> _lightPointPosition;
 		std::vector<Vector4> _lightPointColor;
 		std::vector<Texture *> _lightPointDepth;
+		std::vector<Vector4> _lightPointData;
 	};
 }
 

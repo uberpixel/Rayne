@@ -325,7 +325,7 @@ namespace RN
 			CullLights(camera, lights, lightCount, indicesBuffer, offsetBuffer);
 			
 			// Write the position, range and colour of the lights
-			Vector4 *lightData = 0;
+			Vector4 *lightData = nullptr;
 			size_t lightDataSize = lightCount * 2 * sizeof(Vector4);
 			
 			if(lightDataSize == 0) // Makes sure that we don't end up with an empty buffer
@@ -340,13 +340,16 @@ namespace RN
 				_lightPointDataSize = lightDataSize;
 			}
 			
-			lightData = (Vector4 *)glMapBufferRange(GL_TEXTURE_BUFFER, 0, _lightPointDataSize, GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT);
+			if(_lightPointData.size() < lightCount * 2)
+				_lightPointData.resize(lightCount * 2);
 			
-			for(size_t i=0; i<lightCount; i++)
+			lightData = _lightPointData.data();
+
+			for(size_t i = 0; i < lightCount; i ++)
 			{
 				Light *light = lights[i];
 				const Vector3& position = light->GetWorldPosition();
-				const Vector3& color = light->GetResultColor();
+				const Vector3& color    = light->GetResultColor();
 				
 				if(i < _maxLightFastPath)
 				{
@@ -354,8 +357,8 @@ namespace RN
 					_lightPointColor.emplace_back(Vector4(color, light->Shadow()?static_cast<float>(i):-1.0f));
 				}
 				
-				lightData[i * 2 + 0] = Vector4(position, light->GetRange());
-				lightData[i * 2 + 1] = Vector4(color, light->Shadow()?static_cast<float>(i):-1.0f);
+				lightData[i * 2 + 0] = std::move(Vector4(position, light->GetRange()));
+				lightData[i * 2 + 1] = std::move(Vector4(color, light->Shadow()?static_cast<float>(i):-1.0f));
 				
 				if(light->Shadow())
 				{
@@ -366,7 +369,7 @@ namespace RN
 				}
 			}
 			
-			glUnmapBuffer(GL_TEXTURE_BUFFER);
+			glBufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_DYNAMIC_DRAW);
 			glBindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 		else
@@ -429,9 +432,12 @@ namespace RN
 				_lightSpotDataSize = lightDataSize;
 			}
 			
-			lightData = (Vector4 *)glMapBufferRange(GL_TEXTURE_BUFFER, 0, _lightSpotDataSize, GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_WRITE_BIT);
+			if(_lightSpotData.size() < lightCount * 3)
+				_lightSpotData.resize(lightCount * 3);
 			
-			for(size_t i=0; i<lightCount; i++)
+			lightData = _lightSpotData.data();
+			
+			for(size_t i = 0; i < lightCount; i++)
 			{
 				Light *light = lights[i];
 				const Vector3& position  = light->GetWorldPosition();
@@ -458,7 +464,7 @@ namespace RN
 				}
 			}
 			
-			glUnmapBuffer(GL_TEXTURE_BUFFER);
+			glBufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_DYNAMIC_DRAW);
 			glBindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 		else
