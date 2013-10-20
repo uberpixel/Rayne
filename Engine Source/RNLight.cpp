@@ -54,8 +54,11 @@ namespace RN
 	
 	void Light::Render(Renderer *renderer, Camera *camera)
 	{
-		SceneNode::Render(renderer, camera);
-		renderer->RenderLight(this);
+		if(!(camera->GetFlags() & Camera::FlagNoLights))
+		{
+			SceneNode::Render(renderer, camera);
+			renderer->RenderLight(this);
+		}
 	}
 	
 	void Light::SetRange(float range)

@@ -9,11 +9,12 @@
 #include "TGWorld.h"
 
 #define TGWorldFeatureLights        1
-#define TGWorldFeatureNormalMapping 0
+#define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		1
-#define TGWorldFeatureBloom			1
+#define TGWorldFeatureBloom			0
 #define TGWorldFeatureSSAO          0
+#define TGWorldFeatureWater			0
 
 #define TGForestFeatureTrees 500
 #define TGForestFeatureGras  10000
@@ -123,25 +124,10 @@ namespace TG
 	void World::CreateCameras()
 	{
 #if TGWorldFeatureZPrePass
-		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
-		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
-		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
-		
-		RN::Material *blurXMaterial = new RN::Material(blurShader);
-		blurXMaterial->Define("RN_BLURX");
-		
-		RN::Material *blurYMaterial = new RN::Material(blurShader);
-		blurYMaterial->Define("RN_BLURY");
-		
-		RN::Material *downMaterial = new RN::Material(updownShader);
-		downMaterial->Define("RN_DOWNSAMPLE");
-		//RN::Material *upMaterial = new RN::Material(updownShader);
-		
-		
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth|RN::RenderStorage::BufferFormatStencil);
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth);
 		
 		RN::TextureParameter depthparam;
-		depthparam.format = RN::TextureParameter::Format::DepthStencil;
+		depthparam.format = RN::TextureParameter::Format::Depth24I;
 		depthparam.generateMipMaps = false;
 		depthparam.mipMaps = 0;
 		depthparam.wrapMode = RN::TextureParameter::WrapMode::Clamp;
@@ -178,14 +164,6 @@ namespace TG
 		_lightcam->ActivateTiledLightLists(downsamplePipeline->GetLastTarget());
 		_lightcam->SetPriority(5);
 		
-		// Copy refraction to another texture
-		RN::Material *copyFBOMaterial = new RN::Material(updownShader);
-		copyFBOMaterial->Define("RN_COPYDEPTH");
-		RN::Camera *copyRefract = new RN::Camera(_camera->GetFrame().Size(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		copyRefract->SetMaterial(copyFBOMaterial);
-		_refractPipeline = _lightcam->AddPostProcessingPipeline("refractioncopy");
-		_refractPipeline->AddStage(copyRefract, RN::RenderStage::Mode::ReUsePreviousStage);
-		
 		
 		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(0);
@@ -201,6 +179,31 @@ namespace TG
 		
 		
 		_finalcam->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
+		
+#if TGWorldFeatureSSAO || TGWorldFeatureBloom || TGWorldFeatureWater
+		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
+		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
+		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
+		
+		RN::Material *blurXMaterial = new RN::Material(blurShader);
+		blurXMaterial->Define("RN_BLURX");
+		
+		RN::Material *blurYMaterial = new RN::Material(blurShader);
+		blurYMaterial->Define("RN_BLURY");
+		
+		RN::Material *downMaterial = new RN::Material(updownShader);
+		downMaterial->Define("RN_DOWNSAMPLE");
+#endif
+		
+#if TGWorldFeatureWater
+		// Copy refraction to another texture
+		RN::Material *copyFBOMaterial = new RN::Material(updownShader);
+		copyFBOMaterial->Define("RN_COPYDEPTH");
+		RN::Camera *copyRefract = new RN::Camera(_camera->GetFrame().Size(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		copyRefract->SetMaterial(copyFBOMaterial);
+		_refractPipeline = _lightcam->AddPostProcessingPipeline("refractioncopy");
+		_refractPipeline->AddStage(copyRefract, RN::RenderStage::Mode::ReUsePreviousStage);
+#endif
 		
 #if TGWorldFeatureSSAO
 		// Surface normals
@@ -398,10 +401,10 @@ namespace TG
 		
 		_sponza = sponza;
 		
-		TG::SmokeGrenade *smoke = new TG::SmokeGrenade();
-		smoke->Material()->AddTexture(_depthtex);
-		smoke->Material()->Define("RN_SOFTPARTICLE");
-		smoke->SetPosition(RN::Vector3(0.0f, -8.0f, 0.0f));
+//		TG::SmokeGrenade *smoke = new TG::SmokeGrenade();
+//		smoke->Material()->AddTexture(_depthtex);
+//		smoke->Material()->Define("RN_SOFTPARTICLE");
+//		smoke->SetPosition(RN::Vector3(0.0f, -8.0f, 0.0f));
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
@@ -424,7 +427,7 @@ namespace TG
 		_sunLight->ActivateDirectionalShadows();
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
-		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
+/*		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(0.9f);
@@ -435,9 +438,9 @@ namespace TG
 		_camera->AttachChild(_spotLight);
 #else
 		_player->AttachChild(_spotLight);
-#endif
+#endif*/
 		
-		RN::Light *light = new RN::Light();
+/*		RN::Light *light = new RN::Light();
 		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
 		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
@@ -459,12 +462,12 @@ namespace TG
 		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
 		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		light->ActivatePointShadows();
+		light->ActivatePointShadows();*/
 		
 		for(int i=0; i<200; i++)
 		{
 			RN::Light *light = new RN::Light();
-			light->SetPosition(RN::Vector3(TGWorldRandom * 70.0f - 35.0f, TGWorldRandom * 30.0f-10.0f, TGWorldRandom * 40.0f - 20.0f));
+			light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 21.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 25.0f - 12.0f));
 			light->SetRange((TGWorldRandom * 5.0f) + 2.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		}
@@ -490,7 +493,9 @@ namespace TG
 		_finalcam->clipfar = 100.0f;
 		_finalcam->UpdateProjection();
 		
-//		RN::Water *water = new RN::Water((RN::Camera*)_finalcam, _refractPipeline->LastStage()->Camera()->Storage()->RenderTarget());
+#if TGWorldFeatureWater
+		RN::Water *water = new RN::Water((RN::Camera*)_finalcam, _refractPipeline->LastStage()->Camera()->Storage()->RenderTarget());
+#endif
 	}
 	
 	

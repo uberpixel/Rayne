@@ -157,12 +157,13 @@ namespace RN
 		Rect rect = camera->GetFrame();
 		int tilesWidth  = ceil(rect.width / camera->GetLightTiles().x);
 		int tilesHeight = ceil(rect.height / camera->GetLightTiles().y);
+		int tilesDepth = 10;
 		
 		size_t i = 0;
-		size_t tileCount = tilesWidth * tilesHeight;
+		size_t tileCount = tilesWidth * tilesHeight * tilesDepth;
 		
-		size_t lightindicesSize = tilesWidth * tilesHeight * lightCount;
-		size_t lightindexoffsetSize = tilesWidth * tilesHeight * 2;
+		size_t lightindicesSize = tilesWidth * tilesHeight * tilesDepth * lightCount;
+		size_t lightindexoffsetSize = tilesWidth * tilesHeight * tilesDepth * 2;
 		
 		if(lightCount == 0)
 		{
@@ -190,78 +191,79 @@ namespace RN
 		
 		Vector3 dirx = (corner2-corner1)/rect.width*camera->GetLightTiles().x;
 		Vector3 diry = (corner3-corner1)/rect.height*camera->GetLightTiles().y;
+		Vector3 camdir = camera->Forward();
+		Vector3 dirz = camdir*camera->clipfar/tilesDepth;
 		
 		const Vector3& camPosition = camera->GetWorldPosition();
-		//float *depthArray = camera->GetDepthArray();
-		
-		//Vector3 camdir = camera->Forward();
 		
 		std::vector<size_t> indicesCount(tileCount);
 		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
 		
 		ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch();
-		batch->Reserve(tilesHeight * tilesWidth);
+		batch->Reserve(tilesHeight * tilesWidth * tilesDepth);
 		
 		for(int y=0; y<tilesHeight; y++)
 		{
 			for(int x=0; x<tilesWidth; x++)
 			{
-				size_t index = i ++;
-				batch->AddTask([&, x, y, index]() {
-					Plane plleft;
-					Plane plright;
-					Plane pltop;
-					Plane plbottom;
-					
-					Plane plfar;
-					Plane plnear;
-					
-					plright.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
-					plleft.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
-					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
-					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
-					
-		//			plnear.SetPlane(camPosition + camdir * depthArray[index * 2 + 0], camdir);
-		//			plfar.SetPlane(camPosition + camdir * depthArray[index * 2 + 1], camdir);
-					
-					size_t lightIndicesCount = 0;
-					int *lightPointIndices = _tempLightIndicesBuffer + (index * lightCount);
-					
-					for(size_t i=0; i<lightCount; i++)
-					{
-						Light *light = lights[i];
+				for(int z=0; z<tilesDepth; z++)
+				{
+					size_t index = i ++;
+					batch->AddTask([&, x, y, z, index]() {
+						Plane plleft;
+						Plane plright;
+						Plane pltop;
+						Plane plbottom;
+						Plane plfar;
+						Plane plnear;
 						
-						const Vector3& position = light->GetWorldPosition();
-						const float range = light->GetRange();
-						float distance, dr, dl, dt, db;
-						DistanceExpect(plright, >, range, true);
-						dr = distance;
-						DistanceExpect(plleft, <, -range, true);
-						dl = distance;
-						DistanceExpect(plbottom, <, -range, true);
-						db = distance;
-						DistanceExpect(pltop, >, range, true);
-						dt = distance;
+						plright.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
+						plleft.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
+						plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
+						pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
+						plnear.SetPlane(camPosition + dirz*z, camdir);
+						plfar.SetPlane(camPosition + dirz*(z+1.0f), camdir);
 						
-						float sqrange = range*range;
+						size_t lightIndicesCount = 0;
+						int *lightPointIndices = _tempLightIndicesBuffer + (index * lightCount);
 						
-						if(dr > 0.0f && db < 0.0f && dr*dr+db*db > sqrange)
-							continue;
-						if(dr > 0.0f && dt > 0.0f && dr*dr+dt*dt > sqrange)
-							continue;
-						if(dl < 0.0f && db < 0.0f && dl*dl+db*db > sqrange)
-							continue;
-						if(dl < 0.0f && dt > 0.0f && dl*dl+dt*dt > sqrange)
-							continue;
+						for(size_t i=0; i<lightCount; i++)
+						{
+							Light *light = lights[i];
+							
+							const Vector3& position = light->GetWorldPosition();
+							const float range = light->GetRange();
+							float distance, dr, dl, dt, db;
+							DistanceExpect(plright, >, range, true);
+							dr = distance;
+							DistanceExpect(plleft, <, -range, true);
+							dl = distance;
+							DistanceExpect(plbottom, <, -range, true);
+							db = distance;
+							DistanceExpect(pltop, >, range, true);
+							dt = distance;
+							
+							float sqrange = range*range;
+							
+							if(dr > 0.0f && db < 0.0f && dr*dr+db*db > sqrange)
+								continue;
+							if(dr > 0.0f && dt > 0.0f && dr*dr+dt*dt > sqrange)
+								continue;
+							if(dl < 0.0f && db < 0.0f && dl*dl+db*db > sqrange)
+								continue;
+							if(dl < 0.0f && dt > 0.0f && dl*dl+dt*dt > sqrange)
+								continue;
+							
+							
+							Distance(plnear, <, -range);
+							Distance(plfar, >, range);
+							
+							lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
+						}
 						
-				//		Distance(plnear, >, range);
-				//		Distance(plfar, <, -range);
-						
-						lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
-					}
-					
-					indicesCount[index] = lightIndicesCount;
-				});
+						indicesCount[index] = lightIndicesCount;
+					});
+				}
 			}
 		}
 		
@@ -434,7 +436,7 @@ namespace RN
 				Light *light = lights[i];
 				const Vector3& position  = light->GetWorldPosition();
 				const Vector3& color     = light->GetResultColor();
-				const Vector3& direction = light->Forward();
+				const Vector3& direction = -light->Forward();
 				
 				if(i < _maxLightFastPath)
 				{
@@ -470,7 +472,7 @@ namespace RN
 				const Vector3& color = light->GetResultColor();
 				_lightSpotColor.emplace_back(Vector4(color, light->Shadow()?static_cast<float>(i):-1.0f));
 				
-				const Vector3& direction = light->Forward();
+				const Vector3& direction = -light->Forward();
 				_lightSpotDirection.emplace_back(Vector4(direction, light->GetAngle()));
 				
 				if(light->Shadow())
@@ -498,7 +500,7 @@ namespace RN
 		{
 			Light *light = lights[i];
 			const Vector3& color = light->GetResultColor();
-			const Vector3& direction = light->Forward();
+			const Vector3& direction = -light->Forward();
 			
 			_lightDirectionalDirection.push_back(direction);
 			_lightDirectionalColor.emplace_back(Vector4(color, light->Shadow() ? static_cast<float>(i):-1.0f));

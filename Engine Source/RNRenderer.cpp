@@ -169,6 +169,12 @@ namespace RN
 			const Vector3& position = _currentCamera->GetWorldPosition();
 			glUniform3fv(_currentProgram->viewPosition, 1, &position.x);
 		}
+		
+		if(_currentProgram->viewNormal != -1)
+		{
+			const Vector3& forward = _currentCamera->Forward();
+			glUniform3fv(_currentProgram->viewNormal, 1, &forward.x);
+		}
 	}
 	
 	void Renderer::RelinquishMesh(Mesh *mesh)

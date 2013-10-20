@@ -75,6 +75,7 @@ namespace RN
 		GetUniformLocation(emissive);
 		
 		GetUniformLocation(viewPosition);
+		GetUniformLocation(viewNormal);
 		
 		GetUniformLocation(lightPointCount);
 		GetUniformLocation(lightPointPosition);

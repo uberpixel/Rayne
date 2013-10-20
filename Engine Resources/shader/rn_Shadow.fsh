@@ -135,7 +135,7 @@ float rn_ShadowPointPCF2x2(int index, vec3 pos)
 	result += rn_ShadowPointTextureCubeArrayShadow(index, pos+vec3(0.01, -0.01, -0.01));
 	result += rn_ShadowPointTextureCubeArrayShadow(index, pos-vec3(0.01, -0.01, -0.01));
 	*/
-	return result*0.2*lightPointRanges[index];
+	return result*0.2;
 }
 
 float rn_ShadowPoint(int light, vec3 dir, float range)

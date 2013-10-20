@@ -41,6 +41,7 @@ uniform samplerBuffer lightSpotListData;
 #endif
 
 uniform vec3 viewPosition;
+uniform vec3 viewNormal;
 
 uniform vec4 lightTileSize;
 uniform vec4 ambient;
@@ -187,10 +188,13 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 	
 	vec3 light = ambient.rgb;
 	vec3 specsum = vec3(0.0);
-	vec3 viewdir = normalize(viewPosition-position);
+	vec3 viewdir = viewPosition-position;
+	float lineardist = dot(viewNormal, -viewdir);
+	float dist = length(viewdir);
+	viewdir /= dist;
 	
 #if (!defined(RN_POINT_LIGHTS_FASTPATH) || !defined(RN_SPOT_LIGHTS_FASTPATH))
-	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z+int(gl_FragCoord.x/lightTileSize.x));
+	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z*10+int(gl_FragCoord.x/lightTileSize.x)*10+int(lineardist/(100.0f/10.0f)));
 #endif
 	
 #if !defined(RN_POINT_LIGHTS_FASTPATH)

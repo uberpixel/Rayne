@@ -145,6 +145,7 @@ namespace RN
 			FlagNoSorting = (1 << 10),
 			FlagNoRender = (1 << 11),
 			FlagForceFlush = (1 << 12),
+			FlagNoLights = (1 << 13),
 			
 			
 			FlagDefaults = (FlagFullscreen | FlagUpdateAspect | FlagUpdateStorageFrame),

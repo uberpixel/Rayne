@@ -82,6 +82,7 @@ namespace RN
 		GLuint emissive;
 		
 		GLuint viewPosition;
+		GLuint viewNormal;
 		
 		GLuint lightPointCount;
 		GLuint lightPointPosition;

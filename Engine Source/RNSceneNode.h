@@ -287,7 +287,7 @@ namespace RN
 	
 	RN_INLINE const Vector3 SceneNode::Forward() const
 	{
-		Vector3 forward = GetWorldRotation().RotateVector(Vector3(0.0, 0.0, 1.0));
+		Vector3 forward = GetWorldRotation().RotateVector(Vector3(0.0, 0.0, -1.0));
 		return forward;
 	}
 	

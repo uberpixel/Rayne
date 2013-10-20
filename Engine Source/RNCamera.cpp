@@ -648,17 +648,17 @@ namespace RN
 		float dist = center.Distance(farcorner1);
 		
 		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
-		Vector3 pos = center+light->Forward()*500.0f;
+		Vector3 pos = center-light->Forward()*500.0f;
 		
 		Matrix rot = light->GetWorldRotation().GetRotationMatrix();
-		pos = rot.GetInverse()*pos;
+		pos = rot*pos;
 		
 		pos /= pixelsize;
 		pos.x = floorf(pos.x);
 		pos.y = floorf(pos.y);
 		pos.z = floorf(pos.z);
 		pos *= pixelsize;
-		pos = rot*pos;
+		pos = rot.GetInverse()*pos;
 		SetPosition(pos);
 		
 		clipfar = 500.0f+dist*2.0f;
