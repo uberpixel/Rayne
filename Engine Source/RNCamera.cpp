@@ -298,39 +298,42 @@ namespace RN
 
 
 	Camera::Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format) :
-		_frame(Vector2(0.0f, 0.0f), size)
+		_frame(Vector2(0.0f, 0.0f), size),
+		lightManager(nullptr)
 	{
 		_storage = 0;
 		
 		RenderStorage *storage = new RenderStorage(format);
 		storage->AddRenderTarget(target);
 		
-		SetFlags(flags);
+		SetCameraFlags(flags);
 		SetRenderStorage(storage);
 		Initialize();
 	}
 
 	Camera::Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor) :
 		_frame(Vector2(0.0f, 0.0f), size),
-		_scaleFactor(scaleFactor)
+		_scaleFactor(scaleFactor),
+		lightManager(nullptr)
 	{
 		_storage = 0;
 
 		RenderStorage *storage = new RenderStorage(format, 0, scaleFactor);
 		storage->AddRenderTarget(targetFormat);
 		
-		SetFlags(flags);
+		SetCameraFlags(flags);
 		SetRenderStorage(storage);
 		Initialize();
 	}
 
 	Camera::Camera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor) :
 		_frame(Vector2(0.0f, 0.0f), size),
-		_scaleFactor(scaleFactor)
+		_scaleFactor(scaleFactor),
+		lightManager(nullptr)
 	{
 		_storage = 0;
 
-		SetFlags(flags);
+		SetCameraFlags(flags);
 		SetRenderStorage(storage);
 		Initialize();
 	}
@@ -374,8 +377,6 @@ namespace RN
 		usefog = true;
 		fognear = 100.0f;
 		fogfar = 500.0f;
-		
-		lightManager = nullptr;
 		
 		useclipplane = false;
 		clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
@@ -484,7 +485,7 @@ namespace RN
 		_clearColor = clearColor;
 	}
 	
-	void Camera::SetFlags(Flags flags)
+	void Camera::SetCameraFlags(Flags flags)
 	{
 		if(!(_flags & FlagNoLights) && flags & FlagNoLights)
 		{
@@ -559,11 +560,6 @@ namespace RN
 	void Camera::SetMaxLightsPerTile(size_t lights)
 	{
 		_maxLights = lights;
-	}
-	
-	void Camera::SetCameraFlags(Flags flags)
-	{
-		_flags = flags;
 	}
 	
 	void Camera::SetLODCamera(Camera *camera)

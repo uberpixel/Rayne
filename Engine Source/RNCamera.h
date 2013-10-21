@@ -212,7 +212,7 @@ namespace RN
 		
 		RNAPI void SetFrame(const Rect& frame);
 		RNAPI void SetRenderingFrame(const Rect& offset);
-		RNAPI void SetFlags(Flags flags);
+		RNAPI void SetCameraFlags(Flags flags);
 		RNAPI void SetClearColor(const Color& color);
 		RNAPI void SetMaterial(Material *material);
 		RNAPI void SetRenderStorage(RenderStorage *storage);
@@ -221,7 +221,6 @@ namespace RN
 		RNAPI void SetAllowsDepthWrite(bool flag);
 		RNAPI void SetSkyCube(Model *skycube);
 		RNAPI void SetMaxLightsPerTile(size_t lights);
-		RNAPI void SetCameraFlags(Flags flags);
 		RNAPI void SetLODCamera(Camera *camera);
 		RNAPI void SetPriority(int32 priority);
 		RNAPI void SetUseBlending(bool useBlending);

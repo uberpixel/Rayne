@@ -32,9 +32,10 @@ namespace RN
 		~LightManager();
 		
 		void CullLights(Camera *camera, Light **lights, size_t lightCount, GLuint indicesBuffer, GLuint offsetBuffer);
-		int CreatePointLightList(Camera *camera);
-		int CreateSpotLightList(Camera *camera);
-		int CreateDirectionalLightList(Camera *camera);
+		
+		int CreatePointLightList(Camera *camera, Light **lights, size_t lightCount);
+		int CreateSpotLightList(Camera *camera, Light **lights, size_t lightCount);
+		int CreateDirectionalLightList(Camera *camera, Light **lights, size_t lightCount);
 		
 	protected:
 		int *_lightIndicesBuffer;
@@ -69,6 +70,8 @@ namespace RN
 		
 	private:
 		void AllocateLightBufferStorage(size_t indicesSize, size_t offsetSize);
+		
+		int _maxLightFastPath;
 	};
 }
 

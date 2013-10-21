@@ -23,6 +23,8 @@ namespace RN
 {
 	LightManager::LightManager()
 	{
+		_maxLightFastPath = 10;
+		
 		_lightIndicesBuffer     = nullptr;
 		_lightOffsetBuffer      = nullptr;
 		_tempLightIndicesBuffer = nullptr;
@@ -194,8 +196,8 @@ continue; \
 							DistanceExpect(pltop, >, range, true);
 							dt = distance;
 							
-							/*					float sqrange = range*range;
-							 
+							/*
+							 float sqrange = range*range;
 							 if(dr > 0.0f && db < 0.0f && dr*dr+db*db > sqrange)
 							 continue;
 							 if(dr > 0.0f && dt > 0.0f && dr*dr+dt*dt > sqrange)
@@ -256,19 +258,16 @@ continue; \
 		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
 	}
 	
-	int LightManager::CreatePointLightList(Camera *camera)
+	int LightManager::CreatePointLightList(Camera *camera, Light **lights, size_t lightCount)
 	{
-		Light **lights = _pointLights.data();
-		size_t lightCount = _pointLights.size();
-		
-		lightCount = std::min(camera->GetMaxLightsPerTile(), lightCount);
-		
 		_lightPointPosition.clear();
 		_lightPointColor.clear();
 		_lightPointDepth.clear();
 		
 		if(lightCount >= _maxLightFastPath)
 		{
+			lightCount = std::min(camera->GetMaxLightsPerTile(), lightCount);
+			
 			GLuint indicesBuffer = _lightPointBuffers[kRNRendererPointLightListIndicesIndex];
 			GLuint offsetBuffer = _lightPointBuffers[kRNRendererPointLightListOffsetIndex];
 			
@@ -324,10 +323,9 @@ continue; \
 		}
 		else
 		{
-			lightCount = _pointLights.size();
 			for(size_t i = 0; i < lightCount; i++)
 			{
-				Light *light = _pointLights[i];
+				Light *light = lights[i];
 				_lightPointPosition.emplace_back(Vector4(light->GetWorldPosition(), light->GetRange()));
 				
 				const Vector3& color = light->GetResultColor();
@@ -346,21 +344,17 @@ continue; \
 		return static_cast<int>(lightCount);
 	}
 	
-	int LightManager::CreateSpotLightList(Camera *camera)
+	int LightManager::CreateSpotLightList(Camera *camera, Light **lights, size_t lightCount)
 	{
-		Light **lights = _spotLights.data();
-		size_t lightCount = _spotLights.size();
-		
-		lightCount = std::min(camera->GetMaxLightsPerTile(), lightCount);
-		
 		_lightSpotPosition.clear();
 		_lightSpotDirection.clear();
 		_lightSpotColor.clear();
-		
 		_lightSpotDepth.clear();
 		
 		if(lightCount >= _maxLightFastPath)
 		{
+			lightCount = std::min(camera->GetMaxLightsPerTile(), lightCount);
+			
 			GLuint indicesBuffer = _lightSpotBuffers[kRNRendererSpotLightListIndicesIndex];
 			GLuint offsetBuffer = _lightSpotBuffers[kRNRendererSpotLightListOffsetIndex];
 			
@@ -419,10 +413,9 @@ continue; \
 		}
 		else
 		{
-			lightCount = _spotLights.size();
 			for(size_t i = 0; i < lightCount; i++)
 			{
-				Light *light = _spotLights[i];
+				Light *light = lights[i];
 				_lightSpotPosition.emplace_back(Vector4(light->GetWorldPosition(), light->GetRange()));
 				
 				const Vector3& color = light->GetResultColor();
@@ -444,11 +437,8 @@ continue; \
 		return static_cast<int>(lightCount);
 	}
 	
-	int LightManager::CreateDirectionalLightList(Camera *camera)
+	int LightManager::CreateDirectionalLightList(Camera *camera, Light **lights, size_t lightCount)
 	{
-		Light **lights = _directionalLights.data();
-		size_t lightCount = _directionalLights.size();
-		
 		_lightDirectionalDirection.clear();
 		_lightDirectionalColor.clear();
 		

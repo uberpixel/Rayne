@@ -10,6 +10,16 @@
 #include "RNThreadPool.h"
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
+#include "RNLightManager.h"
+
+//TODO: Cleanup!!! (same defines are in RNLightManager.cpp)
+#define kRNRendererPointLightListIndicesIndex 0
+#define kRNRendererPointLightListOffsetIndex  1
+#define kRNRendererPointLightListDataIndex    2
+
+#define kRNRendererSpotLightListIndicesIndex 0
+#define kRNRendererSpotLightListOffsetIndex  1
+#define kRNRendererSpotLightListDataIndex    2
 
 namespace RN
 {
@@ -180,10 +190,18 @@ namespace RN
 		{
 			Material *surfaceMaterial = camera->GetMaterial();
 
-			// Create the light lists for the camera
-			int lightPointCount = CreatePointLightList(camera);
-			int lightSpotCount  = CreateSpotLightList(camera);
-			int lightDirectionalCount = CreateDirectionalLightList(camera);
+			//TODO: Cleanup!!!
+			LightManager *lightManager = camera->lightManager;
+			int lightPointCount = 0;
+			int lightSpotCount = 0;
+			int lightDirectionalCount = 0;
+			if(lightManager != nullptr)
+			{
+				// Create the light lists for the camera
+				lightPointCount = lightManager->CreatePointLightList(camera, _pointLights.data(), _pointLights.size());
+				lightSpotCount = lightManager->CreateSpotLightList(camera, _spotLights.data(), _spotLights.size());
+				lightDirectionalCount = lightManager->CreateDirectionalLightList(camera, _directionalLights.data(), _directionalLights.size());
+			}
 			
 			_renderedLights += lightPointCount + lightSpotCount + lightDirectionalCount;
 			
@@ -245,12 +263,16 @@ namespace RN
 				{
 					programTypes |= ShaderProgram::TypeLighting;
 					
-					if(_lightDirectionalDepth.size() > 0)
-						programTypes |= ShaderProgram::TypeDirectionalShadows;
-					if(_lightPointDepth.size() > 0)
-						programTypes |= ShaderProgram::TypePointShadows;
-					if(_lightSpotDepth.size() > 0)
-						programTypes |= ShaderProgram::TypeSpotShadows;
+					//TODO: Cleanup!!!
+					if(lightManager != nullptr)
+					{
+						if(lightManager->_lightDirectionalDepth.size() > 0)
+							programTypes |= ShaderProgram::TypeDirectionalShadows;
+						if(lightManager->_lightPointDepth.size() > 0)
+							programTypes |= ShaderProgram::TypePointShadows;
+						if(lightManager->_lightSpotDepth.size() > 0)
+							programTypes |= ShaderProgram::TypeSpotShadows;
+					}
 				}
 				
 				if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::TypeFog))
@@ -302,40 +324,44 @@ namespace RN
 				
 				if(changedShader)
 				{
-					// Light data
-					glUniform1i(program->lightPointCount, lightPointCount);
-					glUniform4fv(program->lightPointPosition, lightPointCount, (float*)_lightPointPosition.data());
-					glUniform4fv(program->lightPointColor, lightPointCount, (float*)_lightPointColor.data());
-					
-					glUniform1i(program->lightSpotCount, lightSpotCount);
-					glUniform4fv(program->lightSpotPosition, lightSpotCount, (float*)_lightSpotPosition.data());
-					glUniform4fv(program->lightSpotDirection, lightSpotCount, (float*)_lightSpotDirection.data());
-					glUniform4fv(program->lightSpotColor, lightSpotCount, (float*)_lightSpotColor.data());
-					
-					glUniform1i(program->lightDirectionalCount, lightDirectionalCount);
-					glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)_lightDirectionalDirection.data());
-					glUniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)_lightDirectionalColor.data());
-					
-					float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.data());
-					glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.size(), GL_FALSE, data);
-					
-					if(lightPointCount >= _maxLightFastPath || lightSpotCount >= _maxLightFastPath)
+					//TODO: Cleanup!!!
+					if(lightManager != nullptr)
 					{
-						if(program->lightTileSize != -1)
+						// Light data
+						glUniform1i(program->lightPointCount, lightPointCount);
+						glUniform4fv(program->lightPointPosition, lightPointCount, (float*)lightManager->_lightPointPosition.data());
+						glUniform4fv(program->lightPointColor, lightPointCount, (float*)lightManager->_lightPointColor.data());
+						
+						glUniform1i(program->lightSpotCount, lightSpotCount);
+						glUniform4fv(program->lightSpotPosition, lightSpotCount, (float*)lightManager->_lightSpotPosition.data());
+						glUniform4fv(program->lightSpotDirection, lightSpotCount, (float*)lightManager->_lightSpotDirection.data());
+						glUniform4fv(program->lightSpotColor, lightSpotCount, (float*)lightManager->_lightSpotColor.data());
+						
+						glUniform1i(program->lightDirectionalCount, lightDirectionalCount);
+						glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)lightManager->_lightDirectionalDirection.data());
+						glUniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)lightManager->_lightDirectionalColor.data());
+						
+						float *data = reinterpret_cast<float *>(lightManager->_lightDirectionalMatrix.data());
+						glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)lightManager->_lightDirectionalMatrix.size(), GL_FALSE, data);
+						
+						if(lightPointCount >= _maxLightFastPath || lightSpotCount >= _maxLightFastPath)
 						{
-							Rect rect = camera->GetFrame();
-							int tilesWidth  = ceil(rect.width / camera->GetLightTiles().x);
-							int tilesDepth = 15;//camera->GetLightTiles().z;
-							
-							Vector2 lightTilesSize;
-							lightTilesSize.x = camera->GetLightTiles().x * _scaleFactor;
-							lightTilesSize.y = camera->GetLightTiles().y * _scaleFactor;
-							Vector2 lightTilesCount = Vector2(tilesWidth, tilesDepth);
-							
-							glUniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
+							if(program->lightTileSize != -1)
+							{
+								Rect rect = camera->GetFrame();
+								int tilesWidth  = ceil(rect.width / camera->GetLightTiles().x);
+								int tilesDepth = 15;//camera->GetLightTiles().z;
+								
+								Vector2 lightTilesSize;
+								lightTilesSize.x = camera->GetLightTiles().x * _scaleFactor;
+								lightTilesSize.y = camera->GetLightTiles().y * _scaleFactor;
+								Vector2 lightTilesCount = Vector2(tilesWidth, tilesDepth);
+								
+								glUniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
+							}
 						}
 					}
-					
+						
 					if(program->discardThreshold != -1)
 					{
 						float threshold = material->discardThreshold;
@@ -349,100 +375,104 @@ namespace RN
 				
 				if(changedShader || changedMaterial)
 				{
-					if(program->lightDirectionalDepth != -1 && _lightDirectionalDepth.size() > 0)
+					//TODO: Cleanup!!!
+					if(lightManager != nullptr)
 					{
-						uint32 textureUnit = BindTexture(_lightDirectionalDepth.front());
-						glUniform1i(program->lightDirectionalDepth, textureUnit);
-					}
-					
-					if(_lightPointDepth.size() > 0)
-					{
-						const std::vector<GLuint>& lightPointDepthLocations = program->lightPointDepthLocations;
-						
-						if(lightPointDepthLocations.size() > 0)
+						if(program->lightDirectionalDepth != -1 && lightManager->_lightDirectionalDepth.size() > 0)
 						{
-							size_t textureCount = std::min(lightPointDepthLocations.size(), _lightPointDepth.size());
-							
-							
-							uint32 lastpointdepth = 0;
-							for(size_t i=0; i<textureCount; i++)
-							{
-								GLint location = lightPointDepthLocations[i];
-								lastpointdepth = BindTexture(_lightPointDepth[i]);
-								glUniform1i(location, lastpointdepth);
-							}
-							
-							for(size_t i = textureCount; i < lightPointDepthLocations.size(); i++)
-							{
-								GLint location = lightPointDepthLocations[i];
-								glUniform1i(location, lastpointdepth);
-							}
+							uint32 textureUnit = BindTexture(lightManager->_lightDirectionalDepth.front());
+							glUniform1i(program->lightDirectionalDepth, textureUnit);
 						}
-					}
-					
-					if(_lightSpotDepth.size() > 0)
-					{
-						const std::vector<GLuint>& lightSpotDepthLocations = program->lightSpotDepthLocations;
 						
-						if(lightSpotDepthLocations.size() > 0)
+						if(lightManager->_lightPointDepth.size() > 0)
 						{
-							size_t textureCount = std::min(lightSpotDepthLocations.size(), _lightSpotDepth.size());
+							const std::vector<GLuint>& lightPointDepthLocations = program->lightPointDepthLocations;
 							
-							
-							uint32 lastspotdepth = 0;
-							for(size_t i=0; i<textureCount; i++)
+							if(lightPointDepthLocations.size() > 0)
 							{
-								GLint location = lightSpotDepthLocations[i];
-								lastspotdepth = BindTexture(_lightSpotDepth[i]);
-								glUniform1i(location, lastspotdepth);
-							}
-							
-							for(size_t i = textureCount; i < lightSpotDepthLocations.size(); i++)
-							{
-								GLint location = lightSpotDepthLocations[i];
-								glUniform1i(location, lastspotdepth);
+								size_t textureCount = std::min(lightPointDepthLocations.size(), lightManager->_lightPointDepth.size());
+								
+								
+								uint32 lastpointdepth = 0;
+								for(size_t i=0; i<textureCount; i++)
+								{
+									GLint location = lightPointDepthLocations[i];
+									lastpointdepth = BindTexture(lightManager->_lightPointDepth[i]);
+									glUniform1i(location, lastpointdepth);
+								}
+								
+								for(size_t i = textureCount; i < lightPointDepthLocations.size(); i++)
+								{
+									GLint location = lightPointDepthLocations[i];
+									glUniform1i(location, lastpointdepth);
+								}
 							}
 						}
-					}
-					
-					if(lightPointCount >= _maxLightFastPath || lightSpotCount >= _maxLightFastPath)
-					{
-						// Point lights
-						if(program->lightPointList != -1)
+						
+						if(lightManager->_lightSpotDepth.size() > 0)
 						{
-							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListIndicesIndex]);
-							glUniform1i(program->lightPointList, textureUnit);
+							const std::vector<GLuint>& lightSpotDepthLocations = program->lightSpotDepthLocations;
+							
+							if(lightSpotDepthLocations.size() > 0)
+							{
+								size_t textureCount = std::min(lightSpotDepthLocations.size(), lightManager->_lightSpotDepth.size());
+								
+								
+								uint32 lastspotdepth = 0;
+								for(size_t i=0; i<textureCount; i++)
+								{
+									GLint location = lightSpotDepthLocations[i];
+									lastspotdepth = BindTexture(lightManager->_lightSpotDepth[i]);
+									glUniform1i(location, lastspotdepth);
+								}
+								
+								for(size_t i = textureCount; i < lightSpotDepthLocations.size(); i++)
+								{
+									GLint location = lightSpotDepthLocations[i];
+									glUniform1i(location, lastspotdepth);
+								}
+							}
 						}
 						
-						if(program->lightPointListOffset != -1)
+						if(lightPointCount >= _maxLightFastPath || lightSpotCount >= _maxLightFastPath)
 						{
-							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
-							glUniform1i(program->lightPointListOffset, textureUnit);
-						}
-						
-						if(program->lightPointListData != -1)
-						{
-							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListDataIndex]);
-							glUniform1i(program->lightPointListData, textureUnit);
-						}
-						
-						// Spot lights
-						if(program->lightSpotList != -1)
-						{
-							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListIndicesIndex]);
-							glUniform1i(program->lightSpotList, textureUnit);
-						}
-						
-						if(program->lightSpotListOffset!= -1)
-						{
-							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListOffsetIndex]);
-							glUniform1i(program->lightSpotListOffset, textureUnit);
-						}
-						
-						if(program->lightSpotListData != -1)
-						{
-							uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListDataIndex]);
-							glUniform1i(program->lightSpotListData, textureUnit);
+							// Point lights
+							if(program->lightPointList != -1)
+							{
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightPointTextures[kRNRendererPointLightListIndicesIndex]);
+								glUniform1i(program->lightPointList, textureUnit);
+							}
+							
+							if(program->lightPointListOffset != -1)
+							{
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightPointTextures[kRNRendererPointLightListOffsetIndex]);
+								glUniform1i(program->lightPointListOffset, textureUnit);
+							}
+							
+							if(program->lightPointListData != -1)
+							{
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightPointTextures[kRNRendererPointLightListDataIndex]);
+								glUniform1i(program->lightPointListData, textureUnit);
+							}
+							
+							// Spot lights
+							if(program->lightSpotList != -1)
+							{
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightSpotTextures[kRNRendererSpotLightListIndicesIndex]);
+								glUniform1i(program->lightSpotList, textureUnit);
+							}
+							
+							if(program->lightSpotListOffset!= -1)
+							{
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightSpotTextures[kRNRendererSpotLightListOffsetIndex]);
+								glUniform1i(program->lightSpotListOffset, textureUnit);
+							}
+							
+							if(program->lightSpotListData != -1)
+							{
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightSpotTextures[kRNRendererSpotLightListDataIndex]);
+								glUniform1i(program->lightSpotListData, textureUnit);
+							}
 						}
 					}
 					
