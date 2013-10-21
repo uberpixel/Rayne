@@ -405,11 +405,11 @@ namespace TG
 #endif
 		
 #if TGWorldFeatureLights
-/*		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
+		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateDirectionalShadows();
-		_sunLight->SetColor(RN::Color(170, 170, 170));*/
+		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
 /*		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));

@@ -134,7 +134,7 @@ namespace RN
 				RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 				storage->SetDepthTarget(depthtex, i);
 				
-				Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden, 1.0f);
+				Camera *tempcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden | Camera::FlagNoLights, 1.0f);
 				tempcam->SetMaterial(depthMaterial);
 				tempcam->SetLODCamera(_lightcam);
 				tempcam->SetPriority(kRNShadowCameraPriority);
@@ -179,7 +179,7 @@ namespace RN
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 			storage->SetDepthTarget(depthtex, -1);
 			
-			_shadowcam = new CubemapCamera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden, 1.0f);
+			_shadowcam = new CubemapCamera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden | Camera::FlagNoLights, 1.0f);
 			_shadowcam->Retain();
 			_shadowcam->Autorelease();
 			_shadowcam->SetMaterial(depthMaterial);
@@ -224,7 +224,7 @@ namespace RN
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 			storage->SetDepthTarget(depthtex, -1);
 			
-			_shadowcam = new CubemapCamera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden, 1.0f);
+			_shadowcam = new CubemapCamera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden | Camera::FlagNoLights, 1.0f);
 			_shadowcam->Retain();
 			_shadowcam->Autorelease();
 			_shadowcam->SetMaterial(depthMaterial);

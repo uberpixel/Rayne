@@ -442,6 +442,9 @@ continue; \
 		_lightDirectionalDirection.clear();
 		_lightDirectionalColor.clear();
 		
+		_lightDirectionalMatrix.clear();
+		_lightDirectionalDepth.clear();
+		
 		for(size_t i=0; i<lightCount; i++)
 		{
 			Light *light = lights[i];
@@ -453,28 +456,22 @@ continue; \
 			
 			if(light->Shadow())
 			{
-				if(camera == light->GetShadowCamera() || light->GetShadowCameras()->ContainsObject(camera))
+				const std::vector<Matrix> &matrices = light->GetShadowMatrices();
+				
+				if(matrices.size() > 0)
 				{
-					_lightDirectionalMatrix.clear();
-					_lightDirectionalDepth.clear();
-					
-					const std::vector<Matrix> &matrices = light->GetShadowMatrices();
-					
-					if(matrices.size() > 0)
+					for(int i = 0; i < 4; i++)
 					{
-						for(int i = 0; i < 4; i++)
-						{
-							_lightDirectionalMatrix.push_back(matrices[i]);
-						}
-						
-						if(light->GetShadowCamera())
-						{
-							_lightDirectionalDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
-						}
-						else
-						{
-							_lightDirectionalDepth.push_back(light->GetShadowCameras()->GetFirstObject<Camera>()->GetStorage()->GetDepthTarget());
-						}
+						_lightDirectionalMatrix.push_back(matrices[i]);
+					}
+					
+					if(light->GetShadowCamera())
+					{
+						_lightDirectionalDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
+					}
+					else
+					{
+						_lightDirectionalDepth.push_back(light->GetShadowCameras()->GetFirstObject<Camera>()->GetStorage()->GetDepthTarget());
 					}
 				}
 			}
