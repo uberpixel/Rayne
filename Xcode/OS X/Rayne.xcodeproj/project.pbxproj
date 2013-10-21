@@ -15,6 +15,8 @@
 		C094DF871753A2BA002A2C88 /* RNWater.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C094DF851753A2BA002A2C88 /* RNWater.cpp */; };
 		C094DF881753A2BA002A2C88 /* RNWater.h in Headers */ = {isa = PBXBuildFile; fileRef = C094DF861753A2BA002A2C88 /* RNWater.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C0C3AD351764B6C4007FADC9 /* RNHit.h in Headers */ = {isa = PBXBuildFile; fileRef = C0C3AD341764B6C4007FADC9 /* RNHit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D58CEA3E18159965002EB442 /* RNLightManager.h in Headers */ = {isa = PBXBuildFile; fileRef = D58CEA3C18159965002EB442 /* RNLightManager.h */; };
+		D58CEA3F18159965002EB442 /* RNLightManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D58CEA3D18159965002EB442 /* RNLightManager.cpp */; };
 		E907DF2A17C9780E00777A38 /* RNTextNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E907DF2817C9780E00777A38 /* RNTextNode.cpp */; };
 		E907DF2B17C9780E00777A38 /* RNTextNode.h in Headers */ = {isa = PBXBuildFile; fileRef = E907DF2917C9780E00777A38 /* RNTextNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E90E777917D799A30097DB09 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E90E777817D799A30097DB09 /* CoreServices.framework */; };
@@ -295,6 +297,8 @@
 		C094DF851753A2BA002A2C88 /* RNWater.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWater.cpp; sourceTree = "<group>"; };
 		C094DF861753A2BA002A2C88 /* RNWater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWater.h; sourceTree = "<group>"; };
 		C0C3AD341764B6C4007FADC9 /* RNHit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNHit.h; sourceTree = "<group>"; };
+		D58CEA3C18159965002EB442 /* RNLightManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNLightManager.h; sourceTree = "<group>"; };
+		D58CEA3D18159965002EB442 /* RNLightManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNLightManager.cpp; sourceTree = "<group>"; };
 		E907DF2817C9780E00777A38 /* RNTextNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTextNode.cpp; sourceTree = "<group>"; };
 		E907DF2917C9780E00777A38 /* RNTextNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTextNode.h; sourceTree = "<group>"; };
 		E90E777817D799A30097DB09 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
@@ -874,6 +878,8 @@
 				E9580BD216AB8BEA0056DEF2 /* RNEntity.h */,
 				C050166716C3FDE600326514 /* RNLight.cpp */,
 				C050166816C3FDE600326514 /* RNLight.h */,
+				D58CEA3D18159965002EB442 /* RNLightManager.cpp */,
+				D58CEA3C18159965002EB442 /* RNLightManager.h */,
 				E9F3A6F6171B8DA70005A79E /* RNParticle.cpp */,
 				E9F3A6F7171B8DA70005A79E /* RNParticle.h */,
 				E9F3A6F2171B8D3E0005A79E /* RNParticleEmitter.cpp */,
@@ -1064,6 +1070,7 @@
 				E9E6990017DF8B9500D30231 /* RNFormatter.h in Headers */,
 				E95EEE491784CFDC00CDCA6E /* RNBasicString.h in Headers */,
 				E95EEE4D1784EFAC00CDCA6E /* RNASCIIString.h in Headers */,
+				D58CEA3E18159965002EB442 /* RNLightManager.h in Headers */,
 				E95EEE511784FC5E00CDCA6E /* RNException.h in Headers */,
 				E945AB431788D97A00C7B30A /* RNUTF8String.h in Headers */,
 				E945AB61178D7D1200C7B30A /* RNUIStyle.h in Headers */,
@@ -1204,6 +1211,7 @@
 				E9F77798169C5CF8006EE702 /* RNOpenGL.cpp in Sources */,
 				E945666517D4B80200DEA632 /* RNUIColor.cpp in Sources */,
 				E9580BD316AB8BEA0056DEF2 /* RNEntity.cpp in Sources */,
+				D58CEA3F18159965002EB442 /* RNLightManager.cpp in Sources */,
 				E9C6F0A716B207E1006288D5 /* RNModel.cpp in Sources */,
 				E92AE1AE16B4D68C00EFE1E8 /* RNApplication.cpp in Sources */,
 				E9145CAC16BA9076004BDEC8 /* RNAutoreleasePool.cpp in Sources */,

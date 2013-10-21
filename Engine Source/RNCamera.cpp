@@ -11,6 +11,7 @@
 #include "RNKernel.h"
 #include "RNWorld.h"
 #include "RNLight.h"
+#include "RNLightManager.h"
 #include "RNResourcePool.h"
 
 namespace RN
@@ -270,7 +271,7 @@ namespace RN
 		
 		UpdateStages();
 	}
-	
+
 	
 	
 	Camera::Camera(const Vector2& size) :
@@ -297,21 +298,20 @@ namespace RN
 
 
 	Camera::Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format) :
-		_frame(Vector2(0.0f, 0.0f), size),
-		_flags(flags)
+		_frame(Vector2(0.0f, 0.0f), size)
 	{
 		_storage = 0;
 		
 		RenderStorage *storage = new RenderStorage(format);
 		storage->AddRenderTarget(target);
 		
+		SetFlags(flags);
 		SetRenderStorage(storage);
 		Initialize();
 	}
 
 	Camera::Camera(const Vector2& size, TextureParameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor) :
 		_frame(Vector2(0.0f, 0.0f), size),
-		_flags(flags),
 		_scaleFactor(scaleFactor)
 	{
 		_storage = 0;
@@ -319,17 +319,18 @@ namespace RN
 		RenderStorage *storage = new RenderStorage(format, 0, scaleFactor);
 		storage->AddRenderTarget(targetFormat);
 		
+		SetFlags(flags);
 		SetRenderStorage(storage);
 		Initialize();
 	}
 
 	Camera::Camera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor) :
 		_frame(Vector2(0.0f, 0.0f), size),
-		_flags(flags),
 		_scaleFactor(scaleFactor)
 	{
 		_storage = 0;
 
+		SetFlags(flags);
 		SetRenderStorage(storage);
 		Initialize();
 	}
@@ -374,6 +375,8 @@ namespace RN
 		fognear = 100.0f;
 		fogfar = 500.0f;
 		
+		lightManager = nullptr;
+		
 		useclipplane = false;
 		clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
 
@@ -387,10 +390,6 @@ namespace RN
 
 		_lightTiles = Vector3(32, 32, 16);
 		_skycube = 0;
-		
-		_depthArray = 0;
-		_depthSize  = 0;
-		_depthFrame = 0;
 		
 		_maxLights = 500;
 		_priority  = 0;
@@ -487,6 +486,20 @@ namespace RN
 	
 	void Camera::SetFlags(Flags flags)
 	{
+		if(!(_flags & FlagNoLights) && flags & FlagNoLights)
+		{
+			if(lightManager != nullptr)
+			{
+				delete lightManager;
+				lightManager = nullptr;
+			}
+		}
+		
+		if(!(flags & FlagNoLights) && lightManager == nullptr)
+		{
+			lightManager = new LightManager();
+		}
+		
 		_flags = flags;
 	}
 

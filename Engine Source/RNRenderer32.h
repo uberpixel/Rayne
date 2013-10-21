@@ -24,7 +24,6 @@ namespace RN
 		uint32 GetMaxLightFastPathCount() const { return _maxLightFastPath; }
 	
 	protected:
-		RNAPI void AllocateLightBufferStorage(size_t indicesSize, size_t offsetSize);
 		RNAPI void DrawMesh(Mesh *mesh, uint32 offset, uint32 count);
 		RNAPI void DrawMeshInstanced(const RenderingObject& object);
 		
@@ -43,37 +42,7 @@ namespace RN
 		GLuint _copyVBO;
 		Vector4 _copyVertices[4];
 		
-		int *_lightIndicesBuffer;
-		int *_tempLightIndicesBuffer;
-		int *_lightOffsetBuffer;
-		size_t _lightIndicesBufferSize;
-		size_t _lightOffsetBufferSize;
-		
-		size_t _lightPointDataSize;
-		GLuint _lightPointTextures[3];
-		GLuint _lightPointBuffers[3];
-		
-		size_t _lightSpotDataSize;
-		GLuint _lightSpotTextures[3];
-		GLuint _lightSpotBuffers[3];
-		
 		uint32 _maxLightFastPath;
-		
-		std::vector<Vector3> _lightDirectionalDirection;
-		std::vector<Vector4> _lightDirectionalColor;
-		std::vector<Matrix> _lightDirectionalMatrix;
-		std::vector<Texture *> _lightDirectionalDepth;
-		
-		std::vector<Vector4> _lightSpotPosition;
-		std::vector<Vector4> _lightSpotDirection;
-		std::vector<Vector4> _lightSpotColor;
-		std::vector<Texture *> _lightSpotDepth;
-		std::vector<Vector4> _lightSpotData;
-		
-		std::vector<Vector4> _lightPointPosition;
-		std::vector<Vector4> _lightPointColor;
-		std::vector<Texture *> _lightPointDepth;
-		std::vector<Vector4> _lightPointData;
 	};
 }
 

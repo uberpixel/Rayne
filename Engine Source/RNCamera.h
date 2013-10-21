@@ -26,6 +26,7 @@ namespace RN
 	class Light;
 	class Camera;
 	class Renderer;
+	class LightManager;
 	
 	class RenderStage
 	{
@@ -146,7 +147,6 @@ namespace RN
 			FlagNoRender = (1 << 11),
 			FlagForceFlush = (1 << 12),
 			FlagNoLights = (1 << 13),
-			
 			
 			FlagDefaults = (FlagFullscreen | FlagUpdateAspect | FlagUpdateStorageFrame),
 			FlagInherit = (FlagInheritFrame | FlagInheritPosition | FlagInheritProjection)
@@ -302,6 +302,8 @@ namespace RN
 		bool useclipplane;
 		Vector4 clipplane;
 		
+		LightManager *lightManager;
+		
 		Matrix projectionMatrix;
 		Matrix inverseProjectionMatrix;
 		Matrix viewMatrix;
@@ -349,10 +351,6 @@ namespace RN
 		Camera *_lodCamera;
 		
 		Model *_skycube;
-		
-		float *_depthArray;
-		FrameID _depthFrame;
-		size_t _depthSize;
 		
 		size_t _maxLights;
 		uint32 _stageCount;
