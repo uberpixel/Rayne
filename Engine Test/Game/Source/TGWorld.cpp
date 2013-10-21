@@ -123,6 +123,14 @@ namespace TG
 	
 	void World::CreateCameras()
 	{
+		RN::Model *sky = RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png");
+		sky->GetMaterialAtIndex(0, 0)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->GetMaterialAtIndex(0, 1)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->GetMaterialAtIndex(0, 2)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->GetMaterialAtIndex(0, 3)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->GetMaterialAtIndex(0, 4)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		sky->GetMaterialAtIndex(0, 5)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		
 #if TGWorldFeatureZPrePass
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth);
 		
@@ -140,14 +148,6 @@ namespace TG
 		
 		_camera = new ThirdPersonCamera(storage);
 		_camera->SetMaterial(depthMaterial);
-
-		RN::Model *sky = RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png");
-		sky->GetMaterialAtIndex(0, 0)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->GetMaterialAtIndex(0, 1)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->GetMaterialAtIndex(0, 2)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->GetMaterialAtIndex(0, 3)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->GetMaterialAtIndex(0, 4)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->GetMaterialAtIndex(0, 5)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
 		
 		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
@@ -285,6 +285,8 @@ namespace TG
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
 		storage->AddRenderTarget(RN::TextureParameter::Format::RGBA32F);
 		_camera = new ThirdPersonCamera(storage);
+		_camera->SetSkyCube(sky);
+		_camera->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
 #endif
 	}
 	
@@ -423,34 +425,34 @@ namespace TG
 #endif*/
 		
 /*		RN::Light *light = new RN::Light();
-		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
-		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
+		light->SetPosition(RN::Vector3(-21.0f, -5.0f, -5.0f));
+		light->SetRange(15.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		light->ActivatePointShadows();
 		
 		light = new RN::Light();
-		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
-		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
+		light->SetPosition(RN::Vector3(-21.0f, -5.0f, 5.0f));
+		light->SetRange(15.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		light->ActivatePointShadows();
 		
 		light = new RN::Light();
-		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
-		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
+		light->SetPosition(RN::Vector3(29.0f, -5.0f, -5.0f));
+		light->SetRange(15.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		light->ActivatePointShadows();
 		
 		light = new RN::Light();
-		light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 25.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 20.0f - 10.0f));
-		light->SetRange((TGWorldRandom * 15.0f) + 5.0f);
+		light->SetPosition(RN::Vector3(29.0f, -5.0f, 5.0f));
+		light->SetRange(15.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		light->ActivatePointShadows();*/
 		
-		for(int i=0; i<100; i++)
+		for(int i=0; i<500; i++)
 		{
 			RN::Light *light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 21.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 21.0f - 10.0f));
-			light->SetRange((TGWorldRandom * 5.0f) + 2.0f);
+			light->SetRange((TGWorldRandom * 3.0f) + 2.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 			float timeoffset = TGWorldRandom*10.0f;
 			light->SetAction([timeoffset](RN::SceneNode *light, float delta) {

@@ -243,7 +243,7 @@ namespace RN
 							DistanceExpect(pltop, >, range, true);
 							dt = distance;
 							
-							float sqrange = range*range;
+		/*					float sqrange = range*range;
 							
 							if(dr > 0.0f && db < 0.0f && dr*dr+db*db > sqrange)
 								continue;
@@ -253,10 +253,10 @@ namespace RN
 								continue;
 							if(dl < 0.0f && dt > 0.0f && dl*dl+dt*dt > sqrange)
 								continue;
+		 */
 							
-							
-							Distance(plnear, <, -range);
-							Distance(plfar, >, range);
+							DistanceExpect(plnear, <, -range, true);
+							DistanceExpect(plfar, >, range, true);
 							
 							lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
 						}
@@ -317,7 +317,7 @@ namespace RN
 		
 		_lightPointDepth.clear();
 		
-		if(lightCount > _maxLightFastPath)
+		if(lightCount >= _maxLightFastPath)
 		{
 			GLuint indicesBuffer = _lightPointBuffers[kRNRendererPointLightListIndicesIndex];
 			GLuint offsetBuffer = _lightPointBuffers[kRNRendererPointLightListOffsetIndex];
@@ -409,7 +409,7 @@ namespace RN
 		
 		_lightSpotDepth.clear();
 		
-		if(lightCount > _maxLightFastPath)
+		if(lightCount >= _maxLightFastPath)
 		{
 			GLuint indicesBuffer = _lightSpotBuffers[kRNRendererSpotLightListIndicesIndex];
 			GLuint offsetBuffer = _lightSpotBuffers[kRNRendererSpotLightListOffsetIndex];
@@ -821,7 +821,7 @@ namespace RN
 					float *data = reinterpret_cast<float *>(_lightDirectionalMatrix.data());
 					glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.size(), GL_FALSE, data);
 					
-					if(lightPointCount > _maxLightFastPath || lightSpotCount > _maxLightFastPath)
+					if(lightPointCount >= _maxLightFastPath || lightSpotCount >= _maxLightFastPath)
 					{
 						if(program->lightTileSize != -1)
 						{
@@ -907,7 +907,7 @@ namespace RN
 						}
 					}
 					
-					if(lightPointCount > _maxLightFastPath || lightSpotCount > _maxLightFastPath)
+					if(lightPointCount >= _maxLightFastPath || lightSpotCount >= _maxLightFastPath)
 					{
 						// Point lights
 						if(program->lightPointList != -1)
