@@ -31,13 +31,24 @@ namespace RN
 		LightManager();
 		~LightManager();
 		
+		
+		void AddLight(Light *light);
+		int CreateLightClusterLists(Camera *camera, Light **lights, size_t pointLightCount, size_t spotLightCount);
+		
+		int CreatePointLightList(Camera *camera);
+		int CreateSpotLightList(Camera *camera);
+		int CreateDirectionalLightList(Camera *camera);
+		
+	private:
+		void AllocateLightBufferStorage(size_t indicesSize, size_t offsetSize);
 		void CullLights(Camera *camera, Light **lights, size_t lightCount, GLuint indicesBuffer, GLuint offsetBuffer);
 		
-		int CreatePointLightList(Camera *camera, Light **lights, size_t lightCount);
-		int CreateSpotLightList(Camera *camera, Light **lights, size_t lightCount);
-		int CreateDirectionalLightList(Camera *camera, Light **lights, size_t lightCount);
+		int _maxLightFastPath;
 		
-	protected:
+		std::vector<Light *> _pointLights;
+		std::vector<Light *> _spotLights;
+		std::deque<Light *> _directionalLights;
+		
 		int *_lightIndicesBuffer;
 		int *_tempLightIndicesBuffer;
 		int *_lightOffsetBuffer;
@@ -67,11 +78,6 @@ namespace RN
 		std::vector<Vector4> _lightPointColor;
 		std::vector<Texture *> _lightPointDepth;
 		std::vector<Vector4> _lightPointData;
-		
-	private:
-		void AllocateLightBufferStorage(size_t indicesSize, size_t offsetSize);
-		
-		int _maxLightFastPath;
 	};
 }
 

@@ -257,9 +257,41 @@ continue; \
 		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
 		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
 	}
-	
-	int LightManager::CreatePointLightList(Camera *camera, Light **lights, size_t lightCount)
+
+	int LightManager::CreateLightClusterLists(Camera *camera, Light **lights, size_t pointLightCount, size_t spotLightCount)
 	{
+		return 0;
+	}
+
+	void LightManager::AddLight(Light *light)
+	{
+		switch(light->GetType())
+		{
+			case Light::Type::PointLight:
+				_pointLights.push_back(light);
+				break;
+				
+			case Light::Type::SpotLight:
+				_spotLights.push_back(light);
+				break;
+				
+			case Light::Type::DirectionalLight:
+				if(light->Shadow())
+					_directionalLights.push_front(light);
+				else
+					_directionalLights.push_back(light);
+				break;
+				
+			default:
+				break;
+		}
+	}
+
+	int LightManager::CreatePointLightList(Camera *camera)
+	{
+		Light **lights = _pointLights.data();
+		size_t lightCount = _pointLights.size();
+		
 		_lightPointPosition.clear();
 		_lightPointColor.clear();
 		_lightPointDepth.clear();
@@ -341,11 +373,16 @@ continue; \
 			}
 		}
 		
+		_pointLights.clear();
+
 		return static_cast<int>(lightCount);
 	}
 	
-	int LightManager::CreateSpotLightList(Camera *camera, Light **lights, size_t lightCount)
+	int LightManager::CreateSpotLightList(Camera *camera)
 	{
+		Light **lights = _spotLights.data();
+		size_t lightCount = _spotLights.size();
+		
 		_lightSpotPosition.clear();
 		_lightSpotDirection.clear();
 		_lightSpotColor.clear();
@@ -434,20 +471,23 @@ continue; \
 			}
 		}
 		
+		_spotLights.clear();
+		
 		return static_cast<int>(lightCount);
 	}
 	
-	int LightManager::CreateDirectionalLightList(Camera *camera, Light **lights, size_t lightCount)
+	int LightManager::CreateDirectionalLightList(Camera *camera)
 	{
+		size_t lightCount = _directionalLights.size();
+		
 		_lightDirectionalDirection.clear();
 		_lightDirectionalColor.clear();
-		
 		_lightDirectionalMatrix.clear();
 		_lightDirectionalDepth.clear();
 		
 		for(size_t i=0; i<lightCount; i++)
 		{
-			Light *light = lights[i];
+			Light *light = _directionalLights[i];
 			const Vector3& color = light->GetResultColor();
 			const Vector3& direction = -light->Forward();
 			
@@ -476,6 +516,8 @@ continue; \
 				}
 			}
 		}
+		
+		_directionalLights.clear();
 		
 		return static_cast<int>(lightCount);
 	}

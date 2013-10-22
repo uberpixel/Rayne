@@ -10,6 +10,7 @@
 #include "RNWorld.h"
 #include "RNCamera.h"
 #include "RNResourcePool.h"
+#include "RNLightManager.h"
 
 namespace RN
 {
@@ -56,8 +57,10 @@ namespace RN
 	{
 		if(!(camera->GetFlags() & Camera::FlagNoLights))
 		{
-			SceneNode::Render(renderer, camera);
-			renderer->RenderLight(this);
+			if(camera->lightManager != nullptr)
+			{
+				camera->lightManager->AddLight(this);
+			}
 		}
 	}
 	

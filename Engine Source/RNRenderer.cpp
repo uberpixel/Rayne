@@ -679,10 +679,6 @@ namespace RN
 			}
 		}
 		
-		ParallelSort(_directionalLights.begin(), _directionalLights.end(), [](Light *a, Light *b) {
-			return (a->Shadow());
-        });
-		
 		// Render loop
 		DrawCamera(camera, 0, skyCubeMeshes);
 		Camera *lastPipeline = camera;
@@ -757,9 +753,6 @@ namespace RN
 		_frameCamera = 0;
 		
 		_frame.clear();
-		_pointLights.clear();
-		_spotLights.clear();
-		_directionalLights.clear();
 	}
 	
 	
@@ -781,26 +774,5 @@ namespace RN
 				_debugFrameUI.push_back(std::move(object));
 				break;
 		}		
-	}
-	
-	void Renderer::RenderLight(Light *light)
-	{
-		switch(light->GetType())
-		{
-			case Light::Type::PointLight:
-				_pointLights.push_back(light);
-				break;
-				
-			case Light::Type::SpotLight:
-				_spotLights.push_back(light);
-				break;
-				
-			case Light::Type::DirectionalLight:
-				_directionalLights.push_back(light);
-				break;
-				
-			default:
-				break;
-		}
 	}
 }

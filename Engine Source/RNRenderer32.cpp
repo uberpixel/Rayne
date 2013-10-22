@@ -198,9 +198,9 @@ namespace RN
 			if(lightManager != nullptr)
 			{
 				// Create the light lists for the camera
-				lightPointCount = lightManager->CreatePointLightList(camera, _pointLights.data(), _pointLights.size());
-				lightSpotCount = lightManager->CreateSpotLightList(camera, _spotLights.data(), _spotLights.size());
-				lightDirectionalCount = lightManager->CreateDirectionalLightList(camera, _directionalLights.data(), _directionalLights.size());
+				lightPointCount = lightManager->CreatePointLightList(camera);
+				lightSpotCount = lightManager->CreateSpotLightList(camera);
+				lightDirectionalCount = lightManager->CreateDirectionalLightList(camera);
 			}
 			
 			_renderedLights += lightPointCount + lightSpotCount + lightDirectionalCount;

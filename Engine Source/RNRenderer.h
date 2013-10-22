@@ -97,7 +97,6 @@ namespace RN
 		
 		RNAPI virtual void RenderObject(RenderingObject object);
 		RNAPI virtual void RenderDebugObject(RenderingObject object, Mode mode);
-		RNAPI virtual void RenderLight(Light *light);
 		
 		RNAPI virtual void BindMaterial(Material *material, ShaderProgram *program);
 		
@@ -193,10 +192,6 @@ namespace RN
 		
 		std::vector<RenderingObject> _debugFrameWorld;
 		std::vector<RenderingObject> _debugFrameUI;
-		
-		std::vector<Light *> _pointLights;
-		std::vector<Light *> _spotLights;
-		std::vector<Light *> _directionalLights;
 		
 	private:		
 		std::map<std::tuple<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
