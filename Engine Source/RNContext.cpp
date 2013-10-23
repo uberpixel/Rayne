@@ -64,8 +64,6 @@ namespace RN
 		[context makeCurrentContext];
 		
 		std::string oglVersion(reinterpret_cast<const char *>(glGetString(GL_VERSION)));
-		std::cout << oglVersion << std::endl;
-		
 		current ? [current makeCurrentContext] : [NSOpenGLContext clearCurrentContext];
 		
 		if(oglVersion.find("3.2") != std::string::npos && version == gl::Version::Core4_1)
