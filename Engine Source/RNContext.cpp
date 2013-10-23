@@ -33,6 +33,12 @@ namespace RN
 		*outContext = nil;
 		*outFormat  = nil;
 		
+		// Sid:
+		// Mac OS X doesn't have an extra profile enum for OpenGL 4.1, since it's compatible with 3.2
+		// That means, requesting a 3.2 profile on Mavericks will give you a 4.1 context if your
+		// hardware supports it. So we create the context, activate it, and then check its version
+		// wether it is 3.2 or 4.1 and then check it against the passed version. I know...
+		
 		static NSOpenGLPixelFormatAttribute formatAttributes[] =
 		{
 			NSOpenGLPFAClosestPolicy,
@@ -44,16 +50,6 @@ namespace RN
 			0
 		};
 		
-		switch(version)
-		{
-			case gl::Version::Core4_1:
-				throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
-				break;
-				
-			default:
-				break;
-		}
-		
 		NSOpenGLPixelFormat *format = [[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes];
 		if(!format)
 			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
@@ -61,6 +57,20 @@ namespace RN
 		NSOpenGLContext *context = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
 		if(!context)
 			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+		
+		// Check the OpenGL contexts version, whatever it reports, it is at least 3.2 core!
+		// But a 3.2 context is not a 4.1 context, so we check for that
+		NSOpenGLContext *current = [NSOpenGLContext currentContext];
+		[context makeCurrentContext];
+		
+		std::string oglVersion(reinterpret_cast<const char *>(glGetString(GL_VERSION)));
+		std::cout << oglVersion << std::endl;
+		
+		current ? [current makeCurrentContext] : [NSOpenGLContext clearCurrentContext];
+		
+		if(oglVersion.find("3.2") != std::string::npos && version == gl::Version::Core4_1)
+			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+		
 		
 		CGLEnable(static_cast<CGLContextObj>([context CGLContextObj]), kCGLCEMPEngine);
 		
