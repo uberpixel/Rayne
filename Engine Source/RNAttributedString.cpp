@@ -255,7 +255,7 @@ namespace RN
 			if(!object)
 			{
 				object = new Wrapper();
-				temp->SetObjectForKey(object, i->value.key);
+				temp->SetObjectForKey(object->Autorelease(), i->value.key);
 			}
 			
 			object->GetData().push_back(std::move(*i));
