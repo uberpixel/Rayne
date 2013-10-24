@@ -360,7 +360,7 @@ namespace RN
 								size_t size = proxy->children.size();
 								
 								for(size_t j = 0; j < size; j ++)
-									delete proxy->children[i];
+									delete proxy->children[j];
 								
 								proxy->children.clear();
 							}
