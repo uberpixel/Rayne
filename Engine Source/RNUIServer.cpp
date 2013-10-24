@@ -333,7 +333,7 @@ namespace RN
 					});
 				}
 				
-				[NSApp setMainMenu:menu];
+				[NSApp setMainMenu:[menu autorelease]];
 			}
 		}
 		

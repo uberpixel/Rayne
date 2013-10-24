@@ -252,21 +252,17 @@ namespace RN
 			for(size_t i = 0; i < _changes.size(); i ++)
 			{
 				EditingSet& set = _changes[i];
-				
-				size_t row = 0;
 				ptrdiff_t offset = 0;
 				
 				switch(set.type)
 				{
 					case EditingSet::Type::Insertion:
-						row    = set.row;
 						offset = set.count;
 						
 						insertedRows += set.count;
 						break;
 						
 					case EditingSet::Type::Deletion:
-						row    = set.row;
 						offset = -set.count;
 						
 						deletedRows += set.count;
