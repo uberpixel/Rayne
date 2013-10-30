@@ -73,6 +73,7 @@ namespace RN
 			CPUCaps |= (regs.ecx & (1 << 9)) ? CAP_SSSE3 : 0;
 			CPUCaps |= (regs.ecx & (1 << 19)) ? CAP_SSE41 : 0;
 			CPUCaps |= (regs.ecx & (1 << 20)) ? CAP_SSE42 : 0;
+			CPUCaps |= (regs.ecx & (1 << 28)) ? CAP_AVX : 0;
 			CPUCaps |= (regs.ecx & (1 << 30)) ? CAP_RDRAND : 0;
 			
 			CPUCaps |= (regs.edx & (1 << 25)) ? CAP_SSE : 0;

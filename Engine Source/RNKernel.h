@@ -59,6 +59,7 @@ namespace RN
 	private:
 		void Prepare();
 		void Initialize();
+		void DumpSystem();
 		void LoadApplicationModule(String *module);
 		void *_appHandle;
 		

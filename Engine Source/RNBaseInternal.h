@@ -36,6 +36,7 @@
 #if RN_PLATFORM_POSIX
 	#include <sys/stat.h>
 	#include <sys/types.h>
+	#include <sys/sysctl.h>
 	#include <unistd.h>
 #endif
 

@@ -31,63 +31,16 @@
 	}
 }
 
-- (void)failWithError:(NSString *)error
-{
-	NSAlert *alert = [[NSAlert alloc] init];
-	[alert setMessageText:@"Failed to start Rayne"];
-	[alert setInformativeText:error];
-	[alert runModal];
-	[alert release];
-	
-	[NSApp terminate:self];
-}
-
-- (void)failWithException:(RN::Exception)e
-{
-	NSMutableString *description = [NSMutableString string];
-	
-	[description appendFormat:@"%s\n", e.GetReason().c_str()];
-	[description appendString:@"Callstack:\n"];
-	
-	const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.GetCallStack();
-	for(auto i=callstack.begin(); i!=callstack.end(); i++)
-	{
-		std::pair<uintptr_t, std::string> pair = *i;
-		[description appendFormat:@"0x%8lx %s\n", pair.first, pair.second.c_str()];
-	}
-	
-	
-	NSAlert *alert = [[NSAlert alloc] init];
-	[alert setMessageText:@"Failed to start Rayne"];
-	[alert setInformativeText:description];
-	[alert runModal];
-	[alert release];
-	
-	[NSApp terminate:self];
-}
-
 - (void)applicationDidFinishLaunching:(NSNotification *)notification
 {
 	[[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"ApplePersistenceIgnoreState"];
 	
-	try
-	{
-		NSString *name = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
-		if(!name)
-			name = [[NSRunningApplication currentApplication] localizedName];
-		
-		kernel = new RN::Kernel(std::string([name UTF8String]));
-		[NSTimer scheduledTimerWithTimeInterval:0.0 target:self selector:@selector(runGameLoop:) userInfo:nil repeats:YES];
-	}
-	catch(RN::Exception e)
-	{
-		switch(e.GetType())
-		{
-			default:
-				[self failWithException:e];
-				break;
-		}
-	}
+	NSString *name = [[[NSBundle mainBundle] localizedInfoDictionary] objectForKey:@"CFBundleDisplayName"];
+	if(!name)
+		name = [[NSRunningApplication currentApplication] localizedName];
+	
+	kernel = new RN::Kernel(std::string([name UTF8String]));
+	[NSTimer scheduledTimerWithTimeInterval:0.0 target:self selector:@selector(runGameLoop:) userInfo:nil repeats:YES];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)notification

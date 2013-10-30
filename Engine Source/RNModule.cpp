@@ -13,6 +13,7 @@
 #include "RNFile.h"
 #include "RNPathManager.h"
 #include "RNFileManager.h"
+#include "RNLogging.h"
 
 namespace RN
 {
@@ -164,7 +165,8 @@ namespace RN
 				}
 				catch(Exception e)
 				{
-					printf("Failed to load module. Reason: %s\n", e.GetReason().c_str());
+					Log::Loggable loggable(Log::Level::Error);
+					loggable << "Failed to load module. Reason: " << e.GetReason();
 				}
 				
 			});
@@ -178,7 +180,8 @@ namespace RN
 			}
 			catch(Exception e)
 			{
-				printf("Failed to load module. Reason: %s\n", e.GetReason().c_str());
+				Log::Loggable loggable(Log::Level::Error);
+				loggable << "Failed to load module. Reason: " << e.GetReason();
 			}
 			
 		});

@@ -8,6 +8,7 @@
 
 #include "RNObject.h"
 #include "RNAutoreleasePool.h"
+#include "RNLogging.h"
 
 namespace RN
 {
@@ -75,7 +76,9 @@ namespace RN
 		AutoreleasePool *pool = AutoreleasePool::GetCurrentPool();
 		if(!pool)
 		{
-			printf("Autorelease() with no pool in place, %p will leak!\n", this);
+			Log::Loggable loggable(Log::Level::Error);
+			loggable << "Autorelease() with no pool in place, " << this << " will leak!";
+			
 			return this;
 		}
 		
@@ -104,7 +107,7 @@ namespace RN
 	
 	machine_hash Object::GetHash() const
 	{
-		machine_hash hash = (machine_hash)this;
+		machine_hash hash = reinterpret_cast<machine_hash>(this);
 		
 		hash = ~hash + (hash << 15);
 		hash = hash ^ (hash >> 12);

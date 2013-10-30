@@ -12,6 +12,7 @@
 #include "RNThread.h"
 #include "RNSpinLock.h"
 #include "RNFileManager.h"
+#include "RNLogging.h"
 
 #define kRNVersionMajor 0
 #define kRNVersionMinor 1
@@ -21,8 +22,6 @@
 
 namespace RN
 {
-	static SpinLock __DieLock;
-	
 	void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...)
 	{
 		va_list args;
@@ -33,37 +32,39 @@ namespace RN
 		
 		va_end(args);
 		
-		__DieLock.Lock();
-		fprintf(stderr, "Assertion '%s' failed in %s, %s:%i\n", expression, func, file, line);
-		fprintf(stderr, "Reason: %s\n", reason);
-		__DieLock.Unlock();
+		
+		Log::Loggable loggable(Log::Level::Warning);
+		
+		loggable << "Assertion '" << expression << "' failed in " << func << ", " << file << ":" << line << std::endl;
+		loggable << "Reason: " << reason;
 		
 		throw Exception(Exception::Type::InconsistencyException, reason);
 	}
 	
 	void __HandleException(const Exception& e)
 	{
-		__DieLock.Lock();
-		
-		const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.GetCallStack();
-		
-		fprintf(stderr, "Caught exception %s, reason: %s\n", e.GetStringifiedType(), e.GetReason().c_str());
-		fprintf(stderr, "Chrashing Thread: %s\nBacktrace:\n", e.GetThread()->GetName().c_str());
-		
-		for(auto i=callstack.begin(); i!=callstack.end(); i++)
 		{
-			std::pair<uintptr_t, std::string> frame = *i;
-			fprintf(stderr, "   0x%8lx %s\n", frame.first, frame.second.c_str());
+			Log::Loggable loggable(Log::Level::Error);
+			const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.GetCallStack();
+			
+			loggable << "Caught exception " << e.GetStringifiedType() << ", reason: " << e.GetReason() << std::endl;
+			loggable << "Crashing thread: " << e.GetThread()->GetName() << std::endl << "Backtrace:" << std::endl;
+			
+			for(auto& frame : callstack)
+			{
+				loggable << "\t0x" << std::hex << frame.first << std::dec << " " << frame.second << std::endl;
+			}
 		}
 		
-		fflush(stderr);
+		Log::Logger::GetSharedInstance()->Flush(true);
+		
+		delete Log::Logger::GetSharedInstance(); // Try to get a cleanly flushed log
 		abort();
-		__DieLock.Unlock();
 	}
 	
 	void ParseCommandLine(int argc, char *argv[])
 	{
-		for(int i=0; i<argc; i++)
+		for(int i = 0; i < argc; i ++)
 		{
 			if(strcmp(argv[i], "-r") == 0 && i < argc - 1)
 			{

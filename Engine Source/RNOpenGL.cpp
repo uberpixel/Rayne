@@ -8,6 +8,7 @@
 
 #include "RNOpenGL.h"
 #include "RNContext.h"
+#include "RNLogging.h"
 
 namespace RN
 {
@@ -50,25 +51,35 @@ namespace RN
 			GLenum error;
 			while((error = glGetError()) != GL_NO_ERROR)
 			{
+				Log::Loggable loggable(Log::Level::Error);
+				loggable << "OpenGL error: ";
+				
 				switch(error)
 				{
 					case GL_INVALID_ENUM:
-						printf("OpenGL error: GL_INVALID_ENUM\n");
+						loggable << "GL_INVALID_ENUM";
 						break;
 						
 					case GL_INVALID_VALUE:
-						printf("OpenGL error: GL_INVALID_VALUE\n");
+						loggable << "GL_INVALID_VALUE";
 						break;
 						
 					case GL_INVALID_OPERATION:
-						printf("OpenGL error: GL_INVALID_OPERATION\n");
+						loggable << "GL_INVALID_OPERATION";
 						break;
 						
 					case GL_OUT_OF_MEMORY:
-						printf("OpenGL error: GL_OUT_OF_MEMOR\n");
+						loggable << "GL_OUT_OF_MEMORY";
 						break;
 						
+#if RN_TARGET_OPENGL
+					case GL_INVALID_FRAMEBUFFER_OPERATION:
+						loggable << "GL_INVALID_FRAMEBUFFER_OPERATION";
+						break;
+#endif
+						
 					default:
+						loggable << std::hex << error;
 						break;
 				}
 			}
@@ -183,6 +194,7 @@ namespace RN
 				__extensions.insert(reinterpret_cast<const char *>(extension));
 			}
 			
+			
 			// Get all features
 			switch(version)
 			{
@@ -238,6 +250,18 @@ namespace RN
 				BindOpenGLFunction(ProgramParameteri, "glProgramParameteri");
 #endif
 			}
+			
+			
+			Log::Logger *logger = Log::Logger::GetSharedInstance();
+			
+			logger->Log(Log::Message(Log::Level::Info, "Vendor", reinterpret_cast<const char *>(glGetString(GL_VENDOR))));
+			logger->Log(Log::Message(Log::Level::Info, "Renderer", reinterpret_cast<const char *>(glGetString(GL_RENDERER))));
+			logger->Log(Log::Message(Log::Level::Info, "Version", reinterpret_cast<const char *>(glGetString(GL_VERSION))));
+			
+			std::stringstream exts;
+			std::copy(__extensions.begin(), __extensions.end(), std::ostream_iterator<std::string>(exts, "\n"));
+			
+			logger->Log(Log::Message(Log::Level::Info, "Extensions", exts.str()));
 			
 			return context;
 		}

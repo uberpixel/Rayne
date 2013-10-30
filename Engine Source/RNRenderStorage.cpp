@@ -264,7 +264,6 @@ namespace RN
 					break;
 					
 				default:
-					printf("Unknown framebuffer status %i\n", status);
 					throw ErrorException(kErrorGroupGraphics, kGraphicsGroupOpenGL, kGraphicsFramebufferGenericError);
 					break;
 			}

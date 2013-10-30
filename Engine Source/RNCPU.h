@@ -30,6 +30,7 @@ namespace RN
 			CAP_SSSE3 = (1 << 3),
 			CAP_SSE41 = (1 << 4),
 			CAP_SSE42 = (1 << 5),
+			CAP_AVX   = (1 << 6),
 			
 			CAP_HT     = (1 << 7),
 			CAP_RDRAND = (1 << 8)

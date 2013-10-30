@@ -19,6 +19,7 @@
 #include "RNCPU.h"
 #include "RNResourcePool.h"
 #include "RNRenderer32.h"
+#include "RNLogging.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -63,6 +64,8 @@ namespace RN
 
 	Kernel::~Kernel()
 	{
+		RNDebug("Shutting down...");
+		
 		_app->WillExit();
 		
 		ModuleCoordinator *coordinator = ModuleCoordinator::GetSharedInstance();
@@ -86,6 +89,8 @@ namespace RN
 		
 		_mainThread->Exit();
 		_mainThread->Release();
+		
+		delete Log::Logger::GetSharedInstance();
 	}
 	
 	void Kernel::Prepare()
@@ -94,6 +99,15 @@ namespace RN
 		XInitThreads();
 #endif
 		
+		// Bootstrap the very basic things
+		_mainThread = new Thread();
+		_pool = new AutoreleasePool();
+		
+		Settings::GetSharedInstance();
+		ThreadCoordinator::GetSharedInstance();
+		Log::Logger::GetSharedInstance();
+		
+		// Get informations about the hardware
 #if RN_PLATFORM_INTEL
 		X86_64::GetCPUInfo();
 		X86_64::Capabilities caps = X86_64::GetCapabilites();
@@ -101,16 +115,13 @@ namespace RN
 		if(!(caps & X86_64::CAP_SSE) || !(caps & X86_64::CAP_SSE2))
 			throw Exception(Exception::Type::NoCPUException, "The CPU doesn't support SSE and/or SSE2!");
 #endif
-		_mainThread = new Thread();
-		_pool = new AutoreleasePool();
 		
-		Settings::GetSharedInstance();
-		ThreadCoordinator::GetSharedInstance();
+		// Dump some hardware info
+		DumpSystem();
 		
+		// Bootstrap OpenGL
 		_context = gl::Initialize();
 		_window  = nullptr;
-		
-		ResourcePool::GetSharedInstance();
 		
 		_scaleFactor = 1.0f;
 #if RN_PLATFORM_IOS
@@ -121,6 +132,7 @@ namespace RN
 			_scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
 #endif
 		
+		// Load the default resources
 		_resourceBatch = ThreadPool::GetSharedInstance()->CreateBatch();
 		_resourceBatch->AddTask([] {
 			Debug::InstallDebugDraw();
@@ -129,12 +141,14 @@ namespace RN
 		ResourcePool::GetSharedInstance()->LoadDefaultResources(_resourceBatch);
 		_resourceBatch->Commit();
 		
+		// Bootstrap some more core systems while the resources are loading
 		_renderer = new Renderer32();
 		_input    = Input::GetSharedInstance();
 		_uiserver = UI::Server::GetSharedInstance();
+		_window   = Window::GetSharedInstance();
 		
+		// Initialize some state
 		_world = nullptr;
-		_window = Window::GetSharedInstance();
 		_frame  = 0;
 		
 		_delta = 0.0f;
@@ -148,9 +162,240 @@ namespace RN
 		_initialized = false;
 		_shouldExit  = false;
 		
+		// Load all modules
 		ModuleCoordinator::GetSharedInstance();
 	}	
 
+	void Kernel::DumpSystem()
+	{
+		Log::Logger *logger = Log::Logger::GetSharedInstance();
+		
+		std::stringstream cpustream;
+		std::stringstream memorystream;
+		
+		// Rayne version
+		{
+			std::stringstream version;
+			version << VersionMajor() << "." << VersionMinor() << "." << VersionPatch() << ":" << Version();
+			
+#if RN_PLATFORM_32BIT
+			version << " 32 bit";
+#endif
+#if RN_PLATFORM_64BIT
+			version << " 64 bit";
+#endif
+			
+#if DEBUG
+			version << " (debug)";
+#endif
+			
+			logger->Log(Log::Message(Log::Level::Info, "Rayne", version.str()));
+		}
+		
+		
+#if RN_PLATFORM_MAC_OS
+		
+		size_t size;
+		int64  value;
+		int    name[2];
+		char   string[256];
+		
+		// OS Version
+		{
+			NSString *version = [[NSProcessInfo processInfo] operatingSystemVersionString];
+			logger->Log(Log::Message(Log::Level::Info, "OS", std::string("Mac OS X ") + [version UTF8String]));
+		}
+		
+		// CPU
+		{
+			size = 255;
+			name[0] = CTL_HW;
+			name[1] = HW_MACHINE;
+			
+			if(sysctl(name, 2, string, &size, nullptr, 0) == 0)
+			{
+				string[size] = '\0';
+				cpustream << string << std::endl;
+			}
+			
+			size = 8;
+			if(sysctlbyname("hw.cpufrequency", &value, &size, nullptr, 0) == 0)
+			{
+				if(!cpustream.tellp() != 0)
+					cpustream << std::endl;
+				
+				cpustream.precision(3);
+				cpustream << std::fixed << (value / 1000000000.0f) << " GHz";
+			}
+		}
+		
+		// Memory
+		{
+			size = 8;
+			name[0] = CTL_HW;
+			name[1] = HW_MEMSIZE;
+			
+			if(sysctl(name, 2, &value, &size, nullptr, 0) == 0)
+			{
+				memorystream << (((value >> 20) + 31) & ~31) << " MB";
+			}
+		}
+		
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		
+		// OS Version
+		{
+			OSVERSIONINFO versionInfo;
+			
+			versionInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+			GetVersionExA(&versionInfo);
+			
+			std::stringstream version;
+			version << "Windows " << static_cast<uint32>(versionInfo.dwMajorVersion) << "." << static_cast<uint32>(versionInfo.dwMinorVersion);
+			version << versionInfo.szCSDVersion;
+			
+			logger->Log(Log::Message(Log::Level::Info, "OS", version.str()));
+		}
+		
+		// CPU
+		{
+			HKEY handle;
+			
+			if(RegOpenKeyExA(HKEY_LOCAL_MACHINE, "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0", 0, KEY_QUERY_VALUE, &handle) == ERROR_SUCCESS)
+			{
+				DWORD type;
+				DWORD size;
+				BYTE  data[256];
+				
+				size = 255;
+				if((RegQueryValueExA(handle, "ProcessorNameString", 0, &type, data, &size) == ERROR_SUCCESS) && (type == REG_SZ))
+				{
+					data[size] = '\0';
+					cpustream << reinterpret_cast<char *>(data);
+				}
+				
+				size = 255;
+				if((RegQueryValueExA(handle, "Identifier", 0, &type, data, &size) == ERROR_SUCCESS) && (type == REG_SZ))
+				{
+					if(!cpustream.tellp() != 0)
+						cpustream << std::endl;
+					
+					data[size] = '\0';
+					cpustream << reinterpret_cast<char *>(data);
+				}
+				
+				size = 255;
+				if((RegQueryValueExA(handle, "~MHz", 0, &type, data, &size) == ERROR_SUCCESS) && (type == REG_DWORD))
+				{
+					if(!cpustream.tellp() != 0)
+						cpustream << std::endl;
+					
+					uint32 mhz = (*reinterpret_cast<uint32 *>(data));
+					
+					cpustream.precision(3);
+					cpustream << std::fixed << (mhz / 1000.0f) << " GHz";
+				}
+			}
+		}
+		
+		// Memory
+		{
+			MEMORYSTATUSEX memoryStatus;
+			memoryStatus.dwLength = sizeof(MEMORYSTATUSEX);
+			
+			GlobalMemoryStatusEx(&memoryStatus);
+			
+			memorystream << (((memoryStatus.ullTotalPhys >> 20) + 31) & ~31) << " MB";
+		}
+#endif
+		
+		// Additional CPU info
+		{
+			size_t cores = std::thread::hardware_concurrency();
+			
+			cpustream << std::endl << cores  << " logical core";
+			
+			if(cores != 1)
+				cpustream << "s";
+		
+#if RN_PLATFORM_INTEL
+			X86_64::Capabilities caps = X86_64::GetCapabilites();
+			std::vector<std::string> scaps;
+			
+			if(caps & X86_64::CAP_SSE)
+				scaps.emplace_back("SSE");
+			if(caps & X86_64::CAP_SSE2)
+				scaps.emplace_back("SSE2");
+			if(caps & X86_64::CAP_SSE3)
+				scaps.emplace_back("SSE3");
+			if(caps & X86_64::CAP_SSE41)
+				scaps.emplace_back("SSE4.1");
+			if(caps & X86_64::CAP_SSE42)
+				scaps.emplace_back("SSE4.2");
+			if(caps & X86_64::CAP_AVX)
+				scaps.emplace_back("AVX");
+			
+			cpustream << std::endl;
+			bool skipped = false;
+			
+			for(std::string& cap : scaps)
+			{
+				if(skipped)
+					cpustream << ", ";
+				
+				cpustream << cap;
+				
+				if(!skipped)
+					skipped = true;
+			}
+#endif
+		}
+		
+		logger->Log(Log::Message(Log::Level::Info, "CPU", cpustream.str()));
+		logger->Log(Log::Message(Log::Level::Info, "Memory", memorystream.str()));
+		
+		// Modules
+		{
+			Array *array = Settings::GetSharedInstance()->GetObjectForKey<Array>(KRNSettingsModulesKey);
+			if(array)
+			{
+				std::vector<std::string> modules;
+				
+				array->Enumerate([&](Object *file, size_t index, bool *stop) {
+					
+					try
+					{
+						String *string = file->Downcast<String>();
+						modules.emplace_back(string->GetUTF8String());
+					}
+					catch(Exception e)
+					{}
+					
+				});
+				
+				bool skipped = false;
+				std::stringstream stream;
+				
+				for(std::string& module : modules)
+				{
+					if(skipped)
+						stream << ", ";
+					
+					stream << module;
+					
+					if(!skipped)
+						skipped = true;
+				}
+				
+				logger->Log(Log::Message(Log::Level::Info, "Modules", stream.str()));
+			}
+		}
+		
+		logger->Log(Log::Level::Warning, "");
+	}
+	
 	void Kernel::LoadApplicationModule(String *module)
 	{
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX
@@ -272,6 +517,7 @@ namespace RN
 		_renderer->FinishFrame();
 		_input->InvalidateFrame();
 		
+		Log::Logger::GetSharedInstance()->Flush();
 		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidEndFrameMessage, nullptr, nullptr);
 		
 #if RN_PLATFORM_MAC_OS
