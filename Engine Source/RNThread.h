@@ -52,6 +52,7 @@ namespace RN
 		
 		RNAPI void Detach();
 		RNAPI bool OnThread() const;
+		RNAPI void WaitForExit();
 		
 		RNAPI void Cancel();
 		bool IsCancelled() const { return _isCancelled.load(); }
@@ -114,6 +115,9 @@ namespace RN
 		std::string _name;
 		Dictionary _dictionary;
 		std::unordered_map<GLenum, std::tuple<GLuint, uint32>> _glBindings;
+		
+		std::mutex _exitMutex;
+		std::condition_variable _exitSignal;
 		
 		RNDefineMeta(Thread, Object)
 	};

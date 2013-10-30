@@ -69,6 +69,19 @@ namespace RN
 	}
 	
 	
+	void Thread::WaitForExit()
+	{
+		if(!IsRunning() || OnThread())
+			return;
+		
+		Retain();
+		
+		std::unique_lock<std::mutex> lock(_exitMutex);
+		_exitSignal.wait(lock, [&]() { return !IsRunning(); });
+		
+		Release();
+	}
+	
 	void Thread::Entry()
 	{
 		_id = std::this_thread::get_id();
@@ -93,6 +106,9 @@ namespace RN
 		
 		__ThreadLock.Unlock();
 		_isRunning.store(false);
+		
+		std::lock_guard<std::mutex> lock(_exitMutex);
+		_exitSignal.notify_all();
 		
 		ThreadCoordinator::GetSharedInstance()->RestoreConcurrency();
 		Release();
