@@ -9,411 +9,18 @@
 #include "RNWindow.h"
 #include "RNBaseInternal.h"
 #include "RNContextInternal.h"
+#include "RNWindowInternal.h"
 
 #include "RNFile.h"
 #include "RNTexture.h"
 #include "RNKernel.h"
 #include "RNInput.h"
 #include "RNUIServer.h"
-
-#if RN_PLATFORM_MAC_OS
-
-// ---------------------
-// MARK: -
-// MARK: NSWindow
-// ---------------------
-
-@interface RNNativeWindow : NSWindow <NSWindowDelegate>
-{
-	NSOpenGLView *_openGLView;
-}
-
-@end
-
-@implementation RNNativeWindow
-
-- (BOOL)windowShouldClose:(id)sender
-{
-	RN::Kernel::GetSharedInstance()->Exit();
-	return NO;
-}
-
-- (void)keyDown:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-- (void)keyUp:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-- (void)mouseMoved:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-- (void)mouseDown:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-- (void)rightMouseDown:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-- (void)otherMouseDown:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-- (void)mouseDragged:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-- (void)rightMouseDragged:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-- (void)otherMouseDragged:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-- (void)mouseUp:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-- (void)rightMouseUp:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-- (void)otherMouseUp:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-- (void)scrollWheel:(NSEvent *)theEvent
-{
-	RN::Input::GetSharedInstance()->HandleEvent(theEvent);
-}
-
-
-- (BOOL)canBecomeKeyWindow
-{
-	return YES;
-}
-
-- (BOOL)canBecomeMainWindow
-{
-	return YES;
-}
-
-
-- (void)performMenuBarAction:(id)sender
-{
-	RN::UI::Server::GetSharedInstance()->PerformMenuBarAction(sender);
-}
-
-
-- (void)windowDidBecomeKey:(NSNotification *)notification
-{
-	RN::Input::GetSharedInstance()->InvalidateMouse();
-}
-
-
-- (void)setOpenGLContext:(NSOpenGLContext *)context andPixelFormat:(NSOpenGLPixelFormat *)pixelFormat
-{
-	[_openGLView setOpenGLContext:context];
-	[_openGLView setPixelFormat:pixelFormat];
-}
-
-- (id)initWithFrame:(NSRect)frame andStyleMask:(NSUInteger)stylemask
-{
-	if((self = [super initWithContentRect:frame styleMask:stylemask backing:NSBackingStoreBuffered defer:NO]))
-	{
-		NSRect rect = [self contentRectForFrameRect:frame];
-		_openGLView = [[NSOpenGLView alloc] initWithFrame:rect];
-		
-		[_openGLView setWantsBestResolutionOpenGLSurface:YES];
-
-		[self setContentView:_openGLView];
-		[self setDelegate:self];
-	}
-
-	return self;
-}
-
-- (void)dealloc
-{
-	[_openGLView release];
-	[super dealloc];
-}
-
-@end
-
-#endif
-
-#if RN_PLATFORM_IOS
-
-// ---------------------
-// MARK: -
-// MARK: UIWindow / UIView
-// ---------------------
-
-@interface RNOpenGLView : UIView
-{
-	CAEAGLLayer *_renderLayer;
-	RN::Window *_controller;
-
-	GLuint _framebuffer;
-	GLuint _colorbuffer;
-
-	GLint _backingWidth;
-	GLint _backingHeight;
-
-	BOOL _needsLayerResize;
-}
-
-@property (nonatomic, readonly) BOOL needsLayerResize;
-@property (nonatomic, readonly) GLuint framebuffer;
-@property (nonatomic, readonly) GLint backingWidth;
-@property (nonatomic, readonly) GLint backingHeight;
-
-@end
-
-@implementation RNOpenGLView
-@synthesize needsLayerResize = _needsLayerResize;
-@synthesize framebuffer = _framebuffer;
-@synthesize backingWidth = _backingWidth, backingHeight = _backingHeight;
-
-+ (Class)layerClass
-{
-	return [CAEAGLLayer class];
-}
-
-// Input
-
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
-{
-	for(UITouch *touch in touches)
-	{
-		RN::Touch temp;
-		CGPoint location = [touch locationInView:[touch view]];
-
-		temp.phase = RN::Touch::TouchPhaseBegan;
-		temp.location = RN::Vector2(location.x, location.y);
-		temp.previousLocation = RN::Vector2();
-
-		RN::Input::GetSharedInstance()->HandleTouchEvent(temp);
-	}
-}
-
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
-{
-	for(UITouch *touch in touches)
-	{
-		RN::Touch temp;
-		CGPoint location = [touch locationInView:[touch view]];
-		CGPoint prevLocation = [touch previousLocationInView:[touch view]];
-
-		temp.phase = RN::Touch::TouchPhaseMoved;
-		temp.location = RN::Vector2(location.x, location.y);
-		temp.previousLocation = RN::Vector2(prevLocation.x, prevLocation.y);
-
-		RN::Input::GetSharedInstance()->HandleTouchEvent(temp);
-	}
-}
-
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
-{
-	for(UITouch *touch in touches)
-	{
-		RN::Touch temp;
-		CGPoint location = [touch locationInView:[touch view]];
-		CGPoint prevLocation = [touch previousLocationInView:[touch view]];
-
-		temp.phase = RN::Touch::TouchPhaseEnded;
-		temp.location = RN::Vector2(location.x, location.y);
-		temp.previousLocation = RN::Vector2(prevLocation.x, prevLocation.y);
-
-		RN::Input::GetSharedInstance()->HandleTouchEvent(temp);
-	}
-}
-
-- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
-{
-	for(UITouch *touch in touches)
-	{
-		RN::Touch temp;
-		CGPoint location = [touch locationInView:[touch view]];
-		CGPoint prevLocation = [touch previousLocationInView:[touch view]];
-
-		temp.phase = RN::Touch::TouchPhaseCancelled;
-		temp.location = RN::Vector2(location.x, location.y);
-		temp.previousLocation = RN::Vector2(prevLocation.x, prevLocation.y);
-
-		RN::Input::GetSharedInstance()->HandleTouchEvent(temp);
-	}
-}
-
-// Rendering
-
-- (void)flushFrame
-{
-	glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, _colorbuffer);
-
-	[[EAGLContext currentContext] presentRenderbuffer:GL_RENDERBUFFER];
-}
-
-// Buffer Management
-
-- (void)createDrawBuffer
-{
-	glGenFramebuffers(1, &_framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-
-	glGenRenderbuffers(1, &_colorbuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, _colorbuffer);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _colorbuffer);
-
-	_needsLayerResize = YES;
-}
-
-- (void)resizeFromLayer
-{
-	glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, _colorbuffer);
-
-	[[EAGLContext currentContext] renderbufferStorage:GL_RENDERBUFFER fromDrawable:_renderLayer];
-
-	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH,  &_backingWidth);
-	glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &_backingHeight);
-
-	float scaleFactor = RN::Kernel::GetSharedInstance()->ScaleFactor();
-
-	_backingWidth  /= scaleFactor;
-	_backingHeight /= scaleFactor;
-
-	_needsLayerResize = NO;
-}
-
-- (void)layoutSubviews
-{
-	[super layoutSubviews];
-	_needsLayerResize = YES;
-}
-
-- (id)initWithController:(RN::Window *)controller andFrame:(CGRect)frame
-{
-	if((self = [super initWithFrame:frame]))
-	{
-		[self setMultipleTouchEnabled:YES];
-
-		_controller = controller;
-
-		NSDictionary *properties = @{kEAGLDrawablePropertyRetainedBacking : @NO,  kEAGLDrawablePropertyColorFormat : kEAGLColorFormatRGBA8};
-
-		_renderLayer = (CAEAGLLayer *)[self layer];
-
-		[_renderLayer setContentsScale:RN::Kernel::GetSharedInstance()->ScaleFactor()];
-		[_renderLayer setDrawableProperties:properties];
-		[_renderLayer setOpaque:YES];
-	}
-
-	return self;
-}
-
-- (void)dealloc
-{
-	glDeleteRenderbuffers(1, &_colorbuffer);
-	glDeleteFramebuffers(1, &_framebuffer);
-
-	[super dealloc];
-}
-
-@end
-
-@interface RNOpenGLViewController : UIViewController
-{
-	RNOpenGLView *openGLView;
-}
-
-@property (nonatomic, readonly) RNOpenGLView *openGLView;
-
-@end
-
-@implementation RNOpenGLViewController
-@synthesize openGLView;
-
-- (NSUInteger)supportedInterfaceOrientations
-{
-	return UIInterfaceOrientationMaskLandscape;
-}
-
-- (BOOL)shouldAutorotate
-{
-	return YES;
-}
-
-
-- (id)initWithController:(RN::Window *)controller andFrame:(CGRect)frame
-{
-	if((self = [super init]))
-	{
-		openGLView = [[RNOpenGLView alloc] initWithController:controller andFrame:frame];
-		[self setView:openGLView];
-		[openGLView release];
-	}
-
-	return self;
-}
-
-@end
-
-#endif
+#include "RNLogging.h"
 
 namespace RN
 {
 	RNDeclareMeta(WindowConfiguration)
-
-	// ---------------------
-	// MARK: -
-	// MARK: WindowInternals
-	// ---------------------
-	
-	struct WindowInternals
-	{
-#if RN_PLATFORM_MAC_OS
-		RNNativeWindow *nativeWindow;
-#endif
-		
-#if RN_PLATFORM_IOS
-		UIWindow *nativeWindow;
-		UIViewController *rootViewController;
-		UIView *renderingView;
-#endif
-		
-#if RN_PLATFORM_LINUX
-		Display *dpy;
-		XID win;
-		XRRScreenConfiguration *screenConfig;
-		SizeID originalSize;
-		Rotation originalRotation;
-		Cursor emptyCursor;
-#endif
-		
-#if RN_PLATFORM_WINDOWS
-		HWND _hWnd;
-		HDC _hDC;
-#endif
-	};
 	
 	// ---------------------
 	// MARK: -
@@ -438,6 +45,7 @@ namespace RN
 	// MARK: Screen
 	// ---------------------
 	
+#if RN_PLATFORM_MAC_OS
 	Screen::Screen(CGDirectDisplayID display) :
 		_display(display)
 	{
@@ -514,6 +122,32 @@ namespace RN
 		}
 		
 		CFRelease(array);
+#endif
+	
+#if RN_PLATFORM_WINDOWS
+	Screen::Screen(const char *name) :
+		_display(name)
+	{
+		for(DWORD modeNum = 0;; modeNum ++)
+		{
+			DEVMODE mode;
+			
+			mode.dmSize = sizeof(DEVMODE);
+			mode.dmDriverExtra = 0;
+			
+			if(!EnumDisplaySettingsA(name, modeNum, &mode))
+				break;
+			
+			uint32 width  = mode.dmPelsWidth;
+			uint32 height = mode.dmPelsHeight;
+			
+			if((width >= 1024) && (height >= 768) && (devMode.dmBitsPerPel >= 32))
+			{
+				WindowConfiguration *configuration = new WindowConfiguration(width, height, this);
+				_configurations.AddObject(configuration->Autorelease());
+			}
+		}
+#endif
 		
 		_configurations.Sort<WindowConfiguration>([](const WindowConfiguration *left, const WindowConfiguration *right) {
 			
@@ -571,6 +205,27 @@ namespace RN
 		
 		delete[] table;
 		_internals->nativeWindow = nil;
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		for(DWORD devNum = 0;; devNum ++)
+		{
+			DISPLAY_DEVICEA device;
+			
+			device.cb = sizeof(DISPLAY_DEVICEA);
+			if(!EnumDisplayDevicesA(nullptr, devNum, &device, 0))
+				break;
+			
+			Screen *screen = new Screen(device.DeviceName);
+			
+			if(device.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)
+				_screens.push_front(screen);
+			else
+				_screens.push_back(screen);
+		}
+		
+		_internals->hWnd = 0;
+		_internals->hDC  = 0;
 #endif
 		
 #if RN_PLATFORM_LINUX
@@ -654,8 +309,15 @@ namespace RN
 		uint32 width  = configuration->GetWidth();
 		uint32 height = configuration->GetHeight();
 		
+		RNDebug("Switching to {%i, %i} mask: 0x%x", static_cast<int>(width), static_cast<int>(height), mask);
+		
 #if RN_PLATFORM_MAC_OS
+		[_context->_internals->context clearDrawable];
+		[_internals->nativeWindow close];
 		[_internals->nativeWindow release];
+		
+		[NSOpenGLContext clearCurrentContext];
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.00001f]];
 		
 		if(mask & WindowMaskFullscreen)
 		{
@@ -683,15 +345,21 @@ namespace RN
 			renderer->SetDefaultFactor(1.0f, 1.0f);
 		}
 		
+		renderer->SetDefaultFBO(0);
+		
 		[_internals->nativeWindow setReleasedWhenClosed:NO];
 		[_internals->nativeWindow setAcceptsMouseMovedEvents:YES];
 		[_internals->nativeWindow setOpenGLContext:_context->_internals->context andPixelFormat:_context->_internals->pixelFormat];
 		
 		[_internals->nativeWindow makeKeyAndOrderFront:nil];
+		[_context->_internals->context makeCurrentContext];
 		
 		GLint sync = (mask & WindowMaskVSync) ? 1 : 0;
 		[_context->_internals->context setValues:&sync forParameter:NSOpenGLCPSwapInterval];
 		[_context->_internals->context update];
+		
+		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.00001f]];
+		
 #endif
 		
 #if RN_PLATFORM_LINUX
@@ -740,6 +408,10 @@ namespace RN
 		
 		if(mask & WindowMaskFullscreen)
 			XSetInputFocus(_internals->dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		
 #endif
 		
 		bool screenChanged = (_activeScreen != screen);

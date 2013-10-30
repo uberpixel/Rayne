@@ -208,6 +208,7 @@
 		E9C6F0A716B207E1006288D5 /* RNModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C6F0A516B207E1006288D5 /* RNModel.cpp */; };
 		E9C6F0A816B207E1006288D5 /* RNModel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C6F0A616B207E1006288D5 /* RNModel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9C7DB271710D0F3006AD768 /* RNInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = E9C7DB261710CE2C006AD768 /* RNInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9C89C9318133C9900465F5B /* RNWindowInternal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9C89C9218133C9900465F5B /* RNWindowInternal.cpp */; };
 		E9D15BA717DB27CA00435078 /* RNOpenPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D15BA517DB27CA00435078 /* RNOpenPanel.cpp */; };
 		E9D15BA817DB27CA00435078 /* RNOpenPanel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D15BA617DB27CA00435078 /* RNOpenPanel.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9D3CED5171F907500F4BF36 /* RNResourcePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D3CED3171F907500F4BF36 /* RNResourcePool.cpp */; };
@@ -499,6 +500,8 @@
 		E9C6F0A516B207E1006288D5 /* RNModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNModel.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9C6F0A616B207E1006288D5 /* RNModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNModel.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		E9C7DB261710CE2C006AD768 /* RNInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNInterpolation.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		E9C89C911813392400465F5B /* RNWindowInternal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNWindowInternal.h; sourceTree = "<group>"; };
+		E9C89C9218133C9900465F5B /* RNWindowInternal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWindowInternal.cpp; sourceTree = "<group>"; };
 		E9D15BA517DB27CA00435078 /* RNOpenPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenPanel.cpp; sourceTree = "<group>"; };
 		E9D15BA617DB27CA00435078 /* RNOpenPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOpenPanel.h; sourceTree = "<group>"; };
 		E9D3CED3171F907500F4BF36 /* RNResourcePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNResourcePool.cpp; sourceTree = "<group>"; };
@@ -950,6 +953,8 @@
 				E91F784116CE336000FFD318 /* RNThreadPool.h */,
 				E9619E241696157E00DA187E /* RNWindow.cpp */,
 				E9619E251696157E00DA187E /* RNWindow.h */,
+				E9C89C9218133C9900465F5B /* RNWindowInternal.cpp */,
+				E9C89C911813392400465F5B /* RNWindowInternal.h */,
 			);
 			name = System;
 			sourceTree = "<group>";
@@ -1270,6 +1275,7 @@
 				E9586E5E172FD40C00D24737 /* RNUIServer.cpp in Sources */,
 				E9586E62173072B700D24737 /* RNUIResponder.cpp in Sources */,
 				E9586E671730855600D24737 /* RNUIImageView.cpp in Sources */,
+				E9C89C9318133C9900465F5B /* RNWindowInternal.cpp in Sources */,
 				E9B92DE117B02213004B8CA4 /* RNTriggerZone.cpp in Sources */,
 				E9BEF3C21744442A0090C9CB /* RNUIImage.cpp in Sources */,
 				C094DF871753A2BA002A2C88 /* RNWater.cpp in Sources */,

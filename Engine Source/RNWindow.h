@@ -64,7 +64,13 @@ namespace RN
 		const Array& GetConfigurations() const { return _configurations; }
 		
 	private:
+#if RN_PLATFORM_MAC_OS
 		Screen(CGDirectDisplayID display);
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		Screen(const char *name);
+#endif
 		
 		uint32 _width;
 		uint32 _height;
@@ -72,7 +78,13 @@ namespace RN
 		Rect _frame;
 		float _scaleFactor;
 		
+#if RN_PLATFORM_MAC_OS
 		CGDirectDisplayID _display;
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		std::string _display;
+#endif
 		
 		Array _configurations;
 	};

@@ -14,6 +14,7 @@
 #include "RNThreadPool.h"
 #include "RNAlgorithm.h"
 #include "RNSettings.h"
+#include "RNLogging.h"
 
 #define kRNRendererMaxVAOAge 300
 
@@ -454,6 +455,10 @@ namespace RN
 				_flushCameras.clear();
 				_flushedCameras.clear();
 				
+				_debugFrameUI.clear();
+				_debugFrameWorld.clear();
+				
+				RNDebug("Skipping frame while waiting for complete FBO to arrive");
 				return;
 			}
 			
