@@ -651,7 +651,7 @@
 		E995E408169497DB00B2E0C3 /* Vendor */ = {
 			isa = PBXGroup;
 			children = (
-				E99D971917B9823D0066B0AE /* angelscript.h */,
+				E9B10A101819818E0065238A /* angelscript */,
 				E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */,
 				E9ECEEB316D7F09800C6CF09 /* jansson-osx.xcodeproj */,
 				E9619F791696FDC000DA187E /* png-osx.xcodeproj */,
@@ -705,6 +705,14 @@
 				E96654601758D2BA00C3562E /* RNWrappingObject.h */,
 			);
 			name = Objects;
+			sourceTree = "<group>";
+		};
+		E9B10A101819818E0065238A /* angelscript */ = {
+			isa = PBXGroup;
+			children = (
+				E99D971917B9823D0066B0AE /* angelscript.h */,
+			);
+			name = angelscript;
 			sourceTree = "<group>";
 		};
 		E9B1125E1679784D001A0DA5 /* Frameworks */ = {
