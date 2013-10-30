@@ -11,33 +11,82 @@
 
 #include "RNAlgorithm.h"
 
-namespace std
+namespace RN
 {
-	template<>
-	struct hash<const char *>
+	namespace stl
 	{
-		size_t operator()(const char *string) const
+		void html_encode(std::string& string)
 		{
-			size_t length = strlen(string);
-			size_t hash = 0;
+			std::string buffer;
+			buffer.reserve(string.size() * 1.1f);
 			
-			for(size_t i = 0; i< length; i ++)
+			for(size_t i = 0; i < string.size(); i ++)
 			{
-				RN::HashCombine(hash, string[i]);
+				switch(string[i])
+				{
+					case '&':
+						buffer.append("&amp;");
+						break;
+					case '\"':
+						buffer.append("&quot;");
+						break;
+					case '\'':
+						buffer.append("&apos;");
+						break;
+					case '<':
+						buffer.append("&lt;");
+						break;
+					case '>':
+						buffer.append("&gt;");
+						break;
+					case '\n':
+						buffer.append("<br />");
+						break;
+					default:
+						buffer.append(1, string[i]);
+						break;
+				}
 			}
 			
-			return hash;
+			std::swap(buffer, string);
 		}
-	};
-	
-	template<>
-	struct equal_to<const char *>
-	{
-		bool operator()(const char *string1, const char *string2) const
+		
+		std::string html_encode(const std::string& string)
 		{
-			return (strcmp(string1, string2) == 0);
+			std::string buffer;
+			buffer.reserve(string.size() * 1.1f);
+			
+			for(size_t i = 0; i < string.size(); i ++)
+			{
+				switch(string[i])
+				{
+					case '&':
+						buffer.append("&amp;");
+						break;
+					case '\"':
+						buffer.append("&quot;");
+						break;
+					case '\'':
+						buffer.append("&apos;");
+						break;
+					case '<':
+						buffer.append("&lt;");
+						break;
+					case '>':
+						buffer.append("&gt;");
+						break;
+					case '\n':
+						buffer.append("<br />");
+						break;
+					default:
+						buffer.append(1, string[i]);
+						break;
+				}
+			}
+			
+			return buffer;
 		}
-	};
+	}
 }
 
 #endif
