@@ -33,7 +33,7 @@ namespace RN
 			typedef const __iterator const_iterator;
 			
 			ring_buffer(size_type capacity) :
-			_content(capacity)
+				_content(new T[capacity])
 			{
 				_size      = 0;
 				_capacity  = capacity;
@@ -45,6 +45,7 @@ namespace RN
 			
 			~ring_buffer()
 			{
+				delete [] _content;
 			}
 			
 			
@@ -225,8 +226,8 @@ namespace RN
 				
 			private:
 				__iterator(const ring_buffer& buffer, marker_type marker) :
-				_buffer(buffer),
-				_marker(marker)
+					_buffer(buffer),
+					_marker(marker)
 				{}
 				
 				marker_type _marker;
@@ -314,7 +315,7 @@ namespace RN
 			size_type _capacity;
 			size_type _rotations;
 			
-			std::vector<T, Alloc> _content;
+			T *_content;
 		};
 	}
 }

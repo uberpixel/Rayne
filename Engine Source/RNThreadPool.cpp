@@ -11,6 +11,7 @@
 #include "RNKernel.h"
 
 #define kRNThreadPoolTasksBuffer 1024
+#define kRNThreadPoolMinimumPush 10
 
 namespace RN
 {
@@ -69,7 +70,7 @@ namespace RN
 	{
 		uint32 toResign = static_cast<uint32>(_threads.GetCount());
 		
-		for(uint32 i=0; i<toResign; i++)
+		for(uint32 i = 0; i < toResign; i ++)
 		{
 			Thread *thread = _threads.GetObjectAtIndex<Thread>(i);
 			thread->Cancel();
@@ -120,6 +121,12 @@ namespace RN
 				
 				if(context->lock.try_lock())
 				{
+					if(context->hose.capacity() - context->hose.size() < kRNThreadPoolMinimumPush)
+					{
+						context->lock.unlock();
+						continue;
+					}
+					
 					size_t pushable = std::min(context->hose.capacity() - context->hose.size(), perThread);
 					
 					for(size_t j = 0; j < pushable; j ++)
