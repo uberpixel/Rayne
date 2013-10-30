@@ -36,6 +36,8 @@
 #include "RNFileManager.h"
 #include "RNOpenPanel.h"
 #include "RNDebug.h"
+#include "RNLogging.h"
+#include "RNLoggingEngine.h"
 
 #include "RNModule.h"
 #include "RNWorldAttachment.h"
