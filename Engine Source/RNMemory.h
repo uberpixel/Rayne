@@ -18,7 +18,6 @@ namespace RN
 	{
 		RNAPI void *AllocateAligned(size_t size, size_t alignment);
 		RNAPI void FreeAligned(void *ptr);
-		
 
 		RNAPI void *AllocateSIMD(size_t size);
 		RNAPI void FreeSIMD(void *ptr);

@@ -21,6 +21,7 @@
 
 #include <type_traits>
 #include <iostream>
+#include <fstream>
 #include <algorithm>
 #include <string>
 #include <sstream>
@@ -110,21 +111,21 @@
 
 namespace RN
 {
-#ifndef NDEBUG
-	#if RN_PLATFORM_POSIX
-		#define RN_ASSERT(e, ...) __builtin_expect(!(e), 0) ? RN::__Assert(__PRETTY_FUNCTION__, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
-	#endif
-
-	#if RN_PLATFORM_WINDOWS
-		#define RN_ASSERT(e, ...) (!(e)) ? RN::__Assert(__FUNCTION__, __FILE__, __LINE__, this, #e, __VA_ARGS__) : (void)0
-	#endif
-
-#else
-	#define RN_ASSERT(e, message, ...) (void)0
+#if RN_PLATFORM_POSIX
+	#define RN_EXPECT_TRUE(x)  __builtin_expect(!!(x), 1)
+	#define RN_EXPECT_FALSE(x) __builtin_expect(!!(x), 0)
 #endif
-
-#define RN_EXPECT_TRUE(x)  __builtin_expect(!!(x), 1)
-#define RN_EXPECT_FALSE(x) __builtin_expect(!!(x), 0)
+	
+#if RN_PLATFORM_WINDOWS
+	#define RN_EXPECT_TRUE(x)  (x)
+	#define RN_EXPECT_FALSE(x) (x)
+#endif
+	
+#ifndef NDEBUG
+	#define RN_ASSERT(e, ...) RN_EXPECT_FALSE(!(e)) ? RN::__Assert(__PRETTY_FUNCTION__, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
+#else
+	#define RN_ASSERT(e, ...) (void)0
+#endif
 	
 	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
 	
