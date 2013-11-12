@@ -140,7 +140,6 @@
 		E9619E591696157E00DA187E /* RNWindow.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E251696157E00DA187E /* RNWindow.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E5A1696157E00DA187E /* RNWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619E261696157E00DA187E /* RNWorld.cpp */; };
 		E9619E5B1696157E00DA187E /* RNWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E271696157E00DA187E /* RNWorld.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9619F841696FDE100DA187E /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F7E1696FDC000DA187E /* libpng.a */; };
 		E96654621758D2BA00C3562E /* RNWrappingObject.h in Headers */ = {isa = PBXBuildFile; fileRef = E96654601758D2BA00C3562E /* RNWrappingObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E96C5664177C8AC3007FAF7C /* RNRenderer32.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E96C5662177C8AC3007FAF7C /* RNRenderer32.cpp */; };
 		E96C5665177C8AC3007FAF7C /* RNRenderer32.h in Headers */ = {isa = PBXBuildFile; fileRef = E96C5663177C8AC3007FAF7C /* RNRenderer32.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -232,9 +231,7 @@
 		E9E83F41172A4F7D0075559B /* RNUIFont.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E83F3F172A4F7D0075559B /* RNUIFont.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E83F45172A4FD70075559B /* RNTextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */; };
 		E9E83F46172A4FD70075559B /* RNTextureAtlas.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E83F44172A4FD70075559B /* RNTextureAtlas.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9E83F48172A51310075559B /* libfreetype.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9E83F47172A51310075559B /* libfreetype.a */; };
 		E9E83F4A172A51440075559B /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9E83F49172A51440075559B /* libbz2.dylib */; };
-		E9ECEEB916D7F0E700C6CF09 /* libjansson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ECEEB816D7F09800C6CF09 /* libjansson.a */; };
 		E9F361FA175AB84800365C12 /* RNSerialization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F361F8175AB84800365C12 /* RNSerialization.cpp */; };
 		E9F361FB175AB84800365C12 /* RNSerialization.h in Headers */ = {isa = PBXBuildFile; fileRef = E9F361F9175AB84800365C12 /* RNSerialization.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9F3A6F4171B8D3E0005A79E /* RNParticleEmitter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F3A6F2171B8D3E0005A79E /* RNParticleEmitter.cpp */; };
@@ -249,20 +246,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		E9619F7D1696FDC000DA187E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E9619F791696FDC000DA187E /* png-osx.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = E995E39C169496FA00B2E0C3;
-			remoteInfo = png;
-		};
-		E9619F821696FDD700DA187E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E9619F791696FDC000DA187E /* png-osx.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = E995E39B169496FA00B2E0C3;
-			remoteInfo = png;
-		};
 		E99D971217B982070066B0AE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */;
@@ -276,20 +259,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = E99D966617B980520066B0AE;
 			remoteInfo = angelscript;
-		};
-		E9ECEEB716D7F09800C6CF09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E9ECEEB316D7F09800C6CF09 /* jansson-osx.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = E9ECEE8B16D7EF9400C6CF09;
-			remoteInfo = jansson;
-		};
-		E9ECEEBA16D7F0ED00C6CF09 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = E9ECEEB316D7F09800C6CF09 /* jansson-osx.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = E9ECEE8A16D7EF9400C6CF09;
-			remoteInfo = jansson;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -433,7 +402,6 @@
 		E9619E251696157E00DA187E /* RNWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWindow.h; sourceTree = "<group>"; };
 		E9619E261696157E00DA187E /* RNWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWorld.cpp; sourceTree = "<group>"; };
 		E9619E271696157E00DA187E /* RNWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWorld.h; sourceTree = "<group>"; };
-		E9619F791696FDC000DA187E /* png-osx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "png-osx.xcodeproj"; path = "../../Vendor/libpng/png-osx.xcodeproj"; sourceTree = "<group>"; };
 		E96654601758D2BA00C3562E /* RNWrappingObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWrappingObject.h; sourceTree = "<group>"; };
 		E96C5662177C8AC3007FAF7C /* RNRenderer32.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRenderer32.cpp; sourceTree = "<group>"; };
 		E96C5663177C8AC3007FAF7C /* RNRenderer32.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRenderer32.h; sourceTree = "<group>"; };
@@ -525,9 +493,7 @@
 		E9E83F3F172A4F7D0075559B /* RNUIFont.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIFont.h; sourceTree = "<group>"; };
 		E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTextureAtlas.cpp; sourceTree = "<group>"; };
 		E9E83F44172A4FD70075559B /* RNTextureAtlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTextureAtlas.h; sourceTree = "<group>"; };
-		E9E83F47172A51310075559B /* libfreetype.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfreetype.a; path = "../../Vendor/freetype-2.4.11/lib/osx/libfreetype.a"; sourceTree = "<group>"; };
 		E9E83F49172A51440075559B /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = usr/lib/libbz2.dylib; sourceTree = SDKROOT; };
-		E9ECEEB316D7F09800C6CF09 /* jansson-osx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "jansson-osx.xcodeproj"; path = "../../Vendor/libjansson/jansson-osx.xcodeproj"; sourceTree = "<group>"; };
 		E9F361F8175AB84800365C12 /* RNSerialization.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSerialization.cpp; sourceTree = "<group>"; };
 		E9F361F9175AB84800365C12 /* RNSerialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSerialization.h; sourceTree = "<group>"; };
 		E9F3A6F2171B8D3E0005A79E /* RNParticleEmitter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNParticleEmitter.cpp; sourceTree = "<group>"; };
@@ -553,9 +519,6 @@
 				E991F1BF16BB231000B205A1 /* IOKit.framework in Frameworks */,
 				E9B1125D16797846001A0DA5 /* OpenGL.framework in Frameworks */,
 				E995E40F1694A0B300B2E0C3 /* libz.dylib in Frameworks */,
-				E9ECEEB916D7F0E700C6CF09 /* libjansson.a in Frameworks */,
-				E9619F841696FDE100DA187E /* libpng.a in Frameworks */,
-				E9E83F48172A51310075559B /* libfreetype.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -611,14 +574,6 @@
 			path = "../../Engine Source";
 			sourceTree = "<group>";
 		};
-		E9619F7A1696FDC000DA187E /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				E9619F7E1696FDC000DA187E /* libpng.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		E97F7B7F175526E5001236E5 /* STL */ = {
 			isa = PBXGroup;
 			children = (
@@ -653,8 +608,6 @@
 			children = (
 				E9B10A101819818E0065238A /* angelscript */,
 				E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */,
-				E9ECEEB316D7F09800C6CF09 /* jansson-osx.xcodeproj */,
-				E9619F791696FDC000DA187E /* png-osx.xcodeproj */,
 			);
 			name = Vendor;
 			sourceTree = "<group>";
@@ -725,7 +678,6 @@
 				E9543FA3168167A100F53C4F /* Foundation.framework */,
 				E991F1BE16BB231000B205A1 /* IOKit.framework */,
 				E9B1125C16797846001A0DA5 /* OpenGL.framework */,
-				E9E83F47172A51310075559B /* libfreetype.a */,
 				E9E83F49172A51440075559B /* libbz2.dylib */,
 				E995E40E1694A0B300B2E0C3 /* libz.dylib */,
 			);
@@ -804,14 +756,6 @@
 				E9D7DA77172F9C0D00A858CB /* RNUIWidget.h */,
 			);
 			name = UI;
-			sourceTree = "<group>";
-		};
-		E9ECEEB416D7F09800C6CF09 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				E9ECEEB816D7F09800C6CF09 /* libjansson.a */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 		E9F80709169704CC00773A34 /* Base */ = {
@@ -1114,6 +1058,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = E98D1E5C1673A6E200889F3B /* Build configuration list for PBXNativeTarget "Rayne" */;
 			buildPhases = (
+				E9B106581832470B0090A19C /* Install dependencies */,
 				E98D1E541673A6E200889F3B /* Sources */,
 				E98D1E551673A6E200889F3B /* Frameworks */,
 				E98D1E561673A6E200889F3B /* Headers */,
@@ -1123,8 +1068,6 @@
 			);
 			dependencies = (
 				E99D971617B982180066B0AE /* PBXTargetDependency */,
-				E9ECEEBB16D7F0ED00C6CF09 /* PBXTargetDependency */,
-				E9619F831696FDD700DA187E /* PBXTargetDependency */,
 			);
 			name = Rayne;
 			productName = Rayne;
@@ -1155,14 +1098,6 @@
 					ProductGroup = E99D970F17B982060066B0AE /* Products */;
 					ProjectRef = E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */;
 				},
-				{
-					ProductGroup = E9ECEEB416D7F09800C6CF09 /* Products */;
-					ProjectRef = E9ECEEB316D7F09800C6CF09 /* jansson-osx.xcodeproj */;
-				},
-				{
-					ProductGroup = E9619F7A1696FDC000DA187E /* Products */;
-					ProjectRef = E9619F791696FDC000DA187E /* png-osx.xcodeproj */;
-				},
 			);
 			projectRoot = "";
 			targets = (
@@ -1172,13 +1107,6 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		E9619F7E1696FDC000DA187E /* libpng.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libpng.a;
-			remoteRef = E9619F7D1696FDC000DA187E /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		E99D971317B982070066B0AE /* libangelscript.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -1186,16 +1114,23 @@
 			remoteRef = E99D971217B982070066B0AE /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		E9ECEEB816D7F09800C6CF09 /* libjansson.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libjansson.a;
-			remoteRef = E9ECEEB716D7F09800C6CF09 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 /* End PBXReferenceProxy section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		E9B106581832470B0090A19C /* Install dependencies */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Install dependencies";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "CMD=\"$PROJECT_DIR/../../Config/setup.py\"\n\"$CMD\"";
+		};
 		E9B4DA2917AD929700C54A10 /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1321,20 +1256,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		E9619F831696FDD700DA187E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = png;
-			targetProxy = E9619F821696FDD700DA187E /* PBXContainerItemProxy */;
-		};
 		E99D971617B982180066B0AE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = angelscript;
 			targetProxy = E99D971517B982180066B0AE /* PBXContainerItemProxy */;
-		};
-		E9ECEEBB16D7F0ED00C6CF09 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = jansson;
-			targetProxy = E9ECEEBA16D7F0ED00C6CF09 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1380,15 +1305,14 @@
 				GCC_UNROLL_LOOPS = YES;
 				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
 				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
-					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
-					"\"$(SRCROOT)/../../Vendor/libjansson/source\"",
-					"\"$(SRCROOT)/../../Vendor/freetype-2.4.11/include\"",
+					/usr/local/include,
+					/usr/local/include/freetype2,
+					/usr/local/include/libpng15,
 				);
 				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../Vendor/freetype-2.4.11/lib/osx\"",
+					/usr/local/lib,
 				);
 				LLVM_VECTORIZE_LOOPS = YES;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -1396,6 +1320,11 @@
 					"-x",
 					"objective-c++",
 					"-msse4.1",
+				);
+				OTHER_LDFLAGS = (
+					/usr/local/lib/libfreetype.a,
+					/usr/local/lib/libpng.a,
+					/usr/local/lib/libjansson.a,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -1473,15 +1402,14 @@
 				GCC_UNROLL_LOOPS = YES;
 				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
 				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
-					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
-					"\"$(SRCROOT)/../../Vendor/libjansson/source\"",
-					"\"$(SRCROOT)/../../Vendor/freetype-2.4.11/include\"",
+					/usr/local/include,
+					/usr/local/include/freetype2,
+					/usr/local/include/libpng15,
 				);
 				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../Vendor/freetype-2.4.11/lib/osx\"",
+					/usr/local/lib,
 				);
 				LLVM_VECTORIZE_LOOPS = YES;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -1489,6 +1417,11 @@
 					"-x",
 					"objective-c++",
 					"-msse4.1",
+				);
+				OTHER_LDFLAGS = (
+					/usr/local/lib/libfreetype.a,
+					/usr/local/lib/libpng.a,
+					/usr/local/lib/libjansson.a,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -1503,15 +1436,14 @@
 				GCC_UNROLL_LOOPS = YES;
 				GCC_WARN_ABOUT_MISSING_NEWLINE = YES;
 				HEADER_SEARCH_PATHS = (
-					"\"$(SRCROOT)/../../Vendor/libpng/include\"",
-					"\"$(SRCROOT)/../../Vendor/bullet/src\"/**",
-					"\"$(SRCROOT)/../../Vendor/libjansson/source\"",
-					"\"$(SRCROOT)/../../Vendor/freetype-2.4.11/include\"",
+					/usr/local/include,
+					/usr/local/include/freetype2,
+					/usr/local/include/libpng15,
 				);
 				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/../../Vendor/freetype-2.4.11/lib/osx\"",
+					/usr/local/lib,
 				);
 				LLVM_VECTORIZE_LOOPS = YES;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -1519,6 +1451,11 @@
 					"-x",
 					"objective-c++",
 					"-msse4.1",
+				);
+				OTHER_LDFLAGS = (
+					/usr/local/lib/libfreetype.a,
+					/usr/local/lib/libpng.a,
+					/usr/local/lib/libjansson.a,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

@@ -1,0 +1,19 @@
+{
+	"osx": [
+		{
+			"name": "Freetype",
+			"formular": "freetype",
+			"path": "/usr/local/lib/libfreetype.a"
+		},
+		{
+			"name": "libpng",
+			"formular": "png",
+			"path": "/usr/local/lib/libpng.a"
+		},
+		{
+			"name": "jansson",
+			"formular": "jansson",
+			"path": "/usr/local/lib/libjansson.a"
+		}
+	]
+}
