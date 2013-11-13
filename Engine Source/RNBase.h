@@ -12,6 +12,8 @@
 // ---------------------------
 // Platform independent includes
 // ---------------------------
+#include "RNMemory.h"
+
 #include <assert.h>
 #include <math.h>
 #include <string.h>

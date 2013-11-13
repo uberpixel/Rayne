@@ -11,7 +11,6 @@
 
 #include "RNBase.h"
 #include "RNCPU.h"
-#include "RNMemory.h"
 
 namespace RN
 {

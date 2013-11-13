@@ -9,8 +9,8 @@
 #ifndef __RAYNE_MEMORY_H__
 #define __RAYNE_MEMORY_H__
 
-#include "RNBase.h"
-#include "RNSIMD.h"
+#include <new>
+#include "RNDefines.h"
 
 namespace RN
 {
@@ -21,7 +21,26 @@ namespace RN
 
 		RNAPI void *AllocateSIMD(size_t size);
 		RNAPI void FreeSIMD(void *ptr);
+		
+		RNAPI void *Allocate(size_t size);
+		RNAPI void *AllocateArray(size_t size);
+		RNAPI void *Allocate(size_t size, const std::nothrow_t& n) noexcept;
+		RNAPI void *AllocateArray(size_t size, const std::nothrow_t& n) noexcept;
+		RNAPI void Free(void *ptr) noexcept;
+		RNAPI void FreeArray(void *ptr) noexcept;
+		RNAPI void Free(void *ptr, const std::nothrow_t& n) noexcept;
+		RNAPI void FreeArray(void *ptr, const std::nothrow_t& n) noexcept;
 	};
 }
+
+void *operator new(size_t size);
+void *operator new[](size_t size);
+void *operator new(size_t size, const std::nothrow_t& n) noexcept;
+void *operator new[](size_t size, const std::nothrow_t& n) noexcept;
+
+void operator delete(void *ptr) noexcept;
+void operator delete[](void *ptr) noexcept;
+void operator delete(void *ptr, const std::nothrow_t& n) noexcept;
+void operator delete[](void *ptr, const std::nothrow_t& n) noexcept;
 
 #endif /* __RAYNE_MEMORY_H__ */
