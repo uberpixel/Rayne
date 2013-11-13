@@ -129,6 +129,18 @@ namespace RN
 	#define RN_ASSERT(e, ...) (void)0
 #endif
 	
+#define RN_REGISTER_INIT(name, body) \
+	namespace { \
+		static void __RNGlobalInit##name##Callback() { body; } \
+		static RN::Initializer __RNGlobalInit##name (__RNGlobalInit##name##Callback, nullptr); \
+	}
+	
+#define RN_REGISTER_DESTRUCTOR(name, body) \
+	namespace { \
+		static void __RNGlobalDestructor##name##Callback() { body; } \
+		static RN::Initializer __RNGlobalDestructor##name (__RNGlobalDestructor##name##Callback, nullptr); \
+	}
+	
 	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
 	
 	RNAPI RN_NORETURN void __HandleException(const Exception& e);
@@ -151,6 +163,28 @@ namespace RN
 		GreaterThan = 1
 	};
 	
+	class Initializer
+	{
+	public:
+		typedef void (*Callback)();
+		
+		Initializer(Callback ctor, Callback dtor) :
+			_dtor(dtor)
+		{
+			if(ctor)
+				ctor();
+		}
+		
+		~Initializer()
+		{
+			if(_dtor)
+				_dtor();
+		}
+		
+	private:
+		Callback _dtor;
+	};
+		
 	class Range
 	{
 	public:
