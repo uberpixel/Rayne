@@ -33,14 +33,14 @@ namespace RN
 	};
 }
 
-void *operator new(size_t size);
-void *operator new[](size_t size);
-void *operator new(size_t size, const std::nothrow_t& n) noexcept;
-void *operator new[](size_t size, const std::nothrow_t& n) noexcept;
+RNAPI void *operator new(size_t size);
+RNAPI void *operator new[](size_t size);
+RNAPI void *operator new(size_t size, const std::nothrow_t& n) noexcept;
+RNAPI void *operator new[](size_t size, const std::nothrow_t& n) noexcept;
 
-void operator delete(void *ptr) noexcept;
-void operator delete[](void *ptr) noexcept;
-void operator delete(void *ptr, const std::nothrow_t& n) noexcept;
-void operator delete[](void *ptr, const std::nothrow_t& n) noexcept;
+RNAPI void operator delete(void *ptr) noexcept;
+RNAPI void operator delete[](void *ptr) noexcept;
+RNAPI void operator delete(void *ptr, const std::nothrow_t& n) noexcept;
+RNAPI void operator delete[](void *ptr, const std::nothrow_t& n) noexcept;
 
 #endif /* __RAYNE_MEMORY_H__ */
