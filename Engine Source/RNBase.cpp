@@ -14,12 +14,6 @@
 #include "RNFileManager.h"
 #include "RNLogging.h"
 
-#define kRNVersionMajor 0
-#define kRNVersionMinor 1
-#define kRNVersionPatch 0
-
-#define kRNABIVersion 0
-
 namespace RN
 {
 	void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...)

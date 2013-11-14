@@ -111,6 +111,12 @@
 // Helper macros
 // ---------------------------
 
+#define kRNVersionMajor 0
+#define kRNVersionMinor 1
+#define kRNVersionPatch 0
+
+#define kRNABIVersion 0
+
 namespace RN
 {
 #if RN_PLATFORM_POSIX
