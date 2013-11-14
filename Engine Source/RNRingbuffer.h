@@ -298,14 +298,16 @@ namespace RN
 			
 			void increment()
 			{
-				_size = std::min(_size + 1, _capacity);
-				_end  = (_end + 1) % _capacity;
+				_end ++;
+				_end %= _capacity;
 				
 				if(_end == 0)
 					_rotations ++;
 				
-				if(_size == _capacity)
+				if(RN_EXPECT_TRUE(_size == _capacity))
 					_begin = _end;
+				else
+					_size ++;
 			}
 			
 			size_type _begin;
