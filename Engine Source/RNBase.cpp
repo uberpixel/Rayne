@@ -69,6 +69,21 @@ namespace RN
 		}
 	}
 	
+	void Initialize(int argc, char *argv[])
+	{
+		ParseCommandLine(argc, argv);
+		
+#if RN_PLATFORM_MAC_OS
+		@autoreleasepool
+		{
+			[NSApplication sharedApplication];
+			[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+			
+			[NSApp finishLaunching];
+		}
+#endif
+	}
+	
 	
 	uint32 ABIVersion()
 	{

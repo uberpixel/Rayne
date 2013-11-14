@@ -151,6 +151,7 @@ namespace RN
 	
 	RNAPI RN_NORETURN void HandleException(const Exception& e);
 	RNAPI void ParseCommandLine(int argc, char *argv[]);
+	RNAPI void Initialize(int argc, char *argv[]);
 	
 	RNAPI uint32 ABIVersion();
 	RNAPI uint32 Version();

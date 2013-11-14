@@ -465,6 +465,20 @@ namespace RN
 
 		_delta = trueDelta * _timeScale;
 		_scaledTime += _delta;
+		
+#if RN_PLATFORM_MAC_OS
+		@autoreleasepool
+		{
+			NSDate *date = [NSDate date];
+			NSEvent *event;
+			
+			while((event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES]))
+			{
+				[NSApp sendEvent:event];
+				[NSApp updateWindows];
+			}
+		}
+#endif
 
 #if RN_PLATFORM_WINDOWS
 		MSG	message;

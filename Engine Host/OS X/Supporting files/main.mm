@@ -19,17 +19,21 @@
 
 int main(int argc, char *argv[])
 {
-	int result = 0;
+	RN::Initialize(argc, argv);
 	
 	try
 	{
-		RN::ParseCommandLine(argc, argv);
-		result = NSApplicationMain(argc, (const char **)argv);
+		RN::Kernel *kernel = new RN::Kernel("Rayne Player");
+		
+		while(kernel->Tick())
+		{}
+		
+		delete kernel;
 	}
 	catch(RN::Exception e)
 	{
-		RN::__HandleException(e);
+		RN::HandleException(e);
 	}
 	
-	return result;
+	return 0;
 }
