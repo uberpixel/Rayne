@@ -30,7 +30,7 @@ namespace RN
 			}
 			catch(Exception e)
 			{
-				__HandleException(e);
+				HandleException(e);
 			}
 			
 			_textures = new Dictionary();

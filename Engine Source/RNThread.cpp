@@ -150,7 +150,7 @@ namespace RN
 			}
 			catch(Exception e)
 			{
-				__HandleException(e);
+				HandleException(e);
 			}
 			
 			Exit();

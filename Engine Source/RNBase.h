@@ -143,7 +143,7 @@ namespace RN
 	
 	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
 	
-	RNAPI RN_NORETURN void __HandleException(const Exception& e);
+	RNAPI RN_NORETURN void HandleException(const Exception& e);
 	RNAPI void ParseCommandLine(int argc, char *argv[]);
 	
 	RNAPI uint32 ABIVersion();

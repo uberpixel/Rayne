@@ -41,12 +41,13 @@ namespace RN
 		throw Exception(Exception::Type::InconsistencyException, reason);
 	}
 	
-	void __HandleException(const Exception& e)
+	void HandleException(const Exception& e)
 	{
 		{
 			Log::Loggable loggable(Log::Level::Error);
 			const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.GetCallStack();
 			
+			loggable << "Man the lifeboats! Women and children first!" << std::endl;
 			loggable << "Caught exception " << e.GetStringifiedType() << ", reason: " << e.GetReason() << std::endl;
 			loggable << "Crashing thread: " << e.GetThread()->GetName() << std::endl << "Backtrace:" << std::endl;
 			
