@@ -114,18 +114,19 @@ namespace RN
 				return AllocateFromBucket(size);
 			}
 			
-			void Evict()
+			void Evict(bool reuse)
 			{
 				_lastSize = std::max(static_cast<size_t>(2048), _lastSize / 2);
 				_fullBuckets.clear();
 				
 				// Move half of the full buckets into the free list
-				if(_fullBuckets.size() > 2)
+				if(_fullBuckets.size() >= 2)
 				{
-					auto i = _fullBuckets.begin();
-					auto end = i;
+					auto i   = _fullBuckets.begin();
+					auto end = reuse ? _fullBuckets.end() : i;
 					
-					std::advance(end, _fullBuckets.size() / 2);
+					if(!reuse)
+						std::advance(end, _fullBuckets.size() / 2);
 					
 					for(; i != end; i ++)
 						_freeBuckets.push_back(std::move(*i));
@@ -247,9 +248,9 @@ namespace RN
 			return _allocator->Allocate(size, n);
 		}
 		
-		void Pool::Evict()
+		void Pool::Evict(bool willReuse)
 		{
-			_allocator->Evict();
+			_allocator->Evict(willReuse);
 		}
 	};
 }

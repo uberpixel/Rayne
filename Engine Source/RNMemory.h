@@ -41,7 +41,7 @@ namespace RN
 			void *Allocate(size_t size);
 			void *Allocate(size_t size, const std::nothrow_t& n) noexcept;
 			
-			void Evict();
+			void Evict(bool willReuse = false);
 			
 		private:
 			PoolAllocator *_allocator;
