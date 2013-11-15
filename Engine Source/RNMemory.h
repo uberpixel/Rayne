@@ -30,6 +30,22 @@ namespace RN
 		RNAPI void FreeArray(void *ptr) noexcept;
 		RNAPI void Free(void *ptr, const std::nothrow_t& n) noexcept;
 		RNAPI void FreeArray(void *ptr, const std::nothrow_t& n) noexcept;
+		
+		class PoolAllocator;
+		class Pool
+		{
+		public:
+			Pool(size_t alignment = 8);
+			~Pool();
+			
+			void *Allocate(size_t size);
+			void *Allocate(size_t size, const std::nothrow_t& n) noexcept;
+			
+			void Evict();
+			
+		private:
+			PoolAllocator *_allocator;
+		};
 	};
 }
 

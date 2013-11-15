@@ -8,6 +8,7 @@
 
 #include <tcmalloc.h>
 #include "RNMemory.h"
+#include "RNBase.h"
 #include "RNSIMD.h"
 
 #if RN_SIMD
@@ -86,6 +87,169 @@ namespace RN
 		void FreeArray(void *ptr, const std::nothrow_t& n) noexcept
 		{
 			tc_deletearray_nothrow(ptr, n);
+		}
+		
+		
+		class PoolAllocator
+		{
+		public:
+			PoolAllocator(size_t alignment) :
+				_alignment(alignment),
+				_lastSize(2048)
+			{
+				CreateBucket(_lastSize);
+			}
+			
+			~PoolAllocator()
+			{}
+			
+			
+			void *Allocate(size_t size)
+			{
+				return AllocateFromBucket(size);
+			}
+			
+			void *Allocate(size_t size, const std::nothrow_t& n) noexcept
+			{
+				return AllocateFromBucket(size);
+			}
+			
+			void Evict()
+			{
+				_lastSize = std::max(static_cast<size_t>(2048), _lastSize / 2);
+				_fullBuckets.clear();
+				
+				// Move half of the full buckets into the free list
+				if(_fullBuckets.size() > 2)
+				{
+					auto i = _fullBuckets.begin();
+					auto end = i;
+					
+					std::advance(end, _fullBuckets.size() / 2);
+					
+					for(; i != end; i ++)
+						_freeBuckets.push_back(std::move(*i));
+				}
+				
+				for(auto& bucket : _freeBuckets)
+					bucket.offset = 0;
+			}
+			
+		private:
+			struct AllocationBucket
+			{
+				AllocationBucket(size_t tsize)
+				{
+					size   = tsize;
+					offset = 0;
+					buffer = reinterpret_cast<uint8 *>(malloc(size));
+				}
+				
+				AllocationBucket(AllocationBucket&& other)
+				{
+					size = other.size;
+					offset = other.offset;
+					buffer = other.buffer;
+					
+					other.buffer = nullptr;
+					other.size   = 0;
+				}
+				
+				~AllocationBucket()
+				{
+					if(buffer)
+						free(buffer);
+				}
+				
+				AllocationBucket& operator= (AllocationBucket&& other)
+				{
+					size = other.size;
+					offset = other.offset;
+					buffer = other.buffer;
+					
+					other.buffer = nullptr;
+					other.size   = 0;
+					
+					return *this;
+				}
+				
+				uint8 *buffer;
+				size_t offset;
+				size_t size;
+			};
+			
+			AllocationBucket& CreateBucket(size_t minSize)
+			{
+				_lastSize = std::max(minSize, _lastSize * 2);
+				_freeBuckets.emplace_back(AllocationBucket(_lastSize));
+				
+				return _freeBuckets.back();
+			}
+			
+			void *AllocateFromBucket(size_t size)
+			{
+				for(auto i = _freeBuckets.begin(); i != _freeBuckets.end();)
+				{
+					auto& bucket = *i;
+					
+					if(bucket.offset + size <= bucket.size)
+					{
+						void *pointer = (bucket.buffer + bucket.offset);
+						bucket.offset += size;
+						bucket.offset += (bucket.offset % _alignment);
+						
+						return pointer;
+					}
+					else
+					{
+						AllocationBucket temp = std::move(bucket);
+					
+						i = _freeBuckets.erase(i);
+						_fullBuckets.push_back(std::move(temp));
+						
+						continue;
+					}
+					
+					i ++;
+				}
+				
+				AllocationBucket& bucket = CreateBucket(size);
+				bucket.offset += size;
+				bucket.offset += (bucket.offset % _alignment);
+				
+				return reinterpret_cast<void *>(bucket.buffer);
+			}
+			
+			size_t _alignment;
+			size_t _lastSize;
+			
+			std::vector<AllocationBucket> _freeBuckets;
+			std::vector<AllocationBucket> _fullBuckets;
+		};
+		
+		
+		Pool::Pool(size_t alignment) :
+			_allocator(new PoolAllocator(alignment))
+		{}
+		
+		Pool::~Pool()
+		{
+			delete _allocator;
+		}
+		
+		void *Pool::Allocate(size_t size)
+		{
+			return _allocator->Allocate(size);
+		}
+		
+		void *Pool::Allocate(size_t size, const std::nothrow_t& n) noexcept
+		{
+			return _allocator->Allocate(size, n);
+		}
+		
+		void Pool::Evict()
+		{
+			_allocator->Evict();
 		}
 	};
 }
