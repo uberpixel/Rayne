@@ -21,6 +21,8 @@
 
 namespace RN
 {
+	static ThreadPool::SmallObjectsAllocator __LightTilesAlloactor;
+	
 	LightManager::LightManager()
 	{
 		_maxLightFastPath = 10;
@@ -152,7 +154,7 @@ continue; \
 		std::vector<size_t> indicesCount(tileCount);
 		AllocateLightBufferStorage(lightindicesSize, lightindexoffsetSize);
 		
-		ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch();
+		ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch(__LightTilesAlloactor);
 		batch->Reserve(tilesHeight * tilesWidth * tilesDepth);
 		
 		for(int y=0; y<tilesHeight; y++)

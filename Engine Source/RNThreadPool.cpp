@@ -94,9 +94,16 @@ namespace RN
 		return thread->Autorelease();
 	}
 	
+	
 	ThreadPool::Batch *ThreadPool::CreateBatch()
 	{
-		Batch *batch = new Batch(this);
+		Batch *batch = new Batch(GetDefaultAllocator(), this);
+		return batch;
+	}
+	
+	ThreadPool::Batch *ThreadPool::CreateBatch(Allocator& allocator)
+	{
+		Batch *batch = new Batch(allocator, this);
 		return batch;
 	}
 	
