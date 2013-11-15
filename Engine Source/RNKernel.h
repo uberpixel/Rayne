@@ -26,12 +26,15 @@ namespace RN
 #define kRNKernelDidEndFrameMessage   RNCSTR("kRNKernelDidEndFrameMessage")
 	
 	class World;
+	
 	class Kernel : public NonConstructingSingleton<Kernel>
 	{
 	public:
-		RNAPI Kernel(const std::string& title);
+		friend class Settings;
+		
+		RNAPI Kernel();
 		RNAPI Kernel(Application *app);
-		RNAPI virtual ~Kernel();
+		RNAPI ~Kernel() override;
 
 		RNAPI bool Tick();
 

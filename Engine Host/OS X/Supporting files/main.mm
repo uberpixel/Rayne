@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
 	
 	try
 	{
-		RN::Kernel *kernel = new RN::Kernel("Rayne Player");
+		RN::Kernel *kernel = new RN::Kernel();
 		
 		while(kernel->Tick())
 		{}

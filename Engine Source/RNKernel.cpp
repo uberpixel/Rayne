@@ -48,19 +48,18 @@ namespace RN
 	}
 	
 	
-	Kernel::Kernel(const std::string& title) :
-		_title(title)
+	Kernel::Kernel()
 	{
 		Prepare();
-		LoadApplicationModule(Settings::GetSharedInstance()->GetObjectForKey<String>(kRNSettingsGameModuleKey));
+		LoadApplicationModule(Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestGameModuleKey));
 	}
 	
-	Kernel::Kernel(Application *app) :
-		_title(app->Title())
+	Kernel::Kernel(Application *app)
 	{
 		Prepare();
 		_app = app;
 	}
+	
 
 	Kernel::~Kernel()
 	{
@@ -103,7 +102,9 @@ namespace RN
 		_mainThread = new Thread();
 		_pool = new AutoreleasePool();
 		
-		Settings::GetSharedInstance();
+		_title = (Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestApplicationKey)->GetUTF8String());
+		Settings::GetSharedInstance()->LoadSettings();
+		
 		ThreadCoordinator::GetSharedInstance();
 		Log::Logger::GetSharedInstance();
 		
@@ -358,7 +359,7 @@ namespace RN
 		
 		// Modules
 		{
-			Array *array = Settings::GetSharedInstance()->GetObjectForKey<Array>(KRNSettingsModulesKey);
+			Array *array = Settings::GetSharedInstance()->GetManifestObjectForKey<Array>(KRNManifestModulesKey);
 			if(array)
 			{
 				std::vector<std::string> modules;

@@ -27,10 +27,7 @@ namespace TG
 		RN::Window *window = RN::Window::GetSharedInstance();
 		RN::UI::DebugWidget *widget = new RN::UI::DebugWidget();
 		widget->Show();
-		
-		auto configs = RN::Window::GetSharedInstance()->GetMainScreen()->GetConfigurations();
-		window->SetConfiguration(configs.GetObjectAtIndex<RN::WindowConfiguration>(configs.GetCount() - 2), 0);
-			
+
 		_world = new World();
 	}
 	

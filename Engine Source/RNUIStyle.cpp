@@ -23,7 +23,7 @@ namespace RN
 		{
 			try
 			{
-				String *path = Settings::GetSharedInstance()->GetObjectForKey<String>(kRNSettingsUIStyleKey);
+				String *path = Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestUIStyleKey);
 				Object *data = JSONSerialization::JSONObjectFromData(Data::WithContentsOfFile(path->GetUTF8String()));
 				
 				_data = data->Downcast<Dictionary>()->Retain();
