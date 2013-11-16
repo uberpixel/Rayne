@@ -263,21 +263,31 @@ namespace RN
 		XFreePixmap(_dpy, maskPixmap);
 		XFreePixmap(_dpy, sourcePixmap);
 #endif
+		bool failed = false;
+		
 		try
 		{
 			SetTitle("");
 			
 			Dictionary *screenConfig = Settings::GetSharedInstance()->GetObjectForKey<Dictionary>(kRNSettingsScreenKey);
-			Number *width  = screenConfig->GetObjectForKey<Number>(RNCSTR("width"));
-			Number *height = screenConfig->GetObjectForKey<Number>(RNCSTR("height"));
-			
-			WindowConfiguration *temp = new WindowConfiguration(width->GetUint32Value(), height->GetUint32Value(), _mainScreen);
-			SetConfiguration(temp->Autorelease(), _mask);
+			if(screenConfig)
+			{
+				Number *width  = screenConfig->GetObjectForKey<Number>(RNCSTR("width"));
+				Number *height = screenConfig->GetObjectForKey<Number>(RNCSTR("height"));
+				
+				WindowConfiguration *temp = new WindowConfiguration(width->GetUint32Value(), height->GetUint32Value(), _mainScreen);
+				SetConfiguration(temp->Autorelease(), _mask);
+			}
+			else
+				failed = true;
 		}
 		catch(Exception e)
 		{
-			SetConfiguration(_mainScreen->GetConfigurations().GetObjectAtIndex<WindowConfiguration>(0), _mask);
+			failed = true;
 		}
+		
+		if(failed)
+			SetConfiguration(_mainScreen->GetConfigurations().GetObjectAtIndex<WindowConfiguration>(0), _mask);
 	}
 
 	Window::~Window()
