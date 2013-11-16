@@ -15,7 +15,7 @@
 namespace RN
 {
 	RNDeclareMeta(Texture)
-	uint32 Texture::_defaultAnisotropy = 0;
+	float Texture::_defaultAnisotropy = 1.0f;
 	
 	Texture::Texture(TextureParameter::Format format, bool isLinear)
 	{
@@ -215,8 +215,15 @@ namespace RN
 		glTexParameteri(_glType, GL_TEXTURE_MIN_FILTER, minFilter); RN_CHECKOPENGL_AGGRESSIVE();
 		glTexParameteri(_glType, GL_TEXTURE_MAG_FILTER, magFilter); RN_CHECKOPENGL_AGGRESSIVE();
 		
-		//glTexParameteri(_glType, GL_TEXTURE_MAX_ANISOTROPY, parameter.anisotropy); RN_CHECKOPENGL_AGGRESSIVE();
 		glTexParameteri(_glType, GL_TEXTURE_MAX_LEVEL, _parameter.mipMaps);
+		
+		if(_glType == GL_TEXTURE_2D && gl::SupportsFeature(gl::Feature::AnisotropicFilter))
+		{
+#if GL_EXT_texture_filter_anisotropic
+			float anisotropy = (_parameter.anisotropy < 1.0f) ? _defaultAnisotropy : _parameter.anisotropy;
+			glTexParameterf(_glType, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy); RN_CHECKOPENGL_AGGRESSIVE();
+#endif
+		}
 		
 		if(_parameter.depthCompare)
 		{
@@ -819,20 +826,27 @@ namespace RN
 		}
 	}
 	
-	uint32 Texture::GetMaxAnisotropyLevel()
+	float Texture::GetMaxAnisotropyLevel()
 	{
-		GLint max;
-		glGetIntegerv(GL_MAX_TEXTURE_MAX_ANISOTROPY, &max);
+		if(gl::SupportsFeature(gl::Feature::AnisotropicFilter))
+		{
+#if GL_EXT_texture_filter_anisotropic
+			float max;
+			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
+#endif
+			
+			return max;
+		}
 		
-		return max;
+		return 1.0f;
 	}
 	
-	uint32 Texture::GetDefaultAnisotropyLevel()
+	float Texture::GetDefaultAnisotropyLevel()
 	{
 		return _defaultAnisotropy;
 	}
 	
-	void Texture::SetDefaultAnisotropyLevel(uint32 level)
+	void Texture::SetDefaultAnisotropyLevel(float level)
 	{
 		_defaultAnisotropy = level;
 	}

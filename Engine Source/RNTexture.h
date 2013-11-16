@@ -30,7 +30,7 @@ namespace RN
 			depthCompare = false;
 			generateMipMaps = true;
 			mipMaps = 1000;
-			anisotropy = 0;
+			anisotropy = 0.0f;
 		}
 		
 		enum class Format
@@ -91,7 +91,7 @@ namespace RN
 		bool depthCompare;
 		bool generateMipMaps;
 		uint32 mipMaps;
-		uint32 anisotropy;
+		float anisotropy;
 	};
 	
 	class Texture : public Object
@@ -125,10 +125,10 @@ namespace RN
 		RNAPI const TextureParameter& GetParameter() const { return _parameter; }
 		
 		RNAPI static bool PlatformSupportsFormat(TextureParameter::Format format);
-		RNAPI static void SetDefaultAnisotropyLevel(uint32 level);
+		RNAPI static void SetDefaultAnisotropyLevel(float level);
 		
-		RNAPI static uint32 GetMaxAnisotropyLevel();
-		RNAPI static uint32 GetDefaultAnisotropyLevel();
+		RNAPI static float GetMaxAnisotropyLevel();
+		RNAPI static float GetDefaultAnisotropyLevel();
 		
 		uint32 GetWidth() const { return _width; }
 		uint32 GetHeight() const { return _height; }
@@ -150,7 +150,7 @@ namespace RN
 		bool _isLinear;
 		bool _depthCompare;
 		
-		static uint32 _defaultAnisotropy;
+		static float _defaultAnisotropy;
 		
 		RNDefineMeta(Texture, Object)
 	};

@@ -10,20 +10,20 @@
 
 namespace TG
 {
-	Application::Application()
-	{
-		_world = 0;
-		RN::Texture::SetDefaultAnisotropyLevel(RN::Texture::GetMaxAnisotropyLevel());
-		
-		SetTitle("Super Awesome Game");
-	}
+	Application::Application() :
+		_world(nullptr)
+	{}
 	
 	Application::~Application()
 	{}
 	
 	
+	
 	void Application::Start()
 	{
+		RN::Texture::SetDefaultAnisotropyLevel(RN::Texture::GetMaxAnisotropyLevel());
+		SetTitle("Super Awesome Game");
+		
 		RN::Window *window = RN::Window::GetSharedInstance();
 		RN::UI::DebugWidget *widget = new RN::UI::DebugWidget();
 		widget->Show();
@@ -33,12 +33,9 @@ namespace TG
 	
 	void Application::WillExit()
 	{
-		if(_world)
-		{
-			delete _world;
-			_world = 0;
-		}
+		delete _world;
 	}
+	
 	
 	
 	void Application::UpdateGame(float delta)
