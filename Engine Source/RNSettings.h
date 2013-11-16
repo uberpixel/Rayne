@@ -69,7 +69,7 @@ namespace RN
 		void LoadManifest();
 		void LoadSettings();
 		
-		void Flush();
+		void Sync(bool force);
 		std::string SettingsLocation() const;
 		
 		bool _mutated;

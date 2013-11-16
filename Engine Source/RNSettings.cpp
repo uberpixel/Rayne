@@ -23,7 +23,7 @@ namespace RN
 	
 	Settings::~Settings()
 	{
-		Flush();
+		Sync(true);
 		
 		_settings->Release();
 		_manifest->Release();
@@ -61,14 +61,21 @@ namespace RN
 	{
 		try
 		{
+			bool isVirgin = false;
 			std::string path = std::move(SettingsLocation());
 			
 			if(!PathManager::PathExists(path))
+			{
 				path = std::move(FileManager::GetSharedInstance()->GetFilePathWithName("settings.json"));
+				isVirgin = true;
+			}
 			
 			Data *data = Data::WithContentsOfFile(path);
 			_settings = static_cast<Dictionary *>(JSONSerialization::JSONObjectFromData(data));
 			_settings->Retain();
+			
+			if(isVirgin)
+				data->WriteToFile(SettingsLocation());
 		}
 		catch(Exception e)
 		{
@@ -76,18 +83,12 @@ namespace RN
 		}
 	}
 	
-	void Settings::Flush()
+	void Settings::Sync(bool force)
 	{
 		_lock.Lock();
 		
-		if(_mutated)
+		if(_mutated || force)
 		{
-			if(!PathManager::CreatePath(PathManager::Basepath(SettingsLocation()), true))
-			{
-				_lock.Unlock();
-				throw Exception(Exception::Type::InconsistencyException, "Failed to flush Settings down to disk!");
-			}
-			
 			try
 			{
 				Data *data = JSONSerialization::JSONDataFromObject(_settings, JSONSerialization::PrettyPrint);

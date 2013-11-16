@@ -84,6 +84,7 @@ namespace RN
 		_context->Release();
 #endif
 
+		delete Settings::GetSharedInstance();
 		delete _pool;
 		
 		_mainThread->Exit();
@@ -532,6 +533,7 @@ namespace RN
 		_renderer->FinishFrame();
 		_input->InvalidateFrame();
 		
+		Settings::GetSharedInstance()->Sync(false);
 		Log::Logger::GetSharedInstance()->Flush();
 		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidEndFrameMessage, nullptr, nullptr);
 		
