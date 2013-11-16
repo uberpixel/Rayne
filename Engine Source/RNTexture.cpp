@@ -828,17 +828,23 @@ namespace RN
 	
 	float Texture::GetMaxAnisotropyLevel()
 	{
-		if(gl::SupportsFeature(gl::Feature::AnisotropicFilter))
-		{
-#if GL_EXT_texture_filter_anisotropic
-			float max;
-			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
-#endif
-			
-			return max;
-		}
+		float max;
+		std::once_flag flag;
 		
-		return 1.0f;
+		std::call_once(flag, [&]() {
+			if(gl::SupportsFeature(gl::Feature::AnisotropicFilter))
+			{
+#if GL_EXT_texture_filter_anisotropic
+				glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
+#endif
+			}
+			else
+			{
+				max = 1.0f;
+			}
+		});
+		
+		return max;
 	}
 	
 	float Texture::GetDefaultAnisotropyLevel()
@@ -848,6 +854,9 @@ namespace RN
 	
 	void Texture::SetDefaultAnisotropyLevel(float level)
 	{
+		if(level < 1.0f || level > GetMaxAnisotropyLevel())
+			throw Exception(Exception::Type::InvalidArgumentException, "Anisotropy level must be between [1.0, max anisotropy]!");
+		
 		_defaultAnisotropy = level;
 	}
 }
