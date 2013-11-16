@@ -25,6 +25,10 @@
 		E9145CAD16BA9076004BDEC8 /* RNAutoreleasePool.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9145CB316BAB82D004BDEC8 /* RNInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9145CB116BAB82D004BDEC8 /* RNInput.cpp */; };
 		E9145CB416BAB82D004BDEC8 /* RNInput.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CB216BAB82D004BDEC8 /* RNInput.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9149BFE1838145B005E6EE7 /* glcorearb.h in Headers */ = {isa = PBXBuildFile; fileRef = E9149BFD1838145B005E6EE7 /* glcorearb.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9149C0218381A73005E6EE7 /* RNOpenGLBinder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9149C0018381A73005E6EE7 /* RNOpenGLBinder.cpp */; };
+		E9149C07183826C5005E6EE7 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9149C06183826C5005E6EE7 /* OpenGL.framework */; };
+		E9149C0918383327005E6EE7 /* glext.h in Headers */ = {isa = PBXBuildFile; fileRef = E9149C0818383327005E6EE7 /* glext.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E917AC211744A00F00331D9B /* RNUIGeometry.h in Headers */ = {isa = PBXBuildFile; fileRef = E917AC2017449AAF00331D9B /* RNUIGeometry.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E917F07F1791FC7C003765C1 /* RNUIScrollView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E917F07D1791FC7C003765C1 /* RNUIScrollView.cpp */; };
 		E917F0801791FC7C003765C1 /* RNUIScrollView.h in Headers */ = {isa = PBXBuildFile; fileRef = E917F07E1791FC7C003765C1 /* RNUIScrollView.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -37,7 +41,6 @@
 		E91DBD6C17BC29A00071B512 /* RNLockGuard.h in Headers */ = {isa = PBXBuildFile; fileRef = E91DBD6B17BC29850071B512 /* RNLockGuard.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E91F784216CE336000FFD318 /* RNThreadPool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E91F784016CE336000FFD318 /* RNThreadPool.cpp */; };
 		E91F784316CE336000FFD318 /* RNThreadPool.h in Headers */ = {isa = PBXBuildFile; fileRef = E91F784116CE336000FFD318 /* RNThreadPool.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E92A62BD16DF2267006E68AF /* RNOpenGLExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = E9AB7F0E16D42522006BB4CB /* RNOpenGLExtensions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E92A62BE16DF2278006E68AF /* RNSceneNode.h in Headers */ = {isa = PBXBuildFile; fileRef = E9580BD516AC8DAA0056DEF2 /* RNSceneNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E92AE1AE16B4D68C00EFE1E8 /* RNApplication.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E92AE1AC16B4D68C00EFE1E8 /* RNApplication.cpp */; };
 		E92AE1AF16B4D68C00EFE1E8 /* RNApplication.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1AD16B4D68C00EFE1E8 /* RNApplication.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -193,7 +196,6 @@
 		E9B083F217188E29009AD83F /* RNCPU.h in Headers */ = {isa = PBXBuildFile; fileRef = E9B083F017188E29009AD83F /* RNCPU.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9B083F81718B1D1009AD83F /* RNMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9B083F61718B1D0009AD83F /* RNMemory.cpp */; };
 		E9B083F91718B1D1009AD83F /* RNMemory.h in Headers */ = {isa = PBXBuildFile; fileRef = E9B083F71718B1D1009AD83F /* RNMemory.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9B1125D16797846001A0DA5 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9B1125C16797846001A0DA5 /* OpenGL.framework */; };
 		E9B92DE117B02213004B8CA4 /* RNTriggerZone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9B92DDF17B02213004B8CA4 /* RNTriggerZone.cpp */; };
 		E9B92DE217B02213004B8CA4 /* RNTriggerZone.h in Headers */ = {isa = PBXBuildFile; fileRef = E9B92DE017B02213004B8CA4 /* RNTriggerZone.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9BEC908179B8B3200C05623 /* RNSemaphore.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BEC906179B8B3200C05623 /* RNSemaphore.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -281,6 +283,10 @@
 		E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAutoreleasePool.h; sourceTree = "<group>"; };
 		E9145CB116BAB82D004BDEC8 /* RNInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNInput.cpp; sourceTree = "<group>"; };
 		E9145CB216BAB82D004BDEC8 /* RNInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNInput.h; sourceTree = "<group>"; };
+		E9149BFD1838145B005E6EE7 /* glcorearb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glcorearb.h; path = "../../Engine Source/glcorearb.h"; sourceTree = "<group>"; };
+		E9149C0018381A73005E6EE7 /* RNOpenGLBinder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenGLBinder.cpp; sourceTree = "<group>"; };
+		E9149C06183826C5005E6EE7 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		E9149C0818383327005E6EE7 /* glext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glext.h; path = "../../Engine Source/glext.h"; sourceTree = "<group>"; };
 		E917AC2017449AAF00331D9B /* RNUIGeometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNUIGeometry.h; sourceTree = "<group>"; };
 		E917F07D1791FC7C003765C1 /* RNUIScrollView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIScrollView.cpp; sourceTree = "<group>"; };
 		E917F07E1791FC7C003765C1 /* RNUIScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIScrollView.h; sourceTree = "<group>"; };
@@ -370,7 +376,7 @@
 		E9619DF81696157E00DA187E /* RNCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNCamera.h; sourceTree = "<group>"; };
 		E9619DF91696157E00DA187E /* RNColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNColor.h; sourceTree = "<group>"; };
 		E9619DFA1696157E00DA187E /* RNContext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNContext.cpp; sourceTree = "<group>"; };
-		E9619DFB1696157E00DA187E /* RNContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 2; path = RNContext.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		E9619DFB1696157E00DA187E /* RNContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 2; path = RNContext.h; sourceTree = "<group>"; };
 		E9619DFC1696157E00DA187E /* RNDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDefines.h; sourceTree = "<group>"; };
 		E9619DFF1696157E00DA187E /* RNFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNFile.cpp; sourceTree = "<group>"; };
 		E9619E001696157E00DA187E /* RNFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNFile.h; sourceTree = "<group>"; };
@@ -442,7 +448,6 @@
 		E9AA6CB617DB3A8F00E69FFA /* RNUISegmentView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUISegmentView.cpp; sourceTree = "<group>"; };
 		E9AA6CB717DB3A8F00E69FFA /* RNUISegmentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUISegmentView.h; sourceTree = "<group>"; };
 		E9AB0DAA16D679DC000D1CF0 /* RNSceneNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSceneNode.cpp; sourceTree = "<group>"; };
-		E9AB7F0E16D42522006BB4CB /* RNOpenGLExtensions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNOpenGLExtensions.h; sourceTree = "<group>"; };
 		E9AD2A7D17610E8F00BC3E8F /* RNUILabel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUILabel.cpp; sourceTree = "<group>"; };
 		E9AD2A7E17610E8F00BC3E8F /* RNUILabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUILabel.h; sourceTree = "<group>"; };
 		E9AD2A811761165400BC3E8F /* RNUITextStyle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNUITextStyle.h; sourceTree = "<group>"; };
@@ -454,7 +459,6 @@
 		E9B083F017188E29009AD83F /* RNCPU.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNCPU.h; sourceTree = "<group>"; };
 		E9B083F61718B1D0009AD83F /* RNMemory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNMemory.cpp; sourceTree = "<group>"; };
 		E9B083F71718B1D1009AD83F /* RNMemory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNMemory.h; sourceTree = "<group>"; };
-		E9B1125C16797846001A0DA5 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		E9B92DDF17B02213004B8CA4 /* RNTriggerZone.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTriggerZone.cpp; sourceTree = "<group>"; };
 		E9B92DE017B02213004B8CA4 /* RNTriggerZone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTriggerZone.h; sourceTree = "<group>"; };
 		E9BEC906179B8B3200C05623 /* RNSemaphore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSemaphore.h; sourceTree = "<group>"; };
@@ -512,12 +516,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9149C07183826C5005E6EE7 /* OpenGL.framework in Frameworks */,
 				E90E777917D799A30097DB09 /* CoreServices.framework in Frameworks */,
 				E99D971417B982130066B0AE /* libangelscript.a in Frameworks */,
 				E9E83F4A172A51440075559B /* libbz2.dylib in Frameworks */,
 				E9F6B5AC167FE6CF00EBE826 /* Cocoa.framework in Frameworks */,
 				E991F1BF16BB231000B205A1 /* IOKit.framework in Frameworks */,
-				E9B1125D16797846001A0DA5 /* OpenGL.framework in Frameworks */,
 				E995E40F1694A0B300B2E0C3 /* libz.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -525,6 +529,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E9149BFF18381463005E6EE7 /* OpenGL */ = {
+			isa = PBXGroup;
+			children = (
+				E9149C06183826C5005E6EE7 /* OpenGL.framework */,
+				E9149C0818383327005E6EE7 /* glext.h */,
+				E9149BFD1838145B005E6EE7 /* glcorearb.h */,
+			);
+			name = OpenGL;
+			sourceTree = "<group>";
+		};
 		E94D18BB1753CE8E00F3B10D /* Debug */ = {
 			isa = PBXGroup;
 			children = (
@@ -677,7 +691,7 @@
 				E9543FA2168167A100F53C4F /* CoreData.framework */,
 				E9543FA3168167A100F53C4F /* Foundation.framework */,
 				E991F1BE16BB231000B205A1 /* IOKit.framework */,
-				E9B1125C16797846001A0DA5 /* OpenGL.framework */,
+				E9149BFF18381463005E6EE7 /* OpenGL */,
 				E9E83F49172A51440075559B /* libbz2.dylib */,
 				E995E40E1694A0B300B2E0C3 /* libz.dylib */,
 			);
@@ -891,7 +905,7 @@
 				E9619E0C1696157E00DA187E /* RNMutex.h */,
 				E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */,
 				E9F77797169C5CF8006EE702 /* RNOpenGL.h */,
-				E9AB7F0E16D42522006BB4CB /* RNOpenGLExtensions.h */,
+				E9149C0018381A73005E6EE7 /* RNOpenGLBinder.cpp */,
 				E9D15BA517DB27CA00435078 /* RNOpenPanel.cpp */,
 				E9D15BA617DB27CA00435078 /* RNOpenPanel.h */,
 				E995F3CA1709B9F20051223B /* RNPathManager.cpp */,
@@ -949,6 +963,7 @@
 				E99D971A17B9823D0066B0AE /* angelscript.h in Headers */,
 				E9619E591696157E00DA187E /* RNWindow.h in Headers */,
 				E9619E5B1696157E00DA187E /* RNWorld.h in Headers */,
+				E9149C0918383327005E6EE7 /* glext.h in Headers */,
 				E9F77799169C5CF8006EE702 /* RNOpenGL.h in Headers */,
 				E9580BD416AB8BEA0056DEF2 /* RNEntity.h in Headers */,
 				E9C6F0A816B207E1006288D5 /* RNModel.h in Headers */,
@@ -966,7 +981,6 @@
 				E92AE1AF16B4D68C00EFE1E8 /* RNApplication.h in Headers */,
 				C01BCEC916E6698E0009834F /* RNSkeleton.h in Headers */,
 				E907DF2B17C9780E00777A38 /* RNTextNode.h in Headers */,
-				E92A62BD16DF2267006E68AF /* RNOpenGLExtensions.h in Headers */,
 				E996A0B516F2CE97000EFB03 /* RNRenderer.h in Headers */,
 				E9B92DE217B02213004B8CA4 /* RNTriggerZone.h in Headers */,
 				E92A62BE16DF2278006E68AF /* RNSceneNode.h in Headers */,
@@ -1042,6 +1056,7 @@
 				E95EEE491784CFDC00CDCA6E /* RNBasicString.h in Headers */,
 				E95EEE4D1784EFAC00CDCA6E /* RNASCIIString.h in Headers */,
 				D58CEA3E18159965002EB442 /* RNLightManager.h in Headers */,
+				E9149BFE1838145B005E6EE7 /* glcorearb.h in Headers */,
 				E95EEE511784FC5E00CDCA6E /* RNException.h in Headers */,
 				E945AB431788D97A00C7B30A /* RNUTF8String.h in Headers */,
 				E945AB61178D7D1200C7B30A /* RNUIStyle.h in Headers */,
@@ -1243,6 +1258,7 @@
 				E95EEE501784FC5E00CDCA6E /* RNException.cpp in Sources */,
 				E9985BE217E762080027B667 /* RNUIMenu.cpp in Sources */,
 				E9DED6BF17B383070087038D /* RNResource.cpp in Sources */,
+				E9149C0218381A73005E6EE7 /* RNOpenGLBinder.cpp in Sources */,
 				E945AB421788D97A00C7B30A /* RNUTF8String.cpp in Sources */,
 				E95D42DD17DC28C900026E8C /* RNValue.cpp in Sources */,
 				E945AB60178D7D1200C7B30A /* RNUIStyle.cpp in Sources */,

@@ -48,6 +48,7 @@
 #include "RNDefines.h"
 #include "RNConstants.h"
 #include "RNException.h"
+#include "RNOpenGL.h"
 
 // ---------------------------
 // Platform dependent includes
@@ -64,11 +65,6 @@
 #endif
 
 #if RN_PLATFORM_MAC_OS
-	#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED 1
-
-	#include <OpenGL/gl3.h>
-	#include <OpenGL/gl3ext.h>
-
 	#include <CoreGraphics/CoreGraphics.h>
 #endif
 
@@ -101,7 +97,6 @@
 	
 #endif
 
-#include "RNOpenGL.h"
 #include "RNMath.h"
 #include "RNSIMD.h"
 #include "RNSpinLock.h"

@@ -13,7 +13,6 @@
 		E994CC6717A321C3004BAA46 /* libRayne.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F751696FD1200DA187E /* libRayne.dylib */; };
 		E9A5C10716EFB828007806EC /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = E9A5C10516EFB828007806EC /* main.mm */; };
 		E9ED4F6E1696091E00DAD683 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ED4F6D1696091E00DAD683 /* Cocoa.framework */; };
-		E9ED4FA916960A7000DAD683 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ED4FA816960A7000DAD683 /* OpenGL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -55,12 +54,8 @@
 		E9A5C10516EFB828007806EC /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		E9ED4F6A1696091E00DAD683 /* Rayne Player.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Rayne Player.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9ED4F6D1696091E00DAD683 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
-		E9ED4F701696091E00DAD683 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		E9ED4F711696091E00DAD683 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
-		E9ED4F721696091E00DAD683 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		E9ED4FA2169609B400DAD683 /* Rayne Player-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Rayne Player-Info.plist"; sourceTree = "<group>"; };
 		E9ED4FA3169609B400DAD683 /* Rayne Player-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Rayne Player-Prefix.pch"; sourceTree = "<group>"; };
-		E9ED4FA816960A7000DAD683 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,7 +63,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E9ED4FA916960A7000DAD683 /* OpenGL.framework in Frameworks */,
 				E9ED4F6E1696091E00DAD683 /* Cocoa.framework in Frameworks */,
 				E92A62BC16DF21EC006E68AF /* libRayne.dylib in Frameworks */,
 			);
@@ -109,21 +103,9 @@
 			children = (
 				E9619F701696FD1100DA187E /* Rayne.xcodeproj */,
 				E9ED4F6D1696091E00DAD683 /* Cocoa.framework */,
-				E9ED4FA816960A7000DAD683 /* OpenGL.framework */,
 				E92A62BA16DF21DF006E68AF /* libRayne.dylib */,
-				E9ED4F6F1696091E00DAD683 /* Other Frameworks */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		E9ED4F6F1696091E00DAD683 /* Other Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				E9ED4F701696091E00DAD683 /* AppKit.framework */,
-				E9ED4F711696091E00DAD683 /* CoreData.framework */,
-				E9ED4F721696091E00DAD683 /* Foundation.framework */,
-			);
-			name = "Other Frameworks";
 			sourceTree = "<group>";
 		};
 		E9ED4F9E169609B400DAD683 /* Resources */ = {

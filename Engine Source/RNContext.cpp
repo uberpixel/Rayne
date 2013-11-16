@@ -63,6 +63,14 @@ namespace RN
 		NSOpenGLContext *current = [NSOpenGLContext currentContext];
 		[context makeCurrentContext];
 		
+		std::once_flag stringflag;
+		std::call_once(stringflag, []{
+			glGetString = reinterpret_cast<PFNGLGETSTRINGPROC>(dlsym(RTLD_NEXT, "glGetString"));
+			
+			glGetFloatv = reinterpret_cast<PFNGLGETFLOATVPROC>(dlsym(RTLD_NEXT, "glGetFloatv"));
+			glGetIntegerv = reinterpret_cast<PFNGLGETINTEGERVPROC>(dlsym(RTLD_NEXT, "glGetIntegerv"));
+		});
+		
 		std::string oglVersion(reinterpret_cast<const char *>(glGetString(GL_VERSION)));
 		current ? [current makeCurrentContext] : [NSOpenGLContext clearCurrentContext];
 		
