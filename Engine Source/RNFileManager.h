@@ -51,6 +51,7 @@ namespace RN
 	{
 	public:
 		friend class DirectoryProxy;
+		friend class FileManager;
 		
 		File *Open(File::FileMode mode = File::FileMode::Read) const;
 		
@@ -102,6 +103,7 @@ namespace RN
 		FileManager();
 		~FileManager();
 		
+		FileSystemNode *GetFileSystemNode(const std::string& name);
 		FileProxy *GetFileWithName(const std::string& name, bool strict = true);
 		std::string GetFilePathWithName(const std::string& name, bool strict = true);
 		
