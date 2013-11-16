@@ -828,8 +828,8 @@ namespace RN
 	
 	float Texture::GetMaxAnisotropyLevel()
 	{
-		float max;
-		std::once_flag flag;
+		static float max;
+		static std::once_flag flag;
 		
 		std::call_once(flag, [&]() {
 			if(gl::SupportsFeature(gl::Feature::AnisotropicFilter))
