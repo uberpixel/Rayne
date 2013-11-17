@@ -20,6 +20,7 @@
 #include "RNResourcePool.h"
 #include "RNRenderer32.h"
 #include "RNLogging.h"
+#include "RNShaderCache.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -136,6 +137,9 @@ namespace RN
 		// Bootstrap OpenGL
 		_context = gl::Initialize();
 		_window  = nullptr;
+		
+		// Load the shader cache into memory
+		ShaderCache::GetSharedInstance()->InitializeDatabase();
 		
 		_scaleFactor = 1.0f;
 #if RN_PLATFORM_IOS

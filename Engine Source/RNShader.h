@@ -150,6 +150,8 @@ namespace RN
 		RNAPI bool SupportsProgramOfType(uint32 type);
 		RNAPI const std::string& GetShaderSource(ShaderType type);
 		
+		RNAPI std::string GetFileHash() const;
+		
 	private:
 		struct DebugMarker
 		{

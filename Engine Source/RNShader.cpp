@@ -7,11 +7,13 @@
 //
 
 #include "RNShader.h"
+#include "RNShaderCache.h"
 #include "RNKernel.h"
 #include "RNThreadPool.h"
 #include "RNPathManager.h"
 #include "RNFileManager.h"
 #include "RNScopeGuard.h"
+#include "RNSHA2.h"
 
 namespace RN
 {
@@ -318,10 +320,25 @@ namespace RN
 			return program;
 		}
 
-		ShaderProgram *program = new ShaderProgram;
+		ShaderProgram *program = ShaderCache::GetSharedInstance()->DequeShaderProgram(this, lookup);
+		if(program)
+		{
+			_programs[lookup] = program;
+			
+			glFlush();
+			return program;
+		}
+		
+		
+		program = new ShaderProgram;
+		program->program = glCreateProgram();
+		
 		_programs[lookup] = program;
 		
-		program->program = glCreateProgram();
+#if GL_ARB_get_program_binary
+		if(gl::SupportsFeature(gl::Feature::ShaderBinary))
+			glProgramParameteri(program->program, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+#endif
 		
 		ScopeGuard scopeGuard = ScopeGuard([&]() {
 			glDeleteProgram(program->program);
@@ -404,6 +421,8 @@ namespace RN
 		RN_CHECKOPENGL();
 		glFlush();
 		
+		// Update caches
+		ShaderCache::GetSharedInstance()->CacheShaderProgram(this, program, lookup);
 		return program;
 	}
 	
@@ -605,6 +624,39 @@ namespace RN
 	// MARK: -
 	// MARK: helper
 	// ---------------------
+	
+	std::string Shader::GetFileHash() const
+	{
+		std::vector<std::pair<ShaderType, std::string>> files;
+		
+		for(auto& pair : _shaderData)
+			files.emplace_back(std::make_pair(pair.first, pair.second.file));
+		
+		std::sort(files.begin(), files.end(), [](const std::pair<ShaderType, std::string>& a, const std::pair<ShaderType, std::string>& b) {
+			return (a.first < b.first);
+		});
+		
+		
+		stl::sha2_context context;
+		
+		for(auto& pair : files)
+		{
+			context.update(reinterpret_cast<const uint8 *>(pair.second.data()), pair.second.length());
+		}
+		
+		std::vector<uint8> sha2;
+		context.finish(sha2);
+		
+		std::stringstream formatted;
+		formatted << std::hex << std::setfill('0');
+		
+		for(uint8 byte : sha2)
+		{
+			formatted << std::setw(2) << static_cast<uint32>(byte);
+		}
+		
+		return formatted.str();
+	}
 	
 	const std::string& Shader::GetShaderSource(ShaderType type)
 	{

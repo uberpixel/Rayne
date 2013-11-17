@@ -248,6 +248,8 @@
 		E9F77799169C5CF8006EE702 /* RNOpenGL.h in Headers */ = {isa = PBXBuildFile; fileRef = E9F77797169C5CF8006EE702 /* RNOpenGL.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9FB69E118383DF000D8396B /* glcorearb.h in Headers */ = {isa = PBXBuildFile; fileRef = E9FB69DD18383DF000D8396B /* glcorearb.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9FB69E218383DF000D8396B /* glext.h in Headers */ = {isa = PBXBuildFile; fileRef = E9FB69DE18383DF000D8396B /* glext.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9FB69E618388A1000D8396B /* RNShaderCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9FB69E418388A1000D8396B /* RNShaderCache.cpp */; };
+		E9FB69E718388A1000D8396B /* RNShaderCache.h in Headers */ = {isa = PBXBuildFile; fileRef = E9FB69E518388A1000D8396B /* RNShaderCache.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -516,6 +518,8 @@
 		E9F77797169C5CF8006EE702 /* RNOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOpenGL.h; sourceTree = "<group>"; };
 		E9FB69DD18383DF000D8396B /* glcorearb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glcorearb.h; sourceTree = "<group>"; };
 		E9FB69DE18383DF000D8396B /* glext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glext.h; sourceTree = "<group>"; };
+		E9FB69E418388A1000D8396B /* RNShaderCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNShaderCache.cpp; sourceTree = "<group>"; };
+		E9FB69E518388A1000D8396B /* RNShaderCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNShaderCache.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -847,6 +851,8 @@
 				E92B859016FC6027002FA04D /* RNRenderStorage.h */,
 				E9619E1A1696157E00DA187E /* RNShader.cpp */,
 				E9619E1B1696157E00DA187E /* RNShader.h */,
+				E9FB69E418388A1000D8396B /* RNShaderCache.cpp */,
+				E9FB69E518388A1000D8396B /* RNShaderCache.h */,
 				E9C01BB31746CE6A00B3577B /* RNShaderLookup.h */,
 				E955495D17A7B1470048FBBC /* RNShaderUnit.cpp */,
 				E955495E17A7B1470048FBBC /* RNShaderUnit.h */,
@@ -965,6 +971,7 @@
 				E953383317D75DF70017B60B /* RNFileManager.h in Headers */,
 				E93CE16417D83DB700A7A8A3 /* RNKVO.h in Headers */,
 				E9619E361696157E00DA187E /* RNKernel.h in Headers */,
+				E9FB69E718388A1000D8396B /* RNShaderCache.h in Headers */,
 				E9619E3A1696157E00DA187E /* RNMaterial.h in Headers */,
 				E9619E3B1696157E00DA187E /* RNMatrix.h in Headers */,
 				E9619E3C1696157E00DA187E /* RNMatrixQuaternion.h in Headers */,
@@ -1282,6 +1289,7 @@
 				E9985BE217E762080027B667 /* RNUIMenu.cpp in Sources */,
 				E9DED6BF17B383070087038D /* RNResource.cpp in Sources */,
 				E9149C0218381A73005E6EE7 /* RNOpenGLBinder.cpp in Sources */,
+				E9FB69E618388A1000D8396B /* RNShaderCache.cpp in Sources */,
 				E945AB421788D97A00C7B30A /* RNUTF8String.cpp in Sources */,
 				E95D42DD17DC28C900026E8C /* RNValue.cpp in Sources */,
 				E945AB60178D7D1200C7B30A /* RNUIStyle.cpp in Sources */,
