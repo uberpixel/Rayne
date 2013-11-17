@@ -262,7 +262,7 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = automatic;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Engine Source\"";
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Build/include\"";
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -281,7 +281,7 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = automatic;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Engine Source\"";
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Build/include\"";
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -328,7 +328,7 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
 				GCC_INPUT_FILETYPE = automatic;
-				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Engine Source\"";
+				HEADER_SEARCH_PATHS = "\"$(SRCROOT)/../../Build/include\"";
 				LD_DYLIB_INSTALL_NAME = "@rpath/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
