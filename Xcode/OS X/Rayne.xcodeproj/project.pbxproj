@@ -232,6 +232,7 @@
 		E9E83F45172A4FD70075559B /* RNTextureAtlas.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */; };
 		E9E83F46172A4FD70075559B /* RNTextureAtlas.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E83F44172A4FD70075559B /* RNTextureAtlas.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E83F4A172A51440075559B /* libbz2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9E83F49172A51440075559B /* libbz2.dylib */; };
+		E9F2B68118388BF80014FB80 /* libsqlite3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E9F2B68018388BF80014FB80 /* libsqlite3.dylib */; };
 		E9F2B6851838B11F0014FB80 /* RNSHA2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F2B6831838B11F0014FB80 /* RNSHA2.cpp */; };
 		E9F2B6861838B11F0014FB80 /* RNSHA2.h in Headers */ = {isa = PBXBuildFile; fileRef = E9F2B6841838B11F0014FB80 /* RNSHA2.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9F361FA175AB84800365C12 /* RNSerialization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F361F8175AB84800365C12 /* RNSerialization.cpp */; };
@@ -498,6 +499,8 @@
 		E9E83F43172A4FD70075559B /* RNTextureAtlas.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTextureAtlas.cpp; sourceTree = "<group>"; };
 		E9E83F44172A4FD70075559B /* RNTextureAtlas.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTextureAtlas.h; sourceTree = "<group>"; };
 		E9E83F49172A51440075559B /* libbz2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libbz2.dylib; path = usr/lib/libbz2.dylib; sourceTree = SDKROOT; };
+		E9F2B68018388BF80014FB80 /* libsqlite3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libsqlite3.dylib; path = usr/lib/libsqlite3.dylib; sourceTree = SDKROOT; };
+		E9F2B68218389ABF0014FB80 /* RNSQLite3Internal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNSQLite3Internal.h; sourceTree = "<group>"; };
 		E9F2B6831838B11F0014FB80 /* RNSHA2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSHA2.cpp; sourceTree = "<group>"; };
 		E9F2B6841838B11F0014FB80 /* RNSHA2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSHA2.h; sourceTree = "<group>"; };
 		E9F361F8175AB84800365C12 /* RNSerialization.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSerialization.cpp; sourceTree = "<group>"; };
@@ -520,6 +523,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9F2B68118388BF80014FB80 /* libsqlite3.dylib in Frameworks */,
 				E9149C07183826C5005E6EE7 /* OpenGL.framework in Frameworks */,
 				E90E777917D799A30097DB09 /* CoreServices.framework in Frameworks */,
 				E99D971417B982130066B0AE /* libangelscript.a in Frameworks */,
@@ -690,6 +694,7 @@
 		E9B1125E1679784D001A0DA5 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				E9F2B68018388BF80014FB80 /* libsqlite3.dylib */,
 				E90E777817D799A30097DB09 /* CoreServices.framework */,
 				E9543FA1168167A100F53C4F /* AppKit.framework */,
 				E9F6B5AB167FE6CF00EBE826 /* Cocoa.framework */,
@@ -918,6 +923,7 @@
 				E9BEF3B91743CF560090C9CB /* RNScopeGuard.h */,
 				E9BEC906179B8B3200C05623 /* RNSemaphore.h */,
 				E9619E1C1696157E00DA187E /* RNSpinLock.h */,
+				E9F2B68218389ABF0014FB80 /* RNSQLite3Internal.h */,
 				E9619E211696157E00DA187E /* RNThread.cpp */,
 				E9619E221696157E00DA187E /* RNThread.h */,
 				E91F784016CE336000FFD318 /* RNThreadPool.cpp */,
