@@ -113,11 +113,11 @@ namespace RN
 			_shadowSplits  = splits;
 			_shadowDistFac = distfac;
 			
-			TextureParameter parameter;
-			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
-			parameter.filter = TextureParameter::Filter::Linear;
-			parameter.format = TextureParameter::Format::Depth24I;
-			parameter.type = TextureParameter::Type::Texture2DArray;
+			Texture::Parameter parameter;
+			parameter.wrapMode = Texture::Parameter::WrapMode::Clamp;
+			parameter.filter = Texture::Parameter::Filter::Linear;
+			parameter.format = Texture::Parameter::Format::Depth24I;
+			parameter.type = Texture::Parameter::Type::Texture2DArray;
 			parameter.depthCompare = true;
 			parameter.generateMipMaps = false;
 			parameter.mipMaps = 0;
@@ -164,11 +164,11 @@ namespace RN
 		
 		if(_shadow)
 		{
-			TextureParameter parameter;
-			parameter.wrapMode = TextureParameter::WrapMode::Repeat;
-			parameter.filter = TextureParameter::Filter::Nearest;
-			parameter.format = TextureParameter::Format::Depth24I;
-			parameter.type = TextureParameter::Type::TextureCube;
+			Texture::Parameter parameter;
+			parameter.wrapMode = Texture::Parameter::WrapMode::Repeat;
+			parameter.filter = Texture::Parameter::Filter::Nearest;
+			parameter.format = Texture::Parameter::Format::Depth24I;
+			parameter.type = Texture::Parameter::Type::TextureCube;
 			parameter.depthCompare = false;
 			parameter.generateMipMaps = false;
 			parameter.mipMaps = 0;
@@ -209,11 +209,11 @@ namespace RN
 		
 		if(_shadow)
 		{
-			TextureParameter parameter;
-			parameter.wrapMode = TextureParameter::WrapMode::Repeat;
-			parameter.filter = TextureParameter::Filter::Nearest;
-			parameter.format = TextureParameter::Format::Depth24I;
-			parameter.type = TextureParameter::Type::TextureCube;
+			Texture::Parameter parameter;
+			parameter.wrapMode = Texture::Parameter::WrapMode::Repeat;
+			parameter.filter = Texture::Parameter::Filter::Nearest;
+			parameter.format = Texture::Parameter::Format::Depth24I;
+			parameter.type = Texture::Parameter::Type::TextureCube;
 			parameter.depthCompare = false;
 			parameter.generateMipMaps = false;
 			parameter.mipMaps = 0;

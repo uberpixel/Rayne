@@ -244,9 +244,9 @@ namespace RN
 	{
 		Shader *matShader = Shader::WithFile(shader);
 		
-		TextureParameter parameter;
-		parameter.format = TextureParameter::Format::RGB888;
-		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+		Texture::Parameter parameter;
+		parameter.format = Texture::Parameter::Format::RGB888;
+		parameter.wrapMode = Texture::Parameter::WrapMode::Clamp;
 		
 		
 		Material *skyDownMaterial = new Material(matShader);

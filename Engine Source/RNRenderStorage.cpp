@@ -74,10 +74,10 @@ namespace RN
 	{
 		RN_ASSERT(_format & BufferFormatColor, "Need a color buffer to change render targets");
 		
-		TextureParameter parameter = target->GetParameter();
+		Texture::Parameter parameter = target->GetParameter();
 		
-		parameter.filter = TextureParameter::Filter::Nearest;
-		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+		parameter.filter = Texture::Parameter::Filter::Nearest;
+		parameter.wrapMode = Texture::Parameter::WrapMode::Clamp;
 		parameter.mipMaps = 0;
 		parameter.generateMipMaps = false;
 		
@@ -102,10 +102,10 @@ namespace RN
 		if(_renderTargets->GetCount() >= GetMaxRenderTargets())
 			throw Exception(Exception::Type::InconsistencyException, "Can't attach any more render targets to the render storage!");
 		
-		TextureParameter parameter = target->GetParameter();
+		Texture::Parameter parameter = target->GetParameter();
 		
-		parameter.filter = TextureParameter::Filter::Linear;
-		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+		parameter.filter = Texture::Parameter::Filter::Linear;
+		parameter.wrapMode = Texture::Parameter::WrapMode::Clamp;
 		parameter.mipMaps = 0;
 		parameter.generateMipMaps = false;
 		
@@ -115,15 +115,15 @@ namespace RN
 		_renderTargetsChanged = true;
 	}
 	
-	void RenderStorage::AddRenderTarget(TextureParameter::Format format)
+	void RenderStorage::AddRenderTarget(Texture::Parameter::Format format)
 	{
 		RN_ASSERT(_format & BufferFormatColor, "Need a color buffer to change render targets");
 		
-		TextureParameter parameter;
+		Texture::Parameter parameter;
 		
 		parameter.format = format;
-		parameter.filter = TextureParameter::Filter::Linear;
-		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+		parameter.filter = Texture::Parameter::Filter::Linear;
+		parameter.wrapMode = Texture::Parameter::WrapMode::Clamp;
 		parameter.mipMaps = 0;
 		parameter.generateMipMaps = false;
 		
@@ -155,11 +155,11 @@ namespace RN
 		_formatChanged = true;
 	}
 	
-	void RenderStorage::SetDepthTarget(TextureParameter::Format format)
+	void RenderStorage::SetDepthTarget(Texture::Parameter::Format format)
     {
-        TextureParameter parameter;
+        Texture::Parameter parameter;
         parameter.format = format;
-        parameter.wrapMode = TextureParameter::WrapMode::Clamp;
+        parameter.wrapMode = Texture::Parameter::WrapMode::Clamp;
         parameter.mipMaps = 0;
         parameter.generateMipMaps = false;
         
@@ -427,14 +427,14 @@ namespace RN
 				Texture *texture = _renderTargets->GetObjectAtIndex<Texture>(i);
 				
 				texture->Bind();
-				texture->SetData(0, width, height, TextureParameter::Format::RGBA8888);
+				texture->SetData(0, width, height, Texture::Parameter::Format::RGBA8888);
 				texture->Unbind();
 			}
 			
 			if(_depthTexture)
 			{
 				_depthTexture->Bind();
-				_depthTexture->SetData(0, width, height, TextureParameter::Format::RGBA8888);
+				_depthTexture->SetData(0, width, height, Texture::Parameter::Format::RGBA8888);
 				_depthTexture->Unbind();
 			}
 			else if((_format & BufferFormatDepth) || (_format & BufferFormatStencil))

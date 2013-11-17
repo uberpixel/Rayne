@@ -24,7 +24,7 @@ namespace RN
 		Image::Image(const std::string& file) :
 			_atlas(UI::Atlas(0.0f, 0.0f, 1.0f, 1.0f))
 		{
-			TextureParameter parameter;
+			Texture::Parameter parameter;
 			parameter.mipMaps = 0;
 			parameter.generateMipMaps = false;
 			

@@ -11,14 +11,14 @@
 
 namespace RN
 {
-	TextureAtlas::TextureAtlas(uint32 width, uint32 height, const TextureParameter& parameter) :
+	TextureAtlas::TextureAtlas(uint32 width, uint32 height, const Texture::Parameter& parameter) :
 		Texture(parameter)
 	{
 		SetData(0, width, height, parameter.format);
 		Initialize(width, height);
 	}
 	
-	TextureAtlas::TextureAtlas(uint32 width, uint32 height, bool isLinear, const TextureParameter& parameter) :
+	TextureAtlas::TextureAtlas(uint32 width, uint32 height, bool isLinear, const Texture::Parameter& parameter) :
 		Texture(parameter, isLinear)
 	{
 		SetData(0, width, height, parameter.format);
@@ -42,7 +42,7 @@ namespace RN
 	}
 	
 	
-	void TextureAtlas::SetRegionData(const Rect& region, void *data, TextureParameter::Format format)
+	void TextureAtlas::SetRegionData(const Rect& region, void *data, Texture::Parameter::Format format)
 	{
 		UpdateRegion(data, region, format);
 	}
@@ -100,7 +100,7 @@ namespace RN
 		uint8 *nData = new uint8[nWidth * nHeight * 4];
 		
 		memset(nData, 0, nWidth * nHeight * 4);
-		GetData(data, TextureParameter::Format::RGBA8888);
+		GetData(data, Texture::Parameter::Format::RGBA8888);
 		
 		for(uint32 y = 0; y < _height; y ++)
 		{
@@ -110,7 +110,7 @@ namespace RN
 			std::copy(row, row + (_width * 4), nrow);
 		}
 		
-		SetData(nData, nWidth, nHeight, TextureParameter::Format::RGBA8888);
+		SetData(nData, nWidth, nHeight, Texture::Parameter::Format::RGBA8888);
 		
 		delete [] nData;
 		delete [] data;

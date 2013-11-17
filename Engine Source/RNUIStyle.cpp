@@ -169,7 +169,7 @@ namespace RN
 			Texture *texture = _textures->GetObjectForKey<Texture>(name);
 			if(!texture)
 			{
-				TextureParameter parameter;
+				Texture::Parameter parameter;
 				parameter.generateMipMaps = false;
 				parameter.mipMaps = 0;
 				

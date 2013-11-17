@@ -477,6 +477,8 @@ namespace RN
 			
 			_initialized = true;
 			_resetDelta  = true;
+			
+			RNDebug("First frame");
 		}
 
 		_time += trueDelta;

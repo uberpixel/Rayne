@@ -69,7 +69,7 @@ namespace RN
 		{
 			case PNG_COLOR_TYPE_RGB:
 			{
-				_format = TextureParameter::Format::RGB888;
+				_format = Texture::Parameter::Format::RGB888;
 				uint8 *data = (uint8 *)malloc(width * height * 3 * sizeof(uint32));
 				uint8 *temp = data;
 				
@@ -93,7 +93,7 @@ namespace RN
 				
 			case PNG_COLOR_TYPE_RGBA:
 			{
-				_format = TextureParameter::Format::RGBA8888;
+				_format = Texture::Parameter::Format::RGBA8888;
 				uint32 *data = (uint32 *)malloc(width * height * 4 * sizeof(uint32));
 				uint32 *temp = data;
 				
