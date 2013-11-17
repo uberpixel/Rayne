@@ -47,6 +47,18 @@ namespace RN
 		extern Context *Initialize();
 	}
 	
+	void KernelCleanUp()
+	{
+		AutoreleasePool pool;
+		
+		delete ShaderCache::GetSharedInstance_NoCreate();
+		delete Log::Logger::GetSharedInstance_NoCreate();
+		delete Settings::GetSharedInstance_NoCreate();
+		delete Input::GetSharedInstance_NoCreate();
+		delete ModuleCoordinator::GetSharedInstance_NoCreate();
+	}
+	
+	
 	
 	Kernel::Kernel()
 	{
@@ -67,9 +79,7 @@ namespace RN
 		
 		_app->WillExit();
 		
-		ModuleCoordinator *coordinator = ModuleCoordinator::GetSharedInstance();
-		
-		delete coordinator;
+		delete ModuleCoordinator::GetSharedInstance_NoCreate();
 		delete _app;
 
 		delete _renderer;
@@ -84,13 +94,14 @@ namespace RN
 		_context->Release();
 #endif
 
-		delete Settings::GetSharedInstance();
+		delete Settings::GetSharedInstance_NoCreate();
 		delete _pool;
 		
 		_mainThread->Exit();
 		_mainThread->Release();
 		
-		delete Log::Logger::GetSharedInstance();
+		delete ShaderCache::GetSharedInstance_NoCreate();
+		delete Log::Logger::GetSharedInstance_NoCreate();
 	}
 	
 	void Kernel::Prepare()
@@ -98,6 +109,7 @@ namespace RN
 #if RN_PLATFORM_LINUX
 		XInitThreads();
 #endif
+		atexit(KernelCleanUp);
 		
 		// Bootstrap the very basic things
 		_mainThread = new Thread();

@@ -229,6 +229,12 @@ namespace RN
 
 			return _instance;
 		}
+		
+		static T *GetSharedInstance_NoCreate()
+		{
+			LockGuard<SpinLock> lock(_lock);
+			return _instance;
+		}
 
 	protected:
 		Singleton()
