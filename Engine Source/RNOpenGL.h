@@ -14,8 +14,10 @@
 
 // OpenGL is a moving target, so is Rayne
 // We don't rely on system headers which might be outdated, but we rely on whatever the graphics card tells us
-#include "glcorearb.h"
-#include "glext.h"
+#if RN_TARGET_OPENGL
+	#include "glcorearb.h"
+	#include "glext.h"
+#endif
 
 namespace RN
 {

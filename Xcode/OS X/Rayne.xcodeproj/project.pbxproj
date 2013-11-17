@@ -25,10 +25,8 @@
 		E9145CAD16BA9076004BDEC8 /* RNAutoreleasePool.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9145CB316BAB82D004BDEC8 /* RNInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9145CB116BAB82D004BDEC8 /* RNInput.cpp */; };
 		E9145CB416BAB82D004BDEC8 /* RNInput.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CB216BAB82D004BDEC8 /* RNInput.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9149BFE1838145B005E6EE7 /* glcorearb.h in Headers */ = {isa = PBXBuildFile; fileRef = E9149BFD1838145B005E6EE7 /* glcorearb.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9149C0218381A73005E6EE7 /* RNOpenGLBinder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9149C0018381A73005E6EE7 /* RNOpenGLBinder.cpp */; };
 		E9149C07183826C5005E6EE7 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9149C06183826C5005E6EE7 /* OpenGL.framework */; };
-		E9149C0918383327005E6EE7 /* glext.h in Headers */ = {isa = PBXBuildFile; fileRef = E9149C0818383327005E6EE7 /* glext.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E917AC211744A00F00331D9B /* RNUIGeometry.h in Headers */ = {isa = PBXBuildFile; fileRef = E917AC2017449AAF00331D9B /* RNUIGeometry.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E917F07F1791FC7C003765C1 /* RNUIScrollView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E917F07D1791FC7C003765C1 /* RNUIScrollView.cpp */; };
 		E917F0801791FC7C003765C1 /* RNUIScrollView.h in Headers */ = {isa = PBXBuildFile; fileRef = E917F07E1791FC7C003765C1 /* RNUIScrollView.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -245,6 +243,8 @@
 		E9F6B5AC167FE6CF00EBE826 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9F6B5AB167FE6CF00EBE826 /* Cocoa.framework */; };
 		E9F77798169C5CF8006EE702 /* RNOpenGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */; };
 		E9F77799169C5CF8006EE702 /* RNOpenGL.h in Headers */ = {isa = PBXBuildFile; fileRef = E9F77797169C5CF8006EE702 /* RNOpenGL.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9FB69E118383DF000D8396B /* glcorearb.h in Headers */ = {isa = PBXBuildFile; fileRef = E9FB69DD18383DF000D8396B /* glcorearb.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9FB69E218383DF000D8396B /* glext.h in Headers */ = {isa = PBXBuildFile; fileRef = E9FB69DE18383DF000D8396B /* glext.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -283,10 +283,8 @@
 		E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAutoreleasePool.h; sourceTree = "<group>"; };
 		E9145CB116BAB82D004BDEC8 /* RNInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNInput.cpp; sourceTree = "<group>"; };
 		E9145CB216BAB82D004BDEC8 /* RNInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNInput.h; sourceTree = "<group>"; };
-		E9149BFD1838145B005E6EE7 /* glcorearb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glcorearb.h; path = "../../Engine Source/glcorearb.h"; sourceTree = "<group>"; };
 		E9149C0018381A73005E6EE7 /* RNOpenGLBinder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenGLBinder.cpp; sourceTree = "<group>"; };
 		E9149C06183826C5005E6EE7 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
-		E9149C0818383327005E6EE7 /* glext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glext.h; path = "../../Engine Source/glext.h"; sourceTree = "<group>"; };
 		E917AC2017449AAF00331D9B /* RNUIGeometry.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNUIGeometry.h; sourceTree = "<group>"; };
 		E917F07D1791FC7C003765C1 /* RNUIScrollView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIScrollView.cpp; sourceTree = "<group>"; };
 		E917F07E1791FC7C003765C1 /* RNUIScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIScrollView.h; sourceTree = "<group>"; };
@@ -509,6 +507,8 @@
 		E9F6B5AB167FE6CF00EBE826 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenGL.cpp; sourceTree = "<group>"; };
 		E9F77797169C5CF8006EE702 /* RNOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOpenGL.h; sourceTree = "<group>"; };
+		E9FB69DD18383DF000D8396B /* glcorearb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glcorearb.h; sourceTree = "<group>"; };
+		E9FB69DE18383DF000D8396B /* glext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glext.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -533,8 +533,7 @@
 			isa = PBXGroup;
 			children = (
 				E9149C06183826C5005E6EE7 /* OpenGL.framework */,
-				E9149C0818383327005E6EE7 /* glext.h */,
-				E9149BFD1838145B005E6EE7 /* glcorearb.h */,
+				E9FB69DB18383DF000D8396B /* ogl */,
 			);
 			name = OpenGL;
 			sourceTree = "<group>";
@@ -925,6 +924,16 @@
 			name = System;
 			sourceTree = "<group>";
 		};
+		E9FB69DB18383DF000D8396B /* ogl */ = {
+			isa = PBXGroup;
+			children = (
+				E9FB69DD18383DF000D8396B /* glcorearb.h */,
+				E9FB69DE18383DF000D8396B /* glext.h */,
+			);
+			name = ogl;
+			path = "../../Engine Source/ogl";
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -963,7 +972,6 @@
 				E99D971A17B9823D0066B0AE /* angelscript.h in Headers */,
 				E9619E591696157E00DA187E /* RNWindow.h in Headers */,
 				E9619E5B1696157E00DA187E /* RNWorld.h in Headers */,
-				E9149C0918383327005E6EE7 /* glext.h in Headers */,
 				E9F77799169C5CF8006EE702 /* RNOpenGL.h in Headers */,
 				E9580BD416AB8BEA0056DEF2 /* RNEntity.h in Headers */,
 				E9C6F0A816B207E1006288D5 /* RNModel.h in Headers */,
@@ -1055,8 +1063,9 @@
 				E9E6990017DF8B9500D30231 /* RNFormatter.h in Headers */,
 				E95EEE491784CFDC00CDCA6E /* RNBasicString.h in Headers */,
 				E95EEE4D1784EFAC00CDCA6E /* RNASCIIString.h in Headers */,
+				E9FB69E218383DF000D8396B /* glext.h in Headers */,
+				E9FB69E118383DF000D8396B /* glcorearb.h in Headers */,
 				D58CEA3E18159965002EB442 /* RNLightManager.h in Headers */,
-				E9149BFE1838145B005E6EE7 /* glcorearb.h in Headers */,
 				E95EEE511784FC5E00CDCA6E /* RNException.h in Headers */,
 				E945AB431788D97A00C7B30A /* RNUTF8String.h in Headers */,
 				E945AB61178D7D1200C7B30A /* RNUIStyle.h in Headers */,
