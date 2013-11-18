@@ -523,15 +523,18 @@ namespace RN
 
 // Binding
 #if RN_PLATFORM_MAC_OS
-#define BindOpenGL(name) gl::name = reinterpret_cast<decltype(gl::name)>(dlsym(RTLD_DEFAULT, "gl" #name))
+	#define BindOpenGL(name) gl::name = reinterpret_cast<decltype(gl::name)>(dlsym(RTLD_DEFAULT, "gl" #name))
+	#define BindOpenGLExtension(name, ext) gl::name = reinterpret_cast<decltype(gl::name)>(dlsym(RTLD_DEFAULT, "gl" #name ext))
 #endif
 	
 #if RN_PLATFORM_WINDOWS
-#define BindOpenGL(name) gl::name = reinterpret_cast<decltype(gl::name)>(wglGetProcAddress("gl" #name))
+	#define BindOpenGL(name) gl::name = reinterpret_cast<decltype(gl::name)>(wglGetProcAddress("gl" #name))
+	#define BindOpenGLExtension(name, ext) gl::name = reinterpret_cast<decltype(gl::name)>(wglGetProcAddress("gl" #name ext))
 #endif
 	
 #if RN_PLATFORM_LINUX
-#define BindOpenGL(name) gl::name = reinterpret_cast<decltype(gl::name)>(glXGetProcAddressARB(reintrpret_cast<const GLubyte *>("gl" #name)))
+	#define BindOpenGL(name) gl::name = reinterpret_cast<decltype(gl::name)>(glXGetProcAddressARB(reintrpret_cast<const GLubyte *>("gl" #name)))
+	#define BindOpenGLExtension(name, ext) gl::name = reinterpret_cast<decltype(gl::name)>(glXGetProcAddressARB(reintrpret_cast<const GLubyte *>("gl" #name ext)))
 #endif
 	
 	void BindOpenGLCore()
@@ -1059,9 +1062,9 @@ namespace RN
 		{
 			if(gl::SupportsFeature(gl::Feature::ShaderBinary))
 			{
-				BindOpenGL(GetProgramBinary);
-				BindOpenGL(ProgramBinary);
-				BindOpenGL(ProgramParameteri);
+				BindOpenGLExtension(GetProgramBinary, "ARB");
+				BindOpenGLExtension(ProgramBinary, "ARB");
+				BindOpenGLExtension(ProgramParameteri, "ARB");
 			}
 		}
 	}
