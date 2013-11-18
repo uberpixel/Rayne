@@ -1,5 +1,5 @@
 //
-//  main.mm
+//  main.cpp
 //  Rayne Player
 //
 //  Copyright 2013 by Überpixel. All rights reserved.

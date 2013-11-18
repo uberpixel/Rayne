@@ -57,7 +57,7 @@ namespace RN
 	{
 		Renderer::GetSharedInstance()->RelinquishMesh(this);
 		
-		glDeleteBuffers(2, &_vbo);
+		gl::DeleteBuffers(2, &_vbo);
 		
 		for(auto i=_descriptor.begin(); i!=_descriptor.end(); i++)
 		{
@@ -87,7 +87,7 @@ namespace RN
 		_vboUsage = GL_STATIC_DRAW;
 		_iboUsage = GL_STATIC_DRAW;
 		
-		glGenBuffers(2, &_vbo);
+		gl::GenBuffers(2, &_vbo);
 		RN_CHECKOPENGL();
 	}
 	
@@ -364,24 +364,24 @@ namespace RN
 		
 		if((_dirtyIndices || force) && _indices)
 		{
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, _iboUsage);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
+			gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, _iboUsage);
+			gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 			
 			_dirtyIndices = false;
 		}
 		
 		if((_dirty || force) && _meshData)
 		{
-			glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-			glBufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, _vboUsage);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			gl::BindBuffer(GL_ARRAY_BUFFER, _vbo);
+			gl::BufferData(GL_ARRAY_BUFFER, _meshSize, _meshData, _vboUsage);
+			gl::BindBuffer(GL_ARRAY_BUFFER, 0);
 			
 			_dirty = false;
 			CalculateBoundingBox();
 		}
 		
-		glFlush();
+		gl::Flush();
 	}
 	
 	

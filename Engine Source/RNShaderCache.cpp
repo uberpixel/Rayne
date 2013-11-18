@@ -114,7 +114,7 @@ namespace RN
 		if(_internals->hasSupport)
 		{
 			GLint size;
-			glGetProgramiv(program->program, GL_PROGRAM_BINARY_LENGTH, &size);
+			gl::GetProgramiv(program->program, GL_PROGRAM_BINARY_LENGTH, &size);
 			
 			if(!size)
 				return;
@@ -124,7 +124,7 @@ namespace RN
 			GLenum format;
 			uint8 *buffer = new uint8[size];
 			
-			glGetProgramBinary(program->program, size, &length, &format, buffer);
+			gl::GetProgramBinary(program->program, size, &length, &format, buffer);
 			
 			
 			std::string hash = std::move(shader->GetFileHash());
@@ -166,12 +166,12 @@ namespace RN
 			GLenum format = static_cast<GLenum>(statement.GetColumnInt(2));
 			
 			ShaderProgram *program = new ShaderProgram;
-			program->program = glCreateProgram();
+			program->program = gl::CreateProgram();
 			
-			glProgramBinary(program->program, format, binary, length);
+			gl::ProgramBinary(program->program, format, binary, length);
 			
 			GLint status;
-			glGetProgramiv(program->program, GL_LINK_STATUS, &status);
+			gl::GetProgramiv(program->program, GL_LINK_STATUS, &status);
 			
 			if(!status)
 			{
@@ -198,7 +198,7 @@ namespace RN
 			if(hasSupport)
 			{
 				GLint formats = 0;
-				glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &formats);
+				gl::GetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &formats);
 				
 				hasSupport = (formats > 0);
 			}

@@ -65,13 +65,13 @@ namespace RN
 		
 		static std::once_flag flag;
 		std::call_once(flag, []{
-			glGetString = reinterpret_cast<PFNGLGETSTRINGPROC>(dlsym(RTLD_NEXT, "glGetString"));
+			gl::GetString = reinterpret_cast<PFNGLGETSTRINGPROC>(dlsym(RTLD_NEXT, "glGetString"));
 			
-			glGetFloatv = reinterpret_cast<PFNGLGETFLOATVPROC>(dlsym(RTLD_NEXT, "glGetFloatv"));
-			glGetIntegerv = reinterpret_cast<PFNGLGETINTEGERVPROC>(dlsym(RTLD_NEXT, "glGetIntegerv"));
+			gl::GetFloatv = reinterpret_cast<PFNGLGETFLOATVPROC>(dlsym(RTLD_NEXT, "glGetFloatv"));
+			gl::GetIntegerv = reinterpret_cast<PFNGLGETINTEGERVPROC>(dlsym(RTLD_NEXT, "glGetIntegerv"));
 		});
 		
-		std::string oglVersion(reinterpret_cast<const char *>(glGetString(GL_VERSION)));
+		std::string oglVersion(reinterpret_cast<const char *>(gl::GetString(GL_VERSION)));
 		current ? [current makeCurrentContext] : [NSOpenGLContext clearCurrentContext];
 		
 		if(oglVersion.find("3.2") != std::string::npos && version == gl::Version::Core4_1)
@@ -402,11 +402,11 @@ namespace RN
 		if(depth != _depthClear)
 		{
 #if RN_TARGET_OPENGL_ES
-			glClearDepthf(depth);
+			gl::ClearDepthf(depth);
 #endif
 			
 #if RN_TARGET_OPENGL
-			glClearDepth(depth);
+			gl::ClearDepth(depth);
 #endif
 			_depthClear = depth;
 		}
@@ -415,7 +415,7 @@ namespace RN
 	{
 		if(stencil != _stencilClear)
 		{
-			glClearStencil(stencil);
+			gl::ClearStencil(stencil);
 			_stencilClear = stencil;
 		}
 	}
@@ -423,7 +423,7 @@ namespace RN
 	{
 		if(_clearColor != color)
 		{
-			glClearColor(color.r, color.g, color.b, color.a);
+			gl::ClearColor(color.r, color.g, color.b, color.a);
 			_clearColor = color;
 		}
 	}
@@ -459,9 +459,9 @@ namespace RN
 		{
 			_firstActivation = false;
 			
-			glGetFloatv(GL_DEPTH_CLEAR_VALUE, &_depthClear);
-			glGetIntegerv(GL_STENCIL_CLEAR_VALUE, &_stencilClear);
-			glGetFloatv(GL_COLOR_CLEAR_VALUE, &_clearColor.r);
+			gl::GetFloatv(GL_DEPTH_CLEAR_VALUE, &_depthClear);
+			gl::GetIntegerv(GL_STENCIL_CLEAR_VALUE, &_stencilClear);
+			gl::GetFloatv(GL_COLOR_CLEAR_VALUE, &_clearColor.r);
 		}
 	}
 

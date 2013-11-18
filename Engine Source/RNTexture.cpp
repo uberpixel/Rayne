@@ -19,7 +19,7 @@ namespace RN
 	
 	Texture::Texture(Parameter::Format format, bool isLinear)
 	{
-		glGenTextures(1, &_name);
+		gl::GenTextures(1, &_name);
 		RN_CHECKOPENGL();
 		
 		_width = _height = 0;
@@ -42,7 +42,7 @@ namespace RN
 	
 	Texture::Texture(const Parameter& parameter, bool isLinear)
 	{
-		glGenTextures(1, &_name);
+		gl::GenTextures(1, &_name);
 		RN_CHECKOPENGL();
 		
 		_width = _height = 0;
@@ -61,7 +61,7 @@ namespace RN
 	
 	Texture::Texture(const std::string& name, bool isLinear)
 	{
-		glGenTextures(1, &_name);
+		gl::GenTextures(1, &_name);
 		RN_CHECKOPENGL();
 		
 		_width = _height = 0;
@@ -95,7 +95,7 @@ namespace RN
 	
 	Texture::Texture(const std::string& name, const Parameter& parameter, bool isLinear)
 	{
-		glGenTextures(1, &_name);
+		gl::GenTextures(1, &_name);
 		RN_CHECKOPENGL();
 		
 		_width = _height = 0;
@@ -126,7 +126,7 @@ namespace RN
 	
 	Texture::~Texture()
 	{
-		glDeleteTextures(1, &_name);
+		gl::DeleteTextures(1, &_name);
 	}
 	
 	
@@ -149,7 +149,7 @@ namespace RN
 		Thread *thread = Thread::GetCurrentThread();
 		if(thread->SetOpenGLBinding(_glType, _name) == 1)
 		{
-			glBindTexture(_glType, _name);
+			gl::BindTexture(_glType, _name);
 		}
 	}
 	
@@ -160,7 +160,7 @@ namespace RN
 
 		if(_hasChanged && _isCompleteTexture)
 		{
-			glFlush();
+			gl::Flush();
 			_hasChanged = false;
 		}
 	}
@@ -209,30 +209,30 @@ namespace RN
 				break;
 		}
 		
-		glTexParameteri(_glType, GL_TEXTURE_WRAP_S, wrapMode); RN_CHECKOPENGL_AGGRESSIVE();
-		glTexParameteri(_glType, GL_TEXTURE_WRAP_T, wrapMode); RN_CHECKOPENGL_AGGRESSIVE();
+		gl::TexParameteri(_glType, GL_TEXTURE_WRAP_S, wrapMode); RN_CHECKOPENGL_AGGRESSIVE();
+		gl::TexParameteri(_glType, GL_TEXTURE_WRAP_T, wrapMode); RN_CHECKOPENGL_AGGRESSIVE();
 		
-		glTexParameteri(_glType, GL_TEXTURE_MIN_FILTER, minFilter); RN_CHECKOPENGL_AGGRESSIVE();
-		glTexParameteri(_glType, GL_TEXTURE_MAG_FILTER, magFilter); RN_CHECKOPENGL_AGGRESSIVE();
+		gl::TexParameteri(_glType, GL_TEXTURE_MIN_FILTER, minFilter); RN_CHECKOPENGL_AGGRESSIVE();
+		gl::TexParameteri(_glType, GL_TEXTURE_MAG_FILTER, magFilter); RN_CHECKOPENGL_AGGRESSIVE();
 		
-		glTexParameteri(_glType, GL_TEXTURE_MAX_LEVEL, _parameter.mipMaps);
+		gl::TexParameteri(_glType, GL_TEXTURE_MAX_LEVEL, _parameter.mipMaps);
 		
 		if(_glType == GL_TEXTURE_2D && gl::SupportsFeature(gl::Feature::AnisotropicFilter))
 		{
 #if GL_EXT_texture_filter_anisotropic
 			float anisotropy = (_parameter.anisotropy < 1.0f) ? _defaultAnisotropy : _parameter.anisotropy;
-			glTexParameterf(_glType, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy); RN_CHECKOPENGL_AGGRESSIVE();
+			gl::TexParameterf(_glType, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy); RN_CHECKOPENGL_AGGRESSIVE();
 #endif
 		}
 		
 		if(_parameter.depthCompare)
 		{
-			glTexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE); RN_CHECKOPENGL_AGGRESSIVE();
-			glTexParameteri(_glType, GL_TEXTURE_COMPARE_FUNC, GL_LESS); RN_CHECKOPENGL_AGGRESSIVE();
+			gl::TexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE); RN_CHECKOPENGL_AGGRESSIVE();
+			gl::TexParameteri(_glType, GL_TEXTURE_COMPARE_FUNC, GL_LESS); RN_CHECKOPENGL_AGGRESSIVE();
 		}
 		else
 		{
-			glTexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_NONE); RN_CHECKOPENGL_AGGRESSIVE();
+			gl::TexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_NONE); RN_CHECKOPENGL_AGGRESSIVE();
 		}
 		
 		RN_CHECKOPENGL();
@@ -271,22 +271,22 @@ namespace RN
 		converted = data ? ConvertData(data, width, height, format, _parameter.format) : 0;
 		ConvertFormat(_parameter.format, _isLinear, &glFormat, &glInternalFormat, &glType);
 		
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		gl::PixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		
 		switch(_glType)
 		{
 			case GL_TEXTURE_2D:
-				glTexImage2D(_glType, 0, glInternalFormat, width, height, 0, glFormat, glType, converted);
+				gl::TexImage2D(_glType, 0, glInternalFormat, width, height, 0, glFormat, glType, converted);
 				break;
 				
 			case GL_TEXTURE_2D_ARRAY:
 			case GL_TEXTURE_3D:
-				glTexImage3D(_glType, 0, glInternalFormat, width, height, _depth, 0, glFormat, glType, converted);
+				gl::TexImage3D(_glType, 0, glInternalFormat, width, height, _depth, 0, glFormat, glType, converted);
 				break;
 				
 			case GL_TEXTURE_CUBE_MAP:
 				for(uint8 i = 0; i < 6; i++)
-					glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, glInternalFormat, width, height, 0, glFormat, glType, converted);
+					gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, glInternalFormat, width, height, 0, glFormat, glType, converted);
 				break;
 		}
 
@@ -320,8 +320,8 @@ namespace RN
 		
 		ConvertFormat(format, _isLinear, &glFormat, &glInternalFormat, &glType);
 		
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glGetTexImage(_glType, 0, glFormat, glType, ptr);
+		gl::PixelStorei(GL_PACK_ALIGNMENT, 1);
+		gl::GetTexImage(_glType, 0, glFormat, glType, ptr);
 		
 		Unbind();
 	}
@@ -340,22 +340,22 @@ namespace RN
 		converted = ConvertData(data, _width, _height, format, _parameter.format);
 		ConvertFormat(_parameter.format, _isLinear, &glFormat, &glInternalFormat, &glType);
 		
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		gl::PixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		
 		switch(_glType)
 		{
 			case GL_TEXTURE_2D:
-				glTexSubImage2D(_glType, 0, 0, 0, _width, _height, glFormat, glType, converted);
+				gl::TexSubImage2D(_glType, 0, 0, 0, _width, _height, glFormat, glType, converted);
 				break;
 				
 			case GL_TEXTURE_2D_ARRAY:
 			case GL_TEXTURE_3D:
-				glTexSubImage3D(_glType, 0, 0, 0, 0, _width, _height, _depth, glFormat, glType, converted);
+				gl::TexSubImage3D(_glType, 0, 0, 0, 0, _width, _height, _depth, glFormat, glType, converted);
 				break;
 				
 			case GL_TEXTURE_CUBE_MAP:
 				for(uint8 i = 0; i < 6; i++)
-					glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, 0, 0, _width, _height, glFormat, glType, converted);
+					gl::TexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X+i, 0, 0, 0, _width, _height, glFormat, glType, converted);
 				break;
 		}
 		
@@ -384,12 +384,12 @@ namespace RN
 		converted = ConvertData(data, region.width, region.height, format, _parameter.format);
 		ConvertFormat(_parameter.format, _isLinear, &glFormat, &glInternalFormat, &glType);
 		
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		gl::PixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		
 		switch(_glType)
 		{
 			case GL_TEXTURE_2D:
-				glTexSubImage2D(_glType, 0, region.x, region.y, region.width, region.height, glFormat, glType, converted);;
+				gl::TexSubImage2D(_glType, 0, region.x, region.y, region.width, region.height, glFormat, glType, converted);
 				break;
 		}
 		
@@ -411,7 +411,7 @@ namespace RN
 		
 		Bind();
 		
-		glGenerateMipmap(_glType);
+		gl::GenerateMipmap(_glType);
 		_hasChanged = true;
 		
 		Unbind();
@@ -835,7 +835,7 @@ namespace RN
 			if(gl::SupportsFeature(gl::Feature::AnisotropicFilter))
 			{
 #if GL_EXT_texture_filter_anisotropic
-				glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
+				gl::GetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
 #endif
 			}
 			else

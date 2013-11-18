@@ -39,7 +39,7 @@ namespace RN
 		void CheckForError(const char *file, int line)
 		{
 			GLenum error;
-			while((error = glGetError()) != GL_NO_ERROR)
+			while((error = gl::GetError()) != GL_NO_ERROR)
 			{
 				Log::Loggable loggable(Log::Level::Error);
 				loggable << "OpenGL error: ";
@@ -138,11 +138,11 @@ namespace RN
 			
 			// Read all extensions
 			GLint extensions;
-			glGetIntegerv(GL_NUM_EXTENSIONS, &extensions);
+			gl::GetIntegerv(GL_NUM_EXTENSIONS, &extensions);
 			
 			for(GLint i = 0; i < extensions; i ++)
 			{
-				const GLubyte *extension = glGetStringi(GL_EXTENSIONS, i);
+				const GLubyte *extension = gl::GetStringi(GL_EXTENSIONS, i);
 				__extensions.insert(reinterpret_cast<const char *>(extension));
 			}
 			
@@ -173,9 +173,9 @@ namespace RN
 			
 			Log::Logger *logger = Log::Logger::GetSharedInstance();
 			
-			logger->Log(Log::Message(Log::Level::Info, "Vendor", reinterpret_cast<const char *>(glGetString(GL_VENDOR))));
-			logger->Log(Log::Message(Log::Level::Info, "Renderer", reinterpret_cast<const char *>(glGetString(GL_RENDERER))));
-			logger->Log(Log::Message(Log::Level::Info, "Version", reinterpret_cast<const char *>(glGetString(GL_VERSION))));
+			logger->Log(Log::Message(Log::Level::Info, "Vendor", reinterpret_cast<const char *>(gl::GetString(GL_VENDOR))));
+			logger->Log(Log::Message(Log::Level::Info, "Renderer", reinterpret_cast<const char *>(gl::GetString(GL_RENDERER))));
+			logger->Log(Log::Message(Log::Level::Info, "Version", reinterpret_cast<const char *>(gl::GetString(GL_VERSION))));
 			
 			std::stringstream exts;
 			std::copy(__extensions.begin(), __extensions.end(), std::ostream_iterator<std::string>(exts, "\n"));

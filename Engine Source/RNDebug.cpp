@@ -66,38 +66,38 @@ namespace RN
 		{
 			GLuint vbo, vao;
 			
-			glGenVertexArrays(1, &vao);
-			glBindVertexArray(vao);
+			gl::GenVertexArrays(1, &vao);
+			gl::BindVertexArray(vao);
 			
-			glGenBuffers(1, &vbo);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			gl::GenBuffers(1, &vbo);
+			gl::BindBuffer(GL_ARRAY_BUFFER, vbo);
 			
 			// Enable the VAO state
 			ShaderProgram *program = renderer->GetActiveProgram();
 			
-			glEnableVertexAttribArray(program->attPosition);
-			glEnableVertexAttribArray(program->attColor0);
+			gl::EnableVertexAttribArray(program->attPosition);
+			gl::EnableVertexAttribArray(program->attColor0);
 			
 			for(const Line& line : lines)
 			{
-				glBufferData(GL_ARRAY_BUFFER, line.size() * sizeof(Point), line.data(), GL_STREAM_DRAW);
+				gl::BufferData(GL_ARRAY_BUFFER, line.size() * sizeof(Point), line.data(), GL_STREAM_DRAW);
 				
-				glVertexAttribPointer(program->attPosition, 3, GL_FLOAT, false, sizeof(Point), (void *)0);
-				glVertexAttribPointer(program->attColor0, 4, GL_FLOAT, false, sizeof(Point), (void *)sizeof(Vertex));
+				gl::VertexAttribPointer(program->attPosition, 3, GL_FLOAT, false, sizeof(Point), (void *)0);
+				gl::VertexAttribPointer(program->attColor0, 4, GL_FLOAT, false, sizeof(Point), (void *)sizeof(Vertex));
 				
-				glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(line.size()));
-				glBufferData(GL_ARRAY_BUFFER, line.size() * sizeof(Point), 0, GL_STREAM_DRAW);
+				gl::DrawArrays(GL_LINES, 0, static_cast<GLsizei>(line.size()));
+				gl::BufferData(GL_ARRAY_BUFFER, line.size() * sizeof(Point), 0, GL_STREAM_DRAW);
 			}
 			
-			glDisableVertexAttribArray(program->attPosition);
-			glDisableVertexAttribArray(program->attColor0);
+			gl::DisableVertexAttribArray(program->attPosition);
+			gl::DisableVertexAttribArray(program->attColor0);
 			
 			// Clean up
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			glBindVertexArray(0);
+			gl::BindBuffer(GL_ARRAY_BUFFER, 0);
+			gl::BindVertexArray(0);
 			
-			glDeleteVertexArrays(1, &vao);
-			glDeleteBuffers(1, &vbo);
+			gl::DeleteVertexArrays(1, &vao);
+			gl::DeleteBuffers(1, &vbo);
 			
 			renderer->BindVAO(0);
 		}

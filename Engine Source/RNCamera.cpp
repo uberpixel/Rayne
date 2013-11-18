@@ -452,13 +452,13 @@ namespace RN
 			context->SetClearColor(_clearColor);
 			
 			renderer->SetScissorEnabled(true);
-			glScissor(x, y, width, height);
+			gl::Scissor(x, y, width, height);
 			
-			glClear(_clearMask);
+			gl::Clear(_clearMask);
 		}
 		
-		glColorMask((_colorMask & ColorFlagRed), (_colorMask & ColorFlagGreen), (_colorMask & ColorFlagBlue), (_colorMask & ColorFlagAlpha));
-		glViewport(x, y, width, height);
+		gl::ColorMask((_colorMask & ColorFlagRed), (_colorMask & ColorFlagGreen), (_colorMask & ColorFlagBlue), (_colorMask & ColorFlagAlpha));
+		gl::Viewport(x, y, width, height);
 	}
 
 	// Setter

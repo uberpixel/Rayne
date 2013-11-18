@@ -89,46 +89,46 @@ namespace RN
 			switch(_type)
 			{
 				case Type::Int1:
-					glUniform1iv(location, 1, static_cast<GLint *>(GetPointerValue()));
+					gl::Uniform1iv(location, 1, static_cast<GLint *>(GetPointerValue()));
 					break;
 				case Type::Int2:
-					glUniform2iv(location, 1, static_cast<GLint *>(GetPointerValue()));
+					gl::Uniform2iv(location, 1, static_cast<GLint *>(GetPointerValue()));
 					break;
 				case Type::Int3:
-					glUniform3iv(location, 1, static_cast<GLint *>(GetPointerValue()));
+					gl::Uniform3iv(location, 1, static_cast<GLint *>(GetPointerValue()));
 					break;
 				case Type::Int4:
-					glUniform4iv(location, 1, static_cast<GLint *>(GetPointerValue()));
+					gl::Uniform4iv(location, 1, static_cast<GLint *>(GetPointerValue()));
 					break;
 					
 				case Type::UInt1:
-					glUniform1uiv(location, 1, static_cast<GLuint *>(GetPointerValue()));
+					gl::Uniform1uiv(location, 1, static_cast<GLuint *>(GetPointerValue()));
 					break;
 				case Type::UInt2:
-					glUniform2uiv(location, 1, static_cast<GLuint *>(GetPointerValue()));
+					gl::Uniform2uiv(location, 1, static_cast<GLuint *>(GetPointerValue()));
 					break;
 				case Type::UInt3:
-					glUniform3uiv(location, 1, static_cast<GLuint *>(GetPointerValue()));
+					gl::Uniform3uiv(location, 1, static_cast<GLuint *>(GetPointerValue()));
 					break;
 				case Type::UInt4:
-					glUniform4uiv(location, 1, static_cast<GLuint *>(GetPointerValue()));
+					gl::Uniform4uiv(location, 1, static_cast<GLuint *>(GetPointerValue()));
 					break;
 					
 				case Type::Float1:
-					glUniform1fv(location, 1, static_cast<GLfloat *>(GetPointerValue()));
+					gl::Uniform1fv(location, 1, static_cast<GLfloat *>(GetPointerValue()));
 					break;
 				case Type::Float2:
-					glUniform2fv(location, 1, static_cast<GLfloat *>(GetPointerValue()));
+					gl::Uniform2fv(location, 1, static_cast<GLfloat *>(GetPointerValue()));
 					break;
 				case Type::Float3:
-					glUniform3fv(location, 1, static_cast<GLfloat *>(GetPointerValue()));
+					gl::Uniform3fv(location, 1, static_cast<GLfloat *>(GetPointerValue()));
 					break;
 				case Type::Float4:
-					glUniform4fv(location, 1, static_cast<GLfloat *>(GetPointerValue()));
+					gl::Uniform4fv(location, 1, static_cast<GLfloat *>(GetPointerValue()));
 					break;
 					
 				case Type::Matrix:
-					glUniformMatrix4fv(location, 1, GL_FALSE, static_cast<GLfloat *>(GetPointerValue()));
+					gl::UniformMatrix4fv(location, 1, GL_FALSE, static_cast<GLfloat *>(GetPointerValue()));
 					break;
 			}
 		}

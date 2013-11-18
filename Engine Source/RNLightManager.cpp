@@ -37,53 +37,53 @@ namespace RN
 		// Point lights
 		_lightPointDataSize = 0;
 		
-		glGenTextures(3, _lightPointTextures);
-		glGenBuffers(3, _lightPointBuffers);
+		gl::GenTextures(3, _lightPointTextures);
+		gl::GenBuffers(3, _lightPointBuffers);
 		
 		// light index offsets
-		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListIndicesIndex]);
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListIndicesIndex]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightPointBuffers[kRNRendererPointLightListIndicesIndex]);
 		
 		// Light indices
-		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListOffsetIndex]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, _lightPointBuffers[kRNRendererPointLightListOffsetIndex]);
 		
 		// Light Data
-		glBindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListDataIndex]);
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightPointTextures[kRNRendererPointLightListDataIndex]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
 		
 		// Spot lights
 		_lightSpotDataSize = 0;
 		
-		glGenTextures(3, _lightSpotTextures);
-		glGenBuffers(3, _lightSpotBuffers);
+		gl::GenTextures(3, _lightSpotTextures);
+		gl::GenBuffers(3, _lightSpotBuffers);
 		
 		// light index offsets
-		glBindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListIndicesIndex]);
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightSpotBuffers[kRNRendererSpotLightListIndicesIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightSpotBuffers[kRNRendererSpotLightListIndicesIndex]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListIndicesIndex]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightSpotBuffers[kRNRendererSpotLightListIndicesIndex]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightSpotBuffers[kRNRendererSpotLightListIndicesIndex]);
 		
 		// Light indices
-		glBindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListOffsetIndex]);
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightSpotBuffers[kRNRendererSpotLightListOffsetIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, _lightSpotBuffers[kRNRendererSpotLightListOffsetIndex]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListOffsetIndex]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightSpotBuffers[kRNRendererSpotLightListOffsetIndex]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, _lightSpotBuffers[kRNRendererSpotLightListOffsetIndex]);
 		
 		// Light Data
-		glBindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListDataIndex]);
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightSpotBuffers[kRNRendererSpotLightListDataIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightSpotBuffers[kRNRendererSpotLightListDataIndex]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightSpotTextures[kRNRendererSpotLightListDataIndex]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightSpotBuffers[kRNRendererSpotLightListDataIndex]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightSpotBuffers[kRNRendererSpotLightListDataIndex]);
 	}
 	
 	LightManager::~LightManager()
 	{
-		glDeleteBuffers(3, _lightPointBuffers);
-		glDeleteTextures(3, _lightPointTextures);
+		gl::DeleteBuffers(3, _lightPointBuffers);
+		gl::DeleteTextures(3, _lightPointTextures);
 		
-		glDeleteBuffers(3, _lightSpotBuffers);
-		glDeleteTextures(3, _lightSpotTextures);
+		gl::DeleteBuffers(3, _lightSpotBuffers);
+		gl::DeleteTextures(3, _lightSpotTextures);
 		
 		delete [] _lightIndicesBuffer;
 		delete [] _lightOffsetBuffer;
@@ -157,68 +157,76 @@ continue; \
 		ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch(__LightTilesAlloactor);
 		batch->Reserve(tilesHeight * tilesWidth * tilesDepth);
 		
-		for(int y=0; y<tilesHeight; y++)
+		for(int y = 0; y < tilesHeight; y ++)
 		{
-			for(int x=0; x<tilesWidth; x++)
+			for(int x = 0; x < tilesWidth; x ++)
 			{
-				for(int z=0; z<tilesDepth; z++)
-				{
-					size_t index = i ++;
-					batch->AddTask([&, x, y, z, index]() {
-						Plane plleft;
-						Plane plright;
-						Plane pltop;
-						Plane plbottom;
-						Plane plfar;
-						Plane plnear;
+				size_t index = i;
+				i += tilesDepth;
+				
+				batch->AddTask([&, x, y, index]() {
+					
+					Plane plleft;
+					Plane plright;
+					Plane pltop;
+					Plane plbottom;
+					Plane plfar;
+					Plane plnear;
+					
+					plright.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
+					plleft.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
+					plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
+					pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
+					
+					std::vector<std::pair<Light *, size_t>> culled;
+					culled.reserve(lightCount * 0.9f);
+					
+					float distance;
+					
+					for(size_t i = 0; i < lightCount; i ++)
+					{
+						Light *light = lights[i];
 						
-						plright.SetPlane(camPosition, corner1+dirx*x+diry*(y+1.0f), corner1+dirx*x+diry*(y-1.0f));
-						plleft.SetPlane(camPosition, corner1+dirx*(x+1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y-1.0f));
-						plbottom.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*(y+1.0f), corner1+dirx*(x+1.0f)+diry*(y+1.0f));
-						pltop.SetPlane(camPosition, corner1+dirx*(x-1.0f)+diry*y, corner1+dirx*(x+1.0f)+diry*y);
-						plnear.SetPlane(camPosition + dirz*z, camdir);
-						plfar.SetPlane(camPosition + dirz*(z+1.0f), camdir);
+						const Vector3& position = light->GetWorldPosition();
+						const float range = light->GetRange();
 						
-						size_t lightIndicesCount = 0;
-						int *lightPointIndices = _tempLightIndicesBuffer + (index * lightCount);
+						DistanceExpect(plright, >, range, true);
+						DistanceExpect(plleft, <, -range, true);
+						DistanceExpect(plbottom, <, -range, true);
+						DistanceExpect(pltop, >, range, true);
 						
-						for(size_t i=0; i<lightCount; i++)
+						culled.emplace_back(std::make_pair(light, i));
+					}
+
+					if(!culled.empty())
+					{
+						size_t i = index;
+						
+						for(int z = 0; z < tilesDepth; z ++, i++)
 						{
-							Light *light = lights[i];
+							plnear.SetPlane(camPosition + dirz*z, camdir);
+							plfar.SetPlane(camPosition + dirz*(z+1.0f), camdir);
 							
-							const Vector3& position = light->GetWorldPosition();
-							const float range = light->GetRange();
-							float distance, dr, dl, dt, db;
-							DistanceExpect(plright, >, range, true);
-							dr = distance;
-							DistanceExpect(plleft, <, -range, true);
-							dl = distance;
-							DistanceExpect(plbottom, <, -range, true);
-							db = distance;
-							DistanceExpect(pltop, >, range, true);
-							dt = distance;
+							size_t lightIndicesCount = 0;
+							int *lightPointIndices = _tempLightIndicesBuffer + (i * lightCount);
 							
-							/*
-							 float sqrange = range*range;
-							 if(dr > 0.0f && db < 0.0f && dr*dr+db*db > sqrange)
-							 continue;
-							 if(dr > 0.0f && dt > 0.0f && dr*dr+dt*dt > sqrange)
-							 continue;
-							 if(dl < 0.0f && db < 0.0f && dl*dl+db*db > sqrange)
-							 continue;
-							 if(dl < 0.0f && dt > 0.0f && dl*dl+dt*dt > sqrange)
-							 continue;
-							 */
+							for(auto& pair : culled)
+							{
+								Light *light = pair.first;
+								
+								const Vector3& position = light->GetWorldPosition();
+								const float range = light->GetRange();
+								
+								DistanceExpect(plnear, <, -range, true);
+								DistanceExpect(plfar, >, range, true);
+								
+								lightPointIndices[lightIndicesCount ++] = static_cast<int>(pair.second);
+							}
 							
-							DistanceExpect(plnear, <, -range, true);
-							DistanceExpect(plfar, >, range, true);
-							
-							lightPointIndices[lightIndicesCount ++] = static_cast<int>(i);
+							indicesCount[i] = lightIndicesCount;
 						}
-						
-						indicesCount[index] = lightIndicesCount;
-					});
-				}
+					}
+				});
 			}
 		}
 		
@@ -250,14 +258,14 @@ continue; \
 		if(lightIndicesCount == 0)
 			lightIndicesCount ++;
 		
-		glBindBuffer(GL_TEXTURE_BUFFER, indicesBuffer);
-		glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
-		glBufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), _lightIndicesBuffer, GL_DYNAMIC_DRAW);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, indicesBuffer);
+		gl::BufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
+		gl::BufferData(GL_TEXTURE_BUFFER, lightIndicesCount * sizeof(int), _lightIndicesBuffer, GL_DYNAMIC_DRAW);
 		
 		// Offsets
-		glBindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
-		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
-		glBufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, offsetBuffer);
+		gl::BufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), 0, GL_DYNAMIC_DRAW);
+		gl::BufferData(GL_TEXTURE_BUFFER, lightIndexOffsetCount * sizeof(int), _lightOffsetBuffer, GL_DYNAMIC_DRAW);
 	}
 
 	int LightManager::CreateLightClusterLists(Camera *camera, Light **lights, size_t pointLightCount, size_t spotLightCount)
@@ -314,11 +322,11 @@ continue; \
 			if(lightDataSize == 0) // Makes sure that we don't end up with an empty buffer
 				lightDataSize = 2 * sizeof(Vector4);
 			
-			glBindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightPointBuffers[kRNRendererPointLightListDataIndex]);
 			if(lightDataSize > _lightPointDataSize)
 			{
-				glBufferData(GL_TEXTURE_BUFFER, _lightPointDataSize, 0, GL_DYNAMIC_DRAW);
-				glBufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
+				gl::BufferData(GL_TEXTURE_BUFFER, _lightPointDataSize, 0, GL_DYNAMIC_DRAW);
+				gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
 				
 				_lightPointDataSize = lightDataSize;
 			}
@@ -352,8 +360,8 @@ continue; \
 				}
 			}
 			
-			glBufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_DYNAMIC_DRAW);
-			glBindBuffer(GL_TEXTURE_BUFFER, 0);
+			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_DYNAMIC_DRAW);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 		else
 		{
@@ -406,11 +414,11 @@ continue; \
 			if(lightDataSize == 0)
 				lightDataSize = 3 * sizeof(Vector4); // Make sure that we don't end up with an empty buffer
 			
-			glBindBuffer(GL_TEXTURE_BUFFER, _lightSpotBuffers[kRNRendererSpotLightListDataIndex]);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightSpotBuffers[kRNRendererSpotLightListDataIndex]);
 			if(lightDataSize > _lightSpotDataSize)
 			{
-				glBufferData(GL_TEXTURE_BUFFER, _lightSpotDataSize, 0, GL_DYNAMIC_DRAW);
-				glBufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
+				gl::BufferData(GL_TEXTURE_BUFFER, _lightSpotDataSize, 0, GL_DYNAMIC_DRAW);
+				gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
 				
 				_lightSpotDataSize = lightDataSize;
 			}
@@ -447,8 +455,8 @@ continue; \
 				}
 			}
 			
-			glBufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_DYNAMIC_DRAW);
-			glBindBuffer(GL_TEXTURE_BUFFER, 0);
+			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_DYNAMIC_DRAW);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 		else
 		{

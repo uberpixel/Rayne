@@ -35,8 +35,8 @@ namespace RN
 	{
 		for(InstancedMesh& mesh : _data)
 		{
-			glDeleteTextures(1, &mesh.texture);
-			glDeleteBuffers(1, &mesh.buffer);
+			gl::DeleteTextures(1, &mesh.texture);
+			gl::DeleteBuffers(1, &mesh.buffer);
 		}
 	}
 	
@@ -150,20 +150,20 @@ namespace RN
 			matrices[(int)((i * 2) + 1)] = entities[i]->GetWorldTransform().GetInverse();
 		}
 		
-		glGenTextures(1, &texture);
-		glGenBuffers(1, &buffer);
+		gl::GenTextures(1, &texture);
+		gl::GenBuffers(1, &buffer);
 		
 		RN_CHECKOPENGL_AGGRESSIVE();
 		
-		glBindTexture(GL_TEXTURE_BUFFER, texture); RN_CHECKOPENGL_AGGRESSIVE();
-		glBindBuffer(GL_TEXTURE_BUFFER, buffer); RN_CHECKOPENGL_AGGRESSIVE();
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, buffer); RN_CHECKOPENGL_AGGRESSIVE();
+		gl::BindTexture(GL_TEXTURE_BUFFER, texture); RN_CHECKOPENGL_AGGRESSIVE();
+		gl::BindBuffer(GL_TEXTURE_BUFFER, buffer); RN_CHECKOPENGL_AGGRESSIVE();
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, buffer); RN_CHECKOPENGL_AGGRESSIVE();
 		
 		size_t size = count * 2 * sizeof(Matrix);
-		glBufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(size), matrices, GL_DYNAMIC_DRAW); RN_CHECKOPENGL_AGGRESSIVE();
+		gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(size), matrices, GL_DYNAMIC_DRAW); RN_CHECKOPENGL_AGGRESSIVE();
 		
-		glBindBuffer(GL_TEXTURE_BUFFER, 0);
-		glBindTexture(GL_TEXTURE_BUFFER, 0);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+		gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 		
 		RN_CHECKOPENGL();
 		
@@ -187,9 +187,9 @@ namespace RN
 		
 		size_t offset = index * (sizeof(Matrix) * 2);
 		
-		glBindBuffer(GL_TEXTURE_BUFFER, mesh.buffer);
-		glBufferSubData(GL_TEXTURE_BUFFER, offset, 2 * sizeof(Matrix), matrices);
-		glBindBuffer(GL_TEXTURE_BUFFER, 0);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, mesh.buffer);
+		gl::BufferSubData(GL_TEXTURE_BUFFER, offset, 2 * sizeof(Matrix), matrices);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
 	
 	
@@ -199,8 +199,8 @@ namespace RN
 		
 		for(InstancedMesh& mesh : _data)
 		{
-			glDeleteTextures(1, &mesh.texture);
-			glDeleteBuffers(1, &mesh.buffer);
+			gl::DeleteTextures(1, &mesh.texture);
+			gl::DeleteBuffers(1, &mesh.buffer);
 		}
 		
 		size_t childs = GetChildCount();
