@@ -214,6 +214,8 @@
 		E9D3CED6171F907500F4BF36 /* RNResourcePool.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D3CED4171F907500F4BF36 /* RNResourcePool.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9D3CEE717203FA100F4BF36 /* RNBillboard.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D3CEE517203FA100F4BF36 /* RNBillboard.cpp */; };
 		E9D3CEE817203FA100F4BF36 /* RNBillboard.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D3CEE617203FA100F4BF36 /* RNBillboard.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9D3D047183A5022007780A7 /* RNNull.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D3D045183A5022007780A7 /* RNNull.cpp */; };
+		E9D3D048183A5022007780A7 /* RNNull.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D3D046183A5022007780A7 /* RNNull.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9D7DA78172F9C0D00A858CB /* RNUIWidget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D7DA76172F9C0D00A858CB /* RNUIWidget.cpp */; };
 		E9D7DA79172F9C0D00A858CB /* RNUIWidget.h in Headers */ = {isa = PBXBuildFile; fileRef = E9D7DA77172F9C0D00A858CB /* RNUIWidget.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9D7DA7C172F9C7700A858CB /* RNUIView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9D7DA7A172F9C7700A858CB /* RNUIView.cpp */; };
@@ -483,6 +485,8 @@
 		E9D3CED4171F907500F4BF36 /* RNResourcePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNResourcePool.h; sourceTree = "<group>"; };
 		E9D3CEE517203FA100F4BF36 /* RNBillboard.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNBillboard.cpp; sourceTree = "<group>"; };
 		E9D3CEE617203FA100F4BF36 /* RNBillboard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNBillboard.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		E9D3D045183A5022007780A7 /* RNNull.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNNull.cpp; sourceTree = "<group>"; };
+		E9D3D046183A5022007780A7 /* RNNull.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNNull.h; sourceTree = "<group>"; };
 		E9D7DA76172F9C0D00A858CB /* RNUIWidget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIWidget.cpp; sourceTree = "<group>"; };
 		E9D7DA77172F9C0D00A858CB /* RNUIWidget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIWidget.h; sourceTree = "<group>"; };
 		E9D7DA7A172F9C7700A858CB /* RNUIView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIView.cpp; sourceTree = "<group>"; };
@@ -674,6 +678,8 @@
 				E93CE16117D83DB700A7A8A3 /* RNKVO.cpp */,
 				E93CE16217D83DB700A7A8A3 /* RNKVO.h */,
 				E9905CAC17D8999C0097A843 /* RNKVOImplementation.h */,
+				E9D3D045183A5022007780A7 /* RNNull.cpp */,
+				E9D3D046183A5022007780A7 /* RNNull.h */,
 				E99A955F172A002100605C68 /* RNNumber.cpp */,
 				E99A9560172A002100605C68 /* RNNumber.h */,
 				E9619E0D1696157E00DA187E /* RNObject.cpp */,
@@ -1091,6 +1097,7 @@
 				E945AB61178D7D1200C7B30A /* RNUIStyle.h in Headers */,
 				E919599017901180004B5880 /* RNUIUtilities.h in Headers */,
 				E917F0801791FC7C003765C1 /* RNUIScrollView.h in Headers */,
+				E9D3D048183A5022007780A7 /* RNNull.h in Headers */,
 				E93763F81794DD7000859EBA /* RNUITextField.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1201,6 +1208,7 @@
 				E9619E2B1696157E00DA187E /* RNCamera.cpp in Sources */,
 				E9619E2E1696157E00DA187E /* RNContext.cpp in Sources */,
 				E9F2B6851838B11F0014FB80 /* RNSHA2.cpp in Sources */,
+				E9D3D047183A5022007780A7 /* RNNull.cpp in Sources */,
 				E9619E331696157E00DA187E /* RNFile.cpp in Sources */,
 				E9619E351696157E00DA187E /* RNKernel.cpp in Sources */,
 				E9619E391696157E00DA187E /* RNMaterial.cpp in Sources */,

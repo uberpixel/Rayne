@@ -13,24 +13,29 @@
 #include "RNDictionary.h"
 #include "RNNumber.h"
 #include "RNString.h"
+#include "RNNull.h"
 
 namespace RN
 {
-	static MetaClassBase *__JSONArrayClass = 0;
-	static MetaClassBase *__JSONDictionaryClass = 0;
-	static MetaClassBase *__JSONNumberClass = 0;
-	static MetaClassBase *__JSONStringClass = 0;
+	static MetaClassBase *__JSONArrayClass = nullptr;
+	static MetaClassBase *__JSONDictionaryClass = nullptr;
+	static MetaClassBase *__JSONNumberClass = nullptr;
+	static MetaClassBase *__JSONStringClass = nullptr;
+	static MetaClassBase *__JSONNullClass = nullptr;
 	
 	void JSONReadClasses()
 	{
 		static std::once_flag onceToken;
-		std::call_once(onceToken, []{
+		std::call_once(onceToken, [] {
 			__JSONArrayClass = Array::MetaClass();
 			__JSONDictionaryClass = Dictionary::MetaClass();
 			__JSONNumberClass = Number::MetaClass();
 			__JSONStringClass = String::MetaClass();
+			__JSONNullClass = Null::MetaClass();
 		});
 	}
+	
+	
 	
 	
 	bool JSONSerialization::IsValidJSONObject(Object *object)
@@ -39,14 +44,13 @@ namespace RN
 		
 		if(object->IsKindOfClass(__JSONArrayClass))
 			return true;
-		
 		if(object->IsKindOfClass(__JSONDictionaryClass))
 			return true;
-		
 		if(object->IsKindOfClass(__JSONNumberClass))
 			return true;
-		
 		if(object->IsKindOfClass(__JSONStringClass))
+			return true;
+		if(object->IsKindOfClass(__JSONNullClass))
 			return true;
 		
 		return false;
@@ -95,7 +99,7 @@ namespace RN
 		if(object->IsKindOfClass(__JSONStringClass))
 		{
 			String *string = static_cast<String *>(object);
-			const char *utf8 = reinterpret_cast<const char *>(string->GetBytesWithEncoding(Encoding::UTF8, false, nullptr));
+			const char *utf8 = string->GetUTF8String();
 			
 			json = json_string_nocheck(utf8);
 		}
@@ -117,16 +121,29 @@ namespace RN
 			json = json_object();
 			
 			dictionary->Enumerate([&](Object *object, Object *key, bool *stop) {
+				
 				if(key->IsKindOfClass(__JSONStringClass))
 				{
 					String *string = static_cast<String *>(key);
-					const char *utf8 = reinterpret_cast<const char *>(string->GetBytesWithEncoding(Encoding::UTF8, false, nullptr));
+					const char *utf8 = string->GetUTF8String();
 					
 					json_t *data = static_cast<json_t *>(SerializeObject(object));
 					json_object_set_new_nocheck(json, utf8, data);
+					
+					return;
 				}
+				
+				throw Exception(Exception::Type::InconsistencyException, "Can't JSON serialize dictionaries with non string keys!");
 			});
 		}
+		
+		if(object->IsKindOfClass(__JSONNullClass))
+		{
+			json = json_null();
+		}
+		
+		if(!json)
+			throw Exception(Exception::Type::InconsistencyException, "Can't JSON serialize object");
 		
 		return json;
 	}
@@ -163,7 +180,7 @@ namespace RN
 				size_t size = json_array_size(json);
 				Array *array = new Array(size);
 				
-				for(size_t i=0; i<size; i++)
+				for(size_t i = 0; i < size; i ++)
 				{
 					json_t *value = json_array_get(json, i);
 					Object *object = DeserializeObject(value);
@@ -192,14 +209,11 @@ namespace RN
 				break;
 				
 			case JSON_STRING:
-			{
-				String *string = new String(json_string_value(json), Encoding::UTF8);
-				data = string;
-				
+				data = new String(json_string_value(json), Encoding::UTF8);
 				break;
-			}
 				
 			case JSON_NULL:
+				data = Null::GetNull()->Retain();
 				break;
 		}
 		
@@ -208,52 +222,90 @@ namespace RN
 	
 	
 	
-	Data *JSONSerialization::JSONDataFromObject(Object *root, SerializerOptions options)
+	void *JSONSerialization::SerializeObject(Object *root, SerializerOptions options)
 	{
 		JSONReadClasses();
-		
-		if(!root->IsKindOfClass(__JSONArrayClass) && !root->IsKindOfClass(__JSONDictionaryClass))
-			return nullptr;
 		
 		size_t flags = 0;
 		
 		if(options & PrettyPrint)
-		{
 			flags |= JSON_INDENT(4);
-		}
+		
+		if(options & AllowFragments)
+			flags |= JSON_DECODE_ANY;
+		
 		
 		json_t *json = static_cast<json_t *>(SerializeObject(root));
 		char *data = json_dumps(json, flags);
+		if(!data)
+			throw Exception(Exception::Type::InvalidArgumentException, "Failed to serialize object to JSON");
+		
+		json_decref(json);
+		return data;
+	}
+	
+	Data *JSONSerialization::JSONDataFromObject(Object *root, SerializerOptions options)
+	{
+		char *data = reinterpret_cast<char *>(SerializeObject(root, options));
 		
 		Data *temp = new Data(data, strlen(data));
 		free(data);
 		
-		json_decref(json);
+		return temp->Autorelease();
+	}
+	
+	String *JSONSerialization::JSONStringFromObject(Object *root, SerializerOptions options)
+	{
+		void *data = SerializeObject(root, options);
+		
+		String *temp = new String(data, Encoding::UTF8);
+		free(data);
 		
 		return temp->Autorelease();
 	}
 	
-	Object *JSONSerialization::JSONObjectFromData(Data *data)
+	
+	
+	Object *JSONSerialization::DeserializeFromUTF8String(const char *string, SerializerOptions options)
 	{
+		JSONReadClasses();
+		
 		json_error_t error;
 		size_t flags = JSON_DISABLE_EOF_CHECK;
-		json_t *root = json_loads(reinterpret_cast<char *>(data->GetBytes()), flags, &error);
+		
+		if(options & AllowFragments)
+			flags |= JSON_ENCODE_ANY;
+		
+		json_t *root = json_loads(string, flags, &error);
 		
 		if(!root)
 		{
 			std::stringstream stream;
 			stream << error.text << "\nLine: " << error.line << ", column: " << error.column;
-
+			
 			throw Exception(Exception::Type::GenericException, stream.str());
 		}
 		
-		AutoreleasePool *pool = new AutoreleasePool();
 		
-		Object *object = DeserializeObject(root)->Retain();
-		json_decref(root);
+		Object *object;
 		
-		delete pool;
+		{
+			AutoreleasePool pool;
+			
+			object = DeserializeObject(root)->Retain();
+			json_decref(root);
+		}
 		
 		return object->Autorelease();
+	}
+	
+	Object *JSONSerialization::__JSONObjectFromString(String *string, SerializerOptions options)
+	{
+		return DeserializeFromUTF8String(string->GetUTF8String(), options);
+	}
+	
+	Object *JSONSerialization::__JSONObjectFromData(Data *data, SerializerOptions options)
+	{
+		return DeserializeFromUTF8String(reinterpret_cast<char *>(data->GetBytes()), options);
 	}
 }

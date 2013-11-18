@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNData.h"
+#include "RNString.h"
 
 namespace RN
 {
@@ -20,18 +21,38 @@ namespace RN
 	public:
 		enum
 		{
-			PrettyPrint = (1 << 1)
+			PrettyPrint = (1 << 0),
+			AllowFragments = (1 << 1)
 		};
 		typedef uint32 SerializerOptions;
 		
-		static Data *JSONDataFromObject(Object *root, SerializerOptions options);
-		static Object *JSONObjectFromData(Data *data);
+		
+		static String *JSONStringFromObject(Object *root, SerializerOptions options = 0);
+		static Data *JSONDataFromObject(Object *root, SerializerOptions options = 0);
+		
+		template<class T = Object>
+		static T *JSONObjectFromString(String *string, SerializerOptions options = 0)
+		{
+			return __JSONObjectFromString(string, options)->Downcast<T>();
+		}
+		
+		template<class T = Object>
+		static T *JSONObjectFromData(Data *data, SerializerOptions options = 0)
+		{
+			return __JSONObjectFromData(data, options)->Downcast<T>();
+		}
 		
 		static bool IsValidJSONObject(Object *object);
 		
 	private:
 		static Object *DeserializeObject(void *);
+		static Object *DeserializeFromUTF8String(const char *string, SerializerOptions options);
+		
 		static void *SerializeObject(Object *object);
+		static void *SerializeObject(Object *root, SerializerOptions options);
+		
+		static Object *__JSONObjectFromString(String *string, SerializerOptions options);
+		static Object *__JSONObjectFromData(Data *data, SerializerOptions options);
 	};
 }
 

@@ -36,7 +36,7 @@ namespace RN
 			std::string path = FileManager::GetSharedInstance()->GetFilePathWithName("manifest.json");
 			
 			Data *data = Data::WithContentsOfFile(path);
-			_manifest = static_cast<Dictionary *>(JSONSerialization::JSONObjectFromData(data));
+			_manifest = JSONSerialization::JSONObjectFromData<Dictionary>(data);
 			_manifest->Retain();
 		}
 		catch(Exception e)
@@ -71,7 +71,7 @@ namespace RN
 			}
 			
 			Data *data = Data::WithContentsOfFile(path);
-			_settings = static_cast<Dictionary *>(JSONSerialization::JSONObjectFromData(data));
+			_settings = JSONSerialization::JSONObjectFromData<Dictionary>(data);
 			_settings->Retain();
 			
 			if(isVirgin)

@@ -24,9 +24,9 @@ namespace RN
 			try
 			{
 				String *path = Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestUIStyleKey);
-				Object *data = JSONSerialization::JSONObjectFromData(Data::WithContentsOfFile(path->GetUTF8String()));
 				
-				_data = data->Downcast<Dictionary>()->Retain();
+				_data = JSONSerialization::JSONObjectFromData<Dictionary>(Data::WithContentsOfFile(path->GetUTF8String()));
+				_data->Retain();
 			}
 			catch(Exception e)
 			{
