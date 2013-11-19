@@ -171,13 +171,13 @@ namespace RN
 	}
 	
 	
-	DownsamplePostProcessingPipeline::DownsamplePostProcessingPipeline(const std::string& name, Camera *camera, Texture *texture, Shader *firstShader, Shader *shader, Texture::Parameter::Format format) :
+	DownsamplePostProcessingPipeline::DownsamplePostProcessingPipeline(const std::string& name, Camera *camera, Texture *texture, Shader *firstShader, Shader *shader, Texture::Format format) :
 		PostProcessingPipeline(name)
 	{
 		Texture::Parameter parameter;
 		parameter.format = format;
 		
-		_lastTarget = new Texture(parameter);
+		_lastTarget = new Texture2D(parameter);
 		_format = format;
 		_level = 0;
 		
@@ -275,7 +275,7 @@ namespace RN
 	
 	
 	Camera::Camera(const Vector2& size) :
-		Camera(size, Texture::Parameter::Format::RGBA8888)
+		Camera(size, Texture::Format::RGBA8888)
 	{}
 
 
@@ -288,11 +288,11 @@ namespace RN
 	{}
 
 
-	Camera::Camera(const Vector2& size, Texture::Parameter::Format targetFormat) :
+	Camera::Camera(const Vector2& size, Texture::Format targetFormat) :
 		Camera(size, targetFormat, FlagDefaults)
 	{}
 
-	Camera::Camera(const Vector2& size, Texture::Parameter::Format targetFormat, Flags flags) :
+	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags) :
 		Camera(size, targetFormat, flags, RenderStorage::BufferFormatComplete)
 	{}
 
@@ -311,7 +311,7 @@ namespace RN
 		Initialize();
 	}
 
-	Camera::Camera(const Vector2& size, Texture::Parameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor) :
+	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_scaleFactor(scaleFactor),
 		lightManager(nullptr)

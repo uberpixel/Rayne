@@ -170,11 +170,10 @@ namespace RN
 			if(!texture)
 			{
 				Texture::Parameter parameter;
-				parameter.generateMipMaps = false;
-				parameter.mipMaps = 0;
+				parameter.maxMipMaps = 0;
 				
-				texture = new Texture(name->GetUTF8String(), parameter);
-				_textures->SetObjectForKey(texture->Autorelease(), name);
+				texture = Texture::WithFile(name->GetUTF8String(), parameter);
+				_textures->SetObjectForKey(texture, name);
 			}
 			
 			return texture;

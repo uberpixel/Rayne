@@ -12,16 +12,14 @@
 namespace RN
 {
 	TextureAtlas::TextureAtlas(uint32 width, uint32 height, const Texture::Parameter& parameter) :
-		Texture(parameter)
+		Texture2D(parameter)
 	{
-		SetData(0, width, height, parameter.format);
 		Initialize(width, height);
 	}
 	
 	TextureAtlas::TextureAtlas(uint32 width, uint32 height, bool isLinear, const Texture::Parameter& parameter) :
-		Texture(parameter, isLinear)
+		Texture2D(parameter, isLinear)
 	{
-		SetData(0, width, height, parameter.format);
 		Initialize(width, height);
 	}
 	
@@ -35,16 +33,25 @@ namespace RN
 		region.isFree = true;
 		
 		_regions.push_back(region);
-		_width = _maxWidth = width;
+		_width  = _maxWidth = width;
 		_height = _maxHeight = height;
 		_tag = 0;
 		_mutations = 0;
+		
+		SetSize(_width, _height);
 	}
 	
 	
-	void TextureAtlas::SetRegionData(const Rect& region, void *data, Texture::Parameter::Format format)
+	void TextureAtlas::SetRegionData(const Rect& region, void *data, Texture::Format format)
 	{
-		UpdateRegion(data, region, format);
+		PixelData pdata;
+		pdata.data = data;
+		pdata.format = format;
+		pdata.width  = region.width;
+		pdata.height = region.height;
+		pdata.alignment = 1;
+		
+		UpdateRegion(pdata, region);
 	}
 	
 	void TextureAtlas::SetMaxSize(uint32 maxWidth, uint32 maxHeight)
@@ -99,8 +106,14 @@ namespace RN
 		uint8 *data = new uint8[_width * _height * 4];
 		uint8 *nData = new uint8[nWidth * nHeight * 4];
 		
+		PixelData pdata;
+		pdata.data = data;
+		pdata.format = Format::RGBA8888;
+		pdata.width  = _width;
+		pdata.height = _height;
+		
 		memset(nData, 0, nWidth * nHeight * 4);
-		GetData(data, Texture::Parameter::Format::RGBA8888);
+		GetData(pdata);
 		
 		for(uint32 y = 0; y < _height; y ++)
 		{
@@ -110,7 +123,11 @@ namespace RN
 			std::copy(row, row + (_width * 4), nrow);
 		}
 		
-		SetData(nData, nWidth, nHeight, Texture::Parameter::Format::RGBA8888);
+		pdata.data = nData;
+		pdata.width = nWidth;
+		pdata.height = nHeight;
+		
+		SetData(pdata);
 		
 		delete [] nData;
 		delete [] data;

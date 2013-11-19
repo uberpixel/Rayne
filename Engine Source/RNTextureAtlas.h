@@ -17,7 +17,7 @@
 
 namespace RN
 {
-	class TextureAtlas : public Texture
+	class TextureAtlas : public Texture2D
 	{
 	public:
 		TextureAtlas(uint32 width, uint32 height, const Texture::Parameter& parameter);
@@ -25,7 +25,7 @@ namespace RN
 		~TextureAtlas() override;
 		
 		Rect AllocateRegion(uint32 width, uint32 height);
-		void SetRegionData(const Rect& region, void *data, Texture::Parameter::Format format);
+		void SetRegionData(const Rect& region, void *data, Texture::Format format);
 		
 		void SetMaxSize(uint32 maxWidth, uint32 maxHeight);
 		uint32 GetTag() const { return _tag; }

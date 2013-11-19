@@ -245,8 +245,8 @@ namespace RN
 		Shader *matShader = Shader::WithFile(shader);
 		
 		Texture::Parameter parameter;
-		parameter.format = Texture::Parameter::Format::RGB888;
-		parameter.wrapMode = Texture::Parameter::WrapMode::Clamp;
+		parameter.format = Texture::Format::RGB888;
+		parameter.wrapMode = Texture::WrapMode::Clamp;
 		
 		
 		Material *skyDownMaterial = new Material(matShader);
@@ -312,9 +312,9 @@ namespace RN
 				file->ReadIntoString(textureFile, file->ReadUint16());
 				
 				std::string path = file->GetPath();
-				Texture *texture = new Texture(PathManager::Join(path, textureFile));
+				
+				Texture *texture = Texture::WithFile(PathManager::Join(path, textureFile));
 				material->AddTexture(texture);
-				texture->Release();
 			}
 			
 			materials.push_back(material);
@@ -469,9 +469,8 @@ namespace RN
 				file->ReadIntoString(textureFile, file->ReadUint16());
 				
 				std::string path = file->GetPath();
-				Texture *texture = new Texture(PathManager::Join(path, textureFile));
+				Texture *texture = Texture::WithFile(PathManager::Join(path, textureFile));
 				material->AddTexture(texture);
-				texture->Release();
 			}
 			
 			materials.push_back(material);

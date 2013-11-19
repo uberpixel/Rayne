@@ -76,10 +76,9 @@ namespace RN
 		
 		Texture::Parameter parameter = target->GetParameter();
 		
-		parameter.filter = Texture::Parameter::Filter::Nearest;
-		parameter.wrapMode = Texture::Parameter::WrapMode::Clamp;
-		parameter.mipMaps = 0;
-		parameter.generateMipMaps = false;
+		parameter.filter = Texture::Filter::Nearest;
+		parameter.wrapMode = Texture::WrapMode::Clamp;
+		parameter.maxMipMaps = 0;
 		
 		target->SetParameter(parameter);
 		
@@ -104,10 +103,9 @@ namespace RN
 		
 		Texture::Parameter parameter = target->GetParameter();
 		
-		parameter.filter = Texture::Parameter::Filter::Linear;
-		parameter.wrapMode = Texture::Parameter::WrapMode::Clamp;
-		parameter.mipMaps = 0;
-		parameter.generateMipMaps = false;
+		parameter.filter = Texture::Filter::Linear;
+		parameter.wrapMode = Texture::WrapMode::Clamp;
+		parameter.maxMipMaps = 0;
 		
 		target->SetParameter(parameter);
 		
@@ -115,19 +113,18 @@ namespace RN
 		_renderTargetsChanged = true;
 	}
 	
-	void RenderStorage::AddRenderTarget(Texture::Parameter::Format format)
+	void RenderStorage::AddRenderTarget(Texture::Format format)
 	{
 		RN_ASSERT(_format & BufferFormatColor, "Need a color buffer to change render targets");
 		
 		Texture::Parameter parameter;
 		
 		parameter.format = format;
-		parameter.filter = Texture::Parameter::Filter::Linear;
-		parameter.wrapMode = Texture::Parameter::WrapMode::Clamp;
-		parameter.mipMaps = 0;
-		parameter.generateMipMaps = false;
+		parameter.filter = Texture::Filter::Linear;
+		parameter.wrapMode = Texture::WrapMode::Clamp;
+		parameter.maxMipMaps = 0;
 		
-		Texture *target = new Texture(parameter, true);
+		Texture *target = new Texture2D(parameter, true);
 		
 		try
 		{
@@ -155,15 +152,14 @@ namespace RN
 		_formatChanged = true;
 	}
 	
-	void RenderStorage::SetDepthTarget(Texture::Parameter::Format format)
+	void RenderStorage::SetDepthTarget(Texture::Format format)
     {
         Texture::Parameter parameter;
         parameter.format = format;
-        parameter.wrapMode = Texture::Parameter::WrapMode::Clamp;
-        parameter.mipMaps = 0;
-        parameter.generateMipMaps = false;
+        parameter.wrapMode = Texture::WrapMode::Clamp;
+        parameter.maxMipMaps = 0;
         
-        Texture *target = new Texture(parameter, true);
+        Texture *target = new Texture2D(parameter, true);
         
         try
         {
@@ -419,22 +415,22 @@ namespace RN
 		// Allocate storage for the buffers
 		if(_sizeChanged)
 		{
-			uint32 width  = (uint32)ceil(_size.x  * _scaleFactor);
+			uint32 width  = (uint32)ceil(_size.x * _scaleFactor);
 			uint32 height = (uint32)ceil(_size.y * _scaleFactor);
 			
 			for(size_t i=0; i<_renderTargets->GetCount(); i++)
 			{
-				Texture *texture = _renderTargets->GetObjectAtIndex<Texture>(i);
+				Texture2D *texture = _renderTargets->GetObjectAtIndex<Texture2D>(i);
 				
 				texture->Bind();
-				texture->SetData(0, width, height, Texture::Parameter::Format::RGBA8888);
+				texture->SetSize(width, height);
 				texture->Unbind();
 			}
 			
 			if(_depthTexture)
 			{
 				_depthTexture->Bind();
-				_depthTexture->SetData(0, width, height, Texture::Parameter::Format::RGBA8888);
+				_depthTexture->SetSize(width, height);
 				_depthTexture->Unbind();
 			}
 			else if((_format & BufferFormatDepth) || (_format & BufferFormatStencil))

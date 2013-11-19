@@ -99,7 +99,7 @@ namespace RN
 	class DownsamplePostProcessingPipeline : public PostProcessingPipeline
 	{
 	public:
-		DownsamplePostProcessingPipeline(const std::string& name, Camera *camera, Texture *texture, Shader *firstShader, Shader *shader, Texture::Parameter::Format format);
+		DownsamplePostProcessingPipeline(const std::string& name, Camera *camera, Texture *texture, Shader *firstShader, Shader *shader, Texture::Format format);
 		~DownsamplePostProcessingPipeline();
 		
 		Texture *GetLastTarget() { return _lastTarget; }
@@ -116,7 +116,7 @@ namespace RN
 		Rect _frame;
 		
 		Camera *_camera;
-		Texture::Parameter::Format _format;
+		Texture::Format _format;
 		Texture *_texture;
 		Texture *_lastTarget;
 		Shader *_firstShader;
@@ -198,9 +198,9 @@ namespace RN
 		RNAPI Camera(const Vector2& size, Texture *target, Flags flags);
 		RNAPI Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format);
 		
-		RNAPI Camera(const Vector2& size, Texture::Parameter::Format targetFormat);
-		RNAPI Camera(const Vector2& size, Texture::Parameter::Format targetFormat, Flags flags);
-		RNAPI Camera(const Vector2& size, Texture::Parameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f);
+		RNAPI Camera(const Vector2& size, Texture::Format targetFormat);
+		RNAPI Camera(const Vector2& size, Texture::Format targetFormat, Flags flags);
+		RNAPI Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f);
 		
 		RNAPI Camera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f);
 		
@@ -369,9 +369,9 @@ namespace RN
 		RNAPI CubemapCamera(const Vector2& size, Texture *target, Flags flags) : Camera(size, target, flags){}
 		RNAPI CubemapCamera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format) : Camera(size, target, flags, format){}
 		
-		RNAPI CubemapCamera(const Vector2& size, Texture::Parameter::Format targetFormat) : Camera(size, targetFormat){}
-		RNAPI CubemapCamera(const Vector2& size, Texture::Parameter::Format targetFormat, Flags flags) : Camera(size, targetFormat, flags){}
-		RNAPI CubemapCamera(const Vector2& size, Texture::Parameter::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f) : Camera(size, targetFormat, flags, format, scaleFactor){}*/
+		RNAPI CubemapCamera(const Vector2& size, Texture::Format targetFormat) : Camera(size, targetFormat){}
+		RNAPI CubemapCamera(const Vector2& size, Texture::Format targetFormat, Flags flags) : Camera(size, targetFormat, flags){}
+		RNAPI CubemapCamera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f) : Camera(size, targetFormat, flags, format, scaleFactor){}*/
 		
 		RNAPI CubemapCamera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f) : Camera(size, storage, flags, scaleFactor){}
 		

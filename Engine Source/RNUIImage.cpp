@@ -25,10 +25,10 @@ namespace RN
 			_atlas(UI::Atlas(0.0f, 0.0f, 1.0f, 1.0f))
 		{
 			Texture::Parameter parameter;
-			parameter.mipMaps = 0;
-			parameter.generateMipMaps = false;
+			parameter.maxMipMaps = 0;
 			
-			_texture = new RN::Texture(file, parameter);
+			_texture = Texture::WithFile(file, parameter);
+			_texture->Retain();
 		}
 		
 		Image::~Image()
@@ -170,8 +170,8 @@ namespace RN
 			
 			if(!normalized)
 			{
-				uint32 width = _texture->GetWidth();
-				uint32 height = _texture->GetHeight();
+				size_t width  = _texture->GetWidth();
+				size_t height = _texture->GetHeight();
 				
 				_atlas.u1 /= width;
 				_atlas.u2 /= width;
@@ -186,18 +186,18 @@ namespace RN
 			_insets = insets;
 		}
 		
-		uint32 Image::GetWidth() const
+		size_t Image::GetWidth() const
 		{
-			uint32 width = _texture->GetWidth();
+			size_t width = _texture->GetWidth();
 			float nwidth  = _atlas.u2 - _atlas.u1;
 			
 			width = nwidth * width;
 			return width;
 		}
 		
-		uint32 Image::GetHeight() const
+		size_t Image::GetHeight() const
 		{
-			uint32 height = _texture->GetHeight();
+			size_t height = _texture->GetHeight();
 			float nheight = _atlas.v2 - _atlas.v1;
 				
 			height = nheight * height;

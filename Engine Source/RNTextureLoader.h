@@ -26,7 +26,7 @@ namespace RN
 		uint32 GetHeight() const { return _height; }
 		
 		const void *GetData() const { return _data; }
-		Texture::Parameter::Format GetFormat() const { return _format; }
+		Texture::Format GetFormat() const { return _format; }
 		
 	private:
 		bool LoadPNGTexture(FILE *file);
@@ -35,7 +35,7 @@ namespace RN
 		uint32 _height;
 		
 		void *_data;
-		Texture::Parameter::Format _format;
+		Texture::Format _format;
 	};
 }
 

@@ -114,16 +114,14 @@ namespace RN
 			_shadowDistFac = distfac;
 			
 			Texture::Parameter parameter;
-			parameter.wrapMode = Texture::Parameter::WrapMode::Clamp;
-			parameter.filter = Texture::Parameter::Filter::Linear;
-			parameter.format = Texture::Parameter::Format::Depth24I;
-			parameter.type = Texture::Parameter::Type::Texture2DArray;
+			parameter.wrapMode = Texture::WrapMode::Clamp;
+			parameter.filter = Texture::Filter::Linear;
+			parameter.format = Texture::Format::Depth24I;
 			parameter.depthCompare = true;
-			parameter.generateMipMaps = false;
-			parameter.mipMaps = 0;
+			parameter.maxMipMaps = 0;
 			
-			Texture *depthtex = new Texture(parameter);
-			depthtex->SetDepth(splits);
+			Texture2DArray *depthtex = new Texture2DArray(parameter);
+			depthtex->SetSize(32, 32, splits);
 			depthtex->Autorelease();
 			
 			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader);
@@ -165,15 +163,13 @@ namespace RN
 		if(_shadow)
 		{
 			Texture::Parameter parameter;
-			parameter.wrapMode = Texture::Parameter::WrapMode::Repeat;
-			parameter.filter = Texture::Parameter::Filter::Nearest;
-			parameter.format = Texture::Parameter::Format::Depth24I;
-			parameter.type = Texture::Parameter::Type::TextureCube;
+			parameter.wrapMode = Texture::WrapMode::Repeat;
+			parameter.filter = Texture::Filter::Nearest;
+			parameter.format = Texture::Format::Depth24I;
 			parameter.depthCompare = false;
-			parameter.generateMipMaps = false;
-			parameter.mipMaps = 0;
+			parameter.maxMipMaps = 0;
 			
-			Texture *depthtex = new Texture(parameter);
+			Texture *depthtex = new TextureCubeMap(parameter);
 			depthtex->Autorelease();
 			
 			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyPointShadowDepthShader);
@@ -210,15 +206,13 @@ namespace RN
 		if(_shadow)
 		{
 			Texture::Parameter parameter;
-			parameter.wrapMode = Texture::Parameter::WrapMode::Repeat;
-			parameter.filter = Texture::Parameter::Filter::Nearest;
-			parameter.format = Texture::Parameter::Format::Depth24I;
-			parameter.type = Texture::Parameter::Type::TextureCube;
+			parameter.wrapMode = Texture::WrapMode::Repeat;
+			parameter.filter = Texture::Filter::Nearest;
+			parameter.format = Texture::Format::Depth24I;
 			parameter.depthCompare = false;
-			parameter.generateMipMaps = false;
-			parameter.mipMaps = 0;
+			parameter.maxMipMaps = 0;
 			
-			Texture *depthtex = new Texture(parameter);
+			Texture *depthtex = new TextureCubeMap(parameter);
 			depthtex->Autorelease();
 			
 			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyPointShadowDepthShader);

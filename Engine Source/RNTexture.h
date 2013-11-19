@@ -17,145 +17,193 @@ namespace RN
 {
 	class Camera;
 	
-	
-	
 	class Texture : public Object
 	{
-	friend class Camera;
 	public:
-		class Parameter
+		friend class Camera;
+		
+		enum class Format
 		{
-		public:
+			RGBA8888,
+			RGBA4444,
+			RGBA5551,
+			RGB565,
+			
+			R8,
+			RG88,
+			RGB888,
+			
+			// No auto conversion for the following types!
+			R16F,
+			RG16F,
+			RGB16F,
+			RGBA16F,
+			
+			R32F,
+			RG32F,
+			RGB32F,
+			RGBA32F,
+			
+			Depth24I,
+			Depth32F,
+			DepthStencil,
+			
+			PVRTC4,
+			PVRTC2
+		};
+		
+		enum class WrapMode
+		{
+			Clamp,
+			Repeat
+		};
+		
+		enum class Filter
+		{
+			Linear,
+			Nearest
+		};
+		
+		struct Parameter
+		{
 			Parameter()
 			{
-				format = Format::RGBA8888;
+				format   = Format::RGBA8888;
 				wrapMode = WrapMode::Repeat;
-				filter = Filter::Linear;
-				type = Type::Texture2D;
+				filter   = Filter::Linear;
 				
-				depthCompare = false;
+				depthCompare    = false;
 				generateMipMaps = true;
-				mipMaps = 1000;
-				anisotropy = 0.0f;
+				maxMipMaps      = 1000;
+				anisotropy      = 0.0f;
 			}
-			
-			enum class Format
-			{
-				RGBA8888,
-				RGBA4444,
-				RGBA5551,
-				RGB565,
-				
-				R8,
-				RG88,
-				RGB888,
-				
-				// No auto conversion for the following types!
-				R16F,
-				RG16F,
-				RGB16F,
-				RGBA16F,
-				
-				R32F,
-				RG32F,
-				RGB32F,
-				RGBA32F,
-				
-				Depth24I,
-				Depth32F,
-				DepthStencil,
-				
-				PVRTC4,
-				PVRTC2
-			};
-			
-			enum class WrapMode
-			{
-				Clamp,
-				Repeat
-			};
-			
-			enum class Filter
-			{
-				Linear,
-				Nearest
-			};
-			
-			enum class Type
-			{
-				Texture2D,
-				Texture3D,
-				Texture2DArray,
-				TextureCube
-			};
 			
 			Format format;
 			Filter filter;
 			WrapMode wrapMode;
-			Type type;
 			
 			bool depthCompare;
 			bool generateMipMaps;
-			uint32 mipMaps;
+			size_t maxMipMaps;
 			float anisotropy;
 		};
 		
-		RNAPI Texture(Texture::Parameter::Format format, bool isLinear=false);
-		RNAPI Texture(const Texture::Parameter& parameter, bool isLinear=false);
-		RNAPI Texture(const std::string& name, bool isLinear=false);
-		RNAPI Texture(const std::string& name, const Texture::Parameter& parameter, bool isLinear=false);
-		
-		static Texture *WithFile(const std::string& name, bool isLinear=false);
-		static Texture *WithFile(const std::string& name, const Texture::Parameter& parameter, bool isLinear=false);
+		struct PixelData
+		{
+			Format format;
+			size_t alignment;
+			size_t width, height;
+			void *data;
+		};
 		
 		RNAPI ~Texture() override;
 		
-		RNAPI virtual void Bind();
-		RNAPI virtual void Unbind();
+		static Texture *WithFile(const std::string& name, bool isLinear = false);
+		static Texture *WithFile(const std::string& name, const Parameter& parameter, bool isLinear = false);
+		
+		RNAPI void Bind();
+		RNAPI void Unbind();
+		
+		RNAPI virtual void SetSize(size_t width, size_t height);
+		RNAPI void SetParameter(const Parameter& parameter);
+		
+		const Parameter& GetParameter() const { return _parameter; }
 		
 		GLuint GetName() { return _name; }
 		GLuint GetGLType() { return _glType; }
 		
-		RNAPI void GetData(void *ptr, Parameter::Format format);
+		size_t GetWidth() const { return _width; }
+		size_t GetHeight() const { return _height; }
 		
-		RNAPI void SetDepth(uint32 depth);
-		RNAPI void SetData(const void *data, uint32 width, uint32 height, Parameter::Format format);
-		RNAPI void UpdateData(const void *data, Parameter::Format format);
-		RNAPI void UpdateRegion(const void *data, const Rect& region, Parameter::Format format);
-		RNAPI void UpdateMipmaps();
+		bool IsComplete() const { return _isComplete; }
 		
-		RNAPI void SetParameter(const Parameter& parameter);
-		RNAPI const Parameter& GetParameter() const { return _parameter; }
+		RNAPI static bool PlatformSupportsFormat(Format format);
 		
-		RNAPI static bool PlatformSupportsFormat(Texture::Parameter::Format format);
 		RNAPI static void SetDefaultAnisotropyLevel(float level);
-		
 		RNAPI static float GetMaxAnisotropyLevel();
 		RNAPI static float GetDefaultAnisotropyLevel();
 		
-		uint32 GetWidth() const { return _width; }
-		uint32 GetHeight() const { return _height; }
-		
 	protected:
-		GLuint _name;
-		GLenum _glType;
-		uint32 _width, _height, _depth;
+		RNAPI Texture(GLenum type, bool isLinear);
 		
-	private:
-		static void *ConvertData(const void *data, uint32 width, uint32 height, Texture::Parameter::Format current, Parameter::Format target);
-		static void ConvertFormat(Parameter::Format format, bool isLinear, GLenum *glFormat, GLint *glInternalFormat, GLenum *glType);
-		void SetType(Parameter::Type type);
+		RNAPI static void *ConvertData(const PixelData& data, Format target);
+		RNAPI static void ConvertFormatToOpenGL(Format format, bool linear, GLint& glInternalFormat, GLenum& glFormat, GLenum& glType);
 		
 		Parameter _parameter;
 		
-		bool _isCompleteTexture;
+		GLuint _name;
+		GLenum _glType;
+		size_t _width, _height;
+		
+		bool _isComplete;
 		bool _hasChanged;
 		bool _isLinear;
-		bool _depthCompare;
 		
+	private:
 		static float _defaultAnisotropy;
 		
 		RNDefineMeta(Texture, Object)
+	};
+	
+	class Texture2D : public Texture
+	{
+	public:
+		RNAPI Texture2D(Format format, bool isLinear=false);
+		RNAPI Texture2D(const Parameter& parameter, bool isLinear=false);
+		
+		RNAPI void SetSize(size_t width, size_t height) override;
+		
+		RNAPI void SetData(const PixelData& data);
+		RNAPI void UpdateData(const PixelData& data);
+		RNAPI void UpdateRegion(const PixelData& data, const Rect& region);
+		
+		RNAPI void GetData(PixelData& data);
+		
+		RNDefineMeta(Texture2D, Texture)
+	};
+	
+	class Texture2DArray : public Texture
+	{
+	public:
+		RNAPI Texture2DArray(Format format, bool isLinear=false);
+		RNAPI Texture2DArray(const Parameter& parameter, bool isLinear=false);
+		
+		RNAPI void SetSize(size_t width, size_t height) override;
+		RNAPI void SetSize(size_t width, size_t height, size_t layer);
+		
+		RNAPI void SetData(const PixelData& data, size_t index);
+		RNAPI void UpdateData(const PixelData& data, size_t index);
+		
+	private:
+		size_t _layer;
+		
+		RNDefineMeta(Texture2DArray, Texture)
+	};
+	
+	class TextureCubeMap : public Texture
+	{
+	public:
+		enum class Side : int
+		{
+			PositiveX,
+			NegativeX,
+			PositiveY,
+			NegativeY,
+			PostiiveZ,
+			NegativeZ,
+			
+			All
+		};
+		
+		RNAPI TextureCubeMap(Format format, bool isLinear=false);
+		RNAPI TextureCubeMap(const Parameter& parameter, bool isLinear=false);
+		
+		RNAPI void SetSize(size_t width, size_t height) override;
+		
+		RNAPI void SetData(const PixelData& data, Side side);
+		RNAPI void UpdateData(const PixelData& data, Side side);
+		
+		RNDefineMeta(TextureCubeMap, Texture)
 	};
 }
 
