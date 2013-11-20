@@ -1,0 +1,3 @@
+[submodule "Vendor/gperftools"]
+	path = Vendor/gperftools
+	url = git@github.com:uberpixel/gperftools.git

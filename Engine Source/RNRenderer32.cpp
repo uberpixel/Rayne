@@ -28,15 +28,15 @@ namespace RN
 		_copyVertices[2] = Vector4(-1.0f, 1.0f,  0.0f, 1.0f);
 		_copyVertices[3] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 		
-		glGenVertexArrays(1, &_copyVAO);
-		glBindVertexArray(_copyVAO);
+		gl::GenVertexArrays(1, &_copyVAO);
+		gl::BindVertexArray(_copyVAO);
 		
-		glGenBuffers(1, &_copyVBO);
+		gl::GenBuffers(1, &_copyVBO);
 		
-		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
-		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STREAM_DRAW);
+		gl::BindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+		gl::BufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STREAM_DRAW);
 		
-		glBindVertexArray(0);
+		gl::BindVertexArray(0);
 		
 		_maxLightFastPath = 10;
 		
@@ -45,8 +45,8 @@ namespace RN
 	
 	Renderer32::~Renderer32()
 	{
-		glDeleteBuffers(1, &_copyVBO);
-		glDeleteVertexArrays(1, &_copyVAO);
+		gl::DeleteBuffers(1, &_copyVBO);
+		gl::DeleteVertexArrays(1, &_copyVAO);
 	}
 	
 	
@@ -108,10 +108,10 @@ namespace RN
 			height = ceilf(tframe.height * _scaleFactor);
 		}
 		
-		glViewport(x, y, width, height);
+		gl::Viewport(x, y, width, height);
 		
-		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
-		glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STREAM_DRAW);
+		gl::BufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
+		gl::BufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STREAM_DRAW);
 	}
 	
 	void Renderer32::FlushCamera(Camera *camera, Shader *drawShader)
@@ -119,21 +119,21 @@ namespace RN
 		Renderer::FlushCamera(camera, drawShader);
 		
 		BindVAO(_copyVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+		gl::BindBuffer(GL_ARRAY_BUFFER, _copyVBO);
 		
 		AdjustDrawBuffer(camera, nullptr);
 		
-		glEnableVertexAttribArray(_currentProgram->attPosition);
-		glVertexAttribPointer(_currentProgram->attPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
+		gl::EnableVertexAttribArray(_currentProgram->attPosition);
+		gl::VertexAttribPointer(_currentProgram->attPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
 		
-		glEnableVertexAttribArray(_currentProgram->attTexcoord0);
-		glVertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
+		gl::EnableVertexAttribArray(_currentProgram->attTexcoord0);
+		gl::VertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
 		
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		gl::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		
-		glDisableVertexAttribArray(_currentProgram->attPosition);
-		glDisableVertexAttribArray(_currentProgram->attTexcoord0);
+		gl::DisableVertexAttribArray(_currentProgram->attPosition);
+		gl::DisableVertexAttribArray(_currentProgram->attTexcoord0);
 	}
 	
 	void Renderer32::DrawCameraStage(Camera *camera, Camera *stage)
@@ -141,20 +141,20 @@ namespace RN
 		Renderer::DrawCameraStage(camera, stage);
 		
 		BindVAO(_copyVAO);
-		glBindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+		gl::BindBuffer(GL_ARRAY_BUFFER, _copyVBO);
 		
 		AdjustDrawBuffer(camera, stage);
 		
-		glEnableVertexAttribArray(_currentProgram->attPosition);
-		glVertexAttribPointer(_currentProgram->attPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
+		gl::EnableVertexAttribArray(_currentProgram->attPosition);
+		gl::VertexAttribPointer(_currentProgram->attPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
 		
-		glEnableVertexAttribArray(_currentProgram->attTexcoord0);
-		glVertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
+		gl::EnableVertexAttribArray(_currentProgram->attTexcoord0);
+		gl::VertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 		
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		gl::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 		
-		glDisableVertexAttribArray(_currentProgram->attPosition);
-		glDisableVertexAttribArray(_currentProgram->attTexcoord0);
+		gl::DisableVertexAttribArray(_currentProgram->attPosition);
+		gl::DisableVertexAttribArray(_currentProgram->attTexcoord0);
 	}
 	
 	// ---------------------
@@ -326,21 +326,21 @@ namespace RN
 					if(lightManager != nullptr)
 					{
 						// Light data
-				/*		glUniform1i(program->lightPointCount, lightPointCount);
-						glUniform4fv(program->lightPointPosition, lightPointCount, (float*)lightManager->_lightPointPosition.data());
-						glUniform4fv(program->lightPointColor, lightPointCount, (float*)lightManager->_lightPointColor.data());
-				*/		
-						glUniform1i(program->lightSpotCount, lightSpotCount);
-						glUniform4fv(program->lightSpotPosition, lightSpotCount, (float*)lightManager->_lightSpotPosition.data());
-						glUniform4fv(program->lightSpotDirection, lightSpotCount, (float*)lightManager->_lightSpotDirection.data());
-						glUniform4fv(program->lightSpotColor, lightSpotCount, (float*)lightManager->_lightSpotColor.data());
+						gl::Uniform1i(program->lightPointCount, lightPointCount);
+						gl::Uniform4fv(program->lightPointPosition, lightPointCount, (float*)lightManager->_lightPointPosition.data());
+						gl::Uniform4fv(program->lightPointColor, lightPointCount, (float*)lightManager->_lightPointColor.data());
 						
-						glUniform1i(program->lightDirectionalCount, lightDirectionalCount);
-						glUniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)lightManager->_lightDirectionalDirection.data());
-						glUniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)lightManager->_lightDirectionalColor.data());
+						gl::Uniform1i(program->lightSpotCount, lightSpotCount);
+						gl::Uniform4fv(program->lightSpotPosition, lightSpotCount, (float*)lightManager->_lightSpotPosition.data());
+						gl::Uniform4fv(program->lightSpotDirection, lightSpotCount, (float*)lightManager->_lightSpotDirection.data());
+						gl::Uniform4fv(program->lightSpotColor, lightSpotCount, (float*)lightManager->_lightSpotColor.data());
+						
+						gl::Uniform1i(program->lightDirectionalCount, lightDirectionalCount);
+						gl::Uniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)lightManager->_lightDirectionalDirection.data());
+						gl::Uniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)lightManager->_lightDirectionalColor.data());
 						
 						float *data = reinterpret_cast<float *>(lightManager->_lightDirectionalMatrix.data());
-						glUniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)lightManager->_lightDirectionalMatrix.size(), GL_FALSE, data);
+						gl::UniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)lightManager->_lightDirectionalMatrix.size(), GL_FALSE, data);
 						
 						if(lightPointCount >= _maxLightFastPath || lightSpotCount >= _maxLightFastPath)
 						{
@@ -355,7 +355,7 @@ namespace RN
 								lightTilesSize.y = camera->GetLightTiles().y * _scaleFactor;
 								Vector2 lightTilesCount = Vector2(tilesHeight, tilesDepth);
 								
-								glUniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
+								gl::Uniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
 							}
 						}
 					}
@@ -367,7 +367,7 @@ namespace RN
 						if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
 							threshold = surfaceMaterial->discardThreshold;
 						
-						glUniform1f(program->discardThreshold, threshold);
+						gl::Uniform1f(program->discardThreshold, threshold);
 					}
 				}
 				
@@ -379,7 +379,7 @@ namespace RN
 						if(program->lightDirectionalDepth != -1 && lightManager->_lightDirectionalDepth.size() > 0)
 						{
 							uint32 textureUnit = BindTexture(lightManager->_lightDirectionalDepth.front());
-							glUniform1i(program->lightDirectionalDepth, textureUnit);
+							gl::Uniform1i(program->lightDirectionalDepth, textureUnit);
 						}
 						
 						if(lightManager->_lightPointDepth.size() > 0)
@@ -396,13 +396,13 @@ namespace RN
 								{
 									GLint location = lightPointDepthLocations[i];
 									lastpointdepth = BindTexture(lightManager->_lightPointDepth[i]);
-									glUniform1i(location, lastpointdepth);
+									gl::Uniform1i(location, lastpointdepth);
 								}
 								
 								for(size_t i = textureCount; i < lightPointDepthLocations.size(); i++)
 								{
 									GLint location = lightPointDepthLocations[i];
-									glUniform1i(location, lastpointdepth);
+									gl::Uniform1i(location, lastpointdepth);
 								}
 							}
 						}
@@ -421,13 +421,13 @@ namespace RN
 								{
 									GLint location = lightSpotDepthLocations[i];
 									lastspotdepth = BindTexture(lightManager->_lightSpotDepth[i]);
-									glUniform1i(location, lastspotdepth);
+									gl::Uniform1i(location, lastspotdepth);
 								}
 								
 								for(size_t i = textureCount; i < lightSpotDepthLocations.size(); i++)
 								{
 									GLint location = lightSpotDepthLocations[i];
-									glUniform1i(location, lastspotdepth);
+									gl::Uniform1i(location, lastspotdepth);
 								}
 							}
 						}
@@ -437,33 +437,33 @@ namespace RN
 							if(program->lightListIndices != -1)
 							{
 								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[kRNLightManagerLightListIndicesIndex]);
-								glUniform1i(program->lightListIndices, textureUnit);
+								gl::Uniform1i(program->lightListIndices, textureUnit);
 							}
 							
 							if(program->lightListOffsetCount != -1)
 							{
 								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[kRNLightManagerLightListOffsetCountIndex]);
-								glUniform1i(program->lightListOffsetCount, textureUnit);
+								gl::Uniform1i(program->lightListOffsetCount, textureUnit);
 							}
 							
 							if(program->lightListDataPoint != -1)
 							{
 								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[kRNLightManagerLightListPointDataIndex]);
-								glUniform1i(program->lightListDataPoint, textureUnit);
+								gl::Uniform1i(program->lightListDataPoint, textureUnit);
 							}
 							
 							if(program->lightListDataSpot != -1)
 							{
 								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[kRNLightManagerLightListSpotDataIndex]);
-								glUniform1i(program->lightListDataSpot, textureUnit);
+								gl::Uniform1i(program->lightListDataSpot, textureUnit);
 							}
 						}
 					}
 					
-					glUniform4fv(program->ambient, 1, &material->ambient->r);
-					glUniform4fv(program->diffuse, 1, &material->diffuse->r);
-					glUniform4fv(program->emissive, 1, &material->emissive->r);
-					glUniform4fv(program->specular, 1, &material->specular->r);
+					gl::Uniform4fv(program->ambient, 1, &material->ambient->r);
+					gl::Uniform4fv(program->diffuse, 1, &material->diffuse->r);
+					gl::Uniform4fv(program->emissive, 1, &material->emissive->r);
+					gl::Uniform4fv(program->specular, 1, &material->specular->r);
 					
 					material->ApplyUniforms(program);
 				}
@@ -478,43 +478,43 @@ namespace RN
 				if(object.skeleton)
 				{
 					const float *data = reinterpret_cast<const float *>(object.skeleton->GetMatrices().data());
-					glUniformMatrix4fv(program->matBones, object.skeleton->GetBoneCount(), GL_FALSE, data);
+					gl::UniformMatrix4fv(program->matBones, object.skeleton->GetBoneCount(), GL_FALSE, data);
 				}
 				
-				glUniformMatrix4fv(program->matModel, 1, GL_FALSE, transform.m);
-				glUniformMatrix4fv(program->matModelInverse, 1, GL_FALSE, inverseTransform.m);
+				gl::UniformMatrix4fv(program->matModel, 1, GL_FALSE, transform.m);
+				gl::UniformMatrix4fv(program->matModelInverse, 1, GL_FALSE, inverseTransform.m);
 				
 				if(object.rotation)
 				{
 					if(program->matNormal != -1)
-						glUniformMatrix4fv(program->matNormal, 1, GL_FALSE, object.rotation->GetRotationMatrix().m);
+						gl::UniformMatrix4fv(program->matNormal, 1, GL_FALSE, object.rotation->GetRotationMatrix().m);
 					
 					if(program->matNormalInverse != -1)
-						glUniformMatrix4fv(program->matNormalInverse, 1, GL_FALSE, object.rotation->GetRotationMatrix().GetInverse().m);
+						gl::UniformMatrix4fv(program->matNormalInverse, 1, GL_FALSE, object.rotation->GetRotationMatrix().GetInverse().m);
 				}
 				
 				if(program->matViewModel != -1)
 				{
 					Matrix viewModel = viewMatrix * transform;
-					glUniformMatrix4fv(program->matViewModel, 1, GL_FALSE, viewModel.m);
+					gl::UniformMatrix4fv(program->matViewModel, 1, GL_FALSE, viewModel.m);
 				}
 				
 				if(program->matViewModelInverse != -1)
 				{
 					Matrix viewModel = inverseViewMatrix * inverseTransform;
-					glUniformMatrix4fv(program->matViewModelInverse, 1, GL_FALSE, viewModel.m);
+					gl::UniformMatrix4fv(program->matViewModelInverse, 1, GL_FALSE, viewModel.m);
 				}
 				
 				if(program->matProjViewModel != -1)
 				{
 					Matrix projViewModel = projectionViewMatrix * transform;
-					glUniformMatrix4fv(program->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+					gl::UniformMatrix4fv(program->matProjViewModel, 1, GL_FALSE, projViewModel.m);
 				}
 				
 				if(program->matProjViewModelInverse != -1)
 				{
 					Matrix projViewModelInverse = inverseProjectionViewMatrix * inverseTransform;
-					glUniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
+					gl::UniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
 				}
 				
 				if(RN_EXPECT_FALSE(object.type == RenderingObject::Type::Custom))
@@ -567,11 +567,11 @@ namespace RN
 					break;
 			}
 			
-			glDrawElements(mesh->GetMode(), glCount, type, reinterpret_cast<void *>(offset));
+			gl::DrawElements(mesh->GetMode(), glCount, type, reinterpret_cast<void *>(offset));
 		}
 		else
 		{
-			glDrawArrays(mesh->GetMode(), 0, glCount);
+			gl::DrawArrays(mesh->GetMode(), 0, glCount);
 		}
 		
 		_renderedVertices += glCount;
@@ -587,7 +587,7 @@ namespace RN
 		RN_ASSERT(_currentProgram->instancingData != -1, "");
 		
 		uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, object.instancingData);
-		glUniform1i(_currentProgram->instancingData, textureUnit);
+		gl::Uniform1i(_currentProgram->instancingData, textureUnit);
 		
 		if(descriptor)
 		{
@@ -611,12 +611,12 @@ namespace RN
 					break;
 			}
 			
-			glDrawElementsInstanced(mesh->GetMode(), (GLsizei)descriptor->elementCount, type, 0, (GLsizei)object.count);
+			gl::DrawElementsInstanced(mesh->GetMode(), (GLsizei)descriptor->elementCount, type, 0, (GLsizei)object.count);
 		}
 		else
 		{
 			descriptor = mesh->GetDescriptor(kMeshFeatureVertices);
-			glDrawArraysInstanced(mesh->GetMode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)object.count);
+			gl::DrawArraysInstanced(mesh->GetMode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)object.count);
 		}
 		
 		_renderedVertices += descriptor->elementCount * object.count;

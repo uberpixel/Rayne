@@ -23,14 +23,14 @@ namespace RN
 		{
 			try
 			{
-				String *path = Settings::GetSharedInstance()->GetObjectForKey<String>(kRNSettingsUIStyleKey);
-				Object *data = JSONSerialization::JSONObjectFromData(Data::WithContentsOfFile(path->GetUTF8String()));
+				String *path = Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestUIStyleKey);
 				
-				_data = data->Downcast<Dictionary>()->Retain();
+				_data = JSONSerialization::JSONObjectFromData<Dictionary>(Data::WithContentsOfFile(path->GetUTF8String()));
+				_data->Retain();
 			}
 			catch(Exception e)
 			{
-				__HandleException(e);
+				HandleException(e);
 			}
 			
 			_textures = new Dictionary();
@@ -169,12 +169,11 @@ namespace RN
 			Texture *texture = _textures->GetObjectForKey<Texture>(name);
 			if(!texture)
 			{
-				TextureParameter parameter;
-				parameter.generateMipMaps = false;
-				parameter.mipMaps = 0;
+				Texture::Parameter parameter;
+				parameter.maxMipMaps = 0;
 				
-				texture = new Texture(name->GetUTF8String(), parameter);
-				_textures->SetObjectForKey(texture->Autorelease(), name);
+				texture = Texture::WithFile(name->GetUTF8String(), parameter);
+				_textures->SetObjectForKey(texture, name);
 			}
 			
 			return texture;

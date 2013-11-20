@@ -14,48 +14,88 @@
 
 namespace RN
 {
-	Settings::Settings()
+	Settings::Settings() :
+		_manifest(nullptr),
+		_settings(nullptr)
 	{
-		try
-		{
-			std::string path = FileManager::GetSharedInstance()->GetFilePathWithName("settings.json");
-			
-			Data *data = Data::WithContentsOfFile(path);
-			_settings = static_cast<Dictionary *>(JSONSerialization::JSONObjectFromData(data));
-			_settings->Retain();
-		}
-		catch(Exception e)
-		{
-			__HandleException(e);
-		}
+		LoadManifest();
 	}
 	
 	Settings::~Settings()
 	{
-		Flush();
+		Sync(true);
+		
 		_settings->Release();
+		_manifest->Release();
 	}
 	
-	
-	std::string Settings::SettingsLocation() const
+	void Settings::LoadManifest()
 	{
-		return PathManager::Join(PathManager::SaveDirectory(), "settings.json");
+		try
+		{
+			std::string path = FileManager::GetSharedInstance()->GetFilePathWithName("manifest.json");
+			
+			Data *data = Data::WithContentsOfFile(path);
+			_manifest = JSONSerialization::JSONObjectFromData<Dictionary>(data);
+			_manifest->Retain();
+		}
+		catch(Exception e)
+		{
+			throw Exception(Exception::Type::InconsistencyException, "manifest.json not found!");
+		}
+		
+#define ValidateManifest(Key, OType) \
+		try { \
+			if(!_manifest->GetObjectForKey<OType>(Key)) \
+			{ throw Exception(Exception::Type::InconsistencyException, "manifest.json malformed!"); } \
+		} \
+		catch(Exception e) \
+		{ throw Exception(Exception::Type::InconsistencyException, "manifest.json malformed!"); }
+		
+		
+		ValidateManifest(kRNManifestApplicationKey, String)
+		ValidateManifest(kRNManifestGameModuleKey, String)
 	}
 	
-	void Settings::Flush()
+	void Settings::LoadSettings()
+	{
+		try
+		{
+			bool isVirgin = false;
+			std::string path = std::move(SettingsLocation());
+			
+			if(!PathManager::PathExists(path))
+			{
+				path = std::move(FileManager::GetSharedInstance()->GetFilePathWithName("settings.json"));
+				isVirgin = true;
+			}
+			
+			Data *data = Data::WithContentsOfFile(path);
+			_settings = JSONSerialization::JSONObjectFromData<Dictionary>(data);
+			_settings->Retain();
+			
+			if(isVirgin)
+				data->WriteToFile(SettingsLocation());
+		}
+		catch(Exception e)
+		{
+			_settings = new Dictionary();
+		}
+	}
+	
+	void Settings::Sync(bool force)
 	{
 		_lock.Lock();
 		
-		if(_mutated)
+		if(_mutated || force)
 		{
-			if(!PathManager::CreatePath(PathManager::Basepath(SettingsLocation()), true))
+			try
 			{
-				_lock.Unlock();
-				throw Exception(Exception::Type::InconsistencyException, "Failed to flush Settings down to disk!");
+				Data *data = JSONSerialization::JSONDataFromObject(_settings, JSONSerialization::PrettyPrint);
+				data->WriteToFile(SettingsLocation());
 			}
-			
-			Data *data = JSONSerialization::JSONDataFromObject(_settings, JSONSerialization::PrettyPrint);
-			data->WriteToFile(SettingsLocation());
+			catch(Exception e)
+			{}
 		
 			_mutated = false;
 		}
@@ -64,6 +104,11 @@ namespace RN
 	}
 	
 	
+	
+	std::string Settings::SettingsLocation() const
+	{
+		return PathManager::Join(PathManager::SaveDirectory(), "settings.json");
+	}
 	
 	void Settings::SetObjectForKey(Object *object, String *key)
 	{

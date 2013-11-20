@@ -565,8 +565,7 @@ namespace RN
 	
 	
 	
-	
-	FileProxy *FileManager::GetFileWithName(const std::string& name, bool strict)
+	FileSystemNode *FileManager::GetFileSystemNode(const std::string& name)
 	{
 		std::string basePath  = PathManager::PathByRemovingExtension(name);
 		std::string extension = PathManager::Extension(name);
@@ -580,15 +579,15 @@ namespace RN
 		modifiers.insert(modifiers.end(), _globalModifiers.begin(), _globalModifiers.end());
 		extension = "." + extension;
 		
-		FileSystemNode *file = nullptr;
+		FileSystemNode *node = nullptr;
 		
 		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool *stop) {
-						
+			
 			for(auto j = modifiers.begin(); j != modifiers.end(); j ++)
 			{
 				std::string filePath = basePath + *j + extension;
 				
-				if((file = directory->GetSubNode(filePath)))
+				if((node = directory->GetSubNode(filePath)))
 				{
 					*stop = true;
 					return;
@@ -597,9 +596,16 @@ namespace RN
 			
 			std::string filePath = basePath + extension;
 			
-			if((file = directory->GetSubNode(filePath)))
+			if((node = directory->GetSubNode(filePath)))
 				*stop = true;
 		});
+		
+		return node;
+	}
+	
+	FileProxy *FileManager::GetFileWithName(const std::string& name, bool strict)
+	{
+		FileSystemNode *file = GetFileSystemNode(name);
 		
 		if(file && file->IsFile())
 			return static_cast<FileProxy *>(file);
@@ -609,10 +615,13 @@ namespace RN
 			try
 			{
 				std::string tpath = PathManager::Basepath(name);
-				file = GetFileWithName(tpath);
+				file = GetFileSystemNode(tpath);
 				
-				if(file && file->IsFile())
-					return static_cast<FileProxy *>(file);
+				if(file && file->IsDirectory())
+				{
+					FileProxy *temp = new FileProxy(PathManager::Basename(name), static_cast<DirectoryProxy *>(file));
+					return temp->Autorelease();
+				}
 			}
 			catch(Exception)
 			{}
@@ -651,6 +660,19 @@ namespace RN
 			
 			if(PathManager::PathExists(name))
 				return name;
+			
+			if(!strict)
+			{
+				try
+				{
+					FileProxy *proxy = GetFileWithName(name, strict);
+					return proxy->GetPath();
+				}
+				catch(Exception e)
+				{
+					return name;
+				}
+			}
 		}
 		
 		FileProxy *proxy = GetFileWithName(name, strict);

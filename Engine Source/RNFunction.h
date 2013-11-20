@@ -16,14 +16,13 @@ namespace RN
 	class Function
 	{
 	public:
+		Function() = default;
+		
 		template<typename F>
 		Function(F&& f) :
 			_implementation(new ImplementationType<F>(std::move(f)))
 		{}
 		
-		void operator() () { _implementation->Call(); }
-		
-		Function() = default;
 		Function(Function&& other) :
 			_implementation(std::move(other._implementation))
 		{}
@@ -37,6 +36,8 @@ namespace RN
 		Function(const Function&) = delete;
 		Function(Function&) = delete;
 		Function& operator= (const Function&) = delete;
+		
+		void operator() () { _implementation->Call(); }
 		
 	private:
 		struct Base

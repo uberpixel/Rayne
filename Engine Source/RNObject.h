@@ -157,14 +157,9 @@ namespace RN
 	__RNDefineMetaPublic(cls)
 
 #define RNDeclareMeta(cls) \
-	cls::MetaType *cls::__##cls##__metaClass = 0; \
-	void __##cls##__load() __attribute((constructor)); \
-	void __##cls##__load() \
-	{ \
-		cls::MetaClass(); \
-		cls::InitialWakeUp(cls::MetaClass()); \
-	}
-	
+	cls::MetaType *cls::__##cls##__metaClass = nullptr; \
+	RN_REGISTER_INIT(cls##Init, cls::MetaClass(); cls::InitialWakeUp(cls::MetaClass()))
+
 	template<class T>
 	static void SafeRelease(T *&object)
 	{

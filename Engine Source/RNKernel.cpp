@@ -20,6 +20,7 @@
 #include "RNResourcePool.h"
 #include "RNRenderer32.h"
 #include "RNLogging.h"
+#include "RNShaderCache.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -47,20 +48,31 @@ namespace RN
 		extern Context *Initialize();
 	}
 	
-	
-	Kernel::Kernel(const std::string& title) :
-		_title(title)
+	void KernelCleanUp()
 	{
-		Prepare();
-		LoadApplicationModule(Settings::GetSharedInstance()->GetObjectForKey<String>(kRNSettingsGameModuleKey));
+		AutoreleasePool pool;
+		
+		delete ShaderCache::GetSharedInstance_NoCreate();
+		delete Log::Logger::GetSharedInstance_NoCreate();
+		delete Settings::GetSharedInstance_NoCreate();
+		delete Input::GetSharedInstance_NoCreate();
+		delete ModuleCoordinator::GetSharedInstance_NoCreate();
 	}
 	
-	Kernel::Kernel(Application *app) :
-		_title(app->Title())
+	
+	
+	Kernel::Kernel()
+	{
+		Prepare();
+		LoadApplicationModule(Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestGameModuleKey));
+	}
+	
+	Kernel::Kernel(Application *app)
 	{
 		Prepare();
 		_app = app;
 	}
+	
 
 	Kernel::~Kernel()
 	{
@@ -68,9 +80,7 @@ namespace RN
 		
 		_app->WillExit();
 		
-		ModuleCoordinator *coordinator = ModuleCoordinator::GetSharedInstance();
-		
-		delete coordinator;
+		delete ModuleCoordinator::GetSharedInstance_NoCreate();
 		delete _app;
 
 		delete _renderer;
@@ -85,12 +95,14 @@ namespace RN
 		_context->Release();
 #endif
 
+		delete Settings::GetSharedInstance_NoCreate();
 		delete _pool;
 		
 		_mainThread->Exit();
 		_mainThread->Release();
 		
-		delete Log::Logger::GetSharedInstance();
+		delete ShaderCache::GetSharedInstance_NoCreate();
+		delete Log::Logger::GetSharedInstance_NoCreate();
 	}
 	
 	void Kernel::Prepare()
@@ -98,12 +110,15 @@ namespace RN
 #if RN_PLATFORM_LINUX
 		XInitThreads();
 #endif
+		atexit(KernelCleanUp);
 		
 		// Bootstrap the very basic things
 		_mainThread = new Thread();
 		_pool = new AutoreleasePool();
 		
-		Settings::GetSharedInstance();
+		_title = (Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestApplicationKey)->GetUTF8String());
+		Settings::GetSharedInstance()->LoadSettings();
+		
 		ThreadCoordinator::GetSharedInstance();
 		Log::Logger::GetSharedInstance();
 		
@@ -122,6 +137,9 @@ namespace RN
 		// Bootstrap OpenGL
 		_context = gl::Initialize();
 		_window  = nullptr;
+		
+		// Load the shader cache into memory
+		ShaderCache::GetSharedInstance()->InitializeDatabase();
 		
 		_scaleFactor = 1.0f;
 #if RN_PLATFORM_IOS
@@ -358,7 +376,7 @@ namespace RN
 		
 		// Modules
 		{
-			Array *array = Settings::GetSharedInstance()->GetObjectForKey<Array>(KRNSettingsModulesKey);
+			Array *array = Settings::GetSharedInstance()->GetManifestObjectForKey<Array>(KRNManifestModulesKey);
 			if(array)
 			{
 				std::vector<std::string> modules;
@@ -459,12 +477,28 @@ namespace RN
 			
 			_initialized = true;
 			_resetDelta  = true;
+			
+			RNDebug("First frame");
 		}
 
 		_time += trueDelta;
 
 		_delta = trueDelta * _timeScale;
 		_scaledTime += _delta;
+		
+#if RN_PLATFORM_MAC_OS
+		@autoreleasepool
+		{
+			NSDate *date = [NSDate date];
+			NSEvent *event;
+			
+			while((event = [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:date inMode:NSDefaultRunLoopMode dequeue:YES]))
+			{
+				[NSApp sendEvent:event];
+				[NSApp updateWindows];
+			}
+		}
+#endif
 
 #if RN_PLATFORM_WINDOWS
 		MSG	message;
@@ -517,6 +551,7 @@ namespace RN
 		_renderer->FinishFrame();
 		_input->InvalidateFrame();
 		
+		Settings::GetSharedInstance()->Sync(false);
 		Log::Logger::GetSharedInstance()->Flush();
 		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidEndFrameMessage, nullptr, nullptr);
 		

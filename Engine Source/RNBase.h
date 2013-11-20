@@ -12,6 +12,8 @@
 // ---------------------------
 // Platform independent includes
 // ---------------------------
+#include "RNMemory.h"
+
 #include <assert.h>
 #include <math.h>
 #include <string.h>
@@ -21,6 +23,7 @@
 
 #include <type_traits>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <algorithm>
 #include <string>
@@ -46,6 +49,7 @@
 #include "RNDefines.h"
 #include "RNConstants.h"
 #include "RNException.h"
+#include "RNOpenGL.h"
 
 // ---------------------------
 // Platform dependent includes
@@ -62,11 +66,6 @@
 #endif
 
 #if RN_PLATFORM_MAC_OS
-	#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED 1
-
-	#include <OpenGL/gl3.h>
-	#include <OpenGL/gl3ext.h>
-
 	#include <CoreGraphics/CoreGraphics.h>
 #endif
 
@@ -99,7 +98,6 @@
 	
 #endif
 
-#include "RNOpenGL.h"
 #include "RNMath.h"
 #include "RNSIMD.h"
 #include "RNSpinLock.h"
@@ -108,6 +106,12 @@
 // ---------------------------
 // Helper macros
 // ---------------------------
+
+#define kRNVersionMajor 0
+#define kRNVersionMinor 1
+#define kRNVersionPatch 0
+
+#define kRNABIVersion 0
 
 namespace RN
 {
@@ -127,10 +131,23 @@ namespace RN
 	#define RN_ASSERT(e, ...) (void)0
 #endif
 	
+#define RN_REGISTER_INIT(name, body) \
+	namespace { \
+		static void __RNGlobalInit##name##Callback() { body; } \
+		static RN::Initializer __RNGlobalInit##name (__RNGlobalInit##name##Callback, nullptr); \
+	}
+	
+#define RN_REGISTER_DESTRUCTOR(name, body) \
+	namespace { \
+		static void __RNGlobalDestructor##name##Callback() { body; } \
+		static RN::Initializer __RNGlobalDestructor##name (__RNGlobalDestructor##name##Callback, nullptr); \
+	}
+	
 	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
 	
-	RNAPI RN_NORETURN void __HandleException(const Exception& e);
+	RNAPI RN_NORETURN void HandleException(const Exception& e);
 	RNAPI void ParseCommandLine(int argc, char *argv[]);
+	RNAPI void Initialize(int argc, char *argv[]);
 	
 	RNAPI uint32 ABIVersion();
 	RNAPI uint32 Version();
@@ -149,6 +166,28 @@ namespace RN
 		GreaterThan = 1
 	};
 	
+	class Initializer
+	{
+	public:
+		typedef void (*Callback)();
+		
+		Initializer(Callback ctor, Callback dtor) :
+			_dtor(dtor)
+		{
+			if(ctor)
+				ctor();
+		}
+		
+		~Initializer()
+		{
+			if(_dtor)
+				_dtor();
+		}
+		
+	private:
+		Callback _dtor;
+	};
+		
 	class Range
 	{
 	public:
@@ -189,6 +228,12 @@ namespace RN
 			if(!_instance)
 				_instance = new T();
 
+			return _instance;
+		}
+		
+		static T *GetSharedInstance_NoCreate()
+		{
+			LockGuard<SpinLock> lock(_lock);
 			return _instance;
 		}
 

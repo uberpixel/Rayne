@@ -32,8 +32,6 @@ namespace TG
 		void CreateForest();
 		void CreateTest();
 		
-		RN::Camera *CreateDownsampleChain(RN::Camera *cam, RN::Shader *shader, int level, RN::TextureParameter::Format format, RN::Shader *firstshader, RN::Texture *tex);
-		
 		DebugDrawer *_debugAttachment;
 		
 		ThirdPersonCamera *_camera;

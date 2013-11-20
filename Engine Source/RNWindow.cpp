@@ -14,6 +14,7 @@
 #include "RNFile.h"
 #include "RNTexture.h"
 #include "RNKernel.h"
+#include "RNSettings.h"
 #include "RNInput.h"
 #include "RNUIServer.h"
 #include "RNLogging.h"
@@ -262,9 +263,31 @@ namespace RN
 		XFreePixmap(_dpy, maskPixmap);
 		XFreePixmap(_dpy, sourcePixmap);
 #endif
+		bool failed = false;
 		
-		SetTitle("");
-		SetConfiguration(_mainScreen->GetConfigurations().GetObjectAtIndex<WindowConfiguration>(0), _mask);
+		try
+		{
+			SetTitle("");
+			
+			Dictionary *screenConfig = Settings::GetSharedInstance()->GetObjectForKey<Dictionary>(kRNSettingsScreenKey);
+			if(screenConfig)
+			{
+				Number *width  = screenConfig->GetObjectForKey<Number>(RNCSTR("width"));
+				Number *height = screenConfig->GetObjectForKey<Number>(RNCSTR("height"));
+				
+				WindowConfiguration *temp = new WindowConfiguration(width->GetUint32Value(), height->GetUint32Value(), _mainScreen);
+				SetConfiguration(temp->Autorelease(), _mask);
+			}
+			else
+				failed = true;
+		}
+		catch(Exception e)
+		{
+			failed = true;
+		}
+		
+		if(failed)
+			SetConfiguration(_mainScreen->GetConfigurations().GetObjectAtIndex<WindowConfiguration>(0), _mask);
 	}
 
 	Window::~Window()

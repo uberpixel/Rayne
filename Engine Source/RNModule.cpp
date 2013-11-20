@@ -150,7 +150,7 @@ namespace RN
 	
 	ModuleCoordinator::ModuleCoordinator()
 	{
-		Array *array = Settings::GetSharedInstance()->GetObjectForKey<Array>(KRNSettingsModulesKey);
+		Array *array = Settings::GetSharedInstance()->GetManifestObjectForKey<Array>(KRNManifestModulesKey);
 		if(array)
 		{
 			array->Enumerate([&](Object *file, size_t index, bool *stop) {

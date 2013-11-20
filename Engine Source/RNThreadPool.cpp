@@ -9,9 +9,7 @@
 #include "RNThreadPool.h"
 #include "RNNumber.h"
 #include "RNKernel.h"
-
-#define kRNThreadPoolTasksBuffer 1024
-#define kRNThreadPoolMinimumPush 10
+#include "RNLogging.h"
 
 namespace RN
 {
@@ -48,18 +46,15 @@ namespace RN
 	// ---------------------
 	
 	
-	ThreadPool::ThreadPool(size_t maxJobs, size_t maxThreads)
+	ThreadPool::ThreadPool(size_t maxThreads)
 	{
 		_resigned.store(0);
-		
-		if(!maxJobs)
-			maxJobs = kRNThreadPoolTasksBuffer;
 		
 		_threadCount = (maxThreads > 0) ? maxThreads : ThreadCoordinator::GetSharedInstance()->GetBaseConcurrency();
 		
 		for(size_t i = 0; i < _threadCount; i ++)
 		{
-			_threadData.push_back(new ThreadContext(maxJobs));
+			_threadData.push_back(new ThreadContext());
 			
 			Thread *thread = CreateThread(i);
 			thread->Detach();
@@ -89,14 +84,21 @@ namespace RN
 		Thread *thread = new Thread(std::bind(&ThreadPool::Consumer, this), false);
 		_threads.AddObject(thread);
 		
-		thread->SetObjectForKey(Number::WithUint32(static_cast<uint32>(index)), RNCSTR("__kThreadID"));
+		thread->SetObjectForKey(Number::WithUint32(static_cast<uint32>(index)), RNCSTR("__kRNThreadID"));
 		
 		return thread->Autorelease();
 	}
 	
+	
 	ThreadPool::Batch *ThreadPool::CreateBatch()
 	{
-		Batch *batch = new Batch(this);
+		Batch *batch = new Batch(GetDefaultAllocator(), this);
+		return batch;
+	}
+	
+	ThreadPool::Batch *ThreadPool::CreateBatch(Allocator& allocator)
+	{
+		Batch *batch = new Batch(allocator, this);
 		return batch;
 	}
 	
@@ -110,6 +112,7 @@ namespace RN
 		while(toWrite > 0)
 		{
 			size_t perThread = toWrite / _threadCount;
+			bool written = false;
 			
 			if(!perThread)
 				perThread = toWrite;
@@ -118,29 +121,30 @@ namespace RN
 			for(size_t i = 0; (i < _threadCount && toWrite > 0); i ++)
 			{
 				ThreadContext *context = _threadData[i];
+				size_t pushed;
 				
-				if(context->lock.try_lock())
+				for(pushed = 0; pushed < perThread; pushed ++)
 				{
-					if(context->hose.capacity() - context->hose.size() < kRNThreadPoolMinimumPush)
-					{
-						context->lock.unlock();
-						continue;
-					}
+					if(!context->hose.push(std::move(tasks[offset])))
+						break;
 					
-					size_t pushable = std::min(context->hose.capacity() - context->hose.size(), perThread);
-					
-					for(size_t j = 0; j < pushable; j ++)
-						context->hose.push(std::move(tasks[offset ++]));
-					
-					context->lock.unlock();
-					context->condition.notify_one();
-					
-					toWrite -= pushable;
+					offset ++;
 				}
+				
+				if(pushed > 0)
+				{
+					written = true;
+					context->condition.notify_one();
+				}
+				
+				toWrite -= pushed;
 			}
 			
-			if(toWrite > 0)
+			if(!written && toWrite > 0)
 			{
+				Log::Loggable loggable(Log::Level::Debug);
+				loggable << "Thread pool left with " << toWrite << " of " << tasks.size() << " tasks";
+				
 				std::unique_lock<std::mutex> lock(_feederLock);
 				_feederCondition.wait_for(lock, std::chrono::microseconds(500));
 			}
@@ -157,21 +161,15 @@ namespace RN
 		
 		context->MakeActiveContext();
 		
-		size_t threadID = thread->GetObjectForKey<Number>(RNCSTR("__kThreadID"))->GetUint32Value();
+		size_t threadID = thread->GetObjectForKey<Number>(RNCSTR("__kRNThreadID"))->GetUint32Value();
 		ThreadContext *local = _threadData[threadID];
 		
 		while(!thread->IsCancelled())
 		{
-			std::unique_lock<std::mutex> lock(local->lock);
+			Task task;
 			
-			if(local->hose.size() == 0)
-				local->condition.wait(lock, [&]() { return (local->hose.size() > 0); });
-			
-			size_t count = local->hose.size();
-			
-			for(size_t i = 0; i < count; i ++)
+			if(local->hose.pop(task))
 			{
-				Task& task = local->hose.front();
 				task.function();
 				
 				if(task.batch)
@@ -186,16 +184,13 @@ namespace RN
 						task.batch->Release();
 					}
 				}
-				
-				local->hose.pop();
 			}
-			
-			
-			lock.unlock();
-			
+			else
 			{
-				std::lock_guard<std::mutex> lock(_feederLock);
 				_feederCondition.notify_one();
+				
+				std::unique_lock<std::mutex> lock(local->lock);
+				local->condition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
 			}
 		}
 		

@@ -7,11 +7,13 @@
 //
 
 #include "RNShader.h"
+#include "RNShaderCache.h"
 #include "RNKernel.h"
 #include "RNThreadPool.h"
 #include "RNPathManager.h"
 #include "RNFileManager.h"
 #include "RNScopeGuard.h"
+#include "RNSHA2.h"
 
 namespace RN
 {
@@ -23,7 +25,7 @@ namespace RN
 		if(iterator != _customLocations.end())
 			return iterator->second;
 		
-		GLuint location = glGetUniformLocation(program, name.c_str());
+		GLuint location = gl::GetUniformLocation(program, name.c_str());
 		_customLocations.insert(std::unordered_map<std::string, GLuint>::value_type(name, location));
 		
 		return location;
@@ -31,80 +33,80 @@ namespace RN
 	
 	void ShaderProgram::ReadLocations()
 	{
-#define GetUniformLocation(uniform) uniform = glGetUniformLocation(program, #uniform)
-#define GetAttributeLocation(attribute) attribute = glGetAttribLocation(program, #attribute)
-#define GetBlockLocation(block) block = glGetUniformBlockIndex(program, #block)
+#define __GetUniformLocation(uniform) uniform = gl::GetUniformLocation(program, #uniform)
+#define __GetAttributeLocation(attribute) attribute = gl::GetAttribLocation(program, #attribute)
+#define __GetBlockLocation(block) block = gl::GetUniformBlockIndex(program, #block)
 		
 		// Get uniforms
-		GetUniformLocation(matProj);
-		GetUniformLocation(matProjInverse);
+		__GetUniformLocation(matProj);
+		__GetUniformLocation(matProjInverse);
 		
-		GetUniformLocation(matView);
-		GetUniformLocation(matViewInverse);
+		__GetUniformLocation(matView);
+		__GetUniformLocation(matViewInverse);
 		
-		GetUniformLocation(matModel);
-		GetUniformLocation(matModelInverse);
+		__GetUniformLocation(matModel);
+		__GetUniformLocation(matModelInverse);
 		
-		GetUniformLocation(matNormal);
-		GetUniformLocation(matNormalInverse);
+		__GetUniformLocation(matNormal);
+		__GetUniformLocation(matNormalInverse);
 		
-		GetUniformLocation(matViewModel);
-		GetUniformLocation(matViewModelInverse);
+		__GetUniformLocation(matViewModel);
+		__GetUniformLocation(matViewModelInverse);
 		
-		GetUniformLocation(matProjView);
-		GetUniformLocation(matProjViewInverse);
+		__GetUniformLocation(matProjView);
+		__GetUniformLocation(matProjViewInverse);
 		
-		GetUniformLocation(matProjViewModel);
-		GetUniformLocation(matProjViewModelInverse);
+		__GetUniformLocation(matProjViewModel);
+		__GetUniformLocation(matProjViewModelInverse);
 		
-		GetUniformLocation(matBones);
-		GetUniformLocation(instancingData);
+		__GetUniformLocation(matBones);
+		__GetUniformLocation(instancingData);
 		
-		GetUniformLocation(time);
-		GetUniformLocation(frameSize);
-		GetUniformLocation(clipPlanes);
-		GetUniformLocation(discardThreshold);
+		__GetUniformLocation(time);
+		__GetUniformLocation(frameSize);
+		__GetUniformLocation(clipPlanes);
+		__GetUniformLocation(discardThreshold);
 		
-		GetUniformLocation(fogPlanes);
-		GetUniformLocation(fogColor);
-		GetUniformLocation(clipPlane);
+		__GetUniformLocation(fogPlanes);
+		__GetUniformLocation(fogColor);
+		__GetUniformLocation(clipPlane);
 		
-		GetUniformLocation(ambient);
-		GetUniformLocation(diffuse);
-		GetUniformLocation(specular);
-		GetUniformLocation(emissive);
+		__GetUniformLocation(ambient);
+		__GetUniformLocation(diffuse);
+		__GetUniformLocation(specular);
+		__GetUniformLocation(emissive);
 		
-		GetUniformLocation(viewPosition);
-		GetUniformLocation(viewNormal);
+		__GetUniformLocation(viewPosition);
+		__GetUniformLocation(viewNormal);
 		
-		GetUniformLocation(lightPointCount);
-		GetUniformLocation(lightPointPosition);
-		GetUniformLocation(lightPointColor);
+		__GetUniformLocation(lightPointCount);
+		__GetUniformLocation(lightPointPosition);
+		__GetUniformLocation(lightPointColor);
 		
-		GetUniformLocation(lightSpotCount);
-		GetUniformLocation(lightSpotPosition);
-		GetUniformLocation(lightSpotColor);
-		GetUniformLocation(lightSpotDirection);
+		__GetUniformLocation(lightSpotCount);
+		__GetUniformLocation(lightSpotPosition);
+		__GetUniformLocation(lightSpotColor);
+		__GetUniformLocation(lightSpotDirection);
 		
-		GetUniformLocation(lightDirectionalDirection);
-		GetUniformLocation(lightDirectionalColor);
-		GetUniformLocation(lightDirectionalCount);
-		GetUniformLocation(lightDirectionalMatrix);
-		GetUniformLocation(lightDirectionalDepth);
+		__GetUniformLocation(lightDirectionalDirection);
+		__GetUniformLocation(lightDirectionalColor);
+		__GetUniformLocation(lightDirectionalCount);
+		__GetUniformLocation(lightDirectionalMatrix);
+		__GetUniformLocation(lightDirectionalDepth);
 		
 		GetUniformLocation(lightListIndices);
 		GetUniformLocation(lightListOffsetCount);
 		GetUniformLocation(lightListDataPoint);
 		GetUniformLocation(lightListDataSpot);
 		
-		GetUniformLocation(lightTileSize);
-		GetUniformLocation(hdrSettings);
+		__GetUniformLocation(lightTileSize);
+		__GetUniformLocation(hdrSettings);
 		
 		char string[32];
 		for(size_t i = 0; i < 32; i ++)
 		{
 			sprintf(string, "targetmap%i", (int)i);
-			GLuint location = glGetUniformLocation(program, string);
+			GLuint location = gl::GetUniformLocation(program, string);
 			
 			if(location == -1)
 				break;
@@ -112,14 +114,14 @@ namespace RN
 			targetmaplocations.push_back(location);
 			
 			sprintf(string, "targetmap%iInfo", static_cast<int>(i));
-			location = glGetUniformLocation(program, string);
+			location = gl::GetUniformLocation(program, string);
 			targetmapinfolocations.push_back(location);
 		}
 		
 		for(size_t i = 0; i < 32; i ++)
 		{
 			sprintf(string, "mTexture%i", static_cast<int>(i));
-			GLuint location = glGetUniformLocation(program, string);
+			GLuint location = gl::GetUniformLocation(program, string);
 			
 			if(location == -1)
 				break;
@@ -127,14 +129,14 @@ namespace RN
 			texlocations.push_back(location);
 			
 			sprintf(string, "mTexture%iInfo", static_cast<int>(i));
-			location = glGetUniformLocation(program, string);
+			location = gl::GetUniformLocation(program, string);
 			texinfolocations.push_back(location);
 		}
 		
 		for(size_t i = 0; i < 32; i ++)
 		{
 			sprintf(string, "lightPointDepth%i", static_cast<int>(i));
-			GLuint location = glGetUniformLocation(program, string);
+			GLuint location = gl::GetUniformLocation(program, string);
 			
 			if(location == -1)
 				break;
@@ -145,7 +147,7 @@ namespace RN
 		for(size_t i = 0; i < 32; i ++)
 		{
 			sprintf(string, "lightSpotDepth%i", static_cast<int>(i));
-			GLuint location = glGetUniformLocation(program, string);
+			GLuint location = gl::GetUniformLocation(program, string);
 			
 			if(location == -1)
 			break;
@@ -153,33 +155,33 @@ namespace RN
 			lightSpotDepthLocations.push_back(location);
 		}
 		
-		GetUniformLocation(depthmap);
-		GetUniformLocation(depthmapinfo);
+		__GetUniformLocation(depthmap);
+		__GetUniformLocation(depthmapinfo);
 		
 		// Get attributes
-		GetAttributeLocation(attPosition);
-		GetAttributeLocation(attNormal);
-		GetAttributeLocation(attTangent);
+		__GetAttributeLocation(attPosition);
+		__GetAttributeLocation(attNormal);
+		__GetAttributeLocation(attTangent);
 		
-		GetAttributeLocation(attTexcoord0);
-		GetAttributeLocation(attTexcoord1);
+		__GetAttributeLocation(attTexcoord0);
+		__GetAttributeLocation(attTexcoord1);
 		
-		GetAttributeLocation(attColor0);
-		GetAttributeLocation(attColor1);
+		__GetAttributeLocation(attColor0);
+		__GetAttributeLocation(attColor1);
 		
-		GetAttributeLocation(attBoneWeights);
-		GetAttributeLocation(attBoneIndices);
+		__GetAttributeLocation(attBoneWeights);
+		__GetAttributeLocation(attBoneIndices);
 		
 #if RN_TARGET_OPENGL
 		do
 		{
 			GLint maxDrawbuffers;
-			glGetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawbuffers);
+			gl::GetIntegerv(GL_MAX_DRAW_BUFFERS, &maxDrawbuffers);
 			
 			for(GLint i = 0; i < maxDrawbuffers; i ++)
 			{
 				sprintf(string, "fragColor%i", static_cast<int>(i));
-				GLint location = glGetFragDataLocation(program, string);
+				GLint location = gl::GetFragDataLocation(program, string);
 				
 				if(location == -1)
 					break;
@@ -189,9 +191,9 @@ namespace RN
 		} while(0);
 #endif
 		
-#undef GetUniformLocation
-#undef GetAttributeLocation
-#undef GetBlockLocation
+#undef __GetUniformLocation
+#undef __GetAttributeLocation
+#undef __GetBlockLocation
 	}
 	
 	
@@ -231,7 +233,7 @@ namespace RN
 		{
 			ShaderProgram *program = i->second;
 			
-			glDeleteProgram(program->program);
+			gl::DeleteProgram(program->program);
 			delete program;
 		}
 	}
@@ -296,11 +298,11 @@ namespace RN
 		GLint length;
 		GLchar *log;
 		
-		glGetProgramiv(program->program, GL_INFO_LOG_LENGTH, &length);
+		gl::GetProgramiv(program->program, GL_INFO_LOG_LENGTH, &length);
 		
 		log = new GLchar[length];
 		
-		glGetProgramInfoLog(program->program, length, &length, log);
+		gl::GetProgramInfoLog(program->program, length, &length, log);
 		
 		std::string tlog = std::string((char *)log);
 		delete [] log;
@@ -317,13 +319,28 @@ namespace RN
 			return program;
 		}
 
-		ShaderProgram *program = new ShaderProgram;
+		ShaderProgram *program = ShaderCache::GetSharedInstance()->DequeShaderProgram(this, lookup);
+		if(program)
+		{
+			_programs[lookup] = program;
+			
+			gl::Flush();
+			return program;
+		}
+		
+		
+		program = new ShaderProgram;
+		program->program = gl::CreateProgram();
+		
 		_programs[lookup] = program;
 		
-		program->program = glCreateProgram();
+#if GL_ARB_get_program_binary
+		if(gl::SupportsFeature(gl::Feature::ShaderBinary))
+			gl::ProgramParameteri(program->program, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+#endif
 		
 		ScopeGuard scopeGuard = ScopeGuard([&]() {
-			glDeleteProgram(program->program);
+			gl::DeleteProgram(program->program);
 			delete program;
 			
 			_programs.erase(lookup);
@@ -371,17 +388,17 @@ namespace RN
 			unit->Compile(temporaryDefines);
 			
 			units.push_back(unit);
-			glAttachShader(program->program, unit->GetShader());
+			gl::AttachShader(program->program, unit->GetShader());
 		}
 		
 		// Link the program
-		glLinkProgram(program->program);
+		gl::LinkProgram(program->program);
 		RN_CHECKOPENGL();
 		
 		for(auto i = units.begin(); i != units.end(); i ++)
 		{
 			ShaderUnit *unit = *i;
-			glDetachShader(program->program, unit->GetShader());
+			gl::DetachShader(program->program, unit->GetShader());
 			
 			delete unit;
 		}
@@ -389,7 +406,7 @@ namespace RN
 		// Get the program link status
 		GLint status;
 		
-		glGetProgramiv(program->program, GL_LINK_STATUS, &status);
+		gl::GetProgramiv(program->program, GL_LINK_STATUS, &status);
 		if(!status)
 		{
 			DumpLinkStatusAndDie(program);
@@ -401,8 +418,10 @@ namespace RN
 		program->ReadLocations();
 		
 		RN_CHECKOPENGL();
-		glFlush();
+		gl::Flush();
 		
+		// Update caches
+		ShaderCache::GetSharedInstance()->CacheShaderProgram(this, program, lookup);
 		return program;
 	}
 	
@@ -604,6 +623,39 @@ namespace RN
 	// MARK: -
 	// MARK: helper
 	// ---------------------
+	
+	std::string Shader::GetFileHash() const
+	{
+		std::vector<std::pair<ShaderType, std::string>> files;
+		
+		for(auto& pair : _shaderData)
+			files.emplace_back(std::make_pair(pair.first, pair.second.file));
+		
+		std::sort(files.begin(), files.end(), [](const std::pair<ShaderType, std::string>& a, const std::pair<ShaderType, std::string>& b) {
+			return (a.first < b.first);
+		});
+		
+		
+		stl::sha2_context context;
+		
+		for(auto& pair : files)
+		{
+			context.update(reinterpret_cast<const uint8 *>(pair.second.data()), pair.second.length());
+		}
+		
+		std::vector<uint8> sha2;
+		context.finish(sha2);
+		
+		std::stringstream formatted;
+		formatted << std::hex << std::setfill('0');
+		
+		for(uint8 byte : sha2)
+		{
+			formatted << std::setw(2) << static_cast<uint32>(byte);
+		}
+		
+		return formatted.str();
+	}
 	
 	const std::string& Shader::GetShaderSource(ShaderType type)
 	{

@@ -202,8 +202,8 @@ namespace RN
 	
 	RN_INLINE uint32 Renderer::BindTexture(Texture *texture)
 	{
-		glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + _textureUnit));
-		glBindTexture(texture->GetGLType(), texture->GetName());
+		gl::ActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + _textureUnit));
+		gl::BindTexture(texture->GetGLType(), texture->GetName());
 		
 		uint32 unit = _textureUnit;
 		
@@ -215,8 +215,8 @@ namespace RN
 	
 	RN_INLINE uint32 Renderer::BindTexture(GLenum type, GLuint texture)
 	{
-		glActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + _textureUnit));
-		glBindTexture(type, texture);
+		gl::ActiveTexture(static_cast<GLenum>(GL_TEXTURE0 + _textureUnit));
+		gl::BindTexture(type, texture);
 		
 		uint32 unit = _textureUnit;
 		
@@ -230,7 +230,7 @@ namespace RN
 	{
 		if(_currentVAO != vao)
 		{
-			glBindVertexArray(vao);
+			gl::BindVertexArray(vao);
 			_currentVAO = vao;
 		}
 	}
@@ -239,9 +239,9 @@ namespace RN
 	{
 		if(_currentProgram != shader)
 		{
-			glUseProgram(shader->program);
+			gl::UseProgram(shader->program);
 			if(shader->time != -1)
-				glUniform1f(shader->time, _time);
+				gl::Uniform1f(shader->time, _time);
 			
 			_currentProgram = shader;
 		}
@@ -253,12 +253,12 @@ namespace RN
 			return;
 		
 		_scissorTest = enabled;
-		_scissorTest ? glEnable(GL_SCISSOR_TEST) : glDisable(GL_SCISSOR_TEST);
+		_scissorTest ? gl::Enable(GL_SCISSOR_TEST) : gl::Disable(GL_SCISSOR_TEST);
 	}
 	
 	RN_INLINE void Renderer::SetScissorRect(const Rect& rect)
 	{
-		glScissor(rect.x*_scaleFactor, rect.y*_scaleFactor, rect.width*_scaleFactor, rect.height*_scaleFactor);
+		gl::Scissor(rect.x*_scaleFactor, rect.y*_scaleFactor, rect.width*_scaleFactor, rect.height*_scaleFactor);
 	}
 	
 	RN_INLINE void Renderer::SetHDRExposure(float exposure)
@@ -278,7 +278,7 @@ namespace RN
 			return;
 		
 		_cullingEnabled = enabled;
-		_cullingEnabled ? glEnable(GL_CULL_FACE) : glDisable(GL_CULL_FACE);
+		_cullingEnabled ? gl::Enable(GL_CULL_FACE) : gl::Disable(GL_CULL_FACE);
 	}
 	
 	RN_INLINE void Renderer::SetDepthTestEnabled(bool enabled)
@@ -287,7 +287,7 @@ namespace RN
 			return;
 		
 		_depthTestEnabled = enabled;
-		_depthTestEnabled ? glEnable(GL_DEPTH_TEST) : glDisable(GL_DEPTH_TEST);
+		_depthTestEnabled ? gl::Enable(GL_DEPTH_TEST) : gl::Disable(GL_DEPTH_TEST);
 	}
 	
 	RN_INLINE void Renderer::SetDepthWriteEnabled(bool enabled)
@@ -296,7 +296,7 @@ namespace RN
 			return;
 		
 		_depthWrite = enabled;
-		glDepthMask(_depthWrite ? GL_TRUE : GL_FALSE);
+		gl::DepthMask(_depthWrite ? GL_TRUE : GL_FALSE);
 	}
 	
 	RN_INLINE void Renderer::SetBlendingEnabled(bool enabled)
@@ -305,7 +305,7 @@ namespace RN
 			return;
 		
 		_blendingEnabled = enabled;
-		_blendingEnabled ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
+		_blendingEnabled ? gl::Enable(GL_BLEND) : gl::Disable(GL_BLEND);
 	}
 	
 	RN_INLINE void Renderer::SetPolygonOffsetEnabled(bool enabled)
@@ -314,7 +314,7 @@ namespace RN
 			return;
 		
 		_polygonOffsetEnabled = enabled;
-		_polygonOffsetEnabled ? glEnable(GL_POLYGON_OFFSET_FILL) : glDisable(GL_POLYGON_OFFSET_FILL);
+		_polygonOffsetEnabled ? gl::Enable(GL_POLYGON_OFFSET_FILL) : gl::Disable(GL_POLYGON_OFFSET_FILL);
 	}
 	
 	
@@ -323,7 +323,7 @@ namespace RN
 		if(_cullMode == cullMode)
 			return;
 		
-		glFrontFace(cullMode);
+		gl::FrontFace(cullMode);
 		_cullMode = cullMode;
 	}
 	
@@ -332,7 +332,7 @@ namespace RN
 		if(_depthFunc == depthFunction)
 			return;
 		
-		glDepthFunc(depthFunction);
+		gl::DepthFunc(depthFunction);
 		_depthFunc = depthFunction;
 	}
 	
@@ -340,7 +340,7 @@ namespace RN
 	{
 		if(_blendSource != blendSource || _blendDestination != blendDestination)
 		{
-			glBlendFunc(blendSource, blendDestination);
+			gl::BlendFunc(blendSource, blendDestination);
 			
 			_blendSource = blendSource;
 			_blendDestination = blendDestination;
@@ -351,7 +351,7 @@ namespace RN
 	{
 		if(_polygonOffsetFactor != factor || _polygonOffsetUnits != units)
 		{
-			glPolygonOffset(factor, units);
+			gl::PolygonOffset(factor, units);
 			
 			_polygonOffsetFactor = factor;
 			_polygonOffsetUnits  = units;

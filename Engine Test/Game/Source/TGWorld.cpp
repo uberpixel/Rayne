@@ -283,7 +283,7 @@ namespace TG
 		
 #else
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
-		storage->AddRenderTarget(RN::TextureParameter::Format::RGBA32F);
+		storage->AddRenderTarget(RN::Texture::Format::RGBA32F);
 		_camera = new ThirdPersonCamera(storage);
 		_camera->SetSkyCube(sky);
 		_camera->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));

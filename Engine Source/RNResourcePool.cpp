@@ -22,7 +22,7 @@ namespace RN
 		try
 		{
 			Data *data = Data::WithContentsOfFile("resources.json");
-			_sections = JSONSerialization::JSONObjectFromData(data)->Downcast<Dictionary>();
+			_sections = JSONSerialization::JSONObjectFromData<Dictionary>(data);
 			_sections->Retain();
 		}
 		catch(Exception e)
@@ -73,8 +73,7 @@ namespace RN
 	void ResourcePool::LoadFont(const std::string& name, float size, uint32 traits, String *key)
 	{
 		UI::FontDescriptor descriptor;
-		descriptor.style = traits;
-		descriptor.mipMaps = true;
+		descriptor.style     = traits;
 		descriptor.filtering = true;
 		
 		UI::Font *font = UI::Font::WithNameAndDescriptor(name, size, descriptor);

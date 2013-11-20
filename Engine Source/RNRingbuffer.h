@@ -298,14 +298,16 @@ namespace RN
 			
 			void increment()
 			{
-				_size = std::min(_size + 1, _capacity);
-				_end  = (_end + 1) % _capacity;
+				_end ++;
+				_end %= _capacity;
 				
 				if(_end == 0)
 					_rotations ++;
 				
-				if(_size == _capacity)
+				if(RN_EXPECT_TRUE(_size == _capacity))
 					_begin = _end;
+				else
+					_size ++;
 			}
 			
 			size_type _begin;
@@ -316,6 +318,89 @@ namespace RN
 			size_type _rotations;
 			
 			T *_content;
+		};
+		
+		
+		template<class T, size_t Size>
+		class lock_free_ring_buffer
+		{
+		public:
+			lock_free_ring_buffer() :
+				_head(0),
+				_tail(0)
+			{
+				_buffer.reserve(capacity);
+			}
+			
+			bool push(const T& val)
+			{
+				size_t tail = _tail.load(std::memory_order_relaxed);
+				size_t next = advance(tail);
+				
+				if(next != _head.load(std::memory_order_acquire))
+				{
+					_buffer[tail] = val;
+					_tail.store(next, std::memory_order_release);
+					
+					return true;
+				}
+				
+				return false;
+			}
+			
+			bool push(T&& val)
+			{
+				size_t tail = _tail.load(std::memory_order_relaxed);
+				size_t next = advance(tail);
+				
+				if(next != _head.load(std::memory_order_acquire))
+				{
+					_buffer[tail] = std::move(val);
+					_tail.store(next, std::memory_order_release);
+					
+					return true;
+				}
+				
+				return false;
+			}
+			
+			bool pop(T& val)
+			{
+				size_t head = _head.load(std::memory_order_relaxed);
+				
+				if(head != _tail.load(std::memory_order_acquire))
+				{
+					std::swap(val, _buffer[head]);
+					_head.store(advance(head), std::memory_order_release);
+					
+					return true;
+				}
+				
+				return false;
+			}
+			
+			bool was_empty() const
+			{
+				return (_head.load() == _tail.load());
+			}
+			
+			bool is_lock_free() const
+			{
+				return (_head.is_lock_free() && _tail.is_lock_free());
+			}
+			
+		private:
+			enum { capacity = Size + 1 };
+			
+			size_t advance(size_t index) const
+			{
+				return (index + 1) % capacity;
+			}
+			
+			std::atomic<size_t> _head;
+			std::atomic<size_t> _tail;
+			
+			std::vector<T> _buffer;
 		};
 	}
 }

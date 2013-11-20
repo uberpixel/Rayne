@@ -11,11 +11,8 @@
 		E92A62BC16DF21EC006E68AF /* libRayne.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E92A62BA16DF21DF006E68AF /* libRayne.dylib */; };
 		E976D4D216F1A3EC009FC9D6 /* Icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = E976D4D116F1A3EC009FC9D6 /* Icon.icns */; };
 		E994CC6717A321C3004BAA46 /* libRayne.dylib in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = E9619F751696FD1200DA187E /* libRayne.dylib */; };
-		E9A5C10716EFB828007806EC /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = E9A5C10516EFB828007806EC /* main.mm */; };
+		E9A5C10716EFB828007806EC /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A5C10516EFB828007806EC /* main.cpp */; };
 		E9ED4F6E1696091E00DAD683 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ED4F6D1696091E00DAD683 /* Cocoa.framework */; };
-		E9ED4FA4169609B400DAD683 /* RNAppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = E9ED4F9D169609B400DAD683 /* RNAppDelegate.mm */; };
-		E9ED4FA5169609B400DAD683 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = E9ED4F9F169609B400DAD683 /* MainMenu.xib */; };
-		E9ED4FA916960A7000DAD683 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9ED4FA816960A7000DAD683 /* OpenGL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,18 +51,11 @@
 		E92A62BA16DF21DF006E68AF /* libRayne.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libRayne.dylib; path = ../../Build/libRayne.dylib; sourceTree = "<group>"; };
 		E9619F701696FD1100DA187E /* Rayne.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rayne.xcodeproj; path = "../../Xcode/OS X/Rayne.xcodeproj"; sourceTree = "<group>"; };
 		E976D4D116F1A3EC009FC9D6 /* Icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Icon.icns; sourceTree = "<group>"; };
-		E9A5C10516EFB828007806EC /* main.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		E9A5C10516EFB828007806EC /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		E9ED4F6A1696091E00DAD683 /* Rayne Player.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Rayne Player.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E9ED4F6D1696091E00DAD683 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
-		E9ED4F701696091E00DAD683 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
-		E9ED4F711696091E00DAD683 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = System/Library/Frameworks/CoreData.framework; sourceTree = SDKROOT; };
-		E9ED4F721696091E00DAD683 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		E9ED4F9C169609B400DAD683 /* RNAppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNAppDelegate.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		E9ED4F9D169609B400DAD683 /* RNAppDelegate.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; lineEnding = 0; path = RNAppDelegate.mm; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
-		E9ED4F9F169609B400DAD683 /* MainMenu.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = MainMenu.xib; sourceTree = "<group>"; };
 		E9ED4FA2169609B400DAD683 /* Rayne Player-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Rayne Player-Info.plist"; sourceTree = "<group>"; };
 		E9ED4FA3169609B400DAD683 /* Rayne Player-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Rayne Player-Prefix.pch"; sourceTree = "<group>"; };
-		E9ED4FA816960A7000DAD683 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,7 +63,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E9ED4FA916960A7000DAD683 /* OpenGL.framework in Frameworks */,
 				E9ED4F6E1696091E00DAD683 /* Cocoa.framework in Frameworks */,
 				E92A62BC16DF21EC006E68AF /* libRayne.dylib in Frameworks */,
 			);
@@ -93,7 +82,6 @@
 		E9ED4F611696091E00DAD683 = {
 			isa = PBXGroup;
 			children = (
-				E9ED4F9B169609B400DAD683 /* Classes */,
 				E9ED4F9E169609B400DAD683 /* Resources */,
 				E91B886E1697551E001B7F22 /* Engine Resources */,
 				E9ED4FA0169609B400DAD683 /* Supporting files */,
@@ -115,37 +103,15 @@
 			children = (
 				E9619F701696FD1100DA187E /* Rayne.xcodeproj */,
 				E9ED4F6D1696091E00DAD683 /* Cocoa.framework */,
-				E9ED4FA816960A7000DAD683 /* OpenGL.framework */,
 				E92A62BA16DF21DF006E68AF /* libRayne.dylib */,
-				E9ED4F6F1696091E00DAD683 /* Other Frameworks */,
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		E9ED4F6F1696091E00DAD683 /* Other Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				E9ED4F701696091E00DAD683 /* AppKit.framework */,
-				E9ED4F711696091E00DAD683 /* CoreData.framework */,
-				E9ED4F721696091E00DAD683 /* Foundation.framework */,
-			);
-			name = "Other Frameworks";
-			sourceTree = "<group>";
-		};
-		E9ED4F9B169609B400DAD683 /* Classes */ = {
-			isa = PBXGroup;
-			children = (
-				E9ED4F9C169609B400DAD683 /* RNAppDelegate.h */,
-				E9ED4F9D169609B400DAD683 /* RNAppDelegate.mm */,
-			);
-			path = Classes;
 			sourceTree = "<group>";
 		};
 		E9ED4F9E169609B400DAD683 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
 				E976D4D116F1A3EC009FC9D6 /* Icon.icns */,
-				E9ED4F9F169609B400DAD683 /* MainMenu.xib */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -153,7 +119,7 @@
 		E9ED4FA0169609B400DAD683 /* Supporting files */ = {
 			isa = PBXGroup;
 			children = (
-				E9A5C10516EFB828007806EC /* main.mm */,
+				E9A5C10516EFB828007806EC /* main.cpp */,
 				E9ED4FA2169609B400DAD683 /* Rayne Player-Info.plist */,
 				E9ED4FA3169609B400DAD683 /* Rayne Player-Prefix.pch */,
 			);
@@ -230,7 +196,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E9ED4FA5169609B400DAD683 /* MainMenu.xib in Resources */,
 				E91B886F1697551E001B7F22 /* Engine Resources in Resources */,
 				E976D4D216F1A3EC009FC9D6 /* Icon.icns in Resources */,
 			);
@@ -243,8 +208,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E9ED4FA4169609B400DAD683 /* RNAppDelegate.mm in Sources */,
-				E9A5C10716EFB828007806EC /* main.mm in Sources */,
+				E9A5C10716EFB828007806EC /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

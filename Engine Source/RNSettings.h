@@ -17,17 +17,23 @@
 #include "RNArray.h"
 
 #define kRNSettingsGammaCorrectionKey RNCSTR("RNGammaCorrection")
-#define KRNSettingsModulesKey         RNCSTR("RNModules")
-#define kRNSettingsGameModuleKey      RNCSTR("RNGameModule")
-#define kRNSettingsUIStyleKey         RNCSTR("RNUIStyle")
+#define kRNSettingsScreenKey          RNCSTR("RNScreen")
+
+#define kRNManifestApplicationKey  RNCSTR("RNApplication")
+#define KRNManifestModulesKey      RNCSTR("RNModules")
+#define kRNManifestGameModuleKey   RNCSTR("RNGameModule")
+#define kRNManifestUIStyleKey      RNCSTR("RNUIStyle")
 
 namespace RN
 {
+	class Kernel;
 	class Settings : public Singleton<Settings>
 	{
 	public:
+		friend class Kernel;
+		
 		RNAPI Settings();
-		RNAPI ~Settings();
+		RNAPI ~Settings() override;
 		
 		template<class T=Object>
 		T *GetObjectForKey(String *key)
@@ -49,17 +55,28 @@ namespace RN
 			return number ? number->GetBoolValue() : false;
 		}
 		
+		template<class T=Object>
+		T *GetManifestObjectForKey(String *key)
+		{
+			T *object = _manifest->GetObjectForKey<T>(key);
+			return object;
+		}
+		
 		RNAPI void SetObjectForKey(Object *object, String *key);
 		RNAPI void RemoveObjectForKey(String *key);
 		
 	private:
-		void Flush();
+		void LoadManifest();
+		void LoadSettings();
+		
+		void Sync(bool force);
 		std::string SettingsLocation() const;
 		
 		bool _mutated;
 		SpinLock _lock;
 		
 		Dictionary *_settings;
+		Dictionary *_manifest;
 	};
 }
 

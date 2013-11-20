@@ -30,7 +30,7 @@ namespace RN
 		_fixedScaleFactor = (scaleFactor > 0.0f);
 		_scaleFactor = _fixedScaleFactor ? scaleFactor : Kernel::GetSharedInstance()->GetActiveScaleFactor();
 		
-		glGenFramebuffers(1, &_framebuffer);
+		gl::GenFramebuffers(1, &_framebuffer);
 		
 		MessageCenter::GetSharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](Message *message) {
 			_scaleFactor = Kernel::GetSharedInstance()->GetActiveScaleFactor();
@@ -42,13 +42,13 @@ namespace RN
 	{
 		if(_depthbuffer)
 		{
-			glDeleteRenderbuffers(1, &_depthbuffer);
+			gl::DeleteRenderbuffers(1, &_depthbuffer);
 			_stencilbuffer = 0;
 			_stencilbuffer = 0;
 		}
 		
 		if(_framebuffer)
-			glDeleteFramebuffers(1, &_framebuffer);
+			gl::DeleteFramebuffers(1, &_framebuffer);
 		
 		if(_renderTargets)
 			_renderTargets->Release();
@@ -74,12 +74,11 @@ namespace RN
 	{
 		RN_ASSERT(_format & BufferFormatColor, "Need a color buffer to change render targets");
 		
-		TextureParameter parameter = target->GetParameter();
+		Texture::Parameter parameter = target->GetParameter();
 		
-		parameter.filter = TextureParameter::Filter::Nearest;
-		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
-		parameter.mipMaps = 0;
-		parameter.generateMipMaps = false;
+		parameter.filter = Texture::Filter::Nearest;
+		parameter.wrapMode = Texture::WrapMode::Clamp;
+		parameter.maxMipMaps = 0;
 		
 		target->SetParameter(parameter);
 		
@@ -102,12 +101,11 @@ namespace RN
 		if(_renderTargets->GetCount() >= GetMaxRenderTargets())
 			throw Exception(Exception::Type::InconsistencyException, "Can't attach any more render targets to the render storage!");
 		
-		TextureParameter parameter = target->GetParameter();
+		Texture::Parameter parameter = target->GetParameter();
 		
-		parameter.filter = TextureParameter::Filter::Linear;
-		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
-		parameter.mipMaps = 0;
-		parameter.generateMipMaps = false;
+		parameter.filter = Texture::Filter::Linear;
+		parameter.wrapMode = Texture::WrapMode::Clamp;
+		parameter.maxMipMaps = 0;
 		
 		target->SetParameter(parameter);
 		
@@ -115,19 +113,18 @@ namespace RN
 		_renderTargetsChanged = true;
 	}
 	
-	void RenderStorage::AddRenderTarget(TextureParameter::Format format)
+	void RenderStorage::AddRenderTarget(Texture::Format format)
 	{
 		RN_ASSERT(_format & BufferFormatColor, "Need a color buffer to change render targets");
 		
-		TextureParameter parameter;
+		Texture::Parameter parameter;
 		
 		parameter.format = format;
-		parameter.filter = TextureParameter::Filter::Linear;
-		parameter.wrapMode = TextureParameter::WrapMode::Clamp;
-		parameter.mipMaps = 0;
-		parameter.generateMipMaps = false;
+		parameter.filter = Texture::Filter::Linear;
+		parameter.wrapMode = Texture::WrapMode::Clamp;
+		parameter.maxMipMaps = 0;
 		
-		Texture *target = new Texture(parameter, true);
+		Texture *target = new Texture2D(parameter, true);
 		
 		try
 		{
@@ -155,15 +152,14 @@ namespace RN
 		_formatChanged = true;
 	}
 	
-	void RenderStorage::SetDepthTarget(TextureParameter::Format format)
+	void RenderStorage::SetDepthTarget(Texture::Format format)
     {
-        TextureParameter parameter;
+        Texture::Parameter parameter;
         parameter.format = format;
-        parameter.wrapMode = TextureParameter::WrapMode::Clamp;
-        parameter.mipMaps = 0;
-        parameter.generateMipMaps = false;
+        parameter.wrapMode = Texture::WrapMode::Clamp;
+        parameter.maxMipMaps = 0;
         
-        Texture *target = new Texture(parameter, true);
+        Texture *target = new Texture2D(parameter, true);
         
         try
         {
@@ -182,7 +178,7 @@ namespace RN
 		Thread *thread = Thread::GetCurrentThread();
 		if(thread->SetOpenGLBinding(GL_FRAMEBUFFER, _framebuffer) == 1)
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+			gl::BindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 		}
 	}
 	
@@ -195,7 +191,7 @@ namespace RN
 	void RenderStorage::CheckFramebufferStatus()
 	{
 #if RN_TARGET_OPENGL
-		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		GLenum status = gl::CheckFramebufferStatus(GL_FRAMEBUFFER);
 		
 		if(status != GL_FRAMEBUFFER_COMPLETE)
 		{
@@ -242,7 +238,7 @@ namespace RN
 #endif
 		
 #if RN_TARGET_OPENGL_ES
-		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		GLenum status = gl::CheckFramebufferStatus(GL_FRAMEBUFFER);
 		if(status != GL_FRAMEBUFFER_COMPLETE)
 		{
 			switch(status)
@@ -282,7 +278,7 @@ namespace RN
 		for(uint32 i=0; i<count; i++)
 			buffers[i] = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
 		
-		glDrawBuffers(count, buffers);
+		gl::DrawBuffers(count, buffers);
 #endif
 	}
 	
@@ -295,14 +291,14 @@ namespace RN
 			{
 				if(_stencilbuffer)
 				{
-					glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
+					gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
 					_stencilbuffer = 0;
 				}
 				
 				if(_depthbuffer)
 				{
-					glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
-					glDeleteRenderbuffers(1, &_depthbuffer);
+					gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+					gl::DeleteRenderbuffers(1, &_depthbuffer);
 					_depthbuffer = 0;
 				}
 			}
@@ -310,14 +306,14 @@ namespace RN
 			// Create new buffers
 			if((_depthbuffer == 0 && (_format & BufferFormatDepth)) && !_depthTexture)
 			{
-				glGenRenderbuffers(1, &_depthbuffer);
-				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
-				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthbuffer);
+				gl::GenRenderbuffers(1, &_depthbuffer);
+				gl::BindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+				gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthbuffer);
 				
 				if(_format & BufferFormatStencil)
 				{
 					_stencilbuffer = _depthbuffer;
-					glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilbuffer);
+					gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilbuffer);
 				}
 			}
 			
@@ -330,26 +326,26 @@ namespace RN
 						case GL_TEXTURE_2D_ARRAY:
 							if(_depthLayer != -1)
 							{
-								glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0, _depthLayer);
+								gl::FramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0, _depthLayer);
 							}
 							else
 							{
-								glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
+								gl::FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
 							}
 							break;
 							
 						case GL_TEXTURE_2D:
-							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->GetName(), 0);
+							gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->GetName(), 0);
 							break;
 							
 						case GL_TEXTURE_CUBE_MAP:
 							if(_depthLayer != -1)
 							{
-								glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X+_depthLayer, _depthTexture->GetName(), 0);
+								gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X+_depthLayer, _depthTexture->GetName(), 0);
 							}
 							else
 							{
-								glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
+								gl::FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
 							}
 							break;
 					}
@@ -362,26 +358,26 @@ namespace RN
 						case GL_TEXTURE_2D_ARRAY:
 							if(_depthLayer != -1)
 							{
-								glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0, _depthLayer);
+								gl::FramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0, _depthLayer);
 							}
 							else
 							{
-								glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
+								gl::FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
 							}
 							break;
 							
 						case GL_TEXTURE_2D:
-							glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->GetName(), 0);
+							gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->GetName(), 0);
 							break;
 							
 						case GL_TEXTURE_CUBE_MAP:
 							if(_depthLayer != -1)
 							{
-								glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X+_depthLayer, _depthTexture->GetName(), 0);
+								gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X+_depthLayer, _depthTexture->GetName(), 0);
 							}
 							else
 							{
-								glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
+								gl::FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
 							}
 							break;
 					}
@@ -398,7 +394,7 @@ namespace RN
 			for(size_t i=_renderTargets->GetCount(); i<_boundRenderTargets; i++)
 			{
 				GLenum attachment = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, 0, 0);
+				gl::FramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, 0, 0);
 			}
 			
 			// Bind all render targetst to the framebuffer
@@ -407,7 +403,7 @@ namespace RN
 				Texture *texture = _renderTargets->GetObjectAtIndex<Texture>(i);
 				GLenum attachment = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
 				
-				glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->GetName(), 0);
+				gl::FramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->GetName(), 0);
 			}
 			
 			_boundRenderTargets = (uint32)_renderTargets->GetCount();
@@ -419,30 +415,30 @@ namespace RN
 		// Allocate storage for the buffers
 		if(_sizeChanged)
 		{
-			uint32 width  = (uint32)ceil(_size.x  * _scaleFactor);
+			uint32 width  = (uint32)ceil(_size.x * _scaleFactor);
 			uint32 height = (uint32)ceil(_size.y * _scaleFactor);
 			
 			for(size_t i=0; i<_renderTargets->GetCount(); i++)
 			{
-				Texture *texture = _renderTargets->GetObjectAtIndex<Texture>(i);
+				Texture2D *texture = _renderTargets->GetObjectAtIndex<Texture2D>(i);
 				
 				texture->Bind();
-				texture->SetData(0, width, height, TextureParameter::Format::RGBA8888);
+				texture->SetSize(width, height);
 				texture->Unbind();
 			}
 			
 			if(_depthTexture)
 			{
 				_depthTexture->Bind();
-				_depthTexture->SetData(0, width, height, TextureParameter::Format::RGBA8888);
+				_depthTexture->SetSize(width, height);
 				_depthTexture->Unbind();
 			}
 			else if((_format & BufferFormatDepth) || (_format & BufferFormatStencil))
 			{
 				GLenum format = (!(_format & BufferFormatStencil)) ? GL_DEPTH_COMPONENT24 : GL_DEPTH24_STENCIL8;
 				
-				glBindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
-				glRenderbufferStorage(GL_RENDERBUFFER, format, width, height);
+				gl::BindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+				gl::RenderbufferStorage(GL_RENDERBUFFER, format, width, height);
 			}
 			
 			CheckFramebufferStatus();
@@ -456,7 +452,7 @@ namespace RN
 		static GLint maxDrawbuffers = 0;
 		
 		if(maxDrawbuffers == 0)
-			glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxDrawbuffers);
+			gl::GetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxDrawbuffers);
 		
 		return (uint32)maxDrawbuffers;
 #endif

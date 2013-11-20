@@ -38,8 +38,8 @@ namespace RN
 			Texture *GetTexture() const { return _texture; }
 			Mesh *GetFittingMesh(const Vector2& size, const Vector2& offset=Vector2());
 			
-			uint32 GetWidth() const;
-			uint32 GetHeight() const;
+			size_t GetWidth() const;
+			size_t GetHeight() const;
 			
 		private:
 			Texture *_texture;

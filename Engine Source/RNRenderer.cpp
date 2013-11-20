@@ -55,18 +55,18 @@ namespace RN
 		_polygonOffsetFactor = 0.0f;
 		_polygonOffsetUnits  = 0.0f;
 		
-		glDisable(GL_CULL_FACE);
-		glDisable(GL_DEPTH_TEST);
-		glDisable(GL_BLEND);
-		glDisable(GL_POLYGON_OFFSET_FILL);
-		glDepthMask(GL_FALSE);
+		gl::Disable(GL_CULL_FACE);
+		gl::Disable(GL_DEPTH_TEST);
+		gl::Disable(GL_BLEND);
+		gl::Disable(GL_POLYGON_OFFSET_FILL);
+		gl::DepthMask(GL_FALSE);
 		
-		glFrontFace(_cullMode);
-		glDepthFunc(_depthFunc);
-		glBlendFunc(_blendSource, _blendDestination);
-		glPolygonOffset(_polygonOffsetFactor, _polygonOffsetUnits);
+		gl::FrontFace(_cullMode);
+		gl::DepthFunc(_depthFunc);
+		gl::BlendFunc(_blendSource, _blendDestination);
+		gl::PolygonOffset(_polygonOffsetFactor, _polygonOffsetUnits);
 		
-		glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, (GLint *)&_maxTextureUnits); RN_CHECKOPENGL();
+		gl::GetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, (GLint *)&_maxTextureUnits); RN_CHECKOPENGL();
 		_textureUnit     = 0;
 		_gammaCorrection = Settings::GetSharedInstance()->GetBoolForKey(kRNSettingsGammaCorrectionKey);
 		
@@ -122,59 +122,59 @@ namespace RN
 		if(_currentProgram->frameSize != -1)
 		{
 			const Rect& frame = _currentCamera->GetFrame();
-			glUniform4f(_currentProgram->frameSize, 1.0f/frame.width/_scaleFactor, 1.0f/frame.height/_scaleFactor, frame.width * _scaleFactor, frame.height * _scaleFactor);
+			gl::Uniform4f(_currentProgram->frameSize, 1.0f/frame.width/_scaleFactor, 1.0f/frame.height/_scaleFactor, frame.width * _scaleFactor, frame.height * _scaleFactor);
 		}
 		
 		if(_currentProgram->hdrSettings != -1)
-			glUniform4f(_currentProgram->hdrSettings, _hdrExposure, _hdrWhitePoint, 0.0f, 0.0f);
+			gl::Uniform4f(_currentProgram->hdrSettings, _hdrExposure, _hdrWhitePoint, 0.0f, 0.0f);
 		
 		if(_currentProgram->clipPlanes != -1)
-			glUniform2f(_currentProgram->clipPlanes, _currentCamera->clipnear, _currentCamera->clipfar);
+			gl::Uniform2f(_currentProgram->clipPlanes, _currentCamera->clipnear, _currentCamera->clipfar);
 		
 		
 		if(_currentProgram->fogPlanes != -1)
-			glUniform2f(_currentProgram->fogPlanes, _currentCamera->fognear, 1.0f/(_currentCamera->fogfar-_currentCamera->fognear));
+			gl::Uniform2f(_currentProgram->fogPlanes, _currentCamera->fognear, 1.0f/(_currentCamera->fogfar-_currentCamera->fognear));
 		
 		if(_currentProgram->fogColor != -1)
-			glUniform4fv(_currentProgram->fogColor, 1, &_currentCamera->fogcolor.r);
+			gl::Uniform4fv(_currentProgram->fogColor, 1, &_currentCamera->fogcolor.r);
 		
 		if(_currentProgram->clipPlane != -1)
-			glUniform4fv(_currentProgram->clipPlane, 1, &_currentCamera->clipplane.x);
+			gl::Uniform4fv(_currentProgram->clipPlane, 1, &_currentCamera->clipplane.x);
 		
 		if(_currentProgram->matProj != -1)
-			glUniformMatrix4fv(_currentProgram->matProj, 1, GL_FALSE, projectionMatrix.m);
+			gl::UniformMatrix4fv(_currentProgram->matProj, 1, GL_FALSE, projectionMatrix.m);
 		
 		if(_currentProgram->matProjInverse != -1)
-			glUniformMatrix4fv(_currentProgram->matProjInverse, 1, GL_FALSE, inverseProjectionMatrix.m);
+			gl::UniformMatrix4fv(_currentProgram->matProjInverse, 1, GL_FALSE, inverseProjectionMatrix.m);
 		
 		if(_currentProgram->matView != -1)
-			glUniformMatrix4fv(_currentProgram->matView, 1, GL_FALSE, viewMatrix.m);
+			gl::UniformMatrix4fv(_currentProgram->matView, 1, GL_FALSE, viewMatrix.m);
 		
 		if(_currentProgram->matViewInverse != -1)
-			glUniformMatrix4fv(_currentProgram->matViewInverse, 1, GL_FALSE, inverseViewMatrix.m);
+			gl::UniformMatrix4fv(_currentProgram->matViewInverse, 1, GL_FALSE, inverseViewMatrix.m);
 		
 		if(_currentProgram->matProjView != -1)
 		{
 			Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
-			glUniformMatrix4fv(_currentProgram->matProjView, 1, GL_FALSE, projectionViewMatrix.m);
+			gl::UniformMatrix4fv(_currentProgram->matProjView, 1, GL_FALSE, projectionViewMatrix.m);
 		}
 		
 		if(_currentProgram->matProjViewInverse != -1)
 		{
 			Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
-			glUniformMatrix4fv(_currentProgram->matProjViewInverse, 1, GL_FALSE, inverseProjectionViewMatrix.m);
+			gl::UniformMatrix4fv(_currentProgram->matProjViewInverse, 1, GL_FALSE, inverseProjectionViewMatrix.m);
 		}
 		
 		if(_currentProgram->viewPosition != -1)
 		{
 			const Vector3& position = _currentCamera->GetWorldPosition();
-			glUniform3fv(_currentProgram->viewPosition, 1, &position.x);
+			gl::Uniform3fv(_currentProgram->viewPosition, 1, &position.x);
 		}
 		
 		if(_currentProgram->viewNormal != -1)
 		{
 			const Vector3& forward = _currentCamera->Forward();
-			glUniform3fv(_currentProgram->viewNormal, 1, &forward.x);
+			gl::Uniform3fv(_currentProgram->viewNormal, 1, &forward.x);
 		}
 	}
 	
@@ -188,7 +188,7 @@ namespace RN
 				if(vao == _currentVAO)
 					BindVAO(0);
 				
-				glDeleteVertexArrays(1, &vao);
+				gl::DeleteVertexArrays(1, &vao);
 				
 				i = _autoVAOs.erase(i);
 				continue;
@@ -208,7 +208,7 @@ namespace RN
 				if(vao == _currentVAO)
 					BindVAO(0);
 				
-				glDeleteVertexArrays(1, &vao);
+				gl::DeleteVertexArrays(1, &vao);
 				
 				i = _autoVAOs.erase(i);
 				continue;
@@ -236,13 +236,13 @@ namespace RN
 			GLuint vbo = mesh->GetVBO();
 			GLuint ibo = mesh->GetIBO();
 			
-			glGenVertexArrays(1, &vao);
-			glBindVertexArray(vao);
+			gl::GenVertexArrays(1, &vao);
+			gl::BindVertexArray(vao);
 			
-			glBindBuffer(GL_ARRAY_BUFFER, vbo);
+			gl::BindBuffer(GL_ARRAY_BUFFER, vbo);
 			
 			if(mesh->SupportsFeature(kMeshFeatureIndices))
-				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+				gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 			
 			// Vertices
 			if(shader->attPosition != -1 && mesh->SupportsFeature(kMeshFeatureVertices))
@@ -250,8 +250,8 @@ namespace RN
 				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureVertices);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureVertices);
 				
-				glEnableVertexAttribArray(shader->attPosition);
-				glVertexAttribPointer(shader->attPosition, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::EnableVertexAttribArray(shader->attPosition);
+				gl::VertexAttribPointer(shader->attPosition, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Normals
@@ -260,8 +260,8 @@ namespace RN
 				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureNormals);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureNormals);
 				
-				glEnableVertexAttribArray(shader->attNormal);
-				glVertexAttribPointer(shader->attNormal, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::EnableVertexAttribArray(shader->attNormal);
+				gl::VertexAttribPointer(shader->attNormal, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Tangents
@@ -270,8 +270,8 @@ namespace RN
 				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureTangents);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureTangents);
 				
-				glEnableVertexAttribArray(shader->attTangent);
-				glVertexAttribPointer(shader->attTangent, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::EnableVertexAttribArray(shader->attTangent);
+				gl::VertexAttribPointer(shader->attTangent, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Texcoord0
@@ -280,8 +280,8 @@ namespace RN
 				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureUVSet0);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureUVSet0);
 				
-				glEnableVertexAttribArray(shader->attTexcoord0);
-				glVertexAttribPointer(shader->attTexcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::EnableVertexAttribArray(shader->attTexcoord0);
+				gl::VertexAttribPointer(shader->attTexcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Texcoord1
@@ -290,8 +290,8 @@ namespace RN
 				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureUVSet1);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureUVSet1);
 				
-				glEnableVertexAttribArray(shader->attTexcoord1);
-				glVertexAttribPointer(shader->attTexcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::EnableVertexAttribArray(shader->attTexcoord1);
+				gl::VertexAttribPointer(shader->attTexcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Color0
@@ -300,8 +300,8 @@ namespace RN
 				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureColor0);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureColor0);
 				
-				glEnableVertexAttribArray(shader->attColor0);
-				glVertexAttribPointer(shader->attColor0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::EnableVertexAttribArray(shader->attColor0);
+				gl::VertexAttribPointer(shader->attColor0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Color1
@@ -310,8 +310,8 @@ namespace RN
 				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureColor1);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureColor1);
 				
-				glEnableVertexAttribArray(shader->attColor1);
-				glVertexAttribPointer(shader->attColor1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::EnableVertexAttribArray(shader->attColor1);
+				gl::VertexAttribPointer(shader->attColor1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Bone Weights
@@ -320,8 +320,8 @@ namespace RN
 				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureBoneWeights);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureBoneWeights);
 				
-				glEnableVertexAttribArray(shader->attBoneWeights);
-				glVertexAttribPointer(shader->attBoneWeights, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::EnableVertexAttribArray(shader->attBoneWeights);
+				gl::VertexAttribPointer(shader->attBoneWeights, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Bone Indices
@@ -330,8 +330,8 @@ namespace RN
 				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureBoneIndices);
 				size_t offset = mesh->OffsetForFeature(kMeshFeatureBoneIndices);
 				
-				glEnableVertexAttribArray(shader->attBoneIndices);
-				glVertexAttribPointer(shader->attBoneIndices, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::EnableVertexAttribArray(shader->attBoneIndices);
+				gl::VertexAttribPointer(shader->attBoneIndices, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			_autoVAOs[tuple] = std::tuple<GLuint, uint32>(vao, 0);
@@ -373,11 +373,11 @@ namespace RN
 					GLint location = textureLocations[i];
 					Texture *texture = textures.GetObjectAtIndex<Texture>(i);
 					
-					glUniform1i(location, BindTexture(texture));
+					gl::Uniform1i(location, BindTexture(texture));
 					
 					location = program->texinfolocations[i];
 					if(location != -1)
-						glUniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
+						gl::Uniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
 				}
 			}
 		}
@@ -448,9 +448,9 @@ namespace RN
 	{
 		if(!_hasValidFramebuffer)
 		{
-			glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
+			gl::BindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
 			
-			if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			if(gl::CheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 			{
 				_flushCameras.clear();
 				_flushedCameras.clear();
@@ -467,10 +467,10 @@ namespace RN
 		
 		SetScissorEnabled(false);
 		
-		glBindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
+		gl::BindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
 		
-		glViewport(0, 0, _defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor);
-		glClear(GL_COLOR_BUFFER_BIT);
+		gl::Viewport(0, 0, _defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor);
+		gl::Clear(GL_COLOR_BUFFER_BIT);
 		
 		for(auto iterator=_flushCameras.begin(); iterator!=_flushCameras.end(); iterator++)
 		{
@@ -521,11 +521,11 @@ namespace RN
 			Texture *texture = camera->GetRenderTarget(0);
 			GLuint location  = program->targetmaplocations.front();
 			
-			glUniform1i(location, BindTexture(texture));
+			gl::Uniform1i(location, BindTexture(texture));
 			
 			location = program->targetmapinfolocations.front();
 			if(location != -1)
-				glUniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
+				gl::Uniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
 		}
 	}
 	
@@ -553,11 +553,11 @@ namespace RN
 			Texture *texture = camera->GetRenderTarget(i);
 			GLuint location  = program->targetmaplocations[i];
 			
-			glUniform1i(location, BindTexture(texture));
+			gl::Uniform1i(location, BindTexture(texture));
 			
 			location = program->targetmapinfolocations[i];
 			if(location != -1)
-				glUniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
+				gl::Uniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
 		}
 		
 		if(program->depthmap != -1)
@@ -565,10 +565,10 @@ namespace RN
 			Texture *depthmap = camera->GetStorage()->GetDepthTarget();
 			if(depthmap)
 			{
-				glUniform1i(program->depthmap, BindTexture(depthmap));
+				gl::Uniform1i(program->depthmap, BindTexture(depthmap));
 				
 				if(program->depthmapinfo != -1)
-					glUniform4f(program->depthmapinfo, 1.0f/static_cast<float>(depthmap->GetWidth()), 1.0f/static_cast<float>(depthmap->GetHeight()), depthmap->GetWidth(), depthmap->GetHeight());
+					gl::Uniform4f(program->depthmapinfo, 1.0f/static_cast<float>(depthmap->GetWidth()), 1.0f/static_cast<float>(depthmap->GetHeight()), depthmap->GetWidth(), depthmap->GetHeight());
 			}
 		}
 	}

@@ -22,8 +22,9 @@
 #endif
 
 #if RN_PLATFORM_MAC_OS
+	#define GL_GLEXT_FUNCTION_POINTERS 1
+
 	#import <Cocoa/Cocoa.h>
-	#import <OpenGL/OpenGL.h>
 	#import <CoreText/CoreText.h>
 	#import <Foundation/Foundation.h>
 	#import <CoreServices/CoreServices.h>

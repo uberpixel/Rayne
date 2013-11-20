@@ -24,10 +24,10 @@ namespace RN
 	{		
 		RN_ASSERT(_refCount.load() <= 1, "refCount must be <= 1 upon destructor call. Use object->Release(); instead of delete object;");
 	
-		for(auto i=_associatedObjects.begin(); i!=_associatedObjects.end(); i++)
+		for(auto& pair : _associatedObjects)
 		{
-			Object *object = std::get<0>(i->second);
-			MemoryPolicy policy = std::get<1>(i->second);
+			Object *object = std::get<0>(pair.second);
+			MemoryPolicy policy = std::get<1>(pair.second);
 			
 			switch(policy)
 			{

@@ -14,12 +14,6 @@
 #include "RNFileManager.h"
 #include "RNLogging.h"
 
-#define kRNVersionMajor 0
-#define kRNVersionMinor 1
-#define kRNVersionPatch 0
-
-#define kRNABIVersion 0
-
 namespace RN
 {
 	void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...)
@@ -41,12 +35,13 @@ namespace RN
 		throw Exception(Exception::Type::InconsistencyException, reason);
 	}
 	
-	void __HandleException(const Exception& e)
+	void HandleException(const Exception& e)
 	{
 		{
 			Log::Loggable loggable(Log::Level::Error);
 			const std::vector<std::pair<uintptr_t, std::string>>& callstack = e.GetCallStack();
 			
+			loggable << "Man the lifeboats! Women and children first!" << std::endl;
 			loggable << "Caught exception " << e.GetStringifiedType() << ", reason: " << e.GetReason() << std::endl;
 			loggable << "Crashing thread: " << e.GetThread()->GetName() << std::endl << "Backtrace:" << std::endl;
 			
@@ -72,6 +67,21 @@ namespace RN
 				FileManager::GetSharedInstance()->AddSearchPath(path);
 			}
 		}
+	}
+	
+	void Initialize(int argc, char *argv[])
+	{
+		ParseCommandLine(argc, argv);
+		
+#if RN_PLATFORM_MAC_OS
+		@autoreleasepool
+		{
+			[NSApplication sharedApplication];
+			[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
+			
+			[NSApp finishLaunching];
+		}
+#endif
 	}
 	
 	

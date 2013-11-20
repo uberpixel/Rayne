@@ -107,8 +107,10 @@ namespace RN
 		__ThreadLock.Unlock();
 		_isRunning.store(false);
 		
-		std::lock_guard<std::mutex> lock(_exitMutex);
-		_exitSignal.notify_all();
+		{
+			std::lock_guard<std::mutex> lock(_exitMutex);
+			_exitSignal.notify_all();
+		}
 		
 		ThreadCoordinator::GetSharedInstance()->RestoreConcurrency();
 		Release();
@@ -148,7 +150,7 @@ namespace RN
 			}
 			catch(Exception e)
 			{
-				__HandleException(e);
+				HandleException(e);
 			}
 			
 			Exit();

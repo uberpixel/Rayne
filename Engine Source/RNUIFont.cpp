@@ -45,12 +45,12 @@ namespace RN
 		Font::Font(const std::string& name, float size, const FontDescriptor& descriptor) :
 			_descriptor(descriptor)
 		{
-			TextureParameter parameter;
+			Texture::Parameter parameter;
 			
-			parameter.generateMipMaps = descriptor.mipMaps;
-			parameter.format   = GetFiltering() ? TextureParameter::Format::RGB888 : TextureParameter::Format::R8;
-			parameter.wrapMode = TextureParameter::WrapMode::Clamp;
-			parameter.filter   = descriptor.textureFilter ? TextureParameter::Filter::Linear : TextureParameter::Filter::Nearest;
+			parameter.maxMipMaps = descriptor.mipMaps ? 1000 : 0;
+			parameter.format   = GetFiltering() ? Texture::Format::RGB888 : Texture::Format::R8;
+			parameter.wrapMode = Texture::WrapMode::Clamp;
+			parameter.filter   = descriptor.textureFilter ? Texture::Filter::Linear : Texture::Filter::Nearest;
 			
 			_scale = Kernel::GetSharedInstance()->GetScaleFactor();
 			_texture = new TextureAtlas(128 * _scale, 128 * _scale, true, parameter);
@@ -361,7 +361,7 @@ namespace RN
 			rect.width  -= 1.0f;
 			rect.height -= 1.0f;
 
-			_texture->SetRegionData(rect, data, GetFiltering() ? TextureParameter::Format::RGB888 : TextureParameter::Format::R8);
+			_texture->SetRegionData(rect, data, GetFiltering() ? Texture::Format::RGB888 : Texture::Format::R8);
 			delete [] data;
 			
 			Glyph glyph;

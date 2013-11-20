@@ -79,7 +79,7 @@ namespace RN
 		
 		if(_camera != 0)
 		{
-			_reflection = new Camera(Vector2(512, 512), TextureParameter::Format::RGBA8888, Camera::FlagUpdateStorageFrame|Camera::FlagHidden, RenderStorage::BufferFormatComplete, 1.0f);
+			_reflection = new Camera(Vector2(512, 512), Texture::Format::RGBA8888, Camera::FlagUpdateStorageFrame|Camera::FlagHidden, RenderStorage::BufferFormatComplete, 1.0f);
 			_reflection->SetPriority(9);
 //			_reflection->SetSkyCube(_camera->SkyCube());
 			

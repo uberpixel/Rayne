@@ -1,7 +1,7 @@
 {
 	"RNGammaCorrection": true,
-	"RNGameModule": "libGame",
-	"RNUIStyle": "ui/rn_uistyle.json",
-	"RNModules": [
-	]
+	"RNScreen": {
+		"width": 1200,
+		"height": 720
+	}
 }

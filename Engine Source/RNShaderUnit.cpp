@@ -22,7 +22,7 @@ namespace RN
 	ShaderUnit::~ShaderUnit()
 	{
 		if(_shader)
-			glDeleteShader(_shader);
+			gl::DeleteShader(_shader);
 	}
 	
 	
@@ -59,24 +59,24 @@ namespace RN
 		const GLchar *data = source.first.c_str();
 		
 		if(_shader)
-			glDeleteShader(_shader);
+			gl::DeleteShader(_shader);
 		
-		_shader = glCreateShader(GetOpenGLType());
+		_shader = gl::CreateShader(GetOpenGLType());
 		
-		glShaderSource(_shader, 1, &data, NULL);
-		glCompileShader(_shader);
+		gl::ShaderSource(_shader, 1, &data, NULL);
+		gl::CompileShader(_shader);
 		
 		// Check the compilation status
 		GLint status, length;
-		glGetShaderiv(_shader, GL_COMPILE_STATUS, &status);
+		gl::GetShaderiv(_shader, GL_COMPILE_STATUS, &status);
 		
 		if(!status)
 		{
-			glGetShaderiv(_shader, GL_INFO_LOG_LENGTH, &length);
+			gl::GetShaderiv(_shader, GL_INFO_LOG_LENGTH, &length);
 			
 			char *log = new char[length];
-			glGetShaderInfoLog(_shader, length, &length, static_cast<GLchar *>(log));
-			glDeleteShader(_shader);
+			gl::GetShaderInfoLog(_shader, length, &length, static_cast<GLchar *>(log));
+			gl::DeleteShader(_shader);
 			
 			_shader = 0;
 			
