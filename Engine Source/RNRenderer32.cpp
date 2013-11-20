@@ -325,6 +325,7 @@ namespace RN
 					//TODO: Cleanup!!!
 					if(lightManager != nullptr)
 					{
+						/*
 						// Light data
 						gl::Uniform1i(program->lightPointCount, lightPointCount);
 						gl::Uniform4fv(program->lightPointPosition, lightPointCount, (float*)lightManager->_lightPointPosition.data());
@@ -334,7 +335,8 @@ namespace RN
 						gl::Uniform4fv(program->lightSpotPosition, lightSpotCount, (float*)lightManager->_lightSpotPosition.data());
 						gl::Uniform4fv(program->lightSpotDirection, lightSpotCount, (float*)lightManager->_lightSpotDirection.data());
 						gl::Uniform4fv(program->lightSpotColor, lightSpotCount, (float*)lightManager->_lightSpotColor.data());
-						
+						*/
+						 
 						gl::Uniform1i(program->lightDirectionalCount, lightDirectionalCount);
 						gl::Uniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)lightManager->_lightDirectionalDirection.data());
 						gl::Uniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)lightManager->_lightDirectionalColor.data());

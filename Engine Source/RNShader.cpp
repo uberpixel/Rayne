@@ -94,10 +94,10 @@ namespace RN
 		__GetUniformLocation(lightDirectionalMatrix);
 		__GetUniformLocation(lightDirectionalDepth);
 		
-		GetUniformLocation(lightListIndices);
-		GetUniformLocation(lightListOffsetCount);
-		GetUniformLocation(lightListDataPoint);
-		GetUniformLocation(lightListDataSpot);
+		__GetUniformLocation(lightListIndices);
+		__GetUniformLocation(lightListOffsetCount);
+		__GetUniformLocation(lightListDataPoint);
+		__GetUniformLocation(lightListDataSpot);
 		
 		__GetUniformLocation(lightTileSize);
 		__GetUniformLocation(hdrSettings);

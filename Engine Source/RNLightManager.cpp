@@ -34,34 +34,34 @@ namespace RN
 		_lightPointDataSize = 0;
 		_lightSpotDataSize = 0;
 		
-		glGenTextures(4, _lightTextures);
-		glGenBuffers(4, _lightBuffers);
+		gl::GenTextures(4, _lightTextures);
+		gl::GenBuffers(4, _lightBuffers);
 		
 		// light offsets and counts
-		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightManagerLightListOffsetCountIndex]);
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightManagerLightListOffsetCountIndex]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
 		
 		// Light indices
-		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightManagerLightListIndicesIndex]);
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightManagerLightListIndicesIndex]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
 		
 		// Point Light Data
-		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightManagerLightListPointDataIndex]);
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListPointDataIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[kRNLightManagerLightListPointDataIndex]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightManagerLightListPointDataIndex]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListPointDataIndex]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[kRNLightManagerLightListPointDataIndex]);
 		
 		// Spot Light Data
-		glBindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightManagerLightListSpotDataIndex]);
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListSpotDataIndex]);
-		glTexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[kRNLightManagerLightListSpotDataIndex]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightManagerLightListSpotDataIndex]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListSpotDataIndex]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[kRNLightManagerLightListSpotDataIndex]);
 	}
 	
 	LightManager::~LightManager()
 	{
-		glDeleteBuffers(4, _lightBuffers);
-		glDeleteTextures(4, _lightTextures);
+		gl::DeleteBuffers(4, _lightBuffers);
+		gl::DeleteTextures(4, _lightTextures);
 		
 		if(_lightIndices != nullptr)
 			delete _lightIndices;
@@ -117,11 +117,11 @@ namespace RN
 			if(lightDataSize == 0) // Makes sure that we don't end up with an empty buffer
 				lightDataSize = 2 * sizeof(Vector4);
 			
-			glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListPointDataIndex]);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListPointDataIndex]);
 			if(lightDataSize > _lightPointDataSize)
 			{
-				glBufferData(GL_TEXTURE_BUFFER, _lightPointDataSize, 0, GL_DYNAMIC_DRAW);
-				glBufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
+				gl::BufferData(GL_TEXTURE_BUFFER, _lightPointDataSize, 0, GL_DYNAMIC_DRAW);
+				gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
 				
 				_lightPointDataSize = lightDataSize;
 			}
@@ -157,8 +157,8 @@ namespace RN
 				}
 			}
 			
-			glBufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_DYNAMIC_DRAW);
-			glBindBuffer(GL_TEXTURE_BUFFER, 0);
+			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_DYNAMIC_DRAW);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 		
 		//Spot lights
@@ -178,11 +178,11 @@ namespace RN
 			if(lightDataSize == 0) // Makes sure that we don't end up with an empty buffer
 				lightDataSize = 2 * sizeof(Vector4);
 			
-			glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListSpotDataIndex]);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListSpotDataIndex]);
 			if(lightDataSize > _lightPointDataSize)
 			{
-				glBufferData(GL_TEXTURE_BUFFER, _lightPointDataSize, 0, GL_DYNAMIC_DRAW);
-				glBufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
+				gl::BufferData(GL_TEXTURE_BUFFER, _lightPointDataSize, 0, GL_DYNAMIC_DRAW);
+				gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
 				
 				_lightPointDataSize = lightDataSize;
 			}
@@ -222,8 +222,8 @@ namespace RN
 				}
 			}
 			
-			glBufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_DYNAMIC_DRAW);
-			glBindBuffer(GL_TEXTURE_BUFFER, 0);
+			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_DYNAMIC_DRAW);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 		
 		_pointLights.clear();
@@ -400,13 +400,13 @@ namespace RN
 		}
 		
 		// Offsets
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
-		glBufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
-		glBufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int), _lightOffsetCount, GL_DYNAMIC_DRAW);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
+		gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
+		gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int), _lightOffsetCount, GL_DYNAMIC_DRAW);
 		
 		// Indices
-		glBindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
-		glBufferData(GL_TEXTURE_BUFFER, _lightIndicesSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
-		glBufferData(GL_TEXTURE_BUFFER, _lightIndicesSize * sizeof(int), _lightIndices, GL_DYNAMIC_DRAW);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
+		gl::BufferData(GL_TEXTURE_BUFFER, _lightIndicesSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
+		gl::BufferData(GL_TEXTURE_BUFFER, _lightIndicesSize * sizeof(int), _lightIndices, GL_DYNAMIC_DRAW);
 	}
 }
