@@ -389,10 +389,10 @@ namespace RN
 		_material = 0;
 		_stageCount = 0;
 
-		_lightTiles = Vector3(32, 32, 16);
+		_lightTiles = Vector3(32, 32, 8);
 		_skycube = 0;
 		
-		_maxLights = 500;
+		_maxLights = 100;
 		_priority  = 0;
 		
 		_allowDepthWrite = true;

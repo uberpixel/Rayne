@@ -33,15 +33,14 @@ namespace RN
 		
 		
 		void AddLight(Light *light);
-		int CreateLightClusterLists(Camera *camera, Light **lights, size_t pointLightCount, size_t spotLightCount);
+		bool CreateLightLists(Camera *camera);
 		
 		int CreatePointLightList(Camera *camera);
 		int CreateSpotLightList(Camera *camera);
 		int CreateDirectionalLightList(Camera *camera);
 		
 	private:
-		void AllocateLightBufferStorage(size_t indicesSize, size_t offsetSize);
-		void CullLights(Camera *camera, Light **lights, size_t lightCount, GLuint indicesBuffer, GLuint offsetBuffer);
+		void CullLights(Camera *camera);
 		
 		int _maxLightFastPath;
 		
@@ -49,19 +48,18 @@ namespace RN
 		std::vector<Light *> _spotLights;
 		std::deque<Light *> _directionalLights;
 		
-		int *_lightIndicesBuffer;
-		int *_tempLightIndicesBuffer;
-		int *_lightOffsetBuffer;
-		size_t _lightIndicesBufferSize;
-		size_t _lightOffsetBufferSize;
+		GLuint _lightTextures[4];
+		GLuint _lightBuffers[4];
 		
 		size_t _lightPointDataSize;
-		GLuint _lightPointTextures[3];
-		GLuint _lightPointBuffers[3];
-		
 		size_t _lightSpotDataSize;
-		GLuint _lightSpotTextures[3];
-		GLuint _lightSpotBuffers[3];
+		
+		int *_lightIndices;
+		int *_lightIndicesTemp;
+		int *_lightOffsetCount;
+		size_t _lightIndicesSize;
+		size_t _lightIndicesTempSize;
+		size_t _lightOffsetCountSize;
 		
 		std::vector<Vector3> _lightDirectionalDirection;
 		std::vector<Vector4> _lightDirectionalColor;

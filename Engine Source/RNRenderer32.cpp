@@ -13,13 +13,10 @@
 #include "RNLightManager.h"
 
 //TODO: Cleanup!!! (same defines are in RNLightManager.cpp)
-#define kRNRendererPointLightListIndicesIndex 0
-#define kRNRendererPointLightListOffsetIndex  1
-#define kRNRendererPointLightListDataIndex    2
-
-#define kRNRendererSpotLightListIndicesIndex 0
-#define kRNRendererSpotLightListOffsetIndex  1
-#define kRNRendererSpotLightListDataIndex    2
+#define kRNLightManagerLightListOffsetCountIndex 0
+#define kRNLightManagerLightListIndicesIndex 1
+#define kRNLightManagerLightListPointDataIndex 2
+#define kRNLightManagerLightListSpotDataIndex 3
 
 namespace RN
 {
@@ -192,14 +189,15 @@ namespace RN
 
 			//TODO: Cleanup!!!
 			LightManager *lightManager = camera->lightManager;
-			int lightPointCount = 0;
+			int lightPointCount = 100;
 			int lightSpotCount = 0;
 			int lightDirectionalCount = 0;
 			if(lightManager != nullptr)
 			{
+				lightManager->CreateLightLists(camera);
 				// Create the light lists for the camera
-				lightPointCount = lightManager->CreatePointLightList(camera);
-				lightSpotCount = lightManager->CreateSpotLightList(camera);
+//				lightPointCount = lightManager->CreatePointLightList(camera);
+//				lightSpotCount = lightManager->CreateSpotLightList(camera);
 				lightDirectionalCount = lightManager->CreateDirectionalLightList(camera);
 			}
 			
@@ -328,10 +326,10 @@ namespace RN
 					if(lightManager != nullptr)
 					{
 						// Light data
-						glUniform1i(program->lightPointCount, lightPointCount);
+				/*		glUniform1i(program->lightPointCount, lightPointCount);
 						glUniform4fv(program->lightPointPosition, lightPointCount, (float*)lightManager->_lightPointPosition.data());
 						glUniform4fv(program->lightPointColor, lightPointCount, (float*)lightManager->_lightPointColor.data());
-						
+				*/		
 						glUniform1i(program->lightSpotCount, lightSpotCount);
 						glUniform4fv(program->lightSpotPosition, lightSpotCount, (float*)lightManager->_lightSpotPosition.data());
 						glUniform4fv(program->lightSpotDirection, lightSpotCount, (float*)lightManager->_lightSpotDirection.data());
@@ -349,13 +347,13 @@ namespace RN
 							if(program->lightTileSize != -1)
 							{
 								Rect rect = camera->GetFrame();
-								int tilesWidth  = ceil(rect.width / camera->GetLightTiles().x);
-								int tilesDepth = 15;//camera->GetLightTiles().z;
+								int tilesHeight  = ceil(rect.height / camera->GetLightTiles().y);
+								int tilesDepth = ceil(camera->clipfar/camera->GetLightTiles().z);
 								
 								Vector2 lightTilesSize;
 								lightTilesSize.x = camera->GetLightTiles().x * _scaleFactor;
 								lightTilesSize.y = camera->GetLightTiles().y * _scaleFactor;
-								Vector2 lightTilesCount = Vector2(tilesWidth, tilesDepth);
+								Vector2 lightTilesCount = Vector2(tilesHeight, tilesDepth);
 								
 								glUniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
 							}
@@ -436,42 +434,28 @@ namespace RN
 						
 						if(lightPointCount >= _maxLightFastPath || lightSpotCount >= _maxLightFastPath)
 						{
-							// Point lights
-							if(program->lightPointList != -1)
+							if(program->lightListIndices != -1)
 							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightPointTextures[kRNRendererPointLightListIndicesIndex]);
-								glUniform1i(program->lightPointList, textureUnit);
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[kRNLightManagerLightListIndicesIndex]);
+								glUniform1i(program->lightListIndices, textureUnit);
 							}
 							
-							if(program->lightPointListOffset != -1)
+							if(program->lightListOffsetCount != -1)
 							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightPointTextures[kRNRendererPointLightListOffsetIndex]);
-								glUniform1i(program->lightPointListOffset, textureUnit);
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[kRNLightManagerLightListOffsetCountIndex]);
+								glUniform1i(program->lightListOffsetCount, textureUnit);
 							}
 							
-							if(program->lightPointListData != -1)
+							if(program->lightListDataPoint != -1)
 							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightPointTextures[kRNRendererPointLightListDataIndex]);
-								glUniform1i(program->lightPointListData, textureUnit);
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[kRNLightManagerLightListPointDataIndex]);
+								glUniform1i(program->lightListDataPoint, textureUnit);
 							}
 							
-							// Spot lights
-							if(program->lightSpotList != -1)
+							if(program->lightListDataSpot != -1)
 							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightSpotTextures[kRNRendererSpotLightListIndicesIndex]);
-								glUniform1i(program->lightSpotList, textureUnit);
-							}
-							
-							if(program->lightSpotListOffset!= -1)
-							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightSpotTextures[kRNRendererSpotLightListOffsetIndex]);
-								glUniform1i(program->lightSpotListOffset, textureUnit);
-							}
-							
-							if(program->lightSpotListData != -1)
-							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightSpotTextures[kRNRendererSpotLightListDataIndex]);
-								glUniform1i(program->lightSpotListData, textureUnit);
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[kRNLightManagerLightListSpotDataIndex]);
+								glUniform1i(program->lightListDataSpot, textureUnit);
 							}
 						}
 					}

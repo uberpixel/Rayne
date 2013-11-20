@@ -11,13 +11,10 @@
 
 #include "rn_Shadow.fsh"
 
-uniform isamplerBuffer lightPointList;
-uniform isamplerBuffer lightPointListOffset;
-uniform samplerBuffer lightPointListData;
-
-uniform isamplerBuffer lightSpotList;
-uniform isamplerBuffer lightSpotListOffset;
-uniform samplerBuffer lightSpotListData;
+uniform isamplerBuffer lightListIndices;
+uniform isamplerBuffer lightListOffsetCount;
+uniform samplerBuffer lightListDataPoint;
+uniform samplerBuffer lightListDataSpot;
 
 #if defined(RN_POINT_LIGHTS_FASTPATH)
 	#if (RN_POINT_LIGHTS_FASTPATH > 0)
@@ -165,12 +162,12 @@ void rn_DirectionalLight(in vec3 viewdir, in vec3 lightdir, in vec4 lightcolor, 
 
 void rn_PointLightTiled(in int index, in vec3 viewdir, in vec3 normal, in vec3 position, in float specpow, inout vec3 lighting, inout vec3 specularity)
 {
-	vec4 lightpos   = texelFetch(lightPointListData, index);
-	vec4 lightcolor = texelFetch(lightPointListData, index + 1);
+	vec4 lightpos   = texelFetch(lightListDataPoint, index);
+	vec4 lightcolor = texelFetch(lightListDataPoint, index + 1);
 	
 	rn_PointLight(viewdir, lightpos, lightcolor, normal, position, specpow, lighting, specularity);
 }
-
+/*
 void rn_SpotLightTiled(in int index, in vec3 viewdir, in vec3 normal, in vec3 position, in float specpow, inout vec3 lighting, inout vec3 specularity)
 {
 	vec4 lightpos   = texelFetch(lightSpotListData, index);
@@ -178,7 +175,7 @@ void rn_SpotLightTiled(in int index, in vec3 viewdir, in vec3 normal, in vec3 po
 	vec4 lightdir   = texelFetch(lightSpotListData, index + 2);
 	
 	rn_SpotLight(viewdir, lightpos, lightcolor, lightdir, normal, position, specpow, lighting, specularity);
-}
+}*/
 
 void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 position)
 {
@@ -195,15 +192,15 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 	viewdir /= dist;
 	
 #if (!defined(RN_POINT_LIGHTS_FASTPATH) || !defined(RN_SPOT_LIGHTS_FASTPATH))
-	int tileindex = int(int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.z*lightTileSize.w+int(gl_FragCoord.x/lightTileSize.x)*lightTileSize.w+int(lineardist/(clipPlanes.y/lightTileSize.w)));
+	int tileindex = int(int(gl_FragCoord.x/lightTileSize.x)*lightTileSize.z*lightTileSize.w+int(gl_FragCoord.y/lightTileSize.y)*lightTileSize.w+int(lineardist/(clipPlanes.y/lightTileSize.w)));
 #endif
 	
 #if !defined(RN_POINT_LIGHTS_FASTPATH)
+	ivec2 listoffset = texelFetch(lightListOffsetCount, tileindex).xy;
 	{
-		ivec2 listoffset = texelFetch(lightPointListOffset, tileindex).xy;
 		for(int i=0; i<listoffset.y; i++)
 		{
-			int lightindex = (texelFetch(lightPointList, listoffset.x + i).r) * 2;
+			int lightindex = (texelFetch(lightListIndices, listoffset.x + i).r) * 2;
 			rn_PointLightTiled(lightindex, viewdir, normal, position, specularity.a, light, specsum);
 		}
 	}
@@ -213,7 +210,7 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 		rn_PointLight(viewdir, lightPointPosition[i], lightPointColor[i], normal, position, specularity.a, light, specsum);
 	}
 #endif
-	
+/*
 #if !defined(RN_SPOT_LIGHTS_FASTPATH)
 	{
 		ivec2 listoffset = texelFetch(lightSpotListOffset, tileindex).xy;
@@ -229,7 +226,7 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 		rn_SpotLight(viewdir, lightSpotPosition[i], lightSpotColor[i], lightSpotDirection[i], normal, position, specularity.a, light, specsum);
 	}
 #endif
-	
+	*/
 #if defined(RN_DIRECTIONAL_LIGHTS)
 	for(int i=0; i<RN_DIRECTIONAL_LIGHTS; i++)
 	{
@@ -241,6 +238,9 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 	color.rgb = color.rgb*light+specsum*specularity.rgb*(specularity.a+1.0)/(2.0*3.1514);
 #else
 	color.rgb = color.rgb*light;
+#endif
+#if !defined(RN_POINT_LIGHTS_FASTPATH)
+//	color.rgb = vec3(listoffset.y/100.0);
 #endif
 }
 #endif

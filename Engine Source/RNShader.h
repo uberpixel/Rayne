@@ -87,18 +87,12 @@ namespace RN
 		GLuint lightPointCount;
 		GLuint lightPointPosition;
 		GLuint lightPointColor;
-		GLuint lightPointList;
-		GLuint lightPointListOffset;
-		GLuint lightPointListData;
 		std::vector<GLuint> lightPointDepthLocations;
 		
 		GLuint lightSpotCount;
 		GLuint lightSpotPosition;
 		GLuint lightSpotColor;
 		GLuint lightSpotDirection;
-		GLuint lightSpotList;
-		GLuint lightSpotListOffset;
-		GLuint lightSpotListData;
 		std::vector<GLuint> lightSpotDepthLocations;
 		
 		GLuint lightDirectionalDirection;
@@ -106,6 +100,11 @@ namespace RN
 		GLuint lightDirectionalCount;
 		GLuint lightDirectionalMatrix;
 		GLuint lightDirectionalDepth;
+		
+		GLuint lightListIndices;
+		GLuint lightListOffsetCount;
+		GLuint lightListDataPoint;
+		GLuint lightListDataSpot;
 		
 		GLuint lightTileSize;
 		GLuint hdrSettings;

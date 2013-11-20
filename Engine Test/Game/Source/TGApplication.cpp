@@ -29,7 +29,7 @@ namespace TG
 		widget->Show();
 		
 		auto configs = RN::Window::GetSharedInstance()->GetMainScreen()->GetConfigurations();
-		window->SetConfiguration(configs.GetObjectAtIndex<RN::WindowConfiguration>(configs.GetCount() - 2), 0);
+		window->SetConfiguration(new RN::WindowConfiguration(960, 600), 0);//configs.GetObjectAtIndex<RN::WindowConfiguration>(configs.GetCount() - 2), 0);
 			
 		_world = new World();
 	}

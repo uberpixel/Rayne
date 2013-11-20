@@ -80,23 +80,22 @@ namespace RN
 		GetUniformLocation(lightPointCount);
 		GetUniformLocation(lightPointPosition);
 		GetUniformLocation(lightPointColor);
-		GetUniformLocation(lightPointList);
-		GetUniformLocation(lightPointListOffset);
-		GetUniformLocation(lightPointListData);
 		
 		GetUniformLocation(lightSpotCount);
 		GetUniformLocation(lightSpotPosition);
 		GetUniformLocation(lightSpotColor);
 		GetUniformLocation(lightSpotDirection);
-		GetUniformLocation(lightSpotList);
-		GetUniformLocation(lightSpotListOffset);
-		GetUniformLocation(lightSpotListData);
 		
 		GetUniformLocation(lightDirectionalDirection);
 		GetUniformLocation(lightDirectionalColor);
 		GetUniformLocation(lightDirectionalCount);
 		GetUniformLocation(lightDirectionalMatrix);
 		GetUniformLocation(lightDirectionalDepth);
+		
+		GetUniformLocation(lightListIndices);
+		GetUniformLocation(lightListOffsetCount);
+		GetUniformLocation(lightListDataPoint);
+		GetUniformLocation(lightListDataSpot);
 		
 		GetUniformLocation(lightTileSize);
 		GetUniformLocation(hdrSettings);

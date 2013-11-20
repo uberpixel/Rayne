@@ -448,21 +448,21 @@ namespace TG
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		light->ActivatePointShadows();*/
 		
-		for(int i=0; i<500; i++)
+		for(int i=0; i<200; i++)
 		{
 			RN::Light *light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 21.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 21.0f - 10.0f));
 			light->SetRange((TGWorldRandom * 3.0f) + 2.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 			float timeoffset = TGWorldRandom*10.0f;
-			light->SetAction([timeoffset](RN::SceneNode *light, float delta) {
+/*			light->SetAction([timeoffset](RN::SceneNode *light, float delta) {
 				RN::Vector3 pos = light->GetWorldPosition();
 				float time = RN::Kernel::GetSharedInstance()->GetTime();
 				time += timeoffset;
 				pos.x += 0.05f*cos(time*2.0f);
 				pos.z += 0.05f*sin(time*2.0f);
 				light->SetWorldPosition(pos);
-			});
+			});*/
 //			light->ActivatePointShadows();
 		}
 #endif
@@ -686,15 +686,35 @@ namespace TG
 	void World::CreateTest()
 	{
 		// Ground
-		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
-		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
+		//RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
+		//ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
+		
+		RN::Model *ground = RN::Model::WithFile("models/pure3d/Level/level.sgm");
+		
+		ground->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
+		
+		ground->GetMaterialAtIndex(0, 2)->culling = false;
+		ground->GetMaterialAtIndex(0, 2)->discard = true;
+		ground->GetMaterialAtIndex(0, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		ground->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
+		
+		ground->GetMaterialAtIndex(0, 3)->culling = false;
+		ground->GetMaterialAtIndex(0, 3)->discard = true;
+		ground->GetMaterialAtIndex(0, 3)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		ground->GetMaterialAtIndex(0, 3)->Define("RN_VEGETATION");
+		
+		for(int i = 0; i < ground->GetMeshCount(0); i++)
+		{
+			ground->GetMaterialAtIndex(0, i)->ambient = RN::Color(0.6f, 0.6f, 0.8f);
+		}
 		
 		RN::Entity *ent = new RN::Entity();
 		ent->SetModel(ground);
 		
 		
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
-		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
+		_sunLight->SetIntensity(5.0f);
+		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateDirectionalShadows();
 	}
