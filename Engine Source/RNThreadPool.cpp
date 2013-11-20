@@ -9,6 +9,7 @@
 #include "RNThreadPool.h"
 #include "RNNumber.h"
 #include "RNKernel.h"
+#include "RNLogging.h"
 
 namespace RN
 {
@@ -83,7 +84,7 @@ namespace RN
 		Thread *thread = new Thread(std::bind(&ThreadPool::Consumer, this), false);
 		_threads.AddObject(thread);
 		
-		thread->SetObjectForKey(Number::WithUint32(static_cast<uint32>(index)), RNCSTR("__kThreadID"));
+		thread->SetObjectForKey(Number::WithUint32(static_cast<uint32>(index)), RNCSTR("__kRNThreadID"));
 		
 		return thread->Autorelease();
 	}
@@ -111,6 +112,7 @@ namespace RN
 		while(toWrite > 0)
 		{
 			size_t perThread = toWrite / _threadCount;
+			bool written = false;
 			
 			if(!perThread)
 				perThread = toWrite;
@@ -123,18 +125,26 @@ namespace RN
 				
 				for(pushed = 0; pushed < perThread; pushed ++)
 				{
-					if(!context->hose.push(std::move(tasks[offset ++])))
+					if(!context->hose.push(std::move(tasks[offset])))
 						break;
+					
+					offset ++;
 				}
 				
 				if(pushed > 0)
+				{
+					written = true;
 					context->condition.notify_one();
+				}
 				
 				toWrite -= pushed;
 			}
 			
-			if(toWrite > 0)
+			if(!written && toWrite > 0)
 			{
+				Log::Loggable loggable(Log::Level::Debug);
+				loggable << "Thread pool left with " << toWrite << " of " << tasks.size() << " tasks";
+				
 				std::unique_lock<std::mutex> lock(_feederLock);
 				_feederCondition.wait_for(lock, std::chrono::microseconds(500));
 			}
@@ -151,7 +161,7 @@ namespace RN
 		
 		context->MakeActiveContext();
 		
-		size_t threadID = thread->GetObjectForKey<Number>(RNCSTR("__kThreadID"))->GetUint32Value();
+		size_t threadID = thread->GetObjectForKey<Number>(RNCSTR("__kRNThreadID"))->GetUint32Value();
 		ThreadContext *local = _threadData[threadID];
 		
 		while(!thread->IsCancelled())
