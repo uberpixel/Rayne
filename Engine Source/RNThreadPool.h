@@ -150,7 +150,7 @@ namespace RN
 		
 		friend class Batch;
 		
-		ThreadPool(size_t maxJobs=0, size_t maxThreads=0);
+		ThreadPool(size_t maxThreads=0);
 		~ThreadPool() override;
 		
 		template<class F>
@@ -278,11 +278,7 @@ namespace RN
 		
 		struct ThreadContext
 		{
-			ThreadContext(size_t size) :
-				hose(size)
-			{}
-			
-			stl::ring_buffer<Task> hose;
+			stl::lock_free_ring_buffer<Task, 2048> hose;
 			std::mutex lock;
 			std::condition_variable condition;
 		};

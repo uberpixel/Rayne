@@ -9,7 +9,7 @@
 #ifndef __RAYNE_SPINLOCK_H__
 #define __RAYNE_SPINLOCK_H__
 
-#include "RNBase.h"
+#include "RNDefines.h"
 
 namespace RN
 {
@@ -24,9 +24,7 @@ namespace RN
 		void Lock()
 		{
 			while(_flag.test_and_set(std::memory_order_acquire))
-			{
-				std::this_thread::yield();
-			}
+			{}
 		}
 		
 		void Unlock()

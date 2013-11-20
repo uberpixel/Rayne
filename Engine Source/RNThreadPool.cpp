@@ -10,9 +10,6 @@
 #include "RNNumber.h"
 #include "RNKernel.h"
 
-#define kRNThreadPoolTasksBuffer 1024
-#define kRNThreadPoolMinimumPush 10
-
 namespace RN
 {
 	ThreadCoordinator::ThreadCoordinator()
@@ -48,18 +45,15 @@ namespace RN
 	// ---------------------
 	
 	
-	ThreadPool::ThreadPool(size_t maxJobs, size_t maxThreads)
+	ThreadPool::ThreadPool(size_t maxThreads)
 	{
 		_resigned.store(0);
-		
-		if(!maxJobs)
-			maxJobs = kRNThreadPoolTasksBuffer;
 		
 		_threadCount = (maxThreads > 0) ? maxThreads : ThreadCoordinator::GetSharedInstance()->GetBaseConcurrency();
 		
 		for(size_t i = 0; i < _threadCount; i ++)
 		{
-			_threadData.push_back(new ThreadContext(maxJobs));
+			_threadData.push_back(new ThreadContext());
 			
 			Thread *thread = CreateThread(i);
 			thread->Detach();
@@ -125,25 +119,18 @@ namespace RN
 			for(size_t i = 0; (i < _threadCount && toWrite > 0); i ++)
 			{
 				ThreadContext *context = _threadData[i];
+				size_t pushed;
 				
-				if(context->lock.try_lock())
+				for(pushed = 0; pushed < perThread; pushed ++)
 				{
-					if(context->hose.capacity() - context->hose.size() < kRNThreadPoolMinimumPush)
-					{
-						context->lock.unlock();
-						continue;
-					}
-					
-					size_t pushable = std::min(context->hose.capacity() - context->hose.size(), perThread);
-					
-					for(size_t j = 0; j < pushable; j ++)
-						context->hose.push(std::move(tasks[offset ++]));
-					
-					context->lock.unlock();
-					context->condition.notify_one();
-					
-					toWrite -= pushable;
+					if(!context->hose.push(std::move(tasks[offset ++])))
+						break;
 				}
+				
+				if(pushed > 0)
+					context->condition.notify_one();
+				
+				toWrite -= pushed;
 			}
 			
 			if(toWrite > 0)
@@ -169,16 +156,10 @@ namespace RN
 		
 		while(!thread->IsCancelled())
 		{
-			std::unique_lock<std::mutex> lock(local->lock);
+			Task task;
 			
-			if(local->hose.size() == 0)
-				local->condition.wait(lock, [&]() { return (local->hose.size() > 0); });
-			
-			size_t count = local->hose.size();
-			
-			for(size_t i = 0; i < count; i ++)
+			if(local->hose.pop(task))
 			{
-				Task& task = local->hose.front();
 				task.function();
 				
 				if(task.batch)
@@ -193,17 +174,14 @@ namespace RN
 						task.batch->Release();
 					}
 				}
-				
-				local->hose.pop();
 			}
-			
-			
-			lock.unlock();
-			
+			else
 			{
-				std::lock_guard<std::mutex> lock(_feederLock);
-				_feederCondition.notify_one();
+				std::unique_lock<std::mutex> lock(local->lock);
+				local->condition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
 			}
+
+			_feederCondition.notify_one();
 		}
 		
 		context->DeactivateContext();
