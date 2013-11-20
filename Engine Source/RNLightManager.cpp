@@ -329,9 +329,9 @@ namespace RN
 			viewPosition.w = 1.0;
 			
 			Vector4 minProjected = camera->projectionMatrix.Transform(viewPosition+Vector4(-lightRange, -lightRange, 0.0, 0.0));
-			minProjected /= minProjected.w;
+			minProjected /= Math::FastAbs(minProjected.w);
 			Vector4 maxProjected = camera->projectionMatrix.Transform(viewPosition+Vector4(lightRange, lightRange, 0.0, 0.0));
-			maxProjected /= maxProjected.w;
+			maxProjected /= Math::FastAbs(maxProjected.w);
 			
 			int minX = floor((minProjected.x*0.5+0.5)*rect.width/cameraClusterSize.x);
 			int maxX = ceil((maxProjected.x*0.5+0.5)*rect.width/cameraClusterSize.x);
@@ -361,6 +361,8 @@ namespace RN
 			float linearDist = cameraForward.Dot(lightPosition - cameraWorldPosition);
 			int minZ = floor((linearDist - lightRange) / cameraClusterSize.z);
 			int maxZ = ceil((linearDist + lightRange) / cameraClusterSize.z);
+			if(minZ < 0)
+				minZ = 0;
 	
 			for(int x = minX; x <= maxX; x++)
 			{
