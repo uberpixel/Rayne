@@ -187,11 +187,11 @@ namespace RN
 			}
 			else
 			{
+				_feederCondition.notify_one();
+				
 				std::unique_lock<std::mutex> lock(local->lock);
 				local->condition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
 			}
-
-			_feederCondition.notify_one();
 		}
 		
 		context->DeactivateContext();
