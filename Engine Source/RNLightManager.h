@@ -55,10 +55,8 @@ namespace RN
 		size_t _lightSpotDataSize;
 		
 		int *_lightIndices;
-		int *_lightIndicesTemp;
 		int *_lightOffsetCount;
 		size_t _lightIndicesSize;
-		size_t _lightIndicesTempSize;
 		size_t _lightOffsetCountSize;
 		
 		std::vector<Vector3> _lightDirectionalDirection;

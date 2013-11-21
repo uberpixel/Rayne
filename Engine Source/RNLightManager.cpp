@@ -23,11 +23,9 @@ namespace RN
 		_maxLightFastPath = 10;
 		
 		_lightIndices = nullptr;
-		_lightIndicesTemp = nullptr;
 		_lightOffsetCount = nullptr;
 		
 		_lightIndicesSize = 0;
-		_lightIndicesTempSize = 0;
 		_lightOffsetCountSize = 0;
 		
 		// Point and Spot lights
@@ -63,12 +61,8 @@ namespace RN
 		gl::DeleteBuffers(4, _lightBuffers);
 		gl::DeleteTextures(4, _lightTextures);
 		
-		if(_lightIndices != nullptr)
-			delete _lightIndices;
-		if(_lightIndicesTemp != nullptr)
-			delete _lightIndicesTemp;
-		if(_lightOffsetCount != nullptr)
-			delete _lightOffsetCount;
+		delete _lightIndices;
+		delete _lightOffsetCount;
 	}
 	
 	
@@ -287,7 +281,7 @@ namespace RN
 		const Vector3& cameraWorldPosition = camera->GetWorldPosition();
 		const Vector3& cameraClusterSize = camera->GetLightTiles();
 		
-		size_t maxLightsPerTile = camera->GetMaxLightsPerTile();
+		size_t maxLightsPerTile = camera->GetMaxLightsPerTile() * 2;
 		const Rect& rect = camera->GetFrame();
 		
 		int tilesWidth   = ceil(rect.width / cameraClusterSize.x);
@@ -295,18 +289,22 @@ namespace RN
 		int tilesDepth   = ceil(camera->clipfar / cameraClusterSize.z); // TODO: clipnear?
 		int clusterCount = tilesWidth * tilesHeight * tilesDepth;
 		
-		
-		
-		if(_lightIndicesTempSize < tilesWidth * tilesHeight * tilesDepth * maxLightsPerTile)
+		if(_lightIndicesSize < clusterCount * maxLightsPerTile)
 		{
-			_lightIndicesTempSize = tilesWidth * tilesHeight * tilesDepth * maxLightsPerTile;
-			_lightIndicesTemp = new int[_lightIndicesTempSize];
+			_lightIndicesSize = clusterCount * maxLightsPerTile;
+			_lightIndices = new int[_lightIndicesSize];
+			
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
+			gl::BufferData(GL_TEXTURE_BUFFER, _lightIndicesSize * sizeof(int), nullptr, GL_DYNAMIC_DRAW);
 		}
 		
-		if(_lightOffsetCountSize < tilesWidth * tilesHeight * tilesDepth * 2)
+		if(_lightOffsetCountSize < clusterCount  * 2)
 		{
-			_lightOffsetCountSize = tilesWidth * tilesHeight * tilesDepth * 2;
+			_lightOffsetCountSize = clusterCount * 2;
 			_lightOffsetCount = new int[_lightOffsetCountSize];
+			
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
+			gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int), nullptr, GL_DYNAMIC_DRAW);
 		}
 		
 		std::fill(_lightOffsetCount, _lightOffsetCount + _lightOffsetCountSize, 0);
@@ -371,7 +369,7 @@ namespace RN
 						
 						if(_lightOffsetCount[clusterIndex * 2 + 1] < maxLightsPerTile)
 						{
-							_lightIndicesTemp[clusterIndex * maxLightsPerTile + _lightOffsetCount[clusterIndex * 2 + 1]] = lightIndex;
+							_lightIndices[clusterIndex * maxLightsPerTile + _lightOffsetCount[clusterIndex * 2 + 1]] = lightIndex;
 							_lightOffsetCount[clusterIndex * 2 + 1] ++;
 						}
 					}
@@ -381,33 +379,25 @@ namespace RN
 			lightIndex ++;
 		}
 		
-		if(_lightIndicesSize < clusterCount * maxLightsPerTile)
-		{
-			_lightIndicesSize = clusterCount * maxLightsPerTile;
-			_lightIndices = new int[_lightIndicesSize];
-		}
-		
 		_lightOffsetCount[0] = 0;
 		
 		for(int c = 1; c < clusterCount; c++)
-		{
-			_lightOffsetCount[c*2+0] = _lightOffsetCount[(c-1)*2+0]+_lightOffsetCount[(c-1)*2+1];
-		}
+			_lightOffsetCount[c*2+0] = _lightOffsetCount[(c-1)*2+0] + _lightOffsetCount[(c-1)*2+1];
 		
-		int sum = 0;
+		
+		int offset = 0;
 		
 		for(int c = 0; c < clusterCount; c++)
 		{
-			std::copy(&_lightIndicesTemp[c*maxLightsPerTile], &_lightIndicesTemp[c*maxLightsPerTile+_lightOffsetCount[c*2+1]], &_lightIndices[_lightOffsetCount[c*2+0]]);
-			sum += _lightOffsetCount[c*2+1];
+			std::copy(&_lightIndices[c*maxLightsPerTile], &_lightIndices[c*maxLightsPerTile+_lightOffsetCount[c*2+1]], &_lightIndices[offset]);
+			offset += _lightOffsetCount[c*2+1];
 		}
 		
-		// Offsets
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
-		gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int), _lightOffsetCount, GL_DYNAMIC_DRAW);
 		
-		// Indices
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
+		gl::BufferSubData(GL_TEXTURE_BUFFER, 0, _lightOffsetCountSize * sizeof(int), _lightOffsetCount);
+		
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
-		gl::BufferData(GL_TEXTURE_BUFFER, sum * sizeof(int), _lightIndices, GL_DYNAMIC_DRAW);
+		gl::BufferSubData(GL_TEXTURE_BUFFER, 0, offset * sizeof(int), _lightIndices);
 	}
 }
