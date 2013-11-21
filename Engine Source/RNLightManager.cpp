@@ -109,14 +109,17 @@ namespace RN
 			size_t lightDataSize = lightCount * 2 * sizeof(Vector4);
 			
 			if(lightDataSize == 0) // Makes sure that we don't end up with an empty buffer
+			{
 				lightDataSize = 2 * sizeof(Vector4);
+				
+				if(_lightPointData.size() == 0)
+					_lightPointData.resize(2);
+			}
 			
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListPointDataIndex]);
 			if(lightDataSize > _lightPointDataSize)
 			{
-				gl::BufferData(GL_TEXTURE_BUFFER, _lightPointDataSize, 0, GL_DYNAMIC_DRAW);
 				gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
-				
 				_lightPointDataSize = lightDataSize;
 			}
 			
@@ -151,7 +154,7 @@ namespace RN
 				}
 			}
 			
-			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_DYNAMIC_DRAW);
+			gl::BufferSubData(GL_TEXTURE_BUFFER, 0, lightDataSize, lightData);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 		
@@ -281,7 +284,7 @@ namespace RN
 		const Vector3& cameraWorldPosition = camera->GetWorldPosition();
 		const Vector3& cameraClusterSize = camera->GetLightTiles();
 		
-		size_t maxLightsPerTile = camera->GetMaxLightsPerTile() * 2;
+		size_t maxLightsPerTile = camera->GetMaxLightsPerTile();
 		const Rect& rect = camera->GetFrame();
 		
 		int tilesWidth   = ceil(rect.width / cameraClusterSize.x);
