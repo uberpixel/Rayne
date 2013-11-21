@@ -259,7 +259,7 @@ namespace RN
 		Shader *GetDrawFramebufferShader() const { return _blitShader; }
 		BlitMode GetBlitMode() const { return _blitMode; }
 		
-		Vector3 GetLightTiles() const { return _lightTiles; }
+		const Vector3& GetLightTiles() const { return _lightTiles; }
 		void SetLightTiles(const Vector3 &size) { _lightTiles = size; }
 		Model *GetSkyCube() const { return _skycube; }
 		

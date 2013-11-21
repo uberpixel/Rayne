@@ -283,24 +283,19 @@ namespace RN
 	void LightManager::CullLights(Camera *camera)
 	{
 		Vector3 cameraForward = camera->Forward();
-		Vector3 cameraWorldPosition = camera->GetWorldPosition();
 		
-		//Vector3 corner1 = camera->ToWorld(Vector3(-1.0f, -1.0f, 1.0f));
-		//Vector3 corner2 = camera->ToWorld(Vector3(1.0f, -1.0f, 1.0f));
-		//Vector3 corner3 = camera->ToWorld(Vector3(-1.0f, 1.0f, 1.0f));
-		
-		Vector3 cameraClusterSize = camera->GetLightTiles();
-		Rect rect = camera->GetFrame();
-		int tilesWidth  = ceil(rect.width / cameraClusterSize.x);
-		int tilesHeight = ceil(rect.height / cameraClusterSize.y);
-		int tilesDepth = ceil(camera->clipfar / cameraClusterSize.z); //TODO: clipnear?
-		int clusterCount = tilesWidth * tilesHeight * tilesDepth;
-		
-		//Vector3 dirX = (corner2 - corner1) / tilesWidth;
-		//Vector3 dirY = (corner3 - corner1) / tilesHeight;
-		//Vector3 dirZ = cameraForward * camera->clipfar / tilesDepth;
+		const Vector3& cameraWorldPosition = camera->GetWorldPosition();
+		const Vector3& cameraClusterSize = camera->GetLightTiles();
 		
 		size_t maxLightsPerTile = camera->GetMaxLightsPerTile();
+		const Rect& rect = camera->GetFrame();
+		
+		int tilesWidth   = ceil(rect.width / cameraClusterSize.x);
+		int tilesHeight  = ceil(rect.height / cameraClusterSize.y);
+		int tilesDepth   = ceil(camera->clipfar / cameraClusterSize.z); // TODO: clipnear?
+		int clusterCount = tilesWidth * tilesHeight * tilesDepth;
+		
+		
 		
 		if(_lightIndicesTempSize < tilesWidth * tilesHeight * tilesDepth * maxLightsPerTile)
 		{
@@ -314,29 +309,29 @@ namespace RN
 			_lightOffsetCount = new int[_lightOffsetCountSize];
 		}
 		
-		for(int i = 0; i < _lightOffsetCountSize; i++)
-		{
-			_lightOffsetCount[i] = 0;
-		}
+		std::fill(_lightOffsetCount, _lightOffsetCount + _lightOffsetCountSize, 0);
 		
 		int lightIndex = 0;
+		
 		for(auto light : _pointLights)
 		{
-			Vector3 lightPosition = light->GetWorldPosition();
+			const Vector3& lightPosition = light->GetWorldPosition();
 			float lightRange = light->GetRange();
 
-			Vector4 viewPosition = camera->viewMatrix.Transform(Vector4(lightPosition, 1.0f));
+			Vector4 viewPosition = std::move(camera->viewMatrix.Transform(Vector4(lightPosition, 1.0f)));
 			viewPosition.w = 1.0;
 			
-			Vector4 minProjected = camera->projectionMatrix.Transform(viewPosition+Vector4(-lightRange, -lightRange, 0.0, 0.0));
+			Vector4 minProjected = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(-lightRange, -lightRange, 0.0, 0.0)));
+			Vector4 maxProjected = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(lightRange, lightRange, 0.0, 0.0)));
+			
 			minProjected /= Math::FastAbs(minProjected.w);
-			Vector4 maxProjected = camera->projectionMatrix.Transform(viewPosition+Vector4(lightRange, lightRange, 0.0, 0.0));
 			maxProjected /= Math::FastAbs(maxProjected.w);
+			
 			
 			int minX = floor((minProjected.x*0.5+0.5)*rect.width/cameraClusterSize.x);
 			int maxX = ceil((maxProjected.x*0.5+0.5)*rect.width/cameraClusterSize.x);
 			
-			if(maxX >= tilesWidth-1)
+			if(maxX > tilesWidth-1)
 				maxX = tilesWidth-1;
 			if(minX > tilesWidth-1)
 				minX = maxX+1;
@@ -359,8 +354,10 @@ namespace RN
 				maxY = minY-1;
 			
 			float linearDist = cameraForward.Dot(lightPosition - cameraWorldPosition);
+			
 			int minZ = floor((linearDist - lightRange) / cameraClusterSize.z);
 			int maxZ = ceil((linearDist + lightRange) / cameraClusterSize.z);
+			
 			if(minZ < 0)
 				minZ = 0;
 	
@@ -375,13 +372,13 @@ namespace RN
 						if(_lightOffsetCount[clusterIndex * 2 + 1] < maxLightsPerTile)
 						{
 							_lightIndicesTemp[clusterIndex * maxLightsPerTile + _lightOffsetCount[clusterIndex * 2 + 1]] = lightIndex;
-							_lightOffsetCount[clusterIndex * 2 + 1] += 1;
+							_lightOffsetCount[clusterIndex * 2 + 1] ++;
 						}
 					}
 				}
 			}
 			
-			lightIndex++;
+			lightIndex ++;
 		}
 		
 		if(_lightIndicesSize < clusterCount * maxLightsPerTile)
@@ -391,24 +388,26 @@ namespace RN
 		}
 		
 		_lightOffsetCount[0] = 0;
+		
 		for(int c = 1; c < clusterCount; c++)
 		{
 			_lightOffsetCount[c*2+0] = _lightOffsetCount[(c-1)*2+0]+_lightOffsetCount[(c-1)*2+1];
 		}
 		
+		int sum = 0;
+		
 		for(int c = 0; c < clusterCount; c++)
 		{
 			std::copy(&_lightIndicesTemp[c*maxLightsPerTile], &_lightIndicesTemp[c*maxLightsPerTile+_lightOffsetCount[c*2+1]], &_lightIndices[_lightOffsetCount[c*2+0]]);
+			sum += _lightOffsetCount[c*2+1];
 		}
 		
 		// Offsets
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
-		gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
 		gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int), _lightOffsetCount, GL_DYNAMIC_DRAW);
 		
 		// Indices
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
-		gl::BufferData(GL_TEXTURE_BUFFER, _lightIndicesSize * sizeof(int), 0, GL_DYNAMIC_DRAW);
-		gl::BufferData(GL_TEXTURE_BUFFER, _lightIndicesSize * sizeof(int), _lightIndices, GL_DYNAMIC_DRAW);
+		gl::BufferData(GL_TEXTURE_BUFFER, sum * sizeof(int), _lightIndices, GL_DYNAMIC_DRAW);
 	}
 }
