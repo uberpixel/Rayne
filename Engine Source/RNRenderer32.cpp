@@ -285,8 +285,11 @@ namespace RN
 				if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
 					programTypes |= ShaderProgram::TypeDiscard;
 				
-				// Set lighting defines
 				std::vector<ShaderDefine> defines;
+				if(material->GetTextures().GetCount()  > 0)
+					defines.emplace_back(ShaderDefine("RN_TEXTURE_DIFFUSE", 1));
+				
+				// Set lighting defines
 				if(lightDirectionalCount > 0)
 					defines.emplace_back(ShaderDefine("RN_DIRECTIONAL_LIGHTS", lightDirectionalCount));
 				

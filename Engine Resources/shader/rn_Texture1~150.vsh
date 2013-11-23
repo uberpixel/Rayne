@@ -19,10 +19,14 @@ precision highp float;
 	in vec2 attPosition;
 #endif
 in vec3 attNormal;
+#if defined(RN_TEXTURE_DIFFUSE)
 in vec2 attTexcoord0;
+#endif
 in vec4 attTangent;
 
+#if defined(RN_TEXTURE_DIFFUSE)
 out vec2 vertTexcoord;
+#endif
 
 #if defined(RN_LIGHTING)
 	out vec3 vertPosition;
@@ -43,10 +47,12 @@ out vec2 vertTexcoord;
 
 void main()
 {
+	#if defined(RN_TEXTURE_DIFFUSE)
 	#if defined(RN_TEXTURE_TILING)
 		vertTexcoord = attTexcoord0*RN_TEXTURE_TILING;
 	#else
 		vertTexcoord = attTexcoord0;
+	#endif
 	#endif
 
 	#if !defined(RN_BILLBOARD)

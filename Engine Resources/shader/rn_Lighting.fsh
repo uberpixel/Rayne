@@ -239,6 +239,19 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 #else
 	color.rgb = color.rgb*light;
 #endif
+	
+/*	if(listoffset.y < 1.0)
+		color.rgb += vec3(0.0);
+	else if(listoffset.y < 2.0)
+		color.g += 1.0;
+	else if(listoffset.y < 3.0)
+		color.b += 1.0;
+	else if(listoffset.y < 4.0)
+		color.r += 1.0;
+	else
+		color.rgb += vec3(1.0);*/
+	
+//	color.rgb += vec3(mod(tileindex, 2))*0.01;
 #if !defined(RN_POINT_LIGHTS_FASTPATH)
 //	color.rgb = vec3(listoffset.y/100.0);
 #endif

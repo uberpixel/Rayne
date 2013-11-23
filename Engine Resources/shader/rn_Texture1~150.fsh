@@ -12,7 +12,11 @@ precision highp float;
 #include "rn_Lighting.fsh"
 #include "rn_Discard.fsh"
 
-uniform sampler2D mTexture0;
+#if defined(RN_TEXTURE_DIFFUSE)
+	uniform sampler2D mTexture0;
+#else
+	uniform vec4 diffuse;
+#endif
 
 #if defined(RN_NORMALMAP)
 	uniform sampler2D mTexture1;
@@ -38,7 +42,9 @@ uniform sampler2D mTexture0;
 	uniform vec4 clipPlane;
 #endif
 
+#if defined(RN_TEXTURE_DIFFUSE)
 in vec2 vertTexcoord;
+#endif
 
 #if defined(RN_LIGHTING)
 	in vec3 vertPosition;
@@ -62,7 +68,11 @@ void main()
 			discard;
 	#endif
 	
-	vec4 color0 = texture(mTexture0, vertTexcoord);
+	#if defined(RN_TEXTURE_DIFFUSE)
+		vec4 color0 = texture(mTexture0, vertTexcoord);
+	#else
+		vec4 color0 = diffuse;
+	#endif
 	rn_Discard(color0);
 
 	#if defined(RN_LIGHTING)

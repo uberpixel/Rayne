@@ -43,9 +43,10 @@ namespace TG
 		AddAttachment(_debugAttachment);
 		
 		CreateCameras();
-		CreateSponza();
+//		CreateSponza();
 //		CreateForest();
 //		CreateTest();
+		CreateSibenik();
 		
 		RN::Input::GetSharedInstance()->Activate();
 		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNInputEventMessage, [&](RN::Message *message) {
@@ -61,7 +62,7 @@ namespace TG
 						break;
 						
 					case 'x':
-						_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _lightcam);
+						_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _camera);
 						break;
 						
 					default:
@@ -408,7 +409,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateDirectionalShadows();
+//		_sunLight->ActivateDirectionalShadows();
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
 /*		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
@@ -426,43 +427,43 @@ namespace TG
 		
 /*		RN::Light *light = new RN::Light();
 		light->SetPosition(RN::Vector3(-21.0f, -5.0f, -5.0f));
-		light->SetRange(15.0f);
+		light->SetRange(5.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		light->ActivatePointShadows();
+//		light->ActivatePointShadows();
 		
-		light = new RN::Light();
+/*		light = new RN::Light();
 		light->SetPosition(RN::Vector3(-21.0f, -5.0f, 5.0f));
-		light->SetRange(15.0f);
+		light->SetRange(5.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		light->ActivatePointShadows();
+//		light->ActivatePointShadows();
 		
 		light = new RN::Light();
 		light->SetPosition(RN::Vector3(29.0f, -5.0f, -5.0f));
-		light->SetRange(15.0f);
+		light->SetRange(5.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		light->ActivatePointShadows();
+//		light->ActivatePointShadows();
 		
 		light = new RN::Light();
 		light->SetPosition(RN::Vector3(29.0f, -5.0f, 5.0f));
-		light->SetRange(15.0f);
+		light->SetRange(5.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		light->ActivatePointShadows();*/
-		
-		for(int i=0; i<200; i++)
+//		light->ActivatePointShadows();
+		*/
+		for(int i=0; i<0; i++)
 		{
 			RN::Light *light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 21.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 21.0f - 10.0f));
 			light->SetRange((TGWorldRandom * 3.0f) + 2.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 			float timeoffset = TGWorldRandom*10.0f;
-/*			light->SetAction([timeoffset](RN::SceneNode *light, float delta) {
+			light->SetAction([timeoffset](RN::SceneNode *light, float delta) {
 				RN::Vector3 pos = light->GetWorldPosition();
 				float time = RN::Kernel::GetSharedInstance()->GetTime();
 				time += timeoffset;
 				pos.x += 0.05f*cos(time*2.0f);
 				pos.z += 0.05f*sin(time*2.0f);
 				light->SetWorldPosition(pos);
-			});*/
+			});
 //			light->ActivatePointShadows();
 		}
 #endif
@@ -710,6 +711,21 @@ namespace TG
 		
 		RN::Entity *ent = new RN::Entity();
 		ent->SetModel(ground);
+		
+		
+		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
+		_sunLight->SetIntensity(5.0f);
+		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
+		_sunLight->SetLightCamera(_camera);
+		_sunLight->ActivateDirectionalShadows();
+	}
+	
+	void World::CreateSibenik()
+	{
+		RN::Model *sibenik = RN::Model::WithFile("models/Dabrovic/sibenik/sibenik.sgm");
+		
+		RN::Entity *ent = new RN::Entity();
+		ent->SetModel(sibenik);
 		
 		
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);

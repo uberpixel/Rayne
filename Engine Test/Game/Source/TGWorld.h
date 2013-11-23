@@ -31,6 +31,7 @@ namespace TG
 		void CreateSponza();
 		void CreateForest();
 		void CreateTest();
+		void CreateSibenik();
 		
 		DebugDrawer *_debugAttachment;
 		
