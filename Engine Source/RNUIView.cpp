@@ -83,19 +83,19 @@ namespace RN
 			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
 			vertexDescriptor.elementMember = 2;
 			vertexDescriptor.elementSize   = sizeof(Vector2);
-			vertexDescriptor.elementCount  = 4;
 			
 			MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
 			uvDescriptor.elementMember = 2;
 			uvDescriptor.elementSize   = sizeof(Vector2);
-			uvDescriptor.elementCount  = 4;
 			
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor };
-			Mesh *mesh = new Mesh(descriptors);
+			Mesh *mesh = new Mesh(descriptors, 4, 0);
 			mesh->SetMode(GL_TRIANGLE_STRIP);
 			
-			Vector2 *vertices = mesh->GetElement<Vector2>(kMeshFeatureVertices);
-			Vector2 *uvCoords = mesh->GetElement<Vector2>(kMeshFeatureUVSet0);
+			Mesh::Chunk chunk = mesh->GetChunk();
+			
+			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(kMeshFeatureVertices);
+			Mesh::ElementIterator<Vector2> uvCoords = chunk.GetIterator<Vector2>(kMeshFeatureUVSet0);
 			
 			*vertices ++ = Vector2(size.x, size.y);
 			*vertices ++ = Vector2(0.0f, size.y);
@@ -107,9 +107,7 @@ namespace RN
 			*uvCoords ++ = Vector2(1.0f, 1.0f);
 			*uvCoords ++ = Vector2(0.0f, 1.0f);
 			
-			mesh->ReleaseElement(kMeshFeatureVertices);
-			mesh->ReleaseElement(kMeshFeatureUVSet0);
-			mesh->UpdateMesh();
+			chunk.CommitChanges();
 			
 			return mesh->Autorelease();
 		}
@@ -129,15 +127,15 @@ namespace RN
 		
 		void View::UpdateBasicMesh(Mesh *mesh, const Vector2& size)
 		{
-			Vector2 *vertices = mesh->GetElement<Vector2>(kMeshFeatureVertices);
+			Mesh::Chunk chunk = mesh->GetChunk();
+			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(kMeshFeatureVertices);
 			
 			*vertices ++ = Vector2(size.x, size.y);
 			*vertices ++ = Vector2(0.0f, size.y);
 			*vertices ++ = Vector2(size.x, 0.0f);
 			*vertices ++ = Vector2(0.0f, 0.0f);
 			
-			mesh->ReleaseElement(kMeshFeatureVertices);
-			mesh->UpdateMesh();
+			chunk.CommitChanges();
 		}
 		
 		Responder *View::GetNextResponder() const

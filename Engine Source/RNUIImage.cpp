@@ -53,25 +53,26 @@ namespace RN
 			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
 			vertexDescriptor.elementMember = 2;
 			vertexDescriptor.elementSize   = sizeof(Vector2);
-			vertexDescriptor.elementCount  = xverts*yverts;
 			
 			MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
 			uvDescriptor.elementMember = 2;
 			uvDescriptor.elementSize   = sizeof(Vector2);
-			uvDescriptor.elementCount  = xverts*yverts;
 			
 			MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
 			indicesDescriptor.elementMember = 1;
 			indicesDescriptor.elementSize = sizeof(uint16);
-			indicesDescriptor.elementCount = (xverts-1)*(yverts-1)*3*2;
 	
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor, indicesDescriptor };
-			Mesh *mesh = new Mesh(descriptors);
+			Mesh *mesh = new Mesh(descriptors, xverts*yverts, (xverts-1)*(yverts-1)*3*2);
 			mesh->SetMode(GL_TRIANGLES);
+	
+			Mesh::Chunk chunk  = mesh->GetChunk();
+			Mesh::Chunk ichunk = mesh->GetIndicesChunk();
 			
-			Vector2 *vertices = mesh->GetElement<Vector2>(kMeshFeatureVertices);
-			Vector2 *uvCoords = mesh->GetElement<Vector2>(kMeshFeatureUVSet0);
-			uint16 *indices = mesh->GetElement<uint16>(kMeshFeatureIndices);
+			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(kMeshFeatureVertices);
+			Mesh::ElementIterator<Vector2> uvCoords = chunk.GetIterator<Vector2>(kMeshFeatureUVSet0);
+			Mesh::ElementIterator<uint16> indices   = ichunk.GetIterator<uint16>(kMeshFeatureIndices);
+			
 			
 			for(uint16 x = 0; x < xverts; x++)
 			{
@@ -143,10 +144,8 @@ namespace RN
 				}
 			}
 			
-			mesh->ReleaseElement(kMeshFeatureVertices);
-			mesh->ReleaseElement(kMeshFeatureUVSet0);
-			mesh->ReleaseElement(kMeshFeatureIndices);
-			mesh->UpdateMesh();
+			chunk.CommitChanges();
+			ichunk.CommitChanges();
 			
 			return mesh->Autorelease();
 		}

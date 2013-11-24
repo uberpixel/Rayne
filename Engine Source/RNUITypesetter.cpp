@@ -1057,24 +1057,24 @@ namespace RN
 			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
 			vertexDescriptor.elementMember = 2;
 			vertexDescriptor.elementSize   = sizeof(Vector2);
-			vertexDescriptor.elementCount  = glyphCount * 4;
 			
 			MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
 			uvDescriptor.elementMember = 2;
 			uvDescriptor.elementSize   = sizeof(Vector2);
-			uvDescriptor.elementCount  = glyphCount * 4;
 			
 			MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
 			indicesDescriptor.elementMember = 1;
 			indicesDescriptor.elementSize   = sizeof(uint16);
-			indicesDescriptor.elementCount  = glyphCount * 6;
 			
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor, indicesDescriptor };
-			Mesh *mesh = new Mesh(descriptors);
+			Mesh *mesh = new Mesh(descriptors, glyphCount * 4, glyphCount * 6);
 			
-			Vector2 *vertices = mesh->GetElement<Vector2>(kMeshFeatureVertices);
-			Vector2 *uvCoords = mesh->GetElement<Vector2>(kMeshFeatureUVSet0);
-			uint16 *indices   = mesh->GetElement<uint16>(kMeshFeatureIndices);
+			Mesh::Chunk chunk  = mesh->GetChunk();
+			Mesh::Chunk ichunk = mesh->GetIndicesChunk();
+			
+			Vector2 *vertices = new Vector2[glyphCount * 4];
+			Vector2 *uvCoords = new Vector2[glyphCount * 4];
+			uint16  *indices  = new uint16[glyphCount * 6];
 			
 			for(LineSegment *segment : segments)
 			{
@@ -1086,16 +1086,25 @@ namespace RN
 				offset += segment->GetGlyphs().size();
 			}
 			
+			Vector2 *tvertices = vertices;
+			
 			for(size_t i = 0; i < glyphCount * 4; i ++)
 			{
-				vertices->y = vertices->y + lineOffset;
-				vertices ++;
+				tvertices->y = tvertices->y + lineOffset;
+				tvertices ++;
 			}
 			
-			mesh->ReleaseElement(kMeshFeatureVertices);
-			mesh->ReleaseElement(kMeshFeatureUVSet0);
-			mesh->ReleaseElement(kMeshFeatureIndices);
 			
+			chunk.SetData(vertices, kMeshFeatureVertices);
+			chunk.SetData(uvCoords, kMeshFeatureUVSet0);
+			chunk.CommitChanges();
+			
+			ichunk.SetData(indices);
+			ichunk.CommitChanges();
+			
+			delete [] vertices;
+			delete [] uvCoords;
+			delete [] indices;
 			
 			Dictionary *dictionary = new Dictionary();
 			dictionary->SetObjectForKey(Color::WithRNColor(segments[0]->GetColor()), kRNTypesetterColorAttribute);

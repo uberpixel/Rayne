@@ -542,11 +542,11 @@ namespace RN
 	void Renderer32::DrawMesh(Mesh *mesh, uint32 offset, uint32 count)
 	{
 		bool usesIndices = mesh->SupportsFeature(kMeshFeatureIndices);
-		MeshDescriptor *descriptor = usesIndices ? mesh->GetDescriptor(kMeshFeatureIndices) : mesh->GetDescriptor(kMeshFeatureVertices);
+		const MeshDescriptor *descriptor = usesIndices ? mesh->GetDescriptorForFeature(kMeshFeatureIndices) : mesh->GetDescriptorForFeature(kMeshFeatureVertices);
 		
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
 		
-		GLsizei glCount = static_cast<GLsizei>(descriptor->elementCount);
+		GLsizei glCount = static_cast<GLsizei>(usesIndices ? mesh->GetIndicesCount() : mesh->GetVerticesCount());
 		if(count != 0)
 			glCount = std::min(glCount, static_cast<GLsizei>(count));
 		
@@ -579,14 +579,13 @@ namespace RN
 			gl::DrawArrays(mesh->GetMode(), 0, glCount);
 		}
 		
-		_renderedVertices += glCount;
 		BindVAO(0);
 	}
 	
 	void Renderer32::DrawMeshInstanced(const RenderingObject& object)
 	{
 		Mesh *mesh = object.mesh;
-		MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureIndices);
+		const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureIndices);
 		
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
 		RN_ASSERT(_currentProgram->instancingData != -1, "");
@@ -616,15 +615,14 @@ namespace RN
 					break;
 			}
 			
-			gl::DrawElementsInstanced(mesh->GetMode(), (GLsizei)descriptor->elementCount, type, 0, (GLsizei)object.count);
+			gl::DrawElementsInstanced(mesh->GetMode(), (GLsizei)mesh->GetIndicesCount(), type, 0, (GLsizei)object.count);
 		}
 		else
 		{
-			descriptor = mesh->GetDescriptor(kMeshFeatureVertices);
-			gl::DrawArraysInstanced(mesh->GetMode(), 0, (GLsizei)descriptor->elementCount, (GLsizei)object.count);
+			descriptor = mesh->GetDescriptorForFeature(kMeshFeatureVertices);
+			gl::DrawArraysInstanced(mesh->GetMode(), 0, (GLsizei)mesh->GetVerticesCount(), (GLsizei)object.count);
 		}
 		
-		_renderedVertices += descriptor->elementCount * object.count;
 		BindVAO(0);
 	}
 	

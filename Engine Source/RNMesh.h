@@ -52,105 +52,208 @@ namespace RN
 		MeshFeature feature;
 		uint32 flags;
 		
-		int32 elementMember;
+		size_t elementMember;
 		size_t elementSize;
-		size_t elementCount;
 		
 		size_t offset;
 		
 	private:
 		size_t _size;
 		size_t _alignment;
-		
-		uint8 *_pointer;
-		size_t _useCount;
 	};
-	
-	
 	
 	class Mesh : public Object
 	{
 	public:
-		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor);
-		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor, const void *data);
+		friend class Chunk;
+		class Chunk;
+		
+		class __ChunkFriend
+		{
+		protected:
+			size_t GetStride() const
+			{
+				return _chunk->_stride;
+			}
+			
+			void MarkDirty()
+			{
+				_chunk->_dirty = true;
+			}
+			
+			Chunk *_chunk;
+		};
+		
+		template<class T>
+		class ElementIterator : public __ChunkFriend
+		{
+		public:
+			friend class Chunk;
+			
+			ElementIterator(const ElementIterator& other) :
+				_feature(other._feature),
+				_ptr(other._ptr)
+			{
+				_chunk = other._chunk;
+			}
+			
+			
+			T *operator ->()
+			{
+				MarkDirty();
+				return _ptr;
+			}
+			
+			const T *operator ->() const
+			{
+				return _ptr;
+			}
+			
+			T& operator *()
+			{
+				__ChunkFriend::MarkDirty();
+				return *_ptr;
+			}
+			
+			const T& operator *() const
+			{
+				return *_ptr;
+			}
+			
+			
+			ElementIterator<T>& operator ++()
+			{
+				Advance();
+				return *this;
+			}
+			
+			ElementIterator<T> operator ++(int)
+			{
+				ElementIterator<T> result(*this);
+				Advance();
+				
+				return result;
+			}
+			
+		private:
+			ElementIterator(MeshFeature feature, Chunk *chunk, T *ptr) :
+				_feature(feature),
+				_ptr(ptr)
+			{
+				_chunk = chunk;
+			}
+			
+			void Advance()
+			{
+				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_ptr) + __ChunkFriend::GetStride()));
+			}
+			
+			MeshFeature _feature;
+			T *_ptr;
+		};
+		
+		class Chunk
+		{
+		public:
+			friend class Mesh;
+			friend class __ChunkFriend;
+			
+			template<class T>
+			ElementIterator<T> GetIterator(MeshFeature feature)
+			{
+				size_t offset = _mesh->GetDescriptorForFeature(feature)->offset;
+				uint8 *ptr = reinterpret_cast<uint8 *>(_begin) + offset;
+				
+				return ElementIterator<T>(feature, this, reinterpret_cast<T *>(ptr));
+			}
+			
+			template<class T>
+			T *GetData()
+			{
+				_dirty = true;
+				return reinterpret_cast<T *>(_begin);
+			}
+			
+			void SetData(const void *data);
+			void SetData(const void *data, MeshFeature feature);
+			void SetDataInRange(const void *data, const Range& range);
+			
+			void CommitChanges();
+			
+		private:
+			Chunk(Mesh *mesh, const Range& range, bool indices);
+			
+			Mesh *_mesh;
+			Range _range;
+			void *_begin;
+			size_t _stride;
+			bool _dirty;
+			bool _indices;
+		};
+	
+		
+		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor, size_t verticesCount, size_t indicesCount);
+		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor, size_t verticesCount, size_t indicesCount, const std::pair<const void *, const void *>& data);
 		RNAPI ~Mesh() override;
 		
-		RNAPI void AddDescriptor(const std::vector<MeshDescriptor>& descriptor);
-		RNAPI void RemoveDescriptor(MeshFeature feature);
-		RNAPI MeshDescriptor *GetDescriptor(MeshFeature feature);
-		
-		RNAPI bool CanMergeMesh(Mesh *mesh);
-		RNAPI void MergeMesh(Mesh *mesh);
-		
-		RNAPI void UpdateMesh(bool force=false);
-							
+		RNAPI const MeshDescriptor *GetDescriptorForFeature(MeshFeature feature) const;
+	
 		template<typename T>
-		T *GetElement(MeshFeature feature, size_t index)
+		const T *GetVerticesData() const
 		{
-			return reinterpret_cast<T *>(FetchElement(feature, index));
+			return reinterpret_cast<T *>(_vertices);
 		}
 		
 		template<typename T>
-		T *GetElement(MeshFeature feature)
+		const T *GetIndicesData() const
 		{
-			return reinterpret_cast<T *>(CopyElement(feature));
-		}
-		
-		template<typename T>
-		T *GetMeshData()
-		{
-			_dirty = true;
-			return reinterpret_cast<T *>(_meshData);
-		}
-		
-		template<typename T>
-		T *GetIndicesData()
-		{
-			_dirtyIndices = true;
 			return reinterpret_cast<T *>(_indices);
 		}
+		
+		RNAPI Chunk GetChunk();
+		RNAPI Chunk GetChunkForRange(const Range& range);
+		
+		RNAPI Chunk GetIndicesChunk();
+		RNAPI Chunk GetIndicesChunkForRange(const Range& range);
 		
 		RNAPI void SetMode(GLenum mode);
 		RNAPI void SetVBOUsage(GLenum usage);
 		RNAPI void SetIBOUsage(GLenum usage);
-		RNAPI void SetElement(MeshFeature feature, void *data);
 		
-		RNAPI void ReleaseElement(MeshFeature feature);
-		RNAPI void CalculateBoundingBox();
+		RNAPI void SetElementData(MeshFeature feature, void *data);
 		
-		RNAPI bool SupportsFeature(MeshFeature feature);
-		RNAPI size_t OffsetForFeature(MeshFeature feature);
+		RNAPI void CalculateBoundingVolumes();
+		
+		RNAPI bool SupportsFeature(MeshFeature feature) const;
 		
 		RNAPI Hit IntersectsRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone);
 		
-		size_t GetStride() const { return _stride; };
+		GLuint GetVBO() { return _vbo; }
+		GLuint GetIBO() { return _ibo; }
 		
-		GLuint GetVBO();
-		GLuint GetIBO();
-		
+		size_t GetStride() const { return _stride; }
 		GLenum GetMode() const { return _mode; }
+		
+		size_t GetVerticesCount() const { return _verticesCount; }
+		size_t GetIndicesCount() const { return _indicesCount; }
 		
 		const AABB& GetBoundingBox() const { return _boundingBox; }
 		const Sphere& GetBoundingSphere() const { return _boundingSphere; }
 		
-		RNAPI static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0, 1.0, 1.0), const Vector3& rotation = Vector3(0.0f, 0.0f, 0.0f));
+		RNAPI static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0f), const Vector3& rotation = Vector3(0.0f));
 		RNAPI static Mesh *CubeMesh(const Vector3& size);
 		RNAPI static Mesh *CubeMesh(const Vector3& size, const Color& color);
 		
 	private:
-		void Initialize();
-		void AllocateStorage();
-		void RecalculateInternalData();
+		void Initialize(const std::vector<MeshDescriptor>& descriptors);
+		void AllocateBuffer(const std::pair<const void *, const void *>& data);
 		
-		Hit IntersectsRay3DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
-		Hit IntersectsRay2DWithIndices(MeshDescriptor *positionDescriptor, MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
-		Hit IntersectsRay3DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
-		Hit IntersectsRay2DWithoutIndices(MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
+		Hit IntersectsRay3DWithIndices(const MeshDescriptor *positionDescriptor, const MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
+		Hit IntersectsRay2DWithIndices(const MeshDescriptor *positionDescriptor, const MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
+		Hit IntersectsRay3DWithoutIndices(const MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
+		Hit IntersectsRay2DWithoutIndices(const MeshDescriptor *positionDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
 		
 		float RayTriangleIntersection(const Vector3 &pos, const Vector3 &dir, const Vector3 &vert1, const Vector3 &vert2, const Vector3 &vert3, Hit::HitMode mode);
-		
-		void *FetchElement(MeshFeature feature, size_t index);
-		void *CopyElement(MeshFeature feature);
 		
 		struct
 		{
@@ -159,24 +262,25 @@ namespace RN
 		};
 		
 		size_t _stride;
-		
-		size_t _meshSize;
-		size_t _indicesSize;
+		size_t _verticesCount;
+		size_t _indicesCount;
 		
 		GLenum _vboUsage;
 		GLenum _iboUsage;
 		GLenum _mode;
 		
-		AABB _boundingBox;
+		AABB   _boundingBox;
 		Sphere _boundingSphere;
 		
-		uint8 *_meshData;
+		size_t _verticesSize;
+		size_t _indicesSize;
+		
+		uint8 *_vertices;
 		uint8 *_indices;
 		
-		bool _dirty;
-		bool _dirtyIndices;
+		std::vector<MeshDescriptor> _descriptors;
+		std::unordered_set<MeshFeature> _features;
 		
-		std::vector<MeshDescriptor> _descriptor;
 		RNDefineMeta(Mesh, Object)
 	};
 }

@@ -343,7 +343,6 @@ namespace RN
 			size_t size = 0;
 			
 			MeshDescriptor meshDescriptor(kMeshFeatureVertices);
-			meshDescriptor.elementCount = numverts;
 			meshDescriptor.elementSize = sizeof(Vector3);
 			meshDescriptor.elementMember = 3;
 			
@@ -351,7 +350,6 @@ namespace RN
 			size += meshDescriptor.elementSize;
 			
 			meshDescriptor = MeshDescriptor(kMeshFeatureNormals);
-			meshDescriptor.elementCount = numverts;
 			meshDescriptor.elementSize = sizeof(Vector3);
 			meshDescriptor.elementMember = 3;
 			
@@ -359,7 +357,6 @@ namespace RN
 			size += meshDescriptor.elementSize;
 			
 			meshDescriptor = MeshDescriptor(kMeshFeatureUVSet0);
-			meshDescriptor.elementCount = numverts;
 			meshDescriptor.elementSize = sizeof(Vector2);
 			meshDescriptor.elementMember = 2;
 			
@@ -369,7 +366,6 @@ namespace RN
 			if(hastangent == 1)
 			{
 				meshDescriptor = MeshDescriptor(kMeshFeatureTangents);
-				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -379,7 +375,6 @@ namespace RN
 			if(uvcount > 1)
 			{
 				meshDescriptor = MeshDescriptor(kMeshFeatureUVSet1);
-				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector2);
 				meshDescriptor.elementMember = 2;
 				
@@ -389,7 +384,6 @@ namespace RN
 			if(datacount == 4)
 			{
 				meshDescriptor = MeshDescriptor(kMeshFeatureColor0);
-				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -399,7 +393,6 @@ namespace RN
 			if(hasbones > 0)
 			{
 				meshDescriptor = MeshDescriptor(kMeshFeatureBoneWeights);
-				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -407,7 +400,6 @@ namespace RN
 				size += meshDescriptor.elementSize;
 				
 				meshDescriptor = MeshDescriptor(kMeshFeatureBoneIndices);
-				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -421,24 +413,23 @@ namespace RN
 			uint8 *vertexData = new uint8[size];
 			file->ReadIntoBuffer(vertexData, size);
 			
+			
 			uint32 numindices = file->ReadUint32();
 			uint8 sizeindices = file->ReadUint8();
 			
+			uint8 *indicesData = new uint8[numindices * sizeindices];
+			file->ReadIntoBuffer(indicesData, numindices * sizeindices);
+			
 			meshDescriptor = MeshDescriptor(kMeshFeatureIndices);
-			meshDescriptor.elementCount = numindices;
 			meshDescriptor.elementSize = sizeindices;
 			meshDescriptor.elementMember = 1;
 			descriptors.push_back(meshDescriptor);
 			
-			Mesh *mesh = new Mesh(descriptors, vertexData);
-			void *data = mesh->GetElement<void>(kMeshFeatureIndices);
-			
-			file->ReadIntoBuffer(data, numindices * sizeindices);
-			
-			mesh->ReleaseElement(kMeshFeatureIndices);
-			mesh->UpdateMesh();
+			Mesh *mesh = new Mesh(descriptors, numverts, numindices, std::make_pair(vertexData, indicesData));
+			mesh->CalculateBoundingVolumes();
 			
 			delete [] vertexData;
+			delete [] indicesData;
 			
 			MeshGroup *meshGroup = new MeshGroup(mesh->Autorelease(), material, "Unnamed");
 			group->groups.push_back(meshGroup);
@@ -499,7 +490,6 @@ namespace RN
 			size_t size = 0;
 			
 			MeshDescriptor meshDescriptor(kMeshFeatureVertices);
-			meshDescriptor.elementCount = numverts;
 			meshDescriptor.elementSize = sizeof(Vector3);
 			meshDescriptor.elementMember = 3;
 			
@@ -507,7 +497,6 @@ namespace RN
 			size += meshDescriptor.elementSize;
 			
 			meshDescriptor = MeshDescriptor(kMeshFeatureNormals);
-			meshDescriptor.elementCount = numverts;
 			meshDescriptor.elementSize = sizeof(Vector3);
 			meshDescriptor.elementMember = 3;
 			
@@ -515,7 +504,6 @@ namespace RN
 			size += meshDescriptor.elementSize;
 			
 			meshDescriptor = MeshDescriptor(kMeshFeatureUVSet0);
-			meshDescriptor.elementCount = numverts;
 			meshDescriptor.elementSize = sizeof(Vector2);
 			meshDescriptor.elementMember = 2;
 			
@@ -525,7 +513,6 @@ namespace RN
 			if(hastangent == 1)
 			{
 				meshDescriptor = MeshDescriptor(kMeshFeatureTangents);
-				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -535,7 +522,6 @@ namespace RN
 			if(uvcount > 1)
 			{
 				meshDescriptor = MeshDescriptor(kMeshFeatureUVSet1);
-				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector2);
 				meshDescriptor.elementMember = 2;
 				
@@ -545,7 +531,6 @@ namespace RN
 			if(datacount == 4)
 			{
 				meshDescriptor = MeshDescriptor(kMeshFeatureColor0);
-				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -555,7 +540,6 @@ namespace RN
 			if(hasbones > 0)
 			{
 				meshDescriptor = MeshDescriptor(kMeshFeatureBoneWeights);
-				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -563,7 +547,6 @@ namespace RN
 				size += meshDescriptor.elementSize;
 				
 				meshDescriptor = MeshDescriptor(kMeshFeatureBoneIndices);
-				meshDescriptor.elementCount = numverts;
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -580,21 +563,20 @@ namespace RN
 			uint32 numindices = file->ReadUint32();
 			uint8 sizeindices = file->ReadUint8();
 			
+			uint8 *indicesData = new uint8[numindices * sizeindices];
+			file->ReadIntoBuffer(indicesData, numindices * sizeindices);
+			
+			
 			meshDescriptor = MeshDescriptor(kMeshFeatureIndices);
-			meshDescriptor.elementCount = numindices;
 			meshDescriptor.elementSize = sizeindices;
 			meshDescriptor.elementMember = 1;
 			descriptors.push_back(meshDescriptor);
 			
-			Mesh *mesh = new Mesh(descriptors, vertexData);
-			void *data = mesh->GetElement<void>(kMeshFeatureIndices);
-			
-			file->ReadIntoBuffer(data, numindices * sizeindices);
-			
-			mesh->ReleaseElement(kMeshFeatureIndices);
-			mesh->UpdateMesh();
+			Mesh *mesh = new Mesh(descriptors, numverts, numindices, std::make_pair(vertexData, indicesData));
+			mesh->CalculateBoundingVolumes();
 			
 			delete [] vertexData;
+			delete [] indicesData;
 			
 			MeshGroup *meshGroup = new MeshGroup(mesh->Autorelease(), material, "Unnamed");
 			group->groups.push_back(meshGroup);

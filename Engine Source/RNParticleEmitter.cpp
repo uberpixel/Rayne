@@ -109,24 +109,21 @@ namespace RN
 		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
 		vertexDescriptor.elementMember = 3;
 		vertexDescriptor.elementSize   = sizeof(Vector3);
-		vertexDescriptor.elementCount  = maxParticles;
 		vertexDescriptor.offset        = 0;
 		
 		MeshDescriptor sizeDescriptor(kMeshFeatureUVSet0);
 		sizeDescriptor.elementMember = 2;
 		sizeDescriptor.elementSize   = sizeof(Vector2);
-		sizeDescriptor.elementCount  = maxParticles;
 		sizeDescriptor.offset        = sizeof(Vector3);
 		
 		MeshDescriptor colorDescriptor(kMeshFeatureColor0);
 		colorDescriptor.elementMember = 4;
 		colorDescriptor.elementSize   = sizeof(Color);
-		colorDescriptor.elementCount  = maxParticles;
 		colorDescriptor.offset        = sizeDescriptor.offset + sizeof(Vector2);
 		
 		std::vector<MeshDescriptor> descriptors = { vertexDescriptor, sizeDescriptor, colorDescriptor };
 		
-		_mesh = new Mesh(descriptors);
+		_mesh = new Mesh(descriptors, maxParticles, 0);
 		_mesh->SetVBOUsage(GL_DYNAMIC_DRAW);
 		_mesh->SetMode(GL_POINTS);
 	}
@@ -217,7 +214,8 @@ namespace RN
 	
 	void ParticleEmitter::UpdateMesh()
 	{
-		ParticleData *data = _mesh->GetMeshData<ParticleData>();
+		Mesh::Chunk chunk = _mesh->GetChunk();
+		ParticleData *data = chunk.GetData<ParticleData>();
 		
 		for(size_t i = 0; i < _particles.size(); i ++)
 		{
@@ -233,7 +231,7 @@ namespace RN
 			data ++;
 		}
 		
-		_mesh->UpdateMesh();
+		chunk.CommitChanges();
 	}
 	
 	

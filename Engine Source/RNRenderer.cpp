@@ -247,91 +247,91 @@ namespace RN
 			// Vertices
 			if(shader->attPosition != -1 && mesh->SupportsFeature(kMeshFeatureVertices))
 			{
-				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureVertices);
-				size_t offset = mesh->OffsetForFeature(kMeshFeatureVertices);
+				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureVertices);
+				size_t offset = descriptor->offset;
 				
 				gl::EnableVertexAttribArray(shader->attPosition);
-				gl::VertexAttribPointer(shader->attPosition, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::VertexAttribPointer(shader->attPosition, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Normals
 			if(shader->attNormal != -1 && mesh->SupportsFeature(kMeshFeatureNormals))
 			{
-				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureNormals);
-				size_t offset = mesh->OffsetForFeature(kMeshFeatureNormals);
+				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureNormals);
+				size_t offset = descriptor->offset;
 				
 				gl::EnableVertexAttribArray(shader->attNormal);
-				gl::VertexAttribPointer(shader->attNormal, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::VertexAttribPointer(shader->attNormal, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Tangents
 			if(shader->attTangent != -1 && mesh->SupportsFeature(kMeshFeatureTangents))
 			{
-				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureTangents);
-				size_t offset = mesh->OffsetForFeature(kMeshFeatureTangents);
+				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureTangents);
+				size_t offset = descriptor->offset;
 				
 				gl::EnableVertexAttribArray(shader->attTangent);
-				gl::VertexAttribPointer(shader->attTangent, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::VertexAttribPointer(shader->attTangent, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Texcoord0
 			if(shader->attTexcoord0 != -1 && mesh->SupportsFeature(kMeshFeatureUVSet0))
 			{
-				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureUVSet0);
-				size_t offset = mesh->OffsetForFeature(kMeshFeatureUVSet0);
+				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureUVSet0);
+				size_t offset = descriptor->offset;
 				
 				gl::EnableVertexAttribArray(shader->attTexcoord0);
-				gl::VertexAttribPointer(shader->attTexcoord0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::VertexAttribPointer(shader->attTexcoord0, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Texcoord1
 			if(shader->attTexcoord1 != -1 && mesh->SupportsFeature(kMeshFeatureUVSet1))
 			{
-				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureUVSet1);
-				size_t offset = mesh->OffsetForFeature(kMeshFeatureUVSet1);
+				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureUVSet1);
+				size_t offset = descriptor->offset;
 				
 				gl::EnableVertexAttribArray(shader->attTexcoord1);
-				gl::VertexAttribPointer(shader->attTexcoord1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::VertexAttribPointer(shader->attTexcoord1, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Color0
 			if(shader->attColor0 != -1 && mesh->SupportsFeature(kMeshFeatureColor0))
 			{
-				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureColor0);
-				size_t offset = mesh->OffsetForFeature(kMeshFeatureColor0);
+				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureColor0);
+				size_t offset = descriptor->offset;
 				
 				gl::EnableVertexAttribArray(shader->attColor0);
-				gl::VertexAttribPointer(shader->attColor0, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::VertexAttribPointer(shader->attColor0, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Color1
 			if(shader->attColor1 != -1 && mesh->SupportsFeature(kMeshFeatureColor1))
 			{
-				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureColor1);
-				size_t offset = mesh->OffsetForFeature(kMeshFeatureColor1);
+				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureColor1);
+				size_t offset = descriptor->offset;
 				
 				gl::EnableVertexAttribArray(shader->attColor1);
-				gl::VertexAttribPointer(shader->attColor1, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::VertexAttribPointer(shader->attColor1, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Bone Weights
 			if(shader->attBoneWeights != -1 && mesh->SupportsFeature(kMeshFeatureBoneWeights))
 			{
-				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureBoneWeights);
-				size_t offset = mesh->OffsetForFeature(kMeshFeatureBoneWeights);
+				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureBoneWeights);
+				size_t offset = descriptor->offset;
 				
 				gl::EnableVertexAttribArray(shader->attBoneWeights);
-				gl::VertexAttribPointer(shader->attBoneWeights, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::VertexAttribPointer(shader->attBoneWeights, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			// Bone Indices
 			if(shader->attBoneIndices != -1 && mesh->SupportsFeature(kMeshFeatureBoneIndices))
 			{
-				MeshDescriptor *descriptor = mesh->GetDescriptor(kMeshFeatureBoneIndices);
-				size_t offset = mesh->OffsetForFeature(kMeshFeatureBoneIndices);
+				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureBoneIndices);
+				size_t offset = descriptor->offset;
 				
 				gl::EnableVertexAttribArray(shader->attBoneIndices);
-				gl::VertexAttribPointer(shader->attBoneIndices, descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				gl::VertexAttribPointer(shader->attBoneIndices, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
 			}
 			
 			_autoVAOs[tuple] = std::tuple<GLuint, uint32>(vao, 0);
