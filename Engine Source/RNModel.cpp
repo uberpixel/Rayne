@@ -602,7 +602,7 @@ namespace RN
 		for(uint8 i=0; i<countmats; i++)
 		{
 			Material *material = new Material(shader);
-			uint8 materialid = file->ReadUint8();
+			__unused uint8 materialid = file->ReadUint8();
 			
 			uint8 uvcount = file->ReadUint8();
 			for(uint8 u = 0; u < uvcount; u++)
@@ -610,7 +610,7 @@ namespace RN
 				uint8 texcount = file->ReadUint8();
 				for(uint8 n=0; n<texcount; n++)
 				{
-					uint8 usagehint = file->ReadUint8();
+					__unused uint8 usagehint = file->ReadUint8();
 					
 					std::string textureFile;
 					file->ReadIntoString(textureFile, file->ReadUint16());

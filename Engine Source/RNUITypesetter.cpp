@@ -493,7 +493,7 @@ namespace RN
 				
 				intptr_t difference = mesh->GetVerticesCount() - vertices;
 				
-				if(abs(difference) < abs(diff))
+				if(std::labs(difference) < std::labs(diff))
 				{
 					closest = mesh;
 					diff    = difference;
