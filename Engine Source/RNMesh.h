@@ -216,11 +216,20 @@ namespace RN
 		RNAPI Chunk GetIndicesChunk();
 		RNAPI Chunk GetIndicesChunkForRange(const Range& range);
 		
+		RNAPI Chunk InsertChunk(size_t offset, size_t elements);
+		RNAPI Chunk InsertIndicesChunk(size_t offset, size_t elements);
+		
+		RNAPI void DeleteChunk(size_t offset, size_t elements);
+		RNAPI void DeleteIndicesChunk(size_t offset, size_t elements);
+	
+		
 		RNAPI void SetMode(GLenum mode);
 		RNAPI void SetVBOUsage(GLenum usage);
 		RNAPI void SetIBOUsage(GLenum usage);
 		
 		RNAPI void SetElementData(MeshFeature feature, void *data);
+		RNAPI void SetVerticesCount(size_t count);
+		RNAPI void SetIndicesCount(size_t count);
 		
 		RNAPI void CalculateBoundingVolumes();
 		
@@ -247,6 +256,7 @@ namespace RN
 	private:
 		void Initialize(const std::vector<MeshDescriptor>& descriptors);
 		void AllocateBuffer(const std::pair<const void *, const void *>& data);
+		void PushData(bool vertices, bool indices);
 		
 		Hit IntersectsRay3DWithIndices(const MeshDescriptor *positionDescriptor, const MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);
 		Hit IntersectsRay2DWithIndices(const MeshDescriptor *positionDescriptor, const MeshDescriptor *indicesDescriptor, const Vector3 &position, const Vector3 &direction, Hit::HitMode mode);

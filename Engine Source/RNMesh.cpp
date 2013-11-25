@@ -74,6 +74,22 @@ namespace RN
 		gl::DeleteBuffers(2, &_vbo);
 	}
 	
+	void Mesh::PushData(bool vertices, bool indices)
+	{
+		Renderer::GetSharedInstance()->BindVAO(0);
+		
+		if(vertices)
+		{
+			gl::BindBuffer(GL_ARRAY_BUFFER, _vbo);
+			gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, _vertices, _vboUsage);
+		}
+		
+		if(indices)
+		{
+			gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
+			gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, _iboUsage);
+		}
+	}
 	
 	
 	void Mesh::Initialize(const std::vector<MeshDescriptor>& descriptors)
@@ -212,6 +228,46 @@ namespace RN
 				break;
 			}
 		}
+	}
+	
+	void Mesh::SetVerticesCount(size_t count)
+	{
+		if(_verticesCount == count)
+			return;
+		
+		uint8 *temp = static_cast<uint8 *>(Memory::AllocateSIMD(count * _stride));
+		size_t copy = std::min(count * _stride, _verticesSize);
+		
+		std::copy(_vertices, _vertices + copy, temp);
+		
+		Memory::FreeSIMD(_vertices);
+		
+		_vertices = temp;
+		_verticesCount = count;
+		_verticesSize  = count * _stride;
+		
+		PushData(true, false);
+	}
+	
+	void Mesh::SetIndicesCount(size_t count)
+	{
+		if(_indicesCount == count)
+			return;
+		
+		const MeshDescriptor *descriptor = GetDescriptorForFeature(kMeshFeatureIndices);
+		
+		uint8 *temp = static_cast<uint8 *>(Memory::Allocate(count * descriptor->elementSize));
+		size_t copy = std::min(count * descriptor->elementSize, _indicesCount);
+		
+		std::copy(_indices, _indices + copy, temp);
+		
+		Memory::FreeSIMD(_indices);
+		
+		_indices = temp;
+		_indicesCount = count;
+		_indicesSize  = count * descriptor->elementSize;
+		
+		PushData(false, true);
 	}
 	
 	void Mesh::CalculateBoundingVolumes()
@@ -371,6 +427,90 @@ namespace RN
 	Mesh::Chunk Mesh::GetIndicesChunkForRange(const Range& range)
 	{
 		return Chunk(this, range, true);
+	}
+	
+	Mesh::Chunk Mesh::InsertChunk(size_t offset, size_t elements)
+	{
+		size_t size = elements * _stride;
+		size_t offsetSize = offset * _stride;
+		
+		uint8 *temp = static_cast<uint8 *>(Memory::AllocateSIMD(_verticesSize + size));
+		
+		std::copy(_vertices, _vertices + offsetSize, temp);
+		std::copy(_vertices + offset, _vertices + (_verticesSize - offset), temp + offsetSize + size);
+		
+		Memory::FreeSIMD(temp);
+		
+		_vertices = temp;
+		_verticesCount += elements;
+		_verticesSize  += size;
+		
+		PushData(true, false);
+		return Chunk(this, Range(offset, elements), false);
+	}
+	
+	void Mesh::DeleteChunk(size_t offset, size_t elements)
+	{
+		size_t size = elements * _stride;
+		size_t offsetSize = offset * _stride;
+		
+		uint8 *temp = static_cast<uint8 *>(Memory::AllocateSIMD(_verticesSize - size));
+		
+		std::copy(_vertices, _vertices + offsetSize, temp);
+		std::copy(_vertices + offset + size, _vertices + (_verticesSize - offset), temp + offset);
+		
+		Memory::FreeSIMD(_vertices);
+		
+		_vertices = temp;
+		_verticesCount -= elements;
+		_verticesSize  -= size;
+		
+		PushData(true, false);
+	}
+	
+	
+	Mesh::Chunk Mesh::InsertIndicesChunk(size_t offset, size_t elements)
+	{
+		const MeshDescriptor *descriptor = GetDescriptorForFeature(kMeshFeatureIndices);
+		
+		size_t size = elements * descriptor->elementSize;
+		size_t offsetSize = offset * descriptor->elementSize;
+		
+		uint8 *temp = static_cast<uint8 *>(Memory::Allocate(_indicesSize + size));
+		
+		std::copy(_indices, _indices + offsetSize, temp);
+		std::copy(_indices + offset, _indices + (_indicesSize - offset), temp + offsetSize + size);
+		
+		Memory::Free(_indices);
+		
+		_indices = temp;
+		_indicesCount += elements;
+		_indicesSize  += size;
+		
+		
+		PushData(false, true);
+		return Chunk(this, Range(offset, elements), true);
+	}
+	
+	void Mesh::DeleteIndicesChunk(size_t offset, size_t elements)
+	{
+		const MeshDescriptor *descriptor = GetDescriptorForFeature(kMeshFeatureIndices);
+		
+		size_t size = elements * descriptor->elementSize;
+		size_t offsetSize = offset * descriptor->elementSize;
+		
+		uint8 *temp = static_cast<uint8 *>(Memory::Allocate(_indicesSize - size));
+		
+		std::copy(_indices, _indices + offsetSize, temp);
+		std::copy(_indices + offset + size, _indices + (_indicesSize - offset), temp + offset);
+		
+		Memory::Free(_indices);
+		
+		_indices = temp;
+		_indicesCount -= elements;
+		_indicesSize  -= size;
+		
+		PushData(false, true);
 	}
 	
 	// ---------------------
