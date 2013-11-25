@@ -293,6 +293,7 @@ namespace RN
 			
 #define SubmitLine() { \
 				Line *line = new Line(_string, range); \
+				line->_typesetter = this; \
 				_lines.push_back(line); \
 				\
 				if(truncateLine) \
@@ -473,6 +474,46 @@ namespace RN
 			delete pool;
 		}
 		
+		Mesh *Typesetter::DequeMesh(size_t vertices)
+		{
+			Mesh *closest = nullptr;
+			ptrdiff_t diff = 0;
+			
+			_meshes.Enumerate<Mesh>([&](Mesh *mesh, size_t index, bool *stop) {
+				if(!closest)
+				{
+					closest = mesh;
+					diff    = mesh->GetVerticesCount() - vertices;
+					
+					if(diff == 0)
+						*stop = true;
+					
+					return;
+				}
+				
+				intptr_t difference = mesh->GetVerticesCount() - vertices;
+				
+				if(abs(difference) < abs(diff))
+				{
+					closest = mesh;
+					diff    = difference;
+					
+					if(diff == 0)
+						*stop = true;
+					
+					return;
+				}
+			});
+			
+			if(closest)
+			{
+				closest->Retain()->Autorelease();
+				_meshes.RemoveObject(closest);
+			}
+			
+			return closest;
+		}
+		
 		void Typesetter::MergeMeshes()
 		{
 			Array *meshes = new Array();
@@ -496,6 +537,8 @@ namespace RN
 				Mesh *mesh = dict->GetObjectForKey<Mesh>(kRNTypesetterMeshAttribute);
 				Font *font = dict->GetObjectForKey<Font>(kRNTypesetterFontAttribute);
 				Color *color = dict->GetObjectForKey<Color>(kRNTypesetterColorAttribute);
+				
+				_meshes.AddObject(mesh);
 				
 				RN_ASSERT(mesh && font && color, "Inconsistent mesh data generated!");
 				
@@ -809,7 +852,8 @@ namespace RN
 		// ---------------------
 		
 		Line::Line(AttributedString *string, const Range& range) :
-			_range(range)
+			_range(range),
+			_typesetter(nullptr)
 		{
 			RN_ASSERT(string, "String mustn't be NULL!");
 			
@@ -1054,20 +1098,31 @@ namespace RN
 				glyphCount += segment->GetGlyphs().size();
 			
 			
-			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
-			vertexDescriptor.elementMember = 2;
-			vertexDescriptor.elementSize   = sizeof(Vector2);
+			Mesh *mesh = _typesetter ? _typesetter->DequeMesh(glyphCount * 4) : nullptr;
 			
-			MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
-			uvDescriptor.elementMember = 2;
-			uvDescriptor.elementSize   = sizeof(Vector2);
-			
-			MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
-			indicesDescriptor.elementMember = 1;
-			indicesDescriptor.elementSize   = sizeof(uint16);
-			
-			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor, indicesDescriptor };
-			Mesh *mesh = new Mesh(descriptors, glyphCount * 4, glyphCount * 6);
+			if(!mesh)
+			{
+				MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+				vertexDescriptor.elementMember = 2;
+				vertexDescriptor.elementSize   = sizeof(Vector2);
+				
+				MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
+				uvDescriptor.elementMember = 2;
+				uvDescriptor.elementSize   = sizeof(Vector2);
+				
+				MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+				indicesDescriptor.elementMember = 1;
+				indicesDescriptor.elementSize   = sizeof(uint16);
+				
+				std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor, indicesDescriptor };
+				mesh = new Mesh(descriptors, glyphCount * 4, glyphCount * 6);
+				mesh->Autorelease();
+			}
+			else
+			{
+				mesh->SetVerticesCount(glyphCount * 4);
+				mesh->SetIndicesCount(glyphCount * 6);
+			}
 			
 			Mesh::Chunk chunk  = mesh->GetChunk();
 			Mesh::Chunk ichunk = mesh->GetIndicesChunk();
@@ -1109,7 +1164,7 @@ namespace RN
 			Dictionary *dictionary = new Dictionary();
 			dictionary->SetObjectForKey(Color::WithRNColor(segments[0]->GetColor()), kRNTypesetterColorAttribute);
 			dictionary->SetObjectForKey(segments[0]->GetFont(), kRNTypesetterFontAttribute);
-			dictionary->SetObjectForKey(mesh->Autorelease(), kRNTypesetterMeshAttribute);
+			dictionary->SetObjectForKey(mesh, kRNTypesetterMeshAttribute);
 			
 			return dictionary->Autorelease();
 		}

@@ -59,6 +59,7 @@ namespace RN
 			void CalculateVisibleLines();
 			void LayoutText();
 			void MergeMeshes();
+			Mesh *DequeMesh(size_t vertices);
 			
 			static Font *FontForAttributes(Dictionary *attributes);
 			static const RN::Color& ColorForAttributes(Dictionary *attributes);
@@ -77,6 +78,7 @@ namespace RN
 			std::vector<Line *> _lines;
 			std::vector<Line *> _visibleLines;
 			
+			Array _meshes;
 			Model *_model;
 		};
 		
@@ -133,6 +135,8 @@ namespace RN
 		class Line
 		{
 		public:
+			friend class Typesetter;
+			
 			Line(AttributedString *string, const Range& range);
 			~Line();
 		
@@ -158,6 +162,7 @@ namespace RN
 			
 			float TokenWidthInSegment(const LineSegment& segment);
 			
+			Typesetter *_typesetter;
 			AttributedString *_string;
 			Range _range;
 			
