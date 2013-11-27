@@ -89,7 +89,7 @@ namespace RN
 	void SceneNode::SetFlags(Flags flags)
 	{
 		_flags = flags;
-		DidUpdate(FlagsChanged);
+		DidUpdate(ChangedFlags);
 	}
 	
 	void SceneNode::SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere)
@@ -111,7 +111,7 @@ namespace RN
 	void SceneNode::SetPriority(Priority priority)
 	{
 		_priority = priority;
-		DidUpdate(PriorityChanged);
+		DidUpdate(ChangedPriority);
 	}
 	
 	void SceneNode::SetDebugName(const std::string& name)
@@ -137,7 +137,7 @@ namespace RN
 		
 		_childs.AddObject(child);
 		child->_parent = this;
-		child->DidUpdate(ParentChanged);
+		child->DidUpdate(ChangedParent);
 		
 		DidAddChild(child);
 	}
@@ -150,7 +150,7 @@ namespace RN
 			_childs.RemoveObject(child);
 			
 			child->_parent = nullptr;
-			child->DidUpdate(ParentChanged);
+			child->DidUpdate(ChangedParent);
 		}
 	}
 	
@@ -164,7 +164,7 @@ namespace RN
 			WillRemoveChild(child);
 			
 			child->_parent = nullptr;
-			child->DidUpdate(ParentChanged);
+			child->DidUpdate(ChangedParent);
 		}
 		
 		_childs.RemoveAllObjects();
@@ -178,7 +178,7 @@ namespace RN
 	
 	void SceneNode::DidUpdate(uint32 changeSet)
 	{
-		if(changeSet & PositionChanged)
+		if(changeSet & ChangedPosition)
 			_updated = true;
 		
 		if(_world)

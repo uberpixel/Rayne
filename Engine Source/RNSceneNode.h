@@ -14,6 +14,7 @@
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
 #include "RNVector.h"
+#include "RNSignal.h"
 #include "RNArray.h"
 #include "RNAABB.h"
 #include "RNSphere.h"
@@ -28,9 +29,10 @@ namespace RN
 	class RenderingObject;
 	class SceneNode : public Object
 	{
-	friend class Renderer;
-	friend class World;
 	public:
+		friend class Renderer;
+		friend class World;
+		
 		enum class Priority
 		{
 			UpdateEarly,
@@ -47,11 +49,11 @@ namespace RN
 		
 		enum
 		{
-			FlagsChanged = (1 << 0),
-			PositionChanged = (1 << 1),
-			DependenciesChanged = (1 << 2),
-			PriorityChanged = (1 << 3),
-			ParentChanged = (1 << 5)
+			ChangedFlags = (1 << 0),
+			ChangedPosition = (1 << 1),
+			ChangedDependencies = (1 << 2),
+			ChangedPriority = (1 << 3),
+			ChangedParent = (1 << 5)
 		};
 		
 		typedef uint32 Flags;
@@ -200,46 +202,46 @@ namespace RN
 	RN_INLINE void SceneNode::Translate(const Vector3& trans)
 	{
 		_position += trans;
-		DidUpdate(PositionChanged);
+		DidUpdate(ChangedPosition);
 	}
 	
 	RN_INLINE void SceneNode::Scale(const Vector3& scal)
 	{
 		_scale += scal;
-		DidUpdate(PositionChanged);
+		DidUpdate(ChangedPosition);
 	}
 	
 	RN_INLINE void SceneNode::Rotate(const Vector3& rot)
 	{
 		_euler += rot;
 		_rotation = Quaternion(_euler);
-		DidUpdate(PositionChanged);
+		DidUpdate(ChangedPosition);
 	}
 	
 	
 	RN_INLINE void SceneNode::TranslateLocal(const Vector3& trans)
 	{
 		_position += _rotation->RotateVector(trans);
-		DidUpdate(PositionChanged);
+		DidUpdate(ChangedPosition);
 	}
 	
 	RN_INLINE void SceneNode::ScaleLocal(const Vector3& scal)
 	{
 		_scale += _rotation->RotateVector(scal);
-		DidUpdate(PositionChanged);
+		DidUpdate(ChangedPosition);
 	}
 	
 	
 	RN_INLINE void SceneNode::SetPosition(const Vector3& pos)
 	{
 		_position = pos;
-		DidUpdate(PositionChanged);
+		DidUpdate(ChangedPosition);
 	}
 	
 	RN_INLINE void SceneNode::SetScale(const Vector3& scal)
 	{
 		_scale = scal;
-		DidUpdate(PositionChanged);
+		DidUpdate(ChangedPosition);
 	}
 	
 	RN_INLINE void SceneNode::SetRotation(const Quaternion& rot)
@@ -247,7 +249,7 @@ namespace RN
 		_euler = rot.GetEulerAngle();
 		_rotation = rot;
 		
-		DidUpdate(PositionChanged);
+		DidUpdate(ChangedPosition);
 	}
 	
 	
@@ -263,7 +265,7 @@ namespace RN
 		temp = temp / _parent->GetWorldRotation();
 		
 		_position = temp.RotateVector(pos) - temp.RotateVector(GetWorldPosition());
-		DidUpdate(PositionChanged);
+		DidUpdate(ChangedPosition);
 	}
 	
 	RN_INLINE void SceneNode::SetWorldScale(const Vector3& scal)
@@ -275,7 +277,7 @@ namespace RN
 		}
 		
 		_scale = scal - GetWorldScale();
-		DidUpdate(PositionChanged);
+		DidUpdate(ChangedPosition);
 	}
 	
 	RN_INLINE void SceneNode::SetWorldRotation(const Quaternion& rot)
@@ -289,7 +291,7 @@ namespace RN
 		_rotation = rot / _parent->GetWorldRotation();
 		_euler = _rotation->GetEulerAngle();
 		
-		DidUpdate(PositionChanged);
+		DidUpdate(ChangedPosition);
 	}
 	
 	

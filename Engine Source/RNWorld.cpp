@@ -259,10 +259,10 @@ namespace RN
 		
 		_sceneManager->UpdateSceneNode(node, changeSet);
 		
-		if((changeSet & SceneNode::PriorityChanged) && node->IsKindOfClass(_cameraClass))
+		if((changeSet & SceneNode::ChangedPriority) && node->IsKindOfClass(_cameraClass))
 			_requiresCameraSort = true;
 		
-		if(changeSet & SceneNode::DependenciesChanged)
+		if(changeSet & SceneNode::ChangedDependencies)
 			_requiresResort = true;
 	}
 	

@@ -60,7 +60,7 @@ namespace RN
 	
 	void GenericSceneManager::UpdateSceneNode(SceneNode *node, uint32 changes)
 	{
-		if(changes & SceneNode::ParentChanged)
+		if(changes & SceneNode::ChangedParent)
 		{
 			Lock();
 			
