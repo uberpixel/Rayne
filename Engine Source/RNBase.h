@@ -158,6 +158,7 @@ namespace RN
 	RNAPI uint32 VersionPatch();
 	
 	typedef uint32 FrameID;
+	typedef uint32 Tag;
 	
 	enum class ComparisonResult : int
 	{
