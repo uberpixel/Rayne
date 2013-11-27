@@ -213,11 +213,11 @@ namespace RN
 	
 	void Object::Lock()
 	{
-		_lock.lock();
+		_lock.Lock();
 	}
 	
 	void Object::Unlock()
 	{
-		_lock.unlock();
+		_lock.Unlock();
 	}
 }

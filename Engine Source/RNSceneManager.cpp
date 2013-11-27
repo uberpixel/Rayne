@@ -58,31 +58,34 @@ namespace RN
 		Unlock();
 	}
 	
-	void GenericSceneManager::UpdateSceneNode(SceneNode *node)
+	void GenericSceneManager::UpdateSceneNode(SceneNode *node, uint32 changes)
 	{
-		Lock();
-		
-		bool hasParent = (node->GetParent());
-		bool markedRoot = (_rootNodes.find(node) != _rootNodes.end());
-		
-		if((!hasParent && markedRoot) || (hasParent && !markedRoot))
+		if(changes & SceneNode::ParentChanged)
 		{
+			Lock();
+			
+			bool hasParent = (node->GetParent());
+			bool markedRoot = (_rootNodes.find(node) != _rootNodes.end());
+			
+			if((!hasParent && markedRoot) || (hasParent && !markedRoot))
+			{
+				Unlock();
+				return;
+			}
+			
+			if(hasParent)
+			{
+				_nodes.erase(std::remove(_nodes.begin(), _nodes.end(), node), _nodes.end());
+				_rootNodes.erase(node);
+			}
+			else
+			{
+				_rootNodes.insert(node);
+				_nodes.push_back(node);
+			}
+			
 			Unlock();
-			return;
 		}
-		
-		if(hasParent)
-		{
-			_nodes.erase(std::remove(_nodes.begin(), _nodes.end(), node), _nodes.end());
-			_rootNodes.erase(node);
-		}
-		else
-		{
-			_rootNodes.insert(node);
-			_nodes.push_back(node);
-		}
-		
-		Unlock();
 	}
 
 	
@@ -95,11 +98,12 @@ namespace RN
 		{
 			node->Render(_renderer, camera);
 			
-			size_t childs = node->GetChildCount();
+			const Array *children = node->GetChildren();
+			size_t count = children->GetCount();
 			
-			for(size_t i = 0; i < childs; i++)
+			for(size_t i = 0; i < count; i++)
 			{
-				SceneNode *child = node->GetChildAtIndex(i);
+				SceneNode *child = children->GetObjectAtIndex<SceneNode>(i);
 				RenderSceneNode(camera, child);
 			}
 		}

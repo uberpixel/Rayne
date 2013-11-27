@@ -570,6 +570,7 @@ namespace RN
 	void Camera::SetPriority(int32 priority)
 	{
 		_priority = priority;
+		DidUpdate(PriorityChanged);
 	}
 	
 	void Camera::SetUseBlending(bool useBlending)

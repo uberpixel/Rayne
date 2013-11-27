@@ -23,14 +23,14 @@ namespace RN
 	public:
 		virtual void AddSceneNode(SceneNode *node) = 0;
 		virtual void RemoveSceneNode(SceneNode *node) = 0;
-		virtual void UpdateSceneNode(SceneNode *node) = 0;
+		virtual void UpdateSceneNode(SceneNode *node, uint32 changes) = 0;
 		
 		virtual void RenderScene(Camera *camera) = 0;
 		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0x00ff, Hit::HitMode mode = Hit::HitMode::IgnoreNone) = 0;
 		
 	protected:
 		SceneManager();
-		virtual ~SceneManager();
+		~SceneManager() override;
 		
 		Renderer *_renderer;
 		
@@ -45,7 +45,7 @@ namespace RN
 		
 		void AddSceneNode(SceneNode *node) override;
 		void RemoveSceneNode(SceneNode *node) override;
-		void UpdateSceneNode(SceneNode *node) override;
+		void UpdateSceneNode(SceneNode *node, uint32 changes) override;
 		
 		void RenderScene(Camera *camera) override;
 		

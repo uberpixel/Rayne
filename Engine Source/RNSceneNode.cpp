@@ -42,22 +42,25 @@ namespace RN
 	SceneNode::~SceneNode()
 	{}
 	
+	
 	void SceneNode::Initialize()
 	{
-		_parent = nullptr;
-		_world  = nullptr;
+		_parent  = nullptr;
+		_world   = nullptr;
+		_updated = true;
 		_lastFrame = 0;
 		_flags     = 0;
 		
-		_priority = Priority::UpdateDontCare;
-		renderGroup = 0;
+		_priority      = Priority::UpdateDontCare;
+		renderGroup    = 0;
 		collisionGroup = 0;
 		
 		SetBoundingBox(AABB(Vector3(-1.0f), Vector3(1.0f)));
-		DidUpdate();
 		
-		if(World::GetSharedInstance())
-			World::GetSharedInstance()->AddSceneNode(this);
+		World *world = World::GetSharedInstance();
+		
+		if(world)
+			world->AddSceneNode(this);
 	}
 	
 	void SceneNode::CleanUp()
@@ -65,7 +68,7 @@ namespace RN
 		if(_world)
 			_world->RemoveSceneNode(this);
 		
-		DetachAllChilds();
+		DetachAllChildren();
 	}
 	
 	
@@ -82,9 +85,11 @@ namespace RN
 	}
 	
 	
+	
 	void SceneNode::SetFlags(Flags flags)
 	{
 		_flags = flags;
+		DidUpdate(FlagsChanged);
 	}
 	
 	void SceneNode::SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere)
@@ -103,9 +108,10 @@ namespace RN
 		_updated = true;
 	}
 	
-	void SceneNode::SetUpdatePriority(Priority priority)
+	void SceneNode::SetPriority(Priority priority)
 	{
 		_priority = priority;
+		DidUpdate(PriorityChanged);
 	}
 	
 	void SceneNode::SetDebugName(const std::string& name)
@@ -131,7 +137,7 @@ namespace RN
 		
 		_childs.AddObject(child);
 		child->_parent = this;
-		child->DidUpdate();
+		child->DidUpdate(ParentChanged);
 		
 		DidAddChild(child);
 	}
@@ -144,21 +150,21 @@ namespace RN
 			_childs.RemoveObject(child);
 			
 			child->_parent = nullptr;
-			child->DidUpdate();
+			child->DidUpdate(ParentChanged);
 		}
 	}
 	
-	void SceneNode::DetachAllChilds()
+	void SceneNode::DetachAllChildren()
 	{
 		size_t count = _childs.GetCount();
 		
-		for(size_t i=0; i<count; i++)
+		for(size_t i = 0; i < count; i ++)
 		{
 			SceneNode *child = _childs.GetObjectAtIndex<SceneNode>(i);
 			WillRemoveChild(child);
 			
 			child->_parent = nullptr;
-			child->DidUpdate();
+			child->DidUpdate(ParentChanged);
 		}
 		
 		_childs.RemoveAllObjects();
@@ -170,12 +176,13 @@ namespace RN
 			_parent->DetachChild(this);
 	}
 	
-	void SceneNode::DidUpdate()
+	void SceneNode::DidUpdate(uint32 changeSet)
 	{
-		_updated = true;
+		if(changeSet & PositionChanged)
+			_updated = true;
 		
 		if(_world)
-			_world->SceneNodeUpdated(this);
+			_world->SceneNodeDidUpdate(this, changeSet);
 		
 		if(_parent)
 			_parent->ChildDidUpdate(this);

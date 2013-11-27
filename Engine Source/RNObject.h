@@ -90,7 +90,7 @@ namespace RN
 		void __RemoveAssociatedOject(const void *key);
 		
 		static MetaType *__metaClass;
-		std::mutex _lock;
+		SpinLock _lock;
 		
 		std::atomic<size_t> _refCount;
 		std::atomic_flag _cleanUpFlag;

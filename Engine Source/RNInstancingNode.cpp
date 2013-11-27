@@ -195,7 +195,7 @@ namespace RN
 	
 	void InstancingNode::RecalculateData()
 	{
-		std::vector<Entity *> entities;
+		/*std::vector<Entity *> entities;
 		
 		for(InstancedMesh& mesh : _data)
 		{
@@ -241,6 +241,6 @@ namespace RN
 			}
 		}
 		
-		_dirty = false;
+		_dirty = false;*/
 	}
 }

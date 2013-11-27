@@ -9,6 +9,7 @@
 #include "RNWorld.h"
 #include "RNKernel.h"
 #include "RNAutoreleasePool.h"
+#include "RNLogging.h"
 #include "RNLockGuard.h"
 #include "RNThreadPool.h"
 #include "RNEntity.h"
@@ -16,17 +17,19 @@
 
 namespace RN
 {
-	World::World(class SceneManager *sceneManager)
+	World::World(SceneManager *sceneManager)
 	{
 		_kernel = Kernel::GetSharedInstance();
 		_kernel->SetWorld(this);
 		
-		_renderer = Renderer::GetSharedInstance();
 		_sceneManager = sceneManager->Retain();
 		_cameraClass  = Camera::MetaClass();
 		
 		_releaseSceneNodesOnDestructor = false;
 		_isDroppingSceneNodes = false;
+		
+		_requiresResort = false;
+		_requiresCameraSort = false;
 	}
 	
 	World::World(const std::string& sceneManager) :
@@ -43,9 +46,9 @@ namespace RN
 	}
 	
 	
-	class SceneManager *World::SceneManagerWithName(const std::string& name)
+	SceneManager *World::SceneManagerWithName(const std::string& name)
 	{
-		MetaClassBase *meta = 0;
+		MetaClassBase *meta = nullptr;
 		Catalogue::GetSharedInstance()->EnumerateClasses([&](MetaClassBase *mclass, bool *stop) {
 			if(mclass->Name() == name)
 			{
@@ -64,15 +67,15 @@ namespace RN
 	}
 	
 	
+	
 	void World::Update(float delta)
 	{}
 	
-	void World::NodesUpdated()
+	void World::UpdatedToFrame(FrameID frame)
 	{}
 	
 	void World::WillRenderSceneNode(SceneNode *node)
 	{}
-	
 	
 	void World::Reset()
 	{
@@ -80,226 +83,94 @@ namespace RN
 	}
 
 	
+	
 	void World::StepWorld(FrameID frame, float delta)
 	{
-		Update(delta);
 		ApplyNodes();
+		Update(delta);
 		
-		for(size_t i=0; i<_attachments.GetCount(); i++)
+		AutoreleasePool pool;
+		std::vector<SceneNode *> retry;
+		
+		ThreadPool::Batch *batch[3];
+		size_t run = 0;
+		
+		do
 		{
-			WorldAttachment *attachment = _attachments.GetObjectAtIndex<WorldAttachment>(i);
-			attachment->StepWorld(delta);
-		}
-		
-		// Add the Transform updates to the thread pool
-		/*ThreadPool::Batch *batch[3];
-		SpinLock lock;
-		std::vector<SceneNode *> resubmit;
-		
-		batch[0] = ThreadPool::GetSharedInstance()->CreateBatch();
-		batch[1] = ThreadPool::GetSharedInstance()->CreateBatch();
-		batch[2] = ThreadPool::GetSharedInstance()->CreateBatch();
-		
-#define BuildLambda(t) [&, t]() { \
-			_deleteLock.Lock(); \
-			if(_removedNodes.find(t) != _removedNodes.end()) \
-			{ \
-				_deleteLock.Unlock(); \
-				return; \
-			} \
-			t->Retain(); \
-			_deleteLock.Unlock(); \
-			if(!t->CanUpdate(frame)) \
-			{ \
-				lock.Lock(); \
-				resubmit.push_back(t); \
-				lock.Unlock(); \
-				t->Release(); \
-				return; \
-			} \
-			t->Lock(); \
-			t->Update(delta); \
-			t->GetWorldTransform(); \
-			t->UpdatedToFrame(frame); \
-			t->Unlock(); \
-			t->Release(); \
-		}
-		
-		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
-		{
-			SceneNode *node = *i;
-			batch[static_cast<size_t>(node->GetUpdatePriority())]->AddTask(BuildLambda(node));
-		}
-		
-		for(size_t i = 0; i < 3; i ++)
-		{
-			if(batch[i]->GetTaskCount() > 0)
+#if DEBUG
+			if(run >= 100)
 			{
-				bool rerun;
-				do
-				{				
-					rerun = false;
-					
-					batch[i]->Commit();
-					batch[i]->Wait();
-					
-					batch[i]->Release();
-					batch[i] = nullptr;
-					
-					if(resubmit.size() > 0)
-					{
-						batch[i] = ThreadPool::GetSharedInstance()->CreateBatch();
-						
-						for(SceneNode *node : resubmit)
-						{
-							batch[i]->AddTask(BuildLambda(node));
-						}
-						
-						resubmit.clear();
-						rerun = true;
-					}
-					
-				} while(rerun);
+				Log::Loggable loggable(Log::Level::Warning);
+				loggable << "Assuming dead lock after 100 retry runs, check your SceneNode updates!";
+				loggable << "Going to break, leaving " << retry.size() << " nodes without update to frame " << frame;
+				
+				break;
 			}
+#endif
 			
-			if(batch[i])
-				batch[i]->Release();
-		}*/
-		
-		std::vector<SceneNode *> nodes(_nodes.begin(), _nodes.end());
-		
-		for(size_t j = 0; j < 3; j ++)
-		{
-			std::vector<SceneNode *> retry;
+			for(size_t i = 0; i < 3; i ++)
+				batch[i] = ThreadPool::GetSharedInstance()->CreateBatch();
 			
-			for(auto i=nodes.begin(); i!=nodes.end(); i++)
+			for(SceneNode *node : (run == 0) ? _nodes : retry)
 			{
-				SceneNode *node = *i;
-				
-				if(_removedNodes.find(node) != _removedNodes.end())
-					continue;
-				
 				if(node->GetFlags() & SceneNode::FlagStatic)
 					continue;
 				
-				if(static_cast<size_t>(node->GetUpdatePriority()) != j)
-					continue;
-				
-				if(!node->CanUpdate(frame))
-				{
-					retry.push_back(node);
-					continue;
-				}
-				
 				node->Retain();
-				node->Update(delta);
-				node->UpdatedToFrame(frame);
-				node->GetWorldPosition();
-				node->Release();
-			}
-			
-			while(retry.size() > 0)
-			{
-				std::random_shuffle(retry.begin(), retry.end());
+				pool.AddObject(node);
 				
-				std::vector<SceneNode *> copy(retry);
-				retry.clear();
-				
-				for(auto i=copy.begin(); i!=copy.end(); i++)
-				{
-					SceneNode *node = *i;
-					
-					if(_removedNodes.find(node) != _removedNodes.end())
-						continue;
-					
+				size_t priority = static_cast<size_t>(node->GetPriority());
+				batch[priority]->AddTask([&, node] {
 					if(!node->CanUpdate(frame))
 					{
 						retry.push_back(node);
-						continue;
+						return;
 					}
 					
-					node->Retain();
-					node->Update(delta);
+					node->Update(delta),
 					node->UpdatedToFrame(frame);
-					node->GetWorldPosition();
-					node->Release();
-				}
+					
+					node->UpdateInternalData();
+				});
 			}
-		}
+			
+			retry.clear();
+			run ++;
+			
+			for(size_t i = 0; i < 3; i ++)
+			{
+				batch[i]->Commit();
+				batch[i]->Wait();
+				batch[i]->Release();
+			}
+			
+		} while(retry.size() > 0);
+		
+		pool.Drain();
 	
 		ApplyNodes();
-		NodesUpdated();
-		
-		for(size_t i = 0; i < _attachments.GetCount(); i ++)
-		{
-			WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
-			attachment->SceneNodesUpdated();
-		}
-		
-		// Iterate over all cameras and render the visible nodes
-		std::stable_sort(_cameras.begin(), _cameras.end(), [](const Camera *left, const Camera *right) {
-			return (left->GetPriority() > right->GetPriority());
-		});
-		
-		_renderer->SetMode(Renderer::Mode::ModeWorld);
+		UpdatedToFrame(frame);
+	}
+	
+	void World::RenderWorld(Renderer *renderer)
+	{
+		renderer->SetMode(Renderer::Mode::ModeWorld);
 		
 		for(Camera *camera : _cameras)
 		{
 			camera->PostUpdate();
-			_renderer->BeginCamera(camera);
+			renderer->BeginCamera(camera);
 			
-			for(size_t i = 0; i < _attachments.GetCount(); i ++)
-			{
-				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
-				attachment->BeginCamera(camera);
-			}
-			
+			RunWorldAttachement(&WorldAttachment::BeginCamera, camera);
 			_sceneManager->RenderScene(camera);
 			
-			for(size_t i = 0; i < _attachments.GetCount(); i ++)
-			{
-				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
-				attachment->WillFinishCamera(camera);
-			}
-			
-			_renderer->FinishCamera();
+			RunWorldAttachement(&WorldAttachment::WillFinishCamera, camera);
+			renderer->FinishCamera();
 		}
 	}
 	
 	
-	void World::ApplyNodes()
-	{
-		// Added nodes
-		for(auto i=_addedNodes.begin(); i!=_addedNodes.end(); i++)
-		{
-			SceneNode *node = *i;
-			ForceInsertNode(node);
-		}
-		
-		_addedNodes.clear();
-		
-		// Updated nodes
-		LockGuard<Array> lock(_attachments);
-		
-		for(auto i = _updatedNodes.begin(); i != _updatedNodes.end(); i ++)
-		{
-			SceneNode *node = *i;
-			
-			if(_removedNodes.find(node) != _removedNodes.end())
-				continue;
-			
-			for(size_t i = 0; i < _attachments.GetCount(); i ++)
-			{
-				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
-				attachment->SceneNodeDidUpdate(node);
-			}
-			
-			_sceneManager->UpdateSceneNode(node);
-		}
-		
-		_updatedNodes.clear();
-		_removedNodes.clear();
-	}
+	
 	
 	void World::SceneNodeWillRender(SceneNode *node)
 	{
@@ -312,150 +183,110 @@ namespace RN
 		WillRenderSceneNode(node);
 	}
 	
+	
+	
+	
 	void World::AddSceneNode(SceneNode *node)
 	{
-		if(!node || node->_world != 0)
-			return;
-		
 		if(_isDroppingSceneNodes)
 			return;
 		
-		_nodeLock.Lock();
-		node->_world = this;
+		if(node->_world)
+			return;
+		
 		_addedNodes.push_back(node);
-		_nodeLock.Unlock();
+		node->_world = this;
 	}
 	
 	void World::RemoveSceneNode(SceneNode *node)
 	{
-		if(!node || node->_world != this)
-			return;
-		
 		if(_isDroppingSceneNodes)
 			return;
 		
-		_deleteLock.Lock();
-		_removedNodes.insert(node);
-		_deleteLock.Unlock();
-		
-		_nodeLock.Lock();
-		
-		auto iterator = _nodes.find(node);
-		if(iterator != _nodes.end())
+		if(node->_world == this)
 		{
-			LockGuard<Array> lock(_attachments);
-			
-			for(size_t i = 0; i < _attachments.GetCount(); i ++)
-			{
-				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
-				attachment->WillRemoveSceneNode(node);
-			}
-			
-			lock.Unlock();
-			
-			if(node->IsKindOfClass(_cameraClass))
-			{
-				Camera *camera = static_cast<Camera *>(node);
-				_cameras.erase(std::remove(_cameras.begin(), _cameras.end(), camera), _cameras.end());
-			}
-			
 			_sceneManager->RemoveSceneNode(node);
-			_nodes.erase(iterator);
 			
-			node->_world = 0;
+			node->_world = nullptr;
+			
+			if(node->IsKindOfClass(_cameraClass))
+				_cameras.erase(std::remove(_cameras.begin(), _cameras.end(), static_cast<Camera *>(node)), _cameras.end());
+			
+			auto iterator = std::find(_addedNodes.begin(), _addedNodes.end(), node);
+			if(iterator != _addedNodes.end())
+			{
+				_addedNodes.erase(iterator);
+				return;
+			}
+			
+			_nodes.erase(std::find(_nodes.begin(), _nodes.end(), node));
+		}
+	}
+		
+	void World::ApplyNodes()
+	{
+		if(_addedNodes.size() > 0)
+		{
+			for(SceneNode *node : _addedNodes)
+			{
+				if(node->IsKindOfClass(_cameraClass))
+				{
+					_cameras.push_back(static_cast<Camera *>(node));
+					_requiresCameraSort = true;
+				}
+				
+				_sceneManager->AddSceneNode(node);
+			}
+			
+			_nodes.insert(_nodes.end(), _addedNodes.begin(), _addedNodes.end());
+			_addedNodes.clear();
+			
+			_requiresResort = true;
 		}
 		
-		_addedNodes.erase(std::remove(_addedNodes.begin(), _addedNodes.end(), node), _addedNodes.end());
-		_nodeLock.Unlock();
+		if(_requiresResort)
+			SortNodes();
+		
+		if(_requiresCameraSort)
+			SortCameras();
 	}
 	
 	
-	void World::SceneNodeUpdated(SceneNode *node)
+	void World::SceneNodeDidUpdate(SceneNode *node, uint32 changeSet)
 	{
 		if(_isDroppingSceneNodes)
 			return;
 		
-		_nodeLock.Lock();
-
-		auto iterator = std::find(_addedNodes.begin(), _addedNodes.end(), node);
-		bool forceInsert = (iterator != _addedNodes.end());
+		_sceneManager->UpdateSceneNode(node, changeSet);
 		
-		if(forceInsert)
-			_addedNodes.erase(iterator);
+		if((changeSet & SceneNode::PriorityChanged) && node->IsKindOfClass(_cameraClass))
+			_requiresCameraSort = true;
 		
-		_updatedNodes.insert(node);
-		_nodeLock.Unlock();
-		
-		if(forceInsert)
-		{
-			ForceInsertNode(node);
-			return;
-		}
+		if(changeSet & SceneNode::DependenciesChanged)
+			_requiresResort = true;
 	}
 	
-	void World::ForceInsertNode(SceneNode *node)
+	void World::SortNodes()
 	{
-		if(_nodes.find(node) == _nodes.end())
-		{
-			_nodes.insert(node);
-			_sceneManager->AddSceneNode(node);
-			
-			//LockGuard<Array> lock(_attachments);
-			
-			for(size_t i = 0; i < _attachments.GetCount(); i ++)
-			{
-				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
-				attachment->DidAddSceneNode(node);
-			}
-			
-			//lock.Unlock();
-			
-			if(node->IsKindOfClass(_cameraClass))
-			{
-				Camera *camera = static_cast<Camera *>(node);
-				_cameras.push_back(camera);
-			}
-		}
+		_requiresResort = false;
+		
+		std::sort(_nodes.begin(), _nodes.end(), [](const SceneNode *left, const SceneNode *right) {
+			return (left < right);
+		});
 	}
-
+	
+	void World::SortCameras()
+	{
+		_requiresCameraSort = false;
+		
+		std::stable_sort(_cameras.begin(), _cameras.end(), [](const Camera *left, const Camera *right) {
+			return (left->GetPriority() > right->GetPriority());
+		});
+	}
+	
 	void World::DropSceneNodes()
 	{
-		LockGuard<SpinLock> nodeLock(_nodeLock);
-		LockGuard<SpinLock> deleteLock(_deleteLock);
-		LockGuard<Array> attachmentLock(_attachments);
-		
-		for(SceneNode *node : _removedNodes)
-			_nodes.erase(node);
-		
-		_removedNodes.clear();
 		_isDroppingSceneNodes = true;
-		
-		std::vector<SceneNode *> dropNodes;
-		
-		for(SceneNode *node : _nodes)
-		{
-			for(size_t i = 0; i < _attachments.GetCount(); i ++)
-			{
-				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
-				attachment->WillRemoveSceneNode(node);
-			}
-			
-			_sceneManager->RemoveSceneNode(node);
-			
-			if(!node->GetParent())
-				dropNodes.push_back(node);
-		}
-		
-		for(SceneNode *node : dropNodes)
-		{
-			node->_world = nullptr;
-			node->Release();
-		}
-		
-		_nodes.clear();
-		_updatedNodes.clear();
-		_addedNodes.clear();
-		_cameras.clear();
 		
 		_isDroppingSceneNodes = false;
 	}
@@ -466,14 +297,12 @@ namespace RN
 	void World::AddAttachment(WorldAttachment *attachment)
 	{
 		LockGuard<Array> lock(_attachments);
-		
 		_attachments.AddObject(attachment);
 	}
 
 	void World::RemoveAttachment(WorldAttachment *attachment)
 	{
 		LockGuard<Array> lock(_attachments);
-		
 		_attachments.RemoveObject(attachment);
 	}
 }

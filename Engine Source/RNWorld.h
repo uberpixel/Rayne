@@ -21,20 +21,17 @@
 namespace RN
 {
 	class Kernel;
-	class UIServer;
-	
+
 	class World : public NonConstructingSingleton<World>
 	{
-	friend class SceneNode;
-	friend class Kernel;
-	friend class Camera;
-	friend class UIServer;
 	public:
+		friend class SceneNode;
+		friend class Kernel;
+		
 		RNAPI World(SceneManager *sceneManager);
 		RNAPI World(const std::string& sceneManager);
 		RNAPI ~World() override;
 		
-		RNAPI void SceneNodeUpdated(SceneNode *node);
 		RNAPI void SetReleaseSceneNodesOnDestruction(bool releaseSceneNodes);
 		
 		RNAPI void AddAttachment(WorldAttachment *attachment);
@@ -44,40 +41,55 @@ namespace RN
 		RNAPI void RemoveSceneNode(SceneNode *node);
 		RNAPI void DropSceneNodes();
 		
+		RNAPI void StepWorld(FrameID frame, float delta);
+		RNAPI void RenderWorld(Renderer *renderer);
+		
 		RNAPI virtual void Update(float delta);
-		RNAPI virtual void NodesUpdated();
+		RNAPI virtual void UpdatedToFrame(FrameID frame);
 		RNAPI virtual void WillRenderSceneNode(SceneNode *node);
 		RNAPI virtual void Reset();
 		
 		RNAPI SceneManager *GetSceneManager() const { return _sceneManager; }
 		
-	private:
+	private:		
 		static class SceneManager *SceneManagerWithName(const std::string& name);
-		void StepWorld(FrameID frame, float delta);
 		
-		void ForceInsertNode(SceneNode *node);
 		void SceneNodeWillRender(SceneNode *node);
 		
+		void SceneNodeDidUpdate(SceneNode *node, uint32 changeSet);
 		void ApplyNodes();
+		
+		void SortNodes();
+		void SortCameras();
+		
+		template<class F, class ...Args>
+		void RunWorldAttachement(F function, Args&&... args)
+		{
+			size_t count = _attachments.GetCount();
+			
+			for(size_t i = 0; i < count; i ++)
+			{
+				WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
+				(attachment->*function)(std::forward<Args>(args)...);
+			}
+		}
 		
 		Kernel *_kernel;
 		Array _attachments;
 		
 		bool _isDroppingSceneNodes;
 		bool _releaseSceneNodesOnDestructor;
+		bool _requiresResort;
+		bool _requiresCameraSort;
 		
 		SpinLock _nodeLock;
-		SpinLock _deleteLock;
 		
-		std::unordered_set<SceneNode *> _nodes;
-		std::unordered_set<SceneNode *> _removedNodes;
-		std::unordered_set<SceneNode *> _updatedNodes;
-		std::deque<SceneNode *> _addedNodes;
+		std::vector<SceneNode *> _addedNodes;
+		std::vector<SceneNode *> _nodes;
 		
 		std::vector<Camera *> _cameras;
 		
-		Renderer *_renderer;
-		class SceneManager *_sceneManager;
+		SceneManager  *_sceneManager;
 		MetaClassBase *_cameraClass;
 	};
 }

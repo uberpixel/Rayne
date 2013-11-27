@@ -545,6 +545,8 @@ namespace RN
 		{
 			_world->StepWorld(_frame, _delta);
 			_app->WorldUpdate(_delta);
+			
+			_world->RenderWorld(_renderer);
 		}
 		
 		_uiserver->Render(_renderer);

@@ -45,12 +45,21 @@ namespace RN
 			FlagHidden   = (1 << 2)
 		};
 		
+		enum
+		{
+			FlagsChanged = (1 << 0),
+			PositionChanged = (1 << 1),
+			DependenciesChanged = (1 << 2),
+			PriorityChanged = (1 << 3),
+			ParentChanged = (1 << 5)
+		};
+		
 		typedef uint32 Flags;
 		
 		RNAPI SceneNode();
 		RNAPI SceneNode(const Vector3& position);
 		RNAPI SceneNode(const Vector3& position, const Quaternion& rotation);
-		RNAPI virtual ~SceneNode();
+		RNAPI ~SceneNode() override;
 		
 		RNAPI void FillRenderingObject(RenderingObject& object) const;
 		
@@ -62,6 +71,7 @@ namespace RN
 		RNAPI void ScaleLocal(const Vector3& scal);
 		
 		RNAPI void SetFlags(Flags flags);
+		
 		RNAPI virtual void SetPosition(const Vector3& pos);
 		RNAPI virtual void SetScale(const Vector3& scal);
 		RNAPI virtual void SetRotation(const Quaternion& rot);
@@ -72,7 +82,8 @@ namespace RN
 		
 		RNAPI void SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere=true);
 		RNAPI void SetBoundingSphere(const Sphere& boundingSphere);
-		RNAPI void SetUpdatePriority(Priority priority);
+		
+		RNAPI void SetPriority(Priority priority);
 		RNAPI void SetDebugName(const std::string& name);
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
@@ -83,7 +94,6 @@ namespace RN
 		const Vector3& GetEulerAngle() const { return _euler; }
 		const Quaternion& GetRotation() const { return _rotation; }
 		
-		RNAPI Flags GetFlags() const { return _flags; }
 		RNAPI const Vector3 Forward() const;
 		RNAPI const Vector3 Up() const;
 		RNAPI const Vector3 Right() const;
@@ -99,21 +109,21 @@ namespace RN
 		const std::string& GetDebugName() { return _debugName; }
 		
 		RNAPI void LookAt(SceneNode *other);
+		
 		RNAPI void AttachChild(SceneNode *child);
 		RNAPI void DetachChild(SceneNode *child);
-		RNAPI void DetachAllChilds();
+		RNAPI void DetachAllChildren();
 		RNAPI void DetachFromParent();
 		
 		RNAPI void SetAction(const std::function<void (SceneNode *, float)>& action);
 		
-		size_t GetChildCount() const { return _childs.GetCount(); }
 		SceneNode *GetParent() const { return _parent; }
 		FrameID GetLastFrame() const { return _lastFrame; }
 		World *GetWorld() const { return _world; }
-		Priority GetUpdatePriority() const { return _priority; }
+		Priority GetPriority() const { return _priority; }
+		Flags GetFlags() const { return _flags; }
 		
-		template<typename T=SceneNode>
-		T *GetChildAtIndex(size_t index) const { return static_cast<T *>(_childs[index]); }
+		const Array *GetChildren() const { return &_childs; }
 		
 		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone);
 		
@@ -129,7 +139,7 @@ namespace RN
 		virtual bool CanUpdate(FrameID frame)
 		{
 			if(_parent)
-				return (_parent->_lastFrame >= frame);
+				return (_parent->_lastFrame.load() >= frame);
 			
 			return true;
 		}
@@ -138,7 +148,7 @@ namespace RN
 		int8 collisionGroup;
 		
 	protected:
-		RNAPI void DidUpdate();
+		RNAPI void DidUpdate(uint32 changeSet);
 		RNAPI void UpdateInternalData() const;
 		RNAPI void CleanUp() override;
 		
@@ -146,15 +156,14 @@ namespace RN
 		RNAPI virtual void DidAddChild(SceneNode *child)  {}
 		RNAPI virtual void WillRemoveChild(SceneNode *child) {}
 		
-		void UpdatedToFrame(FrameID frame) { _lastFrame = frame; }
-		
+		void UpdatedToFrame(FrameID frame) { _lastFrame.store(frame); }
 		
 		Observable<Vector3> _position;
 		Observable<Vector3> _scale;
 		Observable<Quaternion> _rotation;
 		Vector3 _euler;
 		
-		AABB _boundingBox;
+		AABB   _boundingBox;
 		Sphere _boundingSphere;
 		
 	private:
@@ -165,8 +174,8 @@ namespace RN
 		Array _childs;
 		
 		Flags _flags;
-		FrameID _lastFrame;
 		Priority _priority;
+		std::atomic<FrameID> _lastFrame;
 		
 		std::function<void (SceneNode *, float)> _action;
 		std::string _debugName;
@@ -191,46 +200,46 @@ namespace RN
 	RN_INLINE void SceneNode::Translate(const Vector3& trans)
 	{
 		_position += trans;
-		DidUpdate();
+		DidUpdate(PositionChanged);
 	}
 	
 	RN_INLINE void SceneNode::Scale(const Vector3& scal)
 	{
 		_scale += scal;
-		DidUpdate();
+		DidUpdate(PositionChanged);
 	}
 	
 	RN_INLINE void SceneNode::Rotate(const Vector3& rot)
 	{
 		_euler += rot;
 		_rotation = Quaternion(_euler);
-		DidUpdate();
+		DidUpdate(PositionChanged);
 	}
 	
 	
 	RN_INLINE void SceneNode::TranslateLocal(const Vector3& trans)
 	{
 		_position += _rotation->RotateVector(trans);
-		DidUpdate();
+		DidUpdate(PositionChanged);
 	}
 	
 	RN_INLINE void SceneNode::ScaleLocal(const Vector3& scal)
 	{
 		_scale += _rotation->RotateVector(scal);
-		DidUpdate();
+		DidUpdate(PositionChanged);
 	}
 	
 	
 	RN_INLINE void SceneNode::SetPosition(const Vector3& pos)
 	{
 		_position = pos;
-		DidUpdate();
+		DidUpdate(PositionChanged);
 	}
 	
 	RN_INLINE void SceneNode::SetScale(const Vector3& scal)
 	{
 		_scale = scal;
-		DidUpdate();
+		DidUpdate(PositionChanged);
 	}
 	
 	RN_INLINE void SceneNode::SetRotation(const Quaternion& rot)
@@ -238,7 +247,7 @@ namespace RN
 		_euler = rot.GetEulerAngle();
 		_rotation = rot;
 		
-		DidUpdate();
+		DidUpdate(PositionChanged);
 	}
 	
 	
@@ -254,7 +263,7 @@ namespace RN
 		temp = temp / _parent->GetWorldRotation();
 		
 		_position = temp.RotateVector(pos) - temp.RotateVector(GetWorldPosition());
-		DidUpdate();
+		DidUpdate(PositionChanged);
 	}
 	
 	RN_INLINE void SceneNode::SetWorldScale(const Vector3& scal)
@@ -266,7 +275,7 @@ namespace RN
 		}
 		
 		_scale = scal - GetWorldScale();
-		DidUpdate();
+		DidUpdate(PositionChanged);
 	}
 	
 	RN_INLINE void SceneNode::SetWorldRotation(const Quaternion& rot)
@@ -280,7 +289,7 @@ namespace RN
 		_rotation = rot / _parent->GetWorldRotation();
 		_euler = _rotation->GetEulerAngle();
 		
-		DidUpdate();
+		DidUpdate(PositionChanged);
 	}
 	
 	
@@ -393,11 +402,13 @@ namespace RN
 			
 			_updated = false;
 			
+			
 			size_t count = _childs.GetCount();
+			
 			for(size_t i = 0; i < count; i ++)
 			{
-				SceneNode *child = _childs.GetObjectAtIndex<SceneNode>(i);
-				child->DidUpdate();
+				SceneNode *child = static_cast<SceneNode *>(_childs[i]);
+				child->_updated = true;
 			}
 			
 			return;
