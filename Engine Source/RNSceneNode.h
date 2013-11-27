@@ -114,18 +114,21 @@ namespace RN
 		
 		RNAPI void AttachChild(SceneNode *child);
 		RNAPI void DetachChild(SceneNode *child);
-		RNAPI void DetachAllChildren();
 		RNAPI void DetachFromParent();
+		RNAPI void LockChildren() const;
+		RNAPI void UnlockChildren() const;
 		
 		RNAPI void SetAction(const std::function<void (SceneNode *, float)>& action);
+		RNAPI void AddDependency(SceneNode *dependency);
+		RNAPI void RemoveDependency(SceneNode *dependency);
 		
-		SceneNode *GetParent() const { return _parent; }
+		SceneNode *GetParent() const;
 		FrameID GetLastFrame() const { return _lastFrame; }
 		World *GetWorld() const { return _world; }
 		Priority GetPriority() const { return _priority; }
 		Flags GetFlags() const { return _flags; }
 		
-		const Array *GetChildren() const { return &_childs; }
+		const Array *GetChildren() const { return &_children; }
 		
 		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone);
 		
@@ -154,9 +157,9 @@ namespace RN
 		RNAPI void UpdateInternalData() const;
 		RNAPI void CleanUp() override;
 		
-		RNAPI virtual void ChildDidUpdate(SceneNode *child) {}
+		RNAPI virtual void ChildDidUpdate(SceneNode *child, uint32 changes) {}
 		RNAPI virtual void DidAddChild(SceneNode *child)  {}
-		RNAPI virtual void WillRemoveChild(SceneNode *child) {}
+		RNAPI virtual void DidRemoveChild(SceneNode *child) {}
 		
 		void UpdatedToFrame(FrameID frame) { _lastFrame.store(frame); }
 		
@@ -168,12 +171,17 @@ namespace RN
 		AABB   _boundingBox;
 		Sphere _boundingSphere;
 		
+		Signal<void (SceneNode *)> _cleanUpSignal;
+		
 	private:
 		void Initialize();
+		bool Compare(const SceneNode *other) const;
 		
 		World *_world;
+		
+		mutable SpinLock _parentChildLock;
 		SceneNode *_parent;
-		Array _childs;
+		Array _children;
 		
 		Flags _flags;
 		Priority _priority;
@@ -181,6 +189,9 @@ namespace RN
 		
 		std::function<void (SceneNode *, float)> _action;
 		std::string _debugName;
+		
+		SpinLock _dependenciesLock;
+		std::unordered_set<SceneNode *> _dependencies;
 		
 		mutable bool _updated;
 		mutable Vector3 _worldPosition;
@@ -370,6 +381,9 @@ namespace RN
 			_localTransform.Rotate(_rotation);
 			_localTransform.Scale(_scale);
 			
+			
+			LockChildren();
+			
 			if(_parent)
 			{
 				_parent->UpdateInternalData();
@@ -404,15 +418,15 @@ namespace RN
 			
 			_updated = false;
 			
-			
-			size_t count = _childs.GetCount();
+			size_t count = _children.GetCount();
 			
 			for(size_t i = 0; i < count; i ++)
 			{
-				SceneNode *child = static_cast<SceneNode *>(_childs[i]);
+				SceneNode *child = static_cast<SceneNode *>(_children[i]);
 				child->_updated = true;
 			}
 			
+			UnlockChildren();
 			return;
 		}
 	}

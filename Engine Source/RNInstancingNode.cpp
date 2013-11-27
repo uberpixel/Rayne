@@ -52,9 +52,10 @@ namespace RN
 	
 	
 	
-	void InstancingNode::ChildDidUpdate(SceneNode *child)
+	void InstancingNode::ChildDidUpdate(SceneNode *child, uint32 changes)
 	{
-		MarkChildDirty(child, true);
+		if(changes & ChangedPosition)
+			MarkChildDirty(child, true);
 	}
 	
 	void InstancingNode::DidAddChild(SceneNode *child)
@@ -62,7 +63,7 @@ namespace RN
 		MarkChildDirty(child, false);
 	}
 	
-	void InstancingNode::WillRemoveChild(SceneNode *child)
+	void InstancingNode::DidRemoveChild(SceneNode *child)
 	{
 		if(child->IsKindOfClass(_entityClass))
 		{

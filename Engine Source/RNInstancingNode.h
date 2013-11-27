@@ -28,9 +28,9 @@ namespace RN
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		
 	protected:
-		RNAPI void ChildDidUpdate(SceneNode *child) override;
+		RNAPI void ChildDidUpdate(SceneNode *child, uint32 changeSet) override;
 		RNAPI void DidAddChild(SceneNode *child) override;
-		RNAPI void WillRemoveChild(SceneNode *child) override;
+		RNAPI void DidRemoveChild(SceneNode *child) override;
 		
 	private:
 		struct InstancedMesh

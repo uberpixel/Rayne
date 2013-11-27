@@ -10,6 +10,7 @@
 #include "RNRenderer.h"
 #include "RNWorld.h"
 #include "RNHit.h"
+#include "RNSTL.h"
 
 namespace RN
 {
@@ -65,12 +66,40 @@ namespace RN
 	
 	void SceneNode::CleanUp()
 	{
+		_cleanUpSignal.Emit(this);
+		
 		if(_world)
 			_world->RemoveSceneNode(this);
 		
-		DetachAllChildren();
+		LockChildren();
+		
+		size_t count = _children.GetCount();
+		
+		for(size_t i = 0; i < count; i ++)
+		{
+			SceneNode *child = static_cast<SceneNode *>(_children[i]);
+			child->_parent = nullptr;
+			child->DidUpdate(ChangedParent);
+		}
+		
+		UnlockChildren();
 	}
 	
+	bool SceneNode::Compare(const SceneNode *other) const
+	{
+		if(other == _parent)
+			return false;
+		
+		return (this < other);
+	}
+	
+	
+	void AddDependency(SceneNode *dependency)
+	{
+	}
+	void RemoveDependency(SceneNode *dependency)
+	{
+	}
 	
 	
 	bool SceneNode::IsVisibleInCamera(Camera *camera)
@@ -131,50 +160,83 @@ namespace RN
 		SetWorldRotation(rotation);
 	}
 	
+	
+	
 	void SceneNode::AttachChild(SceneNode *child)
 	{
-		child->DetachFromParent();
+		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<SpinLock> lock2(child->_parentChildLock);
 		
-		_childs.AddObject(child);
+		std::lock(lock1, lock2);
+		std::unique_lock<stl::lockable_shim<SpinLock>> ulock1(lock1, std::adopt_lock);
+		std::unique_lock<stl::lockable_shim<SpinLock>> ulock2(lock2, std::adopt_lock);
+		
+		if(child->_parent)
+			return;
+		
+		_children.AddObject(child);
 		child->_parent = this;
-		child->DidUpdate(ChangedParent);
+		
+		
+		ulock1.unlock();
+		ulock2.unlock();
 		
 		DidAddChild(child);
+		child->DidUpdate(ChangedParent);
 	}
 	
 	void SceneNode::DetachChild(SceneNode *child)
 	{
+		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<SpinLock> lock2(child->_parentChildLock);
+		
+		std::lock(lock1, lock2);
+		std::unique_lock<stl::lockable_shim<SpinLock>> ulock1(lock1, std::adopt_lock);
+		std::unique_lock<stl::lockable_shim<SpinLock>> ulock2(lock2, std::adopt_lock);
+		
 		if(child->_parent == this)
 		{
-			WillRemoveChild(child);
-			_childs.RemoveObject(child);
-			
+			child->Retain()->Autorelease();
 			child->_parent = nullptr;
-			child->DidUpdate(ChangedParent);
-		}
-	}
-	
-	void SceneNode::DetachAllChildren()
-	{
-		size_t count = _childs.GetCount();
-		
-		for(size_t i = 0; i < count; i ++)
-		{
-			SceneNode *child = _childs.GetObjectAtIndex<SceneNode>(i);
-			WillRemoveChild(child);
 			
-			child->_parent = nullptr;
+			_children.RemoveObject(child);
+			
+			
+			ulock1.unlock();
+			ulock2.unlock();
+			
 			child->DidUpdate(ChangedParent);
+			DidRemoveChild(child);
 		}
-		
-		_childs.RemoveAllObjects();
 	}
 	
 	void SceneNode::DetachFromParent()
 	{
-		if(_parent)
-			_parent->DetachChild(this);
+		SceneNode *parent = GetParent();
+		if(parent)
+			parent->DetachChild(this);
 	}
+
+	void SceneNode::LockChildren() const
+	{
+		_parentChildLock.Lock();
+	}
+	
+	void SceneNode::UnlockChildren() const
+	{
+		_parentChildLock.Unlock();
+	}
+	
+	SceneNode *SceneNode::GetParent() const
+	{
+		_parentChildLock.Lock();
+		SceneNode *node = _parent;
+		_parentChildLock.Unlock();
+		
+		return node;
+	}
+	
+	
 	
 	void SceneNode::DidUpdate(uint32 changeSet)
 	{
@@ -185,7 +247,7 @@ namespace RN
 			_world->SceneNodeDidUpdate(this, changeSet);
 		
 		if(_parent)
-			_parent->ChildDidUpdate(this);
+			_parent->ChildDidUpdate(this, changeSet);
 	}
 	
 	void SceneNode::SetAction(const std::function<void (SceneNode *, float)>& action)

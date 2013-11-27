@@ -271,7 +271,7 @@ namespace RN
 		_requiresResort = false;
 		
 		std::sort(_nodes.begin(), _nodes.end(), [](const SceneNode *left, const SceneNode *right) {
-			return (left < right);
+			return left->Compare(right);
 		});
 	}
 	
