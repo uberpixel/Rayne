@@ -134,6 +134,8 @@ namespace RN
 				if(pushed > 0)
 				{
 					written = true;
+					
+					std::unique_lock<std::mutex> lock(context->lock);
 					context->condition.notify_one();
 				}
 				
@@ -190,7 +192,9 @@ namespace RN
 				_feederCondition.notify_one();
 				
 				std::unique_lock<std::mutex> lock(local->lock);
-				local->condition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
+				
+				if(local->hose.was_empty())
+					local->condition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
 			}
 		}
 		
