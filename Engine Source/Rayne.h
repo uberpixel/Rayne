@@ -31,6 +31,7 @@
 #include "RNResourcePool.h"
 #include "RNInput.h"
 #include "RNMessage.h"
+#include "RNSignal.h"
 #include "RNFile.h"
 #include "RNPathManager.h"
 #include "RNFileManager.h"
