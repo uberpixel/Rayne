@@ -600,13 +600,14 @@ namespace TG
 		
 		node = new RN::InstancingNode(tree);
 		
-		for(int i = 0; i < TGForestFeatureTrees; i += 1)
+		for(int i = 0; i < TGForestFeatureTrees; i ++)
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
 			if(pos.Length() < 10.0f)
 				continue;
 			
 			ent = new RN::Entity();
+			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
 			ent->SetModel(tree);
 			ent->SetPosition(pos);
 			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.89f, 1.12f)));
@@ -629,6 +630,7 @@ namespace TG
 				continue;
 			
 			ent = new RN::Entity();
+			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
 			ent->SetModel(grass);
 			ent->SetPosition(pos);
 			ent->SetScale(RN::Vector3(2.5f));
@@ -656,19 +658,6 @@ namespace TG
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateDirectionalShadows();
-		
-		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
-		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
-		_spotLight->SetRange(TGWorldSpotLightRange);
-		_spotLight->SetAngle(0.9f);
-		_spotLight->SetColor(RN::Color(0.5f, 0.5f, 0.5f));
-		_spotLight->ActivateSpotShadows();
-		
-#if TGWorldFeatureFreeCamera
-		_camera->AttachChild(_spotLight);
-#else
-		_player->AttachChild(_spotLight);
-#endif
 		
 /*		for(int i=0; i<200; i++)
 		{

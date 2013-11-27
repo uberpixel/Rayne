@@ -196,7 +196,7 @@ namespace RN
 	
 	void InstancingNode::RecalculateData()
 	{
-		/*std::vector<Entity *> entities;
+		std::vector<Entity *> entities;
 		
 		for(InstancedMesh& mesh : _data)
 		{
@@ -204,12 +204,16 @@ namespace RN
 			gl::DeleteBuffers(1, &mesh.buffer);
 		}
 		
-		size_t childs = GetChildCount();
-		entities.reserve(childs);
+		LockChildren();
 		
-		for(size_t i=0; i<childs; i++)
+		const Array *children = GetChildren();
+		size_t count = children->GetCount();
+		
+		entities.reserve(count);
+		
+		for(size_t i = 0; i < count; i ++)
 		{
-			SceneNode *node = GetChildAtIndex(i);
+			SceneNode *node = children->GetObjectAtIndex<SceneNode>(i);
 			
 			if(node->IsKindOfClass(_entityClass))
 			{
@@ -230,6 +234,8 @@ namespace RN
 			}
 		}
 		
+		UnlockChildren();
+		
 		if(entities.size() > 0)
 		{
 			uint32 count = _model->GetMeshCount(0);
@@ -242,6 +248,6 @@ namespace RN
 			}
 		}
 		
-		_dirty = false;*/
+		_dirty = false;
 	}
 }
