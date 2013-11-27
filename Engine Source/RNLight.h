@@ -38,7 +38,6 @@ namespace RN
 		
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI void Update(float delta) override;
-		RNAPI bool CanUpdate(FrameID frame) override;
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		
@@ -66,6 +65,7 @@ namespace RN
 	
 	private:
 		void ReCalculateColor();
+		void RemoveShadowCameras();
 		
 		Type _lightType;
 		

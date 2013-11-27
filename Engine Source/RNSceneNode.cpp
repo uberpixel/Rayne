@@ -82,7 +82,17 @@ namespace RN
 			child->DidUpdate(ChangedParent);
 		}
 		
+		_children.RemoveAllObjects();
 		UnlockChildren();
+		
+		LockGuard<SpinLock> lock(_dependenciesLock);
+		for(auto& dependecy : _dependencyMap)
+		{
+			dependecy.second->Disconnect();
+		}
+		
+		_dependencies.clear();
+		_dependencyMap.clear();
 	}
 	
 	bool SceneNode::Compare(const SceneNode *other) const
@@ -90,16 +100,86 @@ namespace RN
 		if(other == _parent)
 			return false;
 		
+		for(SceneNode *node : _dependencies)
+		{
+			if(node == other)
+				return false;
+		}
+		
 		return (this < other);
 	}
 	
 	
-	void AddDependency(SceneNode *dependency)
+	void SceneNode::AddDependency(SceneNode *dependency)
 	{
+		if(!dependency)
+			return;
+		
+		LockGuard<SpinLock> lock(_dependenciesLock);
+		
+		if(_dependencyMap.find(dependency) == _dependencyMap.end())
+		{
+			Connection *connection = dependency->_cleanUpSignal.Connect(std::bind(&SceneNode::__BreakDependency, this, std::placeholders::_1));
+			_dependencyMap.insert(std::make_pair(dependency, connection));
+			_dependencies.push_back(dependency);
+		}
+		
+		lock.Unlock();
+		DidUpdate(ChangedDependencies);
 	}
-	void RemoveDependency(SceneNode *dependency)
+	
+	void SceneNode::RemoveDependency(SceneNode *dependency)
 	{
+		if(!dependency)
+			return;
+		
+		LockGuard<SpinLock> lock(_dependenciesLock);
+		
+		auto iterator = _dependencyMap.find(dependency);
+		if(iterator != _dependencyMap.end())
+		{
+			iterator->second->Disconnect();
+			
+			_dependencyMap.erase(iterator);
+			_dependencies.erase(std::find(_dependencies.begin(), _dependencies.end(), dependency));
+		}
+		
+		lock.Unlock();
+		DidUpdate(ChangedDependencies);
 	}
+	
+	void SceneNode::__BreakDependency(SceneNode *dependency)
+	{
+		LockGuard<SpinLock> lock(_dependenciesLock);
+		
+		_dependencyMap.erase(dependency);
+		_dependencies.erase(std::find(_dependencies.begin(), _dependencies.end(), dependency));
+		
+		lock.Unlock();
+		DidUpdate(ChangedDependencies);
+	}
+	
+	
+	bool SceneNode::CanUpdate(FrameID frame)
+	{
+		LockGuard<SpinLock> lock1(_parentChildLock);
+		
+		if(_parent)
+			return (_parent->_lastFrame.load() >= frame);
+		
+		lock1.Unlock();
+		
+		LockGuard<SpinLock> lock2(_dependenciesLock);
+		
+		for(SceneNode *node : _dependencies)
+		{
+			if(node->_lastFrame.load() < frame)
+				return false;
+		}
+		
+		return true;
+	}
+	
 	
 	
 	bool SceneNode::IsVisibleInCamera(Camera *camera)

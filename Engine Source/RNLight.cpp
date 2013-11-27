@@ -92,10 +92,31 @@ namespace RN
 	void Light::SetLightCamera(Camera *lightCamera)
 	{
 		if(_lightcam)
+		{
+			RemoveDependency(_lightcam);
 			_lightcam->Release();
+		}
 		
 		_lightcam = lightCamera ? lightCamera->Retain() : nullptr;
+		AddDependency(_lightcam);
 	}
+	
+	void Light::RemoveShadowCameras()
+	{
+		_shadowcams.Enumerate<Camera>([&](Camera *camera, size_t index, bool *stop) {
+			RemoveDependency(camera);
+		});
+		
+		_shadowcams.RemoveAllObjects();
+		
+		if(_shadowcam)
+		{
+			RemoveDependency(_shadowcam);
+			_shadowcam->Release();
+			_shadowcam = nullptr;
+		}
+	}
+	
 	
 	void Light::ActivateDirectionalShadows(bool shadow, int resolution, int splits, float distfac, float biasfac, float biasunits)
 	{
@@ -106,7 +127,7 @@ namespace RN
 			return;
 		
 		_shadow = shadow;
-		_shadowcams.RemoveAllObjects();
+		RemoveShadowCameras();
 		
 		if(_shadow)
 		{
@@ -142,6 +163,7 @@ namespace RN
 				tempcam->clipnear = 1.0f;
 
 				_shadowcams.AddObject(tempcam);
+				AddDependency(tempcam);
 				
 				tempcam->Release();
 				storage->Release();
@@ -158,7 +180,7 @@ namespace RN
 			return;
 		
 		_shadow = shadow;
-		_shadowcams.RemoveAllObjects();
+		RemoveShadowCameras();
 		
 		if(_shadow)
 		{
@@ -188,6 +210,8 @@ namespace RN
 			_shadowcam->fov = 90.0f;
 			_shadowcam->UpdateProjection();
 			_shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
+			
+			AddDependency(_shadowcam);
 			storage->Release();
 		}
 	}
@@ -201,7 +225,7 @@ namespace RN
 		return;
 		
 		_shadow = shadow;
-		_shadowcams.RemoveAllObjects();
+		RemoveShadowCameras();
 		
 		if(_shadow)
 		{
@@ -231,32 +255,10 @@ namespace RN
 			_shadowcam->fov = 90.0f;
 			_shadowcam->UpdateProjection();
 			_shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
+			
+			AddDependency(_shadowcam);
 			storage->Release();
 		}
-	}
-	
-	bool Light::CanUpdate(FrameID frame)
-	{
-		if(_shadow && _lightcam)
-		{
-			if(_lightcam->GetLastFrame() != frame)
-				return false;
-			
-			if(_shadowcam && _shadowcam->GetLastFrame() != frame)
-				return false;
-			
-			for(int i = 0; i < _shadowSplits; i++)
-			{
-				Camera *tempcam = _shadowcams.GetObjectAtIndex<Camera>(i);
-				
-				if(tempcam->GetLastFrame() != frame)
-					return false;
-			}
-			
-			return true;
-		}
-		
-		return true;
 	}
 	
 	void Light::Update(float delta)

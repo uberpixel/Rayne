@@ -141,13 +141,7 @@ namespace RN
 				_action(this, delta);
 		}
 		
-		virtual bool CanUpdate(FrameID frame)
-		{
-			if(_parent)
-				return (_parent->_lastFrame.load() >= frame);
-			
-			return true;
-		}
+		virtual bool CanUpdate(FrameID frame);
 		
 		int8 renderGroup;
 		int8 collisionGroup;
@@ -176,6 +170,7 @@ namespace RN
 	private:
 		void Initialize();
 		bool Compare(const SceneNode *other) const;
+		void __BreakDependency(SceneNode *dependency);
 		
 		World *_world;
 		
@@ -191,7 +186,8 @@ namespace RN
 		std::string _debugName;
 		
 		SpinLock _dependenciesLock;
-		std::unordered_set<SceneNode *> _dependencies;
+		std::unordered_map<SceneNode *, Connection *> _dependencyMap;
+		std::vector<SceneNode *> _dependencies;
 		
 		mutable bool _updated;
 		mutable Vector3 _worldPosition;
