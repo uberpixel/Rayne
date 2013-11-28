@@ -188,6 +188,8 @@ namespace RN
 	
 	void World::AddSceneNode(SceneNode *node)
 	{
+		LockGuard<SpinLock> lock(_nodeLock);
+		
 		if(_isDroppingSceneNodes)
 			return;
 		
@@ -200,6 +202,8 @@ namespace RN
 	
 	void World::RemoveSceneNode(SceneNode *node)
 	{
+		LockGuard<SpinLock> lock(_nodeLock);
+		
 		if(_isDroppingSceneNodes)
 			return;
 		
@@ -286,7 +290,11 @@ namespace RN
 	
 	void World::DropSceneNodes()
 	{
+		LockGuard<SpinLock> lock(_nodeLock);
+		
 		_isDroppingSceneNodes = true;
+		
+		
 		
 		_isDroppingSceneNodes = false;
 	}
