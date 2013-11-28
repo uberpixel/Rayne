@@ -258,7 +258,7 @@ namespace RN
 		if(child->_parent)
 			return;
 		
-		WillAddChild(this);
+		WillAddChild(child);
 		
 		_children.AddObject(child);
 		child->_parent = this;
@@ -267,8 +267,8 @@ namespace RN
 		ulock1.unlock();
 		ulock2.unlock();
 		
-		DidAddChild(child);
 		child->DidUpdate(ChangedParent);
+		DidAddChild(child);
 	}
 	
 	void SceneNode::DetachChild(SceneNode *child)
@@ -282,7 +282,7 @@ namespace RN
 		
 		if(child->_parent == this)
 		{
-			WillRemoveChild(this);
+			WillRemoveChild(child);
 			
 			child->Retain()->Autorelease();
 			child->_parent = nullptr;
