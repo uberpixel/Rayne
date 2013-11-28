@@ -152,7 +152,9 @@ namespace RN
 		RNAPI void CleanUp() override;
 		
 		RNAPI virtual void ChildDidUpdate(SceneNode *child, uint32 changes) {}
+		RNAPI virtual void WillAddChild(SceneNode *child) {}
 		RNAPI virtual void DidAddChild(SceneNode *child)  {}
+		RNAPI virtual void WillRemoveChild(SceneNode *child) {}
 		RNAPI virtual void DidRemoveChild(SceneNode *child) {}
 		
 		void UpdatedToFrame(FrameID frame) { _lastFrame.store(frame); }

@@ -66,6 +66,8 @@ namespace RN
 	
 	void SceneNode::CleanUp()
 	{
+		Lock();
+		
 		_cleanUpSignal.Emit(this);
 		
 		if(_world)
@@ -93,6 +95,8 @@ namespace RN
 		
 		_dependencies.clear();
 		_dependencyMap.clear();
+		
+		Unlock();
 	}
 	
 	bool SceneNode::Compare(const SceneNode *other) const
@@ -254,6 +258,8 @@ namespace RN
 		if(child->_parent)
 			return;
 		
+		WillAddChild(this);
+		
 		_children.AddObject(child);
 		child->_parent = this;
 		
@@ -276,6 +282,8 @@ namespace RN
 		
 		if(child->_parent == this)
 		{
+			WillRemoveChild(this);
+			
 			child->Retain()->Autorelease();
 			child->_parent = nullptr;
 			
