@@ -30,8 +30,11 @@ namespace RN
 	
 	Entity::~Entity()
 	{
-		SafeRelease(_model);
-		SafeRelease(_skeleton);
+		if(_model)
+			_model->Release();
+		
+		if(_skeleton)
+			_skeleton->Release();
 	}
 	
 	void Entity::Render(Renderer *renderer, Camera *camera)
