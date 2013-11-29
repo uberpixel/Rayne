@@ -10,7 +10,6 @@
 #include "RNRenderer.h"
 #include "RNWorld.h"
 #include "RNHit.h"
-#include "RNSTL.h"
 
 namespace RN
 {
@@ -207,18 +206,22 @@ namespace RN
 	
 	void SceneNode::SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere)
 	{
+		_transformLock.Lock();
 		_boundingBox = boundingBox;
 		
 		if(calculateBoundingSphere)
 			_boundingSphere = Sphere(_boundingBox);
 		
 		_updated = true;
+		_transformLock.Unlock();
 	}
 	
 	void SceneNode::SetBoundingSphere(const Sphere& boundingSphere)
 	{
+		_transformLock.Lock();
 		_boundingSphere = boundingSphere;
 		_updated = true;
+		_transformLock.Unlock();
 	}
 	
 	void SceneNode::SetPriority(Priority priority)
@@ -347,6 +350,9 @@ namespace RN
 	{
 		if(_flags & FlagDrawLate)
 			object.flags |= RenderingObject::DrawLate;
+		
+		object.transform = &_worldTransform;
+		object.rotation  = &_worldRotation;
 	}
 	
 	

@@ -130,7 +130,7 @@ namespace RN
 					node->Update(delta),
 					node->UpdatedToFrame(frame);
 					
-					node->UpdateInternalData();
+					node->GetWorldPosition();
 				});
 			}
 			

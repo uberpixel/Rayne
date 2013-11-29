@@ -125,8 +125,6 @@ namespace RN
 			object.material = i->material;
 			object.instancingData = i->texture;
 			object.count = i->count;
-			object.rotation = (Quaternion*)&GetWorldRotation();
-			object.transform = (Matrix *)&GetWorldTransform();
 			
 			renderer->RenderObject(object);
 		}

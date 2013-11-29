@@ -54,9 +54,6 @@ namespace RN
 			FillRenderingObject(object);
 			
 			uint32 lodStage = _model->GetLODStageForDistance(distance);
-			
-			object.rotation  = (Quaternion*)&GetWorldRotation();
-			object.transform = (Matrix *)&GetWorldTransform();
 			object.skeleton  = GetSkeleton();
 			
 			uint32 count = _model->GetMeshCount(lodStage);
