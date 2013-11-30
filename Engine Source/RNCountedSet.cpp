@@ -244,7 +244,7 @@ namespace RN
 		}
 	}
 	
-	void CountedSet::RemoveObjectForKey(Object *key)
+	void CountedSet::RemoveObject(Object *key)
 	{
 		Bucket *bucket = FindBucket(key, false);
 		if(bucket)
@@ -259,6 +259,30 @@ namespace RN
 				CollapseIfPossible();
 			}
 		}
+	}
+	
+	void CountedSet::RemoveAllObjects()
+	{
+		for(size_t i = 0; i < _capacity; i ++)
+		{
+			Bucket *bucket = _buckets[i];
+			while(bucket)
+			{
+				Bucket *next = bucket->next;
+				delete bucket;
+				
+				bucket = next;
+			}
+		}
+		
+		delete [] _buckets;
+		
+		_count     = 0;
+		_primitive = 1;
+		_capacity  = HashTableCapacity[_primitive];
+		
+		_buckets = new Bucket *[_capacity];
+		std::fill(_buckets, _buckets + _capacity, nullptr);
 	}
 	
 	bool CountedSet::ContainsObject(Object *object)

@@ -85,7 +85,7 @@ namespace RN
 		_count     = 0;
 		
 		_buckets = new Bucket *[_capacity];
-		memset(_buckets, 0, _capacity * sizeof(Bucket **));
+		std::fill(_buckets, _buckets + _capacity, nullptr);
 	}
 	
 	
@@ -142,7 +142,7 @@ namespace RN
 		}
 		
 		_primitive = primitive;
-		memset(_buckets, 0, _capacity * sizeof(Bucket **));
+		std::fill(_buckets, _buckets + _capacity, nullptr);
 		
 		for(size_t i=0; i<cCapacity; i++)
 		{
@@ -304,6 +304,30 @@ namespace RN
 			_count --;
 			CollapseIfPossible();
 		}
+	}
+	
+	void Dictionary::RemoveAllObjects()
+	{
+		for(size_t i = 0; i < _capacity; i ++)
+		{
+			Bucket *bucket = _buckets[i];
+			while(bucket)
+			{
+				Bucket *next = bucket->next;
+				delete bucket;
+				
+				bucket = next;
+			}
+		}
+		
+		delete [] _buckets;
+		
+		_count     = 0;
+		_primitive = 1;
+		_capacity  = HashTableCapacity[_primitive];
+		
+		_buckets = new Bucket *[_capacity];
+		std::fill(_buckets, _buckets + _capacity, nullptr);
 	}
 	
 	void Dictionary::Enumerate(const std::function<void (Object *, Object *, bool *)>& callback)

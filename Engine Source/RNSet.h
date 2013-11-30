@@ -25,7 +25,8 @@ namespace RN
 		RNAPI ~Set() override;
 		
 		RNAPI void AddObject(Object *object);
-		RNAPI void RemoveObjectForKey(Object *object);
+		RNAPI void RemoveObject(Object *object);
+		RNAPI void RemoveAllObjects();
 		RNAPI bool ContainsObject(Object *object);
 		
 		RNAPI void Enumerate(const std::function<void (Object *object, bool *stop)>& callback);
