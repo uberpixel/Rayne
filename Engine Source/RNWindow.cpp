@@ -321,7 +321,7 @@ namespace RN
 	
 	void Window::SetConfiguration(const WindowConfiguration *tconfiguration, WindowMask mask)
 	{
-		if(tconfiguration->IsEqual(_activeConfiguration))
+		if(tconfiguration->IsEqual(_activeConfiguration) && mask == _mask)
 			return;
 		
 		WindowConfiguration *configuration = const_cast<WindowConfiguration *>(tconfiguration);
