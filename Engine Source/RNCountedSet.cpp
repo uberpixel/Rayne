@@ -1,25 +1,25 @@
 //
-//  RNDictionary.cpp
+//  RNCountedSet.cpp
 //  Rayne
 //
 //  Copyright 2013 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNDictionary.h"
+#include "RNCountedSet.h"
 #include "RNArray.h"
 #include "RNHashTableInternal.h"
 
 namespace RN
 {
-	RNDeclareMeta(Dictionary)
-
-	Dictionary::Dictionary()
+	RNDeclareMeta(CountedSet)
+	
+	CountedSet::CountedSet()
 	{
 		Initialize(0);
 	}
 	
-	Dictionary::Dictionary(size_t capacity)
+	CountedSet::CountedSet(size_t capacity)
 	{
 		for(size_t i = 0; i < kRNHashTablePrimitiveCount; i ++)
 		{
@@ -31,7 +31,7 @@ namespace RN
 		}
 	}
 	
-	Dictionary::Dictionary(const Dictionary *other)
+	CountedSet::CountedSet(const CountedSet *other)
 	{
 		_primitive = other->_primitive;
 		_capacity  = other->_capacity;
@@ -43,9 +43,10 @@ namespace RN
 		{
 			Bucket *temp = nullptr;
 			Bucket *bucket = other->_buckets[i];
+			
 			while(bucket)
 			{
-				if(bucket->key && bucket->object)
+				if(bucket->object)
 				{
 					Bucket *copy = new Bucket(bucket);
 					if(temp)
@@ -61,7 +62,23 @@ namespace RN
 		}
 	}
 	
-	Dictionary::~Dictionary()
+	CountedSet::CountedSet(const Array *other)
+	{
+		for(size_t i = 0; i < kRNHashTablePrimitiveCount; i ++)
+		{
+			if(HashTableCapacity[i] > other->GetCount() || i == kRNHashTablePrimitiveCount - 1)
+			{
+				Initialize(i);
+				break;
+			}
+		}
+		
+		other->Enumerate([&](Object *object, size_t index, bool *stop) {
+			AddObject(object);
+		});
+	}
+	
+	CountedSet::~CountedSet()
 	{
 		for(size_t i = 0; i < _capacity; i ++)
 		{
@@ -75,24 +92,25 @@ namespace RN
 			}
 		}
 		
-		delete[] _buckets;
+		delete [] _buckets;
 	}
 	
-	void Dictionary::Initialize(size_t primitive)
+	void CountedSet::Initialize(size_t primitive)
 	{
 		_primitive = primitive;
 		_capacity  = HashTableCapacity[_primitive];
 		_count     = 0;
 		
 		_buckets = new Bucket *[_capacity];
-		memset(_buckets, 0, _capacity * sizeof(Bucket **));
+		std::fill(_buckets, _buckets + _capacity, nullptr);
 	}
 	
 	
 	
-	Dictionary::Bucket *Dictionary::FindBucket(Object *key, bool createIfNeeded)
+	
+	CountedSet::Bucket *CountedSet::FindBucket(Object *object, bool createIfNeeded)
 	{
-		machine_hash hash = key->GetHash();
+		machine_hash hash = object->GetHash();
 		size_t index = hash % _capacity;
 		
 		Bucket *bucket = _buckets[index];
@@ -100,12 +118,10 @@ namespace RN
 		
 		while(bucket)
 		{
-			if(bucket->key && key->IsEqual(bucket->key))
-			{
+			if(bucket->object && object->IsEqual(bucket->object))
 				return bucket;
-			}
 			
-			if(!bucket->key)
+			if(!bucket->object)
 				empty = bucket;
 			
 			bucket = bucket->next;
@@ -125,7 +141,7 @@ namespace RN
 		return bucket;
 	}
 	
-	void Dictionary::Rehash(size_t primitive)
+	void CountedSet::Rehash(size_t primitive)
 	{
 		size_t cCapacity = _capacity;
 		Bucket **buckets = _buckets;
@@ -142,18 +158,18 @@ namespace RN
 		}
 		
 		_primitive = primitive;
-		memset(_buckets, 0, _capacity * sizeof(Bucket **));
+		std::fill(_buckets, _buckets + _capacity, nullptr);
 		
-		for(size_t i=0; i<cCapacity; i++)
+		for(size_t i = 0; i < cCapacity; i ++)
 		{
 			Bucket *bucket = buckets[i];
 			while(bucket)
 			{
 				Bucket *next = bucket->next;
 				
-				if(bucket->key)
+				if(bucket->object)
 				{
-					machine_hash hash = bucket->key->GetHash();
+					machine_hash hash = bucket->object->GetHash();
 					size_t index = hash % _capacity;
 					
 					bucket->next = _buckets[index];
@@ -168,12 +184,12 @@ namespace RN
 			}
 		}
 		
-		delete[] buckets;
+		delete [] buckets;
 	}
 	
 	
 	
-	void Dictionary::GrowIfPossible()
+	void CountedSet::GrowIfPossible()
 	{
 		if(_count >= HashTableMaxCount[_primitive] && _primitive < kRNHashTablePrimitiveCount)
 		{
@@ -181,7 +197,7 @@ namespace RN
 		}
 	}
 	
-	void Dictionary::CollapseIfPossible()
+	void CountedSet::CollapseIfPossible()
 	{
 		if(_primitive > 0 && _count <= HashTableMaxCount[_primitive - 1])
 		{
@@ -190,43 +206,12 @@ namespace RN
 	}
 	
 	
-	bool Dictionary::IsEqual(Object *temp) const
-	{
-		if(!temp->IsKindOfClass(Dictionary::MetaClass()))
-			return false;
-		
-		Dictionary *other = static_cast<Dictionary *>(temp);
-		if(_count != other->_count)
-			return false;
-		
-		for(size_t i=0; i<_capacity; i++)
-		{
-			Bucket *bucket = _buckets[i];
-			while(bucket)
-			{
-				if(bucket->key)
-				{
-					Bucket *otherBucket = other->FindBucket(bucket->key, false);
-					if(!otherBucket)
-						return false;
-					
-					if(!bucket->object->IsEqual(otherBucket->object))
-						return false;
-				}
-				
-				bucket = bucket->next;
-			}
-		}
-		
-		return true;
-	}
 	
-	
-	Array *Dictionary::GetAllObjects() const
+	Array *CountedSet::GetAllObjects() const
 	{
 		Array *array = new Array(_count);
 		
-		for(size_t i=0; i<_capacity; i++)
+		for(size_t i = 0; i < _capacity; i++)
 		{
 			Bucket *bucket = _buckets[i];
 			while(bucket)
@@ -241,49 +226,17 @@ namespace RN
 		return array->Autorelease();
 	}
 	
-	Array *Dictionary::GetAllKeys() const
-	{
-		Array *array = new Array(_count);
-		
-		for(size_t i=0; i<_capacity; i++)
-		{
-			Bucket *bucket = _buckets[i];
-			while(bucket)
-			{
-				if(bucket->key)
-					array->AddObject(bucket->key);
-				
-				bucket = bucket->next;
-			}
-		}
-		
-		return array->Autorelease();
-	}
 	
 	
-	Object *Dictionary::PrimitiveObjectForKey(Object *key)
+	void CountedSet::AddObject(Object *object)
 	{
-		Bucket *bucket = FindBucket(key, false);
-		return bucket ? bucket->object : nullptr;
-	}
-	
-	void Dictionary::SetObjectForKey(Object *object, Object *key)
-	{
-		Bucket *bucket = FindBucket(key, true);
+		Bucket *bucket = FindBucket(object, true);
 		if(bucket)
 		{
-			bool wasOccupied = (bucket->key != nullptr);
-			
-			if(bucket->object)
-				bucket->object->Release();
-			
-			if(bucket->key)
-				bucket->key->Release();
-			
-			bucket->key    = key->Retain();
+			bucket->count ++;
 			bucket->object = object->Retain();
 			
-			if(!wasOccupied)
+			if(bucket->count == 1)
 			{
 				_count ++;
 				GrowIfPossible();
@@ -291,33 +244,49 @@ namespace RN
 		}
 	}
 	
-	void Dictionary::RemoveObjectForKey(Object *key)
+	void CountedSet::RemoveObjectForKey(Object *key)
 	{
 		Bucket *bucket = FindBucket(key, false);
 		if(bucket)
 		{
-			bucket->key->Release();
 			bucket->object->Release();
 			
-			bucket->key = bucket->object = nullptr;
-			
-			_count --;
-			CollapseIfPossible();
+			if((-- bucket->count) == 0)
+			{
+				bucket->object = nullptr;
+				
+				_count --;
+				CollapseIfPossible();
+			}
 		}
 	}
 	
-	void Dictionary::Enumerate(const std::function<void (Object *, Object *, bool *)>& callback)
+	bool CountedSet::ContainsObject(Object *object)
+	{
+		Bucket *bucket = FindBucket(object, false);
+		return (bucket != nullptr);
+	}
+	
+	size_t CountedSet::GetCountForObject(Object *object)
+	{
+		Bucket *bucket = FindBucket(object, false);
+		return bucket ? bucket->count : 0;
+	}
+	
+	
+	
+	void CountedSet::Enumerate(const std::function<void (Object *, size_t count, bool *)>& callback)
 	{
 		bool stop = false;
 		
-		for(size_t i=0; i<_capacity; i++)
+		for(size_t i = 0; i < _capacity; i ++)
 		{
 			Bucket *bucket = _buckets[i];
 			while(bucket)
 			{
-				if(bucket->key)
+				if(bucket->object)
 				{
-					callback(bucket->object, bucket->key, &stop);
+					callback(bucket->object, bucket->count, &stop);
 					
 					if(stop)
 						return;
@@ -328,3 +297,4 @@ namespace RN
 		}
 	}
 }
+

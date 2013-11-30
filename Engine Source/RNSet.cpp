@@ -8,36 +8,11 @@
 
 #include "RNSet.h"
 #include "RNArray.h"
-
-#define kRNSetPrimitiveCount 64
+#include "RNHashTableInternal.h"
 
 namespace RN
 {
 	RNDeclareMeta(Set)
-	
-	static const size_t SetCapacity[kRNSetPrimitiveCount] =
-	{
-		3, 7, 13, 23, 41, 71, 127, 191, 251, 383, 631, 1087, 1723,
-		2803, 4523, 7351, 11959, 19447, 31231, 50683, 81919, 132607,
-		214519, 346607, 561109, 907759, 1468927, 2376191, 3845119,
-		6221311, 10066421, 16287743, 26354171, 42641881, 68996069,
-		111638519, 180634607, 292272623, 472907251,
-#if RN_PLATFORM_64BIT
-		765180413UL, 1238087663UL, 2003267557UL, 3241355263UL, 5244622819UL,
-#endif
-	};
-	
-	static const size_t SetMaxCount[kRNSetPrimitiveCount] =
-	{
-		3, 6, 11, 19, 32, 52, 85, 118, 155, 237, 390, 672, 1065,
-		1732, 2795, 4543, 7391, 12019, 19302, 31324, 50629, 81956,
-		132580, 214215, 346784, 561026, 907847, 1468567, 2376414,
-		3844982, 6221390, 10066379, 16287773, 26354132, 42641916,
-		68996399, 111638327, 180634415, 292272755,
-#if RN_PLATFORM_64BIT
-		472907503UL, 765180257UL, 1238087439UL, 2003267722UL, 3241355160UL,
-#endif
-	};
 	
 	Set::Set()
 	{
@@ -46,9 +21,9 @@ namespace RN
 	
 	Set::Set(size_t capacity)
 	{
-		for(size_t i = 0; i < kRNSetPrimitiveCount; i ++)
+		for(size_t i = 0; i < kRNHashTablePrimitiveCount; i ++)
 		{
-			if(SetCapacity[i] > capacity || i == kRNSetPrimitiveCount - 1)
+			if(HashTableCapacity[i] > capacity || i == kRNHashTablePrimitiveCount - 1)
 			{
 				Initialize(i);
 				break;
@@ -89,9 +64,9 @@ namespace RN
 	
 	Set::Set(const Array *other)
 	{
-		for(size_t i = 0; i < kRNSetPrimitiveCount; i ++)
+		for(size_t i = 0; i < kRNHashTablePrimitiveCount; i ++)
 		{
-			if(SetCapacity[i] > other->GetCount() || i == kRNSetPrimitiveCount - 1)
+			if(HashTableCapacity[i] > other->GetCount() || i == kRNHashTablePrimitiveCount - 1)
 			{
 				Initialize(i);
 				break;
@@ -123,7 +98,7 @@ namespace RN
 	void Set::Initialize(size_t primitive)
 	{
 		_primitive = primitive;
-		_capacity  = SetCapacity[_primitive];
+		_capacity  = HashTableCapacity[_primitive];
 		_count     = 0;
 		
 		_buckets = new Bucket *[_capacity];
@@ -171,7 +146,7 @@ namespace RN
 		size_t cCapacity = _capacity;
 		Bucket **buckets = _buckets;
 		
-		_capacity = SetCapacity[primitive];
+		_capacity = HashTableCapacity[primitive];
 		_buckets = new Bucket *[_capacity];
 		
 		if(!_buckets)
@@ -216,7 +191,7 @@ namespace RN
 	
 	void Set::GrowIfPossible()
 	{
-		if(_count >= SetMaxCount[_primitive] && _primitive < kRNSetPrimitiveCount)
+		if(_count >= HashTableMaxCount[_primitive] && _primitive < kRNHashTablePrimitiveCount)
 		{
 			Rehash(_primitive + 1);
 		}
@@ -224,7 +199,7 @@ namespace RN
 	
 	void Set::CollapseIfPossible()
 	{
-		if(_primitive > 0 && _count <= SetMaxCount[_primitive - 1])
+		if(_primitive > 0 && _count <= HashTableMaxCount[_primitive - 1])
 		{
 			Rehash(_primitive - 1);
 		}
