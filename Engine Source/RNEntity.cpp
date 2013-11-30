@@ -54,7 +54,7 @@ namespace RN
 			FillRenderingObject(object);
 			
 			uint32 lodStage = _model->GetLODStageForDistance(distance);
-			object.skeleton  = GetSkeleton();
+			object.skeleton = GetSkeleton();
 			
 			uint32 count = _model->GetMeshCount(lodStage);
 			for(uint32 i=0; i<count; i++)
@@ -67,8 +67,10 @@ namespace RN
 		}
 	}
 	
-	void Entity::SetModel(class Model *model)
+	void Entity::SetModel(Model *model)
 	{
+		Lock();
+		
 		if(_model)
 			_model->Release();
 		
@@ -76,21 +78,29 @@ namespace RN
 		
 		if(_model)
 			SetBoundingBox(_model->GetBoundingBox(), true);
+		
+		Unlock();
+		DidUpdate(ChangedGeneric);
 	}
 	
-	void Entity::SetSkeleton(class Skeleton *skeleton)
+	void Entity::SetSkeleton(Skeleton *skeleton)
 	{
+		Lock();
+		
 		if(_skeleton)
 			_skeleton->Release();
 		
-		_skeleton = skeleton ? (class Skeleton *)skeleton->Retain() : 0;
+		_skeleton = skeleton ? (Skeleton *)skeleton->Retain() : nullptr;
+		
+		Unlock();
+		DidUpdate(ChangedGeneric);
 	}
 	
 	Hit Entity::CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
 	{
 		Hit hit;
 		
-		if(_model == nullptr)
+		if(!_model)
 			return hit;
 			
 		if(GetBoundingSphere().IntersectsRay(position, direction))
@@ -101,9 +111,11 @@ namespace RN
 			Vector4 tempdir = matModelInv.Transform(Vector4(direction, 0.0f));
 			
 			size_t meshcount = _model->GetMeshCount(0);
+			
 			for(int i = 0; i < meshcount; i++)
 			{
 				Hit result = _model->GetMeshAtIndex(0, i)->IntersectsRay(temppos, Vector3(tempdir), mode);
+				
 				result.node = this;
 				result.meshid = i;
 				

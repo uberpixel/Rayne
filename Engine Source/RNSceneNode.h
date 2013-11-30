@@ -50,10 +50,11 @@ namespace RN
 		
 		enum
 		{
-			ChangedFlags = (1 << 0),
-			ChangedPosition = (1 << 1),
-			ChangedDependencies = (1 << 2),
-			ChangedPriority = (1 << 3),
+			ChangedGeneric = (1 << 0),
+			ChangedFlags = (1 << 1),
+			ChangedPosition = (1 << 2),
+			ChangedDependencies = (1 << 3),
+			ChangedPriority = (1 << 4),
 			ChangedParent = (1 << 5)
 		};
 		

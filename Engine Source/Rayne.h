@@ -15,6 +15,7 @@
 #include "RNObject.h"
 #include "RNString.h"
 #include "RNArray.h"
+#include "RNSet.h"
 #include "RNDictionary.h"
 #include "RNData.h"
 #include "RNNumber.h"
