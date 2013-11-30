@@ -289,7 +289,7 @@ namespace RN
 		
 		int tilesWidth   = ceil(rect.width / cameraClusterSize.x);
 		int tilesHeight  = ceil(rect.height / cameraClusterSize.y);
-		int tilesDepth   = ceil(camera->clipfar / cameraClusterSize.z); // TODO: clipnear?
+		int tilesDepth   = ceil(camera->clipfar / cameraClusterSize.z);
 		int clusterCount = tilesWidth * tilesHeight * tilesDepth;
 		
 		if(_lightIndicesSize < clusterCount * maxLightsPerTile)
@@ -320,18 +320,49 @@ namespace RN
 			float lightRange = light->GetRange();
 
 			Vector4 viewPosition = std::move(camera->viewMatrix.Transform(Vector4(lightPosition, 1.0f)));
-			viewPosition.w = 1.0;
+			viewPosition.w = 1.0f;
 			
-			Vector4 minProjected = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(-lightRange, -lightRange, 0.0, 0.0)));
-			Vector4 maxProjected = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(lightRange, lightRange, 0.0, 0.0)));
+			float zOffsetMinX = 0.0f;
+			float zOffsetMaxX = 0.0f;
+			float zOffsetMinY = 0.0f;
+			float zOffsetMaxY = 0.0f;
+			if(viewPosition.z+camera->clipnear < -lightRange)
+			{
+				zOffsetMinX = zOffsetMaxX = zOffsetMinY = zOffsetMaxY = lightRange;
+			}
+			else
+			{
+				zOffsetMinX = zOffsetMaxX = zOffsetMinY = zOffsetMaxY = -viewPosition.z-camera->clipnear;
+			}
+			if(viewPosition.x > lightRange)
+			{
+				zOffsetMinX *= -1.0f;
+			}
+			if(viewPosition.x < -lightRange)
+			{
+				zOffsetMaxX *= -1.0f;
+			}
+			if(viewPosition.y > lightRange)
+			{
+				zOffsetMinY *= -1.0f;
+			}
+			if(viewPosition.y < -lightRange)
+			{
+				zOffsetMaxY *= -1.0f;
+			}
 			
-			minProjected /= Math::FastAbs(minProjected.w);
-			maxProjected /= Math::FastAbs(maxProjected.w);
+			Vector4 minProjectedX = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(-lightRange, 0.0f, zOffsetMinX, 0.0f)));
+			Vector4 maxProjectedX = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(lightRange, 0.0f, zOffsetMaxX, 0.0f)));
+			minProjectedX /= Math::FastAbs(minProjectedX.w);
+			maxProjectedX /= Math::FastAbs(maxProjectedX.w);
 			
+			Vector4 minProjectedY = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(0.0f, -lightRange, zOffsetMinY, 0.0f)));
+			Vector4 maxProjectedY = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(0.0f, lightRange, zOffsetMaxY, 0.0f)));
+			minProjectedY /= Math::FastAbs(minProjectedY.w);
+			maxProjectedY /= Math::FastAbs(maxProjectedY.w);
 			
-			int minX = floor((minProjected.x*0.5+0.5)*rect.width/cameraClusterSize.x);
-			int maxX = ceil((maxProjected.x*0.5+0.5)*rect.width/cameraClusterSize.x);
-			
+			int minX = floor((minProjectedX.x*0.5+0.5)*rect.width/cameraClusterSize.x);
+			int maxX = ceil((maxProjectedX.x*0.5+0.5)*rect.width/cameraClusterSize.x);
 			if(maxX > tilesWidth-1)
 				maxX = tilesWidth-1;
 			if(minX > tilesWidth-1)
@@ -341,10 +372,8 @@ namespace RN
 			if(maxX < 0)
 				maxX = minX-1;
 			
-			
-			int minY = floor((minProjected.y*0.5+0.5)*rect.height/cameraClusterSize.y);
-			int maxY = ceil((maxProjected.y*0.5+0.5)*rect.height/cameraClusterSize.y);
-			
+			int minY = floor((minProjectedY.y*0.5+0.5)*rect.height/cameraClusterSize.y);
+			int maxY = ceil((maxProjectedY.y*0.5+0.5)*rect.height/cameraClusterSize.y);
 			if(maxY > tilesHeight-1)
 				maxY = tilesHeight-1;
 			if(minY > tilesHeight-1)
@@ -355,10 +384,8 @@ namespace RN
 				maxY = minY-1;
 			
 			float linearDist = cameraForward.Dot(lightPosition - cameraWorldPosition);
-			
 			int minZ = floor((linearDist - lightRange) / cameraClusterSize.z);
 			int maxZ = ceil((linearDist + lightRange) / cameraClusterSize.z);
-			
 			if(minZ < 0)
 				minZ = 0;
 	
@@ -383,19 +410,15 @@ namespace RN
 		}
 		
 		_lightOffsetCount[0] = 0;
-		
 		for(int c = 1; c < clusterCount; c++)
 			_lightOffsetCount[c*2+0] = _lightOffsetCount[(c-1)*2+0] + _lightOffsetCount[(c-1)*2+1];
 		
-		
 		int offset = 0;
-		
 		for(int c = 0; c < clusterCount; c++)
 		{
 			std::copy(&_lightIndices[c*maxLightsPerTile], &_lightIndices[c*maxLightsPerTile+_lightOffsetCount[c*2+1]], &_lightIndices[offset]);
 			offset += _lightOffsetCount[c*2+1];
 		}
-		
 		
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
 		gl::BufferSubData(GL_TEXTURE_BUFFER, 0, _lightOffsetCountSize * sizeof(int), _lightOffsetCount);

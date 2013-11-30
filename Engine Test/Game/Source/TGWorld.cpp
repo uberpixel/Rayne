@@ -16,7 +16,7 @@
 #define TGWorldFeatureSSAO          0
 #define TGWorldFeatureWater			0
 
-#define TGForestFeatureTrees 100
+#define TGForestFeatureTrees 500
 #define TGForestFeatureGras  0
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
@@ -43,8 +43,8 @@ namespace TG
 		AddAttachment(_debugAttachment);
 		
 		CreateCameras();
-//		CreateSponza();
-		CreateForest();
+		CreateSponza();
+//		CreateForest();
 //		CreateSibenik();
 		
 		RN::Input::GetSharedInstance()->Activate();
@@ -408,7 +408,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-//		_sunLight->ActivateDirectionalShadows();
+		_sunLight->ActivateDirectionalShadows();
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
 /*		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
@@ -448,7 +448,7 @@ namespace TG
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 //		light->ActivatePointShadows();
 		*/
-		for(int i=0; i<0; i++)
+		for(int i=0; i<200; i++)
 		{
 			RN::Light *light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 21.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 21.0f - 10.0f));
@@ -499,12 +499,12 @@ namespace TG
 	void World::CreateForest()
 	{
 		// Ground
-/*		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
+		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
 		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
 
 		RN::Entity *groundBody = new RN::Entity();
 		groundBody->SetModel(ground);
-		groundBody->SetScale(RN::Vector3(20.0f));*/
+		groundBody->SetScale(RN::Vector3(20.0f));
 		
 		
 #define TREE_MODEL_COUNT 10
@@ -829,7 +829,7 @@ namespace TG
 		
 		for(int i = 0; i < TGForestFeatureTrees; i ++)
 		{
-			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-10.0f, 10.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-10.0f, 10.0f));
+			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
 			
 			ent = new RN::Entity();
 			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
