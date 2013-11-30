@@ -67,8 +67,18 @@ namespace RN
 		}
 	}
 	
+	bool Entity::IsVisibleInCamera(Camera *camera)
+	{
+		if(_ignoreDrawing)
+			return false;
+		
+		return SceneNode::IsVisibleInCamera(camera);
+	}
+	
+	
 	void Entity::SetModel(Model *model)
 	{
+		WillUpdate(ChangedGeneric);
 		Lock();
 		
 		if(_model)
@@ -85,6 +95,7 @@ namespace RN
 	
 	void Entity::SetSkeleton(Skeleton *skeleton)
 	{
+		WillUpdate(ChangedGeneric);
 		Lock();
 		
 		if(_skeleton)

@@ -79,6 +79,8 @@ namespace RN
 		for(size_t i = 0; i < count; i ++)
 		{
 			SceneNode *child = static_cast<SceneNode *>(_children[i]);
+			
+			child->WillUpdate(ChangedParent);
 			child->_parent = nullptr;
 			child->DidUpdate(ChangedParent);
 		}
@@ -118,6 +120,8 @@ namespace RN
 		if(!dependency)
 			return;
 		
+		WillUpdate(ChangedDependencies);
+		
 		LockGuard<SpinLock> lock(_dependenciesLock);
 		
 		if(_dependencyMap.find(dependency) == _dependencyMap.end())
@@ -136,6 +140,8 @@ namespace RN
 		if(!dependency)
 			return;
 		
+		WillUpdate(ChangedDependencies);
+		
 		LockGuard<SpinLock> lock(_dependenciesLock);
 		
 		auto iterator = _dependencyMap.find(dependency);
@@ -153,6 +159,8 @@ namespace RN
 	
 	void SceneNode::__BreakDependency(SceneNode *dependency)
 	{
+		WillUpdate(ChangedDependencies);
+		
 		LockGuard<SpinLock> lock(_dependenciesLock);
 		
 		_dependencyMap.erase(dependency);
@@ -200,6 +208,7 @@ namespace RN
 	
 	void SceneNode::SetFlags(Flags flags)
 	{
+		WillUpdate(ChangedFlags);
 		_flags = flags;
 		DidUpdate(ChangedFlags);
 	}
@@ -226,6 +235,7 @@ namespace RN
 	
 	void SceneNode::SetPriority(Priority priority)
 	{
+		WillUpdate(ChangedPriority);
 		_priority = priority;
 		DidUpdate(ChangedPriority);
 	}
@@ -262,6 +272,8 @@ namespace RN
 			return;
 		
 		WillAddChild(child);
+		child->WillUpdate(ChangedParent);
+		
 		
 		_children.AddObject(child);
 		child->_parent = this;
@@ -286,6 +298,7 @@ namespace RN
 		if(child->_parent == this)
 		{
 			WillRemoveChild(child);
+			child->WillUpdate(ChangedParent);
 			
 			child->Retain()->Autorelease();
 			child->_parent = nullptr;
@@ -328,6 +341,11 @@ namespace RN
 	}
 	
 	
+	void SceneNode::WillUpdate(uint32 changeSet)
+	{
+		if(_parent)
+			_parent->ChildWillUpdate(this, changeSet);
+	}
 	
 	void SceneNode::DidUpdate(uint32 changeSet)
 	{

@@ -149,10 +149,12 @@ namespace RN
 		int8 collisionGroup;
 		
 	protected:
+		RNAPI void WillUpdate(uint32 changeSet);
 		RNAPI void DidUpdate(uint32 changeSet);
 		RNAPI void CleanUp() override;
 		
 		RNAPI virtual void ChildDidUpdate(SceneNode *child, uint32 changes) {}
+		RNAPI virtual void ChildWillUpdate(SceneNode *child, uint32 changes) {}
 		RNAPI virtual void WillAddChild(SceneNode *child) {}
 		RNAPI virtual void DidAddChild(SceneNode *child)  {}
 		RNAPI virtual void WillRemoveChild(SceneNode *child) {}
@@ -213,6 +215,8 @@ namespace RN
 	
 	RN_INLINE void SceneNode::Translate(const Vector3& trans)
 	{
+		WillUpdate(ChangedPosition);
+		
 		_transformLock.Lock();
 		_position += trans;
 		_transformLock.Unlock();
@@ -222,6 +226,8 @@ namespace RN
 	
 	RN_INLINE void SceneNode::Scale(const Vector3& scal)
 	{
+		WillUpdate(ChangedPosition);
+		
 		_transformLock.Lock();
 		_scale += scal;
 		_transformLock.Unlock();
@@ -231,6 +237,8 @@ namespace RN
 	
 	RN_INLINE void SceneNode::Rotate(const Vector3& rot)
 	{
+		WillUpdate(ChangedPosition);
+		
 		_transformLock.Lock();
 		_euler += rot;
 		_rotation = Quaternion(_euler);
@@ -242,6 +250,8 @@ namespace RN
 	
 	RN_INLINE void SceneNode::TranslateLocal(const Vector3& trans)
 	{
+		WillUpdate(ChangedPosition);
+		
 		_transformLock.Lock();
 		_position += _rotation->RotateVector(trans);
 		_transformLock.Unlock();
@@ -251,6 +261,8 @@ namespace RN
 	
 	RN_INLINE void SceneNode::ScaleLocal(const Vector3& scal)
 	{
+		WillUpdate(ChangedPosition);
+		
 		_transformLock.Lock();
 		_scale += _rotation->RotateVector(scal);
 		_transformLock.Unlock();
@@ -261,6 +273,8 @@ namespace RN
 	
 	RN_INLINE void SceneNode::SetPosition(const Vector3& pos)
 	{
+		WillUpdate(ChangedPosition);
+		
 		_transformLock.Lock();
 		_position = pos;
 		_transformLock.Unlock();
@@ -270,6 +284,8 @@ namespace RN
 	
 	RN_INLINE void SceneNode::SetScale(const Vector3& scal)
 	{
+		WillUpdate(ChangedPosition);
+		
 		_transformLock.Lock();
 		_scale = scal;
 		_transformLock.Unlock();
@@ -279,6 +295,8 @@ namespace RN
 	
 	RN_INLINE void SceneNode::SetRotation(const Quaternion& rot)
 	{
+		WillUpdate(ChangedPosition);
+		
 		_transformLock.Lock();
 		_euler = rot.GetEulerAngle();
 		_rotation = rot;
@@ -295,6 +313,8 @@ namespace RN
 			SetPosition(pos);
 			return;
 		}
+		
+		WillUpdate(ChangedPosition);
 		
 		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<SpinLock> lock2(_transformLock);
@@ -320,6 +340,8 @@ namespace RN
 			return;
 		}
 		
+		WillUpdate(ChangedPosition);
+		
 		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<SpinLock> lock2(_transformLock);
 		
@@ -340,6 +362,8 @@ namespace RN
 			SetRotation(rot);
 			return;
 		}
+		
+		WillUpdate(ChangedPosition);
 		
 		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<SpinLock> lock2(_transformLock);

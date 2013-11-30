@@ -29,13 +29,14 @@ namespace RN
 	friend class InstancingNode;
 	public:
 		RNAPI Entity();
-		RNAPI virtual ~Entity();
+		RNAPI ~Entity() override;
 		
 		RNAPI void SetModel(Model *model);
 		RNAPI void SetSkeleton(class Skeleton *skeleton);
 		
 		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone) override;
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
+		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		
 		Model *GetModel() { return _model; }
 		Skeleton *GetSkeleton() { return _skeleton; }
