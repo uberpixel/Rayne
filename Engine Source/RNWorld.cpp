@@ -95,6 +95,8 @@ namespace RN
 		ThreadPool::Batch *batch[3];
 		size_t run = 0;
 		
+		SpinLock retryLock;
+		
 		do
 		{
 #if DEBUG
@@ -123,7 +125,10 @@ namespace RN
 				batch[priority]->AddTask([&, node] {
 					if(!node->CanUpdate(frame))
 					{
+						retryLock.Lock();
 						retry.push_back(node);
+						retryLock.Unlock();
+						
 						return;
 					}
 					
