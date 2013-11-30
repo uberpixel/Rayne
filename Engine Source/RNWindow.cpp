@@ -319,7 +319,7 @@ namespace RN
 #endif
 	}
 	
-	void Window::SetConfiguration(const WindowConfiguration *tconfiguration, WindowMask mask)
+	void Window::SetConfiguration(const WindowConfiguration *tconfiguration, Mask mask)
 	{
 		if(tconfiguration->IsEqual(_activeConfiguration) && mask == _mask)
 			return;
@@ -342,7 +342,7 @@ namespace RN
 		[NSOpenGLContext clearCurrentContext];
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.00001f]];
 		
-		if(mask & WindowMaskFullscreen)
+		if(mask & MaskFullscreen)
 		{
 			const Rect& rect = screen->GetFrame();
 			
@@ -377,7 +377,7 @@ namespace RN
 		[_internals->nativeWindow makeKeyAndOrderFront:nil];
 		[_context->_internals->context makeCurrentContext];
 		
-		GLint sync = (mask & WindowMaskVSync) ? 1 : 0;
+		GLint sync = (mask & MaskVSync) ? 1 : 0;
 		[_context->_internals->context setValues:&sync forParameter:NSOpenGLCPSwapInterval];
 		[_context->_internals->context update];
 		
@@ -392,7 +392,7 @@ namespace RN
 		XUnmapWindow(_internals->dpy, _internals->win);
 		bool displayChanged = false;
 		
-		if(mask & WindowMaskFullscreen)
+		if(mask & MaskFullscreen)
 		{
 			XRRSetScreenConfig(_internals->win, _internals->screenConfig, rootWindow, configuration->_modeIndex, RR_Rotate_0, CurrentTime);
 			XMoveResizeWindow(_internals->dpy, _internals->win, 0, 0, width, height);
@@ -429,7 +429,7 @@ namespace RN
 		
 		XMapRaised(_internals->dpy, _internals->win);
 		
-		if(mask & WindowMaskFullscreen)
+		if(mask & MaskFullscreen)
 			XSetInputFocus(_internals->dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
 #endif
 		

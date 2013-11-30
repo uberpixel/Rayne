@@ -97,16 +97,16 @@ namespace RN
 	public:
 		enum
 		{
-			WindowMaskFullscreen = (1 << 0),
-			WindowMaskVSync = (1 << 1)
+			MaskFullscreen = (1 << 0),
+			MaskVSync = (1 << 1)
 		};
-		typedef uint32 WindowMask;
+		typedef uint32 Mask;
 		
 		RNAPI Window();
 		RNAPI ~Window() override;
 
 		RNAPI void SetTitle(const std::string& title);
-		RNAPI void SetConfiguration(const WindowConfiguration *configuration, WindowMask mask);
+		RNAPI void SetConfiguration(const WindowConfiguration *configuration, Mask mask);
 		
 		RNAPI void ShowCursor();
 		RNAPI void HideCursor();
@@ -133,7 +133,7 @@ namespace RN
 		Kernel  *_kernel;
 		
 		std::string _title;
-		WindowMask _mask;
+		Mask _mask;
 		
 		bool _cursorVisible;
 		bool _mouseCaptured;
