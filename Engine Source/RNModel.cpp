@@ -42,9 +42,9 @@ namespace RN
 		while(stage < 5)
 		{
 			std::stringstream stream;
-			stream << "_lod" << stage;
+			stream << name << "_lod" << stage << "." << extension;
 			
-			std::string lodPath = PathManager::Join(base, (name + stream.str() + extension));
+			std::string lodPath = PathManager::Join(base, stream.str());
 			
 			if(PathManager::PathExists(lodPath))
 			{

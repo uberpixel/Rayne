@@ -16,8 +16,8 @@
 #define TGWorldFeatureSSAO          0
 #define TGWorldFeatureWater			0
 
-#define TGForestFeatureTrees 500
-#define TGForestFeatureGras  10000
+#define TGForestFeatureTrees 100
+#define TGForestFeatureGras  0
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 30.0f
@@ -44,9 +44,8 @@ namespace TG
 		
 		CreateCameras();
 //		CreateSponza();
-//		CreateForest();
-//		CreateTest();
-		CreateSibenik();
+		CreateForest();
+//		CreateSibenik();
 		
 		RN::Input::GetSharedInstance()->Activate();
 		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNInputEventMessage, [&](RN::Message *message) {
@@ -109,8 +108,8 @@ namespace TG
 		if(_sunLight != 0)
 		{
 			RN::Vector3 sunrot;
-			sunrot.x = (input->IsKeyPressed('e') - input->IsKeyPressed('q')) * 0.5f;
-			sunrot.y = (input->IsKeyPressed('t') - input->IsKeyPressed('g')) * 0.5f;
+			sunrot.x = (input->IsKeyPressed('e') - input->IsKeyPressed('q')) * 10.0f * delta;
+			sunrot.y = (input->IsKeyPressed('t') - input->IsKeyPressed('g')) * 10.0f * delta;
 			_sunLight->Rotate(sunrot);
 		}
 		
@@ -500,120 +499,346 @@ namespace TG
 	void World::CreateForest()
 	{
 		// Ground
-		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
+/*		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
 		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
-		
+
 		RN::Entity *groundBody = new RN::Entity();
 		groundBody->SetModel(ground);
-		groundBody->SetScale(RN::Vector3(20.0f));
+		groundBody->SetScale(RN::Vector3(20.0f));*/
 		
 		
+#define TREE_MODEL_COUNT 10
+		RN::Model *trees[TREE_MODEL_COUNT];
+		trees[0] = RN::Model::WithFile("models/pure3d/BirchTrees/birch2m.sgm");
+		trees[0]->GetMaterialAtIndex(0, 0)->culling = false;
+		trees[0]->GetMaterialAtIndex(0, 0)->discard = true;
+		trees[0]->GetMaterialAtIndex(0, 0)->discardThreshold = 0.1f;
+		trees[0]->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[0]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		trees[0]->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		trees[0]->GetMaterialAtIndex(0, 1)->culling = false;
+		trees[0]->GetMaterialAtIndex(0, 1)->discard = true;
+		trees[0]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.1f;
+		trees[0]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[0]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
+		trees[0]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
+		trees[0]->GetMaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
+		trees[0]->GetMaterialAtIndex(1, 0)->culling = false;
+		trees[0]->GetMaterialAtIndex(1, 0)->discard = true;
+		trees[0]->GetMaterialAtIndex(1, 0)->discardThreshold = 0.1f;
+		trees[0]->GetMaterialAtIndex(1, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[0]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
+		trees[0]->GetMaterialAtIndex(1, 0)->Define("RN_NORMALMAP");
+		trees[0]->GetMaterialAtIndex(1, 1)->culling = false;
+		trees[0]->GetMaterialAtIndex(1, 1)->discard = true;
+		trees[0]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
+		trees[0]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[0]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
+		trees[0]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
+		trees[0]->GetMaterialAtIndex(1, 2)->Define("RN_NORMALMAP");
+		
+		trees[1] = RN::Model::WithFile("models/pure3d/BirchTrees/birch6m.sgm");
+		trees[1]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		trees[1]->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		trees[1]->GetMaterialAtIndex(0, 0)->culling = false;
+		trees[1]->GetMaterialAtIndex(0, 0)->discard = true;
+		trees[1]->GetMaterialAtIndex(0, 0)->discardThreshold = 0.1f;
+		trees[1]->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[1]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
+		trees[1]->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
+		trees[1]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
+		trees[1]->GetMaterialAtIndex(1, 0)->Define("RN_NORMALMAP");
+		trees[1]->GetMaterialAtIndex(1, 1)->culling = false;
+		trees[1]->GetMaterialAtIndex(1, 1)->discard = true;
+		trees[1]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
+		trees[1]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[1]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
+		trees[1]->GetMaterialAtIndex(1, 1)->Define("RN_NORMALMAP");
+		
+		trees[2] = RN::Model::WithFile("models/pure3d/BirchTrees/birch11m.sgm");
+		trees[2]->GetMaterialAtIndex(0, 0)->culling = false;
+		trees[2]->GetMaterialAtIndex(0, 0)->discard = true;
+		trees[2]->GetMaterialAtIndex(0, 0)->discardThreshold = 0.1f;
+		trees[2]->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[2]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		trees[2]->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		trees[2]->GetMaterialAtIndex(0, 1)->culling = false;
+		trees[2]->GetMaterialAtIndex(0, 1)->discard = true;
+		trees[2]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.1f;
+		trees[2]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[2]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
+		trees[2]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
+		trees[2]->GetMaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
+		trees[2]->GetMaterialAtIndex(1, 0)->culling = false;
+		trees[2]->GetMaterialAtIndex(1, 0)->discard = true;
+		trees[2]->GetMaterialAtIndex(1, 0)->discardThreshold = 0.1f;
+		trees[2]->GetMaterialAtIndex(1, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[2]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
+		trees[2]->GetMaterialAtIndex(1, 0)->Define("RN_NORMALMAP");
+		trees[2]->GetMaterialAtIndex(1, 1)->culling = false;
+		trees[2]->GetMaterialAtIndex(1, 1)->discard = true;
+		trees[2]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
+		trees[2]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[2]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
+		trees[2]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
+		trees[2]->GetMaterialAtIndex(1, 2)->Define("RN_NORMALMAP");
+		
+		trees[3] = RN::Model::WithFile("models/pure3d/BirchTrees/birch13m.sgm");
+		trees[3]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		trees[3]->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		trees[3]->GetMaterialAtIndex(0, 1)->culling = false;
+		trees[3]->GetMaterialAtIndex(0, 1)->discard = true;
+		trees[3]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.1f;
+		trees[3]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[3]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
+		trees[3]->GetMaterialAtIndex(0, 2)->culling = false;
+		trees[3]->GetMaterialAtIndex(0, 2)->discard = true;
+		trees[3]->GetMaterialAtIndex(0, 2)->discardThreshold = 0.1f;
+		trees[3]->GetMaterialAtIndex(0, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[3]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
+		trees[3]->GetMaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
+		trees[3]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
+		trees[3]->GetMaterialAtIndex(1, 0)->Define("RN_NORMALMAP");
+		trees[3]->GetMaterialAtIndex(1, 1)->culling = false;
+		trees[3]->GetMaterialAtIndex(1, 1)->discard = true;
+		trees[3]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
+		trees[3]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[3]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
+		trees[3]->GetMaterialAtIndex(1, 2)->culling = false;
+		trees[3]->GetMaterialAtIndex(1, 2)->discard = true;
+		trees[3]->GetMaterialAtIndex(1, 2)->discardThreshold = 0.1f;
+		trees[3]->GetMaterialAtIndex(1, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[3]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
+		trees[3]->GetMaterialAtIndex(1, 2)->Define("RN_NORMALMAP");
+		
+		trees[4] = RN::Model::WithFile("models/pure3d/BirchTrees/birch18m.sgm");
+		trees[4]->GetMaterialAtIndex(0, 0)->culling = false;
+		trees[4]->GetMaterialAtIndex(0, 0)->discard = true;
+		trees[4]->GetMaterialAtIndex(0, 0)->discardThreshold = 0.1f;
+		trees[4]->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[4]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		trees[4]->GetMaterialAtIndex(0, 1)->culling = false;
+		trees[4]->GetMaterialAtIndex(0, 1)->discard = true;
+		trees[4]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.1f;
+		trees[4]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[4]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
+		trees[4]->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
+		trees[4]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
+		trees[4]->GetMaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
+		trees[4]->GetMaterialAtIndex(1, 0)->culling = false;
+		trees[4]->GetMaterialAtIndex(1, 0)->discard = true;
+		trees[4]->GetMaterialAtIndex(1, 0)->discardThreshold = 0.1f;
+		trees[4]->GetMaterialAtIndex(1, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[4]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
+		trees[4]->GetMaterialAtIndex(1, 1)->culling = false;
+		trees[4]->GetMaterialAtIndex(1, 1)->discard = true;
+		trees[4]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
+		trees[4]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[4]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
+		trees[4]->GetMaterialAtIndex(1, 1)->Define("RN_NORMALMAP");
+		trees[4]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
+		trees[4]->GetMaterialAtIndex(1, 2)->Define("RN_NORMALMAP");
+		
+		trees[5] = RN::Model::WithFile("models/pure3d/BirchTrees/birch20m.sgm");
+		trees[5]->GetMaterialAtIndex(0, 0)->culling = false;
+		trees[5]->GetMaterialAtIndex(0, 0)->discard = true;
+		trees[5]->GetMaterialAtIndex(0, 0)->discardThreshold = 0.1f;
+		trees[5]->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[5]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		trees[5]->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		trees[5]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
+		trees[5]->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
+		trees[5]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
+		trees[5]->GetMaterialAtIndex(1, 0)->Define("RN_NORMALMAP");
+		trees[5]->GetMaterialAtIndex(1, 1)->culling = false;
+		trees[5]->GetMaterialAtIndex(1, 1)->discard = true;
+		trees[5]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
+		trees[5]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[5]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
+		trees[5]->GetMaterialAtIndex(1, 1)->Define("RN_NORMALMAP");
+		
+		trees[6] = RN::Model::WithFile("models/pure3d/PineTrees/pine4m.sgm");
+		trees[6]->GetMaterialAtIndex(0, 0)->culling = false;
+		trees[6]->GetMaterialAtIndex(0, 0)->discard = true;
+		trees[6]->GetMaterialAtIndex(0, 0)->discardThreshold = 0.5f;
+		trees[6]->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[6]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		trees[6]->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		trees[6]->GetMaterialAtIndex(0, 1)->culling = false;
+		trees[6]->GetMaterialAtIndex(0, 1)->discard = true;
+		trees[6]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.5f;
+		trees[6]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[6]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
+		trees[6]->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
+		trees[6]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
+		trees[6]->GetMaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
+		trees[6]->GetMaterialAtIndex(1, 0)->culling = false;
+		trees[6]->GetMaterialAtIndex(1, 0)->discard = true;
+		trees[6]->GetMaterialAtIndex(1, 0)->discardThreshold = 0.5f;
+		trees[6]->GetMaterialAtIndex(1, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[6]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
+		trees[6]->GetMaterialAtIndex(1, 0)->Define("RN_NORMALMAP");
+		trees[6]->GetMaterialAtIndex(1, 1)->culling = false;
+		trees[6]->GetMaterialAtIndex(1, 1)->discard = true;
+		trees[6]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.5f;
+		trees[6]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[6]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
+		trees[6]->GetMaterialAtIndex(1, 1)->Define("RN_NORMALMAP");
+		trees[6]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
+		trees[6]->GetMaterialAtIndex(1, 2)->Define("RN_NORMALMAP");
+		trees[6]->GetMaterialAtIndex(2, 0)->culling = false;
+		trees[6]->GetMaterialAtIndex(2, 0)->discard = true;
+		trees[6]->GetMaterialAtIndex(2, 0)->discardThreshold = 0.5f;
+		trees[6]->GetMaterialAtIndex(2, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[6]->GetMaterialAtIndex(2, 0)->Define("RN_VEGETATION");
+		trees[6]->GetMaterialAtIndex(2, 0)->Define("RN_NORMALMAP");
+		trees[6]->GetMaterialAtIndex(2, 1)->culling = false;
+		trees[6]->GetMaterialAtIndex(2, 1)->discard = true;
+		trees[6]->GetMaterialAtIndex(2, 1)->discardThreshold = 0.5f;
+		trees[6]->GetMaterialAtIndex(2, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[6]->GetMaterialAtIndex(2, 1)->Define("RN_VEGETATION");
+		trees[6]->GetMaterialAtIndex(2, 1)->Define("RN_NORMALMAP");
+		
+		trees[7] = RN::Model::WithFile("models/pure3d/PineTrees/pine7m.sgm");
+		trees[7]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		trees[7]->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		trees[7]->GetMaterialAtIndex(0, 1)->culling = false;
+		trees[7]->GetMaterialAtIndex(0, 1)->discard = true;
+		trees[7]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.5f;
+		trees[7]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[7]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
+		trees[7]->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
+		trees[7]->GetMaterialAtIndex(0, 2)->culling = false;
+		trees[7]->GetMaterialAtIndex(0, 2)->discard = true;
+		trees[7]->GetMaterialAtIndex(0, 2)->discardThreshold = 0.5f;
+		trees[7]->GetMaterialAtIndex(0, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[7]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
+		trees[7]->GetMaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
+		trees[7]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
+		trees[7]->GetMaterialAtIndex(1, 0)->Define("RN_NORMALMAP");
+		trees[7]->GetMaterialAtIndex(1, 1)->culling = false;
+		trees[7]->GetMaterialAtIndex(1, 1)->discard = true;
+		trees[7]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.5f;
+		trees[7]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[7]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
+		trees[7]->GetMaterialAtIndex(1, 1)->Define("RN_NORMALMAP");
+		trees[7]->GetMaterialAtIndex(1, 2)->culling = false;
+		trees[7]->GetMaterialAtIndex(1, 2)->discard = true;
+		trees[7]->GetMaterialAtIndex(1, 2)->discardThreshold = 0.5f;
+		trees[7]->GetMaterialAtIndex(1, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[7]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
+		trees[7]->GetMaterialAtIndex(1, 2)->Define("RN_NORMALMAP");
+		trees[7]->GetMaterialAtIndex(2, 0)->Define("RN_VEGETATION");
+		trees[7]->GetMaterialAtIndex(2, 0)->Define("RN_NORMALMAP");
+		trees[7]->GetMaterialAtIndex(2, 1)->culling = false;
+		trees[7]->GetMaterialAtIndex(2, 1)->discard = true;
+		trees[7]->GetMaterialAtIndex(2, 1)->discardThreshold = 0.5f;
+		trees[7]->GetMaterialAtIndex(2, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[7]->GetMaterialAtIndex(2, 1)->Define("RN_VEGETATION");
+		trees[7]->GetMaterialAtIndex(2, 1)->Define("RN_NORMALMAP");
+		trees[7]->GetMaterialAtIndex(2, 2)->culling = false;
+		trees[7]->GetMaterialAtIndex(2, 2)->discard = true;
+		trees[7]->GetMaterialAtIndex(2, 2)->discardThreshold = 0.5f;
+		trees[7]->GetMaterialAtIndex(2, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[7]->GetMaterialAtIndex(2, 2)->Define("RN_VEGETATION");
+		trees[7]->GetMaterialAtIndex(2, 2)->Define("RN_NORMALMAP");
+		
+		trees[8] = RN::Model::WithFile("models/pure3d/PineTrees/pine9m.sgm");
+		trees[8]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		trees[8]->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		trees[8]->GetMaterialAtIndex(0, 1)->culling = false;
+		trees[8]->GetMaterialAtIndex(0, 1)->discard = true;
+		trees[8]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.5f;
+		trees[8]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[8]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
+		trees[8]->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
+		trees[8]->GetMaterialAtIndex(0, 2)->culling = false;
+		trees[8]->GetMaterialAtIndex(0, 2)->discard = true;
+		trees[8]->GetMaterialAtIndex(0, 2)->discardThreshold = 0.5f;
+		trees[8]->GetMaterialAtIndex(0, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[8]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
+		trees[8]->GetMaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
+		trees[8]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
+		trees[8]->GetMaterialAtIndex(1, 0)->Define("RN_NORMALMAP");
+		trees[8]->GetMaterialAtIndex(1, 1)->culling = false;
+		trees[8]->GetMaterialAtIndex(1, 1)->discard = true;
+		trees[8]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.5f;
+		trees[8]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[8]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
+		trees[8]->GetMaterialAtIndex(1, 1)->Define("RN_NORMALMAP");
+		trees[8]->GetMaterialAtIndex(1, 2)->culling = false;
+		trees[8]->GetMaterialAtIndex(1, 2)->discard = true;
+		trees[8]->GetMaterialAtIndex(1, 2)->discardThreshold = 0.5f;
+		trees[8]->GetMaterialAtIndex(1, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[8]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
+		trees[8]->GetMaterialAtIndex(1, 2)->Define("RN_NORMALMAP");
+		trees[8]->GetMaterialAtIndex(2, 0)->Define("RN_VEGETATION");
+		trees[8]->GetMaterialAtIndex(2, 0)->Define("RN_NORMALMAP");
+		trees[8]->GetMaterialAtIndex(2, 1)->culling = false;
+		trees[8]->GetMaterialAtIndex(2, 1)->discard = true;
+		trees[8]->GetMaterialAtIndex(2, 1)->discardThreshold = 0.5f;
+		trees[8]->GetMaterialAtIndex(2, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[8]->GetMaterialAtIndex(2, 1)->Define("RN_VEGETATION");
+		trees[8]->GetMaterialAtIndex(2, 1)->Define("RN_NORMALMAP");
+		
+		trees[9] = RN::Model::WithFile("models/pure3d/PineTrees/pine16m.sgm");
+		trees[9]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		trees[9]->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		trees[9]->GetMaterialAtIndex(0, 1)->culling = false;
+		trees[9]->GetMaterialAtIndex(0, 1)->discard = true;
+		trees[9]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.5f;
+		trees[9]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[9]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
+		trees[9]->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
+		trees[9]->GetMaterialAtIndex(0, 2)->culling = false;
+		trees[9]->GetMaterialAtIndex(0, 2)->discard = true;
+		trees[9]->GetMaterialAtIndex(0, 2)->discardThreshold = 0.5f;
+		trees[9]->GetMaterialAtIndex(0, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[9]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
+		trees[9]->GetMaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
+		trees[9]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
+		trees[9]->GetMaterialAtIndex(1, 0)->Define("RN_NORMALMAP");
+		trees[9]->GetMaterialAtIndex(1, 1)->culling = false;
+		trees[9]->GetMaterialAtIndex(1, 1)->discard = true;
+		trees[9]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.5f;
+		trees[9]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[9]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
+		trees[9]->GetMaterialAtIndex(1, 1)->Define("RN_NORMALMAP");
+		trees[9]->GetMaterialAtIndex(1, 2)->culling = false;
+		trees[9]->GetMaterialAtIndex(1, 2)->discard = true;
+		trees[9]->GetMaterialAtIndex(1, 2)->discardThreshold = 0.5f;
+		trees[9]->GetMaterialAtIndex(1, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[9]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
+		trees[9]->GetMaterialAtIndex(1, 2)->Define("RN_NORMALMAP");
+		trees[9]->GetMaterialAtIndex(2, 0)->Define("RN_VEGETATION");
+		trees[9]->GetMaterialAtIndex(2, 0)->Define("RN_NORMALMAP");
+		trees[9]->GetMaterialAtIndex(2, 1)->culling = false;
+		trees[9]->GetMaterialAtIndex(2, 1)->discard = true;
+		trees[9]->GetMaterialAtIndex(2, 1)->discardThreshold = 0.5f;
+		trees[9]->GetMaterialAtIndex(2, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		trees[9]->GetMaterialAtIndex(2, 1)->Define("RN_VEGETATION");
+		trees[9]->GetMaterialAtIndex(2, 1)->Define("RN_NORMALMAP");
+		
+
 		RN::Entity *ent;
-		
-		RN::Model *building = RN::Model::WithFile("models/Sebastian/Old_Buildings.sgm");
-		ent = new RN::Entity();
-		ent->SetModel(building);
-		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
-		
-#if TGWorldFeatureNormalMapping && TGWorldFeatureLights		
-		building->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/brick2-NM.png"));
-		building->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
-		building->GetMaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
-		building->GetMaterialAtIndex(0, 0)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
-		
-		building->GetMaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_A-NM.png"));
-		building->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
-		building->GetMaterialAtIndex(0, 1)->Define("RN_SPECULARITY");
-		building->GetMaterialAtIndex(0, 1)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
-		
-		building->GetMaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_B-NM.png"));
-		building->GetMaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
-		building->GetMaterialAtIndex(0, 2)->Define("RN_SPECULARITY");
-		building->GetMaterialAtIndex(0, 2)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
-		
-		building->GetMaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/Sebastian/Concrete_C-NM.png"));
-		building->GetMaterialAtIndex(0, 3)->Define("RN_NORMALMAP");
-		building->GetMaterialAtIndex(0, 3)->Define("RN_SPECULARITY");
-		building->GetMaterialAtIndex(0, 3)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
-		
-		building->GetMaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/Sebastian/props-NM.png"));
-		building->GetMaterialAtIndex(0, 4)->Define("RN_NORMALMAP");
-		building->GetMaterialAtIndex(0, 4)->Define("RN_SPECULARITY");
-		building->GetMaterialAtIndex(0, 4)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
-		
-		building->GetMaterialAtIndex(0, 5)->AddTexture(RN::Texture::WithFile("models/Sebastian/Rooftiles_A-NM.png"));
-		building->GetMaterialAtIndex(0, 5)->Define("RN_NORMALMAP");
-		building->GetMaterialAtIndex(0, 5)->Define("RN_SPECULARITY");
-		building->GetMaterialAtIndex(0, 5)->specular = RN::Color(0.1f, 0.1f, 0.1f, 20.0f);
-#endif
-		
-		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsDecals.sgm");
-		building->GetMaterialAtIndex(0, 0)->culling = false;
-		building->GetMaterialAtIndex(0, 0)->discard = true;
-		building->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard;
-		
-		building->GetMaterialAtIndex(0, 1)->culling = false;
-		building->GetMaterialAtIndex(0, 1)->discard = true;
-		building->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard;
-		
-		ent = new RN::Entity();
-		ent->SetModel(building);
-		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
-		
-#if TGWorldFeatureNormalMapping && TGWorldFeatureLights
-		building->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/Decals-NM.png"));
-		building->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
-		building->GetMaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
-		building->GetMaterialAtIndex(0, 0)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
-		
-		building->GetMaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/Sebastian/Decals-NM.png"));
-		building->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
-		building->GetMaterialAtIndex(0, 1)->Define("RN_SPECULARITY");
-		building->GetMaterialAtIndex(0, 1)->specular = RN::Color(0.02f, 0.02f, 0.02f, 10.0f);
-#endif
-		
-		building = RN::Model::WithFile("models/Sebastian/Old_BuildingsPlants.sgm");
-		building->GetMaterialAtIndex(0, 0)->culling = false;
-		building->GetMaterialAtIndex(0, 0)->discard = true;
-		building->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard;
-		
-		ent = new RN::Entity();
-		ent->SetModel(building);
-		ent->SetPosition(RN::Vector3(0.0f, 0.6f, 0.0f));
-		
-#if TGWorldFeatureNormalMapping && TGWorldFeatureLights
-		building->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/Sebastian/plants-NM.png"));
-		building->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
-		building->GetMaterialAtIndex(0, 0)->Define("RN_SPECULARITY");
-		building->GetMaterialAtIndex(0, 0)->specular = RN::Color(0.2f, 0.2f, 0.2f, 30.0f);
-#endif
-		
-		RN::Model *tree = RN::Model::WithFile("models/dexfuck/spruce2.sgm");
-		tree->GetMaterialAtIndex(0, 0)->culling = false;
-		tree->GetMaterialAtIndex(0, 0)->discard = true;
-		tree->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		tree->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		
 		RN::InstancingNode *node;
 		RN::Random::DualPhaseLCG dualPhaseLCG;
 		dualPhaseLCG.Seed(0x1024);
 		
-		node = new RN::InstancingNode(tree);
+//		node = new RN::InstancingNode(tree);
 		
 		for(int i = 0; i < TGForestFeatureTrees; i ++)
 		{
-			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
-			if(pos.Length() < 10.0f)
-				continue;
+			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-10.0f, 10.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-10.0f, 10.0f));
 			
 			ent = new RN::Entity();
 			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
-			ent->SetModel(tree);
+			ent->SetModel(trees[dualPhaseLCG.RandomInt32Range(0, TREE_MODEL_COUNT)]);
 			ent->SetPosition(pos);
 			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.89f, 1.12f)));
 			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.0f, 365.0f), 0.0f, 0.0f));
 			
-			node->AttachChild(ent);
+//			node->AttachChild(ent);
 		}
 		
 		RN::Model *grass = RN::Model::WithFile("models/dexfuck/grass01.sgm");
@@ -655,10 +880,10 @@ namespace TG
 		
 #if TGWorldFeatureLights
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
-		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
+		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateDirectionalShadows();
-		
+//		_sunLight->ActivateDirectionalShadows(true, 2048);
+	
 /*		for(int i=0; i<200; i++)
 		{
 			RN::Light *light = new RN::Light();
@@ -671,42 +896,6 @@ namespace TG
 			 });
 		}*/
 #endif
-	}
-	
-	void World::CreateTest()
-	{
-		// Ground
-		//RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
-		//ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
-		
-		RN::Model *ground = RN::Model::WithFile("models/pure3d/Level/level.sgm");
-		
-		ground->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
-		
-		ground->GetMaterialAtIndex(0, 2)->culling = false;
-		ground->GetMaterialAtIndex(0, 2)->discard = true;
-		ground->GetMaterialAtIndex(0, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		ground->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
-		
-		ground->GetMaterialAtIndex(0, 3)->culling = false;
-		ground->GetMaterialAtIndex(0, 3)->discard = true;
-		ground->GetMaterialAtIndex(0, 3)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		ground->GetMaterialAtIndex(0, 3)->Define("RN_VEGETATION");
-		
-		for(int i = 0; i < ground->GetMeshCount(0); i++)
-		{
-			ground->GetMaterialAtIndex(0, i)->ambient = RN::Color(0.6f, 0.6f, 0.8f);
-		}
-		
-		RN::Entity *ent = new RN::Entity();
-		ent->SetModel(ground);
-		
-		
-		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
-		_sunLight->SetIntensity(5.0f);
-		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
-		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateDirectionalShadows();
 	}
 	
 	void World::CreateSibenik()
