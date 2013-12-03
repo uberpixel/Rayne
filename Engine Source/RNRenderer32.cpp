@@ -38,7 +38,7 @@ namespace RN
 		
 		gl::BindVertexArray(0);
 		
-		_maxLightFastPath = 10;
+		_maxLightFastPath = 0;
 		
 		RN_CHECKOPENGL();
 	}
@@ -190,7 +190,7 @@ namespace RN
 			//TODO: Cleanup!!!
 			LightManager *lightManager = camera->lightManager;
 			int lightPointCount = 100;
-			int lightSpotCount = 0;
+			int lightSpotCount = 100;
 			int lightDirectionalCount = 0;
 			if(lightManager != nullptr)
 			{

@@ -38,12 +38,12 @@ namespace RN
 		// light offsets and counts
 		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightManagerLightListOffsetCountIndex]);
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGB32I, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
 		
 		// Light indices
 		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightManagerLightListIndicesIndex]);
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32I, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
 		
 		// Point Light Data
 		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightManagerLightListPointDataIndex]);
@@ -170,24 +170,29 @@ namespace RN
 			
 			// Write the position, range and colour of the lights
 			Vector4 *lightData = nullptr;
-			size_t lightDataSize = lightCount * 2 * sizeof(Vector4);
+			size_t lightDataSize = lightCount * 4 * sizeof(Vector4);
 			
 			if(lightDataSize == 0) // Makes sure that we don't end up with an empty buffer
-				lightDataSize = 2 * sizeof(Vector4);
-			
-			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListSpotDataIndex]);
-			if(lightDataSize > _lightPointDataSize)
 			{
-				gl::BufferData(GL_TEXTURE_BUFFER, _lightPointDataSize, 0, GL_DYNAMIC_DRAW);
-				gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
+				lightDataSize = 3 * sizeof(Vector4);
 				
-				_lightPointDataSize = lightDataSize;
+				if(_lightSpotData.size() == 0)
+					_lightSpotData.resize(3);
 			}
 			
-			if(_lightPointData.size() < lightCount * 2)
-				_lightPointData.resize(lightCount * 2);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListSpotDataIndex]);
+			if(lightDataSize > _lightSpotDataSize)
+			{
+				gl::BufferData(GL_TEXTURE_BUFFER, _lightSpotDataSize, 0, GL_DYNAMIC_DRAW);
+				gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
+				
+				_lightSpotDataSize = lightDataSize;
+			}
 			
-			lightData = _lightPointData.data();
+			if(_lightSpotData.size() < lightCount * 3)
+				_lightSpotData.resize(lightCount * 3);
+			
+			lightData = _lightSpotData.data();
 			
 			for(size_t i = 0; i < lightCount; i ++)
 			{
@@ -214,7 +219,7 @@ namespace RN
 				{
 					if(light->GetShadowCamera())
 					{
-						_lightPointDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
+						_lightSpotDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
 					}
 				}
 			}
@@ -295,25 +300,26 @@ namespace RN
 		if(_lightIndicesSize < clusterCount * maxLightsPerTile)
 		{
 			_lightIndicesSize = clusterCount * maxLightsPerTile;
-			_lightIndices = new int[_lightIndicesSize];
+			_lightIndices = new uint16[_lightIndicesSize];
 			
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
-			gl::BufferData(GL_TEXTURE_BUFFER, _lightIndicesSize * sizeof(int), nullptr, GL_DYNAMIC_DRAW);
+			gl::BufferData(GL_TEXTURE_BUFFER, _lightIndicesSize * sizeof(uint16), nullptr, GL_DYNAMIC_DRAW);
 		}
 		
-		if(_lightOffsetCountSize < clusterCount  * 2)
+		if(_lightOffsetCountSize < clusterCount * 3)
 		{
-			_lightOffsetCountSize = clusterCount * 2;
-			_lightOffsetCount = new int[_lightOffsetCountSize];
+			_lightOffsetCountSize = clusterCount * 3;
+			_lightOffsetCount = new int32[_lightOffsetCountSize];
 			
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
-			gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int), nullptr, GL_DYNAMIC_DRAW);
+			gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int32), nullptr, GL_DYNAMIC_DRAW);
 		}
 		
 		std::fill(_lightOffsetCount, _lightOffsetCount + _lightOffsetCountSize, 0);
 		
-		int lightIndex = 0;
+		uint16 lightIndex = 0;
 		
+		//Cull point lights
 		for(auto light : _pointLights)
 		{
 			const Vector3& lightPosition = light->GetWorldPosition();
@@ -397,10 +403,10 @@ namespace RN
 					{
 						int clusterIndex = x * tilesHeight * tilesDepth + y * tilesDepth + z;
 						
-						if(_lightOffsetCount[clusterIndex * 2 + 1] < maxLightsPerTile)
+						if(_lightOffsetCount[clusterIndex * 3 + 1] < maxLightsPerTile)
 						{
-							_lightIndices[clusterIndex * maxLightsPerTile + _lightOffsetCount[clusterIndex * 2 + 1]] = lightIndex;
-							_lightOffsetCount[clusterIndex * 2 + 1] ++;
+							_lightIndices[clusterIndex * maxLightsPerTile + _lightOffsetCount[clusterIndex * 3 + 1]] = lightIndex;
+							_lightOffsetCount[clusterIndex * 3 + 1] ++;
 						}
 					}
 				}
@@ -409,21 +415,120 @@ namespace RN
 			lightIndex ++;
 		}
 		
+		//Cull spot lights
+		lightIndex = 0;
+		for(auto light : _spotLights)
+		{
+			const Vector3& lightPosition = light->GetWorldPosition();
+			float lightRange = light->GetRange();
+			
+			Vector4 viewPosition = std::move(camera->viewMatrix.Transform(Vector4(lightPosition, 1.0f)));
+			viewPosition.w = 1.0f;
+			
+			float zOffsetMinX = 0.0f;
+			float zOffsetMaxX = 0.0f;
+			float zOffsetMinY = 0.0f;
+			float zOffsetMaxY = 0.0f;
+			if(viewPosition.z+camera->clipnear < -lightRange)
+			{
+				zOffsetMinX = zOffsetMaxX = zOffsetMinY = zOffsetMaxY = lightRange;
+			}
+			else
+			{
+				zOffsetMinX = zOffsetMaxX = zOffsetMinY = zOffsetMaxY = -viewPosition.z-camera->clipnear;
+			}
+			if(viewPosition.x > lightRange)
+			{
+				zOffsetMinX *= -1.0f;
+			}
+			if(viewPosition.x < -lightRange)
+			{
+				zOffsetMaxX *= -1.0f;
+			}
+			if(viewPosition.y > lightRange)
+			{
+				zOffsetMinY *= -1.0f;
+			}
+			if(viewPosition.y < -lightRange)
+			{
+				zOffsetMaxY *= -1.0f;
+			}
+			
+			Vector4 minProjectedX = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(-lightRange, 0.0f, zOffsetMinX, 0.0f)));
+			Vector4 maxProjectedX = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(lightRange, 0.0f, zOffsetMaxX, 0.0f)));
+			minProjectedX /= Math::FastAbs(minProjectedX.w);
+			maxProjectedX /= Math::FastAbs(maxProjectedX.w);
+			
+			Vector4 minProjectedY = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(0.0f, -lightRange, zOffsetMinY, 0.0f)));
+			Vector4 maxProjectedY = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(0.0f, lightRange, zOffsetMaxY, 0.0f)));
+			minProjectedY /= Math::FastAbs(minProjectedY.w);
+			maxProjectedY /= Math::FastAbs(maxProjectedY.w);
+			
+			int minX = floor((minProjectedX.x*0.5+0.5)*rect.width/cameraClusterSize.x);
+			int maxX = ceil((maxProjectedX.x*0.5+0.5)*rect.width/cameraClusterSize.x);
+			if(maxX > tilesWidth-1)
+				maxX = tilesWidth-1;
+			if(minX > tilesWidth-1)
+				minX = maxX+1;
+			if(minX < 0)
+				minX = 0;
+			if(maxX < 0)
+				maxX = minX-1;
+			
+			int minY = floor((minProjectedY.y*0.5+0.5)*rect.height/cameraClusterSize.y);
+			int maxY = ceil((maxProjectedY.y*0.5+0.5)*rect.height/cameraClusterSize.y);
+			if(maxY > tilesHeight-1)
+				maxY = tilesHeight-1;
+			if(minY > tilesHeight-1)
+				minY = maxY+1;
+			if(minY < 0)
+				minY = 0;
+			if(maxY < 0)
+				maxY = minY-1;
+			
+			float linearDist = cameraForward.Dot(lightPosition - cameraWorldPosition);
+			int minZ = floor((linearDist - lightRange) / cameraClusterSize.z);
+			int maxZ = ceil((linearDist + lightRange) / cameraClusterSize.z);
+			if(minZ < 0)
+				minZ = 0;
+			
+			for(int x = minX; x <= maxX; x++)
+			{
+				for(int y = minY; y <= maxY; y++)
+				{
+					for(int z = minZ; z <= maxZ; z++)
+					{
+						int clusterIndex = x * tilesHeight * tilesDepth + y * tilesDepth + z;
+						
+						if(_lightOffsetCount[clusterIndex * 3 + 1]+_lightOffsetCount[clusterIndex * 3 + 2] < maxLightsPerTile)
+						{
+							_lightIndices[clusterIndex * maxLightsPerTile + _lightOffsetCount[clusterIndex * 3 + 1] + _lightOffsetCount[clusterIndex * 3 + 2]] = lightIndex;
+							_lightOffsetCount[clusterIndex * 3 + 2] ++;
+						}
+					}
+				}
+			}
+			
+			lightIndex ++;
+		}
+	
 		_lightOffsetCount[0] = 0;
 		for(int c = 1; c < clusterCount; c++)
-			_lightOffsetCount[c*2+0] = _lightOffsetCount[(c-1)*2+0] + _lightOffsetCount[(c-1)*2+1];
+		{
+			_lightOffsetCount[c*3+0] = _lightOffsetCount[(c-1)*3+0]+_lightOffsetCount[(c-1)*3+1] + _lightOffsetCount[(c-1)*3+2];
+		}
 		
 		int offset = 0;
 		for(int c = 0; c < clusterCount; c++)
 		{
-			std::copy(&_lightIndices[c*maxLightsPerTile], &_lightIndices[c*maxLightsPerTile+_lightOffsetCount[c*2+1]], &_lightIndices[offset]);
-			offset += _lightOffsetCount[c*2+1];
+			std::copy(&_lightIndices[c*maxLightsPerTile], &_lightIndices[c*maxLightsPerTile+_lightOffsetCount[c*3+1]+_lightOffsetCount[c*3+2]], &_lightIndices[offset]);
+			offset += _lightOffsetCount[c*3+1] + _lightOffsetCount[c*3+2];
 		}
 		
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListOffsetCountIndex]);
-		gl::BufferSubData(GL_TEXTURE_BUFFER, 0, _lightOffsetCountSize * sizeof(int), _lightOffsetCount);
+		gl::BufferSubData(GL_TEXTURE_BUFFER, 0, _lightOffsetCountSize * sizeof(int32), _lightOffsetCount);
 		
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightManagerLightListIndicesIndex]);
-		gl::BufferSubData(GL_TEXTURE_BUFFER, 0, offset * sizeof(int), _lightIndices);
+		gl::BufferSubData(GL_TEXTURE_BUFFER, 0, offset * sizeof(uint16), _lightIndices);
 	}
 }

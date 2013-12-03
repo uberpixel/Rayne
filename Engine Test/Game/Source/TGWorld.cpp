@@ -411,43 +411,43 @@ namespace TG
 		_sunLight->ActivateDirectionalShadows();
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
-/*		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
+		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(0.9f);
 		_spotLight->SetColor(RN::Color(0.5f));
-		_spotLight->ActivateSpotShadows();
+//		_spotLight->ActivateSpotShadows();
 		
 #if TGWorldFeatureFreeCamera
 		_camera->AttachChild(_spotLight);
 #else
 		_player->AttachChild(_spotLight);
-#endif*/
+#endif
 		
 /*		RN::Light *light = new RN::Light();
 		light->SetPosition(RN::Vector3(-21.0f, -5.0f, -5.0f));
-		light->SetRange(5.0f);
+		light->SetRange(15.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-//		light->ActivatePointShadows();
+		light->ActivatePointShadows();
 		
-/*		light = new RN::Light();
+		light = new RN::Light();
 		light->SetPosition(RN::Vector3(-21.0f, -5.0f, 5.0f));
-		light->SetRange(5.0f);
+		light->SetRange(15.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-//		light->ActivatePointShadows();
+		light->ActivatePointShadows();
 		
 		light = new RN::Light();
 		light->SetPosition(RN::Vector3(29.0f, -5.0f, -5.0f));
-		light->SetRange(5.0f);
+		light->SetRange(15.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-//		light->ActivatePointShadows();
+		light->ActivatePointShadows();
 		
 		light = new RN::Light();
 		light->SetPosition(RN::Vector3(29.0f, -5.0f, 5.0f));
-		light->SetRange(5.0f);
+		light->SetRange(15.0f);
 		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-//		light->ActivatePointShadows();
-		*/
+		light->ActivatePointShadows();
+	*/
 		for(int i=0; i<200; i++)
 		{
 			RN::Light *light = new RN::Light();

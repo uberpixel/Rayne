@@ -54,8 +54,8 @@ namespace RN
 		size_t _lightPointDataSize;
 		size_t _lightSpotDataSize;
 		
-		int *_lightIndices;
-		int *_lightOffsetCount;
+		uint16 *_lightIndices;
+		int32 *_lightOffsetCount;
 		size_t _lightIndicesSize;
 		size_t _lightOffsetCountSize;
 		
