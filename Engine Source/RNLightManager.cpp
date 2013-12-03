@@ -91,14 +91,17 @@ namespace RN
 	}
 	
 
-	bool LightManager::CreateLightLists(Camera *camera)
+	int LightManager::CreatePointSpotLightLists(Camera *camera)
 	{
+		size_t pointSpotCount = 0;
+		
 		CullLights(camera);
 		
 		//Point lights
 		{
 			Light **lights = _pointLights.data();
 			size_t lightCount = _pointLights.size();
+			pointSpotCount += lightCount;
 			
 			_lightPointPosition.clear();
 			_lightPointColor.clear();
@@ -162,6 +165,7 @@ namespace RN
 		{
 			Light **lights = _spotLights.data();
 			size_t lightCount = _spotLights.size();
+			pointSpotCount += lightCount;
 			
 			_lightSpotPosition.clear();
 			_lightSpotDirection.clear();
@@ -231,7 +235,7 @@ namespace RN
 		_pointLights.clear();
 		_spotLights.clear();
 		
-		return true;
+		return static_cast<int>(pointSpotCount);
 	}
 	
 	
@@ -287,7 +291,7 @@ namespace RN
 		Vector3 cameraForward = camera->Forward();
 		
 		const Vector3& cameraWorldPosition = camera->GetWorldPosition();
-		const Vector3& cameraClusterSize = camera->GetLightTiles();
+		const Vector3& cameraClusterSize = camera->GetLightClusters();
 		
 		size_t maxLightsPerTile = camera->GetMaxLightsPerTile();
 		const Rect& rect = camera->GetFrame();

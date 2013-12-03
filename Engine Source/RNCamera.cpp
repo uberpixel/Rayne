@@ -216,7 +216,7 @@ namespace RN
 			needsUpdate = true;
 		}
 		
-		int level = Kernel::GetSharedInstance()->GetActiveScaleFactor() + log2(_camera->GetLightTiles().x) - 1;
+		int level = Kernel::GetSharedInstance()->GetActiveScaleFactor() + log2(_camera->GetLightClusters().x) - 1;
 		if(level != _level)
 		{
 			_level = level;
@@ -389,7 +389,7 @@ namespace RN
 		_material = 0;
 		_stageCount = 0;
 
-		_lightTiles = Vector3(32, 32, 5);
+		_lightClusters = Vector3(32, 32, 5);
 		_skycube = 0;
 		
 		_maxLights = 100;

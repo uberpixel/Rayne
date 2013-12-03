@@ -33,10 +33,7 @@ namespace RN
 		
 		
 		void AddLight(Light *light);
-		bool CreateLightLists(Camera *camera);
-		
-		int CreatePointLightList(Camera *camera);
-		int CreateSpotLightList(Camera *camera);
+		int CreatePointSpotLightLists(Camera *camera);
 		int CreateDirectionalLightList(Camera *camera);
 		
 	private:

@@ -38,8 +38,6 @@ namespace RN
 		
 		gl::BindVertexArray(0);
 		
-		_maxLightFastPath = 0;
-		
 		RN_CHECKOPENGL();
 	}
 	
@@ -187,21 +185,16 @@ namespace RN
 		{
 			Material *surfaceMaterial = camera->GetMaterial();
 
-			//TODO: Cleanup!!!
 			LightManager *lightManager = camera->lightManager;
-			int lightPointCount = 100;
-			int lightSpotCount = 100;
+			int lightPointSpotCount = 0;
 			int lightDirectionalCount = 0;
 			if(lightManager != nullptr)
 			{
-				lightManager->CreateLightLists(camera);
-				// Create the light lists for the camera
-//				lightPointCount = lightManager->CreatePointLightList(camera);
-//				lightSpotCount = lightManager->CreateSpotLightList(camera);
+				lightPointSpotCount = lightManager->CreatePointSpotLightLists(camera);
 				lightDirectionalCount = lightManager->CreateDirectionalLightList(camera);
 			}
 			
-			_renderedLights += lightPointCount + lightSpotCount + lightDirectionalCount;
+			_renderedLights += lightPointSpotCount + lightDirectionalCount;
 			
 			// Update the shader
 			const Matrix& projectionMatrix = camera->projectionMatrix;
@@ -261,7 +254,6 @@ namespace RN
 				{
 					programTypes |= ShaderProgram::TypeLighting;
 					
-					//TODO: Cleanup!!!
 					if(lightManager != nullptr)
 					{
 						if(lightManager->_lightDirectionalDepth.size() > 0)
@@ -293,12 +285,6 @@ namespace RN
 				if(lightDirectionalCount > 0)
 					defines.emplace_back(ShaderDefine("RN_DIRECTIONAL_LIGHTS", lightDirectionalCount));
 				
-				if(lightPointCount < _maxLightFastPath)
-					defines.emplace_back(ShaderDefine("RN_POINT_LIGHTS_FASTPATH", lightPointCount));
-				
-				if(lightSpotCount < _maxLightFastPath)
-					defines.emplace_back(ShaderDefine("RN_SPOT_LIGHTS_FASTPATH", lightSpotCount));
-				
 				if(surfaceMaterial)
 				{
 					program = shader->GetProgramWithLookup(surfaceMaterial->GetLookup() + material->GetLookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
@@ -325,43 +311,39 @@ namespace RN
 				
 				if(changedShader)
 				{
-					//TODO: Cleanup!!!
 					if(lightManager != nullptr)
 					{
-						/*
-						// Light data
-						gl::Uniform1i(program->lightPointCount, lightPointCount);
-						gl::Uniform4fv(program->lightPointPosition, lightPointCount, (float*)lightManager->_lightPointPosition.data());
-						gl::Uniform4fv(program->lightPointColor, lightPointCount, (float*)lightManager->_lightPointColor.data());
-						
-						gl::Uniform1i(program->lightSpotCount, lightSpotCount);
-						gl::Uniform4fv(program->lightSpotPosition, lightSpotCount, (float*)lightManager->_lightSpotPosition.data());
-						gl::Uniform4fv(program->lightSpotDirection, lightSpotCount, (float*)lightManager->_lightSpotDirection.data());
-						gl::Uniform4fv(program->lightSpotColor, lightSpotCount, (float*)lightManager->_lightSpotColor.data());
-						*/
-						 
-						gl::Uniform1i(program->lightDirectionalCount, lightDirectionalCount);
-						gl::Uniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)lightManager->_lightDirectionalDirection.data());
-						gl::Uniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)lightManager->_lightDirectionalColor.data());
-						
-						float *data = reinterpret_cast<float *>(lightManager->_lightDirectionalMatrix.data());
-						gl::UniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)lightManager->_lightDirectionalMatrix.size(), GL_FALSE, data);
-						
-						if(lightPointCount >= _maxLightFastPath || lightSpotCount >= _maxLightFastPath)
+						if(program->lightDirectionalCount != -1)
 						{
-							if(program->lightTileSize != -1)
-							{
-								Rect rect = camera->GetFrame();
-								int tilesHeight  = ceil(rect.height / camera->GetLightTiles().y);
-								int tilesDepth = ceil(camera->clipfar/camera->GetLightTiles().z);
+							gl::Uniform1i(program->lightDirectionalCount, lightDirectionalCount);
+						}
+						if(program->lightDirectionalDirection != -1)
+						{
+							gl::Uniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)lightManager->_lightDirectionalDirection.data());
+						}
+						if(program->lightDirectionalColor != -1)
+						{
+							gl::Uniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)lightManager->_lightDirectionalColor.data());
+						}
+						
+						if(program->lightDirectionalMatrix != -1)
+						{
+							float *data = reinterpret_cast<float *>(lightManager->_lightDirectionalMatrix.data());
+							gl::UniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)lightManager->_lightDirectionalMatrix.size(), GL_FALSE, data);
+						}
+						
+						if(lightPointSpotCount > 0 && program->lightClusterSize != -1)
+						{
+							Rect rect = camera->GetFrame();
+							int tilesHeight  = ceil(rect.height / camera->GetLightClusters().y);
+							int tilesDepth = ceil(camera->clipfar/camera->GetLightClusters().z);
 								
-								Vector2 lightTilesSize;
-								lightTilesSize.x = camera->GetLightTiles().x * _scaleFactor;
-								lightTilesSize.y = camera->GetLightTiles().y * _scaleFactor;
-								Vector2 lightTilesCount = Vector2(tilesHeight, tilesDepth);
-								
-								gl::Uniform4f(program->lightTileSize, lightTilesSize.x, lightTilesSize.y, lightTilesCount.x, lightTilesCount.y);
-							}
+							Vector2 lightClusterSize;
+							lightClusterSize.x = camera->GetLightClusters().x * _scaleFactor;
+							lightClusterSize.y = camera->GetLightClusters().y * _scaleFactor;
+							Vector2 lightClusterCount = Vector2(tilesHeight, tilesDepth);
+							
+							gl::Uniform4f(program->lightClusterSize, lightClusterSize.x, lightClusterSize.y, lightClusterCount.x, lightClusterCount.y);
 						}
 					}
 						
@@ -378,7 +360,6 @@ namespace RN
 				
 				if(changedShader || changedMaterial)
 				{
-					//TODO: Cleanup!!!
 					if(lightManager != nullptr)
 					{
 						if(program->lightDirectionalDepth != -1 && lightManager->_lightDirectionalDepth.size() > 0)
@@ -437,7 +418,7 @@ namespace RN
 							}
 						}
 						
-						if(lightPointCount >= _maxLightFastPath || lightSpotCount >= _maxLightFastPath)
+						if(lightPointSpotCount > 0)
 						{
 							if(program->lightListIndices != -1)
 							{
@@ -624,15 +605,5 @@ namespace RN
 		}
 		
 		BindVAO(0);
-	}
-	
-	// ---------------------
-	// MARK: -
-	// MARK: Rendering
-	// ---------------------
-	
-	void Renderer32::SetMaxLightFastPathCount(uint32 maxLights)
-	{
-		_maxLightFastPath = maxLights;
 	}
 }

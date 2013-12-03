@@ -19,9 +19,6 @@ namespace RN
 	public:
 		RNAPI Renderer32();
 		RNAPI ~Renderer32() override;
-		
-		RNAPI void SetMaxLightFastPathCount(uint32 maxLights);
-		uint32 GetMaxLightFastPathCount() const { return _maxLightFastPath; }
 	
 	protected:
 		RNAPI void DrawMesh(Mesh *mesh, uint32 offset, uint32 count);
@@ -36,8 +33,6 @@ namespace RN
 		GLuint _copyVAO;
 		GLuint _copyVBO;
 		Vector4 _copyVertices[4];
-		
-		uint32 _maxLightFastPath;
 	};
 }
 

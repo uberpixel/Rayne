@@ -99,7 +99,7 @@ namespace RN
 		__GetUniformLocation(lightListDataPoint);
 		__GetUniformLocation(lightListDataSpot);
 		
-		__GetUniformLocation(lightTileSize);
+		__GetUniformLocation(lightClusterSize);
 		__GetUniformLocation(hdrSettings);
 		
 		char string[32];

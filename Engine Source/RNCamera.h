@@ -259,8 +259,8 @@ namespace RN
 		Shader *GetDrawFramebufferShader() const { return _blitShader; }
 		BlitMode GetBlitMode() const { return _blitMode; }
 		
-		const Vector3& GetLightTiles() const { return _lightTiles; }
-		void SetLightTiles(const Vector3 &size) { _lightTiles = size; }
+		const Vector3& GetLightClusters() const { return _lightClusters; }
+		void SetLightClusters(const Vector3 &size) { _lightClusters = size; }
 		Model *GetSkyCube() const { return _skycube; }
 		
 		uint32 GetRenderTargetCount() const { return (uint32)_storage->_renderTargets->GetCount(); }
@@ -338,7 +338,7 @@ namespace RN
 			Plane _frustumNear;
 		} frustrums;
 		
-		Vector3 _lightTiles;
+		Vector3 _lightClusters;
 		
 		bool _allowDepthWrite;
 		bool _blend;

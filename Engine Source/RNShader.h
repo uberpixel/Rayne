@@ -106,7 +106,7 @@ namespace RN
 		GLuint lightListDataPoint;
 		GLuint lightListDataSpot;
 		
-		GLuint lightTileSize;
+		GLuint lightClusterSize;
 		GLuint hdrSettings;
 		
 		std::vector<GLuint> texlocations;
