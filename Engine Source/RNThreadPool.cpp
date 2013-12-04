@@ -132,14 +132,15 @@ namespace RN
 				}
 				
 				if(pushed > 0)
-				{
 					written = true;
-					
-					std::unique_lock<std::mutex> lock(context->lock);
-					context->condition.notify_one();
-				}
 				
 				toWrite -= pushed;
+			}
+			
+			if(!written)
+			{
+				std::unique_lock<std::mutex> lock(_consumerLock);
+				_consumerCondition.notify_all();
 			}
 			
 			if(!written && toWrite > 0)
@@ -151,6 +152,9 @@ namespace RN
 				_feederCondition.wait_for(lock, std::chrono::microseconds(500));
 			}
 		}
+		
+		std::unique_lock<std::mutex> lock(_consumerLock);
+		_consumerCondition.notify_all();
 		
 		tasks.clear();
 	}
@@ -191,10 +195,10 @@ namespace RN
 			{
 				_feederCondition.notify_one();
 				
-				std::unique_lock<std::mutex> lock(local->lock);
+				std::unique_lock<std::mutex> lock(_consumerLock);
 				
 				if(local->hose.was_empty())
-					local->condition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
+					_consumerCondition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
 			}
 		}
 		
