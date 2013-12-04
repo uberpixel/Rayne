@@ -195,10 +195,10 @@ namespace RN
 			{
 				_feederCondition.notify_one();
 				
-				std::unique_lock<std::mutex> lock(local->lock);
+				std::unique_lock<std::mutex> lock(_consumerLock);
 				
 				if(local->hose.was_empty())
-					local->condition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
+					_consumerCondition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
 			}
 		}
 		
