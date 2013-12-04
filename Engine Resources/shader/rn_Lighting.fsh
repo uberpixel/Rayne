@@ -99,7 +99,7 @@ void rn_SpotLight(in vec3 viewdir, in vec4 lightpos, in vec4 lightcolor, in vec4
 #if defined(RN_SPOT_SHADOWS)
 		if(lightcolor.a > -0.5)
 		{
-			float shadow = rn_ShadowSpot(int(lightcolor.a+0.1), posdiff, lightpos.w);
+			float shadow = rn_ShadowSpot(int(lightcolor.a+0.1));
 #if defined(RN_SPECULARITY)
 			specularity += spec*shadow;
 #endif

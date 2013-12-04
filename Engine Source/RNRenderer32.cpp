@@ -12,12 +12,6 @@
 #include "RNQuaternion.h"
 #include "RNLightManager.h"
 
-//TODO: Cleanup!!! (same defines are in RNLightManager.cpp)
-#define kRNLightManagerLightListOffsetCountIndex 0
-#define kRNLightManagerLightListIndicesIndex 1
-#define kRNLightManagerLightListPointDataIndex 2
-#define kRNLightManagerLightListSpotDataIndex 3
-
 namespace RN
 {
 	Renderer32::Renderer32()
@@ -416,31 +410,37 @@ namespace RN
 									gl::Uniform1i(location, lastspotdepth);
 								}
 							}
+							
+							if(program->lightSpotMatrix != -1)
+							{
+								float *data = reinterpret_cast<float *>(lightManager->_lightSpotMatrix.data());
+								gl::UniformMatrix4fv(program->lightSpotMatrix, (GLuint)lightManager->_lightSpotMatrix.size(), GL_FALSE, data);
+							}
 						}
 						
 						if(lightPointSpotCount > 0)
 						{
 							if(program->lightListIndices != -1)
 							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[kRNLightManagerLightListIndicesIndex]);
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[LightManager::LightListIndices]);
 								gl::Uniform1i(program->lightListIndices, textureUnit);
 							}
 							
 							if(program->lightListOffsetCount != -1)
 							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[kRNLightManagerLightListOffsetCountIndex]);
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[LightManager::LightListOffsetCount]);
 								gl::Uniform1i(program->lightListOffsetCount, textureUnit);
 							}
 							
 							if(program->lightListDataPoint != -1)
 							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[kRNLightManagerLightListPointDataIndex]);
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[LightManager::LightListPointData]);
 								gl::Uniform1i(program->lightListDataPoint, textureUnit);
 							}
 							
 							if(program->lightListDataSpot != -1)
 							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[kRNLightManagerLightListSpotDataIndex]);
+								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[LightManager::LightListSpotData]);
 								gl::Uniform1i(program->lightListDataSpot, textureUnit);
 							}
 						}

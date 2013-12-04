@@ -95,6 +95,9 @@ void main()
 		#if defined(RN_DIRECTIONAL_SHADOWS)
 			rn_ShadowDirectional0(position);
 		#endif
+		#if defined(RN_SPOT_SHADOWS)
+			rn_ShadowSpot(position);
+		#endif
 	#endif
 	
 	gl_Position = matProjViewModel * position;
