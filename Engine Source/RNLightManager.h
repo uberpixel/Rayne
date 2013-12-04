@@ -28,6 +28,14 @@ namespace RN
 		friend class Renderer;
 		friend class Renderer32;
 		
+		enum BufferIndices
+		{
+			LightListOffsetCount = 0,
+			LightListIndices = 1,
+			LightListPointData = 2,
+			LightListSpotData = 3
+		};
+		
 		LightManager();
 		~LightManager();
 		
@@ -39,7 +47,7 @@ namespace RN
 	private:
 		void CullLights(Camera *camera);
 		
-		int _maxLightFastPath;
+		int _maxLightsDirect;
 		
 		std::vector<Light *> _pointLights;
 		std::vector<Light *> _spotLights;
@@ -64,6 +72,7 @@ namespace RN
 		std::vector<Vector4> _lightSpotPosition;
 		std::vector<Vector4> _lightSpotDirection;
 		std::vector<Vector4> _lightSpotColor;
+		std::vector<Matrix> _lightSpotMatrix;
 		std::vector<Texture *> _lightSpotDepth;
 		std::vector<Vector4> _lightSpotData;
 		

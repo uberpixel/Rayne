@@ -22,13 +22,14 @@ namespace RN
 		_color("color", Color(1.0f), std::bind(&Light::GetColor, this), std::bind(&Light::SetColor, this, std::placeholders::_1)),
 		_intensity("intensity", 10.0f, std::bind(&Light::GetIntensity, this), std::bind(&Light::SetIntensity, this, std::placeholders::_1)),
 		_range("range", 10.0f, std::bind(&Light::GetRange, this), std::bind(&Light::SetRange, this, std::placeholders::_1)),
-		_angle("angle", 0.5f, std::bind(&Light::GetAngle, this), std::bind(&Light::SetAngle, this, std::placeholders::_1))
+		_angle("angle", 45.0f, std::bind(&Light::GetAngle, this), std::bind(&Light::SetAngle, this, std::placeholders::_1))
 	{
 		_shadow = false;
 		_shadowcam = nullptr;
 		_lightcam  = nullptr;
 		
 		collisionGroup = 25;
+		_angleCos = 0.707f;
 		
 		AddObservable(&_color);
 		AddObservable(&_intensity);
@@ -88,6 +89,7 @@ namespace RN
 	void Light::SetAngle(float angle)
 	{
 		_angle = angle;
+		_angleCos = cosf(angle*k::DegToRad);
 	}
 	
 	void Light::SetLightCamera(Camera *lightCamera)
@@ -231,29 +233,32 @@ namespace RN
 		if(_shadow)
 		{
 			Texture::Parameter parameter;
-			parameter.wrapMode = Texture::WrapMode::Repeat;
-			parameter.filter = Texture::Filter::Nearest;
+			parameter.wrapMode = Texture::WrapMode::Clamp;
+			parameter.filter = Texture::Filter::Linear;
 			parameter.format = Texture::Format::Depth24I;
-			parameter.depthCompare = false;
+			parameter.depthCompare = true;
 			parameter.maxMipMaps = 0;
 			
-			Texture *depthtex = new TextureCubeMap(parameter);
+			Texture *depthtex = new Texture2D(parameter);
 			depthtex->Autorelease();
 			
-			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyPointShadowDepthShader);
+			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader);
 			Material *depthMaterial = new Material(depthShader);
+			depthMaterial->polygonOffset = true;
+			depthMaterial->polygonOffsetFactor = 2.0f;
+			depthMaterial->polygonOffsetUnits  = 512.0f;
 			
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 			storage->SetDepthTarget(depthtex, -1);
 			
-			_shadowcam = new CubemapCamera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden | Camera::FlagNoLights, 1.0f);
+			_shadowcam = new Camera(Vector2(resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden | Camera::FlagNoLights, 1.0f);
 			_shadowcam->Retain();
 			_shadowcam->Autorelease();
 			_shadowcam->SetMaterial(depthMaterial);
 			_shadowcam->SetPriority(kRNShadowCameraPriority);
 			_shadowcam->clipnear = 0.01f;
 			_shadowcam->clipfar = _range;
-			_shadowcam->fov = 90.0f;
+			_shadowcam->fov = _angle*2.0f;
 			_shadowcam->UpdateProjection();
 			_shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
 			
@@ -305,6 +310,21 @@ namespace RN
 				{
 					_shadowcam->MakeShadowSplit(_lightcam, this, _lightcam->clipnear, _lightcam->clipfar);
 				}
+			}
+		}
+		else if(_lightType == Type::SpotLight)
+		{
+			if(_shadow && _shadowcam)
+			{
+				_shadowcam->SetWorldPosition(GetWorldPosition());
+				_shadowcam->SetWorldRotation(GetWorldRotation());
+				_shadowcam->clipfar = _range;
+				_shadowcam->fov = _angle*2.0f;
+				_shadowcam->UpdateProjection();
+				
+				_shadowmats.clear();
+				Matrix matProjView = _shadowcam->projectionMatrix * _shadowcam->viewMatrix;
+				_shadowmats.push_back(matProjView);
 			}
 		}
 		else

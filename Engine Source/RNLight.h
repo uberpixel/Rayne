@@ -53,6 +53,7 @@ namespace RN
 		const Type GetType() const { return _lightType; }
 		float GetRange() const { return _range; }
 		float GetAngle() const { return _angle; }
+		float GetAngleCos() const { return _angleCos; }
 		float GetIntensity() const { return _intensity; }
 		
 		bool Shadow() const { return _shadow; }
@@ -76,6 +77,8 @@ namespace RN
 		Observable<float> _intensity;
 		Observable<float> _range;
 		Observable<float> _angle;
+		
+		float _angleCos;
 		
 		Camera *_shadowcam;
 		Camera *_lightcam;

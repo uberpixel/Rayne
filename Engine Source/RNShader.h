@@ -93,6 +93,7 @@ namespace RN
 		GLuint lightSpotPosition;
 		GLuint lightSpotColor;
 		GLuint lightSpotDirection;
+		GLuint lightSpotMatrix;
 		std::vector<GLuint> lightSpotDepthLocations;
 		
 		GLuint lightDirectionalDirection;

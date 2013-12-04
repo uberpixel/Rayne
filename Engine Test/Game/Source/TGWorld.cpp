@@ -411,12 +411,12 @@ namespace TG
 		_sunLight->ActivateDirectionalShadows();
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
-		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
+		_spotLight = new RN::Light(RN::Light::Type::PointLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
-		_spotLight->SetAngle(0.9f);
+		_spotLight->SetAngle(20.0f);
 		_spotLight->SetColor(RN::Color(0.5f));
-//		_spotLight->ActivateSpotShadows();
+		_spotLight->ActivateSpotShadows();
 		
 #if TGWorldFeatureFreeCamera
 		_camera->AttachChild(_spotLight);

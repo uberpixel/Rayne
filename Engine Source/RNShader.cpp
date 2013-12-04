@@ -87,6 +87,7 @@ namespace RN
 		__GetUniformLocation(lightSpotPosition);
 		__GetUniformLocation(lightSpotColor);
 		__GetUniformLocation(lightSpotDirection);
+		__GetUniformLocation(lightSpotMatrix);
 		
 		__GetUniformLocation(lightDirectionalDirection);
 		__GetUniformLocation(lightDirectionalColor);

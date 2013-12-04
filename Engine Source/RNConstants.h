@@ -20,6 +20,9 @@ namespace RN
 		static const float Pi_2 = 1.57079632679489661923132169163975144f;
 		static const float Pi_4 = 0.785398163397448309615660845819875721f;
 		
+		static const float DegToRad = 0.01745329251;
+		static const float RadToDeg = 57.2957795131;
+		
 		static const float E      = 2.71828182845904523536028747135266250f;
 		static const float Log2E  = 1.44269504088896340735992468100189214f;
 		static const float Log10E = 0.434294481903251827651128918916605082f;
