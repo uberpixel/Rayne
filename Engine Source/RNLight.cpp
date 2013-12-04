@@ -11,6 +11,7 @@
 #include "RNCamera.h"
 #include "RNResourcePool.h"
 #include "RNLightManager.h"
+#include "RNLogging.h"
 
 namespace RN
 {
@@ -267,6 +268,8 @@ namespace RN
 		
 		if(_lightType == Type::DirectionalLight)
 		{
+			Log::Logger::GetSharedInstance()->Log(Log::Level::Info, "Light::Update()");
+			
 			if(_shadow && _lightcam)
 			{
 				float near = _lightcam->clipnear;

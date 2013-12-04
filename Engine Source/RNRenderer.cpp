@@ -592,6 +592,8 @@ namespace RN
 	
 	void Renderer::DrawCamera(Camera *camera, Camera *source, uint32 skyCubeMeshes)
 	{
+		Log::Logger::GetSharedInstance()->Log(Log::Level::Info, "DrawCamera");
+		
 		if(!source)
 		{
 			// Sort the objects
