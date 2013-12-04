@@ -408,10 +408,10 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateDirectionalShadows();
+		_sunLight->ActivateDirectionalShadows(true, 256);
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
-		_spotLight = new RN::Light(RN::Light::Type::PointLight);
+		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(20.0f);
@@ -906,11 +906,23 @@ namespace TG
 		ent->SetModel(sibenik);
 		
 		
-		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
+/*		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetIntensity(5.0f);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateDirectionalShadows();
+		_sunLight->ActivateDirectionalShadows();*/
+		
+		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
+		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
+		_spotLight->SetRange(TGWorldSpotLightRange);
+		_spotLight->SetAngle(20.0f);
+		_spotLight->SetColor(RN::Color(0.5f));
+		_spotLight->ActivateSpotShadows();
+		_camera->AttachChild(_spotLight);
+		
+		_camera->SetDebugName("main camera");
+		_spotLight->SetDebugName("spot light");
+		_spotLight->GetShadowCamera()->SetDebugName("spot camera");
 	}
 
 }

@@ -87,8 +87,6 @@ namespace RN
 	
 	void World::StepWorld(FrameID frame, float delta)
 	{
-		Log::Logger::GetSharedInstance()->Log(Log::Level::Info, "StepWorld() entry");
-		
 		ApplyNodes();
 		Update(delta);
 		
@@ -149,8 +147,6 @@ namespace RN
 			{
 				if(batch[i]->GetTaskCount() > 0)
 				{
-					Log::Logger::GetSharedInstance()->Log(Log::Level::Info, "Waiting for %i", i);
-					
 					batch[i]->Commit();
 					batch[i]->Wait();
 				}
@@ -164,14 +160,10 @@ namespace RN
 	
 		ApplyNodes();
 		UpdatedToFrame(frame);
-		Log::Logger::GetSharedInstance()->Log(Log::Level::Info, "StepWorld() exit");
 	}
 	
 	void World::RenderWorld(Renderer *renderer)
 	{
-		std::this_thread::sleep_for(std::chrono::milliseconds(1));
-		
-		Log::Logger::GetSharedInstance()->Log(Log::Level::Info, "RenderWorld() entry");
 		renderer->SetMode(Renderer::Mode::ModeWorld);
 		
 		for(Camera *camera : _cameras)
@@ -185,8 +177,6 @@ namespace RN
 			RunWorldAttachement(&WorldAttachment::WillFinishCamera, camera);
 			renderer->FinishCamera();
 		}
-		
-		Log::Logger::GetSharedInstance()->Log(Log::Level::Info, "RenderWorld() exit");
 	}
 	
 	

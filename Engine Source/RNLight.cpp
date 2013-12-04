@@ -11,7 +11,6 @@
 #include "RNCamera.h"
 #include "RNResourcePool.h"
 #include "RNLightManager.h"
-#include "RNLogging.h"
 
 namespace RN
 {
@@ -27,6 +26,8 @@ namespace RN
 		_shadow = false;
 		_shadowcam = nullptr;
 		_lightcam  = nullptr;
+		
+		SetPriority(SceneNode::Priority::UpdateLate);
 		
 		collisionGroup = 25;
 		_angleCos = 0.707f;
@@ -273,8 +274,6 @@ namespace RN
 		
 		if(_lightType == Type::DirectionalLight)
 		{
-			Log::Logger::GetSharedInstance()->Log(Log::Level::Info, "Light::Update()");
-			
 			if(_shadow && _lightcam)
 			{
 				float near = _lightcam->clipnear;
@@ -321,6 +320,7 @@ namespace RN
 				_shadowcam->clipfar = _range;
 				_shadowcam->fov = _angle*2.0f;
 				_shadowcam->UpdateProjection();
+				_shadowcam->PostUpdate();
 				
 				_shadowmats.clear();
 				Matrix matProjView = _shadowcam->projectionMatrix * _shadowcam->viewMatrix;
