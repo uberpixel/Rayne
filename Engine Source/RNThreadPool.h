@@ -279,8 +279,6 @@ namespace RN
 		struct ThreadContext
 		{
 			stl::lock_free_ring_buffer<Task, 2048> hose;
-			std::mutex lock;
-			std::condition_variable condition;
 		};
 		
 		Thread *CreateThread(size_t index);
@@ -299,7 +297,9 @@ namespace RN
 		std::vector<ThreadContext *> _threadData;
 		
 		std::mutex _feederLock;
+		std::mutex _consumerLock;
 		std::condition_variable _feederCondition;
+		std::condition_variable _consumerCondition;
 	};
 }
 
