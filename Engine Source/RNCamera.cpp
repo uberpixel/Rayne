@@ -657,14 +657,14 @@ namespace RN
 		Vector3 pos = center-light->Forward()*500.0f;
 		
 		Matrix rot = light->GetWorldRotation().GetRotationMatrix();
-		pos = rot*pos;
+		pos = rot.GetInverse()*pos;
 		
 		pos /= pixelsize;
 		pos.x = floorf(pos.x);
 		pos.y = floorf(pos.y);
 		pos.z = floorf(pos.z);
 		pos *= pixelsize;
-		pos = rot.GetInverse()*pos;
+		pos = rot*pos;
 		SetPosition(pos);
 		
 		clipfar = 500.0f+dist*2.0f;
