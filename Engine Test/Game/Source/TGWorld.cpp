@@ -498,9 +498,11 @@ namespace TG
 	
 	void World::CreateForest()
 	{
+		_camera->ambient = RN::Vector4(0.5f, 0.5f, 0.8f, 1.0f);
+		
 		// Ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
-		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 8);
+		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 5);
 
 		RN::Entity *groundBody = new RN::Entity();
 		groundBody->SetModel(ground);

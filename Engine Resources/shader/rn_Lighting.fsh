@@ -30,6 +30,7 @@ uniform vec2 clipPlanes;
 
 uniform vec4 lightClusterSize;
 uniform vec4 ambient;
+uniform vec4 cameraAmbient;
 
 void rn_PointLight(in vec3 viewdir, in vec4 lightpos, in vec4 lightcolor, in vec3 normal, in vec3 position, in float specpow, inout vec3 lighting, inout vec3 specularity)
 {
@@ -173,7 +174,7 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 		normal *= -1.0;
 	}
 	
-	vec3 light = ambient.rgb;
+	vec3 light = ambient.rgb*cameraAmbient.rgb;
 	vec3 specsum = vec3(0.0);
 	vec3 viewdir = viewPosition-position;
 	float lineardist = dot(viewNormal, -viewdir);

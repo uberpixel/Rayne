@@ -138,6 +138,9 @@ namespace RN
 		if(_currentProgram->fogColor != -1)
 			gl::Uniform4fv(_currentProgram->fogColor, 1, &_currentCamera->fogcolor.r);
 		
+		if(_currentProgram->cameraAmbient != -1)
+			gl::Uniform4fv(_currentProgram->cameraAmbient, 1, &_currentCamera->ambient.x);
+		
 		if(_currentProgram->clipPlane != -1)
 			gl::Uniform4fv(_currentProgram->clipPlane, 1, &_currentCamera->clipplane.x);
 		

@@ -70,6 +70,7 @@ namespace RN
 		__GetUniformLocation(fogPlanes);
 		__GetUniformLocation(fogColor);
 		__GetUniformLocation(clipPlane);
+		__GetUniformLocation(cameraAmbient);
 		
 		__GetUniformLocation(ambient);
 		__GetUniformLocation(diffuse);

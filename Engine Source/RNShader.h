@@ -75,6 +75,7 @@ namespace RN
 		GLuint fogPlanes;
 		GLuint fogColor;
 		GLuint clipPlane;
+		GLuint cameraAmbient;
 		
 		GLuint ambient;
 		GLuint diffuse;

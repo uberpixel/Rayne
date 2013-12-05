@@ -377,6 +377,7 @@ namespace RN
 		usefog = true;
 		fognear = 100.0f;
 		fogfar = 500.0f;
+		ambient = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
 		
 		useclipplane = false;
 		clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);

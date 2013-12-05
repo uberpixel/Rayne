@@ -297,6 +297,7 @@ namespace RN
 		float fognear;
 		float fogfar;
 		Color fogcolor;
+		Vector4 ambient;
 		
 		bool useclipplane;
 		Vector4 clipplane;
