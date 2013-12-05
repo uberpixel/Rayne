@@ -11,10 +11,12 @@
 
 #include "rn_Shadow.fsh"
 
-uniform usamplerBuffer lightListIndices;
-uniform isamplerBuffer lightListOffsetCount;
-uniform samplerBuffer lightListDataPoint;
-uniform samplerBuffer lightListDataSpot;
+#if defined(RN_POINTSPOT_LIGHTS)
+	uniform usamplerBuffer lightListIndices;
+	uniform isamplerBuffer lightListOffsetCount;
+	uniform samplerBuffer lightListDataPoint;
+	uniform samplerBuffer lightListDataSpot;
+#endif
 
 #if defined(RN_DIRECTIONAL_LIGHTS)
 	uniform int lightDirectionalCount;
@@ -145,6 +147,7 @@ void rn_DirectionalLight(in vec3 viewdir, in vec3 lightdir, in vec4 lightcolor, 
 	}
 }
 
+#if defined(RN_POINTSPOT_LIGHTS)
 void rn_PointLightClustered(in int index, in vec3 viewdir, in vec3 normal, in vec3 position, in float specpow, inout vec3 lighting, inout vec3 specularity)
 {
 	vec4 lightpos   = texelFetch(lightListDataPoint, index);
@@ -161,6 +164,7 @@ void rn_SpotLightClustered(in int index, in vec3 viewdir, in vec3 normal, in vec
 	
 	rn_SpotLight(viewdir, lightpos, lightcolor, lightdir, normal, position, specpow, lighting, specularity);
 }
+#endif
 
 void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 position)
 {
@@ -176,6 +180,7 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 	float dist = length(viewdir);
 	viewdir /= dist;
 	
+#if defined(RN_POINTSPOT_LIGHTS)
 	int clusterindex = int(int(gl_FragCoord.x/lightClusterSize.x)*lightClusterSize.z*lightClusterSize.w+int(gl_FragCoord.y/lightClusterSize.y)*lightClusterSize.w+int(lineardist/(clipPlanes.y/lightClusterSize.w)));
 	ivec3 listoffset = texelFetch(lightListOffsetCount, clusterindex).xyz;
 	
@@ -190,6 +195,7 @@ void rn_Lighting(inout vec4 color, in vec4 specularity, in vec3 normal, in vec3 
 		int lightindex = int(texelFetch(lightListIndices, listoffset.x++).r) * 3;
 		rn_SpotLightClustered(lightindex, viewdir, normal, position, specularity.a, light, specsum);
 	}
+#endif
 	
 #if defined(RN_DIRECTIONAL_LIGHTS)
 	for(int i=0; i<RN_DIRECTIONAL_LIGHTS; i++)

@@ -43,8 +43,8 @@ namespace TG
 		AddAttachment(_debugAttachment);
 		
 		CreateCameras();
-		CreateSponza();
-//		CreateForest();
+//		CreateSponza();
+		CreateForest();
 //		CreateSibenik();
 		
 		RN::Input::GetSharedInstance()->Activate();
@@ -408,7 +408,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateDirectionalShadows(true, 256);
+		_sunLight->ActivateDirectionalShadows(true, 2048);
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
 		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
@@ -506,7 +506,7 @@ namespace TG
 		groundBody->SetModel(ground);
 		groundBody->SetScale(RN::Vector3(20.0f));
 		
-		
+
 #define TREE_MODEL_COUNT 10
 		RN::Model *trees[TREE_MODEL_COUNT];
 		trees[0] = RN::Model::WithFile("models/pure3d/BirchTrees/birch2m.sgm");
@@ -821,7 +821,7 @@ namespace TG
 		
 
 		RN::Entity *ent;
-		RN::InstancingNode *node;
+//		RN::InstancingNode *node;
 		RN::Random::DualPhaseLCG dualPhaseLCG;
 		dualPhaseLCG.Seed(0x1024);
 		
@@ -846,7 +846,7 @@ namespace TG
 		grass->GetMaterialAtIndex(0, 0)->discard = true;
 		grass->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		
-		node = new RN::InstancingNode(grass);
+//		node = new RN::InstancingNode(grass);
 		
 		for(int i=0; i<TGForestFeatureGras; i++)
 		{
@@ -861,7 +861,7 @@ namespace TG
 			ent->SetScale(RN::Vector3(2.5f));
 			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0, 365.0f), 0.0f, 0.0f));
 			
-			node->AttachChild(ent);
+//			node->AttachChild(ent);
 		}
 		
 #if !TGWorldFeatureFreeCamera
@@ -882,7 +882,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-//		_sunLight->ActivateDirectionalShadows(true, 2048);
+		_sunLight->ActivateDirectionalShadows(true, 2048);
 	
 /*		for(int i=0; i<200; i++)
 		{
@@ -906,11 +906,11 @@ namespace TG
 		ent->SetModel(sibenik);
 		
 		
-/*		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
+		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetIntensity(5.0f);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateDirectionalShadows();*/
+		_sunLight->ActivateDirectionalShadows();
 		
 		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));

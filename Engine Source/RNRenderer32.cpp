@@ -279,6 +279,9 @@ namespace RN
 				if(lightDirectionalCount > 0)
 					defines.emplace_back(ShaderDefine("RN_DIRECTIONAL_LIGHTS", lightDirectionalCount));
 				
+				if(lightPointSpotCount > 0)
+					defines.emplace_back(ShaderDefine("RN_POINTSPOT_LIGHTS", 1));
+				
 				if(surfaceMaterial)
 				{
 					program = shader->GetProgramWithLookup(surfaceMaterial->GetLookup() + material->GetLookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
