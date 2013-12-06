@@ -14,60 +14,20 @@
 
 namespace RN
 {
+	class Set;
 	class Array : public Object
 	{
 	public:
-		Array()
-		{
-			_size  = 5;
-			_count = 0;
-			
-			_data = new Object *[_size];
-		}
+		Array();
+		Array(size_t size);
+		Array(const Array *other);
+		Array(const Set *set);
 		
-		Array(size_t size)
-		{
-			_size  = size > 5 ? size : 5;
-			_count = 0;
-			
-			_data = new Object *[_size];
-		}
+		~Array() override;
 		
-		Array(const Array& other)
-		{
-			_size  = other._size;
-			_count = other._count;
-			
-			_data = new Object *[_size];
-			
-			for(size_t i=0; i<_count; i++)
-			{
-				_data[i] = other._data[i]->Retain();
-			}
-		}
-		
-		Array(Array *other)
-		{
-			_size  = other->_size;
-			_count = other->_count;
-			
-			_data = new Object *[_size];
-			
-			for(size_t i=0; i<_count; i++)
-			{
-				_data[i] = other->_data[i]->Retain();
-			}
-		}
-		
-		~Array() override
-		{
-			for(size_t i=0; i<_count; i++)
-			{
-				_data[i]->Release();
-			}
-			
-			delete [] _data;
-		}
+		static Array *WithArray(const Array *other);
+		static Array *WithSet(const Set *set);
+		static Array *WithObjects(Object *first, ...);
 		
 		
 		Object *operator [](int index) const
@@ -136,17 +96,17 @@ namespace RN
 			_count ++;
 		}
 		
-		void InsertObjectsAtIndex(const Array& other, size_t index)
+		void InsertObjectsAtIndex(const Array *other, size_t index)
 		{
-			UpdateSizeIfNeeded(_count + other._count);
+			UpdateSizeIfNeeded(_count + other->_count);
 			
 			auto begin = _data + index;
-			std::move(begin, _data + _count, begin + other._count);
+			std::move(begin, _data + _count, begin + other->_count);
 			
-			std::copy(other._data, other._data + other._count, begin);
-			_count += other._count;
+			std::copy(other->_data, other->_data + other->_count, begin);
+			_count += other->_count;
 			
-			for(size_t i=0; i<other._count; i++)
+			for(size_t i=0; i < other->_count; i++)
 			{
 				_data[index + i]->Retain();
 			}
@@ -161,7 +121,7 @@ namespace RN
 		
 		void RemoveObject(Object *object)
 		{
-			for(size_t i=0; i<_count; i++)
+			for(size_t i = 0; i < _count; i++)
 			{
 				if(object->IsEqual(_data[i]))
 				{
@@ -182,7 +142,7 @@ namespace RN
 		
 		void RemoveAllObjects()
 		{
-			for(size_t i=0; i<_count; i++)
+			for(size_t i = 0; i < _count; i ++)
 			{
 				_data[i]->Release();
 			}
@@ -193,7 +153,7 @@ namespace RN
 		
 		size_t GetIndexOfObject(Object *object) const
 		{
-			for(size_t i=0; i<_count; i++)
+			for(size_t i = 0; i < _count; i ++)
 			{
 				if(object->IsEqual(_data[i]))
 					return i;
@@ -204,7 +164,7 @@ namespace RN
 		
 		bool ContainsObject(Object *object) const
 		{
-			for(size_t i=0; i<_count; i++)
+			for(size_t i = 0; i < _count; i ++)
 			{
 				if(object->IsEqual(_data[i]))
 					return true;
@@ -214,13 +174,13 @@ namespace RN
 		}
 		
 		
-		template<typename T=Object>
+		template<class T=Object>
 		T *GetObjectAtIndex(size_t index) const
 		{
 			return _data[index]->Downcast<T>();
 		}
 		
-		template<typename T=Object>
+		template<class T=Object>
 		T *GetFirstObject() const
 		{
 			if(_count == 0)
@@ -229,7 +189,7 @@ namespace RN
 			return _data[0]->Downcast<T>();
 		}
 		
-		template<typename T=Object>
+		template<class T=Object>
 		T *GetLastObject() const
 		{
 			if(_count == 0)
@@ -250,25 +210,13 @@ namespace RN
 			return _size;
 		}
 		
-		template<typename T=Object>
-		const T *GetData() const
+		template<class T=Object>
+		const T **GetData() const
 		{
 			return _data;
 		}
 		
-		void ShrinkToFit()
-		{
-			Object **tdata = new Object *[(_count + 1)];
-			
-			if(tdata)
-			{
-				std::move(_data, _data + _count, tdata);
-				delete [] _data;
-				
-				_data = tdata;
-				_size = _count + 1;
-			}
-		}
+		void ShrinkToFit();
 		
 		template<class T=Object>
 		void Sort(const std::function<ComparisonResult (const T *left, const T *right)>& function)
@@ -280,44 +228,7 @@ namespace RN
 		}
 		
 	private:
-		void UpdateSizeIfNeeded(size_t required)
-		{
-			size_t toCopy = std::min(_count, required);
-			
-			if(required >= _size)
-			{
-				size_t tsize = std::max(required, _size * 2);
-				Object **tdata = new Object *[tsize];
-				
-				if(tdata)
-				{
-					std::move(_data, _data + toCopy, tdata);
-					delete [] _data;
-					
-					_size = tsize;
-					_data = tdata;
-				}
-				
-				return;
-			}
-			
-			size_t tsize = _size >> 1;
-			
-			if(tsize >= required && tsize > 5)
-			{
-				Object **tdata = new Object *[tsize];
-				
-				if(tdata)
-				{
-					std::move(_data, _data + toCopy, tdata);
-					delete [] _data;
-					
-					_size = tsize;
-					_data = tdata;
-				}
-			}
-		}
-
+		void UpdateSizeIfNeeded(size_t required);
 		
 		Object **_data;
 		size_t _count;

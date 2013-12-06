@@ -107,8 +107,25 @@ namespace RN
 	
 	
 	
+	Set::Bucket *Set::FindBucket1(Object *object) const
+	{
+		machine_hash hash = object->GetHash();
+		size_t index = hash % _capacity;
+		
+		Bucket *bucket = _buckets[index];
+		
+		while(bucket)
+		{
+			if(bucket->object && object->IsEqual(bucket->object))
+				return bucket;
+			
+			bucket = bucket->next;
+		}
+		
+		return bucket;
+	}
 	
-	Set::Bucket *Set::FindBucket(Object *object, bool createIfNeeded)
+	Set::Bucket *Set::FindBucket2(Object *object)
 	{
 		machine_hash hash = object->GetHash();
 		size_t index = hash % _capacity;
@@ -127,16 +144,14 @@ namespace RN
 			bucket = bucket->next;
 		}
 		
-		if(createIfNeeded)
-		{
-			if(empty)
-				return empty;
-			
-			bucket = new Bucket();
-			bucket->next = _buckets[index];
-			
-			_buckets[index] = bucket;
-		}
+
+		if(empty)
+			return empty;
+		
+		bucket = new Bucket();
+		bucket->next = _buckets[index];
+		
+		_buckets[index] = bucket;
 		
 		return bucket;
 	}
@@ -230,7 +245,7 @@ namespace RN
 	
 	void Set::AddObject(Object *object)
 	{
-		Bucket *bucket = FindBucket(object, true);
+		Bucket *bucket = FindBucket2(object);
 		if(bucket && !bucket->object)
 		{
 			bucket->object = object->Retain();
@@ -242,7 +257,7 @@ namespace RN
 	
 	void Set::RemoveObject(Object *key)
 	{
-		Bucket *bucket = FindBucket(key, false);
+		Bucket *bucket = FindBucket1(key);
 		if(bucket)
 		{
 			bucket->object->Release();
@@ -277,15 +292,15 @@ namespace RN
 		std::fill(_buckets, _buckets + _capacity, nullptr);
 	}
 	
-	bool Set::ContainsObject(Object *object)
+	bool Set::ContainsObject(Object *object) const
 	{
-		Bucket *bucket = FindBucket(object, false);
+		Bucket *bucket = FindBucket1(object);
 		return (bucket != nullptr);
 	}
 	
 	
 	
-	void Set::Enumerate(const std::function<void (Object *, bool *)>& callback)
+	void Set::Enumerate(const std::function<void (Object *, bool *)>& callback) const
 	{
 		bool stop = false;
 		

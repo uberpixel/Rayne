@@ -27,9 +27,9 @@ namespace RN
 		RNAPI void AddObject(Object *object);
 		RNAPI void RemoveObject(Object *object);
 		RNAPI void RemoveAllObjects();
-		RNAPI bool ContainsObject(Object *object);
+		RNAPI bool ContainsObject(Object *object) const;
 		
-		RNAPI void Enumerate(const std::function<void (Object *object, bool *stop)>& callback);
+		RNAPI void Enumerate(const std::function<void (Object *object, bool *stop)>& callback) const;
 		
 		RNAPI Array *GetAllObjects() const;
 		
@@ -62,7 +62,8 @@ namespace RN
 		
 		void Initialize(size_t primitive);
 		
-		Bucket *FindBucket(Object *object, bool createIfNeeded);
+		Bucket *FindBucket1(Object *object) const;
+		Bucket *FindBucket2(Object *object);
 		
 		void GrowIfPossible();
 		void CollapseIfPossible();

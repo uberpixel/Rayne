@@ -113,7 +113,7 @@ namespace RN
 		void AddFileModifier(const std::string& modifier, const std::string& extension);
 		void AddFileModifier(const std::string& modifier);
 		
-		Array *GetSearchPaths() const { Array *result = new Array(_directories); return result->Autorelease(); }
+		Array *GetSearchPaths() const { Array *result = new Array(&_directories); return result->Autorelease(); }
 		
 	private:
 		Array _directories;
