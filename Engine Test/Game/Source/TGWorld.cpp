@@ -43,8 +43,8 @@ namespace TG
 		AddAttachment(_debugAttachment);
 		
 		CreateCameras();
-//		CreateSponza();
-		CreateForest();
+		CreateSponza();
+//		CreateForest();
 //		CreateSibenik();
 		
 		RN::Input::GetSharedInstance()->Activate();
@@ -294,93 +294,22 @@ namespace TG
 	{
 		// Sponza
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
-		model->GetMaterialAtIndex(0, 5)->discard = true;
-		model->GetMaterialAtIndex(0, 5)->culling = false;
-		model->GetMaterialAtIndex(0, 5)->override = RN::Material::OverrideGroupDiscard;
-		
-		model->GetMaterialAtIndex(0, 6)->discard = true;
-		model->GetMaterialAtIndex(0, 6)->culling = false;
-		model->GetMaterialAtIndex(0, 6)->override = RN::Material::OverrideGroupDiscard;
+		model->GetMaterialAtIndex(0, 12)->discard = true;
+		model->GetMaterialAtIndex(0, 12)->culling = false;
+		model->GetMaterialAtIndex(0, 12)->override = RN::Material::OverrideGroupDiscard;
 		
 		model->GetMaterialAtIndex(0, 17)->discard = true;
 		model->GetMaterialAtIndex(0, 17)->culling = false;
 		model->GetMaterialAtIndex(0, 17)->override = RN::Material::OverrideGroupDiscard;
 		
-#if TGWorldFeatureNormalMapping && TGWorldFeatureLights
-		model->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/sponza/lion_ddn.png", true));
-		model->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
-		
-		model->GetMaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/sponza/background_ddn.png", true));
-		model->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
-		
-		model->GetMaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_ddn.png", true));
-		model->GetMaterialAtIndex(0, 2)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_c_spec.png"));
-		model->GetMaterialAtIndex(0, 2)->specular = RN::Color(1.0f, 1.0f, 1.0f, 5.0f);
-		model->GetMaterialAtIndex(0, 2)->Define("RN_NORMALMAP");
-		model->GetMaterialAtIndex(0, 2)->Define("RN_SPECULARITY");
-		model->GetMaterialAtIndex(0, 2)->Define("RN_SPECMAP");
-		
-		model->GetMaterialAtIndex(0, 3)->AddTexture(RN::Texture::WithFile("models/sponza/spnza_bricks_a_ddn.png", true));
-		model->GetMaterialAtIndex(0, 3)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->GetMaterialAtIndex(0, 3)->Define("RN_NORMALMAP");
-		model->GetMaterialAtIndex(0, 3)->Define("RN_SPECULARITY");
-		
-		model->GetMaterialAtIndex(0, 4)->AddTexture(RN::Texture::WithFile("models/sponza/vase_ddn.png", true));
-		model->GetMaterialAtIndex(0, 4)->Define("RN_NORMALMAP");
-		
-		model->GetMaterialAtIndex(0, 5)->AddTexture(RN::Texture::WithFile("models/sponza/chain_texture_ddn.png", true));
-		model->GetMaterialAtIndex(0, 5)->specular = RN::Color(0.5f, 0.5f, 0.5f, 1.0f);
-		model->GetMaterialAtIndex(0, 5)->Define("RN_NORMALMAP");
-		model->GetMaterialAtIndex(0, 5)->Define("RN_SPECULARITY");
-		
-		model->GetMaterialAtIndex(0, 6)->AddTexture(RN::Texture::WithFile("models/sponza/vase_plant_spec.png"));
-		model->GetMaterialAtIndex(0, 6)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->GetMaterialAtIndex(0, 6)->Define("RN_SPECMAP");
-		model->GetMaterialAtIndex(0, 6)->Define("RN_SPECULARITY");
-		
-		model->GetMaterialAtIndex(0, 7)->AddTexture(RN::Texture::WithFile("models/sponza/vase_round_ddn.png", true));
-		model->GetMaterialAtIndex(0, 7)->AddTexture(RN::Texture::WithFile("models/sponza/vase_round_spec.png"));
-		model->GetMaterialAtIndex(0, 7)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->GetMaterialAtIndex(0, 7)->Define("RN_NORMALMAP");
-		model->GetMaterialAtIndex(0, 7)->Define("RN_SPECULARITY");
-		model->GetMaterialAtIndex(0, 7)->Define("RN_SPECMAP");
-		
-		model->GetMaterialAtIndex(0, 9)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_arch_ddn.png", true));
-		model->GetMaterialAtIndex(0, 9)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_arch_spec.png"));
-		model->GetMaterialAtIndex(0, 9)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->GetMaterialAtIndex(0, 9)->Define("RN_NORMALMAP");
-		model->GetMaterialAtIndex(0, 9)->Define("RN_SPECULARITY");
-		model->GetMaterialAtIndex(0, 9)->Define("RN_SPECMAP");
-		
-		model->GetMaterialAtIndex(0, 11)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_b_ddn.png", true));
-		model->GetMaterialAtIndex(0, 11)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_b_spec.png"));
-		model->GetMaterialAtIndex(0, 11)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->GetMaterialAtIndex(0, 11)->Define("RN_NORMALMAP");
-		model->GetMaterialAtIndex(0, 11)->Define("RN_SPECULARITY");
-		model->GetMaterialAtIndex(0, 11)->Define("RN_SPECMAP");
-		
-		model->GetMaterialAtIndex(0, 15)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_a_ddn.png", true));
-		model->GetMaterialAtIndex(0, 15)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_column_a_spec.png"));
-		model->GetMaterialAtIndex(0, 15)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->GetMaterialAtIndex(0, 15)->Define("RN_NORMALMAP");
-		model->GetMaterialAtIndex(0, 15)->Define("RN_SPECULARITY");
-		model->GetMaterialAtIndex(0, 15)->Define("RN_SPECMAP");
-		
-		model->GetMaterialAtIndex(0, 16)->specular = RN::Color(0.02f, 0.02f, 0.02f, 32.0f);
-		model->GetMaterialAtIndex(0, 16)->Define("RN_SPECULARITY");
-		
-		model->GetMaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_ddn.png", true));
-		model->GetMaterialAtIndex(0, 17)->AddTexture(RN::Texture::WithFile("models/sponza/sponza_thorn_spec.png"));
-		model->GetMaterialAtIndex(0, 17)->specular = RN::Color(1.0f, 1.0f, 1.0f, 1.0f);
-		model->GetMaterialAtIndex(0, 17)->Define("RN_NORMALMAP");
-		model->GetMaterialAtIndex(0, 17)->Define("RN_SPECULARITY");
-		model->GetMaterialAtIndex(0, 17)->Define("RN_SPECMAP");
-#endif
+		model->GetMaterialAtIndex(0, 22)->discard = true;
+		model->GetMaterialAtIndex(0, 22)->culling = false;
+		model->GetMaterialAtIndex(0, 22)->override = RN::Material::OverrideGroupDiscard;
+	
 		
 		RN::Entity *sponza = new RN::Entity();
 		sponza->SetModel(model);
 		sponza->SetScale(RN::Vector3(0.2f));
-		sponza->SetRotation(RN::Quaternion(RN::Vector3(0.0, -90.0, 0.0)));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
 		
 		_sponza = sponza;
@@ -843,7 +772,7 @@ namespace TG
 //			node->AttachChild(ent);
 		}
 		
-		RN::Model *grass = RN::Model::WithFile("models/dexfuck/grass01.sgm");
+		RN::Model *grass = RN::Model::WithFile("models/dexfuck/grass/grass_1.sgm");
 		grass->GetMaterialAtIndex(0, 0)->culling = false;
 		grass->GetMaterialAtIndex(0, 0)->discard = true;
 		grass->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;

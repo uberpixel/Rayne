@@ -91,19 +91,12 @@ namespace RN
 			
 			switch(version)
 			{
-				case 1:
-					ReadModelVersion1(file, group);
-					break;
-					
-				case 2:
-					ReadModelVersion2(file, group);
-					break;
-					
 				case 3:
 					ReadModelVersion3(file, group);
 					break;
 					
 				default:
+					throw Exception(Exception::Type::GenericException, "Unsupported sgm File Format Version \"" + std::to_string(version) + "\"");
 					break;
 			}
 		}
@@ -294,303 +287,6 @@ namespace RN
 		return skyModel;
 	}
 	
-	
-	
-	void Model::ReadModelVersion1(File *file, LODGroup *group)
-	{
-		//Get materials
-		uint8 countmats = file->ReadUint8();
-		Shader *shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader);
-		
-		std::vector<Material *> materials;
-		
-		for(uint8 i=0; i<countmats; i++)
-		{
-			Material *material = new Material(shader);
-			file->ReadUint8();
-			
-			uint8 texcount = file->ReadUint8();
-			for(uint8 n=0; n<texcount; n++)
-			{
-				std::string textureFile;
-				file->ReadIntoString(textureFile, file->ReadUint16());
-				
-				std::string path = file->GetPath();
-				
-				Texture *texture = Texture::WithFile(PathManager::Join(path, textureFile));
-				material->AddTexture(texture);
-			}
-			
-			materials.push_back(material);
-		}
-		
-		//Get meshes
-		uint8 countmeshs = file->ReadUint8();
-		for(uint8 i=0; i<countmeshs; i++)
-		{
-			file->ReadUint8();
-			
-			//MeshGroup group;
-			Material *material = materials[file->ReadUint8()];
-			
-			unsigned short numverts = file->ReadUint16();
-			unsigned char uvcount = file->ReadUint8();
-			unsigned char datacount = file->ReadUint8();
-			unsigned char hastangent = file->ReadUint8();
-			unsigned char hasbones = file->ReadUint8();
-			
-			std::vector<MeshDescriptor> descriptors;
-			size_t size = 0;
-			
-			MeshDescriptor meshDescriptor(kMeshFeatureVertices);
-			meshDescriptor.elementSize = sizeof(Vector3);
-			meshDescriptor.elementMember = 3;
-			
-			descriptors.push_back(meshDescriptor);
-			size += meshDescriptor.elementSize;
-			
-			meshDescriptor = MeshDescriptor(kMeshFeatureNormals);
-			meshDescriptor.elementSize = sizeof(Vector3);
-			meshDescriptor.elementMember = 3;
-			
-			descriptors.push_back(meshDescriptor);
-			size += meshDescriptor.elementSize;
-			
-			meshDescriptor = MeshDescriptor(kMeshFeatureUVSet0);
-			meshDescriptor.elementSize = sizeof(Vector2);
-			meshDescriptor.elementMember = 2;
-			
-			descriptors.push_back(meshDescriptor);
-			size += meshDescriptor.elementSize;
-			
-			if(hastangent == 1)
-			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureTangents);
-				meshDescriptor.elementSize = sizeof(Vector4);
-				meshDescriptor.elementMember = 4;
-				
-				descriptors.push_back(meshDescriptor);
-				size += meshDescriptor.elementSize;
-			}
-			if(uvcount > 1)
-			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureUVSet1);
-				meshDescriptor.elementSize = sizeof(Vector2);
-				meshDescriptor.elementMember = 2;
-				
-				descriptors.push_back(meshDescriptor);
-				size += meshDescriptor.elementSize;
-			}
-			if(datacount == 4)
-			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureColor0);
-				meshDescriptor.elementSize = sizeof(Vector4);
-				meshDescriptor.elementMember = 4;
-				
-				descriptors.push_back(meshDescriptor);
-				size += meshDescriptor.elementSize;
-			}
-			if(hasbones > 0)
-			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureBoneWeights);
-				meshDescriptor.elementSize = sizeof(Vector4);
-				meshDescriptor.elementMember = 4;
-				
-				descriptors.push_back(meshDescriptor);
-				size += meshDescriptor.elementSize;
-				
-				meshDescriptor = MeshDescriptor(kMeshFeatureBoneIndices);
-				meshDescriptor.elementSize = sizeof(Vector4);
-				meshDescriptor.elementMember = 4;
-				
-				descriptors.push_back(meshDescriptor);
-				size += meshDescriptor.elementSize;
-			}
-			
-			
-			size *= numverts;
-			
-			uint8 *vertexData = new uint8[size];
-			file->ReadIntoBuffer(vertexData, size);
-			
-			
-			uint32 numindices = file->ReadUint32();
-			uint8 sizeindices = file->ReadUint8();
-			
-			uint8 *indicesData = new uint8[numindices * sizeindices];
-			file->ReadIntoBuffer(indicesData, numindices * sizeindices);
-			
-			meshDescriptor = MeshDescriptor(kMeshFeatureIndices);
-			meshDescriptor.elementSize = sizeindices;
-			meshDescriptor.elementMember = 1;
-			descriptors.push_back(meshDescriptor);
-			
-			Mesh *mesh = new Mesh(descriptors, numverts, numindices, std::make_pair(vertexData, indicesData));
-			mesh->CalculateBoundingVolumes();
-			
-			delete [] vertexData;
-			delete [] indicesData;
-			
-			MeshGroup *meshGroup = new MeshGroup(mesh->Autorelease(), material, "Unnamed");
-			group->groups.push_back(meshGroup);
-		}
-		
-		// Animations
-		bool hasAnimations = file->ReadInt8();
-		if(hasAnimations)
-		{
-			std::string animationFile;
-			file->ReadIntoString(animationFile, file->ReadInt16());
-		}
-	}
-	
-	void Model::ReadModelVersion2(File *file, LODGroup *group)
-	{
-		//Get materials
-		uint8 countmats = file->ReadUint8();
-		Shader *shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader);
-		
-		std::vector<Material *> materials;
-		
-		for(uint8 i=0; i<countmats; i++)
-		{
-			Material *material = new Material(shader);
-			file->ReadUint8();
-			
-			uint8 texcount = file->ReadUint8();
-			for(uint8 n=0; n<texcount; n++)
-			{
-				std::string textureFile;
-				file->ReadIntoString(textureFile, file->ReadUint16());
-				
-				std::string path = file->GetPath();
-				Texture *texture = Texture::WithFile(PathManager::Join(path, textureFile));
-				material->AddTexture(texture);
-			}
-			
-			materials.push_back(material);
-		}
-		
-		//Get meshes
-		uint8 countmeshs = file->ReadUint8();
-		for(uint8 i=0; i<countmeshs; i++)
-		{
-			file->ReadUint8();
-			
-			//MeshGroup group;
-			Material *material = materials[file->ReadUint8()];
-			
-			unsigned int numverts = file->ReadUint32();
-			unsigned char uvcount = file->ReadUint8();
-			unsigned char datacount = file->ReadUint8();
-			unsigned char hastangent = file->ReadUint8();
-			unsigned char hasbones = file->ReadUint8();
-			
-			std::vector<MeshDescriptor> descriptors;
-			size_t size = 0;
-			
-			MeshDescriptor meshDescriptor(kMeshFeatureVertices);
-			meshDescriptor.elementSize = sizeof(Vector3);
-			meshDescriptor.elementMember = 3;
-			
-			descriptors.push_back(meshDescriptor);
-			size += meshDescriptor.elementSize;
-			
-			meshDescriptor = MeshDescriptor(kMeshFeatureNormals);
-			meshDescriptor.elementSize = sizeof(Vector3);
-			meshDescriptor.elementMember = 3;
-			
-			descriptors.push_back(meshDescriptor);
-			size += meshDescriptor.elementSize;
-			
-			meshDescriptor = MeshDescriptor(kMeshFeatureUVSet0);
-			meshDescriptor.elementSize = sizeof(Vector2);
-			meshDescriptor.elementMember = 2;
-			
-			descriptors.push_back(meshDescriptor);
-			size += meshDescriptor.elementSize;
-			
-			if(hastangent == 1)
-			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureTangents);
-				meshDescriptor.elementSize = sizeof(Vector4);
-				meshDescriptor.elementMember = 4;
-				
-				descriptors.push_back(meshDescriptor);
-				size += meshDescriptor.elementSize;
-			}
-			if(uvcount > 1)
-			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureUVSet1);
-				meshDescriptor.elementSize = sizeof(Vector2);
-				meshDescriptor.elementMember = 2;
-				
-				descriptors.push_back(meshDescriptor);
-				size += meshDescriptor.elementSize;
-			}
-			if(datacount == 4)
-			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureColor0);
-				meshDescriptor.elementSize = sizeof(Vector4);
-				meshDescriptor.elementMember = 4;
-				
-				descriptors.push_back(meshDescriptor);
-				size += meshDescriptor.elementSize;
-			}
-			if(hasbones > 0)
-			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureBoneWeights);
-				meshDescriptor.elementSize = sizeof(Vector4);
-				meshDescriptor.elementMember = 4;
-				
-				descriptors.push_back(meshDescriptor);
-				size += meshDescriptor.elementSize;
-				
-				meshDescriptor = MeshDescriptor(kMeshFeatureBoneIndices);
-				meshDescriptor.elementSize = sizeof(Vector4);
-				meshDescriptor.elementMember = 4;
-				
-				descriptors.push_back(meshDescriptor);
-				size += meshDescriptor.elementSize;
-			}
-			
-			
-			size *= numverts;
-			
-			uint8 *vertexData = new uint8[size];
-			file->ReadIntoBuffer(vertexData, size);
-			
-			uint32 numindices = file->ReadUint32();
-			uint8 sizeindices = file->ReadUint8();
-			
-			uint8 *indicesData = new uint8[numindices * sizeindices];
-			file->ReadIntoBuffer(indicesData, numindices * sizeindices);
-			
-			
-			meshDescriptor = MeshDescriptor(kMeshFeatureIndices);
-			meshDescriptor.elementSize = sizeindices;
-			meshDescriptor.elementMember = 1;
-			descriptors.push_back(meshDescriptor);
-			
-			Mesh *mesh = new Mesh(descriptors, numverts, numindices, std::make_pair(vertexData, indicesData));
-			mesh->CalculateBoundingVolumes();
-			
-			delete [] vertexData;
-			delete [] indicesData;
-			
-			MeshGroup *meshGroup = new MeshGroup(mesh->Autorelease(), material, "Unnamed");
-			group->groups.push_back(meshGroup);
-		}
-		
-		// Animations
-		bool hasAnimations = file->ReadInt8();
-		if(hasAnimations)
-		{
-			std::string animationFile;
-			file->ReadIntoString(animationFile, file->ReadInt16());
-		}
-	}
-	
 	void Model::ReadModelVersion3(File *file, LODGroup *group)
 	{
 		//Get materials
@@ -610,14 +306,28 @@ namespace RN
 				uint8 texcount = file->ReadUint8();
 				for(uint8 n=0; n<texcount; n++)
 				{
-					__unused uint8 usagehint = file->ReadUint8();
+					uint8 usagehint = file->ReadUint8();
 					
 					std::string textureFile;
 					file->ReadIntoString(textureFile, file->ReadUint16());
 				
 					std::string path = file->GetPath();
-					Texture *texture = Texture::WithFile(PathManager::Join(path, textureFile));
+					Texture *texture = Texture::WithFile(PathManager::Join(path, textureFile), (usagehint == 1));
 					material->AddTexture(texture);
+					
+					if(usagehint == 0)
+					{
+						//Diffuse texture
+					}
+					else if(usagehint == 1)
+					{
+						material->Define("RN_NORMALMAP");
+					}
+					else if(usagehint == 2)
+					{
+						material->Define("RN_SPECULARITY");
+						material->Define("RN_SPECMAP");
+					}
 				}
 			}
 			
