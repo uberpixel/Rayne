@@ -287,6 +287,7 @@ namespace TG
 		_camera = new ThirdPersonCamera(storage);
 		_camera->SetSkyCube(sky);
 		_camera->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
+		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f);
 #endif
 	}
 	
@@ -427,8 +428,6 @@ namespace TG
 	
 	void World::CreateForest()
 	{
-		_camera->ambient = RN::Vector4(0.5f, 0.5f, 0.8f, 1.0f);
-		
 		// Ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
 		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 5);
