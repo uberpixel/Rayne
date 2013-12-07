@@ -18,12 +18,14 @@ namespace RN
 	RNDeclareMeta(Model)
 	
 	Model::Model()
+	: _guessMaterial(false)
 	{
 		LODGroup *group = new LODGroup(0.0f);
 		_groups.push_back(group);
 	}
 	
-	Model::Model(const std::string& tpath)
+	Model::Model(const std::string& tpath, bool guessmaterial)
+	: _guessMaterial(guessmaterial)
 	{
 		std::string path = FileManager::GetSharedInstance()->GetFilePathWithName(tpath);
 		std::string base = PathManager::Basepath(path);
@@ -64,6 +66,7 @@ namespace RN
 	}
 	
 	Model::Model(Mesh *mesh, Material *material, const std::string& name)
+	: _guessMaterial(false)
 	{
 		LODGroup *group = new LODGroup(0.0f);
 		_groups.push_back(group);
@@ -225,9 +228,9 @@ namespace RN
 		return model->Autorelease();
 	}
 	
-	Model *Model::WithFile(const std::string& path)
+	Model *Model::WithFile(const std::string& path, bool guessmaterial)
 	{
-		Model *model = new Model(path);
+		Model *model = new Model(path, guessmaterial);
 		return model->Autorelease();
 	}
 	
@@ -315,18 +318,21 @@ namespace RN
 					Texture *texture = Texture::WithFile(PathManager::Join(path, textureFile), (usagehint == 1));
 					material->AddTexture(texture);
 					
-					if(usagehint == 0)
+					if(_guessMaterial)
 					{
-						//Diffuse texture
-					}
-					else if(usagehint == 1)
-					{
-						material->Define("RN_NORMALMAP");
-					}
-					else if(usagehint == 2)
-					{
-						material->Define("RN_SPECULARITY");
-						material->Define("RN_SPECMAP");
+						if(usagehint == 0)
+						{
+							//Diffuse texture
+						}
+						else if(usagehint == 1)
+						{
+							material->Define("RN_NORMALMAP");
+						}
+						else if(usagehint == 2)
+						{
+							material->Define("RN_SPECULARITY");
+							material->Define("RN_SPECMAP");
+						}
 					}
 				}
 			}

@@ -24,13 +24,13 @@ namespace RN
 	{
 	public:
 		Model();
-		Model(const std::string& path);
+		Model(const std::string& path, bool guessmaterial = true);
 		Model(Mesh *mesh, Material *material, const std::string& name="Unnamed");
 		
 		virtual ~Model();
 		
 		static Model *Empty();
-		static Model *WithFile(const std::string& path);
+		static Model *WithFile(const std::string& path, bool guessmaterial = true);
 		static Model *WithMesh(Mesh *mesh, Material *material, const std::string& name="Unnamed");
 		static Model *WithSkyCube(const std::string& up, const std::string& down, const std::string& left, const std::string& right, const std::string& front, const std::string& back, const std::string& shader="shader/rn_Sky");
 		
@@ -102,6 +102,8 @@ namespace RN
 		
 		AABB _boundingBox;
 		Sphere _boundingSphere;
+		
+		bool _guessMaterial;
 		
 		std::vector<LODGroup *> _groups;
 		

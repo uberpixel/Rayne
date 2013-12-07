@@ -428,13 +428,17 @@ namespace TG
 	
 	void World::CreateForest()
 	{
-		// Ground
+		//ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
 		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 5);
-
 		RN::Entity *groundBody = new RN::Entity();
 		groundBody->SetModel(ground);
 		groundBody->SetScale(RN::Vector3(20.0f));
+		
+		//house
+		RN::Model *house = RN::Model::WithFile("models/blendswap/cc0_timber_house/timber_house.sgm");
+		RN::Entity *houseent = new RN::Entity();
+		houseent->SetModel(house);
 		
 
 #define TREE_MODEL_COUNT 10
@@ -704,6 +708,9 @@ namespace TG
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
 			
+			if(pos.Length() < 10.0f)
+				continue;
+			
 			ent = new RN::Entity();
 			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
 			ent->SetModel(trees[dualPhaseLCG.RandomInt32Range(0, TREE_MODEL_COUNT)]);
@@ -714,7 +721,7 @@ namespace TG
 //			node->AttachChild(ent);
 		}
 		
-		RN::Model *grass = RN::Model::WithFile("models/dexfuck/grass/grass_1.sgm");
+		RN::Model *grass = RN::Model::WithFile("models/dexsoft/grass/grass_1.sgm");
 		grass->GetMaterialAtIndex(0, 0)->culling = false;
 		grass->GetMaterialAtIndex(0, 0)->discard = true;
 		grass->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
@@ -777,7 +784,6 @@ namespace TG
 		
 		RN::Entity *ent = new RN::Entity();
 		ent->SetModel(sibenik);
-		
 		
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetIntensity(5.0f);
