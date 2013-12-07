@@ -108,7 +108,7 @@ namespace TG
 		if(_sunLight != 0)
 		{
 			RN::Vector3 sunrot;
-			sunrot.x = (input->IsKeyPressed('e') - input->IsKeyPressed('q')) * 10.0f * delta;
+			sunrot.x = (input->IsKeyPressed('e') - input->IsKeyPressed('q')) * 20.0f * delta;
 			sunrot.y = (input->IsKeyPressed('t') - input->IsKeyPressed('g')) * 10.0f * delta;
 			_sunLight->Rotate(sunrot);
 		}
@@ -439,6 +439,7 @@ namespace TG
 		RN::Model *house = RN::Model::WithFile("models/blendswap/cc0_timber_house/timber_house.sgm");
 		RN::Entity *houseent = new RN::Entity();
 		houseent->SetModel(house);
+		houseent->SetWorldPosition(RN::Vector3(0.0f, 0.8f, 0.0f));
 		
 
 #define TREE_MODEL_COUNT 10
