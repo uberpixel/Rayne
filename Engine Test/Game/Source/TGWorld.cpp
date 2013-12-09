@@ -285,6 +285,8 @@ namespace TG
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
 		storage->AddRenderTarget(RN::Texture::Format::RGBA32F);
 		_camera = new ThirdPersonCamera(storage);
+		_camera->SetClearColor(RN::Color::Black());
+//		_camera->fogcolor = RN::Color::Black();
 		_camera->SetSkyCube(sky);
 		_camera->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
 		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f);
@@ -768,13 +770,9 @@ namespace TG
 /*		for(int i=0; i<200; i++)
 		{
 			RN::Light *light = new RN::Light();
-			light->SetPosition(RN::Vector3(TGWorldRandom * 140.0f - 70.0f, TGWorldRandom * 100.0f-20.0f, TGWorldRandom * 80.0f - 40.0f));
+			light->SetPosition(RN::Vector3(TGWorldRandom * 200.0f - 100.0f, TGWorldRandom * 5.0f, TGWorldRandom * 200.0f-100.0f));
 			light->SetRange((TGWorldRandom * 20.0f) + 10.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-			
-			light->SetAction([](RN::Transform *transform, float delta) {
-			 transform->Translate(RN::Vector3(0.5f * delta, 0.0f, 0.0));
-			 });
 		}*/
 #endif
 	}
@@ -800,9 +798,21 @@ namespace TG
 		_spotLight->ActivateSpotShadows();
 		_camera->AttachChild(_spotLight);
 		
-		_camera->SetDebugName("main camera");
-		_spotLight->SetDebugName("spot light");
-		_spotLight->GetShadowCamera()->SetDebugName("spot camera");
+		for(int i=0; i<300; i++)
+		{
+			RN::Light *light = new RN::Light();
+			light->SetPosition(RN::Vector3(TGWorldRandom * 20.0f - 10.0f, TGWorldRandom * 20.0f-15.0f, TGWorldRandom * 20.0f - 10.0f));
+			light->SetRange((TGWorldRandom * 3.0f) + 2.0f);
+			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
+			float timeoffset = TGWorldRandom*10.0f;
+			light->SetAction([timeoffset](RN::SceneNode *light, float delta) {
+				RN::Vector3 pos = light->GetWorldPosition();
+				float time = RN::Kernel::GetSharedInstance()->GetTime();
+				time += timeoffset;
+				pos.x += 0.05f*cos(time*2.0f);
+				pos.z += 0.05f*sin(time*2.0f);
+				light->SetWorldPosition(pos);
+			});
+		}
 	}
-
 }

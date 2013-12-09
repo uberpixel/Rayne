@@ -343,16 +343,6 @@ namespace RN
 							gl::Uniform4f(program->lightClusterSize, lightClusterSize.x, lightClusterSize.y, lightClusterCount.x, lightClusterCount.y);
 						}
 					}
-						
-					if(program->discardThreshold != -1)
-					{
-						float threshold = material->discardThreshold;
-						
-						if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
-							threshold = surfaceMaterial->discardThreshold;
-						
-						gl::Uniform1f(program->discardThreshold, threshold);
-					}
 				}
 				
 				if(changedShader || changedMaterial)
@@ -504,6 +494,16 @@ namespace RN
 				{
 					Matrix projViewModelInverse = inverseProjectionViewMatrix * inverseTransform;
 					gl::UniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
+				}
+				
+				if(program->discardThreshold != -1)
+				{
+					float threshold = material->discardThreshold;
+					
+					if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
+						threshold = surfaceMaterial->discardThreshold;
+					
+					gl::Uniform1f(program->discardThreshold, threshold);
 				}
 				
 				if(RN_EXPECT_FALSE(object.type == RenderingObject::Type::Custom))
