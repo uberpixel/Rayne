@@ -18,8 +18,7 @@ namespace RN
 	public:
 		SpinLock() :
 			_flag(ATOMIC_FLAG_INIT)
-		{
-		}
+		{}
 		
 		void Lock()
 		{
@@ -39,6 +38,29 @@ namespace RN
 		
 	private:
 		std::atomic_flag _flag;
+	};
+	
+	class Thread;
+	class RecursiveSpinLock
+	{
+	public:
+		RecursiveSpinLock() :
+			_flag(ATOMIC_FLAG_INIT),
+			_owner(nullptr),
+			_locks(0)
+		{
+			assert(_owner.is_lock_free()); // We can't pull RN_ASSERT() in here
+		}
+		
+		
+		void Lock();
+		void Unlock();
+		bool TryLock();
+		
+	private:
+		std::atomic_flag _flag;
+		std::atomic<Thread *> _owner;
+		uint32 _locks;
 	};
 }
 
