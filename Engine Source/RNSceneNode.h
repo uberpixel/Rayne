@@ -180,7 +180,7 @@ namespace RN
 		
 		World *_world;
 		
-		mutable SpinLock _parentChildLock;
+		mutable RecursiveSpinLock _parentChildLock;
 		SceneNode *_parent;
 		Array _children;
 		
@@ -191,11 +191,11 @@ namespace RN
 		std::function<void (SceneNode *, float)> _action;
 		std::string _debugName;
 		
-		SpinLock _dependenciesLock;
+		RecursiveSpinLock _dependenciesLock;
 		std::unordered_map<SceneNode *, Connection *> _dependencyMap;
 		std::vector<SceneNode *> _dependencies;
 		
-		mutable SpinLock _transformLock;
+		mutable RecursiveSpinLock _transformLock;
 		mutable bool _updated;
 		mutable Vector3 _worldPosition;
 		mutable Quaternion _worldRotation;
@@ -215,168 +215,181 @@ namespace RN
 	
 	RN_INLINE void SceneNode::Translate(const Vector3& trans)
 	{
+		_transformLock.Lock();
 		WillUpdate(ChangedPosition);
 		
-		_transformLock.Lock();
 		_position += trans;
-		_transformLock.Unlock();
 		
 		DidUpdate(ChangedPosition);
+		_transformLock.Unlock();
 	}
 	
 	RN_INLINE void SceneNode::Scale(const Vector3& scal)
 	{
+		_transformLock.Lock();
 		WillUpdate(ChangedPosition);
 		
-		_transformLock.Lock();
 		_scale += scal;
-		_transformLock.Unlock();
 		
 		DidUpdate(ChangedPosition);
+		_transformLock.Unlock();
 	}
 	
 	RN_INLINE void SceneNode::Rotate(const Vector3& rot)
 	{
+		_transformLock.Lock();
+		
 		WillUpdate(ChangedPosition);
 		
-		_transformLock.Lock();
 		_euler += rot;
 		_rotation = Quaternion(_euler);
-		_transformLock.Unlock();
 		
 		DidUpdate(ChangedPosition);
+		
+		_transformLock.Unlock();
 	}
 	
 	
 	RN_INLINE void SceneNode::TranslateLocal(const Vector3& trans)
 	{
-		WillUpdate(ChangedPosition);
-		
 		_transformLock.Lock();
-		_position += _rotation->RotateVector(trans);
-		_transformLock.Unlock();
 		
+		WillUpdate(ChangedPosition);
+		_position += _rotation->RotateVector(trans);
 		DidUpdate(ChangedPosition);
+		
+		_transformLock.Unlock();
 	}
 	
 	RN_INLINE void SceneNode::ScaleLocal(const Vector3& scal)
 	{
-		WillUpdate(ChangedPosition);
-		
 		_transformLock.Lock();
-		_scale += _rotation->RotateVector(scal);
-		_transformLock.Unlock();
 		
+		WillUpdate(ChangedPosition);
+		_scale += _rotation->RotateVector(scal);
 		DidUpdate(ChangedPosition);
+		
+		_transformLock.Unlock();
 	}
 	
 	
 	RN_INLINE void SceneNode::SetPosition(const Vector3& pos)
 	{
-		WillUpdate(ChangedPosition);
-		
 		_transformLock.Lock();
-		_position = pos;
-		_transformLock.Unlock();
 		
+		WillUpdate(ChangedPosition);
+		_position = pos;
 		DidUpdate(ChangedPosition);
+		
+		_transformLock.Unlock();
 	}
 	
 	RN_INLINE void SceneNode::SetScale(const Vector3& scal)
 	{
-		WillUpdate(ChangedPosition);
-		
 		_transformLock.Lock();
-		_scale = scal;
-		_transformLock.Unlock();
 		
+		WillUpdate(ChangedPosition);
+		_scale = scal;
 		DidUpdate(ChangedPosition);
+		
+		_transformLock.Unlock();
 	}
 	
 	RN_INLINE void SceneNode::SetRotation(const Quaternion& rot)
 	{
+		_transformLock.Lock();
+		
 		WillUpdate(ChangedPosition);
 		
-		_transformLock.Lock();
-		_euler = rot.GetEulerAngle();
+		_euler    = rot.GetEulerAngle();
 		_rotation = rot;
-		_transformLock.Unlock();
 		
 		DidUpdate(ChangedPosition);
+		
+		_transformLock.Unlock();
 	}
 	
 	
 	RN_INLINE void SceneNode::SetWorldPosition(const Vector3& pos)
 	{
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
+		
+		std::lock(lock1, lock2);
+		
 		if(!_parent)
 		{
 			SetPosition(pos);
+			
+			lock1.unlock();
+			lock2.unlock();
 			return;
 		}
 		
 		WillUpdate(ChangedPosition);
-		
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(_transformLock);
-		
-		std::lock(lock1, lock2);
 		
 		Quaternion temp;
 		temp = temp / _parent->GetWorldRotation();
 		
 		_position = temp.RotateVector(pos) - temp.RotateVector(GetWorldPosition());
 		
+		DidUpdate(ChangedPosition);
+		
 		lock1.unlock();
 		lock2.unlock();
-		
-		DidUpdate(ChangedPosition);
 	}
 	
 	RN_INLINE void SceneNode::SetWorldScale(const Vector3& scal)
 	{
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
+		
+		std::lock(lock1, lock2);
+		
 		if(!_parent)
 		{
 			SetScale(scal);
+			
+			lock1.unlock();
+			lock2.unlock();
 			return;
 		}
 		
 		WillUpdate(ChangedPosition);
 		
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(_transformLock);
-		
-		std::lock(lock1, lock2);
-		
 		_scale = scal - GetWorldScale();
+		
+		DidUpdate(ChangedPosition);
 		
 		lock1.unlock();
 		lock2.unlock();
-		
-		DidUpdate(ChangedPosition);
 	}
 	
 	RN_INLINE void SceneNode::SetWorldRotation(const Quaternion& rot)
 	{
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
+		
+		std::lock(lock1, lock2);
+		
 		if(!_parent)
 		{
 			SetRotation(rot);
+			
+			lock1.unlock();
+			lock2.unlock();
 			return;
 		}
 		
 		WillUpdate(ChangedPosition);
 		
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(_transformLock);
-		
-		std::lock(lock1, lock2);
-		
 		_rotation = rot / _parent->GetWorldRotation();
 		_euler = _rotation->GetEulerAngle();
 		
+		DidUpdate(ChangedPosition);
+		
 		lock1.unlock();
 		lock2.unlock();
-		
-		DidUpdate(ChangedPosition);
 	}
 	
 	
@@ -434,13 +447,12 @@ namespace RN
 	
 	RN_INLINE Vector3 SceneNode::GetWorldPosition() const
 	{
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(_transformLock);
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
 		
 		std::lock(lock1, lock2);
 		
 		UpdateInternalData();
-		
 		Vector3 result(_worldPosition);
 		
 		lock1.unlock();
@@ -450,13 +462,12 @@ namespace RN
 	}
 	RN_INLINE Vector3 SceneNode::GetWorldScale() const
 	{
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(_transformLock);
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
 		
 		std::lock(lock1, lock2);
 		
 		UpdateInternalData();
-		
 		Vector3 result(_worldScale);
 		
 		lock1.unlock();
@@ -466,13 +477,12 @@ namespace RN
 	}
 	RN_INLINE Vector3 SceneNode::GetWorldEulerAngle() const
 	{
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(_transformLock);
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
 		
 		std::lock(lock1, lock2);
 		
 		UpdateInternalData();
-		
 		Vector3 result(_worldEuler);
 		
 		lock1.unlock();
@@ -482,13 +492,12 @@ namespace RN
 	}
 	RN_INLINE Quaternion SceneNode::GetWorldRotation() const
 	{
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(_transformLock);
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
 		
 		std::lock(lock1, lock2);
 		
 		UpdateInternalData();
-		
 		Quaternion result(_worldRotation);
 		
 		lock1.unlock();
@@ -499,13 +508,12 @@ namespace RN
 	
 	RN_INLINE Matrix SceneNode::GetLocalTransform() const
 	{
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(_transformLock);
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
 		
 		std::lock(lock1, lock2);
 		
 		UpdateInternalData();
-		
 		Matrix result(_localTransform);
 		
 		lock1.unlock();
@@ -516,13 +524,12 @@ namespace RN
 	
 	RN_INLINE Matrix SceneNode::GetWorldTransform() const
 	{
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(_transformLock);
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
 		
 		std::lock(lock1, lock2);
 		
 		UpdateInternalData();
-		
 		Matrix result(_worldTransform);
 		
 		lock1.unlock();
@@ -533,13 +540,12 @@ namespace RN
 	
 	RN_INLINE AABB SceneNode::GetBoundingBox() const
 	{
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(_transformLock);
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
 		
 		std::lock(lock1, lock2);
 		
 		UpdateInternalData();
-		
 		AABB result(_transformedBoundingBox);
 		
 		lock1.unlock();
@@ -550,13 +556,12 @@ namespace RN
 	
 	RN_INLINE Sphere SceneNode::GetBoundingSphere() const
 	{
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(_transformLock);
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
 		
 		std::lock(lock1, lock2);
 		
 		UpdateInternalData();
-		
 		Sphere result(_transformedBoundingSphere);
 		
 		lock1.unlock();

@@ -88,7 +88,7 @@ namespace RN
 		_children.RemoveAllObjects();
 		UnlockChildren();
 		
-		LockGuard<SpinLock> lock(_dependenciesLock);
+		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
 		for(auto& dependecy : _dependencyMap)
 		{
 			dependecy.second->Disconnect();
@@ -122,7 +122,7 @@ namespace RN
 		
 		WillUpdate(ChangedDependencies);
 		
-		LockGuard<SpinLock> lock(_dependenciesLock);
+		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
 		
 		if(_dependencyMap.find(dependency) == _dependencyMap.end())
 		{
@@ -142,7 +142,7 @@ namespace RN
 		
 		WillUpdate(ChangedDependencies);
 		
-		LockGuard<SpinLock> lock(_dependenciesLock);
+		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
 		
 		auto iterator = _dependencyMap.find(dependency);
 		if(iterator != _dependencyMap.end())
@@ -161,7 +161,7 @@ namespace RN
 	{
 		WillUpdate(ChangedDependencies);
 		
-		LockGuard<SpinLock> lock(_dependenciesLock);
+		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
 		
 		_dependencyMap.erase(dependency);
 		_dependencies.erase(std::find(_dependencies.begin(), _dependencies.end(), dependency));
@@ -173,14 +173,14 @@ namespace RN
 	
 	bool SceneNode::CanUpdate(FrameID frame)
 	{
-		LockGuard<SpinLock> lock1(_parentChildLock);
+		LockGuard<RecursiveSpinLock> lock1(_parentChildLock);
 		
 		if(_parent)
 			return (_parent->_lastFrame.load() >= frame);
 		
 		lock1.Unlock();
 		
-		LockGuard<SpinLock> lock2(_dependenciesLock);
+		LockGuard<RecursiveSpinLock> lock2(_dependenciesLock);
 		
 		for(SceneNode *node : _dependencies)
 		{
@@ -261,12 +261,12 @@ namespace RN
 	
 	void SceneNode::AttachChild(SceneNode *child)
 	{
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(child->_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(child->_parentChildLock);
 		
 		std::lock(lock1, lock2);
-		std::unique_lock<stl::lockable_shim<SpinLock>> ulock1(lock1, std::adopt_lock);
-		std::unique_lock<stl::lockable_shim<SpinLock>> ulock2(lock2, std::adopt_lock);
+		std::unique_lock<stl::lockable_shim<RecursiveSpinLock>> ulock1(lock1, std::adopt_lock);
+		std::unique_lock<stl::lockable_shim<RecursiveSpinLock>> ulock2(lock2, std::adopt_lock);
 		
 		if(child->_parent)
 			return;
@@ -274,26 +274,22 @@ namespace RN
 		WillAddChild(child);
 		child->WillUpdate(ChangedParent);
 		
-		
 		_children.AddObject(child);
+		
 		child->_parent = this;
-		
-		
-		ulock1.unlock();
-		ulock2.unlock();
-		
 		child->DidUpdate(ChangedParent);
+		
 		DidAddChild(child);
 	}
 	
 	void SceneNode::DetachChild(SceneNode *child)
 	{
-		stl::lockable_shim<SpinLock> lock1(_parentChildLock);
-		stl::lockable_shim<SpinLock> lock2(child->_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(child->_parentChildLock);
 		
 		std::lock(lock1, lock2);
-		std::unique_lock<stl::lockable_shim<SpinLock>> ulock1(lock1, std::adopt_lock);
-		std::unique_lock<stl::lockable_shim<SpinLock>> ulock2(lock2, std::adopt_lock);
+		std::unique_lock<stl::lockable_shim<RecursiveSpinLock>> ulock1(lock1, std::adopt_lock);
+		std::unique_lock<stl::lockable_shim<RecursiveSpinLock>> ulock2(lock2, std::adopt_lock);
 		
 		if(child->_parent == this)
 		{
@@ -304,10 +300,6 @@ namespace RN
 			child->_parent = nullptr;
 			
 			_children.RemoveObject(child);
-			
-			
-			ulock1.unlock();
-			ulock2.unlock();
 			
 			child->DidUpdate(ChangedParent);
 			DidRemoveChild(child);
@@ -320,6 +312,15 @@ namespace RN
 		if(parent)
 			parent->DetachChild(this);
 	}
+	
+	SceneNode *SceneNode::GetParent() const
+	{
+		_parentChildLock.Lock();
+		SceneNode *node = _parent;
+		_parentChildLock.Unlock();
+		
+		return node;
+	}
 
 	void SceneNode::LockChildren() const
 	{
@@ -331,14 +332,7 @@ namespace RN
 		_parentChildLock.Unlock();
 	}
 	
-	SceneNode *SceneNode::GetParent() const
-	{
-		_parentChildLock.Lock();
-		SceneNode *node = _parent;
-		_parentChildLock.Unlock();
-		
-		return node;
-	}
+	
 	
 	
 	void SceneNode::WillUpdate(uint32 changeSet)
@@ -358,6 +352,7 @@ namespace RN
 		if(_parent)
 			_parent->ChildDidUpdate(this, changeSet);
 	}
+	
 	
 	void SceneNode::SetAction(const std::function<void (SceneNode *, float)>& action)
 	{

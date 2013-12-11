@@ -182,7 +182,7 @@ namespace RN
 		__RemoveAssociatedOject(key);
 		
 		std::tuple<Object *, MemoryPolicy> tuple = std::tuple<Object *, MemoryPolicy>(object, policy);
-		_associatedObjects.insert(std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>>::value_type((void *)key, tuple));
+		_associatedObjects.insert(decltype(_associatedObjects)::value_type((void *)key, tuple));
 		
 		Unlock();
 	}

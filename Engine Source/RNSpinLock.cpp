@@ -45,8 +45,8 @@ namespace RN
 	{
 		Thread *thread = Thread::GetCurrentThread();
 		
-		while(_flag.test_and_set(std::memory_order_acquire))
-		{}
+		if(_flag.test_and_set(std::memory_order_acquire))
+			return false;
 		
 		Thread *owner = _owner.load();
 		
