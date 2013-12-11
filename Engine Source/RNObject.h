@@ -167,8 +167,18 @@ namespace RN
 		{
 			object->Release();
 			object = nullptr;
-			
-			return;
+		}
+	}
+	
+	template<class T>
+	static void SafeRelease(T &object)
+	{
+		static_assert(std::is_base_of<ObservableBase, T>::value, "T must be of type Observable<>");
+		
+		if(object)
+		{
+			object->Release();
+			object = nullptr;
 		}
 	}
 	
