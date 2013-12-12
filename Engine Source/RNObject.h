@@ -12,16 +12,17 @@
 #include "RNBase.h"
 #include "RNCatalogue.h"
 #include "RNSpinLock.h"
+#include "RNSignal.h"
 #include "RNKVO.h"
 
 namespace RN
 {
 	class Serializer;
-	class Object : public ObservableContainer
+	class Object
 	{
 	public:
 		RNAPI Object();
-		RNAPI ~Object() override;
+		RNAPI virtual ~Object();
 		
 		RNAPI Object *Retain();
 		RNAPI Object *Release();
@@ -38,6 +39,10 @@ namespace RN
 		
 		RNAPI void Lock();
 		RNAPI void Unlock();
+		
+		// -----------------
+		// Type system
+		// -----------------
 		
 		template<class T>
 		T *Downcast()
@@ -64,6 +69,10 @@ namespace RN
 		
 		static void InitialWakeUp(MetaClassBase *meta);
 		
+		// -----------------
+		// Associated Objects
+		// -----------------
+		
 		enum class MemoryPolicy
 		{
 			Assign,
@@ -75,8 +84,45 @@ namespace RN
 		void RemoveAssociatedOject(const void *key);
 		Object *GetAssociatedObject(const void *key);
 		
+		// -----------------
+		// KVO / KVC
+		// -----------------
+		
+		template<class F>
+		void AddObserver(const std::string& keyPath, F&& function, void *cookie)
+		{
+			std::string key;
+			ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
+			
+			if(!property)
+				throw Exception(Exception::Type::InvalidArgumentException, "No property for key" + key);
+			
+			Connection *connection = property->_signal.Connect(std::move(function));
+			MapCookie(cookie, connection);
+		}
+		
+		void RemoveObserver(const std::string& keyPath, void *cookie)
+		{
+			std::string key;
+			Object *object = ResolveKeyPath(keyPath, key);
+			
+			object->UnmapCookie(cookie);
+		}
+		
+		void SetValueForKey(const std::string& keyPath, Object *value);
+		Object *GetValueForKey(const std::string& keyPath);
+		
+		
 	protected:
 		virtual void CleanUp();
+		
+		void AddObservable(ObservableProperty *property);
+		
+		virtual void SetValueForUndefinedKey(const std::string& key, Object *value);
+		virtual Object *GetValueForUndefinedKey(const std::string& key);
+		
+		void WillChangeValueForkey(const std::string& key);
+		void DidChangeValueForKey(const std::string& key);
 		
 	private:
 		class MetaType : public ConcreteMetaClass<Object>
@@ -89,12 +135,22 @@ namespace RN
 		
 		void __RemoveAssociatedOject(const void *key);
 		
+		Object *ResolveKeyPath(const std::string& path, std::string& key);
+		Object *GetPrimitiveValueForKey(const std::string& key);
+		ObservableProperty *GetPropertyForKeyPath(const std::string& keyPath, std::string& key);
+		
+		void MapCookie(void *cookie, Connection *connection);
+		void UnmapCookie(void *cookie);
+		
 		static MetaType *__metaClass;
 		RecursiveSpinLock _lock;
 		
 		std::atomic<size_t> _refCount;
 		std::atomic_flag _cleanUpFlag;
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
+		
+		std::unordered_map<std::string, ObservableProperty *> _properties;
+		std::unordered_map<void *, std::vector<Connection *>> _cookieMap;
 	};
 	
 #define __RNDefineMetaPrivate(cls, super) \
@@ -173,7 +229,7 @@ namespace RN
 	template<class T>
 	static void SafeRelease(T &object)
 	{
-		static_assert(std::is_base_of<ObservableBase, T>::value, "T must be of type Observable<>");
+		static_assert(std::is_base_of<ObservableProperty, T>::value, "T must be of type ObservableProperty");
 		
 		if(object)
 		{

@@ -220,4 +220,148 @@ namespace RN
 	{
 		_lock.Unlock();
 	}
+	
+	// ---------------------
+	// MARK: -
+	// MARK: KVO / KVC
+	// ---------------------
+	
+	void Object::AddObservable(ObservableProperty *property)
+	{
+		RN_ASSERT(property->_object == nullptr, "ObservableProperty can only be added once to a receiver!");
+		
+		property->_object = this;
+		_properties.insert(decltype(_properties)::value_type(property->_name, property));
+	}
+	
+	void Object::MapCookie(void *cookie, Connection *connection)
+	{
+		Lock();
+		
+		auto iterator = _cookieMap.find(cookie);
+		if(iterator == _cookieMap.end())
+		{
+			_cookieMap.insert(decltype(_cookieMap)::value_type(cookie, std::vector<Connection *> { connection }));
+			Unlock();
+			return;
+		}
+		
+		iterator->second.push_back(connection);
+		Unlock();
+	}
+	
+	void Object::UnmapCookie(void *cookie)
+	{
+		Lock();
+		
+		auto iterator = _cookieMap.find(cookie);
+		if(iterator == _cookieMap.end())
+		{
+			Unlock();
+			return;
+		}
+		
+		std::vector<Connection *> vector(std::move(iterator->second));
+		_cookieMap.erase(cookie);
+		
+		Unlock();
+		
+		for(Connection *connection : vector)
+			connection->Disconnect();
+	}
+	
+	Object *Object::ResolveKeyPath(const std::string& path, std::string& key)
+	{
+		Object *temp = this;
+		size_t offset = 0;
+		
+		while(1)
+		{
+			size_t pos = path.find('.', offset);
+			
+			if(pos == std::string::npos)
+			{
+				key = path;
+				return temp;
+			}
+			
+			temp = GetPrimitiveValueForKey(path.substr(offset, pos - offset));
+			offset = pos + 1;
+		}
+	}
+	
+	Object *Object::GetPrimitiveValueForKey(const std::string& key)
+	{
+		auto iterator = _properties.find(key);
+		
+		if(iterator == _properties.end())
+			return GetValueForUndefinedKey(key);
+		
+		ObservableProperty *property = iterator->second;
+		return property->GetValue();
+	}
+	
+	ObservableProperty *Object::GetPropertyForKeyPath(const std::string& keyPath, std::string& key)
+	{
+		Object *object = ResolveKeyPath(keyPath, key);
+		
+		auto iterator = object->_properties.find(key);
+		if(iterator == object->_properties.end())
+			return nullptr;
+		
+		ObservableProperty *property = iterator->second;
+		return property;
+	}
+	
+	
+	void Object::WillChangeValueForkey(const std::string& keyPath)
+	{
+		std::string key;
+		ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
+		
+		if(property)
+		{
+			property->WillChangeValue();
+			return;
+		}
+	}
+	
+	void Object::DidChangeValueForKey(const std::string& keyPath)
+	{
+		std::string key;
+		ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
+		
+		if(property)
+		{
+			property->DidChangeValue();
+			return;
+		}
+	}
+	
+	
+	void Object::SetValueForKey(const std::string& keyPath, Object *value)
+	{
+		std::string key;
+		ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
+		
+		property ? property->SetValue(value) : SetValueForUndefinedKey(key, value);
+	}
+	
+	Object *Object::GetValueForKey(const std::string& keyPath)
+	{
+		std::string key;
+		Object *object = ResolveKeyPath(keyPath, key);
+		
+		return object->GetPrimitiveValueForKey(key);
+	}
+	
+	void Object::SetValueForUndefinedKey(const std::string& key, Object *value)
+	{
+		throw Exception(Exception::Type::InconsistencyException, "SetValue() for undefined key" + key);
+	}
+	
+	Object *Object::GetValueForUndefinedKey(const std::string& key)
+	{
+		throw Exception(Exception::Type::InconsistencyException, "GetValue() for undefined key" + key);
+	}
 }

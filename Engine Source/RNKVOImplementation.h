@@ -31,13 +31,13 @@ namespace RN
 
 #define __ObservableScalar(type, kvotype) \
 	template<> \
-	class ObservableScalar<type> : public ObservableBase \
+	class ObservableScalar<type> : public ObservableProperty \
 	{ \
 	public: \
 		typedef std::function<void (type)> SetterCallback; \
 		typedef std::function<type (void)> GetterCallback; \
 		ObservableScalar(const char *name, GetterCallback getter, SetterCallback setter) : \
-			ObservableBase(name, ObservableType::kvotype), \
+			ObservableProperty(name, ObservableType::kvotype), \
 			_getter(getter), \
 			_setter(setter) \
 		{} \
@@ -197,13 +197,13 @@ namespace RN
 	
 #define __ObservableValueBegin(type) \
 	template<> \
-	class ObservableValue<type> : public ObservableBase \
+	class ObservableValue<type> : public ObservableProperty \
 	{ \
 	public: \
 		typedef std::function<void (const type&)> SetterCallback; \
 		typedef std::function<type (void)> GetterCallback; \
 		ObservableValue(const char *name, GetterCallback getter, SetterCallback setter) : \
-			ObservableBase(name, ObservableType::type), \
+			ObservableProperty(name, ObservableType::type), \
 			_getter(getter), \
 			_setter(setter) \
 		{ \
@@ -362,14 +362,14 @@ namespace RN
 	};
 	
 	template<class T>
-	class Observable<T *, typename std::enable_if<std::is_base_of<Object, T>::value>::type> : public ObservableBase
+	class Observable<T *, typename std::enable_if<std::is_base_of<Object, T>::value>::type> : public ObservableProperty
 	{
 	public:
 		typedef std::function<void (T *)> SetterCallback;
 		typedef std::function<T *(void)> GetterCallback;
 		
 		Observable(const char *name, Object::MemoryPolicy policy, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) :
-			ObservableBase(name, ObservableType::Object),
+			ObservableProperty(name, ObservableType::Object),
 			_policy(policy),
 			_getter(getter),
 			_setter(setter),
@@ -465,14 +465,14 @@ namespace RN
 	};
 	
 	template<>
-	class ObservableValue<bool> : public ObservableBase
+	class ObservableValue<bool> : public ObservableProperty
 	{
 	public:
 		typedef std::function<void (const bool&)> SetterCallback;
 		typedef std::function<bool (void)> GetterCallback;
 		
 		ObservableValue(const char *name, GetterCallback getter, SetterCallback setter) :
-			ObservableBase(name, ObservableType::Bool),
+			ObservableProperty(name, ObservableType::Bool),
 			_getter(getter),
 			_setter(setter)
 		{}
