@@ -100,11 +100,11 @@ namespace RN
 		void SetWritable(bool writable) { _writable = writable; }
 		bool IsWritable() const { return _writable; }
 		
-	protected:
-		ObservableBase(const char *name, ObservableType type);
-		
 		void WillChangeValue();
 		void DidChangeValue();
+		
+	protected:
+		ObservableBase(const char *name, ObservableType type);
 		
 	private:
 		const char *_name;
@@ -112,6 +112,7 @@ namespace RN
 		ObservableType _type;
 		
 		bool _writable;
+		char _recursion;
 	};
 	
 	class ObservableContainer

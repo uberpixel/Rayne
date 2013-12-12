@@ -389,17 +389,13 @@ namespace RN
 						break;
 						
 					case Object::MemoryPolicy::Retain:
-						if(_storage)
-							_storage->Release();
-							
-						_storage = static_cast<T *>(object->Retain());
+						SafeRelease(_storage);
+						_storage = static_cast<T *>(SafeRetain(object));
 						break;
 						
 					case Object::MemoryPolicy::Copy:
-						if(_storage)
-							_storage->Release();
-						
-						_storage = static_cast<T *>(object->Copy());
+						SafeRelease(_storage);
+						_storage = object ? static_cast<T *>(object->Copy()) : nullptr;
 						break;
 				}
 			}

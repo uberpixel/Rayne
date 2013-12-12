@@ -22,7 +22,8 @@ namespace RN
 	ObservableBase::ObservableBase(const char *name, ObservableType type) :
 		_name(name),
 		_observable(nullptr),
-		_type(type)
+		_type(type),
+		_recursion(0)
 	{
 		_writable = true;
 	}
@@ -33,12 +34,14 @@ namespace RN
 	
 	void ObservableBase::WillChangeValue()
 	{
-		_observable->WillChangeValueForVariable(this);
+		if((_recursion ++) == 0)
+			_observable->WillChangeValueForVariable(this);
 	}
 	
 	void ObservableBase::DidChangeValue()
 	{
-		_observable->DidChangeValueForVariable(this);
+		if((-- _recursion) == 0)
+			_observable->DidChangeValueForVariable(this);
 	}
 	
 	
@@ -169,14 +172,14 @@ namespace RN
 	{
 		ObservableBase *base = GetObservableForKey(key);
 		if(base)
-			WillChangeValueForVariable(base);
+			base->WillChangeValue();
 	}
 	
 	void ObservableContainer::DidChangeValueForKey(const std::string& key)
 	{
 		ObservableBase *base = GetObservableForKey(key);
 		if(base)
-			DidChangeValueForVariable(base);
+			base->DidChangeValue();
 	}
 	
 	
