@@ -40,7 +40,8 @@ namespace RN
 
 		RNAPI void SetWorld(World *world);
 		RNAPI void SetTimeScale(float timeScale);
-
+		RNAPI void SetMaxFPS(uint32 fps);
+		
 		RNAPI void DidSleepForSignificantTime();
 		RNAPI void Exit();
 
@@ -82,6 +83,9 @@ namespace RN
 		Input *_input;
 		World *_world;
 		UI::Server *_uiserver;
+		
+		uint32 _maxFPS;
+		float _minDelta;
 
 		bool _resetDelta;
 		bool _shouldExit;
