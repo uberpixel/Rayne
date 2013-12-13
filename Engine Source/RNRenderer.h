@@ -134,6 +134,8 @@ namespace RN
 		float GetHDRExposure() const { return _hdrExposure; }
 		float GetHDRWhitepoint() const { return _hdrWhitePoint; }
 		
+		float GetScaleFactor() const { return _scaleFactor; }
+		
 		uint32 GetRenderedVertices() const { return _renderedVertices; }
 		uint32 GetRenderedLights() const { return _renderedLights; }
 		

@@ -34,7 +34,8 @@ namespace RN
 			TypeSpotShadows = (1 << 7),
 			TypeFog = (1 << 8),
 			TypeClipPlane = (1 << 9),
-			TypeGammaCorrection = (1 << 10)
+			TypeGammaCorrection = (1 << 10),
+			TypeDiffuse = (1 << 11)
 		};
 		
 		GLuint program;

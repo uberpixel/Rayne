@@ -6,10 +6,17 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNCamera.h"
 #include "RNLightManager.h"
 #include "RNLight.h"
-#include "RNThreadPool.h"
+#include "RNRenderer.h"
+#include "RNCamera.h"
+#include "RNShader.h"
+#include "RNTexture.h"
+
+#define kRNLightListOffsetCount 0
+#define kRNLightListIndices 1
+#define kRNLightListPointData 2
+#define kRNLightListSpotData 3
 
 namespace RN
 {
@@ -31,24 +38,24 @@ namespace RN
 		gl::GenBuffers(4, _lightBuffers);
 		
 		// light offsets and counts
-		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[LightListOffsetCount]);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[LightListOffsetCount]);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGB32I, _lightBuffers[LightListOffsetCount]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListOffsetCount]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListOffsetCount]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGB32I, _lightBuffers[kRNLightListOffsetCount]);
 		
 		// Light indices
-		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[LightListIndices]);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[LightListIndices]);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, _lightBuffers[LightListIndices]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListIndices]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListIndices]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, _lightBuffers[kRNLightListIndices]);
 		
 		// Point Light Data
-		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[LightListPointData]);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[LightListPointData]);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[LightListPointData]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListPointData]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListPointData]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[kRNLightListPointData]);
 		
 		// Spot Light Data
-		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[LightListSpotData]);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[LightListSpotData]);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[LightListSpotData]);
+		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListSpotData]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListSpotData]);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[kRNLightListSpotData]);
 	}
 	
 	LightManager::~LightManager()
@@ -58,6 +65,137 @@ namespace RN
 		
 		delete _lightIndices;
 		delete _lightOffsetCount;
+	}
+	
+	
+	void LightManager::Bind(Renderer *renderer, Camera *camera, ShaderProgram *program)
+	{
+		if(program->lightDirectionalCount != -1)
+			gl::Uniform1i(program->lightDirectionalCount, static_cast<GLint>(_directionalLightCount));
+		
+		if(program->lightDirectionalDirection != -1)
+			gl::Uniform3fv(program->lightDirectionalDirection, static_cast<GLint>(_directionalLightCount), (float *)_lightDirectionalDirection.data());
+		
+		if(program->lightDirectionalColor != -1)
+			gl::Uniform4fv(program->lightDirectionalColor, static_cast<GLint>(_directionalLightCount), (float *)_lightDirectionalColor.data());
+		
+		
+		if(program->lightDirectionalMatrix != -1)
+		{
+			const float *data = reinterpret_cast<const float *>(_lightDirectionalMatrix.data());
+			gl::UniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)_lightDirectionalMatrix.size(), GL_FALSE, data);
+		}
+		
+		if(program->lightDirectionalDepth != -1 && _lightDirectionalDepth.size() > 0)
+		{
+			uint32 textureUnit = renderer->BindTexture(_lightDirectionalDepth.front());
+			gl::Uniform1i(program->lightDirectionalDepth, textureUnit);
+		}
+		
+		
+		
+		if(_pointSpotLightCount > 0 && program->lightClusterSize != -1)
+		{
+			Rect rect = camera->GetFrame();
+			float scaleFactor = renderer->GetScaleFactor();
+			
+			
+			Vector2 lightClusterSize  = Vector2(camera->GetLightClusters().x * scaleFactor, camera->GetLightClusters().y * scaleFactor);
+			Vector2 lightClusterCount = Vector2(ceil(rect.height / camera->GetLightClusters().y), ceil(camera->clipfar/camera->GetLightClusters().z));
+			
+			gl::Uniform4f(program->lightClusterSize, lightClusterSize.x, lightClusterSize.y, lightClusterCount.x, lightClusterCount.y);
+		}
+		
+		if(_lightPointDepth.size() > 0)
+		{
+			const std::vector<GLuint>& lightPointDepthLocations = program->lightPointDepthLocations;
+			
+			if(lightPointDepthLocations.size() > 0)
+			{
+				size_t textureCount = std::min(lightPointDepthLocations.size(), _lightPointDepth.size());
+				uint32 lastpointdepth = 0;
+				
+				for(size_t i = 0; i < textureCount; i ++)
+				{
+					lastpointdepth = renderer->BindTexture(_lightPointDepth[i]);
+					gl::Uniform1i(lightPointDepthLocations[i], lastpointdepth);
+				}
+				
+				for(size_t i = textureCount; i < lightPointDepthLocations.size(); i++)
+				{
+					GLint location = lightPointDepthLocations[i];
+					gl::Uniform1i(location, lastpointdepth);
+				}
+			}
+		}
+		
+		if(_lightSpotDepth.size() > 0)
+		{
+			const std::vector<GLuint>& lightSpotDepthLocations = program->lightSpotDepthLocations;
+			
+			if(lightSpotDepthLocations.size() > 0)
+			{
+				size_t textureCount = std::min(lightSpotDepthLocations.size(), _lightSpotDepth.size());
+				uint32 lastspotdepth = 0;
+				
+				for(size_t i =0; i < textureCount; i ++)
+				{
+					lastspotdepth = renderer->BindTexture(_lightSpotDepth[i]);
+					gl::Uniform1i(lightSpotDepthLocations[i], lastspotdepth);
+				}
+				
+				for(size_t i = textureCount; i < lightSpotDepthLocations.size(); i++)
+				{
+					GLint location = lightSpotDepthLocations[i];
+					gl::Uniform1i(location, lastspotdepth);
+				}
+			}
+			
+			if(program->lightSpotMatrix != -1)
+			{
+				const float *data = reinterpret_cast<const float *>(_lightSpotMatrix.data());
+				gl::UniformMatrix4fv(program->lightSpotMatrix, (GLuint)_lightSpotMatrix.size(), GL_FALSE, data);
+			}
+		}
+		
+		if(_pointSpotLightCount > 0)
+		{
+			if(program->lightListIndices != -1)
+			{
+				uint32 textureUnit = renderer->BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListIndices]);
+				gl::Uniform1i(program->lightListIndices, textureUnit);
+			}
+			
+			if(program->lightListOffsetCount != -1)
+			{
+				uint32 textureUnit = renderer->BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListOffsetCount]);
+				gl::Uniform1i(program->lightListOffsetCount, textureUnit);
+			}
+			
+			if(program->lightListDataPoint != -1)
+			{
+				uint32 textureUnit = renderer->BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListPointData]);
+				gl::Uniform1i(program->lightListDataPoint, textureUnit);
+			}
+			
+			if(program->lightListDataSpot != -1)
+			{
+				uint32 textureUnit = renderer->BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListSpotData]);
+				gl::Uniform1i(program->lightListDataSpot, textureUnit);
+			}
+		}
+	}
+	
+	void LightManager::AdjustProgramTypes(uint32 &types)
+	{
+		if(_lightDirectionalDepth.size() > 0)
+			types |= ShaderProgram::TypeDirectionalShadows;
+		
+		if(_lightPointDepth.size() > 0)
+			types |= ShaderProgram::TypePointShadows;
+		
+		if(_lightSpotDepth.size() > 0)
+			types |= ShaderProgram::TypeSpotShadows;
 	}
 	
 	
@@ -84,19 +222,19 @@ namespace RN
 				break;
 		}
 	}
-	
 
-	int LightManager::CreatePointSpotLightLists(Camera *camera)
+	size_t LightManager::CreatePointSpotLightLists(Camera *camera)
 	{
-		size_t pointSpotCount = 0;
+		_pointSpotLightCount = 0;
 		
-		CullLights(camera);
+		if(!_pointLights.empty() || !_spotLights.empty())
+			CullLights(camera);
 		
-		//Point lights
+		if(!_pointLights.empty())
 		{
 			Light **lights = _pointLights.data();
 			size_t lightCount = _pointLights.size();
-			pointSpotCount += lightCount;
+			_pointSpotLightCount += lightCount;
 			
 			_lightPointPosition.clear();
 			_lightPointColor.clear();
@@ -114,7 +252,7 @@ namespace RN
 					_lightPointData.resize(2);
 			}
 			
-			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[LightListPointData]);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListPointData]);
 			if(lightDataSize > _lightPointDataSize)
 			{
 				gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
@@ -157,10 +295,11 @@ namespace RN
 		}
 		
 		//Spot lights
+		if(!_spotLights.empty())
 		{
 			Light **lights = _spotLights.data();
 			size_t lightCount = _spotLights.size();
-			pointSpotCount += lightCount;
+			_pointSpotLightCount += lightCount;
 			
 			_lightSpotPosition.clear();
 			_lightSpotDirection.clear();
@@ -180,7 +319,7 @@ namespace RN
 					_lightSpotData.resize(3);
 			}
 			
-			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[LightListSpotData]);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListSpotData]);
 			if(lightDataSize > _lightSpotDataSize)
 			{
 				gl::BufferData(GL_TEXTURE_BUFFER, _lightSpotDataSize, 0, GL_DYNAMIC_DRAW);
@@ -232,20 +371,20 @@ namespace RN
 		_pointLights.clear();
 		_spotLights.clear();
 		
-		return static_cast<int>(pointSpotCount);
+		return _pointSpotLightCount;
 	}
 	
 	
-	int LightManager::CreateDirectionalLightList(Camera *camera)
+	size_t LightManager::CreateDirectionalLightList(Camera *camera)
 	{
-		size_t lightCount = _directionalLights.size();
+		_directionalLightCount = _directionalLights.size();
 		
 		_lightDirectionalDirection.clear();
 		_lightDirectionalColor.clear();
 		_lightDirectionalMatrix.clear();
 		_lightDirectionalDepth.clear();
 		
-		for(size_t i=0; i<lightCount; i++)
+		for(size_t i = 0; i < _directionalLightCount; i ++)
 		{
 			Light *light = _directionalLights[i];
 			const Vector3& color = light->GetResultColor();
@@ -279,7 +418,7 @@ namespace RN
 		
 		_directionalLights.clear();
 		
-		return static_cast<int>(lightCount);
+		return _directionalLightCount;
 	}
 	
 	
@@ -303,7 +442,7 @@ namespace RN
 			_lightIndicesSize = clusterCount * maxLightsPerTile;
 			_lightIndices = new uint16[_lightIndicesSize];
 			
-			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[LightListIndices]);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListIndices]);
 			gl::BufferData(GL_TEXTURE_BUFFER, _lightIndicesSize * sizeof(uint16), nullptr, GL_DYNAMIC_DRAW);
 		}
 		
@@ -312,7 +451,7 @@ namespace RN
 			_lightOffsetCountSize = clusterCount * 3;
 			_lightOffsetCount = new int32[_lightOffsetCountSize];
 			
-			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[LightListOffsetCount]);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListOffsetCount]);
 			gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int32), nullptr, GL_DYNAMIC_DRAW);
 		}
 		
@@ -500,7 +639,7 @@ namespace RN
 					for(int z = minZ; z <= maxZ; z++)
 					{
 						int clusterIndex = x * tilesHeight * tilesDepth + y * tilesDepth + z;
-						
+					
 						if(_lightOffsetCount[clusterIndex * 3 + 1]+_lightOffsetCount[clusterIndex * 3 + 2] < maxLightsPerTile)
 						{
 							_lightIndices[clusterIndex * maxLightsPerTile + _lightOffsetCount[clusterIndex * 3 + 1] + _lightOffsetCount[clusterIndex * 3 + 2]] = lightIndex;
@@ -526,10 +665,10 @@ namespace RN
 			offset += _lightOffsetCount[c*3+1] + _lightOffsetCount[c*3+2];
 		}
 		
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[LightListOffsetCount]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListOffsetCount]);
 		gl::BufferSubData(GL_TEXTURE_BUFFER, 0, _lightOffsetCountSize * sizeof(int32), _lightOffsetCount);
 		
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[LightListIndices]);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListIndices]);
 		gl::BufferSubData(GL_TEXTURE_BUFFER, 0, offset * sizeof(uint16), _lightIndices);
 	}
 }

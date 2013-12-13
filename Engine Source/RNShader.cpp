@@ -352,6 +352,9 @@ namespace RN
 		std::vector<ShaderDefine> temporaryDefines;
 		
 		// Prepare the state
+		if(lookup.type & ShaderProgram::TypeDiffuse)
+			temporaryDefines.emplace_back(ShaderDefine("RN_TEXTURE_DIFFUSE", ""));
+		
 		if(lookup.type & ShaderProgram::TypeInstanced)
 			temporaryDefines.emplace_back(ShaderDefine("RN_INSTANCING", ""));
 		
@@ -379,6 +382,11 @@ namespace RN
 		
 		if(lookup.type & ShaderProgram::TypeGammaCorrection)
 			temporaryDefines.emplace_back(ShaderDefine("RN_GAMMA_CORRECTION", ""));
+		
+		if(lookup.lightDirectionalCount > 0)
+			temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_LIGHTS", static_cast<int>(lookup.lightDirectionalCount)));
+		if(lookup.lightPointSpotCount > 0)
+			temporaryDefines.emplace_back(ShaderDefine("RN_POINTSPOT_LIGHTS", 1));
 		
 		temporaryDefines.insert(temporaryDefines.end(), lookup.defines.begin(), lookup.defines.end());
 		
@@ -606,6 +614,7 @@ namespace RN
 		_supportedPrograms |= IsDefined(result.data, "RN_FOG") ? ShaderProgram::TypeFog : 0;
 		_supportedPrograms |= IsDefined(result.data, "RN_CLIPPLANE") ? ShaderProgram::TypeClipPlane : 0;
 		_supportedPrograms |= IsDefined(result.data, "RN_GAMMA_CORRECTION") ? ShaderProgram::TypeGammaCorrection : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_TEXTURE_DIFFUSE") ? ShaderProgram::TypeDiffuse : 0;
 		
 		ShaderData data;
 		data.shader = std::move(result.data);

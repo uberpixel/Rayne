@@ -178,17 +178,18 @@ namespace RN
 		if(!source && !(camera->GetFlags() & Camera::FlagNoRender))
 		{
 			Material *surfaceMaterial = camera->GetMaterial();
-
 			LightManager *lightManager = camera->lightManager;
-			int lightPointSpotCount = 0;
-			int lightDirectionalCount = 0;
-			if(lightManager != nullptr)
-			{
-				lightPointSpotCount = lightManager->CreatePointSpotLightLists(camera);
-				lightDirectionalCount = lightManager->CreateDirectionalLightList(camera);
-			}
 			
-			_renderedLights += lightPointSpotCount + lightDirectionalCount;
+			size_t lightDirectionalCount = 0;
+			size_t lightPointSpotCount = 0;
+			
+			if(lightManager)
+			{
+				lightPointSpotCount   = lightManager->CreatePointSpotLightLists(camera);
+				lightDirectionalCount = lightManager->CreateDirectionalLightList(camera);
+				
+				_renderedLights += lightDirectionalCount + lightPointSpotCount;
+			}
 			
 			// Update the shader
 			const Matrix& projectionMatrix = camera->projectionMatrix;
@@ -223,13 +224,16 @@ namespace RN
 				
 				// Check if we can use instancing here
 				bool wantsInstancing = (object.type == RenderingObject::Type::Instanced);
-				if(RN_EXPECT_FALSE(wantsInstancing))
+				if(wantsInstancing)
 				{
 					if(!shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
 						continue;
 				}
 				
 				// Grab the correct shader program
+				std::vector<ShaderDefine> defines;
+				ShaderLookup lookup = material->GetLookup();
+				
 				uint32 programTypes = 0;
 				ShaderProgram *program = 0;
 				
@@ -240,23 +244,19 @@ namespace RN
 				if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
 					programTypes |= ShaderProgram::TypeAnimated;
 				
-				bool wantsLighting = material->lighting;
-				if(surfaceMaterial)
+				bool wantsLighting = (material->lighting && lightManager && shader->SupportsProgramOfType(ShaderProgram::TypeLighting));
+				
+				// The surface material can only override lighting if the shader supports lighting
+				if(wantsLighting && surfaceMaterial)
 					wantsLighting = surfaceMaterial->lighting;
-
-				if(wantsLighting && shader->SupportsProgramOfType(ShaderProgram::TypeLighting))
+				
+				if(wantsLighting)
 				{
 					programTypes |= ShaderProgram::TypeLighting;
+					lightManager->AdjustProgramTypes(programTypes);
 					
-					if(lightManager != nullptr)
-					{
-						if(lightManager->_lightDirectionalDepth.size() > 0)
-							programTypes |= ShaderProgram::TypeDirectionalShadows;
-						if(lightManager->_lightPointDepth.size() > 0)
-							programTypes |= ShaderProgram::TypePointShadows;
-						if(lightManager->_lightSpotDepth.size() > 0)
-							programTypes |= ShaderProgram::TypeSpotShadows;
-					}
+					lookup.lightDirectionalCount = lightDirectionalCount;
+					lookup.lightPointSpotCount   = lightPointSpotCount;
 				}
 				
 				if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::TypeFog))
@@ -271,24 +271,20 @@ namespace RN
 				if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
 					programTypes |= ShaderProgram::TypeDiscard;
 				
-				std::vector<ShaderDefine> defines;
-				if(material->GetTextures().GetCount()  > 0)
-					defines.emplace_back(ShaderDefine("RN_TEXTURE_DIFFUSE", 1));
-				
-				// Set lighting defines
-				if(lightDirectionalCount > 0)
-					defines.emplace_back(ShaderDefine("RN_DIRECTIONAL_LIGHTS", lightDirectionalCount));
-				
-				if(lightPointSpotCount > 0)
-					defines.emplace_back(ShaderDefine("RN_POINTSPOT_LIGHTS", 1));
+				if(material->GetTextures().GetCount() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDiffuse))
+					programTypes |= ShaderProgram::TypeDiffuse;
 				
 				if(surfaceMaterial)
 				{
-					program = shader->GetProgramWithLookup(surfaceMaterial->GetLookup() + material->GetLookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
+					lookup = lookup + surfaceMaterial->GetLookup();
+					lookup.type |= programTypes;
+					
+					program = shader->GetProgramWithLookup(lookup);
 				}
 				else
 				{
-					program = shader->GetProgramWithLookup(material->GetLookup() + ShaderLookup(programTypes) + ShaderLookup(defines));
+					lookup.type |= programTypes;
+					program = shader->GetProgramWithLookup(lookup);
 				}
 				
 				RN_ASSERT(program, "");
@@ -303,141 +299,12 @@ namespace RN
 				{
 					UpdateShaderData();
 					changedCamera = false;
-					changedShader = true;
-				}
-				
-				if(changedShader)
-				{
-					if(lightManager != nullptr)
-					{
-						if(program->lightDirectionalCount != -1)
-						{
-							gl::Uniform1i(program->lightDirectionalCount, lightDirectionalCount);
-						}
-						if(program->lightDirectionalDirection != -1)
-						{
-							gl::Uniform3fv(program->lightDirectionalDirection, lightDirectionalCount, (float*)lightManager->_lightDirectionalDirection.data());
-						}
-						if(program->lightDirectionalColor != -1)
-						{
-							gl::Uniform4fv(program->lightDirectionalColor, lightDirectionalCount, (float*)lightManager->_lightDirectionalColor.data());
-						}
-						
-						if(program->lightDirectionalMatrix != -1)
-						{
-							float *data = reinterpret_cast<float *>(lightManager->_lightDirectionalMatrix.data());
-							gl::UniformMatrix4fv(program->lightDirectionalMatrix, (GLuint)lightManager->_lightDirectionalMatrix.size(), GL_FALSE, data);
-						}
-						
-						if(lightPointSpotCount > 0 && program->lightClusterSize != -1)
-						{
-							Rect rect = camera->GetFrame();
-							int tilesHeight  = ceil(rect.height / camera->GetLightClusters().y);
-							int tilesDepth = ceil(camera->clipfar/camera->GetLightClusters().z);
-								
-							Vector2 lightClusterSize;
-							lightClusterSize.x = camera->GetLightClusters().x * _scaleFactor;
-							lightClusterSize.y = camera->GetLightClusters().y * _scaleFactor;
-							Vector2 lightClusterCount = Vector2(tilesHeight, tilesDepth);
-							
-							gl::Uniform4f(program->lightClusterSize, lightClusterSize.x, lightClusterSize.y, lightClusterCount.x, lightClusterCount.y);
-						}
-					}
 				}
 				
 				if(changedShader || changedMaterial)
 				{
-					if(lightManager != nullptr)
-					{
-						if(program->lightDirectionalDepth != -1 && lightManager->_lightDirectionalDepth.size() > 0)
-						{
-							uint32 textureUnit = BindTexture(lightManager->_lightDirectionalDepth.front());
-							gl::Uniform1i(program->lightDirectionalDepth, textureUnit);
-						}
-						
-						if(lightManager->_lightPointDepth.size() > 0)
-						{
-							const std::vector<GLuint>& lightPointDepthLocations = program->lightPointDepthLocations;
-							
-							if(lightPointDepthLocations.size() > 0)
-							{
-								size_t textureCount = std::min(lightPointDepthLocations.size(), lightManager->_lightPointDepth.size());
-								
-								
-								uint32 lastpointdepth = 0;
-								for(size_t i=0; i<textureCount; i++)
-								{
-									GLint location = lightPointDepthLocations[i];
-									lastpointdepth = BindTexture(lightManager->_lightPointDepth[i]);
-									gl::Uniform1i(location, lastpointdepth);
-								}
-								
-								for(size_t i = textureCount; i < lightPointDepthLocations.size(); i++)
-								{
-									GLint location = lightPointDepthLocations[i];
-									gl::Uniform1i(location, lastpointdepth);
-								}
-							}
-						}
-						
-						if(lightManager->_lightSpotDepth.size() > 0)
-						{
-							const std::vector<GLuint>& lightSpotDepthLocations = program->lightSpotDepthLocations;
-							
-							if(lightSpotDepthLocations.size() > 0)
-							{
-								size_t textureCount = std::min(lightSpotDepthLocations.size(), lightManager->_lightSpotDepth.size());
-								
-								
-								uint32 lastspotdepth = 0;
-								for(size_t i=0; i<textureCount; i++)
-								{
-									GLint location = lightSpotDepthLocations[i];
-									lastspotdepth = BindTexture(lightManager->_lightSpotDepth[i]);
-									gl::Uniform1i(location, lastspotdepth);
-								}
-								
-								for(size_t i = textureCount; i < lightSpotDepthLocations.size(); i++)
-								{
-									GLint location = lightSpotDepthLocations[i];
-									gl::Uniform1i(location, lastspotdepth);
-								}
-							}
-							
-							if(program->lightSpotMatrix != -1)
-							{
-								float *data = reinterpret_cast<float *>(lightManager->_lightSpotMatrix.data());
-								gl::UniformMatrix4fv(program->lightSpotMatrix, (GLuint)lightManager->_lightSpotMatrix.size(), GL_FALSE, data);
-							}
-						}
-						
-						if(lightPointSpotCount > 0)
-						{
-							if(program->lightListIndices != -1)
-							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[LightManager::LightListIndices]);
-								gl::Uniform1i(program->lightListIndices, textureUnit);
-							}
-							
-							if(program->lightListOffsetCount != -1)
-							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[LightManager::LightListOffsetCount]);
-								gl::Uniform1i(program->lightListOffsetCount, textureUnit);
-							}
-							
-							if(program->lightListDataPoint != -1)
-							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[LightManager::LightListPointData]);
-								gl::Uniform1i(program->lightListDataPoint, textureUnit);
-							}
-							
-							if(program->lightListDataSpot != -1)
-							{
-								uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, lightManager->_lightTextures[LightManager::LightListSpotData]);
-								gl::Uniform1i(program->lightListDataSpot, textureUnit);
-							}
-						}
-					}
+					if(wantsLighting)
+						lightManager->Bind(this, camera, program);
 					
 					gl::Uniform4fv(program->ambient, 1, &material->ambient->r);
 					gl::Uniform4fv(program->diffuse, 1, &material->diffuse->r);

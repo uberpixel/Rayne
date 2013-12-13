@@ -21,33 +21,30 @@ namespace RN
 	class Light;
 	class Camera;
 	class Renderer;
-		
+	class ShaderProgram;
+	class Texture;
+	
 	class LightManager
 	{
-	public:
-		friend class Renderer;
-		friend class Renderer32;
-		
-		enum BufferIndices
-		{
-			LightListOffsetCount = 0,
-			LightListIndices = 1,
-			LightListPointData = 2,
-			LightListSpotData = 3
-		};
-		
+	public:		
 		LightManager();
 		~LightManager();
 		
+		void Bind(Renderer *renderer, Camera *camera, ShaderProgram *program);
+		void AdjustProgramTypes(uint32 &types);
 		
 		void AddLight(Light *light);
-		int CreatePointSpotLightLists(Camera *camera);
-		int CreateDirectionalLightList(Camera *camera);
+		
+		size_t CreatePointSpotLightLists(Camera *camera);
+		size_t CreateDirectionalLightList(Camera *camera);
 		
 	private:
 		void CullLights(Camera *camera);
 		
 		int _maxLightsDirect;
+		
+		size_t _pointSpotLightCount;
+		size_t _directionalLightCount;
 		
 		std::vector<Light *> _pointLights;
 		std::vector<Light *> _spotLights;

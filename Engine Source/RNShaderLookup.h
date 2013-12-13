@@ -36,7 +36,9 @@ namespace RN
 	
 	struct ShaderLookup
 	{
-		ShaderLookup(uint32 ttype)
+		ShaderLookup(uint32 ttype) :
+			lightDirectionalCount(0),
+			lightPointSpotCount(0)
 		{
 			std::hash<std::string> hash_fn;
 			
@@ -45,7 +47,9 @@ namespace RN
 			hash = hash_fn("");
 		}
 		
-		ShaderLookup(const std::vector<ShaderDefine>& tdefines)
+		ShaderLookup(const std::vector<ShaderDefine>& tdefines) :
+			lightDirectionalCount(0),
+			lightPointSpotCount(0)
 		{
 			defines = tdefines;
 			std::sort(defines.begin(), defines.end(), [](const ShaderDefine& left, const ShaderDefine& right) {
@@ -74,39 +78,10 @@ namespace RN
 			return lookup;
 		}
 		
-		
-		
-		ShaderLookup NoFastPath() const
-		{
-			std::vector<ShaderDefine> tdefines;
-			
-			for(auto i = defines.begin(); i != defines.end(); i ++)
-			{
-				if(i->name.find("FASTPATH") != std::string::npos)
-					continue;
-				
-				tdefines.push_back(*i);
-			}
-			
-			ShaderLookup lookup(tdefines);
-			lookup.type = type;
-			
-			return lookup;
-		}
-		
-		bool IsFastPath() const
-		{
-			for(auto i = defines.begin(); i != defines.end(); i ++)
-			{
-				if(i->name.find("FASTPATH") != std::string::npos)
-					return true;
-			}
-			
-			return false;
-		}
-
 		uint32 type;
 		size_t hash;
+		size_t lightDirectionalCount;
+		size_t lightPointSpotCount;
 		std::string mangledDefines;
 		std::vector<ShaderDefine> defines;
 	};
@@ -135,7 +110,7 @@ namespace std
 	{
 		bool operator()(const RN::ShaderLookup& lookup1, const RN::ShaderLookup& lookup2) const 
 		{
-			return (lookup1.type == lookup2.type && lookup1.mangledDefines == lookup2.mangledDefines);
+			return (lookup1.type == lookup2.type && lookup1.lightDirectionalCount == lookup2.lightDirectionalCount && lookup1.lightPointSpotCount == lookup2.lightPointSpotCount && lookup1.mangledDefines == lookup2.mangledDefines);
 		}
 	};
 }
