@@ -25,7 +25,7 @@
 namespace TG
 {
 	World::World() :
-		RN::World("GenericSceneManager")
+		RN::World("OctreeSceneManager")
 	{
 //		srand(time(0));
 		
@@ -289,7 +289,7 @@ namespace TG
 //		_camera->fogcolor = RN::Color::Black();
 		_camera->SetSkyCube(sky);
 		_camera->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
-		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f);
+		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f)*2.0f;
 #endif
 	}
 	
@@ -770,10 +770,10 @@ namespace TG
 		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateDirectionalShadows(true, 2048);
 	
-/*		for(int i=0; i<200; i++)
+/*		for(int i=0; i<10; i++)
 		{
 			RN::Light *light = new RN::Light();
-			light->SetPosition(RN::Vector3(TGWorldRandom * 200.0f - 100.0f, TGWorldRandom * 5.0f, TGWorldRandom * 200.0f-100.0f));
+			light->SetPosition(RN::Vector3(TGWorldRandom * 20.0f - 10.0f, TGWorldRandom * 5.0f, TGWorldRandom * 20.0f-10.0f));
 			light->SetRange((TGWorldRandom * 20.0f) + 10.0f);
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		}*/
@@ -783,7 +783,6 @@ namespace TG
 	void World::CreateSibenik()
 	{
 		RN::Model *sibenik = RN::Model::WithFile("models/Dabrovic/sibenik/sibenik.sgm");
-		
 		RN::Entity *ent = new RN::Entity();
 		ent->SetModel(sibenik);
 		
@@ -798,10 +797,10 @@ namespace TG
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(20.0f);
 		_spotLight->SetColor(RN::Color(0.5f));
-		_spotLight->ActivateSpotShadows();
+		_spotLight->ActivateSpotShadows(true, 8192);
 		_camera->AttachChild(_spotLight);
 		
-		for(int i=0; i<300; i++)
+		for(int i=0; i<0; i++)
 		{
 			RN::Light *light = new RN::Light();
 			light->SetPosition(RN::Vector3(TGWorldRandom * 20.0f - 10.0f, TGWorldRandom * 20.0f-15.0f, TGWorldRandom * 20.0f - 10.0f));

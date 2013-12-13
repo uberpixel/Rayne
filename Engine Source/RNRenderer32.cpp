@@ -256,7 +256,10 @@ namespace RN
 					lightManager->AdjustProgramTypes(programTypes);
 					
 					lookup.lightDirectionalCount = lightDirectionalCount;
-					lookup.lightPointSpotCount   = lightPointSpotCount;
+					
+					//TODO: fix
+					if(lightPointSpotCount > 0)
+						lookup.lightPointSpotCount = 1;//lightPointSpotCount;
 				}
 				
 				if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::TypeFog))
