@@ -91,7 +91,7 @@ namespace RN
 	
 	void GenericSceneManager::RenderSceneNode(Camera *camera, SceneNode *node)
 	{
-		if(!(camera->renderGroup & (1 << node->renderGroup)) || node->GetFlags() & SceneNode::FlagHidden)
+		if(!(camera->renderGroup & (1 << node->renderGroup)))
 			return;
 		
 		if(node->IsVisibleInCamera(camera))

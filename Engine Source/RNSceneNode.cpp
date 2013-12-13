@@ -195,6 +195,9 @@ namespace RN
 	
 	bool SceneNode::IsVisibleInCamera(Camera *camera)
 	{
+		if(_flags & FlagHidden)
+			return false;
+		
 		return camera->InFrustum(GetBoundingSphere());
 	}
 	
