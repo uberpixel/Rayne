@@ -144,6 +144,9 @@ namespace RN
 		
 		for(InstancingLODStage *stage : _stages)
 		{
+			if(stage->IsEmpty())
+				continue;
+			
 			stage->Render(object, renderer);
 		}
 	}

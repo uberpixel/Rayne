@@ -41,6 +41,8 @@ namespace RN
 		void UpdateData();
 		void Render(RenderingObject &object, Renderer *renderer);
 		
+		bool IsEmpty() const { return _indices.empty(); }
+		
 	private:
 		Model *_model;
 		bool _dirty;
