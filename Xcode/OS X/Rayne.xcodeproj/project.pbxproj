@@ -164,6 +164,8 @@
 		E995F3CD1709B9F20051223B /* RNPathManager.h in Headers */ = {isa = PBXBuildFile; fileRef = E995F3CB1709B9F20051223B /* RNPathManager.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E996A0B416F2CE97000EFB03 /* RNRenderer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E996A0B216F2CE97000EFB03 /* RNRenderer.cpp */; };
 		E996A0B516F2CE97000EFB03 /* RNRenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = E996A0B316F2CE97000EFB03 /* RNRenderer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9978BF818517A9E008F63B3 /* RNInstancingData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9978BF618517A9E008F63B3 /* RNInstancingData.cpp */; };
+		E9978BF918517A9E008F63B3 /* RNInstancingData.h in Headers */ = {isa = PBXBuildFile; fileRef = E9978BF718517A9E008F63B3 /* RNInstancingData.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9985BE217E762080027B667 /* RNUIMenu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9985BE017E762080027B667 /* RNUIMenu.cpp */; };
 		E9985BE317E762080027B667 /* RNUIMenu.h in Headers */ = {isa = PBXBuildFile; fileRef = E9985BE117E762080027B667 /* RNUIMenu.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E99A955D1729AE1800605C68 /* RNInstancingNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E99A955B1729AE1800605C68 /* RNInstancingNode.cpp */; };
@@ -443,6 +445,8 @@
 		E995F3CB1709B9F20051223B /* RNPathManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNPathManager.h; sourceTree = "<group>"; };
 		E996A0B216F2CE97000EFB03 /* RNRenderer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNRenderer.cpp; sourceTree = "<group>"; };
 		E996A0B316F2CE97000EFB03 /* RNRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRenderer.h; sourceTree = "<group>"; };
+		E9978BF618517A9E008F63B3 /* RNInstancingData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNInstancingData.cpp; sourceTree = "<group>"; };
+		E9978BF718517A9E008F63B3 /* RNInstancingData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNInstancingData.h; sourceTree = "<group>"; };
 		E9985BE017E762080027B667 /* RNUIMenu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIMenu.cpp; sourceTree = "<group>"; };
 		E9985BE117E762080027B667 /* RNUIMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIMenu.h; sourceTree = "<group>"; };
 		E99A955B1729AE1800605C68 /* RNInstancingNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNInstancingNode.cpp; sourceTree = "<group>"; };
@@ -864,6 +868,8 @@
 				E9619DFA1696157E00DA187E /* RNContext.cpp */,
 				E9619DFB1696157E00DA187E /* RNContext.h */,
 				E93F7052180E064400593EF6 /* RNContextInternal.h */,
+				E9978BF618517A9E008F63B3 /* RNInstancingData.cpp */,
+				E9978BF718517A9E008F63B3 /* RNInstancingData.h */,
 				D58CEA3D18159965002EB442 /* RNLightManager.cpp */,
 				D58CEA3C18159965002EB442 /* RNLightManager.h */,
 				E9619E051696157E00DA187E /* RNMaterial.cpp */,
@@ -1043,6 +1049,7 @@
 				E9B03FEC16F279E40016176B /* RNModule.h in Headers */,
 				E9985BE317E762080027B667 /* RNUIMenu.h in Headers */,
 				E92B858E16FC4C9E002FA04D /* RNFunction.h in Headers */,
+				E9978BF918517A9E008F63B3 /* RNInstancingData.h in Headers */,
 				E955496017A7B1470048FBBC /* RNShaderUnit.h in Headers */,
 				E9F2B6861838B11F0014FB80 /* RNSHA2.h in Headers */,
 				E92B859216FC6027002FA04D /* RNRenderStorage.h in Headers */,
@@ -1230,6 +1237,7 @@
 				E945665D17D4922200DEA632 /* RNIndexSet.cpp in Sources */,
 				E9619E291696157E00DA187E /* RNBase.cpp in Sources */,
 				E951615917D40D930006156A /* RNUITableView.cpp in Sources */,
+				E9978BF818517A9E008F63B3 /* RNInstancingData.cpp in Sources */,
 				E9619E2B1696157E00DA187E /* RNCamera.cpp in Sources */,
 				E9619E2E1696157E00DA187E /* RNContext.cpp in Sources */,
 				E9F2B6851838B11F0014FB80 /* RNSHA2.cpp in Sources */,

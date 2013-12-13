@@ -574,8 +574,11 @@ namespace RN
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
 		RN_ASSERT(_currentProgram->instancingData != -1, "");
 		
-		uint32 textureUnit = BindTexture(GL_TEXTURE_BUFFER, object.instancingData);
-		gl::Uniform1i(_currentProgram->instancingData, textureUnit);
+		uint32 dataUnit = BindTexture(GL_TEXTURE_BUFFER, object.instancingData);
+		uint32 indicesUnit = BindTexture(GL_TEXTURE_BUFFER, object.instancingIndices);
+		
+		gl::Uniform1i(_currentProgram->instancingData, dataUnit);
+		gl::Uniform1i(_currentProgram->instancingIndices, indicesUnit);
 		
 		if(descriptor)
 		{

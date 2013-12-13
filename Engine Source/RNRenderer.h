@@ -44,6 +44,7 @@ namespace RN
 			count  = 0;
 			
 			instancingData = 0;
+			instancingIndices = 0;
 			
 			mesh      = 0;
 			material  = 0;
@@ -69,6 +70,7 @@ namespace RN
 		Rect scissorRect;
 		
 		GLuint instancingData;
+		GLuint instancingIndices;
 		std::function<void (Renderer *renderer, RenderingObject&)> prepare;
 		std::function<void (Renderer *renderer, const RenderingObject&)> callback;
 	};

@@ -21,27 +21,19 @@ namespace RN
 	{
 		AddObservable(&_model);
 		AddObservable(&_skeleton);
-		
-		_model = nullptr;
-		_skeleton = nullptr;
-		
-		_ignoreDrawing = false;
 	}
 	
 	Entity::~Entity()
 	{
-		if(_model)
-			_model->Release();
-		
-		if(_skeleton)
-			_skeleton->Release();
+		SafeRelease(_skeleton);
+		SafeRelease(_model);
 	}
 	
 	void Entity::Render(Renderer *renderer, Camera *camera)
 	{
 		SceneNode::Render(renderer, camera);
 		
-		if(_model && !_ignoreDrawing)
+		if(_model)
 		{
 			float distance = 0.0f;
 			Camera *distanceCamera = (camera->GetLODCamera()) ? camera->GetLODCamera() : camera;
@@ -67,44 +59,35 @@ namespace RN
 		}
 	}
 	
-	bool Entity::IsVisibleInCamera(Camera *camera)
-	{
-		if(_ignoreDrawing)
-			return false;
-		
-		return SceneNode::IsVisibleInCamera(camera);
-	}
-	
-	
 	void Entity::SetModel(Model *model)
 	{
-		WillUpdate(ChangedGeneric);
 		Lock();
+	
+		_model.WillChangeValue();
 		
-		if(_model)
-			_model->Release();
+		SafeRelease(_model);
+		_model = SafeRetain(model);
 		
-		_model = model ? model->Retain() : 0;
+		_model.DidChangeValue();
 		
 		if(_model)
 			SetBoundingBox(_model->GetBoundingBox(), true);
 		
 		Unlock();
-		DidUpdate(ChangedGeneric);
 	}
 	
 	void Entity::SetSkeleton(Skeleton *skeleton)
 	{
-		WillUpdate(ChangedGeneric);
 		Lock();
 		
-		if(_skeleton)
-			_skeleton->Release();
+		_skeleton.WillChangeValue();
+
+		SafeRelease(_skeleton);
+		_skeleton = SafeRetain(skeleton);
 		
-		_skeleton = skeleton ? (Skeleton *)skeleton->Retain() : nullptr;
-		
+		_skeleton.DidChangeValue();
+
 		Unlock();
-		DidUpdate(ChangedGeneric);
 	}
 	
 	Hit Entity::CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)

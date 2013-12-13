@@ -21,10 +21,11 @@ uniform mat4 matProjInverse;
 #if defined(RN_INSTANCING)
 
 uniform samplerBuffer instancingData;
+uniform usamplerBuffer instancingIndices; 
 
 mat4 imatModel(int iOffset)
 {
-	int offset = (gl_InstanceID * 8) + iOffset;
+	int offset = (int(texelFetch(instancingIndices, gl_InstanceID).r) * 8) + iOffset;
 	mat4 matrix;
 
 	matrix[0] = texelFetch(instancingData, offset + 0);

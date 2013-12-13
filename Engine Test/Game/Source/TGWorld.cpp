@@ -701,11 +701,12 @@ namespace TG
 		
 
 		RN::Entity *ent;
-//		RN::InstancingNode *node;
+		RN::InstancingNode *node;
 		RN::Random::DualPhaseLCG dualPhaseLCG;
 		dualPhaseLCG.Seed(0x1024);
 		
-//		node = new RN::InstancingNode(tree);
+		node = new RN::InstancingNode();
+		node->SetModels(RN::Array::WithObjects(trees[0], trees[1], trees[2], trees[3], trees[4], trees[5], trees[6], trees[7], trees[8], trees[9], nullptr));
 		
 		for(int i = 0; i < TGForestFeatureTrees; i ++)
 		{
@@ -716,22 +717,24 @@ namespace TG
 			
 			ent = new RN::Entity();
 			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
-			ent->SetModel(trees[dualPhaseLCG.RandomInt32Range(0, TREE_MODEL_COUNT)]);
+			ent->SetModel(trees[dualPhaseLCG.RandomInt32Range(0, 4)]);
 			ent->SetPosition(pos);
 			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.89f, 1.12f)));
 			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.0f, 365.0f), 0.0f, 0.0f));
 			
-//			node->AttachChild(ent);
+			node->AttachChild(ent);
 		}
 		
-		RN::Model *grass = RN::Model::WithFile("models/dexsoft/grass/grass_1.sgm");
+		/*RN::Model *grass = RN::Model::WithFile("models/dexsoft/grass/grass_1.sgm");
 		grass->GetMaterialAtIndex(0, 0)->culling = false;
 		grass->GetMaterialAtIndex(0, 0)->discard = true;
 		grass->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		
-//		node = new RN::InstancingNode(grass);
+		node = new RN::InstancingNode(grass);
+		node->SetPivot(_camera);
+		node->SetLimit(200, 800);
 		
-		for(int i=0; i<TGForestFeatureGras; i++)
+		for(int i = 0; i < TGForestFeatureGras; i ++)
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-50.0f, 50.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-50.0f, 50.0f));
 			if(pos.Length() < 5.0f)
@@ -744,8 +747,8 @@ namespace TG
 			ent->SetScale(RN::Vector3(2.5f));
 			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0, 365.0f), 0.0f, 0.0f));
 			
-//			node->AttachChild(ent);
-		}
+			node->AttachChild(ent);
+		}*/
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");

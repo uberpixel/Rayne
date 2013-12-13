@@ -20,13 +20,8 @@
 
 namespace RN
 {
-	class World;
-	class InstancingNode;
-	
 	class Entity : public SceneNode
 	{
-	friend class World;
-	friend class InstancingNode;
 	public:
 		RNAPI Entity();
 		RNAPI ~Entity() override;
@@ -36,7 +31,6 @@ namespace RN
 		
 		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone) override;
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
-		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		
 		Model *GetModel() { return _model; }
 		Skeleton *GetSkeleton() { return _skeleton; }
@@ -44,8 +38,6 @@ namespace RN
 	private:
 		Observable<Model *>_model;
 		Observable<Skeleton *>_skeleton;
-		
-		bool _ignoreDrawing;
 		
 		RNDefineMetaWithTraits(Entity, SceneNode, MetaClassTraitCronstructable)
 	};

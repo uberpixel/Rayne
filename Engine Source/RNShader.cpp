@@ -61,6 +61,7 @@ namespace RN
 		
 		__GetUniformLocation(matBones);
 		__GetUniformLocation(instancingData);
+		__GetUniformLocation(instancingIndices);
 		
 		__GetUniformLocation(time);
 		__GetUniformLocation(frameSize);

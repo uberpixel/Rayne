@@ -56,6 +56,7 @@ namespace RN
 		GLuint matBones;
 		
 		GLuint instancingData;
+		GLuint instancingIndices;
 		
 		GLuint attPosition;
 		GLuint attNormal;

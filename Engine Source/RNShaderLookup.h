@@ -68,7 +68,7 @@ namespace RN
 			std::vector<ShaderDefine> tdefines(defines);
 			tdefines.insert(tdefines.end(), other.defines.begin(), other.defines.end());
 			
-			ShaderLookup lookup(std::move(ShaderLookup(tdefines)));
+			ShaderLookup lookup(tdefines);
 			
 			lookup.type = (type | other.type);
 			return lookup;

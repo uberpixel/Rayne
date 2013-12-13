@@ -11,47 +11,57 @@
 
 #include "RNBase.h"
 #include "RNSceneNode.h"
+#include "RNSet.h"
+#include "RNCountedSet.h"
 #include "RNEntity.h"
+#include "RNInstancingData.h"
 
 namespace RN
 {
 	class InstancingNode : public SceneNode
 	{
 	public:
+		enum
+		{
+			ModeIncludeZAxis = (1 << 0)
+		};
+		
 		InstancingNode();
 		InstancingNode(Model *model);
 		~InstancingNode() override;
 		
 		RNAPI void SetModel(Model *model);
+		RNAPI void AddModel(Model *model);
+		RNAPI void SetModels(const Array *models);
+		RNAPI void SetModels(const Set *models);
+		RNAPI void SetPivot(SceneNode *pivot);
+		RNAPI void SetLimit(size_t lower, size_t upper);
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		
 	protected:
 		RNAPI void ChildDidUpdate(SceneNode *child, uint32 changeSet) override;
-		RNAPI void DidAddChild(SceneNode *child) override;
-		RNAPI void DidRemoveChild(SceneNode *child) override;
+		RNAPI void WillAddChild(SceneNode *child) override;
+		RNAPI void WillRemoveChild(SceneNode *child) override;
 		
 	private:
-		struct InstancedMesh
-		{
-			Mesh *mesh;
-			Material *material;
-			
-			GLuint texture;
-			GLuint buffer;
-			
-			uint32 count;
-		};
+		void Initialize();
+		void SortChildren();
+		void RecreateData();
+		void ModelsChanged();
 		
-		void MarkChildDirty(SceneNode *child, bool canRecover);
-		void GenerateDataForMesh(const std::vector<Entity *>& entities, Mesh *mesh, Material *material);
-		void UpdateDataForMesh(Entity *entity, const InstancedMesh& mesh, uint32 index);
-		void RecalculateData();
+		void EntityDidUpdateModel(Object *object, const std::string&key, Dictionary *changes);
+		void ModelDidUpdate(Model *model);
 		
-		bool _dirty;
-		Model *_model;
-		std::vector<InstancedMesh> _data;
+		std::unordered_map<Model *, InstancingData *> _data;
+	
+		Set *_models;
+		
+		uint32 _mode;
+		size_t _minimum;
+		size_t _limit;
+		SceneNode *_pivot;
 		
 		MetaClassBase *_entityClass;
 	};

@@ -42,6 +42,7 @@ namespace RN
 		
 		uint32 GetLODStageForDistance(float distance) const;
 		uint32 GetMeshCount(uint32 lodStage) const;
+		size_t GetLODStageCount() const { return _groups.size(); }
 		
 		Mesh *GetMeshAtIndex(uint32 lodStage, uint32 index) const;
 		Material *GetMaterialAtIndex(uint32 lodStage, uint32 index) const;
