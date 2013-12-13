@@ -166,8 +166,11 @@ namespace RN
 		_window   = Window::GetSharedInstance();
 		
 		// Initialize some state
-		_world = nullptr;
+		_world  = nullptr;
 		_frame  = 0;
+		_maxFPS = 0;
+		
+		SetMaxFPS(120);
 		
 		_delta = 0.0f;
 		_time  = 0.0f;
@@ -470,7 +473,7 @@ namespace RN
 			_resetDelta = false;
 		}
 		
-		if(!_initialized)
+		if(RN_EXPECT_FALSE(!_initialized))
 		{
 			Initialize();
 			trueDelta = 0.0f;
@@ -480,7 +483,7 @@ namespace RN
 			
 			RNDebug("First frame");
 		}
-
+		
 		_time += trueDelta;
 
 		_delta = trueDelta * _timeScale;
@@ -574,6 +577,23 @@ namespace RN
 		_lastFrame = now;
 		_pool->Drain();
 		
+		// See how long this frame took and wait if needed
+		if(_maxFPS > 0)
+		{
+			now = std::chrono::steady_clock::now();
+			
+			milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
+			trueDelta    = milliseconds / 1000.0f;
+			
+			if(_minDelta > trueDelta)
+			{
+				long sleepTime = (_minDelta - trueDelta) * 1000000;
+				
+				if(sleepTime > 1000)
+					std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
+			}
+		}
+		
 		return (_shouldExit == false);
 	}
 
@@ -591,6 +611,14 @@ namespace RN
 	void Kernel::SetTimeScale(float timeScale)
 	{
 		_timeScale = timeScale;
+	}
+	
+	void Kernel::SetMaxFPS(uint32 fps)
+	{
+		_maxFPS = fps;
+		
+		if(_maxFPS > 0)
+			_minDelta = 1.0f / _maxFPS;
 	}
 
 	void Kernel::DidSleepForSignificantTime()
