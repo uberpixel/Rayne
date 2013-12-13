@@ -561,6 +561,13 @@ namespace RN
 		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidEndFrameMessage, nullptr, nullptr);
 		
 #if RN_PLATFORM_MAC_OS
+//TODO: remove?
+#if 0
+		static int swip = 0;
+		gl::ClearColor(swip ? 1.0:0.0, swip ? 1.0:0.0, swip ? 1.0:0.0, 1.0f);
+		gl::Clear(GL_COLOR_BUFFER_BIT);
+		swip = !swip;
+#endif
 		CGLFlushDrawable(_context->_internals->cglContext);
 #endif
 		

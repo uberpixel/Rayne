@@ -255,7 +255,7 @@ namespace RN
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListPointData]);
 			if(lightDataSize > _lightPointDataSize)
 			{
-				gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
+				gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, nullptr, GL_STATIC_DRAW);
 				_lightPointDataSize = lightDataSize;
 			}
 			
@@ -290,7 +290,8 @@ namespace RN
 				}
 			}
 			
-			gl::BufferSubData(GL_TEXTURE_BUFFER, 0, lightDataSize, lightData);
+			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, nullptr, GL_STATIC_DRAW);
+			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_STATIC_DRAW);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 		
@@ -322,9 +323,7 @@ namespace RN
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListSpotData]);
 			if(lightDataSize > _lightSpotDataSize)
 			{
-				gl::BufferData(GL_TEXTURE_BUFFER, _lightSpotDataSize, 0, GL_DYNAMIC_DRAW);
-				gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, 0, GL_DYNAMIC_DRAW);
-				
+				gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, nullptr, GL_STATIC_DRAW);
 				_lightSpotDataSize = lightDataSize;
 			}
 			
@@ -364,7 +363,8 @@ namespace RN
 				}
 			}
 			
-			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_DYNAMIC_DRAW);
+			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, nullptr, GL_STATIC_DRAW);
+			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_STATIC_DRAW);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 		
@@ -443,7 +443,7 @@ namespace RN
 			_lightIndices = new uint16[_lightIndicesSize];
 			
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListIndices]);
-			gl::BufferData(GL_TEXTURE_BUFFER, _lightIndicesSize * sizeof(uint16), nullptr, GL_DYNAMIC_DRAW);
+			gl::BufferData(GL_TEXTURE_BUFFER, _lightIndicesSize * sizeof(uint16), nullptr, GL_STATIC_DRAW);
 		}
 		
 		if(_lightOffsetCountSize < clusterCount * 3)
@@ -452,7 +452,7 @@ namespace RN
 			_lightOffsetCount = new int32[_lightOffsetCountSize];
 			
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListOffsetCount]);
-			gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int32), nullptr, GL_DYNAMIC_DRAW);
+			gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int32), nullptr, GL_STATIC_DRAW);
 		}
 		
 		std::fill(_lightOffsetCount, _lightOffsetCount + _lightOffsetCountSize, 0);
@@ -666,9 +666,11 @@ namespace RN
 		}
 		
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListOffsetCount]);
-		gl::BufferSubData(GL_TEXTURE_BUFFER, 0, _lightOffsetCountSize * sizeof(int32), _lightOffsetCount);
+		gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int32), nullptr, GL_STATIC_DRAW);
+		gl::BufferData(GL_TEXTURE_BUFFER, _lightOffsetCountSize * sizeof(int32), _lightOffsetCount, GL_STATIC_DRAW);
 		
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListIndices]);
-		gl::BufferSubData(GL_TEXTURE_BUFFER, 0, offset * sizeof(uint16), _lightIndices);
+		gl::BufferData(GL_TEXTURE_BUFFER, offset * sizeof(uint16), nullptr, GL_STATIC_DRAW);
+		gl::BufferData(GL_TEXTURE_BUFFER, offset * sizeof(uint16), _lightIndices, GL_STATIC_DRAW);
 	}
 }

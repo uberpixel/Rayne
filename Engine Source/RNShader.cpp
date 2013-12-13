@@ -409,7 +409,9 @@ namespace RN
 		for(auto i = units.begin(); i != units.end(); i ++)
 		{
 			ShaderUnit *unit = *i;
+#if !defined(DEBUG)
 			gl::DetachShader(program->program, unit->GetShader());
+#endif
 			
 			delete unit;
 		}
