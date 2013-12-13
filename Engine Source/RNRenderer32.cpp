@@ -444,10 +444,20 @@ namespace RN
 					gl::Uniform4fv(program->emissive, 1, &material->emissive->r);
 					gl::Uniform4fv(program->specular, 1, &material->specular->r);
 					
+					if(program->discardThreshold != -1)
+					{
+						float threshold = material->discardThreshold;
+						
+						if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
+							threshold = surfaceMaterial->discardThreshold;
+						
+						gl::Uniform1f(program->discardThreshold, threshold);
+					}
+					
 					material->ApplyUniforms(program);
 				}
 				
-				if(RN_EXPECT_FALSE(wantsInstancing))
+				if(wantsInstancing)
 				{
 					DrawMeshInstanced(object);
 					continue;
@@ -494,16 +504,6 @@ namespace RN
 				{
 					Matrix projViewModelInverse = inverseProjectionViewMatrix * inverseTransform;
 					gl::UniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
-				}
-				
-				if(program->discardThreshold != -1)
-				{
-					float threshold = material->discardThreshold;
-					
-					if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
-						threshold = surfaceMaterial->discardThreshold;
-					
-					gl::Uniform1f(program->discardThreshold, threshold);
 				}
 				
 				if(RN_EXPECT_FALSE(object.type == RenderingObject::Type::Custom))
