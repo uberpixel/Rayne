@@ -105,7 +105,9 @@ namespace RN
 		
 		FileSystemNode *GetFileSystemNode(const std::string& name);
 		FileProxy *GetFileWithName(const std::string& name, bool strict = true);
+		
 		std::string GetFilePathWithName(const std::string& name, bool strict = true);
+		std::string GetNormalizedPathFromFullpath(const std::string& name);
 		
 		bool AddSearchPath(const std::string& path);
 		void RemoveSearchPath(const std::string& path);

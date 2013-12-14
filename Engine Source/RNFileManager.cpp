@@ -679,6 +679,30 @@ namespace RN
 		return proxy->GetPath();
 	}
 	
+	std::string FileManager::GetNormalizedPathFromFullpath(const std::string& name)
+	{
+		char buffer[1024];
+		char *result = realpath(name.c_str(), buffer);
+		
+		if(!result)
+			throw Exception(Exception::Type::InconsistencyException, "");
+		
+		std::string path(buffer);
+		
+		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool *stop) {
+			
+			std::string dpath = directory->GetPath();
+			
+			if(path.find(dpath) == 0)
+			{
+				path = path.substr(dpath.length() + 1);
+				*stop = true;
+			}
+			
+		});
+		
+		return path;
+	}
 	
 	
 	void FileManager::AddFileModifier(const std::string& modifier, const std::string& extension)
@@ -705,9 +729,13 @@ namespace RN
 	
 	
 	
-	bool FileManager::AddSearchPath(const std::string& path)
+	bool FileManager::AddSearchPath(const std::string& tpath)
 	{
 		bool hasPath = false;
+		char buffer[1024];
+		char *result = realpath(tpath.c_str(), buffer);
+		
+		std::string path(result ? buffer : tpath.c_str());
 		
 		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t index, bool *stop) {
 			if(directory->GetPath() == path)
