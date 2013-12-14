@@ -26,7 +26,7 @@ namespace RN
 		
 		RNAPI void FlushCamera(Camera *camera, Shader *drawShader) override;
 		RNAPI void DrawCameraStage(Camera *camera, Camera *stage) override;
-		RNAPI void DrawCamera(Camera *camera, Camera *source, uint32 skyCubeMeshes) override;
+		RNAPI void DrawCamera(Camera *camera, Camera *source, size_t skyCubeMeshes) override;
 		
 		RNAPI void AdjustDrawBuffer(Camera *camera, Camera *target);
 		

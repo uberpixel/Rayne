@@ -197,7 +197,7 @@ namespace RN
 				_used  ++;
 			}
 			
-			uint32 stage = 0;
+			size_t stage = 0;
 			
 			if(_pivot)
 				stage = _model->GetLODStageForDistance(entity->GetWorldPosition().Distance(_pivot->GetWorldPosition()));
@@ -251,8 +251,8 @@ namespace RN
 	{
 		if(_pivot)
 		{
-			uint32 oldStage = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey))->GetUint32Value();
-			uint32 newStage = _model->GetLODStageForDistance(entity->GetWorldPosition().Distance(_pivot->GetWorldPosition()));
+			size_t oldStage = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey))->GetUint32Value();
+			size_t newStage = _model->GetLODStageForDistance(entity->GetWorldPosition().Distance(_pivot->GetWorldPosition()));
 			
 			if(newStage != oldStage)
 			{

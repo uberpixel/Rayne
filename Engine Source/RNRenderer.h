@@ -141,7 +141,7 @@ namespace RN
 		
 	protected:
 		RNAPI virtual void UpdateShaderData();
-		RNAPI virtual void DrawCamera(Camera *camera, Camera *source, uint32 skyCubeMeshes);
+		RNAPI virtual void DrawCamera(Camera *camera, Camera *source, size_t skyCubeMeshes);
 		RNAPI virtual void BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple);
 		
 		RNAPI virtual void FlushCamera(Camera *camera, Shader *drawShader);

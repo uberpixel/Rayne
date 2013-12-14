@@ -45,11 +45,11 @@ namespace RN
 			RenderingObject object;
 			FillRenderingObject(object);
 			
-			uint32 lodStage = _model->GetLODStageForDistance(distance);
+			size_t lodStage = _model->GetLODStageForDistance(distance);
 			object.skeleton = GetSkeleton();
 			
-			uint32 count = _model->GetMeshCount(lodStage);
-			for(uint32 i=0; i<count; i++)
+			size_t count = _model->GetMeshCount(lodStage);
+			for(size_t i = 0; i < count; i ++)
 			{
 				object.mesh = _model->GetMeshAtIndex(lodStage, i);
 				object.material = _model->GetMaterialAtIndex(lodStage, i);

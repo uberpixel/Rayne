@@ -31,6 +31,27 @@ namespace RN
 		RNDefineMeta(PNGResourceLoader, ResourceLoader)
 	};
 	
+	class Model;
+	class SGMResourceLoader : public ResourceLoader
+	{
+	public:
+		SGMResourceLoader();
+		
+		Object *Load(File *file, Dictionary *settings) override;
+		
+		bool SupportsBackgroundLoading() override;
+		bool SupportsLoadingFile(File *file) override;
+		
+		uint32 GetPriority() const override;
+		
+		static void InitialWakeUp(MetaClassBase *meta);
+		
+	private:
+		void LoadLODStage(File *file, Model *model, size_t stage, bool guessMaterial);
+		
+		RNDefineMeta(SGMResourceLoader, ResourceLoader)
+	};
+	
 	class GLSLResourceLoader : public ResourceLoader
 	{
 	public:

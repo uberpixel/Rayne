@@ -16,12 +16,13 @@
 #include "RNNumber.h"
 #include "RNTexture.h"
 #include "RNShader.h"
-#include "RNUIFont.h"
+#include "RNModel.h"
 
 namespace RN
 {
 	RNDeclareMeta(PNGResourceLoader)
 	RNDeclareMeta(GLSLResourceLoader)
+	RNDeclareMeta(SGMResourceLoader)
 	
 	// ---------------------
 	// MARK: -
@@ -166,6 +167,285 @@ namespace RN
 	}
 	
 	uint32 PNGResourceLoader::GetPriority() const
+	{
+		return kRNResourceCoordinatorBuiltInPriority;
+	}
+	
+	// ---------------------
+	// MARK: -
+	// MARK: SGMResourceLoader
+	// ---------------------
+	
+	SGMResourceLoader::SGMResourceLoader() :
+		ResourceLoader(Model::MetaClass())
+	{
+		uint8 magicBytes[] = { 0x90, 0x22, 0x5, 0x15 };
+		
+		Data *data = new Data(magicBytes, 4);
+		
+		SetFileExtensions({ "sgm" });
+		SetMagicBytes(data, 0);
+		
+		data->Release();
+	}
+	
+	void SGMResourceLoader::InitialWakeUp(MetaClassBase *meta)
+	{
+		if(meta == MetaClass())
+		{
+			SGMResourceLoader *loader = new SGMResourceLoader();
+			ResourceCoordinator::GetSharedInstance()->RegisterResourceLoader(loader);
+			loader->Release();
+		}
+	}
+	
+	Object *SGMResourceLoader::Load(File *file, Dictionary *settings)
+	{
+		Model *model = new Model();
+		
+		bool guessMaterial = true;
+		float distance[] = { 0.05f, 0.125f, 0.50f, 0.75 };
+		size_t stage = 0;
+		
+		if(settings->GetObjectForKey(RNCSTR("guessMaterial")))
+		{
+			Number *number = settings->GetObjectForKey<Number>(RNCSTR("guessMaterial"));
+			guessMaterial = number->GetBoolValue();
+		}
+		
+		LoadLODStage(file, model, stage, guessMaterial);
+		
+		std::string base = PathManager::Basepath(file->GetFullPath());
+		std::string name = PathManager::Basename(file->GetFullPath());
+		std::string extension = PathManager::Extension(file->GetFullPath());
+		
+		while(stage < 5)
+		{
+			std::stringstream stream;
+			stream << name << "_lod" << (stage + 1) << "." << extension;
+			
+			std::string lodPath = PathManager::Join(base, stream.str());
+			
+			try
+			{
+				File *lodFile = new File(lodPath);
+				
+				stage = model->AddLODStage(distance[stage]);
+				LoadLODStage(lodFile, model, stage, guessMaterial);
+				
+				lodFile->Release();
+			}
+			catch(Exception e)
+			{
+				break;
+			}
+		}
+		
+		return model;
+	}
+	
+	void SGMResourceLoader::LoadLODStage(File *file, Model *model, size_t stage, bool guessMaterial)
+	{
+		file->Seek(5); // Skip over magic bytes and version number
+		
+		Shader *shader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr);
+		
+		std::vector<Material *> materials;
+		uint8 materialCount = file->ReadUint8();
+		
+		// Get Materials
+		for(uint8 i = 0; i < materialCount; i ++)
+		{
+			Material *material = new Material(shader);
+			__unused uint8 materialid = file->ReadUint8();
+			
+			uint8 uvCount = file->ReadUint8();
+			
+			for(uint8 u = 0; u < uvCount; u ++)
+			{
+				uint8 textureCount = file->ReadUint8();
+				
+				for(uint8 n = 0; n < textureCount; n ++)
+				{
+					uint8 usagehint = file->ReadUint8();
+					
+					std::string textureFile;
+					std::string path;
+					
+					file->ReadIntoString(textureFile, file->ReadUint16());
+					path = FileManager::GetSharedInstance()->GetNormalizedPathFromFullpath(PathManager::Join(file->GetPath(), textureFile));
+					
+					Texture *texture = Texture::WithFile(path, (usagehint == 1));
+					material->AddTexture(texture);
+					
+					if(guessMaterial)
+					{
+						switch(usagehint)
+						{
+							case 1:
+								material->Define("RN_NORMALMAP");
+								break;
+								
+							case 2:
+								material->Define("RN_SPECULARITY");
+								material->Define("RN_SPECMAP");
+								break;
+								
+							default:
+								break;
+						}
+					}
+				}
+			}
+			
+			uint8 colorCount = file->ReadUint8();
+			for(uint8 u = 0; u < colorCount; u ++)
+			{
+				uint8 usagehint = file->ReadUint8();
+				Color color(file->ReadFloat(), file->ReadFloat(), file->ReadFloat(), file->ReadFloat());
+				
+				if(usagehint == 0 && u == 0)
+					material->diffuse = color;
+			}
+			
+			materials.push_back(material);
+		}
+		
+		// Get Meshes
+		uint8 meshCount = file->ReadUint8();
+		
+		for(uint8 i = 0; i < meshCount; i ++)
+		{
+			file->ReadUint8();
+			
+			Material *material = materials[file->ReadUint8()];
+			
+			uint32 verticesCount = file->ReadUint32();
+			uint8 uvCount   = file->ReadUint8();
+			uint8 dataCount = file->ReadUint8();
+			bool hasTangent = file->ReadUint8();
+			bool hasBones   = file->ReadUint8();
+			
+			std::vector<MeshDescriptor> descriptors;
+			size_t size = 0;
+			
+			MeshDescriptor meshDescriptor(kMeshFeatureVertices);
+			meshDescriptor.elementSize = sizeof(Vector3);
+			meshDescriptor.elementMember = 3;
+			
+			descriptors.push_back(meshDescriptor);
+			size += meshDescriptor.elementSize;
+			
+			meshDescriptor = MeshDescriptor(kMeshFeatureNormals);
+			meshDescriptor.elementSize = sizeof(Vector3);
+			meshDescriptor.elementMember = 3;
+			
+			descriptors.push_back(meshDescriptor);
+			size += meshDescriptor.elementSize;
+			
+			if(uvCount > 0)
+			{
+				meshDescriptor = MeshDescriptor(kMeshFeatureUVSet0);
+				meshDescriptor.elementSize = sizeof(Vector2);
+				meshDescriptor.elementMember = 2;
+				
+				descriptors.push_back(meshDescriptor);
+				size += meshDescriptor.elementSize;
+			}
+			
+			if(hasTangent == 1)
+			{
+				meshDescriptor = MeshDescriptor(kMeshFeatureTangents);
+				meshDescriptor.elementSize = sizeof(Vector4);
+				meshDescriptor.elementMember = 4;
+				
+				descriptors.push_back(meshDescriptor);
+				size += meshDescriptor.elementSize;
+			}
+			if(uvCount > 1)
+			{
+				meshDescriptor = MeshDescriptor(kMeshFeatureUVSet1);
+				meshDescriptor.elementSize = sizeof(Vector2);
+				meshDescriptor.elementMember = 2;
+				
+				descriptors.push_back(meshDescriptor);
+				size += meshDescriptor.elementSize;
+			}
+			if(dataCount == 4)
+			{
+				meshDescriptor = MeshDescriptor(kMeshFeatureColor0);
+				meshDescriptor.elementSize = sizeof(Vector4);
+				meshDescriptor.elementMember = 4;
+				
+				descriptors.push_back(meshDescriptor);
+				size += meshDescriptor.elementSize;
+			}
+			if(hasBones > 0)
+			{
+				meshDescriptor = MeshDescriptor(kMeshFeatureBoneWeights);
+				meshDescriptor.elementSize = sizeof(Vector4);
+				meshDescriptor.elementMember = 4;
+				
+				descriptors.push_back(meshDescriptor);
+				size += meshDescriptor.elementSize;
+				
+				meshDescriptor = MeshDescriptor(kMeshFeatureBoneIndices);
+				meshDescriptor.elementSize = sizeof(Vector4);
+				meshDescriptor.elementMember = 4;
+				
+				descriptors.push_back(meshDescriptor);
+				size += meshDescriptor.elementSize;
+			}
+			
+			size *= verticesCount;
+			
+			uint8 *vertexData = new uint8[size];
+			file->ReadIntoBuffer(vertexData, size);
+			
+			uint32 indicesCount = file->ReadUint32();
+			uint8 indicesSize   = file->ReadUint8();
+			
+			uint8 *indicesData = new uint8[indicesCount * indicesSize];
+			file->ReadIntoBuffer(indicesData, indicesCount * indicesSize);
+			
+			meshDescriptor = MeshDescriptor(kMeshFeatureIndices);
+			meshDescriptor.elementSize = indicesSize;
+			meshDescriptor.elementMember = 1;
+			descriptors.push_back(meshDescriptor);
+			
+			Mesh *mesh = new Mesh(descriptors, verticesCount, indicesCount, std::make_pair(vertexData, indicesData));
+			
+			if(stage == 0)
+				mesh->CalculateBoundingVolumes();
+			
+			delete [] vertexData;
+			delete [] indicesData;
+			
+			model->AddMesh(mesh, material, stage);
+		}
+	}
+	
+	bool SGMResourceLoader::SupportsLoadingFile(File *file)
+	{
+		file->Seek(4); // Skip the magic bytes, they've already been checked
+		uint32 version = file->ReadUint8();
+		
+		switch(version)
+		{
+			case 3:
+				return true;
+				
+			default:
+				return false;
+		}
+	}
+	
+	bool SGMResourceLoader::SupportsBackgroundLoading()
+	{
+		return true;
+	}
+	
+	uint32 SGMResourceLoader::GetPriority() const
 	{
 		return kRNResourceCoordinatorBuiltInPriority;
 	}

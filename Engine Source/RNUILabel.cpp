@@ -179,8 +179,8 @@ namespace RN
 				RenderingObject object;
 				PopulateRenderingObject(object);
 				
-				uint32 count = _model->GetMeshCount(0);
-				for(uint32 i=0; i<count; i++)
+				size_t count = _model->GetMeshCount(0);
+				for(size_t i = 0; i < count; i++)
 				{
 					object.mesh     = _model->GetMeshAtIndex(0, i);
 					object.material = _model->GetMaterialAtIndex(0, i);

@@ -24,28 +24,26 @@ namespace RN
 	{
 	public:
 		Model();
-		Model(const std::string& path, bool guessmaterial = true);
-		Model(Mesh *mesh, Material *material, const std::string& name="Unnamed");
+		Model(Mesh *mesh, Material *material);
 		
-		virtual ~Model();
+		~Model() override;
 		
 		static Model *Empty();
-		static Model *WithFile(const std::string& path, bool guessmaterial = true);
-		static Model *WithMesh(Mesh *mesh, Material *material, const std::string& name="Unnamed");
+		static Model *WithFile(const std::string& path, bool guessMaterial = true);
+		static Model *WithMesh(Mesh *mesh, Material *material);
 		static Model *WithSkyCube(const std::string& up, const std::string& down, const std::string& left, const std::string& right, const std::string& front, const std::string& back, const std::string& shader="shader/rn_Sky");
 		
-		uint32 AddLODStage(float distance);
-		void RemoveLODStage(uint32 stage);
+		size_t AddLODStage(float distance);
+		void RemoveLODStage(size_t stage);
 		
-		void AddMesh(Mesh *mesh, Material *material, uint32 lodStage, const std::string& name="Unnamed");
-		void RemoveMesh(Mesh *mesh, uint32 lodStage);
+		void AddMesh(Mesh *mesh, Material *material, size_t lodStage);
 		
-		uint32 GetLODStageForDistance(float distance) const;
-		uint32 GetMeshCount(uint32 lodStage) const;
+		size_t GetLODStageForDistance(float distance) const;
+		size_t GetMeshCount(size_t lodStage) const;
 		size_t GetLODStageCount() const { return _groups.size(); }
 		
-		Mesh *GetMeshAtIndex(uint32 lodStage, uint32 index) const;
-		Material *GetMaterialAtIndex(uint32 lodStage, uint32 index) const;
+		Mesh *GetMeshAtIndex(size_t lodStage, size_t index) const;
+		Material *GetMaterialAtIndex(size_t lodStage, size_t index) const;
 		
 		const AABB& GetBoundingBox() const { return _boundingBox; }
 		const Sphere& GetBoundingSphere() const { return _boundingSphere; }
@@ -54,8 +52,7 @@ namespace RN
 		class MeshGroup
 		{
 		public:
-			MeshGroup(Mesh *tmesh, Material *tmaterial, const std::string& tname) :
-				name(tname)
+			MeshGroup(Mesh *tmesh, Material *tmaterial)
 			{
 				RN_ASSERT(tmesh && tmaterial, "Mesh and Material must not be NULL");
 				
@@ -68,8 +65,6 @@ namespace RN
 				mesh->Release();
 				material->Release();
 			}
-			
-			std::string name;
 			
 			Mesh *mesh;
 			Material *material;
@@ -94,17 +89,12 @@ namespace RN
 			float lodDistance;
 		};
 		
-		void ReadFileAtPath(const std::string& path, LODGroup *group);
-		void ReadModelVersion3(File *file, LODGroup *group);
 		void CalculateBoundingBox();
-		
 		Shader *PickShaderForMaterialAndMesh(Material *material, Mesh *mesh);
 		Material *PickMaterialForMesh(Mesh *mesh);
 		
 		AABB _boundingBox;
 		Sphere _boundingSphere;
-		
-		bool _guessMaterial;
 		
 		std::vector<LODGroup *> _groups;
 		

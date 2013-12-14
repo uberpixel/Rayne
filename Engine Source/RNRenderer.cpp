@@ -593,7 +593,7 @@ namespace RN
 		_textureUnit     = 0;
 	}
 	
-	void Renderer::DrawCamera(Camera *camera, Camera *source, uint32 skyCubeMeshes)
+	void Renderer::DrawCamera(Camera *camera, Camera *source, size_t skyCubeMeshes)
 	{
 		if(!source)
 		{
@@ -665,7 +665,7 @@ namespace RN
 		
 		// Skycube
 		Model *skyCube = camera->GetSkyCube();
-		uint32 skyCubeMeshes = 0;
+		size_t skyCubeMeshes = 0;
 		
 		Matrix cameraRotation;
 		cameraRotation.MakeRotate(camera->GetWorldRotation());

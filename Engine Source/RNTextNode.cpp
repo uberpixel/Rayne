@@ -127,9 +127,9 @@ namespace RN
 			SetModel(_typesetter->GetLineModel());
 			
 			Model *model = GetModel();
-			uint32 count = model->GetMeshCount(0);
+			size_t count = model->GetMeshCount(0);
 			
-			for(uint32 i = 0; i < count; i ++)
+			for(size_t i = 0; i < count; i ++)
 			{
 				Material *material = model->GetMaterialAtIndex(0, i);
 				material->depthtest = true;

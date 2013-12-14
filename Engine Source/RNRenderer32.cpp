@@ -154,7 +154,7 @@ namespace RN
 	// MARK: Rendering
 	// ---------------------
 	
-	void Renderer32::DrawCamera(Camera *camera, Camera *source, uint32 skyCubeMeshes)
+	void Renderer32::DrawCamera(Camera *camera, Camera *source, size_t skyCubeMeshes)
 	{
 		Renderer::DrawCamera(camera, source, skyCubeMeshes);
 		
