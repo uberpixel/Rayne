@@ -10,6 +10,7 @@
 #include "RNPathManager.h"
 #include "RNFileManager.h"
 #include "RNShader.h"
+#include "RNLogging.h"
 
 namespace RN
 {
@@ -163,6 +164,9 @@ namespace RN
 			});
 		}
 		
+		if(!resourceLoader)
+			throw Exception(Exception::Type::InconsistencyException, std::string("No resource loader matching ") + name->GetUTF8String());
+		
 		return resourceLoader;
 	}
 	
@@ -214,38 +218,34 @@ namespace RN
 		
 		ResourceLoader *resourceLoader = PickResourceLoader(base, file, name, true);
 		
-		if(resourceLoader)
+		if(!settings)
 		{
-			if(!settings)
-			{
-				settings = new Dictionary();
-				settings->Autorelease();
-			}
-			
-			name->Retain();
-			
-			Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
-			
-			std::future<Object *> future = std::move(resourceLoader->LoadInBackground(fileOrName, settings, 0, [this, name] (Object *object, Tag tag) {
-				
-				LockGuard<decltype(_lock)> lock(_lock);
-				
-				_resources.SetObjectForKey(object, name);
-				_requests.erase(name);
-				
-				name->Release();
-				
-			}));
-			
-			std::shared_future<Object *> shared = future.share();
-			
-			_requests.insert(decltype(_requests)::value_type(name, shared));
-			lock.Unlock();
-			
-			return shared;
+			settings = new Dictionary();
+			settings->Autorelease();
 		}
 		
-		throw Exception(Exception::Type::InconsistencyException, "");
+		name->Retain();
+		
+		Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
+		
+		std::future<Object *> future = std::move(resourceLoader->LoadInBackground(fileOrName, settings, 0, [this, name] (Object *object, Tag tag) {
+			
+			LockGuard<decltype(_lock)> lock(_lock);
+			
+			_resources.SetObjectForKey(object, name);
+			_requests.erase(name);
+			
+			RNDebug("Loaded %s", name->GetUTF8String());
+			name->Release();
+			
+		}));
+		
+		std::shared_future<Object *> shared = future.share();
+		
+		_requests.insert(decltype(_requests)::value_type(name, shared));
+		lock.Unlock();
+		
+		return shared;
 	}
 	
 	Object *ResourceCoordinator::RequestResourceWithName(MetaClassBase *base, String *name, Dictionary *settings)
@@ -282,53 +282,50 @@ namespace RN
 		
 		ResourceLoader *resourceLoader = PickResourceLoader(base, file, name, false);
 		
-		if(resourceLoader)
+		std::promise<Object *> promise;
+		_requests.insert(decltype(_requests)::value_type(name->Retain(), std::move(promise.get_future().share())));
+		lock.Unlock();
+		
+		try
 		{
-			std::promise<Object *> promise;
-			_requests.insert(decltype(_requests)::value_type(name->Retain(), std::move(promise.get_future().share())));
-			lock.Unlock();
+			if(!settings)
+			{
+				settings = new Dictionary();
+				settings->Autorelease();
+			}
 			
-			try
+			if(file)
 			{
-				if(!settings)
-				{
-					settings = new Dictionary();
-					settings->Autorelease();
-				}
-				
-				if(file)
-				{
-					object = resourceLoader->Load(file, settings);
-				}
-				else
-				{
-					object = resourceLoader->Load(name, settings);
-				}
-				
-				promise.set_value(object);
+				object = resourceLoader->Load(file, settings);
 			}
-			catch(Exception e)
+			else
 			{
-				promise.set_exception(std::current_exception());
-				
-				lock.Lock();
-				_requests.erase(name);
-				lock.Unlock();
-				
-				name->Release();
-				throw e;
+				object = resourceLoader->Load(name, settings);
 			}
+			
+			promise.set_value(object);
+		}
+		catch(Exception e)
+		{
+			promise.set_exception(std::current_exception());
 			
 			lock.Lock();
 			_requests.erase(name);
-			_resources.SetObjectForKey(object, name);
 			lock.Unlock();
 			
 			name->Release();
-			return object->Autorelease();
+			throw e;
 		}
 		
-		throw Exception(Exception::Type::InconsistencyException, "");
+		RNDebug("Loaded %s", name->GetUTF8String());
+		
+		lock.Lock();
+		_requests.erase(name);
+		_resources.SetObjectForKey(object, name);
+		lock.Unlock();
+		
+		name->Release();
+		return object->Autorelease();
 	}
 	
 	void ResourceCoordinator::RegisterResourceLoader(ResourceLoader *loader)
