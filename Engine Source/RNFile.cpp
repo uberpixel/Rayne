@@ -109,9 +109,9 @@ namespace RN
 		RN_ASSERT(read == 1, "");
 	}
 	
-	void File::Seek(size_t offset)
+	void File::Seek(size_t offset, bool fromStart)
 	{
-		fseek(_file, offset, SEEK_CUR);
+		fseek(_file, offset, fromStart ? SEEK_SET : SEEK_CUR);
 	}
 
 	uint8 File::ReadUint8()

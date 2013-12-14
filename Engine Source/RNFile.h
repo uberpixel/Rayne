@@ -33,7 +33,7 @@ namespace RN
 		
 		RNAPI void ReadIntoBuffer(void *buffer, size_t size);
 		RNAPI void ReadIntoString(std::string& string, size_t size, bool appendNull=true);
-		RNAPI void Seek(size_t offset);
+		RNAPI void Seek(size_t offset, bool fromStart = false);
 		
 		RNAPI uint8 ReadUint8();
 		RNAPI uint16 ReadUint16();
