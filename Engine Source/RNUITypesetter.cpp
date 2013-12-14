@@ -9,7 +9,7 @@
 #include "RNUITypesetter.h"
 #include "RNAlgorithm.h"
 #include "RNDictionary.h"
-#include "RNResourcePool.h"
+#include "RNResourceCoordinator.h"
 #include "RNUIStyle.h"
 
 #define kRNTypesetterMeshAttribute RNCSTR("kRNTypesetterMeshAttribute")
@@ -528,7 +528,7 @@ namespace RN
 			_model = new Model();
 			
 			
-			Shader *shader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUITextShader);
+			Shader *shader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUITextShader, nullptr);
 			
 			meshes->Enumerate([&](Object *object, size_t index, bool *stop) {
 				

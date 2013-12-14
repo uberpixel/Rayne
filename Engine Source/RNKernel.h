@@ -13,7 +13,6 @@
 #include "RNAutoreleasePool.h"
 #include "RNObject.h"
 #include "RNApplication.h"
-#include "RNThreadPool.h"
 #include "RNRenderer.h"
 #include "RNWindow.h"
 #include "RNInput.h"
@@ -68,7 +67,6 @@ namespace RN
 		void *_appHandle;
 		
 		std::string _title;
-		ThreadPool::Batch *_resourceBatch;
 		FrameID _frame;
 		float _scaleFactor;
 

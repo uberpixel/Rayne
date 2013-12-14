@@ -7,10 +7,11 @@
 //
 
 #include "RNTexture.h"
-#include "RNTextureLoader.h"
+#include "RNResourceCoordinator.h"
 #include "RNThread.h"
 #include "RNKernel.h"
 #include "RNSettings.h"
+#include "RNWrappingObject.h"
 
 namespace RN
 {
@@ -45,37 +46,27 @@ namespace RN
 	
 	Texture *Texture::WithFile(const std::string& name, bool isLinear)
 	{
-		TextureLoader loader(name);
+		Dictionary *settings = new Dictionary();
+		settings->SetObjectForKey(Number::WithBool(isLinear), RNCSTR("linear"));
+		settings->Autorelease();
 		
-		PixelData data;
-		data.data = const_cast<void *>(loader.GetData());
-		data.alignment = 1;
-		data.width  = loader.GetWidth();
-		data.height = loader.GetHeight();
-		data.format = loader.GetFormat();
-		
-		Texture2D *texture = new Texture2D(data.format, isLinear);
-		texture->SetData(data);
-		
-		return texture->Autorelease();
+		Texture *texture = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Texture2D>(RNSTR(name.c_str()), settings);
+		return texture;
 	}
 	
 	Texture *Texture::WithFile(const std::string& name, const Parameter& parameter, bool isLinear)
 	{
-		TextureLoader loader(name);
+		WrappingObject<Parameter> *wrapper = new WrappingObject<Parameter>(parameter);
 		
-		PixelData data;
-		data.data = const_cast<void *>(loader.GetData());
-		data.alignment = 1;
-		data.width  = loader.GetWidth();
-		data.height = loader.GetHeight();
-		data.format = loader.GetFormat();
+		Dictionary *settings = new Dictionary();
+		settings->SetObjectForKey(Number::WithBool(isLinear), RNCSTR("linear"));
+		settings->SetObjectForKey(wrapper->Autorelease(), RNCSTR("parameter"));
+		settings->Autorelease();
 		
-		Texture2D *texture = new Texture2D(parameter, isLinear);
-		texture->SetData(data);
-		
-		return texture->Autorelease();
+		Texture *texture = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Texture2D>(RNSTR(name.c_str()), settings);
+		return texture;
 	}
+	
 	
 	void Texture::SetSize(size_t width, size_t height)
 	{}

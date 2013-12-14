@@ -17,7 +17,7 @@
 #include "RNPathManager.h"
 #include "RNFileManager.h"
 #include "RNCPU.h"
-#include "RNResourcePool.h"
+#include "RNResourceCoordinator.h"
 #include "RNRenderer32.h"
 #include "RNLogging.h"
 #include "RNShaderCache.h"
@@ -150,14 +150,8 @@ namespace RN
 			_scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
 #endif
 		
-		// Load the default resources
-		_resourceBatch = ThreadPool::GetSharedInstance()->CreateBatch();
-		_resourceBatch->AddTask([] {
-			Debug::InstallDebugDraw();
-		});
-		
-		ResourcePool::GetSharedInstance()->LoadDefaultResources(_resourceBatch);
-		_resourceBatch->Commit();
+		Debug::InstallDebugDraw();
+		ResourceCoordinator::GetSharedInstance()->LoadEngineResources();
 		
 		// Bootstrap some more core systems while the resources are loading
 		_renderer = new Renderer32();
@@ -450,10 +444,6 @@ namespace RN
 
 	void Kernel::Initialize()
 	{
-		_resourceBatch->Wait();
-		_resourceBatch->Release();
-		_resourceBatch = nullptr;
-		
 		_app->Start();
 		_window->SetTitle(_app->Title());
 	}

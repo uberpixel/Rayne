@@ -7,7 +7,7 @@
 //
 
 #include "RNBillboard.h"
-#include "RNResourcePool.h"
+#include "RNResourceCoordinator.h"
 
 #define kRNBillboardMeshResourceName RNCSTR("kRNBillboardMeshResourceName")
 
@@ -33,7 +33,7 @@ namespace RN
 	void Billboard::Initialize()
 	{
 		_material = new Material();
-		_material->SetShader(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader));
+		_material->SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr));
 		_material->Define("RN_BILLBOARD");
 		
 		static std::once_flag onceFlag;
@@ -86,10 +86,10 @@ namespace RN
 			
 			chunk.CommitChanges();
 			
-			ResourcePool::GetSharedInstance()->AddResource(mesh, kRNBillboardMeshResourceName);
+			ResourceCoordinator::GetSharedInstance()->AddResource(mesh, kRNBillboardMeshResourceName);
 		});
 		
-		_mesh = ResourcePool::GetSharedInstance()->GetResourceWithName<Mesh>(kRNBillboardMeshResourceName)->Retain();
+		_mesh = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Mesh>(kRNBillboardMeshResourceName, nullptr)->Retain();
 	}
 	
 	void Billboard::SetTexture(Texture *texture)

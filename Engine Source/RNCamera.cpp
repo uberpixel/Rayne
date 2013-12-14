@@ -12,7 +12,7 @@
 #include "RNWorld.h"
 #include "RNLight.h"
 #include "RNLightManager.h"
-#include "RNResourcePool.h"
+#include "RNResourceCoordinator.h"
 
 namespace RN
 {
@@ -400,7 +400,7 @@ namespace RN
 		_lodCamera = 0;
 		_blend = false;
 		
-		_blitShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDrawFramebufferShader)->Retain();
+		_blitShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDrawFramebufferShader, nullptr)->Retain();
 		_blitMode   = BlitMode::Stretched;
 		
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;

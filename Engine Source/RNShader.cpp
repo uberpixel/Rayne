@@ -8,6 +8,7 @@
 
 #include "RNShader.h"
 #include "RNShaderCache.h"
+#include "RNResourceCoordinator.h"
 #include "RNKernel.h"
 #include "RNThreadPool.h"
 #include "RNPathManager.h"
@@ -243,8 +244,8 @@ namespace RN
 	
 	Shader *Shader::WithFile(const std::string& file)
 	{
-		Shader *shader = new Shader(file);
-		return shader->Autorelease();
+		Shader *shader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(RNSTR(file.c_str()), nullptr);
+		return shader;
 	}
 	
 	

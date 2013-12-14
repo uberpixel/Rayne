@@ -7,7 +7,6 @@
 //
 
 #include "RNTextNode.h"
-#include "RNResourcePool.h"
 #include "RNUIStyle.h"
 
 namespace RN

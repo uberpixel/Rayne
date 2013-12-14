@@ -7,9 +7,7 @@
 //
 
 #include "RNUIImageView.h"
-#include "RNResourcePool.h"
-
-#define kRNImageViewShaderResourceName "kRNImageViewShaderResourceName"
+#include "RNResourceCoordinator.h"
 
 namespace RN
 {
@@ -61,7 +59,7 @@ namespace RN
 			SetBackgroundColor(Color::ClearColor());
 			
 			_mesh  = nullptr;
-			_material = BasicMaterial(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUIImageShader));
+			_material = BasicMaterial(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUIImageShader, nullptr));
 			_material->Retain();
 			
 			_image   = nullptr;

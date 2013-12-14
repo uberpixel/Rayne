@@ -30,7 +30,6 @@
 
 #include "RNKernel.h"
 #include "RNApplication.h"
-#include "RNResourcePool.h"
 #include "RNInput.h"
 #include "RNMessage.h"
 #include "RNSignal.h"
@@ -46,10 +45,9 @@
 #include "RNWorldAttachment.h"
 
 #include "RNResourceCoordinator.h"
-#include "RNResource.h"
+#include "RNResourceLoader.h"
 #include "RNSkeleton.h"
 #include "RNModel.h"
-#include "RNTextureLoader.h"
 
 #include "RNMath.h"
 #include "RNSIMD.h"

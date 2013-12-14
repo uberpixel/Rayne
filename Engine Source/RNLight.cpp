@@ -9,7 +9,7 @@
 #include "RNLight.h"
 #include "RNWorld.h"
 #include "RNCamera.h"
-#include "RNResourcePool.h"
+#include "RNResourceCoordinator.h"
 #include "RNLightManager.h"
 
 namespace RN
@@ -149,7 +149,7 @@ namespace RN
 			depthtex->SetSize(32, 32, splits);
 			depthtex->Autorelease();
 			
-			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader);
+			Shader   *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
 			Material *depthMaterial = new Material(depthShader);
 			depthMaterial->polygonOffset = true;
 			depthMaterial->polygonOffsetFactor = biasfac;
@@ -198,7 +198,7 @@ namespace RN
 			Texture *depthtex = new TextureCubeMap(parameter);
 			depthtex->Autorelease();
 			
-			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyPointShadowDepthShader);
+			Shader   *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyPointShadowDepthShader, nullptr);
 			Material *depthMaterial = new Material(depthShader);
 			
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
@@ -243,7 +243,7 @@ namespace RN
 			Texture *depthtex = new Texture2D(parameter);
 			depthtex->Autorelease();
 			
-			Shader   *depthShader = ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader);
+			Shader   *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
 			Material *depthMaterial = new Material(depthShader);
 			depthMaterial->polygonOffset = true;
 			depthMaterial->polygonOffsetFactor = 2.0f;

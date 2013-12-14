@@ -10,7 +10,7 @@
 #include "RNUIWidget.h"
 #include "RNUIServer.h"
 #include "RNUIStyle.h"
-#include "RNResourcePool.h"
+#include "RNResourceCoordinator.h"
 #include "RNDebug.h"
 
 #define kRNViewShaderResourceName RNCSTR("kRNViewShaderResourceName")
@@ -53,7 +53,7 @@ namespace RN
 			static std::once_flag flag;
 			std::call_once(flag, []() {
 				Shader *shader = new Shader("shader/rn_View");
-				ResourcePool::GetSharedInstance()->AddResource(shader, kRNViewShaderResourceName);
+				ResourceCoordinator::GetSharedInstance()->AddResource(shader, kRNViewShaderResourceName);
 			});
 			
 			_superview    = nullptr;
@@ -67,7 +67,7 @@ namespace RN
 			_hidden             = false;
 			_autoresizingMask   = 0;
 			
-			_material = BasicMaterial(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName));
+			_material = BasicMaterial(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName, nullptr));
 			_material->Retain();
 			
 			SetBackgroundColor(Style::GetSharedInstance()->GetColor(Style::ColorStyle::BackgroundColor)->GetRNColor());

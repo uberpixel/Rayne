@@ -8,7 +8,6 @@
 
 #include "RNUIButton.h"
 #include "RNUIStyle.h"
-#include "RNResourcePool.h"
 #include "RNNumber.h"
 
 #define kRNUIButtonContentGap 5.0f

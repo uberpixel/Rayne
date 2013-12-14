@@ -7,12 +7,12 @@
 //
 
 #include "RNResourceCoordinator.h"
-#include "RNScopeGuard.h"
+#include "RNPathManager.h"
+#include "RNFileManager.h"
+#include "RNShader.h"
 
 namespace RN
 {
-	RNDeclareMeta(ResourceReader)
-	
 	ResourceCoordinator::ResourceCoordinator()
 	{}
 	
@@ -20,82 +20,368 @@ namespace RN
 	{}
 	
 	
-	
-	void ResourceCoordinator::RegisterReader(ResourceReader *reader)
+	void ResourceCoordinator::WaitForResources()
 	{
-		std::lock_guard<std::mutex> lock(_readerLock);
-		if(_reader.GetObjectForKey(reader->GetUUID()))
+		LockGuard<decltype(_lock)> lock(_lock);
+		
+		while(!_requests.empty())
 		{
-			throw Exception(Exception::Type::InconsistencyException, "A reader with the specified UUID exists already!");
-			return;
+			std::shared_future<Object *> future = _requests.begin()->second;
+			lock.Unlock();
+			
+			future.wait();
+		}
+	}
+	
+	
+	Object *ResourceCoordinator::ValidateResource(MetaClassBase *base, Object *object)
+	{
+		if(!object->IsKindOfClass(base))
+			throw Exception(Exception::Type::InconsistencyException, "");
+		
+		return object;
+	}
+	
+	void ResourceCoordinator::AddResource(Object *object, String *name)
+	{
+		LockGuard<decltype(_lock)> lock(_lock);
+		
+		if(_resources.GetObjectForKey(name) || _requests.find(name) != _requests.end())
+			throw Exception(Exception::Type::InconsistencyException, "");
+		
+		_resources.SetObjectForKey(object, name);
+	}
+	
+	
+	
+	ResourceLoader *ResourceCoordinator::PickResourceLoader(MetaClassBase *base, File *file, String *name, bool requiresBackgroundSupport)
+	{
+		ResourceLoader *resourceLoader = nullptr;
+		
+		if(file)
+		{
+			uint8 buffer[32];
+			uint8 magic[32];
+			
+			std::string extension = file->GetExtension();
+			
+			file->ReadIntoBuffer(magic, 32);
+			file->Seek(0, true);
+			
+			_loader.Enumerate<ResourceLoader>([&] (ResourceLoader *loader, size_t index, bool *stop) {
+				
+				try
+				{
+					if(!base->InheritsFromClass(loader->GetResourceClass()))
+						return;
+					
+					if(requiresBackgroundSupport && !loader->SupportsBackgroundLoading())
+						return;
+					
+					if(!loader->_fileExtensions.empty())
+					{
+						std::vector<std::string> &extensions = loader->_fileExtensions;
+						
+						if(std::find(extensions.begin(), extensions.end(), extension) == extensions.end())
+							return;
+					}
+					
+					if(loader->_magicBytes)
+					{
+						size_t offset = loader->_magicBytesOffset;
+						size_t size = loader->_magicBytes->GetLength();
+						
+						if(offset > 0)
+						{
+							file->Seek(offset, true);
+							file->ReadIntoBuffer(buffer, size);
+							file->Seek(0, true);
+						}
+						else
+						{
+							std::copy(magic, magic + size, buffer);
+						}
+						
+						if(memcmp(buffer, loader->_magicBytes->GetBytes(), size) != 0)
+							return;
+					}
+					
+					bool result = loader->SupportsLoadingFile(file);
+					file->Seek(0, true);
+					
+					if(result)
+					{
+						resourceLoader = loader;
+						*stop = true;
+						
+						return;
+					}
+				}
+				catch(Exception e)
+				{
+					file->Seek(0, true);
+				}
+				
+			});
+		}
+		else if(name)
+		{
+			std::string extension = PathManager::Extension(name->GetUTF8String());
+			
+			_loader.Enumerate<ResourceLoader>([&] (ResourceLoader *loader, size_t index, bool *stop) {
+				
+				try
+				{
+					if(!base->InheritsFromClass(loader->GetResourceClass()))
+						return;
+					
+					if(requiresBackgroundSupport && !loader->SupportsBackgroundLoading())
+						return;
+					
+					if(!loader->_imagianryFiles)
+						return;
+					
+					if(!loader->_fileExtensions.empty())
+					{
+						std::vector<std::string> &extensions = loader->_fileExtensions;
+						
+						if(std::find(extensions.begin(), extensions.end(), extension) == extensions.end())
+							return;
+					}
+					
+					if(loader->SupportsLoadingName(name))
+					{
+						resourceLoader = loader;
+						*stop = true;
+						
+						return;
+					}
+				}
+				catch(Exception e)
+				{}
+				
+			});
 		}
 		
-		_reader.SetObjectForKey(reader, reader->GetUUID());
-	}
-	
-	void ResourceCoordinator::UnregisterReader(String *uuid)
-	{
-		std::lock_guard<std::mutex> lock(_readerLock);
-		_reader.RemoveObjectForKey(uuid);
+		return resourceLoader;
 	}
 	
 	
-	Resource *ResourceCoordinator::OpenResource(const std::string& tfile, Dictionary *info)
+	std::shared_future<Object *> ResourceCoordinator::RequestFutureResourceWithName(MetaClassBase *base, String *name, Dictionary *settings)
 	{
-		File *file;
+		LockGuard<decltype(_lock)> lock(_lock);
+		
+		// Check if the resource is already loaded
+		Object *object = _resources.GetObjectForKey(name);
+		if(object)
+		{
+			std::promise<Object *> promise;
+			std::shared_future<Object *> future = promise.get_future().share();
+			
+			try
+			{
+				object = ValidateResource(base, object);
+				promise.set_value(object);
+			}
+			catch(Exception e)
+			{
+				promise.set_exception(std::current_exception());
+			}
+			
+			return future;
+		}
+		
+		// Check if there is a pending request for the resource
+		auto iterator = _requests.find(name);
+		if(iterator != _requests.end())
+		{
+			std::shared_future<Object *> future(iterator->second);
+			lock.Unlock();
+			
+			return future;
+		}
+		
+		// Load the resource
+		File *file = nullptr;
+		
 		try
 		{
-			file = new File(tfile);
+			file = new File(name->GetUTF8String());
+			file->Autorelease();
 		}
 		catch(Exception e)
+		{}
+		
+		ResourceLoader *resourceLoader = PickResourceLoader(base, file, name, true);
+		
+		if(resourceLoader)
 		{
-			return nullptr;
+			if(!settings)
+			{
+				settings = new Dictionary();
+				settings->Autorelease();
+			}
+			
+			name->Retain();
+			
+			Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
+			
+			std::future<Object *> future = std::move(resourceLoader->LoadInBackground(fileOrName, settings, 0, [this, name] (Object *object, Tag tag) {
+				
+				LockGuard<decltype(_lock)> lock(_lock);
+				
+				_resources.SetObjectForKey(object, name);
+				_requests.erase(name);
+				
+				name->Release();
+				
+			}));
+			
+			std::shared_future<Object *> shared = future.share();
+			
+			_requests.insert(decltype(_requests)::value_type(name, shared));
+			lock.Unlock();
+			
+			return shared;
+		}
+		
+		throw Exception(Exception::Type::InconsistencyException, "");
+	}
+	
+	Object *ResourceCoordinator::RequestResourceWithName(MetaClassBase *base, String *name, Dictionary *settings)
+	{
+		LockGuard<decltype(_lock)> lock(_lock);
+		
+		// Check if the resource is already loaded
+		Object *object = _resources.GetObjectForKey(name);
+		if(object)
+			return ValidateResource(base, object);
+		
+		// Check if there is a pending request for the resource
+		auto iterator = _requests.find(name);
+		if(iterator != _requests.end())
+		{
+			std::shared_future<Object *> future(iterator->second);
+			lock.Unlock();
+			
+			future.wait();
+			return ValidateResource(base, future.get());
 		}
 		
 		
-		ScopeGuard guard([&]{
-			file->Release();
-		});
+		// Load the resource
+		File *file = nullptr;
 		
-		ResourceReader *bestMatch = nullptr;
-		uint32 bestScore = 0;
+		try
+		{
+			file = new File(name->GetUTF8String());
+			file->Autorelease();
+		}
+		catch(Exception e)
+		{}
 		
-		std::lock_guard<std::mutex> lock(_readerLock);
-		_reader.Enumerate([&](Object *object, Object *key, bool *stop) {
+		ResourceLoader *resourceLoader = PickResourceLoader(base, file, name, false);
+		
+		if(resourceLoader)
+		{
+			std::promise<Object *> promise;
+			_requests.insert(decltype(_requests)::value_type(name->Retain(), std::move(promise.get_future().share())));
+			lock.Unlock();
 			
-			ResourceReader *reader = static_cast<ResourceReader *>(object);
-			
-			file->Seek(0);
-			uint32 score;
-			
-			if(reader->CanHandleFile(file, score))
+			try
 			{
-				if(score > bestScore || !bestMatch)
+				if(!settings)
 				{
-					bestScore = score;
-					bestMatch = reader;
+					settings = new Dictionary();
+					settings->Autorelease();
 				}
+				
+				if(file)
+				{
+					object = resourceLoader->Load(file, settings);
+				}
+				else
+				{
+					object = resourceLoader->Load(name, settings);
+				}
+				
+				promise.set_value(object);
 			}
+			catch(Exception e)
+			{
+				promise.set_exception(std::current_exception());
+				
+				lock.Lock();
+				_requests.erase(name);
+				lock.Unlock();
+				
+				name->Release();
+				throw e;
+			}
+			
+			lock.Lock();
+			_requests.erase(name);
+			_resources.SetObjectForKey(object, name);
+			lock.Unlock();
+			
+			name->Release();
+			return object->Autorelease();
+		}
+		
+		throw Exception(Exception::Type::InconsistencyException, "");
+	}
+	
+	void ResourceCoordinator::RegisterResourceLoader(ResourceLoader *loader)
+	{
+		_lock.Lock();
+		
+		_loader.AddObject(loader);
+		_loader.Sort<ResourceLoader>([] (const ResourceLoader *loader1, const ResourceLoader *loader2) -> ComparisonResult {
+			
+			uint32 priority1 = loader1->GetPriority();
+			uint32 priority2 = loader2->GetPriority();
+			
+			if(priority1 > priority2)
+				return ComparisonResult::GreaterThan;
+			
+			if(priority1 < priority2)
+				return ComparisonResult::LessThan;
+			
+			return ComparisonResult::EqualTo;
 		});
 		
-		if(!bestMatch)
-			return nullptr;
-		
-		file->Seek(0);
-		return bestMatch->ResourceForFile(file, info)->Autorelease();
+		_lock.Unlock();
+	}
+	
+	void ResourceCoordinator::UnregisterResourceLoader(ResourceLoader *loader)
+	{
+		_lock.Lock();
+		_loader.RemoveObject(loader);
+		_lock.Unlock();
 	}
 	
 	
-	
-	ResourceReader::ResourceReader(String *uuid)
+	void ResourceCoordinator::LoadShader(String *name, String *key)
 	{
-		RN_ASSERT(uuid, "UUID mustn't be NULL!");
-		
-		_uuid = uuid->Retain();
+		Shader *shader = GetResourceWithName<Shader>(name, nullptr);
+		AddResource(shader, key);
 	}
 	
-	ResourceReader::~ResourceReader()
+	void ResourceCoordinator::LoadEngineResources()
 	{
-		_uuid->Release();
+		LoadShader(RNCSTR("shader/rn_Texture1"), kRNResourceKeyTexture1Shader);
+		LoadShader(RNCSTR("shader/rn_Water"), kRNResourceKeyWaterShader);
+		LoadShader(RNCSTR("shader/rn_Particle"), kRNResourceKeyParticleShader);
+		
+		LoadShader(RNCSTR("shader/rn_UIImage"), kRNResourceKeyUIImageShader);
+		LoadShader(RNCSTR("shader/rn_UIText"), kRNResourceKeyUITextShader);
+		
+		LoadShader(RNCSTR("shader/rn_LightTileSampleFirst"), kRNResourceKeyLightTileSampleFirstShader);
+		LoadShader(RNCSTR("shader/rn_LightTileSample"), kRNResourceKeyLightTileSampleShader);
+		LoadShader(RNCSTR("shader/rn_LightDepth"), kRNResourceKeyLightDepthShader);
+		LoadShader(RNCSTR("shader/rn_ShadowDepthSingle"), kRNResourceKeyDirectionalShadowDepthShader);
+		LoadShader(RNCSTR("shader/rn_ShadowDepthCube"), kRNResourceKeyPointShadowDepthShader);
+		
+		LoadShader(RNCSTR("shader/rn_DrawFramebuffer"), kRNResourceKeyDrawFramebufferShader);
 	}
 }

@@ -7,7 +7,7 @@
 //
 
 #include "RNWater.h"
-#include "RNResourcePool.h"
+#include "RNResourceCoordinator.h"
 
 #define kRNWaterMeshResourceName RNCSTR("kRNWaterMeshResourceName")
 
@@ -39,7 +39,7 @@ namespace RN
 		SetPriority(SceneNode::Priority::UpdateLate);
 		
 		_material = new RN::Material();
-		_material->SetShader(ResourcePool::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyWaterShader));
+		_material->SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyWaterShader, nullptr));
 		
 		static std::once_flag onceFlag;
 		
@@ -72,10 +72,10 @@ namespace RN
 			
 			chunk.CommitChanges();
 			
-			ResourcePool::GetSharedInstance()->AddResource(mesh, kRNWaterMeshResourceName);
+			ResourceCoordinator::GetSharedInstance()->AddResource(mesh, kRNWaterMeshResourceName);
 		});
 		
-		_mesh = ResourcePool::GetSharedInstance()->GetResourceWithName<Mesh>(kRNWaterMeshResourceName)->Retain();
+		_mesh = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Mesh>(kRNWaterMeshResourceName, nullptr)->Retain();
 		
 		if(_camera != 0)
 		{
@@ -84,10 +84,11 @@ namespace RN
 //			_reflection->SetSkyCube(_camera->SkyCube());
 			
 			
-			RN::Shader *shad = RN::ResourcePool::GetSharedInstance()->GetResourceWithName<RN::Shader>(kRNResourceKeyTexture1Shader);
+			Shader *shad = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr);
 			
-			RN::Material *mat = new RN::Material(shad);
+			Material *mat = new Material(shad);
 			mat->lighting = false;
+			
 			_reflection->SetMaterial(mat);
 			_reflection->useclipplane = true;
 			_reflection->clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);

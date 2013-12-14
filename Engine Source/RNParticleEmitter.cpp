@@ -8,7 +8,7 @@
 
 #include "RNParticleEmitter.h"
 #include "RNRenderer.h"
-#include "RNResourcePool.h"
+#include "RNResourceCoordinator.h"
 
 namespace RN
 {
@@ -30,7 +30,7 @@ namespace RN
 		blendDestination = GL_ONE_MINUS_SRC_ALPHA;
 		
 		depthwrite = false;
-		SetShader(ResourcePool::GetSharedInstance()->GetResourceWithName<class Shader>(kRNResourceKeyParticleShader));
+		SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyParticleShader, nullptr));
 	}
 	
 	ParticleMaterial::~ParticleMaterial()
