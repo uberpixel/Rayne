@@ -442,7 +442,7 @@ namespace RN
 		
 #define ReadCharacter(Side) \
 		do { \
-			if(offset##Side + i##Side >= read##Side) \
+			if(i##Side >= read##Side) \
 			{ \
 				if(left##Side == 0) \
 					goto endComparison; \
