@@ -34,6 +34,81 @@ namespace RN
 		}
 	}
 	
+	void ResourceCoordinator::__AddResourceAlias(Object *object, String *name)
+	{
+		if(_resources.GetObjectForKey(name) || _requests.find(name) != _requests.end())
+			throw Exception(Exception::Type::InconsistencyException, "");
+		
+		_resources.SetObjectForKey(object, name);
+		
+		Array *aliases = _resourceToAlias.GetObjectForKey<Array>(object);
+		if(!aliases)
+		{
+			aliases = new Array();
+			aliases->AddObject(name);
+			
+			_resourceToAlias.SetObjectForKey(aliases->Autorelease(), object);
+			
+			RNDebug("Loaded %s", name->GetUTF8String());
+		}
+		else
+		{
+			String *original = aliases->GetFirstObject<String>();
+			RNDebug("Aliased %s as %s", original->GetUTF8String(), name->GetUTF8String());
+			
+			aliases->AddObject(name);
+		}
+	}
+	
+	
+	
+	void ResourceCoordinator::AddResourceAlias(Object *object, String *name)
+	{
+		LockGuard<decltype(_lock)> lock(_lock);
+		__AddResourceAlias(object, name);
+	}
+	
+	void ResourceCoordinator::AddResource(Object *object, String *name)
+	{
+		LockGuard<decltype(_lock)> lock(_lock);
+		__AddResourceAlias(object, name);
+	}
+	
+	void ResourceCoordinator::RemoveResource(Object *object)
+	{
+		LockGuard<decltype(_lock)> lock(_lock);
+		
+		Array *aliases = _resourceToAlias.GetObjectForKey<Array>(object);
+		if(aliases)
+		{
+			object->Retain();
+			aliases->Enumerate<String>([&](String *alias, size_t index, bool *stop) {
+				
+				_resources.RemoveObjectForKey(alias);
+				
+			});
+			
+			_resourceToAlias.RemoveObjectForKey(object);
+			object->Release();
+		}
+	}
+	
+	void ResourceCoordinator::RemoveResourceWithName(String *name)
+	{
+		LockGuard<decltype(_lock)> lock(_lock);
+		
+		Object *object = _resources.GetObjectForKey(name);
+		if(object)
+		{
+			object->Retain();
+			lock.Unlock();
+			
+			RemoveResource(object);
+			object->Release();
+		}
+	}
+	
+	
 	
 	Object *ResourceCoordinator::ValidateResource(MetaClassBase *base, Object *object)
 	{
@@ -42,18 +117,6 @@ namespace RN
 		
 		return object;
 	}
-	
-	void ResourceCoordinator::AddResource(Object *object, String *name)
-	{
-		LockGuard<decltype(_lock)> lock(_lock);
-		
-		if(_resources.GetObjectForKey(name) || _requests.find(name) != _requests.end())
-			throw Exception(Exception::Type::InconsistencyException, "");
-		
-		_resources.SetObjectForKey(object, name);
-	}
-	
-	
 	
 	ResourceLoader *ResourceCoordinator::PickResourceLoader(MetaClassBase *base, File *file, String *name, bool requiresBackgroundSupport)
 	{
@@ -231,11 +294,10 @@ namespace RN
 		std::future<Object *> future = std::move(resourceLoader->LoadInBackground(fileOrName, settings, 0, [this, name] (Object *object, Tag tag) {
 			
 			LockGuard<decltype(_lock)> lock(_lock);
-			
-			_resources.SetObjectForKey(object, name);
 			_requests.erase(name);
-			
-			RNDebug("Loaded %s", name->GetUTF8String());
+			__AddResourceAlias(object, name);
+			lock.Unlock();
+
 			name->Release();
 			
 		}));
@@ -317,11 +379,9 @@ namespace RN
 			throw e;
 		}
 		
-		RNDebug("Loaded %s", name->GetUTF8String());
-		
 		lock.Lock();
 		_requests.erase(name);
-		_resources.SetObjectForKey(object, name);
+		__AddResourceAlias(object, name);
 		lock.Unlock();
 		
 		name->Release();
@@ -361,7 +421,7 @@ namespace RN
 	void ResourceCoordinator::LoadShader(String *name, String *key)
 	{
 		Shader *shader = GetResourceWithName<Shader>(name, nullptr);
-		AddResource(shader, key);
+		AddResourceAlias(shader, key);
 	}
 	
 	void ResourceCoordinator::LoadEngineResources()

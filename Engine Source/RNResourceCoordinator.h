@@ -57,12 +57,19 @@ namespace RN
 		}
 		
 		void AddResource(Object *object, String *name);
+		void AddResourceAlias(Object *object, String *alias);
+		
+		void RemoveResource(Object *object);
+		void RemoveResourceWithName(String *name);
+		
 		void WaitForResources();
 		
 		void RegisterResourceLoader(ResourceLoader *loader);
 		void UnregisterResourceLoader(ResourceLoader *loader);
 		
 	private:
+		void __AddResourceAlias(Object *object, String *name);
+		
 		Object *RequestResourceWithName(MetaClassBase *base, String *name, Dictionary *settings);
 		std::shared_future<Object *> RequestFutureResourceWithName(MetaClassBase *base, String *name, Dictionary *settings);
 		
@@ -76,6 +83,8 @@ namespace RN
 		
 		Array _loader;
 		Dictionary _resources;
+		Dictionary _resourceToAlias;
+		
 		std::unordered_map<String *, std::shared_future<Object *>> _requests;
 	};
 }
