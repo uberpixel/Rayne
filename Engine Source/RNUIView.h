@@ -112,9 +112,9 @@ namespace RN
 			void Initialize();
 			void ViewHierarchyChanged();
 			void CalculateScissorRect();
-			void UpdateChilds();
-			void UpdateAndDrawChilds(Renderer *renderer);
 			void ResizeSubviewsFromOldSize(const Vector2& oldSize);
+			void UpdateRecursively();
+			void DrawRecursively(Renderer *renderer);
 			
 			void ConvertPointToWidget(Vector2& point);
 			void ConvertPointFromWidget(Vector2& point);
@@ -133,6 +133,7 @@ namespace RN
 			bool _interactionEnabled;
 			bool _dirtyLayout;
 			bool _clipSubviews;
+			bool _clipWithWidget;
 			bool _hidden;
 			
 			Rect _frame;

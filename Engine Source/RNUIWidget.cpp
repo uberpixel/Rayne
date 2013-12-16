@@ -9,6 +9,8 @@
 #include "RNUIWidget.h"
 #include "RNUIServer.h"
 #include "RNUIView.h"
+#include "RNUIStyle.h"
+#include "RNUIWidgetInternals.h"
 
 namespace RN
 {
@@ -16,26 +18,31 @@ namespace RN
 	{
 		RNDeclareMeta(Widget)
 
-		Widget::Widget()
+		Widget::Widget(Style style)
 		{
-			Initialize();
+			Initialize(style);
 		}
 		
-		Widget::Widget(const Rect& frame) :
+		Widget::Widget(Style style, const Rect& frame) :
 			_frame(frame)
 		{
-			Initialize();
+			Initialize(style);
 		}
 		
 		Widget::~Widget()
 		{
 			_contentView->Release();
+			SafeRelease(_backgroundView);
 		}
 		
-		void Widget::Initialize()
+		void Widget::Initialize(Style style)
 		{
-			_contentView = GetEmptyContentView()->Retain();
-			_dirtyLayout = true;
+			_style = style;
+			_hasShadow = (_style != StyleBorderless);
+			
+			_backgroundView = CreateBackgroundView();
+			_contentView    = GetEmptyContentView()->Retain();
+			_dirtyLayout    = true;
 			
 			_server         = nullptr;
 			_firstResponder = nullptr;
@@ -54,7 +61,26 @@ namespace RN
 		{
 			View *view = new View(Rect(Vector2(0.0f), GetContentSize()));
 			view->_widget = this;
+			
 			return view->Autorelease();
+		}
+		
+		WidgetBackgroundView *Widget::CreateBackgroundView()
+		{
+			if(_style == StyleBorderless)
+				return nullptr;
+			
+			UI::Style *styleSheet = UI::Style::GetSharedInstance();
+			Dictionary *style = styleSheet->GetWindowStyle(RNCSTR("titlebar"));
+			
+			WidgetBackgroundView *background = new WidgetBackgroundView(this, _style, style);
+			background->_widget = this;
+			background->_clipWithWidget = false;
+			
+			background->ViewHierarchyChanged();
+			background->SetFrame(Rect(0.0f, 0.0f, _frame.width, _frame.height));
+			
+			return background;
 		}
 		
 		Vector2 Widget::GetContentSize() const
@@ -68,7 +94,6 @@ namespace RN
 			
 			_contentView = view ? view->Retain() : GetEmptyContentView()->Retain();
 			_contentView->_widget = this;
-			
 			_contentView->ViewHierarchyChanged();
 			
 			ConstraintContentView();
@@ -96,10 +121,19 @@ namespace RN
 			if(_frame != frame)
 			{
 				_frame = frame;
+				
+				if(_backgroundView)
+					_backgroundView->SetFrame(Rect(0.0f, 0.0f, frame.width, frame.height));
 			
 				ConstraintFrame();
 				ConstraintContentView();
 			}
+		}
+		
+		void Widget::SetTitle(String *title)
+		{
+			if(_backgroundView)
+				_backgroundView->SetTitle(title);
 		}
 		
 		void Widget::SetContentSize(const Vector2& size)
@@ -202,6 +236,42 @@ namespace RN
 			_server->MoveWidgetToFront(this);
 		}
 		
+		View *Widget::PerformHitTest(const Vector2& position, Event *event)
+		{
+			if(_frame.ContainsPoint(position))
+			{
+				Vector2 transformed = position;
+				transformed.x -= _frame.x;
+				transformed.y -= _frame.y;
+				
+				return _contentView->HitTest(transformed, event);
+			}
+			
+			// Check the background view
+			if(_backgroundView)
+			{
+				const EdgeInsets& border = _backgroundView->GetBorder();
+				Rect extendedFrame = _frame;
+				
+				extendedFrame.x     -= border.left;
+				extendedFrame.width += border.left + border.right;
+				
+				extendedFrame.y     -= border.top;
+				extendedFrame.width += border.bottom;
+				
+				if(extendedFrame.ContainsPoint(position))
+				{
+					Vector2 transformed = position;
+					transformed.x -= _frame.x;
+					transformed.y -= _frame.y;
+					
+					return _backgroundView->HitTest(transformed, event);
+				}
+			}
+			
+			return nullptr;
+		}
+		
 		// ---------------------
 		// MARK: -
 		// MARK: Layout engine
@@ -232,7 +302,14 @@ namespace RN
 			if(_dirtyLayout)
 				UpdateLayout();
 			
-			_contentView->UpdateAndDrawChilds(renderer);
+			if(_backgroundView)
+			{
+				_backgroundView->UpdateRecursively();
+				_backgroundView->DrawRecursively(renderer);
+			}
+			
+			_contentView->UpdateRecursively();
+			_contentView->DrawRecursively(renderer);
 		}
 	}
 }

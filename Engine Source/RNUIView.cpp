@@ -64,6 +64,7 @@ namespace RN
 			_dirtyLayout        = true;
 			_interactionEnabled = true;
 			_clipSubviews       = false;
+			_clipWithWidget     = true;
 			_hidden             = false;
 			_autoresizingMask   = 0;
 			
@@ -320,10 +321,12 @@ namespace RN
 		void View::ViewHierarchyChanged()
 		{
 			size_t count = _subviews.GetCount();
-			for(size_t i=0; i<count; i++)
+			
+			for(size_t i = 0; i < count; i++)
 			{
 				View *subview = _subviews.GetObjectAtIndex<View>(i);
 				subview->_widget = _widget;
+				subview->_clipWithWidget = _clipWithWidget;
 				subview->ViewHierarchyChanged();
 			}
 			
@@ -675,15 +678,18 @@ namespace RN
 			{
 				object.scissorRect = _clippingView->_scissorRect;
 			}
-			else if(_widget)
+			else if(_widget && _clipWithWidget)
 			{
 				float serverHeight = (_widget->_server) ? _widget->_server->GetHeight() : 0.0f;
 				
 				object.scissorRect = _widget->GetFrame();
 				object.scissorRect.y = serverHeight - object.scissorRect.height - object.scissorRect.y;
 			}
+			else if(!_clipWithWidget)
+			{
+				object.flags &= ~RenderingObject::ScissorTest;
+			}
 		}
-		
 		
 		
 		void View::Draw(Renderer *renderer)
@@ -701,42 +707,33 @@ namespace RN
 		}
 		
 		
-		void View::UpdateChilds()
+		
+		void View::UpdateRecursively()
 		{
 			Update();
 			
 			size_t count = _subviews.GetCount();
 			
-			for(size_t i=0; i<count; i++)
+			for(size_t i = 0; i < count; i ++)
 			{
 				View *subview = _subviews.GetObjectAtIndex<View>(i);
-				subview->UpdateChilds();
+				subview->UpdateRecursively();
 			}
 		}
 		
-		void View::UpdateAndDrawChilds(Renderer *renderer)
+		void View::DrawRecursively(Renderer *renderer)
 		{
-			Update();
+			if(_hidden)
+				return;
+			
+			Draw(renderer);
 			
 			size_t count = _subviews.GetCount();
 			
-			if(_hidden)
+			for(size_t i = 0; i < count; i ++)
 			{
-				for(size_t i=0; i<count; i++)
-				{
-					View *subview = _subviews.GetObjectAtIndex<View>(i);
-					subview->UpdateChilds();
-				}
-			}
-			else
-			{
-				Draw(renderer);
-				
-				for(size_t i=0; i<count; i++)
-				{
-					View *subview = _subviews.GetObjectAtIndex<View>(i);
-					subview->UpdateAndDrawChilds(renderer);
-				}
+				View *subview = _subviews.GetObjectAtIndex<View>(i);
+				subview->DrawRecursively(renderer);
 			}
 		}
 	}

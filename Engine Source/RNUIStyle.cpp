@@ -13,6 +13,7 @@
 
 #define kRNUIStyleButtonsKey   RNCSTR("buttons")
 #define kRNUIStyleTextfieldKey RNCSTR("textfields")
+#define kRNUIStyleWindowKey    RNCSTR("window")
 #define kRNUIStyleNameKey      RNCSTR("name")
 
 namespace RN
@@ -139,6 +140,10 @@ namespace RN
 					identifier = RNCSTR("RNTextColor");
 					break;
 					
+				case ColorStyle::TitleColor:
+					identifier = RNCSTR("RNTitleColor");
+					break;
+					
 				case ColorStyle::SelectionColor:
 					identifier = RNCSTR("RNSelectionColor");
 					break;
@@ -226,6 +231,39 @@ namespace RN
 			
 			return style;
 		}
+		
+		// ---------------------
+		// MARK: -
+		// MARK: Windows
+		// ---------------------
+		
+		Dictionary *Style::GetWindowStyle(String *name)
+		{
+			Dictionary *window = _data->GetObjectForKey<Dictionary>(kRNUIStyleWindowKey);
+			return window->GetObjectForKey<Dictionary>(name);
+		}
+		
+		Dictionary *Style::GetWindowControlStyle(String *name)
+		{
+			Dictionary *window = _data->GetObjectForKey<Dictionary>(kRNUIStyleWindowKey);
+			
+			Array *buttons = window->GetObjectForKey<Array>(RNCSTR("controls"));
+			Dictionary *style = nullptr;
+			
+			buttons->Enumerate([&](Object *object, size_t index, bool *stop) {
+				Dictionary *dict = object->Downcast<Dictionary>();
+				String *tname = dict->GetObjectForKey<String>(kRNUIStyleNameKey);
+				
+				if(tname->IsEqual(name))
+				{
+					style = dict;
+					*stop = true;
+				}
+			});
+			
+			return style;
+		}
+		
 		
 		// ---------------------
 		// MARK: -

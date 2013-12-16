@@ -15,16 +15,14 @@ namespace RN
 	namespace UI
 	{
 		DebugWidget::DebugWidget() :
-			Widget(Rect(10.0f, 10.0f, 180.0f, 220.0f)),
+			Widget(Widget::StyleTitled | Widget::StyleClosable, Rect(10.0f, 50.0f, 180.0f, 220.0f)),
 			_fps(60)
 		{
-			MessageCenter::GetSharedInstance()->AddObserver(kRNKernelDidEndFrameMessage, &DebugWidget::HandleMessage, this, this);
-		
+			SetTitle(RNCSTR("Statistics"));
+			
 			_fpsLabel = new Label();
 			_fpsLabel->SetFrame(Rect(0.0f, 5.0f, 180.0f, 128.0f).Inset(5.0f, 0.0f));
 			_fpsLabel->SetNumberOfLines(0);
-			
-			GetContentView()->AddSubview(_fpsLabel->Autorelease());
 			
 			_fpsCheckbox = Button::WithType(Button::Type::CheckBox);
 			_fpsCheckbox->SetFrame(Rect(5.0f, 120.0f, 0.0f, 0.0f));
@@ -33,6 +31,9 @@ namespace RN
 			_fpsCheckbox->SetSelected(true);
 			
 			GetContentView()->AddSubview(_fpsCheckbox);
+			GetContentView()->AddSubview(_fpsLabel->Autorelease());
+			
+			MessageCenter::GetSharedInstance()->AddObserver(kRNKernelDidEndFrameMessage, &DebugWidget::HandleMessage, this, this);
 		}
 		
 		DebugWidget::~DebugWidget()

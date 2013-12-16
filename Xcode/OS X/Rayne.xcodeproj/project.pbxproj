@@ -21,6 +21,8 @@
 		D59DCB0D18584E2B00030716 /* RNOctreeSceneManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D59DCB0B18584E2B00030716 /* RNOctreeSceneManager.cpp */; };
 		E907DF2A17C9780E00777A38 /* RNTextNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E907DF2817C9780E00777A38 /* RNTextNode.cpp */; };
 		E907DF2B17C9780E00777A38 /* RNTextNode.h in Headers */ = {isa = PBXBuildFile; fileRef = E907DF2917C9780E00777A38 /* RNTextNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E90D0EFC185E7D5900807A13 /* RNUIWidgetInternals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E90D0EFA185E7D5900807A13 /* RNUIWidgetInternals.cpp */; };
+		E90D0EFD185E7D5900807A13 /* RNUIWidgetInternals.h in Headers */ = {isa = PBXBuildFile; fileRef = E90D0EFB185E7D5900807A13 /* RNUIWidgetInternals.h */; };
 		E90E777917D799A30097DB09 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E90E777817D799A30097DB09 /* CoreServices.framework */; };
 		E911D6FA1754060E00DD1F55 /* RNAlgorithm.h in Headers */ = {isa = PBXBuildFile; fileRef = E911D6F91754060E00DD1F55 /* RNAlgorithm.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9145CAC16BA9076004BDEC8 /* RNAutoreleasePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9145CAA16BA9076004BDEC8 /* RNAutoreleasePool.cpp */; };
@@ -295,6 +297,8 @@
 		D59DCB0B18584E2B00030716 /* RNOctreeSceneManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOctreeSceneManager.cpp; sourceTree = "<group>"; };
 		E907DF2817C9780E00777A38 /* RNTextNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTextNode.cpp; sourceTree = "<group>"; };
 		E907DF2917C9780E00777A38 /* RNTextNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTextNode.h; sourceTree = "<group>"; };
+		E90D0EFA185E7D5900807A13 /* RNUIWidgetInternals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIWidgetInternals.cpp; sourceTree = "<group>"; };
+		E90D0EFB185E7D5900807A13 /* RNUIWidgetInternals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIWidgetInternals.h; sourceTree = "<group>"; };
 		E90E777817D799A30097DB09 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		E911D6F91754060E00DD1F55 /* RNAlgorithm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAlgorithm.h; sourceTree = "<group>"; };
 		E9145CAA16BA9076004BDEC8 /* RNAutoreleasePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNAutoreleasePool.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
@@ -807,6 +811,8 @@
 				E919598E17901180004B5880 /* RNUIUtilities.h */,
 				E9D7DA7A172F9C7700A858CB /* RNUIView.cpp */,
 				E9D7DA7B172F9C7700A858CB /* RNUIView.h */,
+				E90D0EFA185E7D5900807A13 /* RNUIWidgetInternals.cpp */,
+				E90D0EFB185E7D5900807A13 /* RNUIWidgetInternals.h */,
 				E9D7DA76172F9C0D00A858CB /* RNUIWidget.cpp */,
 				E9D7DA77172F9C0D00A858CB /* RNUIWidget.h */,
 			);
@@ -1105,6 +1111,7 @@
 				E91C8CDA176006A300E9E8F2 /* RNUIControl.h in Headers */,
 				E9BAC0B6184588390066ECEC /* RNSignal.h in Headers */,
 				E91C8CDE176023EC00E9E8F2 /* RNUIButton.h in Headers */,
+				E90D0EFD185E7D5900807A13 /* RNUIWidgetInternals.h in Headers */,
 				E9AD2A8017610E8F00BC3E8F /* RNUILabel.h in Headers */,
 				E9905CAE17D8999C0097A843 /* RNKVOImplementation.h in Headers */,
 				E951615E17D410CF0006156A /* RNUITableViewCell.h in Headers */,
@@ -1284,6 +1291,7 @@
 				E995F3CC1709B9F20051223B /* RNPathManager.cpp in Sources */,
 				E959282B170CBAAD00935AC8 /* RNWorldAttachment.cpp in Sources */,
 				E93CE16317D83DB700A7A8A3 /* RNKVO.cpp in Sources */,
+				E90D0EFC185E7D5900807A13 /* RNUIWidgetInternals.cpp in Sources */,
 				E957BAB81714F61400AD7A54 /* RNSceneManager.cpp in Sources */,
 				E9B083BB171761FB009AD83F /* RNMath.cpp in Sources */,
 				E9B083F117188E29009AD83F /* RNCPU.cpp in Sources */,

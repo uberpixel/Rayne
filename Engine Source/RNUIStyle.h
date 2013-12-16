@@ -39,6 +39,7 @@ namespace RN
 			{
 				BackgroundColor,
 				TextColor,
+				TitleColor,
 				SelectionColor
 			};
 			
@@ -55,6 +56,8 @@ namespace RN
 			
 			Dictionary *GetButtonStyle(String *name);
 			Dictionary *GetTextfieldStyle(String *name);
+			Dictionary *GetWindowStyle(String *name);
+			Dictionary *GetWindowControlStyle(String *name);
 			
 			static EdgeInsets ParseEdgeInsets(Dictionary *insets);
 			static Atlas ParseAtlas(Dictionary *atlas);

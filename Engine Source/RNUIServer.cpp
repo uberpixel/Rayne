@@ -120,7 +120,7 @@ namespace RN
 			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
 			widget->_server = nullptr;
-			widget->Release();
+			widget->Autorelease();
 		}
 		
 		void Server::MoveWidgetToFront(Widget *widget)
@@ -154,14 +154,10 @@ namespace RN
 				for(auto i = _widgets.rbegin(); i != _widgets.rend(); i ++)
 				{
 					Widget *widget = *i;
-					
-					if(widget->GetFrame().ContainsPoint(position))
+				
+					hit = widget->PerformHitTest(position, event);
+					if(hit)
 					{
-						Vector2 transformed = position;
-						transformed.x -= widget->_frame.x;
-						transformed.y -= widget->_frame.y;
-						
-						hit = widget->GetContentView()->HitTest(transformed, event);
 						hitWidget = widget;
 						break;
 					}

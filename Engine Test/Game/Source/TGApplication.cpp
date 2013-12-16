@@ -26,6 +26,7 @@ namespace TG
 		
 		RN::UI::DebugWidget *widget = new RN::UI::DebugWidget();
 		widget->Show();
+		widget->Release();
 
 		_world = new World();
 	}

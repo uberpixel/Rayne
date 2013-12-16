@@ -23,6 +23,7 @@ namespace RN
 	{
 		class Server;
 		class View;
+		class WidgetBackgroundView;
 		
 		class Widget : public Responder
 		{
@@ -30,16 +31,34 @@ namespace RN
 			friend class Server;
 			friend class View;
 			
-			Widget();
-			Widget(const Rect& frame);
+			enum
+			{
+				StyleBorderless  = 0,
+				StyleTitled      = (1 << 0),
+				StyleClosable    = (1 << 1),
+				StyleMinimizable = (1 << 2),
+				StyleMaximizable = (1 << 3)
+			};
+			typedef uint32 Style;
+			
+			enum class TitleControl
+			{
+				Close,
+				Minimize,
+				Maximize
+			};
+			
+			Widget(Style style);
+			Widget(Style style, const Rect& frame);
 			~Widget() override;
 			
-			virtual void SetContentView(View *view);
+			void SetContentView(View *view);
 			void SetMinimumSize(const Vector2& size);
 			void SetMaximumSize(const Vector2& size);
-			
-			virtual void SetFrame(const Rect& frame);
-			virtual void SetContentSize(const Vector2& size);
+			void SetHasShadow(bool hasShadow);
+			void SetFrame(const Rect& frame);
+			void SetContentSize(const Vector2& size);
+			void SetTitle(String *title);
 			
 			const Rect& GetFrame() const { return _frame; }
 			Vector2 GetContentSize() const;
@@ -62,19 +81,27 @@ namespace RN
 			Matrix transform;
 			
 		private:
-			void Initialize();
+			void Initialize(Style style);
 			void ConstraintFrame();
 			void ConstraintContentView();
 			
 			void ForceResignFirstResponder();
+			View *PerformHitTest(const Vector2& position, Event *event);
 			
 			View *GetEmptyContentView();
+			WidgetBackgroundView *CreateBackgroundView();
+			
 			void UpdateLayout();
+			
+			Style _style;
+			bool _hasShadow;
 			
 			Rect _frame;
 			bool _dirtyLayout;
 			
+			WidgetBackgroundView *_backgroundView;
 			View *_contentView;
+			
 			Responder *_firstResponder;
 			
 			Vector2 _minimumSize;
@@ -83,7 +110,7 @@ namespace RN
 			Matrix _finalTransform;
 			Server *_server;
 			
-			RNDefineMetaWithTraits(Widget, Responder, MetaClassTraitCronstructable)
+			RNDefineMeta(Widget, Responder)
 		};
 	}
 }
