@@ -318,10 +318,10 @@ namespace RN
 			imageSize.x = truncatedSize.x > imageSize.x ? imageSize.x : truncatedSize.x;
 			imageSize.y = truncatedSize.y > imageSize.y ? imageSize.y : truncatedSize.y;
 			
-			Vector2 halfTitle = titleSize * 0.5f;
-			Vector2 halfImage = imageSize * 0.5f;
+			Vector2 halfTitle = Vector2(roundf(titleSize.x * 0.5f), roundf(titleSize.y * 0.5f));
+			Vector2 halfImage = Vector2(roundf(imageSize.x * 0.5f), roundf(imageSize.y * 0.5f));
 			
-			Vector2 center = size * 0.5f;
+			Vector2 center = Vector2(roundf(size.x * 0.5f), roundf(size.y * 0.5f));
 			
 			Vector2 centeredTitle = center - halfTitle;
 			Vector2 centeredImage = center - halfImage;
