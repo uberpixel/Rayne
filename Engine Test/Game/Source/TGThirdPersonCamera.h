@@ -16,7 +16,7 @@ namespace TG
 	class ThirdPersonCamera : public RN::Camera
 	{
 	public:
-		ThirdPersonCamera(RN::RenderStorage *storage);
+		ThirdPersonCamera(RN::RenderStorage *storage, RN::Camera::Flags flags=RN::Camera::FlagDefaults);
 		virtual ~ThirdPersonCamera();
 	
 		void SetTarget(RN::Entity *target);

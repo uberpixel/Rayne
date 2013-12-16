@@ -11,8 +11,8 @@
 #define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureFreeCamera    1
-#define TGWorldFeatureZPrePass		0
-#define TGWorldFeatureBloom			0
+#define TGWorldFeatureZPrePass		1
+#define TGWorldFeatureBloom			1
 #define TGWorldFeatureSSAO          0
 #define TGWorldFeatureWater			0
 
@@ -43,8 +43,8 @@ namespace TG
 		AddAttachment(_debugAttachment);
 		
 		CreateCameras();
-//		CreateSponza();
-		CreateForest();
+		CreateSponza();
+//		CreateForest();
 //		CreateSibenik();
 		
 		RN::Input::GetSharedInstance()->Activate();
@@ -134,22 +134,22 @@ namespace TG
 #if TGWorldFeatureZPrePass
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth);
 		
-		RN::TextureParameter depthparam;
-		depthparam.format = RN::TextureParameter::Format::Depth24I;
+		RN::Texture::Parameter depthparam;
+		depthparam.format = RN::Texture::Format::Depth24I;
 		depthparam.generateMipMaps = false;
-		depthparam.mipMaps = 0;
-		depthparam.wrapMode = RN::TextureParameter::WrapMode::Clamp;
+		depthparam.maxMipMaps = 0;
+		depthparam.wrapMode = RN::Texture::WrapMode::Clamp;
 		
-		_depthtex = new RN::Texture(depthparam);
+		_depthtex = new RN::Texture2D(depthparam);
 		storage->SetDepthTarget(_depthtex);
 		
-		RN::Shader *depthShader = RN::ResourcePool::GetSharedInstance()->GetResourceWithName<RN::Shader>(kRNResourceKeyLightDepthShader);
+		RN::Shader *depthShader = RN::ResourceCoordinator::GetSharedInstance()->GetResourceWithName<RN::Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
 		RN::Material *depthMaterial = new RN::Material(depthShader);
 		
-		_camera = new ThirdPersonCamera(storage);
+		_camera = new ThirdPersonCamera(storage, RN::Camera::FlagDefaults|RN::Camera::FlagNoLights);
 		_camera->SetMaterial(depthMaterial);
 		
-		_finalcam = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagDefaults);
+		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA32F, RN::Camera::FlagDefaults);
 		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
 		_finalcam->GetStorage()->SetDepthTarget(_depthtex);
 		_finalcam->SetSkyCube(sky);
@@ -162,7 +162,46 @@ namespace TG
 		
 		_finalcam->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
 		
-#if TGWorldFeatureSSAO || TGWorldFeatureBloom || TGWorldFeatureWater
+	#if TGWorldFeatureWater
+		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
+		
+		// Copy refraction to another texture
+		RN::Material *copyFBOMaterial = new RN::Material(updownShader);
+		copyFBOMaterial->Define("RN_COPYDEPTH");
+		RN::Camera *copyRefract = new RN::Camera(_camera->GetFrame().Size(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		copyRefract->SetMaterial(copyFBOMaterial);
+		_refractPipeline = _lightcam->AddPostProcessingPipeline("refractioncopy");
+		_refractPipeline->AddStage(copyRefract, RN::RenderStage::Mode::ReUsePreviousStage);
+	#endif
+		
+	#if TGWorldFeatureSSAO
+		PPActivateSSAO(_finalcam);
+	#endif
+		
+	#if TGWorldFeatureBloom
+		PPActivateBloom(_finalcam);
+	#endif
+#else
+		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
+		storage->AddRenderTarget(RN::Texture::Format::RGBA32F);
+		_camera = new ThirdPersonCamera(storage);
+		_camera->SetClearColor(RN::Color::Black());
+//		_camera->fogcolor = RN::Color::Black();
+		_camera->SetSkyCube(sky);
+		_camera->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
+		
+	#if TGWorldFeatureSSAO
+		PPActivateSSAO(_camera);
+	#endif
+		
+	#if TGWorldFeatureBloom
+		PPActivateBloom(_camera);
+	#endif
+#endif
+	}
+	
+	void World::PPActivateSSAO(RN::Camera *cam)
+	{
 		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
 		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
 		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
@@ -175,27 +214,15 @@ namespace TG
 		
 		RN::Material *downMaterial = new RN::Material(updownShader);
 		downMaterial->Define("RN_DOWNSAMPLE");
-#endif
 		
-#if TGWorldFeatureWater
-		// Copy refraction to another texture
-		RN::Material *copyFBOMaterial = new RN::Material(updownShader);
-		copyFBOMaterial->Define("RN_COPYDEPTH");
-		RN::Camera *copyRefract = new RN::Camera(_camera->GetFrame().Size(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		copyRefract->SetMaterial(copyFBOMaterial);
-		_refractPipeline = _lightcam->AddPostProcessingPipeline("refractioncopy");
-		_refractPipeline->AddStage(copyRefract, RN::RenderStage::Mode::ReUsePreviousStage);
-#endif
-		
-#if TGWorldFeatureSSAO
 		// Surface normals
 		RN::Shader *surfaceShader = RN::Shader::WithFile("shader/rn_SurfaceNormals");
 		RN::Material *surfaceMaterial = new RN::Material(surfaceShader);
 		
-		RN::Camera *normalsCamera = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagNoSky | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatComplete);
+		RN::Camera *normalsCamera = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagNoSky | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatComplete);
 		normalsCamera->SetMaterial(surfaceMaterial);
-		normalsCamera->Storage()->SetDepthTarget(_depthtex);
-		normalsCamera->SetClearMask(RN::Camera::ClearFlagColor);
+		//normalsCamera->GetStorage()->SetDepthTarget(_depthtex);
+		//normalsCamera->SetClearMask(RN::Camera::ClearFlagColor);
 		
 		// SSAO stage
 		RN::Texture *ssaoNoise = RN::Texture::WithFile("textures/rn_SSAONoise.png");
@@ -204,73 +231,87 @@ namespace TG
 		RN::Material *ssaoMaterial = new RN::Material(ssaoShader);
 		ssaoMaterial->AddTexture(ssaoNoise);
 		
-		RN::Camera *ssaoCamera  = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::R8, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *ssaoCamera  = new RN::Camera(RN::Vector2(), RN::Texture::Format::R8, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		ssaoCamera->SetMaterial(ssaoMaterial);
 		
 		// Blur X
-		RN::Camera *ssaoBlurX = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::R8, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *ssaoBlurX = new RN::Camera(RN::Vector2(), RN::Texture::Format::R8, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		ssaoBlurX->SetMaterial(blurXMaterial);
 		
 		// Blur Y
-		RN::Camera *ssaoBlurY = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::R8, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *ssaoBlurY = new RN::Camera(RN::Vector2(), RN::Texture::Format::R8, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		ssaoBlurY->SetMaterial(blurYMaterial);
 		
 		// Combine stage
 		RN::Material *ssaoCombineMaterial = new RN::Material(combineShader);
-		ssaoCombineMaterial->AddTexture(ssaoBlurY->Storage()->RenderTarget());
+		ssaoCombineMaterial->AddTexture(ssaoBlurY->GetStorage()->GetRenderTarget());
 		ssaoCombineMaterial->Define("MODE_GRAYSCALE");
 		
-		RN::Camera *ssaoCombineCamera  = new RN::Camera(RN::Vector2(), RN::TextureParameter::Format::RGB888, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *ssaoCombineCamera  = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGB888, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		ssaoCombineCamera->SetMaterial(ssaoCombineMaterial);
 		
 		// PP pipeline
-		RN::PostProcessingPipeline *ssaoPipeline = _finalcam->AddPostProcessingPipeline("SSAO");
+		RN::PostProcessingPipeline *ssaoPipeline = cam->AddPostProcessingPipeline("SSAO");
 		ssaoPipeline->AddStage(normalsCamera, RN::RenderStage::Mode::ReRender);
 		ssaoPipeline->AddStage(ssaoCamera, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(ssaoBlurX, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(ssaoBlurY, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(ssaoCombineCamera, RN::RenderStage::Mode::ReUsePipeline);
-#endif
+	}
+	
+	void World::PPActivateBloom(RN::Camera *cam)
+	{
+		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
+		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
+		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
 		
-#if TGWorldFeatureBloom
+		RN::Material *blurXMaterial = new RN::Material(blurShader);
+		blurXMaterial->Define("RN_BLURX");
+		
+		RN::Material *blurYMaterial = new RN::Material(blurShader);
+		blurYMaterial->Define("RN_BLURY");
+		
+		RN::Material *downMaterial = new RN::Material(updownShader);
+		downMaterial->Define("RN_DOWNSAMPLE");
+		
 		// Filter bright
 		RN::Shader *filterBrightShader = RN::Shader::WithFile("shader/rn_FilterBright");
 		RN::Material *filterBrightMaterial = new RN::Material(filterBrightShader);
-		RN::Camera *filterBright = new RN::Camera(_camera->GetFrame().Size() / 2.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *filterBright = new RN::Camera(cam->GetFrame().Size() / 2.0f, RN::Texture::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		filterBright->SetMaterial(filterBrightMaterial);
 		
 		// Down sample
-		RN::Camera *downSample4x = new RN::Camera(_camera->GetFrame().Size() / 4.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *downSample4x = new RN::Camera(cam->GetFrame().Size() / 4.0f, RN::Texture::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		downSample4x->SetMaterial(downMaterial);
 		
 		// Down sample
-		RN::Camera *downSample8x = new RN::Camera(_camera->GetFrame().Size() / 8.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *downSample8x = new RN::Camera(cam->GetFrame().Size() / 8.0f, RN::Texture::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		downSample8x->SetMaterial(downMaterial);
 		
 		// Blur X
-		RN::Camera *bloomBlurXlow = new RN::Camera(_camera->GetFrame().Size() / 8.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomBlurXlow = new RN::Camera(cam->GetFrame().Size() / 8.0f, RN::Texture::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurXlow->SetMaterial(blurXMaterial);
 		
 		// Blur Y
-		RN::Camera *bloomBlurYlow = new RN::Camera(_camera->GetFrame().Size() / 8.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomBlurYlow = new RN::Camera(cam->GetFrame().Size() / 8.0f, RN::Texture::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurYlow->SetMaterial(blurYMaterial);
 		
 		// Blur X
-		RN::Camera *bloomBlurXhigh = new RN::Camera(_camera->GetFrame().Size() / 4.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomBlurXhigh = new RN::Camera(cam->GetFrame().Size() / 4.0f, RN::Texture::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurXhigh->SetMaterial(blurXMaterial);
 		
 		// Blur Y
-		RN::Camera *bloomBlurYhigh = new RN::Camera(_camera->GetFrame().Size() / 4.0f, RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomBlurYhigh = new RN::Camera(cam->GetFrame().Size() / 4.0f, RN::Texture::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurYhigh->SetMaterial(blurYMaterial);
-	
+		
 		// Combine
 		RN::Material *bloomCombineMaterial = new RN::Material(combineShader);
 		bloomCombineMaterial->AddTexture(bloomBlurYhigh->GetStorage()->GetRenderTarget());
 		
-		RN::Camera *bloomCombine = new RN::Camera(RN::Vector2(0.0f), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomCombine = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomCombine->SetMaterial(bloomCombineMaterial);
 		
-		RN::PostProcessingPipeline *bloom = _finalcam->AddPostProcessingPipeline("Bloom");
+		RN::PostProcessingPipeline *bloom = cam->AddPostProcessingPipeline("Bloom");
 		bloom->AddStage(filterBright, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(downSample4x, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(downSample8x, RN::RenderStage::Mode::ReUsePreviousStage);
@@ -279,22 +320,12 @@ namespace TG
 		bloom->AddStage(bloomBlurXhigh, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomBlurYhigh, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomCombine, RN::RenderStage::Mode::ReUsePipeline);
-#endif
-		
-#else
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
-		storage->AddRenderTarget(RN::Texture::Format::RGBA32F);
-		_camera = new ThirdPersonCamera(storage);
-		_camera->SetClearColor(RN::Color::Black());
-//		_camera->fogcolor = RN::Color::Black();
-		_camera->SetSkyCube(sky);
-		_camera->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
-		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f)*2.0f;
-#endif
 	}
 	
 	void World::CreateSponza()
 	{
+		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f)*0.7f;
+		
 		// Sponza
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
 		model->GetMaterialAtIndex(0, 12)->discard = true;
@@ -343,15 +374,15 @@ namespace TG
 		_sunLight->ActivateDirectionalShadows(true, 2048);
 		_sunLight->SetColor(RN::Color(170, 170, 170));
 		
-		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
+/*		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(20.0f);
 		_spotLight->SetColor(RN::Color(0.5f));
-		_spotLight->ActivateSpotShadows();
+		_spotLight->ActivateSpotShadows();*/
 		
 #if TGWorldFeatureFreeCamera
-		_camera->AttachChild(_spotLight);
+//		_camera->AttachChild(_spotLight);
 #else
 		_player->AttachChild(_spotLight);
 #endif
@@ -416,8 +447,8 @@ namespace TG
 		_camera->UpdateProjection();
 		
 #if  TGWorldFeatureZPrePass
-		_lightcam->clipfar = 100.0f;
-		_lightcam->UpdateProjection();
+//		_lightcam->clipfar = 100.0f;
+//		_lightcam->UpdateProjection();
 		_finalcam->clipfar = 100.0f;
 		_finalcam->UpdateProjection();
 #endif
@@ -430,6 +461,8 @@ namespace TG
 	
 	void World::CreateForest()
 	{
+		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f)*2.0f;
+		
 		//ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
 		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 5);

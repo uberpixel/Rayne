@@ -28,6 +28,9 @@ namespace TG
 		
 	private:
 		void CreateCameras();
+		void PPActivateBloom(RN::Camera *cam);
+		void PPActivateSSAO(RN::Camera *cam);
+		
 		void CreateSponza();
 		void CreateForest();
 		void CreateTest();

@@ -12,8 +12,8 @@ namespace TG
 {
 	RNDeclareMeta(ThirdPersonCamera)
 	
-	ThirdPersonCamera::ThirdPersonCamera(RN::RenderStorage *storage) :
-	RN::Camera(RN::Vector2(), storage, RN::Camera::FlagDefaults)
+	ThirdPersonCamera::ThirdPersonCamera(RN::RenderStorage *storage, RN::Camera::Flags flags) :
+	RN::Camera(RN::Vector2(), storage, flags)
 	{
 		_target = 0;
 		_distance = 5.0f;
