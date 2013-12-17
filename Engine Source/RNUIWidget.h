@@ -59,6 +59,7 @@ namespace RN
 			void SetFrame(const Rect& frame);
 			void SetContentSize(const Vector2& size);
 			void SetTitle(String *title);
+			void SetTransform(const Matrix& transform);
 			
 			const Rect& GetFrame() const { return _frame; }
 			Vector2 GetContentSize() const;
@@ -75,9 +76,6 @@ namespace RN
 			
 			void OrderFront();
 			
-		protected:
-			Matrix transform;
-			
 		private:
 			void Initialize(Style style);
 			void ConstraintFrame();
@@ -89,7 +87,7 @@ namespace RN
 			void ForceResignFirstResponder();
 			View *PerformHitTest(const Vector2& position, Event *event);
 			
-			View *GetEmptyContentView();
+			View *CreateContentView();
 			WidgetBackgroundView *CreateBackgroundView();
 			
 			void UpdateLayout();
@@ -98,7 +96,6 @@ namespace RN
 			bool _hasShadow;
 			
 			Rect _frame;
-			bool _dirtyLayout;
 			
 			WidgetBackgroundView *_backgroundView;
 			View *_contentView;
@@ -108,7 +105,7 @@ namespace RN
 			Vector2 _minimumSize;
 			Vector2 _maximumSize;
 			
-			Matrix _finalTransform;
+			Matrix _transform;
 			Server *_server;
 			
 			RNDefineMeta(Widget, Responder)

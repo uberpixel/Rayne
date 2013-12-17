@@ -623,7 +623,7 @@ namespace RN
 				}
 				else if(_widget)
 				{
-					_intermediateTransform = _widget->transform * _transform;
+					_intermediateTransform = _widget->_transform * _transform;
 				}
 				
 				if(_widget)

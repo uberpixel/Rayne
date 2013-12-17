@@ -41,8 +41,7 @@ namespace RN
 			_hasShadow = (_style != StyleBorderless);
 			
 			_backgroundView = CreateBackgroundView();
-			_contentView    = GetEmptyContentView()->Retain();
-			_dirtyLayout    = true;
+			_contentView    = CreateContentView();
 			
 			_server         = nullptr;
 			_firstResponder = nullptr;
@@ -57,12 +56,12 @@ namespace RN
 		// MARK: Content handling
 		// ---------------------
 		
-		View *Widget::GetEmptyContentView()
+		View *Widget::CreateContentView()
 		{
 			View *view = new View(Rect(Vector2(0.0f), GetContentSize()));
 			view->_widget = this;
 			
-			return view->Autorelease();
+			return view;
 		}
 		
 		WidgetBackgroundView *Widget::CreateBackgroundView()
@@ -92,12 +91,11 @@ namespace RN
 		{
 			_contentView->Release();
 			
-			_contentView = view ? view->Retain() : GetEmptyContentView()->Retain();
+			_contentView = view ? view->Retain() : CreateContentView();
 			_contentView->_widget = this;
 			_contentView->ViewHierarchyChanged();
 			
 			ConstraintContentView();
-			SetNeedsLayoutUpdate();
 		}
 		
 		void Widget::SetMinimumSize(const Vector2& size)
@@ -136,6 +134,11 @@ namespace RN
 				_backgroundView->SetTitle(title);
 		}
 		
+		void Widget::SetTransform(const Matrix& transform)
+		{
+			_transform = transform;
+		}
+		
 		void Widget::SetContentSize(const Vector2& size)
 		{
 			Rect frame;
@@ -153,7 +156,6 @@ namespace RN
 			frame.height = size.y;
 			
 			_contentView->SetFrame(frame);
-			SetNeedsLayoutUpdate();
 		}
 		
 		void Widget::ConstraintFrame()
@@ -277,28 +279,8 @@ namespace RN
 		// MARK: Layout engine
 		// ---------------------
 		
-		void Widget::SetNeedsLayoutUpdate()
-		{
-			_dirtyLayout = true;
-		}
-		
-		void Widget::UpdateLayout()
-		{
-			if(_server)
-			{
-				_finalTransform = transform;
-				_finalTransform.Translate(Vector3(_frame.x, _server->GetHeight() - _frame.height - _frame.y, 0.0f));
-				_finalTransform.Scale(Vector3(_frame.width, _frame.height, 1.0f));
-				
-				_dirtyLayout = false;
-			}
-		}
-		
 		void Widget::Update()
 		{
-			if(_dirtyLayout)
-				UpdateLayout();
-			
 			if(_backgroundView)
 				_backgroundView->UpdateRecursively();
 			
