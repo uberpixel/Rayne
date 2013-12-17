@@ -230,7 +230,7 @@ namespace RN
 		if(!_pointLights.empty() || !_spotLights.empty())
 			CullLights(camera);
 		
-		if(!_pointLights.empty())
+//		if(!_pointLights.empty())
 		{
 			Light **lights = _pointLights.data();
 			size_t lightCount = _pointLights.size();
@@ -296,7 +296,7 @@ namespace RN
 		}
 		
 		//Spot lights
-		if(!_spotLights.empty())
+//		if(!_spotLights.empty())
 		{
 			Light **lights = _spotLights.data();
 			size_t lightCount = _spotLights.size();

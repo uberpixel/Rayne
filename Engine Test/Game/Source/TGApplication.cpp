@@ -24,6 +24,8 @@ namespace TG
 		RN::Texture::SetDefaultAnisotropyLevel(RN::Texture::GetMaxAnisotropyLevel());
 		SetTitle("Super Awesome Game");
 		
+		RN::Kernel::GetSharedInstance()->SetMaxFPS(60);
+		
 		RN::UI::DebugWidget *widget = new RN::UI::DebugWidget();
 		widget->Show();
 		widget->Release();

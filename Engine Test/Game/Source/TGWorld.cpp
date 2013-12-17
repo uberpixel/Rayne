@@ -51,7 +51,7 @@ namespace TG
 		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNInputEventMessage, [&](RN::Message *message) {
 			
 			RN::Event *event = static_cast<RN::Event *>(message);
-			if(event->GetType() == RN::Event::Type::KeyUp)
+			if(event->GetType() == RN::Event::Type::KeyDown)
 			{
 				switch(event->GetCharacter())
 				{
@@ -185,8 +185,6 @@ namespace TG
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
 		storage->AddRenderTarget(RN::Texture::Format::RGBA32F);
 		_camera = new ThirdPersonCamera(storage);
-		_camera->SetClearColor(RN::Color::Black());
-//		_camera->fogcolor = RN::Color::Black();
 		_camera->SetSkyCube(sky);
 		_camera->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
 		
@@ -441,7 +439,7 @@ namespace TG
 		billboard->GetMaterial()->depthtest = true;
 		billboard->renderGroup = 1;
 		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
-		billboard->Translate(RN::Vector3(-14.4f, 8.5f, 0.1f));
+		billboard->Translate(RN::Vector3(-17.35f, 12.0f, 0.7f));
 		
 		_camera->clipfar = 100.0f;
 		_camera->UpdateProjection();
