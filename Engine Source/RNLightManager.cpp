@@ -230,7 +230,7 @@ namespace RN
 		if(!_pointLights.empty() || !_spotLights.empty())
 			CullLights(camera);
 		
-//		if(!_pointLights.empty())
+		if(!_pointLights.empty())
 		{
 			Light **lights = _pointLights.data();
 			size_t lightCount = _pointLights.size();
@@ -294,9 +294,15 @@ namespace RN
 			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_STATIC_DRAW);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
+		else
+		{
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListPointData]);
+			gl::BufferData(GL_TEXTURE_BUFFER, 1, nullptr, GL_STATIC_DRAW);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+		}
 		
 		//Spot lights
-//		if(!_spotLights.empty())
+		if(!_spotLights.empty())
 		{
 			Light **lights = _spotLights.data();
 			size_t lightCount = _spotLights.size();
@@ -365,6 +371,12 @@ namespace RN
 			
 			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, nullptr, GL_STATIC_DRAW);
 			gl::BufferData(GL_TEXTURE_BUFFER, lightDataSize, lightData, GL_STATIC_DRAW);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+		}
+		else
+		{
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListSpotData]);
+			gl::BufferData(GL_TEXTURE_BUFFER, 1, nullptr, GL_STATIC_DRAW);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 		
