@@ -949,6 +949,15 @@ namespace RN
 			if(!_dirty)
 				return;
 			
+			if(_range.length == 0)
+			{
+				Font *font = _typesetter->FontForAttributes(_string->GetAttributesAtIndex(_range.origin));
+				_extents = Vector2(0.0f, font->GetDefaultLineHeight());
+				_untruncatedExtents = _extents;
+				
+				return;
+			}
+			
 			String *string = _string->GetString();
 			Font   *font = nullptr;
 			RN::Color color;
