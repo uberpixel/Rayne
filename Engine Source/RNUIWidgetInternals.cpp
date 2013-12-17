@@ -8,22 +8,170 @@
 
 #include "RNUIWidgetInternals.h"
 #include "RNUIStyle.h"
+#include "RNLogging.h"
 
 namespace RN
 {
 	namespace UI
 	{
 		RNDeclareMeta(WidgetBackgroundView)
+		RNDeclareMeta(WidgetTitleBar)
 		
-		WidgetBackgroundView::WidgetBackgroundView(Widget *widget, Widget::Style tstyle, Dictionary *style) :
+		// ---------------------
+		// MARK: -
+		// MARK: WidgetTitleBar
+		// ---------------------
+		
+		WidgetTitleBar::WidgetTitleBar(Widget *widget, Widget::Style style) :
 			_container(widget),
-			_style(tstyle),
+			_style(style),
 			_closeButton(nullptr),
 			_minimizeButton(nullptr),
 			_maximizeButton(nullptr)
 		{
 			Style *styleSheet = Style::GetSharedInstance();
 			
+			_title = new Label();
+			_title->SetAlignment(TextAlignment::Center);
+			_title->SetTextColor(styleSheet->GetColor(Style::ColorStyle::TitleColor));
+			_title->SetFont(styleSheet->GetFont(Style::FontStyle::DefaultFontBold));
+			
+			AddSubview(_title);
+		}
+		
+		WidgetTitleBar::~WidgetTitleBar()
+		{
+			_title->Release();
+			
+			SafeRelease(_closeButton);
+			SafeRelease(_minimizeButton);
+			SafeRelease(_maximizeButton);
+		}
+		
+		void WidgetTitleBar::SetTitle(String *title)
+		{
+			_title->SetText(title);
+			SetNeedsLayoutUpdate();
+		}
+		
+		void WidgetTitleBar::CreateButton(Widget::TitleControl buttonStyle)
+		{
+			Style *styleSheet = Style::GetSharedInstance();
+			Dictionary *style = nullptr;
+			bool enabled = false;
+			
+			switch(buttonStyle)
+			{
+				case Widget::TitleControl::Close:
+					style   = styleSheet->GetWindowControlStyle(RNCSTR("close"));
+					enabled = (_style & Widget::StyleClosable);
+					break;
+				case Widget::TitleControl::Maximize:
+					style   = styleSheet->GetWindowControlStyle(RNCSTR("maximize"));
+					enabled = (_style & Widget::StyleMaximizable);
+					break;
+				case Widget::TitleControl::Minimize:
+					style   = styleSheet->GetWindowControlStyle(RNCSTR("minimize"));
+					enabled = (_style & Widget::StyleMinimizable);
+					break;
+			}
+			
+			if(!style)
+				return;
+			
+			Button *button = new Button(style);
+			button->SetImagePosition(ImagePosition::ImageOnly);
+			button->SizeToFit();
+			button->SetEnabled(enabled);
+			
+			AddSubview(button);
+			_controlButtons.AddObject(button);
+			
+			switch(buttonStyle)
+			{
+				case Widget::TitleControl::Close:
+					_closeButton = button;
+					_closeButton->AddListener(Control::EventType::MouseUpInside, [&]( Control *control, Control::EventType event) {
+						_container->Close();
+					}, nullptr);
+					break;
+				case Widget::TitleControl::Maximize:
+					_maximizeButton = button;
+					break;
+				case Widget::TitleControl::Minimize:
+					_minimizeButton = button;
+					break;
+			}
+		}
+		
+		void WidgetTitleBar::MouseDragged(Event *event)
+		{
+			Rect frame = _container->GetFrame();
+			frame.x -= event->GetMouseDelta().x;
+			frame.y -= event->GetMouseDelta().y;
+			
+			_container->SetFrame(frame);
+		}
+		
+		void WidgetTitleBar::LayoutSubviews()
+		{
+			// Size the controls
+			Rect bounds = GetBounds();
+			float offsetX = 5.0f;
+			
+			_controlButtons.Enumerate<Button>([&](Button *button, size_t index, bool *stop) {
+				
+				Rect frame = button->GetFrame();
+				
+				frame.x = offsetX;
+				frame.y = roundf((bounds.height * 0.5) - (frame.height * 0.5f));
+				
+				offsetX += frame.width + 2.0f;
+				button->SetFrame(frame);
+				
+			});
+			
+			// Size the title
+			{
+				float spaceLeft = bounds.width - offsetX - 5.0f;
+				Vector2 size   = _title->GetSizeThatFits();
+				
+				bool fitsCentered = (size.x >= spaceLeft);
+				float top = roundf((bounds.height * 0.4) - (size.y * 0.5f));
+				
+				Rect rect = _title->GetFrame();
+				
+				if(!fitsCentered)
+				{
+					rect.x = offsetX;
+					rect.width = bounds.width - rect.x - 5.0f;
+					
+					_title->SetAlignment(TextAlignment::Left);
+				}
+				else
+				{
+					rect.x = 0.0f;
+					rect.width = bounds.width;
+					
+					_title->SetAlignment(TextAlignment::Center);
+				}
+				
+				rect.y = top;
+				rect.height = size.y;
+				
+				_title->SetFrame(rect);
+			}
+		}
+		
+		// ---------------------
+		// MARK: -
+		// MARK: WidgetBackgroundView
+		// ---------------------
+		
+		WidgetBackgroundView::WidgetBackgroundView(Widget *widget, Widget::Style tstyle, Dictionary *style) :
+			_container(widget),
+			_style(tstyle)
+		{
 			Dictionary *selected   = style->GetObjectForKey<Dictionary>(RNCSTR("selected"));
 			Dictionary *deselected = style->GetObjectForKey<Dictionary>(RNCSTR("deselected"));
 			Dictionary *border     = style->GetObjectForKey<Dictionary>(RNCSTR("border"));
@@ -43,33 +191,29 @@ namespace RN
 			_shadow = new ImageView();
 			_shadow->SetAutoresizingMask(AutoresizingFlexibleHeight | AutoresizingFlexibleWidth);
 			
-			_title = new Label();
-			_title->SetAlignment(TextAlignment::Center);
-			_title->SetTextColor(styleSheet->GetColor(Style::ColorStyle::TitleColor));
-			_title->SetFont(styleSheet->GetFont(Style::FontStyle::DefaultFontBold));
+			_titleBar = new WidgetTitleBar(widget, tstyle);
+			_titleBar->SetAutoresizingMask(AutoresizingFlexibleWidth);
+			_titleBar->SetFrame(Rect(0.0f, -_border.top, 0.0f, _border.top));
 			
 			AddSubview(_shadow);
 			AddSubview(_backdrop);
-			AddSubview(_title);
+			AddSubview(_titleBar);
 			
 			if(!_style & Widget::StyleTitled)
-				_title->SetHidden(true);
+				_titleBar->SetHidden(true);
 			
 			SetState(Control::Selected);
-			CreateButton(Widget::TitleControl::Close);
-			CreateButton(Widget::TitleControl::Minimize);
-			CreateButton(Widget::TitleControl::Maximize);
+			
+			_titleBar->CreateButton(Widget::TitleControl::Close);
+			_titleBar->CreateButton(Widget::TitleControl::Minimize);
+			_titleBar->CreateButton(Widget::TitleControl::Maximize);
 		}
 		
 		WidgetBackgroundView::~WidgetBackgroundView()
 		{
-			_title->Release();
 			_backdrop->Release();
 			_shadow->Release();
-			
-			SafeRelease(_closeButton);
-			SafeRelease(_minimizeButton);
-			SafeRelease(_maximizeButton);
+			_titleBar->Release();
 		}
 		
 		void WidgetBackgroundView::LayoutSubviews()
@@ -103,101 +247,6 @@ namespace RN
 				
 				_shadow->SetFrame(frame);
 			}
-			
-			// Size the controls
-			float offsetX = 5.0f;
-			
-			_controlButtons.Enumerate<Button>([&](Button *button, size_t index, bool *stop) {
-				
-				Rect frame = button->GetFrame();
-				
-				frame.x = offsetX;
-				frame.y = - roundf((_border.top * 0.5) + (frame.height * 0.5f));
-				
-				offsetX += frame.width + 2.0f;
-				button->SetFrame(frame);
-			});
-			
-			// Size the title
-			{
-				float spaceLeft = bounds.width - offsetX - 5.0f;
-				Vector2 size   = _title->GetSizeThatFits();
-				
-				bool fitsCentered = (size.x >= spaceLeft);
-				float top = roundf((_border.top * 0.6) + (size.y * 0.5f));
-				
-				Rect rect = _title->GetFrame();
-				
-				if(!fitsCentered)
-				{
-					rect.x = offsetX;
-					rect.width = bounds.width - rect.x - 5.0f;
-					
-					_title->SetAlignment(TextAlignment::Left);
-				}
-				else
-				{
-					rect.x = 0.0f;
-					rect.width = bounds.width;
-					
-					_title->SetAlignment(TextAlignment::Center);
-				}
-				
-				rect.y = -top;
-				rect.height = size.y;
-				
-				_title->SetFrame(rect);
-			}
-		}
-		
-		void WidgetBackgroundView::CreateButton(Widget::TitleControl buttonStyle)
-		{
-			Style *styleSheet = Style::GetSharedInstance();
-			Dictionary *style = nullptr;
-			bool enabled = false;
-			
-			switch(buttonStyle)
-			{
-				case Widget::TitleControl::Close:
-					style = styleSheet->GetWindowControlStyle(RNCSTR("close"));
-					enabled = (_style & Widget::StyleClosable);
-					break;
-				case Widget::TitleControl::Maximize:
-					style = styleSheet->GetWindowControlStyle(RNCSTR("maximize"));
-					enabled = (_style & Widget::StyleMaximizable);
-					break;
-				case Widget::TitleControl::Minimize:
-					style = styleSheet->GetWindowControlStyle(RNCSTR("minimize"));
-					enabled = (_style & Widget::StyleMinimizable);
-					break;
-			}
-			
-			if(!style)
-				return;
-			
-			Button *button = new Button(style);
-			button->SetImagePosition(ImagePosition::ImageOnly);
-			button->SizeToFit();
-			button->SetEnabled(enabled);
-			
-			AddSubview(button);
-			_controlButtons.AddObject(button);
-			
-			switch(buttonStyle)
-			{
-				case Widget::TitleControl::Close:
-					_closeButton = button;
-					_closeButton->AddListener(Control::EventType::MouseUpInside, [&]( Control *control, Control::EventType event) {
-						_container->Close();
-					}, nullptr);
-					break;
-				case Widget::TitleControl::Maximize:
-					_maximizeButton = button;
-					break;
-				case Widget::TitleControl::Minimize:
-					_minimizeButton = button;
-					break;
-			}
 		}
 		
 		void WidgetBackgroundView::SetState(Control::State state)
@@ -211,8 +260,7 @@ namespace RN
 		
 		void WidgetBackgroundView::SetTitle(String *title)
 		{
-			_title->SetText(title);
-			SetNeedsLayoutUpdate();
+			_titleBar->SetTitle(title);
 		}
 		
 		

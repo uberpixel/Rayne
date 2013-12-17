@@ -23,6 +23,34 @@ namespace RN
 {
 	namespace UI
 	{
+		class WidgetTitleBar : public View
+		{
+		public:
+			WidgetTitleBar(Widget *widget, Widget::Style style);
+			~WidgetTitleBar();
+			
+			void SetTitle(String *title);
+			
+			void CreateButton(Widget::TitleControl style);
+			
+			void MouseDragged(Event *event) override;
+			void LayoutSubviews() override;
+			
+		private:
+			Widget *_container;
+			Widget::Style _style;
+			
+			Label *_title;
+			
+			Button *_closeButton;
+			Button *_minimizeButton;
+			Button *_maximizeButton;
+			
+			Array _controlButtons;
+			
+			RNDefineMeta(WidgetTitleBar, View)
+		};
+		
 		class WidgetBackgroundView : public View
 		{
 		public:
@@ -34,11 +62,10 @@ namespace RN
 			
 			const EdgeInsets& GetBorder() const { return _border; }
 			
-			virtual void LayoutSubviews() override;
+			void LayoutSubviews() override;
 			
 		private:
 			void ParseStyle(Dictionary *style, Control::State state);
-			void CreateButton(Widget::TitleControl style);
 			
 			ControlStateStore<Image> _backdropImages;
 			ControlStateStore<Image> _shadowImages;
@@ -49,15 +76,10 @@ namespace RN
 			Control::State _state;
 			EdgeInsets _border;
 			
-			Label *_title;
 			ImageView *_backdrop;
 			ImageView *_shadow;
 			
-			Button *_closeButton;
-			Button *_minimizeButton;
-			Button *_maximizeButton;
-			
-			Array _controlButtons;
+			WidgetTitleBar *_titleBar;
 			
 			RNDefineMeta(WidgetBackgroundView, View)
 		};
