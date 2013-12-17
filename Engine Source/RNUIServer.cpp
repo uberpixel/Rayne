@@ -136,14 +136,26 @@ namespace RN
 		{
 			if(event->IsMouse())
 			{
-				if(_tracking && (event->GetType() == Event::Type::MouseMoved || event->GetType() == Event::Type::MouseUp))
+				if(_tracking)
 				{
-					_tracking->MouseMoved(event);
-					
-					if(event->GetType() == Event::Type::MouseUp)
-						_tracking = nullptr;
-					
-					return true;
+					switch(event->GetType())
+					{
+						case Event::Type::MouseMoved:
+							_tracking->MouseDragged(event);
+							return true;
+							
+						case Event::Type::MouseDragged:
+							_tracking->MouseDragged(event);
+							return true;
+							
+						case Event::Type::MouseUp:
+							_tracking->MouseUp(event);
+							_tracking = nullptr;
+							return true;
+							
+						default:
+							break;
+					}
 				}
 				
 				const Vector2& position = event->GetMousePosition();
@@ -175,13 +187,18 @@ namespace RN
 							hit->MouseDown(event);
 							
 							_mainWidget = hitWidget;
-							_tracking = hit;
+							_tracking   = hit;
+							return true;
+							
+						case Event::Type::MouseDragged:
+							hit->MouseDragged(event);
+							_tracking   = hit;
 							return true;
 							
 						case Event::Type::MouseUp:
 							hit->MouseUp(event);
-							_tracking = nullptr;
 							
+							_tracking = nullptr;
 							return true;
 							
 						default:

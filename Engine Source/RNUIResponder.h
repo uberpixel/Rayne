@@ -31,6 +31,7 @@ namespace RN
 			virtual void MouseDown(Event *event);
 			virtual void MouseUp(Event *event);
 			virtual void MouseMoved(Event *event);
+			virtual void MouseDragged(Event *event);
 			
 			virtual void KeyDown(Event *event);
 			virtual void KeyUp(Event *event);
