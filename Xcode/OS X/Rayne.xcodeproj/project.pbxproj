@@ -74,6 +74,8 @@
 		E945AB431788D97A00C7B30A /* RNUTF8String.h in Headers */ = {isa = PBXBuildFile; fileRef = E945AB411788D97A00C7B30A /* RNUTF8String.h */; };
 		E945AB60178D7D1200C7B30A /* RNUIStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E945AB5E178D7D1200C7B30A /* RNUIStyle.cpp */; };
 		E945AB61178D7D1200C7B30A /* RNUIStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = E945AB5F178D7D1200C7B30A /* RNUIStyle.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E94CB79E18600D4C005A3778 /* RNStatistics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E94CB79C18600D4C005A3778 /* RNStatistics.cpp */; };
+		E94CB79F18600D4C005A3778 /* RNStatistics.h in Headers */ = {isa = PBXBuildFile; fileRef = E94CB79D18600D4C005A3778 /* RNStatistics.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E94D18B91753CE8A00F3B10D /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E94D18B71753CE8A00F3B10D /* RNDebug.cpp */; };
 		E94D18BA1753CE8A00F3B10D /* RNDebug.h in Headers */ = {isa = PBXBuildFile; fileRef = E94D18B81753CE8A00F3B10D /* RNDebug.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E951615917D40D930006156A /* RNUITableView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E951615717D40D930006156A /* RNUITableView.cpp */; };
@@ -353,6 +355,8 @@
 		E945AB411788D97A00C7B30A /* RNUTF8String.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUTF8String.h; sourceTree = "<group>"; };
 		E945AB5E178D7D1200C7B30A /* RNUIStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIStyle.cpp; sourceTree = "<group>"; };
 		E945AB5F178D7D1200C7B30A /* RNUIStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIStyle.h; sourceTree = "<group>"; };
+		E94CB79C18600D4C005A3778 /* RNStatistics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNStatistics.cpp; sourceTree = "<group>"; };
+		E94CB79D18600D4C005A3778 /* RNStatistics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNStatistics.h; sourceTree = "<group>"; };
 		E94D18B71753CE8A00F3B10D /* RNDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDebug.cpp; sourceTree = "<group>"; };
 		E94D18B81753CE8A00F3B10D /* RNDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDebug.h; sourceTree = "<group>"; };
 		E951615717D40D930006156A /* RNUITableView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUITableView.cpp; sourceTree = "<group>"; };
@@ -585,6 +589,8 @@
 				E9E09ECE18204C580022073F /* RNLogging.h */,
 				E96F253D181F384F001450B2 /* RNLoggingEngine.cpp */,
 				E96F253E181F384F001450B2 /* RNLoggingEngine.h */,
+				E94CB79C18600D4C005A3778 /* RNStatistics.cpp */,
+				E94CB79D18600D4C005A3778 /* RNStatistics.h */,
 			);
 			name = Debug;
 			sourceTree = "<group>";
@@ -1002,6 +1008,7 @@
 				E9619E2A1696157E00DA187E /* RNBase.h in Headers */,
 				E95D42DE17DC28C900026E8C /* RNValue.h in Headers */,
 				E9619E2C1696157E00DA187E /* RNCamera.h in Headers */,
+				E94CB79F18600D4C005A3778 /* RNStatistics.h in Headers */,
 				E9619E2D1696157E00DA187E /* RNColor.h in Headers */,
 				E93B345A17D520D5006607B5 /* RNUIOutlineViewCell.h in Headers */,
 				E9619E2F1696157E00DA187E /* RNContext.h in Headers */,
@@ -1335,6 +1342,7 @@
 				E9E698FF17DF8B9500D30231 /* RNFormatter.cpp in Sources */,
 				E96C566E177E4FD8007FAF7C /* RNUITypesetter.cpp in Sources */,
 				E940FACF178084D100C69B88 /* RNAttributedString.cpp in Sources */,
+				E94CB79E18600D4C005A3778 /* RNStatistics.cpp in Sources */,
 				E95EEE481784CFDC00CDCA6E /* RNBasicString.cpp in Sources */,
 				E95EEE4C1784EFAC00CDCA6E /* RNASCIIString.cpp in Sources */,
 				E95EEE501784FC5E00CDCA6E /* RNException.cpp in Sources */,

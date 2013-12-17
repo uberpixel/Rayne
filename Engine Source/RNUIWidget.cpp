@@ -294,21 +294,22 @@ namespace RN
 			}
 		}
 		
-		void Widget::Render(Renderer *renderer)
+		void Widget::Update()
 		{
-			if(!_server)
-				return;
-			
 			if(_dirtyLayout)
 				UpdateLayout();
 			
 			if(_backgroundView)
-			{
 				_backgroundView->UpdateRecursively();
-				_backgroundView->DrawRecursively(renderer);
-			}
 			
 			_contentView->UpdateRecursively();
+		}
+		
+		void Widget::Render(Renderer *renderer)
+		{
+			if(_backgroundView)
+				_backgroundView->DrawRecursively(renderer);
+			
 			_contentView->DrawRecursively(renderer);
 		}
 	}

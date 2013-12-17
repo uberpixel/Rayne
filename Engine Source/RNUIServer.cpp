@@ -240,6 +240,19 @@ namespace RN
 			}
 			
 			// Draw all widgets into the camera
+			Kernel::GetSharedInstance()->PushStatistics("ui.update");
+			
+			for(Widget *widget : _widgets)
+			{
+				widget->Update();
+			}
+			
+			Kernel::GetSharedInstance()->PopStatistics();
+			
+			
+			// Draw all widgets into the camera
+			Kernel::GetSharedInstance()->PushStatistics("ui.render");
+			
 			renderer->SetMode(Renderer::Mode::ModeUI);
 			renderer->BeginCamera(_camera);
 			
@@ -249,6 +262,8 @@ namespace RN
 			}
 			
 			renderer->FinishCamera();
+			
+			Kernel::GetSharedInstance()->PopStatistics();
 		}
 		
 		

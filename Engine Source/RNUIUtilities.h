@@ -30,7 +30,7 @@ namespace RN
 			
 			float AverageFPS();
 			
-			Label *_fpsLabel;
+			Label *_label;
 			Button *_fpsCheckbox;
 			stl::ring_buffer<float> _fps;
 		};

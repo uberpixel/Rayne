@@ -87,6 +87,8 @@ namespace RN
 	
 	void World::StepWorld(FrameID frame, float delta)
 	{
+		_kernel->PushStatistics("wld.step");
+		
 		ApplyNodes();
 		Update(delta);
 		
@@ -160,10 +162,14 @@ namespace RN
 	
 		ApplyNodes();
 		UpdatedToFrame(frame);
+		
+		_kernel->PopStatistics();
 	}
 	
 	void World::RenderWorld(Renderer *renderer)
 	{
+		_kernel->PushStatistics("wld.render");
+		
 		renderer->SetMode(Renderer::Mode::ModeWorld);
 		
 		for(Camera *camera : _cameras)
@@ -177,6 +183,8 @@ namespace RN
 			RunWorldAttachement(&WorldAttachment::WillFinishCamera, camera);
 			renderer->FinishCamera();
 		}
+		
+		_kernel->PopStatistics();
 	}
 	
 	

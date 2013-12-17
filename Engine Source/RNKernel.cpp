@@ -116,6 +116,8 @@ namespace RN
 		_mainThread = new Thread();
 		_pool = new AutoreleasePool();
 		
+		_statisticsSwitch = 0;
+		
 		_title = (Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestApplicationKey)->GetUTF8String());
 		Settings::GetSharedInstance()->LoadSettings();
 		
@@ -479,6 +481,11 @@ namespace RN
 		_delta = trueDelta * _timeScale;
 		_scaledTime += _delta;
 		
+		_statisticsSwitch = (++ _statisticsSwitch) % 2;
+		_statistics[_statisticsSwitch].Clear();
+		
+		PushStatistics("krn.events");
+		
 #if RN_PLATFORM_MAC_OS
 		@autoreleasepool
 		{
@@ -526,6 +533,8 @@ namespace RN
 		}
 #endif
 		
+		PopStatistics();
+		
 		_frame ++;
 		_renderer->BeginFrame(_delta);
 		_input->DispatchInputEvents();
@@ -550,6 +559,8 @@ namespace RN
 		Log::Logger::GetSharedInstance()->Flush();
 		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidEndFrameMessage, nullptr, nullptr);
 		
+		PushStatistics("krn.flush");
+		
 #if RN_PLATFORM_MAC_OS
 //TODO: remove?
 #if 0
@@ -564,6 +575,8 @@ namespace RN
 #if RN_PLATFORM_LINUX
 		glXSwapBuffers(_context->_dpy, _context->_win);
 #endif
+		PopStatistics();
+		
 		_lastFrame = now;
 		_pool->Drain();
 		
@@ -577,10 +590,14 @@ namespace RN
 			
 			if(_minDelta > trueDelta)
 			{
+				PushStatistics("krn.sleep");
+				
 				long sleepTime = (_minDelta - trueDelta) * 1000000;
 				
 				if(sleepTime > 1000)
 					std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
+				
+				PopStatistics();
 			}
 		}
 		
@@ -592,6 +609,23 @@ namespace RN
 		_shouldExit = true;
 	}
 
+	
+	void Kernel::PushStatistics(const std::string& key)
+	{
+		_statistics[_statisticsSwitch].Push(key);
+	}
+	
+	void Kernel::PopStatistics()
+	{
+		_statistics[_statisticsSwitch].Pop();
+	}
+	
+	const std::vector<Statistics::DataPoint *>& Kernel::GetStatisticsData() const
+	{
+		uint32 index = (_statisticsSwitch + 1) % 2;
+		return _statistics[index].GetDataPoints();
+	}
+	
 
 	void Kernel::SetWorld(World *world)
 	{

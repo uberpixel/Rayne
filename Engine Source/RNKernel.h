@@ -18,6 +18,7 @@
 #include "RNInput.h"
 #include "RNUIServer.h"
 #include "RNString.h"
+#include "RNStatistics.h"
 
 namespace RN
 {
@@ -43,6 +44,11 @@ namespace RN
 		
 		RNAPI void DidSleepForSignificantTime();
 		RNAPI void Exit();
+		
+		void PushStatistics(const std::string& key);
+		void PopStatistics();
+		
+		const std::vector<Statistics::DataPoint *>& GetStatisticsData() const;
 
 		float GetScaleFactor() const { return _scaleFactor; }
 		float GetActiveScaleFactor() const;
@@ -69,18 +75,21 @@ namespace RN
 		std::string _title;
 		FrameID _frame;
 		float _scaleFactor;
-
+		
 		Application *_app;
 		Thread *_mainThread;
 
-		class Window *_window;
-		class Context *_context;
+		Window *_window;
+		Context *_context;
 		
 		AutoreleasePool *_pool;
 		Renderer *_renderer;
 		Input *_input;
 		World *_world;
 		UI::Server *_uiserver;
+		
+		uint32 _statisticsSwitch;
+		Statistics _statistics[2];
 		
 		uint32 _maxFPS;
 		float _minDelta;
