@@ -70,7 +70,12 @@ namespace RN
 				return nullptr;
 			
 			UI::Style *styleSheet = UI::Style::GetSharedInstance();
-			Dictionary *style = styleSheet->GetWindowStyle(RNCSTR("titlebar"));
+			Dictionary *style = nullptr;
+			
+			if(_style & StyleTitled)
+				style = styleSheet->GetWindowStyle(RNCSTR("titled"));
+			else
+				style = styleSheet->GetWindowStyle(RNCSTR("untitled"));
 			
 			WidgetBackgroundView *background = new WidgetBackgroundView(this, _style, style);
 			background->_widget = this;

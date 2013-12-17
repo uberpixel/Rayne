@@ -199,7 +199,7 @@ namespace RN
 			AddSubview(_backdrop);
 			AddSubview(_titleBar);
 			
-			if(!_style & Widget::StyleTitled)
+			if(!(_style & Widget::StyleTitled))
 				_titleBar->SetHidden(true);
 			
 			SetState(Control::Selected);
