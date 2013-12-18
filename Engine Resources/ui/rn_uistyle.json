@@ -350,7 +350,7 @@
 				]
 			}
 		],
-		"titlebar": {
+		"titled": {
 			"border": {
 				"top": 20.0,
 				"bottom": 1.0,
@@ -403,6 +403,84 @@
 				"insets": {
 					"top": 22.0,
 					"bottom": 8.0,
+					"left": 10.0,
+					"right": 10.0
+				},
+				"shadow": {
+					"atlas": {
+						"x": 150.0,
+						"y": 60.0,
+						"width": 40.0,
+						"height": 40.0
+					},
+					"insets": {
+						"top": 20.0,
+						"bottom": 20.0,
+						"left": 20.0,
+						"right": 20.0
+					},
+					"extents": {
+						"top": 10.0,
+						"bottom": 10.0,
+						"left": 10.0,
+						"right": 10.0
+					}
+				}
+			}
+		},
+		"untitled": {
+			"border": {
+				"top": 1.0,
+				"bottom": 1.0,
+				"left": 1.0,
+				"right": 1.0
+			},
+			"selected": {
+				"texture": "ui/rn_uikit.png",
+				"atlas": {
+					"x": 100.0,
+					"y": 30.0,
+					"width": 20.0,
+					"height": 20.0
+				},
+				"insets": {
+					"top": 10.0,
+					"bottom": 10.0,
+					"left": 10.0,
+					"right": 10.0
+				},
+				"shadow": {
+					"atlas": {
+						"x": 140.0,
+						"y": 0.0,
+						"width": 60.0,
+						"height": 50.0
+					},
+					"insets": {
+						"top": 20.0,
+						"bottom": 30.0,
+						"left": 30.0,
+						"right": 30.0
+					},
+					"extents": {
+						"top": 10.0,
+						"bottom": 20.0,
+						"left": 20.0,
+						"right": 20.0
+					}
+				}
+			},
+			"deselected": {
+				"texture": "ui/rn_uikit.png",
+				"atlas": {
+					"x": 100.0,
+					"y": 30.0,
+					"width": 20.0,
+					"height": 20.0
+				},
+				"insets": {
+					"top": 10.0,
+					"bottom": 10.0,
 					"left": 10.0,
 					"right": 10.0
 				},

@@ -76,12 +76,14 @@ namespace RN
 			
 			void OrderFront();
 			
+		protected:
+			virtual void Update();
+			
 		private:
 			void Initialize(Style style);
 			void ConstraintFrame();
 			void ConstraintContentView();
 			
-			void Update();
 			void Render(Renderer *renderer);
 			
 			void ForceResignFirstResponder();
