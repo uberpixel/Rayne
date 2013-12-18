@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNUnicode.h"
+#include "RNArray.h"
 
 namespace RN
 {
@@ -59,14 +60,15 @@ namespace RN
 		void ReplaceCharacters(const String *replacement, const Range& range);
 		void ReplaceOccurrencesOfString(const String *string, const String *replacement);
 		
-		Range GetRangeOfString(const String *string, ComparisonMode mode=0);
-		Range GetRangeOfString(const String *string, ComparisonMode mode, const Range& range);
+		Range GetRangeOfString(const String *string, ComparisonMode mode=0) const;
+		Range GetRangeOfString(const String *string, ComparisonMode mode, const Range& range) const;
 		
 		ComparisonResult Compare(const String *other, ComparisonMode mode=0) const;
 		ComparisonResult Compare(const String *other, ComparisonMode mode, const Range& range) const;
 		
 		String *GetSubstring(const Range& range) const;
 		UniChar GetCharacterAtIndex(size_t index) const;
+		Array *GetComponentsSeparatedByString(const String *other) const;
 		
 		size_t GetLength() const;
 		

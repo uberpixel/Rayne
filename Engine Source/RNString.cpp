@@ -323,12 +323,12 @@ namespace RN
 	
 #define kStringUniCharFetch 128
 	
-	Range String::GetRangeOfString(const String *string, ComparisonMode mode)
+	Range String::GetRangeOfString(const String *string, ComparisonMode mode) const
 	{		
 		return GetRangeOfString(string, mode, Range(0, GetLength()));
 	}
 	
-	Range String::GetRangeOfString(const String *string, ComparisonMode mode, const Range& range)
+	Range String::GetRangeOfString(const String *string, ComparisonMode mode, const Range& range) const
 	{
 		size_t length = string->GetLength();
 		
@@ -565,5 +565,37 @@ namespace RN
 	uint8 *String::GetBytesWithEncoding(Encoding encoding, bool lossy, size_t *outLength) const
 	{		
 		return static_cast<uint8 *>(_ainternal->BytesWithEncoding(encoding, lossy, outLength));
+	}
+	
+	Array *String::GetComponentsSeparatedByString(const String *other) const
+	{
+		Array *array = new Array();
+		
+		Range range = Range(0, GetLength());
+		Range found;
+		
+		while(1)
+		{
+			found = GetRangeOfString(other, 0, range);
+			
+			if(found.origin == kRNNotFound)
+			{
+				array->AddObject(GetSubstring(range));
+				break;
+			}
+			
+			size_t length = found.origin - range.origin;
+			array->AddObject(GetSubstring(Range(range.origin, length)));
+			
+			length += found.length;
+			
+			if(range.length <= length)
+				break;
+			
+			range.origin += length;
+			range.length -= length;
+		}
+		
+		return array->Autorelease();
 	}
 }
