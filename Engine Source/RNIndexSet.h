@@ -31,6 +31,8 @@ namespace RN
 		size_t GetCount() const;
 		size_t GetIndex(size_t index) const;
 		
+		const std::vector<size_t>& GetIndices() const { return _sortedIndices; }
+		
 	private:
 		std::vector<size_t> _sortedIndices;
 		std::unordered_set<size_t> _indices;

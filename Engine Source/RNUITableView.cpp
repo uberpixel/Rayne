@@ -249,6 +249,8 @@ namespace RN
 			size_t insertedRows = 0;
 			size_t deletedRows  = 0;
 			
+			std::vector<size_t> indices = _selection->GetIndices();
+			
 			for(size_t i = 0; i < _changes.size(); i ++)
 			{
 				EditingSet& set = _changes[i];
@@ -258,14 +260,30 @@ namespace RN
 				{
 					case EditingSet::Type::Insertion:
 						offset = set.count;
-						
 						insertedRows += set.count;
+						
+						for(auto iterator = indices.begin(); iterator != indices.end(); iterator ++)
+						{
+							if(set.row < *iterator)
+								*iterator = *iterator + set.count;
+						}
 						break;
 						
 					case EditingSet::Type::Deletion:
 						offset = -set.count;
-						
 						deletedRows += set.count;
+						
+						for(auto iterator = indices.begin(); iterator != indices.end();)
+						{
+							if(set.row >= *iterator && set.row + set.count <= *iterator)
+							{
+								iterator = indices.erase(iterator);
+								continue;
+							}
+							
+							iterator ++;
+						}
+						
 						break;
 						
 					default:
@@ -289,6 +307,15 @@ namespace RN
 			
 			size_t rows = _dataSource->TableViewNumberOfRows(this);
 			RN_ASSERT(_rows == rows, "Invalid row count after EndEditing() call");
+			
+			IndexSet *set = new IndexSet();
+			for(size_t index : indices)
+			{
+				set->AddIndex(index);
+			}
+			
+			_selection->Release();
+			_selection = set;
 			
 			_changeRows = rows;
 			
