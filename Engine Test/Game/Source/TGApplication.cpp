@@ -26,7 +26,11 @@ namespace TG
 		
 		RN::Kernel::GetSharedInstance()->SetMaxFPS(60);
 		
-		RN::UI::DebugWidget *widget = new RN::UI::DebugWidget();
+		RN::UI::Widget *widget = new RN::UI::DebugWidget();
+		widget->Show();
+		widget->Release();
+		
+		widget = new RN::UI::ConsoleWidget();
 		widget->Show();
 		widget->Release();
 

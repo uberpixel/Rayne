@@ -9,6 +9,7 @@
 #include "RNUIUtilities.h"
 #include "RNKernel.h"
 #include "RNRenderer.h"
+#include "RNLogging.h"
 
 namespace RN
 {
@@ -84,6 +85,115 @@ namespace RN
 			}
 			
 			_label->SetText(string);
+		}
+		
+		
+		
+		ConsoleWidget::ConsoleWidget() :
+			Widget(Widget::StyleTitled | Widget::StyleClosable, Rect(180.0f, 50.0f, 480.0f, 320.0f)),
+			_messages(500)
+		{
+			SetTitle(RNCSTR("Console"));
+			Log::Logger::GetSharedInstance()->AddLoggingEngine(this);
+			
+			Rect frame = GetFrame();
+			
+			_table = new TableView();
+			_table->SetDataSource(this);
+			_table->SetFrame(Rect(0.0f, 0.0f, frame.width, frame.height));
+			_table->SetAutoresizingMask(View::AutoresizingFlexibleHeight | View::AutoresizingFlexibleWidth);
+			
+			GetContentView()->AddSubview(_table);
+		}
+		
+		ConsoleWidget::~ConsoleWidget()
+		{
+			Log::Logger::GetSharedInstance()->RemoveLoggingEngine(this);
+		}
+		
+		
+		size_t ConsoleWidget::TableViewNumberOfRows(TableView *tableView)
+		{
+			return _messages.size();
+		}
+		
+		TableViewCell *ConsoleWidget::TableViewCellForRow(TableView *tableView, size_t row)
+		{
+			TableViewCell *cell = tableView->DequeCellWithIdentifier(RNCSTR("cell"));
+			if(!cell)
+			{
+				cell = new TableViewCell(RNCSTR("cell"));
+				cell->Autorelease();
+			}
+			
+			cell->GetTextLabel()->SetText(RNSTR(_messages.at(row).c_str()));
+			
+			return cell;
+		}
+		
+		void ConsoleWidget::Update()
+		{
+			CommitQueue();
+			Widget::Update();
+		}
+		
+		void ConsoleWidget::CommitQueue()
+		{
+			Widget::Lock();
+			
+			if(!_queue.empty())
+			{
+				_table->BegindEditing();
+			
+				for(const std::string& message : _queue)
+				{
+					bool added = (_messages.size() != _messages.capacity());
+					_messages.push(std::move(message));
+					
+					if(!added)
+					{
+						Range range = _table->GetVisibleRange();
+						_table->UpdateRows(range.origin, range.length);
+					}
+					else
+					{
+						_table->InsertRows(_messages.size() - 1, 1);
+					}
+				}
+				
+				_queue.clear();
+				_table->EndEditing();
+				
+				_table->ScrollToRow(_messages.size(), TableView::ScrollPosition::Bottom);
+			}
+			
+			Widget::Unlock();
+		}
+		
+		
+		void ConsoleWidget::Open()
+		{}
+		void ConsoleWidget::Close()
+		{}
+		bool ConsoleWidget::IsOpen() const
+		{
+			return true;
+		}
+		
+		void ConsoleWidget::CutOff()
+		{}
+		
+		void ConsoleWidget::Write(const Log::Message& message)
+		{
+			Widget::Lock();
+			
+			std::stringstream formatted;
+			formatted << message.GetFormattedTime() << ": " << message.GetMessage();
+			
+			_queue.push_back(formatted.str());
+			_dirty = true;
+			
+			Widget::Unlock();
 		}
 	}
 }
