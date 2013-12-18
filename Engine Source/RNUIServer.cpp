@@ -118,6 +118,14 @@ namespace RN
 		{
 			RN_ASSERT(widget->_server == this, "");
 			
+			if(widget == _mainWidget)
+			{
+				_mainWidget = nullptr;
+				
+				if(_tracking->_widget == widget)
+					_tracking = nullptr;
+			}
+			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
 			widget->_server = nullptr;
 			widget->Autorelease();

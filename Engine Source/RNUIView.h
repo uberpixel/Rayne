@@ -28,6 +28,7 @@ namespace RN
 		class View : public Responder
 		{
 		public:
+			friend class Server;
 			friend class Widget;
 			
 			enum
