@@ -46,6 +46,14 @@ namespace RN
 		public:
 			friend class TableViewCell;
 			
+			enum class ScrollPosition
+			{
+				None,
+				Top,
+				Center,
+				Bottom
+			};
+			
 			TableView();
 			~TableView();
 			
@@ -58,7 +66,10 @@ namespace RN
 			void DeleteRows(size_t row, size_t count);
 			void UpdateRows(size_t row, size_t count);
 			
+			void ScrollToRow(size_t row, ScrollPosition position);
+			
 			TableViewCell *DequeCellWithIdentifier(String *identifier);
+			TableViewCell *GetCellForRow(size_t row);
 			
 			void LayoutSubviews() override;
 			void SetFrame(const Rect& frame) override;
@@ -104,8 +115,6 @@ namespace RN
 			float GetOffsetForRow(size_t row) const;
 			float GetIndentationForRow(size_t row) const;
 			float GetHeightForRow(size_t row) const;
-			
-			TableViewCell *GetCellForRow(size_t row);
 			
 			void ClearAllCells();
 			void InsertCellForRow(size_t row, float offset);

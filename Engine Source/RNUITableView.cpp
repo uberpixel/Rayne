@@ -301,6 +301,39 @@ namespace RN
 		}
 		
 		
+		void TableView::ScrollToRow(size_t row, ScrollPosition position)
+		{
+			Vector2 offset = GetContentOffset();
+			float rowOffset = row * _rowHeight;
+			float height = GetFrame().height;
+			
+			if(position == ScrollPosition::None && offset.y >= rowOffset && offset.y <= (rowOffset + height) - _rowHeight)
+				return;
+			
+			switch(position)
+			{
+				case ScrollPosition::None:
+				case ScrollPosition::Top:
+					offset.y = rowOffset;
+					break;
+					
+				case ScrollPosition::Center:
+					offset.y = roundf(rowOffset + ((height * 0.5) - (_rowHeight * 0.5)));
+					break;
+					
+				case ScrollPosition::Bottom:
+					offset.y = rowOffset + (height - _rowHeight);
+					break;
+			}
+			
+			const Vector2& size = GetContentSize();
+			
+			offset.y = std::max(0.0f, std::min(size.y - height, offset.y));
+			
+			SetContentOffset(offset);
+			UpdateVisibleRows(false);
+		}
+		
 		
 		void TableView::InvalidateCellsForRange(const Range& range)
 		{
