@@ -75,12 +75,11 @@ namespace RN
 			
 			float fps = _fpsCheckbox->IsSelected() ? AverageFPS() : 1.0f / delta;
 			String *string = RNSTR("Frame: %3.4fs\n\%s %3.4f\n\n", kernel->GetDelta(), (_fpsCheckbox->IsSelected() ? "Avg. FPS:" : "FPS:"), fps);
-		
 			
 			auto data = kernel->GetStatisticsData();
 			for(Statistics::DataPoint *point : data)
 			{
-				float milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(point->duration).count() / 1000.0f;
+				float milliseconds = std::chrono::duration_cast<std::chrono::microseconds>(point->duration).count() / 1000000.0f;
 				string->Append(RNSTR("%s: %3.4fs\n", point->name.c_str(), milliseconds));
 			}
 			
