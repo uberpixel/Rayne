@@ -406,7 +406,7 @@ namespace RN
 		}
 		
 		delete [] compare;
-		return result;
+		return found ? result : Range(kRNNotFound, 0);
 	}
 	
 	ComparisonResult String::Compare(const String *other, ComparisonMode mode) const
