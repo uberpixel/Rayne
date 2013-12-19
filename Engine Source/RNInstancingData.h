@@ -50,7 +50,7 @@ namespace RN
 		GLuint _texture;
 		GLuint _buffer;
 		
-		std::vector<uint16> _indices;
+		std::vector<uint32> _indices;
 		std::vector<InstancingLODStageData> _data;
 	};
 	

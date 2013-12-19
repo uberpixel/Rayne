@@ -28,7 +28,7 @@ namespace RN
 		
 		gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, _buffer);
+		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, _buffer);
 		
 		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		gl::BindTexture(GL_TEXTURE_BUFFER, 0);
@@ -54,7 +54,7 @@ namespace RN
 	
 	void InstancingLODStage::AddIndex(size_t index)
 	{
-		_indices.push_back(index);
+		_indices.push_back(static_cast<uint32>(index));
 		_dirty = true;
 	}
 	
@@ -63,7 +63,7 @@ namespace RN
 		if(_dirty)
 		{
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-			gl::BufferData(GL_TEXTURE_BUFFER, _indices.size() * sizeof(uint16), _indices.data(), GL_STATIC_DRAW);
+			gl::BufferData(GL_TEXTURE_BUFFER, _indices.size() * sizeof(uint32), _indices.data(), GL_STATIC_DRAW);
 			
 			_dirty = false;
 		}
@@ -109,7 +109,7 @@ namespace RN
 		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 		
-		Reserve(50);
+		Reserve(500000);
 	}
 	
 	InstancingData::~InstancingData()
@@ -122,10 +122,8 @@ namespace RN
 	{
 		if(_dirty)
 		{
-			size_t size = _count * 2 * sizeof(Matrix);
-			
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-			gl::BufferSubData(GL_TEXTURE_BUFFER, 0, static_cast<GLsizei>(size), _matrices.data());
+			gl::BufferSubData(GL_TEXTURE_BUFFER, 0, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data());
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 			
 			_dirty = false;
@@ -165,10 +163,8 @@ namespace RN
 		_count = count;
 		_dirty = true;
 		
-		size_t size = _count * 2 * sizeof(Matrix);
-		
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-		gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(size), nullptr, GL_DYNAMIC_DRAW);
+		gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), nullptr, GL_STATIC_DRAW);
 		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
 	
@@ -204,9 +200,15 @@ namespace RN
 			
 			_stages[stage]->AddIndex(index);
 			
-			entity->SetAssociatedObject(kRNInstancingNodeAssociatedIndexKey, Number::WithUint32(static_cast<uint32>(index)), Object::MemoryPolicy::Retain);
-			entity->SetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey, Number::WithUint32(static_cast<uint32>(stage)), Object::MemoryPolicy::Retain);
+			Number *indexNum = new Number(static_cast<uint32>(index));
+			Number *stageNum = new Number(static_cast<uint32>(stage));
+			
+			entity->SetAssociatedObject(kRNInstancingNodeAssociatedIndexKey, indexNum, Object::MemoryPolicy::Retain);
+			entity->SetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey, stageNum, Object::MemoryPolicy::Retain);
 		
+			indexNum->Release();
+			stageNum->Release();
+			
 			UpdateEntity(entity);
 		}
 	}
