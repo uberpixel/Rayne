@@ -10,6 +10,7 @@
 
 #include "RNBase.h"
 #include "RNUIView.h"
+#include "RNUIScroller.h"
 
 namespace RN
 {
@@ -33,15 +34,23 @@ namespace RN
 			
 			void SetContentOffset(const Vector2& offset);
 			void SetContentSize(const Vector2& size);
+			void SetVerticalScroller(Scroller *scroller);
 			
 			void ScrollWheel(Event *event) override;
 			void SetFrame(const Rect& frame) override;
+			
+			void DidAddSubview(View *subview) override;
+			void DidBringSubviewToFront(View *subview) override;
 			
 			const Vector2& GetContentOffset() const { return _offset; }
 			const Vector2& GetContentSize() const { return _size; }
 			
 		private:
+			void AdjustScroller();
+			
 			ScrollViewDelegate *_delegate;
+			
+			Scroller *_verticalScroller;
 			
 			Vector2 _offset;
 			Vector2 _size;

@@ -14,10 +14,12 @@ namespace RN
 	{
 		RNDeclareMeta(ScrollView)
 		
-		ScrollView::ScrollView()
+		ScrollView::ScrollView() :
+			_verticalScroller(nullptr),
+			_delegate(nullptr)
 		{
 			SetClipSubviews(true);
-			_delegate = nullptr;
+			SetVerticalScroller((new Scroller())->Autorelease());
 		}
 		
 		ScrollView::~ScrollView()
@@ -32,8 +34,8 @@ namespace RN
 			GetSubivews()->Enumerate([&](Object *tview, size_t index, bool *stop) {
 				View *view = tview->Downcast<View>();
 				
-				_size.x = std::max(view->GetFrame().GetRight(), _size.x);
-				_size.y = std::max(view->GetFrame().GetBottom(),   _size.y);
+				_size.x = std::max(view->GetFrame().GetRight(),  _size.x);
+				_size.y = std::max(view->GetFrame().GetBottom(), _size.y);
 			});
 			
 			SetContentSize(_size);
@@ -51,6 +53,7 @@ namespace RN
 		}
 		
 		
+		
 		void ScrollView::SetContentOffset(const Vector2& offset)
 		{
 			Rect bounds = GetBounds();
@@ -63,6 +66,8 @@ namespace RN
 			
 			if(_delegate)
 				_delegate->ScrollViewDidScroll(this);
+			
+			AdjustScroller();
 		}
 		void ScrollView::SetContentSize(const Vector2& size)
 		{
@@ -71,8 +76,59 @@ namespace RN
 			
 			_end.x = std::max(0.0f, _end.x);
 			_end.y = std::max(0.0f, _end.y);
+			
+			AdjustScroller();
 		}
 		
+		
+		
+		void ScrollView::SetVerticalScroller(Scroller *scroller)
+		{
+			if(_verticalScroller)
+			{
+				_verticalScroller->_container = nullptr;
+				_verticalScroller->Release();
+				_verticalScroller = nullptr;
+			}
+			
+			_verticalScroller = SafeRetain(scroller);
+			
+			if(_verticalScroller)
+			{
+				_verticalScroller->InsertIntoContainer(this, false);
+				
+				AddSubview(_verticalScroller);
+				AdjustScroller();
+			}
+		}
+		
+		
+		void ScrollView::AdjustScroller()
+		{
+			if(_verticalScroller)
+			{
+				const Rect& bounds = GetBounds();
+				float width = _verticalScroller->GetPreferredWidth();
+				
+				_verticalScroller->SetFrame(Rect(bounds.width - width, bounds.y, width, bounds.height));
+			}
+		}
+		
+		void ScrollView::DidAddSubview(View *subview)
+		{
+			if(subview != _verticalScroller)
+			{
+				BringSubviewToFront(_verticalScroller);
+			}
+		}
+		
+		void ScrollView::DidBringSubviewToFront(View *subview)
+		{
+			if(subview != _verticalScroller)
+			{
+				BringSubviewToFront(_verticalScroller);
+			}
+		}
 		
 		
 		void ScrollView::ScrollWheel(Event *event)

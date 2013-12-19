@@ -88,6 +88,7 @@
 #include "RNUIView.h"
 #include "RNUIControl.h"
 #include "RNUIScrollView.h"
+#include "RNUIScroller.h"
 #include "RNUITableView.h"
 #include "RNUITableViewCell.h"
 #include "RNUIOutlineView.h"

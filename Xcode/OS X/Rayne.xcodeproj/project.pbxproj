@@ -208,6 +208,8 @@
 		E9B92DE117B02213004B8CA4 /* RNTriggerZone.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9B92DDF17B02213004B8CA4 /* RNTriggerZone.cpp */; };
 		E9B92DE217B02213004B8CA4 /* RNTriggerZone.h in Headers */ = {isa = PBXBuildFile; fileRef = E9B92DE017B02213004B8CA4 /* RNTriggerZone.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9BAC0B6184588390066ECEC /* RNSignal.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BAC0B4184588390066ECEC /* RNSignal.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9BE9F3E1861627D00B486E8 /* RNUIScroller.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9BE9F3C1861627D00B486E8 /* RNUIScroller.cpp */; };
+		E9BE9F3F1861627D00B486E8 /* RNUIScroller.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BE9F3D1861627D00B486E8 /* RNUIScroller.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9BEC908179B8B3200C05623 /* RNSemaphore.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BEC906179B8B3200C05623 /* RNSemaphore.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9BEC9CE179CDFCB00C05623 /* RNUITextEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9BEC9CC179CDFCB00C05623 /* RNUITextEditor.cpp */; };
 		E9BEC9CF179CDFCB00C05623 /* RNUITextEditor.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BEC9CD179CDFCB00C05623 /* RNUITextEditor.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -491,6 +493,8 @@
 		E9B92DDF17B02213004B8CA4 /* RNTriggerZone.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTriggerZone.cpp; sourceTree = "<group>"; };
 		E9B92DE017B02213004B8CA4 /* RNTriggerZone.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTriggerZone.h; sourceTree = "<group>"; };
 		E9BAC0B4184588390066ECEC /* RNSignal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSignal.h; sourceTree = "<group>"; };
+		E9BE9F3C1861627D00B486E8 /* RNUIScroller.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIScroller.cpp; sourceTree = "<group>"; };
+		E9BE9F3D1861627D00B486E8 /* RNUIScroller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIScroller.h; sourceTree = "<group>"; };
 		E9BEC906179B8B3200C05623 /* RNSemaphore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSemaphore.h; sourceTree = "<group>"; };
 		E9BEC9CC179CDFCB00C05623 /* RNUITextEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUITextEditor.cpp; sourceTree = "<group>"; };
 		E9BEC9CD179CDFCB00C05623 /* RNUITextEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUITextEditor.h; sourceTree = "<group>"; };
@@ -794,6 +798,8 @@
 				E93B345817D520D5006607B5 /* RNUIOutlineViewCell.h */,
 				E9586E60173072B700D24737 /* RNUIResponder.cpp */,
 				E9586E61173072B700D24737 /* RNUIResponder.h */,
+				E9BE9F3C1861627D00B486E8 /* RNUIScroller.cpp */,
+				E9BE9F3D1861627D00B486E8 /* RNUIScroller.h */,
 				E917F07D1791FC7C003765C1 /* RNUIScrollView.cpp */,
 				E917F07E1791FC7C003765C1 /* RNUIScrollView.h */,
 				E9AA6CB617DB3A8F00E69FFA /* RNUISegmentView.cpp */,
@@ -1142,6 +1148,7 @@
 				E945AB431788D97A00C7B30A /* RNUTF8String.h in Headers */,
 				E945AB61178D7D1200C7B30A /* RNUIStyle.h in Headers */,
 				E919599017901180004B5880 /* RNUIUtilities.h in Headers */,
+				E9BE9F3F1861627D00B486E8 /* RNUIScroller.h in Headers */,
 				E917F0801791FC7C003765C1 /* RNUIScrollView.h in Headers */,
 				E9D3D048183A5022007780A7 /* RNNull.h in Headers */,
 				E93763F81794DD7000859EBA /* RNUITextField.h in Headers */,
@@ -1343,6 +1350,7 @@
 				E96C566E177E4FD8007FAF7C /* RNUITypesetter.cpp in Sources */,
 				E940FACF178084D100C69B88 /* RNAttributedString.cpp in Sources */,
 				E94CB79E18600D4C005A3778 /* RNStatistics.cpp in Sources */,
+				E9BE9F3E1861627D00B486E8 /* RNUIScroller.cpp in Sources */,
 				E95EEE481784CFDC00CDCA6E /* RNBasicString.cpp in Sources */,
 				E95EEE4C1784EFAC00CDCA6E /* RNASCIIString.cpp in Sources */,
 				E95EEE501784FC5E00CDCA6E /* RNException.cpp in Sources */,

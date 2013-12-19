@@ -581,7 +581,7 @@
 					"right": 5.0
 				}
 			},
-			"slider": {
+			"knob": {
 				"texture": "ui/rn_uikit.png",
 				"atlas": {
 					"x": 100.0,
@@ -590,8 +590,8 @@
 					"height": 20.0
 				},
 				"insets": {
-					"top": 10.0,
-					"bottom": 10.0,
+					"top": 8.0,
+					"bottom": 8.0,
 					"left": 5.0,
 					"right": 5.0
 				}
