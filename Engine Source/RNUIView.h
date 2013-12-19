@@ -75,6 +75,8 @@ namespace RN
 			void RemoveSubview(View *subview);
 			void RemoveAllSubviews();
 			void RemoveFromSuperview();
+			void BringSubviewToFront(View *subview);
+			void SendSubviewToBack(View *subview);
 			
 			const Array *GetSubivews() const { return &_subviews; }
 			Widget *GetWidget() const { return _widget; }
@@ -104,6 +106,8 @@ namespace RN
 			
 			virtual void DidAddSubview(View *subview);
 			virtual void WillRemoveSubview(View *subview);
+			virtual void DidBringSubviewToFront(View *subview);
+			virtual void DidSendSubviewToBack(View *subview);
 			virtual void WillMoveToSuperview(View *superview);
 			virtual void DidMoveToSuperview(View *superview);
 			

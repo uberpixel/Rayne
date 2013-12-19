@@ -405,10 +405,46 @@ namespace RN
 			_superview->RemoveSubview(this);
 		}
 		
+		void View::BringSubviewToFront(View *subview)
+		{
+			if(subview->_superview == this)
+			{
+				subview->Retain();
+				
+				_subviews.RemoveObject(subview);
+				_subviews.AddObject(subview);
+				
+				subview->Release();
+				DidBringSubviewToFront(subview);
+			}
+		}
+		
+		void View::SendSubviewToBack(View *subview)
+		{
+			if(subview->_superview == this)
+			{
+				subview->Retain();
+				
+				if(_subviews.GetCount() > 1)
+				{
+					_subviews.RemoveObject(subview);
+					_subviews.InsertObjectAtIndex(subview, 0);
+				}
+				
+				subview->Release();
+				DidSendSubviewToBack(subview);
+			}
+		}
+		
 		
 		void View::DidAddSubview(View *subview)
 		{}
 		void View::WillRemoveSubview(View *subview)
+		{}
+		
+		void View::DidBringSubviewToFront(View *subview)
+		{}
+		void View::DidSendSubviewToBack(View *subview)
 		{}
 		
 		void View::WillMoveToSuperview(View *superview)
