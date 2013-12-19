@@ -39,10 +39,13 @@ namespace RN
 		
 		if((_recursion ++) == 0)
 		{
-			Object *value = GetValue();
-			
-			_changeSet = new Dictionary();
-			_changeSet->SetObjectForKey(value ? value : Null::GetNull(), kRNObservableOldValueKey);
+			if(_signal.GetCount() > 0)
+			{
+				Object *value = GetValue();
+				
+				_changeSet = new Dictionary();
+				_changeSet->SetObjectForKey(value ? value : Null::GetNull(), kRNObservableOldValueKey);
+			}
 		}
 	}
 	
@@ -52,13 +55,16 @@ namespace RN
 		
 		if((-- _recursion) == 0)
 		{
-			Object *value = GetValue();
-			_changeSet->SetObjectForKey(value ? value : Null::GetNull(), kRNObservableNewValueKey);
-			
-			_signal.Emit(std::move(_object), _name, std::move(_changeSet));
-			
-			_changeSet->Release();
-			_changeSet = nullptr;
+			if(_changeSet)
+			{
+				Object *value = GetValue();
+				_changeSet->SetObjectForKey(value ? value : Null::GetNull(), kRNObservableNewValueKey);
+				
+				_signal.Emit(std::move(_object), _name, std::move(_changeSet));
+				
+				_changeSet->Release();
+				_changeSet = nullptr;
+			}
 		}
 	}
 }
