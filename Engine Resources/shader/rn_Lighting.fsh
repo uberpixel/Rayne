@@ -39,11 +39,6 @@ void rn_PointLight(in vec3 viewdir, in vec4 lightpos, in vec4 lightcolor, in vec
 	vec3 dir = posdiff/dist;
 	float attenuation = min(max(1.0-dist/lightpos.w, 0.0), 1.0);
 	
-	if(attenuation < 0.0001)
-	{
-		return;
-	}
-	
 	float lightfac = min(max(dot(normal, dir), 0.0), 1.0);
 	vec3 light = lightfac*lightcolor.rgb*attenuation;
 	
