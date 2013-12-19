@@ -19,6 +19,7 @@
 #include "RNUIControl.h"
 #include "RNUIFont.h"
 #include "RNUIColor.h"
+#include "RNUIImage.h"
 
 namespace RN
 {
@@ -73,6 +74,7 @@ namespace RN
 			static Atlas ParseAtlas(Dictionary *atlas);
 			static Control::State ParseState(String *string);
 			static Color *ParseColor(Array *color);
+			static Image *ParseImage(Dictionary *image);
 			
 		private:
 			Font *CreateFontFromDictionary(Dictionary *info);

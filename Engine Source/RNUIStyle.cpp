@@ -327,5 +327,18 @@ namespace RN
 			
 			return Color::WithRNColor(RN::Color(r, g, b, a));
 		}
+		
+		Image *Style::ParseImage(Dictionary *style)
+		{
+			String *texture = style->GetObjectForKey<String>(RNCSTR("texture"));
+			Dictionary *atlas  = style->GetObjectForKey<Dictionary>(RNCSTR("atlas"));
+			Dictionary *insets = style->GetObjectForKey<Dictionary>(RNCSTR("insets"));
+			
+			Image *image = new Image(GetSharedInstance()->GetTextureWithName(texture));
+			image->SetEdgeInsets(ParseEdgeInsets(insets));
+			image->SetAtlas(ParseAtlas(atlas), false);
+			
+			return image;
+		}
 	}
 }
