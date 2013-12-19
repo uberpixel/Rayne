@@ -210,6 +210,7 @@ namespace RN
 		
 		void MersenneTwister::Seed(uint32 seed)
 		{
+			_offset = 0;
 			_bytes[0] = seed & 0xffffffffUL;
 			
 			for(int i=1; i<_N; i++)

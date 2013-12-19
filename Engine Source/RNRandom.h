@@ -104,7 +104,7 @@ namespace RN
 			int32 _L;
 			
 			uint32 *_bytes;
-			int32 _offset;
+			uint32 _offset;
 		};
 	}
 	
