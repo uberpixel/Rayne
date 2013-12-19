@@ -8,13 +8,9 @@
 
 #include "RNUIStyle.h"
 #include "RNSettings.h"
+#include "RNLogging.h"
 #include "RNAutoreleasePool.h"
 #include "RNJSONSerialization.h"
-
-#define kRNUIStyleButtonsKey   RNCSTR("buttons")
-#define kRNUIStyleTextfieldKey RNCSTR("textfields")
-#define kRNUIStyleWindowKey    RNCSTR("window")
-#define kRNUIStyleNameKey      RNCSTR("name")
 
 namespace RN
 {
@@ -43,6 +39,43 @@ namespace RN
 			_data->Release();
 			_textures->Release();
 			_fonts->Release();
+		}
+		
+		// ---------------------
+		// MARK: -
+		// MARK: General
+		// ---------------------
+		
+		Object *Style::__GetResourceWithKeyPath(String *keyPath)
+		{
+			RN_ASSERT(keyPath, "Key path mustn't be NULL");
+			
+			Array *keys = keyPath->GetComponentsSeparatedByString(RNCSTR("."));
+			Object *resource = _data;
+			
+			keys->Enumerate<String>([&](String *key, size_t index, bool *stop) {
+				
+				resource = static_cast<Dictionary *>(resource)->GetObjectForKey(key);
+				if(!resource)
+				{
+					*stop = true;
+					return;
+				}
+				
+				if(!resource->IsKindOfClass(Dictionary::MetaClass()) && index < keys->GetCount() - 1)
+				{
+					*stop = true;
+					resource = nullptr;
+					
+					return;
+				}
+				
+			});
+			
+			if(!resource)
+				throw Exception(Exception::Type::InconsistencyException, std::string("Couldn't find resource for key path ") + keyPath->GetUTF8String());
+				
+			return resource;
 		}
 		
 		// ---------------------
@@ -84,37 +117,33 @@ namespace RN
 			switch(style)
 			{
 				case FontStyle::DefaultFont:
-					identifier = RNCSTR("RNDefaultFont");
+					identifier = RNCSTR("fonts.RNDefaultFont");
 					break;
 					
 				case FontStyle::DefaultFontBold:
-					identifier = RNCSTR("RNDefaultFontBold");
+					identifier = RNCSTR("fonts.RNDefaultFontBold");
 					break;
 					
 				case FontStyle::DefaultFontItalics:
-					identifier = RNCSTR("RNDefaultFontItalics");
+					identifier = RNCSTR("fonts.RNDefaultFontItalics");
 					break;
 					
 				case FontStyle::DefaultFontBoldItalics:
-					identifier = RNCSTR("RNDefaultFontBoldItalics");
+					identifier = RNCSTR("fonts.RNDefaultFontBoldItalics");
 					break;
 			}
 			
-			return GetFontWithIdentifier(identifier);
+			return GetFontWithKeyPath(identifier);
 		}
 		
-		Font *Style::GetFontWithIdentifier(String *identifier)
+		Font *Style::GetFontWithKeyPath(String *identifier)
 		{
-			RN_ASSERT(identifier, "Identifier mustn't be NULL");
-			
 			LockGuard<SpinLock> lock(_lock);
 			
 			Font *font = _fonts->GetObjectForKey<Font>(identifier);
 			if(!font)
 			{
-				Dictionary *fontDict = _data->GetObjectForKey<Dictionary>(RNCSTR("fonts"));
-				font = CreateFontFromDictionary(fontDict->GetObjectForKey<Dictionary>(identifier));
-				
+				font = CreateFontFromDictionary(GetResourceWithKeyPath<Dictionary>(identifier));
 				_fonts->SetObjectForKey(font->Autorelease(), identifier);
 			}
 			
@@ -133,34 +162,30 @@ namespace RN
 			switch(style)
 			{
 				case ColorStyle::BackgroundColor:
-					identifier = RNCSTR("RNBackgroundColor");
+					identifier = RNCSTR("colors.RNBackgroundColor");
 					break;
 					
 				case ColorStyle::TextColor:
-					identifier = RNCSTR("RNTextColor");
+					identifier = RNCSTR("colors.RNTextColor");
 					break;
 					
 				case ColorStyle::TitleColor:
-					identifier = RNCSTR("RNTitleColor");
+					identifier = RNCSTR("colors.RNTitleColor");
 					break;
 					
 				case ColorStyle::SelectionColor:
-					identifier = RNCSTR("RNSelectionColor");
+					identifier = RNCSTR("colors.RNSelectionColor");
 					break;
 			}
 			
-			return GetColorWithIdentifier(identifier);
+			return GetColorWithKeyPath(identifier);
 		}
 		
-		Color *Style::GetColorWithIdentifier(String *identifier)
+		Color *Style::GetColorWithKeyPath(String *keyPath)
 		{
-			RN_ASSERT(identifier, "Identifier mustn't be NULL");
-			
 			LockGuard<SpinLock> lock(_lock);
 			
-			Dictionary *colorDict = _data->GetObjectForKey<Dictionary>(RNCSTR("colors"));
-			Array *color = colorDict->GetObjectForKey<Array>(identifier);
-			
+			Array *color = GetResourceWithKeyPath<Array>(keyPath);
 			return ParseColor(color);
 		}
 		
@@ -189,81 +214,23 @@ namespace RN
 		// MARK: Buttons
 		// ---------------------
 		
-		Dictionary *Style::GetButtonStyle(String *name)
+		Dictionary *Style::GetButtonStyleWithKeyPath(String *keyPath)
 		{
-			Array *buttons = _data->GetObjectForKey<Array>(kRNUIStyleButtonsKey);
-			Dictionary *style = nullptr;
-			
-			buttons->Enumerate([&](Object *object, size_t index, bool *stop) {
-				Dictionary *dict = object->Downcast<Dictionary>();
-				String *tname = dict->GetObjectForKey<String>(kRNUIStyleNameKey);
-				
-				if(tname->IsEqual(name))
-				{
-					style = dict;
-					*stop = true;
-				}
-			});
-			
+			Dictionary *style = GetResourceWithKeyPath<Dictionary>(keyPath);
 			return style;
 		}
 		
-		// ---------------------
-		// MARK: -
-		// MARK: Textfields
-		// ---------------------
-		
-		Dictionary *Style::GetTextfieldStyle(String *name)
+		Dictionary *Style::GetTextfieldStyleWithKeyPath(String *keyPath)
 		{
-			Array *textfields = _data->GetObjectForKey<Array>(kRNUIStyleTextfieldKey);
-			Dictionary *style = nullptr;
-			
-			textfields->Enumerate([&](Object *object, size_t index, bool *stop) {
-				Dictionary *dict = object->Downcast<Dictionary>();
-				String *tname = dict->GetObjectForKey<String>(kRNUIStyleNameKey);
-				
-				if(tname->IsEqual(name))
-				{
-					style = dict;
-					*stop = true;
-				}
-			});
-			
+			Dictionary *style = GetResourceWithKeyPath<Dictionary>(keyPath);
 			return style;
 		}
 		
-		// ---------------------
-		// MARK: -
-		// MARK: Windows
-		// ---------------------
-		
-		Dictionary *Style::GetWindowStyle(String *name)
+		Dictionary *Style::GetWindowStyleWithKeyPath(String *keyPath)
 		{
-			Dictionary *window = _data->GetObjectForKey<Dictionary>(kRNUIStyleWindowKey);
-			return window->GetObjectForKey<Dictionary>(name);
-		}
-		
-		Dictionary *Style::GetWindowControlStyle(String *name)
-		{
-			Dictionary *window = _data->GetObjectForKey<Dictionary>(kRNUIStyleWindowKey);
-			
-			Array *buttons = window->GetObjectForKey<Array>(RNCSTR("controls"));
-			Dictionary *style = nullptr;
-			
-			buttons->Enumerate([&](Object *object, size_t index, bool *stop) {
-				Dictionary *dict = object->Downcast<Dictionary>();
-				String *tname = dict->GetObjectForKey<String>(kRNUIStyleNameKey);
-				
-				if(tname->IsEqual(name))
-				{
-					style = dict;
-					*stop = true;
-				}
-			});
-			
+			Dictionary *style = GetResourceWithKeyPath<Dictionary>(keyPath);
 			return style;
 		}
-		
 		
 		// ---------------------
 		// MARK: -
@@ -272,16 +239,18 @@ namespace RN
 		
 		Control::State Style::ParseState(String *string)
 		{
-			if(string->IsEqual(RNCSTR("selected")))
-				return Control::Selected;
+			Control::State state = Control::Normal;
 			
-			if(string->IsEqual(RNCSTR("highlighted")))
-				return Control::Highlighted;
+			if(string->GetRangeOfString(RNCSTR("selected")).origin != kRNNotFound)
+				state |= Control::Selected;
 			
-			if(string->IsEqual(RNCSTR("disabled")))
-				return Control::Disabled;
+			if(string->GetRangeOfString(RNCSTR("highlighted")).origin != kRNNotFound)
+				state |= Control::Highlighted;
 			
-			return Control::Normal;
+			if(string->GetRangeOfString(RNCSTR("disabled")).origin != kRNNotFound)
+				state |= Control::Disabled;
+			
+			return state;
 		}
 		
 		EdgeInsets Style::ParseEdgeInsets(Dictionary *insets)
@@ -296,12 +265,12 @@ namespace RN
 					Number *right  = insets->GetObjectForKey<Number>(RNCSTR("right"));
 					
 					if(top && bottom && left && right)
-					{
 						return EdgeInsets(top->GetFloatValue(), bottom->GetFloatValue(), left->GetFloatValue(), right->GetFloatValue());
-					}
 				}
 				catch(Exception e)
-				{}
+				{
+					RNWarning("Failed to parse edge insets dictionary: %s", e.GetReason().c_str());
+				}
 			}
 			
 			return EdgeInsets();
@@ -319,12 +288,12 @@ namespace RN
 					Number *height = atlas->GetObjectForKey<Number>(RNCSTR("height"));
 					
 					if(x && y && width && height)
-					{
 						return Atlas(x->GetFloatValue(), y->GetFloatValue(), width->GetFloatValue(), height->GetFloatValue());
-					}
 				}
 				catch(Exception e)
-				{}
+				{
+					RNWarning("Failed to parse atlas dictionary: %s", e.GetReason().c_str());
+				}
 			}
 			
 			return Atlas(0.0f, 0.0f, 1.0f, 1.0f);
@@ -339,9 +308,10 @@ namespace RN
 			
 			if(color)
 			{
-				RN_ASSERT(color->GetCount() == 3 || color->GetCount() == 4, "Array must have three or four components!");
 				try
 				{
+					RN_ASSERT(color->GetCount() == 3 || color->GetCount() == 4, "Array must have three or four components!");
+					
 					r = color->GetObjectAtIndex<Number>(0)->GetFloatValue();
 					g = color->GetObjectAtIndex<Number>(1)->GetFloatValue();
 					b = color->GetObjectAtIndex<Number>(2)->GetFloatValue();
@@ -350,7 +320,9 @@ namespace RN
 						a = color->GetObjectAtIndex<Number>(3)->GetFloatValue();
 				}
 				catch(Exception e)
-				{}
+				{
+					RNWarning("Failed parse color array: %s", e.GetReason().c_str());
+				}
 			}
 			
 			return Color::WithRNColor(RN::Color(r, g, b, a));

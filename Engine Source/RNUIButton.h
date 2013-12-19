@@ -26,7 +26,6 @@ namespace RN
 		public:
 			enum class Type
 			{
-				RoundedRect,
 				Bezel,
 				CheckBox,
 				DisclosureTriangle

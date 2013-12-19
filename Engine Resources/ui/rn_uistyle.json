@@ -26,9 +26,8 @@
 		"RNTitleColor": [0.05, 0.05, 0.05],
 		"RNSelectionColor": [0.141, 0.493, 0.741, 0.500]
 	},
-	"buttons": [
-		{
-			"name": "RNBezel",
+	"buttons": {
+		"RNBezel": {
 			"mode": "momentarily",
 			"texture": "ui/rn_uikit.png",
 			"insets": {
@@ -82,8 +81,7 @@
 				}
 			]
 		},
-		{
-			"name": "RNCheckBox",
+		"RNCheckBox": {
 			"mode": "switch",
 			"texture": "ui/rn_uikit.png",
 			"background": false,
@@ -114,8 +112,7 @@
 				}
 			]
 		},
-		{
-			"name": "RNDisclosureTriangle",
+		"RNDisclosureTriangle": {
 			"mode": "switch",
 			"texture": "ui/rn_uikit.png",
 			"background": false,
@@ -146,10 +143,9 @@
 				}
 			]
 		}
-	],
-	"textfields": [
-		{
-			"name": "RNBezel",
+	},
+	"textfields": {
+		"RNBezel": {
 			"texture": "ui/rn_uikit.png",
 			"contentInsets": {
 				"top": 0.0,
@@ -199,11 +195,10 @@
 				}
 			]
 		}
-	],
+	},
 	"window": {
-		"controls": [
-			{
-				"name": "close",
+		"controls": {
+			"close": {
 				"mode": "momentarily",
 				"texture": "ui/rn_uikit.png",
 				"contentInsets": {
@@ -251,8 +246,7 @@
 					}
 				]
 			},
-			{
-				"name": "minimize",
+			"minimize": {
 				"mode": "momentarily",
 				"texture": "ui/rn_uikit.png",
 				"contentInsets": {
@@ -300,8 +294,7 @@
 					}
 				]
 			},
-			{
-				"name": "maximize",
+			"maximize": {
 				"mode": "momentarily",
 				"texture": "ui/rn_uikit.png",
 				"contentInsets": {
@@ -349,7 +342,7 @@
 					}
 				]
 			}
-		],
+		},
 		"titled": {
 			"border": {
 				"top": 20.0,
@@ -503,6 +496,104 @@
 						"left": 10.0,
 						"right": 10.0
 					}
+				}
+			}
+		}
+	},
+	"scroller": {
+		"vertical": {
+			"controls": [
+				{
+					"name": "up",
+					"mode": "momentarily",
+					"texture": "ui/rn_uikit.png",
+					"contentInsets": {
+						"top": 5.0,
+						"bottom": 5.0,
+						"left": 5.0,
+						"right": 5.0
+					},
+					"states": [
+						{
+							"name": "normal",
+							"atlas": {
+								"x": 120.0,
+								"y": 100.0,
+								"width": 10.0,
+								"height": 10.0
+							}
+						},
+						{
+							"name": "selected",
+							"atlas": {
+								"x": 130.0,
+								"y": 100.0,
+								"width": 10.0,
+								"height": 10.0
+							}
+						}
+					]
+				},
+				{
+					"name": "down",
+					"mode": "momentarily",
+					"texture": "ui/rn_uikit.png",
+					"contentInsets": {
+						"top": 5.0,
+						"bottom": 5.0,
+						"left": 5.0,
+						"right": 5.0
+					},
+					"states": [
+						{
+							"name": "normal",
+							"atlas": {
+								"x": 120.0,
+								"y": 110.0,
+								"width": 10.0,
+								"height": 10.0
+							}
+						},
+						{
+							"name": "selected",
+							"atlas": {
+								"x": 130.0,
+								"y": 110.0,
+								"width": 10.0,
+								"height": 10.0
+							}
+						}
+					]
+				}
+			],
+			"frame": {
+				"texture": "ui/rn_uikit.png",
+				"atlas": {
+					"x": 110.0,
+					"y": 100.0,
+					"width": 10.0,
+					"height": 10.0
+				},
+				"insets": {
+					"top": 5.0,
+					"bottom": 5.0,
+					"left": 5.0,
+					"right": 5.0
+				}
+			},
+			"slider": {
+				"texture": "ui/rn_uikit.png",
+				"atlas": {
+					"x": 100.0,
+					"y": 100.0,
+					"width": 10.0,
+					"height": 20.0
+				},
+				"insets": {
+					"top": 10.0,
+					"bottom": 10.0,
+					"left": 5.0,
+					"right": 5.0
 				}
 			}
 		}

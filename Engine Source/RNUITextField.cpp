@@ -69,11 +69,11 @@ namespace RN
 			switch(type)
 			{
 				case Type::RoundedRect:
-					dictionary = styleSheet->GetTextfieldStyle(RNCSTR("RNRoundedRect"));
+					dictionary = styleSheet->GetTextfieldStyleWithKeyPath(RNCSTR("textfields.RNRoundedRect"));
 					break;
 					
 				case Type::Bezel:
-					dictionary = styleSheet->GetTextfieldStyle(RNCSTR("RNBezel"));
+					dictionary = styleSheet->GetTextfieldStyleWithKeyPath(RNCSTR("textfields.RNBezel"));
 					break;
 			}
 			

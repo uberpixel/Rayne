@@ -48,16 +48,26 @@ namespace RN
 			
 			Texture *GetTextureWithName(String *name);
 			
+			template<class T>
+			T *GetResourceWithKeyPath(String *keyPath)
+			{
+				Object *resource = __GetResourceWithKeyPath(keyPath);
+				
+				if(!resource->IsKindOfClass(T::MetaClass()))
+				   throw Exception(Exception::Type::InconsistencyException, "Failed to get resource for key path, unexpected object found");
+				   
+				return static_cast<T *>(resource);
+			}
+			
 			Font *GetFont(FontStyle style);
-			Font *GetFontWithIdentifier(String *identifier);
+			Font *GetFontWithKeyPath(String *identifier);
 			
 			Color *GetColor(ColorStyle style);
-			Color *GetColorWithIdentifier(String *identifier);
+			Color *GetColorWithKeyPath(String *keyPath);
 			
-			Dictionary *GetButtonStyle(String *name);
-			Dictionary *GetTextfieldStyle(String *name);
-			Dictionary *GetWindowStyle(String *name);
-			Dictionary *GetWindowControlStyle(String *name);
+			Dictionary *GetButtonStyleWithKeyPath(String *keyPath);
+			Dictionary *GetTextfieldStyleWithKeyPath(String *name);
+			Dictionary *GetWindowStyleWithKeyPath(String *name);
 			
 			static EdgeInsets ParseEdgeInsets(Dictionary *insets);
 			static Atlas ParseAtlas(Dictionary *atlas);
@@ -66,6 +76,7 @@ namespace RN
 			
 		private:
 			Font *CreateFontFromDictionary(Dictionary *info);
+			Object *__GetResourceWithKeyPath(String *keyPath);
 			
 			SpinLock _lock;
 			Dictionary *_data;

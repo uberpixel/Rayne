@@ -28,20 +28,16 @@ namespace RN
 			Dictionary *style = nullptr;
 			switch(type)
 			{
-				case Type::RoundedRect:
-					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNRoundedRect"));
-					break;
-					
 				case Type::Bezel:
-					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNBezel"));
+					style = Style::GetSharedInstance()->GetButtonStyleWithKeyPath(RNCSTR("buttons.RNBezel"));
 					break;
 					
 				case Type::CheckBox:
-					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNCheckBox"));
+					style = Style::GetSharedInstance()->GetButtonStyleWithKeyPath(RNCSTR("buttons.RNCheckBox"));
 					break;
 					
 				case Type::DisclosureTriangle:
-					style = Style::GetSharedInstance()->GetButtonStyle(RNCSTR("RNDisclosureTriangle"));
+					style = Style::GetSharedInstance()->GetButtonStyleWithKeyPath(RNCSTR("buttons.RNDisclosureTriangle"));
 					break;
 			}
 			

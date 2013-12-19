@@ -73,9 +73,9 @@ namespace RN
 			Dictionary *style = nullptr;
 			
 			if(_style & StyleTitled)
-				style = styleSheet->GetWindowStyle(RNCSTR("titled"));
+				style = styleSheet->GetWindowStyleWithKeyPath(RNCSTR("window.titled"));
 			else
-				style = styleSheet->GetWindowStyle(RNCSTR("untitled"));
+				style = styleSheet->GetWindowStyleWithKeyPath(RNCSTR("window.untitled"));
 			
 			WidgetBackgroundView *background = new WidgetBackgroundView(this, _style, style);
 			background->_widget = this;

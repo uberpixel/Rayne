@@ -60,20 +60,27 @@ namespace RN
 			Dictionary *style = nullptr;
 			bool enabled = false;
 			
-			switch(buttonStyle)
+			try
 			{
-				case Widget::TitleControl::Close:
-					style   = styleSheet->GetWindowControlStyle(RNCSTR("close"));
-					enabled = (_style & Widget::StyleClosable);
-					break;
-				case Widget::TitleControl::Maximize:
-					style   = styleSheet->GetWindowControlStyle(RNCSTR("maximize"));
-					enabled = (_style & Widget::StyleMaximizable);
-					break;
-				case Widget::TitleControl::Minimize:
-					style   = styleSheet->GetWindowControlStyle(RNCSTR("minimize"));
-					enabled = (_style & Widget::StyleMinimizable);
-					break;
+				switch(buttonStyle)
+				{
+					case Widget::TitleControl::Close:
+						style   = styleSheet->GetButtonStyleWithKeyPath(RNCSTR("window.controls.close"));
+						enabled = (_style & Widget::StyleClosable);
+						break;
+					case Widget::TitleControl::Maximize:
+						style   = styleSheet->GetButtonStyleWithKeyPath(RNCSTR("window.controls.maximize"));
+						enabled = (_style & Widget::StyleMaximizable);
+						break;
+					case Widget::TitleControl::Minimize:
+						style   = styleSheet->GetButtonStyleWithKeyPath(RNCSTR("window.controls.minimize"));
+						enabled = (_style & Widget::StyleMinimizable);
+						break;
+				}
+			}
+			catch(Exception e)
+			{
+				style = nullptr;
 			}
 			
 			if(!style)
