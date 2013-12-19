@@ -271,9 +271,10 @@ namespace RN
 				traverse = false;
 				
 				size_t count = potential->_subviews.GetCount();
-				for(size_t i=0; i<count; i++)
+				
+				for(size_t i = 0; i < count; i++)
 				{
-					View *view = potential->_subviews.GetObjectAtIndex<View>(i);
+					View *view = potential->_subviews.GetObjectAtIndex<View>(count - i - 1);
 					Vector2 transformed = std::move(view->ConvertPointFromView(point, nullptr));
 					
 					if(!view->_hidden && view->_interactionEnabled && view->IsPointInside(transformed, event))
