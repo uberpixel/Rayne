@@ -117,6 +117,11 @@ namespace RN
 			return connection;
 		}
 		
+		size_t GetCount() const
+		{
+			return _slots.size();
+		}
+		
 	private:
 		struct Slot
 		{
