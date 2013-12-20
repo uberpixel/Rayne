@@ -799,7 +799,7 @@ namespace TG
 		node = new RN::InstancingNode(grass);
 		node->renderGroup = 1;
 		node->SetPivot(_camera);
-		node->SetLimit(200, 800);
+		node->SetLimit(2500);
 		
 		for(int i = 0; i < TGForestFeatureGras; i ++)
 		{
