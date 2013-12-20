@@ -17,18 +17,6 @@
 
 namespace RN
 {
-	class InstancingLODStageData
-	{
-	public:
-		friend class InstancingLODStage;
-		
-		InstancingLODStageData(Model *model, size_t stage, size_t index);
-		
-	private:
-		Mesh *_mesh;
-		Material *_material;
-	};
-
 	class InstancingLODStage
 	{
 	public:
@@ -45,13 +33,14 @@ namespace RN
 		
 	private:
 		Model *_model;
+		size_t _stage;
+		
 		bool _dirty;
 		
 		GLuint _texture;
 		GLuint _buffer;
 		
 		std::vector<uint32> _indices;
-		std::vector<InstancingLODStageData> _data;
 	};
 	
 	class InstancingData
@@ -62,6 +51,7 @@ namespace RN
 		
 		void Reserve(size_t count);
 		void PivotMoved();
+		void SetPivot(Camera *pivot);
 		
 		void UpdateData();
 		void Render(SceneNode *node, Renderer *renderer);
@@ -73,11 +63,11 @@ namespace RN
 		Model *GetModel() const { return _model; }
 		
 	private:
-		void UpdateEntityLODStange(Entity *entity);
+		void UpdateEntityLODStange(Entity *entity, const Vector3 &position);
 		void SortEntities();
 		
 		Model *_model;
-		Entity *_pivot;
+		Camera *_pivot;
 		
 		GLuint _texture;
 		GLuint _buffer;
@@ -85,6 +75,7 @@ namespace RN
 		size_t _count;
 		size_t _used;
 		
+		SpinLock _lock;
 		bool _dirty;
 		
 		std::vector<size_t> _freeList;

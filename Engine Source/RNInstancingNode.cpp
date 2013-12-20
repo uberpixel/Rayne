@@ -34,17 +34,22 @@ namespace RN
 		
 		for(auto pair : _data)
 			delete pair.second;
+		
+		if(_pivot)
+		{
+			_pivot->RemoveObserver("position", this);
+			_pivot->Release();
+		}
 	}
 	
 	void InstancingNode::Initialize()
 	{
-		_entityClass     = Entity::MetaClass();
-		_models  = new Set();
+		_entityClass = Entity::MetaClass();
+		_models      = new Set();
 		
-		_pivot   = nullptr;
-		_mode    = 0;
-		_limit   = 0;
-		_minimum = 200;
+		_pivot = nullptr;
+		_mode  = 0;
+		_limit = 0;
 		
 		SetFlags(GetFlags() | SceneNode::FlagHideChildren);
 	}
@@ -102,7 +107,10 @@ namespace RN
 		for(auto pair : _data)
 		{
 			if(!_models->ContainsObject(pair.first))
+			{
 				erased.push_back(pair.second);
+				_rawData.erase(std::find(_rawData.begin(), _rawData.end(), pair.second));
+			}
 		}
 		
 		for(InstancingData *data : erased)
@@ -119,19 +127,23 @@ namespace RN
 			if(iterator == _data.end())
 			{
 				InstancingData *data = new InstancingData(model);
+				
 				_data.insert(decltype(_data)::value_type(model, data));
+				_rawData.push_back(data);
 			}
 			
 		});
 	}
 	
-	void InstancingNode::SetPivot(SceneNode *pivot)
+	void InstancingNode::SetPivot(Camera *pivot)
 	{
 		Lock();
 		
 		if(_pivot)
 		{
 			RemoveDependency(_pivot);
+			
+			_pivot->RemoveObserver("position", this);
 			_pivot->Release();
 			_pivot = nullptr;
 		}
@@ -139,21 +151,32 @@ namespace RN
 		if(pivot)
 		{
 			_pivot = pivot->Retain();
+			_pivot->AddObserver("position", std::bind(&InstancingNode::PivotDidMove, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), this);
+			_pivotMoved = true;
+			
 			AddDependency(_pivot);
+		}
+		
+		for(InstancingData *data : _rawData)
+		{
+			data->SetPivot(_pivot);
 		}
 		
 		Unlock();
 	}
 	
-	void InstancingNode::SetLimit(size_t lower, size_t upper)
+	void InstancingNode::SetLimit(size_t limit)
 	{
 		Lock();
 
+		_limit = limit;
+		
 		Unlock();
 	}
 
 	
-	void InstancingNode::EntityDidUpdateModel(Object *object, const std::string&key, Dictionary *changes)
+	
+	void InstancingNode::EntityDidUpdateModel(Object *object, const std::string &key, Dictionary *changes)
 	{
 		Object *tOld = changes->GetObjectForKey(kRNObservableOldValueKey);
 		Object *tNew = changes->GetObjectForKey(kRNObservableNewValueKey);
@@ -198,6 +221,12 @@ namespace RN
 		
 		Unlock();
 	}
+	
+	void InstancingNode::PivotDidMove(Object *object, const std::string &key, Dictionary *changes)
+	{
+		_pivotMoved = true;
+	}
+	
 	
 	
 	void InstancingNode::ChildDidUpdate(SceneNode *child, uint32 changes)
@@ -257,6 +286,29 @@ namespace RN
 		}
 	}
 	
+	
+	void InstancingNode::Update(float delta)
+	{
+		return;
+		
+		SceneNode::Update(delta);
+		
+		Lock();
+		
+		if(_pivotMoved)
+		{
+			for(InstancingData *data : _rawData)
+				data->PivotMoved();
+			
+			_pivotMoved = false;
+		}
+		
+		for(InstancingData *data : _rawData)
+			data->UpdateData();
+		
+		Unlock();
+	}
+	
 	bool InstancingNode::IsVisibleInCamera(Camera *camera)
 	{
 		return true;
@@ -264,10 +316,11 @@ namespace RN
 	
 	void InstancingNode::Render(Renderer *renderer, Camera *camera)
 	{
-		for(auto pair : _data)
+		for(InstancingData *data : _rawData)
 		{
-			pair.second->UpdateData();
-			pair.second->Render(this, renderer);
+			data->PivotMoved();
+			data->UpdateData();
+			data->Render(this, renderer);
 		}
 	}
 }

@@ -34,11 +34,12 @@ namespace RN
 		RNAPI void AddModel(Model *model);
 		RNAPI void SetModels(const Array *models);
 		RNAPI void SetModels(const Set *models);
-		RNAPI void SetPivot(SceneNode *pivot);
-		RNAPI void SetLimit(size_t lower, size_t upper);
+		RNAPI void SetPivot(Camera *pivot);
+		RNAPI void SetLimit(size_t limit);
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
+		RNAPI void Update(float delta) override;
 		
 	protected:
 		RNAPI void ChildDidUpdate(SceneNode *child, uint32 changeSet) override;
@@ -51,17 +52,19 @@ namespace RN
 		void RecreateData();
 		void ModelsChanged();
 		
-		void EntityDidUpdateModel(Object *object, const std::string&key, Dictionary *changes);
+		void EntityDidUpdateModel(Object *object, const std::string &key, Dictionary *changes);
+		void PivotDidMove(Object *object, const std::string &key, Dictionary *changes);
 		void ModelDidUpdate(Model *model);
 		
 		std::unordered_map<Model *, InstancingData *> _data;
+		std::vector<InstancingData *> _rawData;
 	
 		Set *_models;
-		
 		uint32 _mode;
-		size_t _minimum;
+		
 		size_t _limit;
-		SceneNode *_pivot;
+		Camera *_pivot;
+		bool _pivotMoved;
 		
 		MetaClassBase *_entityClass;
 	};

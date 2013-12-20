@@ -14,13 +14,9 @@
 
 namespace RN
 {
-	InstancingLODStageData::InstancingLODStageData(Model *model, size_t stage, size_t index)
-	{
-		_mesh     = model->GetMeshAtIndex(static_cast<uint32>(stage), static_cast<uint32>(index));
-		_material = model->GetMaterialAtIndex(static_cast<uint32>(stage), static_cast<uint32>(index));
-	}
-	
 	InstancingLODStage::InstancingLODStage(Model *model, size_t stage) :
+		_model(model),
+		_stage(stage),
 		_dirty(true)
 	{
 		gl::GenTextures(1, &_texture);
@@ -31,14 +27,8 @@ namespace RN
 		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, _buffer);
 		
 		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
-		gl::BindTexture(GL_TEXTURE_BUFFER, 0);
-		
-		size_t count = model->GetMeshCount(static_cast<uint32>(stage));
-		
-		for(size_t i = 0; i < count; i ++)
-			_data.emplace_back(model, stage, i);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
-	
 	
 	InstancingLODStage::~InstancingLODStage()
 	{
@@ -48,8 +38,13 @@ namespace RN
 	
 	void InstancingLODStage::RemoveIndex(size_t index)
 	{
-		_indices.erase(std::find(_indices.begin(), _indices.end(), static_cast<uint32>(index)));
-		_dirty = true;
+		auto iterator = std::find(_indices.begin(), _indices.end(), static_cast<uint32>(index));
+		
+		if(iterator != _indices.end())
+		{
+			_indices.erase(iterator);
+			_dirty = true;
+		}
 	}
 	
 	void InstancingLODStage::AddIndex(size_t index)
@@ -60,10 +55,11 @@ namespace RN
 	
 	void InstancingLODStage::UpdateData()
 	{
-		if(_dirty)
+		if(_dirty && !_indices.empty())
 		{
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 			gl::BufferData(GL_TEXTURE_BUFFER, _indices.size() * sizeof(uint32), _indices.data(), GL_STATIC_DRAW);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 			
 			_dirty = false;
 		}
@@ -74,14 +70,17 @@ namespace RN
 		object.count = static_cast<uint32>(_indices.size());
 		object.instancingIndices = _texture;
 		
-		for(auto &data : _data)
+		size_t count = _model->GetMeshCount(_stage);
+		
+		for(size_t i = 0; i < count; i ++)
 		{
-			object.mesh     = data._mesh;
-			object.material = data._material;
+			object.mesh     = _model->GetMeshAtIndex(_stage, i);
+			object.material = _model->GetMaterialAtIndex(_stage, i);
 			
 			renderer->RenderObject(object);
 		}
 	}
+	
 	
 	
 	
@@ -94,10 +93,9 @@ namespace RN
 		_used  = 0;
 		
 		size_t count = _model->GetLODStageCount();
+		
 		for(size_t i = 0; i < count; i ++)
-		{
 			_stages.push_back(new InstancingLODStage(_model, i));
-		}
 		
 		gl::GenTextures(1, &_texture);
 		gl::GenBuffers(1, &_buffer);
@@ -114,8 +112,16 @@ namespace RN
 	
 	InstancingData::~InstancingData()
 	{
+		for(InstancingLODStage *stage : _stages)
+			delete stage;
+		
 		gl::DeleteTextures(1, &_texture);
 		gl::DeleteBuffers(1, &_buffer);
+	}
+	
+	void InstancingData::SetPivot(Camera *pivot)
+	{
+		_pivot = pivot; // Retained by the InstancingNode
 	}
 	
 	void InstancingData::UpdateData()
@@ -123,7 +129,7 @@ namespace RN
 		if(_dirty)
 		{
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-			gl::BufferSubData(GL_TEXTURE_BUFFER, 0, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data());
+			gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data(), GL_STATIC_DRAW);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 			
 			_dirty = false;
@@ -131,7 +137,10 @@ namespace RN
 		
 		for(InstancingLODStage *stage : _stages)
 			stage->UpdateData();
+		
+		gl::Flush();
 	}
+	
 	
 	void InstancingData::Render(SceneNode *node, Renderer *renderer)
 	{
@@ -140,12 +149,14 @@ namespace RN
 		
 		object.instancingData = _texture;
 		
-		for(InstancingLODStage *stage : _stages)
+		size_t count = _stages.size();
+		
+		for(size_t i = 1; i < count; i ++)
 		{
-			if(stage->IsEmpty())
+			if(_stages[i]->IsEmpty())
 				continue;
 			
-			stage->Render(object, renderer);
+			_stages[i]->Render(object, renderer);
 		}
 	}
 		
@@ -171,8 +182,12 @@ namespace RN
 		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
 	
+	
+	
 	void InstancingData::InsertEntity(Entity *entity)
 	{
+		_lock.Lock();
+		
 		if(_entities.find(entity) == _entities.end())
 		{
 			_entities.insert(entity);
@@ -181,16 +196,17 @@ namespace RN
 				Reserve(_count * 1.5f);
 		
 			
-			
+			size_t stage = 0;
 			size_t index = _freeList.back();
 				
 			_freeList.pop_back();
 			_used ++;
 			
-			size_t stage = 0;
-			
 			if(_pivot)
-				stage = _model->GetLODStageForDistance(entity->GetWorldPosition().Distance(_pivot->GetWorldPosition()));
+			{
+				float distance = entity->GetWorldPosition().Distance(_pivot->GetWorldPosition());
+				stage = _model->GetLODStageForDistance(distance / _pivot->clipfar);
+			}
 			
 			_stages[stage]->AddIndex(index);
 			
@@ -203,14 +219,22 @@ namespace RN
 			indexNum->Release();
 			stageNum->Release();
 			
-			UpdateEntity(entity);
+			_matrices[((index * 2) + 0)] = entity->GetWorldTransform();
+			_matrices[((index * 2) + 1)] = entity->GetWorldTransform().GetInverse();
 		}
+		
+		_lock.Unlock();
 	}
 	
 	void InstancingData::RemoveEntity(Entity *entity)
 	{
+		_lock.Lock();
+		
 		if(_entities.find(entity) == _entities.end())
+		{
+			_lock.Unlock();
 			return;
+		}
 		
 		size_t index = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey))->GetUint32Value();
 		uint32 stage = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey))->GetUint32Value();
@@ -222,41 +246,56 @@ namespace RN
 		
 		_entities.erase(entity);
 		_freeList.push_back(index);
+		
+		_lock.Unlock();
 	}
 	
 	void InstancingData::UpdateEntity(Entity *entity)
 	{
+		_lock.Lock();
+		
 		size_t index = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey))->GetUint32Value();
 		
 		_matrices[((index * 2) + 0)] = entity->GetWorldTransform();
 		_matrices[((index * 2) + 1)] = entity->GetWorldTransform().GetInverse();
 		
-		UpdateEntityLODStange(entity);
+		if(_pivot)
+			UpdateEntityLODStange(entity, _pivot->GetWorldPosition());
+		
+		_lock.Unlock();
 	}
+	
+	
 	
 	void InstancingData::PivotMoved()
 	{
-		if(!_pivot)
-			return;
+		_lock.Lock();
+		
+		Vector3 position = _pivot->GetWorldPosition();
 			
 		for(auto entity : _entities)
-			UpdateEntityLODStange(entity);
+			UpdateEntityLODStange(entity, position);
+		
+		_lock.Unlock();
 	}
 	
-	void InstancingData::UpdateEntityLODStange(Entity *entity)
+	void InstancingData::UpdateEntityLODStange(Entity *entity, const Vector3 &position)
 	{
-		if(_pivot)
+		float distance = entity->GetWorldPosition().Distance(position);
+		
+		size_t newStage = _model->GetLODStageForDistance(distance / _pivot->clipfar);
+		size_t oldStage = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey))->GetUint32Value();
+		
+		if(newStage != oldStage)
 		{
-			size_t oldStage = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey))->GetUint32Value();
-			size_t newStage = _model->GetLODStageForDistance(entity->GetWorldPosition().Distance(_pivot->GetWorldPosition()));
+			size_t index = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey))->GetUint32Value();
 			
-			if(newStage != oldStage)
-			{
-				size_t index = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey))->GetUint32Value();
-				
-				_stages[oldStage]->RemoveIndex(index);
-				_stages[newStage]->AddIndex(index);
-			}
+			_stages[oldStage]->RemoveIndex(index);
+			_stages[newStage]->AddIndex(index);
+			
+			Number *stageNum = new Number(static_cast<uint32>(newStage));
+			entity->SetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey, stageNum, Object::MemoryPolicy::Retain);
+			stageNum->Release();
 		}
 	}
 }

@@ -25,7 +25,8 @@ uniform usamplerBuffer instancingIndices;
 
 mat4 imatModel(int iOffset)
 {
-	int offset = (int(texelFetch(instancingIndices, gl_InstanceID).r) * 8) + iOffset;
+	int index  = int(texelFetch(instancingIndices, gl_InstanceID).r);
+	int offset = (index * 8) + iOffset;
 	mat4 matrix;
 
 	matrix[0] = texelFetch(instancingData, offset + 0);
