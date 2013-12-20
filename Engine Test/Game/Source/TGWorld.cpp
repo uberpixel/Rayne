@@ -481,10 +481,15 @@ namespace TG
 		tavernent->SetModel(tavern);
 		tavernent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));*/
 		
-		RN::Model *house2 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_house02.sgm");
+/*		RN::Model *house2 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_house02.sgm");
 		RN::Entity *house2ent = new RN::Entity();
 		house2ent->SetModel(house2);
-		house2ent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
+		house2ent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));*/
+		
+		RN::Model *ruin4 = RN::Model::WithFile("models/dexsoft/ruins/ruins_house4.sgm");
+		RN::Entity *ruin4ent = new RN::Entity();
+		ruin4ent->SetModel(ruin4);
+		ruin4ent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
 		
 
 #define TREE_MODEL_COUNT 10
