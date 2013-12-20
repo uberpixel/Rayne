@@ -45,6 +45,8 @@ namespace RN
 		Mesh *GetMeshAtIndex(size_t lodStage, size_t index) const;
 		Material *GetMaterialAtIndex(size_t lodStage, size_t index) const;
 		
+		void CalculateBoundingVolumes();
+		
 		const AABB& GetBoundingBox() const { return _boundingBox; }
 		const Sphere& GetBoundingSphere() const { return _boundingSphere; }
 		
@@ -89,7 +91,6 @@ namespace RN
 			float lodDistance;
 		};
 		
-		void CalculateBoundingBox();
 		Shader *PickShaderForMaterialAndMesh(Material *material, Mesh *mesh);
 		Material *PickMaterialForMesh(Mesh *mesh);
 		

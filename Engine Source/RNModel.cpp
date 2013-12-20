@@ -96,7 +96,7 @@ namespace RN
 		}
 	}
 	
-	void Model::CalculateBoundingBox()
+	void Model::CalculateBoundingVolumes()
 	{
 		_boundingBox = AABB();
 		

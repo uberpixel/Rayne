@@ -37,6 +37,8 @@ namespace TG
 		void CreateTest();
 		void CreateSibenik();
 		
+		bool PositionBlocked(RN::Vector3 position, RN::Entity **obstacles, int count);
+		
 		DebugDrawer *_debugAttachment;
 		
 		ThirdPersonCamera *_camera;

@@ -12,12 +12,12 @@
 #define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		0
-#define TGWorldFeatureBloom			0
+#define TGWorldFeatureBloom			1
 #define TGWorldFeatureSSAO          0
 #define TGWorldFeatureWater			0
 
 #define TGForestFeatureTrees 500
-#define TGForestFeatureGras  20000
+#define TGForestFeatureGras  50000
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 30.0f
@@ -457,6 +457,16 @@ namespace TG
 #endif
 	}
 	
+	bool World::PositionBlocked(RN::Vector3 position, RN::Entity **obstacles, int count)
+	{
+		for(int n = 0; n < count; n++)
+		{
+			if(obstacles[n]->GetBoundingBox().Contains(position))
+				return true;
+		}
+		return false;
+	}
+	
 	
 	void World::CreateForest()
 	{
@@ -476,20 +486,26 @@ namespace TG
 		houseent->SetWorldPosition(RN::Vector3(0.0f, 0.8f, 0.0f));*/
 		
 		//tavern
-/*		RN::Model *tavern = RN::Model::WithFile("models/dexsoft/tavern/tavern_main.sgm");
+		RN::Model *tavern = RN::Model::WithFile("models/dexsoft/tavern/tavern_main.sgm");
 		RN::Entity *tavernent = new RN::Entity();
 		tavernent->SetModel(tavern);
-		tavernent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));*/
+		tavernent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
 		
-/*		RN::Model *house2 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_house02.sgm");
+		RN::Model *house2 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_house02.sgm");
 		RN::Entity *house2ent = new RN::Entity();
 		house2ent->SetModel(house2);
-		house2ent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));*/
+		house2ent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 30.0f));
 		
 		RN::Model *ruin4 = RN::Model::WithFile("models/dexsoft/ruins/ruins_house4.sgm");
 		RN::Entity *ruin4ent = new RN::Entity();
 		ruin4ent->SetModel(ruin4);
-		ruin4ent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
+		ruin4ent->SetWorldPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
+		
+		
+		RN::Entity *obstacles[3];
+		obstacles[0] = tavernent;
+		obstacles[1] = house2ent;
+		obstacles[2] = ruin4ent;
 		
 
 #define TREE_MODEL_COUNT 10
@@ -760,7 +776,7 @@ namespace TG
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
 			
-			if(pos.Length() < 20.0f)
+			if(PositionBlocked(pos+RN::Vector3(0.0f, 0.5f, 0.0f), obstacles, 3))
 				continue;
 			
 			ent = new RN::Entity();
@@ -785,8 +801,9 @@ namespace TG
 		
 		for(int i = 0; i < TGForestFeatureGras; i ++)
 		{
-			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-50.0f, 50.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-50.0f, 50.0f));
-			if(pos.Length() < 5.0f)
+			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
+			
+			if(PositionBlocked(pos+RN::Vector3(0.0f, 1.0f, 0.0f), obstacles, 3))
 				continue;
 			
 			ent = new RN::Entity();

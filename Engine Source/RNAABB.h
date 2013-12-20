@@ -31,6 +31,7 @@ namespace RN
 		AABB& operator*= (const Vector3& other);
 		
 		bool Intersects(const AABB& other) const;
+		bool Contains(const Vector3 &position) const;
 		
 		void Rotate(const Quaternion& rotation);
 		
@@ -132,11 +133,35 @@ namespace RN
 	
 	RN_INLINE bool AABB::Intersects(const AABB& other) const
 	{
-		if(Math::FastAbs(position.x - other.position.x) > (maxExtend.x + other.minExtend.x))
+		if(other.position.x - position.x > maxExtend.x + other.minExtend.x)
 			return false;
-		if(Math::FastAbs(position.y - other.position.y) > (maxExtend.y + other.minExtend.y))
+		if(other.position.x - position.x < minExtend.x + other.maxExtend.x)
 			return false;
-		if(Math::FastAbs(position.z - other.position.z) > (maxExtend.z + other.minExtend.z))
+		if(other.position.y - position.y > maxExtend.y + other.minExtend.y)
+			return false;
+		if(other.position.y - position.y < minExtend.y + other.maxExtend.y)
+			return false;
+		if(other.position.z - position.z > maxExtend.z + other.minExtend.z)
+			return false;
+		if(other.position.z - position.z < minExtend.z + other.maxExtend.z)
+			return false;
+		
+		return true;
+	}
+	
+	RN_INLINE bool AABB::Contains(const Vector3& position) const
+	{
+		if(position.x - this->position.x > maxExtend.x)
+			return false;
+		if(position.x - this->position.x < minExtend.x)
+			return false;
+		if(position.y - this->position.y > maxExtend.y)
+			return false;
+		if(position.y - this->position.y < minExtend.y)
+			return false;
+		if(position.z - this->position.z > maxExtend.z)
+			return false;
+		if(position.z - this->position.z < minExtend.z)
 			return false;
 		
 		return true;
