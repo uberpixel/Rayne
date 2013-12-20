@@ -45,6 +45,8 @@ namespace RN
 		_mode    = 0;
 		_limit   = 0;
 		_minimum = 200;
+		
+		SetFlags(GetFlags() | SceneNode::FlagHideChildren);
 	}
 	
 	

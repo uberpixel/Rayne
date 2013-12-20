@@ -43,9 +43,10 @@ namespace RN
 		
 		enum
 		{
-			FlagDrawLate = (1 << 0),
-			FlagStatic   = (1 << 1),
-			FlagHidden   = (1 << 2)
+			FlagDrawLate     = (1 << 0),
+			FlagStatic       = (1 << 1),
+			FlagHidden       = (1 << 2),
+			FlagHideChildren = (1 << 3)
 		};
 		
 		enum
