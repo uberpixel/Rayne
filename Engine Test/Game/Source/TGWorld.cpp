@@ -8,16 +8,16 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureLights        1
+#define TGWorldFeatureLights        0
 #define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureFreeCamera    1
-#define TGWorldFeatureZPrePass		1
-#define TGWorldFeatureBloom			1
+#define TGWorldFeatureZPrePass		0
+#define TGWorldFeatureBloom			0
 #define TGWorldFeatureSSAO          0
 #define TGWorldFeatureWater			0
 
 #define TGForestFeatureTrees 500
-#define TGForestFeatureGras  0
+#define TGForestFeatureGras  100000
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 30.0f
@@ -43,7 +43,8 @@ namespace TG
 		AddAttachment(_debugAttachment);
 		
 		CreateCameras();
-		CreateSponza();
+//		CreateSponza();
+		CreateGrass();
 //		CreateForest();
 //		CreateSibenik();
 		
@@ -809,6 +810,37 @@ namespace TG
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		}*/
 #endif
+	}
+	
+	void World::CreateGrass()
+	{
+		RN::Model *grass = RN::Model::WithFile("models/dexsoft/grass/grass_1.sgm");
+		grass->GetMaterialAtIndex(0, 0)->culling = false;
+		grass->GetMaterialAtIndex(0, 0)->discard = true;
+		grass->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard | RN::Material::OverrideCulling;
+		
+		RN:: InstancingNode *node = new RN::InstancingNode(grass);
+		RN::Random::MersenneTwister random;
+		
+		for(int i = 0; i < 50000; i ++)
+		{
+			RN::Vector3 pos = RN::Vector3(random.RandomFloatRange(-100.0f, 100.0f), 0.0f, random.RandomFloatRange(-100.0f, 100.0f));
+
+			RN::Entity *ent = new RN::Entity();
+			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
+			ent->SetModel(grass);
+			ent->SetPosition(pos);
+			ent->SetScale(random.RandomFloatRange(2.5f, 3.0f));
+			ent->SetRotation(RN::Vector3(random.RandomFloatRange(0, 365.0f), -90.0f, 0.0f));
+			
+			node->AttachChild(ent);
+		}
+		
+		
+		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f) * 2.0f;
+		
+		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
+		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
 	}
 	
 	void World::CreateSibenik()

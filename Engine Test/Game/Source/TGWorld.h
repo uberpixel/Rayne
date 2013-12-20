@@ -33,6 +33,7 @@ namespace TG
 		
 		void CreateSponza();
 		void CreateForest();
+		void CreateGrass();
 		void CreateTest();
 		void CreateSibenik();
 		
