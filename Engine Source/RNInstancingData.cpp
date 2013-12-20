@@ -48,7 +48,7 @@ namespace RN
 	
 	void InstancingLODStage::RemoveIndex(size_t index)
 	{
-		_indices.erase(std::find(_indices.begin(), _indices.end(), static_cast<uint16>(index)));
+		_indices.erase(std::find(_indices.begin(), _indices.end(), static_cast<uint32>(index)));
 		_dirty = true;
 	}
 	
@@ -109,7 +109,7 @@ namespace RN
 		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 		
-		Reserve(500000);
+		Reserve(50);
 	}
 	
 	InstancingData::~InstancingData()
@@ -155,10 +155,13 @@ namespace RN
 		if(_count >= count)
 			return;
 		
-		_usage.resize(count);
 		_matrices.resize(count * 2);
+		_freeList.reserve(_freeList.size() + (count - _count));
 		
-		std::fill(_usage.begin() + _count, _usage.end(), false);
+		for(size_t i = 0; i < (count - _count); i ++)
+		{
+			_freeList.push_back(_count + i);
+		}
 		
 		_count = count;
 		_dirty = true;
@@ -174,24 +177,15 @@ namespace RN
 		{
 			_entities.insert(entity);
 			
-			size_t index;
-			auto iterator = (_used < _count) ? std::find(_usage.begin(), _usage.end(), false) : _usage.end();
-			
-			if(iterator != _usage.end())
-			{
-				index = std::distance(_usage.begin(), iterator);
-				
-				_usage[index] = true;
-				_used  ++;
-			}
-			else
-			{
-				index = _matrices.size();
+			if(_used >= _count)
 				Reserve(_count * 1.5f);
+		
+			
+			
+			size_t index = _freeList.back();
 				
-				_usage[index] = true;
-				_used  ++;
-			}
+			_freeList.pop_back();
+			_used ++;
 			
 			size_t stage = 0;
 			
@@ -227,7 +221,7 @@ namespace RN
 		_stages[stage]->RemoveIndex(index);
 		
 		_entities.erase(entity);
-		_usage[index] = false;
+		_freeList.push_back(index);
 	}
 	
 	void InstancingData::UpdateEntity(Entity *entity)
