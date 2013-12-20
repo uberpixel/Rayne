@@ -86,6 +86,7 @@ namespace RN
 		
 		std::vector<SceneNode *> _addedNodes;
 		std::vector<SceneNode *> _nodes;
+		std::vector<SceneNode *> _staticNodes;
 		
 		std::vector<Camera *> _cameras;
 		

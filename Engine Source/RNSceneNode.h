@@ -180,6 +180,8 @@ namespace RN
 		void __BreakDependency(SceneNode *dependency);
 		
 		World *_world;
+		bool _worldStatic;
+		bool _worldInserted;
 		
 		mutable RecursiveSpinLock _parentChildLock;
 		SceneNode *_parent;

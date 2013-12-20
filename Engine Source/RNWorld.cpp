@@ -118,9 +118,6 @@ namespace RN
 			
 			for(SceneNode *node : (run == 0) ? _nodes : retry)
 			{
-				if(node->GetFlags() & SceneNode::FlagStatic)
-					continue;
-				
 				node->Retain();
 				pool.AddObject(node);
 				
@@ -216,6 +213,7 @@ namespace RN
 		
 		_addedNodes.push_back(node);
 		node->_world = this;
+		node->_worldInserted = false;
 	}
 	
 	void World::RemoveSceneNode(SceneNode *node)
@@ -241,7 +239,14 @@ namespace RN
 				return;
 			}
 			
-			_nodes.erase(std::find(_nodes.begin(), _nodes.end(), node));
+			if(!node->_worldStatic)
+			{
+				_nodes.erase(std::find(_nodes.begin(), _nodes.end(), node));
+			}
+			else
+			{
+				_staticNodes.erase(std::find(_staticNodes.begin(), _staticNodes.end(), node));
+			}
 		}
 	}
 		
@@ -251,6 +256,8 @@ namespace RN
 		{
 			for(SceneNode *node : _addedNodes)
 			{
+				node->_worldInserted = true;
+				
 				if(node->IsKindOfClass(_cameraClass))
 				{
 					_cameras.push_back(static_cast<Camera *>(node));
@@ -258,11 +265,20 @@ namespace RN
 				}
 				
 				_sceneManager->AddSceneNode(node);
+				
+				if(node->GetFlags() & SceneNode::FlagStatic)
+				{
+					_staticNodes.push_back(node);
+					node->_worldStatic = true;
+				}
+				else
+				{
+					_nodes.push_back(node);
+					node->_worldStatic = false;
+				}
 			}
 			
-			_nodes.insert(_nodes.end(), _addedNodes.begin(), _addedNodes.end());
 			_addedNodes.clear();
-			
 			_requiresResort = true;
 		}
 		
@@ -279,13 +295,41 @@ namespace RN
 		if(_isDroppingSceneNodes)
 			return;
 		
+		if(!node->_worldInserted)
+			return;
+		
 		_sceneManager->UpdateSceneNode(node, changeSet);
 		
 		if((changeSet & SceneNode::ChangedPriority) && node->IsKindOfClass(_cameraClass))
 			_requiresCameraSort = true;
 		
-		if(changeSet & SceneNode::ChangedDependencies)
+		if((changeSet & SceneNode::ChangedDependencies) && !node->_worldStatic)
 			_requiresResort = true;
+		
+		if(changeSet & SceneNode::ChangedFlags)
+		{
+			if(node->GetFlags() & SceneNode::FlagStatic)
+			{
+				if(!node->_worldStatic)
+				{
+					_nodes.erase(std::find(_nodes.begin(), _nodes.end(), node));
+					_staticNodes.push_back(node);
+					
+					node->_worldStatic = true;
+				}
+			}
+			else
+			{
+				if(node->_worldStatic)
+				{
+					_requiresResort = true;
+					_staticNodes.erase(std::find(_staticNodes.begin(), _staticNodes.end(), node));
+					_nodes.push_back(node);
+					
+					node->_worldStatic = false;
+				}
+			}
+		}
 	}
 	
 	void World::SortNodes()
