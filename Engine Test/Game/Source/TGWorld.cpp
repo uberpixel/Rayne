@@ -12,7 +12,7 @@
 #define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		0
-#define TGWorldFeatureBloom			1
+#define TGWorldFeatureBloom			0
 #define TGWorldFeatureSSAO          0
 #define TGWorldFeatureWater			0
 
@@ -476,10 +476,15 @@ namespace TG
 		houseent->SetWorldPosition(RN::Vector3(0.0f, 0.8f, 0.0f));*/
 		
 		//tavern
-		RN::Model *tavern = RN::Model::WithFile("models/dexsoft/tavern/tavern_main.sgm");
+/*		RN::Model *tavern = RN::Model::WithFile("models/dexsoft/tavern/tavern_main.sgm");
 		RN::Entity *tavernent = new RN::Entity();
 		tavernent->SetModel(tavern);
-		tavernent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
+		tavernent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));*/
+		
+		RN::Model *house2 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_house02.sgm");
+		RN::Entity *house2ent = new RN::Entity();
+		house2ent->SetModel(house2);
+		house2ent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
 		
 
 #define TREE_MODEL_COUNT 10
