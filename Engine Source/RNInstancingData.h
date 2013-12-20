@@ -87,7 +87,7 @@ namespace RN
 		
 		bool _dirty;
 		
-		std::vector<bool> _usage;
+		std::vector<size_t> _freeList;
 		std::vector<Matrix> _matrices;
 		std::vector<InstancingLODStage *> _stages;
 		
