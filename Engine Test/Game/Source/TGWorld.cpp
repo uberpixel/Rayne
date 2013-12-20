@@ -8,16 +8,16 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureLights        0
+#define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 1
 #define TGWorldFeatureFreeCamera    1
 #define TGWorldFeatureZPrePass		0
-#define TGWorldFeatureBloom			0
+#define TGWorldFeatureBloom			1
 #define TGWorldFeatureSSAO          0
 #define TGWorldFeatureWater			0
 
 #define TGForestFeatureTrees 500
-#define TGForestFeatureGras  100000
+#define TGForestFeatureGras  20000
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 30.0f
@@ -44,8 +44,8 @@ namespace TG
 		
 		CreateCameras();
 //		CreateSponza();
-		CreateGrass();
-//		CreateForest();
+//		CreateGrass();
+		CreateForest();
 //		CreateSibenik();
 		
 		RN::Input::GetSharedInstance()->Activate();
@@ -324,6 +324,7 @@ namespace TG
 	void World::CreateSponza()
 	{
 		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f)*0.7f;
+		_camera->SetPosition(RN::Vector3(15.0, 0.0, 0.0));
 		
 		// Sponza
 		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
@@ -367,11 +368,11 @@ namespace TG
 #endif
 		
 #if TGWorldFeatureLights
-		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
+/*		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateDirectionalShadows(true, 2048);
-		_sunLight->SetColor(RN::Color(170, 170, 170));
+		_sunLight->SetColor(RN::Color(170, 170, 170));*/
 		
 /*		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
@@ -425,7 +426,6 @@ namespace TG
 				pos.z += 0.05f*sin(time*2.0f);
 				light->SetWorldPosition(pos);
 			});
-//			light->ActivatePointShadows();
 		}
 #endif
 		
@@ -470,10 +470,16 @@ namespace TG
 		groundBody->SetScale(RN::Vector3(20.0f));
 		
 		//house
-		RN::Model *house = RN::Model::WithFile("models/blendswap/cc0_timber_house/timber_house.sgm");
+/*		RN::Model *house = RN::Model::WithFile("models/blendswap/cc0_timber_house/timber_house.sgm");
 		RN::Entity *houseent = new RN::Entity();
 		houseent->SetModel(house);
-		houseent->SetWorldPosition(RN::Vector3(0.0f, 0.8f, 0.0f));
+		houseent->SetWorldPosition(RN::Vector3(0.0f, 0.8f, 0.0f));*/
+		
+		//tavern
+		RN::Model *tavern = RN::Model::WithFile("models/dexsoft/tavern/tavern_main.sgm");
+		RN::Entity *tavernent = new RN::Entity();
+		tavernent->SetModel(tavern);
+		tavernent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
 		
 
 #define TREE_MODEL_COUNT 10
@@ -744,7 +750,7 @@ namespace TG
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
 			
-			if(pos.Length() < 10.0f)
+			if(pos.Length() < 20.0f)
 				continue;
 			
 			ent = new RN::Entity();
@@ -752,15 +758,16 @@ namespace TG
 			ent->SetModel(trees[dualPhaseLCG.RandomInt32Range(0, TREE_MODEL_COUNT)]);
 			ent->SetPosition(pos);
 			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.89f, 1.12f)));
-			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.0f, 365.0f), 0.0f, 0.0f));
+			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.0f, 360.0f), 0.0f, 0.0f));
 			
 			node->AttachChild(ent);
 		}
 		
-		/*RN::Model *grass = RN::Model::WithFile("models/dexsoft/grass/grass_1.sgm");
+		RN::Model *grass = RN::Model::WithFile("models/dexsoft/grass/grass_1.sgm");
 		grass->GetMaterialAtIndex(0, 0)->culling = false;
 		grass->GetMaterialAtIndex(0, 0)->discard = true;
 		grass->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
+		grass->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
 		
 		node = new RN::InstancingNode(grass);
 		node->SetPivot(_camera);
@@ -776,11 +783,11 @@ namespace TG
 			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
 			ent->SetModel(grass);
 			ent->SetPosition(pos);
-			ent->SetScale(RN::Vector3(2.5f));
-			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0, 365.0f), 0.0f, 0.0f));
+			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(1.5f, 2.0f)));
+			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
 			
 			node->AttachChild(ent);
-		}*/
+		}
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
@@ -800,7 +807,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateDirectionalShadows(true, 2048);
+		_sunLight->ActivateDirectionalShadows(true, 1024);
 	
 /*		for(int i=0; i<10; i++)
 		{
@@ -831,7 +838,7 @@ namespace TG
 			ent->SetModel(grass);
 			ent->SetPosition(pos);
 			ent->SetScale(random.RandomFloatRange(2.5f, 3.0f));
-			ent->SetRotation(RN::Vector3(random.RandomFloatRange(0, 365.0f), -90.0f, 0.0f));
+			ent->SetRotation(RN::Vector3(random.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
 			
 			node->AttachChild(ent);
 		}
