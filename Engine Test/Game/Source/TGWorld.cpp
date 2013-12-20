@@ -186,6 +186,7 @@ namespace TG
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
 		storage->AddRenderTarget(RN::Texture::Format::RGBA32F);
 		_camera = new ThirdPersonCamera(storage);
+		_camera->renderGroup = RN::Camera::RenderGroup0|RN::Camera::RenderGroup1;
 		_camera->SetSkyCube(sky);
 		_camera->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
 		
@@ -796,6 +797,7 @@ namespace TG
 		grass->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
 		
 		node = new RN::InstancingNode(grass);
+		node->renderGroup = 1;
 		node->SetPivot(_camera);
 		node->SetLimit(200, 800);
 		
@@ -853,7 +855,7 @@ namespace TG
 		grass->GetMaterialAtIndex(0, 0)->discard = true;
 		grass->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard | RN::Material::OverrideCulling;
 		
-		RN:: InstancingNode *node = new RN::InstancingNode(grass);
+		RN::InstancingNode *node = new RN::InstancingNode(grass);
 		RN::Random::MersenneTwister random;
 		
 		for(int i = 0; i < 50000; i ++)
