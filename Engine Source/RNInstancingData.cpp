@@ -26,7 +26,7 @@ namespace RN
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, _buffer);
 		
-		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+		gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
 	
@@ -57,8 +57,10 @@ namespace RN
 	{
 		if(_dirty && !_indices.empty())
 		{
+			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 			gl::BufferData(GL_TEXTURE_BUFFER, _indices.size() * sizeof(uint32), _indices.data(), GL_STATIC_DRAW);
+			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 			
 			_dirty = false;
@@ -104,8 +106,8 @@ namespace RN
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _buffer);
 		
-		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		
 		Reserve(50);
 	}
@@ -128,8 +130,10 @@ namespace RN
 	{
 		if(_dirty)
 		{
+			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 			gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data(), GL_STATIC_DRAW);
+			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 			
 			_dirty = false;
@@ -137,8 +141,6 @@ namespace RN
 		
 		for(InstancingLODStage *stage : _stages)
 			stage->UpdateData();
-		
-		gl::Flush();
 	}
 	
 	
@@ -151,7 +153,7 @@ namespace RN
 		
 		size_t count = _stages.size();
 		
-		for(size_t i = 1; i < count; i ++)
+		for(size_t i = 0; i < count; i ++)
 		{
 			if(_stages[i]->IsEmpty())
 				continue;

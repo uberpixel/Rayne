@@ -56,6 +56,9 @@ namespace RN
 		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListSpotData]);
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListSpotData]);
 		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[kRNLightListSpotData]);
+		
+		gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
 	
 	LightManager::~LightManager()
@@ -684,5 +687,7 @@ namespace RN
 		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListIndices]);
 		gl::BufferData(GL_TEXTURE_BUFFER, offset * sizeof(uint16), nullptr, GL_STATIC_DRAW);
 		gl::BufferData(GL_TEXTURE_BUFFER, offset * sizeof(uint16), _lightIndices, GL_STATIC_DRAW);
+		
+		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
 }
