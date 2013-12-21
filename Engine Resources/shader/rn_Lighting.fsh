@@ -116,7 +116,13 @@ void rn_SpotLight(in vec3 viewdir, in vec4 lightpos, in vec4 lightcolor, in vec4
 
 void rn_DirectionalLight(in vec3 viewdir, in vec3 lightdir, in vec4 lightcolor, in vec3 normal, in float specpow, inout vec3 lighting, inout vec3 specularity)
 {
-	float lightfac = min(max(dot(normal, lightdir), 0.0), 1.0);
+	float dotresult = dot(normal, lightdir);
+	float lightfac = min(max(dotresult, 0.0), 1.0);
+	
+#if defined(RN_GRASS)
+	lightfac += min(max((1.0-dotresult)*0.2*(1.0-lightfac), 0.0), 1.0);
+#endif
+	
 	vec3 light = lightcolor.rgb*lightfac;
 	
 #if defined(RN_SPECULARITY)

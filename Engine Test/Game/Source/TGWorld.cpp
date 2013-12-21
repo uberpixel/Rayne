@@ -772,6 +772,7 @@ namespace TG
 		
 		node = new RN::InstancingNode();
 		node->SetModels(RN::Array::WithObjects(trees[0], trees[1], trees[2], trees[3], trees[4], trees[5], trees[6], trees[7], trees[8], trees[9], nullptr));
+		node->SetPivot(_camera);
 		
 		for(int i = 0; i < TGForestFeatureTrees; i ++)
 		{
@@ -795,6 +796,7 @@ namespace TG
 		grass->GetMaterialAtIndex(0, 0)->discard = true;
 		grass->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		grass->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		grass->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
 		
 		node = new RN::InstancingNode(grass);
 		node->renderGroup = 1;
