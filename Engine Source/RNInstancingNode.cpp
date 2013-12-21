@@ -293,7 +293,7 @@ namespace RN
 		
 		Lock();
 		
-		if(_pivotMoved)
+		if(_pivot && _pivotMoved)
 		{
 			for(InstancingData *data : _rawData)
 				data->PivotMoved();
