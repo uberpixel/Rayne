@@ -178,10 +178,6 @@ namespace RN
 		
 		_count = count;
 		_dirty = true;
-		
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-		gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), nullptr, GL_STATIC_DRAW);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 	}
 	
 	
@@ -193,6 +189,7 @@ namespace RN
 		if(_entities.find(entity) == _entities.end())
 		{
 			_entities.insert(entity);
+			_sortedEntities.push_back(entity);
 			
 			if(_used >= _count)
 				Reserve(_count * 1.5f);
@@ -247,6 +244,8 @@ namespace RN
 		_stages[stage]->RemoveIndex(index);
 		
 		_entities.erase(entity);
+		_sortedEntities.erase(std::find(_sortedEntities.begin(), _sortedEntities.end(), entity));
+		
 		_freeList.push_back(index);
 		
 		_lock.Unlock();
@@ -275,7 +274,7 @@ namespace RN
 		
 		Vector3 position = _pivot->GetWorldPosition();
 			
-		for(auto entity : _entities)
+		for(auto entity : _sortedEntities)
 			UpdateEntityLODStange(entity, position);
 		
 		_lock.Unlock();

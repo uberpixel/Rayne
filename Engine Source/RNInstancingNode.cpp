@@ -289,8 +289,6 @@ namespace RN
 	
 	void InstancingNode::Update(float delta)
 	{
-		return;
-		
 		SceneNode::Update(delta);
 		
 		Lock();
@@ -318,8 +316,6 @@ namespace RN
 	{
 		for(InstancingData *data : _rawData)
 		{
-			data->PivotMoved();
-			data->UpdateData();
 			data->Render(this, renderer);
 		}
 	}
