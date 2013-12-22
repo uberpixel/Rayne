@@ -39,7 +39,6 @@ namespace RN
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
-		RNAPI void Update(float delta) override;
 		
 	protected:
 		RNAPI void ChildDidUpdate(SceneNode *child, uint32 changeSet) override;
@@ -64,7 +63,6 @@ namespace RN
 		
 		size_t _limit;
 		Camera *_pivot;
-		bool _pivotMoved;
 		
 		MetaClassBase *_entityClass;
 	};

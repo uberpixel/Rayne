@@ -53,13 +53,15 @@ namespace RN
 		_dirty = true;
 	}
 	
-	void InstancingLODStage::UpdateData()
+	void InstancingLODStage::UpdateData(bool dynamic)
 	{
 		if(_dirty && !_indices.empty())
 		{
+			GLenum mode = dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW;
+			
 			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-			gl::BufferData(GL_TEXTURE_BUFFER, _indices.size() * sizeof(uint32), _indices.data(), GL_STATIC_DRAW);
+			gl::BufferData(GL_TEXTURE_BUFFER, _indices.size() * sizeof(uint32), _indices.data(), mode);
 			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 			
@@ -86,13 +88,13 @@ namespace RN
 	
 	
 	
-	InstancingData::InstancingData(Model *model)
+	InstancingData::InstancingData(Model *model) :
+		_capacity(0),
+		_count(0),
+		_limit(0)
 	{
 		_model = model->Retain();
 		_pivot = nullptr;
-		
-		_capacity = 0;
-		_count    = 0;
 		
 		size_t count = _model->GetLODStageCount();
 		
@@ -121,6 +123,7 @@ namespace RN
 		gl::DeleteBuffers(1, &_buffer);
 	}
 	
+	
 	void InstancingData::SetPivot(Camera *pivot)
 	{
 		_pivot = pivot; // Retained by the InstancingNode
@@ -129,11 +132,41 @@ namespace RN
 	void InstancingData::SetLimit(size_t limit)
 	{
 		Reserve(limit);
+		
+		_limit     = limit;
+		_needsSort = true;
 	}
+	
+	void InstancingData::PivotMoved()
+	{
+		_pivotMoved = true;
+		_needsSort  = true;
+	}
+	
 	
 	
 	void InstancingData::UpdateData()
 	{
+		if(_pivot)
+		{
+			if(_needsSort && _limit > 0)
+			{
+				SortEntities();
+				_needsSort = false;
+			}
+			
+			if(_pivotMoved)
+			{
+				Vector3 position = _pivot->GetWorldPosition();
+				size_t count = (_limit > 0) ? std::min(_sortedEntities.size(), _limit) : _sortedEntities.size();
+				
+				for(size_t i = 0; i < count; i ++)
+					UpdateEntityLODStage(_sortedEntities[i], position);
+				
+				_pivotMoved = false;
+			}
+		}
+		
 		if(_dirty)
 		{
 			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
@@ -146,7 +179,52 @@ namespace RN
 		}
 		
 		for(InstancingLODStage *stage : _stages)
-			stage->UpdateData();
+			stage->UpdateData((_pivot != nullptr));
+	}
+	
+	void InstancingData::SortEntities()
+	{
+		if(_sortedEntities.size() < _limit)
+			return;
+		
+		Vector3 position = _pivot->GetWorldPosition();
+		
+		std::sort(_sortedEntities.begin(), _sortedEntities.end(), [&](const Entity *left, const Entity *right) {
+			float dist1 = left->GetWorldPosition().Distance(position);
+			float dist2 = right->GetWorldPosition().Distance(position);
+			
+			return dist1 < dist2;
+		});
+		
+		// Resign clipped entities
+		for(size_t i = _limit; i < _sortedEntities.size(); i ++)
+		{
+			Entity *entity = _sortedEntities[i];
+			Number *stage  = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey));
+			
+			if(stage)
+			{
+				size_t tstage = stage->GetUint32Value();
+				size_t index  = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey))->GetUint32Value();
+				
+				_stages[tstage]->RemoveIndex(index);
+				
+				entity->RemoveAssociatedOject(kRNInstancingNodeAssociatedLODStageKey);
+			}
+		}
+		
+		// Assign missing indices
+		for(size_t i = 0; i < _limit; i ++)
+		{
+			Entity *entity = _sortedEntities[i];
+			Number *stage  = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey));
+			
+			if(!stage)
+			{
+				size_t index  = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey))->GetUint32Value();
+				InsertEntityIntoLODStage(entity, index);
+			}
+		}
 	}
 	
 	
@@ -188,44 +266,39 @@ namespace RN
 	
 	
 	
+	void InstancingData::InsertEntityAtIndex(Entity *entity, size_t index)
+	{
+		_count ++;
+		
+		Number *indexNum = new Number(static_cast<uint32>(index));
+		entity->SetAssociatedObject(kRNInstancingNodeAssociatedIndexKey, indexNum, Object::MemoryPolicy::Retain);
+		indexNum->Release();
+		
+		_matrices[((index * 2) + 0)] = entity->GetWorldTransform();
+		_matrices[((index * 2) + 1)] = entity->GetWorldTransform().GetInverse();
+		
+		if(_count < _limit || _limit == 0)
+			InsertEntityIntoLODStage(entity, index);
+	}
+	
 	void InstancingData::InsertEntity(Entity *entity)
 	{
 		_lock.Lock();
 		
 		if(_entities.find(entity) == _entities.end())
 		{
+			_needsSort = true;
+			
 			_entities.insert(entity);
 			_sortedEntities.push_back(entity);
 			
 			if(_count >= _capacity)
 				Reserve(_capacity * 1.5f);
-		
 			
-			size_t stage = 0;
 			size_t index = _freeList.back();
-				
 			_freeList.pop_back();
-			_count ++;
 			
-			if(_pivot)
-			{
-				float distance = entity->GetWorldPosition().Distance(_pivot->GetWorldPosition());
-				stage = _model->GetLODStageForDistance(distance / _pivot->clipfar);
-			}
-			
-			_stages[stage]->AddIndex(index);
-			
-			Number *indexNum = new Number(static_cast<uint32>(index));
-			Number *stageNum = new Number(static_cast<uint32>(stage));
-			
-			entity->SetAssociatedObject(kRNInstancingNodeAssociatedIndexKey, indexNum, Object::MemoryPolicy::Retain);
-			entity->SetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey, stageNum, Object::MemoryPolicy::Retain);
-		
-			indexNum->Release();
-			stageNum->Release();
-			
-			_matrices[((index * 2) + 0)] = entity->GetWorldTransform();
-			_matrices[((index * 2) + 1)] = entity->GetWorldTransform().GetInverse();
+			InsertEntityAtIndex(entity, index);
 		}
 		
 		_lock.Unlock();
@@ -253,40 +326,48 @@ namespace RN
 		_sortedEntities.erase(std::find(_sortedEntities.begin(), _sortedEntities.end(), entity));
 		
 		_freeList.push_back(index);
+		_count --;
 		
 		_lock.Unlock();
 	}
+	
+	
 	
 	void InstancingData::UpdateEntity(Entity *entity)
 	{
 		_lock.Lock();
 		
-		size_t index = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey))->GetUint32Value();
+		Number *indexNum = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey));
+		size_t index = indexNum->GetUint32Value();
 		
 		_matrices[((index * 2) + 0)] = entity->GetWorldTransform();
 		_matrices[((index * 2) + 1)] = entity->GetWorldTransform().GetInverse();
 		
 		if(_pivot)
-			UpdateEntityLODStange(entity, _pivot->GetWorldPosition());
+			UpdateEntityLODStage(entity, _pivot->GetWorldPosition());
 		
 		_lock.Unlock();
 	}
 	
 	
-	
-	void InstancingData::PivotMoved()
+	void InstancingData::InsertEntityIntoLODStage(Entity *entity, size_t index)
 	{
-		_lock.Lock();
+		size_t stage = 0;
 		
-		Vector3 position = _pivot->GetWorldPosition();
-			
-		for(auto entity : _sortedEntities)
-			UpdateEntityLODStange(entity, position);
+		if(_pivot)
+		{
+			float distance = entity->GetWorldPosition().Distance(_pivot->GetWorldPosition());
+			stage = _model->GetLODStageForDistance(distance / _pivot->clipfar);
+		}
 		
-		_lock.Unlock();
+		_stages[stage]->AddIndex(index);
+		
+		Number *stageNum = new Number(static_cast<uint32>(stage));
+		entity->SetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey, stageNum, Object::MemoryPolicy::Retain);
+		stageNum->Release();
 	}
 	
-	void InstancingData::UpdateEntityLODStange(Entity *entity, const Vector3 &position)
+	void InstancingData::UpdateEntityLODStage(Entity *entity, const Vector3 &position)
 	{
 		float distance = entity->GetWorldPosition().Distance(position);
 		

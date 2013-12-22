@@ -26,7 +26,7 @@ namespace RN
 		void RemoveIndex(size_t index);
 		void AddIndex(size_t index);
 		
-		void UpdateData();
+		void UpdateData(bool dynamic);
 		void Render(RenderingObject &object, Renderer *renderer);
 		
 		bool IsEmpty() const { return _indices.empty(); }
@@ -64,7 +64,10 @@ namespace RN
 		Model *GetModel() const { return _model; }
 		
 	private:
-		void UpdateEntityLODStange(Entity *entity, const Vector3 &position);
+		void InsertEntityIntoLODStage(Entity *entity, size_t index);
+		void UpdateEntityLODStage(Entity *entity, const Vector3 &position);
+		
+		void InsertEntityAtIndex(Entity *entity, size_t index);
 		void SortEntities();
 		
 		Model *_model;
@@ -75,9 +78,12 @@ namespace RN
 		
 		size_t _capacity;
 		size_t _count;
+		size_t _limit;
 		
-		SpinLock _lock;
+		SpinLock _lock;		
 		bool _dirty;
+		bool _needsSort;
+		bool _pivotMoved;
 		
 		std::vector<size_t> _freeList;
 		std::vector<Matrix> _matrices;

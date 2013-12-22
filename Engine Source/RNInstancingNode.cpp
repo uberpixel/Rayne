@@ -154,7 +154,6 @@ namespace RN
 		{
 			_pivot = pivot->Retain();
 			_pivot->AddObserver("position", std::bind(&InstancingNode::PivotDidMove, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3), this);
-			_pivotMoved = true;
 			
 			AddDependency(_pivot);
 		}
@@ -231,7 +230,8 @@ namespace RN
 	
 	void InstancingNode::PivotDidMove(Object *object, const std::string &key, Dictionary *changes)
 	{
-		_pivotMoved = true;
+		for(InstancingData *data : _rawData)
+			data->PivotMoved();
 	}
 	
 	
@@ -293,27 +293,6 @@ namespace RN
 		}
 	}
 	
-	
-	void InstancingNode::Update(float delta)
-	{
-		SceneNode::Update(delta);
-		
-		Lock();
-		
-		if(_pivot && _pivotMoved)
-		{
-			for(InstancingData *data : _rawData)
-				data->PivotMoved();
-			
-			_pivotMoved = false;
-		}
-		
-		for(InstancingData *data : _rawData)
-			data->UpdateData();
-		
-		Unlock();
-	}
-	
 	bool InstancingNode::IsVisibleInCamera(Camera *camera)
 	{
 		return true;
@@ -323,6 +302,7 @@ namespace RN
 	{
 		for(InstancingData *data : _rawData)
 		{
+			data->UpdateData();
 			data->Render(this, renderer);
 		}
 	}
