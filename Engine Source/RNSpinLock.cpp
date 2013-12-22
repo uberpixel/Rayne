@@ -14,18 +14,17 @@ namespace RN
 {
 	void RecursiveSpinLock::Lock()
 	{
-		Thread *thread = Thread::GetCurrentThread();
+		auto thread = std::this_thread::get_id();
 		
 		do {
 			while(_flag.test_and_set(std::memory_order_acquire))
 			{}
 			
-			Thread *owner = _owner.load();
-			
-			if(!owner || owner == thread)
+			auto locks = _locks.load();
+			if(locks == 0 || _owner == thread)
 			{
-				_owner.store(thread);
 				_locks ++;
+				_owner = thread;
 				
 				_flag.clear(std::memory_order_release);
 				break;
@@ -37,23 +36,21 @@ namespace RN
 	
 	void RecursiveSpinLock::Unlock()
 	{
-		if((-- _locks) == 0)
-			_owner.store(nullptr);
+		_locks --;
 	}
 	
 	bool RecursiveSpinLock::TryLock()
 	{
-		Thread *thread = Thread::GetCurrentThread();
+		auto thread = std::this_thread::get_id();
 		
 		if(_flag.test_and_set(std::memory_order_acquire))
 			return false;
 		
-		Thread *owner = _owner.load();
-		
-		if(!owner || owner == thread)
+		auto locks = _locks.load();
+		if(locks == 0 || _owner == thread)
 		{
-			_owner.store(thread);
 			_locks ++;
+			_owner = thread;
 			
 			_flag.clear(std::memory_order_release);
 			return true;
