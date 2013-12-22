@@ -30,6 +30,7 @@ namespace TG
 		void CreateCameras();
 		void PPActivateBloom(RN::Camera *cam);
 		void PPActivateSSAO(RN::Camera *cam);
+		void PPActivateFXAA(RN::Camera *cam);
 		
 		void CreateSponza();
 		void CreateForest();

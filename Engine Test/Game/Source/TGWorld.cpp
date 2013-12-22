@@ -16,8 +16,8 @@
 #define TGWorldFeatureSSAO          0
 #define TGWorldFeatureWater			0
 
-#define TGForestFeatureTrees 500
-#define TGForestFeatureGras  50000
+#define TGForestFeatureTrees 300
+#define TGForestFeatureGras  10000
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 30.0f
@@ -197,6 +197,8 @@ namespace TG
 	#if TGWorldFeatureBloom
 		PPActivateBloom(_camera);
 	#endif
+		
+		//PPActivateFXAA(_camera);
 #endif
 	}
 	
@@ -320,6 +322,26 @@ namespace TG
 		bloom->AddStage(bloomBlurXhigh, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomBlurYhigh, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(bloomCombine, RN::RenderStage::Mode::ReUsePipeline);
+	}
+	
+	void World::PPActivateFXAA(RN::Camera *cam)
+	{
+		RN::Shader *tonemappingShader = RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap");
+		RN::Shader *fxaaShader = RN::Shader::WithFile("shader/rn_FXAA");
+		
+		// FXAA
+		RN::Material *tonemappingMaterial = new RN::Material(tonemappingShader);
+		RN::Material *fxaaMaterial = new RN::Material(fxaaShader);
+		
+		RN::Camera *tonemappingCam = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		tonemappingCam->SetMaterial(tonemappingMaterial);
+		
+		RN::Camera *fxaaCam = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGBA32F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		fxaaCam->SetMaterial(fxaaMaterial);
+		
+		RN::PostProcessingPipeline *fxaa = cam->AddPostProcessingPipeline("FXAA");
+		fxaa->AddStage(tonemappingCam, RN::RenderStage::Mode::ReUsePipeline);
+		fxaa->AddStage(fxaaCam, RN::RenderStage::Mode::ReUsePipeline);
 	}
 	
 	void World::CreateSponza()
