@@ -49,9 +49,10 @@ namespace RN
 		InstancingData(Model *model);
 		~InstancingData();
 		
-		void Reserve(size_t count);
+		void Reserve(size_t capacity);
 		void PivotMoved();
 		void SetPivot(Camera *pivot);
+		void SetLimit(size_t limit);
 		
 		void UpdateData();
 		void Render(SceneNode *node, Renderer *renderer);
@@ -72,8 +73,8 @@ namespace RN
 		GLuint _texture;
 		GLuint _buffer;
 		
+		size_t _capacity;
 		size_t _count;
-		size_t _used;
 		
 		SpinLock _lock;
 		bool _dirty;

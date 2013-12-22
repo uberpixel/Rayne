@@ -91,8 +91,8 @@ namespace RN
 		_model = model->Retain();
 		_pivot = nullptr;
 		
-		_count = 0;
-		_used  = 0;
+		_capacity = 0;
+		_count    = 0;
 		
 		size_t count = _model->GetLODStageCount();
 		
@@ -125,6 +125,12 @@ namespace RN
 	{
 		_pivot = pivot; // Retained by the InstancingNode
 	}
+	
+	void InstancingData::SetLimit(size_t limit)
+	{
+		Reserve(limit);
+	}
+	
 	
 	void InstancingData::UpdateData()
 	{
@@ -163,21 +169,21 @@ namespace RN
 	}
 		
 	
-	void InstancingData::Reserve(size_t count)
+	void InstancingData::Reserve(size_t capacity)
 	{
-		if(_count >= count)
+		if(_capacity >= capacity)
 			return;
 		
-		_matrices.resize(count * 2);
-		_freeList.reserve(_freeList.size() + (count - _count));
+		_matrices.resize(capacity * 2);
+		_freeList.reserve(_freeList.size() + (capacity - _capacity));
 		
-		for(size_t i = 0; i < (count - _count); i ++)
+		for(size_t i = 0; i < (capacity - _capacity); i ++)
 		{
-			_freeList.push_back(_count + i);
+			_freeList.push_back(_capacity + i);
 		}
 		
-		_count = count;
-		_dirty = true;
+		_capacity = capacity;
+		_dirty    = true;
 	}
 	
 	
@@ -191,15 +197,15 @@ namespace RN
 			_entities.insert(entity);
 			_sortedEntities.push_back(entity);
 			
-			if(_used >= _count)
-				Reserve(_count * 1.5f);
+			if(_count >= _capacity)
+				Reserve(_capacity * 1.5f);
 		
 			
 			size_t stage = 0;
 			size_t index = _freeList.back();
 				
 			_freeList.pop_back();
-			_used ++;
+			_count ++;
 			
 			if(_pivot)
 			{
