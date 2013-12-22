@@ -127,6 +127,8 @@ namespace RN
 			if(iterator == _data.end())
 			{
 				InstancingData *data = new InstancingData(model);
+				data->SetPivot(_pivot);
+				data->SetLimit(_limit);
 				
 				_data.insert(decltype(_data)::value_type(model, data));
 				_rawData.push_back(data);
@@ -170,6 +172,11 @@ namespace RN
 		Lock();
 
 		_limit = limit;
+		
+		for(InstancingData *data : _rawData)
+		{
+			data->SetLimit(_limit);
+		}
 		
 		Unlock();
 	}
