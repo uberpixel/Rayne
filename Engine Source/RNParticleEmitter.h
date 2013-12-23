@@ -23,8 +23,8 @@ namespace RN
 	class ParticleMaterial : public Material
 	{
 	public:
-		ParticleMaterial();
-		~ParticleMaterial() override;
+		RNAPI ParticleMaterial();
+		RNAPI ~ParticleMaterial() override;
 		
 		Vector3 minVelocity;
 		Vector3 maxVelocity;
@@ -38,28 +38,28 @@ namespace RN
 	class ParticleEmitter : public SceneNode
 	{
 	public:
-		ParticleEmitter();
-		~ParticleEmitter() override;
+		RNAPI ParticleEmitter();
+		RNAPI ~ParticleEmitter() override;
 		
-		void Cook(float time, int steps);
-		void SetMaterial(ParticleMaterial *material);
-		void SetGenerator(RandomNumberGenerator *generator);
+		RNAPI void Cook(float time, int steps);
+		RNAPI void SetMaterial(ParticleMaterial *material);
+		RNAPI void SetGenerator(RandomNumberGenerator *generator);
 		
-		void SetSpawnRate(float spawnRate);
-		void SetParticlesPerSecond(size_t particles);
-		void SetMaxParticles(size_t maxParticles);
+		RNAPI void SetSpawnRate(float spawnRate);
+		RNAPI void SetParticlesPerSecond(size_t particles);
+		RNAPI void SetMaxParticles(size_t maxParticles);
 		
-		RandomNumberGenerator *GetGenerator() { return _rng; }
+		RNAPI RandomNumberGenerator *GetGenerator() { return _rng; }
 		
-		void SpawnParticles(size_t particles);
-		Particle *SpawnParticle();
+		RNAPI void SpawnParticles(size_t particles);
+		RNAPI Particle *SpawnParticle();
 		
-		void Update(float delta) override;
-		bool IsVisibleInCamera(Camera *camera) override;
-		void Render(Renderer *renderer, Camera *camera) override;
+		RNAPI void Update(float delta) override;
+		RNAPI bool IsVisibleInCamera(Camera *camera) override;
+		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		
 	protected:
-		virtual Particle *CreateParticle();
+		RNAPI virtual Particle *CreateParticle();
 		RandomNumberGenerator *_rng;
 		
 	private:

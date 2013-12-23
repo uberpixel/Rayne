@@ -27,16 +27,16 @@ namespace RN
 	class LightManager
 	{
 	public:		
-		LightManager();
-		~LightManager();
+		RNAPI LightManager();
+		RNAPI ~LightManager();
 		
-		void Bind(Renderer *renderer, Camera *camera, ShaderProgram *program);
-		void AdjustProgramTypes(uint32 &types);
+		RNAPI void Bind(Renderer *renderer, Camera *camera, ShaderProgram *program);
+		RNAPI void AdjustProgramTypes(uint32 &types);
 		
-		void AddLight(Light *light);
+		RNAPI void AddLight(Light *light);
 		
-		size_t CreatePointSpotLightLists(Camera *camera);
-		size_t CreateDirectionalLightList(Camera *camera);
+		RNAPI size_t CreatePointSpotLightLists(Camera *camera);
+		RNAPI size_t CreateDirectionalLightList(Camera *camera);
 		
 	private:
 		void CullLights(Camera *camera);

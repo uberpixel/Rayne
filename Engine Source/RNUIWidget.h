@@ -48,36 +48,36 @@ namespace RN
 				Maximize
 			};
 			
-			Widget(Style style);
-			Widget(Style style, const Rect& frame);
-			~Widget() override;
+			RNAPI Widget(Style style);
+			RNAPI Widget(Style style, const Rect& frame);
+			RNAPI ~Widget() override;
 			
-			void SetContentView(View *view);
-			void SetMinimumSize(const Vector2& size);
-			void SetMaximumSize(const Vector2& size);
-			void SetHasShadow(bool hasShadow);
-			void SetFrame(const Rect& frame);
-			void SetContentSize(const Vector2& size);
-			void SetTitle(String *title);
-			void SetTransform(const Matrix& transform);
+			RNAPI void SetContentView(View *view);
+			RNAPI void SetMinimumSize(const Vector2& size);
+			RNAPI void SetMaximumSize(const Vector2& size);
+			RNAPI void SetHasShadow(bool hasShadow);
+			RNAPI void SetFrame(const Rect& frame);
+			RNAPI void SetContentSize(const Vector2& size);
+			RNAPI void SetTitle(String *title);
+			RNAPI void SetTransform(const Matrix& transform);
 			
-			const Rect& GetFrame() const { return _frame; }
-			Vector2 GetContentSize() const;
+			RNAPI const Rect& GetFrame() const { return _frame; }
+			RNAPI Vector2 GetContentSize() const;
 			
-			View *GetContentView() const { return _contentView; }
+			RNAPI View *GetContentView() const { return _contentView; }
 			
-			void SetNeedsLayoutUpdate();
+			RNAPI void SetNeedsLayoutUpdate();
 			
-			bool MakeFirstResponder(Responder *responder);
-			Responder *GetFirstResponder() const { return _firstResponder; }
+			RNAPI bool MakeFirstResponder(Responder *responder);
+			RNAPI Responder *GetFirstResponder() const { return _firstResponder; }
 			
-			void Show();
-			void Close();
+			RNAPI void Show();
+			RNAPI void Close();
 			
-			void OrderFront();
+			RNAPI void OrderFront();
 			
 		protected:
-			virtual void Update();
+			RNAPI virtual void Update();
 			
 		private:
 			void Initialize(Style style);

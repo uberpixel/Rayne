@@ -23,31 +23,31 @@ namespace RN
 		class Label : public View
 		{
 		public:
-			Label();
-			~Label();
+			RNAPI Label();
+			RNAPI ~Label();
 			
-			void SetText(String *text);
-			void SetAttributedText(AttributedString *text);
-			void SetTextColor(const RN::Color& color);
-			void SetTextColor(Color *color);
-			void SetFont(Font *font);
-			void SetAlignment(TextAlignment alignment);
-			void SetLineBreak(LineBreakMode mode);
-			void SetNumberOfLines(uint32 lines);
-			void SetFrame(const Rect& frame) override;
+			RNAPI void SetText(String *text);
+			RNAPI void SetAttributedText(AttributedString *text);
+			RNAPI void SetTextColor(const RN::Color& color);
+			RNAPI void SetTextColor(Color *color);
+			RNAPI void SetFont(Font *font);
+			RNAPI void SetAlignment(TextAlignment alignment);
+			RNAPI void SetLineBreak(LineBreakMode mode);
+			RNAPI void SetNumberOfLines(uint32 lines);
+			RNAPI void SetFrame(const Rect& frame) override;
 			
-			String *GetText() const { return _string->GetString(); }
-			Color *GetTextColor() const { return _color; }
-			Font *GetFont() const { return _font; }
-			TextAlignment GetAlignment() const { return _alignment; }
-			LineBreakMode GetLineBreak() const { return _lineBreak; }
-			uint32 GetNumberOfLines() const { return _lines; }
+			RNAPI String *GetText() const { return _string->GetString(); }
+			RNAPI Color *GetTextColor() const { return _color; }
+			RNAPI Font *GetFont() const { return _font; }
+			RNAPI TextAlignment GetAlignment() const { return _alignment; }
+			RNAPI LineBreakMode GetLineBreak() const { return _lineBreak; }
+			RNAPI uint32 GetNumberOfLines() const { return _lines; }
 			
-			Vector2 GetSizeThatFits() override;
+			RNAPI Vector2 GetSizeThatFits() override;
 			
 		protected:
-			void Update() override;
-			void Draw(Renderer *renderer) override;
+			RNAPI void Update() override;
+			RNAPI void Draw(Renderer *renderer) override;
 			
 		private:
 			void Initialize();

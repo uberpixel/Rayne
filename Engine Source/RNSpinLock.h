@@ -16,9 +16,16 @@ namespace RN
 	class SpinLock
 	{
 	public:
+#if _MSC_VER <= 1800
+		SpinLock()
+		{
+			_flag.clear();
+		}
+#else
 		SpinLock() :
 			_flag(ATOMIC_FLAG_INIT)
 		{}
+#endif
 		
 		void Lock()
 		{
@@ -44,17 +51,26 @@ namespace RN
 	class RecursiveSpinLock
 	{
 	public:
+#if _MSC_VER <= 1800
+		RecursiveSpinLock() :
+			_locks(0)
+		{
+			_flag.clear();
+			assert(_locks.is_lock_free()); // We can't pull RN_ASSERT() in here
+		}
+#else
 		RecursiveSpinLock() :
 			_flag(ATOMIC_FLAG_INIT),
 			_locks(0)
 		{
 			assert(_locks.is_lock_free()); // We can't pull RN_ASSERT() in here
 		}
+#endif
 		
 		
-		void Lock();
-		void Unlock();
-		bool TryLock();
+		RNAPI void Lock();
+		RNAPI void Unlock();
+		RNAPI bool TryLock();
 		
 	private:
 		std::atomic_flag _flag;

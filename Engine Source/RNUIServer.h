@@ -41,26 +41,26 @@ namespace RN
 				MultiTracking
 			};
 			
-			Server();
-			~Server() override;
+			RNAPI Server();
+			RNAPI ~Server() override;
 			
-			void SetDrawDebugFrames(bool drawDebugFrames);
-			void SetMainMenu(Menu *menu);
+			RNAPI void SetDrawDebugFrames(bool drawDebugFrames);
+			RNAPI void SetMainMenu(Menu *menu);
 			
-			uint32 GetHeight() const { return _frame.height; }
-			uint32 GetWidth() const { return _frame.width; }
+			RNAPI uint32 GetHeight() const { return _frame.height; }
+			RNAPI uint32 GetWidth() const { return _frame.width; }
 			
-			bool GetDrawDebugFrames() const { return _drawDebugFrames; }
+			RNAPI bool GetDrawDebugFrames() const { return _drawDebugFrames; }
 			
-			Camera *GetCamera() const { return _camera; }
-			Widget *GetMainWidget() const { return _mainWidget; }
+			RNAPI Camera *GetCamera() const { return _camera; }
+			RNAPI Widget *GetMainWidget() const { return _mainWidget; }
 			
 #if RN_PLATFORM_MAC_OS
 			void PerformMenuBarAction(void *item);
 #endif
 			
 		protected:
-			void Render(Renderer *renderer);
+			RNAPI void Render(Renderer *renderer);
 			
 		private:
 			void AddWidget(Widget *widget);

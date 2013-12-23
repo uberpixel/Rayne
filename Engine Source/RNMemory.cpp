@@ -6,7 +6,12 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#define RN_TARGET_HAS_GPERFTOOLS 0
+
+#if RN_TARGET_HAS_GPERFTOOLS
 #include <tcmalloc.h>
+#endif
+
 #include "RNMemory.h"
 #include "RNBase.h"
 #include "RNSIMD.h"
@@ -25,14 +30,22 @@ namespace RN
 	{
 		void *AllocateAligned(size_t size, size_t alignment)
 		{
+#if RN_TARGET_HAS_GPERFTOOLS
 			void *ptr;
 			int result = tc_posix_memalign(&ptr, alignment, size);
 			
 			return (result == 0) ? ptr : 0;
+#else
+			return _aligned_malloc(size, alignment);
+#endif
 		}
 		void FreeAligned(void *ptr)
 		{
+#if RN_TARGET_HAS_GPERFTOOLS
 			tc_free(ptr);
+#else
+			_aligned_free(ptr);
+#endif
 		}
 		
 		
@@ -41,7 +54,11 @@ namespace RN
 #if RN_SIMD
 			return AllocateAligned(size, RN_SIMD_ALIGNMENT);
 #else
+	#if RN_TARGET_HAS_GPERFTOOLS
 			return tc_malloc(size);
+	#else
+			return malloc(size);
+	#endif
 #endif
 		}
 		void FreeSIMD(void *ptr)
@@ -49,44 +66,80 @@ namespace RN
 #if RN_SIMD
 			FreeAligned(ptr);
 #else
+	#if RN_TARGET_HAS_GPERFTOOLS
 			tc_free(ptr);
+	#else
+			free(ptr);
+	#endif
 #endif
 		}
 		
 		
 		void *Allocate(size_t size)
 		{
+#if RN_TARGET_HAS_GPERFTOOLS
 			return tc_new(size);
+#else
+			return malloc(size);
+#endif
 		}
 		void *AllocateArray(size_t size)
 		{
+#if RN_TARGET_HAS_GPERFTOOLS
 			return tc_newarray(size);
+#else
+			return malloc(size);
+#endif
 		}
-		void *Allocate(size_t size, const std::nothrow_t& n) noexcept
+		void *Allocate(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
 		{
+#if RN_TARGET_HAS_GPERFTOOLS
 			return tc_new_nothrow(size, n);
+#else
+			return malloc(size);
+#endif
 		}
-		void *AllocateArray(size_t size, const std::nothrow_t& n) noexcept
+		void *AllocateArray(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
 		{
+#if RN_TARGET_HAS_GPERFTOOLS
 			return tc_newarray_nothrow(size, n);
+#else
+			return malloc(size);
+#endif
 		}
 		
 		
-		void Free(void *ptr) noexcept
+		void Free(void *ptr) RN_NOEXCEPT
 		{
+#if RN_TARGET_HAS_GPERFTOOLS
 			tc_delete(ptr);
+#else
+			free(ptr);
+#endif
 		}
-		void FreeArray(void *ptr) noexcept
+		void FreeArray(void *ptr) RN_NOEXCEPT
 		{
+#if RN_TARGET_HAS_GPERFTOOLS
 			tc_deletearray(ptr);
+#else
+			free(ptr);
+#endif
 		}
-		void Free(void *ptr, const std::nothrow_t& n) noexcept
+		void Free(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
 		{
+#if RN_TARGET_HAS_GPERFTOOLS
 			tc_delete_nothrow(ptr, n);
+#else
+			free(ptr);
+#endif
 		}
-		void FreeArray(void *ptr, const std::nothrow_t& n) noexcept
+		void FreeArray(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
 		{
+#if RN_TARGET_HAS_GPERFTOOLS
 			tc_deletearray_nothrow(ptr, n);
+#else
+			free(ptr);
+#endif
 		}
 		
 		
@@ -109,7 +162,7 @@ namespace RN
 				return AllocateFromBucket(size);
 			}
 			
-			void *Allocate(size_t size, const std::nothrow_t& n) noexcept
+			void *Allocate(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
 			{
 				return AllocateFromBucket(size);
 			}
@@ -243,7 +296,7 @@ namespace RN
 			return _allocator->Allocate(size);
 		}
 		
-		void *Pool::Allocate(size_t size, const std::nothrow_t& n) noexcept
+		void *Pool::Allocate(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
 		{
 			return _allocator->Allocate(size, n);
 		}
@@ -263,29 +316,29 @@ void *operator new[](size_t size)
 {
 	return RN::Memory::AllocateArray(size);
 }
-void *operator new(size_t size, const std::nothrow_t& n) noexcept
+void *operator new(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
 {
 	return RN::Memory::Allocate(size, n);
 }
-void *operator new[](size_t size, const std::nothrow_t& n) noexcept
+void *operator new[](size_t size, const std::nothrow_t& n) RN_NOEXCEPT
 {
 	return RN::Memory::AllocateArray(size, n);
 }
 
 
-void operator delete(void *ptr) noexcept
+void operator delete(void *ptr) RN_NOEXCEPT
 {
 	return RN::Memory::Free(ptr);
 }
-void operator delete[](void *ptr) noexcept
+void operator delete[](void *ptr) RN_NOEXCEPT
 {
 	return RN::Memory::FreeArray(ptr);
 }
-void operator delete(void *ptr, const std::nothrow_t& n) noexcept
+void operator delete(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
 {
 	return RN::Memory::Free(ptr, n);
 }
-void operator delete[](void *ptr, const std::nothrow_t& n) noexcept
+void operator delete[](void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
 {
 	return RN::Memory::FreeArray(ptr, n);
 }

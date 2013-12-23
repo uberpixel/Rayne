@@ -19,9 +19,9 @@ namespace RN
 	class Formatter : public Object
 	{
 	public:
-		virtual String *GetStringForObject(Object *object) = 0;
-		virtual Object *GetObjectForString(String *string) = 0;
-		virtual AttributedString *GetAttributedStringForObject(Object *object, Dictionary *defaultAttributes);
+		RNAPI virtual String *GetStringForObject(Object *object) = 0;
+		RNAPI virtual Object *GetObjectForString(String *string) = 0;
+		RNAPI virtual AttributedString *GetAttributedStringForObject(Object *object, Dictionary *defaultAttributes);
 		
 		RNDefineMeta(Formatter, Object)
 	};
@@ -29,8 +29,8 @@ namespace RN
 	class NumberFormatter : public Formatter
 	{
 	public:
-		String *GetStringForObject(Object *object) override;
-		Object *GetObjectForString(String *string) override;
+		RNAPI String *GetStringForObject(Object *object) override;
+		RNAPI Object *GetObjectForString(String *string) override;
 	};
 }
 

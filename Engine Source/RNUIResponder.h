@@ -20,24 +20,24 @@ namespace RN
 		class Responder : public Object
 		{
 		public:
-			virtual Responder *GetNextResponder() const;
+			RNAPI virtual Responder *GetNextResponder() const;
 			
-			virtual bool CanBecomeFirstResponder();
-			virtual bool CanResignFirstReponder();
+			RNAPI virtual bool CanBecomeFirstResponder();
+			RNAPI virtual bool CanResignFirstReponder();
 			
-			virtual void BecomeFirstResponder();
-			virtual void ResignFirstResponder();
+			RNAPI virtual void BecomeFirstResponder();
+			RNAPI virtual void ResignFirstResponder();
 			
-			virtual void MouseDown(Event *event);
-			virtual void MouseUp(Event *event);
-			virtual void MouseMoved(Event *event);
-			virtual void MouseDragged(Event *event);
+			RNAPI virtual void MouseDown(Event *event);
+			RNAPI virtual void MouseUp(Event *event);
+			RNAPI virtual void MouseMoved(Event *event);
+			RNAPI virtual void MouseDragged(Event *event);
 			
-			virtual void KeyDown(Event *event);
-			virtual void KeyUp(Event *event);
-			virtual void KeyRepeat(Event *event);
+			RNAPI virtual void KeyDown(Event *event);
+			RNAPI virtual void KeyUp(Event *event);
+			RNAPI virtual void KeyRepeat(Event *event);
 			
-			virtual void ScrollWheel(Event *event);
+			RNAPI virtual void ScrollWheel(Event *event);
 			
 		protected:
 			Responder();

@@ -20,14 +20,14 @@ namespace RN
 	class InstancingLODStage
 	{
 	public:
-		InstancingLODStage(Model *model, size_t stage);
-		~InstancingLODStage();
+		RNAPI InstancingLODStage(Model *model, size_t stage);
+		RNAPI ~InstancingLODStage();
 		
-		void RemoveIndex(size_t index);
-		void AddIndex(size_t index);
+		RNAPI void RemoveIndex(size_t index);
+		RNAPI void AddIndex(size_t index);
 		
-		void UpdateData(bool dynamic);
-		void Render(RenderingObject &object, Renderer *renderer);
+		RNAPI void UpdateData(bool dynamic);
+		RNAPI void Render(RenderingObject &object, Renderer *renderer);
 		
 		bool IsEmpty() const { return _indices.empty(); }
 		
@@ -46,20 +46,20 @@ namespace RN
 	class InstancingData
 	{
 	public:
-		InstancingData(Model *model);
-		~InstancingData();
+		RNAPI InstancingData(Model *model);
+		RNAPI ~InstancingData();
 		
-		void Reserve(size_t capacity);
-		void PivotMoved();
-		void SetPivot(Camera *pivot);
-		void SetLimit(size_t limit);
+		RNAPI void Reserve(size_t capacity);
+		RNAPI void PivotMoved();
+		RNAPI void SetPivot(Camera *pivot);
+		RNAPI void SetLimit(size_t limit);
 		
-		void UpdateData();
-		void Render(SceneNode *node, Renderer *renderer);
+		RNAPI void UpdateData();
+		RNAPI void Render(SceneNode *node, Renderer *renderer);
 		
-		void InsertEntity(Entity *entity);
-		void RemoveEntity(Entity *entity);
-		void UpdateEntity(Entity *entity);
+		RNAPI void InsertEntity(Entity *entity);
+		RNAPI void RemoveEntity(Entity *entity);
+		RNAPI void UpdateEntity(Entity *entity);
 		
 		Model *GetModel() const { return _model; }
 		

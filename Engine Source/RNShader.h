@@ -136,7 +136,7 @@ namespace RN
 		RNAPI Shader(const std::string& shader);
 		RNAPI virtual ~Shader();
 		
-		static Shader *WithFile(const std::string& shader);
+		RNAPI static Shader *WithFile(const std::string& shader);
 		
 		RNAPI void Define(const std::string& define);
 		RNAPI void Define(const std::string& define, const std::string& value);

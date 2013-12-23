@@ -20,12 +20,12 @@ namespace RN
 		class LoggingEngine : public Object
 		{
 		public:
-			virtual void Open() = 0;
-			virtual void Close() = 0;
-			virtual bool IsOpen() const = 0;
+			RNAPI virtual void Open() = 0;
+			RNAPI virtual void Close() = 0;
+			RNAPI virtual bool IsOpen() const = 0;
 			
-			virtual void CutOff() = 0;
-			virtual void Write(const Message& message) = 0;
+			RNAPI virtual void CutOff() = 0;
+			RNAPI virtual void Write(const Message& message) = 0;
 			
 			RNDefineMeta(LoggingEngine, Object)
 		};
@@ -34,14 +34,14 @@ namespace RN
 		class StdoutLoggingEngine : public LoggingEngine, public Singleton<StdoutLoggingEngine>
 		{
 		public:
-			StdoutLoggingEngine();
+			RNAPI StdoutLoggingEngine();
 			
-			virtual void Open() final;
-			virtual void Close() final;
-			virtual bool IsOpen() const final;
+			RNAPI virtual void Open() final;
+			RNAPI virtual void Close() final;
+			RNAPI virtual bool IsOpen() const final;
 			
-			virtual void CutOff() final;
-			virtual void Write(const Message& message) final;
+			RNAPI virtual void CutOff() final;
+			RNAPI virtual void Write(const Message& message) final;
 			
 		private:
 			PIMPL<StreamLoggingInternal> _internal;
@@ -52,14 +52,14 @@ namespace RN
 		class SimpleLoggingEngine : public LoggingEngine, public Singleton<SimpleLoggingEngine>
 		{
 		public:
-			SimpleLoggingEngine();
+			RNAPI SimpleLoggingEngine();
 			
-			virtual void Open() final;
-			virtual void Close() final;
-			virtual bool IsOpen() const final;
+			RNAPI virtual void Open() final;
+			RNAPI virtual void Close() final;
+			RNAPI virtual bool IsOpen() const final;
 			
-			virtual void CutOff() final;
-			virtual void Write(const Message& message) final;
+			RNAPI virtual void CutOff() final;
+			RNAPI virtual void Write(const Message& message) final;
 			
 		private:
 			std::fstream _stream;
@@ -71,12 +71,12 @@ namespace RN
 		class HTMLLoggingEngine : public LoggingEngine, public Singleton<HTMLLoggingEngine>
 		{
 		public:
-			virtual void Open() final;
-			virtual void Close() final;
-			virtual bool IsOpen() const final;
+			RNAPI virtual void Open() final;
+			RNAPI virtual void Close() final;
+			RNAPI virtual bool IsOpen() const final;
 			
-			virtual void CutOff() final;
-			virtual void Write(const Message& message) final;
+			RNAPI virtual void CutOff() final;
+			RNAPI virtual void Write(const Message& message) final;
 			
 		private:
 			void WriteCSSBoilerplate();

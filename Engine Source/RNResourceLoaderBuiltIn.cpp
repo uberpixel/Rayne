@@ -257,7 +257,7 @@ namespace RN
 		for(uint8 i = 0; i < materialCount; i ++)
 		{
 			Material *material = new Material(shader);
-			__unused uint8 materialid = file->ReadUint8();
+			file->ReadUint8();
 			
 			uint8 uvCount = file->ReadUint8();
 			

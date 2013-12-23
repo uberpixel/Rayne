@@ -26,8 +26,8 @@ namespace RN
 			} tval;
 			
 			tval.fval = val;
-			tval.ival &= (1 << 31) - 1;
-			
+			tval.ival &= (1UL << 31) - 1;
+
 			return tval.fval;
 		}
 		
@@ -40,7 +40,7 @@ namespace RN
 			} tval;
 			
 			tval.dval = val;
-			tval.ival &= (1LL << 63) - 1;
+			tval.ival &= (1ULL << 63) - 1;
 			
 			return tval.dval;
 		}
@@ -54,7 +54,7 @@ namespace RN
 			} tval;
 			
 			tval.fval = val;
-			return (tval.ival & (1 << 31));
+			return (tval.ival & (1UL << 31));
 		}
 		
 		static inline bool IsNegative(double val)
@@ -66,7 +66,7 @@ namespace RN
 			} tval;
 			
 			tval.dval = val;
-			return (tval.ival & (1LL << 63));
+			return (tval.ival & (1ULL << 63));
 		}
 		
 		static inline bool Compare(float x, float y, float delta = k::EpsilonFloat)
@@ -90,11 +90,11 @@ namespace RN
 		}
 		
 		
-		RNAPI float Sqrt(float x);
-		RNAPI float InverseSqrt(float x);
+		float Sqrt(float x);
+		float InverseSqrt(float x);
 		
-		RNAPI float Sin(float x);
-		RNAPI float Cos(float x);
+		float Sin(float x);
+		float Cos(float x);
 	}
 }
 

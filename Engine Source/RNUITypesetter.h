@@ -29,30 +29,30 @@ namespace RN
 		public:
 			friend class Line;
 			
-			Typesetter(AttributedString *string, const Rect& frame);
-			~Typesetter();
+			RNAPI Typesetter(AttributedString *string, const Rect& frame);
+			RNAPI ~Typesetter();
 			
-			void SetText(AttributedString *string);
-			void SetAlignment(TextAlignment alignment);
-			void SetLineBreak(LineBreakMode lineBreak);
-			void SetMaximumLines(uint32 maxLines);
-			void SetAllowPartiallyClippedLined(bool allowClippedLines);
-			void SetFrame(const Rect& frame);
-			void SetEllipsis(UniChar character);
+			RNAPI void SetText(AttributedString *string);
+			RNAPI void SetAlignment(TextAlignment alignment);
+			RNAPI void SetLineBreak(LineBreakMode lineBreak);
+			RNAPI void SetMaximumLines(uint32 maxLines);
+			RNAPI void SetAllowPartiallyClippedLined(bool allowClippedLines);
+			RNAPI void SetFrame(const Rect& frame);
+			RNAPI void SetEllipsis(UniChar character);
 			
-			void InvalidateStringInRange(const Range& range);
+			RNAPI void InvalidateStringInRange(const Range& range);
 			
-			Vector2 GetDimensions();
-			Vector2 GetVisibleDimensions();
+			RNAPI Vector2 GetDimensions();
+			RNAPI Vector2 GetVisibleDimensions();
 			
-			Model *GetLineModel();
+			RNAPI Model *GetLineModel();
 			
-			Line *GetLineAtPoint(const Vector2& point);
-			Range GetRangeOfCharactersAtPoint(const Vector2& point);
-			AttributedString *GetText() const { return _string; }
+			RNAPI Line *GetLineAtPoint(const Vector2& point);
+			RNAPI Range GetRangeOfCharactersAtPoint(const Vector2& point);
+			RNAPI AttributedString *GetText() const { return _string; }
 			
-			const std::vector<Line *>& GetLines();
-			const std::vector<Line *>& GetVisibleLines();
+			RNAPI const std::vector<Line *>& GetLines();
+			RNAPI const std::vector<Line *>& GetVisibleLines();
 			
 		private:
 			void Clear();
@@ -85,39 +85,39 @@ namespace RN
 		class LineSegment
 		{
 		public:
-			LineSegment();
-			LineSegment(const LineSegment& other);
-			LineSegment(LineSegment&& other);
-			~LineSegment();
+			RNAPI LineSegment();
+			RNAPI LineSegment(const LineSegment& other);
+			RNAPI LineSegment(LineSegment&& other);
+			RNAPI ~LineSegment();
 			
-			LineSegment& operator= (const LineSegment& other);
-			LineSegment& operator= (LineSegment&& other);
+			RNAPI LineSegment& operator= (const LineSegment& other);
+			RNAPI LineSegment& operator= (LineSegment&& other);
 			
-			LineSegment SegmentWithWidth(float width, bool reverse);
+			RNAPI LineSegment SegmentWithWidth(float width, bool reverse);
 			
 			
-			void SetFont(Font *font);
-			void SetColor(const RN::Color& color);
-			void SetOffset(const Vector2& offset);
-			void SetRangeOffset(size_t offset);
+			RNAPI void SetFont(Font *font);
+			RNAPI void SetColor(const RN::Color& color);
+			RNAPI void SetOffset(const Vector2& offset);
+			RNAPI void SetRangeOffset(size_t offset);
 			
-			void AppendGlyph(const Glyph& glyph);
-			void PrependGlyph(const Glyph& glyph);
+			RNAPI void AppendGlyph(const Glyph& glyph);
+			RNAPI void PrependGlyph(const Glyph& glyph);
 			
-			bool CanMergeWithSegment(const LineSegment& other);
-			bool IsValid() const { return !_glyphs.empty(); }
+			RNAPI bool CanMergeWithSegment(const LineSegment& other);
+			RNAPI bool IsValid() const { return !_glyphs.empty(); }
 			
-			const std::vector<Glyph>& GetGlyphs() const { return _glyphs; }
-			const Vector2& GetExtents() const { return _extents; }
-			const Vector2& GetOffset() const { return _offset; }
-			const RN::Color& GetColor() const { return _color; }
-			const Range& GetRange() const { return _range; }
-			Range GetRangeOfCharactersAtPoint(const Vector2& point) const;
+			RNAPI const std::vector<Glyph>& GetGlyphs() const { return _glyphs; }
+			RNAPI const Vector2& GetExtents() const { return _extents; }
+			RNAPI const Vector2& GetOffset() const { return _offset; }
+			RNAPI const RN::Color& GetColor() const { return _color; }
+			RNAPI const Range& GetRange() const { return _range; }
+			RNAPI Range GetRangeOfCharactersAtPoint(const Vector2& point) const;
 			
-			Font *GetFont() const { return _font; }
-			Rect GetFrame() const { return Rect(_offset, _extents); }
+			RNAPI Font *GetFont() const { return _font; }
+			RNAPI Rect GetFrame() const { return Rect(_offset, _extents); }
 			
-			void CreateGlyphMesh(Vector2 *vertices, Vector2 *uvCoords, uint16 *indices, size_t offset);
+			RNAPI void CreateGlyphMesh(Vector2 *vertices, Vector2 *uvCoords, uint16 *indices, size_t offset);
 			
 		private:
 			void AppendGlyphs(const std::vector<Glyph>& glyphs);
@@ -137,21 +137,21 @@ namespace RN
 		public:
 			friend class Typesetter;
 			
-			Line(AttributedString *string, const Range& range);
-			~Line();
+			RNAPI Line(AttributedString *string, const Range& range);
+			RNAPI ~Line();
 		
-			void Truncate(float width, TextTruncation truncation, UniChar token);
-			void SetLineOffset(const Vector2& offset);
+			RNAPI void Truncate(float width, TextTruncation truncation, UniChar token);
+			RNAPI void SetLineOffset(const Vector2& offset);
 			
-			const std::vector<LineSegment>& GetSegments();
-			const Vector2& GetExtents();
-			const Vector2& GetUntruncatedExtents();
-			Range GetRangeOfCharactersAtPoint(const Vector2& point);
+			RNAPI const std::vector<LineSegment>& GetSegments();
+			RNAPI const Vector2& GetExtents();
+			RNAPI const Vector2& GetUntruncatedExtents();
+			RNAPI Range GetRangeOfCharactersAtPoint(const Vector2& point);
 			
-			Rect GetFrame();
-			const Range GetRange() const { return _range; }
+			RNAPI Rect GetFrame();
+			RNAPI const Range GetRange() const { return _range; }
 			
-			Array *GetMeshes(float offset);
+			RNAPI Array *GetMeshes(float offset);
 			
 		private:
 			void LayoutLine();

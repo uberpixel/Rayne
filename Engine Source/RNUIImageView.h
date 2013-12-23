@@ -20,23 +20,23 @@ namespace RN
 		class ImageView : public View
 		{
 		public:
-			ImageView();
-			ImageView(const Rect& frame);
-			ImageView(Image *image);
-			~ImageView() override;
+			RNAPI ImageView();
+			RNAPI ImageView(const Rect& frame);
+			RNAPI ImageView(Image *image);
+			RNAPI ~ImageView() override;
 			
-			void SetImage(Image *image);
-			void SetScaleMode(ScaleMode mode);
-			void SetFrame(const Rect& frame) override;
+			RNAPI void SetImage(Image *image);
+			RNAPI void SetScaleMode(ScaleMode mode);
+			RNAPI void SetFrame(const Rect& frame) override;
 			
-			Image *GetImage() const { return _image; }
-			ScaleMode GetScaleMode() const { return _scaleMode; }
+			RNAPI Image *GetImage() const { return _image; }
+			RNAPI ScaleMode GetScaleMode() const { return _scaleMode; }
 			
-			Vector2 GetSizeThatFits() override;
+			RNAPI Vector2 GetSizeThatFits() override;
 			
 		protected:
-			void Update() override;
-			void Draw(Renderer *renderer) override;
+			RNAPI void Update() override;
+			RNAPI void Draw(Renderer *renderer) override;
 			
 		private:
 			void Initialize();

@@ -24,6 +24,11 @@ namespace RN
 		
 		ScrollView::~ScrollView()
 		{
+			if(_verticalScroller)
+			{
+				_verticalScroller->_container = nullptr;
+				_verticalScroller->Release();
+			}
 		}
 		
 		

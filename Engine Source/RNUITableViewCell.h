@@ -25,23 +25,23 @@ namespace RN
 		public:
 			friend class TableView;
 			
-			TableViewCell(String *identifier);
-			~TableViewCell() override;
+			RNAPI TableViewCell(String *identifier);
+			RNAPI ~TableViewCell() override;
 			
-			virtual void PrepareForReuse();
+			RNAPI virtual void PrepareForReuse();
 			
-			String *GetIdentifier() const { return _identifier; }
+			RNAPI String *GetIdentifier() const { return _identifier; }
 			
-			View *GetContentView() const { return _contentView; }
-			ImageView *GetImageView() const { return _imageView; }
-			Label *GetTextLabel() const { return _textLabel; }
+			RNAPI View *GetContentView() const { return _contentView; }
+			RNAPI ImageView *GetImageView() const { return _imageView; }
+			RNAPI Label *GetTextLabel() const { return _textLabel; }
 			
-			void SetSelected(bool selected) override;
-			void SetFrame(const Rect& frame) override;
-			void LayoutSubviews() override;
+			RNAPI void SetSelected(bool selected) override;
+			RNAPI void SetFrame(const Rect& frame) override;
+			RNAPI void LayoutSubviews() override;
 			
 		protected:
-			bool PostEvent(EventType event) override;
+			RNAPI bool PostEvent(EventType event) override;
 			
 		private:
 			void Initialize();

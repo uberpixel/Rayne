@@ -25,10 +25,14 @@
 #define RN_TARGET_OPENGL    0
 #define RN_TARGET_OPENGL_ES 0
 
+#define RN_TARGET_CXX_NOXCEPT   0
+#define RN_TARGET_CXX_CONSTEXPR 0
+
 #if defined(__APPLE__) && defined(__MACH__)
 
 	#include <TargetConditionals.h>
 	#define RN_PLATFORM_POSIX 1
+	#define RN_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
 
 	#ifdef TARGET_OS_MAC
 		#undef RN_PLATFORM_MAC_OS
@@ -64,7 +68,12 @@
 	#define RN_PLATFORM_WINDOWS 1
 	#define RN_TARGET_OPENGL    1
 
-	#pragma section(".CRT$XCU",read)
+	#define RN_FUNCTION_SIGNATURE __FUNCTION__
+	#define alignas(n) __declspec(align(n))
+
+	#pragma warning(disable: 4244)
+	#pragma warning(disable: 4250)
+	#pragma warning(disable: 4305)
 	#pragma warning(disable: 4800)
 
 	#if defined(_WIN64)
@@ -79,7 +88,7 @@
 
 		#define RN_PLATFORM_INTEL 1
 		#define RN_PLATFORM_32BIT 1
-	#endif /* defined(_WIN64) || defined(__amd64__) */
+	#endif /* defined(_WIN64)*/
 #endif /* defined(_WIN32) */
 
 #if defined(__linux__)

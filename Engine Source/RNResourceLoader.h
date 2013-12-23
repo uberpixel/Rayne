@@ -25,27 +25,27 @@ namespace RN
 	
 		typedef std::function<void (Object *, Tag)> Callback;
 		
-		~ResourceLoader();
+		RNAPI ~ResourceLoader();
 		
-		virtual Object *Load(File *file, Dictionary *settings);
-		virtual Object *Load(String *name, Dictionary *settings);
+		RNAPI virtual Object *Load(File *file, Dictionary *settings);
+		RNAPI virtual Object *Load(String *name, Dictionary *settings);
 		
-		std::future<Object *> LoadInBackground(Object *fileOrName, Dictionary *settings, Tag tag, Callback callback);
+		RNAPI std::future<Object *> LoadInBackground(Object *fileOrName, Dictionary *settings, Tag tag, Callback callback);
 		
-		virtual bool SupportsBackgroundLoading();
-		virtual bool SupportsLoadingFile(File *file);
-		virtual bool SupportsLoadingName(String *name);
+		RNAPI virtual bool SupportsBackgroundLoading();
+		RNAPI virtual bool SupportsLoadingFile(File *file);
+		RNAPI virtual bool SupportsLoadingName(String *name);
 		
-		virtual uint32 GetPriority() const;
+		RNAPI virtual uint32 GetPriority() const;
 		
-		MetaClassBase *GetResourceClass() const { return _resourceClass; }
+		RNAPI MetaClassBase *GetResourceClass() const { return _resourceClass; }
 		
 	protected:
-		ResourceLoader(MetaClassBase *resourceClass);
+		RNAPI ResourceLoader(MetaClassBase *resourceClass);
 		
-		void SetFileExtensions(const std::vector<std::string>& extensions);
-		void SetMagicBytes(const Data *data, size_t begin);
-		void SetSupportsImaginaryFiles(bool support);
+		RNAPI void SetFileExtensions(const std::vector<std::string>& extensions);
+		RNAPI void SetMagicBytes(const Data *data, size_t begin);
+		RNAPI void SetSupportsImaginaryFiles(bool support);
 		
 	private:
 		Data *_magicBytes;

@@ -28,7 +28,7 @@ namespace RN
 		
 #if RN_PLATFORM_WINDOWS
 		HWND hWnd;
-		HDC hDc;
+		HDC  hDC;
 		HGLRC context;
 		int pixelFormat;
 #endif

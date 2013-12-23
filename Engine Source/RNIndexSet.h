@@ -17,19 +17,19 @@ namespace RN
 	class IndexSet : public Object
 	{
 	public:
-		IndexSet();
-		IndexSet(size_t index);
-		IndexSet(IndexSet *other);
+		RNAPI IndexSet();
+		RNAPI IndexSet(size_t index);
+		RNAPI IndexSet(IndexSet *other);
 		
-		void AddIndex(size_t index);
-		void RemoveIndex(size_t index);
+		RNAPI void AddIndex(size_t index);
+		RNAPI void RemoveIndex(size_t index);
 		
-		bool ContainsIndex(size_t index);
+		RNAPI bool ContainsIndex(size_t index);
 		
-		size_t GetFirstIndex() const;
-		size_t GetLastIndex() const;
-		size_t GetCount() const;
-		size_t GetIndex(size_t index) const;
+		RNAPI size_t GetFirstIndex() const;
+		RNAPI size_t GetLastIndex() const;
+		RNAPI size_t GetCount() const;
+		RNAPI size_t GetIndex(size_t index) const;
 		
 		const std::vector<size_t>& GetIndices() const { return _sortedIndices; }
 		

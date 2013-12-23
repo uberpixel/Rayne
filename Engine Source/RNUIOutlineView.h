@@ -22,46 +22,46 @@ namespace RN
 		class OutlineViewDataSource
 		{
 		public:
-			virtual bool OutlineViewItemIsExpandable(OutlineView *outlineView, void *item) = 0;
-			virtual size_t OutlineViewGetNumberOfChildrenForItem(OutlineView *outlineView, void *item) = 0;
-			virtual void *OutlineViewGetChildOfItem(OutlineView *outlineView, void *item, size_t child) = 0;
-			virtual OutlineViewCell *OutlineViewGetCellForItem(OutlineView *outlineView, void *item) = 0;
+			RNAPI virtual bool OutlineViewItemIsExpandable(OutlineView *outlineView, void *item) = 0;
+			RNAPI virtual size_t OutlineViewGetNumberOfChildrenForItem(OutlineView *outlineView, void *item) = 0;
+			RNAPI virtual void *OutlineViewGetChildOfItem(OutlineView *outlineView, void *item, size_t child) = 0;
+			RNAPI virtual OutlineViewCell *OutlineViewGetCellForItem(OutlineView *outlineView, void *item) = 0;
 		};
 		
 		class OutlineViewDelegate
 		{
 		public:
-			virtual void OutlineViewWillExpandItem(OutlineView *outlineView, void *item) {}
-			virtual void OutlineViewDidExpandItem(OutlineView *outlineView, void *item) {}
-			virtual void OutlineViewWillCollapseItem(OutlineView *outlineView, void *item) {}
-			virtual void OutlineViewDidCollapseItem(OutlineView *outlineView, void *item) {}
+			RNAPI virtual void OutlineViewWillExpandItem(OutlineView *outlineView, void *item) {}
+			RNAPI virtual void OutlineViewDidExpandItem(OutlineView *outlineView, void *item) {}
+			RNAPI virtual void OutlineViewWillCollapseItem(OutlineView *outlineView, void *item) {}
+			RNAPI virtual void OutlineViewDidCollapseItem(OutlineView *outlineView, void *item) {}
 			
-			virtual void OutlineViewSelectionDidChange(OutlineView *outlineView) {}
+			RNAPI virtual void OutlineViewSelectionDidChange(OutlineView *outlineView) {}
 			
-			virtual void OutlineViewWillDeselectItem(OutlineView *outlineView, void *item) {}
-			virtual void OutlineViewDidSelectItem(OutlineView *outlineView, void *item) {}
+			RNAPI virtual void OutlineViewWillDeselectItem(OutlineView *outlineView, void *item) {}
+			RNAPI virtual void OutlineViewDidSelectItem(OutlineView *outlineView, void *item) {}
 		};
 		
 		
 		class OutlineView : public TableView, protected TableViewDelegate, protected TableViewDataSource
 		{
 		public:
-			OutlineView();
-			~OutlineView();
+			RNAPI OutlineView();
+			RNAPI ~OutlineView();
 			
-			void SetDataSource(OutlineViewDataSource *dataSource);
-			void SetDelegate(OutlineViewDelegate *delegate);
+			RNAPI void SetDataSource(OutlineViewDataSource *dataSource);
+			RNAPI void SetDelegate(OutlineViewDelegate *delegate);
 			
-			void ReloadData();
-			void ReloadItem(void *item, bool reloadChildren);
+			RNAPI void ReloadData();
+			RNAPI void ReloadItem(void *item, bool reloadChildren);
 			
-			void ExpandItem(void *item, bool expandChildren);
-			void CollapseItem(void *item, bool collapseChildren);
+			RNAPI void ExpandItem(void *item, bool expandChildren);
+			RNAPI void CollapseItem(void *item, bool collapseChildren);
 			
-			OutlineViewCell *DequeCellWithIdentifier(String *identifier);
+			RNAPI OutlineViewCell *DequeCellWithIdentifier(String *identifier);
 			
-			size_t GetRowForItem(void *item);
-			void *GetItemForRow(size_t row);
+			RNAPI size_t GetRowForItem(void *item);
+			RNAPI void *GetItemForRow(size_t row);
 			
 		private:
 			struct ProxyItem

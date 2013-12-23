@@ -21,22 +21,22 @@ namespace RN
 	class Value : public Object
 	{
 	public:
-		Value(const void *ptr, size_t size, const std::type_info& typeinfo);
-		Value(const void *ptr);
-		Value(const Value *other);
-		~Value() override;
+		RNAPI Value(const void *ptr, size_t size, const std::type_info& typeinfo);
+		RNAPI Value(const void *ptr);
+		RNAPI Value(const Value *other);
+		RNAPI ~Value() override;
 		
-		static Value *WithVector2(const Vector2& vector);
-		static Value *WithVector3(const Vector3& vector);
-		static Value *WithVector4(const Vector4& vector);
+		RNAPI static Value *WithVector2(const Vector2& vector);
+		RNAPI static Value *WithVector3(const Vector3& vector);
+		RNAPI static Value *WithVector4(const Vector4& vector);
 		
-		static Value *WithColor(const Color& color);
+		RNAPI static Value *WithColor(const Color& color);
 		
-		static Value *WithQuaternion(const Quaternion& quaternion);
-		static Value *WithMatrix(const Matrix& matrix);
+		RNAPI static Value *WithQuaternion(const Quaternion& quaternion);
+		RNAPI static Value *WithMatrix(const Matrix& matrix);
 		
-		void GetValue(void *ptr) const;
-		void *GetPointerValue() const;
+		RNAPI void GetValue(void *ptr) const;
+		RNAPI void *GetPointerValue() const;
 		
 		template<class T>
 		T GetValue() const
@@ -49,7 +49,7 @@ namespace RN
 			return temp;
 		}
 		
-		const std::type_info& GetTypeInfo() const { return *_typeinfo; }
+		RNAPI const std::type_info& GetTypeInfo() const { return *_typeinfo; }
 		
 	private:
 		const std::type_info *_typeinfo;

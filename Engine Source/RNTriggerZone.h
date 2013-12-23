@@ -28,20 +28,20 @@ namespace RN
 		};
 		typedef uint32 Predicate;
 		
-		TriggerZone();
-		~TriggerZone() override;
+		RNAPI TriggerZone();
+		RNAPI ~TriggerZone() override;
 		
-		virtual void Trigger(SceneNode *node, Predicate reason);
+		RNAPI virtual void Trigger(SceneNode *node, Predicate reason);
 		
-		virtual void BeginTrackingSceneNode(SceneNode *node);
-		virtual void ContinueTrackingSceneNode(SceneNode *node);
-		virtual void EndTrackingSceneNode(SceneNode *node);
-		virtual bool ValidateSceneNode(SceneNode *node);
+		RNAPI virtual void BeginTrackingSceneNode(SceneNode *node);
+		RNAPI virtual void ContinueTrackingSceneNode(SceneNode *node);
+		RNAPI virtual void EndTrackingSceneNode(SceneNode *node);
+		RNAPI virtual bool ValidateSceneNode(SceneNode *node);
 		
-		void AddWatchedNode(SceneNode *node);
-		void RemoveWatchedNode(SceneNode *node);
+		RNAPI void AddWatchedNode(SceneNode *node);
+		RNAPI void RemoveWatchedNode(SceneNode *node);
 		
-		void SetPredicate(Predicate predicate);
+		RNAPI void SetPredicate(Predicate predicate);
 		
 	private:
 		void ValidateNodeUpdate(SceneNode *node);

@@ -25,6 +25,8 @@
 	#endif
 #endif
 
+#if RN_SIMD
+
 namespace RN
 {
 	namespace SIMD
@@ -386,5 +388,7 @@ namespace RN
 		}
 	}
 }
+
+#endif /* RN_SIMD */
 
 #endif /* __RAYNE_SIMD_H__ */

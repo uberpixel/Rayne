@@ -17,25 +17,25 @@ namespace RN
 	class Data : public Object
 	{
 	public:
-		Data();
-		Data(const void *bytes, size_t length);
-		Data(const void *bytes, size_t length, bool noCopy, bool deleteWhenDone);
-		Data(const std::string& file);
-		Data(const Data& other);
-		Data(Data *other);
-		~Data() override;
+		RNAPI Data();
+		RNAPI Data(const void *bytes, size_t length);
+		RNAPI Data(const void *bytes, size_t length, bool noCopy, bool deleteWhenDone);
+		RNAPI Data(const std::string& file);
+		RNAPI Data(const Data& other);
+		RNAPI Data(Data *other);
+		RNAPI ~Data() override;
 		
-		static Data *WithBytes(const uint8 *bytes, size_t length);
-		static Data *WithContentsOfFile(const std::string& file);
+		RNAPI static Data *WithBytes(const uint8 *bytes, size_t length);
+		RNAPI static Data *WithContentsOfFile(const std::string& file);
 
-		void Append(const void *bytes, size_t length);
-		void Append(Data *other);
+		RNAPI void Append(const void *bytes, size_t length);
+		RNAPI void Append(Data *other);
 		
-		void ReplaceBytes(const void *bytes, const Range& range);
-		void WriteToFile(const std::string& file);
+		RNAPI void ReplaceBytes(const void *bytes, const Range& range);
+		RNAPI void WriteToFile(const std::string& file);
 		
-		void GetBytesInRange(void *buffer, Range range) const;
-		Data *GetDataInRange(Range range) const;
+		RNAPI void GetBytesInRange(void *buffer, Range range) const;
+		RNAPI Data *GetDataInRange(Range range) const;
 		void *GetBytes() const { return static_cast<void *>(_bytes); }
 		size_t GetLength() const { return _length; }
 		

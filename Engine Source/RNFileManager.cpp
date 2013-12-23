@@ -156,7 +156,9 @@ namespace RN
 		FileSystemNode(name, parent)
 	{
 		ScanDirectory();
+#if RN_PLATFORM_MAC_OS
 		_eventStream = nullptr;
+#endif
 	}
 	
 	DirectoryProxy::~DirectoryProxy()
@@ -279,7 +281,7 @@ namespace RN
 		
 		do {
 			
-			if(ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN || strlen(ffd.cFilename) == 0)
+			if(ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN || strlen(ffd.cFileName) == 0)
 				continue;
 			
 			FileSystemNode *node = nullptr;
@@ -378,7 +380,7 @@ namespace RN
 		
 		do {
 			
-			if(ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN || strlen(ffd.cFilename) == 0)
+			if(ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN || strlen(ffd.cFileName) == 0)
 				continue;
 			
 			FileSystemNode *node = nullptr;
@@ -514,28 +516,12 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_WINDOWS
-		std::string base = PathManager::GetExecutableDirectory();
+		std::string base = PathManager::ExecutableDirectory();
 		
 		AddSearchPath(base);
 		AddSearchPath(base + "/Engine Resources");
 		
 		AddFileModifier("~win");
-		
-#ifndef NDEBUG
-		while(temp != buffer)
-		{
-			temp --;
-			
-			if(*temp == '\\')
-			{
-				*temp = '\0';
-				break;
-			}
-		}
-		
-		AddSearchPath(std::string(buffer));
-		AddSearchPath(std::string(buffer) + "/Engine Resources");
-#endif /* NDEBUG */
 #endif /* RN_PLATFORM_WINDOWS */
 		
 #if RN_PLATFORM_LINUX || RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
@@ -682,10 +668,15 @@ namespace RN
 	std::string FileManager::GetNormalizedPathFromFullpath(const std::string& name)
 	{
 		char buffer[1024];
+#if RN_PLATFORM_POSIX
 		char *result = realpath(name.c_str(), buffer);
-		
 		if(!result)
 			throw Exception(Exception::Type::InconsistencyException, "");
+#else
+		DWORD result = ::GetFullPathNameA(name.c_str(), 1024, buffer, nullptr);
+		if(result == 0)
+			throw Exception(Exception::Type::InconsistencyException, "");
+#endif
 		
 		std::string path(buffer);
 		
@@ -733,9 +724,14 @@ namespace RN
 	{
 		bool hasPath = false;
 		char buffer[1024];
+
+#if RN_PLATFORM_POSIX
 		char *result = realpath(tpath.c_str(), buffer);
-		
 		std::string path(result ? buffer : tpath.c_str());
+#else
+		DWORD result = ::GetFullPathNameA(tpath.c_str(), 1024, buffer, nullptr);
+		std::string path((result != 0) ? buffer : tpath.c_str());
+#endif
 		
 		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t index, bool *stop) {
 			if(directory->GetPath() == path)

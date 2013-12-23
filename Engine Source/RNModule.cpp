@@ -80,10 +80,10 @@ namespace RN
 			if(!_internals->handle)
 			{
 				DWORD lastError = ::GetLastError();
-				TCHAR buffer[256] = _T("?");
+				TCHAR buffer[256] = "?";
 				
 				if(lastError)
-					::FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, lastError, MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT), buffer, STR_ELEMS(buffer) - 1, NULL);
+					::FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, NULL, lastError, MAKELANGID(LANG_NEUTRAL,SUBLANG_DEFAULT), buffer, 256, NULL);
 				
 				throw Exception(Exception::Type::ModuleNotFoundException, std::string(buffer));
 			}

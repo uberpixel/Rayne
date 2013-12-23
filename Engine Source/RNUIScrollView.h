@@ -20,30 +20,30 @@ namespace RN
 		class ScrollViewDelegate
 		{
 		public:
-			virtual void ScrollViewDidScroll(ScrollView *scrollView) {}
+			RNAPI virtual void ScrollViewDidScroll(ScrollView *scrollView) {}
 		};
 		
 		class ScrollView : public View
 		{
 		public:
-			ScrollView();
-			~ScrollView();
+			RNAPI ScrollView();
+			RNAPI ~ScrollView();
 			
-			void SetDelegate(ScrollViewDelegate *delegate);
-			void CalculateContentSize();
+			RNAPI void SetDelegate(ScrollViewDelegate *delegate);
+			RNAPI void CalculateContentSize();
 			
-			void SetContentOffset(const Vector2& offset);
-			void SetContentSize(const Vector2& size);
-			void SetVerticalScroller(Scroller *scroller);
+			RNAPI void SetContentOffset(const Vector2& offset);
+			RNAPI void SetContentSize(const Vector2& size);
+			RNAPI void SetVerticalScroller(Scroller *scroller);
 			
-			void ScrollWheel(Event *event) override;
-			void SetFrame(const Rect& frame) override;
+			RNAPI void ScrollWheel(Event *event) override;
+			RNAPI void SetFrame(const Rect& frame) override;
 			
-			void DidAddSubview(View *subview) override;
-			void DidBringSubviewToFront(View *subview) override;
+			RNAPI void DidAddSubview(View *subview) override;
+			RNAPI void DidBringSubviewToFront(View *subview) override;
 			
-			const Vector2& GetContentOffset() const { return _offset; }
-			const Vector2& GetContentSize() const { return _size; }
+			RNAPI const Vector2& GetContentOffset() const { return _offset; }
+			RNAPI const Vector2& GetContentSize() const { return _size; }
 			
 		private:
 			void AdjustScroller();

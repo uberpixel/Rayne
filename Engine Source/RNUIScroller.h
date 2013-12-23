@@ -19,26 +19,28 @@ namespace RN
 	namespace UI
 	{
 		class ScrollView;
+		class ScrollerKnob;
+		class ScrollerFrame;
 		
 		class Scroller : public View
 		{
 		public:
 			friend class ScrollView;
 			
-			Scroller();
-			~Scroller();
+			RNAPI Scroller();
+			RNAPI ~Scroller();
 			
-			void LayoutSubviews() override;
+			RNAPI void LayoutSubviews() override;
 			
-			float GetPreferredWidth() const { return _width; }
+			RNAPI float GetPreferredWidth() const { return _width; }
 			
 		private:
 			void InsertIntoContainer(ScrollView *scrollView, bool horizontal);
 			
 			ScrollView *_container;
 			
-			ImageView *_frame;
-			ImageView *_knob;
+			ScrollerFrame *_frame;
+			ScrollerKnob *_knob;
 			
 			bool _horizontal;
 			float _width;

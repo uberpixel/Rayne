@@ -27,8 +27,8 @@ namespace RN
 		typedef uint32 SerializerOptions;
 		
 		
-		static String *JSONStringFromObject(Object *root, SerializerOptions options = 0);
-		static Data *JSONDataFromObject(Object *root, SerializerOptions options = 0);
+		RNAPI static String *JSONStringFromObject(Object *root, SerializerOptions options = 0);
+		RNAPI static Data *JSONDataFromObject(Object *root, SerializerOptions options = 0);
 		
 		template<class T = Object>
 		static T *JSONObjectFromString(String *string, SerializerOptions options = 0)
@@ -42,7 +42,7 @@ namespace RN
 			return __JSONObjectFromData(data, options)->Downcast<T>();
 		}
 		
-		static bool IsValidJSONObject(Object *object);
+		RNAPI static bool IsValidJSONObject(Object *object);
 		
 	private:
 		static Object *DeserializeObject(void *);

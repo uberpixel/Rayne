@@ -29,21 +29,21 @@ namespace RN
 		class Message
 		{
 		public:
-			Message(Level level, const std::string& message);
-			Message(Level level, const std::string& title, const std::string& message);
-			Message(Level level, std::string&& message);
-			Message(Level level, std::string&& title, std::string&& message);
+			RNAPI Message(Level level, const std::string& message);
+			RNAPI Message(Level level, const std::string& title, const std::string& message);
+			RNAPI Message(Level level, std::string&& message);
+			RNAPI Message(Level level, std::string&& title, std::string&& message);
 			
-			void SetTitle(const std::string& title);
-			void SetTitle(std::string&& title);
+			RNAPI void SetTitle(const std::string& title);
+			RNAPI void SetTitle(std::string&& title);
 			
-			bool HasTitle() const { return !_title.empty(); }
+			RNAPI bool HasTitle() const { return !_title.empty(); }
 			
-			Level GetLevel() const { return _level; }
-			const std::string& GetTitle() const { return _title; }
-			const std::string& GetMessage() const { return _message; }
-			const std::string& GetFormattedTime() const;
-			std::chrono::system_clock::time_point GetTime() { return _time; }
+			RNAPI Level GetLevel() const { return _level; }
+			RNAPI const std::string& GetTitle() const { return _title; }
+			RNAPI const std::string& GetMessage() const { return _message; }
+			RNAPI const std::string& GetFormattedTime() const;
+			RNAPI std::chrono::system_clock::time_point GetTime() { return _time; }
 			
 		private:
 			Level _level;
@@ -56,10 +56,10 @@ namespace RN
 		class Loggable
 		{
 		public:
-			Loggable(Level level = Level::Info);
-			~Loggable();
+			RNAPI Loggable(Level level = Level::Info);
+			RNAPI ~Loggable();
 			
-			void Submit();
+			RNAPI void Submit();
 			
 			Loggable& operator << (const std::string& val) { _stream << val; return *this; }
 			Loggable& operator << (const char *val) { _stream << val; return *this; }
@@ -85,23 +85,23 @@ namespace RN
 		class Logger : public Singleton<Logger>
 		{
 		public:
-			Logger();
-			~Logger();
+			RNAPI Logger();
+			RNAPI ~Logger();
 			
-			void SetLogLevel(Level level);
+			RNAPI void SetLogLevel(Level level);
 			
-			Level GetLogLevel();
+			RNAPI Level GetLogLevel();
 			
-			void AddLoggingEngine(LoggingEngine *engine);
-			void RemoveLoggingEngine(LoggingEngine *engine);
+			RNAPI void AddLoggingEngine(LoggingEngine *engine);
+			RNAPI void RemoveLoggingEngine(LoggingEngine *engine);
 			
-			void Log(Level level, const std::string& message);
-			void Log(Level level, std::string&& message);
-			void Log(Level level, const char *message, ...);
-			void Log(const Message& message);
-			void Log(Message&& message);
+			RNAPI void Log(Level level, const std::string& message);
+			RNAPI void Log(Level level, std::string&& message);
+			RNAPI void Log(Level level, const char *message, ...);
+			RNAPI void Log(const Message& message);
+			RNAPI void Log(Message&& message);
 			
-			void Flush(bool force = false);
+			RNAPI void Flush(bool force = false);
 			
 		private:
 			void FlushBuffer();

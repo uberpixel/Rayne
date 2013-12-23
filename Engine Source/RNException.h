@@ -12,6 +12,8 @@
 #include <string>
 #include <vector>
 
+#include "RNDefines.h"
+
 namespace RN
 {
 	class Thread;
@@ -51,12 +53,12 @@ namespace RN
 			FramebufferIncompleteDimensionsException
 		};
 		
-		Exception(Type type, const std::string& reason);
+		RNAPI Exception(Type type, const std::string& reason);
 		
 		Type GetType() const { return _type; }
 		Thread *GetThread() const { return _thread; }
 		
-		const char *GetStringifiedType() const;
+		RNAPI const char *GetStringifiedType() const;
 		const std::string& GetReason() const { return _reason; }
 		const std::vector<std::pair<uintptr_t, std::string>>& GetCallStack() const { return _callStack; }
 		

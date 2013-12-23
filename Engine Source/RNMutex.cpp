@@ -21,7 +21,7 @@ namespace RN
 		
 #if RN_PLATFORM_WINDOWS
 		_mutex = CreateMutex(NULL, false, NULL);
-		RN_ASSERT0(_mutex);
+		RN_ASSERT(_mutex, "");
 #endif
 	}
 	

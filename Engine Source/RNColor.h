@@ -14,34 +14,34 @@ namespace RN
 	class Color
 	{
 	public:
-		RNAPI Color(float n=1.0f);
-		RNAPI Color(float r, float g, float b, float a=1.0f);
-		RNAPI Color(int r, int g, int b, int a=255);
+		Color(float n=1.0f);
+		Color(float r, float g, float b, float a=1.0f);
+		Color(int r, int g, int b, int a=255);
 
-		RNAPI bool operator== (const Color& other) const;
-		RNAPI bool operator!= (const Color& other) const;
+		bool operator== (const Color& other) const;
+		bool operator!= (const Color& other) const;
 
-		RNAPI Color operator- () const;
+		Color operator- () const;
 
-		RNAPI Color& operator+= (const Color& other);
-		RNAPI Color& operator-= (const Color& other);
-		RNAPI Color& operator*= (const Color& other);
-		RNAPI Color& operator/= (const Color& other);
+		Color& operator+= (const Color& other);
+		Color& operator-= (const Color& other);
+		Color& operator*= (const Color& other);
+		Color& operator/= (const Color& other);
 
-		RNAPI Color operator+ (const Color& other) const;
-		RNAPI Color operator- (const Color& other) const;
-		RNAPI Color operator* (const Color& other) const;
-		RNAPI Color operator/ (const Color& other) const;
+		Color operator+ (const Color& other) const;
+		Color operator- (const Color& other) const;
+		Color operator* (const Color& other) const;
+		Color operator/ (const Color& other) const;
 
-		RNAPI Color& operator+= (float other);
-		RNAPI Color& operator-= (float other);
-		RNAPI Color& operator*= (float other);
-		RNAPI Color& operator/= (float other);
+		Color& operator+= (float other);
+		Color& operator-= (float other);
+		Color& operator*= (float other);
+		Color& operator/= (float other);
 
-		RNAPI Color operator+ (float other) const;
-		RNAPI Color operator- (float other) const;
-		RNAPI Color operator* (float other) const;
-		RNAPI Color operator/ (float other) const;
+		Color operator+ (float other) const;
+		Color operator- (float other) const;
+		Color operator* (float other) const;
+		Color operator/ (float other) const;
 		
 		static Color Red() { return Color(1.0f, 0.0f, 0.0f); }
 		static Color Green() { return Color(0.0f, 1.0f, 0.0f); }

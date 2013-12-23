@@ -154,7 +154,7 @@ namespace RN
 				
 				std::wstring faceName(name.begin(), name.end());
 				
-				result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, L"Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts", 0, KEY_READ, &hKey);
+				result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts", 0, KEY_READ, &hKey);
 				if(result != ERROR_SUCCESS)
 					throw e;
 				
@@ -175,7 +175,7 @@ namespace RN
 					valueDataSize = maxValueDataSize;
 					valueNameSize = maxValueNameSize;
 					
-					result = RegEnumValue(hKey, valueIndex, valueName, &valueNameSize, 0, &valueType, valueData, &valueDataSize);
+					result = RegEnumValueW(hKey, valueIndex, valueName, &valueNameSize, 0, &valueType, valueData, &valueDataSize);
 					valueIndex ++;
 					
 					if(result != ERROR_SUCCESS || valueType != REG_SZ)
@@ -189,7 +189,7 @@ namespace RN
 						break;
 					}
 					
-				} while(result != ERROR_NO_MORE_ITEMS)
+				} while(result != ERROR_NO_MORE_ITEMS);
 				
 				delete [] valueName;
 				delete [] valueData;
@@ -197,10 +197,10 @@ namespace RN
 				RegCloseKey(hKey);
 				
 				WCHAR winDir[MAX_PATH];
-				GetWindowsDirectory(winDir, MAX_PATH);
+				::GetWindowsDirectoryW(winDir, MAX_PATH);
 				
 				std::wstringstream ss;
-				ss << winDir << "\\Fonts\\" << wsFontFile;
+				ss << winDir << "\\Fonts\\" << fontFile;
 				
 				fontFile = ss.str();
 				path     = std::string(fontFile.begin(), fontFile.end());

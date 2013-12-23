@@ -156,7 +156,7 @@ namespace RN
 		_string = new char[_length + 1];
 		_string[_length] = '\0';
 		
-		strlcpy(_string, string, length + 1);
+		memcpy(_string, string, _length);
 		UpdateHash();
 	}
 	

@@ -23,11 +23,11 @@ namespace RN
 		public:
 			friend class OutlineView;
 			
-			OutlineViewCell(String *identifier);
-			~OutlineViewCell() override;
+			RNAPI OutlineViewCell(String *identifier);
+			RNAPI ~OutlineViewCell() override;
 			
-			void PrepareForReuse() override;
-			void LayoutSubviews() override;
+			RNAPI void PrepareForReuse() override;
+			RNAPI void LayoutSubviews() override;
 			
 		private:
 			void Initialize();

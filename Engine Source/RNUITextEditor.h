@@ -22,33 +22,33 @@ namespace RN
 		class TextEditorDelegate
 		{
 		public:
-			virtual void TextEditorSelectionDidChange(TextEditor *editor, const Range& selection) {}
-			virtual bool TextEditorShouldReturn(TextEditor *editor) { return true; }
+			RNAPI virtual void TextEditorSelectionDidChange(TextEditor *editor, const Range& selection) {}
+			RNAPI virtual bool TextEditorShouldReturn(TextEditor *editor) { return true; }
 		};
 		
 		class TextEditor : public View
 		{
 		public:
-			TextEditor();
-			~TextEditor() override;
+			RNAPI TextEditor();
+			RNAPI ~TextEditor() override;
 			
-			void SetFrame(const Rect& frame) override;
-			void SetTypingAttributes(Dictionary *attributes);
-			void SetSelection(const Range& selection);
-			void SetText(String *text);
-			void SetAttributedText(AttributedString *text);
-			void SetDelegate(TextEditorDelegate *delegate);
+			RNAPI void SetFrame(const Rect& frame) override;
+			RNAPI void SetTypingAttributes(Dictionary *attributes);
+			RNAPI void SetSelection(const Range& selection);
+			RNAPI void SetText(String *text);
+			RNAPI void SetAttributedText(AttributedString *text);
+			RNAPI void SetDelegate(TextEditorDelegate *delegate);
 			
-			void ProcessEvent(Event *event);
+			RNAPI void ProcessEvent(Event *event);
 			
-			String *GetText() const { return _string->GetString(); }
-			Dictionary *GetTypingAttributes() const { return _typingAttributes; }
-			AttributedString *GetAttributedText() const { return _string; }
-			Typesetter *GetTypesetter() const { return _typesetter; }
+			RNAPI String *GetText() const { return _string->GetString(); }
+			RNAPI Dictionary *GetTypingAttributes() const { return _typingAttributes; }
+			RNAPI AttributedString *GetAttributedText() const { return _string; }
+			RNAPI Typesetter *GetTypesetter() const { return _typesetter; }
 			
 		protected:
-			void Draw(Renderer *renderer) override;
-			void Update() override;
+			RNAPI void Draw(Renderer *renderer) override;
+			RNAPI void Update() override;
 			
 		private:
 			void InsertString(String *string);

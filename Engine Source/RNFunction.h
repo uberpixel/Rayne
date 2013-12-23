@@ -34,7 +34,6 @@ namespace RN
 		}
 		
 		Function(const Function&) = delete;
-		Function(Function&) = delete;
 		Function& operator= (const Function&) = delete;
 		
 		void operator() () { _implementation->Call(); }

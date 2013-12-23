@@ -21,24 +21,24 @@ namespace RN
 		class SegmentView : public Control
 		{
 		public:
-			SegmentView();
-			~SegmentView() override;
+			RNAPI SegmentView();
+			RNAPI ~SegmentView() override;
 			
-			void InsertegmentAtIndex(Image *image, size_t index);
-			void InsertSegmentAtIndex(String *title, size_t index);
+			RNAPI void InsertegmentAtIndex(Image *image, size_t index);
+			RNAPI void InsertSegmentAtIndex(String *title, size_t index);
 			
-			void RemoveSegmentAtIndex(size_t index);
-			void RemoveAllSegments();
+			RNAPI void RemoveSegmentAtIndex(size_t index);
+			RNAPI void RemoveAllSegments();
 			
-			void SetImageForSegmentAtIndex(Image *image, size_t index);
-			void SetTitleForSegmentAtIndex(String *title, size_t index);
+			RNAPI void SetImageForSegmentAtIndex(Image *image, size_t index);
+			RNAPI void SetTitleForSegmentAtIndex(String *title, size_t index);
 			
-			void SetSegmentAtIndexEnabled(size_t index, bool enabled);
-			bool IsSegmentAtIndexEnabled(size_t index) const;
+			RNAPI void SetSegmentAtIndexEnabled(size_t index, bool enabled);
+			RNAPI bool IsSegmentAtIndexEnabled(size_t index) const;
 			
-			size_t GetNumberOfSegments() const { return _segments.GetCount(); }
+			RNAPI size_t GetNumberOfSegments() const { return _segments.GetCount(); }
 			
-			void LayoutSubviews() override;
+			RNAPI void LayoutSubviews() override;
 			
 		private:
 			void InsertSegment(Button *segment, size_t index);

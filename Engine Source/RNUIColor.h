@@ -20,15 +20,15 @@ namespace RN
 		class Color : public Object
 		{
 		public:
-			Color();
-			Color(const RN::Color& color);
-			Color(Color *other);
+			RNAPI Color();
+			RNAPI Color(const RN::Color& color);
+			RNAPI Color(Color *other);
 			
-			static Color *WithRNColor(const RN::Color& color);
+			RNAPI static Color *WithRNColor(const RN::Color& color);
 			
-			bool IsEqual(Object *other) const override;
+			RNAPI bool IsEqual(Object *other) const override;
 			
-			const RN::Color& GetRNColor() const { return _color; }
+			RNAPI const RN::Color& GetRNColor() const { return _color; }
 			
 		private:
 			RN::Color _color;

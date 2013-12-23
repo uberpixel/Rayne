@@ -110,9 +110,25 @@ namespace RN
 		}
 		
 		
-		HGLRC context = wglCreateContextAttribsARB(hDC, shared, attributes);
+		HGLRC context = wgl::CreateContextAttribsARB(hDC, shared, attributes);
 		if(!context)
 			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+
+		static std::once_flag flag;
+		std::call_once(flag, [&]{
+
+			wglMakeCurrent(hDC, context);
+
+			gl::GetString = reinterpret_cast<PFNGLGETSTRINGPROC>(wglGetProcAddress("glGetString"));
+
+			gl::GetFloatv = reinterpret_cast<PFNGLGETFLOATVPROC>(wglGetProcAddress("glGetFloatv"));
+			gl::GetIntegerv = reinterpret_cast<PFNGLGETINTEGERVPROC>(wglGetProcAddress("glGetIntegerv"));
+
+			wglMakeCurrent(hDC, nullptr);
+		});
+
+
+		*outContext = context;
 	}
 #endif
 	
@@ -152,16 +168,16 @@ namespace RN
 		::SetPixelFormat(_internals->hDC, _internals->pixelFormat, &descriptor);
 		
 		
-		if(!wglCreateContextAttribsARB)
+		if(!wgl::CreateContextAttribsARB)
 		{
 			HGLRC tempContext = wglCreateContext(_internals->hDC);
 			wglMakeCurrent(_internals->hDC, tempContext);
 			
-			wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
-			if(!wglGetExtensionsStringARB)
+			wgl::GetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
+			if(!wgl::GetExtensionsStringARB)
 				throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
 			
-			std::string extensions = std::string(static_cast<const char *>(wglGetExtensionsStringARB(_internals->hDC)));
+			std::string extensions = std::string(static_cast<const char *>(wgl::GetExtensionsStringARB(_internals->hDC)));
 			
 			auto createContext = extensions.find("WGL_ARB_create_context");
 			auto coreProfile   = extensions.find("WGL_ARB_create_context_profile");
@@ -169,15 +185,15 @@ namespace RN
 			if(createContext == std::string::npos || coreProfile == std::string::npos)
 				throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
 			
-			wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
-			wglChoosePixelFormatARB    = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
-			wglSwapIntervalEXT         = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+			wgl::CreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
+			wgl::ChoosePixelFormatARB    = (PFNWGLCHOOSEPIXELFORMATARBPROC)wglGetProcAddress("wglChoosePixelFormatARB");
+			wgl::SwapIntervalEXT         = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
 			
-			wglMakeCurrent(_internals->hDC, 0);
+			wglMakeCurrent(_internals->hDC, nullptr);
 			wglDeleteContext(tempContext);
 		}
 		
-		CreateOpenGLContext(version, _internals->hDC, 0, &_internals->context);
+		CreateOpenGLContext(version, _internals->hDC, nullptr, &_internals->context);
 #endif
 	}
 	
@@ -221,8 +237,12 @@ namespace RN
 		
 		_internals->pixelFormat = _shared->_internals->pixelFormat;
 		
+		PIXELFORMATDESCRIPTOR descriptor;
+
+		::DescribePixelFormat(_internals->hDC, _internals->pixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &descriptor);
 		::SetPixelFormat(_internals->hDC, _internals->pixelFormat, &descriptor);
-		CreateOpenGLContext(_version, _internals->hDC, _shared->_internals->context, &context);
+
+		CreateOpenGLContext(_version, _internals->hDC, _shared->_internals->context, &_internals->context);
 
 		if(_shared->_active && shared->_thread->OnThread())
 		{
@@ -448,7 +468,7 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_WINDOWS
-		wglMakeCurrent(_hDC, _context);
+		wglMakeCurrent(_internals->hDC, _internals->context);
 #endif
 
 #if RN_PLATFORM_LINUX
@@ -476,7 +496,7 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_WINDOWS
-		wglMakeCurrent(_hDC, 0);
+		wglMakeCurrent(_internals->hDC, nullptr);
 #endif
 
 #if RN_PLATFORM_LINUX

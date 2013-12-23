@@ -21,7 +21,7 @@ namespace RN
 	public:
 		MetaClassBase *SuperClass() const { return _superClass; }
 		const std::string& Name() const { return _name; }
-		RNAPI std::string Fullname() const;
+		std::string Fullname() const;
 		
 		virtual Object *Construct() { throw Exception(Exception::Type::GenericException, ""); }
 		virtual Object *ConstructWithSerializer(Serializer *) { throw Exception(Exception::Type::GenericException, ""); }

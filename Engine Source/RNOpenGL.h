@@ -45,8 +45,14 @@
 	#endif
 #endif
 
-	#include "glcorearb.h"
-	#include "glext.h"
+	#include "ogl/glcorearb.h"
+	#include "ogl/glext.h"
+
+	#if RN_PLATFORM_WINDOWS
+		#include "ogl/wglext.h"
+
+		#pragma comment(lib, "opengl32.lib")
+	#endif
 #endif
 
 #ifndef NDEBUG
@@ -81,12 +87,12 @@ namespace RN
 			ShaderBinary
 		};
 		
-		RNAPI Version MaximumVersion();
-		RNAPI Version WantedVersion();
+		Version MaximumVersion();
+		Version WantedVersion();
 		
-		RNAPI void CheckForError(const char *file, int line);
-		RNAPI bool SupportsFeature(Feature feature);
-		RNAPI bool SupportsExtensions(const std::string& extension);
+		void CheckForError(const char *file, int line);
+		bool SupportsFeature(Feature feature);
+		bool SupportsExtensions(const std::string& extension);
 
 		// 1.0
 		extern PFNGLCULLFACEPROC CullFace;
@@ -595,6 +601,16 @@ namespace RN
 		extern PFNGLGETFLOATI_VPROC GetFloati_v;
 		extern PFNGLGETDOUBLEI_VPROC GetDoublei_v;
 	}
+
+#if RN_PLATFORM_WINDOWS
+	namespace wgl
+	{
+		extern PFNWGLCREATECONTEXTATTRIBSARBPROC CreateContextAttribsARB;
+		extern PFNWGLCHOOSEPIXELFORMATARBPROC ChoosePixelFormatARB;
+		extern PFNWGLSWAPINTERVALEXTPROC SwapIntervalEXT;
+		extern PFNWGLGETEXTENSIONSSTRINGARBPROC GetExtensionsStringARB;
+	}
+#endif
 }
 
 #endif /* __RAYNE_OPENGL_H__ */

@@ -9,6 +9,10 @@
 #ifndef __RAYNE_SQLITE3INTERNAL_H__
 #define __RAYNE_SQLITE3INTERNAL_H__
 
+#define RN_TARGET_SUPPORT_SQLITE 0
+
+#if RN_TARGET_SUPPORT_SQLITE
+
 #include <sqlite3.h>
 #include "RNBase.h"
 
@@ -170,5 +174,7 @@ namespace RN
 		}
 	}
 }
+
+#endif /* RN_TARGET_SUPPORT_SQLITE */
 
 #endif /* __RAYNE_SQLITE3INTERNAL_H__ */

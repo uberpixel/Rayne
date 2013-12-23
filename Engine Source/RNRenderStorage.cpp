@@ -273,9 +273,9 @@ namespace RN
 		if(count == 0)
 			return;
 		
-		GLenum buffers[count];
+		GLenum buffers[128];
 		
-		for(uint32 i=0; i<count; i++)
+		for(uint32 i = 0; i < count; i ++)
 			buffers[i] = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
 		
 		gl::DrawBuffers(count, buffers);

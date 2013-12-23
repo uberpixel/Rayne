@@ -17,13 +17,13 @@ namespace RN
 	class IndexPath : public Object
 	{
 	public:
-		IndexPath();
-		IndexPath(IndexPath *other);
+		RNAPI IndexPath();
+		RNAPI IndexPath(IndexPath *other);
 		
-		void AddIndex(size_t index);
+		RNAPI void AddIndex(size_t index);
 		
-		size_t GetLength() const;
-		size_t GetIndexAtPosition(size_t position) const;
+		RNAPI size_t GetLength() const;
+		RNAPI size_t GetIndexAtPosition(size_t position) const;
 		
 	private:
 		std::vector<size_t> _indices;

@@ -52,7 +52,7 @@ namespace RN
 	}
 	
 	
-	
+#if RN_PLATFORM_MAC_OS
 	void TranslateKeyboardEvent(NSEvent *event, const std::function<void (UniChar)>& callback)
 	{
 		NSString *characters = [event characters];
@@ -107,7 +107,7 @@ namespace RN
 		
 		return delta;
 	}
-	
+#endif
 	
 	
 	Input::Input()
@@ -188,6 +188,9 @@ namespace RN
 	
 	void Input::DispatchInputEvents()
 	{
+		return;
+
+#if RN_PLATFORM_MAC_OS
 		_lock.Lock();
 		
 		if(!_active)
@@ -235,6 +238,7 @@ namespace RN
 				event->Release();
 			}
 		}
+#endif
 	}
 	
 	void Input::InvalidateFrame()
@@ -252,7 +256,7 @@ namespace RN
 	{
 		if(!_active)
 			return;
-		
+#if RN_PLATFORM_MAC_OS
 		AutoreleasePool *pool = new AutoreleasePool();
 		
 		NSEvent *nsevent = static_cast<NSEvent *>(data);
@@ -400,5 +404,6 @@ namespace RN
 			_pendingEvents.push_back(event);
 		
 		delete pool;
+#endif
 	}
 }

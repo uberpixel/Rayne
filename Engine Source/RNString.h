@@ -29,51 +29,51 @@ namespace RN
 		};
 		typedef uint32 ComparisonMode;
 		
-		String();
-		String(const char *string, va_list args);
-		String(const char *string, bool constant=false);
-		String(const char *string, size_t length, bool constant=false);
-		String(const UniChar *string, Encoding encodingHint = Encoding::UTF8);
-		String(const void *bytes, Encoding encoding, bool constant=false);
-		String(const void *bytes, size_t length, Encoding encoding, bool constant=false);
-		String(const String *string);
-		~String() override;
+		RNAPI String();
+		RNAPI String(const char *string, va_list args);
+		RNAPI String(const char *string, bool constant=false);
+		RNAPI String(const char *string, size_t length, bool constant=false);
+		RNAPI String(const UniChar *string, Encoding encodingHint = Encoding::UTF8);
+		RNAPI String(const void *bytes, Encoding encoding, bool constant=false);
+		RNAPI String(const void *bytes, size_t length, Encoding encoding, bool constant=false);
+		RNAPI String(const String *string);
+		RNAPI ~String() override;
 		
-		static String *WithFormat(const char *string, ...);
-		static String *WithString(const char *string, bool constant=false);
-		static String *WithString(const char *string, size_t length, bool constant=false);
-		static String *WithUnicode(const UniChar *string, Encoding encodingHint = Encoding::UTF8);
-		static String *WithBytes(const void *bytes, Encoding encoding, bool constant=false);
-		static String *WithBytes(const void *bytes, size_t length, Encoding encoding, bool constant=false);
-		static String *WithContentsOfFile(const std::string& file, Encoding encoding);
+		RNAPI static String *WithFormat(const char *string, ...);
+		RNAPI static String *WithString(const char *string, bool constant=false);
+		RNAPI static String *WithString(const char *string, size_t length, bool constant=false);
+		RNAPI static String *WithUnicode(const UniChar *string, Encoding encodingHint = Encoding::UTF8);
+		RNAPI static String *WithBytes(const void *bytes, Encoding encoding, bool constant=false);
+		RNAPI static String *WithBytes(const void *bytes, size_t length, Encoding encoding, bool constant=false);
+		RNAPI static String *WithContentsOfFile(const std::string& file, Encoding encoding);
 		
-		machine_hash GetHash() const override;
-		bool IsEqual(Object *other) const override;
+		RNAPI machine_hash GetHash() const override;
+		RNAPI bool IsEqual(Object *other) const override;
 		
-		void Append(const String *string);
-		void Append(const char *string, ...);
-		void Insert(const String *string, size_t index);
-		void Capitalize();
+		RNAPI void Append(const String *string);
+		RNAPI void Append(const char *string, ...);
+		RNAPI void Insert(const String *string, size_t index);
+		RNAPI void Capitalize();
 		
-		void DeleteCharacters(const Range& range);
+		RNAPI void DeleteCharacters(const Range& range);
 		
-		void ReplaceCharacters(const String *replacement, const Range& range);
-		void ReplaceOccurrencesOfString(const String *string, const String *replacement);
+		RNAPI void ReplaceCharacters(const String *replacement, const Range& range);
+		RNAPI void ReplaceOccurrencesOfString(const String *string, const String *replacement);
 		
-		Range GetRangeOfString(const String *string, ComparisonMode mode=0) const;
-		Range GetRangeOfString(const String *string, ComparisonMode mode, const Range& range) const;
+		RNAPI Range GetRangeOfString(const String *string, ComparisonMode mode=0) const;
+		RNAPI Range GetRangeOfString(const String *string, ComparisonMode mode, const Range& range) const;
 		
-		ComparisonResult Compare(const String *other, ComparisonMode mode=0) const;
-		ComparisonResult Compare(const String *other, ComparisonMode mode, const Range& range) const;
+		RNAPI ComparisonResult Compare(const String *other, ComparisonMode mode=0) const;
+		RNAPI ComparisonResult Compare(const String *other, ComparisonMode mode, const Range& range) const;
 		
-		String *GetSubstring(const Range& range) const;
-		UniChar GetCharacterAtIndex(size_t index) const;
-		Array *GetComponentsSeparatedByString(const String *other) const;
+		RNAPI String *GetSubstring(const Range& range) const;
+		RNAPI UniChar GetCharacterAtIndex(size_t index) const;
+		RNAPI Array *GetComponentsSeparatedByString(const String *other) const;
 		
-		size_t GetLength() const;
+		RNAPI size_t GetLength() const;
 		
-		uint8 *GetBytesWithEncoding(Encoding encoding, bool lossy, size_t *length) const;
-		char *GetUTF8String() const;
+		RNAPI uint8 *GetBytesWithEncoding(Encoding encoding, bool lossy, size_t *length) const;
+		RNAPI char *GetUTF8String() const;
 		
 	private:
 		String(void *internal);

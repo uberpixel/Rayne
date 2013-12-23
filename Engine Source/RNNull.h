@@ -17,10 +17,10 @@ namespace RN
 	class Null : public Object
 	{
 	public:
-		Null();
-		~Null() override;
+		RNAPI Null();
+		RNAPI ~Null() override;
 		
-		static Null *GetNull();
+		RNAPI static Null *GetNull();
 		
 		RNDefineMeta(Null, Object)
 	};

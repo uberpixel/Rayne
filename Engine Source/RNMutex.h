@@ -19,8 +19,8 @@ namespace RN
 		RNAPI Mutex();
 		RNAPI ~Mutex();
 		
-		Mutex(const Mutex& other) = delete;
-		Mutex& operator =(const Mutex& other) = delete;
+		RNAPI Mutex(const Mutex& other) = delete;
+		RNAPI Mutex& operator =(const Mutex& other) = delete;
 		
 		RNAPI void Lock();
 		RNAPI bool TryLock();

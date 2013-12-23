@@ -28,17 +28,17 @@ namespace RN
 		class Menu : public Object
 		{
 		public:
-			Menu();
-			~Menu();
+			RNAPI Menu();
+			RNAPI ~Menu();
 			
-			void AddItem(MenuItem *item);
-			void InsertItem(MenuItem *item, size_t index);
-			void RemoveItem(MenuItem *item);
-			void RemoveItemAtIndex(size_t index);
+			RNAPI void AddItem(MenuItem *item);
+			RNAPI void InsertItem(MenuItem *item, size_t index);
+			RNAPI void RemoveItem(MenuItem *item);
+			RNAPI void RemoveItemAtIndex(size_t index);
 			
-			const Array *GetItems() const { return _items; }
+			RNAPI const Array *GetItems() const { return _items; }
 			
-			static void PopUpContextMenu(Menu *menu, const Vector2& location);
+			RNAPI static void PopUpContextMenu(Menu *menu, const Vector2& location);
 			
 		private:
 			Array *_items;
@@ -54,36 +54,36 @@ namespace RN
 			
 			typedef std::function<void (MenuItem *item)> Callback;
 			
-			MenuItem();
-			MenuItem(String *title);
-			MenuItem(String *title, String *keyEquivalent);
-			~MenuItem();
+			RNAPI MenuItem();
+			RNAPI MenuItem(String *title);
+			RNAPI MenuItem(String *title, String *keyEquivalent);
+			RNAPI ~MenuItem();
 			
-			static MenuItem *WithTitle(String *title, const Callback& callback = Callback());
-			static MenuItem *WithTitleAndKeyEquivalent(String *title, const Callback& callback, String *key);
-			static MenuItem *SeparatorItem();
+			RNAPI static MenuItem *WithTitle(String *title, const Callback& callback = Callback());
+			RNAPI static MenuItem *WithTitleAndKeyEquivalent(String *title, const Callback& callback, String *key);
+			RNAPI static MenuItem *SeparatorItem();
 			
-			void SetTitle(String *title);
-			void SetAttributedTitle(AttributedString *title);
-			void SetImage(Image *image);
-			void SetKeyEquivalent(String *key);
-			void SetCallback(const Callback& callback);
+			RNAPI void SetTitle(String *title);
+			RNAPI void SetAttributedTitle(AttributedString *title);
+			RNAPI void SetImage(Image *image);
+			RNAPI void SetKeyEquivalent(String *key);
+			RNAPI void SetCallback(const Callback& callback);
 			
-			void SetSubMenu(Menu *menu);
-			void SetEnabled(bool enabled);
+			RNAPI void SetSubMenu(Menu *menu);
+			RNAPI void SetEnabled(bool enabled);
 			
-			Menu *GetMenu() { return _menu; }
-			Menu *GetSubMenu() { return _subMenu; }
+			RNAPI Menu *GetMenu() { return _menu; }
+			RNAPI Menu *GetSubMenu() { return _subMenu; }
 			
-			bool IsEnabled() const;
+			RNAPI bool IsEnabled() const;
 			
-			const String *GetTitle() const { return _title->GetString(); }
-			const AttributedString *GetAttributedTitle() const { return _title; }
-			const Image *GetImage() const { return _image; }
-			const String *GetKeyEquivalent() const { return _keyEquivalent; }
-			const Callback& GetCallback() const { return _callback; }
+			RNAPI const String *GetTitle() const { return _title->GetString(); }
+			RNAPI const AttributedString *GetAttributedTitle() const { return _title; }
+			RNAPI const Image *GetImage() const { return _image; }
+			RNAPI const String *GetKeyEquivalent() const { return _keyEquivalent; }
+			RNAPI const Callback& GetCallback() const { return _callback; }
 			
-			bool IsSeparator() const { return _isSeparator; }
+			RNAPI bool IsSeparator() const { return _isSeparator; }
 			
 		private:
 			void RemoveFromMenu();

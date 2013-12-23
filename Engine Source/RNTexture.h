@@ -98,8 +98,8 @@ namespace RN
 		
 		RNAPI ~Texture() override;
 		
-		static Texture *WithFile(const std::string& name, bool isLinear = false);
-		static Texture *WithFile(const std::string& name, const Parameter& parameter, bool isLinear = false);
+		RNAPI static Texture *WithFile(const std::string& name, bool isLinear = false);
+		RNAPI static Texture *WithFile(const std::string& name, const Parameter& parameter, bool isLinear = false);
 		
 		RNAPI void Bind();
 		RNAPI void Unbind();
@@ -107,15 +107,15 @@ namespace RN
 		RNAPI virtual void SetSize(size_t width, size_t height);
 		RNAPI void SetParameter(const Parameter& parameter);
 		
-		const Parameter& GetParameter() const { return _parameter; }
+		RNAPI const Parameter& GetParameter() const { return _parameter; }
 		
-		GLuint GetName() { return _name; }
-		GLuint GetGLType() { return _glType; }
+		RNAPI GLuint GetName() { return _name; }
+		RNAPI GLuint GetGLType() { return _glType; }
 		
-		size_t GetWidth() const { return _width; }
-		size_t GetHeight() const { return _height; }
+		RNAPI size_t GetWidth() const { return _width; }
+		RNAPI size_t GetHeight() const { return _height; }
 		
-		bool IsComplete() const { return _isComplete; }
+		RNAPI bool IsComplete() const { return _isComplete; }
 		
 		RNAPI static bool PlatformSupportsFormat(Format format);
 		

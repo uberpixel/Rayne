@@ -21,35 +21,35 @@ namespace RN
 		class Generator
 		{
 		public:
-			Generator();
-			virtual ~Generator();
+			RNAPI Generator();
+			RNAPI virtual ~Generator();
 			
-			virtual uint32 GetSeedValue();
+			RNAPI virtual uint32 GetSeedValue();
 			
-			virtual int32 GetMin() const = 0;
-			virtual int32 GetMax() const = 0;
+			RNAPI virtual int32 GetMin() const = 0;
+			RNAPI virtual int32 GetMax() const = 0;
 			
-			virtual void Seed(uint32 seed) = 0;
+			RNAPI virtual void Seed(uint32 seed) = 0;
 			
-			virtual int32 RandomInt32() = 0;
-			virtual int32 RandomInt32Range(int32 min, int32 max);
+			RNAPI virtual int32 RandomInt32() = 0;
+			RNAPI virtual int32 RandomInt32Range(int32 min, int32 max);
 			
-			virtual float RandomFloat();
-			virtual float RandomFloatRange(float min, float max);
+			RNAPI virtual float RandomFloat();
+			RNAPI virtual float RandomFloatRange(float min, float max);
 			
-			virtual double UniformDeviate(int32 seed);
+			RNAPI virtual double UniformDeviate(int32 seed);
 		};
 		
 		class LCG : public Generator
 		{
 		public:
-			LCG();
+			RNAPI LCG();
 			
-			virtual int32 GetMin() const;
-			virtual int32 GetMax() const;
+			RNAPI virtual int32 GetMin() const;
+			RNAPI virtual int32 GetMax() const;
 			
-			virtual void Seed(uint32 seed);
-			virtual int32 RandomInt32();
+			RNAPI virtual void Seed(uint32 seed);
+			RNAPI virtual int32 RandomInt32();
 			
 		private:
 			int32 _M;
@@ -62,13 +62,13 @@ namespace RN
 		class DualPhaseLCG : public Generator
 		{
 		public:
-			DualPhaseLCG();
+			RNAPI DualPhaseLCG();
 			
-			virtual int32 GetMin() const;
-			virtual int32 GetMax() const;
+			RNAPI virtual int32 GetMin() const;
+			RNAPI virtual int32 GetMax() const;
 			
-			virtual void Seed(uint32 seed);
-			virtual int32 RandomInt32();
+			RNAPI virtual void Seed(uint32 seed);
+			RNAPI virtual int32 RandomInt32();
 			
 		private:
 			int32 _M1;
@@ -87,14 +87,14 @@ namespace RN
 		class MersenneTwister : public Generator
 		{
 		public:
-			MersenneTwister();
-			~MersenneTwister();
+			RNAPI MersenneTwister();
+			RNAPI ~MersenneTwister();
 			
-			virtual int32 GetMin() const;
-			virtual int32 GetMax() const;
+			RNAPI virtual int32 GetMin() const;
+			RNAPI virtual int32 GetMax() const;
 			
-			virtual void Seed(uint32 seed);
-			virtual int32 RandomInt32();
+			RNAPI virtual void Seed(uint32 seed);
+			RNAPI virtual int32 RandomInt32();
 			
 		private:
 			int32 _N;
@@ -118,25 +118,25 @@ namespace RN
 			MersenneTwister
 		};
 		
-		RandomNumberGenerator(Type type);
-		~RandomNumberGenerator() override;
+		RNAPI RandomNumberGenerator(Type type);
+		RNAPI ~RandomNumberGenerator() override;
 		
-		int32 GetMin() const;
-		int32 GetMax() const;
+		RNAPI int32 GetMin() const;
+		RNAPI int32 GetMax() const;
 		
-		void Seed(uint32 seed);
-		int32 RandomInt32();
-		int32 RandomInt32Range(int32 min, int32 max);
+		RNAPI void Seed(uint32 seed);
+		RNAPI int32 RandomInt32();
+		RNAPI int32 RandomInt32Range(int32 min, int32 max);
 		
-		float RandomFloat();
-		float RandomFloatRange(float min, float max);
+		RNAPI float RandomFloat();
+		RNAPI float RandomFloatRange(float min, float max);
 		
-		double UniformDeviate(int32 seed);
-		Color RandomColor();
+		RNAPI double UniformDeviate(int32 seed);
+		RNAPI Color RandomColor();
 		
-		Vector2 RandomVector2Range(const Vector2& min, const Vector2& max);
-		Vector3 RandomVector3Range(const Vector3& min, const Vector3& max);
-		Vector4 RandomVector4Range(const Vector4& min, const Vector4& max);
+		RNAPI Vector2 RandomVector2Range(const Vector2& min, const Vector2& max);
+		RNAPI Vector3 RandomVector3Range(const Vector3& min, const Vector3& max);
+		RNAPI Vector4 RandomVector4Range(const Vector4& min, const Vector4& max);
 		
 	private:
 		Random::Generator *_generator;

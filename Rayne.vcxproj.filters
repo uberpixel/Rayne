@@ -1,192 +1,263 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <ClInclude Include="Engine Source\Rayne.h" />
+    <ClInclude Include="Engine Source\RNAABB.h" />
+    <ClInclude Include="Engine Source\RNAlgorithm.h" />
+    <ClInclude Include="Engine Source\RNApplication.h" />
+    <ClInclude Include="Engine Source\RNArray.h" />
+    <ClInclude Include="Engine Source\RNASCIIString.h" />
+    <ClInclude Include="Engine Source\RNAttributedString.h" />
+    <ClInclude Include="Engine Source\RNAutoreleasePool.h" />
+    <ClInclude Include="Engine Source\RNBase.h" />
+    <ClInclude Include="Engine Source\RNBaseInternal.h" />
+    <ClInclude Include="Engine Source\RNBasicString.h" />
+    <ClInclude Include="Engine Source\RNBillboard.h" />
+    <ClInclude Include="Engine Source\RNCamera.h" />
+    <ClInclude Include="Engine Source\RNCatalogue.h" />
+    <ClInclude Include="Engine Source\RNColor.h" />
+    <ClInclude Include="Engine Source\RNConstants.h" />
+    <ClInclude Include="Engine Source\RNContext.h" />
+    <ClInclude Include="Engine Source\RNContextInternal.h" />
+    <ClInclude Include="Engine Source\RNCountedSet.h" />
+    <ClInclude Include="Engine Source\RNCPU.h" />
+    <ClInclude Include="Engine Source\RNData.h" />
+    <ClInclude Include="Engine Source\RNDebug.h" />
+    <ClInclude Include="Engine Source\RNDefines.h" />
+    <ClInclude Include="Engine Source\RNDictionary.h" />
+    <ClInclude Include="Engine Source\RNEntity.h" />
+    <ClInclude Include="Engine Source\RNException.h" />
+    <ClInclude Include="Engine Source\RNFile.h" />
+    <ClInclude Include="Engine Source\RNFileManager.h" />
+    <ClInclude Include="Engine Source\RNFormatter.h" />
+    <ClInclude Include="Engine Source\RNFunction.h" />
+    <ClInclude Include="Engine Source\RNHashTableInternal.h" />
+    <ClInclude Include="Engine Source\RNHit.h" />
+    <ClInclude Include="Engine Source\RNIndexPath.h" />
+    <ClInclude Include="Engine Source\RNIndexSet.h" />
+    <ClInclude Include="Engine Source\RNInput.h" />
+    <ClInclude Include="Engine Source\RNInstancingData.h" />
+    <ClInclude Include="Engine Source\RNInstancingNode.h" />
+    <ClInclude Include="Engine Source\RNInterpolation.h" />
+    <ClInclude Include="Engine Source\RNIntervalTree.h" />
+    <ClInclude Include="Engine Source\RNJSONSerialization.h" />
+    <ClInclude Include="Engine Source\RNKernel.h" />
+    <ClInclude Include="Engine Source\RNKVO.h" />
+    <ClInclude Include="Engine Source\RNKVOImplementation.h" />
+    <ClInclude Include="Engine Source\RNLight.h" />
+    <ClInclude Include="Engine Source\RNLightManager.h" />
+    <ClInclude Include="Engine Source\RNLockGuard.h" />
+    <ClInclude Include="Engine Source\RNLogging.h" />
+    <ClInclude Include="Engine Source\RNLoggingEngine.h" />
+    <ClInclude Include="Engine Source\RNMaterial.h" />
+    <ClInclude Include="Engine Source\RNMath.h" />
+    <ClInclude Include="Engine Source\RNMatrix.h" />
+    <ClInclude Include="Engine Source\RNMatrixQuaternion.h" />
+    <ClInclude Include="Engine Source\RNMemory.h" />
+    <ClInclude Include="Engine Source\RNMesh.h" />
+    <ClInclude Include="Engine Source\RNMessage.h" />
+    <ClInclude Include="Engine Source\RNModel.h" />
+    <ClInclude Include="Engine Source\RNModule.h" />
+    <ClInclude Include="Engine Source\RNMutex.h" />
+    <ClInclude Include="Engine Source\RNNull.h" />
+    <ClInclude Include="Engine Source\RNNumber.h" />
+    <ClInclude Include="Engine Source\RNObject.h" />
+    <ClInclude Include="Engine Source\RNOctreeSceneManager.h" />
+    <ClInclude Include="Engine Source\RNOpenGL.h" />
+    <ClInclude Include="Engine Source\RNOpenPanel.h" />
+    <ClInclude Include="Engine Source\RNParticle.h" />
+    <ClInclude Include="Engine Source\RNParticleEmitter.h" />
+    <ClInclude Include="Engine Source\RNPathManager.h" />
+    <ClInclude Include="Engine Source\RNPlane.h" />
+    <ClInclude Include="Engine Source\RNQuaternion.h" />
+    <ClInclude Include="Engine Source\RNRandom.h" />
+    <ClInclude Include="Engine Source\RNRect.h" />
+    <ClInclude Include="Engine Source\RNRenderer.h" />
+    <ClInclude Include="Engine Source\RNRenderer32.h" />
+    <ClInclude Include="Engine Source\RNRenderStorage.h" />
+    <ClInclude Include="Engine Source\RNResourceCoordinator.h" />
+    <ClInclude Include="Engine Source\RNResourceLoader.h" />
+    <ClInclude Include="Engine Source\RNResourceLoaderBuiltIn.h" />
+    <ClInclude Include="Engine Source\RNRingbuffer.h" />
+    <ClInclude Include="Engine Source\RNSceneManager.h" />
+    <ClInclude Include="Engine Source\RNSceneNode.h" />
+    <ClInclude Include="Engine Source\RNScopeGuard.h" />
+    <ClInclude Include="Engine Source\RNSemaphore.h" />
+    <ClInclude Include="Engine Source\RNSerialization.h" />
+    <ClInclude Include="Engine Source\RNSet.h" />
+    <ClInclude Include="Engine Source\RNSettings.h" />
+    <ClInclude Include="Engine Source\RNSHA2.h" />
+    <ClInclude Include="Engine Source\RNShader.h" />
+    <ClInclude Include="Engine Source\RNShaderCache.h" />
+    <ClInclude Include="Engine Source\RNShaderLookup.h" />
+    <ClInclude Include="Engine Source\RNShaderUnit.h" />
+    <ClInclude Include="Engine Source\RNSignal.h" />
+    <ClInclude Include="Engine Source\RNSIMD.h" />
+    <ClInclude Include="Engine Source\RNSkeleton.h" />
+    <ClInclude Include="Engine Source\RNSpatialHashTable.h" />
+    <ClInclude Include="Engine Source\RNSphere.h" />
+    <ClInclude Include="Engine Source\RNSpinLock.h" />
+    <ClInclude Include="Engine Source\RNSQLite3Internal.h" />
+    <ClInclude Include="Engine Source\RNStatistics.h" />
+    <ClInclude Include="Engine Source\RNSTL.h" />
+    <ClInclude Include="Engine Source\RNString.h" />
+    <ClInclude Include="Engine Source\RNTextNode.h" />
+    <ClInclude Include="Engine Source\RNTexture.h" />
+    <ClInclude Include="Engine Source\RNTextureAtlas.h" />
+    <ClInclude Include="Engine Source\RNThread.h" />
+    <ClInclude Include="Engine Source\RNThreadPool.h" />
+    <ClInclude Include="Engine Source\RNTriggerZone.h" />
+    <ClInclude Include="Engine Source\RNUIButton.h" />
+    <ClInclude Include="Engine Source\RNUIColor.h" />
+    <ClInclude Include="Engine Source\RNUIControl.h" />
+    <ClInclude Include="Engine Source\RNUIFont.h" />
+    <ClInclude Include="Engine Source\RNUIGeometry.h" />
+    <ClInclude Include="Engine Source\RNUIImage.h" />
+    <ClInclude Include="Engine Source\RNUIImageView.h" />
+    <ClInclude Include="Engine Source\RNUILabel.h" />
+    <ClInclude Include="Engine Source\RNUIMenu.h" />
+    <ClInclude Include="Engine Source\RNUIOutlineView.h" />
+    <ClInclude Include="Engine Source\RNUIOutlineViewCell.h" />
+    <ClInclude Include="Engine Source\RNUIResponder.h" />
+    <ClInclude Include="Engine Source\RNUIScroller.h" />
+    <ClInclude Include="Engine Source\RNUIScrollerInternals.h" />
+    <ClInclude Include="Engine Source\RNUIScrollView.h" />
+    <ClInclude Include="Engine Source\RNUISegmentView.h" />
+    <ClInclude Include="Engine Source\RNUIServer.h" />
+    <ClInclude Include="Engine Source\RNUIStyle.h" />
+    <ClInclude Include="Engine Source\RNUITableView.h" />
+    <ClInclude Include="Engine Source\RNUITableViewCell.h" />
+    <ClInclude Include="Engine Source\RNUITextEditor.h" />
+    <ClInclude Include="Engine Source\RNUITextField.h" />
+    <ClInclude Include="Engine Source\RNUITextStyle.h" />
+    <ClInclude Include="Engine Source\RNUITypesetter.h" />
+    <ClInclude Include="Engine Source\RNUIUtilities.h" />
+    <ClInclude Include="Engine Source\RNUIView.h" />
+    <ClInclude Include="Engine Source\RNUIWidget.h" />
+    <ClInclude Include="Engine Source\RNUIWidgetInternals.h" />
+    <ClInclude Include="Engine Source\RNUnicode.h" />
+    <ClInclude Include="Engine Source\RNUTF8String.h" />
+    <ClInclude Include="Engine Source\RNValue.h" />
+    <ClInclude Include="Engine Source\RNVector.h" />
+    <ClInclude Include="Engine Source\RNWater.h" />
+    <ClInclude Include="Engine Source\RNWindow.h" />
+    <ClInclude Include="Engine Source\RNWindowInternal.h" />
+    <ClInclude Include="Engine Source\RNWorld.h" />
+    <ClInclude Include="Engine Source\RNWorldAttachment.h" />
+    <ClInclude Include="Engine Source\RNWrappingObject.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Engine Source\gl11.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\glext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNArray.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNCamera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNColor.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNContext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNDefines.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNEntity.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNError.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNErrorGroupGraphics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNFile.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNKernel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNList.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNMaterial.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNMatrix.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNMatrixQuaternion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNMutex.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNObject.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNOpenGL.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNPlatform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNQuaternion.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNRect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNRendererBackend.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNRendererFrontend.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNRendering.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNRenderingResource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNShader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNSpinLock.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNTexture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNTextureLoader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNThread.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNVector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNWorld.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\wglext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="Engine Source\RNBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNCamera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNContext.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNEntity.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNFile.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNKernel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNList.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNMaterial.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNMesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNMutex.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNObject.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNOpenGL.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNRendererBackend.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNRendererFrontend.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNShader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNTexture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNTextureLoader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNThread.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNWindow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNWorld.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
+    <ClCompile Include="Engine Source\RNApplication.cpp" />
+    <ClCompile Include="Engine Source\RNArray.cpp" />
+    <ClCompile Include="Engine Source\RNASCIIString.cpp" />
+    <ClCompile Include="Engine Source\RNAttributedString.cpp" />
+    <ClCompile Include="Engine Source\RNAutoreleasePool.cpp" />
+    <ClCompile Include="Engine Source\RNBase.cpp" />
+    <ClCompile Include="Engine Source\RNBasicString.cpp" />
+    <ClCompile Include="Engine Source\RNBillboard.cpp" />
+    <ClCompile Include="Engine Source\RNCamera.cpp" />
+    <ClCompile Include="Engine Source\RNCatalogue.cpp" />
+    <ClCompile Include="Engine Source\RNContext.cpp" />
+    <ClCompile Include="Engine Source\RNCountedSet.cpp" />
+    <ClCompile Include="Engine Source\RNCPU.cpp" />
+    <ClCompile Include="Engine Source\RNData.cpp" />
+    <ClCompile Include="Engine Source\RNDebug.cpp" />
+    <ClCompile Include="Engine Source\RNDictionary.cpp" />
+    <ClCompile Include="Engine Source\RNEntity.cpp" />
+    <ClCompile Include="Engine Source\RNException.cpp" />
+    <ClCompile Include="Engine Source\RNFile.cpp" />
+    <ClCompile Include="Engine Source\RNFileManager.cpp" />
+    <ClCompile Include="Engine Source\RNFormatter.cpp" />
+    <ClCompile Include="Engine Source\RNIndexPath.cpp" />
+    <ClCompile Include="Engine Source\RNIndexSet.cpp" />
+    <ClCompile Include="Engine Source\RNInput.cpp" />
+    <ClCompile Include="Engine Source\RNInstancingData.cpp" />
+    <ClCompile Include="Engine Source\RNInstancingNode.cpp" />
+    <ClCompile Include="Engine Source\RNJSONSerialization.cpp" />
+    <ClCompile Include="Engine Source\RNKernel.cpp" />
+    <ClCompile Include="Engine Source\RNKVO.cpp" />
+    <ClCompile Include="Engine Source\RNLight.cpp" />
+    <ClCompile Include="Engine Source\RNLightManager.cpp" />
+    <ClCompile Include="Engine Source\RNLogging.cpp" />
+    <ClCompile Include="Engine Source\RNLoggingEngine.cpp" />
+    <ClCompile Include="Engine Source\RNMaterial.cpp" />
+    <ClCompile Include="Engine Source\RNMath.cpp" />
+    <ClCompile Include="Engine Source\RNMemory.cpp" />
+    <ClCompile Include="Engine Source\RNMesh.cpp" />
+    <ClCompile Include="Engine Source\RNMessage.cpp" />
+    <ClCompile Include="Engine Source\RNModel.cpp" />
+    <ClCompile Include="Engine Source\RNModule.cpp" />
+    <ClCompile Include="Engine Source\RNMutex.cpp" />
+    <ClCompile Include="Engine Source\RNNull.cpp" />
+    <ClCompile Include="Engine Source\RNNumber.cpp" />
+    <ClCompile Include="Engine Source\RNObject.cpp" />
+    <ClCompile Include="Engine Source\RNOctreeSceneManager.cpp" />
+    <ClCompile Include="Engine Source\RNOpenGL.cpp" />
+    <ClCompile Include="Engine Source\RNOpenGLBinder.cpp" />
+    <ClCompile Include="Engine Source\RNOpenPanel.cpp" />
+    <ClCompile Include="Engine Source\RNParticle.cpp" />
+    <ClCompile Include="Engine Source\RNParticleEmitter.cpp" />
+    <ClCompile Include="Engine Source\RNPathManager.cpp" />
+    <ClCompile Include="Engine Source\RNRandom.cpp" />
+    <ClCompile Include="Engine Source\RNRenderer.cpp" />
+    <ClCompile Include="Engine Source\RNRenderer32.cpp" />
+    <ClCompile Include="Engine Source\RNRenderStorage.cpp" />
+    <ClCompile Include="Engine Source\RNResourceCoordinator.cpp" />
+    <ClCompile Include="Engine Source\RNResourceLoader.cpp" />
+    <ClCompile Include="Engine Source\RNResourceLoaderBuiltIn.cpp" />
+    <ClCompile Include="Engine Source\RNSceneManager.cpp" />
+    <ClCompile Include="Engine Source\RNSceneNode.cpp" />
+    <ClCompile Include="Engine Source\RNSerialization.cpp" />
+    <ClCompile Include="Engine Source\RNSet.cpp" />
+    <ClCompile Include="Engine Source\RNSettings.cpp" />
+    <ClCompile Include="Engine Source\RNSHA2.cpp" />
+    <ClCompile Include="Engine Source\RNShader.cpp" />
+    <ClCompile Include="Engine Source\RNShaderCache.cpp" />
+    <ClCompile Include="Engine Source\RNShaderUnit.cpp" />
+    <ClCompile Include="Engine Source\RNSkeleton.cpp" />
+    <ClCompile Include="Engine Source\RNSpatialHashTable.cpp" />
+    <ClCompile Include="Engine Source\RNSpinLock.cpp" />
+    <ClCompile Include="Engine Source\RNStatistics.cpp" />
+    <ClCompile Include="Engine Source\RNString.cpp" />
+    <ClCompile Include="Engine Source\RNTextNode.cpp" />
+    <ClCompile Include="Engine Source\RNTexture.cpp" />
+    <ClCompile Include="Engine Source\RNTextureAtlas.cpp" />
+    <ClCompile Include="Engine Source\RNThread.cpp" />
+    <ClCompile Include="Engine Source\RNThreadPool.cpp" />
+    <ClCompile Include="Engine Source\RNTriggerZone.cpp" />
+    <ClCompile Include="Engine Source\RNUIButton.cpp" />
+    <ClCompile Include="Engine Source\RNUIColor.cpp" />
+    <ClCompile Include="Engine Source\RNUIControl.cpp" />
+    <ClCompile Include="Engine Source\RNUIFont.cpp" />
+    <ClCompile Include="Engine Source\RNUIImage.cpp" />
+    <ClCompile Include="Engine Source\RNUIImageView.cpp" />
+    <ClCompile Include="Engine Source\RNUILabel.cpp" />
+    <ClCompile Include="Engine Source\RNUIMenu.cpp" />
+    <ClCompile Include="Engine Source\RNUIOutlineView.cpp" />
+    <ClCompile Include="Engine Source\RNUIOutlineViewCell.cpp" />
+    <ClCompile Include="Engine Source\RNUIResponder.cpp" />
+    <ClCompile Include="Engine Source\RNUIScroller.cpp" />
+    <ClCompile Include="Engine Source\RNUIScrollerInternals.cpp" />
+    <ClCompile Include="Engine Source\RNUIScrollView.cpp" />
+    <ClCompile Include="Engine Source\RNUISegmentView.cpp" />
+    <ClCompile Include="Engine Source\RNUIServer.cpp" />
+    <ClCompile Include="Engine Source\RNUIStyle.cpp" />
+    <ClCompile Include="Engine Source\RNUITableView.cpp" />
+    <ClCompile Include="Engine Source\RNUITableViewCell.cpp" />
+    <ClCompile Include="Engine Source\RNUITextEditor.cpp" />
+    <ClCompile Include="Engine Source\RNUITextField.cpp" />
+    <ClCompile Include="Engine Source\RNUITypesetter.cpp" />
+    <ClCompile Include="Engine Source\RNUIUtilities.cpp" />
+    <ClCompile Include="Engine Source\RNUIView.cpp" />
+    <ClCompile Include="Engine Source\RNUIWidget.cpp" />
+    <ClCompile Include="Engine Source\RNUIWidgetInternals.cpp" />
+    <ClCompile Include="Engine Source\RNUnicode.cpp" />
+    <ClCompile Include="Engine Source\RNUTF8String.cpp" />
+    <ClCompile Include="Engine Source\RNValue.cpp" />
+    <ClCompile Include="Engine Source\RNWater.cpp" />
+    <ClCompile Include="Engine Source\RNWindow.cpp" />
+    <ClCompile Include="Engine Source\RNWindowInternal.cpp" />
+    <ClCompile Include="Engine Source\RNWorld.cpp" />
+    <ClCompile Include="Engine Source\RNWorldAttachment.cpp" />
   </ItemGroup>
 </Project>

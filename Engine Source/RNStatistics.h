@@ -26,13 +26,13 @@ namespace RN
 			std::chrono::high_resolution_clock::time_point last;
 		};
 		
-		Statistics();
-		~Statistics();
+		RNAPI Statistics();
+		RNAPI ~Statistics();
 		
-		void Push(const std::string& name);
-		void Pop();
+		RNAPI void Push(const std::string& name);
+		RNAPI void Pop();
 		
-		void Clear();
+		RNAPI void Clear();
 		
 		const std::vector<DataPoint *>& GetDataPoints() const { return _totalPoints; }
 		

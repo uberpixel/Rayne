@@ -192,11 +192,23 @@ namespace RN
 	
 	void Number::Serialize(Serializer *serializer)
 	{
+#if RN_PLATFORM_WINDOWS
+		#pragma pack(push, 1)
+
+		struct
+		{
+			char type;
+			char bytes[32];
+		} data;
+
+		#pragma pack(pop)
+#else
 		struct __attribute__((packed))
 		{
 			char type;
 			char bytes[32];
 		} data;
+#endif
 		
 		size_t size = SizeForType(_type);
 		

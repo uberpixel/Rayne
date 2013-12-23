@@ -385,5 +385,11 @@ namespace RN
 		}
 		
 #endif /* RN_PLATFORM_MAC_OS */
+
+#if RN_PLATFORM_WINDOWS
+		void Server::TranslateMenuToPlatform()
+		{
+		}
+#endif
 	}
 }

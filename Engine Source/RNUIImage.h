@@ -22,24 +22,24 @@ namespace RN
 		class Image : public Object
 		{
 		public:
-			Image(Texture *texture);
-			Image(const std::string& file);
-			~Image() override;
+			RNAPI Image(Texture *texture);
+			RNAPI Image(const std::string& file);
+			RNAPI ~Image() override;
 			
-			static Image *WithFile(const std::string& file);
-			static Image *WithTexture(Texture *texture);
+			RNAPI static Image *WithFile(const std::string& file);
+			RNAPI static Image *WithTexture(Texture *texture);
 			
-			void SetAtlas(const Atlas& atlas, bool normalized=true);
-			void SetEdgeInsets(const EdgeInsets& insets);
+			RNAPI void SetAtlas(const Atlas& atlas, bool normalized=true);
+			RNAPI void SetEdgeInsets(const EdgeInsets& insets);
 			
-			const Atlas& GetAtlas() const { return _atlas; }
-			const EdgeInsets& GetEdgeInsets() const { return _insets; }
+			RNAPI const Atlas& GetAtlas() const { return _atlas; }
+			RNAPI const EdgeInsets& GetEdgeInsets() const { return _insets; }
 			
-			Texture *GetTexture() const { return _texture; }
-			Mesh *GetFittingMesh(const Vector2& size, const Vector2& offset=Vector2());
+			RNAPI Texture *GetTexture() const { return _texture; }
+			RNAPI Mesh *GetFittingMesh(const Vector2& size, const Vector2& offset=Vector2());
 			
-			size_t GetWidth() const;
-			size_t GetHeight() const;
+			RNAPI size_t GetWidth() const;
+			RNAPI size_t GetHeight() const;
 			
 		private:
 			Texture *_texture;

@@ -90,16 +90,16 @@ namespace RN
 	class OctreeSceneManager : public SceneManager
 	{
 	public:
-		OctreeSceneManager();
-		~OctreeSceneManager() override;
+		RNAPI OctreeSceneManager();
+		RNAPI ~OctreeSceneManager() override;
 		
-		void AddSceneNode(SceneNode *node) override;
-		void RemoveSceneNode(SceneNode *node) override;
-		void UpdateSceneNode(SceneNode *node, uint32 changes) override;
+		RNAPI void AddSceneNode(SceneNode *node) override;
+		RNAPI void RemoveSceneNode(SceneNode *node) override;
+		RNAPI void UpdateSceneNode(SceneNode *node, uint32 changes) override;
 		
-		void RenderScene(Camera *camera) override;
+		RNAPI void RenderScene(Camera *camera) override;
 		
-		Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0xffff, Hit::HitMode mode = Hit::HitMode::IgnoreNone) override;
+		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0xffff, Hit::HitMode mode = Hit::HitMode::IgnoreNone) override;
 		
 	private:
 		void RenderSceneNode(Camera *camera, SceneNode *node);

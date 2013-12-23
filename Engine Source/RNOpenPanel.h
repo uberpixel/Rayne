@@ -16,19 +16,19 @@ namespace RN
 	class OpenPanel
 	{
 	public:
-		OpenPanel();
+		RNAPI OpenPanel();
 		
-		void SetAllowsFolders(bool allowsFolders);
-		void SetAllowsFiles(bool allowsFiles);
-		void SetAllowsMultipleSelection(bool multipleSelection);
-		void SetCanCreateDirectories(bool canCreateDirectories);
+		RNAPI void SetAllowsFolders(bool allowsFolders);
+		RNAPI void SetAllowsFiles(bool allowsFiles);
+		RNAPI void SetAllowsMultipleSelection(bool multipleSelection);
+		RNAPI void SetCanCreateDirectories(bool canCreateDirectories);
 		
-		void SetTitle(const std::string& title);
-		void SetMessage(const std::string& message);
+		RNAPI void SetTitle(const std::string& title);
+		RNAPI void SetMessage(const std::string& message);
 		
-		void SetAllowedFileTypes(const std::vector<std::string>& fileTypes);
+		RNAPI void SetAllowedFileTypes(const std::vector<std::string>& fileTypes);
 		
-		void Show(std::function<void (bool result, const std::vector<std::string>& paths)> callback);
+		RNAPI void Show(std::function<void (bool result, const std::vector<std::string>& paths)> callback);
 		
 	private:
 		bool _allowsFolders;

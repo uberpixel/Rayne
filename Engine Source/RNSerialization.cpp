@@ -275,11 +275,23 @@ namespace RN
 	{
 		RN_ASSERT(SerializerMode() == Mode::Serialize, "EncodeData() only works with serializing serializers!");
 		
+#if RN_PLATFORM_WINDOWS
+		#pragma pack(push,1)
+
+		struct
+		{
+			char type;
+			uint32 size;
+		} header;
+
+		#pragma pack(pop)
+#else
 		struct __attribute__((packed))
 		{
 			char type;
 			uint32 size;
 		} header;
+#endif
 		
 		header.type = type;
 		header.size = static_cast<uint32>(size);
@@ -551,11 +563,23 @@ namespace RN
 	{
 		RN_ASSERT(SerializerMode() == Mode::Deserialize, "PeekHeader() only works with deserializing serializers!");
 		
+#if RN_PLATFORM_WINDOWS
+		#pragma pack(push,1)
+
+		struct
+		{
+			char type;
+			uint32 size;
+		} header;
+
+		#pragma pack(pop)
+#else
 		struct __attribute__((packed))
 		{
 			char type;
 			uint32 size;
 		} header;
+#endif
 		
 		_data->GetBytesInRange(&header, Range(_index, sizeof(header)));
 		

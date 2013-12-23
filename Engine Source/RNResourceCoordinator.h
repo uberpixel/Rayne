@@ -41,8 +41,8 @@ namespace RN
 	public:
 		friend class Kernel;
 		
-		ResourceCoordinator();
-		~ResourceCoordinator() override;
+		RNAPI ResourceCoordinator();
+		RNAPI ~ResourceCoordinator() override;
 		
 		template<class T>
 		T *GetResourceWithName(String *name, Dictionary *settings)
@@ -56,16 +56,16 @@ namespace RN
 			return RequestFutureResourceWithName(T::MetaClass(), name, settings);
 		}
 		
-		void AddResource(Object *object, String *name);
-		void AddResourceAlias(Object *object, String *alias);
+		RNAPI void AddResource(Object *object, String *name);
+		RNAPI void AddResourceAlias(Object *object, String *alias);
 		
-		void RemoveResource(Object *object);
-		void RemoveResourceWithName(String *name);
+		RNAPI void RemoveResource(Object *object);
+		RNAPI void RemoveResourceWithName(String *name);
 		
-		void WaitForResources();
+		RNAPI void WaitForResources();
 		
-		void RegisterResourceLoader(ResourceLoader *loader);
-		void UnregisterResourceLoader(ResourceLoader *loader);
+		RNAPI void RegisterResourceLoader(ResourceLoader *loader);
+		RNAPI void UnregisterResourceLoader(ResourceLoader *loader);
 		
 	private:
 		void __AddResourceAlias(Object *object, String *name);

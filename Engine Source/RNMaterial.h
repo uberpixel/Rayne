@@ -49,28 +49,28 @@ namespace RN
 				Matrix
 			};
 			
-			ShaderUniform(const std::string& name, Type type, void *data, size_t size, bool copy=true);
-			ShaderUniform(const std::string& name, const Matrix& matrix);
-			ShaderUniform(const std::string& name, const Vector2& vec2);
-			ShaderUniform(const std::string& name, const Vector3& vec3);
-			ShaderUniform(const std::string& name, const Vector4& vec4);
+			RNAPI ShaderUniform(const std::string& name, Type type, void *data, size_t size, bool copy=true);
+			RNAPI ShaderUniform(const std::string& name, const Matrix& matrix);
+			RNAPI ShaderUniform(const std::string& name, const Vector2& vec2);
+			RNAPI ShaderUniform(const std::string& name, const Vector3& vec3);
+			RNAPI ShaderUniform(const std::string& name, const Vector4& vec4);
 			
-			explicit ShaderUniform(const std::string& name, float fValue);
-			explicit ShaderUniform(const std::string& name, int32 iValue);
-			explicit ShaderUniform(const std::string& name, uint32 uiValue);
+			RNAPI explicit ShaderUniform(const std::string& name, float fValue);
+			RNAPI explicit ShaderUniform(const std::string& name, int32 iValue);
+			RNAPI explicit ShaderUniform(const std::string& name, uint32 uiValue);
 			
-			void SetFloatValue(float value);
-			void SetIntegerValue(int32 value);
-			void SetUIntValue(uint32 value);
+			RNAPI void SetFloatValue(float value);
+			RNAPI void SetIntegerValue(int32 value);
+			RNAPI void SetUIntValue(uint32 value);
 			
-			void SetMatrix(const Matrix& matrix);
-			void SetVector(const Vector2& vector);
-			void SetVector(const Vector3& vector);
-			void SetVector(const Vector4& vector);
+			RNAPI void SetMatrix(const Matrix& matrix);
+			RNAPI void SetVector(const Vector2& vector);
+			RNAPI void SetVector(const Vector3& vector);
+			RNAPI void SetVector(const Vector4& vector);
 			
-			void SetData(const void *data);
+			RNAPI void SetData(const void *data);
 			
-			void Apply(ShaderProgram *program);
+			RNAPI void Apply(ShaderProgram *program);
 			
 		private:
 			void *GetPointerValue();

@@ -1,22 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 2012 for Windows Desktop
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Rayne", "Rayne.vcxproj", "{D54AF823-A9B2-41E4-9FB2-5CCFEBF43D21}"
-	ProjectSection(ProjectDependencies) = postProject
-		{72AC8D35-E0D4-4B0C-A2C4-8F1E3390ADF2} = {72AC8D35-E0D4-4B0C-A2C4-8F1E3390ADF2}
-		{BE0FB7FE-299F-405D-91EF-DBCC3672AC4E} = {BE0FB7FE-299F-405D-91EF-DBCC3672AC4E}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Rayne Player", "Engine Host\Windows\Rayne Player.vcxproj", "{12E4F550-A3F7-47C9-B7A7-ABF88064C6F5}"
 	ProjectSection(ProjectDependencies) = postProject
 		{D54AF823-A9B2-41E4-9FB2-5CCFEBF43D21} = {D54AF823-A9B2-41E4-9FB2-5CCFEBF43D21}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libz", "Vendor\libz\libz.vcxproj", "{BE0FB7FE-299F-405D-91EF-DBCC3672AC4E}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libpng", "Vendor\libpng\png.vcxproj", "{72AC8D35-E0D4-4B0C-A2C4-8F1E3390ADF2}"
-	ProjectSection(ProjectDependencies) = postProject
-		{BE0FB7FE-299F-405D-91EF-DBCC3672AC4E} = {BE0FB7FE-299F-405D-91EF-DBCC3672AC4E}
 	EndProjectSection
 EndProject
 Global
@@ -34,14 +25,6 @@ Global
 		{12E4F550-A3F7-47C9-B7A7-ABF88064C6F5}.Debug|Win32.Build.0 = Debug|Win32
 		{12E4F550-A3F7-47C9-B7A7-ABF88064C6F5}.Release|Win32.ActiveCfg = Release|Win32
 		{12E4F550-A3F7-47C9-B7A7-ABF88064C6F5}.Release|Win32.Build.0 = Release|Win32
-		{BE0FB7FE-299F-405D-91EF-DBCC3672AC4E}.Debug|Win32.ActiveCfg = Debug|Win32
-		{BE0FB7FE-299F-405D-91EF-DBCC3672AC4E}.Debug|Win32.Build.0 = Debug|Win32
-		{BE0FB7FE-299F-405D-91EF-DBCC3672AC4E}.Release|Win32.ActiveCfg = Release|Win32
-		{BE0FB7FE-299F-405D-91EF-DBCC3672AC4E}.Release|Win32.Build.0 = Release|Win32
-		{72AC8D35-E0D4-4B0C-A2C4-8F1E3390ADF2}.Debug|Win32.ActiveCfg = Debug|Win32
-		{72AC8D35-E0D4-4B0C-A2C4-8F1E3390ADF2}.Debug|Win32.Build.0 = Debug|Win32
-		{72AC8D35-E0D4-4B0C-A2C4-8F1E3390ADF2}.Release|Win32.ActiveCfg = Release|Win32
-		{72AC8D35-E0D4-4B0C-A2C4-8F1E3390ADF2}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

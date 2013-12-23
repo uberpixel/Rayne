@@ -20,34 +20,34 @@ namespace RN
 	class Vector2
 	{
 	public:
-		RNAPI Vector2();
-		RNAPI Vector2(const float n);
-		RNAPI Vector2(const float x, const float y);
-		RNAPI explicit Vector2(const Vector3& other);
-		RNAPI explicit Vector2(const Vector4& other);
+		Vector2();
+		Vector2(const float n);
+		Vector2(const float x, const float y);
+		explicit Vector2(const Vector3& other);
+		explicit Vector2(const Vector4& other);
 
-		RNAPI bool operator== (const Vector2 &other) const;
-		RNAPI bool operator!= (const Vector2 &other) const;
+		bool operator== (const Vector2 &other) const;
+		bool operator!= (const Vector2 &other) const;
 
-		RNAPI Vector2 operator- () const;
+		Vector2 operator- () const;
 
-		RNAPI Vector2 operator+ (const Vector2& other) const;
-		RNAPI Vector2 operator- (const Vector2& other) const;
-		RNAPI Vector2 operator* (const Vector2& other) const;
-		RNAPI Vector2 operator/ (const Vector2& other) const;
-		RNAPI Vector2 operator* (const float n) const;
-		RNAPI Vector2 operator/ (const float n) const;
+		Vector2 operator+ (const Vector2& other) const;
+		Vector2 operator- (const Vector2& other) const;
+		Vector2 operator* (const Vector2& other) const;
+		Vector2 operator/ (const Vector2& other) const;
+		Vector2 operator* (const float n) const;
+		Vector2 operator/ (const float n) const;
 
-		RNAPI Vector2& operator+= (const Vector2& other);
-		RNAPI Vector2& operator-= (const Vector2& other);
-		RNAPI Vector2& operator*= (const Vector2& other);
-		RNAPI Vector2& operator/= (const Vector2& other);
+		Vector2& operator+= (const Vector2& other);
+		Vector2& operator-= (const Vector2& other);
+		Vector2& operator*= (const Vector2& other);
+		Vector2& operator/= (const Vector2& other);
 
-		RNAPI float Length() const;
-		RNAPI float Dot (const Vector2& other) const;
-		RNAPI bool IsEqual(const Vector2& other, float epsilon) const;
+		float Length() const;
+		float Dot (const Vector2& other) const;
+		bool IsEqual(const Vector2& other, float epsilon) const;
 
-		RNAPI Vector2& Normalize(const float n=1.0f);
+		Vector2& Normalize(const float n=1.0f);
 
 		struct
 		{
@@ -59,37 +59,37 @@ namespace RN
 	class Vector3
 	{
 	public:
-		RNAPI Vector3();
-		RNAPI Vector3(const float n);
-		RNAPI Vector3(const float x, const float y, const float z);
-		RNAPI explicit Vector3(const Vector2& other, float z=0.0f);
-		RNAPI explicit Vector3(const Vector4& other);
+		Vector3();
+		Vector3(const float n);
+		Vector3(const float x, const float y, const float z);
+		explicit Vector3(const Vector2& other, float z=0.0f);
+		explicit Vector3(const Vector4& other);
 		
-		RNAPI bool operator== (const Vector3 &other) const;
-		RNAPI bool operator!= (const Vector3 &other) const;
+		bool operator== (const Vector3 &other) const;
+		bool operator!= (const Vector3 &other) const;
 		
-		RNAPI Vector3 operator- () const;
+		Vector3 operator- () const;
 		
-		RNAPI Vector3 operator+ (const Vector3& other) const;
-		RNAPI Vector3 operator- (const Vector3& other) const;
-		RNAPI Vector3 operator* (const Vector3& other) const;
-		RNAPI Vector3 operator/ (const Vector3& other) const;
-		RNAPI Vector3 operator* (const float n) const;
-		RNAPI Vector3 operator/ (const float n) const;
+		Vector3 operator+ (const Vector3& other) const;
+		Vector3 operator- (const Vector3& other) const;
+		Vector3 operator* (const Vector3& other) const;
+		Vector3 operator/ (const Vector3& other) const;
+		Vector3 operator* (const float n) const;
+		Vector3 operator/ (const float n) const;
 		
-		RNAPI Vector3& operator+= (const Vector3& other);
-		RNAPI Vector3& operator-= (const Vector3& other);
-		RNAPI Vector3& operator*= (const Vector3& other);
-		RNAPI Vector3& operator/= (const Vector3& other);
+		Vector3& operator+= (const Vector3& other);
+		Vector3& operator-= (const Vector3& other);
+		Vector3& operator*= (const Vector3& other);
+		Vector3& operator/= (const Vector3& other);
 		
-		RNAPI float Length() const;
-		RNAPI float Dot(const Vector3& other) const;
-		RNAPI Vector3 Cross(const Vector3& other) const;
-		RNAPI bool IsEqual(const Vector3& other, float epsilon) const;
-		RNAPI float Distance(const Vector3 &other) const;
-		RNAPI Vector3 Lerp(const Vector3 &other, float factor) const;
+		float Length() const;
+		float Dot(const Vector3& other) const;
+		Vector3 Cross(const Vector3& other) const;
+		bool IsEqual(const Vector3& other, float epsilon) const;
+		float Distance(const Vector3 &other) const;
+		Vector3 Lerp(const Vector3 &other, float factor) const;
 		
-		RNAPI Vector3& Normalize(const float n=1.0f);
+		Vector3& Normalize(const float n=1.0f);
 		
 		struct
 		{
@@ -99,50 +99,46 @@ namespace RN
 		};
 	};
 	
-#if __RN_GENERATING_DOXYGEN
-	class Vector4
-#else
 	class alignas(16) Vector4
-#endif
 	{
 	public:
-		RNAPI Vector4();
-		RNAPI Vector4(const float n);
-		RNAPI Vector4(const float x, const float y, const float z, const float w);
-		RNAPI explicit Vector4(const Vector2& other, float z=0.0f, float w=0.0f);
-		RNAPI explicit Vector4(const Vector3& other, float w=0.0f);
+		Vector4();
+		Vector4(const float n);
+		Vector4(const float x, const float y, const float z, const float w);
+		explicit Vector4(const Vector2& other, float z=0.0f, float w=0.0f);
+		explicit Vector4(const Vector3& other, float w=0.0f);
 		
 #if RN_SIMD
-		RNAPI Vector4(const SIMD::VecFloat& other);
-		RNAPI Vector4& operator= (const SIMD::VecFloat& other);
+		Vector4(const SIMD::VecFloat& other);
+		Vector4& operator= (const SIMD::VecFloat& other);
 		
 		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
 		RN_INLINE void operator delete[](void *ptr) { if(ptr) Memory::FreeSIMD(ptr); }
 #endif
 		
-		RNAPI bool operator== (const Vector4 &other) const;
-		RNAPI bool operator!= (const Vector4 &other) const;
+		bool operator== (const Vector4 &other) const;
+		bool operator!= (const Vector4 &other) const;
 		
-		RNAPI Vector4 operator- () const;
+		Vector4 operator- () const;
 		
-		RNAPI Vector4 operator+ (const Vector4& other) const;
-		RNAPI Vector4 operator- (const Vector4& other) const;
-		RNAPI Vector4 operator* (const Vector4& other) const;
-		RNAPI Vector4 operator/ (const Vector4& other) const;
-		RNAPI Vector4 operator* (const float n) const;
-		RNAPI Vector4 operator/ (const float n) const;
+		Vector4 operator+ (const Vector4& other) const;
+		Vector4 operator- (const Vector4& other) const;
+		Vector4 operator* (const Vector4& other) const;
+		Vector4 operator/ (const Vector4& other) const;
+		Vector4 operator* (const float n) const;
+		Vector4 operator/ (const float n) const;
 		
-		RNAPI Vector4& operator+= (const Vector4& other);
-		RNAPI Vector4& operator-= (const Vector4& other);
-		RNAPI Vector4& operator*= (const Vector4& other);
-		RNAPI Vector4& operator/= (const Vector4& other);
+		Vector4& operator+= (const Vector4& other);
+		Vector4& operator-= (const Vector4& other);
+		Vector4& operator*= (const Vector4& other);
+		Vector4& operator/= (const Vector4& other);
 		
-		RNAPI float Length() const;
-		RNAPI float Dot(const Vector4& other) const;
-		RNAPI Vector4 Cross(const Vector4& other) const;
-		RNAPI bool IsEqual(const Vector4& other, float epsilon) const;
+		float Length() const;
+		float Dot(const Vector4& other) const;
+		Vector4 Cross(const Vector4& other) const;
+		bool IsEqual(const Vector4& other, float epsilon) const;
 		
-		RNAPI Vector4& Normalize(const float n=1.0f);
+		Vector4& Normalize(const float n=1.0f);
 		
 #if RN_SIMD
 		union

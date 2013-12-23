@@ -142,7 +142,7 @@ namespace RN
 			uint32 width  = mode.dmPelsWidth;
 			uint32 height = mode.dmPelsHeight;
 			
-			if((width >= 1024) && (height >= 768) && (devMode.dmBitsPerPel >= 32))
+			if((width >= 1024) && (height >= 768) && (mode.dmBitsPerPel >= 32))
 			{
 				WindowConfiguration *configuration = new WindowConfiguration(width, height, this);
 				_configurations.AddObject(configuration->Autorelease());
@@ -219,8 +219,8 @@ namespace RN
 			
 			Screen *screen = new Screen(device.DeviceName);
 			
-			if(device.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)
-				_screens.push_front(screen);
+			if(device.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE && !_screens.empty())
+				_screens.insert(_screens.begin(), screen);
 			else
 				_screens.push_back(screen);
 		}
@@ -534,15 +534,13 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 	LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	{
-		RN::Window *window = (RN::Window *)GetWindowLongPtr(hWnd, GWL_USERDATA);
+		Window *window = reinterpret_cast<Window *>(GetWindowLongPtr(hWnd, GWL_USERDATA));
 		
 		switch(message)
 		{
 			case WM_DESTROY:
 				if(window)
-				{
-					RN::Kernel::GetSharedInstance()->Exit();
-				}
+					Kernel::GetSharedInstance()->Exit();
 				break;
 				
 			default:
@@ -555,7 +553,7 @@ namespace RN
 	void RegisterWindowClass()
 	{
 		static std::once_flag token;
-		std::call_once([]{
+		std::call_once(token, []{
 			
 			WNDCLASSEXA windowClass;
 			memset(&windowClass, 0, sizeof(WNDCLASSEXA));

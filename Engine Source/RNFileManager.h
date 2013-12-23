@@ -37,9 +37,9 @@ namespace RN
 		virtual bool IsDirectory() const { return false; }
 		
 	protected:
-		FileSystemNode(const std::string& name, DirectoryProxy *parent);
+		RNAPI FileSystemNode(const std::string& name, DirectoryProxy *parent);
 		
-		void SetPath(const std::string& path);
+		RNAPI void SetPath(const std::string& path);
 		
 	private:
 		DirectoryProxy *_parent;
@@ -53,12 +53,12 @@ namespace RN
 		friend class DirectoryProxy;
 		friend class FileManager;
 		
-		File *Open(File::FileMode mode = File::FileMode::Read) const;
+		RNAPI File *Open(File::FileMode mode = File::FileMode::Read) const;
 		
 		bool IsFile() const override { return true; }
 		
 	private:
-		FileProxy(const std::string& name, DirectoryProxy *parent);
+		RNAPI FileProxy(const std::string& name, DirectoryProxy *parent);
 		
 		RNDefineMeta(FileProxy, FileSystemNode)
 	};
@@ -68,15 +68,15 @@ namespace RN
 	public:
 		friend class FileManager;
 		
-		~DirectoryProxy() override;
+		RNAPI ~DirectoryProxy() override;
 		
-		FileSystemNode *GetSubNode(const std::string& name) const;
+		RNAPI FileSystemNode *GetSubNode(const std::string& name) const;
 		Array *GetSubNodes() const { return const_cast<Array *>(&_nodes); }
-		Array *GetSubNodesMatchingPredicate(const std::function<bool (FileProxy *file)>& predicate, bool allowFolders = true) const;
+		RNAPI Array *GetSubNodesMatchingPredicate(const std::function<bool (FileProxy *file)>& predicate, bool allowFolders = true) const;
 		
 		bool IsDirectory() const override { return true; }
 		
-		void __HandleEvent(void *event);
+		RNAPI void __HandleEvent(void *event);
 		
 	private:
 		DirectoryProxy(const std::string& path);
@@ -100,20 +100,20 @@ namespace RN
 	class FileManager : public Singleton<FileManager>
 	{
 	public:
-		FileManager();
-		~FileManager();
+		RNAPI FileManager();
+		RNAPI ~FileManager();
 		
-		FileSystemNode *GetFileSystemNode(const std::string& name);
-		FileProxy *GetFileWithName(const std::string& name, bool strict = true);
+		RNAPI FileSystemNode *GetFileSystemNode(const std::string& name);
+		RNAPI FileProxy *GetFileWithName(const std::string& name, bool strict = true);
 		
-		std::string GetFilePathWithName(const std::string& name, bool strict = true);
-		std::string GetNormalizedPathFromFullpath(const std::string& name);
+		RNAPI std::string GetFilePathWithName(const std::string& name, bool strict = true);
+		RNAPI std::string GetNormalizedPathFromFullpath(const std::string& name);
 		
-		bool AddSearchPath(const std::string& path);
-		void RemoveSearchPath(const std::string& path);
+		RNAPI bool AddSearchPath(const std::string& path);
+		RNAPI void RemoveSearchPath(const std::string& path);
 		
-		void AddFileModifier(const std::string& modifier, const std::string& extension);
-		void AddFileModifier(const std::string& modifier);
+		RNAPI void AddFileModifier(const std::string& modifier, const std::string& extension);
+		RNAPI void AddFileModifier(const std::string& modifier);
 		
 		Array *GetSearchPaths() const { Array *result = new Array(&_directories); return result->Autorelease(); }
 		

@@ -86,7 +86,8 @@ namespace RN
 			_tags(0)
 		{}
 		
-		void Emit(Sig&&... args)
+		template <typename... SigCompatible>
+		void Emit(SigCompatible&&... args)
 		{
 			LockGuard<SpinLock> lock(_lock);
 			
@@ -96,7 +97,7 @@ namespace RN
 			lock.Unlock();
 			
 			for(Slot& slot : slots)
-				slot.callback(std::forward<Sig>(args)...);
+				slot.callback(std::forward<SigCompatible>(args)...);
 			
 			lock.Lock();
 			std::swap(slots, _slots);

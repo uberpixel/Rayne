@@ -33,7 +33,7 @@ namespace RN
 		
 		RNAPI Array *GetAllObjects() const;
 		
-		size_t GetCount() const { return _count; }
+		RNAPI size_t GetCount() const { return _count; }
 		
 	private:
 		struct Bucket

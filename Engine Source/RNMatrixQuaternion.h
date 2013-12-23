@@ -16,59 +16,54 @@
 namespace RN
 {
 	class Quaternion;
-	//column fucking major!!!!!111111
-#if __RN_GENERATING_DOXYGEN
-	class Matrix
-#else
 	class alignas(16) Matrix
-#endif
 	{
 	public:
-		RNAPI Matrix();
+		Matrix();
 
-		RNAPI Matrix& operator*= (const Matrix& other);
-		RNAPI Matrix operator* (const Matrix& other) const;
-		RNAPI Vector3 operator* (const Vector3& other) const;
-		RNAPI Vector4 operator* (const Vector4& other) const;
+		Matrix& operator*= (const Matrix& other);
+		Matrix operator* (const Matrix& other) const;
+		Vector3 operator* (const Vector3& other) const;
+		Vector4 operator* (const Vector4& other) const;
 
-		RNAPI void MakeIdentity();
-		RNAPI void MakeTranslate(const Vector3& other);
-		RNAPI void MakeTranslate(const Vector4& other);
-		RNAPI void MakeScale(const Vector3& other);
-		RNAPI void MakeScale(const Vector4& other);
-		RNAPI void MakeRotate(const Vector3& rot);
-		RNAPI void MakeRotate(const Vector4& rot);
-		RNAPI void MakeRotate(const Quaternion& rot);
+		void MakeIdentity();
+		void MakeTranslate(const Vector3& other);
+		void MakeTranslate(const Vector4& other);
+		void MakeScale(const Vector3& other);
+		void MakeScale(const Vector4& other);
+		void MakeRotate(const Vector3& rot);
+		void MakeRotate(const Vector4& rot);
+		void MakeRotate(const Quaternion& rot);
 
-		RNAPI void MakeProjectionOrthogonal(float left, float right, float bottom, float top, float clipnear, float clipfar);
-		RNAPI void MakeProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
-		RNAPI void MakeInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
+		void MakeProjectionOrthogonal(float left, float right, float bottom, float top, float clipnear, float clipfar);
+		void MakeProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
+		void MakeInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
 
-		RNAPI float GetDeterminant() const;
-		RNAPI float GetDeterminantSubmatrix(const int k) const;
+		float GetDeterminant() const;
+		float GetDeterminantSubmatrix(const int k) const;
 		
-		RNAPI Vector3 GetEulerAngle() const;
-		RNAPI Quaternion GetQuaternion() const;
+		Vector3 GetEulerAngle() const;
+		Quaternion GetQuaternion() const;
 		
-		RNAPI void SetTranslation(const Vector3& other);
-		RNAPI void SetTranslation(const Vector4& other);
-		RNAPI void SetScale(const Vector3& other);
-		RNAPI void SetScale(const Vector4& other);
+		void SetTranslation(const Vector3& other);
+		void SetTranslation(const Vector4& other);
+		void SetScale(const Vector3& other);
+		void SetScale(const Vector4& other);
 
-		RNAPI void Translate(const Vector3& trans);
-		RNAPI void Translate(const Vector4& trans);
-		RNAPI void Scale(const Vector3& scal);
-		RNAPI void Scale(const Vector4& scal);
-		RNAPI void Rotate(const Vector3& rot);
-		RNAPI void Rotate(const Vector4& rot);
-		RNAPI void Rotate(const Quaternion& rot);
+		void Translate(const Vector3& trans);
+		void Translate(const Vector4& trans);
+		void Scale(const Vector3& scal);
+		void Scale(const Vector4& scal);
+		void Rotate(const Vector3& rot);
+		void Rotate(const Vector4& rot);
+		void Rotate(const Quaternion& rot);
 
-		RNAPI void Transpose();
+		void Transpose();
 
-		RNAPI Vector3 Transform(const Vector3& other) const;
-		RNAPI Vector4 Transform(const Vector4& other) const;
+		Vector3 Transform(const Vector3& other) const;
+		Vector4 Transform(const Vector4& other) const;
 
-		RNAPI Matrix GetInverse() const;
+		Matrix GetInverse() const;
 	
 #if RN_SIMD
 		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
@@ -87,68 +82,68 @@ namespace RN
 	class Quaternion
 	{
 	public:
-		RNAPI Quaternion();
-		RNAPI Quaternion(float x, float y, float z, float w);
-		RNAPI Quaternion(const Vector3& euler);
-		RNAPI Quaternion(const Vector4& axis);
+		Quaternion();
+		Quaternion(float x, float y, float z, float w);
+		Quaternion(const Vector3& euler);
+		Quaternion(const Vector4& axis);
 
-		RNAPI Quaternion& operator= (const Vector3& other);
-		RNAPI Quaternion& operator= (const Vector4& other);
+		Quaternion& operator= (const Vector3& other);
+		Quaternion& operator= (const Vector4& other);
 
-		RNAPI Quaternion& operator+= (const Quaternion& other);
-		RNAPI Quaternion& operator-= (const Quaternion& other);
-		RNAPI Quaternion& operator*= (const Quaternion& other);
-		RNAPI Quaternion& operator/= (const Quaternion& other);
+		Quaternion& operator+= (const Quaternion& other);
+		Quaternion& operator-= (const Quaternion& other);
+		Quaternion& operator*= (const Quaternion& other);
+		Quaternion& operator/= (const Quaternion& other);
 
-		RNAPI Quaternion& operator*= (const Vector4& other);
-		RNAPI Quaternion& operator/= (const Vector4& other);
+		Quaternion& operator*= (const Vector4& other);
+		Quaternion& operator/= (const Vector4& other);
 
-		RNAPI Quaternion& operator+= (const Vector3& other);
-		RNAPI Quaternion& operator-= (const Vector3& other);
+		Quaternion& operator+= (const Vector3& other);
+		Quaternion& operator-= (const Vector3& other);
 
-		RNAPI Quaternion& operator*= (float scalar);
-		RNAPI Quaternion& operator/= (float scalar);
+		Quaternion& operator*= (float scalar);
+		Quaternion& operator/= (float scalar);
 
-		RNAPI Quaternion operator+ (const Quaternion& other) const;
-		RNAPI Quaternion operator- (const Quaternion& other) const;
-		RNAPI Quaternion operator* (const Quaternion& other) const;
-		RNAPI Quaternion operator/ (const Quaternion& other) const;
+		Quaternion operator+ (const Quaternion& other) const;
+		Quaternion operator- (const Quaternion& other) const;
+		Quaternion operator* (const Quaternion& other) const;
+		Quaternion operator/ (const Quaternion& other) const;
 
-		RNAPI Quaternion operator+ (const Vector3& other) const;
-		RNAPI Quaternion operator- (const Vector3& other) const;
+		Quaternion operator+ (const Vector3& other) const;
+		Quaternion operator- (const Vector3& other) const;
 
-		RNAPI Quaternion operator* (const Vector4& other) const;
-		RNAPI Quaternion operator/ (const Vector4& other) const;
+		Quaternion operator* (const Vector4& other) const;
+		Quaternion operator/ (const Vector4& other) const;
 
-		RNAPI Quaternion operator* (float scalar) const;
-		RNAPI Quaternion operator/ (float scalar) const;
+		Quaternion operator* (float scalar) const;
+		Quaternion operator/ (float scalar) const;
 
-		RNAPI void MakeIdentity();
-		RNAPI void MakeEulerAngle(const Vector3& euler);
-		RNAPI void MakeAxisAngle(const Vector4& euler);
-		RNAPI void MakeLerpS(const Quaternion& start, const Quaternion& end, float factor);
-		RNAPI void MakeLerpN(const Quaternion& start, const Quaternion& end, float factor);
+		void MakeIdentity();
+		void MakeEulerAngle(const Vector3& euler);
+		void MakeAxisAngle(const Vector4& euler);
+		void MakeLerpS(const Quaternion& start, const Quaternion& end, float factor);
+		void MakeLerpN(const Quaternion& start, const Quaternion& end, float factor);
 
-		RNAPI void LookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
+		void LookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
 		
-		RNAPI Quaternion &Normalize();
-		RNAPI Quaternion Normalize() const;
-		RNAPI Quaternion &Conjugate();
-		RNAPI Quaternion Conjugate() const;
+		Quaternion &Normalize();
+		Quaternion Normalize() const;
+		Quaternion &Conjugate();
+		Quaternion Conjugate() const;
 
-		RNAPI Quaternion LerpS(const Quaternion& other, float factor) const;
-		RNAPI Quaternion LerpN(const Quaternion& other, float factor) const;
+		Quaternion LerpS(const Quaternion& other, float factor) const;
+		Quaternion LerpN(const Quaternion& other, float factor) const;
 
-		RNAPI Vector3 RotateVector(const Vector3& vec) const;
-		RNAPI Vector4 RotateVector(const Vector4& vec) const;
+		Vector3 RotateVector(const Vector3& vec) const;
+		Vector4 RotateVector(const Vector4& vec) const;
 
-		RNAPI Matrix GetRotationMatrix() const;
+		Matrix GetRotationMatrix() const;
 
-		RNAPI Vector3 GetEulerAngle() const;
-		RNAPI Vector4 GetAxisAngle() const;
+		Vector3 GetEulerAngle() const;
+		Vector4 GetAxisAngle() const;
 
-		RNAPI float Length() const;
-		RNAPI float Dot(const Quaternion& other) const;
+		float Length() const;
+		float Dot(const Quaternion& other) const;
 
 		struct
 		{
@@ -159,10 +154,10 @@ namespace RN
 		};
 	};
 
-	#if !(RN_PLATFORM_LINUX)
+#if !(RN_PLATFORM_LINUX)
 	static_assert(std::is_trivially_copyable<Matrix>::value, "Matrix must be trivially copyable");
 	static_assert(std::is_trivially_copyable<Quaternion>::value, "Quaternion must be trivially copyable");
-	#endif
+#endif
 }
 
 #endif /* __RAYNE_MATRIXQUATERNION_H__ */

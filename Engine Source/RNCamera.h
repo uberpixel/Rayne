@@ -47,15 +47,15 @@ namespace RN
 			ReUseCamera_NoRemoval
 		};
 		
-		RenderStage(Camera *camera, Camera *conenction, Mode mode);
-		RenderStage(const RenderStage& other);
-		~RenderStage();
+		RNAPI RenderStage(Camera *camera, Camera *conenction, Mode mode);
+		RNAPI RenderStage(const RenderStage& other);
+		RNAPI ~RenderStage();
 		
-		void Connect(Camera *other);
+		RNAPI void Connect(Camera *other);
 		
-		Camera *GetConnection() const { return _connection; }
-		Camera *GetCamera() const { return _camera; }
-		Mode GetMode() const { return _mode; }
+		RNAPI Camera *GetConnection() const { return _connection; }
+		RNAPI Camera *GetCamera() const { return _camera; }
+		RNAPI Mode GetMode() const { return _mode; }
 		
 	private:
 		void InsertCamera(class Camera *camera);
@@ -72,18 +72,18 @@ namespace RN
 	friend class Camera;
 	friend class Renderer;
 	public:
-		PostProcessingPipeline(const std::string& name);
-		virtual ~PostProcessingPipeline();
+		RNAPI PostProcessingPipeline(const std::string& name);
+		RNAPI virtual ~PostProcessingPipeline();
 		
-		RenderStage *AddStage(Camera *camera, RenderStage::Mode mode);
-		RenderStage *AddStage(Camera *camera, Camera *connection, RenderStage::Mode mode);
+		RNAPI RenderStage *AddStage(Camera *camera, RenderStage::Mode mode);
+		RNAPI RenderStage *AddStage(Camera *camera, Camera *connection, RenderStage::Mode mode);
 		
-		const std::vector<RenderStage>& GetStages() const { return stages; }
-		RenderStage *GetLastStage() { return &stages[stages.size() - 1]; }
+		RNAPI const std::vector<RenderStage>& GetStages() const { return stages; }
+		RNAPI RenderStage *GetLastStage() { return &stages[stages.size() - 1]; }
 		
 	protected:
-		virtual void Initialize();
-		virtual void PushUpdate(Camera *source, float delta);
+		RNAPI virtual void Initialize();
+		RNAPI virtual void PushUpdate(Camera *source, float delta);
 		
 		Camera *host;
 		std::vector<RenderStage> stages;
@@ -99,14 +99,14 @@ namespace RN
 	class DownsamplePostProcessingPipeline : public PostProcessingPipeline
 	{
 	public:
-		DownsamplePostProcessingPipeline(const std::string& name, Camera *camera, Texture *texture, Shader *firstShader, Shader *shader, Texture::Format format);
-		~DownsamplePostProcessingPipeline();
+		RNAPI DownsamplePostProcessingPipeline(const std::string& name, Camera *camera, Texture *texture, Shader *firstShader, Shader *shader, Texture::Format format);
+		RNAPI ~DownsamplePostProcessingPipeline();
 		
-		Texture *GetLastTarget() { return _lastTarget; }
+		RNAPI Texture *GetLastTarget() { return _lastTarget; }
 		
 	protected:
-		void Initialize() override;
-		void PushUpdate(Camera *camera, float delta) override;
+		RNAPI void Initialize() override;
+		RNAPI void PushUpdate(Camera *camera, float delta) override;
 		
 	private:
 		void UpdateStages();
@@ -242,15 +242,15 @@ namespace RN
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		
-		RNAPI virtual Hit CastRay(const Vector3 &position, const Vector3 &direction) {return Hit();}
+		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction) {return Hit();}
 		
 		const Vector3& GetFrustumCenter() const { return _frustumCenter; }
 		float const GetFrustumRadius() const { return _frustumRadius; }
 		
 		RenderStorage *GetStorage() const { return _storage; }
 		const Color& GetClearColor() const { return _clearColor; }
-		const Rect& GetFrame();
-		Rect GetRenderingFrame();
+		RNAPI const Rect& GetFrame();
+		RNAPI Rect GetRenderingFrame();
 		Material *GetMaterial() const { return _material; }
 		Flags GetFlags() const { return _flags; }
 		Camera *GetLODCamera() const { return _lodCamera; }
@@ -271,13 +271,13 @@ namespace RN
 		
 		bool AllowsDepthWrite() const { return _allowDepthWrite; }
 		
-		float *GetDepthArray();
+		RNAPI float *GetDepthArray();
 		size_t GetMaxLightsPerTile() const { return _maxLights; }
 		
-		PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name);
-		PostProcessingPipeline *PostProcessingPipelineWithName(const std::string& name);
-		void AttachPostProcessingPipeline(PostProcessingPipeline *pipeline);
-		void RemovePostProcessingPipeline(PostProcessingPipeline *pipeline);
+		RNAPI PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name);
+		RNAPI PostProcessingPipeline *PostProcessingPipelineWithName(const std::string& name);
+		RNAPI void AttachPostProcessingPipeline(PostProcessingPipeline *pipeline);
+		RNAPI void RemovePostProcessingPipeline(PostProcessingPipeline *pipeline);
 		
 		const std::vector<PostProcessingPipeline *>& GetPostProcessingPipelines() const { return _PPPipelines; }
 		
@@ -364,17 +364,17 @@ namespace RN
 	class CubemapCamera : public Camera
 	{
 	public:
-	/*	RNAPI CubemapCamera(const Vector2& size) : Camera(size){}
+	/*	CubemapCamera(const Vector2& size) : Camera(size){}
 		
-		RNAPI CubemapCamera(const Vector2& size, Texture *target) : Camera(size, target){}
-		RNAPI CubemapCamera(const Vector2& size, Texture *target, Flags flags) : Camera(size, target, flags){}
-		RNAPI CubemapCamera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format) : Camera(size, target, flags, format){}
+		CubemapCamera(const Vector2& size, Texture *target) : Camera(size, target){}
+		CubemapCamera(const Vector2& size, Texture *target, Flags flags) : Camera(size, target, flags){}
+		CubemapCamera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format) : Camera(size, target, flags, format){}
 		
-		RNAPI CubemapCamera(const Vector2& size, Texture::Format targetFormat) : Camera(size, targetFormat){}
-		RNAPI CubemapCamera(const Vector2& size, Texture::Format targetFormat, Flags flags) : Camera(size, targetFormat, flags){}
-		RNAPI CubemapCamera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f) : Camera(size, targetFormat, flags, format, scaleFactor){}*/
+		CubemapCamera(const Vector2& size, Texture::Format targetFormat) : Camera(size, targetFormat){}
+		CubemapCamera(const Vector2& size, Texture::Format targetFormat, Flags flags) : Camera(size, targetFormat, flags){}
+		CubemapCamera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f) : Camera(size, targetFormat, flags, format, scaleFactor){}*/
 		
-		RNAPI CubemapCamera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f) : Camera(size, storage, flags, scaleFactor){}
+		CubemapCamera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f) : Camera(size, storage, flags, scaleFactor){}
 		
 		bool InFrustum(const Vector3& position, float radius) override;
 	};

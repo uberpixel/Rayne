@@ -44,38 +44,38 @@ namespace RN
 			
 			typedef std::function<void (Control *, EventType)> Callback;
 			
-			virtual void SetHighlighted(bool highlighted);
-			virtual void SetSelected(bool selected);
-			virtual void SetEnabled(bool enabled);
+			RNAPI virtual void SetHighlighted(bool highlighted);
+			RNAPI virtual void SetSelected(bool selected);
+			RNAPI virtual void SetEnabled(bool enabled);
 			
-			bool IsHighlighted() const { return _state & Control::Highlighted; }
-			bool IsSelected() const { return _state & Control::Selected; }
-			bool IsEnabled() const { return !(_state & Control::Disabled); }
+			RNAPI bool IsHighlighted() const { return _state & Control::Highlighted; }
+			RNAPI bool IsSelected() const { return _state & Control::Selected; }
+			RNAPI bool IsEnabled() const { return !(_state & Control::Disabled); }
 			
-			State GetState() const { return _state; }
+			RNAPI State GetState() const { return _state; }
 			
-			void AddListener(EventType event, Callback callback, void *cookie);
-			void RemoveListener(EventType event, void *cookie);
-			void RemoveListener(void *cookie);
+			RNAPI void AddListener(EventType event, Callback callback, void *cookie);
+			RNAPI void RemoveListener(EventType event, void *cookie);
+			RNAPI void RemoveListener(void *cookie);
 			
-			virtual void BeginTrackingEvent(Event *event);
-			virtual void ContinueTrackingEvent(Event *event);
-			virtual void EndTrackingEvent(Event *event);
+			RNAPI virtual void BeginTrackingEvent(Event *event);
+			RNAPI virtual void ContinueTrackingEvent(Event *event);
+			RNAPI virtual void EndTrackingEvent(Event *event);
 			
-			void MouseDown(Event *event) override;
-			void MouseMoved(Event *event) override;
-			void MouseUp(Event *event) override;
+			RNAPI void MouseDown(Event *event) override;
+			RNAPI void MouseMoved(Event *event) override;
+			RNAPI void MouseUp(Event *event) override;
 		
 		protected:
-			Control();
-			~Control() override;
+			RNAPI Control();
+			RNAPI ~Control() override;
 			
-			void SetState(State state);
-			bool IsEventWithinBounds(Event *event);
+			RNAPI void SetState(State state);
+			RNAPI bool IsEventWithinBounds(Event *event);
 			
-			virtual void StateChanged(State state);
-			virtual bool PostEvent(EventType event);
-			void DispatchEvent(EventType event);
+			RNAPI virtual void StateChanged(State state);
+			RNAPI virtual bool PostEvent(EventType event);
+			RNAPI void DispatchEvent(EventType event);
 			
 		private:			
 			void ConsumeMouseClicks(Event *event);

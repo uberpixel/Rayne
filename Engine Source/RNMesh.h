@@ -47,7 +47,7 @@ namespace RN
 	{
 	friend class Mesh;
 	public:
-		MeshDescriptor(MeshFeature feature, uint32 flags=0);
+		RNAPI MeshDescriptor(MeshFeature feature, uint32 flags=0);
 		
 		MeshFeature feature;
 		uint32 flags;
@@ -174,11 +174,11 @@ namespace RN
 				return reinterpret_cast<T *>(_begin);
 			}
 			
-			void SetData(const void *data);
-			void SetData(const void *data, MeshFeature feature);
-			void SetDataInRange(const void *data, const Range& range);
+			RNAPI void SetData(const void *data);
+			RNAPI void SetData(const void *data, MeshFeature feature);
+			RNAPI void SetDataInRange(const void *data, const Range& range);
 			
-			void CommitChanges();
+			RNAPI void CommitChanges();
 			
 		private:
 			Chunk(Mesh *mesh, const Range& range, bool indices);
@@ -237,17 +237,17 @@ namespace RN
 		
 		RNAPI Hit IntersectsRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone);
 		
-		GLuint GetVBO() { return _vbo; }
-		GLuint GetIBO() { return _ibo; }
+		RNAPI GLuint GetVBO() { return _vbo; }
+		RNAPI GLuint GetIBO() { return _ibo; }
 		
-		size_t GetStride() const { return _stride; }
-		GLenum GetMode() const { return _mode; }
+		RNAPI size_t GetStride() const { return _stride; }
+		RNAPI GLenum GetMode() const { return _mode; }
 		
-		size_t GetVerticesCount() const { return _verticesCount; }
-		size_t GetIndicesCount() const { return _indicesCount; }
+		RNAPI size_t GetVerticesCount() const { return _verticesCount; }
+		RNAPI size_t GetIndicesCount() const { return _indicesCount; }
 		
-		const AABB& GetBoundingBox() const { return _boundingBox; }
-		const Sphere& GetBoundingSphere() const { return _boundingSphere; }
+		RNAPI const AABB& GetBoundingBox() const { return _boundingBox; }
+		RNAPI const Sphere& GetBoundingSphere() const { return _boundingSphere; }
 		
 		RNAPI static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0f), const Vector3& rotation = Vector3(0.0f));
 		RNAPI static Mesh *CubeMesh(const Vector3& size);

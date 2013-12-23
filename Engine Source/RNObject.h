@@ -67,7 +67,7 @@ namespace RN
 			return __metaClass;
 		}
 		
-		static void InitialWakeUp(MetaClassBase *meta);
+		RNAPI static void InitialWakeUp(MetaClassBase *meta);
 		
 		// -----------------
 		// Associated Objects
@@ -80,9 +80,9 @@ namespace RN
 			Copy
 		};
 		
-		void SetAssociatedObject(const void *key, Object *value, MemoryPolicy policy);
-		void RemoveAssociatedOject(const void *key);
-		Object *GetAssociatedObject(const void *key);
+		RNAPI void SetAssociatedObject(const void *key, Object *value, MemoryPolicy policy);
+		RNAPI void RemoveAssociatedOject(const void *key);
+		RNAPI Object *GetAssociatedObject(const void *key);
 		
 		// -----------------
 		// KVO / KVC
@@ -109,27 +109,27 @@ namespace RN
 			object->UnmapCookie(cookie);
 		}
 		
-		void SetValueForKey(const std::string& keyPath, Object *value);
-		Object *GetValueForKey(const std::string& keyPath);
+		RNAPI void SetValueForKey(const std::string& keyPath, Object *value);
+		RNAPI Object *GetValueForKey(const std::string& keyPath);
 		
 		
 	protected:
-		virtual void CleanUp();
+		RNAPI virtual void CleanUp();
 		
-		void AddObservable(ObservableProperty *property);
+		RNAPI void AddObservable(ObservableProperty *property);
 		
-		virtual void SetValueForUndefinedKey(const std::string& key, Object *value);
-		virtual Object *GetValueForUndefinedKey(const std::string& key);
+		RNAPI virtual void SetValueForUndefinedKey(const std::string& key, Object *value);
+		RNAPI virtual Object *GetValueForUndefinedKey(const std::string& key);
 		
-		void WillChangeValueForkey(const std::string& key);
-		void DidChangeValueForKey(const std::string& key);
+		RNAPI void WillChangeValueForkey(const std::string& key);
+		RNAPI void DidChangeValueForKey(const std::string& key);
 		
 	private:
 		class MetaType : public ConcreteMetaClass<Object>
 		{
 		public:
 			MetaType() :
-				MetaClassBase(0, "Object", __PRETTY_FUNCTION__)
+				MetaClassBase(0, "Object", RN_FUNCTION_SIGNATURE)
 			{}
 		};
 		
@@ -159,7 +159,7 @@ namespace RN
 		{ \
 		public: \
 			MetaType() : \
-				MetaClassBase(super::MetaClass(), #cls, __PRETTY_FUNCTION__) \
+				MetaClassBase(super::MetaClass(), #cls, RN_FUNCTION_SIGNATURE) \
 			{} \
 		}; \
 		static MetaType *__##cls##__metaClass; \
@@ -170,7 +170,7 @@ namespace RN
 		{ \
 		public: \
 			MetaType() : \
-				MetaClassBase(super::MetaClass(), #cls, __PRETTY_FUNCTION__) \
+				MetaClassBase(super::MetaClass(), #cls, RN_FUNCTION_SIGNATURE) \
 			{} \
 		}; \
 		static MetaType *__##cls##__metaClass; \

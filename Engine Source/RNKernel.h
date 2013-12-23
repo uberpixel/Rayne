@@ -45,13 +45,13 @@ namespace RN
 		RNAPI void DidSleepForSignificantTime();
 		RNAPI void Exit();
 		
-		void PushStatistics(const std::string& key);
-		void PopStatistics();
+		RNAPI void PushStatistics(const std::string& key);
+		RNAPI void PopStatistics();
 		
-		const std::vector<Statistics::DataPoint *>& GetStatisticsData() const;
+		RNAPI const std::vector<Statistics::DataPoint *>& GetStatisticsData() const;
 
 		float GetScaleFactor() const { return _scaleFactor; }
-		float GetActiveScaleFactor() const;
+		RNAPI float GetActiveScaleFactor() const;
 		
 		const std::string& GetTitle() const { return _title; }
 
@@ -102,7 +102,7 @@ namespace RN
 		float _scaledTime;
 		float _delta;
 		float _timeScale;
-		std::chrono::time_point<std::chrono::steady_clock> _lastFrame;
+		std::chrono::steady_clock::time_point _lastFrame;
 	};
 }
 

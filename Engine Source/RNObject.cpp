@@ -14,9 +14,9 @@ namespace RN
 {
 	Object::MetaType *Object::__metaClass = 0;
 	
-	Object::Object() :
-		_cleanUpFlag(ATOMIC_FLAG_INIT)
+	Object::Object()
 	{
+		_cleanUpFlag.clear();
 		_refCount = 1;
 	}
 	

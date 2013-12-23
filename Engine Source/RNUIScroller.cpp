@@ -7,6 +7,7 @@
 //
 
 #include "RNUIScroller.h"
+#include "RNUIScrollerInternals.h"
 #include "RNUIScrollView.h"
 #include "RNUIStyle.h"
 
@@ -19,10 +20,10 @@ namespace RN
 		Scroller::Scroller() :
 			_container(nullptr)
 		{
-			_frame = new ImageView();
+			_frame = new ScrollerFrame();
 			_frame->SetAutoresizingMask(AutoresizingFlexibleWidth | AutoresizingFlexibleHeight);
 			
-			_knob  = new ImageView();
+			_knob = new ScrollerKnob();
 
 			AddSubview(_frame);
 			AddSubview(_knob);
@@ -40,6 +41,7 @@ namespace RN
 			
 			_container  = scrollView;
 			_horizontal = horizontal;
+			
 			
 			Style *style = Style::GetSharedInstance();
 			

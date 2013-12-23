@@ -21,25 +21,34 @@ namespace RN
 	struct ShaderCacheInternal
 	{
 		bool hasSupport;
+#if RN_TARGET_SUPPORT_SQLITE
 		sqlite3 *connection;
+#endif
 	};
 	
 	
 	ShaderCache::ShaderCache()
 	{
+#if RN_TARGET_SUPPORT_SQLITE
 		_internals->hasSupport = SupportsCaching();
 		_internals->connection = nullptr;
+#else
+		_internals->hasSupport = false;
+#endif
 	}
 	
 	ShaderCache::~ShaderCache()
 	{
+#if RN_TARGET_SUPPORT_SQLITE
 		if(_internals->connection)
 			sqlite3_close(_internals->connection);
+#endif
 	}
 	
 	
 	void ShaderCache::InitializeDatabase()
 	{
+#if RN_TARGET_SUPPORT_SQLITE
 		if(_internals->hasSupport)
 		{
 			std::string path = PathManager::Join(PathManager::SaveDirectory(), "shadercache.sqlite3");
@@ -81,13 +90,16 @@ namespace RN
 			if(coldCache)
 				RNDebug("Shader cache is completely cold!");
 		}
+#endif
 	}
 	
 	void ShaderCache::BumpVersion()
 	{
+#if RN_TARGET_SUPPORT_SQLITE
 		SQL::Statement addVersion(_internals->connection, "INSERT INTO manifest (version) VALUES(?)");
 		addVersion.BindInt(1, kRNShaderCacheDatabaseVersion);
 		addVersion.Step();
+#endif
 	}
 	
 	bool ShaderCache::UpdateDatabase()
@@ -99,6 +111,7 @@ namespace RN
 	
 	void ShaderCache::InvalidateCacheEntries(Shader *shader)
 	{
+#if RN_TARGET_SUPPORT_SQLITE
 		LockGuard<Mutex> lock(_lock);
 		
 		std::string hash = std::move(shader->GetFileHash());
@@ -106,10 +119,12 @@ namespace RN
 		SQL::Statement statement(_internals->connection, "DELETE FROM cache WHERE hash=?");
 		statement.BindText(1, hash);
 		statement.Step();
+#endif
 	}
 	
 	void ShaderCache::CacheShaderProgram(Shader *shader, ShaderProgram *program, const ShaderLookup& lookup)
 	{
+#if RN_TARGET_SUPPORT_SQLITE
 #if GL_ARB_get_program_binary
 		if(_internals->hasSupport)
 		{
@@ -143,10 +158,12 @@ namespace RN
 			delete [] buffer;
 		}
 #endif
+#endif
 	}
 
 	ShaderProgram *ShaderCache::DequeShaderProgram(Shader *shader, const ShaderLookup& lookup)
 	{
+#if RN_TARGET_SUPPORT_SQLITE
 		if(!_internals->connection)
 			return nullptr;
 		
@@ -181,7 +198,7 @@ namespace RN
 			
 			program->ReadLocations();
 		}
-		
+#endif
 		return nullptr;
 	}
 	
@@ -189,6 +206,7 @@ namespace RN
 	
 	bool ShaderCache::SupportsCaching()
 	{
+#if RN_TARGET_SUPPORT_SQLITE
 		static bool hasSupport;
 		static std::once_flag flag;
 		
@@ -205,5 +223,8 @@ namespace RN
 		});
 		
 		return hasSupport;
+#else
+		return false;
+#endif
 	}
 }

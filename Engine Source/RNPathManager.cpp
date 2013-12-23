@@ -236,7 +236,7 @@ namespace RN
 		
 #if RN_PLATFORM_WINDOWS
 		bool isDirectory;
-		if(PathExists(path, &isDirectory))
+		if(PathManager::PathExists(path, &isDirectory))
 			return isDirectory;
 		
 		return ::CreateDirectory(path, NULL);

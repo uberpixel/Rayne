@@ -97,8 +97,8 @@ namespace RN
 		
 		uint32 GetButton() const { return _button; }
 		
-		bool IsKeyboard() const;
-		bool IsMouse() const;
+		RNAPI bool IsKeyboard() const;
+		RNAPI bool IsMouse() const;
 		
 	private:
 		Event();

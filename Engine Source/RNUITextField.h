@@ -24,10 +24,10 @@ namespace RN
 		class TextFieldDelegate
 		{
 		public:
-			virtual bool TextFieldShouldBeginEditing(TextField *textField) { return true; }
-			virtual void TextFieldDidBeginEditing(TextField *textField) {}
-			virtual bool TextFieldShouldEndEditing(TextField *textField) { return true; }
-			virtual void TextFieldDidEndEditing(TextField *textField) {}
+			RNAPI virtual bool TextFieldShouldBeginEditing(TextField *textField) { return true; }
+			RNAPI virtual void TextFieldDidBeginEditing(TextField *textField) {}
+			RNAPI virtual bool TextFieldShouldEndEditing(TextField *textField) { return true; }
+			RNAPI virtual void TextFieldDidEndEditing(TextField *textField) {}
 		};
 		
 		class TextField : public Control, TextEditorDelegate
@@ -39,35 +39,35 @@ namespace RN
 				Bezel
 			};
 			
-			TextField(Dictionary *style);
-			~TextField() override;
+			RNAPI TextField(Dictionary *style);
+			RNAPI ~TextField() override;
 			
-			static TextField *WithType(Type type);
+			RNAPI static TextField *WithType(Type type);
 			
-			void SetText(String *text);
-			void SetAttributedText(AttributedString *string);
-			void SetFormatter(Formatter *formatter);
-			void SetValue(Object *value);
-			void SetDelegate(TextFieldDelegate *delegate);
+			RNAPI void SetText(String *text);
+			RNAPI void SetAttributedText(AttributedString *string);
+			RNAPI void SetFormatter(Formatter *formatter);
+			RNAPI void SetValue(Object *value);
+			RNAPI void SetDelegate(TextFieldDelegate *delegate);
 			
-			String *GetText() const { return _editor->GetText(); }
-			AttributedString *GetAttributedText() const { return _editor->GetAttributedText(); }
-			Object *GetValue() const;
+			RNAPI String *GetText() const { return _editor->GetText(); }
+			RNAPI AttributedString *GetAttributedText() const { return _editor->GetAttributedText(); }
+			RNAPI Object *GetValue() const;
 			
-			void KeyDown(Event *event) override;
-			void KeyRepeat(Event *event) override;
+			RNAPI void KeyDown(Event *event) override;
+			RNAPI void KeyRepeat(Event *event) override;
 			
-			bool CanBecomeFirstResponder() override;
-			void BecomeFirstResponder() override;
-			void ResignFirstResponder() override;
-			void StateChanged(State state) override;
+			RNAPI bool CanBecomeFirstResponder() override;
+			RNAPI void BecomeFirstResponder() override;
+			RNAPI void ResignFirstResponder() override;
+			RNAPI void StateChanged(State state) override;
 			
 		protected:
-			void LayoutSubviews() override;
-			bool TextEditorShouldReturn(TextEditor *editor) override;
+			RNAPI void LayoutSubviews() override;
+			RNAPI bool TextEditorShouldReturn(TextEditor *editor) override;
 			
-			void SetValueForUndefinedKey(const std::string& key, Object *value) override;
-			Object *GetValueForUndefinedKey(const std::string& key) override;
+			RNAPI void SetValueForUndefinedKey(const std::string& key, Object *value) override;
+			RNAPI Object *GetValueForUndefinedKey(const std::string& key) override;
 			
 		private:
 			void Initialize();

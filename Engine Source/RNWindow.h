@@ -35,9 +35,9 @@ namespace RN
 		RNAPI WindowConfiguration(uint32 width, uint32 height);
 		RNAPI WindowConfiguration(uint32 width, uint32 height, Screen *screen);
 		
-		Screen *GetScreen() const { return _screen; }
-		uint32 GetWidth()  const { return _width; }
-		uint32 GetHeight() const { return _height; }
+		RNAPI Screen *GetScreen() const { return _screen; }
+		RNAPI uint32 GetWidth()  const { return _width; }
+		RNAPI uint32 GetHeight() const { return _height; }
 		
 	private:
 		Screen *_screen;
@@ -53,15 +53,15 @@ namespace RN
 	public:
 		friend class Window;
 		
-		~Screen();
+		RNAPI ~Screen();
 		
-		uint32 GetWidth() const { return _width; }
-		uint32 GetHeight() const { return _height; }
+		RNAPI uint32 GetWidth() const { return _width; }
+		RNAPI uint32 GetHeight() const { return _height; }
 		
-		float GetScaleFactor() const { return _scaleFactor; }
-		const Rect GetFrame() const { return _frame; }
+		RNAPI float GetScaleFactor() const { return _scaleFactor; }
+		RNAPI const Rect GetFrame() const { return _frame; }
 		
-		const Array& GetConfigurations() const { return _configurations; }
+		RNAPI const Array& GetConfigurations() const { return _configurations; }
 		
 	private:
 #if RN_PLATFORM_MAC_OS
@@ -116,15 +116,15 @@ namespace RN
 
 		RNAPI Rect GetFrame() const;
 		
-		Screen *GetActiveScreen() const { return _activeScreen; }
-		Screen *GetMainScreen() const { return _mainScreen; }
+		RNAPI Screen *GetActiveScreen() const { return _activeScreen; }
+		RNAPI Screen *GetMainScreen() const { return _mainScreen; }
 		
 #if RN_PLATFORM_MAC_OS
 		Screen *GetScreenWithID(CGDirectDisplayID display);
 #endif
 		
-		const WindowConfiguration *GetConfiguration() const { return _activeConfiguration; }
-		const std::vector<Screen *>& GetScreens() const { return _screens; }
+		RNAPI const WindowConfiguration *GetConfiguration() const { return _activeConfiguration; }
+		RNAPI const std::vector<Screen *>& GetScreens() const { return _screens; }
 
 	private:
 		PIMPL<WindowInternals> _internals;

@@ -63,8 +63,12 @@ namespace RN
 			std::stringstream stream;
 			std::time_t time = std::chrono::system_clock::to_time_t(_time);
 			
+#if RN_PLATFORM_POSIX
 			std::tm tm = std::tm{0};
 			localtime_r(&time, &tm);
+#else
+			std::tm tm = *localtime(&time);
+#endif
 			
 			std::chrono::duration<double> sec = _time - std::chrono::system_clock::from_time_t(time) + std::chrono::seconds(tm.tm_sec);
 			

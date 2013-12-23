@@ -27,14 +27,14 @@ namespace RN
 		friend class Shader;
 		friend class Kernel;
 		
-		ShaderCache();
-		~ShaderCache() override;
+		RNAPI ShaderCache();
+		RNAPI ~ShaderCache() override;
 		
-		void InvalidateCacheEntries(Shader *shader);
-		void CacheShaderProgram(Shader *shader, ShaderProgram *program, const ShaderLookup& lookup);
-		ShaderProgram *DequeShaderProgram(Shader *shader, const ShaderLookup& lookup);
+		RNAPI void InvalidateCacheEntries(Shader *shader);
+		RNAPI void CacheShaderProgram(Shader *shader, ShaderProgram *program, const ShaderLookup& lookup);
+		RNAPI ShaderProgram *DequeShaderProgram(Shader *shader, const ShaderLookup& lookup);
 		
-		static bool SupportsCaching();
+		RNAPI static bool SupportsCaching();
 		
 	private:
 		void InitializeDatabase();

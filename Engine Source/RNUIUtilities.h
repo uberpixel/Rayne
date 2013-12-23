@@ -24,8 +24,8 @@ namespace RN
 		class DebugWidget : public Widget
 		{
 		public:
-			DebugWidget();
-			~DebugWidget() override;
+			RNAPI DebugWidget();
+			RNAPI ~DebugWidget() override;
 			
 		private:
 			void HandleMessage(Message *message);
@@ -40,11 +40,11 @@ namespace RN
 		class ConsoleWidget : public Widget, Log::LoggingEngine, TableViewDataSource
 		{
 		public:
-			ConsoleWidget();
-			~ConsoleWidget();
+			RNAPI ConsoleWidget();
+			RNAPI ~ConsoleWidget();
 			
 		protected:
-			void Update() override;
+			RNAPI void Update() override;
 			
 		private:
 			size_t TableViewNumberOfRows(TableView *tableView) override;

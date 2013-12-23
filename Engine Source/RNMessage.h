@@ -20,12 +20,12 @@ namespace RN
 	class Message : public Object
 	{
 	public:
-		Message(String *name, Object *object, Dictionary *info);
-		~Message() override;
+		RNAPI Message(String *name, Object *object, Dictionary *info);
+		RNAPI ~Message() override;
 		
-		String *GetName() const { return _name; }
-		Object *GetObject() const { return _object; }
-		Dictionary *GetInfo() const { return _info; }
+		RNAPI String *GetName() const { return _name; }
+		RNAPI Object *GetObject() const { return _object; }
+		RNAPI Dictionary *GetInfo() const { return _info; }
 		
 	protected:
 		String *_name;

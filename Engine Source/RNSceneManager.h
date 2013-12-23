@@ -21,16 +21,16 @@ namespace RN
 	class SceneManager : public Object
 	{
 	public:
-		virtual void AddSceneNode(SceneNode *node) = 0;
-		virtual void RemoveSceneNode(SceneNode *node) = 0;
-		virtual void UpdateSceneNode(SceneNode *node, uint32 changes) = 0;
+		RNAPI virtual void AddSceneNode(SceneNode *node) = 0;
+		RNAPI virtual void RemoveSceneNode(SceneNode *node) = 0;
+		RNAPI virtual void UpdateSceneNode(SceneNode *node, uint32 changes) = 0;
 		
-		virtual void RenderScene(Camera *camera) = 0;
-		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0x00ff, Hit::HitMode mode = Hit::HitMode::IgnoreNone) = 0;
+		RNAPI virtual void RenderScene(Camera *camera) = 0;
+		RNAPI virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0x00ff, Hit::HitMode mode = Hit::HitMode::IgnoreNone) = 0;
 		
 	protected:
-		SceneManager();
-		~SceneManager() override;
+		RNAPI SceneManager();
+		RNAPI ~SceneManager() override;
 		
 		Renderer *_renderer;
 		
@@ -40,19 +40,19 @@ namespace RN
 	class GenericSceneManager : public SceneManager
 	{
 	public:
-		GenericSceneManager();
-		~GenericSceneManager() override;
+		RNAPI GenericSceneManager();
+		RNAPI ~GenericSceneManager() override;
 		
-		void AddSceneNode(SceneNode *node) override;
-		void RemoveSceneNode(SceneNode *node) override;
-		void UpdateSceneNode(SceneNode *node, uint32 changes) override;
+		RNAPI void AddSceneNode(SceneNode *node) override;
+		RNAPI void RemoveSceneNode(SceneNode *node) override;
+		RNAPI void UpdateSceneNode(SceneNode *node, uint32 changes) override;
 		
-		void RenderScene(Camera *camera) override;
+		RNAPI void RenderScene(Camera *camera) override;
 		
-		Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0xffff, Hit::HitMode mode = Hit::HitMode::IgnoreNone) override;
+		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0xffff, Hit::HitMode mode = Hit::HitMode::IgnoreNone) override;
 		
 	private:
-		void RenderSceneNode(Camera *camera, SceneNode *node);
+		RNAPI void RenderSceneNode(Camera *camera, SceneNode *node);
 		
 		std::vector<SceneNode *> _nodes;
 		std::unordered_set<SceneNode *> _rootNodes;

@@ -39,7 +39,7 @@ namespace RN
 		RNAPI void SetClearColor(const Color& color);
 		
 		gl::Version GetVersion() const { return _version; }
-		static Context *GetActiveContext();
+		RNAPI static Context *GetActiveContext();
 
 	protected:
 		RNAPI void Activate();

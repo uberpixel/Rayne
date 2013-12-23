@@ -23,32 +23,32 @@ namespace RN
 	class Model : public Object
 	{
 	public:
-		Model();
-		Model(Mesh *mesh, Material *material);
+		RNAPI Model();
+		RNAPI Model(Mesh *mesh, Material *material);
 		
-		~Model() override;
+		RNAPI ~Model() override;
 		
-		static Model *Empty();
-		static Model *WithFile(const std::string& path, bool guessMaterial = true);
-		static Model *WithMesh(Mesh *mesh, Material *material);
-		static Model *WithSkyCube(const std::string& up, const std::string& down, const std::string& left, const std::string& right, const std::string& front, const std::string& back, const std::string& shader="shader/rn_Sky");
+		RNAPI static Model *Empty();
+		RNAPI static Model *WithFile(const std::string& path, bool guessMaterial = true);
+		RNAPI static Model *WithMesh(Mesh *mesh, Material *material);
+		RNAPI static Model *WithSkyCube(const std::string& up, const std::string& down, const std::string& left, const std::string& right, const std::string& front, const std::string& back, const std::string& shader="shader/rn_Sky");
 		
-		size_t AddLODStage(float distance);
-		void RemoveLODStage(size_t stage);
+		RNAPI size_t AddLODStage(float distance);
+		RNAPI void RemoveLODStage(size_t stage);
 		
-		void AddMesh(Mesh *mesh, Material *material, size_t lodStage);
+		RNAPI void AddMesh(Mesh *mesh, Material *material, size_t lodStage);
 		
-		size_t GetLODStageForDistance(float distance) const;
-		size_t GetMeshCount(size_t lodStage) const;
-		size_t GetLODStageCount() const { return _groups.size(); }
+		RNAPI size_t GetLODStageForDistance(float distance) const;
+		RNAPI size_t GetMeshCount(size_t lodStage) const;
+		RNAPI size_t GetLODStageCount() const { return _groups.size(); }
 		
-		Mesh *GetMeshAtIndex(size_t lodStage, size_t index) const;
-		Material *GetMaterialAtIndex(size_t lodStage, size_t index) const;
+		RNAPI Mesh *GetMeshAtIndex(size_t lodStage, size_t index) const;
+		RNAPI Material *GetMaterialAtIndex(size_t lodStage, size_t index) const;
 		
-		void CalculateBoundingVolumes();
+		RNAPI void CalculateBoundingVolumes();
 		
-		const AABB& GetBoundingBox() const { return _boundingBox; }
-		const Sphere& GetBoundingSphere() const { return _boundingSphere; }
+		RNAPI const AABB& GetBoundingBox() const { return _boundingBox; }
+		RNAPI const Sphere& GetBoundingSphere() const { return _boundingSphere; }
 		
 	private:
 		class MeshGroup

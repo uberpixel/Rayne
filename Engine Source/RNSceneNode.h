@@ -108,10 +108,20 @@ namespace RN
 		RNAPI Vector3 GetWorldEulerAngle() const;
 		RNAPI Quaternion GetWorldRotation() const;
 		
+		RNAPI const Vector3 &GetPosition_NoLock() const { return _position; }
+		RNAPI const Vector3 &GetScale_NoLock() const { return _scale; }
+		RNAPI const Vector3 &GetEulerAngle_NoLock() const { return _euler; }
+		RNAPI const Quaternion &GetRotation_NoLock() const { return _rotation; }
+		
+		RNAPI const Vector3 &GetWorldPosition_NoLock() const;
+		RNAPI const Vector3 &GetWorldScale_NoLock() const;
+		RNAPI const Vector3 &GetWorldEulerAngle_NoLock() const;
+		RNAPI const Quaternion &GetWorldRotation_NoLock() const;
+		
 		RNAPI AABB GetBoundingBox() const;
 		RNAPI Sphere GetBoundingSphere() const;
 		
-		const std::string& GetDebugName() { return _debugName; }
+		RNAPI const std::string& GetDebugName() { return _debugName; }
 		
 		RNAPI void LookAt(SceneNode *other);
 		
@@ -125,13 +135,13 @@ namespace RN
 		RNAPI void AddDependency(SceneNode *dependency);
 		RNAPI void RemoveDependency(SceneNode *dependency);
 		
-		SceneNode *GetParent() const;
-		FrameID GetLastFrame() const { return _lastFrame; }
-		World *GetWorld() const { return _world; }
-		Priority GetPriority() const { return _priority; }
-		Flags GetFlags() const { return _flags; }
+		RNAPI SceneNode *GetParent() const;
+		RNAPI FrameID GetLastFrame() const { return _lastFrame; }
+		RNAPI World *GetWorld() const { return _world; }
+		RNAPI Priority GetPriority() const { return _priority; }
+		RNAPI Flags GetFlags() const { return _flags; }
 		
-		const Array *GetChildren() const { return &_children; }
+		RNAPI const Array *GetChildren() const { return &_children; }
 		
 		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone);
 		
@@ -144,7 +154,7 @@ namespace RN
 				_action(this, delta);
 		}
 		
-		virtual bool CanUpdate(FrameID frame);
+		RNAPI virtual bool CanUpdate(FrameID frame);
 		
 		int8 renderGroup;
 		int8 collisionGroup;
@@ -161,7 +171,7 @@ namespace RN
 		RNAPI virtual void WillRemoveChild(SceneNode *child) {}
 		RNAPI virtual void DidRemoveChild(SceneNode *child) {}
 		
-		void UpdatedToFrame(FrameID frame) { _lastFrame.store(frame); }
+		RNAPI void UpdatedToFrame(FrameID frame) { _lastFrame.store(frame); }
 		
 		Observable<Vector3> _position;
 		Observable<Vector3> _scale;
@@ -508,6 +518,28 @@ namespace RN
 		
 		return result;
 	}
+	
+	RN_INLINE const Vector3 &SceneNode::GetWorldPosition_NoLock() const
+	{
+		UpdateInternalData();
+		return _worldPosition;
+	}
+	RN_INLINE const Vector3 &SceneNode::GetWorldScale_NoLock() const
+	{
+		UpdateInternalData();
+		return _worldScale;
+	}
+	RN_INLINE const Vector3 &SceneNode::GetWorldEulerAngle_NoLock() const
+	{
+		UpdateInternalData();
+		return _worldEuler;
+	}
+	RN_INLINE const Quaternion &SceneNode::GetWorldRotation_NoLock() const
+	{
+		UpdateInternalData();
+		return _worldRotation;
+	}
+	
 	
 	RN_INLINE Matrix SceneNode::GetLocalTransform() const
 	{

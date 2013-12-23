@@ -454,7 +454,7 @@ namespace RN
 	
 	bool Kernel::Tick()
 	{
-		std::chrono::time_point<std::chrono::steady_clock> now = std::chrono::steady_clock::now();
+		std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 
 		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
 		float trueDelta = milliseconds / 1000.0f;

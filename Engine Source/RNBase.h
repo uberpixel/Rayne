@@ -9,6 +9,8 @@
 #ifndef __RAYNE_BASE_H__
 #define __RAYNE_BASE_H__
 
+#define NOMINMAX
+
 // ---------------------------
 // Platform independent includes
 // ---------------------------
@@ -80,12 +82,10 @@
 #if RN_PLATFORM_WINDOWS
 	#define WINDOWS_LEAN_AND_MEAN
 	#include <windows.h>
+	#include <ShlObj.h>
 
-	#include "gl11.h"
-	#include "glext.h"
-	#include "wglext.h"
-
-	#pragma comment(lib, "opengl32.lib")
+	#undef near
+	#undef far
 #endif
 
 #if RN_PLATFORM_LINUX
@@ -126,7 +126,7 @@ namespace RN
 #endif
 	
 #ifndef NDEBUG
-	#define RN_ASSERT(e, ...) RN_EXPECT_FALSE(!(e)) ? RN::__Assert(__PRETTY_FUNCTION__, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
+	#define RN_ASSERT(e, ...) RN_EXPECT_FALSE(!(e)) ? RN::__Assert(RN_FUNCTION_SIGNATURE, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
 #else
 	#define RN_ASSERT(e, ...) (void)0
 #endif

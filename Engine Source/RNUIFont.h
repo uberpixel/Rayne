@@ -26,22 +26,22 @@ namespace RN
 		{
 		friend class Font;
 		public:
-			UniChar GetCharacter() const { return _character; }
-			float GetKerning(UniChar character) const; // Returns the kerning for this glyph rendered after the given character
+			RNAPI UniChar GetCharacter() const { return _character; }
+			RNAPI float GetKerning(UniChar character) const; // Returns the kerning for this glyph rendered after the given character
 			
-			float GetWidth() const  { return _region.width; }
-			float GetHeight() const { return _region.height; }
+			RNAPI float GetWidth() const  { return _region.width; }
+			RNAPI float GetHeight() const { return _region.height; }
 			
-			float GetOffsetX() const { return _offset_x; }
-			float GetOffsetY() const { return _offset_y; }
+			RNAPI float GetOffsetX() const { return _offset_x; }
+			RNAPI float GetOffsetY() const { return _offset_y; }
 			
-			float GetAdvanceX() const { return _advance_x; }
-			float GetAdvanceY() const { return _advance_y; }
+			RNAPI float GetAdvanceX() const { return _advance_x; }
+			RNAPI float GetAdvanceY() const { return _advance_y; }
 			
-			float GetU0() const { return _u0; }
-			float GetU1() const { return _u1; }
-			float GetV0() const { return _v0; }
-			float GetV1() const { return _v1; }
+			RNAPI float GetU0() const { return _u0; }
+			RNAPI float GetU1() const { return _u1; }
+			RNAPI float GetV0() const { return _v0; }
+			RNAPI float GetV1() const { return _v1; }
 			
 		private:
 			UniChar _character;
@@ -91,27 +91,27 @@ namespace RN
 		{
 		friend class Glyph;
 		public:
-			Font(const std::string& name, float size);
-			Font(const std::string& name, float size, const FontDescriptor& descriptor);
-			~Font() override;
+			RNAPI Font(const std::string& name, float size);
+			RNAPI Font(const std::string& name, float size, const FontDescriptor& descriptor);
+			RNAPI ~Font() override;
 			
-			static Font *WithName(const std::string& name, float size);
-			static Font *WithNameAndDescriptor(const std::string& name, float size, const FontDescriptor& descriptor);
+			RNAPI static Font *WithName(const std::string& name, float size);
+			RNAPI static Font *WithNameAndDescriptor(const std::string& name, float size, const FontDescriptor& descriptor);
 			
-			bool GetHinting() const { return _descriptor.hinting; }
-			bool GetFiltering() const { return _descriptor.filtering; };
+			RNAPI bool GetHinting() const { return _descriptor.hinting; }
+			RNAPI bool GetFiltering() const { return _descriptor.filtering; };
 			
-			float GetAscent() const { return _ascent; }
-			float GetDescent() const { return _descent; }
-			float GetLeading() const { return _leading; }
-			float GetSize() const { return _size; }
-			float GetUnitsPerEM() const { return _unitsPerEM; }
-			float GetDefaultLineHeight() const;
+			RNAPI float GetAscent() const { return _ascent; }
+			RNAPI float GetDescent() const { return _descent; }
+			RNAPI float GetLeading() const { return _leading; }
+			RNAPI float GetSize() const { return _size; }
+			RNAPI float GetUnitsPerEM() const { return _unitsPerEM; }
+			RNAPI float GetDefaultLineHeight() const;
 			
-			Texture *GetTexture() const { return _texture; }
+			RNAPI Texture *GetTexture() const { return _texture; }
 			
-			const Glyph& GetGlyphForCharacter(UniChar character);
-			void RenderGlyphsFromString(String *string);
+			RNAPI const Glyph& GetGlyphForCharacter(UniChar character);
+			RNAPI void RenderGlyphsFromString(String *string);
 			
 		private:
 			void ResolveFontName(const std::string& name);

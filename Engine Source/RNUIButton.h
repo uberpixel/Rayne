@@ -37,28 +37,28 @@ namespace RN
 				Switch
 			};
 			
-			Button();
-			Button(Type type);
-			Button(Dictionary *style);
-			~Button() override;
+			RNAPI Button();
+			RNAPI Button(Type type);
+			RNAPI Button(Dictionary *style);
+			RNAPI ~Button() override;
 			
-			static Button *WithType(Type type);
+			RNAPI static Button *WithType(Type type);
 			
-			void SetTitleForState(String *title, State state);
-			void SetBackgroundImageForState(Image *image, State state);
-			void SetImageForState(Image *image, State state);
-			void SetBehavior(Behavior behavior);
-			void SetImagePosition(ImagePosition position);
-			void SetContentInsets(const EdgeInsets& insets);
+			RNAPI void SetTitleForState(String *title, State state);
+			RNAPI void SetBackgroundImageForState(Image *image, State state);
+			RNAPI void SetImageForState(Image *image, State state);
+			RNAPI void SetBehavior(Behavior behavior);
+			RNAPI void SetImagePosition(ImagePosition position);
+			RNAPI void SetContentInsets(const EdgeInsets& insets);
 			
-			void SetFrame(const Rect& frame) override;
-			Vector2 GetSizeThatFits() override;
+			RNAPI void SetFrame(const Rect& frame) override;
+			RNAPI Vector2 GetSizeThatFits() override;
 			
 		protected:
-			bool PostEvent(EventType event) override;
-			void StateChanged(State state) override;
+			RNAPI bool PostEvent(EventType event) override;
+			RNAPI void StateChanged(State state) override;
 			
-			void LayoutSubviews() override;
+			RNAPI void LayoutSubviews() override;
 			
 		private:
 			void Initialize();

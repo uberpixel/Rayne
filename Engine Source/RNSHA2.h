@@ -18,12 +18,12 @@ namespace RN
 		class sha2_context
 		{
 		public:
-			sha2_context();
+			RNAPI sha2_context();
 			
-			void update(const std::vector<uint8>& input);
-			void update(const uint8 *input, size_t size);
+			RNAPI void update(const std::vector<uint8>& input);
+			RNAPI void update(const uint8 *input, size_t size);
 			
-			void finish(std::vector<uint8>& result);
+			RNAPI void finish(std::vector<uint8>& result);
 			
 		private:
 			void process(const uint8 *data);

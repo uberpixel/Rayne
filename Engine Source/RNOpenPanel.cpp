@@ -96,7 +96,7 @@ namespace RN
 		}];
 #endif
 		
-#if RN_PLATFORM_WINDOWS
+#if 0 //RN_PLATFORM_WINDOWS
 		TCHAR szFile[MAX_PATH];
 		TCHAR szFilter[1024];
 		OPENFILENAME ofn;

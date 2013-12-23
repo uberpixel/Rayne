@@ -55,8 +55,8 @@ namespace RN
 		RNAPI void WaitForExit();
 		
 		RNAPI void Cancel();
-		bool IsCancelled() const { return _isCancelled.load(); }
-		bool IsRunning() const { return _isRunning.load(); }
+		RNAPI bool IsCancelled() const { return _isCancelled.load(); }
+		RNAPI bool IsRunning() const { return _isRunning.load(); }
 		
 		RNAPI void SetName(const std::string& name);
 		RNAPI const std::string GetName();

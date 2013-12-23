@@ -18,16 +18,16 @@ namespace RN
 	class Array : public Object
 	{
 	public:
-		Array();
-		Array(size_t size);
-		Array(const Array *other);
-		Array(const Set *set);
+		RNAPI Array();
+		RNAPI Array(size_t size);
+		RNAPI Array(const Array *other);
+		RNAPI Array(const Set *set);
 		
-		~Array() override;
+		RNAPI ~Array() override;
 		
-		static Array *WithArray(const Array *other);
-		static Array *WithSet(const Set *set);
-		static Array *WithObjects(Object *first, ...);
+		RNAPI static Array *WithArray(const Array *other);
+		RNAPI static Array *WithSet(const Set *set);
+		RNAPI static Array *WithObjects(Object *first, ...);
 		
 		
 		Object *operator [](int index) const
@@ -216,7 +216,7 @@ namespace RN
 			return _data;
 		}
 		
-		void ShrinkToFit();
+		RNAPI void ShrinkToFit();
 		
 		template<class T=Object>
 		void Sort(const std::function<ComparisonResult (const T *left, const T *right)>& function)
@@ -228,7 +228,7 @@ namespace RN
 		}
 		
 	private:
-		void UpdateSizeIfNeeded(size_t required);
+		RNAPI void UpdateSizeIfNeeded(size_t required);
 		
 		Object **_data;
 		size_t _count;

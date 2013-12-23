@@ -17,34 +17,34 @@ namespace RN
 	class Rect
 	{
 	public:
-		RNAPI Rect();
-		RNAPI Rect(float x, float y, float width, float height);
-		RNAPI Rect(const Vector2& origin, float width, float height);
-		RNAPI Rect(const Vector2& origin, const Vector2& size);
-		RNAPI Rect(const Rect& other);
+		Rect();
+		Rect(float x, float y, float width, float height);
+		Rect(const Vector2& origin, float width, float height);
+		Rect(const Vector2& origin, const Vector2& size);
+		Rect(const Rect& other);
 		
-		RNAPI bool operator== (const Rect& other);
-		RNAPI bool operator!= (const Rect& other);
+		bool operator== (const Rect& other);
+		bool operator!= (const Rect& other);
 		
-		RNAPI bool ContainsPoint(const Vector2& point) const;
-		RNAPI bool IntersectsRect(const Rect& other) const;
-		RNAPI bool ContainsRect(const Rect& other) const;
+		bool ContainsPoint(const Vector2& point) const;
+		bool IntersectsRect(const Rect& other) const;
+		bool ContainsRect(const Rect& other) const;
 		
-		RNAPI Rect& Inset(float dx, float dy);
-		RNAPI Rect& Integral();
-		RNAPI Rect Integral() const;
+		Rect& Inset(float dx, float dy);
+		Rect& Integral();
+		Rect Integral() const;
 		
-		RNAPI float GetTop() const;
-		RNAPI float GetBottom() const;
-		RNAPI float GetLeft() const;
-		RNAPI float GetRight() const;
+		float GetTop() const;
+		float GetBottom() const;
+		float GetLeft() const;
+		float GetRight() const;
 		
-		RNAPI Vector2 Origin() const
+		Vector2 Origin() const
 		{
 			return Vector2(x, y);
 		}
 		
-		RNAPI Vector2 Size() const
+		Vector2 Size() const
 		{
 			return Vector2(width, height);
 		}

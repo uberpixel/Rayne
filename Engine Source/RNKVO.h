@@ -50,22 +50,22 @@ namespace RN
 	{
 	public:
 		friend class Object;
-		virtual ~ObservableProperty();
+		RNAPI virtual ~ObservableProperty();
 	
 		const std::string &GetName() const { return _name; }
 		ObservableType GetType() const { return _type; }
 		
-		virtual void SetValue(Object *value) = 0;
-		virtual Object *GetValue() const = 0;
+		RNAPI virtual void SetValue(Object *value) = 0;
+		RNAPI virtual Object *GetValue() const = 0;
 		
 		void SetWritable(bool writable) { _writable = writable; }
 		bool IsWritable() const { return _writable; }
 		
-		void WillChangeValue();
-		void DidChangeValue();
+		RNAPI void WillChangeValue();
+		RNAPI void DidChangeValue();
 		
 	protected:
-		ObservableProperty(const std::string &name, ObservableType type);
+		RNAPI ObservableProperty(const std::string &name, ObservableType type);
 		
 	private:
 		std::string _name;

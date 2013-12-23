@@ -44,10 +44,10 @@ namespace RN
 				SelectionColor
 			};
 			
-			Style();
-			~Style() override;
+			RNAPI Style();
+			RNAPI ~Style() override;
 			
-			Texture *GetTextureWithName(String *name);
+			RNAPI Texture *GetTextureWithName(String *name);
 			
 			template<class T>
 			T *GetResourceWithKeyPath(String *keyPath)
@@ -60,21 +60,21 @@ namespace RN
 				return static_cast<T *>(resource);
 			}
 			
-			Font *GetFont(FontStyle style);
-			Font *GetFontWithKeyPath(String *identifier);
+			RNAPI Font *GetFont(FontStyle style);
+			RNAPI Font *GetFontWithKeyPath(String *identifier);
 			
-			Color *GetColor(ColorStyle style);
-			Color *GetColorWithKeyPath(String *keyPath);
+			RNAPI Color *GetColor(ColorStyle style);
+			RNAPI Color *GetColorWithKeyPath(String *keyPath);
 			
-			Dictionary *GetButtonStyleWithKeyPath(String *keyPath);
-			Dictionary *GetTextfieldStyleWithKeyPath(String *name);
-			Dictionary *GetWindowStyleWithKeyPath(String *name);
+			RNAPI Dictionary *GetButtonStyleWithKeyPath(String *keyPath);
+			RNAPI Dictionary *GetTextfieldStyleWithKeyPath(String *name);
+			RNAPI Dictionary *GetWindowStyleWithKeyPath(String *name);
 			
-			static EdgeInsets ParseEdgeInsets(Dictionary *insets);
-			static Atlas ParseAtlas(Dictionary *atlas);
-			static Control::State ParseState(String *string);
-			static Color *ParseColor(Array *color);
-			static Image *ParseImage(Dictionary *image);
+			RNAPI static EdgeInsets ParseEdgeInsets(Dictionary *insets);
+			RNAPI static Atlas ParseAtlas(Dictionary *atlas);
+			RNAPI static Control::State ParseState(String *string);
+			RNAPI static Color *ParseColor(Array *color);
+			RNAPI static Image *ParseImage(Dictionary *image);
 			
 		private:
 			Font *CreateFontFromDictionary(Dictionary *info);

@@ -46,13 +46,13 @@ namespace RN
 		RNAPI void Bind();
 		RNAPI void Unbind();
 		
-		bool HasDepthbuffer() const { return (_format & BufferFormatDepth); }
-		bool HasStencilbuffer() const { return (_format & BufferFormatStencil); }
+		RNAPI bool HasDepthbuffer() const { return (_format & BufferFormatDepth); }
+		RNAPI bool HasStencilbuffer() const { return (_format & BufferFormatStencil); }
 		
-		uint32 GetRenderTargets() const { return (uint32)_renderTargets->GetCount(); }
-		Texture *GetRenderTarget(uint32 index=0) const { return _renderTargets->GetObjectAtIndex<Texture>(index); }
-		Texture *GetDepthTarget() const { return _depthTexture; }
-		const Vector2& GetSize() const { return _size; }
+		RNAPI uint32 GetRenderTargets() const { return (uint32)_renderTargets->GetCount(); }
+		RNAPI Texture *GetRenderTarget(uint32 index=0) const { return _renderTargets->GetObjectAtIndex<Texture>(index); }
+		RNAPI Texture *GetDepthTarget() const { return _depthTexture; }
+		RNAPI const Vector2& GetSize() const { return _size; }
 		
 		RNAPI static uint32 GetMaxRenderTargets();
 		

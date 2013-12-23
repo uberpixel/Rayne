@@ -22,7 +22,7 @@ namespace RN
 	class AnimationBone
 	{
 	public:
-		AnimationBone(AnimationBone *prev, AnimationBone *next, const float frametime, const Vector3 &pos, const Vector3 &scal, const Quaternion &rot);
+		RNAPI AnimationBone(AnimationBone *prev, AnimationBone *next, const float frametime, const Vector3 &pos, const Vector3 &scal, const Quaternion &rot);
 		
 		float time;
 		
@@ -37,11 +37,11 @@ namespace RN
 	class Animation : public Object
 	{
 	public:
-		Animation(const std::string &animname);
-		~Animation();
+		RNAPI Animation(const std::string &animname);
+		RNAPI ~Animation();
 		
-		void MakeLoop();
-		float GetLength();
+		RNAPI void MakeLoop();
+		RNAPI float GetLength();
 		
 		std::string name;
 		std::map<int, AnimationBone*> bones;
@@ -50,13 +50,13 @@ namespace RN
 	class Bone
 	{
 	public:
-		Bone(Vector3 &pos, std::string bonename, bool root);
-		Bone(const Bone &other);
+		RNAPI Bone(Vector3 &pos, std::string bonename, bool root);
+		RNAPI Bone(const Bone &other);
 		
-		void Init(Bone *parent = 0);
-		bool Update(Bone *parent, float timestep, bool restart);
+		RNAPI void Init(Bone *parent = 0);
+		RNAPI bool Update(Bone *parent, float timestep, bool restart);
 		
-		void SetAnimation(AnimationBone *anim);
+		RNAPI void SetAnimation(AnimationBone *anim);
 		
 		Matrix relBaseMatrix;
 		Matrix invBaseMatrix;
@@ -86,29 +86,29 @@ namespace RN
 	class Skeleton : public Object
 	{
 	public:
-		Skeleton();
-		Skeleton(const std::string& path);
-		Skeleton(const Skeleton *other);
+		RNAPI Skeleton();
+		RNAPI Skeleton(const std::string& path);
+		RNAPI Skeleton(const Skeleton *other);
 		
-		virtual ~Skeleton();
+		RNAPI virtual ~Skeleton();
 		
-		static Skeleton *WithFile(const std::string& path);
-		static Skeleton *WithSkeleton(const Skeleton *other);
-		static Skeleton *Empty();
+		RNAPI static Skeleton *WithFile(const std::string& path);
+		RNAPI static Skeleton *WithSkeleton(const Skeleton *other);
+		RNAPI static Skeleton *Empty();
 		
-		void Init();
-		bool Update(float timestep, bool restart = true);
-		void SetTime(float time);
-		void SetProgress(float progress);
-		void SetAnimation(const std::string &animname);
-		void SetAnimation(Animation *anim);
-		void SetBlendAnimation(const std::string &to, float blendtime, float targettime = 0.0f);
-		void CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop = true);
-		void RemoveAnimation(const std::string &animname);
+		RNAPI void Init();
+		RNAPI bool Update(float timestep, bool restart = true);
+		RNAPI void SetTime(float time);
+		RNAPI void SetProgress(float progress);
+		RNAPI void SetAnimation(const std::string &animname);
+		RNAPI void SetAnimation(Animation *anim);
+		RNAPI void SetBlendAnimation(const std::string &to, float blendtime, float targettime = 0.0f);
+		RNAPI void CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop = true);
+		RNAPI void RemoveAnimation(const std::string &animname);
 		
-		Bone *GetBone(const std::string name);
-		uint16 GetBoneCount() const { return bones.size(); }
-		const std::vector<Matrix>& GetMatrices() const { return _matrices; }
+		RNAPI Bone *GetBone(const std::string name);
+		RNAPI uint16 GetBoneCount() const { return bones.size(); }
+		RNAPI const std::vector<Matrix>& GetMatrices() const { return _matrices; }
 		
 		std::vector<Bone> bones;
 		std::map<std::string, Animation*> animations;

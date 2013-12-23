@@ -127,17 +127,17 @@ namespace RN
 		RNAPI void RelinquishMesh(Mesh *mesh);
 		RNAPI void RelinquishProgram(ShaderProgram *program);
 		
-		Camera *GetActiveCamera() const { return _currentCamera; }
-		Material *GetActiveMaterial() const { return _currentMaterial; }
-		ShaderProgram *GetActiveProgram() const { return _currentProgram; }
+		RNAPI Camera *GetActiveCamera() const { return _currentCamera; }
+		RNAPI Material *GetActiveMaterial() const { return _currentMaterial; }
+		RNAPI ShaderProgram *GetActiveProgram() const { return _currentProgram; }
 		
-		float GetHDRExposure() const { return _hdrExposure; }
-		float GetHDRWhitepoint() const { return _hdrWhitePoint; }
+		RNAPI float GetHDRExposure() const { return _hdrExposure; }
+		RNAPI float GetHDRWhitepoint() const { return _hdrWhitePoint; }
 		
-		float GetScaleFactor() const { return _scaleFactor; }
+		RNAPI float GetScaleFactor() const { return _scaleFactor; }
 		
-		uint32 GetRenderedVertices() const { return _renderedVertices; }
-		uint32 GetRenderedLights() const { return _renderedLights; }
+		RNAPI uint32 GetRenderedVertices() const { return _renderedVertices; }
+		RNAPI uint32 GetRenderedLights() const { return _renderedLights; }
 		
 	protected:
 		RNAPI virtual void UpdateShaderData();

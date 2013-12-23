@@ -11,6 +11,16 @@
 
 namespace RN
 {
+#if RN_PLATFORM_WINDOWS
+	namespace wgl
+	{
+		PFNWGLCREATECONTEXTATTRIBSARBPROC CreateContextAttribsARB = nullptr;
+		PFNWGLCHOOSEPIXELFORMATARBPROC ChoosePixelFormatARB = nullptr;
+		PFNWGLSWAPINTERVALEXTPROC SwapIntervalEXT = nullptr;
+		PFNWGLGETEXTENSIONSSTRINGARBPROC GetExtensionsStringARB = nullptr;
+	}
+#endif
+
 	namespace gl
 	{
 		// 1.0

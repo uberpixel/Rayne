@@ -83,7 +83,7 @@ namespace RN
 		RNAPI machine_hash GetHash() const override;
 		RNAPI bool IsEqual(Object *other) const override;
 		
-		Type GetType() const { return _type; }
+		RNAPI Type GetType() const { return _type; }
 		
 	private:
 		static size_t SizeForType(Type type);

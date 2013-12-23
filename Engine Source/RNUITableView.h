@@ -25,20 +25,20 @@ namespace RN
 		class TableViewDataSource
 		{
 		public:
-			virtual size_t TableViewNumberOfRows(TableView *tableView) = 0;
-			virtual TableViewCell *TableViewCellForRow(TableView *tableView, size_t row) = 0;
+			RNAPI virtual size_t TableViewNumberOfRows(TableView *tableView) = 0;
+			RNAPI virtual TableViewCell *TableViewCellForRow(TableView *tableView, size_t row) = 0;
 		};
 		
 		class TableViewDelegate
 		{
 		public:
-			virtual bool TableViewCanSelectRow(TableView *tableView, size_t row) { return true; }
-			virtual void TableViewDidSelectRow(TableView *tableView, size_t row) {}
-			virtual void TableViewWillDeselectRow(TableView *tableView, size_t row) {}
-			virtual void TableViewSelectionDidChange(TableView *tableView) {}
+			RNAPI virtual bool TableViewCanSelectRow(TableView *tableView, size_t row) { return true; }
+			RNAPI virtual void TableViewDidSelectRow(TableView *tableView, size_t row) {}
+			RNAPI virtual void TableViewWillDeselectRow(TableView *tableView, size_t row) {}
+			RNAPI virtual void TableViewSelectionDidChange(TableView *tableView) {}
 			
-			virtual uint32 TableViewIndentationForRow(TableView *tableView, size_t row) { return 0; }
-			virtual void TableViewWillDisplayCellForRow(TableView *tableView, TableViewCell *cell, size_t row) {}
+			RNAPI virtual uint32 TableViewIndentationForRow(TableView *tableView, size_t row) { return 0; }
+			RNAPI virtual void TableViewWillDisplayCellForRow(TableView *tableView, TableViewCell *cell, size_t row) {}
 		};
 		
 		class TableView : public ScrollView, public ScrollViewDelegate
@@ -54,36 +54,36 @@ namespace RN
 				Bottom
 			};
 			
-			TableView();
-			~TableView();
+			RNAPI TableView();
+			RNAPI ~TableView();
 			
-			void SetDataSource(TableViewDataSource *dataSource);
-			void SetDelegate(TableViewDelegate *delegate);
+			RNAPI void SetDataSource(TableViewDataSource *dataSource);
+			RNAPI void SetDelegate(TableViewDelegate *delegate);
 			
-			void BegindEditing();
-			void EndEditing();
-			void InsertRows(size_t row, size_t count);
-			void DeleteRows(size_t row, size_t count);
-			void UpdateRows(size_t row, size_t count);
+			RNAPI void BegindEditing();
+			RNAPI void EndEditing();
+			RNAPI void InsertRows(size_t row, size_t count);
+			RNAPI void DeleteRows(size_t row, size_t count);
+			RNAPI void UpdateRows(size_t row, size_t count);
 			
-			void ScrollToRow(size_t row, ScrollPosition position);
+			RNAPI void ScrollToRow(size_t row, ScrollPosition position);
 			
-			TableViewCell *DequeCellWithIdentifier(String *identifier);
-			TableViewCell *GetCellForRow(size_t row);
+			RNAPI TableViewCell *DequeCellWithIdentifier(String *identifier);
+			RNAPI TableViewCell *GetCellForRow(size_t row);
 			
-			void LayoutSubviews() override;
-			void SetFrame(const Rect& frame) override;
-			void SetAllowsMultipleSelection(bool multipleSelection);
-			void SetSelection(IndexSet *selection);
-			void SetIndentationOffset(float offset);
-			void SetRowHeight(float rowHeight);
+			RNAPI void LayoutSubviews() override;
+			RNAPI void SetFrame(const Rect& frame) override;
+			RNAPI void SetAllowsMultipleSelection(bool multipleSelection);
+			RNAPI void SetSelection(IndexSet *selection);
+			RNAPI void SetIndentationOffset(float offset);
+			RNAPI void SetRowHeight(float rowHeight);
 			
-			IndexSet *GetSelection() const { return _selection; }
-			bool GetAllowsMultipleSelection() const { return _allowsMultipleSelection; }
-			float GetIndentationOffset() const { return _indentationOffset; }
-			Range GetVisibleRange() const;
+			RNAPI IndexSet *GetSelection() const { return _selection; }
+			RNAPI bool GetAllowsMultipleSelection() const { return _allowsMultipleSelection; }
+			RNAPI float GetIndentationOffset() const { return _indentationOffset; }
+			RNAPI Range GetVisibleRange() const;
 			
-			void ReloadData();
+			RNAPI void ReloadData();
 			
 		private:
 			struct EditingSet

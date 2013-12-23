@@ -69,10 +69,10 @@ namespace RN
 		FILE *GetFilePointer() { return _file; }
 		size_t GetSize() const { return static_cast<size_t>(_size); }
 
-		RNAPI const std::string& GetPath() { return _path; }
-		RNAPI const std::string& GetName() { return _name; }
-		RNAPI const std::string& GetExtension() { return _extension; }
-		RNAPI const std::string& GetFullPath() { return _fullPath; }
+		const std::string& GetPath() { return _path; }
+		const std::string& GetName() { return _name; }
+		const std::string& GetExtension() { return _extension; }
+		const std::string& GetFullPath() { return _fullPath; }
 
 	private:
 		bool OpenPath(const std::string& path, FileMode mode);

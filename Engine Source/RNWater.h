@@ -20,15 +20,15 @@ namespace RN
 	class Water : public SceneNode
 	{
 	public:
-		Water(Camera *cam, Texture *refract);
-		~Water() override;
+		RNAPI Water(Camera *cam, Texture *refract);
+		RNAPI ~Water() override;
 		
-		void SetTexture(Texture *texture);
+		RNAPI void SetTexture(Texture *texture);
 
-		void Update(float delta);
+		RNAPI void Update(float delta);
 		
-		virtual bool IsVisibleInCamera(Camera *camera) override;
-		virtual void Render(Renderer *renderer, Camera *camera) override;
+		RNAPI virtual bool IsVisibleInCamera(Camera *camera) override;
+		RNAPI virtual void Render(Renderer *renderer, Camera *camera) override;
 		
 	private:
 		void Initialize();

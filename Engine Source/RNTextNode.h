@@ -19,18 +19,18 @@ namespace RN
 	class TextNode : public Entity
 	{
 	public:
-		TextNode();
-		~TextNode();
+		RNAPI TextNode();
+		RNAPI ~TextNode();
 		
-		void SetText(String *text);
-		void SetAttributedText(AttributedString *text);
-		void SetTextColor(const Color& color);
-		void SetFont(UI::Font *font);
-		void SetAlignment(UI::TextAlignment alignment);
-		void SetLineBreak(UI::LineBreakMode mode);
-		void SetNumberOfLines(uint32 lines);
+		RNAPI void SetText(String *text);
+		RNAPI void SetAttributedText(AttributedString *text);
+		RNAPI void SetTextColor(const Color& color);
+		RNAPI void SetFont(UI::Font *font);
+		RNAPI void SetAlignment(UI::TextAlignment alignment);
+		RNAPI void SetLineBreak(UI::LineBreakMode mode);
+		RNAPI void SetNumberOfLines(uint32 lines);
 		
-		void Update(float delta) override;
+		RNAPI void Update(float delta) override;
 		
 	private:
 		void Initialize();

@@ -20,14 +20,14 @@ namespace RN
 	class Billboard : public SceneNode
 	{
 	public:
-		Billboard();
-		~Billboard() override;
+		RNAPI Billboard();
+		RNAPI ~Billboard() override;
 		
-		void SetTexture(Texture *texture);
-		void Render(Renderer *renderer, Camera *camera) override;
-		Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
+		RNAPI void SetTexture(Texture *texture);
+		RNAPI void Render(Renderer *renderer, Camera *camera) override;
+		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
 		
-		Material *GetMaterial() const { return _material; }
+		RNAPI Material *GetMaterial() const { return _material; }
 		
 	private:
 		void Initialize();

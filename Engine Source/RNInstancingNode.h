@@ -26,9 +26,9 @@ namespace RN
 			ModeIncludeZAxis = (1 << 0)
 		};
 		
-		InstancingNode();
-		InstancingNode(Model *model);
-		~InstancingNode() override;
+		RNAPI InstancingNode();
+		RNAPI InstancingNode(Model *model);
+		RNAPI ~InstancingNode() override;
 		
 		RNAPI void SetModel(Model *model);
 		RNAPI void AddModel(Model *model);

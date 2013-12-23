@@ -23,11 +23,11 @@ namespace RN
 	class Particle
 	{
 	public:
-		Particle();
-		virtual ~Particle();
+		RNAPI Particle();
+		RNAPI virtual ~Particle();
 		
-		virtual void Initialize(ParticleEmitter *emitter, ParticleMaterial *material);
-		virtual void Update(float delta);
+		RNAPI virtual void Initialize(ParticleEmitter *emitter, ParticleMaterial *material);
+		RNAPI virtual void Update(float delta);
 		
 		float time;
 		float lifespan;

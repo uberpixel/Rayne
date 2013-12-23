@@ -14,13 +14,13 @@ namespace RN
 	class Plane
 	{
 	public:
-		RNAPI Plane();
+		Plane();
 
-		RNAPI void SetPlane(const Vector3 &position, const Vector3 &normal);
-		RNAPI void SetPlane(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac=1.0f);
+		void SetPlane(const Vector3 &position, const Vector3 &normal);
+		void SetPlane(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac=1.0f);
 		
-		RNAPI float GetDistance(const Vector3 &position) const;
-		RNAPI void CalculateD();
+		float GetDistance(const Vector3 &position) const;
+		void CalculateD();
 		
 		Vector3 position;
 		Vector3 normal;

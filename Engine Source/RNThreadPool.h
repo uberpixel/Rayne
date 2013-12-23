@@ -119,7 +119,7 @@ namespace RN
 				_tasks.reserve(size);
 			}
 			
-			size_t GetTaskCount() const { return _tasks.size(); }
+			RNAPI size_t GetTaskCount() const { return _tasks.size(); }
 			
 		private:
 			Batch(Allocator& allocator, ThreadPool *pool) :
@@ -150,8 +150,8 @@ namespace RN
 		
 		friend class Batch;
 		
-		ThreadPool(size_t maxThreads=0);
-		~ThreadPool() override;
+		RNAPI ThreadPool(size_t maxThreads=0);
+		RNAPI ~ThreadPool() override;
 		
 		template<class F>
 		void AddTask(F&& f)
@@ -182,9 +182,9 @@ namespace RN
 			return result;
 		}
 		
-		Batch *CreateBatch();
-		Batch *CreateBatch(Allocator& allocator);
-		Allocator& GetDefaultAllocator() { return _allocator; }
+		RNAPI Batch *CreateBatch();
+		RNAPI Batch *CreateBatch(Allocator& allocator);
+		RNAPI Allocator& GetDefaultAllocator() { return _allocator; }
 		
 	private:
 		class Function
@@ -230,7 +230,6 @@ namespace RN
 			}
 			
 			Function(const Function&) = delete;
-			Function(Function&) = delete;
 			Function& operator= (const Function&) = delete;
 			
 			void operator() () { _implementation->Call(); }
@@ -271,6 +270,19 @@ namespace RN
 				function(std::move(f), allocator),
 				batch(tbatch)
 			{}
+
+			Task(Task&& other) :
+				function(std::move(other.function)),
+				batch(std::move(other.batch))
+			{}
+
+			Task& operator= (Task&& other)
+			{
+				function = std::move(other.function);
+				batch = std::move(other.batch);
+
+				return *this;
+			}
 			
 			Function function;
 			Batch *batch;

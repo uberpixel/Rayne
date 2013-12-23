@@ -44,74 +44,74 @@ namespace RN
 			
 			typedef uint32 AutoresizingMask;
 			
-			View();
-			View(const Rect& frame);
-			~View() override;
+			RNAPI View();
+			RNAPI View(const Rect& frame);
+			RNAPI ~View() override;
 			
-			Vector2 ConvertPointToView(const Vector2& point, View *view);
-			Vector2 ConvertPointFromView(const Vector2& point, View *view);
+			RNAPI Vector2 ConvertPointToView(const Vector2& point, View *view);
+			RNAPI Vector2 ConvertPointFromView(const Vector2& point, View *view);
 			
-			Vector2 ConvertPointToBase(const Vector2& point);
-			Vector2 ConvertPointFromBase(const Vector2& point);
+			RNAPI Vector2 ConvertPointToBase(const Vector2& point);
+			RNAPI Vector2 ConvertPointFromBase(const Vector2& point);
 			
-			Rect ConvertRectToView(const Rect& frame, View *view);
-			Rect ConvertRectFromView(const Rect& frame, View *view);
+			RNAPI Rect ConvertRectToView(const Rect& frame, View *view);
+			RNAPI Rect ConvertRectFromView(const Rect& frame, View *view);
 			
-			const Rect& GetFrame() const { return _frame; }
-			const Rect& GetBounds() const { return _bounds; }
+			RNAPI const Rect& GetFrame() const { return _frame; }
+			RNAPI const Rect& GetBounds() const { return _bounds; }
 			
-			virtual void SetFrame(const Rect& frame);
-			virtual void SetBounds(const Rect& bounds);
+			RNAPI virtual void SetFrame(const Rect& frame);
+			RNAPI virtual void SetBounds(const Rect& bounds);
 			
-			void SetBackgroundColor(const RN::Color& color);
-			void SetInteractionEnabled(bool enabled);
-			void SetClipSubviews(bool clipping);
-			void SetClipInsets(const EdgeInsets& insets);
-			void SetHidden(bool hidden);
-			void SetAutoresizingMask(AutoresizingMask mask);
-			void SetTransform(const Matrix& transform);
+			RNAPI void SetBackgroundColor(const RN::Color& color);
+			RNAPI void SetInteractionEnabled(bool enabled);
+			RNAPI void SetClipSubviews(bool clipping);
+			RNAPI void SetClipInsets(const EdgeInsets& insets);
+			RNAPI void SetHidden(bool hidden);
+			RNAPI void SetAutoresizingMask(AutoresizingMask mask);
+			RNAPI void SetTransform(const Matrix& transform);
 			
-			void AddSubview(View *subview);
-			void RemoveSubview(View *subview);
-			void RemoveAllSubviews();
-			void RemoveFromSuperview();
-			void BringSubviewToFront(View *subview);
-			void SendSubviewToBack(View *subview);
+			RNAPI void AddSubview(View *subview);
+			RNAPI void RemoveSubview(View *subview);
+			RNAPI void RemoveAllSubviews();
+			RNAPI void RemoveFromSuperview();
+			RNAPI void BringSubviewToFront(View *subview);
+			RNAPI void SendSubviewToBack(View *subview);
 			
-			const Array *GetSubivews() const { return &_subviews; }
-			Widget *GetWidget() const { return _widget; }
-			const Matrix& GetTransform() const { return _transform; }
+			RNAPI const Array *GetSubivews() const { return &_subviews; }
+			RNAPI Widget *GetWidget() const { return _widget; }
+			RNAPI const Matrix& GetTransform() const { return _transform; }
 			
-			void SetNeedsLayoutUpdate();
+			RNAPI void SetNeedsLayoutUpdate();
 			
-			void SizeToFit();
-			virtual Vector2 GetSizeThatFits();
+			RNAPI void SizeToFit();
+			RNAPI virtual Vector2 GetSizeThatFits();
 			
-			View *HitTest(const Vector2& point, Event *event);
-			virtual bool IsPointInside(const Vector2& point, Event *event);
+			RNAPI View *HitTest(const Vector2& point, Event *event);
+			RNAPI virtual bool IsPointInside(const Vector2& point, Event *event);
 			
-			Responder *GetNextResponder() const override;
+			RNAPI Responder *GetNextResponder() const override;
 			
 		protected:
-			Mesh *BasicMesh(const Vector2& size);
-			Material *BasicMaterial(Shader *shader);
+			RNAPI Mesh *BasicMesh(const Vector2& size);
+			RNAPI Material *BasicMaterial(Shader *shader);
 			
-			void UpdateBasicMesh(Mesh *mesh, const Vector2& size);
+			RNAPI void UpdateBasicMesh(Mesh *mesh, const Vector2& size);
 			
-			virtual void Update();
-			virtual void Draw(Renderer *renderer);
+			RNAPI virtual void Update();
+			RNAPI virtual void Draw(Renderer *renderer);
 			
-			void RenderChilds(Renderer *renderer);
-			void PopulateRenderingObject(RenderingObject& object);
+			RNAPI void RenderChilds(Renderer *renderer);
+			RNAPI void PopulateRenderingObject(RenderingObject& object);
 			
-			virtual void DidAddSubview(View *subview);
-			virtual void WillRemoveSubview(View *subview);
-			virtual void DidBringSubviewToFront(View *subview);
-			virtual void DidSendSubviewToBack(View *subview);
-			virtual void WillMoveToSuperview(View *superview);
-			virtual void DidMoveToSuperview(View *superview);
+			RNAPI virtual void DidAddSubview(View *subview);
+			RNAPI virtual void WillRemoveSubview(View *subview);
+			RNAPI virtual void DidBringSubviewToFront(View *subview);
+			RNAPI virtual void DidSendSubviewToBack(View *subview);
+			RNAPI virtual void WillMoveToSuperview(View *superview);
+			RNAPI virtual void DidMoveToSuperview(View *superview);
 			
-			virtual void LayoutSubviews();
+			RNAPI virtual void LayoutSubviews();
 			
 		private:
 			void Initialize();
