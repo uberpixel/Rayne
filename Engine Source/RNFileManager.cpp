@@ -271,36 +271,48 @@ namespace RN
 		
 #if RN_PLATFORM_WINDOWS
 		HANDLE hFind = INVALID_HANDLE_VALUE;
-		TCHAR szDir[MAX_PATH];
 		WIN32_FIND_DATA ffd;
 		
-		hFind = ::FindFirstFile(szDir, &ffd);
+		std::stringstream stream;
+		stream << GetPath() << "\\*";
+
+		hFind = ::FindFirstFile(stream.str().c_str(), &ffd);
 		
 		if(hFind == INVALID_HANDLE_VALUE)
 			return;
 		
 		do {
 			
-			if(ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN || strlen(ffd.cFileName) == 0)
+			if(ffd.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN)
 				continue;
-			
-			FileSystemNode *node = nullptr;
-			
-			if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+
+			if(strlen(ffd.cFileName) > 0 && ffd.cFileName[0] != '.')
 			{
-				node = new DirectoryProxy(ffd.cFileName, this);
-			}
-			else
-			{
-				node = new FileProxy(ffd.cFileName, this);
-			}
-			
-			if(node)
-			{
-				_nodes.AddObject(node);
-				_nodeMap.insert(std::unordered_map<std::string, FileSystemNode *>::value_type(node->GetName(), node));
-				
-				node->Release();
+				FileSystemNode *node = nullptr;
+
+				try
+				{
+					if(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+					{
+						node = new DirectoryProxy(ffd.cFileName, this);
+					}
+					else
+					{
+						node = new FileProxy(ffd.cFileName, this);
+					}
+				}
+				catch(Exception e)
+				{
+					node = nullptr;
+				}
+
+				if(node)
+				{
+					_nodes.AddObject(node);
+					_nodeMap.insert(std::unordered_map<std::string, FileSystemNode *>::value_type(node->GetName(), node));
+
+					node->Release();
+				}
 			}
 			
 		} while(::FindNextFile(hFind, &ffd));
