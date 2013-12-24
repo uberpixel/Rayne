@@ -104,7 +104,6 @@
     <ClInclude Include="Engine Source\RNSignal.h" />
     <ClInclude Include="Engine Source\RNSIMD.h" />
     <ClInclude Include="Engine Source\RNSkeleton.h" />
-    <ClInclude Include="Engine Source\RNSpatialHashTable.h" />
     <ClInclude Include="Engine Source\RNSphere.h" />
     <ClInclude Include="Engine Source\RNSpinLock.h" />
     <ClInclude Include="Engine Source\RNSQLite3Internal.h" />
@@ -225,7 +224,6 @@
     <ClCompile Include="Engine Source\RNShaderCache.cpp" />
     <ClCompile Include="Engine Source\RNShaderUnit.cpp" />
     <ClCompile Include="Engine Source\RNSkeleton.cpp" />
-    <ClCompile Include="Engine Source\RNSpatialHashTable.cpp" />
     <ClCompile Include="Engine Source\RNSpinLock.cpp" />
     <ClCompile Include="Engine Source\RNStatistics.cpp" />
     <ClCompile Include="Engine Source\RNString.cpp" />

@@ -2,262 +2,798 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="Engine Source\Rayne.h" />
-    <ClInclude Include="Engine Source\RNAABB.h" />
-    <ClInclude Include="Engine Source\RNAlgorithm.h" />
-    <ClInclude Include="Engine Source\RNApplication.h" />
-    <ClInclude Include="Engine Source\RNArray.h" />
-    <ClInclude Include="Engine Source\RNASCIIString.h" />
-    <ClInclude Include="Engine Source\RNAttributedString.h" />
-    <ClInclude Include="Engine Source\RNAutoreleasePool.h" />
-    <ClInclude Include="Engine Source\RNBase.h" />
-    <ClInclude Include="Engine Source\RNBaseInternal.h" />
-    <ClInclude Include="Engine Source\RNBasicString.h" />
-    <ClInclude Include="Engine Source\RNBillboard.h" />
-    <ClInclude Include="Engine Source\RNCamera.h" />
-    <ClInclude Include="Engine Source\RNCatalogue.h" />
-    <ClInclude Include="Engine Source\RNColor.h" />
-    <ClInclude Include="Engine Source\RNConstants.h" />
-    <ClInclude Include="Engine Source\RNContext.h" />
-    <ClInclude Include="Engine Source\RNContextInternal.h" />
-    <ClInclude Include="Engine Source\RNCountedSet.h" />
-    <ClInclude Include="Engine Source\RNCPU.h" />
-    <ClInclude Include="Engine Source\RNData.h" />
-    <ClInclude Include="Engine Source\RNDebug.h" />
-    <ClInclude Include="Engine Source\RNDefines.h" />
-    <ClInclude Include="Engine Source\RNDictionary.h" />
-    <ClInclude Include="Engine Source\RNEntity.h" />
-    <ClInclude Include="Engine Source\RNException.h" />
-    <ClInclude Include="Engine Source\RNFile.h" />
-    <ClInclude Include="Engine Source\RNFileManager.h" />
-    <ClInclude Include="Engine Source\RNFormatter.h" />
-    <ClInclude Include="Engine Source\RNFunction.h" />
-    <ClInclude Include="Engine Source\RNHashTableInternal.h" />
-    <ClInclude Include="Engine Source\RNHit.h" />
-    <ClInclude Include="Engine Source\RNIndexPath.h" />
-    <ClInclude Include="Engine Source\RNIndexSet.h" />
-    <ClInclude Include="Engine Source\RNInput.h" />
-    <ClInclude Include="Engine Source\RNInstancingData.h" />
-    <ClInclude Include="Engine Source\RNInstancingNode.h" />
-    <ClInclude Include="Engine Source\RNInterpolation.h" />
-    <ClInclude Include="Engine Source\RNIntervalTree.h" />
-    <ClInclude Include="Engine Source\RNJSONSerialization.h" />
-    <ClInclude Include="Engine Source\RNKernel.h" />
-    <ClInclude Include="Engine Source\RNKVO.h" />
-    <ClInclude Include="Engine Source\RNKVOImplementation.h" />
-    <ClInclude Include="Engine Source\RNLight.h" />
-    <ClInclude Include="Engine Source\RNLightManager.h" />
-    <ClInclude Include="Engine Source\RNLockGuard.h" />
-    <ClInclude Include="Engine Source\RNLogging.h" />
-    <ClInclude Include="Engine Source\RNLoggingEngine.h" />
-    <ClInclude Include="Engine Source\RNMaterial.h" />
-    <ClInclude Include="Engine Source\RNMath.h" />
-    <ClInclude Include="Engine Source\RNMatrix.h" />
-    <ClInclude Include="Engine Source\RNMatrixQuaternion.h" />
-    <ClInclude Include="Engine Source\RNMemory.h" />
-    <ClInclude Include="Engine Source\RNMesh.h" />
-    <ClInclude Include="Engine Source\RNMessage.h" />
-    <ClInclude Include="Engine Source\RNModel.h" />
-    <ClInclude Include="Engine Source\RNModule.h" />
-    <ClInclude Include="Engine Source\RNMutex.h" />
-    <ClInclude Include="Engine Source\RNNull.h" />
-    <ClInclude Include="Engine Source\RNNumber.h" />
-    <ClInclude Include="Engine Source\RNObject.h" />
-    <ClInclude Include="Engine Source\RNOctreeSceneManager.h" />
-    <ClInclude Include="Engine Source\RNOpenGL.h" />
-    <ClInclude Include="Engine Source\RNOpenPanel.h" />
-    <ClInclude Include="Engine Source\RNParticle.h" />
-    <ClInclude Include="Engine Source\RNParticleEmitter.h" />
-    <ClInclude Include="Engine Source\RNPathManager.h" />
-    <ClInclude Include="Engine Source\RNPlane.h" />
-    <ClInclude Include="Engine Source\RNQuaternion.h" />
-    <ClInclude Include="Engine Source\RNRandom.h" />
-    <ClInclude Include="Engine Source\RNRect.h" />
-    <ClInclude Include="Engine Source\RNRenderer.h" />
-    <ClInclude Include="Engine Source\RNRenderer32.h" />
-    <ClInclude Include="Engine Source\RNRenderStorage.h" />
-    <ClInclude Include="Engine Source\RNResourceCoordinator.h" />
-    <ClInclude Include="Engine Source\RNResourceLoader.h" />
-    <ClInclude Include="Engine Source\RNResourceLoaderBuiltIn.h" />
-    <ClInclude Include="Engine Source\RNRingbuffer.h" />
-    <ClInclude Include="Engine Source\RNSceneManager.h" />
-    <ClInclude Include="Engine Source\RNSceneNode.h" />
-    <ClInclude Include="Engine Source\RNScopeGuard.h" />
-    <ClInclude Include="Engine Source\RNSemaphore.h" />
-    <ClInclude Include="Engine Source\RNSerialization.h" />
-    <ClInclude Include="Engine Source\RNSet.h" />
-    <ClInclude Include="Engine Source\RNSettings.h" />
-    <ClInclude Include="Engine Source\RNSHA2.h" />
-    <ClInclude Include="Engine Source\RNShader.h" />
-    <ClInclude Include="Engine Source\RNShaderCache.h" />
-    <ClInclude Include="Engine Source\RNShaderLookup.h" />
-    <ClInclude Include="Engine Source\RNShaderUnit.h" />
-    <ClInclude Include="Engine Source\RNSignal.h" />
-    <ClInclude Include="Engine Source\RNSIMD.h" />
-    <ClInclude Include="Engine Source\RNSkeleton.h" />
-    <ClInclude Include="Engine Source\RNSpatialHashTable.h" />
-    <ClInclude Include="Engine Source\RNSphere.h" />
-    <ClInclude Include="Engine Source\RNSpinLock.h" />
-    <ClInclude Include="Engine Source\RNSQLite3Internal.h" />
-    <ClInclude Include="Engine Source\RNStatistics.h" />
-    <ClInclude Include="Engine Source\RNSTL.h" />
-    <ClInclude Include="Engine Source\RNString.h" />
-    <ClInclude Include="Engine Source\RNTextNode.h" />
-    <ClInclude Include="Engine Source\RNTexture.h" />
-    <ClInclude Include="Engine Source\RNTextureAtlas.h" />
-    <ClInclude Include="Engine Source\RNThread.h" />
-    <ClInclude Include="Engine Source\RNThreadPool.h" />
-    <ClInclude Include="Engine Source\RNTriggerZone.h" />
-    <ClInclude Include="Engine Source\RNUIButton.h" />
-    <ClInclude Include="Engine Source\RNUIColor.h" />
-    <ClInclude Include="Engine Source\RNUIControl.h" />
-    <ClInclude Include="Engine Source\RNUIFont.h" />
-    <ClInclude Include="Engine Source\RNUIGeometry.h" />
-    <ClInclude Include="Engine Source\RNUIImage.h" />
-    <ClInclude Include="Engine Source\RNUIImageView.h" />
-    <ClInclude Include="Engine Source\RNUILabel.h" />
-    <ClInclude Include="Engine Source\RNUIMenu.h" />
-    <ClInclude Include="Engine Source\RNUIOutlineView.h" />
-    <ClInclude Include="Engine Source\RNUIOutlineViewCell.h" />
-    <ClInclude Include="Engine Source\RNUIResponder.h" />
-    <ClInclude Include="Engine Source\RNUIScroller.h" />
-    <ClInclude Include="Engine Source\RNUIScrollerInternals.h" />
-    <ClInclude Include="Engine Source\RNUIScrollView.h" />
-    <ClInclude Include="Engine Source\RNUISegmentView.h" />
-    <ClInclude Include="Engine Source\RNUIServer.h" />
-    <ClInclude Include="Engine Source\RNUIStyle.h" />
-    <ClInclude Include="Engine Source\RNUITableView.h" />
-    <ClInclude Include="Engine Source\RNUITableViewCell.h" />
-    <ClInclude Include="Engine Source\RNUITextEditor.h" />
-    <ClInclude Include="Engine Source\RNUITextField.h" />
-    <ClInclude Include="Engine Source\RNUITextStyle.h" />
-    <ClInclude Include="Engine Source\RNUITypesetter.h" />
-    <ClInclude Include="Engine Source\RNUIUtilities.h" />
-    <ClInclude Include="Engine Source\RNUIView.h" />
-    <ClInclude Include="Engine Source\RNUIWidget.h" />
-    <ClInclude Include="Engine Source\RNUIWidgetInternals.h" />
-    <ClInclude Include="Engine Source\RNUnicode.h" />
-    <ClInclude Include="Engine Source\RNUTF8String.h" />
-    <ClInclude Include="Engine Source\RNValue.h" />
-    <ClInclude Include="Engine Source\RNVector.h" />
-    <ClInclude Include="Engine Source\RNWater.h" />
-    <ClInclude Include="Engine Source\RNWindow.h" />
-    <ClInclude Include="Engine Source\RNWindowInternal.h" />
-    <ClInclude Include="Engine Source\RNWorld.h" />
-    <ClInclude Include="Engine Source\RNWorldAttachment.h" />
-    <ClInclude Include="Engine Source\RNWrappingObject.h" />
+    <ClInclude Include="Engine Source\RNBase.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNApplication.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNArray.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNAttributedString.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNAutoreleasePool.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNCatalogue.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNCountedSet.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNDictionary.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNFormatter.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNIndexPath.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNIndexSet.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNKVO.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNKVOImplementation.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNNull.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNMessage.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNObject.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNNumber.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSet.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNString.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNValue.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUTF8String.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUnicode.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNASCIIString.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNBasicString.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNBaseInternal.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNData.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIWidgetInternals.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIButton.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIColor.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIControl.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIFont.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIGeometry.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIImage.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIImageView.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUILabel.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIMenu.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIOutlineView.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIOutlineViewCell.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIResponder.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIScroller.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIScrollerInternals.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIScrollView.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUISegmentView.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIServer.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIStyle.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUITableView.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUITableViewCell.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUITextEditor.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUITextField.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUITextStyle.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUITypesetter.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIUtilities.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIView.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIWidget.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNCPU.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNDebug.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNDefines.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNBillboard.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNCamera.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNEntity.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNLight.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNParticle.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNParticleEmitter.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSceneManager.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNWorld.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNWorldAttachment.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNTriggerZone.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNWater.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNFile.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNFileManager.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNInput.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNMemory.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNMutex.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNModule.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNWindow.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNWindowInternal.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNThreadPool.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNThread.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNAABB.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNAlgorithm.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNColor.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNConstants.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNContext.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNContextInternal.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNInstancingData.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNHashTableInternal.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNException.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNInstancingNode.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNFunction.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNKernel.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNInterpolation.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNLightManager.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNLockGuard.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNJSONSerialization.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNLogging.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNLoggingEngine.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNMaterial.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNIntervalTree.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNMath.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNMatrix.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNMatrixQuaternion.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNMesh.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNModel.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNOctreeSceneManager.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNOpenGL.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNOpenPanel.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNPathManager.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNRandom.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNQuaternion.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNRect.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNPlane.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNRenderer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNRenderer32.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNRenderStorage.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNResourceCoordinator.h">
+      <Filter>Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNResourceLoader.h">
+      <Filter>Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNResourceLoaderBuiltIn.h">
+      <Filter>Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNRingbuffer.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSceneNode.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNScopeGuard.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSemaphore.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSHA2.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSettings.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSignal.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNShader.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNShaderCache.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNShaderLookup.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNShaderUnit.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSerialization.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSIMD.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSkeleton.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSpinLock.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSQLite3Internal.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNStatistics.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSphere.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNHit.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSTL.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNTextNode.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNTexture.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNTextureAtlas.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNVector.h">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNWrappingObject.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Engine Source\RNApplication.cpp" />
-    <ClCompile Include="Engine Source\RNArray.cpp" />
-    <ClCompile Include="Engine Source\RNASCIIString.cpp" />
-    <ClCompile Include="Engine Source\RNAttributedString.cpp" />
-    <ClCompile Include="Engine Source\RNAutoreleasePool.cpp" />
-    <ClCompile Include="Engine Source\RNBase.cpp" />
-    <ClCompile Include="Engine Source\RNBasicString.cpp" />
-    <ClCompile Include="Engine Source\RNBillboard.cpp" />
-    <ClCompile Include="Engine Source\RNCamera.cpp" />
-    <ClCompile Include="Engine Source\RNCatalogue.cpp" />
-    <ClCompile Include="Engine Source\RNContext.cpp" />
-    <ClCompile Include="Engine Source\RNCountedSet.cpp" />
-    <ClCompile Include="Engine Source\RNCPU.cpp" />
-    <ClCompile Include="Engine Source\RNData.cpp" />
-    <ClCompile Include="Engine Source\RNDebug.cpp" />
-    <ClCompile Include="Engine Source\RNDictionary.cpp" />
-    <ClCompile Include="Engine Source\RNEntity.cpp" />
-    <ClCompile Include="Engine Source\RNException.cpp" />
-    <ClCompile Include="Engine Source\RNFile.cpp" />
-    <ClCompile Include="Engine Source\RNFileManager.cpp" />
-    <ClCompile Include="Engine Source\RNFormatter.cpp" />
-    <ClCompile Include="Engine Source\RNIndexPath.cpp" />
-    <ClCompile Include="Engine Source\RNIndexSet.cpp" />
-    <ClCompile Include="Engine Source\RNInput.cpp" />
-    <ClCompile Include="Engine Source\RNInstancingData.cpp" />
-    <ClCompile Include="Engine Source\RNInstancingNode.cpp" />
-    <ClCompile Include="Engine Source\RNJSONSerialization.cpp" />
-    <ClCompile Include="Engine Source\RNKernel.cpp" />
-    <ClCompile Include="Engine Source\RNKVO.cpp" />
-    <ClCompile Include="Engine Source\RNLight.cpp" />
-    <ClCompile Include="Engine Source\RNLightManager.cpp" />
-    <ClCompile Include="Engine Source\RNLogging.cpp" />
-    <ClCompile Include="Engine Source\RNLoggingEngine.cpp" />
-    <ClCompile Include="Engine Source\RNMaterial.cpp" />
-    <ClCompile Include="Engine Source\RNMath.cpp" />
-    <ClCompile Include="Engine Source\RNMemory.cpp" />
-    <ClCompile Include="Engine Source\RNMesh.cpp" />
-    <ClCompile Include="Engine Source\RNMessage.cpp" />
-    <ClCompile Include="Engine Source\RNModel.cpp" />
-    <ClCompile Include="Engine Source\RNModule.cpp" />
-    <ClCompile Include="Engine Source\RNMutex.cpp" />
-    <ClCompile Include="Engine Source\RNNull.cpp" />
-    <ClCompile Include="Engine Source\RNNumber.cpp" />
-    <ClCompile Include="Engine Source\RNObject.cpp" />
-    <ClCompile Include="Engine Source\RNOctreeSceneManager.cpp" />
-    <ClCompile Include="Engine Source\RNOpenGL.cpp" />
-    <ClCompile Include="Engine Source\RNOpenGLBinder.cpp" />
-    <ClCompile Include="Engine Source\RNOpenPanel.cpp" />
-    <ClCompile Include="Engine Source\RNParticle.cpp" />
-    <ClCompile Include="Engine Source\RNParticleEmitter.cpp" />
-    <ClCompile Include="Engine Source\RNPathManager.cpp" />
-    <ClCompile Include="Engine Source\RNRandom.cpp" />
-    <ClCompile Include="Engine Source\RNRenderer.cpp" />
-    <ClCompile Include="Engine Source\RNRenderer32.cpp" />
-    <ClCompile Include="Engine Source\RNRenderStorage.cpp" />
-    <ClCompile Include="Engine Source\RNResourceCoordinator.cpp" />
-    <ClCompile Include="Engine Source\RNResourceLoader.cpp" />
-    <ClCompile Include="Engine Source\RNResourceLoaderBuiltIn.cpp" />
-    <ClCompile Include="Engine Source\RNSceneManager.cpp" />
-    <ClCompile Include="Engine Source\RNSceneNode.cpp" />
-    <ClCompile Include="Engine Source\RNSerialization.cpp" />
-    <ClCompile Include="Engine Source\RNSet.cpp" />
-    <ClCompile Include="Engine Source\RNSettings.cpp" />
-    <ClCompile Include="Engine Source\RNSHA2.cpp" />
-    <ClCompile Include="Engine Source\RNShader.cpp" />
-    <ClCompile Include="Engine Source\RNShaderCache.cpp" />
-    <ClCompile Include="Engine Source\RNShaderUnit.cpp" />
-    <ClCompile Include="Engine Source\RNSkeleton.cpp" />
-    <ClCompile Include="Engine Source\RNSpatialHashTable.cpp" />
-    <ClCompile Include="Engine Source\RNSpinLock.cpp" />
-    <ClCompile Include="Engine Source\RNStatistics.cpp" />
-    <ClCompile Include="Engine Source\RNString.cpp" />
-    <ClCompile Include="Engine Source\RNTextNode.cpp" />
-    <ClCompile Include="Engine Source\RNTexture.cpp" />
-    <ClCompile Include="Engine Source\RNTextureAtlas.cpp" />
-    <ClCompile Include="Engine Source\RNThread.cpp" />
-    <ClCompile Include="Engine Source\RNThreadPool.cpp" />
-    <ClCompile Include="Engine Source\RNTriggerZone.cpp" />
-    <ClCompile Include="Engine Source\RNUIButton.cpp" />
-    <ClCompile Include="Engine Source\RNUIColor.cpp" />
-    <ClCompile Include="Engine Source\RNUIControl.cpp" />
-    <ClCompile Include="Engine Source\RNUIFont.cpp" />
-    <ClCompile Include="Engine Source\RNUIImage.cpp" />
-    <ClCompile Include="Engine Source\RNUIImageView.cpp" />
-    <ClCompile Include="Engine Source\RNUILabel.cpp" />
-    <ClCompile Include="Engine Source\RNUIMenu.cpp" />
-    <ClCompile Include="Engine Source\RNUIOutlineView.cpp" />
-    <ClCompile Include="Engine Source\RNUIOutlineViewCell.cpp" />
-    <ClCompile Include="Engine Source\RNUIResponder.cpp" />
-    <ClCompile Include="Engine Source\RNUIScroller.cpp" />
-    <ClCompile Include="Engine Source\RNUIScrollerInternals.cpp" />
-    <ClCompile Include="Engine Source\RNUIScrollView.cpp" />
-    <ClCompile Include="Engine Source\RNUISegmentView.cpp" />
-    <ClCompile Include="Engine Source\RNUIServer.cpp" />
-    <ClCompile Include="Engine Source\RNUIStyle.cpp" />
-    <ClCompile Include="Engine Source\RNUITableView.cpp" />
-    <ClCompile Include="Engine Source\RNUITableViewCell.cpp" />
-    <ClCompile Include="Engine Source\RNUITextEditor.cpp" />
-    <ClCompile Include="Engine Source\RNUITextField.cpp" />
-    <ClCompile Include="Engine Source\RNUITypesetter.cpp" />
-    <ClCompile Include="Engine Source\RNUIUtilities.cpp" />
-    <ClCompile Include="Engine Source\RNUIView.cpp" />
-    <ClCompile Include="Engine Source\RNUIWidget.cpp" />
-    <ClCompile Include="Engine Source\RNUIWidgetInternals.cpp" />
-    <ClCompile Include="Engine Source\RNUnicode.cpp" />
-    <ClCompile Include="Engine Source\RNUTF8String.cpp" />
-    <ClCompile Include="Engine Source\RNValue.cpp" />
-    <ClCompile Include="Engine Source\RNWater.cpp" />
-    <ClCompile Include="Engine Source\RNWindow.cpp" />
-    <ClCompile Include="Engine Source\RNWindowInternal.cpp" />
-    <ClCompile Include="Engine Source\RNWorld.cpp" />
-    <ClCompile Include="Engine Source\RNWorldAttachment.cpp" />
+    <ClCompile Include="Engine Source\RNBase.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNApplication.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNArray.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNAttributedString.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNAutoreleasePool.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNCatalogue.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNCountedSet.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNDictionary.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNFormatter.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNIndexPath.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNIndexSet.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNKVO.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNNull.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNMessage.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNObject.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNNumber.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNSet.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNString.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNValue.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUTF8String.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUnicode.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNASCIIString.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNBasicString.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNData.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIButton.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIColor.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIControl.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIFont.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIImage.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIImageView.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUILabel.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIMenu.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIOutlineView.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIOutlineViewCell.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIResponder.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIScroller.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIScrollerInternals.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIScrollView.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUISegmentView.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIServer.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIStyle.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUITableView.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUITableViewCell.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUITextEditor.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUITextField.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUITypesetter.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIUtilities.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIView.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIWidget.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIWidgetInternals.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNCPU.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNDebug.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNCamera.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNBillboard.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNEntity.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNLight.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNParticle.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNParticleEmitter.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNSceneManager.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNWorld.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNWorldAttachment.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNTriggerZone.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNWater.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNFile.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNFileManager.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNInput.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNMemory.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNMutex.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNModule.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNWindow.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNWindowInternal.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNThreadPool.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNThread.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNContext.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNInstancingData.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNException.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNInstancingNode.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNKernel.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNLightManager.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNJSONSerialization.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNLogging.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNLoggingEngine.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNMaterial.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNMath.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNMesh.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNModel.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNOctreeSceneManager.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNOpenGL.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNOpenGLBinder.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNOpenPanel.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNPathManager.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNRandom.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNRenderer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNRenderer32.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNRenderStorage.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNResourceCoordinator.cpp">
+      <Filter>Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNResourceLoader.cpp">
+      <Filter>Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNResourceLoaderBuiltIn.cpp">
+      <Filter>Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNSceneNode.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNSHA2.cpp">
+      <Filter>STL</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNSettings.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNShader.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNShaderCache.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNShaderUnit.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNSerialization.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNSkeleton.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNSpinLock.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNStatistics.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNTextNode.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNTexture.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNTextureAtlas.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Base">
+      <UniqueIdentifier>{915e6b96-2232-4524-863c-d017956d8995}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{4bca606b-a8de-4b69-a4e0-0c20ee73057a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Objects">
+      <UniqueIdentifier>{d329aa62-2b0a-4522-b684-2405b5916970}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System">
+      <UniqueIdentifier>{5c60dfaa-ac37-41b3-be71-147b7fbf42f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scene">
+      <UniqueIdentifier>{12cee6bb-6229-4b14-958d-e65671108aeb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Debug">
+      <UniqueIdentifier>{164a8d77-6f5e-4090-8643-cf130e449722}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{2edda60f-73a2-4718-be55-36ae311f555d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Math">
+      <UniqueIdentifier>{7f92e300-afd6-4fd8-b10b-9a8adebf8e3b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="STL">
+      <UniqueIdentifier>{9d51b9c4-cd2e-48d0-9288-0901e993aa82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>{6f142ef1-8a4b-4531-a865-50681e014ff9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>
