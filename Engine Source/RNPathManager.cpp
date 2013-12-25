@@ -250,7 +250,7 @@ namespace RN
 		if(PathExists(tpath, &isDirectory))
 			return isDirectory;
 		
-		char *path = new char[tpath.length()];
+		char *path = new char[tpath.length() + 1];
 		strcpy(path, tpath.c_str());
 		
 		char *temp = path;
@@ -332,6 +332,8 @@ namespace RN
 		
 		std::stringstream stream;
 		stream << tpath << RNPathDelimiter << title;
+
+		path = stream.str();
 #endif
 		
 		CreatePath(path);
