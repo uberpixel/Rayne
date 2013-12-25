@@ -18,24 +18,24 @@ namespace RN
 	class CodePoint
 	{
 	public:
-		CodePoint() {}
-		CodePoint(UniChar character);
-		CodePoint(char character);
+		RNAPI CodePoint() {}
+		RNAPI CodePoint(UniChar character);
+		RNAPI CodePoint(char character);
 		
-		static UniChar ConvertCharacter(char character);
-		static char ConverToCharacter(UniChar character);
+		RNAPI static UniChar ConvertCharacter(char character);
+		RNAPI static char ConverToCharacter(UniChar character);
 		
 		static UniChar Ellipsis() { return 0x2026; }
 		
-		char GetASCIICharacter() const;
-		UniChar GetCharacter() const { return _codePoint; }
+		RNAPI char GetASCIICharacter() const;
+		RNAPI UniChar GetCharacter() const { return _codePoint; }
 		
-		bool IsNewline() const;
-		bool IsWhitespace() const;
-		bool IsPrintable() const;
+		RNAPI bool IsNewline() const;
+		RNAPI bool IsWhitespace() const;
+		RNAPI bool IsPrintable() const;
 		
-		UniChar GetUpperCase() const;
-		UniChar GetLowerCase() const;
+		RNAPI UniChar GetUpperCase() const;
+		RNAPI UniChar GetLowerCase() const;
 		
 		bool operator ==(const CodePoint& other) const
 		{

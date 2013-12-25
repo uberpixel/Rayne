@@ -90,11 +90,11 @@ namespace RN
 		}
 		
 		
-		float Sqrt(float x);
-		float InverseSqrt(float x);
+		RNAPI float Sqrt(float x);
+		RNAPI float InverseSqrt(float x);
 		
-		float Sin(float x);
-		float Cos(float x);
+		RNAPI float Sin(float x);
+		RNAPI float Cos(float x);
 	}
 }
 
