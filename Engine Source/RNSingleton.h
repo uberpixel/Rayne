@@ -17,28 +17,28 @@ namespace RN
 	class ISingleton
 	{
 	public:
-		static T *GetSharedInstance() { throw ""; }
+		RNAPI static T *GetSharedInstance() { throw ""; }
 		
 	protected:
-		virtual ~ISingleton() {};
+		RNAPI virtual ~ISingleton() {};
 		
 	private:
-		virtual void MakeShared(bool override = false) = 0;
-		virtual void ResignShared() = 0;
+		RNAPI virtual void MakeShared(bool override = false) = 0;
+		RNAPI virtual void ResignShared() = 0;
 	};
 	
 	template<class T>
 	class INonConstructingSingleton
 	{
 	public:
-		static T *GetSharedInstance() { throw ""; }
+		RNAPI static T *GetSharedInstance() { throw ""; }
 		
 	protected:
-		virtual ~INonConstructingSingleton() {};
+		RNAPI virtual ~INonConstructingSingleton() {};
 		
 	private:
-		virtual void MakeShared(bool override = false) = 0;
-		virtual void ResignShared() = 0;
+		RNAPI virtual void MakeShared(bool override = false) = 0;
+		RNAPI virtual void ResignShared() = 0;
 	};
 	
 	template<class T, bool DefaultConstructor>
@@ -59,10 +59,10 @@ namespace RN
 	
 #define RNDefineSingleton(T) \
 	public: \
-		static T *GetSharedInstance(); \
+		RNAPI static T *GetSharedInstance(); \
 	private: \
-		void MakeShared(bool override = false) final; \
-		void ResignShared() final;
+		RNAPI void MakeShared(bool override = false) final; \
+		RNAPI void ResignShared() final;
 	
 #define RNDeclareSingleton(T) \
 		static T *__RN ## T ## SingletonInstance = nullptr; \

@@ -103,6 +103,7 @@
     <ClInclude Include="Engine Source\RNShaderUnit.h" />
     <ClInclude Include="Engine Source\RNSignal.h" />
     <ClInclude Include="Engine Source\RNSIMD.h" />
+    <ClInclude Include="Engine Source\RNSingleton.h" />
     <ClInclude Include="Engine Source\RNSkeleton.h" />
     <ClInclude Include="Engine Source\RNSphere.h" />
     <ClInclude Include="Engine Source\RNSpinLock.h" />

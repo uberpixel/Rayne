@@ -428,6 +428,9 @@
     <ClInclude Include="Engine Source\RNWrappingObject.h">
       <Filter>Objects</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNSingleton.h">
+      <Filter>Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
