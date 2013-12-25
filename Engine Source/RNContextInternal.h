@@ -44,9 +44,9 @@ namespace RN
 	static HWND CreateOffscreenWindow()
 	{
 		DWORD dwExStyle = WS_EX_APPWINDOW | WS_EX_WINDOWEDGE;
-		DWORD dwStyle = WS_OVERLAPPED | WS_CAPTION  | WS_SYSMENU | WS_MINIMIZEBOX | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+		DWORD dwStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 		
-		HINSTANCE hInstance = (HINSTANCE)GetModuleHandle(0);
+		HINSTANCE hInstance = (HINSTANCE)::GetModuleHandle(0);
 		RECT windowRect;
 		
 		windowRect.left   = 0;
@@ -54,12 +54,12 @@ namespace RN
 		windowRect.top    = 0;
 		windowRect.bottom = 768;
 		
-		AdjustWindowRectEx(&windowRect, dwStyle, false, dwExStyle);
+		::AdjustWindowRectEx(&windowRect, dwStyle, false, dwExStyle);
 		
-		HWND desktop = GetDesktopWindow();
+		HWND desktop = ::GetDesktopWindow();
 		RECT desktopRect;
 		
-		GetWindowRect(desktop, &desktopRect);
+		::GetWindowRect(desktop, &desktopRect);
 		
 		
 		LONG desktopWidth  = desktopRect.right - desktopRect.left;
@@ -71,7 +71,7 @@ namespace RN
 		windowRect.left = (desktopWidth / 2) - (width / 2);
 		windowRect.top  = (desktopHeight / 2) - (height / 2);
 		
-		HWND hWnd = CreateWindowExA(dwExStyle, "RNWindowClass", "", dwStyle, windowRect.left, windowRect.top, width, height, 0, 0, hInstance, 0);
+		HWND hWnd = ::CreateWindowExA(dwExStyle, "RNWindowClass", "", dwStyle, windowRect.left, windowRect.top, width, height, 0, 0, hInstance, 0);
 		return hWnd;
 	}
 #endif

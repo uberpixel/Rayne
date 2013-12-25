@@ -111,22 +111,10 @@ namespace RN
 		
 		
 		HGLRC context = wgl::CreateContextAttribsARB(hDC, shared, attributes);
-		if(!context)
+		if(!context || !wglMakeCurrent(hDC, context))
 			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
 
-		static std::once_flag flag;
-		std::call_once(flag, [&]{
-
-			wglMakeCurrent(hDC, context);
-
-			gl::GetString = reinterpret_cast<PFNGLGETSTRINGPROC>(wglGetProcAddress("glGetString"));
-
-			gl::GetFloatv = reinterpret_cast<PFNGLGETFLOATVPROC>(wglGetProcAddress("glGetFloatv"));
-			gl::GetIntegerv = reinterpret_cast<PFNGLGETINTEGERVPROC>(wglGetProcAddress("glGetIntegerv"));
-
-			wglMakeCurrent(hDC, nullptr);
-		});
-
+		wglMakeCurrent(hDC, nullptr);
 
 		*outContext = context;
 	}
@@ -171,7 +159,8 @@ namespace RN
 		if(!wgl::CreateContextAttribsARB)
 		{
 			HGLRC tempContext = wglCreateContext(_internals->hDC);
-			wglMakeCurrent(_internals->hDC, tempContext);
+			if(!wglMakeCurrent(_internals->hDC, tempContext))
+				throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
 			
 			wgl::GetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
 			if(!wgl::GetExtensionsStringARB)

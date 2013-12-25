@@ -9,6 +9,10 @@
 #include "RNOpenGL.h"
 #include "RNBase.h"
 
+#if RN_PLATFORM_WINDOWS
+#include <gl/GL.h>
+#endif
+
 namespace RN
 {
 #if RN_PLATFORM_WINDOWS
@@ -23,6 +27,73 @@ namespace RN
 
 	namespace gl
 	{
+#if RN_PLATFORM_WINDOWS
+		// 1.0
+		PFNGLCULLFACEPROC CullFace = glCullFace;
+		PFNGLFRONTFACEPROC FrontFace = glFrontFace;
+		PFNGLHINTPROC Hint = glHint;
+		PFNGLLINEWIDTHPROC LineWidth = glLineWidth;
+		PFNGLPOINTSIZEPROC PointSize = glPointSize;
+		PFNGLPOLYGONMODEPROC PolygonMode = glPolygonMode;
+		PFNGLSCISSORPROC Scissor = glScissor;
+		PFNGLTEXPARAMETERFPROC TexParameterf = glTexParameterf;
+		PFNGLTEXPARAMETERFVPROC TexParameterfv = glTexParameterfv;
+		PFNGLTEXPARAMETERIPROC TexParameteri = glTexParameteri;
+		PFNGLTEXPARAMETERIVPROC TexParameteriv = glTexParameteriv;
+		PFNGLTEXIMAGE1DPROC TexImage1D = glTexImage1D;
+		PFNGLTEXIMAGE2DPROC TexImage2D = glTexImage2D;
+		PFNGLDRAWBUFFERPROC DrawBuffer = glDrawBuffer;
+		PFNGLCLEARPROC Clear = glClear;
+		PFNGLCLEARCOLORPROC ClearColor = glClearColor;
+		PFNGLCLEARSTENCILPROC ClearStencil = glClearStencil;
+		PFNGLCLEARDEPTHPROC ClearDepth = glClearDepth;
+		PFNGLSTENCILMASKPROC StencilMask = glStencilMask;
+		PFNGLCOLORMASKPROC ColorMask = glColorMask;
+		PFNGLDEPTHMASKPROC DepthMask = glDepthMask;
+		PFNGLDISABLEPROC Disable = glDisable;
+		PFNGLENABLEPROC Enable = glEnable;
+		PFNGLFINISHPROC Finish = glFinish;
+		PFNGLFLUSHPROC Flush = glFlush;
+		PFNGLBLENDFUNCPROC BlendFunc = glBlendFunc;
+		PFNGLLOGICOPPROC LogicOp = glLogicOp;
+		PFNGLSTENCILFUNCPROC StencilFunc = glStencilFunc;
+		PFNGLSTENCILOPPROC StencilOp = glStencilOp;
+		PFNGLDEPTHFUNCPROC DepthFunc = glDepthFunc;
+		PFNGLPIXELSTOREFPROC PixelStoref = glPixelStoref;
+		PFNGLPIXELSTOREIPROC PixelStorei = glPixelStorei;
+		PFNGLREADBUFFERPROC ReadBuffer = glReadBuffer;
+		PFNGLREADPIXELSPROC ReadPixels = glReadPixels;
+		PFNGLGETBOOLEANVPROC GetBooleanv = glGetBooleanv;
+		PFNGLGETDOUBLEVPROC GetDoublev = glGetDoublev;
+		PFNGLGETERRORPROC GetError = glGetError;
+		PFNGLGETFLOATVPROC GetFloatv = glGetFloatv;
+		PFNGLGETINTEGERVPROC GetIntegerv = glGetIntegerv;
+		PFNGLGETSTRINGPROC GetString = glGetString;
+		PFNGLGETTEXIMAGEPROC GetTexImage = glGetTexImage;
+		PFNGLGETTEXPARAMETERFVPROC GetTexParameterfv = glGetTexParameterfv;
+		PFNGLGETTEXPARAMETERIVPROC GetTexParameteriv = glGetTexParameteriv;
+		PFNGLGETTEXLEVELPARAMETERFVPROC GetTexLevelParameterfv = glGetTexLevelParameterfv;
+		PFNGLGETTEXLEVELPARAMETERIVPROC GetTexLevelParameteriv = glGetTexLevelParameteriv;
+		PFNGLISENABLEDPROC IsEnabled = glIsEnabled;
+		PFNGLDEPTHRANGEPROC DepthRange = glDepthRange;
+		PFNGLVIEWPORTPROC Viewport = glViewport;
+
+		// 1.1
+		PFNGLDRAWARRAYSPROC DrawArrays = glDrawArrays;
+		PFNGLDRAWELEMENTSPROC DrawElements = glDrawElements;
+		PFNGLGETPOINTERVPROC GetPointerv = glGetPointerv;
+		PFNGLPOLYGONOFFSETPROC PolygonOffset = glPolygonOffset;
+		PFNGLCOPYTEXIMAGE1DPROC CopyTexImage1D = glCopyTexImage1D;
+		PFNGLCOPYTEXIMAGE2DPROC CopyTexImage2D = glCopyTexImage2D;
+		PFNGLCOPYTEXSUBIMAGE1DPROC CopyTexSubImage1D = glCopyTexSubImage1D;
+		PFNGLCOPYTEXSUBIMAGE2DPROC CopyTexSubImage2D = glCopyTexSubImage2D;
+		PFNGLTEXSUBIMAGE1DPROC TexSubImage1D = glTexSubImage1D;
+		PFNGLTEXSUBIMAGE2DPROC TexSubImage2D = glTexSubImage2D;
+		PFNGLBINDTEXTUREPROC BindTexture = glBindTexture;
+		PFNGLDELETETEXTURESPROC DeleteTextures = glDeleteTextures;
+		PFNGLGENTEXTURESPROC GenTextures = glGenTextures;
+		PFNGLISTEXTUREPROC IsTexture = glIsTexture;
+#else
 		// 1.0
 		PFNGLCULLFACEPROC CullFace = nullptr;
 		PFNGLFRONTFACEPROC FrontFace = nullptr;
@@ -88,6 +159,7 @@ namespace RN
 		PFNGLDELETETEXTURESPROC DeleteTextures = nullptr;
 		PFNGLGENTEXTURESPROC GenTextures = nullptr;
 		PFNGLISTEXTUREPROC IsTexture = nullptr;
+#endif
 
 		// 1.2
 		PFNGLDRAWRANGEELEMENTSPROC DrawRangeElements = nullptr;
@@ -549,6 +621,7 @@ namespace RN
 	
 	void BindOpenGLCore()
 	{
+#if RN_PLATFORM_LINUX || RN_PLATFORM_MAC_OS
 		// 1.0
 		BindOpenGL(CullFace);
 		BindOpenGL(FrontFace);
@@ -614,6 +687,7 @@ namespace RN
 		BindOpenGL(DeleteTextures);
 		BindOpenGL(GenTextures);
 		BindOpenGL(IsTexture);
+#endif
 		
 		// 1.2
 		BindOpenGL(DrawRangeElements);
