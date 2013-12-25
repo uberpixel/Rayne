@@ -12,7 +12,7 @@
 
 namespace RN
 {
-	Object::MetaType *Object::__metaClass = 0;
+	void *__kRNObjectMetaClass = nullptr;
 	
 	Object::Object()
 	{
@@ -48,6 +48,17 @@ namespace RN
 	void Object::CleanUp()
 	{}
 	
+	MetaClassBase *Object::Class() const
+	{
+		return Object::MetaClass();
+	}
+	MetaClassBase *Object::MetaClass()
+	{
+		if(!__kRNObjectMetaClass)
+			__kRNObjectMetaClass = new MetaType();
+		
+		return reinterpret_cast<Object::MetaType *>(__kRNObjectMetaClass);
+	}
 	
 	Object *Object::Retain()
 	{

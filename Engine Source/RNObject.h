@@ -55,17 +55,8 @@ namespace RN
 			throw Exception(Exception::Type::DowncastException, "No possible cast possible!");
 		}
 		
-		virtual class MetaClassBase *Class() const
-		{
-			return Object::__metaClass;
-		}
-		static class MetaClassBase *MetaClass()
-		{
-			if(!__metaClass)
-				__metaClass = new MetaType();
-			
-			return __metaClass;
-		}
+		RNAPI virtual MetaClassBase *Class() const;
+		RNAPI static MetaClassBase *MetaClass();
 		
 		RNAPI static void InitialWakeUp(MetaClassBase *meta);
 		
@@ -142,7 +133,6 @@ namespace RN
 		void MapCookie(void *cookie, Connection *connection);
 		void UnmapCookie(void *cookie);
 		
-		static MetaType *__metaClass;
 		RecursiveSpinLock _lock;
 		
 		std::atomic<size_t> _refCount;
@@ -161,8 +151,7 @@ namespace RN
 			MetaType() : \
 				MetaClassBase(super::MetaClass(), #cls, RN_FUNCTION_SIGNATURE) \
 			{} \
-		}; \
-		static MetaType *__##cls##__metaClass; \
+		};
 
 #define __RNDefineMetaPrivateWithTraits(cls, super, ...) \
 	private: \
@@ -172,8 +161,7 @@ namespace RN
 			MetaType() : \
 				MetaClassBase(super::MetaClass(), #cls, RN_FUNCTION_SIGNATURE) \
 			{} \
-		}; \
-		static MetaType *__##cls##__metaClass; \
+		};
 
 #define __RNDefineMetaPublic(cls) \
 	public: \
@@ -193,16 +181,8 @@ namespace RN
 		{ \
 			return static_cast<cls *>(Object::Copy()); \
 		} \
-		class RN::MetaClassBase *Class() const override \
-		{ \
-			return cls::__##cls##__metaClass; \
-		} \
-		static class RN::MetaClassBase *MetaClass() \
-		{ \
-			if(!cls::__##cls##__metaClass) \
-				cls::__##cls##__metaClass = new cls::MetaType(); \
-			return cls::__##cls##__metaClass; \
-		}
+		RNAPI RN::MetaClassBase *Class() const override; \
+		RNAPI static RN::MetaClassBase *MetaClass();
 	
 #define RNDefineMeta(cls, super) \
 	__RNDefineMetaPrivate(cls, super) \
@@ -213,7 +193,17 @@ namespace RN
 	__RNDefineMetaPublic(cls)
 
 #define RNDeclareMeta(cls) \
-	cls::MetaType *cls::__##cls##__metaClass = nullptr; \
+	void *__kRN##cls##__metaClass = nullptr; \
+	RN::MetaClassBase *cls::Class() const \
+	{ \
+		return cls::MetaClass(); \
+	} \
+	RN::MetaClassBase *cls::MetaClass() \
+	{ \
+		if(!__kRN##cls##__metaClass) \
+			__kRN##cls##__metaClass = new cls::MetaType(); \
+		return reinterpret_cast<cls::MetaType *>(__kRN##cls##__metaClass); \
+	} \
 	RN_REGISTER_INIT(cls##Init, cls::MetaClass(); cls::InitialWakeUp(cls::MetaClass()))
 
 	template<class T>
