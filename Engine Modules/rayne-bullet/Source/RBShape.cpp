@@ -146,8 +146,8 @@ namespace RN
 		{
 			_triangleMesh = new btTriangleMesh();
 			
-			uint32 meshes = model->GetMeshCount(0);
-			for(uint32 i=0; i<meshes; i++)
+			size_t meshes = model->GetMeshCount(0);
+			for(size_t i=0; i<meshes; i++)
 			{
 				Mesh *mesh = model->GetMeshAtIndex(0, i);
 				AddMesh(mesh);
@@ -186,15 +186,47 @@ namespace RN
 		
 		void TriangelMeshShape::AddMesh(Mesh *mesh)
 		{
-			MeshDescriptor *iDescriptor = mesh->GetDescriptor(kMeshFeatureIndices);
+			const MeshDescriptor *posdescriptor = mesh->GetDescriptorForFeature(kMeshFeatureVertices);
+			const MeshDescriptor *inddescriptor = mesh->GetDescriptorForFeature(kMeshFeatureIndices);
+			const uint8 *pospointer = mesh->GetVerticesData<uint8>() + posdescriptor->offset;
+			const uint8 *indpointer = mesh->GetIndicesData<uint8>() + inddescriptor->offset;
 			
-			for(size_t i=0; i<iDescriptor->elementCount; i+=3)
+			for(size_t i=0; i<mesh->GetIndicesCount(); i+=3)
 			{
-				Vector3 *vertex0 = mesh->GetElement<Vector3>(kMeshFeatureVertices, *mesh->GetElement<uint16>(kMeshFeatureIndices, i + 0));
-				Vector3 *vertex1 = mesh->GetElement<Vector3>(kMeshFeatureVertices, *mesh->GetElement<uint16>(kMeshFeatureIndices, i + 1));
-				Vector3 *vertex2 = mesh->GetElement<Vector3>(kMeshFeatureVertices, *mesh->GetElement<uint16>(kMeshFeatureIndices, i + 2));
+				const Vector3 *vertex1;
+				const Vector3 *vertex2;
+				const Vector3 *vertex3;
 				
-				_triangleMesh->addTriangle(btVector3(vertex0->x, vertex0->y, vertex0->z), btVector3(vertex1->x, vertex1->y, vertex1->z), btVector3(vertex2->x, vertex2->y, vertex2->z));
+				switch(inddescriptor->elementSize)
+				{
+					case 1:
+						vertex1 = reinterpret_cast<const Vector3 *>(pospointer + mesh->GetStride() * (*indpointer ++));
+						vertex2 = reinterpret_cast<const Vector3 *>(pospointer + mesh->GetStride() * (*indpointer ++));
+						vertex3 = reinterpret_cast<const Vector3 *>(pospointer + mesh->GetStride() * (*indpointer ++));
+						break;
+						
+					case 2:
+					{
+						const uint16 *index = reinterpret_cast<const uint16 *>(indpointer + i * inddescriptor->elementSize);
+						
+						vertex1 = reinterpret_cast<const Vector3 *>(pospointer + mesh->GetStride() * (*index ++));
+						vertex2 = reinterpret_cast<const Vector3 *>(pospointer + mesh->GetStride() * (*index ++));
+						vertex3 = reinterpret_cast<const Vector3 *>(pospointer + mesh->GetStride() * (*index ++));
+						break;
+					}
+						
+					case 4:
+					{
+						const uint32 *index = reinterpret_cast<const uint32 *>(indpointer + i * inddescriptor->elementSize);
+						
+						vertex1 = reinterpret_cast<const Vector3 *>(pospointer + mesh->GetStride() * (*index ++));
+						vertex2 = reinterpret_cast<const Vector3 *>(pospointer + mesh->GetStride() * (*index ++));
+						vertex3 = reinterpret_cast<const Vector3 *>(pospointer + mesh->GetStride() * (*index ++));
+						break;
+					}
+				}
+				
+				_triangleMesh->addTriangle(btVector3(vertex1->x, vertex1->y, vertex1->z), btVector3(vertex2->x, vertex2->y, vertex2->z), btVector3(vertex3->x, vertex3->y, vertex3->z));
 			}
 		}
 	}

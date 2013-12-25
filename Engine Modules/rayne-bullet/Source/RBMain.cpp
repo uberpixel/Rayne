@@ -27,7 +27,7 @@ namespace RN
 
 extern "C" bool RNModuleConstructor(RN::ModuleExports *exports)
 {
-	exports->version = kRNModuleCurrentVersion;
+	exports->version = kRNABIVersion;
 	return true;
 }
 
