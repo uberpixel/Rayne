@@ -13,6 +13,9 @@
 
 namespace RN
 {
+	RNDeclareSingleton(ThreadCoordinator)
+	RNDeclareSingleton(ThreadPool)
+	
 	ThreadCoordinator::ThreadCoordinator()
 	{
 		// Sid:

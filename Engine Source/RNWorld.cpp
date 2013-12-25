@@ -18,8 +18,12 @@
 
 namespace RN
 {
+	RNDeclareSingleton(World)
+	
 	World::World(SceneManager *sceneManager)
 	{
+		MakeShared();
+		
 		_kernel = Kernel::GetSharedInstance();
 		_kernel->SetWorld(this);
 		

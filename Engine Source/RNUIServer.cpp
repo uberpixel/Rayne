@@ -63,6 +63,8 @@ namespace RN
 {
 	namespace UI
 	{
+		RNDeclareSingleton(Server)
+		
 		Server::Server()
 		{
 			uint32 flags = Camera::FlagOrthogonal | Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagNoSorting | Camera::FlagNoLights;

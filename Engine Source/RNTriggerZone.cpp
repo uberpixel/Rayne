@@ -12,7 +12,7 @@
 
 namespace RN
 {
-	class TriggerZoneManager : public WorldAttachment, public Singleton<TriggerZoneManager>
+	class TriggerZoneManager : public WorldAttachment, public ISingleton<TriggerZoneManager>
 	{
 	public:
 		TriggerZoneManager()
@@ -58,11 +58,13 @@ namespace RN
 		std::vector<TriggerZone *> _zones;
 		
 		RNDefineMeta(TriggerZoneManager, WorldAttachment);
+		RNDefineSingleton(TriggerZoneManager)
 	};
 	
 	
 	RNDeclareMeta(TriggerZoneManager)
 	RNDeclareMeta(TriggerZone)
+	RNDeclareSingleton(TriggerZoneManager)
 	
 	
 	TriggerZone::TriggerZone()

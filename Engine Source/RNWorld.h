@@ -22,7 +22,7 @@ namespace RN
 {
 	class Kernel;
 
-	class World : public NonConstructingSingleton<World>
+	class World : public INonConstructingSingleton<World>
 	{
 	public:
 		friend class SceneNode;
@@ -92,6 +92,8 @@ namespace RN
 		
 		SceneManager  *_sceneManager;
 		MetaClassBase *_cameraClass;
+		
+		RNDefineSingleton(World)
 	};
 }
 

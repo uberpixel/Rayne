@@ -21,7 +21,7 @@ namespace RN
 	
 	struct ShaderCacheInternal;
 	
-	class ShaderCache : public Singleton<ShaderCache>
+	class ShaderCache : public ISingleton<ShaderCache>
 	{
 	public:
 		friend class Shader;
@@ -43,6 +43,8 @@ namespace RN
 		
 		Mutex _lock;
 		PIMPL<ShaderCacheInternal> _internals;
+		
+		RNDefineSingleton(ShaderCache)
 	};
 }
 

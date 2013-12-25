@@ -82,7 +82,7 @@ namespace RN
 			std::stringstream _stream;
 		};
 		
-		class Logger : public Singleton<Logger>
+		class Logger : public ISingleton<Logger>
 		{
 		public:
 			RNAPI Logger();
@@ -120,6 +120,8 @@ namespace RN
 			std::condition_variable _signal;
 			
 			std::chrono::system_clock::time_point _lastMessage;
+			
+			RNDefineSingleton(Logger)
 		};
 	}
 }

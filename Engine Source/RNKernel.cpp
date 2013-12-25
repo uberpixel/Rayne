@@ -52,14 +52,15 @@ namespace RN
 	{
 		AutoreleasePool pool;
 		
-		delete ShaderCache::GetSharedInstance_NoCreate();
-		delete Log::Logger::GetSharedInstance_NoCreate();
-		delete Settings::GetSharedInstance_NoCreate();
-		delete Input::GetSharedInstance_NoCreate();
-		delete ModuleCoordinator::GetSharedInstance_NoCreate();
+		delete ShaderCache::GetSharedInstance();
+		delete Log::Logger::GetSharedInstance();
+		delete Settings::GetSharedInstance();
+		delete Input::GetSharedInstance();
+		delete ModuleCoordinator::GetSharedInstance();
 	}
 	
 	
+	RNDeclareSingleton(Kernel)
 	
 	Kernel::Kernel()
 	{
@@ -80,7 +81,7 @@ namespace RN
 		
 		_app->WillExit();
 		
-		delete ModuleCoordinator::GetSharedInstance_NoCreate();
+		delete ModuleCoordinator::GetSharedInstance();
 		delete _app;
 
 		delete _renderer;
@@ -95,18 +96,20 @@ namespace RN
 		_context->Release();
 #endif
 
-		delete Settings::GetSharedInstance_NoCreate();
+		delete Settings::GetSharedInstance();
 		delete _pool;
 		
 		_mainThread->Exit();
 		_mainThread->Release();
 		
-		delete ShaderCache::GetSharedInstance_NoCreate();
-		delete Log::Logger::GetSharedInstance_NoCreate();
+		delete ShaderCache::GetSharedInstance();
+		delete Log::Logger::GetSharedInstance();
 	}
 	
 	void Kernel::Prepare()
 	{
+		MakeShared();
+		
 #if RN_PLATFORM_LINUX
 		XInitThreads();
 #endif

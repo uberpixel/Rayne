@@ -27,7 +27,7 @@ namespace RN
 	
 	class World;
 	
-	class Kernel : public NonConstructingSingleton<Kernel>
+	class Kernel : public INonConstructingSingleton<Kernel>
 	{
 	public:
 		friend class Settings;
@@ -103,6 +103,8 @@ namespace RN
 		float _delta;
 		float _timeScale;
 		std::chrono::steady_clock::time_point _lastFrame;
+		
+		RNDefineSingleton(Kernel)
 	};
 }
 

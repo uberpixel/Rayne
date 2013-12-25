@@ -16,37 +16,42 @@
 // We don't rely on system headers which might be outdated, but we rely on whatever the graphics card tells us
 #if RN_TARGET_OPENGL
 
-#if RN_PLATFORM_MAC_OS
-	// This is by far the worst OpenGL hack. Ever.
-	// Cocoa.h pulls OpenGL in which fucks up everything from glcorearb.h. So yeah, dirty hacks all around
-	#if defined(__gl_h_) || defined(__glext_h_)
-		#undef GL_VERSION_1_1
-		#undef GL_VERSION_1_2
-		#undef GL_VERSION_1_3
-		#undef GL_VERSION_1_4
-		#undef GL_VERSION_1_5
-		#undef GL_VERSION_2_0
-		#undef GL_VERSION_2_1
-		#undef GL_VERSION_3_0
-		#undef GL_VERSION_3_1
-		#undef GL_VERSION_3_2
-		#undef GL_VERSION_3_3
-		#undef GL_VERSION_4_0
-		#undef GL_VERSION_4_1
-		#undef GL_VERSION_4_2
-		#undef GL_VERSION_4_3
-		#undef GL_VERSION_4_4
+	#if RN_PLATFORM_MAC_OS
+		// This is by far the worst OpenGL hack. Ever.
+		// Cocoa.h pulls OpenGL in which fucks up everything from glcorearb.h. So yeah, dirty hacks all around
+		#if defined(__gl_h_) || defined(__glext_h_)
+			#undef GL_VERSION_1_1
+			#undef GL_VERSION_1_2
+			#undef GL_VERSION_1_3
+			#undef GL_VERSION_1_4
+			#undef GL_VERSION_1_5
+			#undef GL_VERSION_2_0
+			#undef GL_VERSION_2_1
+			#undef GL_VERSION_3_0
+			#undef GL_VERSION_3_1
+			#undef GL_VERSION_3_2
+			#undef GL_VERSION_3_3
+			#undef GL_VERSION_4_0
+			#undef GL_VERSION_4_1
+			#undef GL_VERSION_4_2
+			#undef GL_VERSION_4_3
+			#undef GL_VERSION_4_4
 
-		#undef GL_DRAW_FRAMEBUFFER_BINDING
-		#undef GL_GLEXT_VERSION
+			#undef GL_DRAW_FRAMEBUFFER_BINDING
+			#undef GL_GLEXT_VERSION
 
-		#undef __gl_h_
-		#undef __glext_h_
+			#undef __gl_h_
+			#undef __glext_h_
+		#endif
 	#endif
-#endif
 
-	#include "ogl/glcorearb.h"
-	#include "ogl/glext.h"
+	#if RN_PLATFORM_MAC_OS
+		#include "glcorearb.h"
+		#include "glext.h"
+	#else
+		#include "ogl/glcorearb.h"
+		#include "ogl/glext.h"
+	#endif
 
 	#if RN_PLATFORM_WINDOWS
 		#include "ogl/wglext.h"

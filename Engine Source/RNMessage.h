@@ -35,7 +35,7 @@ namespace RN
 		RNDefineMeta(Message, Object)
 	};
 	
-	class MessageCenter : public Singleton<MessageCenter>
+	class MessageCenter : public ISingleton<MessageCenter>
 	{
 	public:
 		typedef std::function<void (Message *)> CallbackType;
@@ -64,6 +64,8 @@ namespace RN
 		
 		SpinLock _lock;
 		std::vector<MessageObserverProxy> _observer;
+		
+		RNDefineSingleton(MessageCenter)
 	};
 }
 

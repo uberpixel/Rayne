@@ -92,7 +92,7 @@ namespace RN
 	class Kernel;
 	struct WindowInternals;
 	
-	class Window : public Singleton<Window>
+	class Window : public ISingleton<Window>
 	{
 	public:
 		enum
@@ -143,6 +143,8 @@ namespace RN
 		Screen *_activeScreen;
 		
 		WindowConfiguration *_activeConfiguration;
+		
+		RNDefineSingleton(Window)
 	};
 }
 

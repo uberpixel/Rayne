@@ -25,7 +25,7 @@ namespace RN
 {
 	namespace UI
 	{
-		class Style : public Singleton<Style>
+		class Style : public ISingleton<Style>
 		{
 		public:
 			enum class FontStyle
@@ -84,6 +84,8 @@ namespace RN
 			Dictionary *_data;
 			Dictionary *_textures;
 			Dictionary *_fonts;
+			
+			RNDefineSingleton(Style)
 		};
 	}
 }

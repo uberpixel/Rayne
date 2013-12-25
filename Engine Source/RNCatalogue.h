@@ -85,7 +85,7 @@ namespace RN
 	class ConcreteMetaClass : public virtual MetaClassBase, public Traits<T>...
 	{};
 	
-	class Catalogue : public Singleton<Catalogue>
+	class Catalogue : public ISingleton<Catalogue>
 	{
 	public:
 		friend class MetaClassBase;
@@ -100,6 +100,8 @@ namespace RN
 		static void ParsePrettyFunction(const char *string, std::vector<std::string>& namespaces);
 		
 		std::unordered_map<std::string, MetaClassBase *> _metaClasses;
+		
+		RNDefineSingleton(Catalogue)
 	};
 }
 

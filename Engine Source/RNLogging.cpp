@@ -91,6 +91,8 @@ namespace RN
 		// MARK: Logger
 		// ---------------------
 		
+		RNDeclareSingleton(Logger)
+		
 		Logger::Logger()
 		{
 			AddLoggingEngine(StdoutLoggingEngine::GetSharedInstance());
@@ -278,7 +280,7 @@ namespace RN
 		void Loggable::Submit()
 		{
 			std::string string = std::move(_stream.str());
-			_stream.clear();
+			_stream.str("");
 			
 			Logger::GetSharedInstance()->Log(_level, std::move(string));
 		}

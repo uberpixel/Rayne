@@ -36,7 +36,7 @@
 
 namespace RN
 {
-	class ResourceCoordinator : public Singleton<ResourceCoordinator>
+	class ResourceCoordinator : public ISingleton<ResourceCoordinator>
 	{
 	public:
 		friend class Kernel;
@@ -86,6 +86,8 @@ namespace RN
 		Dictionary _resourceToAlias;
 		
 		std::unordered_map<String *, std::shared_future<Object *>> _requests;
+		
+		RNDefineSingleton(ResourceCoordinator)
 	};
 }
 

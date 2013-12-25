@@ -20,6 +20,10 @@ namespace RN
 		RNDeclareMeta(SimpleLoggingEngine)
 		RNDeclareMeta(HTMLLoggingEngine)
 		
+		RNDeclareSingleton(StdoutLoggingEngine)
+		RNDeclareSingleton(SimpleLoggingEngine)
+		RNDeclareSingleton(HTMLLoggingEngine)
+		
 		// ---------------------
 		// MARK: -
 		// MARK: StreamLoggingInternal

@@ -141,6 +141,12 @@
 
 #elif defined(__GNUC__)
 
+	#undef RN_TARGET_CXX_NOXCEPT
+	#undef RN_TARGET_CXX_CONSTEXPR
+
+	#define RN_TARGET_CXX_NOXCEPT   1
+	#define RN_TARGET_CXX_CONSTEXPR 1
+
 	typedef signed char				int8;
 	typedef unsigned char			uint8;
 

@@ -20,8 +20,12 @@
 
 namespace RN
 {
+	RNDeclareSingleton(Renderer)
+	
 	Renderer::Renderer()
 	{
+		MakeShared();
+		
 		_defaultFBO = 0;
 		_defaultWidth = _defaultHeight = 0;
 		_defaultWidthFactor = _defaultHeightFactor = 1.0f;

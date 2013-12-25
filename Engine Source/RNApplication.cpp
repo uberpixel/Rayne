@@ -10,8 +10,12 @@
 
 namespace RN
 {
+	RNDeclareSingleton(Application)
+	
 	Application::Application()
-	{}
+	{
+		MakeShared();
+	}
 	
 	Application::~Application()
 	{}

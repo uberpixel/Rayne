@@ -16,6 +16,8 @@ namespace RN
 	RNDeclareMeta(FileProxy)
 	RNDeclareMeta(DirectoryProxy)
 	
+	RNDeclareSingleton(FileManager)
+	
 	// ---------------------
 	// MARK: -
 	// MARK: FileSystemNode

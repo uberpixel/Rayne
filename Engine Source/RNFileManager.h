@@ -97,7 +97,7 @@ namespace RN
 	
 	
 	
-	class FileManager : public Singleton<FileManager>
+	class FileManager : public ISingleton<FileManager>
 	{
 	public:
 		RNAPI FileManager();
@@ -122,6 +122,8 @@ namespace RN
 		
 		std::vector<std::string> _globalModifiers;
 		std::unordered_map<std::string, std::vector<std::string>> _fileModifiers;
+		
+		RNDefineSingleton(FileManager)
 	};
 }
 

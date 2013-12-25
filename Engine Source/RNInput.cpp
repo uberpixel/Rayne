@@ -15,6 +15,7 @@
 namespace RN
 {
 	RNDeclareMeta(Event)
+	RNDeclareSingleton(Input)
 	
 	Event::Event() :
 		Message(kRNInputEventMessage, nullptr, nullptr)
@@ -188,8 +189,6 @@ namespace RN
 	
 	void Input::DispatchInputEvents()
 	{
-		return;
-
 #if RN_PLATFORM_MAC_OS
 		_lock.Lock();
 		
@@ -256,6 +255,7 @@ namespace RN
 	{
 		if(!_active)
 			return;
+		
 #if RN_PLATFORM_MAC_OS
 		AutoreleasePool *pool = new AutoreleasePool();
 		

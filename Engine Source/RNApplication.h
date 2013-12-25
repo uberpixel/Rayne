@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	class Application : public NonConstructingSingleton<Application>
+	class Application : public INonConstructingSingleton<Application>
 	{
 	public:
 		RNAPI Application();
@@ -31,6 +31,8 @@ namespace RN
 		
 	protected:
 		std::string _title;
+		
+		RNDefineSingleton(Application)
 	};
 }
 

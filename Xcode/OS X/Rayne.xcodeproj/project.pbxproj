@@ -24,6 +24,8 @@
 		E90D0EFC185E7D5900807A13 /* RNUIWidgetInternals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E90D0EFA185E7D5900807A13 /* RNUIWidgetInternals.cpp */; };
 		E90D0EFD185E7D5900807A13 /* RNUIWidgetInternals.h in Headers */ = {isa = PBXBuildFile; fileRef = E90D0EFB185E7D5900807A13 /* RNUIWidgetInternals.h */; };
 		E90E777917D799A30097DB09 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E90E777817D799A30097DB09 /* CoreServices.framework */; };
+		E90F87FE1862D5CF00C10354 /* RNUIScrollerInternals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E90F87FC1862D5CF00C10354 /* RNUIScrollerInternals.cpp */; };
+		E90F87FF1862D5CF00C10354 /* RNUIScrollerInternals.h in Headers */ = {isa = PBXBuildFile; fileRef = E90F87FD1862D5CF00C10354 /* RNUIScrollerInternals.h */; };
 		E911D6FA1754060E00DD1F55 /* RNAlgorithm.h in Headers */ = {isa = PBXBuildFile; fileRef = E911D6F91754060E00DD1F55 /* RNAlgorithm.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9145CAC16BA9076004BDEC8 /* RNAutoreleasePool.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9145CAA16BA9076004BDEC8 /* RNAutoreleasePool.cpp */; };
 		E9145CAD16BA9076004BDEC8 /* RNAutoreleasePool.h in Headers */ = {isa = PBXBuildFile; fileRef = E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -74,6 +76,7 @@
 		E945AB431788D97A00C7B30A /* RNUTF8String.h in Headers */ = {isa = PBXBuildFile; fileRef = E945AB411788D97A00C7B30A /* RNUTF8String.h */; };
 		E945AB60178D7D1200C7B30A /* RNUIStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E945AB5E178D7D1200C7B30A /* RNUIStyle.cpp */; };
 		E945AB61178D7D1200C7B30A /* RNUIStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = E945AB5F178D7D1200C7B30A /* RNUIStyle.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9488F1818698D3500C00995 /* RNSingleton.h in Headers */ = {isa = PBXBuildFile; fileRef = E9488F1618698D3500C00995 /* RNSingleton.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E94CB79E18600D4C005A3778 /* RNStatistics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E94CB79C18600D4C005A3778 /* RNStatistics.cpp */; };
 		E94CB79F18600D4C005A3778 /* RNStatistics.h in Headers */ = {isa = PBXBuildFile; fileRef = E94CB79D18600D4C005A3778 /* RNStatistics.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E94D18B91753CE8A00F3B10D /* RNDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E94D18B71753CE8A00F3B10D /* RNDebug.cpp */; };
@@ -304,6 +307,8 @@
 		E90D0EFA185E7D5900807A13 /* RNUIWidgetInternals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIWidgetInternals.cpp; sourceTree = "<group>"; };
 		E90D0EFB185E7D5900807A13 /* RNUIWidgetInternals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIWidgetInternals.h; sourceTree = "<group>"; };
 		E90E777817D799A30097DB09 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
+		E90F87FC1862D5CF00C10354 /* RNUIScrollerInternals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIScrollerInternals.cpp; sourceTree = "<group>"; };
+		E90F87FD1862D5CF00C10354 /* RNUIScrollerInternals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIScrollerInternals.h; sourceTree = "<group>"; };
 		E911D6F91754060E00DD1F55 /* RNAlgorithm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAlgorithm.h; sourceTree = "<group>"; };
 		E9145CAA16BA9076004BDEC8 /* RNAutoreleasePool.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = RNAutoreleasePool.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		E9145CAB16BA9076004BDEC8 /* RNAutoreleasePool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNAutoreleasePool.h; sourceTree = "<group>"; };
@@ -357,6 +362,7 @@
 		E945AB411788D97A00C7B30A /* RNUTF8String.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUTF8String.h; sourceTree = "<group>"; };
 		E945AB5E178D7D1200C7B30A /* RNUIStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIStyle.cpp; sourceTree = "<group>"; };
 		E945AB5F178D7D1200C7B30A /* RNUIStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIStyle.h; sourceTree = "<group>"; };
+		E9488F1618698D3500C00995 /* RNSingleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSingleton.h; sourceTree = "<group>"; };
 		E94CB79C18600D4C005A3778 /* RNStatistics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNStatistics.cpp; sourceTree = "<group>"; };
 		E94CB79D18600D4C005A3778 /* RNStatistics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNStatistics.h; sourceTree = "<group>"; };
 		E94D18B71753CE8A00F3B10D /* RNDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDebug.cpp; sourceTree = "<group>"; };
@@ -798,6 +804,8 @@
 				E93B345817D520D5006607B5 /* RNUIOutlineViewCell.h */,
 				E9586E60173072B700D24737 /* RNUIResponder.cpp */,
 				E9586E61173072B700D24737 /* RNUIResponder.h */,
+				E90F87FC1862D5CF00C10354 /* RNUIScrollerInternals.cpp */,
+				E90F87FD1862D5CF00C10354 /* RNUIScrollerInternals.h */,
 				E9BE9F3C1861627D00B486E8 /* RNUIScroller.cpp */,
 				E9BE9F3D1861627D00B486E8 /* RNUIScroller.h */,
 				E917F07D1791FC7C003765C1 /* RNUIScrollView.cpp */,
@@ -851,6 +859,7 @@
 				E9780FBE16D82913001AE2ED /* RNSettings.cpp */,
 				E9780FBF16D82913001AE2ED /* RNSettings.h */,
 				E9B083B817175354009AD83F /* RNSIMD.h */,
+				E9488F1618698D3500C00995 /* RNSingleton.h */,
 			);
 			name = Base;
 			sourceTree = "<group>";
@@ -1032,6 +1041,7 @@
 				E9619E421696157E00DA187E /* RNObject.h in Headers */,
 				E9619E471696157E00DA187E /* RNQuaternion.h in Headers */,
 				E9619E481696157E00DA187E /* RNRect.h in Headers */,
+				E9488F1818698D3500C00995 /* RNSingleton.h in Headers */,
 				E9619E4F1696157E00DA187E /* RNShader.h in Headers */,
 				E9619E501696157E00DA187E /* RNSpinLock.h in Headers */,
 				E9619E521696157E00DA187E /* RNTexture.h in Headers */,
@@ -1117,6 +1127,7 @@
 				E9A872E5175759E300E06C27 /* RNJSONSerialization.h in Headers */,
 				E9A872E91757627500E06C27 /* RNData.h in Headers */,
 				E96654621758D2BA00C3562E /* RNWrappingObject.h in Headers */,
+				E90F87FF1862D5CF00C10354 /* RNUIScrollerInternals.h in Headers */,
 				D59DCB0C18584E2B00030716 /* RNOctreeSceneManager.h in Headers */,
 				E9551B1917593EE500CF5E10 /* RNUnicode.h in Headers */,
 				E9F361FB175AB84800365C12 /* RNSerialization.h in Headers */,
@@ -1312,6 +1323,7 @@
 				E9B083F81718B1D1009AD83F /* RNMemory.cpp in Sources */,
 				E95A782F17D51E720031C9A2 /* RNUIOutlineView.cpp in Sources */,
 				E9F3A6F4171B8D3E0005A79E /* RNParticleEmitter.cpp in Sources */,
+				E90F87FE1862D5CF00C10354 /* RNUIScrollerInternals.cpp in Sources */,
 				E951615D17D410CF0006156A /* RNUITableViewCell.cpp in Sources */,
 				E9F3A6F8171B8DA70005A79E /* RNParticle.cpp in Sources */,
 				E9F3A6FC171C489F0005A79E /* RNRandom.cpp in Sources */,

@@ -27,6 +27,8 @@ namespace RN
 	};
 	
 	
+	RNDeclareSingleton(ShaderCache)
+	
 	ShaderCache::ShaderCache()
 	{
 #if RN_TARGET_SUPPORT_SQLITE
@@ -44,7 +46,6 @@ namespace RN
 			sqlite3_close(_internals->connection);
 #endif
 	}
-	
 	
 	void ShaderCache::InitializeDatabase()
 	{

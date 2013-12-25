@@ -27,7 +27,7 @@ namespace RN
 	{
 		class View;
 		
-		class Server : public Singleton<Server>
+		class Server : public ISingleton<Server>
 		{
 		public:
 			friend class Widget;
@@ -81,6 +81,8 @@ namespace RN
 			
 			Menu *_menu;
 			bool _drawDebugFrames;
+			
+			RNDefineSingleton(Server)
 		};
 	}
 }

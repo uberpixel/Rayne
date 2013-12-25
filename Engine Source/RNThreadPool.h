@@ -20,7 +20,7 @@ namespace RN
 {
 	class ThreadPool;
 	
-	class ThreadCoordinator : public Singleton<ThreadCoordinator>
+	class ThreadCoordinator : public ISingleton<ThreadCoordinator>
 	{
 	friend class Thread;
 	public:
@@ -35,9 +35,11 @@ namespace RN
 		
 		int32 _baseConcurrency;
 		std::atomic<int32> _consumedConcurrency;
+		
+		RNDefineSingleton(ThreadCoordinator)
 	};
 	
-	class ThreadPool : public Singleton<ThreadPool>
+	class ThreadPool : public ISingleton<ThreadPool>
 	{
 	class Task;
 	public:
@@ -312,6 +314,8 @@ namespace RN
 		std::mutex _consumerLock;
 		std::condition_variable _feederCondition;
 		std::condition_variable _consumerCondition;
+		
+		RNDefineSingleton(ThreadPool)
 	};
 }
 

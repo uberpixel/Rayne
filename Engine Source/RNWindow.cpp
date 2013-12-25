@@ -22,6 +22,7 @@
 namespace RN
 {
 	RNDeclareMeta(WindowConfiguration)
+	RNDeclareSingleton(Window)
 	
 	// ---------------------
 	// MARK: -

@@ -61,7 +61,7 @@ namespace RN
 		RNDefineMeta(Module, Object)
 	};
 	
-	class ModuleCoordinator : public Singleton<ModuleCoordinator>
+	class ModuleCoordinator : public ISingleton<ModuleCoordinator>
 	{
 	public:
 		RNAPI ModuleCoordinator();
@@ -72,6 +72,8 @@ namespace RN
 		
 	private:
 		Array _modules;
+		
+		RNDefineSingleton(ModuleCoordinator)
 	};
 }
 

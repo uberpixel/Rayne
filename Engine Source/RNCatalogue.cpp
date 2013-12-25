@@ -54,6 +54,8 @@ namespace RN
 	
 	
 	
+	RNDeclareSingleton(Catalogue)
+	
 	MetaClassBase *Catalogue::GetClassWithName(const std::string& name) const
 	{
 		auto iterator = _metaClasses.find(name);

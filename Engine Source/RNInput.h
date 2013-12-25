@@ -66,8 +66,9 @@ namespace RN
 	
 	class Event : public Message
 	{
-	friend class Input;
 	public:
+		friend class Input;
+		
 		enum class Type
 		{
 			MouseDown,
@@ -117,7 +118,7 @@ namespace RN
 		RNDefineMeta(Event, Message)
 	};
 	
-	class Input : public Singleton<Input>
+	class Input : public ISingleton<Input>
 	{
 	friend class Window;
 	friend class Kernel;
@@ -164,6 +165,8 @@ namespace RN
 		SpinLock _lock;
 		bool _active;
 		bool _invalidateMouse;
+		
+		RNDefineSingleton(Input)
 	};
 }
 

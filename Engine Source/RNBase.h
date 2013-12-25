@@ -102,6 +102,7 @@
 #include "RNSIMD.h"
 #include "RNSpinLock.h"
 #include "RNLockGuard.h"
+#include "RNSingleton.h"
 
 // ---------------------------
 // Helper macros
@@ -217,77 +218,6 @@ namespace RN
 		size_t origin;
 		size_t length;
 	};
-	
-	template <typename T>
-	class Singleton
-	{
-	public:
-		static T *GetSharedInstance()
-		{
-			LockGuard<SpinLock> lock(_lock);
-			
-			if(!_instance)
-				_instance = new T();
-
-			return _instance;
-		}
-		
-		static T *GetSharedInstance_NoCreate()
-		{
-			LockGuard<SpinLock> lock(_lock);
-			return _instance;
-		}
-
-	protected:
-		Singleton()
-		{}
-
-		virtual ~Singleton()
-		{
-			LockGuard<SpinLock> lock(_lock);
-			
-			if(_instance == this)
-				_instance = nullptr;
-		}
-
-	private:
-		static T *_instance;
-		static SpinLock _lock;
-	};
-
-	template <typename T>
-	T * Singleton<T>::_instance = 0;
-	template <typename T>
-	SpinLock Singleton<T>::_lock;
-
-	template <typename T>
-	class NonConstructingSingleton
-	{
-	public:
-		static T *GetSharedInstance()
-		{
-			return _instance;
-		}
-
-	protected:
-		NonConstructingSingleton()
-		{
-			RN_ASSERT(_instance == 0, "");
-			_instance = static_cast<T *>(this);
-		}
-
-		virtual ~NonConstructingSingleton()
-		{
-			_instance = 0;
-		}
-
-	private:
-		static T *_instance;
-	};
-
-	template <typename T>
-	T * NonConstructingSingleton<T>::_instance = 0;
-		
 		
 	template <class T>
 	class PIMPL

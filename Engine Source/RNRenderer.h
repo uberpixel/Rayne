@@ -75,7 +75,7 @@ namespace RN
 		std::function<void (Renderer *renderer, const RenderingObject&)> callback;
 	};
 	
-	class Renderer : public NonConstructingSingleton<Renderer>
+	class Renderer : public INonConstructingSingleton<Renderer>
 	{
 	public:
 		enum class Mode
@@ -201,6 +201,8 @@ namespace RN
 		std::map<std::tuple<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
 		std::vector<std::pair<Camera *, Shader *>> _flushCameras;
 		std::unordered_set<Camera *> _flushedCameras;
+		
+		RNDefineSingleton(Renderer)
 		
 	};
 	

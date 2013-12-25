@@ -27,7 +27,7 @@
 namespace RN
 {
 	class Kernel;
-	class Settings : public Singleton<Settings>
+	class Settings : public ISingleton<Settings>
 	{
 	public:
 		friend class Kernel;
@@ -77,6 +77,8 @@ namespace RN
 		
 		Dictionary *_settings;
 		Dictionary *_manifest;
+		
+		RNDefineSingleton(Settings)
 	};
 }
 

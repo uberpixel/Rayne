@@ -6,12 +6,6 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#define RN_TARGET_HAS_GPERFTOOLS 0
-
-#if RN_TARGET_HAS_GPERFTOOLS
-#include <tcmalloc.h>
-#endif
-
 #include "RNMemory.h"
 #include "RNBase.h"
 #include "RNSIMD.h"
@@ -22,6 +16,16 @@
 	#endif
 #else
 	#define RN_SIMD_ALIGNMENT 0
+#endif
+
+#if RN_PLATFORM_MAC_OS
+	#define RN_TARGET_HAS_GPERFTOOLS 1
+#else
+	#define RN_TARGET_HAS_GPERFTOOLS 0
+#endif
+
+#if RN_TARGET_HAS_GPERFTOOLS
+	#include <tcmalloc.h>
 #endif
 
 namespace RN

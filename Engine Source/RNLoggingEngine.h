@@ -31,7 +31,7 @@ namespace RN
 		};
 		
 		class StreamLoggingInternal;
-		class StdoutLoggingEngine : public LoggingEngine, public Singleton<StdoutLoggingEngine>
+		class StdoutLoggingEngine : public LoggingEngine, public ISingleton<StdoutLoggingEngine>
 		{
 		public:
 			RNAPI StdoutLoggingEngine();
@@ -47,9 +47,10 @@ namespace RN
 			PIMPL<StreamLoggingInternal> _internal;
 			
 			RNDefineMeta(StdoutLoggingEngine, LoggingEngine)
+			RNDefineSingleton(StdoutLoggingEngine)
 		};
 		
-		class SimpleLoggingEngine : public LoggingEngine, public Singleton<SimpleLoggingEngine>
+		class SimpleLoggingEngine : public LoggingEngine, public ISingleton<SimpleLoggingEngine>
 		{
 		public:
 			RNAPI SimpleLoggingEngine();
@@ -66,9 +67,10 @@ namespace RN
 			PIMPL<StreamLoggingInternal> _internal;
 			
 			RNDefineMeta(SimpleLoggingEngine, LoggingEngine)
+			RNDefineSingleton(SimpleLoggingEngine)
 		};
 		
-		class HTMLLoggingEngine : public LoggingEngine, public Singleton<HTMLLoggingEngine>
+		class HTMLLoggingEngine : public LoggingEngine, public ISingleton<HTMLLoggingEngine>
 		{
 		public:
 			RNAPI virtual void Open() final;
@@ -86,6 +88,7 @@ namespace RN
 			int _mode;
 			
 			RNDefineMeta(HTMLLoggingEngine, LoggingEngine)
+			RNDefineSingleton(HTMLLoggingEngine)
 		};
 	}
 }
