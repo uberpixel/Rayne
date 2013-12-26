@@ -337,6 +337,8 @@ namespace RN
 			case Type::Boolean:
 				return sizeof(bool);
 		}
+
+		throw Exception(Exception::Type::InconsistencyException, "Unknwon type!");
 	}
 	
 	machine_hash Number::GetHash() const

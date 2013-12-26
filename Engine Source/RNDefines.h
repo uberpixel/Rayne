@@ -71,10 +71,13 @@
 	#define RN_FUNCTION_SIGNATURE __FUNCTION__
 	#define alignas(n) __declspec(align(n))
 
+	#pragma warning(disable: 4018)
 	#pragma warning(disable: 4244)
 	#pragma warning(disable: 4250)
 	#pragma warning(disable: 4305)
+	#pragma warning(disable: 4316)
 	#pragma warning(disable: 4800)
+	#pragma warning(disable: 4996)
 
 	#if defined(_WIN64)
 		#undef RN_PLATFORM_INTEL
