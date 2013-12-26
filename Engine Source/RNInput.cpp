@@ -433,6 +433,34 @@ namespace RN
 
 				break;
 			}
+
+			case WM_KEYDOWN:
+			case WM_KEYUP:
+			{
+				BYTE keyState[256];
+				::GetKeyboardState(keyState);
+
+				uint32 scan = (lparam >> 16) & 0xff;
+				uint32 code = (wparam < 0x0030) ? 1 : 0;
+
+				WCHAR buffer = 0;
+				if(::ToUnicode((UINT)wparam, scan, keyState, &buffer, 1, 0) == 1)
+					code = buffer;
+
+				event->_key  = (UniChar)code;
+				event->_type = (message == WM_KEYDOWN) ? Event::Type::KeyDown : Event::Type::KeyUp;
+
+				if(message == WM_KEYDOWN)
+				{
+					_pressedKeys.insert(CodePoint((UniChar)code).GetLowerCase());
+				}
+				else
+				{
+					_pressedKeys.erase(CodePoint((UniChar)code).GetLowerCase());
+				}
+
+				break;
+			}
 		}
 
 		if(event)
