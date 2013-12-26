@@ -21,6 +21,25 @@ namespace RN
 	Display *Context::_dpy = 0;
 #endif
 	
+	bool OpenGLValidateVersion(gl::Version wanted)
+	{
+		GLint major, minor;
+
+		gl::GetIntegerv(GL_MAJOR_VERSION, &major);
+		gl::GetIntegerv(GL_MINOR_VERSION, &minor);
+
+		switch(wanted)
+		{
+			case gl::Version::Core3_2:
+				return ((major == 3 && minor >= 2) || (major > 3));
+			
+			case gl::Version::Core4_1:
+				return ((major == 4 && minor >= 1) || (major > 4));
+		}
+
+		return true;
+	}
+
 #if RN_PLATFORM_MAC_OS
 	void CreateOpenGLContext(gl::Version version, NSOpenGLContext **outContext, NSOpenGLPixelFormat **outFormat)
 	{
@@ -68,12 +87,13 @@ namespace RN
 			gl::GetIntegerv = reinterpret_cast<PFNGLGETINTEGERVPROC>(dlsym(RTLD_NEXT, "glGetIntegerv"));
 		});
 		
-		std::string oglVersion(reinterpret_cast<const char *>(gl::GetString(GL_VERSION)));
-		current ? [current makeCurrentContext] : [NSOpenGLContext clearCurrentContext];
-		
-		if(oglVersion.find("3.2") != std::string::npos && version == gl::Version::Core4_1)
+		if(!OpenGLValidateVersion(version))
+		{
+			current ? [current makeCurrentContext] : [NSOpenGLContext clearCurrentContext];
 			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
-		
+		}
+
+		current ? [current makeCurrentContext] : [NSOpenGLContext clearCurrentContext];
 		
 		CGLEnable(static_cast<CGLContextObj>([context CGLContextObj]), kCGLCEMPEngine);
 		
@@ -111,6 +131,12 @@ namespace RN
 		if(!context || !wglMakeCurrent(hDC, context))
 			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
 
+		if(!OpenGLValidateVersion(version))
+		{
+			wglMakeCurrent(hDC, nullptr);
+			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+		}
+
 		wglMakeCurrent(hDC, nullptr);
 
 		*outContext = context;
@@ -131,7 +157,7 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		_internals->hWnd = Kernel::GetSharedInstance()->GetMainWindow();
 		_internals->hDC  = ::GetDC(_internals->hWnd);
-		
+		_internals->ownsWindow = false;
 		
 		PIXELFORMATDESCRIPTOR descriptor;
 		memset(&descriptor, 0, sizeof(PIXELFORMATDESCRIPTOR));
@@ -222,6 +248,7 @@ namespace RN
 		
 		_internals->hWnd = window ? window : CreateOffscreenWindow();
 		_internals->hDC  = ::GetDC(_internals->hWnd);
+		_internals->ownsWindow = (window != nullptr);
 		
 		_internals->pixelFormat = _shared->_internals->pixelFormat;
 		
@@ -323,6 +350,11 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		[_internals->context release];
 		[_internals->pixelFormat release];
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		if(_internals->ownsWindow)
+			::DestroyWindow(_internals->hWnd);
 #endif
 
 #if RN_PLATFORM_IOS

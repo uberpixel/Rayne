@@ -31,6 +31,7 @@ namespace RN
 		HDC  hDC;
 		HGLRC context;
 		int pixelFormat;
+		bool ownsWindow;
 #endif
 		
 #if RN_PLATFORM_LINUX

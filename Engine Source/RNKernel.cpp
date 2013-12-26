@@ -105,6 +105,10 @@ namespace RN
 		_context->Release();
 #endif
 
+#if RN_PLATFORM_WINDOWS
+		::DestroyWindow(_mainWindow);
+#endif
+
 		delete Settings::GetSharedInstance();
 		delete _pool;
 		
@@ -329,25 +333,19 @@ namespace RN
 				if((RegQueryValueExA(handle, "ProcessorNameString", 0, &type, data, &size) == ERROR_SUCCESS) && (type == REG_SZ))
 				{
 					data[size] = '\0';
-					cpustream << reinterpret_cast<char *>(data);
+					cpustream << reinterpret_cast<char *>(data) << std::endl;
 				}
 				
 				size = 255;
 				if((RegQueryValueExA(handle, "Identifier", 0, &type, data, &size) == ERROR_SUCCESS) && (type == REG_SZ))
 				{
-					if(!cpustream.tellp() != 0)
-						cpustream << std::endl;
-					
 					data[size] = '\0';
-					cpustream << reinterpret_cast<char *>(data);
+					cpustream << reinterpret_cast<char *>(data) << std::endl;
 				}
 				
 				size = 255;
 				if((RegQueryValueExA(handle, "~MHz", 0, &type, data, &size) == ERROR_SUCCESS) && (type == REG_DWORD))
 				{
-					if(!cpustream.tellp() != 0)
-						cpustream << std::endl;
-					
 					uint32 mhz = (*reinterpret_cast<uint32 *>(data));
 					
 					cpustream.precision(3);

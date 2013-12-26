@@ -474,6 +474,12 @@ namespace RN
 
 		_internals->context = new Context(_kernel->GetContext(), _internals->hWnd);
 		_internals->context->MakeActiveContext();
+
+		if(wgl::SwapIntervalEXT)
+		{
+			GLint interval = (mask & MaskVSync) ? 1 : 0;
+			wgl::SwapIntervalEXT(interval);
+		}
 	
 		renderer->SetDefaultFBO(0);
 #endif
