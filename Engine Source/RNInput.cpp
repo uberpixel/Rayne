@@ -189,7 +189,6 @@ namespace RN
 	
 	void Input::DispatchInputEvents()
 	{
-#if RN_PLATFORM_MAC_OS
 		_lock.Lock();
 		
 		if(!_active)
@@ -206,7 +205,13 @@ namespace RN
 		
 		_lock.Unlock();
 		
+#if RN_PLATFORM_MAC_OS
 		_modifierKeys = TranslateModifierFlags([NSEvent modifierFlags]);
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		_modifierKeys = 0;
+#endif
 		
 		for(Event *event : events)
 		{
@@ -237,7 +242,6 @@ namespace RN
 				event->Release();
 			}
 		}
-#endif
 	}
 	
 	void Input::InvalidateFrame()
@@ -251,12 +255,12 @@ namespace RN
 		_invalidateMouse = true;
 	}
 	
+#if RN_PLATFORM_MAC_OS
 	void Input::HandleEvent(void *data)
 	{
 		if(!_active)
 			return;
-		
-#if RN_PLATFORM_MAC_OS
+	
 		AutoreleasePool *pool = new AutoreleasePool();
 		
 		NSEvent *nsevent = static_cast<NSEvent *>(data);
@@ -404,6 +408,35 @@ namespace RN
 			_pendingEvents.push_back(event);
 		
 		delete pool;
-#endif
 	}
+#endif
+
+#if RN_PLATFORM_WINDOWS
+	void Input::HandleSystemEvent(UINT message, WPARAM wparam, LPARAM lparam)
+	{
+		Event *event = new Event();
+
+		switch(message)
+		{
+			case WM_MOUSEMOVE:
+			{
+				Vector2 position = Vector2((float)(int16)LOWORD(lparam), (float)(int16)HIWORD(lparam));
+				Vector2 delta = _mousePosition - position;
+
+				_mouseDelta += delta;
+				_realMousePosition = std::move(position);
+				_mousePosition = std::move(ClampMousePosition(_realMousePosition));
+
+				event->_type = Event::Type::MouseMoved;
+				event->_mouseDelta = delta;
+				event->_mousePosition = _mousePosition;
+
+				break;
+			}
+		}
+
+		if(event)
+			_pendingEvents.push_back(event);
+	}
+#endif
 }

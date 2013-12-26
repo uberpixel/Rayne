@@ -132,7 +132,14 @@ namespace RN
 		RNAPI void DispatchInputEvents();
 		RNAPI void InvalidateFrame();
 		RNAPI void InvalidateMouse();
+
+#if RN_PLATFORM_MAC_OS
 		RNAPI void HandleEvent(void *data);
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		RNAPI void HandleSystemEvent(UINT message, WPARAM wparam, LPARAM lparam);
+#endif
 		
 		const Vector2& GetMouseDelta() const { return _mouseDelta; }
 		const Vector2& GetMousePosition() const { return _mousePosition; }

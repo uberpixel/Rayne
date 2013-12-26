@@ -159,6 +159,19 @@ namespace RN
 			case WM_CLOSE:
 				Kernel::GetSharedInstance()->Exit();
 				return 0;
+
+			case WM_LBUTTONDOWN:
+			case WM_LBUTTONUP:
+			case WM_RBUTTONDOWN:
+			case WM_RBUTTONUP:
+			case WM_MBUTTONDOWN:
+			case WM_MBUTTONUP:
+			case WM_MOUSEWHEEL:
+			case WM_MOUSEMOVE:
+			case WM_KEYDOWN:
+			case WM_KEYUP:
+				RN::Input::GetSharedInstance()->HandleSystemEvent(message, wparam, lparam);
+				return 0;
 		}
 
 		return DefWindowProcW(window, message, wparam, lparam);
