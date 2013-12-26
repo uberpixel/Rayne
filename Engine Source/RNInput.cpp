@@ -109,6 +109,38 @@ namespace RN
 		return delta;
 	}
 #endif
+#if RN_PLATFORM_WINDOWS
+	uint32 TranslateModifierFlags(BYTE *keyState)
+	{
+		uint32 flags = 0;
+
+		flags |= (keyState[VK_SHIFT]) ? KeyModifier::KeyShift : 0;
+		flags |= (keyState[LVKF_ALT]) ? KeyModifier::KeyAlt : 0;
+		flags |= (keyState[VK_CONTROL]) ? KeyModifier::KeyControl : 0;
+		flags |= (keyState[VK_LWIN] || keyState[VK_RWIN]) ? KeyModifier::KeyCommand : 0;
+		flags |= (keyState[VK_CAPITAL]) ? KeyModifier::KeyCapsLock : 0;
+
+		return flags;
+	}
+
+	bool CheckVKey(int vcode)
+	{
+		return (GetAsyncKeyState(vcode) & 0x8000);
+	}
+
+	uint32 TranslateModifierFlags()
+	{
+		uint32 flags = 0;
+
+		flags |= (CheckVKey(VK_SHIFT)) ? KeyModifier::KeyShift : 0;
+		flags |= (CheckVKey(LVKF_ALT)) ? KeyModifier::KeyAlt : 0;
+		flags |= (CheckVKey(VK_CONTROL)) ? KeyModifier::KeyControl : 0;
+		flags |= (CheckVKey(VK_LWIN) || CheckVKey(VK_RWIN)) ? KeyModifier::KeyCommand : 0;
+		flags |= (CheckVKey(VK_CAPITAL)) ? KeyModifier::KeyCapsLock : 0;
+
+		return flags;
+	}
+#endif
 	
 	
 	Input::Input()
@@ -210,7 +242,7 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_WINDOWS
-		_modifierKeys = 0;
+		_modifierKeys = TranslateModifierFlags();
 #endif
 		
 		for(Event *event : events)
@@ -446,6 +478,7 @@ namespace RN
 
 				event->_key  = (UniChar)code;
 				event->_type = (message == WM_KEYDOWN) ? Event::Type::KeyDown : Event::Type::KeyUp;
+				event->_modifierKeys = TranslateModifierFlags(keyState);
 
 				if(message == WM_KEYDOWN)
 				{
