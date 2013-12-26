@@ -128,7 +128,8 @@ namespace RN
 	
 #if RN_PLATFORM_WINDOWS
 	Screen::Screen(const char *name) :
-		_display(name)
+		_display(name),
+		_scaleFactor(1.0f)
 	{
 		for(DWORD modeNum = 0;; modeNum ++)
 		{
@@ -220,14 +221,18 @@ namespace RN
 			
 			Screen *screen = new Screen(device.DeviceName);
 			
-			if(device.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE && !_screens.empty())
+			if(device.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)
+			{
 				_screens.insert(_screens.begin(), screen);
+				_mainScreen = screen;
+			}
 			else
 				_screens.push_back(screen);
 		}
 		
-		_internals->hWnd = 0;
-		_internals->hDC  = 0;
+		_internals->hWnd = nullptr;
+		_internals->displayChanged = false;
+		_internals->context = nullptr;
 #endif
 		
 #if RN_PLATFORM_LINUX
@@ -264,6 +269,10 @@ namespace RN
 		XFreePixmap(_dpy, maskPixmap);
 		XFreePixmap(_dpy, sourcePixmap);
 #endif
+
+		RN_ASSERT(_mainScreen, "A main screen is required for Rayne to work!");
+		RN_ASSERT(!_screens.empty(), "There needs to be at least one screen!");
+
 		bool failed = false;
 		
 		try
@@ -297,6 +306,13 @@ namespace RN
 		[_internals->nativeWindow release];
 #endif
 
+#if RN_PLATFORM_WINDOWS
+		if(_internals->hWnd)
+			::DestroyWindow(_internals->hWnd);
+		if(_internals->displayChanged)
+			::ChangeDisplaySettingsA(nullptr, 0);
+#endif
+
 #if RN_PLATFORM_LINUX
 		XRRFreeScreenConfigInfo(_internals->screenConfig);
 #endif
@@ -315,6 +331,10 @@ namespace RN
 		[_internals->nativeWindow setTitle:[NSString stringWithUTF8String:title.c_str()]];
 #endif
 		
+#if RN_PLATFORM_WINDOWS
+		::SetWindowTextA(_kernel->GetMainWindow(), title.c_str());
+#endif
+
 #if RN_PLATFORM_LINUX
 		XStoreName(_internals->dpy, _internals->win, title.c_str());
 #endif
@@ -385,6 +405,72 @@ namespace RN
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.00001f]];
 		
 #endif
+
+#if RN_PLATFORM_WINDOWS
+		if(_internals->hWnd)
+		{
+			::DestroyWindow(_internals->hWnd);
+			_internals->hWnd = nullptr;
+		}
+		
+		HWND mainWindow = _kernel->GetMainWindow();
+
+		if(mask & MaskFullscreen)
+		{
+			DEVMODE	mode = { 0 };
+
+			mode.dmSize = sizeof(DEVMODE);
+			mode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
+			mode.dmBitsPerPel = 32;
+			mode.dmPelsWidth = width;
+			mode.dmPelsHeight = height;
+
+			if(::ChangeDisplaySettingsA(&mode, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
+				throw Exception(Exception::Type::InconsistencyException, "Failed to switch configuration!");
+
+			_internals->displayChanged = true;
+
+			::SetWindowPos(mainWindow, HWND_NOTOPMOST, 0, 0, width, height, SWP_NOCOPYBITS);
+			::SetWindowLongPtrA(mainWindow, GWL_STYLE, WS_POPUP | WS_CLIPCHILDREN);
+			::SetWindowPos(mainWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+		}
+		else
+		{
+			if(_internals->displayChanged)
+			{
+				::ChangeDisplaySettingsA(nullptr, 0);
+				_internals->displayChanged = false;
+			}
+
+			RECT windowRect;
+
+			windowRect.left = (GetSystemMetrics(SM_CXFULLSCREEN) / 2) - (width / 2);
+			windowRect.top  = (GetSystemMetrics(SM_CYFULLSCREEN) / 2) - (height / 2);
+			windowRect.right  = windowRect.left + width;
+			windowRect.bottom = windowRect.top + height;
+
+			::AdjustWindowRectEx(&windowRect, WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, false, 0);
+
+			::SetWindowPos(mainWindow, HWND_NOTOPMOST, windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, SWP_NOCOPYBITS);
+			::SetWindowLongPtrA(mainWindow, GWL_STYLE, WS_CLIPCHILDREN | WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU);
+			::SetWindowPos(mainWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+		}
+
+		
+		_internals->hWnd = ::CreateWindowExW(0, L"RNWindowClass", L"", WS_CHILD | WS_VISIBLE, 0, 0, width, height, mainWindow, nullptr, _kernel->GetInstance(), nullptr);
+		_internals->hDC = ::GetDC(_internals->hWnd);
+
+		if(_internals->context)
+		{
+			_internals->context->Release();
+			_internals->context = nullptr;
+		}
+
+		_internals->context = new Context(_kernel->GetContext(), _internals->hWnd);
+		_internals->context->MakeActiveContext();
+	
+		renderer->SetDefaultFBO(0);
+#endif
 		
 #if RN_PLATFORM_LINUX
 		XSetWindowAttributes windowAttributes;
@@ -433,11 +519,7 @@ namespace RN
 		if(mask & MaskFullscreen)
 			XSetInputFocus(_internals->dpy, PointerRoot, RevertToPointerRoot, CurrentTime);
 #endif
-		
-#if RN_PLATFORM_WINDOWS
-		
-#endif
-		
+
 		bool screenChanged = (_activeScreen != screen);
 		bool scaleChanged = (!_activeScreen || Math::FastAbs(_activeScreen->GetScaleFactor() - screen->GetScaleFactor()) > k::EpsilonFloat);
 		
@@ -488,7 +570,9 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		[NSCursor unhide];
 #endif
-		
+#if RN_PLATFORM_WINDOWS
+		::ShowCursor(true);
+#endif
 #if RN_PLATFORM_LINUX
 		XUndefineCursor(_internals->dpy, _internals->win);
 #endif
@@ -504,7 +588,9 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		[NSCursor hide];
 #endif
-		
+#if RN_PLATFORM_WINDOWS
+		::ShowCursor(false);
+#endif
 #if RN_PLATFORM_LINUX
 		XDefineCursor(_internals->dpy, _internals->win, _internals->emptyCursor);
 #endif
@@ -531,47 +617,4 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 #endif
 	}
-	
-#if RN_PLATFORM_WINDOWS
-	LRESULT CALLBACK WindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-	{
-		Window *window = reinterpret_cast<Window *>(GetWindowLongPtr(hWnd, GWL_USERDATA));
-		
-		switch(message)
-		{
-			case WM_DESTROY:
-				if(window)
-					Kernel::GetSharedInstance()->Exit();
-				break;
-				
-			default:
-				return DefWindowProc(hWnd, message, wParam, lParam);
-		}
-		
-		return 0;
-	}
-	
-	void RegisterWindowClass()
-	{
-		static std::once_flag token;
-		std::call_once(token, []{
-			
-			WNDCLASSEXA windowClass;
-			memset(&windowClass, 0, sizeof(WNDCLASSEXA));
-			
-			windowClass.cbSize = sizeof(WNDCLASSEXA);
-			windowClass.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-			windowClass.lpfnWndProc = WindowProc;
-			windowClass.hInstance = (HINSTANCE)GetModuleHandle(0);
-			windowClass.hIcon = LoadIcon(0, IDI_APPLICATION);
-			windowClass.hCursor = LoadCursor(0, IDC_ARROW);
-			windowClass.lpszClassName = "RNWindowClass";
-			windowClass.hIconSm = LoadIcon(0, IDI_WINLOGO);
-			
-			RegisterClassExA(&windowClass);
-			
-		});
-	}
-	
-#endif /* RN_PLATFORM_WINDOWS */
 }

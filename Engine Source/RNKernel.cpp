@@ -21,6 +21,7 @@
 #include "RNRenderer32.h"
 #include "RNLogging.h"
 #include "RNShaderCache.h"
+#include "RNWindowInternal.h"
 
 #if RN_PLATFORM_IOS
 extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
@@ -31,6 +32,8 @@ RNApplicationEntryPointer __ApplicationEntry = 0;
 
 namespace RN
 {
+	bool __needsCleanup = false;
+
 #if RN_PLATFORM_INTEL
 	namespace X86_64
 	{
@@ -50,6 +53,9 @@ namespace RN
 	
 	void KernelCleanUp()
 	{
+		if(!__needsCleanup)
+			return;
+
 		AutoreleasePool pool;
 		
 		delete ShaderCache::GetSharedInstance();
@@ -57,6 +63,8 @@ namespace RN
 		delete Settings::GetSharedInstance();
 		delete Input::GetSharedInstance();
 		delete ModuleCoordinator::GetSharedInstance();
+
+		__needsCleanup = false;
 	}
 	
 	
@@ -79,6 +87,7 @@ namespace RN
 	{
 		RNDebug("Shutting down...");
 		
+		__needsCleanup = false;
 		_app->WillExit();
 		
 		delete ModuleCoordinator::GetSharedInstance();
@@ -113,7 +122,34 @@ namespace RN
 #if RN_PLATFORM_LINUX
 		XInitThreads();
 #endif
+#if RN_PLATFORM_WINDOWS
+		_instance = (HINSTANCE)::GetModuleHandle(nullptr);
+
+		_windowClass.cbSize = sizeof(WNDCLASSEXW);
+		_windowClass.style = CS_OWNDC;
+		_windowClass.lpfnWndProc = &WindowProc;
+		_windowClass.cbClsExtra = 0;
+		_windowClass.cbWndExtra = 0;
+		_windowClass.hInstance = _instance;
+		_windowClass.hIcon = LoadIconA(_instance, MAKEINTRESOURCE(1));
+		_windowClass.hCursor = LoadCursorA(nullptr, IDC_ARROW);
+		_windowClass.hbrBackground = nullptr;
+		_windowClass.lpszMenuName = nullptr;
+		_windowClass.lpszClassName = L"RNWindowClass";
+		_windowClass.hIconSm = nullptr;
+		
+		::RegisterClassExW(&_windowClass);
+
+		_mainWindow = ::CreateWindowExW(0, L"RNWindowClass", L"", WS_POPUP | WS_CLIPCHILDREN, 0, 0, 640, 480, nullptr, nullptr, _instance, nullptr);
+
+		::SetFocus(_mainWindow);
+		::SetCursor(_windowClass.hCursor);
+
+		::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_SPEED_OVER_MEMORY);
+#endif
+
 		atexit(KernelCleanUp);
+		__needsCleanup = true;
 		
 		// Bootstrap the very basic things
 		_mainThread = new Thread();
@@ -578,6 +614,12 @@ namespace RN
 #if RN_PLATFORM_LINUX
 		glXSwapBuffers(_context->_dpy, _context->_win);
 #endif
+
+#if RN_PLATFORM_WINDOWS
+		::SwapBuffers(_window->_internals->hDC);
+#endif
+
+		RN_CHECKOPENGL();
 		PopStatistics();
 		
 		_lastFrame = now;

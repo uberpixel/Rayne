@@ -10,6 +10,7 @@
 #define __RAYNE_WINDOWINTERNAL_H__
 
 #include "RNBaseInternal.h"
+#include "RNContext.h"
 
 #if RN_PLATFORM_MAC_OS
 
@@ -51,8 +52,12 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		HWND hWnd;
 		HDC hDC;
+		bool displayChanged;
+		Context *context;
 #endif
 	};
+
+	LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 }
 
 #endif /* __RAYNE_WINDOWINTERNAL_H__ */

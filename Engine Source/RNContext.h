@@ -26,7 +26,11 @@ namespace RN
 		friend class Kernel;
 		friend class Thread;
 		
+#if RN_PLATFORM_WINDOWS
+		RNAPI Context(Context *shared, HWND window = nullptr);
+#else
 		RNAPI Context(Context *shared);
+#endif
 		RNAPI Context(gl::Version version);
 		
 		RNAPI ~Context() override;

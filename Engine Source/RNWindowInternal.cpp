@@ -147,3 +147,21 @@
 @end
 
 #endif
+
+#if RN_PLATFORM_WINDOWS
+
+namespace RN
+{
+	LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+	{
+		switch(message)
+		{
+			case WM_CLOSE:
+				Kernel::GetSharedInstance()->Exit();
+				return 0;
+		}
+
+		return DefWindowProcW(window, message, wparam, lparam);
+	}
+}
+#endif

@@ -95,6 +95,8 @@ namespace RN
 	class Window : public ISingleton<Window>
 	{
 	public:
+		friend class Kernel;
+
 		enum
 		{
 			MaskFullscreen = (1 << 0),

@@ -11,6 +11,7 @@
 #include "RNBaseInternal.h"
 #include "RNMutex.h"
 #include "RNSettings.h"
+#include "RNKernel.h"
 
 namespace RN
 {
@@ -18,10 +19,6 @@ namespace RN
 	
 #if RN_PLATFORM_LINUX
 	Display *Context::_dpy = 0;
-#endif
-	
-#if RN_PLATFORM_WINDOWS
-	extern void RegisterWindowClass();
 #endif
 	
 #if RN_PLATFORM_MAC_OS
@@ -132,9 +129,7 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_WINDOWS
-		RegisterWindowClass();
-		
-		_internals->hWnd = CreateOffscreenWindow();
+		_internals->hWnd = Kernel::GetSharedInstance()->GetMainWindow();
 		_internals->hDC  = ::GetDC(_internals->hWnd);
 		
 		
@@ -186,7 +181,11 @@ namespace RN
 #endif
 	}
 	
+#if RN_PLATFORM_WINDOWS
+	Context::Context(Context *shared, HWND window)
+#else
 	Context::Context(Context *shared)
+#endif
 	{
 		RN_ASSERT(shared, "Creating a shared context but no context to share with provided!");
 		Initialize(shared->_version);
@@ -221,7 +220,7 @@ namespace RN
 
 #if RN_PLATFORM_WINDOWS
 		
-		_internals->hWnd = CreateOffscreenWindow();
+		_internals->hWnd = window ? window : CreateOffscreenWindow();
 		_internals->hDC  = ::GetDC(_internals->hWnd);
 		
 		_internals->pixelFormat = _shared->_internals->pixelFormat;

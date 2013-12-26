@@ -65,6 +65,11 @@ namespace RN
 		
 		FrameID GetCurrentFrame() const { return _frame; }
 
+#if RN_PLATFORM_WINDOWS
+		HWND GetMainWindow() const { return _mainWindow;  }
+		HINSTANCE GetInstance() const { return _instance; }
+#endif
+
 	private:
 		void Prepare();
 		void Initialize();
@@ -103,6 +108,12 @@ namespace RN
 		float _delta;
 		float _timeScale;
 		std::chrono::steady_clock::time_point _lastFrame;
+
+#if RN_PLATFORM_WINDOWS
+		HWND _mainWindow;
+		HINSTANCE _instance;
+		WNDCLASSEXW _windowClass;
+#endif
 		
 		RNDefineSingleton(Kernel)
 	};
