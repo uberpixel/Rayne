@@ -170,7 +170,7 @@ namespace RN
 			case WM_MOUSEMOVE:
 			case WM_KEYDOWN:
 			case WM_KEYUP:
-				RN::Input::GetSharedInstance()->HandleSystemEvent(message, wparam, lparam);
+				RN::Input::GetSharedInstance()->HandleSystemEvent(window, message, wparam, lparam);
 				return 0;
 		}
 

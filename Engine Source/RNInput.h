@@ -138,7 +138,7 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_WINDOWS
-		RNAPI void HandleSystemEvent(UINT message, WPARAM wparam, LPARAM lparam);
+		RNAPI void HandleSystemEvent(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 #endif
 		
 		const Vector2& GetMouseDelta() const { return _mouseDelta; }
@@ -156,6 +156,10 @@ namespace RN
 	private:
 		void FlushEventQueue();
 		Vector2 ClampMousePosition(const Vector2& position) const;
+
+#if RN_PLATFORM_WINDOWS
+		void HandleMouseEvent(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
+#endif
 		
 		Vector2 _mousePosition;
 		Vector2 _realMousePosition;
@@ -168,6 +172,10 @@ namespace RN
 		std::vector<Event *> _pendingEvents;
 		std::unordered_set<UniChar> _pressedKeys;
 		std::unordered_set<uint32> _pressedMouse;
+
+#if RN_PLATFORM_WINDOWS
+		bool _windowCaptured;
+#endif
 		
 		SpinLock _lock;
 		bool _active;

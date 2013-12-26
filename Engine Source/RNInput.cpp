@@ -412,31 +412,28 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_WINDOWS
-	void Input::HandleSystemEvent(UINT message, WPARAM wparam, LPARAM lparam)
+	void Input::HandleSystemEvent(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
 	{
-		Event *event = new Event();
-
 		switch(message)
 		{
+			case WM_LBUTTONDOWN:
+			case WM_LBUTTONUP:
+			case WM_RBUTTONDOWN:
+			case WM_RBUTTONUP:
+			case WM_MBUTTONDOWN:
+			case WM_MBUTTONUP:
+			case WM_MOUSEWHEEL:
 			case WM_MOUSEMOVE:
 			{
-				Vector2 position = Vector2((float)(int16)LOWORD(lparam), (float)(int16)HIWORD(lparam));
-				Vector2 delta = _mousePosition - position;
-
-				_mouseDelta += delta;
-				_realMousePosition = std::move(position);
-				_mousePosition = std::move(ClampMousePosition(_realMousePosition));
-
-				event->_type = Event::Type::MouseMoved;
-				event->_mouseDelta = delta;
-				event->_mousePosition = _mousePosition;
-
+				HandleMouseEvent(window, message, wparam, lparam);
 				break;
 			}
 
 			case WM_KEYDOWN:
 			case WM_KEYUP:
 			{
+				Event *event = new Event();
+
 				BYTE keyState[256];
 				::GetKeyboardState(keyState);
 
@@ -452,6 +449,10 @@ namespace RN
 
 				if(message == WM_KEYDOWN)
 				{
+					uint32 repeatCount = (lparam & 0xf);
+					if(repeatCount > 0)
+						event->_type = Event::Type::KeyRepeat;
+
 					_pressedKeys.insert(CodePoint((UniChar)code).GetLowerCase());
 				}
 				else
@@ -459,12 +460,110 @@ namespace RN
 					_pressedKeys.erase(CodePoint((UniChar)code).GetLowerCase());
 				}
 
+				_pendingEvents.push_back(event);
 				break;
 			}
 		}
+	}
 
-		if(event)
-			_pendingEvents.push_back(event);
+	void Input::HandleMouseEvent(HWND window, UINT message, WPARAM wparam, LPARAM lparam)
+	{
+		Event *event = new Event();
+
+		Vector2 position = Vector2((float)(int16)LOWORD(lparam), (float)(int16)HIWORD(lparam));
+		Vector2 delta = _mousePosition - position;
+
+		_mouseDelta += delta;
+		_realMousePosition = std::move(position);
+		_mousePosition = std::move(ClampMousePosition(_realMousePosition));
+		
+		event->_mouseDelta = delta;
+		event->_mousePosition = _mousePosition;
+
+		switch(message)
+		{
+			case WM_LBUTTONDOWN:
+				event->_type = Event::Type::MouseDown;
+				event->_button = 1;
+
+				_pressedMouse.insert(1);
+				break;
+			case WM_LBUTTONUP:
+				event->_type = Event::Type::MouseUp;
+				event->_button = 1;
+
+				_pressedMouse.erase(1);
+				break;
+
+			case WM_RBUTTONDOWN:
+				event->_type = Event::Type::MouseDown;
+				event->_button = 2;
+
+				_pressedMouse.insert(2);
+				break;
+			case WM_RBUTTONUP:
+				event->_type = Event::Type::MouseUp;
+				event->_button = 2;
+
+				_pressedMouse.erase(2);
+				break;
+
+			case WM_MBUTTONDOWN:
+				event->_type = Event::Type::MouseDown;
+				event->_button = 3;
+
+				_pressedMouse.insert(3);
+				break;
+			case WM_MBUTTONUP:
+				event->_type = Event::Type::MouseUp;
+				event->_button = 3;
+
+				_pressedMouse.erase(3);
+				break;
+
+			case WM_MOUSEWHEEL:
+			{
+				int32 delta = GET_WHEEL_DELTA_WPARAM(wparam);
+				int32 k = delta / WHEEL_DELTA;
+
+				if(k != 0)
+				{
+					event->_type = Event::Type::MouseWheel;
+					event->_mouseWheel = Vector2((float)k, 0.0f);
+				}
+
+				break;
+			}
+
+			case WM_MOUSEMOVE:
+				event->_type = (wparam & MK_LBUTTON) ? Event::Type::MouseDragged : Event::Type::MouseMoved;
+				break;
+		}
+
+		switch(message)
+		{
+			case WM_LBUTTONDOWN:
+			case WM_LBUTTONUP:
+			case WM_RBUTTONDOWN:
+			case WM_RBUTTONUP:
+			case WM_MBUTTONDOWN:
+			case WM_MBUTTONUP:
+				if(_pressedMouse.empty() && _windowCaptured)
+				{
+					::ReleaseCapture();
+					_windowCaptured = false;
+				}
+
+				if(!_pressedMouse.empty() && !_windowCaptured)
+				{
+					::SetCapture(window);
+					_windowCaptured = true;
+				}
+				break;
+		}
+
+		_pendingEvents.push_back(event);
+		return;
 	}
 #endif
 }
