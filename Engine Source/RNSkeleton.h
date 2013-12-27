@@ -40,8 +40,8 @@ namespace RN
 		RNAPI Animation(const std::string &animname);
 		RNAPI ~Animation();
 		
-		RNAPI void MakeLoop();
-		RNAPI float GetLength();
+		void MakeLoop();
+		float GetLength();
 		
 		std::string name;
 		std::map<int, AnimationBone*> bones;
@@ -87,10 +87,9 @@ namespace RN
 	{
 	public:
 		RNAPI Skeleton();
-		RNAPI Skeleton(const std::string& path);
 		RNAPI Skeleton(const Skeleton *other);
 		
-		RNAPI virtual ~Skeleton();
+		RNAPI ~Skeleton() override;
 		
 		RNAPI static Skeleton *WithFile(const std::string& path);
 		RNAPI static Skeleton *WithSkeleton(const Skeleton *other);
@@ -115,9 +114,6 @@ namespace RN
 		std::vector<Matrix> _matrices;
 		
 	private:
-		void ReadSkeletonVersion1(File *file);
-		void ReadBVH(File *file);
-		
 		Animation *_blendanim;
 		float _blendtime;
 		Animation *_curranim;

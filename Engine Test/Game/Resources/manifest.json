@@ -1,6 +1,6 @@
 {
 	"RNGameModule": "libGame",
 	"RNUIStyle": "ui/rn_uistyle.json",
-	"RNModules": [],
+	"RNModules": ["modules/librayne-assimp"],
 	"RNApplication": "Test Game"
 }

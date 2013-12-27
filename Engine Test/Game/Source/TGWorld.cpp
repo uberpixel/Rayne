@@ -524,6 +524,11 @@ namespace TG
 		ruin4ent->SetModel(ruin4);
 		ruin4ent->SetWorldPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
 		
+/*		RN::Model *tower4 = RN::Model::WithFile("models/dexsoft/walls_towers/tower_4_render.dae");
+		RN::Entity *tower4ent = new RN::Entity();
+		tower4ent->SetModel(tower4);
+		tower4ent->SetWorldPosition(RN::Vector3(-50.0f, 0.0f, 30.0f));*/
+		
 		
 		RN::Entity *obstacles[3];
 		obstacles[0] = tavernent;

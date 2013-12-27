@@ -17,13 +17,15 @@ namespace RN
 {
 	RNDeclareMeta(Model)
 	
-	Model::Model()
+	Model::Model() :
+		_skeleton(nullptr)
 	{
 		LODGroup *group = new LODGroup(0.0f);
 		_groups.push_back(group);
 	}
 	
-	Model::Model(Mesh *mesh, Material *material)
+	Model::Model(Mesh *mesh, Material *material) :
+		_skeleton(nullptr)
 	{
 		LODGroup *group = new LODGroup(0.0f);
 		_groups.push_back(group);
@@ -37,6 +39,8 @@ namespace RN
 		{
 			delete group;
 		}
+		
+		SafeRelease(_skeleton);
 	}
 	
 	
@@ -140,6 +144,16 @@ namespace RN
 	}
 	
 	
+	void Model::SetSkeleton(Skeleton *skeleton)
+	{
+		SafeRelease(_skeleton);
+		_skeleton = SafeRetain(_skeleton);
+	}
+	
+	Skeleton *Model::GetSkeleton()
+	{
+		return _skeleton;
+	}
 	
 	
 	Model *Model::Empty()

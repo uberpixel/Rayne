@@ -52,6 +52,23 @@ namespace RN
 		RNDefineMeta(SGMResourceLoader, ResourceLoader)
 	};
 	
+	class SGAResourceLoader : public ResourceLoader
+	{
+	public:
+		SGAResourceLoader();
+		
+		Object *Load(File *file, Dictionary *settings) override;
+		
+		bool SupportsBackgroundLoading() override;
+		bool SupportsLoadingFile(File *file) override;
+		
+		uint32 GetPriority() const override;
+		
+		static void InitialWakeUp(MetaClassBase *meta);
+		
+		RNDefineMeta(SGAResourceLoader, ResourceLoader)
+	};
+	
 	class GLSLResourceLoader : public ResourceLoader
 	{
 	public:

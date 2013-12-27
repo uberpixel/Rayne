@@ -35,6 +35,8 @@ namespace RN
 		
 		RNAPI size_t AddLODStage(float distance);
 		RNAPI void RemoveLODStage(size_t stage);
+		RNAPI void SetSkeleton(Skeleton *skeleton);
+		RNAPI Skeleton *GetSkeleton();
 		
 		RNAPI void AddMesh(Mesh *mesh, Material *material, size_t lodStage);
 		
@@ -98,6 +100,7 @@ namespace RN
 		Sphere _boundingSphere;
 		
 		std::vector<LODGroup *> _groups;
+		Skeleton *_skeleton;
 		
 		RNDefineMetaWithTraits(Model, Object, MetaClassTraitCronstructable)
 	};
