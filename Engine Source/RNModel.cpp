@@ -18,12 +18,14 @@ namespace RN
 	RNDeclareMeta(Model)
 	
 	Model::Model()
+	: _skeleton(nullptr)
 	{
 		LODGroup *group = new LODGroup(0.0f);
 		_groups.push_back(group);
 	}
 	
 	Model::Model(Mesh *mesh, Material *material)
+	: _skeleton(nullptr)
 	{
 		LODGroup *group = new LODGroup(0.0f);
 		_groups.push_back(group);

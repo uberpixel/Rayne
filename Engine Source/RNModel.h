@@ -36,6 +36,9 @@ namespace RN
 		size_t AddLODStage(float distance);
 		void RemoveLODStage(size_t stage);
 		
+		void SetSkeleton(Skeleton *skeleton){_skeleton = skeleton;}
+		Skeleton *GetSkeleton(){return _skeleton;}
+		
 		void AddMesh(Mesh *mesh, Material *material, size_t lodStage);
 		
 		size_t GetLODStageForDistance(float distance) const;
@@ -98,6 +101,7 @@ namespace RN
 		Sphere _boundingSphere;
 		
 		std::vector<LODGroup *> _groups;
+		Skeleton *_skeleton;
 		
 		RNDefineMetaWithTraits(Model, Object, MetaClassTraitCronstructable)
 	};

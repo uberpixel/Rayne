@@ -87,7 +87,6 @@ namespace RN
 	{
 	public:
 		Skeleton();
-		Skeleton(const std::string& path);
 		Skeleton(const Skeleton *other);
 		
 		virtual ~Skeleton();
@@ -115,9 +114,6 @@ namespace RN
 		std::vector<Matrix> _matrices;
 		
 	private:
-		void ReadSkeletonVersion1(File *file);
-		void ReadBVH(File *file);
-		
 		Animation *_blendanim;
 		float _blendtime;
 		Animation *_curranim;

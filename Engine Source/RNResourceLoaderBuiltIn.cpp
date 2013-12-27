@@ -17,12 +17,14 @@
 #include "RNTexture.h"
 #include "RNShader.h"
 #include "RNModel.h"
+#include "RNSkeleton.h"
 
 namespace RN
 {
 	RNDeclareMeta(PNGResourceLoader)
 	RNDeclareMeta(GLSLResourceLoader)
 	RNDeclareMeta(SGMResourceLoader)
+	RNDeclareMeta(SGAResourceLoader)
 	
 	// ---------------------
 	// MARK: -
@@ -214,6 +216,18 @@ namespace RN
 		}
 		
 		LoadLODStage(file, model, stage, guessMaterial);
+		
+		uint8 hasAnimations = file->ReadInt8();
+		if(hasAnimations == 1)
+		{
+			std::string animationFile;
+			std::string path;
+			
+			file->ReadIntoString(animationFile, file->ReadUint16());
+			path = FileManager::GetSharedInstance()->GetNormalizedPathFromFullpath(PathManager::Join(file->GetPath(), animationFile));
+			Skeleton *skeleton = Skeleton::WithFile(path);
+			model->SetSkeleton(skeleton);
+		}
 		
 		std::string base = PathManager::Basepath(file->GetFullPath());
 		std::string name = PathManager::Basename(file->GetFullPath());
@@ -446,6 +460,144 @@ namespace RN
 	}
 	
 	uint32 SGMResourceLoader::GetPriority() const
+	{
+		return kRNResourceCoordinatorBuiltInPriority;
+	}
+	
+	// ---------------------
+	// MARK: -
+	// MARK: SGAResourceLoader
+	// ---------------------
+	
+	SGAResourceLoader::SGAResourceLoader() :
+	ResourceLoader(Skeleton::MetaClass())
+	{
+		uint8 magicBytes[] = { 0x5A, 0x4E, 0xDA, 0x16 };
+		
+		Data *data = new Data(magicBytes, 4);
+		
+		SetFileExtensions({ "sga" });
+		SetMagicBytes(data, 0);
+		
+		data->Release();
+	}
+	
+	void SGAResourceLoader::InitialWakeUp(MetaClassBase *meta)
+	{
+		if(meta == MetaClass())
+		{
+			SGAResourceLoader *loader = new SGAResourceLoader();
+			ResourceCoordinator::GetSharedInstance()->RegisterResourceLoader(loader);
+			loader->Release();
+		}
+	}
+	
+	Object *SGAResourceLoader::Load(File *file, Dictionary *settings)
+	{
+		Skeleton *skeleton = new Skeleton();
+		
+		file->Seek(5); // Skip over magic bytes and version number
+		
+		uint16 lenskeletonname = file->ReadUint16();
+		char *skeletonname = new char[lenskeletonname];
+		file->ReadIntoBuffer(skeletonname, lenskeletonname);
+		delete[] skeletonname;
+		
+		uint16 bonecount = file->ReadUint16();
+		for(int i = 0; i < bonecount; i++)
+		{
+			uint16 lenbonename = file->ReadUint16();
+			char *bonename = new char[lenbonename];
+			file->ReadIntoBuffer(bonename, lenbonename);
+			
+			Vector3 bonepos;
+			file->ReadIntoBuffer(&bonepos.x, sizeof(Vector3));
+			
+			uint8 isroot = file->ReadUint8();
+			
+			Bone bone(bonepos, bonename, isroot);
+			delete[] bonename;
+			
+			uint16 numchildren = file->ReadUint16();
+			for(int n = 0; n < numchildren; n++)
+			{
+				uint16 child = file->ReadUint16();
+				bone.tempChildren.push_back(child);
+			}
+			
+			skeleton->bones.push_back(bone);
+		}
+		
+		uint16 numanims = file->ReadUint16();
+		for(int i = 0; i < numanims; i++)
+		{
+			uint16 lenanimname = file->ReadUint16();
+			char *animname = new char[lenanimname];
+			file->ReadIntoBuffer(animname, lenanimname);
+			
+			Animation *anim = new Animation(animname);
+			anim->Autorelease();
+			anim->Retain();
+			skeleton->animations.insert(std::pair<std::string, Animation*>(animname, anim));
+			delete[] animname;
+			
+			uint16 numanimbones = file->ReadUint16();
+			for(int n = 0; n < numanimbones; n++)
+			{
+				AnimationBone *animbone = 0;
+				uint16 boneid = file->ReadUint16();
+				uint32 numframes = file->ReadUint32();
+				for(int f = 0; f < numframes; f++)
+				{
+					float time = file->ReadFloat();
+					Vector3 animbonepos;
+					file->ReadIntoBuffer(&animbonepos.x, sizeof(Vector3));
+					Vector3 animbonescale;
+					file->ReadIntoBuffer(&animbonescale.x, sizeof(Vector3));
+					Quaternion animbonerot;
+					file->ReadIntoBuffer(&animbonerot.x, sizeof(Quaternion));
+					
+					animbone = new AnimationBone(animbone, 0, time, animbonepos, animbonescale, animbonerot);
+				}
+				
+				AnimationBone *lastbone = animbone;
+				while(animbone->prevFrame != 0)
+				{
+					animbone->prevFrame->nextFrame = animbone;
+					animbone = animbone->prevFrame;
+				}
+				animbone->prevFrame = lastbone;
+				lastbone->nextFrame = animbone;
+				anim->bones.insert(std::pair<int, AnimationBone*>(boneid, animbone));
+			}
+		}
+		
+		skeleton->Init();
+		
+		return skeleton;
+	}
+	
+	bool SGAResourceLoader::SupportsLoadingFile(File *file)
+	{
+		file->Seek(4); // Skip the magic bytes, they've already been checked
+		uint32 version = file->ReadUint8();
+		
+		switch(version)
+		{
+			case 1:
+				return true;
+				
+			default:
+				return false;
+		}
+	}
+	
+	bool SGAResourceLoader::SupportsBackgroundLoading()
+	{
+		return true;
+	}
+	
+	uint32 SGAResourceLoader::GetPriority() const
 	{
 		return kRNResourceCoordinatorBuiltInPriority;
 	}
