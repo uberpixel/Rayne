@@ -59,6 +59,8 @@ namespace RN
 				return RNSTR("%s", value ? "true" : false);
 			}
 		}
+
+		return RNCSTR("??");
 	}
 	
 	Object *NumberFormatter::GetObjectForString(String *string)

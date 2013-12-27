@@ -380,7 +380,7 @@ namespace RN
 				descriptors.push_back(meshDescriptor);
 				size += meshDescriptor.elementSize;
 			}
-			if(hasBones > 0)
+			if(hasBones)
 			{
 				meshDescriptor = MeshDescriptor(kMeshFeatureBoneWeights);
 				meshDescriptor.elementSize = sizeof(Vector4);

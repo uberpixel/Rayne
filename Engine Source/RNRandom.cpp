@@ -248,6 +248,10 @@ namespace RN
 			y ^= (y << 15) & 0xefc60000UL;
 			y ^= (y >> 18);
 			
+#if RN_PLATFORM_WINDOWS
+			#pragma warning(disable: 4307)
+#endif
+
 			return static_cast<int32>(y & (1 << 31) - 1);
 		}
 	}

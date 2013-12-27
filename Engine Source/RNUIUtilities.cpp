@@ -74,7 +74,7 @@ namespace RN
 				_fps.push(1.0f / delta);
 			
 			float fps = _fpsCheckbox->IsSelected() ? AverageFPS() : 1.0f / delta;
-			String *string = RNSTR("Frame: %3.4fs\n\%s %3.4f\n\n", kernel->GetDelta(), (_fpsCheckbox->IsSelected() ? "Avg. FPS:" : "FPS:"), fps);
+			String *string = RNSTR("Frame: %3.4fs\n%s %3.4f\n\n", kernel->GetDelta(), (_fpsCheckbox->IsSelected() ? "Avg. FPS:" : "FPS:"), fps);
 			
 			auto data = kernel->GetStatisticsData();
 			for(Statistics::DataPoint *point : data)

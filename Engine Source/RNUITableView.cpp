@@ -270,7 +270,9 @@ namespace RN
 						break;
 						
 					case EditingSet::Type::Deletion:
-						offset = -set.count;
+						offset = set.count;
+						offset = -offset;
+
 						deletedRows += set.count;
 						
 						for(auto iterator = indices.begin(); iterator != indices.end();)

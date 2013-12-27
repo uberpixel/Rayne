@@ -138,8 +138,10 @@
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __declspec(dllexport)
+		#define RNAPI_EXPORTONLY __declspec(dllexport)
 	#else
 		#define RNAPI __declspec(dllimport)
+		#define RNAPI_EXPORTONLY
 	#endif
 
 #elif defined(__GNUC__)
