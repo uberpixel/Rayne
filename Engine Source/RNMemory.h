@@ -55,6 +55,7 @@ namespace RN
 	};
 }
 
+#if RN_PLATFORM_WINDOWS
 RN_INLINE void *operator new(size_t size)
 {
 	return RN::Memory::Allocate(size);
@@ -89,5 +90,18 @@ RN_INLINE void operator delete[](void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
 {
 	return RN::Memory::FreeArray(ptr, n);
 }
+#endif
+
+#if RN_PLATFORM_MAC_OS
+void *operator new(size_t size);
+void *operator new[](size_t size);
+void *operator new(size_t size, const std::nothrow_t& n) RN_NOEXCEPT;
+void *operator new[](size_t size, const std::nothrow_t& n) RN_NOEXCEPT;
+
+void operator delete(void *ptr) RN_NOEXCEPT;
+void operator delete[](void *ptr) RN_NOEXCEPT;
+void operator delete(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT;
+void operator delete[](void *ptr, const std::nothrow_t& n) RN_NOEXCEPT;
+#endif
 
 #endif /* __RAYNE_MEMORY_H__ */

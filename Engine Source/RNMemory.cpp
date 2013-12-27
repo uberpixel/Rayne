@@ -19,7 +19,7 @@
 #endif
 
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
-	#define RN_TARGET_HAS_GPERFTOOLS 1
+	#define RN_TARGET_HAS_GPERFTOOLS 0
 #else
 	#define RN_TARGET_HAS_GPERFTOOLS 0
 #endif
@@ -80,7 +80,12 @@ namespace RN
 			
 			return (result == 0) ? ptr : 0;
 #else
-			return _aligned_malloc(size, alignment);
+			void *ptr;
+			int result = posix_memalign(&ptr, alignment, size);
+			
+			return (result == 0) ? ptr : 0;
+			
+			//return _aligned_malloc(size, alignment);
 #endif
 		}
 		void FreeAligned(void *ptr)
@@ -88,7 +93,8 @@ namespace RN
 #if RN_TARGET_HAS_GPERFTOOLS
 			tc_free(ptr);
 #else
-			_aligned_free(ptr);
+			free(ptr);
+			//_aligned_free(ptr);
 #endif
 		}
 		
@@ -351,3 +357,40 @@ namespace RN
 		}
 	};
 }
+
+#if RN_PLATFORM_MAC_OS
+void *operator new(size_t size)
+{
+	return RN::Memory::Allocate(size);
+}
+void *operator new[](size_t size)
+{
+	return RN::Memory::AllocateArray(size);
+}
+void *operator new(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
+{
+	return RN::Memory::Allocate(size, n);
+}
+void *operator new[](size_t size, const std::nothrow_t& n) RN_NOEXCEPT
+{
+	return RN::Memory::AllocateArray(size, n);
+}
+
+
+void operator delete(void *ptr) RN_NOEXCEPT
+{
+	return RN::Memory::Free(ptr);
+}
+void operator delete[](void *ptr) RN_NOEXCEPT
+{
+	return RN::Memory::FreeArray(ptr);
+}
+void operator delete(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
+{
+	return RN::Memory::Free(ptr, n);
+}
+void operator delete[](void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
+{
+	return RN::Memory::FreeArray(ptr, n);
+}
+#endif
