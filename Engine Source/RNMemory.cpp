@@ -18,14 +18,54 @@
 	#define RN_SIMD_ALIGNMENT 0
 #endif
 
-#if RN_PLATFORM_MAC_OS
+#if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 	#define RN_TARGET_HAS_GPERFTOOLS 1
 #else
 	#define RN_TARGET_HAS_GPERFTOOLS 0
 #endif
 
 #if RN_TARGET_HAS_GPERFTOOLS
-	#include <tcmalloc.h>
+#ifdef __cplusplus
+extern "C" {
+#endif
+	// Returns a human-readable version string.  If major, minor,
+	// and/or patch are not NULL, they are set to the major version,
+	// minor version, and patch-code (a string, usually "").
+	const char* tc_version(int* major, int* minor, const char** patch);
+
+	void* tc_malloc(size_t size);
+	void tc_free(void* ptr);
+	void* tc_realloc(void* ptr, size_t size);
+	void* tc_calloc(size_t nmemb, size_t size);
+	void tc_cfree(void* ptr);
+
+	void* tc_memalign(size_t __alignment, size_t __size);
+	int tc_posix_memalign(void** ptr, size_t align, size_t size);
+	void* tc_valloc(size_t __size);
+	void* tc_pvalloc(size_t __size);
+
+	void tc_malloc_stats(void);
+	int tc_mallopt(int cmd, int value);
+
+	// This is an alias for MallocExtension::instance()->GetAllocatedSize().
+	// It is equivalent to
+	//    OS X: malloc_size()
+	//    glibc: malloc_usable_size()
+	//    Windows: _msize()
+	size_t tc_malloc_size(void* ptr);
+
+#ifdef __cplusplus
+	int tc_set_new_mode(int flag);
+	void* tc_new(size_t size);
+	void* tc_new_nothrow(size_t size, const std::nothrow_t&);
+	void tc_delete(void* p);
+	void tc_delete_nothrow(void* p, const std::nothrow_t&);
+	void* tc_newarray(size_t size);
+	void* tc_newarray_nothrow(size_t size, const std::nothrow_t&);
+	void tc_deletearray(void* p);
+	void tc_deletearray_nothrow(void* p, const std::nothrow_t&);
+}
+#endif
 #endif
 
 namespace RN
@@ -310,39 +350,4 @@ namespace RN
 			_allocator->Evict(willReuse);
 		}
 	};
-}
-
-void *operator new(size_t size)
-{
-	return RN::Memory::Allocate(size);
-}
-void *operator new[](size_t size)
-{
-	return RN::Memory::AllocateArray(size);
-}
-void *operator new(size_t size, const std::nothrow_t& n) RN_NOEXCEPT
-{
-	return RN::Memory::Allocate(size, n);
-}
-void *operator new[](size_t size, const std::nothrow_t& n) RN_NOEXCEPT
-{
-	return RN::Memory::AllocateArray(size, n);
-}
-
-
-void operator delete(void *ptr) RN_NOEXCEPT
-{
-	return RN::Memory::Free(ptr);
-}
-void operator delete[](void *ptr) RN_NOEXCEPT
-{
-	return RN::Memory::FreeArray(ptr);
-}
-void operator delete(void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
-{
-	return RN::Memory::Free(ptr, n);
-}
-void operator delete[](void *ptr, const std::nothrow_t& n) RN_NOEXCEPT
-{
-	return RN::Memory::FreeArray(ptr, n);
 }
