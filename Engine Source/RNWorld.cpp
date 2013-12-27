@@ -106,7 +106,7 @@ namespace RN
 		
 		do
 		{
-#if DEBUG
+#if RN_BUILD_DEBUG
 			if(run >= 100)
 			{
 				Log::Loggable loggable(Log::Level::Warning);

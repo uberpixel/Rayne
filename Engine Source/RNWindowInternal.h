@@ -57,7 +57,9 @@ namespace RN
 #endif
 	};
 
+#if RN_PLATFORM_WINDOWS
 	LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
+#endif
 }
 
 #endif /* __RAYNE_WINDOWINTERNAL_H__ */

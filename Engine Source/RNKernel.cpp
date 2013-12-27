@@ -236,7 +236,7 @@ namespace RN
 		// Rayne version
 		{
 			std::stringstream version;
-			version << VersionMajor() << "." << VersionMinor() << "." << VersionPatch() << ":" << Version();
+			version << GetVersionMajor() << "." << GetVersionMinor() << "." << GetVersionPatch() << ":" << GetVersion();
 			
 #if RN_PLATFORM_32BIT
 			version << " 32 bit";
@@ -244,11 +244,7 @@ namespace RN
 #if RN_PLATFORM_64BIT
 			version << " 64 bit";
 #endif
-			
-#if DEBUG
-			version << " (debug)";
-#endif
-			
+			version << (IsDebugBuild() ? "(debug)" : "(release)");
 			logger->Log(Log::Message(Log::Level::Info, "Rayne", version.str()));
 		}
 		

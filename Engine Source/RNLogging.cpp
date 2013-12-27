@@ -99,7 +99,7 @@ namespace RN
 			AddLoggingEngine(HTMLLoggingEngine::GetSharedInstance());
 			AddLoggingEngine(SimpleLoggingEngine::GetSharedInstance());
 			
-#ifndef NDEBUG
+#if RN_BUILD_DEBUG
 			_level = Level::Debug;
 #else
 			_level = Level::Info;

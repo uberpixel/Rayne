@@ -407,10 +407,9 @@ namespace RN
 		gl::LinkProgram(program->program);
 		RN_CHECKOPENGL();
 		
-		for(auto i = units.begin(); i != units.end(); i ++)
+		for(ShaderUnit *unit : units)
 		{
-			ShaderUnit *unit = *i;
-#if !defined(DEBUG)
+#if RN_BUILD_RELEASE
 			gl::DetachShader(program->program, unit->GetShader());
 #endif
 			

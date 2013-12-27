@@ -60,11 +60,11 @@
 	#endif
 #endif
 
-#ifndef NDEBUG
+#ifndef RN_BUILD_DEBUG
 	#define RN_CHECKOPENGL() RN::gl::CheckForError(__FILE__, __LINE__)
 	#define RN_CHECKOPENGL_AGGRESSIVE() RN::gl::CheckForError(__FILE__, __LINE__)
 #else
-	#define RN_CHECKOPENGL() (void)0
+	#define RN_CHECKOPENGL() RN::gl::CheckForError(__FILE__, __LINE__)
 	#define RN_CHECKOPENGL_AGGRESSIVE() (void)0
 #endif
 

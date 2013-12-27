@@ -28,11 +28,22 @@
 #define RN_TARGET_CXX_NOXCEPT   0
 #define RN_TARGET_CXX_CONSTEXPR 0
 
+#define RN_BUILD_DEBUG   1
+#define RN_BUILD_RELEASE 1
+
+#if DEBUG
+	#undef RN_BUILD_RELEASE
+	#define RN_BUILD_RELEASE 0
+#endif /* DEBUG */
+#if NDEBUG
+	#undef RN_BUILD_DEBUG
+	#define RN_BUILD_DEBUG 0
+#endif /* NDEBUG */
+
 #if defined(__APPLE__) && defined(__MACH__)
 
 	#include <TargetConditionals.h>
 	#define RN_PLATFORM_POSIX 1
-	#define RN_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
 
 	#ifdef TARGET_OS_MAC
 		#undef RN_PLATFORM_MAC_OS
@@ -67,17 +78,6 @@
 
 	#define RN_PLATFORM_WINDOWS 1
 	#define RN_TARGET_OPENGL    1
-
-	#define RN_FUNCTION_SIGNATURE __FUNCTION__
-	#define alignas(n) __declspec(align(n))
-
-	#pragma warning(disable: 4018)
-	#pragma warning(disable: 4244)
-	#pragma warning(disable: 4250)
-	#pragma warning(disable: 4305)
-	#pragma warning(disable: 4316)
-	#pragma warning(disable: 4800)
-	#pragma warning(disable: 4996)
 
 	#if defined(_WIN64)
 		#undef RN_PLATFORM_INTEL
@@ -119,6 +119,7 @@
 #endif /* defined(__linux__) */
 
 
+
 #if defined(_MSC_VER)
 
 	typedef signed char				int8;
@@ -133,6 +134,17 @@
 	typedef __int64					int64;
 	typedef unsigned __int64		uint64;
 
+	#define alignas(n) __declspec(align(n))
+
+	#pragma warning(disable: 4018)
+	#pragma warning(disable: 4244)
+	#pragma warning(disable: 4250)
+	#pragma warning(disable: 4305)
+	#pragma warning(disable: 4316)
+	#pragma warning(disable: 4800)
+	#pragma warning(disable: 4996)
+
+	#define RN_FUNCTION_SIGNATURE __FUNCTION__
 	#define RN_NORETURN __declspec(noreturn)
 	#define RN_INLINE inline
 
@@ -142,9 +154,10 @@
 	#else
 		#define RNAPI __declspec(dllimport)
 		#define RNAPI_EXPORTONLY
-	#endif
+	#endif /* RN_BUILD_LIBRARY */
+#endif /* _MSC_VER */
 
-#elif defined(__GNUC__)
+#if defined(__GNUC__) // Also catches Clang on OS X
 
 	#undef RN_TARGET_CXX_NOXCEPT
 	#undef RN_TARGET_CXX_CONSTEXPR
@@ -164,35 +177,35 @@
 	typedef long long				int64;
 	typedef unsigned long long		uint64;
 
+	#define RN_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
 	#define RN_NORETURN __attribute__((noreturn))
 	#define RN_INLINE inline __attribute__((__always_inline__))
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __attribute__((visibility("default")))
+		#define RNAPI_EXPORTONLY __attribute__((visibility("default")))
 	#else
 		#define RNAPI
-	#endif
-#else
-	#error "Unsupported compiler."
-#endif
+		#define RNAPI_EXPORTONLY
+	#endif /* RN_BUILD_LIBRARY */
+#endif /* __GNUC__ */
 
-#if RN_PLATFORM_32BIT
-	typedef size_t machine_hash;
-#elif RN_PLATFORM_64BIT
-	typedef size_t machine_hash;
-#else
-	#error Unknown platform
+// Sanity checks
+typedef size_t machine_hash;
+
+#if (RN_BUILD_DEBUG && RN_BUILD_RELEASE) || (!RN_BUILD_DEBUG && !RN_BUILD_RELEASE)
+	#error "Debug and Release build both defined (only define either one of DEBUG or NDEBUG"
 #endif
 
 static_assert(sizeof(int8) == 1, "int8 must be 1 byte!");
 static_assert(sizeof(int16) == 2, "int16 must be 2 bytes!");
 static_assert(sizeof(int32) == 4, "int32 must be 4 bytes!");
-static_assert(sizeof(int64) == 8, "int64 must be 4 bytes!");
+static_assert(sizeof(int64) == 8, "int64 must be 8 bytes!");
 
 static_assert(sizeof(uint8) == 1, "uint8 must be 1 byte!");
 static_assert(sizeof(uint16) == 2, "uint16 must be 2 bytes!");
 static_assert(sizeof(uint32) == 4, "uint32 must be 4 bytes!");
-static_assert(sizeof(uint64) == 8, "uint64 must be 4 bytes!");
+static_assert(sizeof(uint64) == 8, "uint64 must be 8 bytes!");
 
 static_assert(std::is_signed<int8>::value, "int8 must be signed!");
 static_assert(std::is_signed<int16>::value, "int16 must be signed!");

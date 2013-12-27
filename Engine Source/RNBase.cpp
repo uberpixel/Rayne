@@ -84,14 +84,30 @@ namespace RN
 	}
 	
 	
-	uint32 ABIVersion()
+	
+	uint32 GetABIVersion()
 	{
 		return kRNABIVersion;
 	}
 	
-	uint32 Version()
+	uint32 GetVersion()
 	{
 		return VersionMake(kRNVersionMajor, kRNVersionMinor, kRNVersionPatch);
+	}
+	
+	uint32 GetVersionMajor()
+	{
+		return kRNVersionMajor;
+	}
+	
+	uint32 GetVersionMinor()
+	{
+		return kRNVersionMinor;
+	}
+	
+	uint32 GetVersionPatch()
+	{
+		return kRNVersionPatch;
 	}
 	
 	uint32 VersionMake(uint32 major, uint32 minor, uint32 patch)
@@ -99,19 +115,8 @@ namespace RN
 		return static_cast<uint32>((major << 16) | (minor << 8) | (patch));
 	}
 	
-	
-	uint32 VersionMajor()
+	bool IsDebugBuild()
 	{
-		return kRNVersionMajor;
-	}
-	
-	uint32 VersionMinor()
-	{
-		return kRNVersionMinor;
-	}
-	
-	uint32 VersionPatch()
-	{
-		return kRNVersionPatch;
+		return RN_BUILD_DEBUG;
 	}
 }

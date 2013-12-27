@@ -150,13 +150,13 @@ namespace RN
 	RNAPI void ParseCommandLine(int argc, char *argv[]);
 	RNAPI void Initialize(int argc, char *argv[]);
 	
-	RNAPI uint32 ABIVersion();
-	RNAPI uint32 Version();
+	RNAPI uint32 GetABIVersion();
+	RNAPI uint32 GetVersion();
+	RNAPI uint32 GetVersionMajor();
+	RNAPI uint32 GetVersionMinor();
+	RNAPI uint32 GetVersionPatch();
+	RNAPI bool IsDebugBuild();
 	RNAPI uint32 VersionMake(uint32 major, uint32 minor, uint32 patch);
-	
-	RNAPI uint32 VersionMajor();
-	RNAPI uint32 VersionMinor();
-	RNAPI uint32 VersionPatch();
 	
 	typedef uint32 FrameID;
 	typedef uint32 Tag;

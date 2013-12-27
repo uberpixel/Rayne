@@ -100,7 +100,7 @@ namespace RN
 			}
 			
 			// Sanity check
-			if(_exports.version != ABIVersion())
+			if(_exports.version != GetABIVersion())
 			{
 				Unload();
 				throw Exception(Exception::Type::ModuleUnsupportedABIException, "Module " + _name + " uses an unuspported ABI version");
