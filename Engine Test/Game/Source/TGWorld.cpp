@@ -120,6 +120,8 @@ namespace TG
 		_whitepoint = MIN(MAX(0.01f, _whitepoint), 10.0f);
 		RN::Renderer::GetSharedInstance()->SetHDRExposure(_exposure);
 		RN::Renderer::GetSharedInstance()->SetHDRWhitePoint(_whitepoint);
+		
+		skeleton->Update(delta*5.0f);
 	}
 	
 	void World::CreateCameras()
@@ -494,6 +496,7 @@ namespace TG
 	void World::CreateForest()
 	{
 		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f)*2.0f;
+		_camera->SetPosition(RN::Vector3(0.0f, 2.0f, 0.0f));
 		
 		//ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
@@ -501,7 +504,7 @@ namespace TG
 		RN::Entity *groundBody = new RN::Entity();
 		groundBody->SetModel(ground);
 		groundBody->SetScale(RN::Vector3(20.0f));
-		
+	
 		//house
 /*		RN::Model *house = RN::Model::WithFile("models/blendswap/cc0_timber_house/timber_house.sgm");
 		RN::Entity *houseent = new RN::Entity();
@@ -524,16 +527,29 @@ namespace TG
 		ruin4ent->SetModel(ruin4);
 		ruin4ent->SetWorldPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
 		
-/*		RN::Model *tower4 = RN::Model::WithFile("models/dexsoft/walls_towers/tower_4_render.dae");
+		RN::Model *tower4 = RN::Model::WithFile("models/dexsoft/walls_towers/tower3.dae");
+		tower4->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/dexsoft/walls_towers/stone_3N.png"));
+		tower4->GetMaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/dexsoft/walls_towers/stone_2_N.png"));
+		tower4->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
+		tower4->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
 		RN::Entity *tower4ent = new RN::Entity();
 		tower4ent->SetModel(tower4);
-		tower4ent->SetWorldPosition(RN::Vector3(-50.0f, 0.0f, 30.0f));*/
+		tower4ent->SetWorldPosition(RN::Vector3(-50.0f, 0.0f, 30.0f));
+		
+		RN::Model *girl = RN::Model::WithFile("models/hydra.dae");
+		RN::Entity *girlent = new RN::Entity();
+		girlent->SetModel(girl);
+		skeleton = girlent->GetSkeleton();
+		skeleton->SetAnimation("animation");
+		girlent->SetWorldPosition(RN::Vector3(0.0f, 2.0f, 0.0f));
+		girlent->SetScale(RN::Vector3(0.01f));
 		
 		
-		RN::Entity *obstacles[3];
+		RN::Entity *obstacles[4];
 		obstacles[0] = tavernent;
 		obstacles[1] = house2ent;
 		obstacles[2] = ruin4ent;
+		obstacles[3] = girlent;
 		
 
 #define TREE_MODEL_COUNT 10
@@ -805,7 +821,7 @@ namespace TG
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
 			
-			if(PositionBlocked(pos+RN::Vector3(0.0f, 0.5f, 0.0f), obstacles, 3))
+			if(PositionBlocked(pos+RN::Vector3(0.0f, 0.5f, 0.0f), obstacles, 4))
 				continue;
 			
 			ent = new RN::Entity();
@@ -834,7 +850,7 @@ namespace TG
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
 			
-			if(PositionBlocked(pos+RN::Vector3(0.0f, 1.0f, 0.0f), obstacles, 3))
+			if(PositionBlocked(pos+RN::Vector3(0.0f, 1.0f, 0.0f), obstacles, 4))
 				continue;
 			
 			ent = new RN::Entity();

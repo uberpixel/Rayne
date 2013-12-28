@@ -72,7 +72,7 @@ namespace RN
 		return length;
 	}
 	
-	Bone::Bone(Vector3 &pos, std::string bonename, bool root)
+	Bone::Bone(const Vector3 &pos, const std::string bonename, bool root)
 	{
 		invBaseMatrix.MakeTranslate(pos*(-1.0f));
 		

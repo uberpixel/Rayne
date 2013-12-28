@@ -55,6 +55,8 @@ namespace TG
 		float _exposure;
 		float _whitepoint;
 		
+		RN::Skeleton *skeleton;
+		
 		Player *_player;
 	};
 }

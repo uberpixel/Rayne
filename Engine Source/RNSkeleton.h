@@ -50,7 +50,7 @@ namespace RN
 	class Bone
 	{
 	public:
-		RNAPI Bone(Vector3 &pos, std::string bonename, bool root);
+		RNAPI Bone(const Vector3 &pos, const std::string bonename, bool root);
 		RNAPI Bone(const Bone &other);
 		
 		RNAPI void Init(Bone *parent = 0);

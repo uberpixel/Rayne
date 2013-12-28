@@ -19,6 +19,8 @@
 		D58CEA3F18159965002EB442 /* RNLightManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D58CEA3D18159965002EB442 /* RNLightManager.cpp */; };
 		D59DCB0C18584E2B00030716 /* RNOctreeSceneManager.h in Headers */ = {isa = PBXBuildFile; fileRef = D59DCB0A18584E2A00030716 /* RNOctreeSceneManager.h */; };
 		D59DCB0D18584E2B00030716 /* RNOctreeSceneManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D59DCB0B18584E2B00030716 /* RNOctreeSceneManager.cpp */; };
+		D5A6DB24186BD396000532C2 /* RNResourceWriterBuiltIn.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D5A6DB22186BD396000532C2 /* RNResourceWriterBuiltIn.cpp */; };
+		D5A6DB25186BD396000532C2 /* RNResourceWriterBuiltIn.h in Headers */ = {isa = PBXBuildFile; fileRef = D5A6DB23186BD396000532C2 /* RNResourceWriterBuiltIn.h */; };
 		E907DF2A17C9780E00777A38 /* RNTextNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E907DF2817C9780E00777A38 /* RNTextNode.cpp */; };
 		E907DF2B17C9780E00777A38 /* RNTextNode.h in Headers */ = {isa = PBXBuildFile; fileRef = E907DF2917C9780E00777A38 /* RNTextNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E90D0EFC185E7D5900807A13 /* RNUIWidgetInternals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E90D0EFA185E7D5900807A13 /* RNUIWidgetInternals.cpp */; };
@@ -302,6 +304,8 @@
 		D58CEA3D18159965002EB442 /* RNLightManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNLightManager.cpp; sourceTree = "<group>"; };
 		D59DCB0A18584E2A00030716 /* RNOctreeSceneManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOctreeSceneManager.h; sourceTree = "<group>"; };
 		D59DCB0B18584E2B00030716 /* RNOctreeSceneManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOctreeSceneManager.cpp; sourceTree = "<group>"; };
+		D5A6DB22186BD396000532C2 /* RNResourceWriterBuiltIn.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNResourceWriterBuiltIn.cpp; sourceTree = "<group>"; };
+		D5A6DB23186BD396000532C2 /* RNResourceWriterBuiltIn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNResourceWriterBuiltIn.h; sourceTree = "<group>"; };
 		E907DF2817C9780E00777A38 /* RNTextNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTextNode.cpp; sourceTree = "<group>"; };
 		E907DF2917C9780E00777A38 /* RNTextNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTextNode.h; sourceTree = "<group>"; };
 		E90D0EFA185E7D5900807A13 /* RNUIWidgetInternals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIWidgetInternals.cpp; sourceTree = "<group>"; };
@@ -774,6 +778,8 @@
 				E9D3D0421838F0F1007780A7 /* RNResourceLoader.h */,
 				C01BCEC616E6698E0009834F /* RNSkeleton.cpp */,
 				C01BCEC716E6698E0009834F /* RNSkeleton.h */,
+				D5A6DB22186BD396000532C2 /* RNResourceWriterBuiltIn.cpp */,
+				D5A6DB23186BD396000532C2 /* RNResourceWriterBuiltIn.h */,
 			);
 			name = Assets;
 			sourceTree = "<group>";
@@ -1109,6 +1115,7 @@
 				E9D7DA7D172F9C7700A858CB /* RNUIView.h in Headers */,
 				E9586E5F172FD40C00D24737 /* RNUIServer.h in Headers */,
 				E9586E63173072B700D24737 /* RNUIResponder.h in Headers */,
+				D5A6DB25186BD396000532C2 /* RNResourceWriterBuiltIn.h in Headers */,
 				E9586E681730855600D24737 /* RNUIImageView.h in Headers */,
 				E9BEF3BB1743CF560090C9CB /* RNScopeGuard.h in Headers */,
 				C094DF881753A2BA002A2C88 /* RNWater.h in Headers */,
@@ -1299,6 +1306,7 @@
 				E9145CB316BAB82D004BDEC8 /* RNInput.cpp in Sources */,
 				E991F1C616BB707300B205A1 /* RNMessage.cpp in Sources */,
 				E9AA6CB817DB3A8F00E69FFA /* RNUISegmentView.cpp in Sources */,
+				D5A6DB24186BD396000532C2 /* RNResourceWriterBuiltIn.cpp in Sources */,
 				E9DAE758184A6B4F00F7DA55 /* RNCountedSet.cpp in Sources */,
 				E9E076D117B4D3BA00E54818 /* RNResourceCoordinator.cpp in Sources */,
 				C050166916C3FDE600326514 /* RNLight.cpp in Sources */,

@@ -147,7 +147,7 @@ namespace RN
 	void Model::SetSkeleton(Skeleton *skeleton)
 	{
 		SafeRelease(_skeleton);
-		_skeleton = SafeRetain(_skeleton);
+		_skeleton = SafeRetain(skeleton);
 	}
 	
 	Skeleton *Model::GetSkeleton()
