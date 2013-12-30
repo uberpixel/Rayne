@@ -50,7 +50,8 @@ namespace RN
 	class Bone
 	{
 	public:
-		RNAPI Bone(const Vector3 &pos, const std::string bonename, bool root);
+		RNAPI Bone(const Vector3 &pos, const std::string bonename, bool root, bool absolute=false);
+		RNAPI Bone(const Matrix &basemat, const std::string bonename, bool root, bool absolute=false);
 		RNAPI Bone(const Bone &other);
 		
 		RNAPI void Init(Bone *parent = 0);
@@ -79,6 +80,7 @@ namespace RN
 		float currTime;
 		float timeDiff;
 		bool finished;
+		bool absolute;
 		
 	private:
 	};

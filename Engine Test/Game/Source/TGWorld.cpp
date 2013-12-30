@@ -536,13 +536,13 @@ namespace TG
 		tower4ent->SetModel(tower4);
 		tower4ent->SetWorldPosition(RN::Vector3(-50.0f, 0.0f, 30.0f));
 		
-		RN::Model *girl = RN::Model::WithFile("models/hydra.dae");
+		RN::Model *girl = RN::Model::WithFile("models/dwarf1.x");
 		RN::Entity *girlent = new RN::Entity();
 		girlent->SetModel(girl);
 		skeleton = girlent->GetSkeleton();
-		skeleton->SetAnimation("animation");
-		girlent->SetWorldPosition(RN::Vector3(0.0f, 2.0f, 0.0f));
-		girlent->SetScale(RN::Vector3(0.01f));
+		skeleton->SetAnimation("AnimationSet0");
+		girlent->SetWorldPosition(RN::Vector3(0.0f, 1.0f, 0.0f));
+		girlent->SetScale(RN::Vector3(0.3f));
 		
 		
 		RN::Entity *obstacles[4];

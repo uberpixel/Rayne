@@ -72,14 +72,15 @@ namespace RN
 		return length;
 	}
 	
-	Bone::Bone(const Vector3 &pos, const std::string bonename, bool root)
+	Bone::Bone(const Vector3 &pos, const std::string bonename, bool root, bool absolute)
 	{
 		invBaseMatrix.MakeTranslate(pos*(-1.0f));
+		relBaseMatrix.MakeTranslate(pos);
 		
 		name = bonename;
 		isRoot = root;
 		
-		position = pos;
+		position = Vector3(0.0f, 0.0f, 0.0f);
 		rotation.MakeIdentity();
 		scale = Vector3(1.0, 1.0, 1.0);
 		
@@ -87,6 +88,26 @@ namespace RN
 		nextFrame = 0;
 		currTime = 0.0f;
 		finished = false;
+		this->absolute = absolute;
+	}
+	
+	Bone::Bone(const Matrix &basemat, const std::string bonename, bool root, bool absolute)
+	{
+		invBaseMatrix = basemat;
+		relBaseMatrix = basemat.GetInverse();
+		
+		name = bonename;
+		isRoot = root;
+		
+		position = Vector3(0.0f, 0.0f, 0.0f);
+		rotation.MakeIdentity();
+		scale = Vector3(1.0f, 1.0f, 1.0f);
+		
+		currFrame = 0;
+		nextFrame = 0;
+		currTime = 0.0f;
+		finished = false;
+		this->absolute = absolute;
 	}
 	
 	Bone::Bone(const Bone &other)
@@ -104,6 +125,7 @@ namespace RN
 		nextFrame = 0;
 		currTime = 0.0f;
 		finished = false;
+		absolute = other.absolute;
 	}
 	
 	void Bone::Init(Bone *parent)
@@ -114,9 +136,7 @@ namespace RN
 		}
 		
 		if(parent != 0)
-			position -= parent->position;
-		relBaseMatrix.MakeTranslate(position);
-		position = 0.0f;
+			relBaseMatrix = parent->invBaseMatrix*relBaseMatrix;
 	}
 	
 	bool Bone::Update(Bone *parent, float timestep, bool restart)
@@ -132,37 +152,55 @@ namespace RN
 			
 			currTime += timestep;
 			
-			while(currTime > nextFrame->time)
+			if(currFrame != nextFrame) //bone not animated
 			{
-				if(currFrame->time > nextFrame->time)
+				while(currTime > nextFrame->time)
 				{
-					if(restart)
+					if(currFrame->time > nextFrame->time)
 					{
-						currTime -= currFrame->time;
+						if(restart)
+						{
+							currTime -= currFrame->time;
+						}
+						else
+						{
+							finished = true;
+							running = false;
+							currTime = currFrame->time;
+							break;
+						}
 					}
-					else
-					{
-						finished = true;
-						running = false;
-						currTime = currFrame->time;
-						break;
-					}
+					currFrame = nextFrame;
+					nextFrame = nextFrame->nextFrame;
+					timeDiff = nextFrame->time-currFrame->time;
 				}
-				currFrame = nextFrame;
-				nextFrame = nextFrame->nextFrame;
-				timeDiff = nextFrame->time-currFrame->time;
-			}
 			
-			float blend = (currTime-currFrame->time)/timeDiff;
-			position = currFrame->position.Lerp(nextFrame->position, blend);
-			scale = currFrame->scale.Lerp(nextFrame->scale, blend);
-			rotation.MakeLerpS(currFrame->rotation, nextFrame->rotation, blend);
+				float blend = (currTime-currFrame->time)/timeDiff;
+				position = currFrame->position.Lerp(nextFrame->position, blend);
+				scale = currFrame->scale.Lerp(nextFrame->scale, blend);
+				rotation.MakeLerpS(currFrame->rotation, nextFrame->rotation, blend);
+			}
+			else
+			{
+				position = currFrame->position;
+				scale = currFrame->scale;
+				rotation = currFrame->rotation;
+			}
 		}
 		
-		finalMatrix = relBaseMatrix;
-		finalMatrix.Translate(position);
-		finalMatrix.Scale(scale);
+		//TODO: Remove absolute flag...
+		if(!absolute)
+		{
+			finalMatrix = relBaseMatrix;
+			finalMatrix.Translate(position);
+		}
+		else
+		{
+			finalMatrix.MakeTranslate(position);
+		}
 		finalMatrix.Rotate(rotation);
+		finalMatrix.Scale(scale);
+		
 		if(parent != 0)
 		{
 			finalMatrix = parent->finalMatrix*finalMatrix;
@@ -195,9 +233,21 @@ namespace RN
 	void Bone::SetAnimation(AnimationBone *animbone)
 	{
 		currTime = 0.0f;
-		currFrame = animbone;
-		nextFrame = animbone->nextFrame;
-		timeDiff = nextFrame->time-currFrame->time;
+		if(animbone)
+		{
+			currFrame = animbone;
+			nextFrame = animbone->nextFrame;
+			timeDiff = nextFrame->time-currFrame->time;
+		}
+		else
+		{
+			position = Vector3();
+			rotation.MakeIdentity();
+			scale = Vector3(1.0f, 1.0f, 1.0f);
+			currFrame = nullptr;
+			nextFrame = nullptr;
+			timeDiff = 0.0f;
+		}
 	}
 	
 	
@@ -234,7 +284,8 @@ namespace RN
 	{
 		for (std::map<std::string, Animation*>::iterator it = animations.begin(); it != animations.end(); ++it)
 		{
-			it->second->Release();
+			if(it->second)
+				it->second->Release();
 		}
 		
 		if(_blendanim)
@@ -330,8 +381,7 @@ namespace RN
 		for(int i = 0; i < bones.size(); i++)
 		{
 			AnimationBone *temp = anim->bones[i];
-			if(temp)
-				bones[i].SetAnimation(temp);
+			bones[i].SetAnimation(temp);
 		}
 		
 		if(anim != _blendanim)
