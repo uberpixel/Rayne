@@ -2,7 +2,7 @@
 //  RNBase.h
 //  Rayne
 //
-//  Copyright 2013 by Überpixel. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
@@ -109,7 +109,7 @@
 // ---------------------------
 
 #define kRNVersionMajor 0
-#define kRNVersionMinor 1
+#define kRNVersionMinor 5
 #define kRNVersionPatch 0
 
 #define kRNABIVersion 0
