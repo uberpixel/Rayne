@@ -155,6 +155,12 @@
 		#define RNAPI __declspec(dllimport)
 		#define RNAPI_EXPORTONLY
 	#endif /* RN_BUILD_LIBRARY */
+
+	#if RN_BUILD_MODULE
+		#define RNMODULEAPI __declspec(dllexport)
+	#else
+		#define RNMODULEAPI __declspec(dllimport)
+	#endif /* RN_BUILD_MODULE */
 #endif /* _MSC_VER */
 
 #if defined(__GNUC__) // Also catches Clang on OS X
@@ -188,6 +194,12 @@
 		#define RNAPI
 		#define RNAPI_EXPORTONLY
 	#endif /* RN_BUILD_LIBRARY */
+
+	#if RN_BUILD_MODULE
+		#define RNMODULEAPI __attribute__((visibility("default")))
+	#else
+		#define RNMODULEAPI
+	#endif /* RN_BUILD_MODULE */
 #endif /* __GNUC__ */
 
 // Sanity checks
