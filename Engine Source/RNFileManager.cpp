@@ -235,7 +235,8 @@ namespace RN
 	{
 #if RN_PLATFORM_POSIX
 		DIR *dir = opendir(GetPath().c_str());
-		RN_ASSERT(dir, "Couldn't open directory '%s'!", GetPath().c_str());
+		if(!dir)
+			throw Exception(Exception::Type::InconsistencyException, "Couldn't open directory " + GetPath());
 		
 		struct dirent *ent;
 		while((ent = readdir(dir)))
@@ -332,7 +333,8 @@ namespace RN
 		
 #if RN_PLATFORM_POSIX
 		DIR *dir = opendir(GetPath().c_str());
-		RN_ASSERT(dir, "Couldn't open directory '%s'!", GetPath().c_str());
+		if(!dir)
+			throw Exception(Exception::Type::InconsistencyException, "Couldn't open directory " + GetPath());
 		
 		struct dirent *ent;
 		while((ent = readdir(dir)))
