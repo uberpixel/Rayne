@@ -56,7 +56,6 @@ namespace RN
 		
 		
 		ValidateManifest(kRNManifestApplicationKey, String)
-		ValidateManifest(kRNManifestGameModuleKey, String)
 	}
 	
 	void Settings::LoadSettings()
