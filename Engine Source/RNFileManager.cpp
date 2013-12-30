@@ -526,6 +526,8 @@ namespace RN
 	{
 #if RN_PLATFORM_MAC_OS
 		NSString *path = [[NSBundle mainBundle] resourcePath];
+		
+		AddSearchPath(std::string([path UTF8String]));
 		AddSearchPath(std::string([path UTF8String]) + "/Engine Resources");
 		
 		AddFileModifier("~mac");
