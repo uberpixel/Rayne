@@ -431,6 +431,9 @@
     <ClInclude Include="Engine Source\RNSingleton.h">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNSceneNodeAttachment.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
@@ -765,6 +768,9 @@
     </ClCompile>
     <ClCompile Include="Engine Source\RNTextureAtlas.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNSceneNodeAttachment.cpp">
+      <Filter>Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

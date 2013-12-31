@@ -31,10 +31,10 @@
 #define RN_BUILD_DEBUG   1
 #define RN_BUILD_RELEASE 1
 
-#if DEBUG
+#if defined(DEBUG) || defined(_DEBUG)
 	#undef RN_BUILD_RELEASE
 	#define RN_BUILD_RELEASE 0
-#endif /* DEBUG */
+#endif /* defined(DEBUG) || defined(_DEBUG) */
 #if NDEBUG
 	#undef RN_BUILD_DEBUG
 	#define RN_BUILD_DEBUG 0
