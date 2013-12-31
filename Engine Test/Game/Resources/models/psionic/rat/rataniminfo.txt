@@ -1,0 +1,12 @@
+Assuming the first frame is 1, then the anim ranges are as follows!!
+
+2-10 = walk/wiggle anim
+
+
+You might have to remove one frame off the end if it doesn't loop perfectly (cus the first and last frames are the same)
+
+If you use this model credits would be nice but arent essential!!
+
+Psionic
+http://www.psionicdesign.com
+http://xu1productions.com/3dstudio

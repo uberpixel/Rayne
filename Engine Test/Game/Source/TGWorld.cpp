@@ -120,8 +120,6 @@ namespace TG
 		_whitepoint = MIN(MAX(0.01f, _whitepoint), 10.0f);
 		RN::Renderer::GetSharedInstance()->SetHDRExposure(_exposure);
 		RN::Renderer::GetSharedInstance()->SetHDRWhitePoint(_whitepoint);
-		
-		skeleton->Update(delta*5.0f);
 	}
 	
 	void World::CreateCameras()
@@ -527,29 +525,62 @@ namespace TG
 		ruin4ent->SetModel(ruin4);
 		ruin4ent->SetWorldPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
 		
-		RN::Model *tower4 = RN::Model::WithFile("models/dexsoft/walls_towers/tower3.dae");
-		tower4->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/dexsoft/walls_towers/stone_3N.png"));
-		tower4->GetMaterialAtIndex(0, 1)->AddTexture(RN::Texture::WithFile("models/dexsoft/walls_towers/stone_2_N.png"));
-		tower4->GetMaterialAtIndex(0, 0)->Define("RN_NORMALMAP");
-		tower4->GetMaterialAtIndex(0, 1)->Define("RN_NORMALMAP");
-		RN::Entity *tower4ent = new RN::Entity();
-		tower4ent->SetModel(tower4);
-		tower4ent->SetWorldPosition(RN::Vector3(-50.0f, 0.0f, 30.0f));
+		RN::Model *dwarf = RN::Model::WithFile("models/psionic/dwarf/dwarf1.x");
+		RN::Entity *dwarfent = new RN::Entity();
+		dwarfent->SetModel(dwarf);
+		dwarfent->GetSkeleton()->CopyAnimation("AnimationSet0", "idle", 292, 325);
+		dwarfent->GetSkeleton()->SetAnimation("idle");
+		dwarfent->SetAction([](RN::SceneNode *node, float delta) {
+			RN::Entity *dwarfent = static_cast<RN::Entity*>(node);
+			dwarfent->GetSkeleton()->Update(delta*15.0f);
+		});
+		dwarfent->SetWorldPosition(RN::Vector3(0.0f, 0.1f, 20.0f));
+		dwarfent->SetScale(RN::Vector3(0.3f));
 		
-		RN::Model *girl = RN::Model::WithFile("models/dwarf1.x");
-		RN::Entity *girlent = new RN::Entity();
-		girlent->SetModel(girl);
-		skeleton = girlent->GetSkeleton();
-		skeleton->SetAnimation("AnimationSet0");
-		girlent->SetWorldPosition(RN::Vector3(0.0f, 1.0f, 0.0f));
-		girlent->SetScale(RN::Vector3(0.3f));
+		RN::Model *rat = RN::Model::WithFile("models/psionic/rat/rat.b3d");
+		RN::Entity *ratent = new RN::Entity();
+		ratent->SetModel(rat);
+		ratent->GetSkeleton()->CopyAnimation("", "run", 1, 10);
+		ratent->GetSkeleton()->SetAnimation("run");
+		ratent->SetAction([](RN::SceneNode *node, float delta) {
+			RN::Entity *ratent = static_cast<RN::Entity*>(node);
+			ratent->GetSkeleton()->Update(delta*20.0f);
+			ratent->SetPosition(ratent->GetPosition()+RN::Vector3(-delta*2.0f, 0.0f, 0.0f));
+			if(ratent->GetPosition().x < -15)
+				ratent->SetPosition(RN::Vector3(10.0f, 0.2f, 0.0f));
+		});
+		ratent->SetScale(RN::Vector3(0.05f));
+		ratent->SetRotation(RN::Vector3(90.0f, 0.0f, 0.0f));
+		ratent->SetPosition(RN::Vector3(0.0f, 0.2f, 0.0f));
+		
+		RN::Model *ninja = RN::Model::WithFile("models/psionic/ninja/ninja.b3d");
+		RN::Entity *ninjaent = new RN::Entity();
+		ninjaent->SetModel(ninja);
+		ninjaent->GetSkeleton()->CopyAnimation("", "idle", 206, 250);
+		ninjaent->GetSkeleton()->SetAnimation("idle");
+		ninjaent->SetAction([](RN::SceneNode *node, float delta) {
+			RN::Entity *ninjaent = static_cast<RN::Entity*>(node);
+			ninjaent->GetSkeleton()->Update(delta*15.0f);
+		});
+		ninjaent->SetWorldPosition(RN::Vector3(-17.0f, 0.1f, 17.0f));
+		ninjaent->SetScale(RN::Vector3(0.27f));
+		
+		RN::Model *druid = RN::Model::WithFile("models/arteria3d/FemaleDruid/Female Druid.x");
+		RN::Entity *druident = new RN::Entity();
+		druident->SetModel(druid);
+		druident->GetSkeleton()->SetAnimation("WizardCombatReadyA");
+		druident->SetAction([](RN::SceneNode *node, float delta) {
+			RN::Entity *druident = static_cast<RN::Entity*>(node);
+			druident->GetSkeleton()->Update(delta*50.0f);
+		});
+		druident->SetWorldPosition(RN::Vector3(0.0f, 0.25f, 0.0f));
+		druident->SetScale(RN::Vector3(0.01f));
 		
 		
-		RN::Entity *obstacles[4];
+		RN::Entity *obstacles[3];
 		obstacles[0] = tavernent;
 		obstacles[1] = house2ent;
 		obstacles[2] = ruin4ent;
-		obstacles[3] = girlent;
 		
 
 #define TREE_MODEL_COUNT 10
@@ -821,7 +852,7 @@ namespace TG
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
 			
-			if(PositionBlocked(pos+RN::Vector3(0.0f, 0.5f, 0.0f), obstacles, 4))
+			if(PositionBlocked(pos+RN::Vector3(0.0f, 0.5f, 0.0f), obstacles, 3))
 				continue;
 			
 			ent = new RN::Entity();
@@ -850,7 +881,7 @@ namespace TG
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
 			
-			if(PositionBlocked(pos+RN::Vector3(0.0f, 1.0f, 0.0f), obstacles, 4))
+			if(PositionBlocked(pos+RN::Vector3(0.0f, 1.0f, 0.0f), obstacles, 3))
 				continue;
 			
 			ent = new RN::Entity();

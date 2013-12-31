@@ -34,7 +34,7 @@ namespace RN
 	
 	Animation::~Animation()
 	{
-		for (std::map<int, AnimationBone*>::iterator it = bones.begin(); it != bones.end(); ++it)
+		for (std::map<size_t, AnimationBone*>::iterator it = bones.begin(); it != bones.end(); ++it)
 		{
 			AnimationBone *bone = it->second;
 			if(bone->prevFrame != 0)
@@ -189,7 +189,7 @@ namespace RN
 		}
 		
 		//TODO: Remove absolute flag...
-		if(!absolute)
+		if(!absolute || !currFrame)
 		{
 			finalMatrix = relBaseMatrix;
 			finalMatrix.Translate(position);
@@ -410,7 +410,7 @@ namespace RN
 			bool inrange = false;
 			while(bone->time <= start && bone->time < end)
 			{
-				if(!bone->nextFrame || maxtime > bone->time)
+				if(!bone->nextFrame || maxtime > bone->time || bone->nextFrame == bone)
 				{
 					inrange = false;
 					break;
@@ -437,7 +437,7 @@ namespace RN
 				}
 				newcurrbone->nextFrame = newfirstbone;
 				newfirstbone->prevFrame = newcurrbone;
-				toanim->bones.insert(std::pair<int, AnimationBone*>(firstbone.first, newfirstbone));
+				toanim->bones.insert(std::pair<size_t, AnimationBone*>(firstbone.first, newfirstbone));
 			}
 		}
 		
@@ -474,7 +474,7 @@ namespace RN
 			AnimationBone *tobone = new AnimationBone(frombone, frombone, blendtime, tempbone.position, tempbone.scale, tempbone.rotation);
 			frombone->prevFrame = tobone;
 			frombone->nextFrame = tobone;
-			_blendanim->bones.insert(std::pair<int, AnimationBone *>(bone.first, frombone));
+			_blendanim->bones.insert(std::pair<size_t, AnimationBone *>(bone.first, frombone));
 		}
 		
 		_blendtime = targettime;

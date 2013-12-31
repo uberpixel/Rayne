@@ -568,7 +568,7 @@ namespace RN
 				}
 				animbone->prevFrame = lastbone;
 				lastbone->nextFrame = animbone;
-				anim->bones.insert(std::pair<int, AnimationBone*>(boneid, animbone));
+				anim->bones.insert(std::pair<size_t, AnimationBone*>(static_cast<size_t>(boneid), animbone));
 			}
 		}
 		

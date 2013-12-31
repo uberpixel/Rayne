@@ -44,7 +44,7 @@ namespace RN
 		float GetLength();
 		
 		std::string name;
-		std::map<int, AnimationBone*> bones;
+		std::map<size_t, AnimationBone*> bones;
 	};
 	
 	class Bone
