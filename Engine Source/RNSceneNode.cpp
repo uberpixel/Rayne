@@ -368,7 +368,9 @@ namespace RN
 		WillUpdate(ChangedAttachments);
 		
 		_attachments.AddObject(attachment);
+		
 		attachment->_node = this;
+		attachment->DidAddToParent();
 		
 		DidUpdate(ChangedAttachments);
 	}
@@ -382,8 +384,9 @@ namespace RN
 		
 		WillUpdate(ChangedAttachments);
 		
-		_attachments.RemoveObject(attachment);
+		attachment->WillRemoveFromParent();
 		attachment->_node = nullptr;
+		_attachments.RemoveObject(attachment);
 		
 		DidUpdate(ChangedAttachments);
 	}

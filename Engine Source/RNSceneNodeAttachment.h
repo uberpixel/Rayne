@@ -44,6 +44,9 @@ namespace RN
 		virtual void WillUpdate(uint32 changeSet) {}
 		virtual void DidUpdate(uint32 changeSet) {}
 		
+		virtual void WillRemoveFromParent() {}
+		virtual void DidAddToParent() {}
+		
 	private:
 		void __WillUpdate(uint32 changeSet);
 		void __DidUpdate(uint32 changeSet);
