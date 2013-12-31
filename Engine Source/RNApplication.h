@@ -27,7 +27,7 @@ namespace RN
 		RNAPI virtual void WorldUpdate(float delta);
 		
 		RNAPI void SetTitle(const std::string& title);
-		const std::string& Title() const { return _title; }
+		const std::string& GetTitle() const { return _title; }
 		
 	protected:
 		std::string _title;
