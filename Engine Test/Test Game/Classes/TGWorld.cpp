@@ -161,7 +161,7 @@ namespace TG
 		_camera->SetPriority(10);
 		_camera->Rotate(RN::Vector3(90.0f, 0.0f, 0.0f));
 		
-		_finalcam->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
+		_finalcam->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
 		
 	#if TGWorldFeatureWater
 		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
@@ -188,7 +188,7 @@ namespace TG
 		_camera = new ThirdPersonCamera(storage);
 		_camera->renderGroup = RN::Camera::RenderGroup0|RN::Camera::RenderGroup1;
 		_camera->SetSkyCube(sky);
-		_camera->SetDrawFramebufferShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
+		_camera->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
 		
 	#if TGWorldFeatureSSAO
 		PPActivateSSAO(_camera);

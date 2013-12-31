@@ -699,7 +699,7 @@ namespace RN
 		{
 			if(_flushedCameras.find(camera) == _flushedCameras.end())
 			{
-				_flushCameras.push_back(std::pair<Camera *, Shader *>(camera, camera->GetDrawFramebufferShader()));
+				_flushCameras.push_back(std::pair<Camera *, Shader *>(camera, camera->GetBlitShader()));
 				_flushedCameras.insert(camera);
 			}
 		}
@@ -746,7 +746,7 @@ namespace RN
 				{
 					if(_flushedCameras.find(camera) == _flushedCameras.end())
 					{
-						_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->GetDrawFramebufferShader()));
+						_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->GetBlitShader()));
 						_flushedCameras.insert(previous);
 					}
 				}
@@ -757,7 +757,7 @@ namespace RN
 		
 		if(!(previous->GetFlags() & Camera::FlagHidden) && _flushedCameras.find(camera) == _flushedCameras.end())
 		{
-			_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->GetDrawFramebufferShader()));
+			_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->GetBlitShader()));
 			_flushedCameras.insert(previous);
 		}
 		

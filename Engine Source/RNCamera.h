@@ -224,7 +224,7 @@ namespace RN
 		RNAPI void SetLODCamera(Camera *camera);
 		RNAPI void SetPriority(int32 priority);
 		RNAPI void SetUseBlending(bool useBlending);
-		RNAPI void SetDrawFramebufferShader(Shader *shader);
+		RNAPI void SetBlitShader(Shader *shader);
 		RNAPI void SetBlitMode(BlitMode mode);
 		
 		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
@@ -256,7 +256,7 @@ namespace RN
 		Camera *GetLODCamera() const { return _lodCamera; }
 		int32 GetPriority() const { return _priority; }
 		bool UseBlending() const { return _blend; }
-		Shader *GetDrawFramebufferShader() const { return _blitShader; }
+		Shader *GetBlitShader() const { return _blitShader; }
 		BlitMode GetBlitMode() const { return _blitMode; }
 		
 		const Vector3& GetLightClusters() const { return _lightClusters; }

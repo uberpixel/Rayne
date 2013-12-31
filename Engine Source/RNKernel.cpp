@@ -435,7 +435,7 @@ namespace RN
 	void Kernel::Initialize()
 	{
 		_app->Start();
-		_window->SetTitle(_app->Title());
+		_window->SetTitle(_app->GetTitle());
 	}
 
 	

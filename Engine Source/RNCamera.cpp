@@ -579,7 +579,7 @@ namespace RN
 		_blend = useBlending;
 	}
 	
-	void Camera::SetDrawFramebufferShader(Shader *shader)
+	void Camera::SetBlitShader(Shader *shader)
 	{
 		RN_ASSERT(shader, "Shader musn't be NULL!");
 		
