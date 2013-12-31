@@ -163,6 +163,7 @@ namespace RN
 	
 		ApplyNodes();
 		UpdatedToFrame(frame);
+		RunWorldAttachement(&WorldAttachment::StepWorld, delta);
 		
 		_kernel->PopStatistics();
 	}
