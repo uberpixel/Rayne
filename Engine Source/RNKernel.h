@@ -32,7 +32,6 @@ namespace RN
 	public:
 		friend class Settings;
 		
-		RNAPI Kernel();
 		RNAPI Kernel(Application *app);
 		RNAPI ~Kernel() override;
 
@@ -74,7 +73,6 @@ namespace RN
 		void Prepare();
 		void Initialize();
 		void DumpSystem();
-		void LoadApplicationModule(String *module);
 
 #if RN_PLATFORM_POSIX
 		void *_appHandle;

@@ -1,0 +1,411 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		E9825D26187295EB005FC83D /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9825D25187295EB005FC83D /* main.cpp */; };
+		E9825D29187295EB005FC83D /* Test Game-Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = E9825D28187295EB005FC83D /* Test Game-Prefix.pch */; };
+		E9825D3F187296C6005FC83D /* TGApplication.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9825D33187296C6005FC83D /* TGApplication.cpp */; };
+		E9825D40187296C6005FC83D /* TGApplication.h in Headers */ = {isa = PBXBuildFile; fileRef = E9825D34187296C6005FC83D /* TGApplication.h */; };
+		E9825D41187296C6005FC83D /* TGDebugDrawer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9825D35187296C6005FC83D /* TGDebugDrawer.cpp */; };
+		E9825D42187296C6005FC83D /* TGDebugDrawer.h in Headers */ = {isa = PBXBuildFile; fileRef = E9825D36187296C6005FC83D /* TGDebugDrawer.h */; };
+		E9825D43187296C6005FC83D /* TGPlayer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9825D37187296C6005FC83D /* TGPlayer.cpp */; };
+		E9825D44187296C6005FC83D /* TGPlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = E9825D38187296C6005FC83D /* TGPlayer.h */; };
+		E9825D45187296C6005FC83D /* TGSmokeGrenade.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9825D39187296C6005FC83D /* TGSmokeGrenade.cpp */; };
+		E9825D46187296C6005FC83D /* TGSmokeGrenade.h in Headers */ = {isa = PBXBuildFile; fileRef = E9825D3A187296C6005FC83D /* TGSmokeGrenade.h */; };
+		E9825D47187296C6005FC83D /* TGThirdPersonCamera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9825D3B187296C6005FC83D /* TGThirdPersonCamera.cpp */; };
+		E9825D48187296C6005FC83D /* TGThirdPersonCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = E9825D3C187296C6005FC83D /* TGThirdPersonCamera.h */; };
+		E9825D49187296C6005FC83D /* TGWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9825D3D187296C6005FC83D /* TGWorld.cpp */; };
+		E9825D4A187296C6005FC83D /* TGWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = E9825D3E187296C6005FC83D /* TGWorld.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E9825D4F187297FB005FC83D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E9825D4B187297FB005FC83D /* Rayne.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E98D1E581673A6E200889F3B;
+			remoteInfo = Rayne;
+		};
+		E9825D5218729816005FC83D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E9825D4B187297FB005FC83D /* Rayne.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E98D1E571673A6E200889F3B;
+			remoteInfo = Rayne;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		E9825D1A187295EB005FC83D /* Test Game.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Test Game.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		E9825D25187295EB005FC83D /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = "Supporting files/main.cpp"; sourceTree = "<group>"; };
+		E9825D27187295EB005FC83D /* Test Game-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Test Game-Info.plist"; path = "Supporting files/Test Game-Info.plist"; sourceTree = "<group>"; };
+		E9825D28187295EB005FC83D /* Test Game-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Test Game-Prefix.pch"; path = "Supporting files/Test Game-Prefix.pch"; sourceTree = "<group>"; };
+		E9825D32187296A1005FC83D /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Resources; path = "Test Game/Resources"; sourceTree = "<group>"; };
+		E9825D33187296C6005FC83D /* TGApplication.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGApplication.cpp; path = Classes/TGApplication.cpp; sourceTree = "<group>"; };
+		E9825D34187296C6005FC83D /* TGApplication.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGApplication.h; path = Classes/TGApplication.h; sourceTree = "<group>"; };
+		E9825D35187296C6005FC83D /* TGDebugDrawer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGDebugDrawer.cpp; path = Classes/TGDebugDrawer.cpp; sourceTree = "<group>"; };
+		E9825D36187296C6005FC83D /* TGDebugDrawer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGDebugDrawer.h; path = Classes/TGDebugDrawer.h; sourceTree = "<group>"; };
+		E9825D37187296C6005FC83D /* TGPlayer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGPlayer.cpp; path = Classes/TGPlayer.cpp; sourceTree = "<group>"; };
+		E9825D38187296C6005FC83D /* TGPlayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGPlayer.h; path = Classes/TGPlayer.h; sourceTree = "<group>"; };
+		E9825D39187296C6005FC83D /* TGSmokeGrenade.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGSmokeGrenade.cpp; path = Classes/TGSmokeGrenade.cpp; sourceTree = "<group>"; };
+		E9825D3A187296C6005FC83D /* TGSmokeGrenade.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGSmokeGrenade.h; path = Classes/TGSmokeGrenade.h; sourceTree = "<group>"; };
+		E9825D3B187296C6005FC83D /* TGThirdPersonCamera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGThirdPersonCamera.cpp; path = Classes/TGThirdPersonCamera.cpp; sourceTree = "<group>"; };
+		E9825D3C187296C6005FC83D /* TGThirdPersonCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGThirdPersonCamera.h; path = Classes/TGThirdPersonCamera.h; sourceTree = "<group>"; };
+		E9825D3D187296C6005FC83D /* TGWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGWorld.cpp; path = Classes/TGWorld.cpp; sourceTree = "<group>"; };
+		E9825D3E187296C6005FC83D /* TGWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGWorld.h; path = Classes/TGWorld.h; sourceTree = "<group>"; };
+		E9825D4B187297FB005FC83D /* Rayne.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rayne.xcodeproj; path = "../Xcode/OS X/Rayne.xcodeproj"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		E9825D16187295EB005FC83D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		E9825D10187295EB005FC83D = {
+			isa = PBXGroup;
+			children = (
+				E9825D1D187295EB005FC83D /* Classes */,
+				E9825D32187296A1005FC83D /* Resources */,
+				E9825D24187295EB005FC83D /* Supporting files */,
+				E9825D5118729808005FC83D /* Frameworks */,
+				E9825D1B187295EB005FC83D /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		E9825D1B187295EB005FC83D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E9825D1A187295EB005FC83D /* Test Game.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E9825D1D187295EB005FC83D /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+				E9825D33187296C6005FC83D /* TGApplication.cpp */,
+				E9825D34187296C6005FC83D /* TGApplication.h */,
+				E9825D35187296C6005FC83D /* TGDebugDrawer.cpp */,
+				E9825D36187296C6005FC83D /* TGDebugDrawer.h */,
+				E9825D37187296C6005FC83D /* TGPlayer.cpp */,
+				E9825D38187296C6005FC83D /* TGPlayer.h */,
+				E9825D39187296C6005FC83D /* TGSmokeGrenade.cpp */,
+				E9825D3A187296C6005FC83D /* TGSmokeGrenade.h */,
+				E9825D3B187296C6005FC83D /* TGThirdPersonCamera.cpp */,
+				E9825D3C187296C6005FC83D /* TGThirdPersonCamera.h */,
+				E9825D3D187296C6005FC83D /* TGWorld.cpp */,
+				E9825D3E187296C6005FC83D /* TGWorld.h */,
+			);
+			name = Classes;
+			path = "Test Game";
+			sourceTree = "<group>";
+		};
+		E9825D24187295EB005FC83D /* Supporting files */ = {
+			isa = PBXGroup;
+			children = (
+				E9825D25187295EB005FC83D /* main.cpp */,
+				E9825D27187295EB005FC83D /* Test Game-Info.plist */,
+				E9825D28187295EB005FC83D /* Test Game-Prefix.pch */,
+			);
+			name = "Supporting files";
+			path = "Test Game";
+			sourceTree = "<group>";
+		};
+		E9825D4C187297FB005FC83D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E9825D50187297FB005FC83D /* libRayne.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E9825D5118729808005FC83D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E9825D4B187297FB005FC83D /* Rayne.xcodeproj */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		E9825D17187295EB005FC83D /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E9825D44187296C6005FC83D /* TGPlayer.h in Headers */,
+				E9825D4A187296C6005FC83D /* TGWorld.h in Headers */,
+				E9825D48187296C6005FC83D /* TGThirdPersonCamera.h in Headers */,
+				E9825D40187296C6005FC83D /* TGApplication.h in Headers */,
+				E9825D46187296C6005FC83D /* TGSmokeGrenade.h in Headers */,
+				E9825D42187296C6005FC83D /* TGDebugDrawer.h in Headers */,
+				E9825D29187295EB005FC83D /* Test Game-Prefix.pch in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		E9825D19187295EB005FC83D /* Test Game */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E9825D2F187295EB005FC83D /* Build configuration list for PBXNativeTarget "Test Game" */;
+			buildPhases = (
+				E9825D15187295EB005FC83D /* Sources */,
+				E9825D16187295EB005FC83D /* Frameworks */,
+				E9825D17187295EB005FC83D /* Headers */,
+				E9825D18187295EB005FC83D /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				E9825D5318729816005FC83D /* PBXTargetDependency */,
+			);
+			name = "Test Game";
+			productName = "Test Game";
+			productReference = E9825D1A187295EB005FC83D /* Test Game.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E9825D11187295EB005FC83D /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				CLASSPREFIX = TG;
+				LastUpgradeCheck = 0500;
+				ORGANIZATIONNAME = "Überpixel";
+			};
+			buildConfigurationList = E9825D14187295EB005FC83D /* Build configuration list for PBXProject "Test Game" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = E9825D10187295EB005FC83D;
+			productRefGroup = E9825D1B187295EB005FC83D /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = E9825D4C187297FB005FC83D /* Products */;
+					ProjectRef = E9825D4B187297FB005FC83D /* Rayne.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				E9825D19187295EB005FC83D /* Test Game */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		E9825D50187297FB005FC83D /* libRayne.dylib */ = {
+			isa = PBXReferenceProxy;
+			fileType = "compiled.mach-o.dylib";
+			path = libRayne.dylib;
+			remoteRef = E9825D4F187297FB005FC83D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		E9825D18187295EB005FC83D /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "OUTPUT_DIR=\"$BUILT_PRODUCTS_DIR/$CONTENTS_FOLDER_PATH/Resources/\"\nRESOURCES_DIR=\"$PROJECT_DIR/$TARGET_NAME/Resources/\"\n\nrsync -avz \"$RESOURCES_DIR\" \"$OUTPUT_DIR\"\n\t\t\t\t\t";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		E9825D15187295EB005FC83D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E9825D47187296C6005FC83D /* TGThirdPersonCamera.cpp in Sources */,
+				E9825D49187296C6005FC83D /* TGWorld.cpp in Sources */,
+				E9825D26187295EB005FC83D /* main.cpp in Sources */,
+				E9825D45187296C6005FC83D /* TGSmokeGrenade.cpp in Sources */,
+				E9825D43187296C6005FC83D /* TGPlayer.cpp in Sources */,
+				E9825D41187296C6005FC83D /* TGDebugDrawer.cpp in Sources */,
+				E9825D3F187296C6005FC83D /* TGApplication.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E9825D5318729816005FC83D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = Rayne;
+			targetProxy = E9825D5218729816005FC83D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		E9825D2D187295EB005FC83D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		E9825D2E187295EB005FC83D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		E9825D30187295EB005FC83D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Test Game/Supporting files/Test Game-Prefix.pch";
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../Build/include\"",
+				);
+				INFOPLIST_FILE = "Test Game/Supporting files/Test Game-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../Build\"",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(inherited)",
+					"$(OTHER_CFLAGS)",
+					"-msse4.1",
+				);
+				OTHER_LDFLAGS = "-lRayne";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		E9825D31187295EB005FC83D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "Test Game/Supporting files/Test Game-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"NDEBUG=1",
+				);
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../Build/include\"",
+				);
+				INFOPLIST_FILE = "Test Game/Supporting files/Test Game-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/../Build\"",
+				);
+				OTHER_CPLUSPLUSFLAGS = (
+					"$(inherited)",
+					"$(OTHER_CFLAGS)",
+					"-msse4.1",
+				);
+				OTHER_LDFLAGS = "-lRayne";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		E9825D14187295EB005FC83D /* Build configuration list for PBXProject "Test Game" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E9825D2D187295EB005FC83D /* Debug */,
+				E9825D2E187295EB005FC83D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E9825D2F187295EB005FC83D /* Build configuration list for PBXNativeTarget "Test Game" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E9825D30187295EB005FC83D /* Debug */,
+				E9825D31187295EB005FC83D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E9825D11187295EB005FC83D /* Project object */;
+}

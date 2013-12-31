@@ -23,13 +23,6 @@
 #include "RNShaderCache.h"
 #include "RNWindowInternal.h"
 
-#if RN_PLATFORM_IOS
-extern "C" RN::Application *RNApplicationCreate(RN::Kernel *);
-#endif
-
-typedef RN::Application *(*RNApplicationEntryPointer)(RN::Kernel *);
-RNApplicationEntryPointer __ApplicationEntry = 0;
-
 namespace RN
 {
 	bool __needsCleanup = false;
@@ -70,12 +63,6 @@ namespace RN
 	
 	RNDeclareSingleton(Kernel)
 	
-	Kernel::Kernel()
-	{
-		Prepare();
-		LoadApplicationModule(Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestGameModuleKey));
-	}
-	
 	Kernel::Kernel(Application *app)
 	{
 		Prepare();
@@ -91,7 +78,6 @@ namespace RN
 		_app->WillExit();
 		
 		delete ModuleCoordinator::GetSharedInstance();
-		delete _app;
 
 		delete _renderer;
 		delete _input;
@@ -446,48 +432,6 @@ namespace RN
 		logger->Log(Log::Level::Warning, "");
 	}
 	
-	void Kernel::LoadApplicationModule(String *module)
-	{
-#if RN_PLATFORM_MAC_OS || RN_PLATFORM_LINUX || RN_PLATFORM_WINDOWS
-		std::string moduleName = std::string(module->GetUTF8String());
-		
-#if RN_PLATFORM_MAC_OS
-		moduleName += ".dylib";
-#endif
-#if RN_PLATFORM_LINUX
-		moduleName += ".so";
-#endif
-#if RN_PLATFORM_WINDOWS
-		moduleName += ".dll";
-#endif
-
-		std::string path = FileManager::GetSharedInstance()->GetFilePathWithName(moduleName);
-
-#if RN_PLATFORM_POSIX
-		_appHandle = dlopen(path.c_str(), RTLD_LAZY);
-		if(!_appHandle)
-			throw Exception(Exception::Type::ApplicationNotFoundException, std::string(dlerror()));
-		
-		__ApplicationEntry = (RNApplicationEntryPointer)dlsym(_appHandle, "RNApplicationCreate");
-#endif
-#if RN_PLATFORM_WINDOWS
-		_appHandle = LoadLibraryA(path.c_str());
-		if(!_appHandle)
-			throw Exception(Exception::Type::ApplicationNotFoundException, "");
-
-		__ApplicationEntry = (RNApplicationEntryPointer)::GetProcAddress(_appHandle, "RNApplicationCreate");
-#endif
-
-		RN_ASSERT(__ApplicationEntry, "The game module must provide an application entry point (RNApplicationCreate())");
-#endif
-#if RN_PLATFORM_IOS
-		__ApplicationEntry = RNApplicationCreate;
-#endif
-
-		_app = __ApplicationEntry(this);
-		RN_ASSERT(_app, "The game module must respond to RNApplicationCreate() and return a valid RN::Application object!");
-	}
-
 	void Kernel::Initialize()
 	{
 		_app->Start();

@@ -5,7 +5,7 @@
       location = "container:"
       name = "OS X">
       <FileRef
-         location = "group:Engine Host/OS X/Rayne Player.xcodeproj">
+         location = "group:Engine Test/Test Game.xcodeproj">
       </FileRef>
       <FileRef
          location = "group:Xcode/OS X/Rayne.xcodeproj">

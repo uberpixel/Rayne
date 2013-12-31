@@ -21,7 +21,6 @@
 
 #define kRNManifestApplicationKey  RNCSTR("RNApplication")
 #define KRNManifestModulesKey      RNCSTR("RNModules")
-#define kRNManifestGameModuleKey   RNCSTR("RNGameModule")
 #define kRNManifestUIStyleKey      RNCSTR("RNUIStyle")
 
 namespace RN
