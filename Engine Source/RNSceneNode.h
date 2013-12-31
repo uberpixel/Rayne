@@ -20,6 +20,7 @@
 #include "RNSphere.h"
 #include "RNKVOImplementation.h"
 #include "RNSTL.h"
+#include "RNSceneNodeAttachment.h"
 
 namespace RN
 {
@@ -56,7 +57,9 @@ namespace RN
 			ChangedPosition = (1 << 2),
 			ChangedDependencies = (1 << 3),
 			ChangedPriority = (1 << 4),
-			ChangedParent = (1 << 5)
+			ChangedParent = (1 << 5),
+			ChangedAttachments = (1 << 6),
+			ChangedWorld = (1 << 7)
 		};
 		
 		typedef uint32 Flags;
@@ -135,9 +138,21 @@ namespace RN
 		RNAPI void AddDependency(SceneNode *dependency);
 		RNAPI void RemoveDependency(SceneNode *dependency);
 		
+		RNAPI void AddAttachment(SceneNodeAttachment *attachment);
+		RNAPI void RemoveAttachment(SceneNodeAttachment *attachment);
+		RNAPI SceneNodeAttachment *GetAttachment(MetaClassBase *metaClass) const;
+		RNAPI Array *GetAttachments() const;
+		
+		template<class T>
+		T *GetAttachment() const
+		{
+			SceneNodeAttachment *attachment = GetAttachment(T::MetaClass());
+			return static_cast<T *>(attachment);
+		}
+		
 		RNAPI SceneNode *GetParent() const;
 		RNAPI FrameID GetLastFrame() const { return _lastFrame; }
-		RNAPI World *GetWorld() const { return _world; }
+		RNAPI World *GetWorld() const { return _worldInserted ? _world : nullptr; }
 		RNAPI Priority GetPriority() const { return _priority; }
 		RNAPI Flags GetFlags() const { return _flags; }
 		
@@ -152,6 +167,10 @@ namespace RN
 		{
 			if(_action)
 				_action(this, delta);
+			
+			_attachments.Enumerate<SceneNodeAttachment>([=](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+				attachment->Update(delta);
+			});
 		}
 		
 		RNAPI virtual bool CanUpdate(FrameID frame);
@@ -196,6 +215,9 @@ namespace RN
 		mutable RecursiveSpinLock _parentChildLock;
 		SceneNode *_parent;
 		Array _children;
+		
+		mutable RecursiveSpinLock _attachmentsLock;
+		Array _attachments;
 		
 		Priority _priority;
 		std::atomic<Flags> _flags;

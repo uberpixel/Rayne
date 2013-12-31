@@ -35,7 +35,7 @@ namespace RN
 			_zones.erase(std::find(_zones.begin(), _zones.end(), zone));
 		}
 		
-		void SceneNodeDidUpdate(SceneNode *node) override
+		void SceneNodeDidUpdate(SceneNode *node, uint32 changesSet) override
 		{
 			LockGuard<TriggerZoneManager *> lock(this);
 			std::vector<TriggerZone *> zonesCopy(_zones);

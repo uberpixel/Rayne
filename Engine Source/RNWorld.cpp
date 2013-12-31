@@ -193,12 +193,7 @@ namespace RN
 	
 	void World::SceneNodeWillRender(SceneNode *node)
 	{
-		for(size_t i = 0; i < _attachments.GetCount(); i ++)
-		{
-			WorldAttachment *attachment = static_cast<WorldAttachment *>(_attachments[i]);
-			attachment->WillRenderSceneNode(node);
-		}
-		
+		RunWorldAttachement(&WorldAttachment::WillRenderSceneNode, node);
 		WillRenderSceneNode(node);
 	}
 	
@@ -229,9 +224,11 @@ namespace RN
 		
 		if(node->_world == this)
 		{
+			RunWorldAttachement(&WorldAttachment::WillRemoveSceneNode, node);
 			_sceneManager->RemoveSceneNode(node);
 			
 			node->_world = nullptr;
+			node->DidUpdate(SceneNode::ChangedWorld);
 			
 			if(node->IsKindOfClass(_cameraClass))
 				_cameras.erase(std::remove(_cameras.begin(), _cameras.end(), static_cast<Camera *>(node)), _cameras.end());
@@ -280,6 +277,9 @@ namespace RN
 					_nodes.push_back(node);
 					node->_worldStatic = false;
 				}
+				
+				RunWorldAttachement(&WorldAttachment::DidAddSceneNode, node);
+				node->DidUpdate(SceneNode::ChangedWorld);
 			}
 			
 			_addedNodes.clear();
@@ -302,6 +302,7 @@ namespace RN
 		if(!node->_worldInserted)
 			return;
 		
+		RunWorldAttachement(&WorldAttachment::SceneNodeDidUpdate, node, changeSet);
 		_sceneManager->UpdateSceneNode(node, changeSet);
 		
 		if((changeSet & SceneNode::ChangedPriority) && node->IsKindOfClass(_cameraClass))

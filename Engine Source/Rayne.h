@@ -43,6 +43,7 @@
 
 #include "RNModule.h"
 #include "RNWorldAttachment.h"
+#include "RNSceneNodeAttachment.h"
 
 #include "RNResourceCoordinator.h"
 #include "RNResourceLoader.h"

@@ -33,6 +33,6 @@ namespace RN
 	void WorldAttachment::WillRenderSceneNode(SceneNode *node)
 	{}
 	
-	void WorldAttachment::SceneNodeDidUpdate(SceneNode *node)
+	void WorldAttachment::SceneNodeDidUpdate(SceneNode *node, uint32 changeSet)
 	{}
 }

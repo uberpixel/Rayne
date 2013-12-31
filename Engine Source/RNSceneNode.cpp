@@ -98,6 +98,10 @@ namespace RN
 		_dependencyMap.clear();
 		
 		Unlock();
+		
+		_attachments.Enumerate<SceneNodeAttachment>([](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+			attachment->_node = nullptr;
+		});
 	}
 	
 	bool SceneNode::Compare(const SceneNode *other) const
@@ -114,6 +118,11 @@ namespace RN
 		return (this < other);
 	}
 	
+	
+	// -------------------
+	// MARK: -
+	// MARK: Dependencies
+	// -------------------
 	
 	void SceneNode::AddDependency(SceneNode *dependency)
 	{
@@ -191,8 +200,6 @@ namespace RN
 		return true;
 	}
 	
-	
-	
 	bool SceneNode::IsVisibleInCamera(Camera *camera)
 	{
 		if(_flags & FlagHidden)
@@ -208,6 +215,10 @@ namespace RN
 	}
 	
 	
+	// -------------------
+	// MARK: -
+	// MARK: Setter
+	// -------------------
 	
 	void SceneNode::SetFlags(Flags flags)
 	{
@@ -248,6 +259,10 @@ namespace RN
 		_debugName = name;
 	}
 	
+	void SceneNode::SetAction(const std::function<void (SceneNode *, float)>& action)
+	{
+		_action = action;
+	}
 	
 	void SceneNode::LookAt(SceneNode *other)
 	{
@@ -260,7 +275,10 @@ namespace RN
 		SetWorldRotation(rotation);
 	}
 	
-	
+	// -------------------
+	// MARK: -
+	// MARK: Children
+	// -------------------
 	
 	void SceneNode::AttachChild(SceneNode *child)
 	{
@@ -335,13 +353,80 @@ namespace RN
 		_parentChildLock.Unlock();
 	}
 	
+	// -------------------
+	// MARK: -
+	// MARK: Attachments
+	// -------------------
 	
+	void SceneNode::AddAttachment(SceneNodeAttachment *attachment)
+	{
+		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
+		
+		if(attachment->_node)
+			throw Exception(Exception::Type::InvalidArgumentException, "Attachments mustn't have a parent!");
+			
+		WillUpdate(ChangedAttachments);
+		
+		_attachments.AddObject(attachment);
+		attachment->_node = this;
+		
+		DidUpdate(ChangedAttachments);
+	}
 	
+	void SceneNode::RemoveAttachment(SceneNodeAttachment *attachment)
+	{
+		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
+		
+		if(attachment->_node != this)
+			throw Exception(Exception::Type::InvalidArgumentException, "Attachments must be removed from their parents!");
+		
+		WillUpdate(ChangedAttachments);
+		
+		_attachments.RemoveObject(attachment);
+		attachment->_node = nullptr;
+		
+		DidUpdate(ChangedAttachments);
+	}
+	
+	SceneNodeAttachment *SceneNode::GetAttachment(MetaClassBase *metaClass) const
+	{
+		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
+		
+		SceneNodeAttachment *match = nullptr;
+		
+		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+			if(attachment->IsKindOfClass(metaClass))
+			{
+				match = attachment;
+				*stop = true;
+			}
+		});
+		
+		return match;
+	}
+	
+	Array *SceneNode::GetAttachments() const
+	{
+		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
+		Array *attachments = new Array(&_attachments);
+		
+		return attachments->Autorelease();
+	}
+	
+	// -------------------
+	// MARK: -
+	// MARK: Updates
+	// ------------------
 	
 	void SceneNode::WillUpdate(uint32 changeSet)
 	{
 		if(_parent)
 			_parent->ChildWillUpdate(this, changeSet);
+		
+		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
+		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+			attachment->WillUpdate(changeSet);
+		});
 	}
 	
 	void SceneNode::DidUpdate(uint32 changeSet)
@@ -354,12 +439,11 @@ namespace RN
 		
 		if(_parent)
 			_parent->ChildDidUpdate(this, changeSet);
-	}
-	
-	
-	void SceneNode::SetAction(const std::function<void (SceneNode *, float)>& action)
-	{
-		_action = action;
+		
+		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
+		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+			attachment->DidUpdate(changeSet);
+		});
 	}
 	
 	void SceneNode::FillRenderingObject(RenderingObject& object) const
