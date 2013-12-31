@@ -428,7 +428,7 @@ namespace RN
 		
 		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
 		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool *stop) {
-			attachment->WillUpdate(changeSet);
+			attachment->__WillUpdate(changeSet);
 		});
 	}
 	
@@ -445,7 +445,7 @@ namespace RN
 		
 		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
 		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool *stop) {
-			attachment->DidUpdate(changeSet);
+			attachment->__DidUpdate(changeSet);
 		});
 	}
 	
