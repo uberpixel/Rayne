@@ -165,8 +165,8 @@ namespace RN
 	void ThreadPool::Consumer()
 	{
 		Thread *thread = Thread::GetCurrentThread();
-		Context *context = new Context(Kernel::GetSharedInstance()->GetContext());
-		//AutoreleasePool *pool = new AutoreleasePool();
+		//Context *context = new Context(Kernel::GetSharedInstance()->GetContext());
+		AutoreleasePool *pool = new AutoreleasePool();
 		
 		//context->MakeActiveContext();
 		
