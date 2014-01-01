@@ -534,9 +534,14 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_WINDOWS
-		std::string base = PathManager::ExecutableDirectory();
+
+		TCHAR buffer[1025];
+		::GetCurrentDirectoryA(1024, buffer);
+
+		std::string base(buffer);
 		
 		AddSearchPath(base);
+		AddSearchPath(base + "/Resources");
 		AddSearchPath(base + "/Engine Resources");
 		
 		AddFileModifier("~win");
