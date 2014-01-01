@@ -115,9 +115,9 @@ namespace TG
 		}
 		
 		_exposure += (input->IsKeyPressed('u') - input->IsKeyPressed('j')) * delta*2.0f;
-		_exposure = MIN(MAX(0.01f, _exposure), 10.0f);
+		_exposure = std::min(std::max(0.01f, _exposure), 10.0f);
 		_whitepoint += (input->IsKeyPressed('i') - input->IsKeyPressed('k')) * delta;
-		_whitepoint = MIN(MAX(0.01f, _whitepoint), 10.0f);
+		_whitepoint = std::min(std::max(0.01f, _whitepoint), 10.0f);
 		RN::Renderer::GetSharedInstance()->SetHDRExposure(_exposure);
 		RN::Renderer::GetSharedInstance()->SetHDRWhitePoint(_whitepoint);
 	}
