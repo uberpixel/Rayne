@@ -17,7 +17,13 @@ int main(int argc, char *argv[])
 	RN::FileManager::GetSharedInstance()->AddSearchPath("/usr/local/opt/Rayne/Engine Resources");
 #endif
 #if RN_PLATFORM_WINDOWS
-	//RN::FileManager::GetSharedInstance()->AddSearchPath("!!!ASD!!!XYZ!!!");
+	char path[MAX_PATH + 1];
+	::SHGetFolderPathA(NULL, CSIDL_PROGRAM_FILES, NULL, SHGFP_TYPE_CURRENT, path);
+
+	std::stringstream stream;
+	stream << path << "\\Rayne\\Engine Resources";
+	
+	RN::FileManager::GetSharedInstance()->AddSearchPath(stream.str());
 #endif
 
 	try
