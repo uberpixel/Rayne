@@ -20,6 +20,9 @@ namespace RN
 #if RN_PLATFORM_LINUX
 	Display *Context::_dpy = 0;
 #endif
+
+	extern void BindOpenGLCore();
+	extern void BindOpenGLFunctions(gl::Version version);
 	
 	bool OpenGLValidateVersion(gl::Version wanted)
 	{
@@ -177,7 +180,7 @@ namespace RN
 		::SetPixelFormat(_internals->hDC, _internals->pixelFormat, &descriptor);
 		
 		
-		if(!wgl::CreateContextAttribsARB)
+		//if(!wgl::CreateContextAttribsARB)
 		{
 			HGLRC tempContext = wglCreateContext(_internals->hDC);
 			if(!wglMakeCurrent(_internals->hDC, tempContext))
@@ -497,6 +500,9 @@ namespace RN
 
 		if(_firstActivation)
 		{
+			BindOpenGLCore();
+			BindOpenGLFunctions(_version);
+
 			_firstActivation = false;
 			
 			gl::GetFloatv(GL_DEPTH_CLEAR_VALUE, &_depthClear);

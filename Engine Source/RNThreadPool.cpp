@@ -166,9 +166,9 @@ namespace RN
 	{
 		Thread *thread = Thread::GetCurrentThread();
 		Context *context = new Context(Kernel::GetSharedInstance()->GetContext());
-		AutoreleasePool *pool = new AutoreleasePool();
+		//AutoreleasePool *pool = new AutoreleasePool();
 		
-		context->MakeActiveContext();
+		//context->MakeActiveContext();
 		
 		size_t threadID = thread->GetObjectForKey<Number>(RNCSTR("__kRNThreadID"))->GetUint32Value();
 		ThreadContext *local = _threadData[threadID];
@@ -205,9 +205,9 @@ namespace RN
 			}
 		}
 		
-		context->DeactivateContext();
+		//context->DeactivateContext();
 		
-		delete context;
+		//delete context;
 		delete pool;
 		
 		_resigned ++;
