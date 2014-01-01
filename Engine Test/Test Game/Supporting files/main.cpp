@@ -17,9 +17,9 @@ int main(int argc, char *argv[])
 	RN::FileManager::GetSharedInstance()->AddSearchPath("/usr/local/opt/Rayne/Engine Resources");
 #endif
 #if RN_PLATFORM_WINDOWS
-	RN::FileManager::GetSharedInstance()->AddSearchPath("!!!ASD!!!XYZ!!!");
+	//RN::FileManager::GetSharedInstance()->AddSearchPath("!!!ASD!!!XYZ!!!");
 #endif
-	
+
 	try
 	{
 		auto application = new TG::Application();
