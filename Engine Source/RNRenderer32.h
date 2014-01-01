@@ -29,6 +29,7 @@ namespace RN
 		RNAPI void DrawCamera(Camera *camera, Camera *source, size_t skyCubeMeshes) override;
 		
 		RNAPI void AdjustDrawBuffer(Camera *camera, Camera *target);
+		RNAPI void BeginFrame(float delta) override;
 		
 		GLuint _copyVAO;
 		GLuint _copyVBO;

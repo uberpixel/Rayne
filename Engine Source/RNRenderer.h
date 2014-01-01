@@ -140,6 +140,7 @@ namespace RN
 		RNAPI uint32 GetRenderedLights() const { return _renderedLights; }
 		
 	protected:
+		RNAPI void FlushAutoVAOs();
 		RNAPI virtual void UpdateShaderData();
 		RNAPI virtual void DrawCamera(Camera *camera, Camera *source, size_t skyCubeMeshes);
 		RNAPI virtual void BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple);

@@ -482,4 +482,19 @@ namespace RN
 		
 		BindVAO(0);
 	}
+
+	void Renderer32::BeginFrame(float delta)
+	{
+		if(!_hasValidFramebuffer)
+		{
+			gl::GenVertexArrays(1, &_copyVAO);
+			gl::BindVertexArray(_copyVAO);
+			gl::BindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+			gl::BindVertexArray(0);
+
+			FlushAutoVAOs();
+		}
+
+		Renderer::BeginFrame(delta);
+	}
 }

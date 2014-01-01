@@ -229,6 +229,11 @@ namespace RN
 	// MARK: -
 	// MARK: Binding
 	// ---------------------
+
+	void Renderer::FlushAutoVAOs()
+	{
+		_autoVAOs.clear();
+	}
 	
 	void Renderer::BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple)
 	{
