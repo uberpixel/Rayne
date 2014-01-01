@@ -70,8 +70,8 @@ namespace RN
 	private:
 		void __AddResourceAlias(Object *object, String *name);
 		
-		Object *RequestResourceWithName(MetaClassBase *base, String *name, Dictionary *settings);
-		std::shared_future<Object *> RequestFutureResourceWithName(MetaClassBase *base, String *name, Dictionary *settings);
+		RNAPI Object *RequestResourceWithName(MetaClassBase *base, String *name, Dictionary *settings);
+		RNAPI std::shared_future<Object *> RequestFutureResourceWithName(MetaClassBase *base, String *name, Dictionary *settings);
 		
 		Object *ValidateResource(MetaClassBase *base, Object *object);
 		ResourceLoader *PickResourceLoader(MetaClassBase *base, File *file, String *name, bool requiresBackgroundSupport);
