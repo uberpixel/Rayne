@@ -82,7 +82,7 @@ namespace RN
 		void Initialize(size_t primitive);
 		
 		Bucket *FindBucket(Object *key, bool createIfNeeded);
-		Object *PrimitiveObjectForKey(Object *key);
+		RNAPI Object *PrimitiveObjectForKey(Object *key);
 		
 		void GrowIfPossible();
 		void CollapseIfPossible();
