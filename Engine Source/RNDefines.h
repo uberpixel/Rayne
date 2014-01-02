@@ -150,10 +150,10 @@
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __declspec(dllexport)
-		#define RNAPI_EXPORTONLY __declspec(dllexport)
+		#define RNAPI_DEFINEBASE __declspec(dllexport)
 	#else
 		#define RNAPI __declspec(dllimport)
-		#define RNAPI_EXPORTONLY
+		#define RNAPI_DEFINEBASE __declspec(dllimport)
 	#endif /* RN_BUILD_LIBRARY */
 
 	#if RN_BUILD_MODULE
@@ -189,10 +189,10 @@
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __attribute__((visibility("default")))
-		#define RNAPI_EXPORTONLY __attribute__((visibility("default")))
+		#define RNAPI_DEFINEBASE __attribute__((visibility("default")))
 	#else
 		#define RNAPI
-		#define RNAPI_EXPORTONLY
+		#define RNAPI_DEFINEBASE
 	#endif /* RN_BUILD_LIBRARY */
 
 	#if RN_BUILD_MODULE

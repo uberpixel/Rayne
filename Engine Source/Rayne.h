@@ -125,9 +125,14 @@
 #include "RNScopeGuard.h"
 #include "RNWindow.h"
 
-#if RN_PLATFORM_WINDOWS && RN_BUILD_MODULE
-	#undef RNAPI_EXPORTONLY
-	#define RNAPI_EXPORTONLY __declspec(dllexport)
+#if RN_PLATFORM_WINDOWS
+	#undef RNAPI_DEFINEBASE
+
+	#if RN_BUILD_MODULE
+		#define RNAPI_DEFINEBASE __declspec(dllexport)
+	#else
+		#define RNAPI_DEFINEBASE
+	#endif
 #endif
 
 #endif /* __RAYNE_H__ */

@@ -181,8 +181,8 @@ namespace RN
 		{ \
 			return static_cast<cls *>(Object::Copy()); \
 		} \
-		RNAPI_EXPORTONLY RN::MetaClassBase *Class() const override; \
-		RNAPI_EXPORTONLY static RN::MetaClassBase *MetaClass();
+		RNAPI_DEFINEBASE RN::MetaClassBase *Class() const override; \
+		RNAPI_DEFINEBASE static RN::MetaClassBase *MetaClass();
 	
 #define RNDefineMeta(cls, super) \
 	__RNDefineMetaPrivate(cls, super) \
