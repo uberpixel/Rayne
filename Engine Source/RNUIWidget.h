@@ -71,8 +71,9 @@ namespace RN
 			RNAPI bool MakeFirstResponder(Responder *responder);
 			RNAPI Responder *GetFirstResponder() const { return _firstResponder; }
 			
-			RNAPI void Show();
+			RNAPI void Open();
 			RNAPI void Close();
+			RNAPI bool IsOpen() const { return _server != nullptr; }
 			
 			RNAPI void OrderFront();
 			

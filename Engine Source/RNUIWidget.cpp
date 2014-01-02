@@ -215,7 +215,7 @@ namespace RN
 		// MARK: Layering
 		// ---------------------
 		
-		void Widget::Show()
+		void Widget::Open()
 		{
 			if(_server)
 			{
@@ -236,7 +236,7 @@ namespace RN
 		{
 			if(!_server)
 			{
-				Show();
+				Open();
 				return;
 			}
 			
