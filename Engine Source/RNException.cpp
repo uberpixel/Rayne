@@ -16,7 +16,12 @@
 #include <dlfcn.h>
 #endif
 
-#define kRNExceptionMaxSymbols 32
+#if RN_PLATFORM_WINDOWS
+#include <DbgHelp.h>
+#pragma comment(lib, "DbgHelp.lib")
+#endif
+
+#define kRNExceptionMaxSymbols 64
 
 namespace RN
 {
@@ -32,9 +37,10 @@ namespace RN
 		void *symbols[kRNExceptionMaxSymbols];
 		size_t size;
 		
+		std::string unknwonSymbol = std::string("<???>");
+		
 #if RN_PLATFORM_POSIX
 		size = backtrace(symbols, kRNExceptionMaxSymbols);
-		std::string unknwonSymbol = std::string("<???>");
 		
 		for(size_t i = 1; i < size; i ++)
 		{
@@ -60,12 +66,25 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_WINDOWS
+		HANDLE process = ::GetCurrentProcess();
+		
+		static std::once_flag flag;
+		std::call_once(flag, []() {
+			::SymInitialize(process, nullptr, true);
+		});
+		
 		size = ::CaptureStackBackTrace(0, kRNExceptionMaxSymbols, symbols, nullptr);
-		std::string unknwonSymbol = std::string("<???>");
+		
+		SYMBOL_INFO *symbol  = calloc(sizeof(SYMBOL_INFO) + 256, 1);
+		symbol->MaxNameLen   = 255;
+		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 		
 		for(size_t i = 1; i < size; i ++)
 		{
-			_callStack.push_back(std::pair<uintptr_t, std::string>((uintptr_t)symbols[i], unknwonSymbol));
+			::SymFromAddr(process, reinterpret_cast<DWORD64>(symbols[i]), 0, symbol);
+			
+			std::string name = (symbol->NameLen == 0) ? unknwonSymbol : std::string(symbol->Name);
+			_callStack.push_back(std::pair<uintptr_t, std::string>((uintptr_t)symbols[i], std::move(name)));
 		}
 #endif
 		
