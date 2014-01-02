@@ -61,8 +61,8 @@ namespace RN
 	public: \
 		RNAPI_DEFINEBASE static T *GetSharedInstance(); \
 	private: \
-		void MakeShared(bool override = false) final; \
-		void ResignShared() final;
+		RNAPI_DEFINEBASE void MakeShared(bool override = false) final; \
+		RNAPI_DEFINEBASE void ResignShared() final;
 	
 #define RNDeclareSingleton(T) \
 		static T *__RN ## T ## SingletonInstance = nullptr; \
