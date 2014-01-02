@@ -69,13 +69,13 @@ namespace RN
 		HANDLE process = ::GetCurrentProcess();
 		
 		static std::once_flag flag;
-		std::call_once(flag, []() {
+		std::call_once(flag, [&]() {
 			::SymInitialize(process, nullptr, true);
 		});
 		
 		size = ::CaptureStackBackTrace(0, kRNExceptionMaxSymbols, symbols, nullptr);
 		
-		SYMBOL_INFO *symbol  = calloc(sizeof(SYMBOL_INFO) + 256, 1);
+		SYMBOL_INFO *symbol  = reinterpret_cast<SMYBOL_INFO *>(calloc(sizeof(SYMBOL_INFO) + 256, 1));
 		symbol->MaxNameLen   = 255;
 		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 		
