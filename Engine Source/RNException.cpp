@@ -75,7 +75,7 @@ namespace RN
 		
 		size = ::CaptureStackBackTrace(0, kRNExceptionMaxSymbols, symbols, nullptr);
 		
-		SYMBOL_INFO *symbol  = reinterpret_cast<SMYBOL_INFO *>(calloc(sizeof(SYMBOL_INFO) + 256, 1));
+		SYMBOL_INFO *symbol  = reinterpret_cast<SYMBOL_INFO *>(calloc(sizeof(SYMBOL_INFO) + 256, 1));
 		symbol->MaxNameLen   = 255;
 		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 		
