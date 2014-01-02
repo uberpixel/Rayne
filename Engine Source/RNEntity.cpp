@@ -23,6 +23,19 @@ namespace RN
 		AddObservable(&_skeleton);
 	}
 	
+	Entity::Entity(Model *model) :
+		Entity()
+	{
+		SetModel(model);
+	}
+	
+	Entity::Entity(Model *model, const Vector3 &position) :
+		Entity()
+	{
+		SetModel(model);
+		SetPosition(position);
+	}
+	
 	Entity::~Entity()
 	{
 		SafeRelease(_skeleton);

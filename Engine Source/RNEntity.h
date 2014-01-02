@@ -24,6 +24,8 @@ namespace RN
 	{
 	public:
 		RNAPI Entity();
+		RNAPI Entity(Model *model);
+		RNAPI Entity(Model *model, const Vector3 &position);
 		RNAPI ~Entity() override;
 		
 		RNAPI void SetModel(Model *model);
