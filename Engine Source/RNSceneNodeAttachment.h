@@ -24,28 +24,28 @@ namespace RN
 	public:
 		friend class SceneNode;
 		
-		SceneNodeAttachment();
-		~SceneNodeAttachment() override;
+		RNAPI SceneNodeAttachment();
+		RNAPI ~SceneNodeAttachment() override;
 		
-		void SetPosition(const Vector3 &position);
-		void SetScale(const Vector3 &scale);
-		void SetRotation(const Quaternion &rotation);
+		RNAPI void SetPosition(const Vector3 &position);
+		RNAPI void SetScale(const Vector3 &scale);
+		RNAPI void SetRotation(const Quaternion &rotation);
 		
-		Vector3 GetPosition() const;
-		Vector3 GetScale() const;
-		Quaternion GetRotation() const;
+		RNAPI Vector3 GetPosition() const;
+		RNAPI Vector3 GetScale() const;
+		RNAPI Quaternion GetRotation() const;
 		
-		World *GetWorld() const;
-		SceneNode *GetParent() const;
+		RNAPI World *GetWorld() const;
+		RNAPI SceneNode *GetParent() const;
 		
-		virtual void Update(float delta);
+		RNAPI virtual void Update(float delta);
 		
 	protected:
-		virtual void WillUpdate(uint32 changeSet) {}
-		virtual void DidUpdate(uint32 changeSet) {}
+		RNAPI virtual void WillUpdate(uint32 changeSet) {}
+		RNAPI virtual void DidUpdate(uint32 changeSet) {}
 		
-		virtual void WillRemoveFromParent() {}
-		virtual void DidAddToParent() {}
+		RNAPI virtual void WillRemoveFromParent() {}
+		RNAPI virtual void DidAddToParent() {}
 		
 	private:
 		void __WillUpdate(uint32 changeSet);
