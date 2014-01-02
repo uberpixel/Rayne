@@ -132,6 +132,13 @@ namespace RN
 					
 					CFStringRef fontName = CFStringCreateWithCString(kCFAllocatorDefault, name.c_str(), kCFStringEncodingASCII);
 					CTFontRef source = CTFontCreateWithName(fontName, _size, nullptr);
+					
+					if(!source)
+					{
+						CFRelease(fontName);
+						throw Exception(Exception::Type::GenericException, "No font with name " + name);
+					}
+					
 					CTFontRef font = CTFontCreateCopyWithSymbolicTraits(source, 0.0f, nullptr, traits, kCTFontTraitBold | kCTFontTraitItalic);
 					
 					if(!font)
@@ -195,6 +202,9 @@ namespace RN
 				delete [] valueData;
 				
 				RegCloseKey(hKey);
+				
+				if(fontFile.empty())
+					throw Exception(Exception::Type::GenericException, "No font with name " + name);
 				
 				WCHAR winDir[MAX_PATH];
 				::GetWindowsDirectoryW(winDir, MAX_PATH);
