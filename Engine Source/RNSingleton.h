@@ -20,7 +20,7 @@ namespace RN
 		RNAPI static T *GetSharedInstance() { throw ""; }
 		
 	protected:
-		RNAPI virtual ~ISingleton() {};
+		virtual ~ISingleton() {};
 		
 	private:
 		RNAPI virtual void MakeShared(bool override = false) = 0;
@@ -34,7 +34,7 @@ namespace RN
 		RNAPI static T *GetSharedInstance() { throw ""; }
 		
 	protected:
-		RNAPI virtual ~INonConstructingSingleton() {};
+		virtual ~INonConstructingSingleton() {};
 		
 	private:
 		RNAPI virtual void MakeShared(bool override = false) = 0;
