@@ -159,7 +159,7 @@ namespace RN
 	RNAPI uint32 VersionMake(uint32 major, uint32 minor, uint32 patch);
 	
 	typedef uint32 FrameID;
-	typedef uint32 Tag;
+	typedef size_t Tag;
 	
 	enum class ComparisonResult : int
 	{

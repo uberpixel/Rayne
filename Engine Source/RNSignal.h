@@ -10,6 +10,7 @@
 #define __RAYNE_SIGNAL_H__
 
 #include "RNBase.h"
+#include "RNSTL.h"
 
 namespace RN
 {
@@ -41,9 +42,7 @@ namespace RN
 		
 		void Disconnect()
 		{
-			__SignalBase *signal = nullptr;
-			
-			signal = _signal.exchange(signal);
+			__SignalBase *signal = _signal.exchange(nullptr);
 			
 			if(signal)
 			{
@@ -89,33 +88,58 @@ namespace RN
 		template <typename... SigCompatible>
 		void Emit(SigCompatible&&... args)
 		{
-			LockGuard<SpinLock> lock(_lock);
+			stl::lockable_shim<decltype(_lock)> lock1(_lock);
+			stl::lockable_shim<decltype(_emitLock)> lock2(_emitLock);
+			
+			std::lock(lock1, lock2);
 			
 			std::vector<Slot> slots;
 			std::swap(slots, _slots);
 			
-			lock.Unlock();
+			lock1.unlock();
 			
-			for(Slot& slot : slots)
+			for(Slot &slot : slots)
 				slot.callback(std::forward<SigCompatible>(args)...);
 			
-			lock.Lock();
+			lock1.lock();
 			std::swap(slots, _slots);
 			
 			if(!slots.empty())
 				_slots.insert(_slots.end(), std::make_move_iterator(slots.begin()), std::make_move_iterator(slots.end()));
+		
+			lock1.unlock();
+			lock2.unlock();
 		}
 		
 		template<class F>
 		Connection *Connect(F&& f)
 		{
 			Tag tag = _tags ++;
+			return Connect(std::move(f), tag);
+		}
+		template<class F>
+		Connection *Connect(F&& f, Tag tag)
+		{
 			Connection *connection = new Connection(this, tag);
 			
 			LockGuard<SpinLock> lock(_lock);
 			_slots.emplace_back(Slot(tag, connection, std::move(f)));
 			
 			return connection;
+		}
+		template<class F>
+		Connection *Connect(F&& f, void *cookie)
+		{
+			return Connect(std::move(f), reinterpret_cast<Tag>(cookie));
+		}
+		
+		void Disconnect(Tag tag)
+		{
+			RemoveSlot(tag);
+		}
+		void Disconnect(void *cookie)
+		{
+			RemoveSlot(reinterpret_cast<Tag>(cookie));
 		}
 		
 		size_t GetCount() const
@@ -176,6 +200,7 @@ namespace RN
 		}
 		
 		SpinLock _lock;
+		SpinLock _emitLock;
 		std::atomic<Tag> _tags;
 		std::vector<Slot> _slots;
 	};

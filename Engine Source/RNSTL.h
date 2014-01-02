@@ -9,8 +9,6 @@
 #ifndef __RAYNE_STL_H__
 #define __RAYNE_STL_H__
 
-#include "RNAlgorithm.h"
-
 namespace RN
 {
 	namespace stl
