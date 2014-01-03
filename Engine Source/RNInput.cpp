@@ -517,41 +517,41 @@ namespace RN
 		{
 			case WM_LBUTTONDOWN:
 				event->_type = Event::Type::MouseDown;
+				event->_button = 0;
+
+				_pressedMouse.insert(0);
+				break;
+			case WM_LBUTTONUP:
+				event->_type = Event::Type::MouseUp;
+				event->_button = 0;
+
+				_pressedMouse.erase(0);
+				break;
+
+			case WM_RBUTTONDOWN:
+				event->_type = Event::Type::MouseDown;
 				event->_button = 1;
 
 				_pressedMouse.insert(1);
 				break;
-			case WM_LBUTTONUP:
+			case WM_RBUTTONUP:
 				event->_type = Event::Type::MouseUp;
 				event->_button = 1;
 
 				_pressedMouse.erase(1);
 				break;
 
-			case WM_RBUTTONDOWN:
+			case WM_MBUTTONDOWN:
 				event->_type = Event::Type::MouseDown;
 				event->_button = 2;
 
 				_pressedMouse.insert(2);
 				break;
-			case WM_RBUTTONUP:
+			case WM_MBUTTONUP:
 				event->_type = Event::Type::MouseUp;
 				event->_button = 2;
 
 				_pressedMouse.erase(2);
-				break;
-
-			case WM_MBUTTONDOWN:
-				event->_type = Event::Type::MouseDown;
-				event->_button = 3;
-
-				_pressedMouse.insert(3);
-				break;
-			case WM_MBUTTONUP:
-				event->_type = Event::Type::MouseUp;
-				event->_button = 3;
-
-				_pressedMouse.erase(3);
 				break;
 
 			case WM_MOUSEWHEEL:
