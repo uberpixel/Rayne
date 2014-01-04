@@ -912,7 +912,7 @@ namespace TG
 		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateDirectionalShadows(true, 1024);
+		_sunLight->ActivateShadows();
 	
 /*		for(int i=0; i<10; i++)
 		{
@@ -965,14 +965,14 @@ namespace TG
 		_sunLight->SetIntensity(5.0f);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateDirectionalShadows();
+		_sunLight->ActivateShadows();
 		
 		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
 		_spotLight->SetRange(TGWorldSpotLightRange);
 		_spotLight->SetAngle(20.0f);
 		_spotLight->SetColor(RN::Color(0.5f));
-		_spotLight->ActivateSpotShadows(true, 8192);
+		_spotLight->ActivateShadows();
 		_camera->AttachChild(_spotLight);
 		
 		for(int i=0; i<0; i++)

@@ -215,7 +215,7 @@ namespace RN
 				break;
 				
 			case Light::Type::DirectionalLight:
-				if(light->Shadow())
+				if(light->HasShadow())
 					_directionalLights.push_front(light);
 				else
 					_directionalLights.push_back(light);
@@ -273,7 +273,7 @@ namespace RN
 				const Vector3& position = light->GetWorldPosition();
 				const Vector3& color    = light->GetResultColor();
 				const float range = light->GetRange();
-				const float shadow = light->Shadow()?static_cast<float>(i):-1.0f;
+				const float shadow = light->HasShadow()?static_cast<float>(i):-1.0f;
 				
 				if(i < _maxLightsDirect)
 				{
@@ -284,7 +284,7 @@ namespace RN
 				lightData[i * 2 + 0] = std::move(Vector4(position, range));
 				lightData[i * 2 + 1] = std::move(Vector4(color, shadow));
 				
-				if(light->Shadow())
+				if(light->HasShadow())
 				{
 					if(light->GetShadowCamera())
 					{
@@ -349,7 +349,7 @@ namespace RN
 				const Vector3& direction = -light->Forward();
 				const float angle = light->GetAngleCos();
 				const float range = light->GetRange();
-				const float shadow = light->Shadow()?static_cast<float>(i):-1.0f;
+				const float shadow = light->HasShadow()?static_cast<float>(i):-1.0f;
 				
 				if(i < _maxLightsDirect)
 				{
@@ -362,7 +362,7 @@ namespace RN
 				lightData[i * 3 + 1] = Vector4(color, shadow);
 				lightData[i * 3 + 2] = Vector4(direction, angle);
 				
-				if(light->Shadow())
+				if(light->HasShadow())
 				{
 					if(light->GetShadowCamera())
 					{
@@ -406,9 +406,9 @@ namespace RN
 			const Vector3& direction = -light->Forward();
 			
 			_lightDirectionalDirection.push_back(direction);
-			_lightDirectionalColor.emplace_back(Vector4(color, light->Shadow() ? static_cast<float>(i):-1.0f));
+			_lightDirectionalColor.emplace_back(Vector4(color, light->HasShadow() ? static_cast<float>(i):-1.0f));
 			
-			if(light->Shadow())
+			if(light->HasShadow())
 			{
 				const std::vector<Matrix> &matrices = light->GetShadowMatrices();
 				

@@ -18,10 +18,29 @@
 
 namespace RN
 {
+	struct ShadowParameter
+	{
+		ShadowParameter(size_t tresolution = 1024) :
+			resolution(tresolution),
+			splits(4),
+			distanceFactor(0.05f),
+			biasFactor(2.0f),
+			biasUnits(512.0f)
+		{}
+		
+		size_t resolution;
+		
+		size_t splits;
+		float distanceFactor;
+		float biasFactor;
+		float biasUnits;
+	};
+	
 	class Light : public SceneNode
 	{
-	friend class Renderer;
 	public:
+		friend class Renderer;
+		
 		enum class Type
 		{
 			PointLight,
@@ -32,9 +51,9 @@ namespace RN
 		RNAPI Light(Type type = Type::PointLight);
 		RNAPI ~Light() override;
 		
-		RNAPI void ActivateDirectionalShadows(bool shadow=true, int resolution=1024, int splits=4, float distfac=0.05f, float biasfac=2.0f, float biasunits=512.0f);
-		RNAPI void ActivatePointShadows(bool shadow=true, int resolution=1024);
-		RNAPI void ActivateSpotShadows(bool shadow=true, int resolution=1024);
+		RNAPI bool ActivateShadows(const ShadowParameter &parameter = ShadowParameter());
+		RNAPI void DeactivateShadows();
+		RNAPI bool HasShadow() const { return _shadow; }
 		
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI void Update(float delta) override;
@@ -56,8 +75,6 @@ namespace RN
 		float GetAngleCos() const { return _angleCos; }
 		float GetIntensity() const { return _intensity; }
 		
-		bool Shadow() const { return _shadow; }
-		
 		Camera *GetShadowCamera() const { return _shadowcam; }
 		Camera *GetLightCamera() const { return _lightcam; }
 		
@@ -67,6 +84,10 @@ namespace RN
 	private:
 		void ReCalculateColor();
 		void RemoveShadowCameras();
+		
+		bool ActivateDirectionalShadows(const ShadowParameter &parameter);
+		bool ActivatePointShadows(const ShadowParameter &parameter);
+		bool ActivateSpotShadows(const ShadowParameter &parameter);
 		
 		Type _lightType;
 		
