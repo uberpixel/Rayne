@@ -179,7 +179,7 @@ namespace RN
 		{
 			Task task;
 			
-			if(local->hose.pop(task))
+			while(local->hose.pop(task))
 			{
 				task.function();
 				
@@ -196,15 +196,13 @@ namespace RN
 					}
 				}
 			}
-			else
-			{
-				_feederCondition.notify_one();
-				
-				std::unique_lock<std::mutex> lock(_consumerLock);
-				
-				if(local->hose.was_empty())
-					_consumerCondition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
-			}
+			
+			_feederCondition.notify_one();
+			
+			std::unique_lock<std::mutex> lock(_consumerLock);
+			
+			if(local->hose.was_empty())
+				_consumerCondition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
 		}
 		
 		//context->DeactivateContext();
