@@ -420,21 +420,9 @@ namespace RN
 		}, this);
 	}
 
-
-
-	void Camera::Bind()
-	{
-		_storage->Bind();
-	}
-
-	void Camera::Unbind()
-	{
-		_storage->Unbind();
-	}
-
 	void Camera::PrepareForRendering(Renderer *renderer)
 	{
-		_storage->UpdateBuffer();
+		_storage->BindAndUpdateBuffer();
 		
 		Rect rect = std::move(GetRenderingFrame());
 		
@@ -446,20 +434,22 @@ namespace RN
 
 		if(!(_flags & FlagNoClear))
 		{
-			Context *context = Context::GetActiveContext();
-			
-			context->SetDepthClear(1.0f);
-			context->SetStencilClear(0);
-			context->SetClearColor(_clearColor);
-			
-			renderer->SetScissorEnabled(true);
-			gl::Scissor(x, y, width, height);
-			
-			gl::Clear(_clearMask);
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([=] {
+				gl::ClearDepth(1.0f);
+				gl::ClearStencil(0);
+				gl::ClearColor(_clearColor.r, _clearColor.g, _clearColor.b, _clearColor.a);
+				
+				gl::Scissor(x, y, width, height);
+				gl::Clear(_clearMask);
+				
+				renderer->SetScissorEnabled(true);
+			});
 		}
 		
-		gl::ColorMask((_colorMask & ColorFlagRed), (_colorMask & ColorFlagGreen), (_colorMask & ColorFlagBlue), (_colorMask & ColorFlagAlpha));
-		gl::Viewport(x, y, width, height);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([=] {
+			gl::ColorMask((_colorMask & ColorFlagRed), (_colorMask & ColorFlagGreen), (_colorMask & ColorFlagBlue), (_colorMask & ColorFlagAlpha));
+			gl::Viewport(x, y, width, height);
+		});
 	}
 
 	// Setter

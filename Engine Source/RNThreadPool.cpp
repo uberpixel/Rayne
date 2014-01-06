@@ -167,11 +167,8 @@ namespace RN
 	void ThreadPool::Consumer()
 	{
 		Thread *thread = Thread::GetCurrentThread();
-		//Context *context = new Context(Kernel::GetSharedInstance()->GetContext());
 		AutoreleasePool *pool = new AutoreleasePool();
-		
-		//context->MakeActiveContext();
-		
+	
 		size_t threadID = thread->GetObjectForKey<Number>(RNCSTR("__kRNThreadID"))->GetUint32Value();
 		ThreadContext *local = _threadData[threadID];
 		
@@ -205,9 +202,6 @@ namespace RN
 				_consumerCondition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
 		}
 		
-		//context->DeactivateContext();
-		
-		//delete context;
 		delete pool;
 		
 		_resigned ++;

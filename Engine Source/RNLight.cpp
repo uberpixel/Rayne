@@ -190,13 +190,10 @@ namespace RN
 			
 			try
 			{
-				storage->Bind();
-				storage->UpdateBuffer();
-				storage->Unbind();
+				storage->BindAndUpdateBuffer();
 			}
 			catch(Exception e)
 			{
-				storage->Unbind();
 				RemoveShadowCameras();
 				return false;
 			}
@@ -242,13 +239,10 @@ namespace RN
 		
 		try
 		{
-			storage->Bind();
-			storage->UpdateBuffer();
-			storage->Unbind();
+			storage->BindAndUpdateBuffer();
 		}
 		catch(Exception e)
 		{
-			storage->Unbind();
 			RemoveShadowCameras();
 			return false;
 		}
@@ -297,13 +291,10 @@ namespace RN
 		
 		try
 		{
-			storage->Bind();
-			storage->UpdateBuffer();
-			storage->Unbind();
+			storage->BindAndUpdateBuffer();
 		}
 		catch(Exception e)
 		{
-			storage->Unbind();
 			RemoveShadowCameras();
 			return false;
 		}
@@ -363,7 +354,7 @@ namespace RN
 				_shadowcam->SetWorldPosition(GetWorldPosition());
 				_shadowcam->SetWorldRotation(GetWorldRotation());
 				_shadowcam->clipfar = _range;
-				_shadowcam->fov = _angle*2.0f;
+				_shadowcam->fov = _angle * 2.0f;
 				_shadowcam->UpdateProjection();
 				_shadowcam->PostUpdate();
 				

@@ -19,21 +19,25 @@ namespace RN
 		_stage(stage),
 		_dirty(true)
 	{
-		gl::GenTextures(1, &_texture);
-		gl::GenBuffers(1, &_buffer);
-		
-		gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, _buffer);
-		
-		gl::BindTexture(GL_TEXTURE_BUFFER, 0);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			gl::GenTextures(1, &_texture);
+			gl::GenBuffers(1, &_buffer);
+			
+			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
+			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, _buffer);
+			
+			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+		});
 	}
 	
 	InstancingLODStage::~InstancingLODStage()
 	{
-		gl::DeleteTextures(1, &_texture);
-		gl::DeleteBuffers(1, &_buffer);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			gl::DeleteTextures(1, &_texture);
+			gl::DeleteBuffers(1, &_buffer);
+		}, true);
 	}
 	
 	void InstancingLODStage::RemoveIndex(size_t index)
@@ -59,11 +63,13 @@ namespace RN
 		{
 			GLenum mode = dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW;
 			
-			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
-			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-			gl::BufferData(GL_TEXTURE_BUFFER, _indices.size() * sizeof(uint32), _indices.data(), mode);
-			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
-			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([this, mode] {
+				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
+				gl::BufferData(GL_TEXTURE_BUFFER, _indices.size() * sizeof(uint32), _indices.data(), mode);
+				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+			});
 			
 			_dirty = false;
 		}
@@ -101,15 +107,17 @@ namespace RN
 		for(size_t i = 0; i < count; i ++)
 			_stages.push_back(new InstancingLODStage(_model, i));
 		
-		gl::GenTextures(1, &_texture);
-		gl::GenBuffers(1, &_buffer);
-		
-		gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _buffer);
-		
-		gl::BindTexture(GL_TEXTURE_BUFFER, 0);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			gl::GenTextures(1, &_texture);
+			gl::GenBuffers(1, &_buffer);
+			
+			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
+			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _buffer);
+			
+			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+		});
 		
 		Reserve(50);
 	}
@@ -119,8 +127,10 @@ namespace RN
 		for(InstancingLODStage *stage : _stages)
 			delete stage;
 		
-		gl::DeleteTextures(1, &_texture);
-		gl::DeleteBuffers(1, &_buffer);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			gl::DeleteTextures(1, &_texture);
+			gl::DeleteBuffers(1, &_buffer);
+		}, true);
 	}
 	
 	
@@ -169,11 +179,15 @@ namespace RN
 		
 		if(_dirty)
 		{
-			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
-			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-			gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data(), GL_STATIC_DRAW);
-			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
-			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			
+				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
+				gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data(), GL_STATIC_DRAW);
+				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+				
+			});
 			
 			_dirty = false;
 		}

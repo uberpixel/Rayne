@@ -404,6 +404,7 @@ namespace RN
 		
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.00001f]];
 		
+		OpenGLQueue::GetSharedInstance()->SwitchContext(_context);
 #endif
 
 #if RN_PLATFORM_WINDOWS
@@ -482,6 +483,7 @@ namespace RN
 		}
 	
 		renderer->SetDefaultFBO(0);
+		OpenGLQueue::GetSharedInstance()->SwitchContext(_internals->context);
 #endif
 		
 #if RN_PLATFORM_LINUX

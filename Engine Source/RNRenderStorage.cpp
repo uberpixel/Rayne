@@ -30,7 +30,9 @@ namespace RN
 		_fixedScaleFactor = (scaleFactor > 0.0f);
 		_scaleFactor = _fixedScaleFactor ? scaleFactor : Kernel::GetSharedInstance()->GetActiveScaleFactor();
 		
-		gl::GenFramebuffers(1, &_framebuffer);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			gl::GenFramebuffers(1, &_framebuffer);
+		});
 		
 		MessageCenter::GetSharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](Message *message) {
 			_scaleFactor = Kernel::GetSharedInstance()->GetActiveScaleFactor();
@@ -42,13 +44,20 @@ namespace RN
 	{
 		if(_depthbuffer)
 		{
-			gl::DeleteRenderbuffers(1, &_depthbuffer);
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+				gl::DeleteRenderbuffers(1, &_depthbuffer);
+			}, true);
+			
 			_stencilbuffer = 0;
 			_stencilbuffer = 0;
 		}
 		
 		if(_framebuffer)
-			gl::DeleteFramebuffers(1, &_framebuffer);
+		{
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+				gl::DeleteFramebuffers(1, &_framebuffer);
+			}, true);
+		}
 		
 		if(_renderTargets)
 			_renderTargets->Release();
@@ -173,21 +182,6 @@ namespace RN
     }
 	
 	
-	void RenderStorage::Bind()
-	{
-		Thread *thread = Thread::GetCurrentThread();
-		if(thread->SetOpenGLBinding(GL_FRAMEBUFFER, _framebuffer) == 1)
-		{
-			gl::BindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-		}
-	}
-	
-	void RenderStorage::Unbind()
-	{
-		Thread *thread = Thread::GetCurrentThread();
-		thread->SetOpenGLBinding(GL_FRAMEBUFFER, 0);
-	}
-	
 	void RenderStorage::CheckFramebufferStatus()
 	{
 #if RN_TARGET_OPENGL
@@ -282,106 +276,102 @@ namespace RN
 #endif
 	}
 	
-	void RenderStorage::UpdateBuffer()
+	void RenderStorage::BindAndUpdateBuffer()
 	{
+		OpenGLQueue *queue = OpenGLQueue::GetSharedInstance();
+		
+		queue->SubmitCommand([this] {
+			gl::BindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+		});
+		
 		if(_formatChanged)
 		{
 			// Remove unused buffers
 			if(_depthTexture)
 			{
-				if(_stencilbuffer)
-				{
-					gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
-					_stencilbuffer = 0;
-				}
-				
-				if(_depthbuffer)
-				{
-					gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
-					gl::DeleteRenderbuffers(1, &_depthbuffer);
-					_depthbuffer = 0;
-				}
+				queue->SubmitCommand([this] {
+					if(_stencilbuffer)
+					{
+						gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, 0);
+						_stencilbuffer = 0;
+					}
+					
+					if(_depthbuffer)
+					{
+						gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, 0);
+						gl::DeleteRenderbuffers(1, &_depthbuffer);
+						_depthbuffer = 0;
+					}
+				});
 			}
 			
 			// Create new buffers
 			if((_depthbuffer == 0 && (_format & BufferFormatDepth)) && !_depthTexture)
 			{
-				gl::GenRenderbuffers(1, &_depthbuffer);
-				gl::BindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
-				gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthbuffer);
-				
-				if(_format & BufferFormatStencil)
-				{
-					_stencilbuffer = _depthbuffer;
-					gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilbuffer);
-				}
+				queue->SubmitCommand([this] {
+					gl::GenRenderbuffers(1, &_depthbuffer);
+					gl::BindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+					gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthbuffer);
+					
+					if(_format & BufferFormatStencil)
+					{
+						_stencilbuffer = _depthbuffer;
+						gl::FramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _stencilbuffer);
+					}
+				});
 			}
 			
 			if(_depthTexture)
 			{
-				if(_format & BufferFormatDepth)
-				{
-					switch(_depthTexture->GetGLType())
+				queue->SubmitCommand([this] {
+					if(_format & BufferFormatDepth)
 					{
-						case GL_TEXTURE_2D_ARRAY:
-							if(_depthLayer != -1)
-							{
-								gl::FramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0, _depthLayer);
-							}
-							else
-							{
-								gl::FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
-							}
-							break;
-							
-						case GL_TEXTURE_2D:
-							gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->GetName(), 0);
-							break;
-							
-						case GL_TEXTURE_CUBE_MAP:
-							if(_depthLayer != -1)
-							{
-								gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X+_depthLayer, _depthTexture->GetName(), 0);
-							}
-							else
-							{
-								gl::FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
-							}
-							break;
+						switch(_depthTexture->GetGLType())
+						{
+							case GL_TEXTURE_2D_ARRAY:
+								if(_depthLayer != -1)
+									gl::FramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0, _depthLayer);
+								else
+									gl::FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
+								break;
+								
+							case GL_TEXTURE_2D:
+								gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->GetName(), 0);
+								break;
+								
+							case GL_TEXTURE_CUBE_MAP:
+								if(_depthLayer != -1)
+									gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X+_depthLayer, _depthTexture->GetName(), 0);
+								else
+									gl::FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
+								break;
+						}
 					}
-				}
-				
-				if(_format & BufferFormatStencil)
-				{
-					switch(_depthTexture->GetGLType())
+					
+					if(_format & BufferFormatStencil)
 					{
-						case GL_TEXTURE_2D_ARRAY:
-							if(_depthLayer != -1)
-							{
-								gl::FramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0, _depthLayer);
-							}
-							else
-							{
-								gl::FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
-							}
-							break;
-							
-						case GL_TEXTURE_2D:
-							gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->GetName(), 0);
-							break;
-							
-						case GL_TEXTURE_CUBE_MAP:
-							if(_depthLayer != -1)
-							{
-								gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X+_depthLayer, _depthTexture->GetName(), 0);
-							}
-							else
-							{
-								gl::FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
-							}
-							break;
+						switch(_depthTexture->GetGLType())
+						{
+							case GL_TEXTURE_2D_ARRAY:
+								if(_depthLayer != -1)
+									gl::FramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0, _depthLayer);
+								else
+									gl::FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
+								break;
+								
+							case GL_TEXTURE_2D:
+								gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depthTexture->GetName(), 0);
+								break;
+								
+							case GL_TEXTURE_CUBE_MAP:
+								if(_depthLayer != -1)
+									gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X+_depthLayer, _depthTexture->GetName(), 0);
+								else
+									gl::FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depthTexture->GetName(), 0);
+								break;
+						}
 					}
-				}
+				});
 			}
 			
 			_formatChanged = false;
@@ -390,58 +380,76 @@ namespace RN
 		
 		if(_renderTargetsChanged && (_format & BufferFormatColor))
 		{
-			// Unbind no longer used render targets
-			for(size_t i=_renderTargets->GetCount(); i<_boundRenderTargets; i++)
-			{
-				GLenum attachment = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
-				gl::FramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, 0, 0);
-			}
-			
-			// Bind all render targetst to the framebuffer
-			for(size_t i=0; i<_renderTargets->GetCount(); i++)
-			{
-				Texture *texture = _renderTargets->GetObjectAtIndex<Texture>(i);
-				GLenum attachment = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
+			queue->SubmitCommand([&] {
+				// Unbind no longer used render targets
+				for(size_t i=_renderTargets->GetCount(); i<_boundRenderTargets; i++)
+				{
+					GLenum attachment = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
+					gl::FramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, 0, 0);
+				}
 				
-				gl::FramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->GetName(), 0);
-			}
+				// Bind all render targetst to the framebuffer
+				for(size_t i=0; i<_renderTargets->GetCount(); i++)
+				{
+					Texture *texture = _renderTargets->GetObjectAtIndex<Texture>(i);
+					GLenum attachment = (GLenum)(GL_COLOR_ATTACHMENT0 + i);
+					
+					gl::FramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texture->GetName(), 0);
+				}
+			}, true);
 			
 			_boundRenderTargets = (uint32)_renderTargets->GetCount();
 			_renderTargetsChanged = false;
 			
-			UpdateDrawBuffers(_boundRenderTargets);
+			queue->SubmitCommand([&] {
+				UpdateDrawBuffers(_boundRenderTargets);
+			}, true);
 		}
 		
 		// Allocate storage for the buffers
 		if(_sizeChanged)
 		{
-			uint32 width  = (uint32)ceil(_size.x * _scaleFactor);
-			uint32 height = (uint32)ceil(_size.y * _scaleFactor);
+			size_t width  = static_cast<size_t>(ceil(_size.x * _scaleFactor));
+			size_t height = static_cast<size_t>(ceil(_size.y * _scaleFactor));
 			
-			for(size_t i=0; i<_renderTargets->GetCount(); i++)
+			for(size_t i = 0; i < _renderTargets->GetCount(); i ++)
 			{
 				Texture2D *texture = _renderTargets->GetObjectAtIndex<Texture2D>(i);
-				
-				texture->Bind();
 				texture->SetSize(width, height);
-				texture->Unbind();
 			}
 			
 			if(_depthTexture)
 			{
-				_depthTexture->Bind();
 				_depthTexture->SetSize(width, height);
-				_depthTexture->Unbind();
 			}
 			else if((_format & BufferFormatDepth) || (_format & BufferFormatStencil))
 			{
-				GLenum format = (!(_format & BufferFormatStencil)) ? GL_DEPTH_COMPONENT24 : GL_DEPTH24_STENCIL8;
-				
-				gl::BindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
-				gl::RenderbufferStorage(GL_RENDERBUFFER, format, width, height);
+				queue->SubmitCommand([this, width, height] {
+					GLenum format = (!(_format & BufferFormatStencil)) ? GL_DEPTH_COMPONENT24 : GL_DEPTH24_STENCIL8;
+					
+					gl::BindRenderbuffer(GL_RENDERBUFFER, _depthbuffer);
+					gl::RenderbufferStorage(GL_RENDERBUFFER, format, static_cast<GLsizei>(width), static_cast<GLsizei>(height));
+				});
 			}
 			
-			CheckFramebufferStatus();
+			bool failed = false;
+			Exception exception(Exception::Type::GenericException, "This exception shouldn't be thrown!");
+			
+			queue->SubmitCommand([&] {
+				try
+				{
+					CheckFramebufferStatus();
+				}
+				catch(Exception e)
+				{
+					exception = std::move(e);
+					failed = true;
+				}
+			}, true);
+				
+			if(failed)
+				throw exception;
+			
 			_sizeChanged = false;
 		}
 	}
@@ -452,9 +460,13 @@ namespace RN
 		static GLint maxDrawbuffers = 0;
 		
 		if(maxDrawbuffers == 0)
-			gl::GetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxDrawbuffers);
+		{
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+				gl::GetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &maxDrawbuffers);
+			}, true);
+		}
 		
-		return (uint32)maxDrawbuffers;
+		return static_cast<uint32>(maxDrawbuffers);
 #endif
 		
 		return 1;

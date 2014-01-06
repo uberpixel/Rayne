@@ -35,12 +35,16 @@ namespace RN
 		_isComplete(false),
 		_hasChanged(false)
 	{
-		gl::GenTextures(1, &_name);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			gl::GenTextures(1, &_name);
+		});
 	}
 	
 	Texture::~Texture()
 	{
-		gl::DeleteTextures(1, &_name);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			gl::DeleteTextures(1, &_name);
+		});
 	}
 	
 	
@@ -71,94 +75,86 @@ namespace RN
 	void Texture::SetSize(size_t width, size_t height)
 	{}
 	
-	void Texture::Bind()
+	void Texture::Update()
 	{
-		Thread *thread = Thread::GetCurrentThread();
-		
-		if(thread->SetOpenGLBinding(_glType, _name) == 1)
-			gl::BindTexture(_glType, _name);
+		if(_hasChanged && _isComplete)
+		{
+			_hasChanged = false;
+			
+			if(_parameter.generateMipMaps && _parameter.maxMipMaps > 0)
+				gl::GenerateMipmap(_glType);
+		}
 	}
 	
-	void Texture::Unbind()
+	void Texture::Bind()
 	{
-		Thread *thread = Thread::GetCurrentThread();
-		
-		if(thread->SetOpenGLBinding(_glType, 0) == 0)
-		{
-			if(_hasChanged && _isComplete)
-			{
-				_hasChanged = false;
-				
-				if(_parameter.generateMipMaps && _parameter.maxMipMaps > 0)
-					gl::GenerateMipmap(_glType);
-				
-				gl::Flush();
-			}
-		}
+		gl::BindTexture(_glType, _name);
 	}
 
 	void Texture::SetParameter(const Parameter& parameter)
 	{
 		_parameter = parameter;
 		
-		Bind();
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			
+			GLenum wrapMode;
+			GLenum minFilter;
+			GLenum magFilter;
+			
+			switch(_parameter.wrapMode)
+			{
+				case WrapMode::Clamp:
+					wrapMode = GL_CLAMP_TO_EDGE;
+					break;
+					
+				case WrapMode::Repeat:
+					wrapMode = GL_REPEAT;
+					break;
+			}
+			
+			switch(_parameter.filter)
+			{
+				case Filter::Linear:
+					magFilter = GL_LINEAR;
+					minFilter = (_parameter.maxMipMaps > 0) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
+					break;
+					
+				case Filter::Nearest:
+					minFilter = GL_NEAREST;
+					magFilter = GL_NEAREST;
+					break;
+			}
+			
+			Bind();
 		
-		GLenum wrapMode;
-		GLenum minFilter;
-		GLenum magFilter;
-		
-		switch(parameter.wrapMode)
-		{
-			case WrapMode::Clamp:
-				wrapMode = GL_CLAMP_TO_EDGE;
-				break;
-				
-			case WrapMode::Repeat:
-				wrapMode = GL_REPEAT;
-				break;
-		}
-		
-		switch(parameter.filter)
-		{
-			case Filter::Linear:
-				magFilter = GL_LINEAR;
-				minFilter = (parameter.maxMipMaps > 0) ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR;
-				break;
-				
-			case Filter::Nearest:
-				minFilter = GL_NEAREST;
-				magFilter = GL_NEAREST;
-				break;
-		}
-		
-		gl::TexParameteri(_glType, GL_TEXTURE_WRAP_S, wrapMode);
-		gl::TexParameteri(_glType, GL_TEXTURE_WRAP_T, wrapMode);
-		
-		gl::TexParameteri(_glType, GL_TEXTURE_MIN_FILTER, minFilter);
-		gl::TexParameteri(_glType, GL_TEXTURE_MAG_FILTER, magFilter);
-		
-		gl::TexParameteri(_glType, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(_parameter.maxMipMaps));
-		
-		if(gl::SupportsFeature(gl::Feature::AnisotropicFilter))
-		{
+			gl::TexParameteri(_glType, GL_TEXTURE_WRAP_S, wrapMode);
+			gl::TexParameteri(_glType, GL_TEXTURE_WRAP_T, wrapMode);
+			
+			gl::TexParameteri(_glType, GL_TEXTURE_MIN_FILTER, minFilter);
+			gl::TexParameteri(_glType, GL_TEXTURE_MAG_FILTER, magFilter);
+			
+			gl::TexParameteri(_glType, GL_TEXTURE_MAX_LEVEL, static_cast<GLint>(_parameter.maxMipMaps));
+			
+			if(gl::SupportsFeature(gl::Feature::AnisotropicFilter))
+			{
 #if GL_EXT_texture_filter_anisotropic
-			float anisotropy = (_parameter.anisotropy < 1.0f) ? _defaultAnisotropy : _parameter.anisotropy;
-			gl::TexParameterf(_glType, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
+				float anisotropy = (_parameter.anisotropy < 1.0f) ? _defaultAnisotropy : _parameter.anisotropy;
+				gl::TexParameterf(_glType, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 #endif
-		}
+			}
+			
+			if(_parameter.depthCompare)
+			{
+				gl::TexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+				gl::TexParameteri(_glType, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
+			}
+			else
+			{
+				gl::TexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+			}
 		
-		if(_parameter.depthCompare)
-		{
-			gl::TexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
-			gl::TexParameteri(_glType, GL_TEXTURE_COMPARE_FUNC, GL_LESS);
-		}
-		else
-		{
-			gl::TexParameteri(_glType, GL_TEXTURE_COMPARE_MODE, GL_NONE);
-		}
-		
-		RN_CHECKOPENGL();
-		Unbind();
+			Update();
+		});
 	}
 	
 	
@@ -553,7 +549,9 @@ namespace RN
 			if(gl::SupportsFeature(gl::Feature::AnisotropicFilter))
 			{
 #if GL_EXT_texture_filter_anisotropic
-				gl::GetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
+				OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+					gl::GetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &max);
+				}, true);
 #endif
 			}
 			else
@@ -591,59 +589,59 @@ namespace RN
 	{
 		_parameter.format = format;
 		
-		Bind();
 		SetParameter(_parameter);
-		Unbind();
 	}
 	
 	Texture2D::Texture2D(const Parameter& parameter, bool isLinear) :
 		Texture(GL_TEXTURE_2D, isLinear)
 	{
-		Bind();
 		SetParameter(parameter);
-		Unbind();
 	}
 	
 	void Texture2D::SetSize(size_t width, size_t height)
 	{
-		Bind();
-		
-		GLint internalFormat;
-		GLenum type, format;
-		
 		_width  = width;
 		_height = height;
 		
 		_isComplete = true;
 		_hasChanged = true;
 		
-		ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
-		gl::TexImage2D(GL_TEXTURE_2D, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, nullptr);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			GLint internalFormat;
+			GLenum type, format;
+			
+			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
+			Bind();
+			
+			gl::TexImage2D(GL_TEXTURE_2D, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, nullptr);
 		
-		Unbind();
+			Update();
+		});
 	}
 	
 	void Texture2D::SetData(const PixelData& data)
 	{
-		GLint internalFormat;
-		GLenum type, format;
-		
 		_width  = data.width;
 		_height = data.height;
-		
-		
-		void *converted = ConvertData(data, _parameter.format);
-		ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
-		
-		Bind();
-		
-		gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
-		gl::TexImage2D(GL_TEXTURE_2D, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, converted);
 		
 		_isComplete = true;
 		_hasChanged = true;
 		
-		Unbind();
+		void *converted = ConvertData(data, _parameter.format);
+		
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			
+			GLint internalFormat;
+			GLenum type, format;
+			
+			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
+			Bind();
+		
+			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
+			gl::TexImage2D(GL_TEXTURE_2D, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, converted);
+		
+			Update();
+		}, true);
 		
 		if(converted != data.data)
 			free(converted);
@@ -656,20 +654,22 @@ namespace RN
 	
 	void Texture2D::UpdateRegion(const PixelData& data, const Rect& region)
 	{
-		GLint internalFormat;
-		GLenum type, format;
-		
 		void *converted = ConvertData(data, _parameter.format);
-		ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
-		
-		Bind();
-		
-		gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
-		gl::TexSubImage2D(GL_TEXTURE_2D, 0, region.x, region.y, region.width, region.height, format, type, converted);
 		
 		_hasChanged = true;
 		
-		Unbind();
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			GLint internalFormat;
+			GLenum type, format;
+				
+			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
+			Bind();
+		
+			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
+			gl::TexSubImage2D(GL_TEXTURE_2D, 0, region.x, region.y, region.width, region.height, format, type, converted);
+		
+			Update();
+		}, true);
 		
 		if(converted != data.data)
 			free(converted);
@@ -677,18 +677,18 @@ namespace RN
 	
 	void Texture2D::GetData(PixelData& data)
 	{
-		GLint internalFormat;
-		GLenum type, format;
-		
-		ConvertFormatToOpenGL(data.format, _isLinear, internalFormat, format, type);
-		
-		
-		Bind();
-		
-		gl::PixelStorei(GL_PACK_ALIGNMENT, static_cast<GLint>(data.alignment));
-		gl::GetTexImage(GL_TEXTURE_2D, 0, format, type, data.data);
-		
-		Unbind();
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			GLint internalFormat;
+			GLenum type, format;
+			
+			ConvertFormatToOpenGL(data.format, _isLinear, internalFormat, format, type);
+			Bind();
+			
+			gl::PixelStorei(GL_PACK_ALIGNMENT, static_cast<GLint>(data.alignment));
+			gl::GetTexImage(GL_TEXTURE_2D, 0, format, type, data.data);
+			
+			Update();
+		}, true);
 	}
 
 	
@@ -703,18 +703,14 @@ namespace RN
 	{
 		_parameter.format = format;
 		
-		Bind();
 		SetParameter(_parameter);
-		Unbind();
 	}
 	
 	Texture2DArray::Texture2DArray(const Parameter& parameter, bool isLinear) :
 		Texture(GL_TEXTURE_2D_ARRAY, isLinear),
 		_layer(1)
 	{
-		Bind();
 		SetParameter(parameter);
-		Unbind();
 	}
 	
 	void Texture2DArray::SetSize(size_t width, size_t height)
@@ -724,11 +720,6 @@ namespace RN
 	
 	void Texture2DArray::SetSize(size_t width, size_t height, size_t layer)
 	{
-		Bind();
-		
-		GLint internalFormat;
-		GLenum type, format;
-		
 		_width  = width;
 		_height = height;
 		_layer  = layer;
@@ -736,33 +727,41 @@ namespace RN
 		_isComplete = true;
 		_hasChanged = true;
 		
-		ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
-		gl::TexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), static_cast<GLint>(_layer), 0, format, type, nullptr);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			GLint internalFormat;
+			GLenum type, format;
+			
+			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
+			Bind();
+			
+			gl::TexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), static_cast<GLint>(_layer), 0, format, type, nullptr);
 		
-		Unbind();
+			Update();
+		});
 	}
 	
 	void Texture2DArray::SetData(const PixelData& data, size_t index)
 	{
-		GLint internalFormat;
-		GLenum type, format;
-		
 		_width  = data.width;
 		_height = data.height;
-		
-		
-		void *converted = ConvertData(data, _parameter.format);
-		ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
-		
-		Bind();
-		
-		gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
-		gl::TexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), static_cast<GLint>(index), 0, format, type, converted);
 		
 		_isComplete = true;
 		_hasChanged = true;
 		
-		Unbind();
+		void *converted = ConvertData(data, _parameter.format);
+		
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			GLint internalFormat;
+			GLenum type, format;
+			
+			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
+			Bind();
+			
+			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
+			gl::TexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), static_cast<GLint>(index), 0, format, type, converted);
+		
+			Update();
+		}, true);
 		
 		if(converted != data.data)
 			free(converted);
@@ -770,20 +769,22 @@ namespace RN
 	
 	void Texture2DArray::UpdateData(const PixelData& data, size_t index)
 	{
-		GLint internalFormat;
-		GLenum type, format;
-
-		void *converted = ConvertData(data, _parameter.format);
-		ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
-		
-		Bind();
-		
-		gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
-		gl::TexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, static_cast<GLint>(_width), static_cast<GLint>(_height), static_cast<GLint>(index), format, type, converted);
-		
 		_hasChanged = true;
 		
-		Unbind();
+		void *converted = ConvertData(data, _parameter.format);
+		
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			GLint internalFormat;
+			GLenum type, format;
+			
+			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
+			Bind();
+			
+			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
+			gl::TexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, static_cast<GLint>(_width), static_cast<GLint>(_height), static_cast<GLint>(index), format, type, converted);
+			
+			Update();
+		}, true);
 		
 		if(converted != data.data)
 			free(converted);
@@ -799,73 +800,71 @@ namespace RN
 	{
 		_parameter.format = format;
 		
-		Bind();
 		SetParameter(_parameter);
-		Unbind();
 	}
 	
 	TextureCubeMap::TextureCubeMap(const Parameter& parameter, bool isLinear) :
 		Texture(GL_TEXTURE_CUBE_MAP, isLinear)
 	{
-		Bind();
 		SetParameter(parameter);
-		Unbind();
 	}
 	
 	void TextureCubeMap::SetSize(size_t width, size_t height)
 	{
-		Bind();
-		
-		GLint internalFormat;
-		GLenum type, format;
-		
 		_width  = width;
 		_height = height;
 		
 		_isComplete = true;
 		_hasChanged = true;
 		
-		ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			
+			GLint internalFormat;
+			GLenum type, format;
 		
-		for(int i = 0; i < 6; i ++)
-			gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, nullptr);
-		
-		Unbind();
+			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
+			Bind();
+			
+			for(int i = 0; i < 6; i ++)
+				gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, nullptr);
+			
+			Update();
+		});
 	}
 	
 	void TextureCubeMap::SetData(const PixelData& data, Side side)
 	{
-		GLint internalFormat;
-		GLenum type, format;
-		
 		_width  = data.width;
 		_height = data.height;
-		
-		
-		void *converted = ConvertData(data, _parameter.format);
-		ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
-		
-		Bind();
-		
-		gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
-		
-		switch(side)
-		{
-			case Side::All:
-
-				for(int i = 0; i < 6; i ++)
-					gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, converted);
-				break;
-				
-			default:
-				gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<int>(side), 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, converted);
-				break;
-		}
 		
 		_isComplete = true;
 		_hasChanged = true;
 		
-		Unbind();
+		void *converted = ConvertData(data, _parameter.format);
+		
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			GLint internalFormat;
+			GLenum type, format;
+			
+			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
+			
+			Bind();
+			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
+			
+			switch(side)
+			{
+				case Side::All:
+					for(int i = 0; i < 6; i ++)
+						gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, converted);
+					break;
+					
+				default:
+					gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<int>(side), 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, converted);
+					break;
+			}
+			
+			Update();
+		}, true);
 		
 		if(converted != data.data)
 			free(converted);
@@ -873,32 +872,35 @@ namespace RN
 	
 	void TextureCubeMap::UpdateData(const PixelData& data, Side side)
 	{
-		GLint internalFormat;
-		GLenum type, format;
-		
-		void *converted = ConvertData(data, _parameter.format);
-		ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
-		
-		Bind();
-		
-		gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
-		
-		switch(side)
-		{
-			case Side::All:
-				for(int i = 0; i < 6; i ++)
-						gl::TexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, static_cast<GLint>(_width), static_cast<GLint>(_height), format, type, converted);
-				break;
-				
-			default:
-				gl::TexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<int>(side), 0, 0, 0, static_cast<GLint>(_width), static_cast<GLint>(_height), format, type, converted);
-				break;
-		}
-		
 		_isComplete = true;
 		_hasChanged = true;
 		
-		Unbind();
+		void *converted = ConvertData(data, _parameter.format);
+		
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			
+			GLint internalFormat;
+			GLenum type, format;
+		
+			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
+			Bind();
+			
+			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
+			
+			switch(side)
+			{
+				case Side::All:
+					for(int i = 0; i < 6; i ++)
+							gl::TexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, static_cast<GLint>(_width), static_cast<GLint>(_height), format, type, converted);
+					break;
+					
+				default:
+					gl::TexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<int>(side), 0, 0, 0, static_cast<GLint>(_width), static_cast<GLint>(_height), format, type, converted);
+					break;
+			}
+			
+			Update();
+		}, true);
 		
 		if(converted != data.data)
 			free(converted);

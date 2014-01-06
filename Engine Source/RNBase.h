@@ -253,5 +253,7 @@ namespace RN
 		std::unique_ptr<T> _ptr;
 	};
 }
-
+	
+#include "RNOpenGLQueue.h"
+	
 #endif /* __RAYNE_BASE_H__ */

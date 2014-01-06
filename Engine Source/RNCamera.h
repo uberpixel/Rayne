@@ -206,8 +206,6 @@ namespace RN
 		
 		RNAPI virtual ~Camera();
 		
-		RNAPI void Bind();
-		RNAPI void Unbind();
 		RNAPI void PrepareForRendering(Renderer *renderer);
 		
 		RNAPI void SetFrame(const Rect& frame);

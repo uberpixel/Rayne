@@ -98,8 +98,6 @@ namespace RN
 
 		current ? [current makeCurrentContext] : [NSOpenGLContext clearCurrentContext];
 		
-		CGLEnable(static_cast<CGLContextObj>([context CGLContextObj]), kCGLCEMPEngine);
-		
 		*outContext = context;
 		*outFormat  = format;
 	}

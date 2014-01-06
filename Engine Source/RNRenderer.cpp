@@ -59,18 +59,23 @@ namespace RN
 		_polygonOffsetFactor = 0.0f;
 		_polygonOffsetUnits  = 0.0f;
 		
-		gl::Disable(GL_CULL_FACE);
-		gl::Disable(GL_DEPTH_TEST);
-		gl::Disable(GL_BLEND);
-		gl::Disable(GL_POLYGON_OFFSET_FILL);
-		gl::DepthMask(GL_FALSE);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			gl::GetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, (GLint *)&_maxTextureUnits);
+		}, true);
 		
-		gl::FrontFace(_cullMode);
-		gl::DepthFunc(_depthFunc);
-		gl::BlendFunc(_blendSource, _blendDestination);
-		gl::PolygonOffset(_polygonOffsetFactor, _polygonOffsetUnits);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			gl::Disable(GL_CULL_FACE);
+			gl::Disable(GL_DEPTH_TEST);
+			gl::Disable(GL_BLEND);
+			gl::Disable(GL_POLYGON_OFFSET_FILL);
+			gl::DepthMask(GL_FALSE);
+			
+			gl::FrontFace(_cullMode);
+			gl::DepthFunc(_depthFunc);
+			gl::BlendFunc(_blendSource, _blendDestination);
+			gl::PolygonOffset(_polygonOffsetFactor, _polygonOffsetUnits);
+		});
 		
-		gl::GetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, (GLint *)&_maxTextureUnits); RN_CHECKOPENGL();
 		_textureUnit     = 0;
 		_gammaCorrection = Settings::GetSharedInstance()->GetBoolForKey(kRNSettingsGammaCorrectionKey);
 		
@@ -192,10 +197,13 @@ namespace RN
 			if(std::get<1>(i->first) == mesh)
 			{
 				GLuint vao = std::get<0>(i->second);
-				if(vao == _currentVAO)
-					BindVAO(0);
 				
-				gl::DeleteVertexArrays(1, &vao);
+				OpenGLQueue::GetSharedInstance()->SubmitCommand([this, vao] {
+					if(vao == _currentVAO)
+						BindVAO(0);
+					
+					gl::DeleteVertexArrays(1, &vao);
+				});
 				
 				i = _autoVAOs.erase(i);
 				continue;
@@ -212,10 +220,13 @@ namespace RN
 			if(std::get<0>(i->first) == program)
 			{
 				GLuint vao = std::get<0>(i->second);
-				if(vao == _currentVAO)
-					BindVAO(0);
 				
-				gl::DeleteVertexArrays(1, &vao);
+				OpenGLQueue::GetSharedInstance()->SubmitCommand([this, vao] {
+					if(vao == _currentVAO)
+						BindVAO(0);
+					
+					gl::DeleteVertexArrays(1, &vao);
+				});
 				
 				i = _autoVAOs.erase(i);
 				continue;
@@ -248,103 +259,105 @@ namespace RN
 			GLuint vbo = mesh->GetVBO();
 			GLuint ibo = mesh->GetIBO();
 			
-			gl::GenVertexArrays(1, &vao);
-			gl::BindVertexArray(vao);
-			
-			gl::BindBuffer(GL_ARRAY_BUFFER, vbo);
-			
-			if(mesh->SupportsFeature(kMeshFeatureIndices))
-				gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-			
-			// Vertices
-			if(shader->attPosition != -1 && mesh->SupportsFeature(kMeshFeatureVertices))
-			{
-				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureVertices);
-				size_t offset = descriptor->offset;
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+				gl::GenVertexArrays(1, &vao);
+				gl::BindVertexArray(vao);
 				
-				gl::EnableVertexAttribArray(shader->attPosition);
-				gl::VertexAttribPointer(shader->attPosition, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
-			}
-			
-			// Normals
-			if(shader->attNormal != -1 && mesh->SupportsFeature(kMeshFeatureNormals))
-			{
-				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureNormals);
-				size_t offset = descriptor->offset;
+				gl::BindBuffer(GL_ARRAY_BUFFER, vbo);
 				
-				gl::EnableVertexAttribArray(shader->attNormal);
-				gl::VertexAttribPointer(shader->attNormal, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
-			}
-			
-			// Tangents
-			if(shader->attTangent != -1 && mesh->SupportsFeature(kMeshFeatureTangents))
-			{
-				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureTangents);
-				size_t offset = descriptor->offset;
+				if(mesh->SupportsFeature(kMeshFeatureIndices))
+					gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 				
-				gl::EnableVertexAttribArray(shader->attTangent);
-				gl::VertexAttribPointer(shader->attTangent, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
-			}
-			
-			// Texcoord0
-			if(shader->attTexcoord0 != -1 && mesh->SupportsFeature(kMeshFeatureUVSet0))
-			{
-				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureUVSet0);
-				size_t offset = descriptor->offset;
+				// Vertices
+				if(shader->attPosition != -1 && mesh->SupportsFeature(kMeshFeatureVertices))
+				{
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureVertices);
+					size_t offset = descriptor->offset;
+					
+					gl::EnableVertexAttribArray(shader->attPosition);
+					gl::VertexAttribPointer(shader->attPosition, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				}
 				
-				gl::EnableVertexAttribArray(shader->attTexcoord0);
-				gl::VertexAttribPointer(shader->attTexcoord0, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
-			}
-			
-			// Texcoord1
-			if(shader->attTexcoord1 != -1 && mesh->SupportsFeature(kMeshFeatureUVSet1))
-			{
-				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureUVSet1);
-				size_t offset = descriptor->offset;
+				// Normals
+				if(shader->attNormal != -1 && mesh->SupportsFeature(kMeshFeatureNormals))
+				{
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureNormals);
+					size_t offset = descriptor->offset;
+					
+					gl::EnableVertexAttribArray(shader->attNormal);
+					gl::VertexAttribPointer(shader->attNormal, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				}
 				
-				gl::EnableVertexAttribArray(shader->attTexcoord1);
-				gl::VertexAttribPointer(shader->attTexcoord1, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
-			}
-			
-			// Color0
-			if(shader->attColor0 != -1 && mesh->SupportsFeature(kMeshFeatureColor0))
-			{
-				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureColor0);
-				size_t offset = descriptor->offset;
+				// Tangents
+				if(shader->attTangent != -1 && mesh->SupportsFeature(kMeshFeatureTangents))
+				{
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureTangents);
+					size_t offset = descriptor->offset;
+					
+					gl::EnableVertexAttribArray(shader->attTangent);
+					gl::VertexAttribPointer(shader->attTangent, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				}
 				
-				gl::EnableVertexAttribArray(shader->attColor0);
-				gl::VertexAttribPointer(shader->attColor0, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
-			}
-			
-			// Color1
-			if(shader->attColor1 != -1 && mesh->SupportsFeature(kMeshFeatureColor1))
-			{
-				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureColor1);
-				size_t offset = descriptor->offset;
+				// Texcoord0
+				if(shader->attTexcoord0 != -1 && mesh->SupportsFeature(kMeshFeatureUVSet0))
+				{
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureUVSet0);
+					size_t offset = descriptor->offset;
+					
+					gl::EnableVertexAttribArray(shader->attTexcoord0);
+					gl::VertexAttribPointer(shader->attTexcoord0, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				}
 				
-				gl::EnableVertexAttribArray(shader->attColor1);
-				gl::VertexAttribPointer(shader->attColor1, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
-			}
-			
-			// Bone Weights
-			if(shader->attBoneWeights != -1 && mesh->SupportsFeature(kMeshFeatureBoneWeights))
-			{
-				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureBoneWeights);
-				size_t offset = descriptor->offset;
+				// Texcoord1
+				if(shader->attTexcoord1 != -1 && mesh->SupportsFeature(kMeshFeatureUVSet1))
+				{
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureUVSet1);
+					size_t offset = descriptor->offset;
+					
+					gl::EnableVertexAttribArray(shader->attTexcoord1);
+					gl::VertexAttribPointer(shader->attTexcoord1, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				}
 				
-				gl::EnableVertexAttribArray(shader->attBoneWeights);
-				gl::VertexAttribPointer(shader->attBoneWeights, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
-			}
-			
-			// Bone Indices
-			if(shader->attBoneIndices != -1 && mesh->SupportsFeature(kMeshFeatureBoneIndices))
-			{
-				const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureBoneIndices);
-				size_t offset = descriptor->offset;
+				// Color0
+				if(shader->attColor0 != -1 && mesh->SupportsFeature(kMeshFeatureColor0))
+				{
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureColor0);
+					size_t offset = descriptor->offset;
+					
+					gl::EnableVertexAttribArray(shader->attColor0);
+					gl::VertexAttribPointer(shader->attColor0, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				}
 				
-				gl::EnableVertexAttribArray(shader->attBoneIndices);
-				gl::VertexAttribPointer(shader->attBoneIndices, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
-			}
+				// Color1
+				if(shader->attColor1 != -1 && mesh->SupportsFeature(kMeshFeatureColor1))
+				{
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureColor1);
+					size_t offset = descriptor->offset;
+					
+					gl::EnableVertexAttribArray(shader->attColor1);
+					gl::VertexAttribPointer(shader->attColor1, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				}
+				
+				// Bone Weights
+				if(shader->attBoneWeights != -1 && mesh->SupportsFeature(kMeshFeatureBoneWeights))
+				{
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureBoneWeights);
+					size_t offset = descriptor->offset;
+					
+					gl::EnableVertexAttribArray(shader->attBoneWeights);
+					gl::VertexAttribPointer(shader->attBoneWeights, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				}
+				
+				// Bone Indices
+				if(shader->attBoneIndices != -1 && mesh->SupportsFeature(kMeshFeatureBoneIndices))
+				{
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureBoneIndices);
+					size_t offset = descriptor->offset;
+					
+					gl::EnableVertexAttribArray(shader->attBoneIndices);
+					gl::VertexAttribPointer(shader->attBoneIndices, (GLsizei)descriptor->elementMember, GL_FLOAT, GL_FALSE, (GLsizei)mesh->GetStride(), (const void *)offset);
+				}
+			}, true);
 			
 			_autoVAOs[tuple] = std::tuple<GLuint, uint32>(vao, 0);
 			_currentVAO = vao;
@@ -448,6 +461,12 @@ namespace RN
 			
 			if((++ age) > kRNRendererMaxVAOAge)
 			{
+				GLuint vao = std::get<1>(i->second);
+				
+				OpenGLQueue::GetSharedInstance()->SubmitCommand([vao] {
+					gl::DeleteVertexArrays(1, &vao);
+				});
+				
 				i = _autoVAOs.erase(i);
 				continue;
 			}
@@ -460,39 +479,49 @@ namespace RN
 	{
 		if(!_hasValidFramebuffer)
 		{
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			
+				gl::BindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
+				
+				if(gl::CheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+				{
+					_flushCameras.clear();
+					_flushedCameras.clear();
+					
+					_debugFrameUI.clear();
+					_debugFrameWorld.clear();
+					
+					RNDebug("Skipping frame while waiting for complete FBO to arrive");
+					return;
+				}
+				
+				_hasValidFramebuffer = true;
+			}, true);
+			
+			if(!_hasValidFramebuffer)
+				return;
+		}
+		
+		std::vector<std::pair<Camera *, Shader *>> cameras;
+		std::swap(cameras, _flushCameras);
+		
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this, cameras] {
+			SetScissorEnabled(false);
+			
 			gl::BindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
 			
-			if(gl::CheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+			gl::Viewport(0, 0, _defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor);
+			gl::Clear(GL_COLOR_BUFFER_BIT);
+			
+			for(auto iterator = cameras.begin(); iterator != cameras.end(); iterator++)
 			{
-				_flushCameras.clear();
-				_flushedCameras.clear();
+				Camera *camera = iterator->first;
+				Shader *shader = iterator->second;
 				
-				_debugFrameUI.clear();
-				_debugFrameWorld.clear();
-				
-				RNDebug("Skipping frame while waiting for complete FBO to arrive");
-				return;
+				FlushCamera(camera, shader);
 			}
-			
-			_hasValidFramebuffer = true;
-		}
+		});
 		
-		SetScissorEnabled(false);
-		
-		gl::BindFramebuffer(GL_FRAMEBUFFER, _defaultFBO);
-		
-		gl::Viewport(0, 0, _defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor);
-		gl::Clear(GL_COLOR_BUFFER_BIT);
-		
-		for(auto iterator=_flushCameras.begin(); iterator!=_flushCameras.end(); iterator++)
-		{
-			Camera *camera = iterator->first;
-			Shader *shader = iterator->second;
-			
-			FlushCamera(camera, shader);
-		}
-		
-		_flushCameras.clear();
 		_flushedCameras.clear();
 		
 		_debugFrameUI.clear();

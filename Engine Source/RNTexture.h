@@ -101,9 +101,6 @@ namespace RN
 		RNAPI static Texture *WithFile(const std::string& name, bool isLinear = false);
 		RNAPI static Texture *WithFile(const std::string& name, const Parameter& parameter, bool isLinear = false);
 		
-		RNAPI void Bind();
-		RNAPI void Unbind();
-		
 		RNAPI virtual void SetSize(size_t width, size_t height);
 		RNAPI void SetParameter(const Parameter& parameter);
 		
@@ -125,6 +122,8 @@ namespace RN
 		
 	protected:
 		RNAPI Texture(GLenum type, bool isLinear);
+		RNAPI void Bind();
+		RNAPI void Update();
 		
 		RNAPI static void *ConvertData(const PixelData& data, Format target);
 		RNAPI static void ConvertFormatToOpenGL(Format format, bool linear, GLint& glInternalFormat, GLenum& glFormat, GLenum& glType);

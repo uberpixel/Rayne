@@ -108,45 +108,49 @@ namespace RN
 	
 	void Renderer32::FlushCamera(Camera *camera, Shader *drawShader)
 	{
-		Renderer::FlushCamera(camera, drawShader);
-		
-		BindVAO(_copyVAO);
-		gl::BindBuffer(GL_ARRAY_BUFFER, _copyVBO);
-		
-		AdjustDrawBuffer(camera, nullptr);
-		
-		gl::EnableVertexAttribArray(_currentProgram->attPosition);
-		gl::VertexAttribPointer(_currentProgram->attPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
-		
-		gl::EnableVertexAttribArray(_currentProgram->attTexcoord0);
-		gl::VertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
-		
-		
-		gl::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		
-		gl::DisableVertexAttribArray(_currentProgram->attPosition);
-		gl::DisableVertexAttribArray(_currentProgram->attTexcoord0);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([=] {
+			Renderer::FlushCamera(camera, drawShader);
+			
+			BindVAO(_copyVAO);
+			gl::BindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+			
+			AdjustDrawBuffer(camera, nullptr);
+			
+			gl::EnableVertexAttribArray(_currentProgram->attPosition);
+			gl::VertexAttribPointer(_currentProgram->attPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
+			
+			gl::EnableVertexAttribArray(_currentProgram->attTexcoord0);
+			gl::VertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
+			
+			
+			gl::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			
+			gl::DisableVertexAttribArray(_currentProgram->attPosition);
+			gl::DisableVertexAttribArray(_currentProgram->attTexcoord0);
+		});
 	}
 	
 	void Renderer32::DrawCameraStage(Camera *camera, Camera *stage)
 	{
-		Renderer::DrawCameraStage(camera, stage);
-		
-		BindVAO(_copyVAO);
-		gl::BindBuffer(GL_ARRAY_BUFFER, _copyVBO);
-		
-		AdjustDrawBuffer(camera, stage);
-		
-		gl::EnableVertexAttribArray(_currentProgram->attPosition);
-		gl::VertexAttribPointer(_currentProgram->attPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
-		
-		gl::EnableVertexAttribArray(_currentProgram->attTexcoord0);
-		gl::VertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
-		
-		gl::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-		
-		gl::DisableVertexAttribArray(_currentProgram->attPosition);
-		gl::DisableVertexAttribArray(_currentProgram->attTexcoord0);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([=] {
+			Renderer::DrawCameraStage(camera, stage);
+			
+			BindVAO(_copyVAO);
+			gl::BindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+			
+			AdjustDrawBuffer(camera, stage);
+			
+			gl::EnableVertexAttribArray(_currentProgram->attPosition);
+			gl::VertexAttribPointer(_currentProgram->attPosition,  2, GL_FLOAT, GL_FALSE, 16, (const void *)0);
+			
+			gl::EnableVertexAttribArray(_currentProgram->attTexcoord0);
+			gl::VertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
+			
+			gl::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+			
+			gl::DisableVertexAttribArray(_currentProgram->attPosition);
+			gl::DisableVertexAttribArray(_currentProgram->attTexcoord0);
+		});
 	}
 	
 	// ---------------------
@@ -156,241 +160,239 @@ namespace RN
 	
 	void Renderer32::DrawCamera(Camera *camera, Camera *source, size_t skyCubeMeshes)
 	{
-		Renderer::DrawCamera(camera, source, skyCubeMeshes);
-		
-		bool changedCamera = true;
-		bool changedShader;
-		bool changedMaterial;
-		
-		SetDepthWriteEnabled(true);
-		
-		camera->Bind();
-		camera->PrepareForRendering(this);
-		
-		if(_currentMaterial)
-			SetDepthWriteEnabled(_currentMaterial->depthwrite);
-		
-		bool wantsFog = _currentCamera->usefog;
-		bool wantsClipPlane = _currentCamera->useclipplane;
-		
-		Matrix identityMatrix;
-		
-		if(!source && !(camera->GetFlags() & Camera::FlagNoRender))
-		{
-			Material *surfaceMaterial = camera->GetMaterial();
-			LightManager *lightManager = camera->lightManager;
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			Renderer::DrawCamera(camera, source, skyCubeMeshes);
 			
-			size_t lightDirectionalCount = 0;
-			size_t lightPointSpotCount = 0;
+			bool changedCamera = true;
+			bool changedShader;
+			bool changedMaterial;
 			
-			if(lightManager)
+			SetDepthWriteEnabled(true);
+			camera->PrepareForRendering(this);
+			
+			if(_currentMaterial)
+				SetDepthWriteEnabled(_currentMaterial->depthwrite);
+			
+			bool wantsFog = _currentCamera->usefog;
+			bool wantsClipPlane = _currentCamera->useclipplane;
+			
+			Matrix identityMatrix;
+			
+			if(!source && !(camera->GetFlags() & Camera::FlagNoRender))
 			{
-				lightPointSpotCount   = lightManager->CreatePointSpotLightLists(camera);
-				lightDirectionalCount = lightManager->CreateDirectionalLightList(camera);
+				Material *surfaceMaterial = camera->GetMaterial();
+				LightManager *lightManager = camera->lightManager;
 				
-				_renderedLights += lightDirectionalCount + lightPointSpotCount;
-			}
-			
-			// Update the shader
-			const Matrix& projectionMatrix = camera->projectionMatrix;
-			const Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix;
-			
-			const Matrix& viewMatrix = camera->viewMatrix;
-			const Matrix& inverseViewMatrix = camera->inverseViewMatrix;
-			
-			Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
-			Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
-			
-			size_t objectsCount = _frame.size();
-			size_t i = (camera->GetFlags() & Camera::FlagNoSky) ? skyCubeMeshes : 0;
-			
-			for(; i<objectsCount; i++)
-			{
-				RenderingObject& object = _frame[i];
-				if(object.prepare)
-					object.prepare(this, object);
+				size_t lightDirectionalCount = 0;
+				size_t lightPointSpotCount = 0;
 				
-				SetScissorEnabled(object.flags & RenderingObject::ScissorTest);
-				
-				if(_scissorTest)
-					SetScissorRect(object.scissorRect);
-				
-				Mesh     *mesh = object.mesh;
-				Material *material = object.material;
-				Shader   *shader = surfaceMaterial ? surfaceMaterial->GetShader() : material->GetShader();
-				
-				Matrix& transform = object.transform ? *object.transform : identityMatrix;
-				Matrix inverseTransform = transform.GetInverse();
-				
-				// Check if we can use instancing here
-				bool wantsInstancing = (object.type == RenderingObject::Type::Instanced);
-				if(wantsInstancing)
+				if(lightManager)
 				{
-					if(!shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
-						continue;
+					lightPointSpotCount   = lightManager->CreatePointSpotLightLists(camera);
+					lightDirectionalCount = lightManager->CreateDirectionalLightList(camera);
+					
+					_renderedLights += lightDirectionalCount + lightPointSpotCount;
 				}
 				
-				// Grab the correct shader program
-				std::vector<ShaderDefine> defines;
-				ShaderLookup lookup = material->GetLookup();
+				// Update the shader
+				const Matrix& projectionMatrix = camera->projectionMatrix;
+				const Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix;
 				
-				uint32 programTypes = 0;
-				ShaderProgram *program = 0;
+				const Matrix& viewMatrix = camera->viewMatrix;
+				const Matrix& inverseViewMatrix = camera->inverseViewMatrix;
 				
-				bool wantsDiscard = material->discard;
-				if(surfaceMaterial && !(material->override & Material::OverrideDiscard))
-					wantsDiscard = surfaceMaterial->discard;
+				Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
+				Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
 				
-				if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
-					programTypes |= ShaderProgram::TypeAnimated;
+				size_t objectsCount = _frame.size();
+				size_t i = (camera->GetFlags() & Camera::FlagNoSky) ? skyCubeMeshes : 0;
 				
-				bool wantsLighting = (material->lighting && lightManager && shader->SupportsProgramOfType(ShaderProgram::TypeLighting));
-				
-				// The surface material can only override lighting if the shader supports lighting
-				if(wantsLighting && surfaceMaterial)
-					wantsLighting = surfaceMaterial->lighting;
-				
-				if(wantsLighting)
+				for(; i<objectsCount; i++)
 				{
-					programTypes |= ShaderProgram::TypeLighting;
-					lightManager->AdjustProgramTypes(programTypes);
+					RenderingObject& object = _frame[i];
+					if(object.prepare)
+						object.prepare(this, object);
 					
-					lookup.lightDirectionalCount = lightDirectionalCount;
+					SetScissorEnabled(object.flags & RenderingObject::ScissorTest);
 					
-					//TODO: fix
-					if(lightPointSpotCount > 0)
-						lookup.lightPointSpotCount = 1;//lightPointSpotCount;
-				}
-				
-				if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::TypeFog))
-					programTypes |= ShaderProgram::TypeFog;
-				
-				if(wantsClipPlane && shader->SupportsProgramOfType(ShaderProgram::TypeClipPlane))
-					programTypes |= ShaderProgram::TypeClipPlane;
-				
-				if(wantsInstancing)
-					programTypes |= ShaderProgram::TypeInstanced;
-				
-				if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
-					programTypes |= ShaderProgram::TypeDiscard;
-				
-				if(material->GetTextures().GetCount() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDiffuse))
-					programTypes |= ShaderProgram::TypeDiffuse;
-				
-				if(surfaceMaterial)
-				{
-					lookup = lookup + surfaceMaterial->GetLookup();
-					lookup.type |= programTypes;
+					if(_scissorTest)
+						SetScissorRect(object.scissorRect);
 					
-					program = shader->GetProgramWithLookup(lookup);
-				}
-				else
-				{
-					lookup.type |= programTypes;
-					program = shader->GetProgramWithLookup(lookup);
-				}
-				
-				RN_ASSERT(program, "");
-				
-				changedShader   = (_currentProgram != program);
-				changedMaterial = (_currentMaterial != material);
-				
-				BindMaterial(material, program);
-				
-				// Update the shader data
-				if(changedShader || changedCamera)
-				{
-					UpdateShaderData();
-					changedCamera = false;
-				}
-				
-				if(changedShader || changedMaterial)
-				{
-					if(wantsLighting)
-						lightManager->Bind(this, camera, program);
+					Mesh     *mesh = object.mesh;
+					Material *material = object.material;
+					Shader   *shader = surfaceMaterial ? surfaceMaterial->GetShader() : material->GetShader();
 					
-					gl::Uniform4fv(program->ambient, 1, &material->ambient->r);
-					gl::Uniform4fv(program->diffuse, 1, &material->diffuse->r);
-					gl::Uniform4fv(program->emissive, 1, &material->emissive->r);
-					gl::Uniform4fv(program->specular, 1, &material->specular->r);
+					Matrix& transform = object.transform ? *object.transform : identityMatrix;
+					Matrix inverseTransform = transform.GetInverse();
 					
-					if(program->discardThreshold != -1)
+					// Check if we can use instancing here
+					bool wantsInstancing = (object.type == RenderingObject::Type::Instanced);
+					if(wantsInstancing)
 					{
-						float threshold = material->discardThreshold;
-						
-						if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
-							threshold = surfaceMaterial->discardThreshold;
-						
-						gl::Uniform1f(program->discardThreshold, threshold);
+						if(!shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
+							continue;
 					}
 					
-					material->ApplyUniforms(program);
-				}
-				
-				if(wantsInstancing)
-				{
-					DrawMeshInstanced(object);
-					continue;
-				}
-				
-				// More updates
-				if(object.skeleton)
-				{
-					const float *data = reinterpret_cast<const float *>(object.skeleton->GetMatrices().data());
-					gl::UniformMatrix4fv(program->matBones, object.skeleton->GetBoneCount(), GL_FALSE, data);
-				}
-				
-				gl::UniformMatrix4fv(program->matModel, 1, GL_FALSE, transform.m);
-				gl::UniformMatrix4fv(program->matModelInverse, 1, GL_FALSE, inverseTransform.m);
-				
-				if(object.rotation)
-				{
-					if(program->matNormal != -1)
-						gl::UniformMatrix4fv(program->matNormal, 1, GL_FALSE, object.rotation->GetRotationMatrix().m);
+					// Grab the correct shader program
+					std::vector<ShaderDefine> defines;
+					ShaderLookup lookup = material->GetLookup();
 					
-					if(program->matNormalInverse != -1)
-						gl::UniformMatrix4fv(program->matNormalInverse, 1, GL_FALSE, object.rotation->GetRotationMatrix().GetInverse().m);
+					uint32 programTypes = 0;
+					ShaderProgram *program = 0;
+					
+					bool wantsDiscard = material->discard;
+					if(surfaceMaterial && !(material->override & Material::OverrideDiscard))
+						wantsDiscard = surfaceMaterial->discard;
+					
+					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
+						programTypes |= ShaderProgram::TypeAnimated;
+					
+					bool wantsLighting = (material->lighting && lightManager && shader->SupportsProgramOfType(ShaderProgram::TypeLighting));
+					
+					// The surface material can only override lighting if the shader supports lighting
+					if(wantsLighting && surfaceMaterial)
+						wantsLighting = surfaceMaterial->lighting;
+					
+					if(wantsLighting)
+					{
+						programTypes |= ShaderProgram::TypeLighting;
+						lightManager->AdjustProgramTypes(programTypes);
+						
+						lookup.lightDirectionalCount = lightDirectionalCount;
+						
+						//TODO: fix
+						if(lightPointSpotCount > 0)
+							lookup.lightPointSpotCount = 1;//lightPointSpotCount;
+					}
+					
+					if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::TypeFog))
+						programTypes |= ShaderProgram::TypeFog;
+					
+					if(wantsClipPlane && shader->SupportsProgramOfType(ShaderProgram::TypeClipPlane))
+						programTypes |= ShaderProgram::TypeClipPlane;
+					
+					if(wantsInstancing)
+						programTypes |= ShaderProgram::TypeInstanced;
+					
+					if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
+						programTypes |= ShaderProgram::TypeDiscard;
+					
+					if(material->GetTextures().GetCount() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDiffuse))
+						programTypes |= ShaderProgram::TypeDiffuse;
+					
+					if(surfaceMaterial)
+					{
+						lookup = lookup + surfaceMaterial->GetLookup();
+						lookup.type |= programTypes;
+						
+						program = shader->GetProgramWithLookup(lookup);
+					}
+					else
+					{
+						lookup.type |= programTypes;
+						program = shader->GetProgramWithLookup(lookup);
+					}
+					
+					RN_ASSERT(program, "");
+					
+					changedShader   = (_currentProgram != program);
+					changedMaterial = (_currentMaterial != material);
+					
+					BindMaterial(material, program);
+					
+					// Update the shader data
+					if(changedShader || changedCamera)
+					{
+						UpdateShaderData();
+						changedCamera = false;
+					}
+					
+					if(changedShader || changedMaterial)
+					{
+						if(wantsLighting)
+							lightManager->Bind(this, camera, program);
+						
+						gl::Uniform4fv(program->ambient, 1, &material->ambient->r);
+						gl::Uniform4fv(program->diffuse, 1, &material->diffuse->r);
+						gl::Uniform4fv(program->emissive, 1, &material->emissive->r);
+						gl::Uniform4fv(program->specular, 1, &material->specular->r);
+						
+						if(program->discardThreshold != -1)
+						{
+							float threshold = material->discardThreshold;
+							
+							if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
+								threshold = surfaceMaterial->discardThreshold;
+							
+							gl::Uniform1f(program->discardThreshold, threshold);
+						}
+						
+						material->ApplyUniforms(program);
+					}
+					
+					if(wantsInstancing)
+					{
+						DrawMeshInstanced(object);
+						continue;
+					}
+					
+					// More updates
+					if(object.skeleton)
+					{
+						const float *data = reinterpret_cast<const float *>(object.skeleton->GetMatrices().data());
+						gl::UniformMatrix4fv(program->matBones, object.skeleton->GetBoneCount(), GL_FALSE, data);
+					}
+					
+					gl::UniformMatrix4fv(program->matModel, 1, GL_FALSE, transform.m);
+					gl::UniformMatrix4fv(program->matModelInverse, 1, GL_FALSE, inverseTransform.m);
+					
+					if(object.rotation)
+					{
+						if(program->matNormal != -1)
+							gl::UniformMatrix4fv(program->matNormal, 1, GL_FALSE, object.rotation->GetRotationMatrix().m);
+						
+						if(program->matNormalInverse != -1)
+							gl::UniformMatrix4fv(program->matNormalInverse, 1, GL_FALSE, object.rotation->GetRotationMatrix().GetInverse().m);
+					}
+					
+					if(program->matViewModel != -1)
+					{
+						Matrix viewModel = viewMatrix * transform;
+						gl::UniformMatrix4fv(program->matViewModel, 1, GL_FALSE, viewModel.m);
+					}
+					
+					if(program->matViewModelInverse != -1)
+					{
+						Matrix viewModel = inverseViewMatrix * inverseTransform;
+						gl::UniformMatrix4fv(program->matViewModelInverse, 1, GL_FALSE, viewModel.m);
+					}
+					
+					if(program->matProjViewModel != -1)
+					{
+						Matrix projViewModel = projectionViewMatrix * transform;
+						gl::UniformMatrix4fv(program->matProjViewModel, 1, GL_FALSE, projViewModel.m);
+					}
+					
+					if(program->matProjViewModelInverse != -1)
+					{
+						Matrix projViewModelInverse = inverseProjectionViewMatrix * inverseTransform;
+						gl::UniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
+					}
+					
+					if(RN_EXPECT_FALSE(object.type == RenderingObject::Type::Custom))
+					{
+						object.callback(this, object);
+						continue;
+					}
+					
+					DrawMesh(mesh, object.offset, object.count);
 				}
-				
-				if(program->matViewModel != -1)
-				{
-					Matrix viewModel = viewMatrix * transform;
-					gl::UniformMatrix4fv(program->matViewModel, 1, GL_FALSE, viewModel.m);
-				}
-				
-				if(program->matViewModelInverse != -1)
-				{
-					Matrix viewModel = inverseViewMatrix * inverseTransform;
-					gl::UniformMatrix4fv(program->matViewModelInverse, 1, GL_FALSE, viewModel.m);
-				}
-				
-				if(program->matProjViewModel != -1)
-				{
-					Matrix projViewModel = projectionViewMatrix * transform;
-					gl::UniformMatrix4fv(program->matProjViewModel, 1, GL_FALSE, projViewModel.m);
-				}
-				
-				if(program->matProjViewModelInverse != -1)
-				{
-					Matrix projViewModelInverse = inverseProjectionViewMatrix * inverseTransform;
-					gl::UniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
-				}
-				
-				if(RN_EXPECT_FALSE(object.type == RenderingObject::Type::Custom))
-				{
-					object.callback(this, object);
-					continue;
-				}
-				
-				DrawMesh(mesh, object.offset, object.count);
 			}
-		}
-		else if(source)
-		{
-			DrawCameraStage(source, camera);
-		}
-		
-		camera->Unbind();
+			else if(source)
+			{
+				DrawCameraStage(source, camera);
+			}
+		}, true);
 	}
 	
 	void Renderer32::DrawMesh(Mesh *mesh, uint32 offset, uint32 count)
@@ -487,12 +489,14 @@ namespace RN
 	{
 		if(!_hasValidFramebuffer)
 		{
-			gl::GenVertexArrays(1, &_copyVAO);
-			gl::BindVertexArray(_copyVAO);
-			gl::BindBuffer(GL_ARRAY_BUFFER, _copyVBO);
-			gl::BindVertexArray(0);
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+				gl::GenVertexArrays(1, &_copyVAO);
+				gl::BindVertexArray(_copyVAO);
+				gl::BindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+				gl::BindVertexArray(0);
 
-			FlushAutoVAOs();
+				FlushAutoVAOs();
+			});
 		}
 
 		Renderer::BeginFrame(delta);

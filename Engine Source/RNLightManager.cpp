@@ -34,37 +34,41 @@ namespace RN
 		_lightPointDataSize = 0;
 		_lightSpotDataSize = 0;
 		
-		gl::GenTextures(4, _lightTextures);
-		gl::GenBuffers(4, _lightBuffers);
-		
-		// light offsets and counts
-		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListOffsetCount]);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListOffsetCount]);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGB32I, _lightBuffers[kRNLightListOffsetCount]);
-		
-		// Light indices
-		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListIndices]);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListIndices]);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, _lightBuffers[kRNLightListIndices]);
-		
-		// Point Light Data
-		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListPointData]);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListPointData]);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[kRNLightListPointData]);
-		
-		// Spot Light Data
-		gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListSpotData]);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListSpotData]);
-		gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[kRNLightListSpotData]);
-		
-		gl::BindTexture(GL_TEXTURE_BUFFER, 0);
-		gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			gl::GenTextures(4, _lightTextures);
+			gl::GenBuffers(4, _lightBuffers);
+			
+			// light offsets and counts
+			gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListOffsetCount]);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListOffsetCount]);
+			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGB32I, _lightBuffers[kRNLightListOffsetCount]);
+			
+			// Light indices
+			gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListIndices]);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListIndices]);
+			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, _lightBuffers[kRNLightListIndices]);
+			
+			// Point Light Data
+			gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListPointData]);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListPointData]);
+			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[kRNLightListPointData]);
+			
+			// Spot Light Data
+			gl::BindTexture(GL_TEXTURE_BUFFER, _lightTextures[kRNLightListSpotData]);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListSpotData]);
+			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _lightBuffers[kRNLightListSpotData]);
+			
+			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+		});
 	}
 	
 	LightManager::~LightManager()
 	{
-		gl::DeleteBuffers(4, _lightBuffers);
-		gl::DeleteTextures(4, _lightTextures);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			gl::DeleteBuffers(4, _lightBuffers);
+			gl::DeleteTextures(4, _lightTextures);
+		}, true);
 		
 		delete _lightIndices;
 		delete _lightOffsetCount;

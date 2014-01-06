@@ -74,13 +74,6 @@ namespace RN
 		void Initialize();
 		void DumpSystem();
 
-#if RN_PLATFORM_POSIX
-		void *_appHandle;
-#endif
-#if RN_PLATFORM_WINDOWS
-		HMODULE _appHandle;
-#endif
-		
 		std::string _title;
 		FrameID _frame;
 		float _scaleFactor;

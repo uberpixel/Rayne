@@ -166,6 +166,8 @@
 		E97C3EB1172B11C7006EA63A /* RNString.h in Headers */ = {isa = PBXBuildFile; fileRef = E97C3EAF172B11C7006EA63A /* RNString.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E97DE03816F2574C0009128F /* Rayne.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1E016B5286500EFE1E8 /* Rayne.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E97F7B8317552724001236E5 /* RNRingbuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = E97F7B8117552724001236E5 /* RNRingbuffer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E986B69F1879209500AFF219 /* RNOpenGLQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E986B69D1879209500AFF219 /* RNOpenGLQueue.cpp */; };
+		E986B6A01879209500AFF219 /* RNOpenGLQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = E986B69E1879209500AFF219 /* RNOpenGLQueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E986B6A3187B57D100AFF219 /* RNCameraInternal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E986B6A1187B57D100AFF219 /* RNCameraInternal.cpp */; };
 		E986B6A4187B57D100AFF219 /* RNCameraInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = E986B6A2187B57D100AFF219 /* RNCameraInternal.h */; };
 		E9905CAE17D8999C0097A843 /* RNKVOImplementation.h in Headers */ = {isa = PBXBuildFile; fileRef = E9905CAC17D8999C0097A843 /* RNKVOImplementation.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -459,6 +461,8 @@
 		E97C3EAE172B11C7006EA63A /* RNString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNString.cpp; sourceTree = "<group>"; };
 		E97C3EAF172B11C7006EA63A /* RNString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNString.h; sourceTree = "<group>"; };
 		E97F7B8117552724001236E5 /* RNRingbuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRingbuffer.h; sourceTree = "<group>"; };
+		E986B69D1879209500AFF219 /* RNOpenGLQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenGLQueue.cpp; sourceTree = "<group>"; };
+		E986B69E1879209500AFF219 /* RNOpenGLQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOpenGLQueue.h; sourceTree = "<group>"; };
 		E986B6A1187B57D100AFF219 /* RNCameraInternal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNCameraInternal.cpp; sourceTree = "<group>"; };
 		E986B6A2187B57D100AFF219 /* RNCameraInternal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNCameraInternal.h; sourceTree = "<group>"; };
 		E98D1E581673A6E200889F3B /* libRayne.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libRayne.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -992,6 +996,8 @@
 				E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */,
 				E9F77797169C5CF8006EE702 /* RNOpenGL.h */,
 				E9149C0018381A73005E6EE7 /* RNOpenGLBinder.cpp */,
+				E986B69D1879209500AFF219 /* RNOpenGLQueue.cpp */,
+				E986B69E1879209500AFF219 /* RNOpenGLQueue.h */,
 				E9D15BA517DB27CA00435078 /* RNOpenPanel.cpp */,
 				E9D15BA617DB27CA00435078 /* RNOpenPanel.h */,
 				E995F3CA1709B9F20051223B /* RNPathManager.cpp */,
@@ -1175,6 +1181,7 @@
 				E919599017901180004B5880 /* RNUIUtilities.h in Headers */,
 				E9BE9F3F1861627D00B486E8 /* RNUIScroller.h in Headers */,
 				E917F0801791FC7C003765C1 /* RNUIScrollView.h in Headers */,
+				E986B6A01879209500AFF219 /* RNOpenGLQueue.h in Headers */,
 				E9D3D048183A5022007780A7 /* RNNull.h in Headers */,
 				E93763F81794DD7000859EBA /* RNUITextField.h in Headers */,
 			);
@@ -1317,6 +1324,7 @@
 				E9DAE758184A6B4F00F7DA55 /* RNCountedSet.cpp in Sources */,
 				E9E076D117B4D3BA00E54818 /* RNResourceCoordinator.cpp in Sources */,
 				C050166916C3FDE600326514 /* RNLight.cpp in Sources */,
+				E986B69F1879209500AFF219 /* RNOpenGLQueue.cpp in Sources */,
 				E9D3D0431838F0F1007780A7 /* RNResourceLoader.cpp in Sources */,
 				E91F784216CE336000FFD318 /* RNThreadPool.cpp in Sources */,
 				E9AB0DAB16D679DC000D1CF0 /* RNSceneNode.cpp in Sources */,

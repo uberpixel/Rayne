@@ -233,13 +233,15 @@ namespace RN
 	
 	Shader::~Shader()
 	{
-		for(auto i=_programs.begin(); i!=_programs.end(); i++)
-		{
-			ShaderProgram *program = i->second;
-			
-			gl::DeleteProgram(program->program);
-			delete program;
-		}
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			for(auto i=_programs.begin(); i!=_programs.end(); i++)
+			{
+				ShaderProgram *program = i->second;
+				
+				gl::DeleteProgram(program->program);
+				delete program;
+			}
+		}, true);
 	}
 	
 	Shader *Shader::WithFile(const std::string& file)
@@ -327,28 +329,9 @@ namespace RN
 		if(program)
 		{
 			_programs[lookup] = program;
-			
-			gl::Flush();
 			return program;
 		}
 		
-		
-		program = new ShaderProgram;
-		program->program = gl::CreateProgram();
-		
-		_programs[lookup] = program;
-		
-#if GL_ARB_get_program_binary
-		if(gl::SupportsFeature(gl::Feature::ShaderBinary))
-			gl::ProgramParameteri(program->program, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
-#endif
-		
-		ScopeGuard scopeGuard = ScopeGuard([&]() {
-			gl::DeleteProgram(program->program);
-			delete program;
-			
-			_programs.erase(lookup);
-		});
 		
 		std::vector<ShaderDefine> temporaryDefines;
 		
@@ -391,50 +374,80 @@ namespace RN
 		
 		temporaryDefines.insert(temporaryDefines.end(), lookup.defines.begin(), lookup.defines.end());
 		
-		// Compile all units
-		std::vector<ShaderUnit *> units;
 		
-		for(auto i = _shaderData.begin(); i != _shaderData.end(); i ++)
-		{
-			ShaderUnit *unit = new ShaderUnit(this, i->first);
-			unit->Compile(temporaryDefines);
+		GLint status;
+		Exception exception(Exception::Type::GenericException, "This exception shouldn't be thrown!");
+		
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
 			
-			units.push_back(unit);
-			gl::AttachShader(program->program, unit->GetShader());
-		}
-		
-		// Link the program
-		gl::LinkProgram(program->program);
-		RN_CHECKOPENGL();
-		
-		for(ShaderUnit *unit : units)
-		{
-#if RN_BUILD_RELEASE
-			gl::DetachShader(program->program, unit->GetShader());
+			// Create the program
+			program = new ShaderProgram;
+			program->program = gl::CreateProgram();
+			
+			_programs[lookup] = program;
+			
+#if GL_ARB_get_program_binary
+			if(gl::SupportsFeature(gl::Feature::ShaderBinary))
+				gl::ProgramParameteri(program->program, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 #endif
 			
-			delete unit;
-		}
+			ScopeGuard scopeGuard = ScopeGuard([&]() {
+				gl::DeleteProgram(program->program);
+				delete program;
+				
+				_programs.erase(lookup);
+			});
+			
+				
+			// Compile the shader
+			std::vector<ShaderUnit *> units;
 		
-		// Get the program link status
-		GLint status;
+			for(auto i = _shaderData.begin(); i != _shaderData.end(); i ++)
+			{
+				ShaderUnit *unit = new ShaderUnit(this, i->first);
+				unit->Compile(temporaryDefines);
+				
+				units.push_back(unit);
+				gl::AttachShader(program->program, unit->GetShader());
+			}
+			
+			// Link the program
+			gl::LinkProgram(program->program);
+			
+			for(ShaderUnit *unit : units)
+			{
+#if RN_BUILD_RELEASE
+				gl::DetachShader(program->program, unit->GetShader());
+#endif
+				delete unit;
+			}
+			
+			gl::GetProgramiv(program->program, GL_LINK_STATUS, &status);
+			if(!status)
+			{
+				try
+				{
+					DumpLinkStatusAndDie(program);
+				}
+				catch(Exception e)
+				{
+					exception = std::move(e);
+				}
+				
+				return;
+			}
+			
+			// Dump the scope guard and clear all defines that were just visible in this compilation unit
+			scopeGuard.Commit();
+			program->ReadLocations();
+			
+			// Update any caches
+			ShaderCache::GetSharedInstance()->CacheShaderProgram(this, program, lookup);
+		}, true);
 		
-		gl::GetProgramiv(program->program, GL_LINK_STATUS, &status);
 		if(!status)
-		{
-			DumpLinkStatusAndDie(program);
-			return nullptr;
-		}
+			throw exception;
 		
-		// Dump the scope guard and clear all defines that were just visible in this compilation unit
-		scopeGuard.Commit();
-		program->ReadLocations();
-		
-		RN_CHECKOPENGL();
-		gl::Flush();
-		
-		// Update caches
-		ShaderCache::GetSharedInstance()->CacheShaderProgram(this, program, lookup);
 		return program;
 	}
 	

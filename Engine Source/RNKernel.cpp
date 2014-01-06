@@ -141,6 +141,8 @@ namespace RN
 		atexit(KernelCleanUp);
 		__needsCleanup = true;
 		
+		OpenGLQueue::GetSharedInstance();
+		
 		// Bootstrap the very basic things
 		_mainThread = new Thread();
 		_pool = new AutoreleasePool();
@@ -549,24 +551,19 @@ namespace RN
 		
 		PushStatistics("krn.flush");
 		
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
 #if RN_PLATFORM_MAC_OS
-//TODO: remove?
-#if 0
-		static int swip = 0;
-		gl::ClearColor(swip ? 1.0:0.0, swip ? 1.0:0.0, swip ? 1.0:0.0, 1.0f);
-		gl::Clear(GL_COLOR_BUFFER_BIT);
-		swip = !swip;
-#endif
-		CGLFlushDrawable(_context->_internals->cglContext);
+			CGLFlushDrawable(_context->_internals->cglContext);
 #endif
 		
 #if RN_PLATFORM_LINUX
-		glXSwapBuffers(_context->_dpy, _context->_win);
+			glXSwapBuffers(_context->_dpy, _context->_win);
 #endif
 
 #if RN_PLATFORM_WINDOWS
-		::SwapBuffers(_window->_internals->hDC);
+			::SwapBuffers(_window->_internals->hDC);
 #endif
+		}, true);
 
 		RN_CHECKOPENGL();
 		PopStatistics();

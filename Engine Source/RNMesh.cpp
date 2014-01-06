@@ -71,23 +71,31 @@ namespace RN
 		if(_indices)
 			Memory::Free(_indices);
 		
-		gl::DeleteBuffers(2, &_vbo);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			gl::DeleteBuffers(2, &_vbo);
+		}, true);
 	}
 	
 	void Mesh::PushData(bool vertices, bool indices)
 	{
-		Renderer::GetSharedInstance()->BindVAO(0);
-		
 		if(vertices)
 		{
-			gl::BindBuffer(GL_ARRAY_BUFFER, _vbo);
-			gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, _vertices, _vboUsage);
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+				Renderer::GetSharedInstance()->BindVAO(0);
+				
+				gl::BindBuffer(GL_ARRAY_BUFFER, _vbo);
+				gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, _vertices, _vboUsage);
+			});
 		}
 		
 		if(indices)
 		{
-			gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-			gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, _iboUsage);
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+				Renderer::GetSharedInstance()->BindVAO(0);
+				
+				gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
+				gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, _iboUsage);
+			});
 		}
 	}
 	
@@ -106,8 +114,9 @@ namespace RN
 		_vboUsage = GL_STATIC_DRAW;
 		_iboUsage = GL_STATIC_DRAW;
 		
-		gl::GenBuffers(2, &_vbo);
-		RN_CHECKOPENGL();
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			gl::GenBuffers(2, &_vbo);
+		});
 		
 		for(auto& descriptor : descriptors)
 		{
@@ -151,19 +160,21 @@ namespace RN
 	
 	void Mesh::AllocateBuffer(const std::pair<const void *, const void *>& data)
 	{
-		Renderer::GetSharedInstance()->BindVAO(0);
-		
-		if(_verticesSize > 0)
-		{
-			gl::BindBuffer(GL_ARRAY_BUFFER, _vbo);
-			gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, data.first, _vboUsage);
-		}
-		
-		if(_indicesCount > 0)
-		{
-			gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-			gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, data.second, _iboUsage);
-		}
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			Renderer::GetSharedInstance()->BindVAO(0);
+			
+			if(_verticesSize > 0)
+			{
+				gl::BindBuffer(GL_ARRAY_BUFFER, _vbo);
+				gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, data.first, _vboUsage);
+			}
+			
+			if(_indicesCount > 0)
+			{
+				gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
+				gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, data.second, _iboUsage);
+			}
+		}, true);
 	}
 		
 	
@@ -185,47 +196,42 @@ namespace RN
 	
 	void Mesh::SetElementData(MeshFeature feature, void *tdata)
 	{
-		for(auto& descriptor : _descriptors)
+		if(feature == kMeshFeatureIndices)
 		{
-			if(descriptor.feature == feature)
+			uint8 *data = static_cast<uint8 *>(tdata);
+			std::copy(data, data + _indicesSize, _indices);
+			
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+				gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
+				gl::BufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, _indicesSize, _indices);
+			});
+		}
+		else
+		{
+			for(auto& descriptor : _descriptors)
 			{
-				Renderer::GetSharedInstance()->BindVAO(0);
-				
-				switch(feature)
+				if(descriptor.feature == feature)
 				{
-					case kMeshFeatureIndices:
+					uint8 *data   = static_cast<uint8 *>(tdata);
+					uint8 *buffer = _vertices + descriptor.offset;
+					
+					for(size_t i = 0; i < _verticesCount; i ++)
 					{
-						uint8 *data   = static_cast<uint8 *>(tdata);
-						uint8 *buffer = _vertices + descriptor.offset;
-						
-						GLintptr offset = static_cast<GLintptr>(descriptor.offset);
+						std::copy(data, data + descriptor.elementSize, buffer);
+														
+						buffer += _stride;
+						data   += descriptor.elementSize;
+					}
+					
+					OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+						Renderer::GetSharedInstance()->BindVAO(0);
 						
 						gl::BindBuffer(GL_ARRAY_BUFFER, _vbo);
-						
-						for(size_t i = 0; i < _verticesCount; i ++)
-						{
-							std::copy(data, data + descriptor.elementSize, buffer);
-							gl::BufferSubData(GL_ARRAY_BUFFER, offset + (i * _stride), descriptor.elementSize, data);
-							
-							buffer += _stride;
-							data   += descriptor.elementSize;
-						}
-						
-						break;
-					}
-						
-					default:
-					{
-						uint8 *data = static_cast<uint8 *>(tdata);
-						std::copy(data, data + _indicesSize, _indices);
-						
-						gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-						gl::BufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, _indicesSize, data);
-						break;
-					}
+						gl::BufferSubData(GL_ARRAY_BUFFER, 0, _verticesSize, _vertices);
+					});
+					
+					break;
 				}
-				
-				break;
 			}
 		}
 	}
@@ -392,18 +398,20 @@ namespace RN
 			size_t offset = _range.origin * _stride;
 			size_t length = _range.length * _stride;
 			
-			Renderer::GetSharedInstance()->BindVAO(0);
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+				Renderer::GetSharedInstance()->BindVAO(0);
 			
-			if(_indices)
-			{
-				gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _mesh->_ibo);
-				gl::BufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, length, _begin);
-			}
-			else
-			{
-				gl::BindBuffer(GL_ARRAY_BUFFER, _mesh->_vbo);
-				gl::BufferSubData(GL_ARRAY_BUFFER, offset, length, _begin);
-			}
+				if(_indices)
+				{
+					gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _mesh->_ibo);
+					gl::BufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, length, _begin);
+				}
+				else
+				{
+					gl::BindBuffer(GL_ARRAY_BUFFER, _mesh->_vbo);
+					gl::BufferSubData(GL_ARRAY_BUFFER, offset, length, _begin);
+				}
+			}, true);
 			
 			_dirty = false;
 		}

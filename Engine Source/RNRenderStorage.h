@@ -41,10 +41,7 @@ namespace RN
 		RNAPI void SetDepthTarget(Texture *texture, uint32 layer=-1);
 		RNAPI void SetDepthTarget(Texture::Format format);
 		
-		RNAPI void UpdateBuffer();
-		
-		RNAPI void Bind();
-		RNAPI void Unbind();
+		RNAPI void BindAndUpdateBuffer();
 		
 		RNAPI bool HasDepthbuffer() const { return (_format & BufferFormatDepth); }
 		RNAPI bool HasStencilbuffer() const { return (_format & BufferFormatStencil); }
