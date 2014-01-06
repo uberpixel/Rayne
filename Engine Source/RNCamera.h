@@ -360,24 +360,6 @@ namespace RN
 		
 		RNDefineMeta(Camera, SceneNode)
 	};
-	
-	class CubemapCamera : public Camera
-	{
-	public:
-	/*	CubemapCamera(const Vector2& size) : Camera(size){}
-		
-		CubemapCamera(const Vector2& size, Texture *target) : Camera(size, target){}
-		CubemapCamera(const Vector2& size, Texture *target, Flags flags) : Camera(size, target, flags){}
-		CubemapCamera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format) : Camera(size, target, flags, format){}
-		
-		CubemapCamera(const Vector2& size, Texture::Format targetFormat) : Camera(size, targetFormat){}
-		CubemapCamera(const Vector2& size, Texture::Format targetFormat, Flags flags) : Camera(size, targetFormat, flags){}
-		CubemapCamera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f) : Camera(size, targetFormat, flags, format, scaleFactor){}*/
-		
-		CubemapCamera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f) : Camera(size, storage, flags, scaleFactor){}
-		
-		bool InFrustum(const Vector3& position, float radius) override;
-	};
 }
 
 #endif /* __RAYNE_CAMERA_H__ */

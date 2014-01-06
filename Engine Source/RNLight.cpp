@@ -11,6 +11,7 @@
 #include "RNCamera.h"
 #include "RNResourceCoordinator.h"
 #include "RNLightManager.h"
+#include "RNCameraInternal.h"
 
 namespace RN
 {
