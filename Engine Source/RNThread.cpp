@@ -17,6 +17,36 @@
 #include "RNShader.h"
 #include "RNThreadPool.h"
 
+#if RN_PLATFORM_WINDOWS
+const DWORD MS_VC_EXCEPTION = 0x406D1388;
+
+#pragma pack(push, 8)
+typedef struct tagTHREADNAME_INFO
+{
+	DWORD dwType; // Must be 0x1000.
+	LPCSTR szName; // Pointer to name (in user addr space).
+	DWORD dwThreadID; // Thread ID (-1=caller thread).
+	DWORD dwFlags; // Reserved for future use, must be zero.
+} THREADNAME_INFO;
+#pragma pack(pop)
+
+void RNSetThreadName(char *threadName)
+{
+	THREADNAME_INFO info;
+	info.dwType = 0x1000;
+	info.szName = threadName;
+	info.dwThreadID = -1;
+	info.dwFlags = 0;
+	
+	__try
+	{
+		RaiseException(MS_VC_EXCEPTION, 0, sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR *)&info);
+	}
+	__except(EXCEPTION_EXECUTE_HANDLER)
+	{}
+}
+#endif
+
 namespace RN
 {
 	RNDeclareMeta(Thread)
@@ -47,6 +77,7 @@ namespace RN
 		
 		_isRunning   = false;
 		_isCancelled = false;
+		_isDetached  = false;
 		
 		Retain();
 		ThreadCoordinator::GetSharedInstance()->ConsumeConcurrency();
@@ -89,6 +120,8 @@ namespace RN
 		__ThreadLock.Lock();
 		__ThreadMap[_id] = this;
 		__ThreadLock.Unlock();
+		
+		_isRunning.store(true);
 	}
 	
 	void Thread::Exit()
@@ -127,7 +160,7 @@ namespace RN
 	
 	void Thread::Detach()
 	{
-		if(_isRunning.exchange(true) == true)
+		if(_isDetached.exchange(true) == true)
 			throw Exception(Exception::Type::InconsistencyException, "Can't detach already detached thread!");
 		
 		std::thread([&]() {
@@ -143,6 +176,9 @@ namespace RN
 #if RN_PLATFORM_LINUX
 				pthread_setname_np(pthread_self(), _name.c_str());
 #endif
+#if RN_PLATFORM_WINDOWS
+				RNSetThreadName(_name.c_str());
+#endif
 				
 				_mutex.Unlock();
 				
@@ -155,7 +191,6 @@ namespace RN
 			
 			Exit();
 		}).detach();
-
 	}
 	
 	

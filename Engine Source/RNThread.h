@@ -108,6 +108,7 @@ namespace RN
 		
 		std::atomic<bool> _isRunning;
 		std::atomic<bool> _isCancelled;
+		std::atomic<bool> _isDetached;
 		
 		Function _function;
 		std::thread::id _id;
