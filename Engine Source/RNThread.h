@@ -60,10 +60,7 @@ namespace RN
 		
 		RNAPI void SetName(const std::string& name);
 		RNAPI const std::string GetName();
-		
-		RNAPI uint32 SetOpenGLBinding(GLenum target, GLuint object);
-		RNAPI GLuint GetOpenGLBinding(GLenum target);
-		
+
 		template <typename T>
 		T *GetObjectForKey(Object *key)
 		{
@@ -115,7 +112,6 @@ namespace RN
 		
 		std::string _name;
 		Dictionary _dictionary;
-		std::unordered_map<GLenum, std::tuple<GLuint, uint32>> _glBindings;
 		
 		std::mutex _exitMutex;
 		std::condition_variable _exitSignal;

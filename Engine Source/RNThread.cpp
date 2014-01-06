@@ -227,47 +227,4 @@ namespace RN
 		
 		return name;
 	}
-	
-	uint32 Thread::SetOpenGLBinding(GLenum target, GLuint object)
-	{
-		auto iterator = _glBindings.find(target);
-		
-		if(iterator != _glBindings.end())
-		{
-			std::tuple<GLuint, uint32>& tuple = iterator->second;
-			
-			if(object != 0)
-			{
-				if(std::get<0>(tuple) != object)
-					throw Exception(Exception::Type::InconsistencyException, "Tried to retain a binding that doesn't exist!");
-				
-				uint32& references = std::get<1>(tuple);
-				return references;
-			}
-			else
-			{
-				uint32& references = std::get<1>(tuple);
-				
-				if((-- references) == 0)
-				{
-					_glBindings.erase(iterator);
-					return 0;
-				}
-				
-				return references;
-			}
-		}
-		
-		if(object == 0)
-			return 0;
-		
-		_glBindings.insert(std::unordered_map<GLenum, std::tuple<GLuint, uint32>>::value_type(target, std::make_tuple(object, 1)));
-		return 1;
-	}
-	
-	GLuint Thread::GetOpenGLBinding(GLenum target)
-	{
-		auto iterator = _glBindings.find(target);
-		return (iterator != _glBindings.end()) ? std::get<0>(iterator->second) : 0;
-	}
 }
