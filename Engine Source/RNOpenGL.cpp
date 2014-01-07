@@ -10,6 +10,8 @@
 #include "RNBase.h"
 #include "RNContextInternal.h"
 #include "RNLogging.h"
+#include "RNSettings.h"
+#include "RNString.h"
 
 namespace RN
 {
@@ -31,7 +33,26 @@ namespace RN
 		
 		Version WantedVersion()
 		{
-			return __maximumVersion;
+			Version preferredVersion = __maximumVersion;
+			
+			try
+			{
+				String *renderer = Settings::GetSharedInstance()->GetObjectForKey<String>(kRNSettingsRendererKey);
+				if(renderer)
+				{
+					if(renderer->IsEqual(RNCSTR("3.2")))
+						preferredVersion = Version::Core3_2;
+					
+					if(renderer->IsEqual(RNCSTR("4.1")))
+						preferredVersion = Version::Core4_1;
+				}
+			}
+			catch(Exception e)
+			{
+				preferredVersion = __maximumVersion;
+			}
+			
+			return std::min(preferredVersion, __maximumVersion);
 		}
 		
 		

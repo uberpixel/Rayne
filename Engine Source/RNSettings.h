@@ -18,6 +18,7 @@
 
 #define kRNSettingsGammaCorrectionKey RNCSTR("RNGammaCorrection")
 #define kRNSettingsScreenKey          RNCSTR("RNScreen")
+#define kRNSettingsRendererKey        RNCSTR("RNOpenGLRenderer")
 
 #define kRNManifestApplicationKey  RNCSTR("RNApplication")
 #define KRNManifestModulesKey      RNCSTR("RNModules")
