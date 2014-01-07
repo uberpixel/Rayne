@@ -24,6 +24,7 @@
     <ClInclude Include="Engine Source\RNBasicString.h" />
     <ClInclude Include="Engine Source\RNBillboard.h" />
     <ClInclude Include="Engine Source\RNCamera.h" />
+    <ClInclude Include="Engine Source\RNCameraInternal.h" />
     <ClInclude Include="Engine Source\RNCatalogue.h" />
     <ClInclude Include="Engine Source\RNColor.h" />
     <ClInclude Include="Engine Source\RNConstants.h" />
@@ -167,6 +168,7 @@
     <ClCompile Include="Engine Source\RNBasicString.cpp" />
     <ClCompile Include="Engine Source\RNBillboard.cpp" />
     <ClCompile Include="Engine Source\RNCamera.cpp" />
+    <ClCompile Include="Engine Source\RNCameraInternal.cpp" />
     <ClCompile Include="Engine Source\RNCatalogue.cpp" />
     <ClCompile Include="Engine Source\RNContextInternal.cpp" />
     <ClCompile Include="Engine Source\RNCountedSet.cpp" />

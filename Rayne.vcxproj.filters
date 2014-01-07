@@ -434,6 +434,9 @@
     <ClInclude Include="Engine Source\RNOpenGLQueue.h">
       <Filter>System</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNCameraInternal.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
@@ -774,6 +777,9 @@
     </ClCompile>
     <ClCompile Include="Engine Source\RNOpenGLQueue.cpp">
       <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNCameraInternal.cpp">
+      <Filter>Scene</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

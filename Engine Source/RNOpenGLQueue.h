@@ -12,7 +12,7 @@
 #include "RNBase.h"
 #include "RNRingbuffer.h"
 
-#if RN_TARGET_WINDOWS && _MSC_VER <= 1800
+#if RN_PLATFORM_WINDOWS && _MSC_VER <= 1800
 // Yeah, so... MSVC ships with a buggy thread library... packaged_task<void> doesn't work
 // not in VS 2012 nor VS2013...
 // See this discussion and source for the below source code: http://stackoverflow.com/questions/14744588/why-is-stdpackaged-taskvoid-not-valid

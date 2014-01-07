@@ -136,6 +136,9 @@ namespace RN
 				
 			case Type::DirectionalLight:
 				return ActivateDirectionalShadows(parameter);
+
+			default:
+				return false;
 		}
 	}
 	
