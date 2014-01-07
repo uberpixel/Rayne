@@ -267,6 +267,21 @@ namespace RN
 		return bucket ? bucket->object : nullptr;
 	}
 	
+	void Dictionary::AddEntriesFromDictionary(const Dictionary *other)
+	{
+		for(size_t i = 0; i < other->_capacity; i ++)
+		{
+			Bucket *bucket = other->_buckets[i];
+			while(bucket)
+			{
+				if(bucket->key)
+					SetObjectForKey(bucket->object, bucket->key);
+				
+				bucket = bucket->next;
+			}
+		}
+	}
+	
 	void Dictionary::SetObjectForKey(Object *object, Object *key)
 	{
 		Bucket *bucket = FindBucket(key, true);

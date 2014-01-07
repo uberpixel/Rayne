@@ -35,6 +35,7 @@ namespace RN
 			return nullptr;
 		}
 		
+		RNAPI void AddEntriesFromDictionary(const Dictionary *other);
 		RNAPI void SetObjectForKey(Object *object, Object *key);
 		RNAPI void RemoveObjectForKey(Object *key);
 		RNAPI void RemoveAllObjects();
