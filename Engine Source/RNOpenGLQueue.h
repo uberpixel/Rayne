@@ -12,6 +12,74 @@
 #include "RNBase.h"
 #include "RNRingbuffer.h"
 
+#if RN_TARGET_WINDOWS && _MSC_VER <= 1800
+// Yeah, so... MSVC ships with a buggy thread library... packaged_task<void> doesn't work
+// not in VS 2012 nor VS2013...
+// See this discussion and source for the below source code: http://stackoverflow.com/questions/14744588/why-is-stdpackaged-taskvoid-not-valid
+// We need packaged_task<void> so yeah, fuck it, we are doing this and shipping it and ya'll have Microsoft to blame
+namespace std
+{
+	template<class... _ArgTypes>
+	class packaged_task<void(_ArgTypes...)>
+	{
+		promise<void> _my_promise;
+		function<void(_ArgTypes...)> _my_func;
+		
+	public:
+		packaged_task() {
+		}
+		
+		template<class _Fty2>
+		explicit packaged_task(_Fty2&& _Fnarg)
+		: _my_func(_Fnarg) {
+		}
+		
+		packaged_task(packaged_task&& _Other)
+		: _my_promise(move(_Other._my_promise)),
+        _my_func(move(_Other._my_func)) {
+		}
+		
+		packaged_task& operator=(packaged_task&& _Other) {
+			_my_promise = move(_Other._my_promise);
+			_my_func = move(_Other._my_func);
+			return (*this);
+		}
+		
+		packaged_task(const packaged_task&) = delete;
+		packaged_task& operator=(const packaged_task&) = delete;
+		
+		~packaged_task() {
+		}
+		
+		void swap(packaged_task& _Other) {
+			_my_promise.swap(_Other._my_promise);
+			_my_func.swap(_Other._my_func);
+		}
+		
+		explicit operator bool() const {
+			return _my_func != false;
+		}
+		
+		bool valid() const {
+			return _my_func != false;
+		}
+		
+		future<void> get_future() {
+			return _my_promise.get_future();
+		}
+		
+		void operator()(_ArgTypes... _Args) {
+			_my_func(forward<_ArgTypes>(_Args)...);
+			_my_promise.set_value();
+		}
+		
+		void reset() {
+			swap(packaged_task());
+		}
+	};
+}
+#endif
+
 namespace RN
 {
 	class Thread;
