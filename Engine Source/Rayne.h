@@ -30,6 +30,7 @@
 
 #include "RNKernel.h"
 #include "RNApplication.h"
+#include "RNSettings.h"
 #include "RNInput.h"
 #include "RNMessage.h"
 #include "RNSignal.h"
