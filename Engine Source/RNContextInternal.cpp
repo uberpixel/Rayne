@@ -1,12 +1,11 @@
 //
-//  RNContext.cpp
+//  RNContextInternal.cpp
 //  Rayne
 //
 //  Copyright 2014 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNContext.h"
 #include "RNContextInternal.h"
 #include "RNBaseInternal.h"
 #include "RNMutex.h"
@@ -436,39 +435,6 @@ namespace RN
 		
 		Deactivate();
 	}
-	
-	
-	void Context::SetDepthClear(GLfloat depth)
-	{
-		if(depth != _depthClear)
-		{
-#if RN_TARGET_OPENGL_ES
-			gl::ClearDepthf(depth);
-#endif
-			
-#if RN_TARGET_OPENGL
-			gl::ClearDepth(depth);
-#endif
-			_depthClear = depth;
-		}
-	}
-	void Context::SetStencilClear(GLint stencil)
-	{
-		if(stencil != _stencilClear)
-		{
-			gl::ClearStencil(stencil);
-			_stencilClear = stencil;
-		}
-	}
-	void Context::SetClearColor(const Color& color)
-	{
-		if(_clearColor != color)
-		{
-			gl::ClearColor(color.r, color.g, color.b, color.a);
-			_clearColor = color;
-		}
-	}
-	
 
 	Context *Context::GetActiveContext()
 	{
@@ -502,10 +468,6 @@ namespace RN
 			BindOpenGLFunctions(_version);
 
 			_firstActivation = false;
-			
-			gl::GetFloatv(GL_DEPTH_CLEAR_VALUE, &_depthClear);
-			gl::GetIntegerv(GL_STENCIL_CLEAR_VALUE, &_stencilClear);
-			gl::GetFloatv(GL_COLOR_CLEAR_VALUE, &_clearColor.r);
 		}
 	}
 

@@ -122,8 +122,7 @@
 		E9619E2B1696157E00DA187E /* RNCamera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619DF71696157E00DA187E /* RNCamera.cpp */; };
 		E9619E2C1696157E00DA187E /* RNCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619DF81696157E00DA187E /* RNCamera.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E2D1696157E00DA187E /* RNColor.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619DF91696157E00DA187E /* RNColor.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9619E2E1696157E00DA187E /* RNContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619DFA1696157E00DA187E /* RNContext.cpp */; };
-		E9619E2F1696157E00DA187E /* RNContext.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619DFB1696157E00DA187E /* RNContext.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9619E2E1696157E00DA187E /* RNContextInternal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619DFA1696157E00DA187E /* RNContextInternal.cpp */; };
 		E9619E301696157E00DA187E /* RNDefines.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619DFC1696157E00DA187E /* RNDefines.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9619E331696157E00DA187E /* RNFile.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9619DFF1696157E00DA187E /* RNFile.cpp */; };
 		E9619E341696157E00DA187E /* RNFile.h in Headers */ = {isa = PBXBuildFile; fileRef = E9619E001696157E00DA187E /* RNFile.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -418,8 +417,7 @@
 		E9619DF71696157E00DA187E /* RNCamera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNCamera.cpp; sourceTree = "<group>"; };
 		E9619DF81696157E00DA187E /* RNCamera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNCamera.h; sourceTree = "<group>"; };
 		E9619DF91696157E00DA187E /* RNColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNColor.h; sourceTree = "<group>"; };
-		E9619DFA1696157E00DA187E /* RNContext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNContext.cpp; sourceTree = "<group>"; };
-		E9619DFB1696157E00DA187E /* RNContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 2; path = RNContext.h; sourceTree = "<group>"; };
+		E9619DFA1696157E00DA187E /* RNContextInternal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNContextInternal.cpp; sourceTree = "<group>"; };
 		E9619DFC1696157E00DA187E /* RNDefines.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDefines.h; sourceTree = "<group>"; };
 		E9619DFF1696157E00DA187E /* RNFile.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNFile.cpp; sourceTree = "<group>"; };
 		E9619E001696157E00DA187E /* RNFile.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNFile.h; sourceTree = "<group>"; };
@@ -902,8 +900,7 @@
 		E9F8070C1697050D00773A34 /* Rendering */ = {
 			isa = PBXGroup;
 			children = (
-				E9619DFA1696157E00DA187E /* RNContext.cpp */,
-				E9619DFB1696157E00DA187E /* RNContext.h */,
+				E9619DFA1696157E00DA187E /* RNContextInternal.cpp */,
 				E93F7052180E064400593EF6 /* RNContextInternal.h */,
 				E9978BF618517A9E008F63B3 /* RNInstancingData.cpp */,
 				E9978BF718517A9E008F63B3 /* RNInstancingData.h */,
@@ -1044,7 +1041,6 @@
 				E94CB79F18600D4C005A3778 /* RNStatistics.h in Headers */,
 				E9619E2D1696157E00DA187E /* RNColor.h in Headers */,
 				E93B345A17D520D5006607B5 /* RNUIOutlineViewCell.h in Headers */,
-				E9619E2F1696157E00DA187E /* RNContext.h in Headers */,
 				E9619E301696157E00DA187E /* RNDefines.h in Headers */,
 				E9619E341696157E00DA187E /* RNFile.h in Headers */,
 				E953383317D75DF70017B60B /* RNFileManager.h in Headers */,
@@ -1292,7 +1288,7 @@
 				E951615917D40D930006156A /* RNUITableView.cpp in Sources */,
 				E9978BF818517A9E008F63B3 /* RNInstancingData.cpp in Sources */,
 				E9619E2B1696157E00DA187E /* RNCamera.cpp in Sources */,
-				E9619E2E1696157E00DA187E /* RNContext.cpp in Sources */,
+				E9619E2E1696157E00DA187E /* RNContextInternal.cpp in Sources */,
 				E9F2B6851838B11F0014FB80 /* RNSHA2.cpp in Sources */,
 				E90F976418720AEC00709C5F /* RNSceneNodeAttachment.cpp in Sources */,
 				E9D3D047183A5022007780A7 /* RNNull.cpp in Sources */,

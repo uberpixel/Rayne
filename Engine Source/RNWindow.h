@@ -11,7 +11,6 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNContext.h"
 #include "RNArray.h"
 #include "RNRect.h"
 #include "RNMessage.h"

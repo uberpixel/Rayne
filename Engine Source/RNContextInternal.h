@@ -10,6 +10,8 @@
 #define __RAYNE_CONTEXTINTERNAL_H__
 
 #include "RNBase.h"
+#include "RNObject.h"
+#include "RNThread.h"
 #include "RNBaseInternal.h"
 
 namespace RN
@@ -39,6 +41,46 @@ namespace RN
 		GLXContext context;
 		XID win;
 #endif
+	};
+	
+	class Context : public Object
+	{
+	public:
+		friend class Window;
+		friend class Kernel;
+		friend class Thread;
+		
+#if RN_PLATFORM_WINDOWS
+		Context(Context *shared, HWND window = nullptr);
+#else
+		Context(Context *shared);
+#endif
+		Context(gl::Version version);
+		~Context() override;
+		
+		void MakeActiveContext();
+		void DeactivateContext();
+		
+		static Context *GetActiveContext();
+		
+		gl::Version GetVersion() const { return _version; }
+		
+	private:
+		void Initialize(gl::Version version);
+		void ForceDeactivate();
+		void Activate();
+		void Deactivate();
+		
+		gl::Version _version;
+		
+		bool _active;
+		Thread *_thread;
+		Context *_shared;
+		bool _firstActivation;
+		
+		PIMPL<ContextInternals> _internals;
+		
+		RNDefineMeta(Context, Object)
 	};
 	
 #if RN_PLATFORM_WINDOWS

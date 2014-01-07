@@ -10,7 +10,7 @@
 #define __RAYNE_WINDOWINTERNAL_H__
 
 #include "RNBaseInternal.h"
-#include "RNContext.h"
+#include "RNContextInternal.h"
 
 #if RN_PLATFORM_MAC_OS
 

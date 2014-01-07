@@ -12,7 +12,6 @@
 #include "RNBase.h"
 #include "RNThread.h"
 #include "RNArray.h"
-#include "RNContext.h"
 #include "RNAutoreleasePool.h"
 #include "RNRingbuffer.h"
 

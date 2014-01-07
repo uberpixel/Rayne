@@ -7,7 +7,7 @@
 //
 
 #include "RNOpenGLQueue.h"
-#include "RNContext.h"
+#include "RNContextInternal.h"
 #include "RNThread.h"
 
 namespace RN

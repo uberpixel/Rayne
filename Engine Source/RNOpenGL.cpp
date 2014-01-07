@@ -8,7 +8,7 @@
 
 #include "RNOpenGL.h"
 #include "RNBase.h"
-#include "RNContext.h"
+#include "RNContextInternal.h"
 #include "RNLogging.h"
 
 namespace RN

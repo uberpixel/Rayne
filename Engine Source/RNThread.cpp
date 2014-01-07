@@ -9,7 +9,7 @@
 #include "RNThread.h"
 #include "RNSpinLock.h"
 #include "RNArray.h"
-#include "RNContext.h"
+#include "RNContextInternal.h"
 
 #include "RNTexture.h"
 #include "RNCamera.h"
