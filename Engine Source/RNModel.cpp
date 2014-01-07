@@ -167,6 +167,7 @@ namespace RN
 		Dictionary *finalsettings = new Dictionary();
 		finalsettings->Autorelease();
 		finalsettings->SetObjectForKey(Number::WithBool(true), RNCSTR("guessMaterial"));
+		finalsettings->SetObjectForKey(Number::WithBool(true), RNCSTR("autoloadLOD"));
 		
 		if(settings)
 			finalsettings->AddEntriesFromDictionary(settings);

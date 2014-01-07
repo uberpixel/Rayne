@@ -206,6 +206,7 @@ namespace RN
 		Model *model = new Model();
 		
 		bool guessMaterial = true;
+		bool autoloadLOD = false;
 		float distance[] = { 0.05f, 0.125f, 0.50f, 0.75 };
 		size_t stage = 0;
 		
@@ -213,6 +214,12 @@ namespace RN
 		{
 			Number *number = settings->GetObjectForKey<Number>(RNCSTR("guessMaterial"));
 			guessMaterial = number->GetBoolValue();
+		}
+		
+		if(settings->GetObjectForKey(RNCSTR("autoloadLOD")))
+		{
+			Number *number = settings->GetObjectForKey<Number>(RNCSTR("autoloadLOD"));
+			autoloadLOD = number->GetBoolValue();
 		}
 		
 		LoadLODStage(file, model, stage, guessMaterial);
@@ -233,7 +240,7 @@ namespace RN
 		std::string name = PathManager::Basename(file->GetFullPath());
 		std::string extension = PathManager::Extension(file->GetFullPath());
 		
-		while(stage < 5)
+		while(autoloadLOD && stage < 5)
 		{
 			std::stringstream stream;
 			stream << name << "_lod" << (stage + 1) << "." << extension;
