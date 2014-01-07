@@ -27,7 +27,6 @@
     <ClInclude Include="Engine Source\RNCatalogue.h" />
     <ClInclude Include="Engine Source\RNColor.h" />
     <ClInclude Include="Engine Source\RNConstants.h" />
-    <ClInclude Include="Engine Source\RNContext.h" />
     <ClInclude Include="Engine Source\RNContextInternal.h" />
     <ClInclude Include="Engine Source\RNCountedSet.h" />
     <ClInclude Include="Engine Source\RNCPU.h" />
@@ -74,6 +73,7 @@
     <ClInclude Include="Engine Source\RNObject.h" />
     <ClInclude Include="Engine Source\RNOctreeSceneManager.h" />
     <ClInclude Include="Engine Source\RNOpenGL.h" />
+    <ClInclude Include="Engine Source\RNOpenGLQueue.h" />
     <ClInclude Include="Engine Source\RNOpenPanel.h" />
     <ClInclude Include="Engine Source\RNParticle.h" />
     <ClInclude Include="Engine Source\RNParticleEmitter.h" />
@@ -168,7 +168,7 @@
     <ClCompile Include="Engine Source\RNBillboard.cpp" />
     <ClCompile Include="Engine Source\RNCamera.cpp" />
     <ClCompile Include="Engine Source\RNCatalogue.cpp" />
-    <ClCompile Include="Engine Source\RNContext.cpp" />
+    <ClCompile Include="Engine Source\RNContextInternal.cpp" />
     <ClCompile Include="Engine Source\RNCountedSet.cpp" />
     <ClCompile Include="Engine Source\RNCPU.cpp" />
     <ClCompile Include="Engine Source\RNData.cpp" />
@@ -205,6 +205,7 @@
     <ClCompile Include="Engine Source\RNOctreeSceneManager.cpp" />
     <ClCompile Include="Engine Source\RNOpenGL.cpp" />
     <ClCompile Include="Engine Source\RNOpenGLBinder.cpp" />
+    <ClCompile Include="Engine Source\RNOpenGLQueue.cpp" />
     <ClCompile Include="Engine Source\RNOpenPanel.cpp" />
     <ClCompile Include="Engine Source\RNParticle.cpp" />
     <ClCompile Include="Engine Source\RNParticleEmitter.cpp" />

@@ -248,9 +248,6 @@
     <ClInclude Include="Engine Source\RNConstants.h">
       <Filter>Math</Filter>
     </ClInclude>
-    <ClInclude Include="Engine Source\RNContext.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="Engine Source\RNContextInternal.h">
       <Filter>Rendering</Filter>
     </ClInclude>
@@ -433,6 +430,9 @@
     </ClInclude>
     <ClInclude Include="Engine Source\RNSceneNodeAttachment.h">
       <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNOpenGLQueue.h">
+      <Filter>System</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -655,9 +655,6 @@
     <ClCompile Include="Engine Source\RNThread.cpp">
       <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="Engine Source\RNContext.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="Engine Source\RNInstancingData.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
@@ -771,6 +768,12 @@
     </ClCompile>
     <ClCompile Include="Engine Source\RNSceneNodeAttachment.cpp">
       <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNContextInternal.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNOpenGLQueue.cpp">
+      <Filter>System</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -177,7 +177,7 @@ namespace RN
 				pthread_setname_np(pthread_self(), _name.c_str());
 #endif
 #if RN_PLATFORM_WINDOWS
-				RNSetThreadName(_name.c_str());
+				RNSetThreadName(const_cast<char*>(_name.c_str()));
 #endif
 				
 				_mutex.Unlock();
