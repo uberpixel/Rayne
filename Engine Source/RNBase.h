@@ -110,9 +110,9 @@
 
 #define kRNVersionMajor 0
 #define kRNVersionMinor 5
-#define kRNVersionPatch 1
+#define kRNVersionPatch 2
 
-#define kRNABIVersion 1
+#define kRNABIVersion 2
 
 namespace RN
 {
