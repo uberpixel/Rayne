@@ -55,19 +55,21 @@ namespace RN
 	
 	
 	
-	void OpenGLQueue::SubmitCommand(std::function<void ()> &&f, bool wait)
+	std::future<void> OpenGLQueue::SubmitCommand(std::packaged_task<void ()> &&command)
 	{
+		std::future<void> future = command.get_future();
+		
 		if(_thread->OnThread())
 		{
-			f();
-			return;
+			command();
+			return future;
 		}
 		
 		LockGuard<decltype(_commandLock)> lock(_commandLock);
 		
 		// Push the command into the command queue
-		size_t command = _id.fetch_add(1, std::memory_order_release) + 1;
-		while(!_commands.push(std::move(f)))
+		_id ++;
+		while(!_commands.push(std::move(command)))
 		{}
 		
 		// Notify the command gate if needed
@@ -77,8 +79,7 @@ namespace RN
 			_signal.notify_one();
 		}
 		
-		if(wait)
-			Wait(command);
+		return future;
 	}
 	
 	void OpenGLQueue::SwitchContext(Context *context)
@@ -113,33 +114,27 @@ namespace RN
 		_signal.wait(lock, [&] { return (_context != nullptr || _thread->IsCancelled()); });
 		lock.unlock();
 		
-		try
+		std::packaged_task<void ()> task;
+		
+		while(!_thread->IsCancelled())
 		{
-			while(!_thread->IsCancelled())
+			_running.store(true);
+			
+			while(_commands.pop(task))
 			{
-				std::function<void ()> f;
-				_running.store(true);
-				
-				while(_commands.pop(f))
-				{
-					f();
-					_processed.fetch_add(1, std::memory_order_release);
-				}
-				
-				
-				lock.lock();
-				_running.store(false);
-				_waitSignal.notify_all();
-				
-				if(!_commands.was_empty())
-					continue;
-				
-				_signal.wait(lock, [&] { return (!_commands.was_empty() || _thread->IsCancelled()); });
+				task();
+				_processed.fetch_add(1, std::memory_order_release);
 			}
-		}
-		catch(Exception e)
-		{
-			HandleException(e);
+			
+			
+			lock.lock();
+			_running.store(false);
+			_waitSignal.notify_all();
+			
+			if(!_commands.was_empty())
+				continue;
+			
+			_signal.wait(lock, [&] { return (!_commands.was_empty() || _thread->IsCancelled()); });
 		}
 	}
 }

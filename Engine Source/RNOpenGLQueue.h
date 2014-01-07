@@ -24,10 +24,23 @@ namespace RN
 		RNAPI ~OpenGLQueue();
 		
 		RNAPI void Wait();
-		RNAPI void SubmitCommand(std::function<void ()> &&f, bool wait = false);
 		RNAPI void SwitchContext(Context *context);
 		
+		template<class F>
+		std::future<void> SubmitCommand(F &&f, bool wait = false)
+		{
+			std::packaged_task<void ()> task(std::move(f));
+			std::future<void> future = SubmitCommand(std::move(task));
+			
+			if(wait)
+				future.wait();
+			
+			return future;
+		}
+		
 	private:
+		RNAPI std::future<void> SubmitCommand(std::packaged_task<void ()> &&command);
+		
 		void ProcessCommands();
 		void Wait(size_t command);
 		
@@ -35,7 +48,7 @@ namespace RN
 		Context *_context;
 		
 		SpinLock _commandLock;
-		stl::lock_free_ring_buffer<std::function<void ()>, 128> _commands;
+		stl::lock_free_ring_buffer<std::packaged_task<void ()>, 128> _commands;
 		std::atomic<size_t> _processed;
 		
 		std::atomic<bool> _running;
