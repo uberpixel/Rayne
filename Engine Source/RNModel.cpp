@@ -162,13 +162,16 @@ namespace RN
 		return model->Autorelease();
 	}
 	
-	Model *Model::WithFile(const std::string& path, bool guessMaterial)
+	Model *Model::WithFile(const std::string& path, const Dictionary *settings)
 	{
-		Dictionary *settings = new Dictionary();
-		settings->SetObjectForKey(Number::WithBool(guessMaterial), RNCSTR("guessMaterial"));
-		settings->Autorelease();
+		Dictionary *finalsettings = new Dictionary();
+		finalsettings->Autorelease();
+		finalsettings->SetObjectForKey(Number::WithBool(true), RNCSTR("guessMaterial"));
 		
-		Model *model = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Model>(RNSTR(path.c_str()), settings);
+		if(settings)
+			finalsettings->AddEntriesFromDictionary(settings);
+		
+		Model *model = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Model>(RNSTR(path.c_str()), finalsettings);
 		return model;
 	}
 	
