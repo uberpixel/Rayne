@@ -126,16 +126,20 @@ namespace RN
 				ThreadContext *context = _threadData[i];
 				size_t pushed = 0;
 				
-				for(; pushed < perThread; pushed ++)
+				for(; pushed < perThread;)
 				{
 					if(!context->hose.push(std::move(tasks[offset])))
 						break;
 					
 					offset ++;
+					pushed ++;
 				}
 				
 				if(pushed > 0)
 					written = true;
+				
+				if(pushed > toWrite)
+					pushed = toWrite;
 				
 				toWrite -= pushed;
 			}
@@ -148,11 +152,6 @@ namespace RN
 			
 			if(!written && toWrite > 0)
 			{
-#if RN_BUILD_DEBUG
-				Log::Loggable loggable(Log::Level::Debug);
-				loggable << "Thread pool left with " << toWrite << " of " << tasks.size() << " tasks";
-#endif
-				
 				std::unique_lock<std::mutex> lock(_feederLock);
 				_feederCondition.wait_for(lock, std::chrono::milliseconds(1));
 			}

@@ -546,7 +546,7 @@ namespace RN
 		_input->InvalidateFrame();
 		
 		Settings::GetSharedInstance()->Sync(false);
-		Log::Logger::GetSharedInstance()->Flush();
+		Log::Logger::GetSharedInstance()->Flush(true);
 		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidEndFrameMessage, nullptr, nullptr);
 		
 		PushStatistics("krn.flush");
