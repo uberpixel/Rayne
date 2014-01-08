@@ -25,9 +25,6 @@ namespace TG
 		
 		virtual void UpdateGame(float delta);
 		virtual void UpdateWorld(float delta);
-		
-	private:
-		World *_world;
 	};
 }
 

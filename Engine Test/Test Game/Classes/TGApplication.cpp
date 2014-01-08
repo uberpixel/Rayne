@@ -7,11 +7,11 @@
 //
 
 #include "TGApplication.h"
+#include "TGLoadingScreen.h"
 
 namespace TG
 {
-	Application::Application() :
-		_world(nullptr)
+	Application::Application()
 	{}
 	
 	Application::~Application()
@@ -26,20 +26,23 @@ namespace TG
 		
 		RN::Kernel::GetSharedInstance()->SetMaxFPS(60);
 		
-		RN::UI::Widget *widget = new RN::UI::DebugWidget();
+		RN::UI::Widget *widget;/* = new RN::UI::DebugWidget();
 		widget->Open();
-		widget->Release();
+		widget->Release();*/
 		
-		widget = new RN::UI::ConsoleWidget();
+		/*widget = new RN::UI::ConsoleWidget();
 		widget->Open();
-		widget->Release();
+		widget->Release();*/
 
-		RN::WorldCoordinator::GetSharedInstance()->LoadWorld(new World());
+		RN::World *world = new World();
+		RN::Progress *progress = RN::WorldCoordinator::GetSharedInstance()->LoadWorld(world->Autorelease());
+		
+		widget = new LoadingScreen(progress);
+		widget->Open();
 	}
 	
 	void Application::WillExit()
 	{
-		delete _world;
 	}
 	
 	

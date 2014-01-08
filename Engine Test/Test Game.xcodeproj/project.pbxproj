@@ -21,6 +21,8 @@
 		E9825D48187296C6005FC83D /* TGThirdPersonCamera.h in Headers */ = {isa = PBXBuildFile; fileRef = E9825D3C187296C6005FC83D /* TGThirdPersonCamera.h */; };
 		E9825D49187296C6005FC83D /* TGWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9825D3D187296C6005FC83D /* TGWorld.cpp */; };
 		E9825D4A187296C6005FC83D /* TGWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = E9825D3E187296C6005FC83D /* TGWorld.h */; };
+		E9842440187DF455002AEF39 /* TGLoadingScreen.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E984243E187DF455002AEF39 /* TGLoadingScreen.cpp */; };
+		E9842441187DF455002AEF39 /* TGLoadingScreen.h in Headers */ = {isa = PBXBuildFile; fileRef = E984243F187DF455002AEF39 /* TGLoadingScreen.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +61,8 @@
 		E9825D3D187296C6005FC83D /* TGWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGWorld.cpp; path = Classes/TGWorld.cpp; sourceTree = "<group>"; };
 		E9825D3E187296C6005FC83D /* TGWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGWorld.h; path = Classes/TGWorld.h; sourceTree = "<group>"; };
 		E9825D4B187297FB005FC83D /* Rayne.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Rayne.xcodeproj; path = "../Xcode/OS X/Rayne.xcodeproj"; sourceTree = "<group>"; };
+		E984243E187DF455002AEF39 /* TGLoadingScreen.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGLoadingScreen.cpp; path = Classes/TGLoadingScreen.cpp; sourceTree = "<group>"; };
+		E984243F187DF455002AEF39 /* TGLoadingScreen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGLoadingScreen.h; path = Classes/TGLoadingScreen.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +110,8 @@
 				E9825D3C187296C6005FC83D /* TGThirdPersonCamera.h */,
 				E9825D3D187296C6005FC83D /* TGWorld.cpp */,
 				E9825D3E187296C6005FC83D /* TGWorld.h */,
+				E984243E187DF455002AEF39 /* TGLoadingScreen.cpp */,
+				E984243F187DF455002AEF39 /* TGLoadingScreen.h */,
 			);
 			name = Classes;
 			path = "Test Game";
@@ -145,6 +151,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E9842441187DF455002AEF39 /* TGLoadingScreen.h in Headers */,
 				E9825D44187296C6005FC83D /* TGPlayer.h in Headers */,
 				E9825D4A187296C6005FC83D /* TGWorld.h in Headers */,
 				E9825D48187296C6005FC83D /* TGThirdPersonCamera.h in Headers */,
@@ -246,6 +253,7 @@
 				E9825D26187295EB005FC83D /* main.cpp in Sources */,
 				E9825D45187296C6005FC83D /* TGSmokeGrenade.cpp in Sources */,
 				E9825D43187296C6005FC83D /* TGPlayer.cpp in Sources */,
+				E9842440187DF455002AEF39 /* TGLoadingScreen.cpp in Sources */,
 				E9825D41187296C6005FC83D /* TGDebugDrawer.cpp in Sources */,
 				E9825D3F187296C6005FC83D /* TGApplication.cpp in Sources */,
 			);
