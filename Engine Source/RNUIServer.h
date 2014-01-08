@@ -22,6 +22,7 @@
 namespace RN
 {
 	class Kernel;
+	class Window;
 	
 	namespace UI
 	{
@@ -33,6 +34,7 @@ namespace RN
 			friend class Widget;
 			friend class RN::Kernel;
 			friend class RN::Input;
+			friend class RN::Window;
 			
 			enum class Mode
 			{
@@ -63,6 +65,8 @@ namespace RN
 			RNAPI void Render(Renderer *renderer);
 			
 		private:
+			void UpdateSize();
+			
 			void AddWidget(Widget *widget);
 			void RemoveWidget(Widget *widget);
 			void MoveWidgetToFront(Widget *widget);

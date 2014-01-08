@@ -248,13 +248,13 @@ namespace RN
 			return false;
 		}
 		
-		void Server::Render(Renderer *renderer)
+		void Server::UpdateSize()
 		{
 			Rect actualFrame = Window::GetSharedInstance()->GetFrame();
 			if(_frame != actualFrame)
 			{
 				_frame = actualFrame;
-					
+				
 				_camera->ortholeft   = _frame.GetLeft();
 				_camera->orthobottom = _frame.GetTop();
 				_camera->orthoright  = _frame.GetRight();
@@ -265,6 +265,11 @@ namespace RN
 				
 				MessageCenter::GetSharedInstance()->PostMessage(kRNUIServerDidResizeMessage, nullptr, nullptr);
 			}
+		}
+		
+		void Server::Render(Renderer *renderer)
+		{
+			UpdateSize();
 			
 			// Draw all widgets into the camera
 			Kernel::GetSharedInstance()->PushStatistics("ui.update");

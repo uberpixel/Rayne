@@ -212,6 +212,8 @@ namespace RN
 		_initialized = false;
 		_shouldExit  = false;
 		
+		_uiserver->UpdateSize();
+		
 		// Load all modules
 		ModuleCoordinator::GetSharedInstance();
 	}	
