@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNMutex.h"
 #include "RNWorld.h"
+#include "RNProgress.h"
 
 #define kRNWorldCoordinatorDidFinishLoading RNCSTR("kRNWorldCoordinatorDidFinishLoading")
 #define kRNWorldCoordinatorWillBeginLoading RNCSTR("kRNWorldCoordinatorWillBeginLoading")
@@ -27,11 +28,9 @@ namespace RN
 		void StepWorld(FrameID frame, float delta);
 		void RenderWorld(Renderer *renderer);
 		
-		void LoadWorld(const std::string &name);
-		void LoadWorld(World *world);
+		Progress *LoadWorld(World *world);
 		
 		bool IsLoading() const { return _loading.load(); }
-		
 		World *GetWorld() const { return _world; }
 		
 	private:
@@ -45,6 +44,7 @@ namespace RN
 		
 		std::atomic<bool> _loading;
 		std::future<bool> _loadFuture;
+		Progress *_loadingProgress;
 		
 		RNDefineSingleton(WorldCoordinator)
 	};

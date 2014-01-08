@@ -58,12 +58,9 @@ namespace RN
 	}
 	
 	
+
 	
-	void WorldCoordinator::LoadWorld(const std::string &name)
-	{
-	}
-	
-	void WorldCoordinator::LoadWorld(World *world)
+	Progress *WorldCoordinator::LoadWorld(World *world)
 	{
 		_lock.Lock();
 		
@@ -73,6 +70,7 @@ namespace RN
 		
 		std::packaged_task<bool ()> task(std::bind(&WorldCoordinator::BeginLoading, this));
 		_loadFuture = task.get_future();
+		_loadingProgress = new Progress(0);
 		
 		if(_world->SupportsBackgroundLoading())
 		{
@@ -85,6 +83,8 @@ namespace RN
 			_loadThread = nullptr;
 			task();
 		}
+		
+		return _loadingProgress;
 	}
 	
 	bool WorldCoordinator::BeginLoading()
@@ -92,6 +92,8 @@ namespace RN
 		AutoreleasePool pool;
 		
 		MessageCenter::GetSharedInstance()->PostMessage(kRNWorldCoordinatorWillBeginLoading, _world, nullptr);
+		
+		_loadingProgress->MakeActive();
 		_world->LoadOnThread(Thread::GetCurrentThread());
 		
 		return true;
@@ -130,6 +132,9 @@ namespace RN
 			_world->FinishLoading();
 		
 		MessageCenter::GetSharedInstance()->PostMessage(kRNWorldCoordinatorDidFinishLoading, _world, nullptr);
+		
+		_loadingProgress->Release();
+		_loadingProgress = nullptr;
 		_lock.Unlock();
 	}
 }

@@ -27,6 +27,7 @@
 #include "RNKVO.h"
 #include "RNKVOImplementation.h"
 #include "RNFormatter.h"
+#include "RNProgress.h"
 
 #include "RNKernel.h"
 #include "RNApplication.h"
