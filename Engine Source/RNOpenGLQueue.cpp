@@ -85,22 +85,31 @@ namespace RN
 	void OpenGLQueue::SwitchContext(Context *context)
 	{
 		bool hadContext = (_context != nullptr);
-		
-		SubmitCommand([&]{
-			
-			if(_context)
-			{
-				_context->DeactivateContext();
-				_context->Release();
-			}
-			
-			_context = SafeRetain(context);
-			_context->MakeActiveContext();
-			
-		});
-		
 		if(!hadContext)
+		{
+			SubmitCommand([&]{
+				_context->MakeActiveContext();
+			});
+			
+			std::unique_lock<std::mutex> lock(_signalLock);
+			_context = SafeRetain(context);
 			_signal.notify_one();
+		}
+		else
+		{
+			SubmitCommand([&]{
+				
+				if(_context)
+				{
+					_context->DeactivateContext();
+					_context->Release();
+				}
+				
+				_context = SafeRetain(context);
+				_context->MakeActiveContext();
+				
+			});
+		}
 		
 		Wait();
 	}
@@ -112,13 +121,13 @@ namespace RN
 		
 		std::unique_lock<std::mutex> lock(_signalLock);
 		_signal.wait(lock, [&] { return (_context != nullptr || _thread->IsCancelled()); });
-		lock.unlock();
 		
 		std::packaged_task<void ()> task;
 		
 		while(!_thread->IsCancelled())
 		{
 			_running.store(true);
+			lock.unlock();
 			
 			while(_commands.pop(task))
 			{
