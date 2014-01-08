@@ -210,14 +210,7 @@ namespace RN
 	
 	bool Thread::OnThread() const
 	{
-		__ThreadLock.Lock();
-		
-		auto iterator = __ThreadMap.find(_id);
-		bool onThread = (iterator->second == this);
-		
-		__ThreadLock.Unlock();
-		
-		return onThread;
+		return (_id == std::this_thread::get_id());
 	}
 	
 	void Thread::SetName(const std::string& name)
