@@ -185,7 +185,12 @@ namespace RN
 				position = currFrame->position;
 				scale = currFrame->scale;
 				rotation = currFrame->rotation;
+				running = false;
 			}
+		}
+		else
+		{
+			running = false;
 		}
 		
 		//TODO: Remove absolute flag...
@@ -481,13 +486,14 @@ namespace RN
 		SetAnimation(_blendanim);
 	}
 	
-	Bone *Skeleton::GetBone(const std::string name)
+	std::vector<Bone *> Skeleton::GetBones(const std::string name)
 	{
+		std::vector<Bone *> out;
 		for(int i = 0; i < bones.size(); i++)
 			if(bones[i].name == name)
-				return &bones[i];
+				out.push_back(&bones[i]);
 		
-		return 0;
+		return out;
 	}
 	
 	Skeleton *Skeleton::WithFile(const std::string& path)
