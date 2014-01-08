@@ -6,8 +6,8 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNOpenGL.h"
 #include "RNBase.h"
+#include "RNOpenGL.h"
 #include "RNContextInternal.h"
 #include "RNLogging.h"
 #include "RNSettings.h"

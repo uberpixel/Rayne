@@ -87,9 +87,6 @@ namespace RN
 		Quaternion(const Vector3& euler);
 		Quaternion(const Vector4& axis);
 
-		Quaternion& operator= (const Vector3& other);
-		Quaternion& operator= (const Vector4& other);
-
 		Quaternion& operator+= (const Quaternion& other);
 		Quaternion& operator-= (const Quaternion& other);
 		Quaternion& operator*= (const Quaternion& other);
