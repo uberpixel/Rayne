@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include <random>
 #include "RNRandom.h"
 #include "RNCPU.h"
 
@@ -29,15 +30,7 @@ namespace RN
 		
 		uint32 Generator::GetSeedValue()
 		{
-			time_t now = time(0);
-			uint8 *p = reinterpret_cast<uint8 *>(&now);
-			uint32 seed = 0;
-			
-			for(int i=0; i<sizeof(time_t); i++)
-			{
-				seed = seed * (UINT8_MAX + 2U) + p[i];
-			}
-			
+			uint32 seed = static_cast<uint32>(std::random_device{}());
 			return seed;
 		}
 		
