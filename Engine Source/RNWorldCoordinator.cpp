@@ -40,8 +40,9 @@ namespace RN
 	{
 		if(_loading)
 		{
-			AwaitFinishLoading();
-			return;
+			bool result = AwaitFinishLoading();
+			if(!result)
+				return;
 		}
 		
 		if(_world)
