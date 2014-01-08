@@ -174,8 +174,8 @@ namespace RN
 	
 	Window::Window()
 	{
-		_kernel  = Kernel::GetSharedInstance();
-		_context = _kernel->GetContext();
+		_kernel = Kernel::GetSharedInstance();
+		_internals->context = nullptr;
 		
 		_mask = 0;
 		_cursorVisible = true;
@@ -232,7 +232,6 @@ namespace RN
 		
 		_internals->hWnd = nullptr;
 		_internals->displayChanged = false;
-		_internals->context = nullptr;
 #endif
 		
 #if RN_PLATFORM_LINUX
@@ -356,12 +355,14 @@ namespace RN
 		RNDebug("Switching to {%i, %i} mask: 0x%x", static_cast<int>(width), static_cast<int>(height), mask);
 		
 #if RN_PLATFORM_MAC_OS
-		[_context->_internals->context clearDrawable];
-		[_internals->nativeWindow close];
-		[_internals->nativeWindow release];
-		
-		[NSOpenGLContext clearCurrentContext];
-		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.00001f]];
+		if(_internals->nativeWindow)
+		{
+			[_internals->context->_internals->context clearDrawable];
+			[_internals->nativeWindow close];
+			[_internals->nativeWindow release];
+			
+			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.00001f]];
+		}
 		
 		if(mask & MaskFullscreen)
 		{
@@ -391,20 +392,27 @@ namespace RN
 		
 		renderer->SetDefaultFBO(0);
 		
+		_internals->context = new Context(_kernel->GetContext());
+		_internals->context->MakeActiveContext();
+		
+		// Get the window ready
 		[_internals->nativeWindow setReleasedWhenClosed:NO];
 		[_internals->nativeWindow setAcceptsMouseMovedEvents:YES];
-		[_internals->nativeWindow setOpenGLContext:_context->_internals->context andPixelFormat:_context->_internals->pixelFormat];
+		[_internals->nativeWindow setOpenGLContext:_internals->context->_internals->context
+									andPixelFormat:_internals->context->_internals->pixelFormat];
 		
 		[_internals->nativeWindow makeKeyAndOrderFront:nil];
-		[_context->_internals->context makeCurrentContext];
 		
+		
+		// Update the context and hand it over to the OpenGLQUeue
 		GLint sync = (mask & MaskVSync) ? 1 : 0;
-		[_context->_internals->context setValues:&sync forParameter:NSOpenGLCPSwapInterval];
-		[_context->_internals->context update];
+		[_internals->context->_internals->context setValues:&sync forParameter:NSOpenGLCPSwapInterval];
+		[_internals->context->_internals->context update];
 		
 		[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.00001f]];
 		
-		OpenGLQueue::GetSharedInstance()->SwitchContext(_context);
+		_internals->context->DeactivateContext();
+		OpenGLQueue::GetSharedInstance()->SwitchContext(_internals->context);
 #endif
 
 #if RN_PLATFORM_WINDOWS
@@ -629,6 +637,21 @@ namespace RN
 		_mouseCaptured = false;
 		
 #if RN_PLATFORM_MAC_OS
+#endif
+	}
+		
+	void Window::Flush()
+	{
+#if RN_PLATFORM_MAC_OS
+		CGLFlushDrawable(_internals->context->_internals->cglContext);
+#endif
+		
+#if RN_PLATFORM_LINUX
+		glXSwapBuffers(_context->_dpy, _context->_win);
+#endif
+		
+#if RN_PLATFORM_WINDOWS
+		::SwapBuffers(_internals->hDC);
 #endif
 	}
 }

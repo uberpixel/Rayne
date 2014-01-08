@@ -53,8 +53,9 @@ namespace RN
 		HWND hWnd;
 		HDC hDC;
 		bool displayChanged;
-		Context *context;
 #endif
+		
+		Context *context;
 	};
 
 #if RN_PLATFORM_WINDOWS

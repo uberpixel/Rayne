@@ -600,33 +600,27 @@ namespace RN
 	
 	void Texture2D::SetSize(size_t width, size_t height)
 	{
-		_width  = width;
-		_height = height;
-		
-		_isComplete = true;
-		_hasChanged = true;
-		
-		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this, width, height] {
 			GLint internalFormat;
 			GLenum type, format;
+			
+			_width  = width;
+			_height = height;
 			
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
 			Bind();
 			
 			gl::TexImage2D(GL_TEXTURE_2D, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, nullptr);
 		
+			_isComplete = true;
+			_hasChanged = true;
+			
 			Update();
 		});
 	}
 	
 	void Texture2D::SetData(const PixelData& data)
 	{
-		_width  = data.width;
-		_height = data.height;
-		
-		_isComplete = true;
-		_hasChanged = true;
-		
 		void *converted = ConvertData(data, _parameter.format);
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
@@ -634,12 +628,18 @@ namespace RN
 			GLint internalFormat;
 			GLenum type, format;
 			
+			_width  = data.width;
+			_height = data.height;
+			
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
 			Bind();
 		
 			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
 			gl::TexImage2D(GL_TEXTURE_2D, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, converted);
 		
+			_isComplete = true;
+			_hasChanged = true;
+			
 			Update();
 		}, true);
 		
@@ -656,8 +656,6 @@ namespace RN
 	{
 		void *converted = ConvertData(data, _parameter.format);
 		
-		_hasChanged = true;
-		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
 			GLint internalFormat;
 			GLenum type, format;
@@ -668,6 +666,8 @@ namespace RN
 			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
 			gl::TexSubImage2D(GL_TEXTURE_2D, 0, region.x, region.y, region.width, region.height, format, type, converted);
 		
+			_hasChanged = true;
+			
 			Update();
 		}, true);
 		
@@ -686,8 +686,6 @@ namespace RN
 			
 			gl::PixelStorei(GL_PACK_ALIGNMENT, static_cast<GLint>(data.alignment));
 			gl::GetTexImage(GL_TEXTURE_2D, 0, format, type, data.data);
-			
-			Update();
 		}, true);
 	}
 
@@ -720,39 +718,36 @@ namespace RN
 	
 	void Texture2DArray::SetSize(size_t width, size_t height, size_t layer)
 	{
-		_width  = width;
-		_height = height;
-		_layer  = layer;
-	
-		_isComplete = true;
-		_hasChanged = true;
-		
-		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this, width, height, layer] {
 			GLint internalFormat;
 			GLenum type, format;
+			
+			_width  = width;
+			_height = height;
+			_layer  = layer;
 			
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
 			Bind();
 			
 			gl::TexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), static_cast<GLint>(_layer), 0, format, type, nullptr);
 		
+			_isComplete = true;
+			_hasChanged = true;
+			
 			Update();
 		});
 	}
 	
 	void Texture2DArray::SetData(const PixelData& data, size_t index)
 	{
-		_width  = data.width;
-		_height = data.height;
-		
-		_isComplete = true;
-		_hasChanged = true;
-		
 		void *converted = ConvertData(data, _parameter.format);
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
 			GLint internalFormat;
 			GLenum type, format;
+			
+			_width  = data.width;
+			_height = data.height;
 			
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
 			Bind();
@@ -760,6 +755,9 @@ namespace RN
 			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
 			gl::TexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), static_cast<GLint>(index), 0, format, type, converted);
 		
+			_isComplete = true;
+			_hasChanged = true;
+			
 			Update();
 		}, true);
 		
@@ -769,8 +767,6 @@ namespace RN
 	
 	void Texture2DArray::UpdateData(const PixelData& data, size_t index)
 	{
-		_hasChanged = true;
-		
 		void *converted = ConvertData(data, _parameter.format);
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
@@ -782,6 +778,8 @@ namespace RN
 			
 			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
 			gl::TexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, static_cast<GLint>(_width), static_cast<GLint>(_height), static_cast<GLint>(index), format, type, converted);
+			
+			_hasChanged = true;
 			
 			Update();
 		}, true);
@@ -811,16 +809,13 @@ namespace RN
 	
 	void TextureCubeMap::SetSize(size_t width, size_t height)
 	{
-		_width  = width;
-		_height = height;
-		
-		_isComplete = true;
-		_hasChanged = true;
-		
-		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this, width, height] {
 			
 			GLint internalFormat;
 			GLenum type, format;
+			
+			_width  = width;
+			_height = height;
 		
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
 			Bind();
@@ -828,23 +823,23 @@ namespace RN
 			for(int i = 0; i < 6; i ++)
 				gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, nullptr);
 			
+			_isComplete = true;
+			_hasChanged = true;
+			
 			Update();
 		});
 	}
 	
 	void TextureCubeMap::SetData(const PixelData& data, Side side)
 	{
-		_width  = data.width;
-		_height = data.height;
-		
-		_isComplete = true;
-		_hasChanged = true;
-		
 		void *converted = ConvertData(data, _parameter.format);
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
 			GLint internalFormat;
 			GLenum type, format;
+			
+			_width  = data.width;
+			_height = data.height;
 			
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
 			
@@ -863,6 +858,9 @@ namespace RN
 					break;
 			}
 			
+			_isComplete = true;
+			_hasChanged = true;
+			
 			Update();
 		}, true);
 		
@@ -872,9 +870,6 @@ namespace RN
 	
 	void TextureCubeMap::UpdateData(const PixelData& data, Side side)
 	{
-		_isComplete = true;
-		_hasChanged = true;
-		
 		void *converted = ConvertData(data, _parameter.format);
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
@@ -898,6 +893,9 @@ namespace RN
 					gl::TexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<int>(side), 0, 0, 0, static_cast<GLint>(_width), static_cast<GLint>(_height), format, type, converted);
 					break;
 			}
+			
+			_isComplete = true;
+			_hasChanged = true;
 			
 			Update();
 		}, true);

@@ -22,23 +22,25 @@ namespace RN
 		_copyVertices[2] = Vector4(-1.0f, 1.0f,  0.0f, 1.0f);
 		_copyVertices[3] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 		
-		gl::GenVertexArrays(1, &_copyVAO);
-		gl::BindVertexArray(_copyVAO);
-		
-		gl::GenBuffers(1, &_copyVBO);
-		
-		gl::BindBuffer(GL_ARRAY_BUFFER, _copyVBO);
-		gl::BufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STREAM_DRAW);
-		
-		gl::BindVertexArray(0);
-		
-		RN_CHECKOPENGL();
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			gl::GenVertexArrays(1, &_copyVAO);
+			gl::BindVertexArray(_copyVAO);
+			
+			gl::GenBuffers(1, &_copyVBO);
+			
+			gl::BindBuffer(GL_ARRAY_BUFFER, _copyVBO);
+			gl::BufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STREAM_DRAW);
+			
+			gl::BindVertexArray(0);
+		});
 	}
 	
 	Renderer32::~Renderer32()
 	{
-		gl::DeleteBuffers(1, &_copyVBO);
-		gl::DeleteVertexArrays(1, &_copyVAO);
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+			gl::DeleteBuffers(1, &_copyVBO);
+			gl::DeleteVertexArrays(1, &_copyVAO);
+		});
 	}
 	
 	

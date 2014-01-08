@@ -552,20 +552,9 @@ namespace RN
 		PushStatistics("krn.flush");
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
-#if RN_PLATFORM_MAC_OS
-			CGLFlushDrawable(_context->_internals->cglContext);
-#endif
-		
-#if RN_PLATFORM_LINUX
-			glXSwapBuffers(_context->_dpy, _context->_win);
-#endif
-
-#if RN_PLATFORM_WINDOWS
-			::SwapBuffers(_window->_internals->hDC);
-#endif
+			_window->Flush();
 		}, true);
-
-		RN_CHECKOPENGL();
+		
 		PopStatistics();
 		
 		_lastFrame = now;

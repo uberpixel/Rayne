@@ -87,10 +87,6 @@ namespace RN
 		bool hadContext = (_context != nullptr);
 		if(!hadContext)
 		{
-			SubmitCommand([&]{
-				_context->MakeActiveContext();
-			});
-			
 			std::unique_lock<std::mutex> lock(_signalLock);
 			_context = SafeRetain(context);
 			_signal.notify_one();
@@ -121,6 +117,7 @@ namespace RN
 		
 		std::unique_lock<std::mutex> lock(_signalLock);
 		_signal.wait(lock, [&] { return (_context != nullptr || _thread->IsCancelled()); });
+		_context->MakeActiveContext();
 		
 		std::packaged_task<void ()> task;
 		

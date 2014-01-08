@@ -128,10 +128,10 @@ namespace RN
 		RNAPI const std::vector<Screen *>& GetScreens() const { return _screens; }
 
 	private:
+		void Flush();
+		
 		PIMPL<WindowInternals> _internals;
-
-		Context *_context;
-		Kernel  *_kernel;
+		Kernel *_kernel;
 		
 		std::string _title;
 		Mask _mask;
