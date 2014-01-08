@@ -502,6 +502,9 @@ namespace TG
 	
 	void World::CreateForest()
 	{
+		RN::Progress *progress = RN::Progress::GetActiveProgress();
+		progress->SetTotalUnits(100);
+		
 		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f)*2.0f;
 		_camera->SetPosition(RN::Vector3(0.0f, 2.0f, 0.0f));
 		
@@ -523,16 +526,19 @@ namespace TG
 		RN::Entity *tavernent = new RN::Entity();
 		tavernent->SetModel(tavern);
 		tavernent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
+		progress->IncrementCompletedUnits(5);
 		
 		RN::Model *house2 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_house02.sgm");
 		RN::Entity *house2ent = new RN::Entity();
 		house2ent->SetModel(house2);
 		house2ent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 30.0f));
+		progress->IncrementCompletedUnits(5);
 		
 		RN::Model *ruin4 = RN::Model::WithFile("models/dexsoft/ruins/ruins_house4.sgm");
 		RN::Entity *ruin4ent = new RN::Entity();
 		ruin4ent->SetModel(ruin4);
 		ruin4ent->SetWorldPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
+		progress->IncrementCompletedUnits(5);
 		
 		/*RN::Model *dwarf = RN::Model::WithFile("models/psionic/dwarf/dwarf1.x");
 		RN::Entity *dwarfent = new RN::Entity();
@@ -617,6 +623,7 @@ namespace TG
 		trees[0]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		trees[0]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
 		trees[0]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
+		progress->IncrementCompletedUnits(5);
 		
 		trees[1] = RN::Model::WithFile("models/pure3d/BirchTrees/birch6m.sgm");
 		trees[1]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
@@ -631,6 +638,7 @@ namespace TG
 		trees[1]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
 		trees[1]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		trees[1]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
+		progress->IncrementCompletedUnits(5);
 		
 		trees[2] = RN::Model::WithFile("models/pure3d/BirchTrees/birch11m.sgm");
 		trees[2]->GetMaterialAtIndex(0, 0)->culling = false;
@@ -655,6 +663,7 @@ namespace TG
 		trees[2]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		trees[2]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
 		trees[2]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
+		progress->IncrementCompletedUnits(5);
 		
 		trees[3] = RN::Model::WithFile("models/pure3d/BirchTrees/birch13m.sgm");
 		trees[3]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
@@ -679,6 +688,7 @@ namespace TG
 		trees[3]->GetMaterialAtIndex(1, 2)->discardThreshold = 0.1f;
 		trees[3]->GetMaterialAtIndex(1, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		trees[3]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
+		progress->IncrementCompletedUnits(5);
 		
 		trees[4] = RN::Model::WithFile("models/pure3d/BirchTrees/birch18m.sgm");
 		trees[4]->GetMaterialAtIndex(0, 0)->culling = false;
@@ -703,6 +713,7 @@ namespace TG
 		trees[4]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		trees[4]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
 		trees[4]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
+		progress->IncrementCompletedUnits(5);
 		
 		trees[5] = RN::Model::WithFile("models/pure3d/BirchTrees/birch20m.sgm");
 		trees[5]->GetMaterialAtIndex(0, 0)->culling = false;
@@ -717,6 +728,7 @@ namespace TG
 		trees[5]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
 		trees[5]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		trees[5]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
+		progress->IncrementCompletedUnits(5);
 		
 		trees[6] = RN::Model::WithFile("models/pure3d/PineTrees/pine4m.sgm");
 		trees[6]->GetMaterialAtIndex(0, 0)->culling = false;
@@ -751,6 +763,7 @@ namespace TG
 		trees[6]->GetMaterialAtIndex(2, 1)->discardThreshold = 0.5f;
 		trees[6]->GetMaterialAtIndex(2, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		trees[6]->GetMaterialAtIndex(2, 1)->Define("RN_VEGETATION");
+		progress->IncrementCompletedUnits(5);
 		
 		trees[7] = RN::Model::WithFile("models/pure3d/PineTrees/pine7m.sgm");
 		trees[7]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
@@ -786,6 +799,7 @@ namespace TG
 		trees[7]->GetMaterialAtIndex(2, 2)->discardThreshold = 0.5f;
 		trees[7]->GetMaterialAtIndex(2, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		trees[7]->GetMaterialAtIndex(2, 2)->Define("RN_VEGETATION");
+		progress->IncrementCompletedUnits(5);
 		
 		trees[8] = RN::Model::WithFile("models/pure3d/PineTrees/pine9m.sgm");
 		trees[8]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
@@ -816,6 +830,7 @@ namespace TG
 		trees[8]->GetMaterialAtIndex(2, 1)->discardThreshold = 0.5f;
 		trees[8]->GetMaterialAtIndex(2, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		trees[8]->GetMaterialAtIndex(2, 1)->Define("RN_VEGETATION");
+		progress->IncrementCompletedUnits(5);
 		
 		trees[9] = RN::Model::WithFile("models/pure3d/PineTrees/pine16m.sgm");
 		trees[9]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
@@ -846,6 +861,7 @@ namespace TG
 		trees[9]->GetMaterialAtIndex(2, 1)->discardThreshold = 0.5f;
 		trees[9]->GetMaterialAtIndex(2, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
 		trees[9]->GetMaterialAtIndex(2, 1)->Define("RN_VEGETATION");
+		progress->IncrementCompletedUnits(5);
 		
 
 		RN::Entity *ent;
@@ -935,12 +951,17 @@ namespace TG
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		}*/
 #endif
+		
+		progress->ResignActive();
 	}
 	
 	void World::PlaceEntitiesOnGround(RN::SceneNode *node, RN::SceneNode *ground)
 	{
 		RN::ThreadPool::Batch *batch = RN::ThreadPool::GetSharedInstance()->CreateBatch();
 		const RN::Array *children = node->GetChildren();
+		
+		RN::Progress *progress = RN::Progress::GetActiveProgress()->IntermediateProgressAcountingFor(15);
+		progress->SetTotalUnits(children->GetCount());
 		
 		children->Enumerate<RN::Entity>([&](RN::Entity *entity, size_t index, bool *stop) {
 			
@@ -951,11 +972,15 @@ namespace TG
 				pos.y = GetGroundHeight(pos, ground);
 				
 				entity->SetPosition(pos);
+				progress->IncrementCompletedUnits(1);
+				
 			});
 		});
 		
 		batch->Commit();
 		batch->Wait();
+		
+		progress->ResignActive();
 	}
 	
 	float World::GetGroundHeight(const RN::Vector3 &position, RN::SceneNode *ground)
