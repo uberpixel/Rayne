@@ -161,6 +161,10 @@
 		E96C566F177E4FD8007FAF7C /* RNUITypesetter.h in Headers */ = {isa = PBXBuildFile; fileRef = E96C566D177E4FD8007FAF7C /* RNUITypesetter.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E96F253F181F384F001450B2 /* RNLoggingEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E96F253D181F384F001450B2 /* RNLoggingEngine.cpp */; };
 		E96F2540181F384F001450B2 /* RNLoggingEngine.h in Headers */ = {isa = PBXBuildFile; fileRef = E96F253E181F384F001450B2 /* RNLoggingEngine.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E97055D2187D81820022C82A /* RNProgress.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E97055D0187D81820022C82A /* RNProgress.cpp */; };
+		E97055D3187D81820022C82A /* RNProgress.h in Headers */ = {isa = PBXBuildFile; fileRef = E97055D1187D81820022C82A /* RNProgress.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E970B40E187DAB9500DF00FE /* RNUIProgressIndicator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E970B40C187DAB9500DF00FE /* RNUIProgressIndicator.cpp */; };
+		E970B40F187DAB9500DF00FE /* RNUIProgressIndicator.h in Headers */ = {isa = PBXBuildFile; fileRef = E970B40D187DAB9500DF00FE /* RNUIProgressIndicator.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9780FC016D82913001AE2ED /* RNSettings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9780FBE16D82913001AE2ED /* RNSettings.cpp */; };
 		E9780FC116D82913001AE2ED /* RNSettings.h in Headers */ = {isa = PBXBuildFile; fileRef = E9780FBF16D82913001AE2ED /* RNSettings.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E97C3EB0172B11C7006EA63A /* RNString.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E97C3EAE172B11C7006EA63A /* RNString.cpp */; };
@@ -458,6 +462,10 @@
 		E96C566D177E4FD8007FAF7C /* RNUITypesetter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUITypesetter.h; sourceTree = "<group>"; };
 		E96F253D181F384F001450B2 /* RNLoggingEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNLoggingEngine.cpp; sourceTree = "<group>"; };
 		E96F253E181F384F001450B2 /* RNLoggingEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNLoggingEngine.h; sourceTree = "<group>"; };
+		E97055D0187D81820022C82A /* RNProgress.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNProgress.cpp; sourceTree = "<group>"; };
+		E97055D1187D81820022C82A /* RNProgress.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNProgress.h; sourceTree = "<group>"; };
+		E970B40C187DAB9500DF00FE /* RNUIProgressIndicator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIProgressIndicator.cpp; sourceTree = "<group>"; };
+		E970B40D187DAB9500DF00FE /* RNUIProgressIndicator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIProgressIndicator.h; sourceTree = "<group>"; };
 		E9780FBE16D82913001AE2ED /* RNSettings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSettings.cpp; sourceTree = "<group>"; };
 		E9780FBF16D82913001AE2ED /* RNSettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSettings.h; sourceTree = "<group>"; };
 		E97C3EAE172B11C7006EA63A /* RNString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNString.cpp; sourceTree = "<group>"; };
@@ -739,6 +747,8 @@
 				E99A9560172A002100605C68 /* RNNumber.h */,
 				E9619E0D1696157E00DA187E /* RNObject.cpp */,
 				E9619E0E1696157E00DA187E /* RNObject.h */,
+				E97055D0187D81820022C82A /* RNProgress.cpp */,
+				E97055D1187D81820022C82A /* RNProgress.h */,
 				E9F361F8175AB84800365C12 /* RNSerialization.cpp */,
 				E9F361F9175AB84800365C12 /* RNSerialization.h */,
 				E9B7474A18492E4B00C36305 /* RNSet.cpp */,
@@ -816,6 +826,8 @@
 				E95A782E17D51E720031C9A2 /* RNUIOutlineView.h */,
 				E93B345717D520D5006607B5 /* RNUIOutlineViewCell.cpp */,
 				E93B345817D520D5006607B5 /* RNUIOutlineViewCell.h */,
+				E970B40C187DAB9500DF00FE /* RNUIProgressIndicator.cpp */,
+				E970B40D187DAB9500DF00FE /* RNUIProgressIndicator.h */,
 				E9586E60173072B700D24737 /* RNUIResponder.cpp */,
 				E9586E61173072B700D24737 /* RNUIResponder.h */,
 				E90F87FC1862D5CF00C10354 /* RNUIScrollerInternals.cpp */,
@@ -1087,6 +1099,7 @@
 				C050166A16C3FDE600326514 /* RNLight.h in Headers */,
 				C050167016C45BF100326514 /* RNPlane.h in Headers */,
 				E9780FC116D82913001AE2ED /* RNSettings.h in Headers */,
+				E97055D3187D81820022C82A /* RNProgress.h in Headers */,
 				E95A783017D51E720031C9A2 /* RNUIOutlineView.h in Headers */,
 				E92AE1AF16B4D68C00EFE1E8 /* RNApplication.h in Headers */,
 				C01BCEC916E6698E0009834F /* RNSkeleton.h in Headers */,
@@ -1119,6 +1132,7 @@
 				E9F3A6F5171B8D3E0005A79E /* RNParticleEmitter.h in Headers */,
 				E9F3A6F9171B8DA70005A79E /* RNParticle.h in Headers */,
 				E90F976518720AEC00709C5F /* RNSceneNodeAttachment.h in Headers */,
+				E970B40F187DAB9500DF00FE /* RNUIProgressIndicator.h in Headers */,
 				E9F3A6FD171C489F0005A79E /* RNRandom.h in Headers */,
 				E9D3CEE817203FA100F4BF36 /* RNBillboard.h in Headers */,
 				E99A955E1729AE1800605C68 /* RNInstancingNode.h in Headers */,
@@ -1281,7 +1295,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "BUILD_DIR=\"$PROJECT_DIR/../../Build\"\nINCLUDE_DIR=\"$BUILT_PRODUCTS_DIR/usr/local/include\"\n\nmkdir -p \"$BUILD_DIR\"\nmkdir -p \"$BUILD_DIR/include\"\n\ncp \"$BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\" \"$BUILD_DIR/$EXECUTABLE_NAME\"\nrsync -avz \"$INCLUDE_DIR\" \"$BUILD_DIR\"";
+			shellScript = "BUILD_DIR=\"$PROJECT_DIR/../../Build\"\nINCLUDE_DIR=\"$BUILT_PRODUCTS_DIR/usr/local/include\"\nRESOURCES_DIR=\"/usr/local/opt/Rayne/Engine Resources\"\n\nmkdir -p \"$BUILD_DIR\"\nmkdir -p \"$BUILD_DIR/include\"\n\ncp \"$BUILT_PRODUCTS_DIR/$EXECUTABLE_NAME\" \"$BUILD_DIR/$EXECUTABLE_NAME\"\nrsync -avz \"$INCLUDE_DIR\" \"$BUILD_DIR\"";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -1358,6 +1372,7 @@
 				E9BEC9CE179CDFCB00C05623 /* RNUITextEditor.cpp in Sources */,
 				E9D15BA717DB27CA00435078 /* RNOpenPanel.cpp in Sources */,
 				E9D3CEE717203FA100F4BF36 /* RNBillboard.cpp in Sources */,
+				E97055D2187D81820022C82A /* RNProgress.cpp in Sources */,
 				E99A955D1729AE1800605C68 /* RNInstancingNode.cpp in Sources */,
 				E99A9561172A002100605C68 /* RNNumber.cpp in Sources */,
 				E9E83F40172A4F7D0075559B /* RNUIFont.cpp in Sources */,
@@ -1398,6 +1413,7 @@
 				E93A1550185BA95C000645D7 /* RNResourceLoaderBuiltIn.cpp in Sources */,
 				E9149C0218381A73005E6EE7 /* RNOpenGLBinder.cpp in Sources */,
 				E9FB69E618388A1000D8396B /* RNShaderCache.cpp in Sources */,
+				E970B40E187DAB9500DF00FE /* RNUIProgressIndicator.cpp in Sources */,
 				E945AB421788D97A00C7B30A /* RNUTF8String.cpp in Sources */,
 				E95D42DD17DC28C900026E8C /* RNValue.cpp in Sources */,
 				E945AB60178D7D1200C7B30A /* RNUIStyle.cpp in Sources */,

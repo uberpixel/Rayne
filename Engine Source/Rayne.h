@@ -101,6 +101,7 @@
 #include "RNUITextEditor.h"
 #include "RNUIImageView.h"
 #include "RNUISegmentView.h"
+#include "RNUIProgressIndicator.h"
 #include "RNUIUtilities.h"
 #include "RNUIMenu.h"
 
