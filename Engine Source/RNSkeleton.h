@@ -107,7 +107,7 @@ namespace RN
 		RNAPI void CopyAnimation(const std::string &from, const std::string &to, float start, float end, bool loop = true);
 		RNAPI void RemoveAnimation(const std::string &animname);
 		
-		RNAPI Bone *GetBone(const std::string name);
+		RNAPI std::vector<Bone *> GetBones(const std::string name);
 		RNAPI uint16 GetBoneCount() const { return bones.size(); }
 		RNAPI const std::vector<Matrix>& GetMatrices() const { return _matrices; }
 		
