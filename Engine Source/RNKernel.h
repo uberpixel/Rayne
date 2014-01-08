@@ -20,12 +20,12 @@
 #include "RNString.h"
 #include "RNStatistics.h"
 
-namespace RN
-{
 #define kRNKernelDidBeginFrameMessage RNCSTR("kRNKernelDidBeginFrameMessage")
 #define kRNKernelDidEndFrameMessage   RNCSTR("kRNKernelDidEndFrameMessage")
-	
-	class World;
+
+namespace RN
+{
+	class WorldCoordinator;
 	
 	class Kernel : public INonConstructingSingleton<Kernel>
 	{
@@ -37,7 +37,6 @@ namespace RN
 
 		RNAPI bool Tick();
 
-		RNAPI void SetWorld(World *world);
 		RNAPI void SetTimeScale(float timeScale);
 		RNAPI void SetMaxFPS(uint32 fps);
 		
@@ -87,7 +86,7 @@ namespace RN
 		AutoreleasePool *_pool;
 		Renderer *_renderer;
 		Input *_input;
-		World *_world;
+		WorldCoordinator *_worldCoordinator;
 		UI::Server *_uiserver;
 		
 		uint32 _statisticsSwitch;

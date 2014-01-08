@@ -22,6 +22,7 @@
 #include "RNLogging.h"
 #include "RNShaderCache.h"
 #include "RNWindowInternal.h"
+#include "RNWorldCoordinator.h"
 
 namespace RN
 {
@@ -78,7 +79,8 @@ namespace RN
 		_app->WillExit();
 		
 		delete ModuleCoordinator::GetSharedInstance();
-
+		
+		delete _worldCoordinator;
 		delete _renderer;
 		delete _input;
 		delete _uiserver;
@@ -191,9 +193,9 @@ namespace RN
 		_input    = Input::GetSharedInstance();
 		_uiserver = UI::Server::GetSharedInstance();
 		_window   = Window::GetSharedInstance();
+		_worldCoordinator = WorldCoordinator::GetSharedInstance();
 		
 		// Initialize some state
-		_world  = nullptr;
 		_frame  = 0;
 		_maxFPS = 0;
 		
@@ -533,13 +535,11 @@ namespace RN
 		
 		_app->GameUpdate(_delta);
 
-		if(_world)
-		{
-			_world->StepWorld(_frame, _delta);
-			_app->WorldUpdate(_delta);
-			
-			_world->RenderWorld(_renderer);
-		}
+		
+		_worldCoordinator->StepWorld(_frame, _delta);
+		_app->WorldUpdate(_delta);
+		_worldCoordinator->RenderWorld(_renderer);
+		
 		
 		_uiserver->Render(_renderer);
 		_renderer->FinishFrame();
@@ -606,12 +606,6 @@ namespace RN
 		return _statistics[index].GetDataPoints();
 	}
 	
-
-	void Kernel::SetWorld(World *world)
-	{
-		_world = world;
-	}
-
 	void Kernel::SetTimeScale(float timeScale)
 	{
 		_timeScale = timeScale;

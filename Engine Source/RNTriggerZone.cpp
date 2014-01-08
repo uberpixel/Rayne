@@ -17,7 +17,7 @@ namespace RN
 	public:
 		TriggerZoneManager()
 		{
-			World::GetSharedInstance()->AddAttachment(this);
+			World::GetActiveWorld()->AddAttachment(this);
 		}
 		
 		~TriggerZoneManager()

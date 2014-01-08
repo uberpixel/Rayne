@@ -34,7 +34,7 @@ namespace TG
 		widget->Open();
 		widget->Release();
 
-		_world = new World();
+		RN::WorldCoordinator::GetSharedInstance()->LoadWorld(new World());
 	}
 	
 	void Application::WillExit()

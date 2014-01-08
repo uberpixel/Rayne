@@ -57,7 +57,7 @@ namespace RN
 		
 		SetBoundingBox(AABB(Vector3(-1.0f), Vector3(1.0f)));
 		
-		World *world = World::GetSharedInstance();
+		World *world = World::GetActiveWorld();
 		
 		if(world)
 			world->AddSceneNode(this);

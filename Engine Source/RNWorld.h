@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNArray.h"
+#include "RNThread.h"
 #include "RNRenderer.h"
 #include "RNSceneNode.h"
 #include "RNCamera.h"
@@ -21,8 +22,7 @@
 namespace RN
 {
 	class Kernel;
-
-	class World : public INonConstructingSingleton<World>
+	class World : public Object
 	{
 	public:
 		friend class SceneNode;
@@ -46,10 +46,14 @@ namespace RN
 		
 		RNAPI virtual void Update(float delta);
 		RNAPI virtual void UpdatedToFrame(FrameID frame);
-		RNAPI virtual void WillRenderSceneNode(SceneNode *node);
-		RNAPI virtual void Reset();
+		
+		RNAPI virtual void LoadOnThread(Thread *thread);
+		RNAPI virtual void FinishLoading();
+		RNAPI virtual bool SupportsBackgroundLoading() const;
 		
 		RNAPI SceneManager *GetSceneManager() const { return _sceneManager; }
+		
+		RNAPI static World *GetActiveWorld();
 		
 	private:		
 		static class SceneManager *SceneManagerWithName(const std::string& name);
@@ -57,6 +61,7 @@ namespace RN
 		void SceneNodeWillRender(SceneNode *node);
 		
 		void SceneNodeDidUpdate(SceneNode *node, uint32 changeSet);
+		void DropSceneNode(SceneNode *node);
 		void ApplyNodes();
 		
 		void SortNodes();
@@ -82,7 +87,7 @@ namespace RN
 		bool _requiresResort;
 		bool _requiresCameraSort;
 		
-		SpinLock _nodeLock;
+		RecursiveSpinLock _nodeLock;
 		
 		std::vector<SceneNode *> _addedNodes;
 		std::vector<SceneNode *> _nodes;
@@ -93,7 +98,7 @@ namespace RN
 		SceneManager  *_sceneManager;
 		MetaClassBase *_cameraClass;
 		
-		RNDefineSingleton(World)
+		RNDefineMeta(World, Object)
 	};
 }
 

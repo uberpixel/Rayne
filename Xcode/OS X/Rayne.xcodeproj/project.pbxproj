@@ -40,6 +40,8 @@
 		E917F0801791FC7C003765C1 /* RNUIScrollView.h in Headers */ = {isa = PBXBuildFile; fileRef = E917F07E1791FC7C003765C1 /* RNUIScrollView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E919598F17901180004B5880 /* RNUIUtilities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E919598D17901180004B5880 /* RNUIUtilities.cpp */; };
 		E919599017901180004B5880 /* RNUIUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = E919598E17901180004B5880 /* RNUIUtilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E91A254E187CA5BB002748E7 /* RNWorldCoordinator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E91A254C187CA5BB002748E7 /* RNWorldCoordinator.cpp */; };
+		E91A254F187CA5BB002748E7 /* RNWorldCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = E91A254D187CA5BB002748E7 /* RNWorldCoordinator.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E91C8CD9176006A300E9E8F2 /* RNUIControl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E91C8CD7176006A200E9E8F2 /* RNUIControl.cpp */; };
 		E91C8CDA176006A300E9E8F2 /* RNUIControl.h in Headers */ = {isa = PBXBuildFile; fileRef = E91C8CD8176006A200E9E8F2 /* RNUIControl.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E91C8CDD176023EC00E9E8F2 /* RNUIButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E91C8CDB176023EC00E9E8F2 /* RNUIButton.cpp */; };
@@ -328,6 +330,8 @@
 		E917F07E1791FC7C003765C1 /* RNUIScrollView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIScrollView.h; sourceTree = "<group>"; };
 		E919598D17901180004B5880 /* RNUIUtilities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIUtilities.cpp; sourceTree = "<group>"; };
 		E919598E17901180004B5880 /* RNUIUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIUtilities.h; sourceTree = "<group>"; };
+		E91A254C187CA5BB002748E7 /* RNWorldCoordinator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWorldCoordinator.cpp; sourceTree = "<group>"; };
+		E91A254D187CA5BB002748E7 /* RNWorldCoordinator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWorldCoordinator.h; sourceTree = "<group>"; };
 		E91C8CD7176006A200E9E8F2 /* RNUIControl.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIControl.cpp; sourceTree = "<group>"; };
 		E91C8CD8176006A200E9E8F2 /* RNUIControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIControl.h; sourceTree = "<group>"; };
 		E91C8CDB176023EC00E9E8F2 /* RNUIButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIButton.cpp; sourceTree = "<group>"; };
@@ -968,6 +972,8 @@
 				E9619E271696157E00DA187E /* RNWorld.h */,
 				E9592829170CBAAD00935AC8 /* RNWorldAttachment.cpp */,
 				E959282A170CBAAD00935AC8 /* RNWorldAttachment.h */,
+				E91A254C187CA5BB002748E7 /* RNWorldCoordinator.cpp */,
+				E91A254D187CA5BB002748E7 /* RNWorldCoordinator.h */,
 			);
 			name = Scene;
 			sourceTree = "<group>";
@@ -1165,6 +1171,7 @@
 				E940FAD0178084D100C69B88 /* RNAttributedString.h in Headers */,
 				E9E6990017DF8B9500D30231 /* RNFormatter.h in Headers */,
 				E95EEE491784CFDC00CDCA6E /* RNBasicString.h in Headers */,
+				E91A254F187CA5BB002748E7 /* RNWorldCoordinator.h in Headers */,
 				E95EEE4D1784EFAC00CDCA6E /* RNASCIIString.h in Headers */,
 				E9FB69E218383DF000D8396B /* glext.h in Headers */,
 				E9FB69E118383DF000D8396B /* glcorearb.h in Headers */,
@@ -1377,6 +1384,7 @@
 				E91C8CDD176023EC00E9E8F2 /* RNUIButton.cpp in Sources */,
 				E9AD2A7F17610E8F00BC3E8F /* RNUILabel.cpp in Sources */,
 				E96C5664177C8AC3007FAF7C /* RNRenderer32.cpp in Sources */,
+				E91A254E187CA5BB002748E7 /* RNWorldCoordinator.cpp in Sources */,
 				E96F253F181F384F001450B2 /* RNLoggingEngine.cpp in Sources */,
 				E9E698FF17DF8B9500D30231 /* RNFormatter.cpp in Sources */,
 				E96C566E177E4FD8007FAF7C /* RNUITypesetter.cpp in Sources */,

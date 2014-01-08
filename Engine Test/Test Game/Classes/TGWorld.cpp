@@ -41,12 +41,23 @@ namespace TG
 		
 		_debugAttachment = new DebugDrawer();
 		AddAttachment(_debugAttachment);
+	}
+	
+	World::~World()
+	{
+		RN::Input::GetSharedInstance()->Deactivate();
+		RN::MessageCenter::GetSharedInstance()->RemoveObserver(this);
 		
+		_camera->Release();
+	}
+	
+	void World::LoadOnThread(RN::Thread *thread)
+	{
 		CreateCameras();
-//		CreateSponza();
-//		CreateGrass();
+		//CreateSponza();
+		//CreateGrass();
 		CreateForest();
-//		CreateSibenik();
+		//CreateSibenik();
 		
 		RN::Input::GetSharedInstance()->Activate();
 		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNInputEventMessage, [&](RN::Message *message) {
@@ -73,13 +84,11 @@ namespace TG
 		}, this);
 	}
 	
-	World::~World()
+	bool World::SupportsBackgroundLoading() const
 	{
-		RN::Input::GetSharedInstance()->Deactivate();
-		RN::MessageCenter::GetSharedInstance()->RemoveObserver(this);
-		
-		_camera->Release();
+		return true;
 	}
+	
 	
 	void World::Update(float delta)
 	{
@@ -865,6 +874,8 @@ namespace TG
 			node->AttachChild(ent);
 		}
 		
+		PlaceEntitiesOnGround(node, groundBody);
+		
 		RN::Model *grass = RN::Model::WithFile("models/dexsoft/grass/grass_1.sgm");
 		grass->GetMaterialAtIndex(0, 0)->culling = false;
 		grass->GetMaterialAtIndex(0, 0)->discard = true;
@@ -894,6 +905,8 @@ namespace TG
 			node->AttachChild(ent);
 		}
 		
+		PlaceEntitiesOnGround(node, groundBody);
+		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
 		RN::Skeleton *playerSkeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
@@ -922,6 +935,38 @@ namespace TG
 			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
 		}*/
 #endif
+	}
+	
+	void World::PlaceEntitiesOnGround(RN::SceneNode *node, RN::SceneNode *ground)
+	{
+		RN::ThreadPool::Batch *batch = RN::ThreadPool::GetSharedInstance()->CreateBatch();
+		const RN::Array *children = node->GetChildren();
+		
+		children->Enumerate<RN::Entity>([&](RN::Entity *entity, size_t index, bool *stop) {
+			
+			batch->AddTask([&, entity] {
+				RN::Vector3 pos = entity->GetPosition();
+				
+				pos.y += 100.0f;
+				pos.y = GetGroundHeight(pos, ground);
+				
+				entity->SetPosition(pos);
+			});
+		});
+		
+		batch->Commit();
+		batch->Wait();
+	}
+	
+	float World::GetGroundHeight(const RN::Vector3 &position, RN::SceneNode *ground)
+	{
+		float length = -100.0f;
+		RN::Hit hit = ground->CastRay(position, RN::Vector3(0.0f, length, 0.0f));
+		
+		if(hit.node == ground)
+			return position.y + length * hit.distance;
+		
+		return position.y;
 	}
 	
 	void World::CreateGrass()

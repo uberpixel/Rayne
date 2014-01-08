@@ -9,6 +9,7 @@
 #include "RNWorld.h"
 #include "RNKernel.h"
 #include "RNAutoreleasePool.h"
+#include "RNWorldCoordinator.h"
 #include "RNLogging.h"
 #include "RNLockGuard.h"
 #include "RNThreadPool.h"
@@ -18,23 +19,18 @@
 
 namespace RN
 {
-	RNDeclareSingleton(World)
+	RNDeclareMeta(World)
 	
-	World::World(SceneManager *sceneManager)
+	World::World(SceneManager *sceneManager) :
+		_releaseSceneNodesOnDestructor(true),
+		_isDroppingSceneNodes(false),
+		_requiresCameraSort(false),
+		_requiresResort(false)
 	{
-		MakeShared();
-		
 		_kernel = Kernel::GetSharedInstance();
-		_kernel->SetWorld(this);
 		
 		_sceneManager = sceneManager->Retain();
 		_cameraClass  = Camera::MetaClass();
-		
-		_releaseSceneNodesOnDestructor = false;
-		_isDroppingSceneNodes = false;
-		
-		_requiresResort = false;
-		_requiresCameraSort = false;
 	}
 	
 	World::World(const std::string& sceneManager) :
@@ -46,10 +42,8 @@ namespace RN
 		if(_releaseSceneNodesOnDestructor)
 			DropSceneNodes();
 		
-		_kernel->SetWorld(0);
 		_sceneManager->Release();
 	}
-	
 	
 	SceneManager *World::SceneManagerWithName(const std::string& name)
 	{
@@ -65,13 +59,21 @@ namespace RN
 		return static_cast<class SceneManager *>(meta->Construct());
 	}
 	
+	World *World::GetActiveWorld()
+	{
+		return WorldCoordinator::GetSharedInstance()->GetWorld();
+	}
+	
 	
 	void World::SetReleaseSceneNodesOnDestruction(bool releaseSceneNodes)
 	{
 		_releaseSceneNodesOnDestructor = releaseSceneNodes;
 	}
 	
-	
+	// ---------------------
+	// MARK: -
+	// MARK: Callbacks
+	// ---------------------
 	
 	void World::Update(float delta)
 	{}
@@ -79,15 +81,10 @@ namespace RN
 	void World::UpdatedToFrame(FrameID frame)
 	{}
 	
-	void World::WillRenderSceneNode(SceneNode *node)
-	{}
-	
-	void World::Reset()
-	{
-		DropSceneNodes();
-	}
-
-	
+	// ---------------------
+	// MARK: -
+	// MARK: Updating
+	// ---------------------
 	
 	void World::StepWorld(FrameID frame, float delta)
 	{
@@ -189,21 +186,20 @@ namespace RN
 		_kernel->PopStatistics();
 	}
 	
-	
-	
-	
 	void World::SceneNodeWillRender(SceneNode *node)
 	{
 		RunWorldAttachement(&WorldAttachment::WillRenderSceneNode, node);
-		WillRenderSceneNode(node);
 	}
 	
 	
-	
+	// ---------------------
+	// MARK: -
+	// MARK: Scene Nodes
+	// ---------------------
 	
 	void World::AddSceneNode(SceneNode *node)
 	{
-		LockGuard<SpinLock> lock(_nodeLock);
+		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
 		
 		if(_isDroppingSceneNodes)
 			return;
@@ -218,18 +214,14 @@ namespace RN
 	
 	void World::RemoveSceneNode(SceneNode *node)
 	{
-		LockGuard<SpinLock> lock(_nodeLock);
+		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
 		
 		if(_isDroppingSceneNodes)
 			return;
 		
 		if(node->_world == this)
 		{
-			RunWorldAttachement(&WorldAttachment::WillRemoveSceneNode, node);
-			_sceneManager->RemoveSceneNode(node);
-			
-			node->_world = nullptr;
-			node->DidUpdate(SceneNode::ChangedWorld);
+			DropSceneNode(node);
 			
 			if(node->IsKindOfClass(_cameraClass))
 				_cameras.erase(std::remove(_cameras.begin(), _cameras.end(), static_cast<Camera *>(node)), _cameras.end());
@@ -318,6 +310,8 @@ namespace RN
 			{
 				if(!node->_worldStatic)
 				{
+					LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+					
 					_nodes.erase(std::find(_nodes.begin(), _nodes.end(), node));
 					_staticNodes.push_back(node);
 					
@@ -328,6 +322,8 @@ namespace RN
 			{
 				if(node->_worldStatic)
 				{
+					LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+					
 					_requiresResort = true;
 					_staticNodes.erase(std::find(_staticNodes.begin(), _staticNodes.end(), node));
 					_nodes.push_back(node);
@@ -336,6 +332,41 @@ namespace RN
 				}
 			}
 		}
+	}
+	
+	void World::DropSceneNode(SceneNode *node)
+	{
+		RunWorldAttachement(&WorldAttachment::WillRemoveSceneNode, node);
+		_sceneManager->RemoveSceneNode(node);
+		
+		node->_world = nullptr;
+		node->DidUpdate(SceneNode::ChangedWorld);
+	}
+	
+	void World::DropSceneNodes()
+	{
+		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+		
+		_isDroppingSceneNodes = true;
+		
+		for(SceneNode *node : _nodes)
+			DropSceneNode(node);
+		
+		for(SceneNode *node : _addedNodes)
+			DropSceneNode(node);
+		
+		for(SceneNode *node : _staticNodes)
+			DropSceneNode(node);
+		
+		for(Camera *node : _cameras)
+			DropSceneNode(node);
+		
+		_nodes.clear();
+		_addedNodes.clear();
+		_staticNodes.clear();
+		_cameras.clear();
+		
+		_isDroppingSceneNodes = false;
 	}
 	
 	void World::SortNodes()
@@ -356,18 +387,11 @@ namespace RN
 		});
 	}
 	
-	void World::DropSceneNodes()
-	{
-		LockGuard<SpinLock> lock(_nodeLock);
-		
-		_isDroppingSceneNodes = true;
-		
-		
-		
-		_isDroppingSceneNodes = false;
-	}
-
-
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Attachments
+	// ---------------------
 
 
 	void World::AddAttachment(WorldAttachment *attachment)
@@ -380,5 +404,21 @@ namespace RN
 	{
 		LockGuard<Array> lock(_attachments);
 		_attachments.RemoveObject(attachment);
+	}
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Loading
+	// ---------------------
+	
+	void World::LoadOnThread(Thread *thread)
+	{}
+	
+	void World::FinishLoading()
+	{}
+	
+	bool World::SupportsBackgroundLoading() const
+	{
+		return true;
 	}
 }

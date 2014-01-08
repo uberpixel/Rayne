@@ -103,6 +103,7 @@
 #include "RNUIUtilities.h"
 #include "RNUIMenu.h"
 
+#include "RNWorldCoordinator.h"
 #include "RNWorld.h"
 #include "RNSceneNode.h"
 #include "RNEntity.h"

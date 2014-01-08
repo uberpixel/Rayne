@@ -24,6 +24,9 @@ namespace TG
 		World();
 		~World();
 		
+		void LoadOnThread(RN::Thread *thread) override;
+		bool SupportsBackgroundLoading() const override;
+		
 		virtual void Update(float delta);
 		
 	private:
@@ -37,6 +40,9 @@ namespace TG
 		void CreateGrass();
 		void CreateTest();
 		void CreateSibenik();
+		
+		void PlaceEntitiesOnGround(RN::SceneNode *node, RN::SceneNode *ground);
+		float GetGroundHeight(const RN::Vector3 &position, RN::SceneNode *ground);
 		
 		bool PositionBlocked(RN::Vector3 position, RN::Entity **obstacles, int count);
 		

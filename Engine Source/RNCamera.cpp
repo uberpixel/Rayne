@@ -68,7 +68,7 @@ namespace RN
 			return;
 		
 		if((camera->_stageCount ++) == 0)
-			World::GetSharedInstance()->RemoveSceneNode(camera);
+			World::GetActiveWorld()->RemoveSceneNode(camera);
 	}
 	
 	void RenderStage::RemoveCamera(Camera *camera)
@@ -77,7 +77,7 @@ namespace RN
 			return;
 		
 		if((-- camera->_stageCount) == 0)
-			World::GetSharedInstance()->AddSceneNode(camera);
+			World::GetActiveWorld()->AddSceneNode(camera);
 	}
 	
 	
