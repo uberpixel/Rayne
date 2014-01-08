@@ -88,6 +88,7 @@ namespace RN
 		}
 		
 		RNAPI static Thread *GetCurrentThread();
+		RNAPI static Thread *GetMainThread();
 		
 	private:
 		Thread();

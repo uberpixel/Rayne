@@ -51,6 +51,7 @@ namespace RN
 {
 	RNDeclareMeta(Thread)
 	
+	static Thread *__MainThread;
 	static SpinLock __ThreadLock;
 	static std::unordered_map<std::thread::id, Thread *> __ThreadMap;
 	static std::atomic<uint32> __ThreadAtomicIDs;
@@ -65,6 +66,8 @@ namespace RN
 		__ThreadLock.Lock();
 		__ThreadMap[_id] = this;
 		__ThreadLock.Unlock();
+		
+		__MainThread = this;
 	}
 	
 	Thread::~Thread()
@@ -97,6 +100,11 @@ namespace RN
 		__ThreadLock.Unlock();
 		
 		return thread;
+	}
+	
+	Thread *Thread::GetMainThread()
+	{
+		return __MainThread;
 	}
 	
 	
