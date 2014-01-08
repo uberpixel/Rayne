@@ -208,7 +208,7 @@ namespace RN
 			
 			for(int i=1; i<_N; i++)
 			{
-				_bytes[i] = 1812433253UL * (_bytes[i - 1] ^ (_bytes[ - 1] >> 30)) + i;
+				_bytes[i] = 1812433253UL * (_bytes[i - 1] ^ (_bytes[i - 1] >> 30)) + i;
 				_bytes[i] &= 0xffffffffUL;
 			}
 		}
