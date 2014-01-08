@@ -193,7 +193,9 @@ namespace RN
 			
 			try
 			{
-				storage->BindAndUpdateBuffer();
+				OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+					storage->BindAndUpdateBuffer();
+				}, true);
 			}
 			catch(Exception e)
 			{
@@ -242,7 +244,9 @@ namespace RN
 		
 		try
 		{
-			storage->BindAndUpdateBuffer();
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+				storage->BindAndUpdateBuffer();
+			}, true);
 		}
 		catch(Exception e)
 		{
@@ -294,7 +298,9 @@ namespace RN
 		
 		try
 		{
-			storage->BindAndUpdateBuffer();
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+				storage->BindAndUpdateBuffer();
+			}, true);
 		}
 		catch(Exception e)
 		{

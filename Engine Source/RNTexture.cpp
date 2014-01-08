@@ -95,7 +95,7 @@ namespace RN
 	{
 		_parameter = parameter;
 		
-		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
 			
 			GLenum wrapMode;
 			GLenum minFilter;
@@ -154,7 +154,7 @@ namespace RN
 			}
 		
 			Update();
-		});
+		}, true);
 	}
 	
 	
