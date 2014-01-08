@@ -124,9 +124,9 @@ namespace RN
 			for(size_t i = 0; (i < _threadCount && toWrite > 0); i ++)
 			{
 				ThreadContext *context = _threadData[i];
-				size_t pushed;
+				size_t pushed = 0;
 				
-				for(pushed = 0; pushed < perThread; pushed ++)
+				for(; pushed < perThread; pushed ++)
 				{
 					if(!context->hose.push(std::move(tasks[offset])))
 						break;
@@ -154,7 +154,7 @@ namespace RN
 #endif
 				
 				std::unique_lock<std::mutex> lock(_feederLock);
-				_feederCondition.wait_for(lock, std::chrono::microseconds(500));
+				_feederCondition.wait_for(lock, std::chrono::milliseconds(1));
 			}
 		}
 		
