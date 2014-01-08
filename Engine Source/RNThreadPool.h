@@ -311,6 +311,7 @@ namespace RN
 		
 		std::mutex _feederLock;
 		std::mutex _consumerLock;
+		std::mutex _feedLock;
 		std::condition_variable _feederCondition;
 		std::condition_variable _consumerCondition;
 		

@@ -124,7 +124,7 @@ namespace RN
 			{
 				_mainWidget = nullptr;
 				
-				if(_tracking->_widget == widget)
+				if(_tracking && _tracking->_widget == widget)
 					_tracking = nullptr;
 			}
 			

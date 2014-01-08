@@ -109,6 +109,8 @@ namespace RN
 	
 	void ThreadPool::FeedTasks(std::vector<Task>& tasks)
 	{
+		_feedLock.lock();
+		
 		size_t toWrite = tasks.size();
 		size_t offset  = 0;
 		
@@ -119,7 +121,6 @@ namespace RN
 			
 			if(!perThread)
 				perThread = toWrite;
-			
 			
 			for(size_t i = 0; (i < _threadCount && toWrite > 0); i ++)
 			{
@@ -137,9 +138,6 @@ namespace RN
 				
 				if(pushed > 0)
 					written = true;
-				
-				if(pushed > toWrite)
-					pushed = toWrite;
 				
 				toWrite -= pushed;
 			}
@@ -161,6 +159,7 @@ namespace RN
 		_consumerCondition.notify_all();
 		
 		tasks.clear();
+		_feedLock.unlock();
 	}
 	
 	void ThreadPool::Consumer()
