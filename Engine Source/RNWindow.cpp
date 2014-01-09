@@ -490,6 +490,8 @@ namespace RN
 			wgl::SwapIntervalEXT(interval);
 		}
 	
+		_internals->context->DeactivateContext();
+
 		renderer->SetDefaultFBO(0);
 		OpenGLQueue::GetSharedInstance()->SwitchContext(_internals->context);
 #endif

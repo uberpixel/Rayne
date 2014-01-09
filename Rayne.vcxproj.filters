@@ -437,6 +437,15 @@
     <ClInclude Include="Engine Source\RNCameraInternal.h">
       <Filter>Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNUIProgressIndicator.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNProgress.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNWorldCoordinator.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
@@ -779,6 +788,15 @@
       <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="Engine Source\RNCameraInternal.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIProgressIndicator.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNProgress.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNWorldCoordinator.cpp">
       <Filter>Scene</Filter>
     </ClCompile>
   </ItemGroup>

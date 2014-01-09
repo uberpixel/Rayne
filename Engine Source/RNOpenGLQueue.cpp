@@ -16,7 +16,9 @@ namespace RN
 	
 	OpenGLQueue::OpenGLQueue() :
 		_running(false),
-		_context(nullptr)
+		_context(nullptr),
+		_processed(0),
+		_id(0)
 	{
 		_thread = new Thread(std::bind(&OpenGLQueue::ProcessCommands, this), false);
 		_thread->SetName("OpenGL Queue");

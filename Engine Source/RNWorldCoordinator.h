@@ -22,16 +22,16 @@ namespace RN
 	class WorldCoordinator : public ISingleton<WorldCoordinator>
 	{
 	public:
-		WorldCoordinator();
-		~WorldCoordinator();
+		RNAPI WorldCoordinator();
+		RNAPI ~WorldCoordinator();
 		
-		void StepWorld(FrameID frame, float delta);
-		void RenderWorld(Renderer *renderer);
+		RNAPI void StepWorld(FrameID frame, float delta);
+		RNAPI void RenderWorld(Renderer *renderer);
 		
-		Progress *LoadWorld(World *world);
+		RNAPI Progress *LoadWorld(World *world);
 		
-		bool IsLoading() const { return _loading.load(); }
-		World *GetWorld() const { return _world; }
+		RNAPI bool IsLoading() const { return _loading.load(); }
+		RNAPI World *GetWorld() const { return _world; }
 		
 	private:
 		bool AwaitFinishLoading();

@@ -13,8 +13,6 @@
 #include "RNResourceCoordinator.h"
 #include "RNDebug.h"
 
-#define kRNViewShaderResourceName RNCSTR("kRNViewShaderResourceName")
-
 namespace RN
 {
 	namespace UI
@@ -50,12 +48,6 @@ namespace RN
 		
 		void View::Initialize()
 		{
-			static std::once_flag flag;
-			std::call_once(flag, []() {
-				Shader *shader = new Shader("shader/rn_View");
-				ResourceCoordinator::GetSharedInstance()->AddResource(shader, kRNViewShaderResourceName);
-			});
-			
 			_superview    = nullptr;
 			_widget       = nullptr;
 			_clippingView = nullptr;
@@ -68,7 +60,7 @@ namespace RN
 			_hidden             = false;
 			_autoresizingMask   = 0;
 			
-			_material = BasicMaterial(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNViewShaderResourceName, nullptr));
+			_material = BasicMaterial(Shader::WithFile("shader/rn_View"));
 			_material->Retain();
 			
 			SetBackgroundColor(Style::GetSharedInstance()->GetColor(Style::ColorStyle::BackgroundColor)->GetRNColor());

@@ -80,6 +80,7 @@
     <ClInclude Include="Engine Source\RNParticleEmitter.h" />
     <ClInclude Include="Engine Source\RNPathManager.h" />
     <ClInclude Include="Engine Source\RNPlane.h" />
+    <ClInclude Include="Engine Source\RNProgress.h" />
     <ClInclude Include="Engine Source\RNQuaternion.h" />
     <ClInclude Include="Engine Source\RNRandom.h" />
     <ClInclude Include="Engine Source\RNRect.h" />
@@ -130,6 +131,7 @@
     <ClInclude Include="Engine Source\RNUIMenu.h" />
     <ClInclude Include="Engine Source\RNUIOutlineView.h" />
     <ClInclude Include="Engine Source\RNUIOutlineViewCell.h" />
+    <ClInclude Include="Engine Source\RNUIProgressIndicator.h" />
     <ClInclude Include="Engine Source\RNUIResponder.h" />
     <ClInclude Include="Engine Source\RNUIScroller.h" />
     <ClInclude Include="Engine Source\RNUIScrollerInternals.h" />
@@ -156,6 +158,7 @@
     <ClInclude Include="Engine Source\RNWindowInternal.h" />
     <ClInclude Include="Engine Source\RNWorld.h" />
     <ClInclude Include="Engine Source\RNWorldAttachment.h" />
+    <ClInclude Include="Engine Source\RNWorldCoordinator.h" />
     <ClInclude Include="Engine Source\RNWrappingObject.h" />
   </ItemGroup>
   <ItemGroup>
@@ -212,6 +215,7 @@
     <ClCompile Include="Engine Source\RNParticle.cpp" />
     <ClCompile Include="Engine Source\RNParticleEmitter.cpp" />
     <ClCompile Include="Engine Source\RNPathManager.cpp" />
+    <ClCompile Include="Engine Source\RNProgress.cpp" />
     <ClCompile Include="Engine Source\RNRandom.cpp" />
     <ClCompile Include="Engine Source\RNRenderer.cpp" />
     <ClCompile Include="Engine Source\RNRenderer32.cpp" />
@@ -249,6 +253,7 @@
     <ClCompile Include="Engine Source\RNUIMenu.cpp" />
     <ClCompile Include="Engine Source\RNUIOutlineView.cpp" />
     <ClCompile Include="Engine Source\RNUIOutlineViewCell.cpp" />
+    <ClCompile Include="Engine Source\RNUIProgressIndicator.cpp" />
     <ClCompile Include="Engine Source\RNUIResponder.cpp" />
     <ClCompile Include="Engine Source\RNUIScroller.cpp" />
     <ClCompile Include="Engine Source\RNUIScrollerInternals.cpp" />
@@ -273,6 +278,7 @@
     <ClCompile Include="Engine Source\RNWindowInternal.cpp" />
     <ClCompile Include="Engine Source\RNWorld.cpp" />
     <ClCompile Include="Engine Source\RNWorldAttachment.cpp" />
+    <ClCompile Include="Engine Source\RNWorldCoordinator.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D54AF823-A9B2-41E4-9FB2-5CCFEBF43D21}</ProjectGuid>
