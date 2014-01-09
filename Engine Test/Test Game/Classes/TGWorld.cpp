@@ -17,7 +17,7 @@
 #define TGWorldFeatureWater			0
 
 #define TGForestFeatureTrees 300
-#define TGForestFeatureGras  50000
+#define TGForestFeatureGras  100000
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 30.0f
@@ -134,12 +134,8 @@ namespace TG
 	void World::CreateCameras()
 	{
 		RN::Model *sky = RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png");
-		sky->GetMaterialAtIndex(0, 0)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->GetMaterialAtIndex(0, 1)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->GetMaterialAtIndex(0, 2)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->GetMaterialAtIndex(0, 3)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->GetMaterialAtIndex(0, 4)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
-		sky->GetMaterialAtIndex(0, 5)->ambient = RN::Color(10.0f, 10.0f, 10.0f, 1.0f);
+		for(int i = 0; i < 6; i++)
+			sky->GetMaterialAtIndex(0, i)->ambient = RN::Color(6.0f, 6.0f, 6.0f, 1.0f);
 		
 #if TGWorldFeatureZPrePass
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth);
@@ -875,7 +871,7 @@ namespace TG
 		
 		for(int i = 0; i < TGForestFeatureTrees; i ++)
 		{
-			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
+			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f));
 			
 			if(PositionBlocked(pos+RN::Vector3(0.0f, 0.5f, 0.0f), obstacles, 3))
 				continue;
@@ -906,7 +902,7 @@ namespace TG
 		
 		for(int i = 0; i < TGForestFeatureGras; i ++)
 		{
-			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-100.0f, 100.0f));
+			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f));
 			
 			if(PositionBlocked(pos+RN::Vector3(0.0f, 1.0f, 0.0f), obstacles, 3))
 				continue;
@@ -1000,11 +996,13 @@ namespace TG
 		grass->GetMaterialAtIndex(0, 0)->culling = false;
 		grass->GetMaterialAtIndex(0, 0)->discard = true;
 		grass->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard | RN::Material::OverrideCulling;
+		grass->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		grass->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
 		
 		RN::InstancingNode *node = new RN::InstancingNode(grass);
 		RN::Random::MersenneTwister random;
 		
-		for(int i = 0; i < 50000; i ++)
+		for(int i = 0; i < 100000; i ++)
 		{
 			RN::Vector3 pos = RN::Vector3(random.RandomFloatRange(-100.0f, 100.0f), 0.0f, random.RandomFloatRange(-100.0f, 100.0f));
 
