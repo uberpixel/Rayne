@@ -122,12 +122,14 @@ namespace RN
 			if(!perThread)
 				perThread = toWrite;
 			
-			for(size_t i = 0; (i < _threadCount && toWrite > 0); i ++)
+			for(size_t i = 0; i < _threadCount; i ++)
 			{
 				ThreadContext *context = _threadData[i];
 				size_t pushed = 0;
 				
-				for(; pushed < perThread;)
+				perThread = std::min(perThread, toWrite);
+				
+				for(pushed = 0; pushed < perThread;)
 				{
 					if(!context->hose.push(std::move(tasks[offset])))
 						break;
@@ -136,10 +138,11 @@ namespace RN
 					pushed ++;
 				}
 				
-				if(pushed > 0)
-					written = true;
-				
+				written = (pushed > 0);
 				toWrite -= pushed;
+				
+				if(toWrite == 0)
+					break;
 			}
 			
 			if(!written)
