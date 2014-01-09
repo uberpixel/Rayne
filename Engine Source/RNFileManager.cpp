@@ -566,6 +566,10 @@ namespace RN
 		AddFileModifier("~120", "gsh");
 		AddFileModifier("~110", "gsh");
 #endif
+
+#if RN_DEBUG
+		AddFileModifier("~debug");
+#endif
 	}
 	
 	FileManager::~FileManager()
