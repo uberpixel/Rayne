@@ -70,7 +70,7 @@ namespace RN
 		
 		NSOpenGLPixelFormat *format = [[NSOpenGLPixelFormat alloc] initWithAttributes:formatAttributes];
 		if(!format)
-			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+			throw Exception(Exception::Type::NoGPUException, "Couldn't find suitable OpenGL pixelformat!");
 		
 		NSOpenGLContext *context = [[NSOpenGLContext alloc] initWithFormat:format shareContext:nil];
 		if(!context)
@@ -92,7 +92,7 @@ namespace RN
 		if(!OpenGLValidateVersion(version))
 		{
 			current ? [current makeCurrentContext] : [NSOpenGLContext clearCurrentContext];
-			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+			throw Exception(Exception::Type::NoGPUException, "Couldn't validate OpenGL context!");
 		}
 
 		current ? [current makeCurrentContext] : [NSOpenGLContext clearCurrentContext];
@@ -134,7 +134,7 @@ namespace RN
 		if(!OpenGLValidateVersion(version))
 		{
 			wglMakeCurrent(hDC, nullptr);
-			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+			throw Exception(Exception::Type::NoGPUException, "Couldn't validate OpenGL context!");
 		}
 
 		wglMakeCurrent(hDC, nullptr);
@@ -172,7 +172,7 @@ namespace RN
 		
 		_internals->pixelFormat = ::ChoosePixelFormat(_internals->hDC, &descriptor);
 		if(!_internals->pixelFormat)
-			throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+			throw Exception(Exception::Type::NoGPUException, "Couldn't find suitable OpenGL pixelformat!");
 		
 		::SetPixelFormat(_internals->hDC, _internals->pixelFormat, &descriptor);
 		
@@ -181,11 +181,11 @@ namespace RN
 		{
 			HGLRC tempContext = wglCreateContext(_internals->hDC);
 			if(!wglMakeCurrent(_internals->hDC, tempContext))
-				throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+				throw Exception(Exception::Type::NoGPUException, "Couldn't create temporary OpenGL context!");
 			
 			wgl::GetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
 			if(!wgl::GetExtensionsStringARB)
-				throw Exception(Exception::Type::NoGPUException, "Couldn't create OpenGL context!");
+				throw Exception(Exception::Type::NoGPUException, "Couldn't find required WGL functions!");
 			
 			std::string extensions = std::string(static_cast<const char *>(wgl::GetExtensionsStringARB(_internals->hDC)));
 			
