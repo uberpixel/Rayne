@@ -256,6 +256,7 @@
 		E9E076D217B4D3BA00E54818 /* RNResourceCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E076D017B4D3BA00E54818 /* RNResourceCoordinator.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E09ECF18204C580022073F /* RNLogging.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E09ECD18204C580022073F /* RNLogging.cpp */; };
 		E9E09ED018204C580022073F /* RNLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E09ECE18204C580022073F /* RNLogging.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9E5836018806A2B00420AC3 /* RNSpatialMap.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E5835E18806A2B00420AC3 /* RNSpatialMap.h */; };
 		E9E698FF17DF8B9500D30231 /* RNFormatter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E698FD17DF8B9500D30231 /* RNFormatter.cpp */; };
 		E9E6990017DF8B9500D30231 /* RNFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E698FE17DF8B9500D30231 /* RNFormatter.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E83F40172A4F7D0075559B /* RNUIFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E83F3E172A4F7D0075559B /* RNUIFont.cpp */; };
@@ -556,6 +557,7 @@
 		E9E076D017B4D3BA00E54818 /* RNResourceCoordinator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNResourceCoordinator.h; sourceTree = "<group>"; };
 		E9E09ECD18204C580022073F /* RNLogging.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNLogging.cpp; sourceTree = "<group>"; };
 		E9E09ECE18204C580022073F /* RNLogging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNLogging.h; sourceTree = "<group>"; };
+		E9E5835E18806A2B00420AC3 /* RNSpatialMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSpatialMap.h; sourceTree = "<group>"; };
 		E9E698FD17DF8B9500D30231 /* RNFormatter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNFormatter.cpp; sourceTree = "<group>"; };
 		E9E698FE17DF8B9500D30231 /* RNFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNFormatter.h; sourceTree = "<group>"; };
 		E9E83F3E172A4F7D0075559B /* RNUIFont.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIFont.cpp; sourceTree = "<group>"; };
@@ -670,6 +672,7 @@
 				E97F7B8117552724001236E5 /* RNRingbuffer.h */,
 				E9F2B6831838B11F0014FB80 /* RNSHA2.cpp */,
 				E9F2B6841838B11F0014FB80 /* RNSHA2.h */,
+				E9E5835E18806A2B00420AC3 /* RNSpatialMap.h */,
 				E93CE16517D87F9E00A7A8A3 /* RNSTL.h */,
 			);
 			name = STL;
@@ -1087,6 +1090,7 @@
 				E9619E5B1696157E00DA187E /* RNWorld.h in Headers */,
 				E9F77799169C5CF8006EE702 /* RNOpenGL.h in Headers */,
 				E9580BD416AB8BEA0056DEF2 /* RNEntity.h in Headers */,
+				E9E5836018806A2B00420AC3 /* RNSpatialMap.h in Headers */,
 				E9C6F0A816B207E1006288D5 /* RNModel.h in Headers */,
 				E9145CAD16BA9076004BDEC8 /* RNAutoreleasePool.h in Headers */,
 				E9145CB416BAB82D004BDEC8 /* RNInput.h in Headers */,
