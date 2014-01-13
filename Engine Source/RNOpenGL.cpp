@@ -203,8 +203,11 @@ namespace RN
 			
 			logger->Log(Log::Message(Log::Level::Info, "Extensions", exts.str()));
 			
+			
+			Context *temporary = new Context(context);
 			context->DeactivateContext();
-			OpenGLQueue::GetSharedInstance()->SwitchContext(context);
+			
+			OpenGLQueue::GetSharedInstance()->SwitchContext(temporary);
 
 			return context;
 		}
