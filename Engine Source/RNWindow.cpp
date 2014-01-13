@@ -471,7 +471,7 @@ namespace RN
 			renderer->SetDefaultFactor(1.0f, 1.0f);
 		}
 		
-		_kernel->GetContext()->MakeActiveContext();
+		
 		
 		_internals->hWnd = ::CreateWindowExW(0, L"RNWindowClass", L"", WS_CHILD | WS_VISIBLE, 0, 0, width, height, mainWindow, nullptr, _kernel->GetInstance(), nullptr);
 		_internals->hDC = ::GetDC(_internals->hWnd);
@@ -483,7 +483,6 @@ namespace RN
 		}
 
 		_internals->context = new Context(_kernel->GetContext(), _internals->hWnd);
-		_kernel->GetContext()->DeactivateContext();
 		_internals->context->MakeActiveContext();
 
 		if(wgl::SwapIntervalEXT)

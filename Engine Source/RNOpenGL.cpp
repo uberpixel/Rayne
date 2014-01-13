@@ -208,6 +208,7 @@ namespace RN
 			context->DeactivateContext();
 			
 			OpenGLQueue::GetSharedInstance()->SwitchContext(temporary);
+			temporary->Release();
 
 			return context;
 		}
