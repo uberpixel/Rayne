@@ -256,7 +256,7 @@
 		E9E076D217B4D3BA00E54818 /* RNResourceCoordinator.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E076D017B4D3BA00E54818 /* RNResourceCoordinator.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E09ECF18204C580022073F /* RNLogging.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E09ECD18204C580022073F /* RNLogging.cpp */; };
 		E9E09ED018204C580022073F /* RNLogging.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E09ECE18204C580022073F /* RNLogging.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E9E5836018806A2B00420AC3 /* RNSpatialMap.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E5835E18806A2B00420AC3 /* RNSpatialMap.h */; };
+		E9E5836018806A2B00420AC3 /* RNSpatialMap.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E5835E18806A2B00420AC3 /* RNSpatialMap.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E698FF17DF8B9500D30231 /* RNFormatter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E698FD17DF8B9500D30231 /* RNFormatter.cpp */; };
 		E9E6990017DF8B9500D30231 /* RNFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = E9E698FE17DF8B9500D30231 /* RNFormatter.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9E83F40172A4F7D0075559B /* RNUIFont.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9E83F3E172A4F7D0075559B /* RNUIFont.cpp */; };
