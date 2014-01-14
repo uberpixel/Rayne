@@ -38,9 +38,6 @@ namespace RN
 		Vector3 position;
 		Vector3 minExtend;
 		Vector3 maxExtend;
-		
-		Vector3 minExtendBase;
-		Vector3 maxExtendBase;
 	};
 	
 	RN_INLINE AABB::AABB()
@@ -49,26 +46,23 @@ namespace RN
 	
 	RN_INLINE AABB::AABB(const Vector3& tmin, const Vector3& tmax)
 	{		
-		minExtendBase.x = std::min(tmin.x, tmax.x);
-		minExtendBase.y = std::min(tmin.y, tmax.y);
-		minExtendBase.z = std::min(tmin.z, tmax.z);
+		minExtend.x = std::min(tmin.x, tmax.x);
+		minExtend.y = std::min(tmin.y, tmax.y);
+		minExtend.z = std::min(tmin.z, tmax.z);
 		
-		maxExtendBase.x = std::max(tmin.x, tmax.x);
-		maxExtendBase.y = std::max(tmin.y, tmax.y);
-		maxExtendBase.z = std::max(tmin.z, tmax.z);
-		
-		minExtend = minExtendBase;
-		maxExtend = maxExtendBase;
+		maxExtend.x = std::max(tmin.x, tmax.x);
+		maxExtend.y = std::max(tmin.y, tmax.y);
+		maxExtend.z = std::max(tmin.z, tmax.z);
 	}
 	
 	RN_INLINE AABB::AABB(const Vector3& pos, const float radius)
 	{
-		Vector3 dist = radius;
+		Vector3 dist(radius);
 		
-		minExtendBase = pos-dist;
-		maxExtendBase = pos+dist;
-		minExtend = minExtendBase;
-		maxExtend = maxExtendBase;
+		minExtend = -dist;
+		maxExtend = dist;
+		
+		position = pos;
 	}
 	
 	RN_INLINE AABB::AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) :
@@ -104,8 +98,8 @@ namespace RN
 		max.y = std::max(maxExtend.y, other.maxExtend.y);
 		max.z = std::max(maxExtend.z, other.maxExtend.z);
 		
-		minExtendBase = minExtend = min;
-		maxExtendBase = maxExtend = max;
+		minExtend = min;
+		maxExtend = max;
 		
 		return *this;
 	}
@@ -113,10 +107,9 @@ namespace RN
 	RN_INLINE AABB AABB::operator* (const Vector3& other) const
 	{
 		AABB result = *this;
+		
 		result.minExtend *= other;
 		result.maxExtend *= other;
-		result.minExtendBase *= other;
-		result.maxExtendBase *= other;
 		
 		return result;
 	}
@@ -125,8 +118,6 @@ namespace RN
 	{
 		minExtend *= other;
 		maxExtend *= other;
-		minExtendBase *= other;
-		maxExtendBase *= other;
 		
 		return *this;
 	}
@@ -172,13 +163,13 @@ namespace RN
 		Matrix matrix = rotation.GetRotationMatrix();
 		
 		Vector3 corners[4];
-		corners[0] = matrix.Transform(Vector3(minExtendBase.x, minExtendBase.y, maxExtendBase.z));
-		corners[1] = matrix.Transform(Vector3(minExtendBase.x, maxExtendBase.y, maxExtendBase.z));
-		corners[2] = matrix.Transform(Vector3(maxExtendBase.x, maxExtendBase.y, minExtendBase.z));
-		corners[3] = matrix.Transform(Vector3(maxExtendBase.x, minExtendBase.y, minExtendBase.z));
+		corners[0] = matrix.Transform(Vector3(minExtend.x, minExtend.y, maxExtend.z));
+		corners[1] = matrix.Transform(Vector3(minExtend.x, maxExtend.y, maxExtend.z));
+		corners[2] = matrix.Transform(Vector3(maxExtend.x, maxExtend.y, minExtend.z));
+		corners[3] = matrix.Transform(Vector3(maxExtend.x, minExtend.y, minExtend.z));
 		
-		minExtend = matrix.Transform(minExtendBase);
-		maxExtend = matrix.Transform(maxExtendBase);
+		minExtend = matrix.Transform(minExtend);
+		maxExtend = matrix.Transform(maxExtend);
 		
 		for(size_t i=0; i<4; i++)
 		{
