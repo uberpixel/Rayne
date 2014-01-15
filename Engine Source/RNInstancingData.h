@@ -15,6 +15,7 @@
 #include "RNModel.h"
 #include "RNRenderer.h"
 #include "RNSpatialMap.h"
+#include "RNIndexSet.h"
 
 namespace RN
 {
@@ -79,6 +80,9 @@ namespace RN
 		void ResignBucket(InstancingBucket &bucket);
 		void ClipEntities();
 		
+		size_t GetIndex(Entity *entity);
+		void ResignIndex(size_t index);
+		
 		Model *_model;
 		Camera *_pivot;
 		bool _hasLODStages;
@@ -95,6 +99,7 @@ namespace RN
 		SpinLock _lock;
 		
 		bool _dirty;
+		bool _dirtyIndices;
 		bool _needsClipping;
 		bool _pivotMoved;
 		bool _needsRecreation;

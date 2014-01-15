@@ -153,7 +153,8 @@ namespace RN
 		_count(0),
 		_clipping(false),
 		_buckets(32.0f, false),
-		_needsRecreation(false)
+		_needsRecreation(false),
+		_dirtyIndices(false)
 	{
 		_model = model->Retain();
 		_pivot = nullptr;
@@ -310,6 +311,8 @@ namespace RN
 		{
 			OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
 			
+				LockGuard<decltype(_lock)> lock(_lock);
+				
 				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 				gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data(), GL_STATIC_DRAW);
@@ -319,6 +322,23 @@ namespace RN
 			});
 			
 			_dirty = false;
+			_dirtyIndices = false;
+		}
+		else if(_dirtyIndices)
+		{
+			OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+				
+				LockGuard<decltype(_lock)> lock(_lock);
+				
+				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
+				gl::BufferSubData(GL_TEXTURE_BUFFER, 0, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data());
+				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+				
+				_dirtyIndices = false;
+				
+			});
 		}
 		
 		for(InstancingLODStage *stage : _stages)
@@ -346,6 +366,29 @@ namespace RN
 	
 	
 	
+	size_t InstancingData::GetIndex(Entity *entity)
+	{
+		if(_count >= _capacity)
+			Reserve(_capacity * 1.7f);
+		
+		size_t index = _freeList.back();
+		
+		_freeList.pop_back();
+		_count ++;
+		
+		_matrices[((index * 2) + 0)] = std::move(entity->GetWorldTransform());
+		_matrices[((index * 2) + 1)] = std::move(entity->GetWorldTransform().GetInverse());
+		
+		_dirtyIndices = true;
+		return index;
+	}
+	
+	void InstancingData::ResignIndex(size_t index)
+	{
+		_count --;
+		_freeList.push_back(index);
+	}
+	
 	
 	
 	void InstancingData::ResignBucket(InstancingBucket &bucket)
@@ -353,10 +396,18 @@ namespace RN
 		for(Entity *entity : bucket->nodes)
 		{
 			InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
-			if(data->lodStage != k::NotFound)
+			
+			if(data->index != k::NotFound)
 			{
-				_stages[data->lodStage]->RemoveIndex(data->index);
-				data->lodStage = k::NotFound;
+				ResignIndex(data->index);
+				
+				if(data->lodStage != k::NotFound)
+				{
+					_stages[data->lodStage]->RemoveIndex(data->index);
+					data->lodStage = k::NotFound;
+				}
+				
+				data->index = k::NotFound;
 			}
 			
 			_activeEntites.erase(entity);
@@ -367,9 +418,10 @@ namespace RN
 	
 	void InstancingData::ClipEntities()
 	{
+		// Get all buckets within the clip range
 		Vector3 position = _pivot->GetWorldPosition();
-		std::vector<InstancingBucket> buckets;
 		
+		std::vector<InstancingBucket> buckets;
 		_buckets.query(AABB(position, _clipRange), buckets);
 		
 		// Resign no longer active buckets
@@ -406,8 +458,11 @@ namespace RN
 			
 			if(clipped && data->lodStage != k::NotFound)
 			{
+				ResignIndex(data->index);
 				_stages[data->lodStage]->RemoveIndex(data->index);
+				
 				data->lodStage = k::NotFound;
+				data->index = k::NotFound;
 			}
 			else if(!clipped && data->lodStage == k::NotFound)
 			{
@@ -426,19 +481,9 @@ namespace RN
 		_needsClipping = true;
 		_entities.push_back(entity);
 		
-		if(_count >= _capacity)
-			Reserve(_capacity * 1.5f);
 		
-		size_t index = _freeList.back();
-		
-		_freeList.pop_back();
-		_count ++;
-		
-		InstancingEntity *data = new InstancingEntity(index);
+		InstancingEntity *data = new InstancingEntity(k::NotFound);
 		entity->_instancedData = data;
-		
-		_matrices[((index * 2) + 0)] = entity->GetWorldTransform();
-		_matrices[((index * 2) + 1)] = entity->GetWorldTransform().GetInverse();
 		
 		// Insert into the right bucket
 		Vector3 position = entity->GetPosition();
@@ -454,8 +499,13 @@ namespace RN
 		data->bucket = bucket.get();
 		
 		// Enable the entity
-		if(!_clipping && !_needsRecreation)
-			InsertEntityIntoLODStage(entity);
+		if(!_clipping)
+		{
+			data->index = GetIndex(entity);
+			
+			if(!_needsRecreation) // This would just be thrown anyways at the end of the frame
+				InsertEntityIntoLODStage(entity);
+		}
 	}
 	
 	void InstancingData::RemoveEntity(Entity *entity)
@@ -465,27 +515,55 @@ namespace RN
 		InstancingEntity *data = static_cast<InstancingEntity *>(entity->_instancedData);
 		data->bucket->nodes.erase(std::find(data->bucket->nodes.begin(), data->bucket->nodes.end(), entity));
 		
-		if(data->bucket->active)
+		if(data->index != k::NotFound)
 		{
-			if(data->lodStage != k::NotFound)
-				_stages[data->lodStage]->RemoveIndex(data->index);
+			if(data->bucket->active)
+			{
+				if(data->lodStage != k::NotFound)
+					_stages[data->lodStage]->RemoveIndex(data->index);
+				
+				_freeList.push_back(data->index);
+				_activeEntites.erase(entity);
+			}
 			
-			_freeList.push_back(data->index);
-			_activeEntites.erase(entity);
+			ResignIndex(data->index);
 		}
 		
-		_count --;
 		delete data;
 	}
 	
 	void InstancingData::UpdateEntity(Entity *entity)
 	{
 		LockGuard<SpinLock> lock(_lock);
-		
 		InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
 		
-		_matrices[((data->index * 2) + 0)] = entity->GetWorldTransform();
-		_matrices[((data->index * 2) + 1)] = entity->GetWorldTransform().GetInverse();
+		Vector3 position = entity->GetPosition();
+		InstancingBucket &bucket = _buckets[position];
+		
+		if(!bucket)
+			bucket = std::make_shared<__InstancingBucket>();
+		
+		if(bucket.get() != data->bucket)
+		{
+			data->bucket->nodes.erase(std::find(data->bucket->nodes.begin(), data->bucket->nodes.end(), entity));
+			data->bucket = bucket.get();
+			
+			bucket->nodes.push_back(entity);
+			
+			if(bucket->active)
+			{
+				data->index = (data->index == k::NotFound) ? GetIndex(entity) : data->index;
+				_activeEntites.insert(entity);
+			}
+		}
+		
+		if(data->index != k::NotFound)
+		{
+			_matrices[((data->index * 2) + 0)] = entity->GetWorldTransform();
+			_matrices[((data->index * 2) + 1)] = entity->GetWorldTransform().GetInverse();
+			
+			_dirtyIndices = true;
+		}
 		
 		if((_pivot && _hasLODStages) && data->lodStage != k::NotFound)
 			UpdateEntityLODStage(entity, _pivot->GetWorldPosition());
@@ -504,6 +582,9 @@ namespace RN
 			float distance = entity->GetWorldPosition().Distance(_pivot->GetWorldPosition());
 			stage = _model->GetLODStageForDistance(distance / _pivot->clipfar);
 		}
+		
+		if(data->index == k::NotFound)
+			data->index = GetIndex(entity);
 		
 		_stages[stage]->AddIndex(data->index);
 		data->lodStage = stage;
