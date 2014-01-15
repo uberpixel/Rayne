@@ -14,6 +14,7 @@
 #include "RNEntity.h"
 #include "RNModel.h"
 #include "RNRenderer.h"
+#include "RNSpatialMap.h"
 
 namespace RN
 {
@@ -28,6 +29,7 @@ namespace RN
 		
 		RNAPI void UpdateData(bool dynamic);
 		RNAPI void Render(RenderingObject &object, Renderer *renderer);
+		RNAPI void Clear();
 		
 		bool IsEmpty() const { return _indices.empty(); }
 		
@@ -40,8 +42,14 @@ namespace RN
 		GLuint _texture;
 		GLuint _buffer;
 		
-		std::vector<uint32> _indices;
+		std::unordered_set<uint32> _indices;
+		
+		uint32 *_indicesData;
+		size_t _indicesSize;
 	};
+	
+	struct __InstancingBucket;
+	typedef std::shared_ptr<__InstancingBucket> InstancingBucket;
 	
 	class InstancingData
 	{
@@ -52,7 +60,8 @@ namespace RN
 		RNAPI void Reserve(size_t capacity);
 		RNAPI void PivotMoved();
 		RNAPI void SetPivot(Camera *pivot);
-		RNAPI void SetLimit(size_t limit);
+		RNAPI void SetClipping(bool clipping, float distance);
+		RNAPI void SetCellSize(float cellSize);
 		
 		RNAPI void UpdateData();
 		RNAPI void Render(SceneNode *node, Renderer *renderer);
@@ -64,33 +73,40 @@ namespace RN
 		Model *GetModel() const { return _model; }
 		
 	private:
-		void InsertEntityIntoLODStage(Entity *entity, size_t index);
+		void InsertEntityIntoLODStage(Entity *entity);
 		void UpdateEntityLODStage(Entity *entity, const Vector3 &position);
 		
-		void InsertEntityAtIndex(Entity *entity, size_t index);
-		void SortEntities();
+		void ResignBucket(InstancingBucket &bucket);
+		void ClipEntities();
 		
 		Model *_model;
 		Camera *_pivot;
+		bool _hasLODStages;
 		
 		GLuint _texture;
 		GLuint _buffer;
 		
 		size_t _capacity;
 		size_t _count;
-		size_t _limit;
 		
-		SpinLock _lock;		
+		bool  _clipping;
+		float _clipRange;
+		
+		SpinLock _lock;
+		
 		bool _dirty;
-		bool _needsSort;
+		bool _needsClipping;
 		bool _pivotMoved;
+		bool _needsRecreation;
 		
 		std::vector<size_t> _freeList;
 		std::vector<Matrix> _matrices;
 		std::vector<InstancingLODStage *> _stages;
 		
-		std::unordered_set<Entity *> _entities;
-		std::vector<Entity *> _sortedEntities;
+		std::vector<Entity *> _entities;
+		std::unordered_set<Entity *> _activeEntites;
+		std::list<InstancingBucket> _activeBuckets;
+		stl::spatial_map<InstancingBucket> _buckets;
 	};
 }
 

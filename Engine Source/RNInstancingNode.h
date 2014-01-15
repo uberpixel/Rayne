@@ -35,10 +35,14 @@ namespace RN
 		RNAPI void SetModels(const Array *models);
 		RNAPI void SetModels(const Set *models);
 		RNAPI void SetPivot(Camera *pivot);
-		RNAPI void SetLimit(size_t limit);
+		RNAPI void SetClipping(bool clipping, float clippingRange = 64);
+		RNAPI void SetCellSize(float size);
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
+		
+		RNAPI bool GetIsClipping() const { return _clipping; }
+		RNAPI float GetCellSize() const { return _cellSize; }
 		
 	protected:
 		RNAPI void ChildDidUpdate(SceneNode *child, uint32 changeSet) override;
@@ -61,7 +65,10 @@ namespace RN
 		Set *_models;
 		uint32 _mode;
 		
-		size_t _limit;
+		bool _clipping;
+		float _clipRange;
+		float _cellSize;
+		
 		Camera *_pivot;
 		
 		MetaClassBase *_entityClass;

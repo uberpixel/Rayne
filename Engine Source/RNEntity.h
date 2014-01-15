@@ -20,9 +20,12 @@
 
 namespace RN
 {
+	class InstancingData;
 	class Entity : public SceneNode
 	{
 	public:
+		friend class InstancingData;
+		
 		RNAPI Entity();
 		RNAPI Entity(Model *model);
 		RNAPI Entity(Model *model, const Vector3 &position);
@@ -40,6 +43,8 @@ namespace RN
 	private:
 		Observable<Model *>_model;
 		Observable<Skeleton *>_skeleton;
+		
+		void *_instancedData;
 		
 		RNDefineMetaWithTraits(Entity, SceneNode, MetaClassTraitCronstructable)
 	};

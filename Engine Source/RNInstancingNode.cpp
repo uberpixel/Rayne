@@ -49,7 +49,10 @@ namespace RN
 		
 		_pivot = nullptr;
 		_mode  = 0;
-		_limit = 0;
+		
+		_clipping  = false;
+		_clipRange = 64.0f;
+		_cellSize  = 32.0f;
 		
 		SetFlags(GetFlags() | SceneNode::FlagHideChildren);
 	}
@@ -128,7 +131,8 @@ namespace RN
 			{
 				InstancingData *data = new InstancingData(model);
 				data->SetPivot(_pivot);
-				data->SetLimit(_limit);
+				data->SetClipping(_clipping, _clipRange);
+				data->SetCellSize(_cellSize);
 				
 				_data.insert(decltype(_data)::value_type(model, data));
 				_rawData.push_back(data);
@@ -166,20 +170,30 @@ namespace RN
 		Unlock();
 	}
 	
-	void InstancingNode::SetLimit(size_t limit)
+	void InstancingNode::SetClipping(bool clipping, float clippingRange)
 	{
 		Lock();
 
-		_limit = limit;
+		_clipping  = clipping;
+		_clipRange = clippingRange;
 		
 		for(InstancingData *data : _rawData)
-		{
-			data->SetLimit(_limit);
-		}
+			data->SetClipping(_clipping, _clipRange);
 		
 		Unlock();
 	}
-
+	
+	void InstancingNode::SetCellSize(float size)
+	{
+		Lock();
+		
+		_cellSize = size;
+		
+		for(InstancingData *data : _rawData)
+			data->SetCellSize(_cellSize);
+		
+		Unlock();
+	}
 	
 	
 	void InstancingNode::EntityDidUpdateModel(Object *object, const std::string &key, Dictionary *changes)

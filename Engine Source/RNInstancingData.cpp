@@ -9,15 +9,51 @@
 #include "RNInstancingData.h"
 #include "RNLogging.h"
 
-#define kRNInstancingNodeAssociatedIndexKey    "kRNInstancingNodeAssociatedIndexKey"
-#define kRNInstancingNodeAssociatedLODStageKey "kRNInstancingNodeAssociatedLODStageKey"
-
 namespace RN
 {
+	// ---------------------
+	// MARK: -
+	// MARK: __InstancingBucket
+	// ---------------------
+	
+	struct __InstancingBucket
+	{
+		__InstancingBucket() :
+			active(false)
+		{}
+		
+		std::vector<Entity *> nodes;
+		bool active;
+	};
+	
+	// ---------------------
+	// MARK: -
+	// MARK: InstancingEntity
+	// ---------------------
+	
+	struct InstancingEntity
+	{
+		InstancingEntity(size_t tindex) :
+			index(tindex),
+			lodStage(k::NotFound)
+		{}
+		
+		size_t index;
+		size_t lodStage;
+		__InstancingBucket *bucket;
+	};
+	
+	// ---------------------
+	// MARK: -
+	// MARK: InstancingLODStage
+	// ---------------------
+	
 	InstancingLODStage::InstancingLODStage(Model *model, size_t stage) :
 		_model(model),
 		_stage(stage),
-		_dirty(true)
+		_dirty(true),
+		_indicesData(nullptr),
+		_indicesSize(0)
 	{
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
 			gl::GenTextures(1, &_texture);
@@ -38,22 +74,25 @@ namespace RN
 			gl::DeleteTextures(1, &_texture);
 			gl::DeleteBuffers(1, &_buffer);
 		}, true);
+		
+		delete [] _indicesData;
 	}
 	
 	void InstancingLODStage::RemoveIndex(size_t index)
 	{
-		auto iterator = std::find(_indices.begin(), _indices.end(), static_cast<uint32>(index));
-		
-		if(iterator != _indices.end())
-		{
-			_indices.erase(iterator);
-			_dirty = true;
-		}
+		_indices.erase(static_cast<uint32>(index));
+		_dirty = true;
 	}
 	
 	void InstancingLODStage::AddIndex(size_t index)
 	{
-		_indices.push_back(static_cast<uint32>(index));
+		_indices.insert(static_cast<uint32>(index));
+		_dirty = true;
+	}
+	
+	void InstancingLODStage::Clear()
+	{
+		_indices.clear();
 		_dirty = true;
 	}
 	
@@ -63,10 +102,23 @@ namespace RN
 		{
 			GLenum mode = dynamic ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW;
 			
+			if(_indicesSize < _indices.size())
+			{
+				delete [] _indicesData;
+				
+				_indicesData = new uint32[_indices.size()];
+				_indicesSize = _indices.size();
+			}
+			
+			size_t i = 0;
+			
+			for(uint32 index : _indices)
+				_indicesData[i ++] = index;
+			
 			OpenGLQueue::GetSharedInstance()->SubmitCommand([this, mode] {
 				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-				gl::BufferData(GL_TEXTURE_BUFFER, _indices.size() * sizeof(uint32), _indices.data(), mode);
+				gl::BufferData(GL_TEXTURE_BUFFER, _indices.size() * sizeof(uint32), _indicesData, mode);
 				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 			});
@@ -91,18 +143,23 @@ namespace RN
 		}
 	}
 	
-	
-	
+	// ---------------------
+	// MARK: -
+	// MARK: InstancingData
+	// ---------------------
 	
 	InstancingData::InstancingData(Model *model) :
 		_capacity(0),
 		_count(0),
-		_limit(0)
+		_clipping(false),
+		_buckets(32.0f, false),
+		_needsRecreation(false)
 	{
 		_model = model->Retain();
 		_pivot = nullptr;
 		
 		size_t count = _model->GetLODStageCount();
+		_hasLODStages = (count > 1);
 		
 		for(size_t i = 0; i < count; i ++)
 			_stages.push_back(new InstancingLODStage(_model, i));
@@ -119,6 +176,7 @@ namespace RN
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		});
 		
+		SetClipping(true, 64);
 		Reserve(50);
 	}
 	
@@ -139,39 +197,110 @@ namespace RN
 		_pivot = pivot; // Retained by the InstancingNode
 	}
 	
-	void InstancingData::SetLimit(size_t limit)
+	void InstancingData::SetClipping(bool clipping, float distance)
 	{
-		Reserve(limit);
+		if(_clipping != clipping)
+		{
+			_clipping = clipping;
+			_needsRecreation = true;
+		}
 		
-		_limit     = limit;
-		_needsSort = true;
+		_clipRange = distance;
+	}
+	
+	void InstancingData::SetCellSize(float cellSize)
+	{
+		_activeBuckets.clear();
+		_activeEntites.clear();
+		
+		_buckets.set_spacing(cellSize, false);
+		_needsRecreation = true;
+		
+		
+		for(Entity *entity : _entities)
+		{
+			InstancingEntity *data = static_cast<InstancingEntity *>(entity->_instancedData);
+			Vector3 position = entity->GetPosition();
+			auto &bucket = _buckets[position];
+			
+			if(!bucket)
+				bucket = std::make_shared<__InstancingBucket>();
+			
+			bucket->nodes.push_back(entity);
+			data->bucket = bucket.get();
+		}
 	}
 	
 	void InstancingData::PivotMoved()
 	{
-		_pivotMoved = true;
-		_needsSort  = true;
+		_pivotMoved    = true;
+		_needsClipping = true;
 	}
 	
 	
 	
+	void InstancingData::Reserve(size_t capacity)
+	{
+		if(_capacity >= capacity)
+			return;
+		
+		_matrices.resize(capacity * 2);
+		_freeList.reserve(_freeList.size() + (capacity - _capacity));
+		
+		for(size_t i = 0; i < (capacity - _capacity); i ++)
+		{
+			_freeList.push_back(_capacity + i);
+		}
+		
+		_capacity = capacity;
+		_dirty    = true;
+	}
+	
 	void InstancingData::UpdateData()
 	{
+		RN_ASSERT((_clipping && _pivot) || (!_clipping), "When enabling clipping, you must also set a pivot!");
+		
+		if(_needsRecreation)
+		{
+			// Remove everything \o/
+			for(InstancingBucket &bucket : _activeBuckets)
+			{
+				bucket->active = false;
+			}
+			
+			_activeBuckets.clear();
+			_activeEntites.clear();
+			
+			for(InstancingLODStage *stage : _stages)
+				stage->Clear();
+			
+			// Insert data if needed
+			if(!_clipping)
+			{
+				for(Entity *entity : _entities)
+					InsertEntityIntoLODStage(entity);
+			}
+			
+			_needsRecreation = false;
+		}
+		
 		if(_pivot)
 		{
-			if(_needsSort && _limit > 0)
+			if(_clipping && _needsClipping)
 			{
-				SortEntities();
-				_needsSort = false;
+				ClipEntities();
+				_needsClipping = false;
 			}
 			
 			if(_pivotMoved)
 			{
-				Vector3 position = _pivot->GetWorldPosition();
-				size_t count = (_limit > 0) ? std::min(_sortedEntities.size(), _limit) : _sortedEntities.size();
-				
-				for(size_t i = 0; i < count; i ++)
-					UpdateEntityLODStage(_sortedEntities[i], position);
+				if(_hasLODStages)
+				{
+					Vector3 position = _pivot->GetWorldPosition();
+					
+					for(Entity *entity : _activeEntites)
+						UpdateEntityLODStage(entity, position);
+				}
 				
 				_pivotMoved = false;
 			}
@@ -196,52 +325,6 @@ namespace RN
 			stage->UpdateData((_pivot != nullptr));
 	}
 	
-	void InstancingData::SortEntities()
-	{
-		if(_sortedEntities.size() < _limit)
-			return;
-		
-		Vector3 position = _pivot->GetWorldPosition();
-		
-		std::sort(_sortedEntities.begin(), _sortedEntities.end(), [&](const Entity *left, const Entity *right) {
-			float dist1 = left->GetWorldPosition().Distance(position);
-			float dist2 = right->GetWorldPosition().Distance(position);
-			
-			return dist1 < dist2;
-		});
-		
-		// Resign clipped entities
-		for(size_t i = _limit; i < _sortedEntities.size(); i ++)
-		{
-			Entity *entity = _sortedEntities[i];
-			Number *stage  = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey));
-			
-			if(stage)
-			{
-				size_t tstage = stage->GetUint32Value();
-				size_t index  = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey))->GetUint32Value();
-				
-				_stages[tstage]->RemoveIndex(index);
-				
-				entity->RemoveAssociatedOject(kRNInstancingNodeAssociatedLODStageKey);
-			}
-		}
-		
-		// Assign missing indices
-		for(size_t i = 0; i < _limit; i ++)
-		{
-			Entity *entity = _sortedEntities[i];
-			Number *stage  = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey));
-			
-			if(!stage)
-			{
-				size_t index  = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey))->GetUint32Value();
-				InsertEntityIntoLODStage(entity, index);
-			}
-		}
-	}
-	
-	
 	void InstancingData::Render(SceneNode *node, Renderer *renderer)
 	{
 		RenderingObject object(RenderingObject::Type::Instanced);
@@ -259,145 +342,187 @@ namespace RN
 			_stages[i]->Render(object, renderer);
 		}
 	}
-		
 	
-	void InstancingData::Reserve(size_t capacity)
+	
+	
+	
+	
+	
+	void InstancingData::ResignBucket(InstancingBucket &bucket)
 	{
-		if(_capacity >= capacity)
-			return;
-		
-		_matrices.resize(capacity * 2);
-		_freeList.reserve(_freeList.size() + (capacity - _capacity));
-		
-		for(size_t i = 0; i < (capacity - _capacity); i ++)
+		for(Entity *entity : bucket->nodes)
 		{
-			_freeList.push_back(_capacity + i);
+			InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
+			if(data->lodStage != k::NotFound)
+			{
+				_stages[data->lodStage]->RemoveIndex(data->index);
+				data->lodStage = k::NotFound;
+			}
+			
+			_activeEntites.erase(entity);
 		}
 		
-		_capacity = capacity;
-		_dirty    = true;
+		bucket->active = false;
+	}
+	
+	void InstancingData::ClipEntities()
+	{
+		Vector3 position = _pivot->GetWorldPosition();
+		std::vector<InstancingBucket> buckets;
+		
+		_buckets.query(AABB(position, _clipRange), buckets);
+		
+		// Resign no longer active buckets
+		for(auto i = _activeBuckets.begin(); i != _activeBuckets.end();)
+		{
+			auto iterator = std::find(buckets.begin(), buckets.end(), *i);
+			if(iterator == buckets.end())
+			{
+				ResignBucket(*i);
+				i = _activeBuckets.erase(i);
+				continue;
+			}
+			
+			i ++;
+		}
+		
+		// Activate non active buckets
+		for(auto &bucket : buckets)
+		{
+			if(!bucket->active)
+			{
+				_activeEntites.insert(bucket->nodes.begin(), bucket->nodes.end());
+				_activeBuckets.insert(_activeBuckets.end(), bucket);
+				
+				bucket->active = true;
+			}
+		}
+		
+		// Update active entities
+		for(Entity *entity : _activeEntites)
+		{
+			InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
+			bool clipped = (position.Distance(entity->GetWorldPosition_NoLock()) > _clipRange);
+			
+			if(clipped && data->lodStage != k::NotFound)
+			{
+				_stages[data->lodStage]->RemoveIndex(data->index);
+				data->lodStage = k::NotFound;
+			}
+			else if(!clipped && data->lodStage == k::NotFound)
+			{
+				InsertEntityIntoLODStage(entity);
+			}
+		}
 	}
 	
 	
 	
-	void InstancingData::InsertEntityAtIndex(Entity *entity, size_t index)
+	
+	void InstancingData::InsertEntity(Entity *entity)
 	{
+		LockGuard<SpinLock> lock(_lock);
+		
+		_needsClipping = true;
+		_entities.push_back(entity);
+		
+		if(_count >= _capacity)
+			Reserve(_capacity * 1.5f);
+		
+		size_t index = _freeList.back();
+		
+		_freeList.pop_back();
 		_count ++;
 		
-		Number *indexNum = new Number(static_cast<uint32>(index));
-		entity->SetAssociatedObject(kRNInstancingNodeAssociatedIndexKey, indexNum, Object::MemoryPolicy::Retain);
-		indexNum->Release();
+		InstancingEntity *data = new InstancingEntity(index);
+		entity->_instancedData = data;
 		
 		_matrices[((index * 2) + 0)] = entity->GetWorldTransform();
 		_matrices[((index * 2) + 1)] = entity->GetWorldTransform().GetInverse();
 		
-		if(_count < _limit || _limit == 0)
-			InsertEntityIntoLODStage(entity, index);
-	}
-	
-	void InstancingData::InsertEntity(Entity *entity)
-	{
-		_lock.Lock();
+		// Insert into the right bucket
+		Vector3 position = entity->GetPosition();
+		auto &bucket = _buckets[position];
 		
-		if(_entities.find(entity) == _entities.end())
-		{
-			_needsSort = true;
-			
-			_entities.insert(entity);
-			_sortedEntities.push_back(entity);
-			
-			if(_count >= _capacity)
-				Reserve(_capacity * 1.5f);
-			
-			size_t index = _freeList.back();
-			_freeList.pop_back();
-			
-			InsertEntityAtIndex(entity, index);
-		}
+		if(!bucket)
+			bucket = std::make_shared<__InstancingBucket>();
 		
-		_lock.Unlock();
+		if(bucket->active)
+			_activeEntites.insert(entity);
+		
+		bucket->nodes.push_back(entity);
+		data->bucket = bucket.get();
+		
+		// Enable the entity
+		if(!_clipping && !_needsRecreation)
+			InsertEntityIntoLODStage(entity);
 	}
 	
 	void InstancingData::RemoveEntity(Entity *entity)
 	{
-		_lock.Lock();
+		LockGuard<SpinLock> lock(_lock);
 		
-		if(_entities.find(entity) == _entities.end())
+		InstancingEntity *data = static_cast<InstancingEntity *>(entity->_instancedData);
+		data->bucket->nodes.erase(std::find(data->bucket->nodes.begin(), data->bucket->nodes.end(), entity));
+		
+		if(data->bucket->active)
 		{
-			_lock.Unlock();
-			return;
+			if(data->lodStage != k::NotFound)
+				_stages[data->lodStage]->RemoveIndex(data->index);
+			
+			_freeList.push_back(data->index);
+			_activeEntites.erase(entity);
 		}
 		
-		size_t index = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey))->GetUint32Value();
-		uint32 stage = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey))->GetUint32Value();
-		
-		entity->RemoveAssociatedOject(kRNInstancingNodeAssociatedIndexKey);
-		entity->RemoveAssociatedOject(kRNInstancingNodeAssociatedLODStageKey);
-		
-		_stages[stage]->RemoveIndex(index);
-		
-		_entities.erase(entity);
-		_sortedEntities.erase(std::find(_sortedEntities.begin(), _sortedEntities.end(), entity));
-		
-		_freeList.push_back(index);
 		_count --;
-		
-		_lock.Unlock();
+		delete data;
 	}
-	
-	
 	
 	void InstancingData::UpdateEntity(Entity *entity)
 	{
-		_lock.Lock();
+		LockGuard<SpinLock> lock(_lock);
 		
-		Number *indexNum = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey));
-		size_t index = indexNum->GetUint32Value();
+		InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
 		
-		_matrices[((index * 2) + 0)] = entity->GetWorldTransform();
-		_matrices[((index * 2) + 1)] = entity->GetWorldTransform().GetInverse();
+		_matrices[((data->index * 2) + 0)] = entity->GetWorldTransform();
+		_matrices[((data->index * 2) + 1)] = entity->GetWorldTransform().GetInverse();
 		
-		if(_pivot)
+		if((_pivot && _hasLODStages) && data->lodStage != k::NotFound)
 			UpdateEntityLODStage(entity, _pivot->GetWorldPosition());
-		
-		_lock.Unlock();
 	}
 	
 	
-	void InstancingData::InsertEntityIntoLODStage(Entity *entity, size_t index)
+	
+	
+	void InstancingData::InsertEntityIntoLODStage(Entity *entity)
 	{
+		InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
 		size_t stage = 0;
 		
-		if(_pivot)
+		if(_pivot && _hasLODStages)
 		{
 			float distance = entity->GetWorldPosition().Distance(_pivot->GetWorldPosition());
 			stage = _model->GetLODStageForDistance(distance / _pivot->clipfar);
 		}
 		
-		_stages[stage]->AddIndex(index);
-		
-		Number *stageNum = new Number(static_cast<uint32>(stage));
-		entity->SetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey, stageNum, Object::MemoryPolicy::Retain);
-		stageNum->Release();
+		_stages[stage]->AddIndex(data->index);
+		data->lodStage = stage;
 	}
 	
 	void InstancingData::UpdateEntityLODStage(Entity *entity, const Vector3 &position)
 	{
+		InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
+		
 		float distance = entity->GetWorldPosition().Distance(position);
-		
 		size_t newStage = _model->GetLODStageForDistance(distance / _pivot->clipfar);
-		size_t oldStage = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey))->GetUint32Value();
 		
-		if(newStage != oldStage)
+		if(newStage != data->lodStage)
 		{
-			size_t index = static_cast<Number *>(entity->GetAssociatedObject(kRNInstancingNodeAssociatedIndexKey))->GetUint32Value();
+			if(data->lodStage != k::NotFound)
+				_stages[data->lodStage]->RemoveIndex(data->index);
 			
-			_stages[oldStage]->RemoveIndex(index);
-			_stages[newStage]->AddIndex(index);
-			
-			Number *stageNum = new Number(static_cast<uint32>(newStage));
-			entity->SetAssociatedObject(kRNInstancingNodeAssociatedLODStageKey, stageNum, Object::MemoryPolicy::Retain);
-			stageNum->Release();
+			_stages[newStage]->AddIndex(data->index);
+			data->lodStage = newStage;
 		}
 	}
 }

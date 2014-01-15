@@ -48,7 +48,7 @@ namespace RN
 		{
 		public:
 			spatial_map(size_t spacingXZ, bool spacingY) :
-				_spacingXZ(spacingXZ),
+				_spacing(spacingXZ),
 				_spacingY(spacingY)
 			{}
 			
@@ -85,16 +85,16 @@ namespace RN
 				Vector3 position(std::move(translate_vector(aabb.position)));
 				Vector3 extents(aabb.maxExtend - aabb.minExtend);
 				
-				extents /= Vector3(_spacingXZ, _spacingY ? _spacingY : 1.0, _spacingXZ);
+				extents /= Vector3(_spacing, _spacingY ? _spacing : 1.0, _spacing);
 				extents *= 0.5f;
 				
-				for(float x = -extents.x; x < extents.x; x ++)
+				for(float x = -extents.x; x <= extents.x; x ++)
 				{
-					for(float z = -extents.z; z < extents.z; z ++)
+					for(float z = -extents.z; z <= extents.z; z ++)
 					{
 						if(_spacingY)
 						{
-							for(float y = -extents.y; y < extents.z; y ++)
+							for(float y = -extents.y; y <= extents.z; y ++)
 							{
 								if(raw_contains(position + Vector3(x, y, z)))
 									result.push_back(raw_access(position + Vector3(x, y, z)));
@@ -109,12 +109,20 @@ namespace RN
 				}
 			}
 			
-			void clear(size_t spacingXZ, size_t spacingY)
+			void set_spacing(size_t spacing, bool spacingY)
+			{
+				if(spacing != _spacing || spacingY != _spacingY)
+				{
+					_spacing = spacing;
+					_spacingY = spacingY;
+					
+					_entries.clear();
+				}
+			}
+			
+			void clear()
 			{
 				_entries.clear();
-				
-				_spacingXZ = spacingXZ;
-				_spacingY  = spacingY;
 			}
 			
 		private:
@@ -125,7 +133,7 @@ namespace RN
 			
 			bool raw_contains(const Vector3 &position)
 			{
-				return (_entries.find(position) != map.end());
+				return (_entries.find(position) != _entries.end());
 			}
 			
 			Vector3 translate_vector(const Vector3 &vector)
