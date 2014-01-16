@@ -127,11 +127,7 @@ namespace RN
 	#define RN_EXPECT_FALSE(x) (x)
 #endif
 	
-#if RN_BUILD_DEBUG
-	#define RN_ASSERT(e, ...) RN_EXPECT_FALSE(!(e)) ? RN::__Assert(RN_FUNCTION_SIGNATURE, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
-#else
-	#define RN_ASSERT(e, ...) (void)0
-#endif
+#define RN_ASSERT(e, ...) RN_EXPECT_FALSE(!(e)) ? RN::__Assert(RN_FUNCTION_SIGNATURE, __FILE__, __LINE__, #e, __VA_ARGS__) : (void)0
 	
 #define RN_REGISTER_INIT(name, body) \
 	namespace { \
