@@ -49,10 +49,42 @@ namespace RN
 			return object;
 		}
 		
-		bool GetBoolForKey(String *key)
+		bool GetBoolForKey(String *key, bool defaultValue = false)
 		{
 			Number *number = GetObjectForKey<Number>(key);
-			return number ? number->GetBoolValue() : false;
+			return number ? number->GetBoolValue() : defaultValue;
+		}
+		float GetFloatForKey(String *key, float defaultValue = 0.0f)
+		{
+			Number *number = GetObjectForKey<Number>(key);
+			return number ? number->GetFloatValue() : defaultValue;
+		}
+		int32 GetInt32ForKey(String *key, int32 defaultValue = 0)
+		{
+			Number *number = GetObjectForKey<Number>(key);
+			return number ? number->GetInt32Value() : defaultValue;
+		}
+		uint32 GetUint32ForKey(String *key, uint32 defaultValue = 0)
+		{
+			Number *number = GetObjectForKey<Number>(key);
+			return number ? number->GetUint32Value() : defaultValue;
+		}
+		
+		void SetBoolForKey(String *key, bool value)
+		{
+			SetObjectForKey(Number::WithBool(value), key);
+		}
+		void SetFloatForKey(String *key, float value)
+		{
+			SetObjectForKey(Number::WithFloat(value), key);
+		}
+		void SetInt32ForKey(String *key, int32 value)
+		{
+			SetObjectForKey(Number::WithInt32(value), key);
+		}
+		void SetUint32ForKey(String *key, uint32 value)
+		{
+			SetObjectForKey(Number::WithUint32(value), key);
 		}
 		
 		template<class T=Object>
