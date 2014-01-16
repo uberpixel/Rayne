@@ -48,6 +48,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "RNEnum.h"
 #include "RNDefines.h"
 #include "RNConstants.h"
 #include "RNException.h"
