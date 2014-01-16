@@ -16,6 +16,7 @@
 #include "RNRenderer.h"
 #include "RNSpatialMap.h"
 #include "RNIndexSet.h"
+#include "RNRandom.h"
 
 namespace RN
 {
@@ -63,6 +64,7 @@ namespace RN
 		RNAPI void SetPivot(Camera *pivot);
 		RNAPI void SetClipping(bool clipping, float distance);
 		RNAPI void SetCellSize(float cellSize);
+		RNAPI void SetThinningRange(bool thinning, float thinRange);
 		
 		RNAPI void UpdateData();
 		RNAPI void Render(SceneNode *node, Renderer *renderer);
@@ -82,6 +84,8 @@ namespace RN
 		
 		size_t GetIndex(Entity *entity);
 		void ResignIndex(size_t index);
+		
+		Random::MersenneTwister _random;
 		
 		Model *_model;
 		Camera *_pivot;
@@ -103,6 +107,9 @@ namespace RN
 		bool _needsClipping;
 		bool _pivotMoved;
 		bool _needsRecreation;
+		
+		float _thinRange;
+		bool _thinning;
 		
 		std::vector<size_t> _freeList;
 		std::vector<Matrix> _matrices;

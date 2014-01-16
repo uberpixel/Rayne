@@ -23,7 +23,7 @@ namespace RN
 	public:
 		enum
 		{
-			ModeIncludeZAxis = (1 << 0)
+			ModeIncludeYAxis = (1 << 0)
 		};
 		
 		RNAPI InstancingNode();
@@ -37,6 +37,7 @@ namespace RN
 		RNAPI void SetPivot(Camera *pivot);
 		RNAPI void SetClipping(bool clipping, float clippingRange = 64);
 		RNAPI void SetCellSize(float size);
+		RNAPI void SetThinningRange(float range);
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
@@ -67,6 +68,7 @@ namespace RN
 		
 		bool _clipping;
 		float _clipRange;
+		float _thinRange;
 		float _cellSize;
 		
 		Camera *_pivot;

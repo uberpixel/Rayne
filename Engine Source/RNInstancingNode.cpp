@@ -133,6 +133,7 @@ namespace RN
 				data->SetPivot(_pivot);
 				data->SetClipping(_clipping, _clipRange);
 				data->SetCellSize(_cellSize);
+				data->SetThinningRange(true, _thinRange);
 				
 				_data.insert(decltype(_data)::value_type(model, data));
 				_rawData.push_back(data);
@@ -179,6 +180,18 @@ namespace RN
 		
 		for(InstancingData *data : _rawData)
 			data->SetClipping(_clipping, _clipRange);
+		
+		Unlock();
+	}
+	
+	void InstancingNode::SetThinningRange(float range)
+	{
+		Lock();
+		
+		_thinRange = range;
+		
+		for(InstancingData *data : _rawData)
+			data->SetThinningRange(true, _thinRange);
 		
 		Unlock();
 	}

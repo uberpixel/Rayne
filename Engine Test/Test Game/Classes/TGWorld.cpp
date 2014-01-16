@@ -17,7 +17,7 @@
 #define TGWorldFeatureWater			0
 
 #define TGForestFeatureTrees 300
-#define TGForestFeatureGras  500000
+#define TGForestFeatureGras  300000
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
 #define TGWorldSpotLightRange 30.0f
@@ -898,7 +898,9 @@ namespace TG
 		node = new RN::InstancingNode(grass);
 		node->renderGroup = 1;
 		node->SetPivot(_camera);
-		node->SetClipping(true, 64.0f);
+		node->SetCellSize(32.0f);
+		node->SetClipping(true, 16.0f);
+		node->SetThinningRange(128.0f);
 		
 		for(int i = 0; i < TGForestFeatureGras; i ++)
 		{
@@ -917,7 +919,7 @@ namespace TG
 			node->AttachChild(ent);
 		}
 		
-		//PlaceEntitiesOnGround(node, groundBody);
+		PlaceEntitiesOnGround(node, groundBody);
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");

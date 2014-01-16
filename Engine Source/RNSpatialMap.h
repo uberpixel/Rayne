@@ -65,13 +65,13 @@ namespace RN
 			T& operator[](const Vector3 &key)
 			{
 				Vector3 translated(std::move(translate_vector(key)));
-				return raw_access(translated);
+				return _entries[translated];
 			}
 			
 			T& access(const Vector3 &key, const Vector3 &offset = Vector3())
 			{
 				Vector3 translated(std::move(translate_vector(key)));
-				return raw_access(translated + offset);
+				return _entries[translated + offset];
 			}
 			
 			bool contains(const Vector3 &key, const Vector3 &offset = Vector3())
@@ -88,6 +88,10 @@ namespace RN
 				extents /= Vector3(_spacing, _spacingY ? _spacing : 1.0, _spacing);
 				extents *= 0.5f;
 				
+				extents.x = ceilf(extents.x);
+				extents.y = ceilf(extents.y);
+				extents.z = ceilf(extents.z);
+				
 				for(float x = -extents.x; x <= extents.x; x ++)
 				{
 					for(float z = -extents.z; z <= extents.z; z ++)
@@ -97,13 +101,13 @@ namespace RN
 							for(float y = -extents.y; y <= extents.z; y ++)
 							{
 								if(raw_contains(position + Vector3(x, y, z)))
-									result.push_back(raw_access(position + Vector3(x, y, z)));
+									result.push_back(_entries[position + Vector3(x, y, z)]);
 							}
 						}
 						else
 						{
 							if(raw_contains(position + Vector3(x, 0.0f, z)))
-								result.push_back(raw_access(position + Vector3(x, 0.0f, z)));
+								result.push_back(_entries[position + Vector3(x, 0.0f, z)]);
 						}
 					}
 				}
@@ -125,15 +129,9 @@ namespace RN
 				_entries.clear();
 			}
 			
-		private:
-			T& raw_access(const Vector3 &position)
+			size_t get_spacing() const
 			{
-				return _entries[position];
-			}
-			
-			bool raw_contains(const Vector3 &position)
-			{
-				return (_entries.find(position) != _entries.end());
+				return _spacing;
 			}
 			
 			Vector3 translate_vector(const Vector3 &vector)
@@ -143,8 +141,14 @@ namespace RN
 				result.x = roundf(vector.x / _spacing);
 				result.y = _spacingY ? roundf(vector.y / _spacing) : 0.0f;
 				result.z = roundf(vector.z / _spacing);
-					
+				
 				return result;
+			}
+			
+		private:
+			bool raw_contains(const Vector3 &position)
+			{
+				return (_entries.find(position) != _entries.end());
 			}
 			
 			size_t _spacing;

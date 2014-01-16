@@ -22,7 +22,13 @@ namespace RN
 			active(false)
 		{}
 		
+		__InstancingBucket(Vector3 &&tposition) :
+			active(false),
+			position(std::move(tposition))
+		{}
+		
 		std::vector<Entity *> nodes;
+		Vector3 position;
 		bool active;
 	};
 	
@@ -40,6 +46,7 @@ namespace RN
 		
 		size_t index;
 		size_t lodStage;
+		float  thinfactor; // Between 0 - 2, decides when the entity is clipped with thinning
 		__InstancingBucket *bucket;
 	};
 	
@@ -154,7 +161,9 @@ namespace RN
 		_clipping(false),
 		_buckets(32.0f, false),
 		_needsRecreation(false),
-		_dirtyIndices(false)
+		_dirtyIndices(false),
+		_thinning(true),
+		_thinRange(32.0f)
 	{
 		_model = model->Retain();
 		_pivot = nullptr;
@@ -230,6 +239,14 @@ namespace RN
 			bucket->nodes.push_back(entity);
 			data->bucket = bucket.get();
 		}
+	}
+	
+	void InstancingData::SetThinningRange(bool thinning, float thinRange)
+	{
+		_thinning  = thinning;
+		_thinRange = thinRange;
+		
+		_needsClipping = true;
 	}
 	
 	void InstancingData::PivotMoved()
@@ -399,14 +416,13 @@ namespace RN
 			
 			if(data->index != k::NotFound)
 			{
-				ResignIndex(data->index);
-				
 				if(data->lodStage != k::NotFound)
 				{
 					_stages[data->lodStage]->RemoveIndex(data->index);
 					data->lodStage = k::NotFound;
 				}
 				
+				ResignIndex(data->index);
 				data->index = k::NotFound;
 			}
 			
@@ -422,7 +438,27 @@ namespace RN
 		Vector3 position = _pivot->GetWorldPosition();
 		
 		std::vector<InstancingBucket> buckets;
-		_buckets.query(AABB(position, _clipRange), buckets);
+		float clipRange = _clipRange;
+		
+		if(_thinning)
+			clipRange += _thinRange;
+		
+		clipRange = std::max(static_cast<float>(_buckets.get_spacing()), clipRange);
+		_buckets.query(AABB(position, clipRange), buckets);
+		
+		// Remove not actually visible buckets
+		{
+			std::vector<InstancingBucket> temp;
+			
+			for(InstancingBucket &bucket : buckets)
+			{
+				if(bucket->position.Distance(position) < clipRange)
+					temp.push_back(bucket);
+			}
+			
+			std::swap(temp, buckets);
+		}
+		
 		
 		// Resign no longer active buckets
 		for(auto i = _activeBuckets.begin(); i != _activeBuckets.end();)
@@ -450,11 +486,33 @@ namespace RN
 			}
 		}
 		
+		
 		// Update active entities
 		for(Entity *entity : _activeEntites)
 		{
 			InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
-			bool clipped = (position.Distance(entity->GetWorldPosition_NoLock()) > _clipRange);
+			float distance = position.Distance(entity->GetWorldPosition_NoLock());
+			
+			bool clipped = true;
+			
+			if(_thinning)
+			{
+				if(distance <= _clipRange)
+				{
+					clipped = false;
+				}
+				else if(distance <= clipRange)
+				{
+					distance -= _clipRange;
+					distance /= _thinRange;
+					
+					clipped = (distance > data->thinfactor);
+				}
+			}
+			else
+			{
+				clipped = (distance > _clipRange);
+			}
 			
 			if(clipped && data->lodStage != k::NotFound)
 			{
@@ -485,12 +543,18 @@ namespace RN
 		InstancingEntity *data = new InstancingEntity(k::NotFound);
 		entity->_instancedData = data;
 		
+		// Calculate the thin stage
+		data->thinfactor = _random.RandomFloat();
+		
 		// Insert into the right bucket
 		Vector3 position = entity->GetPosition();
 		auto &bucket = _buckets[position];
 		
 		if(!bucket)
-			bucket = std::make_shared<__InstancingBucket>();
+		{
+			bucket = std::make_shared<__InstancingBucket>(_buckets.translate_vector(position));
+			bucket->position *= _buckets.get_spacing();
+		}
 		
 		if(bucket->active)
 			_activeEntites.insert(entity);
@@ -541,7 +605,10 @@ namespace RN
 		InstancingBucket &bucket = _buckets[position];
 		
 		if(!bucket)
-			bucket = std::make_shared<__InstancingBucket>();
+		{
+			bucket = std::make_shared<__InstancingBucket>(_buckets.translate_vector(position));
+			bucket->position *= _buckets.get_spacing();
+		}
 		
 		if(bucket.get() != data->bucket)
 		{
