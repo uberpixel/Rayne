@@ -21,7 +21,7 @@ namespace TG
 		_backdrop = new RN::UI::ImageView(RN::UI::Image::WithFile("textures/Raynedrop.png"));
 		_backdrop->SetScaleMode(RN::UI::ScaleMode::ProportionallyDown); // We only scale down, not up
 		_backdrop->SetAutoresizingMask(0xffffff);
-		_backdrop->SetFrame(RN::Rect((frame.width / 2.0) - 512.0f, (frame.height / 2.0) - 512.0f, 1024.0f, 1024.0f));
+		_backdrop->SetFrame(RN::Rect((frame.width / 2.0) - 512.0f/RN::Kernel::GetSharedInstance()->GetScaleFactor(), (frame.height / 2.0) - 512.0f/RN::Kernel::GetSharedInstance()->GetScaleFactor(), 1024.0f/RN::Kernel::GetSharedInstance()->GetScaleFactor(), 1024.0f/RN::Kernel::GetSharedInstance()->GetScaleFactor()));
 		
 		_progressIndicator = new RN::UI::ProgressIndicator();
 		_progressIndicator->SetFrame(RN::Rect((frame.width / 2.0) - 256.0f, frame.height - 20.0f, 512.0f, 10.0f));
