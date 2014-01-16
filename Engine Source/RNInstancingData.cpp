@@ -46,7 +46,7 @@ namespace RN
 		
 		size_t index;
 		size_t lodStage;
-		float  thinfactor; // Between 0 - 2, decides when the entity is clipped with thinning
+		float  thinfactor;
 		__InstancingBucket *bucket;
 	};
 	
@@ -220,6 +220,9 @@ namespace RN
 	
 	void InstancingData::SetCellSize(float cellSize)
 	{
+		if(Math::Compare(cellSize, _buckets.get_spacing()))
+			return;
+			
 		_activeBuckets.clear();
 		_activeEntites.clear();
 		
@@ -243,10 +246,13 @@ namespace RN
 	
 	void InstancingData::SetThinningRange(bool thinning, float thinRange)
 	{
-		_thinning  = thinning;
+		if(_thinning != thinning)
+		{
+			_thinning  = thinning;
+			_needsClipping = true;
+		}
+			
 		_thinRange = thinRange;
-		
-		_needsClipping = true;
 	}
 	
 	void InstancingData::PivotMoved()

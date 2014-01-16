@@ -16,7 +16,7 @@
 #define TGWorldFeatureSSAO          0
 #define TGWorldFeatureWater			0
 
-#define TGForestFeatureTrees 300
+#define TGForestFeatureTrees 500
 #define TGForestFeatureGras  300000
 
 #define TGWorldRandom (float)(rand())/RAND_MAX
@@ -898,8 +898,9 @@ namespace TG
 		node = new RN::InstancingNode(grass);
 		node->renderGroup = 1;
 		node->SetPivot(_camera);
+		node->SetMode(RN::InstancingNode::Mode::Thinning | RN::InstancingNode::Mode::Clipping);
 		node->SetCellSize(32.0f);
-		node->SetClipping(true, 16.0f);
+		node->SetClippingRange(16.0f);
 		node->SetThinningRange(128.0f);
 		
 		for(int i = 0; i < TGForestFeatureGras; i ++)

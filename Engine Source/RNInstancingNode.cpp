@@ -46,12 +46,10 @@ namespace RN
 	{
 		_entityClass = Entity::MetaClass();
 		_models      = new Set();
+		_pivot       = nullptr;
 		
-		_pivot = nullptr;
-		_mode  = 0;
-		
-		_clipping  = false;
 		_clipRange = 64.0f;
+		_thinRange = 128.0f;
 		_cellSize  = 32.0f;
 		
 		SetFlags(GetFlags() | SceneNode::FlagHideChildren);
@@ -130,10 +128,7 @@ namespace RN
 			if(iterator == _data.end())
 			{
 				InstancingData *data = new InstancingData(model);
-				data->SetPivot(_pivot);
-				data->SetClipping(_clipping, _clipRange);
-				data->SetCellSize(_cellSize);
-				data->SetThinningRange(true, _thinRange);
+				UpdateData(data);
 				
 				_data.insert(decltype(_data)::value_type(model, data));
 				_rawData.push_back(data);
@@ -171,15 +166,27 @@ namespace RN
 		Unlock();
 	}
 	
-	void InstancingNode::SetClipping(bool clipping, float clippingRange)
+	
+	void InstancingNode::SetMode(Mode mode)
 	{
 		Lock();
-
-		_clipping  = clipping;
-		_clipRange = clippingRange;
+		
+		_mode = mode;
 		
 		for(InstancingData *data : _rawData)
-			data->SetClipping(_clipping, _clipRange);
+			UpdateData(data);
+		
+		Unlock();
+	}
+	
+	void InstancingNode::SetClippingRange(float range)
+	{
+		Lock();
+		
+		_clipRange = range;
+		
+		for(InstancingData *data : _rawData)
+			data->SetClipping((_mode & Mode::Clipping), _clipRange);
 		
 		Unlock();
 	}
@@ -191,7 +198,7 @@ namespace RN
 		_thinRange = range;
 		
 		for(InstancingData *data : _rawData)
-			data->SetThinningRange(true, _thinRange);
+			data->SetThinningRange((_mode & Mode::Thinning), _thinRange);
 		
 		Unlock();
 	}
@@ -208,6 +215,14 @@ namespace RN
 		Unlock();
 	}
 	
+	
+	void InstancingNode::UpdateData(InstancingData *data)
+	{
+		data->SetPivot(_pivot);
+		data->SetCellSize(_cellSize);
+		data->SetClipping((_mode & Mode::Clipping), _clipRange);
+		data->SetThinningRange((_mode & Mode::Thinning), _thinRange);
+	}
 	
 	void InstancingNode::EntityDidUpdateModel(Object *object, const std::string &key, Dictionary *changes)
 	{
