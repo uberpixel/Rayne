@@ -1329,4 +1329,103 @@ namespace RN
 		
 		return mesh;
 	}
+	
+	Mesh *Mesh::SphereMesh(float radius, size_t slices, size_t segments)
+	{
+		struct Vertex
+		{
+			Vertex()
+			{}
+			
+			Vertex(float tx, float ty, float tz)
+			{
+				x = tx;
+				y = ty;
+				z = tz;
+			}
+			
+			float x, y, z;
+		};
+		
+		std::vector<Vertex> vertices;
+		std::vector<uint16> indices;
+		
+		for(size_t i = 0; i < segments; i ++)
+		{
+			for(size_t j = 0; j < slices; j ++)
+			{
+				float theta = float(i) / (segments - 1) * (k::Pi);
+				float phi   = float(j) / (slices - 1)   * (k::Pi * 2);
+				
+				Vertex v;
+				v.x = sinf(theta) * cosf(phi);
+				v.y = -sinf(theta) * sinf(phi);
+				v.z = cosf(theta);
+				
+				const float xzRadius = fabsf( sphereRadius * cosf( phi ) );
+				
+				Vertex v;
+				v.x = xzRadius * cosf( theta );
+				v.y = sphereRadius * sinf( phi );
+				v.z = xzRadius * sinf( theta );
+				
+				vertices.push_back(std::move(v));
+			}
+		}
+		
+		vertices.emplace_back(0, 1, 0);
+		vertices.emplace_back(0, -1, 0);
+		
+		for(size_t i = 0; i < segments - 3; i ++)
+		{
+			for(size_t j = 0; j < slices - 1; j ++)
+			{
+				indices.push_back(i * slices + j);
+				indices.push_back((i + 1) * slices + j + 1);
+				indices.push_back(i * slices + j + 1);
+				
+				indices.push_back(i * slices + j);
+				indices.push_back((i + 1) * slices + j);
+				indices.push_back((i + 1) * slices + j + 1);
+			}
+		}
+		
+		for(size_t i = 0; i < slices - 1; i ++)
+		{
+			indices.push_back((segments - 2) * slices);
+			indices.push_back(i);
+			indices.push_back(i + 2);
+			
+			indices.push_back((segments - 2) * slices + 1);
+			indices.push_back((segments - 3) * slices + i + 1);
+			indices.push_back((segments - 3) * slices + i);
+		}
+		
+		
+		
+		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+		vertexDescriptor.elementSize = sizeof(Vector3);
+		vertexDescriptor.elementMember = 3;
+		
+		MeshDescriptor normalDescriptor(kMeshFeatureNormals);
+		normalDescriptor.elementSize = sizeof(Vector3);
+		normalDescriptor.elementMember = 3;
+							  
+		MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+		indicesDescriptor.elementSize = sizeof(uint16);
+		indicesDescriptor.elementMember = 1;
+		
+		std::vector<MeshDescriptor> descriptor = { vertexDescriptor, indicesDescriptor };
+		Mesh *mesh = new Mesh(descriptor, vertices.size(), indices.size());
+		
+		Chunk chunk = mesh->GetChunk();
+		chunk.SetData(vertices.data());
+		chunk.CommitChanges();
+		
+		Chunk ichunk = mesh->GetIndicesChunk();
+		ichunk.SetData(indices.data());
+		ichunk.CommitChanges();
+							  
+		return mesh->Autorelease();
+	}
 }

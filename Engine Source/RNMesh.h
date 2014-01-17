@@ -252,6 +252,7 @@ namespace RN
 		RNAPI static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0f), const Vector3& rotation = Vector3(0.0f));
 		RNAPI static Mesh *CubeMesh(const Vector3& size);
 		RNAPI static Mesh *CubeMesh(const Vector3& size, const Color& color);
+		RNAPI static Mesh *SphereMesh(float radius, size_t slices, size_t segments);
 		
 	private:
 		void Initialize(const std::vector<MeshDescriptor>& descriptors);
