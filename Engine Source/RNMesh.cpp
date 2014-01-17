@@ -1358,16 +1358,9 @@ namespace RN
 				float phi   = float(j) / (slices - 1)   * (k::Pi * 2);
 				
 				Vertex v;
-				v.x = sinf(theta) * cosf(phi);
-				v.y = -sinf(theta) * sinf(phi);
-				v.z = cosf(theta);
-				
-				const float xzRadius = fabsf( sphereRadius * cosf( phi ) );
-				
-				Vertex v;
-				v.x = xzRadius * cosf( theta );
-				v.y = sphereRadius * sinf( phi );
-				v.z = xzRadius * sinf( theta );
+				v.x = radius *  Math::Sin(theta) * Math::Cos(phi);
+				v.y = radius * -Math::Sin(theta) * Math::Sin(phi);
+				v.z = radius *  Math::Cos(theta);
 				
 				vertices.push_back(std::move(v));
 			}
