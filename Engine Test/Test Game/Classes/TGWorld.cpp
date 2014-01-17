@@ -7,6 +7,7 @@
 //
 
 #include "TGWorld.h"
+#include "TGSun.h"
 
 #define TGWorldFeatureLights        1
 #define TGWorldFeatureNormalMapping 1
@@ -129,6 +130,19 @@ namespace TG
 		_whitepoint = std::min(std::max(0.01f, _whitepoint), 10.0f);
 		RN::Renderer::GetSharedInstance()->SetHDRExposure(_exposure);
 		RN::Renderer::GetSharedInstance()->SetHDRWhitePoint(_whitepoint);
+		
+		if(_sunLight->IsNight())
+		{
+			_camera->ambient = RN::Vector4(0.0, 0.0, 0.0, 1.0f);
+			_sunLight->SetFlags(_sunLight->GetFlags() | RN::SceneNode::FlagHidden);
+		}
+		else
+		{
+			_sunLight->SetFlags(_sunLight->GetFlags() & ~RN::SceneNode::FlagHidden);
+			
+			_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f) * (_sunLight->GetPitch() / 50.0);
+			_camera->ambient.w = 1.0;
+		}
 	}
 	
 	void World::CreateCameras()
@@ -498,6 +512,21 @@ namespace TG
 	
 	void World::CreateForest()
 	{
+		_sunLight = new Sun();
+		_sunLight->SetLightCamera(_camera);
+		_sunLight->ActivateShadows();
+		
+		RN::Material *material = new RN::Material(RN::Shader::WithFile("shader/rn_Texture1"));
+		//material->culling = false;
+		material->diffuse = RN::Color::Black();
+		
+		RN::Model *model = RN::Model::WithMesh(RN::Mesh::SphereMesh(128.0f, 64, 64), material->Autorelease());
+		
+		RN::Entity *entity = new RN::Entity(model);
+		
+		return;
+		
+		
 		RN::Progress *progress = RN::Progress::GetActiveProgress();
 		progress->SetTotalUnits(100);
 		
@@ -920,7 +949,7 @@ namespace TG
 			node->AttachChild(ent);
 		}
 		
-		PlaceEntitiesOnGround(node, groundBody);
+		//PlaceEntitiesOnGround(node, groundBody);
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
@@ -937,8 +966,7 @@ namespace TG
 #endif
 		
 #if TGWorldFeatureLights
-		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
-		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
+		_sunLight = new Sun();
 		_sunLight->SetLightCamera(_camera);
 		_sunLight->ActivateShadows();
 	
@@ -1022,7 +1050,7 @@ namespace TG
 		
 		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f) * 2.0f;
 		
-		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
+		_sunLight = new Sun();
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
 	}
 	
@@ -1032,7 +1060,7 @@ namespace TG
 		RN::Entity *ent = new RN::Entity();
 		ent->SetModel(sibenik);
 		
-		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
+		_sunLight = new Sun();
 		_sunLight->SetIntensity(5.0f);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
 		_sunLight->SetLightCamera(_camera);

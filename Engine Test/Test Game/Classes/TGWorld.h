@@ -15,6 +15,7 @@
 #include "TGThirdPersonCamera.h"
 #include "TGDebugDrawer.h"
 #include "TGSmokeGrenade.h"
+#include "TGSun.h"
 
 namespace TG
 {
@@ -52,7 +53,7 @@ namespace TG
 		RN::Camera *_lightcam;
 		RN::Camera *_finalcam;
 		RN::Light *_spotLight;
-		RN::Light *_sunLight;
+		Sun *_sunLight;
 		RN::Texture *_depthtex;
 		RN::Entity *_sponza;
 		
