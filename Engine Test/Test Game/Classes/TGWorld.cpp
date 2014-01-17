@@ -512,21 +512,6 @@ namespace TG
 	
 	void World::CreateForest()
 	{
-		_sunLight = new Sun();
-		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateShadows();
-		
-		RN::Material *material = new RN::Material(RN::Shader::WithFile("shader/rn_Texture1"));
-		//material->culling = false;
-		material->diffuse = RN::Color::Black();
-		
-		RN::Model *model = RN::Model::WithMesh(RN::Mesh::SphereMesh(128.0f, 64, 64), material->Autorelease());
-		
-		RN::Entity *entity = new RN::Entity(model);
-		
-		return;
-		
-		
 		RN::Progress *progress = RN::Progress::GetActiveProgress();
 		progress->SetTotalUnits(100);
 		
