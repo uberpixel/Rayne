@@ -1366,9 +1366,6 @@ namespace RN
 			}
 		}
 		
-		vertices.emplace_back(0, 1, 0);
-		vertices.emplace_back(0, -1, 0);
-		
 		for(size_t i = 0; i < segments - 3; i ++)
 		{
 			for(size_t j = 0; j < slices - 1; j ++)
