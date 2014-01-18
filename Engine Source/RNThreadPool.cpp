@@ -49,10 +49,10 @@ namespace RN
 	// ---------------------
 	
 	
-	ThreadPool::ThreadPool(size_t maxThreads)
+	ThreadPool::ThreadPool(size_t maxThreads) :
+		_running(false),
+		_resigned(0)
 	{
-		_resigned.store(0);
-		
 		_threadCount = (maxThreads > 0) ? maxThreads : ThreadCoordinator::GetSharedInstance()->GetBaseConcurrency();
 		
 		for(size_t i = 0; i < _threadCount; i ++)
@@ -62,6 +62,10 @@ namespace RN
 			Thread *thread = CreateThread(i);
 			thread->Detach();
 		}
+		
+		std::unique_lock<std::mutex> lock(_syncLock);
+		_running.store(true);
+		_syncpoint.notify_all();
 	}
 	
 	ThreadPool::~ThreadPool()
@@ -165,6 +169,37 @@ namespace RN
 		_feedLock.unlock();
 	}
 	
+	bool ThreadPool::StealTasks(ThreadContext *local)
+	{
+		size_t stolen = 0;
+		
+		local->_stealLock.Lock();
+		
+		for(size_t i = 0; i < _threadCount; i ++)
+		{
+			ThreadContext *context = _threadData[i];
+			
+			if(context != local && !context->hose.was_empty() && context->_stealLock.TryLock())
+			{
+				Task task;
+				
+				for(size_t j = 0; j < 12; j ++)
+				{
+					if(!context->hose.pop(task))
+						break;
+					
+					local->hose.push(std::move(task));
+					stolen ++;
+				}
+				
+				context->_stealLock.Unlock();
+			}
+		}
+		
+		local->_stealLock.Unlock();
+		return (stolen > 0);
+	}
+	
 	void ThreadPool::Consumer()
 	{
 		Thread *thread = Thread::GetCurrentThread();
@@ -173,23 +208,33 @@ namespace RN
 		size_t threadID = thread->GetObjectForKey<Number>(RNCSTR("__kRNThreadID"))->GetUint32Value();
 		ThreadContext *local = _threadData[threadID];
 		
+		{
+			std::unique_lock<std::mutex> lock(_syncLock);
+			
+			if(!_running.load())
+				_syncpoint.wait(lock, [&] { return _running.load() == true; });
+		}
+		
 		while(!thread->IsCancelled())
 		{
 			Task task;
 			
-			while(local->hose.pop(task))
+			while(1)
 			{
-				task.function();
+				local->_stealLock.Lock();
+				bool result = local->hose.pop(task);
+				local->_stealLock.Unlock();
 				
+				if(!result)
+					break;
+				
+				task.function();
+					
 				if(task.batch)
 				{
 					if((-- task.batch->_openTasks) == 0)
 					{
-						std::unique_lock<std::mutex> lock(task.batch->_lock);
-						
 						task.batch->_waitCondition.notify_all();
-						lock.unlock();
-						
 						task.batch->Release();
 					}
 				}
@@ -200,7 +245,10 @@ namespace RN
 			std::unique_lock<std::mutex> lock(_consumerLock);
 			
 			if(local->hose.was_empty())
-				_consumerCondition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
+			{
+				if(!StealTasks(local))
+					_consumerCondition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
+			}
 		}
 		
 		delete pool;
@@ -244,10 +292,14 @@ namespace RN
 	{
 		Retain();
 		
+		// This is a race condition, because we first check wether there are open tasks and THEN wait
+		// In theory the lock should protect us from that, but the consumer don't lock it for performance reasons
+		// So instead, the condition can timeout...
+		
 		std::unique_lock<std::mutex> lock(_lock);
 		
-		if(_openTasks.load() > 0)
-			_waitCondition.wait(lock, [&]{ return (_openTasks.load() == 0); });
+		while(_openTasks.load() > 0)
+			_waitCondition.wait_for(lock, std::chrono::nanoseconds(500), [&]{ return (_openTasks.load() == 0); });
 		
 		Release();
 	}
