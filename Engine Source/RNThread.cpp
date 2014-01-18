@@ -217,6 +217,20 @@ namespace RN
 	{
 		_mutex.Lock();
 		_name = std::string(name);
+		
+		if(IsRunning() && OnThread())
+		{
+#if RN_PLATFORM_MAC_OS
+			pthread_setname_np(_name.c_str());
+#endif
+#if RN_PLATFORM_LINUX
+			pthread_setname_np(pthread_self(), _name.c_str());
+#endif
+#if RN_PLATFORM_WINDOWS
+			RNSetThreadName(const_cast<char*>(_name.c_str()));
+#endif
+		}
+		
 		_mutex.Unlock();
 	}
 	
