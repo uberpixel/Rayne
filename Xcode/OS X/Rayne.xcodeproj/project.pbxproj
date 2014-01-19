@@ -171,6 +171,7 @@
 		E97C3EB1172B11C7006EA63A /* RNString.h in Headers */ = {isa = PBXBuildFile; fileRef = E97C3EAF172B11C7006EA63A /* RNString.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E97DE03816F2574C0009128F /* Rayne.h in Headers */ = {isa = PBXBuildFile; fileRef = E92AE1E016B5286500EFE1E8 /* Rayne.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E97F7B8317552724001236E5 /* RNRingbuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = E97F7B8117552724001236E5 /* RNRingbuffer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E983D8EB188BED63007612CE /* libjansson.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E983D8EA188BEBE7007612CE /* libjansson.a */; };
 		E986B69F1879209500AFF219 /* RNOpenGLQueue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E986B69D1879209500AFF219 /* RNOpenGLQueue.cpp */; };
 		E986B6A01879209500AFF219 /* RNOpenGLQueue.h in Headers */ = {isa = PBXBuildFile; fileRef = E986B69E1879209500AFF219 /* RNOpenGLQueue.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E986B6A3187B57D100AFF219 /* RNCameraInternal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E986B6A1187B57D100AFF219 /* RNCameraInternal.cpp */; };
@@ -286,6 +287,20 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		E983D8E9188BEBE7007612CE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E983D8E5188BEBE7007612CE /* jansson.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = E9AC38D2188B142900051A67;
+			remoteInfo = jansson;
+		};
+		E983D8EC188BED67007612CE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E983D8E5188BEBE7007612CE /* jansson.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = E9AC38D1188B142900051A67;
+			remoteInfo = jansson;
+		};
 		E99D971217B982070066B0AE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */;
@@ -473,6 +488,7 @@
 		E97C3EAE172B11C7006EA63A /* RNString.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNString.cpp; sourceTree = "<group>"; };
 		E97C3EAF172B11C7006EA63A /* RNString.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNString.h; sourceTree = "<group>"; };
 		E97F7B8117552724001236E5 /* RNRingbuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNRingbuffer.h; sourceTree = "<group>"; };
+		E983D8E5188BEBE7007612CE /* jansson.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = jansson.xcodeproj; path = ../../Vendor/libjansson/jansson.xcodeproj; sourceTree = "<group>"; };
 		E986B69D1879209500AFF219 /* RNOpenGLQueue.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenGLQueue.cpp; sourceTree = "<group>"; };
 		E986B69E1879209500AFF219 /* RNOpenGLQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOpenGLQueue.h; sourceTree = "<group>"; };
 		E986B6A1187B57D100AFF219 /* RNCameraInternal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNCameraInternal.cpp; sourceTree = "<group>"; };
@@ -593,6 +609,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E983D8EB188BED63007612CE /* libjansson.a in Frameworks */,
 				E9F2B68118388BF80014FB80 /* libsqlite3.dylib in Frameworks */,
 				E9149C07183826C5005E6EE7 /* OpenGL.framework in Frameworks */,
 				E90E777917D799A30097DB09 /* CoreServices.framework in Frameworks */,
@@ -680,6 +697,14 @@
 			name = STL;
 			sourceTree = "<group>";
 		};
+		E983D8E6188BEBE7007612CE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E983D8EA188BEBE7007612CE /* libjansson.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		E98D1E4F1673A6E200889F3B = {
 			isa = PBXGroup;
 			children = (
@@ -704,6 +729,7 @@
 			children = (
 				E9B10A101819818E0065238A /* angelscript */,
 				E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */,
+				E983D8E5188BEBE7007612CE /* jansson.xcodeproj */,
 			);
 			name = Vendor;
 			sourceTree = "<group>";
@@ -999,6 +1025,10 @@
 		E9F8070E1697052500773A34 /* System */ = {
 			isa = PBXGroup;
 			children = (
+				E9B35E241889979400673F59 /* RNAngelscript.cpp */,
+				E9B35E251889979400673F59 /* RNAngelscript.h */,
+				E9B35E261889979400673F59 /* RNScripting.cpp */,
+				E9B35E271889979400673F59 /* RNScripting.h */,
 				E9B083EF17188E29009AD83F /* RNCPU.cpp */,
 				E9B083F017188E29009AD83F /* RNCPU.h */,
 				E9619DFF1696157E00DA187E /* RNFile.cpp */,
@@ -1228,6 +1258,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				E983D8ED188BED67007612CE /* PBXTargetDependency */,
 				E99D971617B982180066B0AE /* PBXTargetDependency */,
 			);
 			name = Rayne;
@@ -1259,6 +1290,10 @@
 					ProductGroup = E99D970F17B982060066B0AE /* Products */;
 					ProjectRef = E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */;
 				},
+				{
+					ProductGroup = E983D8E6188BEBE7007612CE /* Products */;
+					ProjectRef = E983D8E5188BEBE7007612CE /* jansson.xcodeproj */;
+				},
 			);
 			projectRoot = "";
 			targets = (
@@ -1268,6 +1303,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		E983D8EA188BEBE7007612CE /* libjansson.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libjansson.a;
+			remoteRef = E983D8E9188BEBE7007612CE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		E99D971317B982070066B0AE /* libangelscript.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -1435,6 +1477,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		E983D8ED188BED67007612CE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = jansson;
+			targetProxy = E983D8EC188BED67007612CE /* PBXContainerItemProxy */;
+		};
 		E99D971617B982180066B0AE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = angelscript;
@@ -1488,6 +1535,7 @@
 					/usr/local/include/freetype2,
 					/usr/local/include/libpng15,
 					/usr/local/include/gperftools/,
+					"\"$(SRCROOT)/../../Vendor/libjansson/osx\"",
 				);
 				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
@@ -1504,7 +1552,6 @@
 				OTHER_LDFLAGS = (
 					/usr/local/lib/libfreetype.a,
 					/usr/local/lib/libpng.a,
-					/usr/local/lib/libjansson.a,
 					/usr/local/lib/libtcmalloc_minimal.a,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1587,6 +1634,7 @@
 					/usr/local/include/freetype2,
 					/usr/local/include/libpng15,
 					/usr/local/include/gperftools/,
+					"\"$(SRCROOT)/../../Vendor/libjansson/osx\"",
 				);
 				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
@@ -1603,7 +1651,6 @@
 				OTHER_LDFLAGS = (
 					/usr/local/lib/libfreetype.a,
 					/usr/local/lib/libpng.a,
-					/usr/local/lib/libjansson.a,
 					/usr/local/lib/libtcmalloc_minimal.a,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1623,6 +1670,7 @@
 					/usr/local/include/freetype2,
 					/usr/local/include/libpng15,
 					/usr/local/include/gperftools/,
+					"\"$(SRCROOT)/../../Vendor/libjansson/osx\"",
 				);
 				LD_DYLIB_INSTALL_NAME = "@executable_path/../Frameworks/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = (
@@ -1639,7 +1687,6 @@
 				OTHER_LDFLAGS = (
 					/usr/local/lib/libfreetype.a,
 					/usr/local/lib/libpng.a,
-					/usr/local/lib/libjansson.a,
 					/usr/local/lib/libtcmalloc_minimal.a,
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
