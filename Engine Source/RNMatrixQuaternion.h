@@ -72,7 +72,7 @@ namespace RN
 		union
 		{
 			float m[16];
-			Vector4 vec[4];
+			SIMD::VecFloat vec[4];
 		};
 #else
 		float m[16];

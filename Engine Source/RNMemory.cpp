@@ -10,14 +10,6 @@
 #include "RNBase.h"
 #include "RNSIMD.h"
 
-#if RN_SIMD
-	#if __SSE__
-		#define RN_SIMD_ALIGNMENT 16
-	#endif
-#else
-	#define RN_SIMD_ALIGNMENT 0
-#endif
-
 #if RN_PLATFORM_MAC_OS || RN_PLATFORM_WINDOWS
 	#define RN_TARGET_HAS_GPERFTOOLS 1
 #else

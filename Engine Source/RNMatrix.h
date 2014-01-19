@@ -29,12 +29,12 @@ namespace RN
 		for(int i=0; i<16; i+=4)
 		{
 			right = SIMD::Set(other.m[i]);
-			result = SIMD::Mul(vec[0].simd, right);
+			result = SIMD::Mul(vec[0], right);
 			
 			for(int j=1; j<4; j++)
 			{
 				right = SIMD::Set(other.m[i + j]);
-				result = SIMD::Add(SIMD::Mul(vec[j].simd, right), result);
+				result = SIMD::Add(SIMD::Mul(vec[j], right), result);
 			}
 			
 			SIMD::Store(result, &tmp[i]);
@@ -80,15 +80,15 @@ namespace RN
 		for(int i=0; i<16; i+=4)
 		{
 			right = SIMD::Set(other.m[i]);
-			result = SIMD::Mul(vec[0].simd, right);
+			result = SIMD::Mul(vec[0], right);
 			
 			for(int j=1; j<4; j++)
 			{
 				right = SIMD::Set(other.m[i + j]);
-				result = SIMD::Add(SIMD::Mul(vec[j].simd, right), result);
+				result = SIMD::Add(SIMD::Mul(vec[j], right), result);
 			}
 			
-			matrix.vec[i/4].simd = result;
+			matrix.vec[i/4] = result;
 		}
 #else
 		matrix.m[ 0] = m[ 0] * other.m[ 0] + m[ 4] * other.m[ 1] + m[ 8] * other.m[ 2] + m[12] * other.m[ 3];
@@ -132,10 +132,10 @@ namespace RN
 		Vector4 result;
 
 #if RN_SIMD
-		result.simd = SIMD::Mul(vec[0].simd, SIMD::Set(other.x));
-		result.simd = SIMD::Add(result.simd, SIMD::Mul(vec[1].simd, SIMD::Set(other.y)));
-		result.simd = SIMD::Add(result.simd, SIMD::Mul(vec[2].simd, SIMD::Set(other.z)));
-		result.simd = SIMD::Add(result.simd, SIMD::Mul(vec[3].simd, SIMD::Set(other.w)));
+		result.simd = SIMD::Mul(vec[0], SIMD::Set(other.x));
+		result.simd = SIMD::Add(result.simd, SIMD::Mul(vec[1], SIMD::Set(other.y)));
+		result.simd = SIMD::Add(result.simd, SIMD::Mul(vec[2], SIMD::Set(other.z)));
+		result.simd = SIMD::Add(result.simd, SIMD::Mul(vec[3], SIMD::Set(other.w)));
 #else
 		result.x = m[0] * other.x + m[4] * other.y + m[ 8] * other.z + m[12] * other.w;
 		result.y = m[1] * other.x + m[5] * other.y + m[ 9] * other.z + m[13] * other.w;
@@ -380,11 +380,11 @@ namespace RN
 	RN_INLINE void Matrix::Translate(const Vector3& trans)
 	{
 #if RN_SIMD
-		SIMD::VecFloat result = SIMD::Mul(vec[0].simd, SIMD::Set(trans.x));
-		result = SIMD::Add(result, SIMD::Mul(vec[1].simd, SIMD::Set(trans.y)));
-		result = SIMD::Add(result, SIMD::Mul(vec[2].simd, SIMD::Set(trans.z)));
+		SIMD::VecFloat result = SIMD::Mul(vec[0], SIMD::Set(trans.x));
+		result = SIMD::Add(result, SIMD::Mul(vec[1], SIMD::Set(trans.y)));
+		result = SIMD::Add(result, SIMD::Mul(vec[2], SIMD::Set(trans.z)));
 		
-		vec[3].simd = SIMD::Add(result, vec[3].simd);
+		vec[3] = SIMD::Add(result, vec[3]);
 #else
 		float tmp[4];
 		
@@ -403,11 +403,11 @@ namespace RN
 	RN_INLINE void Matrix::Translate(const Vector4& trans)
 	{
 #if RN_SIMD
-		SIMD::VecFloat result = SIMD::Mul(vec[0].simd, SIMD::Set(trans.x));
-		result = SIMD::Add(result, SIMD::Mul(vec[1].simd, SIMD::Set(trans.y)));
-		result = SIMD::Add(result, SIMD::Mul(vec[2].simd, SIMD::Set(trans.z)));
+		SIMD::VecFloat result = SIMD::Mul(vec[0], SIMD::Set(trans.x));
+		result = SIMD::Add(result, SIMD::Mul(vec[1], SIMD::Set(trans.y)));
+		result = SIMD::Add(result, SIMD::Mul(vec[2], SIMD::Set(trans.z)));
 		
-		vec[3].simd = SIMD::Add(result, SIMD::Mul(vec[3].simd, SIMD::Set(trans.w)));
+		vec[3] = SIMD::Add(result, SIMD::Mul(vec[3], SIMD::Set(trans.w)));
 #else
 		float tmp[4];
 		

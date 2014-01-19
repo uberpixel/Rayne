@@ -523,9 +523,7 @@ namespace RN
 #if RN_SIMD
 	RN_INLINE Vector4::Vector4(const SIMD::VecFloat& other) :
 		simd(other)
-	{
-		
-	}
+	{}
 	
 	RN_INLINE Vector4& Vector4::operator= (const SIMD::VecFloat& other)
 	{
@@ -677,14 +675,11 @@ namespace RN
 	RN_INLINE float Vector4::Length() const
 	{
 #if RN_SIMD
-	#ifdef __SSE4_1__
 		if(X86_64::GetCapabilites() & X86_64::CAP_SSE41)
 		{
 			return _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(simd, simd, 0xFF)));
 		}
-	#endif
-		
-	#ifdef __SSE3__
+
 		if(X86_64::GetCapabilites() & X86_64::CAP_SSE3)
 		{
 			float result;
@@ -696,7 +691,6 @@ namespace RN
 			SIMD::StoreX(_mm_sqrt_ss(SIMD::Add(r3, SIMD::Add(r1, r2))), &result);
 			return result;
 		}
-	#endif
 #endif
 		
 		return Math::Sqrt(x * x + y * y + z * z + w * w);
@@ -705,14 +699,11 @@ namespace RN
 	RN_INLINE float Vector4::Dot(const Vector4& other) const
 	{
 #if RN_SIMD
-	#ifdef __SSE4_1__
 		if(X86_64::GetCapabilites() & X86_64::CAP_SSE41)
 		{
 			return _mm_cvtss_f32(_mm_dp_ps(simd, other.simd, 0xFF));
 		}
-	#endif
 		
-	#ifdef __SSE3__
 		if(X86_64::GetCapabilites() & X86_64::CAP_SSE3)
 		{
 			float result;
@@ -724,7 +715,6 @@ namespace RN
 			return result;
 
 		}
-	#endif
 #endif
 		
 		return (x * other.x + y * other.y + z * other.z + w * other.w);
@@ -766,7 +756,6 @@ namespace RN
 	RN_INLINE Vector4& Vector4::Normalize (const float n)
 	{
 #if RN_SIMD
-	#ifdef __SSE4_1__
 		if(X86_64::GetCapabilites() & X86_64::CAP_SSE41)
 		{
 			float length = _mm_cvtss_f32(_mm_sqrt_ss(_mm_dp_ps(simd, simd, 0xFF)));
@@ -775,7 +764,6 @@ namespace RN
 			
 			return *this;
 		}
-	#endif
 #endif
 		
 		float length = Length();
