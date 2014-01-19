@@ -32,6 +32,9 @@
     <ClInclude Include="Test Game\Classes\TGLoadingScreen.h">
       <Filter>Classes</Filter>
     </ClInclude>
+    <ClInclude Include="Test Game\Classes\TGSun.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Test Game\Supporting files\main.cpp">
@@ -56,6 +59,9 @@
       <Filter>Classes</Filter>
     </ClCompile>
     <ClCompile Include="Test Game\Classes\TGLoadingScreen.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="Test Game\Classes\TGSun.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
   </ItemGroup>
