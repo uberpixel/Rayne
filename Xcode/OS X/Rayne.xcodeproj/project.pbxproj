@@ -1548,10 +1548,6 @@
 					"-x",
 					"objective-c++",
 					"-mtune=core2",
-					"-msse",
-					"-msse2",
-					"-msse3",
-					"-msse4",
 				);
 				OTHER_LDFLAGS = (
 					/usr/local/lib/libfreetype.a,
@@ -1651,10 +1647,6 @@
 					"-x",
 					"objective-c++",
 					"-mtune=core2",
-					"-msse",
-					"-msse2",
-					"-msse3",
-					"-msse4",
 				);
 				OTHER_LDFLAGS = (
 					/usr/local/lib/libfreetype.a,
@@ -1691,10 +1683,6 @@
 					"-x",
 					"objective-c++",
 					"-mtune=core2",
-					"-msse",
-					"-msse2",
-					"-msse3",
-					"-msse4",
 				);
 				OTHER_LDFLAGS = (
 					/usr/local/lib/libfreetype.a,
