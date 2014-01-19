@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Rayne", "Rayne.vcxproj", "{
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test Game", "Engine Test\Test Game.vcxproj", "{8F437ECA-DA79-4B00-94D9-BF4BB673AC36}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "jansson", "Vendor\libjansson\jansson.vcxproj", "{98040E29-A28E-4E5F-BCA7-3B7A1E37C99E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -22,6 +24,10 @@ Global
 		{8F437ECA-DA79-4B00-94D9-BF4BB673AC36}.Debug|Win32.Build.0 = Debug|Win32
 		{8F437ECA-DA79-4B00-94D9-BF4BB673AC36}.Release|Win32.ActiveCfg = Release|Win32
 		{8F437ECA-DA79-4B00-94D9-BF4BB673AC36}.Release|Win32.Build.0 = Release|Win32
+		{98040E29-A28E-4E5F-BCA7-3B7A1E37C99E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{98040E29-A28E-4E5F-BCA7-3B7A1E37C99E}.Debug|Win32.Build.0 = Debug|Win32
+		{98040E29-A28E-4E5F-BCA7-3B7A1E37C99E}.Release|Win32.ActiveCfg = Release|Win32
+		{98040E29-A28E-4E5F-BCA7-3B7A1E37C99E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

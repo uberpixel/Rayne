@@ -281,6 +281,11 @@
     <ClCompile Include="Engine Source\RNWorldAttachment.cpp" />
     <ClCompile Include="Engine Source\RNWorldCoordinator.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Vendor\libjansson\jansson.vcxproj">
+      <Project>{98040e29-a28e-4e5f-bca7-3b7a1e37c99e}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{D54AF823-A9B2-41E4-9FB2-5CCFEBF43D21}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -312,12 +317,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(MSBuildProjectDirectory)\Vendor\libpng\include;$(MSBuildProjectDirectory)\Vendor\libfreetype\include;$(MSBuildProjectDirectory)\Vendor\gperftools\src;$(MSBuildProjectDirectory)\Vendor\libjansson\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(MSBuildProjectDirectory)\Vendor\libpng\include;$(MSBuildProjectDirectory)\Vendor\libfreetype\include;$(MSBuildProjectDirectory)\Vendor\gperftools\src;$(MSBuildProjectDirectory)\Vendor\libjansson\win;$(IncludePath)</IncludePath>
     <LibraryPath>$(MSBuildProjectDirectory)\Vendor\libjansson\$(Configuration);$(MSBuildProjectDirectory)\Vendor\libfreetype\$(Configuration);$(MSBuildProjectDirectory)\Vendor\libpng\$(Configuration);$(MSBuildProjectDirectory)\Vendor\gperftools\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(MSBuildProjectDirectory)\Vendor\libpng\include;$(MSBuildProjectDirectory)\Vendor\libfreetype\include;$(MSBuildProjectDirectory)\Vendor\gperftools\src;$(MSBuildProjectDirectory)\Vendor\libjansson\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(MSBuildProjectDirectory)\Vendor\libpng\include;$(MSBuildProjectDirectory)\Vendor\libfreetype\include;$(MSBuildProjectDirectory)\Vendor\gperftools\src;$(MSBuildProjectDirectory)\Vendor\libjansson\win;$(IncludePath)</IncludePath>
     <LibraryPath>$(MSBuildProjectDirectory)\Vendor\libjansson\$(Configuration);$(MSBuildProjectDirectory)\Vendor\libfreetype\$(Configuration);$(MSBuildProjectDirectory)\Vendor\libpng\$(Configuration);$(MSBuildProjectDirectory)\Vendor\gperftools\$(Configuration);$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -336,7 +341,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>libtcmalloc_minimal.lib;freetype2.lib;libpng.lib;jansson.lib;zlib.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libtcmalloc_minimal.lib;freetype2.lib;libpng.lib;zlib.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -356,7 +361,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>libtcmalloc_minimal.lib;freetype2.lib;libpng.lib;jansson.lib;zlib.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libtcmalloc_minimal.lib;freetype2.lib;libpng.lib;zlib.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
