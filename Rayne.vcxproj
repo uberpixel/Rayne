@@ -36,6 +36,7 @@
     <ClInclude Include="Engine Source\RNDefines.h" />
     <ClInclude Include="Engine Source\RNDictionary.h" />
     <ClInclude Include="Engine Source\RNEntity.h" />
+    <ClInclude Include="Engine Source\RNEnum.h" />
     <ClInclude Include="Engine Source\RNException.h" />
     <ClInclude Include="Engine Source\RNFile.h" />
     <ClInclude Include="Engine Source\RNFileManager.h" />

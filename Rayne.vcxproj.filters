@@ -446,6 +446,9 @@
     <ClInclude Include="Engine Source\RNWorldCoordinator.h">
       <Filter>Scene</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNEnum.h">
+      <Filter>Base</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
