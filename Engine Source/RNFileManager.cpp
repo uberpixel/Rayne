@@ -567,7 +567,7 @@ namespace RN
 		AddFileModifier("~110", "gsh");
 #endif
 
-#if RN_DEBUG
+#if RN_BUILD_DEBUG
 		AddFileModifier("~debug");
 #endif
 	}
