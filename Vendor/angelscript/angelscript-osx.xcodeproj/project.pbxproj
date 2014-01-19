@@ -469,6 +469,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
+				OTHER_CFLAGS = (
+					"-mtune=core2",
+					"-msse",
+					"-msse2",
+					"-msse3",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

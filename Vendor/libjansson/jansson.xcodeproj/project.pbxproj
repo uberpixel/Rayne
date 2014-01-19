@@ -262,6 +262,12 @@
 					"$(inherited)",
 					/Users/Sidney/Projects/Active/Rayne/Rayne/Vendor/libjansson/jansson/src/.libs,
 				);
+				OTHER_CFLAGS = (
+					"-mtune=core2",
+					"-msse",
+					"-msse2",
+					"-msse3",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -278,6 +284,12 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					/Users/Sidney/Projects/Active/Rayne/Rayne/Vendor/libjansson/jansson/src/.libs,
+				);
+				OTHER_CFLAGS = (
+					"-mtune=core2",
+					"-msse",
+					"-msse2",
+					"-msse3",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
