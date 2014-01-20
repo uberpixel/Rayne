@@ -81,6 +81,8 @@ namespace RN
 			gl::PolygonOffset(_polygonOffsetFactor, _polygonOffsetUnits);
 			
 			gl::GenBuffers(2, _capturePBO);
+			_captureBufferSize[0] = 0;
+			_captureBufferSize[1] = 0;
 		});
 		
 		_textureUnit     = 0;
@@ -571,7 +573,15 @@ namespace RN
 		
 		if(!_capturePromises.empty())
 		{
+			size_t bufferSize = _defaultWidth * _defaultHeight * _scaleFactor * 4;
+			
 			gl::BindBuffer(GL_PIXEL_PACK_BUFFER, _capturePBO[_captureIndex]);
+			
+			if(bufferSize > _captureBufferSize[_captureIndex])
+			{
+				gl::BufferData(GL_PIXEL_PACK_BUFFER, bufferSize, nullptr, GL_STATIC_READ);
+				_captureBufferSize[_captureIndex] = bufferSize;
+			}
 			
 			gl::ReadBuffer(GL_FRONT);
 			gl::ReadPixels(0, 0, _defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor, GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -588,8 +598,6 @@ namespace RN
 					FullfilPromises(buffer);
 					gl::UnmapBuffer(GL_PIXEL_PACK_BUFFER);
 				}
-				
-				RN_CHECKOPENGL();
 			}
 			
 			_captureSize = std::make_pair(_defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor);

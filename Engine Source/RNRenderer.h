@@ -246,6 +246,7 @@ namespace RN
 		std::pair<size_t, size_t> _captureSize;
 		GLuint _capturePBO[2];
 		size_t _captureIndex;
+		size_t _captureBufferSize[2];
 		FrameID _captureAge;
 		
 		RNDefineSingleton(Renderer)
