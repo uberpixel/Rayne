@@ -542,6 +542,7 @@ namespace RN
 		FrameCapture *capture = new FrameCapture();
 		capture->_width  = std::get<0>(_captureSize);
 		capture->_height = std::get<1>(_captureSize);
+		capture->_frame  = _captureAge;
 		
 		size_t size = capture->_width * capture->_height * 4;
 		capture->_data = new uint8[size];
