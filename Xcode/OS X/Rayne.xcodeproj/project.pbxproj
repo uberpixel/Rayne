@@ -195,6 +195,8 @@
 		E99A9562172A002100605C68 /* RNNumber.h in Headers */ = {isa = PBXBuildFile; fileRef = E99A9560172A002100605C68 /* RNNumber.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E99D971417B982130066B0AE /* libangelscript.a in Frameworks */ = {isa = PBXBuildFile; fileRef = E99D971317B982070066B0AE /* libangelscript.a */; };
 		E99D971A17B9823D0066B0AE /* angelscript.h in Headers */ = {isa = PBXBuildFile; fileRef = E99D971917B9823D0066B0AE /* angelscript.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9A35F21188D67CA000F450B /* RNSyncPoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A35F1F188D67C9000F450B /* RNSyncPoint.cpp */; };
+		E9A35F22188D67CA000F450B /* RNSyncPoint.h in Headers */ = {isa = PBXBuildFile; fileRef = E9A35F20188D67C9000F450B /* RNSyncPoint.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9A872D717573D5800E06C27 /* RNArray.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872D617573D5800E06C27 /* RNArray.cpp */; };
 		E9A872DA17573D7100E06C27 /* RNDictionary.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872D817573D7100E06C27 /* RNDictionary.cpp */; };
 		E9A872DB17573D7100E06C27 /* RNDictionary.h in Headers */ = {isa = PBXBuildFile; fileRef = E9A872D917573D7100E06C27 /* RNDictionary.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -513,6 +515,8 @@
 		E99A9560172A002100605C68 /* RNNumber.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNNumber.h; sourceTree = "<group>"; };
 		E99D970E17B982060066B0AE /* angelscript-osx.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "angelscript-osx.xcodeproj"; path = "../../Vendor/angelscript/angelscript-osx.xcodeproj"; sourceTree = "<group>"; };
 		E99D971917B9823D0066B0AE /* angelscript.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = angelscript.h; path = ../../Vendor/angelscript/include/angelscript.h; sourceTree = "<group>"; };
+		E9A35F1F188D67C9000F450B /* RNSyncPoint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSyncPoint.cpp; sourceTree = "<group>"; };
+		E9A35F20188D67C9000F450B /* RNSyncPoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSyncPoint.h; sourceTree = "<group>"; };
 		E9A872D617573D5800E06C27 /* RNArray.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNArray.cpp; sourceTree = "<group>"; };
 		E9A872D817573D7100E06C27 /* RNDictionary.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDictionary.cpp; sourceTree = "<group>"; };
 		E9A872D917573D7100E06C27 /* RNDictionary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNDictionary.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
@@ -693,6 +697,8 @@
 				E9F2B6841838B11F0014FB80 /* RNSHA2.h */,
 				E9E5835E18806A2B00420AC3 /* RNSpatialMap.h */,
 				E93CE16517D87F9E00A7A8A3 /* RNSTL.h */,
+				E9A35F1F188D67C9000F450B /* RNSyncPoint.cpp */,
+				E9A35F20188D67C9000F450B /* RNSyncPoint.h */,
 			);
 			name = STL;
 			sourceTree = "<group>";
@@ -1170,6 +1176,7 @@
 				E9F3A6F5171B8D3E0005A79E /* RNParticleEmitter.h in Headers */,
 				E9F3A6F9171B8DA70005A79E /* RNParticle.h in Headers */,
 				E90F976518720AEC00709C5F /* RNSceneNodeAttachment.h in Headers */,
+				E9A35F22188D67CA000F450B /* RNSyncPoint.h in Headers */,
 				E970B40F187DAB9500DF00FE /* RNUIProgressIndicator.h in Headers */,
 				E9F3A6FD171C489F0005A79E /* RNRandom.h in Headers */,
 				E9D3CEE817203FA100F4BF36 /* RNBillboard.h in Headers */,
@@ -1417,6 +1424,7 @@
 				E951615D17D410CF0006156A /* RNUITableViewCell.cpp in Sources */,
 				E986B6A3187B57D100AFF219 /* RNCameraInternal.cpp in Sources */,
 				E9F3A6F8171B8DA70005A79E /* RNParticle.cpp in Sources */,
+				E9A35F21188D67CA000F450B /* RNSyncPoint.cpp in Sources */,
 				E9F3A6FC171C489F0005A79E /* RNRandom.cpp in Sources */,
 				D59DCB0D18584E2B00030716 /* RNOctreeSceneManager.cpp in Sources */,
 				E9BEC9CE179CDFCB00C05623 /* RNUITextEditor.cpp in Sources */,
