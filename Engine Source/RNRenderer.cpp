@@ -537,17 +537,6 @@ namespace RN
 		}
 	}
 	
-	void FrameCapture::Notify()
-	{
-		for(auto &promise : _promises)
-		{
-			Retain();
-			promise.set_value(this);
-		}
-	}
-	
-	
-	
 	void Renderer::FullfilPromises(void *data)
 	{
 		FrameCapture *capture = new FrameCapture();
@@ -557,11 +546,31 @@ namespace RN
 		size_t size = capture->_width * capture->_height * 4;
 		capture->_data = new uint8[size];
 		
-		std::copy(reinterpret_cast<uint8 *>(data), reinterpret_cast<uint8 *>(data) + size, capture->_data);
-		std::swap(capture->_promises, _capturePromises);
+		std::vector<std::function<void (FrameCapture *)>> *requests = new std::vector<std::function<void (FrameCapture *)>>();
+		std::swap(_capturePromises, *requests);
 		
-		RN::ThreadPool::GetSharedInstance()->AddTask([capture] {
-			capture->Notify();
+		size_t rowBytes = capture->_width * 4;
+		
+		uint8 *sourceRow = reinterpret_cast<uint8 *>(data);
+		uint8 *targetRow = capture->_data + (rowBytes * (capture->_height - 1));
+		
+		for(size_t i = 0; i < capture->_height; i ++)
+		{
+			std::copy(sourceRow, sourceRow + rowBytes, targetRow);
+			
+			targetRow -= rowBytes;
+			sourceRow += rowBytes;
+		}
+		
+		RN::ThreadPool::GetSharedInstance()->AddTask([=] {
+			
+			size_t size = requests->size();
+			for(size_t i = 0; i < size; i ++)
+			{
+				requests->at(i)(capture);
+			}
+			
+			delete requests;
 			capture->Release();
 		});
 	}
@@ -607,13 +616,9 @@ namespace RN
 		}
 	}
 	
-	std::future<FrameCapture *> Renderer::GetFrameCapture()
+	void Renderer::RequestFrameCapture(std::function<void (FrameCapture *)> &&capture)
 	{
-		std::promise<FrameCapture *> promise;
-		std::future<FrameCapture *> future = promise.get_future();
-		
-		_capturePromises.push_back(std::move(promise));
-		return future;
+		_capturePromises.push_back(std::move(capture));
 	}
 	
 	// ---------------------

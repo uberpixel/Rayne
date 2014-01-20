@@ -99,14 +99,10 @@ namespace RN
 	private:
 		FrameCapture();
 		
-		void Notify();
-		
 		uint8 *_data;
 		size_t _width;
 		size_t _height;
 		FrameID _frame;
-		
-		std::vector<std::promise<FrameCapture *>> _promises;
 	};
 	
 	class Renderer : public INonConstructingSingleton<Renderer>
@@ -161,7 +157,7 @@ namespace RN
 		RNAPI void RelinquishMesh(Mesh *mesh);
 		RNAPI void RelinquishProgram(ShaderProgram *program);
 		
-		RNAPI std::future<FrameCapture *> GetFrameCapture();
+		RNAPI void RequestFrameCapture(std::function<void (FrameCapture *)> &&capture);
 		
 		RNAPI Camera *GetActiveCamera() const { return _currentCamera; }
 		RNAPI Material *GetActiveMaterial() const { return _currentMaterial; }
@@ -242,7 +238,7 @@ namespace RN
 		std::vector<std::pair<Camera *, Shader *>> _flushCameras;
 		std::unordered_set<Camera *> _flushedCameras;
 		
-		std::vector<std::promise<FrameCapture *>> _capturePromises;
+		std::vector<std::function<void (FrameCapture *)>> _capturePromises;
 		std::pair<size_t, size_t> _captureSize;
 		GLuint _capturePBO[2];
 		size_t _captureIndex;
