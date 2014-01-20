@@ -62,6 +62,8 @@ namespace TG
 		float _exposure;
 		float _whitepoint;
 		
+		std::future<RN::FrameCapture *> _capture;
+		
 		Player *_player;
 	};
 }

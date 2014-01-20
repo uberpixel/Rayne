@@ -77,6 +77,10 @@ namespace TG
 						_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _camera);
 						break;
 						
+					case 't':
+						_capture = RN::Renderer::GetSharedInstance()->GetFrameCapture();
+						break;
+						
 					default:
 						break;
 				}
@@ -93,6 +97,19 @@ namespace TG
 	
 	void World::Update(float delta)
 	{
+		if(_capture.valid())
+		{
+			auto result = _capture.wait_for(std::chrono::nanoseconds(1));
+			if(result == std::future_status::ready)
+			{
+				RN::FrameCapture *capture = _capture.get();
+				RN::Data *data = capture->GetData(RN::FrameCapture::Format::PNG);
+				
+				data->WriteToFile("/Users/Sidney/Desktop/Capture.png");				
+				capture->Release();
+			}
+		}
+		
 		RN::Input *input = RN::Input::GetSharedInstance();
 
 #if TGWorldFeatureFreeCamera
@@ -939,7 +956,7 @@ namespace TG
 			node->AttachChild(ent);
 		}
 		
-		//PlaceEntitiesOnGround(node, groundBody);
+		PlaceEntitiesOnGround(node, groundBody);
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");

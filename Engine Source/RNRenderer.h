@@ -17,6 +17,7 @@
 #include "RNMesh.h"
 #include "RNSkeleton.h"
 #include "RNLight.h"
+#include "RNData.h"
 
 namespace RN
 {
@@ -75,6 +76,39 @@ namespace RN
 		std::function<void (Renderer *renderer, const RenderingObject&)> callback;
 	};
 	
+	class FrameCapture : public Object
+	{
+	public:
+		friend class Renderer;
+		
+		enum class Format
+		{
+			RGB888,
+			RGBA8888,
+			PNG
+		};
+		
+		~FrameCapture() override;
+		
+		Data *GetData(Format format);
+		
+		size_t GetWidth() const { return _width; }
+		size_t GetHeight() const { return _height; }
+		FrameID GetFrame() const { return _frame; }
+		
+	private:
+		FrameCapture();
+		
+		void Notify();
+		
+		uint8 *_data;
+		size_t _width;
+		size_t _height;
+		FrameID _frame;
+		
+		std::vector<std::promise<FrameCapture *>> _promises;
+	};
+	
 	class Renderer : public INonConstructingSingleton<Renderer>
 	{
 	public:
@@ -126,6 +160,8 @@ namespace RN
 		
 		RNAPI void RelinquishMesh(Mesh *mesh);
 		RNAPI void RelinquishProgram(ShaderProgram *program);
+		
+		RNAPI std::future<FrameCapture *> GetFrameCapture();
 		
 		RNAPI Camera *GetActiveCamera() const { return _currentCamera; }
 		RNAPI Material *GetActiveMaterial() const { return _currentMaterial; }
@@ -198,10 +234,19 @@ namespace RN
 		std::vector<RenderingObject> _debugFrameWorld;
 		std::vector<RenderingObject> _debugFrameUI;
 		
-	private:		
+	private:
+		void FullfilPromises(void *data);
+		void CaptureFrame();
+		
 		std::map<std::tuple<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
 		std::vector<std::pair<Camera *, Shader *>> _flushCameras;
 		std::unordered_set<Camera *> _flushedCameras;
+		
+		std::vector<std::promise<FrameCapture *>> _capturePromises;
+		std::pair<size_t, size_t> _captureSize;
+		GLuint _capturePBO[2];
+		size_t _captureIndex;
+		FrameID _captureAge;
 		
 		RNDefineSingleton(Renderer)
 		

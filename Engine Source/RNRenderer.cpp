@@ -6,6 +6,7 @@
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
+#include <png.h>
 #include "RNRenderer.h"
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
@@ -43,6 +44,9 @@ namespace RN
 		_hdrExposure   = 1.0f;
 		_hdrWhitePoint = 1.0f;
 		
+		_captureAge = static_cast<FrameID>(-1);
+		_captureIndex = 0;
+		
 		// Default OpenGL state
 		_cullingEnabled   = false;
 		_depthTestEnabled = false;
@@ -75,6 +79,8 @@ namespace RN
 			gl::DepthFunc(_depthFunc);
 			gl::BlendFunc(_blendSource, _blendDestination);
 			gl::PolygonOffset(_polygonOffsetFactor, _polygonOffsetUnits);
+			
+			gl::GenBuffers(2, _capturePBO);
 		});
 		
 		_textureUnit     = 0;
@@ -236,7 +242,7 @@ namespace RN
 			i ++;
 		}
 	}
-		
+	
 	// ---------------------
 	// MARK: -
 	// MARK: Binding
@@ -446,6 +452,164 @@ namespace RN
 	
 	// ---------------------
 	// MARK: -
+	// MARK: FrameCapture
+	// ---------------------
+	
+	FrameCapture::FrameCapture()
+	{}
+	
+	FrameCapture::~FrameCapture()
+	{
+		delete [] _data;
+	}
+	
+	void CopyPNGData(png_structp pngPointer, png_bytep pngData, png_size_t length)
+	{
+		Data *data = reinterpret_cast<Data *>(png_get_io_ptr(pngPointer));
+		data->Append(pngData, length);
+	}
+	
+	Data *FrameCapture::GetData(Format format)
+	{
+		switch(format)
+		{
+			case Format::RGBA8888:
+				return Data::WithBytes(_data, _width * _height * 4);
+				break;
+				
+			case Format::RGB888:
+			{
+				size_t size = _width * _height;
+				uint8 *temp = new uint8[size * 3];
+				Data *data = new Data(temp, size, true, true);
+				
+				uint32 *pixel = reinterpret_cast<uint32 *>(_data);
+				uint32 *end = pixel + size;
+				
+				while(pixel != end)
+				{
+					*temp ++ = (*pixel >> 24) & 0xff;
+					*temp ++ = (*pixel >> 16) & 0xff;
+					*temp ++ = (*pixel >> 8) & 0xff;
+					
+					pixel ++;
+				}
+				
+				return data->Autorelease();
+			}
+				
+			case Format::PNG:
+			{
+				Data *data = new Data();
+				
+				png_structp pngPointer = png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
+				png_infop pngInfo      = png_create_info_struct(pngPointer);
+				
+				png_set_IHDR(pngPointer, pngInfo, static_cast<uint32>(_width), static_cast<uint32>(_height), 8, PNG_COLOR_TYPE_RGBA, PNG_INTERLACE_NONE, PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
+				
+				uint32 bytesPerRow = static_cast<uint32>(_width * 4);
+				png_byte **rows = reinterpret_cast<png_byte **>(png_malloc(pngPointer, _height * sizeof(png_byte *)));
+				
+				uint32 *pixel = reinterpret_cast<uint32 *>(_data);
+				
+				for(size_t y = 0; y < _height; y ++)
+				{
+					rows[y] = reinterpret_cast<png_byte *>(png_malloc(pngPointer, bytesPerRow));
+					
+					std::copy(pixel, pixel + _width, reinterpret_cast<uint32 *>(rows[y]));
+					pixel += _width;
+				}
+				
+				png_set_write_fn(pngPointer, data, CopyPNGData, nullptr);
+				png_set_rows(pngPointer, pngInfo, rows);
+				png_write_png(pngPointer, pngInfo, PNG_TRANSFORM_IDENTITY, nullptr);
+				
+				for(size_t y = 0; y < _height; y ++)
+					png_free(pngPointer, rows[y]);
+				
+				png_free(pngPointer, rows);
+				png_destroy_write_struct(&pngPointer, &pngInfo);
+				
+				return data->Autorelease();
+			}
+		}
+	}
+	
+	void FrameCapture::Notify()
+	{
+		for(auto &promise : _promises)
+		{
+			Retain();
+			promise.set_value(this);
+		}
+	}
+	
+	
+	
+	void Renderer::FullfilPromises(void *data)
+	{
+		FrameCapture *capture = new FrameCapture();
+		capture->_width  = std::get<0>(_captureSize);
+		capture->_height = std::get<1>(_captureSize);
+		
+		size_t size = capture->_width * capture->_height * 4;
+		capture->_data = new uint8[size];
+		
+		std::copy(reinterpret_cast<uint8 *>(data), reinterpret_cast<uint8 *>(data) + size, capture->_data);
+		std::swap(capture->_promises, _capturePromises);
+		
+		RN::ThreadPool::GetSharedInstance()->AddTask([capture] {
+			capture->Notify();
+			capture->Release();
+		});
+	}
+	
+	void Renderer::CaptureFrame()
+	{
+		_captureIndex = (_captureIndex + 1) % 2;
+		size_t previous = (_captureIndex + 1) % 2;
+		
+		if(!_capturePromises.empty())
+		{
+			gl::BindBuffer(GL_PIXEL_PACK_BUFFER, _capturePBO[_captureIndex]);
+			
+			gl::ReadBuffer(GL_FRONT);
+			gl::ReadPixels(0, 0, _defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+			
+			FrameID current = Kernel::GetSharedInstance()->GetCurrentFrame();
+			
+			if(_captureAge == (current - 1))
+			{
+				gl::BindBuffer(GL_PIXEL_PACK_BUFFER, _capturePBO[previous]);
+				
+				void *buffer = gl::MapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+				if(buffer)
+				{
+					FullfilPromises(buffer);
+					gl::UnmapBuffer(GL_PIXEL_PACK_BUFFER);
+				}
+				
+				RN_CHECKOPENGL();
+			}
+			
+			_captureSize = std::make_pair(_defaultWidth * _scaleFactor, _defaultHeight * _scaleFactor);
+			_captureAge = current;
+			
+			gl::BindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+		}
+	}
+	
+	std::future<FrameCapture *> Renderer::GetFrameCapture()
+	{
+		std::promise<FrameCapture *> promise;
+		std::future<FrameCapture *> future = promise.get_future();
+		
+		_capturePromises.push_back(std::move(promise));
+		return future;
+	}
+	
+	// ---------------------
+	// MARK: -
 	// MARK: Frame handling
 	// ---------------------
 	
@@ -521,6 +685,9 @@ namespace RN
 				
 				FlushCamera(camera, shader);
 			}
+			
+			if(!_capturePromises.empty())
+				CaptureFrame();
 		});
 		
 		_flushedCameras.clear();
