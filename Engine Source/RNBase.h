@@ -251,6 +251,4 @@ namespace RN
 	};
 }
 	
-#include "RNOpenGLQueue.h"
-	
 #endif /* __RAYNE_BASE_H__ */

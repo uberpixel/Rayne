@@ -11,6 +11,7 @@
 #include "RNMatrix.h"
 #include "RNQuaternion.h"
 #include "RNLightManager.h"
+#include "RNOpenGLQueue.h"
 
 namespace RN
 {
@@ -293,10 +294,6 @@ namespace RN
 					{
 						lookup.type |= programTypes;
 						program = shader->GetProgramWithLookup(lookup);
-						if(!program)
-						{
-							int blub = 0;
-						}
 					}
 					
 					RN_ASSERT(program, "");

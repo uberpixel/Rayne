@@ -12,6 +12,7 @@
 #include "RNResourceCoordinator.h"
 #include "RNLightManager.h"
 #include "RNCameraInternal.h"
+#include "RNOpenGLQueue.h"
 
 namespace RN
 {

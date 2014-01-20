@@ -8,6 +8,7 @@
 
 #include "RNInstancingData.h"
 #include "RNLogging.h"
+#include "RNOpenGLQueue.h"
 
 namespace RN
 {

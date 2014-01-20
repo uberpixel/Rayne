@@ -15,6 +15,7 @@
 #include "RNFileManager.h"
 #include "RNScopeGuard.h"
 #include "RNSHA2.h"
+#include "RNOpenGLQueue.h"
 
 namespace RN
 {
@@ -374,10 +375,6 @@ namespace RN
 		
 		temporaryDefines.insert(temporaryDefines.end(), lookup.defines.begin(), lookup.defines.end());
 		
-		
-		GLint status;
-		Exception exception(Exception::Type::GenericException, "This exception shouldn't be thrown!");
-		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
 			
 			// Create the program
@@ -391,17 +388,20 @@ namespace RN
 				gl::ProgramParameteri(program->program, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 #endif
 			
+			// Compile the shader
+			std::vector<ShaderUnit *> units;
+			
 			ScopeGuard scopeGuard = ScopeGuard([&]() {
 				gl::DeleteProgram(program->program);
 				delete program;
 				
 				_programs.erase(lookup);
+				
+				for(ShaderUnit *unit : units)
+					delete unit;
 			});
 			
-				
-			// Compile the shader
-			std::vector<ShaderUnit *> units;
-		
+			
 			for(auto i = _shaderData.begin(); i != _shaderData.end(); i ++)
 			{
 				ShaderUnit *unit = new ShaderUnit(this, i->first);
@@ -422,18 +422,16 @@ namespace RN
 				delete unit;
 			}
 			
+			units.clear(); // To avoid the scope guard deleting them again
+			
+			
+			// Get the link status
+			GLint status;
+			
 			gl::GetProgramiv(program->program, GL_LINK_STATUS, &status);
 			if(!status)
 			{
-				try
-				{
-					DumpLinkStatusAndDie(program);
-				}
-				catch(Exception e)
-				{
-					exception = std::move(e);
-				}
-				
+				DumpLinkStatusAndDie(program);
 				return;
 			}
 			
@@ -444,9 +442,6 @@ namespace RN
 			// Update any caches
 			ShaderCache::GetSharedInstance()->CacheShaderProgram(this, program, lookup);
 		}, true);
-		
-		if(!status)
-			throw exception;
 		
 		return program;
 	}

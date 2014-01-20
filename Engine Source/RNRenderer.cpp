@@ -15,6 +15,7 @@
 #include "RNAlgorithm.h"
 #include "RNSettings.h"
 #include "RNLogging.h"
+#include "RNOpenGLQueue.h"
 
 #define kRNRendererMaxVAOAge 300
 

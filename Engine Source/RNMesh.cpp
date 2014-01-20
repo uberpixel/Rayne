@@ -10,6 +10,7 @@
 #include "RNKernel.h"
 #include "RNDebug.h"
 #include "RNRenderer.h"
+#include "RNOpenGLQueue.h"
 
 namespace RN
 {

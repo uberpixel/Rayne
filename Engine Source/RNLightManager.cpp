@@ -12,6 +12,7 @@
 #include "RNCamera.h"
 #include "RNShader.h"
 #include "RNTexture.h"
+#include "RNOpenGLQueue.h"
 
 #define kRNLightListOffsetCount 0
 #define kRNLightListIndices 1

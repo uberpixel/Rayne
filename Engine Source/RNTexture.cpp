@@ -12,6 +12,7 @@
 #include "RNKernel.h"
 #include "RNSettings.h"
 #include "RNWrappingObject.h"
+#include "RNOpenGLQueue.h"
 
 namespace RN
 {

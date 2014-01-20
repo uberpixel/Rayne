@@ -8,6 +8,7 @@
 
 #include "RNBase.h"
 #include "RNOpenGL.h"
+#include "RNOpenGLQueue.h"
 #include "RNContextInternal.h"
 #include "RNLogging.h"
 #include "RNSettings.h"

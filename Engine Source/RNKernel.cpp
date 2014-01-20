@@ -23,6 +23,7 @@
 #include "RNShaderCache.h"
 #include "RNWindowInternal.h"
 #include "RNWorldCoordinator.h"
+#include "RNOpenGLQueue.h"
 
 namespace RN
 {

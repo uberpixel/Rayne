@@ -57,14 +57,27 @@ namespace RN
 	
 	
 	
-	std::future<void> OpenGLQueue::SubmitCommand(std::packaged_task<void ()> &&command)
+	void OpenGLQueue::RunTask(Task &task)
 	{
-		std::future<void> future = command.get_future();
+		try
+		{
+			task.task();
+			task.syncable.signal();
+		}
+		catch(...)
+		{
+			task.syncable.signal_exception(std::current_exception());
+		}
+	}
+	
+	stl::sync_point OpenGLQueue::SubmitCommand(Task &&command)
+	{
+		stl::sync_point point = command.syncable.get_sync_point();
 		
 		if(_thread->OnThread())
 		{
-			command();
-			return future;
+			RunTask(command);
+			return point;
 		}
 		
 		LockGuard<decltype(_commandLock)> lock(_commandLock);
@@ -81,7 +94,7 @@ namespace RN
 			_signal.notify_one();
 		}
 		
-		return future;
+		return point;
 	}
 	
 	void OpenGLQueue::SwitchContext(Context *context)
@@ -121,7 +134,7 @@ namespace RN
 		_signal.wait(lock, [&] { return (_context != nullptr || _thread->IsCancelled()); });
 		_context->MakeActiveContext();
 		
-		std::packaged_task<void ()> task;
+		Task task;
 		
 		while(!_thread->IsCancelled())
 		{
@@ -130,7 +143,7 @@ namespace RN
 			
 			while(_commands.pop(task))
 			{
-				task();
+				RunTask(task);
 				_processed.fetch_add(1, std::memory_order_release);
 			}
 			

@@ -130,18 +130,14 @@ namespace RN
 	
 	void ParticleEmitter::SetMaterial(ParticleMaterial *material)
 	{
-		if(_material)
-			_material->Release();
-		
-		_material = material ? material->Retain() : 0;
+		SafeRelease(_material);
+		_material = SafeRetain(material);
 	}
 	
 	void ParticleEmitter::SetGenerator(RandomNumberGenerator *generator)
 	{
-		if(_rng)
-			_rng->Release();
-		
-		_rng = generator->Retain();
+		SafeRelease(_rng);
+		_rng = SafeRetain(generator);
 	}
 	
 	
@@ -176,6 +172,7 @@ namespace RN
 	
 	Particle *ParticleEmitter::CreateParticle()
 	{
+		RN_ASSERT(_material, "ParticleEmitter need a material to spawn particles");
 		return new Particle();
 	}
 	

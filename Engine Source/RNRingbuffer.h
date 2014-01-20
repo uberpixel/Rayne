@@ -329,8 +329,14 @@ namespace RN
 				_head(0),
 				_tail(0)
 			{
-				_buffer.resize(capacity);
+				_buffer = new T[Size];
 			}
+			
+			~lock_free_ring_buffer()
+			{
+				delete [] _buffer;
+			}
+			
 			
 			bool push(const T& val)
 			{
@@ -400,7 +406,7 @@ namespace RN
 			std::atomic<size_t> _head;
 			std::atomic<size_t> _tail;
 			
-			std::vector<T> _buffer;
+			T *_buffer;
 		};
 	}
 }

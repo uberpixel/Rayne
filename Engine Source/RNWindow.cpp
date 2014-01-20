@@ -10,7 +10,7 @@
 #include "RNBaseInternal.h"
 #include "RNContextInternal.h"
 #include "RNWindowInternal.h"
-
+#include "RNOpenGLQueue.h"
 #include "RNFile.h"
 #include "RNTexture.h"
 #include "RNKernel.h"
