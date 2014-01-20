@@ -193,15 +193,15 @@ namespace RN
 		}
 	}
 	
-	void LightManager::AdjustProgramTypes(uint32 &types)
+	void LightManager::AdjustProgramTypes(Shader *shader, uint32 &types)
 	{
-		if(_lightDirectionalDepth.size() > 0)
+		if(_lightDirectionalDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDirectionalShadows))
 			types |= ShaderProgram::TypeDirectionalShadows;
 		
-		if(_lightPointDepth.size() > 0)
+		if(_lightPointDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypePointShadows))
 			types |= ShaderProgram::TypePointShadows;
 		
-		if(_lightSpotDepth.size() > 0)
+		if(_lightSpotDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeSpotShadows))
 			types |= ShaderProgram::TypeSpotShadows;
 	}
 	

@@ -258,7 +258,7 @@ namespace RN
 					if(wantsLighting)
 					{
 						programTypes |= ShaderProgram::TypeLighting;
-						lightManager->AdjustProgramTypes(programTypes);
+						lightManager->AdjustProgramTypes(shader, programTypes);
 						
 						lookup.lightDirectionalCount = lightDirectionalCount;
 						
@@ -293,6 +293,10 @@ namespace RN
 					{
 						lookup.type |= programTypes;
 						program = shader->GetProgramWithLookup(lookup);
+						if(!program)
+						{
+							int blub = 0;
+						}
 					}
 					
 					RN_ASSERT(program, "");

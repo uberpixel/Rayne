@@ -15,6 +15,7 @@
 #include "RNRect.h"
 #include "RNPlane.h"
 #include "RNSphere.h"
+#include "RNShader.h"
 
 namespace RN
 {
@@ -31,7 +32,7 @@ namespace RN
 		RNAPI ~LightManager();
 		
 		RNAPI void Bind(Renderer *renderer, Camera *camera, ShaderProgram *program);
-		RNAPI void AdjustProgramTypes(uint32 &types);
+		RNAPI void AdjustProgramTypes(Shader *program, uint32 &types);
 		
 		RNAPI void AddLight(Light *light);
 		
