@@ -29,6 +29,9 @@
 #include "RNFormatter.h"
 #include "RNProgress.h"
 
+#include "RNOpenGL.h"
+#include "RNOpenGLQueue.h"
+
 #include "RNKernel.h"
 #include "RNApplication.h"
 #include "RNSettings.h"
@@ -127,6 +130,13 @@
 #include "RNFunction.h"
 #include "RNScopeGuard.h"
 #include "RNWindow.h"
+
+#include "RNSTL.h"
+#include "RNRingBuffer.h"
+#include "RNIntervalTree.h"
+#include "RNSHA2.h"
+#include "RNSpatialMap.h"
+#include "RNSyncPoint.h"
 
 #if RN_PLATFORM_WINDOWS
 	#undef RNAPI_DEFINEBASE
