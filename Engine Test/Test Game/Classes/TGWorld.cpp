@@ -37,6 +37,8 @@ namespace TG
 		_player = 0;
 		_sponza = 0;
 		
+		_frameCapturing = false;
+		
 		_exposure = 1.0f;
 		_whitepoint = 5.0f;
 		
@@ -77,16 +79,8 @@ namespace TG
 						_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _camera);
 						break;
 						
-					case 't':
-						RN::Renderer::GetSharedInstance()->RequestFrameCapture([](RN::FrameCapture *capture) {
-							
-							RN::Data *data = capture->GetData(RN::FrameCapture::Format::PNG);
-							std::stringstream file;
-							file << "/Users/Sidney/Desktop/Capture" << capture->GetFrame() << ".png";
-							
-							data->WriteToFile(file.str());
-							
-						});
+					case 'c':
+						ToggleFrameCapturing();
 						break;
 						
 					default:
@@ -103,8 +97,49 @@ namespace TG
 	}
 	
 	
+	void World::ToggleFrameCapturing()
+	{
+		if(!_frameCapturing)
+		{
+			_frameCapturing = true;
+			
+			RN::Kernel::GetSharedInstance()->SetFixedDelta(1.0f / 30.0f);
+			RecordFrame();
+		}
+		else
+		{
+			_frameCapturing = false;
+			RN::Kernel::GetSharedInstance()->SetFixedDelta(0.0f);
+		}
+	}
+	
+	void World::RecordFrame()
+	{
+		if(!_frameCapturing)
+			return;
+		
+		RN::Renderer::GetSharedInstance()->RequestFrameCapture([](RN::FrameCapture *capture) {
+			
+			RN::Data *data = capture->GetData(RN::FrameCapture::Format::PNG);
+			std::stringstream file;
+			
+			std::string path = RN::FileManager::GetSharedInstance()->GetNormalizedPathFromFullpath("~/Desktop");
+			
+			file << path << "/Capture/Capture_" << capture->GetFrame() << ".png";
+			std::string base = RN::PathManager::Basepath(file.str());
+			
+			if(!RN::PathManager::PathExists(base))
+				RN::PathManager::CreatePath(base);
+			
+			data->WriteToFile(file.str());
+			
+		});
+	}
+	
 	void World::Update(float delta)
 	{
+		RecordFrame();
+		
 		RN::Input *input = RN::Input::GetSharedInstance();
 
 #if TGWorldFeatureFreeCamera
@@ -951,7 +986,7 @@ namespace TG
 			node->AttachChild(ent);
 		}
 		
-		//PlaceEntitiesOnGround(node, groundBody);
+		PlaceEntitiesOnGround(node, groundBody);
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");

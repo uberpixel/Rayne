@@ -32,6 +32,8 @@ namespace TG
 		
 	private:
 		void CreateCameras();
+		void ToggleFrameCapturing();
+		void RecordFrame();
 		void PPActivateBloom(RN::Camera *cam);
 		void PPActivateSSAO(RN::Camera *cam);
 		void PPActivateFXAA(RN::Camera *cam);
@@ -56,6 +58,7 @@ namespace TG
 		Sun *_sunLight;
 		RN::Texture *_depthtex;
 		RN::Entity *_sponza;
+		bool _frameCapturing;
 		
 		RN::PostProcessingPipeline *_refractPipeline;
 		
