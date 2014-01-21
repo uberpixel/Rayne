@@ -986,7 +986,7 @@ namespace TG
 			node->AttachChild(ent);
 		}
 		
-		PlaceEntitiesOnGround(node, groundBody);
+		//PlaceEntitiesOnGround(node, groundBody);
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");

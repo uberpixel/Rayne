@@ -35,6 +35,30 @@ namespace TG
 		SetDate(181, 2013);
 		SetTime(12, 32, 0);
 		SetLatitude(48.0f, 81.0f);
+		
+		RN::Texture2D *texture = static_cast<RN::Texture2D *>(RN::Texture::WithFile("textures/sun_gradient.png"));
+		float *color = new float[texture->GetWidth() * texture->GetHeight() * 4];
+		
+		RN::Texture::PixelData data;
+		data.alignment = 1;
+		data.format = RN::Texture::Format::RGBA32F;
+		data.data = color;
+		
+		texture->GetData(data);
+		
+		float *temp = color;
+		
+		for(size_t i = 0; i < texture->GetWidth(); i ++)
+		{
+			RN::Color tcolor = RN::Color(color[0], color[1], color[2], 1.0f);
+			tcolor *= 0.48f;
+			tcolor.a = 1.0;
+			
+			_temperatures.push_back(std::move(tcolor));
+			color += 4;
+		}
+		
+		delete [] temp;
 	}
 	
 	void Sun::SetTime(uint32 hour, uint32 minute, uint32 second)
@@ -129,6 +153,11 @@ namespace TG
 		_isNight = (pitch <= 0.0);
 		_pitch   = pitch;
 		
+		
+		double factor = (_second + (60.0 * _minute) + (3600.0 * _hour)) / 86400.0;
+		size_t index  = static_cast<size_t>(roundf(_temperatures.size() * factor));
+		
+		SetColor(_temperatures[index]);
 		SetRotation(RN::Quaternion(RN::Vector3(yaw, -pitch, 0.0)));
 	}
 }
