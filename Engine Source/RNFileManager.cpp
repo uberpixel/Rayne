@@ -522,6 +522,36 @@ namespace RN
 	// MARK: FileManager
 	// ---------------------
 	
+#if RN_PLATFORM_POSIX
+	char *realpath_expand(const char *path, char *buffer)
+	{
+#if RN_PLATFORM_LINUX
+		char *home;
+		
+		if(path[0] == '~' && (home = getenv("HOME")))
+		{
+			char temp[PATH_MAX];
+			return realpath(strcat(strcpy(temp, home), path + 1), buffer);
+		}
+		else
+		{
+			return realpath(path, buffer);
+		}
+#endif
+#if RN_PLATFORM_MAC_OS
+		if(path[0] == '~')
+		{
+			NSString *string = [[NSString stringWithCString:path encoding:NSASCIIStringEncoding] stringByExpandingTildeInPath];
+			return realpath([string UTF8String], buffer);
+		}
+		else
+		{
+			return realpath(path, buffer);
+		}
+#endif
+	}
+#endif
+	
 	FileManager::FileManager()
 	{
 #if RN_PLATFORM_MAC_OS
@@ -696,7 +726,7 @@ namespace RN
 	{
 		char buffer[1024];
 #if RN_PLATFORM_POSIX
-		char *result = realpath(name.c_str(), buffer);
+		char *result = realpath_expand(name.c_str(), buffer);
 		if(!result)
 			throw Exception(Exception::Type::InconsistencyException, "");
 #else
@@ -753,7 +783,7 @@ namespace RN
 		char buffer[1024];
 
 #if RN_PLATFORM_POSIX
-		char *result = realpath(tpath.c_str(), buffer);
+		char *result = realpath_expand(tpath.c_str(), buffer);
 		std::string path(result ? buffer : tpath.c_str());
 #else
 		DWORD result = ::GetFullPathNameA(tpath.c_str(), 1024, buffer, nullptr);
