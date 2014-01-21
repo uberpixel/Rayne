@@ -36,7 +36,8 @@ namespace RN
 		RNAPI ~Kernel() override;
 
 		RNAPI bool Tick();
-
+		
+		RNAPI void SetFixedDelta(float delta);
 		RNAPI void SetTimeScale(float timeScale);
 		RNAPI void SetMaxFPS(uint32 fps);
 		
@@ -95,10 +96,12 @@ namespace RN
 		uint32 _maxFPS;
 		float _minDelta;
 
+		bool _fixedDelta;
 		bool _resetDelta;
 		bool _shouldExit;
 		bool _initialized;
 
+		float _fixedDeltaTime;
 		float _time;
 		float _scaledTime;
 		float _delta;

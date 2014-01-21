@@ -150,6 +150,7 @@ namespace RN
 		_mainThread = new Thread();
 		_pool = new AutoreleasePool();
 		
+		_fixedDelta = false;
 		_statisticsSwitch = 0;
 		
 		_title = (Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestApplicationKey)->GetUTF8String());
@@ -454,6 +455,9 @@ namespace RN
 		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
 		float trueDelta = milliseconds / 1000.0f;
 		
+		if(_fixedDeltaTime)
+			trueDelta = _fixedDeltaTime;
+		
 		if(_resetDelta)
 		{
 			trueDelta = 0.0f;
@@ -612,6 +616,12 @@ namespace RN
 	void Kernel::SetTimeScale(float timeScale)
 	{
 		_timeScale = timeScale;
+	}
+	
+	void Kernel::SetFixedDelta(float delta)
+	{
+		_fixedDeltaTime = delta;
+		_fixedDelta = (delta > 0);
 	}
 	
 	void Kernel::SetMaxFPS(uint32 fps)
