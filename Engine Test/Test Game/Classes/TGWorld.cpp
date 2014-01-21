@@ -120,12 +120,12 @@ namespace TG
 		
 		RN::Renderer::GetSharedInstance()->RequestFrameCapture([](RN::FrameCapture *capture) {
 			
-			RN::Data *data = capture->GetData(RN::FrameCapture::Format::PNG);
+			RN::Data *data = capture->GetData(RN::FrameCapture::Format::RGBA8888);
 			std::stringstream file;
 			
 			std::string path = RN::FileManager::GetSharedInstance()->GetNormalizedPathFromFullpath("~/Desktop");
 			
-			file << path << "/Capture/Capture_" << capture->GetFrame() << ".png";
+			file << path << "/RayneCapture/frame_" << capture->GetFrame() << ".raw";
 			std::string base = RN::PathManager::Basepath(file.str());
 			
 			if(!RN::PathManager::PathExists(base))
