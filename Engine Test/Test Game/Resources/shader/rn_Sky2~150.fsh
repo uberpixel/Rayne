@@ -43,7 +43,7 @@ vec3 v3LightPos = vec3(0.707, 0.707, 0.0);		// The direction vector to the light
 #endif
 
 vec3 v3CameraPos = vec3(0.0, 10.000012, 0.0);		// The camera's current position
-vec3 v3InvWavelength = vec3(3.602, 11.473, 25.643);	// 1 / pow(wavelength, 4) for the red, green, and blue channels
+vec3 v3InvWavelength = vec3(3.602, 11.473, 27.643);	// 1 / pow(wavelength, 4) for the red, green, and blue channels
 float fCameraHeight = 10.000012;	// The camera's current height
 float fCameraHeight2 = 100.00025;	// fCameraHeight^2
 float fOuterRadius = 10.25;		// The outer (atmosphere) radius
