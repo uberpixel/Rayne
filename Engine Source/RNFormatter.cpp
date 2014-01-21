@@ -56,7 +56,7 @@ namespace RN
 			case Number::Type::Boolean:
 			{
 				bool value = number->GetBoolValue();
-				return RNSTR("%s", value ? "true" : false);
+				return RNSTR("%s", value ? "true" : "false");
 			}
 		}
 
