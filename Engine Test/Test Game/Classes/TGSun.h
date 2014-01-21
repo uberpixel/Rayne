@@ -43,6 +43,8 @@ namespace TG
 		
 		bool _isNight;
 		float _pitch;
+		
+		std::vector<RN::Color> _temperatures;
 	};
 }
 
