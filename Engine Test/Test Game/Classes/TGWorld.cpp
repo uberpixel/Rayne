@@ -178,20 +178,15 @@ namespace TG
 		RN::Renderer::GetSharedInstance()->SetHDRExposure(_exposure);
 		RN::Renderer::GetSharedInstance()->SetHDRWhitePoint(_whitepoint);
 		
-		/*if(_sunLight->IsNight())
-		{
-			_camera->ambient = RN::Vector4(0.0, 0.0, 0.0, 1.0f);
-			_sunLight->SetFlags(_sunLight->GetFlags() | RN::SceneNode::FlagHidden);
-		}
-		else
-		{
-			_sunLight->SetFlags(_sunLight->GetFlags() & ~RN::SceneNode::FlagHidden);
-			
-			_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f) * (_sunLight->GetPitch() / 50.0);
-			_camera->ambient.w = 1.0;
-		}*/
+		
 		//_sunLight->SetColor(RN::Color(1.0f, 0.0f, 0.0f));
 		//_camera->fogcolor = RN::Color(1.0f, 0.0f, 0.0f);
+		
+		RN::Color color = _sunLight->GetAmbientColor();
+		RN::Vector4 ambient(0.127, 0.252, 0.393, 1.0);
+		
+		_camera->ambient = RN::Vector4(color.r, color.g, color.b, 1.0) * (ambient * 2.0f);
+		_camera->fogcolor = _sunLight->GetFogColor();
 	}
 	
 	void World::CreateCameras()
@@ -573,6 +568,9 @@ namespace TG
 		//ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
 		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 5);
+		//ground->GetMaterialAtIndex(0, 0)->culling = false;
+		//ground->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideCulling;
+		
 		RN::Entity *groundBody = new RN::Entity();
 		groundBody->SetModel(ground);
 		groundBody->SetScale(RN::Vector3(20.0f));
@@ -986,7 +984,7 @@ namespace TG
 			node->AttachChild(ent);
 		}
 		
-		//PlaceEntitiesOnGround(node, groundBody);
+		PlaceEntitiesOnGround(node, groundBody);
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
