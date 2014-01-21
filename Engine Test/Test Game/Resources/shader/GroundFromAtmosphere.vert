@@ -26,8 +26,6 @@ uniform float fScaleOverScaleDepth;	// fScale / fScaleDepth
 const int nSamples = 2;
 const float fSamples = 2.0;
 
-varying vec3 v3Direction;
-
 
 float scale(float fCos)
 {
@@ -45,13 +43,15 @@ void main(void)
 
 	// Calculate the ray's starting position, then calculate its scattering offset
 	vec3 v3Start = v3CameraPos;
-	float fHeight = length(v3Start);
-	float fDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fCameraHeight));
-	float fStartAngle = dot(v3Ray, v3Start) / fHeight;
-	float fStartOffset = fDepth*scale(fStartAngle);
+	float fDepth = exp((fInnerRadius - fCameraHeight) / fScaleDepth);
+	float fCameraAngle = dot(-v3Ray, v3Pos) / length(v3Pos);
+	float fLightAngle = dot(v3LightPos, v3Pos) / length(v3Pos);
+	float fCameraScale = scale(fCameraAngle);
+	float fLightScale = scale(fLightAngle);
+	float fCameraOffset = fDepth*fCameraScale;
+	float fTemp = (fLightScale + fCameraScale);
 
 	// Initialize the scattering loop variables
-	//gl_FrontColor = vec4(0.0, 0.0, 0.0, 0.0);
 	float fSampleLength = fFar / fSamples;
 	float fScaledLength = fSampleLength * fScale;
 	vec3 v3SampleRay = v3Ray * fSampleLength;
@@ -59,21 +59,23 @@ void main(void)
 
 	// Now loop through the sample rays
 	vec3 v3FrontColor = vec3(0.0, 0.0, 0.0);
+	vec3 v3Attenuate;
 	for(int i=0; i<nSamples; i++)
 	{
 		float fHeight = length(v3SamplePoint);
 		float fDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fHeight));
-		float fLightAngle = dot(v3LightPos, v3SamplePoint) / fHeight;
-		float fCameraAngle = dot(v3Ray, v3SamplePoint) / fHeight;
-		float fScatter = (fStartOffset + fDepth*(scale(fLightAngle) - scale(fCameraAngle)));
-		vec3 v3Attenuate = exp(-fScatter * (v3InvWavelength * fKr4PI + fKm4PI));
+		float fScatter = fDepth*fTemp - fCameraOffset;
+		v3Attenuate = exp(-fScatter * (v3InvWavelength * fKr4PI + fKm4PI));
 		v3FrontColor += v3Attenuate * (fDepth * fScaledLength);
 		v3SamplePoint += v3SampleRay;
 	}
 
-	// Finally, scale the Mie and Rayleigh colors and set up the varying variables for the pixel shader
-	gl_FrontSecondaryColor.rgb = v3FrontColor * fKmESun;
-	gl_FrontColor.rgb = v3FrontColor * (v3InvWavelength * fKrESun);
+	gl_FrontColor.rgb = v3FrontColor * (v3InvWavelength * fKrESun + fKmESun);
+
+	// Calculate the attenuation factor for the ground
+	gl_FrontSecondaryColor.rgb = v3Attenuate;
+
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-	v3Direction = v3CameraPos - v3Pos;
+	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+	gl_TexCoord[1] = gl_TextureMatrix[1] * gl_MultiTexCoord1;
 }

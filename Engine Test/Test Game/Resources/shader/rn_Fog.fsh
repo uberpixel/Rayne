@@ -13,13 +13,8 @@ uniform sampler2D mTexture0;
 
 uniform vec4 ambient;
 
-#include "rn_Noise.fsh"
-
 #if defined(RN_ATMOSPHERE)
 in vec3 vertDirToCam;
-
-uniform float time;
-uniform vec3 viewPosition;
 
 //
 // Atmospheric scattering vertex shader
@@ -43,7 +38,7 @@ vec3 v3LightPos = vec3(0.707, 0.707, 0.0);		// The direction vector to the light
 #endif
 
 vec3 v3CameraPos = vec3(0.0, 10.000012, 0.0);		// The camera's current position
-vec3 v3InvWavelength = vec3(3.602, 11.473, 25.643);	// 1 / pow(wavelength, 4) for the red, green, and blue channels
+vec3 v3InvWavelength = vec3(5.602, 9.473, 19.643);	// 1 / pow(wavelength, 4) for the red, green, and blue channels
 float fCameraHeight = 10.000012;	// The camera's current height
 float fCameraHeight2 = 100.00025;	// fCameraHeight^2
 float fOuterRadius = 10.25;		// The outer (atmosphere) radius
@@ -76,6 +71,56 @@ in vec2 vertTexcoord;
 
 out vec4 fragColor0;
 
+
+void main(void)
+{
+	// Get the ray from the camera to the vertex, and its length (which is the far point of the ray passing through the atmosphere)
+	vec3 v3Pos = gl_Vertex.xyz;
+	vec3 v3Ray = v3Pos - v3CameraPos;
+	float fFar = length(v3Ray);
+	v3Ray /= fFar;
+	
+	// Calculate the ray's starting position, then calculate its scattering offset
+	vec3 v3Start = v3CameraPos;
+	float fDepth = exp((fInnerRadius - fCameraHeight) / fScaleDepth);
+	float fCameraAngle = dot(-v3Ray, v3Pos) / length(v3Pos);
+	float fLightAngle = dot(v3LightPos, v3Pos) / length(v3Pos);
+	float fCameraScale = scale(fCameraAngle);
+	float fLightScale = scale(fLightAngle);
+	float fCameraOffset = fDepth*fCameraScale;
+	float fTemp = (fLightScale + fCameraScale);
+	
+	// Initialize the scattering loop variables
+	float fSampleLength = fFar / fSamples;
+	float fScaledLength = fSampleLength * fScale;
+	vec3 v3SampleRay = v3Ray * fSampleLength;
+	vec3 v3SamplePoint = v3Start + v3SampleRay * 0.5;
+	
+	// Now loop through the sample rays
+	vec3 v3FrontColor = vec3(0.0, 0.0, 0.0);
+	vec3 v3Attenuate;
+	for(int i=0; i<nSamples; i++)
+	{
+		float fHeight = length(v3SamplePoint);
+		float fDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fHeight));
+		float fScatter = fDepth*fTemp - fCameraOffset;
+		v3Attenuate = exp(-fScatter * (v3InvWavelength * fKr4PI + fKm4PI));
+		v3FrontColor += v3Attenuate * (fDepth * fScaledLength);
+		v3SamplePoint += v3SampleRay;
+	}
+	
+	gl_FrontColor.rgb = v3FrontColor * (v3InvWavelength * fKrESun + fKmESun);
+	
+	// Calculate the attenuation factor for the ground
+	gl_FrontSecondaryColor.rgb = v3Attenuate;
+	
+	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+	gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+	gl_TexCoord[1] = gl_TextureMatrix[1] * gl_MultiTexCoord1;
+}
+
+
+
 void main()
 {
 #if defined(RN_ATMOSPHERE)
@@ -87,16 +132,17 @@ void main()
 	float pointdist = -dirdist+sqrt(dirdist*dirdist-fCameraHeight*fCameraHeight+fOuterRadius2);
 	
 	// Calculate the ray's starting position, then calculate its scattering offset
-	float fHeight = length(v3CameraPos);
+	vec3 v3Start = v3CameraPos;
+	float fHeight = length(v3Start);
 	float fDepth = exp(fScaleOverScaleDepth * (fInnerRadius - fCameraHeight));
-	float fStartAngle = dot(normVertDirToCam, v3CameraPos) / fHeight;
+	float fStartAngle = dot(normVertDirToCam, v3Start) / fHeight;
 	float fStartOffset = fDepth*scale(fStartAngle);
 	
 	// Initialize the scattering loop variables
 	float fSampleLength = pointdist / fSamples;
 	float fScaledLength = fSampleLength * fScale;
 	vec3 v3SampleRay = normVertDirToCam * fSampleLength;
-	vec3 v3SamplePoint = v3CameraPos + v3SampleRay * 0.5;
+	vec3 v3SamplePoint = v3Start + v3SampleRay * 0.5;
 	
 	// Now loop through the sample rays
 	vec3 v3FrontColor = vec3(0.0, 0.0, 0.0);
@@ -116,25 +162,6 @@ void main()
 	float fCos = dot(v3LightPos, -normVertDirToCam);
 	float fMiePhase = 1.5 * ((1.0 - g2) / (2.0 + g2)) * (1.0 + fCos*fCos) / pow(1.0 + g2 - 2.0*g*fCos, 1.5);
 	color0.xyz = v3FrontColor * (v3InvWavelength * fKrESun) + fMiePhase * v3FrontColor * fKmESun;
-	
-/*	if(normVertDirToCam.y > 0.0)
-	{
-		float planedist = 1.0/normVertDirToCam.y;
-		vec3 planepos = planedist*normVertDirToCam;
-		planepos.xz += viewPosition.xz*0.01;
-		planepos.x += time*0.1;
-		
-		float noise = cnoise(planepos);
-		noise += cnoise(planepos*2.0+vec3(time*0.05, 0.0, time*0.05))*0.5;
-		noise += cnoise(planepos*4.0-vec3(time*0.02, 0.0, time*0.02))*0.25;
-		noise += cnoise(planepos*8.0+vec3(time*0.03, 0.0, time*0.03))*0.125;
-		noise += cnoise(planepos*16.0-vec3(time*0.05, 0.0, time*0.05))*0.0625;
-		noise += cnoise(planepos*32.0-vec3(time*0.03, 0.0, time*0.03))*0.03125;
-		noise /= 1.96875;
-		noise = max(noise, 0.0);
-		
-		color0.xyz = mix(color0.xyz, vec3(pow((1.0-noise), 3.0)*2.0), min(noise*10.0, min(normVertDirToCam.y*4.0, 1.0)))*2.0;
-	}*/
 #else
 	vec4 color0 = texture(mTexture0, vertTexcoord)*ambient;
 #endif

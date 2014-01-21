@@ -583,7 +583,7 @@ namespace RN
 		
 		if(!_capturePromises.empty())
 		{
-			size_t bufferSize = _defaultWidth * _defaultHeight * _scaleFactor * 4;
+			size_t bufferSize = _defaultWidth * _defaultHeight * _scaleFactor * _scaleFactor * 4;
 			
 			gl::BindBuffer(GL_PIXEL_PACK_BUFFER, _capturePBO[_captureIndex]);
 			
