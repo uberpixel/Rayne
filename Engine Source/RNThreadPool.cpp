@@ -246,8 +246,8 @@ namespace RN
 			
 			if(local->hose.was_empty())
 			{
-				if(!StealTasks(local))
-					_consumerCondition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
+				//if(!StealTasks(local))
+				_consumerCondition.wait_for(lock, std::chrono::nanoseconds(500), [&]() { return (local->hose.was_empty() == false); });
 			}
 		}
 		
