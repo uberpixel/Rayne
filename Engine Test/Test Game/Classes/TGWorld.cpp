@@ -83,6 +83,109 @@ namespace TG
 						ToggleFrameCapturing();
 						break;
 						
+					case 'k':
+					{
+						_cutScene->Reset();
+						
+						{
+							BasicAnimation<RN::Vector3> *animation = new BasicAnimation<RN::Vector3>();
+							animation->SetFromValue(RN::Vector3(-22.962570, 10.0f, -10.640179));
+							animation->SetToValue(RN::Vector3(20.381281, 10.0f, -10.640179));
+							animation->SetDuration(15.0f);
+							animation->SetApplierFunction(std::bind(&RN::Camera::SetWorldPosition, _camera, std::placeholders::_1));
+							
+							_cutScene->AddAnimation(animation);
+							animation->Release();
+						}
+						
+						// Around first plier
+						{
+							BasicAnimation<RN::Vector3> *posAnimation = new BasicAnimation<RN::Vector3>();
+							posAnimation->SetBeginTime(15.0f);
+							posAnimation->SetFromValue(RN::Vector3(20.381281, 10.0f, -10.640179));
+							posAnimation->SetToValue(RN::Vector3(24.716537, 10.0f, -3.987202));
+							posAnimation->SetDuration(5.0f);
+							posAnimation->SetApplierFunction(std::bind(&RN::Camera::SetWorldPosition, _camera, std::placeholders::_1));
+							
+							BasicAnimation<RN::Vector3> *rotAnimation = new BasicAnimation<RN::Vector3>();
+							rotAnimation->SetBeginTime(15.0f);
+							rotAnimation->SetFromValue(RN::Vector3(180.000000, -35.0f, 0.000000));
+							rotAnimation->SetToValue(RN::Vector3(90.000000, -35.0f, 0.000000));
+							rotAnimation->SetDuration(5.0f);
+							rotAnimation->SetApplierFunction(std::bind(&RN::Camera::SetWorldRotation, _camera, std::placeholders::_1));
+							
+							_cutScene->AddAnimation(posAnimation);
+							_cutScene->AddAnimation(rotAnimation);
+							
+							posAnimation->Release();
+							rotAnimation->Release();
+						}
+						
+						{
+							BasicAnimation<RN::Vector3> *posAnimation = new BasicAnimation<RN::Vector3>();
+							posAnimation->SetBeginTime(20.0f);
+							posAnimation->SetFromValue(RN::Vector3(24.716537, 10.0f, -3.987202));
+							posAnimation->SetToValue(RN::Vector3(24.716537, 10.0f, 5.089204));
+							posAnimation->SetDuration(10.0f);
+							posAnimation->SetApplierFunction(std::bind(&RN::Camera::SetWorldPosition, _camera, std::placeholders::_1));
+							
+							_cutScene->AddAnimation(posAnimation);
+							
+							posAnimation->Release();
+						}
+						
+						// Around second plier
+						{
+							BasicAnimation<RN::Vector3> *posAnimation = new BasicAnimation<RN::Vector3>();
+							posAnimation->SetBeginTime(30.0f);
+							posAnimation->SetFromValue(RN::Vector3(24.716537, 10.0f, 5.089204));
+							posAnimation->SetToValue(RN::Vector3(20.182526, 7.785197, 10.740821));
+							posAnimation->SetDuration(5.0f);
+							posAnimation->SetApplierFunction(std::bind(&RN::Camera::SetWorldPosition, _camera, std::placeholders::_1));
+							
+							BasicAnimation<RN::Vector3> *rotAnimation = new BasicAnimation<RN::Vector3>();
+							rotAnimation->SetBeginTime(30.0f);
+							rotAnimation->SetFromValue(RN::Vector3(90.000000, -35.0f, 0.000000));
+							rotAnimation->SetToValue(RN::Vector3(0.0f, -5.0000, 0.000000));
+							rotAnimation->SetDuration(5.0f);
+							rotAnimation->SetApplierFunction(std::bind(&RN::Camera::SetWorldRotation, _camera, std::placeholders::_1));
+							
+							_cutScene->AddAnimation(posAnimation);
+							_cutScene->AddAnimation(rotAnimation);
+							
+							posAnimation->Release();
+							rotAnimation->Release();
+						}
+						
+						{
+							BasicAnimation<RN::Vector3> *posAnimation = new BasicAnimation<RN::Vector3>();
+							posAnimation->SetBeginTime(35.0f);
+							posAnimation->SetFromValue(RN::Vector3(20.182526, 7.785197, 10.740821));
+							posAnimation->SetToValue(RN::Vector3(-17.017281, 7.785197, 10.618670));
+							posAnimation->SetDuration(15.0f);
+							posAnimation->SetApplierFunction(std::bind(&RN::Camera::SetWorldPosition, _camera, std::placeholders::_1));
+							
+							_cutScene->AddAnimation(posAnimation);
+							
+							posAnimation->Release();
+						}
+						
+						_camera->SetRotation(RN::Quaternion(RN::Vector3(-180.000000, -35.0f, 0.000000)));
+						
+						break;
+					}
+						
+					case 'p':
+					{
+						RN::Vector3 position = _camera->GetWorldPosition();
+						RN::Vector3 euler = _camera->GetWorldEulerAngle();
+						
+						RNDebug("{%f, %f, %f}", position.x, position.y, position.z);
+						RNDebug("{%f, %f, %f}", euler.x, euler.y, euler.z);
+						
+						break;
+					}
+						
 					default:
 						break;
 				}
@@ -139,6 +242,9 @@ namespace TG
 	void World::Update(float delta)
 	{
 		RecordFrame();
+		
+		if(_cutScene->HasAnimations())
+			_cutScene->Update(delta);
 		
 		RN::Input *input = RN::Input::GetSharedInstance();
 

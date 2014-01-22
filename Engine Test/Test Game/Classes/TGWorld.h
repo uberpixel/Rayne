@@ -16,6 +16,7 @@
 #include "TGDebugDrawer.h"
 #include "TGSmokeGrenade.h"
 #include "TGSun.h"
+#include "TGCutScene.h"
 
 namespace TG
 {

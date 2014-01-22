@@ -25,6 +25,8 @@
 		E9842441187DF455002AEF39 /* TGLoadingScreen.h in Headers */ = {isa = PBXBuildFile; fileRef = E984243F187DF455002AEF39 /* TGLoadingScreen.h */; };
 		E9B8E7A51888763600617F62 /* TGSun.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9B8E7A31888763600617F62 /* TGSun.cpp */; };
 		E9B8E7A61888763600617F62 /* TGSun.h in Headers */ = {isa = PBXBuildFile; fileRef = E9B8E7A41888763600617F62 /* TGSun.h */; };
+		E9BB406E1890132D0039B544 /* TGCutScene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9BB406C1890132D0039B544 /* TGCutScene.cpp */; };
+		E9BB406F1890132D0039B544 /* TGCutScene.h in Headers */ = {isa = PBXBuildFile; fileRef = E9BB406D1890132D0039B544 /* TGCutScene.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -67,6 +69,8 @@
 		E984243F187DF455002AEF39 /* TGLoadingScreen.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGLoadingScreen.h; path = Classes/TGLoadingScreen.h; sourceTree = "<group>"; };
 		E9B8E7A31888763600617F62 /* TGSun.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGSun.cpp; path = Classes/TGSun.cpp; sourceTree = "<group>"; };
 		E9B8E7A41888763600617F62 /* TGSun.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGSun.h; path = Classes/TGSun.h; sourceTree = "<group>"; };
+		E9BB406C1890132D0039B544 /* TGCutScene.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGCutScene.cpp; path = Classes/TGCutScene.cpp; sourceTree = "<group>"; };
+		E9BB406D1890132D0039B544 /* TGCutScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGCutScene.h; path = Classes/TGCutScene.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -118,6 +122,8 @@
 				E984243F187DF455002AEF39 /* TGLoadingScreen.h */,
 				E9B8E7A31888763600617F62 /* TGSun.cpp */,
 				E9B8E7A41888763600617F62 /* TGSun.h */,
+				E9BB406C1890132D0039B544 /* TGCutScene.cpp */,
+				E9BB406D1890132D0039B544 /* TGCutScene.h */,
 			);
 			name = Classes;
 			path = "Test Game";
@@ -162,6 +168,7 @@
 				E9825D44187296C6005FC83D /* TGPlayer.h in Headers */,
 				E9825D4A187296C6005FC83D /* TGWorld.h in Headers */,
 				E9825D48187296C6005FC83D /* TGThirdPersonCamera.h in Headers */,
+				E9BB406F1890132D0039B544 /* TGCutScene.h in Headers */,
 				E9825D40187296C6005FC83D /* TGApplication.h in Headers */,
 				E9825D46187296C6005FC83D /* TGSmokeGrenade.h in Headers */,
 				E9825D42187296C6005FC83D /* TGDebugDrawer.h in Headers */,
@@ -259,6 +266,7 @@
 				E9825D49187296C6005FC83D /* TGWorld.cpp in Sources */,
 				E9825D26187295EB005FC83D /* main.cpp in Sources */,
 				E9825D45187296C6005FC83D /* TGSmokeGrenade.cpp in Sources */,
+				E9BB406E1890132D0039B544 /* TGCutScene.cpp in Sources */,
 				E9B8E7A51888763600617F62 /* TGSun.cpp in Sources */,
 				E9825D43187296C6005FC83D /* TGPlayer.cpp in Sources */,
 				E9842440187DF455002AEF39 /* TGLoadingScreen.cpp in Sources */,
