@@ -63,6 +63,8 @@ namespace TG
 		
 		RN::PostProcessingPipeline *_refractPipeline;
 		
+		CutScene *_cutScene;
+		
 		float _exposure;
 		float _whitepoint;
 		

@@ -42,6 +42,8 @@ namespace TG
 		_exposure = 1.0f;
 		_whitepoint = 5.0f;
 		
+		_cutScene = new CutScene();
+		
 		_debugAttachment = new DebugDrawer();
 		AddAttachment(_debugAttachment);
 	}
@@ -228,14 +230,65 @@ namespace TG
 			
 			std::string path = RN::FileManager::GetSharedInstance()->GetNormalizedPathFromFullpath("~/Desktop");
 			
-			file << path << "/RayneCapture/frame_" << capture->GetFrame() << ".raw";
+			file << path << "/Capture/Capture_" << capture->GetFrame() << ".bmp";
 			std::string base = RN::PathManager::Basepath(file.str());
 			
 			if(!RN::PathManager::PathExists(base))
 				RN::PathManager::CreatePath(base);
 			
-			data->WriteToFile(file.str());
 			
+			uint8 fileHeader[14] = {'B','M', 0,0,0,0, 0,0, 0,0, 54,0,0,0};
+			uint8 infoHeader[40] = {40,0,0,0, 0,0,0,0, 0,0,0,0, 1,0, 24,0};
+			
+			size_t w = capture->GetWidth();
+			size_t h = capture->GetHeight();
+			
+			size_t padding   = (4 - w % 4) % 4;
+			size_t dataSize  = w * h * 3 + (h * padding);
+			size_t totalSize = dataSize + 14 + 40;
+			
+			fileHeader[2] = (totalSize) & 0xff;
+			fileHeader[3] = (totalSize >> 8) & 0xff;
+			fileHeader[4] = (totalSize >> 16) & 0xff;
+			fileHeader[5] = (totalSize >> 24) & 0xff;
+			
+			infoHeader[ 4] = (w) & 0xff;
+			infoHeader[ 5] = (w >> 8) & 0xff;
+			infoHeader[ 6] = (w >> 16) & 0xff;
+			infoHeader[ 7] = (w >> 24) & 0xff;
+			infoHeader[ 8] = (h) & 0xff;
+			infoHeader[ 9] = (h >> 8) & 0xff;
+			infoHeader[10] = (h >> 16) & 0xff;
+			infoHeader[11] = (h >> 24) & 0xff;
+			
+			RN::Data *bmpdata = new RN::Data();
+			bmpdata->Append(fileHeader, 14);
+			bmpdata->Append(infoHeader, 40);
+			
+			uint8 *pixelData = reinterpret_cast<uint8 *>(data->GetBytes());
+			uint8 *row = new uint8[capture->GetWidth() * 3];
+			uint8 pad[3] = { 0 };
+			
+			for(size_t i = 0; i < capture->GetHeight(); i ++)
+			{
+				uint32 *pixel = reinterpret_cast<uint32 *>(pixelData + (w * 4) * ((h - i) - 1));
+				uint8  *temp  = row;
+				
+				for(size_t j = 0; j < capture->GetWidth(); j ++)
+				{
+					*temp ++ = ((*pixel) >> 16) & 0xff;
+					*temp ++ = ((*pixel) >> 8) & 0xff;
+					*temp ++ = ((*pixel) >> 0) & 0xff;
+					
+					pixel ++;
+				}
+				
+				bmpdata->Append(row, capture->GetWidth() * 3);
+				bmpdata->Append(pad, padding);
+			}
+			
+			bmpdata->WriteToFile(file.str());
+			bmpdata->Release();
 		});
 	}
 	
