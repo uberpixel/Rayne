@@ -675,6 +675,9 @@ namespace TG
 				light->SetWorldPosition(pos);
 			});
 		}
+		_sunLight = new Sun();
+		_sunLight->SetLightCamera(_camera);
+		_sunLight->ActivateShadows();
 #endif
 		
 		RN::Billboard *billboard = new RN::Billboard();
