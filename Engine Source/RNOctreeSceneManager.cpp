@@ -65,7 +65,7 @@ namespace RN
 	{
 		auto flags = node->GetFlags();
 		
-		if(!(camera->renderGroup & (1 << node->renderGroup)) || flags & SceneNode::FlagHidden)
+		if(!(camera->GetRenderGroups() & (1 << node->renderGroup)) || flags & SceneNode::FlagHidden)
 			return;
 		
 		if(node->IsVisibleInCamera(camera))

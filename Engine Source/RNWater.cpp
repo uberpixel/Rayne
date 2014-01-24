@@ -79,10 +79,8 @@ namespace RN
 		
 		if(_camera != 0)
 		{
-			_reflection = new Camera(Vector2(512, 512), Texture::Format::RGBA8888, Camera::FlagUpdateStorageFrame|Camera::FlagHidden, RenderStorage::BufferFormatComplete, 1.0f);
+			_reflection = new Camera(Vector2(512, 512), Texture::Format::RGBA8888, Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush, RenderStorage::BufferFormatComplete, 1.0f);
 			_reflection->SetPriority(9);
-//			_reflection->SetSkyCube(_camera->SkyCube());
-			
 			
 			Shader *shad = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr);
 			
@@ -90,8 +88,8 @@ namespace RN
 			mat->lighting = false;
 			
 			_reflection->SetMaterial(mat);
-			_reflection->useclipplane = true;
-			_reflection->clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+			_reflection->SetFlags(_camera->GetFlags() | Camera::Flags::UseClipPlanes);
+			_reflection->SetClipPlane(Vector4(0.0f, 1.0f, 0.0f, 0.0f));
 			
 			_material->AddTexture(_reflection->GetStorage()->GetRenderTarget());
 			_material->AddTexture(RN::Texture::WithFile("textures/waterbump.png", true));
@@ -127,7 +125,7 @@ namespace RN
 			_reflection->SetPosition(Vector3(1.0f, -1.0f, 1.0f)*_camera->GetWorldPosition());
 			_reflection->SetRotation(Vector3(rot.x, rot.y, -rot.z));
 			
-			_reflection->aspect = _camera->aspect;
+			_reflection->SetAspectRatio(_camera->GetAspectRatio());
 			_reflection->UpdateProjection();
 		}
 	}

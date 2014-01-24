@@ -176,15 +176,15 @@ namespace RN
 			if(_currentMaterial)
 				SetDepthWriteEnabled(_currentMaterial->depthwrite);
 			
-			bool wantsFog = _currentCamera->usefog;
-			bool wantsClipPlane = _currentCamera->useclipplane;
+			bool wantsFog = (_currentCamera->GetFlags() & Camera::Flags::UseFog);
+			bool wantsClipPlane = (_currentCamera->GetFlags() & Camera::Flags::UseClipPlanes);
 			
 			Matrix identityMatrix;
 			
-			if(!source && !(camera->GetFlags() & Camera::FlagNoRender))
+			if(!source && !(camera->GetFlags() & Camera::Flags::NoRender))
 			{
 				Material *surfaceMaterial = camera->GetMaterial();
-				LightManager *lightManager = camera->lightManager;
+				LightManager *lightManager = camera->GetLightManager();
 				
 				size_t lightDirectionalCount = 0;
 				size_t lightPointSpotCount = 0;
@@ -198,17 +198,17 @@ namespace RN
 				}
 				
 				// Update the shader
-				const Matrix& projectionMatrix = camera->projectionMatrix;
-				const Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix;
+				const Matrix& projectionMatrix = camera->GetProjectionMatrix();
+				const Matrix& inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 				
-				const Matrix& viewMatrix = camera->viewMatrix;
-				const Matrix& inverseViewMatrix = camera->inverseViewMatrix;
+				const Matrix& viewMatrix = camera->GetViewMatrix();
+				const Matrix& inverseViewMatrix = camera->GetInverseViewMatrix();
 				
 				Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
 				Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
 				
 				size_t objectsCount = _frame.size();
-				size_t i = (camera->GetFlags() & Camera::FlagNoSky) ? skyCubeMeshes : 0;
+				size_t i = (camera->GetFlags() & Camera::Flags::NoSky) ? skyCubeMeshes : 0;
 				
 				for(; i<objectsCount; i++)
 				{

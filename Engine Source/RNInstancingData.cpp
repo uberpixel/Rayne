@@ -674,7 +674,7 @@ namespace RN
 		if(_pivot && _hasLODStages)
 		{
 			float distance = entity->GetWorldPosition().Distance(_pivot->GetWorldPosition());
-			stage = _model->GetLODStageForDistance(distance / _pivot->clipfar);
+			stage = _model->GetLODStageForDistance(distance / _pivot->GetClipFar());
 		}
 		
 		if(data->index == k::NotFound)
@@ -689,7 +689,7 @@ namespace RN
 		InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
 		
 		float distance = entity->GetWorldPosition().Distance(position);
-		size_t newStage = _model->GetLODStageForDistance(distance / _pivot->clipfar);
+		size_t newStage = _model->GetLODStageForDistance(distance / _pivot->GetClipFar());
 		
 		if(newStage != data->lodStage)
 		{

@@ -60,13 +60,10 @@ namespace RN
 	
 	void Light::Render(Renderer *renderer, Camera *camera)
 	{
-		if(!(camera->GetFlags() & Camera::FlagNoLights))
-		{
-			if(camera->lightManager != nullptr)
-			{
-				camera->lightManager->AddLight(this);
-			}
-		}
+		LightManager *manager = camera->GetLightManager();
+		
+		if(manager)
+			manager->AddLight(this);
 	}
 	
 	void Light::SetRange(float range)
@@ -180,11 +177,12 @@ namespace RN
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 			storage->SetDepthTarget(depthtex, i);
 			
-			Camera *tempcam = new Camera(Vector2(parameter.resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden | Camera::FlagNoLights, 1.0f);
+			Camera *tempcam = new Camera(Vector2(parameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::Orthogonal | Camera::Flags::NoFlush, 1.0f);
 			tempcam->SetMaterial(depthMaterial);
 			tempcam->SetLODCamera(_lightcam);
+			tempcam->SetLightManager(nullptr);
 			tempcam->SetPriority(kRNShadowCameraPriority);
-			tempcam->clipnear = 1.0f;
+			tempcam->SetClipNear(1.0f);
 
 			_shadowcams.AddObject(tempcam);
 			AddDependency(tempcam);
@@ -229,14 +227,15 @@ namespace RN
 		RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 		storage->SetDepthTarget(depthtex, -1);
 		
-		_shadowcam = new CubemapCamera(Vector2(parameter.resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden | Camera::FlagNoLights, 1.0f);
+		_shadowcam = new CubemapCamera(Vector2(parameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush, 1.0f);
 		_shadowcam->Retain();
 		_shadowcam->Autorelease();
 		_shadowcam->SetMaterial(depthMaterial);
 		_shadowcam->SetPriority(kRNShadowCameraPriority);
-		_shadowcam->clipnear = 0.01f;
-		_shadowcam->clipfar = _range;
-		_shadowcam->fov = 90.0f;
+		_shadowcam->SetClipNear(0.01f);
+		_shadowcam->SetClipFar(_range);
+		_shadowcam->SetFOV(90.0f);
+		_shadowcam->SetLightManager(nullptr);
 		_shadowcam->UpdateProjection();
 		_shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
 		
@@ -283,14 +282,15 @@ namespace RN
 		RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 		storage->SetDepthTarget(depthtex, -1);
 		
-		_shadowcam = new Camera(Vector2(parameter.resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden | Camera::FlagNoLights, 1.0f);
+		_shadowcam = new Camera(Vector2(parameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush, 1.0f);
 		_shadowcam->Retain();
 		_shadowcam->Autorelease();
 		_shadowcam->SetMaterial(depthMaterial);
 		_shadowcam->SetPriority(kRNShadowCameraPriority);
-		_shadowcam->clipnear = 0.01f;
-		_shadowcam->clipfar = _range;
-		_shadowcam->fov = _angle*2.0f;
+		_shadowcam->SetClipNear(0.01f);
+		_shadowcam->SetClipFar(_range);
+		_shadowcam->SetFOV(_angle * 2.0f);
+		_shadowcam->SetLightManager(nullptr);
 		_shadowcam->UpdateProjection();
 		_shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
 		
@@ -322,7 +322,7 @@ namespace RN
 		{
 			if(_shadow && _lightcam)
 			{
-				float near = _lightcam->clipnear;
+				float near = _lightcam->GetClipNear();
 				float far;
 				
 				if(_shadowcam)
@@ -332,8 +332,8 @@ namespace RN
 				
 				for(int i = 0; i < _shadowSplits; i++)
 				{
-					float linear = _lightcam->clipnear+(_lightcam->clipfar-_lightcam->clipnear)*(i+1.0f)/float(_shadowSplits);
-					float log = _lightcam->clipnear*powf(_lightcam->clipfar/_lightcam->clipnear, (i+1.0f)/float(_shadowSplits));
+					float linear = _lightcam->GetClipNear() + (_lightcam->GetClipFar() - _lightcam->GetClipNear())*(i+1.0f) / float(_shadowSplits);
+					float log = _lightcam->GetClipNear() * powf(_lightcam->GetClipFar() / _lightcam->GetClipNear(), (i+1.0f) / float(_shadowSplits));
 					far = linear*_shadowDistFac+log*(1.0f-_shadowDistFac);
 					
 					if(_shadowcam)
@@ -353,7 +353,7 @@ namespace RN
 				
 				if(_shadowcam)
 				{
-					_shadowcam->MakeShadowSplit(_lightcam, this, _lightcam->clipnear, _lightcam->clipfar);
+					_shadowcam->MakeShadowSplit(_lightcam, this, _lightcam->GetClipNear(), _lightcam->GetClipFar());
 				}
 			}
 		}
@@ -363,14 +363,13 @@ namespace RN
 			{
 				_shadowcam->SetWorldPosition(GetWorldPosition());
 				_shadowcam->SetWorldRotation(GetWorldRotation());
-				_shadowcam->clipfar = _range;
-				_shadowcam->fov = _angle * 2.0f;
+				_shadowcam->SetClipFar(_range);
+				_shadowcam->SetFOV(_angle * 2.0f);
 				_shadowcam->UpdateProjection();
 				_shadowcam->PostUpdate();
 				
 				_shadowmats.clear();
-				Matrix matProjView = _shadowcam->projectionMatrix * _shadowcam->viewMatrix;
-				_shadowmats.push_back(matProjView);
+				_shadowmats.emplace_back(_shadowcam->GetProjectionMatrix() * _shadowcam->GetViewMatrix());
 			}
 		}
 		else
@@ -378,7 +377,7 @@ namespace RN
 			if(_shadow && _shadowcam)
 			{
 				_shadowcam->SetWorldPosition(GetWorldPosition());
-				_shadowcam->clipfar = _range;
+				_shadowcam->SetClipFar(_range);
 				_shadowcam->UpdateProjection();
 			}
 		}

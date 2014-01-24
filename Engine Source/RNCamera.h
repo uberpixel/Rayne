@@ -20,6 +20,7 @@
 #include "RNColor.h"
 #include "RNModel.h"
 #include "RNSphere.h"
+#include "RNEnum.h"
 
 namespace RN
 {
@@ -131,58 +132,95 @@ namespace RN
 		friend class RenderStage;
 		friend class PostProcessingPipeline;
 		
-		enum
+		struct Flags : public Enum<uint32>
 		{
-			FlagNoSky = (1 << 0),
-			FlagUpdateAspect = (1 << 1),
-			FlagFullscreen = (1 << 2),
-			FlagNoClear = (1 << 3),
-			FlagInheritPosition = (1 << 4),
-			FlagInheritFrame = (1 << 5),
-			FlagInheritProjection = (1 << 6),
-			FlagUpdateStorageFrame = (1 << 7),
-			FlagOrthogonal = (1 << 8),
-			FlagHidden = (1 << 9),
-			FlagNoSorting = (1 << 10),
-			FlagNoRender = (1 << 11),
-			FlagForceFlush = (1 << 12),
-			FlagNoLights = (1 << 13),
+			Flags()
+			{}
+			Flags(int value) :
+				Enum(value)
+			{}
 			
-			FlagDefaults = (FlagFullscreen | FlagUpdateAspect | FlagUpdateStorageFrame),
-			FlagInherit = (FlagInheritFrame | FlagInheritPosition | FlagInheritProjection)
+			enum
+			{
+				UpdateAspect       = (1 << 0),
+				UpdateStorageFrame = (1 << 1),
+				
+				NoSky      = (1 << 5),
+				NoSorting  = (1 << 6),
+				NoRender   = (1 << 7),
+				NoFlush    = (1 << 8),
+				ForceFlush = (1 << 9),
+				
+				InheritPosition   = (1 << 12),
+				InheritFrame      = (1 << 13),
+				InheritProjection = (1 << 14),
+				
+				Fullscreen = (1 << 20),
+				Orthogonal = (1 << 21),
+				
+				UseFog          = (1 << 24),
+				UseClipPlanes   = (1 << 25),
+				BlendedBlitting = (1 << 26),
+				
+				Defaults = (Fullscreen | UpdateAspect | UpdateStorageFrame | UseFog),
+				Inherit  = (InheritFrame | InheritPosition | InheritProjection)
+			};
 		};
-		typedef uint32 Flags;
 		
-		enum
+		struct ClearMask : public Enum<uint32>
 		{
-			ClearFlagColor = (1 << 0),
-			ClearFlagDepth = (1 << 1),
-			ClearFlagStencil = (1 << 2)
+			ClearMask()
+			{}
+			ClearMask(int value) :
+				Enum(value)
+			{}
+			
+			enum
+			{
+				Color   = (1 << 0),
+				Depth   = (1 << 1),
+				Stencil = (1 << 2)
+			};
 		};
-		typedef uint32 ClearFlags;
 		
-		enum
+		struct ColorMask : public Enum<uint32>
 		{
-			ColorFlagRed = (1 << 0),
-			ColorFlagGreen = (1 << 1),
-			ColorFlagBlue = (1 << 2),
-			ColorFlagAlpha = (1 << 3)
+			ColorMask()
+			{}
+			ColorMask(int value) :
+				Enum(value)
+			{}
+			
+			enum
+			{
+				Red    = (1 << 0),
+				Green  = (1 << 1),
+				Blue   = (1 << 2),
+				Alpha  = (1 << 3)
+			};
 		};
-		typedef uint32 ColorFlags;
 		
-		enum
+		struct RenderGroups : public Enum<uint32>
 		{
-			RenderGroup0 = (1 << 0),
-			RenderGroup1 = (1 << 1),
-			RenderGroup2 = (1 << 2),
-			RenderGroup3 = (1 << 3),
-			RenderGroup4 = (1 << 4),
-			RenderGroup5 = (1 << 5),
-			RenderGroup7 = (1 << 7),
-			RenderGroup8 = (1 << 8),
-			RenderGroup9 = (1 << 9)
+			RenderGroups()
+			{}
+			RenderGroups(int value) :
+				Enum(value)
+			{}
+			
+			enum
+			{
+				Group0 = (1 << 0),
+				Group1 = (1 << 1),
+				Group2 = (1 << 2),
+				Group3 = (1 << 3),
+				Group4 = (1 << 4),
+				Group5 = (1 << 5),
+				Group7 = (1 << 7),
+				Group8 = (1 << 8),
+				Group9 = (1 << 9)
+			};
 		};
-		typedef uint32 RenderGroups;
 		
 		enum class BlitMode
 		{
@@ -192,6 +230,7 @@ namespace RN
 			Unstretched
 		};
 		
+		RNAPI Camera();
 		RNAPI Camera(const Vector2& size);
 		
 		RNAPI Camera(const Vector2& size, Texture *target);
@@ -204,46 +243,57 @@ namespace RN
 		
 		RNAPI Camera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f);
 		
-		RNAPI virtual ~Camera();
+		RNAPI ~Camera() override;
 		
 		RNAPI void PrepareForRendering(Renderer *renderer);
 		
 		RNAPI void SetFrame(const Rect& frame);
 		RNAPI void SetRenderingFrame(const Rect& offset);
-		RNAPI void SetCameraFlags(Flags flags);
+		RNAPI void SetFlags(Flags flags);
 		RNAPI void SetClearColor(const Color& color);
 		RNAPI void SetMaterial(Material *material);
 		RNAPI void SetRenderStorage(RenderStorage *storage);
-		RNAPI void SetClearMask(ClearFlags mask);
-		RNAPI void SetColorMask(ColorFlags mask);
+		RNAPI void SetLightManager(LightManager *lightManager);
+		RNAPI void SetClearMask(ClearMask mask);
+		RNAPI void SetColorMask(ColorMask mask);
 		RNAPI void SetAllowsDepthWrite(bool flag);
-		RNAPI void SetSkyCube(Model *skycube);
+		RNAPI void SetSky(Model *sky);
 		RNAPI void SetMaxLightsPerTile(size_t lights);
 		RNAPI void SetLODCamera(Camera *camera);
 		RNAPI void SetPriority(int32 priority);
-		RNAPI void SetUseBlending(bool useBlending);
 		RNAPI void SetBlitShader(Shader *shader);
 		RNAPI void SetBlitMode(BlitMode mode);
+		RNAPI void SetFOV(float fov);
+		RNAPI void SetAspectRatio(float ratio);
+		RNAPI void SetClipNear(float near);
+		RNAPI void SetClipFar(float far);
+		RNAPI void SetFogColor(Color color);
+		RNAPI void SetFogNear(float near);
+		RNAPI void SetFogFar(float far);
+		RNAPI void SetAmbientColor(Color color);
+		RNAPI void SetClipPlane(Vector4 clipPlane);
+		RNAPI void SetLightClusters(const Vector3 &size);
+		RNAPI void SetRenderGroups(RenderGroups groups);
+		RNAPI void SetOrthogonalFrustum(float top, float bottom, float left, float right);
 		
 		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		
-		RNAPI void Update(float delta);
+		RNAPI void Update(float delta) override;
 		RNAPI void PostUpdate();
 		RNAPI void UpdateProjection();
+		RNAPI void UpdateFrustum();
 		
 		RNAPI Vector3 ToWorld(const Vector3& dir);
 		RNAPI Vector3 ToWorldZ(const Vector3& dir);
-		RNAPI void UpdateFrustum();
+		
 		RNAPI virtual bool InFrustum(const Vector3& position, float radius);
 		RNAPI virtual bool InFrustum(const Sphere& sphere);
 		RNAPI virtual bool InFrustum(const AABB& aabb);
 		
-		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
-		
-		virtual Hit CastRay(const Vector3 &position, const Vector3 &direction) {return Hit();}
+		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		
 		const Vector3& GetFrustumCenter() const { return _frustumCenter; }
-		float const GetFrustumRadius() const { return _frustumRadius; }
+		float GetFrustumRadius() const { return _frustumRadius; }
 		
 		RenderStorage *GetStorage() const { return _storage; }
 		const Color& GetClearColor() const { return _clearColor; }
@@ -251,25 +301,32 @@ namespace RN
 		RNAPI Rect GetRenderingFrame();
 		Material *GetMaterial() const { return _material; }
 		Flags GetFlags() const { return _flags; }
-		Camera *GetLODCamera() const { return _lodCamera; }
+		Camera *GetLODCamera() const { return _lodCamera ? _lodCamera : const_cast<Camera *>(this); }
+		Model *GetSky() const { return _sky; }
+		LightManager *GetLightManager() const { return _lightManager; }
 		int32 GetPriority() const { return _priority; }
-		bool UseBlending() const { return _blend; }
 		Shader *GetBlitShader() const { return _blitShader; }
 		BlitMode GetBlitMode() const { return _blitMode; }
-		
+		RenderGroups GetRenderGroups() const { return _renderGroups; }
+		float GetFOV() const { return _fov; }
+		float GetAspectRatio() const { return _aspect; }
+		float GetClipNear() const { return _clipNear; }
+		float GetClipFar() const { return _clipFar; }
+		const Color &GetAmbientColor() const { return _ambient; }
+		const Vector4 &GetClipPlane() const { return _clipPlane; }
 		const Vector3& GetLightClusters() const { return _lightClusters; }
-		void SetLightClusters(const Vector3 &size) { _lightClusters = size; }
-		Model *GetSkyCube() const { return _skycube; }
+		const Matrix &GetProjectionMatrix() const { return _projectionMatrix; }
+		const Matrix &GetInverseProjectionMatrix() const { return _inverseProjectionMatrix; }
+		const Matrix &GetViewMatrix() const { return _viewMatrix; }
+		const Matrix &GetInverseViewMatrix() const { return _inverseViewMatrix; }
 		
 		uint32 GetRenderTargetCount() const { return (uint32)_storage->_renderTargets->GetCount(); }
 		Texture *GetRenderTarget(uint32 index=0) const { return _storage->_renderTargets->GetObjectAtIndex<Texture>(index); }
 		
 		bool HasDepthbuffer() const { return _storage->HasDepthbuffer(); }
 		bool HasStencilbuffer() const { return _storage->HasStencilbuffer(); }
-		
 		bool AllowsDepthWrite() const { return _allowDepthWrite; }
 		
-		RNAPI float *GetDepthArray();
 		size_t GetMaxLightsPerTile() const { return _maxLights; }
 		
 		RNAPI PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name);
@@ -279,45 +336,16 @@ namespace RN
 		
 		const std::vector<PostProcessingPipeline *>& GetPostProcessingPipelines() const { return _PPPipelines; }
 		
-		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone);
-		
-		float fov;
-		float aspect;
-		float clipnear;
-		float clipfar;
-		
-		float ortholeft;
-		float orthoright;
-		float orthotop;
-		float orthobottom;
-		
-		bool usefog;
-		float fognear;
-		float fogfar;
-		Color fogcolor;
-		Vector4 ambient;
-		
-		bool useclipplane;
-		Vector4 clipplane;
-		
-		LightManager *lightManager;
-		
-		Matrix projectionMatrix;
-		Matrix inverseProjectionMatrix;
-		Matrix viewMatrix;
-		Matrix inverseViewMatrix;
-		
-		RenderGroups renderGroup;
-		
-	protected:
-		void Initialize();
+		RNAPI class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
 		
 	private:
+		void Initialize();
+		
 		Rect _frame;
 		Rect _renderingFrame;
 		Color _clearColor;
 		Flags _flags;
-		ColorFlags _colorMask;
+		ColorMask _colorMask;
 		GLuint _clearMask;
 		BlitMode _blitMode;
 		float _scaleFactor;
@@ -339,8 +367,33 @@ namespace RN
 		
 		Vector3 _lightClusters;
 		
+		float _fov;
+		float _aspect;
+		float _clipNear;
+		float _clipFar;
+		
+		float _fogNear;
+		float _fogFar;
+		
+		Color _fogColor;
+		Color _ambient;
+		
+		Vector4 _clipPlane;
+		RenderGroups _renderGroups;
+		LightManager *_lightManager;
+		
+		Matrix _projectionMatrix;
+		Matrix _inverseProjectionMatrix;
+		Matrix _viewMatrix;
+		Matrix _inverseViewMatrix;
+		
+		float _orthoLeft;
+		float _orthoRight;
+		float _orthoTop;
+		float _orthoBottom;
+		
 		bool _allowDepthWrite;
-		bool _blend;
+		bool _prefersLightManager;
 		
 		Shader *_blitShader;
 		
@@ -348,7 +401,7 @@ namespace RN
 		RenderStorage *_storage;
 		Camera *_lodCamera;
 		
-		Model *_skycube;
+		Model *_sky;
 		
 		size_t _maxLights;
 		uint32 _stageCount;

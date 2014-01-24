@@ -50,10 +50,10 @@ namespace RN
 		if(_model)
 		{
 			float distance = 0.0f;
-			Camera *distanceCamera = (camera->GetLODCamera()) ? camera->GetLODCamera() : camera;
+			Camera *distanceCamera = camera->GetLODCamera();
 			
 			distance = GetWorldPosition().Distance(distanceCamera->GetWorldPosition());
-			distance /= distanceCamera->clipfar;
+			distance /= distanceCamera->GetClipFar();
 			
 			
 			RenderingObject object;

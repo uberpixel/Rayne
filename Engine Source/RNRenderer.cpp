@@ -131,11 +131,11 @@ namespace RN
 	
 	void Renderer::UpdateShaderData()
 	{
-		const Matrix& projectionMatrix = _currentCamera->projectionMatrix;
-		const Matrix& inverseProjectionMatrix = _currentCamera->inverseProjectionMatrix;
+		const Matrix& projectionMatrix = _currentCamera->_projectionMatrix;
+		const Matrix& inverseProjectionMatrix = _currentCamera->_inverseProjectionMatrix;
 		
-		const Matrix& viewMatrix = _currentCamera->viewMatrix;
-		const Matrix& inverseViewMatrix = _currentCamera->inverseViewMatrix;
+		const Matrix& viewMatrix = _currentCamera->_viewMatrix;
+		const Matrix& inverseViewMatrix = _currentCamera->_inverseViewMatrix;
 		
 		if(_currentProgram->frameSize != -1)
 		{
@@ -147,20 +147,20 @@ namespace RN
 			gl::Uniform4f(_currentProgram->hdrSettings, _hdrExposure, _hdrWhitePoint, 0.0f, 0.0f);
 		
 		if(_currentProgram->clipPlanes != -1)
-			gl::Uniform2f(_currentProgram->clipPlanes, _currentCamera->clipnear, _currentCamera->clipfar);
+			gl::Uniform2f(_currentProgram->clipPlanes, _currentCamera->_clipNear, _currentCamera->_clipFar);
 		
 		
 		if(_currentProgram->fogPlanes != -1)
-			gl::Uniform2f(_currentProgram->fogPlanes, _currentCamera->fognear, 1.0f/(_currentCamera->fogfar-_currentCamera->fognear));
+			gl::Uniform2f(_currentProgram->fogPlanes, _currentCamera->_fogNear, 1.0f / (_currentCamera->_fogFar - _currentCamera->_fogNear));
 		
 		if(_currentProgram->fogColor != -1)
-			gl::Uniform4fv(_currentProgram->fogColor, 1, &_currentCamera->fogcolor.r);
+			gl::Uniform4fv(_currentProgram->fogColor, 1, &_currentCamera->_fogColor.r);
 		
 		if(_currentProgram->cameraAmbient != -1)
-			gl::Uniform4fv(_currentProgram->cameraAmbient, 1, &_currentCamera->ambient.x);
+			gl::Uniform4fv(_currentProgram->cameraAmbient, 1, &_currentCamera->_ambient.r);
 		
 		if(_currentProgram->clipPlane != -1)
-			gl::Uniform4fv(_currentProgram->clipPlane, 1, &_currentCamera->clipplane.x);
+			gl::Uniform4fv(_currentProgram->clipPlane, 1, &_currentCamera->_clipPlane.x);
 		
 		if(_currentProgram->matProj != -1)
 			gl::UniformMatrix4fv(_currentProgram->matProj, 1, GL_FALSE, projectionMatrix.m);
@@ -476,17 +476,20 @@ namespace RN
 		switch(format)
 		{
 			case Format::RGBA8888:
-				return Data::WithBytes(_data, _width * _height * 4);
-				break;
+			{
+				Data *data = new Data(_data, _width * _height * 4, true, true);
+				return data->Autorelease();
+			}
 				
 			case Format::RGB888:
 			{
 				size_t size = _width * _height;
 				uint8 *temp = new uint8[size * 3];
-				Data *data = new Data(temp, size, true, true);
 				
 				uint32 *pixel = reinterpret_cast<uint32 *>(_data);
 				uint32 *end = pixel + size;
+				
+				uint8 *data = temp;
 				
 				while(pixel != end)
 				{
@@ -497,7 +500,8 @@ namespace RN
 					pixel ++;
 				}
 				
-				return data->Autorelease();
+				
+				return (new Data(data, size * 3, true, true))->Autorelease();
 			}
 				
 			case Format::PNG:
@@ -718,7 +722,7 @@ namespace RN
 		SetDepthTestEnabled(false);
 		SetCullMode(GL_CCW);
 		
-		if(camera->UseBlending())
+		if(camera->_flags & Camera::Flags::BlendedBlitting)
 		{
 			SetBlendingEnabled(true);
 			SetBlendFunction(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -818,7 +822,7 @@ namespace RN
 		if(!source)
 		{
 			// Sort the objects
-			if(!(camera->GetFlags() & Camera::FlagNoSorting))
+			if(!(camera->_flags & Camera::Flags::NoSorting))
 			{
 				auto begin = _frame.begin();
 				std::advance(begin, skyCubeMeshes);
@@ -884,7 +888,7 @@ namespace RN
 		Camera *camera = _frameCamera;
 		
 		// Skycube
-		Model *skyCube = camera->GetSkyCube();
+		Model *skyCube = camera->GetSky();
 		size_t skyCubeMeshes = 0;
 		
 		Matrix cameraRotation;
@@ -911,7 +915,7 @@ namespace RN
 		DrawCamera(camera, 0, skyCubeMeshes);
 		Camera *lastPipeline = camera;
 		
-		if(camera->GetFlags() & Camera::FlagForceFlush)
+		if(camera->_flags & Camera::Flags::ForceFlush)
 		{
 			if(_flushedCameras.find(camera) == _flushedCameras.end())
 			{
@@ -958,7 +962,7 @@ namespace RN
 				
 				previous = stage;
 				
-				if(previous->GetFlags() & Camera::FlagForceFlush)
+				if(previous->_flags & Camera::Flags::ForceFlush)
 				{
 					if(_flushedCameras.find(camera) == _flushedCameras.end())
 					{
@@ -971,7 +975,7 @@ namespace RN
 			lastPipeline = previous;
 		}
 		
-		if(!(previous->GetFlags() & Camera::FlagHidden) && _flushedCameras.find(camera) == _flushedCameras.end())
+		if(!(previous->GetFlags() & Camera::Flags::NoFlush) && _flushedCameras.find(camera) == _flushedCameras.end())
 		{
 			_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->GetBlitShader()));
 			_flushedCameras.insert(previous);

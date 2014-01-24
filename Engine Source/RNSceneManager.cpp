@@ -91,20 +91,25 @@ namespace RN
 	
 	void GenericSceneManager::RenderSceneNode(Camera *camera, SceneNode *node)
 	{
-		if(!(camera->renderGroup & (1 << node->renderGroup)))
+		auto flags = node->GetFlags();
+		
+		if(!(camera->GetRenderGroups() & (1 << node->renderGroup)) || flags & SceneNode::FlagHidden)
 			return;
 		
 		if(node->IsVisibleInCamera(camera))
 		{
 			node->Render(_renderer, camera);
 			
-			const Array *children = node->GetChildren();
-			size_t count = children->GetCount();
-			
-			for(size_t i = 0; i < count; i++)
+			if(!(flags & SceneNode::FlagHideChildren))
 			{
-				SceneNode *child = children->GetObjectAtIndex<SceneNode>(i);
-				RenderSceneNode(camera, child);
+				const Array *children = node->GetChildren();
+				size_t count = children->GetCount();
+				
+				for(size_t i = 0; i < count; i++)
+				{
+					SceneNode *child = static_cast<SceneNode *>((*children)[i]);
+					RenderSceneNode(camera, child);
+				}
 			}
 		}
 	}

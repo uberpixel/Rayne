@@ -67,13 +67,13 @@ namespace RN
 		
 		Server::Server()
 		{
-			uint32 flags = Camera::FlagOrthogonal | Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagNoSorting | Camera::FlagNoLights;
+			uint32 flags = Camera::Flags::Orthogonal | Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoSorting | Camera::Flags::BlendedBlitting;
 			_camera = new Camera(Vector2(0.0f), Texture::Format::RGBA8888, flags, RenderStorage::BufferFormatColor);
 			_camera->SetClearColor(RN::Color(0.0f, 0.0f, 0.0f, 0.0f));
 			_camera->SetAllowsDepthWrite(false);
-			_camera->SetUseBlending(true);
-			
-			_camera->clipnear = -500.0f;
+			_camera->SetFlags(_camera->GetFlags() | Camera::Flags::Orthogonal);
+			_camera->SetClipNear(-500.0f);
+			_camera->SetLightManager(nullptr);
 			
 			if(_camera->GetWorld())
 				_camera->GetWorld()->RemoveSceneNode(_camera);
@@ -255,11 +255,7 @@ namespace RN
 			{
 				_frame = actualFrame;
 				
-				_camera->ortholeft   = _frame.GetLeft();
-				_camera->orthobottom = _frame.GetTop();
-				_camera->orthoright  = _frame.GetRight();
-				_camera->orthotop    = _frame.GetBottom();
-				
+				_camera->SetOrthogonalFrustum(_frame.GetBottom(), _frame.GetTop(), _frame.GetLeft(), _frame.GetRight());
 				_camera->SetFrame(_frame);
 				_camera->PostUpdate();
 				

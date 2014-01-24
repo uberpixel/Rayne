@@ -109,7 +109,7 @@ namespace RN
 			
 			
 			Vector2 lightClusterSize  = Vector2(camera->GetLightClusters().x * scaleFactor, camera->GetLightClusters().y * scaleFactor);
-			Vector2 lightClusterCount = Vector2(ceil(rect.height / camera->GetLightClusters().y), ceil(camera->clipfar/camera->GetLightClusters().z));
+			Vector2 lightClusterCount = Vector2(ceil(rect.height / camera->GetLightClusters().y), ceil(camera->GetClipFar()/camera->GetLightClusters().z));
 			
 			gl::Uniform4f(program->lightClusterSize, lightClusterSize.x, lightClusterSize.y, lightClusterCount.x, lightClusterCount.y);
 		}
@@ -454,7 +454,7 @@ namespace RN
 		
 		int tilesWidth   = ceil(rect.width / cameraClusterSize.x);
 		int tilesHeight  = ceil(rect.height / cameraClusterSize.y);
-		int tilesDepth   = ceil(camera->clipfar / cameraClusterSize.z);
+		int tilesDepth   = ceil(camera->GetClipFar() / cameraClusterSize.z);
 		int clusterCount = tilesWidth * tilesHeight * tilesDepth;
 		
 		if(_lightIndicesSize < clusterCount * maxLightsPerTile)
@@ -485,20 +485,20 @@ namespace RN
 			const Vector3& lightPosition = light->GetWorldPosition();
 			float lightRange = light->GetRange();
 
-			Vector4 viewPosition = std::move(camera->viewMatrix.Transform(Vector4(lightPosition, 1.0f)));
+			Vector4 viewPosition = std::move(camera->GetViewMatrix().Transform(Vector4(lightPosition, 1.0f)));
 			viewPosition.w = 1.0f;
 			
 			float zOffsetMinX = 0.0f;
 			float zOffsetMaxX = 0.0f;
 			float zOffsetMinY = 0.0f;
 			float zOffsetMaxY = 0.0f;
-			if(viewPosition.z+camera->clipnear < -lightRange)
+			if(viewPosition.z+camera->GetClipNear() < -lightRange)
 			{
 				zOffsetMinX = zOffsetMaxX = zOffsetMinY = zOffsetMaxY = lightRange;
 			}
 			else
 			{
-				zOffsetMinX = zOffsetMaxX = zOffsetMinY = zOffsetMaxY = -viewPosition.z-camera->clipnear;
+				zOffsetMinX = zOffsetMaxX = zOffsetMinY = zOffsetMaxY = -viewPosition.z-camera->GetClipNear();
 			}
 			if(viewPosition.x > lightRange)
 			{
@@ -517,13 +517,13 @@ namespace RN
 				zOffsetMaxY *= -1.0f;
 			}
 			
-			Vector4 minProjectedX = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(-lightRange, 0.0f, zOffsetMinX, 0.0f)));
-			Vector4 maxProjectedX = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(lightRange, 0.0f, zOffsetMaxX, 0.0f)));
+			Vector4 minProjectedX = std::move(camera->GetProjectionMatrix().Transform(viewPosition+Vector4(-lightRange, 0.0f, zOffsetMinX, 0.0f)));
+			Vector4 maxProjectedX = std::move(camera->GetProjectionMatrix().Transform(viewPosition+Vector4(lightRange, 0.0f, zOffsetMaxX, 0.0f)));
 			minProjectedX /= Math::FastAbs(minProjectedX.w);
 			maxProjectedX /= Math::FastAbs(maxProjectedX.w);
 			
-			Vector4 minProjectedY = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(0.0f, -lightRange, zOffsetMinY, 0.0f)));
-			Vector4 maxProjectedY = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(0.0f, lightRange, zOffsetMaxY, 0.0f)));
+			Vector4 minProjectedY = std::move(camera->GetProjectionMatrix().Transform(viewPosition+Vector4(0.0f, -lightRange, zOffsetMinY, 0.0f)));
+			Vector4 maxProjectedY = std::move(camera->GetProjectionMatrix().Transform(viewPosition+Vector4(0.0f, lightRange, zOffsetMaxY, 0.0f)));
 			minProjectedY /= Math::FastAbs(minProjectedY.w);
 			maxProjectedY /= Math::FastAbs(maxProjectedY.w);
 			
@@ -582,20 +582,20 @@ namespace RN
 			const Vector3& lightPosition = light->GetWorldPosition();
 			float lightRange = light->GetRange();
 			
-			Vector4 viewPosition = std::move(camera->viewMatrix.Transform(Vector4(lightPosition, 1.0f)));
+			Vector4 viewPosition = std::move(camera->GetViewMatrix().Transform(Vector4(lightPosition, 1.0f)));
 			viewPosition.w = 1.0f;
 			
 			float zOffsetMinX = 0.0f;
 			float zOffsetMaxX = 0.0f;
 			float zOffsetMinY = 0.0f;
 			float zOffsetMaxY = 0.0f;
-			if(viewPosition.z+camera->clipnear < -lightRange)
+			if(viewPosition.z+camera->GetClipNear() < -lightRange)
 			{
 				zOffsetMinX = zOffsetMaxX = zOffsetMinY = zOffsetMaxY = lightRange;
 			}
 			else
 			{
-				zOffsetMinX = zOffsetMaxX = zOffsetMinY = zOffsetMaxY = -viewPosition.z-camera->clipnear;
+				zOffsetMinX = zOffsetMaxX = zOffsetMinY = zOffsetMaxY = -viewPosition.z-camera->GetClipNear();
 			}
 			if(viewPosition.x > lightRange)
 			{
@@ -614,13 +614,13 @@ namespace RN
 				zOffsetMaxY *= -1.0f;
 			}
 			
-			Vector4 minProjectedX = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(-lightRange, 0.0f, zOffsetMinX, 0.0f)));
-			Vector4 maxProjectedX = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(lightRange, 0.0f, zOffsetMaxX, 0.0f)));
+			Vector4 minProjectedX = std::move(camera->GetProjectionMatrix().Transform(viewPosition+Vector4(-lightRange, 0.0f, zOffsetMinX, 0.0f)));
+			Vector4 maxProjectedX = std::move(camera->GetProjectionMatrix().Transform(viewPosition+Vector4(lightRange, 0.0f, zOffsetMaxX, 0.0f)));
 			minProjectedX /= Math::FastAbs(minProjectedX.w);
 			maxProjectedX /= Math::FastAbs(maxProjectedX.w);
 			
-			Vector4 minProjectedY = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(0.0f, -lightRange, zOffsetMinY, 0.0f)));
-			Vector4 maxProjectedY = std::move(camera->projectionMatrix.Transform(viewPosition+Vector4(0.0f, lightRange, zOffsetMaxY, 0.0f)));
+			Vector4 minProjectedY = std::move(camera->GetProjectionMatrix().Transform(viewPosition+Vector4(0.0f, -lightRange, zOffsetMinY, 0.0f)));
+			Vector4 maxProjectedY = std::move(camera->GetProjectionMatrix().Transform(viewPosition+Vector4(0.0f, lightRange, zOffsetMaxY, 0.0f)));
 			minProjectedY /= Math::FastAbs(minProjectedY.w);
 			maxProjectedY /= Math::FastAbs(maxProjectedY.w);
 			
