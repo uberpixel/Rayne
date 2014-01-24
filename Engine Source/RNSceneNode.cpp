@@ -446,6 +446,31 @@ namespace RN
 		if(changeSet & ChangedPosition)
 			_updated = true;
 		
+		if(changeSet & ChangedParent && _parent == nullptr)
+		{
+			LockGuard<decltype(_transformLock)> lock(_transformLock);
+			
+			if(_parent == nullptr)
+			{
+				_position = _worldPosition;
+				_rotation = _worldRotation;
+				_euler    = _worldEuler;
+				_scale    = _worldScale;
+				
+				_updated = true;
+			}
+			else
+			{
+				Vector3 position(_position);
+				Quaternion rotation(_rotation);
+				Vector3 scale(_scale);
+				
+				SetWorldPosition(position);
+				SetWorldRotation(rotation);
+				SetWorldScale(scale);
+			}
+		}
+		
 		if(_world)
 			_world->SceneNodeDidUpdate(this, changeSet);
 		
