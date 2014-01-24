@@ -65,7 +65,7 @@ namespace RN
 	{
 		auto flags = node->GetFlags();
 		
-		if(!(camera->GetRenderGroups() & (1 << node->renderGroup)) || flags & SceneNode::FlagHidden)
+		if(!(camera->GetRenderGroups() & (1 << node-> GetRenderGroup())) || flags & SceneNode::FlagHidden)
 			return;
 		
 		if(node->IsVisibleInCamera(camera))
@@ -101,7 +101,7 @@ namespace RN
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
 			SceneNode *node = *i;
-			if(!(mask & (1 << node->collisionGroup)))
+			if(!(mask & (1 << node->GetCollisionGroup())))
 				continue;
 				
 			Hit result = node->CastRay(position, direction, mode);

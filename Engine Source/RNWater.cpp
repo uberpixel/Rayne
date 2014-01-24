@@ -22,7 +22,7 @@ namespace RN
 		_reflection = 0;
 		_refraction = refract;
 		_camera = cam;
-		renderGroup = 2;
+		SetRenderGroup(2);
 		
 		Initialize();
 	}

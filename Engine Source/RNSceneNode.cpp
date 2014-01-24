@@ -227,6 +227,16 @@ namespace RN
 		DidUpdate(ChangedFlags);
 	}
 	
+	void SceneNode::SetRenderGroup(uint8 group)
+	{
+		renderGroup = group;
+	}
+	
+	void SceneNode::SetCollisionGroup(uint8 group)
+	{
+		collisionGroup = group;
+	}
+	
 	void SceneNode::SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere)
 	{
 		_transformLock.Lock();
@@ -264,13 +274,12 @@ namespace RN
 		_action = action;
 	}
 	
-	void SceneNode::LookAt(SceneNode *other)
+	void SceneNode::LookAt(const RN::Vector3 &target, bool keepUpAxis)
 	{
 		const RN::Vector3& worldPos = GetWorldPosition();
-		const RN::Vector3& point = other->GetWorldPosition();
 		
 		RN::Quaternion rotation;
-		rotation.LookAt(worldPos - point);
+		rotation.LookAt(worldPos - target, GetUp(), keepUpAxis);
 		
 		SetWorldRotation(rotation);
 	}

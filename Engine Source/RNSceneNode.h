@@ -80,6 +80,9 @@ namespace RN
 		
 		RNAPI void SetFlags(Flags flags);
 		
+		RNAPI void SetRenderGroup(uint8 group);
+		RNAPI void SetCollisionGroup(uint8 group);
+		
 		RNAPI virtual void SetPosition(const Vector3& pos);
 		RNAPI virtual void SetScale(const Vector3& scal);
 		RNAPI virtual void SetRotation(const Quaternion& rot);
@@ -102,9 +105,9 @@ namespace RN
 		RNAPI Vector3 GetEulerAngle() const;
 		RNAPI Quaternion GetRotation() const;
 		
-		RNAPI Vector3 Forward() const;
-		RNAPI Vector3 Up() const;
-		RNAPI Vector3 Right() const;
+		RNAPI Vector3 GetForward() const;
+		RNAPI Vector3 GetUp() const;
+		RNAPI Vector3 GetRight() const;
 		
 		RNAPI Vector3 GetWorldPosition() const;
 		RNAPI Vector3 GetWorldScale() const;
@@ -126,7 +129,7 @@ namespace RN
 		
 		RNAPI const std::string& GetDebugName() { return _debugName; }
 		
-		RNAPI void LookAt(SceneNode *other);
+		RNAPI void LookAt(const RN::Vector3 &target, bool keepUpAxis=false);
 		
 		RNAPI void AttachChild(SceneNode *child);
 		RNAPI void DetachChild(SceneNode *child);
@@ -156,12 +159,15 @@ namespace RN
 		RNAPI Priority GetPriority() const { return _priority; }
 		RNAPI Flags GetFlags() const { return _flags; }
 		
+		RNAPI uint8 GetRenderGroup() const {return renderGroup;};
+		RNAPI uint8 GetCollisionGroup() const {return collisionGroup;};
+		
 		RNAPI const Array *GetChildren() const { return &_children; }
 		
 		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone);
 		
 		RNAPI Matrix GetWorldTransform() const;
-		RNAPI Matrix GetLocalTransform() const;
+		RNAPI Matrix GetTransform() const;
 		
 		virtual void Update(float delta)
 		{
@@ -174,9 +180,6 @@ namespace RN
 		}
 		
 		RNAPI virtual bool CanUpdate(FrameID frame);
-		
-		int8 renderGroup;
-		int8 collisionGroup;
 		
 	protected:
 		RNAPI void WillUpdate(uint32 changeSet);
@@ -222,6 +225,9 @@ namespace RN
 		Priority _priority;
 		std::atomic<Flags> _flags;
 		std::atomic<FrameID> _lastFrame;
+		
+		uint8 renderGroup;
+		uint8 collisionGroup;
 		
 		std::function<void (SceneNode *, float)> _action;
 		std::string _debugName;
@@ -428,19 +434,19 @@ namespace RN
 	}
 	
 	
-	RN_INLINE Vector3 SceneNode::Forward() const
+	RN_INLINE Vector3 SceneNode::GetForward() const
 	{
 		Vector3 forward = GetWorldRotation().RotateVector(Vector3(0.0, 0.0, -1.0));
 		return forward;
 	}
 	
-	RN_INLINE Vector3 SceneNode::Up() const
+	RN_INLINE Vector3 SceneNode::GetUp() const
 	{
 		Vector3 up = GetWorldRotation().RotateVector(Vector3(0.0, 1.0, 0.0));
 		return up;
 	}
 	
-	RN_INLINE Vector3 SceneNode::Right() const
+	RN_INLINE Vector3 SceneNode::GetRight() const
 	{
 		Vector3 right = GetWorldRotation().RotateVector(Vector3(1.0, 0.0, 0.0));
 		return right;
@@ -563,7 +569,7 @@ namespace RN
 	}
 	
 	
-	RN_INLINE Matrix SceneNode::GetLocalTransform() const
+	RN_INLINE Matrix SceneNode::GetTransform() const
 	{
 		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
