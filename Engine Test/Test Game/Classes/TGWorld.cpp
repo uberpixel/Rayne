@@ -384,7 +384,7 @@ namespace TG
 		_finalcam->SetRenderGroups(_finalcam->GetRenderGroups() | RN::Camera::RenderGroups::Group1);
 		_finalcam->SetPriority(5);
 		
-		_camera->AttachChild(_finalcam);
+		_camera->AddChild(_finalcam);
 		_camera->SetPriority(10);
 		_camera->Rotate(RN::Vector3(90.0f, 0.0f, 0.0f));
 		
@@ -631,9 +631,9 @@ namespace TG
 		_spotLight->ActivateSpotShadows();*/
 		
 #if TGWorldFeatureFreeCamera
-//		_camera->AttachChild(_spotLight);
+//		_camera->AddChild(_spotLight);
 #else
-		_player->AttachChild(_spotLight);
+		_player->AddChild(_spotLight);
 #endif
 		
 /*		RN::Light *light = new RN::Light();
@@ -1109,7 +1109,7 @@ namespace TG
 			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.89f, 1.12f)));
 			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.0f, 360.0f), 0.0f, 0.0f));
 			
-			node->AttachChild(ent);
+			node->AddChild(ent);
 		}
 		
 		PlaceEntitiesOnGround(node, groundBody);
@@ -1143,7 +1143,7 @@ namespace TG
 			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(1.5f, 2.0f)));
 			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
 			
-			node->AttachChild(ent);
+			node->AddChild(ent);
 		}
 		
 		PlaceEntitiesOnGround(node, groundBody);
@@ -1241,7 +1241,7 @@ namespace TG
 			ent->SetScale(random.RandomFloatRange(2.5f, 3.0f));
 			ent->SetRotation(RN::Vector3(random.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
 			
-			node->AttachChild(ent);
+			node->AddChild(ent);
 		}
 		
 		_sunLight = new Sun();
@@ -1266,7 +1266,7 @@ namespace TG
 		_spotLight->SetAngle(20.0f);
 		_spotLight->SetColor(RN::Color(0.5f));
 		_spotLight->ActivateShadows();
-		_camera->AttachChild(_spotLight);
+		_camera->AddChild(_spotLight);
 		
 		for(int i=0; i<0; i++)
 		{

@@ -289,7 +289,7 @@ namespace RN
 	// MARK: Children
 	// -------------------
 	
-	void SceneNode::AttachChild(SceneNode *child)
+	void SceneNode::AddChild(SceneNode *child)
 	{
 		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<RecursiveSpinLock> lock2(child->_parentChildLock);
@@ -312,7 +312,7 @@ namespace RN
 		DidAddChild(child);
 	}
 	
-	void SceneNode::DetachChild(SceneNode *child)
+	void SceneNode::RemoveChild(SceneNode *child)
 	{
 		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<RecursiveSpinLock> lock2(child->_parentChildLock);
@@ -336,11 +336,17 @@ namespace RN
 		}
 	}
 	
-	void SceneNode::DetachFromParent()
+	void SceneNode::RemoveFromParent()
 	{
 		SceneNode *parent = GetParent();
 		if(parent)
-			parent->DetachChild(this);
+			parent->RemoveChild(this);
+	}
+	
+	const Array *SceneNode::GetChildren() const
+	{
+		LockGuard<decltype(_parentChildLock)> lock(_parentChildLock);
+		return _children.Copy();
 	}
 	
 	SceneNode *SceneNode::GetParent() const
