@@ -9,6 +9,7 @@
 #include "RNInstancingData.h"
 #include "RNLogging.h"
 #include "RNOpenGLQueue.h"
+#include "RNThreadPool.h"
 
 namespace RN
 {
@@ -155,6 +156,8 @@ namespace RN
 	// MARK: -
 	// MARK: InstancingData
 	// ---------------------
+	
+	static ThreadPool::SmallObjectsAllocator __instancingAllocator;
 	
 	InstancingData::InstancingData(Model *model) :
 		_capacity(0),
@@ -495,45 +498,62 @@ namespace RN
 		
 		
 		// Update active entities
+		ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch(__instancingAllocator);
+		SpinLock lock;
+		
+		batch->Reserve(_activeEntites.size());
+		
 		for(Entity *entity : _activeEntites)
 		{
-			InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
-			float distance = position.Distance(entity->GetWorldPosition_NoLock());
+			batch->AddTask([&, entity] {
 			
-			bool clipped = true;
-			
-			if(_thinning)
-			{
-				if(distance <= _clipRange)
-				{
-					clipped = false;
-				}
-				else if(distance <= clipRange)
-				{
-					distance -= _clipRange;
-					distance /= _thinRange;
-					
-					clipped = (distance > data->thinfactor);
-				}
-			}
-			else
-			{
-				clipped = (distance > _clipRange);
-			}
-			
-			if(clipped && data->lodStage != k::NotFound)
-			{
-				ResignIndex(data->index);
-				_stages[data->lodStage]->RemoveIndex(data->index);
+				InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
+				float distance = position.Distance(entity->GetWorldPosition_NoLock());
 				
-				data->lodStage = k::NotFound;
-				data->index = k::NotFound;
-			}
-			else if(!clipped && data->lodStage == k::NotFound)
-			{
-				InsertEntityIntoLODStage(entity);
-			}
+				bool clipped = true;
+				
+				if(_thinning)
+				{
+					if(distance <= _clipRange)
+					{
+						clipped = false;
+					}
+					else if(distance <= clipRange)
+					{
+						distance -= _clipRange;
+						distance /= _thinRange;
+						
+						clipped = (distance > data->thinfactor);
+					}
+				}
+				else
+				{
+					clipped = (distance > _clipRange);
+				}
+				
+				if(clipped && data->lodStage != k::NotFound)
+				{
+					lock.Lock();
+					ResignIndex(data->index);
+					_stages[data->lodStage]->RemoveIndex(data->index);
+					lock.Unlock();
+					
+					data->lodStage = k::NotFound;
+					data->index = k::NotFound;
+				}
+				else if(!clipped && data->lodStage == k::NotFound)
+				{
+					lock.Lock();
+					InsertEntityIntoLODStage(entity);
+					lock.Unlock();
+				}
+					
+			});
 		}
+		
+		batch->Commit();
+		batch->Wait();
+		batch->Release();
 	}
 	
 	
