@@ -329,7 +329,7 @@ namespace RN
 		
 		RNAPI PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name);
 		RNAPI PostProcessingPipeline *GetPostProcessingPipeline(const std::string& name);
-		RNAPI void AttachPostProcessingPipeline(PostProcessingPipeline *pipeline);
+		RNAPI void AddPostProcessingPipeline(PostProcessingPipeline *pipeline);
 		RNAPI void RemovePostProcessingPipeline(PostProcessingPipeline *pipeline);
 		
 		const std::vector<PostProcessingPipeline *>& GetPostProcessingPipelines() const { return _PPPipelines; }
