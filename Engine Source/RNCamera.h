@@ -131,6 +131,7 @@ namespace RN
 		friend class Renderer;
 		friend class RenderStage;
 		friend class PostProcessingPipeline;
+		friend class Light;
 		
 		struct Flags : public Enum<uint32>
 		{
@@ -242,7 +243,6 @@ namespace RN
 		RNAPI Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f);
 		
 		RNAPI Camera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f);
-		
 		RNAPI ~Camera() override;
 		
 		RNAPI void PrepareForRendering(Renderer *renderer);
@@ -275,8 +275,6 @@ namespace RN
 		RNAPI void SetLightClusters(const Vector3 &size);
 		RNAPI void SetRenderGroups(RenderGroups groups);
 		RNAPI void SetOrthogonalFrustum(float top, float bottom, float left, float right);
-		
-		RNAPI Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		
 		RNAPI void Update(float delta) override;
 		RNAPI void PostUpdate();
@@ -330,7 +328,7 @@ namespace RN
 		size_t GetMaxLightsPerTile() const { return _maxLights; }
 		
 		RNAPI PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name);
-		RNAPI PostProcessingPipeline *PostProcessingPipelineWithName(const std::string& name);
+		RNAPI PostProcessingPipeline *GetPostProcessingPipeline(const std::string& name);
 		RNAPI void AttachPostProcessingPipeline(PostProcessingPipeline *pipeline);
 		RNAPI void RemovePostProcessingPipeline(PostProcessingPipeline *pipeline);
 		
@@ -339,6 +337,7 @@ namespace RN
 		RNAPI class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
 		
 	private:
+		Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		void Initialize();
 		
 		Rect _frame;

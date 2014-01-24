@@ -631,15 +631,15 @@ namespace RN
 		return pipeline;
 	}
 	
-	PostProcessingPipeline *Camera::PostProcessingPipelineWithName(const std::string& name)
+	PostProcessingPipeline *Camera::GetPostProcessingPipeline(const std::string& name)
 	{
 		auto iterator = _namedPPPipelines.find(name);
-		return (iterator != _namedPPPipelines.end()) ? iterator->second : 0;
+		return (iterator != _namedPPPipelines.end()) ? iterator->second : nullptr;
 	}
 	
 	void Camera::AttachPostProcessingPipeline(PostProcessingPipeline *pipeline)
 	{
-		if(PostProcessingPipelineWithName(pipeline->_name) || pipeline->host)
+		if(GetPostProcessingPipeline(pipeline->_name) || pipeline->host)
 			throw Exception(Exception::Type::InvalidArgumentException, "A pipeline with this name already exists, or the pipeline is already associated with a camera!");
 		
 		_PPPipelines.push_back(pipeline);
@@ -651,7 +651,7 @@ namespace RN
 	
 	void Camera::RemovePostProcessingPipeline(PostProcessingPipeline *pipeline)
 	{
-		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
+		for(auto i = _PPPipelines.begin(); i != _PPPipelines.end(); i ++)
 		{
 			if(*i == pipeline)
 			{
