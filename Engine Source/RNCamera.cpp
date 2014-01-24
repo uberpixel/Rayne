@@ -646,7 +646,7 @@ namespace RN
 		float dist = center.Distance(farcorner1);
 		
 		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
-		Vector3 pos = center-light->Forward()*500.0f;
+		Vector3 pos = center-light->GetForward()*500.0f;
 		
 		Matrix rot = light->GetWorldRotation().GetRotationMatrix();
 		pos = rot.GetInverse()*pos;

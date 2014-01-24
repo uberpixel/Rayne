@@ -194,7 +194,7 @@ namespace RN
 		
 		if(_currentProgram->viewNormal != -1)
 		{
-			const Vector3& forward = _currentCamera->Forward();
+			const Vector3& forward = _currentCamera->GetForward();
 			gl::Uniform3fv(_currentProgram->viewNormal, 1, &forward.x);
 		}
 	}

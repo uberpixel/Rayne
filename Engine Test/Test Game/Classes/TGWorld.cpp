@@ -689,7 +689,7 @@ namespace TG
 		billboard->GetMaterial()->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
 		billboard->GetMaterial()->depthwrite = false;
 		billboard->GetMaterial()->depthtest = true;
-		billboard->renderGroup = 1;
+		billboard->SetRenderGroup(1);
 		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
 		billboard->Translate(RN::Vector3(-17.35f, 12.0f, 0.7f));
 		
@@ -730,8 +730,8 @@ namespace TG
 		//ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
 		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 5);
-		//ground->GetMaterialAtIndex(0, 0)->culling = false;
-		//ground->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideCulling;
+		ground->GetMaterialAtIndex(0, 0)->culling = false;
+		ground->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideCulling;
 		
 		RN::Entity *groundBody = new RN::Entity();
 		groundBody->SetModel(ground);
@@ -1122,7 +1122,7 @@ namespace TG
 		grass->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
 		
 		node = new RN::InstancingNode(grass);
-		node->renderGroup = 1;
+		node->SetRenderGroup(1);
 		node->SetPivot(_camera);
 		node->SetMode(RN::InstancingNode::Mode::Thinning | RN::InstancingNode::Mode::Clipping);
 		node->SetCellSize(32.0f);

@@ -351,7 +351,7 @@ namespace RN
 				Light *light = lights[i];
 				const Vector3& position = light->GetWorldPosition();
 				const Vector3& color    = light->GetResultColor();
-				const Vector3& direction = -light->Forward();
+				const Vector3& direction = -light->GetForward();
 				const float angle = light->GetAngleCos();
 				const float range = light->GetRange();
 				const float shadow = light->HasShadow()?static_cast<float>(i):-1.0f;
@@ -408,7 +408,7 @@ namespace RN
 		{
 			Light *light = _directionalLights[i];
 			const Vector3& color = light->GetResultColor();
-			const Vector3& direction = -light->Forward();
+			const Vector3& direction = -light->GetForward();
 			
 			_lightDirectionalDirection.push_back(direction);
 			_lightDirectionalColor.emplace_back(Vector4(color, light->HasShadow() ? static_cast<float>(i):-1.0f));
@@ -444,7 +444,7 @@ namespace RN
 	
 	void LightManager::CullLights(Camera *camera)
 	{
-		Vector3 cameraForward = camera->Forward();
+		Vector3 cameraForward = camera->GetForward();
 		
 		const Vector3& cameraWorldPosition = camera->GetWorldPosition();
 		const Vector3& cameraClusterSize = camera->GetLightClusters();

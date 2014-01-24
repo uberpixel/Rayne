@@ -31,7 +31,7 @@ namespace RN
 		
 		SetPriority(SceneNode::Priority::UpdateLate);
 		
-		collisionGroup = 25;
+		SetCollisionGroup(25);
 		_angleCos = 0.707f;
 		
 		AddObservable(&_color);
