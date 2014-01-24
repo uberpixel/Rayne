@@ -134,8 +134,6 @@ namespace RN
 		RNAPI void AttachChild(SceneNode *child);
 		RNAPI void DetachChild(SceneNode *child);
 		RNAPI void DetachFromParent();
-		RNAPI void LockChildren() const;
-		RNAPI void UnlockChildren() const;
 		
 		RNAPI void SetAction(const std::function<void (SceneNode *, float)>& action);
 		RNAPI void AddDependency(SceneNode *dependency);

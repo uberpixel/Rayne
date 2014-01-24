@@ -72,7 +72,7 @@ namespace RN
 		if(_world)
 			_world->RemoveSceneNode(this);
 		
-		LockChildren();
+		_parentChildLock.Lock();
 		
 		size_t count = _children.GetCount();
 		
@@ -86,7 +86,7 @@ namespace RN
 		}
 		
 		_children.RemoveAllObjects();
-		UnlockChildren();
+		_parentChildLock.Unlock();
 		
 		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
 		for(auto& dependecy : _dependencyMap)
@@ -350,16 +350,6 @@ namespace RN
 		_parentChildLock.Unlock();
 		
 		return node;
-	}
-
-	void SceneNode::LockChildren() const
-	{
-		_parentChildLock.Lock();
-	}
-	
-	void SceneNode::UnlockChildren() const
-	{
-		_parentChildLock.Unlock();
 	}
 	
 	// -------------------
