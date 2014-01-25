@@ -89,7 +89,7 @@ namespace RN
 	
 	void Light::RemoveShadowCameras()
 	{
-		_shadowcams.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
+		_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
 			RemoveDependency(camera);
 		});
 		
@@ -132,13 +132,13 @@ namespace RN
 		
 		if(_suppressShadows)
 		{
-			_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool *stop) {
+			_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
 				camera->SetFlags(camera->GetFlags()|Camera::Flags::NoRender);
 			});
 		}
 		else
 		{
-			_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool *stop) {
+			_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
 				camera->SetFlags(camera->GetFlags()&~Camera::Flags::NoRender);
 			});
 		}
