@@ -694,13 +694,10 @@ namespace TG
 		billboard->Translate(RN::Vector3(-17.35f, 12.0f, 0.7f));
 		
 		_camera->SetClipFar(100.0f);
-		_camera->UpdateProjection();
 		
 #if  TGWorldFeatureZPrePass
 //		_lightcam->clipfar = 100.0f;
-//		_lightcam->UpdateProjection();
 		_finalcam->clipfar = 100.0f;
-		_finalcam->UpdateProjection();
 #endif
 		
 #if TGWorldFeatureWater

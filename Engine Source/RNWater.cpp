@@ -126,7 +126,6 @@ namespace RN
 			_reflection->SetRotation(Vector3(rot.x, rot.y, -rot.z));
 			
 			_reflection->SetAspectRatio(_camera->GetAspectRatio());
-			_reflection->UpdateProjection();
 		}
 	}
 	

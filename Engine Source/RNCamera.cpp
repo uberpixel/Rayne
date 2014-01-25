@@ -376,7 +376,10 @@ namespace RN
 		_fogFar    = 500.0f;
 		_ambient   = Color(0.1f, 0.1f, 0.1f, 1.0f);
 		_clipPlane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
-
+		
+		_dirtyProjection = true;
+		_dirtyFrustum    = true;
+		
 		_clearColor  = Color(0.193f, 0.435f, 0.753f, 1.0f);
 		_prefersLightManager = false;
 		
@@ -415,6 +418,7 @@ namespace RN
 
 	void Camera::PrepareForRendering(Renderer *renderer)
 	{
+		UpdateProjection();
 		_storage->BindAndUpdateBuffer();
 		
 		Rect rect = std::move(GetRenderingFrame());
@@ -455,7 +459,7 @@ namespace RN
 			if(_flags & Flags::UpdateStorageFrame)
 				_storage->SetSize(frame.Size());
 
-			UpdateProjection();
+			_dirtyProjection = true;
 		}
 	}
 
@@ -542,10 +546,12 @@ namespace RN
 	void Camera::SetFOV(float fov)
 	{
 		_fov = fov;
+		_dirtyProjection = true;
 	}
 	void Camera::SetAspectRatio(float ratio)
 	{
 		_aspect = ratio;
+		_dirtyProjection = true;
 		
 		if(_flags & Flags::UpdateAspect)
 			RNDebug("SetAspectRatio() called, but auto aspect ratio updating is set (will invaldiate set ratio on next frame update)");
@@ -554,10 +560,14 @@ namespace RN
 	void Camera::SetClipNear(float near)
 	{
 		_clipNear = near;
+		_dirtyProjection = true;
+		_dirtyFrustum = true;
 	}
 	void Camera::SetClipFar(float far)
 	{
 		_clipFar = far;
+		_dirtyProjection = true;
+		_dirtyFrustum = true;
 	}
 	
 	void Camera::SetFogColor(Color color)
@@ -597,9 +607,7 @@ namespace RN
 		_lightManager = SafeRetain(lightManager);
 		
 		if(_lightManager)
-		{
 			_lightManager->camera = this;
-		}
 	}
 	void Camera::SetRenderGroups(RenderGroups groups)
 	{
@@ -612,20 +620,20 @@ namespace RN
 		_orthoTop    = top;
 		_orthoBottom = bottom;
 		
+		_dirtyProjection = true;
+		
 		if(!(_flags & Flags::Orthogonal))
 			RNDebug("SetOrthogonalFrustum() called, but the camera is not an orthogonal camera");
 	}
 	
-	
-	LightManager *Camera::GetLightManager()
+	void Camera::DidUpdate(ChangeSet changeSet)
 	{
-		if(!_lightManager && _prefersLightManager)
-		{
-			SetLightManager(LightManager::CreateDefaultLightManager());
-			_lightManager->Release(); // SetLightManager() retains the light manager, and CreateDefaultLightManager() delegates the ownership to the caller
-		}
+		SceneNode::DidUpdate(changeSet);
 		
-		return _lightManager;
+		if(changeSet & ChangeSet::Position)
+		{
+			_dirtyFrustum = true;
+		}
 	}
 	
 	// Post Processing
@@ -714,6 +722,9 @@ namespace RN
 		_orthoRight = dist;
 		_orthoBottom = -dist;
 		_orthoTop = dist;
+		
+		_dirtyProjection = true;
+		
 		UpdateProjection();
 		
 		Matrix projview = _projectionMatrix * GetWorldTransform().GetInverse();
@@ -725,6 +736,9 @@ namespace RN
 	{
 		SceneNode::Update(delta);
 		
+		UpdateProjection();
+		UpdateFrustum();
+		
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
 			PostProcessingPipeline *pipeline = *i;
@@ -734,8 +748,6 @@ namespace RN
 	
 	void Camera::PostUpdate()
 	{
-		UpdateFrustum();
-		
 		_inverseViewMatrix = GetWorldTransform();
 		_viewMatrix = _inverseViewMatrix.GetInverse();
 		
@@ -754,6 +766,11 @@ namespace RN
 
 	void Camera::UpdateProjection()
 	{
+		if(!_dirtyProjection)
+			return;
+		
+		_dirtyProjection = false;
+		
 		if(_flags & Flags::Orthogonal)
 		{
 			_projectionMatrix.MakeProjectionOrthogonal(_orthoLeft, _orthoRight, _orthoBottom, _orthoTop, _clipNear, _clipFar);
@@ -771,6 +788,44 @@ namespace RN
 			PostProcessingPipeline *pipeline = *i;
 			pipeline->PushProjectionUpdate(this);
 		}
+	}
+	
+	void Camera::UpdateFrustum()
+	{
+		if(!_dirtyFrustum)
+			return;
+		
+		_dirtyFrustum = false;
+		
+		Vector3 pos1 = __ToWorld(Vector3(-1.0f, 1.0f, 0.0f));
+		Vector3 pos2 = __ToWorld(Vector3(-1.0f, 1.0f, 1.0));
+		Vector3 pos3 = __ToWorld(Vector3(-1.0f, -1.0f, 1.0));
+		Vector3 pos4 = __ToWorld(Vector3(1.0f, -1.0f, 0.0));
+		Vector3 pos5 = __ToWorld(Vector3(1.0f, 1.0f, 1.0));
+		Vector3 pos6 = __ToWorld(Vector3(1.0f, -1.0f, 1.0));
+		
+		const Vector3& position = GetWorldPosition();
+		Vector3 direction = GetWorldRotation().RotateVector(Vector3(0.0, 0.0, -1.0));
+		
+		Vector3 vmax;
+		Vector3 vmin;
+		vmax.x = std::max(pos1.x, std::max(pos4.x, std::max(pos2.x, std::max(pos3.x, std::max(pos5.x, pos6.x)))));
+		vmax.y = std::max(pos1.y, std::max(pos4.y, std::max(pos2.y, std::max(pos3.y, std::max(pos5.y, pos6.y)))));
+		vmax.z = std::max(pos1.z, std::max(pos4.z, std::max(pos2.z, std::max(pos3.z, std::max(pos5.z, pos6.z)))));
+		vmin.x = std::min(pos1.x, std::min(pos4.x, std::min(pos2.x, std::min(pos3.x, std::min(pos5.x, pos6.x)))));
+		vmin.y = std::min(pos1.y, std::min(pos4.y, std::min(pos2.y, std::min(pos3.y, std::min(pos5.y, pos6.y)))));
+		vmin.z = std::min(pos1.z, std::min(pos4.z, std::min(pos2.z, std::min(pos3.z, std::min(pos5.z, pos6.z)))));
+		
+		_frustumCenter = vmax + vmin;
+		_frustumCenter = _frustumCenter * 0.5f;
+		_frustumRadius = _frustumCenter.Distance(vmax);
+		
+		frustrums._frustumLeft.SetPlane(pos1, pos2, pos3, 1.0f);
+		frustrums._frustumRight.SetPlane(pos4, pos5, pos6, -1.0f);
+		frustrums._frustumTop.SetPlane(pos1, pos2, pos5, -1.0f);
+		frustrums._frustumBottom.SetPlane(pos4, pos3, pos6, 1.0f);
+		frustrums._frustumNear.SetPlane(position + direction * _clipNear, -direction);
+		frustrums._frustumFar.SetPlane(position + direction * _clipFar, direction);
 	}
 
 	Vector3 Camera::__ToWorld(const Vector3& dir)
@@ -852,42 +907,35 @@ namespace RN
 		
 		return _renderingFrame;
 	}
-
-	void Camera::UpdateFrustum()
+	
+	LightManager *Camera::GetLightManager()
 	{
-		Vector3 pos1 = __ToWorld(Vector3(-1.0f, 1.0f, 0.0f));
-		Vector3 pos2 = __ToWorld(Vector3(-1.0f, 1.0f, 1.0));
-		Vector3 pos3 = __ToWorld(Vector3(-1.0f, -1.0f, 1.0));
-		Vector3 pos4 = __ToWorld(Vector3(1.0f, -1.0f, 0.0));
-		Vector3 pos5 = __ToWorld(Vector3(1.0f, 1.0f, 1.0));
-		Vector3 pos6 = __ToWorld(Vector3(1.0f, -1.0f, 1.0));
+		if(!_lightManager && _prefersLightManager)
+		{
+			SetLightManager(LightManager::CreateDefaultLightManager());
+			_lightManager->Release(); // SetLightManager() retains the light manager, and CreateDefaultLightManager() delegates the ownership to the caller
+		}
 		
-		const Vector3& position = GetWorldPosition();
-		Vector3 direction = GetWorldRotation().RotateVector(Vector3(0.0, 0.0, -1.0));
-
-		Vector3 vmax;
-		Vector3 vmin;
-		vmax.x = std::max(pos1.x, std::max(pos4.x, std::max(pos2.x, std::max(pos3.x, std::max(pos5.x, pos6.x)))));
-		vmax.y = std::max(pos1.y, std::max(pos4.y, std::max(pos2.y, std::max(pos3.y, std::max(pos5.y, pos6.y)))));
-		vmax.z = std::max(pos1.z, std::max(pos4.z, std::max(pos2.z, std::max(pos3.z, std::max(pos5.z, pos6.z)))));
-		vmin.x = std::min(pos1.x, std::min(pos4.x, std::min(pos2.x, std::min(pos3.x, std::min(pos5.x, pos6.x)))));
-		vmin.y = std::min(pos1.y, std::min(pos4.y, std::min(pos2.y, std::min(pos3.y, std::min(pos5.y, pos6.y)))));
-		vmin.z = std::min(pos1.z, std::min(pos4.z, std::min(pos2.z, std::min(pos3.z, std::min(pos5.z, pos6.z)))));
-
-		_frustumCenter = vmax + vmin;
-		_frustumCenter = _frustumCenter * 0.5f;
-		_frustumRadius = _frustumCenter.Distance(vmax);
-
-		frustrums._frustumLeft.SetPlane(pos1, pos2, pos3, 1.0f);
-		frustrums._frustumRight.SetPlane(pos4, pos5, pos6, -1.0f);
-		frustrums._frustumTop.SetPlane(pos1, pos2, pos5, -1.0f);
-		frustrums._frustumBottom.SetPlane(pos4, pos3, pos6, 1.0f);
-		frustrums._frustumNear.SetPlane(position + direction * _clipNear, -direction);
-		frustrums._frustumFar.SetPlane(position + direction * _clipFar, direction);
+		return _lightManager;
 	}
+	
+	const Vector3& Camera::GetFrustumCenter()
+	{
+		UpdateFrustum();
+		return _frustumCenter;
+	}
+	
+	float Camera::GetFrustumRadius()
+	{
+		UpdateFrustum();
+		return _frustumRadius;
+	}
+	
 
 	bool Camera::InFrustum(const Vector3& position, float radius)
 	{
+		UpdateFrustum();
+		
 		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
 			return false;
 
@@ -914,11 +962,14 @@ namespace RN
 	
 	bool Camera::InFrustum(const Sphere& sphere)
 	{
+		UpdateFrustum();
 		return InFrustum(sphere.position+sphere.offset, sphere.radius);
 	}
 	
 	bool Camera::InFrustum(const AABB& aabb)
 	{
+		UpdateFrustum();
+		
 /*		Plane *planes = &_frustumLeft;
 		Plane *absPlanes = &_absFrustumLeft;
 	

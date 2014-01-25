@@ -132,6 +132,7 @@ namespace RN
 		friend class RenderStage;
 		friend class PostProcessingPipeline;
 		friend class Light;
+		friend class World;
 		
 		struct Flags : public Enum<uint32>
 		{
@@ -246,6 +247,8 @@ namespace RN
 		RNAPI Camera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f);
 		RNAPI ~Camera() override;
 		
+		RNAPI void DidUpdate(ChangeSet changeSet) override;
+		
 		RNAPI void PrepareForRendering(Renderer *renderer);
 		
 		RNAPI void SetFrame(const Rect& frame);
@@ -275,9 +278,6 @@ namespace RN
 		RNAPI void SetOrthogonalFrustum(float top, float bottom, float left, float right);
 		
 		RNAPI void Update(float delta) override;
-		RNAPI void PostUpdate();
-		RNAPI void UpdateProjection();
-		RNAPI void UpdateFrustum();
 		
 		RNAPI Vector3 ToWorld(const Vector3& dir);
 		
@@ -287,8 +287,8 @@ namespace RN
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		
-		const Vector3& GetFrustumCenter() const { return _frustumCenter; }
-		float GetFrustumRadius() const { return _frustumRadius; }
+		RNAPI const Vector3& GetFrustumCenter();
+		RNAPI float GetFrustumRadius();
 		
 		RenderStorage *GetStorage() const { return _storage; }
 		const Color& GetClearColor() const { return _clearColor; }
@@ -330,6 +330,10 @@ namespace RN
 		RNAPI class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
 		
 	private:
+		void PostUpdate();
+		void UpdateProjection();
+		void UpdateFrustum();
+		
 		Vector3 __ToWorld(const Vector3& dir);
 		Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		void Initialize();
@@ -343,6 +347,8 @@ namespace RN
 		BlitMode _blitMode;
 		float _scaleFactor;
 		bool _fixedScaleFactor;
+		bool _dirtyProjection;
+		bool _dirtyFrustum;
 		int32 _priority;
 		
 		Vector3 _frustumCenter;

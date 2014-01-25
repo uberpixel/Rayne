@@ -244,7 +244,6 @@ namespace RN
 		shadowcam->SetClipFar(_range);
 		shadowcam->SetFOV(90.0f);
 		shadowcam->SetLightManager(nullptr);
-		shadowcam->UpdateProjection();
 		shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
 		
 		_shadowDepthCameras.AddObject(shadowcam);
@@ -299,7 +298,6 @@ namespace RN
 		shadowcam->SetClipFar(_range);
 		shadowcam->SetFOV(_angle * 2.0f);
 		shadowcam->SetLightManager(nullptr);
-		shadowcam->UpdateProjection();
 		shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
 		
 		_shadowDepthCameras.AddObject(shadowcam);
@@ -361,8 +359,6 @@ namespace RN
 			shadowcam->SetWorldRotation(GetWorldRotation());
 			shadowcam->SetClipFar(_range);
 			shadowcam->SetFOV(_angle * 2.0f);
-			shadowcam->UpdateProjection();
-			shadowcam->PostUpdate();
 			
 			_shadowCameraMatrices.clear();
 			_shadowCameraMatrices.emplace_back(shadowcam->GetProjectionMatrix() * shadowcam->GetViewMatrix());
@@ -372,7 +368,6 @@ namespace RN
 			RN::Camera *shadowcam = static_cast<RN::Camera*>(_shadowDepthCameras.GetFirstObject());
 			shadowcam->SetWorldPosition(GetWorldPosition());
 			shadowcam->SetClipFar(_range);
-			shadowcam->UpdateProjection();
 		}
 	}
 

@@ -256,7 +256,6 @@ namespace RN
 				
 				_camera->SetOrthogonalFrustum(_frame.GetBottom(), _frame.GetTop(), _frame.GetLeft(), _frame.GetRight());
 				_camera->SetFrame(_frame);
-				_camera->PostUpdate();
 				
 				MessageCenter::GetSharedInstance()->PostMessage(kRNUIServerDidResizeMessage, nullptr, nullptr);
 			}
