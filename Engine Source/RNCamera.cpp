@@ -611,6 +611,9 @@ namespace RN
 		_orthoRight  = right;
 		_orthoTop    = top;
 		_orthoBottom = bottom;
+		
+		if(!(_flags & Flags::Orthogonal))
+			RNDebug("SetOrthogonalFrustum() called, but the camera is not an orthogonal camera");
 	}
 	
 	
@@ -684,9 +687,9 @@ namespace RN
 	
 	Matrix Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
 	{
-		Vector3 nearcenter = camera->ToWorldZ(Vector3(0.0f, 0.0f, near));
-		Vector3 farcorner1 = camera->ToWorldZ(Vector3(1.0f, 1.0f, far));
-		Vector3 farcorner2 = camera->ToWorldZ(Vector3(-1.0f, -1.0f, far));
+		Vector3 nearcenter = camera->ToWorld(Vector3(0.0f, 0.0f, near));
+		Vector3 farcorner1 = camera->ToWorld(Vector3(1.0f, 1.0f, far));
+		Vector3 farcorner2 = camera->ToWorld(Vector3(-1.0f, -1.0f, far));
 		Vector3 farcenter = (farcorner1+farcorner2)*0.5f;
 		
 		Vector3 center = (nearcenter+farcenter)*0.5f;
@@ -770,7 +773,7 @@ namespace RN
 		}
 	}
 
-	Vector3 Camera::ToWorld(const Vector3& dir)
+	Vector3 Camera::__ToWorld(const Vector3& dir)
 	{
 		Vector3 ndcPos(dir.x, dir.y, dir.z*2.0f-1.0f);
 		
@@ -801,7 +804,7 @@ namespace RN
 	}
 	
 	// There should be a much better solution, but at least this works for now
-	Vector3 Camera::ToWorldZ(const Vector3& dir)
+	Vector3 Camera::ToWorld(const Vector3& dir)
 	{
 		Vector3 ndcPos(dir.x, dir.y, 0.0f);
 		if(_flags & Flags::Orthogonal)
@@ -852,12 +855,12 @@ namespace RN
 
 	void Camera::UpdateFrustum()
 	{
-		Vector3 pos1 = ToWorld(Vector3(-1.0f, 1.0f, 0.0f));
-		Vector3 pos2 = ToWorld(Vector3(-1.0f, 1.0f, 1.0));
-		Vector3 pos3 = ToWorld(Vector3(-1.0f, -1.0f, 1.0));
-		Vector3 pos4 = ToWorld(Vector3(1.0f, -1.0f, 0.0));
-		Vector3 pos5 = ToWorld(Vector3(1.0f, 1.0f, 1.0));
-		Vector3 pos6 = ToWorld(Vector3(1.0f, -1.0f, 1.0));
+		Vector3 pos1 = __ToWorld(Vector3(-1.0f, 1.0f, 0.0f));
+		Vector3 pos2 = __ToWorld(Vector3(-1.0f, 1.0f, 1.0));
+		Vector3 pos3 = __ToWorld(Vector3(-1.0f, -1.0f, 1.0));
+		Vector3 pos4 = __ToWorld(Vector3(1.0f, -1.0f, 0.0));
+		Vector3 pos5 = __ToWorld(Vector3(1.0f, 1.0f, 1.0));
+		Vector3 pos6 = __ToWorld(Vector3(1.0f, -1.0f, 1.0));
 		
 		const Vector3& position = GetWorldPosition();
 		Vector3 direction = GetWorldRotation().RotateVector(Vector3(0.0, 0.0, -1.0));

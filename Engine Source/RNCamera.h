@@ -280,7 +280,6 @@ namespace RN
 		RNAPI void UpdateFrustum();
 		
 		RNAPI Vector3 ToWorld(const Vector3& dir);
-		RNAPI Vector3 ToWorldZ(const Vector3& dir);
 		
 		RNAPI virtual bool InFrustum(const Vector3& position, float radius);
 		RNAPI virtual bool InFrustum(const Sphere& sphere);
@@ -331,6 +330,7 @@ namespace RN
 		RNAPI class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
 		
 	private:
+		Vector3 __ToWorld(const Vector3& dir);
 		Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		void Initialize();
 		
