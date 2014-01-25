@@ -194,8 +194,8 @@ namespace RN
 		RNAPI virtual bool CanUpdate(FrameID frame);
 		
 	protected:
-		RNAPI void WillUpdate(ChangeSet changeSet);
-		RNAPI void DidUpdate(ChangeSet changeSet);
+		RNAPI virtual void WillUpdate(ChangeSet changeSet);
+		RNAPI virtual void DidUpdate(ChangeSet changeSet);
 		RNAPI void CleanUp() override;
 		RNAPI void UpdateAttachments(float delta);
 		
