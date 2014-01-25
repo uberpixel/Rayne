@@ -21,20 +21,33 @@
 
 namespace RN
 {
-	LightManager::LightManager()
+	RNDeclareMeta(LightManager)
+	RNDeclareMeta(ClusteredLightManager)
+	
+	LightManager::LightManager() :
+		camera(nullptr)
+	{}
+	
+	LightManager *LightManager::CreateDefaultLightManager()
 	{
-		_maxLightsDirect = 4;
-		
-		_lightIndices = nullptr;
-		_lightOffsetCount = nullptr;
-		
-		_lightIndicesSize = 0;
-		_lightOffsetCountSize = 0;
-		
-		// Point and Spot lights
-		_lightPointDataSize = 0;
-		_lightSpotDataSize = 0;
-		
+		return new ClusteredLightManager();
+	}
+	
+	
+	ClusteredLightManager::ClusteredLightManager() :
+		_maxLightsDirect(4),
+		_maxLightsPerCluster(100),
+		_clusterSize(Vector3(32.0f, 32.0f, 5.0f)),
+		_lightIndices(nullptr),
+		_lightOffsetCount(nullptr),
+		_lightIndicesSize(0),
+		_lightOffsetCountSize(0),
+		_lightPointDataSize(0),
+		_lightSpotDataSize(0),
+		_spotLightCount(0),
+		_pointLightCount(0),
+		_directionalLightCount(0)
+	{
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
 			gl::GenTextures(4, _lightTextures);
 			gl::GenBuffers(4, _lightBuffers);
@@ -64,7 +77,7 @@ namespace RN
 		});
 	}
 	
-	LightManager::~LightManager()
+	ClusteredLightManager::~ClusteredLightManager()
 	{
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
 			gl::DeleteBuffers(4, _lightBuffers);
@@ -76,7 +89,7 @@ namespace RN
 	}
 	
 	
-	void LightManager::Bind(Renderer *renderer, Camera *camera, ShaderProgram *program)
+	void ClusteredLightManager::UpdateProgram(Renderer *renderer, ShaderProgram *program)
 	{
 		if(program->lightDirectionalCount != -1)
 			gl::Uniform1i(program->lightDirectionalCount, static_cast<GLint>(_directionalLightCount));
@@ -108,8 +121,8 @@ namespace RN
 			float scaleFactor = renderer->GetScaleFactor();
 			
 			
-			Vector2 lightClusterSize  = Vector2(camera->GetLightClusters().x * scaleFactor, camera->GetLightClusters().y * scaleFactor);
-			Vector2 lightClusterCount = Vector2(ceil(rect.height / camera->GetLightClusters().y), ceil(camera->GetClipFar()/camera->GetLightClusters().z));
+			Vector2 lightClusterSize  = Vector2(_clusterSize.x * scaleFactor, _clusterSize.y * scaleFactor);
+			Vector2 lightClusterCount = Vector2(ceil(rect.height / _clusterSize.y), ceil(camera->GetClipFar() / _clusterSize.z));
 			
 			gl::Uniform4f(program->lightClusterSize, lightClusterSize.x, lightClusterSize.y, lightClusterCount.x, lightClusterCount.y);
 		}
@@ -194,7 +207,7 @@ namespace RN
 		}
 	}
 	
-	void LightManager::AdjustProgramTypes(Shader *shader, uint32 &types)
+	void ClusteredLightManager::AdjustProgramTypes(Shader *shader, uint32 &types)
 	{
 		if(_lightDirectionalDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDirectionalShadows))
 			types |= ShaderProgram::TypeDirectionalShadows;
@@ -207,7 +220,7 @@ namespace RN
 	}
 	
 	
-	void LightManager::AddLight(Light *light)
+	void ClusteredLightManager::AddLight(Light *light)
 	{
 		switch(light->GetType())
 		{
@@ -231,18 +244,30 @@ namespace RN
 		}
 	}
 
-	size_t LightManager::CreatePointSpotLightLists(Camera *camera)
+	
+	void ClusteredLightManager::CreateLightLists()
+	{
+		if(!_pointLights.empty() || !_spotLights.empty())
+			CullLights();
+		
+		CreatePointSpotLightLists();
+		CreateDirectionalLightList();
+	}
+	
+	void ClusteredLightManager::CreatePointSpotLightLists()
 	{
 		_pointSpotLightCount = 0;
+		_spotLightCount  = 0;
+		_pointLightCount = 0;
 		
-		if(!_pointLights.empty() || !_spotLights.empty())
-			CullLights(camera);
-		
+		// Point lights
 		if(!_pointLights.empty())
 		{
 			Light **lights = _pointLights.data();
 			size_t lightCount = _pointLights.size();
+			
 			_pointSpotLightCount += lightCount;
+			_pointLightCount = lightCount;
 			
 			_lightPointPosition.clear();
 			_lightPointColor.clear();
@@ -309,12 +334,14 @@ namespace RN
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
 		
-		//Spot lights
+		// Spot lights
 		if(!_spotLights.empty())
 		{
 			Light **lights = _spotLights.data();
 			size_t lightCount = _spotLights.size();
+			
 			_pointSpotLightCount += lightCount;
+			_spotLightCount = lightCount;
 			
 			_lightSpotPosition.clear();
 			_lightSpotDirection.clear();
@@ -390,12 +417,10 @@ namespace RN
 		
 		_pointLights.clear();
 		_spotLights.clear();
-		
-		return _pointSpotLightCount;
 	}
 	
 	
-	size_t LightManager::CreateDirectionalLightList(Camera *camera)
+	void ClusteredLightManager::CreateDirectionalLightList()
 	{
 		_directionalLightCount = _directionalLights.size();
 		
@@ -437,29 +462,24 @@ namespace RN
 		}
 		
 		_directionalLights.clear();
-		
-		return _directionalLightCount;
 	}
 	
 	
-	void LightManager::CullLights(Camera *camera)
+	void ClusteredLightManager::CullLights()
 	{
 		Vector3 cameraForward = camera->GetForward();
 		
-		const Vector3& cameraWorldPosition = camera->GetWorldPosition();
-		const Vector3& cameraClusterSize = camera->GetLightClusters();
-		
-		size_t maxLightsPerTile = camera->GetMaxLightsPerTile();
+		Vector3 cameraWorldPosition = camera->GetWorldPosition();
 		const Rect& rect = camera->GetFrame();
 		
-		int tilesWidth   = ceil(rect.width / cameraClusterSize.x);
-		int tilesHeight  = ceil(rect.height / cameraClusterSize.y);
-		int tilesDepth   = ceil(camera->GetClipFar() / cameraClusterSize.z);
+		int tilesWidth   = ceil(rect.width / _clusterSize.x);
+		int tilesHeight  = ceil(rect.height / _clusterSize.y);
+		int tilesDepth   = ceil(camera->GetClipFar() / _clusterSize.z);
 		int clusterCount = tilesWidth * tilesHeight * tilesDepth;
 		
-		if(_lightIndicesSize < clusterCount * maxLightsPerTile)
+		if(_lightIndicesSize < clusterCount * _maxLightsPerCluster)
 		{
-			_lightIndicesSize = clusterCount * maxLightsPerTile;
+			_lightIndicesSize = clusterCount * _maxLightsPerCluster;
 			_lightIndices = new uint16[_lightIndicesSize];
 			
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _lightBuffers[kRNLightListIndices]);
@@ -527,8 +547,8 @@ namespace RN
 			minProjectedY /= Math::FastAbs(minProjectedY.w);
 			maxProjectedY /= Math::FastAbs(maxProjectedY.w);
 			
-			int minX = floor((minProjectedX.x*0.5+0.5)*rect.width/cameraClusterSize.x);
-			int maxX = ceil((maxProjectedX.x*0.5+0.5)*rect.width/cameraClusterSize.x);
+			int minX = floor((minProjectedX.x*0.5+0.5)*rect.width / _clusterSize.x);
+			int maxX = ceil((maxProjectedX.x*0.5+0.5)*rect.width / _clusterSize.x);
 			if(maxX > tilesWidth-1)
 				maxX = tilesWidth-1;
 			if(minX > tilesWidth-1)
@@ -538,8 +558,8 @@ namespace RN
 			if(maxX < 0)
 				maxX = minX-1;
 			
-			int minY = floor((minProjectedY.y*0.5+0.5)*rect.height/cameraClusterSize.y);
-			int maxY = ceil((maxProjectedY.y*0.5+0.5)*rect.height/cameraClusterSize.y);
+			int minY = floor((minProjectedY.y*0.5+0.5)*rect.height / _clusterSize.y);
+			int maxY = ceil((maxProjectedY.y*0.5+0.5)*rect.height / _clusterSize.y);
 			if(maxY > tilesHeight-1)
 				maxY = tilesHeight-1;
 			if(minY > tilesHeight-1)
@@ -550,8 +570,8 @@ namespace RN
 				maxY = minY-1;
 			
 			float linearDist = cameraForward.Dot(lightPosition - cameraWorldPosition);
-			int minZ = floor((linearDist - lightRange) / cameraClusterSize.z);
-			int maxZ = ceil((linearDist + lightRange) / cameraClusterSize.z);
+			int minZ = floor((linearDist - lightRange) / _clusterSize.z);
+			int maxZ = ceil((linearDist + lightRange) / _clusterSize.z);
 			if(minZ < 0)
 				minZ = 0;
 	
@@ -563,9 +583,9 @@ namespace RN
 					{
 						int clusterIndex = x * tilesHeight * tilesDepth + y * tilesDepth + z;
 						
-						if(_lightOffsetCount[clusterIndex * 3 + 1] < maxLightsPerTile)
+						if(_lightOffsetCount[clusterIndex * 3 + 1] < _maxLightsPerCluster)
 						{
-							_lightIndices[clusterIndex * maxLightsPerTile + _lightOffsetCount[clusterIndex * 3 + 1]] = lightIndex;
+							_lightIndices[clusterIndex * _maxLightsPerCluster + _lightOffsetCount[clusterIndex * 3 + 1]] = lightIndex;
 							_lightOffsetCount[clusterIndex * 3 + 1] ++;
 						}
 					}
@@ -575,7 +595,7 @@ namespace RN
 			lightIndex ++;
 		}
 		
-		//Cull spot lights
+		// Cull spot lights
 		lightIndex = 0;
 		for(auto light : _spotLights)
 		{
@@ -624,8 +644,8 @@ namespace RN
 			minProjectedY /= Math::FastAbs(minProjectedY.w);
 			maxProjectedY /= Math::FastAbs(maxProjectedY.w);
 			
-			int minX = floor((minProjectedX.x*0.5+0.5)*rect.width/cameraClusterSize.x);
-			int maxX = ceil((maxProjectedX.x*0.5+0.5)*rect.width/cameraClusterSize.x);
+			int minX = floor((minProjectedX.x*0.5+0.5)*rect.width / _clusterSize.x);
+			int maxX = ceil((maxProjectedX.x*0.5+0.5)*rect.width / _clusterSize.x);
 			if(maxX > tilesWidth-1)
 				maxX = tilesWidth-1;
 			if(minX > tilesWidth-1)
@@ -635,8 +655,8 @@ namespace RN
 			if(maxX < 0)
 				maxX = minX-1;
 			
-			int minY = floor((minProjectedY.y*0.5+0.5)*rect.height/cameraClusterSize.y);
-			int maxY = ceil((maxProjectedY.y*0.5+0.5)*rect.height/cameraClusterSize.y);
+			int minY = floor((minProjectedY.y*0.5+0.5)*rect.height / _clusterSize.y);
+			int maxY = ceil((maxProjectedY.y*0.5+0.5)*rect.height / _clusterSize.y);
 			if(maxY > tilesHeight-1)
 				maxY = tilesHeight-1;
 			if(minY > tilesHeight-1)
@@ -647,8 +667,8 @@ namespace RN
 				maxY = minY-1;
 			
 			float linearDist = cameraForward.Dot(lightPosition - cameraWorldPosition);
-			int minZ = floor((linearDist - lightRange) / cameraClusterSize.z);
-			int maxZ = ceil((linearDist + lightRange) / cameraClusterSize.z);
+			int minZ = floor((linearDist - lightRange) / _clusterSize.z);
+			int maxZ = ceil((linearDist + lightRange) / _clusterSize.z);
 			if(minZ < 0)
 				minZ = 0;
 			
@@ -660,9 +680,9 @@ namespace RN
 					{
 						int clusterIndex = x * tilesHeight * tilesDepth + y * tilesDepth + z;
 					
-						if(_lightOffsetCount[clusterIndex * 3 + 1]+_lightOffsetCount[clusterIndex * 3 + 2] < maxLightsPerTile)
+						if(_lightOffsetCount[clusterIndex * 3 + 1]+_lightOffsetCount[clusterIndex * 3 + 2] < _maxLightsPerCluster)
 						{
-							_lightIndices[clusterIndex * maxLightsPerTile + _lightOffsetCount[clusterIndex * 3 + 1] + _lightOffsetCount[clusterIndex * 3 + 2]] = lightIndex;
+							_lightIndices[clusterIndex * _maxLightsPerCluster + _lightOffsetCount[clusterIndex * 3 + 1] + _lightOffsetCount[clusterIndex * 3 + 2]] = lightIndex;
 							_lightOffsetCount[clusterIndex * 3 + 2] ++;
 						}
 					}
@@ -681,7 +701,7 @@ namespace RN
 		int offset = 0;
 		for(int c = 0; c < clusterCount; c++)
 		{
-			std::copy(&_lightIndices[c*maxLightsPerTile], &_lightIndices[c*maxLightsPerTile+_lightOffsetCount[c*3+1]+_lightOffsetCount[c*3+2]], &_lightIndices[offset]);
+			std::copy(&_lightIndices[c*_maxLightsPerCluster], &_lightIndices[c*_maxLightsPerCluster+_lightOffsetCount[c*3+1]+_lightOffsetCount[c*3+2]], &_lightIndices[offset]);
 			offset += _lightOffsetCount[c*3+1] + _lightOffsetCount[c*3+2];
 		}
 		

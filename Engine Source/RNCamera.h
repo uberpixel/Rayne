@@ -258,7 +258,6 @@ namespace RN
 		RNAPI void SetColorMask(ColorMask mask);
 		RNAPI void SetAllowsDepthWrite(bool flag);
 		RNAPI void SetSky(Model *sky);
-		RNAPI void SetMaxLightsPerTile(size_t lights);
 		RNAPI void SetLODCamera(Camera *camera);
 		RNAPI void SetPriority(int32 priority);
 		RNAPI void SetBlitShader(Shader *shader);
@@ -272,7 +271,6 @@ namespace RN
 		RNAPI void SetFogFar(float far);
 		RNAPI void SetAmbientColor(Color color);
 		RNAPI void SetClipPlane(Vector4 clipPlane);
-		RNAPI void SetLightClusters(const Vector3 &size);
 		RNAPI void SetRenderGroups(RenderGroups groups);
 		RNAPI void SetOrthogonalFrustum(float top, float bottom, float left, float right);
 		
@@ -301,7 +299,7 @@ namespace RN
 		Flags GetFlags() const { return _flags; }
 		Camera *GetLODCamera() const { return _lodCamera ? _lodCamera : const_cast<Camera *>(this); }
 		Model *GetSky() const { return _sky; }
-		LightManager *GetLightManager() const { return _lightManager; }
+		LightManager *GetLightManager();
 		int32 GetPriority() const { return _priority; }
 		Shader *GetBlitShader() const { return _blitShader; }
 		BlitMode GetBlitMode() const { return _blitMode; }
@@ -312,7 +310,6 @@ namespace RN
 		float GetClipFar() const { return _clipFar; }
 		const Color &GetAmbientColor() const { return _ambient; }
 		const Vector4 &GetClipPlane() const { return _clipPlane; }
-		const Vector3& GetLightClusters() const { return _lightClusters; }
 		const Matrix &GetProjectionMatrix() const { return _projectionMatrix; }
 		const Matrix &GetInverseProjectionMatrix() const { return _inverseProjectionMatrix; }
 		const Matrix &GetViewMatrix() const { return _viewMatrix; }
@@ -324,8 +321,6 @@ namespace RN
 		bool HasDepthbuffer() const { return _storage->HasDepthbuffer(); }
 		bool HasStencilbuffer() const { return _storage->HasStencilbuffer(); }
 		bool AllowsDepthWrite() const { return _allowDepthWrite; }
-		
-		size_t GetMaxLightsPerTile() const { return _maxLights; }
 		
 		RNAPI PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name);
 		RNAPI PostProcessingPipeline *GetPostProcessingPipeline(const std::string& name);
@@ -364,8 +359,6 @@ namespace RN
 			Plane _frustumNear;
 		} frustrums;
 		
-		Vector3 _lightClusters;
-		
 		float _fov;
 		float _aspect;
 		float _clipNear;
@@ -395,14 +388,12 @@ namespace RN
 		bool _prefersLightManager;
 		
 		Shader *_blitShader;
-		
+	
 		Material *_material;
 		RenderStorage *_storage;
 		Camera *_lodCamera;
-		
 		Model *_sky;
 		
-		size_t _maxLights;
 		uint32 _stageCount;
 		
 		std::vector<PostProcessingPipeline *> _PPPipelines;

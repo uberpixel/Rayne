@@ -191,8 +191,10 @@ namespace RN
 				
 				if(lightManager)
 				{
-					lightPointSpotCount   = lightManager->CreatePointSpotLightLists(camera);
-					lightDirectionalCount = lightManager->CreateDirectionalLightList(camera);
+					lightManager->CreateLightLists();
+					
+					lightPointSpotCount   = lightManager->GetSpotlightCount() + lightManager->GetPointLightCount();
+					lightDirectionalCount = lightManager->GetDirectionalLightCount();
 					
 					_renderedLights += lightDirectionalCount + lightPointSpotCount;
 				}
@@ -313,7 +315,7 @@ namespace RN
 					if(changedShader || changedMaterial)
 					{
 						if(wantsLighting)
-							lightManager->Bind(this, camera, program);
+							lightManager->UpdateProgram(this, program);
 						
 						gl::Uniform4fv(program->ambient, 1, &material->ambient->r);
 						gl::Uniform4fv(program->diffuse, 1, &material->diffuse->r);

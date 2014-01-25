@@ -217,7 +217,7 @@ namespace RN
 			needsUpdate = true;
 		}
 		
-		int level = Kernel::GetSharedInstance()->GetActiveScaleFactor() + log2(_camera->GetLightClusters().x) - 1;
+		int level = 0; //Kernel::GetSharedInstance()->GetActiveScaleFactor() + log2(_camera->GetLightClusters().x) - 1;
 		if(level != _level)
 		{
 			_level = level;
@@ -349,7 +349,12 @@ namespace RN
 		for(PostProcessingPipeline *pipeline : _PPPipelines)
 			delete pipeline;
 		
-		delete _lightManager;
+		if(_lightManager)
+		{
+			_lightManager->camera = nullptr;
+			_lightManager->Release();
+		}
+		
 		MessageCenter::GetSharedInstance()->RemoveObserver(this);
 	}
 
@@ -381,10 +386,8 @@ namespace RN
 		_material   = nullptr;
 		_stageCount = 0;
 
-		_lightClusters = Vector3(32, 32, 5);
 		_sky = nullptr;
 		
-		_maxLights = 100;
 		_priority  = 0;
 		
 		_allowDepthWrite = true;
@@ -520,11 +523,6 @@ namespace RN
 		_sky = SafeRetain(sky);
 	}
 	
-	void Camera::SetMaxLightsPerTile(size_t lights)
-	{
-		_maxLights = lights;
-	}
-	
 	void Camera::SetLODCamera(Camera *camera)
 	{
 		_lodCamera = camera;
@@ -590,16 +588,25 @@ namespace RN
 	{
 		_clipPlane = clipPlane;
 	}
-	void Camera::SetLightClusters(const Vector3 &size)
-	{
-		_lightClusters = size;
-	}
+	
 	void Camera::SetLightManager(LightManager *lightManager)
 	{
-		delete _lightManager;
+		RN_ASSERT(!lightManager || !lightManager->camera, "The LightManager can't be attached to another camera!");
 		
-		_lightManager = lightManager;
+		if(_lightManager)
+		{
+			_lightManager->camera = nullptr;
+			_lightManager->Release();
+		}
+		
 		_prefersLightManager = false;
+		
+		_lightManager = SafeRetain(lightManager);
+		
+		if(_lightManager)
+		{
+			_lightManager->camera = this;
+		}
 	}
 	void Camera::SetRenderGroups(RenderGroups groups)
 	{
@@ -611,6 +618,18 @@ namespace RN
 		_orthoRight  = right;
 		_orthoTop    = top;
 		_orthoBottom = bottom;
+	}
+	
+	
+	LightManager *Camera::GetLightManager()
+	{
+		if(!_lightManager && _prefersLightManager)
+		{
+			SetLightManager(LightManager::CreateDefaultLightManager());
+			_lightManager->Release(); // SetLightManager() retains the light manager, and CreateDefaultLightManager() delegates the ownership to the caller
+		}
+		
+		return _lightManager;
 	}
 	
 	// Post Processing
@@ -709,12 +728,6 @@ namespace RN
 	void Camera::Update(float delta)
 	{
 		SceneNode::Update(delta);
-		
-		if(_prefersLightManager && !_lightManager)
-		{
-			SetLightManager(new LightManager());
-			_prefersLightManager = false;
-		}
 		
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
