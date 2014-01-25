@@ -146,11 +146,12 @@ namespace RN
 				UpdateAspect       = (1 << 0),
 				UpdateStorageFrame = (1 << 1),
 				
-				NoSky      = (1 << 5),
-				NoSorting  = (1 << 6),
-				NoRender   = (1 << 7),
-				NoFlush    = (1 << 8),
-				ForceFlush = (1 << 9),
+				NoSky        = (1 << 5),
+				NoSorting    = (1 << 6),
+				NoRender     = (1 << 7),
+				NoFlush      = (1 << 8),
+				NoDepthWrite = (1 << 9),
+				ForceFlush   = (1 << 10),
 				
 				InheritPosition   = (1 << 12),
 				InheritFrame      = (1 << 13),
@@ -256,7 +257,6 @@ namespace RN
 		RNAPI void SetLightManager(LightManager *lightManager);
 		RNAPI void SetClearMask(ClearMask mask);
 		RNAPI void SetColorMask(ColorMask mask);
-		RNAPI void SetAllowsDepthWrite(bool flag);
 		RNAPI void SetSky(Model *sky);
 		RNAPI void SetLODCamera(Camera *camera);
 		RNAPI void SetPriority(int32 priority);
@@ -320,7 +320,6 @@ namespace RN
 		
 		bool HasDepthbuffer() const { return _storage->HasDepthbuffer(); }
 		bool HasStencilbuffer() const { return _storage->HasStencilbuffer(); }
-		bool AllowsDepthWrite() const { return _allowDepthWrite; }
 		
 		RNAPI PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name);
 		RNAPI PostProcessingPipeline *GetPostProcessingPipeline(const std::string& name);
@@ -384,7 +383,6 @@ namespace RN
 		float _orthoTop;
 		float _orthoBottom;
 		
-		bool _allowDepthWrite;
 		bool _prefersLightManager;
 		
 		Shader *_blitShader;

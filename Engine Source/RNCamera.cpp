@@ -389,8 +389,6 @@ namespace RN
 		_sky = nullptr;
 		
 		_priority  = 0;
-		
-		_allowDepthWrite = true;
 		_lodCamera = nullptr;
 		
 		_blitShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDrawFramebufferShader, nullptr)->Retain();
@@ -510,11 +508,6 @@ namespace RN
 	void Camera::SetColorMask(ColorMask mask)
 	{
 		_colorMask = mask;
-	}
-	
-	void Camera::SetAllowsDepthWrite(bool flag)
-	{
-		_allowDepthWrite = flag;
 	}
 	
 	void Camera::SetSky(Model *sky)

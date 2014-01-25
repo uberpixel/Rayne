@@ -429,11 +429,11 @@ namespace RN
 		
 		if(material->override & Material::OverrideDepthwrite)
 		{
-			SetDepthWriteEnabled((material->depthwrite && _currentCamera->AllowsDepthWrite()));
+			SetDepthWriteEnabled((material->depthwrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
 		}
 		else
 		{
-			SetDepthWriteEnabled((surfaceMaterial->depthwrite && _currentCamera->AllowsDepthWrite()));
+			SetDepthWriteEnabled((surfaceMaterial->depthwrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
 		}
 		
 		SetBlendingEnabled(PickAttribute(OverrideBlending, blending));
