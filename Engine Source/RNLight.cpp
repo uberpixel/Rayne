@@ -105,16 +105,18 @@ namespace RN
 	
 	bool Light::ActivateShadows(const ShadowParameter &parameter)
 	{
+		_shadowParameter = parameter;
+		
 		switch(_lightType)
 		{
 			case Type::PointLight:
-				return ActivatePointShadows(parameter);
+				return ActivatePointShadows(_shadowParameter);
 				
 			case Type::SpotLight:
-				return ActivateSpotShadows(parameter);
+				return ActivateSpotShadows(_shadowParameter);
 				
 			case Type::DirectionalLight:
-				return ActivateDirectionalShadows(parameter);
+				return ActivateDirectionalShadows(_shadowParameter);
 
 			default:
 				return false;
@@ -161,9 +163,6 @@ namespace RN
 		_shadowTarget = parameter.shadowTarget;
 		_shadowTarget->Retain();
 		AddDependency(_shadowTarget);
-			
-		_shadowSplits  = static_cast<int>(parameter.splits);
-		_shadowDistanceBlendFactor = parameter.distanceBlendFactor;
 		
 		Texture::Parameter textureParameter;
 		textureParameter.wrapMode = Texture::WrapMode::Clamp;
@@ -182,7 +181,7 @@ namespace RN
 		depthMaterial->polygonOffsetFactor = parameter.biasFactor;
 		depthMaterial->polygonOffsetUnits  = parameter.biasUnits;
 		
-		for(int i = 0; i < _shadowSplits; i++)
+		for(uint32 i = 0; i < _shadowParameter.splits; i++)
 		{
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 			storage->SetDepthTarget(depthtex, i);
@@ -339,11 +338,11 @@ namespace RN
 				
 				_shadowCameraMatrices.clear();
 				
-				for(int i = 0; i < _shadowSplits; i++)
+				for(uint32 i = 0; i < _shadowParameter.splits; i++)
 				{
-					float linear = _shadowTarget->GetClipNear() + (_shadowTarget->GetClipFar() - _shadowTarget->GetClipNear())*(i+1.0f) / float(_shadowSplits);
-					float log = _shadowTarget->GetClipNear() * powf(_shadowTarget->GetClipFar() / _shadowTarget->GetClipNear(), (i+1.0f) / float(_shadowSplits));
-					far = linear*_shadowDistanceBlendFactor+log*(1.0f-_shadowDistanceBlendFactor);
+					float linear = _shadowTarget->GetClipNear() + (_shadowTarget->GetClipFar() - _shadowTarget->GetClipNear())*(i+1.0f) / float(_shadowParameter.splits);
+					float log = _shadowTarget->GetClipNear() * powf(_shadowTarget->GetClipFar() / _shadowTarget->GetClipNear(), (i+1.0f) / float(_shadowParameter.splits));
+					far = linear*_shadowParameter.distanceBlendFactor+log*(1.0f-_shadowParameter.distanceBlendFactor);
 					
 					Camera *tempcam = _shadowDepthCameras.GetObjectAtIndex<Camera>(i);
 					tempcam->SetWorldRotation(GetWorldRotation());

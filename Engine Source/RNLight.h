@@ -113,8 +113,7 @@ namespace RN
 		std::vector<Matrix> _shadowCameraMatrices;
 		Array _shadowDepthCameras;
 		bool _suppressShadows;
-		int _shadowSplits;
-		float _shadowDistanceBlendFactor;
+		ShadowParameter _shadowParameter;
 		
 		RNDefineMetaWithTraits(Light, SceneNode, MetaClassTraitCronstructable)
 	};
