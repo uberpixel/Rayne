@@ -52,7 +52,7 @@ namespace RN
 		_thinRange = 128.0f;
 		_cellSize  = 32.0f;
 		
-		SetFlags(GetFlags() | SceneNode::FlagHideChildren);
+		SetFlags(GetFlags() | Flags::HideChildren);
 	}
 	
 	
@@ -255,16 +255,16 @@ namespace RN
 				InstancingData *data = iterator->second;
 				data->InsertEntity(static_cast<Entity *>(object));
 				
-				entity->SetFlags(entity->GetFlags() | SceneNode::FlagHidden);
+				entity->SetFlags(entity->GetFlags() | SceneNode::Flags::Hidden);
 			}
 			else
 			{
-				entity->SetFlags(entity->GetFlags() & ~SceneNode::FlagHidden);
+				entity->SetFlags(entity->GetFlags() & ~SceneNode::Flags::Hidden);
 			}
 		}
 		else
 		{
-			entity->SetFlags(entity->GetFlags() & ~SceneNode::FlagHidden);
+			entity->SetFlags(entity->GetFlags() & ~SceneNode::Flags::Hidden);
 		}
 		
 		Unlock();
@@ -278,11 +278,11 @@ namespace RN
 	
 	
 	
-	void InstancingNode::ChildDidUpdate(SceneNode *child, uint32 changes)
+	void InstancingNode::ChildDidUpdate(SceneNode *child, ChangeSet changes)
 	{
 		if(child->IsKindOfClass(_entityClass))
 		{
-			if(changes & ChangedPosition)
+			if(changes & ChangeSet::Position)
 			{
 				Lock();
 				
@@ -313,7 +313,7 @@ namespace RN
 				InstancingData *data = iterator->second;
 				
 				data->InsertEntity(entity);
-				entity->SetFlags(entity->GetFlags() | SceneNode::FlagHidden);
+				entity->SetFlags(entity->GetFlags() | Flags::Hidden);
 			}
 		}
 	}
@@ -324,7 +324,7 @@ namespace RN
 		{
 			Entity *entity = static_cast<Entity *>(child);
 			entity->RemoveObserver("model", this);
-			entity->SetFlags(entity->GetFlags() & ~SceneNode::FlagHidden);
+			entity->SetFlags(entity->GetFlags() & ~Flags::Hidden);
 			
 			auto iterator = _data.find(entity->GetModel());
 			if(iterator != _data.end())

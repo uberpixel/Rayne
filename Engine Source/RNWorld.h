@@ -60,7 +60,7 @@ namespace RN
 		
 		void SceneNodeWillRender(SceneNode *node);
 		
-		void SceneNodeDidUpdate(SceneNode *node, uint32 changeSet);
+		void SceneNodeDidUpdate(SceneNode *node, SceneNode::ChangeSet changeSet);
 		void DropSceneNode(SceneNode *node);
 		void ApplyNodes();
 		

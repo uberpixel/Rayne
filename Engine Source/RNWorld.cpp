@@ -260,7 +260,7 @@ namespace RN
 				
 				_sceneManager->AddSceneNode(node);
 				
-				if(node->GetFlags() & SceneNode::FlagStatic)
+				if(node->GetFlags() & SceneNode::Flags::Static)
 				{
 					_staticNodes.push_back(node);
 					node->_worldStatic = true;
@@ -272,7 +272,7 @@ namespace RN
 				}
 				
 				RunWorldAttachement(&WorldAttachment::DidAddSceneNode, node);
-				node->DidUpdate(SceneNode::ChangedWorld);
+				node->DidUpdate(SceneNode::ChangeSet::World);
 			}
 			
 			_addedNodes.clear();
@@ -287,7 +287,7 @@ namespace RN
 	}
 	
 	
-	void World::SceneNodeDidUpdate(SceneNode *node, uint32 changeSet)
+	void World::SceneNodeDidUpdate(SceneNode *node, SceneNode::ChangeSet changeSet)
 	{
 		if(_isDroppingSceneNodes)
 			return;
@@ -298,15 +298,15 @@ namespace RN
 		RunWorldAttachement(&WorldAttachment::SceneNodeDidUpdate, node, changeSet);
 		_sceneManager->UpdateSceneNode(node, changeSet);
 		
-		if((changeSet & SceneNode::ChangedPriority) && node->IsKindOfClass(_cameraClass))
+		if((changeSet & SceneNode::ChangeSet::Priority) && node->IsKindOfClass(_cameraClass))
 			_requiresCameraSort = true;
 		
-		if((changeSet & SceneNode::ChangedDependencies) && !node->_worldStatic)
+		if((changeSet & SceneNode::ChangeSet::Dependencies) && !node->_worldStatic)
 			_requiresResort = true;
 		
-		if(changeSet & SceneNode::ChangedFlags)
+		if(changeSet & SceneNode::ChangeSet::Flags)
 		{
-			if(node->GetFlags() & SceneNode::FlagStatic)
+			if(node->GetFlags() & SceneNode::Flags::Static)
 			{
 				if(!node->_worldStatic)
 				{
@@ -340,7 +340,7 @@ namespace RN
 		_sceneManager->RemoveSceneNode(node);
 		
 		node->_world = nullptr;
-		node->DidUpdate(SceneNode::ChangedWorld);
+		node->DidUpdate(SceneNode::ChangeSet::World);
 	}
 	
 	void World::DropSceneNodes()

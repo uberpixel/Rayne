@@ -10,6 +10,7 @@
 #include "RNRenderer.h"
 #include "RNWorld.h"
 #include "RNHit.h"
+#include "RNSceneNodeAttachment.h"
 
 namespace RN
 {
@@ -80,9 +81,9 @@ namespace RN
 		{
 			SceneNode *child = static_cast<SceneNode *>(_children[i]);
 			
-			child->WillUpdate(ChangedParent);
+			child->WillUpdate(ChangeSet::Parent);
 			child->_parent = nullptr;
-			child->DidUpdate(ChangedParent);
+			child->DidUpdate(ChangeSet::Parent);
 		}
 		
 		_children.RemoveAllObjects();
@@ -129,7 +130,7 @@ namespace RN
 		if(!dependency)
 			return;
 		
-		WillUpdate(ChangedDependencies);
+		WillUpdate(ChangeSet::Dependencies);
 		
 		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
 		
@@ -141,7 +142,7 @@ namespace RN
 		}
 		
 		lock.Unlock();
-		DidUpdate(ChangedDependencies);
+		DidUpdate(ChangeSet::Dependencies);
 	}
 	
 	void SceneNode::RemoveDependency(SceneNode *dependency)
@@ -149,7 +150,7 @@ namespace RN
 		if(!dependency)
 			return;
 		
-		WillUpdate(ChangedDependencies);
+		WillUpdate(ChangeSet::Dependencies);
 		
 		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
 		
@@ -163,12 +164,12 @@ namespace RN
 		}
 		
 		lock.Unlock();
-		DidUpdate(ChangedDependencies);
+		DidUpdate(ChangeSet::Dependencies);
 	}
 	
 	void SceneNode::__BreakDependency(SceneNode *dependency)
 	{
-		WillUpdate(ChangedDependencies);
+		WillUpdate(ChangeSet::Dependencies);
 		
 		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
 		
@@ -176,7 +177,7 @@ namespace RN
 		_dependencies.erase(std::find(_dependencies.begin(), _dependencies.end(), dependency));
 		
 		lock.Unlock();
-		DidUpdate(ChangedDependencies);
+		DidUpdate(ChangeSet::Dependencies);
 	}
 	
 	
@@ -202,7 +203,7 @@ namespace RN
 	
 	bool SceneNode::IsVisibleInCamera(Camera *camera)
 	{
-		if(_flags & FlagHidden)
+		if(_flags & Flags::Hidden)
 			return false;
 		
 		return camera->InFrustum(GetBoundingSphere());
@@ -222,9 +223,9 @@ namespace RN
 	
 	void SceneNode::SetFlags(Flags flags)
 	{
-		WillUpdate(ChangedFlags);
+		WillUpdate(ChangeSet::Flags);
 		_flags = flags;
-		DidUpdate(ChangedFlags);
+		DidUpdate(ChangeSet::Flags);
 	}
 	
 	void SceneNode::SetRenderGroup(uint8 group)
@@ -259,9 +260,9 @@ namespace RN
 	
 	void SceneNode::SetPriority(Priority priority)
 	{
-		WillUpdate(ChangedPriority);
+		WillUpdate(ChangeSet::Priority);
 		_priority = priority;
-		DidUpdate(ChangedPriority);
+		DidUpdate(ChangeSet::Priority);
 	}
 	
 	void SceneNode::SetDebugName(const std::string& name)
@@ -302,12 +303,12 @@ namespace RN
 			return;
 		
 		WillAddChild(child);
-		child->WillUpdate(ChangedParent);
+		child->WillUpdate(ChangeSet::Parent);
 		
 		_children.AddObject(child);
 		
 		child->_parent = this;
-		child->DidUpdate(ChangedParent);
+		child->DidUpdate(ChangeSet::Parent);
 		
 		DidAddChild(child);
 	}
@@ -324,14 +325,14 @@ namespace RN
 		if(child->_parent == this)
 		{
 			WillRemoveChild(child);
-			child->WillUpdate(ChangedParent);
+			child->WillUpdate(ChangeSet::Parent);
 			
 			child->Retain()->Autorelease();
 			child->_parent = nullptr;
 			
 			_children.RemoveObject(child);
 			
-			child->DidUpdate(ChangedParent);
+			child->DidUpdate(ChangeSet::Parent);
 			DidRemoveChild(child);
 		}
 	}
@@ -364,14 +365,14 @@ namespace RN
 		if(attachment->_node)
 			throw Exception(Exception::Type::InvalidArgumentException, "Attachments mustn't have a parent!");
 			
-		WillUpdate(ChangedAttachments);
+		WillUpdate(ChangeSet::Attachments);
 		
 		_attachments.AddObject(attachment);
 		
 		attachment->_node = this;
 		attachment->DidAddToParent();
 		
-		DidUpdate(ChangedAttachments);
+		DidUpdate(ChangeSet::Attachments);
 	}
 	
 	void SceneNode::RemoveAttachment(SceneNodeAttachment *attachment)
@@ -381,13 +382,13 @@ namespace RN
 		if(attachment->_node != this)
 			throw Exception(Exception::Type::InvalidArgumentException, "Attachments must be removed from their parents!");
 		
-		WillUpdate(ChangedAttachments);
+		WillUpdate(ChangeSet::Attachments);
 		
 		attachment->WillRemoveFromParent();
 		attachment->_node = nullptr;
 		_attachments.RemoveObject(attachment);
 		
-		DidUpdate(ChangedAttachments);
+		DidUpdate(ChangeSet::Attachments);
 	}
 	
 	SceneNodeAttachment *SceneNode::GetAttachment(MetaClassBase *metaClass) const
@@ -415,12 +416,21 @@ namespace RN
 		return attachments->Autorelease();
 	}
 	
+	void SceneNode::UpdateAttachments(float delta)
+	{
+		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
+		
+		_attachments.Enumerate<SceneNodeAttachment>([=](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+			attachment->Update(delta);
+		});
+	}
+	
 	// -------------------
 	// MARK: -
 	// MARK: Updates
 	// ------------------
 	
-	void SceneNode::WillUpdate(uint32 changeSet)
+	void SceneNode::WillUpdate(ChangeSet changeSet)
 	{
 		if(_parent)
 			_parent->ChildWillUpdate(this, changeSet);
@@ -431,12 +441,12 @@ namespace RN
 		});
 	}
 	
-	void SceneNode::DidUpdate(uint32 changeSet)
+	void SceneNode::DidUpdate(ChangeSet changeSet)
 	{
-		if(changeSet & ChangedPosition)
+		if(changeSet & ChangeSet::Position)
 			_updated = true;
 		
-		if(changeSet & ChangedParent && _parent == nullptr)
+		if(changeSet & ChangeSet::Parent && _parent == nullptr)
 		{
 			LockGuard<decltype(_transformLock)> lock(_transformLock);
 			
@@ -475,7 +485,7 @@ namespace RN
 	
 	void SceneNode::FillRenderingObject(RenderingObject& object) const
 	{
-		if(_flags & FlagDrawLate)
+		if(_flags & Flags::DrawLate)
 			object.flags |= RenderingObject::DrawLate;
 		
 		object.transform = &_worldTransform;

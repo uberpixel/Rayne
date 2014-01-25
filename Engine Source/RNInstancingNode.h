@@ -60,7 +60,7 @@ namespace RN
 		RNAPI Mode GetMode() const { return _mode; }
 		
 	protected:
-		RNAPI void ChildDidUpdate(SceneNode *child, uint32 changeSet) override;
+		RNAPI void ChildDidUpdate(SceneNode *child, ChangeSet changeSet) override;
 		RNAPI void WillAddChild(SceneNode *child) override;
 		RNAPI void WillRemoveChild(SceneNode *child) override;
 		
