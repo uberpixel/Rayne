@@ -55,18 +55,18 @@ namespace RN
 			Array *keys = keyPath->GetComponentsSeparatedByString(RNCSTR("."));
 			Object *resource = _data;
 			
-			keys->Enumerate<String>([&](String *key, size_t index, bool *stop) {
+			keys->Enumerate<String>([&](String *key, size_t index, bool &stop) {
 				
 				resource = static_cast<Dictionary *>(resource)->GetObjectForKey(key);
 				if(!resource)
 				{
-					*stop = true;
+					stop = true;
 					return;
 				}
 				
 				if(!resource->IsKindOfClass(Dictionary::MetaClass()) && index < keys->GetCount() - 1)
 				{
-					*stop = true;
+					stop = true;
 					resource = nullptr;
 					
 					return;

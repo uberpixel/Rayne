@@ -345,7 +345,7 @@ namespace RN
 		std::fill(_buckets, _buckets + _capacity, nullptr);
 	}
 	
-	void Dictionary::Enumerate(const std::function<void (Object *, Object *, bool *)>& callback)
+	void Dictionary::Enumerate(const std::function<void (Object *, Object *, bool &)>& callback)
 	{
 		bool stop = false;
 		
@@ -356,7 +356,7 @@ namespace RN
 			{
 				if(bucket->key)
 				{
-					callback(bucket->object, bucket->key, &stop);
+					callback(bucket->object, bucket->key, stop);
 					
 					if(stop)
 						return;

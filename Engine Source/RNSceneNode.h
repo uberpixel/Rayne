@@ -20,7 +20,7 @@
 #include "RNSphere.h"
 #include "RNKVOImplementation.h"
 #include "RNSTL.h"
-#include "RNSceneNodeAttachment.h"
+#include "RNEnum.h"
 
 namespace RN
 {
@@ -29,6 +29,8 @@ namespace RN
 	class World;
 	
 	class RenderingObject;
+	class SceneNodeAttachment;
+	
 	class SceneNode : public Object
 	{
 	public:
@@ -42,27 +44,43 @@ namespace RN
 			UpdateLate
 		};
 		
-		enum
+		struct Flags : public Enum<uint32>
 		{
-			FlagDrawLate     = (1 << 0),
-			FlagStatic       = (1 << 1),
-			FlagHidden       = (1 << 2),
-			FlagHideChildren = (1 << 3)
+			Flags()
+			{}
+			Flags(int value) :
+				Enum(value)
+			{}
+			
+			enum
+			{
+				DrawLate     = (1 << 0),
+				Static       = (1 << 1),
+				Hidden       = (1 << 2),
+				HideChildren = (1 << 3)
+			};
 		};
 		
-		enum
+		struct ChangeSet : public Enum<uint32>
 		{
-			ChangedGeneric = (1 << 0),
-			ChangedFlags = (1 << 1),
-			ChangedPosition = (1 << 2),
-			ChangedDependencies = (1 << 3),
-			ChangedPriority = (1 << 4),
-			ChangedParent = (1 << 5),
-			ChangedAttachments = (1 << 6),
-			ChangedWorld = (1 << 7)
+			ChangeSet()
+			{}
+			ChangeSet(int value) :
+				Enum(value)
+			{}
+			
+			enum
+			{
+				Generic = (1 << 0),
+				Flags = (1 << 1),
+				Position = (1 << 2),
+				Dependencies = (1 << 3),
+				Priority = (1 << 4),
+				Parent = (1 << 5),
+				Attachments = (1 << 6),
+				World = (1 << 7)
+			};
 		};
-		
-		typedef uint32 Flags;
 		
 		RNAPI SceneNode();
 		RNAPI SceneNode(const Vector3& position);
@@ -153,7 +171,7 @@ namespace RN
 		RNAPI FrameID GetLastFrame() const { return _lastFrame; }
 		RNAPI World *GetWorld() const { return _worldInserted ? _world : nullptr; }
 		RNAPI Priority GetPriority() const { return _priority; }
-		RNAPI Flags GetFlags() const { return _flags; }
+		RNAPI Flags GetFlags() const { return _flags.load(); }
 		
 		RNAPI uint8 GetRenderGroup() const {return renderGroup;};
 		RNAPI uint8 GetCollisionGroup() const {return collisionGroup;};
@@ -170,20 +188,19 @@ namespace RN
 			if(_action)
 				_action(this, delta);
 			
-			_attachments.Enumerate<SceneNodeAttachment>([=](SceneNodeAttachment *attachment, size_t index, bool *stop) {
-				attachment->Update(delta);
-			});
+			UpdateAttachments(delta);
 		}
 		
 		RNAPI virtual bool CanUpdate(FrameID frame);
 		
 	protected:
-		RNAPI void WillUpdate(uint32 changeSet);
-		RNAPI void DidUpdate(uint32 changeSet);
+		RNAPI void WillUpdate(ChangeSet changeSet);
+		RNAPI void DidUpdate(ChangeSet changeSet);
 		RNAPI void CleanUp() override;
+		RNAPI void UpdateAttachments(float delta);
 		
-		RNAPI virtual void ChildDidUpdate(SceneNode *child, uint32 changes) {}
-		RNAPI virtual void ChildWillUpdate(SceneNode *child, uint32 changes) {}
+		RNAPI virtual void ChildDidUpdate(SceneNode *child, ChangeSet changes) {}
+		RNAPI virtual void ChildWillUpdate(SceneNode *child, ChangeSet changes) {}
 		RNAPI virtual void WillAddChild(SceneNode *child) {}
 		RNAPI virtual void DidAddChild(SceneNode *child)  {}
 		RNAPI virtual void WillRemoveChild(SceneNode *child) {}
@@ -219,7 +236,7 @@ namespace RN
 		Array _attachments;
 		
 		Priority _priority;
-		std::atomic<Flags> _flags;
+		std::atomic<uint32> _flags;
 		std::atomic<FrameID> _lastFrame;
 		
 		uint8 renderGroup;
@@ -253,22 +270,22 @@ namespace RN
 	RN_INLINE void SceneNode::Translate(const Vector3& trans)
 	{
 		_transformLock.Lock();
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		_position += trans;
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		_transformLock.Unlock();
 	}
 	
 	RN_INLINE void SceneNode::Scale(const Vector3& scal)
 	{
 		_transformLock.Lock();
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		_scale += scal;
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		_transformLock.Unlock();
 	}
 	
@@ -276,12 +293,12 @@ namespace RN
 	{
 		_transformLock.Lock();
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		_euler += rot;
 		_rotation = Quaternion(_euler);
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		_transformLock.Unlock();
 	}
@@ -291,21 +308,20 @@ namespace RN
 	{
 		_transformLock.Lock();
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		_position += _rotation->RotateVector(trans);
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		_transformLock.Unlock();
 	}
-	
 	
 	RN_INLINE void SceneNode::SetPosition(const Vector3& pos)
 	{
 		_transformLock.Lock();
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		_position = pos;
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		_transformLock.Unlock();
 	}
@@ -314,9 +330,9 @@ namespace RN
 	{
 		_transformLock.Lock();
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		_scale = scal;
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		_transformLock.Unlock();
 	}
@@ -325,12 +341,12 @@ namespace RN
 	{
 		_transformLock.Lock();
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		_euler    = rot.GetEulerAngle();
 		_rotation = rot;
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		_transformLock.Unlock();
 	}
@@ -352,14 +368,14 @@ namespace RN
 			return;
 		}
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		Quaternion temp;
 		temp = temp / _parent->GetWorldRotation();
 		
 		_position = temp.RotateVector(pos) - temp.RotateVector(GetWorldPosition());
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		lock1.unlock();
 		lock2.unlock();
@@ -381,11 +397,11 @@ namespace RN
 			return;
 		}
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		_scale = scal - GetWorldScale();
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		lock1.unlock();
 		lock2.unlock();
@@ -407,12 +423,12 @@ namespace RN
 			return;
 		}
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		_rotation = rot / _parent->GetWorldRotation();
 		_euler = _rotation->GetEulerAngle();
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		lock1.unlock();
 		lock2.unlock();

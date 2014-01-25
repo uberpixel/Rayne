@@ -58,9 +58,9 @@ namespace RN
 		Unlock();
 	}
 	
-	void GenericSceneManager::UpdateSceneNode(SceneNode *node, uint32 changes)
+	void GenericSceneManager::UpdateSceneNode(SceneNode *node, SceneNode::ChangeSet changes)
 	{
-		if(changes & SceneNode::ChangedParent)
+		if(changes & SceneNode::ChangeSet::Parent)
 		{
 			Lock();
 			
@@ -93,14 +93,14 @@ namespace RN
 	{
 		auto flags = node->GetFlags();
 		
-		if(!(camera->GetRenderGroups() & (1 << node-> GetRenderGroup())) || flags & SceneNode::FlagHidden)
+		if(!(camera->GetRenderGroups() & (1 << node-> GetRenderGroup())) || flags & SceneNode::Flags::Hidden)
 			return;
 		
 		if(node->IsVisibleInCamera(camera))
 		{
 			node->Render(_renderer, camera);
 			
-			if(!(flags & SceneNode::FlagHideChildren))
+			if(!(flags & SceneNode::Flags::HideChildren))
 			{
 				const Array *children = node->GetChildren();
 				size_t count = children->GetCount();

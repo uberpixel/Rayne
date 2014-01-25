@@ -95,7 +95,7 @@ namespace RN
 		
 		RNAPI void AddSceneNode(SceneNode *node) override;
 		RNAPI void RemoveSceneNode(SceneNode *node) override;
-		RNAPI void UpdateSceneNode(SceneNode *node, uint32 changes) override;
+		RNAPI void UpdateSceneNode(SceneNode *node, SceneNode::ChangeSet changes) override;
 		
 		RNAPI void RenderScene(Camera *camera) override;
 		

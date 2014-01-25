@@ -27,7 +27,7 @@ namespace RN
 		RNAPI virtual void DidAddSceneNode(SceneNode *node);
 		RNAPI virtual void WillRemoveSceneNode(SceneNode *node);
 		RNAPI virtual void WillRenderSceneNode(SceneNode *node);
-		RNAPI virtual void SceneNodeDidUpdate(SceneNode *node, uint32 changeSet);
+		RNAPI virtual void SceneNodeDidUpdate(SceneNode *node, SceneNode::ChangeSet changeSet);
 		
 		RNDefineMeta(WorldAttachment, Object)
 	};

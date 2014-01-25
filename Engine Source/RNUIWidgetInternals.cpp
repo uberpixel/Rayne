@@ -126,7 +126,7 @@ namespace RN
 			Rect bounds = GetBounds();
 			float offsetX = 5.0f;
 			
-			_controlButtons.Enumerate<Button>([&](Button *button, size_t index, bool *stop) {
+			_controlButtons.Enumerate<Button>([&](Button *button, size_t index, bool &stop) {
 				
 				Rect frame = button->GetFrame();
 				

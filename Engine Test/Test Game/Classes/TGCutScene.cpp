@@ -59,7 +59,7 @@ namespace TG
 	{
 		std::vector<Animation *> finishedAnimations;
 		
-		_animations->Enumerate<Animation>([&](Animation *animation, size_t size, bool *stop) {
+		_animations->Enumerate<Animation>([&](Animation *animation, size_t size, bool &stop) {
 			
 			if(_time >= animation->GetBeginTime())
 			{

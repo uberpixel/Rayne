@@ -89,7 +89,7 @@ namespace RN
 	
 	void Light::RemoveShadowCameras()
 	{
-		_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool *stop) {
+		_shadowcams.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
 			RemoveDependency(camera);
 		});
 		

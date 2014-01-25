@@ -122,7 +122,7 @@ namespace RN
 			
 			FlushBuffer();
 			
-			_engines.Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool *stop) {
+			_engines.Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
 				if(engine->IsOpen())
 					engine->Close();
 			});
@@ -238,7 +238,7 @@ namespace RN
 			
 			std::chrono::system_clock::time_point temp = _lastMessage;
 			
-			_engines.Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool *stop) {
+			_engines.Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
 				
 				_lastMessage = temp;
 				

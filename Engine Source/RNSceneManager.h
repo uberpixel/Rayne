@@ -23,7 +23,7 @@ namespace RN
 	public:
 		RNAPI virtual void AddSceneNode(SceneNode *node) = 0;
 		RNAPI virtual void RemoveSceneNode(SceneNode *node) = 0;
-		RNAPI virtual void UpdateSceneNode(SceneNode *node, uint32 changes) = 0;
+		RNAPI virtual void UpdateSceneNode(SceneNode *node, SceneNode::ChangeSet changes) = 0;
 		
 		RNAPI virtual void RenderScene(Camera *camera) = 0;
 		RNAPI virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0x00ff, Hit::HitMode mode = Hit::HitMode::IgnoreNone) = 0;
@@ -45,7 +45,7 @@ namespace RN
 		
 		RNAPI void AddSceneNode(SceneNode *node) override;
 		RNAPI void RemoveSceneNode(SceneNode *node) override;
-		RNAPI void UpdateSceneNode(SceneNode *node, uint32 changes) override;
+		RNAPI void UpdateSceneNode(SceneNode *node, SceneNode::ChangeSet changes) override;
 		
 		RNAPI void RenderScene(Camera *camera) override;
 		

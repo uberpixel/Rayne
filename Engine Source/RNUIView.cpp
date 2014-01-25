@@ -500,7 +500,7 @@ namespace RN
 		void View::SetNeedsLayoutUpdate()
 		{
 			_dirtyLayout = true;
-			_subviews.Enumerate<View>([&](View *subview, size_t index, bool *stop) {
+			_subviews.Enumerate<View>([&](View *subview, size_t index, bool &stop) {
 				subview->SetNeedsLayoutUpdate();
 			});
 		}
@@ -526,7 +526,7 @@ namespace RN
 			Vector2 size = _frame.Size();
 			Vector2 diff = size - oldSize;
 			
-			_subviews.Enumerate<View>([&](View *subview, size_t index, bool *stop) {
+			_subviews.Enumerate<View>([&](View *subview, size_t index, bool &stop) {
 				
 				if(subview->_autoresizingMask == 0)
 					return;

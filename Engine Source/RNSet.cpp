@@ -73,7 +73,7 @@ namespace RN
 			}
 		}
 		
-		other->Enumerate([&](Object *object, size_t index, bool *stop) {
+		other->Enumerate([&](Object *object, size_t index, bool &stop) {
 			AddObject(object);
 		});
 	}
@@ -300,7 +300,7 @@ namespace RN
 	
 	
 	
-	void Set::Enumerate(const std::function<void (Object *, bool *)>& callback) const
+	void Set::Enumerate(const std::function<void (Object *, bool &)>& callback) const
 	{
 		bool stop = false;
 		
@@ -311,7 +311,7 @@ namespace RN
 			{
 				if(bucket->object)
 				{
-					callback(bucket->object, &stop);
+					callback(bucket->object, stop);
 					
 					if(stop)
 						return;

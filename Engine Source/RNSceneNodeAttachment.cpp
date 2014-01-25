@@ -7,7 +7,6 @@
 //
 
 #include "RNSceneNodeAttachment.h"
-#include "RNSceneNode.h"
 
 namespace RN
 {
@@ -22,7 +21,7 @@ namespace RN
 	{}
 	
 	
-	void SceneNodeAttachment::__WillUpdate(uint32 changeSet)
+	void SceneNodeAttachment::__WillUpdate(SceneNode::ChangeSet changeSet)
 	{
 		if(_consumeChangeSets)
 		{
@@ -34,7 +33,7 @@ namespace RN
 			
 		WillUpdate(changeSet);
 	}
-	void SceneNodeAttachment::__DidUpdate(uint32 changeSet)
+	void SceneNodeAttachment::__DidUpdate(SceneNode::ChangeSet changeSet)
 	{
 		if(_consumeChangeSets)
 		{
@@ -50,21 +49,21 @@ namespace RN
 	
 	void SceneNodeAttachment::SetPosition(const Vector3 &position)
 	{
-		_consumeChangeSets |= SceneNode::ChangedPosition;
+		_consumeChangeSets |= SceneNode::ChangeSet::Position;
 		_node->SetWorldPosition(position);
-		_consumeChangeSets &= ~SceneNode::ChangedPosition;
+		_consumeChangeSets &= ~SceneNode::ChangeSet::Position;
 	}
 	void SceneNodeAttachment::SetScale(const Vector3 &scale)
 	{
-		_consumeChangeSets |= SceneNode::ChangedPosition;
+		_consumeChangeSets |= SceneNode::ChangeSet::Position;
 		_node->SetWorldScale(scale);
-		_consumeChangeSets &= ~SceneNode::ChangedPosition;
+		_consumeChangeSets &= ~SceneNode::ChangeSet::Position;
 	}
 	void SceneNodeAttachment::SetRotation(const Quaternion &rotation)
 	{
-		_consumeChangeSets |= SceneNode::ChangedPosition;
+		_consumeChangeSets |= SceneNode::ChangeSet::Position;
 		_node->SetWorldRotation(rotation);
-		_consumeChangeSets &= ~SceneNode::ChangedPosition;
+		_consumeChangeSets &= ~SceneNode::ChangeSet::Position;
 	}
 	
 	Vector3 SceneNodeAttachment::GetPosition() const

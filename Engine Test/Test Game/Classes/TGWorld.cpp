@@ -1102,7 +1102,7 @@ namespace TG
 				continue;
 			
 			ent = new RN::Entity();
-			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
+			ent->SetFlags(ent->GetFlags() | RN::SceneNode::Flags::Static);
 			ent->SetModel(trees[dualPhaseLCG.RandomInt32Range(0, TREE_MODEL_COUNT)]);
 			ent->SetPosition(pos);
 			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.89f, 1.12f)));
@@ -1136,7 +1136,7 @@ namespace TG
 				continue;
 			
 			ent = new RN::Entity();
-			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
+			ent->SetFlags(ent->GetFlags() | RN::SceneNode::Flags::Static);
 			ent->SetModel(grass);
 			ent->SetPosition(pos);
 			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(1.5f, 2.0f)));
@@ -1185,7 +1185,7 @@ namespace TG
 		RN::Progress *progress = RN::Progress::GetActiveProgress()->IntermediateProgressAcountingFor(15);
 		progress->SetTotalUnits(children->GetCount());
 		
-		children->Enumerate<RN::Entity>([&](RN::Entity *entity, size_t index, bool *stop) {
+		children->Enumerate<RN::Entity>([&](RN::Entity *entity, size_t index, bool &stop) {
 			
 			batch->AddTask([&, entity] {
 				RN::Vector3 pos = entity->GetPosition();
@@ -1233,7 +1233,7 @@ namespace TG
 			RN::Vector3 pos = RN::Vector3(random.RandomFloatRange(-100.0f, 100.0f), 0.0f, random.RandomFloatRange(-100.0f, 100.0f));
 
 			RN::Entity *ent = new RN::Entity();
-			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
+			ent->SetFlags(ent->GetFlags() | RN::SceneNode::Flags::Static);
 			ent->SetModel(grass);
 			ent->SetPosition(pos);
 			ent->SetScale(random.RandomFloatRange(2.5f, 3.0f));

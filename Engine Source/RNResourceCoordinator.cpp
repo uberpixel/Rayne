@@ -84,7 +84,7 @@ namespace RN
 		if(aliases)
 		{
 			object->Retain();
-			aliases->Enumerate<String>([&](String *alias, size_t index, bool *stop) {
+			aliases->Enumerate<String>([&](String *alias, size_t index, bool &stop) {
 				
 				_resources.RemoveObjectForKey(alias);
 				
@@ -134,7 +134,7 @@ namespace RN
 			file->ReadIntoBuffer(magic, 32);
 			file->Seek(0, true);
 			
-			_loader.Enumerate<ResourceLoader>([&] (ResourceLoader *loader, size_t index, bool *stop) {
+			_loader.Enumerate<ResourceLoader>([&] (ResourceLoader *loader, size_t index, bool &stop) {
 				
 				try
 				{
@@ -178,7 +178,7 @@ namespace RN
 					if(result)
 					{
 						resourceLoader = loader;
-						*stop = true;
+						stop = true;
 						
 						return;
 					}
@@ -194,7 +194,7 @@ namespace RN
 		{
 			std::string extension = PathManager::Extension(name->GetUTF8String());
 			
-			_loader.Enumerate<ResourceLoader>([&] (ResourceLoader *loader, size_t index, bool *stop) {
+			_loader.Enumerate<ResourceLoader>([&] (ResourceLoader *loader, size_t index, bool &stop) {
 				
 				try
 				{
@@ -218,7 +218,7 @@ namespace RN
 					if(loader->SupportsLoadingName(name))
 					{
 						resourceLoader = loader;
-						*stop = true;
+						stop = true;
 						
 						return;
 					}

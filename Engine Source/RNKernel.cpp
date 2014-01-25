@@ -407,7 +407,7 @@ namespace RN
 			{
 				std::vector<std::string> modules;
 				
-				array->Enumerate([&](Object *file, size_t index, bool *stop) {
+				array->Enumerate([&](Object *file, size_t index, bool &stop) {
 					
 					try
 					{

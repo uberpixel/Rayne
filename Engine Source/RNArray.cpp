@@ -51,7 +51,7 @@ namespace RN
 		
 		size_t index = 0;
 		
-		set->Enumerate([&](Object *object, bool *stop) {
+		set->Enumerate([&](Object *object, bool &stop) {
 			_data[index ++] = object->Retain();
 		});
 	}

@@ -305,7 +305,7 @@ namespace RN
 			if(!menu)
 				return [temp autorelease];
 			
-			menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool *stop) {
+			menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool &stop) {
 				
 				if(!item->IsSeparator())
 				{
@@ -359,7 +359,7 @@ namespace RN
 				
 				if(_menu)
 				{
-					_menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool *stop) {
+					_menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool &stop) {
 						
 						NSMenu *tMenu = TranslateRNUIMenuToNSMenu(item->GetSubMenu());
 						[tMenu setTitle:[NSString stringWithUTF8String:item->GetTitle()->GetUTF8String()]];

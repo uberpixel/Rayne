@@ -49,7 +49,7 @@ namespace RN
 		
 		void SegmentView::RemoveAllSegments()
 		{
-			_segments.Enumerate<Button>([&](Button *button, size_t index, bool *stop) {
+			_segments.Enumerate<Button>([&](Button *button, size_t index, bool &stop) {
 				button->RemoveFromSuperview();
 			});
 			
@@ -116,7 +116,7 @@ namespace RN
 				float width  = GetFrame().width / count;
 				float height = GetFrame().height;
 				
-				_segments.Enumerate<Button>([&](Button *button, size_t index, bool *stop) {
+				_segments.Enumerate<Button>([&](Button *button, size_t index, bool &stop) {
 					Rect frame = Rect(index * width, 0, width, height);
 					button->SetFrame(frame);
 				});
