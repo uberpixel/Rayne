@@ -90,11 +90,9 @@ namespace RN
 		RNAPI void FillRenderingObject(RenderingObject& object) const;
 		
 		RNAPI void Translate(const Vector3& trans);
+		RNAPI void TranslateLocal(const Vector3& trans);
 		RNAPI void Scale(const Vector3& scal);
 		RNAPI void Rotate(const Vector3& rot);
-		
-		RNAPI void TranslateLocal(const Vector3& trans);
-		RNAPI void ScaleLocal(const Vector3& scal);
 		
 		RNAPI void SetFlags(Flags flags);
 		
@@ -149,9 +147,9 @@ namespace RN
 		
 		RNAPI void LookAt(const RN::Vector3 &target, bool keepUpAxis=false);
 		
-		RNAPI void AttachChild(SceneNode *child);
-		RNAPI void DetachChild(SceneNode *child);
-		RNAPI void DetachFromParent();
+		RNAPI void AddChild(SceneNode *child);
+		RNAPI void RemoveChild(SceneNode *child);
+		RNAPI void RemoveFromParent();
 		
 		RNAPI void SetAction(const std::function<void (SceneNode *, float)>& action);
 		RNAPI void AddDependency(SceneNode *dependency);
@@ -178,7 +176,7 @@ namespace RN
 		RNAPI uint8 GetRenderGroup() const {return renderGroup;};
 		RNAPI uint8 GetCollisionGroup() const {return collisionGroup;};
 		
-		RNAPI const Array *GetChildren() const { return &_children; }
+		RNAPI const Array *GetChildren() const;
 		
 		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone);
 		
@@ -316,18 +314,6 @@ namespace RN
 		
 		_transformLock.Unlock();
 	}
-	
-	RN_INLINE void SceneNode::ScaleLocal(const Vector3& scal)
-	{
-		_transformLock.Lock();
-		
-		WillUpdate(ChangeSet::Position);
-		_scale += _rotation->RotateVector(scal);
-		DidUpdate(ChangeSet::Position);
-		
-		_transformLock.Unlock();
-	}
-	
 	
 	RN_INLINE void SceneNode::SetPosition(const Vector3& pos)
 	{

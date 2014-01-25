@@ -65,7 +65,7 @@ namespace TG
 		_emitter->SetMaxParticles(1000 * 60);
 		_emitter->SetRenderGroup(1);
 		
-		AttachChild(_emitter);
+		AddChild(_emitter);
 	}
 	
 	SmokeGrenade::~SmokeGrenade()
