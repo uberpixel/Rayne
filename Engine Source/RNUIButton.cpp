@@ -112,7 +112,7 @@ namespace RN
 				SetBehavior(Behavior::Switch);
 			
 			Array *states = style->GetObjectForKey<Array>(RNCSTR("states"));
-			states->Enumerate([&](Object *object, size_t index, bool *stop) {
+			states->Enumerate([&](Object *object, size_t index, bool &stop) {
 				Dictionary *state = object->Downcast<Dictionary>();
 				
 				String *name = state->GetObjectForKey<String>(RNCSTR("name"));

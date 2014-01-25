@@ -479,14 +479,14 @@ namespace RN
 			Mesh *closest = nullptr;
 			ptrdiff_t diff = 0;
 			
-			_meshes.Enumerate<Mesh>([&](Mesh *mesh, size_t index, bool *stop) {
+			_meshes.Enumerate<Mesh>([&](Mesh *mesh, size_t index, bool &stop) {
 				if(!closest)
 				{
 					closest = mesh;
 					diff    = mesh->GetVerticesCount() - vertices;
 					
 					if(diff == 0)
-						*stop = true;
+						stop = true;
 					
 					return;
 				}
@@ -499,7 +499,7 @@ namespace RN
 					diff    = difference;
 					
 					if(diff == 0)
-						*stop = true;
+						stop = true;
 					
 					return;
 				}
@@ -530,7 +530,7 @@ namespace RN
 			
 			Shader *shader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUITextShader, nullptr);
 			
-			meshes->Enumerate([&](Object *object, size_t index, bool *stop) {
+			meshes->Enumerate([&](Object *object, size_t index, bool &stop) {
 				
 				Dictionary *dict = static_cast<Dictionary *>(object);
 				

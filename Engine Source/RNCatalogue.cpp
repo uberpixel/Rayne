@@ -65,13 +65,13 @@ namespace RN
 		return 0;
 	}
 	
-	void Catalogue::EnumerateClasses(const std::function<void (MetaClassBase *meta, bool *stop)>& enumerator)
+	void Catalogue::EnumerateClasses(const std::function<void (MetaClassBase *meta, bool &stop)>& enumerator)
 	{
 		bool stop = false;
 		
 		for(auto i=_metaClasses.begin(); i!=_metaClasses.end(); i++)
 		{
-			enumerator(i->second, &stop);
+			enumerator(i->second, stop);
 			if(stop)
 				break;
 		}

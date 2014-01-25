@@ -29,7 +29,7 @@ namespace RN
 			
 			Array *states = style->GetObjectForKey<Array>(RNCSTR("states"));
 			
-			states->Enumerate<Dictionary>([&](Dictionary *state, size_t index, bool *stop) {
+			states->Enumerate<Dictionary>([&](Dictionary *state, size_t index, bool &stop) {
 				
 				String *name = state->GetObjectForKey<String>(RNCSTR("name"));
 				Dictionary *atlas  = state->GetObjectForKey<Dictionary>(RNCSTR("atlas"));

@@ -73,7 +73,7 @@ namespace RN
 			}
 		}
 		
-		other->Enumerate([&](Object *object, size_t index, bool *stop) {
+		other->Enumerate([&](Object *object, size_t index, bool &stop) {
 			AddObject(object);
 		});
 	}
@@ -299,7 +299,7 @@ namespace RN
 	
 	
 	
-	void CountedSet::Enumerate(const std::function<void (Object *, size_t count, bool *)>& callback)
+	void CountedSet::Enumerate(const std::function<void (Object *, size_t count, bool &)>& callback)
 	{
 		bool stop = false;
 		
@@ -310,7 +310,7 @@ namespace RN
 			{
 				if(bucket->object)
 				{
-					callback(bucket->object, bucket->count, &stop);
+					callback(bucket->object, bucket->count, stop);
 					
 					if(stop)
 						return;

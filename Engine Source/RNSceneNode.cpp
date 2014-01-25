@@ -100,7 +100,7 @@ namespace RN
 		
 		Unlock();
 		
-		_attachments.Enumerate<SceneNodeAttachment>([](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+		_attachments.Enumerate<SceneNodeAttachment>([](SceneNodeAttachment *attachment, size_t index, bool &stop) {
 			attachment->_node = nullptr;
 		});
 	}
@@ -403,11 +403,11 @@ namespace RN
 		
 		SceneNodeAttachment *match = nullptr;
 		
-		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool &stop) {
 			if(attachment->IsKindOfClass(metaClass))
 			{
 				match = attachment;
-				*stop = true;
+				stop = true;
 			}
 		});
 		
@@ -426,7 +426,7 @@ namespace RN
 	{
 		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
 		
-		_attachments.Enumerate<SceneNodeAttachment>([=](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+		_attachments.Enumerate<SceneNodeAttachment>([=](SceneNodeAttachment *attachment, size_t index, bool &stop) {
 			attachment->Update(delta);
 		});
 	}
@@ -442,7 +442,7 @@ namespace RN
 			_parent->ChildWillUpdate(this, changeSet);
 		
 		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
-		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool &stop) {
 			attachment->__WillUpdate(changeSet);
 		});
 	}
@@ -484,7 +484,7 @@ namespace RN
 			_parent->ChildDidUpdate(this, changeSet);
 		
 		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
-		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool &stop) {
 			attachment->__DidUpdate(changeSet);
 		});
 	}

@@ -169,7 +169,7 @@ namespace RN
 		temp = static_cast<uint32>(_nametable->GetCount());
 		result->Append(&temp, sizeof(uint32));
 		
-		_nametable->Enumerate([&](Object *value, Object *key, bool *stop) {
+		_nametable->Enumerate([&](Object *value, Object *key, bool &stop) {
 			String *name = static_cast<String *>(key);
 			Number *index = static_cast<Number *>(value);
 			

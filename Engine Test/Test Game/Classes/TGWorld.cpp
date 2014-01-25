@@ -1187,7 +1187,7 @@ namespace TG
 		RN::Progress *progress = RN::Progress::GetActiveProgress()->IntermediateProgressAcountingFor(15);
 		progress->SetTotalUnits(children->GetCount());
 		
-		children->Enumerate<RN::Entity>([&](RN::Entity *entity, size_t index, bool *stop) {
+		children->Enumerate<RN::Entity>([&](RN::Entity *entity, size_t index, bool &stop) {
 			
 			batch->AddTask([&, entity] {
 				RN::Vector3 pos = entity->GetPosition();

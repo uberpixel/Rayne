@@ -210,7 +210,7 @@ namespace RN
 	{
 		Array *result = new Array();
 		
-		_nodes.Enumerate<FileSystemNode>([&](FileSystemNode *node, size_t index, bool *stop) {
+		_nodes.Enumerate<FileSystemNode>([&](FileSystemNode *node, size_t index, bool &stop) {
 			
 			bool allowed = false;
 			
@@ -469,7 +469,7 @@ namespace RN
 		
 		if(event->rescanSubdirectories)
 		{
-			_nodes.Enumerate<FileSystemNode>([&](FileSystemNode *node, size_t index, bool *stop) {
+			_nodes.Enumerate<FileSystemNode>([&](FileSystemNode *node, size_t index, bool &stop) {
 				if(node->IsDirectory())
 				{
 					DirectoryProxy *proxy = static_cast<DirectoryProxy *>(node);
@@ -624,7 +624,7 @@ namespace RN
 		
 		FileSystemNode *node = nullptr;
 		
-		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool *stop) {
+		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool &stop) {
 			
 			for(auto j = modifiers.begin(); j != modifiers.end(); j ++)
 			{
@@ -632,7 +632,7 @@ namespace RN
 				
 				if((node = directory->GetSubNode(filePath)))
 				{
-					*stop = true;
+					stop = true;
 					return;
 				}
 			}
@@ -640,7 +640,7 @@ namespace RN
 			std::string filePath = basePath + extension;
 			
 			if((node = directory->GetSubNode(filePath)))
-				*stop = true;
+				stop = true;
 		});
 		
 		return node;
@@ -737,14 +737,14 @@ namespace RN
 		
 		std::string path(buffer);
 		
-		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool *stop) {
+		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool &stop) {
 			
 			std::string dpath = directory->GetPath();
 			
 			if(path.find(dpath) == 0)
 			{
 				path = path.substr(dpath.length() + 1);
-				*stop = true;
+				stop = true;
 			}
 			
 		});
@@ -790,11 +790,11 @@ namespace RN
 		std::string path((result != 0) ? buffer : tpath.c_str());
 #endif
 		
-		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t index, bool *stop) {
+		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t index, bool &stop) {
 			if(directory->GetPath() == path)
 			{
 				hasPath = true;
-				*stop = true;
+				stop = true;
 			}
 		});
 		
@@ -821,11 +821,11 @@ namespace RN
 	{
 		size_t index = k::NotFound;
 		
-		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool *stop) {
+		_directories.Enumerate<DirectoryProxy>([&](DirectoryProxy *directory, size_t tindex, bool &stop) {
 			if(directory->GetPath() == path)
 			{
 				index = tindex;
-				*stop = true;
+				stop = true;
 			}
 		});
 		

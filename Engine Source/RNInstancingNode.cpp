@@ -120,7 +120,7 @@ namespace RN
 			delete data;
 		}
 		
-		_models->Enumerate([&](Object *object, bool *end) {
+		_models->Enumerate([&](Object *object, bool &stop) {
 			
 			Model *model = static_cast<Model *>(object);
 			auto iterator = _data.find(model);

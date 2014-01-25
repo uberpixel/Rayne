@@ -48,11 +48,11 @@ namespace RN
 	SceneManager *World::SceneManagerWithName(const std::string& name)
 	{
 		MetaClassBase *meta = nullptr;
-		Catalogue::GetSharedInstance()->EnumerateClasses([&](MetaClassBase *mclass, bool *stop) {
+		Catalogue::GetSharedInstance()->EnumerateClasses([&](MetaClassBase *mclass, bool &stop) {
 			if(mclass->Name() == name)
 			{
 				meta = mclass;
-				*stop = true;
+				stop = true;
 			}
 		});
 		

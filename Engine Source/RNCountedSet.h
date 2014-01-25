@@ -29,7 +29,7 @@ namespace RN
 		RNAPI void RemoveAllObjects();
 		RNAPI bool ContainsObject(Object *object);
 		
-		RNAPI void Enumerate(const std::function<void (Object *object, size_t count, bool *stop)>& callback);
+		RNAPI void Enumerate(const std::function<void (Object *object, size_t count, bool &stop)>& callback);
 		
 		RNAPI Array *GetAllObjects() const;
 		
