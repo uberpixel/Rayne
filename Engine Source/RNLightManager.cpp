@@ -233,7 +233,7 @@ namespace RN
 				break;
 				
 			case Light::Type::DirectionalLight:
-				if(light->HasShadow())
+				if(light->HasShadows())
 					_directionalLights.push_front(light);
 				else
 					_directionalLights.push_back(light);
@@ -303,7 +303,7 @@ namespace RN
 				const Vector3& position = light->GetWorldPosition();
 				const Vector3& color    = light->GetResultColor();
 				const float range = light->GetRange();
-				const float shadow = light->HasShadow()?static_cast<float>(i):-1.0f;
+				const float shadow = light->HasShadows()?static_cast<float>(i):-1.0f;
 				
 				if(i < _maxLightsDirect)
 				{
@@ -314,11 +314,12 @@ namespace RN
 				lightData[i * 2 + 0] = std::move(Vector4(position, range));
 				lightData[i * 2 + 1] = std::move(Vector4(color, shadow));
 				
-				if(light->HasShadow())
+				if(light->HasShadows())
 				{
-					if(light->GetShadowCamera())
+					RN::Camera *shadowCamera = static_cast<RN::Camera*>(light->GetShadowCameras()->GetFirstObject());
+					if(shadowCamera)
 					{
-						_lightPointDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
+						_lightPointDepth.push_back(shadowCamera->GetStorage()->GetDepthTarget());
 					}
 				}
 			}
@@ -381,7 +382,7 @@ namespace RN
 				const Vector3& direction = -light->GetForward();
 				const float angle = light->GetAngleCos();
 				const float range = light->GetRange();
-				const float shadow = light->HasShadow()?static_cast<float>(i):-1.0f;
+				const float shadow = light->HasShadows()?static_cast<float>(i):-1.0f;
 				
 				if(i < _maxLightsDirect)
 				{
@@ -394,12 +395,13 @@ namespace RN
 				lightData[i * 3 + 1] = Vector4(color, shadow);
 				lightData[i * 3 + 2] = Vector4(direction, angle);
 				
-				if(light->HasShadow())
+				if(light->HasShadows())
 				{
-					if(light->GetShadowCamera())
+					RN::Camera *shadowCamera = static_cast<RN::Camera*>(light->GetShadowCameras()->GetFirstObject());
+					if(shadowCamera)
 					{
 						_lightSpotMatrix.push_back(light->GetShadowMatrices()[0]);
-						_lightSpotDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
+						_lightSpotDepth.push_back(shadowCamera->GetStorage()->GetDepthTarget());
 					}
 				}
 			}
@@ -436,9 +438,9 @@ namespace RN
 			const Vector3& direction = -light->GetForward();
 			
 			_lightDirectionalDirection.push_back(direction);
-			_lightDirectionalColor.emplace_back(Vector4(color, light->HasShadow() ? static_cast<float>(i):-1.0f));
+			_lightDirectionalColor.emplace_back(Vector4(color, light->HasShadows() ? static_cast<float>(i):-1.0f));
 			
-			if(light->HasShadow())
+			if(light->HasShadows())
 			{
 				const std::vector<Matrix> &matrices = light->GetShadowMatrices();
 				
@@ -449,14 +451,7 @@ namespace RN
 						_lightDirectionalMatrix.push_back(matrices[i]);
 					}
 					
-					if(light->GetShadowCamera())
-					{
-						_lightDirectionalDepth.push_back(light->GetShadowCamera()->GetStorage()->GetDepthTarget());
-					}
-					else
-					{
-						_lightDirectionalDepth.push_back(light->GetShadowCameras()->GetFirstObject<Camera>()->GetStorage()->GetDepthTarget());
-					}
+					_lightDirectionalDepth.push_back(light->GetShadowCameras()->GetFirstObject<Camera>()->GetStorage()->GetDepthTarget());
 				}
 			}
 		}

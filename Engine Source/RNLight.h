@@ -23,17 +23,28 @@ namespace RN
 		ShadowParameter(size_t tresolution = 1024) :
 			resolution(tresolution),
 			splits(4),
-			distanceFactor(0.05f),
+			distanceBlendFactor(0.05f),
 			biasFactor(2.0f),
-			biasUnits(512.0f)
+			biasUnits(512.0f),
+			shadowTarget(nullptr)
+		{}
+		
+		ShadowParameter(Camera *target, size_t tresolution = 1024) :
+			resolution(tresolution),
+			splits(4),
+			distanceBlendFactor(0.05f),
+			biasFactor(2.0f),
+			biasUnits(512.0f),
+			shadowTarget(target)
 		{}
 		
 		size_t resolution;
 		
 		size_t splits;
-		float distanceFactor;
+		float distanceBlendFactor;
 		float biasFactor;
 		float biasUnits;
+		Camera *shadowTarget;
 	};
 	
 	class Light : public SceneNode
@@ -53,7 +64,8 @@ namespace RN
 		
 		RNAPI bool ActivateShadows(const ShadowParameter &parameter = ShadowParameter());
 		RNAPI void DeactivateShadows();
-		RNAPI bool HasShadow() const { return _shadow; }
+		RNAPI bool HasShadows() const { return (_shadowDepthCameras.GetCount() > 0 && !_suppressShadows); }
+		RNAPI void SetSuppressShadows(bool suppress);
 		
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI void Update(float delta) override;
@@ -64,7 +76,6 @@ namespace RN
 		RNAPI void SetColor(const Color& color);
 		RNAPI void SetAngle(float angle);
 		RNAPI void SetIntensity(float intensity);
-		RNAPI void SetLightCamera(Camera *lightCamera);
 		
 		const Color& GetColor() const { return _color; }
 		const Vector3& GetResultColor() { return _resultColor; }
@@ -75,11 +86,8 @@ namespace RN
 		float GetAngleCos() const { return _angleCos; }
 		float GetIntensity() const { return _intensity; }
 		
-		Camera *GetShadowCamera() const { return _shadowcam; }
-		Camera *GetLightCamera() const { return _lightcam; }
-		
-		const std::vector<Matrix> &GetShadowMatrices() const { return _shadowmats; }
-		const Array *GetShadowCameras() const { return &_shadowcams; }
+		const std::vector<Matrix> &GetShadowMatrices() const { return _shadowCameraMatrices; }
+		const Array *GetShadowCameras() const { return &_shadowDepthCameras; }
 	
 	private:
 		void ReCalculateColor();
@@ -101,13 +109,11 @@ namespace RN
 		
 		float _angleCos;
 		
-		Camera *_shadowcam;
-		Camera *_lightcam;
-		std::vector<Matrix> _shadowmats;
-		Array _shadowcams;
-		bool _shadow;
-		int _shadowSplits;
-		float _shadowDistFac;
+		Camera *_shadowTarget;
+		std::vector<Matrix> _shadowCameraMatrices;
+		Array _shadowDepthCameras;
+		bool _suppressShadows;
+		ShadowParameter _shadowParameter;
 		
 		RNDefineMetaWithTraits(Light, SceneNode, MetaClassTraitCronstructable)
 	};

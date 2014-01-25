@@ -677,8 +677,7 @@ namespace TG
 			});
 		}
 		_sunLight = new Sun();
-		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateShadows();
+		_sunLight->ActivateShadows(RN::ShadowParameter(_camera));
 #endif
 		
 		RN::Billboard *billboard = new RN::Billboard();
@@ -1164,8 +1163,7 @@ namespace TG
 		
 #if TGWorldFeatureLights
 		_sunLight = new Sun();
-		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateShadows();
+		_sunLight->ActivateShadows(RN::ShadowParameter(_camera));
 	
 /*		for(int i=0; i<10; i++)
 		{
@@ -1257,8 +1255,7 @@ namespace TG
 		_sunLight = new Sun();
 		_sunLight->SetIntensity(5.0f);
 		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
-		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateShadows();
+		_sunLight->ActivateShadows(RN::ShadowParameter(_camera));
 		
 		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
 		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
