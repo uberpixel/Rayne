@@ -273,7 +273,7 @@ namespace RN
 		RNAPI void SetFogNear(float near);
 		RNAPI void SetFogFar(float far);
 		RNAPI void SetAmbientColor(Color color);
-		RNAPI void SetClipPlane(Vector4 clipPlane);
+		RNAPI void SetClipPlane(const Vector4 &clipPlane);
 		RNAPI void SetRenderGroups(RenderGroups groups);
 		RNAPI void SetOrthogonalFrustum(float top, float bottom, float left, float right);
 		
