@@ -386,7 +386,7 @@ namespace RN
 				
 				for(uint32 i = 0; i < _shadowParameter.splits.size(); i++)
 				{
-					if((GetLastFrame() % _shadowParameter.splits[i].updateInterval) == 0)
+					if(((GetLastFrame()+_shadowParameter.splits[i].updateOffset) % _shadowParameter.splits[i].updateInterval) == 0)
 					{
 						Camera *cam = _shadowDepthCameras.GetObjectAtIndex<Camera>(i);
 						cam->SetFlags(cam->GetFlags()&(~Camera::Flags::NoRender));
