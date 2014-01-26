@@ -38,6 +38,7 @@ namespace RN
 	{
 		ShaderLookup(uint32 ttype) :
 			lightDirectionalCount(0),
+			lightDirectionalShadowSplits(0),
 			lightPointSpotCount(0)
 		{
 			std::hash<std::string> hash_fn;
@@ -49,6 +50,7 @@ namespace RN
 		
 		ShaderLookup(const std::vector<ShaderDefine>& tdefines) :
 			lightDirectionalCount(0),
+			lightDirectionalShadowSplits(0),
 			lightPointSpotCount(0)
 		{
 			defines = tdefines;
@@ -81,6 +83,7 @@ namespace RN
 		uint32 type;
 		size_t hash;
 		size_t lightDirectionalCount;
+		size_t lightDirectionalShadowSplits;
 		size_t lightPointSpotCount;
 		std::string mangledDefines;
 		std::vector<ShaderDefine> defines;

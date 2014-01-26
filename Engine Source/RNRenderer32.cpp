@@ -241,8 +241,6 @@ namespace RN
 					// Grab the correct shader program
 					std::vector<ShaderDefine> defines;
 					ShaderLookup lookup = material->GetLookup();
-					
-					uint32 programTypes = 0;
 					ShaderProgram *program = 0;
 					
 					bool wantsDiscard = material->discard;
@@ -250,7 +248,27 @@ namespace RN
 						wantsDiscard = surfaceMaterial->discard;
 					
 					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
-						programTypes |= ShaderProgram::TypeAnimated;
+						lookup.type |= ShaderProgram::TypeAnimated;
+					
+					if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::TypeFog))
+						lookup.type |= ShaderProgram::TypeFog;
+					
+					if(wantsClipPlane && shader->SupportsProgramOfType(ShaderProgram::TypeClipPlane))
+						lookup.type |= ShaderProgram::TypeClipPlane;
+					
+					if(wantsInstancing)
+						lookup.type |= ShaderProgram::TypeInstanced;
+					
+					if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
+						lookup.type |= ShaderProgram::TypeDiscard;
+					
+					if(material->GetTextures().GetCount() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDiffuse))
+						lookup.type |= ShaderProgram::TypeDiffuse;
+					
+					if(surfaceMaterial)
+					{
+						lookup = lookup + surfaceMaterial->GetLookup();
+					}
 					
 					bool wantsLighting = (material->lighting && lightManager && shader->SupportsProgramOfType(ShaderProgram::TypeLighting));
 					
@@ -260,43 +278,17 @@ namespace RN
 					
 					if(wantsLighting)
 					{
-						programTypes |= ShaderProgram::TypeLighting;
-						lightManager->AdjustProgramTypes(shader, programTypes);
-						
+						lookup.type |= ShaderProgram::TypeLighting;
 						lookup.lightDirectionalCount = lightDirectionalCount;
 						
 						//TODO: fix
 						if(lightPointSpotCount > 0)
 							lookup.lightPointSpotCount = 1;//lightPointSpotCount;
-					}
-					
-					if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::TypeFog))
-						programTypes |= ShaderProgram::TypeFog;
-					
-					if(wantsClipPlane && shader->SupportsProgramOfType(ShaderProgram::TypeClipPlane))
-						programTypes |= ShaderProgram::TypeClipPlane;
-					
-					if(wantsInstancing)
-						programTypes |= ShaderProgram::TypeInstanced;
-					
-					if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
-						programTypes |= ShaderProgram::TypeDiscard;
-					
-					if(material->GetTextures().GetCount() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDiffuse))
-						programTypes |= ShaderProgram::TypeDiffuse;
-					
-					if(surfaceMaterial)
-					{
-						lookup = lookup + surfaceMaterial->GetLookup();
-						lookup.type |= programTypes;
 						
-						program = shader->GetProgramWithLookup(lookup);
+						lightManager->AdjustShaderLookup(shader, lookup);
 					}
-					else
-					{
-						lookup.type |= programTypes;
-						program = shader->GetProgramWithLookup(lookup);
-					}
+					
+					program = shader->GetProgramWithLookup(lookup);
 					
 					RN_ASSERT(program, "");
 					
@@ -391,6 +383,11 @@ namespace RN
 					}
 					
 					DrawMesh(mesh, object.offset, object.count);
+				}
+				
+				if(lightManager)
+				{
+					lightManager->ClearLights();
 				}
 			}
 			else if(source)

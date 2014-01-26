@@ -110,13 +110,13 @@ namespace RN
 		switch(_lightType)
 		{
 			case Type::PointLight:
-				return ActivatePointShadows(_shadowParameter);
+				return ActivatePointShadows();
 				
 			case Type::SpotLight:
-				return ActivateSpotShadows(_shadowParameter);
+				return ActivateSpotShadows();
 				
 			case Type::DirectionalLight:
-				return ActivateDirectionalShadows(_shadowParameter);
+				return ActivateDirectionalShadows();
 
 			default:
 				return false;
@@ -146,13 +146,51 @@ namespace RN
 		}
 	}
 	
+	void Light::UpdateShadowParameters(const ShadowParameter &parameter)
+	{
+		RN_ASSERT(HasShadows(), "Shadows need to be activated in order to update their parameters!");
+		
+		if(_shadowParameter.resolution != parameter.resolution || _shadowParameter.splits.size() != parameter.splits.size())
+		{
+			DeactivateShadows();
+			ActivateShadows(parameter);
+		}
+		else
+		{
+			if(parameter.shadowTarget != _shadowTarget)
+			{
+				if(_shadowTarget)
+				{
+					RemoveDependency(_shadowTarget);
+					_shadowTarget->Release();
+				}
+				
+				if(parameter.shadowTarget)
+				{
+					_shadowTarget = parameter.shadowTarget;
+					_shadowTarget->Retain();
+					AddDependency(_shadowTarget);
+				}
+			}
+			
+			_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
+				camera->GetMaterial()->polygonOffsetFactor = parameter.splits[index].biasFactor;
+				camera->GetMaterial()->polygonOffsetUnits = parameter.splits[index].biasUnits;
+			});
+			
+			_shadowParameter = parameter;
+		}
+	}
 	
-	bool Light::ActivateDirectionalShadows(const ShadowParameter &parameter)
+	
+	bool Light::ActivateDirectionalShadows()
 	{
 		if(_shadowDepthCameras.GetCount() > 0)
 			DeactivateShadows();
 		
-		RN_ASSERT(parameter.shadowTarget, "Directional shadows need the shadowTarget to be set to a valid value!");
+		RN_ASSERT(_shadowParameter.shadowTarget, "Directional shadows need the shadowTarget to be set to a valid value!");
+		
+		RN_ASSERT(_shadowParameter.splits.size() > 0, "The shadow parameter for directional lights needs one or more splits!");
 		
 		if(_shadowTarget)
 		{
@@ -160,7 +198,7 @@ namespace RN
 			_shadowTarget->Release();
 		}
 		
-		_shadowTarget = parameter.shadowTarget;
+		_shadowTarget = _shadowParameter.shadowTarget;
 		_shadowTarget->Retain();
 		AddDependency(_shadowTarget);
 		
@@ -172,21 +210,26 @@ namespace RN
 		textureParameter.maxMipMaps = 0;
 		
 		Texture2DArray *depthtex = new Texture2DArray(textureParameter);
-		depthtex->SetSize(32, 32, parameter.splits);
+		depthtex->SetSize(_shadowParameter.resolution, _shadowParameter.resolution, _shadowParameter.splits.size());
 		depthtex->Autorelease();
 		
-		Shader   *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
-		Material *depthMaterial = new Material(depthShader);
-		depthMaterial->polygonOffset = true;
-		depthMaterial->polygonOffsetFactor = parameter.biasFactor;
-		depthMaterial->polygonOffsetUnits  = parameter.biasUnits;
+		Shader *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
 		
-		for(uint32 i = 0; i < _shadowParameter.splits; i++)
+		_shadowCameraMatrices.clear();
+		
+		for(uint32 i = 0; i < _shadowParameter.splits.size(); i++)
 		{
+			_shadowCameraMatrices.push_back(Matrix());
+			
+			Material *depthMaterial = new Material(depthShader);
+			depthMaterial->polygonOffset = true;
+			depthMaterial->polygonOffsetFactor = _shadowParameter.splits[i].biasFactor;
+			depthMaterial->polygonOffsetUnits  = _shadowParameter.splits[i].biasUnits;
+			
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 			storage->SetDepthTarget(depthtex, i);
 			
-			Camera *tempcam = new Camera(Vector2(parameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::Orthogonal | Camera::Flags::NoFlush, 1.0f);
+			Camera *tempcam = new Camera(Vector2(_shadowParameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::Orthogonal | Camera::Flags::NoFlush, 1.0f);
 			tempcam->SetMaterial(depthMaterial);
 			tempcam->SetLODCamera(_shadowTarget);
 			tempcam->SetLightManager(nullptr);
@@ -215,10 +258,12 @@ namespace RN
 		return true;
 	}
 	
-	bool Light::ActivatePointShadows(const ShadowParameter &parameter)
+	bool Light::ActivatePointShadows()
 	{
 		if(_shadowDepthCameras.GetCount() > 0)
 			DeactivateShadows();
+		
+		RN_ASSERT(_shadowParameter.splits.size() == 1, "The shadow parameter for point lights needs exactly one split!");
 		
 		Texture::Parameter textureParameter;
 		textureParameter.wrapMode = Texture::WrapMode::Repeat;
@@ -231,11 +276,14 @@ namespace RN
 		
 		Shader   *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyPointShadowDepthShader, nullptr);
 		Material *depthMaterial = (new Material(depthShader))->Autorelease();
+		depthMaterial->polygonOffset = true;
+		depthMaterial->polygonOffsetFactor = _shadowParameter.splits[0].biasFactor;
+		depthMaterial->polygonOffsetUnits  = _shadowParameter.splits[0].biasUnits;
 		
 		RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 		storage->SetDepthTarget(depthtex, -1);
 		
-		RN::Camera *shadowcam = new CubemapCamera(Vector2(parameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush, 1.0f);
+		RN::Camera *shadowcam = new CubemapCamera(Vector2(_shadowParameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush, 1.0f);
 		shadowcam->Retain();
 		shadowcam->Autorelease();
 		shadowcam->SetMaterial(depthMaterial);
@@ -265,10 +313,12 @@ namespace RN
 		return true;
 	}
 	
-	bool Light::ActivateSpotShadows(const ShadowParameter &parameter)
+	bool Light::ActivateSpotShadows()
 	{
 		if(_shadowDepthCameras.GetCount() > 0)
 			DeactivateShadows();
+		
+		RN_ASSERT(_shadowParameter.splits.size() == 1, "The shadow parameter for spot lights needs exactly one split!");
 		
 		Texture::Parameter textureParameter;
 		textureParameter.wrapMode = Texture::WrapMode::Clamp;
@@ -283,13 +333,13 @@ namespace RN
 		Shader   *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
 		Material *depthMaterial = (new Material(depthShader))->Autorelease();
 		depthMaterial->polygonOffset = true;
-		depthMaterial->polygonOffsetFactor = parameter.biasFactor;
-		depthMaterial->polygonOffsetUnits  = parameter.biasUnits;
+		depthMaterial->polygonOffsetFactor = _shadowParameter.splits[0].biasFactor;
+		depthMaterial->polygonOffsetUnits  = _shadowParameter.splits[0].biasUnits;
 		
 		RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 		storage->SetDepthTarget(depthtex, -1);
 		
-		RN::Camera *shadowcam = new Camera(Vector2(parameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush, 1.0f);
+		RN::Camera *shadowcam = new Camera(Vector2(_shadowParameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush, 1.0f);
 		shadowcam->Retain();
 		shadowcam->Autorelease();
 		shadowcam->SetMaterial(depthMaterial);
@@ -334,18 +384,30 @@ namespace RN
 				float near = _shadowTarget->GetClipNear();
 				float far;
 				
-				_shadowCameraMatrices.clear();
-				
-				for(uint32 i = 0; i < _shadowParameter.splits; i++)
+				for(uint32 i = 0; i < _shadowParameter.splits.size(); i++)
 				{
-					float linear = _shadowTarget->GetClipNear() + (_shadowTarget->GetClipFar() - _shadowTarget->GetClipNear())*(i+1.0f) / float(_shadowParameter.splits);
-					float log = _shadowTarget->GetClipNear() * powf(_shadowTarget->GetClipFar() / _shadowTarget->GetClipNear(), (i+1.0f) / float(_shadowParameter.splits));
+					if((GetLastFrame() % _shadowParameter.splits[i].updateInterval) == 0)
+					{
+						Camera *cam = _shadowDepthCameras.GetObjectAtIndex<Camera>(i);
+						cam->SetFlags(cam->GetFlags()&(~Camera::Flags::NoRender));
+						cam->SetClearMask(Camera::ClearMask::Depth);
+					}
+					else
+					{
+						Camera *cam = _shadowDepthCameras.GetObjectAtIndex<Camera>(i);
+						cam->SetFlags(cam->GetFlags()|Camera::Flags::NoRender);
+						cam->SetClearMask(0);
+						continue;
+					}
+					
+					float linear = _shadowTarget->GetClipNear() + (_shadowTarget->GetClipFar() - _shadowTarget->GetClipNear())*(i+1.0f) / float(_shadowParameter.splits.size());
+					float log = _shadowTarget->GetClipNear() * powf(_shadowTarget->GetClipFar() / _shadowTarget->GetClipNear(), (i+1.0f) / float(_shadowParameter.splits.size()));
 					far = linear*_shadowParameter.distanceBlendFactor+log*(1.0f-_shadowParameter.distanceBlendFactor);
 					
 					Camera *tempcam = _shadowDepthCameras.GetObjectAtIndex<Camera>(i);
 					tempcam->SetWorldRotation(GetWorldRotation());
 					
-					_shadowCameraMatrices.push_back(std::move(tempcam->MakeShadowSplit(_shadowTarget, this, near, far)));
+					_shadowCameraMatrices[i] = std::move(tempcam->MakeShadowSplit(_shadowTarget, this, near, far));
 					
 					near = far;
 				}

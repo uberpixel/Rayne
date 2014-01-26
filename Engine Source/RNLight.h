@@ -18,32 +18,46 @@
 
 namespace RN
 {
+	struct ShadowSplit
+	{
+		ShadowSplit(size_t tupdateInterval = 1, size_t tupdateOffset = 0) :
+			biasFactor(2.0f),
+			biasUnits(512.0f),
+			updateInterval(tupdateInterval),
+			updateOffset(tupdateOffset)
+		{}
+		
+		float biasFactor;
+		float biasUnits;
+		size_t updateInterval;
+		size_t updateOffset;
+	};
+	
 	struct ShadowParameter
 	{
 		ShadowParameter(size_t tresolution = 1024) :
 			resolution(tresolution),
-			splits(4),
 			distanceBlendFactor(0.05f),
-			biasFactor(2.0f),
-			biasUnits(512.0f),
 			shadowTarget(nullptr)
-		{}
+		{
+			splits.push_back(ShadowSplit());
+		}
 		
 		ShadowParameter(Camera *target, size_t tresolution = 1024) :
 			resolution(tresolution),
-			splits(4),
 			distanceBlendFactor(0.05f),
-			biasFactor(2.0f),
-			biasUnits(512.0f),
 			shadowTarget(target)
-		{}
+		{
+			splits.push_back(ShadowSplit(1, 0));
+			splits.push_back(ShadowSplit(2, 0));
+			splits.push_back(ShadowSplit(2, 1));
+			splits.push_back(ShadowSplit(3, 0));
+		}
 		
 		size_t resolution;
 		
-		size_t splits;
+		std::vector<ShadowSplit> splits;
 		float distanceBlendFactor;
-		float biasFactor;
-		float biasUnits;
 		Camera *shadowTarget;
 	};
 	
@@ -66,6 +80,7 @@ namespace RN
 		RNAPI void DeactivateShadows();
 		RNAPI bool HasShadows() const { return (_shadowDepthCameras.GetCount() > 0 && !_suppressShadows); }
 		RNAPI void SetSuppressShadows(bool suppress);
+		RNAPI void UpdateShadowParameters(const ShadowParameter &parameter);
 		
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI void Update(float delta) override;
@@ -86,6 +101,8 @@ namespace RN
 		float GetAngleCos() const { return _angleCos; }
 		float GetIntensity() const { return _intensity; }
 		
+		ShadowParameter GetShadowParameter() const {return _shadowParameter;}
+		
 		const std::vector<Matrix> &GetShadowMatrices() const { return _shadowCameraMatrices; }
 		const Array *GetShadowCameras() const { return &_shadowDepthCameras; }
 	
@@ -93,9 +110,9 @@ namespace RN
 		void ReCalculateColor();
 		void RemoveShadowCameras();
 		
-		bool ActivateDirectionalShadows(const ShadowParameter &parameter);
-		bool ActivatePointShadows(const ShadowParameter &parameter);
-		bool ActivateSpotShadows(const ShadowParameter &parameter);
+		bool ActivateDirectionalShadows();
+		bool ActivatePointShadows();
+		bool ActivateSpotShadows();
 		
 		Type _lightType;
 		

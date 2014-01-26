@@ -35,10 +35,12 @@ namespace RN
 			void release()
 			{
 				if((-- _references) == 0)
+				{
+					if(_hasException)
+						std::rethrow_exception(_exception);
+					
 					delete this;
-				
-				if(_hasException)
-					std::rethrow_exception(_exception);
+				}
 			}
 			
 			void signal_exception(std::exception_ptr e)

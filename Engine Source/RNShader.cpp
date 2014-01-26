@@ -353,7 +353,7 @@ namespace RN
 			temporaryDefines.emplace_back(ShaderDefine("RN_DISCARD", ""));
 		
 		if(lookup.type & ShaderProgram::TypeDirectionalShadows)
-			temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_SHADOWS", ""));
+			temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_SHADOWS", static_cast<uint32>(lookup.lightDirectionalShadowSplits)));
 		if(lookup.type & ShaderProgram::TypePointShadows)
 			temporaryDefines.emplace_back(ShaderDefine("RN_POINT_SHADOWS", ""));
 		if(lookup.type & ShaderProgram::TypeSpotShadows)
@@ -369,7 +369,7 @@ namespace RN
 			temporaryDefines.emplace_back(ShaderDefine("RN_GAMMA_CORRECTION", ""));
 		
 		if(lookup.lightDirectionalCount > 0)
-			temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_LIGHTS", static_cast<int>(lookup.lightDirectionalCount)));
+			temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_LIGHTS", static_cast<uint32>(lookup.lightDirectionalCount)));
 		if(lookup.lightPointSpotCount > 0)
 			temporaryDefines.emplace_back(ShaderDefine("RN_POINTSPOT_LIGHTS", 1));
 		

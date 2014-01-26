@@ -207,16 +207,19 @@ namespace RN
 		}
 	}
 	
-	void ClusteredLightManager::AdjustProgramTypes(Shader *shader, uint32 &types)
+	void ClusteredLightManager::AdjustShaderLookup(Shader *shader, ShaderLookup &lookup)
 	{
 		if(_lightDirectionalDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDirectionalShadows))
-			types |= ShaderProgram::TypeDirectionalShadows;
+		{
+			lookup.type |= ShaderProgram::TypeDirectionalShadows;
+			lookup.lightDirectionalShadowSplits = _directionalLights.front()->GetShadowParameter().splits.size();
+		}
 		
 		if(_lightPointDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypePointShadows))
-			types |= ShaderProgram::TypePointShadows;
+			lookup.type |= ShaderProgram::TypePointShadows;
 		
 		if(_lightSpotDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeSpotShadows))
-			types |= ShaderProgram::TypeSpotShadows;
+			lookup.type |= ShaderProgram::TypeSpotShadows;
 	}
 	
 	
@@ -242,6 +245,13 @@ namespace RN
 			default:
 				break;
 		}
+	}
+	
+	void ClusteredLightManager::ClearLights()
+	{
+		_pointLights.clear();
+		_spotLights.clear();
+		_directionalLights.clear();
 	}
 
 	
@@ -416,9 +426,6 @@ namespace RN
 			gl::BufferData(GL_TEXTURE_BUFFER, 1, nullptr, GL_STATIC_DRAW);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		}
-		
-		_pointLights.clear();
-		_spotLights.clear();
 	}
 	
 	
@@ -446,7 +453,7 @@ namespace RN
 				
 				if(matrices.size() > 0)
 				{
-					for(int i = 0; i < 4; i++)
+					for(int i = 0; i < light->GetShadowParameter().splits.size(); i++)
 					{
 						_lightDirectionalMatrix.push_back(matrices[i]);
 					}
@@ -455,8 +462,6 @@ namespace RN
 				}
 			}
 		}
-		
-		_directionalLights.clear();
 	}
 	
 	

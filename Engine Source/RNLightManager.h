@@ -33,10 +33,11 @@ namespace RN
 		RNAPI LightManager();
 		
 		RNAPI virtual void UpdateProgram(Renderer *renderer, ShaderProgram *program) = 0;
-		RNAPI virtual void AdjustProgramTypes(Shader *program, uint32 &types) = 0;
+		RNAPI virtual void AdjustShaderLookup(Shader *shader, ShaderLookup &lookup) = 0;
 		
 		RNAPI virtual void AddLight(Light *light) = 0;
 		RNAPI virtual void CreateLightLists() = 0;
+		RNAPI virtual void ClearLights() = 0;
 		
 		RNAPI virtual size_t GetSpotlightCount() = 0;
 		RNAPI virtual size_t GetPointLightCount() = 0;
@@ -59,10 +60,11 @@ namespace RN
 		RNAPI ~ClusteredLightManager();
 		
 		RNAPI void UpdateProgram(Renderer *renderer, ShaderProgram *program) final;
-		RNAPI void AdjustProgramTypes(Shader *program, uint32 &types) final;
+		RNAPI void AdjustShaderLookup(Shader *shader, ShaderLookup &lookup) final;
 		
 		RNAPI void AddLight(Light *light) final;
 		RNAPI void CreateLightLists() final;
+		RNAPI void ClearLights() final;
 		
 		RNAPI void SetClusterSize(const Vector3 &size);
 		RNAPI void SetMaxDirectionalLights(size_t maxLights);
