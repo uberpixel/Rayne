@@ -449,6 +449,9 @@
     <ClInclude Include="Engine Source\RNEnum.h">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNSyncPoint.h">
+      <Filter>STL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
@@ -801,6 +804,9 @@
     </ClCompile>
     <ClCompile Include="Engine Source\RNWorldCoordinator.cpp">
       <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNSyncPoint.cpp">
+      <Filter>STL</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

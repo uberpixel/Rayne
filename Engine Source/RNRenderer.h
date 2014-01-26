@@ -88,9 +88,9 @@ namespace RN
 			PNG
 		};
 		
-		~FrameCapture() override;
+		RNAPI ~FrameCapture() override;
 		
-		Data *GetData(Format format);
+		RNAPI Data *GetData(Format format);
 		
 		size_t GetWidth() const { return _width; }
 		size_t GetHeight() const { return _height; }

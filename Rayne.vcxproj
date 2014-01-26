@@ -115,6 +115,7 @@
     <ClInclude Include="Engine Source\RNStatistics.h" />
     <ClInclude Include="Engine Source\RNSTL.h" />
     <ClInclude Include="Engine Source\RNString.h" />
+    <ClInclude Include="Engine Source\RNSyncPoint.h" />
     <ClInclude Include="Engine Source\RNTextNode.h" />
     <ClInclude Include="Engine Source\RNTexture.h" />
     <ClInclude Include="Engine Source\RNTextureAtlas.h" />
@@ -238,6 +239,7 @@
     <ClCompile Include="Engine Source\RNSpinLock.cpp" />
     <ClCompile Include="Engine Source\RNStatistics.cpp" />
     <ClCompile Include="Engine Source\RNString.cpp" />
+    <ClCompile Include="Engine Source\RNSyncPoint.cpp" />
     <ClCompile Include="Engine Source\RNTextNode.cpp" />
     <ClCompile Include="Engine Source\RNTexture.cpp" />
     <ClCompile Include="Engine Source\RNTextureAtlas.cpp" />
