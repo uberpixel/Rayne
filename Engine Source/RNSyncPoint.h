@@ -23,16 +23,16 @@ namespace RN
 		public:
 			friend class syncable;
 			
-			sync_point();
-			sync_point(sync_point &&other);
+			RNAPI sync_point();
+			RNAPI sync_point(sync_point &&other);
 			sync_point(const sync_point &other) = delete;
-			~sync_point();
+			RNAPI ~sync_point();
 			
-			sync_point &operator= (sync_point &&other);
+			RNAPI sync_point &operator= (sync_point &&other);
 			sync_point &operator= (const sync_point &other) = delete;
 			
-			void wait();
-			bool signaled();
+			RNAPI void wait();
+			RNAPI bool signaled();
 			
 		private:
 			sync_point(__sync_state *state);
@@ -43,18 +43,18 @@ namespace RN
 		class syncable
 		{
 		public:
-			syncable();
-			syncable(syncable &&other);
+			RNAPI syncable();
+			RNAPI syncable(syncable &&other);
 			syncable(const syncable &other) = delete;
-			~syncable();
+			RNAPI ~syncable();
 			
-			syncable &operator= (syncable &&other);
+			RNAPI syncable &operator= (syncable &&other);
 			syncable &operator= (const syncable &other) = delete;
 			
-			void signal_exception(std::exception_ptr e);
-			void signal();
+			RNAPI void signal_exception(std::exception_ptr e);
+			RNAPI void signal();
 			
-			sync_point get_sync_point();
+			RNAPI sync_point get_sync_point();
 			
 		public:
 			__sync_state *_state;
