@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Test Game\Classes\TGApplication.h" />
+    <ClInclude Include="Test Game\Classes\TGCutScene.h" />
     <ClInclude Include="Test Game\Classes\TGDebugDrawer.h" />
     <ClInclude Include="Test Game\Classes\TGLoadingScreen.h" />
     <ClInclude Include="Test Game\Classes\TGPlayer.h" />
@@ -89,6 +90,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Test Game\Classes\TGApplication.cpp" />
+    <ClCompile Include="Test Game\Classes\TGCutScene.cpp" />
     <ClCompile Include="Test Game\Classes\TGDebugDrawer.cpp" />
     <ClCompile Include="Test Game\Classes\TGLoadingScreen.cpp" />
     <ClCompile Include="Test Game\Classes\TGPlayer.cpp" />

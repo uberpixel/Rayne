@@ -587,7 +587,7 @@ namespace RN
 	{
 		_ambient = color;
 	}
-	void Camera::SetClipPlane(Vector4 clipPlane)
+	void Camera::SetClipPlane(const Vector4 &clipPlane)
 	{
 		_clipPlane = clipPlane;
 	}
