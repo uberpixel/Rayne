@@ -9,8 +9,6 @@
 #include "RNBillboard.h"
 #include "RNResourceCoordinator.h"
 
-#define kRNBillboardMeshResourceName RNCSTR("kRNBillboardMeshResourceName")
-
 namespace RN
 {
 	RNDeclareMeta(Billboard)
@@ -37,6 +35,7 @@ namespace RN
 		_material->Define("RN_BILLBOARD");
 		
 		static std::once_flag onceFlag;
+		static Mesh *mesh;
 		
 		std::call_once(onceFlag, []() {
 			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
@@ -49,7 +48,7 @@ namespace RN
 			
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor };
 			
-			Mesh *mesh = new Mesh(descriptors, 10, 0);
+			mesh = new Mesh(descriptors, 10, 0);
 			mesh->SetMode(GL_TRIANGLE_STRIP);
 			
 			Mesh::Chunk chunk = mesh->GetChunk();
@@ -85,22 +84,26 @@ namespace RN
 			*uvCoords ++ = Vector2(0.0f, 1.0f);
 			
 			chunk.CommitChanges();
-			
-			ResourceCoordinator::GetSharedInstance()->AddResource(mesh, kRNBillboardMeshResourceName);
 		});
 		
-		_mesh = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Mesh>(kRNBillboardMeshResourceName, nullptr)->Retain();
+		_mesh = mesh->Retain();
 	}
 	
-	void Billboard::SetTexture(Texture *texture)
+	void Billboard::SetTexture(Texture *texture, float scaleFactor)
 	{
 		_material->RemoveTextures();
 		_material->AddTexture(texture);
 		
 		_size = Vector2(texture->GetWidth(), texture->GetHeight());
-		_size *= 0.1f;
+		_size *= scaleFactor;
 		
 		SetBoundingBox(_mesh->GetBoundingBox() * Vector3(_size.x, _size.y, 1.0f));
+	}
+	
+	Texture *Billboard::GetTexture() const
+	{
+		const Array *array = _material->GetTextures();
+		return (array->GetCount() > 0) ? array->GetObjectAtIndex<Texture>(0) : nullptr;
 	}
 	
 	void Billboard::Render(Renderer *renderer, Camera *camera)
@@ -124,7 +127,7 @@ namespace RN
 	{
 		Hit hit;
 		
-		if(_mesh == 0)
+		if(!_mesh)
 			return hit;
 		
 		Matrix matModelInv = _transform.GetInverse();

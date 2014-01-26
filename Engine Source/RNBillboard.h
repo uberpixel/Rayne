@@ -23,11 +23,15 @@ namespace RN
 		RNAPI Billboard();
 		RNAPI ~Billboard() override;
 		
-		RNAPI void SetTexture(Texture *texture);
-		RNAPI void Render(Renderer *renderer, Camera *camera) override;
-		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
+		RNAPI void SetTexture(Texture *texture, float scaleFactor = 0.1f);
 		
 		RNAPI Material *GetMaterial() const { return _material; }
+		RNAPI Texture *GetTexture() const;
+		RNAPI const Vector2 &GetSize() const { return _size; }
+		
+		
+		RNAPI void Render(Renderer *renderer, Camera *camera) override;
+		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
 		
 	private:
 		void Initialize();
