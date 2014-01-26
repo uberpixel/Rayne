@@ -36,6 +36,9 @@ namespace RN
 			{
 				if((-- _references) == 0)
 					delete this;
+				
+				if(_hasException)
+					std::rethrow_exception(_exception);
 			}
 			
 			void signal_exception(std::exception_ptr e)
@@ -75,7 +78,10 @@ namespace RN
 				_condition.wait(lock, [&]{ return (_signaled == true); });
 				
 				if(_hasException)
+				{
 					std::rethrow_exception(_exception);
+					_hasException = false;
+				}
 			}
 			
 			bool signaled()
