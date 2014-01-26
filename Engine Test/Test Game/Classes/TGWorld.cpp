@@ -687,8 +687,8 @@ namespace TG
 		billboard->GetMaterial()->blending = true;
 		billboard->GetMaterial()->blendSource = GL_SRC_ALPHA;
 		billboard->GetMaterial()->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-		billboard->GetMaterial()->depthwrite = false;
-		billboard->GetMaterial()->depthtest = true;
+		billboard->GetMaterial()->depthWrite = false;
+		billboard->GetMaterial()->depthTest = true;
 		billboard->SetRenderGroup(1);
 		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
 		billboard->Translate(RN::Vector3(-17.35f, 12.0f, 0.7f));

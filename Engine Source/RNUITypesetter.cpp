@@ -544,8 +544,8 @@ namespace RN
 				
 				Material *material = new Material(shader);
 				material->AddTexture(font->GetTexture());
-				material->depthtest = false;
-				material->depthwrite = false;
+				material->depthTest = false;
+				material->depthWrite = false;
 				material->blending = true;
 				material->lighting = false;
 				material->ambient  = color->GetRNColor();

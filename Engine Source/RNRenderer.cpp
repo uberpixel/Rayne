@@ -421,19 +421,19 @@ namespace RN
 		SetCullingEnabled(PickAttribute(OverrideCulling, culling));
 		SetCullMode(PickAttribute(OverrideCullmode, cullmode));
 
-		SetDepthTestEnabled(PickAttribute(OverrideDepthtest, depthtest));
-		SetDepthFunction(PickAttribute(OverrideDepthtestMode, depthtestmode));
+		SetDepthTestEnabled(PickAttribute(OverrideDepthtest, depthTest));
+		SetDepthFunction(PickAttribute(OverrideDepthtestMode, depthTestMode));
 		
 		SetPolygonOffsetEnabled(PickAttribute(OverridePolygonOffset, polygonOffset));
 		SetPolygonOffset(PickAttribute(OverridePolygonOffset, polygonOffsetFactor), PickAttribute(OverridePolygonOffset, polygonOffsetUnits));
 		
 		if(material->override & Material::OverrideDepthwrite)
 		{
-			SetDepthWriteEnabled((material->depthwrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
+			SetDepthWriteEnabled((material->depthWrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
 		}
 		else
 		{
-			SetDepthWriteEnabled((surfaceMaterial->depthwrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
+			SetDepthWriteEnabled((surfaceMaterial->depthWrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
 		}
 		
 		SetBlendingEnabled(PickAttribute(OverrideBlending, blending));

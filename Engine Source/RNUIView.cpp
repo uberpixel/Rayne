@@ -108,8 +108,8 @@ namespace RN
 		Material *View::BasicMaterial(Shader *shader)
 		{
 			Material *material = new Material(shader);
-			material->depthtest  = false;
-			material->depthwrite = false;
+			material->depthTest  = false;
+			material->depthWrite = false;
 			material->blending   = true;
 			material->blendSource = GL_SRC_ALPHA;
 			material->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
@@ -723,7 +723,7 @@ namespace RN
 		
 		void View::Draw(Renderer *renderer)
 		{
-			if(_material->diffuse->a >= k::EpsilonFloat)
+			if(_material->diffuse.a >= k::EpsilonFloat)
 			{
 				RenderingObject object;
 				PopulateRenderingObject(object);

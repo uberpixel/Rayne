@@ -193,32 +193,32 @@ namespace RN
 		
 		Material *skyDownMaterial = new Material(matShader);
 		skyDownMaterial->AddTexture(Texture::WithFile(down, parameter));
-		skyDownMaterial->depthwrite = false;
+		skyDownMaterial->depthWrite = false;
 		Mesh  *skyDownMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f));
 		
 		Material *skyUpMaterial = new Material(matShader);
 		skyUpMaterial->AddTexture(Texture::WithFile(up, parameter));
-		skyUpMaterial->depthwrite = false;
+		skyUpMaterial->depthWrite = false;
 		Mesh  *skyUpMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(180.0f, 180.0f, 0.0f));
 		
 		Material *skyLeftMaterial = new Material(matShader);
 		skyLeftMaterial->AddTexture(Texture::WithFile(left, parameter));
-		skyLeftMaterial->depthwrite = false;
+		skyLeftMaterial->depthWrite = false;
 		Mesh  *skyLeftMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(-90.0f, 90.0f, 0.0f));
 		
 		Material *skyRightMaterial = new Material(matShader);
 		skyRightMaterial->AddTexture(Texture::WithFile(right, parameter));
-		skyRightMaterial->depthwrite = false;
+		skyRightMaterial->depthWrite = false;
 		Mesh  *skyRightMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(90.0f, 90.0f, 0.0f));
 		
 		Material *skyFrontMaterial = new Material(matShader);
 		skyFrontMaterial->AddTexture(Texture::WithFile(front, parameter));
-		skyFrontMaterial->depthwrite = false;
+		skyFrontMaterial->depthWrite = false;
 		Mesh  *skyFrontMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(180.0f, 90.0f, 0.0f));
 		
 		Material *skyBackMaterial = new Material(matShader);
 		skyBackMaterial->AddTexture(Texture::WithFile(back, parameter));
-		skyBackMaterial->depthwrite = false;
+		skyBackMaterial->depthWrite = false;
 		Mesh  *skyBackMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 90.0f, 0.0f));
 		
 		Model *skyModel = Model::Empty();

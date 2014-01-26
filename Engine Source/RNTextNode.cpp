@@ -132,8 +132,8 @@ namespace RN
 			for(size_t i = 0; i < count; i ++)
 			{
 				Material *material = model->GetMaterialAtIndex(0, i);
-				material->depthtest = true;
-				material->depthwrite = true;
+				material->depthTest = true;
+				material->depthWrite = true;
 				material->blending = true;
 				material->culling = false;
 			}

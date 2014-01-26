@@ -29,7 +29,7 @@ namespace RN
 		blendSource = GL_ONE;
 		blendDestination = GL_ONE_MINUS_SRC_ALPHA;
 		
-		depthwrite = false;
+		depthWrite = false;
 		SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyParticleShader, nullptr));
 	}
 	

@@ -115,7 +115,8 @@ namespace RN
 		
 		RNAPI Material();
 		RNAPI Material(Shader *shader);
-		RNAPI virtual ~Material();
+		RNAPI Material(const Material *other);
+		RNAPI ~Material() override;
 		
 		RNAPI void SetShader(Shader *shader);
 		RNAPI void SetBlendMode(BlendMode mode);
@@ -124,6 +125,8 @@ namespace RN
 		RNAPI void ApplyUniforms(ShaderProgram *program);
 		
 		RNAPI void AddTexture(Texture *texture);
+		RNAPI void InsertTexture(Texture *texture, size_t index);
+		RNAPI void ReplaceTexture(Texture *texture, size_t index);
 		RNAPI void RemoveTexture(Texture *texture);
 		RNAPI void RemoveTextures();
 		
@@ -133,7 +136,7 @@ namespace RN
 		RNAPI void Define(const std::string& define, float value);
 		RNAPI void Undefine(const std::string& define);
 		
-		RNAPI const Array& GetTextures() const { return _textures; }
+		RNAPI const Array *GetTextures() const { return &_textures; }
 		RNAPI const ShaderLookup& GetLookup() const { return _lookup; }
 		
 		template<class ... Args>
@@ -145,8 +148,8 @@ namespace RN
 			return uniform;
 		}
 		
-		Observable<bool> culling;
-		Observable<bool> lighting;
+		bool culling;
+		bool lighting;
 		
 		GLenum cullmode;
 		
@@ -154,21 +157,21 @@ namespace RN
 		GLenum blendSource;
 		GLenum blendDestination;
 		
-		Observable<bool> polygonOffset;
-		Observable<float> polygonOffsetFactor;
-		Observable<float> polygonOffsetUnits;
+		bool polygonOffset;
+		float polygonOffsetFactor;
+		float polygonOffsetUnits;
 		
-		Observable<Color> ambient;
-		Observable<Color> diffuse;
-		Observable<Color> specular;
-		Observable<Color> emissive;
+		Color ambient;
+		Color diffuse;
+		Color specular;
+		Color emissive;
 		
-		Observable<bool> depthtest;
-		Observable<bool> depthwrite;
-		GLenum depthtestmode;
+		bool depthTest;
+		bool depthWrite;
+		GLenum depthTestMode;
 		
-		Observable<bool> discard;
-		Observable<float> discardThreshold;
+		bool discard;
+		float discardThreshold;
 		
 		uint64 override;
 		
@@ -177,14 +180,14 @@ namespace RN
 		void UpdateLookupRequest();
 		void InsertShaderUniform(ShaderUniform *uniform);
 		
-		Observable<Shader *> _shader;
+		Shader *_shader;
 		Array _textures;
 		
 		ShaderLookup _lookup;
 		std::vector<ShaderDefine> _defines;
 		std::vector<ShaderUniform *> _uniforms;
 		
-		RNDefineMetaWithTraits(Material, Object, MetaClassTraitCronstructable)
+		RNDefineMetaWithTraits(Material, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 }
 

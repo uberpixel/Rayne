@@ -174,7 +174,7 @@ namespace RN
 			camera->PrepareForRendering(this);
 			
 			if(_currentMaterial)
-				SetDepthWriteEnabled(_currentMaterial->depthwrite);
+				SetDepthWriteEnabled(_currentMaterial->depthWrite);
 			
 			bool wantsFog = (_currentCamera->GetFlags() & Camera::Flags::UseFog);
 			bool wantsClipPlane = (_currentCamera->GetFlags() & Camera::Flags::UseClipPlanes);
@@ -262,7 +262,7 @@ namespace RN
 					if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
 						lookup.type |= ShaderProgram::TypeDiscard;
 					
-					if(material->GetTextures().GetCount() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDiffuse))
+					if(material->GetTextures()->GetCount() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDiffuse))
 						lookup.type |= ShaderProgram::TypeDiffuse;
 					
 					if(surfaceMaterial)
@@ -309,10 +309,10 @@ namespace RN
 						if(wantsLighting)
 							lightManager->UpdateProgram(this, program);
 						
-						gl::Uniform4fv(program->ambient, 1, &material->ambient->r);
-						gl::Uniform4fv(program->diffuse, 1, &material->diffuse->r);
-						gl::Uniform4fv(program->emissive, 1, &material->emissive->r);
-						gl::Uniform4fv(program->specular, 1, &material->specular->r);
+						gl::Uniform4fv(program->ambient, 1, &material->ambient.r);
+						gl::Uniform4fv(program->diffuse, 1, &material->diffuse.r);
+						gl::Uniform4fv(program->emissive, 1, &material->emissive.r);
+						gl::Uniform4fv(program->specular, 1, &material->specular.r);
 						
 						if(program->discardThreshold != -1)
 						{

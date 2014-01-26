@@ -164,37 +164,8 @@ namespace RN
 	
 	
 	Material::Material() :
-		culling("culling"),
-		lighting("lighting"),
-		polygonOffset("polygonOffset"),
-		polygonOffsetFactor("polygonOffsetFactor"),
-		polygonOffsetUnits("polygonOffsetUnits"),
-		ambient("ambient"),
-		diffuse("diffuse"),
-		specular("specular"),
-		emissive("emissive"),
-		depthtest("depthtest"),
-		depthwrite("depthwrite"),
-		discard("discard"),
-		discardThreshold("discardThreshold"),
-		_shader("shader", Object::MemoryPolicy::Retain, std::bind(&Material::GetShader, this), std::bind(&Material::SetShader, this, std::placeholders::_1)),
 		_lookup(0)
 	{
-		AddObservable(&culling);
-		AddObservable(&lighting);
-		AddObservable(&polygonOffset);
-		AddObservable(&polygonOffsetFactor);
-		AddObservable(&polygonOffsetUnits);
-		AddObservable(&ambient);
-		AddObservable(&diffuse);
-		AddObservable(&specular);
-		AddObservable(&emissive);
-		AddObservable(&depthtest);
-		AddObservable(&depthwrite);
-		AddObservable(&discard);
-		AddObservable(&discardThreshold);
-		AddObservable(&_shader);
-		
 		Initialize();
 		_shader = nullptr;
 	}
@@ -205,10 +176,46 @@ namespace RN
 		_shader = shader ? shader->Retain() : nullptr;
 	}
 	
+	Material::Material(const Material *other) :
+		Material()
+	{
+		_shader = SafeRetain(other->_shader);
+		
+		culling  = other->culling;
+		lighting = other->lighting;
+		
+		cullmode         = other->cullmode;
+		blending         = other->blending;
+		blendSource      = other->blendSource;
+		blendDestination = other->blendDestination;
+		
+		polygonOffset       = other->polygonOffset;
+		polygonOffsetFactor = other->polygonOffsetFactor;
+		polygonOffsetUnits  = other->polygonOffsetUnits;
+		
+		ambient  = other->ambient;
+		diffuse  = other->diffuse;
+		specular = other->specular;
+		emissive = other->emissive;
+		
+		depthTest    = other->depthTest;
+		depthWrite   = other->depthWrite;
+		depthTestMode = other->depthTestMode;
+		
+		discard = other->discard;
+		discardThreshold = other->discardThreshold;
+		
+		override = other->override;
+		
+		_defines = other->_defines;
+		_textures.AddObjectsFromArray(&other->_textures);
+		
+		UpdateLookupRequest();
+	}
+	
 	Material::~Material()
 	{
-		if(_shader)
-			_shader->Release();
+		SafeRelease(_shader);
 	}
 	
 	void Material::Initialize()
@@ -232,9 +239,9 @@ namespace RN
 		specular = Color(1.0f, 1.0f, 1.0f, 4.0f);
 		emissive = Color(0.0f, 0.0f, 0.0f, 0.0f);
 		
-		depthtest = true;
-		depthtestmode = GL_LEQUAL;
-		depthwrite = true;
+		depthTest = true;
+		depthTestMode = GL_LEQUAL;
+		depthWrite = true;
 		
 		discard = false;
 		discardThreshold = 0.3f;
@@ -294,6 +301,29 @@ namespace RN
 	void Material::AddTexture(Texture *texture)
 	{
 		_textures.AddObject(texture);
+	}
+	
+	void Material::InsertTexture(Texture *texture, size_t index)
+	{
+		if(index >= _textures.GetCount())
+			throw Exception(Exception::Type::InvalidArgumentException, "index mustn't be out of bounds!");
+		
+		if(!texture)
+			throw Exception(Exception::Type::InvalidArgumentException, "texture mustn't be null!");
+		
+		_textures.InsertObjectAtIndex(texture, index);
+		
+	}
+	
+	void Material::ReplaceTexture(Texture *texture, size_t index)
+	{
+		if(index >= _textures.GetCount())
+			throw Exception(Exception::Type::InvalidArgumentException, "index mustn't be out of bounds!");
+		
+		if(!texture)
+			throw Exception(Exception::Type::InvalidArgumentException, "texture mustn't be null!");
+		
+		_textures.ReplaceObjectAtIndex(index, texture);
 	}
 	
 	void Material::RemoveTexture(Texture *texture)
