@@ -76,7 +76,9 @@ namespace RN
 		
 		if(_thread->OnThread())
 		{
-			RunTask(command);
+			command.task();
+			command.syncable.signal();
+			
 			return point;
 		}
 		
@@ -137,7 +139,7 @@ namespace RN
 		Task task;
 		
 		try
-		{		
+		{
 			while(!_thread->IsCancelled())
 			{
 				_running.store(true);
