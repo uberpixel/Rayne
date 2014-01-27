@@ -102,10 +102,18 @@ namespace RN
 	void Billboard::SetTexture(Texture *texture, float scaleFactor)
 	{
 		_material->RemoveTextures();
-		_material->AddTexture(texture);
 		
-		_size = Vector2(texture->GetWidth(), texture->GetHeight());
-		_size *= scaleFactor;
+		if(texture)
+		{
+			_material->AddTexture(texture);
+			
+			_size = Vector2(texture->GetWidth(), texture->GetHeight());
+			_size *= scaleFactor;
+		}
+		else
+		{
+			_size = Vector2();
+		}
 		
 		SetBoundingBox(_mesh->GetBoundingBox() * Vector3(_size.x, _size.y, 1.0f));
 	}
