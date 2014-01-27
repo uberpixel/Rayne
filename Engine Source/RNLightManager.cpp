@@ -212,7 +212,7 @@ namespace RN
 		if(_lightDirectionalDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDirectionalShadows))
 		{
 			lookup.type |= ShaderProgram::TypeDirectionalShadows;
-			lookup.lightDirectionalShadowSplits = _directionalLights.front()->GetShadowParameter().splits.size();
+			lookup.lightDirectionalShadowSplits = _directionalLights.front()->GetShadowParameters().splits.size();
 		}
 		
 		if(_lightPointDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypePointShadows))
@@ -311,7 +311,7 @@ namespace RN
 			{
 				Light *light = lights[i];
 				const Vector3& position = light->GetWorldPosition();
-				const Vector3& color    = light->GetResultColor();
+				const Vector3& color    = light->GetFinalColor();
 				const float range = light->GetRange();
 				const float shadow = light->HasShadows()?static_cast<float>(i):-1.0f;
 				
@@ -326,7 +326,7 @@ namespace RN
 				
 				if(light->HasShadows())
 				{
-					RN::Camera *shadowCamera = static_cast<RN::Camera*>(light->GetShadowCameras()->GetFirstObject());
+					RN::Camera *shadowCamera = static_cast<RN::Camera*>(light->GetShadowDepthCameras()->GetFirstObject());
 					if(shadowCamera)
 					{
 						_lightPointDepth.push_back(shadowCamera->GetStorage()->GetDepthTarget());
@@ -388,7 +388,7 @@ namespace RN
 			{
 				Light *light = lights[i];
 				const Vector3& position = light->GetWorldPosition();
-				const Vector3& color    = light->GetResultColor();
+				const Vector3& color    = light->GetFinalColor();
 				const Vector3& direction = -light->GetForward();
 				const float angle = light->GetAngleCos();
 				const float range = light->GetRange();
@@ -407,7 +407,7 @@ namespace RN
 				
 				if(light->HasShadows())
 				{
-					RN::Camera *shadowCamera = static_cast<RN::Camera*>(light->GetShadowCameras()->GetFirstObject());
+					RN::Camera *shadowCamera = static_cast<RN::Camera*>(light->GetShadowDepthCameras()->GetFirstObject());
 					if(shadowCamera)
 					{
 						_lightSpotMatrix.push_back(light->GetShadowMatrices()[0]);
@@ -441,7 +441,7 @@ namespace RN
 		for(size_t i = 0; i < _directionalLightCount; i ++)
 		{
 			Light *light = _directionalLights[i];
-			const Vector3& color = light->GetResultColor();
+			const Vector3& color = light->GetFinalColor();
 			const Vector3& direction = -light->GetForward();
 			
 			_lightDirectionalDirection.push_back(direction);
@@ -453,12 +453,12 @@ namespace RN
 				
 				if(matrices.size() > 0)
 				{
-					for(int i = 0; i < light->GetShadowParameter().splits.size(); i++)
+					for(int i = 0; i < light->GetShadowParameters().splits.size(); i++)
 					{
 						_lightDirectionalMatrix.push_back(matrices[i]);
 					}
 					
-					_lightDirectionalDepth.push_back(light->GetShadowCameras()->GetFirstObject<Camera>()->GetStorage()->GetDepthTarget());
+					_lightDirectionalDepth.push_back(light->GetShadowDepthCameras()->GetFirstObject<Camera>()->GetStorage()->GetDepthTarget());
 				}
 			}
 		}

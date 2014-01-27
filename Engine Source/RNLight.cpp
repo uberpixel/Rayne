@@ -148,7 +148,7 @@ namespace RN
 	
 	void Light::UpdateShadowParameters(const ShadowParameter &parameter)
 	{
-		RN_ASSERT(HasShadows(), "Shadows need to be activated in order to update their parameters!");
+		RN_ASSERT(HasShadows(), "Shadows need to be activated in order to update their parameters and may not be suppressed!");
 		
 		if(_shadowParameter.resolution != parameter.resolution || _shadowParameter.splits.size() != parameter.splits.size())
 		{
@@ -435,7 +435,7 @@ namespace RN
 
 	void Light::ReCalculateColor()
 	{
-		_resultColor = Vector3(_color->r, _color->g, _color->b);
-		_resultColor *= (float)_intensity;
+		_finalColor = Vector3(_color->r, _color->g, _color->b);
+		_finalColor *= (float)_intensity;
 	}
 }
