@@ -15,10 +15,20 @@ namespace RN
 	
 	Billboard::Billboard()
 	{
-		_mesh = 0;
-		_material = 0;
-		
 		Initialize();
+	}
+	
+	Billboard::Billboard(Texture *texture)
+	{
+		Initialize();
+		SetTexture(texture);
+	}
+	
+	Billboard::Billboard(Texture *texture, const Vector3 &position)
+	{
+		Initialize();
+		SetTexture(texture);
+		SetPosition(position);
 	}
 	
 	Billboard::~Billboard()
