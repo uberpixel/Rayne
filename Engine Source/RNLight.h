@@ -35,16 +35,16 @@ namespace RN
 	
 	struct ShadowParameter
 	{
-		ShadowParameter(size_t tresolution = 1024) :
-			resolution(tresolution),
+		ShadowParameter(size_t resolution = 1024) :
+			resolution(resolution),
 			distanceBlendFactor(0.05f),
 			shadowTarget(nullptr)
 		{
 			splits.push_back(ShadowSplit());
 		}
 		
-		ShadowParameter(Camera *target, size_t tresolution = 1024) :
-			resolution(tresolution),
+		ShadowParameter(Camera *target, size_t resolution = 1024) :
+			resolution(resolution),
 			distanceBlendFactor(0.05f),
 			shadowTarget(target)
 		{
