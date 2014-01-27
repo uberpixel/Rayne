@@ -20,11 +20,11 @@ namespace RN
 {
 	struct ShadowSplit
 	{
-		ShadowSplit(size_t tupdateInterval = 1, size_t tupdateOffset = 0) :
+		ShadowSplit(size_t updateInterval = 1, size_t updateOffset = 0) :
 			biasFactor(2.0f),
 			biasUnits(512.0f),
-			updateInterval(tupdateInterval),
-			updateOffset(tupdateOffset)
+			updateInterval(updateInterval),
+			updateOffset(updateOffset)
 		{}
 		
 		float biasFactor;
