@@ -150,6 +150,7 @@ namespace RN
 		RNAPI void SetScissorRect(const Rect& rect);
 		
 		RNAPI void SetCullMode(GLenum cullMode);
+		RNAPI void SetPolygonMode(GLenum polygonMode);
 		RNAPI void SetDepthFunction(GLenum depthFunction);
 		RNAPI void SetBlendFunction(GLenum blendSource, GLenum blendDestination);
 		RNAPI void SetPolygonOffset(float factor, float units);
@@ -216,6 +217,7 @@ namespace RN
 		bool _scissorTest;
 		
 		GLenum _cullMode;
+		GLenum _polygonMode;
 		GLenum _depthFunc;
 		
 		GLenum _blendSource;
@@ -374,6 +376,15 @@ namespace RN
 		
 		gl::FrontFace(cullMode);
 		_cullMode = cullMode;
+	}
+	
+	RN_INLINE void Renderer::SetPolygonMode(GLenum polygonMode)
+	{
+		if(_polygonMode == polygonMode)
+			return;
+		
+		gl::PolygonMode(GL_FRONT_AND_BACK, polygonMode);
+		_polygonMode = polygonMode;
 	}
 	
 	RN_INLINE void Renderer::SetDepthFunction(GLenum depthFunction)

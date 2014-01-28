@@ -85,7 +85,7 @@ namespace RN
 			Shader *shad = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr);
 			
 			Material *mat = new Material(shad);
-			mat->lighting = false;
+			mat->SetLighting(false);
 			
 			_reflection->SetMaterial(mat);
 			_reflection->SetFlags(_camera->GetFlags() | Camera::Flags::UseClipPlanes);

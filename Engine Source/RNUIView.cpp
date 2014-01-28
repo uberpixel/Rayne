@@ -68,7 +68,7 @@ namespace RN
 		
 		void View::SetBackgroundColor(const RN::Color& color)
 		{
-			_material->diffuse = color;
+			_material->SetDiffuseColor(color);
 		}
 		
 		Mesh *View::BasicMesh(const Vector2& size)
@@ -108,12 +108,11 @@ namespace RN
 		Material *View::BasicMaterial(Shader *shader)
 		{
 			Material *material = new Material(shader);
-			material->depthTest  = false;
-			material->depthWrite = false;
-			material->blending   = true;
-			material->blendSource = GL_SRC_ALPHA;
-			material->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-			material->lighting   = false;
+			material->SetDepthTest(false);
+			material->SetDepthWrite(false);
+			material->SetBlending(true);
+			material->SetBlendMode(Material::BlendMode::SourceAlpha, Material::BlendMode::OneMinusSourceAlpha);
+			material->SetLighting(false);
 			
 			return material->Autorelease();
 		}
@@ -723,7 +722,7 @@ namespace RN
 		
 		void View::Draw(Renderer *renderer)
 		{
-			if(_material->diffuse.a >= k::EpsilonFloat)
+			if(_material->GetDiffuseColor().a >= k::EpsilonFloat)
 			{
 				RenderingObject object;
 				PopulateRenderingObject(object);

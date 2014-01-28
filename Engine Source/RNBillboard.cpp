@@ -43,6 +43,8 @@ namespace RN
 		_material = new Material();
 		_material->SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr));
 		_material->Define("RN_BILLBOARD");
+		_material->SetBlending(true);
+		_material->SetBlendMode(Material::BlendMode::SourceAlpha, Material::BlendMode::OneMinusSourceAlpha);
 		
 		static std::once_flag onceFlag;
 		static Mesh *mesh;

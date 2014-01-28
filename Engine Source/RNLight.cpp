@@ -174,8 +174,8 @@ namespace RN
 			}
 			
 			_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
-				camera->GetMaterial()->polygonOffsetFactor = parameter.splits[index].biasFactor;
-				camera->GetMaterial()->polygonOffsetUnits = parameter.splits[index].biasUnits;
+				camera->GetMaterial()->SetPolygonOffsetFactor(parameter.splits[index].biasFactor);
+				camera->GetMaterial()->SetPolygonOffsetUnits(parameter.splits[index].biasUnits);
 			});
 			
 			_shadowParameter = parameter;
@@ -222,9 +222,9 @@ namespace RN
 			_shadowCameraMatrices.push_back(Matrix());
 			
 			Material *depthMaterial = new Material(depthShader);
-			depthMaterial->polygonOffset = true;
-			depthMaterial->polygonOffsetFactor = _shadowParameter.splits[i].biasFactor;
-			depthMaterial->polygonOffsetUnits  = _shadowParameter.splits[i].biasUnits;
+			depthMaterial->SetPolygonOffset(true);
+			depthMaterial->SetPolygonOffsetFactor(_shadowParameter.splits[i].biasFactor);
+			depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[i].biasUnits);
 			
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 			storage->SetDepthTarget(depthtex, i);
@@ -276,9 +276,9 @@ namespace RN
 		
 		Shader   *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyPointShadowDepthShader, nullptr);
 		Material *depthMaterial = (new Material(depthShader))->Autorelease();
-		depthMaterial->polygonOffset = true;
-		depthMaterial->polygonOffsetFactor = _shadowParameter.splits[0].biasFactor;
-		depthMaterial->polygonOffsetUnits  = _shadowParameter.splits[0].biasUnits;
+		depthMaterial->SetPolygonOffset(true);
+		depthMaterial->SetPolygonOffsetFactor(_shadowParameter.splits[0].biasFactor);
+		depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[0].biasUnits);
 		
 		RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 		storage->SetDepthTarget(depthtex, -1);
@@ -332,9 +332,9 @@ namespace RN
 		
 		Shader   *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
 		Material *depthMaterial = (new Material(depthShader))->Autorelease();
-		depthMaterial->polygonOffset = true;
-		depthMaterial->polygonOffsetFactor = _shadowParameter.splits[0].biasFactor;
-		depthMaterial->polygonOffsetUnits  = _shadowParameter.splits[0].biasUnits;
+		depthMaterial->SetPolygonOffset(true);
+		depthMaterial->SetPolygonOffsetFactor(_shadowParameter.splits[0].biasFactor);
+		depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[0].biasUnits);
 		
 		RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 		storage->SetDepthTarget(depthtex, -1);

@@ -26,8 +26,8 @@ namespace RN
 		lifespanVariance = 0.0f;
 		
 		blending = true;
-		blendSource = GL_ONE;
-		blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+		blendSource = BlendMode::One;
+		blendDestination = BlendMode::OneMinusSourceAlpha;
 		
 		depthWrite = false;
 		SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyParticleShader, nullptr));

@@ -181,10 +181,9 @@ namespace RN
 	{
 		_shader = SafeRetain(other->_shader);
 		
-		culling  = other->culling;
 		lighting = other->lighting;
 		
-		cullmode         = other->cullmode;
+		cullMode         = other->cullMode;
 		blending         = other->blending;
 		blendSource      = other->blendSource;
 		blendDestination = other->blendDestination;
@@ -220,15 +219,14 @@ namespace RN
 	
 	void Material::Initialize()
 	{
-		override = 0;
 		lighting = true;
 		
-		culling  = true;
-		cullmode = GL_CCW;
+		cullMode = CullMode::BackFace;
+		polygonMode = PolygonMode::Fill;
 		
 		blending = false;
-		blendSource = GL_ONE;
-		blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+		blendSource = BlendMode::One;
+		blendDestination = BlendMode::OneMinusSourceAlpha;
 		
 		polygonOffset = false;
 		polygonOffsetFactor = 1.0f;
@@ -240,7 +238,7 @@ namespace RN
 		emissive = Color(0.0f, 0.0f, 0.0f, 0.0f);
 		
 		depthTest = true;
-		depthTestMode = GL_LEQUAL;
+		depthTestMode = DepthMode::LessOrEqual;
 		depthWrite = true;
 		
 		discard = false;
@@ -265,37 +263,6 @@ namespace RN
 		return const_cast<Shader *>(static_cast<const Shader *>(_shader));
 	}
 	
-	
-	void Material::SetBlendMode(BlendMode mode)
-	{
-		switch(mode)
-		{
-			case BlendMode::Additive:
-				blendSource = GL_ONE;
-				blendDestination = GL_ONE;
-				break;
-				
-			case BlendMode::Multiplicative:
-				blendSource = GL_DST_COLOR;
-				blendDestination = GL_ZERO;
-				break;
-				
-			case BlendMode::Interpolative:
-				blendSource = GL_SRC_ALPHA;
-				blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-				break;
-				
-			case BlendMode::InterpolativePremultiplied:
-				blendSource = GL_ONE;
-				blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-				break;
-				
-			case BlendMode::Cutout:
-				blendSource = GL_ZERO;
-				blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-				break;
-		}
-	}
 	
 	
 	void Material::AddTexture(Texture *texture)

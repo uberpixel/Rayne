@@ -57,6 +57,7 @@ namespace RN
 		
 		_cullMode  = GL_CCW;
 		_depthFunc = GL_LESS;
+		_polygonMode = GL_FILL;
 		
 		_blendSource      = GL_ONE;
 		_blendDestination = GL_ZERO;
@@ -395,7 +396,7 @@ namespace RN
 		{
 			_textureUnit = 0;
 			
-			const Array& textures = !(surfaceMaterial->override & Material::OverrideTextures)? material->GetTextures() : surfaceMaterial->GetTextures();
+			const Array& textures = !(surfaceMaterial->override & Material::Override::Textures)? material->GetTextures() : surfaceMaterial->GetTextures();
 			const std::vector<GLuint>& textureLocations = program->texlocations;
 			
 			if(textureLocations.size() > 0)
@@ -416,18 +417,28 @@ namespace RN
 			}
 		}
 
-#define PickAttribute(_override, attribute) (material->override & Material::_override) ? material->attribute : surfaceMaterial->attribute
+#define PickAttribute(_override, attribute) (material->override & Material::Override::_override) ? material->attribute : surfaceMaterial->attribute
 		
-		SetCullingEnabled(PickAttribute(OverrideCulling, culling));
-		SetCullMode(PickAttribute(OverrideCullmode, cullmode));
+		Material::CullMode cullMode = (material->override & Material::Override::Culling) ? material->cullMode : surfaceMaterial->cullMode;
+		if(cullMode == Material::CullMode::None)
+		{
+			SetCullingEnabled(false);
+		}
+		else
+		{
+			SetCullingEnabled(true);
+			SetCullMode(static_cast<GLenum>(cullMode));
+		}
+		
+		SetPolygonMode(static_cast<GLenum>(material->polygonMode));
 
-		SetDepthTestEnabled(PickAttribute(OverrideDepthtest, depthTest));
-		SetDepthFunction(PickAttribute(OverrideDepthtestMode, depthTestMode));
+		SetDepthTestEnabled(PickAttribute(Depthtest, depthTest));
+		SetDepthFunction(static_cast<GLenum>(PickAttribute(DepthtestMode, depthTestMode)));
 		
-		SetPolygonOffsetEnabled(PickAttribute(OverridePolygonOffset, polygonOffset));
-		SetPolygonOffset(PickAttribute(OverridePolygonOffset, polygonOffsetFactor), PickAttribute(OverridePolygonOffset, polygonOffsetUnits));
+		SetPolygonOffsetEnabled(PickAttribute(PolygonOffset, polygonOffset));
+		SetPolygonOffset(PickAttribute(PolygonOffset, polygonOffsetFactor), PickAttribute(PolygonOffset, polygonOffsetUnits));
 		
-		if(material->override & Material::OverrideDepthwrite)
+		if(material->override & Material::Override::Depthwrite)
 		{
 			SetDepthWriteEnabled((material->depthWrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
 		}
@@ -436,15 +447,15 @@ namespace RN
 			SetDepthWriteEnabled((surfaceMaterial->depthWrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
 		}
 		
-		SetBlendingEnabled(PickAttribute(OverrideBlending, blending));
+		SetBlendingEnabled(PickAttribute(Blending, blending));
 		
-		if(material->override & Material::OverrideBlendmode)
+		if(material->override & Material::Override::Blendmode)
 		{
-			SetBlendFunction(material->blendSource, material->blendDestination);
+			SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination));
 		}
 		else
 		{
-			SetBlendFunction(surfaceMaterial->blendSource, surfaceMaterial->blendDestination);
+			SetBlendFunction(static_cast<GLenum>(surfaceMaterial->blendSource), static_cast<GLenum>(surfaceMaterial->blendDestination));
 		}
 		
 #undef PickAttribute
@@ -721,6 +732,7 @@ namespace RN
 		
 		SetDepthTestEnabled(false);
 		SetCullMode(GL_CCW);
+		SetPolygonMode(GL_FILL);
 		
 		if(camera->_flags & Camera::Flags::BlendedBlitting)
 		{
@@ -769,7 +781,10 @@ namespace RN
 		SetBlendingEnabled(false);
 		SetCullMode(GL_CCW);
 		
+		
 		BindMaterial(material, program);
+		
+		SetPolygonMode(GL_FILL);
 		UpdateShaderData();
 		
 		material->ApplyUniforms(program);

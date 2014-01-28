@@ -18,12 +18,15 @@
 #include "RNMatrixQuaternion.h"
 #include "RNVector.h"
 #include "RNKVOImplementation.h"
+#include "RNEnum.h"
 
 namespace RN
 {
 	class Material : public Object
 	{
 	public:
+		friend class Renderer;
+		
 		class ShaderUniform
 		{
 		public:
@@ -83,34 +86,77 @@ namespace RN
 			std::vector<uint8> _storage;
 		};
 		
-		enum class BlendMode
+		struct Override : public Enum<uint32>
 		{
-			Additive,
-			Multiplicative,
-			Interpolative,
-			InterpolativePremultiplied,
-			Cutout
+			Override()
+			{}
+			
+			Override(int value) :
+				Enum(value)
+			{}
+			
+			enum
+			{
+				Culling = (1 << 0),
+				Blending = (1 << 2),
+				Blendmode = (1 << 3),
+				Ambient = (1 << 4),
+				Diffuse = (1 << 5),
+				Specular = (1 << 6),
+				Emissive = (1 << 7),
+				Depthtest = (1 << 8),
+				Depthwrite = (1 << 9),
+				DepthtestMode = (1 << 10),
+				Discard = (1 << 11),
+				DiscardThreshold = (1 << 12),
+				Textures = (1 << 13),
+				PolygonOffset = (1 << 14),
+				PolygonMode = (1 << 15),
+				
+				GroupDiscard = (Discard | DiscardThreshold | Textures)
+			};
 		};
 		
-		enum
+		enum class CullMode : GLenum
 		{
-			OverrideCulling = (1 << 0),
-			OverrideCullmode = (1 << 1),
-			OverrideBlending = (1 << 2),
-			OverrideBlendmode = (1 << 3),
-			OverrideAmbient = (1 << 4),
-			OverrideDiffuse = (1 << 5),
-			OverrideSpecular = (1 << 6),
-			OverrideEmissive = (1 << 7),
-			OverrideDepthtest = (1 << 8),
-			OverrideDepthwrite = (1 << 9),
-			OverrideDepthtestMode = (1 << 10),
-			OverrideDiscard = (1 << 11),
-			OverrideDiscardThreshold = (1 << 12),
-			OverrideTextures = (1 << 13),
-			OverridePolygonOffset = (1 << 14),
+			None = 0,
+			BackFace = GL_CCW,
+			FrontFace = GL_CW
+		};
+		
+		enum class DepthMode : GLenum
+		{
+			Never = GL_NEVER,
+			Always = GL_ALWAYS,
+			Less = GL_LESS,
+			LessOrEqual = GL_LEQUAL,
+			Equal = GL_EQUAL,
+			NotEqual = GL_NOTEQUAL,
+			GreaterOrEqual = GL_GEQUAL,
+			Greater = GL_GREATER
+		};
+		
+		enum class PolygonMode : GLenum
+		{
+			Points = GL_POINT,
+			Lines = GL_LINE,
+			Fill = GL_FILL
+		};
+		
+		enum class BlendMode : GLenum
+		{
+			Zero = GL_ZERO,
+			One  = GL_ONE,
 			
-			OverrideGroupDiscard = OverrideDiscard | OverrideDiscardThreshold | OverrideTextures
+			SourceColor = GL_SRC_COLOR,
+			OneMinusSourceColor = GL_ONE_MINUS_SRC_COLOR,
+			SourceAlpha = GL_SRC_ALPHA,
+			OneMinusSourceAlpha = GL_ONE_MINUS_SRC_ALPHA,
+			
+			DestinationColor = GL_DST_COLOR,
+			OneMinusDestinationColor = GL_ONE_MINUS_DST_COLOR,
+			DestinationAlpha = GL_DST_ALPHA,
+			OneMinusDestinationAlpha = GL_ONE_MINUS_DST_ALPHA
 		};
 		
 		RNAPI Material();
@@ -119,7 +165,6 @@ namespace RN
 		RNAPI ~Material() override;
 		
 		RNAPI void SetShader(Shader *shader);
-		RNAPI void SetBlendMode(BlendMode mode);
 		
 		RNAPI Shader *GetShader() const;
 		RNAPI void ApplyUniforms(ShaderProgram *program);
@@ -148,14 +193,66 @@ namespace RN
 			return uniform;
 		}
 		
-		bool culling;
+		void SetLighting(bool enabled) { lighting = enabled; }
+		void SetCullMode(CullMode mode) { cullMode = mode; }
+		void SetPolygonMode(PolygonMode mode) { polygonMode = mode; }
+		
+		void SetBlending(bool enabled) { blending = enabled; }
+		void SetBlendMode(BlendMode source, BlendMode destination) { blendSource = source; blendDestination = destination; }
+		
+		void SetPolygonOffset(bool enabled) { polygonOffset = enabled; }
+		void SetPolygonOffsetFactor(float factor) { polygonOffsetFactor = factor; }
+		void SetPolygonOffsetUnits(float units) { polygonOffsetUnits = units; }
+		
+		void SetAmbientColor(const Color &color) { ambient = color; }
+		void SetDiffuseColor(const Color &color) { diffuse = color; }
+		void SetSpecularColor(const Color &color) { specular = color; }
+		void SetEmissiveColor(const Color &color) { emissive = color; }
+		
+		void SetDepthTest(bool enabled) { depthTest = enabled; }
+		void SetDepthWrite(bool enabled) { depthWrite = enabled; }
+		void SetDepthTestMode(DepthMode mode) { depthTestMode = mode; }
+		
+		void SetDiscard(bool enabled) { discard = enabled; }
+		void SetDiscardThreshold(float threshold) { discardThreshold = threshold; }
+		
+		void SetOverride(Override toverride) { override = toverride; }
+		
+		bool GetLighting() const { return lighting; }
+		CullMode GetCullMode() const { return cullMode; }
+		PolygonMode GetPolygonMode() const { return polygonMode; }
+		
+		bool GetBlending() const { return blending; }
+		BlendMode GetBlendSource() const { return blendSource; }
+		BlendMode GetBlendDestination() const { return blendDestination; }
+		
+		bool GetPolygonOffset() const { return polygonOffset; }
+		float GetPolygonOffsetFactor() const { return polygonOffsetFactor; }
+		float GetPolygonOffsetUnits() const { return polygonOffsetUnits; }
+		
+		const Color &GetAmbientColor() const { return ambient; }
+		const Color &GetDiffuseColor() const { return diffuse; }
+		const Color &GetSpecularColor() const { return specular; }
+		const Color &GetEmissiveColor() const { return emissive; }
+		
+		bool GetDepthTest() const { return depthTest; }
+		bool GetDepthWrite() const { return depthWrite; }
+		DepthMode GetDepthTestMode() const { return depthTestMode; }
+		
+		bool GetDiscard() const { return discard; }
+		float GetDiscardThreshold() const { return discardThreshold; }
+		
+		Override GetOverride() const { return override; }
+		
+	protected:
 		bool lighting;
 		
-		GLenum cullmode;
+		CullMode cullMode;
+		PolygonMode polygonMode;
 		
 		bool blending;
-		GLenum blendSource;
-		GLenum blendDestination;
+		BlendMode blendSource;
+		BlendMode blendDestination;
 		
 		bool polygonOffset;
 		float polygonOffsetFactor;
@@ -168,12 +265,12 @@ namespace RN
 		
 		bool depthTest;
 		bool depthWrite;
-		GLenum depthTestMode;
+		DepthMode depthTestMode;
 		
 		bool discard;
 		float discardThreshold;
 		
-		uint64 override;
+		Override override;
 		
 	private:
 		void Initialize();

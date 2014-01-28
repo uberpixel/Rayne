@@ -174,7 +174,7 @@ namespace RN
 			camera->PrepareForRendering(this);
 			
 			if(_currentMaterial)
-				SetDepthWriteEnabled(_currentMaterial->depthWrite);
+				SetDepthWriteEnabled(_currentMaterial->GetDepthWrite());
 			
 			bool wantsFog = (_currentCamera->GetFlags() & Camera::Flags::UseFog);
 			bool wantsClipPlane = (_currentCamera->GetFlags() & Camera::Flags::UseClipPlanes);
@@ -243,9 +243,9 @@ namespace RN
 					ShaderLookup lookup = material->GetLookup();
 					ShaderProgram *program = 0;
 					
-					bool wantsDiscard = material->discard;
-					if(surfaceMaterial && !(material->override & Material::OverrideDiscard))
-						wantsDiscard = surfaceMaterial->discard;
+					bool wantsDiscard = material->GetDiscard();
+					if(surfaceMaterial && !(material->GetOverride() & Material::Override::Discard))
+						wantsDiscard = surfaceMaterial->GetDiscard();
 					
 					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
 						lookup.type |= ShaderProgram::TypeAnimated;
@@ -270,11 +270,11 @@ namespace RN
 						lookup = lookup + surfaceMaterial->GetLookup();
 					}
 					
-					bool wantsLighting = (material->lighting && lightManager && shader->SupportsProgramOfType(ShaderProgram::TypeLighting));
+					bool wantsLighting = (material->GetLighting() && lightManager && shader->SupportsProgramOfType(ShaderProgram::TypeLighting));
 					
 					// The surface material can only override lighting if the shader supports lighting
 					if(wantsLighting && surfaceMaterial)
-						wantsLighting = surfaceMaterial->lighting;
+						wantsLighting = surfaceMaterial->GetLighting();
 					
 					if(wantsLighting)
 					{
@@ -309,17 +309,17 @@ namespace RN
 						if(wantsLighting)
 							lightManager->UpdateProgram(this, program);
 						
-						gl::Uniform4fv(program->ambient, 1, &material->ambient.r);
-						gl::Uniform4fv(program->diffuse, 1, &material->diffuse.r);
-						gl::Uniform4fv(program->emissive, 1, &material->emissive.r);
-						gl::Uniform4fv(program->specular, 1, &material->specular.r);
+						gl::Uniform4fv(program->ambient, 1, &material->GetAmbientColor().r);
+						gl::Uniform4fv(program->diffuse, 1, &material->GetDiffuseColor().r);
+						gl::Uniform4fv(program->emissive, 1, &material->GetEmissiveColor().r);
+						gl::Uniform4fv(program->specular, 1, &material->GetSpecularColor().r);
 						
 						if(program->discardThreshold != -1)
 						{
-							float threshold = material->discardThreshold;
+							float threshold = material->GetDiscardThreshold();
 							
-							if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
-								threshold = surfaceMaterial->discardThreshold;
+							if(surfaceMaterial && !(material->GetOverride() & Material::Override::DiscardThreshold))
+								threshold = surfaceMaterial->GetDiscardThreshold();
 							
 							gl::Uniform1f(program->discardThreshold, threshold);
 						}

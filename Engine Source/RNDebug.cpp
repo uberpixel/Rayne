@@ -328,17 +328,17 @@ namespace RN
 			
 			__Line3DMaterial = new Material(__LineShader);
 			__Line3DMaterial->Define("RN_DEBUG_3D");
-			__Line3DMaterial->blending   = false;
-			__Line3DMaterial->depthWrite = false;
-			__Line3DMaterial->depthTest  = true;
-			__Line3DMaterial->lighting   = false;
+			__Line3DMaterial->SetBlending(false);
+			__Line3DMaterial->SetDepthWrite(false);
+			__Line3DMaterial->SetDepthTest(true);
+			__Line3DMaterial->SetLighting(false);
 			
 			__Line2DMaterial = new Material(__LineShader);
 			__Line2DMaterial->Define("RN_DEBUG_2D");
-			__Line2DMaterial->blending   = false;
-			__Line2DMaterial->depthWrite = false;
-			__Line2DMaterial->depthTest  = false;
-			__Line2DMaterial->lighting   = false;
+			__Line2DMaterial->SetBlending(false);
+			__Line2DMaterial->SetDepthWrite(false);
+			__Line2DMaterial->SetDepthTest(false);
+			__Line2DMaterial->SetLighting(false);
 		}
 	}
 }

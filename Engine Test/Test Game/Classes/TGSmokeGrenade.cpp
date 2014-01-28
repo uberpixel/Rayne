@@ -53,9 +53,7 @@ namespace TG
 		
 		_material = new RN::ParticleMaterial();
 		_material->AddTexture(texture);
-		_material->blending = true;
-		_material->blendSource = GL_ONE;
-		_material->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
+		_material->SetBlending(true);
 //		_material->minVelocity = RN::Vector3(0.0f, 0.4f, 0.0f);
 //		_material->maxVelocity = RN::Vector3(0.0f, 4.4f, 0.0f);
 		

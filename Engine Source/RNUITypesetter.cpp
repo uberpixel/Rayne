@@ -544,11 +544,11 @@ namespace RN
 				
 				Material *material = new Material(shader);
 				material->AddTexture(font->GetTexture());
-				material->depthTest = false;
-				material->depthWrite = false;
-				material->blending = true;
-				material->lighting = false;
-				material->ambient  = color->GetRNColor();
+				material->SetDepthTest(false);
+				material->SetDepthWrite(false);
+				material->SetBlending(true);
+				material->SetLighting(false);
+				material->SetAmbientColor(color->GetRNColor());
 				
 				if(font->GetFiltering())
 					material->Define("RN_SUBPIXEL_ANTIALIAS");

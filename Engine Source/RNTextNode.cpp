@@ -132,10 +132,10 @@ namespace RN
 			for(size_t i = 0; i < count; i ++)
 			{
 				Material *material = model->GetMaterialAtIndex(0, i);
-				material->depthTest = true;
-				material->depthWrite = true;
-				material->blending = true;
-				material->culling = false;
+				material->SetDepthTest(true);
+				material->SetDepthWrite(true);
+				material->SetBlending(true);
+				material->SetCullMode(Material::CullMode::None);
 			}
 			
 			_isDirty = false;

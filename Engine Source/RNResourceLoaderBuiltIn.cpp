@@ -326,7 +326,7 @@ namespace RN
 				Color color(file->ReadFloat(), file->ReadFloat(), file->ReadFloat(), file->ReadFloat());
 				
 				if(usagehint == 0 && u == 0)
-					material->diffuse = color;
+					material->SetDiffuseColor(color);
 			}
 			
 			materials.push_back(material);
