@@ -335,8 +335,8 @@ namespace RN
 		static inline VecFloat PositiveFloor(const VecFloat& v)
 		{
 #if RN_SSE
-			register const VecFloat one = LoadConstant<0x3F800000>();
-			register const VecFloat two23 = LoadConstant<0x4B000000>();
+			const VecFloat one = LoadConstant<0x3F800000>();
+			const VecFloat two23 = LoadConstant<0x4B000000>();
 			
 			VecFloat result = _mm_sub_ps(_mm_add_ps(v, two23), two23);
 			return _mm_sub_ps(result, _mm_and_ps(one, _mm_cmplt_ps(v, result)));
@@ -346,8 +346,8 @@ namespace RN
 		static inline VecFloat PositiveFloorScalar(const VecFloat& v)
 		{
 #if RN_SSE
-			register const VecFloat one = LoadConstant<0x3F800000>();
-			register const VecFloat two23 = LoadConstant<0x4B000000>();
+			const VecFloat one = LoadConstant<0x3F800000>();
+			const VecFloat two23 = LoadConstant<0x4B000000>();
 			
 			VecFloat result = _mm_sub_ss(_mm_add_ss(v, two23), two23);
 			return _mm_sub_ss(result, _mm_and_ps(one, _mm_cmplt_ps(v, result)));
