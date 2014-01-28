@@ -222,12 +222,12 @@ namespace RN
 		Mesh  *skyBackMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 90.0f, 0.0f));
 		
 		Model *skyModel = Model::Empty();
-		skyModel->AddMesh(skyDownMesh->Autorelease(), skyDownMaterial->Autorelease(), 0);
-		skyModel->AddMesh(skyUpMesh->Autorelease(), skyUpMaterial->Autorelease(), 0);
-		skyModel->AddMesh(skyLeftMesh->Autorelease(), skyLeftMaterial->Autorelease(), 0);
-		skyModel->AddMesh(skyRightMesh->Autorelease(), skyRightMaterial->Autorelease(), 0);
-		skyModel->AddMesh(skyFrontMesh->Autorelease(), skyFrontMaterial->Autorelease(), 0);
-		skyModel->AddMesh(skyBackMesh->Autorelease(), skyBackMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyDownMesh, skyDownMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyUpMesh, skyUpMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyLeftMesh, skyLeftMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyRightMesh, skyRightMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyFrontMesh, skyFrontMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyBackMesh, skyBackMaterial->Autorelease(), 0);
 		
 		return skyModel;
 	}
