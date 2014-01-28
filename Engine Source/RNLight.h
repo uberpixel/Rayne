@@ -20,11 +20,11 @@ namespace RN
 {
 	struct ShadowSplit
 	{
-		ShadowSplit(size_t tupdateInterval = 1, size_t tupdateOffset = 0) :
+		ShadowSplit(size_t updateInterval = 1, size_t updateOffset = 0) :
 			biasFactor(2.0f),
 			biasUnits(512.0f),
-			updateInterval(tupdateInterval),
-			updateOffset(tupdateOffset)
+			updateInterval(updateInterval),
+			updateOffset(updateOffset)
 		{}
 		
 		float biasFactor;
@@ -35,16 +35,16 @@ namespace RN
 	
 	struct ShadowParameter
 	{
-		ShadowParameter(size_t tresolution = 1024) :
-			resolution(tresolution),
+		ShadowParameter(size_t resolution = 1024) :
+			resolution(resolution),
 			distanceBlendFactor(0.05f),
 			shadowTarget(nullptr)
 		{
 			splits.push_back(ShadowSplit());
 		}
 		
-		ShadowParameter(Camera *target, size_t tresolution = 1024) :
-			resolution(tresolution),
+		ShadowParameter(Camera *target, size_t resolution = 1024) :
+			resolution(resolution),
 			distanceBlendFactor(0.05f),
 			shadowTarget(target)
 		{
@@ -93,7 +93,7 @@ namespace RN
 		RNAPI void SetIntensity(float intensity);
 		
 		const Color& GetColor() const { return _color; }
-		const Vector3& GetResultColor() { return _resultColor; }
+		const Vector3& GetFinalColor() { return _finalColor; }
 		
 		const Type GetType() const { return _lightType; }
 		float GetRange() const { return _range; }
@@ -101,10 +101,10 @@ namespace RN
 		float GetAngleCos() const { return _angleCos; }
 		float GetIntensity() const { return _intensity; }
 		
-		ShadowParameter GetShadowParameter() const {return _shadowParameter;}
+		ShadowParameter GetShadowParameters() const {return _shadowParameter;}
 		
 		const std::vector<Matrix> &GetShadowMatrices() const { return _shadowCameraMatrices; }
-		const Array *GetShadowCameras() const { return &_shadowDepthCameras; }
+		const Array *GetShadowDepthCameras() const { return &_shadowDepthCameras; }
 	
 	private:
 		void ReCalculateColor();
@@ -117,7 +117,7 @@ namespace RN
 		Type _lightType;
 		
 		Observable<Color> _color;
-		Vector3 _resultColor;
+		Vector3 _finalColor;
 		Vector3 _direction;
 		
 		Observable<float> _intensity;
