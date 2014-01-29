@@ -118,29 +118,28 @@ namespace RN
 		void MakeIdentity();
 		void MakeEulerAngle(const Vector3& euler);
 		void MakeAxisAngle(const Vector4& euler);
-		void MakeLerpS(const Quaternion& start, const Quaternion& end, float factor);
-		void MakeLerpN(const Quaternion& start, const Quaternion& end, float factor);
-
-		void LookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
+		void MakeLerpSpherical(const Quaternion& start, const Quaternion& end, float factor);
+		void MakeLerpLinear(const Quaternion& start, const Quaternion& end, float factor);
+		void MakeLookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
 		
 		Quaternion &Normalize();
-		Quaternion Normalize() const;
+		Quaternion GetNormalized() const;
 		Quaternion &Conjugate();
-		Quaternion Conjugate() const;
+		Quaternion GetConjugated() const;
 
-		Quaternion LerpS(const Quaternion& other, float factor) const;
-		Quaternion LerpN(const Quaternion& other, float factor) const;
+		Quaternion GetLerpSpherical(const Quaternion& other, float factor) const;
+		Quaternion GetLerpLinear(const Quaternion& other, float factor) const;
 
-		Vector3 RotateVector(const Vector3& vec) const;
-		Vector4 RotateVector(const Vector4& vec) const;
+		Vector3 GetRotatedVector(const Vector3& vec) const;
+		Vector4 GetRotatedVector(const Vector4& vec) const;
 
 		Matrix GetRotationMatrix() const;
 
 		Vector3 GetEulerAngle() const;
 		Vector4 GetAxisAngle() const;
 
-		float Length() const;
-		float Dot(const Quaternion& other) const;
+		float GetLength() const;
+		float GetDotProduct(const Quaternion& other) const;
 
 		struct
 		{

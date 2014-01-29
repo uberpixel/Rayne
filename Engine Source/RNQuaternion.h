@@ -257,12 +257,12 @@ namespace RN
 		Normalize();
 	}
 	
-	RN_INLINE void Quaternion::MakeLerpS(const Quaternion& start, const Quaternion& end, float factor)
+	RN_INLINE void Quaternion::MakeLerpSpherical(const Quaternion& start, const Quaternion& end, float factor)
 	{
 		Quaternion quat1(start);
 		Quaternion quat2(end);
 		
-		float angle = quat1.Dot(quat2);
+		float angle = quat1.GetDotProduct(quat2);
 		if(angle < 0.0f)
 		{
 			quat1 *= -1.0f;
@@ -297,13 +297,13 @@ namespace RN
 		*this = (quat1 * scale) + (quat2 * inverseScale);
 	}
 	
-	RN_INLINE void Quaternion::MakeLerpN(const Quaternion& start, const Quaternion& end, float factor)
+	RN_INLINE void Quaternion::MakeLerpLinear(const Quaternion& start, const Quaternion& end, float factor)
 	{
 		float inverseFactor = 1.0f - factor;
 		*this = (end * factor) + (start * inverseFactor);
 	}
 	
-	RN_INLINE void Quaternion::LookAt(const Vector3& tdir, const Vector3& tup, bool forceup)
+	RN_INLINE void Quaternion::MakeLookAt(const Vector3& tdir, const Vector3& tup, bool forceup)
 	{
 		Vector3 dir = Vector3(tdir);
 		Vector3 up  = Vector3(tup);
@@ -380,7 +380,7 @@ namespace RN
 	
 	RN_INLINE Quaternion &Quaternion::Normalize()
 	{
-		float length = Length();
+		float length = GetLength();
 		if(length > k::EpsilonFloat)
 		{
 			float fac = 1.0f / length;
@@ -402,43 +402,43 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE Quaternion Quaternion::Normalize() const
+	RN_INLINE Quaternion Quaternion::GetNormalized() const
 	{
 		return Quaternion(*this).Normalize();
 	}
 	
-	RN_INLINE Quaternion Quaternion::Conjugate() const
+	RN_INLINE Quaternion Quaternion::GetConjugated() const
 	{
 		return Quaternion(-x, -y, -z, w);
 	}
 	
-	RN_INLINE Quaternion Quaternion::LerpS(const Quaternion& other, float factor) const
+	RN_INLINE Quaternion Quaternion::GetLerpSpherical(const Quaternion& other, float factor) const
 	{
 		Quaternion result;
-		result.MakeLerpS(*this, other, factor);
+		result.MakeLerpSpherical(*this, other, factor);
 		
 		return result;
 	}
 	
-	RN_INLINE Quaternion Quaternion::LerpN(const Quaternion& other, float factor) const
+	RN_INLINE Quaternion Quaternion::GetLerpLinear(const Quaternion& other, float factor) const
 	{
 		Quaternion result;
-		result.MakeLerpN(*this, other, factor);
+		result.MakeLerpLinear(*this, other, factor);
 		
 		return result;
 	}
 	
-	RN_INLINE Vector3 Quaternion::RotateVector(const Vector3& vector) const
+	RN_INLINE Vector3 Quaternion::GetRotatedVector(const Vector3& vector) const
 	{
 		Quaternion vectorquat(vector.x, vector.y, vector.z, 0.0f);
-		Quaternion resultquat = (*this) * vectorquat * Conjugate();
+		Quaternion resultquat = (*this) * vectorquat * GetConjugated();
 		return Vector3(resultquat.x, resultquat.y, resultquat.z);
 	}
 	
-	RN_INLINE Vector4 Quaternion::RotateVector(const Vector4& vector) const
+	RN_INLINE Vector4 Quaternion::GetRotatedVector(const Vector4& vector) const
 	{
 		Quaternion vectorquat(vector.x, vector.y, vector.z, 0.0f);
-		Quaternion resultquat = (*this) * vectorquat * Conjugate();
+		Quaternion resultquat = (*this) * vectorquat * GetConjugated();
 		return Vector4(resultquat.x, resultquat.y, resultquat.z, vector.w);
 	}
 	
@@ -530,12 +530,12 @@ namespace RN
 		return res;
 	}
 	
-	RN_INLINE float Quaternion::Length() const
+	RN_INLINE float Quaternion::GetLength() const
 	{
 		return Math::Sqrt(x * x + y * y + z * z + w * w);
 	}
 	
-	RN_INLINE float Quaternion::Dot(const Quaternion& other) const
+	RN_INLINE float Quaternion::GetDotProduct(const Quaternion& other) const
 	{
 		return x * other.x + y * other.y + z * other.z + w * other.w;
 	}

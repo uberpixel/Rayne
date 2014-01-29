@@ -43,7 +43,7 @@ namespace TG
 			
 			rotation *= RN::Quaternion(RN::Vector3(0.0f, 0.0f, _pitch));
 			
-			RN::Vector3 cameraPosition = rotation.RotateVector(RN::Vector3(0.0f, 1.5f, _distance));
+			RN::Vector3 cameraPosition = rotation.GetRotatedVector(RN::Vector3(0.0f, 1.5f, _distance));
 			cameraPosition += position;
 			
 			SetWorldPosition(cameraPosition);

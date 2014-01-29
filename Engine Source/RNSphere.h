@@ -96,7 +96,7 @@ namespace RN
 	
 	RN_INLINE void Sphere::Rotate(const Quaternion& rotation)
 	{
-		offset = rotation.RotateVector(offsetBase);
+		offset = rotation.GetRotatedVector(offsetBase);
 	}
 	
 	/*based on http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection*/

@@ -805,7 +805,7 @@ namespace RN
 		Vector3 pos6 = __ToWorld(Vector3(1.0f, -1.0f, 1.0));
 		
 		const Vector3& position = GetWorldPosition();
-		Vector3 direction = GetWorldRotation().RotateVector(Vector3(0.0, 0.0, -1.0));
+		Vector3 direction = GetWorldRotation().GetRotatedVector(Vector3(0.0, 0.0, -1.0));
 		
 		Vector3 vmax;
 		Vector3 vmin;

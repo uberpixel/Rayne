@@ -178,7 +178,7 @@ namespace RN
 				float blend = (currTime-currFrame->time)/timeDiff;
 				position = currFrame->position.GetLerp(nextFrame->position, blend);
 				scale = currFrame->scale.GetLerp(nextFrame->scale, blend);
-				rotation.MakeLerpS(currFrame->rotation, nextFrame->rotation, blend);
+				rotation.MakeLerpSpherical(currFrame->rotation, nextFrame->rotation, blend);
 			}
 			else
 			{

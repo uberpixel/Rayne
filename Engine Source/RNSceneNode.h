@@ -309,7 +309,7 @@ namespace RN
 		_transformLock.Lock();
 		
 		WillUpdate(ChangeSet::Position);
-		_position += _rotation->RotateVector(trans);
+		_position += _rotation->GetRotatedVector(trans);
 		DidUpdate(ChangeSet::Position);
 		
 		_transformLock.Unlock();
@@ -373,7 +373,7 @@ namespace RN
 		Quaternion temp;
 		temp = temp / _parent->GetWorldRotation();
 		
-		_position = temp.RotateVector(pos) - temp.RotateVector(GetWorldPosition());
+		_position = temp.GetRotatedVector(pos) - temp.GetRotatedVector(GetWorldPosition());
 		
 		DidUpdate(ChangeSet::Position);
 		
@@ -437,19 +437,19 @@ namespace RN
 	
 	RN_INLINE Vector3 SceneNode::GetForward() const
 	{
-		Vector3 forward = GetWorldRotation().RotateVector(Vector3(0.0, 0.0, -1.0));
+		Vector3 forward = GetWorldRotation().GetRotatedVector(Vector3(0.0, 0.0, -1.0));
 		return forward;
 	}
 	
 	RN_INLINE Vector3 SceneNode::GetUp() const
 	{
-		Vector3 up = GetWorldRotation().RotateVector(Vector3(0.0, 1.0, 0.0));
+		Vector3 up = GetWorldRotation().GetRotatedVector(Vector3(0.0, 1.0, 0.0));
 		return up;
 	}
 	
 	RN_INLINE Vector3 SceneNode::GetRight() const
 	{
-		Vector3 right = GetWorldRotation().RotateVector(Vector3(1.0, 0.0, 0.0));
+		Vector3 right = GetWorldRotation().GetRotatedVector(Vector3(1.0, 0.0, 0.0));
 		return right;
 	}
 	
@@ -648,7 +648,7 @@ namespace RN
 			{
 				_parent->UpdateInternalData();
 				
-				_worldPosition = _parent->_worldPosition + _parent->_worldRotation.RotateVector(_position);
+				_worldPosition = _parent->_worldPosition + _parent->_worldRotation.GetRotatedVector(_position);
 				_worldRotation = _parent->_worldRotation * _rotation;
 				_worldScale = _parent->_worldScale + _scale;
 				_worldEuler = _parent->_worldEuler + _euler;

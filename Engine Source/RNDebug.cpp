@@ -292,7 +292,7 @@ namespace RN
 				for(float tilt = 0.0f; tilt <= 360.0f; tilt += offset)
 				{
 					rot.MakeEulerAngle(Vector3(pan, tilt, 0.0f));
-					temp = pos+rot.RotateVector(point);
+					temp = pos+rot.GetRotatedVector(point);
 					AddLinePoint(temp, color);
 				}
 				CloseLine();
@@ -303,7 +303,7 @@ namespace RN
 				for(float pan = 0.0f; pan <= 360.0f; pan += offset)
 				{
 					rot.MakeEulerAngle(Vector3(pan, tilt, 0.0f));
-					temp = pos+rot.RotateVector(point);
+					temp = pos+rot.GetRotatedVector(point);
 					AddLinePoint(temp, color);
 				}
 				CloseLine();
