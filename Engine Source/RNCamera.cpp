@@ -843,7 +843,7 @@ namespace RN
 			vec *= temp2;
 			vec += Vector4(_orthoRight, _orthoTop, -_clipFar, 2.0f)*temp;
 			
-			vec = _inverseViewMatrix.Transform(vec);
+			vec = _inverseViewMatrix.GetTransformedVector(vec);
 			return Vector3(vec);
 		}
 		else
@@ -852,8 +852,8 @@ namespace RN
 			clipPos.w = _projectionMatrix.m[14] / (ndcPos.z + _projectionMatrix.m[10]);
 			clipPos = Vector4(ndcPos*clipPos.w, clipPos.w);
 			
-			Vector4 temp = _inverseProjectionMatrix.Transform(clipPos);
-			temp = _inverseViewMatrix.Transform(temp);
+			Vector4 temp = _inverseProjectionMatrix.GetTransformedVector(clipPos);
+			temp = _inverseViewMatrix.GetTransformedVector(temp);
 			return Vector3(temp);
 		}
 	}
@@ -872,7 +872,7 @@ namespace RN
 			Vector4 vec(_orthoLeft, _orthoBottom, -dir.z, 2.0f);
 			vec *= temp2;
 			vec += Vector4(_orthoRight, _orthoTop, -dir.z, 2.0f)*temp;
-			vec = _inverseViewMatrix.Transform(vec);
+			vec = _inverseViewMatrix.GetTransformedVector(vec);
 			return Vector3(vec);
 		}
 		else
@@ -881,10 +881,10 @@ namespace RN
 			clipPos.w = _projectionMatrix.m[14] / (ndcPos.z + _projectionMatrix.m[10]);
 			clipPos = Vector4(ndcPos*clipPos.w, clipPos.w);
 			
-			Vector4 temp = _inverseProjectionMatrix.Transform(clipPos);
+			Vector4 temp = _inverseProjectionMatrix.GetTransformedVector(clipPos);
 			temp *= -dir.z/temp.z;
 			temp.w = 1.0f;
-			temp = _inverseViewMatrix.Transform(temp);
+			temp = _inverseViewMatrix.GetTransformedVector(temp);
 			return Vector3(temp);
 		}
 	}

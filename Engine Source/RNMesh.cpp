@@ -938,10 +938,10 @@ namespace RN
 		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(kMeshFeatureUVSet0);
 		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(kMeshFeatureIndices);
 		
-		*vertices ++ = rotmat.Transform(Vector3(-size.x, size.y, -size.z));
-		*vertices ++ = rotmat.Transform(Vector3( size.x, size.y, -size.z));
-		*vertices ++ = rotmat.Transform(Vector3( size.x, size.y, size.z));
-		*vertices ++ = rotmat.Transform(Vector3(-size.x, size.y, size.z));
+		*vertices ++ = rotmat.GetTransformedVector(Vector3(-size.x, size.y, -size.z));
+		*vertices ++ = rotmat.GetTransformedVector(Vector3( size.x, size.y, -size.z));
+		*vertices ++ = rotmat.GetTransformedVector(Vector3( size.x, size.y, size.z));
+		*vertices ++ = rotmat.GetTransformedVector(Vector3(-size.x, size.y, size.z));
 		
 		*texcoords ++ = Vector2(0.0f, 0.0f);
 		*texcoords ++ = Vector2(1.0f, 0.0f);

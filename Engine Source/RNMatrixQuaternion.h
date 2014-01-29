@@ -45,10 +45,10 @@ namespace RN
 		Vector3 GetEulerAngle() const;
 		Quaternion GetQuaternion() const;
 		
-		void SetTranslation(const Vector3& other);
-		void SetTranslation(const Vector4& other);
-		void SetScale(const Vector3& other);
-		void SetScale(const Vector4& other);
+		void SetTranslationComponents(const Vector3& other);
+		void SetTranslationComponents(const Vector4& other);
+		void SetScaleComponents(const Vector3& other);
+		void SetScaleComponents(const Vector4& other);
 
 		void Translate(const Vector3& trans);
 		void Translate(const Vector4& trans);
@@ -60,8 +60,8 @@ namespace RN
 
 		void Transpose();
 
-		Vector3 Transform(const Vector3& other) const;
-		Vector4 Transform(const Vector4& other) const;
+		Vector3 GetTransformedVector(const Vector3& other) const;
+		Vector4 GetTransformedVector(const Vector4& other) const;
 
 		Matrix GetInverse() const;
 	

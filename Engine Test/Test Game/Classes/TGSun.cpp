@@ -91,7 +91,9 @@ namespace TG
 	
 	void Sun::UpdateTime(float delta)
 	{
-		float _factor = 3600.0;
+		float _factor = 360.0;
+		if(_hour > 22 || _hour < 6)
+			_factor *= 15.0f;
 		
 		
 		_second += (delta * _factor);

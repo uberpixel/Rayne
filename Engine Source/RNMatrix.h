@@ -347,14 +347,14 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE void Matrix::SetTranslation(const Vector3& trans)
+	RN_INLINE void Matrix::SetTranslationComponents(const Vector3& trans)
 	{
 		m[12] = trans.x;
 		m[13] = trans.y;
 		m[14] = trans.z;
 	}
 	
-	RN_INLINE void Matrix::SetTranslation(const Vector4& trans)
+	RN_INLINE void Matrix::SetTranslationComponents(const Vector4& trans)
 	{
 		m[12] = trans.x;
 		m[13] = trans.y;
@@ -362,14 +362,14 @@ namespace RN
 		m[15] = trans.w;
 	}
 	
-	RN_INLINE void Matrix::SetScale(const Vector3& scal)
+	RN_INLINE void Matrix::SetScaleComponents(const Vector3& scal)
 	{
 		m[0] = scal.x;
 		m[5] = scal.y;
 		m[10] = scal.z;
 	}
 	
-	RN_INLINE void Matrix::SetScale(const Vector4& scal)
+	RN_INLINE void Matrix::SetScaleComponents(const Vector4& scal)
 	{
 		m[0] = scal.x;
 		m[5] = scal.y;
@@ -464,14 +464,14 @@ namespace RN
 	}
 	
 	
-	RN_INLINE Vector3 Matrix::Transform(const Vector3& other) const
+	RN_INLINE Vector3 Matrix::GetTransformedVector(const Vector3& other) const
 	{
 		Vector3 result;
 		result = (*this) * other;
 		return result;
 	}
 	
-	RN_INLINE Vector4 Matrix::Transform(const Vector4& other) const
+	RN_INLINE Vector4 Matrix::GetTransformedVector(const Vector4& other) const
 	{
 		Vector4 result;
 		result = (*this) * other;

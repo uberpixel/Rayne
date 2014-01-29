@@ -152,8 +152,8 @@ namespace RN
 		
 		Matrix matModelInv = _transform.GetInverse();
 		
-		Vector3 temppos = matModelInv.Transform(position);
-		Vector4 tempdir = matModelInv.Transform(Vector4(direction, 0.0f));
+		Vector3 temppos = matModelInv.GetTransformedVector(position);
+		Vector4 tempdir = matModelInv.GetTransformedVector(Vector4(direction, 0.0f));
 		
 		hit = _mesh->IntersectsRay(temppos, Vector3(tempdir), mode);
 		hit.node = this;

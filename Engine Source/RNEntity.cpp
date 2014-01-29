@@ -118,8 +118,8 @@ namespace RN
 		{
 			Matrix matModelInv = GetWorldTransform().GetInverse();
 			
-			Vector3 temppos = matModelInv.Transform(position);
-			Vector4 tempdir = matModelInv.Transform(Vector4(direction, 0.0f));
+			Vector3 temppos = matModelInv.GetTransformedVector(position);
+			Vector4 tempdir = matModelInv.GetTransformedVector(Vector4(direction, 0.0f));
 			
 			size_t meshcount = _model->GetMeshCount(0);
 			
