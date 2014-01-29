@@ -48,7 +48,7 @@ namespace RN
 		
 		position = position1;
 		
-		normal = diff1.Cross(diff2)*dirfac;
+		normal = diff1.GetCrossProduct(diff2)*dirfac;
 		normal.Normalize();
 		
 		CalculateD();
@@ -56,12 +56,12 @@ namespace RN
 	
 	RN_INLINE float Plane::GetDistance(const Vector3 &position) const
 	{
-		return position.Dot(normal) - d;
+		return position.GetDotProduct(normal) - d;
 	}
 	
 	RN_INLINE void Plane::CalculateD()
 	{
-		d = normal.Dot(position);
+		d = normal.GetDotProduct(position);
 	}
 }
 

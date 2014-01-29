@@ -701,7 +701,7 @@ namespace RN
 		Vector3 farcenter = (farcorner1+farcorner2)*0.5f;
 		
 		Vector3 center = (nearcenter+farcenter)*0.5f;
-		float dist = center.Distance(farcorner1);
+		float dist = center.GetDistance(farcorner1);
 		
 		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
 		Vector3 pos = center-light->GetForward()*500.0f;
@@ -818,7 +818,7 @@ namespace RN
 		
 		_frustumCenter = vmax + vmin;
 		_frustumCenter = _frustumCenter * 0.5f;
-		_frustumRadius = _frustumCenter.Distance(vmax);
+		_frustumRadius = _frustumCenter.GetDistance(vmax);
 		
 		frustrums._frustumLeft.SetPlane(pos1, pos2, pos3, 1.0f);
 		frustrums._frustumRight.SetPlane(pos4, pos5, pos6, -1.0f);
@@ -936,7 +936,7 @@ namespace RN
 	{
 		UpdateFrustum();
 		
-		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
+		if(_frustumCenter.GetDistance(position) > _frustumRadius + radius)
 			return false;
 
 		if(frustrums._frustumLeft.GetDistance(position) > radius)

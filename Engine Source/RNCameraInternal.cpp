@@ -18,6 +18,6 @@ namespace RN
 	
 	bool CubemapCamera::InFrustum(const RN::Vector3 &position, float radius)
 	{
-		return (GetWorldPosition().Distance(position) < GetClipFar() + radius);
+		return (GetWorldPosition().GetDistance(position) < GetClipFar() + radius);
 	}
 }

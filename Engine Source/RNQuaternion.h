@@ -307,18 +307,18 @@ namespace RN
 	{
 		Vector3 dir = Vector3(tdir);
 		Vector3 up  = Vector3(tup);
-		Vector3 right = up.Cross(dir);
+		Vector3 right = up.GetCrossProduct(dir);
 		right.Normalize();
 		
 		if(forceup)
 		{
-			dir = up.Cross(right);
+			dir = up.GetCrossProduct(right);
 			up.Normalize();
 			dir.Normalize();
 		}
 		else
 		{
-			up = dir.Cross(right);
+			up = dir.GetCrossProduct(right);
 			up.Normalize();
 			dir.Normalize();
 		}

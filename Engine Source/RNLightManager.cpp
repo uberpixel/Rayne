@@ -569,7 +569,7 @@ namespace RN
 			if(maxY < 0)
 				maxY = minY-1;
 			
-			float linearDist = cameraForward.Dot(lightPosition - cameraWorldPosition);
+			float linearDist = cameraForward.GetDotProduct(lightPosition - cameraWorldPosition);
 			int minZ = floor((linearDist - lightRange) / _clusterSize.z);
 			int maxZ = ceil((linearDist + lightRange) / _clusterSize.z);
 			if(minZ < 0)
@@ -666,7 +666,7 @@ namespace RN
 			if(maxY < 0)
 				maxY = minY-1;
 			
-			float linearDist = cameraForward.Dot(lightPosition - cameraWorldPosition);
+			float linearDist = cameraForward.GetDotProduct(lightPosition - cameraWorldPosition);
 			int minZ = floor((linearDist - lightRange) / _clusterSize.z);
 			int maxZ = ceil((linearDist + lightRange) / _clusterSize.z);
 			if(minZ < 0)

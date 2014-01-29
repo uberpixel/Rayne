@@ -462,7 +462,7 @@ namespace RN
 			
 			for(InstancingBucket &bucket : buckets)
 			{
-				if(bucket->position.Distance(position) < clipRange)
+				if(bucket->position.GetDistance(position) < clipRange)
 					temp.push_back(bucket);
 			}
 			
@@ -508,7 +508,7 @@ namespace RN
 			batch->AddTask([&, entity] {
 			
 				InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
-				float distance = position.Distance(entity->GetWorldPosition_NoLock());
+				float distance = position.GetDistance(entity->GetWorldPosition_NoLock());
 				
 				bool clipped = true;
 				
@@ -673,7 +673,7 @@ namespace RN
 		
 		if(_pivot && _hasLODStages)
 		{
-			float distance = entity->GetWorldPosition().Distance(_pivot->GetWorldPosition());
+			float distance = entity->GetWorldPosition().GetDistance(_pivot->GetWorldPosition());
 			stage = _model->GetLODStageForDistance(distance / _pivot->GetClipFar());
 		}
 		
@@ -688,7 +688,7 @@ namespace RN
 	{
 		InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
 		
-		float distance = entity->GetWorldPosition().Distance(position);
+		float distance = entity->GetWorldPosition().GetDistance(position);
 		size_t newStage = _model->GetLODStageForDistance(distance / _pivot->GetClipFar());
 		
 		if(newStage != data->lodStage)

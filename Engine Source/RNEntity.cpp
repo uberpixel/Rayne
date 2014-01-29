@@ -52,7 +52,7 @@ namespace RN
 			float distance = 0.0f;
 			Camera *distanceCamera = camera->GetLODCamera();
 			
-			distance = GetWorldPosition().Distance(distanceCamera->GetWorldPosition());
+			distance = GetWorldPosition().GetDistance(distanceCamera->GetWorldPosition());
 			distance /= distanceCamera->GetClipFar();
 			
 			

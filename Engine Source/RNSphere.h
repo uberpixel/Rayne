@@ -54,7 +54,7 @@ namespace RN
 	RN_INLINE Sphere::Sphere(const AABB& aabb) :
 		offset(aabb.maxExtend*0.5+aabb.minExtend*0.5),
 		offsetBase(aabb.maxExtend*0.5+aabb.minExtend*0.5),
-		radius(((aabb.maxExtend-aabb.minExtend)*0.5).Length())
+		radius(((aabb.maxExtend-aabb.minExtend)*0.5).GetLength())
 	{
 	}
 	
@@ -105,9 +105,9 @@ namespace RN
 		Hit hit;
 		
 		//Compute A, B and C coefficients
-		float a = direction.Dot(direction);
-		float b = 2.0f * direction.Dot(position);
-		float c = position.Dot(position) - (radius * radius);
+		float a = direction.GetDotProduct(direction);
+		float b = 2.0f * direction.GetDotProduct(position);
+		float c = position.GetDotProduct(position) - (radius * radius);
 		
 		//Find discriminant
 		float disc = b * b - 4.0f * a * c;
@@ -160,7 +160,7 @@ namespace RN
 	
 	RN_INLINE bool Sphere::IntersectsRay(const Vector3 &tposition, const Vector3 &direction) const
 	{
-		float dist = direction.Cross(tposition - position).Length()/direction.Length();
+		float dist = direction.GetCrossProduct(tposition - position).GetLength()/direction.GetLength();
 		return (dist <= radius);
 	}
 }

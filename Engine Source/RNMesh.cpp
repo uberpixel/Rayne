@@ -642,7 +642,7 @@ namespace RN
 		
 		if(mode != Hit::HitMode::IgnoreNone)
 		{
-			float facing = edge1.Cross(edge2).Dot(dir);
+			float facing = edge1.GetCrossProduct(edge2).GetDotProduct(dir);
 			if(mode == Hit::HitMode::IgnoreBackfaces)
 			{
 				if(facing > 0.0f)
@@ -655,8 +655,8 @@ namespace RN
 			}
 		}
 		
-		pvec = dir.Cross(edge2);
-		det = pvec.Dot(edge1);
+		pvec = dir.GetCrossProduct(edge2);
+		det = pvec.GetDotProduct(edge1);
 		
 		if(det > -k::EpsilonFloat && det < k::EpsilonFloat)
 			return -1.0f;
@@ -664,19 +664,19 @@ namespace RN
 		inv_det = 1.0f/det;
 		
 		tvec = pos-vert1;
-		u = tvec.Dot(pvec)*inv_det;
+		u = tvec.GetDotProduct(pvec)*inv_det;
 		
 		if(u < 0.0f || u > 1.0f)
 			return -1.0f;
 		
-		qvec = tvec.Cross(edge1);
-		v = dir.Dot(qvec)*inv_det;
+		qvec = tvec.GetCrossProduct(edge1);
+		v = dir.GetDotProduct(qvec)*inv_det;
 		
 		if(v < 0.0f || u+v > 1.0f)
 			return -1.0f;
 		
 		//distance
-		float t = edge2.Dot(qvec)*inv_det;
+		float t = edge2.GetDotProduct(qvec)*inv_det;
 		return t;
 	}
 	
