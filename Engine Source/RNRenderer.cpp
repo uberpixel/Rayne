@@ -907,7 +907,7 @@ namespace RN
 		size_t skyCubeMeshes = 0;
 		
 		Matrix cameraRotation;
-		cameraRotation.MakeRotate(camera->GetWorldRotation());
+		cameraRotation = Matrix::WithRotation(camera->GetWorldRotation());
 		
 		if(skyCube)
 		{

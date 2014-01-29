@@ -640,7 +640,7 @@ namespace RN
 	{
 		if(_updated)
 		{
-			_localTransform.MakeTranslate(_position);
+			_localTransform = Matrix::WithTranslation(_position);
 			_localTransform.Rotate(_rotation);
 			_localTransform.Scale(_scale);
 			

@@ -74,8 +74,8 @@ namespace RN
 	
 	Bone::Bone(const Vector3 &pos, const std::string bonename, bool root, bool absolute)
 	{
-		invBaseMatrix.MakeTranslate(pos*(-1.0f));
-		relBaseMatrix.MakeTranslate(pos);
+		invBaseMatrix = Matrix::WithTranslation(pos*(-1.0f));
+		relBaseMatrix = Matrix::WithTranslation(pos);
 		
 		name = bonename;
 		isRoot = root;
@@ -201,7 +201,7 @@ namespace RN
 		}
 		else
 		{
-			finalMatrix.MakeTranslate(position);
+			finalMatrix = Matrix::WithTranslation(position);
 		}
 		finalMatrix.Rotate(rotation);
 		finalMatrix.Scale(scale);

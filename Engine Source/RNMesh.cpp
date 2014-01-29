@@ -928,8 +928,7 @@ namespace RN
 		std::vector<MeshDescriptor> descriptors = { vertexDescriptor, indicesDescriptor, texcoordDescriptor };
 		Mesh *mesh = new Mesh(descriptors, 4, 6);
 		
-		Matrix rotmat;
-		rotmat.MakeRotate(rotation);
+		Matrix rotmat = Matrix::WithRotation(rotation);
 		
 		Chunk chunk = mesh->GetChunk();
 		Chunk ichunk = mesh->GetIndicesChunk();

@@ -26,18 +26,18 @@ namespace RN
 		Vector3 operator* (const Vector3& other) const;
 		Vector4 operator* (const Vector4& other) const;
 
-		void MakeIdentity();
-		void MakeTranslate(const Vector3& other);
-		void MakeTranslate(const Vector4& other);
-		void MakeScale(const Vector3& other);
-		void MakeScale(const Vector4& other);
-		void MakeRotate(const Vector3& rot);
-		void MakeRotate(const Vector4& rot);
-		void MakeRotate(const Quaternion& rot);
+		static Matrix WithIdentity();
+		static Matrix WithTranslation(const Vector3& translation);
+		static Matrix WithTranslation(const Vector4& translation);
+		static Matrix WithScaling(const Vector3& scaling);
+		static Matrix WithScaling(const Vector4& scaling);
+		static Matrix WithRotation(const Vector3& rotation);
+		static Matrix WithRotation(const Vector4& rotation);
+		static Matrix WithRotation(const Quaternion& rotation);
 
-		void MakeProjectionOrthogonal(float left, float right, float bottom, float top, float clipnear, float clipfar);
-		void MakeProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
-		void MakeInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
+		static Matrix WithProjectionOrthogonal(float left, float right, float bottom, float top, float clipnear, float clipfar);
+		static Matrix WithProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
+		static Matrix WithInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
 
 		float GetDeterminant() const;
 		float GetDeterminantSubmatrix(const int k) const;
@@ -45,23 +45,23 @@ namespace RN
 		Vector3 GetEulerAngle() const;
 		Quaternion GetQuaternion() const;
 		
-		void SetTranslationComponents(const Vector3& other);
-		void SetTranslationComponents(const Vector4& other);
-		void SetScaleComponents(const Vector3& other);
-		void SetScaleComponents(const Vector4& other);
+		void SetTranslationComponents(const Vector3& translation);
+		void SetTranslationComponents(const Vector4& translation);
+		void SetScaleComponents(const Vector3& scaling);
+		void SetScaleComponents(const Vector4& scaling);
 
-		void Translate(const Vector3& trans);
-		void Translate(const Vector4& trans);
-		void Scale(const Vector3& scal);
-		void Scale(const Vector4& scal);
-		void Rotate(const Vector3& rot);
-		void Rotate(const Vector4& rot);
-		void Rotate(const Quaternion& rot);
+		void Translate(const Vector3& translation);
+		void Translate(const Vector4& translation);
+		void Scale(const Vector3& scaling);
+		void Scale(const Vector4& scaling);
+		void Rotate(const Vector3& rotation);
+		void Rotate(const Vector4& rotation);
+		void Rotate(const Quaternion& rotation);
 
 		void Transpose();
 
-		Vector3 GetTransformedVector(const Vector3& other) const;
-		Vector4 GetTransformedVector(const Vector4& other) const;
+		Vector3 GetTransformedVector(const Vector3& vector) const;
+		Vector4 GetTransformedVector(const Vector4& vector) const;
 
 		Matrix GetInverse() const;
 	
