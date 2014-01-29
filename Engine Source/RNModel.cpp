@@ -12,10 +12,13 @@
 #include "RNFileManager.h"
 #include "RNSkeleton.h"
 #include "RNResourceCoordinator.h"
+#include "RNLogging.h"
 
 namespace RN
 {
 	RNDeclareMeta(Model)
+	
+	static std::vector<float> __defaultLODFactors({ 0.05f, 0.125f, 0.50f, 0.75f, 0.90f });
 	
 	Model::Model() :
 		_skeleton(nullptr)
@@ -41,6 +44,38 @@ namespace RN
 		}
 		
 		SafeRelease(_skeleton);
+	}
+	
+	
+	std::vector<float> &Model::GetDefaultLODFactors()
+	{
+		return __defaultLODFactors;
+	}
+	
+	void Model::SetDefaultLODFactors(const std::vector<float> &factors)
+	{
+		if(factors.size() < 3)
+		{
+			static std::once_flag flag;
+			std::call_once(flag, [] {
+				RNDebug("There should be at least 3 LOD factors in the default LOD factors (this message will be logged once)");
+			});
+		}
+			
+		__defaultLODFactors = factors;
+		std::sort(__defaultLODFactors.begin(), __defaultLODFactors.end());
+	}
+	
+	void Model::SetLODFactors(const std::vector<float> &factors)
+	{
+		RN_ASSERT(factors.size() >= _groups.size(), "Factors needs at least enough elements for each LOD group");
+		
+		size_t i = 0;
+		
+		for(LODGroup *group : _groups)
+		{
+			group->lodDistance = factors[i ++];
+		}
 	}
 	
 	

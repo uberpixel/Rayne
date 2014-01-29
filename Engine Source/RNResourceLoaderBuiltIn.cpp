@@ -207,7 +207,6 @@ namespace RN
 		
 		bool guessMaterial = true;
 		bool autoloadLOD = false;
-		float distance[] = { 0.05f, 0.125f, 0.50f, 0.75 };
 		size_t stage = 0;
 		
 		if(settings->GetObjectForKey(RNCSTR("guessMaterial")))
@@ -239,6 +238,8 @@ namespace RN
 		std::string base = PathManager::Basepath(file->GetFullPath());
 		std::string name = PathManager::Basename(file->GetFullPath());
 		std::string extension = PathManager::Extension(file->GetFullPath());
+		
+		const std::vector<float> &distance = Model::GetDefaultLODFactors();
 		
 		while(autoloadLOD && stage < 5)
 		{

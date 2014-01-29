@@ -38,6 +38,7 @@ namespace RN
 		RNAPI void SetSkeleton(Skeleton *skeleton);
 		RNAPI Skeleton *GetSkeleton();
 		
+		RNAPI void SetLODFactors(const std::vector<float> &factors);
 		RNAPI void AddMesh(Mesh *mesh, Material *material, size_t lodStage);
 		
 		RNAPI size_t GetLODStageForDistance(float distance) const;
@@ -51,6 +52,9 @@ namespace RN
 		
 		RNAPI const AABB& GetBoundingBox() const { return _boundingBox; }
 		RNAPI const Sphere& GetBoundingSphere() const { return _boundingSphere; }
+		
+		RNAPI static std::vector<float> &GetDefaultLODFactors();
+		RNAPI static void SetDefaultLODFactors(const std::vector<float> &factors);
 		
 	private:
 		class MeshGroup
