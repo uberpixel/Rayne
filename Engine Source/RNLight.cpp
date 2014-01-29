@@ -20,10 +20,10 @@ namespace RN
 	
 	Light::Light(Type lighttype) :
 		_lightType(lighttype),
-		_color("color", Color(1.0f), std::bind(&Light::GetColor, this), std::bind(&Light::SetColor, this, std::placeholders::_1)),
-		_intensity("intensity", 10.0f, std::bind(&Light::GetIntensity, this), std::bind(&Light::SetIntensity, this, std::placeholders::_1)),
-		_range("range", 10.0f, std::bind(&Light::GetRange, this), std::bind(&Light::SetRange, this, std::placeholders::_1)),
-		_angle("angle", 45.0f, std::bind(&Light::GetAngle, this), std::bind(&Light::SetAngle, this, std::placeholders::_1))
+		_color("color", Color(1.0f), &Light::GetColor, &Light::SetColor),
+		_intensity("intensity", 10.0f, &Light::GetIntensity, &Light::SetIntensity),
+		_range("range", 10.0f, &Light::GetRange, &Light::SetRange),
+		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle)
 	{
 		_suppressShadows = false;
 		_shadowTarget  = nullptr;

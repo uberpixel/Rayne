@@ -16,8 +16,8 @@ namespace RN
 	RNDeclareMeta(Entity)
 	
 	Entity::Entity() :
-		_model("model", Object::MemoryPolicy::Retain, std::bind(&Entity::GetModel, this), std::bind(&Entity::SetModel, this, std::placeholders::_1)),
-		_skeleton("sekelton", Object::MemoryPolicy::Retain, std::bind(&Entity::GetSkeleton, this), std::bind(&Entity::SetSkeleton, this, std::placeholders::_1)),
+		_model("model", Object::MemoryPolicy::Retain, &Entity::GetModel, &Entity::SetModel),
+		_skeleton("skeleton", Object::MemoryPolicy::Retain, &Entity::GetSkeleton, &Entity::SetSkeleton),
 		_instancedData(nullptr)
 	{
 		AddObservable(&_model);

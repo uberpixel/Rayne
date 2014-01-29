@@ -17,9 +17,9 @@ namespace RN
 	RNDeclareMeta(SceneNode)
 	
 	SceneNode::SceneNode() :
-		_position("position", std::bind(&SceneNode::GetPosition, this), std::bind(&SceneNode::SetPosition, this, std::placeholders::_1)),
-		_rotation("rotation", std::bind(&SceneNode::GetRotation, this), std::bind(&SceneNode::SetRotation, this, std::placeholders::_1)),
-		_scale("scale", Vector3(1.0), std::bind(&SceneNode::GetScale, this), std::bind(&SceneNode::SetScale, this, std::placeholders::_1))
+		_position("position", &SceneNode::GetPosition, &SceneNode::SetPosition),
+		_rotation("rotation", &SceneNode::GetRotation, &SceneNode::SetRotation),
+		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale)
 	{
 		Initialize();
 		

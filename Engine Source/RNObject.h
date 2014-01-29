@@ -88,7 +88,11 @@ namespace RN
 			if(!property)
 				throw Exception(Exception::Type::InvalidArgumentException, "No property for key" + key);
 			
-			Connection *connection = property->_signal.Connect(std::move(function));
+			Lock();
+			property->AssertSignal();
+			Unlock();
+			
+			Connection *connection = property->_signal->Connect(std::move(function));
 			MapCookie(cookie, connection);
 		}
 		

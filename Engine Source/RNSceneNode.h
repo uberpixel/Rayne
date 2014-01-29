@@ -208,9 +208,9 @@ namespace RN
 		
 		RNAPI void UpdatedToFrame(FrameID frame) { _lastFrame.store(frame); }
 		
-		Observable<Vector3> _position;
-		Observable<Vector3> _scale;
-		Observable<Quaternion> _rotation;
+		Observable<Vector3, SceneNode> _position;
+		Observable<Vector3, SceneNode> _scale;
+		Observable<Quaternion, SceneNode> _rotation;
 		Vector3 _euler;
 		
 		AABB   _boundingBox;

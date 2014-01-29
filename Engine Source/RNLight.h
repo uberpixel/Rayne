@@ -116,13 +116,13 @@ namespace RN
 		
 		Type _lightType;
 		
-		Observable<Color> _color;
+		Observable<Color, Light> _color;
 		Vector3 _finalColor;
 		Vector3 _direction;
 		
-		Observable<float> _intensity;
-		Observable<float> _range;
-		Observable<float> _angle;
+		Observable<float, Light> _intensity;
+		Observable<float, Light> _range;
+		Observable<float, Light> _angle;
 		
 		float _angleCos;
 		
