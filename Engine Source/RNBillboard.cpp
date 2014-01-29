@@ -50,11 +50,11 @@ namespace RN
 		static Mesh *mesh;
 		
 		std::call_once(onceFlag, []() {
-			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+			MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 			vertexDescriptor.elementMember = 2;
 			vertexDescriptor.elementSize   = sizeof(Vector2);
 			
-			MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
+			MeshDescriptor uvDescriptor(MeshFeature::UVSet0);
 			uvDescriptor.elementMember = 2;
 			uvDescriptor.elementSize   = sizeof(Vector2);
 			
@@ -65,8 +65,8 @@ namespace RN
 			
 			Mesh::Chunk chunk = mesh->GetChunk();
 			
-			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(kMeshFeatureVertices);
-			Mesh::ElementIterator<Vector2> uvCoords = chunk.GetIterator<Vector2>(kMeshFeatureUVSet0);
+			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(MeshFeature::Vertices);
+			Mesh::ElementIterator<Vector2> uvCoords = chunk.GetIterator<Vector2>(MeshFeature::UVSet0);
 			
 			*vertices ++ = Vector2(0.5f, 0.5f);
 			*vertices ++ = Vector2(-0.5f, 0.5f);

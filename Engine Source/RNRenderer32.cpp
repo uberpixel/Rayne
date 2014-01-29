@@ -399,8 +399,8 @@ namespace RN
 	
 	void Renderer32::DrawMesh(Mesh *mesh, uint32 offset, uint32 count)
 	{
-		bool usesIndices = mesh->SupportsFeature(kMeshFeatureIndices);
-		const MeshDescriptor *descriptor = usesIndices ? mesh->GetDescriptorForFeature(kMeshFeatureIndices) : mesh->GetDescriptorForFeature(kMeshFeatureVertices);
+		bool usesIndices = mesh->SupportsFeature(MeshFeature::Indices);
+		const MeshDescriptor *descriptor = usesIndices ? mesh->GetDescriptorForFeature(MeshFeature::Indices) : mesh->GetDescriptorForFeature(MeshFeature::Vertices);
 		
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
 		
@@ -443,7 +443,7 @@ namespace RN
 	void Renderer32::DrawMeshInstanced(const RenderingObject& object)
 	{
 		Mesh *mesh = object.mesh;
-		const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureIndices);
+		const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Indices);
 		
 		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
 		RN_ASSERT(_currentProgram->instancingData != -1, "");
@@ -480,7 +480,7 @@ namespace RN
 		}
 		else
 		{
-			descriptor = mesh->GetDescriptorForFeature(kMeshFeatureVertices);
+			descriptor = mesh->GetDescriptorForFeature(MeshFeature::Vertices);
 			gl::DrawArraysInstanced(static_cast<GLenum>(mesh->GetDrawMode()), 0, (GLsizei)mesh->GetVerticesCount(), (GLsizei)object.count);
 		}
 		

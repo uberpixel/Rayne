@@ -17,31 +17,40 @@
 #include "RNAABB.h"
 #include "RNSphere.h"
 #include "RNHit.h"
+#include "RNEnum.h"
 
 namespace RN
 {
-	enum
+	struct MeshFeature : Enum<uint32>
 	{
-		kMeshFeatureVertices,
-		kMeshFeatureNormals,
-		kMeshFeatureTangents,
-		kMeshFeatureColor0,
-		kMeshFeatureColor1,
-		kMeshFeatureUVSet0,
-		kMeshFeatureUVSet1,
-		kMeshFeatureBoneWeights,
-		kMeshFeatureBoneIndices,
-		kMeshFeatureIndices,
+		MeshFeature()
+		{}
 		
-		kMeshFeatureCustom = kMeshFeatureIndices + 1
+		MeshFeature(int value) :
+			Enum(value)
+		{}
+		
+		enum
+		{
+			Vertices,
+			Normals,
+			Tangents,
+			Color0,
+			Color1,
+			UVSet0,
+			UVSet1,
+			BoneWeights,
+			BoneIndices,
+			Indices,
+			
+			Custom = Indices + 1
+		};
 	};
 	
 	enum DescriptorFlags
 	{
 		DescriptorFlagSIMDAlignment
 	};
-	
-	typedef uint32 MeshFeature;
 	
 	struct MeshDescriptor
 	{
@@ -313,7 +322,7 @@ namespace RN
 		uint8 *_indices;
 		
 		std::vector<MeshDescriptor> _descriptors;
-		std::unordered_set<MeshFeature> _features;
+		std::set<MeshFeature> _features;
 		
 		RNDefineMeta(Mesh, Object)
 	};

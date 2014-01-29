@@ -133,7 +133,7 @@ namespace RN
 		
 		for(auto& descriptor : _descriptors)
 		{
-			if(descriptor.feature != kMeshFeatureIndices)
+			if(descriptor.feature != MeshFeature::Indices)
 			{
 				descriptor._size  = descriptor.elementSize * _verticesCount;
 				descriptor.offset = offset;
@@ -197,7 +197,7 @@ namespace RN
 	
 	void Mesh::SetElementData(MeshFeature feature, void *tdata)
 	{
-		if(feature == kMeshFeatureIndices)
+		if(feature == MeshFeature::Indices)
 		{
 			uint8 *data = static_cast<uint8 *>(tdata);
 			std::copy(data, data + _indicesSize, _indices);
@@ -261,7 +261,7 @@ namespace RN
 		if(_indicesCount == count)
 			return;
 		
-		const MeshDescriptor *descriptor = GetDescriptorForFeature(kMeshFeatureIndices);
+		const MeshDescriptor *descriptor = GetDescriptorForFeature(MeshFeature::Indices);
 		
 		uint8 *temp = static_cast<uint8 *>(Memory::Allocate(count * descriptor->elementSize));
 		size_t copy = std::min(count * descriptor->elementSize, _indicesCount);
@@ -282,7 +282,7 @@ namespace RN
 		Vector3 min = Vector3();
 		Vector3 max = Vector3();
 		
-		const MeshDescriptor *descriptor = GetDescriptorForFeature(kMeshFeatureVertices);
+		const MeshDescriptor *descriptor = GetDescriptorForFeature(MeshFeature::Vertices);
 		
 		bool is3D = (descriptor->elementMember == 3);
 		uint8 *pointer = _vertices + descriptor->offset;
@@ -347,7 +347,7 @@ namespace RN
 	{
 		if(_indices)
 		{
-			_stride = _mesh->GetDescriptorForFeature(kMeshFeatureIndices)->elementSize;
+			_stride = _mesh->GetDescriptorForFeature(MeshFeature::Indices)->elementSize;
 			_begin  = _mesh->_indices + (range.origin * _stride);
 		}
 		else
@@ -480,7 +480,7 @@ namespace RN
 	
 	Mesh::Chunk Mesh::InsertIndicesChunk(size_t offset, size_t elements)
 	{
-		const MeshDescriptor *descriptor = GetDescriptorForFeature(kMeshFeatureIndices);
+		const MeshDescriptor *descriptor = GetDescriptorForFeature(MeshFeature::Indices);
 		
 		size_t size = elements * descriptor->elementSize;
 		size_t offsetSize = offset * descriptor->elementSize;
@@ -503,7 +503,7 @@ namespace RN
 	
 	void Mesh::DeleteIndicesChunk(size_t offset, size_t elements)
 	{
-		const MeshDescriptor *descriptor = GetDescriptorForFeature(kMeshFeatureIndices);
+		const MeshDescriptor *descriptor = GetDescriptorForFeature(MeshFeature::Indices);
 		
 		size_t size = elements * descriptor->elementSize;
 		size_t offsetSize = offset * descriptor->elementSize;
@@ -578,8 +578,8 @@ namespace RN
 	
 	Hit Mesh::IntersectsRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
 	{
-		const MeshDescriptor *posdescriptor = GetDescriptorForFeature(kMeshFeatureVertices);
-		const MeshDescriptor *inddescriptor = GetDescriptorForFeature(kMeshFeatureIndices);
+		const MeshDescriptor *posdescriptor = GetDescriptorForFeature(MeshFeature::Vertices);
+		const MeshDescriptor *inddescriptor = GetDescriptorForFeature(MeshFeature::Indices);
 		
 		switch(posdescriptor->elementMember)
 		{
@@ -809,15 +809,15 @@ namespace RN
 	
 	Mesh *Mesh::PlaneMesh(const Vector3& size, const Vector3& rotation)
 	{
-		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
 		vertexDescriptor.elementMember = 3;
 		
-		MeshDescriptor texcoordDescriptor(kMeshFeatureUVSet0);
+		MeshDescriptor texcoordDescriptor(MeshFeature::UVSet0);
 		texcoordDescriptor.elementSize = sizeof(Vector2);
 		texcoordDescriptor.elementMember = 2;
 		
-		MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+		MeshDescriptor indicesDescriptor(MeshFeature::Indices);
 		indicesDescriptor.elementSize = sizeof(uint16);
 		indicesDescriptor.elementMember = 1;
 		
@@ -830,9 +830,9 @@ namespace RN
 		Chunk chunk = mesh->GetChunk();
 		Chunk ichunk = mesh->GetIndicesChunk();
 		
-		ElementIterator<Vector3> vertices  = chunk.GetIterator<Vector3>(kMeshFeatureVertices);
-		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(kMeshFeatureUVSet0);
-		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(kMeshFeatureIndices);
+		ElementIterator<Vector3> vertices  = chunk.GetIterator<Vector3>(MeshFeature::Vertices);
+		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(MeshFeature::UVSet0);
+		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(MeshFeature::Indices);
 		
 		*vertices ++ = rotmat.GetTransformedVector(Vector3(-size.x, size.y, -size.z));
 		*vertices ++ = rotmat.GetTransformedVector(Vector3( size.x, size.y, -size.z));
@@ -859,19 +859,19 @@ namespace RN
 	
 	Mesh *Mesh::CubeMesh(const Vector3& size)
 	{
-		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
 		vertexDescriptor.elementMember = 3;
 		
-		MeshDescriptor normalDescriptor(kMeshFeatureNormals);
+		MeshDescriptor normalDescriptor(MeshFeature::Normals);
 		normalDescriptor.elementSize = sizeof(Vector3);
 		normalDescriptor.elementMember = 3;
 		
-		MeshDescriptor texcoordDescriptor(kMeshFeatureUVSet0);
+		MeshDescriptor texcoordDescriptor(MeshFeature::UVSet0);
 		texcoordDescriptor.elementSize = sizeof(Vector2);
 		texcoordDescriptor.elementMember = 2;
 		
-		MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+		MeshDescriptor indicesDescriptor(MeshFeature::Indices);
 		indicesDescriptor.elementSize = sizeof(uint16);
 		indicesDescriptor.elementMember = 1;
 		
@@ -882,10 +882,10 @@ namespace RN
 		Chunk chunk = mesh->GetChunk();
 		Chunk ichunk = mesh->GetIndicesChunk();
 		
-		ElementIterator<Vector3> vertices  = chunk.GetIterator<Vector3>(kMeshFeatureVertices);
-		ElementIterator<Vector3> normals   = chunk.GetIterator<Vector3>(kMeshFeatureNormals);
-		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(kMeshFeatureUVSet0);
-		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(kMeshFeatureIndices);
+		ElementIterator<Vector3> vertices  = chunk.GetIterator<Vector3>(MeshFeature::Vertices);
+		ElementIterator<Vector3> normals   = chunk.GetIterator<Vector3>(MeshFeature::Normals);
+		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(MeshFeature::UVSet0);
+		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(MeshFeature::Indices);
 		
 		*vertices ++ = Vector3(-size.x,  size.y, size.z);
 		*vertices ++ = Vector3( size.x,  size.y, size.z);
@@ -1027,23 +1027,23 @@ namespace RN
 	
 	Mesh *Mesh::CubeMesh(const Vector3& size, const Color& color)
 	{
-		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
 		vertexDescriptor.elementMember = 3;
 		
-		MeshDescriptor normalDescriptor(kMeshFeatureNormals);
+		MeshDescriptor normalDescriptor(MeshFeature::Normals);
 		normalDescriptor.elementSize = sizeof(Vector3);
 		normalDescriptor.elementMember = 3;
 		
-		MeshDescriptor colorDescriptor(kMeshFeatureColor0);
+		MeshDescriptor colorDescriptor(MeshFeature::Color0);
 		colorDescriptor.elementSize = sizeof(Color);
 		colorDescriptor.elementMember = 4;
 		
-		MeshDescriptor texcoordDescriptor(kMeshFeatureUVSet0);
+		MeshDescriptor texcoordDescriptor(MeshFeature::UVSet0);
 		texcoordDescriptor.elementSize = sizeof(Vector2);
 		texcoordDescriptor.elementMember = 2;
 		
-		MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+		MeshDescriptor indicesDescriptor(MeshFeature::Indices);
 		indicesDescriptor.elementSize = sizeof(uint16);
 		indicesDescriptor.elementMember = 1;
 		
@@ -1053,11 +1053,11 @@ namespace RN
 		Chunk chunk = mesh->GetChunk();
 		Chunk ichunk = mesh->GetIndicesChunk();
 		
-		ElementIterator<Vector3> vertices  = chunk.GetIterator<Vector3>(kMeshFeatureVertices);
-		ElementIterator<Vector3> normals   = chunk.GetIterator<Vector3>(kMeshFeatureNormals);
-		ElementIterator<Color>   colors    = chunk.GetIterator<Color>(kMeshFeatureColor0);
-		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(kMeshFeatureUVSet0);
-		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(kMeshFeatureIndices);
+		ElementIterator<Vector3> vertices  = chunk.GetIterator<Vector3>(MeshFeature::Vertices);
+		ElementIterator<Vector3> normals   = chunk.GetIterator<Vector3>(MeshFeature::Normals);
+		ElementIterator<Color>   colors    = chunk.GetIterator<Color>(MeshFeature::Color0);
+		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(MeshFeature::UVSet0);
+		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(MeshFeature::Indices);
 		
 		*vertices ++ = Vector3(-size.x,  size.y, size.z);
 		*vertices ++ = Vector3( size.x,  size.y, size.z);
@@ -1290,15 +1290,15 @@ namespace RN
 		
 		
 		
-		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
 		vertexDescriptor.elementMember = 3;
 		
-		MeshDescriptor normalDescriptor(kMeshFeatureNormals);
+		MeshDescriptor normalDescriptor(MeshFeature::Normals);
 		normalDescriptor.elementSize = sizeof(Vector3);
 		normalDescriptor.elementMember = 3;
 							  
-		MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+		MeshDescriptor indicesDescriptor(MeshFeature::Indices);
 		indicesDescriptor.elementSize = sizeof(uint16);
 		indicesDescriptor.elementMember = 1;
 		

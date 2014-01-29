@@ -351,14 +351,14 @@ namespace RN
 			std::vector<MeshDescriptor> descriptors;
 			size_t size = 0;
 			
-			MeshDescriptor meshDescriptor(kMeshFeatureVertices);
+			MeshDescriptor meshDescriptor(MeshFeature::Vertices);
 			meshDescriptor.elementSize = sizeof(Vector3);
 			meshDescriptor.elementMember = 3;
 			
 			descriptors.push_back(meshDescriptor);
 			size += meshDescriptor.elementSize;
 			
-			meshDescriptor = MeshDescriptor(kMeshFeatureNormals);
+			meshDescriptor = MeshDescriptor(MeshFeature::Normals);
 			meshDescriptor.elementSize = sizeof(Vector3);
 			meshDescriptor.elementMember = 3;
 			
@@ -367,7 +367,7 @@ namespace RN
 			
 			if(uvCount > 0)
 			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureUVSet0);
+				meshDescriptor = MeshDescriptor(MeshFeature::UVSet0);
 				meshDescriptor.elementSize = sizeof(Vector2);
 				meshDescriptor.elementMember = 2;
 				
@@ -377,7 +377,7 @@ namespace RN
 			
 			if(hasTangent == 1)
 			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureTangents);
+				meshDescriptor = MeshDescriptor(MeshFeature::Tangents);
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -386,7 +386,7 @@ namespace RN
 			}
 			if(uvCount > 1)
 			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureUVSet1);
+				meshDescriptor = MeshDescriptor(MeshFeature::UVSet1);
 				meshDescriptor.elementSize = sizeof(Vector2);
 				meshDescriptor.elementMember = 2;
 				
@@ -395,7 +395,7 @@ namespace RN
 			}
 			if(dataCount == 4)
 			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureColor0);
+				meshDescriptor = MeshDescriptor(MeshFeature::Color0);
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -404,14 +404,14 @@ namespace RN
 			}
 			if(hasBones)
 			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureBoneWeights);
+				meshDescriptor = MeshDescriptor(MeshFeature::BoneWeights);
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
 				descriptors.push_back(meshDescriptor);
 				size += meshDescriptor.elementSize;
 				
-				meshDescriptor = MeshDescriptor(kMeshFeatureBoneIndices);
+				meshDescriptor = MeshDescriptor(MeshFeature::BoneIndices);
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -430,7 +430,7 @@ namespace RN
 			uint8 *indicesData = new uint8[indicesCount * indicesSize];
 			file->ReadIntoBuffer(indicesData, indicesCount * indicesSize);
 			
-			meshDescriptor = MeshDescriptor(kMeshFeatureIndices);
+			meshDescriptor = MeshDescriptor(MeshFeature::Indices);
 			meshDescriptor.elementSize = indicesSize;
 			meshDescriptor.elementMember = 1;
 			descriptors.push_back(meshDescriptor);

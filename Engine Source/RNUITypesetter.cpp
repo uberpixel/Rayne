@@ -1111,15 +1111,15 @@ namespace RN
 			
 			if(!mesh)
 			{
-				MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+				MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 				vertexDescriptor.elementMember = 2;
 				vertexDescriptor.elementSize   = sizeof(Vector2);
 				
-				MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
+				MeshDescriptor uvDescriptor(MeshFeature::UVSet0);
 				uvDescriptor.elementMember = 2;
 				uvDescriptor.elementSize   = sizeof(Vector2);
 				
-				MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+				MeshDescriptor indicesDescriptor(MeshFeature::Indices);
 				indicesDescriptor.elementMember = 1;
 				indicesDescriptor.elementSize   = sizeof(uint16);
 				
@@ -1159,8 +1159,8 @@ namespace RN
 			}
 			
 			
-			chunk.SetData(vertices, kMeshFeatureVertices);
-			chunk.SetData(uvCoords, kMeshFeatureUVSet0);
+			chunk.SetData(vertices, MeshFeature::Vertices);
+			chunk.SetData(uvCoords, MeshFeature::UVSet0);
 			chunk.CommitChanges();
 			
 			ichunk.SetData(indices);

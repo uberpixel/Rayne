@@ -275,13 +275,13 @@ namespace RN
 				
 				gl::BindBuffer(GL_ARRAY_BUFFER, vbo);
 				
-				if(mesh->SupportsFeature(kMeshFeatureIndices))
+				if(mesh->SupportsFeature(MeshFeature::Indices))
 					gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 				
 				// Vertices
-				if(shader->attPosition != -1 && mesh->SupportsFeature(kMeshFeatureVertices))
+				if(shader->attPosition != -1 && mesh->SupportsFeature(MeshFeature::Vertices))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureVertices);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Vertices);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attPosition);
@@ -289,9 +289,9 @@ namespace RN
 				}
 				
 				// Normals
-				if(shader->attNormal != -1 && mesh->SupportsFeature(kMeshFeatureNormals))
+				if(shader->attNormal != -1 && mesh->SupportsFeature(MeshFeature::Normals))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureNormals);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Normals);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attNormal);
@@ -299,9 +299,9 @@ namespace RN
 				}
 				
 				// Tangents
-				if(shader->attTangent != -1 && mesh->SupportsFeature(kMeshFeatureTangents))
+				if(shader->attTangent != -1 && mesh->SupportsFeature(MeshFeature::Tangents))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureTangents);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Tangents);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attTangent);
@@ -309,9 +309,9 @@ namespace RN
 				}
 				
 				// Texcoord0
-				if(shader->attTexcoord0 != -1 && mesh->SupportsFeature(kMeshFeatureUVSet0))
+				if(shader->attTexcoord0 != -1 && mesh->SupportsFeature(MeshFeature::UVSet0))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureUVSet0);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::UVSet0);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attTexcoord0);
@@ -319,9 +319,9 @@ namespace RN
 				}
 				
 				// Texcoord1
-				if(shader->attTexcoord1 != -1 && mesh->SupportsFeature(kMeshFeatureUVSet1))
+				if(shader->attTexcoord1 != -1 && mesh->SupportsFeature(MeshFeature::UVSet1))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureUVSet1);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::UVSet1);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attTexcoord1);
@@ -329,9 +329,9 @@ namespace RN
 				}
 				
 				// Color0
-				if(shader->attColor0 != -1 && mesh->SupportsFeature(kMeshFeatureColor0))
+				if(shader->attColor0 != -1 && mesh->SupportsFeature(MeshFeature::Color0))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureColor0);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Color0);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attColor0);
@@ -339,9 +339,9 @@ namespace RN
 				}
 				
 				// Color1
-				if(shader->attColor1 != -1 && mesh->SupportsFeature(kMeshFeatureColor1))
+				if(shader->attColor1 != -1 && mesh->SupportsFeature(MeshFeature::Color1))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureColor1);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Color1);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attColor1);
@@ -349,9 +349,9 @@ namespace RN
 				}
 				
 				// Bone Weights
-				if(shader->attBoneWeights != -1 && mesh->SupportsFeature(kMeshFeatureBoneWeights))
+				if(shader->attBoneWeights != -1 && mesh->SupportsFeature(MeshFeature::BoneWeights))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureBoneWeights);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::BoneWeights);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attBoneWeights);
@@ -359,9 +359,9 @@ namespace RN
 				}
 				
 				// Bone Indices
-				if(shader->attBoneIndices != -1 && mesh->SupportsFeature(kMeshFeatureBoneIndices))
+				if(shader->attBoneIndices != -1 && mesh->SupportsFeature(MeshFeature::BoneIndices))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureBoneIndices);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::BoneIndices);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attBoneIndices);

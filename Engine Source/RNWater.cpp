@@ -44,7 +44,7 @@ namespace RN
 		static std::once_flag onceFlag;
 		
 		std::call_once(onceFlag, []() {
-			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+			MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 			vertexDescriptor.elementMember = 3;
 			vertexDescriptor.elementSize   = sizeof(Vector3);
 			
@@ -54,7 +54,7 @@ namespace RN
 			mesh->SetDrawMode(Mesh::DrawMode::TriangleStrip);
 			
 			Mesh::Chunk chunk = mesh->GetChunk();
-			Mesh::ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(kMeshFeatureVertices);
+			Mesh::ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(MeshFeature::Vertices);
 			
 			
 			*vertices ++ = Vector3(0.5f, 0.0f, 0.5f);

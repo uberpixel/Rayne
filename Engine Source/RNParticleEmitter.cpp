@@ -106,17 +106,17 @@ namespace RN
 		if(_mesh)
 			_mesh->Release();
 		
-		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementMember = 3;
 		vertexDescriptor.elementSize   = sizeof(Vector3);
 		vertexDescriptor.offset        = 0;
 		
-		MeshDescriptor sizeDescriptor(kMeshFeatureUVSet0);
+		MeshDescriptor sizeDescriptor(MeshFeature::UVSet0);
 		sizeDescriptor.elementMember = 2;
 		sizeDescriptor.elementSize   = sizeof(Vector2);
 		sizeDescriptor.offset        = sizeof(Vector3);
 		
-		MeshDescriptor colorDescriptor(kMeshFeatureColor0);
+		MeshDescriptor colorDescriptor(MeshFeature::Color0);
 		colorDescriptor.elementMember = 4;
 		colorDescriptor.elementSize   = sizeof(Color);
 		colorDescriptor.offset        = sizeDescriptor.offset + sizeof(Vector2);
