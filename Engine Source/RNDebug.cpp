@@ -138,7 +138,7 @@ namespace RN
 					Camera *camera = renderer->GetActiveCamera();
 					float height = camera->GetFrame().height - 1.0f;
 					
-					__LineTransform.MakeTranslate(Vector3(0.0f, height, 0.0f));
+					__LineTransform = Matrix::WithTranslation(Vector3(0.0f, height, 0.0f));
 				};
 				
 				Renderer::GetSharedInstance()->RenderDebugObject(object, Renderer::Mode::ModeUI);

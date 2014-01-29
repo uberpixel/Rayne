@@ -773,14 +773,14 @@ namespace RN
 		
 		if(_flags & Flags::Orthogonal)
 		{
-			_projectionMatrix.MakeProjectionOrthogonal(_orthoLeft, _orthoRight, _orthoBottom, _orthoTop, _clipNear, _clipFar);
+			_projectionMatrix = Matrix::WithProjectionOrthogonal(_orthoLeft, _orthoRight, _orthoBottom, _orthoTop, _clipNear, _clipFar);
 			return;
 		}
 		
 		if(_flags & Flags::UpdateAspect)
 			_aspect = _frame.width / _frame.height;
 
-		_projectionMatrix.MakeProjectionPerspective(_fov, _aspect, _clipNear, _clipFar);
+		_projectionMatrix = Matrix::WithProjectionPerspective(_fov, _aspect, _clipNear, _clipFar);
 		_inverseProjectionMatrix = _projectionMatrix.GetInverse();
 
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
