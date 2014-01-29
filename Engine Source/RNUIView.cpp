@@ -83,7 +83,7 @@ namespace RN
 			
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor };
 			Mesh *mesh = new Mesh(descriptors, 4, 0);
-			mesh->SetMode(GL_TRIANGLE_STRIP);
+			mesh->SetDrawMode(Mesh::DrawMode::TriangleStrip);
 			
 			Mesh::Chunk chunk = mesh->GetChunk();
 			

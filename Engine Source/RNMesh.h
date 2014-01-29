@@ -190,7 +190,30 @@ namespace RN
 			bool _dirty;
 			bool _indices;
 		};
-	
+		
+		enum class DrawMode : GLenum
+		{
+			Points = GL_POINTS,
+			LineStrip = GL_LINE_STRIP,
+			LineLoop  = GL_LINE_LOOP,
+			Lines = GL_LINES,
+			TriangleStrip = GL_TRIANGLE_STRIP,
+			TriangleFan = GL_TRIANGLE_FAN,
+			Triangles = GL_TRIANGLES,
+			LineStripAdjacency = GL_LINE_STRIP_ADJACENCY,
+			LinesAdjacency = GL_LINES_ADJACENCY,
+			TriangleStripAdjacency = GL_TRIANGLE_STRIP_ADJACENCY,
+			TrianglesAdjacency = GL_TRIANGLES_ADJACENCY,
+			Patches = GL_PATCHES
+		};
+		
+		enum class MeshUsage : GLenum
+		{
+			Static = GL_STATIC_DRAW,
+			Dynamic = GL_DYNAMIC_DRAW,
+			Stream = GL_STREAM_DRAW
+		};
+		
 		
 		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor, size_t verticesCount, size_t indicesCount);
 		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor, size_t verticesCount, size_t indicesCount, const std::pair<const void *, const void *>& data);
@@ -223,9 +246,9 @@ namespace RN
 		RNAPI void DeleteIndicesChunk(size_t offset, size_t elements);
 	
 		
-		RNAPI void SetMode(GLenum mode);
-		RNAPI void SetVBOUsage(GLenum usage);
-		RNAPI void SetIBOUsage(GLenum usage);
+		RNAPI void SetDrawMode(DrawMode mode);
+		RNAPI void SetVBOUsage(MeshUsage usage);
+		RNAPI void SetIBOUsage(MeshUsage usage);
 		
 		RNAPI void SetElementData(MeshFeature feature, void *data);
 		RNAPI void SetVerticesCount(size_t count);
@@ -241,7 +264,7 @@ namespace RN
 		RNAPI GLuint GetIBO() { return _ibo; }
 		
 		RNAPI size_t GetStride() const { return _stride; }
-		RNAPI GLenum GetMode() const { return _mode; }
+		RNAPI DrawMode GetDrawMode() const { return _mode; }
 		
 		RNAPI size_t GetVerticesCount() const { return _verticesCount; }
 		RNAPI size_t GetIndicesCount() const { return _indicesCount; }
@@ -276,9 +299,9 @@ namespace RN
 		size_t _verticesCount;
 		size_t _indicesCount;
 		
-		GLenum _vboUsage;
-		GLenum _iboUsage;
-		GLenum _mode;
+		MeshUsage _vboUsage;
+		MeshUsage _iboUsage;
+		DrawMode  _mode;
 		
 		AABB   _boundingBox;
 		Sphere _boundingSphere;

@@ -64,7 +64,6 @@ namespace RN
 	
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor, indicesDescriptor };
 			Mesh *mesh = new Mesh(descriptors, xverts*yverts, (xverts-1)*(yverts-1)*3*2);
-			mesh->SetMode(GL_TRIANGLES);
 	
 			Mesh::Chunk chunk  = mesh->GetChunk();
 			Mesh::Chunk ichunk = mesh->GetIndicesChunk();

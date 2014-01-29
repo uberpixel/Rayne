@@ -85,7 +85,7 @@ namespace RN
 				Renderer::GetSharedInstance()->BindVAO(0);
 				
 				gl::BindBuffer(GL_ARRAY_BUFFER, _vbo);
-				gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, _vertices, _vboUsage);
+				gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, _vertices, static_cast<GLenum>(_vboUsage));
 			});
 		}
 		
@@ -95,7 +95,7 @@ namespace RN
 				Renderer::GetSharedInstance()->BindVAO(0);
 				
 				gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-				gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, _iboUsage);
+				gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, static_cast<GLenum>(_iboUsage));
 			});
 		}
 	}
@@ -110,10 +110,10 @@ namespace RN
 		_vertices = nullptr;
 		
 		_stride = 0;
-		_mode   = GL_TRIANGLES;
+		_mode   = DrawMode::Triangles;
 		
-		_vboUsage = GL_STATIC_DRAW;
-		_iboUsage = GL_STATIC_DRAW;
+		_vboUsage = MeshUsage::Static;
+		_iboUsage = MeshUsage::Static;
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
 			gl::GenBuffers(2, &_vbo);
@@ -167,29 +167,29 @@ namespace RN
 			if(_verticesSize > 0)
 			{
 				gl::BindBuffer(GL_ARRAY_BUFFER, _vbo);
-				gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, data.first, _vboUsage);
+				gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, data.first, static_cast<GLenum>(_vboUsage));
 			}
 			
 			if(_indicesCount > 0)
 			{
 				gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-				gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, data.second, _iboUsage);
+				gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, data.second, static_cast<GLenum>(_iboUsage));
 			}
 		}, true);
 	}
 		
 	
-	void Mesh::SetMode(GLenum mode)
+	void Mesh::SetDrawMode(DrawMode mode)
 	{
 		_mode = mode;
 	}
 	
-	void Mesh::SetVBOUsage(GLenum usage)
+	void Mesh::SetVBOUsage(MeshUsage usage)
 	{
 		_vboUsage = usage;
 	}
 	
-	void Mesh::SetIBOUsage(GLenum usage)
+	void Mesh::SetIBOUsage(MeshUsage usage)
 	{
 		_iboUsage = usage;
 	}
@@ -527,110 +527,6 @@ namespace RN
 	// MARK: Intersection
 	// ---------------------
 	
-	
-	/*bool Mesh::CanMergeMesh(Mesh *mesh)
-	{
-		if(_descriptor.size() != mesh->_descriptor.size() || _stride != mesh->_stride || _mode != mesh->_mode)
-			return false;
-		
-		for(size_t i=0; i!=_descriptor.size(); i++)
-		{
-			const MeshDescriptor& dA = _descriptor[i];
-			const MeshDescriptor& dB = mesh->_descriptor[i];
-			
-			if(dA.feature != dB.feature || dA.offset != dB.offset)
-				return false;
-			
-			if(dA.elementMember != dB.elementMember || dA.elementSize != dB.elementSize)
-				return false;
-		
-			if(dA._useCount || dB._useCount)
-				return false;
-		}
-		
-		return true;
-	}
-	
-	void Mesh::MergeMesh(Mesh *mesh)
-	{
-		if(!CanMergeMesh(mesh))
-			throw Exception(Exception::Type::InconsistencyException, "The meshes cannot be merged!");
-		
-		if(_meshData)
-		{
-			uint8 *tdata = static_cast<uint8 *>(Memory::AllocateSIMD(_meshSize + mesh->_meshSize));
-			std::copy(_meshData, _meshData + _meshSize, tdata);
-			std::copy(mesh->_meshData, mesh->_meshData + mesh->_meshSize, tdata + _meshSize);
-			
-			Memory::FreeSIMD(_meshData);
-			_meshData = tdata;
-			_meshSize += mesh->_meshSize;
-			
-			_dirty = true;
-		}
-		
-		if(_indices)
-		{
-			uint8 *tdata = static_cast<uint8 *>(Memory::AllocateSIMD(_indicesSize + mesh->_indicesSize));
-			std::copy(_indices, _indices + _indicesSize, tdata);
-			std::copy(mesh->_indices, mesh->_indices + mesh->_indicesSize, tdata + _indicesSize);
-			
-			MeshDescriptor *verticesDescriptor = GetDescriptor(kMeshFeatureVertices);
-			MeshDescriptor *indicesDescriptor  = GetDescriptor(kMeshFeatureIndices);
-			
-			switch(indicesDescriptor->elementSize)
-			{
-				case 2:
-				{
-					size_t count = mesh->_indicesSize / 2;
-					uint16 *indices = reinterpret_cast<uint16 *>(tdata) + indicesDescriptor->elementCount;
-					
-					for(size_t i=0; i<count; i++)
-					{
-						*indices += verticesDescriptor->elementCount;
-						indices ++;
-					}
-					
-					break;
-				}
-					
-				case 4:
-				{
-					size_t count = mesh->_indicesSize / 4;
-					uint32 *indices = reinterpret_cast<uint32 *>(tdata) + indicesDescriptor->elementCount;
-					
-					for(size_t i=0; i<count; i++)
-					{
-						*indices += verticesDescriptor->elementCount;
-						indices ++;
-					}
-					
-					break;
-				}
-					
-				default:
-					throw Exception(Exception::Type::InconsistencyException, "The indices element size is not supported (uint16 and uint32 support only)");
-			}
-			
-			Memory::FreeSIMD(_indices);
-			_indices = tdata;
-			_indicesSize += mesh->_indicesSize;
-			
-			_dirtyIndices = true;
-		}
-		
-		for(size_t i=0; i!=_descriptor.size(); i++)
-		{
-			MeshDescriptor& dA = _descriptor[i];
-			MeshDescriptor& dB = mesh->_descriptor[i];
-			
-			dA.elementCount += dB.elementCount;
-		}
-	}*/
-	
-	
-
-	
 	float Mesh::RayTriangleIntersection(const Vector3 &pos, const Vector3 &dir, const Vector3 &vert1, const Vector3 &vert2, const Vector3 &vert3, Hit::HitMode mode)
 	{
 		float u, v;
@@ -836,7 +732,7 @@ namespace RN
 		Hit hit;
 		
 		uint8 *pospointer = _vertices + positionDescriptor->offset;
-		int trioffset = (GetMode() != GL_TRIANGLE_STRIP) ? 3 : 1;
+		int trioffset = (_mode != DrawMode::TriangleStrip) ? 3 : 1;
 		
 		for(size_t i = 0; i < _indicesCount - 2; i += trioffset)
 		{
@@ -875,7 +771,7 @@ namespace RN
 		Hit hit;
 		
 		uint8 *pospointer = _vertices + positionDescriptor->offset;
-		int trioffset = (GetMode() != GL_TRIANGLE_STRIP) ? 3 : 1;
+		int trioffset = (_mode != DrawMode::Triangles) ? 3 : 1;
 
 		for(size_t i = 0; i < _indicesCount - 2; i += trioffset)
 		{

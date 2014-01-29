@@ -51,7 +51,7 @@ namespace RN
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor };
 			
 			Mesh *mesh = new Mesh(descriptors, 10, 0);
-			mesh->SetMode(GL_TRIANGLE_STRIP);
+			mesh->SetDrawMode(Mesh::DrawMode::TriangleStrip);
 			
 			Mesh::Chunk chunk = mesh->GetChunk();
 			Mesh::ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(kMeshFeatureVertices);
