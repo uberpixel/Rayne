@@ -23,20 +23,16 @@ namespace RN
 		_color("color", Color(1.0f), &Light::GetColor, &Light::SetColor),
 		_intensity("intensity", 10.0f, &Light::GetIntensity, &Light::SetIntensity),
 		_range("range", 10.0f, &Light::GetRange, &Light::SetRange),
-		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle)
+		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle),
+		_angleCos(0.797),
+		_shadowTarget(nullptr),
+		_suppressShadows(false)
 	{
-		_suppressShadows = false;
-		_shadowTarget  = nullptr;
+		AddObservables({ &_color, &_intensity, &_range, &_angle });
 		
 		SetPriority(SceneNode::Priority::UpdateLate);
-		
 		SetCollisionGroup(25);
-		_angleCos = 0.707f;
 		
-		AddObservable(&_color);
-		AddObservable(&_intensity);
-		AddObservable(&_range);
-		AddObservable(&_angle);
 		ReCalculateColor();
 	}
 	

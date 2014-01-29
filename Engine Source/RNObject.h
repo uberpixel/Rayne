@@ -112,6 +112,7 @@ namespace RN
 		RNAPI virtual void CleanUp();
 		
 		RNAPI void AddObservable(ObservableProperty *property);
+		RNAPI void AddObservables(std::initializer_list<ObservableProperty *> properties);
 		
 		RNAPI virtual void SetValueForUndefinedKey(const std::string& key, Object *value);
 		RNAPI virtual Object *GetValueForUndefinedKey(const std::string& key);

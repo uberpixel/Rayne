@@ -22,10 +22,7 @@ namespace RN
 		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale)
 	{
 		Initialize();
-		
-		AddObservable(&_position);
-		AddObservable(&_rotation);
-		AddObservable(&_scale);
+		AddObservables({ &_position, &_rotation, &_scale });
 	}
 	
 	SceneNode::SceneNode(const Vector3& position) :

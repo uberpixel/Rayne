@@ -245,6 +245,17 @@ namespace RN
 		_properties.insert(decltype(_properties)::value_type(property->_name, property));
 	}
 	
+	void Object::AddObservables(std::initializer_list<ObservableProperty *> properties)
+	{
+		for(ObservableProperty *property : properties)
+		{
+			RN_ASSERT(property->_object == nullptr, "ObservableProperty can only be added once to a receiver!");
+			
+			property->_object = this;
+			_properties.insert(decltype(_properties)::value_type(property->_name, property));
+		}
+	}
+	
 	void Object::MapCookie(void *cookie, Connection *connection)
 	{
 		Lock();

@@ -20,8 +20,7 @@ namespace RN
 		_skeleton("skeleton", Object::MemoryPolicy::Retain, &Entity::GetSkeleton, &Entity::SetSkeleton),
 		_instancedData(nullptr)
 	{
-		AddObservable(&_model);
-		AddObservable(&_skeleton);
+		AddObservables({ &_model, &_skeleton });
 	}
 	
 	Entity::Entity(Model *model) :
