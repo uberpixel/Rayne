@@ -430,11 +430,11 @@ namespace RN
 					break;
 			}
 			
-			gl::DrawElements(mesh->GetMode(), glCount, type, reinterpret_cast<void *>(offset));
+			gl::DrawElements(static_cast<GLenum>(mesh->GetDrawMode()), glCount, type, reinterpret_cast<void *>(offset));
 		}
 		else
 		{
-			gl::DrawArrays(mesh->GetMode(), 0, glCount);
+			gl::DrawArrays(static_cast<GLenum>(mesh->GetDrawMode()), 0, glCount);
 		}
 		
 		BindVAO(0);
@@ -476,12 +476,12 @@ namespace RN
 					break;
 			}
 			
-			gl::DrawElementsInstanced(mesh->GetMode(), (GLsizei)mesh->GetIndicesCount(), type, 0, (GLsizei)object.count);
+			gl::DrawElementsInstanced(static_cast<GLenum>(mesh->GetDrawMode()), (GLsizei)mesh->GetIndicesCount(), type, 0, (GLsizei)object.count);
 		}
 		else
 		{
 			descriptor = mesh->GetDescriptorForFeature(kMeshFeatureVertices);
-			gl::DrawArraysInstanced(mesh->GetMode(), 0, (GLsizei)mesh->GetVerticesCount(), (GLsizei)object.count);
+			gl::DrawArraysInstanced(static_cast<GLenum>(mesh->GetDrawMode()), 0, (GLsizei)mesh->GetVerticesCount(), (GLsizei)object.count);
 		}
 		
 		BindVAO(0);

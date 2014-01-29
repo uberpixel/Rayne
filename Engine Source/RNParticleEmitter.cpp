@@ -124,8 +124,8 @@ namespace RN
 		std::vector<MeshDescriptor> descriptors = { vertexDescriptor, sizeDescriptor, colorDescriptor };
 		
 		_mesh = new Mesh(descriptors, maxParticles, 0);
-		_mesh->SetVBOUsage(GL_DYNAMIC_DRAW);
-		_mesh->SetMode(GL_POINTS);
+		_mesh->SetVBOUsage(Mesh::MeshUsage::Static);
+		_mesh->SetDrawMode(Mesh::DrawMode::Points);
 	}
 	
 	void ParticleEmitter::SetMaterial(ParticleMaterial *material)
