@@ -366,36 +366,6 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE void Matrix::SetTranslationComponents(const Vector3& translation)
-	{
-		m[12] = translation.x;
-		m[13] = translation.y;
-		m[14] = translation.z;
-	}
-	
-	RN_INLINE void Matrix::SetTranslationComponents(const Vector4& translation)
-	{
-		m[12] = translation.x;
-		m[13] = translation.y;
-		m[14] = translation.z;
-		m[15] = translation.w;
-	}
-	
-	RN_INLINE void Matrix::SetScaleComponents(const Vector3& scaling)
-	{
-		m[0] = scaling.x;
-		m[5] = scaling.y;
-		m[10] = scaling.z;
-	}
-	
-	RN_INLINE void Matrix::SetScaleComponents(const Vector4& scaling)
-	{
-		m[0] = scaling.x;
-		m[5] = scaling.y;
-		m[10] = scaling.z;
-		m[15] = scaling.w;
-	}
-	
 	RN_INLINE void Matrix::Translate(const Vector3& translation)
 	{
 #if RN_SIMD

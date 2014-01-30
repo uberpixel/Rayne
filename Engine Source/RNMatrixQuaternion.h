@@ -44,11 +44,6 @@ namespace RN
 		
 		Vector3 GetEulerAngle() const;
 		Quaternion GetQuaternion() const;
-		
-		void SetTranslationComponents(const Vector3& translation);
-		void SetTranslationComponents(const Vector4& translation);
-		void SetScaleComponents(const Vector3& scaling);
-		void SetScaleComponents(const Vector4& scaling);
 
 		void Translate(const Vector3& translation);
 		void Translate(const Vector4& translation);
