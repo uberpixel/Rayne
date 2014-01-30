@@ -25,6 +25,9 @@ namespace RN
 		Matrix operator* (const Matrix& other) const;
 		Vector3 operator* (const Vector3& other) const;
 		Vector4 operator* (const Vector4& other) const;
+		
+		bool operator== (const Matrix &other) const;
+		bool operator!= (const Matrix &other) const;
 
 		static Matrix WithIdentity();
 		static Matrix WithTranslation(const Vector3& translation);
@@ -59,6 +62,8 @@ namespace RN
 		Vector4 GetTransformedVector(const Vector4& vector) const;
 
 		Matrix GetInverse() const;
+		
+		bool IsEqual(const Matrix& other, float epsilon) const;
 	
 #if RN_SIMD
 		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
@@ -109,6 +114,9 @@ namespace RN
 
 		Quaternion operator* (float scalar) const;
 		Quaternion operator/ (float scalar) const;
+		
+		bool operator== (const Quaternion &other) const;
+		bool operator!= (const Quaternion &other) const;
 
 		void MakeIdentity();
 		void MakeEulerAngle(const Vector3& euler);
@@ -135,6 +143,8 @@ namespace RN
 
 		float GetLength() const;
 		float GetDotProduct(const Quaternion& other) const;
+		
+		bool IsEqual(const Quaternion& other, float epsilon) const;
 
 		struct
 		{

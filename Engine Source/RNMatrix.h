@@ -147,6 +147,16 @@ namespace RN
 		return result;
 	}
 	
+	RN_INLINE bool Matrix::operator== (const Matrix &other) const
+	{
+		return IsEqual(other, k::EpsilonFloat);
+	}
+	
+	RN_INLINE bool Matrix::operator!= (const Matrix &other) const
+	{
+		return !IsEqual(other, k::EpsilonFloat);
+	}
+	
 	RN_INLINE Matrix Matrix::GetInverse() const
 	{
 		Matrix result;
@@ -477,6 +487,59 @@ namespace RN
 		temp[15] = m[15];
 		
 		std::copy(temp, temp + 16, m);
+	}
+	
+	RN_INLINE bool Matrix::IsEqual(const Matrix& other, float epsilon) const
+	{
+		if(fabs(m[0] - other.m[0]) > epsilon)
+			return false;
+		
+		if(fabs(m[1] - other.m[1]) > epsilon)
+			return false;
+		
+		if(fabs(m[2] - other.m[2]) > epsilon)
+			return false;
+		
+		if(fabs(m[3] - other.m[3]) > epsilon)
+			return false;
+		
+		if(fabs(m[4] - other.m[4]) > epsilon)
+			return false;
+		
+		if(fabs(m[5] - other.m[5]) > epsilon)
+			return false;
+		
+		if(fabs(m[6] - other.m[6]) > epsilon)
+			return false;
+		
+		if(fabs(m[7] - other.m[7]) > epsilon)
+			return false;
+		
+		if(fabs(m[8] - other.m[8]) > epsilon)
+			return false;
+		
+		if(fabs(m[9] - other.m[9]) > epsilon)
+			return false;
+		
+		if(fabs(m[10] - other.m[10]) > epsilon)
+			return false;
+		
+		if(fabs(m[11] - other.m[11]) > epsilon)
+			return false;
+		
+		if(fabs(m[12] - other.m[12]) > epsilon)
+			return false;
+		
+		if(fabs(m[13] - other.m[13]) > epsilon)
+			return false;
+		
+		if(fabs(m[14] - other.m[14]) > epsilon)
+			return false;
+		
+		if(fabs(m[15] - other.m[15]) > epsilon)
+			return false;
+		
+		return true;
 	}
 }
 

@@ -218,6 +218,31 @@ namespace RN
 		return result;
 	}
 	
+	RN_INLINE bool Quaternion::operator== (const Quaternion &other) const
+	{
+		if(fabs(x - other.x) > k::EpsilonFloat)
+			return false;
+		
+		if(fabs(y - other.y) > k::EpsilonFloat)
+			return false;
+		
+		if(fabs(z - other.z) > k::EpsilonFloat)
+			return false;
+		
+		if(fabs(w - other.w) > k::EpsilonFloat)
+			return false;
+		
+		return true;
+	}
+	
+	RN_INLINE bool Quaternion::operator!= (const Quaternion &other) const
+	{
+		if(fabs(x - other.x) <= k::EpsilonFloat && fabs(y - other.y) <= k::EpsilonFloat && fabs(z - other.z) <= k::EpsilonFloat && fabs(w - other.w) <= k::EpsilonFloat)
+			return false;
+		
+		return true;
+	}
+	
 	RN_INLINE void Quaternion::MakeIdentity()
 	{
 		x = y = z = 0.0f;
@@ -538,6 +563,23 @@ namespace RN
 	RN_INLINE float Quaternion::GetDotProduct(const Quaternion& other) const
 	{
 		return x * other.x + y * other.y + z * other.z + w * other.w;
+	}
+	
+	RN_INLINE bool Quaternion::IsEqual(const Quaternion& other, float epsilon) const
+	{
+		if(fabs(x - other.x) > epsilon)
+			return false;
+		
+		if(fabs(y - other.y) > epsilon)
+			return false;
+		
+		if(fabs(z - other.z) > epsilon)
+			return false;
+		
+		if(fabs(w - other.w) > epsilon)
+			return false;
+		
+		return true;
 	}
 }
 
