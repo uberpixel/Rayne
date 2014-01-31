@@ -95,13 +95,6 @@ namespace RN
 		Quaternion& operator-= (const Quaternion& other);
 		Quaternion& operator*= (const Quaternion& other);
 		Quaternion& operator/= (const Quaternion& other);
-
-		Quaternion& operator*= (const Vector4& other);
-		Quaternion& operator/= (const Vector4& other);
-
-		Quaternion& operator+= (const Vector3& other);
-		Quaternion& operator-= (const Vector3& other);
-
 		Quaternion& operator*= (float scalar);
 		Quaternion& operator/= (float scalar);
 
@@ -109,22 +102,20 @@ namespace RN
 		Quaternion operator- (const Quaternion& other) const;
 		Quaternion operator* (const Quaternion& other) const;
 		Quaternion operator/ (const Quaternion& other) const;
-
+		Quaternion operator* (float scalar) const;
+		Quaternion operator/ (float scalar) const;
+		
+		Quaternion& operator+= (const Vector3& other);
+		Quaternion& operator-= (const Vector3& other);
 		Quaternion operator+ (const Vector3& other) const;
 		Quaternion operator- (const Vector3& other) const;
 
-		Quaternion operator* (const Vector4& other) const;
-		Quaternion operator/ (const Vector4& other) const;
-
-		Quaternion operator* (float scalar) const;
-		Quaternion operator/ (float scalar) const;
-
-		void MakeIdentity();
-		void MakeEulerAngle(const Vector3& euler);
-		void MakeAxisAngle(const Vector4& euler);
-		void MakeLerpSpherical(const Quaternion& start, const Quaternion& end, float factor);
-		void MakeLerpLinear(const Quaternion& start, const Quaternion& end, float factor);
-		void MakeLookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
+		static Quaternion WithIdentity();
+		static Quaternion WithEulerAngle(const Vector3& euler);
+		static Quaternion WithAxisAngle(const Vector4& euler);
+		static Quaternion WithLerpSpherical(const Quaternion& start, const Quaternion& end, float factor);
+		static Quaternion WithLerpLinear(const Quaternion& start, const Quaternion& end, float factor);
+		static Quaternion WithLookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
 		
 		Quaternion &Normalize();
 		Quaternion GetNormalized() const;

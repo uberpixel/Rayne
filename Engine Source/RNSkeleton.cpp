@@ -81,7 +81,7 @@ namespace RN
 		isRoot = root;
 		
 		position = Vector3(0.0f, 0.0f, 0.0f);
-		rotation.MakeIdentity();
+		rotation = Quaternion::WithIdentity();
 		scale = Vector3(1.0, 1.0, 1.0);
 		
 		currFrame = 0;
@@ -100,7 +100,7 @@ namespace RN
 		isRoot = root;
 		
 		position = Vector3(0.0f, 0.0f, 0.0f);
-		rotation.MakeIdentity();
+		rotation = Quaternion::WithIdentity();
 		scale = Vector3(1.0f, 1.0f, 1.0f);
 		
 		currFrame = 0;
@@ -178,7 +178,7 @@ namespace RN
 				float blend = (currTime-currFrame->time)/timeDiff;
 				position = currFrame->position.GetLerp(nextFrame->position, blend);
 				scale = currFrame->scale.GetLerp(nextFrame->scale, blend);
-				rotation.MakeLerpSpherical(currFrame->rotation, nextFrame->rotation, blend);
+				rotation = Quaternion::WithLerpSpherical(currFrame->rotation, nextFrame->rotation, blend);
 			}
 			else
 			{
@@ -247,7 +247,7 @@ namespace RN
 		else
 		{
 			position = Vector3();
-			rotation.MakeIdentity();
+			rotation = Quaternion::WithIdentity();
 			scale = Vector3(1.0f, 1.0f, 1.0f);
 			currFrame = nullptr;
 			nextFrame = nullptr;

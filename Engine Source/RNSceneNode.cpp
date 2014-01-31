@@ -277,7 +277,7 @@ namespace RN
 		const RN::Vector3& worldPos = GetWorldPosition();
 		
 		RN::Quaternion rotation;
-		rotation.MakeLookAt(worldPos - target, GetUp(), keepUpAxis);
+		rotation = Quaternion::WithLookAt(worldPos - target, GetUp(), keepUpAxis);
 		
 		SetWorldRotation(rotation);
 	}
