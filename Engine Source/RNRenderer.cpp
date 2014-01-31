@@ -161,7 +161,7 @@ namespace RN
 			gl::Uniform4fv(_currentProgram->cameraAmbient, 1, &_currentCamera->_ambient.r);
 		
 		if(_currentProgram->clipPlane != -1)
-			gl::Uniform4fv(_currentProgram->clipPlane, 1, &_currentCamera->_clipPlane.x);
+			gl::Uniform4f(_currentProgram->clipPlane, _currentCamera->_clipPlane.GetNormal().x, _currentCamera->_clipPlane.GetNormal().y, _currentCamera->_clipPlane.GetNormal().z, _currentCamera->_clipPlane.GetD());
 		
 		if(_currentProgram->matProj != -1)
 			gl::UniformMatrix4fv(_currentProgram->matProj, 1, GL_FALSE, projectionMatrix.m);

@@ -375,7 +375,7 @@ namespace RN
 		_fogNear   = 100.0f;
 		_fogFar    = 500.0f;
 		_ambient   = Color(0.1f, 0.1f, 0.1f, 1.0f);
-		_clipPlane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+		_clipPlane = Plane();
 		
 		_dirtyProjection = true;
 		_dirtyFrustum    = true;
@@ -587,7 +587,7 @@ namespace RN
 	{
 		_ambient = color;
 	}
-	void Camera::SetClipPlane(const Vector4 &clipPlane)
+	void Camera::SetClipPlane(const Plane &clipPlane)
 	{
 		_clipPlane = clipPlane;
 	}
@@ -820,12 +820,12 @@ namespace RN
 		_frustumCenter = _frustumCenter * 0.5f;
 		_frustumRadius = _frustumCenter.GetDistance(vmax);
 		
-		frustrums._frustumLeft.SetPlane(pos1, pos2, pos3, 1.0f);
-		frustrums._frustumRight.SetPlane(pos4, pos5, pos6, -1.0f);
-		frustrums._frustumTop.SetPlane(pos1, pos2, pos5, -1.0f);
-		frustrums._frustumBottom.SetPlane(pos4, pos3, pos6, 1.0f);
-		frustrums._frustumNear.SetPlane(position + direction * _clipNear, -direction);
-		frustrums._frustumFar.SetPlane(position + direction * _clipFar, direction);
+		frustrums._frustumLeft = Plane(pos1, pos2, pos3, 1.0f);
+		frustrums._frustumRight = Plane(pos4, pos5, pos6, -1.0f);
+		frustrums._frustumTop =  Plane(pos1, pos2, pos5, -1.0f);
+		frustrums._frustumBottom = Plane(pos4, pos3, pos6, 1.0f);
+		frustrums._frustumNear = Plane(position + direction * _clipNear, -direction);
+		frustrums._frustumFar = Plane(position + direction * _clipFar, direction);
 	}
 
 	Vector3 Camera::__ToWorld(const Vector3& dir)

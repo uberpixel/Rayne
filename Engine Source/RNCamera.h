@@ -273,7 +273,7 @@ namespace RN
 		RNAPI void SetFogNear(float near);
 		RNAPI void SetFogFar(float far);
 		RNAPI void SetAmbientColor(Color color);
-		RNAPI void SetClipPlane(const Vector4 &clipPlane);
+		RNAPI void SetClipPlane(const Plane &clipPlane);
 		RNAPI void SetRenderGroups(RenderGroups groups);
 		RNAPI void SetOrthogonalFrustum(float top, float bottom, float left, float right);
 		
@@ -308,7 +308,7 @@ namespace RN
 		float GetClipNear() const { return _clipNear; }
 		float GetClipFar() const { return _clipFar; }
 		const Color &GetAmbientColor() const { return _ambient; }
-		const Vector4 &GetClipPlane() const { return _clipPlane; }
+		const Plane &GetClipPlane() const { return _clipPlane; }
 		const Matrix &GetProjectionMatrix() const { return _projectionMatrix; }
 		const Matrix &GetInverseProjectionMatrix() const { return _inverseProjectionMatrix; }
 		const Matrix &GetViewMatrix() const { return _viewMatrix; }
@@ -375,7 +375,7 @@ namespace RN
 		Color _fogColor;
 		Color _ambient;
 		
-		Vector4 _clipPlane;
+		Plane _clipPlane;
 		RenderGroups _renderGroups;
 		LightManager *_lightManager;
 		

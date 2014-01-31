@@ -15,53 +15,71 @@ namespace RN
 	{
 	public:
 		Plane();
-
-		void SetPlane(const Vector3 &position, const Vector3 &normal);
-		void SetPlane(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac=1.0f);
+		Plane(const Vector3 &position, const Vector3 &normal);
+		Plane(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac=1.0f);
+		
+		void SetPosition(const Vector3 &position);
+		void SetNormal(const Vector3 &normal);
 		
 		float GetDistance(const Vector3 &position) const;
-		void CalculateD();
+		Vector3 GetPosition() const { return _position; }
+		Vector3 GetNormal() const { return _normal; }
+		float GetD() const { return _d; }
 		
-		Vector3 position;
-		Vector3 normal;
-		float d;
+	private:
+		void CalculateD();
+		Vector3 _position;
+		Vector3 _normal;
+		float _d;
 	};
 	
 	RN_INLINE Plane::Plane()
 	{
-		normal.y = 1.0f;
+		_normal.y = 1.0f;
+		_d = 0.0f;
 	}
 	
-	RN_INLINE void Plane::SetPlane(const Vector3 &tposition, const Vector3 &tnormal)
+	RN_INLINE Plane::Plane(const Vector3 &position, const Vector3 &normal)
 	{
-		position = tposition;
-		normal = tnormal;
-		normal.Normalize();
-		
+		_position = position;
+		_normal = normal;
+		_normal.Normalize();
 		CalculateD();
 	}
 	
-	RN_INLINE void Plane::SetPlane(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac)
+	RN_INLINE Plane::Plane(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac)
 	{
 		Vector3 diff1 = position2 - position1;
 		Vector3 diff2 = position3 - position1;
 		
-		position = position1;
+		_position = position1;
 		
-		normal = diff1.GetCrossProduct(diff2)*dirfac;
-		normal.Normalize();
+		_normal = diff1.GetCrossProduct(diff2)*dirfac;
+		_normal.Normalize();
 		
+		CalculateD();
+	}
+	
+	RN_INLINE void Plane::SetPosition(const Vector3 &position)
+	{
+		_position = position;
+		CalculateD();
+	}
+	
+	RN_INLINE void Plane::SetNormal(const Vector3 &normal)
+	{
+		_normal = normal;
 		CalculateD();
 	}
 	
 	RN_INLINE float Plane::GetDistance(const Vector3 &position) const
 	{
-		return position.GetDotProduct(normal) - d;
+		return _position.GetDotProduct(_normal) - _d;
 	}
 	
 	RN_INLINE void Plane::CalculateD()
 	{
-		d = normal.GetDotProduct(position);
+		_d = _normal.GetDotProduct(_position);
 	}
 }
 
