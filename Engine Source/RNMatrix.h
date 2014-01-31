@@ -170,6 +170,11 @@ namespace RN
 		
 		return result;
 	}
+	
+	RN_INLINE void Matrix::Inverse()
+	{
+		*this = GetInverse();
+	}
 
 	RN_INLINE Matrix Matrix::WithIdentity()
 	{
@@ -447,21 +452,6 @@ namespace RN
 		*this *= Matrix::WithRotation(rotation);
 	}
 	
-	
-	RN_INLINE Vector3 Matrix::GetTransformedVector(const Vector3& vector) const
-	{
-		Vector3 result;
-		result = (*this) * vector;
-		return result;
-	}
-	
-	RN_INLINE Vector4 Matrix::GetTransformedVector(const Vector4& vector) const
-	{
-		Vector4 result;
-		result = (*this) * vector;
-		return result;
-	}
-	
 	RN_INLINE void Matrix::Transpose()
 	{
 		float temp[16];
@@ -487,6 +477,33 @@ namespace RN
 		temp[15] = m[15];
 		
 		std::copy(temp, temp + 16, m);
+	}
+	
+	RN_INLINE Matrix Matrix::GetTransposed() const
+	{
+		Matrix result;
+		
+		result.m[0] = m[0];
+		result.m[1] = m[4];
+		result.m[2] = m[8];
+		result.m[3] = m[12];
+		
+		result.m[4] = m[1];
+		result.m[5] = m[5];
+		result.m[6] = m[9];
+		result.m[7] = m[13];
+		
+		result.m[8] = m[2];
+		result.m[9] = m[6];
+		result.m[10] = m[10];
+		result.m[11] = m[14];
+		
+		result.m[12] = m[3];
+		result.m[13] = m[7];
+		result.m[14] = m[11];
+		result.m[15] = m[15];
+		
+		return result;
 	}
 	
 	RN_INLINE bool Matrix::IsEqual(const Matrix& other, float epsilon) const

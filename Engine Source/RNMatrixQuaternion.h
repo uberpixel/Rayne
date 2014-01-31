@@ -20,14 +20,14 @@ namespace RN
 	{
 	public:
 		Matrix();
+		
+		bool operator== (const Matrix &other) const;
+		bool operator!= (const Matrix &other) const;
 
 		Matrix& operator*= (const Matrix& other);
 		Matrix operator* (const Matrix& other) const;
 		Vector3 operator* (const Vector3& other) const;
 		Vector4 operator* (const Vector4& other) const;
-		
-		bool operator== (const Matrix &other) const;
-		bool operator!= (const Matrix &other) const;
 
 		static Matrix WithIdentity();
 		static Matrix WithTranslation(const Vector3& translation);
@@ -57,10 +57,8 @@ namespace RN
 		void Rotate(const Quaternion& rotation);
 
 		void Transpose();
-
-		Vector3 GetTransformedVector(const Vector3& vector) const;
-		Vector4 GetTransformedVector(const Vector4& vector) const;
-
+		Matrix GetTransposed() const;
+		void Inverse();
 		Matrix GetInverse() const;
 		
 		bool IsEqual(const Matrix& other, float epsilon) const;
@@ -86,6 +84,9 @@ namespace RN
 		Quaternion(float x, float y, float z, float w);
 		Quaternion(const Vector3& euler);
 		Quaternion(const Vector4& axis);
+		
+		bool operator== (const Quaternion &other) const;
+		bool operator!= (const Quaternion &other) const;
 
 		Quaternion& operator+= (const Quaternion& other);
 		Quaternion& operator-= (const Quaternion& other);
@@ -114,9 +115,6 @@ namespace RN
 
 		Quaternion operator* (float scalar) const;
 		Quaternion operator/ (float scalar) const;
-		
-		bool operator== (const Quaternion &other) const;
-		bool operator!= (const Quaternion &other) const;
 
 		void MakeIdentity();
 		void MakeEulerAngle(const Vector3& euler);
