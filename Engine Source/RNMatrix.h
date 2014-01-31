@@ -165,7 +165,7 @@ namespace RN
 		
 		for(int i=0; i<16; i++)
 		{
-			result.m[i] = GetDeterminantSubmatrix(i) / det;
+			result.m[i] = GetSubmatrixDeterminant(i) / det;
 		}
 		
 		return result;
@@ -319,7 +319,7 @@ namespace RN
 		return det;
 	}
 
-	RN_INLINE float Matrix::GetDeterminantSubmatrix(const int k) const
+	RN_INLINE float Matrix::GetSubmatrixDeterminant(const int k) const
 	{
 		int i = k%4; // i <=> j
 		int j = k/4;
@@ -365,6 +365,11 @@ namespace RN
 		
 		result *= 180.0f / k::Pi;
 		return result;
+	}
+	
+	RN_INLINE Vector4 Matrix::GetAxisAngle() const
+	{
+		return GetQuaternion().GetAxisAngle();
 	}
 	
 	RN_INLINE Quaternion Matrix::GetQuaternion() const

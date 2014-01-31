@@ -43,9 +43,9 @@ namespace RN
 		static Matrix WithInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
 
 		float GetDeterminant() const;
-		float GetDeterminantSubmatrix(const int k) const;
 		
 		Vector3 GetEulerAngle() const;
+		Vector4 GetAxisAngle() const;
 		Quaternion GetQuaternion() const;
 
 		void Translate(const Vector3& translation);
@@ -75,6 +75,9 @@ namespace RN
 #else
 		float m[16];
 #endif
+	private:
+		float GetSubmatrixDeterminant(const int k) const;
+		
 	};
 
 	class Quaternion
