@@ -3,3 +3,8 @@
 *.jpg   binary
 *.png   binary
 *.gif   binary
+
+*.sketch/Data binary
+*.sketch/fonts binary
+*.sketch/metadata binary
+*.sketch/version  binary
