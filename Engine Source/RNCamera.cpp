@@ -820,12 +820,12 @@ namespace RN
 		_frustumCenter = _frustumCenter * 0.5f;
 		_frustumRadius = _frustumCenter.GetDistance(vmax);
 		
-		frustrums._frustumLeft = Plane(pos1, pos2, pos3, 1.0f);
-		frustrums._frustumRight = Plane(pos4, pos5, pos6, -1.0f);
-		frustrums._frustumTop =  Plane(pos1, pos2, pos5, -1.0f);
-		frustrums._frustumBottom = Plane(pos4, pos3, pos6, 1.0f);
-		frustrums._frustumNear = Plane(position + direction * _clipNear, -direction);
-		frustrums._frustumFar = Plane(position + direction * _clipFar, direction);
+		frustrums._frustumLeft = Plane::WithTriangle(pos1, pos2, pos3, 1.0f);
+		frustrums._frustumRight = Plane::WithTriangle(pos4, pos5, pos6, -1.0f);
+		frustrums._frustumTop =  Plane::WithTriangle(pos1, pos2, pos5, -1.0f);
+		frustrums._frustumBottom = Plane::WithTriangle(pos4, pos3, pos6, 1.0f);
+		frustrums._frustumNear = Plane::WithPositionNormal(position + direction * _clipNear, -direction);
+		frustrums._frustumFar = Plane::WithPositionNormal(position + direction * _clipFar, direction);
 	}
 
 	Vector3 Camera::__ToWorld(const Vector3& dir)

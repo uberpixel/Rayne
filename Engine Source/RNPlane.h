@@ -15,8 +15,8 @@ namespace RN
 	{
 	public:
 		Plane();
-		Plane(const Vector3 &position, const Vector3 &normal);
-		Plane(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac=1.0f);
+		static Plane WithPositionNormal(const Vector3 &position, const Vector3 &normal);
+		static Plane WithTriangle(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac=1.0f);
 		
 		void SetPosition(const Vector3 &position);
 		void SetNormal(const Vector3 &normal);
@@ -39,25 +39,33 @@ namespace RN
 		_d = 0.0f;
 	}
 	
-	RN_INLINE Plane::Plane(const Vector3 &position, const Vector3 &normal)
+	RN_INLINE Plane Plane::WithPositionNormal(const Vector3 &position, const Vector3 &normal)
 	{
-		_position = position;
-		_normal = normal;
-		_normal.Normalize();
-		CalculateD();
+		Plane plane;
+		
+		plane._position = position;
+		plane._normal = normal;
+		plane._normal.Normalize();
+		plane.CalculateD();
+		
+		return plane;
 	}
 	
-	RN_INLINE Plane::Plane(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac)
+	RN_INLINE Plane Plane::WithTriangle(const Vector3 &position1, const Vector3 &position2, const Vector3 &position3, float dirfac)
 	{
+		Plane plane;
+		
 		Vector3 diff1 = position2 - position1;
 		Vector3 diff2 = position3 - position1;
 		
-		_position = position1;
+		plane._position = position1;
 		
-		_normal = diff1.GetCrossProduct(diff2)*dirfac;
-		_normal.Normalize();
+		plane._normal = diff1.GetCrossProduct(diff2)*dirfac;
+		plane._normal.Normalize();
 		
-		CalculateD();
+		plane.CalculateD();
+		
+		return plane;
 	}
 	
 	RN_INLINE void Plane::SetPosition(const Vector3 &position)
