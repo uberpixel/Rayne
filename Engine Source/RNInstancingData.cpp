@@ -462,7 +462,7 @@ namespace RN
 			
 			for(InstancingBucket &bucket : buckets)
 			{
-				if(bucket->position.GetDistance(position) < clipRange)
+				if(bucket->position.GetSquaredDistance(position) < clipRange * clipRange)
 					temp.push_back(bucket);
 			}
 			
@@ -508,27 +508,30 @@ namespace RN
 			batch->AddTask([&, entity] {
 			
 				InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
-				float distance = position.GetDistance(entity->GetWorldPosition_NoLock());
+				float distance = position.GetSquaredDistance(entity->GetWorldPosition_NoLock());
 				
-				bool clipped = true;
+				bool clipped;
+				float _clipRange2 = _clipRange * _clipRange;
 				
 				if(_thinning)
 				{
-					if(distance <= _clipRange)
+					if(distance <= _clipRange2)
 					{
 						clipped = false;
 					}
-					else if(distance <= clipRange)
+					else
 					{
-						distance -= _clipRange;
-						distance /= _thinRange;
-						
+						distance -= _clipRange2;
+						distance /= _thinRange*_thinRange;
+						distance = 1.0f-distance;
+						distance *= distance*distance;
+						distance = 1.0f - distance;
 						clipped = (distance > data->thinfactor);
 					}
 				}
 				else
 				{
-					clipped = (distance > _clipRange);
+					clipped = (distance > _clipRange2);
 				}
 				
 				if(clipped && data->lodStage != k::NotFound)
