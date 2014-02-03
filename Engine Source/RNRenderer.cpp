@@ -392,11 +392,17 @@ namespace RN
 		if(!surfaceMaterial)
 			surfaceMaterial = material;
 		
+#define IsOverriden(attribute) \
+	(material->override & Material::Override::attribute || surfaceMaterial->override & Material::Override::attribute)
+		
+#define PickAttribute(_override, attribute) \
+	(IsOverriden(_override) ? material->attribute : surfaceMaterial->attribute)
+		
 		if(changedShader || material != _currentMaterial)
 		{
 			_textureUnit = 0;
 			
-			const Array& textures = !(surfaceMaterial->override & Material::Override::Textures)? material->GetTextures() : surfaceMaterial->GetTextures();
+			const Array& textures = IsOverriden(Textures) ? material->GetTextures() : surfaceMaterial->GetTextures();
 			const std::vector<GLuint>& textureLocations = program->texlocations;
 			
 			if(textureLocations.size() > 0)
@@ -416,49 +422,80 @@ namespace RN
 				}
 			}
 		}
-
-#define PickAttribute(_override, attribute) (material->override & Material::Override::_override) ? material->attribute : surfaceMaterial->attribute
 		
-		Material::CullMode cullMode = (material->override & Material::Override::Culling) ? material->cullMode : surfaceMaterial->cullMode;
-		if(cullMode == Material::CullMode::None)
+		if(surfaceMaterial != material)
 		{
-			SetCullingEnabled(false);
+			Material::CullMode cullMode = IsOverriden(Culling) ? material->cullMode : surfaceMaterial->cullMode;
+			if(cullMode == Material::CullMode::None)
+			{
+				SetCullingEnabled(false);
+			}
+			else
+			{
+				SetCullingEnabled(true);
+				SetCullMode(static_cast<GLenum>(cullMode));
+			}
+			
+			SetPolygonMode(static_cast<GLenum>(material->polygonMode));
+			
+			SetDepthTestEnabled(PickAttribute(Depthtest, depthTest));
+			SetDepthFunction(static_cast<GLenum>(PickAttribute(DepthtestMode, depthTestMode)));
+			
+			SetPolygonOffsetEnabled(PickAttribute(PolygonOffset, polygonOffset));
+			
+			if(IsOverriden(Depthwrite))
+			{
+				SetDepthWriteEnabled((material->depthWrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
+			}
+			else
+			{
+				SetDepthWriteEnabled((surfaceMaterial->depthWrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
+			}
+			
+			SetBlendingEnabled(PickAttribute(Blending, blending));
+			SetPolygonOffset(PickAttribute(PolygonOffset, polygonOffsetFactor), PickAttribute(PolygonOffset, polygonOffsetUnits));
+			
+			if(_blendingEnabled && IsOverriden(Blendmode))
+			{
+				SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination));
+			}
+			else
+			{
+				SetBlendFunction(static_cast<GLenum>(surfaceMaterial->blendSource), static_cast<GLenum>(surfaceMaterial->blendDestination));
+			}
 		}
 		else
 		{
-			SetCullingEnabled(true);
-			SetCullMode(static_cast<GLenum>(cullMode));
-		}
-		
-		SetPolygonMode(static_cast<GLenum>(material->polygonMode));
-
-		SetDepthTestEnabled(PickAttribute(Depthtest, depthTest));
-		SetDepthFunction(static_cast<GLenum>(PickAttribute(DepthtestMode, depthTestMode)));
-		
-		SetPolygonOffsetEnabled(PickAttribute(PolygonOffset, polygonOffset));
-		SetPolygonOffset(PickAttribute(PolygonOffset, polygonOffsetFactor), PickAttribute(PolygonOffset, polygonOffsetUnits));
-		
-		if(material->override & Material::Override::Depthwrite)
-		{
+			Material::CullMode cullMode = material->cullMode;
+			
+			if(cullMode == Material::CullMode::None)
+			{
+				SetCullingEnabled(false);
+			}
+			else
+			{
+				SetCullingEnabled(true);
+				SetCullMode(static_cast<GLenum>(cullMode));
+			}
+			
+			SetPolygonMode(static_cast<GLenum>(material->polygonMode));
+			
+			SetDepthTestEnabled(material->depthTest);
+			SetDepthFunction(static_cast<GLenum>(material->depthTestMode));
+			
+			SetPolygonOffsetEnabled(material->polygonOffset);
 			SetDepthWriteEnabled((material->depthWrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
-		}
-		else
-		{
-			SetDepthWriteEnabled((surfaceMaterial->depthWrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
-		}
-		
-		SetBlendingEnabled(PickAttribute(Blending, blending));
-		
-		if(material->override & Material::Override::Blendmode)
-		{
-			SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination));
-		}
-		else
-		{
-			SetBlendFunction(static_cast<GLenum>(surfaceMaterial->blendSource), static_cast<GLenum>(surfaceMaterial->blendDestination));
+			SetBlendingEnabled(material->blending);
+			
+			if(_polygonOffsetFactor)
+				SetPolygonOffset(material->polygonOffsetFactor, material->polygonOffsetUnits);
+			
+			if(_blendingEnabled)
+				SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination));
 		}
 		
 #undef PickAttribute
+#undef IsOverriden
 		
 		_currentMaterial = material;
 	}

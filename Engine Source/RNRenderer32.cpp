@@ -212,7 +212,7 @@ namespace RN
 				size_t objectsCount = _frame.size();
 				size_t i = (camera->GetFlags() & Camera::Flags::NoSky) ? skyCubeMeshes : 0;
 				
-				for(; i<objectsCount; i++)
+				for(; i  <objectsCount; i ++)
 				{
 					RenderingObject& object = _frame[i];
 					if(object.prepare)
@@ -223,9 +223,11 @@ namespace RN
 					if(_scissorTest)
 						SetScissorRect(object.scissorRect);
 					
-					Mesh     *mesh = object.mesh;
 					Material *material = object.material;
-					Shader   *shader = surfaceMaterial ? surfaceMaterial->GetShader() : material->GetShader();
+					Material *surfaceOrMaterial = surfaceMaterial ? surfaceMaterial : material;
+					
+					Mesh   *mesh = object.mesh;
+					Shader *shader = surfaceOrMaterial->GetShader();
 					
 					Matrix& transform = object.transform ? *object.transform : identityMatrix;
 					Matrix inverseTransform = transform.GetInverse();
@@ -237,15 +239,16 @@ namespace RN
 						if(!shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
 							continue;
 					}
+								
+#define IsOverriden(attribute) \
+	((material->GetOverride() & Material::Override::attribute || surfaceOrMaterial->GetOverride() & Material::Override::attribute))
 					
 					// Grab the correct shader program
 					std::vector<ShaderDefine> defines;
 					ShaderLookup lookup = material->GetLookup();
-					ShaderProgram *program = 0;
+					ShaderProgram *program = nullptr;
 					
-					bool wantsDiscard = material->GetDiscard();
-					if(surfaceMaterial && !(material->GetOverride() & Material::Override::Discard))
-						wantsDiscard = surfaceMaterial->GetDiscard();
+					bool wantsDiscard = IsOverriden(Discard) ? material->GetDiscard() : surfaceOrMaterial->GetDiscard();
 					
 					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
 						lookup.type |= ShaderProgram::TypeAnimated;
@@ -316,11 +319,7 @@ namespace RN
 						
 						if(program->discardThreshold != -1)
 						{
-							float threshold = material->GetDiscardThreshold();
-							
-							if(surfaceMaterial && !(material->GetOverride() & Material::Override::DiscardThreshold))
-								threshold = surfaceMaterial->GetDiscardThreshold();
-							
+							float threshold = IsOverriden(DiscardThreshold) ? material->GetDiscardThreshold() : surfaceOrMaterial->GetDiscardThreshold();
 							gl::Uniform1f(program->discardThreshold, threshold);
 						}
 						
