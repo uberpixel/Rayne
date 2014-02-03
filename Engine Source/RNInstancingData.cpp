@@ -510,7 +510,7 @@ namespace RN
 				InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
 				float distance = position.GetSquaredDistance(entity->GetWorldPosition_NoLock());
 				
-				bool clipped = true;
+				bool clipped;
 				float _clipRange2 = _clipRange * _clipRange;
 				
 				if(_thinning)
@@ -519,7 +519,7 @@ namespace RN
 					{
 						clipped = false;
 					}
-					else if(distance <= clipRange*clipRange)
+					else
 					{
 						distance -= _clipRange2;
 						distance /= _thinRange*_thinRange;
