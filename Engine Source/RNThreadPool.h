@@ -291,7 +291,6 @@ namespace RN
 		
 		struct ThreadContext
 		{
-			SpinLock _stealLock;
 			stl::lock_free_ring_buffer<Task, 2048> hose;
 		};
 		
@@ -299,7 +298,6 @@ namespace RN
 		
 		void Consumer();
 		void FeedTasks(std::vector<Task>& tasks);
-		bool StealTasks(ThreadContext *local);
 		
 		Array _threads;
 		size_t _threadCount;

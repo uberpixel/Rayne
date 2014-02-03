@@ -169,37 +169,6 @@ namespace RN
 		_feedLock.unlock();
 	}
 	
-	bool ThreadPool::StealTasks(ThreadContext *local)
-	{
-		size_t stolen = 0;
-		
-		local->_stealLock.Lock();
-		
-		for(size_t i = 0; i < _threadCount; i ++)
-		{
-			ThreadContext *context = _threadData[i];
-			
-			if(context != local && !context->hose.was_empty() && context->_stealLock.TryLock())
-			{
-				Task task;
-				
-				for(size_t j = 0; j < 12; j ++)
-				{
-					if(!context->hose.pop(task))
-						break;
-					
-					local->hose.push(std::move(task));
-					stolen ++;
-				}
-				
-				context->_stealLock.Unlock();
-			}
-		}
-		
-		local->_stealLock.Unlock();
-		return (stolen > 0);
-	}
-	
 	void ThreadPool::Consumer()
 	{
 		Thread *thread = Thread::GetCurrentThread();
@@ -221,10 +190,7 @@ namespace RN
 			
 			while(1)
 			{
-				local->_stealLock.Lock();
 				bool result = local->hose.pop(task);
-				local->_stealLock.Unlock();
-				
 				if(!result)
 					break;
 				
@@ -240,14 +206,12 @@ namespace RN
 				}
 			}
 			
-			_feederCondition.notify_one();
-			
-			std::unique_lock<std::mutex> lock(_consumerLock);
-			
 			if(local->hose.was_empty())
 			{
-				//if(!StealTasks(local))
-				_consumerCondition.wait_for(lock, std::chrono::nanoseconds(500), [&]() { return (local->hose.was_empty() == false); });
+				std::unique_lock<std::mutex> lock(_consumerLock);
+				
+				_feederCondition.notify_one();
+				_consumerCondition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
 			}
 		}
 		
