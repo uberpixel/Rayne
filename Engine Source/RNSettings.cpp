@@ -49,10 +49,10 @@ namespace RN
 #define ValidateManifest(Key, OType) \
 		try { \
 			if(!_manifest->GetObjectForKey<OType>(Key)) \
-			{ throw Exception(Exception::Type::InconsistencyException, "manifest.json malformed!"); } \
+			{ throw Exception(Exception::Type::InconsistencyException, ""); } \
 		} \
 		catch(Exception e) \
-		{ throw Exception(Exception::Type::InconsistencyException, "manifest.json malformed!"); }
+		{ throw Exception(Exception::Type::InconsistencyException, "manifest.json malformed! Expected \"%s\" to be present!", Key->GetUTF8String()); }
 		
 		
 		ValidateManifest(kRNManifestApplicationKey, String)

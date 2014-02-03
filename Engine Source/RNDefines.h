@@ -147,6 +147,7 @@
 	#define RN_FUNCTION_SIGNATURE __FUNCTION__
 	#define RN_NORETURN __declspec(noreturn)
 	#define RN_INLINE inline
+	#define RN_NOINLINE __declspec(noinline)
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __declspec(dllexport)
@@ -186,6 +187,7 @@
 	#define RN_FUNCTION_SIGNATURE __PRETTY_FUNCTION__
 	#define RN_NORETURN __attribute__((noreturn))
 	#define RN_INLINE inline __attribute__((__always_inline__))
+	#define RN_NOINLINE __attribute__((noinline))
 
 	#if RN_BUILD_LIBRARY
 		#define RNAPI __attribute__((visibility("default")))

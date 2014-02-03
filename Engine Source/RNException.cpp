@@ -32,7 +32,24 @@ namespace RN
 		GatherInfo();
 	}
 	
-	void Exception::GatherInfo()
+	Exception::Exception(Type type, const char *format, ...) :
+		_type(type)
+	{
+		char buffer[1024];
+		va_list args;
+		
+		va_start(args, format);
+		vsnprintf(buffer, 1024, format, args);
+		va_end(args);
+		
+		buffer[1023] = '\0';
+		
+		_reason = buffer;
+		
+		GatherInfo();
+	}
+	
+	RN_NOINLINE void Exception::GatherInfo()
 	{
 		void *symbols[kRNExceptionMaxSymbols];
 		size_t size;
@@ -42,7 +59,7 @@ namespace RN
 #if RN_PLATFORM_POSIX
 		size = backtrace(symbols, kRNExceptionMaxSymbols);
 		
-		for(size_t i = 1; i < size; i ++)
+		for(size_t i = 2; i < size; i ++)
 		{
 			Dl_info info;
 			int status = dladdr(symbols[i], &info);
@@ -79,7 +96,7 @@ namespace RN
 		symbol->MaxNameLen   = 255;
 		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 		
-		for(size_t i = 1; i < size; i ++)
+		for(size_t i = 2; i < size; i ++)
 		{
 			::SymFromAddr(process, reinterpret_cast<DWORD64>(symbols[i]), 0, symbol);
 			

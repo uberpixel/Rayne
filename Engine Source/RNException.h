@@ -54,6 +54,7 @@ namespace RN
 		};
 		
 		RNAPI Exception(Type type, const std::string& reason);
+		RNAPI Exception(Type type, const char *format, ...);
 		
 		Type GetType() const { return _type; }
 		Thread *GetThread() const { return _thread; }

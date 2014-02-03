@@ -22,16 +22,22 @@ namespace RN
 		
 		char reason[1024];
 		vsprintf(reason, message, args);
+		reason[1023] = '\0';
 		
 		va_end(args);
 		
 		
-		Log::Loggable loggable(Log::Level::Warning);
+		{
+			Log::Loggable loggable(Log::Level::Error);
 		
-		loggable << "Assertion '" << expression << "' failed in " << func << ", " << file << ":" << line << std::endl;
-		loggable << "Reason: " << reason;
+			loggable << "Assertion '" << expression << "' failed in " << func << ", " << file << ":" << line << std::endl;
+			loggable << "Reason: " << reason;
+		}
 		
-		throw Exception(Exception::Type::InconsistencyException, reason);
+		Log::Logger::GetSharedInstance()->Flush(true);
+		
+		delete Log::Logger::GetSharedInstance(); // Try to get a cleanly flushed log
+		abort();
 	}
 	
 	void HandleException(const Exception& e)
