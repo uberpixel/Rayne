@@ -221,6 +221,7 @@ namespace RN
 			depthMaterial->SetPolygonOffset(true);
 			depthMaterial->SetPolygonOffsetFactor(_shadowParameter.splits[i].biasFactor);
 			depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[i].biasUnits);
+			depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);
 			
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 			storage->SetDepthTarget(depthtex, i);
@@ -275,6 +276,7 @@ namespace RN
 		depthMaterial->SetPolygonOffset(true);
 		depthMaterial->SetPolygonOffsetFactor(_shadowParameter.splits[0].biasFactor);
 		depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[0].biasUnits);
+		depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);
 		
 		RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 		storage->SetDepthTarget(depthtex, -1);
@@ -331,6 +333,7 @@ namespace RN
 		depthMaterial->SetPolygonOffset(true);
 		depthMaterial->SetPolygonOffsetFactor(_shadowParameter.splits[0].biasFactor);
 		depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[0].biasUnits);
+		depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);
 		
 		RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 		storage->SetDepthTarget(depthtex, -1);
