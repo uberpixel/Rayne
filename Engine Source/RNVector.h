@@ -47,6 +47,7 @@ namespace RN
 		float GetDotProduct(const Vector2& other) const;
 		Vector2 GetCrossProduct() const;
 		float GetDistance(const Vector2 &other) const;
+		float GetSquaredDistance(const Vector2 &other) const;
 		Vector2 GetLerp(const Vector2 &other, float factor) const;
 		bool IsEqual(const Vector2& other, float epsilon) const;
 
@@ -91,6 +92,7 @@ namespace RN
 		Vector3 GetCrossProduct(const Vector3& other) const;
 		bool IsEqual(const Vector3& other, float epsilon) const;
 		float GetDistance(const Vector3 &other) const;
+		float GetSquaredDistance(const Vector3 &other) const;
 		Vector3 GetLerp(const Vector3 &other, float factor) const;
 		
 		Vector3& Normalize(const float n=1.0f);
@@ -141,6 +143,7 @@ namespace RN
 		float GetLength() const;
 		float GetDotProduct(const Vector4& other) const;
 		float GetDistance(const Vector4 &other) const;
+		float GetSquaredDistance(const Vector4 &other) const;
 		Vector4 GetLerp(const Vector4 &other, float factor) const;
 		bool IsEqual(const Vector4& other, float epsilon) const;
 		
@@ -327,6 +330,12 @@ namespace RN
 		return difference.GetLength();
 	}
 	
+	RN_INLINE float Vector2::GetSquaredDistance(const Vector2 &other) const
+	{
+		Vector2 difference = *this - other;
+		return difference.GetDotProduct(difference);
+	}
+	
 	RN_INLINE Vector2 Vector2::GetLerp(const Vector2 &other, float factor) const
 	{
 		return *this*(1.0f-factor)+other*factor;
@@ -508,6 +517,12 @@ namespace RN
 	{
 		Vector3 difference = *this - other;
 		return difference.GetLength();
+	}
+	
+	RN_INLINE float Vector3::GetSquaredDistance(const Vector3 &other) const
+	{
+		Vector3 difference = *this - other;
+		return difference.GetDotProduct(difference);
 	}
 
 	RN_INLINE Vector3 Vector3::GetLerp(const Vector3 &other, float factor) const
@@ -803,6 +818,12 @@ namespace RN
 	{
 		Vector4 difference = *this - other;
 		return difference.GetLength();
+	}
+	
+	RN_INLINE float Vector4::GetSquaredDistance(const Vector4 &other) const
+	{
+		Vector4 difference = *this - other;
+		return difference.GetDotProduct(difference);
 	}
 	
 	RN_INLINE Vector4 Vector4::GetLerp(const Vector4 &other, float factor) const
