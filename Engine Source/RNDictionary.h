@@ -15,6 +15,8 @@
 namespace RN
 {
 	class Array;
+	class DictionaryInternal;
+	
 	class Dictionary : public Object
 	{
 	public:
@@ -40,60 +42,17 @@ namespace RN
 		RNAPI void RemoveObjectForKey(Object *key);
 		RNAPI void RemoveAllObjects();
 		
-		RNAPI void Enumerate(const std::function<void (Object *object, Object *key, bool &stop)>& callback);
+		RNAPI void Enumerate(const std::function<void (Object *object, Object *key, bool &stop)>& callback) const;
 		
 		RNAPI Array *GetAllObjects() const;
 		RNAPI Array *GetAllKeys() const;
 		
-		size_t GetCount() const { return _count; }
+		RNAPI size_t GetCount() const;
 		
 	private:
-		struct Bucket
-		{
-			Bucket()
-			{
-				key    = nullptr;
-				object = nullptr;
-				next   = nullptr;
-			}
-			
-			Bucket(const Bucket *other)
-			{
-				key    = SafeRetain(other->key);
-				object = SafeRetain(other->object);
-				
-				next = nullptr;
-			}
-			
-			~Bucket()
-			{
-				if(key)
-					key->Release();
-				
-				if(object)
-					object->Release();
-			}
-			
-			Object *key;
-			Object *object;
-			
-			Bucket *next;
-		};
+		PIMPL<DictionaryInternal> _internals;
 		
-		void Initialize(size_t primitive);
-		
-		Bucket *FindBucket(Object *key, bool createIfNeeded);
 		RNAPI Object *PrimitiveObjectForKey(Object *key);
-		
-		void GrowIfPossible();
-		void CollapseIfPossible();
-		
-		void Rehash(size_t primitive);
-		
-		Bucket **_buckets;
-		size_t _capacity;
-		size_t _count;
-		size_t _primitive;
 		
 		RNDefineMetaWithTraits(Dictionary, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};

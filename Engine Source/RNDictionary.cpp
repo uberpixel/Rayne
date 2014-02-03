@@ -13,181 +13,70 @@
 namespace RN
 {
 	RNDeclareMeta(Dictionary)
+	
+	class DictionaryInternal
+	{
+	public:
+		struct Bucket
+		{
+			Bucket()
+			{
+				key    = nullptr;
+				object = nullptr;
+				next   = nullptr;
+			}
+			
+			Bucket(const Bucket *other)
+			{
+				key    = SafeRetain(other->key);
+				object = SafeRetain(other->object);
+				
+				next = nullptr;
+			}
+			
+			~Bucket()
+			{
+				SafeRelease(key);
+				SafeRelease(object);
+			}
+			
+			bool WrapsLookup(Object *lookup)
+			{
+				return (key && key->IsEqual(lookup));
+			}
+			
+			machine_hash GetHash() const
+			{
+				return key->GetHash();
+			}
+			
+			Object *key;
+			Object *object;
+			
+			Bucket *next;
+		};
+		
+		HashTableCore<Bucket> hashTable;
+	};
 
+	
 	Dictionary::Dictionary()
 	{
-		Initialize(0);
+		_internals->hashTable.Initialize(0);
 	}
 	
 	Dictionary::Dictionary(size_t capacity)
 	{
-		for(size_t i = 0; i < kRNHashTablePrimitiveCount; i ++)
-		{
-			if(HashTableCapacity[i] > capacity || i == kRNHashTablePrimitiveCount - 1)
-			{
-				Initialize(i);
-				break;
-			}
-		}
+		_internals->hashTable.Initialize(capacity);
 	}
 	
 	Dictionary::Dictionary(const Dictionary *other)
 	{
-		_primitive = other->_primitive;
-		_capacity  = other->_capacity;
-		_count     = other->_count;
-		
-		_buckets = new Bucket *[_capacity];
-		
-		for(size_t i = 0; i < _capacity; i ++)
-		{
-			Bucket *temp = nullptr;
-			Bucket *bucket = other->_buckets[i];
-			while(bucket)
-			{
-				if(bucket->key && bucket->object)
-				{
-					Bucket *copy = new Bucket(bucket);
-					if(temp)
-						temp->next = copy;
-					
-					temp = copy;
-				}
-				
-				bucket = bucket->next;
-			}
-			
-			_buckets[i] = temp;
-		}
+		_internals->hashTable.Initialize(other->_internals->hashTable);
 	}
 	
 	Dictionary::~Dictionary()
-	{
-		for(size_t i = 0; i < _capacity; i ++)
-		{
-			Bucket *bucket = _buckets[i];
-			while(bucket)
-			{
-				Bucket *next = bucket->next;
-				delete bucket;
-				
-				bucket = next;
-			}
-		}
-		
-		delete[] _buckets;
-	}
-	
-	void Dictionary::Initialize(size_t primitive)
-	{
-		_primitive = primitive;
-		_capacity  = HashTableCapacity[_primitive];
-		_count     = 0;
-		
-		_buckets = new Bucket *[_capacity];
-		std::fill(_buckets, _buckets + _capacity, nullptr);
-	}
-	
-	
-	
-	Dictionary::Bucket *Dictionary::FindBucket(Object *key, bool createIfNeeded)
-	{
-		machine_hash hash = key->GetHash();
-		size_t index = hash % _capacity;
-		
-		Bucket *bucket = _buckets[index];
-		Bucket *empty  = nullptr;
-		
-		while(bucket)
-		{
-			if(bucket->key && key->IsEqual(bucket->key))
-			{
-				return bucket;
-			}
-			
-			if(!bucket->key)
-				empty = bucket;
-			
-			bucket = bucket->next;
-		}
-		
-		if(createIfNeeded)
-		{
-			if(empty)
-				return empty;
-			
-			bucket = new Bucket();
-			bucket->next = _buckets[index];
-			
-			_buckets[index] = bucket;
-		}
-		
-		return bucket;
-	}
-	
-	void Dictionary::Rehash(size_t primitive)
-	{
-		size_t cCapacity = _capacity;
-		Bucket **buckets = _buckets;
-		
-		_capacity = HashTableCapacity[primitive];
-		_buckets = new Bucket *[_capacity];
-		
-		if(!_buckets)
-		{
-			_buckets  = buckets;
-			_capacity = cCapacity;
-			
-			return;
-		}
-		
-		_primitive = primitive;
-		std::fill(_buckets, _buckets + _capacity, nullptr);
-		
-		for(size_t i=0; i<cCapacity; i++)
-		{
-			Bucket *bucket = buckets[i];
-			while(bucket)
-			{
-				Bucket *next = bucket->next;
-				
-				if(bucket->key)
-				{
-					machine_hash hash = bucket->key->GetHash();
-					size_t index = hash % _capacity;
-					
-					bucket->next = _buckets[index];
-					_buckets[index] = bucket;
-				}
-				else
-				{
-					delete bucket;
-				}
-				
-				bucket = next;
-			}
-		}
-		
-		delete[] buckets;
-	}
-	
-	
-	
-	void Dictionary::GrowIfPossible()
-	{
-		if(_count >= HashTableMaxCount[_primitive] && _primitive < kRNHashTablePrimitiveCount)
-		{
-			Rehash(_primitive + 1);
-		}
-	}
-	
-	void Dictionary::CollapseIfPossible()
-	{
-		if(_primitive > 0 && _count <= HashTableMaxCount[_primitive - 1])
-		{
-			Rehash(_primitive - 1);
-		}
-	}
+	{}
 	
 	
 	bool Dictionary::IsEqual(Object *temp) const
@@ -196,17 +85,17 @@ namespace RN
 			return false;
 		
 		Dictionary *other = static_cast<Dictionary *>(temp);
-		if(_count != other->_count)
+		if(GetCount() != other->GetCount())
 			return false;
 		
-		for(size_t i=0; i<_capacity; i++)
+		for(size_t i = 0; i < _internals->hashTable._capacity; i ++)
 		{
-			Bucket *bucket = _buckets[i];
+			DictionaryInternal::Bucket *bucket = _internals->hashTable._buckets[i];
 			while(bucket)
 			{
 				if(bucket->key)
 				{
-					Bucket *otherBucket = other->FindBucket(bucket->key, false);
+					DictionaryInternal::Bucket *otherBucket = other->_internals->hashTable.FindBucket(bucket->key);
 					if(!otherBucket)
 						return false;
 					
@@ -224,11 +113,11 @@ namespace RN
 	
 	Array *Dictionary::GetAllObjects() const
 	{
-		Array *array = new Array(_count);
+		Array *array = new Array(_internals->hashTable._count);
 		
-		for(size_t i=0; i<_capacity; i++)
+		for(size_t i=0; i<_internals->hashTable._capacity; i++)
 		{
-			Bucket *bucket = _buckets[i];
+			DictionaryInternal::Bucket *bucket = _internals->hashTable._buckets[i];
 			while(bucket)
 			{
 				if(bucket->object)
@@ -243,11 +132,11 @@ namespace RN
 	
 	Array *Dictionary::GetAllKeys() const
 	{
-		Array *array = new Array(_count);
+		Array *array = new Array(_internals->hashTable._count);
 		
-		for(size_t i=0; i<_capacity; i++)
+		for(size_t i = 0; i < _internals->hashTable._capacity; i++)
 		{
-			Bucket *bucket = _buckets[i];
+			DictionaryInternal::Bucket *bucket = _internals->hashTable._buckets[i];
 			while(bucket)
 			{
 				if(bucket->key)
@@ -260,21 +149,26 @@ namespace RN
 		return array->Autorelease();
 	}
 	
+	size_t Dictionary::GetCount() const
+	{
+		return _internals->hashTable.GetCount();
+	}
+	
 	
 	Object *Dictionary::PrimitiveObjectForKey(Object *key)
 	{
-		Bucket *bucket = FindBucket(key, false);
+		DictionaryInternal::Bucket *bucket = _internals->hashTable.FindBucket(key);
 		return bucket ? bucket->object : nullptr;
 	}
 	
 	void Dictionary::AddEntriesFromDictionary(const Dictionary *other)
 	{
-		for(size_t i = 0; i < other->_capacity; i ++)
+		for(size_t i = 0; i < other->_internals->hashTable._capacity; i ++)
 		{
-			Bucket *bucket = other->_buckets[i];
+			DictionaryInternal::Bucket *bucket = other->_internals->hashTable._buckets[i];
 			while(bucket)
 			{
-				if(bucket->key)
+				if(bucket->object)
 					SetObjectForKey(bucket->object, bucket->key);
 				
 				bucket = bucket->next;
@@ -284,74 +178,48 @@ namespace RN
 	
 	void Dictionary::SetObjectForKey(Object *object, Object *key)
 	{
-		Bucket *bucket = FindBucket(key, true);
+		bool created;
+		DictionaryInternal::Bucket *bucket = _internals->hashTable.FindBucket(key, created);
+		
 		if(bucket)
 		{
-			bool wasOccupied = (bucket->key != nullptr);
-			
-			if(bucket->object)
-				bucket->object->Release();
-			
-			if(bucket->key)
-				bucket->key->Release();
+			SafeRelease(bucket->object);
+			SafeRelease(bucket->key);
 			
 			bucket->key    = key->Retain();
 			bucket->object = object->Retain();
 			
-			if(!wasOccupied)
-			{
-				_count ++;
-				GrowIfPossible();
-			}
+			if(created)
+				_internals->hashTable.GrowIfPossible();
 		}
 	}
 	
 	void Dictionary::RemoveObjectForKey(Object *key)
 	{
-		Bucket *bucket = FindBucket(key, false);
+		DictionaryInternal::Bucket *bucket = _internals->hashTable.FindBucket(key);
+		
 		if(bucket)
 		{
-			bucket->key->Release();
-			bucket->object->Release();
+			SafeRelease(bucket->key);
+			SafeRelease(bucket->object);
 			
-			bucket->key = bucket->object = nullptr;
-			
-			_count --;
-			CollapseIfPossible();
+			_internals->hashTable.ResignBucket(bucket);
+			_internals->hashTable.CollapseIfPossible();
 		}
 	}
 	
 	void Dictionary::RemoveAllObjects()
 	{
-		for(size_t i = 0; i < _capacity; i ++)
-		{
-			Bucket *bucket = _buckets[i];
-			while(bucket)
-			{
-				Bucket *next = bucket->next;
-				delete bucket;
-				
-				bucket = next;
-			}
-		}
-		
-		delete [] _buckets;
-		
-		_count     = 0;
-		_primitive = 1;
-		_capacity  = HashTableCapacity[_primitive];
-		
-		_buckets = new Bucket *[_capacity];
-		std::fill(_buckets, _buckets + _capacity, nullptr);
+		_internals->hashTable.RemoveAllBuckets();
 	}
 	
-	void Dictionary::Enumerate(const std::function<void (Object *, Object *, bool &)>& callback)
+	void Dictionary::Enumerate(const std::function<void (Object *, Object *, bool &)>& callback) const
 	{
 		bool stop = false;
 		
-		for(size_t i=0; i<_capacity; i++)
+		for(size_t i = 0; i < _internals->hashTable._capacity; i ++)
 		{
-			Bucket *bucket = _buckets[i];
+			DictionaryInternal::Bucket *bucket = _internals->hashTable._buckets[i];
 			while(bucket)
 			{
 				if(bucket->key)

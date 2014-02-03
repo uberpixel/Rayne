@@ -14,64 +14,72 @@ namespace RN
 {
 	RNDeclareMeta(CountedSet)
 	
+	class CountedSetInternal
+	{
+	public:
+		struct Bucket
+		{
+			Bucket()
+			{
+				object = nullptr;
+				next   = nullptr;
+				count  = 0;
+			}
+			
+			Bucket(const Bucket *other)
+			{
+				object = SafeRetain(other->object);
+				next   = nullptr;
+				count  = other->count;
+			}
+			
+			~Bucket()
+			{
+				for(size_t i = 0; i < count; i ++)
+				{
+					object->Release();
+				}
+			}
+			
+			
+			machine_hash GetHash() const
+			{
+				return object->GetHash();
+			}
+			
+			bool WrapsLookup(Object *lookup) const
+			{
+				return (object && object->IsEqual(lookup));
+			}
+			
+			
+			Object *object;
+			Bucket *next;
+			size_t count;
+		};
+		
+		HashTableCore<Bucket> hashTable;
+	};
+	
+	
 	CountedSet::CountedSet()
 	{
-		Initialize(0);
+		_internals->hashTable.Initialize(0);
 	}
 	
 	CountedSet::CountedSet(size_t capacity)
 	{
-		for(size_t i = 0; i < kRNHashTablePrimitiveCount; i ++)
-		{
-			if(HashTableCapacity[i] > capacity || i == kRNHashTablePrimitiveCount - 1)
-			{
-				Initialize(i);
-				break;
-			}
-		}
+		_internals->hashTable.Initialize(capacity);
 	}
 	
 	CountedSet::CountedSet(const CountedSet *other)
 	{
-		_primitive = other->_primitive;
-		_capacity  = other->_capacity;
-		_count     = other->_count;
-		
-		_buckets = new Bucket *[_capacity];
-		
-		for(size_t i = 0; i < _capacity; i ++)
-		{
-			Bucket *temp = nullptr;
-			Bucket *bucket = other->_buckets[i];
-			
-			while(bucket)
-			{
-				if(bucket->object)
-				{
-					Bucket *copy = new Bucket(bucket);
-					if(temp)
-						temp->next = copy;
-					
-					temp = copy;
-				}
-				
-				bucket = bucket->next;
-			}
-			
-			_buckets[i] = temp;
-		}
+		_internals->hashTable.Initialize(other->_internals->hashTable);
 	}
 	
 	CountedSet::CountedSet(const Array *other)
 	{
-		for(size_t i = 0; i < kRNHashTablePrimitiveCount; i ++)
-		{
-			if(HashTableCapacity[i] > other->GetCount() || i == kRNHashTablePrimitiveCount - 1)
-			{
-				Initialize(i);
-				break;
-			}
-		}
+		_internals->hashTable.Initialize(other->GetCount());
 		
 		other->Enumerate([&](Object *object, size_t index, bool &stop) {
 			AddObject(object);
@@ -79,141 +87,18 @@ namespace RN
 	}
 	
 	CountedSet::~CountedSet()
-	{
-		for(size_t i = 0; i < _capacity; i ++)
-		{
-			Bucket *bucket = _buckets[i];
-			while(bucket)
-			{
-				Bucket *next = bucket->next;
-				delete bucket;
-				
-				bucket = next;
-			}
-		}
-		
-		delete [] _buckets;
-	}
+	{}
 	
-	void CountedSet::Initialize(size_t primitive)
-	{
-		_primitive = primitive;
-		_capacity  = HashTableCapacity[_primitive];
-		_count     = 0;
-		
-		_buckets = new Bucket *[_capacity];
-		std::fill(_buckets, _buckets + _capacity, nullptr);
-	}
-	
-	
-	
-	
-	CountedSet::Bucket *CountedSet::FindBucket(Object *object, bool createIfNeeded)
-	{
-		machine_hash hash = object->GetHash();
-		size_t index = hash % _capacity;
-		
-		Bucket *bucket = _buckets[index];
-		Bucket *empty  = nullptr;
-		
-		while(bucket)
-		{
-			if(bucket->object && object->IsEqual(bucket->object))
-				return bucket;
-			
-			if(!bucket->object)
-				empty = bucket;
-			
-			bucket = bucket->next;
-		}
-		
-		if(createIfNeeded)
-		{
-			if(empty)
-				return empty;
-			
-			bucket = new Bucket();
-			bucket->next = _buckets[index];
-			
-			_buckets[index] = bucket;
-		}
-		
-		return bucket;
-	}
-	
-	void CountedSet::Rehash(size_t primitive)
-	{
-		size_t cCapacity = _capacity;
-		Bucket **buckets = _buckets;
-		
-		_capacity = HashTableCapacity[primitive];
-		_buckets = new Bucket *[_capacity];
-		
-		if(!_buckets)
-		{
-			_buckets  = buckets;
-			_capacity = cCapacity;
-			
-			return;
-		}
-		
-		_primitive = primitive;
-		std::fill(_buckets, _buckets + _capacity, nullptr);
-		
-		for(size_t i = 0; i < cCapacity; i ++)
-		{
-			Bucket *bucket = buckets[i];
-			while(bucket)
-			{
-				Bucket *next = bucket->next;
-				
-				if(bucket->object)
-				{
-					machine_hash hash = bucket->object->GetHash();
-					size_t index = hash % _capacity;
-					
-					bucket->next = _buckets[index];
-					_buckets[index] = bucket;
-				}
-				else
-				{
-					delete bucket;
-				}
-				
-				bucket = next;
-			}
-		}
-		
-		delete [] buckets;
-	}
-	
-	
-	
-	void CountedSet::GrowIfPossible()
-	{
-		if(_count >= HashTableMaxCount[_primitive] && _primitive < kRNHashTablePrimitiveCount)
-		{
-			Rehash(_primitive + 1);
-		}
-	}
-	
-	void CountedSet::CollapseIfPossible()
-	{
-		if(_primitive > 0 && _count <= HashTableMaxCount[_primitive - 1])
-		{
-			Rehash(_primitive - 1);
-		}
-	}
 	
 	
 	
 	Array *CountedSet::GetAllObjects() const
 	{
-		Array *array = new Array(_count);
+		Array *array = new Array(GetCount());
 		
-		for(size_t i = 0; i < _capacity; i++)
+		for(size_t i = 0; i < _internals->hashTable._capacity; i++)
 		{
-			Bucket *bucket = _buckets[i];
+			CountedSetInternal::Bucket *bucket = _internals->hashTable._buckets[i];
 			while(bucket)
 			{
 				if(bucket->object)
@@ -230,23 +115,22 @@ namespace RN
 	
 	void CountedSet::AddObject(Object *object)
 	{
-		Bucket *bucket = FindBucket(object, true);
+		bool created;
+		CountedSetInternal::Bucket *bucket = _internals->hashTable.FindBucket(object, created);
+		
 		if(bucket)
 		{
 			bucket->count ++;
 			bucket->object = object->Retain();
 			
-			if(bucket->count == 1)
-			{
-				_count ++;
-				GrowIfPossible();
-			}
+			if(created)
+				_internals->hashTable.GrowIfPossible();
 		}
 	}
 	
 	void CountedSet::RemoveObject(Object *key)
 	{
-		Bucket *bucket = FindBucket(key, false);
+		CountedSetInternal::Bucket *bucket = _internals->hashTable.FindBucket(key);
 		if(bucket)
 		{
 			bucket->object->Release();
@@ -255,57 +139,42 @@ namespace RN
 			{
 				bucket->object = nullptr;
 				
-				_count --;
-				CollapseIfPossible();
+				_internals->hashTable.ResignBucket(bucket);
+				_internals->hashTable.CollapseIfPossible();
 			}
 		}
 	}
 	
 	void CountedSet::RemoveAllObjects()
 	{
-		for(size_t i = 0; i < _capacity; i ++)
-		{
-			Bucket *bucket = _buckets[i];
-			while(bucket)
-			{
-				Bucket *next = bucket->next;
-				delete bucket;
-				
-				bucket = next;
-			}
-		}
-		
-		delete [] _buckets;
-		
-		_count     = 0;
-		_primitive = 1;
-		_capacity  = HashTableCapacity[_primitive];
-		
-		_buckets = new Bucket *[_capacity];
-		std::fill(_buckets, _buckets + _capacity, nullptr);
+		_internals->hashTable.RemoveAllBuckets();
 	}
 	
 	bool CountedSet::ContainsObject(Object *object)
 	{
-		Bucket *bucket = FindBucket(object, false);
+		CountedSetInternal::Bucket *bucket = _internals->hashTable.FindBucket(object);
 		return (bucket != nullptr);
 	}
 	
-	size_t CountedSet::GetCountForObject(Object *object)
+	size_t CountedSet::GetCountForObject(Object *object) const
 	{
-		Bucket *bucket = FindBucket(object, false);
+		CountedSetInternal::Bucket *bucket = _internals->hashTable.FindBucket(object);
 		return bucket ? bucket->count : 0;
 	}
 	
+	size_t CountedSet::GetCount() const
+	{
+		return _internals->hashTable.GetCount();
+	}
 	
 	
-	void CountedSet::Enumerate(const std::function<void (Object *, size_t count, bool &)>& callback)
+	void CountedSet::Enumerate(const std::function<void (Object *, size_t count, bool &)>& callback) const
 	{
 		bool stop = false;
 		
-		for(size_t i = 0; i < _capacity; i ++)
+		for(size_t i = 0; i < _internals->hashTable._capacity; i ++)
 		{
-			Bucket *bucket = _buckets[i];
+			CountedSetInternal::Bucket *bucket = _internals->hashTable._buckets[i];
 			while(bucket)
 			{
 				if(bucket->object)

@@ -38,6 +38,254 @@ namespace RN
 		472907503UL, 765180257UL, 1238087439UL, 2003267722UL, 3241355160UL,
 #endif
 	};
+	
+	
+	template<class Bucket>
+	class HashTableCore
+	{
+	public:
+		HashTableCore()
+		{}
+		
+		~HashTableCore()
+		{
+			for(size_t i = 0; i < _capacity; i ++)
+			{
+				Bucket *bucket = _buckets[i];
+				while(bucket)
+				{
+					Bucket *next = bucket->next;
+					delete bucket;
+					
+					bucket = next;
+				}
+			}
+			
+			delete [] _buckets;
+		}
+		
+		void Initialize(size_t capacity)
+		{
+			size_t primitive = 0;
+			
+			for(size_t i = 0; i < kRNHashTablePrimitiveCount; i ++)
+			{
+				if(HashTableCapacity[i] > capacity || i == kRNHashTablePrimitiveCount - 1)
+				{
+					primitive = i;
+					break;
+				}
+			}
+			
+			_primitive = primitive;
+			_capacity  = HashTableCapacity[_primitive];
+			_count     = 0;
+			
+			_buckets = new Bucket *[_capacity];
+			std::fill(_buckets, _buckets + _capacity, nullptr);
+		}
+		
+		void Initialize(const HashTableCore &other)
+		{
+			_primitive = other._primitive;
+			_capacity  = other._capacity;
+			_count     = other._count;
+			
+			_buckets = new Bucket *[_capacity];
+			
+			for(size_t i = 0; i < _capacity; i ++)
+			{
+				Bucket *temp = nullptr;
+				Bucket *bucket = other._buckets[i];
+				
+				while(bucket)
+				{
+					if(bucket->object)
+					{
+						Bucket *copy = new Bucket(bucket);
+						if(temp)
+							temp->next = copy;
+						
+						temp = copy;
+					}
+					
+					bucket = bucket->next;
+				}
+				
+				_buckets[i] = temp;
+			}
+		}
+		
+		
+		
+		
+		Bucket *FindBucket(Object *object) const
+		{
+			machine_hash hash = object->GetHash();
+			size_t index = hash % _capacity;
+			
+			Bucket *bucket = _buckets[index];
+			while(bucket)
+			{
+				if(bucket->WrapsLookup(object))
+					return bucket;
+				
+				bucket = bucket->next;
+			}
+			
+			return bucket;
+		}
+		
+		Bucket *FindBucket(Object *object, bool &created)
+		{
+			machine_hash hash = object->GetHash();
+			size_t index = hash % _capacity;
+			
+			Bucket *bucket = _buckets[index];
+			Bucket *empty  = nullptr;
+			
+			created = false;
+			
+			while(bucket)
+			{
+				if(bucket->WrapsLookup(object))
+					return bucket;
+				
+				if(!bucket->object)
+					empty = bucket;
+				
+				bucket = bucket->next;
+			}
+			
+			created = true;
+			
+			if(empty)
+			{
+				_count ++;
+				return empty;
+			}
+			
+			bucket = new Bucket();
+			bucket->next = _buckets[index];
+			
+			_buckets[index] = bucket;
+			_count ++;
+			
+			return bucket;
+		}
+		
+		bool ContainsObject(Object *object)
+		{
+			Bucket *bucket = FindBucket(object);
+			return (bucket != nullptr);
+		}
+		
+		
+		void ResignBucket(Bucket *bucket)
+		{
+			bucket->object = nullptr;
+			_count --;
+		}
+		
+		void Rehash(size_t primitive)
+		{
+			size_t cCapacity = _capacity;
+			Bucket **buckets = _buckets;
+			
+			_capacity = HashTableCapacity[primitive];
+			_buckets  = new Bucket *[_capacity];
+			
+			if(!_buckets)
+			{
+				_buckets  = buckets;
+				_capacity = cCapacity;
+				
+				return;
+			}
+			
+			_primitive = primitive;
+			std::fill(_buckets, _buckets + _capacity, nullptr);
+			
+			for(size_t i = 0; i < cCapacity; i ++)
+			{
+				Bucket *bucket = buckets[i];
+				while(bucket)
+				{
+					Bucket *next = bucket->next;
+					
+					if(bucket->object)
+					{
+						machine_hash hash = bucket->GetHash();
+						size_t index = hash % _capacity;
+						
+						bucket->next = _buckets[index];
+						_buckets[index] = bucket;
+					}
+					else
+					{
+						delete bucket;
+					}
+					
+					bucket = next;
+				}
+			}
+			
+			delete [] buckets;
+		}
+	
+		void RemoveAllBuckets()
+		{
+			for(size_t i = 0; i < _capacity; i ++)
+			{
+				Bucket *bucket = _buckets[i];
+				while(bucket)
+				{
+					Bucket *next = bucket->next;
+					delete bucket;
+					
+					bucket = next;
+				}
+			}
+			
+			delete [] _buckets;
+			
+			_count     = 0;
+			_primitive = 1;
+			_capacity  = HashTableCapacity[_primitive];
+			
+			_buckets = new Bucket *[_capacity];
+			std::fill(_buckets, _buckets + _capacity, nullptr);
+		}
+		
+		void GrowIfPossible()
+		{
+			if(_count >= HashTableMaxCount[_primitive] && _primitive < kRNHashTablePrimitiveCount)
+			{
+				Rehash(_primitive + 1);
+			}
+		}
+		
+		void CollapseIfPossible()
+		{
+			if(_primitive > 0 && _count <= HashTableMaxCount[_primitive - 1])
+			{
+				Rehash(_primitive - 1);
+			}
+		}
+		
+		size_t GetCount() const
+		{
+			return _count;
+		}
+		
+		
+		Bucket **_buckets;
+		size_t _count;
+		size_t _capacity;
+		
+	private:
+		size_t _primitive;
+	};
 }
 
 #endif /* __RAYNE_HASHTABLEINTERNAL_H__ */
