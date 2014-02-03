@@ -17,7 +17,8 @@ namespace RN
 {	
 	RN_INLINE Quaternion::Quaternion()
 	{
-		MakeIdentity();
+		x = y = z = 0.0f;
+		w = 1.0f;
 	}
 	
 	RN_INLINE Quaternion::Quaternion(float _x, float _y, float _z, float _w)
@@ -30,12 +31,12 @@ namespace RN
 	
 	RN_INLINE Quaternion::Quaternion(const Vector3& euler)
 	{
-		MakeEulerAngle(euler);
+		*this = WithEulerAngle(euler);
 	}
 	
 	RN_INLINE Quaternion::Quaternion(const Vector4& axis)
 	{
-		MakeAxisAngle(axis);
+		*this = WithAxisAngle(axis);
 	}
 	
 	
@@ -84,28 +85,12 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE Quaternion& Quaternion::operator*= (const Vector4& other)
-	{
-		Quaternion quaternion(other);
-		*this *= quaternion;
-		
-		return *this;
-	}
-	
-	RN_INLINE Quaternion& Quaternion::operator/= (const Vector4& other)
-	{
-		Quaternion quaternion(other);
-		*this /= quaternion;
-		
-		return *this;
-	}
-	
 	RN_INLINE Quaternion& Quaternion::operator+= (const Vector3& other)
 	{
 		Vector3 euler = GetEulerAngle();
 		euler += other;
 		
-		MakeEulerAngle(euler);
+		*this = WithEulerAngle(euler);
 		return *this;
 	}
 	
@@ -114,7 +99,7 @@ namespace RN
 		Vector3 euler = GetEulerAngle();
 		euler -= other;
 		
-		MakeEulerAngle(euler);
+		*this = WithEulerAngle(euler);
 		return *this;
 	}
 	
@@ -170,22 +155,6 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE Quaternion Quaternion::operator* (const Vector4& other) const
-	{
-		Quaternion result(*this);
-		result *= other;
-		
-		return result;
-	}
-	
-	RN_INLINE Quaternion Quaternion::operator/ (const Vector4& other) const
-	{
-		Quaternion result(*this);
-		result /= other;
-		
-		return result;
-	}
-	
 	RN_INLINE Quaternion Quaternion::operator+ (const Vector3& other) const
 	{
 		Vector3 euler = GetEulerAngle();
@@ -218,14 +187,40 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE void Quaternion::MakeIdentity()
+	RN_INLINE bool Quaternion::operator== (const Quaternion &other) const
 	{
-		x = y = z = 0.0f;
-		w = 1.0f;
+		if(fabs(x - other.x) > k::EpsilonFloat)
+			return false;
+		
+		if(fabs(y - other.y) > k::EpsilonFloat)
+			return false;
+		
+		if(fabs(z - other.z) > k::EpsilonFloat)
+			return false;
+		
+		if(fabs(w - other.w) > k::EpsilonFloat)
+			return false;
+		
+		return true;
 	}
 	
-	RN_INLINE void Quaternion::MakeEulerAngle(const Vector3& euler)
+	RN_INLINE bool Quaternion::operator!= (const Quaternion &other) const
 	{
+		if(fabs(x - other.x) <= k::EpsilonFloat && fabs(y - other.y) <= k::EpsilonFloat && fabs(z - other.z) <= k::EpsilonFloat && fabs(w - other.w) <= k::EpsilonFloat)
+			return false;
+		
+		return true;
+	}
+	
+	RN_INLINE Quaternion Quaternion::WithIdentity()
+	{
+		return Quaternion();
+	}
+	
+	RN_INLINE Quaternion Quaternion::WithEulerAngle(const Vector3& euler)
+	{
+		Quaternion temp;
+		
 		const float Pi_360(k::Pi / 360.0f);
 		
 		float fSinYaw = Math::Sin(euler.x * Pi_360);
@@ -236,28 +231,34 @@ namespace RN
 		float fCosRoll  = Math::Cos(euler.z * Pi_360);
 		
 		//qy*qx*qz;
-		w = fSinYaw * fSinPitch * fSinRoll + fCosYaw * fCosPitch * fCosRoll;
-		x = fCosYaw * fSinPitch * fCosRoll + fSinYaw * fCosPitch * fSinRoll;
-		y = -fCosYaw * fSinPitch * fSinRoll + fSinYaw * fCosPitch * fCosRoll;
-		z = -fSinYaw * fSinPitch * fCosRoll + fCosYaw * fCosPitch * fSinRoll;
+		temp.w = fSinYaw * fSinPitch * fSinRoll + fCosYaw * fCosPitch * fCosRoll;
+		temp.x = fCosYaw * fSinPitch * fCosRoll + fSinYaw * fCosPitch * fSinRoll;
+		temp.y = -fCosYaw * fSinPitch * fSinRoll + fSinYaw * fCosPitch * fCosRoll;
+		temp.z = -fSinYaw * fSinPitch * fCosRoll + fCosYaw * fCosPitch * fSinRoll;
 		
-		Normalize();
+		temp.Normalize();
+		
+		return temp;
 	}
 	
-	RN_INLINE void Quaternion::MakeAxisAngle(const Vector4& axis)
+	RN_INLINE Quaternion Quaternion::WithAxisAngle(const Vector4& axis)
 	{
+		Quaternion temp;
+		
 		float half = axis.w * k::Pi / 360.0f;
 		float fsin = Math::Sin(half);
 		
-		w = Math::Cos(half);
-		x = fsin * axis.x;
-		y = fsin * axis.y;
-		z = fsin * axis.z;
+		temp.w = Math::Cos(half);
+		temp.x = fsin * axis.x;
+		temp.y = fsin * axis.y;
+		temp.z = fsin * axis.z;
 		
-		Normalize();
+		temp.Normalize();
+		
+		return temp;
 	}
 	
-	RN_INLINE void Quaternion::MakeLerpSpherical(const Quaternion& start, const Quaternion& end, float factor)
+	RN_INLINE Quaternion Quaternion::WithLerpSpherical(const Quaternion& start, const Quaternion& end, float factor)
 	{
 		Quaternion quat1(start);
 		Quaternion quat2(end);
@@ -294,17 +295,19 @@ namespace RN
 			inverseScale = Math::Sin(k::Pi * factor);
 		}
 		
-		*this = (quat1 * scale) + (quat2 * inverseScale);
+		return (quat1 * scale) + (quat2 * inverseScale);
 	}
 	
-	RN_INLINE void Quaternion::MakeLerpLinear(const Quaternion& start, const Quaternion& end, float factor)
+	RN_INLINE Quaternion Quaternion::WithLerpLinear(const Quaternion& start, const Quaternion& end, float factor)
 	{
 		float inverseFactor = 1.0f - factor;
-		*this = (end * factor) + (start * inverseFactor);
+		return (end * factor) + (start * inverseFactor);
 	}
 	
-	RN_INLINE void Quaternion::MakeLookAt(const Vector3& tdir, const Vector3& tup, bool forceup)
+	RN_INLINE Quaternion Quaternion::WithLookAt(const Vector3& tdir, const Vector3& tup, bool forceup)
 	{
+		Quaternion temp;
+		
 		Vector3 dir = Vector3(tdir);
 		Vector3 up  = Vector3(tup);
 		Vector3 right = up.GetCrossProduct(dir);
@@ -344,12 +347,12 @@ namespace RN
 		if(fTrace > 0.0f)
 		{
 			fRoot = Math::Sqrt(fTrace + 1.0f);
-			w = 0.5f * fRoot;
+			temp.w = 0.5f * fRoot;
 			
 			fRoot = 0.5f / fRoot;
-			x = (kRot[2][1] - kRot[1][2]) * fRoot;
-			y = (kRot[0][2] - kRot[2][0]) * fRoot;
-			z = (kRot[1][0] - kRot[0][1]) * fRoot;
+			temp.x = (kRot[2][1] - kRot[1][2]) * fRoot;
+			temp.y = (kRot[0][2] - kRot[2][0]) * fRoot;
+			temp.z = (kRot[1][0] - kRot[0][1]) * fRoot;
 		}
 		else
 		{
@@ -366,16 +369,18 @@ namespace RN
 			
 			fRoot = Math::Sqrt(kRot[i][i] - kRot[j][j] - kRot[k][k] + 1.0f);
 			
-			float *apkQuat[3] = { &x, &y, &z };
+			float *apkQuat[3] = { &temp.x, &temp.y, &temp.z };
 			*apkQuat[i] = 0.5f * fRoot;
 			
 			fRoot = 0.5f / fRoot;
-			w = (kRot[k][j] - kRot[j][k]) * fRoot;
+			temp.w = (kRot[k][j] - kRot[j][k]) * fRoot;
 			*apkQuat[j] = (kRot[j][i] + kRot[i][j]) * fRoot;
 			*apkQuat[k] = (kRot[k][i] + kRot[i][k]) * fRoot;
 		}
 		
-		Normalize();
+		temp.Normalize();
+		
+		return temp;
 	}
 	
 	RN_INLINE Quaternion &Quaternion::Normalize()
@@ -414,18 +419,12 @@ namespace RN
 	
 	RN_INLINE Quaternion Quaternion::GetLerpSpherical(const Quaternion& other, float factor) const
 	{
-		Quaternion result;
-		result.MakeLerpSpherical(*this, other, factor);
-		
-		return result;
+		return WithLerpSpherical(*this, other, factor);
 	}
 	
 	RN_INLINE Quaternion Quaternion::GetLerpLinear(const Quaternion& other, float factor) const
 	{
-		Quaternion result;
-		result.MakeLerpLinear(*this, other, factor);
-		
-		return result;
+		return WithLerpLinear(*this, other, factor);
 	}
 	
 	RN_INLINE Vector3 Quaternion::GetRotatedVector(const Vector3& vector) const
@@ -538,6 +537,23 @@ namespace RN
 	RN_INLINE float Quaternion::GetDotProduct(const Quaternion& other) const
 	{
 		return x * other.x + y * other.y + z * other.z + w * other.w;
+	}
+	
+	RN_INLINE bool Quaternion::IsEqual(const Quaternion& other, float epsilon) const
+	{
+		if(fabs(x - other.x) > epsilon)
+			return false;
+		
+		if(fabs(y - other.y) > epsilon)
+			return false;
+		
+		if(fabs(z - other.z) > epsilon)
+			return false;
+		
+		if(fabs(w - other.w) > epsilon)
+			return false;
+		
+		return true;
 	}
 }
 

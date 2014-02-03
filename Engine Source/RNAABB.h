@@ -163,13 +163,13 @@ namespace RN
 		Matrix matrix = rotation.GetRotationMatrix();
 		
 		Vector3 corners[4];
-		corners[0] = matrix.GetTransformedVector(Vector3(minExtend.x, minExtend.y, maxExtend.z));
-		corners[1] = matrix.GetTransformedVector(Vector3(minExtend.x, maxExtend.y, maxExtend.z));
-		corners[2] = matrix.GetTransformedVector(Vector3(maxExtend.x, maxExtend.y, minExtend.z));
-		corners[3] = matrix.GetTransformedVector(Vector3(maxExtend.x, minExtend.y, minExtend.z));
+		corners[0] = matrix * Vector3(minExtend.x, minExtend.y, maxExtend.z);
+		corners[1] = matrix * Vector3(minExtend.x, maxExtend.y, maxExtend.z);
+		corners[2] = matrix * Vector3(maxExtend.x, maxExtend.y, minExtend.z);
+		corners[3] = matrix * Vector3(maxExtend.x, minExtend.y, minExtend.z);
 		
-		minExtend = matrix.GetTransformedVector(minExtend);
-		maxExtend = matrix.GetTransformedVector(maxExtend);
+		minExtend = matrix * minExtend;
+		maxExtend = matrix * maxExtend;
 		
 		for(size_t i=0; i<4; i++)
 		{

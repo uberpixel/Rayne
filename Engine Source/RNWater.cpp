@@ -89,7 +89,7 @@ namespace RN
 			
 			_reflection->SetMaterial(mat);
 			_reflection->SetFlags(_camera->GetFlags() | Camera::Flags::UseClipPlanes);
-			_reflection->SetClipPlane(Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+			_reflection->SetClipPlane(RN::Plane());
 			
 			_material->AddTexture(_reflection->GetStorage()->GetRenderTarget());
 			_material->AddTexture(RN::Texture::WithFile("textures/waterbump.png", true));

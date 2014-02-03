@@ -505,7 +505,7 @@ namespace RN
 			const Vector3& lightPosition = light->GetWorldPosition();
 			float lightRange = light->GetRange();
 
-			Vector4 viewPosition = std::move(camera->GetViewMatrix().GetTransformedVector(Vector4(lightPosition, 1.0f)));
+			Vector4 viewPosition = std::move(camera->GetViewMatrix() * Vector4(lightPosition, 1.0f));
 			viewPosition.w = 1.0f;
 			
 			float zOffsetMinX = 0.0f;
@@ -537,13 +537,13 @@ namespace RN
 				zOffsetMaxY *= -1.0f;
 			}
 			
-			Vector4 minProjectedX = std::move(camera->GetProjectionMatrix().GetTransformedVector(viewPosition+Vector4(-lightRange, 0.0f, zOffsetMinX, 0.0f)));
-			Vector4 maxProjectedX = std::move(camera->GetProjectionMatrix().GetTransformedVector(viewPosition+Vector4(lightRange, 0.0f, zOffsetMaxX, 0.0f)));
+			Vector4 minProjectedX = std::move(camera->GetProjectionMatrix() * (viewPosition+Vector4(-lightRange, 0.0f, zOffsetMinX, 0.0f)));
+			Vector4 maxProjectedX = std::move(camera->GetProjectionMatrix() * (viewPosition+Vector4(lightRange, 0.0f, zOffsetMaxX, 0.0f)));
 			minProjectedX /= Math::FastAbs(minProjectedX.w);
 			maxProjectedX /= Math::FastAbs(maxProjectedX.w);
 			
-			Vector4 minProjectedY = std::move(camera->GetProjectionMatrix().GetTransformedVector(viewPosition+Vector4(0.0f, -lightRange, zOffsetMinY, 0.0f)));
-			Vector4 maxProjectedY = std::move(camera->GetProjectionMatrix().GetTransformedVector(viewPosition+Vector4(0.0f, lightRange, zOffsetMaxY, 0.0f)));
+			Vector4 minProjectedY = std::move(camera->GetProjectionMatrix() * (viewPosition+Vector4(0.0f, -lightRange, zOffsetMinY, 0.0f)));
+			Vector4 maxProjectedY = std::move(camera->GetProjectionMatrix() * (viewPosition+Vector4(0.0f, lightRange, zOffsetMaxY, 0.0f)));
 			minProjectedY /= Math::FastAbs(minProjectedY.w);
 			maxProjectedY /= Math::FastAbs(maxProjectedY.w);
 			
@@ -602,7 +602,7 @@ namespace RN
 			const Vector3& lightPosition = light->GetWorldPosition();
 			float lightRange = light->GetRange();
 			
-			Vector4 viewPosition = std::move(camera->GetViewMatrix().GetTransformedVector(Vector4(lightPosition, 1.0f)));
+			Vector4 viewPosition = std::move(camera->GetViewMatrix() * Vector4(lightPosition, 1.0f));
 			viewPosition.w = 1.0f;
 			
 			float zOffsetMinX = 0.0f;
@@ -634,13 +634,13 @@ namespace RN
 				zOffsetMaxY *= -1.0f;
 			}
 			
-			Vector4 minProjectedX = std::move(camera->GetProjectionMatrix().GetTransformedVector(viewPosition+Vector4(-lightRange, 0.0f, zOffsetMinX, 0.0f)));
-			Vector4 maxProjectedX = std::move(camera->GetProjectionMatrix().GetTransformedVector(viewPosition+Vector4(lightRange, 0.0f, zOffsetMaxX, 0.0f)));
+			Vector4 minProjectedX = std::move(camera->GetProjectionMatrix() * (viewPosition+Vector4(-lightRange, 0.0f, zOffsetMinX, 0.0f)));
+			Vector4 maxProjectedX = std::move(camera->GetProjectionMatrix() * (viewPosition+Vector4(lightRange, 0.0f, zOffsetMaxX, 0.0f)));
 			minProjectedX /= Math::FastAbs(minProjectedX.w);
 			maxProjectedX /= Math::FastAbs(maxProjectedX.w);
 			
-			Vector4 minProjectedY = std::move(camera->GetProjectionMatrix().GetTransformedVector(viewPosition+Vector4(0.0f, -lightRange, zOffsetMinY, 0.0f)));
-			Vector4 maxProjectedY = std::move(camera->GetProjectionMatrix().GetTransformedVector(viewPosition+Vector4(0.0f, lightRange, zOffsetMaxY, 0.0f)));
+			Vector4 minProjectedY = std::move(camera->GetProjectionMatrix() * (viewPosition+Vector4(0.0f, -lightRange, zOffsetMinY, 0.0f)));
+			Vector4 maxProjectedY = std::move(camera->GetProjectionMatrix() * (viewPosition+Vector4(0.0f, lightRange, zOffsetMaxY, 0.0f)));
 			minProjectedY /= Math::FastAbs(minProjectedY.w);
 			maxProjectedY /= Math::FastAbs(maxProjectedY.w);
 			

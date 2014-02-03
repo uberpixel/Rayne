@@ -147,6 +147,16 @@ namespace RN
 		return result;
 	}
 	
+	RN_INLINE bool Matrix::operator== (const Matrix &other) const
+	{
+		return IsEqual(other, k::EpsilonFloat);
+	}
+	
+	RN_INLINE bool Matrix::operator!= (const Matrix &other) const
+	{
+		return !IsEqual(other, k::EpsilonFloat);
+	}
+	
 	RN_INLINE Matrix Matrix::GetInverse() const
 	{
 		Matrix result;
@@ -155,10 +165,15 @@ namespace RN
 		
 		for(int i=0; i<16; i++)
 		{
-			result.m[i] = GetDeterminantSubmatrix(i) / det;
+			result.m[i] = GetSubmatrixDeterminant(i) / det;
 		}
 		
 		return result;
+	}
+	
+	RN_INLINE void Matrix::Inverse()
+	{
+		*this = GetInverse();
 	}
 
 	RN_INLINE Matrix Matrix::WithIdentity()
@@ -304,7 +319,7 @@ namespace RN
 		return det;
 	}
 
-	RN_INLINE float Matrix::GetDeterminantSubmatrix(const int k) const
+	RN_INLINE float Matrix::GetSubmatrixDeterminant(const int k) const
 	{
 		int i = k%4; // i <=> j
 		int j = k/4;
@@ -352,6 +367,11 @@ namespace RN
 		return result;
 	}
 	
+	RN_INLINE Vector4 Matrix::GetAxisAngle() const
+	{
+		return GetQuaternion().GetAxisAngle();
+	}
+	
 	RN_INLINE Quaternion Matrix::GetQuaternion() const
 	{
 		Quaternion result;
@@ -364,36 +384,6 @@ namespace RN
 		result.w = (-0.5f * m[9] + result.y * result.z) / result.x;
 		
 		return result;
-	}
-	
-	RN_INLINE void Matrix::SetTranslationComponents(const Vector3& translation)
-	{
-		m[12] = translation.x;
-		m[13] = translation.y;
-		m[14] = translation.z;
-	}
-	
-	RN_INLINE void Matrix::SetTranslationComponents(const Vector4& translation)
-	{
-		m[12] = translation.x;
-		m[13] = translation.y;
-		m[14] = translation.z;
-		m[15] = translation.w;
-	}
-	
-	RN_INLINE void Matrix::SetScaleComponents(const Vector3& scaling)
-	{
-		m[0] = scaling.x;
-		m[5] = scaling.y;
-		m[10] = scaling.z;
-	}
-	
-	RN_INLINE void Matrix::SetScaleComponents(const Vector4& scaling)
-	{
-		m[0] = scaling.x;
-		m[5] = scaling.y;
-		m[10] = scaling.z;
-		m[15] = scaling.w;
 	}
 	
 	RN_INLINE void Matrix::Translate(const Vector3& translation)
@@ -467,21 +457,6 @@ namespace RN
 		*this *= Matrix::WithRotation(rotation);
 	}
 	
-	
-	RN_INLINE Vector3 Matrix::GetTransformedVector(const Vector3& vector) const
-	{
-		Vector3 result;
-		result = (*this) * vector;
-		return result;
-	}
-	
-	RN_INLINE Vector4 Matrix::GetTransformedVector(const Vector4& vector) const
-	{
-		Vector4 result;
-		result = (*this) * vector;
-		return result;
-	}
-	
 	RN_INLINE void Matrix::Transpose()
 	{
 		float temp[16];
@@ -507,6 +482,86 @@ namespace RN
 		temp[15] = m[15];
 		
 		std::copy(temp, temp + 16, m);
+	}
+	
+	RN_INLINE Matrix Matrix::GetTransposed() const
+	{
+		Matrix result;
+		
+		result.m[0] = m[0];
+		result.m[1] = m[4];
+		result.m[2] = m[8];
+		result.m[3] = m[12];
+		
+		result.m[4] = m[1];
+		result.m[5] = m[5];
+		result.m[6] = m[9];
+		result.m[7] = m[13];
+		
+		result.m[8] = m[2];
+		result.m[9] = m[6];
+		result.m[10] = m[10];
+		result.m[11] = m[14];
+		
+		result.m[12] = m[3];
+		result.m[13] = m[7];
+		result.m[14] = m[11];
+		result.m[15] = m[15];
+		
+		return result;
+	}
+	
+	RN_INLINE bool Matrix::IsEqual(const Matrix& other, float epsilon) const
+	{
+		if(fabs(m[0] - other.m[0]) > epsilon)
+			return false;
+		
+		if(fabs(m[1] - other.m[1]) > epsilon)
+			return false;
+		
+		if(fabs(m[2] - other.m[2]) > epsilon)
+			return false;
+		
+		if(fabs(m[3] - other.m[3]) > epsilon)
+			return false;
+		
+		if(fabs(m[4] - other.m[4]) > epsilon)
+			return false;
+		
+		if(fabs(m[5] - other.m[5]) > epsilon)
+			return false;
+		
+		if(fabs(m[6] - other.m[6]) > epsilon)
+			return false;
+		
+		if(fabs(m[7] - other.m[7]) > epsilon)
+			return false;
+		
+		if(fabs(m[8] - other.m[8]) > epsilon)
+			return false;
+		
+		if(fabs(m[9] - other.m[9]) > epsilon)
+			return false;
+		
+		if(fabs(m[10] - other.m[10]) > epsilon)
+			return false;
+		
+		if(fabs(m[11] - other.m[11]) > epsilon)
+			return false;
+		
+		if(fabs(m[12] - other.m[12]) > epsilon)
+			return false;
+		
+		if(fabs(m[13] - other.m[13]) > epsilon)
+			return false;
+		
+		if(fabs(m[14] - other.m[14]) > epsilon)
+			return false;
+		
+		if(fabs(m[15] - other.m[15]) > epsilon)
+			return false;
+		
+		return true;
 	}
 }
 

@@ -375,7 +375,7 @@ namespace RN
 		_fogNear   = 100.0f;
 		_fogFar    = 500.0f;
 		_ambient   = Color(0.1f, 0.1f, 0.1f, 1.0f);
-		_clipPlane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+		_clipPlane = Plane();
 		
 		_dirtyProjection = true;
 		_dirtyFrustum    = true;
@@ -587,7 +587,7 @@ namespace RN
 	{
 		_ambient = color;
 	}
-	void Camera::SetClipPlane(const Vector4 &clipPlane)
+	void Camera::SetClipPlane(const Plane &clipPlane)
 	{
 		_clipPlane = clipPlane;
 	}
@@ -820,12 +820,12 @@ namespace RN
 		_frustumCenter = _frustumCenter * 0.5f;
 		_frustumRadius = _frustumCenter.GetDistance(vmax);
 		
-		frustrums._frustumLeft.SetPlane(pos1, pos2, pos3, 1.0f);
-		frustrums._frustumRight.SetPlane(pos4, pos5, pos6, -1.0f);
-		frustrums._frustumTop.SetPlane(pos1, pos2, pos5, -1.0f);
-		frustrums._frustumBottom.SetPlane(pos4, pos3, pos6, 1.0f);
-		frustrums._frustumNear.SetPlane(position + direction * _clipNear, -direction);
-		frustrums._frustumFar.SetPlane(position + direction * _clipFar, direction);
+		frustrums._frustumLeft = Plane::WithTriangle(pos1, pos2, pos3, 1.0f);
+		frustrums._frustumRight = Plane::WithTriangle(pos4, pos5, pos6, -1.0f);
+		frustrums._frustumTop =  Plane::WithTriangle(pos1, pos2, pos5, -1.0f);
+		frustrums._frustumBottom = Plane::WithTriangle(pos4, pos3, pos6, 1.0f);
+		frustrums._frustumNear = Plane::WithPositionNormal(position + direction * _clipNear, -direction);
+		frustrums._frustumFar = Plane::WithPositionNormal(position + direction * _clipFar, direction);
 	}
 
 	Vector3 Camera::__ToWorld(const Vector3& dir)
@@ -843,7 +843,7 @@ namespace RN
 			vec *= temp2;
 			vec += Vector4(_orthoRight, _orthoTop, -_clipFar, 2.0f)*temp;
 			
-			vec = _inverseViewMatrix.GetTransformedVector(vec);
+			vec = _inverseViewMatrix * vec;
 			return Vector3(vec);
 		}
 		else
@@ -852,8 +852,8 @@ namespace RN
 			clipPos.w = _projectionMatrix.m[14] / (ndcPos.z + _projectionMatrix.m[10]);
 			clipPos = Vector4(ndcPos*clipPos.w, clipPos.w);
 			
-			Vector4 temp = _inverseProjectionMatrix.GetTransformedVector(clipPos);
-			temp = _inverseViewMatrix.GetTransformedVector(temp);
+			Vector4 temp = _inverseProjectionMatrix * clipPos;
+			temp = _inverseViewMatrix * temp;
 			return Vector3(temp);
 		}
 	}
@@ -872,7 +872,7 @@ namespace RN
 			Vector4 vec(_orthoLeft, _orthoBottom, -dir.z, 2.0f);
 			vec *= temp2;
 			vec += Vector4(_orthoRight, _orthoTop, -dir.z, 2.0f)*temp;
-			vec = _inverseViewMatrix.GetTransformedVector(vec);
+			vec = _inverseViewMatrix * vec;
 			return Vector3(vec);
 		}
 		else
@@ -881,10 +881,10 @@ namespace RN
 			clipPos.w = _projectionMatrix.m[14] / (ndcPos.z + _projectionMatrix.m[10]);
 			clipPos = Vector4(ndcPos*clipPos.w, clipPos.w);
 			
-			Vector4 temp = _inverseProjectionMatrix.GetTransformedVector(clipPos);
+			Vector4 temp = _inverseProjectionMatrix * clipPos;
 			temp *= -dir.z/temp.z;
 			temp.w = 1.0f;
-			temp = _inverseViewMatrix.GetTransformedVector(temp);
+			temp = _inverseViewMatrix * temp;
 			return Vector3(temp);
 		}
 	}

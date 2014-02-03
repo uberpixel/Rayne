@@ -20,6 +20,9 @@ namespace RN
 	{
 	public:
 		Matrix();
+		
+		bool operator== (const Matrix &other) const;
+		bool operator!= (const Matrix &other) const;
 
 		Matrix& operator*= (const Matrix& other);
 		Matrix operator* (const Matrix& other) const;
@@ -40,15 +43,10 @@ namespace RN
 		static Matrix WithInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
 
 		float GetDeterminant() const;
-		float GetDeterminantSubmatrix(const int k) const;
 		
 		Vector3 GetEulerAngle() const;
+		Vector4 GetAxisAngle() const;
 		Quaternion GetQuaternion() const;
-		
-		void SetTranslationComponents(const Vector3& translation);
-		void SetTranslationComponents(const Vector4& translation);
-		void SetScaleComponents(const Vector3& scaling);
-		void SetScaleComponents(const Vector4& scaling);
 
 		void Translate(const Vector3& translation);
 		void Translate(const Vector4& translation);
@@ -59,11 +57,11 @@ namespace RN
 		void Rotate(const Quaternion& rotation);
 
 		void Transpose();
-
-		Vector3 GetTransformedVector(const Vector3& vector) const;
-		Vector4 GetTransformedVector(const Vector4& vector) const;
-
+		Matrix GetTransposed() const;
+		void Inverse();
 		Matrix GetInverse() const;
+		
+		bool IsEqual(const Matrix& other, float epsilon) const;
 	
 #if RN_SIMD
 		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
@@ -77,6 +75,9 @@ namespace RN
 #else
 		float m[16];
 #endif
+	private:
+		float GetSubmatrixDeterminant(const int k) const;
+		
 	};
 
 	class Quaternion
@@ -86,18 +87,14 @@ namespace RN
 		Quaternion(float x, float y, float z, float w);
 		Quaternion(const Vector3& euler);
 		Quaternion(const Vector4& axis);
+		
+		bool operator== (const Quaternion &other) const;
+		bool operator!= (const Quaternion &other) const;
 
 		Quaternion& operator+= (const Quaternion& other);
 		Quaternion& operator-= (const Quaternion& other);
 		Quaternion& operator*= (const Quaternion& other);
 		Quaternion& operator/= (const Quaternion& other);
-
-		Quaternion& operator*= (const Vector4& other);
-		Quaternion& operator/= (const Vector4& other);
-
-		Quaternion& operator+= (const Vector3& other);
-		Quaternion& operator-= (const Vector3& other);
-
 		Quaternion& operator*= (float scalar);
 		Quaternion& operator/= (float scalar);
 
@@ -105,22 +102,20 @@ namespace RN
 		Quaternion operator- (const Quaternion& other) const;
 		Quaternion operator* (const Quaternion& other) const;
 		Quaternion operator/ (const Quaternion& other) const;
-
+		Quaternion operator* (float scalar) const;
+		Quaternion operator/ (float scalar) const;
+		
+		Quaternion& operator+= (const Vector3& other);
+		Quaternion& operator-= (const Vector3& other);
 		Quaternion operator+ (const Vector3& other) const;
 		Quaternion operator- (const Vector3& other) const;
 
-		Quaternion operator* (const Vector4& other) const;
-		Quaternion operator/ (const Vector4& other) const;
-
-		Quaternion operator* (float scalar) const;
-		Quaternion operator/ (float scalar) const;
-
-		void MakeIdentity();
-		void MakeEulerAngle(const Vector3& euler);
-		void MakeAxisAngle(const Vector4& euler);
-		void MakeLerpSpherical(const Quaternion& start, const Quaternion& end, float factor);
-		void MakeLerpLinear(const Quaternion& start, const Quaternion& end, float factor);
-		void MakeLookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
+		static Quaternion WithIdentity();
+		static Quaternion WithEulerAngle(const Vector3& euler);
+		static Quaternion WithAxisAngle(const Vector4& euler);
+		static Quaternion WithLerpSpherical(const Quaternion& start, const Quaternion& end, float factor);
+		static Quaternion WithLerpLinear(const Quaternion& start, const Quaternion& end, float factor);
+		static Quaternion WithLookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
 		
 		Quaternion &Normalize();
 		Quaternion GetNormalized() const;
@@ -140,6 +135,8 @@ namespace RN
 
 		float GetLength() const;
 		float GetDotProduct(const Quaternion& other) const;
+		
+		bool IsEqual(const Quaternion& other, float epsilon) const;
 
 		struct
 		{
