@@ -128,10 +128,13 @@ namespace RN
 			sprintf(string, "mTexture%i", static_cast<int>(i));
 			GLuint location = gl::GetUniformLocation(program, string);
 			
-			if(location == -1)
-				break;
-			
 			texlocations.push_back(location);
+			
+			if(location == -1)
+			{
+				texinfolocations.push_back(-1);
+				continue;
+			}
 			
 			sprintf(string, "mTexture%iInfo", static_cast<int>(i));
 			location = gl::GetUniformLocation(program, string);
@@ -155,7 +158,7 @@ namespace RN
 			GLuint location = gl::GetUniformLocation(program, string);
 			
 			if(location == -1)
-			break;
+				break;
 			
 			lightSpotDepthLocations.push_back(location);
 		}

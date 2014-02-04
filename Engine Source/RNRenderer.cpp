@@ -412,6 +412,10 @@ namespace RN
 				for(size_t i=0; i<textureCount; i++)
 				{
 					GLint location = textureLocations[i];
+					
+					if(location == -1)
+						continue;
+					
 					Texture *texture = textures.GetObjectAtIndex<Texture>(i);
 					
 					gl::Uniform1i(location, BindTexture(texture));
