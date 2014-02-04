@@ -144,7 +144,7 @@ namespace RN
 		std::atomic_flag _cleanUpFlag;
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 		
-		std::unordered_map<std::string, ObservableProperty *> _properties;
+		std::vector<ObservableProperty *> _properties;
 		std::unordered_map<void *, std::vector<Connection *>> _cookieMap;
 	};
 	

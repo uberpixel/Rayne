@@ -242,7 +242,7 @@ namespace RN
 		RN_ASSERT(property->_object == nullptr, "ObservableProperty can only be added once to a receiver!");
 		
 		property->_object = this;
-		_properties.insert(decltype(_properties)::value_type(property->_name, property));
+		_properties.push_back(property);
 	}
 	
 	void Object::AddObservables(std::initializer_list<ObservableProperty *> properties)
@@ -252,7 +252,7 @@ namespace RN
 			RN_ASSERT(property->_object == nullptr, "ObservableProperty can only be added once to a receiver!");
 			
 			property->_object = this;
-			_properties.insert(decltype(_properties)::value_type(property->_name, property));
+			_properties.push_back(property);
 		}
 	}
 	
@@ -314,25 +314,24 @@ namespace RN
 	
 	Object *Object::GetPrimitiveValueForKey(const std::string& key)
 	{
-		auto iterator = _properties.find(key);
+		for(ObservableProperty *property : _properties)
+		{
+			if(key.compare(property->_name) == 0)
+				return property->GetValue();
+		}
 		
-		if(iterator == _properties.end())
-			return GetValueForUndefinedKey(key);
-		
-		ObservableProperty *property = iterator->second;
-		return property->GetValue();
+		return GetValueForUndefinedKey(key);
 	}
 	
 	ObservableProperty *Object::GetPropertyForKeyPath(const std::string& keyPath, std::string& key)
 	{
-		Object *object = ResolveKeyPath(keyPath, key);
+		for(ObservableProperty *property : _properties)
+		{
+			if(keyPath.compare(property->_name) == 0)
+				return property;
+		}
 		
-		auto iterator = object->_properties.find(key);
-		if(iterator == object->_properties.end())
-			return nullptr;
-		
-		ObservableProperty *property = iterator->second;
-		return property;
+		return nullptr;
 	}
 	
 	
