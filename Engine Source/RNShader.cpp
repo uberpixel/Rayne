@@ -216,17 +216,40 @@ namespace RN
 		SetShaderForType(FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".fsh"), ShaderType::FragmentShader);
 		
 #if GL_GEOMETRY_SHADER
-		std::string path = "";
-		
 		try
 		{
-			path = FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".gsh");
+			std::string path = FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".gsh");
+			
+			if(path.length() > 0)
+				SetShaderForType(path, ShaderType::GeometryShader);
 		}
 		catch(Exception)
 		{}
+#endif
 		
-		if(path.length() > 0)
-			SetShaderForType(path, ShaderType::GeometryShader);
+#if GL_TESS_CONTROL_SHADER
+		if(gl::SupportsFeature(gl::Feature::TessellationShaders))
+		{
+			try
+			{
+				std::string path = FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".tcsh");
+				
+				if(path.length() > 0)
+					SetShaderForType(path, ShaderType::TessellationControlShader);
+			}
+			catch(Exception)
+			{}
+			
+			try
+			{
+				std::string path = FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".tesh");
+				
+				if(path.length() > 0)
+					SetShaderForType(path, ShaderType::TessellationEvaluationShader);
+			}
+			catch(Exception)
+			{}
+		}
 #endif
 		
 		GetProgramOfType(ShaderProgram::TypeNormal);
