@@ -428,6 +428,8 @@ namespace RN
 			});
 			
 			
+			uint32 types = 0;
+			
 			for(auto i = _shaderData.begin(); i != _shaderData.end(); i ++)
 			{
 				ShaderUnit *unit = new ShaderUnit(this, i->first);
@@ -435,6 +437,8 @@ namespace RN
 				
 				units.push_back(unit);
 				gl::AttachShader(program->program, unit->GetShader());
+				
+				types |= (1 << static_cast<int>(i->first));
 			}
 			
 			// Link the program
@@ -464,6 +468,7 @@ namespace RN
 			// Dump the scope guard and clear all defines that were just visible in this compilation unit
 			scopeGuard.Commit();
 			program->ReadLocations();
+			program->linkedPrograms = types;
 			
 			// Update any caches
 			ShaderCache::GetSharedInstance()->CacheShaderProgram(this, program, lookup);

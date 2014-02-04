@@ -121,7 +121,11 @@ namespace RN
 		GLuint depthmap;
 		GLuint depthmapinfo;
 		
+		uint32 linkedPrograms;
 		std::unordered_map<std::string, GLuint> _customLocations;
+		
+		bool HasTessellationShaders() const { return (linkedPrograms & (1 << static_cast<int>(ShaderType::TessellationControlShader))
+													  && linkedPrograms & (1 << static_cast<int>(ShaderType::TessellationEvaluationShader))); }
 		
 		GLuint GetCustomLocation(const std::string& name);
 		void ReadLocations();
