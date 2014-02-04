@@ -32,6 +32,13 @@ namespace RN
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
 			gl::GenTextures(1, &_texture);
 			gl::GenBuffers(1, &_buffer);
+			
+			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
+			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R8, _buffer);
+			
+			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 		});
 	}
 	
