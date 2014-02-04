@@ -329,6 +329,13 @@ namespace RN
 					for(GPUBuffer *buffer : object.buffers)
 						buffer->Bind(this, program);
 					
+#if GL_TESS_CONTROL_SHADER
+					if(mesh->GetDrawMode() == Mesh::DrawMode::Patches)
+					{
+						gl::PatchParameteri(GL_PATCH_VERTICES, static_cast<GLint>(mesh->GetPatchVertices()));
+					}
+#endif
+					
 					if(wantsInstancing)
 					{
 						DrawMeshInstanced(object);
