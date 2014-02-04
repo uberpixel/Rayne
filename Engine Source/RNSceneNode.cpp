@@ -493,6 +493,10 @@ namespace RN
 		
 		object.transform = &_worldTransform;
 		object.rotation  = &_worldRotation;
+		
+		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+			attachment->UpdateRenderingObject(object);
+		});
 	}
 	
 	

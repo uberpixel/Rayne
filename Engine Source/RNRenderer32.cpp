@@ -212,7 +212,7 @@ namespace RN
 				size_t objectsCount = _frame.size();
 				size_t i = (camera->GetFlags() & Camera::Flags::NoSky) ? skyCubeMeshes : 0;
 				
-				for(; i  <objectsCount; i ++)
+				for(; i < objectsCount; i ++)
 				{
 					RenderingObject& object = _frame[i];
 					if(object.prepare)
@@ -325,6 +325,9 @@ namespace RN
 						
 						material->ApplyUniforms(program);
 					}
+					
+					for(GPUBuffer *buffer : object.buffers)
+						buffer->Bind(this, program);
 					
 					if(wantsInstancing)
 					{

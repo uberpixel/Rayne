@@ -18,6 +18,7 @@
 #include "RNSkeleton.h"
 #include "RNLight.h"
 #include "RNData.h"
+#include "RNGPUBuffer.h"
 
 namespace RN
 {
@@ -69,6 +70,7 @@ namespace RN
 		uint32 flags;
 		
 		Rect scissorRect;
+		std::vector<GPUBuffer *> buffers;
 		
 		GLuint instancingData;
 		GLuint instancingIndices;

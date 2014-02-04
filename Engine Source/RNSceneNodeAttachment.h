@@ -44,6 +44,8 @@ namespace RN
 		RNAPI virtual void WillUpdate(SceneNode::ChangeSet changeSet) {}
 		RNAPI virtual void DidUpdate(SceneNode::ChangeSet changeSet) {}
 		
+		RNAPI virtual void UpdateRenderingObject(RenderingObject &object) {}
+		
 		RNAPI virtual void WillRemoveFromParent() {}
 		RNAPI virtual void DidAddToParent() {}
 		
