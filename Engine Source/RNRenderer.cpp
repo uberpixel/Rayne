@@ -55,13 +55,17 @@ namespace RN
 		_polygonOffsetEnabled = false;
 		_scissorTest      = false;
 		
-		_cullMode  = GL_CCW;
-		_depthFunc = GL_LESS;
+		_cullMode    = GL_CCW;
+		_depthFunc   = GL_LESS;
 		_polygonMode = GL_FILL;
 		
-		_blendEquation    = GL_FUNC_ADD;
-		_blendSource      = GL_ONE;
-		_blendDestination = GL_ZERO;
+		_blendEquation      = GL_FUNC_ADD;
+		_alphaBlendEquation = GL_FUNC_ADD;
+		
+		_blendSource           = GL_ONE;
+		_alphaBlendSource      = GL_ONE;
+		_blendDestination      = GL_ZERO;
+		_alphaBlendDestination = GL_ZERO;
 		
 		_polygonOffsetFactor = 0.0f;
 		_polygonOffsetUnits  = 0.0f;
@@ -463,22 +467,24 @@ namespace RN
 			
 			if(_blendingEnabled)
 			{
-				if(_blendingEnabled && IsOverriden(Blendmode))
+				if(IsOverriden(Blendmode))
 				{
-					SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination));
+					SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination),
+									 static_cast<GLenum>(material->alphaBlendSource), static_cast<GLenum>(material->alphaBlendDestination));
 				}
 				else
 				{
-					SetBlendFunction(static_cast<GLenum>(surfaceMaterial->blendSource), static_cast<GLenum>(surfaceMaterial->blendDestination));
+					SetBlendFunction(static_cast<GLenum>(surfaceMaterial->blendSource), static_cast<GLenum>(surfaceMaterial->blendDestination),
+									 static_cast<GLenum>(surfaceMaterial->alphaBlendSource), static_cast<GLenum>(surfaceMaterial->alphaBlendDestination));
 				}
 				
-				if(_blendingEnabled && IsOverriden(Blendequation))
+				if(IsOverriden(Blendequation))
 				{
-					SetBlendEquation(static_cast<GLenum>(material->blendEquation));
+					SetBlendEquation(static_cast<GLenum>(material->blendEquation), static_cast<GLenum>(material->alphaBlendEquation));
 				}
 				else
 				{
-					SetBlendEquation(static_cast<GLenum>(surfaceMaterial->blendEquation));
+					SetBlendEquation(static_cast<GLenum>(material->blendEquation), static_cast<GLenum>(surfaceMaterial->alphaBlendEquation));
 				}
 			}
 		}
@@ -510,8 +516,9 @@ namespace RN
 			
 			if(_blendingEnabled)
 			{
-				SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination));
-				SetBlendEquation(static_cast<GLenum>(material->blendEquation));
+				SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination),
+								 static_cast<GLenum>(material->alphaBlendSource), static_cast<GLenum>(material->alphaBlendDestination));
+				SetBlendEquation(static_cast<GLenum>(material->blendEquation), static_cast<GLenum>(material->alphaBlendEquation));
 			}
 		}
 		

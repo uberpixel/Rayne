@@ -209,8 +209,12 @@ namespace RN
 		void SetPolygonMode(PolygonMode mode) { polygonMode = mode; }
 		
 		void SetBlending(bool enabled) { blending = enabled; }
-		void SetBlendEquation(BlendEquation equation) { blendEquation = equation; }
-		void SetBlendMode(BlendMode source, BlendMode destination) { blendSource = source; blendDestination = destination; }
+		void SetBlendEquation(BlendEquation equation) { SetRGBBlendEquation(equation); SetAlphaBlendEquation(equation); }
+		void SetRGBBlendEquation(BlendEquation equation) { blendEquation = equation; }
+		void SetAlphaBlendEquation(BlendEquation equation) { alphaBlendEquation = equation; }
+		void SetBlendMode(BlendMode source, BlendMode destination) { SetRGBBlendMode(source, destination); SetAlphaBlendMode(source, destination); }
+		void SetRGBBlendMode(BlendMode source, BlendMode destination)  { blendSource = source; blendDestination = destination; }
+		void SetAlphaBlendMode(BlendMode source, BlendMode destination) { alphaBlendSource = blendSource; alphaBlendDestination = destination; }
 		
 		void SetPolygonOffset(bool enabled) { polygonOffset = enabled; }
 		void SetPolygonOffsetFactor(float factor) { polygonOffsetFactor = factor; }
@@ -236,8 +240,11 @@ namespace RN
 		
 		bool GetBlending() const { return blending; }
 		BlendEquation GetBlendEquation() const { return blendEquation; }
+		BlendEquation GetAlphaBlendEquation() const { return alphaBlendEquation; }
 		BlendMode GetBlendSource() const { return blendSource; }
+		BlendMode GetAlphaBlendSource() const { return alphaBlendSource; }
 		BlendMode GetBlendDestination() const { return blendDestination; }
+		BlendMode GetAlphaBlendDestination() const { return alphaBlendDestination; }
 		
 		bool GetPolygonOffset() const { return polygonOffset; }
 		float GetPolygonOffsetFactor() const { return polygonOffsetFactor; }
@@ -257,6 +264,9 @@ namespace RN
 		
 		Override GetOverride() const { return override; }
 		
+		bool HasSeparateBlendEquation() const { return blendEquation != alphaBlendEquation; }
+		bool HasSeparateBlendFunction() const { return blendSource != alphaBlendSource || blendDestination != alphaBlendDestination; }
+		
 	protected:
 		bool lighting;
 		
@@ -265,8 +275,12 @@ namespace RN
 		
 		bool blending;
 		BlendEquation blendEquation;
+		BlendEquation alphaBlendEquation;
+		
 		BlendMode blendSource;
 		BlendMode blendDestination;
+		BlendMode alphaBlendSource;
+		BlendMode alphaBlendDestination;
 		
 		bool polygonOffset;
 		float polygonOffsetFactor;

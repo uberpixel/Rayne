@@ -146,7 +146,6 @@ namespace RN
 		RNAPI void SetDepthTestEnabled(bool enabled);
 		RNAPI void SetDepthWriteEnabled(bool enabled);
 		RNAPI void SetBlendingEnabled(bool enabled);
-		RNAPI void SetBlendEquation(GLenum equation);
 		RNAPI void SetPolygonOffsetEnabled(bool enabled);
 		RNAPI void SetMode(Mode mode);
 		RNAPI void SetScissorEnabled(bool enabled);
@@ -156,6 +155,9 @@ namespace RN
 		RNAPI void SetPolygonMode(GLenum polygonMode);
 		RNAPI void SetDepthFunction(GLenum depthFunction);
 		RNAPI void SetBlendFunction(GLenum blendSource, GLenum blendDestination);
+		RNAPI void SetBlendFunction(GLenum rgbBlendSource, GLenum rgbBlendDestination, GLenum alphaBlendSource, GLenum alphaBlendDestination);
+		RNAPI void SetBlendEquation(GLenum equation);
+		RNAPI void SetBlendEquation(GLenum rgbEquation, GLenum alphaEquation);
 		RNAPI void SetPolygonOffset(float factor, float units);
 		
 		RNAPI void RelinquishMesh(Mesh *mesh);
@@ -224,8 +226,12 @@ namespace RN
 		GLenum _depthFunc;
 		
 		GLenum _blendEquation;
+		GLenum _alphaBlendEquation;
+		
 		GLenum _blendSource;
+		GLenum _alphaBlendSource;
 		GLenum _blendDestination;
+		GLenum _alphaBlendDestination;
 		
 		float _polygonOffsetFactor;
 		float _polygonOffsetUnits;
@@ -363,15 +369,6 @@ namespace RN
 		_blendingEnabled ? gl::Enable(GL_BLEND) : gl::Disable(GL_BLEND);
 	}
 	
-	RN_INLINE void Renderer::SetBlendEquation(GLenum equation)
-	{
-		if(_blendEquation == equation)
-			return;
-		
-		_blendEquation = equation;
-		gl::BlendEquation(_blendEquation);
-	}
-	
 	RN_INLINE void Renderer::SetPolygonOffsetEnabled(bool enabled)
 	{
 		if(_polygonOffsetEnabled == enabled)
@@ -411,12 +408,36 @@ namespace RN
 	
 	RN_INLINE void Renderer::SetBlendFunction(GLenum blendSource, GLenum blendDestination)
 	{
-		if(_blendSource != blendSource || _blendDestination != blendDestination)
+		SetBlendFunction(blendSource, blendDestination, blendSource, blendDestination);
+	}
+	
+	RN_INLINE void Renderer::SetBlendFunction(GLenum rgbBlendSource, GLenum rgbBlendDestination, GLenum alphaBlendSource, GLenum alphaBlendDestination)
+	{
+		if(_blendSource != rgbBlendSource || _blendDestination != rgbBlendDestination ||
+		   _alphaBlendSource != alphaBlendSource || _alphaBlendDestination != alphaBlendDestination)
 		{
-			gl::BlendFunc(blendSource, blendDestination);
+			gl::BlendFuncSeparate(rgbBlendSource, rgbBlendDestination, alphaBlendSource, alphaBlendDestination);
 			
-			_blendSource = blendSource;
-			_blendDestination = blendDestination;
+			_blendSource = rgbBlendSource;
+			_blendDestination = rgbBlendDestination;
+			_alphaBlendSource = alphaBlendSource;
+			_alphaBlendDestination = alphaBlendDestination;
+		}
+	}
+	
+	RN_INLINE void Renderer::SetBlendEquation(GLenum equation)
+	{
+		SetBlendEquation(equation, equation);
+	}
+	
+	RN_INLINE void Renderer::SetBlendEquation(GLenum rgbEquation, GLenum alphaEquation)
+	{
+		if(_blendEquation != rgbEquation || _alphaBlendEquation != alphaEquation)
+		{
+			gl::BlendEquationSeparate(rgbEquation, alphaEquation);
+			
+			_blendEquation = rgbEquation;
+			_alphaBlendEquation = alphaEquation;
 		}
 	}
 	

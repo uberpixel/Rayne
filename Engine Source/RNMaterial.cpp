@@ -191,6 +191,10 @@ namespace RN
 		blendSource      = other->blendSource;
 		blendDestination = other->blendDestination;
 		
+		alphaBlendEquation    = other->alphaBlendEquation;
+		alphaBlendSource      = other->alphaBlendSource;
+		alphaBlendDestination = other->alphaBlendDestination;
+		
 		polygonOffset       = other->polygonOffset;
 		polygonOffsetFactor = other->polygonOffsetFactor;
 		polygonOffsetUnits  = other->polygonOffsetUnits;
@@ -228,9 +232,9 @@ namespace RN
 		polygonMode = PolygonMode::Fill;
 		
 		blending = false;
-		blendEquation = BlendEquation::Add;
-		blendSource = BlendMode::One;
-		blendDestination = BlendMode::OneMinusSourceAlpha;
+		alphaBlendEquation = blendEquation = BlendEquation::Add;
+		alphaBlendSource = blendSource = BlendMode::One;
+		alphaBlendDestination = blendDestination = BlendMode::OneMinusSourceAlpha;
 		
 		polygonOffset = false;
 		polygonOffsetFactor = 1.0f;
