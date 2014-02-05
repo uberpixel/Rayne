@@ -106,6 +106,9 @@ namespace RN
 #endif
 		
 		_thread = Thread::GetCurrentThread();
+		
+		if(_reason.empty())
+			_reason = "Jabberwock is killing user";
 	}
 	
 	

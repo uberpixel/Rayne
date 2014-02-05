@@ -271,9 +271,6 @@ namespace RN
 			size = 8;
 			if(sysctlbyname("hw.cpufrequency", &value, &size, nullptr, 0) == 0)
 			{
-				if(cpustream.tellp() != 0)
-					cpustream << std::endl;
-				
 				cpustream.precision(3);
 				cpustream << std::fixed << (value / 1000000000.0f) << " GHz";
 			}
