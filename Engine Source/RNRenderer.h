@@ -146,6 +146,7 @@ namespace RN
 		RNAPI void SetDepthTestEnabled(bool enabled);
 		RNAPI void SetDepthWriteEnabled(bool enabled);
 		RNAPI void SetBlendingEnabled(bool enabled);
+		RNAPI void SetBlendEquation(GLenum equation);
 		RNAPI void SetPolygonOffsetEnabled(bool enabled);
 		RNAPI void SetMode(Mode mode);
 		RNAPI void SetScissorEnabled(bool enabled);
@@ -222,6 +223,7 @@ namespace RN
 		GLenum _polygonMode;
 		GLenum _depthFunc;
 		
+		GLenum _blendEquation;
 		GLenum _blendSource;
 		GLenum _blendDestination;
 		
@@ -359,6 +361,15 @@ namespace RN
 		
 		_blendingEnabled = enabled;
 		_blendingEnabled ? gl::Enable(GL_BLEND) : gl::Disable(GL_BLEND);
+	}
+	
+	RN_INLINE void Renderer::SetBlendEquation(GLenum equation)
+	{
+		if(_blendEquation == equation)
+			return;
+		
+		_blendEquation = equation;
+		gl::BlendEquation(_blendEquation);
 	}
 	
 	RN_INLINE void Renderer::SetPolygonOffsetEnabled(bool enabled)

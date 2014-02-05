@@ -59,6 +59,7 @@ namespace RN
 		_depthFunc = GL_LESS;
 		_polygonMode = GL_FILL;
 		
+		_blendEquation    = GL_FUNC_ADD;
 		_blendSource      = GL_ONE;
 		_blendDestination = GL_ZERO;
 		
@@ -78,6 +79,7 @@ namespace RN
 			
 			gl::FrontFace(_cullMode);
 			gl::DepthFunc(_depthFunc);
+			gl::BlendEquation(_blendEquation);
 			gl::BlendFunc(_blendSource, _blendDestination);
 			gl::PolygonOffset(_polygonOffsetFactor, _polygonOffsetUnits);
 			
@@ -459,13 +461,25 @@ namespace RN
 			SetBlendingEnabled(PickAttribute(Blending, blending));
 			SetPolygonOffset(PickAttribute(PolygonOffset, polygonOffsetFactor), PickAttribute(PolygonOffset, polygonOffsetUnits));
 			
-			if(_blendingEnabled && IsOverriden(Blendmode))
+			if(_blendingEnabled)
 			{
-				SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination));
-			}
-			else
-			{
-				SetBlendFunction(static_cast<GLenum>(surfaceMaterial->blendSource), static_cast<GLenum>(surfaceMaterial->blendDestination));
+				if(_blendingEnabled && IsOverriden(Blendmode))
+				{
+					SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination));
+				}
+				else
+				{
+					SetBlendFunction(static_cast<GLenum>(surfaceMaterial->blendSource), static_cast<GLenum>(surfaceMaterial->blendDestination));
+				}
+				
+				if(_blendingEnabled && IsOverriden(Blendequation))
+				{
+					SetBlendEquation(static_cast<GLenum>(material->blendEquation));
+				}
+				else
+				{
+					SetBlendEquation(static_cast<GLenum>(surfaceMaterial->blendEquation));
+				}
 			}
 		}
 		else
@@ -495,7 +509,10 @@ namespace RN
 				SetPolygonOffset(material->polygonOffsetFactor, material->polygonOffsetUnits);
 			
 			if(_blendingEnabled)
+			{
 				SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination));
+				SetBlendEquation(static_cast<GLenum>(material->blendEquation));
+			}
 		}
 		
 #undef PickAttribute

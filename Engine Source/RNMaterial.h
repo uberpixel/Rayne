@@ -100,6 +100,7 @@ namespace RN
 				Culling = (1 << 0),
 				Blending = (1 << 2),
 				Blendmode = (1 << 3),
+				Blendequation = (1 << 16),
 				Ambient = (1 << 4),
 				Diffuse = (1 << 5),
 				Specular = (1 << 6),
@@ -113,6 +114,7 @@ namespace RN
 				PolygonOffset = (1 << 14),
 				PolygonMode = (1 << 15),
 				
+				GroupBlending = (Blending | Blendmode | Blendequation),
 				GroupDiscard = (Discard | DiscardThreshold | Textures)
 			};
 		};
@@ -159,6 +161,15 @@ namespace RN
 			OneMinusDestinationAlpha = GL_ONE_MINUS_DST_ALPHA
 		};
 		
+		enum class BlendEquation : GLenum
+		{
+			Add = GL_FUNC_ADD,
+			Subtract = GL_FUNC_SUBTRACT,
+			ReverseSubtract = GL_FUNC_REVERSE_SUBTRACT,
+			Min = GL_MIN,
+			Max = GL_MAX
+		};
+		
 		RNAPI Material();
 		RNAPI Material(Shader *shader);
 		RNAPI Material(const Material *other);
@@ -198,6 +209,7 @@ namespace RN
 		void SetPolygonMode(PolygonMode mode) { polygonMode = mode; }
 		
 		void SetBlending(bool enabled) { blending = enabled; }
+		void SetBlendEquation(BlendEquation equation) { blendEquation = equation; }
 		void SetBlendMode(BlendMode source, BlendMode destination) { blendSource = source; blendDestination = destination; }
 		
 		void SetPolygonOffset(bool enabled) { polygonOffset = enabled; }
@@ -223,6 +235,7 @@ namespace RN
 		PolygonMode GetPolygonMode() const { return polygonMode; }
 		
 		bool GetBlending() const { return blending; }
+		BlendEquation GetBlendEquation() const { return blendEquation; }
 		BlendMode GetBlendSource() const { return blendSource; }
 		BlendMode GetBlendDestination() const { return blendDestination; }
 		
@@ -251,6 +264,7 @@ namespace RN
 		PolygonMode polygonMode;
 		
 		bool blending;
+		BlendEquation blendEquation;
 		BlendMode blendSource;
 		BlendMode blendDestination;
 		

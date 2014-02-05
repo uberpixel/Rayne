@@ -184,7 +184,10 @@ namespace RN
 		lighting = other->lighting;
 		
 		cullMode         = other->cullMode;
+		polygonMode      = other->polygonMode;
+		
 		blending         = other->blending;
+		blendEquation    = other->blendEquation;
 		blendSource      = other->blendSource;
 		blendDestination = other->blendDestination;
 		
@@ -225,6 +228,7 @@ namespace RN
 		polygonMode = PolygonMode::Fill;
 		
 		blending = false;
+		blendEquation = BlendEquation::Add;
 		blendSource = BlendMode::One;
 		blendDestination = BlendMode::OneMinusSourceAlpha;
 		
