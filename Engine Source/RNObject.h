@@ -86,27 +86,28 @@ namespace RN
 			ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
 			
 			if(!property)
-				throw Exception(Exception::Type::InvalidArgumentException, "No property for key" + key);
+				throw Exception(Exception::Type::InvalidArgumentException, "No property for key \"%s\"", key.c_str());
 			
 			Lock();
 			property->AssertSignal();
 			Unlock();
 			
 			Connection *connection = property->_signal->Connect(std::move(function));
-			MapCookie(cookie, connection);
+			MapCookie(cookie, property, connection);
 		}
 		
 		void RemoveObserver(const std::string& keyPath, void *cookie)
 		{
 			std::string key;
-			Object *object = ResolveKeyPath(keyPath, key);
 			
-			object->UnmapCookie(cookie);
+			ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
+			Object *object = property->_object;
+			
+			object->UnmapCookie(cookie, property);
 		}
 		
 		RNAPI void SetValueForKey(const std::string& keyPath, Object *value);
 		RNAPI Object *GetValueForKey(const std::string& keyPath);
-		
 		
 	protected:
 		RNAPI virtual void CleanUp();
@@ -135,8 +136,8 @@ namespace RN
 		Object *GetPrimitiveValueForKey(const std::string& key);
 		ObservableProperty *GetPropertyForKeyPath(const std::string& keyPath, std::string& key);
 		
-		void MapCookie(void *cookie, Connection *connection);
-		void UnmapCookie(void *cookie);
+		void MapCookie(void *cookie, ObservableProperty *property, Connection *connection);
+		void UnmapCookie(void *cookie, ObservableProperty *property);
 		
 		RecursiveSpinLock _lock;
 		
@@ -145,7 +146,7 @@ namespace RN
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 		
 		std::vector<ObservableProperty *> _properties;
-		std::unordered_map<void *, std::vector<Connection *>> _cookieMap;
+		std::vector<std::tuple<void *, ObservableProperty *, Connection *>> _cookies;
 	};
 	
 #define __RNDefineMetaPrivate(cls, super) \
