@@ -32,7 +32,7 @@ namespace RN
 	protected:
 		std::string _title;
 		
-		RNDefineSingleton(Application)
+		RNDeclareSingleton(Application)
 	};
 }
 

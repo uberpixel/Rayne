@@ -63,7 +63,7 @@ namespace RN
 	}
 	
 	
-	RNDeclareSingleton(Kernel)
+	RNDefineSingleton(Kernel)
 	
 	Kernel::Kernel(Application *app)
 	{

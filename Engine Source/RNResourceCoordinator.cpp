@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	RNDeclareSingleton(ResourceCoordinator)
+	RNDefineSingleton(ResourceCoordinator)
 	
 	ResourceCoordinator::ResourceCoordinator()
 	{}

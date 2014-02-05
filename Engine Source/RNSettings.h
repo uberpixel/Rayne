@@ -110,7 +110,7 @@ namespace RN
 		Dictionary *_settings;
 		Dictionary *_manifest;
 		
-		RNDefineSingleton(Settings)
+		RNDeclareSingleton(Settings)
 	};
 }
 

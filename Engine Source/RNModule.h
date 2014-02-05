@@ -73,7 +73,7 @@ namespace RN
 	private:
 		Array _modules;
 		
-		RNDefineSingleton(ModuleCoordinator)
+		RNDeclareSingleton(ModuleCoordinator)
 	};
 }
 

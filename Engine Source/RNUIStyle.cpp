@@ -16,7 +16,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareSingleton(Style)
+		RNDefineSingleton(Style)
 		
 		Style::Style()
 		{

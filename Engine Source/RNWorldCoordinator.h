@@ -46,7 +46,7 @@ namespace RN
 		std::future<bool> _loadFuture;
 		Progress *_loadingProgress;
 		
-		RNDefineSingleton(WorldCoordinator)
+		RNDeclareSingleton(WorldCoordinator)
 	};
 }
 

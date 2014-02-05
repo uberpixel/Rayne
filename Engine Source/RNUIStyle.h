@@ -85,7 +85,7 @@ namespace RN
 			Dictionary *_textures;
 			Dictionary *_fonts;
 			
-			RNDefineSingleton(Style)
+			RNDeclareSingleton(Style)
 		};
 	}
 }

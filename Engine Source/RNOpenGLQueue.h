@@ -87,7 +87,7 @@ namespace RN
 		std::condition_variable _waitSignal;
 		std::mutex _signalLock;
 		
-		RNDefineSingleton(OpenGLQueue)
+		RNDeclareSingleton(OpenGLQueue)
 	};
 }
 

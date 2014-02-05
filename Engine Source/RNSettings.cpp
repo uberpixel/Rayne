@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	RNDeclareSingleton(Settings)
+	RNDefineSingleton(Settings)
 	
 	Settings::Settings() :
 		_manifest(nullptr),

@@ -47,7 +47,7 @@ namespace RN
 			PIMPL<StreamLoggingInternal> _internal;
 			
 			RNDeclareMeta(StdoutLoggingEngine, LoggingEngine)
-			RNDefineSingleton(StdoutLoggingEngine)
+			RNDeclareSingleton(StdoutLoggingEngine)
 		};
 		
 		class SimpleLoggingEngine : public LoggingEngine, public ISingleton<SimpleLoggingEngine>
@@ -67,7 +67,7 @@ namespace RN
 			PIMPL<StreamLoggingInternal> _internal;
 			
 			RNDeclareMeta(SimpleLoggingEngine, LoggingEngine)
-			RNDefineSingleton(SimpleLoggingEngine)
+			RNDeclareSingleton(SimpleLoggingEngine)
 		};
 		
 		class HTMLLoggingEngine : public LoggingEngine, public ISingleton<HTMLLoggingEngine>
@@ -88,7 +88,7 @@ namespace RN
 			int _mode;
 			
 			RNDeclareMeta(HTMLLoggingEngine, LoggingEngine)
-			RNDefineSingleton(HTMLLoggingEngine)
+			RNDeclareSingleton(HTMLLoggingEngine)
 		};
 	}
 }

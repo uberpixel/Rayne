@@ -11,7 +11,7 @@
 namespace RN
 {
 	RNDefineMeta(Message)
-	RNDeclareSingleton(MessageCenter)
+	RNDefineSingleton(MessageCenter)
 	
 	Message::Message(String *name, Object *object, Dictionary *info)
 	{

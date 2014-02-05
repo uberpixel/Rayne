@@ -57,14 +57,14 @@ namespace RN
 		T *operator ()() { return nullptr; }
 	};
 	
-#define RNDefineSingleton(T) \
+#define RNDeclareSingleton(T) \
 	public: \
 		RNAPI_DEFINEBASE static T *GetSharedInstance(); \
 	private: \
 		RNAPI_DEFINEBASE void MakeShared(bool override = false) final; \
 		RNAPI_DEFINEBASE void ResignShared() final;
 	
-#define RNDeclareSingleton(T) \
+#define RNDefineSingleton(T) \
 		static T *__RN ## T ## SingletonInstance = nullptr; \
 		static SpinLock __RN ## T ## SingletonLock; \
 		T *T::GetSharedInstance() \

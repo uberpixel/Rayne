@@ -63,7 +63,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareSingleton(Server)
+		RNDefineSingleton(Server)
 		
 		Server::Server()
 		{

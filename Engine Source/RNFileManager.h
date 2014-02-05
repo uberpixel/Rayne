@@ -123,7 +123,7 @@ namespace RN
 		std::vector<std::string> _globalModifiers;
 		std::unordered_map<std::string, std::vector<std::string>> _fileModifiers;
 		
-		RNDefineSingleton(FileManager)
+		RNDeclareSingleton(FileManager)
 	};
 }
 

@@ -20,9 +20,9 @@ namespace RN
 		RNDefineMeta(SimpleLoggingEngine)
 		RNDefineMeta(HTMLLoggingEngine)
 		
-		RNDeclareSingleton(StdoutLoggingEngine)
-		RNDeclareSingleton(SimpleLoggingEngine)
-		RNDeclareSingleton(HTMLLoggingEngine)
+		RNDefineSingleton(StdoutLoggingEngine)
+		RNDefineSingleton(SimpleLoggingEngine)
+		RNDefineSingleton(HTMLLoggingEngine)
 		
 		// ---------------------
 		// MARK: -

@@ -22,7 +22,7 @@
 namespace RN
 {
 	RNDefineMeta(WindowConfiguration)
-	RNDeclareSingleton(Window)
+	RNDefineSingleton(Window)
 	
 	// ---------------------
 	// MARK: -

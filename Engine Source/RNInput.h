@@ -181,7 +181,7 @@ namespace RN
 		bool _active;
 		bool _invalidateMouse;
 		
-		RNDefineSingleton(Input)
+		RNDeclareSingleton(Input)
 	};
 }
 

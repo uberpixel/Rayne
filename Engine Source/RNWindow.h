@@ -145,7 +145,7 @@ namespace RN
 		
 		WindowConfiguration *_activeConfiguration;
 		
-		RNDefineSingleton(Window)
+		RNDeclareSingleton(Window)
 	};
 }
 

@@ -22,7 +22,7 @@
 
 namespace RN
 {
-	RNDeclareSingleton(Renderer)
+	RNDefineSingleton(Renderer)
 	
 	Renderer::Renderer()
 	{

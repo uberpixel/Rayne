@@ -91,7 +91,7 @@ namespace RN
 		// MARK: Logger
 		// ---------------------
 		
-		RNDeclareSingleton(Logger)
+		RNDefineSingleton(Logger)
 		
 		Logger::Logger()
 		{

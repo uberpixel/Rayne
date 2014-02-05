@@ -87,7 +87,7 @@ namespace RN
 		
 		std::unordered_map<String *, std::shared_future<Object *>> _requests;
 		
-		RNDefineSingleton(ResourceCoordinator)
+		RNDeclareSingleton(ResourceCoordinator)
 	};
 }
 

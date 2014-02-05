@@ -65,7 +65,7 @@ namespace RN
 		SpinLock _lock;
 		std::vector<MessageObserverProxy> _observer;
 		
-		RNDefineSingleton(MessageCenter)
+		RNDeclareSingleton(MessageCenter)
 	};
 }
 

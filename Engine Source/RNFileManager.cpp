@@ -16,7 +16,7 @@ namespace RN
 	RNDefineMeta(FileProxy)
 	RNDefineMeta(DirectoryProxy)
 	
-	RNDeclareSingleton(FileManager)
+	RNDefineSingleton(FileManager)
 	
 	// ---------------------
 	// MARK: -

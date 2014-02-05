@@ -121,7 +121,7 @@ namespace RN
 			
 			std::chrono::system_clock::time_point _lastMessage;
 			
-			RNDefineSingleton(Logger)
+			RNDeclareSingleton(Logger)
 		};
 	}
 }
