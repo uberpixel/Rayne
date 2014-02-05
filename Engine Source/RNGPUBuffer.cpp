@@ -12,7 +12,14 @@
 
 namespace RN
 {
-	RNDeclareMeta(GPUBuffer)
+	RNDefineMeta(GPUBuffer)
+	RNDefineMeta(GPUScalarBuffer)
+	RNDefineMeta(GPUTextureBuffer)
+	
+	// ---------------------
+	// MARK: -
+	// MARK: GPUBuffer
+	// ---------------------
 	
 	GPUBuffer::GPUBuffer()
 	{}
@@ -22,8 +29,20 @@ namespace RN
 		_bindPoint = bindPoint;
 	}
 	
+	// ---------------------
+	// MARK: -
+	// MARK: GPUScalarBuffer
+	// ---------------------
 	
+	void GPUScalarBuffer::Bind(Renderer *renderer, ShaderProgram *program)
+	{
+		
+	}
 	
+	// ---------------------
+	// MARK: -
+	// MARK: GPUTexture
+	// ---------------------
 	
 	GPUTextureBuffer::GPUTextureBuffer() :
 		_size(0),

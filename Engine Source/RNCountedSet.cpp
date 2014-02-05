@@ -12,7 +12,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(CountedSet)
+	RNDefineMeta(CountedSet)
 	
 	class CountedSetInternal
 	{

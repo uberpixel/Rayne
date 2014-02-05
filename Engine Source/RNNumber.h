@@ -92,7 +92,7 @@ namespace RN
 		uint8 *_buffer;
 		Type _type;
 		
-		RNDefineMetaWithTraits(Number, Object, MetaClassTraitSerializable);
+		RNDeclareMetaWithTraits(Number, Object, MetaClassTraitSerializable);
 	};
 }
 

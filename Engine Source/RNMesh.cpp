@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Mesh)
+	RNDefineMeta(Mesh)
 	
 	// ---------------------
 	// MARK: -

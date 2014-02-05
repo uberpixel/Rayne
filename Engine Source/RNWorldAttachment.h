@@ -29,7 +29,7 @@ namespace RN
 		RNAPI virtual void WillRenderSceneNode(SceneNode *node);
 		RNAPI virtual void SceneNodeDidUpdate(SceneNode *node, SceneNode::ChangeSet changeSet);
 		
-		RNDefineMeta(WorldAttachment, Object)
+		RNDeclareMeta(WorldAttachment, Object)
 	};
 }
 

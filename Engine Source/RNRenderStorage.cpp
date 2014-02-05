@@ -12,7 +12,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(RenderStorage)
+	RNDefineMeta(RenderStorage)
 	
 	RenderStorage::RenderStorage(BufferFormat format, Texture *depthTexture, float scaleFactor)
 	{

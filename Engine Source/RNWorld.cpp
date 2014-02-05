@@ -19,7 +19,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(World)
+	RNDefineMeta(World)
 	
 	World::World(SceneManager *sceneManager) :
 		_releaseSceneNodesOnDestructor(true),

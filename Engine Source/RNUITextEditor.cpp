@@ -12,7 +12,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(TextEditor)
+		RNDefineMeta(TextEditor)
 		
 		TextEditor::TextEditor()
 		{

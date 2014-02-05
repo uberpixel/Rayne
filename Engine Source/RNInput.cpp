@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Event)
+	RNDefineMeta(Event)
 	RNDeclareSingleton(Input)
 	
 	Event::Event() :

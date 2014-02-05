@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(ImageView)
+		RNDefineMeta(ImageView)
 		
 		ImageView::ImageView()
 		{

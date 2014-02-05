@@ -48,7 +48,7 @@ namespace RN
 			
 			Array _controlButtons;
 			
-			RNDefineMeta(WidgetTitleBar, View)
+			RNDeclareMeta(WidgetTitleBar, View)
 		};
 		
 		class WidgetBackgroundView : public View
@@ -81,7 +81,7 @@ namespace RN
 			
 			WidgetTitleBar *_titleBar;
 			
-			RNDefineMeta(WidgetBackgroundView, View)
+			RNDeclareMeta(WidgetBackgroundView, View)
 		};
 	}
 }

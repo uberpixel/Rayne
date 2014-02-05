@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(AttributedString)
+	RNDefineMeta(AttributedString)
 	
 	AttributedString::AttributedString(String *string)
 	{

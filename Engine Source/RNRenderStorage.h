@@ -75,7 +75,7 @@ namespace RN
 		float _scaleFactor;
 		bool _fixedScaleFactor;
 		
-		RNDefineMeta(RenderStorage, Object)
+		RNDeclareMeta(RenderStorage, Object)
 	};
 }
 

@@ -25,7 +25,7 @@ namespace RN
 			
 			void MouseDragged(Event *event) override;
 			
-			RNDefineMeta(ScrollerKnob, ImageView)
+			RNDeclareMeta(ScrollerKnob, ImageView)
 		};
 		
 		class ScrollerFrame : public ImageView
@@ -33,7 +33,7 @@ namespace RN
 		public:
 			ScrollerFrame();
 			
-			RNDefineMeta(ScrollerFrame, ImageView)
+			RNDeclareMeta(ScrollerFrame, ImageView)
 		};
 	}
 }

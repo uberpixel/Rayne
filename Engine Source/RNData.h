@@ -50,7 +50,7 @@ namespace RN
 		bool _freeData;
 		bool _ownsData;
 		
-		RNDefineMetaWithTraits(Data, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMetaWithTraits(Data, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 }
 

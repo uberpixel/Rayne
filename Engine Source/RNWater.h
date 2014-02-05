@@ -42,7 +42,7 @@ namespace RN
 		Camera *_reflection;
 		Texture *_refraction;
 		
-		RNDefineMeta(Water, SceneNode)
+		RNDeclareMeta(Water, SceneNode)
 	};
 }
 

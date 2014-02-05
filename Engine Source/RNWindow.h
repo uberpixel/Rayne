@@ -44,7 +44,7 @@ namespace RN
 		uint32 _width;
 		uint32 _height;
 		
-		RNDefineMeta(WindowConfiguration, Object)
+		RNDeclareMeta(WindowConfiguration, Object)
 	};
 	
 	class Screen

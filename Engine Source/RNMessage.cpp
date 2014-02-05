@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Message)
+	RNDefineMeta(Message)
 	RNDeclareSingleton(MessageCenter)
 	
 	Message::Message(String *name, Object *object, Dictionary *info)

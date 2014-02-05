@@ -10,7 +10,7 @@
 
 namespace TG
 {
-	RNDeclareMeta(ThirdPersonCamera)
+	RNDefineMeta(ThirdPersonCamera)
 	
 	ThirdPersonCamera::ThirdPersonCamera(RN::RenderStorage *storage, RN::Camera::Flags flags) :
 	RN::Camera(RN::Vector2(), storage, flags)

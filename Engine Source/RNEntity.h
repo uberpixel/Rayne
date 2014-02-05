@@ -46,7 +46,7 @@ namespace RN
 		
 		void *_instancedData;
 		
-		RNDefineMetaWithTraits(Entity, SceneNode, MetaClassTraitCronstructable)
+		RNDeclareMetaWithTraits(Entity, SceneNode, MetaClassTraitCronstructable)
 	};
 }
 

@@ -16,7 +16,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(Widget)
+		RNDefineMeta(Widget)
 
 		Widget::Widget(Style style)
 		{

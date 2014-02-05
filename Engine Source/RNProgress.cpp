@@ -13,7 +13,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Progress)
+	RNDefineMeta(Progress)
 	
 	Progress::Progress(size_t units) :
 		_totalUnits(units),

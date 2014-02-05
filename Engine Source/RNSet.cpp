@@ -12,7 +12,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Set)
+	RNDefineMeta(Set)
 	
 	class SetInternal
 	{

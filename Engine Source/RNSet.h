@@ -40,7 +40,7 @@ namespace RN
 	private:
 		PIMPL<SetInternal> _internals;
 		
-		RNDefineMetaWithTraits(Set, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMetaWithTraits(Set, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 }
 

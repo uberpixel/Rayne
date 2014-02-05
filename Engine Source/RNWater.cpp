@@ -13,7 +13,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Water)
+	RNDefineMeta(Water)
 	
 	Water::Water(Camera *cam, Texture *refract)
 	{

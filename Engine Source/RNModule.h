@@ -58,7 +58,7 @@ namespace RN
 		
 		ModuleExports _exports;
 		
-		RNDefineMeta(Module, Object)
+		RNDeclareMeta(Module, Object)
 	};
 	
 	class ModuleCoordinator : public ISingleton<ModuleCoordinator>

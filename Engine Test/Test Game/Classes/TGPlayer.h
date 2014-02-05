@@ -27,7 +27,7 @@ namespace TG
 	private:
 		ThirdPersonCamera *_camera;
 		
-		RNDefineMeta(Player, RN::Entity)
+		RNDeclareMeta(Player, RN::Entity)
 	};
 }
 

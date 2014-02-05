@@ -15,10 +15,10 @@ namespace RN
 {
 	namespace Log
 	{
-		RNDeclareMeta(LoggingEngine)
-		RNDeclareMeta(StdoutLoggingEngine)
-		RNDeclareMeta(SimpleLoggingEngine)
-		RNDeclareMeta(HTMLLoggingEngine)
+		RNDefineMeta(LoggingEngine)
+		RNDefineMeta(StdoutLoggingEngine)
+		RNDefineMeta(SimpleLoggingEngine)
+		RNDefineMeta(HTMLLoggingEngine)
 		
 		RNDeclareSingleton(StdoutLoggingEngine)
 		RNDeclareSingleton(SimpleLoggingEngine)

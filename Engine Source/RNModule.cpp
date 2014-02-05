@@ -17,7 +17,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Module)
+	RNDefineMeta(Module)
 	RNDeclareSingleton(ModuleCoordinator)
 	
 	struct ModuleInternals

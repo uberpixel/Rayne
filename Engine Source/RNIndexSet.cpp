@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(IndexSet)
+	RNDefineMeta(IndexSet)
 	
 	IndexSet::IndexSet()
 	{}

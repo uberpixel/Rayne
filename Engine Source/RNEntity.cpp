@@ -13,7 +13,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Entity)
+	RNDefineMeta(Entity)
 	
 	Entity::Entity() :
 		_model("model", Object::MemoryPolicy::Retain, &Entity::GetModel, &Entity::SetModel),

@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Value)
+	RNDefineMeta(Value)
 	
 	Value::Value(const void *ptr, size_t size, const std::type_info& typeinfo)
 	{

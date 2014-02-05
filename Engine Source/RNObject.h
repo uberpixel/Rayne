@@ -149,7 +149,7 @@ namespace RN
 		std::vector<std::tuple<void *, ObservableProperty *, Connection *>> _cookies;
 	};
 	
-#define __RNDefineMetaPrivate(cls, super) \
+#define __RNDeclareMetaPrivate(cls, super) \
 	private: \
 		class MetaType : public RN::ConcreteMetaClass<cls> \
 		{ \
@@ -159,7 +159,7 @@ namespace RN
 			{} \
 		};
 
-#define __RNDefineMetaPrivateWithTraits(cls, super, ...) \
+#define __RNDeclareMetaPrivateWithTraits(cls, super, ...) \
 	private: \
 		class MetaType : public RN::ConcreteMetaClass<cls, __VA_ARGS__> \
 		{ \
@@ -169,7 +169,7 @@ namespace RN
 			{} \
 		};
 
-#define __RNDefineMetaPublic(cls) \
+#define __RNDeclareMetaPublic(cls) \
 	public: \
 		cls *Retain() \
 		{ \
@@ -190,15 +190,15 @@ namespace RN
 		RNAPI_DEFINEBASE RN::MetaClassBase *Class() const override; \
 		RNAPI_DEFINEBASE static RN::MetaClassBase *MetaClass();
 	
-#define RNDefineMeta(cls, super) \
-	__RNDefineMetaPrivate(cls, super) \
-	__RNDefineMetaPublic(cls)
+#define RNDeclareMeta(cls, super) \
+	__RNDeclareMetaPrivate(cls, super) \
+	__RNDeclareMetaPublic(cls)
 	
-#define RNDefineMetaWithTraits(cls, super, ...) \
-	__RNDefineMetaPrivateWithTraits(cls, super, __VA_ARGS__) \
-	__RNDefineMetaPublic(cls)
+#define RNDeclareMetaWithTraits(cls, super, ...) \
+	__RNDeclareMetaPrivateWithTraits(cls, super, __VA_ARGS__) \
+	__RNDeclareMetaPublic(cls)
 
-#define RNDeclareMeta(cls) \
+#define RNDefineMeta(cls) \
 	void *__kRN##cls##__metaClass = nullptr; \
 	RN::MetaClassBase *cls::Class() const \
 	{ \

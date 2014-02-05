@@ -50,7 +50,7 @@ namespace RN
 	protected:
 		Camera *camera;
 		
-		RNDefineMeta(LightManager, Object)
+		RNDeclareMeta(LightManager, Object)
 	};
 	
 	class ClusteredLightManager : public LightManager
@@ -125,7 +125,7 @@ namespace RN
 		std::vector<Texture *> _lightPointDepth;
 		std::vector<Vector4> _lightPointData;
 		
-		RNDefineMeta(ClusteredLightManager, LightManager)
+		RNDeclareMeta(ClusteredLightManager, LightManager)
 	};
 }
 

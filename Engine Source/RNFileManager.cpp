@@ -13,8 +13,8 @@
 
 namespace RN
 {
-	RNDeclareMeta(FileProxy)
-	RNDeclareMeta(DirectoryProxy)
+	RNDefineMeta(FileProxy)
+	RNDefineMeta(DirectoryProxy)
 	
 	RNDeclareSingleton(FileManager)
 	

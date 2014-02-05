@@ -32,7 +32,7 @@ namespace RN
 		float lifespan;
 		float lifespanVariance;
 		
-		RNDefineMetaWithTraits(ParticleMaterial, Material, MetaClassTraitCronstructable)
+		RNDeclareMetaWithTraits(ParticleMaterial, Material, MetaClassTraitCronstructable)
 	};
 	
 	class ParticleEmitter : public SceneNode
@@ -75,7 +75,7 @@ namespace RN
 		float _spawnRate;
 		float _accDelta;
 		
-		RNDefineMetaWithTraits(ParticleEmitter, SceneNode, MetaClassTraitCronstructable)
+		RNDeclareMetaWithTraits(ParticleEmitter, SceneNode, MetaClassTraitCronstructable)
 	};
 }
 

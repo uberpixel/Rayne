@@ -46,7 +46,7 @@ namespace RN
 		
 		bool _isDirty;
 		
-		RNDefineMeta(TextNode, Entity)
+		RNDeclareMeta(TextNode, Entity)
 	};
 }
 

@@ -81,7 +81,7 @@ namespace RN
 			Formatter *_formatter;
 			EdgeInsets _contentInsets;
 			
-			RNDefineMeta(TextField, Control)
+			RNDeclareMeta(TextField, Control)
 		};
 	}
 }

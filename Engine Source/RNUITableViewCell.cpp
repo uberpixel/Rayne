@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(TableViewCell)
+		RNDefineMeta(TableViewCell)
 		
 		TableViewCell::TableViewCell(String *identifier)
 		{

@@ -14,8 +14,8 @@
 
 namespace RN
 {
-	RNDeclareMeta(ConstantUTF8String)
-	RNDeclareMeta(UTF8String)
+	RNDefineMeta(ConstantUTF8String)
+	RNDefineMeta(UTF8String)
 	
 	static const char UTF8TrailingBytes[256] = {
 		0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
