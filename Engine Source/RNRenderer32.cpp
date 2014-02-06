@@ -431,9 +431,9 @@ namespace RN
 			}
 			
 			drawMode = Mesh::DrawMode::Patches;
+			gl::Flush(); // XXX: Hack to get tessellation with instancing working!
 		}
 #endif
-		
 		
 		if(usesIndices)
 		{
