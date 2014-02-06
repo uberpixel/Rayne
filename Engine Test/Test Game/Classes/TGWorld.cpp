@@ -707,21 +707,21 @@ namespace TG
 				return true;
 		}
 		
-		
-		RN::Vector3 pixel = ((position + 200.0f) / 400.0f) * 1023.0f;
-		//std::swap(pixel.x, pixel.z);
-		
-		pixel.x = roundf(1023 - pixel.x);
-		pixel.z = roundf(1023 - pixel.z);
-		
-		size_t index = static_cast<size_t>((pixel.z * 1024) + pixel.x);
-		
-		if(_blendmap[index] > 0.2f)
+		if(_blendmap[IndexForPosition(position)].r > 0.2f)
 			return true;
 		
 		return false;
 	}
 	
+	size_t World::IndexForPosition(const RN::Vector3 &position)
+	{
+		RN::Vector3 pixel = ((position + 200.0f) / 400.0f) * 1023.0f;
+		pixel.x = roundf(1023 - pixel.x);
+		pixel.z = roundf(1023 - pixel.z);
+		
+		size_t index = static_cast<size_t>((pixel.z * 1024) + pixel.x);
+		return index;
+	}
 	
 	void World::LoadLevelJSON(const std::string &file)
 	{
@@ -820,7 +820,7 @@ namespace TG
 			
 			RN::Texture::PixelData data;
 			data.alignment = 1;
-			data.format = RN::Texture::Format::R32F;
+			data.format = RN::Texture::Format::RGBA32F;
 			data.data = color;
 			
 			texture->GetData(data);
@@ -829,12 +829,12 @@ namespace TG
 			
 			for(size_t i = 0; i < texture->GetWidth() * texture->GetHeight(); i ++)
 			{
-				_blendmap.push_back(*temp);
-				temp ++;
+				_blendmap.emplace_back(temp[0], temp[1], temp[2], temp[3]);
+				temp += 4;
 			}
 			
-			_heightExtent = (groundBody->GetBoundingBox().maxExtend.y - groundBody->GetBoundingBox().minExtend.y) ;
-			_heightBase   = groundBody->GetBoundingBox().position.y+groundBody->GetBoundingBox().minExtend.y;
+			_heightExtent = (groundBody->GetBoundingBox().maxExtend.y - groundBody->GetBoundingBox().minExtend.y);
+			_heightBase   = groundBody->GetBoundingBox().position.y + groundBody->GetBoundingBox().minExtend.y;
 			
 			delete [] color;
 		}
@@ -1136,9 +1136,21 @@ namespace TG
 			
 			pos.y = GetGroundHeight(pos);
 			
+			int32 value  = dualPhaseLCG.RandomInt32Range(1, 100);
+			float factor = _blendmap[IndexForPosition(pos)].g;
+			
+			value = roundf(factor * 40) + value;
+			
+			int index = 0;
+			
+			if(value > 70)
+				index = 1;
+			if(value > 98)
+				index = 2;
+			
 			ent = new RN::Entity();
 			ent->SetFlags(ent->GetFlags() | RN::SceneNode::Flags::Static);
-			ent->SetModel(grass[dualPhaseLCG.RandomInt32Range(0, 3)]);
+			ent->SetModel(grass[index]);
 			ent->SetPosition(pos);
 			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.9f, 1.3f)));
 			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
@@ -1162,7 +1174,7 @@ namespace TG
 		
 #if TGWorldFeatureLights
 		_sunLight = new Sun();
-		_sunLight->ActivateShadows(RN::ShadowParameter(_camera));
+		_sunLight->ActivateShadows(RN::ShadowParameter(_camera, 2048));
 	
 /*		for(int i=0; i<10; i++)
 		{
@@ -1178,14 +1190,7 @@ namespace TG
 	
 	float World::GetGroundHeight(const RN::Vector3 &position)
 	{
-		RN::Vector3 pixel = ((position + 200.0f) / 400.0f) * 1023.0f;
-		
-		pixel.x = roundf(1023 - pixel.x);
-		pixel.z = roundf(1023 - pixel.z);
-		
-		size_t index = static_cast<size_t>((pixel.z * 1024) + pixel.x);
-		float factor = _heightMap[index];
-		
+		float factor = _heightMap[IndexForPosition(position)];
 		
 		float height = _heightBase + (_heightExtent * factor);
 		return height;

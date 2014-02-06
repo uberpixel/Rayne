@@ -49,6 +49,7 @@ namespace TG
 		float GetGroundHeight(const RN::Vector3 &position);
 		
 		bool PositionBlocked(const RN::Vector3 &position);
+		size_t IndexForPosition(const RN::Vector3 &position);
 		
 		DebugDrawer *_debugAttachment;
 		
@@ -63,7 +64,7 @@ namespace TG
 		
 		RN::PostProcessingPipeline *_refractPipeline;
 		
-		std::vector<float> _blendmap;
+		std::vector<RN::Color> _blendmap;
 		std::vector<float> _heightMap;
 		float _heightBase;
 		float _heightExtent;
