@@ -329,7 +329,7 @@ namespace RN
 				_head(0),
 				_tail(0)
 			{
-				_buffer = new T[Size];
+				_buffer = new T[capacity];
 			}
 			
 			~lock_free_ring_buffer()
