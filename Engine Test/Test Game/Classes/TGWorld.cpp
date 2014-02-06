@@ -748,6 +748,28 @@ namespace TG
 		
 		//Stuffs for grass and trees ignoring plaster
 		{
+			RN::Texture2D *texture = static_cast<RN::Texture2D *>(RN::Texture::WithFile("models/UberPixel/heightmap.png"));
+			float *color = new float[texture->GetWidth() * texture->GetHeight() * 4];
+			
+			RN::Texture::PixelData data;
+			data.alignment = 1;
+			data.format = RN::Texture::Format::R32F;
+			data.data = color;
+			
+			texture->GetData(data);
+			
+			float *temp = color;
+			
+			for(size_t i = 0; i < texture->GetWidth() * texture->GetHeight(); i ++)
+			{
+				_heightMap.push_back(*temp);
+				temp ++;
+			}
+			
+			delete [] color;
+		}
+		
+		{
 			RN::Texture2D *texture = static_cast<RN::Texture2D *>(RN::Texture::WithFile("models/UberPixel/blend.png"));
 			float *color = new float[texture->GetWidth() * texture->GetHeight() * 4];
 			
@@ -765,6 +787,9 @@ namespace TG
 				_blendmap.push_back(*temp);
 				temp ++;
 			}
+			
+			_heightExtent = (groundBody->GetBoundingBox().maxExtend.y - groundBody->GetBoundingBox().minExtend.y) ;
+			_heightBase   = groundBody->GetBoundingBox().position.y;
 			
 			delete [] color;
 		}
@@ -788,17 +813,17 @@ namespace TG
 		ruin4ent->SetWorldPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
 		progress->IncrementCompletedUnits(5);
 		
-		RN::Model *waggon1 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_haywaggon.dae");
+		//RN::Model *waggon1 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_haywaggon.dae");
 		RN::Entity *waggon1ent = new RN::Entity();
-		waggon1ent->SetModel(waggon1);
+		//waggon1ent->SetModel(waggon1);
 		waggon1ent->SetWorldPosition(RN::Vector3(-45.0f, 0.0f, 30.0f));
 		waggon1ent->Rotate(RN::Vector3(10.0f, 0.0f, 0.0f));
 		waggon1ent->SetScale(RN::Vector3(1.5f));
 		progress->IncrementCompletedUnits(5);
 		
-		RN::Model *well1 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_well01.dae");
+		//RN::Model *well1 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_well01.dae");
 		RN::Entity *well1ent = new RN::Entity();
-		well1ent->SetModel(well1);
+		//well1ent->SetModel(well1);
 		well1ent->SetWorldPosition(RN::Vector3(-5.0f, 0.0f, 21.0f));
 		progress->IncrementCompletedUnits(5);
 		
@@ -1096,7 +1121,12 @@ namespace TG
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f));
 			
 			if(PositionBlocked(pos+RN::Vector3(0.0f, 0.5f, 0.0f)))
+			{
+				i --;
 				continue;
+			}
+			
+			pos.y = GetGroundHeight(pos);
 			
 			ent = new RN::Entity();
 			ent->SetFlags(ent->GetFlags() | RN::SceneNode::Flags::Static);
@@ -1107,8 +1137,6 @@ namespace TG
 			
 			node->AddChild(ent);
 		}
-		
-		PlaceEntitiesOnGround(node, groundBody);
 		
 		RN::Model *grass[3];
 		grass[0] = RN::Model::WithFile("models/dexsoft/grass2/grass1.sgm");
@@ -1143,7 +1171,12 @@ namespace TG
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f));
 			
 			if(PositionBlocked(pos+RN::Vector3(0.0f, 1.0f, 0.0f)))
+			{
+				i --;
 				continue;
+			}
+			
+			pos.y = GetGroundHeight(pos);
 			
 			ent = new RN::Entity();
 			ent->SetFlags(ent->GetFlags() | RN::SceneNode::Flags::Static);
@@ -1154,8 +1187,6 @@ namespace TG
 			
 			node->AddChild(ent);
 		}
-		
-		PlaceEntitiesOnGround(node, groundBody);
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
@@ -1187,45 +1218,19 @@ namespace TG
 		progress->ResignActive();
 	}
 	
-	void World::PlaceEntitiesOnGround(RN::SceneNode *node, RN::SceneNode *ground)
+	float World::GetGroundHeight(const RN::Vector3 &position)
 	{
-		return;
+		RN::Vector3 pixel = ((position + 200.0f) / 400.0f) * 1023.0f;
 		
-		RN::ThreadPool::Batch *batch = RN::ThreadPool::GetSharedInstance()->CreateBatch();
-		const RN::Array *children = node->GetChildren();
+		pixel.x = roundf(1023 - pixel.x);
+		pixel.z = roundf(1023 - pixel.z);
 		
-		RN::Progress *progress = RN::Progress::GetActiveProgress()->IntermediateProgressAcountingFor(15);
-		progress->SetTotalUnits(children->GetCount());
+		size_t index = static_cast<size_t>((pixel.z * 1024) + pixel.x);
+		float factor = _heightMap[index];
 		
-		children->Enumerate<RN::Entity>([&](RN::Entity *entity, size_t index, bool &stop) {
-			
-			batch->AddTask([&, entity] {
-				RN::Vector3 pos = entity->GetPosition();
-				
-				pos.y += 100.0f;
-				pos.y = GetGroundHeight(pos, ground);
-				
-				entity->SetPosition(pos);
-				progress->IncrementCompletedUnits(1);
-				
-			});
-		});
 		
-		batch->Commit();
-		batch->Wait();
-		
-		progress->ResignActive();
-	}
-	
-	float World::GetGroundHeight(const RN::Vector3 &position, RN::SceneNode *ground)
-	{
-		float length = -100.0f;
-		RN::Hit hit = ground->CastRay(position, RN::Vector3(0.0f, length, 0.0f));
-		
-		if(hit.node == ground)
-			return position.y + length * hit.distance;
-		
-		return position.y;
+		float height = _heightBase + (_heightExtent * factor);
+		return height;
 	}
 	
 	void World::CreateGrass()

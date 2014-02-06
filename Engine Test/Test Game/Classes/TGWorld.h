@@ -45,8 +45,7 @@ namespace TG
 		void CreateTest();
 		void CreateSibenik();
 		
-		void PlaceEntitiesOnGround(RN::SceneNode *node, RN::SceneNode *ground);
-		float GetGroundHeight(const RN::Vector3 &position, RN::SceneNode *ground);
+		float GetGroundHeight(const RN::Vector3 &position);
 		
 		bool PositionBlocked(const RN::Vector3 &position);
 		
@@ -64,6 +63,9 @@ namespace TG
 		RN::PostProcessingPipeline *_refractPipeline;
 		
 		std::vector<float> _blendmap;
+		std::vector<float> _heightMap;
+		float _heightBase;
+		float _heightExtent;
 		std::vector<RN::Entity *> _obstacles;
 		
 		CutScene *_cutScene;
