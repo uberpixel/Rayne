@@ -3,6 +3,8 @@
 *.jpg   binary
 *.png   binary
 *.gif   binary
+*.tga   binary
+*.sgm   binary
 
 *.sketch/Data binary
 *.sketch/fonts binary
