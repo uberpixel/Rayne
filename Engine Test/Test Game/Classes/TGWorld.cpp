@@ -725,7 +725,6 @@ namespace TG
 		
 		//ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
-		ground->GetMeshAtIndex(0, 0)->SetDrawMode(RN::Mesh::DrawMode::Patches);
 		ground->GetMaterialAtIndex(0, 0)->SetShader(RN::Shader::WithFile("shader/rn_Blend"));
 		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 150);
 		ground->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
@@ -1085,13 +1084,27 @@ namespace TG
 		
 		PlaceEntitiesOnGround(node, groundBody);
 		
-		RN::Model *grass = RN::Model::WithFile("models/dexsoft/grass2/grass3.sgm");
-		grass->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
-		grass->GetMaterialAtIndex(0, 0)->SetDiscard(true);
-		grass->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		grass->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
+		RN::Model *grass[3];
+		grass[0] = RN::Model::WithFile("models/dexsoft/grass2/grass1.sgm");
+		grass[0]->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
+		grass[0]->GetMaterialAtIndex(0, 0)->SetDiscard(true);
+		grass[0]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		grass[0]->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
 		
-		node = new RN::InstancingNode(grass);
+		grass[1] = RN::Model::WithFile("models/dexsoft/grass2/grass2.sgm");
+		grass[1]->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
+		grass[1]->GetMaterialAtIndex(0, 0)->SetDiscard(true);
+		grass[1]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		grass[1]->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
+		
+		grass[2] = RN::Model::WithFile("models/dexsoft/grass2/grass3.sgm");
+		grass[2]->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
+		grass[2]->GetMaterialAtIndex(0, 0)->SetDiscard(true);
+		grass[2]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		grass[2]->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
+		
+		node = new RN::InstancingNode();
+		node->SetModels(RN::Array::WithObjects(grass[0], grass[1], grass[2], nullptr));
 		node->SetRenderGroup(1);
 		node->SetPivot(_camera);
 		node->SetMode(RN::InstancingNode::Mode::Thinning | RN::InstancingNode::Mode::Clipping);
@@ -1108,7 +1121,7 @@ namespace TG
 			
 			ent = new RN::Entity();
 			ent->SetFlags(ent->GetFlags() | RN::SceneNode::Flags::Static);
-			ent->SetModel(grass);
+			ent->SetModel(grass[dualPhaseLCG.RandomInt32Range(0, 3)]);
 			ent->SetPosition(pos);
 			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.5f, 1.0f)));
 			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
