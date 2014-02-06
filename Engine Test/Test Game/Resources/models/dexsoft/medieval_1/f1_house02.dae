@@ -17,25 +17,25 @@
       <init_from>file:///C:/test/bricks_old06.tga</init_from>
     </image>
     <image id="Image1" name="bricks_old06_H">
-      <init_from>file:///C:/test/bricks_old06_H.tga</init_from>
+      <init_from>file:///C:/test/bricks_old06_N.tga</init_from>
     </image>
     <image id="Image2" name="con_dirt_01">
       <init_from>file:///C:/test/con_dirt_01.tga</init_from>
     </image>
     <image id="Image3" name="con_dirt_01_h">
-      <init_from>file:///C:/test/con_dirt_01_h.tga</init_from>
+      <init_from>file:///C:/test/con_dirt_01_N.tga</init_from>
     </image>
     <image id="Image4" name="door_01">
       <init_from>file:///C:/test/door_01.tga</init_from>
     </image>
     <image id="Image5" name="door_01_H">
-      <init_from>file:///C:/test/door_01_H.tga</init_from>
+      <init_from>file:///C:/test/door_01_N.tga</init_from>
     </image>
     <image id="Image6" name="roof_01">
       <init_from>file:///C:/test/roof_01.tga</init_from>
     </image>
     <image id="Image7" name="roof_01_H">
-      <init_from>file:///C:/test/roof_01_H.tga</init_from>
+      <init_from>file:///C:/test/roof_01_N.tga</init_from>
     </image>
     <image id="Image8" name="shields">
       <init_from>file:///C:/test/shields.tga</init_from>
@@ -44,7 +44,7 @@
       <init_from>file:///C:/test/win_shut_03.tga</init_from>
     </image>
     <image id="Image10" name="win_shut_03_H">
-      <init_from>file:///C:/test/win_shut_03_H.tga</init_from>
+      <init_from>file:///C:/test/win_shut_03_N.tga</init_from>
     </image>
     <image id="Image11" name="window_glass_01a">
       <init_from>file:///C:/test/window_glass_01a.tga</init_from>
@@ -56,7 +56,7 @@
       <init_from>file:///C:/test/wood_planks_01.tga</init_from>
     </image>
     <image id="Image14" name="wood_planks_01_H">
-      <init_from>file:///C:/test/wood_planks_01_H.tga</init_from>
+      <init_from>file:///C:/test/wood_planks_01_N.tga</init_from>
     </image>
   </library_images>
   <library_materials>

@@ -17,13 +17,13 @@
       <init_from>file:///C:/test/con_dirt_01.tga</init_from>
     </image>
     <image id="Image1" name="con_dirt_01_h">
-      <init_from>file:///C:/test/con_dirt_01_h.tga</init_from>
+      <init_from>file:///C:/test/con_dirt_01_N.tga</init_from>
     </image>
     <image id="Image2" name="metal01_d">
       <init_from>file:///C:/test/metal01_d.tga</init_from>
     </image>
     <image id="Image3" name="metal01_h">
-      <init_from>file:///C:/test/metal01_h.tga</init_from>
+      <init_from>file:///C:/test/metal01_N.tga</init_from>
     </image>
   </library_images>
   <library_materials>

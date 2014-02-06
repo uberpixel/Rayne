@@ -17,19 +17,19 @@
       <init_from>file:///C:/test/metal01_d.tga</init_from>
     </image>
     <image id="Image1" name="metal01_h">
-      <init_from>file:///C:/test/metal01_h.tga</init_from>
+      <init_from>file:///C:/test/metal01_N.tga</init_from>
     </image>
     <image id="Image2" name="wood_planks_01">
       <init_from>file:///C:/test/wood_planks_01.tga</init_from>
     </image>
     <image id="Image3" name="wood_planks_01_H">
-      <init_from>file:///C:/test/wood_planks_01_H.tga</init_from>
+      <init_from>file:///C:/test/wood_planks_01_N.tga</init_from>
     </image>
     <image id="Image4" name="wood_rough_01">
       <init_from>file:///C:/test/wood_rough_01.tga</init_from>
     </image>
     <image id="Image5" name="wood_rough_01_H">
-      <init_from>file:///C:/test/wood_rough_01_H.tga</init_from>
+      <init_from>file:///C:/test/wood_rough_01_N.tga</init_from>
     </image>
   </library_images>
   <library_materials>
