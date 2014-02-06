@@ -46,7 +46,10 @@ namespace RN
 		}
 		
 		if(_world)
+		{
 			_world->StepWorld(frame, delta);
+			MessageCenter::GetSharedInstance()->PostMessage(kRNWorldCoordinatorDidStepWorld, _world, nullptr);
+		}
 	}
 	
 	void WorldCoordinator::RenderWorld(Renderer *renderer)

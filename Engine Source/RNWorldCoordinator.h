@@ -16,6 +16,7 @@
 
 #define kRNWorldCoordinatorDidFinishLoading RNCSTR("kRNWorldCoordinatorDidFinishLoading")
 #define kRNWorldCoordinatorWillBeginLoading RNCSTR("kRNWorldCoordinatorWillBeginLoading")
+#define kRNWorldCoordinatorDidStepWorld     RNCSTR("kRNWorldCoordinatorDidStepWorld")
 
 namespace RN
 {
