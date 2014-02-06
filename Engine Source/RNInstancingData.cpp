@@ -345,9 +345,13 @@ namespace RN
 			
 				LockGuard<decltype(_lock)> lock(_lock);
 				
+				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+				
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 				gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data(), GL_STATIC_DRAW);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+				
+				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 				
 			});
 			
@@ -360,9 +364,13 @@ namespace RN
 				
 				LockGuard<decltype(_lock)> lock(_lock);
 				
+				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+				
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 				gl::BufferSubData(GL_TEXTURE_BUFFER, 0, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data());
 				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+				
+				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 				
 			});
 			
