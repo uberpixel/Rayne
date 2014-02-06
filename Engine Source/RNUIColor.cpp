@@ -12,7 +12,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(Color)
+		RNDefineMeta(Color)
 		
 		
 		Color::Color()

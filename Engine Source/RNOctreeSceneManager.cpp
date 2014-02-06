@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(OctreeSceneManager)
+	RNDefineMeta(OctreeSceneManager)
 
 	OctreeSceneManager::OctreeSceneManager()
 	{}

@@ -10,7 +10,7 @@
 
 namespace TG
 {
-	RNDeclareMeta(Player)
+	RNDefineMeta(Player)
 	
 	Player::Player(RN::Model *model) //:
 		//RN::bullet::KinematicController(RN::bullet::CapsuleShape::WithRadius((model->BoundingBox().maxExtend-model->BoundingBox().minExtend).Length() * 0.5f*0.4f, (model->BoundingBox().maxExtend-model->BoundingBox().minExtend).y*0.5f*0.4f), 0.45f)

@@ -10,8 +10,8 @@
 
 namespace RN
 {
-	RNDeclareMeta(SceneManager)
-	RNDeclareMeta(GenericSceneManager)
+	RNDefineMeta(SceneManager)
+	RNDefineMeta(GenericSceneManager)
 	
 	SceneManager::SceneManager()
 	{

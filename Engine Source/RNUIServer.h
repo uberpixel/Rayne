@@ -86,7 +86,7 @@ namespace RN
 			Menu *_menu;
 			bool _drawDebugFrames;
 			
-			RNDefineSingleton(Server)
+			RNDeclareSingleton(Server)
 		};
 	}
 }

@@ -54,7 +54,7 @@ namespace RN
 	
 	
 	
-	RNDeclareSingleton(Catalogue)
+	RNDefineSingleton(Catalogue)
 	
 	MetaClassBase *Catalogue::GetClassWithName(const std::string& name) const
 	{

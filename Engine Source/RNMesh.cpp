@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Mesh)
+	RNDefineMeta(Mesh)
 	
 	// ---------------------
 	// MARK: -
@@ -105,7 +105,6 @@ namespace RN
 	{
 		_indicesSize   = 0;
 		_verticesSize  = 0;
-		_patchVertices = 3;
 		
 		_indices  = nullptr;
 		_vertices = nullptr;
@@ -276,11 +275,6 @@ namespace RN
 		_indicesSize  = count * descriptor->elementSize;
 		
 		PushData(false, true);
-	}
-	
-	void Mesh::SetPatchVertices(size_t vertices)
-	{
-		_patchVertices = vertices;
 	}
 	
 	void Mesh::CalculateBoundingVolumes()

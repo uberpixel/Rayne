@@ -56,7 +56,7 @@ namespace RN
 		uint8 *_buffer;
 		size_t _size;
 		
-		RNDefineMetaWithTraits(Value, Object, MetaClassTraitCopyable)
+		RNDeclareMetaWithTraits(Value, Object, MetaClassTraitCopyable)
 	};
 }
 

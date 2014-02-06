@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(SceneNode)
+	RNDefineMeta(SceneNode)
 	
 	SceneNode::SceneNode() :
 		_position("position", &SceneNode::GetPosition, &SceneNode::SetPosition),

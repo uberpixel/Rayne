@@ -329,13 +329,6 @@ namespace RN
 					for(GPUBuffer *buffer : object.buffers)
 						buffer->Bind(this, program);
 					
-#if GL_TESS_CONTROL_SHADER
-					if(mesh->GetDrawMode() == Mesh::DrawMode::Patches)
-					{
-						gl::PatchParameteri(GL_PATCH_VERTICES, static_cast<GLint>(mesh->GetPatchVertices()));
-					}
-#endif
-					
 					if(wantsInstancing)
 					{
 						DrawMeshInstanced(object);
@@ -417,6 +410,31 @@ namespace RN
 		if(count != 0)
 			glCount = std::min(glCount, static_cast<GLsizei>(count));
 		
+		Mesh::DrawMode drawMode = mesh->GetDrawMode();
+		
+#if GL_TESS_CONTROL_SHADER
+		if(_currentProgram->HasTessellationShaders())
+		{
+			switch(drawMode)
+			{
+				case Mesh::DrawMode::Triangles:
+					gl::PatchParameteri(GL_PATCH_VERTICES, 3);
+					break;
+					
+				case Mesh::DrawMode::TriangleFan:
+				case Mesh::DrawMode::TriangleStrip:
+					gl::PatchParameteri(GL_PATCH_VERTICES, 2);
+					break;
+				
+				default:
+					break;
+			}
+			
+			drawMode = Mesh::DrawMode::Patches;
+		}
+#endif
+		
+		
 		if(usesIndices)
 		{
 			GLenum type;
@@ -425,25 +443,19 @@ namespace RN
 				case 1:
 					type = GL_UNSIGNED_BYTE;
 					break;
-					
 				case 2:
 					type = GL_UNSIGNED_SHORT;
 					break;
-					
 				case 4:
 					type = GL_UNSIGNED_INT;
 					break;
-					
-				default:
-					throw Exception(Exception::Type::InconsistencyException, "");
-					break;
 			}
 			
-			gl::DrawElements(static_cast<GLenum>(mesh->GetDrawMode()), glCount, type, reinterpret_cast<void *>(offset));
+			gl::DrawElements(static_cast<GLenum>(drawMode), glCount, type, reinterpret_cast<void *>(offset));
 		}
 		else
 		{
-			gl::DrawArrays(static_cast<GLenum>(mesh->GetDrawMode()), 0, glCount);
+			gl::DrawArrays(static_cast<GLenum>(drawMode), 0, glCount);
 		}
 		
 		BindVAO(0);
@@ -463,6 +475,30 @@ namespace RN
 		gl::Uniform1i(_currentProgram->instancingData, dataUnit);
 		gl::Uniform1i(_currentProgram->instancingIndices, indicesUnit);
 		
+		Mesh::DrawMode drawMode = mesh->GetDrawMode();
+		
+#if GL_TESS_CONTROL_SHADER
+		if(_currentProgram->HasTessellationShaders())
+		{
+			switch(drawMode)
+			{
+				case Mesh::DrawMode::Triangles:
+					gl::PatchParameteri(GL_PATCH_VERTICES, 3);
+					break;
+					
+				case Mesh::DrawMode::TriangleFan:
+				case Mesh::DrawMode::TriangleStrip:
+					gl::PatchParameteri(GL_PATCH_VERTICES, 2);
+					break;
+					
+				default:
+					break;
+			}
+			
+			drawMode = Mesh::DrawMode::Patches;
+		}
+#endif
+		
 		if(descriptor)
 		{
 			GLenum type;
@@ -471,26 +507,20 @@ namespace RN
 				case 1:
 					type = GL_UNSIGNED_BYTE;
 					break;
-					
 				case 2:
 					type = GL_UNSIGNED_SHORT;
 					break;
-					
 				case 4:
 					type = GL_UNSIGNED_INT;
 					break;
-					
-				default:
-					throw Exception(Exception::Type::InconsistencyException, "");
-					break;
 			}
 			
-			gl::DrawElementsInstanced(static_cast<GLenum>(mesh->GetDrawMode()), (GLsizei)mesh->GetIndicesCount(), type, 0, (GLsizei)object.count);
+			gl::DrawElementsInstanced(static_cast<GLenum>(drawMode), (GLsizei)mesh->GetIndicesCount(), type, 0, (GLsizei)object.count);
 		}
 		else
 		{
 			descriptor = mesh->GetDescriptorForFeature(MeshFeature::Vertices);
-			gl::DrawArraysInstanced(static_cast<GLenum>(mesh->GetDrawMode()), 0, (GLsizei)mesh->GetVerticesCount(), (GLsizei)object.count);
+			gl::DrawArraysInstanced(static_cast<GLenum>(drawMode), 0, (GLsizei)mesh->GetVerticesCount(), (GLsizei)object.count);
 		}
 		
 		BindVAO(0);

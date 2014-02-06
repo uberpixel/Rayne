@@ -249,7 +249,7 @@ namespace RN
 		}
 	}
 	
-	RNDeclareMeta(RandomNumberGenerator)
+	RNDefineMeta(RandomNumberGenerator)
 	
 	RandomNumberGenerator::RandomNumberGenerator(Type type)
 	{

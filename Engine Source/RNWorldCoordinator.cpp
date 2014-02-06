@@ -12,7 +12,7 @@
 
 namespace RN
 {
-	RNDeclareSingleton(WorldCoordinator)
+	RNDefineSingleton(WorldCoordinator)
 	
 	WorldCoordinator::WorldCoordinator() :
 		_world(nullptr),

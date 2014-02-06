@@ -13,8 +13,8 @@
 
 namespace RN
 {
-	RNDeclareSingleton(ThreadCoordinator)
-	RNDeclareSingleton(ThreadPool)
+	RNDefineSingleton(ThreadCoordinator)
+	RNDefineSingleton(ThreadPool)
 	
 	ThreadCoordinator::ThreadCoordinator()
 	{

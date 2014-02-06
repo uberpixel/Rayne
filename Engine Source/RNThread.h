@@ -117,7 +117,7 @@ namespace RN
 		std::mutex _exitMutex;
 		std::condition_variable _exitSignal;
 		
-		RNDefineMeta(Thread, Object)
+		RNDeclareMeta(Thread, Object)
 	};
 }
 

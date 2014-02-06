@@ -111,7 +111,7 @@ namespace RN
 			Matrix _transform;
 			Server *_server;
 			
-			RNDefineMeta(Widget, Responder)
+			RNDeclareMeta(Widget, Responder)
 		};
 	}
 }

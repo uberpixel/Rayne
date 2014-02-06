@@ -16,7 +16,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Light)
+	RNDefineMeta(Light)
 	
 	Light::Light(Type lighttype) :
 		_lightType(lighttype),

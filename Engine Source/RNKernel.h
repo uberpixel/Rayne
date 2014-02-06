@@ -114,7 +114,7 @@ namespace RN
 		WNDCLASSEXW _windowClass;
 #endif
 		
-		RNDefineSingleton(Kernel)
+		RNDeclareSingleton(Kernel)
 	};
 }
 

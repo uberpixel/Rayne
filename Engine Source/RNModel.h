@@ -106,7 +106,7 @@ namespace RN
 		std::vector<LODGroup *> _groups;
 		Skeleton *_skeleton;
 		
-		RNDefineMetaWithTraits(Model, Object, MetaClassTraitCronstructable)
+		RNDeclareMetaWithTraits(Model, Object, MetaClassTraitCronstructable)
 	};
 }
 

@@ -100,6 +100,7 @@ namespace RN
 				Culling = (1 << 0),
 				Blending = (1 << 2),
 				Blendmode = (1 << 3),
+				Blendequation = (1 << 16),
 				Ambient = (1 << 4),
 				Diffuse = (1 << 5),
 				Specular = (1 << 6),
@@ -113,6 +114,7 @@ namespace RN
 				PolygonOffset = (1 << 14),
 				PolygonMode = (1 << 15),
 				
+				GroupBlending = (Blending | Blendmode | Blendequation),
 				GroupDiscard = (Discard | DiscardThreshold | Textures)
 			};
 		};
@@ -159,6 +161,15 @@ namespace RN
 			OneMinusDestinationAlpha = GL_ONE_MINUS_DST_ALPHA
 		};
 		
+		enum class BlendEquation : GLenum
+		{
+			Add = GL_FUNC_ADD,
+			Subtract = GL_FUNC_SUBTRACT,
+			ReverseSubtract = GL_FUNC_REVERSE_SUBTRACT,
+			Min = GL_MIN,
+			Max = GL_MAX
+		};
+		
 		RNAPI Material();
 		RNAPI Material(Shader *shader);
 		RNAPI Material(const Material *other);
@@ -198,7 +209,12 @@ namespace RN
 		void SetPolygonMode(PolygonMode mode) { polygonMode = mode; }
 		
 		void SetBlending(bool enabled) { blending = enabled; }
-		void SetBlendMode(BlendMode source, BlendMode destination) { blendSource = source; blendDestination = destination; }
+		void SetBlendEquation(BlendEquation equation) { SetRGBBlendEquation(equation); SetAlphaBlendEquation(equation); }
+		void SetRGBBlendEquation(BlendEquation equation) { blendEquation = equation; }
+		void SetAlphaBlendEquation(BlendEquation equation) { alphaBlendEquation = equation; }
+		void SetBlendMode(BlendMode source, BlendMode destination) { SetRGBBlendMode(source, destination); SetAlphaBlendMode(source, destination); }
+		void SetRGBBlendMode(BlendMode source, BlendMode destination)  { blendSource = source; blendDestination = destination; }
+		void SetAlphaBlendMode(BlendMode source, BlendMode destination) { alphaBlendSource = blendSource; alphaBlendDestination = destination; }
 		
 		void SetPolygonOffset(bool enabled) { polygonOffset = enabled; }
 		void SetPolygonOffsetFactor(float factor) { polygonOffsetFactor = factor; }
@@ -223,8 +239,12 @@ namespace RN
 		PolygonMode GetPolygonMode() const { return polygonMode; }
 		
 		bool GetBlending() const { return blending; }
+		BlendEquation GetBlendEquation() const { return blendEquation; }
+		BlendEquation GetAlphaBlendEquation() const { return alphaBlendEquation; }
 		BlendMode GetBlendSource() const { return blendSource; }
+		BlendMode GetAlphaBlendSource() const { return alphaBlendSource; }
 		BlendMode GetBlendDestination() const { return blendDestination; }
+		BlendMode GetAlphaBlendDestination() const { return alphaBlendDestination; }
 		
 		bool GetPolygonOffset() const { return polygonOffset; }
 		float GetPolygonOffsetFactor() const { return polygonOffsetFactor; }
@@ -244,6 +264,9 @@ namespace RN
 		
 		Override GetOverride() const { return override; }
 		
+		bool HasSeparateBlendEquation() const { return blendEquation != alphaBlendEquation; }
+		bool HasSeparateBlendFunction() const { return blendSource != alphaBlendSource || blendDestination != alphaBlendDestination; }
+		
 	protected:
 		bool lighting;
 		
@@ -251,8 +274,13 @@ namespace RN
 		PolygonMode polygonMode;
 		
 		bool blending;
+		BlendEquation blendEquation;
+		BlendEquation alphaBlendEquation;
+		
 		BlendMode blendSource;
 		BlendMode blendDestination;
+		BlendMode alphaBlendSource;
+		BlendMode alphaBlendDestination;
 		
 		bool polygonOffset;
 		float polygonOffsetFactor;
@@ -284,7 +312,7 @@ namespace RN
 		std::vector<ShaderDefine> _defines;
 		std::vector<ShaderUniform *> _uniforms;
 		
-		RNDefineMetaWithTraits(Material, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMetaWithTraits(Material, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 }
 

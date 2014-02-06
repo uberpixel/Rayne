@@ -32,7 +32,7 @@ namespace RN
 		Object *_object;
 		Dictionary *_info;
 		
-		RNDefineMeta(Message, Object)
+		RNDeclareMeta(Message, Object)
 	};
 	
 	class MessageCenter : public ISingleton<MessageCenter>
@@ -65,7 +65,7 @@ namespace RN
 		SpinLock _lock;
 		std::vector<MessageObserverProxy> _observer;
 		
-		RNDefineSingleton(MessageCenter)
+		RNDeclareSingleton(MessageCenter)
 	};
 }
 

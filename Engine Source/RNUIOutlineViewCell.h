@@ -42,7 +42,7 @@ namespace RN
 			void *_item;
 			Button *_disclosureTriangle;
 			
-			RNDefineMeta(OutlineViewCell, TableViewCell)
+			RNDeclareMeta(OutlineViewCell, TableViewCell)
 		};
 	}
 }

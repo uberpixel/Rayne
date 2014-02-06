@@ -22,7 +22,7 @@ namespace RN
 		
 		RNAPI static Null *GetNull();
 		
-		RNDefineMeta(Null, Object)
+		RNDeclareMeta(Null, Object)
 	};
 }
 

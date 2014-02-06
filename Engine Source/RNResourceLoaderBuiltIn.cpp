@@ -21,10 +21,10 @@
 
 namespace RN
 {
-	RNDeclareMeta(PNGResourceLoader)
-	RNDeclareMeta(GLSLResourceLoader)
-	RNDeclareMeta(SGMResourceLoader)
-	RNDeclareMeta(SGAResourceLoader)
+	RNDefineMeta(PNGResourceLoader)
+	RNDefineMeta(GLSLResourceLoader)
+	RNDefineMeta(SGMResourceLoader)
+	RNDefineMeta(SGAResourceLoader)
 	
 	// ---------------------
 	// MARK: -

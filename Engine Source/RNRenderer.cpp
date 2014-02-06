@@ -22,7 +22,7 @@
 
 namespace RN
 {
-	RNDeclareSingleton(Renderer)
+	RNDefineSingleton(Renderer)
 	
 	Renderer::Renderer()
 	{
@@ -55,12 +55,17 @@ namespace RN
 		_polygonOffsetEnabled = false;
 		_scissorTest      = false;
 		
-		_cullMode  = GL_CCW;
-		_depthFunc = GL_LESS;
+		_cullMode    = GL_CCW;
+		_depthFunc   = GL_LESS;
 		_polygonMode = GL_FILL;
 		
-		_blendSource      = GL_ONE;
-		_blendDestination = GL_ZERO;
+		_blendEquation      = GL_FUNC_ADD;
+		_alphaBlendEquation = GL_FUNC_ADD;
+		
+		_blendSource           = GL_ONE;
+		_alphaBlendSource      = GL_ONE;
+		_blendDestination      = GL_ZERO;
+		_alphaBlendDestination = GL_ZERO;
 		
 		_polygonOffsetFactor = 0.0f;
 		_polygonOffsetUnits  = 0.0f;
@@ -78,6 +83,7 @@ namespace RN
 			
 			gl::FrontFace(_cullMode);
 			gl::DepthFunc(_depthFunc);
+			gl::BlendEquation(_blendEquation);
 			gl::BlendFunc(_blendSource, _blendDestination);
 			gl::PolygonOffset(_polygonOffsetFactor, _polygonOffsetUnits);
 			
@@ -459,13 +465,27 @@ namespace RN
 			SetBlendingEnabled(PickAttribute(Blending, blending));
 			SetPolygonOffset(PickAttribute(PolygonOffset, polygonOffsetFactor), PickAttribute(PolygonOffset, polygonOffsetUnits));
 			
-			if(_blendingEnabled && IsOverriden(Blendmode))
+			if(_blendingEnabled)
 			{
-				SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination));
-			}
-			else
-			{
-				SetBlendFunction(static_cast<GLenum>(surfaceMaterial->blendSource), static_cast<GLenum>(surfaceMaterial->blendDestination));
+				if(IsOverriden(Blendmode))
+				{
+					SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination),
+									 static_cast<GLenum>(material->alphaBlendSource), static_cast<GLenum>(material->alphaBlendDestination));
+				}
+				else
+				{
+					SetBlendFunction(static_cast<GLenum>(surfaceMaterial->blendSource), static_cast<GLenum>(surfaceMaterial->blendDestination),
+									 static_cast<GLenum>(surfaceMaterial->alphaBlendSource), static_cast<GLenum>(surfaceMaterial->alphaBlendDestination));
+				}
+				
+				if(IsOverriden(Blendequation))
+				{
+					SetBlendEquation(static_cast<GLenum>(material->blendEquation), static_cast<GLenum>(material->alphaBlendEquation));
+				}
+				else
+				{
+					SetBlendEquation(static_cast<GLenum>(material->blendEquation), static_cast<GLenum>(surfaceMaterial->alphaBlendEquation));
+				}
 			}
 		}
 		else
@@ -495,7 +515,11 @@ namespace RN
 				SetPolygonOffset(material->polygonOffsetFactor, material->polygonOffsetUnits);
 			
 			if(_blendingEnabled)
-				SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination));
+			{
+				SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination),
+								 static_cast<GLenum>(material->alphaBlendSource), static_cast<GLenum>(material->alphaBlendDestination));
+				SetBlendEquation(static_cast<GLenum>(material->blendEquation), static_cast<GLenum>(material->alphaBlendEquation));
+			}
 		}
 		
 #undef PickAttribute

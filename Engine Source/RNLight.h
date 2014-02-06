@@ -132,7 +132,7 @@ namespace RN
 		bool _suppressShadows;
 		ShadowParameter _shadowParameter;
 		
-		RNDefineMetaWithTraits(Light, SceneNode, MetaClassTraitCronstructable)
+		RNDeclareMetaWithTraits(Light, SceneNode, MetaClassTraitCronstructable)
 	};
 }
 

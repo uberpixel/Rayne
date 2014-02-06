@@ -12,7 +12,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Dictionary)
+	RNDefineMeta(Dictionary)
 	
 	class DictionaryInternal
 	{

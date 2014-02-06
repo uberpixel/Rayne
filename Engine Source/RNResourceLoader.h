@@ -55,7 +55,7 @@ namespace RN
 		
 		MetaClassBase *_resourceClass;
 		
-		RNDefineMeta(ResourceLoader, Object)
+		RNDeclareMeta(ResourceLoader, Object)
 	};
 }
 

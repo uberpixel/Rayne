@@ -41,7 +41,7 @@ namespace RN
 	private:
 		PIMPL<CountedSetInternal> _internals;
 		
-		RNDefineMetaWithTraits(CountedSet, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMetaWithTraits(CountedSet, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 }
 

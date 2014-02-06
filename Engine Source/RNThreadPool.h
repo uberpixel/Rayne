@@ -35,7 +35,7 @@ namespace RN
 		int32 _baseConcurrency;
 		std::atomic<int32> _consumedConcurrency;
 		
-		RNDefineSingleton(ThreadCoordinator)
+		RNDeclareSingleton(ThreadCoordinator)
 	};
 	
 	class ThreadPool : public ISingleton<ThreadPool>
@@ -320,7 +320,7 @@ namespace RN
 		
 		std::atomic<bool> _running;
 		
-		RNDefineSingleton(ThreadPool)
+		RNDeclareSingleton(ThreadPool)
 	};
 }
 

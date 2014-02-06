@@ -242,54 +242,47 @@ namespace RN
 		RN_ASSERT(property->_object == nullptr, "ObservableProperty can only be added once to a receiver!");
 		
 		property->_object = this;
-		_properties.insert(decltype(_properties)::value_type(property->_name, property));
+		_properties.push_back(property);
 	}
 	
 	void Object::AddObservables(std::initializer_list<ObservableProperty *> properties)
 	{
+		_properties.reserve(_properties.size() + properties.size());
+		
 		for(ObservableProperty *property : properties)
 		{
 			RN_ASSERT(property->_object == nullptr, "ObservableProperty can only be added once to a receiver!");
 			
 			property->_object = this;
-			_properties.insert(decltype(_properties)::value_type(property->_name, property));
+			_properties.push_back(property);
 		}
 	}
 	
-	void Object::MapCookie(void *cookie, Connection *connection)
+	void Object::MapCookie(void *cookie, ObservableProperty *property, Connection *connection)
 	{
 		Lock();
-		
-		auto iterator = _cookieMap.find(cookie);
-		if(iterator == _cookieMap.end())
-		{
-			_cookieMap.insert(decltype(_cookieMap)::value_type(cookie, std::vector<Connection *> { connection }));
-			Unlock();
-			return;
-		}
-		
-		iterator->second.push_back(connection);
+		_cookies.emplace_back(std::make_tuple(cookie, property, connection));
 		Unlock();
 	}
 	
-	void Object::UnmapCookie(void *cookie)
+	void Object::UnmapCookie(void *cookie, ObservableProperty *property)
 	{
 		Lock();
 		
-		auto iterator = _cookieMap.find(cookie);
-		if(iterator == _cookieMap.end())
+		for(auto iterator = _cookies.begin(); iterator != _cookies.end();)
 		{
-			Unlock();
-			return;
+			auto &tuple = *iterator;
+			
+			if(cookie == std::get<0>(tuple) && property == std::get<1>(tuple))
+			{
+				iterator = _cookies.erase(iterator);
+				continue;
+			}
+			
+			iterator ++;
 		}
 		
-		std::vector<Connection *> vector(std::move(iterator->second));
-		_cookieMap.erase(cookie);
-		
 		Unlock();
-		
-		for(Connection *connection : vector)
-			connection->Disconnect();
 	}
 	
 	Object *Object::ResolveKeyPath(const std::string& path, std::string& key)
@@ -314,25 +307,24 @@ namespace RN
 	
 	Object *Object::GetPrimitiveValueForKey(const std::string& key)
 	{
-		auto iterator = _properties.find(key);
+		for(ObservableProperty *property : _properties)
+		{
+			if(key.compare(property->_name) == 0)
+				return property->GetValue();
+		}
 		
-		if(iterator == _properties.end())
-			return GetValueForUndefinedKey(key);
-		
-		ObservableProperty *property = iterator->second;
-		return property->GetValue();
+		return GetValueForUndefinedKey(key);
 	}
 	
 	ObservableProperty *Object::GetPropertyForKeyPath(const std::string& keyPath, std::string& key)
 	{
-		Object *object = ResolveKeyPath(keyPath, key);
+		for(ObservableProperty *property : _properties)
+		{
+			if(keyPath.compare(property->_name) == 0)
+				return property;
+		}
 		
-		auto iterator = object->_properties.find(key);
-		if(iterator == object->_properties.end())
-			return nullptr;
-		
-		ObservableProperty *property = iterator->second;
-		return property;
+		return nullptr;
 	}
 	
 	

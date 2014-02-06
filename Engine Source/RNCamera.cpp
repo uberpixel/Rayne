@@ -18,7 +18,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Camera)
+	RNDefineMeta(Camera)
 	
 	RenderStage::RenderStage(Camera *camera, Camera *connection, Mode mode)
 	{

@@ -50,7 +50,7 @@ namespace RN
 			Material *_material;
 			Mesh  *_mesh;
 			
-			RNDefineMeta(ImageView, View)
+			RNDeclareMeta(ImageView, View)
 		};
 	}
 }

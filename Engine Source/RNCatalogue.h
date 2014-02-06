@@ -101,7 +101,7 @@ namespace RN
 		
 		std::unordered_map<std::string, MetaClassBase *> _metaClasses;
 		
-		RNDefineSingleton(Catalogue)
+		RNDeclareSingleton(Catalogue)
 	};
 }
 

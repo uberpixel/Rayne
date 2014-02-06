@@ -12,8 +12,8 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(ScrollerKnob)
-		RNDeclareMeta(ScrollerFrame)
+		RNDefineMeta(ScrollerKnob)
+		RNDefineMeta(ScrollerFrame)
 		
 		ScrollerKnob::ScrollerKnob()
 		{

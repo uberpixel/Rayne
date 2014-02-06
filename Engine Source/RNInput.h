@@ -115,7 +115,7 @@ namespace RN
 		Vector2 _mousePosition;
 		Vector2 _mouseWheel;
 		
-		RNDefineMeta(Event, Message)
+		RNDeclareMeta(Event, Message)
 	};
 	
 	class Input : public ISingleton<Input>
@@ -181,7 +181,7 @@ namespace RN
 		bool _active;
 		bool _invalidateMouse;
 		
-		RNDefineSingleton(Input)
+		RNDeclareSingleton(Input)
 	};
 }
 

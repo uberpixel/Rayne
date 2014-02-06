@@ -108,7 +108,7 @@ namespace RN
 		
 		Octree _octree;
 		
-		RNDefineMetaWithTraits(OctreeSceneManager, SceneManager, MetaClassTraitCronstructable);
+		RNDeclareMetaWithTraits(OctreeSceneManager, SceneManager, MetaClassTraitCronstructable);
 	};
 }
 

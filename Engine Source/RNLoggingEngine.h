@@ -27,7 +27,7 @@ namespace RN
 			RNAPI virtual void CutOff() = 0;
 			RNAPI virtual void Write(const Message& message) = 0;
 			
-			RNDefineMeta(LoggingEngine, Object)
+			RNDeclareMeta(LoggingEngine, Object)
 		};
 		
 		class StreamLoggingInternal;
@@ -46,8 +46,8 @@ namespace RN
 		private:
 			PIMPL<StreamLoggingInternal> _internal;
 			
-			RNDefineMeta(StdoutLoggingEngine, LoggingEngine)
-			RNDefineSingleton(StdoutLoggingEngine)
+			RNDeclareMeta(StdoutLoggingEngine, LoggingEngine)
+			RNDeclareSingleton(StdoutLoggingEngine)
 		};
 		
 		class SimpleLoggingEngine : public LoggingEngine, public ISingleton<SimpleLoggingEngine>
@@ -66,8 +66,8 @@ namespace RN
 			std::fstream _stream;
 			PIMPL<StreamLoggingInternal> _internal;
 			
-			RNDefineMeta(SimpleLoggingEngine, LoggingEngine)
-			RNDefineSingleton(SimpleLoggingEngine)
+			RNDeclareMeta(SimpleLoggingEngine, LoggingEngine)
+			RNDeclareSingleton(SimpleLoggingEngine)
 		};
 		
 		class HTMLLoggingEngine : public LoggingEngine, public ISingleton<HTMLLoggingEngine>
@@ -87,8 +87,8 @@ namespace RN
 			std::fstream _stream;
 			int _mode;
 			
-			RNDefineMeta(HTMLLoggingEngine, LoggingEngine)
-			RNDefineSingleton(HTMLLoggingEngine)
+			RNDeclareMeta(HTMLLoggingEngine, LoggingEngine)
+			RNDeclareSingleton(HTMLLoggingEngine)
 		};
 	}
 }

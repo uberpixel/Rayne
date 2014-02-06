@@ -43,7 +43,7 @@ namespace RN
 		private:
 			Array *_items;
 			
-			RNDefineMeta(Menu, Object)
+			RNDeclareMeta(Menu, Object)
 		};
 		
 		
@@ -100,7 +100,7 @@ namespace RN
 			Menu *_menu;
 			Menu *_subMenu;
 			
-			RNDefineMeta(MenuItem, Object)
+			RNDeclareMeta(MenuItem, Object)
 		};
 	}
 }

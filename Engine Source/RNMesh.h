@@ -258,7 +258,6 @@ namespace RN
 		RNAPI void SetDrawMode(DrawMode mode);
 		RNAPI void SetVBOUsage(MeshUsage usage);
 		RNAPI void SetIBOUsage(MeshUsage usage);
-		RNAPI void SetPatchVertices(size_t vertices);
 		
 		RNAPI void SetElementData(MeshFeature feature, void *data);
 		RNAPI void SetVerticesCount(size_t count);
@@ -278,7 +277,6 @@ namespace RN
 		
 		RNAPI size_t GetVerticesCount() const { return _verticesCount; }
 		RNAPI size_t GetIndicesCount() const { return _indicesCount; }
-		RNAPI size_t GetPatchVertices() const { return _patchVertices; }
 		
 		RNAPI const AABB& GetBoundingBox() const { return _boundingBox; }
 		RNAPI const Sphere& GetBoundingSphere() const { return _boundingSphere; }
@@ -319,7 +317,6 @@ namespace RN
 		
 		size_t _verticesSize;
 		size_t _indicesSize;
-		size_t _patchVertices;
 		
 		uint8 *_vertices;
 		uint8 *_indices;
@@ -327,7 +324,7 @@ namespace RN
 		std::vector<MeshDescriptor> _descriptors;
 		std::set<MeshFeature> _features;
 		
-		RNDefineMeta(Mesh, Object)
+		RNDeclareMeta(Mesh, Object)
 	};
 }
 

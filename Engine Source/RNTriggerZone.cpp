@@ -57,14 +57,14 @@ namespace RN
 	private:
 		std::vector<TriggerZone *> _zones;
 		
-		RNDefineMeta(TriggerZoneManager, WorldAttachment);
-		RNDefineSingleton(TriggerZoneManager)
+		RNDeclareMeta(TriggerZoneManager, WorldAttachment);
+		RNDeclareSingleton(TriggerZoneManager)
 	};
 	
 	
-	RNDeclareMeta(TriggerZoneManager)
-	RNDeclareMeta(TriggerZone)
-	RNDeclareSingleton(TriggerZoneManager)
+	RNDefineMeta(TriggerZoneManager)
+	RNDefineMeta(TriggerZone)
+	RNDefineSingleton(TriggerZoneManager)
 	
 	
 	TriggerZone::TriggerZone()

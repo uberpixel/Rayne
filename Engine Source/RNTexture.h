@@ -141,7 +141,7 @@ namespace RN
 	private:
 		static float _defaultAnisotropy;
 		
-		RNDefineMeta(Texture, Object)
+		RNDeclareMeta(Texture, Object)
 	};
 	
 	class Texture2D : public Texture
@@ -158,7 +158,7 @@ namespace RN
 		
 		RNAPI void GetData(PixelData& data);
 		
-		RNDefineMeta(Texture2D, Texture)
+		RNDeclareMeta(Texture2D, Texture)
 	};
 	
 	class Texture2DArray : public Texture
@@ -176,7 +176,7 @@ namespace RN
 	private:
 		size_t _layer;
 		
-		RNDefineMeta(Texture2DArray, Texture)
+		RNDeclareMeta(Texture2DArray, Texture)
 	};
 	
 	class TextureCubeMap : public Texture
@@ -202,7 +202,7 @@ namespace RN
 		RNAPI void SetData(const PixelData& data, Side side);
 		RNAPI void UpdateData(const PixelData& data, Side side);
 		
-		RNDefineMeta(TextureCubeMap, Texture)
+		RNDeclareMeta(TextureCubeMap, Texture)
 	};
 }
 

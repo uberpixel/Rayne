@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Formatter)
+	RNDefineMeta(Formatter)
 	
 	AttributedString *Formatter::GetAttributedStringForObject(Object *object, Dictionary *defaultAttributes)
 	{

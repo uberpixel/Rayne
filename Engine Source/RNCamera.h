@@ -403,7 +403,7 @@ namespace RN
 		std::vector<PostProcessingPipeline *> _PPPipelines;
 		std::map<std::string, PostProcessingPipeline *> _namedPPPipelines;
 		
-		RNDefineMeta(Camera, SceneNode)
+		RNDeclareMeta(Camera, SceneNode)
 	};
 }
 

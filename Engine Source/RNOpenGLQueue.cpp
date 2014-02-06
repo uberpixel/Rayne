@@ -12,7 +12,7 @@
 
 namespace RN
 {
-	RNDeclareSingleton(OpenGLQueue)
+	RNDefineSingleton(OpenGLQueue)
 	
 	OpenGLQueue::OpenGLQueue() :
 		_running(false),

@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Material)
+	RNDefineMeta(Material)
 	
 	Material::ShaderUniform::ShaderUniform(const std::string& name, Type type, void *data, size_t size, bool copy) :
 		_name(name)
@@ -184,9 +184,16 @@ namespace RN
 		lighting = other->lighting;
 		
 		cullMode         = other->cullMode;
+		polygonMode      = other->polygonMode;
+		
 		blending         = other->blending;
+		blendEquation    = other->blendEquation;
 		blendSource      = other->blendSource;
 		blendDestination = other->blendDestination;
+		
+		alphaBlendEquation    = other->alphaBlendEquation;
+		alphaBlendSource      = other->alphaBlendSource;
+		alphaBlendDestination = other->alphaBlendDestination;
 		
 		polygonOffset       = other->polygonOffset;
 		polygonOffsetFactor = other->polygonOffsetFactor;
@@ -225,8 +232,9 @@ namespace RN
 		polygonMode = PolygonMode::Fill;
 		
 		blending = false;
-		blendSource = BlendMode::One;
-		blendDestination = BlendMode::OneMinusSourceAlpha;
+		alphaBlendEquation = blendEquation = BlendEquation::Add;
+		alphaBlendSource = blendSource = BlendMode::One;
+		alphaBlendDestination = blendDestination = BlendMode::OneMinusSourceAlpha;
 		
 		polygonOffset = false;
 		polygonOffsetFactor = 1.0f;

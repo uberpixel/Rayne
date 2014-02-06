@@ -42,7 +42,7 @@ namespace RN
 		size_t _length;
 		machine_hash _hash;
 		
-		RNDefineMeta(ConstantASCIIString, BasicString)
+		RNDeclareMeta(ConstantASCIIString, BasicString)
 	};
 	
 	class ASCIIString : public ConstantASCIIString
@@ -62,7 +62,7 @@ namespace RN
 		void AllocateSpace(size_t size);
 		size_t _size;
 		
-		RNDefineMeta(ASCIIString, ConstantASCIIString)
+		RNDeclareMeta(ASCIIString, ConstantASCIIString)
 	};
 }
 
