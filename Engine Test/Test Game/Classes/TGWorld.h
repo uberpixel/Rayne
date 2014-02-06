@@ -48,7 +48,7 @@ namespace TG
 		void PlaceEntitiesOnGround(RN::SceneNode *node, RN::SceneNode *ground);
 		float GetGroundHeight(const RN::Vector3 &position, RN::SceneNode *ground);
 		
-		bool PositionBlocked(RN::Vector3 position, RN::Entity **obstacles, int count);
+		bool PositionBlocked(const RN::Vector3 &position, RN::Entity **obstacles, int count);
 		
 		DebugDrawer *_debugAttachment;
 		
@@ -62,6 +62,8 @@ namespace TG
 		bool _frameCapturing;
 		
 		RN::PostProcessingPipeline *_refractPipeline;
+		
+		std::vector<float> _blendmap;
 		
 		CutScene *_cutScene;
 		
