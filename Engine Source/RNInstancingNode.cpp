@@ -12,6 +12,9 @@
 #include "RNThreadPool.h"
 #include "RNNull.h"
 #include "RNString.h"
+#include "RNMessage.h"
+#include "RNWorldCoordinator.h"
+#include "RNOpenGLQueue.h"
 
 #define kRNInstancingNodeAssociatedIndexKey "kRNInstancingNodeAssociatedIndexKey"
 
@@ -30,6 +33,8 @@ namespace RN
 	
 	InstancingNode::~InstancingNode()
 	{
+		MessageCenter::GetSharedInstance()->RemoveObserver(this);
+		
 		_models->Release();
 		
 		for(auto pair : _data)
@@ -53,6 +58,15 @@ namespace RN
 		_cellSize  = 32.0f;
 		
 		SetFlags(GetFlags() | Flags::HideChildren);
+		
+		MessageCenter::GetSharedInstance()->AddObserver(kRNWorldCoordinatorDidStepWorld, [this](Message *mesage) {
+			
+			for(InstancingData *data : _rawData)
+			{
+				data->UpdateData();
+			}
+			
+		}, this);
 	}
 	
 	
@@ -344,7 +358,6 @@ namespace RN
 	{
 		for(InstancingData *data : _rawData)
 		{
-			data->UpdateData();
 			data->Render(this, renderer);
 		}
 	}

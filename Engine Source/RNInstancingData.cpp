@@ -65,15 +65,17 @@ namespace RN
 		_indicesSize(0)
 	{
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
-			gl::GenTextures(1, &_texture);
+			
 			gl::GenBuffers(1, &_buffer);
-			
-			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, _buffer);
-			
-			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+			gl::BufferData(GL_TEXTURE_BUFFER, 32, nullptr, GL_STATIC_DRAW);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+			
+			gl::GenTextures(1, &_texture);
+			gl::ActiveTexture(GL_TEXTURE0);
+			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, _buffer);
+			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 		});
 	}
 	
@@ -120,16 +122,17 @@ namespace RN
 			}
 			
 			size_t i = 0;
-			
 			for(uint32 index : _indices)
 				_indicesData[i ++] = index;
 			
 			OpenGLQueue::GetSharedInstance()->SubmitCommand([this, mode] {
+				
 				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+				
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-				gl::BufferData(GL_TEXTURE_BUFFER, _indices.size() * sizeof(uint32), _indicesData, mode);
-				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+				gl::BufferData(GL_TEXTURE_BUFFER, _indicesSize * sizeof(uint32), _indicesData, mode);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+				
 			});
 			
 			_dirty = false;
@@ -179,16 +182,18 @@ namespace RN
 			_stages.push_back(new InstancingLODStage(_model, i));
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
-			gl::GenTextures(1, &_texture);
 			gl::GenBuffers(1, &_buffer);
-			
-			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _buffer);
-			
-			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+			gl::BufferData(GL_TEXTURE_BUFFER, 32, nullptr, GL_STATIC_DRAW);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
-		});
+			
+			
+			gl::GenTextures(1, &_texture);
+			gl::ActiveTexture(GL_TEXTURE0);
+			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _buffer);
+			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+		}, true);
 		
 		SetClipping(true, 64);
 		Reserve(50);
@@ -340,10 +345,8 @@ namespace RN
 			
 				LockGuard<decltype(_lock)> lock(_lock);
 				
-				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 				gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data(), GL_STATIC_DRAW);
-				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 				
 			});
@@ -357,15 +360,13 @@ namespace RN
 				
 				LockGuard<decltype(_lock)> lock(_lock);
 				
-				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 				gl::BufferSubData(GL_TEXTURE_BUFFER, 0, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data());
-				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 				
-				_dirtyIndices = false;
-				
 			});
+			
+			_dirtyIndices = false;
 		}
 		
 		for(InstancingLODStage *stage : _stages)
