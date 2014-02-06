@@ -45,6 +45,7 @@ namespace TG
 		void CreateTest();
 		void CreateSibenik();
 		
+		void LoadLevelJSON(const std::string &file);
 		float GetGroundHeight(const RN::Vector3 &position);
 		
 		bool PositionBlocked(const RN::Vector3 &position);

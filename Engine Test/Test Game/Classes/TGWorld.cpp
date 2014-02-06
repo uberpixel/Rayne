@@ -723,6 +723,47 @@ namespace TG
 	}
 	
 	
+	void World::LoadLevelJSON(const std::string &file)
+	{
+		std::string path = RN::FileManager::GetSharedInstance()->GetFilePathWithName(file);
+		
+		RN::Data *data = RN::Data::WithContentsOfFile(path);
+		RN::Array *objects = RN::JSONSerialization::JSONObjectFromData<RN::Array>(data);
+		
+		objects->Enumerate<RN::Dictionary>([&](RN::Dictionary *dictionary, size_t indes, bool &stop) {
+			
+			RN::String *file = dictionary->GetObjectForKey<RN::String>(RNCSTR("model"));
+			RN::Model *model = RN::Model::WithFile(std::string(file->GetUTF8String()));
+			
+			RN::Entity *entity = new RN::Entity(model);
+			
+			RN::Array *position = dictionary->GetObjectForKey<RN::Array>(RNCSTR("position"));
+			RN::Array *rotation = dictionary->GetObjectForKey<RN::Array>(RNCSTR("rotation"));
+			RN::Number *occluder = dictionary->GetObjectForKey<RN::Number>(RNCSTR("occluder"));
+			
+			if(position)
+			{
+				float x = position->GetObjectAtIndex<RN::Number>(0)->GetFloatValue();
+				float y = position->GetObjectAtIndex<RN::Number>(1)->GetFloatValue();
+				float z = position->GetObjectAtIndex<RN::Number>(2)->GetFloatValue();
+				
+				entity->SetPosition(RN::Vector3(x, y, z));
+			}
+			
+			if(rotation)
+			{
+				float x = rotation->GetObjectAtIndex<RN::Number>(0)->GetFloatValue();
+				float y = rotation->GetObjectAtIndex<RN::Number>(1)->GetFloatValue();
+				float z = rotation->GetObjectAtIndex<RN::Number>(2)->GetFloatValue();
+				
+				entity->Rotate(RN::Vector3(x, y, z));
+			}
+			
+			if(!occluder || occluder->GetBoolValue())
+				_obstacles.push_back(entity);
+		});
+	}
+	
 	void World::CreateForest()
 	{
 		RN::Progress *progress = RN::Progress::GetActiveProgress();
@@ -794,94 +835,7 @@ namespace TG
 			delete [] color;
 		}
 		
-		//tavern
-		RN::Model *tavern = RN::Model::WithFile("models/dexsoft/tavern/tavern_main.sgm");
-		RN::Entity *tavernent = new RN::Entity();
-		tavernent->SetModel(tavern);
-		tavernent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
-		progress->IncrementCompletedUnits(5);
-		
-		RN::Model *house2 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_house02.sgm");
-		RN::Entity *house2ent = new RN::Entity();
-		house2ent->SetModel(house2);
-		house2ent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 30.0f));
-		progress->IncrementCompletedUnits(5);
-		
-		RN::Model *ruin4 = RN::Model::WithFile("models/dexsoft/ruins/ruins_house4.sgm");
-		RN::Entity *ruin4ent = new RN::Entity();
-		ruin4ent->SetModel(ruin4);
-		ruin4ent->SetWorldPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
-		progress->IncrementCompletedUnits(5);
-		
-		//RN::Model *waggon1 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_haywaggon.dae");
-		RN::Entity *waggon1ent = new RN::Entity();
-		//waggon1ent->SetModel(waggon1);
-		waggon1ent->SetWorldPosition(RN::Vector3(-45.0f, 0.0f, 30.0f));
-		waggon1ent->Rotate(RN::Vector3(10.0f, 0.0f, 0.0f));
-		waggon1ent->SetScale(RN::Vector3(1.5f));
-		progress->IncrementCompletedUnits(5);
-		
-		//RN::Model *well1 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_well01.dae");
-		RN::Entity *well1ent = new RN::Entity();
-		//well1ent->SetModel(well1);
-		well1ent->SetWorldPosition(RN::Vector3(-5.0f, 0.0f, 21.0f));
-		progress->IncrementCompletedUnits(5);
-		
-		/*RN::Model *dwarf = RN::Model::WithFile("models/psionic/dwarf/dwarf1.x");
-		RN::Entity *dwarfent = new RN::Entity();
-		dwarfent->SetModel(dwarf);
-		dwarfent->GetSkeleton()->CopyAnimation("AnimationSet0", "idle", 292, 325);
-		dwarfent->GetSkeleton()->SetAnimation("idle");
-		dwarfent->SetAction([](RN::SceneNode *node, float delta) {
-			RN::Entity *dwarfent = static_cast<RN::Entity*>(node);
-			dwarfent->GetSkeleton()->Update(delta*15.0f);
-		});
-		dwarfent->SetWorldPosition(RN::Vector3(0.0f, 0.1f, 20.0f));
-		dwarfent->SetScale(RN::Vector3(0.3f));
-		
-		RN::Model *rat = RN::Model::WithFile("models/psionic/rat/rat.b3d");
-		RN::Entity *ratent = new RN::Entity();
-		ratent->SetModel(rat);
-		ratent->GetSkeleton()->CopyAnimation("", "run", 1, 10);
-		ratent->GetSkeleton()->SetAnimation("run");
-		ratent->SetAction([](RN::SceneNode *node, float delta) {
-			RN::Entity *ratent = static_cast<RN::Entity*>(node);
-			ratent->GetSkeleton()->Update(delta*20.0f);
-			ratent->SetPosition(ratent->GetPosition()+RN::Vector3(-delta*2.0f, 0.0f, 0.0f));
-			if(ratent->GetPosition().x < -15)
-				ratent->SetPosition(RN::Vector3(10.0f, 0.2f, 0.0f));
-		});
-		ratent->SetScale(RN::Vector3(0.05f));
-		ratent->SetRotation(RN::Vector3(90.0f, 0.0f, 0.0f));
-		ratent->SetPosition(RN::Vector3(0.0f, 0.2f, 0.0f));
-		
-		RN::Model *ninja = RN::Model::WithFile("models/psionic/ninja/ninja.b3d");
-		RN::Entity *ninjaent = new RN::Entity();
-		ninjaent->SetModel(ninja);
-		ninjaent->GetSkeleton()->CopyAnimation("", "idle", 206, 250);
-		ninjaent->GetSkeleton()->SetAnimation("idle");
-		ninjaent->SetAction([](RN::SceneNode *node, float delta) {
-			RN::Entity *ninjaent = static_cast<RN::Entity*>(node);
-			ninjaent->GetSkeleton()->Update(delta*15.0f);
-		});
-		ninjaent->SetWorldPosition(RN::Vector3(-17.0f, 0.1f, 17.0f));
-		ninjaent->SetScale(RN::Vector3(0.27f));
-		
-		RN::Model *druid = RN::Model::WithFile("models/arteria3d/FemaleDruid/Female Druid.x");
-		RN::Entity *druident = new RN::Entity();
-		druident->SetModel(druid);
-		druident->GetSkeleton()->SetAnimation("WizardCombatReadyA");
-		druident->SetAction([](RN::SceneNode *node, float delta) {
-			RN::Entity *druident = static_cast<RN::Entity*>(node);
-			druident->GetSkeleton()->Update(delta*50.0f);
-		});
-		druident->SetWorldPosition(RN::Vector3(0.0f, 0.25f, 0.0f));
-		druident->SetScale(RN::Vector3(0.01f));*/
-		
-		_obstacles.push_back(tavernent);
-		_obstacles.push_back(house2ent);
-		_obstacles.push_back(ruin4ent);
-		_obstacles.push_back(well1ent);
+		LoadLevelJSON("forest.json");
 
 #define TREE_MODEL_COUNT 10
 		RN::Model *trees[TREE_MODEL_COUNT];
@@ -1204,7 +1158,7 @@ namespace TG
 		
 #if TGWorldFeatureLights
 		_sunLight = new Sun();
-		_sunLight->ActivateShadows(RN::ShadowParameter(_camera, 4096));
+		_sunLight->ActivateShadows(RN::ShadowParameter(_camera));
 	
 /*		for(int i=0; i<10; i++)
 		{
