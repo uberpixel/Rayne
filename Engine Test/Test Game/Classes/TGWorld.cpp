@@ -716,7 +716,7 @@ namespace TG
 		
 		size_t index = static_cast<size_t>((pixel.z * 1024) + pixel.x);
 		
-		if(_blendmap[index] > 0.1f)
+		if(_blendmap[index] > 0.2f)
 			return true;
 		
 		return false;
@@ -737,9 +737,9 @@ namespace TG
 		ground->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
 		//ground->GetMaterialAtIndex(0, 0)->SetPolygonMode(RN::Material::PolygonMode::Lines);
 		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/blend.png", true));
-		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster.png"));
-		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster_NRM.png", true));
-		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster_DISP.png", true));
+		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2.png"));
+		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2_NRM.png", true));
+		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2_DISP.png", true));
 		
 		RN::Entity *groundBody = new RN::Entity();
 		groundBody->SetModel(ground);
@@ -769,14 +769,6 @@ namespace TG
 			delete [] color;
 		}
 		
-		
-	
-		//house
-		/*RN::Model *house = RN::Model::WithFile("models/blendswap/cc0_timber_house/timber_house.sgm");
-		RN::Entity *houseent = new RN::Entity();
-		houseent->SetModel(house);
-		houseent->SetWorldPosition(RN::Vector3(0.0f, 0.8f, 0.0f));*/
-		
 		//tavern
 		RN::Model *tavern = RN::Model::WithFile("models/dexsoft/tavern/tavern_main.sgm");
 		RN::Entity *tavernent = new RN::Entity();
@@ -794,6 +786,20 @@ namespace TG
 		RN::Entity *ruin4ent = new RN::Entity();
 		ruin4ent->SetModel(ruin4);
 		ruin4ent->SetWorldPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
+		progress->IncrementCompletedUnits(5);
+		
+		RN::Model *waggon1 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_haywaggon.dae");
+		RN::Entity *waggon1ent = new RN::Entity();
+		waggon1ent->SetModel(waggon1);
+		waggon1ent->SetWorldPosition(RN::Vector3(-45.0f, 0.0f, 30.0f));
+		waggon1ent->Rotate(RN::Vector3(10.0f, 0.0f, 0.0f));
+		waggon1ent->SetScale(RN::Vector3(1.5f));
+		progress->IncrementCompletedUnits(5);
+		
+		RN::Model *well1 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_well01.dae");
+		RN::Entity *well1ent = new RN::Entity();
+		well1ent->SetModel(well1);
+		well1ent->SetWorldPosition(RN::Vector3(-5.0f, 0.0f, 21.0f));
 		progress->IncrementCompletedUnits(5);
 		
 		/*RN::Model *dwarf = RN::Model::WithFile("models/psionic/dwarf/dwarf1.x");
@@ -848,10 +854,11 @@ namespace TG
 		druident->SetScale(RN::Vector3(0.01f));*/
 		
 		
-		RN::Entity *obstacles[3];
+		RN::Entity *obstacles[4];
 		obstacles[0] = tavernent;
 		obstacles[1] = house2ent;
 		obstacles[2] = ruin4ent;
+		obstacles[3] = well1ent;
 		
 
 #define TREE_MODEL_COUNT 10
@@ -1091,7 +1098,7 @@ namespace TG
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f));
 			
-			if(PositionBlocked(pos+RN::Vector3(0.0f, 0.5f, 0.0f), obstacles, 3))
+			if(PositionBlocked(pos+RN::Vector3(0.0f, 0.5f, 0.0f), obstacles, 4))
 				continue;
 			
 			ent = new RN::Entity();
@@ -1138,7 +1145,7 @@ namespace TG
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f));
 			
-			if(PositionBlocked(pos+RN::Vector3(0.0f, 1.0f, 0.0f), obstacles, 3))
+			if(PositionBlocked(pos+RN::Vector3(0.0f, 1.0f, 0.0f), obstacles, 4))
 				continue;
 			
 			ent = new RN::Entity();
@@ -1169,7 +1176,7 @@ namespace TG
 		
 #if TGWorldFeatureLights
 		_sunLight = new Sun();
-		_sunLight->ActivateShadows(RN::ShadowParameter(_camera));
+		_sunLight->ActivateShadows(RN::ShadowParameter(_camera, 4096));
 	
 /*		for(int i=0; i<10; i++)
 		{

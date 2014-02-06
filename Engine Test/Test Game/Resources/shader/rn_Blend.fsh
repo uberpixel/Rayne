@@ -35,7 +35,7 @@ void main()
 {
 	vec4 color0 = texture(mTexture0, vertTexcoord.zw*150.0);
 	vec4 color1 = texture(mTexture2, vertTexcoord.xy);
-	vec4 height = texture(mTexture4, vertTexcoord.xy);
+	vec4 height = texture(mTexture4, vertTexcoord.xy)*2.0-1.0;
 	float blend = texture(mTexture1, vertTexcoord.zw).r;
 	
 	vec4 normalspec = texture(mTexture3, vertTexcoord.xy);
@@ -47,7 +47,7 @@ void main()
 	normal = normalize(matTangentInv*normal);
 	normal = mix(normalize(vertNormal), normal, blend);
 	
-	vec4 color = ((1.0-blend) < height.r*4.0)?color1:color0;
+	vec4 color = mix(color1, color0, min(max(((1.0-blend*2.0)-height.r)*8.0, 0.0), 1.0));
 	
 	rn_Lighting(color, vec4(0.0), normal, vertPosition);
 	

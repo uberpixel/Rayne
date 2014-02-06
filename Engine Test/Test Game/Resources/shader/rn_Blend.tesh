@@ -38,7 +38,7 @@ void main()
 	vec3 p1 = gl_TessCoord.y * tcPosition[1];
 	vec3 p2 = gl_TessCoord.z * tcPosition[2];
 	vertPosition = p0 + p1 + p2;
-	vertPosition += normalize(vertNormal)*texture(mTexture4, vertTexcoord.xy).r*0.8*texture(mTexture1, vertTexcoord.zw).r;
+	vertPosition += normalize(vertNormal)*(texture(mTexture4, vertTexcoord.xy).r-0.5)*0.3*texture(mTexture1, vertTexcoord.zw).r;
 	
 #if defined(RN_LIGHTING)
 	#if defined(RN_DIRECTIONAL_SHADOWS)
