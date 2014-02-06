@@ -834,7 +834,7 @@ namespace TG
 			}
 			
 			_heightExtent = (groundBody->GetBoundingBox().maxExtend.y - groundBody->GetBoundingBox().minExtend.y) ;
-			_heightBase   = groundBody->GetBoundingBox().position.y;
+			_heightBase   = groundBody->GetBoundingBox().position.y+groundBody->GetBoundingBox().minExtend.y;
 			
 			delete [] color;
 		}
