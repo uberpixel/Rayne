@@ -739,6 +739,7 @@ namespace TG
 			
 			RN::Array *position = dictionary->GetObjectForKey<RN::Array>(RNCSTR("position"));
 			RN::Array *rotation = dictionary->GetObjectForKey<RN::Array>(RNCSTR("rotation"));
+			RN::Number *scale   = dictionary->GetObjectForKey<RN::Number>(RNSTR("scale"));
 			RN::Number *occluder = dictionary->GetObjectForKey<RN::Number>(RNCSTR("occluder"));
 			
 			if(position)
@@ -758,6 +759,9 @@ namespace TG
 				
 				entity->Rotate(RN::Vector3(x, y, z));
 			}
+			
+			if(scale)
+				entity->SetScale(RN::Vector3(scale->GetFloatValue()));
 			
 			if(!occluder || occluder->GetBoolValue())
 				_obstacles.push_back(entity);

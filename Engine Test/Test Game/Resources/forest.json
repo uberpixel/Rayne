@@ -16,13 +16,29 @@
 	{
 		"model": "models/dexsoft/medieval_1/f1_haywaggon.sgm",
 		"position": [ -30.0, 0.0, 15.0 ],
-		"scale": [ 1.5, 1.5, 1.5 ],
-		"rotation": [ 80.0, 0.0, 0.0 ]
+		"scale": 1.5,
+		"rotation": [ 80.0, 0.0, 0.0 ],
+		"occluder": false
 	},
 	{
-		"model": "models/dexsoft/medieval_1/f1_well.sgm",
-		"position": [ -15.0, 0.0, 20.0 ],
-		"scale": [ 1.0, 1.0, 1.0 ],
-		"rotation": [ 180.0, 0.0, 0.0 ]
+		"model": "models/dexsoft/medieval_1/f1_well01.dae",
+		"position": [ -7.0, 0.0, 30.0 ]
+	},
+	{
+		"model": "models/dexsoft/medieval_1/f1_wroof.dae",
+		"position": [ -4.0, 0.0, 12.0 ],
+		"rotation": [ 180.0, 0.0, 0.0],
+		"scale": 2.2
+	},
+	{
+		"model": "models/dexsoft/medieval_1/f1_house04.dae",
+		"position": [ -30.0, 0.0, 25.0 ],
+		"scale": 1.8
+	},
+	{
+		"model": "models/dexsoft/medieval_1/f1_house01.dae",
+		"position": [ -30.0, 0.0, 38.0 ],
+		"rotation": [ 180.0, 0.0, 0.0],
+		"scale": 1.6
 	}
 ]
