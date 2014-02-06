@@ -93,10 +93,10 @@ void main()
 	
 	#if defined(RN_LIGHTING)
 		#if defined(RN_DIRECTIONAL_SHADOWS)
-			rn_ShadowDirectional0(position);
+			rn_ShadowDirectional0(vec4(vertPosition, 1.0));
 		#endif
 		#if defined(RN_SPOT_SHADOWS)
-			rn_ShadowSpot(position);
+			rn_ShadowSpot(vec4(vertPosition, 1.0));
 		#endif
 	#endif
 	

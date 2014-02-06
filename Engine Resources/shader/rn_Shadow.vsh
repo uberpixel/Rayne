@@ -20,21 +20,19 @@ out vec4 vertSpotLightProj[4];
 #if defined(RN_DIRECTIONAL_SHADOWS)
 void rn_ShadowDirectional0(vec4 position)
 {
-	vec4 pos = matModel*position;
 	for(int i = 0; i < RN_DIRECTIONAL_SHADOWS; i++)
 	{
-		vertDirLightProj[i] = lightDirectionalMatrix[i]*pos;
+		vertDirLightProj[i] = lightDirectionalMatrix[i]*position;
 	}
 }
 #endif
 
 void rn_ShadowSpot(vec4 position)
 {
-	vec4 pos = matModel*position;
-	vertSpotLightProj[0] = lightSpotMatrix[0]*pos;
-	vertSpotLightProj[1] = lightSpotMatrix[1]*pos;
-	vertSpotLightProj[2] = lightSpotMatrix[2]*pos;
-	vertSpotLightProj[3] = lightSpotMatrix[3]*pos;
+	vertSpotLightProj[0] = lightSpotMatrix[0]*position;
+	vertSpotLightProj[1] = lightSpotMatrix[1]*position;
+	vertSpotLightProj[2] = lightSpotMatrix[2]*position;
+	vertSpotLightProj[3] = lightSpotMatrix[3]*position;
 }
 
 #endif

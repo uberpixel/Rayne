@@ -706,6 +706,12 @@ namespace TG
 			if(obstacles[n]->GetBoundingBox().Contains(position))
 				return true;
 		}
+		
+/*		RN::Vector3 pixel = (position+200.0f)/400.0f*1024.0f;
+		int index = (int)(pixel.z*1024+pixel.x)*4;
+		if(color[index] < 0.1f)
+			return true;*/
+		
 		return false;
 	}
 	
@@ -719,12 +725,30 @@ namespace TG
 		
 		//ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
-		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 5);
+		ground->GetMeshAtIndex(0, 0)->SetDrawMode(RN::Mesh::DrawMode::Patches);
+		ground->GetMaterialAtIndex(0, 0)->SetShader(RN::Shader::WithFile("shader/rn_Blend"));
+		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 150);
 		ground->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
+		//ground->GetMaterialAtIndex(0, 0)->SetPolygonMode(RN::Material::PolygonMode::Lines);
+		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/blend.png", true));
+		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster.png"));
+		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster_NRM.png", true));
+		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster_DISP.png", true));
 		
 		RN::Entity *groundBody = new RN::Entity();
 		groundBody->SetModel(ground);
 		groundBody->SetScale(RN::Vector3(20.0f));
+		
+		//Stuffs for grass and trees ignoring plaster
+/*		RN::Texture2D *texture = static_cast<RN::Texture2D *>(RN::Texture::WithFile("models/UberPixel/blend.png"));
+		float *color = new float[texture->GetWidth() * texture->GetHeight() * 4];
+		
+		RN::Texture::PixelData data;
+		data.alignment = 1;
+		data.format = RN::Texture::Format::RGBA32F;
+		data.data = color;
+		
+		texture->GetData(data);*/
 	
 		//house
 /*		RN::Model *house = RN::Model::WithFile("models/blendswap/cc0_timber_house/timber_house.sgm");
@@ -1061,7 +1085,7 @@ namespace TG
 		
 		PlaceEntitiesOnGround(node, groundBody);
 		
-		RN::Model *grass = RN::Model::WithFile("models/dexsoft/grass/grass_1.sgm");
+		RN::Model *grass = RN::Model::WithFile("models/dexsoft/grass2/grass3.sgm");
 		grass->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
 		grass->GetMaterialAtIndex(0, 0)->SetDiscard(true);
 		grass->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
@@ -1086,13 +1110,15 @@ namespace TG
 			ent->SetFlags(ent->GetFlags() | RN::SceneNode::Flags::Static);
 			ent->SetModel(grass);
 			ent->SetPosition(pos);
-			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(1.5f, 2.0f)));
+			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.5f, 1.0f)));
 			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
 			
 			node->AddChild(ent);
 		}
 		
 		PlaceEntitiesOnGround(node, groundBody);
+		
+		//delete [] color;
 		
 #if !TGWorldFeatureFreeCamera
 		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
