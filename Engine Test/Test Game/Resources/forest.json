@@ -2,7 +2,7 @@
 	{
 		"model": "models/dexsoft/tavern/tavern_main.sgm",
 		"position": [ 0.0, 0.0, 0.0 ],
-		"rotation": [ 180.0, 0.0, 0.0]
+		"rotation": [ 180.0, 0.0, 0.0 ]
 	},
 	{
 		"model": "models/dexsoft/medieval_1/f1_house02.sgm",
@@ -11,6 +11,18 @@
 	{
 		"model": "models/dexsoft/ruins/ruins_house4.sgm",
 		"position": [ -30.0, 0.0, 8.0 ],
-		"rotation": [ 180.0, 0.0, 0.0]
+		"rotation": [ 180.0, 0.0, 0.0 ]
+	},
+	{
+		"model": "models/dexsoft/medieval_1/f1_haywaggon.sgm",
+		"position": [ -30.0, 0.0, 15.0 ],
+		"scale": [ 1.5, 1.5, 1.5 ],
+		"rotation": [ 80.0, 0.0, 0.0 ]
+	},
+	{
+		"model": "models/dexsoft/medieval_1/f1_well.sgm",
+		"position": [ -15.0, 0.0, 20.0 ],
+		"scale": [ 1.0, 1.0, 1.0 ],
+		"rotation": [ 180.0, 0.0, 0.0 ]
 	}
 ]
