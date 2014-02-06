@@ -699,11 +699,11 @@ namespace TG
 #endif
 	}
 	
-	bool World::PositionBlocked(const RN::Vector3 &position, RN::Entity **obstacles, int count)
+	bool World::PositionBlocked(const RN::Vector3 &position)
 	{
-		for(int n = 0; n < count; n++)
+		for(RN::Entity *obstacle : _obstacles)
 		{
-			if(obstacles[n]->GetBoundingBox().Contains(position))
+			if(obstacle->GetBoundingBox().Contains(position))
 				return true;
 		}
 		
@@ -853,13 +853,10 @@ namespace TG
 		druident->SetWorldPosition(RN::Vector3(0.0f, 0.25f, 0.0f));
 		druident->SetScale(RN::Vector3(0.01f));*/
 		
-		
-		RN::Entity *obstacles[4];
-		obstacles[0] = tavernent;
-		obstacles[1] = house2ent;
-		obstacles[2] = ruin4ent;
-		obstacles[3] = well1ent;
-		
+		_obstacles.push_back(tavernent);
+		_obstacles.push_back(house2ent);
+		_obstacles.push_back(ruin4ent);
+		_obstacles.push_back(well1ent);
 
 #define TREE_MODEL_COUNT 10
 		RN::Model *trees[TREE_MODEL_COUNT];
@@ -1098,7 +1095,7 @@ namespace TG
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f));
 			
-			if(PositionBlocked(pos+RN::Vector3(0.0f, 0.5f, 0.0f), obstacles, 4))
+			if(PositionBlocked(pos+RN::Vector3(0.0f, 0.5f, 0.0f)))
 				continue;
 			
 			ent = new RN::Entity();
@@ -1145,7 +1142,7 @@ namespace TG
 		{
 			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f));
 			
-			if(PositionBlocked(pos+RN::Vector3(0.0f, 1.0f, 0.0f), obstacles, 4))
+			if(PositionBlocked(pos+RN::Vector3(0.0f, 1.0f, 0.0f)))
 				continue;
 			
 			ent = new RN::Entity();
