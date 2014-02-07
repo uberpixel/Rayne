@@ -307,6 +307,9 @@ namespace RN
 		float GetAspectRatio() const { return _aspect; }
 		float GetClipNear() const { return _clipNear; }
 		float GetClipFar() const { return _clipFar; }
+		const Color &GetFogColor() const { return _fogColor; }
+		float GetFogNear() const { return _fogNear; }
+		float GetFogFar() const { return _fogFar; }
 		const Color &GetAmbientColor() const { return _ambient; }
 		const Plane &GetClipPlane() const { return _clipPlane; }
 		const Matrix &GetProjectionMatrix() const { return _projectionMatrix; }
