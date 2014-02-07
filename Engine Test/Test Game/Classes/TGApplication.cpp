@@ -23,29 +23,75 @@ namespace TG
 	{}
 	
 	
+	void Application::LoadLevel(uint32 levelID)
+	{
+		RN::World *world = nullptr;
+		
+		switch(levelID)
+		{
+			case 1:
+				world = new ForestWorld();
+				break;
+				
+			case 2:
+				world = new SponzaWorld();
+				break;
+				
+			default:
+				break;
+		}
+		
+		if(!world)
+			return;
+		
+		RN::Settings::GetSharedInstance()->SetUint32ForKey(RNCSTR("lastLevel"), levelID);
+		
+		RN::Progress *progress = RN::WorldCoordinator::GetSharedInstance()->LoadWorld(world->Autorelease());
+		
+		RN::UI::Widget *widget = new LoadingScreen(progress);
+		widget->Open();
+	}
+	
+	
 	
 	void Application::Start()
 	{
 		RN::Texture::SetDefaultAnisotropyLevel(RN::Texture::GetMaxAnisotropyLevel());
 		RN::Kernel::GetSharedInstance()->SetMaxFPS(60);
 		
-		RN::UI::Widget *widget;/* = new RN::UI::DebugWidget();
+		/*RN::UI::Widget *widget = new RN::UI::DebugWidget();
 		widget->Open();
 		widget->Release();*/
 		
 		/*widget = new RN::UI::ConsoleWidget();
 		widget->Open();
 		widget->Release();*/
-
-		RN::World *world = new ForestWorld();
-		RN::Progress *progress = RN::WorldCoordinator::GetSharedInstance()->LoadWorld(world->Autorelease());
 		
-		widget = new LoadingScreen(progress);
-		widget->Open();
+		// Load the last loaded level, or the forst level
+		uint32 level = RN::Settings::GetSharedInstance()->GetUint32ForKey(RNCSTR("lastLevel"), 1);
+		LoadLevel(level);
+		
+		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNInputEventMessage, [this](RN::Message *message) {
+			
+			RN::Event *event = static_cast<RN::Event *>(message);
+			
+			if(event->GetType() == RN::Event::Type::KeyDown)
+			{
+				char character = event->GetCharacter();
+				
+				if(character >= '0' && character <= '9')
+				{
+					uint32 level = character - '0';
+					LoadLevel(level);
+				}
+			}
+			
+		}, this);
 	}
 	
 	void Application::WillExit()
 	{
+		RN::MessageCenter::GetSharedInstance()->RemoveObserver(this);
 	}
 	
 	

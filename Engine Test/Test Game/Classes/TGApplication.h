@@ -25,6 +25,8 @@ namespace TG
 		
 		void GameUpdate(float delta) override;
 		void WorldUpdate(float delta) override;
+		
+		void LoadLevel(uint32 levelID);
 	};
 }
 
