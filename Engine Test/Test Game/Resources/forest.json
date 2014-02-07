@@ -39,7 +39,8 @@
 		"model": "models/dexsoft/medieval_1/f1_house01.dae",
 		"position": [ -30.0, 0.0, 38.0 ],
 		"rotation": [ 180.0, 0.0, 0.0],
-		"scale": 1.6
+		"scale": 1.6,
+		"discard": [ 3 ]
 	},
 	{
 		"model": "models/dexsoft/medieval_1/f1_shack01.dae",
@@ -51,7 +52,8 @@
 		"model": "models/dexsoft/medieval_1/f1_church_1.dae",
 		"position": [ 15.0, 0.0, 34.0 ],
 		"rotation": [ 270.0, 0.0, 0.0],
-		"scale": 1.6
+		"scale": 1.6,
+		"discard": [ 2 ]
 	},
 	{
 		"model": "models/dexsoft/medieval_1/f1_barrel.dae",

@@ -763,6 +763,7 @@ namespace TG
 			
 			RN::Array *position = dictionary->GetObjectForKey<RN::Array>(RNCSTR("position"));
 			RN::Array *rotation = dictionary->GetObjectForKey<RN::Array>(RNCSTR("rotation"));
+			RN::Array *discard  = dictionary->GetObjectForKey<RN::Array>(RNCSTR("discard"));
 			RN::Number *scale   = dictionary->GetObjectForKey<RN::Number>(RNSTR("scale"));
 			RN::Number *occluder = dictionary->GetObjectForKey<RN::Number>(RNCSTR("occluder"));
 			
@@ -786,6 +787,16 @@ namespace TG
 			
 			if(scale)
 				entity->SetScale(RN::Vector3(scale->GetFloatValue()));
+			
+			if(discard)
+			{
+				discard->Enumerate<RN::Number>([&](RN::Number *number, size_t index, bool &stop) {
+					
+					index = number->GetUint32Value();
+					model->GetMaterialAtIndex(0, index)->SetDiscard(true);
+					
+				});
+			}
 			
 			if(!occluder || occluder->GetBoolValue())
 				_obstacles.push_back(entity);
