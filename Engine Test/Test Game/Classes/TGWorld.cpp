@@ -1131,6 +1131,10 @@ namespace TG
 				continue;
 			}
 			
+			float sand  = _blendmap[IndexForPosition(pos)].b;
+			if(sand > 0.05f)
+				continue;
+			
 			ent = new RN::Entity();
 			ent->SetFlags(ent->GetFlags() | RN::SceneNode::Flags::Static);
 			ent->SetModel(trees[dualPhaseLCG.RandomInt32Range(0, TREE_MODEL_COUNT)]);
@@ -1188,9 +1192,9 @@ namespace TG
 			
 			int32 value  = dualPhaseLCG.RandomInt32Range(1, 100);
 			float factor = _blendmap[IndexForPosition(pos)].g;
-			float water  = _blendmap[IndexForPosition(pos)].b;
 			
-			if(water > 0.05f)
+			float sand  = _blendmap[IndexForPosition(pos)].b;
+			if(sand > 0.05f)
 				continue;
 			
 			value = roundf(factor * 40) + value;
