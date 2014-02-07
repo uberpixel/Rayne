@@ -52,7 +52,7 @@ namespace RN
 				Matrix
 			};
 			
-			RNAPI ShaderUniform(const std::string& name, Type type, void *data, size_t size, bool copy=true);
+			RNAPI ShaderUniform(const std::string& name, Type type, void *data, size_t count, bool copy=true);
 			RNAPI ShaderUniform(const std::string& name, const Matrix& matrix);
 			RNAPI ShaderUniform(const std::string& name, const Vector2& vec2);
 			RNAPI ShaderUniform(const std::string& name, const Vector3& vec3);
@@ -78,11 +78,12 @@ namespace RN
 		private:
 			void *GetPointerValue();
 			void StoreData(Type type, void *data, size_t size, bool copy);
+			size_t GetSizeForType(Type type) const;
 			
 			std::string _name;
 			Type _type;
 			bool _rawStorage;
-			size_t _size;
+			size_t _count;
 			std::vector<uint8> _storage;
 		};
 		

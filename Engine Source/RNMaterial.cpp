@@ -12,10 +12,11 @@ namespace RN
 {
 	RNDefineMeta(Material)
 	
-	Material::ShaderUniform::ShaderUniform(const std::string& name, Type type, void *data, size_t size, bool copy) :
-		_name(name)
+	Material::ShaderUniform::ShaderUniform(const std::string& name, Type type, void *data, size_t count, bool copy) :
+		_name(name),
+		_count(count)
 	{
-		StoreData(type, data, size, copy);
+		StoreData(type, data, GetSizeForType(type), copy);
 	}
 	
 	Material::ShaderUniform::ShaderUniform(const std::string& name, const Matrix& matrix) :
@@ -77,9 +78,35 @@ namespace RN
 	
 	void Material::ShaderUniform::SetData(const void *data)
 	{
-		StoreData(_type, const_cast<void *>(data), _size, _rawStorage);
+		StoreData(_type, const_cast<void *>(data), GetSizeForType(_type), _rawStorage);
 	}
 	
+	
+	size_t Material::ShaderUniform::GetSizeForType(Type type) const
+	{
+		switch(type)
+		{
+			case Type::Int1:
+			case Type::UInt1:
+			case Type::Float1:
+				return 4;
+			case Type::Int2:
+			case Type::UInt2:
+			case Type::Float2:
+				return 8;
+			case Type::Int3:
+			case Type::UInt3:
+			case Type::Float3:
+				return 12;
+			case Type::Int4:
+			case Type::UInt4:
+			case Type::Float4:
+				return 16;
+				
+			case Type::Matrix:
+				return 16;
+		}
+	}
 	
 	void Material::ShaderUniform::Apply(ShaderProgram *program)
 	{
@@ -89,46 +116,46 @@ namespace RN
 			switch(_type)
 			{
 				case Type::Int1:
-					gl::Uniform1iv(location, 1, static_cast<GLint *>(GetPointerValue()));
+					gl::Uniform1iv(location, static_cast<GLsizei>(_count), static_cast<GLint *>(GetPointerValue()));
 					break;
 				case Type::Int2:
-					gl::Uniform2iv(location, 1, static_cast<GLint *>(GetPointerValue()));
+					gl::Uniform2iv(location, static_cast<GLsizei>(_count), static_cast<GLint *>(GetPointerValue()));
 					break;
 				case Type::Int3:
-					gl::Uniform3iv(location, 1, static_cast<GLint *>(GetPointerValue()));
+					gl::Uniform3iv(location, static_cast<GLsizei>(_count), static_cast<GLint *>(GetPointerValue()));
 					break;
 				case Type::Int4:
-					gl::Uniform4iv(location, 1, static_cast<GLint *>(GetPointerValue()));
+					gl::Uniform4iv(location, static_cast<GLsizei>(_count), static_cast<GLint *>(GetPointerValue()));
 					break;
 					
 				case Type::UInt1:
-					gl::Uniform1uiv(location, 1, static_cast<GLuint *>(GetPointerValue()));
+					gl::Uniform1uiv(location, static_cast<GLsizei>(_count), static_cast<GLuint *>(GetPointerValue()));
 					break;
 				case Type::UInt2:
-					gl::Uniform2uiv(location, 1, static_cast<GLuint *>(GetPointerValue()));
+					gl::Uniform2uiv(location, static_cast<GLsizei>(_count), static_cast<GLuint *>(GetPointerValue()));
 					break;
 				case Type::UInt3:
-					gl::Uniform3uiv(location, 1, static_cast<GLuint *>(GetPointerValue()));
+					gl::Uniform3uiv(location, static_cast<GLsizei>(_count), static_cast<GLuint *>(GetPointerValue()));
 					break;
 				case Type::UInt4:
-					gl::Uniform4uiv(location, 1, static_cast<GLuint *>(GetPointerValue()));
+					gl::Uniform4uiv(location, static_cast<GLsizei>(_count), static_cast<GLuint *>(GetPointerValue()));
 					break;
 					
 				case Type::Float1:
-					gl::Uniform1fv(location, 1, static_cast<GLfloat *>(GetPointerValue()));
+					gl::Uniform1fv(location, static_cast<GLsizei>(_count), static_cast<GLfloat *>(GetPointerValue()));
 					break;
 				case Type::Float2:
-					gl::Uniform2fv(location, 1, static_cast<GLfloat *>(GetPointerValue()));
+					gl::Uniform2fv(location, static_cast<GLsizei>(_count), static_cast<GLfloat *>(GetPointerValue()));
 					break;
 				case Type::Float3:
-					gl::Uniform3fv(location, 1, static_cast<GLfloat *>(GetPointerValue()));
+					gl::Uniform3fv(location, static_cast<GLsizei>(_count), static_cast<GLfloat *>(GetPointerValue()));
 					break;
 				case Type::Float4:
-					gl::Uniform4fv(location, 1, static_cast<GLfloat *>(GetPointerValue()));
+					gl::Uniform4fv(location, static_cast<GLsizei>(_count), static_cast<GLfloat *>(GetPointerValue()));
 					break;
 					
 				case Type::Matrix:
-					gl::UniformMatrix4fv(location, 1, GL_FALSE, static_cast<GLfloat *>(GetPointerValue()));
+					gl::UniformMatrix4fv(location, static_cast<GLsizei>(_count), GL_FALSE, static_cast<GLfloat *>(GetPointerValue()));
 					break;
 			}
 		}
@@ -141,6 +168,7 @@ namespace RN
 		if(copy)
 		{
 			temp = static_cast<uint8 *>(data);
+			size *= _count;
 		}
 		else
 		{
@@ -150,7 +178,6 @@ namespace RN
 		
 		_rawStorage = copy;
 		_type = type;
-		_size = size;
 		
 		_storage.resize(size);
 		std::copy(temp, temp + size, _storage.data());
