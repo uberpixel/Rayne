@@ -1145,7 +1145,7 @@ namespace TG
 			node->AddChild(ent);
 		}
 		
-		RN::Model *grass[3];
+		RN::Model *grass[4];
 		grass[0] = RN::Model::WithFile("models/dexsoft/grass2/grass1.sgm");
 		grass[0]->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
 		grass[0]->GetMaterialAtIndex(0, 0)->SetDiscard(true);
@@ -1164,8 +1164,14 @@ namespace TG
 		grass[2]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
 		grass[2]->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
 		
+		grass[3] = RN::Model::WithFile("models/UberPixel/Schilf.mdl");
+		grass[3]->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
+		grass[3]->GetMaterialAtIndex(0, 0)->SetDiscard(true);
+		grass[3]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
+		grass[3]->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
+		
 		node = new RN::InstancingNode();
-		node->SetModels(RN::Array::WithObjects(grass[0], grass[1], grass[2], nullptr));
+		node->SetModels(RN::Array::WithObjects(grass[0], grass[1], grass[2], grass[3], nullptr));
 		node->SetRenderGroup(1);
 		node->SetPivot(_camera);
 		node->SetMode(RN::InstancingNode::Mode::Thinning | RN::InstancingNode::Mode::Clipping);
@@ -1184,19 +1190,29 @@ namespace TG
 			}
 			
 			pos.y = GetGroundHeight(pos);
-			if(pos.y < -1.0f)
+			if(pos.y < - 2.0f)
 			{
 				i --;
 				continue;
 			}
 			
+			float sand  = _blendmap[IndexForPosition(pos)].b;
+			if(sand > 0.2f)
+			{
+				ent = new RN::Entity();
+				ent->SetFlags(ent->GetFlags() | RN::SceneNode::Flags::Static);
+				ent->SetModel(grass[3]);
+				ent->SetPosition(pos);
+				ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.005f, 0.008f)));
+				ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0, 360.0f), -90.0f, 90.0f));
+				
+				node->AddChild(ent);
+				continue;
+			}
+			
+			
 			int32 value  = dualPhaseLCG.RandomInt32Range(1, 100);
 			float factor = _blendmap[IndexForPosition(pos)].g;
-			
-			float sand  = _blendmap[IndexForPosition(pos)].b;
-			if(sand > 0.05f)
-				continue;
-			
 			value = roundf(factor * 40) + value;
 			
 			int index = 0;
