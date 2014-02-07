@@ -752,7 +752,8 @@ namespace TG
 		RN::Data *data = RN::Data::WithContentsOfFile(path);
 		RN::Array *objects = RN::JSONSerialization::JSONObjectFromData<RN::Array>(data);
 		
-		RN::Dictionary *settings = nullptr;
+		RN::Dictionary *settings = new RN::Dictionary();
+		settings->SetObjectForKey(RN::Number::WithBool(true), RNCSTR("recalculateNormals"));
 		
 		objects->Enumerate<RN::Dictionary>([&](RN::Dictionary *dictionary, size_t indes, bool &stop) {
 			
@@ -801,6 +802,8 @@ namespace TG
 			if(!occluder || occluder->GetBoolValue())
 				_obstacles.push_back(entity);
 		});
+		
+		settings->Release();
 	}
 	
 	void World::CreateForest()
