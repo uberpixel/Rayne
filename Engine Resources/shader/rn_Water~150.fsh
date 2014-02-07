@@ -21,6 +21,8 @@ in vec3 vertProjPos;
 in vec3 vertPosition;
 in vec2 vertTexcoord;
 
+vec4 ambient;
+
 /*
 #if defined(RN_LIGHTING)
 #if defined(RN_DIRECTIONAL_LIGHTS)
@@ -68,7 +70,7 @@ void main()
 */
 
 	refraction.rgb *= max(min(exp(-vec3(0.8, 0.5, 0.5)*depthdiff*2.0), 1.0), 0.0);
-	vec4 color0 = mix(refraction, vec4(0.1, 0.2, 0.1, 1.0), 0.5)+reflection*fresnel;
+	vec4 color0 = mix(refraction, vec4(0.1, 0.2, 0.1, 1.0)*ambient*15.0, 0.5)+reflection*fresnel;
 	color0.a = 1.0;
 	fragColor0 = color0+vec4(spec, 0.0);
 }
