@@ -404,7 +404,7 @@ namespace RN
 		bool usesIndices = mesh->SupportsFeature(MeshFeature::Indices);
 		const MeshDescriptor *descriptor = usesIndices ? mesh->GetDescriptorForFeature(MeshFeature::Indices) : mesh->GetDescriptorForFeature(MeshFeature::Vertices);
 		
-		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
+		BindVAO(std::make_pair(_currentProgram, mesh));
 		
 		GLsizei glCount = static_cast<GLsizei>(usesIndices ? mesh->GetIndicesCount() : mesh->GetVerticesCount());
 		if(count != 0)
@@ -466,8 +466,7 @@ namespace RN
 		Mesh *mesh = object.mesh;
 		const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Indices);
 		
-		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
-		RN_ASSERT(_currentProgram->instancingData != -1, "");
+		BindVAO(std::make_pair(_currentProgram, mesh));
 		
 		uint32 dataUnit = BindTexture(GL_TEXTURE_BUFFER, object.instancingData);
 		uint32 indicesUnit = BindTexture(GL_TEXTURE_BUFFER, object.instancingIndices);

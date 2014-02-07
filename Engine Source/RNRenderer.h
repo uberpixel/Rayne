@@ -181,7 +181,7 @@ namespace RN
 		RNAPI void FlushAutoVAOs();
 		RNAPI virtual void UpdateShaderData();
 		RNAPI virtual void DrawCamera(Camera *camera, Camera *source, size_t skyCubeMeshes);
-		RNAPI virtual void BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple);
+		RNAPI virtual void BindVAO(const std::pair<ShaderProgram *, Mesh *> &pair);
 		
 		RNAPI virtual void FlushCamera(Camera *camera, Shader *drawShader);
 		RNAPI virtual void DrawCameraStage(Camera *camera, Camera *stage);
@@ -246,7 +246,7 @@ namespace RN
 		void FullfilPromises(void *data);
 		void CaptureFrame();
 		
-		std::map<std::tuple<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
+		std::map<std::pair<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
 		std::vector<std::pair<Camera *, Shader *>> _flushCameras;
 		std::unordered_set<Camera *> _flushedCameras;
 		

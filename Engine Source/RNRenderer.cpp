@@ -262,15 +262,15 @@ namespace RN
 		_autoVAOs.clear();
 	}
 	
-	void Renderer::BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple)
+	void Renderer::BindVAO(const std::pair<ShaderProgram *, Mesh *> &pair)
 	{
-		auto iterator = _autoVAOs.find(tuple);
+		auto iterator = _autoVAOs.find(pair);
 		GLuint vao;
 		
 		if(iterator == _autoVAOs.end())
 		{
-			ShaderProgram *shader = std::get<0>(tuple);
-			Mesh *mesh = std::get<1>(tuple);
+			ShaderProgram *shader = pair.first;
+			Mesh *mesh = pair.second;
 			
 			GLuint vbo = mesh->GetVBO();
 			GLuint ibo = mesh->GetIBO();
@@ -375,7 +375,7 @@ namespace RN
 				}
 			}, true);
 			
-			_autoVAOs[tuple] = std::tuple<GLuint, uint32>(vao, 0);
+			_autoVAOs[pair] = std::tuple<GLuint, uint32>(vao, 0);
 			_currentVAO = vao;
 			
 			return;
@@ -714,13 +714,13 @@ namespace RN
 		_renderedLights   = 0;
 		_renderedVertices = 0;
 		
-		for(auto i=_autoVAOs.begin(); i!=_autoVAOs.end();)
+		for(auto i = _autoVAOs.begin(); i != _autoVAOs.end();)
 		{
 			uint32& age = std::get<1>(i->second);
 			
 			if((++ age) > kRNRendererMaxVAOAge)
 			{
-				GLuint vao = std::get<1>(i->second);
+				GLuint vao = std::get<0>(i->second);
 				
 				OpenGLQueue::GetSharedInstance()->SubmitCommand([vao] {
 					gl::DeleteVertexArrays(1, &vao);
