@@ -412,20 +412,40 @@ namespace TG
 #else
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
 		storage->AddRenderTarget(RN::Texture::Format::RGB16F);
+		storage->SetDepthTarget(RN::Texture::Format::Depth24I);
 		_camera = new ThirdPersonCamera(storage);
-		_camera->SetRenderGroups(_camera->GetRenderGroups() | RN::Camera::RenderGroups::Group1);
+		_camera->SetFlags(_camera->GetFlags()|RN::Camera::Flags::NoFlush);
+		_camera->SetRenderGroups(_camera->GetRenderGroups() | RN::Camera::RenderGroups::Group1 | RN::Camera::RenderGroups::Group3);
 		_camera->SetSky(sky);
-		_camera->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
+		//_camera->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
 		
 	#if TGWorldFeatureSSAO
 		PPActivateSSAO(_camera);
 	#endif
 		
+		RN::PostProcessingPipeline *waterPipeline = _camera->AddPostProcessingPipeline("water");
+		
+		RN::Material *refractCopy = new RN::Material(RN::Shader::WithFile("shader/rn_PPCopy"));
+		refractCopy->Define("RN_COPYDEPTH");
+		_refractCamera = new RN::Camera(_camera->GetFrame().Size(), RN::Texture::Format::RGBA32F, RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		_refractCamera->SetMaterial(refractCopy);
+		waterPipeline->AddStage(_refractCamera, RN::RenderStage::Mode::ReUsePreviousStage);
+		
+		RN::Camera *waterStage = new RN::Camera(RN::Vector2(_camera->GetFrame().Size()), storage, RN::Camera::Flags::UpdateStorageFrame);
+		waterStage->SetClearMask(0);
+		waterStage->SetRenderGroups(RN::Camera::RenderGroups::Group2 | RN::Camera::RenderGroups::Group3);
+		//waterPipeline->AddStage(waterStage, RN::RenderStage::Mode::ReRender);
+		
+		waterStage->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
+		waterStage->SetPriority(-100);
+		
+		_camera->AddChild(waterStage);
+		
 	#if TGWorldFeatureBloom
-		PPActivateBloom(_camera);
+		PPActivateBloom(waterStage);
 	#endif
 		
-		PPActivateFXAA(_camera);
+		PPActivateFXAA(waterStage);
 #endif
 	}
 	
@@ -790,6 +810,9 @@ namespace TG
 		groundBody->SetModel(ground);
 		groundBody->SetScale(RN::Vector3(20.0f));
 		
+		RN::Water *water = new RN::Water(_camera, _refractCamera->GetStorage()->GetRenderTarget());
+		water->SetWorldPosition(RN::Vector3(71.0f, -0.3f, -5.0f));
+	
 		
 		//Stuffs for grass and trees ignoring plaster
 		{
@@ -1085,6 +1108,11 @@ namespace TG
 			}
 			
 			pos.y = GetGroundHeight(pos);
+			if(pos.y < -1.0f)
+			{
+				i --;
+				continue;
+			}
 			
 			ent = new RN::Entity();
 			ent->SetFlags(ent->GetFlags() | RN::SceneNode::Flags::Static);
@@ -1135,6 +1163,11 @@ namespace TG
 			}
 			
 			pos.y = GetGroundHeight(pos);
+			if(pos.y < -1.0f)
+			{
+				i --;
+				continue;
+			}
 			
 			int32 value  = dualPhaseLCG.RandomInt32Range(1, 100);
 			float factor = _blendmap[IndexForPosition(pos)].g;
@@ -1174,6 +1207,7 @@ namespace TG
 		
 #if TGWorldFeatureLights
 		_sunLight = new Sun();
+		_sunLight->SetRenderGroup(3);
 		_sunLight->ActivateShadows(RN::ShadowParameter(_camera, 2048));
 	
 /*		for(int i=0; i<10; i++)

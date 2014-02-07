@@ -85,6 +85,7 @@ namespace RN
 			Shader *shad = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr);
 			
 			Material *mat = new Material(shad);
+			mat->SetOverride(0xffffffff);
 			mat->SetLighting(false);
 			
 			_reflection->SetMaterial(mat);
@@ -123,7 +124,7 @@ namespace RN
 			Vector3 rot = _camera->GetWorldEulerAngle();
 			
 			_reflection->SetPosition(Vector3(1.0f, -1.0f, 1.0f)*_camera->GetWorldPosition());
-			_reflection->SetRotation(Vector3(rot.x, rot.y, -rot.z));
+			_reflection->SetRotation(Vector3(rot.x, -rot.y, rot.z));
 			
 			_reflection->SetAspectRatio(_camera->GetAspectRatio());
 		}
