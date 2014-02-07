@@ -1125,12 +1125,7 @@ namespace TG
 			}
 			
 			pos.y = GetGroundHeight(pos);
-			if(pos.y < -1.0f)
-			{
-				i --;
-				continue;
-			}
-			
+		
 			float sand  = _blendmap[IndexForPosition(pos)].b;
 			if(sand > 0.05f)
 				continue;
@@ -1190,15 +1185,20 @@ namespace TG
 			}
 			
 			pos.y = GetGroundHeight(pos);
-			if(pos.y < - 2.0f)
+			if(pos.y < - 1.4f)
 			{
 				i --;
 				continue;
 			}
 			
+			int32 value  = dualPhaseLCG.RandomInt32Range(1, 100);
+			
 			float sand  = _blendmap[IndexForPosition(pos)].b;
 			if(sand > 0.2f)
 			{
+				if(value > 60)
+					continue;
+				
 				ent = new RN::Entity();
 				ent->SetFlags(ent->GetFlags() | RN::SceneNode::Flags::Static);
 				ent->SetModel(grass[3]);
@@ -1210,8 +1210,6 @@ namespace TG
 				continue;
 			}
 			
-			
-			int32 value  = dualPhaseLCG.RandomInt32Range(1, 100);
 			float factor = _blendmap[IndexForPosition(pos)].g;
 			value = roundf(factor * 40) + value;
 			
