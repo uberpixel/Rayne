@@ -750,10 +750,13 @@ namespace TG
 		RN::Data *data = RN::Data::WithContentsOfFile(path);
 		RN::Array *objects = RN::JSONSerialization::JSONObjectFromData<RN::Array>(data);
 		
+		RN::Dictionary *settings = new RN::Dictionary();
+		settings->SetObjectForKey(RN::Number::WithBool(true), RNCSTR("recalculateNormals"));
+		
 		objects->Enumerate<RN::Dictionary>([&](RN::Dictionary *dictionary, size_t indes, bool &stop) {
 			
 			RN::String *file = dictionary->GetObjectForKey<RN::String>(RNCSTR("model"));
-			RN::Model *model = RN::Model::WithFile(std::string(file->GetUTF8String()));
+			RN::Model *model = RN::ResourceCoordinator::GetSharedInstance()->GetResourceWithName<RN::Model>(file, settings);
 			
 			RN::Entity *entity = new RN::Entity(model);
 			
