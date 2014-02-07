@@ -750,8 +750,7 @@ namespace TG
 		RN::Data *data = RN::Data::WithContentsOfFile(path);
 		RN::Array *objects = RN::JSONSerialization::JSONObjectFromData<RN::Array>(data);
 		
-		RN::Dictionary *settings = new RN::Dictionary();
-		settings->SetObjectForKey(RN::Number::WithBool(true), RNCSTR("recalculateNormals"));
+		RN::Dictionary *settings = nullptr;
 		
 		objects->Enumerate<RN::Dictionary>([&](RN::Dictionary *dictionary, size_t indes, bool &stop) {
 			
