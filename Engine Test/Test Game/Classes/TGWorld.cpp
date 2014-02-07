@@ -348,6 +348,8 @@ namespace TG
 		
 		_camera->SetAmbientColor(color * (ambient * 2.0f));
 		_camera->SetFogColor(_sunLight->GetFogColor());
+		_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetAmbientColor(_camera->GetAmbientColor());
+		_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetFogColor(_sunLight->GetFogColor());
 	}
 	
 	void World::CreateCameras()
@@ -808,6 +810,8 @@ namespace TG
 		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2.png"));
 		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2_NRM.png", true));
 		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2_DISP.png", true));
+		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/sand.png"));
+		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/sand_NRM.png"));
 		
 		RN::Entity *groundBody = new RN::Entity();
 		groundBody->SetModel(ground);

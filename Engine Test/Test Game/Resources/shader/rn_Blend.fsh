@@ -17,6 +17,8 @@ uniform sampler2D mTexture1;
 uniform sampler2D mTexture2;
 uniform sampler2D mTexture3;
 uniform sampler2D mTexture4;
+uniform sampler2D mTexture5;
+uniform sampler2D mTexture6;
 
 #if defined(RN_FOG)
 uniform vec2 fogPlanes;
@@ -35,8 +37,10 @@ void main()
 {
 	vec4 color0 = texture(mTexture0, vertTexcoord.zw*150.0);
 	vec4 color1 = texture(mTexture2, vertTexcoord.xy);
+	vec4 color2 = texture(mTexture5, vertTexcoord.xy);
+	vec3 color2norm = texture(mTexture6, vertTexcoord.xy).rgb*2.0-1.0;
 	vec4 height = texture(mTexture4, vertTexcoord.xy)*2.0-1.0;
-	float blend = texture(mTexture1, vertTexcoord.zw).r;
+	vec4 blend = texture(mTexture1, vertTexcoord.zw);
 	
 	vec4 normalspec = texture(mTexture3, vertTexcoord.xy);
 	vec3 normal = normalspec.xyz*2.0-1.0;
@@ -44,10 +48,13 @@ void main()
 	matTangentInv[0] = normalize(vertTangent);
 	matTangentInv[1] = normalize(vertBitangent);
 	matTangentInv[2] = normalize(vertNormal);
+	normal = mix(normal, color2norm, blend.b);
 	normal = normalize(matTangentInv*normal);
-	normal = mix(normalize(vertNormal), normal, blend);
+	normal = normalize(mix(normalize(vertNormal), normal, blend.r));
 	
-	vec4 color = mix(color1, color0, min(max(((1.0-blend*2.0)-height.r)*8.0, 0.0), 1.0));
+	vec4 color = mix(color1, color0, min(max(((1.0-blend.r*2.0)-height.r)*8.0, 0.0), 1.0));
+	
+	color = mix(color, color2, blend.b);
 	
 	rn_Lighting(color, vec4(0.0), normal, vertPosition);
 	
