@@ -14,7 +14,8 @@
 
 namespace TG
 {
-	Application::Application()
+	Application::Application() :
+		_currentLevel(0)
 	{
 		SetTitle("Super Awesome Game");
 	}
@@ -25,6 +26,9 @@ namespace TG
 	
 	void Application::LoadLevel(uint32 levelID)
 	{
+		if(levelID == _currentLevel)
+			return;
+		
 		RN::World *world = nullptr;
 		
 		switch(levelID)
@@ -44,8 +48,9 @@ namespace TG
 		if(!world)
 			return;
 		
-		RN::Settings::GetSharedInstance()->SetUint32ForKey(RNCSTR("lastLevel"), levelID);
+		_currentLevel = levelID;
 		
+		RN::Settings::GetSharedInstance()->SetUint32ForKey(RNCSTR("lastLevel"), levelID);
 		RN::Progress *progress = RN::WorldCoordinator::GetSharedInstance()->LoadWorld(world->Autorelease());
 		
 		RN::UI::Widget *widget = new LoadingScreen(progress);
