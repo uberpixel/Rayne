@@ -2,8 +2,8 @@
 //  TGSun.cpp
 //  Test Game
 //
-//  Created by Sidney Just on 16/01/14.
-//  Copyright (c) 2014 Überpixel. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "TGSun.h"
@@ -33,7 +33,7 @@ namespace TG
 		RN::Light(RN::Light::Type::DirectionalLight)
 	{
 		SetDate(181, 2013);
-		SetTime(12, 32, 0);
+		SetTime(9, 32, 0);
 		SetLatitude(48.0f, 81.0f);
 		
 		_sunGradient.AddColor(RN::Color(0.8f, 0.75f, 0.55f) * 1.5, 0.70f);
@@ -83,7 +83,7 @@ namespace TG
 	
 	void Sun::Update(float delta)
 	{
-		UpdateTime(delta);
+		//UpdateTime(delta);
 		UpdateRotation();
 		
 		RN::Light::Update(delta);
@@ -91,9 +91,9 @@ namespace TG
 	
 	void Sun::UpdateTime(float delta)
 	{
-		float _factor = 360.0;
-		if(_hour > 22 || _hour < 6)
-			_factor *= 15.0f;
+		float _factor = 3600.0;
+		//if(_hour > 22 || _hour < 6)
+		//	_factor *= 15.0f;
 		
 		
 		_second += (delta * _factor);

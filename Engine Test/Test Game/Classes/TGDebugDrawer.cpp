@@ -2,8 +2,8 @@
 //  TGDebugDrawer.cpp
 //  Game-osx
 //
-//  Created by Sidney Just on 29.05.13.
-//  Copyright (c) 2013 Sidney Just. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "TGDebugDrawer.h"

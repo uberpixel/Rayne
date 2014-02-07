@@ -2,17 +2,22 @@
 //  TGApplication.cpp
 //  Game
 //
-//  Created by Sidney Just on 27.01.13.
-//  Copyright (c) 2013 Sidney Just. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "TGApplication.h"
 #include "TGLoadingScreen.h"
 
+#include "TGForestWorld.h"
+#include "TGSponzaWorld.h"
+
 namespace TG
 {
 	Application::Application()
-	{}
+	{
+		SetTitle("Super Awesome Game");
+	}
 	
 	Application::~Application()
 	{}
@@ -22,8 +27,6 @@ namespace TG
 	void Application::Start()
 	{
 		RN::Texture::SetDefaultAnisotropyLevel(RN::Texture::GetMaxAnisotropyLevel());
-		SetTitle("Super Awesome Game");
-		
 		RN::Kernel::GetSharedInstance()->SetMaxFPS(60);
 		
 		RN::UI::Widget *widget;/* = new RN::UI::DebugWidget();
@@ -34,7 +37,7 @@ namespace TG
 		widget->Open();
 		widget->Release();*/
 
-		RN::World *world = new World();
+		RN::World *world = new ForestWorld();
 		RN::Progress *progress = RN::WorldCoordinator::GetSharedInstance()->LoadWorld(world->Autorelease());
 		
 		widget = new LoadingScreen(progress);
@@ -47,19 +50,10 @@ namespace TG
 	
 	
 	
-	void Application::UpdateGame(float delta)
+	void Application::GameUpdate(float delta)
 	{
 	}
-	
-	void Application::UpdateWorld(float delta)
+	void Application::WorldUpdate(float delta)
 	{
-	}
-}
-
-extern "C"
-{
-	RN::Application *RNApplicationCreate(RN::Kernel *kernel)
-	{
-		return static_cast<RN::Application *>(new TG::Application());
 	}
 }

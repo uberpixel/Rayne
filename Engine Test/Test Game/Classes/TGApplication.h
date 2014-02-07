@@ -2,8 +2,8 @@
 //  TGApplication.h
 //  Game
 //
-//  Created by Sidney Just on 27.01.13.
-//  Copyright (c) 2013 Sidney Just. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #ifndef __Game__TGApplication__
@@ -18,13 +18,13 @@ namespace TG
 	{
 	public:
 		Application();
-		virtual ~Application();
+		~Application();
 		
-		virtual void Start();
-		virtual void WillExit();
+		void Start() override;
+		void WillExit() override;
 		
-		virtual void UpdateGame(float delta);
-		virtual void UpdateWorld(float delta);
+		void GameUpdate(float delta) override;
+		void WorldUpdate(float delta) override;
 	};
 }
 
