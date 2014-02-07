@@ -89,7 +89,7 @@ namespace RN
 			mat->SetLighting(false);
 			
 			_reflection->SetMaterial(mat);
-			_reflection->SetFlags(_camera->GetFlags() | Camera::Flags::UseClipPlanes);
+			_reflection->SetFlags(_reflection->GetFlags() | Camera::Flags::UseClipPlanes);
 			_reflection->SetClipPlane(RN::Plane());
 			
 			_material->AddTexture(_reflection->GetStorage()->GetRenderTarget());
