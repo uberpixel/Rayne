@@ -62,7 +62,7 @@ namespace TG
 		RN::Entity *_sponza;
 		bool _frameCapturing;
 		
-		RN::PostProcessingPipeline *_refractPipeline;
+		RN::Camera *_refractCamera;
 		
 		std::vector<RN::Color> _blendmap;
 		std::vector<float> _heightMap;
