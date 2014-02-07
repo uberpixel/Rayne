@@ -1171,6 +1171,10 @@ namespace TG
 			
 			int32 value  = dualPhaseLCG.RandomInt32Range(1, 100);
 			float factor = _blendmap[IndexForPosition(pos)].g;
+			float water  = _blendmap[IndexForPosition(pos)].b;
+			
+			if(water > 0.05f)
+				continue;
 			
 			value = roundf(factor * 40) + value;
 			
