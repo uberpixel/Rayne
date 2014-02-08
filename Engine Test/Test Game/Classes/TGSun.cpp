@@ -83,7 +83,8 @@ namespace TG
 	
 	void Sun::Update(float delta)
 	{
-		//UpdateTime(delta);
+		float blub = RN::Input::GetSharedInstance()->IsKeyPressed('q')-RN::Input::GetSharedInstance()->IsKeyPressed('e');
+		UpdateTime(delta*blub*10.0);
 		UpdateRotation();
 		
 		RN::Light::Update(delta);

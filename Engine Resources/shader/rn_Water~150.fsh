@@ -38,8 +38,8 @@ void main()
 {	
 	vec2 coords = vertProjPos.xy/vertProjPos.z*0.5+0.5;
 
-	float depth = texture(mTexture2, coords).a;
-	float depth1 = -(2.0f * clipPlanes.y * clipPlanes.x) / (clipPlanes.y - clipPlanes.x)/(depth*2.0-1.0-(clipPlanes.y + clipPlanes.x) / (clipPlanes.y - clipPlanes.x));
+	vec4 depth = texture(mTexture2, coords);
+	float depth1 = -(2.0f * clipPlanes.y * clipPlanes.x) / (clipPlanes.y - clipPlanes.x)/(depth.a*2.0-1.0-(clipPlanes.y + clipPlanes.x) / (clipPlanes.y - clipPlanes.x));
 	float depth2 = 1.0/gl_FragCoord.w;
 	float depthdiff = depth1-depth2;
 
@@ -52,6 +52,12 @@ void main()
 
 	vec3 scaledNormals = normals*0.12*min(depthdiff*0.5, 1.0);
 	vec4 refraction = texture(mTexture2, coords-scaledNormals.xy);
+
+	float depth3 = -(2.0f * clipPlanes.y * clipPlanes.x) / (clipPlanes.y - clipPlanes.x)/(refraction.a*2.0-1.0-(clipPlanes.y + clipPlanes.x) / (clipPlanes.y - clipPlanes.x));
+	float depthdiff2 = depth3-depth2;
+	if(depthdiff2 < 0.0)
+		refraction = depth;
+
 	coords.y = 1.0-coords.y;
 	vec4 reflection = texture(mTexture0, coords+scaledNormals.xy);
 	reflection.rgb *= vec3(0.5, 0.4, 0.5);
