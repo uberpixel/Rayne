@@ -9,7 +9,7 @@
 #include "TGForestWorld.h"
 
 #define TGForestFeatureTrees 500
-#define TGForestFeatureGras  300000
+#define TGForestFeatureGras  350000
 
 namespace TG
 {
@@ -95,7 +95,7 @@ namespace TG
 		
 		// Grass and reed
 		RN::InstancingNode *grassNode = new RN::InstancingNode();
-		grassNode->SetModels(RN::Array::WithObjects(_grass[0], _grass[1], _grass[2], nullptr));
+		grassNode->SetModels(RN::Array::WithObjects(_grass[0], _grass[1], _grass[2], _grass[3], nullptr));
 		grassNode->SetRenderGroup(1);
 		grassNode->SetPivot(_camera);
 		grassNode->SetMode(RN::InstancingNode::Mode::Thinning | RN::InstancingNode::Mode::Clipping);
@@ -128,7 +128,7 @@ namespace TG
 			
 			// Reeds
 			if(sand > 0.2f)
-			{
+			{				
 				if(pos.y < -1.4f || value > 75)
 					continue;
 				
@@ -150,11 +150,13 @@ namespace TG
 			
 			int index = 0;
 			
-			if(value > 70)
-				index = 1;
-			
 			if(value > 98)
 				index = 2;
+			else if(value > 95)
+				index = 3;
+			else if(value > 70)
+				value = 2;
+			
 			
 			RN::Entity *entity = new RN::Entity(_grass[index], pos);
 			entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static);
@@ -447,6 +449,8 @@ namespace TG
 		_grass[2]->GetMaterialAtIndex(0, 0)->SetDiscard(true);
 		_grass[2]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
 		_grass[2]->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
+		
+		_grass[3] = RN::Model::WithFile("models/nobiax/rock5/rock_05.dae");
 		
 		_reeds[0] = RN::Model::WithFile("models/UberPixel/Schilf.mdl");
 		_reeds[0]->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);

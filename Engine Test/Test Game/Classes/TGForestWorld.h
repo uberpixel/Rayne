@@ -13,7 +13,7 @@
 #include "TGWorld.h"
 
 #define TGForestTreeCount  10
-#define TGForestGrassCount 3
+#define TGForestGrassCount 4
 #define TGForestReedCount  1
 
 namespace TG
