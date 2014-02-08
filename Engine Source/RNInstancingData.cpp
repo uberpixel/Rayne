@@ -66,6 +66,8 @@ namespace RN
 	{
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
 			
+			Renderer::GetSharedInstance()->BindVAO(0);
+			
 			gl::GenBuffers(1, &_buffer);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 			gl::BufferData(GL_TEXTURE_BUFFER, 32, nullptr, GL_STATIC_DRAW);
@@ -127,6 +129,8 @@ namespace RN
 			
 			OpenGLQueue::GetSharedInstance()->SubmitCommand([this, mode] {
 				
+				Renderer::GetSharedInstance()->BindVAO(0);
+				
 				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 				
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
@@ -182,6 +186,9 @@ namespace RN
 			_stages.push_back(new InstancingLODStage(_model, i));
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
+			
+			Renderer::GetSharedInstance()->BindVAO(0);
+			
 			gl::GenBuffers(1, &_buffer);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 			gl::BufferData(GL_TEXTURE_BUFFER, 32, nullptr, GL_STATIC_DRAW);
@@ -345,13 +352,13 @@ namespace RN
 			
 				LockGuard<decltype(_lock)> lock(_lock);
 				
+				Renderer::GetSharedInstance()->BindVAO(0);
+				
 				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 				
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 				gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data(), GL_STATIC_DRAW);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
-				
-				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 				
 			});
 			
@@ -364,13 +371,13 @@ namespace RN
 				
 				LockGuard<decltype(_lock)> lock(_lock);
 				
+				Renderer::GetSharedInstance()->BindVAO(0);
+				
 				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 				
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 				gl::BufferSubData(GL_TEXTURE_BUFFER, 0, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data());
 				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
-				
-				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 				
 			});
 			
@@ -471,7 +478,7 @@ namespace RN
 			
 			for(InstancingBucket &bucket : buckets)
 			{
-				if(bucket->position.GetSquaredDistance(position) < clipRange * clipRange)
+				if(bucket->position.GetSquaredDistance(position) < clipRange * clipRange && _pivot->InFrustum(bucket->position, _buckets.get_spacing()))
 					temp.push_back(bucket);
 			}
 			
