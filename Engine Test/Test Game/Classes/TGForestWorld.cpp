@@ -452,7 +452,7 @@ namespace TG
 		_grass[2]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
 		_grass[2]->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
 		
-		_grass[3] = RN::Model::WithFile("models/nobiax/rock5/rock_05.dae");
+		_grass[3] = RN::Model::WithFile("models/UberPixel/rock/rock.sgm");
 		
 		_reeds[0] = RN::Model::WithFile("models/UberPixel/Schilf.mdl");
 		_reeds[0]->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
