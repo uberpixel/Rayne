@@ -148,7 +148,7 @@ namespace TG
 			}
 			
 			// Normal grass
-			value = roundf(_blendmap[IndexForPosition(pos)].g * 40) + value;
+			value = roundf(_flowermap[IndexForPosition(pos)].g * 40) + value;
 			
 			int index = 0;
 			
@@ -211,6 +211,27 @@ namespace TG
 			for(size_t i = 0; i < texture->GetWidth() * texture->GetHeight(); i ++)
 			{
 				_blendmap.emplace_back(temp[0], temp[1], temp[2], temp[3]);
+				temp += 4;
+			}
+			
+			delete [] color;
+		}
+		{
+			RN::Texture2D *texture = static_cast<RN::Texture2D *>(RN::Texture::WithFile("models/UberPixel/flowermap.png"));
+			float *color = new float[texture->GetWidth() * texture->GetHeight() * 4];
+			
+			RN::Texture::PixelData data;
+			data.alignment = 1;
+			data.format    = RN::Texture::Format::RGBA32F;
+			data.data      = color;
+			
+			texture->GetData(data);
+			
+			float *temp = color;
+			
+			for(size_t i = 0; i < texture->GetWidth() * texture->GetHeight(); i ++)
+			{
+				_flowermap.emplace_back(temp[0], temp[1], temp[2], temp[3]);
 				temp += 4;
 			}
 			

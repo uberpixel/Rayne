@@ -35,6 +35,7 @@ namespace TG
 		
 		std::vector<float> _heightmap;
 		std::vector<RN::Color> _blendmap;
+		std::vector<RN::Color> _flowermap;
 		float _heightBase;
 		float _heightExtent;
 		
