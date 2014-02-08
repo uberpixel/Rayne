@@ -202,6 +202,7 @@ namespace TG
 		for(int i = 0; i < 6; i++)
 		{
 			sky->GetMaterialAtIndex(0, i)->SetAmbientColor(RN::Color(6.0f, 6.0f, 6.0f, 1.0f));
+			sky->GetMaterialAtIndex(0, i)->SetOverride(RN::Material::Override::Shader);
 			sky->GetMaterialAtIndex(0, i)->Define("RN_ATMOSPHERE");
 		}
 		

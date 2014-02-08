@@ -79,18 +79,18 @@ namespace RN
 		
 		if(_camera != 0)
 		{
-			_reflection = new Camera(Vector2(512, 512), Texture::Format::RGBA8888, Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush, RenderStorage::BufferFormatComplete, 1.0f);
+			_reflection = new Camera(Vector2(512, 512), Texture::Format::RGBA8888, Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush | Camera::Flags::UseClipPlanes, RenderStorage::BufferFormatComplete, 1.0f);
 			_reflection->SetPriority(9);
+			_reflection->SetRenderGroups(_reflection->GetRenderGroups() | Camera::RenderGroups::Group3);
 			
 			Shader *shad = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr);
 			
 			Material *mat = new Material(shad);
-			mat->SetOverride(0xffffffff);
-			mat->SetLighting(false);
+			mat->SetOverride(0xffffffff & ~Material::Override::Shader);
 			
 			_reflection->SetMaterial(mat);
-			_reflection->SetFlags(_reflection->GetFlags() | Camera::Flags::UseClipPlanes);
 			_reflection->SetClipPlane(RN::Plane());
+			_reflection->SetDebugName("reflection");
 			
 			_material->AddTexture(_reflection->GetStorage()->GetRenderTarget());
 			_material->AddTexture(RN::Texture::WithFile("textures/waterbump.png", true));
@@ -127,6 +127,14 @@ namespace RN
 			_reflection->SetRotation(Vector3(rot.x, -rot.y, rot.z));
 			
 			_reflection->SetAspectRatio(_camera->GetAspectRatio());
+			
+			_reflection->SetSky(_camera->GetSky());
+			_reflection->SetFogColor(_camera->GetFogColor());
+			_reflection->SetFogNear(_camera->GetFogNear());
+			_reflection->SetFogFar(_camera->GetFogFar());
+			
+			if(_camera->GetFlags() & Camera::Flags::UseFog)
+			_reflection->SceneNode::SetFlags(_reflection->GetFlags() | Camera::Flags::UseFog);
 		}
 	}
 	
