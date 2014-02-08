@@ -47,6 +47,8 @@ namespace TG
 		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2_DISP.png", true));
 		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/sand.png"));
 		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/sand_NRM.png"));
+		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/rock.png"));
+		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/rock_NRM.png"));
 		
 		_ground = new RN::Entity(ground);
 		_ground->SetScale(RN::Vector3(20.0f));
@@ -128,7 +130,7 @@ namespace TG
 			
 			// Reeds
 			if(sand > 0.2f)
-			{				
+			{
 				if(pos.y < -1.4f || value > 75)
 					continue;
 				
