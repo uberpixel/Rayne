@@ -226,8 +226,12 @@ namespace RN
 					Material *material = object.material;
 					Material *surfaceOrMaterial = surfaceMaterial ? surfaceMaterial : material;
 					
+#define IsOverriden(attribute) \
+	((material->GetOverride() & Material::Override::attribute || surfaceOrMaterial->GetOverride() & Material::Override::attribute))
+					
+					
 					Mesh   *mesh = object.mesh;
-					Shader *shader = surfaceOrMaterial->GetShader();
+					Shader *shader = IsOverriden(Shader) ? material->GetShader() : surfaceOrMaterial->GetShader();
 					
 					Matrix& transform = object.transform ? *object.transform : identityMatrix;
 					Matrix inverseTransform = transform.GetInverse();
@@ -239,10 +243,7 @@ namespace RN
 						if(!shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
 							continue;
 					}
-								
-#define IsOverriden(attribute) \
-	((material->GetOverride() & Material::Override::attribute || surfaceOrMaterial->GetOverride() & Material::Override::attribute))
-					
+										
 					// Grab the correct shader program
 					std::vector<ShaderDefine> defines;
 					ShaderLookup lookup = material->GetLookup();

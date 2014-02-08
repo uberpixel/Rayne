@@ -114,6 +114,7 @@ namespace RN
 				Textures = (1 << 13),
 				PolygonOffset = (1 << 14),
 				PolygonMode = (1 << 15),
+				Shader = (1 << 16),
 				
 				GroupBlending = (Blending | Blendmode | Blendequation),
 				GroupDiscard = (Discard | DiscardThreshold | Textures)
