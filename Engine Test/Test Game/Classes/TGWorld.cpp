@@ -227,7 +227,7 @@ namespace TG
 		_refractCamera->SetMaterial(refractCopy);
 		waterPipeline->AddStage(_refractCamera, RN::RenderStage::Mode::ReUsePreviousStage);
 		
-		RN::Camera *waterStage = new RN::Camera(RN::Vector2(_camera->GetFrame().Size()), storage, RN::Camera::Flags::UpdateStorageFrame);
+		RN::Camera *waterStage = new RN::Camera(RN::Vector2(_camera->GetFrame().Size()), storage, RN::Camera::Flags::Defaults);
 		waterStage->SetClearMask(0);
 		waterStage->SetRenderGroups(RN::Camera::RenderGroups::Group2 | RN::Camera::RenderGroups::Group3);
 		//waterPipeline->AddStage(waterStage, RN::RenderStage::Mode::ReRender);
