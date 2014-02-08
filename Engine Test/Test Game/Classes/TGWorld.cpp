@@ -305,14 +305,33 @@ namespace TG
 	void World::PPActivateBloom(RN::Camera *cam)
 	{
 		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
-		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
+		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_GaussBlur");
 		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
+		
+		float blurWeights[10];
+		float sigma = 4.5/3;
+		sigma *= sigma;
+		int n = 0;
+		float gaussfactor = 1.0f/(sqrt(2.0f*RN::k::Pi*sigma));
+		float weightsum = 0;
+		for(float i = -4.5f; i <= 4.6f; i += 1.0f)
+		{
+			blurWeights[n] = exp(-(i*i/2.0f*sigma))*gaussfactor;
+			weightsum += blurWeights[n];
+			n++;
+		}
+		for(int i = 0; i < n; i++)
+		{
+			blurWeights[i] /= weightsum;
+		}
 		
 		RN::Material *blurXMaterial = new RN::Material(blurShader);
 		blurXMaterial->Define("RN_BLURX");
+		blurXMaterial->AddShaderUniform("kernelWeights", RN::Material::ShaderUniform::Type::Float1, blurWeights, 10, true);
 		
 		RN::Material *blurYMaterial = new RN::Material(blurShader);
 		blurYMaterial->Define("RN_BLURY");
+		blurYMaterial->AddShaderUniform("kernelWeights", RN::Material::ShaderUniform::Type::Float1, blurWeights, 10, true);
 		
 		RN::Material *downMaterial = new RN::Material(updownShader);
 		downMaterial->Define("RN_DOWNSAMPLE");
