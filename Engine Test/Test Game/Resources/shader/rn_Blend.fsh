@@ -63,10 +63,27 @@ void main()
 	
 	vec4 color = mix(color1, color0, min(max(((1.0-blend.r*2.0)-height.r)*8.0, 0.0), 1.0));
 	
+/*	float shadow = 1.0;
+#if defined(RN_LIGHTING) && defined(RN_DIRECTIONAL_LIGHTS)
+	vec3 lightdir = normalize(transpose(matTangentInv)*lightDirectionalDirection[0]);
+	vec3 currpos = vec3(vertTexcoord.xy, height.r*0.5+0.5);
+	float steps = (1.0-currpos.z)/lightdir.z;
+	for(float i = 0.0; i < steps; i += 0.1)
+	{
+		currpos += lightdir*0.05;
+		if(texture(mTexture4, currpos.xy).r > currpos.z)
+		{
+			shadow = 0.2;
+			break;
+		}
+	}
+#endif*/
+	
 	color = mix(color, color2, blend.b);
 	color = mix(color, color3, blend.g);
 	
 	rn_Lighting(color, vec4(0.0), normal, vertPosition);
+	//color *= shadow;
 	
 #if defined(RN_FOG)
 	float camdist = max(min((length(vertPosition-viewPosition)-fogPlanes.x)*fogPlanes.y, 1.0), 0.0);

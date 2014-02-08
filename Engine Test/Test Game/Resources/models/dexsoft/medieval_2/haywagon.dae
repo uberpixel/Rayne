@@ -17,7 +17,7 @@
       <init_from>file:///C:/test/haywagon_D.tga</init_from>
     </image>
     <image id="Image1" name="haywagon_DISP">
-      <init_from>file:///C:/test/haywagon_DISP.tga</init_from>
+      <init_from>file:///C:/test/haywagon_N.tga</init_from>
     </image>
   </library_images>
   <library_materials>
