@@ -238,7 +238,7 @@ namespace TG
 		_camera->SetRenderGroups(_camera->GetRenderGroups() | RN::Camera::RenderGroups::Group1 | RN::Camera::RenderGroups::Group3);
 		_camera->SetSky(sky);
 		
-		RN::PostProcessingPipeline *waterPipeline = _camera->AddPostProcessingPipeline("water");
+		RN::PostProcessingPipeline *waterPipeline = _camera->AddPostProcessingPipeline("water", 0);
 		
 		RN::Material *refractCopy = new RN::Material(RN::Shader::WithFile("shader/rn_PPCopy"));
 		refractCopy->Define("RN_COPYDEPTH");
@@ -257,14 +257,14 @@ namespace TG
 		_camera->AddChild(_waterCamera);
 		
 #if TGWorldFeatureSSAO
-		_ssaoPipeline = PPCreateSSAOPipeline(_waterCamera);
+		_ssaoPipeline = PPCreateSSAOPipeline(_waterCamera)->Retain();
 #endif
 		
 #if TGWorldFeatureBloom
-		_bloomPipeline = PPCreateBloomPipeline(_waterCamera);
+		_bloomPipeline = PPCreateBloomPipeline(_waterCamera)->Retain();
 #endif
 		
-		_fxaaPipeline = PPCreateFXAAPipeline(_waterCamera);
+		_fxaaPipeline = PPCreateFXAAPipeline(_waterCamera)->Retain();
 	}
 	
 	RN::PostProcessingPipeline *World::PPCreateSSAOPipeline(RN::Camera *cam)
@@ -298,7 +298,7 @@ namespace TG
 		combineStage->SetMaterial(combineMaterial);
 		combineMaterial->AddTexture(blurYStage->GetStorage()->GetRenderTarget());
 		
-		RN::PostProcessingPipeline *ssaoPipeline = cam->AddPostProcessingPipeline("SSAO");
+		RN::PostProcessingPipeline *ssaoPipeline = cam->AddPostProcessingPipeline("SSAO", 1);
 		ssaoPipeline->AddStage(depthStage, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(ssaoStage, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(blurXStage, RN::RenderStage::Mode::ReUsePreviousStage);
@@ -381,7 +381,7 @@ namespace TG
 		RN::Camera *bloomCombine = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomCombine->SetMaterial(bloomCombineMaterial);
 		
-		RN::PostProcessingPipeline *bloomPipeline = cam->AddPostProcessingPipeline("Bloom");
+		RN::PostProcessingPipeline *bloomPipeline = cam->AddPostProcessingPipeline("Bloom", 2);
 		bloomPipeline->AddStage(filterBright, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloomPipeline->AddStage(downSample4x, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloomPipeline->AddStage(downSample8x, RN::RenderStage::Mode::ReUsePreviousStage);
@@ -411,7 +411,7 @@ namespace TG
 		RN::Camera *fxaaCam = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		fxaaCam->SetMaterial(fxaaMaterial);
 		
-		RN::PostProcessingPipeline *fxaaPipeline = cam->AddPostProcessingPipeline("FXAA");
+		RN::PostProcessingPipeline *fxaaPipeline = cam->AddPostProcessingPipeline("FXAA", 3);
 		fxaaPipeline->AddStage(tonemappingCam, RN::RenderStage::Mode::ReUsePipeline);
 		fxaaPipeline->AddStage(fxaaCam, RN::RenderStage::Mode::ReUsePipeline);
 		
@@ -423,49 +423,29 @@ namespace TG
 	void World::PPToggleBloom()
 	{
 		_bloomActive = !_bloomActive;
-		
-		_waterCamera->RemovePostProcessingPipeline(_ssaoPipeline);
-		_waterCamera->RemovePostProcessingPipeline(_bloomPipeline);
-		_waterCamera->RemovePostProcessingPipeline(_fxaaPipeline);
-		
-		if(_ssaoActive)
-			_waterCamera->AddPostProcessingPipeline(_ssaoPipeline);
+		if(!_bloomActive)
+			_waterCamera->RemovePostProcessingPipeline(_bloomPipeline);
 		if(_bloomActive)
 			_waterCamera->AddPostProcessingPipeline(_bloomPipeline);
-		if(_fxaaActive)
-			_waterCamera->AddPostProcessingPipeline(_fxaaPipeline);
 	}
 	
 	void World::PPToggleSSAO()
 	{
 		_ssaoActive = !_ssaoActive;
 		
-		_waterCamera->RemovePostProcessingPipeline(_ssaoPipeline);
-		_waterCamera->RemovePostProcessingPipeline(_bloomPipeline);
-		_waterCamera->RemovePostProcessingPipeline(_fxaaPipeline);
-		
+		if(!_ssaoActive)
+			_waterCamera->RemovePostProcessingPipeline(_ssaoPipeline);
 		if(_ssaoActive)
-		_waterCamera->AddPostProcessingPipeline(_ssaoPipeline);
-		if(_bloomActive)
-		_waterCamera->AddPostProcessingPipeline(_bloomPipeline);
-		if(_fxaaActive)
-		_waterCamera->AddPostProcessingPipeline(_fxaaPipeline);
-	}
+			_waterCamera->AddPostProcessingPipeline(_ssaoPipeline);	}
 	
 	void World::PPToggleFXAA()
 	{
 		_fxaaActive = !_fxaaActive;
 		
-		_waterCamera->RemovePostProcessingPipeline(_ssaoPipeline);
-		_waterCamera->RemovePostProcessingPipeline(_bloomPipeline);
-		_waterCamera->RemovePostProcessingPipeline(_fxaaPipeline);
-		
-		if(_ssaoActive)
-		_waterCamera->AddPostProcessingPipeline(_ssaoPipeline);
-		if(_bloomActive)
-		_waterCamera->AddPostProcessingPipeline(_bloomPipeline);
+		if(!_fxaaActive)
+			_waterCamera->RemovePostProcessingPipeline(_fxaaPipeline);
 		if(_fxaaActive)
-		_waterCamera->AddPostProcessingPipeline(_fxaaPipeline);
+			_waterCamera->AddPostProcessingPipeline(_fxaaPipeline);
 	}
 
 	void World::LoadLevelJSON(const std::string &file)
