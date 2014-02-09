@@ -39,9 +39,22 @@ namespace TG
 		std::vector<RN::AABB> _obstacles;
 		
 	private:
-		void PPActivateBloom(RN::Camera *camera);
-		void PPActivateSSAO(RN::Camera *camera);
-		void PPActivateFXAA(RN::Camera *camera);
+		RN::PostProcessingPipeline *PPCreateBloomPipeline(RN::Camera *camera);
+		RN::PostProcessingPipeline *PPCreateSSAOPipeline(RN::Camera *camera);
+		RN::PostProcessingPipeline *PPCreateFXAAPipeline(RN::Camera *camera);
+		
+		void PPToggleBloom();
+		void PPToggleSSAO();
+		void PPToggleFXAA();
+		
+		bool _bloomActive;
+		bool _ssaoActive;
+		bool _fxaaActive;
+		
+		RN::Camera *_waterCamera;
+		RN::PostProcessingPipeline *_ssaoPipeline;
+		RN::PostProcessingPipeline *_bloomPipeline;
+		RN::PostProcessingPipeline *_fxaaPipeline;
 		
 		float _exposure;
 		float _whitepoint;

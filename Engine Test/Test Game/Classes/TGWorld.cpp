@@ -20,7 +20,13 @@ namespace TG
 		_frameCapturing(false),
 		_camera(nullptr),
 		_refractCamera(nullptr),
-		_sunLight(nullptr)
+		_sunLight(nullptr),
+		_bloomActive(false),
+		_fxaaActive(false),
+		_ssaoActive(false),
+		_bloomPipeline(nullptr),
+		_fxaaPipeline(nullptr),
+		_ssaoPipeline(nullptr)
 	{
 		SetReleaseSceneNodesOnDestruction(true);
 	}
@@ -48,6 +54,19 @@ namespace TG
 					RNDebug("{%f, %f, %f}", position.x, position.y, position.z);
 					RNDebug("{%f, %f, %f}", euler.x, euler.y, euler.z);
 					break;
+				}
+				
+				case 'b':
+				{
+					PPToggleBloom();
+				}
+				case 'n':
+				{
+					PPToggleSSAO();
+				}
+				case 'm':
+				{
+					PPToggleFXAA();
 				}
 					
 				default:
@@ -227,38 +246,41 @@ namespace TG
 		_refractCamera->SetMaterial(refractCopy);
 		waterPipeline->AddStage(_refractCamera, RN::RenderStage::Mode::ReUsePreviousStage);
 		
-		RN::Camera *waterStage = new RN::Camera(RN::Vector2(_camera->GetFrame().Size()), storage, RN::Camera::Flags::Defaults);
-		waterStage->SetClearMask(0);
-		waterStage->SetRenderGroups(RN::Camera::RenderGroups::Group2 | RN::Camera::RenderGroups::Group3);
+		_waterCamera = new RN::Camera(RN::Vector2(_camera->GetFrame().Size()), storage, RN::Camera::Flags::Defaults);
+		_waterCamera->SetClearMask(0);
+		_waterCamera->SetRenderGroups(RN::Camera::RenderGroups::Group2 | RN::Camera::RenderGroups::Group3);
 		//waterPipeline->AddStage(waterStage, RN::RenderStage::Mode::ReRender);
 		
-		waterStage->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
-		waterStage->SetPriority(-100);
+		_waterCamera->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
+		_waterCamera->SetPriority(-100);
 		
-		_camera->AddChild(waterStage);
+		_camera->AddChild(_waterCamera);
 		
 #if TGWorldFeatureSSAO
-		PPActivateSSAO(waterStage);
+		_ssaoPipeline = PPCreateSSAOPipeline(_waterCamera);
 #endif
 		
 #if TGWorldFeatureBloom
-		PPActivateBloom(waterStage);
+		_bloomPipeline = PPCreateBloomPipeline(_waterCamera);
 #endif
 		
-		PPActivateFXAA(waterStage);
+		_fxaaPipeline = PPCreateFXAAPipeline(_waterCamera);
 	}
 	
-	void World::PPActivateSSAO(RN::Camera *cam)
+	RN::PostProcessingPipeline *World::PPCreateSSAOPipeline(RN::Camera *cam)
 	{
 		RN::Shader *depthShader = RN::Shader::WithFile("shader/SAO_reconstructCSZ");
 		RN::Shader *ssaoShader = RN::Shader::WithFile("shader/SAO_AO");
 		RN::Shader *blurShader = RN::Shader::WithFile("shader/SAO_blur");
+		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
 		
 		RN::Material *depthMaterial = new RN::Material(depthShader);
 		RN::Material *ssaoMaterial = new RN::Material(ssaoShader);
 		RN::Material *blurXMaterial = new RN::Material(blurShader);
 		blurXMaterial->Define("RN_BLURX");
 		RN::Material *blurYMaterial = new RN::Material(blurShader);
+		RN::Material *combineMaterial = new RN::Material(combineShader);
+		combineMaterial->Define("MODE_GRAYSCALE");
 		
 		RN::Camera *depthStage = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA32F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		depthStage->SetMaterial(depthMaterial);
@@ -272,81 +294,23 @@ namespace TG
 		RN::Camera *blurYStage = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA8888, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		blurYStage->SetMaterial(blurYMaterial);
 		
+		RN::Camera *combineStage  = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		combineStage->SetMaterial(combineMaterial);
+		combineMaterial->AddTexture(blurYStage->GetStorage()->GetRenderTarget());
+		
 		RN::PostProcessingPipeline *ssaoPipeline = cam->AddPostProcessingPipeline("SSAO");
 		ssaoPipeline->AddStage(depthStage, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(ssaoStage, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(blurXStage, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(blurYStage, RN::RenderStage::Mode::ReUsePreviousStage);
-
-		
-		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
-		RN::Material *combineMaterial = new RN::Material(combineShader);
-		combineMaterial->AddTexture(blurYStage->GetStorage()->GetRenderTarget());
-		combineMaterial->Define("MODE_GRAYSCALE");
-		
-		RN::Camera *combineStage  = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		combineStage->SetMaterial(combineMaterial);
-		
 		ssaoPipeline->AddStage(combineStage, RN::RenderStage::Mode::ReUsePipeline);
 		
-/*		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
-		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
-		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
+		_ssaoActive = true;
 		
-		RN::Material *blurXMaterial = new RN::Material(blurShader);
-		blurXMaterial->Define("RN_BLURX");
-		
-		RN::Material *blurYMaterial = new RN::Material(blurShader);
-		blurYMaterial->Define("RN_BLURY");
-		
-		RN::Material *downMaterial = new RN::Material(updownShader);
-		downMaterial->Define("RN_DOWNSAMPLE");
-		
-		// Surface normals
-		RN::Shader *surfaceShader = RN::Shader::WithFile("shader/rn_SurfaceNormals");
-		RN::Material *surfaceMaterial = new RN::Material(surfaceShader);
-		
-		RN::Camera *normalsCamera = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::NoSky | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatComplete);
-		normalsCamera->SetMaterial(surfaceMaterial);
-		//normalsCamera->GetStorage()->SetDepthTarget(_depthtex);
-		//normalsCamera->SetClearMask(RN::Camera::ClearFlagColor);
-		
-		// SSAO stage
-		RN::Texture *ssaoNoise = RN::Texture::WithFile("textures/rn_SSAONoise.png");
-		
-		RN::Shader *ssaoShader = RN::Shader::WithFile("shader/rn_SSAO");
-		RN::Material *ssaoMaterial = new RN::Material(ssaoShader);
-		ssaoMaterial->AddTexture(ssaoNoise);
-		
-		RN::Camera *ssaoCamera  = new RN::Camera(RN::Vector2(), RN::Texture::Format::R8, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		ssaoCamera->SetMaterial(ssaoMaterial);
-		
-		// Blur X
-		RN::Camera *ssaoBlurX = new RN::Camera(RN::Vector2(), RN::Texture::Format::R8, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		ssaoBlurX->SetMaterial(blurXMaterial);
-		
-		// Blur Y
-		RN::Camera *ssaoBlurY = new RN::Camera(RN::Vector2(), RN::Texture::Format::R8, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		ssaoBlurY->SetMaterial(blurYMaterial);
-		
-		// Combine stage
-		RN::Material *ssaoCombineMaterial = new RN::Material(combineShader);
-		ssaoCombineMaterial->AddTexture(ssaoBlurY->GetStorage()->GetRenderTarget());
-		ssaoCombineMaterial->Define("MODE_GRAYSCALE");
-		
-		RN::Camera *ssaoCombineCamera  = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		ssaoCombineCamera->SetMaterial(ssaoCombineMaterial);
-		
-		// PP pipeline
-		RN::PostProcessingPipeline *ssaoPipeline = cam->AddPostProcessingPipeline("SSAO");
-		ssaoPipeline->AddStage(normalsCamera, RN::RenderStage::Mode::ReRender);
-		ssaoPipeline->AddStage(ssaoCamera, RN::RenderStage::Mode::ReUsePreviousStage);
-		ssaoPipeline->AddStage(ssaoBlurX, RN::RenderStage::Mode::ReUsePreviousStage);
-		ssaoPipeline->AddStage(ssaoBlurY, RN::RenderStage::Mode::ReUsePreviousStage);
-		ssaoPipeline->AddStage(ssaoCombineCamera, RN::RenderStage::Mode::ReUsePipeline);*/
+		return ssaoPipeline;
 	}
 	
-	void World::PPActivateBloom(RN::Camera *cam)
+	RN::PostProcessingPipeline *World::PPCreateBloomPipeline(RN::Camera *cam)
 	{
 		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
 		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_GaussBlur");
@@ -417,18 +381,22 @@ namespace TG
 		RN::Camera *bloomCombine = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomCombine->SetMaterial(bloomCombineMaterial);
 		
-		RN::PostProcessingPipeline *bloom = cam->AddPostProcessingPipeline("Bloom");
-		bloom->AddStage(filterBright, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(downSample4x, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(downSample8x, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomBlurXlow, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomBlurYlow, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomBlurXhigh, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomBlurYhigh, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomCombine, RN::RenderStage::Mode::ReUsePipeline);
+		RN::PostProcessingPipeline *bloomPipeline = cam->AddPostProcessingPipeline("Bloom");
+		bloomPipeline->AddStage(filterBright, RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(downSample4x, RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(downSample8x, RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomBlurXlow, RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomBlurYlow, RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomBlurXhigh, RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomBlurYhigh, RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomCombine, RN::RenderStage::Mode::ReUsePipeline);
+		
+		_bloomActive = true;
+		
+		return bloomPipeline;
 	}
 	
-	void World::PPActivateFXAA(RN::Camera *cam)
+	RN::PostProcessingPipeline *World::PPCreateFXAAPipeline(RN::Camera *cam)
 	{
 		RN::Shader *tonemappingShader = RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap");
 		RN::Shader *fxaaShader = RN::Shader::WithFile("shader/rn_FXAA");
@@ -443,9 +411,61 @@ namespace TG
 		RN::Camera *fxaaCam = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		fxaaCam->SetMaterial(fxaaMaterial);
 		
-		RN::PostProcessingPipeline *fxaa = cam->AddPostProcessingPipeline("FXAA");
-		fxaa->AddStage(tonemappingCam, RN::RenderStage::Mode::ReUsePipeline);
-		fxaa->AddStage(fxaaCam, RN::RenderStage::Mode::ReUsePipeline);
+		RN::PostProcessingPipeline *fxaaPipeline = cam->AddPostProcessingPipeline("FXAA");
+		fxaaPipeline->AddStage(tonemappingCam, RN::RenderStage::Mode::ReUsePipeline);
+		fxaaPipeline->AddStage(fxaaCam, RN::RenderStage::Mode::ReUsePipeline);
+		
+		_fxaaActive = true;
+		
+		return fxaaPipeline;
+	}
+	
+	void World::PPToggleBloom()
+	{
+		_bloomActive = !_bloomActive;
+		
+		_waterCamera->RemovePostProcessingPipeline(_ssaoPipeline);
+		_waterCamera->RemovePostProcessingPipeline(_bloomPipeline);
+		_waterCamera->RemovePostProcessingPipeline(_fxaaPipeline);
+		
+		if(_ssaoActive)
+			_waterCamera->AddPostProcessingPipeline(_ssaoPipeline);
+		if(_bloomActive)
+			_waterCamera->AddPostProcessingPipeline(_bloomPipeline);
+		if(_fxaaActive)
+			_waterCamera->AddPostProcessingPipeline(_fxaaPipeline);
+	}
+	
+	void World::PPToggleSSAO()
+	{
+		_ssaoActive = !_ssaoActive;
+		
+		_waterCamera->RemovePostProcessingPipeline(_ssaoPipeline);
+		_waterCamera->RemovePostProcessingPipeline(_bloomPipeline);
+		_waterCamera->RemovePostProcessingPipeline(_fxaaPipeline);
+		
+		if(_ssaoActive)
+		_waterCamera->AddPostProcessingPipeline(_ssaoPipeline);
+		if(_bloomActive)
+		_waterCamera->AddPostProcessingPipeline(_bloomPipeline);
+		if(_fxaaActive)
+		_waterCamera->AddPostProcessingPipeline(_fxaaPipeline);
+	}
+	
+	void World::PPToggleFXAA()
+	{
+		_fxaaActive = !_fxaaActive;
+		
+		_waterCamera->RemovePostProcessingPipeline(_ssaoPipeline);
+		_waterCamera->RemovePostProcessingPipeline(_bloomPipeline);
+		_waterCamera->RemovePostProcessingPipeline(_fxaaPipeline);
+		
+		if(_ssaoActive)
+		_waterCamera->AddPostProcessingPipeline(_ssaoPipeline);
+		if(_bloomActive)
+		_waterCamera->AddPostProcessingPipeline(_bloomPipeline);
+		if(_fxaaActive)
+		_waterCamera->AddPostProcessingPipeline(_fxaaPipeline);
 	}
 
 	void World::LoadLevelJSON(const std::string &file)

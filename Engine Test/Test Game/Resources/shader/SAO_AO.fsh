@@ -70,7 +70,7 @@ uniform sampler2D       targetmap0;
 #define           bias 0.03
 
 /** intensity / radius^6 */
-#define           intensityDivR6 (0.5/radius)
+#define           intensityDivR6 (1.0/radius)
 
 // Compatibility with future versions of GLSL: the shader still works if you change the 
 // version line at the top to something like #version 330 compatibility.
