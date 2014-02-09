@@ -186,22 +186,24 @@ namespace RN
 		
 		while(!thread->IsCancelled())
 		{
-			Task task;
-			
-			while(1)
 			{
-				bool result = local->hose.pop(task);
-				if(!result)
-					break;
+				Task task;
 				
-				task.function();
-					
-				if(task.batch)
+				while(1)
 				{
-					if((-- task.batch->_openTasks) == 0)
+					bool result = local->hose.pop(task);
+					if(!result)
+						break;
+					
+					task.function();
+						
+					if(task.batch)
 					{
-						task.batch->_waitCondition.notify_all();
-						task.batch->Release();
+						if((-- task.batch->_openTasks) == 0)
+						{
+							task.batch->_waitCondition.notify_all();
+							task.batch->Release();
+						}
 					}
 				}
 			}
