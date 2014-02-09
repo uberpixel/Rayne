@@ -19,6 +19,7 @@
 namespace RN
 {
 	RNDefineMeta(Camera)
+	RNDefineMeta(PostProcessingPipeline)
 	
 	RenderStage::RenderStage(Camera *camera, Camera *connection, Mode mode)
 	{
@@ -84,24 +85,23 @@ namespace RN
 	
 	
 	
-	PostProcessingPipeline::PostProcessingPipeline(const std::string& name) :
-		_name(name)
-	{
-		host = 0;
-	}
+	PostProcessingPipeline::PostProcessingPipeline(const std::string& name, int32 priority) :
+		_name(name),
+		_priority(priority),
+		host(nullptr)
+	{}
 	
 	PostProcessingPipeline::~PostProcessingPipeline()
-	{
-	}
+	{}
 	
 	void PostProcessingPipeline::Initialize()
-	{
-	}
+	{}
 	
 	
 	RenderStage *PostProcessingPipeline::AddStage(Camera *camera, RenderStage::Mode mode)
 	{
-		Camera *previous = 0;
+		Camera *previous = nullptr;
+		
 		if(stages.size() > 0)
 		{
 			RenderStage& stage = stages[stages.size() - 1];
@@ -119,7 +119,7 @@ namespace RN
 	
 	void PostProcessingPipeline::PushUpdate(Camera *source, float delta)
 	{
-		for(auto i=stages.begin(); i!=stages.end(); i++)
+		for(auto i = stages.begin(); i != stages.end(); i ++)
 		{
 			Camera *camera = i->GetCamera();
 			if(camera == source)
@@ -131,7 +131,7 @@ namespace RN
 	
 	void PostProcessingPipeline::PostUpdate(Camera *source, const Vector3& position, const Quaternion& rotation, const Rect& frame)
 	{
-		for(auto i=stages.begin(); i!=stages.end(); i++)
+		for(auto i = stages.begin(); i != stages.end(); i ++)
 		{
 			Camera *camera = i->GetCamera();
 			if(camera  == source)
@@ -152,7 +152,7 @@ namespace RN
 	
 	void PostProcessingPipeline::PushProjectionUpdate(Camera *source)
 	{
-		for(auto i=stages.begin(); i!=stages.end(); i++)
+		for(auto i = stages.begin(); i != stages.end(); i ++)
 		{
 			Camera *stage = i->GetCamera();
 			if(stage == source)
@@ -170,109 +170,6 @@ namespace RN
 			}
 		}
 	}
-	
-	
-	DownsamplePostProcessingPipeline::DownsamplePostProcessingPipeline(const std::string& name, Camera *camera, Texture *texture, Shader *firstShader, Shader *shader, Texture::Format format) :
-		PostProcessingPipeline(name)
-	{
-		Texture::Parameter parameter;
-		parameter.format = format;
-		
-		_lastTarget = new Texture2D(parameter);
-		_format = format;
-		_level = 0;
-		
-		_texture = texture ? texture->Retain() : 0;
-		_camera = camera->Retain();
-		_firstShader = firstShader ? firstShader->Retain() : shader->Retain();
-		_shader = shader->Retain();
-	}
-	
-	DownsamplePostProcessingPipeline::~DownsamplePostProcessingPipeline()
-	{
-		_firstShader->Release();
-		_shader->Release();
-		
-		_camera->Release();
-		_texture->Release();
-		_lastTarget->Release();
-	}
-	
-	void DownsamplePostProcessingPipeline::Initialize()
-	{
-		_level = 0;
-		_frame = Rect();
-		
-		PushUpdate(nullptr, 0.0f);
-	}
-	
-	void DownsamplePostProcessingPipeline::PushUpdate(Camera *source, float delta)
-	{
-		bool needsUpdate = false;
-		bool needsRecreation = false;
-		
-		if(_frame != host->GetFrame())
-		{
-			_frame = host->GetFrame();
-			needsUpdate = true;
-		}
-		
-		int level = 0; //Kernel::GetSharedInstance()->GetActiveScaleFactor() + log2(_camera->GetLightClusters().x) - 1;
-		if(level != _level)
-		{
-			_level = level;
-			needsRecreation = true;
-		}
-		
-		
-		if(needsRecreation)
-		{
-			RecreateStages();
-		}
-		else if(needsUpdate)
-		{
-			UpdateStages();
-		}
-		
-		PostProcessingPipeline::PushUpdate(source, delta);
-	}
-	
-	void DownsamplePostProcessingPipeline::UpdateStages()
-	{
-		int factor = 1;
-		
-		for(auto i=stages.begin(); i!=stages.end(); i++)
-		{
-			factor <<= 1;
-			i->GetCamera()->SetFrame(Rect(Vector2(0.0f), Vector2(_frame.Size().x / factor, _frame.Size().y / factor)));
-		}
-	}
-	
-	void DownsamplePostProcessingPipeline::RecreateStages()
-	{
-		stages.clear();
-		uint32 flags = Camera::Flags::UpdateStorageFrame | Camera::Flags::InheritProjection;
-		
-		for(int i=0; i<_level; i++)
-		{
-			Material *temp = new Material((i == 0) ? _firstShader : _shader);
-			temp->AddTexture(_texture);
-			
-			Camera *camera = new Camera(Vector2(), _format, flags, RenderStorage::BufferFormatColor);
-			camera->SetMaterial(temp);
-			
-			if(i == _level - 1)
-				camera->GetStorage()->SetRenderTarget(_lastTarget);
-			
-			AddStage(camera, RenderStage::Mode::ReUsePreviousStage);
-			
-			camera->Release();
-			temp->Release();
-		}
-		
-		UpdateStages();
-	}
-
 	
 	
 	Camera::Camera() :
@@ -347,7 +244,7 @@ namespace RN
 		SafeRelease(_blitShader);
 		
 		for(PostProcessingPipeline *pipeline : _PPPipelines)
-			delete pipeline;
+			pipeline->Release();
 		
 		if(_lightManager)
 		{
@@ -637,14 +534,13 @@ namespace RN
 	}
 	
 	// Post Processing
-	
-	PostProcessingPipeline *Camera::AddPostProcessingPipeline(const std::string& name)
+	PostProcessingPipeline *Camera::AddPostProcessingPipeline(const std::string& name, int32 priority)
 	{
-		PostProcessingPipeline *pipeline = new PostProcessingPipeline(name);
+		PostProcessingPipeline *pipeline = new PostProcessingPipeline(name, priority);
 		try
 		{
 			AddPostProcessingPipeline(pipeline);
-			return pipeline;
+			return pipeline->Autorelease();
 		}
 		catch(Exception e)
 		{
@@ -669,10 +565,15 @@ namespace RN
 			throw Exception(Exception::Type::InvalidArgumentException, "A pipeline with this name already exists, or the pipeline is already associated with a camera!");
 		
 		_PPPipelines.push_back(pipeline);
-		_namedPPPipelines.insert(std::map<std::string, PostProcessingPipeline *>::value_type(pipeline->_name, pipeline));
+		_namedPPPipelines.emplace(pipeline->_name, pipeline);
 		
 		pipeline->host = this;
 		pipeline->Initialize();
+		pipeline->Retain();
+		
+		std::stable_sort(_PPPipelines.begin(), _PPPipelines.end(), [&](PostProcessingPipeline *left, PostProcessingPipeline *right) {
+			return (left->_priority < right->_priority);
+		});
 	}
 	
 	void Camera::RemovePostProcessingPipeline(PostProcessingPipeline *pipeline)
@@ -686,7 +587,8 @@ namespace RN
 				_PPPipelines.erase(i);
 				_namedPPPipelines.erase(pipeline->_name);
 				
-				delete pipeline;
+				pipeline->host = nullptr;
+				pipeline->Release();
 				break;
 			}
 		}
