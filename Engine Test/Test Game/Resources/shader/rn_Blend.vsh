@@ -31,4 +31,7 @@ void main()
 	vertNormal = (matModel * vec4(attNormal, 0.0)).xyz;
 	vertTangent = (matModel * vec4(attTangent.xyz, 0.0)).xyz;
 	vertBitangent = cross(vertNormal, vertTangent) * attTangent.w;
+	
+/*	gl_Position = matProjViewModel * vec4(attPosition, 1.0);
+	gl_Position.xy /= gl_Position.w;*/
 }
