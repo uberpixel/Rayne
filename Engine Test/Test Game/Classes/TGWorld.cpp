@@ -219,7 +219,7 @@ namespace TG
 		PPActivateSSAO(_camera);
 #endif
 		
-		RN::PostProcessingPipeline *waterPipeline = _camera->AddPostProcessingPipeline("water");
+		RN::PostProcessingPipeline *waterPipeline = _camera->AddPostProcessingPipeline("water", 0);
 		
 		RN::Material *refractCopy = new RN::Material(RN::Shader::WithFile("shader/rn_PPCopy"));
 		refractCopy->Define("RN_COPYDEPTH");
@@ -295,7 +295,7 @@ namespace TG
 		ssaoCombineCamera->SetMaterial(ssaoCombineMaterial);
 		
 		// PP pipeline
-		RN::PostProcessingPipeline *ssaoPipeline = cam->AddPostProcessingPipeline("SSAO");
+		RN::PostProcessingPipeline *ssaoPipeline = cam->AddPostProcessingPipeline("SSAO", 0);
 		ssaoPipeline->AddStage(normalsCamera, RN::RenderStage::Mode::ReRender);
 		ssaoPipeline->AddStage(ssaoCamera, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(ssaoBlurX, RN::RenderStage::Mode::ReUsePreviousStage);
@@ -374,7 +374,7 @@ namespace TG
 		RN::Camera *bloomCombine = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomCombine->SetMaterial(bloomCombineMaterial);
 		
-		RN::PostProcessingPipeline *bloom = cam->AddPostProcessingPipeline("Bloom");
+		RN::PostProcessingPipeline *bloom = cam->AddPostProcessingPipeline("Bloom", 0);
 		bloom->AddStage(filterBright, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(downSample4x, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloom->AddStage(downSample8x, RN::RenderStage::Mode::ReUsePreviousStage);
@@ -400,7 +400,7 @@ namespace TG
 		RN::Camera *fxaaCam = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		fxaaCam->SetMaterial(fxaaMaterial);
 		
-		RN::PostProcessingPipeline *fxaa = cam->AddPostProcessingPipeline("FXAA");
+		RN::PostProcessingPipeline *fxaa = cam->AddPostProcessingPipeline("FXAA", 0);
 		fxaa->AddStage(tonemappingCam, RN::RenderStage::Mode::ReUsePipeline);
 		fxaa->AddStage(fxaaCam, RN::RenderStage::Mode::ReUsePipeline);
 	}

@@ -31,8 +31,9 @@ namespace RN
 	
 	class RenderStage
 	{
-	friend class Renderer;
 	public:
+		friend class Renderer;
+		
 		enum class Mode
 		{
 			ReRender,
@@ -68,13 +69,14 @@ namespace RN
 		Mode _mode;
 	};
 	
-	class PostProcessingPipeline
+	class PostProcessingPipeline : public Object
 	{
-	friend class Camera;
-	friend class Renderer;
 	public:
-		RNAPI PostProcessingPipeline(const std::string& name);
-		RNAPI virtual ~PostProcessingPipeline();
+		friend class Camera;
+		friend class Renderer;
+		
+		RNAPI PostProcessingPipeline(const std::string& name, int32 priority);
+		RNAPI ~PostProcessingPipeline();
 		
 		RNAPI RenderStage *AddStage(Camera *camera, RenderStage::Mode mode);
 		RNAPI RenderStage *AddStage(Camera *camera, Camera *connection, RenderStage::Mode mode);
@@ -94,36 +96,10 @@ namespace RN
 		void PushProjectionUpdate(Camera *source);
 		
 		std::string _name;
+		int32 _priority;
+		
+		RNDeclareMeta(PostProcessingPipeline, Object)
 	};
-	
-	
-	class DownsamplePostProcessingPipeline : public PostProcessingPipeline
-	{
-	public:
-		RNAPI DownsamplePostProcessingPipeline(const std::string& name, Camera *camera, Texture *texture, Shader *firstShader, Shader *shader, Texture::Format format);
-		RNAPI ~DownsamplePostProcessingPipeline();
-		
-		RNAPI Texture *GetLastTarget() { return _lastTarget; }
-		
-	protected:
-		RNAPI void Initialize() override;
-		RNAPI void PushUpdate(Camera *camera, float delta) override;
-		
-	private:
-		void UpdateStages();
-		void RecreateStages();
-		
-		int _level;
-		Rect _frame;
-		
-		Camera *_camera;
-		Texture::Format _format;
-		Texture *_texture;
-		Texture *_lastTarget;
-		Shader *_firstShader;
-		Shader *_shader;
-	};
-	
 	
 	class Camera : public SceneNode
 	{
@@ -323,7 +299,7 @@ namespace RN
 		bool HasDepthbuffer() const { return _storage->HasDepthbuffer(); }
 		bool HasStencilbuffer() const { return _storage->HasStencilbuffer(); }
 		
-		RNAPI PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name);
+		RNAPI PostProcessingPipeline *AddPostProcessingPipeline(const std::string& name, int32 priority);
 		RNAPI PostProcessingPipeline *GetPostProcessingPipeline(const std::string& name);
 		RNAPI void AddPostProcessingPipeline(PostProcessingPipeline *pipeline);
 		RNAPI void RemovePostProcessingPipeline(PostProcessingPipeline *pipeline);
