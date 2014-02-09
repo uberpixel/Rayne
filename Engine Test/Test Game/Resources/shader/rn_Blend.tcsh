@@ -44,4 +44,12 @@ void main()
 	gl_TessLevelOuter[1] = fac1;
 	gl_TessLevelOuter[2] = fac2;
 	gl_TessLevelInner[0] = min(min(fac0, fac1), fac2);
+
+/*	if(any(greaterThan(abs(gl_in[0].gl_Position.xy), vec2(1.0))) && any(greaterThan(abs(gl_in[1].gl_Position.xy), vec2(1.0))) && any(greaterThan(abs(gl_in[2].gl_Position.xy), vec2(1.0))))
+	{
+		gl_TessLevelOuter[0] = 0.0;
+		gl_TessLevelOuter[1] = 0.0;
+		gl_TessLevelOuter[2] = 0.0;
+		gl_TessLevelInner[0] = 0.0;
+	}*/
 }

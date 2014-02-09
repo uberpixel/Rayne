@@ -9,7 +9,7 @@
 #include "TGWorld.h"
 
 #define TGWorldFeatureBloom	1
-#define TGWorldFeatureSSAO  0
+#define TGWorldFeatureSSAO  1
 
 namespace TG
 {
@@ -191,8 +191,12 @@ namespace TG
 			
 			_camera->SetAmbientColor(color * (ambient * 5.0f));
 			_camera->SetFogColor(_sunLight->GetFogColor());
-			_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetAmbientColor(_camera->GetAmbientColor());
-			_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetFogColor(_sunLight->GetFogColor());
+			
+			if(_camera->GetChildren()->GetCount() > 0)
+			{
+				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetAmbientColor(_camera->GetAmbientColor());
+				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetFogColor(_sunLight->GetFogColor());
+			}
 		}
 	}
 	
@@ -215,10 +219,6 @@ namespace TG
 		_camera->SetRenderGroups(_camera->GetRenderGroups() | RN::Camera::RenderGroups::Group1 | RN::Camera::RenderGroups::Group3);
 		_camera->SetSky(sky);
 		
-#if TGWorldFeatureSSAO
-		PPActivateSSAO(_camera);
-#endif
-		
 		RN::PostProcessingPipeline *waterPipeline = _camera->AddPostProcessingPipeline("water", 0);
 		
 		RN::Material *refractCopy = new RN::Material(RN::Shader::WithFile("shader/rn_PPCopy"));
@@ -237,6 +237,10 @@ namespace TG
 		
 		_camera->AddChild(waterStage);
 		
+#if TGWorldFeatureSSAO
+		PPActivateSSAO(waterStage);
+#endif
+		
 #if TGWorldFeatureBloom
 		PPActivateBloom(waterStage);
 #endif
@@ -246,7 +250,46 @@ namespace TG
 	
 	void World::PPActivateSSAO(RN::Camera *cam)
 	{
+		RN::Shader *depthShader = RN::Shader::WithFile("shader/SAO_reconstructCSZ");
+		RN::Shader *ssaoShader = RN::Shader::WithFile("shader/SAO_AO");
+		RN::Shader *blurShader = RN::Shader::WithFile("shader/SAO_blur");
+		
+		RN::Material *depthMaterial = new RN::Material(depthShader);
+		RN::Material *ssaoMaterial = new RN::Material(ssaoShader);
+		RN::Material *blurXMaterial = new RN::Material(blurShader);
+		blurXMaterial->Define("RN_BLURX");
+		RN::Material *blurYMaterial = new RN::Material(blurShader);
+		
+		RN::Camera *depthStage = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA32F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		depthStage->SetMaterial(depthMaterial);
+		depthMaterial->AddTexture(_camera->GetStorage()->GetDepthTarget());
+		
+		RN::Camera *ssaoStage = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA8888, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		ssaoStage->SetMaterial(ssaoMaterial);
+		
+		RN::Camera *blurXStage = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA8888, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		blurXStage->SetMaterial(blurXMaterial);
+		RN::Camera *blurYStage = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA8888, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		blurYStage->SetMaterial(blurYMaterial);
+		
+		RN::PostProcessingPipeline *ssaoPipeline = cam->AddPostProcessingPipeline("SSAO", 0);
+		ssaoPipeline->AddStage(depthStage, RN::RenderStage::Mode::ReUsePreviousStage);
+		ssaoPipeline->AddStage(ssaoStage, RN::RenderStage::Mode::ReUsePreviousStage);
+		ssaoPipeline->AddStage(blurXStage, RN::RenderStage::Mode::ReUsePreviousStage);
+		ssaoPipeline->AddStage(blurYStage, RN::RenderStage::Mode::ReUsePreviousStage);
+
+		
 		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
+		RN::Material *combineMaterial = new RN::Material(combineShader);
+		combineMaterial->AddTexture(blurYStage->GetStorage()->GetRenderTarget());
+		combineMaterial->Define("MODE_GRAYSCALE");
+		
+		RN::Camera *combineStage  = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		combineStage->SetMaterial(combineMaterial);
+		
+		ssaoPipeline->AddStage(combineStage, RN::RenderStage::Mode::ReUsePipeline);
+		
+/*		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
 		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
 		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
 		
@@ -300,7 +343,7 @@ namespace TG
 		ssaoPipeline->AddStage(ssaoCamera, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(ssaoBlurX, RN::RenderStage::Mode::ReUsePreviousStage);
 		ssaoPipeline->AddStage(ssaoBlurY, RN::RenderStage::Mode::ReUsePreviousStage);
-		ssaoPipeline->AddStage(ssaoCombineCamera, RN::RenderStage::Mode::ReUsePipeline);
+		ssaoPipeline->AddStage(ssaoCombineCamera, RN::RenderStage::Mode::ReUsePipeline);*/
 	}
 	
 	void World::PPActivateBloom(RN::Camera *cam)
