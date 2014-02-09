@@ -59,14 +59,17 @@ namespace TG
 				case 'b':
 				{
 					PPToggleBloom();
+					break;
 				}
 				case 'n':
 				{
 					PPToggleSSAO();
+					break;
 				}
 				case 'm':
 				{
 					PPToggleFXAA();
+					break;
 				}
 					
 				default:
