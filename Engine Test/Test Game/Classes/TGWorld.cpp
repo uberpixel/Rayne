@@ -428,26 +428,25 @@ namespace TG
 		_bloomActive = !_bloomActive;
 		if(!_bloomActive)
 			_waterCamera->RemovePostProcessingPipeline(_bloomPipeline);
-		if(_bloomActive)
+		else
 			_waterCamera->AddPostProcessingPipeline(_bloomPipeline);
 	}
 	
 	void World::PPToggleSSAO()
 	{
 		_ssaoActive = !_ssaoActive;
-		
 		if(!_ssaoActive)
 			_waterCamera->RemovePostProcessingPipeline(_ssaoPipeline);
-		if(_ssaoActive)
-			_waterCamera->AddPostProcessingPipeline(_ssaoPipeline);	}
+		else
+			_waterCamera->AddPostProcessingPipeline(_ssaoPipeline);
+	}
 	
 	void World::PPToggleFXAA()
 	{
 		_fxaaActive = !_fxaaActive;
-		
 		if(!_fxaaActive)
 			_waterCamera->RemovePostProcessingPipeline(_fxaaPipeline);
-		if(_fxaaActive)
+		else
 			_waterCamera->AddPostProcessingPipeline(_fxaaPipeline);
 	}
 
