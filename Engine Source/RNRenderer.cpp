@@ -709,7 +709,7 @@ namespace RN
 	
 	void Renderer::BeginFrame(float delta)
 	{
-		_time += Kernel::GetSharedInstance()->GetTime();
+		_time = Kernel::GetSharedInstance()->GetTime();
 		
 		_renderedLights   = 0;
 		_renderedVertices = 0;
