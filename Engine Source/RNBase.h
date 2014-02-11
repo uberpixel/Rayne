@@ -224,8 +224,9 @@ namespace RN
 			_ptr(new T)
 		{}
 		
-		PIMPL(T *val) :
-			_ptr(val)
+		template<class ...Args>
+		PIMPL(Args &&...args) :
+			_ptr(new T(std::forward<Args>(args)...))
 		{}
 		
 		operator T* ()

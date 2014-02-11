@@ -79,7 +79,7 @@ namespace RN
 		// ---------------------
 		
 		StdoutLoggingEngine::StdoutLoggingEngine() :
-			_internal(new StreamLoggingInternal(std::clog))
+			_internal(std::clog)
 		{}
 		
 		void StdoutLoggingEngine::Open()
@@ -107,7 +107,7 @@ namespace RN
 		// ---------------------
 		
 		SimpleLoggingEngine::SimpleLoggingEngine() :
-			_internal(new StreamLoggingInternal(_stream))
+			_internal(_stream)
 		{}
 		
 		void SimpleLoggingEngine::Open()
