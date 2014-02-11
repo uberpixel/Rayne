@@ -22,7 +22,6 @@ namespace RN
 		AABB();
 		AABB(const Vector3& min, const Vector3& max);
 		AABB(const Vector3& pos, const float radius);
-		AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
 		
 		AABB operator+ (const AABB& other) const;
 		AABB& operator+= (const AABB& other);
@@ -33,7 +32,7 @@ namespace RN
 		bool Intersects(const AABB& other) const;
 		bool Contains(const Vector3 &position) const;
 		
-		void Rotate(const Quaternion& rotation);
+		void SetRotation(const Quaternion& rotation);
 		
 		Vector3 position;
 		Vector3 minExtend;
@@ -64,10 +63,6 @@ namespace RN
 		
 		position = pos;
 	}
-	
-	RN_INLINE AABB::AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) :
-		AABB(Vector3(minX, minY, minZ), Vector3(maxX, maxY, maxZ))
-	{}
 	
 	RN_INLINE AABB AABB::operator+ (const AABB& other) const
 	{
@@ -158,7 +153,7 @@ namespace RN
 		return true;
 	}
 	
-	RN_INLINE void AABB::Rotate(const Quaternion& rotation)
+	RN_INLINE void AABB::SetRotation(const Quaternion& rotation)
 	{
 		Matrix matrix = rotation.GetRotationMatrix();
 		

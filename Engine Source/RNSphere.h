@@ -27,7 +27,7 @@ namespace RN
 		Sphere operator* (const Vector3& other) const;
 		Sphere& operator*= (const Vector3& other);
 		
-		void Rotate(const Quaternion& rotation);
+		void SetRotation(const Quaternion& rotation);
 		
 		Hit CastRay(const Vector3 &position, const Vector3 &direction) const;
 		bool IntersectsRay(const Vector3 &position, const Vector3 &direction) const;
@@ -35,7 +35,6 @@ namespace RN
 		Vector3 position;
 		Vector3 offset;
 		Vector3 offsetBase;
-		
 		float radius;
 	};
 	
@@ -94,7 +93,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE void Sphere::Rotate(const Quaternion& rotation)
+	RN_INLINE void Sphere::SetRotation(const Quaternion& rotation)
 	{
 		offset = rotation.GetRotatedVector(offsetBase);
 	}

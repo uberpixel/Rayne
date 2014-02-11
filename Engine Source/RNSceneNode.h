@@ -669,12 +669,12 @@ namespace RN
 			
 			_transformedBoundingBox.position = _worldPosition;
 			_transformedBoundingBox *= _worldScale;
-			_transformedBoundingBox.Rotate(_worldRotation);
+			_transformedBoundingBox.SetRotation(_worldRotation);
 			
 			_transformedBoundingSphere = _boundingSphere;
 			_transformedBoundingSphere.position = _worldPosition;
 			_transformedBoundingSphere *= _worldScale;
-			_transformedBoundingSphere.Rotate(_worldRotation);
+			_transformedBoundingSphere.SetRotation(_worldRotation);
 			
 			_updated = false;
 			
