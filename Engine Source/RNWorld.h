@@ -22,11 +22,14 @@
 namespace RN
 {
 	class Kernel;
+	class WorldCoordinator;
+	
 	class World : public Object
 	{
 	public:
 		friend class SceneNode;
 		friend class Kernel;
+		friend class WorldCoordinator;
 		
 		RNAPI World(SceneManager *sceneManager);
 		RNAPI World(const std::string& sceneManager);
@@ -41,11 +44,8 @@ namespace RN
 		RNAPI void RemoveSceneNode(SceneNode *node);
 		RNAPI void DropSceneNodes();
 		
-		RNAPI void StepWorld(FrameID frame, float delta);
-		RNAPI void RenderWorld(Renderer *renderer);
-		
 		RNAPI virtual void Update(float delta);
-		RNAPI virtual void UpdatedToFrame(FrameID frame);
+		RNAPI virtual void DidUpdateToFrame(FrameID frame);
 		
 		RNAPI virtual void LoadOnThread(Thread *thread);
 		RNAPI virtual void FinishLoading();
@@ -57,6 +57,9 @@ namespace RN
 		
 	private:		
 		static class SceneManager *SceneManagerWithName(const std::string& name);
+		
+		void StepWorld(FrameID frame, float delta);
+		void RenderWorld(Renderer *renderer);
 		
 		void SceneNodeWillRender(SceneNode *node);
 		

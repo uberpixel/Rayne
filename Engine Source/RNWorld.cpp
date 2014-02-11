@@ -78,7 +78,7 @@ namespace RN
 	void World::Update(float delta)
 	{}
 	
-	void World::UpdatedToFrame(FrameID frame)
+	void World::DidUpdateToFrame(FrameID frame)
 	{}
 	
 	// ---------------------
@@ -159,7 +159,7 @@ namespace RN
 		pool.Drain();
 	
 		ApplyNodes();
-		UpdatedToFrame(frame);
+		DidUpdateToFrame(frame);
 		RunWorldAttachement(&WorldAttachment::StepWorld, delta);
 		
 		_kernel->PopStatistics();
