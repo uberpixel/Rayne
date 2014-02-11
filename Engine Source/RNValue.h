@@ -15,16 +15,19 @@
 #include "RNVector.h"
 #include "RNColor.h"
 #include "RNMatrixQuaternion.h"
+#include "RNAny.h"
 
 namespace RN
 {
 	class Value : public Object
 	{
 	public:
-		RNAPI Value(const void *ptr, size_t size, const std::type_info& typeinfo);
-		RNAPI Value(const void *ptr);
+		template<class T>
+		Value(const T &value) :
+			_any(value)
+		{}
+		
 		RNAPI Value(const Value *other);
-		RNAPI ~Value() override;
 		
 		RNAPI static Value *WithVector2(const Vector2& vector);
 		RNAPI static Value *WithVector3(const Vector3& vector);
@@ -35,26 +38,18 @@ namespace RN
 		RNAPI static Value *WithQuaternion(const Quaternion& quaternion);
 		RNAPI static Value *WithMatrix(const Matrix& matrix);
 		
-		RNAPI void GetValue(void *ptr) const;
-		RNAPI void *GetPointerValue() const;
-		
 		template<class T>
 		T GetValue() const
 		{
 			RN_ASSERT(typeid(T) == GetTypeInfo(), "");
 			
-			T temp;
-			GetValue(&temp);
-			
-			return temp;
+			return stl::any_cast<T>(_any);
 		}
 		
-		RNAPI const std::type_info& GetTypeInfo() const { return *_typeinfo; }
+		RNAPI const std::type_info &GetTypeInfo() const { return _any.type(); }
 		
 	private:
-		const std::type_info *_typeinfo;
-		uint8 *_buffer;
-		size_t _size;
+		stl::any _any;
 		
 		RNDeclareMetaWithTraits(Value, Object, MetaClassTraitCopyable)
 	};
