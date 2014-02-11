@@ -38,7 +38,7 @@ namespace RN
 		_currentVAO      = 0;
 		
 		_scaleFactor = Kernel::GetSharedInstance()->GetActiveScaleFactor();
-		_time = 0.0f;
+		_time = Kernel::GetSharedInstance()->GetTime();
 		_mode = Mode::ModeWorld;
 		
 		_hdrExposure   = 1.0f;
@@ -709,7 +709,7 @@ namespace RN
 	
 	void Renderer::BeginFrame(float delta)
 	{
-		_time += delta;
+		_time += Kernel::GetSharedInstance()->GetTime();
 		
 		_renderedLights   = 0;
 		_renderedVertices = 0;

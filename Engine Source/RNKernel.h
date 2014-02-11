@@ -38,7 +38,7 @@ namespace RN
 		RNAPI bool Tick();
 		
 		RNAPI void SetFixedDelta(float delta);
-		RNAPI void SetTimeScale(float timeScale);
+		RNAPI void SetTimeScale(double timeScale);
 		RNAPI void SetMaxFPS(uint32 fps);
 		
 		RNAPI void DidSleepForSignificantTime();
@@ -58,9 +58,9 @@ namespace RN
 		Context *GetContext() const { return _context; }
 
 		float GetDelta() const { return _delta; }
-		float GetTime() const { return _time; }
-		float GetScaledTime() const { return _scaledTime; }
-		float GetTimeScale() const { return _timeScale; }
+		double GetTimeScale() const { return _timeScale; }
+		double GetTime() const { return _time; }
+		double GetScaledTime() const { return _scaledTime; }
 		
 		FrameID GetCurrentFrame() const { return _frame; }
 
@@ -102,10 +102,11 @@ namespace RN
 		bool _initialized;
 
 		float _fixedDeltaTime;
-		float _time;
-		float _scaledTime;
 		float _delta;
-		float _timeScale;
+		double _timeScale;
+		double _time;
+		double _scaledTime;
+		
 		std::chrono::steady_clock::time_point _lastFrame;
 
 #if RN_PLATFORM_WINDOWS

@@ -204,8 +204,8 @@ namespace RN
 		SetMaxFPS(120);
 		
 		_delta = 0.0f;
-		_time  = 0.0f;
-		_scaledTime = 0.0f;
+		_time  = 0.0;
+		_scaledTime = 0.0;
 		_timeScale  = 1.0f;
 		
 		_lastFrame  = std::chrono::steady_clock::now();
@@ -610,7 +610,7 @@ namespace RN
 		return _statistics[index].GetDataPoints();
 	}
 	
-	void Kernel::SetTimeScale(float timeScale)
+	void Kernel::SetTimeScale(double timeScale)
 	{
 		_timeScale = timeScale;
 	}
