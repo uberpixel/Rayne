@@ -15,6 +15,7 @@ namespace RN
 {
 	class Object;
 	class Serializer;
+	class Deserializer;
 	
 	class MetaClassBase
 	{
@@ -24,7 +25,7 @@ namespace RN
 		std::string Fullname() const;
 		
 		virtual Object *Construct() { throw Exception(Exception::Type::GenericException, ""); }
-		virtual Object *ConstructWithSerializer(Serializer *) { throw Exception(Exception::Type::GenericException, ""); }
+		virtual Object *ConstructWithDeserializer(Deserializer *deserializer) { throw Exception(Exception::Type::GenericException, ""); }
 		virtual Object *ConstructWithCopy(Object *) { throw Exception(Exception::Type::GenericException, ""); }
 		
 		virtual bool SupportsConstruction() const { return false; }
@@ -60,9 +61,9 @@ namespace RN
 	class MetaClassTraitSerializable : public virtual MetaClassBase
 	{
 	public:
-		T *ConstructWithSerializer(Serializer *serializer) override
+		T *ConstructWithDeserializer(Deserializer *deserializer) override
 		{
-			return new T(serializer);
+			return new T(deserializer);
 		}
 		
 		bool SupportsSerialization() const override { return true; }

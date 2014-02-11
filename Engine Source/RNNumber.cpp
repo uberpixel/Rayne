@@ -58,10 +58,10 @@ namespace RN
 			} \
 		} while(0)
 
-	Number::Number(Serializer *serializer)
+	Number::Number(Deserializer *deserializer)
 	{
 		size_t size;
-		uint8 *bytes = static_cast<uint8 *>(serializer->DecodeBytes(&size));
+		uint8 *bytes = static_cast<uint8 *>(deserializer->DecodeBytes(&size));
 		
 		_type = static_cast<Type>(*bytes);
 		

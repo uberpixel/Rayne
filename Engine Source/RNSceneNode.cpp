@@ -116,6 +116,21 @@ namespace RN
 		return (this < other);
 	}
 	
+	void SceneNode::Serialize(Serializer *serializer)
+	{
+		serializer->EncodeVector3(_worldPosition);
+		serializer->EncodeVector3(_worldScale);
+		serializer->EncodeQuarternion(_worldRotation);
+		
+		serializer->EncodeVector3(_boundingBox.minExtend);
+		serializer->EncodeVector3(_boundingBox.maxExtend);
+		serializer->EncodeVector3(_boundingBox.position);
+		
+		serializer->EncodeInt32(renderGroup | (collisionGroup << 8));
+		serializer->EncodeInt32(static_cast<int32>(_priority));
+		serializer->EncodeInt32(_flags);
+		serializer->EncodeInt32(_lastFrame);
+	}
 	
 	// -------------------
 	// MARK: -

@@ -88,6 +88,7 @@ namespace RN
 		RNAPI ~SceneNode() override;
 		
 		RNAPI void FillRenderingObject(RenderingObject& object) const;
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI void Translate(const Vector3& trans);
 		RNAPI void TranslateLocal(const Vector3& trans);

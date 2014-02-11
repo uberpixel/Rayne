@@ -14,134 +14,17 @@
 
 namespace RN
 {
-	Serializer::Serializer(Mode mode)
-	{
-		_mode = mode;
-	}
 	Serializer::~Serializer()
 	{}
-	
-	void Serializer::EncodeBytes(void *data, size_t size)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeObject(Object *object)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeRootObject(Object *object)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	void Serializer::EncodeBool(bool value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeDouble(double value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeFloat(float value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeInt32(int32 value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeInt64(int64 value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	void Serializer::EncodeVector2(const Vector2& value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeVector3(const Vector3& value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeVector4(const Vector4& value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	void Serializer::EncodeMatrix(const Matrix& value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeQuarternion(const Quaternion& value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	void *Serializer::DecodeBytes(size_t *length)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	Object *Serializer::DecodeObject()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	bool Serializer::DecodeBool()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	double Serializer::DecodeDouble()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	float Serializer::DecodeFloat()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	int32 Serializer::DecodeInt32()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	int64 Serializer::DecodeInt64()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	Vector2 Serializer::DecodeVector2()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	Vector3 Serializer::DecodeVector3()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	Vector4 Serializer::DecodeVector4()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	Matrix Serializer::DecodeMatrix()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	Quaternion Serializer::DecodeQuaternion()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	uint32 Serializer::AppVersion() const
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
+	Deserializer::~Deserializer()
+	{}
 	
 	// ---------------------
 	// MARK: -
 	// MARK: FlatSerializer
 	// ---------------------
 	
-	FlatSerializer::FlatSerializer() :
-		Serializer(Mode::Serialize)
+	FlatSerializer::FlatSerializer()
 	{
 		_data      = new Data();
 		_nametable = new Dictionary();
@@ -160,7 +43,7 @@ namespace RN
 	// MARK: Seriliazation
 	// ---------------------
 	
-	Data *FlatSerializer::SerializedData() const
+	Data *FlatSerializer::GetSerializedData() const
 	{
 		Data *result = new Data();
 		
@@ -197,7 +80,6 @@ namespace RN
 	
 	void FlatSerializer::EncodeObject(Object *object)
 	{
-		RN_ASSERT(SerializerMode() == Mode::Serialize, "EncodeObject() only works with serializing serializers!");
 		RN_ASSERT(object->Class()->SupportsSerialization(), "EncodeObject() only works with objects that support serialization!");
 	
 		uint32 index = EncodeClassName(String::WithString(object->Class()->Fullname().c_str()));
@@ -212,8 +94,6 @@ namespace RN
 	
 	void FlatSerializer::EncodeRootObject(Object *object)
 	{
-		RN_ASSERT(SerializerMode() == Mode::Serialize, "EncodeRootObject() only works with serializing serializers!");
-		
 		_data->Release();
 		_nametable->Release();
 		
@@ -221,6 +101,11 @@ namespace RN
 		_nametable = new Dictionary();
 		
 		EncodeObject(object);
+	}
+	
+	void FlatSerializer::EncodeConditionalObject(Object *object)
+	{
+		
 	}
 	
 	void FlatSerializer::EncodeBool(bool value)
@@ -273,8 +158,6 @@ namespace RN
 	
 	void FlatSerializer::EncodeData(char type, size_t size, const void *data)
 	{
-		RN_ASSERT(SerializerMode() == Mode::Serialize, "EncodeData() only works with serializing serializers!");
-		
 #if RN_PLATFORM_WINDOWS
 		#pragma pack(push,1)
 
@@ -318,8 +201,7 @@ namespace RN
 	// MARK: Deserilization
 	// ---------------------
 	
-	FlatSerializer::FlatSerializer(Data *data) :
-		Serializer(Mode::Deserialize)
+	FlatDeserializer::FlatDeserializer(Data *data)
 	{
 		_data = data->Retain();
 		_index = 0;
@@ -353,7 +235,14 @@ namespace RN
 		}
 	}
 	
-	void FlatSerializer::AssertType(char expected, size_t *size)
+	FlatDeserializer::~FlatDeserializer()
+	{
+		_data->Release();
+		_nametable->Release();
+	}
+	
+	
+	void FlatDeserializer::AssertType(char expected, size_t *size)
 	{
 		char type;
 
@@ -363,7 +252,7 @@ namespace RN
 		DecodeHeader(nullptr, nullptr);
 	}
 	
-	void *FlatSerializer::DecodeBytes(size_t *length)
+	void *FlatDeserializer::DecodeBytes(size_t *length)
 	{
 		size_t size;
 		AssertType('+', &size);
@@ -377,7 +266,7 @@ namespace RN
 		return data->GetBytes();
 	}
 	
-	Object *FlatSerializer::DecodeObject()
+	Object *FlatDeserializer::DecodeObject()
 	{
 		size_t size;
 		uint32 index;
@@ -389,11 +278,16 @@ namespace RN
 		String *name = _nametable->GetObjectForKey<String>(Number::WithUint32(index));
 		MetaClassBase *mclass = Catalogue::GetSharedInstance()->GetClassWithName(name->GetUTF8String());
 		
-		Object *result = mclass->ConstructWithSerializer(this);
+		Object *result = mclass->ConstructWithDeserializer(this);
 		return result;
 	}
 	
-	bool FlatSerializer::DecodeBool()
+	Object *FlatDeserializer::DecodeConditionalObject()
+	{
+		return nullptr;
+	}
+	
+	bool FlatDeserializer::DecodeBool()
 	{
 		bool result;
 		DecodeData('b', &result, sizeof(bool));
@@ -401,7 +295,7 @@ namespace RN
 		return result;
 	}
 	
-	double FlatSerializer::DecodeDouble()
+	double FlatDeserializer::DecodeDouble()
 	{
 		double result;
 		char type;
@@ -431,7 +325,7 @@ namespace RN
 		return result;
 	}
 	
-	float FlatSerializer::DecodeFloat()
+	float FlatDeserializer::DecodeFloat()
 	{
 		float result;
 		char type;
@@ -461,7 +355,7 @@ namespace RN
 		return result;
 	}
 	
-	int32 FlatSerializer::DecodeInt32()
+	int32 FlatDeserializer::DecodeInt32()
 	{
 		int32 result;
 		char type;
@@ -491,7 +385,7 @@ namespace RN
 		return result;
 	}
 	
-	int64 FlatSerializer::DecodeInt64()
+	int64 FlatDeserializer::DecodeInt64()
 	{
 		int64 result;
 		char type;
@@ -521,21 +415,21 @@ namespace RN
 		return result;
 	}
 	
-	Vector2 FlatSerializer::DecodeVector2()
+	Vector2 FlatDeserializer::DecodeVector2()
 	{
 		Vector2 result;
 		DecodeData('2', &result, sizeof(Vector2));
 		
 		return result;
 	}
-	Vector3 FlatSerializer::DecodeVector3()
+	Vector3 FlatDeserializer::DecodeVector3()
 	{
 		Vector3 result;
 		DecodeData('3', &result, sizeof(Vector3));
 		
 		return result;
 	}
-	Vector4 FlatSerializer::DecodeVector4()
+	Vector4 FlatDeserializer::DecodeVector4()
 	{
 		int64 result;
 		DecodeData('4', &result, sizeof(Vector4));
@@ -543,14 +437,14 @@ namespace RN
 		return result;
 	}
 	
-	Matrix FlatSerializer::DecodeMatrix()
+	Matrix FlatDeserializer::DecodeMatrix()
 	{
 		Matrix result;
 		DecodeData('m', &result, sizeof(Matrix));
 		
 		return result;
 	}
-	Quaternion FlatSerializer::DecodeQuaternion()
+	Quaternion FlatDeserializer::DecodeQuaternion()
 	{
 		Quaternion result;
 		DecodeData('q', &result, sizeof(Quaternion));
@@ -559,10 +453,8 @@ namespace RN
 	}
 	
 	
-	void FlatSerializer::PeekHeader(char *type, size_t *size)
+	void FlatDeserializer::PeekHeader(char *type, size_t *size)
 	{
-		RN_ASSERT(SerializerMode() == Mode::Deserialize, "PeekHeader() only works with deserializing serializers!");
-		
 #if RN_PLATFORM_WINDOWS
 		#pragma pack(push,1)
 
@@ -590,18 +482,14 @@ namespace RN
 			*size = header.size;
 	}
 	
-	void FlatSerializer::DecodeHeader(char *type, size_t *size)
+	void FlatDeserializer::DecodeHeader(char *type, size_t *size)
 	{
-		RN_ASSERT(SerializerMode() == Mode::Deserialize, "DecodeHeader() only works with deserializing serializers!");
-		
 		PeekHeader(type, size);
 		_index += 5;
 	}
 	
-	void FlatSerializer::DecodeData(char expected, void *buffer, size_t size)
+	void FlatDeserializer::DecodeData(char expected, void *buffer, size_t size)
 	{
-		RN_ASSERT(SerializerMode() == Mode::Deserialize, "DecodeHeader() only works with deserializing serializers!");
-		
 		size_t tsize;
 		AssertType(expected, &tsize);
 		

@@ -24,67 +24,66 @@ namespace RN
 	class Serializer
 	{
 	public:
-		enum class Mode
-		{
-			Serialize,
-			Deserialize
-		};
+		RNAPI virtual void EncodeBytes(void *data, size_t size) = 0;
+		RNAPI virtual void EncodeObject(Object *object) = 0;
+		RNAPI virtual void EncodeRootObject(Object *object) = 0;
+		RNAPI virtual void EncodeConditionalObject(Object *object) = 0;
 		
-		RNAPI virtual void EncodeBytes(void *data, size_t size);
-		RNAPI virtual void EncodeObject(Object *object);
-		RNAPI virtual void EncodeRootObject(Object *object);
+		RNAPI virtual void EncodeBool(bool value) = 0;
+		RNAPI virtual void EncodeDouble(double value) = 0;
+		RNAPI virtual void EncodeFloat(float value) = 0;
+		RNAPI virtual void EncodeInt32(int32 value) = 0;
+		RNAPI virtual void EncodeInt64(int64 value) = 0;
 		
-		RNAPI virtual void EncodeBool(bool value);
-		RNAPI virtual void EncodeDouble(double value);
-		RNAPI virtual void EncodeFloat(float value);
-		RNAPI virtual void EncodeInt32(int32 value);
-		RNAPI virtual void EncodeInt64(int64 value);
+		RNAPI virtual void EncodeVector2(const Vector2& value) = 0;
+		RNAPI virtual void EncodeVector3(const Vector3& value) = 0;
+		RNAPI virtual void EncodeVector4(const Vector4& value) = 0;
 		
-		RNAPI virtual void EncodeVector2(const Vector2& value);
-		RNAPI virtual void EncodeVector3(const Vector3& value);
-		RNAPI virtual void EncodeVector4(const Vector4& value);
+		RNAPI virtual void EncodeMatrix(const Matrix& value) = 0;
+		RNAPI virtual void EncodeQuarternion(const Quaternion& value) = 0;
 		
-		RNAPI virtual void EncodeMatrix(const Matrix& value);
-		RNAPI virtual void EncodeQuarternion(const Quaternion& value);
-		
-		RNAPI virtual void *DecodeBytes(size_t *length);
-		RNAPI virtual Object *DecodeObject();
-		
-		RNAPI virtual bool DecodeBool();
-		RNAPI virtual double DecodeDouble();
-		RNAPI virtual float DecodeFloat();
-		RNAPI virtual int32 DecodeInt32();
-		RNAPI virtual int64 DecodeInt64();
-		
-		RNAPI virtual Vector2 DecodeVector2();
-		RNAPI virtual Vector3 DecodeVector3();
-		RNAPI virtual Vector4 DecodeVector4();
-		
-		RNAPI virtual Matrix DecodeMatrix();
-		RNAPI virtual Quaternion DecodeQuaternion();
-		
-		RNAPI virtual uint32 AppVersion() const;
-		
-		RNAPI Mode SerializerMode() const { return _mode; }
+		RNAPI virtual Data *GetSerializedData() const = 0;
 		
 	protected:
-		RNAPI Serializer(Mode mode);
 		RNAPI virtual ~Serializer();
-		
-	private:
-		Mode _mode;
 	};
+	
+	class Deserializer
+	{
+	public:
+		RNAPI virtual void *DecodeBytes(size_t *length) = 0;
+		RNAPI virtual Object *DecodeObject() = 0;
+		RNAPI virtual Object *DecodeConditionalObject() = 0;
+		
+		RNAPI virtual bool DecodeBool() = 0;
+		RNAPI virtual double DecodeDouble() = 0;
+		RNAPI virtual float DecodeFloat() = 0;
+		RNAPI virtual int32 DecodeInt32() = 0;
+		RNAPI virtual int64 DecodeInt64() = 0;
+		
+		RNAPI virtual Vector2 DecodeVector2() = 0;
+		RNAPI virtual Vector3 DecodeVector3() = 0;
+		RNAPI virtual Vector4 DecodeVector4() = 0;
+		
+		RNAPI virtual Matrix DecodeMatrix() = 0;
+		RNAPI virtual Quaternion DecodeQuaternion() = 0;
+		
+	protected:
+		RNAPI virtual ~Deserializer();
+	};
+	
+	
 	
 	class FlatSerializer : public Serializer
 	{
 	public:		
 		RNAPI FlatSerializer();
-		RNAPI FlatSerializer(Data *data);
 		RNAPI ~FlatSerializer() override;
 		
 		RNAPI void EncodeBytes(void *data, size_t size) override;
 		RNAPI void EncodeObject(Object *object) override;
 		RNAPI void EncodeRootObject(Object *object) override;
+		RNAPI void EncodeConditionalObject(Object *object) override;
 		
 		RNAPI void EncodeBool(bool value) override;
 		RNAPI void EncodeDouble(double value) override;
@@ -99,8 +98,26 @@ namespace RN
 		RNAPI void EncodeMatrix(const Matrix& value) override;
 		RNAPI void EncodeQuarternion(const Quaternion& value) override;
 		
+		RNAPI Data *GetSerializedData() const override;
+		
+	private:
+		void EncodeData(char type, size_t size, const void *data);
+		uint32 EncodeClassName(String *name);
+		
+		Data *_data;
+		Dictionary *_nametable;
+		size_t _index;
+	};
+	
+	class FlatDeserializer : public Deserializer
+	{
+	public:
+		RNAPI FlatDeserializer(Data *data);
+		RNAPI ~FlatDeserializer() override;
+		
 		RNAPI void *DecodeBytes(size_t *length) override;
 		RNAPI Object *DecodeObject() override;
+		RNAPI Object *DecodeConditionalObject() override;
 		
 		RNAPI bool DecodeBool() override;
 		RNAPI double DecodeDouble() override;
@@ -115,17 +132,11 @@ namespace RN
 		RNAPI Matrix DecodeMatrix() override;
 		RNAPI Quaternion DecodeQuaternion() override;
 		
-		RNAPI Data *SerializedData() const;
-		
 	private:
 		void AssertType(char expected, size_t *size);
 		void PeekHeader(char *type, size_t *size);
 		void DecodeHeader(char *type, size_t *size);
 		void DecodeData(char expected, void *buffer, size_t size);
-		
-		void EncodeData(char type, size_t size, const void *data);
-		
-		uint32 EncodeClassName(String *name);
 		
 		Data *_data;
 		Dictionary *_nametable;
