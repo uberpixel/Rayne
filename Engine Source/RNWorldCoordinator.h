@@ -14,9 +14,9 @@
 #include "RNWorld.h"
 #include "RNProgress.h"
 
-#define kRNWorldCoordinatorDidFinishLoading RNCSTR("kRNWorldCoordinatorDidFinishLoading")
-#define kRNWorldCoordinatorWillBeginLoading RNCSTR("kRNWorldCoordinatorWillBeginLoading")
-#define kRNWorldCoordinatorDidStepWorld     RNCSTR("kRNWorldCoordinatorDidStepWorld")
+#define kRNWorldCoordinatorWillBeginLoadingMessage RNCSTR("kRNWorldCoordinatorWillBeginLoadingMessage")
+#define kRNWorldCoordinatorDidFinishLoadingMessage RNCSTR("kRNWorldCoordinatorDidFinishLoadingMessage")
+#define kRNWorldCoordinatorDidStepWorldMessage     RNCSTR("kRNWorldCoordinatorDidStepWorldMessage")
 
 namespace RN
 {

@@ -59,7 +59,7 @@ namespace RN
 		
 		SetFlags(GetFlags() | Flags::HideChildren);
 		
-		MessageCenter::GetSharedInstance()->AddObserver(kRNWorldCoordinatorDidStepWorld, [this](Message *mesage) {
+		MessageCenter::GetSharedInstance()->AddObserver(kRNWorldCoordinatorDidStepWorldMessage, [this](Message *mesage) {
 			
 			for(InstancingData *data : _rawData)
 			{

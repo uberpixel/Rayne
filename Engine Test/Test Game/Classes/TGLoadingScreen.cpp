@@ -35,7 +35,7 @@ namespace TG
 		
 		// Listen to UI Server resizes and the finish of thw world coordinator loading
 		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNUIServerDidResizeMessage, std::bind(&LoadingScreen::UpdateSize, this, std::placeholders::_1), this);
-		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNWorldCoordinatorDidFinishLoading, [this](RN::Message *message) {
+		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNWorldCoordinatorDidFinishLoadingMessage, [this](RN::Message *message) {
 			Close();
 		}, this);
 	}

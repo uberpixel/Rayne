@@ -48,7 +48,7 @@ namespace RN
 		if(_world)
 		{
 			_world->StepWorld(frame, delta);
-			MessageCenter::GetSharedInstance()->PostMessage(kRNWorldCoordinatorDidStepWorld, _world, nullptr);
+			MessageCenter::GetSharedInstance()->PostMessage(kRNWorldCoordinatorDidStepWorldMessage, _world, nullptr);
 		}
 	}
 	
@@ -101,7 +101,7 @@ namespace RN
 	{
 		AutoreleasePool pool;
 		
-		MessageCenter::GetSharedInstance()->PostMessage(kRNWorldCoordinatorWillBeginLoading, _world, nullptr);
+		MessageCenter::GetSharedInstance()->PostMessage(kRNWorldCoordinatorWillBeginLoadingMessage, _world, nullptr);
 		
 		_loadingProgress->MakeActive();
 		_world->LoadOnThread(Thread::GetCurrentThread());
@@ -141,7 +141,7 @@ namespace RN
 		else
 			_world->FinishLoading();
 		
-		MessageCenter::GetSharedInstance()->PostMessage(kRNWorldCoordinatorDidFinishLoading, _world, nullptr);
+		MessageCenter::GetSharedInstance()->PostMessage(kRNWorldCoordinatorDidFinishLoadingMessage, _world, nullptr);
 		
 		_loadingProgress->Release();
 		_loadingProgress = nullptr;
