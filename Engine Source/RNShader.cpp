@@ -16,6 +16,7 @@
 #include "RNScopeGuard.h"
 #include "RNSHA2.h"
 #include "RNOpenGLQueue.h"
+#include "RNRenderer.h"
 
 namespace RN
 {
@@ -261,9 +262,12 @@ namespace RN
 	Shader::~Shader()
 	{
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
-			for(auto i=_programs.begin(); i!=_programs.end(); i++)
+			
+			for(auto &pair : _programs)
 			{
-				ShaderProgram *program = i->second;
+				ShaderProgram *program = pair.second;
+				
+				Renderer::GetSharedInstance()->RelinquishProgram(program);
 				
 				gl::DeleteProgram(program->program);
 				delete program;
@@ -508,13 +512,19 @@ namespace RN
 	
 	void Shader::InvalidatePrograms()
 	{
-		for(auto &pair : _programs)
-		{
-			ShaderProgram *program = pair.second;
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+		
+			for(auto &pair : _programs)
+			{
+				ShaderProgram *program = pair.second;
+				
+				Renderer::GetSharedInstance()->RelinquishProgram(program);
+				
+				gl::DeleteProgram(program->program);
+				delete program;
+			}
 			
-			gl::DeleteProgram(program->program);
-			delete program;
-		}
+		}, true);
 		
 		_programs.clear();
 	}
