@@ -686,7 +686,8 @@ namespace RN
 		data.marker = std::move(result.marker);
 		data.file   = file->GetName() + "." + file->GetExtension();
 		
-		_shaderData.insert(std::map<ShaderType, ShaderData>::value_type(type, std::move(data)));
+		_shaderData.emplace(type, std::move(data));
+		InvalidatePrograms();
 	}
 	
 	void Shader::SetShaderForType(const std::string& path, ShaderType type)
