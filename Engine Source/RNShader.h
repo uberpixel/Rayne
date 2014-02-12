@@ -140,6 +140,7 @@ namespace RN
 		GLuint depthmap;
 		GLuint depthmapinfo;
 		
+		bool HasGeometryShader() const { return linkedPrograms & (1 << static_cast<int>(ShaderType::GeometryShader)); }
 		bool HasTessellationShaders() const { return (linkedPrograms & (1 << static_cast<int>(ShaderType::TessellationControlShader))
 													  && linkedPrograms & (1 << static_cast<int>(ShaderType::TessellationEvaluationShader))); }
 		
