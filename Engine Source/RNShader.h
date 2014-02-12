@@ -214,6 +214,8 @@ namespace RN
 		void DumpLinkStatusAndDie(ShaderProgram *program);
 		bool IsDefined(const std::string& source, const std::string& define);
 		
+		void InvalidatePrograms();
+		
 		DebugMarker ResolveFileForLine(ShaderType type, uint32 line);
 		
 		std::vector<ShaderDefine> _defines;

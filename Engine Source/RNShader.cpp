@@ -285,12 +285,18 @@ namespace RN
 	
 	void Shader::Define(const std::string& define)
 	{
+		LockGuard<Object *> lock(this);
+		
 		_defines.emplace_back(ShaderDefine(define, ""));
+		InvalidatePrograms();
 	}
 	
 	void Shader::Define(const std::string& define, const std::string& value)
 	{
+		LockGuard<Object *> lock(this);
+		
 		_defines.emplace_back(ShaderDefine(define, value));
+		InvalidatePrograms();
 	}
 	
 	void Shader::Define(const std::string& define, int32 value)
@@ -311,11 +317,15 @@ namespace RN
 	
 	void Shader::Undefine(const std::string& name)
 	{
+		LockGuard<Object *> lock(this);
+		
 		for(auto i = _defines.begin(); i != _defines.end(); i ++)
 		{
 			if(name == i->name)
 			{
 				_defines.erase(i);
+				InvalidatePrograms();
+				
 				return;
 			}
 		}
@@ -323,7 +333,7 @@ namespace RN
 	
 	// ---------------------
 	// MARK: -
-	// MARK: Program creation
+	// MARK: Program creation and invalidation
 	// ---------------------
 	
 	void Shader::DumpLinkStatusAndDie(ShaderProgram *program)
@@ -482,6 +492,7 @@ namespace RN
 		if(!SupportsProgramOfType(lookup.type))
 			return 0;
 		
+		LockGuard<Object *> lock(this);
 		return CompileProgram(lookup);
 	}
 	
@@ -493,6 +504,19 @@ namespace RN
 	bool Shader::SupportsProgramOfType(uint32 type)
 	{
 		return ((_supportedPrograms & type) == type || type == 0);
+	}
+	
+	void Shader::InvalidatePrograms()
+	{
+		for(auto &pair : _programs)
+		{
+			ShaderProgram *program = pair.second;
+			
+			gl::DeleteProgram(program->program);
+			delete program;
+		}
+		
+		_programs.clear();
 	}
 	
 	// ---------------------
