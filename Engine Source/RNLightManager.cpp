@@ -209,17 +209,17 @@ namespace RN
 	
 	void ClusteredLightManager::AdjustShaderLookup(Shader *shader, ShaderLookup &lookup)
 	{
-		if(_lightDirectionalDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDirectionalShadows))
+		if(_lightDirectionalDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::Type::DirectionalShadows))
 		{
-			lookup.type |= ShaderProgram::TypeDirectionalShadows;
+			lookup.type |= ShaderProgram::Type::DirectionalShadows;
 			lookup.lightDirectionalShadowSplits = _directionalLights.front()->GetShadowParameters().splits.size();
 		}
 		
-		if(_lightPointDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypePointShadows))
-			lookup.type |= ShaderProgram::TypePointShadows;
+		if(_lightPointDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::Type::PointShadows))
+			lookup.type |= ShaderProgram::Type::PointShadows;
 		
-		if(_lightSpotDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeSpotShadows))
-			lookup.type |= ShaderProgram::TypeSpotShadows;
+		if(_lightSpotDepth.size() > 0 && shader->SupportsProgramOfType(ShaderProgram::Type::SpotShadows))
+			lookup.type |= ShaderProgram::Type::SpotShadows;
 	}
 	
 	

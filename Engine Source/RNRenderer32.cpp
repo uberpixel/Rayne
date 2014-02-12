@@ -240,7 +240,7 @@ namespace RN
 					bool wantsInstancing = (object.type == RenderingObject::Type::Instanced);
 					if(wantsInstancing)
 					{
-						if(!shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
+						if(!shader->SupportsProgramOfType(ShaderProgram::Type::Instanced))
 							continue;
 					}
 										
@@ -251,30 +251,30 @@ namespace RN
 					
 					bool wantsDiscard = IsOverriden(Discard) ? material->GetDiscard() : surfaceOrMaterial->GetDiscard();
 					
-					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
-						lookup.type |= ShaderProgram::TypeAnimated;
+					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::Type::Animated))
+						lookup.type |= ShaderProgram::Type::Animated;
 					
-					if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::TypeFog))
-						lookup.type |= ShaderProgram::TypeFog;
+					if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::Type::Fog))
+						lookup.type |= ShaderProgram::Type::Fog;
 					
-					if(wantsClipPlane && shader->SupportsProgramOfType(ShaderProgram::TypeClipPlane))
-						lookup.type |= ShaderProgram::TypeClipPlane;
+					if(wantsClipPlane && shader->SupportsProgramOfType(ShaderProgram::Type::ClipPlane))
+						lookup.type |= ShaderProgram::Type::ClipPlane;
 					
 					if(wantsInstancing)
-						lookup.type |= ShaderProgram::TypeInstanced;
+						lookup.type |= ShaderProgram::Type::Instanced;
 					
-					if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
-						lookup.type |= ShaderProgram::TypeDiscard;
+					if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::Type::Discard))
+						lookup.type |= ShaderProgram::Type::Discard;
 					
-					if(material->GetTextures()->GetCount() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDiffuse))
-						lookup.type |= ShaderProgram::TypeDiffuse;
+					if(material->GetTextures()->GetCount() > 0 && shader->SupportsProgramOfType(ShaderProgram::Type::Diffuse))
+						lookup.type |= ShaderProgram::Type::Diffuse;
 					
 					if(surfaceMaterial)
 					{
 						lookup = lookup + surfaceMaterial->GetLookup();
 					}
 					
-					bool wantsLighting = (material->GetLighting() && lightManager && shader->SupportsProgramOfType(ShaderProgram::TypeLighting));
+					bool wantsLighting = (material->GetLighting() && lightManager && shader->SupportsProgramOfType(ShaderProgram::Type::Lighting));
 					
 					// The surface material can only override lighting if the shader supports lighting
 					if(wantsLighting && surfaceMaterial)
@@ -282,7 +282,7 @@ namespace RN
 					
 					if(wantsLighting)
 					{
-						lookup.type |= ShaderProgram::TypeLighting;
+						lookup.type |= ShaderProgram::Type::Lighting;
 						lookup.lightDirectionalCount = lightDirectionalCount;
 						
 						//TODO: fix

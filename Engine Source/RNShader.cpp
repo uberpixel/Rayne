@@ -255,7 +255,7 @@ namespace RN
 		}
 #endif
 		
-		GetProgramOfType(ShaderProgram::TypeNormal);
+		GetProgramOfType(ShaderProgram::Type::Normal);
 	}
 	
 	Shader::~Shader()
@@ -373,35 +373,35 @@ namespace RN
 		std::vector<ShaderDefine> temporaryDefines;
 		
 		// Prepare the state
-		if(lookup.type & ShaderProgram::TypeDiffuse)
+		if(lookup.type & ShaderProgram::Type::Diffuse)
 			temporaryDefines.emplace_back(ShaderDefine("RN_TEXTURE_DIFFUSE", ""));
 		
-		if(lookup.type & ShaderProgram::TypeInstanced)
+		if(lookup.type & ShaderProgram::Type::Instanced)
 			temporaryDefines.emplace_back(ShaderDefine("RN_INSTANCING", ""));
 		
-		if(lookup.type & ShaderProgram::TypeAnimated)
+		if(lookup.type & ShaderProgram::Type::Animated)
 			temporaryDefines.emplace_back(ShaderDefine("RN_ANIMATION", ""));
 		
-		if(lookup.type & ShaderProgram::TypeLighting)
+		if(lookup.type & ShaderProgram::Type::Lighting)
 			temporaryDefines.emplace_back(ShaderDefine("RN_LIGHTING", ""));
 		
-		if(lookup.type & ShaderProgram::TypeDiscard)
+		if(lookup.type & ShaderProgram::Type::Discard)
 			temporaryDefines.emplace_back(ShaderDefine("RN_DISCARD", ""));
 		
-		if(lookup.type & ShaderProgram::TypeDirectionalShadows)
+		if(lookup.type & ShaderProgram::Type::DirectionalShadows)
 			temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_SHADOWS", static_cast<uint32>(lookup.lightDirectionalShadowSplits)));
-		if(lookup.type & ShaderProgram::TypePointShadows)
+		if(lookup.type & ShaderProgram::Type::PointShadows)
 			temporaryDefines.emplace_back(ShaderDefine("RN_POINT_SHADOWS", ""));
-		if(lookup.type & ShaderProgram::TypeSpotShadows)
+		if(lookup.type & ShaderProgram::Type::SpotShadows)
 			temporaryDefines.emplace_back(ShaderDefine("RN_SPOT_SHADOWS", ""));
 		
-		if(lookup.type & ShaderProgram::TypeFog)
+		if(lookup.type & ShaderProgram::Type::Fog)
 			temporaryDefines.emplace_back(ShaderDefine("RN_FOG", ""));
 		
-		if(lookup.type & ShaderProgram::TypeClipPlane)
+		if(lookup.type & ShaderProgram::Type::ClipPlane)
 			temporaryDefines.emplace_back(ShaderDefine("RN_CLIPPLANE", ""));
 		
-		if(lookup.type & ShaderProgram::TypeGammaCorrection)
+		if(lookup.type & ShaderProgram::Type::GammaCorrection)
 			temporaryDefines.emplace_back(ShaderDefine("RN_GAMMA_CORRECTION", ""));
 		
 		if(lookup.lightDirectionalCount > 0)
@@ -496,12 +496,12 @@ namespace RN
 		return CompileProgram(lookup);
 	}
 	
-	ShaderProgram *Shader::GetProgramOfType(uint32 type)
+	ShaderProgram *Shader::GetProgramOfType(ShaderProgram::Type type)
 	{
 		return GetProgramWithLookup(ShaderLookup(type));
 	}
 	
-	bool Shader::SupportsProgramOfType(uint32 type)
+	bool Shader::SupportsProgramOfType(ShaderProgram::Type type)
 	{
 		return ((_supportedPrograms & type) == type || type == 0);
 	}
@@ -669,17 +669,17 @@ namespace RN
 		PreProcessFile(file, result);
 		
 		// Check what program types the shader supports
-		_supportedPrograms |= IsDefined(result.data, "RN_INSTANCING") ? ShaderProgram::TypeInstanced : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_ANIMATION") ? ShaderProgram::TypeAnimated : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_LIGHTING") ? ShaderProgram::TypeLighting : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_DISCARD") ? ShaderProgram::TypeDiscard : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_DIRECTIONAL_SHADOWS") ? ShaderProgram::TypeDirectionalShadows : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_POINT_SHADOWS") ? ShaderProgram::TypePointShadows : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_SPOT_SHADOWS") ? ShaderProgram::TypeSpotShadows : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_FOG") ? ShaderProgram::TypeFog : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_CLIPPLANE") ? ShaderProgram::TypeClipPlane : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_GAMMA_CORRECTION") ? ShaderProgram::TypeGammaCorrection : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_TEXTURE_DIFFUSE") ? ShaderProgram::TypeDiffuse : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_INSTANCING") ? ShaderProgram::Type::Instanced : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_ANIMATION") ? ShaderProgram::Type::Animated : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_LIGHTING") ? ShaderProgram::Type::Lighting : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_DISCARD") ? ShaderProgram::Type::Discard : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_DIRECTIONAL_SHADOWS") ? ShaderProgram::Type::DirectionalShadows : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_POINT_SHADOWS") ? ShaderProgram::Type::PointShadows : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_SPOT_SHADOWS") ? ShaderProgram::Type::SpotShadows : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_FOG") ? ShaderProgram::Type::Fog : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_CLIPPLANE") ? ShaderProgram::Type::ClipPlane : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_GAMMA_CORRECTION") ? ShaderProgram::Type::GammaCorrection : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_TEXTURE_DIFFUSE") ? ShaderProgram::Type::Diffuse : 0;
 		
 		ShaderData data;
 		data.shader = std::move(result.data);

@@ -809,10 +809,10 @@ namespace RN
 			SetBlendingEnabled(false);
 		}
 		
-		uint32 type = ShaderProgram::TypeNormal;		
+		uint32 type = ShaderProgram::Type::Normal;
 
-		if(_gammaCorrection && drawShader->SupportsProgramOfType(ShaderProgram::TypeGammaCorrection))
-			type = ShaderProgram::TypeGammaCorrection;
+		if(_gammaCorrection && drawShader->SupportsProgramOfType(ShaderProgram::Type::GammaCorrection))
+			type = ShaderProgram::Type::GammaCorrection;
 		
 		ShaderProgram *program = drawShader->GetProgramOfType(type);
 		
@@ -837,7 +837,7 @@ namespace RN
 	void Renderer::DrawCameraStage(Camera *camera, Camera *stage)
 	{
 		Material *material = stage->GetMaterial();
-		ShaderProgram *program = material->GetShader()->GetProgramWithLookup(material->GetLookup() + ShaderLookup(ShaderProgram::TypeNormal));
+		ShaderProgram *program = material->GetShader()->GetProgramWithLookup(material->GetLookup() + ShaderLookup(0));
 		
 		_currentCamera = stage;
 		_textureUnit = 0;
