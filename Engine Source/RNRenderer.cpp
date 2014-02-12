@@ -47,6 +47,8 @@ namespace RN
 		_captureAge = static_cast<FrameID>(-1);
 		_captureIndex = 0;
 		
+		_canValidatePrograms = gl::SupportsFeature(gl::Feature::ProgramValidation);
+		
 		// Default OpenGL state
 		_cullingEnabled   = false;
 		_depthTestEnabled = false;
@@ -250,6 +252,33 @@ namespace RN
 			
 			i ++;
 		}
+	}
+	
+	void Renderer::ValidateState()
+	{
+#if RN_BUILD_DEBUG
+		
+		if(_canValidatePrograms)
+		{
+			GLint status, length;
+			
+			gl::ValidateProgram(_currentProgram->program);
+			gl::GetProgramiv(_currentProgram->program, GL_VALIDATE_STATUS, &status);
+			
+			if(!status)
+			{
+				gl::GetProgramiv(_currentProgram->program, GL_INFO_LOG_LENGTH, &length);
+				
+				char *log = new char[length];
+				gl::GetProgramInfoLog(_currentProgram->program, length, &length, static_cast<GLchar *>(log));
+				
+				std::string error(log);
+				delete [] log;
+				
+				throw Exception(Exception::Type::InconsistencyException, "Shader program validation failed: " + error);
+			}
+		}
+#endif
 	}
 	
 	// ---------------------

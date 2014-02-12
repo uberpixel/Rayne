@@ -179,6 +179,7 @@ namespace RN
 		
 	protected:
 		RNAPI void FlushAutoVAOs();
+		RNAPI virtual void ValidateState();
 		RNAPI virtual void UpdateShaderData();
 		RNAPI virtual void DrawCamera(Camera *camera, Camera *source, size_t skyCubeMeshes);
 		RNAPI virtual void BindVAO(const std::pair<ShaderProgram *, Mesh *> &pair);
@@ -187,6 +188,7 @@ namespace RN
 		RNAPI virtual void DrawCameraStage(Camera *camera, Camera *stage);
 		
 		bool _hasValidFramebuffer;
+		bool _canValidatePrograms;
 		
 		uint32 _renderedLights;
 		uint32 _renderedVertices;

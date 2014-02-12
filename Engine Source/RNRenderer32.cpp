@@ -125,7 +125,9 @@ namespace RN
 			gl::EnableVertexAttribArray(_currentProgram->attTexcoord0);
 			gl::VertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 			
-			
+#if RN_BUILD_DEBUG
+			ValidateState();
+#endif
 			gl::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			
 			gl::DisableVertexAttribArray(_currentProgram->attPosition);
@@ -149,6 +151,9 @@ namespace RN
 			gl::EnableVertexAttribArray(_currentProgram->attTexcoord0);
 			gl::VertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 			
+#if RN_BUILD_DEBUG
+			ValidateState();
+#endif
 			gl::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			
 			gl::DisableVertexAttribArray(_currentProgram->attPosition);
@@ -436,6 +441,10 @@ namespace RN
 		}
 #endif
 		
+#if RN_BUILD_DEBUG
+		ValidateState();
+#endif
+		
 		if(usesIndices)
 		{
 			GLenum type;
@@ -497,6 +506,10 @@ namespace RN
 			
 			drawMode = Mesh::DrawMode::Patches;
 		}
+#endif
+	
+#if RN_BUILD_DEBUG
+		ValidateState();
 #endif
 		
 		if(descriptor)
