@@ -15,10 +15,7 @@ namespace RN
 	void WorldAttachment::StepWorld(float delta)
 	{}
 	
-	void WorldAttachment::SceneNodesUpdated()
-	{}
-	
-	void WorldAttachment::BeginCamera(Camera *camera)
+	void WorldAttachment::DidBeginCamera(Camera *camera)
 	{}
 	
 	void WorldAttachment::WillFinishCamera(Camera *camera)

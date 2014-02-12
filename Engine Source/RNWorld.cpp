@@ -176,7 +176,7 @@ namespace RN
 			camera->PostUpdate();
 			renderer->BeginCamera(camera);
 			
-			RunWorldAttachement(&WorldAttachment::BeginCamera, camera);
+			RunWorldAttachement(&WorldAttachment::DidBeginCamera, camera);
 			_sceneManager->RenderScene(camera);
 			
 			RunWorldAttachement(&WorldAttachment::WillFinishCamera, camera);

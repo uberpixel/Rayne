@@ -26,7 +26,7 @@ namespace TG
 	
 	
 	
-	void DebugDrawer::BeginCamera(RN::Camera *camera)
+	void DebugDrawer::DidBeginCamera(RN::Camera *camera)
 	{
 		_canDraw = (camera == _camera);
 	}

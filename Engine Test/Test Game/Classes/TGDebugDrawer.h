@@ -21,7 +21,7 @@ namespace TG
 		void SetCamera(RN::Camera *camera);
 		RN::Camera *Camera() const { return _camera; }
 		
-		void BeginCamera(RN::Camera *camera) override;
+		void DidBeginCamera(RN::Camera *camera) override;
 		void WillRenderSceneNode(RN::SceneNode *node) override;
 		
 	private:
