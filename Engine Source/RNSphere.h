@@ -34,7 +34,6 @@ namespace RN
 		
 		Vector3 position;
 		Vector3 offset;
-		Vector3 offsetBase;
 		float radius;
 	};
 	
@@ -45,14 +44,12 @@ namespace RN
 	
 	RN_INLINE Sphere::Sphere(const Vector3& toffset, float tradius) :
 		offset(toffset),
-		offsetBase(toffset),
 		radius(tradius)
 	{
 	}
 	
 	RN_INLINE Sphere::Sphere(const AABB& aabb) :
 		offset(aabb.maxExtend*0.5+aabb.minExtend*0.5),
-		offsetBase(aabb.maxExtend*0.5+aabb.minExtend*0.5),
 		radius(((aabb.maxExtend-aabb.minExtend)*0.5).GetLength())
 	{
 	}
@@ -62,14 +59,12 @@ namespace RN
 	{
 		Sphere result(*this);
 		result.offset += other;
-		result.offsetBase += other;
 		return result;
 	}
 	
 	RN_INLINE Sphere& Sphere::operator+= (const Vector3& other)
 	{
 		offset += other;
-		offsetBase += other;
 		return *this;
 	}
 	
@@ -79,7 +74,6 @@ namespace RN
 		float scale = std::max(std::max(other.x, other.y), other.z);
 		result.radius *= scale;
 		result.offset *= scale;
-		result.offsetBase *= scale;
 		
 		return result;
 	}
@@ -89,13 +83,12 @@ namespace RN
 		float scale = std::max(std::max(other.x, other.y), other.z);
 		radius *= scale;
 		offset *= scale;
-		offsetBase *= scale;
 		return *this;
 	}
 	
 	RN_INLINE void Sphere::SetRotation(const Quaternion& rotation)
 	{
-		offset = rotation.GetRotatedVector(offsetBase);
+		offset = rotation.GetRotatedVector(offset);
 	}
 	
 	/*based on http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection*/
