@@ -113,8 +113,14 @@ namespace RN
 	
 	void Settings::SetObjectForKey(Object *object, String *key)
 	{
+		if(!JSONSerialization::IsValidJSONObject(object))
+			throw Exception(Exception::Type::InvalidArgumentException, "Object must be serializable to JSON!");
+		
+		object = object->Copy();
+		key    = key->Copy();
+		
 		_lock.Lock();
-		_settings->SetObjectForKey(object, key);
+		_settings->SetObjectForKey(object->Autorelease(), key->Autorelease());
 		_mutated = true;
 		_lock.Unlock();
 	}
