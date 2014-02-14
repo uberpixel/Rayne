@@ -51,6 +51,8 @@ namespace RN
 	
 	void Light::Render(Renderer *renderer, Camera *camera)
 	{
+		SceneNode::Render(renderer, camera);
+		
 		LightManager *manager = camera->GetLightManager();
 		
 		if(manager)
