@@ -62,6 +62,7 @@ namespace TG
 		
 		bool _frameCapturing;
 		size_t _frameCount;
+		size_t _captureCount;
 		
 		DebugDrawer *_debugDrawer;
 	};

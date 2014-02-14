@@ -26,7 +26,8 @@ namespace TG
 		_ssaoActive(false),
 		_bloomPipeline(nullptr),
 		_fxaaPipeline(nullptr),
-		_ssaoPipeline(nullptr)
+		_ssaoPipeline(nullptr),
+		_captureCount(0)
 	{
 		SetReleaseSceneNodesOnDestruction(true);
 		
@@ -49,6 +50,29 @@ namespace TG
 				case 'c':
 					ToggleFrameCapturing();
 					break;
+					
+				case '.':
+				{
+					RN::Renderer::GetSharedInstance()->RequestFrameCapture([=](RN::FrameCapture *capture) {
+						
+						RN::Data *data = capture->GetData(RN::FrameCapture::Format::PNG);
+						std::stringstream file;
+						
+						std::string path = RN::FileManager::GetSharedInstance()->GetNormalizedPathFromFullpath("~/Desktop");
+						
+						file << path << "/Capture/Screenshot_" << _captureCount << ".png";
+						std::string base = RN::PathManager::Basepath(file.str());
+						
+						if(!RN::PathManager::PathExists(base))
+							RN::PathManager::CreatePath(base);
+						
+						data->WriteToFile(file.str());
+						
+						_captureCount ++;
+					});
+					
+					break;
+				}
 					
 				case 'x':
 					_debugDrawer->SetCamera(_debugDrawer->GetCamera() ? nullptr : _camera);
