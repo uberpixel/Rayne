@@ -15,8 +15,8 @@ namespace TG
 		_canDraw = false;
 		_camera = nullptr;
 		
-		_lightClass  = RN::Catalogue::GetSharedInstance()->GetClassWithName("RN::Light");
-		_cameraClass = RN::Catalogue::GetSharedInstance()->GetClassWithName("RN::Camera");
+		_lightClass  = RN::Light::MetaClass();
+		_cameraClass = RN::Camera::MetaClass();
 	}
 	
 	void DebugDrawer::SetCamera(RN::Camera *camera)
@@ -40,12 +40,15 @@ namespace TG
 			
 			if(node->IsKindOfClass(_lightClass))
 			{
-				RN::Debug::DrawSphere(node->GetBoundingSphere(), RN::Color::Yellow(), 10);
-//				RN::Debug::DrawBox(node->BoundingBox(), RN::Color::Blue());
+				float distance = _camera->GetWorldPosition().GetDistance(node->GetWorldPosition());
+				float tessellation = ((_camera->GetClipFar() - distance) / _camera->GetClipFar()) * 15.0f;
+				
+				tessellation = std::max(5.0f, tessellation);
+				
+				RN::Debug::DrawSphere(node->GetBoundingSphere(), RN::Color::Yellow(), static_cast<int>(floorf(tessellation)));
 			}
 			else
 			{
-//				RN::Debug::DrawSphere(node->BoundingSphere(), RN::Color::Green());
 				RN::Debug::DrawBox(node->GetBoundingBox(), RN::Color::Red());
 			}
 		}

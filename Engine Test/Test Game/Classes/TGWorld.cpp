@@ -29,11 +29,15 @@ namespace TG
 		_ssaoPipeline(nullptr)
 	{
 		SetReleaseSceneNodesOnDestruction(true);
+		
+		_debugDrawer = new DebugDrawer();
+		AddAttachment(_debugDrawer);
 	}
 	
 	World::~World()
 	{
 		RN::MessageCenter::GetSharedInstance()->RemoveObserver(this);
+		_debugDrawer->Release();
 	}
 	
 	void World::HandleInputEvent(RN::Event *event)
@@ -44,6 +48,10 @@ namespace TG
 			{
 				case 'c':
 					ToggleFrameCapturing();
+					break;
+					
+				case 'x':
+					_debugDrawer->SetCamera(_debugDrawer->GetCamera() ? nullptr : _camera);
 					break;
 					
 				case 'p':

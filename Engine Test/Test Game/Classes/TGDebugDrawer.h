@@ -19,7 +19,7 @@ namespace TG
 		DebugDrawer();
 		
 		void SetCamera(RN::Camera *camera);
-		RN::Camera *Camera() const { return _camera; }
+		RN::Camera *GetCamera() const { return _camera; }
 		
 		void DidBeginCamera(RN::Camera *camera) override;
 		void WillRenderSceneNode(RN::SceneNode *node) override;

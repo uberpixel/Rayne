@@ -13,6 +13,7 @@
 
 #include "TGSun.h"
 #include "TGCutScene.h"
+#include "TGDebugDrawer.h"
 
 namespace TG
 {
@@ -61,6 +62,8 @@ namespace TG
 		
 		bool _frameCapturing;
 		size_t _frameCount;
+		
+		DebugDrawer *_debugDrawer;
 	};
 }
 
