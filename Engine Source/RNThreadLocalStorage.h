@@ -10,7 +10,7 @@
 #define __RAYNE_THREADLOCALSTORAGE_H__
 
 #include "RNBase.h"
-#include "RNSpinLock.h
+#include "RNSpinLock.h"
 
 namespace RN
 {

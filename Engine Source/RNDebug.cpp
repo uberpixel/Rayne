@@ -12,9 +12,7 @@
 #include "RNThread.h"
 #include "RNString.h"
 #include "RNWrappingObject.h"
-
-#define kRNDebugDebugDrawLine2DKey RNCSTR("kRNDebugDebugDrawLine2DKey")
-#define kRNDebugDebugDrawLine3DKey RNCSTR("kRNDebugDebugDrawLine3DKey")
+#include "RNThreadLocalStorage.h"
 
 namespace RN
 {
@@ -60,6 +58,9 @@ namespace RN
 		
 		static std::vector<Line3D> __Line3D;
 		static std::vector<Line2D> __Line2D;
+		
+		static stl::thread_local_storage<Line3D> __Line3DStack;
+		static stl::thread_local_storage<Line2D> __Line2DStack;
 		
 		template<typename Point, typename Vertex, typename Line>
 		void DrawLine(Renderer *renderer, const std::vector<Line>& lines)
@@ -145,87 +146,73 @@ namespace RN
 			}
 		}
 		
-		
-		template<typename Vector, typename Line, typename Point>
-		void __AddLinePoint(const Vector& point, const Color& color, String *key)
+		void __AddLinePoint3D(const Vector3 &point, const Color& color)
 		{
-			WrappingObject<Line> *line = Thread::GetCurrentThread()->GetObjectForKey<WrappingObject<Line>>(key);
-			if(!line)
-			{
-				line = new WrappingObject<Line>();
-				Thread::GetCurrentThread()->SetObjectForKey(line, key);
-				
-				line->Release();
-			}
+			Line3D &line = __Line3DStack.get();
 			
-			Line& data = line->GetData();
+			line.emplace_back(Point3D(point, color));
 			
-			data.emplace_back(Point(point, color));
-			
-			if((data.size() % 2) == 0)
-			{
-				data.emplace_back(Point(point, color));
-			}
+			if((line.size() % 2) == 0)
+				line.emplace_back(Point3D(point, color));
 		}
+		
+		void __AddLinePoint2D(const Vector2 &point, const Color& color)
+		{
+			Line2D &line = __Line2DStack.get();
+			
+			line.emplace_back(Point2D(point, color));
+			
+			if((line.size() % 2) == 0)
+				line.emplace_back(Point2D(point, color));
+		}
+		
 		
 		void AddLinePoint(const Vector3& point, const Color& color)
 		{
-			__AddLinePoint<Vector3, Line3D, Point3D>(point, color, kRNDebugDebugDrawLine3DKey);
+			__AddLinePoint3D(point, color);
 		}
 		
 		void AddLinePoint(const Vector2& point, const Color& color)
 		{
-			__AddLinePoint<Vector2, Line2D, Point2D>(Vector2(point.x, -point.y), color, kRNDebugDebugDrawLine2DKey);
+			__AddLinePoint2D(Vector2(point.x, -point.y), color);
 		}
 		
 		void CloseLine()
 		{
-			WrappingObject<Line3D> *tline3D = Thread::GetCurrentThread()->GetObjectForKey<WrappingObject<Line3D>>(kRNDebugDebugDrawLine3DKey);
-			WrappingObject<Line2D> *tline2D = Thread::GetCurrentThread()->GetObjectForKey<WrappingObject<Line2D>>(kRNDebugDebugDrawLine2DKey);
+			Line3D &line3d = __Line3DStack.get();
+			Line2D &line2d = __Line2DStack.get();
 			
-			if(tline3D)
-			{
-				Line3D& line3D = tline3D->GetData();
-				line3D.erase(line3D.end() - 1);
-			}
+			if(!line3d.empty())
+				line3d.erase(line3d.end() - 1);
 			
-			if(tline2D)
-			{
-				Line2D& line2D = tline2D->GetData();
-				line2D.erase(line2D.end() - 1);
-			}
+			if(!line2d.empty())
+				line2d.erase(line2d.end() - 1);
 		}
 		
 		void EndLine()
 		{
-			WrappingObject<Line3D> *tline3D = Thread::GetCurrentThread()->GetObjectForKey<WrappingObject<Line3D>>(kRNDebugDebugDrawLine3DKey);
-			WrappingObject<Line2D> *tline2D = Thread::GetCurrentThread()->GetObjectForKey<WrappingObject<Line2D>>(kRNDebugDebugDrawLine2DKey);
+			Line3D &line3d = __Line3DStack.get();
+			Line2D &line2d = __Line2DStack.get();
 			
-			if(tline3D)
+			if(!line3d.empty())
 			{
-				Line3D& line3D = tline3D->GetData();
-				line3D.erase(line3D.end() - 1);
-				
 				Line3D temp;
-				std::swap(temp, line3D);
+				
+				line3d.erase(line3d.end() - 1);
+				std::swap(temp, line3d);
 				
 				__Line3D.push_back(std::move(temp));
-				
-				Thread::GetCurrentThread()->RemoveObjectForKey(kRNDebugDebugDrawLine3DKey);
 				InstallLine3DHandler();
 			}
 			
-			if(tline2D)
+			if(!line2d.empty())
 			{
-				Line2D& line2D = tline2D->GetData();
-				line2D.erase(line2D.end() - 1);
-				
 				Line2D temp;
-				std::swap(temp, line2D);
+				
+				line2d.erase(line2d.end() - 1);
+				std::swap(temp, line2d);
 				
 				__Line2D.push_back(std::move(temp));
-				
-				Thread::GetCurrentThread()->RemoveObjectForKey(kRNDebugDebugDrawLine2DKey);
 				InstallLine2DHandler();
 			}
 		}
