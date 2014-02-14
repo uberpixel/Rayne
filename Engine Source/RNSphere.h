@@ -22,8 +22,6 @@ namespace RN
 		Sphere(const Vector3& offset, float radius);
 		Sphere(const AABB& aabb);
 		
-		Sphere operator+ (const Vector3& other) const;
-		Sphere& operator+= (const Vector3& other);
 		Sphere operator* (const Vector3& other) const;
 		Sphere& operator*= (const Vector3& other);
 		
@@ -49,23 +47,10 @@ namespace RN
 	}
 	
 	RN_INLINE Sphere::Sphere(const AABB& aabb) :
+		position(aabb.position),
 		offset(aabb.maxExtend*0.5+aabb.minExtend*0.5),
 		radius(((aabb.maxExtend-aabb.minExtend)*0.5).GetLength())
 	{
-	}
-	
-	
-	RN_INLINE Sphere Sphere::operator+ (const Vector3& other) const
-	{
-		Sphere result(*this);
-		result.offset += other;
-		return result;
-	}
-	
-	RN_INLINE Sphere& Sphere::operator+= (const Vector3& other)
-	{
-		offset += other;
-		return *this;
 	}
 	
 	RN_INLINE Sphere Sphere::operator* (const Vector3& other) const

@@ -472,6 +472,7 @@ namespace TG
 			RN::Array *discard  = dictionary->GetObjectForKey<RN::Array>(RNCSTR("discard"));
 			RN::Number *scale   = dictionary->GetObjectForKey<RN::Number>(RNSTR("scale"));
 			RN::Number *occluder = dictionary->GetObjectForKey<RN::Number>(RNCSTR("occluder"));
+			RN::Array *transparent  = dictionary->GetObjectForKey<RN::Array>(RNCSTR("transparent"));
 			
 			if(position)
 			{
@@ -506,6 +507,16 @@ namespace TG
 			
 			if(!occluder || occluder->GetBoolValue())
 				_obstacles.push_back(entity->GetBoundingBox());
+			
+			if(transparent)
+			{
+				transparent->Enumerate<RN::Number>([&](RN::Number *number, size_t index, bool &stop) {
+					
+					index = number->GetUint32Value();
+					model->GetMaterialAtIndex(0, index)->SetBlending(true);
+					model->GetMaterialAtIndex(0, index)->SetBlendMode(RN::Material::BlendMode::OneMinusSourceAlpha, RN::Material::BlendMode::OneMinusSourceAlpha);
+				});
+			}
 		});
 		
 		settings->Release();
