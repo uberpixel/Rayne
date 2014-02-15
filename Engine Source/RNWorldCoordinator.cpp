@@ -71,7 +71,7 @@ namespace RN
 		if(_loading)
 		{
 			_lock.Unlock();
-			throw Exception(Exception::Type::InconsistencyException, "Tried to load a World while another one was still loading");
+			throw Exception(Exception::Type::InconsistencyException, "Tried to load a World while another one is already loading");
 		}
 		
 		SafeRelease(_world);

@@ -728,11 +728,11 @@ namespace RN
 #if RN_PLATFORM_POSIX
 		char *result = realpath_expand(name.c_str(), buffer);
 		if(!result)
-			throw Exception(Exception::Type::InconsistencyException, "");
+			throw Exception(Exception::Type::InvalidArgumentException, "No such file or directory %s", name.c_str());
 #else
 		DWORD result = ::GetFullPathNameA(name.c_str(), 1024, buffer, nullptr);
 		if(result == 0)
-			throw Exception(Exception::Type::InconsistencyException, "");
+			throw Exception(Exception::Type::InvalidArgumentException, "No such file or directory %s", name.c_str());
 #endif
 		
 		std::string path(buffer);
