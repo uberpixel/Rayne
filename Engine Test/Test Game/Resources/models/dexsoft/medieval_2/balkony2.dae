@@ -14,31 +14,31 @@
   </asset>
   <library_images>
     <image id="Image" name="dirt_decal_001_c">
-      <init_from>file:///C:/test/dirt_decal_001_c.tga</init_from>
+      <init_from>file:///C:/test/dirt_decal_001_c.png</init_from>
     </image>
     <image id="Image1" name="dirt_decal_001_op">
-      <init_from>file:///C:/test/dirt_decal_001_op.tga</init_from>
+      <init_from>file:///C:/test/dirt_decal_001_op.png</init_from>
     </image>
     <image id="Image2" name="stone_005_c">
-      <init_from>file:///C:/test/stone_005_c.tga</init_from>
+      <init_from>file:///C:/test/stone_005_c.png</init_from>
     </image>
     <image id="Image3" name="stone_005_h">
-      <init_from>file:///C:/test/stone_005_N.tga</init_from>
+      <init_from>file:///C:/test/stone_005_N.png</init_from>
     </image>
     <image id="Image4" name="windows_c">
-      <init_from>file:///C:/test/windows_c.tga</init_from>
+      <init_from>file:///C:/test/windows_c.png</init_from>
     </image>
     <image id="Image5" name="windows_h">
-      <init_from>file:///C:/test/windows_N.tga</init_from>
+      <init_from>file:///C:/test/windows_N.png</init_from>
     </image>
     <image id="Image6" name="windows_s">
-      <init_from>file:///C:/test/windows_s.tga</init_from>
+      <init_from>file:///C:/test/windows_s.png</init_from>
     </image>
     <image id="Image7" name="wood_003_256">
-      <init_from>file:///C:/test/wood_003_256.tga</init_from>
+      <init_from>file:///C:/test/wood_003_256.png</init_from>
     </image>
     <image id="Image8" name="wood_002_256_H">
-      <init_from>file:///C:/test/wood_002_256_N.tga</init_from>
+      <init_from>file:///C:/test/wood_002_256_N.png</init_from>
     </image>
   </library_images>
   <library_materials>

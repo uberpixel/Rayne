@@ -14,10 +14,10 @@
   </asset>
   <library_images>
     <image id="Image" name="textile_001_d">
-      <init_from>file:///C:/test/textile_001_d.tga</init_from>
+      <init_from>file:///C:/test/textile_001_d.png</init_from>
     </image>
     <image id="Image1" name="textile_001_h">
-      <init_from>file:///C:/test/textile_001_N.tga</init_from>
+      <init_from>file:///C:/test/textile_001_N.png</init_from>
     </image>
   </library_images>
   <library_materials>

@@ -14,28 +14,28 @@
   </asset>
   <library_images>
     <image id="Image" name="con_dirt_01">
-      <init_from>file:///C:/test/con_dirt_01.tga</init_from>
+      <init_from>file:///C:/test/con_dirt_01.png</init_from>
     </image>
     <image id="Image1" name="con_dirt_01_h">
-      <init_from>file:///C:/test/con_dirt_01_N.tga</init_from>
+      <init_from>file:///C:/test/con_dirt_01_N.png</init_from>
     </image>
     <image id="Image2" name="roof_01">
-      <init_from>file:///C:/test/roof_01.tga</init_from>
+      <init_from>file:///C:/test/roof_01.png</init_from>
     </image>
     <image id="Image3" name="roof_01_H">
-      <init_from>file:///C:/test/roof_01_N.tga</init_from>
+      <init_from>file:///C:/test/roof_01_N.png</init_from>
     </image>
     <image id="Image4" name="window_glass_01">
-      <init_from>file:///C:/test/window_glass_01.tga</init_from>
+      <init_from>file:///C:/test/window_glass_01.png</init_from>
     </image>
     <image id="Image5" name="window_glass_01_S">
-      <init_from>file:///C:/test/window_glass_01_S.tga</init_from>
+      <init_from>file:///C:/test/window_glass_01_S.png</init_from>
     </image>
     <image id="Image6" name="wood_planks_01">
-      <init_from>file:///C:/test/wood_planks_01.tga</init_from>
+      <init_from>file:///C:/test/wood_planks_01.png</init_from>
     </image>
     <image id="Image7" name="wood_planks_01_H">
-      <init_from>file:///C:/test/wood_planks_01_N.tga</init_from>
+      <init_from>file:///C:/test/wood_planks_01_N.png</init_from>
     </image>
   </library_images>
   <library_materials>

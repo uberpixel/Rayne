@@ -14,31 +14,31 @@
   </asset>
   <library_images>
     <image id="Image" name="bricks_old_02">
-      <init_from>file:///C:/test/bricks_old_02.tga</init_from>
+      <init_from>file:///C:/test/bricks_old_02.png</init_from>
     </image>
     <image id="Image1" name="house_001_c">
-      <init_from>file:///C:/test/house_001_c.tga</init_from>
+      <init_from>file:///C:/test/house_001_c.png</init_from>
     </image>
     <image id="Image2" name="house_door_001">
-      <init_from>file:///C:/test/house_door_001.tga</init_from>
+      <init_from>file:///C:/test/house_door_001.png</init_from>
     </image>
     <image id="Image3" name="roof_01">
-      <init_from>file:///C:/test/roof_01.tga</init_from>
+      <init_from>file:///C:/test/roof_01.png</init_from>
     </image>
     <image id="Image4" name="stone_004_c">
-      <init_from>file:///C:/test/stone_004_c.tga</init_from>
+      <init_from>file:///C:/test/stone_004_c.png</init_from>
     </image>
     <image id="Image5" name="stone_006_c">
-      <init_from>file:///C:/test/stone_006_c.tga</init_from>
+      <init_from>file:///C:/test/stone_006_c.png</init_from>
     </image>
     <image id="Image6" name="doorwindow_set">
-      <init_from>file:///C:/test/doorwindow_set.tga</init_from>
+      <init_from>file:///C:/test/doorwindow_set.png</init_from>
     </image>
     <image id="Image7" name="windows2_c">
-      <init_from>file:///C:/test/windows2_c.tga</init_from>
+      <init_from>file:///C:/test/windows2_c.png</init_from>
     </image>
     <image id="Image8" name="wood_002_256">
-      <init_from>file:///C:/test/wood_002_256.tga</init_from>
+      <init_from>file:///C:/test/wood_002_256.png</init_from>
     </image>
   </library_images>
   <library_materials>

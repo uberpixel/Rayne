@@ -14,13 +14,13 @@
   </asset>
   <library_images>
     <image id="Image" name="house_door_001_h">
-      <init_from>file:///C:/test/house_door_001.tga</init_from>
+      <init_from>file:///C:/test/house_door_001.png</init_from>
     </image>
     <image id="Image1" name="wood_002_256">
-      <init_from>file:///C:/test/wood_002_256_N.tga</init_from>
+      <init_from>file:///C:/test/wood_002_256_N.png</init_from>
     </image>
     <image id="Image2" name="house_door_001_s">
-      <init_from>file:///C:/test/house_door_001_s.tga</init_from>
+      <init_from>file:///C:/test/house_door_001_s.png</init_from>
     </image>
   </library_images>
   <library_materials>

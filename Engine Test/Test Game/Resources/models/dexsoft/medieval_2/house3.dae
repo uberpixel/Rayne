@@ -14,19 +14,19 @@
   </asset>
   <library_images>
     <image id="Image" name="con_dirt_01">
-      <init_from>file:///C:/test/con_dirt_01.tga</init_from>
+      <init_from>file:///C:/test/con_dirt_01.png</init_from>
     </image>
     <image id="Image1" name="roof_01">
-      <init_from>file:///C:/test/roof_01.tga</init_from>
+      <init_from>file:///C:/test/roof_01.png</init_from>
     </image>
     <image id="Image2" name="bricks_old_03">
-      <init_from>file:///C:/test/bricks_old_03.tga</init_from>
+      <init_from>file:///C:/test/bricks_old_03.png</init_from>
     </image>
     <image id="Image3" name="doorwindow_set">
-      <init_from>file:///C:/test/doorwindow_set.tga</init_from>
+      <init_from>file:///C:/test/doorwindow_set.png</init_from>
     </image>
     <image id="Image4" name="wood_planks_01">
-      <init_from>file:///C:/test/wood_planks_01.tga</init_from>
+      <init_from>file:///C:/test/wood_planks_01.png</init_from>
     </image>
   </library_images>
   <library_materials>

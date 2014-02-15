@@ -14,16 +14,16 @@
   </asset>
   <library_images>
     <image id="Image" name="wood_002_256">
-      <init_from>file:///C:/test/wood_002_256.tga</init_from>
+      <init_from>file:///C:/test/wood_002_256.png</init_from>
     </image>
     <image id="Image1" name="wood_002_256_H">
-      <init_from>file:///C:/test/wood_002_256_N.tga</init_from>
+      <init_from>file:///C:/test/wood_002_256_N.png</init_from>
     </image>
     <image id="Image2" name="x_2">
-      <init_from>file:///C:/test/x_2.tga</init_from>
+      <init_from>file:///C:/test/x_2.png</init_from>
     </image>
     <image id="Image3" name="x_2h">
-      <init_from>file:///C:/test/x_2h.tga</init_from>
+      <init_from>file:///C:/test/x_2h.png</init_from>
     </image>
   </library_images>
   <library_materials>

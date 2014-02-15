@@ -14,46 +14,46 @@
   </asset>
   <library_images>
     <image id="Image" name="bricks_old_03">
-      <init_from>file:///C:/test/bricks_old_03.tga</init_from>
+      <init_from>file:///C:/test/bricks_old_03.png</init_from>
     </image>
     <image id="Image1" name="bricks_old_03_H">
-      <init_from>file:///C:/test/bricks_old_03_N.tga</init_from>
+      <init_from>file:///C:/test/bricks_old_03_N.png</init_from>
     </image>
     <image id="Image2" name="con_dirt_01">
-      <init_from>file:///C:/test/con_dirt_01.tga</init_from>
+      <init_from>file:///C:/test/con_dirt_01.png</init_from>
     </image>
     <image id="Image3" name="con_dirt_01_h">
-      <init_from>file:///C:/test/con_dirt_01_N.tga</init_from>
+      <init_from>file:///C:/test/con_dirt_01_N.png</init_from>
     </image>
     <image id="Image4" name="door_004">
-      <init_from>file:///C:/test/door_004.tga</init_from>
+      <init_from>file:///C:/test/door_004.png</init_from>
     </image>
     <image id="Image5" name="doorwindow_set">
-      <init_from>file:///C:/test/doorwindow_set.tga</init_from>
+      <init_from>file:///C:/test/doorwindow_set.png</init_from>
     </image>
     <image id="Image6" name="doorwindow_set_H">
-      <init_from>file:///C:/test/doorwindow_set_N.tga</init_from>
+      <init_from>file:///C:/test/doorwindow_set_N.png</init_from>
     </image>
     <image id="Image7" name="house_door_001">
-      <init_from>file:///C:/test/house_door_001.tga</init_from>
+      <init_from>file:///C:/test/house_door_001.png</init_from>
     </image>
     <image id="Image8" name="roof_01">
-      <init_from>file:///C:/test/roof_01.tga</init_from>
+      <init_from>file:///C:/test/roof_01.png</init_from>
     </image>
     <image id="Image9" name="stone_005_c">
-      <init_from>file:///C:/test/stone_005_c.tga</init_from>
+      <init_from>file:///C:/test/stone_005_c.png</init_from>
     </image>
     <image id="Image10" name="window_glass_01a">
-      <init_from>file:///C:/test/window_glass_01a.tga</init_from>
+      <init_from>file:///C:/test/window_glass_01a.png</init_from>
     </image>
     <image id="Image11" name="window_glass_01_H">
-      <init_from>file:///C:/test/window_glass_01_N.tga</init_from>
+      <init_from>file:///C:/test/window_glass_01_N.png</init_from>
     </image>
     <image id="Image12" name="window_glass_01_S">
-      <init_from>file:///C:/test/window_glass_01_S.tga</init_from>
+      <init_from>file:///C:/test/window_glass_01_S.png</init_from>
     </image>
     <image id="Image13" name="wood_planks_01">
-      <init_from>file:///C:/test/wood_planks_01.tga</init_from>
+      <init_from>file:///C:/test/wood_planks_01.png</init_from>
     </image>
   </library_images>
   <library_materials>
