@@ -514,7 +514,7 @@ namespace RN
 		
 		
 		// Update active entities
-		ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch(__instancingAllocator);
+		ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch();
 		SpinLock lock;
 		
 		batch->Reserve(_activeEntites.size());
