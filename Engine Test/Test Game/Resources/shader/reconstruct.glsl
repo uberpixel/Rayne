@@ -1,6 +1,6 @@
 #line 2 // -*- c++ -*-
 /**
- \file reconstruct.glsl
+ \file rn_SAO_reconstruct.fsh
  \author Morgan McGuire, NVIDIA Research
 
  Routines for reconstructing linear Z, camera-space position, and camera-space face normals from a standard
