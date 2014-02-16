@@ -51,8 +51,8 @@ namespace RN
 		static void *SerializeObject(Object *object);
 		static void *SerializeObject(Object *root, SerializerOptions options);
 		
-		static Object *__JSONObjectFromString(String *string, SerializerOptions options);
-		static Object *__JSONObjectFromData(Data *data, SerializerOptions options);
+		RNAPI static Object *__JSONObjectFromString(String *string, SerializerOptions options);
+		RNAPI static Object *__JSONObjectFromData(Data *data, SerializerOptions options);
 	};
 }
 

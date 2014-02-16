@@ -305,7 +305,7 @@ namespace RN
 	private:
 		void Initialize();
 		void UpdateLookupRequest();
-		void InsertShaderUniform(ShaderUniform *uniform);
+		RNAPI void InsertShaderUniform(ShaderUniform *uniform);
 		
 		Shader *_shader;
 		Array _textures;
