@@ -256,7 +256,7 @@ namespace TG
 	
 	void World::CreateCameras()
 	{
-		RN::Model *sky = RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png", "shader/rn_Sky2");
+		RN::Model *sky = RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png");
 		for(int i = 0; i < 6; i++)
 		{
 			sky->GetMaterialAtIndex(0, i)->SetAmbientColor(RN::Color(6.0f, 6.0f, 6.0f, 1.0f));
@@ -304,9 +304,9 @@ namespace TG
 	
 	RN::PostProcessingPipeline *World::PPCreateSSAOPipeline(RN::Camera *cam)
 	{
-		RN::Shader *depthShader = RN::Shader::WithFile("shader/SAO_reconstructCSZ");
-		RN::Shader *ssaoShader = RN::Shader::WithFile("shader/SAO_AO");
-		RN::Shader *blurShader = RN::Shader::WithFile("shader/SAO_blur");
+		RN::Shader *depthShader = RN::Shader::WithFile("shader/rn_SAO_reconstructCSZ");
+		RN::Shader *ssaoShader = RN::Shader::WithFile("shader/rn_SAO_AO");
+		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_SAO_blur");
 		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
 		
 		RN::Material *depthMaterial = new RN::Material(depthShader);
