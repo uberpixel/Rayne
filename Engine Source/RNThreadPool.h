@@ -140,67 +140,6 @@ namespace RN
 		RNAPI Batch *CreateBatch();
 		
 	private:
-		class Function
-		{
-		public:
-			Function() :
-				_implementation(nullptr)
-			{}
-			
-			template<typename F>
-			Function(F&& f) :
-				_implementation(new ImplementationType<F>(std::move(f)))
-			{}
-			
-			Function(Function&& other) :
-				_implementation(other._implementation)
-			{
-				other._implementation = nullptr;
-			}
-			
-			Function& operator=(Function&& other)
-			{
-				_implementation = other._implementation;
-				other._implementation = nullptr;
-				
-				return *this;
-			}
-			
-			~Function()
-			{
-				delete _implementation;
-			}
-			
-			Function(const Function&) = delete;
-			Function& operator= (const Function&) = delete;
-			
-			void operator() () { _implementation->Call(); }
-			
-		private:
-			struct Base
-			{
-				virtual void Call() = 0;
-				virtual ~Base() {}
-			};
-			
-			template<typename F>
-			struct ImplementationType : Base
-			{
-				ImplementationType(F&& f) :
-					function(std::move(f))
-				{}
-				
-				void Call()
-				{
-					function();
-				}
-				
-				F function;
-			};
-			
-			Base *_implementation;
-		};
-		
 		class Task
 		{
 		public:
