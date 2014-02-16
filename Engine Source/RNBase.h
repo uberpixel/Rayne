@@ -220,10 +220,6 @@ namespace RN
 	class PIMPL
 	{
 	public:
-		PIMPL() :
-			_ptr(new T)
-		{}
-		
 		template<class ...Args>
 		PIMPL(Args &&...args) :
 			_ptr(new T(std::forward<Args>(args)...))
