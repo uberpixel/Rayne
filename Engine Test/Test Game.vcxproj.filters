@@ -11,64 +11,58 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Test Game\Classes\TGApplication.h">
-      <Filter>Classes</Filter>
-    </ClInclude>
-    <ClInclude Include="Test Game\Classes\TGDebugDrawer.h">
-      <Filter>Classes</Filter>
-    </ClInclude>
-    <ClInclude Include="Test Game\Classes\TGPlayer.h">
-      <Filter>Classes</Filter>
-    </ClInclude>
-    <ClInclude Include="Test Game\Classes\TGSmokeGrenade.h">
-      <Filter>Classes</Filter>
-    </ClInclude>
-    <ClInclude Include="Test Game\Classes\TGThirdPersonCamera.h">
-      <Filter>Classes</Filter>
-    </ClInclude>
-    <ClInclude Include="Test Game\Classes\TGWorld.h">
-      <Filter>Classes</Filter>
-    </ClInclude>
-    <ClInclude Include="Test Game\Classes\TGLoadingScreen.h">
-      <Filter>Classes</Filter>
-    </ClInclude>
-    <ClInclude Include="Test Game\Classes\TGSun.h">
-      <Filter>Classes</Filter>
-    </ClInclude>
-    <ClInclude Include="Test Game\Classes\TGCutScene.h">
-      <Filter>Classes</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Test Game\Supporting files\main.cpp">
       <Filter>Supporting files</Filter>
     </ClCompile>
     <ClCompile Include="Test Game\Classes\TGApplication.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
+    <ClCompile Include="Test Game\Classes\TGCutScene.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
     <ClCompile Include="Test Game\Classes\TGDebugDrawer.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
-    <ClCompile Include="Test Game\Classes\TGPlayer.cpp">
-      <Filter>Classes</Filter>
-    </ClCompile>
-    <ClCompile Include="Test Game\Classes\TGSmokeGrenade.cpp">
-      <Filter>Classes</Filter>
-    </ClCompile>
-    <ClCompile Include="Test Game\Classes\TGThirdPersonCamera.cpp">
-      <Filter>Classes</Filter>
-    </ClCompile>
-    <ClCompile Include="Test Game\Classes\TGWorld.cpp">
+    <ClCompile Include="Test Game\Classes\TGForestWorld.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
     <ClCompile Include="Test Game\Classes\TGLoadingScreen.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
+    <ClCompile Include="Test Game\Classes\TGSponzaWorld.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
     <ClCompile Include="Test Game\Classes\TGSun.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
-    <ClCompile Include="Test Game\Classes\TGCutScene.cpp">
+    <ClCompile Include="Test Game\Classes\TGWorld.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Test Game\Classes\TGApplication.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Test Game\Classes\TGCutScene.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Test Game\Classes\TGDebugDrawer.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Test Game\Classes\TGForestWorld.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Test Game\Classes\TGLoadingScreen.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Test Game\Classes\TGSponzaWorld.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Test Game\Classes\TGSun.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Test Game\Classes\TGWorld.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
