@@ -483,7 +483,7 @@ namespace RN
 				if(message == WM_KEYDOWN)
 				{
 					uint32 repeatCount = (lparam & 0xf);
-					if(repeatCount > 0)
+					if(repeatCount > 1)
 						event->_type = Event::Type::KeyRepeat;
 
 					_pressedKeys.insert(CodePoint((UniChar)code).GetLowerCase());
