@@ -376,7 +376,7 @@ namespace RN
 				
 				if(head != _tail.load(std::memory_order_acquire))
 				{
-					std::swap(val, _buffer[head]);
+					val = std::move(_buffer[head]);
 					_head.store(advance(head), std::memory_order_release);
 					
 					return true;
