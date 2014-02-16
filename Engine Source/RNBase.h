@@ -31,6 +31,7 @@
 #include <string>
 #include <sstream>
 #include <iterator>
+#include <array>
 #include <vector>
 #include <map>
 #include <set>

@@ -99,17 +99,10 @@ namespace RN
 	
 	ThreadPool::Batch *ThreadPool::CreateBatch()
 	{
-		Batch *batch = new Batch(GetDefaultAllocator(), this);
+		Batch *batch = new Batch(this);
 		return batch;
 	}
 	
-	ThreadPool::Batch *ThreadPool::CreateBatch(Allocator& allocator)
-	{
-		Batch *batch = new Batch(allocator, this);
-		return batch;
-	}
-	
-
 	
 	void ThreadPool::FeedTasks(std::vector<Task>& tasks)
 	{
@@ -239,18 +232,20 @@ namespace RN
 		{
 			delete this;
 		}
-		
 	}
 	
 	void ThreadPool::Batch::Commit()
 	{
 		RN_ASSERT(_commited == false, "A batch can only be committed once!");
 		
-		Retain();
-		
-		_openTasks.store(static_cast<uint32>(_tasks.size()));
-		_pool->FeedTasks(_tasks);
-		
+		if(_tasks.size() > 0)
+		{
+			Retain();
+
+			_openTasks.store(static_cast<uint32>(_tasks.size()));
+			_pool->FeedTasks(_tasks);
+		}
+
 		_commited = true;
 	}
 	

@@ -42,48 +42,6 @@ namespace RN
 	{
 	class Task;
 	public:
-		class Allocator
-		{
-		public:
-			Allocator() {}
-			virtual ~Allocator() {}
-			
-			virtual void *Allocate(size_t size) { return Memory::Allocate(size); }
-			virtual void Free(void *ptr) { Memory::Free(ptr); }
-			virtual void Evict() { }
-			
-			template<class T, class ... Args>
-			T *New(Args&&... args)
-			{
-				void *buffer = Allocate(sizeof(T));
-				T *temp = new(buffer) T(std::forward<Args>(args)...);
-				
-				return temp;
-			}
-			
-			template<class T>
-			void Delete(T *ptr)
-			{
-				if(ptr)
-				{
-					ptr->~T();
-					Free(ptr);
-				}
-			}
-		};
-		
-		class SmallObjectsAllocator : public Allocator
-		{
-		public:
-			
-			void *Allocate(size_t size) final { return _pool.Allocate(size); }
-			void Free(void *ptr) final { }
-			void Evict() { _pool.Evict(); }
-			
-		private:
-			Memory::Pool _pool;
-		};
-		
 		class Batch
 		{
 		friend class ThreadPool;
@@ -91,7 +49,7 @@ namespace RN
 			template<class F>
 			void AddTask(F&& f)
 			{
-				 Task temp(std::move(f), &_allocator, this);
+				 Task temp(std::move(f), this);
 				_tasks.push_back(std::move(temp));
 			}
 			
@@ -103,7 +61,7 @@ namespace RN
 				std::packaged_task<resultType ()> task(std::move(f));
 				std::future<resultType> result(task.get_future());
 				
-				Task temp(std::move(task), &_allocator, this);
+				Task temp(std::move(task), this);
 				_tasks.push_back(std::move(temp));
 				
 				return result;
@@ -123,8 +81,7 @@ namespace RN
 			RNAPI size_t GetTaskCount() const { return _tasks.size(); }
 			
 		private:
-			Batch(Allocator& allocator, ThreadPool *pool) :
-				_allocator(allocator),
+			Batch(ThreadPool *pool) :
 				_openTasks(0),
 				_pool(pool)
 			{
@@ -133,9 +90,7 @@ namespace RN
 			}
 			
 			~Batch()
-			{
-				_allocator.Evict();
-			}
+			{}
 			
 			ThreadPool *_pool;
 			
@@ -146,7 +101,6 @@ namespace RN
 			
 			std::mutex _lock;
 			std::condition_variable _waitCondition;
-			Allocator& _allocator;
 		};
 		
 		friend class Batch;
@@ -157,7 +111,7 @@ namespace RN
 		template<class F>
 		void AddTask(F&& f)
 		{
-			Task temp(std::move(f), &_allocator, nullptr);
+			Task temp(std::move(f), nullptr);
 			
 			std::vector<Task> tasks;
 			tasks.push_back(std::move(temp));
@@ -173,7 +127,7 @@ namespace RN
 			std::packaged_task<resultType ()> task(std::move(f));
 			std::future<resultType> result(task.get_future());
 			
-			Task temp(std::move(task), &_allocator, nullptr);
+			Task temp(std::move(task), nullptr);
 
 			std::vector<Task> tasks;
 			tasks.push_back(std::move(temp));
@@ -184,50 +138,37 @@ namespace RN
 		}
 		
 		RNAPI Batch *CreateBatch();
-		RNAPI Batch *CreateBatch(Allocator& allocator);
-		RNAPI Allocator& GetDefaultAllocator() { return _allocator; }
 		
 	private:
 		class Function
 		{
 		public:
-			Function()
-			{
-				_allocator = nullptr;
-				_implementation = nullptr;
-			}
+			Function() :
+				_implementation(nullptr)
+			{}
 			
 			template<typename F>
-			Function(F&& f, Allocator *allocator) :
-				_allocator(allocator)
-			{
-				_implementation = allocator->New<ImplementationType<F>>(std::move(f));
-			}
+			Function(F&& f) :
+				_implementation(new ImplementationType<F>(std::move(f)))
+			{}
 			
-			Function(Function&& other)
+			Function(Function&& other) :
+				_implementation(other._implementation)
 			{
-				_implementation = std::move(other._implementation);
-				_allocator = other._allocator;
-				
 				other._implementation = nullptr;
-				other._allocator = nullptr;
 			}
 			
 			Function& operator=(Function&& other)
 			{
-				_implementation = std::move(other._implementation);
-				_allocator = other._allocator;
-				
+				_implementation = other._implementation;
 				other._implementation = nullptr;
-				other._allocator = nullptr;
 				
 				return *this;
 			}
 			
 			~Function()
 			{
-				if(_allocator)
-					_allocator->Delete(_implementation);
+				delete _implementation;
 			}
 			
 			Function(const Function&) = delete;
@@ -257,7 +198,6 @@ namespace RN
 				F function;
 			};
 			
-			Allocator *_allocator;
 			Base *_implementation;
 		};
 		
@@ -267,8 +207,8 @@ namespace RN
 			Task() = default;
 			
 			template<typename F>
-			Task(F&& f, Allocator *allocator, Batch *tbatch) :
-				function(std::move(f), allocator),
+			Task(F&& f, Batch *tbatch) :
+				function(std::move(f)),
 				batch(tbatch)
 			{}
 
@@ -280,7 +220,7 @@ namespace RN
 			Task& operator= (Task&& other)
 			{
 				function = std::move(other.function);
-				batch = std::move(other.batch);
+				batch    = std::move(other.batch);
 
 				return *this;
 			}
@@ -301,7 +241,6 @@ namespace RN
 		
 		Array _threads;
 		size_t _threadCount;
-		Allocator _allocator;
 		
 		std::atomic<uint32> _resigned;
 		std::mutex _teardownLock;

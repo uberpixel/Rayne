@@ -164,8 +164,6 @@ namespace RN
 	// MARK: InstancingData
 	// ---------------------
 	
-	static ThreadPool::SmallObjectsAllocator __instancingAllocator;
-	
 	InstancingData::InstancingData(Model *model) :
 		_capacity(0),
 		_count(0),
@@ -464,6 +462,7 @@ namespace RN
 		Vector3 position = _pivot->GetWorldPosition();
 		
 		std::vector<InstancingBucket> buckets;
+
 		float clipRange = _clipRange;
 		
 		if(_thinning)
@@ -500,6 +499,8 @@ namespace RN
 			i ++;
 		}
 		
+		std::vector<Entity *> entities;
+
 		// Activate non active buckets
 		for(auto &bucket : buckets)
 		{
@@ -510,17 +511,20 @@ namespace RN
 				
 				bucket->active = true;
 			}
+
+			entities.insert(entities.end(), bucket->nodes.begin(), bucket->nodes.end());
 		}
-		
-		
+
 		// Update active entities
 		ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch();
 		SpinLock lock;
-		
+
 		batch->Reserve(_activeEntites.size());
 		
-		for(Entity *entity : _activeEntites)
+		for(auto i = entities.begin(); i != entities.end(); i ++)
 		{
+			Entity *entity = *i;
+
 			batch->AddTask([&, entity] {
 			
 				InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
