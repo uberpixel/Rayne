@@ -452,6 +452,12 @@
     <ClInclude Include="Engine Source\RNSyncPoint.h">
       <Filter>STL</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNAny.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNThreadLocalStorage.h">
+      <Filter>STL</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">

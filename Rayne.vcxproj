@@ -14,6 +14,7 @@
     <ClInclude Include="Engine Source\Rayne.h" />
     <ClInclude Include="Engine Source\RNAABB.h" />
     <ClInclude Include="Engine Source\RNAlgorithm.h" />
+    <ClInclude Include="Engine Source\RNAny.h" />
     <ClInclude Include="Engine Source\RNApplication.h" />
     <ClInclude Include="Engine Source\RNArray.h" />
     <ClInclude Include="Engine Source\RNASCIIString.h" />
@@ -120,6 +121,7 @@
     <ClInclude Include="Engine Source\RNTexture.h" />
     <ClInclude Include="Engine Source\RNTextureAtlas.h" />
     <ClInclude Include="Engine Source\RNThread.h" />
+    <ClInclude Include="Engine Source\RNThreadLocalStorage.h" />
     <ClInclude Include="Engine Source\RNThreadPool.h" />
     <ClInclude Include="Engine Source\RNTriggerZone.h" />
     <ClInclude Include="Engine Source\RNUIButton.h" />
