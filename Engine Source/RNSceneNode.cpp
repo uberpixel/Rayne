@@ -359,7 +359,7 @@ namespace RN
 	const Array *SceneNode::GetChildren() const
 	{
 		LockGuard<decltype(_parentChildLock)> lock(_parentChildLock);
-		return _children.Copy();
+		return _children.Copy()->Autorelease();
 	}
 	
 	SceneNode *SceneNode::GetParent() const
