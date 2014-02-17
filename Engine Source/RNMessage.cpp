@@ -45,7 +45,7 @@ namespace RN
 		
 		_lock.Unlock();
 		
-		for(auto i=_observer.begin(); i!=_observer.end(); i++)
+		for(auto i = observer.begin(); i != observer.end(); i++)
 		{
 			if(i->name->GetHash() == hash && i->name->IsEqual(name))
 			{
