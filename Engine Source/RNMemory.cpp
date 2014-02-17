@@ -72,12 +72,15 @@ namespace RN
 			
 			return (result == 0) ? ptr : 0;
 #else
+#if RN_PLATFORM_POSIX
 			void *ptr;
 			int result = posix_memalign(&ptr, alignment, size);
 			
 			return (result == 0) ? ptr : 0;
-			
-			//return _aligned_malloc(size, alignment);
+#endif
+#if RN_PLATFORM_WINDOWS
+			return _aligned_malloc(size, alignment);
+#endif
 #endif
 		}
 		void FreeAligned(void *ptr)
@@ -85,8 +88,12 @@ namespace RN
 #if RN_TARGET_HAS_GPERFTOOLS
 			tc_free(ptr);
 #else
+#if RN_PLATFORM_POSIX
 			free(ptr);
-			//_aligned_free(ptr);
+#endif
+#if RN_PLATFORM_WINDOWS
+			_aligned_free(ptr);
+#endif
 #endif
 		}
 		
