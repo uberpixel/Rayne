@@ -76,6 +76,8 @@ namespace RN
 	{
 		RNDebug("Shutting down...");
 		
+		_worldCoordinator->__AwaitLoadingForExit();
+		
 		__needsCleanup = false;
 		_app->WillExit();
 		

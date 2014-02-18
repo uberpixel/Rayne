@@ -103,6 +103,7 @@ namespace RN
 		
 		MessageCenter::GetSharedInstance()->PostMessage(kRNWorldCoordinatorWillBeginLoadingMessage, _world, nullptr);
 		
+		_loadState = 0;
 		_loadingProgress->MakeActive();
 		_world->LoadOnThread(Thread::GetCurrentThread());
 		
@@ -111,8 +112,7 @@ namespace RN
 	
 	bool WorldCoordinator::AwaitFinishLoading()
 	{
-		std::future_status status = _loadFuture.wait_for(std::chrono::milliseconds(5));
-		if(status == std::future_status::ready)
+		if(_loadState >= 1)
 		{
 			try
 			{
@@ -124,6 +124,13 @@ namespace RN
 				FinishLoading(false);
 				throw e;
 			}
+		}
+		
+		std::future_status status = _loadFuture.wait_for(std::chrono::milliseconds(5));
+		if(status == std::future_status::ready)
+		{
+			_loadState ++;
+			return false;
 		}
 		
 		return false;
@@ -145,6 +152,12 @@ namespace RN
 		
 		_loadingProgress->Release();
 		_loadingProgress = nullptr;
+		_lock.Unlock();
+	}
+	
+	void WorldCoordinator::__AwaitLoadingForExit()
+	{
+		_lock.Lock();
 		_lock.Unlock();
 	}
 }

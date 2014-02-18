@@ -42,6 +42,8 @@ namespace RN
 		bool BeginLoading();
 		void FinishLoading(bool state);
 		
+		void __AwaitLoadingForExit();
+		
 		Thread *_loadThread;
 		World *_world;
 		Mutex _lock;
@@ -49,6 +51,7 @@ namespace RN
 		std::atomic<bool> _loading;
 		std::future<bool> _loadFuture;
 		Progress *_loadingProgress;
+		uint32 _loadState;
 		
 		RNDeclareSingleton(WorldCoordinator)
 	};
