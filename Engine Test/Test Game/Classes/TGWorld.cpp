@@ -27,6 +27,7 @@ namespace TG
 		_bloomPipeline(nullptr),
 		_fxaaPipeline(nullptr),
 		_ssaoPipeline(nullptr),
+		_cutScene(nullptr),
 		_captureCount(0)
 	{
 		SetReleaseSceneNodesOnDestruction(true);
@@ -83,8 +84,8 @@ namespace TG
 					RN::Vector3 position = _camera->GetWorldPosition();
 					RN::Vector3 euler    = _camera->GetWorldEulerAngle();
 					
-					RNDebug("{%f, %f, %f}", position.x, position.y, position.z);
-					RNDebug("{%f, %f, %f}", euler.x, euler.y, euler.z);
+					RNInfo("{%f, %f, %f}", position.x, position.y, position.z);
+					RNInfo("{%f, %f, %f}", euler.x, euler.y, euler.z);
 					break;
 				}
 				
@@ -205,6 +206,17 @@ namespace TG
 	
 	void World::Update(float delta)
 	{
+		if(_cutScene)
+		{
+			_cutScene->Update(delta);
+			
+			if(!_cutScene->HasAnimations())
+			{
+				delete _cutScene;
+				_cutScene = nullptr;
+			}
+		}
+		
 		RecordFrame();
 		RN::Input *input = RN::Input::GetSharedInstance();
 
@@ -482,6 +494,15 @@ namespace TG
 			_waterCamera->AddPostProcessingPipeline(_fxaaPipeline);
 	}
 
+	void World::SetCutScene(const std::string &file)
+	{
+		std::string path = RN::FileManager::GetSharedInstance()->GetFilePathWithName(file);
+		RN::Data *data = RN::Data::WithContentsOfFile(path);
+		RN::Array *objects = RN::JSONSerialization::JSONObjectFromData<RN::Array>(data);
+		
+		_cutScene = new CutScene(objects, _camera);
+	}
+	
 	void World::LoadLevelJSON(const std::string &file)
 	{
 		std::string path = RN::FileManager::GetSharedInstance()->GetFilePathWithName(file);

@@ -71,6 +71,10 @@ namespace TG
 		{
 			_interpolator.SetEndValue(value);
 		}
+		void SetInterpolation(typename RN::Interpolator<T>::Type type)
+		{
+			_interpolator.SetType(type);
+		}
 		
 	private:
 		RN::Interpolator<T> _interpolator;
@@ -81,6 +85,7 @@ namespace TG
 	{
 	public:
 		CutScene();
+		CutScene(RN::Array *animations, RN::SceneNode *node);
 		~CutScene();
 		
 		void AddAnimation(Animation *animation);

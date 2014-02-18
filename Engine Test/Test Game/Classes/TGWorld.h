@@ -24,6 +24,7 @@ namespace TG
 		~World();
 		
 		void Update(float delta) override;
+		void SetCutScene(const std::string &file);
 		
 	protected:
 		void CreateCameras();
@@ -65,6 +66,7 @@ namespace TG
 		size_t _captureCount;
 		
 		DebugDrawer *_debugDrawer;
+		CutScene *_cutScene;
 	};
 }
 
