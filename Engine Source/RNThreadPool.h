@@ -49,8 +49,7 @@ namespace RN
 			template<class F>
 			void AddTask(F&& f)
 			{
-				 Task temp(std::move(f), this);
-				_tasks.push_back(std::move(temp));
+				_tasks.emplace_back(std::move(f), this);
 			}
 			
 			template<class F>
@@ -61,8 +60,7 @@ namespace RN
 				std::packaged_task<resultType ()> task(std::move(f));
 				std::future<resultType> result(task.get_future());
 				
-				Task temp(std::move(task), this);
-				_tasks.push_back(std::move(temp));
+				_tasks.emplace_back(std::move(task), this);
 				
 				return result;
 			}
@@ -111,10 +109,8 @@ namespace RN
 		template<class F>
 		void AddTask(F&& f)
 		{
-			Task temp(std::move(f), nullptr);
-			
 			std::vector<Task> tasks;
-			tasks.push_back(std::move(temp));
+			tasks.emplace_back(std::move(f), nullptr);
 			
 			FeedTasks(tasks);
 		}
@@ -127,10 +123,8 @@ namespace RN
 			std::packaged_task<resultType ()> task(std::move(f));
 			std::future<resultType> result(task.get_future());
 			
-			Task temp(std::move(task), nullptr);
-
 			std::vector<Task> tasks;
-			tasks.push_back(std::move(temp));
+			tasks.emplace_back(std::move(task), nullptr);
 			
 			FeedTasks(tasks);
 			
@@ -163,6 +157,9 @@ namespace RN
 
 				return *this;
 			}
+			
+			Task(const Task &) = delete;
+			Task &operator =(Task &) = delete;
 			
 			Function function;
 			Batch *batch;
