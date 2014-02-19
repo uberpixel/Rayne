@@ -193,21 +193,22 @@ namespace RN
 							return true;
 							
 						case Event::Type::MouseDown:
-							hit->MouseDown(event);
-							
 							_mainWidget = hitWidget;
 							_tracking   = hit;
+							
+							hit->MouseDown(event);
 							return true;
 							
 						case Event::Type::MouseDragged:
+							_tracking = hit;
+							
 							hit->MouseDragged(event);
-							_tracking   = hit;
 							return true;
 							
 						case Event::Type::MouseUp:
-							hit->MouseUp(event);
-							
 							_tracking = nullptr;
+							
+							hit->MouseUp(event);
 							return true;
 							
 						default:
