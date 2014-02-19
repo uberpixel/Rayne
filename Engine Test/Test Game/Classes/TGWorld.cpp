@@ -210,7 +210,7 @@ namespace TG
 		{
 			_cutScene->Update(delta);
 			
-			if(!_cutScene->HasAnimations())
+			if(!_cutScene->HasKeys())
 			{
 				delete _cutScene;
 				_cutScene = nullptr;

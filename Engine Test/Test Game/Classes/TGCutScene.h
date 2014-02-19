@@ -13,90 +13,58 @@
 
 namespace TG
 {
-	class Animation : public RN::Object
+	class KeyFrame
 	{
 	public:
-		Animation();
-		virtual ~Animation();
-		
-		virtual void SetBeginTime(float time);
-		virtual void SetDuration(float duration);
-		virtual void SetTimeOffset(float offset);
-		
-		virtual void Apply(float time) = 0;
-		
-		float GetBeginTime() const { return _beginTime; }
-		float GetDuration() const { return _duration; }
-		float GetTimeOffset() const { return _offset; }
+		KeyFrame() : _time(0.0f) {}
+		void SetTime(float t) { _time = t; }
+		float GetTime() const { return _time; }
 		
 	private:
-		float _offset;
-		float _duration;
-		float _beginTime;
+		float _time;
 	};
 	
-	template<class T>
-	class BasicAnimation : public Animation
+	class PositionKey : public KeyFrame
 	{
 	public:
-		BasicAnimation()
-		{}
-		~BasicAnimation()
-		{}
-		
-		
-		void Apply(float time) override
-		{
-			if(_applier)
-			{
-				T value = _interpolator.GetValue(time);
-				_applier(value);
-			}
-		}
-		
-		void SetApplierFunction(std::function<void (T&)> applier)
-		{
-			_applier = std::move(applier);
-		}
-		void SetDuration(float duration)
-		{
-			Animation::SetDuration(duration);
-			_interpolator.SetDuration(duration);
-		}
-		void SetFromValue(const T& value)
-		{
-			_interpolator.SetStartValue(value);
-		}
-		void SetToValue(const T& value)
-		{
-			_interpolator.SetEndValue(value);
-		}
-		void SetInterpolation(typename RN::Interpolator<T>::Type type)
-		{
-			_interpolator.SetType(type);
-		}
+		void SetPosition(RN::Vector3 position) { _position = position; }
+		RN::Vector3 GetPosition() const { return _position; }
 		
 	private:
-		RN::Interpolator<T> _interpolator;
-		std::function<void (T&)> _applier;
+		RN::Vector3 _position;
+	};
+	
+	class RotationKey : public KeyFrame
+	{
+	public:
+		void SetRotation(RN::Quaternion rotation) { _rotation = rotation; }
+		RN::Quaternion GetRotation() const { return _rotation; }
+		
+	private:
+		RN::Quaternion _rotation;
 	};
 	
 	class CutScene
 	{
 	public:
 		CutScene();
-		CutScene(RN::Array *animations, RN::SceneNode *node);
+		CutScene(RN::Array *keys, RN::SceneNode *node);
 		~CutScene();
 		
-		void AddAnimation(Animation *animation);
+		void AddKey(PositionKey *key);
+		void AddKey(RotationKey *key);
 		void Update(float delta);
 		void Reset();
-		
-		bool HasAnimations() const { return _animations->GetCount() > 0; }
+		void SetSmoothing();
+		void SetOffset();
+		bool HasKeys() const {return (_positions.size()+_rotations.size()) > 0;}
 		
 	private:
+		RN::SceneNode *_node;
 		float _time;
-		RN::Array *_animations;
+		float _smoothing;
+		std::vector<PositionKey *> _positions;
+		std::vector<RotationKey *> _rotations;
 	};
 }
 

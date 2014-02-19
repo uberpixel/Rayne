@@ -10,49 +10,22 @@
 
 namespace TG
 {
-	Animation::Animation() :
-		_duration(1.0f),
-		_beginTime(0.0f),
-		_offset(0.0f)
-	{}
-	
-	Animation::~Animation()
-	{}
-	
-	void Animation::SetBeginTime(float time)
-	{
-		_beginTime = time;
-	}
-	void Animation::SetDuration(float duration)
-	{
-		_duration = duration;
-	}
-	void Animation::SetTimeOffset(float offset)
-	{
-		_offset = offset;
-	}
-	
-	
-	
 	CutScene::CutScene() :
-		_animations(new RN::Array()),
 		_time(0.0f)
 	{
 	}
 	
-	CutScene::CutScene(RN::Array *animations, RN::SceneNode *node) :
-		_animations(new RN::Array()),
-		_time(0.0f)
+	CutScene::CutScene(RN::Array *keys, RN::SceneNode *node) :
+		_time(0.0f),
+		_smoothing(2.0f),
+		_node(node)
 	{
-		float time = 0.0f;
-		
-		RN::Vector3 cPosition = node->GetWorldPosition();
-		RN::Vector3 cRotation = node->GetWorldEulerAngle();
-		
-		animations->Enumerate<RN::Dictionary>([&, node](RN::Dictionary *animation, size_t index, bool &object) {
+		keys->Enumerate<RN::Dictionary>([&, node](RN::Dictionary *animation, size_t index, bool &object) {
 			
 			RN::Array *position = animation->GetObjectForKey<RN::Array>(RNSTR("position"));
 			RN::Array *rotation = animation->GetObjectForKey<RN::Array>(RNSTR("rotation"));
+			
+			float time = animation->GetObjectForKey<RN::Number>(RNCSTR("time"))->GetFloatValue();
 			
 			if(index == 0)
 			{
@@ -64,17 +37,9 @@ namespace TG
 				float pitch = rotation->GetObjectAtIndex<RN::Number>(1)->GetFloatValue();
 				float roll  = rotation->GetObjectAtIndex<RN::Number>(2)->GetFloatValue();
 				
-				cPosition = RN::Vector3(x, y, z);
-				cRotation = RN::Vector3(yaw, pitch, roll);
-				
-				node->SetWorldPosition(cPosition);
-				node->SetWorldRotation(cRotation);
-				
-				return;
+				node->SetWorldPosition(RN::Vector3(x, y, z));
+				node->SetWorldRotation(RN::Vector3(yaw, pitch, roll));
 			}
-			
-			
-			float duration = animation->GetObjectForKey<RN::Number>(RNCSTR("time"))->GetFloatValue();
 			
 			if(position)
 			{
@@ -84,22 +49,11 @@ namespace TG
 				
 				RN::Vector3 toValue(x, y, z);
 				
-				duration = toValue.GetDistance(cPosition) * 0.089f;
+				PositionKey *temp = new PositionKey();
+				temp->SetTime(time);
+				temp->SetPosition(toValue);
 				
-				BasicAnimation<RN::Vector3> *temp = new BasicAnimation<RN::Vector3>();
-				temp->SetDuration(duration);
-				temp->SetBeginTime(time);
-				
-				temp->SetFromValue(cPosition);
-				temp->SetToValue(toValue);
-				temp->SetInterpolation(RN::Interpolator<RN::Vector3>::Type::Linear);
-				
-				temp->SetApplierFunction([=](const RN::Vector3 &value) {
-					node->SetWorldPosition(value);
-				});
-				
-				AddAnimation(temp);
-				cPosition = toValue;
+				AddKey(temp);
 			}
 			
 			if(rotation)
@@ -110,69 +64,104 @@ namespace TG
 				
 				RN::Vector3 toValue(x, y, z);
 				
-				BasicAnimation<RN::Vector3> *temp = new BasicAnimation<RN::Vector3>();
-				temp->SetDuration(duration);
-				temp->SetBeginTime(time);
+				RotationKey *temp = new RotationKey();
+				temp->SetTime(time);
+				temp->SetRotation(toValue);
 				
-				temp->SetFromValue(cRotation);
-				temp->SetToValue(toValue);
-				temp->SetInterpolation(RN::Interpolator<RN::Vector3>::Type::SinusoidalEaseInOut);
-				
-				temp->SetApplierFunction([=](const RN::Vector3 &value) {
-					node->SetWorldRotation(value);
-				});
-				
-				AddAnimation(temp);
-				cRotation = toValue;
+				AddKey(temp);
 			}
-			
-			time += duration;
-			
 		});
 	}
 	
 	CutScene::~CutScene()
 	{
-		RN::SafeRelease(_animations);
+		for(auto key : _positions)
+			delete key;
+		
+		for(auto key : _rotations)
+			delete key;
 	}
 	
-	
-	void CutScene::AddAnimation(Animation *animation)
+	void CutScene::AddKey(PositionKey *key)
 	{
-		_animations->AddObject(animation);
+		_positions.push_back(key);
 	}
+	
+	void CutScene::AddKey(RotationKey *key)
+	{
+		_rotations.push_back(key);
+	}
+	
 	void CutScene::Reset()
 	{
 		_time = 0.0f;
-		_animations->RemoveAllObjects();
 	}
 	
 	void CutScene::Update(float delta)
 	{
-		std::vector<Animation *> finishedAnimations;
-		
-		_animations->Enumerate<Animation>([&](Animation *animation, size_t size, bool &stop) {
-			
-			if(_time >= animation->GetBeginTime())
-			{
-				float atime = (_time - animation->GetBeginTime()) + animation->GetTimeOffset();
-				animation->Apply(atime);
-			}
-			
-			if(_time >= animation->GetBeginTime() + animation->GetDuration())
-			{
-				finishedAnimations.push_back(animation);
-			}
-			
-		});
-		
-		if(!finishedAnimations.empty())
+		PositionKey *fromKey = _positions[0];
+		PositionKey *toKey = _positions[0];
+		int i;
+		for(i = 1; i < _positions.size(); i++)
 		{
-			for(Animation *animation : finishedAnimations)
-			{
-				_animations->RemoveObject(animation);
-			}
+			toKey = _positions[i];
+			if(toKey->GetTime() > (_time - _smoothing))
+				break;
+			fromKey = toKey;
 		}
+		
+		float fromFactor = (_time - _smoothing - fromKey->GetTime()) / (toKey->GetTime() - fromKey->GetTime());
+		fromFactor = fminf(fmaxf(fromFactor, 0.0f), 1.0f);
+		RN::Vector3 fromPosition = fromKey->GetPosition().GetLerp(toKey->GetPosition(), fromFactor);
+		
+		for(; i < _positions.size(); i++)
+		{
+			toKey = _positions[i];
+			if(toKey->GetTime() > (_time + _smoothing))
+				break;
+			fromKey = toKey;
+		}
+		
+		float toFactor = (_time + _smoothing - fromKey->GetTime()) / (toKey->GetTime() - fromKey->GetTime());
+		toFactor = fminf(fmaxf(toFactor, 0.0f), 1.0f);
+		RN::Vector3 toPosition = fromKey->GetPosition().GetLerp(toKey->GetPosition(), toFactor);
+		
+		_node->SetWorldPosition(fromPosition.GetLerp(toPosition, 0.5f));
+		
+		
+		
+		
+		
+		RotationKey *fromKeyRotation = _rotations[0];
+		RotationKey *toKeyRotation = _rotations[0];
+		for(i = 1; i < _rotations.size(); i++)
+		{
+			toKeyRotation = _rotations[i];
+			if(toKeyRotation->GetTime() > (_time - _smoothing))
+				break;
+			fromKeyRotation = toKeyRotation;
+		}
+		
+		fromFactor = (_time - _smoothing - fromKeyRotation->GetTime()) / (toKey->GetTime() - fromKeyRotation->GetTime());
+		fromFactor = fminf(fmaxf(fromFactor, 0.0f), 1.0f);
+		RN::Quaternion fromRotation = fromKeyRotation->GetRotation().GetLerpSpherical(toKeyRotation->GetRotation(), fromFactor);
+		
+		for(; i < _rotations.size(); i++)
+		{
+			toKeyRotation = _rotations[i];
+			if(toKeyRotation->GetTime() > (_time + _smoothing))
+				break;
+			fromKeyRotation = toKeyRotation;
+		}
+		
+		toFactor = (_time + _smoothing - fromKeyRotation->GetTime()) / (toKeyRotation->GetTime() - fromKeyRotation->GetTime());
+		toFactor = fminf(fmaxf(toFactor, 0.0f), 1.0f);
+		RN::Quaternion toRotation = fromKeyRotation->GetRotation().GetLerpSpherical(toKeyRotation->GetRotation(), toFactor);
+		
+		_node->SetWorldRotation(fromRotation.GetLerpSpherical(toRotation, 0.5f));
+		
+		
+		
 		
 		_time += delta;
 	}
