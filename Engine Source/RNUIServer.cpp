@@ -120,12 +120,10 @@ namespace RN
 			RN_ASSERT(widget->_server == this, "");
 			
 			if(widget == _mainWidget)
-			{
 				_mainWidget = nullptr;
-				
-				if(_tracking && _tracking->_widget == widget)
-					_tracking = nullptr;
-			}
+			
+			if(_tracking && (_tracking->_widget == widget || !_tracking->_widget))
+				_tracking = nullptr;
 			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
 			widget->_server = nullptr;
@@ -193,21 +191,22 @@ namespace RN
 							return true;
 							
 						case Event::Type::MouseDown:
-							hit->MouseDown(event);
-							
 							_mainWidget = hitWidget;
 							_tracking   = hit;
+							
+							hit->MouseDown(event);
 							return true;
 							
 						case Event::Type::MouseDragged:
+							_tracking = hit;
+							
 							hit->MouseDragged(event);
-							_tracking   = hit;
 							return true;
 							
 						case Event::Type::MouseUp:
-							hit->MouseUp(event);
-							
 							_tracking = nullptr;
+							
+							hit->MouseUp(event);
 							return true;
 							
 						default:
