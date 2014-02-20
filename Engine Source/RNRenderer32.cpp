@@ -473,6 +473,8 @@ namespace RN
 		{
 			gl::DrawArrays(static_cast<GLenum>(drawMode), 0, glCount);
 		}
+		
+		BindVAO(0);
 	}
 	
 	void Renderer32::DrawMeshInstanced(const RenderingObject& object)
@@ -539,6 +541,8 @@ namespace RN
 			descriptor = mesh->GetDescriptorForFeature(MeshFeature::Vertices);
 			gl::DrawArraysInstanced(static_cast<GLenum>(drawMode), 0, (GLsizei)mesh->GetVerticesCount(), (GLsizei)object.count);
 		}
+		
+		BindVAO(0);
 	}
 
 	void Renderer32::BeginFrame(float delta)
