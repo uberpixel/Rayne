@@ -23,6 +23,8 @@ namespace RN
 		_copyVertices[2] = Vector4(-1.0f, 1.0f,  0.0f, 1.0f);
 		_copyVertices[3] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 		
+		_copyAtlas = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
 			gl::GenVertexArrays(1, &_copyVAO);
 			gl::BindVertexArray(_copyVAO);
@@ -57,11 +59,6 @@ namespace RN
 		const Rect& frame = camera->GetFrame();
 		
 		Vector4 atlas = Vector4(offset.x / size.x, offset.y / size.y, (offset.x + offset.width) / size.x, (offset.y + offset.height) / size.y);
-		
-		_copyVertices[0] = Vector4(-1.0f, -1.0f, atlas.x, atlas.y);
-		_copyVertices[1] = Vector4(1.0f, -1.0f,  atlas.z, atlas.y);
-		_copyVertices[2] = Vector4(-1.0f, 1.0f,  atlas.x, atlas.w);
-		_copyVertices[3] = Vector4(1.0f, 1.0f,   atlas.z, atlas.w);
 		
 		Camera::BlitMode blitMode = camera->GetBlitMode();
 		bool stretchHorizontal = (blitMode == Camera::BlitMode::StretchedHorizontal || blitMode == Camera::BlitMode::Stretched);
@@ -105,8 +102,17 @@ namespace RN
 		
 		gl::Viewport(x, y, width, height);
 		
-		gl::BufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
-		gl::BufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STREAM_DRAW);
+		if(atlas != _copyAtlas)
+		{
+			_copyVertices[0] = Vector4(-1.0f, -1.0f, atlas.x, atlas.y);
+			_copyVertices[1] = Vector4(1.0f, -1.0f,  atlas.z, atlas.y);
+			_copyVertices[2] = Vector4(-1.0f, 1.0f,  atlas.x, atlas.w);
+			_copyVertices[3] = Vector4(1.0f, 1.0f,   atlas.z, atlas.w);
+			
+			_copyAtlas = atlas;
+			
+			gl::BufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STATIC_DRAW);
+		}
 	}
 	
 	void Renderer32::FlushCamera(Camera *camera, Shader *drawShader)
@@ -467,8 +473,6 @@ namespace RN
 		{
 			gl::DrawArrays(static_cast<GLenum>(drawMode), 0, glCount);
 		}
-		
-		BindVAO(0);
 	}
 	
 	void Renderer32::DrawMeshInstanced(const RenderingObject& object)
@@ -535,8 +539,6 @@ namespace RN
 			descriptor = mesh->GetDescriptorForFeature(MeshFeature::Vertices);
 			gl::DrawArraysInstanced(static_cast<GLenum>(drawMode), 0, (GLsizei)mesh->GetVerticesCount(), (GLsizei)object.count);
 		}
-		
-		BindVAO(0);
 	}
 
 	void Renderer32::BeginFrame(float delta)

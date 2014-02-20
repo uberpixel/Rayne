@@ -954,7 +954,6 @@ namespace RN
 						
 						return true;
 					}
-					
 					if(materialA->discard != materialB->discard)
 					{
 						if(!materialB->discard)
@@ -963,10 +962,12 @@ namespace RN
 						return true;
 					}
 					
-					if(materialA->GetShader() != materialB->GetShader())
-					{
-						return (materialA->GetShader() < materialB->GetShader());
-					}
+					if(materialA->_shader != materialB->_shader)
+						return materialA->_shader < materialB->_shader;
+					
+					
+					
+					
 					
 					return a.mesh < b.mesh;
 				});
