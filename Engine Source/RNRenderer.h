@@ -259,6 +259,8 @@ namespace RN
 		size_t _captureBufferSize[2];
 		FrameID _captureAge;
 		
+		bool _validatePrograms;
+		
 		RNDeclareSingleton(Renderer)
 		
 	};

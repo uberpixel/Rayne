@@ -48,6 +48,7 @@ namespace RN
 		_captureIndex = 0;
 		
 		_canValidatePrograms = gl::SupportsFeature(gl::Feature::ProgramValidation);
+		_validatePrograms    = false;
 		
 		// Default OpenGL state
 		_cullingEnabled   = false;
@@ -257,8 +258,7 @@ namespace RN
 	void Renderer::ValidateState()
 	{
 #if RN_BUILD_DEBUG
-		
-		if(_canValidatePrograms)
+		if(_canValidatePrograms && _validatePrograms)
 		{
 			GLint status, length;
 			
@@ -437,21 +437,21 @@ namespace RN
 		{
 			_textureUnit = 0;
 			
-			const Array& textures = IsOverriden(Textures) ? material->GetTextures() : surfaceMaterial->GetTextures();
+			const Array *textures = IsOverriden(Textures) ? material->GetTextures() : surfaceMaterial->GetTextures();
 			const std::vector<GLuint>& textureLocations = program->texlocations;
 			
 			if(textureLocations.size() > 0)
 			{
-				size_t textureCount = std::min(textureLocations.size(), textures.GetCount());
+				size_t textureCount = std::min(textureLocations.size(), textures->GetCount());
 				
-				for(size_t i=0; i<textureCount; i++)
+				for(size_t i = 0; i<textureCount; i ++)
 				{
 					GLint location = textureLocations[i];
 					
 					if(location == -1)
 						continue;
 					
-					Texture *texture = textures.GetObjectAtIndex<Texture>(i);
+					Texture *texture = static_cast<Texture *>((*textures)[i]);
 					
 					gl::Uniform1i(location, BindTexture(texture));
 					
@@ -936,7 +936,7 @@ namespace RN
 				auto begin = _frame.begin();
 				std::advance(begin, skyCubeMeshes);
 			
-				ParallelSort(begin, _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
+				std::sort(begin, _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
 					
 					bool drawALate = (a.flags & RenderingObject::DrawLate);
 					bool drawBLate = (b.flags & RenderingObject::DrawLate);
