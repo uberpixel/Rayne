@@ -90,10 +90,12 @@ namespace RN
 		
 		ConsoleWidget::ConsoleWidget() :
 			Widget(Widget::StyleTitled | Widget::StyleClosable, Rect(180.0f, 50.0f, 480.0f, 320.0f)),
-			_messages(500)
+			_messages(512)
 		{
+			_engine = new Log::CallbackLoggingEngine(this);
+			
 			SetTitle(RNCSTR("Console"));
-			Log::Logger::GetSharedInstance()->AddLoggingEngine(this);
+			Log::Logger::GetSharedInstance()->AddLoggingEngine(_engine);
 			
 			Rect frame = GetFrame();
 			
@@ -107,7 +109,8 @@ namespace RN
 		
 		ConsoleWidget::~ConsoleWidget()
 		{
-			Log::Logger::GetSharedInstance()->RemoveLoggingEngine(this);
+			Log::Logger::GetSharedInstance()->RemoveLoggingEngine(_engine);
+			_engine->Release();
 		}
 		
 		
@@ -169,6 +172,11 @@ namespace RN
 			Widget::Unlock();
 		}
 		
+		
+		void ConsoleWidget::SetLogLevel(Log::Level level)
+		{
+			_engine->SetLevel(level);
+		}
 		
 		void ConsoleWidget::Open()
 		{}

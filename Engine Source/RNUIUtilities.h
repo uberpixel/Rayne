@@ -37,11 +37,13 @@ namespace RN
 			stl::ring_buffer<float> _fps;
 		};
 		
-		class ConsoleWidget : public Widget, Log::LoggingEngine, TableViewDataSource
+		class ConsoleWidget : public Widget, Log::LoggingEngineDelegate, TableViewDataSource
 		{
 		public:
 			RNAPI ConsoleWidget();
 			RNAPI ~ConsoleWidget();
+			
+			RNAPI void SetLogLevel(Log::Level level);
 			
 		protected:
 			RNAPI void Update() override;
@@ -60,6 +62,7 @@ namespace RN
 			void Write(const Log::Message& message) override;
 			
 			TableView *_table;
+			Log::CallbackLoggingEngine *_engine;
 			bool _dirty;
 			
 			std::vector<std::string> _queue;

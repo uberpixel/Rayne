@@ -27,7 +27,44 @@ namespace RN
 			RNAPI virtual void CutOff() = 0;
 			RNAPI virtual void Write(const Message& message) = 0;
 			
+			RNAPI void SetLevel(Level level);
+			Level GetLevel() { return _level; }
+			
+		protected:
+			RNAPI LoggingEngine();
+			
+		private:
+			std::atomic<Level> _level;
+			
 			RNDeclareMeta(LoggingEngine, Object)
+		};
+		
+		struct LoggingEngineDelegate
+		{
+			RNAPI virtual void Open() = 0;
+			RNAPI virtual void Close() = 0;
+			RNAPI virtual bool IsOpen() const = 0;
+			
+			RNAPI virtual void CutOff() = 0;
+			RNAPI virtual void Write(const Message& message) = 0;
+		};
+		
+		class CallbackLoggingEngine : public LoggingEngine
+		{
+		public:
+			RNAPI CallbackLoggingEngine(LoggingEngineDelegate *delegate);
+			
+			RNAPI virtual void Open() final;
+			RNAPI virtual void Close() final;
+			RNAPI virtual bool IsOpen() const final;
+			
+			RNAPI virtual void CutOff() final;
+			RNAPI virtual void Write(const Message& message) final;
+			
+		private:
+			LoggingEngineDelegate *_delegate;
+			
+			RNDeclareMeta(CallbackLoggingEngine, LoggingEngine)
 		};
 		
 		class StreamLoggingInternal;
