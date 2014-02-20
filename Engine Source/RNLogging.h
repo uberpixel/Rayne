@@ -32,20 +32,22 @@ namespace RN
 		{
 		public:
 			RNAPI Message();
-			RNAPI Message(Level level, const std::string& message);
-			RNAPI Message(Level level, const std::string& title, const std::string& message);
-			RNAPI Message(Level level, std::string&& message);
-			RNAPI Message(Level level, std::string&& title, std::string&& message);
+			RNAPI Message(Level level, const std::string &message);
+			RNAPI Message(Level level, const std::string &title, const std::string &message);
+			RNAPI Message(Level level, std::string &&message);
+			RNAPI Message(Level level, std::string &&title, std::string &&message);
 			
-			RNAPI void SetTitle(const std::string& title);
-			RNAPI void SetTitle(std::string&& title);
+			RNAPI void SetTitle(const std::string &title);
+			RNAPI void SetTitle(std::string &&title);
+			RNAPI void SetMessage(const std::string &title);
+			RNAPI void SetMessage(std::string &&message);
 			
 			RNAPI bool HasTitle() const { return !_title.empty(); }
 			
 			RNAPI Level GetLevel() const { return _level; }
-			RNAPI const std::string& GetTitle() const { return _title; }
-			RNAPI const std::string& GetMessage() const { return _message; }
-			RNAPI const std::string& GetFormattedTime() const;
+			RNAPI const std::string &GetTitle() const { return _title; }
+			RNAPI const std::string &GetMessage() const { return _message; }
+			RNAPI const std::string &GetFormattedTime() const;
 			RNAPI std::chrono::system_clock::time_point GetTime() { return _time; }
 			
 		private:
@@ -82,6 +84,7 @@ namespace RN
 			
 		private:
 			Level _level;
+			Message _message;
 			std::stringstream _stream;
 		};
 		
@@ -94,11 +97,11 @@ namespace RN
 			RNAPI void AddLoggingEngine(LoggingEngine *engine);
 			RNAPI void RemoveLoggingEngine(LoggingEngine *engine);
 			
-			RNAPI void Log(Level level, const std::string& message);
-			RNAPI void Log(Level level, std::string&& message);
+			RNAPI void Log(Level level, const std::string &message);
+			RNAPI void Log(Level level, std::string &&message);
 			RNAPI void Log(Level level, const char *message, ...);
-			RNAPI void Log(const Message& message);
-			RNAPI void Log(Message&& message);
+			RNAPI void Log(const Message &message);
+			RNAPI void Log(Message &&message);
 			
 			RNAPI void Flush(bool force = false);
 			

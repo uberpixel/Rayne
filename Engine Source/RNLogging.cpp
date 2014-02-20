@@ -54,10 +54,18 @@ namespace RN
 		{
 			_title = title;
 		}
-		
 		void Message::SetTitle(std::string&& title)
 		{
 			_title = std::move(title);
+		}
+		
+		void Message::SetMessage(const std::string& message)
+		{
+			_message = message;
+		}
+		void Message::SetMessage(std::string&& message)
+		{
+			_message = std::move(message);
 		}
 		
 		const std::string& Message::GetFormattedTime() const
@@ -285,7 +293,8 @@ namespace RN
 		// ---------------------
 		
 		Loggable::Loggable(Level level) :
-			_level(level)
+			_level(level),
+			_message(level, "")
 		{}
 		
 		Loggable::~Loggable()
@@ -295,10 +304,14 @@ namespace RN
 		
 		void Loggable::Submit()
 		{
-			std::string string = std::move(_stream.str());
+			if(_stream.tellp() == 0)
+				return;
+			
+			_message.SetMessage(std::move(_stream.str()));
 			_stream.str("");
 			
-			Logger::GetSharedInstance()->Log(_level, std::move(string));
+			Logger::GetSharedInstance()->Log(std::move(_message));
+			_message = Message(_level, "");
 		}
 	}
 }
