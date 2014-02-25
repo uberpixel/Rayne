@@ -11,7 +11,6 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNThread.h"
 
 namespace RN
 {
@@ -27,9 +26,9 @@ namespace RN
 		RNAPI static AutoreleasePool *GetCurrentPool();
 		
 	private:
-		Thread *_owner;
 		AutoreleasePool *_parent;
 		
+		std::thread::id _owner;
 		std::vector<Object *> _objects;
 	};
 }

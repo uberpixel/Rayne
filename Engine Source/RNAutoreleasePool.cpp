@@ -7,26 +7,28 @@
 //
 
 #include "RNAutoreleasePool.h"
+#include "RNThreadLocalStorage.h"
 
 #define kRNAutoreleasePoolGrowthRate 128
 
 namespace RN
 {
-	AutoreleasePool::AutoreleasePool()
+	static stl::thread_local_storage<AutoreleasePool *> _local_pools;
+	
+	AutoreleasePool::AutoreleasePool() :
+		_owner(std::this_thread::get_id()),
+		_parent(AutoreleasePool::GetCurrentPool())
 	{
-		_owner  = Thread::GetCurrentThread();
-		_parent = AutoreleasePool::GetCurrentPool();
-		
-		_owner->_pool = this;
 		_objects.reserve(kRNAutoreleasePoolGrowthRate);
+		_local_pools.get() = this;
 	}
 	
 	AutoreleasePool::~AutoreleasePool()
 	{
-		RN_ASSERT(_owner->_pool == this, "Popping pool other than the topmost pool is forbidden!");
+		RN_ASSERT(this == GetCurrentPool(), "Popping pool other than the topmost pool is forbidden!");
 		
 		Drain();
-		_owner->_pool = _parent;
+		_local_pools.get() = _parent;
 	}
 	
 	void AutoreleasePool::AddObject(Object *object)
@@ -50,7 +52,6 @@ namespace RN
 	
 	AutoreleasePool *AutoreleasePool::GetCurrentPool()
 	{
-		Thread *thread = Thread::GetCurrentThread();
-		return thread->_pool;
+		return _local_pools.get();
 	}
 }
