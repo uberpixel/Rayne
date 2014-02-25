@@ -56,12 +56,11 @@ namespace RN
 	static std::unordered_map<std::thread::id, Thread *> __ThreadMap;
 	static std::atomic<uint32> __ThreadAtomicIDs;
 	
-	Thread::Thread()
+	Thread::Thread() :
+		_id(std::this_thread::get_id()),
+		_name("Main Thread")
 	{
 		Initialize();
-		
-		_id = std::this_thread::get_id();
-		_name = std::string("Main Thread");
 		
 		__ThreadLock.Lock();
 		__ThreadMap[_id] = this;
@@ -83,8 +82,7 @@ namespace RN
 	
 	void Thread::Initialize()
 	{
-		_context = 0;
-		_pool    = 0;
+		_context = nullptr;
 		
 		_isRunning   = false;
 		_isCancelled = false;
@@ -96,18 +94,13 @@ namespace RN
 	
 	Thread *Thread::GetCurrentThread()
 	{
-		Thread *thread = 0;
-		
-		__ThreadLock.Lock();
+		LockGuard<SpinLock> lock(__ThreadLock);
 		
 		auto iterator = __ThreadMap.find(std::this_thread::get_id());
-		
 		if(iterator != __ThreadMap.end())
-			thread = iterator->second;
+			return iterator->second;
 		
-		__ThreadLock.Unlock();
-		
-		return thread;
+		return nullptr;
 	}
 	
 	Thread *Thread::GetMainThread()
@@ -148,12 +141,11 @@ namespace RN
 			_context = nullptr;
 		}
 		
-		__ThreadLock.Lock();
+		{
+			LockGuard<SpinLock> lock(__ThreadLock);
+			__ThreadMap.erase(_id);
+		}
 		
-		auto iterator = __ThreadMap.find(_id);
-		__ThreadMap.erase(iterator);
-		
-		__ThreadLock.Unlock();
 		_isRunning.store(false);
 		
 		{
@@ -184,19 +176,19 @@ namespace RN
 			
 			try
 			{
-				_mutex.Lock();
-				
+				{
+					LockGuard<Mutex> lock(_mutex);
+					
 #if RN_PLATFORM_MAC_OS
-				pthread_setname_np(_name.c_str());
+					pthread_setname_np(_name.c_str());
 #endif
 #if RN_PLATFORM_LINUX
-				pthread_setname_np(pthread_self(), _name.c_str());
+					pthread_setname_np(pthread_self(), _name.c_str());
 #endif
 #if RN_PLATFORM_WINDOWS
-				RNSetThreadName(const_cast<char*>(_name.c_str()));
+					RNSetThreadName(const_cast<char*>(_name.c_str()));
 #endif
-				
-				_mutex.Unlock();
+				}
 				
 				_function();
 			}
@@ -223,7 +215,7 @@ namespace RN
 	
 	void Thread::SetName(const std::string& name)
 	{
-		_mutex.Lock();
+		LockGuard<Mutex> lock(_mutex);
 		_name = std::string(name);
 		
 		if(IsRunning() && OnThread())
@@ -238,15 +230,12 @@ namespace RN
 			RNSetThreadName(const_cast<char*>(_name.c_str()));
 #endif
 		}
-		
-		_mutex.Unlock();
 	}
 	
 	const std::string Thread::GetName()
 	{
-		_mutex.Lock();
+		LockGuard<Mutex> lock(_mutex);
 		std::string name = _name;
-		_mutex.Unlock();
 		
 		return name;
 	}

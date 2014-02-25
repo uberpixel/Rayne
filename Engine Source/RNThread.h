@@ -17,16 +17,15 @@
 
 namespace RN
 {
-	class Context;
 	class Kernel;
-	class AutoreleasePool;
+	class Context;
 	
 	class Thread : public Object
 	{
-	friend class Context;
-	friend class AutoreleasePool;
-	friend class Kernel;
 	public:
+		friend class Kernel;
+		friend class Context;
+		
 		template<typename F>
 		explicit Thread(F&& func, bool detach=true) :
 			_function(std::move(func))
@@ -48,7 +47,7 @@ namespace RN
 				Detach();
 		}
 
-		RNAPI virtual ~Thread();
+		RNAPI ~Thread();
 		
 		RNAPI void Detach();
 		RNAPI bool OnThread() const;
@@ -64,27 +63,22 @@ namespace RN
 		template <typename T>
 		T *GetObjectForKey(Object *key)
 		{
-			_dictionaryLock.Lock();
-			
+			LockGuard<SpinLock> lock(_dictionaryLock);
 			T *object = _dictionary.GetObjectForKey<T>(key);
-
-			_dictionaryLock.Unlock();
 			
 			return object;
 		}
 		
 		void SetObjectForKey(Object *object, Object *key)
 		{
-			_dictionaryLock.Lock();
+			LockGuard<SpinLock> lock(_dictionaryLock);
 			_dictionary.SetObjectForKey(object, key);
-			_dictionaryLock.Unlock();
 		}
 		
 		void RemoveObjectForKey(Object *key)
 		{
-			_dictionaryLock.Lock();
+			LockGuard<SpinLock> lock(_dictionaryLock);
 			_dictionary.RemoveObjectForKey(key);
-			_dictionaryLock.Unlock();
 		}
 		
 		RNAPI static Thread *GetCurrentThread();
@@ -101,7 +95,6 @@ namespace RN
 		Mutex _mutex;
 		
 		Context *_context;
-		AutoreleasePool *_pool;
 		SpinLock _dictionaryLock;
 		
 		std::atomic<bool> _isRunning;
