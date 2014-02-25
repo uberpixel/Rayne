@@ -27,6 +27,18 @@ namespace RN
 				_references(1)
 			{}
 			
+#if RN_PLATFORM_MAC_OS
+			// Works around a bug in OS X, which sometimes crashes mutexes and condition variables
+			// https://devforums.apple.com/thread/220316?tstart=0
+			// This is not a complete workaround since it's only applied to __sync_state,
+			// but these are the short living ones, whereas most others are allocated once and then kept around
+			~__sync_state()
+			{
+				struct timespec time { .tv_sec = 0, .tv_nsec = 1 };
+				pthread_cond_timedwait_relative_np(_condition.native_handle(), _lock.native_handle(), &time);
+			}
+#endif
+			
 			void retain()
 			{
 				++ _references;
