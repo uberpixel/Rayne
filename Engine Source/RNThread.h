@@ -72,7 +72,7 @@ namespace RN
 		void SetObjectForKey(Object *object, Object *key)
 		{
 			LockGuard<SpinLock> lock(_dictionaryLock);
-			_dictionary.SetObjectForKey(object, key);
+			_dictionary.SetObjectForKey(object, key->Copy());
 		}
 		
 		void RemoveObjectForKey(Object *key)

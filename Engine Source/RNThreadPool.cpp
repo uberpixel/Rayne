@@ -168,14 +168,26 @@ namespace RN
 		AutoreleasePool *pool = new AutoreleasePool();
 	
 		size_t threadID = thread->GetObjectForKey<Number>(RNCSTR("__kRNThreadID"))->GetUint32Value();
-		ThreadContext *local = _threadData[threadID];
 		
 		{
+			// Set the name of the thread
+			std::stringstream name;
+			name << "RN::ThreadPool::Consumer " << threadID;
+			thread->SetName(name.str());
+		}
+		
+		{
+			// Wait for the thread pool to bootstrap completely
 			std::unique_lock<std::mutex> lock(_syncLock);
 			
 			if(!_running.load())
 				_syncpoint.wait(lock, [&] { return _running.load() == true; });
 		}
+		
+		
+		// Begin consuming work
+		
+		ThreadContext *local = _threadData[threadID];
 		
 		while(!thread->IsCancelled())
 		{
