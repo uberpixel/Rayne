@@ -111,12 +111,19 @@ namespace RN
 	
 	void Thread::WaitForExit()
 	{
-		if(!IsRunning() || OnThread())
+		if(OnThread())
 			return;
 		
 		Retain();
 		
 		std::unique_lock<std::mutex> lock(_exitMutex);
+		
+		if(!IsRunning())
+		{
+			Release();
+			return;
+		}
+		
 		_exitSignal.wait(lock, [&]() { return !IsRunning(); });
 		
 		Release();
@@ -146,10 +153,9 @@ namespace RN
 			__ThreadMap.erase(_id);
 		}
 		
-		_isRunning.store(false);
-		
 		{
 			std::lock_guard<std::mutex> lock(_exitMutex);
+			_isRunning.store(false);
 			_exitSignal.notify_all();
 		}
 		
