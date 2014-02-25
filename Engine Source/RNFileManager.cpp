@@ -332,9 +332,14 @@ namespace RN
 		Array *removedNodes = new Array();
 		
 #if RN_PLATFORM_POSIX
+		int error = errno;
 		DIR *dir = opendir(GetPath().c_str());
+		
 		if(!dir)
+		{
+			errno = error;
 			throw Exception(Exception::Type::InconsistencyException, "Couldn't open directory " + GetPath());
+		}
 		
 		struct dirent *ent;
 		while((ent = readdir(dir)))
@@ -726,9 +731,14 @@ namespace RN
 	{
 		char buffer[1024];
 #if RN_PLATFORM_POSIX
+		int error = errno;
 		char *result = realpath_expand(name.c_str(), buffer);
+		
 		if(!result)
+		{
+			errno = error;
 			throw Exception(Exception::Type::InvalidArgumentException, "No such file or directory %s", name.c_str());
+		}
 #else
 		DWORD result = ::GetFullPathNameA(name.c_str(), 1024, buffer, nullptr);
 		if(result == 0)
@@ -783,8 +793,12 @@ namespace RN
 		char buffer[1024];
 
 #if RN_PLATFORM_POSIX
+		int error = errno;
 		char *result = realpath_expand(tpath.c_str(), buffer);
 		std::string path(result ? buffer : tpath.c_str());
+		
+		if(!result)
+			errno = error;
 #else
 		DWORD result = ::GetFullPathNameA(tpath.c_str(), 1024, buffer, nullptr);
 		std::string path((result != 0) ? buffer : tpath.c_str());

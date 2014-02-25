@@ -444,6 +444,9 @@ namespace RN
 			
 			uint32 types = 0;
 			
+#if RN_PLATFORM_POSIX
+			int error = errno;
+#endif
 			for(auto i = _shaderData.begin(); i != _shaderData.end(); i ++)
 			{
 				ShaderUnit *unit = new ShaderUnit(this, i->first);
@@ -454,6 +457,10 @@ namespace RN
 				
 				types |= (1 << static_cast<int>(i->first));
 			}
+			
+#if RN_PLATFORM_POSIX
+			errno = error;
+#endif
 			
 			// Link the program
 			gl::LinkProgram(program->program);
