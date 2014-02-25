@@ -71,7 +71,15 @@ namespace RN
 	}
 	
 	Thread::~Thread()
-	{}
+	{
+#if RN_PLATFORM_MAC_OS
+		// Works around a bug in OS X, which sometimes crashes mutexes and condition variables
+		// https://devforums.apple.com/thread/220316?tstart=0
+		
+		struct timespec time { .tv_sec = 0, .tv_nsec = 1 };
+		pthread_cond_timedwait_relative_np(_exitSignal.native_handle(), _exitMutex.native_handle(), &time);
+#endif
+	}
 	
 	void Thread::Initialize()
 	{
