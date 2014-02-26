@@ -43,6 +43,7 @@ namespace RN
 		
 		RNAPI void DidSleepForSignificantTime();
 		RNAPI void Exit();
+		RNAPI void ScheduleFunction(Function &&function);
 		
 		RNAPI void PushStatistics(const std::string& key);
 		RNAPI void PopStatistics();
@@ -73,6 +74,9 @@ namespace RN
 		void Prepare();
 		void Initialize();
 		void DumpSystem();
+
+		SpinLock _lock;
+		std::vector<Function> _functions;
 
 		std::string _title;
 		FrameID _frame;

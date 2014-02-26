@@ -537,6 +537,21 @@ namespace RN
 		_renderer->BeginFrame(_delta);
 		_input->DispatchInputEvents();
 		
+		if(!_functions.empty())
+		{
+			std::vector<Function> temp;
+
+			{
+				LockGuard<SpinLock> lock(_lock);
+				std::swap(temp, _functions);
+			}
+
+			for(Function &f : temp)
+			{
+				f();
+			}
+		}
+
 		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidBeginFrameMessage, nullptr, nullptr);
 		
 		_app->GameUpdate(_delta);
@@ -629,6 +644,12 @@ namespace RN
 		
 		if(_maxFPS > 0)
 			_minDelta = 1.0f / _maxFPS;
+	}
+
+	void Kernel::ScheduleFunction(Function &&function)
+	{
+		LockGuard<SpinLock> lock(_lock);
+		_functions.push_back(std::move(function));
 	}
 
 	void Kernel::DidSleepForSignificantTime()
