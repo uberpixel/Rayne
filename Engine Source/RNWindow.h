@@ -32,6 +32,7 @@ namespace RN
 		friend class Window;
 		friend class Screen;
 		
+		RNAPI WindowConfiguration(const WindowConfiguration *other);
 		RNAPI WindowConfiguration(uint32 width, uint32 height);
 		RNAPI WindowConfiguration(uint32 width, uint32 height, Screen *screen);
 		
@@ -45,7 +46,7 @@ namespace RN
 		uint32 _width;
 		uint32 _height;
 		
-		RNDeclareMeta(WindowConfiguration, Object)
+		RNDeclareMetaWithTraits(WindowConfiguration, Object, MetaClassTraitCopyable)
 	};
 	
 	class Screen
@@ -124,7 +125,6 @@ namespace RN
 		RNAPI void ReleaseMouse();
 
 		RNAPI Vector2 GetSize() const;
-		RNAPI Vector2 GetPosition() const;
 		
 		RNAPI Screen *GetActiveScreen() const { return _activeScreen; }
 		RNAPI Screen *GetMainScreen() const { return _mainScreen; }

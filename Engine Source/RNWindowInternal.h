@@ -52,6 +52,7 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		HWND hWnd;
 		HDC hDC;
+		DWORD style;
 #endif
 		
 		Context *context;

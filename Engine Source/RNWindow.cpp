@@ -29,6 +29,10 @@ namespace RN
 	// MARK: WindowConfiguration
 	// ---------------------
 	
+	WindowConfiguration::WindowConfiguration(const WindowConfiguration *other) :
+		WindowConfiguration(other->_width, other->_height, other->_screen)
+	{}
+
 	WindowConfiguration::WindowConfiguration(uint32 width, uint32 height) :
 		WindowConfiguration(width, height, nullptr)
 	{}
@@ -355,6 +359,15 @@ namespace RN
 
 	void Window::SetTitle(const std::string& title)
 	{
+		if(!Thread::GetMainThread()->OnThread())
+		{
+			Kernel::GetSharedInstance()->ScheduleFunction([this, title] {
+				SetTitle(title);
+			});
+
+			return;
+		}
+
 		_title = title;
 		
 #if RN_PLATFORM_MAC_OS
@@ -367,15 +380,56 @@ namespace RN
 		XStoreName(_internals->dpy, _internals->win, title.c_str());
 #endif
 	}
-	
+
+	void Window::SetPosition(const Vector2 &position)
+	{
+		if(!Thread::GetMainThread()->OnThread())
+		{
+			Kernel::GetSharedInstance()->ScheduleFunction([this, position] {
+				SetPosition(position);
+			});
+
+			return;
+		}
+
+#if RN_PLATFORM_WINDOWS
+		HWND mainWindow = _kernel->GetMainWindow();
+		RECT rect;
+
+		::GetWindowRect(mainWindow, &rect);
+		::AdjustWindowRectEx(&rect, _internals->style, false, 0);
+
+
+		uint32 width  = rect.right - rect.left;
+		uint32 height = rect.bottom - rect.top;
+
+		rect.left = position.x;
+		rect.top  = position.y;
+		
+		::SetWindowPos(mainWindow, HWND_NOTOPMOST, rect.left, rect.top, width, height, SWP_NOCOPYBITS);
+		::SetWindowPos(mainWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+#endif
+	}
+
 	void Window::ActivateConfiguration(WindowConfiguration *configuration, Mask mask)
 	{
+		if(!Thread::GetMainThread()->OnThread())
+		{
+			configuration = configuration->Copy();
+
+			Kernel::GetSharedInstance()->ScheduleFunction([this, configuration, mask] {
+				ActivateConfiguration(configuration, mask);
+				configuration->Release();
+			});
+
+			return;
+		}
+
+
 		if(configuration->IsEqual(_activeConfiguration) && mask == _mask)
 			return;
 		
 		Renderer *renderer = Renderer::GetSharedInstance();
-		
-		
 		Screen *screen = configuration->GetScreen();
 		
 		uint32 width  = configuration->GetWidth();
@@ -481,6 +535,8 @@ namespace RN
 
 			width  = rect.width;
 			height = rect.height;
+
+			_internals->style = windowStyle;
 		}
 		else
 		{
@@ -505,6 +561,8 @@ namespace RN
 			
 			renderer->SetDefaultFrame(width, height);
 			renderer->SetDefaultFactor(1.0f, 1.0f);
+
+			_internals->style = windowStyle;
 		}
 		
 		
@@ -606,11 +664,6 @@ namespace RN
 	Vector2 Window::GetSize() const
 	{
 		return Vector2(_activeConfiguration->GetWidth(), _activeConfiguration->GetHeight());
-	}
-		
-	Vector2 Window::GetPosition() const
-	{
-		return Vector2();
 	}
 
 #if RN_PLATFORM_MAC_OS
