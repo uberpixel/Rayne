@@ -11,6 +11,7 @@
 #include "RNAutoreleasePool.h"
 #include "RNWindow.h"
 #include "RNUIServer.h"
+#include "RNLogging.h"
 
 namespace RN
 {
@@ -470,12 +471,29 @@ namespace RN
 				::GetKeyboardState(keyState);
 
 				uint32 scan = (lparam >> 16) & 0xff;
-				uint32 code = (wparam < 0x0030) ? 1 : 0;
+				uint32 code = (wparam < 0x30) ? 1 : 0;
 
-				WCHAR buffer = 0;
-				if(::ToUnicode((UINT)wparam, scan, keyState, &buffer, 1, 0) == 1)
-					code = buffer;
+				if(code == 0)
+				{
+					WCHAR buffer = 0;
+					if(::ToUnicode((UINT)wparam, scan, keyState, &buffer, 1, 0) == 1)
+					{
+						code = buffer;
+					}
+					else
+					{
+						code = wparam | 0xF700;
+					}
+				}
+				else
+				{
+					// Special character, move it into the private use Unicode page
+					code = wparam | 0xF700;
 
+					if(code == 0xF70D)
+						code = 0xD;
+				}
+				
 				event->_key  = (UniChar)code;
 				event->_type = (message == WM_KEYDOWN) ? Event::Type::KeyDown : Event::Type::KeyUp;
 				event->_modifierKeys = TranslateModifierFlags(keyState);

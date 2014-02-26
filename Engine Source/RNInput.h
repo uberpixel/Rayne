@@ -22,6 +22,7 @@ namespace RN
 	
 	enum KeyCodes
 	{
+#if RN_PLATFORM_MAC_OS
 		KeyReturn = 0xD,
 		
 		KeyF1 = 0xF704,
@@ -50,6 +51,37 @@ namespace RN
 		KeyPageDown,
 		
 		KeyPrintScreen = 0xF72E
+#endif
+#if RN_PLATFORM_WINDOWS
+		KeyReturn = 0xD,
+
+		KeyF1 = 0xF770,
+		KeyF2,
+		KeyF3,
+		KeyF4,
+		KeyF5,
+		KeyF6,
+		KeyF7,
+		KeyF8,
+		KeyF9,
+		KeyF10,
+		KeyF11,
+		KeyF12,
+
+		KeyUp = 0xF726,
+		KeyDown = 0xF728,
+		KeyLeft = 0xF725,
+		KeyRight = 0xF727,
+
+		KeyDelete = 0xF72E,
+		KeyBegin = 0xF72D,
+		KeyEnd = 0xF72E,
+
+		KeyPageUp = 0xF721,
+		KeyPageDown,
+
+		KeyPrintScreen = 0xF72E
+#endif
 	};
 	
 	enum KeyModifier
