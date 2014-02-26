@@ -52,7 +52,6 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		HWND hWnd;
 		HDC hDC;
-		bool displayChanged;
 #endif
 		
 		Context *context;

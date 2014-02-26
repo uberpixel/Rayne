@@ -72,9 +72,6 @@ namespace RN
 						thisScreen = screen;
 						
 						_frame = Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
-						_width  = _frame.width;
-						_height = _frame.height;
-						
 						break;
 					}
 				}
@@ -127,12 +124,25 @@ namespace RN
 #endif
 	
 #if RN_PLATFORM_WINDOWS
-	Screen::Screen(const char *name) :
-		_display(name),
+	Screen::Screen(HMONITOR monitor) :
+		_monitor(monitor),
 		_scaleFactor(1.0f),
-		_width(0),
-		_height(0)
+		_isMain(false)
 	{
+		MONITORINFOEXA  info;
+		info.cbSize = sizeof(MONITORINFOEXA);
+
+		if(!::GetMonitorInfoA(_monitor, &info))
+			throw Exception(Exception::Type::GenericException, "GetMonitorInfoA failed");
+
+		_isMain = (info.dwFlags & MONITORINFOF_PRIMARY);
+
+		_frame.x = info.rcMonitor.left;
+		_frame.y = info.rcMonitor.top;
+
+		_frame.width  = info.rcMonitor.right - info.rcMonitor.left;
+		_frame.height = info.rcMonitor.bottom - info.rcMonitor.top;
+
 		for(DWORD modeNum = 0;; modeNum ++)
 		{
 			DEVMODE mode;
@@ -140,14 +150,11 @@ namespace RN
 			mode.dmSize = sizeof(DEVMODE);
 			mode.dmDriverExtra = 0;
 			
-			if(!EnumDisplaySettingsA(name, modeNum, &mode))
+			if(!EnumDisplaySettingsA(info.szDevice, modeNum, &mode))
 				break;
 			
 			uint32 width  = mode.dmPelsWidth;
 			uint32 height = mode.dmPelsHeight;
-			
-			_width  = std::max(_width, width);
-			_height = std::max(_height, height);
 			
 			if((width >= 1024) && (height >= 768) && (mode.dmBitsPerPel >= 32))
 			{
@@ -156,6 +163,9 @@ namespace RN
 			}
 		}
 #endif
+
+		if(_configurations.GetCount() == 0)
+			throw Exception(Exception::Type::GenericException, "No window configurations found for monitor");
 		
 		_configurations.Sort<WindowConfiguration>([](const WindowConfiguration *left, const WindowConfiguration *right) {
 			
@@ -176,7 +186,15 @@ namespace RN
 	// MARK: -
 	// MARK: Window
 	// ---------------------
-	
+
+	static std::vector<HMONITOR> __MonitorHandles;
+
+	static BOOL __MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
+	{
+		__MonitorHandles.push_back(hMonitor);
+		return true;
+	}
+		
 	Window::Window()
 	{
 		_kernel = Kernel::GetSharedInstance();
@@ -216,27 +234,27 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_WINDOWS
-		for(DWORD devNum = 0;; devNum ++)
+		::EnumDisplayMonitors(nullptr, nullptr, (MONITORENUMPROC)__MonitorEnumProc, NULL);
+
+		for(HMONITOR monitor : __MonitorHandles)
 		{
-			DISPLAY_DEVICEA device;
-			
-			device.cb = sizeof(DISPLAY_DEVICEA);
-			if(!EnumDisplayDevicesA(nullptr, devNum, &device, 0))
-				break;
-			
-			Screen *screen = new Screen(device.DeviceName);
-			
-			if(device.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)
+			try
 			{
-				_screens.insert(_screens.begin(), screen);
-				_mainScreen = screen;
+				Screen *screen = new Screen(monitor);
+
+				if(screen->IsMainScreen())
+				{
+					_screens.insert(_screens.begin(), screen);
+					_mainScreen = screen;
+				}
+				else
+					_screens.push_back(screen);
 			}
-			else
-				_screens.push_back(screen);
+			catch(Exception e)
+			{}
 		}
 		
 		_internals->hWnd = nullptr;
-		_internals->displayChanged = false;
 #endif
 		
 #if RN_PLATFORM_LINUX
@@ -323,8 +341,6 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		if(_internals->hWnd)
 			::DestroyWindow(_internals->hWnd);
-		if(_internals->displayChanged)
-			::ChangeDisplaySettingsA(nullptr, 0);
 #endif
 
 #if RN_PLATFORM_LINUX
@@ -439,48 +455,44 @@ namespace RN
 		}
 		
 		HWND mainWindow = _kernel->GetMainWindow();
+		RECT monitorRect;
 
-		if(mask & MaskFullscreen)
 		{
-			DEVMODE	mode = { 0 };
+			const Rect &rect = screen->GetFrame();
 
-			mode.dmSize = sizeof(DEVMODE);
-			mode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-			mode.dmBitsPerPel = 32;
-			mode.dmPelsWidth  = width;
-			mode.dmPelsHeight = height;
+			monitorRect.left = rect.x;
+			monitorRect.top  = rect.y;
 
-			if(::ChangeDisplaySettingsA(&mode, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
-				throw Exception(Exception::Type::InconsistencyException, "Failed to switch configuration!");
+			monitorRect.right  = rect.width - rect.x;
+			monitorRect.bottom = rect.height - rect.y;
+		}
 
-			_internals->displayChanged = true;
+		if(mask & Mask::Fullscreen)
+		{
+			DWORD windowStyle = WS_CLIPCHILDREN |  WS_SYSMENU;
+			const Rect &rect = screen->GetFrame();
 
-			::SetWindowPos(mainWindow, HWND_NOTOPMOST, 0, 0, width, height, SWP_NOCOPYBITS);
-			::SetWindowLongPtrA(mainWindow, GWL_STYLE, WS_POPUP | WS_CLIPCHILDREN);
+			::SetWindowPos(mainWindow, HWND_NOTOPMOST, monitorRect.left, monitorRect.top, rect.width, rect.height, SWP_NOCOPYBITS);
+			::SetWindowLongPtrA(mainWindow, GWL_STYLE, windowStyle);
 			::SetWindowPos(mainWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 
-			renderer->SetDefaultFrame(width, height);
-			renderer->SetDefaultFactor(1.0f, 1.0f);
+			renderer->SetDefaultFrame(rect.width, rect.height);
+			renderer->SetDefaultFactor(rect.width / width, rect.height / height);
+
+			width  = rect.width;
+			height = rect.height;
 		}
 		else
 		{
-			if(_internals->displayChanged)
-			{
-				::ChangeDisplaySettingsA(nullptr, 0);
-				_internals->displayChanged = false;
-			}
+			DWORD windowStyle = WS_CLIPCHILDREN | WS_SYSMENU;
 
-			RECT windowRect;
+			windowStyle |= (!(mask & Mask::Borderless)) ? (WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX) : 0;
 
-			windowRect.left = (screen->GetWidth()  / 2) - (width / 2);
-			windowRect.top  = (screen->GetHeight() / 2) - (height / 2);
-			windowRect.right  = windowRect.left + width;
-			windowRect.bottom = windowRect.top  + height;
+			uint32 x = monitorRect.left + ((screen->GetWidth() / 2.0f) - (width / 2.0f));
+			uint32 y = monitorRect.top  + ((screen->GetHeight() / 2.0f) - (height / 2.0f));
 
-			::AdjustWindowRectEx(&windowRect, WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, false, 0);
-
-			::SetWindowPos(mainWindow, HWND_NOTOPMOST, windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, SWP_NOCOPYBITS);
-			::SetWindowLongPtrA(mainWindow, GWL_STYLE, WS_CLIPCHILDREN | WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU);
+			::SetWindowPos(mainWindow, HWND_NOTOPMOST, x, y, width, height, SWP_NOCOPYBITS);
+			::SetWindowLongPtrA(mainWindow, GWL_STYLE, windowStyle);
 			::SetWindowPos(mainWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 			
 			renderer->SetDefaultFrame(width, height);

@@ -55,8 +55,8 @@ namespace RN
 		
 		RNAPI ~Screen();
 		
-		RNAPI uint32 GetWidth() const { return _width; }
-		RNAPI uint32 GetHeight() const { return _height; }
+		RNAPI uint32 GetWidth() const { return _frame.width; }
+		RNAPI uint32 GetHeight() const { return _frame.height; }
 		
 		RNAPI float GetScaleFactor() const { return _scaleFactor; }
 		RNAPI const Rect &GetFrame() const { return _frame; }
@@ -68,12 +68,9 @@ namespace RN
 		Screen(CGDirectDisplayID display);
 #endif
 #if RN_PLATFORM_WINDOWS
-		Screen(const char *name);
+		Screen(HMONITOR monitor);
+		bool IsMainScreen() const { return _isMain; }
 #endif
-		
-		uint32 _width;
-		uint32 _height;
-		
 		Rect  _frame;
 		float _scaleFactor;
 		
@@ -81,7 +78,8 @@ namespace RN
 		CGDirectDisplayID _display;
 #endif
 #if RN_PLATFORM_WINDOWS
-		std::string _display;
+		HMONITOR _monitor;
+		bool _isMain;
 #endif
 		
 		Array _configurations;
