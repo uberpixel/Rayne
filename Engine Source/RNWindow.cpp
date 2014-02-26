@@ -393,6 +393,15 @@ namespace RN
 
 			return;
 		}
+		
+#if RN_PLATFORM_MAC_OS
+		NSScreen *screen = [_internals->nativeWindow screen];
+		NSPoint point = NSMakePoint(position.x, position.y);
+		
+		point.y = [screen frame].size.height - position.y;
+		
+		[_internals->nativeWindow setFrameTopLeftPoint:point];
+#endif
 
 #if RN_PLATFORM_WINDOWS
 		HWND mainWindow = _kernel->GetMainWindow();
