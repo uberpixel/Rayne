@@ -172,6 +172,16 @@ namespace RN
 			case WM_KEYUP:
 				RN::Input::GetSharedInstance()->HandleSystemEvent(window, message, wparam, lparam);
 				return 0;
+
+			case WM_SYSKEYDOWN:
+			case WM_SYSKEYUP:
+				switch(wparam)
+				{
+					case VK_MENU:
+						return 0;
+				}
+
+				break;
 		}
 
 		return DefWindowProcW(window, message, wparam, lparam);
