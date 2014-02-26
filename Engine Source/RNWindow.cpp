@@ -485,13 +485,21 @@ namespace RN
 		else
 		{
 			DWORD windowStyle = WS_CLIPCHILDREN | WS_SYSMENU;
-
-			windowStyle |= (!(mask & Mask::Borderless)) ? (WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX) : 0;
+			if(!(mask & Mask::Borderless))
+				windowStyle |= WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX;
 
 			uint32 x = monitorRect.left + ((screen->GetWidth() / 2.0f) - (width / 2.0f));
 			uint32 y = monitorRect.top  + ((screen->GetHeight() / 2.0f) - (height / 2.0f));
 
-			::SetWindowPos(mainWindow, HWND_NOTOPMOST, x, y, width, height, SWP_NOCOPYBITS);
+			RECT windowRect;
+			windowRect.left   = x;
+			windowRect.top    = y;
+			windowRect.right  = x + width;
+			windowRect.bottom = y + height;
+
+			::AdjustWindowRectEx(&windowRect, windowStyle, false, 0);
+
+			::SetWindowPos(mainWindow, HWND_NOTOPMOST, windowRect.left, windowRect.top, width, height, SWP_NOCOPYBITS);
 			::SetWindowLongPtrA(mainWindow, GWL_STYLE, windowStyle);
 			::SetWindowPos(mainWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 			
