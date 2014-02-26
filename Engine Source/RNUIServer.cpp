@@ -248,7 +248,9 @@ namespace RN
 		
 		void Server::UpdateSize()
 		{
-			Rect actualFrame = Window::GetSharedInstance()->GetFrame();
+			Vector2 actualSize = Window::GetSharedInstance()->GetSize();
+			Rect    actualFrame(Vector2(), actualSize);
+			
 			if(_frame != actualFrame)
 			{
 				_frame = actualFrame;

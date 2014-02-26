@@ -655,8 +655,8 @@ namespace RN
 		
 		if(_flags & Flags::Fullscreen)
 		{
-			Rect frame = Kernel::GetSharedInstance()->GetWindow()->GetFrame();
-			SetFrame(frame);
+			Vector2 size = Kernel::GetSharedInstance()->GetWindow()->GetSize();
+			SetFrame(Rect(Vector2(), size));
 		}
 
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
@@ -795,8 +795,8 @@ namespace RN
 	{
 		if(_flags & Flags::Fullscreen)
 		{
-			Rect frame = Kernel::GetSharedInstance()->GetWindow()->GetFrame();
-			SetFrame(frame);
+			Vector2 size = Kernel::GetSharedInstance()->GetWindow()->GetSize();
+			SetFrame(Rect(Vector2(), size));
 		}
 		
 		return _frame;

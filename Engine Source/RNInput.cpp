@@ -199,11 +199,11 @@ namespace RN
 	
 	Vector2 Input::ClampMousePosition(const Vector2& position) const
 	{
-		Rect frame = Window::GetSharedInstance()->GetFrame();
+		Vector2 size = Window::GetSharedInstance()->GetSize();
 		Vector2 result;
 		
-		result.x = roundf(std::min(frame.width, std::max(0.0f, position.x)));
-		result.y = roundf(std::min(frame.height, std::max(0.0f, position.y)));
+		result.x = roundf(std::min(size.x, std::max(0.0f, position.x)));
+		result.y = roundf(std::min(size.y, std::max(0.0f, position.y)));
 		
 		return result;
 	}
