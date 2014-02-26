@@ -191,6 +191,7 @@ namespace RN
 	// MARK: Window
 	// ---------------------
 
+#if RN_PLATFORM_WINDOWS
 	static std::vector<HMONITOR> __MonitorHandles;
 
 	static BOOL __MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
@@ -198,6 +199,7 @@ namespace RN
 		__MonitorHandles.push_back(hMonitor);
 		return true;
 	}
+#endif
 		
 	Window::Window()
 	{
