@@ -304,7 +304,7 @@ namespace RN
 		
 		void Loggable::Submit()
 		{
-			if(_stream.tellp() == 0)
+			if(!_stream.tellp())
 				return;
 			
 			_message.SetMessage(std::move(_stream.str()));
