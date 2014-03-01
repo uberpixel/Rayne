@@ -49,6 +49,10 @@ namespace RN
 		
 		RNAPI size_t GetCount() const;
 		
+	protected:
+		RNAPI void SetValueForUndefinedKey(Object *value, const std::string &key) override;
+		RNAPI Object *GetValueForUndefinedKey(const std::string &key) override;
+		
 	private:
 		PIMPL<DictionaryInternal> _internals;
 		

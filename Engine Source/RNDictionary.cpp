@@ -9,6 +9,7 @@
 #include "RNDictionary.h"
 #include "RNArray.h"
 #include "RNHashTableInternal.h"
+#include "RNString.h"
 
 namespace RN
 {
@@ -233,5 +234,18 @@ namespace RN
 				bucket = bucket->next;
 			}
 		}
+	}
+	
+	
+	// KVO
+	void Dictionary::SetValueForUndefinedKey(Object *value, const std::string &key)
+	{
+		SetObjectForKey(value, RNSTR(key.c_str()));
+	}
+	
+	Object *Dictionary::GetValueForUndefinedKey(const std::string &key)
+	{
+		Object *value = GetObjectForKey(RNSTR(key.c_str()));
+		return value;
 	}
 }
