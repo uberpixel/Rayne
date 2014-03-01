@@ -353,12 +353,12 @@ namespace RN
 	}
 	
 	
-	void Object::SetValueForKey(const std::string& keyPath, Object *value)
+	void Object::SetValueForKey(Object *value, const std::string& keyPath)
 	{
 		std::string key;
 		ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
 		
-		property ? property->SetValue(value) : SetValueForUndefinedKey(key, value);
+		property ? property->SetValue(value) : SetValueForUndefinedKey(value, key);
 	}
 	
 	Object *Object::GetValueForKey(const std::string& keyPath)
@@ -369,7 +369,7 @@ namespace RN
 		return object->GetPrimitiveValueForKey(key);
 	}
 	
-	void Object::SetValueForUndefinedKey(const std::string& key, Object *value)
+	void Object::SetValueForUndefinedKey(Object *value, const std::string& key)
 	{
 		throw Exception(Exception::Type::InconsistencyException, "SetValue() for undefined key" + key);
 	}

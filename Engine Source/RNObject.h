@@ -106,7 +106,7 @@ namespace RN
 			object->UnmapCookie(cookie, property);
 		}
 		
-		RNAPI void SetValueForKey(const std::string& keyPath, Object *value);
+		RNAPI void SetValueForKey(Object *value, const std::string& keyPath);
 		RNAPI Object *GetValueForKey(const std::string& keyPath);
 		
 	protected:
@@ -115,7 +115,7 @@ namespace RN
 		RNAPI void AddObservable(ObservableProperty *property);
 		RNAPI void AddObservables(std::initializer_list<ObservableProperty *> properties);
 		
-		RNAPI virtual void SetValueForUndefinedKey(const std::string& key, Object *value);
+		RNAPI virtual void SetValueForUndefinedKey(Object *value, const std::string& key);
 		RNAPI virtual Object *GetValueForUndefinedKey(const std::string& key);
 		
 		RNAPI void WillChangeValueForkey(const std::string& key);

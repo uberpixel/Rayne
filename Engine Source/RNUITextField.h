@@ -66,7 +66,7 @@ namespace RN
 			RNAPI void LayoutSubviews() override;
 			RNAPI bool TextEditorShouldReturn(TextEditor *editor) override;
 			
-			RNAPI void SetValueForUndefinedKey(const std::string& key, Object *value) override;
+			RNAPI void SetValueForUndefinedKey(Object *value, const std::string& key) override;
 			RNAPI Object *GetValueForUndefinedKey(const std::string& key) override;
 			
 		private:
