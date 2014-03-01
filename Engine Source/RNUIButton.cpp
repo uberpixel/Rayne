@@ -221,7 +221,7 @@ namespace RN
 		bool Button::PostEvent(EventType event)
 		{
 			if(!IsEnabled())
-				return true;
+				return false;
 			
 			if(_behavior == Behavior::Switch)
 			{
