@@ -452,21 +452,21 @@ namespace RN
 		std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 
 		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
-		float trueDelta = milliseconds / 1000.0f;
+		double trueDelta  = milliseconds / 1000.0;
 		
-		if(_fixedDeltaTime)
+		if(_fixedDelta)
 			trueDelta = _fixedDeltaTime;
 		
 		if(_resetDelta)
 		{
-			trueDelta = 0.0f;
+			trueDelta   = 0.0;
 			_resetDelta = false;
 		}
 		
 		if(RN_EXPECT_FALSE(!_initialized))
 		{
 			Initialize();
-			trueDelta = 0.0f;
+			trueDelta = 0.0;
 			
 			_initialized = true;
 			_resetDelta  = true;
