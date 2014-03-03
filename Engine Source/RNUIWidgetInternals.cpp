@@ -143,7 +143,7 @@ namespace RN
 				float spaceLeft = bounds.width - offsetX - 5.0f;
 				Vector2 size   = _title->GetSizeThatFits();
 				
-				bool fitsCentered = (size.x >= spaceLeft);
+				bool fitsCentered = (size.x < spaceLeft);
 				float top = roundf((bounds.height * 0.4) - (size.y * 0.5f));
 				
 				Rect rect = _title->GetFrame();
