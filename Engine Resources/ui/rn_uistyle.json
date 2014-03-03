@@ -1,5 +1,5 @@
 {
-	"fonts": {
+	"fonts~mac": {
 		"RNDefaultFont": {
 			"name": "Helvetica",
 			"size": 12.0
@@ -16,6 +16,27 @@
 		},
 		"RNDefaultFontBoldItalics": {
 			"name": "Helvetica",
+			"size": 12.0,
+			"traits": "bold+italics"
+		}
+	},
+	"fonts": {
+		"RNDefaultFont": {
+			"name": "Arial",
+			"size": 12.0
+		},
+		"RNDefaultFontBold": {
+			"name": "Arial",
+			"size": 12.0,
+			"traits": "bold"
+		},
+		"RNDefaultFontItalics": {
+			"name": "Arial",
+			"size": 12.0,
+			"traits": "italics"
+		},
+		"RNDefaultFontBoldItalics": {
+			"name": "Arial",
 			"size": 12.0,
 			"traits": "bold+italics"
 		}
@@ -46,37 +67,37 @@
 				{
 					"name": "normal",
 					"atlas": {
-						"x": 81.0,
-						"y": 0.0,
-						"width": 11.0,
-						"height": 28.0
+						"x": 0.0,
+						"y": 100.0,
+						"width": 20.0,
+						"height": 20.0
 					}
 				},
 				{
 					"name": "highlighted",
 					"atlas": {
-						"x": 93.0,
-						"y": 0.0,
-						"width": 11.0,
-						"height": 28.0
+						"x": 20.0,
+						"y": 100.0,
+						"width": 20.0,
+						"height": 20.0
 					}
 				},
 				{
 					"name": "selected",
 					"atlas": {
-						"x": 104.0,
-						"y": 0.0,
-						"width": 11.0,
-						"height": 28.0
+						"x": 20.0,
+						"y": 100.0,
+						"width": 20.0,
+						"height": 20.0
 					}
 				},
 				{
 					"name": "disabled",
 					"atlas": {
-						"x": 115.0,
-						"y": 0.0,
-						"width": 11.0,
-						"height": 28.0
+						"x": 40.0,
+						"y": 100.0,
+						"width": 20.0,
+						"height": 20.0
 					}
 				}
 			]

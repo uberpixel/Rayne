@@ -55,8 +55,32 @@ namespace RN
 			Array *keys = keyPath->GetComponentsSeparatedByString(RNCSTR("."));
 			Object *resource = _data;
 			
+			size_t count = keys->GetCount();
+			
 			keys->Enumerate<String>([&](String *key, size_t index, bool &stop) {
 				
+				String *tkey = key->Copy();
+				Object *temp = resource;
+				
+#if RN_PLATFORM_MAC_OS
+				tkey->Append("~mac");
+				resource = static_cast<Dictionary *>(resource)->GetObjectForKey(tkey);
+#endif
+#if RN_PLATFORM_WINDOWS
+				tkey->Append("~win");
+				resource = static_cast<Dictionary *>(resource)->GetObjectForKey(tkey);
+#endif
+#if RN_PLATFORM_LINUX
+				tkey->Append("~linux");
+				resource = static_cast<Dictionary *>(resource)->GetObjectForKey(tkey);
+#endif
+				
+				tkey->Release();
+				
+				if(resource && (resource->IsKindOfClass(Dictionary::MetaClass()) || index == (count - 1)))
+				   return;
+				
+				resource = temp; // Restore the resource
 				resource = static_cast<Dictionary *>(resource)->GetObjectForKey(key);
 				if(!resource)
 				{
@@ -64,7 +88,7 @@ namespace RN
 					return;
 				}
 				
-				if(!resource->IsKindOfClass(Dictionary::MetaClass()) && index < keys->GetCount() - 1)
+				if(!resource->IsKindOfClass(Dictionary::MetaClass()) && index < (count - 1))
 				{
 					stop = true;
 					resource = nullptr;
