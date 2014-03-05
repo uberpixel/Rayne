@@ -47,6 +47,8 @@ namespace RN
 			RNAPI Style();
 			RNAPI ~Style() override;
 			
+			RNAPI void LoadStyle(const std::string &path, String *key);
+			
 			RNAPI Texture *GetTextureWithName(String *name);
 			
 			template<class T>

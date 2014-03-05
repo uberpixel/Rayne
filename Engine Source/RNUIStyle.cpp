@@ -24,8 +24,15 @@ namespace RN
 			{
 				String *path = Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestUIStyleKey);
 				
-				_data = JSONSerialization::JSONObjectFromData<Dictionary>(Data::WithContentsOfFile(path->GetUTF8String()));
-				_data->Retain();
+				if(path)
+				{
+					_data = JSONSerialization::JSONObjectFromData<Dictionary>(Data::WithContentsOfFile(path->GetUTF8String()));
+					_data->Retain();
+				}
+				else
+				{
+					_data = new Dictionary();
+				}
 			}
 			catch(Exception e)
 			{
@@ -47,6 +54,12 @@ namespace RN
 		// MARK: -
 		// MARK: General
 		// ---------------------
+		
+		void Style::LoadStyle(const std::string &path, String *key)
+		{
+			Object *data = JSONSerialization::JSONObjectFromData<Dictionary>(Data::WithContentsOfFile(path));
+			_data->SetObjectForKey(data, key);
+		}
 		
 		Object *Style::__GetResourceWithKeyPath(String *keyPath)
 		{

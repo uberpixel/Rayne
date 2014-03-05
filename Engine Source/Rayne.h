@@ -82,6 +82,7 @@
 #include "RNTexture.h"
 #include "RNTextureAtlas.h"
 
+#include "RNUIStyle.h"
 #include "RNUIFont.h"
 #include "RNUITypesetter.h"
 #include "RNUIImage.h"
