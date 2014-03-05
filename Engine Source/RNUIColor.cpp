@@ -7,6 +7,7 @@
 //
 
 #include "RNUIColor.h"
+#include "RNSettings.h"
 
 namespace RN
 {
@@ -16,12 +17,19 @@ namespace RN
 		
 		
 		Color::Color()
-		{
-		}
+		{}
 		
 		Color::Color(const RN::Color& color)
 		{
 			_color = color;
+			
+			if(Settings::GetSharedInstance()->GetBoolForKey(kRNSettingsGammaCorrectionKey))
+			{
+				_color.r = powf(_color.r, 0.454545f);
+				_color.g = powf(_color.g, 0.454545f);
+				_color.b = powf(_color.b, 0.454545f);
+				_color.a = powf(_color.a, 0.454545f);
+			}
 		}
 		
 		Color::Color(Color *other)
