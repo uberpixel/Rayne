@@ -17,6 +17,11 @@
 #include "RNVector.h"
 #include "RNUIResponder.h"
 
+#define kRNUIWidgetLevelNormal     5
+#define kRNUIWidgetLevelBackground 0
+#define kRNUIWidgetLevelFloating   15
+#define kRNUIWidgetLevelPanel      10
+
 namespace RN
 {
 	namespace UI
@@ -60,6 +65,7 @@ namespace RN
 			RNAPI void SetContentSize(const Vector2& size);
 			RNAPI void SetTitle(String *title);
 			RNAPI void SetTransform(const Matrix& transform);
+			RNAPI void SetWidgetLevel(int32 level);
 			
 			RNAPI const Rect& GetFrame() const { return _frame; }
 			RNAPI Vector2 GetContentSize() const;
@@ -97,6 +103,7 @@ namespace RN
 			
 			Style _style;
 			bool _hasShadow;
+			int32 _level;
 			
 			Rect _frame;
 			

@@ -113,6 +113,8 @@ namespace RN
 			_widgets.push_front(widget);
 			widget->_server = this;
 			widget->Retain();
+			
+			SortWidgets();
 		}
 		
 		void Server::RemoveWidget(Widget *widget)
@@ -135,9 +137,17 @@ namespace RN
 			RN_ASSERT(widget->_server == this, "");
 			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
-			_widgets.push_front(widget);
+			_widgets.push_back(widget);
+			
+			SortWidgets();
 		}
 		
+		void Server::SortWidgets()
+		{
+			std::stable_sort(_widgets.begin(), _widgets.end(), [](const Widget *a, const Widget *b) {
+				return (a->_level < b->_level);
+			});
+		}
 		
 		bool Server::ConsumeEvent(Event *event)
 		{
@@ -194,6 +204,7 @@ namespace RN
 							_mainWidget = hitWidget;
 							_tracking   = hit;
 							
+							MoveWidgetToFront(hitWidget);
 							hit->MouseDown(event);
 							return true;
 							

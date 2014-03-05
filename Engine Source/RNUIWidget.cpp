@@ -37,8 +37,9 @@ namespace RN
 		
 		void Widget::Initialize(Style style)
 		{
-			_style = style;
+			_style     = style;
 			_hasShadow = (_style != StyleBorderless);
+			_level     = kRNUIWidgetLevelNormal;
 			
 			_backgroundView = CreateBackgroundView();
 			_contentView    = CreateContentView();
@@ -277,6 +278,14 @@ namespace RN
 			}
 			
 			return nullptr;
+		}
+		
+		void Widget::SetWidgetLevel(int32 level)
+		{
+			_level = level;
+			
+			if(_server)
+				_server->SortWidgets();
 		}
 		
 		// ---------------------

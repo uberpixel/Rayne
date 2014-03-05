@@ -70,6 +70,7 @@ namespace RN
 			void AddWidget(Widget *widget);
 			void RemoveWidget(Widget *widget);
 			void MoveWidgetToFront(Widget *widget);
+			void SortWidgets();
 			
 			bool ConsumeEvent(Event *event);
 			

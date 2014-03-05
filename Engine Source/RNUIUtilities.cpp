@@ -20,6 +20,7 @@ namespace RN
 			_fps(60)
 		{
 			SetTitle(RNCSTR("Statistics"));
+			SetWidgetLevel(kRNUIWidgetLevelFloating);
 			
 			_label = new Label();
 			_label->SetAutoresizingMask(View::AutoresizingFlexibleHeight | View::AutoresizingFlexibleWidth);
@@ -95,6 +96,8 @@ namespace RN
 			_engine = new Log::CallbackLoggingEngine(this);
 			
 			SetTitle(RNCSTR("Console"));
+			SetWidgetLevel(kRNUIWidgetLevelFloating);
+			
 			Log::Logger::GetSharedInstance()->AddLoggingEngine(_engine);
 			
 			Rect frame = GetFrame();
