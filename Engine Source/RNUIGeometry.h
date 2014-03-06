@@ -66,7 +66,7 @@ namespace RN
 				v1 = tv1;
 				
 				u2 = tu2;
-				v2 = tv1;
+				v2 = tv2;
 			}
 			
 			Atlas(const Vector2& uv1, const Vector2& uv2)
