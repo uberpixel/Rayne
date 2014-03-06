@@ -52,6 +52,7 @@ namespace RN
 		RNAPI virtual bool SupportsBackgroundLoading() const;
 		
 		RNAPI SceneManager *GetSceneManager() const { return _sceneManager; }
+		RNAPI Array *GetSceneNodes();
 		
 		RNAPI static World *GetActiveWorld();
 		

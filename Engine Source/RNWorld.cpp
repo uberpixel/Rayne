@@ -387,6 +387,29 @@ namespace RN
 		});
 	}
 	
+	Array *World::GetSceneNodes()
+	{
+		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+		
+		if(_isDroppingSceneNodes)
+			return Array::WithObjects(nullptr);
+		
+		Array *array = new Array(_nodes.size() + _addedNodes.size() + _staticNodes.size() + _cameras.size());
+		
+		for(SceneNode *node : _nodes)
+			array->AddObject(node);
+		
+		for(SceneNode *node : _addedNodes)
+			array->AddObject(node);
+		
+		for(SceneNode *node : _staticNodes)
+			array->AddObject(node);
+		
+		for(Camera *node : _cameras)
+			array->AddObject(node);
+		
+		return array->Autorelease();
+	}
 	
 	// ---------------------
 	// MARK: -
