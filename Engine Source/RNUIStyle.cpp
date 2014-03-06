@@ -327,7 +327,7 @@ namespace RN
 					Number *height = atlas->GetObjectForKey<Number>(RNCSTR("height"));
 					
 					if(x && y && width && height)
-						return Atlas(x->GetFloatValue(), y->GetFloatValue(), width->GetFloatValue(), height->GetFloatValue());
+						return Atlas(Rect(x->GetFloatValue(), y->GetFloatValue(), width->GetFloatValue(), height->GetFloatValue()));
 				}
 				catch(Exception e)
 				{
