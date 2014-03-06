@@ -51,6 +51,7 @@ namespace RN
 		RNAPI const std::vector<Statistics::DataPoint *>& GetStatisticsData() const;
 
 		float GetScaleFactor() const { return _scaleFactor; }
+		uint32 GetMaxFPS() const { return _maxFPS; }
 		RNAPI float GetActiveScaleFactor() const;
 		
 		const std::string& GetTitle() const { return _title; }
