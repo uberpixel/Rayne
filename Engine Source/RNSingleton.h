@@ -66,23 +66,23 @@ namespace RN
 	
 #define RNDefineSingleton(T) \
 		static T *__RN ## T ## SingletonInstance = nullptr; \
-		static SpinLock __RN ## T ## SingletonLock; \
+		static RN::SpinLock __RN ## T ## SingletonLock; \
 		T *T::GetSharedInstance() \
 		{ \
-			LockGuard<SpinLock> lock(__RN ## T ## SingletonLock); \
+			RN::LockGuard<RN::SpinLock> lock(__RN ## T ## SingletonLock); \
 			if(!__RN ## T ## SingletonInstance && !std::is_base_of<INonConstructingSingleton<T>, T>::value) \
-				__RN ## T ## SingletonInstance = __SingletonCreator<T, std::is_default_constructible<T>::value>{}(); \
+				__RN ## T ## SingletonInstance = RN::__SingletonCreator<T, std::is_default_constructible<T>::value>{}(); \
 			return __RN ## T ## SingletonInstance; \
 		} \
 		void T::MakeShared(bool override) \
 		{ \
-			LockGuard<SpinLock> lock(__RN ## T ## SingletonLock); \
+			RN::LockGuard<RN::SpinLock> lock(__RN ## T ## SingletonLock); \
 			if(!__RN ## T ## SingletonInstance || override) \
 				__RN ## T ## SingletonInstance = this; \
 		} \
 		void T::ResignShared() \
 		{ \
-			LockGuard<SpinLock> lock(__RN ## T ## SingletonLock); \
+			RN::LockGuard<RN::SpinLock> lock(__RN ## T ## SingletonLock); \
 			if(__RN ## T ## SingletonInstance == this) \
 				__RN ## T ## SingletonInstance = nullptr; \
 		}
