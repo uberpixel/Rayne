@@ -147,19 +147,19 @@
 				{
 					"name": "normal",
 					"atlas": {
-						"x": 169.0,
-						"y": 0.0,
-						"width": 9.0,
-						"height": 9.0
+						"x": 0.0,
+						"y": 140.0,
+						"width": 10.0,
+						"height": 10.0
 					}
 				},
 				{
 					"name": "selected",
 					"atlas": {
-						"x": 159.0,
-						"y": 0.0,
-						"width": 9.0,
-						"height": 9.0
+						"x": 10.0,
+						"y": 140.0,
+						"width": 10.0,
+						"height": 10.0
 					}
 				}
 			]
@@ -342,7 +342,7 @@
 						"name": "disabled",
 						"atlas": {
 							"x": 60.0,
-							"y": 20.0,
+							"y": 0.0,
 							"width": 20.0,
 							"height": 20.0
 						}
@@ -390,7 +390,7 @@
 						"name": "disabled",
 						"atlas": {
 							"x": 60.0,
-							"y": 40.0,
+							"y": 0.0,
 							"width": 20.0,
 							"height": 20.0
 						}
