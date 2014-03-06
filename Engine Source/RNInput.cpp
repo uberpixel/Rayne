@@ -252,12 +252,6 @@ namespace RN
 			{
 				if(server->ConsumeEvent(event))
 				{
-					if(event->IsKeyboard())
-					{
-						UniChar code = event->GetCode();
-						_pressedKeys.erase(CodePoint(code).GetLowerCase());
-					}
-					
 					event->Release();
 					continue;
 				}
