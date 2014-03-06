@@ -136,6 +136,7 @@ namespace RN
 				
 				Fullscreen = (1 << 20),
 				Orthogonal = (1 << 21),
+				Hidden     = (1 << 22),
 				
 				UseFog          = (1 << 24),
 				UseClipPlanes   = (1 << 25),

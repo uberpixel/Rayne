@@ -174,6 +174,10 @@ namespace RN
 		for(Camera *camera : _cameras)
 		{
 			camera->PostUpdate();
+			
+			if(camera->GetFlags() & Camera::Flags::Hidden)
+				continue;
+			
 			renderer->BeginCamera(camera);
 			
 			RunWorldAttachement(&WorldAttachment::DidBeginCamera, camera);
