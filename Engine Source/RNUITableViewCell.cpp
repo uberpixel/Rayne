@@ -46,6 +46,8 @@ namespace RN
 			AddSubview(_contentView);
 			
 			_imageView = new ImageView();
+			_imageView->SetScaleMode(ScaleMode::ProportionallyDown);
+			
 			_textLabel = new Label();
 			_textLabel->SetLineBreak(LineBreakMode::TruncateMiddle);
 			
