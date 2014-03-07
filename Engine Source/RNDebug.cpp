@@ -285,7 +285,7 @@ namespace RN
 				CloseLine();
 			}
 			
-			for(float tilt = 0.0f; tilt <= 180.0f; tilt += offset)
+			for(float tilt = -90.0f+offset; tilt <= 90.0f; tilt += offset)
 			{
 				for(float pan = 0.0f; pan <= 360.0f; pan += offset)
 				{
