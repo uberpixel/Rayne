@@ -121,6 +121,7 @@ namespace RN
 		
 		Signal<void (Object *, const std::string &, Dictionary *)> *_signal;
 		Dictionary *_changeSet;
+		void *_opaque;
 	};
 }
 
