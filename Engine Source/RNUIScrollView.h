@@ -17,6 +17,8 @@ namespace RN
 	namespace UI
 	{
 		class ScrollView;
+		class ScrollerKnob;
+		
 		class ScrollViewDelegate
 		{
 		public:
@@ -26,6 +28,8 @@ namespace RN
 		class ScrollView : public View
 		{
 		public:
+			friend class ScrollerKnob;
+			
 			RNAPI ScrollView();
 			RNAPI ~ScrollView();
 			
@@ -35,8 +39,6 @@ namespace RN
 			RNAPI void SetContentOffset(const Vector2& offset);
 			RNAPI void SetContentSize(const Vector2& size);
 			RNAPI void SetVerticalScroller(Scroller *scroller);
-			
-			RNAPI void MoveScroller(Vector2 delta);
 			
 			RNAPI void ScrollWheel(Event *event) override;
 			RNAPI void SetFrame(const Rect& frame) override;
@@ -49,6 +51,7 @@ namespace RN
 			
 		private:
 			void AdjustScroller();
+			void MoveScroller(Vector2 delta);
 			
 			ScrollViewDelegate *_delegate;
 			
