@@ -274,7 +274,8 @@ namespace RN
 			Vector3 point(0.0f, 0.0f, radius);
 			Vector3 temp;
 			float offset = 360.0f/tesselation;
-			for(float pan = 0.0f; pan <= 180.0f; pan += offset)
+			float halfoffset = 180.0f/int(tesselation*0.5f);
+			for(float pan = 0.0f; pan <= 180.0f; pan += halfoffset)
 			{
 				for(float tilt = 0.0f; tilt <= 360.0f; tilt += offset)
 				{
@@ -285,7 +286,7 @@ namespace RN
 				CloseLine();
 			}
 			
-			for(float tilt = -90.0f+offset; tilt <= 90.0f; tilt += offset)
+			for(float tilt = -90.0f+halfoffset; tilt < 90.0f; tilt += halfoffset)
 			{
 				for(float pan = 0.0f; pan <= 360.0f; pan += offset)
 				{
