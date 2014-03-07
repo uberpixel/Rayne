@@ -193,7 +193,7 @@ namespace RN
 		void *OutlineView::GetItemForRow(size_t row)
 		{
 			RN_ASSERT(row < _rows.size(), "Row mustn't exceed the actual row count");
-			return _rows.at(row);
+			return _rows.at(row)->item;
 		}
 		
 		
