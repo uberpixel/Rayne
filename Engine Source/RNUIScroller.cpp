@@ -42,6 +42,7 @@ namespace RN
 			_container  = scrollView;
 			_horizontal = horizontal;
 			
+			_knob->SetScrollView(scrollView);
 			
 			Style *style = Style::GetSharedInstance();
 			

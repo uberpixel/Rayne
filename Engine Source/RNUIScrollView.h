@@ -36,6 +36,8 @@ namespace RN
 			RNAPI void SetContentSize(const Vector2& size);
 			RNAPI void SetVerticalScroller(Scroller *scroller);
 			
+			RNAPI void MoveScroller(Vector2 delta);
+			
 			RNAPI void ScrollWheel(Event *event) override;
 			RNAPI void SetFrame(const Rect& frame) override;
 			

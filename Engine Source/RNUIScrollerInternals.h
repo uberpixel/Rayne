@@ -22,10 +22,14 @@ namespace RN
 		{
 		public:
 			ScrollerKnob();
+			void SetScrollView(ScrollView *view);
 			
 			void MouseDragged(Event *event) override;
 			
 			RNDeclareMeta(ScrollerKnob, ImageView)
+			
+		private:
+			ScrollView *_scrollView;
 		};
 		
 		class ScrollerFrame : public ImageView

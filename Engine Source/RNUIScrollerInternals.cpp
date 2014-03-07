@@ -16,13 +16,22 @@ namespace RN
 		RNDefineMeta(ScrollerFrame)
 		
 		ScrollerKnob::ScrollerKnob()
+		: _scrollView(nullptr)
 		{
 			SetInteractionEnabled(true);
 		}
 		
+		void ScrollerKnob::SetScrollView(ScrollView *view)
+		{
+			_scrollView = view;
+		}
+		
 		void ScrollerKnob::MouseDragged(Event *event)
 		{
-			printf("Drag queen\n");
+			if(_scrollView)
+			{
+				_scrollView->MoveScroller(-event->GetMouseDelta());
+			}
 		}
 		
 		

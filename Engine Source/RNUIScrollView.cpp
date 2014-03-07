@@ -149,5 +149,20 @@ namespace RN
 			
 			SetContentOffset(delta);
 		}
+		
+		void ScrollView::MoveScroller(Vector2 delta)
+		{
+			delta /= GetBounds().Size();
+			delta *= _size;
+			delta += _offset;
+			
+			delta.x = std::max(0.0f, delta.x);
+			delta.y = std::max(0.0f, delta.y);
+			
+			delta.x = delta.x > _end.x ? _end.x : delta.x;
+			delta.y = delta.y > _end.y ? _end.y : delta.y;
+			
+			SetContentOffset(delta);
+		}
 	}
 }
