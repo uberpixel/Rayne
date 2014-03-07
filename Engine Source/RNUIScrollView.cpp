@@ -152,7 +152,7 @@ namespace RN
 		
 		void ScrollView::MoveScroller(Vector2 delta)
 		{
-			delta /= GetBounds().Size();
+			delta /= GetFrame().Size();
 			delta *= _size;
 			delta += _offset;
 			
