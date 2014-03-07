@@ -178,6 +178,7 @@ namespace RN
 		RNAPI uint8 GetCollisionGroup() const {return collisionGroup;};
 		
 		RNAPI const Array *GetChildren() const;
+		RNAPI bool HasChildren() const;
 		
 		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone);
 		

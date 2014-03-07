@@ -362,6 +362,12 @@ namespace RN
 		return _children.Copy()->Autorelease();
 	}
 	
+	bool SceneNode::HasChildren() const
+	{
+		LockGuard<decltype(_parentChildLock)> lock(_parentChildLock);
+		return (_children.GetCount() > 0);
+	}
+	
 	SceneNode *SceneNode::GetParent() const
 	{
 		_parentChildLock.Lock();
