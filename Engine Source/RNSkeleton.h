@@ -40,8 +40,8 @@ namespace RN
 		RNAPI Animation(const std::string &animname);
 		RNAPI ~Animation();
 		
-		void MakeLoop();
-		float GetLength();
+		RNAPI void MakeLoop();
+		RNAPI float GetLength();
 		
 		std::string name;
 		std::map<size_t, AnimationBone*> bones;
