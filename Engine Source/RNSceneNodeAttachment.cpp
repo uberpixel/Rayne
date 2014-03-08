@@ -91,4 +91,6 @@ namespace RN
 	
 	void SceneNodeAttachment::Update(float delta)
 	{}
+	void SceneNodeAttachment::UpdateEditMode(float delta)
+	{}
 }

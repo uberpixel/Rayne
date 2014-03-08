@@ -39,6 +39,7 @@ namespace RN
 		RNAPI SceneNode *GetParent() const;
 		
 		RNAPI virtual void Update(float delta);
+		RNAPI virtual void UpdateEditMode(float delta);
 		
 	protected:
 		RNAPI virtual void WillUpdate(SceneNode::ChangeSet changeSet) {}

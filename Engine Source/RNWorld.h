@@ -31,11 +31,18 @@ namespace RN
 		friend class Kernel;
 		friend class WorldCoordinator;
 		
+		enum class Mode
+		{
+			Play,
+			Edit
+		};
+		
 		RNAPI World(SceneManager *sceneManager);
 		RNAPI World(const std::string& sceneManager);
 		RNAPI ~World() override;
 		
 		RNAPI void SetReleaseSceneNodesOnDestruction(bool releaseSceneNodes);
+		RNAPI void SetMode(Mode mode);
 		
 		RNAPI void AddAttachment(WorldAttachment *attachment);
 		RNAPI void RemoveAttachment(WorldAttachment *attachment);
@@ -45,6 +52,7 @@ namespace RN
 		RNAPI void DropSceneNodes();
 		
 		RNAPI virtual void Update(float delta);
+		RNAPI virtual void UpdateEditMode(float delta);
 		RNAPI virtual void DidUpdateToFrame(FrameID frame);
 		
 		RNAPI virtual void LoadOnThread(Thread *thread);
@@ -53,6 +61,7 @@ namespace RN
 		
 		RNAPI SceneManager *GetSceneManager() const { return _sceneManager; }
 		RNAPI Array *GetSceneNodes();
+		RNAPI Mode GetMode() const { return _mode; }
 		
 		RNAPI static World *GetActiveWorld();
 		
@@ -60,6 +69,7 @@ namespace RN
 		static class SceneManager *SceneManagerWithName(const std::string& name);
 		
 		void StepWorld(FrameID frame, float delta);
+		void StepWorldEditMode(FrameID frame, float delta);
 		void RenderWorld(Renderer *renderer);
 		
 		void SceneNodeWillRender(SceneNode *node);
@@ -83,6 +93,7 @@ namespace RN
 			}
 		}
 		
+		Mode _mode;
 		Kernel *_kernel;
 		Array _attachments;
 		

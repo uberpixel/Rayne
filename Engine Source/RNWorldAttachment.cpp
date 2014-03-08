@@ -15,6 +15,9 @@ namespace RN
 	void WorldAttachment::StepWorld(float delta)
 	{}
 	
+	void WorldAttachment::StepWorldEditMode(float delta)
+	{}
+	
 	void WorldAttachment::DidBeginCamera(Camera *camera)
 	{}
 	

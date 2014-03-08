@@ -193,6 +193,11 @@ namespace RN
 			UpdateAttachments(delta);
 		}
 		
+		virtual void UpdateEditMode(float delta)
+		{
+			UpdateAttachmentsEditMode(delta);
+		}
+		
 		RNAPI virtual bool CanUpdate(FrameID frame);
 		
 	protected:
@@ -200,6 +205,7 @@ namespace RN
 		RNAPI virtual void DidUpdate(ChangeSet changeSet);
 		RNAPI void CleanUp() override;
 		RNAPI void UpdateAttachments(float delta);
+		RNAPI void UpdateAttachmentsEditMode(float delta);
 		
 		RNAPI virtual void ChildDidUpdate(SceneNode *child, ChangeSet changes) {}
 		RNAPI virtual void ChildWillUpdate(SceneNode *child, ChangeSet changes) {}

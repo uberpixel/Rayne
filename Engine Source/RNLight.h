@@ -84,6 +84,7 @@ namespace RN
 		
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI void Update(float delta) override;
+		RNAPI void UpdateEditMode(float delta) override;
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		
@@ -113,6 +114,8 @@ namespace RN
 		bool ActivateDirectionalShadows();
 		bool ActivatePointShadows();
 		bool ActivateSpotShadows();
+		
+		void UpdateShadows();
 		
 		Type _lightType;
 		

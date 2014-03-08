@@ -25,7 +25,8 @@ namespace RN
 		_releaseSceneNodesOnDestructor(true),
 		_isDroppingSceneNodes(false),
 		_requiresCameraSort(false),
-		_requiresResort(false)
+		_requiresResort(false),
+		_mode(Mode::Play)
 	{
 		_kernel = Kernel::GetSharedInstance();
 		
@@ -70,12 +71,22 @@ namespace RN
 		_releaseSceneNodesOnDestructor = releaseSceneNodes;
 	}
 	
+	void World::SetMode(Mode mode)
+	{
+		_kernel->ScheduleFunction([this, mode] {
+			_mode = mode;
+		});
+	}
+	
 	// ---------------------
 	// MARK: -
 	// MARK: Callbacks
 	// ---------------------
 	
 	void World::Update(float delta)
+	{}
+	
+	void World::UpdateEditMode(float delta)
 	{}
 	
 	void World::DidUpdateToFrame(FrameID frame)
@@ -86,9 +97,92 @@ namespace RN
 	// MARK: Updating
 	// ---------------------
 	
+	void World::StepWorldEditMode(FrameID frame, float delta)
+	{
+		ApplyNodes();
+		UpdateEditMode(delta);
+		
+		AutoreleasePool pool;
+		std::vector<SceneNode *> retry;
+		
+		ThreadPool::Batch *batch[3];
+		size_t run = 0;
+		
+		SpinLock retryLock;
+		
+		do
+		{
+#if RN_BUILD_DEBUG
+			if(run >= 100)
+			{
+				Log::Loggable loggable(Log::Level::Warning);
+				loggable << "Assuming dead lock after 100 retry runs, check your SceneNode updates!";
+				loggable << "Going to break, leaving " << retry.size() << " nodes without update to frame " << frame;
+				
+				break;
+			}
+#endif
+			
+			for(size_t i = 0; i < 3; i ++)
+				batch[i] = ThreadPool::GetSharedInstance()->CreateBatch();
+			
+			for(SceneNode *node : (run == 0) ? _nodes : retry)
+			{
+				node->Retain();
+				pool.AddObject(node);
+				
+				size_t priority = static_cast<size_t>(node->GetPriority());
+				batch[priority]->AddTask([&, node] {
+					if(!node->CanUpdate(frame))
+					{
+						retryLock.Lock();
+						retry.push_back(node);
+						retryLock.Unlock();
+						
+						return;
+					}
+					
+					node->UpdateEditMode(delta),
+					node->UpdatedToFrame(frame);
+					
+					node->GetWorldPosition();
+				});
+			}
+			
+			retry.clear();
+			run ++;
+			
+			for(size_t i = 0; i < 3; i ++)
+			{
+				if(batch[i]->GetTaskCount() > 0)
+				{
+					batch[i]->Commit();
+					batch[i]->Wait();
+				}
+				
+				batch[i]->Release();
+			}
+			
+		} while(retry.size() > 0);
+		
+		pool.Drain();
+		
+		ApplyNodes();
+		DidUpdateToFrame(frame);
+		RunWorldAttachement(&WorldAttachment::StepWorldEditMode, delta);
+	}
+	
 	void World::StepWorld(FrameID frame, float delta)
 	{
 		_kernel->PushStatistics("wld.step");
+		
+		if(_mode == Mode::Edit)
+		{
+			StepWorldEditMode(frame, delta);
+			_kernel->PopStatistics();
+			
+			return;
+		}
 		
 		ApplyNodes();
 		Update(delta);

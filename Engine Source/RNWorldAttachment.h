@@ -20,6 +20,7 @@ namespace RN
 	{
 	public:
 		RNAPI virtual void StepWorld(float delta);
+		RNAPI virtual void StepWorldEditMode(float delta);
 		RNAPI virtual void DidBeginCamera(Camera *camera);
 		RNAPI virtual void WillFinishCamera(Camera *camera);
 		

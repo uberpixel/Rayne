@@ -449,6 +449,15 @@ namespace RN
 		});
 	}
 	
+	void SceneNode::UpdateAttachmentsEditMode(float delta)
+	{
+		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
+		
+		_attachments.Enumerate<SceneNodeAttachment>([=](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+			attachment->UpdateEditMode(delta);
+		});
+	}
+	
 	// -------------------
 	// MARK: -
 	// MARK: Updates
