@@ -295,6 +295,14 @@ namespace RN
 			
 			if(cookie == std::get<0>(tuple) && property == std::get<1>(tuple))
 			{
+				std::get<2>(tuple)->Disconnect();
+				
+				if(property->_signal->GetCount() == 0)
+				{
+					delete property->_signal;
+					property->_signal = nullptr;
+				}
+				
 				iterator = _cookies.erase(iterator);
 				continue;
 			}
