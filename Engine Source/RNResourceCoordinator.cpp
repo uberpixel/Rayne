@@ -138,7 +138,7 @@ namespace RN
 				
 				try
 				{
-					if(!base->InheritsFromClass(loader->GetResourceClass()))
+					if(!loader->GetResourceClass()->InheritsFromClass(base))
 						return;
 					
 					if(requiresBackgroundSupport && !loader->SupportsBackgroundLoading())
@@ -198,7 +198,7 @@ namespace RN
 				
 				try
 				{
-					if(!base->InheritsFromClass(loader->GetResourceClass()))
+					if(!loader->GetResourceClass()->InheritsFromClass(base))
 						return;
 					
 					if(requiresBackgroundSupport && !loader->SupportsBackgroundLoading())
