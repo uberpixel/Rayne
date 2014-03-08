@@ -109,7 +109,7 @@ namespace TG
 		}
 		
 		// Grass and reed
-		/*RN::InstancingNode *grassNode = new RN::InstancingNode();
+		RN::InstancingNode *grassNode = new RN::InstancingNode();
 		grassNode->SetModels(RN::Array::WithObjects(_grass[0], _grass[1], _grass[2], _grass[3], nullptr));
 		grassNode->SetRenderGroup(1);
 		grassNode->SetPivot(_camera);
@@ -179,7 +179,7 @@ namespace TG
 			entity->SetRotation(RN::Vector3(random.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
 			
 			grassNode->AddChild(entity);
-		}*/
+		}
 	}
 	
 	void ForestWorld::LoadBlendAndHeightmap()

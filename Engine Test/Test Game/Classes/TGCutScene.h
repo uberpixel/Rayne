@@ -47,7 +47,6 @@ namespace TG
 	class CutScene
 	{
 	public:
-		CutScene();
 		CutScene(RN::Array *keys, RN::SceneNode *node);
 		~CutScene();
 		
@@ -62,9 +61,11 @@ namespace TG
 	private:
 		RN::SceneNode *_node;
 		float _time;
-		float _smoothing;
 		std::vector<PositionKey *> _positions;
 		std::vector<RotationKey *> _rotations;
+		int _currentPositionKeyIndex;
+		int _currentRotationKeyIndex;
+		float _oldLerpFactor;
 	};
 }
 
