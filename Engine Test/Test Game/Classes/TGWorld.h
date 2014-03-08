@@ -44,17 +44,21 @@ namespace TG
 		RN::PostProcessingPipeline *PPCreateBloomPipeline(RN::Camera *camera);
 		RN::PostProcessingPipeline *PPCreateSSAOPipeline(RN::Camera *camera);
 		RN::PostProcessingPipeline *PPCreateFXAAPipeline(RN::Camera *camera);
+		RN::PostProcessingPipeline *PPCreateGodraysPipeline(RN::Camera *cam, RN::Texture *raysource);
 		
 		void PPToggleBloom();
+		void PPToggleGodrays();
 		void PPToggleSSAO();
 		void PPToggleFXAA();
 		
 		bool _bloomActive;
 		bool _ssaoActive;
+		bool _godraysActive;
 		bool _fxaaActive;
 		
 		RN::Camera *_waterCamera;
 		RN::PostProcessingPipeline *_ssaoPipeline;
+		RN::PostProcessingPipeline *_godraysPipeline;
 		RN::PostProcessingPipeline *_bloomPipeline;
 		RN::PostProcessingPipeline *_fxaaPipeline;
 		

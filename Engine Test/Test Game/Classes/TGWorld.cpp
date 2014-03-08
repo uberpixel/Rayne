@@ -8,9 +8,6 @@
 
 #include "TGWorld.h"
 
-#define TGWorldFeatureBloom	1
-#define TGWorldFeatureSSAO  1
-
 namespace TG
 {
 	World::World() :
@@ -22,9 +19,11 @@ namespace TG
 		_refractCamera(nullptr),
 		_sunLight(nullptr),
 		_bloomActive(false),
+		_godraysActive(false),
 		_fxaaActive(false),
 		_ssaoActive(false),
 		_bloomPipeline(nullptr),
+		_godraysPipeline(nullptr),
 		_fxaaPipeline(nullptr),
 		_ssaoPipeline(nullptr),
 		_cutScene(nullptr),
@@ -102,6 +101,11 @@ namespace TG
 				case 'm':
 				{
 					PPToggleFXAA();
+					break;
+				}
+				case ',':
+				{
+					PPToggleGodrays();
 					break;
 				}
 					
@@ -236,8 +240,11 @@ namespace TG
 		
 		translation *= (input->GetModifierKeys() & RN::KeyModifier::KeyShift) ? 2.0f : 1.0f;
 		
-		_camera->Rotate(rotation);
-		_camera->TranslateLocal(translation * delta);
+		if(!_cutScene)
+		{
+			_camera->Rotate(rotation);
+			_camera->TranslateLocal(translation * delta);
+		}
 		
 		
 		_exposure   += (input->IsKeyPressed('u') - input->IsKeyPressed('j')) * delta*2.0f;
@@ -281,6 +288,7 @@ namespace TG
 		storage->SetDepthTarget(RN::Texture::Format::Depth24I);
 		
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::Flags::Defaults);
+		_camera->SetDebugName("Main");
 		_camera->SetFlags(_camera->GetFlags() | RN::Camera::Flags::NoFlush);
 		_camera->SetRenderGroups(_camera->GetRenderGroups() | RN::Camera::RenderGroups::Group1 | RN::Camera::RenderGroups::Group3);
 		_camera->SetSky(sky);
@@ -296,6 +304,7 @@ namespace TG
 		_waterCamera = new RN::Camera(RN::Vector2(_camera->GetFrame().Size()), storage, RN::Camera::Flags::Defaults);
 		_waterCamera->SetClearMask(0);
 		_waterCamera->SetRenderGroups(RN::Camera::RenderGroups::Group2 | RN::Camera::RenderGroups::Group3);
+		_waterCamera->SetDebugName("Water");
 		//waterPipeline->AddStage(waterStage, RN::RenderStage::Mode::ReRender);
 		
 		_waterCamera->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
@@ -303,14 +312,9 @@ namespace TG
 		
 		_camera->AddChild(_waterCamera);
 		
-#if TGWorldFeatureSSAO
 		_ssaoPipeline = PPCreateSSAOPipeline(_waterCamera)->Retain();
-#endif
-		
-#if TGWorldFeatureBloom
+		_godraysPipeline = PPCreateGodraysPipeline(_waterCamera, _refractCamera->GetRenderTarget())->Retain();
 		_bloomPipeline = PPCreateBloomPipeline(_waterCamera)->Retain();
-#endif
-		
 		_fxaaPipeline = PPCreateFXAAPipeline(_waterCamera)->Retain();
 	}
 	
@@ -356,6 +360,26 @@ namespace TG
 		
 		return ssaoPipeline;
 	}
+	
+	RN::PostProcessingPipeline *World::PPCreateGodraysPipeline(RN::Camera *cam, RN::Texture *raysource)
+	{
+		RN::Shader *godraysShader = RN::Shader::WithFile("shader/rn_PPGodrays");
+		
+		// Godrays
+		RN::Material *godraysMaterial = new RN::Material(godraysShader);
+		godraysMaterial->AddTexture(raysource);
+		
+		RN::Camera *godraysCam = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		godraysCam->SetMaterial(godraysMaterial);
+		
+		RN::PostProcessingPipeline *godraysPipeline = cam->AddPostProcessingPipeline("Godrays", 2);
+		godraysPipeline->AddStage(godraysCam, RN::RenderStage::Mode::ReUsePipeline);
+		
+		_godraysActive = true;
+		
+		return godraysPipeline;
+	}
+
 	
 	RN::PostProcessingPipeline *World::PPCreateBloomPipeline(RN::Camera *cam)
 	{
@@ -428,7 +452,7 @@ namespace TG
 		RN::Camera *bloomCombine = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomCombine->SetMaterial(bloomCombineMaterial);
 		
-		RN::PostProcessingPipeline *bloomPipeline = cam->AddPostProcessingPipeline("Bloom", 2);
+		RN::PostProcessingPipeline *bloomPipeline = cam->AddPostProcessingPipeline("Bloom", 3);
 		bloomPipeline->AddStage(filterBright, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloomPipeline->AddStage(downSample4x, RN::RenderStage::Mode::ReUsePreviousStage);
 		bloomPipeline->AddStage(downSample8x, RN::RenderStage::Mode::ReUsePreviousStage);
@@ -458,7 +482,7 @@ namespace TG
 		RN::Camera *fxaaCam = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		fxaaCam->SetMaterial(fxaaMaterial);
 		
-		RN::PostProcessingPipeline *fxaaPipeline = cam->AddPostProcessingPipeline("FXAA", 3);
+		RN::PostProcessingPipeline *fxaaPipeline = cam->AddPostProcessingPipeline("FXAA", 4);
 		fxaaPipeline->AddStage(tonemappingCam, RN::RenderStage::Mode::ReUsePipeline);
 		fxaaPipeline->AddStage(fxaaCam, RN::RenderStage::Mode::ReUsePipeline);
 		
@@ -474,6 +498,15 @@ namespace TG
 			_waterCamera->RemovePostProcessingPipeline(_bloomPipeline);
 		else
 			_waterCamera->AddPostProcessingPipeline(_bloomPipeline);
+	}
+	
+	void World::PPToggleGodrays()
+	{
+		_godraysActive = !_godraysActive;
+		if(!_godraysActive)
+			_waterCamera->RemovePostProcessingPipeline(_godraysPipeline);
+		else
+			_waterCamera->AddPostProcessingPipeline(_godraysPipeline);
 	}
 	
 	void World::PPToggleSSAO()
@@ -496,6 +529,13 @@ namespace TG
 
 	void World::SetCutScene(const std::string &file)
 	{
+		if(_cutScene)
+		{
+			delete _cutScene;
+			_cutScene = nullptr;
+			return;
+		}
+		
 		std::string path = RN::FileManager::GetSharedInstance()->GetFilePathWithName(file);
 		RN::Data *data = RN::Data::WithContentsOfFile(path);
 		RN::Array *objects = RN::JSONSerialization::JSONObjectFromData<RN::Array>(data);
