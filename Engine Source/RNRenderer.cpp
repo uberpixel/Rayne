@@ -17,6 +17,7 @@
 #include "RNSettings.h"
 #include "RNLogging.h"
 #include "RNOpenGLQueue.h"
+#include "RNLightManager.h"
 
 #define kRNRendererMaxVAOAge 300
 
@@ -866,7 +867,27 @@ namespace RN
 	void Renderer::DrawCameraStage(Camera *camera, Camera *stage)
 	{
 		Material *material = stage->GetMaterial();
-		ShaderProgram *program = material->GetShader()->GetProgramWithLookup(material->GetLookup() + ShaderLookup(0));
+		Shader *shader = material->GetShader();
+		
+		ShaderLookup lookup = material->GetLookup();
+		
+		LightManager *lightManager = _frameCamera->GetLightManager();
+		
+		bool wantsLighting = (material->GetLighting() && lightManager && shader->SupportsProgramOfType(ShaderProgram::Type::Lighting));
+		
+		if(wantsLighting)
+		{
+			lookup.type |= ShaderProgram::Type::Lighting;
+			lookup.lightDirectionalCount = lightManager->GetDirectionalLightCount();
+			
+			//TODO: fix
+			if(lightManager->GetPointLightCount() > 0)
+				lookup.lightPointSpotCount = 1;//lightPointSpotCount;
+				
+			lightManager->AdjustShaderLookup(shader, lookup);
+		}
+		
+		ShaderProgram *program = shader->GetProgramWithLookup(lookup);
 		
 		_currentCamera = stage;
 		_textureUnit = 0;
@@ -882,6 +903,9 @@ namespace RN
 		UpdateShaderData();
 		
 		material->ApplyUniforms(program);
+		
+		if(wantsLighting)
+			lightManager->UpdateProgram(this, program);
 		
 		uint32 targetmaps = std::min((uint32)program->targetmaplocations.size(), stage->GetRenderTargetCount());
 		for(uint32 i=0; i<targetmaps; i++)
@@ -1089,6 +1113,12 @@ namespace RN
 		{
 			_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->GetBlitShader()));
 			_flushedCameras.insert(previous);
+		}
+		
+		LightManager *lightManager = _frameCamera->GetLightManager();
+		if(lightManager)
+		{
+			lightManager->ClearLights();
 		}
 		
 		// Cleanup of the frame

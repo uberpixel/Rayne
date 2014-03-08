@@ -398,11 +398,6 @@ namespace RN
 					
 					DrawMesh(mesh, object.offset, object.count);
 				}
-				
-				if(lightManager)
-				{
-					lightManager->ClearLights();
-				}
 			}
 			else if(source)
 			{
