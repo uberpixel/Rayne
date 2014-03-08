@@ -237,11 +237,29 @@ namespace RN
 	// MARK: KVO / KVC
 	// ---------------------
 	
+	std::vector<ObservableProperty *> Object::GetPropertiesForClass(MetaClassBase *meta)
+	{
+		if(!meta)
+			return _properties;
+		
+		std::vector<ObservableProperty *> result;
+		
+		for(ObservableProperty *property : _properties)
+		{
+			if(property->_opaque == meta)
+				result.push_back(property);
+		}
+		
+		return result;
+	}
+	
 	void Object::AddObservable(ObservableProperty *property)
 	{
 		RN_ASSERT(property->_object == nullptr, "ObservableProperty can only be added once to a receiver!");
 		
 		property->_object = this;
+		property->_opaque = Class();
+		
 		_properties.push_back(property);
 	}
 	
@@ -254,6 +272,8 @@ namespace RN
 			RN_ASSERT(property->_object == nullptr, "ObservableProperty can only be added once to a receiver!");
 			
 			property->_object = this;
+			property->_opaque = Class();
+			
 			_properties.push_back(property);
 		}
 	}

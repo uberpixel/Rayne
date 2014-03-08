@@ -108,6 +108,7 @@ namespace RN
 		
 		RNAPI void SetValueForKey(Object *value, const std::string& keyPath);
 		RNAPI Object *GetValueForKey(const std::string& keyPath);
+		RNAPI std::vector<ObservableProperty *> GetPropertiesForClass(MetaClassBase *meta);
 		
 	protected:
 		RNAPI virtual void CleanUp();

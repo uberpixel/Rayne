@@ -78,6 +78,7 @@ namespace RN
 			RNAPI void BringSubviewToFront(View *subview);
 			RNAPI void SendSubviewToBack(View *subview);
 			
+			RNAPI View *GetSuperview() const { return _superview; }
 			RNAPI const Array *GetSubivews() const { return &_subviews; }
 			RNAPI Widget *GetWidget() const { return _widget; }
 			RNAPI const Matrix& GetTransform() const { return _transform; }
