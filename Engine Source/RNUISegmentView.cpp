@@ -26,6 +26,7 @@ namespace RN
 		{
 			Button *segment = Button::WithType(Button::Type::Bezel);
 			segment->SetImageForState(image, Control::Normal);
+			segment->SetImagePosition(RN::UI::ImagePosition::ImageOnly);
 			
 			InsertSegment(segment, index);
 		}
@@ -34,6 +35,7 @@ namespace RN
 		{
 			Button *segment = Button::WithType(Button::Type::Bezel);
 			segment->SetTitleForState(title, Control::Normal);
+			segment->SetImagePosition(RN::UI::ImagePosition::NoImage);
 			
 			InsertSegment(segment, index);
 		}
@@ -63,12 +65,14 @@ namespace RN
 		{
 			Button *segment = _segments.GetObjectAtIndex<Button>(index);
 			segment->SetImageForState(image, Control::Normal);
+			segment->SetImagePosition(RN::UI::ImagePosition::ImageOnly);
 		}
 		
 		void SegmentView::SetTitleForSegmentAtIndex(String *title, size_t index)
 		{
 			Button *segment = _segments.GetObjectAtIndex<Button>(index);
 			segment->SetTitleForState(title, Control::Normal);
+			segment->SetImagePosition(RN::UI::ImagePosition::NoImage);
 		}
 		
 		
