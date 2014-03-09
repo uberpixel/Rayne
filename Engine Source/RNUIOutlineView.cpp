@@ -147,9 +147,10 @@ namespace RN
 							}
 							
 							TableView::DeleteRows(row, 1);
-							_rows.erase(_rows.begin() + 1);
+							_rows.erase(_rows.begin() + row);
 						}
 						
+						delete proxy;
 						i = _items.erase(i);
 						continue;
 					}
