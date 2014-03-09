@@ -87,7 +87,11 @@ namespace TG
 		RN::Color GetAmbientColor() const { return _ambientGradient.GetColor(_point); }
 		RN::Color GetFogColor() const { return _fogGradient.GetColor(_point); }
 		
+		float GetTime() const;
+		void SetTime(float time);
+		
 		void Update(float delta) override;
+		void UpdateEditMode(float delta) override;
 		
 	private:
 		void UpdateRotation();
@@ -107,9 +111,13 @@ namespace TG
 		float _pitch;
 		float _point;
 		
+		RN::Observable<float, Sun> _time;
+		
 		Gradient _sunGradient;
 		Gradient _ambientGradient;
 		Gradient _fogGradient;
+		
+		RNDeclareMeta(Sun, RN::Light)
 	};
 }
 

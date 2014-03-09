@@ -14,6 +14,8 @@
 
 namespace TG
 {
+	RNDefineMeta(Sun)
+	
 	double cycle(double value, double min, double max)
 	{
 		while(value < min)
@@ -30,8 +32,11 @@ namespace TG
 	}
 	
 	Sun::Sun() :
-		RN::Light(RN::Light::Type::DirectionalLight)
+		RN::Light(RN::Light::Type::DirectionalLight),
+		_time("time", 0.0f, &Sun::GetTime, &Sun::SetTime)
 	{
+		AddObservable(&_time);
+		
 		SetDate(181, 2013);
 		SetTime(9, 32, 0);
 		SetLatitude(48.0f, 81.0f);
@@ -81,6 +86,26 @@ namespace TG
 	}
 	
 	
+	float Sun::GetTime() const
+	{
+		float result = _minute + (_hour * 60.0);
+		return result;
+	}
+	
+	void Sun::SetTime(float time)
+	{
+		uint32 hour = 0;
+		
+		while(time > 60.0f)
+		{
+			hour ++;
+			time -= 60.0f;
+		}
+		
+		SetTime(hour, static_cast<uint32>(time), 0);
+	}
+	
+	
 	void Sun::Update(float delta)
 	{
 		float blub = RN::Input::GetSharedInstance()->IsKeyPressed('q')-RN::Input::GetSharedInstance()->IsKeyPressed('e');
@@ -88,6 +113,12 @@ namespace TG
 		UpdateRotation();
 		
 		RN::Light::Update(delta);
+	}
+	
+	void Sun::UpdateEditMode(float delta)
+	{
+		UpdateRotation();
+		RN::Light::UpdateEditMode(delta);
 	}
 	
 	void Sun::UpdateTime(float delta)
@@ -122,6 +153,9 @@ namespace TG
 			_day -= 365;
 			_year ++;
 		}
+		
+		_time.WillChangeValue();
+		_time.DidChangeValue();
 	}
 	
 	void Sun::UpdateRotation()
