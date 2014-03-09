@@ -648,6 +648,20 @@ namespace RN
 		}
 	}
 	
+	void Camera::UpdateEditMode(float delta)
+	{
+		SceneNode::UpdateEditMode(delta);
+		
+		UpdateProjection();
+		UpdateFrustum();
+		
+		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
+		{
+			PostProcessingPipeline *pipeline = *i;
+			pipeline->PushUpdate(this, delta);
+		}
+	}
+	
 	void Camera::PostUpdate()
 	{
 		_inverseViewMatrix = GetWorldTransform();

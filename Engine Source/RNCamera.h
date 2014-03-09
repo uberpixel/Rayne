@@ -255,6 +255,7 @@ namespace RN
 		RNAPI void SetOrthogonalFrustum(float top, float bottom, float left, float right);
 		
 		RNAPI void Update(float delta) override;
+		RNAPI void UpdateEditMode(float delta) override;
 		
 		RNAPI Vector3 ToWorld(const Vector3& dir);
 		
