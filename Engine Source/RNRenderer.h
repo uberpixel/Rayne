@@ -68,6 +68,7 @@ namespace RN
 		Skeleton *skeleton;
 		
 		uint32 flags;
+		float distance;
 		
 		Rect scissorRect;
 		std::vector<GPUBuffer *> buffers;

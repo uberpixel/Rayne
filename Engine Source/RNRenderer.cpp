@@ -959,7 +959,24 @@ namespace RN
 			{
 				auto begin = _frame.begin();
 				std::advance(begin, skyCubeMeshes);
+				
+				RN::Vector3 position = camera->GetWorldPosition();
 			
+				for(auto i = begin; i != _frame.end(); i ++)
+				{
+					RenderingObject &object = *i;
+					
+					const Material *material = object.material;
+					
+					bool alpha = (material->discard || material->blending);
+					
+					if(alpha)
+					{
+						object.distance = position.GetDistance(Vector3(object.transform->m[12], object.transform->m[13], object.transform->m[14]));
+						object.flags |= 1 << 5;
+					}
+				}
+				
 				std::sort(begin, _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
 					
 					bool drawALate = (a.flags & RenderingObject::DrawLate);
@@ -968,30 +985,21 @@ namespace RN
 					if(drawALate && drawALate != drawBLate)
 						return false;
 					
+					bool alphaA = (a.flags & (1 << 5));
+					bool alphaB = (b.flags & (1 << 5));
+					
+					if(alphaA != alphaB)
+						return alphaB;
+					
+					if(alphaA)
+						return (b.distance < a.distance);
+					
+					
 					const Material *materialA = a.material;
 					const Material *materialB = b.material;
 					
-					if(materialA->blending != materialB->blending)
-					{
-						if(!materialB->blending)
-							return false;
-						
-						return true;
-					}
-					if(materialA->discard != materialB->discard)
-					{
-						if(!materialB->discard)
-							return false;
-						
-						return true;
-					}
-					
 					if(materialA->_shader != materialB->_shader)
 						return materialA->_shader < materialB->_shader;
-					
-					
-					
-					
 					
 					return a.mesh < b.mesh;
 				});
