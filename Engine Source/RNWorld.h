@@ -50,6 +50,7 @@ namespace RN
 		RNAPI void AddSceneNode(SceneNode *node);
 		RNAPI void RemoveSceneNode(SceneNode *node);
 		RNAPI void DropSceneNodes();
+		RNAPI void ApplyNodes();
 		
 		RNAPI virtual void Update(float delta);
 		RNAPI virtual void UpdateEditMode(float delta);
@@ -76,7 +77,6 @@ namespace RN
 		
 		void SceneNodeDidUpdate(SceneNode *node, SceneNode::ChangeSet changeSet);
 		void DropSceneNode(SceneNode *node);
-		void ApplyNodes();
 		
 		void SortNodes();
 		void SortCameras();
