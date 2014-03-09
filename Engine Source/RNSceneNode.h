@@ -89,6 +89,7 @@ namespace RN
 		RNAPI SceneNode();
 		RNAPI SceneNode(const Vector3& position);
 		RNAPI SceneNode(const Vector3& position, const Quaternion& rotation);
+		RNAPI SceneNode(const SceneNode *other);
 		RNAPI ~SceneNode() override;
 		
 		RNAPI void FillRenderingObject(RenderingObject& object) const;
@@ -120,6 +121,8 @@ namespace RN
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
+		
+		RNAPI uint64 GetUID() const { return _uid; }
 		
 		RNAPI Vector3 GetPosition() const;
 		RNAPI Vector3 GetScale() const;
@@ -253,6 +256,7 @@ namespace RN
 		
 		uint8 renderGroup;
 		uint8 collisionGroup;
+		uint64 _uid;
 		
 		std::function<void (SceneNode *, float)> _action;
 		std::string _debugName;
@@ -274,7 +278,7 @@ namespace RN
 		mutable Matrix _worldTransform;
 		mutable Matrix _localTransform;
 		
-		RNDeclareMetaWithTraits(SceneNode, Object, MetaClassTraitCronstructable)
+		RNDeclareMetaWithTraits(SceneNode, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 	
 	

@@ -16,10 +16,13 @@ namespace RN
 {
 	RNDefineMeta(SceneNode)
 	
+	std::atomic<uint64> __SceneNodeIDs;
+	
 	SceneNode::SceneNode() :
 		_position("position", &SceneNode::GetPosition, &SceneNode::SetPosition),
 		_rotation("rotation", &SceneNode::GetRotation, &SceneNode::SetRotation),
-		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale)
+		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale),
+		_uid(__SceneNodeIDs.fetch_add(1))
 	{
 		Initialize();
 		AddObservables({ &_position, &_rotation, &_scale });
@@ -35,6 +38,28 @@ namespace RN
 		SceneNode()
 	{
 		SetRotation(rotation);
+	}
+	
+	SceneNode::SceneNode(const SceneNode *other) :
+		SceneNode()
+	{
+		SceneNode *temp = const_cast<SceneNode *>(other);
+		LockGuard<Object *> lock(temp);
+		
+		SetPosition(other->GetWorldPosition());
+		SetRotation(other->GetWorldRotation());
+		SetScale(other->GetWorldScale());
+		
+		renderGroup    = other->renderGroup;
+		collisionGroup = other->collisionGroup;
+		
+		_priority = other->_priority;
+		_flags    = other->_flags.load();
+		
+		_action = other->_action;
+		
+		_boundingBox    = other->_boundingBox;
+		_boundingSphere = other->_boundingSphere;
 	}
 	
 	SceneNode::~SceneNode()
