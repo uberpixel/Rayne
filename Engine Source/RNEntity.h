@@ -29,6 +29,7 @@ namespace RN
 		RNAPI Entity();
 		RNAPI Entity(Model *model);
 		RNAPI Entity(Model *model, const Vector3 &position);
+		RNAPI Entity(const Entity *other);
 		RNAPI ~Entity() override;
 		
 		RNAPI void SetModel(Model *model);
@@ -46,7 +47,7 @@ namespace RN
 		
 		void *_instancedData;
 		
-		RNDeclareMetaWithTraits(Entity, SceneNode, MetaClassTraitCronstructable)
+		RNDeclareMetaWithTraits(Entity, SceneNode, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 }
 

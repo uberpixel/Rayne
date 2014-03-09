@@ -36,6 +36,16 @@ namespace RN
 		SetPosition(position);
 	}
 	
+	Entity::Entity(const Entity *other) :
+		Entity()
+	{
+		Entity *temp = const_cast<Entity *>(other);
+		LockGuard<Object *> lock(temp);
+		
+		SetModel(other->_model);
+		SetSkeleton(other->_skeleton);
+	}
+	
 	Entity::~Entity()
 	{
 		SafeRelease(_skeleton);

@@ -36,6 +36,26 @@ namespace RN
 		ReCalculateColor();
 	}
 	
+	Light::Light(const Light *other) :
+		Light(other->_lightType)
+	{
+		Light *temp = const_cast<Light *>(other);
+		LockGuard<Object *> lock(temp);
+		
+		_color = other->_color;
+		_direction = other->_direction;
+		
+		_intensity = other->_intensity;
+		_range     = other->_range;
+		_angle     = other->_angle;
+		
+		_angleCos = other->_angleCos;
+		_suppressShadows = other->_suppressShadows;
+		
+		if(other->HasShadows())
+			ActivateShadows(other->_shadowParameter);
+	}
+	
 	Light::~Light()
 	{
 		RemoveShadowCameras();

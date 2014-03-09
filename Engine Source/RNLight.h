@@ -74,6 +74,7 @@ namespace RN
 		};
 		
 		RNAPI Light(Type type = Type::PointLight);
+		RNAPI Light(const Light *other);
 		RNAPI ~Light() override;
 		
 		RNAPI bool ActivateShadows(const ShadowParameter &parameter = ShadowParameter());
@@ -135,7 +136,7 @@ namespace RN
 		bool _suppressShadows;
 		ShadowParameter _shadowParameter;
 		
-		RNDeclareMetaWithTraits(Light, SceneNode, MetaClassTraitCronstructable)
+		RNDeclareMetaWithTraits(Light, SceneNode, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
 }
 

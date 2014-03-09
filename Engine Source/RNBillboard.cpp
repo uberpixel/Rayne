@@ -31,6 +31,21 @@ namespace RN
 		SetPosition(position);
 	}
 	
+	Billboard::Billboard(const Billboard *other)
+	{
+		Billboard *temp = const_cast<Billboard *>(other);
+		LockGuard<Object *> lock(temp);
+		
+		Initialize();
+		
+		_material->Release();
+		_material = other->_material->Copy();
+		
+		_size = other->_size;
+		
+		SetBoundingBox(_mesh->GetBoundingBox() * Vector3(_size.x, _size.y, 1.0f));
+	}
+	
 	Billboard::~Billboard()
 	{
 		_mesh->Release();
