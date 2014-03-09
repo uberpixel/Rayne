@@ -57,7 +57,11 @@ namespace RN
 				DrawLate     = (1 << 0),
 				Static       = (1 << 1),
 				Hidden       = (1 << 2),
-				HideChildren = (1 << 3)
+				HideChildren = (1 << 3),
+				
+				HideInEditor        = (1 << 10),
+				UndeletableInEditor = (1 << 11),
+				LockedInEditor      = (1 << 12)
 			};
 		};
 		

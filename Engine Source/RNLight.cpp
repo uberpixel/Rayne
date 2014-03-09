@@ -234,6 +234,7 @@ namespace RN
 			tempcam->SetLightManager(nullptr);
 			tempcam->SetPriority(kRNShadowCameraPriority);
 			tempcam->SetClipNear(1.0f);
+			tempcam->SceneNode::SetFlags(tempcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor);
 
 			_shadowDepthCameras.AddObject(tempcam);
 			AddDependency(tempcam);
@@ -293,6 +294,7 @@ namespace RN
 		shadowcam->SetFOV(90.0f);
 		shadowcam->SetLightManager(nullptr);
 		shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
+		shadowcam->SceneNode::SetFlags(shadowcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor);
 		
 		_shadowDepthCameras.AddObject(shadowcam);
 		AddDependency(shadowcam);
@@ -350,6 +352,7 @@ namespace RN
 		shadowcam->SetFOV(_angle * 2.0f);
 		shadowcam->SetLightManager(nullptr);
 		shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
+		shadowcam->SceneNode::SetFlags(shadowcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor);
 		
 		_shadowDepthCameras.AddObject(shadowcam);
 		AddDependency(shadowcam);
