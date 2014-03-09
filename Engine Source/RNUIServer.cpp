@@ -230,6 +230,8 @@ namespace RN
 			
 			
 			Responder *responder = _mainWidget ? _mainWidget->GetFirstResponder() : nullptr;
+			if(!responder)
+				responder = _mainWidget;
 			
 			if(responder && event->IsKeyboard())
 			{
