@@ -23,6 +23,7 @@ namespace RN
 		RNAPI Billboard();
 		RNAPI Billboard(Texture *texture);
 		RNAPI Billboard(Texture *texture, const Vector3 &position);
+		RNAPI Billboard(const Billboard *other);
 		RNAPI ~Billboard() override;
 		
 		RNAPI void SetTexture(Texture *texture, float scaleFactor = 0.1f);

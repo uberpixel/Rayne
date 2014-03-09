@@ -189,6 +189,9 @@ namespace RN
 			_scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
 #endif
 		
+		if(_scaleFactor >= 1.5f)
+			FileManager::GetSharedInstance()->AddFileModifier("@2x");
+		
 		Debug::InstallDebugDraw();
 		ResourceCoordinator::GetSharedInstance()->LoadEngineResources();
 		

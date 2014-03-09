@@ -146,6 +146,8 @@ namespace RN
 			isLinear = wrapper->GetBoolValue();
 		}
 		
+		pixelData.scaleFactor = PathManager::ScaleFactorForName(rfile->GetPath());
+		
 		
 		Texture2D *texture = new Texture2D(parameter, isLinear);
 		texture->SetData(pixelData);

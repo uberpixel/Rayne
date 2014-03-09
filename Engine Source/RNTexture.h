@@ -94,6 +94,7 @@ namespace RN
 			size_t alignment;
 			size_t width, height;
 			void *data;
+			float scaleFactor;
 		};
 		
 		RNAPI ~Texture() override;
@@ -111,6 +112,7 @@ namespace RN
 		
 		RNAPI size_t GetWidth() const { return _width; }
 		RNAPI size_t GetHeight() const { return _height; }
+		RNAPI float GetScaleFactor() const { return _scaleFactor; }
 		
 		RNAPI bool IsComplete() const { return _isComplete; }
 		
@@ -133,6 +135,7 @@ namespace RN
 		GLuint _name;
 		GLenum _glType;
 		size_t _width, _height;
+		float _scaleFactor;
 		
 		bool _isComplete;
 		bool _hasChanged;

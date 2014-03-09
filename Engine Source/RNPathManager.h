@@ -24,6 +24,7 @@ namespace RN
 		RNAPI static std::string Basename(const std::string& path);
 		RNAPI static std::string Basepath(const std::string& path);
 		RNAPI static std::string Extension(const std::string& path);
+		RNAPI static float ScaleFactorForName(const std::string &path);
 		
 		RNAPI static bool PathExists(const std::string& path);
 		RNAPI static bool PathExists(const std::string& path, bool *isDirectory);

@@ -182,6 +182,12 @@ namespace RN
 		return path.substr(marker);
 	}
 	
+	float PathManager::ScaleFactorForName(const std::string &path)
+	{
+		std::string base = Basename(path);
+		return (base.find("@2x") != std::string::npos) ? 2.0f : 1.0f;
+	}
+	
 	
 	bool PathManager::PathExists(const std::string& path)
 	{

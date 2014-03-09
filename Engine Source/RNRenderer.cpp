@@ -21,6 +21,9 @@
 
 #define kRNRendererMaxVAOAge 300
 
+#define TexturePixelWidth(t) (t->GetWidth() * t->GetScaleFactor())
+#define TexturePixelHeight(t) (t->GetHeight() * t->GetScaleFactor())
+
 namespace RN
 {
 	RNDefineSingleton(Renderer)
@@ -458,7 +461,7 @@ namespace RN
 					
 					location = program->texinfolocations[i];
 					if(location != -1)
-						gl::Uniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
+						gl::Uniform4f(location, 1.0f/TexturePixelWidth(texture), 1.0f/TexturePixelHeight(texture), TexturePixelWidth(texture), TexturePixelHeight(texture));
 				}
 			}
 		}
@@ -859,7 +862,7 @@ namespace RN
 			
 			location = program->targetmapinfolocations.front();
 			if(location != -1)
-				gl::Uniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
+				gl::Uniform4f(location, 1.0f/TexturePixelWidth(texture), 1.0f/TexturePixelHeight(texture), TexturePixelWidth(texture), TexturePixelHeight(texture));
 		}
 	}
 	
@@ -917,7 +920,7 @@ namespace RN
 			
 			location = program->targetmapinfolocations[i];
 			if(location != -1)
-				gl::Uniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
+				gl::Uniform4f(location, 1.0f/TexturePixelWidth(texture), 1.0f/TexturePixelHeight(texture), TexturePixelWidth(texture), TexturePixelHeight(texture));
 		}
 		
 		if(program->depthmap != -1)
@@ -928,7 +931,7 @@ namespace RN
 				gl::Uniform1i(program->depthmap, BindTexture(depthmap));
 				
 				if(program->depthmapinfo != -1)
-					gl::Uniform4f(program->depthmapinfo, 1.0f/static_cast<float>(depthmap->GetWidth()), 1.0f/static_cast<float>(depthmap->GetHeight()), depthmap->GetWidth(), depthmap->GetHeight());
+					gl::Uniform4f(program->depthmapinfo, 1.0f/TexturePixelWidth(depthmap), 1.0f/TexturePixelHeight(depthmap), TexturePixelWidth(depthmap), TexturePixelHeight(depthmap));
 			}
 		}
 	}
