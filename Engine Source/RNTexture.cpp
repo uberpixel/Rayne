@@ -630,8 +630,8 @@ namespace RN
 			GLint internalFormat;
 			GLenum type, format;
 			
-			_width  = data.width;
-			_height = data.height;
+			_width  = data.width / data.scaleFactor;
+			_height = data.height / data.scaleFactor;
 			_scaleFactor = data.scaleFactor;
 			
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
@@ -749,8 +749,8 @@ namespace RN
 			GLint internalFormat;
 			GLenum type, format;
 			
-			_width  = data.width;
-			_height = data.height;
+			_width  = data.width / data.scaleFactor;
+			_height = data.height / data.scaleFactor;
 			_scaleFactor = data.scaleFactor;
 			
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
@@ -842,8 +842,8 @@ namespace RN
 			GLint internalFormat;
 			GLenum type, format;
 			
-			_width  = data.width;
-			_height = data.height;
+			_width  = data.width / data.scaleFactor;
+			_height = data.height / data.scaleFactor;
 			_scaleFactor = data.scaleFactor;
 			
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
