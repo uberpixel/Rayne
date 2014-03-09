@@ -112,6 +112,7 @@ namespace RN
 			material->SetDepthWrite(false);
 			material->SetBlending(true);
 			material->SetBlendMode(Material::BlendMode::SourceAlpha, Material::BlendMode::OneMinusSourceAlpha);
+			material->SetAlphaBlendEquation(Material::BlendEquation::Max);
 			material->SetLighting(false);
 			
 			return material->Autorelease();
