@@ -233,7 +233,9 @@ namespace RN
 		} \
 		Object *GetValue() const override \
 		{ \
-			return _getter ? Value::With##type ((static_cast<Target *>(_object)->*_getter)()) : Value::With##type (_storage); \
+			if(_getter) \
+				return _const ? Value::With##type ((static_cast<Target *>(_object)->*_cgetter)()) : Value::With##type ((static_cast<Target *>(_object)->*_getter)()); \
+			return Value::With##type (_storage); \
 		} \
 		operator const type& () const \
 		{ \
