@@ -58,6 +58,14 @@ namespace RN
 	void TranslateKeyboardEvent(NSEvent *event, const std::function<void (UniChar)>& callback)
 	{
 		NSString *characters = [event characters];
+		characters = [characters stringByTrimmingCharactersInSet:[NSCharacterSet controlCharacterSet]];
+		
+		if([characters length] == 0)
+		{
+			characters = [event charactersIgnoringModifiers];
+			characters = [characters stringByTrimmingCharactersInSet:[NSCharacterSet controlCharacterSet]];
+		}
+		
 		for(NSUInteger i=0; i<[characters length]; i++)
 		{
 			UniChar character = static_cast<UniChar>([characters characterAtIndex:i]);
@@ -299,7 +307,7 @@ namespace RN
 			case NSKeyUp:
 			{
 				Event::Type type;
-				_modifierKeys = TranslateModifierFlags([nsevent modifierFlags]);
+				_modifierKeys |= TranslateModifierFlags([nsevent modifierFlags]);
 				
 				switch([nsevent type])
 				{
