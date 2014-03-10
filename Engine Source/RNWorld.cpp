@@ -503,9 +503,6 @@ namespace RN
 		for(SceneNode *node : _staticNodes)
 			array->AddObject(node);
 		
-		for(Camera *node : _cameras)
-			array->AddObject(node);
-		
 		return array->Autorelease();
 	}
 	
