@@ -31,7 +31,8 @@ namespace RN
 		SetPosition(position);
 	}
 	
-	Billboard::Billboard(const Billboard *other)
+	Billboard::Billboard(const Billboard *other) :
+		SceneNode(other)
 	{
 		Billboard *temp = const_cast<Billboard *>(other);
 		LockGuard<Object *> lock(temp);

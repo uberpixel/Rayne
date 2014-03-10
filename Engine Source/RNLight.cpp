@@ -37,7 +37,15 @@ namespace RN
 	}
 	
 	Light::Light(const Light *other) :
-		Light(other->_lightType)
+		SceneNode(other),
+		_lightType(other->_lightType),
+		_color("color", Color(1.0f), &Light::GetColor, &Light::SetColor),
+		_intensity("intensity", 10.0f, &Light::GetIntensity, &Light::SetIntensity),
+		_range("range", 10.0f, &Light::GetRange, &Light::SetRange),
+		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle),
+		_angleCos(0.797),
+		_shadowTarget(nullptr),
+		_suppressShadows(false)
 	{
 		Light *temp = const_cast<Light *>(other);
 		LockGuard<Object *> lock(temp);

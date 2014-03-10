@@ -37,8 +37,13 @@ namespace RN
 	}
 	
 	Entity::Entity(const Entity *other) :
-		Entity()
+		SceneNode(other),
+		_model("model", Object::MemoryPolicy::Retain, &Entity::GetModel, &Entity::SetModel),
+		_skeleton("skeleton", Object::MemoryPolicy::Retain, &Entity::GetSkeleton, &Entity::SetSkeleton),
+		_instancedData(nullptr)
 	{
+		AddObservables({ &_model, &_skeleton });
+		
 		Entity *temp = const_cast<Entity *>(other);
 		LockGuard<Object *> lock(temp);
 		
