@@ -18,6 +18,7 @@ namespace RN
 	{
 	public:
 		RNAPI static T *GetSharedInstance() { throw ""; }
+		RNAPI static void ResignSharedInstance() { throw ""; }
 		
 	protected:
 		virtual ~ISingleton() {};
@@ -32,6 +33,7 @@ namespace RN
 	{
 	public:
 		RNAPI static T *GetSharedInstance() { throw ""; }
+		RNAPI static void ResignSharedInstance() { throw ""; }
 		
 	protected:
 		virtual ~INonConstructingSingleton() {};
@@ -60,6 +62,7 @@ namespace RN
 #define RNDeclareSingleton(T) \
 	public: \
 		RNAPI_DEFINEBASE static T *GetSharedInstance(); \
+		RNAPI_DEFINEBASE static void ResignSharedInstance(); \
 	private: \
 		RNAPI_DEFINEBASE void MakeShared(bool override = false) final; \
 		RNAPI_DEFINEBASE void ResignShared() final;
@@ -85,6 +88,15 @@ namespace RN
 			RN::LockGuard<RN::SpinLock> lock(__RN ## T ## SingletonLock); \
 			if(__RN ## T ## SingletonInstance == this) \
 				__RN ## T ## SingletonInstance = nullptr; \
+		} \
+		void T::ResignSharedInstance() \
+		{ \
+			RN::LockGuard<RN::SpinLock> lock(__RN ## T ## SingletonLock); \
+			if(__RN ## T ## SingletonInstance) \
+			{ \
+				delete __RN ## T ## SingletonInstance; \
+				__RN ## T ## SingletonInstance = nullptr; \
+			} \
 		}
 }
 

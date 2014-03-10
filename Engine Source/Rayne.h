@@ -37,6 +37,7 @@
 #include "RNSettings.h"
 #include "RNInput.h"
 #include "RNMessage.h"
+#include "RNTimer.h"
 #include "RNSignal.h"
 #include "RNFile.h"
 #include "RNPathManager.h"

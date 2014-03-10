@@ -15,6 +15,8 @@
 #include "RNResourceCoordinator.h"
 #include "RNOpenGLQueue.h"
 #include "RNLogging.h"
+#include "RNMessage.h"
+#include "RNWindow.h"
 
 namespace RN
 {
@@ -669,7 +671,7 @@ namespace RN
 		
 		if(_flags & Flags::Fullscreen)
 		{
-			Vector2 size = Kernel::GetSharedInstance()->GetWindow()->GetSize();
+			Vector2 size = Window::GetSharedInstance()->GetSize();
 			SetFrame(Rect(Vector2(), size));
 		}
 
@@ -809,7 +811,7 @@ namespace RN
 	{
 		if(_flags & Flags::Fullscreen)
 		{
-			Vector2 size = Kernel::GetSharedInstance()->GetWindow()->GetSize();
+			Vector2 size = Window::GetSharedInstance()->GetSize();
 			SetFrame(Rect(Vector2(), size));
 		}
 		

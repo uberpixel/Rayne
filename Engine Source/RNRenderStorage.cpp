@@ -9,6 +9,8 @@
 #include "RNRenderStorage.h"
 #include "RNKernel.h"
 #include "RNOpenGLQueue.h"
+#include "RNMessage.h"
+#include "RNWindow.h"
 
 namespace RN
 {

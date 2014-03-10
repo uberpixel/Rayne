@@ -18,6 +18,8 @@
 #include "RNLogging.h"
 #include "RNOpenGLQueue.h"
 #include "RNLightManager.h"
+#include "RNMessage.h"
+#include "RNWindow.h"
 
 #define kRNRendererMaxVAOAge 300
 

@@ -10,6 +10,7 @@
 #include "RNNumber.h"
 #include "RNKernel.h"
 #include "RNLogging.h"
+#include "RNString.h"
 
 namespace RN
 {
