@@ -101,7 +101,8 @@ namespace RN
 			
 			ElementIterator(const ElementIterator& other) :
 				_feature(other._feature),
-				_ptr(other._ptr)
+				_ptr(other._ptr),
+				_base(other._base)
 			{
 				_chunk = other._chunk;
 			}
@@ -130,16 +131,62 @@ namespace RN
 			}
 			
 			
-			ElementIterator<T>& operator ++()
+			void Seek(size_t index)
 			{
-				Advance();
+				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_base) + (__ChunkFriend::GetStride() * index)));
+			}
+			
+			
+			ElementIterator<T> operator +(size_t value) const
+			{
+				ElementIterator<T> result(*this);
+				result.Advance(value);
+				
+				return result;
+			}
+			ElementIterator<T> &operator +=(size_t value)
+			{
+				Advance(value);
 				return *this;
 			}
 			
+			ElementIterator<T> operator -(size_t value) const
+			{
+				ElementIterator<T> result(*this);
+				result.Decrease(value);
+				
+				return result;
+			}
+			ElementIterator<T> &operator -=(size_t value)
+			{
+				Decrease(value);
+				return *this;
+			}
+			
+			
+			ElementIterator<T>& operator ++()
+			{
+				Advance(1);
+				return *this;
+			}
 			ElementIterator<T> operator ++(int)
 			{
 				ElementIterator<T> result(*this);
-				Advance();
+				Advance(1);
+				
+				return result;
+			}
+			
+			
+			ElementIterator<T>& operator --()
+			{
+				Decrease(1);
+				return *this;
+			}
+			ElementIterator<T> operator --(int)
+			{
+				ElementIterator<T> result(*this);
+				Decrease(1);
 				
 				return result;
 			}
@@ -147,18 +194,25 @@ namespace RN
 		private:
 			ElementIterator(MeshFeature feature, Chunk *chunk, T *ptr) :
 				_feature(feature),
-				_ptr(ptr)
+				_ptr(ptr),
+				_base(ptr)
 			{
 				_chunk = chunk;
 			}
 			
-			void Advance()
+			void Advance(size_t count)
 			{
-				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_ptr) + __ChunkFriend::GetStride()));
+				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_ptr) + (__ChunkFriend::GetStride() * count)));
 			}
+			void Decrease(size_t count)
+			{
+				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_ptr) - (__ChunkFriend::GetStride() * count)));
+			}
+			
 			
 			MeshFeature _feature;
 			T *_ptr;
+			T *_base;
 		};
 		
 		class Chunk
@@ -174,6 +228,18 @@ namespace RN
 				uint8 *ptr = reinterpret_cast<uint8 *>(_begin) + offset;
 				
 				return ElementIterator<T>(feature, this, reinterpret_cast<T *>(ptr));
+			}
+			
+			template<class T>
+			ElementIterator<T> GetIteratorAtIndex(MeshFeature feature, size_t index)
+			{
+				size_t offset = _mesh->GetDescriptorForFeature(feature)->offset;
+				uint8 *ptr = reinterpret_cast<uint8 *>(_begin) + offset;
+				
+				ElementIterator<T> result(feature, this, reinterpret_cast<T *>(ptr));
+				result += index;
+				
+				return result;
 			}
 			
 			template<class T>
