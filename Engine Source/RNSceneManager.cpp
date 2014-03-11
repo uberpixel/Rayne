@@ -39,7 +39,6 @@ namespace RN
 		if(!node->GetParent())
 		{
 			_nodes.push_back(node);
-			_rootNodes.insert(node);
 		}
 		
 		Unlock();
@@ -49,11 +48,7 @@ namespace RN
 	{
 		Lock();
 		
-		if(_rootNodes.find(node) != _rootNodes.end())
-		{
-			_nodes.erase(std::remove(_nodes.begin(), _nodes.end(), node), _nodes.end());
-			_rootNodes.erase(node);
-		}
+		_nodes.erase(std::remove(_nodes.begin(), _nodes.end(), node), _nodes.end());
 		
 		Unlock();
 	}
@@ -65,24 +60,14 @@ namespace RN
 			Lock();
 			
 			bool hasParent = (node->GetParent());
-			bool markedRoot = (_rootNodes.find(node) != _rootNodes.end());
 			
-			if((!hasParent && markedRoot) || (hasParent && !markedRoot))
+			if(!hasParent)
 			{
 				Unlock();
 				return;
 			}
 			
-			if(hasParent)
-			{
-				_nodes.erase(std::remove(_nodes.begin(), _nodes.end(), node), _nodes.end());
-				_rootNodes.erase(node);
-			}
-			else
-			{
-				_rootNodes.insert(node);
-				_nodes.push_back(node);
-			}
+			_nodes.erase(std::remove(_nodes.begin(), _nodes.end(), node), _nodes.end());
 			
 			Unlock();
 		}
@@ -145,5 +130,19 @@ namespace RN
 		}
 		
 		return hit;
+	}
+	
+	RNAPI std::vector<SceneNode *> GenericSceneManager::GetSceneNodes(const AABB &box)
+	{
+		std::vector<SceneNode *> nodes;
+		for(SceneNode *node : _nodes)
+		{
+			if(node->GetBoundingBox().Intersects(box))
+			{
+				nodes.push_back(node);
+			}
+		}
+		
+		return nodes;
 	}
 }

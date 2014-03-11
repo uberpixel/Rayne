@@ -11,7 +11,7 @@
 namespace TG
 {
 	World::World() :
-		RN::World("OctreeSceneManager"),
+		RN::World("GenericSceneManager"),
 		_exposure(1.0f),
 		_whitepoint(5.0f),
 		_frameCapturing(false),

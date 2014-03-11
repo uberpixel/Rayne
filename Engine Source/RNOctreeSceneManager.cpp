@@ -118,4 +118,18 @@ namespace RN
 		
 		return hit;
 	}
+	
+	RNAPI std::vector<SceneNode *> OctreeSceneManager::GetSceneNodes(const AABB &box)
+	{
+		std::vector<SceneNode *> nodes;
+		for(SceneNode *node : _nodes)
+		{
+			if(node->GetBoundingBox().Intersects(box))
+			{
+				nodes.push_back(node);
+			}
+		}
+		
+		return nodes;
+	}
 }

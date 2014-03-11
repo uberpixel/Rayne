@@ -28,6 +28,8 @@ namespace RN
 		RNAPI virtual void RenderScene(Camera *camera) = 0;
 		RNAPI virtual Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0x00ff, Hit::HitMode mode = Hit::HitMode::IgnoreNone) = 0;
 		
+		RNAPI virtual std::vector<SceneNode *> GetSceneNodes(const AABB &box) = 0;
+		
 	protected:
 		RNAPI SceneManager();
 		RNAPI ~SceneManager() override;
@@ -51,11 +53,12 @@ namespace RN
 		
 		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0xffff, Hit::HitMode mode = Hit::HitMode::IgnoreNone) override;
 		
+		RNAPI std::vector<SceneNode *> GetSceneNodes(const AABB &box) override;
+		
 	private:
 		RNAPI void RenderSceneNode(Camera *camera, SceneNode *node);
 		
 		std::vector<SceneNode *> _nodes;
-		std::unordered_set<SceneNode *> _rootNodes;
 		
 		RNDeclareMetaWithTraits(GenericSceneManager, SceneManager, MetaClassTraitCronstructable);
 	};

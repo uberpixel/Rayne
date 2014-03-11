@@ -101,6 +101,8 @@ namespace RN
 		
 		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0xffff, Hit::HitMode mode = Hit::HitMode::IgnoreNone) override;
 		
+		RNAPI std::vector<SceneNode *> GetSceneNodes(const AABB &box) override;
+		
 	private:
 		void RenderSceneNode(Camera *camera, SceneNode *node);
 		
