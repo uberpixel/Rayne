@@ -276,9 +276,9 @@ namespace RN
 					BasicString *string = StringFactory::ConstructString(temp, _encoding);
 					_ainternal->ReplaceCharactersInRange(Range(read + i, 1), string);
 					string->Release();
-					
-					needsUppercase = false;
 				}
+				
+				needsUppercase = false;
 			}
 			
 			read += left;
