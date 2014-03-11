@@ -20,6 +20,8 @@
 
 namespace RN
 {
+	RNDefineMeta(InstancingNode)
+	
 	InstancingNode::InstancingNode()
 	{
 		Initialize();
