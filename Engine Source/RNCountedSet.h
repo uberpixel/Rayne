@@ -33,6 +33,14 @@ namespace RN
 		
 		RNAPI void Enumerate(const std::function<void (Object *object, size_t count, bool &stop)>& callback) const;
 		
+		template<class T>
+		void Enumerate(const std::function<void (T *object, size_t count, bool &stop)>& callback) const
+		{
+			Enumerate([&](Object *object, size_t count, bool &stop) {
+				callback(static_cast<T *>(object), count, stop);
+			});
+		}
+		
 		RNAPI Array *GetAllObjects() const;
 		
 		RNAPI size_t GetCount() const;

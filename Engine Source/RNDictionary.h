@@ -44,6 +44,14 @@ namespace RN
 		
 		RNAPI void Enumerate(const std::function<void (Object *object, Object *key, bool &stop)>& callback) const;
 		
+		template<class T, class K>
+		void Enumerate(const std::function<void (T *object, K *key, bool &stop)>& callback) const
+		{
+			Enumerate([&](Object *object, Object *key, bool &stop) {
+				callback(static_cast<T *>(object), static_cast<K *>(key), stop);
+			});
+		}
+		
 		RNAPI Array *GetAllObjects() const;
 		RNAPI Array *GetAllKeys() const;
 		
