@@ -57,6 +57,7 @@ namespace RN
 		RNAPI float GetCellSize() const { return _cellSize; }
 		RNAPI float GetClipRange() const { return _clipRange; }
 		RNAPI float GetThinRange() const { return _thinRange; }
+		RNAPI Camera *GetPivot() const { return _pivot; }
 		RNAPI Mode GetMode() const { return _mode; }
 		
 	protected:
