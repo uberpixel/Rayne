@@ -79,9 +79,9 @@ namespace RN
 		Set *_models;
 		Mode _mode;
 		
-		float _clipRange;
-		float _thinRange;
-		float _cellSize;
+		Observable<float, InstancingNode> _clipRange;
+		Observable<float, InstancingNode> _thinRange;
+		Observable<float, InstancingNode> _cellSize;
 		
 		Camera *_pivot;
 		

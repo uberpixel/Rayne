@@ -22,14 +22,18 @@ namespace RN
 {
 	RNDefineMeta(InstancingNode)
 	
-	InstancingNode::InstancingNode()
+	InstancingNode::InstancingNode() :
+		_clipRange("Clip range", 64.0f, &InstancingNode::GetClipRange, &InstancingNode::SetClippingRange),
+		_thinRange("Thin range", 128.0f, &InstancingNode::GetThinRange, &InstancingNode::SetThinningRange),
+		_cellSize("Cell size", 32.0f, &InstancingNode::GetCellSize, &InstancingNode::SetCellSize)
 	{
+		AddObservables({ &_clipRange, &_thinRange, &_cellSize });
 		Initialize();
 	}
 	
-	InstancingNode::InstancingNode(Model *model)
+	InstancingNode::InstancingNode(Model *model) :
+		InstancingNode()
 	{
-		Initialize();
 		SetModel(model);
 	}
 	
@@ -54,10 +58,6 @@ namespace RN
 		_entityClass = Entity::MetaClass();
 		_models      = new Set();
 		_pivot       = nullptr;
-		
-		_clipRange = 64.0f;
-		_thinRange = 128.0f;
-		_cellSize  = 32.0f;
 		
 		SetFlags(GetFlags() | Flags::HideChildren);
 		
