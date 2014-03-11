@@ -52,7 +52,7 @@ namespace RN
 			if(IsKindOfClass(T::MetaClass()))
 				return static_cast<T *>(this);
 			
-			throw Exception(Exception::Type::DowncastException, "No possible cast possible!");
+			return nullptr;
 		}
 		
 		RNAPI virtual MetaClassBase *Class() const;
