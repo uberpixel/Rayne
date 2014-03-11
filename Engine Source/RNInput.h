@@ -50,7 +50,8 @@ namespace RN
 		KeyPageUp = 0xF72C,
 		KeyPageDown,
 		
-		KeyPrintScreen = 0xF72E
+		KeyPrintScreen = 0xF72E,
+		KeyESC = 0x1B
 #endif
 #if RN_PLATFORM_WINDOWS
 		KeyReturn = 0xD,
@@ -80,7 +81,8 @@ namespace RN
 		KeyPageUp = 0xF721,
 		KeyPageDown,
 
-		KeyPrintScreen = 0xF72E
+		KeyPrintScreen = 0xF72E,
+		KeyESC = 0xF71B
 #endif
 	};
 	

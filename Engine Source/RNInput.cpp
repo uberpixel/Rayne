@@ -57,16 +57,21 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 	void TranslateKeyboardEvent(NSEvent *event, const std::function<void (UniChar)>& callback)
 	{
-		NSString *characters = [event characters];
-		characters = [characters stringByTrimmingCharactersInSet:[NSCharacterSet controlCharacterSet]];
+		NSString *characters;
+		NSUInteger flags = [event modifierFlags];
 		
-		if([characters length] == 0)
+		if(!(flags & NSControlKeyMask))
+		{
+			characters = [event characters];
+		}
+		else
 		{
 			characters = [event charactersIgnoringModifiers];
-			characters = [characters stringByTrimmingCharactersInSet:[NSCharacterSet controlCharacterSet]];
 		}
 		
-		for(NSUInteger i=0; i<[characters length]; i++)
+		
+		
+		for(NSUInteger i = 0; i < [characters length]; i ++)
 		{
 			UniChar character = static_cast<UniChar>([characters characterAtIndex:i]);
 			callback(character);
