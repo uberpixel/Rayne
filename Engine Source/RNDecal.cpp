@@ -38,7 +38,7 @@ namespace RN
 	
 	Decal::Decal(const Decal *other) :
 		SceneNode(other),
-		_angle("angle", 180.0f, &Decal::GetAngle, &Decal::SetAngle)
+		_angle("angle", other->GetAngle(), &Decal::GetAngle, &Decal::SetAngle)
 	{
 		Decal *temp = const_cast<Decal *>(other);
 		LockGuard<Object *> lock(temp);
@@ -148,6 +148,13 @@ namespace RN
 				for(int m = 0; m < meshcount; m++)
 				{
 					Mesh *mesh = model->GetMeshAtIndex(0, m);
+					
+					AABB meshAABB = mesh->GetBoundingBox();
+					meshAABB *= entity->GetWorldScale();
+					meshAABB.SetRotation(entity->GetWorldRotation());
+					meshAABB.position += entity->GetWorldPosition();
+					if(!meshAABB.Intersects(box))
+						continue;
 					if(!mesh->SupportsFeature(MeshFeature::Vertices))
 						continue;
 					if(!mesh->SupportsFeature(MeshFeature::Normals))
