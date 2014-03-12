@@ -28,6 +28,7 @@ namespace RN
 		RNAPI virtual void EncodeObject(Object *object) = 0;
 		RNAPI virtual void EncodeRootObject(Object *object) = 0;
 		RNAPI virtual void EncodeConditionalObject(Object *object) = 0;
+		RNAPI virtual void EncodeString(const std::string &string) = 0;
 		
 		RNAPI virtual void EncodeBool(bool value) = 0;
 		RNAPI virtual void EncodeDouble(double value) = 0;
@@ -54,6 +55,7 @@ namespace RN
 		RNAPI virtual void *DecodeBytes(size_t *length) = 0;
 		RNAPI virtual Object *DecodeObject() = 0;
 		RNAPI virtual Object *DecodeConditionalObject() = 0;
+		RNAPI virtual std::string DecodeString() = 0;
 		
 		RNAPI virtual bool DecodeBool() = 0;
 		RNAPI virtual double DecodeDouble() = 0;
@@ -84,6 +86,7 @@ namespace RN
 		RNAPI void EncodeObject(Object *object) override;
 		RNAPI void EncodeRootObject(Object *object) override;
 		RNAPI void EncodeConditionalObject(Object *object) override;
+		RNAPI void EncodeString(const std::string &string) override;
 		
 		RNAPI void EncodeBool(bool value) override;
 		RNAPI void EncodeDouble(double value) override;
@@ -118,6 +121,7 @@ namespace RN
 		RNAPI void *DecodeBytes(size_t *length) override;
 		RNAPI Object *DecodeObject() override;
 		RNAPI Object *DecodeConditionalObject() override;
+		RNAPI std::string DecodeString() override;
 		
 		RNAPI bool DecodeBool() override;
 		RNAPI double DecodeDouble() override;

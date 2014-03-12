@@ -189,12 +189,12 @@ namespace RN
 				{
 					RemoveDependency(_shadowTarget);
 					_shadowTarget->Release();
+					_shadowTarget = nullptr;
 				}
 				
 				if(parameter.shadowTarget)
 				{
-					_shadowTarget = parameter.shadowTarget;
-					_shadowTarget->Retain();
+					_shadowTarget = parameter.shadowTarget->Retain();
 					AddDependency(_shadowTarget);
 				}
 			}
@@ -215,17 +215,16 @@ namespace RN
 			DeactivateShadows();
 		
 		RN_ASSERT(_shadowParameter.shadowTarget, "Directional shadows need the shadowTarget to be set to a valid value!");
-		
 		RN_ASSERT(_shadowParameter.splits.size() > 0, "The shadow parameter for directional lights needs one or more splits!");
 		
 		if(_shadowTarget)
 		{
 			RemoveDependency(_shadowTarget);
 			_shadowTarget->Release();
+			_shadowTarget = nullptr;
 		}
 		
-		_shadowTarget = _shadowParameter.shadowTarget;
-		_shadowTarget->Retain();
+		_shadowTarget = _shadowParameter.shadowTarget->Retain();
 		AddDependency(_shadowTarget);
 		
 		Texture::Parameter textureParameter;
@@ -255,9 +254,10 @@ namespace RN
 			
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 			storage->SetDepthTarget(depthtex, i);
+			storage->Autorelease();
 			
 			Camera *tempcam = new Camera(Vector2(_shadowParameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::Orthogonal | Camera::Flags::NoFlush, 1.0f);
-			tempcam->SetMaterial(depthMaterial);
+			tempcam->SetMaterial(depthMaterial->Autorelease());
 			tempcam->SetLODCamera(_shadowTarget);
 			tempcam->SetLightManager(nullptr);
 			tempcam->SetPriority(kRNShadowCameraPriority);
@@ -266,9 +266,6 @@ namespace RN
 
 			_shadowDepthCameras.AddObject(tempcam);
 			AddDependency(tempcam);
-			
-			tempcam->Release();
-			storage->Release();
 			
 			try
 			{
@@ -311,10 +308,9 @@ namespace RN
 		
 		RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 		storage->SetDepthTarget(depthtex, -1);
+		storage->Autorelease();
 		
 		RN::Camera *shadowcam = new CubemapCamera(Vector2(_shadowParameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush, 1.0f);
-		shadowcam->Retain();
-		shadowcam->Autorelease();
 		shadowcam->SetMaterial(depthMaterial);
 		shadowcam->SetPriority(kRNShadowCameraPriority);
 		shadowcam->SetClipNear(0.01f);
@@ -326,7 +322,6 @@ namespace RN
 		
 		_shadowDepthCameras.AddObject(shadowcam);
 		AddDependency(shadowcam);
-		storage->Release();
 		
 		try
 		{
@@ -369,10 +364,9 @@ namespace RN
 		
 		RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 		storage->SetDepthTarget(depthtex, -1);
+		storage->Autorelease();
 		
 		RN::Camera *shadowcam = new Camera(Vector2(_shadowParameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush, 1.0f);
-		shadowcam->Retain();
-		shadowcam->Autorelease();
 		shadowcam->SetMaterial(depthMaterial);
 		shadowcam->SetPriority(kRNShadowCameraPriority);
 		shadowcam->SetClipNear(0.01f);
@@ -384,7 +378,6 @@ namespace RN
 		
 		_shadowDepthCameras.AddObject(shadowcam);
 		AddDependency(shadowcam);
-		storage->Release();
 		
 		try
 		{

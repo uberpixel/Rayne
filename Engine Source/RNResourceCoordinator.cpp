@@ -29,96 +29,51 @@ namespace RN
 		
 		while(!_requests.empty())
 		{
-			std::shared_future<Object *> future = _requests.begin()->second;
+			std::shared_future<Asset *> future = _requests.begin()->second;
 			lock.Unlock();
 			
 			future.wait();
 		}
 	}
 	
-	void ResourceCoordinator::__AddResourceAlias(Object *object, String *name)
-	{
-		if(_resources.GetObjectForKey(name) || _requests.find(name) != _requests.end())
-			throw Exception(Exception::Type::InconsistencyException, "");
-		
-		_resources.SetObjectForKey(object, name);
-		
-		Array *aliases = _resourceToAlias.GetObjectForKey<Array>(object);
-		if(!aliases)
-		{
-			aliases = new Array();
-			aliases->AddObject(name);
-			
-			_resourceToAlias.SetObjectForKey(aliases->Autorelease(), object);
-			
-			RNDebug("Loaded %s", name->GetUTF8String());
-		}
-		else
-		{
-			String *original = aliases->GetFirstObject<String>();
-			RNDebug("Aliased %s as %s", original->GetUTF8String(), name->GetUTF8String());
-			
-			aliases->AddObject(name);
-		}
-	}
-	
-	
-	
-	void ResourceCoordinator::AddResourceAlias(Object *object, String *name)
-	{
-		LockGuard<decltype(_lock)> lock(_lock);
-		__AddResourceAlias(object, name);
-	}
-	
-	void ResourceCoordinator::AddResource(Object *object, String *name)
-	{
-		LockGuard<decltype(_lock)> lock(_lock);
-		__AddResourceAlias(object, name);
-	}
-	
-	void ResourceCoordinator::RemoveResource(Object *object)
+	void ResourceCoordinator::RemoveResource(Asset *object)
 	{
 		LockGuard<decltype(_lock)> lock(_lock);
 		
-		Array *aliases = _resourceToAlias.GetObjectForKey<Array>(object);
-		if(aliases)
+		for(auto i = _resources.begin(); i != _resources.end(); i ++)
 		{
-			object->Retain();
-			aliases->Enumerate<String>([&](String *alias, size_t index, bool &stop) {
+			Asset *asset = i->second;
+			
+			if(asset == object)
+			{
+				RNDebug("Removed asset %s", asset->GetName().c_str());
 				
-				_resources.RemoveObjectForKey(alias);
-				
-			});
-			
-			_resourceToAlias.RemoveObjectForKey(object);
-			object->Release();
-		}
-	}
-	
-	void ResourceCoordinator::RemoveResourceWithName(String *name)
-	{
-		LockGuard<decltype(_lock)> lock(_lock);
-		
-		Object *object = _resources.GetObjectForKey(name);
-		if(object)
-		{
-			object->Retain();
-			lock.Unlock();
-			
-			RemoveResource(object);
-			object->Release();
+				_resources.erase(i);
+				return;
+			}
 		}
 	}
 	
 	
 	
-	Object *ResourceCoordinator::ValidateResource(MetaClassBase *base, Object *object)
+	Asset *ResourceCoordinator::ValidateResource(MetaClassBase *base, Asset *object)
 	{
 		if(!object->IsKindOfClass(base))
-			throw Exception(Exception::Type::InconsistencyException, "");
+			throw Exception(Exception::Type::InconsistencyException, "Failed to validate asset for class %s", base->Name().c_str());
 		
 		return object;
 	}
+	
+	void ResourceCoordinator::PrepareResource(Asset *object, String *name)
+	{
+		object->SetName(name->GetUTF8String());
+		object->_signal.Connect(std::bind(&ResourceCoordinator::RemoveResource, this, std::placeholders::_1));
+		
+		_resources[name->Retain()] = object;
+		
+		RNDebug("Added asset %s", name->GetUTF8String());
+	}
+	
 	
 	ResourceLoader *ResourceCoordinator::PickResourceLoader(MetaClassBase *base, File *file, String *name, bool requiresBackgroundSupport)
 	{
@@ -236,16 +191,24 @@ namespace RN
 	}
 	
 	
-	std::shared_future<Object *> ResourceCoordinator::RequestFutureResourceWithName(MetaClassBase *base, String *name, Dictionary *settings)
+	
+	std::shared_future<Asset *> ResourceCoordinator::RequestFutureResourceWithName(MetaClassBase *base, String *name, Dictionary *settings)
 	{
 		LockGuard<decltype(_lock)> lock(_lock);
 		
 		// Check if the resource is already loaded
-		Object *object = _resources.GetObjectForKey(name);
+		Asset *object = nullptr;
+		
+		{
+			auto iterator = _resources.find(name);
+			if(iterator != _resources.end())
+				object = iterator->second;
+		}
+		
 		if(object)
 		{
-			std::promise<Object *> promise;
-			std::shared_future<Object *> future = promise.get_future().share();
+			std::promise<Asset *> promise;
+			std::shared_future<Asset *> future = promise.get_future().share();
 			
 			try
 			{
@@ -264,7 +227,7 @@ namespace RN
 		auto iterator = _requests.find(name);
 		if(iterator != _requests.end())
 		{
-			std::shared_future<Object *> future(iterator->second);
+			std::shared_future<Asset *> future(iterator->second);
 			lock.Unlock();
 			
 			return future;
@@ -272,6 +235,7 @@ namespace RN
 		
 		// Load the resource
 		File *file = nullptr;
+		name = name->Copy();
 		
 		try
 		{
@@ -289,35 +253,40 @@ namespace RN
 			settings->Autorelease();
 		}
 		
-		name->Retain();
 		
 		Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
 		
-		std::future<Object *> future = std::move(resourceLoader->LoadInBackground(fileOrName, settings, 0, [this, name] (Object *object, Tag tag) {
+		std::future<Asset *> future = std::move(resourceLoader->LoadInBackground(fileOrName, settings, 0, [this, name] (Asset *object, Tag tag) {
 			
 			LockGuard<decltype(_lock)> lock(_lock);
 			_requests.erase(name);
-			__AddResourceAlias(object, name);
+			PrepareResource(object, name);
 			lock.Unlock();
 
 			name->Release();
 			
 		}));
 		
-		std::shared_future<Object *> shared = future.share();
-		
-		_requests.insert(decltype(_requests)::value_type(name, shared));
+		std::shared_future<Asset *> shared = future.share();
+		_requests.emplace(name, shared);
 		lock.Unlock();
 		
 		return shared;
 	}
 	
-	Object *ResourceCoordinator::RequestResourceWithName(MetaClassBase *base, String *name, Dictionary *settings)
+	Asset *ResourceCoordinator::RequestResourceWithName(MetaClassBase *base, String *name, Dictionary *settings)
 	{
 		LockGuard<decltype(_lock)> lock(_lock);
 		
 		// Check if the resource is already loaded
-		Object *object = _resources.GetObjectForKey(name);
+		Asset *object = nullptr;
+		
+		{
+			auto iterator = _resources.find(name);
+			if(iterator != _resources.end())
+				object = iterator->second;
+		}
+		
 		if(object)
 			return ValidateResource(base, object);
 		
@@ -325,7 +294,7 @@ namespace RN
 		auto iterator = _requests.find(name);
 		if(iterator != _requests.end())
 		{
-			std::shared_future<Object *> future(iterator->second);
+			std::shared_future<Asset *> future(iterator->second);
 			lock.Unlock();
 			
 			future.wait();
@@ -344,28 +313,21 @@ namespace RN
 		catch(Exception e)
 		{}
 		
+		name = name->Copy();
+		
 		ResourceLoader *resourceLoader = PickResourceLoader(base, file, name, false);
 		
-		std::promise<Object *> promise;
-		_requests.insert(decltype(_requests)::value_type(name->Retain(), std::move(promise.get_future().share())));
+		std::promise<Asset *> promise;
+		_requests.emplace(name, std::move(promise.get_future().share()));
 		lock.Unlock();
 		
 		try
 		{
 			if(!settings)
-			{
-				settings = new Dictionary();
-				settings->Autorelease();
-			}
+				settings = (new Dictionary())->Autorelease();
 			
-			if(file)
-			{
-				object = resourceLoader->Load(file, settings);
-			}
-			else
-			{
-				object = resourceLoader->Load(name, settings);
-			}
+			object = (file) ? resourceLoader->Load(file, settings) : resourceLoader->Load(name, settings);
+			object->SetName(name->GetUTF8String());
 			
 			promise.set_value(object);
 		}
@@ -382,8 +344,10 @@ namespace RN
 		}
 		
 		lock.Lock();
+		
 		_requests.erase(name);
-		__AddResourceAlias(object, name);
+		PrepareResource(object, name);
+		
 		lock.Unlock();
 		
 		name->Release();
@@ -422,8 +386,8 @@ namespace RN
 	
 	void ResourceCoordinator::LoadShader(String *name, String *key)
 	{
-		Shader *shader = GetResourceWithName<Shader>(name, nullptr);
-		AddResourceAlias(shader, key);
+		Shader *shader = GetResourceWithName<Shader>(name, nullptr)->Retain();
+		_resources.emplace(key->Copy(), shader);
 	}
 	
 	void ResourceCoordinator::LoadEngineResources()

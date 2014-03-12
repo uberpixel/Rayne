@@ -12,12 +12,13 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNRect.h"
+#include "RNAsset.h"
 
 namespace RN
 {
 	class Camera;
 	
-	class Texture : public Object
+	class Texture : public Asset
 	{
 	public:
 		friend class Camera;

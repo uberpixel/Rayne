@@ -439,6 +439,8 @@ namespace RN
 		
 		node->_world = nullptr;
 		node->DidUpdate(SceneNode::ChangeSet::World);
+		
+		node->Release();
 	}
 	
 	void World::DropSceneNodes()
@@ -447,17 +449,35 @@ namespace RN
 		
 		_isDroppingSceneNodes = true;
 		
+		std::vector<SceneNode *> nodes;
+		
 		for(SceneNode *node : _nodes)
-			DropSceneNode(node);
+		{
+			if(!node->_parent)
+				nodes.push_back(node);
+		}
 		
 		for(SceneNode *node : _addedNodes)
-			DropSceneNode(node);
+		{
+			if(!node->_parent)
+				nodes.push_back(node);
+		}
 		
 		for(SceneNode *node : _staticNodes)
-			DropSceneNode(node);
+		{
+			if(!node->_parent)
+				nodes.push_back(node);
+		}
 		
-		for(Camera *node : _cameras)
-			DropSceneNode(node);
+		
+		for(SceneNode *node : nodes)
+		{
+			node->_world = nullptr;
+			node->DidUpdate(SceneNode::ChangeSet::World);
+			
+			node->Release();
+		}
+		
 		
 		_nodes.clear();
 		_addedNodes.clear();

@@ -20,7 +20,7 @@
 namespace RN
 {
 	class Skeleton;
-	class Model : public Object
+	class Model : public Asset
 	{
 	public:
 		RNAPI Model();
@@ -106,7 +106,7 @@ namespace RN
 		std::vector<LODGroup *> _groups;
 		Skeleton *_skeleton;
 		
-		RNDeclareMetaWithTraits(Model, Object, MetaClassTraitCronstructable)
+		RNDeclareMetaWithTraits(Model, Asset, MetaClassTraitCronstructable)
 	};
 }
 

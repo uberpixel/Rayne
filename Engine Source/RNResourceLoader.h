@@ -15,6 +15,7 @@
 #include "RNData.h"
 #include "RNDictionary.h"
 #include "RNString.h"
+#include "RNAsset.h"
 
 namespace RN
 {
@@ -23,14 +24,12 @@ namespace RN
 	public:
 		friend class ResourceCoordinator;
 	
-		typedef std::function<void (Object *, Tag)> Callback;
+		typedef std::function<void (Asset *, Tag)> Callback;
 		
 		RNAPI ~ResourceLoader();
 		
-		RNAPI virtual Object *Load(File *file, Dictionary *settings);
-		RNAPI virtual Object *Load(String *name, Dictionary *settings);
-		
-		RNAPI std::future<Object *> LoadInBackground(Object *fileOrName, Dictionary *settings, Tag tag, Callback callback);
+		RNAPI virtual Asset *Load(File *file, Dictionary *settings);
+		RNAPI virtual Asset *Load(String *name, Dictionary *settings);
 		
 		RNAPI virtual bool SupportsBackgroundLoading();
 		RNAPI virtual bool SupportsLoadingFile(File *file);
@@ -48,6 +47,8 @@ namespace RN
 		RNAPI void SetSupportsImaginaryFiles(bool support);
 		
 	private:
+		std::future<Asset *> LoadInBackground(Object *fileOrName, Dictionary *settings, Tag tag, Callback callback);
+		
 		Data *_magicBytes;
 		size_t _magicBytesOffset;
 		std::vector<std::string> _fileExtensions;

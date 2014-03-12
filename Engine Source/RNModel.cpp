@@ -39,9 +39,7 @@ namespace RN
 	Model::~Model()
 	{
 		for(LODGroup *group : _groups)
-		{
 			delete group;
-		}
 		
 		SafeRelease(_skeleton);
 	}

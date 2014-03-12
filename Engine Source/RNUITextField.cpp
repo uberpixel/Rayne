@@ -230,8 +230,15 @@ namespace RN
 			Control::LayoutSubviews();
 			
 			Rect frame = GetFrame();
-			Rect editorRect = Rect(Vector2(_contentInsets.left, _contentInsets.top), _editor->GetTypesetter()->GetDimensions());
-
+			Vector2 size = _editor->GetTypesetter()->GetDimensions();
+			
+			Rect editorRect;
+			
+			editorRect.x = _contentInsets.left;
+			editorRect.y = roundf((frame.height * 0.5f) - (size.y * 0.5));
+			editorRect.width  = frame.width - (_contentInsets.right + _contentInsets.left);
+			editorRect.height = size.y;
+			
 			_background->SetFrame(Rect(0.0f, 0.0f, frame.width, frame.height));
 			_editor->SetFrame(editorRect);
 		}
