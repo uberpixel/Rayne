@@ -15,6 +15,8 @@
 		C094DF871753A2BA002A2C88 /* RNWater.cpp in Sources */ = {isa = PBXBuildFile; fileRef = C094DF851753A2BA002A2C88 /* RNWater.cpp */; };
 		C094DF881753A2BA002A2C88 /* RNWater.h in Headers */ = {isa = PBXBuildFile; fileRef = C094DF861753A2BA002A2C88 /* RNWater.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		C0C3AD351764B6C4007FADC9 /* RNHit.h in Headers */ = {isa = PBXBuildFile; fileRef = C0C3AD341764B6C4007FADC9 /* RNHit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D5005AD118CF91CB00097D31 /* RNDecal.h in Headers */ = {isa = PBXBuildFile; fileRef = D5005ACF18CF91CB00097D31 /* RNDecal.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		D5005AD218CF91CB00097D31 /* RNDecal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D5005AD018CF91CB00097D31 /* RNDecal.cpp */; };
 		D58CEA3E18159965002EB442 /* RNLightManager.h in Headers */ = {isa = PBXBuildFile; fileRef = D58CEA3C18159965002EB442 /* RNLightManager.h */; };
 		D58CEA3F18159965002EB442 /* RNLightManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D58CEA3D18159965002EB442 /* RNLightManager.cpp */; };
 		D59DCB0C18584E2B00030716 /* RNOctreeSceneManager.h in Headers */ = {isa = PBXBuildFile; fileRef = D59DCB0A18584E2A00030716 /* RNOctreeSceneManager.h */; };
@@ -336,6 +338,8 @@
 		C094DF851753A2BA002A2C88 /* RNWater.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNWater.cpp; sourceTree = "<group>"; };
 		C094DF861753A2BA002A2C88 /* RNWater.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNWater.h; sourceTree = "<group>"; };
 		C0C3AD341764B6C4007FADC9 /* RNHit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNHit.h; sourceTree = "<group>"; };
+		D5005ACF18CF91CB00097D31 /* RNDecal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNDecal.h; sourceTree = "<group>"; };
+		D5005AD018CF91CB00097D31 /* RNDecal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNDecal.cpp; sourceTree = "<group>"; };
 		D58CEA3C18159965002EB442 /* RNLightManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNLightManager.h; sourceTree = "<group>"; };
 		D58CEA3D18159965002EB442 /* RNLightManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNLightManager.cpp; sourceTree = "<group>"; };
 		D59DCB0A18584E2A00030716 /* RNOctreeSceneManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOctreeSceneManager.h; sourceTree = "<group>"; };
@@ -1018,6 +1022,8 @@
 				E9619DF81696157E00DA187E /* RNCamera.h */,
 				E986B6A1187B57D100AFF219 /* RNCameraInternal.cpp */,
 				E986B6A2187B57D100AFF219 /* RNCameraInternal.h */,
+				D5005AD018CF91CB00097D31 /* RNDecal.cpp */,
+				D5005ACF18CF91CB00097D31 /* RNDecal.h */,
 				E9580BD116AB8BEA0056DEF2 /* RNEntity.cpp */,
 				E9580BD216AB8BEA0056DEF2 /* RNEntity.h */,
 				C050166716C3FDE600326514 /* RNLight.cpp */,
@@ -1210,6 +1216,7 @@
 				E97C3EB1172B11C7006EA63A /* RNString.h in Headers */,
 				E9D7DA79172F9C0D00A858CB /* RNUIWidget.h in Headers */,
 				E9D7DA7D172F9C7700A858CB /* RNUIView.h in Headers */,
+				D5005AD118CF91CB00097D31 /* RNDecal.h in Headers */,
 				E9586E5F172FD40C00D24737 /* RNUIServer.h in Headers */,
 				E9586E63173072B700D24737 /* RNUIResponder.h in Headers */,
 				E9586E681730855600D24737 /* RNUIImageView.h in Headers */,
@@ -1471,6 +1478,7 @@
 				E9C89C9318133C9900465F5B /* RNWindowInternal.cpp in Sources */,
 				E9B92DE117B02213004B8CA4 /* RNTriggerZone.cpp in Sources */,
 				E9BEF3C21744442A0090C9CB /* RNUIImage.cpp in Sources */,
+				D5005AD218CF91CB00097D31 /* RNDecal.cpp in Sources */,
 				C094DF871753A2BA002A2C88 /* RNWater.cpp in Sources */,
 				E953383217D75DF70017B60B /* RNFileManager.cpp in Sources */,
 				E94D18B91753CE8A00F3B10D /* RNDebug.cpp in Sources */,

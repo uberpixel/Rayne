@@ -131,9 +131,10 @@ namespace RN
 			}
 			
 			
-			void Seek(size_t index)
+			ElementIterator<T> &Seek(size_t index)
 			{
 				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_base) + (__ChunkFriend::GetStride() * index)));
+				return *this;
 			}
 			
 			

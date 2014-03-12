@@ -116,6 +116,7 @@
 #include "RNEntity.h"
 #include "RNLight.h"
 #include "RNBillboard.h"
+#include "RNDecal.h"
 #include "RNWater.h"
 #include "RNInstancingNode.h"
 #include "RNParticleEmitter.h"
