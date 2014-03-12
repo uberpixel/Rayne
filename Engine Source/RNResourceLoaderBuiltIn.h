@@ -19,7 +19,7 @@ namespace RN
 	public:
 		PNGResourceLoader();
 		
-		Object *Load(File *file, Dictionary *settings) override;
+		Asset *Load(File *file, Dictionary *settings) override;
 		
 		bool SupportsBackgroundLoading() override;
 		bool SupportsLoadingFile(File *file) override;
@@ -37,7 +37,7 @@ namespace RN
 	public:
 		SGMResourceLoader();
 		
-		Object *Load(File *file, Dictionary *settings) override;
+		Asset *Load(File *file, Dictionary *settings) override;
 		
 		bool SupportsBackgroundLoading() override;
 		bool SupportsLoadingFile(File *file) override;
@@ -57,7 +57,7 @@ namespace RN
 	public:
 		SGAResourceLoader();
 		
-		Object *Load(File *file, Dictionary *settings) override;
+		Asset *Load(File *file, Dictionary *settings) override;
 		
 		bool SupportsBackgroundLoading() override;
 		bool SupportsLoadingFile(File *file) override;
@@ -74,7 +74,7 @@ namespace RN
 	public:
 		GLSLResourceLoader();
 		
-		Object *Load(String *name, Dictionary *settings) override;
+		Asset *Load(String *name, Dictionary *settings) override;
 		
 		bool SupportsBackgroundLoading() override;
 		bool SupportsLoadingFile(File *file) override;

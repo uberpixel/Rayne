@@ -529,6 +529,16 @@ namespace RN
 			}
 		}
 		
+		if(changeSet & ChangeSet::World)
+		{
+			LockGuard<decltype(_parentChildLock)> lock(_parentChildLock);
+			
+			_children.Enumerate<RN::SceneNode>([&](RN::SceneNode *node, size_t index, bool &stop) {
+				node->_world = _world;
+				node->DidUpdate(ChangeSet::World);
+			});
+		}
+		
 		if(_world)
 			_world->SceneNodeDidUpdate(this, changeSet);
 		

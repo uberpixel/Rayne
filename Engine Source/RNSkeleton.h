@@ -16,6 +16,7 @@
 #include "RNArray.h"
 #include "RNQuaternion.h"
 #include "RNMatrix.h"
+#include "RNAsset.h"
 
 namespace RN
 {
@@ -85,7 +86,7 @@ namespace RN
 	private:
 	};
 	
-	class Skeleton : public Object
+	class Skeleton : public Asset
 	{
 	public:
 		RNAPI Skeleton();

@@ -17,6 +17,7 @@
 #include "RNShaderLookup.h"
 #include "RNShaderUnit.h"
 #include "RNEnum.h"
+#include "RNAsset.h"
 
 namespace RN
 {
@@ -154,7 +155,7 @@ namespace RN
 		FrameID _lastFrame;
 	};
 	
-	class Shader : public Object
+	class Shader : public Asset
 	{
 	public:
 		friend class ShaderUnit;

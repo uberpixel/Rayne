@@ -108,6 +108,11 @@ namespace RN
 		
 	}
 	
+	void FlatSerializer::EncodeString(const std::string &string)
+	{
+		EncodeData('s', string.size() + 1, string.c_str());
+	}
+	
 	void FlatSerializer::EncodeBool(bool value)
 	{
 		EncodeData('b', sizeof(bool), &value);
@@ -285,6 +290,17 @@ namespace RN
 	Object *FlatDeserializer::DecodeConditionalObject()
 	{
 		return nullptr;
+	}
+	
+	std::string FlatDeserializer::DecodeString()
+	{
+		size_t size;
+		AssertType('+', &size);
+		
+		Data *data = _data->GetDataInRange(Range(_index, size));
+		_index += size;
+		
+		return std::string(reinterpret_cast<char *>(data->GetBytes()));
 	}
 	
 	bool FlatDeserializer::DecodeBool()

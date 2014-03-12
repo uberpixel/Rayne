@@ -25,12 +25,12 @@ namespace RN
 	}
 
 	
-	Object *ResourceLoader::Load(File *file, Dictionary *settings)
+	Asset *ResourceLoader::Load(File *file, Dictionary *settings)
 	{
 		throw Exception(Exception::Type::InconsistencyException, "");
 	}
 	
-	Object *ResourceLoader::Load(String *name, Dictionary *settings)
+	Asset *ResourceLoader::Load(String *name, Dictionary *settings)
 	{
 		throw Exception(Exception::Type::InconsistencyException, "");
 	}
@@ -41,7 +41,7 @@ namespace RN
 		return false;
 	}
 	
-	std::future<Object *> ResourceLoader::LoadInBackground(Object *fileOrName, Dictionary *settings, Tag tag, Callback callback)
+	std::future<Asset *> ResourceLoader::LoadInBackground(Object *fileOrName, Dictionary *settings, Tag tag, Callback callback)
 	{
 		ThreadPool *pool = ThreadPool::GetSharedInstance();
 		
@@ -49,7 +49,7 @@ namespace RN
 		settings->Retain();
 		
 		return pool->AddTaskWithFuture([=] {
-			Object *result;
+			Asset *result;
 			
 			if(fileOrName->IsKindOfClass(File::MetaClass()))
 			{

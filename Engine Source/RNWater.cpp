@@ -9,26 +9,26 @@
 #include "RNWater.h"
 #include "RNResourceCoordinator.h"
 
-#define kRNWaterMeshResourceName RNCSTR("kRNWaterMeshResourceName")
-
 namespace RN
 {
 	RNDefineMeta(Water)
 	
-	Water::Water(Camera *cam, Texture *refract)
+	Water::Water(Camera *cam, Texture *refract) :
+		_mesh(nullptr),
+		_material(nullptr),
+		_reflection(nullptr),
+		_refraction(refract->Retain()),
+		_camera(cam->Retain())
 	{
-		_mesh = 0;
-		_material = 0;
-		_reflection = 0;
-		_refraction = refract;
-		_camera = cam;
-		SetRenderGroup(2);
-		
 		Initialize();
+		SetRenderGroup(2);
 	}
 	
 	Water::~Water()
 	{
+		_refraction->Release();
+		_camera->Release();
+		
 		_mesh->Release();
 		_material->Release();
 	}
@@ -42,15 +42,16 @@ namespace RN
 		_material->SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyWaterShader, nullptr));
 		
 		static std::once_flag onceFlag;
+		static Mesh *mesh;
 		
-		std::call_once(onceFlag, []() {
+		std::call_once(onceFlag, [&]() {
 			MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 			vertexDescriptor.elementMember = 3;
 			vertexDescriptor.elementSize   = sizeof(Vector3);
 			
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor };
 			
-			Mesh *mesh = new Mesh(descriptors, 10, 0);
+			mesh = new Mesh(descriptors, 10, 0);
 			mesh->SetDrawMode(Mesh::DrawMode::TriangleStrip);
 			
 			Mesh::Chunk chunk = mesh->GetChunk();
@@ -71,11 +72,10 @@ namespace RN
 			*vertices ++ = Vector3(0.5f, 0.0f, -0.5f);
 			
 			chunk.CommitChanges();
-			
-			ResourceCoordinator::GetSharedInstance()->AddResource(mesh, kRNWaterMeshResourceName);
+
 		});
 		
-		_mesh = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Mesh>(kRNWaterMeshResourceName, nullptr)->Retain();
+		_mesh = mesh->Retain();
 		
 		if(_camera != 0)
 		{

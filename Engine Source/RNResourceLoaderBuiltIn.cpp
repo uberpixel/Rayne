@@ -47,7 +47,7 @@ namespace RN
 		}
 	}
 	
-	Object *PNGResourceLoader::Load(File *rfile, Dictionary *settings)
+	Asset *PNGResourceLoader::Load(File *rfile, Dictionary *settings)
 	{
 		FILE *file = rfile->GetFilePointer();
 		
@@ -203,7 +203,7 @@ namespace RN
 		}
 	}
 	
-	Object *SGMResourceLoader::Load(File *file, Dictionary *settings)
+	Asset *SGMResourceLoader::Load(File *file, Dictionary *settings)
 	{
 		Model *model = new Model();
 		
@@ -502,7 +502,7 @@ namespace RN
 		}
 	}
 	
-	Object *SGAResourceLoader::Load(File *file, Dictionary *settings)
+	Asset *SGAResourceLoader::Load(File *file, Dictionary *settings)
 	{
 		Skeleton *skeleton = new Skeleton();
 		
@@ -633,7 +633,7 @@ namespace RN
 		}
 	}
 	
-	Object *GLSLResourceLoader::Load(String *name, Dictionary *settings)
+	Asset *GLSLResourceLoader::Load(String *name, Dictionary *settings)
 	{
 		Shader *shader = new Shader(name->GetUTF8String());
 		return shader;
