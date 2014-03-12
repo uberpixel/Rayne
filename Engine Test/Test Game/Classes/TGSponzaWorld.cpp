@@ -73,14 +73,20 @@ namespace TG
 		}
 		
 		_sunLight = new Sun();
+		//_sunLight->SetRenderGroup(3);
 		_sunLight->ActivateShadows(RN::ShadowParameter(_camera));
 		
-		RN::Billboard *billboard = new RN::Billboard(RN::Texture::WithFile("textures/billboard.png"));
-		billboard->SetScale(RN::Vector3(0.04f));
+		RN::Texture *billboardtex = RN::Texture::WithFile("textures/billboard.png");
+		RN::Texture::Parameter param = billboardtex->GetParameter();
+		param.wrapMode = RN::Texture::WrapMode::Clamp;
+		billboardtex->SetParameter(param);
+		RN::Decal *billboard = new RN::Decal(billboardtex);
+		
+		printf("(%zu, %zu), %f\n", billboardtex->GetWidth(), billboardtex->GetHeight(), billboardtex->GetScaleFactor());
+		
+		//billboard->SetScale(RN::Vector3(0.04f));
 		billboard->SetRenderGroup(1);
 		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
 		billboard->Translate(RN::Vector3(-17.35f, 12.0f, 0.7f));
-		billboard->GetMaterial()->SetDepthWrite(false);
-		billboard->GetMaterial()->SetDepthTest(true);
 	}
 }
