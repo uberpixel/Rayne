@@ -40,7 +40,6 @@ namespace RN
 	InstancingNode::~InstancingNode()
 	{
 		MessageCenter::GetSharedInstance()->RemoveObserver(this);
-		
 		_models->Release();
 		
 		for(auto pair : _data)
@@ -52,6 +51,17 @@ namespace RN
 			_pivot->Release();
 		}
 	}
+	
+	void InstancingNode::CleanUp()
+	{
+		const Array *children = GetChildren();
+		children->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
+			node->RemoveObserver("model", this);
+		});
+		
+		SceneNode::CleanUp();
+	}
+	
 	
 	void InstancingNode::Initialize()
 	{

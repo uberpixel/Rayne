@@ -72,6 +72,7 @@ namespace RN
 		void StepWorld(FrameID frame, float delta);
 		void StepWorldEditMode(FrameID frame, float delta);
 		void RenderWorld(Renderer *renderer);
+		bool __RemoveSceneNode(SceneNode *node);
 		
 		void SceneNodeWillRender(SceneNode *node);
 		

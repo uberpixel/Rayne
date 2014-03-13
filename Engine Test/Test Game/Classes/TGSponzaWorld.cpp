@@ -42,6 +42,7 @@ namespace TG
 		sponza->SetModel(model);
 		sponza->SetScale(RN::Vector3(0.2f));
 		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
+		sponza->Release();
 		
 
 		// Lights
@@ -56,6 +57,7 @@ namespace TG
 			light->SetPosition(pos);
 			light->SetRange(random.RandomFloatRange(2.0f, 5.0f));
 			light->SetColor(RN::Color(random.RandomFloat(), random.RandomFloat(), random.RandomFloat()));
+			light->Release();
 			
 			float offset = random.RandomFloatRange(0.0f, 10.0f);
 			
@@ -75,6 +77,7 @@ namespace TG
 		_sunLight = new Sun();
 		//_sunLight->SetRenderGroup(3);
 		_sunLight->ActivateShadows(RN::ShadowParameter(_camera));
+		_sunLight->Release();
 		
 		RN::Texture *billboardtex = RN::Texture::WithFile("textures/billboard.png");
 		RN::Texture::Parameter param = billboardtex->GetParameter();
@@ -82,11 +85,10 @@ namespace TG
 		billboardtex->SetParameter(param);
 		RN::Decal *billboard = new RN::Decal(billboardtex);
 		
-		printf("(%zu, %zu), %f\n", billboardtex->GetWidth(), billboardtex->GetHeight(), billboardtex->GetScaleFactor());
-		
 		//billboard->SetScale(RN::Vector3(0.04f));
 		billboard->SetRenderGroup(1);
 		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
 		billboard->Translate(RN::Vector3(-17.35f, 12.0f, 0.7f));
+		billboard->Release();
 	}
 }

@@ -47,6 +47,7 @@ namespace TG
 		_sunLight = new Sun();
 		_sunLight->SetRenderGroup(3);
 		_sunLight->ActivateShadows(RN::ShadowParameter(_camera, 2048));
+		_sunLight->Release();
 		
 		// Create the ground
 		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
@@ -65,6 +66,7 @@ namespace TG
 		
 		_ground = new RN::Entity(ground);
 		_ground->SetScale(RN::Vector3(20.0f));
+		_ground->Release();
 		
 		RN::Water *water = new RN::Water(_camera, _refractCamera->GetStorage()->GetRenderTarget());
 		water->SetWorldPosition(RN::Vector3(71.0f, -0.3f, -5.0f));
@@ -82,6 +84,7 @@ namespace TG
 		RN::InstancingNode *treeNode = new RN::InstancingNode();
 		treeNode->SetModels(RN::Array::WithObjects(_trees[0], _trees[1], _trees[2], _trees[3], _trees[4], _trees[5], _trees[6], _trees[7], _trees[8], _trees[9], nullptr));
 		treeNode->SetPivot(_camera);
+		treeNode->Release();
 		
 		for(int i = 0; i < TGForestFeatureTrees; i ++)
 		{
@@ -104,6 +107,7 @@ namespace TG
 			entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static);
 			entity->SetScale(RN::Vector3(random.RandomFloatRange(0.89f, 1.12f)));
 			entity->SetRotation(RN::Vector3(random.RandomFloatRange(0.0f, 360.0f), 0.0f, 0.0f));
+			entity->Release();
 			
 			treeNode->AddChild(entity);
 		}
@@ -117,6 +121,7 @@ namespace TG
 		grassNode->SetCellSize(32.0f);
 		grassNode->SetClippingRange(16.0f);
 		grassNode->SetThinningRange(128.0f);
+		grassNode->Release();
 		
 		RN::InstancingNode *reedNode = new RN::InstancingNode();
 		reedNode->SetModels(RN::Array::WithObjects(_reeds[0], nullptr));
@@ -125,6 +130,7 @@ namespace TG
 		reedNode->SetCellSize(32.0f);
 		reedNode->SetClippingRange(16.0f);
 		reedNode->SetThinningRange(128.0f);
+		reedNode->Release();
 		
 		for(int i = 0; i < TGForestFeatureGras; i ++)
 		{
@@ -154,6 +160,7 @@ namespace TG
 					entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static);
 					entity->SetScale(RN::Vector3(random.RandomFloatRange(0.005f, 0.008f)));
 					entity->SetRotation(RN::Vector3(random.RandomFloatRange(0, 360.0f), -90.0f, 90.0f));
+					entity->Release();
 					
 					reedNode->AddChild(entity);
 					continue;
@@ -177,6 +184,7 @@ namespace TG
 			entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static);
 			entity->SetScale(RN::Vector3(random.RandomFloatRange(0.9f, 1.3f)));
 			entity->SetRotation(RN::Vector3(random.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
+			entity->Release();
 			
 			grassNode->AddChild(entity);
 		}

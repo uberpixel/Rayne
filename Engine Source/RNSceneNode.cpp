@@ -93,7 +93,7 @@ namespace RN
 		_cleanUpSignal.Emit(this);
 		
 		if(_world)
-			_world->RemoveSceneNode(this);
+			_world->__RemoveSceneNode(this);
 		
 		_parentChildLock.Lock();
 		

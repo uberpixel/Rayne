@@ -306,16 +306,26 @@ namespace RN
 			return;
 		
 		_addedNodes.push_back(node);
+		
 		node->_world = this;
 		node->_worldInserted = false;
+		node->Retain();
 	}
 	
 	void World::RemoveSceneNode(SceneNode *node)
 	{
+		if(__RemoveSceneNode(node))
+		{
+			node->Release();
+		}
+	}
+	
+	bool World::__RemoveSceneNode(SceneNode *node)
+	{
 		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
 		
 		if(_isDroppingSceneNodes)
-			return;
+			return false;
 		
 		if(node->_world == this)
 		{
@@ -328,7 +338,7 @@ namespace RN
 			if(iterator != _addedNodes.end())
 			{
 				_addedNodes.erase(iterator);
-				return;
+				return true;
 			}
 			
 			if(!node->_worldStatic)
@@ -339,7 +349,11 @@ namespace RN
 			{
 				_staticNodes.erase(std::find(_staticNodes.begin(), _staticNodes.end(), node));
 			}
+			
+			return true;
 		}
+		
+		return false;
 	}
 		
 	void World::ApplyNodes()
@@ -439,8 +453,6 @@ namespace RN
 		
 		node->_world = nullptr;
 		node->DidUpdate(SceneNode::ChangeSet::World);
-		
-		node->Release();
 	}
 	
 	void World::DropSceneNodes()
@@ -449,32 +461,21 @@ namespace RN
 		
 		_isDroppingSceneNodes = true;
 		
-		std::vector<SceneNode *> nodes;
-		
 		for(SceneNode *node : _nodes)
 		{
-			if(!node->_parent)
-				nodes.push_back(node);
+			DropSceneNode(node);
+			node->Release();
 		}
 		
 		for(SceneNode *node : _addedNodes)
 		{
-			if(!node->_parent)
-				nodes.push_back(node);
+			DropSceneNode(node);
+			node->Release();
 		}
 		
 		for(SceneNode *node : _staticNodes)
 		{
-			if(!node->_parent)
-				nodes.push_back(node);
-		}
-		
-		
-		for(SceneNode *node : nodes)
-		{
-			node->_world = nullptr;
-			node->DidUpdate(SceneNode::ChangeSet::World);
-			
+			DropSceneNode(node);
 			node->Release();
 		}
 		

@@ -40,6 +40,7 @@ namespace RN
 		RNAPI InstancingNode();
 		RNAPI InstancingNode(Model *model);
 		RNAPI ~InstancingNode() override;
+		RNAPI void CleanUp() override;
 		
 		RNAPI void SetModel(Model *model);
 		RNAPI void AddModel(Model *model);

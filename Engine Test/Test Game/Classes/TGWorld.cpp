@@ -292,6 +292,7 @@ namespace TG
 		_camera->SetFlags(_camera->GetFlags() | RN::Camera::Flags::NoFlush);
 		_camera->SetRenderGroups(_camera->GetRenderGroups() | RN::Camera::RenderGroups::Group1 | RN::Camera::RenderGroups::Group3);
 		_camera->SetSky(sky);
+		_camera->Autorelease();
 		
 		RN::PostProcessingPipeline *waterPipeline = _camera->AddPostProcessingPipeline("water", 0);
 		
@@ -305,6 +306,7 @@ namespace TG
 		_waterCamera->SetClearMask(0);
 		_waterCamera->SetRenderGroups(RN::Camera::RenderGroups::Group2 | RN::Camera::RenderGroups::Group3);
 		_waterCamera->SetDebugName("Water");
+		_waterCamera->Autorelease();
 		//waterPipeline->AddStage(waterStage, RN::RenderStage::Mode::ReRender);
 		
 		_waterCamera->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
@@ -559,6 +561,7 @@ namespace TG
 			RN::Model *model = RN::ResourceCoordinator::GetSharedInstance()->GetResourceWithName<RN::Model>(file, settings);
 			
 			RN::Entity *entity = new RN::Entity(model);
+			entity->Autorelease();
 			
 			RN::Array *position = dictionary->GetObjectForKey<RN::Array>(RNCSTR("position"));
 			RN::Array *rotation = dictionary->GetObjectForKey<RN::Array>(RNCSTR("rotation"));
