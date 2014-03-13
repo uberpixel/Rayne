@@ -111,7 +111,7 @@ namespace RN
 	
 	Hit GenericSceneManager::CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask, Hit::HitMode mode)
 	{
-		GetActiveWorld()->ApplyNodes();
+		World::GetActiveWorld()->ApplyNodes();
 		
 		Hit hit;
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
@@ -139,7 +139,7 @@ namespace RN
 	{
 		std::vector<SceneNode *> nodes;
 		
-		GetActiveWorld()->ApplyNodes();
+		World::GetActiveWorld()->ApplyNodes();
 		
 		for(SceneNode *node : _nodes)
 		{

@@ -7,6 +7,7 @@
 //
 
 #include "RNOctreeSceneManager.h"
+#include "RNWorld.h"
 
 namespace RN
 {
@@ -97,7 +98,7 @@ namespace RN
 	
 	Hit OctreeSceneManager::CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask, Hit::HitMode mode)
 	{
-		GetActiveWorld()->ApplyNodes();
+		World::GetActiveWorld()->ApplyNodes();
 		
 		Hit hit;
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
@@ -123,7 +124,7 @@ namespace RN
 	
 	std::vector<SceneNode *> OctreeSceneManager::GetSceneNodes(const AABB &box)
 	{
-		GetActiveWorld()->ApplyNodes();
+		World::GetActiveWorld()->ApplyNodes();
 		
 		std::vector<SceneNode *> nodes;
 		for(SceneNode *node : _nodes)
