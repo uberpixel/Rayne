@@ -69,6 +69,7 @@ namespace RN
 		_material->SetPolygonOffset(true);
 		_material->SetPolygonOffsetFactor(-1.0f);
 		_material->SetPolygonOffsetUnits(0.5f);
+		_material->SetCullMode(Material::CullMode::None);
 		
 		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementMember = 3;
@@ -127,11 +128,14 @@ namespace RN
 		world->ApplyNodes();
 		std::vector<SceneNode *> nodes = world->GetSceneManager()->GetSceneNodes(box);
 		
-		Matrix projection = Matrix::WithProjectionOrthogonal(-1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f) * GetWorldTransform().GetInverse();
+		Matrix projection = Matrix::WithProjectionOrthogonal(-1.0f, 1.0f, 1.0f, -1.0f, -1.0f, 1.0f);
+		projection.Scale(Vector3(0.5f, 0.5f, 0.5f));
+		projection.Translate(Vector3(1.0f, -1.0, -1.0));
+		projection *= GetWorldTransform().GetInverse();
+		Matrix invprojection = projection.GetInverse();
 		
 		std::vector<Vector3> vertices;
 		std::vector<Vector3> normals;
-		std::vector<Vector2> texcoords;
 		
 		for(SceneNode *node : nodes)
 		{
@@ -194,30 +198,18 @@ namespace RN
 									
 									if(triangleaabb.Intersects(box) && facenormal.GetDotProduct(GetForward()) > _angleCos)
 									{
-										vertices.push_back(v0);
-										vertices.push_back(v1);
-										vertices.push_back(v2);
 										normals.push_back(normalTransform*(*normalsIterator.Seek(indices[i])));
 										normals.push_back(normalTransform*(*normalsIterator.Seek(indices[i+1])));
 										normals.push_back(normalTransform*(*normalsIterator.Seek(indices[i+1])));
 										
 										Vector4 proj0 = projection * Vector4(v0, 1.0);
-										proj0 /= proj0.w;
-										proj0 *= 0.5;
-										proj0 += 0.5;
-										texcoords.push_back(Vector2(proj0));
+										vertices.push_back(Vector3(proj0));
 										
 										Vector4 proj1 = projection * Vector4(v1, 1.0);
-										proj1 /= proj1.w;
-										proj1 *= 0.5;
-										proj1 += 0.5;
-										texcoords.push_back(Vector2(proj1));
+										vertices.push_back(Vector3(proj1));
 										
 										Vector4 proj2 = projection * Vector4(v2, 1.0);
-										proj2 /= proj2.w;
-										proj2 *= 0.5;
-										proj2 += 0.5;
-										texcoords.push_back(Vector2(proj2));
+										vertices.push_back(Vector3(proj2));
 									}
 								}
 							}
@@ -231,12 +223,1005 @@ namespace RN
 			}
 		}
 		
-/*		std::vector<Vector3> finalVertices;
+		std::vector<Vector3> otherVertices;
+		std::vector<Vector3> otherNormals;
 		
+		std::vector<Vector3> tempVertices;
+		std::vector<Vector3> tempNormals;
+		
+		//Left
 		for(int i = 0; i < vertices.size(); i += 3)
 		{
+			tempVertices.clear();
+			tempNormals.clear();
+			if(vertices[i].x < 0.0f || vertices[i+1].x < 0.0f || vertices[i+2].x < 0.0f)
+			{
+				if(vertices[i].x < 0.0f && vertices[i+1].x < 0.0f && vertices[i+2].x < 0.0f)
+				{
+					continue;
+				}
+				
+				if(vertices[i].x < 0.0f && vertices[i+1].x < 0.0f)
+				{
+					float blend0 = vertices[i+2].x/(vertices[i+2].x-vertices[i].x);
+					float blend1 = vertices[i+2].x/(vertices[i+2].x-vertices[i+1].x);
+					
+					Vector3 v0 = vertices[i+2].GetLerp(vertices[i], blend0);
+					Vector3 v1 = vertices[i+2].GetLerp(vertices[i+1], blend1);
+					Vector3 n0 = normals[i+2].GetLerp(normals[i], blend0);
+					Vector3 n1 = normals[i+2].GetLerp(normals[i+1], blend1);
+					
+					tempVertices.push_back(v0);
+					tempVertices.push_back(v1);
+					tempVertices.push_back(vertices[i+2]);
+					
+					tempNormals.push_back(n0);
+					tempNormals.push_back(n1);
+					tempNormals.push_back(normals[i+2]);
+				}
+				else if(vertices[i+1].x < 0.0f && vertices[i+2].x < 0.0f)
+				{
+					float blend0 = vertices[i].x/(vertices[i].x-vertices[i+1].x);
+					float blend1 = vertices[i].x/(vertices[i].x-vertices[i+2].x);
+					
+					Vector3 v0 = vertices[i].GetLerp(vertices[i+1], blend0);
+					Vector3 v1 = vertices[i].GetLerp(vertices[i+2], blend1);
+					Vector3 n0 = normals[i].GetLerp(normals[i+1], blend0);
+					Vector3 n1 = normals[i].GetLerp(normals[i+2], blend1);
+					
+					tempVertices.push_back(v0);
+					tempVertices.push_back(v1);
+					tempVertices.push_back(vertices[i]);
+					
+					tempNormals.push_back(n0);
+					tempNormals.push_back(n1);
+					tempNormals.push_back(normals[i]);
+				}
+				else if(vertices[i].x < 0.0f && vertices[i+2].x < 0.0f)
+				{
+					float blend0 = vertices[i+1].x/(vertices[i+1].x-vertices[i].x);
+					float blend1 = vertices[i+1].x/(vertices[i+1].x-vertices[i+2].x);
+					
+					Vector3 v0 = vertices[i+1].GetLerp(vertices[i], blend0);
+					Vector3 v1 = vertices[i+1].GetLerp(vertices[i+2], blend1);
+					Vector3 n0 = normals[i+1].GetLerp(normals[i], blend0);
+					Vector3 n1 = normals[i+1].GetLerp(normals[i+2], blend1);
+					
+					tempVertices.push_back(v1);
+					tempVertices.push_back(v0);
+					tempVertices.push_back(vertices[i+1]);
+					
+					tempNormals.push_back(n1);
+					tempNormals.push_back(n0);
+					tempNormals.push_back(normals[i+1]);
+				}
+				else
+				{
+					if(vertices[i].x < 0.0f)
+					{
+						float blend0 = vertices[i+1].x/(vertices[i+1].x-vertices[i].x);
+						float blend1 = vertices[i+2].x/(vertices[i+2].x-vertices[i].x);
+						
+						Vector3 v0 = vertices[i+1].GetLerp(vertices[i], blend0);
+						Vector3 v1 = vertices[i+2].GetLerp(vertices[i], blend1);
+						Vector3 n0 = normals[i+1].GetLerp(normals[i], blend0);
+						Vector3 n1 = normals[i+2].GetLerp(normals[i], blend1);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(vertices[i+1]);
+						tempVertices.push_back(vertices[i+2]);
+						
+						tempVertices.push_back(v1);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(vertices[i+2]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(normals[i+1]);
+						tempNormals.push_back(normals[i+2]);
+						
+						tempNormals.push_back(n1);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(normals[i+2]);
+					}
+					else if(vertices[i+1].x < 0.0f)
+					{
+						float blend0 = vertices[i].x/(vertices[i].x-vertices[i+1].x);
+						float blend1 = vertices[i+2].x/(vertices[i+2].x-vertices[i+1].x);
+						
+						Vector3 v0 = vertices[i].GetLerp(vertices[i+1], blend0);
+						Vector3 v1 = vertices[i+2].GetLerp(vertices[i+1], blend1);
+						Vector3 n0 = normals[i].GetLerp(normals[i+1], blend0);
+						Vector3 n1 = normals[i+2].GetLerp(normals[i+1], blend1);
+						
+						tempVertices.push_back(vertices[i]);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(vertices[i+2]);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(v1);
+						tempVertices.push_back(vertices[i+2]);
+						
+						tempNormals.push_back(normals[i]);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(normals[i+2]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(n1);
+						tempNormals.push_back(normals[i+2]);
+					}
+					else
+					{
+						float blend0 = vertices[i+1].x/(vertices[i+1].x-vertices[i+2].x);
+						float blend1 = vertices[i].x/(vertices[i].x-vertices[i+2].x);
+						
+						Vector3 v0 = vertices[i+1].GetLerp(vertices[i+2], blend0);
+						Vector3 v1 = vertices[i].GetLerp(vertices[i+2], blend1);
+						Vector3 n0 = normals[i+1].GetLerp(normals[i+2], blend0);
+						Vector3 n1 = normals[i].GetLerp(normals[i+2], blend1);
+						
+						tempVertices.push_back(vertices[i+1]);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(vertices[i]);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(v1);
+						tempVertices.push_back(vertices[i]);
+						
+						tempNormals.push_back(normals[i+1]);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(normals[i]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(n1);
+						tempNormals.push_back(normals[i]);
+					}
+				}
+			}
+			else
+			{
+				tempVertices.push_back(vertices[i]);
+				tempVertices.push_back(vertices[i+1]);
+				tempVertices.push_back(vertices[i+2]);
+				
+				tempNormals.push_back(normals[i]);
+				tempNormals.push_back(normals[i+1]);
+				tempNormals.push_back(normals[i+2]);
+			}
 			
-		}*/
+			otherVertices.insert(otherVertices.end(), tempVertices.begin(), tempVertices.end());
+			otherNormals.insert(otherNormals.end(), tempNormals.begin(), tempNormals.end());
+		}
+		
+		vertices.clear();
+		normals.clear();
+		
+		//Right
+		for(int i = 0; i < otherVertices.size(); i += 3)
+		{
+			tempVertices.clear();
+			tempNormals.clear();
+			if(otherVertices[i].x > 1.0f || otherVertices[i+1].x > 1.0f || otherVertices[i+2].x > 1.0f)
+			{
+				if(otherVertices[i].x > 1.0f && otherVertices[i+1].x > 1.0f && otherVertices[i+2].x > 1.0f)
+				{
+					continue;
+				}
+				
+				if(otherVertices[i].x > 1.0f && otherVertices[i+1].x > 1.0f)
+				{
+					float blend0 = (1.0f-otherVertices[i+2].x)/(otherVertices[i].x-otherVertices[i+2].x);
+					float blend1 = (1.0f-otherVertices[i+2].x)/(otherVertices[i+1].x-otherVertices[i+2].x);
+					
+					Vector3 v0 = otherVertices[i+2].GetLerp(otherVertices[i], blend0);
+					Vector3 v1 = otherVertices[i+2].GetLerp(otherVertices[i+1], blend1);
+					Vector3 n0 = otherNormals[i+2].GetLerp(otherNormals[i], blend0);
+					Vector3 n1 = otherNormals[i+2].GetLerp(otherNormals[i+1], blend1);
+					
+					tempVertices.push_back(v0);
+					tempVertices.push_back(v1);
+					tempVertices.push_back(otherVertices[i+2]);
+					
+					tempNormals.push_back(n0);
+					tempNormals.push_back(n1);
+					tempNormals.push_back(otherNormals[i+2]);
+				}
+				else if(otherVertices[i+1].x > 1.0f && otherVertices[i+2].x > 1.0f)
+				{
+					float blend0 = (1.0f-otherVertices[i].x)/(otherVertices[i+1].x-otherVertices[i].x);
+					float blend1 = (1.0f-otherVertices[i].x)/(otherVertices[i+2].x-otherVertices[i].x);
+					
+					Vector3 v0 = otherVertices[i].GetLerp(otherVertices[i+1], blend0);
+					Vector3 v1 = otherVertices[i].GetLerp(otherVertices[i+2], blend1);
+					Vector3 n0 = otherNormals[i].GetLerp(otherNormals[i+1], blend0);
+					Vector3 n1 = otherNormals[i].GetLerp(otherNormals[i+2], blend1);
+					
+					tempVertices.push_back(v0);
+					tempVertices.push_back(v1);
+					tempVertices.push_back(otherVertices[i]);
+					
+					tempNormals.push_back(n0);
+					tempNormals.push_back(n1);
+					tempNormals.push_back(otherNormals[i]);
+				}
+				else if(otherVertices[i].x > 1.0f && otherVertices[i+2].x > 1.0f)
+				{
+					float blend0 = (1.0f-otherVertices[i+1].x)/(otherVertices[i].x-otherVertices[i+1].x);
+					float blend1 = (1.0f-otherVertices[i+1].x)/(otherVertices[i+2].x-otherVertices[i+1].x);
+					
+					Vector3 v0 = otherVertices[i+1].GetLerp(otherVertices[i], blend0);
+					Vector3 v1 = otherVertices[i+1].GetLerp(otherVertices[i+2], blend1);
+					Vector3 n0 = otherNormals[i+1].GetLerp(otherNormals[i], blend0);
+					Vector3 n1 = otherNormals[i+1].GetLerp(otherNormals[i+2], blend1);
+					
+					tempVertices.push_back(v1);
+					tempVertices.push_back(v0);
+					tempVertices.push_back(otherVertices[i+1]);
+					
+					tempNormals.push_back(n1);
+					tempNormals.push_back(n0);
+					tempNormals.push_back(otherNormals[i+1]);
+				}
+				else
+				{
+					if(otherVertices[i].x > 1.0f)
+					{
+						float blend0 = (1.0-otherVertices[i+1].x)/(otherVertices[i].x-otherVertices[i+1].x);
+						float blend1 = (1.0-otherVertices[i+2].x)/(otherVertices[i].x-otherVertices[i+2].x);
+						
+						Vector3 v0 = otherVertices[i+1].GetLerp(otherVertices[i], blend0);
+						Vector3 v1 = otherVertices[i+2].GetLerp(otherVertices[i], blend1);
+						Vector3 n0 = otherNormals[i+1].GetLerp(otherNormals[i], blend0);
+						Vector3 n1 = otherNormals[i+2].GetLerp(otherNormals[i], blend1);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i+1]);
+						tempVertices.push_back(otherVertices[i+2]);
+						
+						tempVertices.push_back(v1);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i+2]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i+1]);
+						tempNormals.push_back(otherNormals[i+2]);
+						
+						tempNormals.push_back(n1);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i+2]);
+					}
+					else if(otherVertices[i+1].x > 1.0f)
+					{
+						float blend0 = (1.0-otherVertices[i].x)/(otherVertices[i+1].x-otherVertices[i].x);
+						float blend1 = (1.0-otherVertices[i+2].x)/(otherVertices[i+1].x-otherVertices[i+2].x);
+						
+						Vector3 v0 = otherVertices[i].GetLerp(otherVertices[i+1], blend0);
+						Vector3 v1 = otherVertices[i+2].GetLerp(otherVertices[i+1], blend1);
+						Vector3 n0 = otherNormals[i].GetLerp(otherNormals[i+1], blend0);
+						Vector3 n1 = otherNormals[i+2].GetLerp(otherNormals[i+1], blend1);
+						
+						tempVertices.push_back(otherVertices[i]);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i+2]);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(v1);
+						tempVertices.push_back(otherVertices[i+2]);
+						
+						tempNormals.push_back(otherNormals[i]);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i+2]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(n1);
+						tempNormals.push_back(otherNormals[i+2]);
+					}
+					else
+					{
+						float blend0 = (1.0-otherVertices[i].x)/(otherVertices[i+2].x-otherVertices[i].x);
+						float blend1 = (1.0-otherVertices[i+1].x)/(otherVertices[i+2].x-otherVertices[i+1].x);
+						
+						Vector3 v0 = otherVertices[i].GetLerp(otherVertices[i+2], blend0);
+						Vector3 v1 = otherVertices[i+1].GetLerp(otherVertices[i+2], blend1);
+						Vector3 n0 = otherNormals[i].GetLerp(otherNormals[i+2], blend0);
+						Vector3 n1 = otherNormals[i+1].GetLerp(otherNormals[i+2], blend1);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i]);
+						tempVertices.push_back(otherVertices[i+1]);
+						
+						tempVertices.push_back(v1);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i+1]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i]);
+						tempNormals.push_back(otherNormals[i+1]);
+						
+						tempNormals.push_back(n1);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i+1]);
+					}
+				}
+			}
+			else
+			{
+				tempVertices.push_back(otherVertices[i]);
+				tempVertices.push_back(otherVertices[i+1]);
+				tempVertices.push_back(otherVertices[i+2]);
+				
+				tempNormals.push_back(otherNormals[i]);
+				tempNormals.push_back(otherNormals[i+1]);
+				tempNormals.push_back(otherNormals[i+2]);
+			}
+			
+			vertices.insert(vertices.end(), tempVertices.begin(), tempVertices.end());
+			normals.insert(normals.end(), tempNormals.begin(), tempNormals.end());
+		}
+		
+		otherVertices.clear();
+		otherNormals.clear();
+		
+		//Bottom
+		for(int i = 0; i < vertices.size(); i += 3)
+		{
+			tempVertices.clear();
+			tempNormals.clear();
+			if(vertices[i].y < 0.0f || vertices[i+1].y < 0.0f || vertices[i+2].y < 0.0f)
+			{
+				if(vertices[i].y < 0.0f && vertices[i+1].y < 0.0f && vertices[i+2].y < 0.0f)
+				{
+					continue;
+				}
+				
+				if(vertices[i].y < 0.0f && vertices[i+1].y < 0.0f)
+				{
+					float blend0 = vertices[i+2].y/(vertices[i+2].y-vertices[i].y);
+					float blend1 = vertices[i+2].y/(vertices[i+2].y-vertices[i+1].y);
+					
+					Vector3 v0 = vertices[i+2].GetLerp(vertices[i], blend0);
+					Vector3 v1 = vertices[i+2].GetLerp(vertices[i+1], blend1);
+					Vector3 n0 = normals[i+2].GetLerp(normals[i], blend0);
+					Vector3 n1 = normals[i+2].GetLerp(normals[i+1], blend1);
+					
+					tempVertices.push_back(v0);
+					tempVertices.push_back(v1);
+					tempVertices.push_back(vertices[i+2]);
+					
+					tempNormals.push_back(n0);
+					tempNormals.push_back(n1);
+					tempNormals.push_back(normals[i+2]);
+				}
+				else if(vertices[i+1].y < 0.0f && vertices[i+2].y < 0.0f)
+				{
+					float blend0 = vertices[i].y/(vertices[i].y-vertices[i+1].y);
+					float blend1 = vertices[i].y/(vertices[i].y-vertices[i+2].y);
+					
+					Vector3 v0 = vertices[i].GetLerp(vertices[i+1], blend0);
+					Vector3 v1 = vertices[i].GetLerp(vertices[i+2], blend1);
+					Vector3 n0 = normals[i].GetLerp(normals[i+1], blend0);
+					Vector3 n1 = normals[i].GetLerp(normals[i+2], blend1);
+					
+					tempVertices.push_back(v0);
+					tempVertices.push_back(v1);
+					tempVertices.push_back(vertices[i]);
+					
+					tempNormals.push_back(n0);
+					tempNormals.push_back(n1);
+					tempNormals.push_back(normals[i]);
+				}
+				else if(vertices[i].y < 0.0f && vertices[i+2].y < 0.0f)
+				{
+					float blend0 = vertices[i+1].y/(vertices[i+1].y-vertices[i].y);
+					float blend1 = vertices[i+1].y/(vertices[i+1].y-vertices[i+2].y);
+					
+					Vector3 v0 = vertices[i+1].GetLerp(vertices[i], blend0);
+					Vector3 v1 = vertices[i+1].GetLerp(vertices[i+2], blend1);
+					Vector3 n0 = normals[i+1].GetLerp(normals[i], blend0);
+					Vector3 n1 = normals[i+1].GetLerp(normals[i+2], blend1);
+					
+					tempVertices.push_back(v1);
+					tempVertices.push_back(v0);
+					tempVertices.push_back(vertices[i+1]);
+					
+					tempNormals.push_back(n1);
+					tempNormals.push_back(n0);
+					tempNormals.push_back(normals[i+1]);
+				}
+				else
+				{
+					if(vertices[i].y < 0.0f)
+					{
+						float blend0 = vertices[i+1].y/(vertices[i+1].y-vertices[i].y);
+						float blend1 = vertices[i+2].y/(vertices[i+2].y-vertices[i].y);
+						
+						Vector3 v0 = vertices[i+1].GetLerp(vertices[i], blend0);
+						Vector3 v1 = vertices[i+2].GetLerp(vertices[i], blend1);
+						Vector3 n0 = normals[i+1].GetLerp(normals[i], blend0);
+						Vector3 n1 = normals[i+2].GetLerp(normals[i], blend1);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(vertices[i+1]);
+						tempVertices.push_back(vertices[i+2]);
+						
+						tempVertices.push_back(v1);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(vertices[i+2]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(normals[i+1]);
+						tempNormals.push_back(normals[i+2]);
+						
+						tempNormals.push_back(n1);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(normals[i+2]);
+					}
+					else if(vertices[i+1].y < 0.0f)
+					{
+						float blend0 = vertices[i].y/(vertices[i].y-vertices[i+1].y);
+						float blend1 = vertices[i+2].y/(vertices[i+2].y-vertices[i+1].y);
+						
+						Vector3 v0 = vertices[i].GetLerp(vertices[i+1], blend0);
+						Vector3 v1 = vertices[i+2].GetLerp(vertices[i+1], blend1);
+						Vector3 n0 = normals[i].GetLerp(normals[i+1], blend0);
+						Vector3 n1 = normals[i+2].GetLerp(normals[i+1], blend1);
+						
+						tempVertices.push_back(vertices[i]);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(vertices[i+2]);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(v1);
+						tempVertices.push_back(vertices[i+2]);
+						
+						tempNormals.push_back(normals[i]);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(normals[i+2]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(n1);
+						tempNormals.push_back(normals[i+2]);
+					}
+					else
+					{
+						float blend0 = vertices[i+1].y/(vertices[i+1].y-vertices[i+2].y);
+						float blend1 = vertices[i].y/(vertices[i].y-vertices[i+2].y);
+						
+						Vector3 v0 = vertices[i+1].GetLerp(vertices[i+2], blend0);
+						Vector3 v1 = vertices[i].GetLerp(vertices[i+2], blend1);
+						Vector3 n0 = normals[i+1].GetLerp(normals[i+2], blend0);
+						Vector3 n1 = normals[i].GetLerp(normals[i+2], blend1);
+						
+						tempVertices.push_back(vertices[i+1]);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(vertices[i]);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(v1);
+						tempVertices.push_back(vertices[i]);
+						
+						tempNormals.push_back(normals[i+1]);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(normals[i]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(n1);
+						tempNormals.push_back(normals[i]);
+					}
+				}
+			}
+			else
+			{
+				tempVertices.push_back(vertices[i]);
+				tempVertices.push_back(vertices[i+1]);
+				tempVertices.push_back(vertices[i+2]);
+				
+				tempNormals.push_back(normals[i]);
+				tempNormals.push_back(normals[i+1]);
+				tempNormals.push_back(normals[i+2]);
+			}
+			
+			otherVertices.insert(otherVertices.end(), tempVertices.begin(), tempVertices.end());
+			otherNormals.insert(otherNormals.end(), tempNormals.begin(), tempNormals.end());
+		}
+		
+		vertices.clear();
+		normals.clear();
+		
+		//Top
+		for(int i = 0; i < otherVertices.size(); i += 3)
+		{
+			tempVertices.clear();
+			tempNormals.clear();
+			if(otherVertices[i].y > 1.0f || otherVertices[i+1].y > 1.0f || otherVertices[i+2].y > 1.0f)
+			{
+				if(otherVertices[i].y > 1.0f && otherVertices[i+1].y > 1.0f && otherVertices[i+2].y > 1.0f)
+				{
+					continue;
+				}
+				
+				if(otherVertices[i].y > 1.0f && otherVertices[i+1].y > 1.0f)
+				{
+					float blend0 = (1.0f-otherVertices[i+2].y)/(otherVertices[i].y-otherVertices[i+2].y);
+					float blend1 = (1.0f-otherVertices[i+2].y)/(otherVertices[i+1].y-otherVertices[i+2].y);
+					
+					Vector3 v0 = otherVertices[i+2].GetLerp(otherVertices[i], blend0);
+					Vector3 v1 = otherVertices[i+2].GetLerp(otherVertices[i+1], blend1);
+					Vector3 n0 = otherNormals[i+2].GetLerp(otherNormals[i], blend0);
+					Vector3 n1 = otherNormals[i+2].GetLerp(otherNormals[i+1], blend1);
+					
+					tempVertices.push_back(v0);
+					tempVertices.push_back(v1);
+					tempVertices.push_back(otherVertices[i+2]);
+					
+					tempNormals.push_back(n0);
+					tempNormals.push_back(n1);
+					tempNormals.push_back(otherNormals[i+2]);
+				}
+				else if(otherVertices[i+1].y > 1.0f && otherVertices[i+2].y > 1.0f)
+				{
+					float blend0 = (1.0f-otherVertices[i].y)/(otherVertices[i+1].y-otherVertices[i].y);
+					float blend1 = (1.0f-otherVertices[i].y)/(otherVertices[i+2].y-otherVertices[i].y);
+					
+					Vector3 v0 = otherVertices[i].GetLerp(otherVertices[i+1], blend0);
+					Vector3 v1 = otherVertices[i].GetLerp(otherVertices[i+2], blend1);
+					Vector3 n0 = otherNormals[i].GetLerp(otherNormals[i+1], blend0);
+					Vector3 n1 = otherNormals[i].GetLerp(otherNormals[i+2], blend1);
+					
+					tempVertices.push_back(v0);
+					tempVertices.push_back(v1);
+					tempVertices.push_back(otherVertices[i]);
+					
+					tempNormals.push_back(n0);
+					tempNormals.push_back(n1);
+					tempNormals.push_back(otherNormals[i]);
+				}
+				else if(otherVertices[i].y > 1.0f && otherVertices[i+2].y > 1.0f)
+				{
+					float blend0 = (1.0f-otherVertices[i+1].y)/(otherVertices[i].y-otherVertices[i+1].y);
+					float blend1 = (1.0f-otherVertices[i+1].y)/(otherVertices[i+2].y-otherVertices[i+1].y);
+					
+					Vector3 v0 = otherVertices[i+1].GetLerp(otherVertices[i], blend0);
+					Vector3 v1 = otherVertices[i+1].GetLerp(otherVertices[i+2], blend1);
+					Vector3 n0 = otherNormals[i+1].GetLerp(otherNormals[i], blend0);
+					Vector3 n1 = otherNormals[i+1].GetLerp(otherNormals[i+2], blend1);
+					
+					tempVertices.push_back(v1);
+					tempVertices.push_back(v0);
+					tempVertices.push_back(otherVertices[i+1]);
+					
+					tempNormals.push_back(n1);
+					tempNormals.push_back(n0);
+					tempNormals.push_back(otherNormals[i+1]);
+				}
+				else
+				{
+					if(otherVertices[i].y > 1.0f)
+					{
+						float blend0 = (1.0-otherVertices[i+1].y)/(otherVertices[i].y-otherVertices[i+1].y);
+						float blend1 = (1.0-otherVertices[i+2].y)/(otherVertices[i].y-otherVertices[i+2].y);
+						
+						Vector3 v0 = otherVertices[i+1].GetLerp(otherVertices[i], blend0);
+						Vector3 v1 = otherVertices[i+2].GetLerp(otherVertices[i], blend1);
+						Vector3 n0 = otherNormals[i+1].GetLerp(otherNormals[i], blend0);
+						Vector3 n1 = otherNormals[i+2].GetLerp(otherNormals[i], blend1);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i+1]);
+						tempVertices.push_back(otherVertices[i+2]);
+						
+						tempVertices.push_back(v1);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i+2]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i+1]);
+						tempNormals.push_back(otherNormals[i+2]);
+						
+						tempNormals.push_back(n1);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i+2]);
+					}
+					else if(otherVertices[i+1].y > 1.0f)
+					{
+						float blend0 = (1.0-otherVertices[i].y)/(otherVertices[i+1].y-otherVertices[i].y);
+						float blend1 = (1.0-otherVertices[i+2].y)/(otherVertices[i+1].y-otherVertices[i+2].y);
+						
+						Vector3 v0 = otherVertices[i].GetLerp(otherVertices[i+1], blend0);
+						Vector3 v1 = otherVertices[i+2].GetLerp(otherVertices[i+1], blend1);
+						Vector3 n0 = otherNormals[i].GetLerp(otherNormals[i+1], blend0);
+						Vector3 n1 = otherNormals[i+2].GetLerp(otherNormals[i+1], blend1);
+						
+						tempVertices.push_back(otherVertices[i]);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i+2]);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(v1);
+						tempVertices.push_back(otherVertices[i+2]);
+						
+						tempNormals.push_back(otherNormals[i]);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i+2]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(n1);
+						tempNormals.push_back(otherNormals[i+2]);
+					}
+					else
+					{
+						float blend0 = (1.0-otherVertices[i].y)/(otherVertices[i+2].y-otherVertices[i].y);
+						float blend1 = (1.0-otherVertices[i+1].y)/(otherVertices[i+2].y-otherVertices[i+1].y);
+						
+						Vector3 v0 = otherVertices[i].GetLerp(otherVertices[i+2], blend0);
+						Vector3 v1 = otherVertices[i+1].GetLerp(otherVertices[i+2], blend1);
+						Vector3 n0 = otherNormals[i].GetLerp(otherNormals[i+2], blend0);
+						Vector3 n1 = otherNormals[i+1].GetLerp(otherNormals[i+2], blend1);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i]);
+						tempVertices.push_back(otherVertices[i+1]);
+						
+						tempVertices.push_back(v1);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i+1]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i]);
+						tempNormals.push_back(otherNormals[i+1]);
+						
+						tempNormals.push_back(n1);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i+1]);
+					}
+				}
+			}
+			else
+			{
+				tempVertices.push_back(otherVertices[i]);
+				tempVertices.push_back(otherVertices[i+1]);
+				tempVertices.push_back(otherVertices[i+2]);
+				
+				tempNormals.push_back(otherNormals[i]);
+				tempNormals.push_back(otherNormals[i+1]);
+				tempNormals.push_back(otherNormals[i+2]);
+			}
+			
+			vertices.insert(vertices.end(), tempVertices.begin(), tempVertices.end());
+			normals.insert(normals.end(), tempNormals.begin(), tempNormals.end());
+		}
+		
+		otherVertices.clear();
+		otherNormals.clear();
+		
+		//Back
+		for(int i = 0; i < vertices.size(); i += 3)
+		{
+			tempVertices.clear();
+			tempNormals.clear();
+			if(vertices[i].z < 0.0f || vertices[i+1].z < 0.0f || vertices[i+2].z < 0.0f)
+			{
+				if(vertices[i].z < 0.0f && vertices[i+1].z < 0.0f && vertices[i+2].z < 0.0f)
+				{
+					continue;
+				}
+				
+				if(vertices[i].z < 0.0f && vertices[i+1].z < 0.0f)
+				{
+					float blend0 = vertices[i+2].z/(vertices[i+2].z-vertices[i].z);
+					float blend1 = vertices[i+2].z/(vertices[i+2].z-vertices[i+1].z);
+					
+					Vector3 v0 = vertices[i+2].GetLerp(vertices[i], blend0);
+					Vector3 v1 = vertices[i+2].GetLerp(vertices[i+1], blend1);
+					Vector3 n0 = normals[i+2].GetLerp(normals[i], blend0);
+					Vector3 n1 = normals[i+2].GetLerp(normals[i+1], blend1);
+					
+					tempVertices.push_back(v0);
+					tempVertices.push_back(v1);
+					tempVertices.push_back(vertices[i+2]);
+					
+					tempNormals.push_back(n0);
+					tempNormals.push_back(n1);
+					tempNormals.push_back(normals[i+2]);
+				}
+				else if(vertices[i+1].z < 0.0f && vertices[i+2].z < 0.0f)
+				{
+					float blend0 = vertices[i].z/(vertices[i].z-vertices[i+1].z);
+					float blend1 = vertices[i].z/(vertices[i].z-vertices[i+2].z);
+					
+					Vector3 v0 = vertices[i].GetLerp(vertices[i+1], blend0);
+					Vector3 v1 = vertices[i].GetLerp(vertices[i+2], blend1);
+					Vector3 n0 = normals[i].GetLerp(normals[i+1], blend0);
+					Vector3 n1 = normals[i].GetLerp(normals[i+2], blend1);
+					
+					tempVertices.push_back(v0);
+					tempVertices.push_back(v1);
+					tempVertices.push_back(vertices[i]);
+					
+					tempNormals.push_back(n0);
+					tempNormals.push_back(n1);
+					tempNormals.push_back(normals[i]);
+				}
+				else if(vertices[i].z < 0.0f && vertices[i+2].z < 0.0f)
+				{
+					float blend0 = vertices[i+1].z/(vertices[i+1].z-vertices[i].z);
+					float blend1 = vertices[i+1].z/(vertices[i+1].z-vertices[i+2].z);
+					
+					Vector3 v0 = vertices[i+1].GetLerp(vertices[i], blend0);
+					Vector3 v1 = vertices[i+1].GetLerp(vertices[i+2], blend1);
+					Vector3 n0 = normals[i+1].GetLerp(normals[i], blend0);
+					Vector3 n1 = normals[i+1].GetLerp(normals[i+2], blend1);
+					
+					tempVertices.push_back(v1);
+					tempVertices.push_back(v0);
+					tempVertices.push_back(vertices[i+1]);
+					
+					tempNormals.push_back(n1);
+					tempNormals.push_back(n0);
+					tempNormals.push_back(normals[i+1]);
+				}
+				else
+				{
+					if(vertices[i].z < 0.0f)
+					{
+						float blend0 = vertices[i+1].z/(vertices[i+1].z-vertices[i].z);
+						float blend1 = vertices[i+2].z/(vertices[i+2].z-vertices[i].z);
+						
+						Vector3 v0 = vertices[i+1].GetLerp(vertices[i], blend0);
+						Vector3 v1 = vertices[i+2].GetLerp(vertices[i], blend1);
+						Vector3 n0 = normals[i+1].GetLerp(normals[i], blend0);
+						Vector3 n1 = normals[i+2].GetLerp(normals[i], blend1);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(vertices[i+1]);
+						tempVertices.push_back(vertices[i+2]);
+						
+						tempVertices.push_back(v1);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(vertices[i+2]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(normals[i+1]);
+						tempNormals.push_back(normals[i+2]);
+						
+						tempNormals.push_back(n1);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(normals[i+2]);
+					}
+					else if(vertices[i+1].z < 0.0f)
+					{
+						float blend0 = vertices[i].z/(vertices[i].z-vertices[i+1].z);
+						float blend1 = vertices[i+2].z/(vertices[i+2].z-vertices[i+1].z);
+						
+						Vector3 v0 = vertices[i].GetLerp(vertices[i+1], blend0);
+						Vector3 v1 = vertices[i+2].GetLerp(vertices[i+1], blend1);
+						Vector3 n0 = normals[i].GetLerp(normals[i+1], blend0);
+						Vector3 n1 = normals[i+2].GetLerp(normals[i+1], blend1);
+						
+						tempVertices.push_back(vertices[i]);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(vertices[i+2]);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(v1);
+						tempVertices.push_back(vertices[i+2]);
+						
+						tempNormals.push_back(normals[i]);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(normals[i+2]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(n1);
+						tempNormals.push_back(normals[i+2]);
+					}
+					else
+					{
+						float blend0 = vertices[i+1].z/(vertices[i+1].z-vertices[i+2].z);
+						float blend1 = vertices[i].z/(vertices[i].z-vertices[i+2].z);
+						
+						Vector3 v0 = vertices[i+1].GetLerp(vertices[i+2], blend0);
+						Vector3 v1 = vertices[i].GetLerp(vertices[i+2], blend1);
+						Vector3 n0 = normals[i+1].GetLerp(normals[i+2], blend0);
+						Vector3 n1 = normals[i].GetLerp(normals[i+2], blend1);
+						
+						tempVertices.push_back(vertices[i+1]);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(vertices[i]);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(v1);
+						tempVertices.push_back(vertices[i]);
+						
+						tempNormals.push_back(normals[i+1]);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(normals[i]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(n1);
+						tempNormals.push_back(normals[i]);
+					}
+				}
+			}
+			else
+			{
+				tempVertices.push_back(vertices[i]);
+				tempVertices.push_back(vertices[i+1]);
+				tempVertices.push_back(vertices[i+2]);
+				
+				tempNormals.push_back(normals[i]);
+				tempNormals.push_back(normals[i+1]);
+				tempNormals.push_back(normals[i+2]);
+			}
+			
+			otherVertices.insert(otherVertices.end(), tempVertices.begin(), tempVertices.end());
+			otherNormals.insert(otherNormals.end(), tempNormals.begin(), tempNormals.end());
+		}
+		
+		vertices.clear();
+		normals.clear();
+		
+		//Front
+		for(int i = 0; i < otherVertices.size(); i += 3)
+		{
+			tempVertices.clear();
+			tempNormals.clear();
+			
+			if(otherVertices[i].z > 1.0f || otherVertices[i+1].z > 1.0f || otherVertices[i+2].z > 1.0f)
+			{
+				if(otherVertices[i].z > 1.0f && otherVertices[i+1].z > 1.0f && otherVertices[i+2].z > 1.0f)
+				{
+					continue;
+				}
+				
+				if(otherVertices[i].z > 1.0f && otherVertices[i+1].z > 1.0f)
+				{
+					float blend0 = (1.0f-otherVertices[i+2].z)/(otherVertices[i].z-otherVertices[i+2].z);
+					float blend1 = (1.0f-otherVertices[i+2].z)/(otherVertices[i+1].z-otherVertices[i+2].z);
+					
+					Vector3 v0 = otherVertices[i+2].GetLerp(otherVertices[i], blend0);
+					Vector3 v1 = otherVertices[i+2].GetLerp(otherVertices[i+1], blend1);
+					Vector3 n0 = otherNormals[i+2].GetLerp(otherNormals[i], blend0);
+					Vector3 n1 = otherNormals[i+2].GetLerp(otherNormals[i+1], blend1);
+					
+					tempVertices.push_back(v0);
+					tempVertices.push_back(v1);
+					tempVertices.push_back(otherVertices[i+2]);
+					
+					tempNormals.push_back(n0);
+					tempNormals.push_back(n1);
+					tempNormals.push_back(otherNormals[i+2]);
+				}
+				else if(otherVertices[i+1].z > 1.0f && otherVertices[i+2].z > 1.0f)
+				{
+					float blend0 = (1.0f-otherVertices[i].z)/(otherVertices[i+1].z-otherVertices[i].z);
+					float blend1 = (1.0f-otherVertices[i].z)/(otherVertices[i+2].z-otherVertices[i].z);
+					
+					Vector3 v0 = otherVertices[i].GetLerp(otherVertices[i+1], blend0);
+					Vector3 v1 = otherVertices[i].GetLerp(otherVertices[i+2], blend1);
+					Vector3 n0 = otherNormals[i].GetLerp(otherNormals[i+1], blend0);
+					Vector3 n1 = otherNormals[i].GetLerp(otherNormals[i+2], blend1);
+					
+					tempVertices.push_back(v0);
+					tempVertices.push_back(v1);
+					tempVertices.push_back(otherVertices[i]);
+					
+					tempNormals.push_back(n0);
+					tempNormals.push_back(n1);
+					tempNormals.push_back(otherNormals[i]);
+				}
+				else if(otherVertices[i].z > 1.0f && otherVertices[i+2].z > 1.0f)
+				{
+					float blend0 = (1.0f-otherVertices[i+1].z)/(otherVertices[i].z-otherVertices[i+1].z);
+					float blend1 = (1.0f-otherVertices[i+1].z)/(otherVertices[i+2].z-otherVertices[i+1].z);
+					
+					Vector3 v0 = otherVertices[i+1].GetLerp(otherVertices[i], blend0);
+					Vector3 v1 = otherVertices[i+1].GetLerp(otherVertices[i+2], blend1);
+					Vector3 n0 = otherNormals[i+1].GetLerp(otherNormals[i], blend0);
+					Vector3 n1 = otherNormals[i+1].GetLerp(otherNormals[i+2], blend1);
+					
+					tempVertices.push_back(v1);
+					tempVertices.push_back(v0);
+					tempVertices.push_back(otherVertices[i+1]);
+					
+					tempNormals.push_back(n1);
+					tempNormals.push_back(n0);
+					tempNormals.push_back(otherNormals[i+1]);
+				}
+				else
+				{
+					if(otherVertices[i].z > 1.0f)
+					{
+						float blend0 = (1.0-otherVertices[i+1].z)/(otherVertices[i].z-otherVertices[i+1].z);
+						float blend1 = (1.0-otherVertices[i+2].z)/(otherVertices[i].z-otherVertices[i+2].z);
+						
+						Vector3 v0 = otherVertices[i+1].GetLerp(otherVertices[i], blend0);
+						Vector3 v1 = otherVertices[i+2].GetLerp(otherVertices[i], blend1);
+						Vector3 n0 = otherNormals[i+1].GetLerp(otherNormals[i], blend0);
+						Vector3 n1 = otherNormals[i+2].GetLerp(otherNormals[i], blend1);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i+1]);
+						tempVertices.push_back(otherVertices[i+2]);
+						
+						tempVertices.push_back(v1);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i+2]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i+1]);
+						tempNormals.push_back(otherNormals[i+2]);
+						
+						tempNormals.push_back(n1);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i+2]);
+					}
+					else if(otherVertices[i+1].z > 1.0f)
+					{
+						float blend0 = (1.0-otherVertices[i].z)/(otherVertices[i+1].z-otherVertices[i].z);
+						float blend1 = (1.0-otherVertices[i+2].z)/(otherVertices[i+1].z-otherVertices[i+2].z);
+						
+						Vector3 v0 = otherVertices[i].GetLerp(otherVertices[i+1], blend0);
+						Vector3 v1 = otherVertices[i+2].GetLerp(otherVertices[i+1], blend1);
+						Vector3 n0 = otherNormals[i].GetLerp(otherNormals[i+1], blend0);
+						Vector3 n1 = otherNormals[i+2].GetLerp(otherNormals[i+1], blend1);
+						
+						tempVertices.push_back(otherVertices[i]);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i+2]);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(v1);
+						tempVertices.push_back(otherVertices[i+2]);
+						
+						tempNormals.push_back(otherNormals[i]);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i+2]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(n1);
+						tempNormals.push_back(otherNormals[i+2]);
+					}
+					else
+					{
+						float blend0 = (1.0-otherVertices[i].z)/(otherVertices[i+2].z-otherVertices[i].z);
+						float blend1 = (1.0-otherVertices[i+1].z)/(otherVertices[i+2].z-otherVertices[i+1].z);
+						
+						Vector3 v0 = otherVertices[i].GetLerp(otherVertices[i+2], blend0);
+						Vector3 v1 = otherVertices[i+1].GetLerp(otherVertices[i+2], blend1);
+						Vector3 n0 = otherNormals[i].GetLerp(otherNormals[i+2], blend0);
+						Vector3 n1 = otherNormals[i+1].GetLerp(otherNormals[i+2], blend1);
+						
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i]);
+						tempVertices.push_back(otherVertices[i+1]);
+						
+						tempVertices.push_back(v1);
+						tempVertices.push_back(v0);
+						tempVertices.push_back(otherVertices[i+1]);
+						
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i]);
+						tempNormals.push_back(otherNormals[i+1]);
+						
+						tempNormals.push_back(n1);
+						tempNormals.push_back(n0);
+						tempNormals.push_back(otherNormals[i+1]);
+					}
+				}
+			}
+			else
+			{
+				tempVertices.push_back(otherVertices[i]);
+				tempVertices.push_back(otherVertices[i+1]);
+				tempVertices.push_back(otherVertices[i+2]);
+				
+				tempNormals.push_back(otherNormals[i]);
+				tempNormals.push_back(otherNormals[i+1]);
+				tempNormals.push_back(otherNormals[i+2]);
+			}
+			
+			vertices.insert(vertices.end(), tempVertices.begin(), tempVertices.end());
+			normals.insert(normals.end(), tempNormals.begin(), tempNormals.end());
+		}
 		
 		_mesh->SetVerticesCount(vertices.size());
 		Mesh::Chunk chunk = _mesh->GetChunk();
@@ -246,9 +1231,9 @@ namespace RN
 		
 		for(int i = 0; i < vertices.size(); i++)
 		{
-			*verticesIterator.Seek(i) = vertices[i];
+			*verticesIterator.Seek(i) = invprojection * vertices[i];
 			*normalsIterator.Seek(i) = normals[i];
-			*texcoordsIterator.Seek(i) = texcoords[i];
+			*texcoordsIterator.Seek(i) = Vector2(vertices[i]);
 		}
 		
 		chunk.CommitChanges();
