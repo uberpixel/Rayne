@@ -80,6 +80,14 @@ namespace RN
 	
 	void FlatSerializer::EncodeObject(Object *object)
 	{
+		if(!object)
+		{
+			uint32 temp = 0xdeadbeef;
+			EncodeData('L', sizeof(uint32), &temp);
+			
+			return;
+		}
+		
 		RN_ASSERT(object->Class()->SupportsSerialization(), "EncodeObject() only works with objects that support serialization!");
 	
 		uint32 index = EncodeClassName(String::WithString(object->Class()->Fullname().c_str()));
@@ -273,6 +281,21 @@ namespace RN
 	
 	Object *FlatDeserializer::DecodeObject()
 	{
+		{
+			char type;
+			size_t size;
+			
+			PeekHeader(&type, &size);
+			
+			if(type == 'L')
+			{
+				AssertType('L', &size);
+				_index += size;
+				
+				return nullptr;
+			}
+		}
+		
 		size_t size;
 		uint32 index;
 		AssertType('@', &size);
