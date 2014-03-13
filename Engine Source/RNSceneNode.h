@@ -100,6 +100,8 @@ namespace RN
 		RNAPI void Scale(const Vector3& scal);
 		RNAPI void Rotate(const Vector3& rot);
 		
+		RNAPI void RemoveFromWorld();
+		
 		RNAPI void SetFlags(Flags flags);
 		
 		RNAPI void SetRenderGroup(uint8 group);

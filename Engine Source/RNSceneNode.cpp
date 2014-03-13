@@ -127,6 +127,12 @@ namespace RN
 		});
 	}
 	
+	void SceneNode::RemoveFromWorld()
+	{
+		if(_world)
+			_world->RemoveSceneNode(this);
+	}
+	
 	bool SceneNode::Compare(const SceneNode *other) const
 	{
 		if(other == _parent)
