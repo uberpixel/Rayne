@@ -7,6 +7,7 @@
 //
 
 #include "RNSceneManager.h"
+#include "RNWorld.h"
 
 namespace RN
 {
@@ -110,6 +111,8 @@ namespace RN
 	
 	Hit GenericSceneManager::CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask, Hit::HitMode mode)
 	{
+		GetActiveWorld()->ApplyNodes();
+		
 		Hit hit;
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
@@ -132,15 +135,16 @@ namespace RN
 		return hit;
 	}
 	
-	RNAPI std::vector<SceneNode *> GenericSceneManager::GetSceneNodes(const AABB &box)
+	std::vector<SceneNode *> GenericSceneManager::GetSceneNodes(const AABB &box)
 	{
 		std::vector<SceneNode *> nodes;
+		
+		GetActiveWorld()->ApplyNodes();
+		
 		for(SceneNode *node : _nodes)
 		{
 			if(node->GetBoundingBox().Intersects(box))
-			{
 				nodes.push_back(node);
-			}
 		}
 		
 		return nodes;
