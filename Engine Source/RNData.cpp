@@ -56,12 +56,7 @@ namespace RN
 		file->Release();
 	}
 	
-	Data::Data(const Data& other)
-	{
-		Initialize(other._bytes, other._length);
-	}
-	
-	Data::Data(Data *other)
+	Data::Data(const Data *other)
 	{
 		Initialize(other->_bytes, other->_length);
 	}
@@ -136,7 +131,7 @@ namespace RN
 	
 	void Data::ReplaceBytes(const void *bytes, const Range& range)
 	{
-		if(range.origin + range.length >= _length)
+		if(range.origin + range.length > _length)
 			throw Exception(Exception::Type::RangeException, "range is not within the datas bounds!");
 		
 		const uint8 *data = static_cast<const uint8 *>(bytes);

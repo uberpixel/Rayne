@@ -14,6 +14,9 @@
 
 namespace RN
 {
+	RNDefineMeta(Serializer)
+	RNDefineMeta(Deserializer)
+	
 	Serializer::~Serializer()
 	{}
 	Deserializer::~Deserializer()
@@ -28,7 +31,6 @@ namespace RN
 	{
 		_data      = new Data();
 		_nametable = new Dictionary();
-		_index = 0;
 	}
 	
 	FlatSerializer::~FlatSerializer()
@@ -68,7 +70,63 @@ namespace RN
 			result->Append(&temp, sizeof(uint32));
 		});
 		
+		size_t offset = result->GetLength();
+		
 		result->Append(_data);
+
+		for(uint64 location : _jumpTable)
+		{
+			location += offset + 5;
+			
+			uint64 jump;
+			
+			result->GetBytesInRange(&jump, Range(location, sizeof(uint64)));
+			
+			jump += offset;
+			
+			result->ReplaceBytes(&jump, Range(location, sizeof(uint64)));
+		}
+		
+		
+		for(auto i = _conditionalTable.begin(); i != _conditionalTable.end(); i ++)
+		{
+			Object *object = i->first;
+			const std::vector<uint64> &locations = i->second;
+			
+			auto iterator = _objectTable.find(object);
+			if(iterator != _objectTable.end())
+			{
+#if RN_PLATFORM_WINDOWS
+#pragma pack(push,1)
+				
+				struct
+				{
+					char type;
+					uint32 size;
+				} header;
+				
+#pragma pack(pop)
+#else
+				struct __attribute__((packed))
+				{
+					char type;
+					uint32 size;
+				} header;
+#endif
+				
+				header.type = 'J';
+				header.size = sizeof(uint64);
+				
+				uint64 location = iterator->second + offset;
+				
+				for(uint64 index : locations)
+				{
+					result->ReplaceBytes(&header,   Range(index + offset, sizeof(header)));
+					result->ReplaceBytes(&location, Range(index + offset + sizeof(header), sizeof(uint64)));
+				}
+			}
+		}
+		
 		return result->Autorelease();
 	}
 	
@@ -82,15 +140,28 @@ namespace RN
 	{
 		if(!object)
 		{
-			uint32 temp = 0xdeadbeef;
-			EncodeData('L', sizeof(uint32), &temp);
+			uint64 temp = 0xdeadbeef;
+			EncodeData('L', sizeof(uint64), &temp);
 			
 			return;
 		}
 		
 		RN_ASSERT(object->Class()->SupportsSerialization(), "EncodeObject() only works with objects that support serialization!");
 	
+		auto iterator = _objectTable.find(object);
+		if(iterator != _objectTable.end())
+		{
+			_jumpTable.push_back(_data->GetLength());
+			
+			uint64 index = iterator->second;
+			
+			EncodeData('J', sizeof(uint64), &index);
+			return;
+		}
+		
 		uint32 index = EncodeClassName(String::WithString(object->Class()->Fullname().c_str()));
+		size_t tindex = _data->GetLength();
+		
 		EncodeData('@', sizeof(uint32), &index);
 		
 		uint32 temp = static_cast<uint32>(_data->GetLength());
@@ -98,6 +169,8 @@ namespace RN
 		
 		uint32 length = static_cast<uint32>(_data->GetLength()) - temp;
 		_data->ReplaceBytes(&length, Range(temp - (sizeof(uint32) * 2), sizeof(uint32))); // Replace the encoded size for index
+	
+		_objectTable.emplace(object, static_cast<uint64>(tindex));
 	}
 	
 	void FlatSerializer::EncodeRootObject(Object *object)
@@ -113,7 +186,21 @@ namespace RN
 	
 	void FlatSerializer::EncodeConditionalObject(Object *object)
 	{
+		size_t index = _data->GetLength();
 		
+		uint64 temp = 0xdeadbeef;
+		EncodeData('L', sizeof(uint64), &temp);
+		
+		auto iterator = _conditionalTable.find(object);
+		if(iterator != _conditionalTable.end())
+		{
+			std::vector<uint64> &vector = iterator->second;
+			vector.push_back(static_cast<uint64>(index));
+			
+			return;
+		}
+		
+		_conditionalTable.emplace(object, std::vector<uint64>{ index });
 	}
 	
 	void FlatSerializer::EncodeString(const std::string &string)
@@ -152,11 +239,11 @@ namespace RN
 	}
 	void FlatSerializer::EncodeVector3(const Vector3& value)
 	{
-		EncodeData('3', sizeof(Vector2), &value);
+		EncodeData('3', sizeof(Vector3), &value);
 	}
 	void FlatSerializer::EncodeVector4(const Vector4& value)
 	{
-		EncodeData('4', sizeof(Vector2), &value);
+		EncodeData('4', sizeof(Vector4), &value);
 	}
 	
 	void FlatSerializer::EncodeMatrix(const Matrix& value)
@@ -216,7 +303,7 @@ namespace RN
 	
 	FlatDeserializer::FlatDeserializer(Data *data)
 	{
-		_data = data->Retain();
+		_data = data->Copy();
 		_index = 0;
 		
 		// Decode the name table
@@ -294,7 +381,62 @@ namespace RN
 				
 				return nullptr;
 			}
+			
+			if(type == 'J')
+			{
+				AssertType('J', &size);
+
+				uint64 index;
+				
+				_data->GetBytesInRange(&index, Range(_index, sizeof(uint64)));
+				_index += size;
+				
+				
+				
+				auto iterator = _objectTable.find(index);
+				if(iterator == _objectTable.end())
+				{
+					size_t temp = _index;
+					_index = static_cast<size_t>(index);
+					
+					Object *object = DecodeObject();
+					
+					size_t size = (_index - index) - 5;
+					_index = temp;
+					
+					
+#if RN_PLATFORM_WINDOWS
+#pragma pack(push,1)
+					
+					struct
+					{
+						char type;
+						uint32 size;
+					} header;
+					
+#pragma pack(pop)
+#else
+					struct __attribute__((packed))
+					{
+						char type;
+						uint32 size;
+					} header;
+#endif
+					
+					header.type = 'J';
+					header.size = static_cast<uint32>(size);
+					
+					_data->ReplaceBytes(&header, Range(index, sizeof(header)));
+					_data->ReplaceBytes(&index,  Range(index + sizeof(header), sizeof(uint64)));
+					
+					return object;
+				}
+				
+				return iterator->second;
+			}
 		}
+		
+		uint64 temp = _index;
 		
 		size_t size;
 		uint32 index;
@@ -307,6 +449,9 @@ namespace RN
 		MetaClassBase *mclass = Catalogue::GetSharedInstance()->GetClassWithName(name->GetUTF8String());
 		
 		Object *result = mclass->ConstructWithDeserializer(this);
+		_objectTable.emplace(temp, result);
+		
+		
 		return result;
 	}
 	
@@ -318,7 +463,7 @@ namespace RN
 	std::string FlatDeserializer::DecodeString()
 	{
 		size_t size;
-		AssertType('+', &size);
+		AssertType('s', &size);
 		
 		Data *data = _data->GetDataInRange(Range(_index, size));
 		_index += size;
@@ -532,7 +677,7 @@ namespace RN
 		size_t tsize;
 		AssertType(expected, &tsize);
 		
-		RN_ASSERT(tsize == size, "");
+		RN_ASSERT(tsize == size, "%i != %i", (int)tsize, (int)size);
 		
 		_data->GetBytesInRange(buffer, Range(_index, size));
 		_index += size;

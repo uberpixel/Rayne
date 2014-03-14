@@ -21,7 +21,7 @@ namespace RN
 	class Dictionary;
 	class String;
 	
-	class Serializer
+	class Serializer : public Object
 	{
 	public:
 		RNAPI virtual void EncodeBytes(void *data, size_t size) = 0;
@@ -47,9 +47,11 @@ namespace RN
 		
 	protected:
 		RNAPI virtual ~Serializer();
+		
+		RNDeclareMeta(Serializer, Object)
 	};
 	
-	class Deserializer
+	class Deserializer : public Object
 	{
 	public:
 		RNAPI virtual void *DecodeBytes(size_t *length) = 0;
@@ -72,6 +74,8 @@ namespace RN
 		
 	protected:
 		RNAPI virtual ~Deserializer();
+		
+		RNDeclareMeta(Deserializer, Object)
 	};
 	
 	
@@ -109,7 +113,10 @@ namespace RN
 		
 		Data *_data;
 		Dictionary *_nametable;
-		size_t _index;
+		
+		std::vector<uint64> _jumpTable;
+		std::unordered_map<Object *, uint64> _objectTable;
+		std::unordered_map<Object *, std::vector<uint64>> _conditionalTable;
 	};
 	
 	class FlatDeserializer : public Deserializer
@@ -145,6 +152,8 @@ namespace RN
 		Data *_data;
 		Dictionary *_nametable;
 		size_t _index;
+		
+		std::unordered_map<uint64, Object *> _objectTable;
 	};
 }
 

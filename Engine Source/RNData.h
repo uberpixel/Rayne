@@ -21,8 +21,7 @@ namespace RN
 		RNAPI Data(const void *bytes, size_t length);
 		RNAPI Data(const void *bytes, size_t length, bool noCopy, bool deleteWhenDone);
 		RNAPI Data(const std::string& file);
-		RNAPI Data(const Data& other);
-		RNAPI Data(Data *other);
+		RNAPI Data(const Data *other);
 		RNAPI ~Data() override;
 		
 		RNAPI static Data *WithBytes(const uint8 *bytes, size_t length);
