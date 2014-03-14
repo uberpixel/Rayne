@@ -20,9 +20,9 @@ namespace RN
 	class Decal : public SceneNode
 	{
 	public:
-		RNAPI Decal();
-		RNAPI Decal(Texture *texture);
-		RNAPI Decal(Texture *texture, const Vector3 &position);
+		RNAPI Decal(bool tangents = true);
+		RNAPI Decal(Texture *texture, bool tangents = true);
+		RNAPI Decal(Texture *texture, const Vector3 &position, bool tangents = true);
 		RNAPI Decal(const Decal *other);
 		RNAPI ~Decal() override;
 		
@@ -52,6 +52,8 @@ namespace RN
 		Mesh *_mesh;
 		Matrix _transform;
 		Material *_material;
+		
+		bool _tangents;
 		
 		RNDeclareMetaWithTraits(Decal, SceneNode, MetaClassTraitCronstructable, MetaClassTraitCopyable)
 	};
