@@ -524,6 +524,129 @@ namespace RN
 	
 	// ---------------------
 	// MARK: -
+	// MARK: Postprocessing
+	// ---------------------
+	
+	void Mesh::GenerateTangents()
+	{
+		RN_ASSERT(SupportsFeature(MeshFeature::Vertices), "Tangent generation needs vertex positions!");
+		RN_ASSERT(SupportsFeature(MeshFeature::Normals), "Tangent generation needs vertex normals!");
+		RN_ASSERT(SupportsFeature(MeshFeature::UVSet0), "Tangent generation needs first vertex uv set!");
+		RN_ASSERT(SupportsFeature(MeshFeature::UVSet0), "Tangent generation needs vertex tangents to replace!");
+		
+		const MeshDescriptor *inddescriptor = GetDescriptorForFeature(MeshFeature::Indices);
+		uint8 *indpointer = _indices;
+		Chunk chunk = GetChunk();
+		
+		Vector3 *tan1 = new Vector3[_verticesCount * 2];
+		Vector3 *tan2 = tan1 + _verticesCount;
+		
+		size_t indicescount = _indicesCount;
+		if(!SupportsFeature(MeshFeature::Indices))
+		{
+			indicescount = _verticesCount;
+		}
+		
+		for(size_t a = 0; a < indicescount; a += 3)
+		{
+			size_t i1, i2, i3;
+			
+			if(inddescriptor)
+			{
+				switch(inddescriptor->elementSize)
+				{
+					case 1:
+					{
+						i1 = (*indpointer ++);
+						i2 = (*indpointer ++);
+						i3 = (*indpointer ++);
+						break;
+					}
+					
+					case 2:
+					{
+						uint16 *index = reinterpret_cast<uint16 *>(indpointer + a * inddescriptor->elementSize);
+						
+						i1 = (*index ++);
+						i2 = (*index ++);
+						i3 = (*index ++);
+						break;
+					}
+					
+					case 4:
+					{
+						uint32 *index = reinterpret_cast<uint32 *>(indpointer + a * inddescriptor->elementSize);
+						
+						i1 = (*index ++);
+						i2 = (*index ++);
+						i3 = (*index ++);
+						break;
+					}
+				}
+			}
+			else
+			{
+				i1 = a;
+				i2 = a+1;
+				i3 = a+2;
+			}
+			
+			Vector3 v1 = *chunk.GetIteratorAtIndex<Vector3>(MeshFeature::Vertices, i1);
+			Vector3 v2 = *chunk.GetIteratorAtIndex<Vector3>(MeshFeature::Vertices, i2);
+			Vector3 v3 = *chunk.GetIteratorAtIndex<Vector3>(MeshFeature::Vertices, i3);
+			
+			Vector2 w1 = *chunk.GetIteratorAtIndex<Vector2>(MeshFeature::UVSet0, i1);
+			Vector2 w2 = *chunk.GetIteratorAtIndex<Vector2>(MeshFeature::UVSet0, i2);
+			Vector2 w3 = *chunk.GetIteratorAtIndex<Vector2>(MeshFeature::UVSet0, i3);
+			
+			float x1 = v2.x - v1.x;
+			float x2 = v3.x - v1.x;
+			float y1 = v2.y - v1.y;
+			float y2 = v3.y - v1.y;
+			float z1 = v2.z - v1.z;
+			float z2 = v3.z - v1.z;
+			
+			float s1 = w2.x - w1.x;
+			float s2 = w3.x - w1.x;
+			float t1 = w2.y - w1.y;
+			float t2 = w3.y - w1.y;
+			
+			float r = 1.0F / (s1 * t2 - s2 * t1);
+			Vector3 sdir((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
+						  (t2 * z1 - t1 * z2) * r);
+			Vector3 tdir((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
+						  (s1 * z2 - s2 * z1) * r);
+			
+			tan1[i1] += sdir;
+			tan1[i2] += sdir;
+			tan1[i3] += sdir;
+			
+			tan2[i1] += tdir;
+			tan2[i2] += tdir;
+			tan2[i3] += tdir;
+		}
+		
+		for(size_t a = 0; a < _verticesCount; a++)
+		{
+			Vector3 n = *chunk.GetIteratorAtIndex<Vector3>(MeshFeature::Normals, a);
+			const Vector3 &t = tan1[a];
+			
+			auto tangent = chunk.GetIteratorAtIndex<Vector4>(MeshFeature::Tangents, a);
+			// Gram-Schmidt orthogonalize
+			*tangent = Vector4((t - n * n.GetDotProduct(t)).GetNormalized());
+			
+			// Calculate handedness
+			(*tangent).w = (n.GetCrossProduct(t).GetDotProduct(tan2[a]) < 0.0f) ? -1.0f : 1.0f;
+		}
+		
+		delete[] tan1;
+		
+		chunk.CommitChanges();
+	}
+	
+	
+	// ---------------------
+	// MARK: -
 	// MARK: Intersection
 	// ---------------------
 	

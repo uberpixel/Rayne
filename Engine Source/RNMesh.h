@@ -331,6 +331,7 @@ namespace RN
 		RNAPI void SetIndicesCount(size_t count);
 		
 		RNAPI void CalculateBoundingVolumes();
+		RNAPI void GenerateTangents();
 		
 		RNAPI bool SupportsFeature(MeshFeature feature) const;
 		

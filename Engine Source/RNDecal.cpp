@@ -15,21 +15,21 @@ namespace RN
 {
 	RNDefineMeta(Decal)
 	
-	Decal::Decal()
-	: _angle("angle", 180.0f, &Decal::GetAngle, &Decal::SetAngle)
+	Decal::Decal(bool tangents)
+	: _angle("angle", 180.0f, &Decal::GetAngle, &Decal::SetAngle), _tangents(tangents)
 	{
 		Initialize();
 	}
 	
-	Decal::Decal(Texture *texture)
-	: _angle("angle", 180.0f, &Decal::GetAngle, &Decal::SetAngle)
+	Decal::Decal(Texture *texture, bool tangents)
+	: _angle("angle", 180.0f, &Decal::GetAngle, &Decal::SetAngle), _tangents(tangents)
 	{
 		Initialize();
 		SetTexture(texture);
 	}
 	
-	Decal::Decal(Texture *texture, const Vector3 &position)
-	: _angle("angle", 180.0f, &Decal::GetAngle, &Decal::SetAngle)
+	Decal::Decal(Texture *texture, const Vector3 &position, bool tangents)
+	: _angle("angle", 180.0f, &Decal::GetAngle, &Decal::SetAngle), _tangents(tangents)
 	{
 		Initialize();
 		SetTexture(texture);
@@ -38,7 +38,8 @@ namespace RN
 	
 	Decal::Decal(const Decal *other) :
 		SceneNode(other),
-		_angle("angle", other->GetAngle(), &Decal::GetAngle, &Decal::SetAngle)
+		_angle("angle", other->GetAngle(), &Decal::GetAngle, &Decal::SetAngle),
+		_tangents(other->_tangents)
 	{
 		Decal *temp = const_cast<Decal *>(other);
 		LockGuard<Object *> lock(temp);
@@ -65,10 +66,11 @@ namespace RN
 		_material->SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr));
 		_material->SetBlending(true);
 		_material->SetBlendMode(Material::BlendMode::SourceAlpha, Material::BlendMode::OneMinusSourceAlpha);
+		_material->SetAlphaBlendMode(Material::BlendMode::Zero, Material::BlendMode::One);
 		_material->SetDepthWrite(false);
 		_material->SetPolygonOffset(true);
-		_material->SetPolygonOffsetFactor(-1.0f);
-		_material->SetPolygonOffsetUnits(0.5f);
+		_material->SetPolygonOffsetFactor(-2.0f);
+		_material->SetPolygonOffsetUnits(1.0f);
 		_material->SetCullMode(Material::CullMode::None);
 		
 		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
@@ -82,8 +84,17 @@ namespace RN
 		MeshDescriptor texcoordDescriptor(MeshFeature::UVSet0);
 		texcoordDescriptor.elementMember = 2;
 		texcoordDescriptor.elementSize   = sizeof(Vector2);
-		
+
 		std::vector<MeshDescriptor> descriptors = { vertexDescriptor, normalDescriptor, texcoordDescriptor };
+		
+		if(_tangents)
+		{
+			MeshDescriptor tangentDescriptor(MeshFeature::Tangents);
+			tangentDescriptor.elementMember = 4;
+			tangentDescriptor.elementSize   = sizeof(Vector4);
+			
+			descriptors.push_back(tangentDescriptor);
+		}
 		
 		_mesh = new Mesh(descriptors, 0, 0);
 		_mesh->SetDrawMode(Mesh::DrawMode::Triangles);
@@ -1237,6 +1248,9 @@ namespace RN
 		}
 		
 		chunk.CommitChanges();
+		
+		if(_tangents)
+			_mesh->GenerateTangents();
 	}
 	
 	void Decal::DidUpdate(SceneNode::ChangeSet changeSet)
