@@ -71,7 +71,6 @@ namespace RN
 		_material->SetPolygonOffset(true);
 		_material->SetPolygonOffsetFactor(-2.0f);
 		_material->SetPolygonOffsetUnits(1.0f);
-		_material->SetCullMode(Material::CullMode::None);
 		
 		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementMember = 3;
@@ -211,7 +210,7 @@ namespace RN
 									{
 										normals.push_back(normalTransform*(*normalsIterator.Seek(indices[i])));
 										normals.push_back(normalTransform*(*normalsIterator.Seek(indices[i+1])));
-										normals.push_back(normalTransform*(*normalsIterator.Seek(indices[i+1])));
+										normals.push_back(normalTransform*(*normalsIterator.Seek(indices[i+2])));
 										
 										Vector4 proj0 = projection * Vector4(v0, 1.0);
 										vertices.push_back(Vector3(proj0));
