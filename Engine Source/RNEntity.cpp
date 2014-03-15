@@ -65,30 +65,16 @@ namespace RN
 	{
 		AddObservables({ &_model, &_skeleton });
 		
-		bool hasModel    = deserializer->DecodeBool();
-		bool hasSkeleton = deserializer->DecodeBool();
-		
-		if(hasModel)
-			SetModel(static_cast<Model *>(Asset::Deserialize(deserializer)));
-		
-		if(hasSkeleton)
-			SetSkeleton(static_cast<Skeleton *>(Asset::Deserialize(deserializer)));
+		SetModel(static_cast<Model *>(deserializer->DecodeObject()));
+		SetSkeleton(static_cast<Skeleton *>(deserializer->DecodeObject()));
 	}
 	
 	void Entity::Serialize(Serializer *serializer)
 	{
 		SceneNode::Serialize(serializer);
 		
-		bool hasModel = (_model != nullptr);
-		bool hasSkeleton = (_skeleton != nullptr);
-		
-		serializer->EncodeBool(hasModel);
-		serializer->EncodeBool(hasSkeleton);
-		
-		if(hasModel)
-			_model->Serialize(serializer);
-		if(hasSkeleton)
-			_skeleton->Serialize(serializer);
+		serializer->EncodeObject(_model);
+		serializer->EncodeObject(_skeleton);
 	}
 	
 	

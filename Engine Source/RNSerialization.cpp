@@ -11,6 +11,7 @@
 #include "RNDictionary.h"
 #include "RNNumber.h"
 #include "RNString.h"
+#include "RNAsset.h"
 
 namespace RN
 {
@@ -146,7 +147,8 @@ namespace RN
 			return;
 		}
 		
-		RN_ASSERT(object->Class()->SupportsSerialization(), "EncodeObject() only works with objects that support serialization!");
+		if(!object->IsKindOfClass(Asset::MetaClass()))
+			RN_ASSERT(object->Class()->SupportsSerialization(), "EncodeObject() only works with objects that support serialization!");
 	
 		auto iterator = _objectTable.find(object);
 		if(iterator != _objectTable.end())
@@ -447,6 +449,14 @@ namespace RN
 		
 		String *name = _nametable->GetObjectForKey<String>(Number::WithUint32(index));
 		MetaClassBase *mclass = Catalogue::GetSharedInstance()->GetClassWithName(name->GetUTF8String());
+		
+		if(mclass->InheritsFromClass(Asset::MetaClass()))
+		{
+			Object *result = Asset::Deserialize(this);
+			_objectTable.emplace(temp, result);
+			
+			return result;
+		}
 		
 		Object *result = mclass->ConstructWithDeserializer(this);
 		_objectTable.emplace(temp, result);
