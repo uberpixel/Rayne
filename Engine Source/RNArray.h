@@ -234,7 +234,7 @@ namespace RN
 		size_t _count;
 		size_t _size;
 		
-		RNDeclareMetaWithTraits(Array, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMeta(Array)
 	};
 }
 

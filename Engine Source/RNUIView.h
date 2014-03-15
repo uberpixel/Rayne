@@ -151,7 +151,7 @@ namespace RN
 			Matrix _intermediateTransform;
 			Matrix _finalTransform;
 			
-			RNDeclareMetaWithTraits(View, Responder, MetaClassTraitCronstructable)
+			RNDeclareMeta(View)
 		};
 	}
 }

@@ -13,7 +13,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Decal)
+	RNDefineMeta(Decal, SceneNode)
 	
 	Decal::Decal(bool tangents)
 	: _angle("angle", 180.0f, &Decal::GetAngle, &Decal::SetAngle), _tangents(tangents)

@@ -98,7 +98,7 @@ namespace RN
 		std::string _name;
 		int32 _priority;
 		
-		RNDeclareMeta(PostProcessingPipeline, Object)
+		RNDeclareMeta(PostProcessingPipeline)
 	};
 	
 	class Camera : public SceneNode
@@ -384,7 +384,7 @@ namespace RN
 		std::vector<PostProcessingPipeline *> _PPPipelines;
 		std::map<std::string, PostProcessingPipeline *> _namedPPPipelines;
 		
-		RNDeclareMeta(Camera, SceneNode)
+		RNDeclareMeta(Camera)
 	};
 }
 

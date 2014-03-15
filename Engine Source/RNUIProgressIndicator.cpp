@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(ProgressIndicator)
+		RNDefineMeta(ProgressIndicator, View)
 		
 		ProgressIndicator::ProgressIndicator() :
 			_min(0.0),

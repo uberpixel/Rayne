@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDefineMeta(SceneNodeAttachment)
+	RNDefineMeta(SceneNodeAttachment, Object)
 	
 	SceneNodeAttachment::SceneNodeAttachment() :
 		_node(nullptr),

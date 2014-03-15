@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDefineMeta(WorldAttachment)
+	RNDefineMeta(WorldAttachment, Object)
 	
 	void WorldAttachment::StepWorld(float delta)
 	{}

@@ -57,7 +57,7 @@ namespace RN
 		SceneNode *_node;
 		SceneNode::ChangeSet _consumeChangeSets;
 		
-		RNDeclareMeta(SceneNodeAttachment, Object);
+		RNDeclareMeta(SceneNodeAttachment);
 	};
 }
 

@@ -289,7 +289,7 @@ namespace RN
 		mutable Matrix _worldTransform;
 		mutable Matrix _localTransform;
 		
-		RNDeclareMetaWithTraits(SceneNode, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable, MetaClassTraitSerializable)
+		RNDeclareMeta(SceneNode)
 	};
 	
 	

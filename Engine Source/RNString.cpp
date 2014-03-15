@@ -12,7 +12,7 @@
 
 namespace RN
 {
-	RNDefineMeta(String)
+	RNDefineMeta(String, Object)
 
 	// ---------------------
 	// MARK: -

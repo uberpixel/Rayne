@@ -36,7 +36,7 @@ namespace RN
 		private:
 			std::atomic<Level> _level;
 			
-			RNDeclareMeta(LoggingEngine, Object)
+			RNDeclareMeta(LoggingEngine)
 		};
 		
 		struct LoggingEngineDelegate
@@ -64,7 +64,7 @@ namespace RN
 		private:
 			LoggingEngineDelegate *_delegate;
 			
-			RNDeclareMeta(CallbackLoggingEngine, LoggingEngine)
+			RNDeclareMeta(CallbackLoggingEngine)
 		};
 		
 		class StreamLoggingInternal;
@@ -83,7 +83,7 @@ namespace RN
 		private:
 			PIMPL<StreamLoggingInternal> _internal;
 			
-			RNDeclareMeta(StdoutLoggingEngine, LoggingEngine)
+			RNDeclareMeta(StdoutLoggingEngine)
 			RNDeclareSingleton(StdoutLoggingEngine)
 		};
 		
@@ -103,7 +103,7 @@ namespace RN
 			std::fstream _stream;
 			PIMPL<StreamLoggingInternal> _internal;
 			
-			RNDeclareMeta(SimpleLoggingEngine, LoggingEngine)
+			RNDeclareMeta(SimpleLoggingEngine)
 			RNDeclareSingleton(SimpleLoggingEngine)
 		};
 		
@@ -124,7 +124,7 @@ namespace RN
 			std::fstream _stream;
 			int _mode;
 			
-			RNDeclareMeta(HTMLLoggingEngine, LoggingEngine)
+			RNDeclareMeta(HTMLLoggingEngine)
 			RNDeclareSingleton(HTMLLoggingEngine)
 		};
 	}

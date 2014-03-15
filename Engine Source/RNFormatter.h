@@ -23,7 +23,7 @@ namespace RN
 		RNAPI virtual Object *GetObjectForString(String *string) = 0;
 		RNAPI virtual AttributedString *GetAttributedStringForObject(Object *object, Dictionary *defaultAttributes);
 		
-		RNDeclareMeta(Formatter, Object)
+		RNDeclareMeta(Formatter)
 	};
 	
 	class NumberFormatter : public Formatter

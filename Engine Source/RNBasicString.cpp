@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	RNDefineMeta(BasicString)
+	RNDefineMeta(BasicString, Object)
 	
 	BasicString::~BasicString()
 	{}

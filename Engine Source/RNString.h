@@ -82,7 +82,7 @@ namespace RN
 		Encoding _encoding;
 		void *_internal; // Of abstract type BasicString
 		
-		RNDeclareMetaWithTraits(String, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMeta(String)
 	};
 }
 

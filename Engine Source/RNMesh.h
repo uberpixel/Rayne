@@ -392,7 +392,7 @@ namespace RN
 		std::vector<MeshDescriptor> _descriptors;
 		std::set<MeshFeature> _features;
 		
-		RNDeclareMeta(Mesh, Object)
+		RNDeclareMeta(Mesh)
 	};
 }
 

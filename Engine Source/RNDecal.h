@@ -55,7 +55,7 @@ namespace RN
 		
 		bool _tangents;
 		
-		RNDeclareMetaWithTraits(Decal, SceneNode, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMeta(Decal)
 	};
 }
 

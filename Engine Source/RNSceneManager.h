@@ -36,7 +36,7 @@ namespace RN
 		
 		Renderer *_renderer;
 		
-		RNDeclareMeta(SceneManager, Object)
+		RNDeclareMeta(SceneManager)
 	};
 	
 	class GenericSceneManager : public SceneManager
@@ -60,7 +60,7 @@ namespace RN
 		
 		std::vector<SceneNode *> _nodes;
 		
-		RNDeclareMetaWithTraits(GenericSceneManager, SceneManager, MetaClassTraitCronstructable);
+		RNDeclareMeta(GenericSceneManager);
 	};
 }
 

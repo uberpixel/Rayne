@@ -12,9 +12,9 @@
 
 namespace RN
 {
-	RNDefineMeta(GPUBuffer)
-	RNDefineMeta(GPUScalarBuffer)
-	RNDefineMeta(GPUTextureBuffer)
+	RNDefineMeta(GPUBuffer, Object)
+	RNDefineMeta(GPUScalarBuffer, GPUBuffer)
+	RNDefineMeta(GPUTextureBuffer, GPUBuffer)
 	
 	// ---------------------
 	// MARK: -

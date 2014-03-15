@@ -20,7 +20,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Shader)
+	RNDefineMeta(Shader, Object)
 	
 	GLuint ShaderProgram::GetCustomLocation(const std::string& name)
 	{

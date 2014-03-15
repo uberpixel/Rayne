@@ -14,8 +14,8 @@
 
 namespace RN
 {
-	RNDefineMeta(Serializer)
-	RNDefineMeta(Deserializer)
+	RNDefineMeta(Serializer, Object)
+	RNDefineMeta(Deserializer, Object)
 	
 	Serializer::~Serializer()
 	{}

@@ -21,7 +21,7 @@
 
 namespace RN
 {
-	RNDefineMeta(WindowConfiguration)
+	RNDefineMeta(WindowConfiguration, Object)
 	RNDefineSingleton(Window)
 	
 	// ---------------------

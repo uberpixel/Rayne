@@ -87,7 +87,7 @@ namespace RN
 		FILE *_file;
 		long _size;
 		
-		RNDeclareMeta(File, Object)
+		RNDeclareMeta(File)
 	};
 }
 

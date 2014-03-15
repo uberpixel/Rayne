@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Water)
+	RNDefineMeta(Water, SceneNode)
 	
 	Water::Water(Camera *cam, Texture *refract) :
 		_mesh(nullptr),

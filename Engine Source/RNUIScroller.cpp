@@ -15,7 +15,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(Scroller)
+		RNDefineMeta(Scroller, View)
 		
 		Scroller::Scroller() :
 			_container(nullptr)

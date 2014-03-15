@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(TableView)
+		RNDefineMeta(TableView, ScrollView)
 		
 		TableView::TableView()
 		{

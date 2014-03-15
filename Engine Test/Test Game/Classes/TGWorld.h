@@ -74,7 +74,7 @@ namespace TG
 		DebugDrawer *_debugDrawer;
 		CutScene *_cutScene;
 		
-		RNDeclareMeta(World, RN::World)
+		RNDeclareMeta(World)
 	};
 }
 

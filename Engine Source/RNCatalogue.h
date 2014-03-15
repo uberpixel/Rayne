@@ -46,6 +46,18 @@ namespace RN
 	};
 	
 	template<class T>
+	class __MetaClassTraitNull0 : public virtual MetaClassBase
+	{};
+	
+	template<class T>
+	class __MetaClassTraitNull1 : public virtual MetaClassBase
+	{};
+	
+	template<class T>
+	class __MetaClassTraitNull2 : public virtual MetaClassBase
+	{};
+
+	template<class T>
 	class MetaClassTraitCronstructable : public virtual MetaClassBase
 	{
 	public:
@@ -82,8 +94,8 @@ namespace RN
 	};
 	
 	
-	template<class T, template <typename Type> class... Traits>
-	class ConcreteMetaClass : public virtual MetaClassBase, public Traits<T>...
+	template<class T, class... Traits>
+	class ConcreteMetaClass : public virtual MetaClassBase, public Traits...
 	{};
 	
 	class Catalogue : public ISingleton<Catalogue>

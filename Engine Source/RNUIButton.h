@@ -80,7 +80,7 @@ namespace RN
 			String *_currentTitle;
 			Image *_currentImage;
 			
-			RNDeclareMeta(Button, Control)
+			RNDeclareMeta(Button)
 		};
 	}
 }

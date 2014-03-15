@@ -20,7 +20,7 @@
 
 namespace RN
 {
-	RNDefineMeta(InstancingNode)
+	RNDefineMeta(InstancingNode, SceneNode)
 	
 	InstancingNode::InstancingNode() :
 		_clipRange("Clip range", 64.0f, &InstancingNode::GetClipRange, &InstancingNode::SetClippingRange),

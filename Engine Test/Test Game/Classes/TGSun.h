@@ -120,7 +120,7 @@ namespace TG
 		Gradient _ambientGradient;
 		Gradient _fogGradient;
 		
-		RNDeclareMetaWithTraits(Sun, RN::Light, RN::MetaClassTraitSerializable)
+		RNDeclareMeta(Sun)
 	};
 }
 

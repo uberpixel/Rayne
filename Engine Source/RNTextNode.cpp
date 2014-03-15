@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDefineMeta(TextNode)
+	RNDefineMeta(TextNode, Entity)
 	
 	TextNode::TextNode()
 	{

@@ -51,7 +51,7 @@ namespace RN
 	private:
 		stl::any _any;
 		
-		RNDeclareMetaWithTraits(Value, Object, MetaClassTraitCopyable)
+		RNDeclareMeta(Value)
 	};
 }
 

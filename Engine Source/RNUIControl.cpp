@@ -12,7 +12,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(Control)
+		RNDefineMeta(Control, View)
 		
 		Control::Control()
 		{

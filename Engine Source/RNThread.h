@@ -46,6 +46,9 @@ namespace RN
 			if(detach)
 				Detach();
 		}
+		
+		Thread(const Thread *) = delete;
+		Thread(Deserializer *) = delete;
 
 		RNAPI ~Thread();
 		
@@ -110,7 +113,7 @@ namespace RN
 		std::mutex _exitMutex;
 		std::condition_variable _exitSignal;
 		
-		RNDeclareMeta(Thread, Object)
+		RNDeclareMeta(Thread)
 	};
 }
 

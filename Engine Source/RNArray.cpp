@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Array)
+	RNDefineMeta(Array, Object)
 	
 	Array::Array()
 	{

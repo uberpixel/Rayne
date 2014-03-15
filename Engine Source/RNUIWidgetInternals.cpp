@@ -14,8 +14,8 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(WidgetBackgroundView)
-		RNDefineMeta(WidgetTitleBar)
+		RNDefineMeta(WidgetBackgroundView, View)
+		RNDefineMeta(WidgetTitleBar, View)
 		
 		// ---------------------
 		// MARK: -

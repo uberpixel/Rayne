@@ -13,7 +13,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Asset)
+	RNDefineMeta(Asset, Object)
 	
 	Asset::Asset()
 	{}

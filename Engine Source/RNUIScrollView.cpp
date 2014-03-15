@@ -12,7 +12,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(ScrollView)
+		RNDefineMeta(ScrollView, View)
 		
 		ScrollView::ScrollView() :
 			_verticalScroller(nullptr),

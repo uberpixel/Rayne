@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Material)
+	RNDefineMeta(Material, Object)
 	
 	Material::ShaderUniform::ShaderUniform(const std::string& name, Type type, void *data, size_t count, bool copy) :
 		_name(name),

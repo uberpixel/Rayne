@@ -138,7 +138,7 @@ namespace RN
 		bool _suppressShadows;
 		ShadowParameter _shadowParameter;
 		
-		RNDeclareMetaWithTraits(Light, SceneNode, MetaClassTraitCronstructable, MetaClassTraitCopyable, MetaClassTraitSerializable)
+		RNDeclareMeta(Light)
 	};
 }
 

@@ -13,8 +13,9 @@
 
 namespace RN
 {
-	RNDefineMeta(FileProxy)
-	RNDefineMeta(DirectoryProxy)
+	RNDefineMeta(FileSystemNode, Object)
+	RNDefineMeta(FileProxy, FileSystemNode)
+	RNDefineMeta(DirectoryProxy, FileSystemNode)
 	
 	RNDefineSingleton(FileManager)
 	

@@ -15,7 +15,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Event)
+	RNDefineMeta(Event, Message)
 	RNDefineSingleton(Input)
 	
 	Event::Event() :

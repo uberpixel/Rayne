@@ -88,7 +88,7 @@ namespace RN
 		
 		MetaClassBase *_entityClass;
 		
-		RNDeclareMeta(InstancingNode, SceneNode)
+		RNDeclareMeta(InstancingNode)
 	};
 }
 

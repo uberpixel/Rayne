@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Value)
+	RNDefineMeta(Value, Object)
 	
 	Value::Value(const Value *other) :
 		_any(other->_any)

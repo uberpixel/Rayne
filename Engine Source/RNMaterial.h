@@ -314,7 +314,7 @@ namespace RN
 		std::vector<ShaderDefine> _defines;
 		std::vector<ShaderUniform *> _uniforms;
 		
-		RNDeclareMetaWithTraits(Material, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMeta(Material)
 	};
 }
 

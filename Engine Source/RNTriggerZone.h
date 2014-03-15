@@ -51,7 +51,7 @@ namespace RN
 		std::unordered_set<SceneNode *> _trackingNodes;
 		std::unordered_set<SceneNode *> _watchedNodes;
 		
-		RNDeclareMeta(TriggerZone, SceneNode)
+		RNDeclareMeta(TriggerZone)
 	};
 }
 

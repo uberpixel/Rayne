@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Null)
+	RNDefineMeta(Null, Object)
 	
 	Null::Null()
 	{}

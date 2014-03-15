@@ -149,7 +149,7 @@ namespace RN
 		Vector2 _mousePosition;
 		Vector2 _mouseWheel;
 		
-		RNDeclareMeta(Event, Message)
+		RNDeclareMeta(Event)
 	};
 	
 	class Input : public ISingleton<Input>

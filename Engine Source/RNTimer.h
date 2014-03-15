@@ -40,7 +40,7 @@ namespace RN
 		bool _valid;
 		bool _repeats;
 		
-		RNDeclareMeta(Timer, Object)
+		RNDeclareMeta(Timer)
 	};
 }
 

@@ -28,7 +28,7 @@ namespace RN
 		
 		static void InitialWakeUp(MetaClassBase *meta);
 		
-		RNDeclareMeta(PNGResourceLoader, ResourceLoader)
+		RNDeclareMeta(PNGResourceLoader)
 	};
 	
 	class Model;
@@ -49,7 +49,7 @@ namespace RN
 	private:
 		void LoadLODStage(File *file, Model *model, size_t stage, bool guessMaterial);
 		
-		RNDeclareMeta(SGMResourceLoader, ResourceLoader)
+		RNDeclareMeta(SGMResourceLoader)
 	};
 	
 	class SGAResourceLoader : public ResourceLoader
@@ -66,7 +66,7 @@ namespace RN
 		
 		static void InitialWakeUp(MetaClassBase *meta);
 		
-		RNDeclareMeta(SGAResourceLoader, ResourceLoader)
+		RNDeclareMeta(SGAResourceLoader)
 	};
 	
 	class GLSLResourceLoader : public ResourceLoader
@@ -84,7 +84,7 @@ namespace RN
 		
 		static void InitialWakeUp(MetaClassBase *meta);
 		
-		RNDeclareMeta(GLSLResourceLoader, ResourceLoader)
+		RNDeclareMeta(GLSLResourceLoader)
 	};
 }
 

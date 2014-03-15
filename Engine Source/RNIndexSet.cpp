@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDefineMeta(IndexSet)
+	RNDefineMeta(IndexSet, Object)
 	
 	IndexSet::IndexSet()
 	{}
@@ -21,7 +21,7 @@ namespace RN
 		_indices.insert(index);
 	}
 	
-	IndexSet::IndexSet(IndexSet *other)
+	IndexSet::IndexSet(const IndexSet *other)
 	{
 		_sortedIndices = other->_sortedIndices;
 		_indices = other->_indices;

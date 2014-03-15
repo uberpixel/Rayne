@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(Label)
+		RNDefineMeta(Label, View)
 		
 		Label::Label()
 		{

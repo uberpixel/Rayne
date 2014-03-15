@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(TextField)
+		RNDefineMeta(TextField, Control)
 		
 		TextField::TextField(Dictionary *style)
 		{

@@ -32,7 +32,7 @@ namespace RN
 		Object *_object;
 		Dictionary *_info;
 		
-		RNDeclareMeta(Message, Object)
+		RNDeclareMeta(Message)
 	};
 	
 	class MessageCenter : public ISingleton<MessageCenter>

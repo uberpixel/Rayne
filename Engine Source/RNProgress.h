@@ -61,7 +61,7 @@ namespace RN
 		
 		bool _completed;
 		
-		RNDeclareMeta(Progress, Object)
+		RNDeclareMeta(Progress)
 	};
 }
 

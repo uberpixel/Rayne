@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Timer)
+	RNDefineMeta(Timer, Object)
 	
 	Timer::Timer(std::chrono::milliseconds duration, Function &&function, bool repeats) :
 		_callback(std::move(function)),

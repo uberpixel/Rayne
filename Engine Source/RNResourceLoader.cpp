@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDefineMeta(ResourceLoader)
+	RNDefineMeta(ResourceLoader, Object)
 	
 	ResourceLoader::ResourceLoader(MetaClassBase *resourceClass) :
 		_magicBytes(nullptr),

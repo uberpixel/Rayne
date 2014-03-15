@@ -20,8 +20,8 @@
 
 namespace RN
 {
-	RNDefineMeta(Camera)
-	RNDefineMeta(PostProcessingPipeline)
+	RNDefineMeta(Camera, SceneNode)
+	RNDefineMeta(PostProcessingPipeline, Object)
 	
 	RenderStage::RenderStage(Camera *camera, Camera *connection, Mode mode)
 	{

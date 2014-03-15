@@ -46,7 +46,7 @@ namespace RN
 			Atlas _atlas;
 			EdgeInsets _insets;
 			
-			RNDeclareMeta(Image, Object)
+			RNDeclareMeta(Image)
 		};
 	}
 }

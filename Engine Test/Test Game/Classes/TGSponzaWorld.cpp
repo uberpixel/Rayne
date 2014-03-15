@@ -10,7 +10,7 @@
 
 namespace TG
 {
-	RNDefineMeta(SponzaWorld);
+	RNDefineMeta(SponzaWorld, World)
 	
 	SponzaWorld::SponzaWorld()
 	{

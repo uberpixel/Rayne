@@ -66,7 +66,7 @@ namespace RN
 		
 		RNAPI Object *PrimitiveObjectForKey(Object *key);
 		
-		RNDeclareMetaWithTraits(Dictionary, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMeta(Dictionary)
 	};
 }
 

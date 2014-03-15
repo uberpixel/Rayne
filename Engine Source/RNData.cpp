@@ -13,7 +13,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Data)
+	RNDefineMeta(Data, Object)
 	
 	Data::Data()
 	{

@@ -44,7 +44,7 @@ namespace RN
 		Matrix _transform;
 		Material *_material;
 		
-		RNDeclareMetaWithTraits(Billboard, SceneNode, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMeta(Billboard)
 	};
 }
 

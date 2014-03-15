@@ -22,7 +22,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(Font)
+		RNDefineMeta(Font, Object)
 		
 		float Glyph::GetKerning(UniChar character) const
 		{

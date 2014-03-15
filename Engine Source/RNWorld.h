@@ -135,7 +135,7 @@ namespace RN
 		SceneManager  *_sceneManager;
 		MetaClassBase *_cameraClass;
 		
-		RNDeclareMeta(World, Object)
+		RNDeclareMeta(World)
 	};
 }
 

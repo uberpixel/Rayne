@@ -12,8 +12,8 @@
 
 namespace RN
 {
-	RNDefineMeta(ParticleMaterial)
-	RNDefineMeta(ParticleEmitter)
+	RNDefineMeta(ParticleMaterial, Material)
+	RNDefineMeta(ParticleEmitter, SceneNode)
 	
 	// ---------------------
 	// MARK: -

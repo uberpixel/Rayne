@@ -121,7 +121,7 @@ namespace RN
 			std::vector<ProxyItem *> _items;
 			std::vector<ProxyItem *> _rows;
 			
-			RNDeclareMeta(OutlineView, TableView)
+			RNDeclareMeta(OutlineView)
 		};
 	}
 }

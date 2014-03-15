@@ -49,7 +49,7 @@ namespace RN
 		bool _freeData;
 		bool _ownsData;
 		
-		RNDeclareMetaWithTraits(Data, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMeta(Data)
 	};
 }
 

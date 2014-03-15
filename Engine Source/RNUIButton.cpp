@@ -16,7 +16,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(Button)
+		RNDefineMeta(Button, Control)
 		
 		Button::Button()
 		{

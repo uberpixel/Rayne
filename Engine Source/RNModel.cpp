@@ -16,7 +16,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Model)
+	RNDefineMeta(Model, Asset)
 	
 	static std::vector<float> __defaultLODFactors({ 0.05f, 0.125f, 0.50f, 0.75f, 0.90f });
 	

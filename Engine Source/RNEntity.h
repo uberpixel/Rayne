@@ -50,7 +50,7 @@ namespace RN
 		
 		void *_instancedData;
 		
-		RNDeclareMetaWithTraits(Entity, SceneNode, MetaClassTraitCronstructable, MetaClassTraitCopyable, MetaClassTraitSerializable)
+		RNDeclareMeta(Entity)
 	};
 }
 

@@ -17,7 +17,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(View)
+		RNDefineMeta(View, Responder)
 		
 		View::View()
 		{

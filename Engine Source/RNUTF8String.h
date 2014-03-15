@@ -46,7 +46,7 @@ namespace RN
 		size_t _size;
 		machine_hash _hash;
 		
-		RNDeclareMeta(ConstantUTF8String, BasicString)
+		RNDeclareMeta(ConstantUTF8String)
 	};
 	
 	class UTF8String : public ConstantUTF8String
@@ -67,7 +67,7 @@ namespace RN
 		void AllocateSpace(size_t size);
 		size_t _allocated;
 		
-		RNDeclareMeta(UTF8String, ConstantUTF8String)
+		RNDeclareMeta(UTF8String)
 	};
 }
 

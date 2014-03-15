@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Billboard)
+	RNDefineMeta(Billboard, SceneNode)
 	
 	Billboard::Billboard()
 	{

@@ -21,8 +21,8 @@
 
 namespace RN
 {
-	RNDefineMeta(LightManager)
-	RNDefineMeta(ClusteredLightManager)
+	RNDefineMeta(LightManager, Object)
+	RNDefineMeta(ClusteredLightManager, LightManager)
 	
 	LightManager::LightManager() :
 		camera(nullptr)

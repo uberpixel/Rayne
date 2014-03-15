@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(OutlineView)
+		RNDefineMeta(OutlineView, TableView)
 		
 		OutlineView::OutlineView()
 		{

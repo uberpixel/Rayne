@@ -9,6 +9,7 @@
 #include "RNObject.h"
 #include "RNAutoreleasePool.h"
 #include "RNLogging.h"
+#include "RNData.h"
 
 namespace RN
 {

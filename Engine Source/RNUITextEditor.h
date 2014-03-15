@@ -64,7 +64,7 @@ namespace RN
 			
 			Range _selection;
 			
-			RNDeclareMeta(TextEditor, View)
+			RNDeclareMeta(TextEditor)
 		};
 	}
 }

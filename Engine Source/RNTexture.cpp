@@ -16,10 +16,10 @@
 
 namespace RN
 {
-	RNDefineMeta(Texture)
-	RNDefineMeta(Texture2D)
-	RNDefineMeta(Texture2DArray)
-	RNDefineMeta(TextureCubeMap)
+	RNDefineMeta(Texture, Object)
+	RNDefineMeta(Texture2D, Texture)
+	RNDefineMeta(Texture2DArray, Texture)
+	RNDefineMeta(TextureCubeMap, Texture)
 	
 	// ---------------------
 	// MARK: -

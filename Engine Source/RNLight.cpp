@@ -16,7 +16,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Light)
+	RNDefineMeta(Light, SceneNode)
 	
 	Light::Light(Type lighttype) :
 		_lightType(lighttype),

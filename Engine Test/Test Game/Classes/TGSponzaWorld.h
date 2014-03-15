@@ -25,7 +25,7 @@ namespace TG
 		void LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer) override;
 		void SaveOnThread(RN::Thread *thread, RN::Serializer *serializer) override;
 		
-		RNDeclareMetaWithTraits(SponzaWorld, World, RN::MetaClassTraitCronstructable)
+		RNDeclareMeta(SponzaWorld)
 	};
 }
 

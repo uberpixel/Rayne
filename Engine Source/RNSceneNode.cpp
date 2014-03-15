@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	RNDefineMeta(SceneNode)
+	RNDefineMeta(SceneNode, Object)
 	
 	std::atomic<uint64> __SceneNodeIDs;
 	

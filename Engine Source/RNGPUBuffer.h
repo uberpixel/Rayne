@@ -29,7 +29,7 @@ namespace RN
 	protected:
 		std::string _bindPoint;
 		
-		RNDeclareMeta(GPUBuffer, Object)
+		RNDeclareMeta(GPUBuffer)
 	};
 	
 	class GPUScalarBuffer : public GPUBuffer
@@ -39,7 +39,7 @@ namespace RN
 		void Bind(Renderer *renderer, ShaderProgram *program) override;
 		
 	private:
-		RNDeclareMeta(GPUScalarBuffer, GPUBuffer)
+		RNDeclareMeta(GPUScalarBuffer)
 	};
 	
 	class GPUTextureBuffer : public GPUBuffer
@@ -61,7 +61,7 @@ namespace RN
 		size_t _size;
 		uint8 *_data;
 		
-		RNDeclareMeta(GPUTextureBuffer, GPUBuffer)
+		RNDeclareMeta(GPUTextureBuffer)
 	};
 }
 

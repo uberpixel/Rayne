@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDefineMeta(IndexPath)
+	RNDefineMeta(IndexPath, Object)
 	
 	IndexPath::IndexPath()
 	{}

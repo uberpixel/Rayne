@@ -249,7 +249,7 @@ namespace RN
 		std::unordered_map<ShaderLookup, ShaderProgram *> _programs;
 		std::map<ShaderType, ShaderData> _shaderData;
 		
-		RNDeclareMetaWithTraits(Shader, Object, MetaClassTraitCronstructable)
+		RNDeclareMeta(Shader)
 	};
 }
 

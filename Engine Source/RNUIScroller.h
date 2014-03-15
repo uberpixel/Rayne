@@ -45,7 +45,7 @@ namespace RN
 			bool _horizontal;
 			float _width;
 			
-			RNDeclareMeta(Scroller, View)
+			RNDeclareMeta(Scroller)
 		};
 	}
 }

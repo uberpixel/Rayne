@@ -45,6 +45,8 @@ namespace RN
 		DirectoryProxy *_parent;
 		std::string _name;
 		std::string _path;
+		
+		RNDeclareMeta(FileSystemNode)
 	};
 	
 	class FileProxy : public FileSystemNode
@@ -60,7 +62,7 @@ namespace RN
 	private:
 		RNAPI FileProxy(const std::string& name, DirectoryProxy *parent);
 		
-		RNDeclareMeta(FileProxy, FileSystemNode)
+		RNDeclareMeta(FileProxy)
 	};
 	
 	class DirectoryProxy : public FileSystemNode
@@ -92,7 +94,7 @@ namespace RN
 		void *_eventStream;
 #endif
 		
-		RNDeclareMeta(DirectoryProxy, FileSystemNode)
+		RNDeclareMeta(DirectoryProxy)
 	};
 	
 	

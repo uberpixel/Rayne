@@ -150,23 +150,12 @@ namespace RN
 		std::vector<std::tuple<void *, ObservableProperty *, Connection *>> _cookies;
 	};
 	
-#define __RNDeclareMetaPrivate(cls, super) \
-	private: \
-		class MetaType : public RN::ConcreteMetaClass<cls> \
-		{ \
-		public: \
-			MetaType() : \
-				MetaClassBase(super::MetaClass(), #cls, RN_FUNCTION_SIGNATURE) \
-			{} \
-		};
-
 #define __RNDeclareMetaPrivateWithTraits(cls, super, ...) \
-	private: \
-		class MetaType : public RN::ConcreteMetaClass<cls, __VA_ARGS__> \
+		class cls##MetaType : public RN::ConcreteMetaClass<cls, __VA_ARGS__> \
 		{ \
 		public: \
-			MetaType() : \
-				MetaClassBase(super::MetaClass(), #cls, RN_FUNCTION_SIGNATURE) \
+			cls##MetaType(const char *signature) : \
+				MetaClassBase(super::MetaClass(), #cls, signature) \
 			{} \
 		};
 
@@ -191,15 +180,14 @@ namespace RN
 		RNAPI_DEFINEBASE RN::MetaClassBase *Class() const override; \
 		RNAPI_DEFINEBASE static RN::MetaClassBase *MetaClass();
 	
-#define RNDeclareMeta(cls, super) \
-	__RNDeclareMetaPrivate(cls, super) \
-	__RNDeclareMetaPublic(cls)
-	
-#define RNDeclareMetaWithTraits(cls, super, ...) \
-	__RNDeclareMetaPrivateWithTraits(cls, super, __VA_ARGS__) \
+#define RNDeclareMeta(cls) \
 	__RNDeclareMetaPublic(cls)
 
-#define RNDefineMeta(cls) \
+#define RNDefineMeta(cls, super) \
+	__RNDeclareMetaPrivateWithTraits(cls, super, \
+		std::conditional<std::is_default_constructible<cls>::value, RN::MetaClassTraitCronstructable<cls>, RN::__MetaClassTraitNull0<cls>>::type, \
+		std::conditional<std::is_constructible<cls, RN::Deserializer *>::value, RN::MetaClassTraitSerializable<cls>, RN::__MetaClassTraitNull1<cls>>::type, \
+		std::conditional<std::is_constructible<cls, const cls *>::value, RN::MetaClassTraitCopyable<cls>, RN::__MetaClassTraitNull2<cls>>::type) \
 	void *__kRN##cls##__metaClass = nullptr; \
 	RN::MetaClassBase *cls::Class() const \
 	{ \
@@ -208,8 +196,8 @@ namespace RN
 	RN::MetaClassBase *cls::MetaClass() \
 	{ \
 		if(!__kRN##cls##__metaClass) \
-			__kRN##cls##__metaClass = new cls::MetaType(); \
-		return reinterpret_cast<cls::MetaType *>(__kRN##cls##__metaClass); \
+			__kRN##cls##__metaClass = new cls##MetaType(RN_FUNCTION_SIGNATURE); \
+		return reinterpret_cast<cls##MetaType *>(__kRN##cls##__metaClass); \
 	} \
 	RN_REGISTER_INIT(cls##Init, cls::MetaClass(); cls::InitialWakeUp(cls::MetaClass()))
 

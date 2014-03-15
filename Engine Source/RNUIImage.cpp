@@ -12,7 +12,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(Image)
+		RNDefineMeta(Image, Object)
 		
 		Image::Image(class Texture *texture) :
 			_atlas(UI::Atlas(Vector2(0.0f), Vector2(1.0f)))

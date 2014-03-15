@@ -58,7 +58,7 @@ namespace RN
 			float _indentation;
 			size_t _row;
 			
-			RNDeclareMeta(TableViewCell, View)
+			RNDeclareMeta(TableViewCell)
 		};
 	}
 }

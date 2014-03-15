@@ -21,7 +21,7 @@ namespace RN
 		
 		bool InFrustum(const Vector3& position, float radius) override;
 		
-		RNDeclareMeta(CubemapCamera, Camera)
+		RNDeclareMeta(CubemapCamera)
 	};
 }
 

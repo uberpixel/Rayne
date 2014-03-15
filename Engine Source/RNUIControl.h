@@ -94,7 +94,7 @@ namespace RN
 			
 			std::map<EventType, std::vector<EventListener>> _listener;
 			
-			RNDeclareMeta(Control, View)
+			RNDeclareMeta(Control)
 		};
 		
 		template<class T>

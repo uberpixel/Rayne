@@ -14,7 +14,7 @@
 
 namespace TG
 {
-	RNDefineMeta(Sun)
+	RNDefineMeta(Sun, RN::Light)
 	
 	double cycle(double value, double min, double max)
 	{

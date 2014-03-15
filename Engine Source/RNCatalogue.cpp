@@ -17,7 +17,9 @@ namespace RN
 		Catalogue::ParsePrettyFunction(namespaceBlob, _namespace);
 		
 		_namespace.pop_back();
-		_namespace.pop_back();
+		
+		if(!parent)
+			_namespace.pop_back();
 		
 		Catalogue::GetSharedInstance()->AddMetaClass(this);
 	}

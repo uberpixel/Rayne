@@ -61,7 +61,7 @@ namespace RN
 			Vector2 _size;
 			Vector2 _end;
 			
-			RNDeclareMeta(ScrollView, View)
+			RNDeclareMeta(ScrollView)
 		};
 	}
 }

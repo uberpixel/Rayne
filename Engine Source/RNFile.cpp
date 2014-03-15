@@ -15,7 +15,7 @@
 
 namespace RN
 {
-	RNDefineMeta(File)
+	RNDefineMeta(File, Object)
 
 	File::File(const std::string& path, FileMode mode)
 	{

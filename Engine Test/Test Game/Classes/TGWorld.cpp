@@ -10,7 +10,7 @@
 
 namespace TG
 {
-	RNDefineMeta(World)
+	RNDefineMeta(World, RN::World)
 	
 	World::World() :
 		RN::World("GenericSceneManager"),

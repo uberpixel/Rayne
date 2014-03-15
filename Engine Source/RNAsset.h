@@ -39,7 +39,7 @@ namespace RN
 		
 		Signal<void(Asset *)> _signal;
 		
-		RNDeclareMeta(Asset, Object)
+		RNDeclareMeta(Asset)
 	};
 }
 

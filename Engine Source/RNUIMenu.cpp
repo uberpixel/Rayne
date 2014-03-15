@@ -15,8 +15,8 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDefineMeta(Menu)
-		RNDefineMeta(MenuItem)
+		RNDefineMeta(Menu, Object)
+		RNDefineMeta(MenuItem, Object)
 		
 #if RN_PLATFORM_MAC_OS
 		NSMenu *TranslateRNUIMenuToNSMenu(Menu *menu);
