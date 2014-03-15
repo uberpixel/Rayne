@@ -247,6 +247,10 @@ namespace RN
 	{
 		EncodeData('4', sizeof(Vector4), &value);
 	}
+	void FlatSerializer::EncodeColor(const Color& value)
+	{
+		EncodeData('c', sizeof(Color), &value);
+	}
 	
 	void FlatSerializer::EncodeMatrix(const Matrix& value)
 	{
@@ -622,6 +626,13 @@ namespace RN
 	{
 		Vector4 result;
 		DecodeData('4', &result, sizeof(Vector4));
+		
+		return result;
+	}
+	Color FlatDeserializer::DecodeColor()
+	{
+		Color result;
+		DecodeData('c', &result, sizeof(Color));
 		
 		return result;
 	}

@@ -39,6 +39,7 @@ namespace RN
 		RNAPI virtual void EncodeVector2(const Vector2& value) = 0;
 		RNAPI virtual void EncodeVector3(const Vector3& value) = 0;
 		RNAPI virtual void EncodeVector4(const Vector4& value) = 0;
+		RNAPI virtual void EncodeColor(const Color &color) = 0;
 		
 		RNAPI virtual void EncodeMatrix(const Matrix& value) = 0;
 		RNAPI virtual void EncodeQuarternion(const Quaternion& value) = 0;
@@ -67,6 +68,7 @@ namespace RN
 		RNAPI virtual Vector2 DecodeVector2() = 0;
 		RNAPI virtual Vector3 DecodeVector3() = 0;
 		RNAPI virtual Vector4 DecodeVector4() = 0;
+		RNAPI virtual Color DecodeColor() = 0;
 		
 		RNAPI virtual Matrix DecodeMatrix() = 0;
 		RNAPI virtual Quaternion DecodeQuaternion() = 0;
@@ -100,6 +102,7 @@ namespace RN
 		RNAPI void EncodeVector2(const Vector2& value) override;
 		RNAPI void EncodeVector3(const Vector3& value) override;
 		RNAPI void EncodeVector4(const Vector4& value) override;
+		RNAPI void EncodeColor(const Color &color) override;
 		
 		RNAPI void EncodeMatrix(const Matrix& value) override;
 		RNAPI void EncodeQuarternion(const Quaternion& value) override;
@@ -137,6 +140,7 @@ namespace RN
 		RNAPI Vector2 DecodeVector2() override;
 		RNAPI Vector3 DecodeVector3() override;
 		RNAPI Vector4 DecodeVector4() override;
+		RNAPI Color DecodeColor() override;
 		
 		RNAPI Matrix DecodeMatrix() override;
 		RNAPI Quaternion DecodeQuaternion() override;
