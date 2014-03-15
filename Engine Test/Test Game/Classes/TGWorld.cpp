@@ -10,6 +10,8 @@
 
 namespace TG
 {
+	RNDefineMeta(World)
+	
 	World::World() :
 		RN::World("GenericSceneManager"),
 		_exposure(1.0f),
@@ -39,6 +41,17 @@ namespace TG
 	{
 		RN::MessageCenter::GetSharedInstance()->RemoveObserver(this);
 		_debugDrawer->Release();
+		
+		_ssaoPipeline->Release();
+		_godraysPipeline->Release();
+		_bloomPipeline->Release();
+		_fxaaPipeline->Release();
+	}
+	
+	void World::LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer)
+	{
+		RN::World::LoadOnThread(thread, deserializer);
+		CreateCameras();
 	}
 	
 	void World::HandleInputEvent(RN::Event *event)
@@ -290,6 +303,7 @@ namespace TG
 		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::Flags::Defaults);
 		_camera->SetDebugName("Main");
 		_camera->SetFlags(_camera->GetFlags() | RN::Camera::Flags::NoFlush);
+		_camera->SceneNode::SetFlags(_camera->SceneNode::GetFlags() | RN::SceneNode::Flags::NoSave);
 		_camera->SetRenderGroups(_camera->GetRenderGroups() | RN::Camera::RenderGroups::Group1 | RN::Camera::RenderGroups::Group3);
 		_camera->SetSky(sky);
 		_camera->Autorelease();
@@ -300,6 +314,8 @@ namespace TG
 		refractCopy->Define("RN_COPYDEPTH");
 		_refractCamera = new RN::Camera(_camera->GetFrame().Size(), RN::Texture::Format::RGBA32F, RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		_refractCamera->SetMaterial(refractCopy);
+		_refractCamera->SceneNode::SetFlags(_camera->SceneNode::GetFlags() | RN::SceneNode::Flags::NoSave);
+		_refractCamera->Release();
 		waterPipeline->AddStage(_refractCamera, RN::RenderStage::Mode::ReUsePreviousStage);
 		
 		_waterCamera = new RN::Camera(RN::Vector2(_camera->GetFrame().Size()), storage, RN::Camera::Flags::Defaults);
@@ -307,6 +323,7 @@ namespace TG
 		_waterCamera->SetRenderGroups(RN::Camera::RenderGroups::Group2 | RN::Camera::RenderGroups::Group3);
 		_waterCamera->SetDebugName("Water");
 		_waterCamera->Autorelease();
+		_waterCamera->SceneNode::SetFlags(_waterCamera->SceneNode::GetFlags() | RN::SceneNode::Flags::NoSave);
 		//waterPipeline->AddStage(waterStage, RN::RenderStage::Mode::ReRender);
 		
 		_waterCamera->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
@@ -352,11 +369,11 @@ namespace TG
 		combineMaterial->AddTexture(blurYStage->GetStorage()->GetRenderTarget());
 		
 		RN::PostProcessingPipeline *ssaoPipeline = cam->AddPostProcessingPipeline("SSAO", 1);
-		ssaoPipeline->AddStage(depthStage, RN::RenderStage::Mode::ReUsePreviousStage);
-		ssaoPipeline->AddStage(ssaoStage, RN::RenderStage::Mode::ReUsePreviousStage);
-		ssaoPipeline->AddStage(blurXStage, RN::RenderStage::Mode::ReUsePreviousStage);
-		ssaoPipeline->AddStage(blurYStage, RN::RenderStage::Mode::ReUsePreviousStage);
-		ssaoPipeline->AddStage(combineStage, RN::RenderStage::Mode::ReUsePipeline);
+		ssaoPipeline->AddStage(depthStage->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		ssaoPipeline->AddStage(ssaoStage->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		ssaoPipeline->AddStage(blurXStage->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		ssaoPipeline->AddStage(blurYStage->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		ssaoPipeline->AddStage(combineStage->Autorelease(), RN::RenderStage::Mode::ReUsePipeline);
 		
 		_ssaoActive = true;
 		
@@ -375,7 +392,7 @@ namespace TG
 		godraysCam->SetMaterial(godraysMaterial);
 		
 		RN::PostProcessingPipeline *godraysPipeline = cam->AddPostProcessingPipeline("Godrays", 2);
-		godraysPipeline->AddStage(godraysCam, RN::RenderStage::Mode::ReUsePipeline);
+		godraysPipeline->AddStage(godraysCam->Autorelease(), RN::RenderStage::Mode::ReUsePipeline);
 		
 		_godraysActive = true;
 		
@@ -455,14 +472,14 @@ namespace TG
 		bloomCombine->SetMaterial(bloomCombineMaterial);
 		
 		RN::PostProcessingPipeline *bloomPipeline = cam->AddPostProcessingPipeline("Bloom", 3);
-		bloomPipeline->AddStage(filterBright, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloomPipeline->AddStage(downSample4x, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloomPipeline->AddStage(downSample8x, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloomPipeline->AddStage(bloomBlurXlow, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloomPipeline->AddStage(bloomBlurYlow, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloomPipeline->AddStage(bloomBlurXhigh, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloomPipeline->AddStage(bloomBlurYhigh, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloomPipeline->AddStage(bloomCombine, RN::RenderStage::Mode::ReUsePipeline);
+		bloomPipeline->AddStage(filterBright->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(downSample4x->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(downSample8x->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomBlurXlow->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomBlurYlow->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomBlurXhigh->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomBlurYhigh->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomCombine->Autorelease(), RN::RenderStage::Mode::ReUsePipeline);
 		
 		_bloomActive = true;
 		
@@ -485,8 +502,8 @@ namespace TG
 		fxaaCam->SetMaterial(fxaaMaterial);
 		
 		RN::PostProcessingPipeline *fxaaPipeline = cam->AddPostProcessingPipeline("FXAA", 4);
-		fxaaPipeline->AddStage(tonemappingCam, RN::RenderStage::Mode::ReUsePipeline);
-		fxaaPipeline->AddStage(fxaaCam, RN::RenderStage::Mode::ReUsePipeline);
+		fxaaPipeline->AddStage(tonemappingCam->Autorelease(), RN::RenderStage::Mode::ReUsePipeline);
+		fxaaPipeline->AddStage(fxaaCam->Autorelease(), RN::RenderStage::Mode::ReUsePipeline);
 		
 		_fxaaActive = true;
 		

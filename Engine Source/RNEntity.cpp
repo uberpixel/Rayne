@@ -57,6 +57,41 @@ namespace RN
 		SafeRelease(_model);
 	}
 	
+	Entity::Entity(Deserializer *deserializer) :
+		SceneNode(deserializer),
+		_model("model", Object::MemoryPolicy::Retain, &Entity::GetModel, &Entity::SetModel),
+		_skeleton("skeleton", Object::MemoryPolicy::Retain, &Entity::GetSkeleton, &Entity::SetSkeleton),
+		_instancedData(nullptr)
+	{
+		AddObservables({ &_model, &_skeleton });
+		
+		bool hasModel    = deserializer->DecodeBool();
+		bool hasSkeleton = deserializer->DecodeBool();
+		
+		if(hasModel)
+			SetModel(static_cast<Model *>(Asset::Deserialize(deserializer)));
+		
+		if(hasSkeleton)
+			SetSkeleton(static_cast<Skeleton *>(Asset::Deserialize(deserializer)));
+	}
+	
+	void Entity::Serialize(Serializer *serializer)
+	{
+		SceneNode::Serialize(serializer);
+		
+		bool hasModel = (_model != nullptr);
+		bool hasSkeleton = (_skeleton != nullptr);
+		
+		serializer->EncodeBool(hasModel);
+		serializer->EncodeBool(hasSkeleton);
+		
+		if(hasModel)
+			_model->Serialize(serializer);
+		if(hasSkeleton)
+			_skeleton->Serialize(serializer);
+	}
+	
+	
 	void Entity::Render(Renderer *renderer, Camera *camera)
 	{
 		SceneNode::Render(renderer, camera);

@@ -61,7 +61,10 @@ namespace RN
 				
 				HideInEditor        = (1 << 10),
 				UndeletableInEditor = (1 << 11),
-				LockedInEditor      = (1 << 12)
+				LockedInEditor      = (1 << 12),
+				
+				NoSave  = (1 << 4),
+				Mutated = (1 << 5)
 			};
 		};
 		
@@ -82,7 +85,8 @@ namespace RN
 				Priority = (1 << 4),
 				Parent = (1 << 5),
 				Attachments = (1 << 6),
-				World = (1 << 7)
+				World = (1 << 7),
+				Tag = (1 << 8)
 			};
 		};
 		
@@ -90,6 +94,7 @@ namespace RN
 		RNAPI SceneNode(const Vector3& position);
 		RNAPI SceneNode(const Vector3& position, const Quaternion& rotation);
 		RNAPI SceneNode(const SceneNode *other);
+		RNAPI SceneNode(Deserializer *deserializer);
 		RNAPI ~SceneNode() override;
 		
 		RNAPI void FillRenderingObject(RenderingObject& object) const;
@@ -103,6 +108,7 @@ namespace RN
 		RNAPI void RemoveFromWorld();
 		
 		RNAPI void SetFlags(Flags flags);
+		RNAPI void SetTag(Tag tag);
 		
 		RNAPI void SetRenderGroup(uint8 group);
 		RNAPI void SetCollisionGroup(uint8 group);
@@ -125,6 +131,7 @@ namespace RN
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
 		
 		RNAPI uint64 GetUID() const { return _uid; }
+		RNAPI Tag GetTag() const { return _tag; }
 		
 		RNAPI Vector3 GetPosition() const;
 		RNAPI Vector3 GetScale() const;
@@ -258,7 +265,9 @@ namespace RN
 		
 		uint8 renderGroup;
 		uint8 collisionGroup;
+		
 		uint64 _uid;
+		Observable<Tag, SceneNode> _tag;
 		
 		std::function<void (SceneNode *, float)> _action;
 		std::string _debugName;
@@ -280,7 +289,7 @@ namespace RN
 		mutable Matrix _worldTransform;
 		mutable Matrix _localTransform;
 		
-		RNDeclareMetaWithTraits(SceneNode, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMetaWithTraits(SceneNode, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable, MetaClassTraitSerializable)
 	};
 	
 	

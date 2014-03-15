@@ -410,11 +410,17 @@ namespace RN
 
 		bool operator== (T *other)
 		{
+			if(!_storage)
+				return (other == nullptr);
+			
 			return (_storage->IsEqual(other));
 		}
 
 		bool operator!= (T *other)
 		{
+			if(!_storage)
+				return (other != nullptr);
+			
 			return !(_storage->IsEqual(other));
 		}
 

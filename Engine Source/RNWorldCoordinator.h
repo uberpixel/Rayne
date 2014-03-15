@@ -30,6 +30,11 @@ namespace RN
 		RNAPI ~WorldCoordinator();
 		
 		RNAPI Progress *LoadWorld(World *world);
+		RNAPI Progress *LoadWorld(const std::string &file);
+		RNAPI Progress *LoadWorld(Deserializer *deserializer);
+		
+		RNAPI void SaveWorld(const std::string &file);
+		RNAPI void SaveWorld(Serializer *serializer);
 		
 		RNAPI bool IsLoading() const { return _loading.load(); }
 		RNAPI World *GetWorld() const { return _world; }
@@ -39,8 +44,11 @@ namespace RN
 		void RenderWorld(Renderer *renderer);
 		
 		bool AwaitFinishLoading();
-		bool BeginLoading();
+		bool BeginLoading(Deserializer *deserializer);
 		void FinishLoading(bool state);
+		Progress *__LoadWorld(Deserializer *deserializer);
+		
+		void BeginSaving(Serializer *serializer);
 		
 		void __AwaitLoadingForExit();
 		
@@ -52,6 +60,8 @@ namespace RN
 		std::future<bool> _loadFuture;
 		Progress *_loadingProgress;
 		uint32 _loadState;
+		
+		Deserializer *_deserializer;
 		
 		RNDeclareSingleton(WorldCoordinator)
 	};

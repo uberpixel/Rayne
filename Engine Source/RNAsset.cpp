@@ -23,6 +23,10 @@ namespace RN
 	}
 	
 	
+	void Asset::Unfault(Deserializer *deserializer)
+	{}
+	
+	
 	void Asset::Serialize(Serializer *serializer)
 	{
 		MetaClassBase *meta = Class();
@@ -37,7 +41,19 @@ namespace RN
 		std::string name = deserializer->DecodeString();
 		
 		MetaClassBase *cmeta = Catalogue::GetSharedInstance()->GetClassWithName(meta);
-		return ResourceCoordinator::GetSharedInstance()->RequestResourceWithName(cmeta, RNSTR(name.c_str()), nullptr);
+		Asset *asset;
+		
+		if(name.empty())
+		{
+			asset = static_cast<Asset *>(cmeta->Construct());
+		}
+		else
+		{
+			asset = ResourceCoordinator::GetSharedInstance()->RequestResourceWithName(cmeta, RNSTR(name.c_str()), nullptr);
+		}
+		
+		asset->Unfault(deserializer);
+		return asset;
 	}
 	
 	

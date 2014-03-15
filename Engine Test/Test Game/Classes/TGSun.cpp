@@ -66,6 +66,48 @@ namespace TG
 			color.first.a = 1.0f;
 	}
 	
+	Sun::Sun(RN::Deserializer *deserializer)  :
+		RN::Light(deserializer),
+		_time("time", 0.0f, &Sun::GetTime, &Sun::SetTime)
+	{
+		AddObservable(&_time);
+		
+		SetDate(181, 2013);
+		SetLatitude(48.0f, 81.0f);
+		
+		SetTime(deserializer->DecodeFloat());
+		
+		_sunGradient.AddColor(RN::Color(0.8f, 0.75f, 0.55f) * 1.5, 0.70f);
+		_sunGradient.AddColor(RN::Color(0.8f, 0.75f, 0.55f) * 1.4, 0.45f);
+		_sunGradient.AddColor(RN::Color(0.8f, 0.75f, 0.55f) * 1.3, 0.28f);
+		_sunGradient.AddColor(RN::Color(0.9f, 0.5f, 0.2f) * 1.5, 0.12f);
+		_sunGradient.AddColor(RN::Color(0.9f, 0.5f, 0.2f) * 0.25, 0.08f);
+		_sunGradient.AddColor(RN::Color(0.5f, 0.5f, 0.5f) * 0.02, 0.0f);
+		
+		_ambientGradient.AddColor(RN::Color::White() * 0.8f, 0.79f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.8f, 0.28f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.6, 0.12f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.3, 0.08f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.1, 0.05f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.05, 0.0f);
+		
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 2.0f, 0.79f);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 2.0f, 0.28f);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 1.6, 0.12f);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 1.3, 0.08f);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 0.7, 0.05f);
+		_fogGradient.AddColor(RN::Color::Black(), 0.0f);
+		
+		for(auto &color : _fogGradient._colors)
+			color.first.a = 1.0f;
+	}
+	
+	void Sun::Serialize(RN::Serializer *serializer)
+	{
+		RN::Light::Serialize(serializer);
+		serializer->EncodeFloat(GetTime());
+	}
+	
 	void Sun::SetTime(uint32 hour, uint32 minute, uint32 second)
 	{
 		_hour = hour;

@@ -452,12 +452,7 @@ namespace RN
 		_objectTable.emplace(temp, result);
 		
 		
-		return result;
-	}
-	
-	Object *FlatDeserializer::DecodeConditionalObject()
-	{
-		return nullptr;
+		return result->Autorelease();
 	}
 	
 	std::string FlatDeserializer::DecodeString()
@@ -615,7 +610,7 @@ namespace RN
 	}
 	Vector4 FlatDeserializer::DecodeVector4()
 	{
-		int64 result;
+		Vector4 result;
 		DecodeData('4', &result, sizeof(Vector4));
 		
 		return result;

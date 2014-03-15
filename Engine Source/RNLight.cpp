@@ -47,11 +47,12 @@ namespace RN
 		_shadowTarget(nullptr),
 		_suppressShadows(false)
 	{
+		AddObservables({ &_color, &_intensity, &_range, &_angle });
+		
 		Light *temp = const_cast<Light *>(other);
 		LockGuard<Object *> lock(temp);
 		
 		_color = other->_color;
-		_direction = other->_direction;
 		
 		_intensity = other->_intensity;
 		_range     = other->_range;
@@ -68,6 +69,91 @@ namespace RN
 	{
 		RemoveShadowCameras();
 	}
+	
+	
+	Light::Light(Deserializer *deserializer) :
+		SceneNode(deserializer),
+		_color("color", Color(1.0f), &Light::GetColor, &Light::SetColor),
+		_intensity("intensity", 10.0f, &Light::GetIntensity, &Light::SetIntensity),
+		_range("range", 10.0f, &Light::GetRange, &Light::SetRange),
+		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle),
+		_angleCos(0.797),
+		_shadowTarget(nullptr),
+		_suppressShadows(false)
+	{
+		AddObservables({ &_color, &_intensity, &_range, &_angle });
+		
+		_lightType = static_cast<Type>(deserializer->DecodeInt32());
+		
+		Vector4 color = deserializer->DecodeVector4();
+		
+		SetColor(Color(color.x, color.y, color.z, color.w));
+		SetIntensity(deserializer->DecodeFloat());
+		SetRange(deserializer->DecodeFloat());
+		SetAngle(deserializer->DecodeFloat());
+		
+		bool shadows = deserializer->DecodeBool();
+		if(shadows)
+		{
+			ShadowParameter parameter;
+			
+			parameter.splits.clear();
+			
+			parameter.shadowTarget = static_cast<Camera *>(deserializer->DecodeObject());
+			parameter.resolution = deserializer->DecodeInt32();
+			parameter.distanceBlendFactor = deserializer->DecodeFloat();
+			
+			size_t splitCount = deserializer->DecodeInt32();
+			for(size_t i = 0; i < splitCount; i ++)
+			{
+				ShadowSplit split;
+				
+				split.biasFactor = deserializer->DecodeFloat();
+				split.biasUnits  = deserializer->DecodeFloat();
+				split.updateInterval = deserializer->DecodeInt32();
+				split.updateOffset   = deserializer->DecodeInt32();
+				
+				parameter.splits.push_back(std::move(split));
+			}
+			
+			if(parameter.shadowTarget)
+				ActivateShadows(parameter);
+			else
+				_shadowParameter = parameter;
+		}
+	}
+	
+	void Light::Serialize(Serializer *serializer)
+	{
+		SceneNode::Serialize(serializer);
+		
+		serializer->EncodeInt32(static_cast<int32>(_lightType));
+		serializer->EncodeVector4(Vector4(_color->r, _color->g, _color->b, _color->a));
+		serializer->EncodeFloat(_intensity);
+		serializer->EncodeFloat(_range);
+		serializer->EncodeFloat(_angle);
+		
+		bool shadows = HasShadows();
+		serializer->EncodeBool(shadows);
+		
+		if(shadows)
+		{
+			serializer->EncodeConditionalObject(_shadowTarget);
+			
+			serializer->EncodeInt32(static_cast<int32>(_shadowParameter.resolution));
+			serializer->EncodeFloat(_shadowParameter.distanceBlendFactor);
+			serializer->EncodeInt32(static_cast<int32>(_shadowParameter.splits.size()));
+			
+			for(ShadowSplit &split : _shadowParameter.splits)
+			{
+				serializer->EncodeFloat(split.biasFactor);
+				serializer->EncodeFloat(split.biasUnits);
+				serializer->EncodeInt32(static_cast<int32>(split.updateInterval));
+				serializer->EncodeInt32(static_cast<int32>(split.updateOffset));
+			}
+		}
+	}
+	
 	
 	bool Light::IsVisibleInCamera(Camera *camera)
 	{
@@ -174,7 +260,12 @@ namespace RN
 	
 	void Light::UpdateShadowParameters(const ShadowParameter &parameter)
 	{
-		RN_ASSERT(HasShadows(), "Shadows need to be activated in order to update their parameters and may not be suppressed!");
+		if(!HasShadows())
+		{
+			ActivateShadows(parameter);
+			return;
+		}
+		
 		
 		if(_shadowParameter.resolution != parameter.resolution || _shadowParameter.splits.size() != parameter.splits.size())
 		{
@@ -262,7 +353,7 @@ namespace RN
 			tempcam->SetLightManager(nullptr);
 			tempcam->SetPriority(kRNShadowCameraPriority);
 			tempcam->SetClipNear(1.0f);
-			tempcam->SceneNode::SetFlags(tempcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor);
+			tempcam->SceneNode::SetFlags(tempcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor | SceneNode::Flags::NoSave);
 			tempcam->Autorelease();
 
 			_shadowDepthCameras.AddObject(tempcam);
@@ -319,7 +410,7 @@ namespace RN
 		shadowcam->SetFOV(90.0f);
 		shadowcam->SetLightManager(nullptr);
 		shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
-		shadowcam->SceneNode::SetFlags(shadowcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor);
+		shadowcam->SceneNode::SetFlags(shadowcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor | SceneNode::Flags::NoSave);
 		shadowcam->Autorelease();
 		
 		_shadowDepthCameras.AddObject(shadowcam);
@@ -376,7 +467,7 @@ namespace RN
 		shadowcam->SetFOV(_angle * 2.0f);
 		shadowcam->SetLightManager(nullptr);
 		shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
-		shadowcam->SceneNode::SetFlags(shadowcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor);
+		shadowcam->SceneNode::SetFlags(shadowcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor | SceneNode::Flags::NoSave);
 		shadowcam->Autorelease();
 		
 		_shadowDepthCameras.AddObject(shadowcam);

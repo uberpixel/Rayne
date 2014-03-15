@@ -76,6 +76,9 @@ namespace TG
 	{
 	public:
 		Sun();
+		Sun(RN::Deserializer *deserializer);
+		
+		void Serialize(RN::Serializer *serializer) override;
 		
 		void SetTime(uint32 hour, uint32 minute, uint32 second);
 		void SetDate(uint32 day, uint32 year);
@@ -117,7 +120,7 @@ namespace TG
 		Gradient _ambientGradient;
 		Gradient _fogGradient;
 		
-		RNDeclareMeta(Sun, RN::Light)
+		RNDeclareMetaWithTraits(Sun, RN::Light, RN::MetaClassTraitSerializable)
 	};
 }
 

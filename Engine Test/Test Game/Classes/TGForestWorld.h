@@ -22,7 +22,7 @@ namespace TG
 	{
 	public:
 		ForestWorld();
-		void LoadOnThread(RN::Thread *thread) override;
+		void LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer) override;
 		
 	private:
 		void LoadBlendAndHeightmap();

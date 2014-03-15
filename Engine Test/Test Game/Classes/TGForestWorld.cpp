@@ -36,9 +36,9 @@ namespace TG
 		}, this);
 	}
 	
-	void ForestWorld::LoadOnThread(RN::Thread *thread)
+	void ForestWorld::LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer)
 	{
-		CreateCameras();
+		World::LoadOnThread(thread, deserializer);
 		LoadLevelJSON("forest.json");
 		
 		// Camera and sun

@@ -75,7 +75,10 @@ namespace RN
 		
 		RNAPI Light(Type type = Type::PointLight);
 		RNAPI Light(const Light *other);
+		RNAPI Light(Deserializer *deserializer);
 		RNAPI ~Light() override;
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI bool ActivateShadows(const ShadowParameter &parameter = ShadowParameter());
 		RNAPI void DeactivateShadows();
@@ -122,7 +125,6 @@ namespace RN
 		
 		Observable<Color, Light> _color;
 		Vector3 _finalColor;
-		Vector3 _direction;
 		
 		Observable<float, Light> _intensity;
 		Observable<float, Light> _range;
@@ -136,7 +138,7 @@ namespace RN
 		bool _suppressShadows;
 		ShadowParameter _shadowParameter;
 		
-		RNDeclareMetaWithTraits(Light, SceneNode, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMetaWithTraits(Light, SceneNode, MetaClassTraitCronstructable, MetaClassTraitCopyable, MetaClassTraitSerializable)
 	};
 }
 

@@ -22,10 +22,11 @@ namespace RN
 		_position("position", &SceneNode::GetPosition, &SceneNode::SetPosition),
 		_rotation("rotation", &SceneNode::GetRotation, &SceneNode::SetRotation),
 		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale),
+		_tag("tag", 0, &SceneNode::GetTag, &SceneNode::SetTag),
 		_uid(__SceneNodeIDs.fetch_add(1))
 	{
 		Initialize();
-		AddObservables({ &_position, &_rotation, &_scale });
+		AddObservables({ &_position, &_rotation, &_scale, &_tag });
 	}
 	
 	SceneNode::SceneNode(const Vector3& position) :
@@ -64,6 +65,77 @@ namespace RN
 	
 	SceneNode::~SceneNode()
 	{}
+	
+	
+	
+	SceneNode::SceneNode(Deserializer *deserializer) :
+		SceneNode()
+	{
+		SetWorldPosition(deserializer->DecodeVector3());
+		SetWorldScale(deserializer->DecodeVector3());
+		SetWorldRotation(deserializer->DecodeQuaternion());
+		
+		_boundingBox.minExtend = deserializer->DecodeVector3();
+		_boundingBox.maxExtend = deserializer->DecodeVector3();
+		_boundingBox.position  = deserializer->DecodeVector3();
+		
+		uint32 groups = static_cast<uint32>(deserializer->DecodeInt32());
+		
+		renderGroup    = (groups & 0xff);
+		collisionGroup = (groups >> 8);
+		
+		_priority = static_cast<Priority>(deserializer->DecodeInt32());
+		_flags    = static_cast<Flags>(deserializer->DecodeInt32());
+		
+		_tag = static_cast<Tag>(deserializer->DecodeInt64());
+		
+		size_t count = static_cast<size_t>(deserializer->DecodeInt64());
+		for(size_t i = 0; i < count; i ++)
+		{
+			SceneNode *child = static_cast<SceneNode *>(deserializer->DecodeObject());
+			
+			if(child)
+				_children.AddObject(child->Autorelease());
+		}
+	}
+	
+	
+	void SceneNode::Serialize(Serializer *serializer)
+	{
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
+		
+		std::lock(lock1, lock2);
+		
+		serializer->EncodeVector3(_worldPosition);
+		serializer->EncodeVector3(_worldScale);
+		serializer->EncodeQuarternion(_worldRotation);
+		
+		serializer->EncodeVector3(_boundingBox.minExtend);
+		serializer->EncodeVector3(_boundingBox.maxExtend);
+		serializer->EncodeVector3(_boundingBox.position);
+		
+		serializer->EncodeInt32(renderGroup | (collisionGroup << 8));
+		serializer->EncodeInt32(static_cast<int32>(_priority));
+		serializer->EncodeInt32(_flags);
+		serializer->EncodeInt64(_tag);
+		
+		serializer->EncodeInt64(static_cast<uint64>(_children.GetCount()));
+		
+		_children.Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
+		
+			bool noSave = (node->_flags & Flags::NoSave);
+			
+			if(noSave)
+				serializer->EncodeConditionalObject(node);
+			else
+				serializer->EncodeObject(node);
+			
+		});
+		
+		lock1.unlock();
+		lock2.unlock();
+	}
 	
 	
 	void SceneNode::Initialize()
@@ -145,22 +217,6 @@ namespace RN
 		}
 		
 		return (this < other);
-	}
-	
-	void SceneNode::Serialize(Serializer *serializer)
-	{
-		serializer->EncodeVector3(_worldPosition);
-		serializer->EncodeVector3(_worldScale);
-		serializer->EncodeQuarternion(_worldRotation);
-		
-		serializer->EncodeVector3(_boundingBox.minExtend);
-		serializer->EncodeVector3(_boundingBox.maxExtend);
-		serializer->EncodeVector3(_boundingBox.position);
-		
-		serializer->EncodeInt32(renderGroup | (collisionGroup << 8));
-		serializer->EncodeInt32(static_cast<int32>(_priority));
-		serializer->EncodeInt32(_flags);
-		serializer->EncodeInt32(_lastFrame);
 	}
 	
 	// -------------------
@@ -269,6 +325,13 @@ namespace RN
 		WillUpdate(ChangeSet::Flags);
 		_flags = flags;
 		DidUpdate(ChangeSet::Flags);
+	}
+	
+	void SceneNode::SetTag(Tag tag)
+	{
+		WillUpdate(ChangeSet::Tag);
+		_tag = tag;
+		DidUpdate(ChangeSet::Tag);
 	}
 	
 	void SceneNode::SetRenderGroup(uint8 group)

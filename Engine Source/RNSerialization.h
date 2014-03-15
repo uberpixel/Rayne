@@ -56,7 +56,6 @@ namespace RN
 	public:
 		RNAPI virtual void *DecodeBytes(size_t *length) = 0;
 		RNAPI virtual Object *DecodeObject() = 0;
-		RNAPI virtual Object *DecodeConditionalObject() = 0;
 		RNAPI virtual std::string DecodeString() = 0;
 		
 		RNAPI virtual bool DecodeBool() = 0;
@@ -127,7 +126,6 @@ namespace RN
 		
 		RNAPI void *DecodeBytes(size_t *length) override;
 		RNAPI Object *DecodeObject() override;
-		RNAPI Object *DecodeConditionalObject() override;
 		RNAPI std::string DecodeString() override;
 		
 		RNAPI bool DecodeBool() override;

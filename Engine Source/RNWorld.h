@@ -56,18 +56,37 @@ namespace RN
 		RNAPI virtual void UpdateEditMode(float delta);
 		RNAPI virtual void DidUpdateToFrame(FrameID frame);
 		
-		RNAPI virtual void LoadOnThread(Thread *thread);
-		RNAPI virtual void FinishLoading();
+		RNAPI virtual void LoadOnThread(Thread *thread, Deserializer *deserializer);
+		RNAPI virtual void FinishLoading(Deserializer *deserializer);
 		RNAPI virtual bool SupportsBackgroundLoading() const;
+		
+		RNAPI virtual void SaveOnThread(Thread *thread, Serializer *serializer);
+		RNAPI virtual void FinishSaving(Serializer *serializer);
+		RNAPI virtual bool SupportsBackgroundSaving() const;
 		
 		RNAPI SceneManager *GetSceneManager() const { return _sceneManager; }
 		RNAPI Array *GetSceneNodes();
 		RNAPI Mode GetMode() const { return _mode; }
 		
+		template<class T>
+		T *GetSceneNodeWithTag(Tag tag)
+		{
+			return static_cast<T *>(__GetSceneNodeWithTag(tag, T::MetaClass()));
+		}
+		
+		template<class T>
+		Array *GetSceneNodesWithTag(Tag tag)
+		{
+			return __GetSceneNodesWithTag(tag, T::MetaClass());
+		}
+		
 		RNAPI static World *GetActiveWorld();
 		
 	private:		
 		static class SceneManager *SceneManagerWithName(const std::string& name);
+		
+		RNAPI SceneNode *__GetSceneNodeWithTag(Tag tag, MetaClassBase *meta);
+		RNAPI Array *__GetSceneNodesWithTag(Tag tag, MetaClassBase *meta);
 		
 		void StepWorld(FrameID frame, float delta);
 		void StepWorldEditMode(FrameID frame, float delta);
@@ -76,6 +95,7 @@ namespace RN
 		
 		void SceneNodeWillRender(SceneNode *node);
 		
+		void SceneNodeWillUpdate(SceneNode *node, SceneNode::ChangeSet changeSet);
 		void SceneNodeDidUpdate(SceneNode *node, SceneNode::ChangeSet changeSet);
 		void DropSceneNode(SceneNode *node);
 		
@@ -110,6 +130,7 @@ namespace RN
 		std::vector<SceneNode *> _staticNodes;
 		
 		std::vector<Camera *> _cameras;
+		std::unordered_map<Tag, std::unordered_set<SceneNode *>> _tagTable;
 		
 		SceneManager  *_sceneManager;
 		MetaClassBase *_cameraClass;

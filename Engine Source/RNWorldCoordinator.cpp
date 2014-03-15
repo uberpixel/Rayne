@@ -62,7 +62,10 @@ namespace RN
 	}
 	
 	
-
+	// ---------------------
+	// MARK: -
+	// MARK: Loading
+	// ---------------------
 	
 	Progress *WorldCoordinator::LoadWorld(World *world)
 	{
@@ -78,7 +81,9 @@ namespace RN
 		_world = SafeRetain(world);
 		_loading.store(true);
 		
-		std::packaged_task<bool ()> task(std::bind(&WorldCoordinator::BeginLoading, this));
+		_deserializer = nullptr;
+		
+		std::packaged_task<bool ()> task(std::bind(&WorldCoordinator::BeginLoading, this, nullptr));
 		_loadFuture = task.get_future();
 		_loadingProgress = new Progress(0);
 		
@@ -97,7 +102,82 @@ namespace RN
 		return _loadingProgress;
 	}
 	
-	bool WorldCoordinator::BeginLoading()
+	Progress *WorldCoordinator::LoadWorld(const std::string &file)
+	{
+		_lock.Lock();
+		
+		if(_loading)
+		{
+			_lock.Unlock();
+			throw Exception(Exception::Type::InconsistencyException, "Tried to load a World while another one is already loading");
+		}
+		
+		
+		_deserializer = new FlatDeserializer(Data::WithContentsOfFile(file));
+		return __LoadWorld(_deserializer);
+	}
+	
+	Progress *WorldCoordinator::LoadWorld(Deserializer *deserializer)
+	{
+		_lock.Lock();
+		
+		if(_loading)
+		{
+			_lock.Unlock();
+			throw Exception(Exception::Type::InconsistencyException, "Tried to load a World while another one is already loading");
+		}
+		
+		
+		_deserializer = SafeRetain(deserializer);
+		return __LoadWorld(_deserializer);
+	}
+	
+	Progress *WorldCoordinator::__LoadWorld(Deserializer *deserializer)
+	{
+		int32 magic   = deserializer->DecodeInt32();
+		int32 version = deserializer->DecodeInt32();
+		
+		if(magic != 0xdeadf00d)
+		{
+			_lock.Unlock();
+			throw Exception(Exception::Type::InconsistencyException, "Invalid magic for World");
+		}
+		
+		if(version != 0)
+		{
+			_lock.Unlock();
+			throw Exception(Exception::Type::InconsistencyException, "Invalid version for World");
+		}
+		
+		
+		std::string mname = deserializer->DecodeString();
+		MetaClassBase *meta = Catalogue::GetSharedInstance()->GetClassWithName(mname);
+		
+		
+		SafeRelease(_world);
+		_world = static_cast<World *>(meta->Construct());
+		_loading.store(true);
+		
+		std::packaged_task<bool ()> task(std::bind(&WorldCoordinator::BeginLoading, this, _deserializer));
+		_loadFuture = task.get_future();
+		_loadingProgress = new Progress(0);
+		
+		if(_world->SupportsBackgroundLoading())
+		{
+			_loadThread = new Thread(std::move(task), false);
+			_loadThread->SetName("WorldCoordinator");
+			_loadThread->Detach();
+		}
+		else
+		{
+			_loadThread = nullptr;
+			task();
+		}
+		
+		return _loadingProgress;
+	}
+	
+	bool WorldCoordinator::BeginLoading(Deserializer *deserializer)
 	{
 		AutoreleasePool pool;
 		
@@ -105,13 +185,16 @@ namespace RN
 		
 		_loadState = 0;
 		_loadingProgress->MakeActive();
-		_world->LoadOnThread(Thread::GetCurrentThread());
+		_world->LoadOnThread(Thread::GetCurrentThread(), deserializer);
 		
 		return true;
 	}
 	
 	bool WorldCoordinator::AwaitFinishLoading()
 	{
+		if(!_loading.load())
+			return true;
+		
 		if(_loadState >= 1)
 		{
 			try
@@ -146,9 +229,11 @@ namespace RN
 		if(!state)
 			SafeRelease(_world);
 		else
-			_world->FinishLoading();
+			_world->FinishLoading(_deserializer);
 		
 		MessageCenter::GetSharedInstance()->PostMessage(kRNWorldCoordinatorDidFinishLoadingMessage, _world, nullptr);
+		
+		RN::SafeRelease(_deserializer);
 		
 		_loadingProgress->Release();
 		_loadingProgress = nullptr;
@@ -159,5 +244,44 @@ namespace RN
 	{
 		_lock.Lock();
 		_lock.Unlock();
+	}
+	
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Saving
+	// ---------------------
+	
+	void WorldCoordinator::SaveWorld(const std::string &file)
+	{
+		FlatSerializer *serializer = new FlatSerializer();
+		
+		LockGuard<Mutex> lock(_lock);
+		BeginSaving(serializer);
+		lock.Unlock();
+		
+		// Write to file
+		Data *data = serializer->GetSerializedData();
+		data->WriteToFile(file);
+		
+		serializer->Release();
+	}
+	
+	void WorldCoordinator::SaveWorld(Serializer *serializer)
+	{
+		LockGuard<Mutex> lock(_lock);
+		BeginSaving(serializer);
+		lock.Unlock();
+	}
+	
+	void WorldCoordinator::BeginSaving(Serializer *serializer)
+	{
+		serializer->EncodeInt32(0xdeadf00d);
+		serializer->EncodeInt32(0);
+		
+		serializer->EncodeString(_world->Class()->Fullname().c_str());
+		
+		_world->SaveOnThread(Thread::GetCurrentThread(), serializer);
+		_world->FinishSaving(serializer);
 	}
 }

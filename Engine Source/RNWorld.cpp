@@ -383,6 +383,13 @@ namespace RN
 					node->_worldStatic = false;
 				}
 				
+				Tag tag = node->GetTag();
+				if(tag != 0)
+				{
+					std::unordered_set<SceneNode *> &table = _tagTable[tag];
+					table.insert(node);
+				}
+				
 				RunWorldAttachement(&WorldAttachment::DidAddSceneNode, node);
 				node->DidUpdate(SceneNode::ChangeSet::World);
 			}
@@ -398,6 +405,24 @@ namespace RN
 			SortCameras();
 	}
 	
+	
+	void World::SceneNodeWillUpdate(SceneNode *node, SceneNode::ChangeSet changeSet)
+	{
+		if(changeSet & SceneNode::ChangeSet::Tag)
+		{
+			Tag tag = node->GetTag();
+			if(tag != 0)
+			{
+				LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+				
+				std::unordered_set<SceneNode *> &table = _tagTable[tag];
+				table.erase(node);
+				
+				if(table.empty())
+					_tagTable.erase(tag);
+			}
+		}
+	}
 	
 	void World::SceneNodeDidUpdate(SceneNode *node, SceneNode::ChangeSet changeSet)
 	{
@@ -442,6 +467,18 @@ namespace RN
 					
 					node->_worldStatic = false;
 				}
+			}
+		}
+		
+		if(changeSet & SceneNode::ChangeSet::Tag)
+		{
+			Tag tag = node->GetTag();
+			if(tag != 0)
+			{
+				LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+				
+				std::unordered_set<SceneNode *> &table = _tagTable[tag];
+				table.insert(node);
 			}
 		}
 	}
@@ -506,6 +543,75 @@ namespace RN
 		});
 	}
 	
+	SceneNode *World::__GetSceneNodeWithTag(Tag tag, MetaClassBase *meta)
+	{
+		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+		
+		if(_isDroppingSceneNodes)
+			return nullptr;
+		
+		ApplyNodes();
+		
+		if(tag == 0)
+		{
+			for(SceneNode *node : _nodes)
+			{
+				if(node->_tag == tag && node->IsKindOfClass(meta))
+					return node->Retain()->Autorelease();
+			}
+		}
+		else
+		{
+			auto iterator = _tagTable.find(tag);
+			if(iterator == _tagTable.end())
+				return nullptr;
+			
+			std::unordered_set<SceneNode *> &table = iterator->second;
+			for(SceneNode *node : table)
+			{
+				if(node->IsKindOfClass(meta))
+					return node->Retain()->Autorelease();
+			}
+		}
+		
+		return nullptr;
+	}
+	
+	Array *World::__GetSceneNodesWithTag(Tag tag, MetaClassBase *meta)
+	{
+		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+		
+		if(_isDroppingSceneNodes)
+			return nullptr;
+		
+		ApplyNodes();
+		Array *array = new Array();
+		
+		if(tag == 0)
+		{
+			for(SceneNode *node : _nodes)
+			{
+				if(node->_tag == tag && node->IsKindOfClass(meta))
+					array->AddObject(node);
+			}
+		}
+		else
+		{
+			auto iterator = _tagTable.find(tag);
+			if(iterator == _tagTable.end())
+				return nullptr;
+			
+			std::unordered_set<SceneNode *> &table = iterator->second;
+			for(SceneNode *node : table)
+			{
+				if(node->IsKindOfClass(meta))
+					array->AddObject(node);
+			}
+		}
+		
+		return array->Autorelease();
+	}
+	
 	Array *World::GetSceneNodes()
 	{
 		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
@@ -547,17 +653,74 @@ namespace RN
 	
 	// ---------------------
 	// MARK: -
-	// MARK: Loading
+	// MARK: Loading / Saving
 	// ---------------------
 	
-	void World::LoadOnThread(Thread *thread)
-	{}
+	void World::LoadOnThread(Thread *thread, Deserializer *deserializer)
+	{
+		DropSceneNodes();
+		
+		if(deserializer)
+		{
+			int32 version = deserializer->DecodeInt32();
+			RN_ASSERT(version == 0, "World was encoded with an invalid version (%i)", version);
+			
+			_sceneManager->Release();
+			_sceneManager = SceneManagerWithName(deserializer->DecodeString())->Retain();
+			
+			_releaseSceneNodesOnDestructor = deserializer->DecodeBool();
+			
+			size_t nodes = static_cast<size_t>(deserializer->DecodeInt64());
+			
+			for(size_t i = 0; i < nodes; i ++)
+			{
+				SceneNode *node = static_cast<SceneNode *>(deserializer->DecodeObject());
+				
+				if(node)
+					AddSceneNode(node);
+			}
+		}
+	}
 	
-	void World::FinishLoading()
-	{}
+	void World::FinishLoading(Deserializer *deserializer)
+	{
+		ApplyNodes();
+	}
 	
 	bool World::SupportsBackgroundLoading() const
 	{
 		return true;
+	}
+	
+	void World::SaveOnThread(Thread *thread, Serializer *serializer)
+	{
+		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+		ApplyNodes();
+		
+		serializer->EncodeInt32(0);
+		serializer->EncodeString(_sceneManager->Class()->Name()),
+		serializer->EncodeBool(_releaseSceneNodesOnDestructor);
+		
+		serializer->EncodeInt64(static_cast<int64>(_nodes.size()));
+		
+		std::vector<SceneNode *> saveables;
+		
+		for(SceneNode *node : _nodes)
+		{
+			bool noSave = (node->_flags & SceneNode::Flags::NoSave);
+			
+			if(noSave)
+				serializer->EncodeConditionalObject(node);
+			else
+				serializer->EncodeObject(node);
+		}
+	}
+	
+	void World::FinishSaving(Serializer *serializer)
+	{}
+	
+	bool World::SupportsBackgroundSaving() const
+	{
+		return false;
 	}
 }

@@ -12,6 +12,9 @@
 #include <Rayne.h>
 #include "TGWorld.h"
 
+#define TGSunTag   1
+#define TGLightTag 2
+
 namespace TG
 {
 	class SponzaWorld : public World
@@ -19,7 +22,10 @@ namespace TG
 	public:
 		SponzaWorld();
 		
-		void LoadOnThread(RN::Thread *thread) override;
+		void LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer) override;
+		void SaveOnThread(RN::Thread *thread, RN::Serializer *serializer) override;
+		
+		RNDeclareMetaWithTraits(SponzaWorld, World, RN::MetaClassTraitCronstructable)
 	};
 }
 

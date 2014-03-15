@@ -23,6 +23,8 @@ namespace TG
 		World();
 		~World();
 		
+		void LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer) override;
+		
 		void Update(float delta) override;
 		void SetCutScene(const std::string &file);
 		
@@ -71,6 +73,8 @@ namespace TG
 		
 		DebugDrawer *_debugDrawer;
 		CutScene *_cutScene;
+		
+		RNDeclareMeta(World, RN::World)
 	};
 }
 

@@ -21,15 +21,16 @@ namespace RN
 	public:
 		friend class ResourceCoordinator;
 		
-		~Asset() override;
+		RNAPI ~Asset() override;
 		
-		void Serialize(Serializer *serializer) override;
-		static Asset *Deserialize(Deserializer *deserializer);
+		RNAPI void Serialize(Serializer *serializer) override;
+		RNAPI const std::string &GetName() const;
 		
-		const std::string &GetName() const;
+		RNAPI static Asset *Deserialize(Deserializer *deserializer);
 		
 	protected:
-		Asset();
+		RNAPI Asset();
+		RNAPI virtual void Unfault(Deserializer *deserializer);
 		
 	private:
 		void SetName(const std::string &name);
