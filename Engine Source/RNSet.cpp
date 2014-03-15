@@ -9,6 +9,7 @@
 #include "RNSet.h"
 #include "RNArray.h"
 #include "RNHashTableInternal.h"
+#include "RNSerialization.h"
 
 namespace RN
 {
@@ -83,6 +84,27 @@ namespace RN
 	
 	
 	
+	Set::Set(Deserializer *deserializer)
+	{
+		size_t count = static_cast<size_t>(deserializer->DecodeInt64());
+		
+		for(size_t i = 0; i < count; i ++)
+		{
+			Object *object = deserializer->DecodeObject();
+			AddObject(object);
+		}
+	}
+	
+	void Set::Serialize(Serializer *serializer)
+	{
+		serializer->EncodeInt64(static_cast<int64>(GetCount()));
+		
+		Enumerate([&](Object *object, bool &stop) {
+			
+			serializer->EncodeObject(object);
+			
+		});
+	}
 	
 	
 	Array *Set::GetAllObjects() const

@@ -18,6 +18,13 @@ namespace RN
 	Null::~Null()
 	{}
 	
+	
+	Null::Null(Deserializer *deserializer)
+	{}
+	void Null::Serialize(Serializer *serializer)
+	{}
+	
+	
 	Null *Null::GetNull()
 	{
 		static std::once_flag flag;

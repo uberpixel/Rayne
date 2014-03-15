@@ -23,7 +23,10 @@ namespace RN
 		RNAPI Dictionary();
 		RNAPI Dictionary(size_t capacity);
 		RNAPI Dictionary(const Dictionary *other);
+		RNAPI Dictionary(Deserializer *deserializer);
 		RNAPI ~Dictionary() override;
+		
+		RNAPI void Serialize(Serializer *serializer);
 		
 		RNAPI bool IsEqual(Object *other) const override;
 		

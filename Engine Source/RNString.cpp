@@ -9,6 +9,7 @@
 #include "RNString.h"
 #include "RNFile.h"
 #include "RNBasicString.h"
+#include "RNSerialization.h"
 
 namespace RN
 {
@@ -99,6 +100,25 @@ namespace RN
 	String::~String()
 	{
 		_ainternal->Release();
+	}
+	
+	
+	
+	String::String(Deserializer *deserializer)
+	{
+		size_t length;
+		uint8 *bytes = static_cast<uint8 *>(deserializer->DecodeBytes(&length));
+		
+		_internal = StringFactory::ConstructString(bytes, length, Encoding::UTF8, StringTraits::Mutable);
+		_encoding = _ainternal->CharacterEncoding();
+	}
+	
+	void String::Serialize(Serializer *serializer)
+	{
+		size_t length;
+		uint8 *bytes = GetBytesWithEncoding(Encoding::UTF8, false, &length);
+		
+		serializer->EncodeBytes(bytes, length);
 	}
 	
 	

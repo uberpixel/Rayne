@@ -8,6 +8,7 @@
 
 #include "RNData.h"
 #include "RNFile.h"
+#include "RNSerialization.h"
 
 #define kRNDataIncreaseLength 64
 
@@ -66,6 +67,25 @@ namespace RN
 		if(_freeData)
 			delete[] _bytes;
 	}
+	
+	
+	
+	Data::Data(Deserializer *deserializer)
+	{
+		uint8 *data = static_cast<uint8 *>(deserializer->DecodeBytes(&_length));
+		
+		_allocated = _length;
+		_freeData  = _ownsData = true;
+		_bytes     = new uint8[_allocated];
+		
+		std::copy(data, data + _length, _bytes);
+	}
+	
+	void Data::Serialize(Serializer *serializer)
+	{
+		serializer->EncodeBytes(_bytes, _length);
+	}
+	
 	
 	
 	Data *Data::WithBytes(const uint8 *bytes, size_t length)

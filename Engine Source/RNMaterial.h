@@ -175,7 +175,10 @@ namespace RN
 		RNAPI Material();
 		RNAPI Material(Shader *shader);
 		RNAPI Material(const Material *other);
+		RNAPI Material(Deserializer *deserializer);
 		RNAPI ~Material() override;
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI void SetShader(Shader *shader);
 		
@@ -194,7 +197,7 @@ namespace RN
 		RNAPI void Define(const std::string& define, float value);
 		RNAPI void Undefine(const std::string& define);
 		
-		RNAPI const Array *GetTextures() const { return &_textures; }
+		RNAPI const Array *GetTextures() const { return _textures; }
 		RNAPI const ShaderLookup& GetLookup() const { return _lookup; }
 		
 		template<class ... Args>
@@ -308,7 +311,7 @@ namespace RN
 		RNAPI void InsertShaderUniform(ShaderUniform *uniform);
 		
 		Shader *_shader;
-		Array _textures;
+		Array *_textures;
 		
 		ShaderLookup _lookup;
 		std::vector<ShaderDefine> _defines;

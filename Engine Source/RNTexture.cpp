@@ -16,7 +16,7 @@
 
 namespace RN
 {
-	RNDefineMeta(Texture, Object)
+	RNDefineMeta(Texture, Asset)
 	RNDefineMeta(Texture2D, Texture)
 	RNDefineMeta(Texture2DArray, Texture)
 	RNDefineMeta(TextureCubeMap, Texture)

@@ -191,7 +191,8 @@ namespace RN
 	
 	
 	Material::Material() :
-		_lookup(0)
+		_lookup(0),
+		_textures(new Array())
 	{
 		Initialize();
 		_shader = nullptr;
@@ -241,7 +242,7 @@ namespace RN
 		override = other->override;
 		
 		_defines = other->_defines;
-		_textures.AddObjectsFromArray(&other->_textures);
+		_textures->AddObjectsFromArray(other->_textures);
 		
 		UpdateLookupRequest();
 	}
@@ -249,6 +250,7 @@ namespace RN
 	Material::~Material()
 	{
 		SafeRelease(_shader);
+		_textures->Release();
 	}
 	
 	void Material::Initialize()
@@ -281,6 +283,101 @@ namespace RN
 	}
 	
 	
+	Material::Material(Deserializer *deserializer) :
+		Material()
+	{
+		_shader = SafeRetain(static_cast<Shader *>(deserializer->DecodeObject()));
+		
+		lighting = deserializer->DecodeBool();
+		
+		cullMode    = static_cast<CullMode>(deserializer->DecodeInt32());
+		polygonMode = static_cast<PolygonMode>(deserializer->DecodeInt32());
+		
+		blending = deserializer->DecodeBool();
+		blendEquation = static_cast<BlendEquation>(deserializer->DecodeInt32());
+		alphaBlendEquation = static_cast<BlendEquation>(deserializer->DecodeInt32());
+		
+		blendSource = static_cast<BlendMode>(deserializer->DecodeInt32());
+		blendDestination = static_cast<BlendMode>(deserializer->DecodeInt32());
+		alphaBlendSource = static_cast<BlendMode>(deserializer->DecodeInt32());
+		alphaBlendDestination = static_cast<BlendMode>(deserializer->DecodeInt32());
+		
+		polygonOffset = deserializer->DecodeBool();
+		polygonOffsetFactor = deserializer->DecodeFloat();
+		polygonOffsetUnits  = deserializer->DecodeFloat();
+		
+		ambient  = deserializer->DecodeColor();
+		diffuse  = deserializer->DecodeColor();
+		specular = deserializer->DecodeColor();
+		emissive = deserializer->DecodeColor();
+		
+		depthTest = deserializer->DecodeBool();
+		depthWrite = deserializer->DecodeBool();
+		depthTestMode = static_cast<DepthMode>(deserializer->DecodeInt32());
+		
+		discard = deserializer->DecodeBool();
+		discardThreshold = deserializer->DecodeFloat();
+		
+		override = static_cast<Override>(deserializer->DecodeInt32());
+		
+		_textures->Release();
+		_textures = static_cast<Array *>(deserializer->DecodeObject())->Retain();
+		
+		
+		size_t count = static_cast<size_t>(deserializer->DecodeInt32());
+		for(size_t i = 0; i < count; i ++)
+		{
+			_defines.emplace_back(deserializer->DecodeString(), deserializer->DecodeString());
+		}
+		
+		UpdateLookupRequest();
+	}
+	
+	void Material::Serialize(Serializer *serializer)
+	{
+		serializer->EncodeObject(_shader);
+		serializer->EncodeBool(lighting);
+		
+		serializer->EncodeInt32(static_cast<int32>(cullMode));
+		serializer->EncodeInt32(static_cast<int32>(polygonMode));
+		
+		serializer->EncodeBool(blending);
+		serializer->EncodeInt32(static_cast<int32>(blendEquation));
+		serializer->EncodeInt32(static_cast<int32>(alphaBlendEquation));
+		serializer->EncodeInt32(static_cast<int32>(blendSource));
+		serializer->EncodeInt32(static_cast<int32>(blendDestination));
+		serializer->EncodeInt32(static_cast<int32>(alphaBlendSource));
+		serializer->EncodeInt32(static_cast<int32>(alphaBlendDestination));
+		
+		serializer->EncodeBool(polygonOffset);
+		serializer->EncodeFloat(polygonOffsetFactor);
+		serializer->EncodeFloat(polygonOffsetUnits);
+		
+		serializer->EncodeColor(ambient);
+		serializer->EncodeColor(diffuse);
+		serializer->EncodeColor(specular);
+		serializer->EncodeColor(emissive);
+		
+		serializer->EncodeBool(depthTest);
+		serializer->EncodeBool(depthWrite);
+		serializer->EncodeInt32(static_cast<int32>(depthTestMode));
+		
+		serializer->EncodeBool(discard);
+		serializer->EncodeFloat(discardThreshold);
+		
+		serializer->EncodeInt32(static_cast<int32>(override));
+		serializer->EncodeObject(_textures);
+		
+		size_t count = _defines.size();
+		serializer->EncodeInt32(static_cast<int32>(count));
+		
+		for(ShaderDefine &define : _defines)
+		{
+			serializer->EncodeString(define.name);
+			serializer->EncodeString(define.value);
+		}
+	}
+	
 	
 	void Material::SetShader(Shader *shader)
 	{
@@ -302,40 +399,40 @@ namespace RN
 	
 	void Material::AddTexture(Texture *texture)
 	{
-		_textures.AddObject(texture);
+		_textures->AddObject(texture);
 	}
 	
 	void Material::InsertTexture(Texture *texture, size_t index)
 	{
-		if(index >= _textures.GetCount())
+		if(index >= _textures->GetCount())
 			throw Exception(Exception::Type::InvalidArgumentException, "index mustn't be out of bounds!");
 		
 		if(!texture)
 			throw Exception(Exception::Type::InvalidArgumentException, "texture mustn't be null!");
 		
-		_textures.InsertObjectAtIndex(texture, index);
+		_textures->InsertObjectAtIndex(texture, index);
 		
 	}
 	
 	void Material::ReplaceTexture(Texture *texture, size_t index)
 	{
-		if(index >= _textures.GetCount())
+		if(index >= _textures->GetCount())
 			throw Exception(Exception::Type::InvalidArgumentException, "index mustn't be out of bounds!");
 		
 		if(!texture)
 			throw Exception(Exception::Type::InvalidArgumentException, "texture mustn't be null!");
 		
-		_textures.ReplaceObjectAtIndex(index, texture);
+		_textures->ReplaceObjectAtIndex(index, texture);
 	}
 	
 	void Material::RemoveTexture(Texture *texture)
 	{
-		_textures.RemoveObject(texture);
+		_textures->RemoveObject(texture);
 	}
 	
 	void Material::RemoveTextures()
 	{
-		_textures.RemoveAllObjects();
+		_textures->RemoveAllObjects();
 	}
 	
 	

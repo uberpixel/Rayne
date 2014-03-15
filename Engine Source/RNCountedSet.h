@@ -24,7 +24,10 @@ namespace RN
 		RNAPI CountedSet(size_t capacity);
 		RNAPI CountedSet(const Array *other);
 		RNAPI CountedSet(const CountedSet *other);
+		RNAPI CountedSet(Deserializer *deserializer);
 		RNAPI ~CountedSet() override;
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI void AddObject(Object *object);
 		RNAPI void RemoveObject(Object *object);

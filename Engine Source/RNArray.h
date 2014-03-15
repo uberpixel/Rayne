@@ -22,12 +22,14 @@ namespace RN
 		RNAPI Array(size_t size);
 		RNAPI Array(const Array *other);
 		RNAPI Array(const Set *set);
-		
+		RNAPI Array(Deserializer *deserializer);
 		RNAPI ~Array() override;
 		
 		RNAPI static Array *WithArray(const Array *other);
 		RNAPI static Array *WithSet(const Set *set);
 		RNAPI static Array *WithObjects(Object *first, ...);
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		
 		Object *operator [](int index) const

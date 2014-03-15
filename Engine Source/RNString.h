@@ -37,7 +37,10 @@ namespace RN
 		RNAPI String(const void *bytes, Encoding encoding, bool constant=false);
 		RNAPI String(const void *bytes, size_t length, Encoding encoding, bool constant=false);
 		RNAPI String(const String *string);
+		RNAPI String(Deserializer *deserializer);
 		RNAPI ~String() override;
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI static String *WithFormat(const char *string, ...);
 		RNAPI static String *WithString(const char *string, bool constant=false);
