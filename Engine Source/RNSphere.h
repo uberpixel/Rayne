@@ -81,10 +81,12 @@ namespace RN
 	{
 		Hit hit;
 		
+		Vector3 pos = position - this->position - this->offset;
+		
 		//Compute A, B and C coefficients
 		float a = direction.GetDotProduct(direction);
-		float b = 2.0f * direction.GetDotProduct(position);
-		float c = position.GetDotProduct(position) - (radius * radius);
+		float b = 2.0f * direction.GetDotProduct(pos);
+		float c = pos.GetDotProduct(pos) - (radius * radius);
 		
 		//Find discriminant
 		float disc = b * b - 4.0f * a * c;
@@ -123,13 +125,13 @@ namespace RN
 		// if t0 is less than zero, the intersection point is at t1
 		if (t0 < 0.0f)
 		{
-			hit.position = position+direction*t1;
+			hit.position = this->position + this->offset + direction * t1;
 			hit.distance = t1;
 			return hit;
 		}
 		else
 		{
-			hit.position = position+direction*t0;
+			hit.position = this->position + this->offset + direction * t0;
 			hit.distance = t0;
 			return hit;
 		}

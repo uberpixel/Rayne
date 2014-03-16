@@ -96,6 +96,12 @@ namespace RN
 		_material->SetPolygonOffsetFactor(-2.0f);
 		_material->SetPolygonOffsetUnits(1.0f);
 		
+		AABB box;
+		box.maxExtend = RN::Vector3(1.0f);
+		box.minExtend = RN::Vector3(-1.0f);
+		SetBoundingBox(box);
+		SetBoundingSphere(Sphere(box));
+		
 		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementMember = 3;
 		vertexDescriptor.elementSize   = sizeof(Vector3);
@@ -174,13 +180,7 @@ namespace RN
 	
 	void Decal::UpdateMesh()
 	{
-		AABB box;
-		box.position = GetWorldPosition();
-		box.maxExtend = GetWorldScale();
-		box.minExtend = -GetWorldScale();
-		box.SetRotation(GetWorldRotation());
-		SetBoundingBox(box);
-		SetBoundingSphere(Sphere(box));
+		AABB box = GetBoundingBox();
 		World *world = World::GetActiveWorld();
 		world->ApplyNodes();
 		std::vector<SceneNode *> nodes = world->GetSceneManager()->GetSceneNodes(box);
@@ -1325,13 +1325,7 @@ namespace RN
 	
 	Hit Decal::CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
 	{
-		Hit hit;
-		
-		if(!GetBoundingSphere().IntersectsRay(position, direction))
-			return hit;
-		
-		hit.position = GetWorldPosition();
-		hit.distance = hit.position.GetDistance(position);
+		Hit hit = GetBoundingSphere().CastRay(position, direction);
 		hit.node = this;
 		
 		return hit;
