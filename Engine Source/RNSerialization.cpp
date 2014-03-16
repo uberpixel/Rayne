@@ -147,9 +147,9 @@ namespace RN
 			return;
 		}
 		
-		if(!object->IsKindOfClass(Asset::MetaClass()))
-			RN_ASSERT(object->Class()->SupportsSerialization(), "EncodeObject() only works with objects that support serialization!");
-	
+		if(!object->IsKindOfClass(Asset::MetaClass()) && !object->Class()->SupportsSerialization())
+			throw Exception(Exception::Type::InvalidArgumentException, "EncodeObject() only works with objects that support serialization!");
+		
 		auto iterator = _objectTable.find(object);
 		if(iterator != _objectTable.end())
 		{
@@ -161,7 +161,7 @@ namespace RN
 			return;
 		}
 		
-		uint32 index = EncodeClassName(String::WithString(object->Class()->Fullname().c_str()));
+		uint32 index  = EncodeClassName(String::WithString(object->Class()->Fullname().c_str()));
 		size_t tindex = _data->GetLength();
 		
 		EncodeData('@', sizeof(uint32), &index);
@@ -353,7 +353,9 @@ namespace RN
 		char type;
 
 		PeekHeader(&type, size);
-		RN_ASSERT(type == expected, "Expected type %c but got %c", expected, type);
+		
+		if(type != expected)
+			throw Exception(Exception::Type::InconsistencyException, "Expected type %c but got %c!", expected, type);
 		
 		DecodeHeader(nullptr, nullptr);
 	}
@@ -693,7 +695,8 @@ namespace RN
 		size_t tsize;
 		AssertType(expected, &tsize);
 		
-		RN_ASSERT(tsize == size, "%i != %i", (int)tsize, (int)size);
+		if(tsize != size)
+			throw Exception(Exception::Type::InconsistencyException, "Size inconsitency (%i != %i)", (int)tsize, (int)size);
 		
 		_data->GetBytesInRange(buffer, Range(_index, size));
 		_index += size;
