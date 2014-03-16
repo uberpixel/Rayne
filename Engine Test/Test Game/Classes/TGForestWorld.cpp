@@ -217,6 +217,26 @@ namespace TG
 			
 			grassNode->AddChild(entity);
 		}
+		
+		
+		RN::Texture *blooddecal1tex = RN::Texture::WithFile("textures/penta.png");
+		RN::Decal *blooddecal1 = new RN::Decal(blooddecal1tex);
+		blooddecal1->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
+		blooddecal1->GetMaterial()->Define("RN_SPECULARITY");
+		blooddecal1->GetMaterial()->Define("RN_NORMALMAP");
+		blooddecal1->GetMaterial()->SetSpecularColor(RN::Color(0.02f, 0.02f, 0.02f, 256.0f));
+		blooddecal1->GetMaterial()->AddTexture(RN::Texture::WithFile("textures/penta_NRM.png"));
+		blooddecal1->Release();
+		
+		RN::Texture *blooddecal2tex = RN::Texture::WithFile("textures/blood_decal.png");
+		RN::Decal *blooddecal2 = new RN::Decal(blooddecal2tex);
+		blooddecal2->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
+		blooddecal2->GetMaterial()->Define("RN_SPECULARITY");
+		blooddecal2->GetMaterial()->Define("RN_NORMALMAP");
+		blooddecal2->GetMaterial()->SetSpecularColor(RN::Color(0.02f, 0.02f, 0.02f, 256.0f));
+		blooddecal2->GetMaterial()->AddTexture(RN::Texture::WithFile("textures/blood_decal_NRM.png"));
+		blooddecal2->Release();
+		
 		Fire * fire = new Fire();
 		fire->Release();
 	}

@@ -85,17 +85,35 @@ namespace TG
 			_sunLight->SetTag(TGSunTag);
 			_sunLight->Release();
 			
-			/*RN::Texture *billboardtex = RN::Texture::WithFile("textures/billboard.png");
-			RN::Texture::Parameter param = billboardtex->GetParameter();
-			param.wrapMode = RN::Texture::WrapMode::Clamp;
-			billboardtex->SetParameter(param);
-			RN::Decal *billboard = new RN::Decal(billboardtex);
+			RN::Texture *billboardtex = RN::Texture::WithFile("textures/billboard.png");
+			RN::Billboard *billboard = new RN::Billboard(billboardtex);
 			
-			//billboard->SetScale(RN::Vector3(0.04f));
+			billboard->SetScale(RN::Vector3(0.04f));
 			billboard->SetRenderGroup(1);
 			billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
 			billboard->Translate(RN::Vector3(-17.35f, 12.0f, 0.7f));
-			billboard->Release();*/
+			billboard->Release();
+			
+			
+			RN::Texture *blooddecal1tex = RN::Texture::WithFile("textures/blood_decal.png");
+			RN::Decal *blooddecal1 = new RN::Decal(blooddecal1tex);
+			blooddecal1->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
+			blooddecal1->Translate(RN::Vector3(-17.35f, 14.0f, 0.7f));
+			blooddecal1->GetMaterial()->Define("RN_SPECULARITY");
+			blooddecal1->GetMaterial()->Define("RN_NORMALMAP");
+			blooddecal1->GetMaterial()->SetSpecularColor(RN::Color(0.02f, 0.02f, 0.02f, 256.0f));
+			blooddecal1->GetMaterial()->AddTexture(RN::Texture::WithFile("textures/blood_decal_NRM.png"));
+			blooddecal1->Release();
+			
+			RN::Texture *blooddecal2tex = RN::Texture::WithFile("textures/penta.png");
+			RN::Decal *blooddecal2 = new RN::Decal(blooddecal2tex);
+			blooddecal2->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
+			blooddecal2->Translate(RN::Vector3(-17.35f, 14.0f, 0.7f));
+			blooddecal2->GetMaterial()->Define("RN_SPECULARITY");
+			blooddecal2->GetMaterial()->Define("RN_NORMALMAP");
+			blooddecal2->GetMaterial()->SetSpecularColor(RN::Color(0.02f, 0.02f, 0.02f, 256.0f));
+			blooddecal2->GetMaterial()->AddTexture(RN::Texture::WithFile("textures/penta_NRM.png"));
+			blooddecal2->Release();
 		}
 		else
 		{
