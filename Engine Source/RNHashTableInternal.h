@@ -103,9 +103,8 @@ namespace RN
 					if(bucket->object)
 					{
 						Bucket *copy = new Bucket(bucket);
-						if(temp)
-							temp->next = copy;
-						
+
+						copy->next = temp;
 						temp = copy;
 					}
 					
