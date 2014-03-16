@@ -22,11 +22,11 @@ namespace RN
 	RNDefineMeta(World, Object)
 	
 	World::World(SceneManager *sceneManager) :
-		_releaseSceneNodesOnDestructor(true),
 		_isDroppingSceneNodes(false),
 		_requiresCameraSort(false),
 		_requiresResort(false),
-		_mode(Mode::Play)
+		_mode(Mode::Play),
+		_ids(0)
 	{
 		_kernel = Kernel::GetSharedInstance();
 		
@@ -40,9 +40,7 @@ namespace RN
 	
 	World::~World()
 	{
-		if(_releaseSceneNodesOnDestructor)
-			DropSceneNodes();
-		
+		DropSceneNodes();
 		_sceneManager->Release();
 	}
 	
@@ -65,11 +63,6 @@ namespace RN
 		return WorldCoordinator::GetSharedInstance()->GetWorld();
 	}
 	
-	
-	void World::SetReleaseSceneNodesOnDestruction(bool releaseSceneNodes)
-	{
-		_releaseSceneNodesOnDestructor = releaseSceneNodes;
-	}
 	
 	void World::SetMode(Mode mode)
 	{
@@ -309,6 +302,8 @@ namespace RN
 		
 		node->_world = this;
 		node->_worldInserted = false;
+		node->_lid = _ids.fetch_add(1);
+		
 		node->Retain();
 	}
 	
@@ -668,7 +663,7 @@ namespace RN
 			_sceneManager->Release();
 			_sceneManager = SceneManagerWithName(deserializer->DecodeString())->Retain();
 			
-			_releaseSceneNodesOnDestructor = deserializer->DecodeBool();
+			_ids.store(deserializer->DecodeInt64());
 			
 			size_t nodes = static_cast<size_t>(deserializer->DecodeInt64());
 			
@@ -698,8 +693,8 @@ namespace RN
 		ApplyNodes();
 		
 		serializer->EncodeInt32(0);
-		serializer->EncodeString(_sceneManager->Class()->Name()),
-		serializer->EncodeBool(_releaseSceneNodesOnDestructor);
+		serializer->EncodeString(_sceneManager->Class()->Name());
+		serializer->EncodeInt64(_ids.load());
 		
 		serializer->EncodeInt64(static_cast<int64>(_nodes.size()));
 		

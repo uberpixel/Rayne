@@ -23,10 +23,11 @@ namespace RN
 		_rotation("rotation", &SceneNode::GetRotation, &SceneNode::SetRotation),
 		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale),
 		_tag("tag", 0, &SceneNode::GetTag, &SceneNode::SetTag),
-		_uid(__SceneNodeIDs.fetch_add(1))
+		_uid(__SceneNodeIDs.fetch_add(1)),
+		_lid(-1)
 	{
 		Initialize();
-		AddObservables({ &_position, &_rotation, &_scale, &_tag });
+		AddObservables({ &_tag, &_position, &_rotation, &_scale });
 	}
 	
 	SceneNode::SceneNode(const Vector3& position) :
@@ -56,6 +57,7 @@ namespace RN
 		
 		_priority = other->_priority;
 		_flags    = other->_flags.load();
+		_tag      = other->_tag;
 		
 		_action = other->_action;
 		
@@ -88,6 +90,7 @@ namespace RN
 		_flags    = static_cast<Flags>(deserializer->DecodeInt32());
 		
 		_tag = static_cast<Tag>(deserializer->DecodeInt64());
+		_lid = deserializer->DecodeInt64();
 		
 		size_t count = static_cast<size_t>(deserializer->DecodeInt64());
 		for(size_t i = 0; i < count; i ++)
@@ -119,6 +122,7 @@ namespace RN
 		serializer->EncodeInt32(static_cast<int32>(_priority));
 		serializer->EncodeInt32(_flags);
 		serializer->EncodeInt64(_tag);
+		serializer->EncodeInt64(_lid);
 		
 		serializer->EncodeInt64(static_cast<uint64>(_children.GetCount()));
 		

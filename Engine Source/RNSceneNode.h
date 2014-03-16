@@ -131,6 +131,8 @@ namespace RN
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
 		
 		RNAPI uint64 GetUID() const { return _uid; }
+		RNAPI uint64 GetLID() const { return _lid; }
+		
 		RNAPI Tag GetTag() const { return _tag; }
 		
 		RNAPI Vector3 GetPosition() const;
@@ -267,6 +269,8 @@ namespace RN
 		uint8 collisionGroup;
 		
 		uint64 _uid;
+		uint64 _lid;
+		
 		Observable<Tag, SceneNode> _tag;
 		
 		std::function<void (SceneNode *, float)> _action;

@@ -41,7 +41,6 @@ namespace RN
 		RNAPI World(const std::string& sceneManager);
 		RNAPI ~World() override;
 		
-		RNAPI void SetReleaseSceneNodesOnDestruction(bool releaseSceneNodes);
 		RNAPI void SetMode(Mode mode);
 		
 		RNAPI void AddAttachment(WorldAttachment *attachment);
@@ -119,11 +118,11 @@ namespace RN
 		Array _attachments;
 		
 		bool _isDroppingSceneNodes;
-		bool _releaseSceneNodesOnDestructor;
 		bool _requiresResort;
 		bool _requiresCameraSort;
 		
 		RecursiveSpinLock _nodeLock;
+		std::atomic<uint64> _ids;
 		
 		std::vector<SceneNode *> _addedNodes;
 		std::vector<SceneNode *> _nodes;
