@@ -13,6 +13,26 @@
 #include "RNFileManager.h"
 #include "RNLogging.h"
 
+#if RN_PLATFORM_MAC_OS
+
+@interface RNApplication : NSApplication
+
+@end
+
+@implementation RNApplication
+
+- (void)sendEvent:(NSEvent *)event
+{
+	if([event type] == NSKeyUp && ([event modifierFlags] & NSCommandKeyMask))
+		[[self keyWindow] sendEvent:event];
+ 
+	[super sendEvent:event];
+}
+
+@end
+
+#endif
+
 namespace RN
 {
 	void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...)
@@ -81,7 +101,7 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		@autoreleasepool
 		{
-			[NSApplication sharedApplication];
+			[RNApplication sharedApplication];
 			[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 			
 			[NSApp finishLaunching];
