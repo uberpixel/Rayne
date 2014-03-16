@@ -95,6 +95,8 @@ namespace RN
 	{
 		size_t count = static_cast<size_t>(deserializer->DecodeInt64());
 		
+		_internals->hashTable.Initialize(count);
+		
 		for(size_t i = 0; i < count; i ++)
 		{
 			size_t ocount  = static_cast<size_t>(deserializer->DecodeInt64());
