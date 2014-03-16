@@ -593,7 +593,12 @@ namespace RN
 			if(canAdd)
 			{
 				Input *input = Input::GetSharedInstance();
+				
+#if RN_PLATFORM_MAC_OS
+				bool ctrlDown = (input->GetModifierKeys() & KeyCommand);
+#else
 				bool ctrlDown = (input->GetModifierKeys() & KeyControl);
+#endif
 				
 				if(!_allowsMultipleSelection || !ctrlDown)
 				{
