@@ -217,6 +217,8 @@ namespace TG
 			
 			grassNode->AddChild(entity);
 		}
+		Fire * fire = new Fire();
+		fire->Release();
 	}
 	
 	void ForestWorld::SaveOnThread(RN::Thread *thread, RN::Serializer *serializer)

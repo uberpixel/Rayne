@@ -13,6 +13,7 @@
 
 #include "TGSun.h"
 #include "TGCutScene.h"
+#include "TGFire.h"
 #include "TGDebugDrawer.h"
 
 #define TGSunTag   1

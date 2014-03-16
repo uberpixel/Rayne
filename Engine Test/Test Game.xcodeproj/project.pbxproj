@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		D5ADBACA18D63C8E00C0F090 /* TGFire.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D5ADBAC818D63C8E00C0F090 /* TGFire.cpp */; };
+		D5ADBACB18D63C8E00C0F090 /* TGFire.h in Headers */ = {isa = PBXBuildFile; fileRef = D5ADBAC918D63C8E00C0F090 /* TGFire.h */; };
 		E970C15E18A554D600B6B633 /* TGForestWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E970C15C18A554D600B6B633 /* TGForestWorld.cpp */; };
 		E970C15F18A554D600B6B633 /* TGForestWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = E970C15D18A554D600B6B633 /* TGForestWorld.h */; };
 		E970C16218A55F6100B6B633 /* TGSponzaWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E970C16018A55F6100B6B633 /* TGSponzaWorld.cpp */; };
@@ -45,6 +47,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		D5ADBAC818D63C8E00C0F090 /* TGFire.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGFire.cpp; path = Classes/TGFire.cpp; sourceTree = "<group>"; };
+		D5ADBAC918D63C8E00C0F090 /* TGFire.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGFire.h; path = Classes/TGFire.h; sourceTree = "<group>"; };
 		E970C15C18A554D600B6B633 /* TGForestWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGForestWorld.cpp; path = Classes/TGForestWorld.cpp; sourceTree = "<group>"; };
 		E970C15D18A554D600B6B633 /* TGForestWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGForestWorld.h; path = Classes/TGForestWorld.h; sourceTree = "<group>"; };
 		E970C16018A55F6100B6B633 /* TGSponzaWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGSponzaWorld.cpp; path = Classes/TGSponzaWorld.cpp; sourceTree = "<group>"; };
@@ -108,6 +112,8 @@
 				E9BB406D1890132D0039B544 /* TGCutScene.h */,
 				E9825D35187296C6005FC83D /* TGDebugDrawer.cpp */,
 				E9825D36187296C6005FC83D /* TGDebugDrawer.h */,
+				D5ADBAC818D63C8E00C0F090 /* TGFire.cpp */,
+				D5ADBAC918D63C8E00C0F090 /* TGFire.h */,
 				E970C15C18A554D600B6B633 /* TGForestWorld.cpp */,
 				E970C15D18A554D600B6B633 /* TGForestWorld.h */,
 				E984243E187DF455002AEF39 /* TGLoadingScreen.cpp */,
@@ -160,6 +166,7 @@
 				E970C15F18A554D600B6B633 /* TGForestWorld.h in Headers */,
 				E9B8E7A61888763600617F62 /* TGSun.h in Headers */,
 				E9842441187DF455002AEF39 /* TGLoadingScreen.h in Headers */,
+				D5ADBACB18D63C8E00C0F090 /* TGFire.h in Headers */,
 				E9825D4A187296C6005FC83D /* TGWorld.h in Headers */,
 				E970C16318A55F6100B6B633 /* TGSponzaWorld.h in Headers */,
 				E9BB406F1890132D0039B544 /* TGCutScene.h in Headers */,
@@ -255,6 +262,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D5ADBACA18D63C8E00C0F090 /* TGFire.cpp in Sources */,
 				E9825D49187296C6005FC83D /* TGWorld.cpp in Sources */,
 				E9825D26187295EB005FC83D /* main.cpp in Sources */,
 				E9BB406E1890132D0039B544 /* TGCutScene.cpp in Sources */,
