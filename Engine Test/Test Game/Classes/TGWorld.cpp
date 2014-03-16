@@ -31,8 +31,6 @@ namespace TG
 		_cutScene(nullptr),
 		_captureCount(0)
 	{
-		SetReleaseSceneNodesOnDestruction(true);
-		
 		_debugDrawer = new DebugDrawer();
 		AddAttachment(_debugDrawer);
 	}
