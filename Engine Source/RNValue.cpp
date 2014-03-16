@@ -37,6 +37,12 @@ namespace RN
 	}
 	
 	
+	void Value::Serialize(Serializer *serializer)
+	{
+		serializer->EncodeInt32(_type);
+		serializer->EncodeBytes(_storage, _size);
+	}
+	
 	
 	Value *Value::WithVector2(const Vector2& vector)
 	{

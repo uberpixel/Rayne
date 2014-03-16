@@ -50,11 +50,11 @@ namespace RN
 		template<class T>
 		T GetValue() const
 		{
-			RN_ASSERT(TypeTranslator<T>::value == _type, "Type mismatch!");
+			RN_ASSERT(TypeTranslator<T>::value == _type && sizeof(T) == _size, "Type mismatch!");
 			return static_cast<T>(*(reinterpret_cast<T *>(_storage)));
 		}
 		
-		char GetTypeValue()
+		char GetValueType()
 		{
 			return _type;
 		}
