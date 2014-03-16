@@ -85,6 +85,11 @@ namespace RN
 			_currentTitle = nullptr;
 			_currentImage = nullptr;
 			
+			Style *styleSheet = Style::GetSharedInstance();
+			
+			_fonts.SetValueForState(styleSheet->GetFont(Style::FontStyle::DefaultFont), Normal);
+			_colors.SetValueForState(styleSheet->GetColor(Style::ColorStyle::TextColor), Normal);
+			
 			AddSubview(_backgroundImage);
 			AddSubview(_image);
 			AddSubview(_label);
@@ -150,6 +155,8 @@ namespace RN
 			_backgroundImage->SetImage(_backgroundImages.GetValueForState(state));
 			_image->SetImage(_images.GetValueForState(state));
 			_label->SetText(title ? title : RNCSTR(""));
+			_label->SetTextColor(_colors.GetValueForState(state));
+			_label->SetFont(_fonts.GetValueForState(state));
 			
 			_currentImage = _image->GetImage();
 			_currentTitle = _label->GetText();
@@ -186,6 +193,18 @@ namespace RN
 		void Button::SetImageForState(Image *image, State state)
 		{
 			_images.SetValueForState(image, state);
+			StateChanged(GetState());
+		}
+		
+		void Button::SetFontForState(Font *font, State state)
+		{
+			_fonts.SetValueForState(font, state);
+			StateChanged(GetState());
+		}
+		
+		void Button::SetTitleColorForState(RN::UI::Color *color, State state)
+		{
+			_colors.SetValueForState(color, state);
 			StateChanged(GetState());
 		}
 		

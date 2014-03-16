@@ -16,6 +16,8 @@
 #include "RNUIControl.h"
 #include "RNUIImageView.h"
 #include "RNUILabel.h"
+#include "RNUIFont.h"
+#include "RNUIColor.h"
 
 namespace RN
 {
@@ -47,6 +49,8 @@ namespace RN
 			RNAPI void SetTitleForState(String *title, State state);
 			RNAPI void SetBackgroundImageForState(Image *image, State state);
 			RNAPI void SetImageForState(Image *image, State state);
+			RNAPI void SetFontForState(Font *font, State state);
+			RNAPI void SetTitleColorForState(RN::UI::Color *color, State state);
 			RNAPI void SetBehavior(Behavior behavior);
 			RNAPI void SetImagePosition(ImagePosition position);
 			RNAPI void SetContentInsets(const EdgeInsets& insets);
@@ -67,6 +71,8 @@ namespace RN
 			ControlStateStore<Image> _backgroundImages;
 			ControlStateStore<Image> _images;
 			ControlStateStore<String> _titles;
+			ControlStateStore<Font> _fonts;
+			ControlStateStore<RN::UI::Color> _colors;
 			
 			ImagePosition _position;
 			Behavior _behavior;
