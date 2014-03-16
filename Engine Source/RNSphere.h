@@ -137,7 +137,7 @@ namespace RN
 	
 	RN_INLINE bool Sphere::IntersectsRay(const Vector3 &tposition, const Vector3 &direction) const
 	{
-		float dist = direction.GetCrossProduct(tposition - position).GetLength()/direction.GetLength();
+		float dist = direction.GetCrossProduct(tposition - position - offset).GetLength()/direction.GetLength();
 		return (dist <= radius);
 	}
 }

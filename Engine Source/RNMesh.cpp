@@ -939,7 +939,7 @@ namespace RN
 		uint8 *pospointer = _vertices + positionDescriptor->offset;
 		int trioffset = (_mode != DrawMode::TriangleStrip) ? 3 : 1;
 		
-		for(size_t i = 0; i < _indicesCount - 2; i += trioffset)
+		for(size_t i = 0; i < _verticesCount - 2; i += trioffset)
 		{
 			Vector3 *vertex1;
 			Vector3 *vertex2;
@@ -976,7 +976,7 @@ namespace RN
 		Hit hit;
 		
 		uint8 *pospointer = _vertices + positionDescriptor->offset;
-		int trioffset = (_mode != DrawMode::Triangles) ? 3 : 1;
+		int trioffset = (_mode != DrawMode::TriangleStrip) ? 3 : 1;
 
 		for(size_t i = 0; i < _verticesCount - 2; i += trioffset)
 		{

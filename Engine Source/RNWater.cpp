@@ -153,4 +153,22 @@ namespace RN
 		
 		renderer->RenderObject(object);
 	}
+	
+	Hit Water::CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
+	{
+		Hit hit;
+		
+		if(!_mesh)
+			return hit;
+		
+		Matrix matModelInv = _transform.GetInverse();
+		
+		Vector3 temppos = matModelInv * position;
+		Vector4 tempdir = matModelInv * Vector4(direction, 0.0f);
+		
+		hit = _mesh->IntersectsRay(temppos, Vector3(tempdir), mode);
+		hit.node = this;
+		
+		return hit;
+	}
 }

@@ -29,6 +29,7 @@ namespace RN
 		
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera) override;
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera) override;
+		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
 		
 	private:
 		void Initialize();
