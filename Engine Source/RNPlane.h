@@ -26,6 +26,8 @@ namespace RN
 		Vector3 GetNormal() const { return _normal; }
 		float GetD() const { return _d; }
 		
+		Hit CastRay(const Vector3 &position, const Vector3 &direction) const;
+		
 	private:
 		void CalculateD();
 		Vector3 _position;
@@ -88,6 +90,24 @@ namespace RN
 	RN_INLINE void Plane::CalculateD()
 	{
 		_d = _normal.GetDotProduct(_position);
+	}
+	
+	RN_INLINE Hit Plane::CastRay(const Vector3 &position, const Vector3 &direction) const
+	{
+		Hit hit;
+		Vector3 normalizedDirection = direction.GetNormalized();
+		float angleCos = normalizedDirection.GetDotProduct(_normal);
+		if(angleCos >= -k::EpsilonFloat && angleCos <= k::EpsilonFloat)
+			return hit;
+		
+		if(((GetDistance(position) > 0)?1:-1) == ((angleCos)?1:-1))
+			return hit;
+		
+		float fac = (_position-position).GetDotProduct(_normal)/angleCos;
+		hit.position = position + normalizedDirection * fac;
+		hit.distance = fac;
+		
+		return hit;
 	}
 }
 

@@ -104,6 +104,7 @@ namespace RN
 		RNAPI void TranslateLocal(const Vector3& trans);
 		RNAPI void Scale(const Vector3& scal);
 		RNAPI void Rotate(const Vector3& rot);
+		RNAPI void Rotate(const Quaternion& rot);
 		
 		RNAPI void RemoveFromWorld();
 		
@@ -334,6 +335,18 @@ namespace RN
 		_transformLock.Unlock();
 	}
 	
+	RN_INLINE void SceneNode::Rotate(const Quaternion& rot)
+	{
+		_transformLock.Lock();
+		
+		WillUpdate(ChangeSet::Position);
+		
+		_rotation *= rot;
+		
+		DidUpdate(ChangeSet::Position);
+		
+		_transformLock.Unlock();
+	}
 	
 	RN_INLINE void SceneNode::TranslateLocal(const Vector3& trans)
 	{
