@@ -52,6 +52,57 @@ namespace RN
 		}
 	}
 	
+	InstancingNode::InstancingNode(Deserializer *deserializer) :
+		SceneNode(deserializer),
+		_clipRange("Clip range", 64.0f, &InstancingNode::GetClipRange, &InstancingNode::SetClippingRange),
+		_thinRange("Thin range", 128.0f, &InstancingNode::GetThinRange, &InstancingNode::SetThinningRange),
+		_cellSize("Cell size", 32.0f, &InstancingNode::GetCellSize, &InstancingNode::SetCellSize)
+	{
+		AddObservables({ &_clipRange, &_thinRange, &_cellSize });
+		Initialize();
+		
+		_mode = static_cast<Mode>(deserializer->DecodeInt32());
+		
+		SetClippingRange(deserializer->DecodeFloat());
+		SetThinningRange(deserializer->DecodeFloat());
+		SetCellSize(deserializer->DecodeFloat());
+		
+		SetPivot(static_cast<Camera *>(deserializer->DecodeObject()));
+		
+		size_t count = static_cast<size_t>(deserializer->DecodeInt64());
+		Set *set = new Set();
+		
+		for(size_t i = 0; i < count; i ++)
+		{
+			Object *object = deserializer->DecodeObject();
+			if(object)
+				set->AddObject(object);
+		}
+		
+		SetModels(set->Autorelease());
+	}
+	
+	void InstancingNode::Serialize(Serializer *serializer)
+	{
+		SceneNode::Serialize(serializer);
+		
+		serializer->EncodeInt32(static_cast<int32>(_mode));
+		serializer->EncodeFloat(_clipRange);
+		serializer->EncodeFloat(_thinRange);
+		serializer->EncodeFloat(_cellSize);
+		
+		serializer->EncodeConditionalObject(_pivot);
+		
+		
+		serializer->EncodeInt64(static_cast<int64>(_models->GetCount()));
+		
+		_models->Enumerate([&](Object *object, bool &stop) {
+			
+			serializer->EncodeConditionalObject(object);
+			
+		});
+	}
+	
 	void InstancingNode::CleanUp()
 	{
 		const Array *children = GetChildren();

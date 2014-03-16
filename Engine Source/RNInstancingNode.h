@@ -39,8 +39,11 @@ namespace RN
 		
 		RNAPI InstancingNode();
 		RNAPI InstancingNode(Model *model);
+		RNAPI InstancingNode(Deserializer *deserializer);
 		RNAPI ~InstancingNode() override;
 		RNAPI void CleanUp() override;
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI void SetModel(Model *model);
 		RNAPI void AddModel(Model *model);

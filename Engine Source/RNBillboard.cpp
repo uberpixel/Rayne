@@ -54,6 +54,27 @@ namespace RN
 	}
 	
 	
+	Billboard::Billboard(Deserializer *deserializer) :
+		SceneNode(deserializer)
+	{
+		Initialize();
+		SafeRelease(_material);
+		
+		_material = static_cast<Material *>(deserializer->DecodeObject())->Retain();
+		_size = deserializer->DecodeVector2();
+		
+		SetBoundingBox(_mesh->GetBoundingBox() * Vector3(_size.x, _size.y, 1.0f));
+	}
+	
+	void Billboard::Serialize(Serializer *serializer)
+	{
+		SceneNode::Serialize(serializer);
+		
+		serializer->EncodeObject(_material);
+		serializer->EncodeVector2(_size);
+	}
+	
+	
 	void Billboard::Initialize()
 	{
 		_material = new Material();
