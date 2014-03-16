@@ -157,10 +157,6 @@ namespace RN
 				{
 					switch(event->GetType())
 					{
-						case Event::Type::MouseMoved:
-							_tracking->MouseDragged(event);
-							return true;
-							
 						case Event::Type::MouseDragged:
 							_tracking->MouseDragged(event);
 							return true;
@@ -206,6 +202,10 @@ namespace RN
 							
 							MoveWidgetToFront(hitWidget);
 							hit->MouseDown(event);
+							return true;
+							
+						case Event::Type::MouseMoved:
+							hit->MouseMoved(event);
 							return true;
 							
 						case Event::Type::MouseDragged:
