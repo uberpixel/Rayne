@@ -14,6 +14,7 @@
 #include "RNMatrixQuaternion.h"
 #include "RNVector.h"
 #include "RNColor.h"
+#include "RNTypeTranslator.h"
 
 #define kRNObservableNewValueKey RNCSTR("kRNObservableNewValueKey")
 #define kRNObservableOldValueKey RNCSTR("kRNObservableOldValueKey")
@@ -22,71 +23,6 @@ namespace RN
 {
 	class Object;
 	class Dictionary;
-	
-	template<class T>
-	struct TypeTranslator
-	{};
-	
-	template<>
-	struct TypeTranslator<bool> : public std::integral_constant<char, 'B'>
-	{};
-	
-	template<>
-	struct TypeTranslator<int8> : public std::integral_constant<char, 'b'>
-	{};
-	template<>
-	struct TypeTranslator<int16> : public std::integral_constant<char, 's'>
-	{};
-	template<>
-	struct TypeTranslator<int32> : public std::integral_constant<char, 'i'>
-	{};
-	template<>
-	struct TypeTranslator<int64> : public std::integral_constant<char, 'l'>
-	{};
-	
-	template<>
-	struct TypeTranslator<uint8> : public std::integral_constant<char, '_'>
-	{};
-	template<>
-	struct TypeTranslator<uint16> : public std::integral_constant<char, 'S'>
-	{};
-	template<>
-	struct TypeTranslator<uint32> : public std::integral_constant<char, 'I'>
-	{};
-	template<>
-	struct TypeTranslator<uint64> : public std::integral_constant<char, 'L'>
-	{};
-	
-	template<>
-	struct TypeTranslator<float> : public std::integral_constant<char, 'f'>
-	{};
-	template<>
-	struct TypeTranslator<double> : public std::integral_constant<char, 'd'>
-	{};
-	
-	template<>
-	struct TypeTranslator<Vector2> : public std::integral_constant<char, '2'>
-	{};
-	template<>
-	struct TypeTranslator<Vector3> : public std::integral_constant<char, '3'>
-	{};
-	template<>
-	struct TypeTranslator<Vector4> : public std::integral_constant<char, '4'>
-	{};
-	template<>
-	struct TypeTranslator<Color> : public std::integral_constant<char, 'c'>
-	{};
-	template<>
-	struct TypeTranslator<Matrix> : public std::integral_constant<char, 'm'>
-	{};
-	template<>
-	struct TypeTranslator<Quaternion> : public std::integral_constant<char, 'q'>
-	{};
-	
-	template<>
-	struct TypeTranslator<Object *> : public std::integral_constant<char, '@'>
-	{};
-	
 	
 	class ObservableProperty
 	{

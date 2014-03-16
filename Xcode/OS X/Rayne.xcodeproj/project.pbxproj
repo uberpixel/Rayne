@@ -215,6 +215,7 @@
 		E9A872E5175759E300E06C27 /* RNJSONSerialization.h in Headers */ = {isa = PBXBuildFile; fileRef = E9A872E3175759E300E06C27 /* RNJSONSerialization.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9A872E81757627500E06C27 /* RNData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9A872E61757627500E06C27 /* RNData.cpp */; };
 		E9A872E91757627500E06C27 /* RNData.h in Headers */ = {isa = PBXBuildFile; fileRef = E9A872E71757627500E06C27 /* RNData.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9A9A02E18D52F0B00478810 /* RNTypeTranslator.h in Headers */ = {isa = PBXBuildFile; fileRef = E9A9A02D18D52ED600478810 /* RNTypeTranslator.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9AA6CB817DB3A8F00E69FFA /* RNUISegmentView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AA6CB617DB3A8F00E69FFA /* RNUISegmentView.cpp */; };
 		E9AA6CB917DB3A8F00E69FFA /* RNUISegmentView.h in Headers */ = {isa = PBXBuildFile; fileRef = E9AA6CB717DB3A8F00E69FFA /* RNUISegmentView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9AB0DAB16D679DC000D1CF0 /* RNSceneNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9AB0DAA16D679DC000D1CF0 /* RNSceneNode.cpp */; };
@@ -547,6 +548,7 @@
 		E9A872E3175759E300E06C27 /* RNJSONSerialization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNJSONSerialization.h; sourceTree = "<group>"; };
 		E9A872E61757627500E06C27 /* RNData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNData.cpp; sourceTree = "<group>"; };
 		E9A872E71757627500E06C27 /* RNData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = RNData.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
+		E9A9A02D18D52ED600478810 /* RNTypeTranslator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNTypeTranslator.h; sourceTree = "<group>"; };
 		E9AA6CB617DB3A8F00E69FFA /* RNUISegmentView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUISegmentView.cpp; sourceTree = "<group>"; };
 		E9AA6CB717DB3A8F00E69FFA /* RNUISegmentView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUISegmentView.h; sourceTree = "<group>"; };
 		E9AB0DAA16D679DC000D1CF0 /* RNSceneNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNSceneNode.cpp; sourceTree = "<group>"; };
@@ -816,6 +818,7 @@
 				E9F361F9175AB84800365C12 /* RNSerialization.h */,
 				E9B7474A18492E4B00C36305 /* RNSet.cpp */,
 				E9B7474B18492E4B00C36305 /* RNSet.h */,
+				E9A9A02D18D52ED600478810 /* RNTypeTranslator.h */,
 				E95D42DB17DC28C900026E8C /* RNValue.cpp */,
 				E95D42DC17DC28C900026E8C /* RNValue.h */,
 				E96654601758D2BA00C3562E /* RNWrappingObject.h */,
@@ -1178,6 +1181,7 @@
 				E9780FC116D82913001AE2ED /* RNSettings.h in Headers */,
 				E97055D3187D81820022C82A /* RNProgress.h in Headers */,
 				E95A783017D51E720031C9A2 /* RNUIOutlineView.h in Headers */,
+				E9A9A02E18D52F0B00478810 /* RNTypeTranslator.h in Headers */,
 				E92AE1AF16B4D68C00EFE1E8 /* RNApplication.h in Headers */,
 				C01BCEC916E6698E0009834F /* RNSkeleton.h in Headers */,
 				E907DF2B17C9780E00777A38 /* RNTextNode.h in Headers */,

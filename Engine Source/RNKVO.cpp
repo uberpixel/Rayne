@@ -26,6 +26,8 @@ namespace RN
 		_signal(nullptr),
 		_flags(1 << 4)
 	{
+		RN_ASSERT(type != '?', "ObservableProperty with invalid type!");
+		
 		strncpy(_name, name, 32);
 		_name[32] = '\0';
 	}

@@ -7,14 +7,35 @@
 //
 
 #include "RNValue.h"
+#include "RNSerialization.h"
 
 namespace RN
 {
 	RNDefineMeta(Value, Object)
 	
 	Value::Value(const Value *other) :
-		_any(other->_any)
-	{}
+		_type(other->_type),
+		_size(other->_size)
+	{
+		_storage = new uint8[_size];
+		std::copy(other->_storage, other->_storage + _size, _storage);
+	}
+	
+	Value::Value(Deserializer *deserializer)
+	{
+		_type = static_cast<char>(deserializer->DecodeInt32());
+		
+		uint8 *source = static_cast<uint8 *>(deserializer->DecodeBytes(&_size));
+		
+		_storage = new uint8[_size];
+		std::copy(source, source + _size, _storage);
+	}
+	
+	Value::~Value()
+	{
+		delete [] _storage;
+	}
+	
 	
 	
 	Value *Value::WithVector2(const Vector2& vector)
