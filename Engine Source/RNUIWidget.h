@@ -80,6 +80,7 @@ namespace RN
 			RNAPI void Open();
 			RNAPI void Close();
 			RNAPI bool IsOpen() const { return _server != nullptr; }
+			RNAPI void Center();
 			
 			RNAPI void OrderFront();
 			

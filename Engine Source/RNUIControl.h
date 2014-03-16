@@ -117,7 +117,7 @@ namespace RN
 				auto iterator = _values.find(state);
 				if(iterator != _values.end())
 				{
-					iterator->second->Release();
+					iterator->second->Autorelease();
 					
 					if(value)
 					{
@@ -137,13 +137,13 @@ namespace RN
 				T *value = nullptr;
 				
 				if((state & Control::Disabled) && (value = GetValueForMaskedState(Control::Disabled)))
-					return value;
+					return value->Retain()->Autorelease();
 				
 				if((state & Control::Selected) && (value = GetValueForMaskedState(Control::Selected)))
-					return value;
+					return value->Retain()->Autorelease();
 				
 				if((state & Control::Highlighted) && (value = GetValueForMaskedState(Control::Highlighted)))
-					return value;
+					return value->Retain()->Autorelease();
 				
 				return GetValueForMaskedState(Control::Normal);
 			}
@@ -152,7 +152,7 @@ namespace RN
 			T *GetValueForMaskedState(Control::State state)
 			{
 				auto iterator = _values.find(state);
-				return (iterator != _values.end()) ? iterator->second : nullptr;
+				return (iterator != _values.end()) ? iterator->second->Retain()->Autorelease() : nullptr;
 			}
 			
 			std::map<Control::State, T *> _values;
