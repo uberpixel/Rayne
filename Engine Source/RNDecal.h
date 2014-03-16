@@ -24,18 +24,20 @@ namespace RN
 		RNAPI Decal(Texture *texture, bool tangents = true);
 		RNAPI Decal(Texture *texture, const Vector3 &position, bool tangents = true);
 		RNAPI Decal(const Decal *other);
+		RNAPI Decal(Deserializer *deserializer);
 		RNAPI ~Decal() override;
 		
+		RNAPI void Serialize(Serializer *serializer) override;
 		RNAPI void SetTexture(Texture *texture, float scaleFactor = 0.1f);
+		
+		RNAPI void Update(float delta) override;
+		RNAPI void UpdateEditMode(float delta) override;
 		
 		RNAPI Material *GetMaterial() const { return _material; }
 		RNAPI Texture *GetTexture() const;
 		
 		RNAPI void SetAngle(float angle);
 		RNAPI float GetAngle() const { return _angle; };
-		
-		
-		void UpdateMesh();
 		
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
@@ -45,6 +47,9 @@ namespace RN
 		
 	private:
 		void Initialize();
+		void UpdateMesh();
+		
+		bool _dirty;
 		
 		Observable<float, Decal> _angle;
 		float _angleCos;

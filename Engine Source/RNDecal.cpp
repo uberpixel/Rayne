@@ -21,10 +21,9 @@ namespace RN
 		Initialize();
 	}
 	
-	Decal::Decal(Texture *texture, bool tangents)
-	: _angle("angle", 180.0f, &Decal::GetAngle, &Decal::SetAngle), _tangents(tangents)
+	Decal::Decal(Texture *texture, bool tangents) :
+		Decal(tangents)
 	{
-		Initialize();
 		SetTexture(texture);
 	}
 	
@@ -54,6 +53,31 @@ namespace RN
 	{
 		_mesh->Release();
 		_material->Release();
+	}
+	
+	
+	Decal::Decal(Deserializer *deserializer) :
+		SceneNode(deserializer),
+		_angle("angle", 180.0f, &Decal::GetAngle, &Decal::SetAngle)
+	{
+		_tangents = deserializer->DecodeBool();
+		
+		Initialize();
+		
+		_angle = deserializer->DecodeFloat();
+		_angleCos = cosf(Math::DegreesToRadians(_angle/2.0f));
+		
+		SafeRelease(_material);
+		_material = static_cast<Material *>(deserializer->DecodeObject())->Retain();
+	}
+	
+	void Decal::Serialize(Serializer *serializer)
+	{
+		SceneNode::Serialize(serializer);
+		
+		serializer->EncodeBool(_tangents);
+		serializer->EncodeFloat(_angle);
+		serializer->EncodeObject(_material);
 	}
 	
 	
@@ -97,9 +121,8 @@ namespace RN
 		
 		_mesh = new Mesh(descriptors, 0, 0);
 		_mesh->SetDrawMode(Mesh::DrawMode::Triangles);
-		_mesh->Retain();
 		
-		UpdateMesh();
+		_dirty = true;
 	}
 	
 	void Decal::SetTexture(Texture *texture, float scaleFactor)
@@ -107,9 +130,7 @@ namespace RN
 		_material->RemoveTextures();
 		
 		if(texture)
-		{
 			_material->AddTexture(texture);
-		}
 	}
 	
 	Texture *Decal::GetTexture() const
@@ -122,8 +143,34 @@ namespace RN
 	{
 		_angle = angle;
 		_angleCos = cosf(Math::DegreesToRadians(_angle/2.0f));
-		UpdateMesh();
+		
+		_dirty = true;
 	}
+	
+	
+	void Decal::Update(float delta)
+	{
+		SceneNode::Update(delta);
+		
+		if(_dirty)
+		{
+			UpdateMesh();
+			_dirty = false;
+		}
+	}
+	
+	void Decal::UpdateEditMode(float delta)
+	{
+		SceneNode::UpdateEditMode(delta);
+		
+		if(_dirty)
+		{
+			UpdateMesh();
+			_dirty = false;
+		}
+	}
+	
+	
 	
 	void Decal::UpdateMesh()
 	{
@@ -1257,9 +1304,7 @@ namespace RN
 		SceneNode::DidUpdate(changeSet);
 		
 		if(changeSet & ChangeSet::Position)
-		{
-			UpdateMesh();
-		}
+			_dirty = true;
 	}
 	
 	void Decal::Render(Renderer *renderer, Camera *camera)
