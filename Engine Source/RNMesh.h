@@ -293,7 +293,10 @@ namespace RN
 		
 		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor, size_t verticesCount, size_t indicesCount);
 		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor, size_t verticesCount, size_t indicesCount, const std::pair<const void *, const void *>& data);
+		RNAPI Mesh(Deserializer *deserializer);
 		RNAPI ~Mesh() override;
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI const MeshDescriptor *GetDescriptorForFeature(MeshFeature feature) const;
 	

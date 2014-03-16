@@ -77,6 +77,88 @@ namespace RN
 		}, true);
 	}
 	
+	
+	Mesh::Mesh(Deserializer *deserializer)
+	{
+		size_t count = static_cast<size_t>(deserializer->DecodeInt32());
+		std::vector<MeshDescriptor> descriptors;
+		
+		for(size_t i = 0; i < count; i ++)
+		{
+			MeshDescriptor descriptor(0);
+			
+			descriptor.feature = static_cast<MeshFeature>(deserializer->DecodeInt32());
+			descriptor.flags   = static_cast<uint32>(deserializer->DecodeInt32());
+			
+			descriptor.elementMember = static_cast<size_t>(deserializer->DecodeInt32());
+			descriptor.elementSize   = static_cast<size_t>(deserializer->DecodeInt32());
+			
+			descriptors.push_back(std::move(descriptor));
+		}
+		
+		_verticesCount = static_cast<size_t>(deserializer->DecodeInt64());
+		_indicesCount  = static_cast<size_t>(deserializer->DecodeInt64());
+		
+		Initialize(descriptors);
+		
+		std::pair<const void *, const void *> data(nullptr, nullptr);
+		
+		if(_verticesCount)
+			data.first = deserializer->DecodeBytes(nullptr);
+		if(_indicesCount)
+			data.second = deserializer->DecodeBytes(nullptr);
+		
+		_mode     = static_cast<DrawMode>(deserializer->DecodeInt32());
+		_vboUsage = static_cast<MeshUsage>(deserializer->DecodeInt32());
+		_iboUsage = static_cast<MeshUsage>(deserializer->DecodeInt32());
+		
+		AllocateBuffer(data);
+		
+		_boundingBox.minExtend = deserializer->DecodeVector3();
+		_boundingBox.maxExtend = deserializer->DecodeVector3();
+		_boundingBox.position  = deserializer->DecodeVector3();
+		
+		_boundingSphere.position = deserializer->DecodeVector3();
+		_boundingSphere.offset   = deserializer->DecodeVector3();
+		_boundingSphere.radius   = deserializer->DecodeFloat();
+	}
+	
+	void Mesh::Serialize(Serializer *serializer)
+	{
+		size_t count = _descriptors.size();
+		serializer->EncodeInt32(static_cast<int32>(_descriptors.size()));
+		
+		for(size_t i = 0; i < count; i ++)
+		{
+			serializer->EncodeInt32(static_cast<int32>(_descriptors[i].feature));
+			serializer->EncodeInt32(static_cast<int32>(_descriptors[i].flags));
+			
+			serializer->EncodeInt32(static_cast<int32>(_descriptors[i].elementMember));
+			serializer->EncodeInt32(static_cast<int32>(_descriptors[i].elementSize));
+		}
+		
+		serializer->EncodeInt64(static_cast<int64>(_verticesCount));
+		serializer->EncodeInt64(static_cast<int64>(_indicesCount));
+		
+		if(_verticesCount)
+			serializer->EncodeBytes(_vertices, _verticesSize);
+		if(_indicesCount)
+			serializer->EncodeBytes(_indices, _indicesSize);
+		
+		serializer->EncodeInt32(static_cast<int32>(_mode));
+		serializer->EncodeInt32(static_cast<int32>(_vboUsage));
+		serializer->EncodeInt32(static_cast<int32>(_iboUsage));
+		
+		serializer->EncodeVector3(_boundingBox.minExtend);
+		serializer->EncodeVector3(_boundingBox.maxExtend);
+		serializer->EncodeVector3(_boundingBox.position);
+		
+		serializer->EncodeVector3(_boundingSphere.position);
+		serializer->EncodeVector3(_boundingSphere.offset);
+		serializer->EncodeFloat(_boundingSphere.radius);
+	}
+	
+	
 	void Mesh::PushData(bool vertices, bool indices)
 	{
 		if(vertices)
