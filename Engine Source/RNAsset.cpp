@@ -15,16 +15,20 @@ namespace RN
 {
 	RNDefineMeta(Asset, Object)
 	
-	Asset::Asset()
+	Asset::Asset() :
+		_settings(nullptr)
 	{}
 	Asset::~Asset()
 	{
 		_signal.Emit(this);
+		SafeRelease(_settings);
 	}
 	
 	
 	void Asset::Unfault(Deserializer *deserializer)
-	{}
+	{
+		_dirty = deserializer->DecodeBool();
+	}
 	
 	
 	void Asset::Serialize(Serializer *serializer)
@@ -33,6 +37,10 @@ namespace RN
 		
 		serializer->EncodeString(meta->Fullname());
 		serializer->EncodeString(_name);
+		serializer->EncodeObject(_settings);
+		
+		serializer->EncodeBool(_dirty);
+		serializer->EncodeBool(_dirty);
 	}
 	
 	Asset *Asset::Deserialize(Deserializer *deserializer)
@@ -40,16 +48,19 @@ namespace RN
 		std::string meta = deserializer->DecodeString();
 		std::string name = deserializer->DecodeString();
 		
+		Dictionary *settings = static_cast<Dictionary *>(deserializer->DecodeObject());
+		bool dirty = deserializer->DecodeBool();
+		
 		MetaClassBase *cmeta = Catalogue::GetSharedInstance()->GetClassWithName(meta);
 		Asset *asset;
 		
-		if(name.empty())
+		if(name.empty() || dirty)
 		{
 			asset = static_cast<Asset *>(cmeta->Construct());
 		}
 		else
 		{
-			asset = ResourceCoordinator::GetSharedInstance()->RequestResourceWithName(cmeta, RNSTR(name.c_str()), nullptr);
+			asset = ResourceCoordinator::GetSharedInstance()->RequestResourceWithName(cmeta, RNSTR(name.c_str()), settings);
 		}
 		
 		asset->Unfault(deserializer);
@@ -57,9 +68,26 @@ namespace RN
 	}
 	
 	
-	void Asset::SetName(const std::string &name)
+	void Asset::MarkChanged()
 	{
-		_name = name;
+		_dirty = true;
+	}
+	
+	void Asset::MarkUnchanged()
+	{
+		_dirty = false;
+	}
+	
+	
+	void Asset::WakeUpFromResourceCoordinator(const std::string &name, Dictionary *settings)
+	{
+		_dirty = false;
+		_name  = name;
+		
+		SafeRelease(_settings);
+		
+		if(settings)
+			settings = settings->Copy();
 	}
 	
 	const std::string &Asset::GetName() const

@@ -64,9 +64,9 @@ namespace RN
 		return object;
 	}
 	
-	void ResourceCoordinator::PrepareResource(Asset *object, String *name)
+	void ResourceCoordinator::PrepareResource(Asset *object, String *name, Dictionary *settings)
 	{
-		object->SetName(name->GetUTF8String());
+		object->WakeUpFromResourceCoordinator(name->GetUTF8String(), settings);
 		object->_signal.Connect(std::bind(&ResourceCoordinator::RemoveResource, this, std::placeholders::_1));
 		
 		_resources[name->Retain()] = object;
@@ -236,6 +236,7 @@ namespace RN
 		// Load the resource
 		File *file = nullptr;
 		name = name->Copy();
+		settings = settings ? settings->Copy() : settings;
 		
 		try
 		{
@@ -256,14 +257,16 @@ namespace RN
 		
 		Object *fileOrName = file ? static_cast<Object *>(file) : static_cast<Object *>(name);
 		
-		std::future<Asset *> future = std::move(resourceLoader->LoadInBackground(fileOrName, settings, 0, [this, name] (Asset *object, Tag tag) {
+		std::future<Asset *> future = std::move(resourceLoader->LoadInBackground(fileOrName, settings, 0, [this, name, settings] (Asset *object, Tag tag) {
 			
 			LockGuard<decltype(_lock)> lock(_lock);
 			_requests.erase(name);
-			PrepareResource(object, name);
+			PrepareResource(object, name, settings);
 			lock.Unlock();
 
 			name->Release();
+			if(settings)
+				settings->Release();
 			
 		}));
 		
@@ -314,6 +317,7 @@ namespace RN
 		{}
 		
 		name = name->Copy();
+		settings = settings ? settings->Copy() : settings;
 		
 		ResourceLoader *resourceLoader = PickResourceLoader(base, file, name, false);
 		
@@ -327,7 +331,7 @@ namespace RN
 				settings = (new Dictionary())->Autorelease();
 			
 			object = (file) ? resourceLoader->Load(file, settings) : resourceLoader->Load(name, settings);
-			object->SetName(name->GetUTF8String());
+			object->WakeUpFromResourceCoordinator(name->GetUTF8String(), settings);
 			
 			promise.set_value(object);
 		}
@@ -346,11 +350,13 @@ namespace RN
 		lock.Lock();
 		
 		_requests.erase(name);
-		PrepareResource(object, name);
+		PrepareResource(object, name, settings);
 		
 		lock.Unlock();
 		
 		name->Release();
+		SafeRelease(settings);
+		
 		return object->Autorelease();
 	}
 	

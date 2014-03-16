@@ -28,6 +28,9 @@ namespace RN
 		
 		RNAPI ~Model() override;
 		
+		RNAPI void Unfault(Deserializer *deserializer) override;
+		RNAPI void Serialize(Serializer *serializer);
+		
 		RNAPI static Model *Empty();
 		RNAPI static Model *WithFile(const std::string& path, const Dictionary *settings = nullptr);
 		RNAPI static Model *WithMesh(Mesh *mesh, Material *material);

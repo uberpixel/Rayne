@@ -71,7 +71,7 @@ namespace RN
 		void RemoveResource(Asset *object);
 		
 		Asset *ValidateResource(MetaClassBase *base, Asset *object);
-		void PrepareResource(Asset *object, String *name);
+		void PrepareResource(Asset *object, String *name, Dictionary *settings);
 		
 		ResourceLoader *PickResourceLoader(MetaClassBase *base, File *file, String *name, bool requiresBackgroundSupport);
 		

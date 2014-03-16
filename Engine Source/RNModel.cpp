@@ -28,11 +28,8 @@ namespace RN
 	}
 	
 	Model::Model(Mesh *mesh, Material *material) :
-		_skeleton(nullptr)
+		Model()
 	{
-		LODGroup *group = new LODGroup(0.0f);
-		_groups.push_back(group);
-		
 		AddMesh(mesh, material, 0);
 	}
 	
@@ -43,6 +40,73 @@ namespace RN
 		
 		SafeRelease(_skeleton);
 	}
+	
+	
+	
+	void Model::Unfault(Deserializer *deserializer)
+	{
+		Asset::Unfault(deserializer);
+		
+		_skeleton = SafeRetain(static_cast<Skeleton *>(deserializer->DecodeObject()));
+		
+		bool dirty = IsMarkedChanged();
+		size_t count = static_cast<size_t>(deserializer->DecodeInt32());
+		RN_ASSERT(count == _groups.size(), "Mismatching LOD group count while unfaulting Model!");
+		
+		for(size_t i = 0; i < count; i ++)
+		{
+			float lodDistance = deserializer->DecodeFloat();
+			size_t gcount = static_cast<size_t>(deserializer->DecodeInt32());
+			
+			RN_ASSERT(gcount == _groups[i]->groups.size(), "Mismatching LOD mesh count while unfaulting Model!");
+			
+			LODGroup *group = _groups[i];
+			group->lodDistance = lodDistance;
+			
+			for(size_t j = 0; j < gcount; j ++)
+			{
+				MeshGroup *mgroup = group->groups[j];
+				SafeRelease(mgroup->material);
+				
+				mgroup->material = static_cast<Material *>(deserializer->DecodeObject())->Retain();
+				
+				if(dirty)
+				{
+					SafeRelease(mgroup->mesh);
+					mgroup->mesh = static_cast<Mesh *>(deserializer->DecodeObject())->Retain();
+				}
+			}
+		}
+	}
+	
+	void Model::Serialize(Serializer *serializer)
+	{
+		Asset::Serialize(serializer);
+		
+		serializer->EncodeConditionalObject(_skeleton);
+		
+		size_t count = _groups.size();
+		bool dirty   = IsMarkedChanged();
+		
+		serializer->EncodeInt32(static_cast<int32>(count));
+		
+		for(LODGroup *group : _groups)
+		{
+			size_t gcount = group->groups.size();
+			
+			serializer->EncodeFloat(group->lodDistance);
+			serializer->EncodeInt32(static_cast<int32>(gcount));
+			
+			for(size_t i = 0; i < gcount; i ++)
+			{
+				serializer->EncodeObject(group->groups[i]->material);
+				
+				if(dirty)
+					serializer->EncodeObject(group->groups[i]->mesh);
+			}
+		}
+	}
+	
 	
 	
 	std::vector<float> &Model::GetDefaultLODFactors()
@@ -90,8 +154,11 @@ namespace RN
 	}
 	
 	
+	
 	size_t Model::AddLODStage(float distance)
 	{
+		MarkChanged();
+		
 		LODGroup *group = new LODGroup(distance);
 		_groups.push_back(group);
 		
@@ -105,6 +172,8 @@ namespace RN
 	
 	void Model::RemoveLODStage(size_t stage)
 	{
+		MarkChanged();
+		
 		auto iterator = _groups.begin();
 		std::advance(iterator, stage);
 		
@@ -117,6 +186,8 @@ namespace RN
 	
 	void Model::AddMesh(Mesh *mesh, Material *material, size_t lodStage)
 	{
+		MarkChanged();
+		
 		if(!material)
 			material = PickMaterialForMesh(mesh);
 		

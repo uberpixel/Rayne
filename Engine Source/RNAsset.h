@@ -26,6 +26,10 @@ namespace RN
 		RNAPI void Serialize(Serializer *serializer) override;
 		RNAPI const std::string &GetName() const;
 		
+		RNAPI void MarkChanged();
+		RNAPI void MarkUnchanged();
+		RNAPI bool IsMarkedChanged() const { return _dirty; }
+		
 		RNAPI static Asset *Deserialize(Deserializer *deserializer);
 		
 	protected:
@@ -33,9 +37,11 @@ namespace RN
 		RNAPI virtual void Unfault(Deserializer *deserializer);
 		
 	private:
-		void SetName(const std::string &name);
+		void WakeUpFromResourceCoordinator(const std::string &name, Dictionary *settings);
 		
 		std::string _name;
+		Dictionary *_settings;
+		bool _dirty;
 		
 		Signal<void(Asset *)> _signal;
 		
