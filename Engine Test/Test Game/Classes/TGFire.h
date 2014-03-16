@@ -17,6 +17,7 @@ namespace TG
 	{
 	public:
 		Fire();
+		Fire(const Fire *fire);
 		Fire(RN::Deserializer *deserializer);
 		
 		void Serialize(RN::Serializer *serializer) override;

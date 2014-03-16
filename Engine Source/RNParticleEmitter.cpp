@@ -59,6 +59,28 @@ namespace RN
 		SetMaxParticles(100);
 	}
 	
+	ParticleEmitter::ParticleEmitter(const ParticleEmitter *emitter) :
+		SceneNode(emitter)
+	{
+		_mesh = 0;
+		_material = 0;
+		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::LCG);
+		
+		SetParticlesPerSecond(1);
+		SetMaxParticles(100);
+	}
+	
+	ParticleEmitter::ParticleEmitter(RN::Deserializer *deserializer) :
+	SceneNode(deserializer)
+	{
+		
+	}
+	
+	void ParticleEmitter::Serialize(RN::Serializer *serializer)
+	{
+		SceneNode::Serialize(serializer);
+	}
+	
 	ParticleEmitter::~ParticleEmitter()
 	{
 		for(Particle *particle : _particles)

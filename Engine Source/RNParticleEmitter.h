@@ -39,7 +39,11 @@ namespace RN
 	{
 	public:
 		RNAPI ParticleEmitter();
+		RNAPI ParticleEmitter(const ParticleEmitter *emitter);
+		RNAPI ParticleEmitter(RN::Deserializer *deserializer);
 		RNAPI ~ParticleEmitter() override;
+		
+		RNAPI void Serialize(RN::Serializer *serializer) override;
 		
 		RNAPI void Cook(float time, int steps);
 		RNAPI void SetMaterial(ParticleMaterial *material);

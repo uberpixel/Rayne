@@ -64,14 +64,21 @@ namespace TG
 		Initialize();
 	}
 	
-	Fire::Fire(RN::Deserializer *deserializer)
+	Fire::Fire(const Fire *fire) :
+		RN::ParticleEmitter(fire)
+	{
+		Initialize();
+	}
+	
+	Fire::Fire(RN::Deserializer *deserializer) :
+	RN::ParticleEmitter(deserializer)
 	{
 		Initialize();
 	}
 	
 	void Fire::Serialize(RN::Serializer *serializer)
 	{
-		
+		ParticleEmitter::Serialize(serializer);
 	}
 	
 	void Fire::Initialize()
