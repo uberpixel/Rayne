@@ -65,6 +65,9 @@ namespace RN
 			Nearest
 		};
 		
+#if RN_PLATFORM_WINDOWS
+#pragma pack(push,1)
+#endif /* RN_PLATFORM_WINDOWS */
 		struct Parameter
 		{
 			Parameter()
@@ -85,9 +88,14 @@ namespace RN
 			
 			bool depthCompare;
 			bool generateMipMaps;
-			size_t maxMipMaps;
+			uint32 maxMipMaps;
 			float anisotropy;
+#if RN_PLATFORM_WINDOWS
 		};
+#pragma pack(pop)
+#else
+		} __attribute__((packed));
+#endif /* RN_PLATFORM_WINDOWS */
 		
 		struct PixelData
 		{
