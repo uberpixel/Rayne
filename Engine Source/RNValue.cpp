@@ -79,4 +79,27 @@ namespace RN
 		Value *value = new Value(matrix);
 		return value->Autorelease();
 	}
+	
+	
+	machine_hash Value::GetHash() const
+	{
+		machine_hash hash = _size ^ _type;
+		
+		for(size_t i = 0; i < _size - 1; i ++)
+			hash ^= _storage[i] | (static_cast<uint32>(_storage[i + 1]) << 16);
+		
+		return hash;
+	}
+	
+	bool Value::IsEqual(Object *tother) const
+	{
+		const Value *other = tother->Downcast<Value>();
+		if(!other)
+			return false;
+		
+		if(_type == other->_type && _size == other->_size)
+			return (memcpy(_storage, other->_storage, _size) == 0);
+		
+		return false;
+	}
 }
