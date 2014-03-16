@@ -136,8 +136,8 @@ namespace RN
 		
 		if(settings->GetObjectForKey(RNCSTR("parameter")))
 		{
-			WrappingObject<Texture::Parameter> *wrapper = static_cast<WrappingObject<Texture::Parameter> *>(settings->GetObjectForKey(RNCSTR("parameter")));
-			parameter = wrapper->GetData();
+			Value *value = settings->GetObjectForKey<Value>(RNCSTR("parameter"));
+			parameter = value->GetValue<Texture::Parameter>();
 		}
 		
 		if(settings->GetObjectForKey(RNCSTR("linear")))

@@ -11,7 +11,7 @@
 #include "RNThread.h"
 #include "RNKernel.h"
 #include "RNSettings.h"
-#include "RNWrappingObject.h"
+#include "RNValue.h"
 #include "RNOpenGLQueue.h"
 
 namespace RN
@@ -62,11 +62,11 @@ namespace RN
 	
 	Texture *Texture::WithFile(const std::string& name, const Parameter& parameter, bool isLinear)
 	{
-		WrappingObject<Parameter> *wrapper = new WrappingObject<Parameter>(parameter);
+		Value *value = new Value(parameter);
 		
 		Dictionary *settings = new Dictionary();
 		settings->SetObjectForKey(Number::WithBool(isLinear), RNCSTR("linear"));
-		settings->SetObjectForKey(wrapper->Autorelease(), RNCSTR("parameter"));
+		settings->SetObjectForKey(value->Autorelease(), RNCSTR("parameter"));
 		settings->Autorelease();
 		
 		Texture *texture = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Texture2D>(RNSTR(name.c_str()), settings);
