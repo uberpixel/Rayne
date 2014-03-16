@@ -109,6 +109,11 @@ namespace RN
 	}
 	
 	
+	machine_hash Dictionary::GetHash() const
+	{
+		return static_cast<machine_hash>(GetCount());
+	}
+	
 	bool Dictionary::IsEqual(Object *temp) const
 	{
 		if(!temp->IsKindOfClass(Dictionary::MetaClass()))
@@ -139,6 +144,7 @@ namespace RN
 		
 		return true;
 	}
+	
 	
 	
 	Array *Dictionary::GetAllObjects() const
