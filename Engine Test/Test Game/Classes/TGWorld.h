@@ -15,6 +15,9 @@
 #include "TGCutScene.h"
 #include "TGDebugDrawer.h"
 
+#define TGSunTag   1
+#define TGLightTag 2
+
 namespace TG
 {
 	class World : public RN::World

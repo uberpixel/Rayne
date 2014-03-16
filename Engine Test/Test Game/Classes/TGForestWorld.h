@@ -23,6 +23,7 @@ namespace TG
 	public:
 		ForestWorld();
 		void LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer) override;
+		void SaveOnThread(RN::Thread *thread, RN::Serializer *serializer) override;
 		
 	private:
 		void LoadBlendAndHeightmap();
@@ -44,6 +45,8 @@ namespace TG
 		RN::Model *_trees[TGForestTreeCount];
 		RN::Model *_grass[TGForestGrassCount];
 		RN::Model *_reeds[TGForestReedCount];
+		
+		RNDeclareMeta(ForestWorld)
 	};
 }
 

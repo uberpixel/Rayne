@@ -12,9 +12,6 @@
 #include <Rayne.h>
 #include "TGWorld.h"
 
-#define TGSunTag   1
-#define TGLightTag 2
-
 namespace TG
 {
 	class SponzaWorld : public World

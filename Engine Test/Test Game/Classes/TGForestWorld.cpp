@@ -13,6 +13,8 @@
 
 namespace TG
 {
+	RNDefineMeta(ForestWorld, World)
+	
 	ForestWorld::ForestWorld()
 	{
 		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNInputEventMessage, [&](RN::Message *message) {
@@ -39,38 +41,62 @@ namespace TG
 	void ForestWorld::LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer)
 	{
 		World::LoadOnThread(thread, deserializer);
-		LoadLevelJSON("forest.json");
 		
-		// Camera and sun
-		_camera->SetPosition(RN::Vector3(0.0f, 2.0f, 0.0f));
-		
-		_sunLight = new Sun();
-		_sunLight->SetRenderGroup(3);
-		_sunLight->ActivateShadows(RN::ShadowParameter(_camera, 2048));
-		_sunLight->Release();
-		
-		// Create the ground
-		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
-		ground->GetMaterialAtIndex(0, 0)->SetShader(RN::Shader::WithFile("shader/rn_Blend"));
-		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 150);
-		ground->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
-		//ground->GetMaterialAtIndex(0, 0)->SetPolygonMode(RN::Material::PolygonMode::Lines);
-		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/blend.png", true));
-		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2.png"));
-		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2_NRM.png", true));
-		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2_DISP.png", true));
-		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/sand.png"));
-		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/sand_NRM.png"));
-		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/rock.png"));
-		ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/rock_NRM.png"));
-		
-		_ground = new RN::Entity(ground);
-		_ground->SetScale(RN::Vector3(20.0f));
-		_ground->Release();
-		
-		RN::Water *water = new RN::Water(_camera, _refractCamera->GetStorage()->GetRenderTarget());
-		water->SetWorldPosition(RN::Vector3(71.0f, -0.3f, -5.0f));
-		
+		if(!deserializer)
+		{
+			LoadLevelJSON("forest.json");
+			
+			// Camera and sun
+			_camera->SetPosition(RN::Vector3(0.0f, 2.0f, 0.0f));
+			
+			_sunLight = new Sun();
+			_sunLight->SetRenderGroup(3);
+			_sunLight->SetTag(TGSunTag);
+			_sunLight->ActivateShadows(RN::ShadowParameter(_camera, 2048));
+			_sunLight->Release();
+			
+			// Create the ground
+			RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
+			ground->GetMaterialAtIndex(0, 0)->SetShader(RN::Shader::WithFile("shader/rn_Blend"));
+			ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 150);
+			ground->GetMaterialAtIndex(0, 0)->SetCullMode(RN::Material::CullMode::None);
+			//ground->GetMaterialAtIndex(0, 0)->SetPolygonMode(RN::Material::PolygonMode::Lines);
+			ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/blend.png", true));
+			ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2.png"));
+			ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2_NRM.png", true));
+			ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/plaster2_DISP.png", true));
+			ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/sand.png"));
+			ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/sand_NRM.png"));
+			ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/rock.png"));
+			ground->GetMaterialAtIndex(0, 0)->AddTexture(RN::Texture::WithFile("models/UberPixel/rock_NRM.png"));
+			
+			_ground = new RN::Entity(ground);
+			_ground->SetScale(RN::Vector3(20.0f));
+			_ground->Release();
+			
+			RN::Water *water = new RN::Water(_camera, _refractCamera->GetStorage()->GetRenderTarget());
+			water->SetWorldPosition(RN::Vector3(71.0f, -0.3f, -5.0f));
+			water->SetFlags(water->GetFlags() | RN::SceneNode::Flags::NoSave);
+		}
+		else
+		{
+			_ground = static_cast<RN::Entity *>(deserializer->DecodeObject());
+			
+			_camera->SetPosition(deserializer->DecodeVector3());
+			_camera->SetRotation(deserializer->DecodeQuaternion());
+			
+			_sunLight = GetSceneNodeWithTag<Sun>(TGSunTag);
+			
+			if(_sunLight)
+			{
+				_sunLight->UpdateShadowParameters([&]() -> RN::ShadowParameter {
+					RN::ShadowParameter parameter = _sunLight->GetShadowParameters();
+					parameter.shadowTarget = _camera;
+					
+					return parameter;
+				}());
+			}
+		}
 		
 		LoadBlendAndHeightmap();
 		LoadTreeModels();
@@ -84,6 +110,7 @@ namespace TG
 		RN::InstancingNode *treeNode = new RN::InstancingNode();
 		treeNode->SetModels(RN::Array::WithObjects(_trees[0], _trees[1], _trees[2], _trees[3], _trees[4], _trees[5], _trees[6], _trees[7], _trees[8], _trees[9], nullptr));
 		treeNode->SetPivot(_camera);
+		treeNode->SetFlags(treeNode->GetFlags() | RN::SceneNode::Flags::NoSave);
 		treeNode->Release();
 		
 		for(int i = 0; i < TGForestFeatureTrees; i ++)
@@ -104,7 +131,7 @@ namespace TG
 			pos.y = GetGroundHeight(pos);
 			
 			RN::Entity *entity = new RN::Entity(_trees[random.RandomInt32Range(0, TGForestTreeCount)], pos);
-			entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static);
+			entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static | RN::SceneNode::Flags::NoSave);
 			entity->SetScale(RN::Vector3(random.RandomFloatRange(0.89f, 1.12f)));
 			entity->SetRotation(RN::Vector3(random.RandomFloatRange(0.0f, 360.0f), 0.0f, 0.0f));
 			entity->Release();
@@ -115,6 +142,7 @@ namespace TG
 		// Grass and reed
 		RN::InstancingNode *grassNode = new RN::InstancingNode();
 		grassNode->SetModels(RN::Array::WithObjects(_grass[0], _grass[1], _grass[2], _grass[3], nullptr));
+		grassNode->SetFlags(grassNode->GetFlags() | RN::SceneNode::Flags::NoSave);
 		grassNode->SetRenderGroup(1);
 		grassNode->SetPivot(_camera);
 		grassNode->SetMode(RN::InstancingNode::Mode::Thinning | RN::InstancingNode::Mode::Clipping);
@@ -126,6 +154,7 @@ namespace TG
 		RN::InstancingNode *reedNode = new RN::InstancingNode();
 		reedNode->SetModels(RN::Array::WithObjects(_reeds[0], nullptr));
 		reedNode->SetPivot(_camera);
+		reedNode->SetFlags(reedNode->GetFlags() | RN::SceneNode::Flags::NoSave);
 		reedNode->SetMode(RN::InstancingNode::Mode::Thinning | RN::InstancingNode::Mode::Clipping);
 		reedNode->SetCellSize(32.0f);
 		reedNode->SetClippingRange(16.0f);
@@ -157,7 +186,7 @@ namespace TG
 				if(value <= 60)
 				{
 					RN::Entity *entity = new RN::Entity(_reeds[0], pos);
-					entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static);
+					entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static | RN::SceneNode::Flags::NoSave);
 					entity->SetScale(RN::Vector3(random.RandomFloatRange(0.005f, 0.008f)));
 					entity->SetRotation(RN::Vector3(random.RandomFloatRange(0, 360.0f), -90.0f, 90.0f));
 					entity->Release();
@@ -181,7 +210,7 @@ namespace TG
 			
 			
 			RN::Entity *entity = new RN::Entity(_grass[index], pos);
-			entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static);
+			entity->SetFlags(entity->GetFlags() | RN::SceneNode::Flags::Static | RN::SceneNode::Flags::NoSave);
 			entity->SetScale(RN::Vector3(random.RandomFloatRange(0.9f, 1.3f)));
 			entity->SetRotation(RN::Vector3(random.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
 			entity->Release();
@@ -189,6 +218,17 @@ namespace TG
 			grassNode->AddChild(entity);
 		}
 	}
+	
+	void ForestWorld::SaveOnThread(RN::Thread *thread, RN::Serializer *serializer)
+	{
+		World::SaveOnThread(thread, serializer);
+		
+		serializer->EncodeObject(_ground);
+		
+		serializer->EncodeVector3(_camera->GetWorldPosition());
+		serializer->EncodeQuarternion(_camera->GetWorldRotation());
+	}
+	
 	
 	void ForestWorld::LoadBlendAndHeightmap()
 	{
