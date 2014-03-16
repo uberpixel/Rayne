@@ -328,7 +328,7 @@ namespace RN
 		try
 		{
 			if(!settings)
-				settings = (new Dictionary())->Autorelease();
+				settings = new Dictionary();
 			
 			object = (file) ? resourceLoader->Load(file, settings) : resourceLoader->Load(name, settings);
 			object->WakeUpFromResourceCoordinator(name->GetUTF8String(), settings);
