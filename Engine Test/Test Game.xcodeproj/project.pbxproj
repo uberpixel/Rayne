@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		D5ADBACA18D63C8E00C0F090 /* TGFire.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D5ADBAC818D63C8E00C0F090 /* TGFire.cpp */; };
 		D5ADBACB18D63C8E00C0F090 /* TGFire.h in Headers */ = {isa = PBXBuildFile; fileRef = D5ADBAC918D63C8E00C0F090 /* TGFire.h */; };
+		D5ADBACE18D66E9E00C0F090 /* TGSmoke.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D5ADBACC18D66E9E00C0F090 /* TGSmoke.cpp */; };
+		D5ADBACF18D66E9E00C0F090 /* TGSmoke.h in Headers */ = {isa = PBXBuildFile; fileRef = D5ADBACD18D66E9E00C0F090 /* TGSmoke.h */; };
 		E970C15E18A554D600B6B633 /* TGForestWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E970C15C18A554D600B6B633 /* TGForestWorld.cpp */; };
 		E970C15F18A554D600B6B633 /* TGForestWorld.h in Headers */ = {isa = PBXBuildFile; fileRef = E970C15D18A554D600B6B633 /* TGForestWorld.h */; };
 		E970C16218A55F6100B6B633 /* TGSponzaWorld.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E970C16018A55F6100B6B633 /* TGSponzaWorld.cpp */; };
@@ -49,6 +51,8 @@
 /* Begin PBXFileReference section */
 		D5ADBAC818D63C8E00C0F090 /* TGFire.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGFire.cpp; path = Classes/TGFire.cpp; sourceTree = "<group>"; };
 		D5ADBAC918D63C8E00C0F090 /* TGFire.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGFire.h; path = Classes/TGFire.h; sourceTree = "<group>"; };
+		D5ADBACC18D66E9E00C0F090 /* TGSmoke.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGSmoke.cpp; path = Classes/TGSmoke.cpp; sourceTree = "<group>"; };
+		D5ADBACD18D66E9E00C0F090 /* TGSmoke.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGSmoke.h; path = Classes/TGSmoke.h; sourceTree = "<group>"; };
 		E970C15C18A554D600B6B633 /* TGForestWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGForestWorld.cpp; path = Classes/TGForestWorld.cpp; sourceTree = "<group>"; };
 		E970C15D18A554D600B6B633 /* TGForestWorld.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TGForestWorld.h; path = Classes/TGForestWorld.h; sourceTree = "<group>"; };
 		E970C16018A55F6100B6B633 /* TGSponzaWorld.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = TGSponzaWorld.cpp; path = Classes/TGSponzaWorld.cpp; sourceTree = "<group>"; };
@@ -118,6 +122,8 @@
 				E970C15D18A554D600B6B633 /* TGForestWorld.h */,
 				E984243E187DF455002AEF39 /* TGLoadingScreen.cpp */,
 				E984243F187DF455002AEF39 /* TGLoadingScreen.h */,
+				D5ADBACC18D66E9E00C0F090 /* TGSmoke.cpp */,
+				D5ADBACD18D66E9E00C0F090 /* TGSmoke.h */,
 				E970C16018A55F6100B6B633 /* TGSponzaWorld.cpp */,
 				E970C16118A55F6100B6B633 /* TGSponzaWorld.h */,
 				E9B8E7A31888763600617F62 /* TGSun.cpp */,
@@ -173,6 +179,7 @@
 				E9825D40187296C6005FC83D /* TGApplication.h in Headers */,
 				E9825D42187296C6005FC83D /* TGDebugDrawer.h in Headers */,
 				E9825D29187295EB005FC83D /* Test Game-Prefix.pch in Headers */,
+				D5ADBACF18D66E9E00C0F090 /* TGSmoke.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -270,6 +277,7 @@
 				E970C16218A55F6100B6B633 /* TGSponzaWorld.cpp in Sources */,
 				E9842440187DF455002AEF39 /* TGLoadingScreen.cpp in Sources */,
 				E9825D41187296C6005FC83D /* TGDebugDrawer.cpp in Sources */,
+				D5ADBACE18D66E9E00C0F090 /* TGSmoke.cpp in Sources */,
 				E970C15E18A554D600B6B633 /* TGForestWorld.cpp in Sources */,
 				E9825D3F187296C6005FC83D /* TGApplication.cpp in Sources */,
 			);

@@ -7,11 +7,12 @@
 //
 
 #include "TGFire.h"
+#include "TGSmoke.h"
 
-#define kTGFireSpreadX GetGenerator()->RandomFloatRange(-0.45f, 0.45f)*0.5f
-#define kTGFireSpreadY GetGenerator()->RandomFloatRange(-0.45f, 0.45f)*0.5f
-#define kTGFireVelocity GetGenerator()->RandomFloatRange(0.8f, 1.0f)*0.5f
-#define kTGFireSize emitter->GetGenerator()->RandomFloatRange(1.0f, 1.5f)
+#define kTGFireSpreadX GetGenerator()->RandomFloatRange(-0.45f, 0.45f)*1.0f
+#define kTGFireSpreadY GetGenerator()->RandomFloatRange(-0.45f, 0.45f)*1.0f
+#define kTGFireVelocity GetGenerator()->RandomFloatRange(0.8f, 1.0f)*1.0f
+#define kTGFireSize emitter->GetGenerator()->RandomFloatRange(2.0f, 3.5f)
 
 namespace TG
 {
@@ -22,41 +23,38 @@ namespace TG
 	public:
 		void Initialize(RN::ParticleEmitter *emitter, RN::ParticleMaterial *material)
 		{
-			lifespan = 10.0f;//emitter->GetGenerator()->RandomFloatRange(0.1f, 0.3f);
+			lifespan = 5.0f;
 			
-			_gravity = 0.0f;
 			size = 0.0f;
-			color.a = 0.3f;
+			color.a = 1.0f;
+			_target = emitter->GetWorldPosition() + RN::Vector3(0.0f, emitter->GetGenerator()->RandomFloatRange(1.0f, 2.0f), 0.0f);
 			
 			_alphaInterpolator.SetDuration(lifespan);
-			_alphaInterpolator.SetStartValue(0.5f);
+			_alphaInterpolator.SetStartValue(1.0f);
 			_alphaInterpolator.SetEndValue(0.0f);
 			
 			_sizeInterpolator.SetDuration(lifespan);
 			_sizeInterpolator.SetStartValue(kTGFireSize * 0.2f);
-			_sizeInterpolator.SetEndValue(kTGFireSize * 0.4f);
+			_sizeInterpolator.SetEndValue(kTGFireSize * 1.0f);
 			
 			Update(0.0f);
 		}
 		
 		void Update(float delta)
 		{
-			_time += delta*2.0f;
+			_time += delta;
+			lifespan -= delta;
 			
 			color.a = _alphaInterpolator.GetValue(_time);
 			size = _sizeInterpolator.GetValue(_time);
-			
-			if(color.a <= RN::k::EpsilonFloat)
-				lifespan = 0.0f;
-			
-			RN::Particle::Update(delta);
+			position += velocity*color.a*1.0f*delta+(_target-position)*(1.0f-color.a*1.0f)*delta*2.0f;
 		}
 		
 	private:
-		float _gravity;
 		float _time;
 		RN::Interpolator<float> _alphaInterpolator;
 		RN::Interpolator<RN::Vector2> _sizeInterpolator;
+		RN::Vector3 _target;
 	};
 		
 	Fire::Fire()
@@ -83,12 +81,15 @@ namespace TG
 	
 	void Fire::Initialize()
 	{
+		Smoke *smoke = new Smoke();
+		AddChild(smoke);
+		smoke->Release();
+		
 		RN::ParticleMaterial *material = new RN::ParticleMaterial();
 		
-		material->AddTexture(RN::Texture::WithFile("textures/smoke.png"));
+		material->AddTexture(RN::Texture::WithFile("textures/fire.png"));
 		material->SetBlending(true);
-		//material->blendDestination = GL_ONE;
-		//material->blendSource = GL_ONE;
+		material->SetBlendMode(RN::Material::BlendMode::One, RN::Material::BlendMode::One);
 		
 		SetMaterial(material->Autorelease());
 		SetMaxParticles(100);
@@ -100,7 +101,7 @@ namespace TG
 		FireParticle *particle = new FireParticle();
 		particle->velocity = RN::Vector3(kTGFireSpreadX, kTGFireVelocity, kTGFireSpreadY)*0.5f;
 		
-		particle->position = GetWorldPosition()+RN::Vector3(kTGFireSpreadX, kTGFireSpreadX, kTGFireSpreadY)*0.1f;
+		particle->position = GetWorldPosition()+RN::Vector3(kTGFireSpreadX, kTGFireSpreadX, kTGFireSpreadY)*1.0f;
 		
 		return particle;
 	}
