@@ -27,15 +27,15 @@ namespace TG
 			
 			size = 0.0f;
 			color.a = 1.0f;
-			_target = emitter->GetWorldPosition() + RN::Vector3(0.0f, emitter->GetGenerator()->RandomFloatRange(1.0f, 2.0f), 0.0f);
+			_target = RN::Vector3(0.0f, emitter->GetGenerator()->RandomFloatRange(1.0f, 2.0f), 0.0f);
 			
 			_alphaInterpolator.SetDuration(lifespan);
 			_alphaInterpolator.SetStartValue(1.0f);
 			_alphaInterpolator.SetEndValue(0.0f);
 			
 			_sizeInterpolator.SetDuration(lifespan);
-			_sizeInterpolator.SetStartValue(kTGFireSize * 0.2f);
-			_sizeInterpolator.SetEndValue(kTGFireSize * 1.0f);
+			_sizeInterpolator.SetStartValue(kTGFireSize * 0.75f);
+			_sizeInterpolator.SetEndValue(kTGFireSize * 0.2f);
 			
 			Update(0.0f);
 		}
@@ -101,7 +101,7 @@ namespace TG
 		particle->Initialize(this);
 		particle->velocity = RN::Vector3(kTGFireSpreadX, kTGFireVelocity, kTGFireSpreadY)*0.5f;
 		
-		particle->position = GetWorldPosition()+RN::Vector3(kTGFireSpreadX, kTGFireSpreadX, kTGFireSpreadY)*1.0f;
+		particle->position = RN::Vector3(kTGFireSpreadX, kTGFireSpreadX, kTGFireSpreadY)*1.0f;
 		
 		return particle;
 	}

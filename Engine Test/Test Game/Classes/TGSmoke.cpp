@@ -99,7 +99,7 @@ namespace TG
 		particle->Initialize(this);
 		particle->velocity = RN::Vector3(kTGSmokeSpreadX, kTGSmokeVelocity, kTGSmokeSpreadY)*0.5f;
 		
-		particle->position = GetWorldPosition()+RN::Vector3(kTGSmokeSpreadX, kTGSmokeSpreadX, kTGSmokeSpreadY)*1.0f;
+		particle->position = RN::Vector3(kTGSmokeSpreadX, kTGSmokeSpreadX, kTGSmokeSpreadY)*1.0f;
 		
 		return particle;
 	}

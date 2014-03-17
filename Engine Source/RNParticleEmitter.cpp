@@ -29,7 +29,7 @@ namespace RN
 	
 	ParticleEmitter::ParticleEmitter() :
 		_mesh(nullptr),
-		_isLocal("Is Local", false, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
+		_isLocal("Is Local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
 		_maxParticles("Max Particles", 100, &ParticleEmitter::GetMaxParticles, &ParticleEmitter::SetMaxParticles),
 		_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
 	{
@@ -52,7 +52,7 @@ namespace RN
 	ParticleEmitter::ParticleEmitter(const ParticleEmitter *emitter) :
 		SceneNode(emitter),
 		_mesh(nullptr),
-		_isLocal("Is Local", false, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
+		_isLocal("Is Local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
 		_maxParticles("Max Particles", 1, &ParticleEmitter::GetMaxParticles, &ParticleEmitter::SetMaxParticles),
 		_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
 	{
@@ -72,7 +72,7 @@ namespace RN
 		SceneNode(deserializer),
 		_mesh(nullptr),
 		_material(nullptr),
-		_isLocal("Is Local", false, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
+		_isLocal("Is Local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
 		_maxParticles("Max Particles", 1, &ParticleEmitter::GetMaxParticles,&ParticleEmitter::SetMaxParticles),
 		_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
 	{
@@ -209,11 +209,7 @@ namespace RN
 	Particle *ParticleEmitter::CreateParticle()
 	{
 		RN_ASSERT(_material, "ParticleEmitter need a material to spawn particles");
-		
-		Particle *particle = new Particle();
-		particle->position = GetWorldPosition();
-		
-		return particle;
+		return new Particle();
 	}
 	
 	void ParticleEmitter::UpdateParticles(float delta)
@@ -265,11 +261,6 @@ namespace RN
 			data->size     = particle->size;
 			data->color    = particle->color;
 			
-			if(_isLocal)
-			{
-				data->position -= GetWorldPosition();
-			}
-			
 			data ++;
 		}
 		
@@ -307,18 +298,23 @@ namespace RN
 			return;
 		
 		RenderingObject object;
-		FillRenderingObject(object);
 		
-		_transform = GetWorldTransform();
+		if(GetFlags() & Flags::DrawLate)
+			object.flags |= RenderingObject::DrawLate;
 		
 		if(!_isLocal)
 		{
-			_transform = Matrix::WithTranslation(GetWorldPosition());
-			_transform.Scale(GetWorldScale());
-			_transform.Translate(-GetWorldPosition());
+			_transform = Matrix::WithIdentity();
+			_rotation = Quaternion::WithIdentity();
+		}
+		else
+		{
+			_transform = GetWorldTransform();
+			_rotation = GetWorldRotation();
 		}
 		
 		object.transform = &_transform;
+		object.rotation  = &_rotation;
 		object.mesh = _mesh;
 		object.count = static_cast<uint32>(_particles.size());
 		object.material = _material;
@@ -428,21 +424,33 @@ namespace RN
 	RN::Particle *GenericParticleEmitter::CreateParticle()
 	{
 		GenericParticle *particle = new GenericParticle();
-		particle->position = GetWorldPosition() + _rng->RandomVector3Range(_positionRandomizeMin, _positionRandomizeMax);
+		particle->position = _rng->RandomVector3Range(_positionRandomizeMin, _positionRandomizeMax);
 		
 		float lifespan = _rng->RandomFloatRange(_lifeSpan->x, _lifeSpan->y);
 		particle->lifespan = lifespan;
 		
+		particle->gravity = _gravity;
+		particle->velocity = _velocity + _rng->RandomVector3Range(_velocityRandomizeMin, _velocityRandomizeMax);
+		
+		float sizeScale = 1.0f;
+		if(!GetIsLocal())
+		{
+			Vector3 scale = GetWorldScale();
+			sizeScale = std::max(std::max(scale.x, scale.y), scale.z);
+			
+			particle->position *= scale;
+			particle->position += GetWorldPosition();
+			particle->gravity *= scale;
+			particle->velocity *= scale;
+		}
+		
+		particle->sizeInterpolator.SetStartValue(Vector2(_rng->RandomFloatRange(_startSize->x, _startSize->y)) * sizeScale);
+		particle->sizeInterpolator.SetEndValue(Vector2(_rng->RandomFloatRange(_endSize->x, _endSize->y)) * sizeScale);
+		particle->sizeInterpolator.SetDuration(lifespan);
+		
 		particle->colorInterpolator.SetStartValue(_startColor);
 		particle->colorInterpolator.SetEndValue(_endColor);
 		particle->colorInterpolator.SetDuration(lifespan);
-		
-		particle->sizeInterpolator.SetStartValue(Vector2(_rng->RandomFloatRange(_startSize->x, _startSize->y)));
-		particle->sizeInterpolator.SetEndValue(Vector2(_rng->RandomFloatRange(_endSize->x, _endSize->y)));
-		particle->sizeInterpolator.SetDuration(lifespan);
-		
-		particle->gravity = _gravity;
-		particle->velocity = _velocity + _rng->RandomVector3Range(_velocityRandomizeMin, _velocityRandomizeMax);
 		
 		particle->Update(0.0f);
 		

@@ -69,10 +69,11 @@ namespace RN
 		Material *_material;
 		Mesh *_mesh;
 		Matrix _transform;
+		Quaternion _rotation;
 		
-		RN::Observable<bool, ParticleEmitter> _isLocal;
-		RN::Observable<uint32, ParticleEmitter> _maxParticles;
-		RN::Observable<float, ParticleEmitter> _spawnRate;
+		Observable<bool, ParticleEmitter> _isLocal;
+		Observable<uint32, ParticleEmitter> _maxParticles;
+		Observable<float, ParticleEmitter> _spawnRate;
 		
 		float _time;
 		
@@ -112,20 +113,20 @@ namespace RN
 		void SetPositionRandomizeMax(const Vector3 &positionRandomizeMax) { _positionRandomizeMax = positionRandomizeMax; }
 		
 	private:
-		RN::Particle *CreateParticle();
+		Particle *CreateParticle();
 		void Initialize();
 		
-		RN::Observable<Vector2, GenericParticleEmitter> _lifeSpan;
-		RN::Observable<Color, GenericParticleEmitter> _startColor;
-		RN::Observable<Color, GenericParticleEmitter> _endColor;
-		RN::Observable<Vector2, GenericParticleEmitter> _startSize;
-		RN::Observable<Vector2, GenericParticleEmitter> _endSize;
-		RN::Observable<Vector3, GenericParticleEmitter> _gravity;
-		RN::Observable<Vector3, GenericParticleEmitter> _velocity;
-		RN::Observable<Vector3, GenericParticleEmitter> _velocityRandomizeMin;
-		RN::Observable<Vector3, GenericParticleEmitter> _velocityRandomizeMax;
-		RN::Observable<Vector3, GenericParticleEmitter> _positionRandomizeMin;
-		RN::Observable<Vector3, GenericParticleEmitter> _positionRandomizeMax;
+		Observable<Vector2, GenericParticleEmitter> _lifeSpan;
+		Observable<Color, GenericParticleEmitter> _startColor;
+		Observable<Color, GenericParticleEmitter> _endColor;
+		Observable<Vector2, GenericParticleEmitter> _startSize;
+		Observable<Vector2, GenericParticleEmitter> _endSize;
+		Observable<Vector3, GenericParticleEmitter> _gravity;
+		Observable<Vector3, GenericParticleEmitter> _velocity;
+		Observable<Vector3, GenericParticleEmitter> _velocityRandomizeMin;
+		Observable<Vector3, GenericParticleEmitter> _velocityRandomizeMax;
+		Observable<Vector3, GenericParticleEmitter> _positionRandomizeMin;
+		Observable<Vector3, GenericParticleEmitter> _positionRandomizeMax;
 		
 		RNDeclareMeta(GenericParticleEmitter)
 	};
