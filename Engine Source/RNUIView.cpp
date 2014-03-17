@@ -603,8 +603,8 @@ namespace RN
 				if(!_clippingView && view->_clipSubviews)
 					_clippingView = view;
 				
-				origin.x += view->_frame.x;
-				origin.y += view->_frame.y;
+				origin.x += view->_frame.x - view->_bounds.x;
+				origin.y += view->_frame.y - view->_bounds.y;
 				
 				view = view->_superview;
 			}
@@ -620,10 +620,10 @@ namespace RN
 			_scissorRect.width  = _frame.width;
 			_scissorRect.height = _frame.height;
 			
-			_scissorRect.x += _clipInsets.left;
+			_scissorRect.x     += _clipInsets.left;
 			_scissorRect.width -= _clipInsets.left + _clipInsets.right;
 			
-			_scissorRect.y += _clipInsets.bottom;
+			_scissorRect.y      += _clipInsets.bottom;
 			_scissorRect.height -= _clipInsets.bottom + _clipInsets.top;
 			
 			if(_clippingView)

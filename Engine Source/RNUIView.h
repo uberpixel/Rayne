@@ -82,6 +82,7 @@ namespace RN
 			RNAPI const Array *GetSubivews() const { return &_subviews; }
 			RNAPI Widget *GetWidget() const { return _widget; }
 			RNAPI const Matrix& GetTransform() const { return _transform; }
+			RNAPI bool IsHidden() const { return _hidden; }
 			
 			RNAPI void SetNeedsLayoutUpdate();
 			
