@@ -56,6 +56,7 @@ namespace RN
 			
 			RNAPI Camera *GetCamera() const { return _camera; }
 			RNAPI Widget *GetMainWidget() const { return _mainWidget; }
+			RNAPI Menu *GetMainMeu() cont { return _menu; }
 			
 #if RN_PLATFORM_MAC_OS
 			void PerformMenuBarAction(void *item);
