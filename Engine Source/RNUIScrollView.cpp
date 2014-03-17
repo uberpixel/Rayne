@@ -82,6 +82,15 @@ namespace RN
 			_end.x = std::max(0.0f, _end.x);
 			_end.y = std::max(0.0f, _end.y);
 			
+			if(_offset.y > _end.y || _offset.x > _end.x)
+			{
+				_offset.x = std::min(_offset.x, _end.x);
+				_offset.y = std::min(_offset.y, _end.y);
+				
+				SetContentOffset(_offset);
+				return;
+			}
+			
 			AdjustScroller();
 		}
 		
