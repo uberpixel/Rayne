@@ -972,8 +972,7 @@ namespace RN
 					RenderingObject &object = *i;
 					
 					const Material *material = object.material;
-					
-					bool alpha = (material->discard || material->blending);
+					bool alpha = (material->blending);
 					
 					if(alpha)
 					{
