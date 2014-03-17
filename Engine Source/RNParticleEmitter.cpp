@@ -71,6 +71,7 @@ namespace RN
 	ParticleEmitter::ParticleEmitter(RN::Deserializer *deserializer) :
 		SceneNode(deserializer),
 		_mesh(nullptr),
+		_material(nullptr),
 		_isLocal("Is Local", false, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
 		_maxParticles("Max Particles", 1, &ParticleEmitter::GetMaxParticles,&ParticleEmitter::SetMaxParticles),
 		_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
