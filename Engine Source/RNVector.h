@@ -44,6 +44,8 @@ namespace RN
 		Vector2& operator/= (const Vector2& other);
 
 		float GetLength() const;
+		float GetMax() const;
+		float GetMin() const;
 		float GetDotProduct(const Vector2& other) const;
 		Vector2 GetCrossProduct() const;
 		float GetDistance(const Vector2 &other) const;
@@ -88,6 +90,8 @@ namespace RN
 		Vector3& operator/= (const Vector3& other);
 		
 		float GetLength() const;
+		float GetMax() const;
+		float GetMin() const;
 		float GetDotProduct(const Vector3& other) const;
 		Vector3 GetCrossProduct(const Vector3& other) const;
 		bool IsEqual(const Vector3& other, float epsilon) const;
@@ -141,6 +145,8 @@ namespace RN
 		Vector4& operator/= (const Vector4& other);
 		
 		float GetLength() const;
+		float GetMax() const;
+		float GetMin() const;
 		float GetDotProduct(const Vector4& other) const;
 		float GetDistance(const Vector4 &other) const;
 		float GetSquaredDistance(const Vector4 &other) const;
@@ -284,6 +290,16 @@ namespace RN
 	RN_INLINE float Vector2::GetLength() const
 	{
 		return Math::Sqrt(x * x + y * y);
+	}
+	
+	RN_INLINE float Vector2::GetMax() const
+	{
+		return std::max(x, y);
+	}
+	
+	RN_INLINE float Vector2::GetMin() const
+	{
+		return std::min(x, y);
 	}
 
 	RN_INLINE float Vector2::GetDotProduct(const Vector2& other) const
@@ -463,6 +479,16 @@ namespace RN
 	RN_INLINE float Vector3::GetLength() const
 	{
 		return Math::Sqrt(x * x + y * y + z * z);
+	}
+	
+	RN_INLINE float Vector3::GetMax() const
+	{
+		return std::max(std::max(x, y), z);
+	}
+	
+	RN_INLINE float Vector3::GetMin() const
+	{
+		return std::min(std::min(x, y), z);
 	}
 
 	RN_INLINE float Vector3::GetDotProduct(const Vector3& other) const
@@ -741,6 +767,16 @@ namespace RN
 #endif
 		
 		return Math::Sqrt(x * x + y * y + z * z + w * w);
+	}
+	
+	RN_INLINE float Vector4::GetMax() const
+	{
+		return std::max(std::max(std::max(x, y), z), w);
+	}
+	
+	RN_INLINE float Vector4::GetMin() const
+	{
+		return std::min(std::min(std::min(x, y), z), w);
 	}
 
 	RN_INLINE float Vector4::GetDotProduct(const Vector4& other) const
