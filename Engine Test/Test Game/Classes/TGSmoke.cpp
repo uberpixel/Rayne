@@ -125,7 +125,7 @@ namespace TG
 		particle->sizeInterpolator.SetStartValue(_rng->RandomFloatRange(_sizeStart->x, _sizeStart->y) * sizeScale);
 		particle->sizeInterpolator.SetEndValue(_rng->RandomFloatRange(_sizeEnd->x, _sizeEnd->y) * sizeScale);
 		
-		Update(0.0f);
+		particle->Update(0.0f);
 		
 		return particle;
 	}

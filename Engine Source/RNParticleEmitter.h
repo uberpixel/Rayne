@@ -46,6 +46,12 @@ namespace RN
 		RNAPI bool GetIsLocal() const { return _isLocal; }
 		RNAPI void SetIsLocal(bool local) { _isLocal = local; }
 		
+		RNAPI bool GetIsSorted() const { return _isSorted; }
+		RNAPI void SetIsSorted(bool sorted) { _isSorted = sorted; }
+		
+		RNAPI bool GetIsRenderedInversed() const { return _isRenderedInversed; }
+		RNAPI void SetIsRenderedInversed(bool renderedInversed) { _isRenderedInversed = renderedInversed; }
+		
 		RNAPI RandomNumberGenerator *GetGenerator() const { return _rng; }
 		
 		RNAPI void SpawnParticles(size_t particles);
@@ -72,6 +78,8 @@ namespace RN
 		Quaternion _rotation;
 		
 		Observable<bool, ParticleEmitter> _isLocal;
+		Observable<bool, ParticleEmitter> _isSorted;
+		Observable<bool, ParticleEmitter> _isRenderedInversed;
 		Observable<uint32, ParticleEmitter> _maxParticles;
 		Observable<float, ParticleEmitter> _spawnRate;
 		

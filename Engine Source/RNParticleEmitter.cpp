@@ -28,14 +28,14 @@ namespace RN
 	};
 	
 	ParticleEmitter::ParticleEmitter() :
-		_mesh(nullptr),
-		_isLocal("Is Local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
-		_maxParticles("Max Particles", 100, &ParticleEmitter::GetMaxParticles, &ParticleEmitter::SetMaxParticles),
-		_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
+	_mesh(nullptr),
+	_isLocal("is local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
+	_isSorted("is sorted", false, &ParticleEmitter::GetIsSorted, &ParticleEmitter::SetIsSorted),
+	_isRenderedInversed("is rendered inversed", false, &ParticleEmitter::GetIsRenderedInversed, &ParticleEmitter::SetIsRenderedInversed),
+	_maxParticles("max particles", 100, &ParticleEmitter::GetMaxParticles, &ParticleEmitter::SetMaxParticles),
+	_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
 	{
-		AddObservable(&_isLocal);
-		AddObservable(&_maxParticles);
-		AddObservable(&_spawnRate);
+		AddObservables({&_isLocal, &_isSorted, &_isRenderedInversed, &_maxParticles, &_spawnRate});
 		
 		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::LCG);
 		
@@ -50,15 +50,15 @@ namespace RN
 	}
 	
 	ParticleEmitter::ParticleEmitter(const ParticleEmitter *emitter) :
-		SceneNode(emitter),
-		_mesh(nullptr),
-		_isLocal("Is Local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
-		_maxParticles("Max Particles", 1, &ParticleEmitter::GetMaxParticles, &ParticleEmitter::SetMaxParticles),
-		_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
+	SceneNode(emitter),
+	_mesh(nullptr),
+	_isLocal("Is Local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
+	_isSorted("is sorted", false, &ParticleEmitter::GetIsSorted, &ParticleEmitter::SetIsSorted),
+	_isRenderedInversed("is rendered inversed", false, &ParticleEmitter::GetIsRenderedInversed, &ParticleEmitter::SetIsRenderedInversed),
+	_maxParticles("Max Particles", 1, &ParticleEmitter::GetMaxParticles, &ParticleEmitter::SetMaxParticles),
+	_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
 	{
-		AddObservable(&_isLocal);
-		AddObservable(&_maxParticles);
-		AddObservable(&_spawnRate);
+		AddObservables({&_isLocal, &_isSorted, &_isRenderedInversed, &_maxParticles, &_spawnRate});
 		
 		_rng = emitter->GetGenerator();
 		
@@ -69,21 +69,23 @@ namespace RN
 	}
 	
 	ParticleEmitter::ParticleEmitter(RN::Deserializer *deserializer) :
-		SceneNode(deserializer),
-		_mesh(nullptr),
-		_material(nullptr),
-		_isLocal("Is Local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
-		_maxParticles("Max Particles", 1, &ParticleEmitter::GetMaxParticles,&ParticleEmitter::SetMaxParticles),
-		_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
+	SceneNode(deserializer),
+	_mesh(nullptr),
+	_material(nullptr),
+	_isLocal("Is Local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
+	_isSorted("is sorted", false, &ParticleEmitter::GetIsSorted, &ParticleEmitter::SetIsSorted),
+	_isRenderedInversed("is rendered inversed", false, &ParticleEmitter::GetIsRenderedInversed, &ParticleEmitter::SetIsRenderedInversed),
+	_maxParticles("Max Particles", 1, &ParticleEmitter::GetMaxParticles,&ParticleEmitter::SetMaxParticles),
+	_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
 	{
-		AddObservable(&_isLocal);
-		AddObservable(&_maxParticles);
-		AddObservable(&_spawnRate);
+		AddObservables({&_isLocal, &_isSorted, &_isRenderedInversed, &_maxParticles, &_spawnRate});
 		
 		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::LCG);
 		
 		SetMaterial(static_cast<Material*>(deserializer->DecodeObject()));
 		SetIsLocal(deserializer->DecodeBool());
+		SetIsSorted(deserializer->DecodeBool());
+		SetIsRenderedInversed(deserializer->DecodeBool());
 		SetSpawnRate(deserializer->DecodeFloat());
 		SetMaxParticles(static_cast<uint32>(deserializer->DecodeInt32()));
 	}
@@ -93,6 +95,8 @@ namespace RN
 		SceneNode::Serialize(serializer);
 		serializer->EncodeObject(_material);
 		serializer->EncodeBool(_isLocal);
+		serializer->EncodeBool(_isSorted);
+		serializer->EncodeBool(_isRenderedInversed);
 		serializer->EncodeFloat(_spawnRate);
 		serializer->EncodeInt32(static_cast<int32>(_maxParticles));
 	}
@@ -250,18 +254,32 @@ namespace RN
 		Mesh::Chunk chunk = _mesh->GetChunk();
 		ParticleData *data = chunk.GetData<ParticleData>();
 		
-		for(size_t i = 0; i < _particles.size(); i ++)
+		int to = std::min(static_cast<int>(_particles.size()), static_cast<int>(_maxParticles));
+		if(!_isRenderedInversed)
 		{
-			if(i >= _maxParticles)
-				break;
-			
-			Particle *particle = _particles[i];
-			
-			data->position = particle->position;
-			data->size     = particle->size;
-			data->color    = particle->color;
-			
-			data ++;
+			for(int i = 0; i < to; i++)
+			{
+				Particle *particle = _particles[i];
+				
+				data->position = particle->position;
+				data->size     = particle->size;
+				data->color    = particle->color;
+				
+				data ++;
+			}
+		}
+		else
+		{
+			for(int i = to-1; i >= 0; i--)
+			{
+				Particle *particle = _particles[i];
+				
+				data->position = particle->position;
+				data->size     = particle->size;
+				data->color    = particle->color;
+				
+				data ++;
+			}
 		}
 		
 		chunk.CommitChanges();
@@ -273,7 +291,9 @@ namespace RN
 		SceneNode::Update(delta);
 		
 		UpdateParticles(delta);
-		UpdateMesh();
+		
+		if(!_isSorted)
+			UpdateMesh();
 	}
 	
 	void ParticleEmitter::UpdateEditMode(float delta)
@@ -281,7 +301,8 @@ namespace RN
 		SceneNode::UpdateEditMode(delta);
 		
 		UpdateParticles(delta);
-		UpdateMesh();
+		if(!_isSorted)
+			UpdateMesh();
 	}
 	
 	
@@ -296,6 +317,13 @@ namespace RN
 		
 		if(_particles.empty())
 			return;
+		
+		if(_isSorted)
+		{
+			std::sort(_particles.begin(), _particles.end(), [camera](Particle *a, Particle *b) { return  (a->position.GetDistance(camera->GetWorldPosition()) < b->position.GetDistance(camera->GetWorldPosition()));});
+			
+			UpdateMesh();
+		}
 		
 		RenderingObject object;
 		
@@ -408,17 +436,7 @@ namespace RN
 	
 	void GenericParticleEmitter::Initialize()
 	{
-		AddObservable(&_lifeSpan);
-		AddObservable(&_startColor);
-		AddObservable(&_endColor);
-		AddObservable(&_startSize);
-		AddObservable(&_endSize);
-		AddObservable(&_gravity);
-		AddObservable(&_velocity);
-		AddObservable(&_velocityRandomizeMin);
-		AddObservable(&_velocityRandomizeMax);
-		AddObservable(&_positionRandomizeMin);
-		AddObservable(&_positionRandomizeMax);
+		AddObservables({&_lifeSpan, &_startColor, &_endColor, &_startSize, &_endSize, &_gravity, &_velocity, &_velocityRandomizeMin, &_velocityRandomizeMax, &_positionRandomizeMin, &_positionRandomizeMax});
 	}
 	
 	RN::Particle *GenericParticleEmitter::CreateParticle()
