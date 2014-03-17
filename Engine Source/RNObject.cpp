@@ -22,8 +22,9 @@ namespace RN
 	}
 	
 	Object::~Object()
-	{		
-		RN_ASSERT(_refCount.load() <= 1, "refCount must be <= 1 upon destructor call. Use object->Release(); instead of delete object;");
+	{
+		if(!std::uncaught_exception())
+			RN_ASSERT(_refCount.load() <= 1, "refCount must be <= 1 upon destructor call. Use object->Release(); instead of delete object;");
 	
 		for(auto& pair : _associatedObjects)
 		{
