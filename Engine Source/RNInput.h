@@ -93,7 +93,13 @@ namespace RN
 		KeyControl = (1 << 2),
 		KeyCommand = (1 << 3),
 		KeyWindows = KeyCommand,
-		KeyCapsLock = (1 << 4)
+		KeyCapsLock = (1 << 4),
+		
+#if RN_PLATFORM_MAC_OS
+		KeyAction = KeyCommand
+#else
+		KeyAction = KeyControl
+#endif
 	};
 	
 	class Input;

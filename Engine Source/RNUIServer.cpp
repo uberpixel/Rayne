@@ -324,8 +324,17 @@ namespace RN
 					NSString *title = [NSString stringWithUTF8String:item->GetTitle()->GetUTF8String()];
 					NSString *key   = [NSString stringWithUTF8String:item->GetKeyEquivalent()->GetUTF8String()];
 					
+					uint32 modifier = item->GetKeyEquivalentModifierMask();
+					NSUInteger modifierMask = 0;
+					
+					modifierMask |= (modifier & KeyModifier::KeyCommand) ? NSCommandKeyMask : 0;
+					modifierMask |= (modifier & KeyModifier::KeyShift) ? NSShiftKeyMask : 0;
+					modifierMask |= (modifier & KeyModifier::KeyControl) ? NSControlKeyMask : 0;
+					modifierMask |= (modifier & KeyModifier::KeyAlt) ? NSAlternateKeyMask : 0;
+					
 					NSMenuItem *titem = [[NSMenuItem alloc] initWithTitle:title action:@selector(performMenuBarAction:) keyEquivalent:key];
 					[titem setEnabled:item->IsEnabled()];
+					[titem setKeyEquivalentModifierMask:modifierMask];
 					
 					objc_setAssociatedObject(titem, __RNUIMenuItemWrapperKey, [__RNUIMenuItemWrapper wrapperWithItem:item], OBJC_ASSOCIATION_RETAIN);
 					

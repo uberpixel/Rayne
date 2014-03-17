@@ -10,6 +10,7 @@
 #include "RNUIMenu.h"
 #include "RNUIView.h"
 #include "RNMessage.h"
+#include "RNInput.h"
 
 namespace RN
 {
@@ -120,6 +121,7 @@ namespace RN
 			_isEnabled     = true;
 			_isSeparator   = false;
 			_keyEquivalent = nullptr;
+			_keyEquivalentModifierMask = KeyModifier::KeyAction;
 			
 			SetTitle(RNCSTR(""));
 			SetKeyEquivalent(RNCSTR(""));
@@ -171,6 +173,13 @@ namespace RN
 		{
 			SafeRelease(_keyEquivalent);
 			_keyEquivalent = key ? key->Copy() : RNCSTR("")->Retain();
+			
+			MessageCenter::GetSharedInstance()->PostMessage(kRNMenuItemChangedMessage, this, nullptr);
+		}
+		
+		void MenuItem::SetKeyEquivalentModifierMask(uint32 mask)
+		{
+			_keyEquivalentModifierMask = mask;
 			
 			MessageCenter::GetSharedInstance()->PostMessage(kRNMenuItemChangedMessage, this, nullptr);
 		}
