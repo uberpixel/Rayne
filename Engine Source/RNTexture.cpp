@@ -44,8 +44,13 @@ namespace RN
 	
 	Texture::~Texture()
 	{
-		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
-			gl::DeleteTextures(1, &_name);
+		GLuint tname = _name;
+		
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([tname] {
+			
+			GLuint name = tname;
+			gl::DeleteTextures(1, &name);
+			
 		});
 	}
 	
