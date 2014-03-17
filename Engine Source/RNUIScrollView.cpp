@@ -112,10 +112,18 @@ namespace RN
 		{
 			if(_verticalScroller)
 			{
-				const Rect& bounds = GetBounds();
-				float width = _verticalScroller->GetPreferredWidth();
+				if(_size.y > GetBounds().height)
+				{
+					const Rect& bounds = GetBounds();
+					float width = _verticalScroller->GetPreferredWidth();
 				
-				_verticalScroller->SetFrame(Rect(bounds.width - width, bounds.y, width, bounds.height));
+					_verticalScroller->SetFrame(Rect(bounds.width - width, bounds.y, width, bounds.height));
+					_verticalScroller->SetHidden(false);
+				}
+				else
+				{
+					_verticalScroller->SetHidden(true);
+				}
 			}
 		}
 		
