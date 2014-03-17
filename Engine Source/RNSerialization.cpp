@@ -148,7 +148,7 @@ namespace RN
 		}
 		
 		if(!object->IsKindOfClass(Asset::MetaClass()) && !object->Class()->SupportsSerialization())
-			throw Exception(Exception::Type::InvalidArgumentException, "EncodeObject() only works with objects that support serialization!");
+			throw Exception(Exception::Type::InvalidArgumentException, "EncodeObject() only works with objects that support serialization (tried serializing %s)!", object->Class()->Fullname().c_str());
 		
 		auto iterator = _objectTable.find(object);
 		if(iterator != _objectTable.end())

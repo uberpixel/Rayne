@@ -11,12 +11,75 @@
 
 namespace RN
 {
+	RNDefineMeta(SavePanel, Object)
+	RNDefineMeta(OpenPanel, SavePanel)
+	
+	SavePanel::SavePanel()
+	{
+		_canCreateDirectories = true;
+	}
+	
+	void SavePanel::SetCanCreateDirectories(bool canCreateDirectories)
+	{
+		_canCreateDirectories = canCreateDirectories;
+	}
+	
+	
+	void SavePanel::SetTitle(const std::string& title)
+	{
+		_title = title;
+	}
+	
+	void SavePanel::SetMessage(const std::string& message)
+	{
+		_message = message;
+	}
+	
+	
+	void SavePanel::SetAllowedFileTypes(const std::vector<std::string>& fileTypes)
+	{
+		_allowedFileTypes = fileTypes;
+	}
+	
+	void SavePanel::Show(std::function<void (bool result,  const std::string &path)> callback)
+	{
+#if RN_PLATFORM_MAC_OS
+		NSSavePanel *panel = [NSSavePanel savePanel];
+		[panel setCanCreateDirectories:_canCreateDirectories];
+		
+		[panel setTitle:[NSString stringWithUTF8String:_title.c_str()]];
+		[panel setMessage:[NSString stringWithUTF8String:_message.c_str()]];
+		
+		if(!_allowedFileTypes.empty())
+		{
+			NSMutableArray *fileTypes = [NSMutableArray array];
+			
+			for(const std::string& type : _allowedFileTypes)
+				[fileTypes addObject:[NSString stringWithUTF8String:type.c_str()]];
+			
+			[panel setAllowedFileTypes:fileTypes];
+		}
+		
+		
+		Retain();
+		
+		[panel beginSheetModalForWindow:[NSApp keyWindow] completionHandler:^(NSInteger tresult) {
+			bool result = (tresult == NSFileHandlingPanelOKButton);
+			NSURL *url = [panel URL];
+			
+			callback(result, url ? [[url path] UTF8String] : "");
+			Autorelease();
+		}];
+#endif
+	}
+	
+	
+	
 	OpenPanel::OpenPanel()
 	{
 		_allowsFolders = false;
 		_allowsFiles = true;
 		_allowsMultipleSelection = false;
-		_canCreateDirectories = true;
 	}
 	
 	
@@ -34,29 +97,6 @@ namespace RN
 	{
 		_allowsMultipleSelection = multipleSelection;
 	}
-	
-	void OpenPanel::SetCanCreateDirectories(bool canCreateDirectories)
-	{
-		_canCreateDirectories = canCreateDirectories;
-	}
-	
-	
-	void OpenPanel::SetTitle(const std::string& title)
-	{
-		_title = title;
-	}
-	
-	void OpenPanel::SetMessage(const std::string& message)
-	{
-		_message = message;
-	}
-	
-	
-	void OpenPanel::SetAllowedFileTypes(const std::vector<std::string>& fileTypes)
-	{
-		_allowedFileTypes = fileTypes;
-	}
-	
 	
 	
 	void OpenPanel::Show(std::function<void (bool result, const std::vector<std::string>& paths)> callback)
@@ -82,6 +122,8 @@ namespace RN
 			[panel setAllowedFileTypes:fileTypes];
 		}
 		
+		Retain();
+		
 		[panel beginSheetModalForWindow:[NSApp keyWindow] completionHandler:^(NSInteger tresult) {
 			bool result = (tresult == NSFileHandlingPanelOKButton);
 			NSArray *urls = [panel URLs];
@@ -93,6 +135,7 @@ namespace RN
 			}
 		 
 			callback(result, files);
+			Autorelease();
 		}];
 #endif
 		

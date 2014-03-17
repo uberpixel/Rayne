@@ -38,6 +38,7 @@ namespace RN
 		
 		RNAPI bool IsLoading() const { return _loading.load(); }
 		RNAPI World *GetWorld() const { return _world; }
+		RNAPI std::string GetWorldFile() const { return _worldFile; }
 		
 	private:
 		void StepWorld(FrameID frame, float delta);
@@ -60,6 +61,8 @@ namespace RN
 		std::future<bool> _loadFuture;
 		Progress *_loadingProgress;
 		uint32 _loadState;
+		
+		std::string _worldFile;
 		
 		Deserializer *_deserializer;
 		

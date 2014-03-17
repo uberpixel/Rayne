@@ -82,6 +82,7 @@ namespace RN
 		_loading.store(true);
 		
 		_deserializer = nullptr;
+		_worldFile = std::string();
 		
 		std::packaged_task<bool ()> task(std::bind(&WorldCoordinator::BeginLoading, this, nullptr));
 		_loadFuture = task.get_future();
@@ -114,6 +115,8 @@ namespace RN
 		
 		
 		_deserializer = new FlatDeserializer(Data::WithContentsOfFile(file));
+		_worldFile = file;
+		
 		return __LoadWorld(_deserializer);
 	}
 	
@@ -129,6 +132,8 @@ namespace RN
 		
 		
 		_deserializer = SafeRetain(deserializer);
+		_worldFile = std::string();
+		
 		return __LoadWorld(_deserializer);
 	}
 	
@@ -235,6 +240,7 @@ namespace RN
 		
 		RN::SafeRelease(_deserializer);
 		
+		_loadingProgress->SetCompletedUnits(_loadingProgress->GetTotalUnits());
 		_loadingProgress->Release();
 		_loadingProgress = nullptr;
 		_lock.Unlock();
@@ -265,6 +271,7 @@ namespace RN
 		data->WriteToFile(file);
 		
 		serializer->Release();
+		_worldFile = file;
 	}
 	
 	void WorldCoordinator::SaveWorld(Serializer *serializer)
