@@ -663,7 +663,7 @@ namespace RN
 		{
 			try
 			{
-				std::string tpath = PathManager::Basepath(name);
+				std::string tpath = PathManager::PathByRemovingPathComponent(name);
 				file = GetFileSystemNode(tpath);
 				
 				if(file && file->IsDirectory())

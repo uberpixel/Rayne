@@ -281,6 +281,24 @@ namespace RN
 				break;
 		}
 
+		if(mode == Write || mode == ReadWrite)
+		{
+			std::string base = RN::PathManager::PathByRemovingPathComponent(path);
+			bool isDirectory;
+			
+			if(RN::PathManager::PathExists(path) || (RN::PathManager::PathExists(base, &isDirectory) && isDirectory))
+			{
+				_fullPath = path;
+				
+				_path = PathManager::Basepath(_fullPath);
+				_name = PathManager::Basename(_fullPath);
+				_extension = PathManager::Extension(_fullPath);
+				
+				_file = fopen(_fullPath.c_str(), fmode);
+				return (_file != 0);
+			}
+		}
+		
 
 		try
 		{
@@ -296,6 +314,6 @@ namespace RN
 		_extension = PathManager::Extension(_fullPath);
 		
 		_file = fopen(_fullPath.c_str(), fmode);
-		return (_file != 0);
+		return (_file != nullptr);
 	}
 }

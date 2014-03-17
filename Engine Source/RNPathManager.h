@@ -18,6 +18,7 @@ namespace RN
 	public:
 		RNAPI static std::string Join(const std::string& path1, const std::string& path2);
 		RNAPI static std::string PathByRemovingExtension(const std::string& path);
+		RNAPI static std::string PathByRemovingPathComponent(const std::string& path);
 		RNAPI static std::vector<std::string> PathComoponents(const std::string& path);
 		RNAPI static std::string PathByJoiningComponents(const std::vector<std::string>& components);
 		RNAPI static std::string Base(const std::string& path);
