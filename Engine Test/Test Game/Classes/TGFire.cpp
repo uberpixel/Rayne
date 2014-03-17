@@ -9,11 +9,6 @@
 #include "TGFire.h"
 #include "TGSmoke.h"
 
-#define kTGFireSpreadX GetGenerator()->RandomFloatRange(-0.45f, 0.45f)*1.0f
-#define kTGFireSpreadY GetGenerator()->RandomFloatRange(-0.45f, 0.45f)*1.0f
-#define kTGFireVelocity GetGenerator()->RandomFloatRange(0.8f, 1.0f)*1.0f
-#define kTGFireSize emitter->GetGenerator()->RandomFloatRange(2.0f, 3.5f)
-
 namespace TG
 {
 	RNDefineMeta(Fire, RN::ParticleEmitter)
@@ -21,68 +16,84 @@ namespace TG
 	class FireParticle : public RN::Particle
 	{
 	public:
-		void Initialize(RN::ParticleEmitter *emitter)
-		{
-			lifespan = 5.0f;
-			
-			size = 0.0f;
-			color.a = 1.0f;
-			_target = RN::Vector3(0.0f, emitter->GetGenerator()->RandomFloatRange(1.0f, 2.0f), 0.0f);
-			
-			_alphaInterpolator.SetDuration(lifespan);
-			_alphaInterpolator.SetStartValue(1.0f);
-			_alphaInterpolator.SetEndValue(0.0f);
-			
-			_sizeInterpolator.SetDuration(lifespan);
-			_sizeInterpolator.SetStartValue(kTGFireSize * 0.75f);
-			_sizeInterpolator.SetEndValue(kTGFireSize * 0.2f);
-			
-			Update(0.0f);
-		}
-		
 		void Update(float delta)
 		{
-			_time += delta;
+			time += delta;
 			lifespan -= delta;
 			
-			color.a = _alphaInterpolator.GetValue(_time);
-			size = _sizeInterpolator.GetValue(_time);
-			position += velocity*color.a*1.0f*delta+(_target-position)*(1.0f-color.a*1.0f)*delta*2.0f;
+			color.a = alphaInterpolator.GetValue(time);
+			size = sizeInterpolator.GetValue(time);
+			position += velocity*color.a*1.0f*delta+(target-position)*(1.0f-color.a*1.0f)*delta*2.0f;
 		}
 		
 		RN::Vector3 velocity;
-		
-	private:
-		float _time;
-		RN::Interpolator<float> _alphaInterpolator;
-		RN::Interpolator<RN::Vector2> _sizeInterpolator;
-		RN::Vector3 _target;
+		RN::Interpolator<float> alphaInterpolator;
+		RN::Interpolator<RN::Vector2> sizeInterpolator;
+		RN::Vector3 target;
 	};
 		
-	Fire::Fire()
+	Fire::Fire() :
+	_velocityMin("minimum velocity", RN::Vector3(-0.45f, 0.8f, -0.45f), &Fire::GetVelocityMin, &Fire::SetVelocityMin),
+	_velocityMax("maximum velocity", RN::Vector3(0.45f, 1.0f, 0.45f), &Fire::GetVelocityMax, &Fire::SetVelocityMax),
+	_positionMin("minimum position", RN::Vector3(-0.45f), &Fire::GetPositionMin, &Fire::SetPositionMin),
+	_positionMax("minimum position", RN::Vector3(0.45f), &Fire::GetPositionMax, &Fire::SetPositionMax),
+	_sizeStart("start size range", RN::Vector2(1.5f, 2.7f), &Fire::GetSizeStart, &Fire::SetSizeStart),
+	_sizeEnd("end size range", RN::Vector2(0.4f, 0.7f), &Fire::GetSizeEnd, &Fire::SetSizeEnd),
+	_targetHeight("target height range", RN::Vector2(1.0f, 2.0f), &Fire::GetTargetHeight, &Fire::SetTargetHeight)
 	{
 		Initialize();
 	}
 	
 	Fire::Fire(const Fire *fire) :
-		RN::ParticleEmitter(fire)
+	RN::ParticleEmitter(fire),
+	_velocityMin("minimum velocity", RN::Vector3(-0.45f, 0.8f, -0.45f), &Fire::GetVelocityMin, &Fire::SetVelocityMin),
+	_velocityMax("maximum velocity", RN::Vector3(0.45f, 1.0f, 0.45f), &Fire::GetVelocityMax, &Fire::SetVelocityMax),
+	_positionMin("minimum position", RN::Vector3(-0.45f), &Fire::GetPositionMin, &Fire::SetPositionMin),
+	_positionMax("minimum position", RN::Vector3(0.45f), &Fire::GetPositionMax, &Fire::SetPositionMax),
+	_sizeStart("start size range", RN::Vector2(1.5f, 2.7f), &Fire::GetSizeStart, &Fire::SetSizeStart),
+	_sizeEnd("end size range", RN::Vector2(0.4f, 0.7f), &Fire::GetSizeEnd, &Fire::SetSizeEnd),
+	_targetHeight("target height range", RN::Vector2(1.0f, 2.0f), &Fire::GetTargetHeight, &Fire::SetTargetHeight)
 	{
 		Initialize();
 	}
 	
 	Fire::Fire(RN::Deserializer *deserializer) :
-	RN::ParticleEmitter(deserializer)
+	RN::ParticleEmitter(deserializer),
+	_velocityMin("minimum velocity", RN::Vector3(-0.45f, 0.8f, -0.45f), &Fire::GetVelocityMin, &Fire::SetVelocityMin),
+	_velocityMax("maximum velocity", RN::Vector3(0.45f, 1.0f, 0.45f), &Fire::GetVelocityMax, &Fire::SetVelocityMax),
+	_positionMin("minimum position", RN::Vector3(-0.45f), &Fire::GetPositionMin, &Fire::SetPositionMin),
+	_positionMax("minimum position", RN::Vector3(0.45f), &Fire::GetPositionMax, &Fire::SetPositionMax),
+	_sizeStart("start size range", RN::Vector2(1.5f, 2.7f), &Fire::GetSizeStart, &Fire::SetSizeStart),
+	_sizeEnd("end size range", RN::Vector2(0.4f, 0.7f), &Fire::GetSizeEnd, &Fire::SetSizeEnd),
+	_targetHeight("target height range", RN::Vector2(1.0f, 2.0f), &Fire::GetTargetHeight, &Fire::SetTargetHeight)
 	{
 		Initialize();
+		
+		_velocityMin = deserializer->DecodeVector3();
+		_velocityMax = deserializer->DecodeVector3();
+		_positionMin = deserializer->DecodeVector3();
+		_positionMax = deserializer->DecodeVector3();
+		_sizeStart = deserializer->DecodeVector2();
+		_sizeEnd = deserializer->DecodeVector2();
+		_targetHeight = deserializer->DecodeVector2();
 	}
 	
 	void Fire::Serialize(RN::Serializer *serializer)
 	{
 		ParticleEmitter::Serialize(serializer);
+		serializer->EncodeVector3(_velocityMin);
+		serializer->EncodeVector3(_velocityMax);
+		serializer->EncodeVector3(_positionMin);
+		serializer->EncodeVector3(_positionMax);
+		serializer->EncodeVector2(_sizeStart);
+		serializer->EncodeVector2(_sizeEnd);
+		serializer->EncodeVector2(_targetHeight);
 	}
 	
 	void Fire::Initialize()
 	{
+		AddObservables({&_velocityMin, &_velocityMax, &_positionMin, &_positionMax, &_sizeStart, &_sizeEnd, &_targetHeight});
+		
 		Smoke *smoke = new Smoke();
 		AddChild(smoke);
 		smoke->Release();
@@ -98,10 +109,33 @@ namespace TG
 	RN::Particle *Fire::CreateParticle()
 	{
 		FireParticle *particle = new FireParticle();
-		particle->Initialize(this);
-		particle->velocity = RN::Vector3(kTGFireSpreadX, kTGFireVelocity, kTGFireSpreadY)*0.5f;
 		
-		particle->position = RN::Vector3(kTGFireSpreadX, kTGFireSpreadX, kTGFireSpreadY)*1.0f;
+		particle->lifespan = 5.0f;
+		particle->velocity = _rng->RandomVector3Range(_velocityMin, _velocityMax);
+		particle->position = _rng->RandomVector3Range(_positionMin, _positionMax);
+		particle->target = RN::Vector3(0.0f, _rng->RandomFloatRange(_targetHeight->x, _targetHeight->y), 0.0f);
+		
+		float sizeScale = 1.0f;
+		if(!GetIsLocal())
+		{
+			sizeScale = GetWorldScale().GetMax();
+			
+			particle->position *= sizeScale;
+			particle->position += GetWorldPosition();
+			particle->velocity *= sizeScale;
+			particle->target *= sizeScale;
+			particle->target += GetWorldPosition();
+		}
+		
+		particle->alphaInterpolator.SetDuration(particle->lifespan);
+		particle->alphaInterpolator.SetStartValue(1.0f);
+		particle->alphaInterpolator.SetEndValue(0.0f);
+		
+		particle->sizeInterpolator.SetDuration(particle->lifespan);
+		particle->sizeInterpolator.SetStartValue(_rng->RandomFloatRange(_sizeStart->x, _sizeStart->y) * sizeScale);
+		particle->sizeInterpolator.SetEndValue(_rng->RandomFloatRange(_sizeEnd->x, _sizeEnd->y) * sizeScale);
+		
+		particle->Update(0.0f);
 		
 		return particle;
 	}
