@@ -359,4 +359,16 @@ namespace RN
 		
 		return result;
 	}
+	
+	Color RandomNumberGenerator::RandomColorRange(const Color& min, const Color& max)
+	{
+		Color result;
+		
+		result.r = _generator->RandomFloatRange(std::min(min.r, max.r), std::max(min.r, max.r));
+		result.g = _generator->RandomFloatRange(std::min(min.g, max.g), std::max(min.g, max.g));
+		result.b = _generator->RandomFloatRange(std::min(min.b, max.b), std::max(min.b, max.b));
+		result.a = _generator->RandomFloatRange(std::min(min.a, max.a), std::max(min.a, max.a));
+		
+		return result;
+	}
 }

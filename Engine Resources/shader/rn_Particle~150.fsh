@@ -11,7 +11,9 @@ precision highp float;
 
 #include "rn_Discard.fsh"
 
-uniform sampler2D mTexture0;
+#if defined(RN_TEXTURE_DIFFUSE)
+	uniform sampler2D mTexture0;
+#endif
 
 #if defined(RN_SOFTPARTICLE)
 	uniform sampler2D mTexture1;
@@ -25,7 +27,12 @@ out vec4 fragColor0;
 
 void main()
 {
+#if defined(RN_TEXTURE_DIFFUSE)
 	vec4 color = texture(mTexture0, geoTexcoord);
+#else
+	vec4 color = vec4(1.0);
+#endif
+
 	rn_Discard(color);
 	
 #if defined(RN_SOFTPARTICLE)

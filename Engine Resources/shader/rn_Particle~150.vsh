@@ -21,7 +21,7 @@ out vec2 vertSize;
 void main()
 {
 	vertColor = attColor0;
-	vertSize  = attTexcoord0;
+	vertSize = attTexcoord0 * 0.5;
 
-	gl_Position = matView * vec4(attPosition, 1.0);
+	gl_Position = vec4(attPosition, 1.0);
 }

@@ -20,7 +20,7 @@ namespace TG
 	class SmokeParticle : public RN::Particle
 	{
 	public:
-		void Initialize(RN::ParticleEmitter *emitter, RN::ParticleMaterial *material)
+		void Initialize(RN::ParticleEmitter *emitter)
 		{
 			lifespan = 10.0f;
 			
@@ -40,16 +40,17 @@ namespace TG
 		
 		void Update(float delta)
 		{
-			_time += delta;
+			time += delta;
 			lifespan -= delta;
 			
-			color.a = _alphaInterpolator.GetValue(_time);
-			size = _sizeInterpolator.GetValue(_time);
+			color.a = _alphaInterpolator.GetValue(time);
+			size = _sizeInterpolator.GetValue(time);
 			position += velocity*delta;
 		}
 		
+		RN::Vector3 velocity;
+		
 	private:
-		float _time;
 		RN::Interpolator<float> _alphaInterpolator;
 		RN::Interpolator<RN::Vector2> _sizeInterpolator;
 	};
@@ -84,13 +85,10 @@ namespace TG
 	void Smoke::Initialize()
 	{
 		AddObservable(&_transparency);
-		RN::ParticleMaterial *material = new RN::ParticleMaterial();
 		
+		RN::Material *material = GetMaterial();
 		material->AddTexture(RN::Texture::WithFile("textures/smoke.png"));
-		material->SetBlending(true);
-		//material->SetBlendMode(RN::Material::BlendMode::One, RN::Material::BlendMode::One);
 		
-		SetMaterial(material->Autorelease());
 		SetMaxParticles(100);
 		SetParticlesPerSecond(5);
 	}
@@ -98,20 +96,11 @@ namespace TG
 	RN::Particle *Smoke::CreateParticle()
 	{
 		SmokeParticle *particle = new SmokeParticle();
+		particle->Initialize(this);
 		particle->velocity = RN::Vector3(kTGSmokeSpreadX, kTGSmokeVelocity, kTGSmokeSpreadY)*0.5f;
 		
 		particle->position = GetWorldPosition()+RN::Vector3(kTGSmokeSpreadX, kTGSmokeSpreadX, kTGSmokeSpreadY)*1.0f;
 		
 		return particle;
-	}
-	
-	void Smoke::Update(float delta)
-	{
-		RN::ParticleEmitter::Update(delta);
-	}
-	
-	void Smoke::UpdateEditMode(float delta)
-	{
-		RN::ParticleEmitter::Update(delta);
 	}
 }

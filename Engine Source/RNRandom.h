@@ -133,6 +133,7 @@ namespace RN
 		
 		RNAPI double UniformDeviate(int32 seed);
 		RNAPI Color RandomColor();
+		RNAPI Color RandomColorRange(const Color& min, const Color& max);
 		
 		RNAPI Vector2 RandomVector2Range(const Vector2& min, const Vector2& max);
 		RNAPI Vector3 RandomVector3Range(const Vector3& min, const Vector3& max);

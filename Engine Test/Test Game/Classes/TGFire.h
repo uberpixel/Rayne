@@ -22,9 +22,6 @@ namespace TG
 		
 		void Serialize(RN::Serializer *serializer) override;
 		
-		void Update(float delta) override;
-		void UpdateEditMode(float delta) override;
-		
 	private:
 		RN::Particle *CreateParticle();
 		void Initialize();

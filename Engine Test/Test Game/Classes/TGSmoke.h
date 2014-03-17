@@ -25,9 +25,6 @@ namespace TG
 		float GetTransparency() const { return _transparency; }
 		void SetTransparency(float transparency) { _transparency = transparency; }
 		
-		void Update(float delta) override;
-		void UpdateEditMode(float delta) override;
-		
 	private:
 		RN::Particle *CreateParticle();
 		void Initialize();

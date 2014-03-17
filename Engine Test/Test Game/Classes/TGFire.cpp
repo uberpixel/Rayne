@@ -21,7 +21,7 @@ namespace TG
 	class FireParticle : public RN::Particle
 	{
 	public:
-		void Initialize(RN::ParticleEmitter *emitter, RN::ParticleMaterial *material)
+		void Initialize(RN::ParticleEmitter *emitter)
 		{
 			lifespan = 5.0f;
 			
@@ -49,6 +49,8 @@ namespace TG
 			size = _sizeInterpolator.GetValue(_time);
 			position += velocity*color.a*1.0f*delta+(_target-position)*(1.0f-color.a*1.0f)*delta*2.0f;
 		}
+		
+		RN::Vector3 velocity;
 		
 	private:
 		float _time;
@@ -85,13 +87,10 @@ namespace TG
 		AddChild(smoke);
 		smoke->Release();
 		
-		RN::ParticleMaterial *material = new RN::ParticleMaterial();
-		
+		RN::Material *material = GetMaterial();
 		material->AddTexture(RN::Texture::WithFile("textures/fire.png"));
-		material->SetBlending(true);
 		material->SetBlendMode(RN::Material::BlendMode::One, RN::Material::BlendMode::One);
 		
-		SetMaterial(material->Autorelease());
 		SetMaxParticles(100);
 		SetParticlesPerSecond(20);
 	}
@@ -99,20 +98,11 @@ namespace TG
 	RN::Particle *Fire::CreateParticle()
 	{
 		FireParticle *particle = new FireParticle();
+		particle->Initialize(this);
 		particle->velocity = RN::Vector3(kTGFireSpreadX, kTGFireVelocity, kTGFireSpreadY)*0.5f;
 		
 		particle->position = GetWorldPosition()+RN::Vector3(kTGFireSpreadX, kTGFireSpreadX, kTGFireSpreadY)*1.0f;
 		
 		return particle;
-	}
-	
-	void Fire::Update(float delta)
-	{
-		RN::ParticleEmitter::Update(delta);
-	}
-	
-	void Fire::UpdateEditMode(float delta)
-	{
-		RN::ParticleEmitter::Update(delta);
 	}
 }

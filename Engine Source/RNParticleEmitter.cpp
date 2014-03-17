@@ -12,30 +12,8 @@
 
 namespace RN
 {
-	RNDefineMeta(ParticleMaterial, Material)
 	RNDefineMeta(ParticleEmitter, SceneNode)
-	
-	// ---------------------
-	// MARK: -
-	// MARK: Particle Material
-	// ---------------------
-	
-	ParticleMaterial::ParticleMaterial()
-	{
-		lifespan = 1.0f;
-		lifespanVariance = 0.0f;
-		
-		blending = true;
-		blendSource = BlendMode::One;
-		blendDestination = BlendMode::OneMinusSourceAlpha;
-		
-		depthWrite = false;
-		SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyParticleShader, nullptr));
-	}
-	
-	ParticleMaterial::~ParticleMaterial()
-	{
-	}
+	RNDefineMeta(GenericParticleEmitter, ParticleEmitter)
 	
 	// ---------------------
 	// MARK: -
@@ -49,36 +27,73 @@ namespace RN
 		Color color;
 	};
 	
-	ParticleEmitter::ParticleEmitter()
+	ParticleEmitter::ParticleEmitter() :
+		_mesh(nullptr),
+		_isLocal("Is Local", false, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
+		_maxParticles("Max Particles", 100, &ParticleEmitter::GetMaxParticles, &ParticleEmitter::SetMaxParticles),
+		_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
 	{
-		_mesh = 0;
-		_material = 0;
+		AddObservable(&_isLocal);
+		AddObservable(&_maxParticles);
+		AddObservable(&_spawnRate);
+		
 		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::LCG);
 		
-		SetParticlesPerSecond(1);
-		SetMaxParticles(100);
+		_material = new Material();
+		_material->SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyParticleShader, nullptr));
+		
+		_material->SetDepthWrite(false);
+		_material->SetBlending(true);
+		_material->SetBlendMode(RN::Material::BlendMode::One, RN::Material::BlendMode::OneMinusSourceAlpha);
+		
+		SetMaxParticles(_maxParticles);
 	}
 	
 	ParticleEmitter::ParticleEmitter(const ParticleEmitter *emitter) :
-		SceneNode(emitter)
+		SceneNode(emitter),
+		_mesh(nullptr),
+		_isLocal("Is Local", false, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
+		_maxParticles("Max Particles", 1, &ParticleEmitter::GetMaxParticles, &ParticleEmitter::SetMaxParticles),
+		_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
 	{
-		_mesh = 0;
-		_material = 0;
-		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::LCG);
+		AddObservable(&_isLocal);
+		AddObservable(&_maxParticles);
+		AddObservable(&_spawnRate);
 		
-		SetParticlesPerSecond(1);
-		SetMaxParticles(100);
+		_rng = emitter->GetGenerator();
+		
+		SetMaterial(emitter->GetMaterial());
+		SetIsLocal(emitter->GetIsLocal());
+		SetSpawnRate(emitter->GetSpawnRate());
+		SetMaxParticles(emitter->GetMaxParticles());
 	}
 	
 	ParticleEmitter::ParticleEmitter(RN::Deserializer *deserializer) :
-	SceneNode(deserializer)
+		SceneNode(deserializer),
+		_mesh(nullptr),
+		_isLocal("Is Local", false, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
+		_maxParticles("Max Particles", 1, &ParticleEmitter::GetMaxParticles,&ParticleEmitter::SetMaxParticles),
+		_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
 	{
+		AddObservable(&_isLocal);
+		AddObservable(&_maxParticles);
+		AddObservable(&_spawnRate);
 		
+		_rng = new RandomNumberGenerator(RandomNumberGenerator::Type::LCG);
+		
+		SetMaterial(static_cast<Material*>(deserializer->DecodeObject()));
+		SetIsLocal(deserializer->DecodeBool());
+		SetSpawnRate(deserializer->DecodeFloat());
+		SetMaxParticles(static_cast<uint32>(deserializer->DecodeInt32()));
 	}
 	
 	void ParticleEmitter::Serialize(RN::Serializer *serializer)
 	{
 		SceneNode::Serialize(serializer);
+		serializer->EncodeObject(_material);
+		serializer->EncodeFloat(_isLocal);
+		serializer->EncodeFloat(_spawnRate);
+		serializer->EncodeInt32(static_cast<int32>(_maxParticles));
 	}
 	
 	ParticleEmitter::~ParticleEmitter()
@@ -121,7 +136,7 @@ namespace RN
 		_spawnRate = 1.0f / particles;
 	}
 	
-	void ParticleEmitter::SetMaxParticles(size_t maxParticles)
+	void ParticleEmitter::SetMaxParticles(uint32 maxParticles)
 	{
 		_maxParticles = maxParticles;
 		
@@ -150,7 +165,7 @@ namespace RN
 		_mesh->SetDrawMode(Mesh::DrawMode::Points);
 	}
 	
-	void ParticleEmitter::SetMaterial(ParticleMaterial *material)
+	void ParticleEmitter::SetMaterial(Material *material)
 	{
 		SafeRelease(_material);
 		_material = SafeRetain(material);
@@ -166,7 +181,6 @@ namespace RN
 	Particle *ParticleEmitter::SpawnParticle()
 	{
 		Particle *particle = CreateParticle();
-		particle->Initialize(this, _material);
 		
 		_particles.push_back(particle);
 		
@@ -183,7 +197,6 @@ namespace RN
 		for(int i=0; i<particles; i++)
 		{
 			Particle *particle = CreateParticle();
-			particle->Initialize(this, _material);
 			
 			spawned[i] = particle;
 		}
@@ -195,7 +208,11 @@ namespace RN
 	Particle *ParticleEmitter::CreateParticle()
 	{
 		RN_ASSERT(_material, "ParticleEmitter need a material to spawn particles");
-		return new Particle();
+		
+		Particle *particle = new Particle();
+		particle->position = GetWorldPosition();
+		
+		return particle;
 	}
 	
 	void ParticleEmitter::UpdateParticles(float delta)
@@ -219,13 +236,13 @@ namespace RN
 		if(_spawnRate < k::EpsilonFloat)
 			return;
 		
-		size_t spawn = floorf((_accDelta + delta) / _spawnRate);
-		_accDelta = fmodf((_accDelta + delta), _spawnRate);
+		uint32 spawn = floorf((_time + delta) / _spawnRate);
+		_time = fmodf((_time + delta), _spawnRate);
 		
 		if(spawn > 0)
 		{
 			if(_maxParticles > 0)
-				spawn = std::min(_maxParticles - _particles.size(), spawn);
+				spawn = std::min(_maxParticles - static_cast<uint32>(_particles.size()), spawn);
 			
 			SpawnParticles(spawn);
 		}
@@ -247,6 +264,11 @@ namespace RN
 			data->size     = particle->size;
 			data->color    = particle->color;
 			
+			if(_isLocal)
+			{
+				data->position -= GetWorldPosition();
+			}
+			
 			data ++;
 		}
 		
@@ -257,6 +279,14 @@ namespace RN
 	void ParticleEmitter::Update(float delta)
 	{
 		SceneNode::Update(delta);
+		
+		UpdateParticles(delta);
+		UpdateMesh();
+	}
+	
+	void ParticleEmitter::UpdateEditMode(float delta)
+	{
+		SceneNode::UpdateEditMode(delta);
 		
 		UpdateParticles(delta);
 		UpdateMesh();
@@ -278,10 +308,143 @@ namespace RN
 		RenderingObject object;
 		FillRenderingObject(object);
 		
+		_transform = GetWorldTransform();
+		
+		if(!_isLocal)
+		{
+			_transform = Matrix::WithTranslation(GetWorldPosition());
+			_transform.Scale(GetWorldScale());
+			_transform.Translate(-GetWorldPosition());
+		}
+		
+		object.transform = &_transform;
 		object.mesh = _mesh;
 		object.count = static_cast<uint32>(_particles.size());
 		object.material = _material;
 		
 		renderer->RenderObject(object);
+	}
+	
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Generic Particle Emitter
+	// ---------------------
+	
+	GenericParticleEmitter::GenericParticleEmitter() :
+	_startColor("Start Color", Color(), &GenericParticleEmitter::GetStartColor, &GenericParticleEmitter::SetStartColor),
+	_endColor("End Color", Color(1.0f, 1.0f, 1.0f, 0.0f), &GenericParticleEmitter::GetEndColor, &GenericParticleEmitter::SetEndColor),
+	_gravity("Gravity", Vector3(0.0f, -0.1f, 0.0f), &GenericParticleEmitter::GetGravity, &GenericParticleEmitter::SetGravity),
+	_velocity("Velocity", Vector3(0.0f, 0.5f, 0.0f), &GenericParticleEmitter::GetVelocity, &GenericParticleEmitter::SetVelocity),
+	_velocityRandomizeMin("Velocity Randomize Min", Vector3(-0.5f), &GenericParticleEmitter::GetVelocityRandomizeMin, &GenericParticleEmitter::SetVelocityRandomizeMin),
+	_velocityRandomizeMax("Velocity Randomize Max", Vector3(0.5f), &GenericParticleEmitter::GetVelocityRandomizeMax, &GenericParticleEmitter::SetVelocityRandomizeMax),
+	_positionRandomizeMin("Position Randomize Min", Vector3(-0.5f), &GenericParticleEmitter::GetPositionRandomizeMin, &GenericParticleEmitter::SetPositionRandomizeMin),
+	_positionRandomizeMax("Position Randomize Max", Vector3(0.5f), &GenericParticleEmitter::GetPositionRandomizeMax, &GenericParticleEmitter::SetPositionRandomizeMax),
+	_startSize("Start Size Range", Vector2(0.5f, 1.5f), &GenericParticleEmitter::GetStartSize, &GenericParticleEmitter::SetStartSize),
+	_endSize("End Size Range", Vector2(1.5f, 2.5f), &GenericParticleEmitter::GetEndSize, &GenericParticleEmitter::SetEndSize),
+	_lifeSpan("Lifespan Range", Vector2(2.0f, 4.0f), &GenericParticleEmitter::GetLifeSpan, &GenericParticleEmitter::SetLifeSpan)
+	{
+		Initialize();
+	}
+	
+	GenericParticleEmitter::GenericParticleEmitter(const GenericParticleEmitter *emitter) :
+	ParticleEmitter(emitter),
+	_startColor("Start Color", emitter->GetStartColor(), &GenericParticleEmitter::GetStartColor, &GenericParticleEmitter::SetStartColor),
+	_endColor("End Color", emitter->GetEndColor(), &GenericParticleEmitter::GetEndColor, &GenericParticleEmitter::SetEndColor),
+	_gravity("Gravity", emitter->GetGravity(), &GenericParticleEmitter::GetGravity, &GenericParticleEmitter::SetGravity),
+	_velocity("Velocity", emitter->GetVelocity(), &GenericParticleEmitter::GetVelocity, &GenericParticleEmitter::SetVelocity),
+	_velocityRandomizeMin("Velocity Randomize Min", emitter->GetVelocityRandomizeMin(), &GenericParticleEmitter::GetVelocityRandomizeMin, &GenericParticleEmitter::SetVelocityRandomizeMin),
+	_velocityRandomizeMax("Velocity Randomize Max", emitter->GetVelocityRandomizeMax(), &GenericParticleEmitter::GetVelocityRandomizeMax, &GenericParticleEmitter::SetVelocityRandomizeMax),
+	_positionRandomizeMin("Position Randomize Min", emitter->GetPositionRandomizeMin(), &GenericParticleEmitter::GetPositionRandomizeMin, &GenericParticleEmitter::SetPositionRandomizeMin),
+	_positionRandomizeMax("Position Randomize Max", emitter->GetPositionRandomizeMax(), &GenericParticleEmitter::GetPositionRandomizeMax, &GenericParticleEmitter::SetPositionRandomizeMax),
+	_startSize("Start Size Range", emitter->GetStartSize(), &GenericParticleEmitter::GetStartSize, &GenericParticleEmitter::SetStartSize),
+	_endSize("End Size Range", emitter->GetEndSize(), &GenericParticleEmitter::GetEndSize, &GenericParticleEmitter::SetEndSize),
+	_lifeSpan("Lifespan Range", emitter->GetLifeSpan(), &GenericParticleEmitter::GetLifeSpan, &GenericParticleEmitter::SetLifeSpan)
+	{
+		Initialize();
+	}
+	
+	GenericParticleEmitter::GenericParticleEmitter(RN::Deserializer *deserializer) :
+	ParticleEmitter(deserializer),
+	_startColor("Start Color", Color(), &GenericParticleEmitter::GetStartColor, &GenericParticleEmitter::SetStartColor),
+	_endColor("End Color", Color(1.0f, 1.0f, 1.0f, 0.0f), &GenericParticleEmitter::GetEndColor, &GenericParticleEmitter::SetEndColor),
+	_gravity("Gravity", Vector3(0.0f, -0.1f, 0.0f), &GenericParticleEmitter::GetGravity, &GenericParticleEmitter::SetGravity),
+	_velocity("Velocity", Vector3(0.0f, 0.5f, 0.0f), &GenericParticleEmitter::GetVelocity, &GenericParticleEmitter::SetVelocity),
+	_velocityRandomizeMin("Velocity Randomize Min", Vector3(-0.5f), &GenericParticleEmitter::GetVelocityRandomizeMin, &GenericParticleEmitter::SetVelocityRandomizeMin),
+	_velocityRandomizeMax("Velocity Randomize Max", Vector3(0.5f), &GenericParticleEmitter::GetVelocityRandomizeMax, &GenericParticleEmitter::SetVelocityRandomizeMax),
+	_positionRandomizeMin("Position Randomize Min", Vector3(-0.5f), &GenericParticleEmitter::GetPositionRandomizeMin, &GenericParticleEmitter::SetPositionRandomizeMin),
+	_positionRandomizeMax("Position Randomize Max", Vector3(0.5f), &GenericParticleEmitter::GetPositionRandomizeMax, &GenericParticleEmitter::SetPositionRandomizeMax),
+	_startSize("Start Size Range", Vector2(0.5f, 1.5f), &GenericParticleEmitter::GetStartSize, &GenericParticleEmitter::SetStartSize),
+	_endSize("End Size Range", Vector2(1.5f, 2.5f), &GenericParticleEmitter::GetEndSize, &GenericParticleEmitter::SetEndSize),
+	_lifeSpan("Lifespan Range", Vector2(2.0f, 4.0f), &GenericParticleEmitter::GetLifeSpan, &GenericParticleEmitter::SetLifeSpan)
+	{
+		Initialize();
+		
+		_lifeSpan = deserializer->DecodeVector2();
+		_startColor = deserializer->DecodeColor();
+		_endColor = deserializer->DecodeColor();
+		_startSize = deserializer->DecodeVector2();
+		_endSize = deserializer->DecodeVector2();
+		_gravity = deserializer->DecodeVector3();
+		_velocity = deserializer->DecodeVector3();
+		_velocityRandomizeMin = deserializer->DecodeVector3();
+		_velocityRandomizeMax = deserializer->DecodeVector3();
+		_positionRandomizeMin = deserializer->DecodeVector3();
+		_positionRandomizeMax = deserializer->DecodeVector3();
+	}
+	
+	void GenericParticleEmitter::Serialize(RN::Serializer *serializer)
+	{
+		ParticleEmitter::Serialize(serializer);
+		serializer->EncodeVector2(_lifeSpan);
+		serializer->EncodeColor(_startColor);
+		serializer->EncodeColor(_endColor);
+		serializer->EncodeVector2(_startSize);
+		serializer->EncodeVector2(_endSize);
+		serializer->EncodeVector3(_gravity);
+		serializer->EncodeVector3(_velocity);
+		serializer->EncodeVector3(_velocityRandomizeMin);
+		serializer->EncodeVector3(_velocityRandomizeMax);
+		serializer->EncodeVector3(_positionRandomizeMin);
+		serializer->EncodeVector3(_positionRandomizeMax);
+	}
+	
+	void GenericParticleEmitter::Initialize()
+	{
+		AddObservable(&_lifeSpan);
+		AddObservable(&_startColor);
+		AddObservable(&_endColor);
+		AddObservable(&_startSize);
+		AddObservable(&_endSize);
+		AddObservable(&_gravity);
+		AddObservable(&_velocity);
+		AddObservable(&_velocityRandomizeMin);
+		AddObservable(&_velocityRandomizeMax);
+		AddObservable(&_positionRandomizeMin);
+		AddObservable(&_positionRandomizeMax);
+	}
+	
+	RN::Particle *GenericParticleEmitter::CreateParticle()
+	{
+		GenericParticle *particle = new GenericParticle();
+		particle->position = GetWorldPosition() + _rng->RandomVector3Range(_positionRandomizeMin, _positionRandomizeMax);
+		
+		float lifespan = _rng->RandomFloatRange(_lifeSpan->x, _lifeSpan->y);
+		particle->lifespan = lifespan;
+		
+		particle->colorInterpolator.SetStartValue(_startColor);
+		particle->colorInterpolator.SetEndValue(_endColor);
+		particle->colorInterpolator.SetDuration(lifespan);
+		
+		particle->sizeInterpolator.SetStartValue(Vector2(_rng->RandomFloatRange(_startSize->x, _startSize->y)));
+		particle->sizeInterpolator.SetEndValue(Vector2(_rng->RandomFloatRange(_endSize->x, _endSize->y)));
+		particle->sizeInterpolator.SetDuration(lifespan);
+		
+		particle->gravity = _gravity;
+		particle->velocity = _velocity + _rng->RandomVector3Range(_velocityRandomizeMin, _velocityRandomizeMax);
+		
+		particle->Update(0.0f);
+		
+		return particle;
 	}
 }
