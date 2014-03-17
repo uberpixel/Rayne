@@ -92,7 +92,7 @@ namespace RN
 	{
 		SceneNode::Serialize(serializer);
 		serializer->EncodeObject(_material);
-		serializer->EncodeFloat(_isLocal);
+		serializer->EncodeBool(_isLocal);
 		serializer->EncodeFloat(_spawnRate);
 		serializer->EncodeInt32(static_cast<int32>(_maxParticles));
 	}
