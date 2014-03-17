@@ -38,6 +38,9 @@ namespace RN
 		
 		RNAPI void Serialize(Serializer *serializer) override;
 		
+		RNAPI machine_hash GetHash() const override;
+		RNAPI bool IsEqual(Object *other) const override;
+		
 		RNAPI static Value *WithVector2(const Vector2& vector);
 		RNAPI static Value *WithVector3(const Vector3& vector);
 		RNAPI static Value *WithVector4(const Vector4& vector);
@@ -48,9 +51,17 @@ namespace RN
 		RNAPI static Value *WithMatrix(const Matrix& matrix);
 		
 		template<class T>
+		bool CanConvertToType() const
+		{
+			return (TypeTranslator<T>::value == _type && sizeof(T) == _size);
+		}
+		
+		template<class T>
 		T GetValue() const
 		{
-			RN_ASSERT(TypeTranslator<T>::value == _type && sizeof(T) == _size, "Type mismatch!");
+			if(TypeTranslator<T>::value != _type || sizeof(T) != _size)
+				throw Exception(Exception::Type::InconsistencyException, "Type mismatch!");
+			
 			return static_cast<T>(*(reinterpret_cast<T *>(_storage)));
 		}
 		

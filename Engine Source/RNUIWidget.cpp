@@ -293,6 +293,17 @@ namespace RN
 		// MARK: Layout engine
 		// ---------------------
 		
+		void Widget::Center()
+		{
+			Rect frame = GetFrame();
+			Vector2 extents = Vector2(Server::GetSharedInstance()->GetWidth(), Server::GetSharedInstance()->GetHeight());
+			
+			frame.x = extents.x * 0.5f - frame.width * 0.5f;
+			frame.y = extents.y * 0.5f - frame.height * 0.5f;
+			
+			SetFrame(frame);
+		}
+		
 		void Widget::Update()
 		{
 			if(_backgroundView)

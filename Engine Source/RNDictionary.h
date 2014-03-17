@@ -28,6 +28,7 @@ namespace RN
 		
 		RNAPI void Serialize(Serializer *serializer);
 		
+		RNAPI machine_hash GetHash() const;
 		RNAPI bool IsEqual(Object *other) const override;
 		
 		template<typename T=Object>
