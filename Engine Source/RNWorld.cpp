@@ -355,7 +355,10 @@ namespace RN
 	{
 		if(_addedNodes.size() > 0)
 		{
-			for(SceneNode *node : _addedNodes)
+			std::vector<SceneNode *> nodes;
+			std::swap(nodes, _addedNodes);
+			
+			for(SceneNode *node : nodes)
 			{
 				node->_worldInserted = true;
 				
@@ -389,7 +392,6 @@ namespace RN
 				node->DidUpdate(SceneNode::ChangeSet::World);
 			}
 			
-			_addedNodes.clear();
 			_requiresResort = true;
 		}
 		
