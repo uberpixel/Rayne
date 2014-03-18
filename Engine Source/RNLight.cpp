@@ -26,14 +26,20 @@ namespace RN
 		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle),
 		_angleCos(0.797),
 		_shadowTarget(nullptr),
-		_suppressShadows(false)
+		_suppressShadows(false),
+		_dirty(false)
 	{
 		AddObservables({ &_color, &_intensity, &_range, &_angle });
+		
+		SetBoundingSphere(Sphere(Vector3(), 1.0f));
+		SetBoundingBox(AABB(Vector3(), 1.0f), false);
 		
 		SetPriority(SceneNode::Priority::UpdateLate);
 		SetCollisionGroup(25);
 		
 		ReCalculateColor();
+		SetAngle(GetAngle());
+		SetRange(GetRange());
 	}
 	
 	Light::Light(const Light *other) :
@@ -45,20 +51,22 @@ namespace RN
 		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle),
 		_angleCos(0.797),
 		_shadowTarget(nullptr),
-		_suppressShadows(false)
+		_suppressShadows(false),
+		_dirty(false)
 	{
 		AddObservables({ &_color, &_intensity, &_range, &_angle });
+		
+		SetBoundingSphere(Sphere(Vector3(), 1.0f));
+		SetBoundingBox(AABB(Vector3(), 1.0f), false);
 		
 		Light *temp = const_cast<Light *>(other);
 		LockGuard<Object *> lock(temp);
 		
-		_color = other->_color;
+		SetColor(other->GetColor());
+		SetIntensity(other->GetIntensity());
+		SetAngle(other->GetAngle());
+		SetRange(other->GetRange());
 		
-		_intensity = other->_intensity;
-		_range     = other->_range;
-		_angle     = other->_angle;
-		
-		_angleCos = other->_angleCos;
 		_suppressShadows = other->_suppressShadows;
 		
 		if(other->HasShadows())
@@ -79,9 +87,13 @@ namespace RN
 		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle),
 		_angleCos(0.797),
 		_shadowTarget(nullptr),
-		_suppressShadows(false)
+		_suppressShadows(false),
+		_dirty(false)
 	{
 		AddObservables({ &_color, &_intensity, &_range, &_angle });
+		
+		SetBoundingSphere(Sphere(Vector3(), 1.0f));
+		SetBoundingBox(AABB(Vector3(), 1.0f), false);
 		
 		_lightType = static_cast<Type>(deserializer->DecodeInt32());
 		
@@ -177,8 +189,8 @@ namespace RN
 	{
 		_range = range;
 		
-		SetBoundingSphere(Sphere(Vector3(), range));
-		SetBoundingBox(AABB(Vector3(), range), false);
+		if(!_dirty)
+			SetWorldScale(RN::Vector3(range));
 	}
 	
 	void Light::SetColor(const Color& color)
@@ -492,12 +504,22 @@ namespace RN
 	void Light::Update(float delta)
 	{
 		SceneNode::Update(delta);
+		if(_dirty)
+		{
+			SetRange(GetWorldScale().GetMax());
+			_dirty = false;
+		}
 		UpdateShadows();
 	}
 	
 	void Light::UpdateEditMode(float delta)
 	{
 		SceneNode::UpdateEditMode(delta);
+		if(_dirty)
+		{
+			SetRange(GetWorldScale().GetMax());
+			_dirty = false;
+		}
 		UpdateShadows();
 	}
 	
@@ -566,5 +588,13 @@ namespace RN
 	{
 		_finalColor = Vector3(_color->r, _color->g, _color->b);
 		_finalColor *= (float)_intensity;
+	}
+	
+	void Light::DidUpdate(SceneNode::ChangeSet changeSet)
+	{
+		SceneNode::DidUpdate(changeSet);
+		
+		if(changeSet & ChangeSet::Position)
+			_dirty = true;
 	}
 }
