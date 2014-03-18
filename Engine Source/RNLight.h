@@ -93,6 +93,7 @@ namespace RN
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		
+		RNAPI void SetType(Type type);
 		RNAPI void SetRange(float range);
 		RNAPI void SetColor(const Color& color);
 		RNAPI void SetAngle(float angle);

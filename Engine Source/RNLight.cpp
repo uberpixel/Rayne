@@ -185,6 +185,17 @@ namespace RN
 			manager->AddLight(this);
 	}
 	
+	void Light::SetType(Type type)
+	{
+		_lightType = type;
+		
+		if(_suppressShadows || _shadowDepthCameras.GetCount() == 0)
+			return;
+		
+		RemoveShadowCameras();
+		ActivateShadows();
+	}
+	
 	void Light::SetRange(float range)
 	{
 		_range = range;
