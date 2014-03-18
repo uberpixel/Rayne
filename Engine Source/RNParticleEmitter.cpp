@@ -29,6 +29,7 @@ namespace RN
 	
 	ParticleEmitter::ParticleEmitter() :
 	_mesh(nullptr),
+	_material(nullptr),
 	_isLocal("is local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
 	_isSorted("is sorted", false, &ParticleEmitter::GetIsSorted, &ParticleEmitter::SetIsSorted),
 	_isRenderedInversed("is rendered inversed", false, &ParticleEmitter::GetIsRenderedInversed, &ParticleEmitter::SetIsRenderedInversed),
@@ -52,6 +53,7 @@ namespace RN
 	ParticleEmitter::ParticleEmitter(const ParticleEmitter *emitter) :
 	SceneNode(emitter),
 	_mesh(nullptr),
+	_material(nullptr),
 	_isLocal("Is Local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
 	_isSorted("is sorted", false, &ParticleEmitter::GetIsSorted, &ParticleEmitter::SetIsSorted),
 	_isRenderedInversed("is rendered inversed", false, &ParticleEmitter::GetIsRenderedInversed, &ParticleEmitter::SetIsRenderedInversed),
