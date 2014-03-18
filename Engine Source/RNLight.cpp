@@ -188,9 +188,7 @@ namespace RN
 	void Light::SetRange(float range)
 	{
 		_range = range;
-		
-		if(!_dirty)
-			SetWorldScale(RN::Vector3(range));
+		SetWorldScale(RN::Vector3(range));
 	}
 	
 	void Light::SetColor(const Color& color)
