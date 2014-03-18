@@ -366,7 +366,8 @@ namespace RN
 			_policy(policy),
 			_getter(getter),
 			_setter(setter),
-			_storage(nullptr)
+			_storage(nullptr),
+			_meta(T::MetaClass())
 		{}
 		
 		void SetValue(Object *object) override
@@ -406,6 +407,11 @@ namespace RN
 				return (static_cast<Target *>(_object)->*_getter)();
 				
 			return _storage;
+		}
+
+		MetaClassBase *GetMetaClass() const override
+		{
+			return _meta;
 		}
 
 		bool operator== (T *other)
@@ -453,6 +459,7 @@ namespace RN
 		Getter _getter;
 		Object::MemoryPolicy _policy;
 		T *_storage;
+		MetaClassBase *_meta;
 	};
 
 

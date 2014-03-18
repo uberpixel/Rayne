@@ -23,6 +23,7 @@ namespace RN
 {
 	class Object;
 	class Dictionary;
+	class MetaClassBase;
 	
 	class ObservableProperty
 	{
@@ -40,6 +41,8 @@ namespace RN
 		
 		RNAPI void SetWritable(bool writable);
 		bool IsWritable() const { return _flags & (1 << 8); }
+		
+		RNAPI virtual MetaClassBase *GetMetaClass() const { return nullptr; }
 		
 		RNAPI void WillChangeValue();
 		RNAPI void DidChangeValue();
