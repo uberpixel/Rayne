@@ -200,8 +200,8 @@ namespace RN
 		_internals->_windowClass.lpfnWndProc = &WindowProc;
 		_internals->_windowClass.cbClsExtra = 0;
 		_internals->_windowClass.cbWndExtra = 0;
-		_internals->_windowClass.hInstance = _instance;
-		_internals->_windowClass.hIcon = LoadIconA(_instance, MAKEINTRESOURCE(1));
+		_internals->_windowClass.hInstance = _internals->_instance;
+		_internals->_windowClass.hIcon = LoadIconA(_internals->_instance, MAKEINTRESOURCE(1));
 		_internals->_windowClass.hCursor = LoadCursorA(nullptr, IDC_ARROW);
 		_internals->_windowClass.hbrBackground = nullptr;
 		_internals->_windowClass.lpszMenuName = nullptr;
@@ -210,7 +210,7 @@ namespace RN
 		
 		::RegisterClassExW(&_internals->_windowClass);
 
-		_internals->_mainWindow = ::CreateWindowExW(0, L"RNWindowClass", L"", WS_POPUP | WS_CLIPCHILDREN, 0, 0, 640, 480, nullptr, nullptr, _instance, nullptr);
+		_internals->_mainWindow = ::CreateWindowExW(0, L"RNWindowClass", L"", WS_POPUP | WS_CLIPCHILDREN, 0, 0, 640, 480, nullptr, nullptr, _internals->_instance, nullptr);
 
 		::SetFocus(_internals->_mainWindow);
 		::SetCursor(_internals->_windowClass.hCursor);
@@ -699,11 +699,22 @@ namespace RN
 		return (_internals->_shouldExit == false);
 	}
 
+#if RN_PLATFORM_WINDOWS
+	HWND Kernel::GetMainWindow() const
+	{
+		return _internals->_mainWindow;
+	}
+
+	HINSTANCE Kernel::GetInstance() const
+	{
+		return _internals->_instance;
+	}
+#endif
+
 	void Kernel::Exit()
 	{
 		_internals->_shouldExit = true;
 	}
-
 	
 	void Kernel::PushStatistics(const std::string& key)
 	{

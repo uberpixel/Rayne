@@ -458,6 +458,27 @@
     <ClInclude Include="Engine Source\RNThreadLocalStorage.h">
       <Filter>STL</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNAsset.h">
+      <Filter>Assets</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNDecal.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNSpatialMap.h">
+      <Filter>STL</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNTypeTranslator.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNTimer.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNGPUBuffer.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNDataAttachment.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
@@ -813,6 +834,21 @@
     </ClCompile>
     <ClCompile Include="Engine Source\RNSyncPoint.cpp">
       <Filter>STL</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNAsset.cpp">
+      <Filter>Assets</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNDecal.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNTimer.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNGPUBuffer.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNDataAttachment.cpp">
+      <Filter>Rendering</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

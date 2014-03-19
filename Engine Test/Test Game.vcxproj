@@ -81,8 +81,10 @@
     <ClCompile Include="Test Game\Classes\TGApplication.cpp" />
     <ClCompile Include="Test Game\Classes\TGCutScene.cpp" />
     <ClCompile Include="Test Game\Classes\TGDebugDrawer.cpp" />
+    <ClCompile Include="Test Game\Classes\TGFire.cpp" />
     <ClCompile Include="Test Game\Classes\TGForestWorld.cpp" />
     <ClCompile Include="Test Game\Classes\TGLoadingScreen.cpp" />
+    <ClCompile Include="Test Game\Classes\TGSmoke.cpp" />
     <ClCompile Include="Test Game\Classes\TGSponzaWorld.cpp" />
     <ClCompile Include="Test Game\Classes\TGSun.cpp" />
     <ClCompile Include="Test Game\Classes\TGWorld.cpp" />
@@ -97,8 +99,10 @@
     <ClInclude Include="Test Game\Classes\TGApplication.h" />
     <ClInclude Include="Test Game\Classes\TGCutScene.h" />
     <ClInclude Include="Test Game\Classes\TGDebugDrawer.h" />
+    <ClInclude Include="Test Game\Classes\TGFire.h" />
     <ClInclude Include="Test Game\Classes\TGForestWorld.h" />
     <ClInclude Include="Test Game\Classes\TGLoadingScreen.h" />
+    <ClInclude Include="Test Game\Classes\TGSmoke.h" />
     <ClInclude Include="Test Game\Classes\TGSponzaWorld.h" />
     <ClInclude Include="Test Game\Classes\TGSun.h" />
     <ClInclude Include="Test Game\Classes\TGWorld.h" />

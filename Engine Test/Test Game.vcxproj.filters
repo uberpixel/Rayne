@@ -38,6 +38,12 @@
     <ClCompile Include="Test Game\Classes\TGWorld.cpp">
       <Filter>Classes</Filter>
     </ClCompile>
+    <ClCompile Include="Test Game\Classes\TGFire.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
+    <ClCompile Include="Test Game\Classes\TGSmoke.cpp">
+      <Filter>Classes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Test Game\Classes\TGApplication.h">
@@ -62,6 +68,12 @@
       <Filter>Classes</Filter>
     </ClInclude>
     <ClInclude Include="Test Game\Classes\TGWorld.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Test Game\Classes\TGFire.h">
+      <Filter>Classes</Filter>
+    </ClInclude>
+    <ClInclude Include="Test Game\Classes\TGSmoke.h">
       <Filter>Classes</Filter>
     </ClInclude>
   </ItemGroup>
