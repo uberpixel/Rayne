@@ -185,9 +185,9 @@ namespace RN
 
 #define RNDefineMeta(cls, super) \
 	__RNDeclareMetaPrivateWithTraits(cls, super, \
-		std::conditional<std::is_default_constructible<cls>::value, RN::MetaClassTraitCronstructable<cls>, RN::__MetaClassTraitNull0<cls>>::type, \
-		std::conditional<std::is_constructible<cls, RN::Deserializer *>::value, RN::MetaClassTraitSerializable<cls>, RN::__MetaClassTraitNull1<cls>>::type, \
-		std::conditional<std::is_constructible<cls, const cls *>::value, RN::MetaClassTraitCopyable<cls>, RN::__MetaClassTraitNull2<cls>>::type) \
+		std::conditional<std::is_default_constructible<cls>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitCronstructable<cls>, RN::__MetaClassTraitNull0<cls>>::type, \
+		std::conditional<std::is_constructible<cls, RN::Deserializer *>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitSerializable<cls>, RN::__MetaClassTraitNull1<cls>>::type, \
+		std::conditional<std::is_constructible<cls, const cls *>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitCopyable<cls>, RN::__MetaClassTraitNull2<cls>>::type) \
 	void *__kRN##cls##__metaClass = nullptr; \
 	RN::MetaClassBase *cls::Class() const \
 	{ \
