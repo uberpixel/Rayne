@@ -49,7 +49,7 @@ void RNSetThreadName(char *threadName)
 
 namespace RN
 {
-	RNDefineMeta(Thread, Object)
+	__RNDefineMetaAndGFYMSVC(Thread, Object)
 	
 	static Thread *__MainThread;
 	static SpinLock __ThreadLock;

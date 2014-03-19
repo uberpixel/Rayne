@@ -200,6 +200,21 @@ namespace RN
 		return reinterpret_cast<cls##MetaType *>(__kRN##cls##__metaClass); \
 	} \
 	RN_REGISTER_INIT(cls##Init, cls::MetaClass(); cls::InitialWakeUp(cls::MetaClass()))
+	
+#define __RNDefineMetaAndGFYMSVC(cls, super) \
+	__RNDeclareMetaPrivateWithTraits(cls, super, RN::__MetaClassTraitNull0<cls>, RN::__MetaClassTraitNull1<cls>, RN::__MetaClassTraitNull2<cls>) \
+	void *__kRN##cls##__metaClass = nullptr; \
+	RN::MetaClassBase *cls::Class() const \
+	{ \
+		return cls::MetaClass(); \
+	} \
+	RN::MetaClassBase *cls::MetaClass() \
+	{ \
+		if(!__kRN##cls##__metaClass) \
+			__kRN##cls##__metaClass = new cls##MetaType(RN_FUNCTION_SIGNATURE); \
+		return reinterpret_cast<cls##MetaType *>(__kRN##cls##__metaClass); \
+	} \
+	RN_REGISTER_INIT(cls##Init, cls::MetaClass(); cls::InitialWakeUp(cls::MetaClass()))
 
 	template<class T>
 	static void SafeRelease(T *&object)

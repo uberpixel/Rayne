@@ -46,9 +46,6 @@ namespace RN
 			if(detach)
 				Detach();
 		}
-		
-		Thread(const Thread *) = delete;
-		Thread(Deserializer *) = delete;
 
 		RNAPI ~Thread();
 		
