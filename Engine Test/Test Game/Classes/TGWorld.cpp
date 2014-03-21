@@ -284,6 +284,26 @@ namespace TG
 		}
 	}
 	
+	void World::UpdateEditMode(float delta)
+	{
+		RN::World::UpdateEditMode(delta);
+		
+		if(_sunLight)
+		{
+			RN::Color color = _sunLight->GetAmbientColor();
+			RN::Color ambient(0.127f, 0.252f, 0.393f, 1.0f);
+			
+			_camera->SetAmbientColor(color * (ambient * 5.0f));
+			_camera->SetFogColor(_sunLight->GetFogColor());
+			
+			if(_camera->GetChildren()->GetCount() > 0)
+			{
+				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetAmbientColor(_camera->GetAmbientColor());
+				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetFogColor(_sunLight->GetFogColor());
+			}
+		}
+	}
+	
 	void World::CreateCameras()
 	{
 		RN::Model *sky = RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png");

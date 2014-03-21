@@ -30,6 +30,8 @@ namespace TG
 		void LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer) override;
 		
 		void Update(float delta) override;
+		void UpdateEditMode(float delta) override;
+		
 		void SetCutScene(const std::string &file);
 		
 	protected:
