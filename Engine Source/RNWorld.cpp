@@ -670,12 +670,7 @@ namespace RN
 			size_t nodes = static_cast<size_t>(deserializer->DecodeInt64());
 			
 			for(size_t i = 0; i < nodes; i ++)
-			{
-				SceneNode *node = static_cast<SceneNode *>(deserializer->DecodeObject());
-				
-				if(node)
-					AddSceneNode(node);
-			}
+				deserializer->DecodeObject();
 		}
 	}
 	
