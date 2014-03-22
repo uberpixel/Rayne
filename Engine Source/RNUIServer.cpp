@@ -124,7 +124,7 @@ namespace RN
 			if(_tracking && (_tracking->_widget == widget || !_tracking->_widget))
 				_tracking = nullptr;
 			
-			if(_hover && (_hover->_widget == widget) || !_hover->_widget)
+			if(_hover && (_hover->_widget == widget || !_hover->_widget))
 				_hover = nullptr;
 			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
