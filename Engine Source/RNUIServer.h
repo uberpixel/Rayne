@@ -83,6 +83,7 @@ namespace RN
 			
 			Widget *_mainWidget;
 			View *_tracking;
+			View *_hover;
 			std::deque<Widget *> _widgets;
 			
 			Menu *_menu;

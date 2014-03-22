@@ -65,7 +65,13 @@ namespace RN
 	{
 		RNDefineSingleton(Server)
 		
-		Server::Server()
+		Server::Server() :
+			_mainWidget(nullptr),
+			_tracking(nullptr),
+			_hover(nullptr),
+			_mode(Mode::SingleTracking),
+			_drawDebugFrames(false),
+			_menu(nullptr)
 		{
 			uint32 flags = Camera::Flags::Orthogonal | Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoSorting | Camera::Flags::NoDepthWrite | Camera::Flags::BlendedBlitting;
 			_camera = new Camera(Vector2(0.0f), Texture::Format::RGBA8888, flags, RenderStorage::BufferFormatColor);
@@ -73,16 +79,7 @@ namespace RN
 			_camera->SetFlags(_camera->GetFlags() | Camera::Flags::Orthogonal);
 			_camera->SetClipNear(-500.0f);
 			_camera->SetLightManager(nullptr);
-			
-			if(_camera->GetWorld())
-				_camera->GetWorld()->RemoveSceneNode(_camera);
-			
-			_mainWidget = nullptr;
-			_tracking = nullptr;
-			_mode = Mode::SingleTracking;
-			
-			_drawDebugFrames = false;
-			_menu = nullptr;
+			_camera->RemoveFromWorld();
 			
 			TranslateMenuToPlatform();
 		}
@@ -126,6 +123,9 @@ namespace RN
 			
 			if(_tracking && (_tracking->_widget == widget || !_tracking->_widget))
 				_tracking = nullptr;
+			
+			if(_hover && (_hover->_widget == widget) || !_hover->_widget)
+				_hover = nullptr;
 			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
 			widget->_server = nullptr;
@@ -205,8 +205,15 @@ namespace RN
 							return true;
 							
 						case Event::Type::MouseMoved:
+						{
+							if(_hover && _hover != hit)
+								_hover->MouseLeft(event);
+							
 							hit->MouseMoved(event);
+							_hover = hit;
+							
 							return true;
+						}
 							
 						case Event::Type::MouseDragged:
 							_tracking = hit;

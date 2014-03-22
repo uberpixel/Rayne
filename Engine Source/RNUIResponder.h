@@ -32,6 +32,7 @@ namespace RN
 			RNAPI virtual void MouseUp(Event *event);
 			RNAPI virtual void MouseMoved(Event *event);
 			RNAPI virtual void MouseDragged(Event *event);
+			RNAPI virtual void MouseLeft(Event *event);
 			
 			RNAPI virtual void KeyDown(Event *event);
 			RNAPI virtual void KeyUp(Event *event);

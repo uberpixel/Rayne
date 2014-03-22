@@ -273,5 +273,9 @@ namespace RN
 		{
 			EndTrackingEvent(event);
 		}
+		void Control::MouseLeft(Event *event)
+		{
+			ContinueTrackingEvent(event);
+		}
 	}
 }
