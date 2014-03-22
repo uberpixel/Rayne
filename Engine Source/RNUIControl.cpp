@@ -275,7 +275,11 @@ namespace RN
 		}
 		void Control::MouseLeft(Event *event)
 		{
-			ContinueTrackingEvent(event);
+			if(_mouseInside)
+			{
+				DispatchEvent(EventType::MouseLeft);
+				_mouseInside = false;
+			}
 		}
 	}
 }
