@@ -248,8 +248,16 @@ namespace RN
 	
 	void WorldCoordinator::__AwaitLoadingForExit()
 	{
-		_lock.Lock();
-		_lock.Unlock();
+		if(IsLoading())
+		{
+			try
+			{
+				_loadFuture.wait();
+				AwaitFinishLoading();
+			}
+			catch(Exception e)
+			{}
+		}
 	}
 	
 	
