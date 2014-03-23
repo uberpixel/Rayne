@@ -16,7 +16,7 @@ namespace RN
 		
 		Control::Control()
 		{
-			_state = Control::Normal;
+			_state = Control::State::Normal;
 			
 			_mouseDown = false;
 			_mouseInside = false;
@@ -29,10 +29,10 @@ namespace RN
 		void Control::SetHighlighted(bool highlighted)
 		{
 			State oldState = _state;
-			_state &= ~Control::Highlighted;
+			_state &= ~Control::State::Highlighted;
 			
 			if(highlighted)
-				_state |= Control::Highlighted;
+				_state |= Control::State::Highlighted;
 			
 			if(_state != oldState)
 				StateChanged(_state);
@@ -40,10 +40,10 @@ namespace RN
 		void Control::SetSelected(bool selected)
 		{
 			State oldState = _state;
-			_state &= ~Control::Selected;
+			_state &= ~Control::State::Selected;
 			
 			if(selected)
-				_state |= Control::Selected;
+				_state |= Control::State::Selected;
 			
 			if(_state != oldState)
 				StateChanged(_state);
@@ -51,11 +51,11 @@ namespace RN
 		void Control::SetEnabled(bool enabled)
 		{
 			State oldState = _state;
-			_state &= ~Control::Disabled;
+			_state &= ~Control::State::Disabled;
 			
 			if(!enabled)
 			{
-				_state |= Control::Disabled;
+				_state |= Control::State::Disabled;
 				_mouseDown = false;
 			}
 			
@@ -129,7 +129,7 @@ namespace RN
 		
 		bool Control::PostEvent(EventType event)
 		{
-			if(_state & Control::Disabled)
+			if(_state & Control::State::Disabled)
 				return false;
 			
 			switch(event)

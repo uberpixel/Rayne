@@ -15,6 +15,7 @@
 #include "RNMatrix.h"
 #include "RNRenderer.h"
 #include "RNVector.h"
+#include "RNEnum.h"
 #include "RNUIResponder.h"
 
 #define kRNUIWidgetLevelNormal     5
@@ -36,15 +37,24 @@ namespace RN
 			friend class Server;
 			friend class View;
 			
-			enum
+			struct Style : public Enum<int32>
 			{
-				StyleBorderless  = 0,
-				StyleTitled      = (1 << 0),
-				StyleClosable    = (1 << 1),
-				StyleMinimizable = (1 << 2),
-				StyleMaximizable = (1 << 3)
+			public:
+				Style()
+				{}
+				Style(int value) :
+					Enum(value)
+				{}
+				
+				enum
+				{
+					Borderless  = 0,
+					Titled      = (1 << 0),
+					Closable    = (1 << 1),
+					Minimizable = (1 << 2),
+					Maximizable = (1 << 3)
+				};
 			};
-			typedef uint32 Style;
 			
 			enum class TitleControl
 			{

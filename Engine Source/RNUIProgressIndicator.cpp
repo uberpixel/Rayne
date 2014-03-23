@@ -28,11 +28,11 @@ namespace RN
 			
 			_background = new ImageView();
 			_background->SetImage(background);
-			_background->SetAutoresizingMask(View::AutoresizingFlexibleHeight | View::AutoresizingFlexibleWidth);
+			_background->SetAutoresizingMask(View::AutoresizingMask::FlexibleHeight | View::AutoresizingMask::FlexibleWidth);
 			
 			_bar = new ImageView();
 			_bar->SetImage(bar);
-			_bar->SetAutoresizingMask(View::AutoresizingFlexibleHeight | View::AutoresizingFlexibleWidth);
+			_bar->SetAutoresizingMask(View::AutoresizingMask::FlexibleHeight | View::AutoresizingMask::FlexibleWidth);
 			
 			AddSubview(_background);
 			AddSubview(_bar);

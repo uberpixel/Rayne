@@ -17,6 +17,7 @@
 #include "RNCamera.h"
 #include "RNRenderer.h"
 #include "RNInput.h"
+#include "RNEnum.h"
 #include "RNUIWidget.h"
 #include "RNUIResponder.h"
 #include "RNUIGeometry.h"
@@ -31,18 +32,25 @@ namespace RN
 			friend class Server;
 			friend class Widget;
 			
-			enum
+			struct AutoresizingMask : public Enum<int32>
 			{
-				AutoresizingFlexibleWidth  = (1 << 0),
-				AutoresizingFlexibleHeight = (1 << 1),
+				AutoresizingMask()
+				{}
+				AutoresizingMask(int value) :
+					Enum(value)
+				{}
 				
-				AutoresizingFlexibleLeftMargin   = (1 << 2),
-				AutoresizingFlexibleRightMargin  = (1 << 3),
-				AutoresizingFlexibleTopMargin    = (1 << 4),
-				AutoresizingFlexibleBottomMargin = (1 << 5)
+				enum
+				{
+					FlexibleWidth  = (1 << 0),
+					FlexibleHeight = (1 << 1),
+					
+					FlexibleLeftMargin   = (1 << 2),
+					FlexibleRightMargin  = (1 << 3),
+					FlexibleTopMargin    = (1 << 4),
+					FlexibleBottomMargin = (1 << 5)
+				};
 			};
-			
-			typedef uint32 AutoresizingMask;
 			
 			RNAPI View();
 			RNAPI View(const Rect& frame);

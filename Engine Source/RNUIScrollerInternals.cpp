@@ -15,8 +15,8 @@ namespace RN
 		RNDefineMeta(ScrollerKnob, ImageView)
 		RNDefineMeta(ScrollerFrame, ImageView)
 		
-		ScrollerKnob::ScrollerKnob()
-		: _scrollView(nullptr)
+		ScrollerKnob::ScrollerKnob() :
+			_scrollView(nullptr)
 		{
 			SetInteractionEnabled(true);
 		}

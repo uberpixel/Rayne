@@ -278,16 +278,16 @@ namespace RN
 		
 		Control::State Style::ParseState(String *string)
 		{
-			Control::State state = Control::Normal;
+			Control::State state = Control::State::Normal;
 			
 			if(string->GetRangeOfString(RNCSTR("selected")).origin != kRNNotFound)
-				state |= Control::Selected;
+				state |= Control::State::Selected;
 			
 			if(string->GetRangeOfString(RNCSTR("highlighted")).origin != kRNNotFound)
-				state |= Control::Highlighted;
+				state |= Control::State::Highlighted;
 			
 			if(string->GetRangeOfString(RNCSTR("disabled")).origin != kRNNotFound)
-				state |= Control::Disabled;
+				state |= Control::State::Disabled;
 			
 			return state;
 		}

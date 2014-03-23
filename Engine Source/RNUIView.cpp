@@ -537,23 +537,23 @@ namespace RN
 				uint32 stepsHeight = 0;
 				
 				
-				if(subview->_autoresizingMask & AutoresizingFlexibleLeftMargin)
+				if(subview->_autoresizingMask & AutoresizingMask::FlexibleLeftMargin)
 					stepsWidth ++;
 				
-				if(subview->_autoresizingMask & AutoresizingFlexibleRightMargin)
+				if(subview->_autoresizingMask & AutoresizingMask::FlexibleRightMargin)
 					stepsWidth ++;
 				
-				if(subview->_autoresizingMask & AutoresizingFlexibleWidth)
+				if(subview->_autoresizingMask & AutoresizingMask::FlexibleWidth)
 					stepsWidth ++;
 				
 				
-				if(subview->_autoresizingMask & AutoresizingFlexibleTopMargin)
+				if(subview->_autoresizingMask & AutoresizingMask::FlexibleTopMargin)
 					stepsHeight ++;
 				
-				if(subview->_autoresizingMask & AutoresizingFlexibleBottomMargin)
+				if(subview->_autoresizingMask & AutoresizingMask::FlexibleBottomMargin)
 					stepsHeight ++;
 				
-				if(subview->_autoresizingMask & AutoresizingFlexibleHeight)
+				if(subview->_autoresizingMask & AutoresizingMask::FlexibleHeight)
 					stepsHeight ++;
 				
 				
@@ -562,10 +562,10 @@ namespace RN
 				{
 					float distribution = diff.x / stepsWidth;
 					
-					if(subview->_autoresizingMask & AutoresizingFlexibleLeftMargin)
+					if(subview->_autoresizingMask & AutoresizingMask::FlexibleLeftMargin)
 						frame.x += distribution;
 					
-					if(subview->_autoresizingMask & AutoresizingFlexibleWidth)
+					if(subview->_autoresizingMask & AutoresizingMask::FlexibleWidth)
 						frame.width += distribution;
 				}
 				
@@ -574,10 +574,10 @@ namespace RN
 				{
 					float distribution = diff.y / stepsHeight;
 					
-					if(subview->_autoresizingMask & AutoresizingFlexibleTopMargin)
+					if(subview->_autoresizingMask & AutoresizingMask::FlexibleTopMargin)
 						frame.y += distribution;
 					
-					if(subview->_autoresizingMask & AutoresizingFlexibleHeight)
+					if(subview->_autoresizingMask & AutoresizingMask::FlexibleHeight)
 						frame.height += distribution;
 				}
 				

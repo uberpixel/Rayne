@@ -37,9 +37,6 @@ namespace RN
 			RNAPI void RemoveItemAtIndex(size_t index);
 			
 			RNAPI const Array *GetItems() const { return _items; }
-			
-			RNAPI static void PopUpContextMenu(Menu *menu, const Vector2& location);
-			
 		private:
 			Array *_items;
 			

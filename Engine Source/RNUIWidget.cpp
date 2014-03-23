@@ -38,7 +38,7 @@ namespace RN
 		void Widget::Initialize(Style style)
 		{
 			_style     = style;
-			_hasShadow = (_style != StyleBorderless);
+			_hasShadow = (_style != Style::Borderless);
 			_level     = kRNUIWidgetLevelNormal;
 			
 			_backgroundView = CreateBackgroundView();
@@ -67,13 +67,13 @@ namespace RN
 		
 		WidgetBackgroundView *Widget::CreateBackgroundView()
 		{
-			if(_style == StyleBorderless)
+			if(_style == Style::Borderless)
 				return nullptr;
 			
 			UI::Style *styleSheet = UI::Style::GetSharedInstance();
 			Dictionary *style = nullptr;
 			
-			if(_style & StyleTitled)
+			if(_style & Style::Titled)
 				style = styleSheet->GetWindowStyleWithKeyPath(RNCSTR("window.titled"));
 			else
 				style = styleSheet->GetWindowStyleWithKeyPath(RNCSTR("window.untitled"));

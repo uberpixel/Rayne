@@ -87,8 +87,8 @@ namespace RN
 			
 			Style *styleSheet = Style::GetSharedInstance();
 			
-			_fonts.SetValueForState(styleSheet->GetFont(Style::FontStyle::DefaultFont), Normal);
-			_colors.SetValueForState(styleSheet->GetColor(Style::ColorStyle::TextColor), Normal);
+			_fonts.SetValueForState(styleSheet->GetFont(Style::FontStyle::DefaultFont), State::Normal);
+			_colors.SetValueForState(styleSheet->GetColor(Style::ColorStyle::TextColor), State::Normal);
 			
 			AddSubview(_backgroundImage);
 			AddSubview(_image);
@@ -274,7 +274,7 @@ namespace RN
 		Vector2 Button::GetSizeThatFits()
 		{
 			State temp = GetState();
-			StateChanged(Control::Normal);
+			StateChanged(Control::State::Normal);
 			
 			Vector2 size = Vector2(_contentInsets.left + _contentInsets.right, _contentInsets.top + _contentInsets.bottom);
 			

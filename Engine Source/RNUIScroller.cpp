@@ -21,7 +21,7 @@ namespace RN
 			_container(nullptr)
 		{
 			_frame = new ScrollerFrame();
-			_frame->SetAutoresizingMask(AutoresizingFlexibleWidth | AutoresizingFlexibleHeight);
+			_frame->SetAutoresizingMask(AutoresizingMask::FlexibleWidth | AutoresizingMask::FlexibleHeight);
 			
 			_knob = new ScrollerKnob();
 
