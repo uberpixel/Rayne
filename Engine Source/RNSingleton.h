@@ -73,7 +73,7 @@ namespace RN
 		T *T::GetSharedInstance() \
 		{ \
 			RN::LockGuard<RN::SpinLock> lock(__RN ## T ## SingletonLock); \
-			if(!__RN ## T ## SingletonInstance && !std::is_base_of<INonConstructingSingleton<T>, T>::value) \
+			if(!__RN ## T ## SingletonInstance && !std::is_base_of<RN::INonConstructingSingleton<T>, T>::value) \
 				__RN ## T ## SingletonInstance = RN::__SingletonCreator<T, std::is_default_constructible<T>::value>{}(); \
 			return __RN ## T ## SingletonInstance; \
 		} \
