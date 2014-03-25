@@ -115,6 +115,7 @@ namespace RN
 		
 		void TextField::SetText(String *text)
 		{
+			text = text ? text : RNCSTR("");
 			_editor->SetText(text);
 		}
 		
