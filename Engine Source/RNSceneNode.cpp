@@ -105,6 +105,8 @@ namespace RN
 	
 	void SceneNode::Serialize(Serializer *serializer)
 	{
+		UpdateInternalData();
+		
 		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
 		
