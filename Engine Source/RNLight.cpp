@@ -603,7 +603,7 @@ namespace RN
 	{
 		SceneNode::DidUpdate(changeSet);
 		
-		if(changeSet & ChangeSet::Position)
+		if(changeSet & ChangeSet::Position && (GetWorldScale().GetMax()-GetRange()) > k::EpsilonFloat)
 			_dirty = true;
 	}
 }
