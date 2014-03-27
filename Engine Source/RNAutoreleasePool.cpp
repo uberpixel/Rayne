@@ -49,7 +49,7 @@ namespace RN
 #if RNDebugAutoreleasePools
 		_internals->objects.emplace_back(std::make_pair(object, Exception(Exception::Type::GenericException, "Traceback")));
 #else
-		internals->objects.push_back(object);
+		_internals->objects.push_back(object);
 #endif
 		
 		if((_internals->objects.size() % kRNAutoreleasePoolGrowthRate) == 0)
