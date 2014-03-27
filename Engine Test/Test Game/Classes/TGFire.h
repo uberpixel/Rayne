@@ -39,7 +39,7 @@ namespace TG
 		
 	private:
 		RN::Particle *CreateParticle();
-		void Initialize();
+		void Initialize(RN::Deserializer *deserializer=nullptr);
 		
 		RN::Observable<RN::Vector3, Fire> _velocityMin;
 		RN::Observable<RN::Vector3, Fire> _velocityMax;

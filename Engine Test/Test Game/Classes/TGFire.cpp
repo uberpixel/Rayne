@@ -67,7 +67,7 @@ namespace TG
 	_sizeEnd("end size range", RN::Vector2(0.4f, 0.7f), &Fire::GetSizeEnd, &Fire::SetSizeEnd),
 	_targetHeight("target height range", RN::Vector2(1.0f, 2.0f), &Fire::GetTargetHeight, &Fire::SetTargetHeight)
 	{
-		Initialize();
+		Initialize(deserializer);
 		
 		_velocityMin = deserializer->DecodeVector3();
 		_velocityMax = deserializer->DecodeVector3();
@@ -90,13 +90,16 @@ namespace TG
 		serializer->EncodeVector2(_targetHeight);
 	}
 	
-	void Fire::Initialize()
+	void Fire::Initialize(RN::Deserializer *deserializer)
 	{
 		AddObservables({&_velocityMin, &_velocityMax, &_positionMin, &_positionMax, &_sizeStart, &_sizeEnd, &_targetHeight});
 		
-		Smoke *smoke = new Smoke();
-		AddChild(smoke);
-		smoke->Release();
+		if(!deserializer)
+		{
+			Smoke *smoke = new Smoke();
+			AddChild(smoke);
+			smoke->Release();
+		}
 		
 		RN::Material *material = GetMaterial();
 		material->AddTexture(RN::Texture::WithFile("textures/fire.png"));
