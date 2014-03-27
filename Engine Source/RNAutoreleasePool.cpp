@@ -10,16 +10,29 @@
 #include "RNThreadLocalStorage.h"
 
 #define kRNAutoreleasePoolGrowthRate 128
+#define RNDebugAutoreleasePools 0
 
 namespace RN
 {
 	static stl::thread_local_storage<AutoreleasePool *> _local_pools;
+
+	struct AutoreleasePoolInternals
+	{
+		std::thread::id owner;
+		
+#if RNDebugAutoreleasePools
+		std::vector<std::pair<Object *, Exception>> objects;
+#else 
+		std::vector<Object *> objects;
+#endif
+	};
 	
 	AutoreleasePool::AutoreleasePool() :
-		_owner(std::this_thread::get_id()),
 		_parent(AutoreleasePool::GetCurrentPool())
 	{
-		_objects.reserve(kRNAutoreleasePoolGrowthRate);
+		_internals->owner = std::this_thread::get_id();
+		_internals->objects.reserve(kRNAutoreleasePoolGrowthRate);
+		
 		_local_pools.get() = this;
 	}
 	
@@ -33,21 +46,33 @@ namespace RN
 	
 	void AutoreleasePool::AddObject(Object *object)
 	{
-		_objects.push_back(object);
+#if RNDebugAutoreleasePools
+		_internals->objects.emplace_back(std::make_pair(object, Exception(Exception::Type::GenericException, "Traceback")));
+#else
+		internals->objects.push_back(object);
+#endif
 		
-		if((_objects.size() % kRNAutoreleasePoolGrowthRate) == 0)
-			_objects.reserve(_objects.size() + kRNAutoreleasePoolGrowthRate);
+		if((_internals->objects.size() % kRNAutoreleasePoolGrowthRate) == 0)
+			_internals->objects.reserve(_internals->objects.size() + kRNAutoreleasePoolGrowthRate);
 	}
 	
 	void AutoreleasePool::Drain()
 	{
-		for(auto i=_objects.begin(); i!=_objects.end(); i++)
+#if RNDebugAutoreleasePools
+		for(auto &pair : _internals->objects)
 		{
-			Object *object = *i;
+			Object *object = pair.first;
+			object->Release();
+			
+		}
+#else
+		for(Object *object : _internals->objects)
+		{
 			object->Release();
 		}
+#endif
 		
-		_objects.clear();
+		_internals->objects.clear();
 	}
 	
 	AutoreleasePool *AutoreleasePool::GetCurrentPool()
