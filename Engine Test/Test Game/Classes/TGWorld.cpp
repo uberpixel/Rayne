@@ -44,6 +44,8 @@ namespace TG
 		_godraysPipeline->Release();
 		_bloomPipeline->Release();
 		_fxaaPipeline->Release();
+		
+		RN::SafeRelease(_sunLight);
 	}
 	
 	void World::LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer)

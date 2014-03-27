@@ -53,7 +53,6 @@ namespace TG
 			_sunLight->SetRenderGroup(3);
 			_sunLight->SetTag(TGSunTag);
 			_sunLight->ActivateShadows(RN::ShadowParameter(_camera, 2048));
-			//_sunLight->Release();
 			
 			// Create the ground
 			RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");

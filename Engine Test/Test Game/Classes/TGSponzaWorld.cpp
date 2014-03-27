@@ -83,7 +83,6 @@ namespace TG
 			_sunLight = new Sun();
 			_sunLight->ActivateShadows(RN::ShadowParameter(_camera));
 			_sunLight->SetTag(TGSunTag);
-			//_sunLight->Release();
 			
 			RN::Texture *billboardtex = RN::Texture::WithFile("textures/billboard.png");
 			RN::Billboard *billboard = new RN::Billboard(billboardtex);
