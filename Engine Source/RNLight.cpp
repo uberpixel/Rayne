@@ -515,7 +515,7 @@ namespace RN
 		SceneNode::Update(delta);
 		if(_dirty)
 		{
-			SetRange(GetWorldScale().GetMax());
+			SetRange(GetScale().GetMax());
 			_dirty = false;
 		}
 		UpdateShadows();
@@ -526,7 +526,7 @@ namespace RN
 		SceneNode::UpdateEditMode(delta);
 		if(_dirty)
 		{
-			SetRange(GetWorldScale().GetMax());
+			SetRange(GetScale().GetMax());
 			_dirty = false;
 		}
 		UpdateShadows();
@@ -603,7 +603,7 @@ namespace RN
 	{
 		SceneNode::DidUpdate(changeSet);
 		
-		if(changeSet & ChangeSet::Position && (GetWorldScale().GetMax()-GetRange()) > k::EpsilonFloat)
+		if(changeSet & ChangeSet::Position && Math::FastAbs(GetScale().GetMax()-GetRange()) > k::EpsilonFloat)
 			_dirty = true;
 	}
 }
