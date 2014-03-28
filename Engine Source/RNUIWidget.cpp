@@ -178,6 +178,14 @@ namespace RN
 		// MARK: First responder
 		// ---------------------
 		
+		void Widget::MakeKeyWidget()
+		{
+			if(!_server)
+				return;
+			
+			_server->SetKeyWidget(this);
+		}
+		
 		bool Widget::MakeFirstResponder(Responder *responder)
 		{
 			if(responder == _firstResponder)
@@ -292,6 +300,11 @@ namespace RN
 		// MARK: -
 		// MARK: Layout engine
 		// ---------------------
+		
+		void Widget::SetNeedsLayoutUpdate()
+		{
+			_contentView->SetNeedsLayoutUpdate();
+		}
 		
 		void Widget::Center()
 		{

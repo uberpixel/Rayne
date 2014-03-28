@@ -84,6 +84,7 @@ namespace RN
 			
 			RNAPI void SetNeedsLayoutUpdate();
 			
+			RNAPI void MakeKeyWidget();
 			RNAPI bool MakeFirstResponder(Responder *responder);
 			RNAPI Responder *GetFirstResponder() const { return _firstResponder; }
 			

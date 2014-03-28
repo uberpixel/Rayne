@@ -11,6 +11,8 @@
 #include "RNKernel.h"
 #include "RNWorld.h"
 #include "RNWindow.h"
+#include "RNUIWidget.h"
+#include "RNUIWidgetInternals.h"
 #include "RNUILabel.h"
 #include "RNUIButton.h"
 
@@ -66,15 +68,14 @@ namespace RN
 		RNDefineSingleton(Server)
 		
 		Server::Server() :
-			_mainWidget(nullptr),
+			_keyWidget(nullptr),
 			_tracking(nullptr),
 			_hover(nullptr),
-			_mode(Mode::SingleTracking),
 			_drawDebugFrames(false),
 			_menu(nullptr)
 		{
 			uint32 flags = Camera::Flags::Orthogonal | Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoSorting | Camera::Flags::NoDepthWrite | Camera::Flags::BlendedBlitting;
-			_camera = new Camera(Vector2(0.0f), Texture::Format::RGBA8888, flags, RenderStorage::BufferFormatColor);
+			_camera = new Camera(Vector2(0.0f), Texture::Format::RGBA16F, flags, RenderStorage::BufferFormatColor);
 			_camera->SetClearColor(RN::Color(0.0f, 0.0f, 0.0f, 0.0f));
 			_camera->SetFlags(_camera->GetFlags() | Camera::Flags::Orthogonal);
 			_camera->SetClipNear(-500.0f);
@@ -118,8 +119,8 @@ namespace RN
 		{
 			RN_ASSERT(widget->_server == this, "");
 			
-			if(widget == _mainWidget)
-				_mainWidget = nullptr;
+			if(widget == _keyWidget)
+				SetKeyWidget(nullptr);
 			
 			if(_tracking && (_tracking->_widget == widget || !_tracking->_widget))
 				_tracking = nullptr;
@@ -140,6 +141,24 @@ namespace RN
 			_widgets.push_back(widget);
 			
 			SortWidgets();
+		}
+		
+		void Server::SetKeyWidget(Widget *widget)
+		{
+			RN_ASSERT(!widget || widget->_server == this, "");
+			
+			if(_keyWidget)
+			{
+				if(_keyWidget->_backgroundView)
+					_keyWidget->_backgroundView->SetState(Control::State::Normal);
+				
+				_keyWidget = nullptr;
+			}
+			
+			_keyWidget = widget;
+			
+			if(_keyWidget && _keyWidget->_backgroundView)
+				_keyWidget->_backgroundView->SetState(Control::State::Selected);
 		}
 		
 		void Server::SortWidgets()
@@ -197,10 +216,11 @@ namespace RN
 							return true;
 							
 						case Event::Type::MouseDown:
-							_mainWidget = hitWidget;
 							_tracking   = hit;
 							
+							SetKeyWidget(hitWidget);
 							MoveWidgetToFront(hitWidget);
+							
 							hit->MouseDown(event);
 							return true;
 							
@@ -236,9 +256,9 @@ namespace RN
 			}
 			
 			
-			Responder *responder = _mainWidget ? _mainWidget->GetFirstResponder() : nullptr;
+			Responder *responder = _keyWidget ? _keyWidget->GetFirstResponder() : nullptr;
 			if(!responder)
-				responder = _mainWidget;
+				responder = _keyWidget;
 			
 			if(responder && event->IsKeyboard())
 			{

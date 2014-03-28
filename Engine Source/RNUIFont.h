@@ -17,6 +17,8 @@
 #include "RNMesh.h"
 #include "RNUITextStyle.h"
 
+#define kRNUIFontInvalidateGlyphsMessage RNCSTR("kRNUIFontInvalidateGlyphsMessage")
+
 namespace RN
 {
 	namespace UI
