@@ -324,6 +324,10 @@ namespace RN
 		
 		if(node->_world == this)
 		{
+			node->_children.Enumerate<SceneNode>([&](SceneNode *child, size_t index, bool &stop) {
+				__RemoveSceneNode(child);
+			});
+			
 			DropSceneNode(node);
 			
 			if(node->IsKindOfClass(_cameraClass))
