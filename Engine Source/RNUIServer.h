@@ -36,13 +36,6 @@ namespace RN
 			friend class RN::Input;
 			friend class RN::Window;
 			
-			enum class Mode
-			{
-				Deactivated,
-				SingleTracking,
-				MultiTracking
-			};
-			
 			RNAPI Server();
 			RNAPI ~Server() override;
 			
@@ -55,7 +48,6 @@ namespace RN
 			RNAPI bool GetDrawDebugFrames() const { return _drawDebugFrames; }
 			
 			RNAPI Camera *GetCamera() const { return _camera; }
-			RNAPI Widget *GetMainWidget() const { return _mainWidget; }
 			RNAPI Menu *GetMainMenu() const { return _menu; }
 			
 #if RN_PLATFORM_MAC_OS
@@ -71,6 +63,7 @@ namespace RN
 			void AddWidget(Widget *widget);
 			void RemoveWidget(Widget *widget);
 			void MoveWidgetToFront(Widget *widget);
+			void SetKeyWidget(Widget *widget);
 			void SortWidgets();
 			
 			bool ConsumeEvent(Event *event);
@@ -79,9 +72,8 @@ namespace RN
 			
 			Camera *_camera;
 			Rect _frame;
-			Mode _mode;
 			
-			Widget *_mainWidget;
+			Widget *_keyWidget;
 			View *_tracking;
 			View *_hover;
 			std::deque<Widget *> _widgets;
