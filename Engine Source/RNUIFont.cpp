@@ -15,6 +15,7 @@
 #include "RNBaseInternal.h"
 #include "RNFileManager.h"
 #include "RNKernel.h"
+#include "RNMessage.h"
 
 const char *kRNCommonCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890.,-;:_-+*/!\"§$%&()=?<>' ";
 
@@ -403,7 +404,7 @@ namespace RN
 			if(_textureTag == _texture->GetTag())
 				return;
 			
-			for(auto temp : _glyphs)
+			for(auto &temp : _glyphs)
 			{
 				Glyph& glyph = temp.second;
 				
@@ -417,6 +418,7 @@ namespace RN
 			}
 			
 			_textureTag = _texture->GetTag();
+			MessageCenter::GetSharedInstance()->PostMessage(kRNUIFontInvalidateGlyphsMessage, this, nullptr);
 		}
 		
 		void Font::UpdateKerning()
