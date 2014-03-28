@@ -99,6 +99,12 @@ namespace TG
 			Smoke *smoke = new Smoke();
 			AddChild(smoke);
 			smoke->Release();
+			
+			RN::Light *light = new RN::Light();
+			light->SetPosition(RN::Vector3(0.0f, 1.0f, 0.0f));
+			light->SetColor(RN::Color(1.0f, 0.5f, 0.1f));
+			AddChild(light);
+			light->Release();
 		}
 		
 		RN::Material *material = GetMaterial();

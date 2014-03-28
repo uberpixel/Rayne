@@ -145,6 +145,7 @@ namespace TG
 		}
 		
 		SetTime(hour, static_cast<uint32>(time), 0);
+		UpdateRotation();
 	}
 	
 	
@@ -155,12 +156,6 @@ namespace TG
 		UpdateRotation();
 		
 		RN::Light::Update(delta);
-	}
-	
-	void Sun::UpdateEditMode(float delta)
-	{
-		UpdateRotation();
-		RN::Light::UpdateEditMode(delta);
 	}
 	
 	void Sun::UpdateTime(float delta)

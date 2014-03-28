@@ -73,9 +73,9 @@ namespace RN
 	SceneNode::SceneNode(Deserializer *deserializer) :
 		SceneNode()
 	{
-		SetWorldPosition(deserializer->DecodeVector3());
-		SetWorldScale(deserializer->DecodeVector3());
-		SetWorldRotation(deserializer->DecodeQuaternion());
+		SetPosition(deserializer->DecodeVector3());
+		SetScale(deserializer->DecodeVector3());
+		SetRotation(deserializer->DecodeQuaternion());
 		
 		_boundingBox.minExtend = deserializer->DecodeVector3();
 		_boundingBox.maxExtend = deserializer->DecodeVector3();
@@ -98,7 +98,7 @@ namespace RN
 			SceneNode *child = static_cast<SceneNode *>(deserializer->DecodeObject());
 			
 			if(child)
-				_children.AddObject(child->Autorelease());
+				AddChild(child->Autorelease());
 		}
 	}
 	
@@ -112,9 +112,9 @@ namespace RN
 		
 		std::lock(lock1, lock2);
 		
-		serializer->EncodeVector3(_worldPosition);
-		serializer->EncodeVector3(_worldScale);
-		serializer->EncodeQuarternion(_worldRotation);
+		serializer->EncodeVector3(_position);
+		serializer->EncodeVector3(_scale);
+		serializer->EncodeQuarternion(_rotation);
 		
 		serializer->EncodeVector3(_boundingBox.minExtend);
 		serializer->EncodeVector3(_boundingBox.maxExtend);

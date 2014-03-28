@@ -94,7 +94,6 @@ namespace TG
 		void SetTime(float time);
 		
 		void Update(float delta) override;
-		void UpdateEditMode(float delta) override;
 		
 	private:
 		void UpdateRotation();
