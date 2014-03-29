@@ -16,23 +16,6 @@ namespace RN
 {
 	RNDefineMeta(Decal, SceneNode)
 	
-	template <typename InIt1, typename InIt2, typename OutIt>
-	OutIt unordered_set_intersection(InIt1 b1, InIt1 e1, InIt2 b2, InIt2 e2, OutIt out)
-	{
-		while(!(b1 == e1))
-		{
-			if(!(std::find(b2, e2, *b1) == e2))
-			{
-				*out = *b1;
-				out ++;
-			}
-			
-			b1 ++;
-		}
-		
-		return out;
-	}
-	
 	Decal::Decal(bool tangents)
 	: _angle("angle", 180.0f, &Decal::GetAngle, &Decal::SetAngle), _tangents(tangents)
 	{
@@ -1357,8 +1340,17 @@ namespace RN
 		std::unordered_set<Entity *> added;
 		std::unordered_set<Entity *> removed;
 		
-		unordered_set_intersection(_coveredEntities.begin(), _coveredEntities.end(), covered.begin(), covered.end(), inserter(removed, removed.begin()));
-		unordered_set_intersection(covered.begin(), covered.end(), _coveredEntities.begin(), _coveredEntities.end(), inserter(added, added.begin()));
+		for(Entity *entity : _coveredEntities)
+		{
+			if(covered.find(entity) == covered.end())
+				removed.insert(entity);
+		}
+		
+		for(Entity *entity : covered)
+		{
+			if(_coveredEntities.find(entity) == _coveredEntities.end())
+				added.insert(entity);
+		}
 		
 		for(Entity *entity : removed)
 		{
