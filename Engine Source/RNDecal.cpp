@@ -69,6 +69,8 @@ namespace RN
 	
 	Decal::~Decal()
 	{
+		MessageCenter::GetSharedInstance()->RemoveObserver(this);
+		
 		for(Entity *entity : _coveredEntities)
 		{
 			entity->RemoveObserver("position", this);
