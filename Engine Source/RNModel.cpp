@@ -33,6 +33,26 @@ namespace RN
 		AddMesh(mesh, material, 0);
 	}
 	
+	Model::Model(const Model *other)
+	{
+		_skeleton = SafeRetain(other->_skeleton);
+		
+		_boundingBox = other->_boundingBox;
+		_boundingSphere = other->_boundingSphere;
+		
+		for(LODGroup *group : _groups)
+		{
+			LODGroup *copy = new LODGroup(group->lodDistance);
+			
+			for(MeshGroup *meshGroup : group->groups)
+			{
+				copy->groups.push_back(new MeshGroup(meshGroup->mesh, meshGroup->material->Copy()));
+			}
+			
+			_groups.push_back(copy);
+		}
+	}
+	
 	Model::~Model()
 	{
 		for(LODGroup *group : _groups)

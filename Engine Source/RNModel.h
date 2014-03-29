@@ -25,6 +25,7 @@ namespace RN
 	public:
 		RNAPI Model();
 		RNAPI Model(Mesh *mesh, Material *material);
+		RNAPI Model(const Model *other);
 		
 		RNAPI ~Model() override;
 		
