@@ -40,7 +40,7 @@ namespace RN
 		_boundingBox = other->_boundingBox;
 		_boundingSphere = other->_boundingSphere;
 		
-		for(LODGroup *group : _groups)
+		for(LODGroup *group : other->_groups)
 		{
 			LODGroup *copy = new LODGroup(group->lodDistance);
 			
