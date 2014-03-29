@@ -194,13 +194,15 @@ namespace RN
 		std::vector<Vector3> vertices;
 		std::vector<Vector3> normals;
 		
-		for(SceneNode *node : nodes)
+		for(auto node : nodes)
 		{
 			Entity *entity = node->Downcast<Entity>();
 			
 			if(entity && entity->GetRenderGroup() != 31)
 			{
 				Model *model = entity->GetModel();
+				if(!model)
+					continue;
 				size_t meshcount = model->GetMeshCount(0);
 				
 				Matrix transform = entity->GetWorldTransform();

@@ -546,7 +546,7 @@ namespace RN
 			SetDepthWriteEnabled((material->depthWrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
 			SetBlendingEnabled(material->blending);
 			
-			if(_polygonOffsetFactor)
+			if(_polygonOffsetEnabled)
 				SetPolygonOffset(material->polygonOffsetFactor, material->polygonOffsetUnits);
 			
 			if(_blendingEnabled)

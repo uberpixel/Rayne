@@ -14,9 +14,9 @@ precision highp float;
 
 #if defined(RN_TEXTURE_DIFFUSE)
 	uniform sampler2D mTexture0;
-#else
-	uniform vec4 diffuse;
 #endif
+
+uniform vec4 diffuse;
 
 #if defined(RN_NORMALMAP)
 	uniform sampler2D mTexture1;
@@ -69,7 +69,7 @@ void main()
 	#endif
 	
 	#if defined(RN_TEXTURE_DIFFUSE)
-		vec4 color0 = texture(mTexture0, vertTexcoord);
+		vec4 color0 = texture(mTexture0, vertTexcoord) * diffuse;
 	#else
 		vec4 color0 = diffuse;
 	#endif
