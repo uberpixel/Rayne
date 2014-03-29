@@ -76,6 +76,7 @@ namespace RN
 			RNAPI void SetTitle(String *title);
 			RNAPI void SetTransform(const Matrix& transform);
 			RNAPI void SetWidgetLevel(int32 level);
+			RNAPI void SetCanBecomeKeyWidget(bool canBecome);
 			
 			RNAPI const Rect& GetFrame() const { return _frame; }
 			RNAPI Vector2 GetContentSize() const;
@@ -84,7 +85,7 @@ namespace RN
 			
 			RNAPI void SetNeedsLayoutUpdate();
 			
-			RNAPI void MakeKeyWidget();
+			RNAPI bool MakeKeyWidget();
 			RNAPI bool MakeFirstResponder(Responder *responder);
 			RNAPI Responder *GetFirstResponder() const { return _firstResponder; }
 			
@@ -115,6 +116,7 @@ namespace RN
 			
 			Style _style;
 			bool _hasShadow;
+			bool _canBecomeKeyWidget;
 			int32 _level;
 			
 			Rect _frame;

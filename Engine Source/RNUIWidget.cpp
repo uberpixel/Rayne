@@ -37,6 +37,8 @@ namespace RN
 		
 		void Widget::Initialize(Style style)
 		{
+			_canBecomeKeyWidget = false;
+			
 			_style     = style;
 			_hasShadow = (_style != Style::Borderless);
 			_level     = kRNUIWidgetLevelNormal;
@@ -173,17 +175,26 @@ namespace RN
 			_frame = frame;
 		}
 		
+		void Widget::SetCanBecomeKeyWidget(bool canBecome)
+		{
+			_canBecomeKeyWidget = canBecome;
+			
+			if(!canBecome && _server && _server->_keyWidget == this)
+				_server->SetKeyWidget(nullptr);
+		}
+		
 		// ---------------------
 		// MARK: -
 		// MARK: First responder
 		// ---------------------
 		
-		void Widget::MakeKeyWidget()
+		bool Widget::MakeKeyWidget()
 		{
-			if(!_server)
-				return;
+			if(!_server || !_canBecomeKeyWidget)
+				return false;
 			
 			_server->SetKeyWidget(this);
+			return true;
 		}
 		
 		bool Widget::MakeFirstResponder(Responder *responder)

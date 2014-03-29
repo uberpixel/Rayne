@@ -218,7 +218,9 @@ namespace RN
 						case Event::Type::MouseDown:
 							_tracking   = hit;
 							
-							SetKeyWidget(hitWidget);
+							if(hitWidget->_canBecomeKeyWidget)
+								SetKeyWidget(hitWidget);
+							
 							MoveWidgetToFront(hitWidget);
 							
 							hit->MouseDown(event);
