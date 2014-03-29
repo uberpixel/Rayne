@@ -986,8 +986,8 @@ namespace RN
 					bool drawALate = (a.flags & RenderingObject::DrawLate);
 					bool drawBLate = (b.flags & RenderingObject::DrawLate);
 					
-					if(drawALate && drawALate != drawBLate)
-						return false;
+					if(drawALate != drawBLate)
+						return drawBLate;
 					
 					bool alphaA = (a.flags & (1 << 5));
 					bool alphaB = (b.flags & (1 << 5));
