@@ -17,6 +17,8 @@
 
 namespace RN
 {
+	class Entity;
+	
 	class Decal : public SceneNode
 	{
 	public:
@@ -48,6 +50,7 @@ namespace RN
 	private:
 		void Initialize();
 		void UpdateMesh();
+		void MarkDirty();
 		
 		bool _dirty;
 		
@@ -57,6 +60,7 @@ namespace RN
 		Mesh *_mesh;
 		Matrix _transform;
 		Material *_material;
+		std::unordered_set<Entity *> _coveredEntities;
 		
 		bool _tangents;
 		

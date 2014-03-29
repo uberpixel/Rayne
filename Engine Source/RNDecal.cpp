@@ -10,10 +10,28 @@
 #include "RNResourceCoordinator.h"
 #include "RNWorld.h"
 #include "RNEntity.h"
+#include "RNMessage.h"
 
 namespace RN
 {
 	RNDefineMeta(Decal, SceneNode)
+	
+	template <typename InIt1, typename InIt2, typename OutIt>
+	OutIt unordered_set_intersection(InIt1 b1, InIt1 e1, InIt2 b2, InIt2 e2, OutIt out)
+	{
+		while(!(b1 == e1))
+		{
+			if(!(std::find(b2, e2, *b1) == e2))
+			{
+				*out = *b1;
+				out ++;
+			}
+			
+			b1 ++;
+		}
+		
+		return out;
+	}
 	
 	Decal::Decal(bool tangents)
 	: _angle("angle", 180.0f, &Decal::GetAngle, &Decal::SetAngle), _tangents(tangents)
@@ -51,6 +69,13 @@ namespace RN
 	
 	Decal::~Decal()
 	{
+		for(Entity *entity : _coveredEntities)
+		{
+			entity->RemoveObserver("position", this);
+			entity->RemoveObserver("rotation", this);
+			entity->RemoveObserver("scale", this);
+		}
+		
 		_mesh->Release();
 		_material->Release();
 	}
@@ -83,6 +108,23 @@ namespace RN
 	
 	void Decal::Initialize()
 	{
+		MessageCenter::GetSharedInstance()->AddObserver(kRNSceneNodeDidUpdateWorldMessage, [this](Message *message) {
+			
+			SceneNode *node = static_cast<RN::SceneNode *>(message->GetObject());
+			Entity *entity = node->Downcast<Entity>();
+			
+			if(entity && _coveredEntities.find(entity) != _coveredEntities.end())
+			{
+				Lock();
+				
+				_coveredEntities.erase(entity);
+				_dirty = true;
+				
+				Unlock();
+			}
+			
+		}, this);
+		
 		AddObservable(&_angle);
 		_angleCos = cosf(Math::DegreesToRadians(_angle/2.0f));
 		
@@ -177,6 +219,10 @@ namespace RN
 	}
 	
 	
+	void Decal::MarkDirty()
+	{
+		_dirty = true;
+	}
 	
 	void Decal::UpdateMesh()
 	{
@@ -194,6 +240,8 @@ namespace RN
 		std::vector<Vector3> vertices;
 		std::vector<Vector3> normals;
 		
+		std::unordered_set<Entity *> covered;
+		
 		for(auto node : nodes)
 		{
 			Entity *entity = node->Downcast<Entity>();
@@ -203,6 +251,9 @@ namespace RN
 				Model *model = entity->GetModel();
 				if(!model)
 					continue;
+				
+				covered.insert(entity);
+				
 				size_t meshcount = model->GetMeshCount(0);
 				
 				Matrix transform = entity->GetWorldTransform();
@@ -1299,6 +1350,29 @@ namespace RN
 		
 		if(_tangents)
 			_mesh->GenerateTangents();
+		
+		// Updated covered entities
+		std::unordered_set<Entity *> added;
+		std::unordered_set<Entity *> removed;
+		
+		unordered_set_intersection(_coveredEntities.begin(), _coveredEntities.end(), covered.begin(), covered.end(), inserter(removed, removed.begin()));
+		unordered_set_intersection(covered.begin(), covered.end(), _coveredEntities.begin(), _coveredEntities.end(), inserter(added, added.begin()));
+		
+		for(Entity *entity : removed)
+		{
+			entity->RemoveObserver("position", this);
+			entity->RemoveObserver("rotation", this);
+			entity->RemoveObserver("scale", this);
+		}
+		
+		for(Entity *entity : added)
+		{
+			entity->AddObserver("position", std::bind(&Decal::MarkDirty, this), this);
+			entity->AddObserver("rotation", std::bind(&Decal::MarkDirty, this), this);
+			entity->AddObserver("scale", std::bind(&Decal::MarkDirty, this), this);
+		}
+		
+		std::swap(covered, _coveredEntities);
 	}
 	
 	void Decal::DidUpdate(SceneNode::ChangeSet changeSet)

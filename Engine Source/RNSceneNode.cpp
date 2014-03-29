@@ -11,6 +11,7 @@
 #include "RNWorld.h"
 #include "RNHit.h"
 #include "RNSceneNodeAttachment.h"
+#include "RNMessage.h"
 
 namespace RN
 {
@@ -612,6 +613,8 @@ namespace RN
 				node->_world = _world;
 				node->DidUpdate(ChangeSet::World);
 			});
+			
+			MessageCenter::GetSharedInstance()->PostMessage(kRNSceneNodeDidUpdateWorldMessage, this, nullptr);
 		}
 		
 		if(_world)

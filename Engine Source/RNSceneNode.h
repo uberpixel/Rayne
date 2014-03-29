@@ -22,6 +22,8 @@
 #include "RNSTL.h"
 #include "RNEnum.h"
 
+#define kRNSceneNodeDidUpdateWorldMessage RNCSTR("kRNSceneNodeDidUpdateWorldMessage")
+
 namespace RN
 {
 	class Renderer;
