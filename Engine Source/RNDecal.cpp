@@ -98,15 +98,15 @@ namespace RN
 			SceneNode *node = static_cast<RN::SceneNode *>(message->GetObject());
 			Entity *entity = node->Downcast<Entity>();
 			
+			Lock();
+			
 			if(entity && _coveredEntities.find(entity) != _coveredEntities.end())
 			{
-				Lock();
-				
 				_coveredEntities.erase(entity);
 				_dirty = true;
-				
-				Unlock();
 			}
+			
+			Unlock();
 			
 		}, this);
 		
@@ -1337,6 +1337,8 @@ namespace RN
 			_mesh->GenerateTangents();
 		
 		// Updated covered entities
+		RN::LockGuard<Object *> lock(this);
+		
 		std::unordered_set<Entity *> added;
 		std::unordered_set<Entity *> removed;
 		
