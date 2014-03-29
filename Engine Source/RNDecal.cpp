@@ -11,6 +11,7 @@
 #include "RNWorld.h"
 #include "RNEntity.h"
 #include "RNMessage.h"
+#include "RNWorldCoordinator.h"
 
 namespace RN
 {
@@ -110,6 +111,16 @@ namespace RN
 			
 		}, this);
 		
+		MessageCenter::GetSharedInstance()->AddObserver(kRNWorldCoordinatorDidStepWorldMessage, [this](Message *mesage) {
+			
+			if(_dirty)
+			{
+				UpdateMesh();
+				_dirty = false;
+			}
+			
+		}, this);
+		
 		AddObservable(&_angle);
 		_angleCos = cosf(Math::DegreesToRadians(_angle/2.0f));
 		
@@ -184,23 +195,11 @@ namespace RN
 	void Decal::Update(float delta)
 	{
 		SceneNode::Update(delta);
-		
-		if(_dirty)
-		{
-			UpdateMesh();
-			_dirty = false;
-		}
 	}
 	
 	void Decal::UpdateEditMode(float delta)
 	{
 		SceneNode::UpdateEditMode(delta);
-		
-		if(_dirty)
-		{
-			UpdateMesh();
-			_dirty = false;
-		}
 	}
 	
 	
