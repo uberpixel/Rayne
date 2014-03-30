@@ -696,10 +696,10 @@ namespace RN
 				
 				_worldPosition = _parent->_worldPosition + _parent->_worldRotation.GetRotatedVector(_position);
 				_worldRotation = _parent->_worldRotation * _rotation;
-				_worldScale = _parent->_worldScale + _scale;
+				_worldScale = _parent->_worldScale * _scale;
 				_worldEuler = _parent->_worldEuler + _euler;
 				
-				_worldTransform = _parent->_localTransform * _localTransform;
+				_worldTransform = _parent->_worldTransform * _localTransform;
 			}
 			else
 			{
