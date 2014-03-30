@@ -131,8 +131,8 @@ namespace RN
 		_material->SetAlphaBlendMode(Material::BlendMode::Zero, Material::BlendMode::One);
 		_material->SetDepthWrite(false);
 		_material->SetPolygonOffset(true);
-		_material->SetPolygonOffsetFactor(-2.0f);
-		_material->SetPolygonOffsetUnits(1.0f);
+		_material->SetPolygonOffsetFactor(-4.0f);
+		_material->SetPolygonOffsetUnits(2.0f);
 		
 		AABB box;
 		box.maxExtend = RN::Vector3(1.0f);
