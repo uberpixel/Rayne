@@ -523,6 +523,8 @@ namespace RN
 		_staticNodes.clear();
 		_cameras.clear();
 		
+		_tagTable.clear();
+		
 		_isDroppingSceneNodes = false;
 	}
 	
