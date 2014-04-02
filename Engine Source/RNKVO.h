@@ -37,7 +37,7 @@ namespace RN
 		
 		RNAPI virtual void SetValue(Object *value) = 0;
 		RNAPI virtual Object *GetValue() const = 0;
-		RNAPI Object *GetObject() { return _object; }
+		RNAPI Object *GetObject() const { return _object; }
 		
 		RNAPI void SetWritable(bool writable);
 		bool IsWritable() const { return _flags & (1 << 8); }
