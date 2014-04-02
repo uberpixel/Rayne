@@ -34,7 +34,7 @@ namespace RN
 	_isSorted("is sorted", false, &ParticleEmitter::GetIsSorted, &ParticleEmitter::SetIsSorted),
 	_isRenderedInversed("is rendered inversed", false, &ParticleEmitter::GetIsRenderedInversed, &ParticleEmitter::SetIsRenderedInversed),
 	_maxParticles("max particles", 100, &ParticleEmitter::GetMaxParticles, &ParticleEmitter::SetMaxParticles),
-	_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
+	_spawnRate("spawn rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
 	{
 		AddObservables({&_isLocal, &_isSorted, &_isRenderedInversed, &_maxParticles, &_spawnRate});
 		
@@ -54,11 +54,11 @@ namespace RN
 	SceneNode(emitter),
 	_mesh(nullptr),
 	_material(nullptr),
-	_isLocal("Is Local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
+	_isLocal("is local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
 	_isSorted("is sorted", false, &ParticleEmitter::GetIsSorted, &ParticleEmitter::SetIsSorted),
 	_isRenderedInversed("is rendered inversed", false, &ParticleEmitter::GetIsRenderedInversed, &ParticleEmitter::SetIsRenderedInversed),
-	_maxParticles("Max Particles", 1, &ParticleEmitter::GetMaxParticles, &ParticleEmitter::SetMaxParticles),
-	_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
+	_maxParticles("max particles", 1, &ParticleEmitter::GetMaxParticles, &ParticleEmitter::SetMaxParticles),
+	_spawnRate("spawn rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
 	{
 		AddObservables({&_isLocal, &_isSorted, &_isRenderedInversed, &_maxParticles, &_spawnRate});
 		
@@ -74,11 +74,11 @@ namespace RN
 	SceneNode(deserializer),
 	_mesh(nullptr),
 	_material(nullptr),
-	_isLocal("Is Local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
+	_isLocal("is local", true, &ParticleEmitter::GetIsLocal, &ParticleEmitter::SetIsLocal),
 	_isSorted("is sorted", false, &ParticleEmitter::GetIsSorted, &ParticleEmitter::SetIsSorted),
 	_isRenderedInversed("is rendered inversed", false, &ParticleEmitter::GetIsRenderedInversed, &ParticleEmitter::SetIsRenderedInversed),
-	_maxParticles("Max Particles", 1, &ParticleEmitter::GetMaxParticles,&ParticleEmitter::SetMaxParticles),
-	_spawnRate("Spawn Rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
+	_maxParticles("max particles", 1, &ParticleEmitter::GetMaxParticles,&ParticleEmitter::SetMaxParticles),
+	_spawnRate("spawn rate", 0.05f, &ParticleEmitter::GetSpawnRate, &ParticleEmitter::SetSpawnRate)
 	{
 		AddObservables({&_isLocal, &_isSorted, &_isRenderedInversed, &_maxParticles, &_spawnRate});
 		
