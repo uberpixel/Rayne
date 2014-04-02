@@ -37,7 +37,7 @@ namespace RN
 		
 		void Widget::Initialize(Style style)
 		{
-			_canBecomeKeyWidget = false;
+			_canBecomeKeyWidget = true;
 			
 			_style     = style;
 			_hasShadow = (_style != Style::Borderless);
