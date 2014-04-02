@@ -386,9 +386,17 @@ namespace RN
 	void Object::SetValueForKey(Object *value, const std::string& keyPath)
 	{
 		std::string key;
-		ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
+		Object *object = ResolveKeyPath(keyPath, key);
 		
-		property ? property->SetValue(value) : SetValueForUndefinedKey(value, key);
+		if(object)
+		{
+			ObservableProperty *property = object->GetPropertyForKeyPath(keyPath, key);
+			property ? property->SetValue(value) : object->SetValueForUndefinedKey(value, key);
+			
+			return;
+		}
+		
+		SetValueForUndefinedKey(value, key);
 	}
 	
 	Object *Object::GetValueForKey(const std::string& keyPath)
