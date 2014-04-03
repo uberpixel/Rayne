@@ -682,6 +682,8 @@ namespace RN
 			int maxZ = ceil((linearDist + lightRange) / _clusterSize.z);
 			if(minZ < 0)
 				minZ = 0;
+			if(maxZ >= tilesDepth)
+				minZ = tilesDepth-1;
 			
 			for(int x = minX; x <= maxX; x++)
 			{
