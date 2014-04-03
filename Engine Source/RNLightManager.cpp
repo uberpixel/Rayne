@@ -683,7 +683,7 @@ namespace RN
 			if(minZ < 0)
 				minZ = 0;
 			if(maxZ >= tilesDepth)
-				minZ = tilesDepth-1;
+				maxZ = tilesDepth-1;
 			
 			for(int x = minX; x <= maxX; x++)
 			{

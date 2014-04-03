@@ -89,7 +89,6 @@ namespace RN
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI void Update(float delta) override;
 		RNAPI void UpdateEditMode(float delta) override;
-		RNAPI void DidUpdate(SceneNode::ChangeSet changeSet) override;
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		

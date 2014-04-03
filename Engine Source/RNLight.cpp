@@ -199,7 +199,6 @@ namespace RN
 	void Light::SetRange(float range)
 	{
 		_range = range;
-		SetWorldScale(RN::Vector3(range));
 	}
 	
 	void Light::SetColor(const Color& color)
@@ -597,13 +596,5 @@ namespace RN
 	{
 		_finalColor = Vector3(_color->r, _color->g, _color->b);
 		_finalColor *= (float)_intensity;
-	}
-	
-	void Light::DidUpdate(SceneNode::ChangeSet changeSet)
-	{
-		SceneNode::DidUpdate(changeSet);
-		
-		if(changeSet & ChangeSet::Position && Math::FastAbs(GetWorldScale().GetMax()-GetRange()) > k::EpsilonFloat)
-			_dirty = true;
 	}
 }
