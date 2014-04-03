@@ -90,10 +90,11 @@ namespace RN
 			
 			Lock();
 			property->AssertSignal();
-			Unlock();
 			
 			Connection *connection = property->_signal->Connect(std::move(function));
 			MapCookie(cookie, property, connection);
+			
+			Unlock();
 		}
 		
 		void RemoveObserver(const std::string& keyPath, void *cookie)

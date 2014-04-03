@@ -282,9 +282,7 @@ namespace RN
 	
 	void Object::MapCookie(void *cookie, ObservableProperty *property, Connection *connection)
 	{
-		Lock();
 		_cookies.emplace_back(std::make_tuple(cookie, property, connection));
-		Unlock();
 	}
 	
 	void Object::UnmapCookie(void *cookie, ObservableProperty *property)
@@ -299,11 +297,11 @@ namespace RN
 			{
 				std::get<2>(tuple)->Disconnect();
 				
-				if(property->_signal->GetCount() == 0)
+				/*if(property->_signal->GetCount() == 0)
 				{
 					delete property->_signal;
 					property->_signal = nullptr;
-				}
+				}*/
 				
 				iterator = _cookies.erase(iterator);
 				continue;
