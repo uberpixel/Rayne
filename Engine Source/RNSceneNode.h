@@ -445,7 +445,14 @@ namespace RN
 		
 		WillUpdate(ChangeSet::Position);
 		
-		_scale = scal - GetWorldScale();
+		if(_parent && !Math::Compare(_parent->GetWorldScale().GetMin(), 0.0f))
+		{
+			_scale = scal / _parent->GetWorldScale();
+		}
+		else
+		{
+			_scale = scal;
+		}
 		
 		DidUpdate(ChangeSet::Position);
 		
