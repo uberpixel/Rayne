@@ -260,6 +260,12 @@ namespace RN
 		if(!_pointLights.empty() || !_spotLights.empty())
 			CullLights();
 		
+		if(!_hasPointLights)
+			_pointLights.clear();
+		
+		if(!_hasSpotLights)
+			_spotLights.clear();
+		
 		CreatePointSpotLightLists();
 		CreateDirectionalLightList();
 	}
@@ -498,6 +504,7 @@ namespace RN
 		std::fill(_lightOffsetCount, _lightOffsetCount + _lightOffsetCountSize, 0);
 		
 		uint16 lightIndex = 0;
+		_hasPointLights = false;
 		
 		//Cull point lights
 		for(auto light : _pointLights)
@@ -587,6 +594,8 @@ namespace RN
 						{
 							_lightIndices[clusterIndex * _maxLightsPerCluster + _lightOffsetCount[clusterIndex * 3 + 1]] = lightIndex;
 							_lightOffsetCount[clusterIndex * 3 + 1] ++;
+							
+							_hasPointLights = true;
 						}
 					}
 				}
@@ -597,6 +606,8 @@ namespace RN
 		
 		// Cull spot lights
 		lightIndex = 0;
+		_hasSpotLights = false;
+		
 		for(auto light : _spotLights)
 		{
 			const Vector3& lightPosition = light->GetWorldPosition();
@@ -684,6 +695,8 @@ namespace RN
 						{
 							_lightIndices[clusterIndex * _maxLightsPerCluster + _lightOffsetCount[clusterIndex * 3 + 1] + _lightOffsetCount[clusterIndex * 3 + 2]] = lightIndex;
 							_lightOffsetCount[clusterIndex * 3 + 2] ++;
+							
+							_hasSpotLights = true;
 						}
 					}
 				}

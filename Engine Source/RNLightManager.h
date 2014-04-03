@@ -125,6 +125,9 @@ namespace RN
 		std::vector<Texture *> _lightPointDepth;
 		std::vector<Vector4> _lightPointData;
 		
+		bool _hasPointLights;
+		bool _hasSpotLights;
+		
 		RNDeclareMeta(ClusteredLightManager)
 	};
 }
