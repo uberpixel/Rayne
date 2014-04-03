@@ -256,6 +256,7 @@ namespace RN
 			{
 				object = new Wrapper();
 				temp->SetObjectForKey(object, i->value.key);
+				object->Release();
 			}
 			
 			object->GetData().push_back(std::move(*i));
