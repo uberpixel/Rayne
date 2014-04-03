@@ -39,11 +39,17 @@ namespace TG
 	_sizeStart("start size range", RN::Vector2(0.4f, 0.7f), &Smoke::GetSizeStart, &Smoke::SetSizeStart),
 	_sizeEnd("end size range", RN::Vector2(4.0f, 7.0f), &Smoke::GetSizeEnd, &Smoke::SetSizeEnd)
 	{
-		Initialize();
+		AddObservables({&_transparency, &_velocityMin, &_velocityMax, &_positionMin, &_positionMax, &_sizeStart, &_sizeEnd});
+		
+		RN::Material *material = GetMaterial();
+		material->AddTexture(RN::Texture::WithFile("textures/smoke.png"));
+		
+		SetMaxParticles(100);
+		SetParticlesPerSecond(5);
 	}
 	
-	Smoke::Smoke(const Smoke *fire) :
-		RN::ParticleEmitter(fire),
+	Smoke::Smoke(const Smoke *smoke) :
+		RN::ParticleEmitter(smoke),
 	_transparency("transparency", 0.5f, &Smoke::GetTransparency, &Smoke::SetTransparency),
 	_velocityMin("minimum velocity", RN::Vector3(-0.25f, 0.4f, -0.25f), &Smoke::GetVelocityMin, &Smoke::SetVelocityMin),
 	_velocityMax("maximum velocity", RN::Vector3(0.25f, 0.6f, 0.25f), &Smoke::GetVelocityMax, &Smoke::SetVelocityMax),
@@ -52,7 +58,9 @@ namespace TG
 	_sizeStart("start size range", RN::Vector2(0.4f, 0.7f), &Smoke::GetSizeStart, &Smoke::SetSizeStart),
 	_sizeEnd("end size range", RN::Vector2(4.0f, 7.0f), &Smoke::GetSizeEnd, &Smoke::SetSizeEnd)
 	{
-		Initialize();
+		AddObservables({&_transparency, &_velocityMin, &_velocityMax, &_positionMin, &_positionMax, &_sizeStart, &_sizeEnd});
+		
+		SetMaterial(smoke->GetMaterial());
 	}
 	
 	Smoke::Smoke(RN::Deserializer *deserializer) :
@@ -65,7 +73,14 @@ namespace TG
 	_sizeStart("start size range", RN::Vector2(0.4f, 0.7f), &Smoke::GetSizeStart, &Smoke::SetSizeStart),
 	_sizeEnd("end size range", RN::Vector2(4.0f, 7.0f), &Smoke::GetSizeEnd, &Smoke::SetSizeEnd)
 	{
-		Initialize();
+		AddObservables({&_transparency, &_velocityMin, &_velocityMax, &_positionMin, &_positionMax, &_sizeStart, &_sizeEnd});
+		
+		RN::Material *material = GetMaterial();
+		material->AddTexture(RN::Texture::WithFile("textures/smoke.png"));
+		
+		SetMaxParticles(100);
+		SetParticlesPerSecond(5);
+		
 		_transparency = deserializer->DecodeFloat();
 		_velocityMin = deserializer->DecodeVector3();
 		_velocityMax = deserializer->DecodeVector3();
@@ -85,17 +100,6 @@ namespace TG
 		serializer->EncodeVector3(_positionMax);
 		serializer->EncodeVector2(_sizeStart);
 		serializer->EncodeVector2(_sizeEnd);
-	}
-	
-	void Smoke::Initialize()
-	{
-		AddObservables({&_transparency, &_velocityMin, &_velocityMax, &_positionMin, &_positionMax, &_sizeStart, &_sizeEnd});
-		
-		RN::Material *material = GetMaterial();
-		material->AddTexture(RN::Texture::WithFile("textures/smoke.png"));
-		
-		SetMaxParticles(100);
-		SetParticlesPerSecond(5);
 	}
 	
 	RN::Particle *Smoke::CreateParticle()

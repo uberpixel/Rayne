@@ -17,7 +17,7 @@ namespace TG
 	{
 	public:
 		Smoke();
-		Smoke(const Smoke *fire);
+		Smoke(const Smoke *smoke);
 		Smoke(RN::Deserializer *deserializer);
 		
 		void Serialize(RN::Serializer *serializer) override;
@@ -39,7 +39,6 @@ namespace TG
 		
 	private:
 		RN::Particle *CreateParticle();
-		void Initialize();
 		
 		RN::Observable<float, Smoke> _transparency;
 		RN::Observable<RN::Vector3, Smoke> _velocityMin;

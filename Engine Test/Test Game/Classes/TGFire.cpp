@@ -54,7 +54,9 @@ namespace TG
 	_sizeEnd("end size range", RN::Vector2(0.4f, 0.7f), &Fire::GetSizeEnd, &Fire::SetSizeEnd),
 	_targetHeight("target height range", RN::Vector2(1.0f, 2.0f), &Fire::GetTargetHeight, &Fire::SetTargetHeight)
 	{
-		Initialize();
+		AddObservables({&_velocityMin, &_velocityMax, &_positionMin, &_positionMax, &_sizeStart, &_sizeEnd, &_targetHeight});
+		
+		SetMaterial(fire->GetMaterial());
 	}
 	
 	Fire::Fire(RN::Deserializer *deserializer) :
@@ -105,14 +107,14 @@ namespace TG
 			light->SetColor(RN::Color(1.0f, 0.5f, 0.1f));
 			AddChild(light);
 			light->Release();
+			
+			SetMaxParticles(100);
+			SetParticlesPerSecond(20);
 		}
 		
 		RN::Material *material = GetMaterial();
 		material->AddTexture(RN::Texture::WithFile("textures/fire.png"));
 		material->SetBlendMode(RN::Material::BlendMode::One, RN::Material::BlendMode::One);
-		
-		SetMaxParticles(100);
-		SetParticlesPerSecond(20);
 	}
 	
 	RN::Particle *Fire::CreateParticle()

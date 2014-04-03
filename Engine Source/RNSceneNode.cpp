@@ -49,9 +49,9 @@ namespace RN
 		SceneNode *temp = const_cast<SceneNode *>(other);
 		LockGuard<Object *> lock(temp);
 		
-		SetPosition(other->GetWorldPosition());
-		SetRotation(other->GetWorldRotation());
-		SetScale(other->GetWorldScale());
+		SetPosition(other->GetPosition());
+		SetRotation(other->GetRotation());
+		SetScale(other->GetScale());
 		
 		renderGroup    = other->renderGroup;
 		collisionGroup = other->collisionGroup;
@@ -64,6 +64,10 @@ namespace RN
 		
 		_boundingBox    = other->_boundingBox;
 		_boundingSphere = other->_boundingSphere;
+		
+		other->GetChildren()->Enumerate<RN::SceneNode>([&](RN::SceneNode *node, size_t index, bool &stop){
+			AddChild(node->Copy());
+		});
 	}
 	
 	SceneNode::~SceneNode()
