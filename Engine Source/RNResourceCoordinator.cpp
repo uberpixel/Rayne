@@ -398,7 +398,7 @@ namespace RN
 	
 	void ResourceCoordinator::LoadEngineResources()
 	{
-		LoadShader(RNCSTR("shader/rn_Texture1"), kRNResourceKeyTexture1Shader);
+		LoadShader(RNCSTR("shader/rn_Default"), kRNResourceKeyDefaultShader);
 		LoadShader(RNCSTR("shader/rn_Water"), kRNResourceKeyWaterShader);
 		LoadShader(RNCSTR("shader/rn_Particle"), kRNResourceKeyParticleShader);
 		

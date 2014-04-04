@@ -83,7 +83,7 @@ namespace RN
 			_reflection->SetPriority(9);
 			_reflection->SetRenderGroups(_reflection->GetRenderGroups() | Camera::RenderGroups::Group3);
 			
-			Shader *shad = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr);
+			Shader *shad = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDefaultShader, nullptr);
 			
 			Material *mat = new Material(shad);
 			mat->SetOverride(0xffffffff & ~Material::Override::Shader);

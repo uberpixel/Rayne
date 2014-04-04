@@ -125,7 +125,7 @@ namespace RN
 		_angleCos = cosf(Math::DegreesToRadians(_angle/2.0f));
 		
 		_material = new Material();
-		_material->SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr));
+		_material->SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDefaultShader, nullptr));
 		_material->SetBlending(true);
 		_material->SetBlendMode(Material::BlendMode::SourceAlpha, Material::BlendMode::OneMinusSourceAlpha);
 		_material->SetAlphaBlendMode(Material::BlendMode::Zero, Material::BlendMode::One);

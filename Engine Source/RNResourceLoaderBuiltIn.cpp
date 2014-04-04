@@ -272,7 +272,7 @@ namespace RN
 	{
 		file->Seek(5); // Skip over magic bytes and version number
 		
-		Shader *shader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr);
+		Shader *shader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDefaultShader, nullptr);
 		
 		std::vector<Material *> materials;
 		uint8 materialCount = file->ReadUint8();

@@ -20,7 +20,7 @@
 
 #define kRNResourceCoordinatorBuiltInPriority 100
 
-#define kRNResourceKeyTexture1Shader       RNCSTR("kRNResourceKeyTexture1Shader")
+#define kRNResourceKeyDefaultShader       RNCSTR("kRNResourceKeyDefaultShader")
 #define kRNResourceKeyWaterShader          RNCSTR("kRNResourceKeyWaterShader")
 #define kRNResourceKeyParticleShader       RNCSTR("kRNResourceKeyParticleShader")
 

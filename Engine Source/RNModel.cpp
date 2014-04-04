@@ -163,7 +163,7 @@ namespace RN
 	
 	Shader *Model::PickShaderForMaterialAndMesh(Material *material, Mesh *mesh)
 	{
-		return ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr);
+		return ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDefaultShader, nullptr);
 	}
 	
 	Material *Model::PickMaterialForMesh(Mesh *mesh)
