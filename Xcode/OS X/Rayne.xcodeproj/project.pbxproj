@@ -21,6 +21,8 @@
 		D58CEA3F18159965002EB442 /* RNLightManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D58CEA3D18159965002EB442 /* RNLightManager.cpp */; };
 		D59DCB0C18584E2B00030716 /* RNOctreeSceneManager.h in Headers */ = {isa = PBXBuildFile; fileRef = D59DCB0A18584E2A00030716 /* RNOctreeSceneManager.h */; };
 		D59DCB0D18584E2B00030716 /* RNOctreeSceneManager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D59DCB0B18584E2B00030716 /* RNOctreeSceneManager.cpp */; };
+		D5A89D8018EF10D800F21256 /* RNTerrain.h in Headers */ = {isa = PBXBuildFile; fileRef = D5A89D7E18EF10D800F21256 /* RNTerrain.h */; };
+		D5A89D8118EF10D800F21256 /* RNTerrain.cpp in Sources */ = {isa = PBXBuildFile; fileRef = D5A89D7F18EF10D800F21256 /* RNTerrain.cpp */; };
 		E907DF2A17C9780E00777A38 /* RNTextNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E907DF2817C9780E00777A38 /* RNTextNode.cpp */; };
 		E907DF2B17C9780E00777A38 /* RNTextNode.h in Headers */ = {isa = PBXBuildFile; fileRef = E907DF2917C9780E00777A38 /* RNTextNode.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E90D0EFC185E7D5900807A13 /* RNUIWidgetInternals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E90D0EFA185E7D5900807A13 /* RNUIWidgetInternals.cpp */; };
@@ -347,6 +349,8 @@
 		D58CEA3D18159965002EB442 /* RNLightManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNLightManager.cpp; sourceTree = "<group>"; };
 		D59DCB0A18584E2A00030716 /* RNOctreeSceneManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOctreeSceneManager.h; sourceTree = "<group>"; };
 		D59DCB0B18584E2B00030716 /* RNOctreeSceneManager.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOctreeSceneManager.cpp; sourceTree = "<group>"; };
+		D5A89D7E18EF10D800F21256 /* RNTerrain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTerrain.h; sourceTree = "<group>"; };
+		D5A89D7F18EF10D800F21256 /* RNTerrain.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTerrain.cpp; sourceTree = "<group>"; };
 		E907DF2817C9780E00777A38 /* RNTextNode.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNTextNode.cpp; sourceTree = "<group>"; };
 		E907DF2917C9780E00777A38 /* RNTextNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNTextNode.h; sourceTree = "<group>"; };
 		E90D0EFA185E7D5900807A13 /* RNUIWidgetInternals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIWidgetInternals.cpp; sourceTree = "<group>"; };
@@ -1049,6 +1053,8 @@
 				E9580BD516AC8DAA0056DEF2 /* RNSceneNode.h */,
 				E90F976218720AEC00709C5F /* RNSceneNodeAttachment.cpp */,
 				E90F976318720AEC00709C5F /* RNSceneNodeAttachment.h */,
+				D5A89D7F18EF10D800F21256 /* RNTerrain.cpp */,
+				D5A89D7E18EF10D800F21256 /* RNTerrain.h */,
 				E907DF2817C9780E00777A38 /* RNTextNode.cpp */,
 				E907DF2917C9780E00777A38 /* RNTextNode.h */,
 				E9B92DDF17B02213004B8CA4 /* RNTriggerZone.cpp */,
@@ -1209,6 +1215,7 @@
 				E9B083B917175354009AD83F /* RNSIMD.h in Headers */,
 				E9B083F217188E29009AD83F /* RNCPU.h in Headers */,
 				E9B083F91718B1D1009AD83F /* RNMemory.h in Headers */,
+				D5A89D8018EF10D800F21256 /* RNTerrain.h in Headers */,
 				E951615A17D40D930006156A /* RNUITableView.h in Headers */,
 				E9D15BA817DB27CA00435078 /* RNOpenPanel.h in Headers */,
 				E9F3A6F5171B8D3E0005A79E /* RNParticleEmitter.h in Headers */,
@@ -1503,6 +1510,7 @@
 				E9F361FA175AB84800365C12 /* RNSerialization.cpp in Sources */,
 				E91C8CD9176006A300E9E8F2 /* RNUIControl.cpp in Sources */,
 				E91C8CDD176023EC00E9E8F2 /* RNUIButton.cpp in Sources */,
+				D5A89D8118EF10D800F21256 /* RNTerrain.cpp in Sources */,
 				E9AD2A7F17610E8F00BC3E8F /* RNUILabel.cpp in Sources */,
 				E96C5664177C8AC3007FAF7C /* RNRenderer32.cpp in Sources */,
 				E91A254E187CA5BB002748E7 /* RNWorldCoordinator.cpp in Sources */,
