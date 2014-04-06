@@ -123,6 +123,7 @@
 #include "RNParticle.h"
 #include "RNTriggerZone.h"
 #include "RNTextNode.h"
+#include "RNTerrain.h"
 
 #include "RNThread.h"
 #include "RNThreadPool.h"
