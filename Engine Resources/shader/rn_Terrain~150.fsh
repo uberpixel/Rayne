@@ -92,10 +92,15 @@ void main()
 		if(dot(clipPlane.xyz, vertPosition)-clipPlane.w < 0.0)
 			discard;
 	#endif
+
+	#if defined(INTERNAL_NEEDS_NORMAL_WORLD)
+		vec3 normal = normalize(vertNormal);
+	#endif
 	
 	#if defined(RN_TEXTURE_DIFFUSE)
 		vec3 scaledPosition = vertPosition.xyz * RN_TEXTURE_TILING;
-		vec3 blendFactors = abs(vertNormal);
+		vec3 blendFactors = abs(normal);
+		blendFactors = max((blendFactors - 0.2) * 7.0, 0.0); 
 		blendFactors /= blendFactors.x + blendFactors.y + blendFactors.z;
 
 		vec3 texX = texture(INTERNAL_SAMPLER_DIFFUSE, scaledPosition.yz).rgb;
@@ -120,7 +125,6 @@ void main()
 			#endif
 		#endif
 
-		vec3 normal = normalize(vertNormal);
 		rn_Lighting(color0, spec, normal, vertPosition);
 	#endif
 	

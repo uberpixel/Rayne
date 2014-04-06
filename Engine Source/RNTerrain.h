@@ -46,8 +46,10 @@ namespace RN
 		
 	private:
 		void Initialize();
+		Vector3 LerpSurface(const Vector3 &p1, const Vector3 &p2, uint8 d1, uint8 d2) const;
 		
 		Observable<Vector3, Terrain> _resolution;
+		uint8 _surface;
 		
 		Mesh *_mesh;
 		Material *_material;

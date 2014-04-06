@@ -15,7 +15,8 @@ namespace RN
 	
 	Terrain::Terrain() :
 		_voxels(nullptr),
-		_resolution("Resolution", Vector3(0.0f), &Terrain::GetResolution, &Terrain::SetResolution)
+		_resolution("Resolution", Vector3(0.0f), &Terrain::GetResolution, &Terrain::SetResolution),
+		_surface(127)
 	{
 		Initialize();
 	}
@@ -23,7 +24,8 @@ namespace RN
 	Terrain::Terrain(const Terrain *other) :
 		Sculptable(other),
 		_voxels(nullptr),
-		_resolution("Resolution", Vector3(0.0f), &Terrain::GetResolution, &Terrain::SetResolution)
+		_resolution("Resolution", Vector3(0.0f), &Terrain::GetResolution, &Terrain::SetResolution),
+		_surface(127)
 	{
 		Terrain *temp = const_cast<Terrain *>(other);
 		LockGuard<Object *> lock(temp);
@@ -41,7 +43,8 @@ namespace RN
 	Terrain::Terrain(Deserializer *deserializer) :
 		Sculptable(deserializer),
 		_voxels(nullptr),
-		_resolution("Resolution", Vector3(0.0f), &Terrain::GetResolution, &Terrain::SetResolution)
+		_resolution("Resolution", Vector3(0.0f), &Terrain::GetResolution, &Terrain::SetResolution),
+		_surface(127)
 	{
 		Initialize();
 		//SafeRelease(_material);
@@ -436,6 +439,8 @@ namespace RN
 		Vector3 halfResolution = _resolution * 0.5f;
 		halfResolution.y = 0.0f;
 		
+		_voxels->ApplyBlur(Vector3(0.0f), Vector3(0.0f), 2);
+		
 		for(int32 x = 0; x <= _voxels->GetResolutionX(); x++)
 		{
 			for(int32 y = 0; y <= _voxels->GetResolutionY(); y++)
@@ -452,57 +457,57 @@ namespace RN
 					Vector3 pos12 = RN::Vector3(x, y, z);
 					Vector3 pos13 = RN::Vector3(x-1, y, z);
 					
-					Point v00 = _voxels->GetVoxel(x-1, y-1, z-1);
-					Point v01 = _voxels->GetVoxel(x, y-1, z-1);
-					Point v02 = _voxels->GetVoxel(x, y-1, z);
-					Point v03 = _voxels->GetVoxel(x-1, y-1, z);
+					uint8 v00 = _voxels->GetSmooth(pos00);
+					uint8 v01 = _voxels->GetSmooth(pos01);
+					uint8 v02 = _voxels->GetSmooth(pos02);
+					uint8 v03 = _voxels->GetSmooth(pos03);
 					
-					Point v10 = _voxels->GetVoxel(x-1, y, z-1);
-					Point v11 = _voxels->GetVoxel(x, y, z-1);
-					Point v12 = _voxels->GetVoxel(x, y, z);
-					Point v13 = _voxels->GetVoxel(x-1, y, z);
+					uint8 v10 = _voxels->GetSmooth(pos10);
+					uint8 v11 = _voxels->GetSmooth(pos11);
+					uint8 v12 = _voxels->GetSmooth(pos12);
+					uint8 v13 = _voxels->GetSmooth(pos13);
 					
 					int cubeindex = 0;
-					if(v00.density > 0) cubeindex |= 1;
-					if(v01.density > 0) cubeindex |= 2;
-					if(v02.density > 0) cubeindex |= 4;
-					if(v03.density > 0) cubeindex |= 8;
-					if(v10.density > 0) cubeindex |= 16;
-					if(v11.density > 0) cubeindex |= 32;
-					if(v12.density > 0) cubeindex |= 64;
-					if(v13.density > 0) cubeindex |= 128;
+					if(v00 > _surface) cubeindex |= 1;
+					if(v01 > _surface) cubeindex |= 2;
+					if(v02 > _surface) cubeindex |= 4;
+					if(v03 > _surface) cubeindex |= 8;
+					if(v10 > _surface) cubeindex |= 16;
+					if(v11 > _surface) cubeindex |= 32;
+					if(v12 > _surface) cubeindex |= 64;
+					if(v13 > _surface) cubeindex |= 128;
 					
 					/* Cube is entirely in/out of the surface */
-					if (edgeTable[cubeindex] == 0)
+					if(edgeTable[cubeindex] == 0)
 						continue;
 					
 					Vector3 vertlist[12];
 					
 					/* Find the vertices where the surface intersects the cube */
-					if (edgeTable[cubeindex] & 1)
-						vertlist[0] = (pos00 + pos01) * 0.5f;
-					if (edgeTable[cubeindex] & 2)
-						vertlist[1] = (pos01 + pos02) * 0.5f;
-					if (edgeTable[cubeindex] & 4)
-						vertlist[2] = (pos02 + pos03) * 0.5f;
-					if (edgeTable[cubeindex] & 8)
-						vertlist[3] = (pos03 + pos00) * 0.5f;
-					if (edgeTable[cubeindex] & 16)
-						vertlist[4] = (pos10 + pos11) * 0.5f;
-					if (edgeTable[cubeindex] & 32)
-						vertlist[5] = (pos11 + pos12) * 0.5f;
-					if (edgeTable[cubeindex] & 64)
-						vertlist[6] = (pos12 + pos13) * 0.5f;
-					if (edgeTable[cubeindex] & 128)
-						vertlist[7] = (pos13 + pos10) * 0.5f;
-					if (edgeTable[cubeindex] & 256)
-						vertlist[8] = (pos00 + pos10) * 0.5f;
-					if (edgeTable[cubeindex] & 512)
-						vertlist[9] = (pos01 + pos11) * 0.5f;
-					if (edgeTable[cubeindex] & 1024)
-						vertlist[10] = (pos02 + pos12) * 0.5f;
-					if (edgeTable[cubeindex] & 2048)
-						vertlist[11] = (pos03 + pos13) * 0.5f;
+					if(edgeTable[cubeindex] & 1)
+						vertlist[0] = LerpSurface(pos00, pos01, v00, v01);
+					if(edgeTable[cubeindex] & 2)
+						vertlist[1] = LerpSurface(pos01, pos02, v01, v02);
+					if(edgeTable[cubeindex] & 4)
+						vertlist[2] = LerpSurface(pos02, pos03, v02, v03);
+					if(edgeTable[cubeindex] & 8)
+						vertlist[3] = LerpSurface(pos03, pos00, v03, v00);
+					if(edgeTable[cubeindex] & 16)
+						vertlist[4] = LerpSurface(pos10, pos11, v10, v11);
+					if(edgeTable[cubeindex] & 32)
+						vertlist[5] = LerpSurface(pos11, pos12, v11, v12);
+					if(edgeTable[cubeindex] & 64)
+						vertlist[6] = LerpSurface(pos12, pos13, v12, v13);
+					if(edgeTable[cubeindex] & 128)
+						vertlist[7] = LerpSurface(pos13, pos10, v13, v10);
+					if(edgeTable[cubeindex] & 256)
+						vertlist[8] = LerpSurface(pos00, pos10, v00, v10);
+					if(edgeTable[cubeindex] & 512)
+						vertlist[9] = LerpSurface(pos01, pos11, v01, v11);
+					if(edgeTable[cubeindex] & 1024)
+						vertlist[10] = LerpSurface(pos02, pos12, v02, v12);
+					if(edgeTable[cubeindex] & 2048)
+						vertlist[11] = LerpSurface(pos03, pos13, v03, v13);
 					
 					for(int i = 0; triTable[cubeindex][i] != -1; i += 3)
 					{
@@ -535,6 +540,24 @@ namespace RN
 		chunk.CommitChanges();
 	}
 	
+	Vector3 Terrain::LerpSurface(const Vector3 &p1, const Vector3 &p2, uint8 d1, uint8 d2) const
+	{
+		if(_surface == d1)
+			return p1;
+		if(_surface == d2)
+			return p2;
+		if(d1 == d2)
+			return p1;
+		
+		float factor = (_surface - d1) / static_cast<float>(d2 - d1);
+		Vector3 p;
+		p.x = p1.x + factor * (p2.x - p1.x);
+		p.y = p1.y + factor * (p2.y - p1.y);
+		p.z = p1.z + factor * (p2.z - p1.z);
+		
+		return p;
+	}
+	
 	void Terrain::MakePlane(uint32 height)
 	{
 		for(uint32 x = 0; x < _voxels->GetResolutionX(); x++)
@@ -565,9 +588,7 @@ namespace RN
 				{
 					if(abs(x - position.x) <= size.x && abs(y - position.y) <= size.y && abs(z - position.z) <= size.z)
 					{
-						Point point;
-						point.density = density;
-						_voxels->SetVoxel(x, y, z, point);
+						_voxels->SetVoxel(x, y, z, Point(density));
 					}
 				}
 			}
@@ -582,11 +603,12 @@ namespace RN
 			{
 				for(uint32 z = 0; z < _voxels->GetResolutionZ(); z++)
 				{
-					if(Vector3(x, y, z).GetDistance(position) <= radius)
+					float dist = Vector3(x, y, z).GetDistance(position);
+					if(dist <= radius)
 					{
-						Point point;
-						point.density = density;
-						_voxels->SetVoxel(x, y, z, point);
+						//float factor = (radius - dist) / radius;
+						//density = _surface * (1.0f - factor) + density * factor;
+						_voxels->SetVoxel(x, y, z, Point(density));
 					}
 				}
 			}
@@ -600,7 +622,7 @@ namespace RN
 		
 		position = _transform.GetInverse() * position;
 		position += offset;
-		SetSphereLocal(position, radius, 255);
+		SetSphereLocal(position, radius / GetWorldScale().GetMin(), 255);
 		GenerateMeshWithMarchingCubes();
 	}
 	
@@ -611,7 +633,7 @@ namespace RN
 		
 		position = _transform.GetInverse() * position;
 		position += offset;
-		SetSphereLocal(position, radius, 0);
+		SetSphereLocal(position, radius / GetWorldScale().GetMin(), 0);
 		GenerateMeshWithMarchingCubes();
 	}
 }
