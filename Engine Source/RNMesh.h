@@ -329,7 +329,7 @@ namespace RN
 		RNAPI void SetVBOUsage(MeshUsage usage);
 		RNAPI void SetIBOUsage(MeshUsage usage);
 		
-		RNAPI void SetElementData(MeshFeature feature, void *data);
+		RNAPI void SetElementData(MeshFeature feature, const void *data);
 		RNAPI void SetVerticesCount(size_t count);
 		RNAPI void SetIndicesCount(size_t count);
 		

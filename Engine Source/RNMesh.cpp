@@ -277,11 +277,11 @@ namespace RN
 	}
 	
 	
-	void Mesh::SetElementData(MeshFeature feature, void *tdata)
+	void Mesh::SetElementData(MeshFeature feature, const void *tdata)
 	{
 		if(feature == MeshFeature::Indices)
 		{
-			uint8 *data = static_cast<uint8 *>(tdata);
+			const uint8 *data = static_cast<const uint8 *>(tdata);
 			std::copy(data, data + _indicesSize, _indices);
 			
 			OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
@@ -291,11 +291,11 @@ namespace RN
 		}
 		else
 		{
-			for(auto& descriptor : _descriptors)
+			for(auto &descriptor : _descriptors)
 			{
 				if(descriptor.feature == feature)
 				{
-					uint8 *data   = static_cast<uint8 *>(tdata);
+					const uint8 *data = static_cast<const uint8 *>(tdata);
 					uint8 *buffer = _vertices + descriptor.offset;
 					
 					for(size_t i = 0; i < _verticesCount; i ++)
