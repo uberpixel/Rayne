@@ -20,50 +20,48 @@ namespace RN
 	{
 	public:
 		Matrix();
+		
+		bool operator== (const Matrix &other) const;
+		bool operator!= (const Matrix &other) const;
 
 		Matrix& operator*= (const Matrix& other);
 		Matrix operator* (const Matrix& other) const;
 		Vector3 operator* (const Vector3& other) const;
 		Vector4 operator* (const Vector4& other) const;
 
-		void MakeIdentity();
-		void MakeTranslate(const Vector3& other);
-		void MakeTranslate(const Vector4& other);
-		void MakeScale(const Vector3& other);
-		void MakeScale(const Vector4& other);
-		void MakeRotate(const Vector3& rot);
-		void MakeRotate(const Vector4& rot);
-		void MakeRotate(const Quaternion& rot);
+		static Matrix WithIdentity();
+		static Matrix WithTranslation(const Vector3& translation);
+		static Matrix WithTranslation(const Vector4& translation);
+		static Matrix WithScaling(const Vector3& scaling);
+		static Matrix WithScaling(const Vector4& scaling);
+		static Matrix WithRotation(const Vector3& rotation);
+		static Matrix WithRotation(const Vector4& rotation);
+		static Matrix WithRotation(const Quaternion& rotation);
 
-		void MakeProjectionOrthogonal(float left, float right, float bottom, float top, float clipnear, float clipfar);
-		void MakeProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
-		void MakeInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
+		static Matrix WithProjectionOrthogonal(float left, float right, float bottom, float top, float clipnear, float clipfar);
+		static Matrix WithProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
+		static Matrix WithInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar);
 
 		float GetDeterminant() const;
-		float GetDeterminantSubmatrix(const int k) const;
 		
 		Vector3 GetEulerAngle() const;
+		Vector4 GetAxisAngle() const;
 		Quaternion GetQuaternion() const;
-		
-		void SetTranslation(const Vector3& other);
-		void SetTranslation(const Vector4& other);
-		void SetScale(const Vector3& other);
-		void SetScale(const Vector4& other);
 
-		void Translate(const Vector3& trans);
-		void Translate(const Vector4& trans);
-		void Scale(const Vector3& scal);
-		void Scale(const Vector4& scal);
-		void Rotate(const Vector3& rot);
-		void Rotate(const Vector4& rot);
-		void Rotate(const Quaternion& rot);
+		void Translate(const Vector3& translation);
+		void Translate(const Vector4& translation);
+		void Scale(const Vector3& scaling);
+		void Scale(const Vector4& scaling);
+		void Rotate(const Vector3& rotation);
+		void Rotate(const Vector4& rotation);
+		void Rotate(const Quaternion& rotation);
 
 		void Transpose();
-
-		Vector3 Transform(const Vector3& other) const;
-		Vector4 Transform(const Vector4& other) const;
-
+		Matrix GetTransposed() const;
+		void Inverse();
 		Matrix GetInverse() const;
+		
+		bool IsEqual(const Matrix& other, float epsilon) const;
 	
 #if RN_SIMD
 		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
@@ -77,6 +75,9 @@ namespace RN
 #else
 		float m[16];
 #endif
+	private:
+		float GetSubmatrixDeterminant(const int k) const;
+		
 	};
 
 	class Quaternion
@@ -86,18 +87,14 @@ namespace RN
 		Quaternion(float x, float y, float z, float w);
 		Quaternion(const Vector3& euler);
 		Quaternion(const Vector4& axis);
+		
+		bool operator== (const Quaternion &other) const;
+		bool operator!= (const Quaternion &other) const;
 
 		Quaternion& operator+= (const Quaternion& other);
 		Quaternion& operator-= (const Quaternion& other);
 		Quaternion& operator*= (const Quaternion& other);
 		Quaternion& operator/= (const Quaternion& other);
-
-		Quaternion& operator*= (const Vector4& other);
-		Quaternion& operator/= (const Vector4& other);
-
-		Quaternion& operator+= (const Vector3& other);
-		Quaternion& operator-= (const Vector3& other);
-
 		Quaternion& operator*= (float scalar);
 		Quaternion& operator/= (float scalar);
 
@@ -105,42 +102,41 @@ namespace RN
 		Quaternion operator- (const Quaternion& other) const;
 		Quaternion operator* (const Quaternion& other) const;
 		Quaternion operator/ (const Quaternion& other) const;
-
+		Quaternion operator* (float scalar) const;
+		Quaternion operator/ (float scalar) const;
+		
+		Quaternion& operator+= (const Vector3& other);
+		Quaternion& operator-= (const Vector3& other);
 		Quaternion operator+ (const Vector3& other) const;
 		Quaternion operator- (const Vector3& other) const;
 
-		Quaternion operator* (const Vector4& other) const;
-		Quaternion operator/ (const Vector4& other) const;
-
-		Quaternion operator* (float scalar) const;
-		Quaternion operator/ (float scalar) const;
-
-		void MakeIdentity();
-		void MakeEulerAngle(const Vector3& euler);
-		void MakeAxisAngle(const Vector4& euler);
-		void MakeLerpS(const Quaternion& start, const Quaternion& end, float factor);
-		void MakeLerpN(const Quaternion& start, const Quaternion& end, float factor);
-
-		void LookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
+		static Quaternion WithIdentity();
+		static Quaternion WithEulerAngle(const Vector3& euler);
+		static Quaternion WithAxisAngle(const Vector4& euler);
+		static Quaternion WithLerpSpherical(const Quaternion& start, const Quaternion& end, float factor);
+		static Quaternion WithLerpLinear(const Quaternion& start, const Quaternion& end, float factor);
+		static Quaternion WithLookAt(const Vector3& dir, const Vector3& up=Vector3(0.0f, 1.0f, 0.0f), bool forceup=false);
 		
 		Quaternion &Normalize();
-		Quaternion Normalize() const;
+		Quaternion GetNormalized() const;
 		Quaternion &Conjugate();
-		Quaternion Conjugate() const;
+		Quaternion GetConjugated() const;
 
-		Quaternion LerpS(const Quaternion& other, float factor) const;
-		Quaternion LerpN(const Quaternion& other, float factor) const;
+		Quaternion GetLerpSpherical(const Quaternion& other, float factor) const;
+		Quaternion GetLerpLinear(const Quaternion& other, float factor) const;
 
-		Vector3 RotateVector(const Vector3& vec) const;
-		Vector4 RotateVector(const Vector4& vec) const;
+		Vector3 GetRotatedVector(const Vector3& vec) const;
+		Vector4 GetRotatedVector(const Vector4& vec) const;
 
 		Matrix GetRotationMatrix() const;
 
 		Vector3 GetEulerAngle() const;
 		Vector4 GetAxisAngle() const;
 
-		float Length() const;
-		float Dot(const Quaternion& other) const;
+		float GetLength() const;
+		float GetDotProduct(const Quaternion& other) const;
+		
+		bool IsEqual(const Quaternion& other, float epsilon) const;
 
 		struct
 		{

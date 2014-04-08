@@ -2,8 +2,8 @@
 //  TGWorld.h
 //  Game
 //
-//  Created by Sidney Just on 27.01.13.
-//  Copyright (c) 2013 Sidney Just. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #ifndef __Game__TGWorld__
@@ -11,11 +11,13 @@
 
 #include <Rayne.h>
 
-#include "TGPlayer.h"
-#include "TGThirdPersonCamera.h"
-#include "TGDebugDrawer.h"
-#include "TGSmokeGrenade.h"
 #include "TGSun.h"
+#include "TGCutScene.h"
+#include "TGFire.h"
+#include "TGDebugDrawer.h"
+
+#define TGSunTag   1
+#define TGLightTag 2
 
 namespace TG
 {
@@ -25,47 +27,60 @@ namespace TG
 		World();
 		~World();
 		
-		void LoadOnThread(RN::Thread *thread) override;
-		bool SupportsBackgroundLoading() const override;
+		void LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer) override;
 		
-		virtual void Update(float delta);
+		void Update(float delta) override;
+		void UpdateEditMode(float delta) override;
 		
-	private:
+		void SetCutScene(const std::string &file);
+		
+	protected:
 		void CreateCameras();
+		void LoadLevelJSON(const std::string &file);
+		
 		void ToggleFrameCapturing();
 		void RecordFrame();
-		void PPActivateBloom(RN::Camera *cam);
-		void PPActivateSSAO(RN::Camera *cam);
-		void PPActivateFXAA(RN::Camera *cam);
+		void HandleInputEvent(RN::Event *event);
 		
-		void CreateSponza();
-		void CreateForest();
-		void CreateGrass();
-		void CreateTest();
-		void CreateSibenik();
-		
-		void PlaceEntitiesOnGround(RN::SceneNode *node, RN::SceneNode *ground);
-		float GetGroundHeight(const RN::Vector3 &position, RN::SceneNode *ground);
-		
-		bool PositionBlocked(RN::Vector3 position, RN::Entity **obstacles, int count);
-		
-		DebugDrawer *_debugAttachment;
-		
-		ThirdPersonCamera *_camera;
-		RN::Camera *_lightcam;
-		RN::Camera *_finalcam;
-		RN::Light *_spotLight;
+		RN::Camera *_camera;
+		RN::Camera *_refractCamera;
 		Sun *_sunLight;
-		RN::Texture *_depthtex;
-		RN::Entity *_sponza;
-		bool _frameCapturing;
 		
-		RN::PostProcessingPipeline *_refractPipeline;
+		std::vector<RN::AABB> _obstacles;
+		
+	private:
+		RN::PostProcessingPipeline *PPCreateBloomPipeline(RN::Camera *camera);
+		RN::PostProcessingPipeline *PPCreateSSAOPipeline(RN::Camera *camera);
+		RN::PostProcessingPipeline *PPCreateFXAAPipeline(RN::Camera *camera);
+		RN::PostProcessingPipeline *PPCreateGodraysPipeline(RN::Camera *cam, RN::Texture *raysource);
+		
+		void PPToggleBloom();
+		void PPToggleGodrays();
+		void PPToggleSSAO();
+		void PPToggleFXAA();
+		
+		bool _bloomActive;
+		bool _ssaoActive;
+		bool _godraysActive;
+		bool _fxaaActive;
+		
+		RN::Camera *_waterCamera;
+		RN::PostProcessingPipeline *_ssaoPipeline;
+		RN::PostProcessingPipeline *_godraysPipeline;
+		RN::PostProcessingPipeline *_bloomPipeline;
+		RN::PostProcessingPipeline *_fxaaPipeline;
 		
 		float _exposure;
 		float _whitepoint;
 		
-		Player *_player;
+		bool _frameCapturing;
+		size_t _frameCount;
+		size_t _captureCount;
+		
+		DebugDrawer *_debugDrawer;
+		CutScene *_cutScene;
+		
+		RNDeclareMeta(World)
 	};
 }
 

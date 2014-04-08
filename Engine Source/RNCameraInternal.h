@@ -2,8 +2,8 @@
 //  RNCameraInternal.h
 //  Rayne
 //
-//  Created by Sidney Just on 06/01/14.
-//  Copyright (c) 2014 Sidney Just. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #ifndef __RAYNE_CAMERAINTERNAL_H__
@@ -21,7 +21,7 @@ namespace RN
 		
 		bool InFrustum(const Vector3& position, float radius) override;
 		
-		RNDefineMeta(CubemapCamera, Camera)
+		RNDeclareMeta(CubemapCamera)
 	};
 }
 

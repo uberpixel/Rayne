@@ -11,15 +11,15 @@
 #include "RNThread.h"
 #include "RNKernel.h"
 #include "RNSettings.h"
-#include "RNWrappingObject.h"
+#include "RNValue.h"
 #include "RNOpenGLQueue.h"
 
 namespace RN
 {
-	RNDeclareMeta(Texture)
-	RNDeclareMeta(Texture2D)
-	RNDeclareMeta(Texture2DArray)
-	RNDeclareMeta(TextureCubeMap)
+	RNDefineMeta(Texture, Asset)
+	RNDefineMeta(Texture2D, Texture)
+	RNDefineMeta(Texture2DArray, Texture)
+	RNDefineMeta(TextureCubeMap, Texture)
 	
 	// ---------------------
 	// MARK: -
@@ -32,6 +32,7 @@ namespace RN
 		_isLinear((!Settings::GetSharedInstance()->GetBoolForKey(kRNSettingsGammaCorrectionKey)) ? true : linear),
 		_width(0),
 		_height(0),
+		_scaleFactor(1.0f),
 		_glType(type),
 		_isComplete(false),
 		_hasChanged(false)
@@ -43,8 +44,13 @@ namespace RN
 	
 	Texture::~Texture()
 	{
-		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
-			gl::DeleteTextures(1, &_name);
+		GLuint tname = _name;
+		
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([tname] {
+			
+			GLuint name = tname;
+			gl::DeleteTextures(1, &name);
+			
 		});
 	}
 	
@@ -61,11 +67,11 @@ namespace RN
 	
 	Texture *Texture::WithFile(const std::string& name, const Parameter& parameter, bool isLinear)
 	{
-		WrappingObject<Parameter> *wrapper = new WrappingObject<Parameter>(parameter);
+		Value *value = new Value(parameter);
 		
 		Dictionary *settings = new Dictionary();
 		settings->SetObjectForKey(Number::WithBool(isLinear), RNCSTR("linear"));
-		settings->SetObjectForKey(wrapper->Autorelease(), RNCSTR("parameter"));
+		settings->SetObjectForKey(value->Autorelease(), RNCSTR("parameter"));
 		settings->Autorelease();
 		
 		Texture *texture = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Texture2D>(RNSTR(name.c_str()), settings);
@@ -611,7 +617,7 @@ namespace RN
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
 			Bind();
 			
-			gl::TexImage2D(GL_TEXTURE_2D, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, nullptr);
+			gl::TexImage2D(GL_TEXTURE_2D, 0, internalFormat, static_cast<GLint>(_width * _scaleFactor), static_cast<GLint>(_height * _scaleFactor), 0, format, type, nullptr);
 		
 			_isComplete = true;
 			_hasChanged = true;
@@ -629,14 +635,15 @@ namespace RN
 			GLint internalFormat;
 			GLenum type, format;
 			
-			_width  = data.width;
-			_height = data.height;
+			_width  = data.width / data.scaleFactor;
+			_height = data.height / data.scaleFactor;
+			_scaleFactor = data.scaleFactor;
 			
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
 			Bind();
 		
 			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
-			gl::TexImage2D(GL_TEXTURE_2D, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, converted);
+			gl::TexImage2D(GL_TEXTURE_2D, 0, internalFormat, static_cast<GLint>(_width * _scaleFactor), static_cast<GLint>(_height * _scaleFactor), 0, format, type, converted);
 		
 			_isComplete = true;
 			_hasChanged = true;
@@ -665,7 +672,7 @@ namespace RN
 			Bind();
 		
 			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
-			gl::TexSubImage2D(GL_TEXTURE_2D, 0, region.x, region.y, region.width, region.height, format, type, converted);
+			gl::TexSubImage2D(GL_TEXTURE_2D, 0, region.x * _scaleFactor, region.y * _scaleFactor, region.width * _scaleFactor, region.height * _scaleFactor, format, type, converted);
 		
 			_hasChanged = true;
 			
@@ -730,7 +737,7 @@ namespace RN
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
 			Bind();
 			
-			gl::TexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), static_cast<GLint>(_layer), 0, format, type, nullptr);
+			gl::TexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat, static_cast<GLint>(_width * _scaleFactor), static_cast<GLint>(_height * _scaleFactor), static_cast<GLint>(_layer), 0, format, type, nullptr);
 		
 			_isComplete = true;
 			_hasChanged = true;
@@ -747,14 +754,15 @@ namespace RN
 			GLint internalFormat;
 			GLenum type, format;
 			
-			_width  = data.width;
-			_height = data.height;
+			_width  = data.width / data.scaleFactor;
+			_height = data.height / data.scaleFactor;
+			_scaleFactor = data.scaleFactor;
 			
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
 			Bind();
 			
 			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
-			gl::TexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), static_cast<GLint>(index), 0, format, type, converted);
+			gl::TexImage3D(GL_TEXTURE_2D_ARRAY, 0, internalFormat, static_cast<GLint>(_width * _scaleFactor), static_cast<GLint>(_height * _scaleFactor), static_cast<GLint>(index), 0, format, type, converted);
 		
 			_isComplete = true;
 			_hasChanged = true;
@@ -778,7 +786,7 @@ namespace RN
 			Bind();
 			
 			gl::PixelStorei(GL_UNPACK_ALIGNMENT, static_cast<GLint>(data.alignment));
-			gl::TexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, static_cast<GLint>(_width), static_cast<GLint>(_height), static_cast<GLint>(index), format, type, converted);
+			gl::TexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, 0, static_cast<GLint>(_width * _scaleFactor), static_cast<GLint>(_height * _scaleFactor), static_cast<GLint>(index), format, type, converted);
 			
 			_hasChanged = true;
 			
@@ -822,7 +830,7 @@ namespace RN
 			Bind();
 			
 			for(int i = 0; i < 6; i ++)
-				gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, nullptr);
+				gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, static_cast<GLint>(_width * _scaleFactor), static_cast<GLint>(_height * _scaleFactor), 0, format, type, nullptr);
 			
 			_isComplete = true;
 			_hasChanged = true;
@@ -839,8 +847,9 @@ namespace RN
 			GLint internalFormat;
 			GLenum type, format;
 			
-			_width  = data.width;
-			_height = data.height;
+			_width  = data.width / data.scaleFactor;
+			_height = data.height / data.scaleFactor;
+			_scaleFactor = data.scaleFactor;
 			
 			ConvertFormatToOpenGL(_parameter.format, _isLinear, internalFormat, format, type);
 			
@@ -851,11 +860,11 @@ namespace RN
 			{
 				case Side::All:
 					for(int i = 0; i < 6; i ++)
-						gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, converted);
+						gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, internalFormat, static_cast<GLint>(_width * _scaleFactor), static_cast<GLint>(_height * _scaleFactor), 0, format, type, converted);
 					break;
 					
 				default:
-					gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<int>(side), 0, internalFormat, static_cast<GLint>(_width), static_cast<GLint>(_height), 0, format, type, converted);
+					gl::TexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<int>(side), 0, internalFormat, static_cast<GLint>(_width * _scaleFactor), static_cast<GLint>(_height * _scaleFactor), 0, format, type, converted);
 					break;
 			}
 			
@@ -887,11 +896,11 @@ namespace RN
 			{
 				case Side::All:
 					for(int i = 0; i < 6; i ++)
-							gl::TexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, static_cast<GLint>(_width), static_cast<GLint>(_height), format, type, converted);
+							gl::TexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 0, 0, static_cast<GLint>(_width * _scaleFactor), static_cast<GLint>(_height * _scaleFactor), format, type, converted);
 					break;
 					
 				default:
-					gl::TexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<int>(side), 0, 0, 0, static_cast<GLint>(_width), static_cast<GLint>(_height), format, type, converted);
+					gl::TexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + static_cast<int>(side), 0, 0, 0, static_cast<GLint>(_width * _scaleFactor), static_cast<GLint>(_height * _scaleFactor), format, type, converted);
 					break;
 			}
 			

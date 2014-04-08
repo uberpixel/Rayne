@@ -95,11 +95,13 @@ namespace RN
 		
 		RNAPI void AddSceneNode(SceneNode *node) override;
 		RNAPI void RemoveSceneNode(SceneNode *node) override;
-		RNAPI void UpdateSceneNode(SceneNode *node, uint32 changes) override;
+		RNAPI void UpdateSceneNode(SceneNode *node, SceneNode::ChangeSet changes) override;
 		
 		RNAPI void RenderScene(Camera *camera) override;
 		
 		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask = 0xffff, Hit::HitMode mode = Hit::HitMode::IgnoreNone) override;
+		
+		RNAPI std::vector<SceneNode *> GetSceneNodes(const AABB &box) override;
 		
 	private:
 		void RenderSceneNode(Camera *camera, SceneNode *node);
@@ -108,7 +110,7 @@ namespace RN
 		
 		Octree _octree;
 		
-		RNDefineMetaWithTraits(OctreeSceneManager, SceneManager, MetaClassTraitCronstructable);
+		RNDeclareMeta(OctreeSceneManager);
 	};
 }
 

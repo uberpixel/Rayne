@@ -80,7 +80,7 @@ namespace RN
 		
 		PIMPL<ContextInternals> _internals;
 		
-		RNDefineMeta(Context, Object)
+		RNDeclareMeta(Context)
 	};
 	
 #if RN_PLATFORM_WINDOWS

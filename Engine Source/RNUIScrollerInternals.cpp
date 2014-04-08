@@ -12,17 +12,26 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(ScrollerKnob)
-		RNDeclareMeta(ScrollerFrame)
+		RNDefineMeta(ScrollerKnob, ImageView)
+		RNDefineMeta(ScrollerFrame, ImageView)
 		
-		ScrollerKnob::ScrollerKnob()
+		ScrollerKnob::ScrollerKnob() :
+			_scrollView(nullptr)
 		{
 			SetInteractionEnabled(true);
 		}
 		
+		void ScrollerKnob::SetScrollView(ScrollView *view)
+		{
+			_scrollView = view;
+		}
+		
 		void ScrollerKnob::MouseDragged(Event *event)
 		{
-			printf("Drag queen\n");
+			if(_scrollView)
+			{
+				_scrollView->MoveScroller(-event->GetMouseDelta());
+			}
 		}
 		
 		

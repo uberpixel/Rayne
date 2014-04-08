@@ -64,7 +64,7 @@ namespace RN
 			
 			bool _isDirty;
 			
-			RNDefineMeta(Label, View)
+			RNDeclareMeta(Label)
 		};
 	}
 }

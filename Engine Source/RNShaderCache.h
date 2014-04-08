@@ -44,7 +44,7 @@ namespace RN
 		Mutex _lock;
 		PIMPL<ShaderCacheInternal> _internals;
 		
-		RNDefineSingleton(ShaderCache)
+		RNDeclareSingleton(ShaderCache)
 	};
 }
 

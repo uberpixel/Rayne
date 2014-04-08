@@ -12,35 +12,43 @@
 
 namespace RN
 {
+	// ---------------------
+	// MARK: -
+	// MARK: Particle
+	// ---------------------
+	
 	Particle::Particle() :
 		size(Vector2(1.0f))
 	{
 		lifespan = 1.0f;
 		time = 0.0f;
+		size = Vector2(1.0f);
 	}
 	
 	Particle::~Particle()
 	{
-	}
-	
-	
-	void Particle::Initialize(ParticleEmitter *temitter, ParticleMaterial *tmaterial)
-	{
-		emitter  = temitter;
-		material = tmaterial;
-		position = emitter->GetWorldPosition();
-		
-		RandomNumberGenerator *rng = emitter->GetGenerator();
-		
-		lifespan = rng->RandomFloatRange(material->lifespan, material->lifespan + material->lifespanVariance);
-		velocity = rng->RandomVector3Range(material->minVelocity, material->maxVelocity);
 	}
 			 
 	void Particle::Update(float delta)
 	{
 		time += delta;
 		lifespan -= delta;
+	}
+	
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Generic Particle
+	// ---------------------
+	
+	void GenericParticle::Update(float delta)
+	{
+		Particle::Update(delta);
 		
-		position += velocity * delta;
+		color = colorInterpolator.GetValue(time);
+		size = sizeInterpolator.GetValue(time);
+		
+		velocity += gravity*delta;
+		position += velocity*delta;
 	}
 }

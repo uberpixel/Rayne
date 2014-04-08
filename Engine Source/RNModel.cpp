@@ -12,10 +12,13 @@
 #include "RNFileManager.h"
 #include "RNSkeleton.h"
 #include "RNResourceCoordinator.h"
+#include "RNLogging.h"
 
 namespace RN
 {
-	RNDeclareMeta(Model)
+	RNDefineMeta(Model, Asset)
+	
+	static std::vector<float> __defaultLODFactors({ 0.05f, 0.125f, 0.50f, 0.75f, 0.90f });
 	
 	Model::Model() :
 		_skeleton(nullptr)
@@ -25,28 +28,142 @@ namespace RN
 	}
 	
 	Model::Model(Mesh *mesh, Material *material) :
-		_skeleton(nullptr)
+		Model()
 	{
-		LODGroup *group = new LODGroup(0.0f);
-		_groups.push_back(group);
-		
 		AddMesh(mesh, material, 0);
+	}
+	
+	Model::Model(const Model *other)
+	{
+		_skeleton = SafeRetain(other->_skeleton);
+		
+		_boundingBox = other->_boundingBox;
+		_boundingSphere = other->_boundingSphere;
+		
+		for(LODGroup *group : other->_groups)
+		{
+			LODGroup *copy = new LODGroup(group->lodDistance);
+			
+			for(MeshGroup *meshGroup : group->groups)
+			{
+				copy->groups.push_back(new MeshGroup(meshGroup->mesh, meshGroup->material->Copy()));
+			}
+			
+			_groups.push_back(copy);
+		}
 	}
 	
 	Model::~Model()
 	{
 		for(LODGroup *group : _groups)
-		{
 			delete group;
-		}
 		
 		SafeRelease(_skeleton);
 	}
 	
 	
+	
+	void Model::Unfault(Deserializer *deserializer)
+	{
+		Asset::Unfault(deserializer);
+		
+		_skeleton = SafeRetain(static_cast<Skeleton *>(deserializer->DecodeObject()));
+		
+		bool dirty = IsMarkedChanged();
+		size_t count = static_cast<size_t>(deserializer->DecodeInt32());
+		RN_ASSERT(count == _groups.size(), "Mismatching LOD group count while unfaulting Model!");
+		
+		for(size_t i = 0; i < count; i ++)
+		{
+			float lodDistance = deserializer->DecodeFloat();
+			size_t gcount = static_cast<size_t>(deserializer->DecodeInt32());
+			
+			RN_ASSERT(gcount == _groups[i]->groups.size(), "Mismatching LOD mesh count while unfaulting Model!");
+			
+			LODGroup *group = _groups[i];
+			group->lodDistance = lodDistance;
+			
+			for(size_t j = 0; j < gcount; j ++)
+			{
+				MeshGroup *mgroup = group->groups[j];
+				SafeRelease(mgroup->material);
+				
+				mgroup->material = static_cast<Material *>(deserializer->DecodeObject())->Retain();
+				
+				if(dirty)
+				{
+					SafeRelease(mgroup->mesh);
+					mgroup->mesh = static_cast<Mesh *>(deserializer->DecodeObject())->Retain();
+				}
+			}
+		}
+	}
+	
+	void Model::Serialize(Serializer *serializer)
+	{
+		Asset::Serialize(serializer);
+		
+		serializer->EncodeConditionalObject(_skeleton);
+		
+		size_t count = _groups.size();
+		bool dirty   = IsMarkedChanged();
+		
+		serializer->EncodeInt32(static_cast<int32>(count));
+		
+		for(LODGroup *group : _groups)
+		{
+			size_t gcount = group->groups.size();
+			
+			serializer->EncodeFloat(group->lodDistance);
+			serializer->EncodeInt32(static_cast<int32>(gcount));
+			
+			for(size_t i = 0; i < gcount; i ++)
+			{
+				serializer->EncodeObject(group->groups[i]->material);
+				
+				if(dirty)
+					serializer->EncodeObject(group->groups[i]->mesh);
+			}
+		}
+	}
+	
+	
+	
+	std::vector<float> &Model::GetDefaultLODFactors()
+	{
+		return __defaultLODFactors;
+	}
+	
+	void Model::SetDefaultLODFactors(const std::vector<float> &factors)
+	{
+		if(factors.size() < 3)
+		{
+			static std::once_flag flag;
+			std::call_once(flag, [] {
+				RNDebug("There should be at least 3 LOD factors in the default LOD factors (this message will be logged once)");
+			});
+		}
+			
+		__defaultLODFactors = factors;
+		std::sort(__defaultLODFactors.begin(), __defaultLODFactors.end());
+	}
+	
+	void Model::SetLODFactors(const std::vector<float> &factors)
+	{
+		RN_ASSERT(factors.size() >= _groups.size(), "Factors needs at least enough elements for each LOD group");
+		
+		size_t i = 0;
+		
+		for(LODGroup *group : _groups)
+		{
+			group->lodDistance = factors[i ++];
+		}
+	}
+	
+	
 	Shader *Model::PickShaderForMaterialAndMesh(Material *material, Mesh *mesh)
 	{
-		return ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr);
+		return ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDefaultShader, nullptr);
 	}
 	
 	Material *Model::PickMaterialForMesh(Mesh *mesh)
@@ -57,8 +174,11 @@ namespace RN
 	}
 	
 	
+	
 	size_t Model::AddLODStage(float distance)
 	{
+		MarkChanged();
+		
 		LODGroup *group = new LODGroup(distance);
 		_groups.push_back(group);
 		
@@ -72,6 +192,8 @@ namespace RN
 	
 	void Model::RemoveLODStage(size_t stage)
 	{
+		MarkChanged();
+		
 		auto iterator = _groups.begin();
 		std::advance(iterator, stage);
 		
@@ -84,6 +206,8 @@ namespace RN
 	
 	void Model::AddMesh(Mesh *mesh, Material *material, size_t lodStage)
 	{
+		MarkChanged();
+		
 		if(!material)
 			material = PickMaterialForMesh(mesh);
 		
@@ -193,41 +317,41 @@ namespace RN
 		
 		Material *skyDownMaterial = new Material(matShader);
 		skyDownMaterial->AddTexture(Texture::WithFile(down, parameter));
-		skyDownMaterial->depthwrite = false;
+		skyDownMaterial->SetDepthWrite(false);
 		Mesh  *skyDownMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f));
 		
 		Material *skyUpMaterial = new Material(matShader);
 		skyUpMaterial->AddTexture(Texture::WithFile(up, parameter));
-		skyUpMaterial->depthwrite = false;
+		skyUpMaterial->SetDepthWrite(false);
 		Mesh  *skyUpMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(180.0f, 180.0f, 0.0f));
 		
 		Material *skyLeftMaterial = new Material(matShader);
 		skyLeftMaterial->AddTexture(Texture::WithFile(left, parameter));
-		skyLeftMaterial->depthwrite = false;
+		skyLeftMaterial->SetDepthWrite(false);
 		Mesh  *skyLeftMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(-90.0f, 90.0f, 0.0f));
 		
 		Material *skyRightMaterial = new Material(matShader);
 		skyRightMaterial->AddTexture(Texture::WithFile(right, parameter));
-		skyRightMaterial->depthwrite = false;
+		skyRightMaterial->SetDepthWrite(false);
 		Mesh  *skyRightMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(90.0f, 90.0f, 0.0f));
 		
 		Material *skyFrontMaterial = new Material(matShader);
 		skyFrontMaterial->AddTexture(Texture::WithFile(front, parameter));
-		skyFrontMaterial->depthwrite = false;
+		skyFrontMaterial->SetDepthWrite(false);
 		Mesh  *skyFrontMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(180.0f, 90.0f, 0.0f));
 		
 		Material *skyBackMaterial = new Material(matShader);
 		skyBackMaterial->AddTexture(Texture::WithFile(back, parameter));
-		skyBackMaterial->depthwrite = false;
+		skyBackMaterial->SetDepthWrite(false);
 		Mesh  *skyBackMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 90.0f, 0.0f));
 		
 		Model *skyModel = Model::Empty();
-		skyModel->AddMesh(skyDownMesh->Autorelease(), skyDownMaterial->Autorelease(), 0);
-		skyModel->AddMesh(skyUpMesh->Autorelease(), skyUpMaterial->Autorelease(), 0);
-		skyModel->AddMesh(skyLeftMesh->Autorelease(), skyLeftMaterial->Autorelease(), 0);
-		skyModel->AddMesh(skyRightMesh->Autorelease(), skyRightMaterial->Autorelease(), 0);
-		skyModel->AddMesh(skyFrontMesh->Autorelease(), skyFrontMaterial->Autorelease(), 0);
-		skyModel->AddMesh(skyBackMesh->Autorelease(), skyBackMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyDownMesh, skyDownMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyUpMesh, skyUpMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyLeftMesh, skyLeftMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyRightMesh, skyRightMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyFrontMesh, skyFrontMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyBackMesh, skyBackMaterial->Autorelease(), 0);
 		
 		return skyModel;
 	}

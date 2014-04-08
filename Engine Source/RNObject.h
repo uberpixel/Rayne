@@ -52,7 +52,7 @@ namespace RN
 			if(IsKindOfClass(T::MetaClass()))
 				return static_cast<T *>(this);
 			
-			throw Exception(Exception::Type::DowncastException, "No possible cast possible!");
+			return nullptr;
 		}
 		
 		RNAPI virtual MetaClassBase *Class() const;
@@ -86,30 +86,38 @@ namespace RN
 			ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
 			
 			if(!property)
-				throw Exception(Exception::Type::InvalidArgumentException, "No property for key" + key);
+				throw Exception(Exception::Type::InvalidArgumentException, "No property for key \"%s\"", key.c_str());
 			
-			Connection *connection = property->_signal.Connect(std::move(function));
-			MapCookie(cookie, connection);
+			Lock();
+			property->AssertSignal();
+			
+			Connection *connection = property->_signal->Connect(std::move(function));
+			MapCookie(cookie, property, connection);
+			
+			Unlock();
 		}
 		
 		void RemoveObserver(const std::string& keyPath, void *cookie)
 		{
 			std::string key;
-			Object *object = ResolveKeyPath(keyPath, key);
 			
-			object->UnmapCookie(cookie);
+			ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
+			Object *object = property->_object;
+			
+			object->UnmapCookie(cookie, property);
 		}
 		
-		RNAPI void SetValueForKey(const std::string& keyPath, Object *value);
+		RNAPI void SetValueForKey(Object *value, const std::string& keyPath);
 		RNAPI Object *GetValueForKey(const std::string& keyPath);
-		
+		RNAPI std::vector<ObservableProperty *> GetPropertiesForClass(MetaClassBase *meta);
 		
 	protected:
 		RNAPI virtual void CleanUp();
 		
 		RNAPI void AddObservable(ObservableProperty *property);
+		RNAPI void AddObservables(std::initializer_list<ObservableProperty *> properties);
 		
-		RNAPI virtual void SetValueForUndefinedKey(const std::string& key, Object *value);
+		RNAPI virtual void SetValueForUndefinedKey(Object *value, const std::string& key);
 		RNAPI virtual Object *GetValueForUndefinedKey(const std::string& key);
 		
 		RNAPI void WillChangeValueForkey(const std::string& key);
@@ -130,8 +138,8 @@ namespace RN
 		Object *GetPrimitiveValueForKey(const std::string& key);
 		ObservableProperty *GetPropertyForKeyPath(const std::string& keyPath, std::string& key);
 		
-		void MapCookie(void *cookie, Connection *connection);
-		void UnmapCookie(void *cookie);
+		void MapCookie(void *cookie, ObservableProperty *property, Connection *connection);
+		void UnmapCookie(void *cookie, ObservableProperty *property);
 		
 		RecursiveSpinLock _lock;
 		
@@ -139,31 +147,20 @@ namespace RN
 		std::atomic_flag _cleanUpFlag;
 		std::unordered_map<void *, std::tuple<Object *, MemoryPolicy>> _associatedObjects;
 		
-		std::unordered_map<std::string, ObservableProperty *> _properties;
-		std::unordered_map<void *, std::vector<Connection *>> _cookieMap;
+		std::vector<ObservableProperty *> _properties;
+		std::vector<std::tuple<void *, ObservableProperty *, Connection *>> _cookies;
 	};
 	
-#define __RNDefineMetaPrivate(cls, super) \
-	private: \
-		class MetaType : public RN::ConcreteMetaClass<cls> \
+#define __RNDeclareMetaPrivateWithTraits(cls, super, ...) \
+		class cls##MetaType : public RN::ConcreteMetaClass<cls, __VA_ARGS__> \
 		{ \
 		public: \
-			MetaType() : \
-				MetaClassBase(super::MetaClass(), #cls, RN_FUNCTION_SIGNATURE) \
+			cls##MetaType(const char *signature) : \
+				MetaClassBase(super::MetaClass(), #cls, signature) \
 			{} \
 		};
 
-#define __RNDefineMetaPrivateWithTraits(cls, super, ...) \
-	private: \
-		class MetaType : public RN::ConcreteMetaClass<cls, __VA_ARGS__> \
-		{ \
-		public: \
-			MetaType() : \
-				MetaClassBase(super::MetaClass(), #cls, RN_FUNCTION_SIGNATURE) \
-			{} \
-		};
-
-#define __RNDefineMetaPublic(cls) \
+#define __RNDeclareMetaPublic(cls) \
 	public: \
 		cls *Retain() \
 		{ \
@@ -184,15 +181,14 @@ namespace RN
 		RNAPI_DEFINEBASE RN::MetaClassBase *Class() const override; \
 		RNAPI_DEFINEBASE static RN::MetaClassBase *MetaClass();
 	
-#define RNDefineMeta(cls, super) \
-	__RNDefineMetaPrivate(cls, super) \
-	__RNDefineMetaPublic(cls)
-	
-#define RNDefineMetaWithTraits(cls, super, ...) \
-	__RNDefineMetaPrivateWithTraits(cls, super, __VA_ARGS__) \
-	__RNDefineMetaPublic(cls)
-
 #define RNDeclareMeta(cls) \
+	__RNDeclareMetaPublic(cls)
+
+#define RNDefineMeta(cls, super) \
+	__RNDeclareMetaPrivateWithTraits(cls, super, \
+		std::conditional<std::is_default_constructible<cls>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitCronstructable<cls>, RN::__MetaClassTraitNull0<cls>>::type, \
+		std::conditional<std::is_constructible<cls, RN::Deserializer *>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitSerializable<cls>, RN::__MetaClassTraitNull1<cls>>::type, \
+		std::conditional<std::is_constructible<cls, const cls *>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitCopyable<cls>, RN::__MetaClassTraitNull2<cls>>::type) \
 	void *__kRN##cls##__metaClass = nullptr; \
 	RN::MetaClassBase *cls::Class() const \
 	{ \
@@ -201,8 +197,23 @@ namespace RN
 	RN::MetaClassBase *cls::MetaClass() \
 	{ \
 		if(!__kRN##cls##__metaClass) \
-			__kRN##cls##__metaClass = new cls::MetaType(); \
-		return reinterpret_cast<cls::MetaType *>(__kRN##cls##__metaClass); \
+			__kRN##cls##__metaClass = new cls##MetaType(RN_FUNCTION_SIGNATURE); \
+		return reinterpret_cast<cls##MetaType *>(__kRN##cls##__metaClass); \
+	} \
+	RN_REGISTER_INIT(cls##Init, cls::MetaClass(); cls::InitialWakeUp(cls::MetaClass()))
+	
+#define __RNDefineMetaAndGFYMSVC(cls, super) \
+	__RNDeclareMetaPrivateWithTraits(cls, super, RN::__MetaClassTraitNull0<cls>, RN::__MetaClassTraitNull1<cls>, RN::__MetaClassTraitNull2<cls>) \
+	void *__kRN##cls##__metaClass = nullptr; \
+	RN::MetaClassBase *cls::Class() const \
+	{ \
+		return cls::MetaClass(); \
+	} \
+	RN::MetaClassBase *cls::MetaClass() \
+	{ \
+		if(!__kRN##cls##__metaClass) \
+			__kRN##cls##__metaClass = new cls##MetaType(RN_FUNCTION_SIGNATURE); \
+		return reinterpret_cast<cls##MetaType *>(__kRN##cls##__metaClass); \
 	} \
 	RN_REGISTER_INIT(cls##Init, cls::MetaClass(); cls::InitialWakeUp(cls::MetaClass()))
 

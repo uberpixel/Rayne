@@ -15,14 +15,20 @@
 namespace RN
 {
 	class Array;
+	class DictionaryInternal;
+	
 	class Dictionary : public Object
 	{
 	public:
 		RNAPI Dictionary();
 		RNAPI Dictionary(size_t capacity);
 		RNAPI Dictionary(const Dictionary *other);
+		RNAPI Dictionary(Deserializer *deserializer);
 		RNAPI ~Dictionary() override;
 		
+		RNAPI void Serialize(Serializer *serializer);
+		
+		RNAPI machine_hash GetHash() const;
 		RNAPI bool IsEqual(Object *other) const override;
 		
 		template<typename T=Object>
@@ -40,62 +46,31 @@ namespace RN
 		RNAPI void RemoveObjectForKey(Object *key);
 		RNAPI void RemoveAllObjects();
 		
-		RNAPI void Enumerate(const std::function<void (Object *object, Object *key, bool *stop)>& callback);
+		RNAPI void Enumerate(const std::function<void (Object *object, Object *key, bool &stop)>& callback) const;
+		
+		template<class T, class K>
+		void Enumerate(const std::function<void (T *object, K *key, bool &stop)>& callback) const
+		{
+			Enumerate([&](Object *object, Object *key, bool &stop) {
+				callback(static_cast<T *>(object), static_cast<K *>(key), stop);
+			});
+		}
 		
 		RNAPI Array *GetAllObjects() const;
 		RNAPI Array *GetAllKeys() const;
 		
-		size_t GetCount() const { return _count; }
+		RNAPI size_t GetCount() const;
+		
+	protected:
+		RNAPI void SetValueForUndefinedKey(Object *value, const std::string &key) override;
+		RNAPI Object *GetValueForUndefinedKey(const std::string &key) override;
 		
 	private:
-		struct Bucket
-		{
-			Bucket()
-			{
-				key    = nullptr;
-				object = nullptr;
-				next   = nullptr;
-			}
-			
-			Bucket(const Bucket *other)
-			{
-				key    = SafeRetain(other->key);
-				object = SafeRetain(other->object);
-				
-				next = nullptr;
-			}
-			
-			~Bucket()
-			{
-				if(key)
-					key->Release();
-				
-				if(object)
-					object->Release();
-			}
-			
-			Object *key;
-			Object *object;
-			
-			Bucket *next;
-		};
+		PIMPL<DictionaryInternal> _internals;
 		
-		void Initialize(size_t primitive);
-		
-		Bucket *FindBucket(Object *key, bool createIfNeeded);
 		RNAPI Object *PrimitiveObjectForKey(Object *key);
 		
-		void GrowIfPossible();
-		void CollapseIfPossible();
-		
-		void Rehash(size_t primitive);
-		
-		Bucket **_buckets;
-		size_t _capacity;
-		size_t _count;
-		size_t _primitive;
-		
-		RNDefineMetaWithTraits(Dictionary, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMeta(Dictionary)
 	};
 }
 

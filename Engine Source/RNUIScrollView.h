@@ -17,6 +17,8 @@ namespace RN
 	namespace UI
 	{
 		class ScrollView;
+		class ScrollerKnob;
+		
 		class ScrollViewDelegate
 		{
 		public:
@@ -26,6 +28,8 @@ namespace RN
 		class ScrollView : public View
 		{
 		public:
+			friend class ScrollerKnob;
+			
 			RNAPI ScrollView();
 			RNAPI ~ScrollView();
 			
@@ -47,6 +51,7 @@ namespace RN
 			
 		private:
 			void AdjustScroller();
+			void MoveScroller(Vector2 delta);
 			
 			ScrollViewDelegate *_delegate;
 			
@@ -56,7 +61,7 @@ namespace RN
 			Vector2 _size;
 			Vector2 _end;
 			
-			RNDefineMeta(ScrollView, View)
+			RNDeclareMeta(ScrollView)
 		};
 	}
 }

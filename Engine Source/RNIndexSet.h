@@ -19,7 +19,7 @@ namespace RN
 	public:
 		RNAPI IndexSet();
 		RNAPI IndexSet(size_t index);
-		RNAPI IndexSet(IndexSet *other);
+		RNAPI IndexSet(const IndexSet *other);
 		
 		RNAPI void AddIndex(size_t index);
 		RNAPI void RemoveIndex(size_t index);
@@ -37,7 +37,7 @@ namespace RN
 		std::vector<size_t> _sortedIndices;
 		std::unordered_set<size_t> _indices;
 		
-		RNDefineMetaWithTraits(IndexSet, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMeta(IndexSet)
 	};
 }
 

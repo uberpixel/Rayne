@@ -17,15 +17,15 @@ namespace RN
 	template<class T>
 	struct __EnumBase<T, true>
 	{
-		T operator ~()
+		T operator ~() const
 		{
 			return ~_value;
 		}
-		T operator &(int value)
+		T operator &(int value) const
 		{
 			return _value & value;
 		}
-		T operator |(int value)
+		T operator |(int value) const
 		{
 			return _value | value;
 		}
@@ -71,7 +71,7 @@ namespace RN
 			_value = value;
 			return value;
 		}
-		operator T()
+		operator T() const
 		{
 			return _value;
 		}

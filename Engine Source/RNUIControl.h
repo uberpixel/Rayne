@@ -11,6 +11,7 @@
 
 #include "RNBase.h"
 #include "RNInput.h"
+#include "RNEnum.h"
 #include "RNUIView.h"
 
 namespace RN
@@ -20,14 +21,23 @@ namespace RN
 		class Control : public View
 		{
 		public:
-			enum
+			
+			struct State : public Enum<int32>
 			{
-				Normal = 0,
-				Highlighted = (1 << 0),
-				Selected = (1 << 1),
-				Disabled = (1 << 2)
+				State()
+				{}
+				State(int value) :
+					Enum(value)
+				{}
+				
+				enum
+				{
+					Normal = 0,
+					Highlighted = (1 << 0),
+					Selected    = (1 << 1),
+					Disabled    = (1 << 2)
+				};
 			};
-			typedef uint32 State;
 			
 			enum class EventType
 			{
@@ -48,9 +58,9 @@ namespace RN
 			RNAPI virtual void SetSelected(bool selected);
 			RNAPI virtual void SetEnabled(bool enabled);
 			
-			RNAPI bool IsHighlighted() const { return _state & Control::Highlighted; }
-			RNAPI bool IsSelected() const { return _state & Control::Selected; }
-			RNAPI bool IsEnabled() const { return !(_state & Control::Disabled); }
+			RNAPI bool IsHighlighted() const { return _state & Control::State::Highlighted; }
+			RNAPI bool IsSelected() const { return _state & Control::State::Selected; }
+			RNAPI bool IsEnabled() const { return !(_state & Control::State::Disabled); }
 			
 			RNAPI State GetState() const { return _state; }
 			
@@ -65,6 +75,7 @@ namespace RN
 			RNAPI void MouseDown(Event *event) override;
 			RNAPI void MouseMoved(Event *event) override;
 			RNAPI void MouseUp(Event *event) override;
+			RNAPI void MouseLeft(Event *event) override;
 		
 		protected:
 			RNAPI Control();
@@ -94,7 +105,7 @@ namespace RN
 			
 			std::map<EventType, std::vector<EventListener>> _listener;
 			
-			RNDefineMeta(Control, View)
+			RNDeclareMeta(Control)
 		};
 		
 		template<class T>
@@ -117,7 +128,7 @@ namespace RN
 				auto iterator = _values.find(state);
 				if(iterator != _values.end())
 				{
-					iterator->second->Release();
+					iterator->second->Autorelease();
 					
 					if(value)
 					{
@@ -136,23 +147,23 @@ namespace RN
 			{
 				T *value = nullptr;
 				
-				if((state & Control::Disabled) && (value = GetValueForMaskedState(Control::Disabled)))
-					return value;
+				if((state & Control::State::Disabled) && (value = GetValueForMaskedState(Control::State::Disabled)))
+					return value->Retain()->Autorelease();
 				
-				if((state & Control::Selected) && (value = GetValueForMaskedState(Control::Selected)))
-					return value;
+				if((state & Control::State::Selected) && (value = GetValueForMaskedState(Control::State::Selected)))
+					return value->Retain()->Autorelease();
 				
-				if((state & Control::Highlighted) && (value = GetValueForMaskedState(Control::Highlighted)))
-					return value;
+				if((state & Control::State::Highlighted) && (value = GetValueForMaskedState(Control::State::Highlighted)))
+					return value->Retain()->Autorelease();
 				
-				return GetValueForMaskedState(Control::Normal);
+				return GetValueForMaskedState(Control::State::Normal);
 			}
 			
 		private:
 			T *GetValueForMaskedState(Control::State state)
 			{
 				auto iterator = _values.find(state);
-				return (iterator != _values.end()) ? iterator->second : nullptr;
+				return (iterator != _values.end()) ? iterator->second->Retain()->Autorelease() : nullptr;
 			}
 			
 			std::map<Control::State, T *> _values;

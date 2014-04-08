@@ -17,6 +17,8 @@
 #include "RNMesh.h"
 #include "RNUITextStyle.h"
 
+#define kRNUIFontInvalidateGlyphsMessage RNCSTR("kRNUIFontInvalidateGlyphsMessage")
+
 namespace RN
 {
 	namespace UI
@@ -145,7 +147,7 @@ namespace RN
 			std::unordered_map<UniChar, Glyph> _glyphs;
 			uint32 _textureTag;
 			
-			RNDefineMeta(Font, Object)
+			RNDeclareMeta(Font)
 		};
 	}
 }

@@ -10,15 +10,15 @@
 
 namespace RN
 {
-	RNDeclareMeta(WorldAttachment)
+	RNDefineMeta(WorldAttachment, Object)
 	
 	void WorldAttachment::StepWorld(float delta)
 	{}
 	
-	void WorldAttachment::SceneNodesUpdated()
+	void WorldAttachment::StepWorldEditMode(float delta)
 	{}
 	
-	void WorldAttachment::BeginCamera(Camera *camera)
+	void WorldAttachment::DidBeginCamera(Camera *camera)
 	{}
 	
 	void WorldAttachment::WillFinishCamera(Camera *camera)
@@ -33,6 +33,6 @@ namespace RN
 	void WorldAttachment::WillRenderSceneNode(SceneNode *node)
 	{}
 	
-	void WorldAttachment::SceneNodeDidUpdate(SceneNode *node, uint32 changeSet)
+	void WorldAttachment::SceneNodeDidUpdate(SceneNode *node, SceneNode::ChangeSet changeSet)
 	{}
 }

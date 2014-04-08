@@ -9,10 +9,11 @@
 #include "RNString.h"
 #include "RNFile.h"
 #include "RNBasicString.h"
+#include "RNSerialization.h"
 
 namespace RN
 {
-	RNDeclareMeta(String)
+	RNDefineMeta(String, Object)
 
 	// ---------------------
 	// MARK: -
@@ -99,6 +100,25 @@ namespace RN
 	String::~String()
 	{
 		_ainternal->Release();
+	}
+	
+	
+	
+	String::String(Deserializer *deserializer)
+	{
+		size_t length;
+		uint8 *bytes = static_cast<uint8 *>(deserializer->DecodeBytes(&length));
+		
+		_internal = StringFactory::ConstructString(bytes, length, Encoding::UTF8, StringTraits::Mutable);
+		_encoding = _ainternal->CharacterEncoding();
+	}
+	
+	void String::Serialize(Serializer *serializer)
+	{
+		size_t length;
+		uint8 *bytes = GetBytesWithEncoding(Encoding::UTF8, false, &length);
+		
+		serializer->EncodeBytes(bytes, length);
 	}
 	
 	
@@ -276,9 +296,9 @@ namespace RN
 					BasicString *string = StringFactory::ConstructString(temp, _encoding);
 					_ainternal->ReplaceCharactersInRange(Range(read + i, 1), string);
 					string->Release();
-					
-					needsUppercase = false;
 				}
+				
+				needsUppercase = false;
 			}
 			
 			read += left;

@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(OutlineViewCell)
+		RNDefineMeta(OutlineViewCell, TableViewCell)
 		
 		OutlineViewCell::OutlineViewCell(String *identifier) :
 			TableViewCell(identifier)

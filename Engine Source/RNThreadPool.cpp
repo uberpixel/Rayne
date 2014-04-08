@@ -10,11 +10,12 @@
 #include "RNNumber.h"
 #include "RNKernel.h"
 #include "RNLogging.h"
+#include "RNString.h"
 
 namespace RN
 {
-	RNDeclareSingleton(ThreadCoordinator)
-	RNDeclareSingleton(ThreadPool)
+	RNDefineSingleton(ThreadCoordinator)
+	RNDefineSingleton(ThreadPool)
 	
 	ThreadCoordinator::ThreadCoordinator()
 	{
@@ -99,17 +100,10 @@ namespace RN
 	
 	ThreadPool::Batch *ThreadPool::CreateBatch()
 	{
-		Batch *batch = new Batch(GetDefaultAllocator(), this);
+		Batch *batch = new Batch(this);
 		return batch;
 	}
 	
-	ThreadPool::Batch *ThreadPool::CreateBatch(Allocator& allocator)
-	{
-		Batch *batch = new Batch(allocator, this);
-		return batch;
-	}
-	
-
 	
 	void ThreadPool::FeedTasks(std::vector<Task>& tasks)
 	{
@@ -169,85 +163,63 @@ namespace RN
 		_feedLock.unlock();
 	}
 	
-	bool ThreadPool::StealTasks(ThreadContext *local)
-	{
-		size_t stolen = 0;
-		
-		local->_stealLock.Lock();
-		
-		for(size_t i = 0; i < _threadCount; i ++)
-		{
-			ThreadContext *context = _threadData[i];
-			
-			if(context != local && !context->hose.was_empty() && context->_stealLock.TryLock())
-			{
-				Task task;
-				
-				for(size_t j = 0; j < 12; j ++)
-				{
-					if(!context->hose.pop(task))
-						break;
-					
-					local->hose.push(std::move(task));
-					stolen ++;
-				}
-				
-				context->_stealLock.Unlock();
-			}
-		}
-		
-		local->_stealLock.Unlock();
-		return (stolen > 0);
-	}
-	
 	void ThreadPool::Consumer()
 	{
 		Thread *thread = Thread::GetCurrentThread();
 		AutoreleasePool *pool = new AutoreleasePool();
 	
 		size_t threadID = thread->GetObjectForKey<Number>(RNCSTR("__kRNThreadID"))->GetUint32Value();
-		ThreadContext *local = _threadData[threadID];
 		
 		{
+			// Set the name of the thread
+			std::stringstream name;
+			name << "RN::ThreadPool::Consumer " << threadID;
+			thread->SetName(name.str());
+		}
+		
+		{
+			// Wait for the thread pool to bootstrap completely
 			std::unique_lock<std::mutex> lock(_syncLock);
 			
 			if(!_running.load())
 				_syncpoint.wait(lock, [&] { return _running.load() == true; });
 		}
 		
+		
+		// Begin consuming work
+		
+		ThreadContext *local = _threadData[threadID];
+		
 		while(!thread->IsCancelled())
 		{
-			Task task;
-			
-			while(1)
 			{
-				local->_stealLock.Lock();
-				bool result = local->hose.pop(task);
-				local->_stealLock.Unlock();
+				Task task;
 				
-				if(!result)
-					break;
-				
-				task.function();
-					
-				if(task.batch)
+				while(1)
 				{
-					if((-- task.batch->_openTasks) == 0)
+					bool result = local->hose.pop(task);
+					if(!result)
+						break;
+					
+					task.function();
+						
+					if(task.batch)
 					{
-						task.batch->_waitCondition.notify_all();
-						task.batch->Release();
+						if((-- task.batch->_openTasks) == 0)
+						{
+							task.batch->_waitCondition.notify_all();
+							task.batch->Release();
+						}
 					}
 				}
 			}
 			
-			_feederCondition.notify_one();
-			
-			std::unique_lock<std::mutex> lock(_consumerLock);
-			
 			if(local->hose.was_empty())
 			{
-				if(!StealTasks(local))
-					_consumerCondition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
+				std::unique_lock<std::mutex> lock(_consumerLock);
+				
+				_feederCondition.notify_one();
+				_consumerCondition.wait(lock, [&]() { return (local->hose.was_empty() == false); });
 			}
 		}
 		
@@ -273,18 +245,20 @@ namespace RN
 		{
 			delete this;
 		}
-		
 	}
 	
 	void ThreadPool::Batch::Commit()
 	{
 		RN_ASSERT(_commited == false, "A batch can only be committed once!");
 		
-		Retain();
-		
-		_openTasks.store(static_cast<uint32>(_tasks.size()));
-		_pool->FeedTasks(_tasks);
-		
+		if(_tasks.size() > 0)
+		{
+			Retain();
+
+			_openTasks.store(static_cast<uint32>(_tasks.size()));
+			_pool->FeedTasks(_tasks);
+		}
+
 		_commited = true;
 	}
 	

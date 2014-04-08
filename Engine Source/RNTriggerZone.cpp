@@ -35,7 +35,7 @@ namespace RN
 			_zones.erase(std::find(_zones.begin(), _zones.end(), zone));
 		}
 		
-		void SceneNodeDidUpdate(SceneNode *node, uint32 changesSet) override
+		void SceneNodeDidUpdate(SceneNode *node, SceneNode::ChangeSet changesSet) override
 		{
 			LockGuard<TriggerZoneManager *> lock(this);
 			std::vector<TriggerZone *> zonesCopy(_zones);
@@ -57,14 +57,15 @@ namespace RN
 	private:
 		std::vector<TriggerZone *> _zones;
 		
-		RNDefineMeta(TriggerZoneManager, WorldAttachment);
-		RNDefineSingleton(TriggerZoneManager)
+		RNDeclareMeta(TriggerZoneManager);
+		RNDeclareSingleton(TriggerZoneManager)
 	};
 	
 	
-	RNDeclareMeta(TriggerZoneManager)
-	RNDeclareMeta(TriggerZone)
-	RNDeclareSingleton(TriggerZoneManager)
+	RNDefineMeta(TriggerZoneManager, WorldAttachment)
+	RNDefineMeta(TriggerZone, SceneNode)
+	
+	RNDefineSingleton(TriggerZoneManager)
 	
 	
 	TriggerZone::TriggerZone()

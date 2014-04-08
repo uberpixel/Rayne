@@ -9,7 +9,7 @@
 #ifndef RN_SHADOW_FSH
 #define RN_SHADOW_FSH
 
-#ifdef RN_LIGHTING
+#if defined(RN_LIGHTING)
 uniform sampler2DArrayShadow lightDirectionalDepth;
 uniform samplerCube lightPointDepth0;
 uniform samplerCube lightPointDepth1;
@@ -21,7 +21,11 @@ uniform sampler2DShadow lightSpotDepth2;
 uniform sampler2DShadow lightSpotDepth3;
 
 uniform vec4 frameSize;
-in vec4 vertDirLightProj[4];
+
+#if defined(RN_DIRECTIONAL_SHADOWS)
+	in vec4 vertDirLightProj[RN_DIRECTIONAL_SHADOWS];
+#endif
+
 in vec4 vertSpotLightProj[4];
 
 //a textureOffset lookup for a 2DArrayShader sampler
@@ -68,36 +72,36 @@ float rn_ShadowPCF4x4(sampler2DArrayShadow map, vec4 projected)
 	return shadow;
 }
 
+#if defined(RN_DIRECTIONAL_SHADOWS)
 //returns the shadow factor for the first directional light
 float rn_ShadowDirectional0()
 {
-	vec3 proj[4];
-	proj[0] = vertDirLightProj[0].xyz/vertDirLightProj[0].w;
-	proj[1] = vertDirLightProj[1].xyz/vertDirLightProj[1].w;
-	proj[2] = vertDirLightProj[2].xyz/vertDirLightProj[2].w;
-	proj[3] = vertDirLightProj[3].xyz/vertDirLightProj[3].w;
+	vec3 proj[RN_DIRECTIONAL_SHADOWS];
+	for(int i = 0; i < RN_DIRECTIONAL_SHADOWS; i++)
+	{
+		proj[i] = vertDirLightProj[i].xyz/vertDirLightProj[i].w;
+	}
 	
-	bvec3 inMap[3];
-	inMap[2] = lessThan(proj[2]*proj[2], vec3(1.0));
-	inMap[1] = lessThan(proj[1]*proj[1], vec3(1.0));
-	inMap[0] = lessThan(proj[0]*proj[0], vec3(1.0));
+	bvec3 inMap[RN_DIRECTIONAL_SHADOWS-1];
+	for(int i = RN_DIRECTIONAL_SHADOWS-2; i >= 0; i--)
+	{
+		inMap[i] = lessThan(proj[i]*proj[i], vec3(1.0));
+	}
 	
-	float mapToUse = 3;
+	int mapToUse = RN_DIRECTIONAL_SHADOWS-1;
 	
-	if(inMap[2].x && inMap[2].y && inMap[2].z)
-		mapToUse = 2;
+	for(int i = RN_DIRECTIONAL_SHADOWS-2; i >= 0; i--)
+	{
+		if(inMap[i].x && inMap[i].y && inMap[i].z)
+			mapToUse = i;
+	}
 	
-	if(inMap[1].x && inMap[1].y && inMap[1].z)
-		mapToUse = 1;
-	
-	if(inMap[0].x && inMap[0].y && inMap[0].z)
-		mapToUse = 0;
-	
-	vec4 projected = vec4(proj[int(mapToUse)]*0.5+0.5, mapToUse);
+	vec4 projected = vec4(proj[mapToUse]*0.5+0.5, float(mapToUse));
 //	return rn_textureOffset(lightDirectionalDepth, projected, vec2(0.0));
 	return rn_ShadowPCF2x2(lightDirectionalDepth, projected);
 //	return rn_ShadowPCF4x4(lightDirectionalDepth, projected);
 }
+#endif
 
 float rn_ShadowPointTextureCubeArrayShadow(int index, vec3 pos)
 {
@@ -112,17 +116,6 @@ float rn_ShadowPointTextureCubeArrayShadow(int index, vec3 pos)
 	else return 1.0;
 }
 
-/*
-float rn_ShadowPointPCF2x2(int index, vec4 pos)
-{
-	float result = rn_ShadowPointTextureCubeArrayShadow(index, pos);
-	result += rn_ShadowPointTextureCubeArrayShadow(index, pos+vec4(0.01, 0.01, 0.01, 0.0));
-	result += rn_ShadowPointTextureCubeArrayShadow(index, pos-vec4(0.01, 0.01, 0.01, 0.0));
-	result += rn_ShadowPointTextureCubeArrayShadow(index, pos+vec4(0.01, -0.01, 0.01, 0.0));
-	result += rn_ShadowPointTextureCubeArrayShadow(index, pos-vec4(0.01, -0.01, -0.01, 0.0));
-	return result*0.2;
-}*/
-
 float rn_ShadowPointPCF2x2(int index, vec3 pos)
 {
 	float result = rn_ShadowPointTextureCubeArrayShadow(index, pos);
@@ -131,17 +124,12 @@ float rn_ShadowPointPCF2x2(int index, vec3 pos)
 	result += rn_ShadowPointTextureCubeArrayShadow(index, pos+vec3(0.01, -0.01, 0.01));
 	result += rn_ShadowPointTextureCubeArrayShadow(index, pos-vec3(0.01, -0.01, 0.01));
 	
-/*	result += rn_ShadowPointTextureCubeArrayShadow(index, pos+vec3(0.01, 0.01, -0.01));
-	result += rn_ShadowPointTextureCubeArrayShadow(index, pos-vec3(0.01, 0.01, -0.01));
-	result += rn_ShadowPointTextureCubeArrayShadow(index, pos+vec3(0.01, -0.01, -0.01));
-	result += rn_ShadowPointTextureCubeArrayShadow(index, pos-vec3(0.01, -0.01, -0.01));
-	*/
 	return result*0.2;
 }
 
 float rn_ShadowPoint(int light, vec3 dir, float range)
 {
-	float occluder = /*rn_ShadowPointPCF2x2(light, dir);*/ rn_ShadowPointTextureCubeArrayShadow(light, dir)*range;
+	float occluder = rn_ShadowPointTextureCubeArrayShadow(light, dir)*range;
 	float receiver = length(dir);
 	return min(1.0, max(0.0, exp((occluder-receiver)*15.0)));
 	

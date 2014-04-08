@@ -2,8 +2,8 @@
 //  TGSun.cpp
 //  Test Game
 //
-//  Created by Sidney Just on 16/01/14.
-//  Copyright (c) 2014 Überpixel. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "TGSun.h"
@@ -14,6 +14,8 @@
 
 namespace TG
 {
+	RNDefineMeta(Sun, RN::Light)
+	
 	double cycle(double value, double min, double max)
 	{
 		while(value < min)
@@ -30,35 +32,80 @@ namespace TG
 	}
 	
 	Sun::Sun() :
-		RN::Light(RN::Light::Type::DirectionalLight)
+		RN::Light(RN::Light::Type::DirectionalLight),
+		_time("time", 0.0f, &Sun::GetTime, &Sun::SetTime)
 	{
+		AddObservable(&_time);
+		
 		SetDate(181, 2013);
-		SetTime(12, 32, 0);
+		SetTime(9, 32, 0);
 		SetLatitude(48.0f, 81.0f);
 		
-		RN::Texture2D *texture = static_cast<RN::Texture2D *>(RN::Texture::WithFile("textures/sun_gradient.png"));
-		float *color = new float[texture->GetWidth() * texture->GetHeight() * 4];
+		_sunGradient.AddColor(RN::Color(0.8f, 0.75f, 0.55f) * 1.5, 0.70f);
+		_sunGradient.AddColor(RN::Color(0.8f, 0.75f, 0.55f) * 1.4, 0.45f);
+		_sunGradient.AddColor(RN::Color(0.8f, 0.75f, 0.55f) * 1.3, 0.28f);
+		_sunGradient.AddColor(RN::Color(0.9f, 0.5f, 0.2f) * 1.5, 0.12f);
+		_sunGradient.AddColor(RN::Color(0.9f, 0.5f, 0.2f) * 0.25, 0.08f);
+		_sunGradient.AddColor(RN::Color(0.5f, 0.5f, 0.5f) * 0.02, 0.0f);
 		
-		RN::Texture::PixelData data;
-		data.alignment = 1;
-		data.format = RN::Texture::Format::RGBA32F;
-		data.data = color;
+		_ambientGradient.AddColor(RN::Color::White() * 0.8f, 0.79f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.8f, 0.28f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.6, 0.12f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.3, 0.08f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.1, 0.05f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.05, 0.0f);
 		
-		texture->GetData(data);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 2.0f, 0.79f);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 2.0f, 0.28f);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 1.6, 0.12f);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 1.3, 0.08f);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 0.7, 0.05f);
+		_fogGradient.AddColor(RN::Color::Black(), 0.0f);
 		
-		float *temp = color;
+		for(auto &color : _fogGradient._colors)
+			color.first.a = 1.0f;
+	}
+	
+	Sun::Sun(RN::Deserializer *deserializer)  :
+		RN::Light(deserializer),
+		_time("time", 0.0f, &Sun::GetTime, &Sun::SetTime)
+	{
+		AddObservable(&_time);
 		
-		for(size_t i = 0; i < texture->GetWidth(); i ++)
-		{
-			RN::Color tcolor = RN::Color(color[0], color[1], color[2], 1.0f);
-			tcolor *= 0.48f;
-			tcolor.a = 1.0;
-			
-			_temperatures.push_back(std::move(tcolor));
-			color += 4;
-		}
+		SetDate(181, 2013);
+		SetLatitude(48.0f, 81.0f);
 		
-		delete [] temp;
+		SetTime(deserializer->DecodeFloat());
+		
+		_sunGradient.AddColor(RN::Color(0.8f, 0.75f, 0.55f) * 1.5, 0.70f);
+		_sunGradient.AddColor(RN::Color(0.8f, 0.75f, 0.55f) * 1.4, 0.45f);
+		_sunGradient.AddColor(RN::Color(0.8f, 0.75f, 0.55f) * 1.3, 0.28f);
+		_sunGradient.AddColor(RN::Color(0.9f, 0.5f, 0.2f) * 1.5, 0.12f);
+		_sunGradient.AddColor(RN::Color(0.9f, 0.5f, 0.2f) * 0.25, 0.08f);
+		_sunGradient.AddColor(RN::Color(0.5f, 0.5f, 0.5f) * 0.02, 0.0f);
+		
+		_ambientGradient.AddColor(RN::Color::White() * 0.8f, 0.79f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.8f, 0.28f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.6, 0.12f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.3, 0.08f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.1, 0.05f);
+		_ambientGradient.AddColor(RN::Color::White() * 0.05, 0.0f);
+		
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 2.0f, 0.79f);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 2.0f, 0.28f);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 1.6, 0.12f);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 1.3, 0.08f);
+		_fogGradient.AddColor(RN::Color::Color(0.127f, 0.252f, 0.393f) * 0.7, 0.05f);
+		_fogGradient.AddColor(RN::Color::Black(), 0.0f);
+		
+		for(auto &color : _fogGradient._colors)
+			color.first.a = 1.0f;
+	}
+	
+	void Sun::Serialize(RN::Serializer *serializer)
+	{
+		RN::Light::Serialize(serializer);
+		serializer->EncodeFloat(GetTime());
 	}
 	
 	void Sun::SetTime(uint32 hour, uint32 minute, uint32 second)
@@ -81,9 +128,31 @@ namespace TG
 	}
 	
 	
+	float Sun::GetTime() const
+	{
+		float result = _minute + (_hour * 60.0);
+		return result;
+	}
+	
+	void Sun::SetTime(float time)
+	{
+		uint32 hour = 0;
+		
+		while(time > 60.0f)
+		{
+			hour ++;
+			time -= 60.0f;
+		}
+		
+		SetTime(hour, static_cast<uint32>(time), 0);
+		UpdateRotation();
+	}
+	
+	
 	void Sun::Update(float delta)
 	{
-		UpdateTime(delta);
+		float blub = RN::Input::GetSharedInstance()->IsKeyPressed('q')-RN::Input::GetSharedInstance()->IsKeyPressed('e');
+		UpdateTime(delta*blub*5.0);
 		UpdateRotation();
 		
 		RN::Light::Update(delta);
@@ -92,6 +161,8 @@ namespace TG
 	void Sun::UpdateTime(float delta)
 	{
 		float _factor = 3600.0;
+		//if(_hour > 22 || _hour < 6)
+		//	_factor *= 15.0f;
 		
 		
 		_second += (delta * _factor);
@@ -119,6 +190,9 @@ namespace TG
 			_day -= 365;
 			_year ++;
 		}
+		
+		_time.WillChangeValue();
+		_time.DidChangeValue();
 	}
 	
 	void Sun::UpdateRotation()
@@ -150,14 +224,17 @@ namespace TG
 		
 		yaw = cycle(yaw, 0.0, 360.0);
 		
-		_isNight = (pitch <= 0.0);
 		_pitch   = pitch;
+
+		_point = (RN::Math::DegreesToRadians(_pitch)) / 2.0f;
+		_isNight = (pitch <= 0.014434f);
 		
+		//RNDebug("%f", _point);
 		
-		double factor = (_second + (60.0 * _minute) + (3600.0 * _hour)) / 86400.0;
-		size_t index  = static_cast<size_t>(roundf(_temperatures.size() * factor));
+		//RN::Color color = GetAmbientColor();
+		//RNDebug("%f: {%f, %f, %f}", _point, color.r, color.g, color.b);
 		
-		SetColor(_temperatures[index]);
+		SetColor(_sunGradient.GetColor(_point));
 		SetRotation(RN::Quaternion(RN::Vector3(yaw, -pitch, 0.0)));
 	}
 }

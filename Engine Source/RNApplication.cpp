@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDeclareSingleton(Application)
+	RNDefineSingleton(Application)
 	
 	Application::Application()
 	{

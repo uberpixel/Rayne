@@ -10,46 +10,37 @@
 
 namespace RN
 {
-	RNDeclareMeta(Message)
-	RNDeclareSingleton(MessageCenter)
+	RNDefineMeta(Message, Object)
+	RNDefineSingleton(MessageCenter)
 	
-	Message::Message(String *name, Object *object, Dictionary *info)
-	{
-		_name   = name ? name->Retain() : nullptr;
-		_object = object ? object->Retain() : nullptr;
-		_info   = info ? info->Retain() : nullptr;
-	}
+	Message::Message(String *name, Object *object, Dictionary *info) :
+		_name(SafeRetain(name)),
+		_object(SafeRetain(object)),
+		_info(SafeRetain(info))
+	{}
 	
 	Message::~Message()
 	{
-		if(_name)
-			_name->Release();
-		
-		if(_object)
-			_object->Release();
-		
-		if(_info)
-			_info->Release();
+		SafeRelease(_name);
+		SafeRelease(_object);
+		SafeRelease(_info);
 	}
 	
 	
 	
 	void MessageCenter::PostMessage(Message *message)
 	{
-		String *name = message->GetName();
-		machine_hash hash = name->GetHash();
+		LockGuard<SpinLock> lock(_lock);
 		
-		_lock.Lock();
-		
-		std::vector<MessageObserverProxy> observer = _observer;
-		
-		_lock.Unlock();
-		
-		for(auto i=_observer.begin(); i!=_observer.end(); i++)
+		auto iterator = _observer.find(message->GetName());
+		if(iterator != _observer.end())
 		{
-			if(i->name->GetHash() == hash && i->name->IsEqual(name))
+			std::vector<MessageObserverProxy> observer = iterator->second;
+			lock.Unlock();
+			
+			for(MessageObserverProxy &proxy : observer)
 			{
-				i->callback(message);
+				proxy.callback(message);
 			}
 		}
 	}
@@ -68,49 +59,85 @@ namespace RN
 	{
 		MessageObserverProxy proxy;
 		proxy.cookie = cookie;
-		proxy.name = name->Retain();
 		proxy.callback = std::move(callback);
 		
-		_lock.Lock();
-		_observer.push_back(std::move(proxy));
-		_lock.Unlock();
+		LockGuard<SpinLock> lock(_lock);
+		
+		auto iterator = _observer.find(name);
+		if(iterator != _observer.end())
+		{
+			std::vector<MessageObserverProxy> &observer = iterator->second;
+			observer.push_back(std::move(proxy));
+		}
+		else
+		{
+			std::vector<MessageObserverProxy> observer;
+			observer.push_back(std::move(proxy));
+			
+			_observer.emplace(std::make_pair(name->Copy(), std::move(observer)));
+		}
 	}
 	
 	void MessageCenter::RemoveObserver(void *cookie)
 	{
-		_lock.Lock();
+		LockGuard<SpinLock> lock(_lock);
 		
-		for(auto i=_observer.begin(); i!=_observer.end();)
+		std::vector<String *> emptyPaths;
+		
+		for(auto i = _observer.begin(); i != _observer.end(); i ++)
 		{
-			if(i->cookie == cookie)
+			std::vector<MessageObserverProxy> &observer = i->second;
+			
+			for(auto j = observer.begin(); j != observer.end();)
 			{
-				i = _observer.erase(i);
-				continue;
+				if(j->cookie == cookie)
+				{
+					j = observer.erase(j);
+					continue;
+				}
+				
+				j ++;
 			}
 			
-			i++;
+			if(observer.empty())
+				emptyPaths.push_back(i->first);
 		}
 		
-		_lock.Unlock();
+		if(!emptyPaths.empty())
+		{
+			for(String *name : emptyPaths)
+			{
+				_observer.erase(name);
+				name->Release();
+			}
+		}
 	}
 	
 	void MessageCenter::RemoveObserver(void *cookie, String *name)
 	{
-		machine_hash hash = name->GetHash();
+		LockGuard<SpinLock> lock(_lock);
 		
-		_lock.Lock();
-		
-		for(auto i=_observer.begin(); i!=_observer.end();)
+		auto iterator = _observer.find(name);
+		if(iterator != _observer.end())
 		{
-			if(i->cookie == cookie && i->name->GetHash() == hash && i->name->IsEqual(name))
+			std::vector<MessageObserverProxy> &observer = iterator->second;
+			
+			for(auto i = observer.begin(); i != observer.end();)
 			{
-				i = _observer.erase(i);
-				continue;
+				if(i->cookie == cookie)
+				{
+					i = observer.erase(i);
+					continue;
+				}
+				
+				i ++;
 			}
 			
-			i++;
+			if(observer.empty())
+			{
+				iterator->first->Release();
+				_observer.erase(iterator);
+			}
 		}
-		
-		_lock.Unlock();
 	}
 }

@@ -84,6 +84,11 @@ namespace RN
 			_duration = duration;
 		}
 		
+		void SetType(Type type)
+		{
+			_type = type;
+		}
+		
 		
 		static T GetValueAtPoint(T start, T end, TimeType time, TimeType duration, Type type=Type::Linear)
 		{

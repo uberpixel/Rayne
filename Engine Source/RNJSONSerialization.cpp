@@ -109,7 +109,7 @@ namespace RN
 			Array *array = static_cast<Array *>(object);
 			json = json_array();
 			
-			array->Enumerate([&](Object *object, size_t index, bool *stop) {
+			array->Enumerate([&](Object *object, size_t index, bool &stop) {
 				json_t *data = static_cast<json_t *>(SerializeObject(object));
 				json_array_append_new(json, data);
 			});
@@ -120,7 +120,7 @@ namespace RN
 			Dictionary *dictionary = static_cast<Dictionary *>(object);
 			json = json_object();
 			
-			dictionary->Enumerate([&](Object *object, Object *key, bool *stop) {
+			dictionary->Enumerate([&](Object *object, Object *key, bool &stop) {
 				
 				if(key->IsKindOfClass(__JSONStringClass))
 				{

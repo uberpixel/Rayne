@@ -19,7 +19,7 @@ namespace RN
 	public:
 		PNGResourceLoader();
 		
-		Object *Load(File *file, Dictionary *settings) override;
+		Asset *Load(File *file, Dictionary *settings) override;
 		
 		bool SupportsBackgroundLoading() override;
 		bool SupportsLoadingFile(File *file) override;
@@ -28,7 +28,7 @@ namespace RN
 		
 		static void InitialWakeUp(MetaClassBase *meta);
 		
-		RNDefineMeta(PNGResourceLoader, ResourceLoader)
+		RNDeclareMeta(PNGResourceLoader)
 	};
 	
 	class Model;
@@ -37,7 +37,7 @@ namespace RN
 	public:
 		SGMResourceLoader();
 		
-		Object *Load(File *file, Dictionary *settings) override;
+		Asset *Load(File *file, Dictionary *settings) override;
 		
 		bool SupportsBackgroundLoading() override;
 		bool SupportsLoadingFile(File *file) override;
@@ -49,7 +49,7 @@ namespace RN
 	private:
 		void LoadLODStage(File *file, Model *model, size_t stage, bool guessMaterial);
 		
-		RNDefineMeta(SGMResourceLoader, ResourceLoader)
+		RNDeclareMeta(SGMResourceLoader)
 	};
 	
 	class SGAResourceLoader : public ResourceLoader
@@ -57,7 +57,7 @@ namespace RN
 	public:
 		SGAResourceLoader();
 		
-		Object *Load(File *file, Dictionary *settings) override;
+		Asset *Load(File *file, Dictionary *settings) override;
 		
 		bool SupportsBackgroundLoading() override;
 		bool SupportsLoadingFile(File *file) override;
@@ -66,7 +66,7 @@ namespace RN
 		
 		static void InitialWakeUp(MetaClassBase *meta);
 		
-		RNDefineMeta(SGAResourceLoader, ResourceLoader)
+		RNDeclareMeta(SGAResourceLoader)
 	};
 	
 	class GLSLResourceLoader : public ResourceLoader
@@ -74,7 +74,7 @@ namespace RN
 	public:
 		GLSLResourceLoader();
 		
-		Object *Load(String *name, Dictionary *settings) override;
+		Asset *Load(String *name, Dictionary *settings) override;
 		
 		bool SupportsBackgroundLoading() override;
 		bool SupportsLoadingFile(File *file) override;
@@ -84,7 +84,7 @@ namespace RN
 		
 		static void InitialWakeUp(MetaClassBase *meta);
 		
-		RNDefineMeta(GLSLResourceLoader, ResourceLoader)
+		RNDeclareMeta(GLSLResourceLoader)
 	};
 }
 

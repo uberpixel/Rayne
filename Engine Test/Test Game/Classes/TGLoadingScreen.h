@@ -2,8 +2,8 @@
 //  TGLoadingScreen.h
 //  Test Game
 //
-//  Created by Sidney Just on 08/01/14.
-//  Copyright (c) 2014 Überpixel. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #ifndef __Test_Game__TGLoadingScreen__

@@ -180,6 +180,7 @@ namespace RN
 				case Version::Core3_2:
 					AddFeature(Feature::VertexArrays);
 					AddFeature(Feature::GeometryShaders);
+					AddFeature(Feature::ProgramValidation);
 					
 					if(SupportsExtensions("GL_EXT_texture_filter_anisotropic"))
 						AddFeature(Feature::AnisotropicFilter);

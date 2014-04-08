@@ -18,6 +18,7 @@
 #include "RNSkeleton.h"
 #include "RNLight.h"
 #include "RNData.h"
+#include "RNGPUBuffer.h"
 
 namespace RN
 {
@@ -67,8 +68,10 @@ namespace RN
 		Skeleton *skeleton;
 		
 		uint32 flags;
+		float distance;
 		
 		Rect scissorRect;
+		std::vector<GPUBuffer *> buffers;
 		
 		GLuint instancingData;
 		GLuint instancingIndices;
@@ -150,8 +153,12 @@ namespace RN
 		RNAPI void SetScissorRect(const Rect& rect);
 		
 		RNAPI void SetCullMode(GLenum cullMode);
+		RNAPI void SetPolygonMode(GLenum polygonMode);
 		RNAPI void SetDepthFunction(GLenum depthFunction);
 		RNAPI void SetBlendFunction(GLenum blendSource, GLenum blendDestination);
+		RNAPI void SetBlendFunction(GLenum rgbBlendSource, GLenum rgbBlendDestination, GLenum alphaBlendSource, GLenum alphaBlendDestination);
+		RNAPI void SetBlendEquation(GLenum equation);
+		RNAPI void SetBlendEquation(GLenum rgbEquation, GLenum alphaEquation);
 		RNAPI void SetPolygonOffset(float factor, float units);
 		
 		RNAPI void RelinquishMesh(Mesh *mesh);
@@ -173,14 +180,16 @@ namespace RN
 		
 	protected:
 		RNAPI void FlushAutoVAOs();
+		RNAPI virtual void ValidateState();
 		RNAPI virtual void UpdateShaderData();
 		RNAPI virtual void DrawCamera(Camera *camera, Camera *source, size_t skyCubeMeshes);
-		RNAPI virtual void BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple);
+		RNAPI virtual void BindVAO(const std::pair<ShaderProgram *, Mesh *> &pair);
 		
 		RNAPI virtual void FlushCamera(Camera *camera, Shader *drawShader);
 		RNAPI virtual void DrawCameraStage(Camera *camera, Camera *stage);
 		
 		bool _hasValidFramebuffer;
+		bool _canValidatePrograms;
 		
 		uint32 _renderedLights;
 		uint32 _renderedVertices;
@@ -216,10 +225,16 @@ namespace RN
 		bool _scissorTest;
 		
 		GLenum _cullMode;
+		GLenum _polygonMode;
 		GLenum _depthFunc;
 		
+		GLenum _blendEquation;
+		GLenum _alphaBlendEquation;
+		
 		GLenum _blendSource;
+		GLenum _alphaBlendSource;
 		GLenum _blendDestination;
+		GLenum _alphaBlendDestination;
 		
 		float _polygonOffsetFactor;
 		float _polygonOffsetUnits;
@@ -234,7 +249,7 @@ namespace RN
 		void FullfilPromises(void *data);
 		void CaptureFrame();
 		
-		std::map<std::tuple<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
+		std::map<std::pair<ShaderProgram *, Mesh *>, std::tuple<GLuint, uint32>> _autoVAOs;
 		std::vector<std::pair<Camera *, Shader *>> _flushCameras;
 		std::unordered_set<Camera *> _flushedCameras;
 		
@@ -245,7 +260,9 @@ namespace RN
 		size_t _captureBufferSize[2];
 		FrameID _captureAge;
 		
-		RNDefineSingleton(Renderer)
+		bool _validatePrograms;
+		
+		RNDeclareSingleton(Renderer)
 		
 	};
 	
@@ -376,6 +393,15 @@ namespace RN
 		_cullMode = cullMode;
 	}
 	
+	RN_INLINE void Renderer::SetPolygonMode(GLenum polygonMode)
+	{
+		if(_polygonMode == polygonMode)
+			return;
+		
+		gl::PolygonMode(GL_FRONT_AND_BACK, polygonMode);
+		_polygonMode = polygonMode;
+	}
+	
 	RN_INLINE void Renderer::SetDepthFunction(GLenum depthFunction)
 	{
 		if(_depthFunc == depthFunction)
@@ -387,12 +413,36 @@ namespace RN
 	
 	RN_INLINE void Renderer::SetBlendFunction(GLenum blendSource, GLenum blendDestination)
 	{
-		if(_blendSource != blendSource || _blendDestination != blendDestination)
+		SetBlendFunction(blendSource, blendDestination, blendSource, blendDestination);
+	}
+	
+	RN_INLINE void Renderer::SetBlendFunction(GLenum rgbBlendSource, GLenum rgbBlendDestination, GLenum alphaBlendSource, GLenum alphaBlendDestination)
+	{
+		if(_blendSource != rgbBlendSource || _blendDestination != rgbBlendDestination ||
+		   _alphaBlendSource != alphaBlendSource || _alphaBlendDestination != alphaBlendDestination)
 		{
-			gl::BlendFunc(blendSource, blendDestination);
+			gl::BlendFuncSeparate(rgbBlendSource, rgbBlendDestination, alphaBlendSource, alphaBlendDestination);
 			
-			_blendSource = blendSource;
-			_blendDestination = blendDestination;
+			_blendSource = rgbBlendSource;
+			_blendDestination = rgbBlendDestination;
+			_alphaBlendSource = alphaBlendSource;
+			_alphaBlendDestination = alphaBlendDestination;
+		}
+	}
+	
+	RN_INLINE void Renderer::SetBlendEquation(GLenum equation)
+	{
+		SetBlendEquation(equation, equation);
+	}
+	
+	RN_INLINE void Renderer::SetBlendEquation(GLenum rgbEquation, GLenum alphaEquation)
+	{
+		if(_blendEquation != rgbEquation || _alphaBlendEquation != alphaEquation)
+		{
+			gl::BlendEquationSeparate(rgbEquation, alphaEquation);
+			
+			_blendEquation = rgbEquation;
+			_alphaBlendEquation = alphaEquation;
 		}
 	}
 	

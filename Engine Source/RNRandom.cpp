@@ -249,7 +249,7 @@ namespace RN
 		}
 	}
 	
-	RNDeclareMeta(RandomNumberGenerator)
+	RNDefineMeta(RandomNumberGenerator, Object)
 	
 	RandomNumberGenerator::RandomNumberGenerator(Type type)
 	{
@@ -356,6 +356,18 @@ namespace RN
 		result.y = _generator->RandomFloatRange(std::min(min.y, max.y), std::max(min.y, max.y));
 		result.z = _generator->RandomFloatRange(std::min(min.z, max.z), std::max(min.z, max.z));
 		result.w = _generator->RandomFloatRange(std::min(min.w, max.w), std::max(min.w, max.w));
+		
+		return result;
+	}
+	
+	Color RandomNumberGenerator::RandomColorRange(const Color& min, const Color& max)
+	{
+		Color result;
+		
+		result.r = _generator->RandomFloatRange(std::min(min.r, max.r), std::max(min.r, max.r));
+		result.g = _generator->RandomFloatRange(std::min(min.g, max.g), std::max(min.g, max.g));
+		result.b = _generator->RandomFloatRange(std::min(min.b, max.b), std::max(min.b, max.b));
+		result.a = _generator->RandomFloatRange(std::min(min.a, max.a), std::max(min.a, max.a));
 		
 		return result;
 	}

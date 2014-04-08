@@ -11,10 +11,10 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-#include "RNThread.h"
 
 namespace RN
 {
+	struct AutoreleasePoolInternals;
 	class AutoreleasePool
 	{
 	public:
@@ -27,10 +27,8 @@ namespace RN
 		RNAPI static AutoreleasePool *GetCurrentPool();
 		
 	private:
-		Thread *_owner;
 		AutoreleasePool *_parent;
-		
-		std::vector<Object *> _objects;
+		PIMPL<AutoreleasePoolInternals> _internals;
 	};
 }
 

@@ -10,21 +10,25 @@
 #include "RNRenderer.h"
 #include "RNWorld.h"
 #include "RNHit.h"
+#include "RNSceneNodeAttachment.h"
+#include "RNMessage.h"
 
 namespace RN
 {
-	RNDeclareMeta(SceneNode)
+	RNDefineMeta(SceneNode, Object)
+	
+	std::atomic<uint64> __SceneNodeIDs;
 	
 	SceneNode::SceneNode() :
-		_position("position", std::bind(&SceneNode::GetPosition, this), std::bind(&SceneNode::SetPosition, this, std::placeholders::_1)),
-		_rotation("rotation", std::bind(&SceneNode::GetRotation, this), std::bind(&SceneNode::SetRotation, this, std::placeholders::_1)),
-		_scale("scale", Vector3(1.0), std::bind(&SceneNode::GetScale, this), std::bind(&SceneNode::SetScale, this, std::placeholders::_1))
+		_position("position", &SceneNode::GetPosition, &SceneNode::SetPosition),
+		_rotation("rotation", &SceneNode::GetRotation, &SceneNode::SetRotation),
+		_scale("scale", Vector3(1.0), &SceneNode::GetScale, &SceneNode::SetScale),
+		_tag("tag", 0, &SceneNode::GetTag, &SceneNode::SetTag),
+		_uid(__SceneNodeIDs.fetch_add(1)),
+		_lid(-1)
 	{
 		Initialize();
-		
-		AddObservable(&_position);
-		AddObservable(&_rotation);
-		AddObservable(&_scale);
+		AddObservables({ &_tag, &_position, &_rotation, &_scale });
 	}
 	
 	SceneNode::SceneNode(const Vector3& position) :
@@ -39,8 +43,110 @@ namespace RN
 		SetRotation(rotation);
 	}
 	
+	SceneNode::SceneNode(const SceneNode *other) :
+		SceneNode()
+	{
+		SceneNode *temp = const_cast<SceneNode *>(other);
+		LockGuard<Object *> lock(temp);
+		
+		SetPosition(other->GetPosition());
+		SetRotation(other->GetRotation());
+		SetScale(other->GetScale());
+		
+		renderGroup    = other->renderGroup;
+		collisionGroup = other->collisionGroup;
+		
+		_priority = other->_priority;
+		_flags    = other->_flags.load();
+		_tag      = other->_tag;
+		
+		_action = other->_action;
+		
+		_boundingBox    = other->_boundingBox;
+		_boundingSphere = other->_boundingSphere;
+		
+		other->GetChildren()->Enumerate<RN::SceneNode>([&](RN::SceneNode *node, size_t index, bool &stop){
+			AddChild(node->Copy());
+		});
+	}
+	
 	SceneNode::~SceneNode()
 	{}
+	
+	
+	
+	SceneNode::SceneNode(Deserializer *deserializer) :
+		SceneNode()
+	{
+		SetPosition(deserializer->DecodeVector3());
+		SetScale(deserializer->DecodeVector3());
+		SetRotation(deserializer->DecodeQuaternion());
+		
+		_boundingBox.minExtend = deserializer->DecodeVector3();
+		_boundingBox.maxExtend = deserializer->DecodeVector3();
+		_boundingBox.position  = deserializer->DecodeVector3();
+		
+		uint32 groups = static_cast<uint32>(deserializer->DecodeInt32());
+		
+		renderGroup    = (groups & 0xff);
+		collisionGroup = (groups >> 8);
+		
+		_priority = static_cast<Priority>(deserializer->DecodeInt32());
+		_flags    = static_cast<Flags>(deserializer->DecodeInt32());
+		
+		_tag = static_cast<Tag>(deserializer->DecodeInt64());
+		_lid = deserializer->DecodeInt64();
+		
+		size_t count = static_cast<size_t>(deserializer->DecodeInt64());
+		for(size_t i = 0; i < count; i ++)
+		{
+			SceneNode *child = static_cast<SceneNode *>(deserializer->DecodeObject());
+			
+			if(child)
+				AddChild(child->Autorelease());
+		}
+	}
+	
+	
+	void SceneNode::Serialize(Serializer *serializer)
+	{
+		UpdateInternalData();
+		
+		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
+		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
+		
+		std::lock(lock1, lock2);
+		
+		serializer->EncodeVector3(_position);
+		serializer->EncodeVector3(_scale);
+		serializer->EncodeQuarternion(_rotation);
+		
+		serializer->EncodeVector3(_boundingBox.minExtend);
+		serializer->EncodeVector3(_boundingBox.maxExtend);
+		serializer->EncodeVector3(_boundingBox.position);
+		
+		serializer->EncodeInt32(renderGroup | (collisionGroup << 8));
+		serializer->EncodeInt32(static_cast<int32>(_priority));
+		serializer->EncodeInt32(_flags);
+		serializer->EncodeInt64(_tag);
+		serializer->EncodeInt64(_lid);
+		
+		serializer->EncodeInt64(static_cast<uint64>(_children.GetCount()));
+		
+		_children.Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
+		
+			bool noSave = (node->_flags & Flags::NoSave);
+			
+			if(noSave)
+				serializer->EncodeConditionalObject(node);
+			else
+				serializer->EncodeObject(node);
+			
+		});
+		
+		lock1.unlock();
+		lock2.unlock();
+	}
 	
 	
 	void SceneNode::Initialize()
@@ -70,9 +176,9 @@ namespace RN
 		_cleanUpSignal.Emit(this);
 		
 		if(_world)
-			_world->RemoveSceneNode(this);
+			_world->__RemoveSceneNode(this);
 		
-		LockChildren();
+		_parentChildLock.Lock();
 		
 		size_t count = _children.GetCount();
 		
@@ -80,13 +186,13 @@ namespace RN
 		{
 			SceneNode *child = static_cast<SceneNode *>(_children[i]);
 			
-			child->WillUpdate(ChangedParent);
+			child->WillUpdate(ChangeSet::Parent);
 			child->_parent = nullptr;
-			child->DidUpdate(ChangedParent);
+			child->DidUpdate(ChangeSet::Parent);
 		}
 		
 		_children.RemoveAllObjects();
-		UnlockChildren();
+		_parentChildLock.Unlock();
 		
 		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
 		for(auto& dependecy : _dependencyMap)
@@ -99,9 +205,15 @@ namespace RN
 		
 		Unlock();
 		
-		_attachments.Enumerate<SceneNodeAttachment>([](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+		_attachments.Enumerate<SceneNodeAttachment>([](SceneNodeAttachment *attachment, size_t index, bool &stop) {
 			attachment->_node = nullptr;
 		});
+	}
+	
+	void SceneNode::RemoveFromWorld()
+	{
+		if(_world)
+			_world->RemoveSceneNode(this);
 	}
 	
 	bool SceneNode::Compare(const SceneNode *other) const
@@ -118,7 +230,6 @@ namespace RN
 		return (this < other);
 	}
 	
-	
 	// -------------------
 	// MARK: -
 	// MARK: Dependencies
@@ -129,7 +240,7 @@ namespace RN
 		if(!dependency)
 			return;
 		
-		WillUpdate(ChangedDependencies);
+		WillUpdate(ChangeSet::Dependencies);
 		
 		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
 		
@@ -141,7 +252,7 @@ namespace RN
 		}
 		
 		lock.Unlock();
-		DidUpdate(ChangedDependencies);
+		DidUpdate(ChangeSet::Dependencies);
 	}
 	
 	void SceneNode::RemoveDependency(SceneNode *dependency)
@@ -149,7 +260,7 @@ namespace RN
 		if(!dependency)
 			return;
 		
-		WillUpdate(ChangedDependencies);
+		WillUpdate(ChangeSet::Dependencies);
 		
 		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
 		
@@ -163,12 +274,12 @@ namespace RN
 		}
 		
 		lock.Unlock();
-		DidUpdate(ChangedDependencies);
+		DidUpdate(ChangeSet::Dependencies);
 	}
 	
 	void SceneNode::__BreakDependency(SceneNode *dependency)
 	{
-		WillUpdate(ChangedDependencies);
+		WillUpdate(ChangeSet::Dependencies);
 		
 		LockGuard<RecursiveSpinLock> lock(_dependenciesLock);
 		
@@ -176,7 +287,7 @@ namespace RN
 		_dependencies.erase(std::find(_dependencies.begin(), _dependencies.end(), dependency));
 		
 		lock.Unlock();
-		DidUpdate(ChangedDependencies);
+		DidUpdate(ChangeSet::Dependencies);
 	}
 	
 	
@@ -202,7 +313,7 @@ namespace RN
 	
 	bool SceneNode::IsVisibleInCamera(Camera *camera)
 	{
-		if(_flags & FlagHidden)
+		if(_flags & Flags::Hidden)
 			return false;
 		
 		return camera->InFrustum(GetBoundingSphere());
@@ -222,9 +333,26 @@ namespace RN
 	
 	void SceneNode::SetFlags(Flags flags)
 	{
-		WillUpdate(ChangedFlags);
+		WillUpdate(ChangeSet::Flags);
 		_flags = flags;
-		DidUpdate(ChangedFlags);
+		DidUpdate(ChangeSet::Flags);
+	}
+	
+	void SceneNode::SetTag(Tag tag)
+	{
+		WillUpdate(ChangeSet::Tag);
+		_tag = tag;
+		DidUpdate(ChangeSet::Tag);
+	}
+	
+	void SceneNode::SetRenderGroup(uint8 group)
+	{
+		renderGroup = group;
+	}
+	
+	void SceneNode::SetCollisionGroup(uint8 group)
+	{
+		collisionGroup = group;
 	}
 	
 	void SceneNode::SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere)
@@ -249,9 +377,9 @@ namespace RN
 	
 	void SceneNode::SetPriority(Priority priority)
 	{
-		WillUpdate(ChangedPriority);
+		WillUpdate(ChangeSet::Priority);
 		_priority = priority;
-		DidUpdate(ChangedPriority);
+		DidUpdate(ChangeSet::Priority);
 	}
 	
 	void SceneNode::SetDebugName(const std::string& name)
@@ -264,13 +392,12 @@ namespace RN
 		_action = action;
 	}
 	
-	void SceneNode::LookAt(SceneNode *other)
+	void SceneNode::LookAt(const RN::Vector3 &target, bool keepUpAxis)
 	{
 		const RN::Vector3& worldPos = GetWorldPosition();
-		const RN::Vector3& point = other->GetWorldPosition();
 		
 		RN::Quaternion rotation;
-		rotation.LookAt(worldPos - point);
+		rotation = Quaternion::WithLookAt(worldPos - target, GetUp(), keepUpAxis);
 		
 		SetWorldRotation(rotation);
 	}
@@ -280,7 +407,7 @@ namespace RN
 	// MARK: Children
 	// -------------------
 	
-	void SceneNode::AttachChild(SceneNode *child)
+	void SceneNode::AddChild(SceneNode *child)
 	{
 		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<RecursiveSpinLock> lock2(child->_parentChildLock);
@@ -293,17 +420,17 @@ namespace RN
 			return;
 		
 		WillAddChild(child);
-		child->WillUpdate(ChangedParent);
+		child->WillUpdate(ChangeSet::Parent);
 		
 		_children.AddObject(child);
 		
 		child->_parent = this;
-		child->DidUpdate(ChangedParent);
+		child->DidUpdate(ChangeSet::Parent);
 		
 		DidAddChild(child);
 	}
 	
-	void SceneNode::DetachChild(SceneNode *child)
+	void SceneNode::RemoveChild(SceneNode *child)
 	{
 		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<RecursiveSpinLock> lock2(child->_parentChildLock);
@@ -315,23 +442,35 @@ namespace RN
 		if(child->_parent == this)
 		{
 			WillRemoveChild(child);
-			child->WillUpdate(ChangedParent);
+			child->WillUpdate(ChangeSet::Parent);
 			
 			child->Retain()->Autorelease();
 			child->_parent = nullptr;
 			
 			_children.RemoveObject(child);
 			
-			child->DidUpdate(ChangedParent);
+			child->DidUpdate(ChangeSet::Parent);
 			DidRemoveChild(child);
 		}
 	}
 	
-	void SceneNode::DetachFromParent()
+	void SceneNode::RemoveFromParent()
 	{
 		SceneNode *parent = GetParent();
 		if(parent)
-			parent->DetachChild(this);
+			parent->RemoveChild(this);
+	}
+	
+	const Array *SceneNode::GetChildren() const
+	{
+		LockGuard<decltype(_parentChildLock)> lock(_parentChildLock);
+		return _children.Copy()->Autorelease();
+	}
+	
+	bool SceneNode::HasChildren() const
+	{
+		LockGuard<decltype(_parentChildLock)> lock(_parentChildLock);
+		return (_children.GetCount() > 0);
 	}
 	
 	SceneNode *SceneNode::GetParent() const
@@ -341,16 +480,6 @@ namespace RN
 		_parentChildLock.Unlock();
 		
 		return node;
-	}
-
-	void SceneNode::LockChildren() const
-	{
-		_parentChildLock.Lock();
-	}
-	
-	void SceneNode::UnlockChildren() const
-	{
-		_parentChildLock.Unlock();
 	}
 	
 	// -------------------
@@ -365,14 +494,14 @@ namespace RN
 		if(attachment->_node)
 			throw Exception(Exception::Type::InvalidArgumentException, "Attachments mustn't have a parent!");
 			
-		WillUpdate(ChangedAttachments);
+		WillUpdate(ChangeSet::Attachments);
 		
 		_attachments.AddObject(attachment);
 		
 		attachment->_node = this;
 		attachment->DidAddToParent();
 		
-		DidUpdate(ChangedAttachments);
+		DidUpdate(ChangeSet::Attachments);
 	}
 	
 	void SceneNode::RemoveAttachment(SceneNodeAttachment *attachment)
@@ -382,13 +511,13 @@ namespace RN
 		if(attachment->_node != this)
 			throw Exception(Exception::Type::InvalidArgumentException, "Attachments must be removed from their parents!");
 		
-		WillUpdate(ChangedAttachments);
+		WillUpdate(ChangeSet::Attachments);
 		
 		attachment->WillRemoveFromParent();
 		attachment->_node = nullptr;
 		_attachments.RemoveObject(attachment);
 		
-		DidUpdate(ChangedAttachments);
+		DidUpdate(ChangeSet::Attachments);
 	}
 	
 	SceneNodeAttachment *SceneNode::GetAttachment(MetaClassBase *metaClass) const
@@ -397,11 +526,11 @@ namespace RN
 		
 		SceneNodeAttachment *match = nullptr;
 		
-		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool &stop) {
 			if(attachment->IsKindOfClass(metaClass))
 			{
 				match = attachment;
-				*stop = true;
+				stop = true;
 			}
 		});
 		
@@ -416,26 +545,81 @@ namespace RN
 		return attachments->Autorelease();
 	}
 	
+	void SceneNode::UpdateAttachments(float delta)
+	{
+		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
+		
+		_attachments.Enumerate<SceneNodeAttachment>([=](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+			attachment->Update(delta);
+		});
+	}
+	
+	void SceneNode::UpdateAttachmentsEditMode(float delta)
+	{
+		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
+		
+		_attachments.Enumerate<SceneNodeAttachment>([=](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+			attachment->UpdateEditMode(delta);
+		});
+	}
+	
 	// -------------------
 	// MARK: -
 	// MARK: Updates
 	// ------------------
 	
-	void SceneNode::WillUpdate(uint32 changeSet)
+	void SceneNode::WillUpdate(ChangeSet changeSet)
 	{
 		if(_parent)
 			_parent->ChildWillUpdate(this, changeSet);
 		
 		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
-		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool &stop) {
 			attachment->__WillUpdate(changeSet);
 		});
 	}
 	
-	void SceneNode::DidUpdate(uint32 changeSet)
+	void SceneNode::DidUpdate(ChangeSet changeSet)
 	{
-		if(changeSet & ChangedPosition)
+		if(changeSet & ChangeSet::Position)
 			_updated = true;
+		
+		if(changeSet & ChangeSet::Parent && _parent == nullptr)
+		{
+			LockGuard<decltype(_transformLock)> lock(_transformLock);
+			
+			if(_parent == nullptr)
+			{
+				_position = _worldPosition;
+				_rotation = _worldRotation;
+				_euler    = _worldEuler;
+				_scale    = _worldScale;
+				
+				_updated = true;
+			}
+			else
+			{
+				Vector3 position(_position);
+				Quaternion rotation(_rotation);
+				Vector3 scale(_scale);
+				
+				SetWorldPosition(position);
+				SetWorldRotation(rotation);
+				SetWorldScale(scale);
+			}
+		}
+		
+		if(changeSet & ChangeSet::World)
+		{
+			LockGuard<decltype(_parentChildLock)> lock(_parentChildLock);
+			
+			_children.Enumerate<RN::SceneNode>([&](RN::SceneNode *node, size_t index, bool &stop) {
+				node->_world = _world;
+				node->DidUpdate(ChangeSet::World);
+			});
+			
+			MessageCenter::GetSharedInstance()->PostMessage(kRNSceneNodeDidUpdateWorldMessage, this, nullptr);
+		}
 		
 		if(_world)
 			_world->SceneNodeDidUpdate(this, changeSet);
@@ -444,18 +628,22 @@ namespace RN
 			_parent->ChildDidUpdate(this, changeSet);
 		
 		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
-		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool *stop) {
+		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool &stop) {
 			attachment->__DidUpdate(changeSet);
 		});
 	}
 	
 	void SceneNode::FillRenderingObject(RenderingObject& object) const
 	{
-		if(_flags & FlagDrawLate)
+		if(_flags & Flags::DrawLate)
 			object.flags |= RenderingObject::DrawLate;
 		
 		object.transform = &_worldTransform;
 		object.rotation  = &_worldRotation;
+		
+		_attachments.Enumerate<SceneNodeAttachment>([&](SceneNodeAttachment *attachment, size_t index, bool &stop) {
+			attachment->UpdateRenderingObject(object);
+		});
 	}
 	
 	

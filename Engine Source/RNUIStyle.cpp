@@ -16,7 +16,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareSingleton(Style)
+		RNDefineSingleton(Style)
 		
 		Style::Style()
 		{
@@ -24,8 +24,15 @@ namespace RN
 			{
 				String *path = Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestUIStyleKey);
 				
-				_data = JSONSerialization::JSONObjectFromData<Dictionary>(Data::WithContentsOfFile(path->GetUTF8String()));
-				_data->Retain();
+				if(path)
+				{
+					_data = JSONSerialization::JSONObjectFromData<Dictionary>(Data::WithContentsOfFile(path->GetUTF8String()));
+					_data->Retain();
+				}
+				else
+				{
+					_data = new Dictionary();
+				}
 			}
 			catch(Exception e)
 			{
@@ -48,6 +55,12 @@ namespace RN
 		// MARK: General
 		// ---------------------
 		
+		void Style::LoadStyle(const std::string &path, String *key)
+		{
+			Object *data = JSONSerialization::JSONObjectFromData<Dictionary>(Data::WithContentsOfFile(path));
+			_data->SetObjectForKey(data, key);
+		}
+		
 		Object *Style::__GetResourceWithKeyPath(String *keyPath)
 		{
 			RN_ASSERT(keyPath, "Key path mustn't be NULL");
@@ -55,18 +68,42 @@ namespace RN
 			Array *keys = keyPath->GetComponentsSeparatedByString(RNCSTR("."));
 			Object *resource = _data;
 			
-			keys->Enumerate<String>([&](String *key, size_t index, bool *stop) {
+			size_t count = keys->GetCount();
+			
+			keys->Enumerate<String>([&](String *key, size_t index, bool &stop) {
 				
+				String *tkey = key->Copy();
+				Object *temp = resource;
+				
+#if RN_PLATFORM_MAC_OS
+				tkey->Append("~mac");
+				resource = static_cast<Dictionary *>(resource)->GetObjectForKey(tkey);
+#endif
+#if RN_PLATFORM_WINDOWS
+				tkey->Append("~win");
+				resource = static_cast<Dictionary *>(resource)->GetObjectForKey(tkey);
+#endif
+#if RN_PLATFORM_LINUX
+				tkey->Append("~linux");
+				resource = static_cast<Dictionary *>(resource)->GetObjectForKey(tkey);
+#endif
+				
+				tkey->Release();
+				
+				if(resource && (resource->IsKindOfClass(Dictionary::MetaClass()) || index == (count - 1)))
+				   return;
+				
+				resource = temp; // Restore the resource
 				resource = static_cast<Dictionary *>(resource)->GetObjectForKey(key);
 				if(!resource)
 				{
-					*stop = true;
+					stop = true;
 					return;
 				}
 				
-				if(!resource->IsKindOfClass(Dictionary::MetaClass()) && index < keys->GetCount() - 1)
+				if(!resource->IsKindOfClass(Dictionary::MetaClass()) && index < (count - 1))
 				{
-					*stop = true;
+					stop = true;
 					resource = nullptr;
 					
 					return;
@@ -241,16 +278,16 @@ namespace RN
 		
 		Control::State Style::ParseState(String *string)
 		{
-			Control::State state = Control::Normal;
+			Control::State state = Control::State::Normal;
 			
 			if(string->GetRangeOfString(RNCSTR("selected")).origin != kRNNotFound)
-				state |= Control::Selected;
+				state |= Control::State::Selected;
 			
 			if(string->GetRangeOfString(RNCSTR("highlighted")).origin != kRNNotFound)
-				state |= Control::Highlighted;
+				state |= Control::State::Highlighted;
 			
 			if(string->GetRangeOfString(RNCSTR("disabled")).origin != kRNNotFound)
-				state |= Control::Disabled;
+				state |= Control::State::Disabled;
 			
 			return state;
 		}
@@ -290,7 +327,7 @@ namespace RN
 					Number *height = atlas->GetObjectForKey<Number>(RNCSTR("height"));
 					
 					if(x && y && width && height)
-						return Atlas(x->GetFloatValue(), y->GetFloatValue(), width->GetFloatValue(), height->GetFloatValue());
+						return Atlas(Rect(x->GetFloatValue(), y->GetFloatValue(), width->GetFloatValue(), height->GetFloatValue()));
 				}
 				catch(Exception e)
 				{

@@ -13,11 +13,11 @@
 #include "RNObject.h"
 #include "RNVector.h"
 #include "RNQuaternion.h"
+#include "RNSceneNode.h"
 
 namespace RN
 {
 	class World;
-	class SceneNode;
 	
 	class SceneNodeAttachment : public Object
 	{
@@ -39,22 +39,25 @@ namespace RN
 		RNAPI SceneNode *GetParent() const;
 		
 		RNAPI virtual void Update(float delta);
+		RNAPI virtual void UpdateEditMode(float delta);
 		
 	protected:
-		RNAPI virtual void WillUpdate(uint32 changeSet) {}
-		RNAPI virtual void DidUpdate(uint32 changeSet) {}
+		RNAPI virtual void WillUpdate(SceneNode::ChangeSet changeSet) {}
+		RNAPI virtual void DidUpdate(SceneNode::ChangeSet changeSet) {}
+		
+		RNAPI virtual void UpdateRenderingObject(RenderingObject &object) {}
 		
 		RNAPI virtual void WillRemoveFromParent() {}
 		RNAPI virtual void DidAddToParent() {}
 		
 	private:
-		void __WillUpdate(uint32 changeSet);
-		void __DidUpdate(uint32 changeSet);
+		void __WillUpdate(SceneNode::ChangeSet changeSet);
+		void __DidUpdate(SceneNode::ChangeSet changeSet);
 		
 		SceneNode *_node;
-		uint32 _consumeChangeSets;
+		SceneNode::ChangeSet _consumeChangeSets;
 		
-		RNDefineMeta(SceneNodeAttachment, Object);
+		RNDeclareMeta(SceneNodeAttachment);
 	};
 }
 

@@ -43,7 +43,7 @@ namespace RN
 		
 		virtual Encoding CharacterEncoding() const;
 		
-		RNDefineMeta(BasicString, Object)
+		RNDeclareMeta(BasicString)
 	};
 	
 	class String;

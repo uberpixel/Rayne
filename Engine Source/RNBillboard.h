@@ -21,13 +21,23 @@ namespace RN
 	{
 	public:
 		RNAPI Billboard();
+		RNAPI Billboard(Texture *texture);
+		RNAPI Billboard(Texture *texture, const Vector3 &position);
+		RNAPI Billboard(const Billboard *other);
+		RNAPI Billboard(Deserializer *deserializer);
 		RNAPI ~Billboard() override;
 		
-		RNAPI void SetTexture(Texture *texture);
-		RNAPI void Render(Renderer *renderer, Camera *camera) override;
-		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
+		RNAPI void Serialize(Serializer *serializer) override;
+		
+		RNAPI void SetTexture(Texture *texture, float scaleFactor = 0.1f);
 		
 		RNAPI Material *GetMaterial() const { return _material; }
+		RNAPI Texture *GetTexture() const;
+		RNAPI const Vector2 &GetSize() const { return _size; }
+		
+		
+		RNAPI void Render(Renderer *renderer, Camera *camera) override;
+		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
 		
 	private:
 		void Initialize();
@@ -37,7 +47,7 @@ namespace RN
 		Matrix _transform;
 		Material *_material;
 		
-		RNDefineMetaWithTraits(Billboard, SceneNode, MetaClassTraitCronstructable);
+		RNDeclareMeta(Billboard)
 	};
 }
 

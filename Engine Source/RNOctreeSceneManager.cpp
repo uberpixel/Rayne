@@ -7,10 +7,11 @@
 //
 
 #include "RNOctreeSceneManager.h"
+#include "RNWorld.h"
 
 namespace RN
 {
-	RNDeclareMeta(OctreeSceneManager)
+	RNDefineMeta(OctreeSceneManager, SceneManager)
 
 	OctreeSceneManager::OctreeSceneManager()
 	{}
@@ -40,9 +41,9 @@ namespace RN
 		Unlock();
 	}
 	
-	void OctreeSceneManager::UpdateSceneNode(SceneNode *node, uint32 changes)
+	void OctreeSceneManager::UpdateSceneNode(SceneNode *node, SceneNode::ChangeSet changes)
 	{
-		if(changes & SceneNode::ChangedParent)
+		if(changes & SceneNode::ChangeSet::Parent)
 		{
 			Lock();
 			
@@ -65,14 +66,14 @@ namespace RN
 	{
 		auto flags = node->GetFlags();
 		
-		if(!(camera->renderGroup & (1 << node->renderGroup)) || flags & SceneNode::FlagHidden)
+		if(!(camera->GetRenderGroups() & (1 << node-> GetRenderGroup())) || flags & SceneNode::Flags::Hidden)
 			return;
 		
 		if(node->IsVisibleInCamera(camera))
 		{
 			node->Render(_renderer, camera);
 			
-			if(!(flags & SceneNode::FlagHideChildren))
+			if(!(flags & SceneNode::Flags::HideChildren))
 			{
 				const Array *children = node->GetChildren();
 				size_t count = children->GetCount();
@@ -97,11 +98,13 @@ namespace RN
 	
 	Hit OctreeSceneManager::CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask, Hit::HitMode mode)
 	{
+		World::GetActiveWorld()->ApplyNodes();
+		
 		Hit hit;
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
 			SceneNode *node = *i;
-			if(!(mask & (1 << node->collisionGroup)))
+			if(!(mask & (1 << node->GetCollisionGroup())))
 				continue;
 				
 			Hit result = node->CastRay(position, direction, mode);
@@ -117,5 +120,21 @@ namespace RN
 		}
 		
 		return hit;
+	}
+	
+	std::vector<SceneNode *> OctreeSceneManager::GetSceneNodes(const AABB &box)
+	{
+		World::GetActiveWorld()->ApplyNodes();
+		
+		std::vector<SceneNode *> nodes;
+		for(SceneNode *node : _nodes)
+		{
+			if(node->GetBoundingBox().Intersects(box))
+			{
+				nodes.push_back(node);
+			}
+		}
+		
+		return nodes;
 	}
 }

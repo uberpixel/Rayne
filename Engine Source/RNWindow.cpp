@@ -21,14 +21,18 @@
 
 namespace RN
 {
-	RNDeclareMeta(WindowConfiguration)
-	RNDeclareSingleton(Window)
+	RNDefineMeta(WindowConfiguration, Object)
+	RNDefineSingleton(Window)
 	
 	// ---------------------
 	// MARK: -
 	// MARK: WindowConfiguration
 	// ---------------------
 	
+	WindowConfiguration::WindowConfiguration(const WindowConfiguration *other) :
+		WindowConfiguration(other->_width, other->_height, other->_screen)
+	{}
+
 	WindowConfiguration::WindowConfiguration(uint32 width, uint32 height) :
 		WindowConfiguration(width, height, nullptr)
 	{}
@@ -72,9 +76,6 @@ namespace RN
 						thisScreen = screen;
 						
 						_frame = Rect(frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
-						_width  = _frame.width;
-						_height = _frame.height;
-						
 						break;
 					}
 				}
@@ -127,10 +128,25 @@ namespace RN
 #endif
 	
 #if RN_PLATFORM_WINDOWS
-	Screen::Screen(const char *name) :
-		_display(name),
-		_scaleFactor(1.0f)
+	Screen::Screen(HMONITOR monitor) :
+		_monitor(monitor),
+		_scaleFactor(1.0f),
+		_isMain(false)
 	{
+		MONITORINFOEXA  info;
+		info.cbSize = sizeof(MONITORINFOEXA);
+
+		if(!::GetMonitorInfoA(_monitor, &info))
+			throw Exception(Exception::Type::GenericException, "GetMonitorInfoA failed");
+
+		_isMain = (info.dwFlags & MONITORINFOF_PRIMARY);
+
+		_frame.x = info.rcMonitor.left;
+		_frame.y = info.rcMonitor.top;
+
+		_frame.width  = info.rcMonitor.right - info.rcMonitor.left;
+		_frame.height = info.rcMonitor.bottom - info.rcMonitor.top;
+
 		for(DWORD modeNum = 0;; modeNum ++)
 		{
 			DEVMODE mode;
@@ -138,7 +154,7 @@ namespace RN
 			mode.dmSize = sizeof(DEVMODE);
 			mode.dmDriverExtra = 0;
 			
-			if(!EnumDisplaySettingsA(name, modeNum, &mode))
+			if(!EnumDisplaySettingsA(info.szDevice, modeNum, &mode))
 				break;
 			
 			uint32 width  = mode.dmPelsWidth;
@@ -151,6 +167,9 @@ namespace RN
 			}
 		}
 #endif
+
+		if(_configurations.GetCount() == 0)
+			throw Exception(Exception::Type::GenericException, "No window configurations found for monitor");
 		
 		_configurations.Sort<WindowConfiguration>([](const WindowConfiguration *left, const WindowConfiguration *right) {
 			
@@ -171,7 +190,17 @@ namespace RN
 	// MARK: -
 	// MARK: Window
 	// ---------------------
-	
+
+#if RN_PLATFORM_WINDOWS
+	static std::vector<HMONITOR> __MonitorHandles;
+
+	static BOOL __MonitorEnumProc(HMONITOR hMonitor, HDC hdcMonitor, LPRECT lprcMonitor, LPARAM dwData)
+	{
+		__MonitorHandles.push_back(hMonitor);
+		return true;
+	}
+#endif
+		
 	Window::Window()
 	{
 		_kernel = Kernel::GetSharedInstance();
@@ -206,32 +235,32 @@ namespace RN
 			{}
 		}
 		
-		delete[] table;
+		delete [] table;
 		_internals->nativeWindow = nil;
 #endif
 		
 #if RN_PLATFORM_WINDOWS
-		for(DWORD devNum = 0;; devNum ++)
+		::EnumDisplayMonitors(nullptr, nullptr, (MONITORENUMPROC)__MonitorEnumProc, NULL);
+
+		for(HMONITOR monitor : __MonitorHandles)
 		{
-			DISPLAY_DEVICEA device;
-			
-			device.cb = sizeof(DISPLAY_DEVICEA);
-			if(!EnumDisplayDevicesA(nullptr, devNum, &device, 0))
-				break;
-			
-			Screen *screen = new Screen(device.DeviceName);
-			
-			if(device.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE)
+			try
 			{
-				_screens.insert(_screens.begin(), screen);
-				_mainScreen = screen;
+				Screen *screen = new Screen(monitor);
+
+				if(screen->IsMainScreen())
+				{
+					_screens.insert(_screens.begin(), screen);
+					_mainScreen = screen;
+				}
+				else
+					_screens.push_back(screen);
 			}
-			else
-				_screens.push_back(screen);
+			catch(Exception e)
+			{}
 		}
 		
 		_internals->hWnd = nullptr;
-		_internals->displayChanged = false;
 #endif
 		
 #if RN_PLATFORM_LINUX
@@ -278,14 +307,24 @@ namespace RN
 		{
 			SetTitle("");
 			
+			Mask mask = _mask;
+			
 			Dictionary *screenConfig = Settings::GetSharedInstance()->GetObjectForKey<Dictionary>(kRNSettingsScreenKey);
 			if(screenConfig)
 			{
 				Number *width  = screenConfig->GetObjectForKey<Number>(RNCSTR("width"));
 				Number *height = screenConfig->GetObjectForKey<Number>(RNCSTR("height"));
 				
+				Number *fullscreen = screenConfig->GetObjectForKey<Number>(RNCSTR("fullscreen"));
+				if(fullscreen)
+					mask |= (fullscreen->GetBoolValue()) ? Mask::Fullscreen : 0;
+				
+				Number *borderless = screenConfig->GetObjectForKey<Number>(RNCSTR("borderless"));
+				if(borderless)
+					mask |= (borderless->GetBoolValue()) ? Mask::Borderless : 0;
+				
 				WindowConfiguration *temp = new WindowConfiguration(width->GetUint32Value(), height->GetUint32Value(), _mainScreen);
-				SetConfiguration(temp->Autorelease(), _mask);
+				ActivateConfiguration(temp->Autorelease(), mask);
 			}
 			else
 				failed = true;
@@ -296,7 +335,7 @@ namespace RN
 		}
 		
 		if(failed)
-			SetConfiguration(_mainScreen->GetConfigurations().GetObjectAtIndex<WindowConfiguration>(0), _mask);
+			ActivateConfiguration(_mainScreen->GetConfigurations()->GetObjectAtIndex<WindowConfiguration>(0), _mask);
 	}
 
 	Window::~Window()
@@ -308,8 +347,6 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 		if(_internals->hWnd)
 			::DestroyWindow(_internals->hWnd);
-		if(_internals->displayChanged)
-			::ChangeDisplaySettingsA(nullptr, 0);
 #endif
 
 #if RN_PLATFORM_LINUX
@@ -324,29 +361,86 @@ namespace RN
 
 	void Window::SetTitle(const std::string& title)
 	{
+		if(!Thread::GetMainThread()->OnThread())
+		{
+			Kernel::GetSharedInstance()->ScheduleFunction([this, title] {
+				SetTitle(title);
+			});
+
+			return;
+		}
+
 		_title = title;
 		
 #if RN_PLATFORM_MAC_OS
 		[_internals->nativeWindow setTitle:[NSString stringWithUTF8String:title.c_str()]];
 #endif
-		
 #if RN_PLATFORM_WINDOWS
 		::SetWindowTextA(_kernel->GetMainWindow(), title.c_str());
 #endif
-
 #if RN_PLATFORM_LINUX
 		XStoreName(_internals->dpy, _internals->win, title.c_str());
 #endif
 	}
-	
-	void Window::SetConfiguration(const WindowConfiguration *tconfiguration, Mask mask)
+
+	void Window::SetPosition(const Vector2 &position)
 	{
-		if(tconfiguration->IsEqual(_activeConfiguration) && mask == _mask)
+		if(!Thread::GetMainThread()->OnThread())
+		{
+			Kernel::GetSharedInstance()->ScheduleFunction([this, position] {
+				SetPosition(position);
+			});
+
+			return;
+		}
+		
+#if RN_PLATFORM_MAC_OS
+		NSScreen *screen = [_internals->nativeWindow screen];
+		NSPoint point = NSMakePoint(position.x, position.y);
+		
+		point.y = [screen frame].size.height - position.y;
+		
+		[_internals->nativeWindow setFrameTopLeftPoint:point];
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		HWND mainWindow = _kernel->GetMainWindow();
+		RECT rect;
+
+		::GetWindowRect(mainWindow, &rect);
+		::AdjustWindowRectEx(&rect, _internals->style, false, 0);
+
+
+		uint32 width  = rect.right - rect.left;
+		uint32 height = rect.bottom - rect.top;
+
+		rect.left = position.x;
+		rect.top  = position.y;
+		
+		::SetWindowPos(mainWindow, HWND_NOTOPMOST, rect.left, rect.top, width, height, SWP_NOCOPYBITS);
+		::SetWindowPos(mainWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
+#endif
+	}
+
+	void Window::ActivateConfiguration(WindowConfiguration *configuration, Mask mask)
+	{
+		if(!Thread::GetMainThread()->OnThread())
+		{
+			configuration = configuration->Copy();
+
+			Kernel::GetSharedInstance()->ScheduleFunction([this, configuration, mask] {
+				ActivateConfiguration(configuration, mask);
+				configuration->Release();
+			});
+
+			return;
+		}
+
+
+		if(configuration->IsEqual(_activeConfiguration) && mask == _mask)
 			return;
 		
-		WindowConfiguration *configuration = const_cast<WindowConfiguration *>(tconfiguration);
 		Renderer *renderer = Renderer::GetSharedInstance();
-		
 		Screen *screen = configuration->GetScreen();
 		
 		uint32 width  = configuration->GetWidth();
@@ -364,7 +458,7 @@ namespace RN
 			[[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.00001f]];
 		}
 		
-		if(mask & MaskFullscreen)
+		if(mask & Mask::Fullscreen)
 		{
 			const Rect& rect = screen->GetFrame();
 			
@@ -380,6 +474,9 @@ namespace RN
 		else
 		{
 			NSUInteger windowStyleMask = NSTitledWindowMask | NSClosableWindowMask | NSMiniaturizableWindowMask;
+			
+			if(mask & Mask::Borderless)
+				windowStyleMask = NSBorderlessWindowMask;
 			
 			uint32 x = screen->GetFrame().x + ((screen->GetWidth()  / 2.0f) - (width / 2.0f));
 			uint32 y = screen->GetFrame().y + ((screen->GetHeight() / 2.0f) - (height / 2.0f));
@@ -405,7 +502,7 @@ namespace RN
 		
 		
 		// Update the context and hand it over to the OpenGLQUeue
-		GLint sync = (mask & MaskVSync) ? 1 : 0;
+		GLint sync = (mask & Mask::VSync) ? 1 : 0;
 		[_internals->context->_internals->context setValues:&sync forParameter:NSOpenGLCPSwapInterval];
 		[_internals->context->_internals->context update];
 		
@@ -423,52 +520,60 @@ namespace RN
 		}
 		
 		HWND mainWindow = _kernel->GetMainWindow();
+		RECT monitorRect;
 
-		if(mask & MaskFullscreen)
 		{
-			DEVMODE	mode = { 0 };
+			const Rect &rect = screen->GetFrame();
 
-			mode.dmSize = sizeof(DEVMODE);
-			mode.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
-			mode.dmBitsPerPel = 32;
-			mode.dmPelsWidth = width;
-			mode.dmPelsHeight = height;
+			monitorRect.left = rect.x;
+			monitorRect.top  = rect.y;
 
-			if(::ChangeDisplaySettingsA(&mode, CDS_FULLSCREEN) != DISP_CHANGE_SUCCESSFUL)
-				throw Exception(Exception::Type::InconsistencyException, "Failed to switch configuration!");
+			monitorRect.right  = rect.width - rect.x;
+			monitorRect.bottom = rect.height - rect.y;
+		}
 
-			_internals->displayChanged = true;
+		if(mask & Mask::Fullscreen)
+		{
+			DWORD windowStyle = WS_CLIPCHILDREN |  WS_SYSMENU;
+			const Rect &rect = screen->GetFrame();
 
-			::SetWindowPos(mainWindow, HWND_NOTOPMOST, 0, 0, width, height, SWP_NOCOPYBITS);
-			::SetWindowLongPtrA(mainWindow, GWL_STYLE, WS_POPUP | WS_CLIPCHILDREN);
+			::SetWindowPos(mainWindow, HWND_NOTOPMOST, monitorRect.left, monitorRect.top, rect.width, rect.height, SWP_NOCOPYBITS);
+			::SetWindowLongPtrA(mainWindow, GWL_STYLE, windowStyle);
 			::SetWindowPos(mainWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 
-			renderer->SetDefaultFrame(width, height);
-			renderer->SetDefaultFactor(1.0f, 1.0f);
+			renderer->SetDefaultFrame(rect.width, rect.height);
+			renderer->SetDefaultFactor(rect.width / width, rect.height / height);
+
+			width  = rect.width;
+			height = rect.height;
+
+			_internals->style = windowStyle;
 		}
 		else
 		{
-			if(_internals->displayChanged)
-			{
-				::ChangeDisplaySettingsA(nullptr, 0);
-				_internals->displayChanged = false;
-			}
+			DWORD windowStyle = WS_CLIPCHILDREN | WS_SYSMENU;
+			if(!(mask & Mask::Borderless))
+				windowStyle |= WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX;
+
+			uint32 x = monitorRect.left + ((screen->GetWidth() / 2.0f) - (width / 2.0f));
+			uint32 y = monitorRect.top  + ((screen->GetHeight() / 2.0f) - (height / 2.0f));
 
 			RECT windowRect;
+			windowRect.left   = x;
+			windowRect.top    = y;
+			windowRect.right  = x + width;
+			windowRect.bottom = y + height;
 
-			windowRect.left = (GetSystemMetrics(SM_CXFULLSCREEN) / 2) - (width / 2);
-			windowRect.top  = (GetSystemMetrics(SM_CYFULLSCREEN) / 2) - (height / 2);
-			windowRect.right  = windowRect.left + width;
-			windowRect.bottom = windowRect.top + height;
+			::AdjustWindowRectEx(&windowRect, windowStyle, false, 0);
 
-			::AdjustWindowRectEx(&windowRect, WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU, false, 0);
-
-			::SetWindowPos(mainWindow, HWND_NOTOPMOST, windowRect.left, windowRect.top, windowRect.right - windowRect.left, windowRect.bottom - windowRect.top, SWP_NOCOPYBITS);
-			::SetWindowLongPtrA(mainWindow, GWL_STYLE, WS_CLIPCHILDREN | WS_BORDER | WS_CAPTION | WS_MINIMIZEBOX | WS_SYSMENU);
+			::SetWindowPos(mainWindow, HWND_NOTOPMOST, windowRect.left, windowRect.top, width, height, SWP_NOCOPYBITS);
+			::SetWindowLongPtrA(mainWindow, GWL_STYLE, windowStyle);
 			::SetWindowPos(mainWindow, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED | SWP_SHOWWINDOW);
 			
 			renderer->SetDefaultFrame(width, height);
 			renderer->SetDefaultFactor(1.0f, 1.0f);
+
+			_internals->style = windowStyle;
 		}
 		
 		
@@ -487,7 +592,7 @@ namespace RN
 
 		if(wgl::SwapIntervalEXT)
 		{
-			GLint interval = (mask & MaskVSync) ? 1 : 0;
+			GLint interval = (mask & Mask::VSync) ? 1 : 0;
 			wgl::SwapIntervalEXT(interval);
 		}
 	
@@ -567,9 +672,9 @@ namespace RN
 			MessageCenter::GetSharedInstance()->PostMessage(kRNWindowScaleFactorChanged, nullptr, nullptr);
 	}
 
-	Rect Window::GetFrame() const
+	Vector2 Window::GetSize() const
 	{
-		return Rect(0, 0, _activeConfiguration->GetWidth(), _activeConfiguration->GetHeight());
+		return Vector2(_activeConfiguration->GetWidth(), _activeConfiguration->GetHeight());
 	}
 
 #if RN_PLATFORM_MAC_OS

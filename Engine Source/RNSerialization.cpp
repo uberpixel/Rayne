@@ -11,141 +11,27 @@
 #include "RNDictionary.h"
 #include "RNNumber.h"
 #include "RNString.h"
+#include "RNAsset.h"
 
 namespace RN
 {
-	Serializer::Serializer(Mode mode)
-	{
-		_mode = mode;
-	}
+	RNDefineMeta(Serializer, Object)
+	RNDefineMeta(Deserializer, Object)
+	
 	Serializer::~Serializer()
 	{}
-	
-	void Serializer::EncodeBytes(void *data, size_t size)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeObject(Object *object)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeRootObject(Object *object)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	void Serializer::EncodeBool(bool value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeDouble(double value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeFloat(float value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeInt32(int32 value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeInt64(int64 value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	void Serializer::EncodeVector2(const Vector2& value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeVector3(const Vector3& value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeVector4(const Vector4& value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	void Serializer::EncodeMatrix(const Matrix& value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	void Serializer::EncodeQuarternion(const Quaternion& value)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	void *Serializer::DecodeBytes(size_t *length)
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	Object *Serializer::DecodeObject()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	bool Serializer::DecodeBool()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	double Serializer::DecodeDouble()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	float Serializer::DecodeFloat()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	int32 Serializer::DecodeInt32()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	int64 Serializer::DecodeInt64()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	Vector2 Serializer::DecodeVector2()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	Vector3 Serializer::DecodeVector3()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	Vector4 Serializer::DecodeVector4()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	Matrix Serializer::DecodeMatrix()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	Quaternion Serializer::DecodeQuaternion()
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
-	uint32 Serializer::AppVersion() const
-	{
-		throw Exception(Exception::Type::GenericException, "Serializer just provides the interface!");
-	}
-	
+	Deserializer::~Deserializer()
+	{}
 	
 	// ---------------------
 	// MARK: -
 	// MARK: FlatSerializer
 	// ---------------------
 	
-	FlatSerializer::FlatSerializer() :
-		Serializer(Mode::Serialize)
+	FlatSerializer::FlatSerializer()
 	{
 		_data      = new Data();
 		_nametable = new Dictionary();
-		_index = 0;
 	}
 	
 	FlatSerializer::~FlatSerializer()
@@ -160,7 +46,7 @@ namespace RN
 	// MARK: Seriliazation
 	// ---------------------
 	
-	Data *FlatSerializer::SerializedData() const
+	Data *FlatSerializer::GetSerializedData() const
 	{
 		Data *result = new Data();
 		
@@ -169,7 +55,7 @@ namespace RN
 		temp = static_cast<uint32>(_nametable->GetCount());
 		result->Append(&temp, sizeof(uint32));
 		
-		_nametable->Enumerate([&](Object *value, Object *key, bool *stop) {
+		_nametable->Enumerate([&](Object *value, Object *key, bool &stop) {
 			String *name = static_cast<String *>(key);
 			Number *index = static_cast<Number *>(value);
 			
@@ -185,7 +71,63 @@ namespace RN
 			result->Append(&temp, sizeof(uint32));
 		});
 		
+		size_t offset = result->GetLength();
+		
 		result->Append(_data);
+
+		for(uint64 location : _jumpTable)
+		{
+			location += offset + 5;
+			
+			uint64 jump;
+			
+			result->GetBytesInRange(&jump, Range(location, sizeof(uint64)));
+			
+			jump += offset;
+			
+			result->ReplaceBytes(&jump, Range(location, sizeof(uint64)));
+		}
+		
+		
+		for(auto i = _conditionalTable.begin(); i != _conditionalTable.end(); i ++)
+		{
+			Object *object = i->first;
+			const std::vector<uint64> &locations = i->second;
+			
+			auto iterator = _objectTable.find(object);
+			if(iterator != _objectTable.end())
+			{
+#if RN_PLATFORM_WINDOWS
+#pragma pack(push,1)
+				
+				struct
+				{
+					char type;
+					uint32 size;
+				} header;
+				
+#pragma pack(pop)
+#else
+				struct __attribute__((packed))
+				{
+					char type;
+					uint32 size;
+				} header;
+#endif
+				
+				header.type = 'J';
+				header.size = sizeof(uint64);
+				
+				uint64 location = iterator->second + offset;
+				
+				for(uint64 index : locations)
+				{
+					result->ReplaceBytes(&header,   Range(index + offset, sizeof(header)));
+					result->ReplaceBytes(&location, Range(index + offset + sizeof(header), sizeof(uint64)));
+				}
+			}
+		}
+		
 		return result->Autorelease();
 	}
 	
@@ -197,10 +139,31 @@ namespace RN
 	
 	void FlatSerializer::EncodeObject(Object *object)
 	{
-		RN_ASSERT(SerializerMode() == Mode::Serialize, "EncodeObject() only works with serializing serializers!");
-		RN_ASSERT(object->Class()->SupportsSerialization(), "EncodeObject() only works with objects that support serialization!");
-	
-		uint32 index = EncodeClassName(String::WithString(object->Class()->Fullname().c_str()));
+		if(!object)
+		{
+			uint64 temp = 0xdeadbeef;
+			EncodeData('L', sizeof(uint64), &temp);
+			
+			return;
+		}
+		
+		if(!object->IsKindOfClass(Asset::MetaClass()) && !object->Class()->SupportsSerialization())
+			throw Exception(Exception::Type::InvalidArgumentException, "EncodeObject() only works with objects that support serialization (tried serializing %s)!", object->Class()->Fullname().c_str());
+		
+		auto iterator = _objectTable.find(object);
+		if(iterator != _objectTable.end())
+		{
+			_jumpTable.push_back(_data->GetLength());
+			
+			uint64 index = iterator->second;
+			
+			EncodeData('J', sizeof(uint64), &index);
+			return;
+		}
+		
+		uint32 index  = EncodeClassName(String::WithString(object->Class()->Fullname().c_str()));
+		size_t tindex = _data->GetLength();
+		
 		EncodeData('@', sizeof(uint32), &index);
 		
 		uint32 temp = static_cast<uint32>(_data->GetLength());
@@ -208,12 +171,12 @@ namespace RN
 		
 		uint32 length = static_cast<uint32>(_data->GetLength()) - temp;
 		_data->ReplaceBytes(&length, Range(temp - (sizeof(uint32) * 2), sizeof(uint32))); // Replace the encoded size for index
+	
+		_objectTable.emplace(object, static_cast<uint64>(tindex));
 	}
 	
 	void FlatSerializer::EncodeRootObject(Object *object)
 	{
-		RN_ASSERT(SerializerMode() == Mode::Serialize, "EncodeRootObject() only works with serializing serializers!");
-		
 		_data->Release();
 		_nametable->Release();
 		
@@ -221,6 +184,30 @@ namespace RN
 		_nametable = new Dictionary();
 		
 		EncodeObject(object);
+	}
+	
+	void FlatSerializer::EncodeConditionalObject(Object *object)
+	{
+		size_t index = _data->GetLength();
+		
+		uint64 temp = 0xdeadbeef;
+		EncodeData('L', sizeof(uint64), &temp);
+		
+		auto iterator = _conditionalTable.find(object);
+		if(iterator != _conditionalTable.end())
+		{
+			std::vector<uint64> &vector = iterator->second;
+			vector.push_back(static_cast<uint64>(index));
+			
+			return;
+		}
+		
+		_conditionalTable.emplace(object, std::vector<uint64>{ index });
+	}
+	
+	void FlatSerializer::EncodeString(const std::string &string)
+	{
+		EncodeData('s', string.size() + 1, string.c_str());
 	}
 	
 	void FlatSerializer::EncodeBool(bool value)
@@ -254,11 +241,15 @@ namespace RN
 	}
 	void FlatSerializer::EncodeVector3(const Vector3& value)
 	{
-		EncodeData('3', sizeof(Vector2), &value);
+		EncodeData('3', sizeof(Vector3), &value);
 	}
 	void FlatSerializer::EncodeVector4(const Vector4& value)
 	{
-		EncodeData('4', sizeof(Vector2), &value);
+		EncodeData('4', sizeof(Vector4), &value);
+	}
+	void FlatSerializer::EncodeColor(const Color& value)
+	{
+		EncodeData('c', sizeof(Color), &value);
 	}
 	
 	void FlatSerializer::EncodeMatrix(const Matrix& value)
@@ -273,8 +264,6 @@ namespace RN
 	
 	void FlatSerializer::EncodeData(char type, size_t size, const void *data)
 	{
-		RN_ASSERT(SerializerMode() == Mode::Serialize, "EncodeData() only works with serializing serializers!");
-		
 #if RN_PLATFORM_WINDOWS
 		#pragma pack(push,1)
 
@@ -318,10 +307,9 @@ namespace RN
 	// MARK: Deserilization
 	// ---------------------
 	
-	FlatSerializer::FlatSerializer(Data *data) :
-		Serializer(Mode::Deserialize)
+	FlatDeserializer::FlatDeserializer(Data *data)
 	{
-		_data = data->Retain();
+		_data = data->Copy();
 		_index = 0;
 		
 		// Decode the name table
@@ -353,17 +341,26 @@ namespace RN
 		}
 	}
 	
-	void FlatSerializer::AssertType(char expected, size_t *size)
+	FlatDeserializer::~FlatDeserializer()
+	{
+		_data->Release();
+		_nametable->Release();
+	}
+	
+	
+	void FlatDeserializer::AssertType(char expected, size_t *size)
 	{
 		char type;
 
 		PeekHeader(&type, size);
-		RN_ASSERT(type == expected, "Expected type %c but got %c", expected, type);
+		
+		if(type != expected)
+			throw Exception(Exception::Type::InconsistencyException, "Expected type %c but got %c!", expected, type);
 		
 		DecodeHeader(nullptr, nullptr);
 	}
 	
-	void *FlatSerializer::DecodeBytes(size_t *length)
+	void *FlatDeserializer::DecodeBytes(size_t *length)
 	{
 		size_t size;
 		AssertType('+', &size);
@@ -377,8 +374,78 @@ namespace RN
 		return data->GetBytes();
 	}
 	
-	Object *FlatSerializer::DecodeObject()
+	Object *FlatDeserializer::DecodeObject()
 	{
+		{
+			char type;
+			size_t size;
+			
+			PeekHeader(&type, &size);
+			
+			if(type == 'L')
+			{
+				AssertType('L', &size);
+				_index += size;
+				
+				return nullptr;
+			}
+			
+			if(type == 'J')
+			{
+				AssertType('J', &size);
+
+				uint64 index;
+				
+				_data->GetBytesInRange(&index, Range(_index, sizeof(uint64)));
+				_index += size;
+				
+				
+				
+				auto iterator = _objectTable.find(index);
+				if(iterator == _objectTable.end())
+				{
+					size_t temp = _index;
+					_index = static_cast<size_t>(index);
+					
+					Object *object = DecodeObject();
+					
+					size_t size = (_index - index) - 5;
+					_index = temp;
+					
+					
+#if RN_PLATFORM_WINDOWS
+#pragma pack(push,1)
+					
+					struct
+					{
+						char type;
+						uint32 size;
+					} header;
+					
+#pragma pack(pop)
+#else
+					struct __attribute__((packed))
+					{
+						char type;
+						uint32 size;
+					} header;
+#endif
+					
+					header.type = 'J';
+					header.size = static_cast<uint32>(size);
+					
+					_data->ReplaceBytes(&header, Range(index, sizeof(header)));
+					_data->ReplaceBytes(&index,  Range(index + sizeof(header), sizeof(uint64)));
+					
+					return object;
+				}
+				
+				return iterator->second;
+			}
+		}
+		
+		uint64 temp = _index;
+		
 		size_t size;
 		uint32 index;
 		AssertType('@', &size);
@@ -389,11 +456,33 @@ namespace RN
 		String *name = _nametable->GetObjectForKey<String>(Number::WithUint32(index));
 		MetaClassBase *mclass = Catalogue::GetSharedInstance()->GetClassWithName(name->GetUTF8String());
 		
-		Object *result = mclass->ConstructWithSerializer(this);
-		return result;
+		if(mclass->InheritsFromClass(Asset::MetaClass()))
+		{
+			Object *result = Asset::Deserialize(this);
+			_objectTable.emplace(temp, result);
+			
+			return result;
+		}
+		
+		Object *result = mclass->ConstructWithDeserializer(this);
+		_objectTable.emplace(temp, result);
+		
+		
+		return result->Autorelease();
 	}
 	
-	bool FlatSerializer::DecodeBool()
+	std::string FlatDeserializer::DecodeString()
+	{
+		size_t size;
+		AssertType('s', &size);
+		
+		Data *data = _data->GetDataInRange(Range(_index, size));
+		_index += size;
+		
+		return std::string(reinterpret_cast<char *>(data->GetBytes()));
+	}
+	
+	bool FlatDeserializer::DecodeBool()
 	{
 		bool result;
 		DecodeData('b', &result, sizeof(bool));
@@ -401,7 +490,7 @@ namespace RN
 		return result;
 	}
 	
-	double FlatSerializer::DecodeDouble()
+	double FlatDeserializer::DecodeDouble()
 	{
 		double result;
 		char type;
@@ -431,7 +520,7 @@ namespace RN
 		return result;
 	}
 	
-	float FlatSerializer::DecodeFloat()
+	float FlatDeserializer::DecodeFloat()
 	{
 		float result;
 		char type;
@@ -461,7 +550,7 @@ namespace RN
 		return result;
 	}
 	
-	int32 FlatSerializer::DecodeInt32()
+	int32 FlatDeserializer::DecodeInt32()
 	{
 		int32 result;
 		char type;
@@ -491,7 +580,7 @@ namespace RN
 		return result;
 	}
 	
-	int64 FlatSerializer::DecodeInt64()
+	int64 FlatDeserializer::DecodeInt64()
 	{
 		int64 result;
 		char type;
@@ -521,36 +610,43 @@ namespace RN
 		return result;
 	}
 	
-	Vector2 FlatSerializer::DecodeVector2()
+	Vector2 FlatDeserializer::DecodeVector2()
 	{
 		Vector2 result;
 		DecodeData('2', &result, sizeof(Vector2));
 		
 		return result;
 	}
-	Vector3 FlatSerializer::DecodeVector3()
+	Vector3 FlatDeserializer::DecodeVector3()
 	{
 		Vector3 result;
 		DecodeData('3', &result, sizeof(Vector3));
 		
 		return result;
 	}
-	Vector4 FlatSerializer::DecodeVector4()
+	Vector4 FlatDeserializer::DecodeVector4()
 	{
-		int64 result;
+		Vector4 result;
 		DecodeData('4', &result, sizeof(Vector4));
 		
 		return result;
 	}
+	Color FlatDeserializer::DecodeColor()
+	{
+		Color result;
+		DecodeData('c', &result, sizeof(Color));
+		
+		return result;
+	}
 	
-	Matrix FlatSerializer::DecodeMatrix()
+	Matrix FlatDeserializer::DecodeMatrix()
 	{
 		Matrix result;
 		DecodeData('m', &result, sizeof(Matrix));
 		
 		return result;
 	}
-	Quaternion FlatSerializer::DecodeQuaternion()
+	Quaternion FlatDeserializer::DecodeQuaternion()
 	{
 		Quaternion result;
 		DecodeData('q', &result, sizeof(Quaternion));
@@ -559,10 +655,8 @@ namespace RN
 	}
 	
 	
-	void FlatSerializer::PeekHeader(char *type, size_t *size)
+	void FlatDeserializer::PeekHeader(char *type, size_t *size)
 	{
-		RN_ASSERT(SerializerMode() == Mode::Deserialize, "PeekHeader() only works with deserializing serializers!");
-		
 #if RN_PLATFORM_WINDOWS
 		#pragma pack(push,1)
 
@@ -590,22 +684,19 @@ namespace RN
 			*size = header.size;
 	}
 	
-	void FlatSerializer::DecodeHeader(char *type, size_t *size)
+	void FlatDeserializer::DecodeHeader(char *type, size_t *size)
 	{
-		RN_ASSERT(SerializerMode() == Mode::Deserialize, "DecodeHeader() only works with deserializing serializers!");
-		
 		PeekHeader(type, size);
 		_index += 5;
 	}
 	
-	void FlatSerializer::DecodeData(char expected, void *buffer, size_t size)
+	void FlatDeserializer::DecodeData(char expected, void *buffer, size_t size)
 	{
-		RN_ASSERT(SerializerMode() == Mode::Deserialize, "DecodeHeader() only works with deserializing serializers!");
-		
 		size_t tsize;
 		AssertType(expected, &tsize);
 		
-		RN_ASSERT(tsize == size, "");
+		if(tsize != size)
+			throw Exception(Exception::Type::InconsistencyException, "Size inconsitency (%i != %i)", (int)tsize, (int)size);
 		
 		_data->GetBytesInRange(buffer, Range(_index, size));
 		_index += size;

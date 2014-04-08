@@ -9,10 +9,12 @@
 #include "RNRenderStorage.h"
 #include "RNKernel.h"
 #include "RNOpenGLQueue.h"
+#include "RNMessage.h"
+#include "RNWindow.h"
 
 namespace RN
 {
-	RNDeclareMeta(RenderStorage)
+	RNDefineMeta(RenderStorage, Object)
 	
 	RenderStorage::RenderStorage(BufferFormat format, Texture *depthTexture, float scaleFactor)
 	{

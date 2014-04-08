@@ -15,13 +15,13 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(Scroller)
+		RNDefineMeta(Scroller, View)
 		
 		Scroller::Scroller() :
 			_container(nullptr)
 		{
 			_frame = new ScrollerFrame();
-			_frame->SetAutoresizingMask(AutoresizingFlexibleWidth | AutoresizingFlexibleHeight);
+			_frame->SetAutoresizingMask(AutoresizingMask::FlexibleWidth | AutoresizingMask::FlexibleHeight);
 			
 			_knob = new ScrollerKnob();
 
@@ -42,6 +42,7 @@ namespace RN
 			_container  = scrollView;
 			_horizontal = horizontal;
 			
+			_knob->SetScrollView(scrollView);
 			
 			Style *style = Style::GetSharedInstance();
 			

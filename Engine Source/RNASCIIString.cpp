@@ -14,8 +14,8 @@
 
 namespace RN
 {
-	RNDeclareMeta(ConstantASCIIString)
-	RNDeclareMeta(ASCIIString)
+	RNDefineMeta(ConstantASCIIString, BasicString)
+	RNDefineMeta(ASCIIString, ConstantASCIIString)
 	
 	ConstantASCIIString::ConstantASCIIString()
 	{}

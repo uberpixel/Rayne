@@ -16,10 +16,11 @@
 #include "RNScopeGuard.h"
 #include "RNSHA2.h"
 #include "RNOpenGLQueue.h"
+#include "RNRenderer.h"
 
 namespace RN
 {
-	RNDeclareMeta(Shader)
+	RNDefineMeta(Shader, Asset)
 	
 	GLuint ShaderProgram::GetCustomLocation(const std::string& name)
 	{
@@ -128,10 +129,13 @@ namespace RN
 			sprintf(string, "mTexture%i", static_cast<int>(i));
 			GLuint location = gl::GetUniformLocation(program, string);
 			
-			if(location == -1)
-				break;
-			
 			texlocations.push_back(location);
+			
+			if(location == -1)
+			{
+				texinfolocations.push_back(-1);
+				continue;
+			}
 			
 			sprintf(string, "mTexture%iInfo", static_cast<int>(i));
 			location = gl::GetUniformLocation(program, string);
@@ -155,7 +159,7 @@ namespace RN
 			GLuint location = gl::GetUniformLocation(program, string);
 			
 			if(location == -1)
-			break;
+				break;
 			
 			lightSpotDepthLocations.push_back(location);
 		}
@@ -216,28 +220,54 @@ namespace RN
 		SetShaderForType(FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".fsh"), ShaderType::FragmentShader);
 		
 #if GL_GEOMETRY_SHADER
-		std::string path = "";
-		
 		try
 		{
-			path = FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".gsh");
+			std::string path = FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".gsh");
+			
+			if(path.length() > 0)
+				SetShaderForType(path, ShaderType::GeometryShader);
 		}
 		catch(Exception)
 		{}
-		
-		if(path.length() > 0)
-			SetShaderForType(path, ShaderType::GeometryShader);
 #endif
 		
-		GetProgramOfType(ShaderProgram::TypeNormal);
+#if GL_TESS_CONTROL_SHADER
+		if(gl::SupportsFeature(gl::Feature::TessellationShaders))
+		{
+			try
+			{
+				std::string path = FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".tcsh");
+				
+				if(path.length() > 0)
+					SetShaderForType(path, ShaderType::TessellationControlShader);
+			}
+			catch(Exception)
+			{}
+			
+			try
+			{
+				std::string path = FileManager::GetSharedInstance()->GetFilePathWithName(shader + ".tesh");
+				
+				if(path.length() > 0)
+					SetShaderForType(path, ShaderType::TessellationEvaluationShader);
+			}
+			catch(Exception)
+			{}
+		}
+#endif
+		
+		GetProgramOfType(ShaderProgram::Type::Normal);
 	}
 	
 	Shader::~Shader()
 	{
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
-			for(auto i=_programs.begin(); i!=_programs.end(); i++)
+			
+			for(auto &pair : _programs)
 			{
-				ShaderProgram *program = i->second;
+				ShaderProgram *program = pair.second;
+				
+				Renderer::GetSharedInstance()->RelinquishProgram(program);
 				
 				gl::DeleteProgram(program->program);
 				delete program;
@@ -259,12 +289,18 @@ namespace RN
 	
 	void Shader::Define(const std::string& define)
 	{
+		LockGuard<Object *> lock(this);
+		
 		_defines.emplace_back(ShaderDefine(define, ""));
+		InvalidatePrograms();
 	}
 	
 	void Shader::Define(const std::string& define, const std::string& value)
 	{
+		LockGuard<Object *> lock(this);
+		
 		_defines.emplace_back(ShaderDefine(define, value));
+		InvalidatePrograms();
 	}
 	
 	void Shader::Define(const std::string& define, int32 value)
@@ -285,11 +321,15 @@ namespace RN
 	
 	void Shader::Undefine(const std::string& name)
 	{
+		LockGuard<Object *> lock(this);
+		
 		for(auto i = _defines.begin(); i != _defines.end(); i ++)
 		{
 			if(name == i->name)
 			{
 				_defines.erase(i);
+				InvalidatePrograms();
+				
 				return;
 			}
 		}
@@ -297,7 +337,7 @@ namespace RN
 	
 	// ---------------------
 	// MARK: -
-	// MARK: Program creation
+	// MARK: Program creation and invalidation
 	// ---------------------
 	
 	void Shader::DumpLinkStatusAndDie(ShaderProgram *program)
@@ -337,39 +377,39 @@ namespace RN
 		std::vector<ShaderDefine> temporaryDefines;
 		
 		// Prepare the state
-		if(lookup.type & ShaderProgram::TypeDiffuse)
+		if(lookup.type & ShaderProgram::Type::Diffuse)
 			temporaryDefines.emplace_back(ShaderDefine("RN_TEXTURE_DIFFUSE", ""));
 		
-		if(lookup.type & ShaderProgram::TypeInstanced)
+		if(lookup.type & ShaderProgram::Type::Instanced)
 			temporaryDefines.emplace_back(ShaderDefine("RN_INSTANCING", ""));
 		
-		if(lookup.type & ShaderProgram::TypeAnimated)
+		if(lookup.type & ShaderProgram::Type::Animated)
 			temporaryDefines.emplace_back(ShaderDefine("RN_ANIMATION", ""));
 		
-		if(lookup.type & ShaderProgram::TypeLighting)
+		if(lookup.type & ShaderProgram::Type::Lighting)
 			temporaryDefines.emplace_back(ShaderDefine("RN_LIGHTING", ""));
 		
-		if(lookup.type & ShaderProgram::TypeDiscard)
+		if(lookup.type & ShaderProgram::Type::Discard)
 			temporaryDefines.emplace_back(ShaderDefine("RN_DISCARD", ""));
 		
-		if(lookup.type & ShaderProgram::TypeDirectionalShadows)
-			temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_SHADOWS", ""));
-		if(lookup.type & ShaderProgram::TypePointShadows)
+		if(lookup.type & ShaderProgram::Type::DirectionalShadows)
+			temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_SHADOWS", static_cast<uint32>(lookup.lightDirectionalShadowSplits)));
+		if(lookup.type & ShaderProgram::Type::PointShadows)
 			temporaryDefines.emplace_back(ShaderDefine("RN_POINT_SHADOWS", ""));
-		if(lookup.type & ShaderProgram::TypeSpotShadows)
+		if(lookup.type & ShaderProgram::Type::SpotShadows)
 			temporaryDefines.emplace_back(ShaderDefine("RN_SPOT_SHADOWS", ""));
 		
-		if(lookup.type & ShaderProgram::TypeFog)
+		if(lookup.type & ShaderProgram::Type::Fog)
 			temporaryDefines.emplace_back(ShaderDefine("RN_FOG", ""));
 		
-		if(lookup.type & ShaderProgram::TypeClipPlane)
+		if(lookup.type & ShaderProgram::Type::ClipPlane)
 			temporaryDefines.emplace_back(ShaderDefine("RN_CLIPPLANE", ""));
 		
-		if(lookup.type & ShaderProgram::TypeGammaCorrection)
+		if(lookup.type & ShaderProgram::Type::GammaCorrection)
 			temporaryDefines.emplace_back(ShaderDefine("RN_GAMMA_CORRECTION", ""));
 		
 		if(lookup.lightDirectionalCount > 0)
-			temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_LIGHTS", static_cast<int>(lookup.lightDirectionalCount)));
+			temporaryDefines.emplace_back(ShaderDefine("RN_DIRECTIONAL_LIGHTS", static_cast<uint32>(lookup.lightDirectionalCount)));
 		if(lookup.lightPointSpotCount > 0)
 			temporaryDefines.emplace_back(ShaderDefine("RN_POINTSPOT_LIGHTS", 1));
 		
@@ -402,6 +442,11 @@ namespace RN
 			});
 			
 			
+			uint32 types = 0;
+			
+#if RN_PLATFORM_POSIX
+			int error = errno;
+#endif
 			for(auto i = _shaderData.begin(); i != _shaderData.end(); i ++)
 			{
 				ShaderUnit *unit = new ShaderUnit(this, i->first);
@@ -409,7 +454,13 @@ namespace RN
 				
 				units.push_back(unit);
 				gl::AttachShader(program->program, unit->GetShader());
+				
+				types |= (1 << static_cast<int>(i->first));
 			}
+			
+#if RN_PLATFORM_POSIX
+			errno = error;
+#endif
 			
 			// Link the program
 			gl::LinkProgram(program->program);
@@ -438,6 +489,7 @@ namespace RN
 			// Dump the scope guard and clear all defines that were just visible in this compilation unit
 			scopeGuard.Commit();
 			program->ReadLocations();
+			program->linkedPrograms = types;
 			
 			// Update any caches
 			ShaderCache::GetSharedInstance()->CacheShaderProgram(this, program, lookup);
@@ -451,17 +503,37 @@ namespace RN
 		if(!SupportsProgramOfType(lookup.type))
 			return 0;
 		
+		LockGuard<Object *> lock(this);
 		return CompileProgram(lookup);
 	}
 	
-	ShaderProgram *Shader::GetProgramOfType(uint32 type)
+	ShaderProgram *Shader::GetProgramOfType(ShaderProgram::Type type)
 	{
 		return GetProgramWithLookup(ShaderLookup(type));
 	}
 	
-	bool Shader::SupportsProgramOfType(uint32 type)
+	bool Shader::SupportsProgramOfType(ShaderProgram::Type type)
 	{
 		return ((_supportedPrograms & type) == type || type == 0);
+	}
+	
+	void Shader::InvalidatePrograms()
+	{
+		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
+		
+			for(auto &pair : _programs)
+			{
+				ShaderProgram *program = pair.second;
+				
+				Renderer::GetSharedInstance()->RelinquishProgram(program);
+				
+				gl::DeleteProgram(program->program);
+				delete program;
+			}
+			
+		}, true);
+		
+		_programs.clear();
 	}
 	
 	// ---------------------
@@ -614,24 +686,25 @@ namespace RN
 		PreProcessFile(file, result);
 		
 		// Check what program types the shader supports
-		_supportedPrograms |= IsDefined(result.data, "RN_INSTANCING") ? ShaderProgram::TypeInstanced : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_ANIMATION") ? ShaderProgram::TypeAnimated : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_LIGHTING") ? ShaderProgram::TypeLighting : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_DISCARD") ? ShaderProgram::TypeDiscard : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_DIRECTIONAL_SHADOWS") ? ShaderProgram::TypeDirectionalShadows : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_POINT_SHADOWS") ? ShaderProgram::TypePointShadows : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_SPOT_SHADOWS") ? ShaderProgram::TypeSpotShadows : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_FOG") ? ShaderProgram::TypeFog : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_CLIPPLANE") ? ShaderProgram::TypeClipPlane : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_GAMMA_CORRECTION") ? ShaderProgram::TypeGammaCorrection : 0;
-		_supportedPrograms |= IsDefined(result.data, "RN_TEXTURE_DIFFUSE") ? ShaderProgram::TypeDiffuse : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_INSTANCING") ? ShaderProgram::Type::Instanced : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_ANIMATION") ? ShaderProgram::Type::Animated : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_LIGHTING") ? ShaderProgram::Type::Lighting : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_DISCARD") ? ShaderProgram::Type::Discard : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_DIRECTIONAL_SHADOWS") ? ShaderProgram::Type::DirectionalShadows : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_POINT_SHADOWS") ? ShaderProgram::Type::PointShadows : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_SPOT_SHADOWS") ? ShaderProgram::Type::SpotShadows : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_FOG") ? ShaderProgram::Type::Fog : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_CLIPPLANE") ? ShaderProgram::Type::ClipPlane : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_GAMMA_CORRECTION") ? ShaderProgram::Type::GammaCorrection : 0;
+		_supportedPrograms |= IsDefined(result.data, "RN_TEXTURE_DIFFUSE") ? ShaderProgram::Type::Diffuse : 0;
 		
 		ShaderData data;
 		data.shader = std::move(result.data);
 		data.marker = std::move(result.marker);
 		data.file   = file->GetName() + "." + file->GetExtension();
 		
-		_shaderData.insert(std::map<ShaderType, ShaderData>::value_type(type, std::move(data)));
+		_shaderData.emplace(type, std::move(data));
+		InvalidatePrograms();
 	}
 	
 	void Shader::SetShaderForType(const std::string& path, ShaderType type)

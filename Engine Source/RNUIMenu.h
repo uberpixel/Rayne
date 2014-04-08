@@ -37,13 +37,10 @@ namespace RN
 			RNAPI void RemoveItemAtIndex(size_t index);
 			
 			RNAPI const Array *GetItems() const { return _items; }
-			
-			RNAPI static void PopUpContextMenu(Menu *menu, const Vector2& location);
-			
 		private:
 			Array *_items;
 			
-			RNDefineMeta(Menu, Object)
+			RNDeclareMeta(Menu)
 		};
 		
 		
@@ -67,6 +64,7 @@ namespace RN
 			RNAPI void SetAttributedTitle(AttributedString *title);
 			RNAPI void SetImage(Image *image);
 			RNAPI void SetKeyEquivalent(String *key);
+			RNAPI void SetKeyEquivalentModifierMask(uint32 mask);
 			RNAPI void SetCallback(const Callback& callback);
 			
 			RNAPI void SetSubMenu(Menu *menu);
@@ -81,6 +79,7 @@ namespace RN
 			RNAPI const AttributedString *GetAttributedTitle() const { return _title; }
 			RNAPI const Image *GetImage() const { return _image; }
 			RNAPI const String *GetKeyEquivalent() const { return _keyEquivalent; }
+			RNAPI uint32 GetKeyEquivalentModifierMask() const { return _keyEquivalentModifierMask; }
 			RNAPI const Callback& GetCallback() const { return _callback; }
 			
 			RNAPI bool IsSeparator() const { return _isSeparator; }
@@ -94,13 +93,14 @@ namespace RN
 			AttributedString *_title;
 			Image *_image;
 			String *_keyEquivalent;
+			uint32 _keyEquivalentModifierMask;
 			
 			Callback _callback;
 			
 			Menu *_menu;
 			Menu *_subMenu;
 			
-			RNDefineMeta(MenuItem, Object)
+			RNDeclareMeta(MenuItem)
 		};
 	}
 }

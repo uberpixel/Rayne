@@ -15,6 +15,8 @@
 namespace RN
 {
 	class Array;
+	class CountedSetInternal;
+	
 	class CountedSet : public Object
 	{
 	public:
@@ -22,63 +24,35 @@ namespace RN
 		RNAPI CountedSet(size_t capacity);
 		RNAPI CountedSet(const Array *other);
 		RNAPI CountedSet(const CountedSet *other);
+		RNAPI CountedSet(Deserializer *deserializer);
 		RNAPI ~CountedSet() override;
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI void AddObject(Object *object);
 		RNAPI void RemoveObject(Object *object);
 		RNAPI void RemoveAllObjects();
 		RNAPI bool ContainsObject(Object *object);
 		
-		RNAPI void Enumerate(const std::function<void (Object *object, size_t count, bool *stop)>& callback);
+		RNAPI void Enumerate(const std::function<void (Object *object, size_t count, bool &stop)>& callback) const;
+		
+		template<class T>
+		void Enumerate(const std::function<void (T *object, size_t count, bool &stop)>& callback) const
+		{
+			Enumerate([&](Object *object, size_t count, bool &stop) {
+				callback(static_cast<T *>(object), count, stop);
+			});
+		}
 		
 		RNAPI Array *GetAllObjects() const;
 		
-		size_t GetCount() const { return _count; }
-		RNAPI size_t GetCountForObject(Object *object);
+		RNAPI size_t GetCount() const;
+		RNAPI size_t GetCountForObject(Object *object) const;
 		
 	private:
-		struct Bucket
-		{
-			Bucket()
-			{
-				object = nullptr;
-				next   = nullptr;
-				count  = 0;
-			}
-			
-			Bucket(const Bucket *other)
-			{
-				object = SafeRetain(other->object);
-				next   = nullptr;
-				count  = other->count;
-			}
-			
-			~Bucket()
-			{
-				SafeRelease(object);
-			}
-			
-			
-			Object *object;
-			Bucket *next;
-			size_t count;
-		};
+		PIMPL<CountedSetInternal> _internals;
 		
-		void Initialize(size_t primitive);
-		
-		Bucket *FindBucket(Object *object, bool createIfNeeded);
-		
-		void GrowIfPossible();
-		void CollapseIfPossible();
-		
-		void Rehash(size_t primitive);
-		
-		Bucket **_buckets;
-		size_t _capacity;
-		size_t _count;
-		size_t _primitive;
-		
-		RNDefineMetaWithTraits(CountedSet, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMeta(CountedSet)
 	};
 }
 

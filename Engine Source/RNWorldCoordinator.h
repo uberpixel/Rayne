@@ -14,29 +14,44 @@
 #include "RNWorld.h"
 #include "RNProgress.h"
 
-#define kRNWorldCoordinatorDidFinishLoading RNCSTR("kRNWorldCoordinatorDidFinishLoading")
-#define kRNWorldCoordinatorWillBeginLoading RNCSTR("kRNWorldCoordinatorWillBeginLoading")
+#define kRNWorldCoordinatorWillBeginLoadingMessage RNCSTR("kRNWorldCoordinatorWillBeginLoadingMessage")
+#define kRNWorldCoordinatorDidFinishLoadingMessage RNCSTR("kRNWorldCoordinatorDidFinishLoadingMessage")
+#define kRNWorldCoordinatorDidStepWorldMessage     RNCSTR("kRNWorldCoordinatorDidStepWorldMessage")
 
 namespace RN
 {
+	class Kernel;
 	class WorldCoordinator : public ISingleton<WorldCoordinator>
 	{
 	public:
+		friend class Kernel;
+		
 		RNAPI WorldCoordinator();
 		RNAPI ~WorldCoordinator();
 		
-		RNAPI void StepWorld(FrameID frame, float delta);
-		RNAPI void RenderWorld(Renderer *renderer);
-		
 		RNAPI Progress *LoadWorld(World *world);
+		RNAPI Progress *LoadWorld(const std::string &file);
+		RNAPI Progress *LoadWorld(Deserializer *deserializer);
+		
+		RNAPI void SaveWorld(const std::string &file);
+		RNAPI void SaveWorld(Serializer *serializer);
 		
 		RNAPI bool IsLoading() const { return _loading.load(); }
 		RNAPI World *GetWorld() const { return _world; }
+		RNAPI std::string GetWorldFile() const { return _worldFile; }
 		
 	private:
+		void StepWorld(FrameID frame, float delta);
+		void RenderWorld(Renderer *renderer);
+		
 		bool AwaitFinishLoading();
-		bool BeginLoading();
+		bool BeginLoading(Deserializer *deserializer);
 		void FinishLoading(bool state);
+		Progress *__LoadWorld(Deserializer *deserializer);
+		
+		void BeginSaving(Serializer *serializer);
+		
+		void __AwaitLoadingForExit();
 		
 		Thread *_loadThread;
 		World *_world;
@@ -45,8 +60,13 @@ namespace RN
 		std::atomic<bool> _loading;
 		std::future<bool> _loadFuture;
 		Progress *_loadingProgress;
+		uint32 _loadState;
 		
-		RNDefineSingleton(WorldCoordinator)
+		std::string _worldFile;
+		
+		Deserializer *_deserializer;
+		
+		RNDeclareSingleton(WorldCoordinator)
 	};
 }
 

@@ -328,14 +328,10 @@ namespace RN
 			lock_free_ring_buffer() :
 				_head(0),
 				_tail(0)
-			{
-				_buffer = new T[Size];
-			}
+			{}
 			
 			~lock_free_ring_buffer()
-			{
-				delete [] _buffer;
-			}
+			{}
 			
 			
 			bool push(const T& val)
@@ -376,7 +372,7 @@ namespace RN
 				
 				if(head != _tail.load(std::memory_order_acquire))
 				{
-					std::swap(val, _buffer[head]);
+					val = std::move(_buffer[head]);
 					_head.store(advance(head), std::memory_order_release);
 					
 					return true;
@@ -406,7 +402,7 @@ namespace RN
 			std::atomic<size_t> _head;
 			std::atomic<size_t> _tail;
 			
-			T *_buffer;
+			std::array<T, capacity> _buffer;
 		};
 	}
 }

@@ -17,7 +17,9 @@ namespace RN
 		Catalogue::ParsePrettyFunction(namespaceBlob, _namespace);
 		
 		_namespace.pop_back();
-		_namespace.pop_back();
+		
+		if(!parent)
+			_namespace.pop_back();
 		
 		Catalogue::GetSharedInstance()->AddMetaClass(this);
 	}
@@ -54,7 +56,7 @@ namespace RN
 	
 	
 	
-	RNDeclareSingleton(Catalogue)
+	RNDefineSingleton(Catalogue)
 	
 	MetaClassBase *Catalogue::GetClassWithName(const std::string& name) const
 	{
@@ -65,13 +67,13 @@ namespace RN
 		return 0;
 	}
 	
-	void Catalogue::EnumerateClasses(const std::function<void (MetaClassBase *meta, bool *stop)>& enumerator)
+	void Catalogue::EnumerateClasses(const std::function<void (MetaClassBase *meta, bool &stop)>& enumerator)
 	{
 		bool stop = false;
 		
 		for(auto i=_metaClasses.begin(); i!=_metaClasses.end(); i++)
 		{
-			enumerator(i->second, &stop);
+			enumerator(i->second, stop);
 			if(stop)
 				break;
 		}

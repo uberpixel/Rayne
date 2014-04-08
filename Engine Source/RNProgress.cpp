@@ -13,7 +13,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Progress)
+	RNDefineMeta(Progress, Object)
 	
 	Progress::Progress(size_t units) :
 		_totalUnits(units),
@@ -170,7 +170,7 @@ namespace RN
 		
 		double base = (_completedUnits.load() / static_cast<double>(_totalUnits.load()));
 		
-		_children.Enumerate<Progress>([&](Progress *child, size_t index, bool *stop) {
+		_children.Enumerate<Progress>([&](Progress *child, size_t index, bool &stop) {
 			
 			if(child->_completed)
 				return;

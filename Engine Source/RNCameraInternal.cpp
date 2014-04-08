@@ -2,15 +2,15 @@
 //  RNCameraInternal.cpp
 //  Rayne
 //
-//  Created by Sidney Just on 06/01/14.
-//  Copyright (c) 2014 Sidney Just. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "RNCameraInternal.h"
 
 namespace RN
 {
-	RNDeclareMeta(CubemapCamera)
+	RNDefineMeta(CubemapCamera, Camera)
 	
 	CubemapCamera::CubemapCamera(const Vector2 &size, RenderStorage *storage, Flags flags, float scaleFactor) :
 		Camera(size, storage, flags, scaleFactor)
@@ -18,6 +18,6 @@ namespace RN
 	
 	bool CubemapCamera::InFrustum(const RN::Vector3 &position, float radius)
 	{
-		return (GetWorldPosition().Distance(position) < clipfar + radius);
+		return (GetWorldPosition().GetDistance(position) < GetClipFar() + radius);
 	}
 }

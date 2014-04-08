@@ -11,6 +11,8 @@
 #include "RNKernel.h"
 #include "RNWorld.h"
 #include "RNWindow.h"
+#include "RNUIWidget.h"
+#include "RNUIWidgetInternals.h"
 #include "RNUILabel.h"
 #include "RNUIButton.h"
 
@@ -63,27 +65,22 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareSingleton(Server)
+		RNDefineSingleton(Server)
 		
-		Server::Server()
+		Server::Server() :
+			_keyWidget(nullptr),
+			_tracking(nullptr),
+			_hover(nullptr),
+			_drawDebugFrames(false),
+			_menu(nullptr)
 		{
-			uint32 flags = Camera::FlagOrthogonal | Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagNoSorting | Camera::FlagNoLights;
-			_camera = new Camera(Vector2(0.0f), Texture::Format::RGBA8888, flags, RenderStorage::BufferFormatColor);
+			uint32 flags = Camera::Flags::Orthogonal | Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoSorting | Camera::Flags::NoDepthWrite | Camera::Flags::BlendedBlitting;
+			_camera = new Camera(Vector2(0.0f), Texture::Format::RGBA16F, flags, RenderStorage::BufferFormatColor);
 			_camera->SetClearColor(RN::Color(0.0f, 0.0f, 0.0f, 0.0f));
-			_camera->SetAllowsDepthWrite(false);
-			_camera->SetUseBlending(true);
-			
-			_camera->clipnear = -500.0f;
-			
-			if(_camera->GetWorld())
-				_camera->GetWorld()->RemoveSceneNode(_camera);
-			
-			_mainWidget = nullptr;
-			_tracking = nullptr;
-			_mode = Mode::SingleTracking;
-			
-			_drawDebugFrames = false;
-			_menu = nullptr;
+			_camera->SetFlags(_camera->GetFlags() | Camera::Flags::Orthogonal);
+			_camera->SetClipNear(-500.0f);
+			_camera->SetLightManager(nullptr);
+			_camera->RemoveFromWorld();
 			
 			TranslateMenuToPlatform();
 		}
@@ -114,19 +111,22 @@ namespace RN
 			_widgets.push_front(widget);
 			widget->_server = this;
 			widget->Retain();
+			
+			SortWidgets();
 		}
 		
 		void Server::RemoveWidget(Widget *widget)
 		{
 			RN_ASSERT(widget->_server == this, "");
 			
-			if(widget == _mainWidget)
-			{
-				_mainWidget = nullptr;
-				
-				if(_tracking && _tracking->_widget == widget)
-					_tracking = nullptr;
-			}
+			if(widget == _keyWidget)
+				SetKeyWidget(nullptr);
+			
+			if(_tracking && (_tracking->_widget == widget || !_tracking->_widget))
+				_tracking = nullptr;
+			
+			if(_hover && (_hover->_widget == widget || !_hover->_widget))
+				_hover = nullptr;
 			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
 			widget->_server = nullptr;
@@ -138,9 +138,35 @@ namespace RN
 			RN_ASSERT(widget->_server == this, "");
 			
 			_widgets.erase(std::remove(_widgets.begin(), _widgets.end(), widget), _widgets.end());
-			_widgets.push_front(widget);
+			_widgets.push_back(widget);
+			
+			SortWidgets();
 		}
 		
+		void Server::SetKeyWidget(Widget *widget)
+		{
+			RN_ASSERT(!widget || widget->_server == this, "");
+			
+			if(_keyWidget)
+			{
+				if(_keyWidget->_backgroundView)
+					_keyWidget->_backgroundView->SetState(Control::State::Normal);
+				
+				_keyWidget = nullptr;
+			}
+			
+			_keyWidget = widget;
+			
+			if(_keyWidget && _keyWidget->_backgroundView)
+				_keyWidget->_backgroundView->SetState(Control::State::Selected);
+		}
+		
+		void Server::SortWidgets()
+		{
+			std::stable_sort(_widgets.begin(), _widgets.end(), [](const Widget *a, const Widget *b) {
+				return (a->_level < b->_level);
+			});
+		}
 		
 		bool Server::ConsumeEvent(Event *event)
 		{
@@ -150,10 +176,6 @@ namespace RN
 				{
 					switch(event->GetType())
 					{
-						case Event::Type::MouseMoved:
-							_tracking->MouseDragged(event);
-							return true;
-							
 						case Event::Type::MouseDragged:
 							_tracking->MouseDragged(event);
 							return true;
@@ -194,21 +216,37 @@ namespace RN
 							return true;
 							
 						case Event::Type::MouseDown:
-							hit->MouseDown(event);
-							
-							_mainWidget = hitWidget;
 							_tracking   = hit;
+							
+							if(hitWidget->_canBecomeKeyWidget)
+								SetKeyWidget(hitWidget);
+							
+							MoveWidgetToFront(hitWidget);
+							
+							hit->MouseDown(event);
 							return true;
 							
+						case Event::Type::MouseMoved:
+						{
+							if(_hover && _hover != hit)
+								_hover->MouseLeft(event);
+							
+							hit->MouseMoved(event);
+							_hover = hit;
+							
+							return true;
+						}
+							
 						case Event::Type::MouseDragged:
+							_tracking = hit;
+							
 							hit->MouseDragged(event);
-							_tracking   = hit;
 							return true;
 							
 						case Event::Type::MouseUp:
-							hit->MouseUp(event);
-							
 							_tracking = nullptr;
+							
+							hit->MouseUp(event);
 							return true;
 							
 						default:
@@ -220,7 +258,9 @@ namespace RN
 			}
 			
 			
-			Responder *responder = _mainWidget ? _mainWidget->GetFirstResponder() : nullptr;
+			Responder *responder = _keyWidget ? _keyWidget->GetFirstResponder() : nullptr;
+			if(!responder)
+				responder = _keyWidget;
 			
 			if(responder && event->IsKeyboard())
 			{
@@ -250,18 +290,15 @@ namespace RN
 		
 		void Server::UpdateSize()
 		{
-			Rect actualFrame = Window::GetSharedInstance()->GetFrame();
+			Vector2 actualSize = Window::GetSharedInstance()->GetSize();
+			Rect    actualFrame(Vector2(), actualSize);
+			
 			if(_frame != actualFrame)
 			{
 				_frame = actualFrame;
 				
-				_camera->ortholeft   = _frame.GetLeft();
-				_camera->orthobottom = _frame.GetTop();
-				_camera->orthoright  = _frame.GetRight();
-				_camera->orthotop    = _frame.GetBottom();
-				
+				_camera->SetOrthogonalFrustum(_frame.GetBottom(), _frame.GetTop(), _frame.GetLeft(), _frame.GetRight());
 				_camera->SetFrame(_frame);
-				_camera->PostUpdate();
 				
 				MessageCenter::GetSharedInstance()->PostMessage(kRNUIServerDidResizeMessage, nullptr, nullptr);
 			}
@@ -309,15 +346,24 @@ namespace RN
 			if(!menu)
 				return [temp autorelease];
 			
-			menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool *stop) {
+			menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool &stop) {
 				
 				if(!item->IsSeparator())
 				{
 					NSString *title = [NSString stringWithUTF8String:item->GetTitle()->GetUTF8String()];
 					NSString *key   = [NSString stringWithUTF8String:item->GetKeyEquivalent()->GetUTF8String()];
 					
+					uint32 modifier = item->GetKeyEquivalentModifierMask();
+					NSUInteger modifierMask = 0;
+					
+					modifierMask |= (modifier & KeyModifier::KeyCommand) ? NSCommandKeyMask : 0;
+					modifierMask |= (modifier & KeyModifier::KeyShift) ? NSShiftKeyMask : 0;
+					modifierMask |= (modifier & KeyModifier::KeyControl) ? NSControlKeyMask : 0;
+					modifierMask |= (modifier & KeyModifier::KeyAlt) ? NSAlternateKeyMask : 0;
+					
 					NSMenuItem *titem = [[NSMenuItem alloc] initWithTitle:title action:@selector(performMenuBarAction:) keyEquivalent:key];
 					[titem setEnabled:item->IsEnabled()];
+					[titem setKeyEquivalentModifierMask:modifierMask];
 					
 					objc_setAssociatedObject(titem, __RNUIMenuItemWrapperKey, [__RNUIMenuItemWrapper wrapperWithItem:item], OBJC_ASSOCIATION_RETAIN);
 					
@@ -363,7 +409,7 @@ namespace RN
 				
 				if(_menu)
 				{
-					_menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool *stop) {
+					_menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool &stop) {
 						
 						NSMenu *tMenu = TranslateRNUIMenuToNSMenu(item->GetSubMenu());
 						[tMenu setTitle:[NSString stringWithUTF8String:item->GetTitle()->GetUTF8String()]];

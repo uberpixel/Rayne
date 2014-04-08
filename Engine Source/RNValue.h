@@ -11,20 +11,35 @@
 
 #include "RNBase.h"
 #include "RNObject.h"
-
+#include "RNTypeTranslator.h"
 #include "RNVector.h"
 #include "RNColor.h"
 #include "RNMatrixQuaternion.h"
+#include "RNAny.h"
 
 namespace RN
 {
 	class Value : public Object
 	{
 	public:
-		RNAPI Value(const void *ptr, size_t size, const std::type_info& typeinfo);
-		RNAPI Value(const void *ptr);
+		template<class T>
+		Value(const T &value) :
+			_type(TypeTranslator<T>::value),
+			_size(sizeof(T))
+		{
+			const uint8 *source = reinterpret_cast<const uint8 *>(&value);
+			
+			_storage = new uint8[_size];
+			std::copy(source, source + _size, _storage);
+		}
 		RNAPI Value(const Value *other);
-		RNAPI ~Value() override;
+		RNAPI Value(Deserializer *deserializer);
+		RNAPI ~Value();
+		
+		RNAPI void Serialize(Serializer *serializer) override;
+		
+		RNAPI machine_hash GetHash() const override;
+		RNAPI bool IsEqual(Object *other) const override;
 		
 		RNAPI static Value *WithVector2(const Vector2& vector);
 		RNAPI static Value *WithVector3(const Vector3& vector);
@@ -35,28 +50,32 @@ namespace RN
 		RNAPI static Value *WithQuaternion(const Quaternion& quaternion);
 		RNAPI static Value *WithMatrix(const Matrix& matrix);
 		
-		RNAPI void GetValue(void *ptr) const;
-		RNAPI void *GetPointerValue() const;
+		template<class T>
+		bool CanConvertToType() const
+		{
+			return (TypeTranslator<T>::value == _type && sizeof(T) == _size);
+		}
 		
 		template<class T>
 		T GetValue() const
 		{
-			RN_ASSERT(typeid(T) == GetTypeInfo(), "");
+			if(TypeTranslator<T>::value != _type || sizeof(T) != _size)
+				throw Exception(Exception::Type::InconsistencyException, "Type mismatch!");
 			
-			T temp;
-			GetValue(&temp);
-			
-			return temp;
+			return static_cast<T>(*(reinterpret_cast<T *>(_storage)));
 		}
 		
-		RNAPI const std::type_info& GetTypeInfo() const { return *_typeinfo; }
+		char GetValueType()
+		{
+			return _type;
+		}
 		
 	private:
-		const std::type_info *_typeinfo;
-		uint8 *_buffer;
+		char _type;
 		size_t _size;
+		uint8 *_storage;
 		
-		RNDefineMetaWithTraits(Value, Object, MetaClassTraitCopyable)
+		RNDeclareMeta(Value)
 	};
 }
 

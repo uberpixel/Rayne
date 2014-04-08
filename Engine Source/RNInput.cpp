@@ -11,11 +11,12 @@
 #include "RNAutoreleasePool.h"
 #include "RNWindow.h"
 #include "RNUIServer.h"
+#include "RNLogging.h"
 
 namespace RN
 {
-	RNDeclareMeta(Event)
-	RNDeclareSingleton(Input)
+	RNDefineMeta(Event, Message)
+	RNDefineSingleton(Input)
 	
 	Event::Event() :
 		Message(kRNInputEventMessage, nullptr, nullptr)
@@ -56,8 +57,21 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 	void TranslateKeyboardEvent(NSEvent *event, const std::function<void (UniChar)>& callback)
 	{
-		NSString *characters = [event characters];
-		for(NSUInteger i=0; i<[characters length]; i++)
+		NSString *characters;
+		NSUInteger flags = [event modifierFlags];
+		
+		if(!(flags & NSControlKeyMask))
+		{
+			characters = [event characters];
+		}
+		else
+		{
+			characters = [event charactersIgnoringModifiers];
+		}
+		
+		
+		
+		for(NSUInteger i = 0; i < [characters length]; i ++)
 		{
 			UniChar character = static_cast<UniChar>([characters characterAtIndex:i]);
 			callback(character);
@@ -199,11 +213,11 @@ namespace RN
 	
 	Vector2 Input::ClampMousePosition(const Vector2& position) const
 	{
-		Rect frame = Window::GetSharedInstance()->GetFrame();
+		Vector2 size = Window::GetSharedInstance()->GetSize();
 		Vector2 result;
 		
-		result.x = roundf(std::min(frame.width, std::max(0.0f, position.x)));
-		result.y = roundf(std::min(frame.height, std::max(0.0f, position.y)));
+		result.x = roundf(std::min(size.x, std::max(0.0f, position.x)));
+		result.y = roundf(std::min(size.y, std::max(0.0f, position.y)));
 		
 		return result;
 	}
@@ -251,12 +265,6 @@ namespace RN
 			{
 				if(server->ConsumeEvent(event))
 				{
-					if(event->IsKeyboard())
-					{
-						UniChar code = event->GetCode();
-						_pressedKeys.erase(CodePoint(code).GetLowerCase());
-					}
-					
 					event->Release();
 					continue;
 				}
@@ -304,7 +312,7 @@ namespace RN
 			case NSKeyUp:
 			{
 				Event::Type type;
-				_modifierKeys = TranslateModifierFlags([nsevent modifierFlags]);
+				_modifierKeys |= TranslateModifierFlags([nsevent modifierFlags]);
 				
 				switch([nsevent type])
 				{
@@ -470,12 +478,29 @@ namespace RN
 				::GetKeyboardState(keyState);
 
 				uint32 scan = (lparam >> 16) & 0xff;
-				uint32 code = (wparam < 0x0030) ? 1 : 0;
+				uint32 code = (wparam < 0x30) ? 1 : 0;
 
-				WCHAR buffer = 0;
-				if(::ToUnicode((UINT)wparam, scan, keyState, &buffer, 1, 0) == 1)
-					code = buffer;
+				if(code == 0)
+				{
+					WCHAR buffer = 0;
+					if(::ToUnicode((UINT)wparam, scan, keyState, &buffer, 1, 0) == 1)
+					{
+						code = buffer;
+					}
+					else
+					{
+						code = wparam | 0xF700;
+					}
+				}
+				else
+				{
+					// Special character, move it into the private use Unicode page
+					code = wparam | 0xF700;
 
+					if(code == 0xF70D)
+						code = 0xD;
+				}
+				
 				event->_key  = (UniChar)code;
 				event->_type = (message == WM_KEYDOWN) ? Event::Type::KeyDown : Event::Type::KeyUp;
 				event->_modifierKeys = TranslateModifierFlags(keyState);
@@ -483,7 +508,7 @@ namespace RN
 				if(message == WM_KEYDOWN)
 				{
 					uint32 repeatCount = (lparam & 0xf);
-					if(repeatCount > 0)
+					if(repeatCount > 1)
 						event->_type = Event::Type::KeyRepeat;
 
 					_pressedKeys.insert(CodePoint((UniChar)code).GetLowerCase());

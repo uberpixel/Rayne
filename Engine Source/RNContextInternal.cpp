@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Context)
+	RNDefineMeta(Context, Object)
 	
 #if RN_PLATFORM_LINUX
 	Display *Context::_dpy = 0;

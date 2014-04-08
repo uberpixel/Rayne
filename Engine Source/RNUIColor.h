@@ -33,7 +33,7 @@ namespace RN
 		private:
 			RN::Color _color;
 			
-			RNDefineMetaWithTraits(Color, Object, MetaClassTraitCopyable);
+			RNDeclareMeta(Color);
 		};
 	}
 }

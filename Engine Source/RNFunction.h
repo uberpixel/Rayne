@@ -23,11 +23,11 @@ namespace RN
 			_implementation(new ImplementationType<F>(std::move(f)))
 		{}
 		
-		Function(Function&& other) :
+		Function(Function&& other) RN_NOEXCEPT :
 			_implementation(std::move(other._implementation))
 		{}
 		
-		Function& operator=(Function&& other)
+		Function& operator=(Function&& other) RN_NOEXCEPT
 		{
 			_implementation = std::move(other._implementation);
 			return *this;

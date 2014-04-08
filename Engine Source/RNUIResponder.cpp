@@ -72,6 +72,12 @@ namespace RN
 			if(next)
 				next->MouseDragged(event);
 		}
+		void Responder::MouseLeft(Event *event)
+		{
+			Responder *next = GetNextResponder();
+			if(next)
+				next->MouseLeft(event);
+		}
 		
 		void Responder::KeyDown(Event *event)
 		{

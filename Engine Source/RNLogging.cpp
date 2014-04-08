@@ -19,6 +19,11 @@ namespace RN
 		// MARK: Message
 		// ---------------------
 		
+		Message::Message() :
+			_level(Level::Debug),
+			_time(std::chrono::system_clock::now())
+		{}
+		
 		Message::Message(Level level, const std::string& message) :
 			_level(level),
 			_message(message),
@@ -49,10 +54,18 @@ namespace RN
 		{
 			_title = title;
 		}
-		
 		void Message::SetTitle(std::string&& title)
 		{
 			_title = std::move(title);
+		}
+		
+		void Message::SetMessage(const std::string& message)
+		{
+			_message = message;
+		}
+		void Message::SetMessage(std::string&& message)
+		{
+			_message = std::move(message);
 		}
 		
 		const std::string& Message::GetFormattedTime() const
@@ -91,20 +104,13 @@ namespace RN
 		// MARK: Logger
 		// ---------------------
 		
-		RNDeclareSingleton(Logger)
+		RNDefineSingleton(Logger)
 		
 		Logger::Logger()
 		{
 			AddLoggingEngine(StdoutLoggingEngine::GetSharedInstance());
 			AddLoggingEngine(HTMLLoggingEngine::GetSharedInstance());
-			AddLoggingEngine(SimpleLoggingEngine::GetSharedInstance());
-			
-#if RN_BUILD_DEBUG
-			_level = Level::Debug;
-#else
-			_level = Level::Info;
-#endif
-			
+				
 			_lastMessage = std::chrono::system_clock::now();
 			
 			_flushThread = new Thread(std::bind(&Logger::FlushRunLoop, this), false);
@@ -122,24 +128,10 @@ namespace RN
 			
 			FlushBuffer();
 			
-			_engines.Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool *stop) {
+			_engines.Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool &stop) {
 				if(engine->IsOpen())
 					engine->Close();
 			});
-		}
-		
-		void Logger::SetLogLevel(Level level)
-		{
-			LockGuard<SpinLock> lock(_lock);
-			_level = level;
-		}
-		 
-		Level Logger::GetLogLevel()
-		{
-			LockGuard<SpinLock> lock(_lock);
-			Level level = _level;
-			
-			return level;
 		}
 		
 		
@@ -171,14 +163,14 @@ namespace RN
 		
 		void Logger::Log(Level level, const std::string& message)
 		{
-			LockGuard<SpinLock> lock(_lock);
-			_buffer.emplace_back(Message(level, message));
+			Message temp(level, message);
+			Log(std::move(temp));
 		}
 		
 		void Logger::Log(Level level, std::string&& message)
 		{
-			LockGuard<SpinLock> lock(_lock);
-			_buffer.emplace_back(Message(level, std::move(message)));
+			Message temp(level, std::move(message));
+			Log(std::move(temp));
 		}
 		
 		void Logger::Log(Level level, const char *message, ...)
@@ -191,22 +183,62 @@ namespace RN
 			va_end(args);
 			
 			
-			LockGuard<SpinLock> lock(_lock);
-			_buffer.emplace_back(Message(level, std::string(buffer)));
+			Message temp(level, std::string(buffer));
+			Log(std::move(temp));
 		}
 		
 		void Logger::Log(const Message& message)
 		{
 			LockGuard<SpinLock> lock(_lock);
-			_buffer.push_back(message);
+			bool knocked = false;
+			
+			while(!_buffer.push(message))
+			{
+				if(!knocked)
+				{
+					knocked = true;
+					_signal.notify_one();
+				}
+			}
 		}
 		
 		void Logger::Log(Message&& message)
 		{
 			LockGuard<SpinLock> lock(_lock);
-			_buffer.push_back(std::move(message));
+			bool knocked = false;
+			
+			while(!_buffer.push(std::move(message)))
+			{
+				if(!knocked)
+				{
+					knocked = true;
+					_signal.notify_one();
+				}
+			}
 		}
 		
+		
+		
+		
+		
+		void Logger::Flush(bool force)
+		{
+			if(force)
+			{
+				LockGuard<SpinLock> temp(_lock);
+				if(_buffer.was_empty())
+					return;
+				
+				std::unique_lock<std::mutex> lock(_writeLock);
+				
+				_signal.notify_one();
+				_writeSignal.wait(lock);
+			}
+			else
+			{
+				_signal.notify_one();
+			}
+		}
 		
 		
 		void Logger::FlushRunLoop()
@@ -214,39 +246,27 @@ namespace RN
 			while(!_flushThread->IsCancelled())
 			{
 				std::unique_lock<std::mutex> lock(_signalLock);
-				_signal.wait_for(lock, std::chrono::milliseconds(250));
+				_signal.wait(lock);
 				
 				FlushBuffer();
 			}
 		}
 		
-		void Logger::Flush(bool force)
-		{
-			force ? FlushBuffer() : _signal.notify_all();
-		}
-		
 		void Logger::FlushBuffer()
 		{
-			LockGuard<SpinLock> lock(_lock);
-			std::vector<Message> buffer;
-			Level level = _level;
-			
-			std::swap(buffer, _buffer);
-			lock.Unlock();
-			
 			LockGuard<SpinLock> elock(_enginesLock);
 			
-			std::chrono::system_clock::time_point temp = _lastMessage;
+			size_t engines = _engines.GetCount();
+			Message message;
 			
-			_engines.Enumerate<LoggingEngine>([&](LoggingEngine *engine, size_t index, bool *stop) {
-				
-				_lastMessage = temp;
-				
-				for(Message& message : buffer)
+			while(_buffer.pop(message))
+			{
+				for(size_t i = 0; i < engines; i ++)
 				{
+					LoggingEngine *engine = static_cast<LoggingEngine *>(_engines[i]);
+					
 					long offset = std::chrono::duration_cast<std::chrono::seconds>(message.GetTime() - _lastMessage).count();
 					_lastMessage = message.GetTime();
-					
 					
 					if(offset >= 10)
 						engine->CutOff();
@@ -257,10 +277,14 @@ namespace RN
 						continue;
 					}
 					
-					if(message.GetLevel() >= level)
+					if(message.GetLevel() >= engine->GetLevel())
 						engine->Write(message);
 				}
-			});
+			}
+			
+			
+			std::lock_guard<std::mutex> lock(_writeLock);
+			_writeSignal.notify_one();
 		}
 		
 		// ---------------------
@@ -269,7 +293,8 @@ namespace RN
 		// ---------------------
 		
 		Loggable::Loggable(Level level) :
-			_level(level)
+			_level(level),
+			_message(level, "")
 		{}
 		
 		Loggable::~Loggable()
@@ -279,10 +304,14 @@ namespace RN
 		
 		void Loggable::Submit()
 		{
-			std::string string = std::move(_stream.str());
+			if(!_stream.tellp())
+				return;
+			
+			_message.SetMessage(std::move(_stream.str()));
 			_stream.str("");
 			
-			Logger::GetSharedInstance()->Log(_level, std::move(string));
+			Logger::GetSharedInstance()->Log(std::move(_message));
+			_message = Message(_level, "");
 		}
 	}
 }

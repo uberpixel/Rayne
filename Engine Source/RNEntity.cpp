@@ -13,15 +13,14 @@
 
 namespace RN
 {
-	RNDeclareMeta(Entity)
+	RNDefineMeta(Entity, SceneNode)
 	
 	Entity::Entity() :
-		_model("model", Object::MemoryPolicy::Retain, std::bind(&Entity::GetModel, this), std::bind(&Entity::SetModel, this, std::placeholders::_1)),
-		_skeleton("sekelton", Object::MemoryPolicy::Retain, std::bind(&Entity::GetSkeleton, this), std::bind(&Entity::SetSkeleton, this, std::placeholders::_1)),
+		_model("model", Object::MemoryPolicy::Retain, &Entity::GetModel, &Entity::SetModel),
+		_skeleton("skeleton", Object::MemoryPolicy::Retain, &Entity::GetSkeleton, &Entity::SetSkeleton),
 		_instancedData(nullptr)
 	{
-		AddObservable(&_model);
-		AddObservable(&_skeleton);
+		AddObservables({ &_model, &_skeleton });
 	}
 	
 	Entity::Entity(Model *model) :
@@ -37,11 +36,47 @@ namespace RN
 		SetPosition(position);
 	}
 	
+	Entity::Entity(const Entity *other) :
+		SceneNode(other),
+		_model("model", Object::MemoryPolicy::Retain, &Entity::GetModel, &Entity::SetModel),
+		_skeleton("skeleton", Object::MemoryPolicy::Retain, &Entity::GetSkeleton, &Entity::SetSkeleton),
+		_instancedData(nullptr)
+	{
+		AddObservables({ &_model, &_skeleton });
+		
+		Entity *temp = const_cast<Entity *>(other);
+		LockGuard<Object *> lock(temp);
+		
+		SetModel(other->_model);
+		SetSkeleton(other->_skeleton);
+	}
+	
 	Entity::~Entity()
 	{
 		SafeRelease(_skeleton);
 		SafeRelease(_model);
 	}
+	
+	Entity::Entity(Deserializer *deserializer) :
+		SceneNode(deserializer),
+		_model("model", Object::MemoryPolicy::Retain, &Entity::GetModel, &Entity::SetModel),
+		_skeleton("skeleton", Object::MemoryPolicy::Retain, &Entity::GetSkeleton, &Entity::SetSkeleton),
+		_instancedData(nullptr)
+	{
+		AddObservables({ &_model, &_skeleton });
+		
+		SetModel(static_cast<Model *>(deserializer->DecodeObject()));
+		SetSkeleton(static_cast<Skeleton *>(deserializer->DecodeObject()));
+	}
+	
+	void Entity::Serialize(Serializer *serializer)
+	{
+		SceneNode::Serialize(serializer);
+		
+		serializer->EncodeObject(_model);
+		serializer->EncodeObject(_skeleton);
+	}
+	
 	
 	void Entity::Render(Renderer *renderer, Camera *camera)
 	{
@@ -50,10 +85,10 @@ namespace RN
 		if(_model)
 		{
 			float distance = 0.0f;
-			Camera *distanceCamera = (camera->GetLODCamera()) ? camera->GetLODCamera() : camera;
+			Camera *distanceCamera = camera->GetLODCamera();
 			
-			distance = GetWorldPosition().Distance(distanceCamera->GetWorldPosition());
-			distance /= distanceCamera->clipfar;
+			distance = GetWorldPosition().GetDistance(distanceCamera->GetWorldPosition());
+			distance /= distanceCamera->GetClipFar();
 			
 			
 			RenderingObject object;
@@ -118,8 +153,8 @@ namespace RN
 		{
 			Matrix matModelInv = GetWorldTransform().GetInverse();
 			
-			Vector3 temppos = matModelInv.Transform(position);
-			Vector4 tempdir = matModelInv.Transform(Vector4(direction, 0.0f));
+			Vector3 temppos = matModelInv * position;
+			Vector4 tempdir = matModelInv * Vector4(direction, 0.0f);
 			
 			size_t meshcount = _model->GetMeshCount(0);
 			

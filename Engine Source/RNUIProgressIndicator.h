@@ -46,7 +46,7 @@ namespace RN
 			double _max;
 			double _current;
 			
-			RNDefineMeta(ProgressIndicator, View)
+			RNDeclareMeta(ProgressIndicator)
 		};
 	}
 }

@@ -23,7 +23,6 @@ out vec4 fragColor0;
 void main()
 {
 	fragColor0 = vec4(0.0);
-	vec4 color0 = texture(targetmap0, vertTexcoord);
 	for(float i = -RN_KERNELSIZE; i <= RN_KERNELSIZE; i += 1.0)
 	#ifdef RN_BLURX
 		fragColor0 += texture(targetmap0, vertTexcoord+vec2(frameSize.x*i, 0.0));

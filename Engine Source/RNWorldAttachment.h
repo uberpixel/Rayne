@@ -20,16 +20,16 @@ namespace RN
 	{
 	public:
 		RNAPI virtual void StepWorld(float delta);
-		RNAPI virtual void SceneNodesUpdated();
-		RNAPI virtual void BeginCamera(Camera *camera);
+		RNAPI virtual void StepWorldEditMode(float delta);
+		RNAPI virtual void DidBeginCamera(Camera *camera);
 		RNAPI virtual void WillFinishCamera(Camera *camera);
 		
 		RNAPI virtual void DidAddSceneNode(SceneNode *node);
 		RNAPI virtual void WillRemoveSceneNode(SceneNode *node);
 		RNAPI virtual void WillRenderSceneNode(SceneNode *node);
-		RNAPI virtual void SceneNodeDidUpdate(SceneNode *node, uint32 changeSet);
+		RNAPI virtual void SceneNodeDidUpdate(SceneNode *node, SceneNode::ChangeSet changeSet);
 		
-		RNDefineMeta(WorldAttachment, Object)
+		RNDeclareMeta(WorldAttachment)
 	};
 }
 

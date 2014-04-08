@@ -15,7 +15,13 @@
 #include "RNMatrix.h"
 #include "RNRenderer.h"
 #include "RNVector.h"
+#include "RNEnum.h"
 #include "RNUIResponder.h"
+
+#define kRNUIWidgetLevelNormal     5
+#define kRNUIWidgetLevelBackground 0
+#define kRNUIWidgetLevelFloating   15
+#define kRNUIWidgetLevelPanel      10
 
 namespace RN
 {
@@ -31,15 +37,24 @@ namespace RN
 			friend class Server;
 			friend class View;
 			
-			enum
+			struct Style : public Enum<int32>
 			{
-				StyleBorderless  = 0,
-				StyleTitled      = (1 << 0),
-				StyleClosable    = (1 << 1),
-				StyleMinimizable = (1 << 2),
-				StyleMaximizable = (1 << 3)
+			public:
+				Style()
+				{}
+				Style(int value) :
+					Enum(value)
+				{}
+				
+				enum
+				{
+					Borderless  = 0,
+					Titled      = (1 << 0),
+					Closable    = (1 << 1),
+					Minimizable = (1 << 2),
+					Maximizable = (1 << 3)
+				};
 			};
-			typedef uint32 Style;
 			
 			enum class TitleControl
 			{
@@ -60,6 +75,8 @@ namespace RN
 			RNAPI void SetContentSize(const Vector2& size);
 			RNAPI void SetTitle(String *title);
 			RNAPI void SetTransform(const Matrix& transform);
+			RNAPI void SetWidgetLevel(int32 level);
+			RNAPI void SetCanBecomeKeyWidget(bool canBecome);
 			
 			RNAPI const Rect& GetFrame() const { return _frame; }
 			RNAPI Vector2 GetContentSize() const;
@@ -68,12 +85,14 @@ namespace RN
 			
 			RNAPI void SetNeedsLayoutUpdate();
 			
+			RNAPI bool MakeKeyWidget();
 			RNAPI bool MakeFirstResponder(Responder *responder);
 			RNAPI Responder *GetFirstResponder() const { return _firstResponder; }
 			
 			RNAPI void Open();
 			RNAPI void Close();
 			RNAPI bool IsOpen() const { return _server != nullptr; }
+			RNAPI void Center();
 			
 			RNAPI void OrderFront();
 			
@@ -97,6 +116,8 @@ namespace RN
 			
 			Style _style;
 			bool _hasShadow;
+			bool _canBecomeKeyWidget;
+			int32 _level;
 			
 			Rect _frame;
 			
@@ -111,7 +132,7 @@ namespace RN
 			Matrix _transform;
 			Server *_server;
 			
-			RNDefineMeta(Widget, Responder)
+			RNDeclareMeta(Widget)
 		};
 	}
 }

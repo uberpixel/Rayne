@@ -33,7 +33,7 @@ namespace RN
 			Boolean
 		};
 		
-		RNAPI Number(Serializer *serializer);
+		RNAPI Number(Deserializer *deserializer);
 		RNAPI Number(const Number *number);
 		RNAPI explicit Number(bool value);
 		RNAPI explicit Number(float value);
@@ -92,7 +92,7 @@ namespace RN
 		uint8 *_buffer;
 		Type _type;
 		
-		RNDefineMetaWithTraits(Number, Object, MetaClassTraitSerializable);
+		RNDeclareMeta(Number);
 	};
 }
 

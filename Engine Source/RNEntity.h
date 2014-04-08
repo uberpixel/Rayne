@@ -29,7 +29,11 @@ namespace RN
 		RNAPI Entity();
 		RNAPI Entity(Model *model);
 		RNAPI Entity(Model *model, const Vector3 &position);
+		RNAPI Entity(const Entity *other);
+		RNAPI Entity(Deserializer *deserializer);
 		RNAPI ~Entity() override;
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI void SetModel(Model *model);
 		RNAPI void SetSkeleton(class Skeleton *skeleton);
@@ -37,16 +41,16 @@ namespace RN
 		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone) override;
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		
-		Model *GetModel() { return _model; }
-		Skeleton *GetSkeleton() { return _skeleton; }
+		Model *GetModel() const { return _model; }
+		Skeleton *GetSkeleton() const { return _skeleton; }
 
 	private:
-		Observable<Model *>_model;
-		Observable<Skeleton *>_skeleton;
+		Observable<Model *, Entity> _model;
+		Observable<Skeleton *, Entity> _skeleton;
 		
 		void *_instancedData;
 		
-		RNDefineMetaWithTraits(Entity, SceneNode, MetaClassTraitCronstructable)
+		RNDeclareMeta(Entity)
 	};
 }
 

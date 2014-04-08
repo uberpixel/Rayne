@@ -9,29 +9,30 @@
 #ifndef RN_SHADOW_VSH
 #define RN_SHADOW_VSH
 
-uniform mat4 lightDirectionalMatrix[4];
-uniform mat4 lightSpotMatrix[4];
+#if defined(RN_DIRECTIONAL_SHADOWS)
+uniform mat4 lightDirectionalMatrix[RN_DIRECTIONAL_SHADOWS];
+out vec4 vertDirLightProj[RN_DIRECTIONAL_SHADOWS];
+#endif
 
-out vec4 vertDirLightProj[4];
+uniform mat4 lightSpotMatrix[4];
 out vec4 vertSpotLightProj[4];
 
-
+#if defined(RN_DIRECTIONAL_SHADOWS)
 void rn_ShadowDirectional0(vec4 position)
 {
-	vec4 pos = matModel*position;
-	vertDirLightProj[0] = lightDirectionalMatrix[0]*pos;
-	vertDirLightProj[1] = lightDirectionalMatrix[1]*pos;
-	vertDirLightProj[2] = lightDirectionalMatrix[2]*pos;
-	vertDirLightProj[3] = lightDirectionalMatrix[3]*pos;
+	for(int i = 0; i < RN_DIRECTIONAL_SHADOWS; i++)
+	{
+		vertDirLightProj[i] = lightDirectionalMatrix[i]*position;
+	}
 }
+#endif
 
 void rn_ShadowSpot(vec4 position)
 {
-	vec4 pos = matModel*position;
-	vertSpotLightProj[0] = lightSpotMatrix[0]*pos;
-	vertSpotLightProj[1] = lightSpotMatrix[1]*pos;
-	vertSpotLightProj[2] = lightSpotMatrix[2]*pos;
-	vertSpotLightProj[3] = lightSpotMatrix[3]*pos;
+	vertSpotLightProj[0] = lightSpotMatrix[0]*position;
+	vertSpotLightProj[1] = lightSpotMatrix[1]*position;
+	vertSpotLightProj[2] = lightSpotMatrix[2]*position;
+	vertSpotLightProj[3] = lightSpotMatrix[3]*position;
 }
 
 #endif

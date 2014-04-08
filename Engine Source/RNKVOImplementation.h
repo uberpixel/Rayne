@@ -23,51 +23,47 @@ namespace RN
 	template<class T>
 	class ObservableValue;
 	
-	template<class T, class specialize = void>
+	template<class T, class Target = Object, class specialize = void>
 	class Observable
 	{
 		Observable() = delete;
 	};
 
 #define __ObservableScalar(type, kvotype) \
-	template<> \
-	class ObservableScalar<type> : public ObservableProperty \
+	template<class Target> \
+	class Observable<type, Target> : public ObservableProperty \
 	{ \
 	public: \
-		typedef std::function<void (type)> SetterCallback; \
-		typedef std::function<type (void)> GetterCallback; \
-		ObservableScalar(const char *name, GetterCallback getter, SetterCallback setter) : \
-			ObservableProperty(name, ObservableType::kvotype), \
+		typedef void (Target::*Setter)(type); \
+		typedef type (Target::*Getter)() const; \
+		Observable(const char *name, Getter getter = nullptr, Setter setter = nullptr) : \
+			ObservableProperty(name, TypeTranslator<type>::value), \
 			_getter(getter), \
 			_setter(setter) \
 		{} \
+		Observable(const char *name, const type& initial, Getter getter = nullptr, Setter setter = nullptr) : \
+			Observable(name, getter, setter) \
+		{ \
+			_storage = initial; \
+		} \
 		void SetValue(Object *value) override \
 		{ \
 			RN_ASSERT(value->IsKindOfClass(Number::MetaClass()), ""); \
 			Number *number = static_cast<Number *>(value); \
 			WillChangeValue(); \
-			_setter(number->Get##kvotype##Value()); \
+			if(_setter) \
+			{ \
+				(static_cast<Target *>(_object)->*_setter)(number->Get##kvotype##Value()); \
+			} \
+			else \
+			{ \
+				_storage = number->Get##kvotype##Value(); \
+			} \
 			DidChangeValue();  \
 		} \
 		Object *GetValue() const override \
 		{ \
-			return Number::With##kvotype (_getter()); \
-		} \
-	protected: \
-		SetterCallback _setter; \
-		GetterCallback _getter; \
-	}; \
-	template<> \
-	class Observable<type> : public ObservableScalar<type> \
-	{ \
-	public: \
-		Observable(const char *name, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) : \
-			ObservableScalar(name, getter ? getter : std::bind(&Observable<type>::__BasicGetter, this), setter ? setter : std::bind(&Observable<type>::__BasicSetter, this, std::placeholders::_1)) \
-		{} \
-		Observable(const char *name, const type& initial, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) : \
-			Observable(name, getter, setter) \
-		{ \
-			_storage = initial; \
+			return _getter ? Number::With##kvotype ((static_cast<Target *>(_object)->*_getter)()) : Number::With##kvotype (_storage); \
 		} \
 		bool operator == (const type& other) const \
 		{ \
@@ -183,64 +179,63 @@ namespace RN
 			return result; \
 		} \
 	private: \
-		void __BasicSetter(const type& t) \
-		{ \
-			_storage = t; \
-		} \
-		const type& __BasicGetter() \
-		{ \
-			return _storage; \
-		} \
+		Setter _setter; \
+		Getter _getter; \
 		type _storage; \
 	};
 
 	
 #define __ObservableValueBegin(type) \
-	template<> \
-	class ObservableValue<type> : public ObservableProperty \
+	template<class Target> \
+	class Observable<type, Target> : public ObservableProperty \
 	{ \
 	public: \
-		typedef std::function<void (const type&)> SetterCallback; \
-		typedef std::function<type (void)> GetterCallback; \
-		ObservableValue(const char *name, GetterCallback getter, SetterCallback setter) : \
-			ObservableProperty(name, ObservableType::type), \
+		typedef void (Target::*Setter)(const type &); \
+		typedef type (Target::*Getter)() const; \
+		typedef const type &(Target::*ConstGetter)() const; \
+		Observable(const char *name, Getter getter = nullptr, Setter setter = nullptr) : \
+			ObservableProperty(name, TypeTranslator<type>::value), \
 			_getter(getter), \
-			_setter(setter) \
-		{ \
-			SetWritable(static_cast<bool>(_setter)); \
-		} \
-		void SetValue(Object *tvalue) override \
-		{ \
-			RN_ASSERT(tvalue->IsKindOfClass(Value::MetaClass()), ""); \
-			Value *value = static_cast<Value *>(tvalue); \
-			WillChangeValue(); \
-			_setter(value->GetValue<type>()); \
-			DidChangeValue();  \
-		} \
-		Object *GetValue() const override \
-		{ \
-			return Value::With##type (_getter()); \
-		} \
-	protected: \
-		SetterCallback _setter; \
-		GetterCallback _getter; \
-	}; \
-	template<> \
-	class Observable<type> : public ObservableValue<type> \
-	{ \
-	public: \
-		Observable(const char *name, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) : \
-			ObservableValue(name, getter ? getter : std::bind(&Observable<type>::__BasicGetter, this), setter ? setter : std::bind(&Observable<type>::__BasicSetter, this, std::placeholders::_1)) \
+			_setter(setter), \
+			_const(false) \
 		{} \
-		Observable(const char *name, const type& initial, GetterCallback getter, SetterCallback setter = SetterCallback()) : \
+		Observable(const char *name, ConstGetter getter, Setter setter) : \
+			ObservableProperty(name, TypeTranslator<type>::value), \
+			_cgetter(getter), \
+			_setter(setter), \
+			_const(true) \
+		{} \
+		Observable(const char *name, const type& initial, Getter getter = nullptr, Setter setter = nullptr) : \
+			Observable(name, getter, setter) \
+		{ \
+			_storage = initial; \
+		} \
+		Observable(const char *name, const type& initial, ConstGetter getter, Setter setter) : \
 			Observable(name, getter, setter) \
 		{ \
 			_storage = initial; \
 		} \
 		\
-		operator type& () \
+		void SetValue(Object *tvalue) override \
 		{ \
-			return _storage; \
+			RN_ASSERT(tvalue->IsKindOfClass(Value::MetaClass()), ""); \
+			Value *value = static_cast<Value *>(tvalue); \
+			WillChangeValue(); \
+			if(_setter) \
+			{ \
+				(static_cast<Target *>(_object)->*_setter)(value->GetValue<type>()); \
+			} \
+			else \
+			{ \
+				_storage = value->GetValue<type>(); \
+			} \
+			DidChangeValue();  \
+		} \
+		Object *GetValue() const override \
+		{ \
+			if(_getter) \
+				return _const ? Value::With##type ((static_cast<Target *>(_object)->*_cgetter)()) : Value::With##type ((static_cast<Target *>(_object)->*_getter)()); \
+			return Value::With##type (_storage); \
 		} \
 		operator const type& () const \
 		{ \
@@ -255,14 +250,12 @@ namespace RN
 			return _storage; \
 		} \
 	private: \
-		void __BasicSetter(const type& other) \
-		{ \
-			_storage = other; \
-		} \
-		type& __BasicGetter() \
-		{ \
-			return _storage; \
-		} \
+		Setter _setter; \
+		union { \
+			Getter _getter; \
+			ConstGetter _cgetter; \
+		}; \
+		bool _const; \
 		type _storage; \
 	public:
 	
@@ -278,7 +271,7 @@ namespace RN
 	} \
 
 #define __ObservableValuePointerLikes(type) \
-	type& operator *() \
+	type operator *() \
 	{ \
 		return _storage; \
 	} \
@@ -361,19 +354,20 @@ namespace RN
 #define __ObservableValueEnd() \
 	};
 	
-	template<class T>
-	class Observable<T *, typename std::enable_if<std::is_base_of<Object, T>::value>::type> : public ObservableProperty
+	template<class T, class Target>
+	class Observable<T *, Target, typename std::enable_if<std::is_base_of<Object, T>::value>::type> : public ObservableProperty
 	{
 	public:
-		typedef std::function<void (T *)> SetterCallback;
-		typedef std::function<T *(void)> GetterCallback;
+		typedef void (Target::*Setter)(T *);
+		typedef T *(Target::*Getter)() const;
 		
-		Observable(const char *name, Object::MemoryPolicy policy, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) :
-			ObservableProperty(name, ObservableType::Object),
+		Observable(const char *name, Object::MemoryPolicy policy, Getter getter = nullptr, Setter setter = nullptr) :
+			ObservableProperty(name, TypeTranslator<Object *>::value),
 			_policy(policy),
 			_getter(getter),
 			_setter(setter),
-			_storage(nullptr)
+			_storage(nullptr),
+			_meta(T::MetaClass())
 		{}
 		
 		void SetValue(Object *object) override
@@ -401,7 +395,7 @@ namespace RN
 			}
 			else
 			{
-				_setter(static_cast<T *>(object));
+				(static_cast<Target *>(_object)->*_setter)(static_cast<T *>(object));
 			}
 		
 			DidChangeValue();
@@ -410,18 +404,29 @@ namespace RN
 		Object *GetValue() const override
 		{
 			if(_getter)
-				return _getter();
+				return (static_cast<Target *>(_object)->*_getter)();
 				
 			return _storage;
 		}
 
+		MetaClassBase *GetMetaClass() const override
+		{
+			return _meta;
+		}
+
 		bool operator== (T *other)
 		{
+			if(!_storage)
+				return (other == nullptr);
+			
 			return (_storage->IsEqual(other));
 		}
 
 		bool operator!= (T *other)
 		{
+			if(!_storage)
+				return (other != nullptr);
+			
 			return !(_storage->IsEqual(other));
 		}
 
@@ -430,11 +435,7 @@ namespace RN
 			return (_storage != nullptr);
 		}
 
-		operator T* ()
-		{
-			return _storage;
-		}
-		operator const T* () const
+		operator T* () const
 		{
 			return _storage;
 		}
@@ -448,106 +449,90 @@ namespace RN
 			return _storage;
 		}
 
-		T *operator ->()
-		{
-			return _storage;
-		}
-		const T *operator ->() const
+		T *operator ->() const
 		{
 			return _storage;
 		}
 
 	private:
-		SetterCallback _setter;
-		GetterCallback _getter;
+		Setter _setter;
+		Getter _getter;
 		Object::MemoryPolicy _policy;
 		T *_storage;
+		MetaClassBase *_meta;
 	};
-	
-	template<>
-	class ObservableValue<bool> : public ObservableProperty
+
+
+	template<class Target>
+	class Observable<bool, Target> : public ObservableProperty
 	{
 	public:
-		typedef std::function<void (const bool&)> SetterCallback;
-		typedef std::function<bool (void)> GetterCallback;
-		
-		ObservableValue(const char *name, GetterCallback getter, SetterCallback setter) :
-			ObservableProperty(name, ObservableType::Bool),
+		typedef void (Target::*Setter)(bool);
+		typedef bool (Target::*Getter)() const;
+
+		Observable(const char *name, Getter getter = nullptr, Setter setter = nullptr) :
+			ObservableProperty(name, TypeTranslator<bool>::value),
 			_getter(getter),
 			_setter(setter)
 		{}
+		Observable(const char *name, bool initial, Getter getter = nullptr, Setter setter = nullptr) :
+			Observable(name, getter, setter)
+		{
+			_storage = initial;
+		}
 		
 		void SetValue(Object *value) override
 		{
 			RN_ASSERT(value->IsKindOfClass(Number::MetaClass()), "");
+			
 			Number *number = static_cast<Number *>(value);
-		
 			WillChangeValue();
-			_setter(number->GetBoolValue());
+			if(_setter)
+			{
+				(static_cast<Target *>(_object)->*_setter)(number->GetBoolValue());
+			}
+			else
+			{
+				_storage = number->GetBoolValue();
+			}
 			DidChangeValue();
 		}
-		
 		Object *GetValue() const override
 		{
-			return Number::WithBool(_getter());
-		}
-	protected:
-		SetterCallback _setter;
-		GetterCallback _getter;
-	};
-
-	template<>
-	class Observable<bool> : public ObservableValue<bool>
-	{
-	public:
-		Observable(const char *name, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) :
-			ObservableValue(name, getter ? getter : std::bind(&Observable<bool>::__BasicGetter, this), setter ? setter : std::bind(&Observable<bool>::__BasicSetter, this, std::placeholders::_1))
-		{}
-		Observable(const char *name, const bool& initial, GetterCallback getter = GetterCallback(), SetterCallback setter = SetterCallback()) :
-			Observable(name, getter, setter)
-		{
-			_storage = initial;
+			return _getter ? Number::WithBool((static_cast<Target *>(_object)->*_getter)()) : Number::WithBool(_storage);
 		}
 		
 		bool operator== (const bool other)
 		{
 			return (_storage == other);
 		}
-		
+
 		bool operator!= (const bool other)
 		{
 			return (_storage != other);
 		}
-		
+
 		bool& operator= (const bool& other)
 		{
 			WillChangeValue();
 			_storage = other;
 			DidChangeValue();
-		
+			
 			return _storage;
 		}
-		
+
 		operator bool()
 		{
 			return _storage;
 		}
-		
+
 		operator bool() const
 		{
 			return _storage;
 		}
 	private:
-		void __BasicSetter(bool other)
-		{
-			_storage = other;
-		}
-		
-		bool __BasicGetter()
-		{
-			return _storage;
-		}
-		
+		Setter _setter;
+		Getter _getter;
 		bool _storage;
 	};
 

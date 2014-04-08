@@ -16,18 +16,19 @@ namespace RN
 	namespace UI
 	{
 		DebugWidget::DebugWidget() :
-			Widget(Widget::StyleTitled | Widget::StyleClosable, Rect(10.0f, 50.0f, 180.0f, 220.0f)),
+			Widget(Widget::Style::Titled | Widget::Style::Closable, Rect(10.0f, 50.0f, 180.0f, 220.0f)),
 			_fps(60)
 		{
 			SetTitle(RNCSTR("Statistics"));
+			SetWidgetLevel(kRNUIWidgetLevelFloating);
 			
 			_label = new Label();
-			_label->SetAutoresizingMask(View::AutoresizingFlexibleHeight | View::AutoresizingFlexibleWidth);
+			_label->SetAutoresizingMask(View::AutoresizingMask::FlexibleHeight | View::AutoresizingMask::FlexibleWidth);
 			_label->SetNumberOfLines(0);
 			
 			_fpsCheckbox = Button::WithType(Button::Type::CheckBox);
-			_fpsCheckbox->SetAutoresizingMask(View::AutoresizingFlexibleTopMargin);
-			_fpsCheckbox->SetTitleForState(RNCSTR("Show avg. FPS"), Control::Normal);
+			_fpsCheckbox->SetAutoresizingMask(View::AutoresizingMask::FlexibleTopMargin);
+			_fpsCheckbox->SetTitleForState(RNCSTR("Show avg. FPS"), Control::State::Normal);
 			_fpsCheckbox->SizeToFit();
 			_fpsCheckbox->SetSelected(true);
 			
@@ -89,25 +90,30 @@ namespace RN
 		
 		
 		ConsoleWidget::ConsoleWidget() :
-			Widget(Widget::StyleTitled | Widget::StyleClosable, Rect(180.0f, 50.0f, 480.0f, 320.0f)),
-			_messages(500)
+			Widget(Widget::Style::Titled | Widget::Style::Closable, Rect(180.0f, 50.0f, 480.0f, 320.0f)),
+			_messages(512)
 		{
+			_engine = new Log::CallbackLoggingEngine(this);
+			
 			SetTitle(RNCSTR("Console"));
-			Log::Logger::GetSharedInstance()->AddLoggingEngine(this);
+			SetWidgetLevel(kRNUIWidgetLevelFloating);
+			
+			Log::Logger::GetSharedInstance()->AddLoggingEngine(_engine);
 			
 			Rect frame = GetFrame();
 			
 			_table = new TableView();
 			_table->SetDataSource(this);
 			_table->SetFrame(Rect(0.0f, 0.0f, frame.width, frame.height));
-			_table->SetAutoresizingMask(View::AutoresizingFlexibleHeight | View::AutoresizingFlexibleWidth);
+			_table->SetAutoresizingMask(View::AutoresizingMask::FlexibleHeight | View::AutoresizingMask::FlexibleWidth);
 			
 			GetContentView()->AddSubview(_table);
 		}
 		
 		ConsoleWidget::~ConsoleWidget()
 		{
-			Log::Logger::GetSharedInstance()->RemoveLoggingEngine(this);
+			Log::Logger::GetSharedInstance()->RemoveLoggingEngine(_engine);
+			_engine->Release();
 		}
 		
 		
@@ -169,6 +175,11 @@ namespace RN
 			Widget::Unlock();
 		}
 		
+		
+		void ConsoleWidget::SetLogLevel(Log::Level level)
+		{
+			_engine->SetLevel(level);
+		}
 		
 		void ConsoleWidget::Open()
 		{}

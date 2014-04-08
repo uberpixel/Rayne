@@ -9,6 +9,7 @@
 #include "RNObject.h"
 #include "RNAutoreleasePool.h"
 #include "RNLogging.h"
+#include "RNData.h"
 
 namespace RN
 {
@@ -21,8 +22,9 @@ namespace RN
 	}
 	
 	Object::~Object()
-	{		
-		RN_ASSERT(_refCount.load() <= 1, "refCount must be <= 1 upon destructor call. Use object->Release(); instead of delete object;");
+	{
+		if(!std::uncaught_exception())
+			RN_ASSERT(_refCount.load() <= 1, "refCount must be <= 1 upon destructor call. Use object->Release(); instead of delete object;");
 	
 		for(auto& pair : _associatedObjects)
 		{
@@ -237,48 +239,78 @@ namespace RN
 	// MARK: KVO / KVC
 	// ---------------------
 	
+	std::vector<ObservableProperty *> Object::GetPropertiesForClass(MetaClassBase *meta)
+	{
+		if(!meta)
+			return _properties;
+		
+		std::vector<ObservableProperty *> result;
+		
+		for(ObservableProperty *property : _properties)
+		{
+			if(property->_opaque == meta)
+				result.push_back(property);
+		}
+		
+		return result;
+	}
+	
 	void Object::AddObservable(ObservableProperty *property)
 	{
 		RN_ASSERT(property->_object == nullptr, "ObservableProperty can only be added once to a receiver!");
 		
 		property->_object = this;
-		_properties.insert(decltype(_properties)::value_type(property->_name, property));
+		property->_opaque = Class();
+		
+		_properties.push_back(property);
 	}
 	
-	void Object::MapCookie(void *cookie, Connection *connection)
+	void Object::AddObservables(std::initializer_list<ObservableProperty *> properties)
+	{
+		_properties.reserve(_properties.size() + properties.size());
+		
+		for(ObservableProperty *property : properties)
+		{
+			RN_ASSERT(property->_object == nullptr, "ObservableProperty can only be added once to a receiver!");
+			
+			property->_object = this;
+			property->_opaque = Class();
+			
+			_properties.push_back(property);
+		}
+	}
+	
+	void Object::MapCookie(void *cookie, ObservableProperty *property, Connection *connection)
+	{
+		_cookies.emplace_back(std::make_tuple(cookie, property, connection));
+	}
+	
+	void Object::UnmapCookie(void *cookie, ObservableProperty *property)
 	{
 		Lock();
 		
-		auto iterator = _cookieMap.find(cookie);
-		if(iterator == _cookieMap.end())
+		for(auto iterator = _cookies.begin(); iterator != _cookies.end();)
 		{
-			_cookieMap.insert(decltype(_cookieMap)::value_type(cookie, std::vector<Connection *> { connection }));
-			Unlock();
-			return;
+			auto &tuple = *iterator;
+			
+			if(cookie == std::get<0>(tuple) && property == std::get<1>(tuple))
+			{
+				std::get<2>(tuple)->Disconnect();
+				
+				/*if(property->_signal->GetCount() == 0)
+				{
+					delete property->_signal;
+					property->_signal = nullptr;
+				}*/
+				
+				iterator = _cookies.erase(iterator);
+				continue;
+			}
+			
+			iterator ++;
 		}
 		
-		iterator->second.push_back(connection);
 		Unlock();
-	}
-	
-	void Object::UnmapCookie(void *cookie)
-	{
-		Lock();
-		
-		auto iterator = _cookieMap.find(cookie);
-		if(iterator == _cookieMap.end())
-		{
-			Unlock();
-			return;
-		}
-		
-		std::vector<Connection *> vector(std::move(iterator->second));
-		_cookieMap.erase(cookie);
-		
-		Unlock();
-		
-		for(Connection *connection : vector)
-			connection->Disconnect();
 	}
 	
 	Object *Object::ResolveKeyPath(const std::string& path, std::string& key)
@@ -303,25 +335,24 @@ namespace RN
 	
 	Object *Object::GetPrimitiveValueForKey(const std::string& key)
 	{
-		auto iterator = _properties.find(key);
+		for(ObservableProperty *property : _properties)
+		{
+			if(key.compare(property->_name) == 0)
+				return property->GetValue();
+		}
 		
-		if(iterator == _properties.end())
-			return GetValueForUndefinedKey(key);
-		
-		ObservableProperty *property = iterator->second;
-		return property->GetValue();
+		return GetValueForUndefinedKey(key);
 	}
 	
 	ObservableProperty *Object::GetPropertyForKeyPath(const std::string& keyPath, std::string& key)
 	{
-		Object *object = ResolveKeyPath(keyPath, key);
+		for(ObservableProperty *property : _properties)
+		{
+			if(keyPath.compare(property->_name) == 0)
+				return property;
+		}
 		
-		auto iterator = object->_properties.find(key);
-		if(iterator == object->_properties.end())
-			return nullptr;
-		
-		ObservableProperty *property = iterator->second;
-		return property;
+		return nullptr;
 	}
 	
 	
@@ -350,12 +381,12 @@ namespace RN
 	}
 	
 	
-	void Object::SetValueForKey(const std::string& keyPath, Object *value)
+	void Object::SetValueForKey(Object *value, const std::string& keyPath)
 	{
 		std::string key;
 		ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);
 		
-		property ? property->SetValue(value) : SetValueForUndefinedKey(key, value);
+		property ? property->SetValue(value) : SetValueForUndefinedKey(value, key);
 	}
 	
 	Object *Object::GetValueForKey(const std::string& keyPath)
@@ -366,7 +397,7 @@ namespace RN
 		return object->GetPrimitiveValueForKey(key);
 	}
 	
-	void Object::SetValueForUndefinedKey(const std::string& key, Object *value)
+	void Object::SetValueForUndefinedKey(Object *value, const std::string& key)
 	{
 		throw Exception(Exception::Type::InconsistencyException, "SetValue() for undefined key" + key);
 	}

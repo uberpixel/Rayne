@@ -15,14 +15,69 @@ namespace RN
 {
 	namespace Log
 	{
-		RNDeclareMeta(LoggingEngine)
-		RNDeclareMeta(StdoutLoggingEngine)
-		RNDeclareMeta(SimpleLoggingEngine)
-		RNDeclareMeta(HTMLLoggingEngine)
+		RNDefineMeta(LoggingEngine, Object)
+		RNDefineMeta(CallbackLoggingEngine, LoggingEngine)
+		RNDefineMeta(StdoutLoggingEngine, LoggingEngine)
+		RNDefineMeta(SimpleLoggingEngine, LoggingEngine)
+		RNDefineMeta(HTMLLoggingEngine, LoggingEngine)
 		
-		RNDeclareSingleton(StdoutLoggingEngine)
-		RNDeclareSingleton(SimpleLoggingEngine)
-		RNDeclareSingleton(HTMLLoggingEngine)
+		RNDefineSingleton(StdoutLoggingEngine)
+		RNDefineSingleton(SimpleLoggingEngine)
+		RNDefineSingleton(HTMLLoggingEngine)
+		
+		// ---------------------
+		// MARK: -
+		// MARK: LoggingEngine
+		// ---------------------
+		
+		LoggingEngine::LoggingEngine()
+		{
+#if RN_BUILD_DEBUG
+			_level = Level::Debug;
+#endif
+#if RN_BUILD_RELEASE
+			_level = Level::Info;
+#endif
+		}
+		
+		void LoggingEngine::SetLevel(Level level)
+		{
+			_level.store(level);
+		}
+		
+		// ---------------------
+		// MARK: -
+		// MARK: CallbackLoggingEngine
+		// ---------------------
+		
+		CallbackLoggingEngine::CallbackLoggingEngine(LoggingEngineDelegate *delegate) :
+			_delegate(delegate)
+		{}
+		
+		void CallbackLoggingEngine::Open()
+		{
+			_delegate->Open();
+		}
+		
+		void CallbackLoggingEngine::Close()
+		{
+			_delegate->Close();
+		}
+		
+		bool CallbackLoggingEngine::IsOpen() const
+		{
+			return _delegate->IsOpen();
+		}
+		
+		void CallbackLoggingEngine::CutOff()
+		{
+			_delegate->CutOff();
+		}
+		
+		void CallbackLoggingEngine::Write(const Message& message)
+		{
+			_delegate->Write(message);
+		}
 		
 		// ---------------------
 		// MARK: -
@@ -79,8 +134,10 @@ namespace RN
 		// ---------------------
 		
 		StdoutLoggingEngine::StdoutLoggingEngine() :
-			_internal(new StreamLoggingInternal(std::clog))
-		{}
+			_internal(std::clog)
+		{
+			SetLevel(Level::Debug);
+		}
 		
 		void StdoutLoggingEngine::Open()
 		{}
@@ -107,7 +164,7 @@ namespace RN
 		// ---------------------
 		
 		SimpleLoggingEngine::SimpleLoggingEngine() :
-			_internal(new StreamLoggingInternal(_stream))
+			_internal(_stream)
 		{}
 		
 		void SimpleLoggingEngine::Open()

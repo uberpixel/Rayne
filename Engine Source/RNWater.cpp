@@ -9,26 +9,26 @@
 #include "RNWater.h"
 #include "RNResourceCoordinator.h"
 
-#define kRNWaterMeshResourceName RNCSTR("kRNWaterMeshResourceName")
-
 namespace RN
 {
-	RNDeclareMeta(Water)
+	RNDefineMeta(Water, SceneNode)
 	
-	Water::Water(Camera *cam, Texture *refract)
+	Water::Water(Camera *cam, Texture *refract) :
+		_mesh(nullptr),
+		_material(nullptr),
+		_reflection(nullptr),
+		_refraction(refract->Retain()),
+		_camera(cam->Retain())
 	{
-		_mesh = 0;
-		_material = 0;
-		_reflection = 0;
-		_refraction = refract;
-		_camera = cam;
-		renderGroup = 2;
-		
 		Initialize();
+		SetRenderGroup(2);
 	}
 	
 	Water::~Water()
 	{
+		_refraction->Release();
+		_camera->Release();
+		
 		_mesh->Release();
 		_material->Release();
 	}
@@ -42,19 +42,20 @@ namespace RN
 		_material->SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyWaterShader, nullptr));
 		
 		static std::once_flag onceFlag;
+		static Mesh *mesh;
 		
-		std::call_once(onceFlag, []() {
-			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+		std::call_once(onceFlag, [&]() {
+			MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 			vertexDescriptor.elementMember = 3;
 			vertexDescriptor.elementSize   = sizeof(Vector3);
 			
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor };
 			
-			Mesh *mesh = new Mesh(descriptors, 10, 0);
-			mesh->SetMode(GL_TRIANGLE_STRIP);
+			mesh = new Mesh(descriptors, 10, 0);
+			mesh->SetDrawMode(Mesh::DrawMode::TriangleStrip);
 			
 			Mesh::Chunk chunk = mesh->GetChunk();
-			Mesh::ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(kMeshFeatureVertices);
+			Mesh::ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(MeshFeature::Vertices);
 			
 			
 			*vertices ++ = Vector3(0.5f, 0.0f, 0.5f);
@@ -71,27 +72,24 @@ namespace RN
 			*vertices ++ = Vector3(0.5f, 0.0f, -0.5f);
 			
 			chunk.CommitChanges();
-			
-			ResourceCoordinator::GetSharedInstance()->AddResource(mesh, kRNWaterMeshResourceName);
+
 		});
 		
-		_mesh = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Mesh>(kRNWaterMeshResourceName, nullptr)->Retain();
+		_mesh = mesh->Retain();
 		
 		if(_camera != 0)
 		{
-			_reflection = new Camera(Vector2(512, 512), Texture::Format::RGBA8888, Camera::FlagUpdateStorageFrame|Camera::FlagHidden, RenderStorage::BufferFormatComplete, 1.0f);
+			_reflection = new Camera(Vector2(512, 512), Texture::Format::RGBA8888, Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush | Camera::Flags::UseClipPlanes, RenderStorage::BufferFormatComplete, 1.0f);
 			_reflection->SetPriority(9);
-//			_reflection->SetSkyCube(_camera->SkyCube());
+			_reflection->SetRenderGroups(_reflection->GetRenderGroups() | Camera::RenderGroups::Group3);
 			
-			
-			Shader *shad = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr);
+			Shader *shad = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDefaultShader, nullptr);
 			
 			Material *mat = new Material(shad);
-			mat->lighting = false;
+			mat->SetOverride(0xffffffff & ~Material::Override::Shader);
 			
 			_reflection->SetMaterial(mat);
-			_reflection->useclipplane = true;
-			_reflection->clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
+			_reflection->SetClipPlane(RN::Plane());
 			
 			_material->AddTexture(_reflection->GetStorage()->GetRenderTarget());
 			_material->AddTexture(RN::Texture::WithFile("textures/waterbump.png", true));
@@ -125,10 +123,17 @@ namespace RN
 			Vector3 rot = _camera->GetWorldEulerAngle();
 			
 			_reflection->SetPosition(Vector3(1.0f, -1.0f, 1.0f)*_camera->GetWorldPosition());
-			_reflection->SetRotation(Vector3(rot.x, rot.y, -rot.z));
+			_reflection->SetRotation(Vector3(rot.x, -rot.y, rot.z));
 			
-			_reflection->aspect = _camera->aspect;
-			_reflection->UpdateProjection();
+			_reflection->SetAspectRatio(_camera->GetAspectRatio());
+			
+			_reflection->SetSky(_camera->GetSky());
+			_reflection->SetFogColor(_camera->GetFogColor());
+			_reflection->SetFogNear(_camera->GetFogNear());
+			_reflection->SetFogFar(_camera->GetFogFar());
+			
+			if(_camera->GetFlags() & Camera::Flags::UseFog)
+			_reflection->SceneNode::SetFlags(_reflection->GetFlags() | Camera::Flags::UseFog);
 		}
 	}
 	
@@ -147,5 +152,23 @@ namespace RN
 		object.transform = &_transform;
 		
 		renderer->RenderObject(object);
+	}
+	
+	Hit Water::CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
+	{
+		Hit hit;
+		
+		if(!_mesh)
+			return hit;
+		
+		Matrix matModelInv = _transform.GetInverse();
+		
+		Vector3 temppos = matModelInv * position;
+		Vector4 tempdir = matModelInv * Vector4(direction, 0.0f);
+		
+		hit = _mesh->IntersectsRay(temppos, Vector3(tempdir), mode);
+		hit.node = this;
+		
+		return hit;
 	}
 }

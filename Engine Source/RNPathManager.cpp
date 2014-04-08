@@ -62,6 +62,26 @@ namespace RN
 		return path;
 	}
 	
+	std::string PathManager::PathByRemovingPathComponent(const std::string& path)
+	{
+		bool hasMarker = false;
+		
+		size_t marker = path.size();
+		size_t i = marker;
+		
+		while((-- i) > 0)
+		{
+			if(RNIsPathDelimiter(path[i]))
+			{
+				marker = i;
+				hasMarker = true;
+				break;
+			}
+		}
+		
+		return hasMarker ? path.substr(0, marker) : path;
+	}
+	
 	std::vector<std::string> PathManager::PathComoponents(const std::string& path)
 	{
 		const char *cstr = path.c_str();
@@ -180,6 +200,12 @@ namespace RN
 		}
 		
 		return path.substr(marker);
+	}
+	
+	float PathManager::ScaleFactorForName(const std::string &path)
+	{
+		std::string base = Basename(path);
+		return (base.find("@2x") != std::string::npos) ? 2.0f : 1.0f;
 	}
 	
 	

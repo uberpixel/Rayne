@@ -10,6 +10,7 @@
 #define __RAYNE_RESOURCECOORDINATOR_H__
 
 #include "RNBase.h"
+#include "RNAsset.h"
 #include "RNFile.h"
 #include "RNArray.h"
 #include "RNString.h"
@@ -19,7 +20,8 @@
 
 #define kRNResourceCoordinatorBuiltInPriority 100
 
-#define kRNResourceKeyTexture1Shader       RNCSTR("kRNResourceKeyTexture1Shader")
+#define kRNResourceKeyDefaultShader       RNCSTR("kRNResourceKeyDefaultShader")
+#define kRNResourceKeyTerrainShader       RNCSTR("kRNResourceKeyTerrainShader")
 #define kRNResourceKeyWaterShader          RNCSTR("kRNResourceKeyWaterShader")
 #define kRNResourceKeyParticleShader       RNCSTR("kRNResourceKeyParticleShader")
 
@@ -40,6 +42,7 @@ namespace RN
 	{
 	public:
 		friend class Kernel;
+		friend class Asset;
 		
 		RNAPI ResourceCoordinator();
 		RNAPI ~ResourceCoordinator() override;
@@ -51,16 +54,10 @@ namespace RN
 		}
 		
 		template<class T>
-		std::shared_future<Object *> GetFutureResourceWithName(String *name, Dictionary *settings)
+		std::shared_future<Asset *> GetFutureResourceWithName(String *name, Dictionary *settings)
 		{
 			return RequestFutureResourceWithName(T::MetaClass(), name, settings);
 		}
-		
-		RNAPI void AddResource(Object *object, String *name);
-		RNAPI void AddResourceAlias(Object *object, String *alias);
-		
-		RNAPI void RemoveResource(Object *object);
-		RNAPI void RemoveResourceWithName(String *name);
 		
 		RNAPI void WaitForResources();
 		
@@ -68,26 +65,27 @@ namespace RN
 		RNAPI void UnregisterResourceLoader(ResourceLoader *loader);
 		
 	private:
-		void __AddResourceAlias(Object *object, String *name);
+		RNAPI Asset *RequestResourceWithName(MetaClassBase *base, String *name, Dictionary *settings);
+		RNAPI std::shared_future<Asset *> RequestFutureResourceWithName(MetaClassBase *base, String *name, Dictionary *settings);
 		
-		RNAPI Object *RequestResourceWithName(MetaClassBase *base, String *name, Dictionary *settings);
-		RNAPI std::shared_future<Object *> RequestFutureResourceWithName(MetaClassBase *base, String *name, Dictionary *settings);
+		void __AddResource(Asset *object);
+		void RemoveResource(Asset *object);
 		
-		Object *ValidateResource(MetaClassBase *base, Object *object);
+		Asset *ValidateResource(MetaClassBase *base, Asset *object);
+		void PrepareResource(Asset *object, String *name, Dictionary *settings);
+		
 		ResourceLoader *PickResourceLoader(MetaClassBase *base, File *file, String *name, bool requiresBackgroundSupport);
 		
 		void LoadShader(String *name, String *key);
 		void LoadEngineResources();
 		
 		Mutex _lock;
-		
 		Array _loader;
-		Dictionary _resources;
-		Dictionary _resourceToAlias;
 		
-		std::unordered_map<String *, std::shared_future<Object *>> _requests;
+		std::unordered_map<String *, Asset *, std::hash<Object>, std::equal_to<Object>> _resources;
+		std::unordered_map<String *, std::shared_future<Asset *>, std::hash<Object>, std::equal_to<Object>> _requests;
 		
-		RNDefineSingleton(ResourceCoordinator)
+		RNDeclareSingleton(ResourceCoordinator)
 	};
 }
 

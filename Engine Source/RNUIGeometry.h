@@ -12,6 +12,7 @@
 #include "RNBase.h"
 #include "RNVector.h"
 #include "RNMath.h"
+#include "RNRect.h"
 
 namespace RN
 {
@@ -59,22 +60,31 @@ namespace RN
 		
 		struct Atlas
 		{
-			Atlas(float tu1, float tv1, float width, float height)
+			Atlas(float tu1, float tv1, float tu2, float tv2)
 			{
 				u1 = tu1;
 				v1 = tv1;
 				
-				u2 = u1+width;
-				v2 = v1+height;
+				u2 = tu2;
+				v2 = tv2;
 			}
 			
-			Atlas(const Vector2& uv1, const Vector2& size)
+			Atlas(const Vector2& uv1, const Vector2& uv2)
 			{
 				u1 = uv1.x;
 				v1 = uv1.y;
 				
-				u2 = u1+size.x;
-				v2 = v1+size.y;
+				u2 = uv2.x;
+				v2 = uv2.y;
+			}
+			
+			Atlas(const Rect &rect)
+			{
+				u1 = rect.x;
+				v1 = rect.y;
+				
+				u2 = u1 + rect.width;
+				v2 = v1 + rect.height;
 			}
 			
 			float u1, v1, u2, v2;

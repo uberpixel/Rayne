@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Number)
+	RNDefineMeta(Number, Object)
 	
 #define NumberPrimitiveAccess(type, target) static_cast<target>(*((type *)_buffer))
 #define NumberIsSignedInteger(type) (type == Type::Int8 || type == Type::Int16 || type == Type::Int32 || type == Type::Int64)
@@ -58,10 +58,10 @@ namespace RN
 			} \
 		} while(0)
 
-	Number::Number(Serializer *serializer)
+	Number::Number(Deserializer *deserializer)
 	{
 		size_t size;
-		uint8 *bytes = static_cast<uint8 *>(serializer->DecodeBytes(&size));
+		uint8 *bytes = static_cast<uint8 *>(deserializer->DecodeBytes(&size));
 		
 		_type = static_cast<Type>(*bytes);
 		

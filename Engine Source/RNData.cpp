@@ -8,12 +8,13 @@
 
 #include "RNData.h"
 #include "RNFile.h"
+#include "RNSerialization.h"
 
 #define kRNDataIncreaseLength 64
 
 namespace RN
 {
-	RNDeclareMeta(Data)
+	RNDefineMeta(Data, Object)
 	
 	Data::Data()
 	{
@@ -56,12 +57,7 @@ namespace RN
 		file->Release();
 	}
 	
-	Data::Data(const Data& other)
-	{
-		Initialize(other._bytes, other._length);
-	}
-	
-	Data::Data(Data *other)
+	Data::Data(const Data *other)
 	{
 		Initialize(other->_bytes, other->_length);
 	}
@@ -71,6 +67,25 @@ namespace RN
 		if(_freeData)
 			delete[] _bytes;
 	}
+	
+	
+	
+	Data::Data(Deserializer *deserializer)
+	{
+		uint8 *data = static_cast<uint8 *>(deserializer->DecodeBytes(&_length));
+		
+		_allocated = _length;
+		_freeData  = _ownsData = true;
+		_bytes     = new uint8[_allocated];
+		
+		std::copy(data, data + _length, _bytes);
+	}
+	
+	void Data::Serialize(Serializer *serializer)
+	{
+		serializer->EncodeBytes(_bytes, _length);
+	}
+	
 	
 	
 	Data *Data::WithBytes(const uint8 *bytes, size_t length)
@@ -136,7 +151,7 @@ namespace RN
 	
 	void Data::ReplaceBytes(const void *bytes, const Range& range)
 	{
-		if(range.origin + range.length >= _length)
+		if(range.origin + range.length > _length)
 			throw Exception(Exception::Type::RangeException, "range is not within the datas bounds!");
 		
 		const uint8 *data = static_cast<const uint8 *>(bytes);

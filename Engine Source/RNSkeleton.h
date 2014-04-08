@@ -16,6 +16,7 @@
 #include "RNArray.h"
 #include "RNQuaternion.h"
 #include "RNMatrix.h"
+#include "RNAsset.h"
 
 namespace RN
 {
@@ -40,8 +41,8 @@ namespace RN
 		RNAPI Animation(const std::string &animname);
 		RNAPI ~Animation();
 		
-		void MakeLoop();
-		float GetLength();
+		RNAPI void MakeLoop();
+		RNAPI float GetLength();
 		
 		std::string name;
 		std::map<size_t, AnimationBone*> bones;
@@ -85,7 +86,7 @@ namespace RN
 	private:
 	};
 	
-	class Skeleton : public Object
+	class Skeleton : public Asset
 	{
 	public:
 		RNAPI Skeleton();

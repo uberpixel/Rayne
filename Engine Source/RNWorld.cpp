@@ -19,13 +19,14 @@
 
 namespace RN
 {
-	RNDeclareMeta(World)
+	RNDefineMeta(World, Object)
 	
 	World::World(SceneManager *sceneManager) :
-		_releaseSceneNodesOnDestructor(true),
 		_isDroppingSceneNodes(false),
 		_requiresCameraSort(false),
-		_requiresResort(false)
+		_requiresResort(false),
+		_mode(Mode::Play),
+		_ids(0)
 	{
 		_kernel = Kernel::GetSharedInstance();
 		
@@ -39,20 +40,18 @@ namespace RN
 	
 	World::~World()
 	{
-		if(_releaseSceneNodesOnDestructor)
-			DropSceneNodes();
-		
+		DropSceneNodes();
 		_sceneManager->Release();
 	}
 	
 	SceneManager *World::SceneManagerWithName(const std::string& name)
 	{
 		MetaClassBase *meta = nullptr;
-		Catalogue::GetSharedInstance()->EnumerateClasses([&](MetaClassBase *mclass, bool *stop) {
+		Catalogue::GetSharedInstance()->EnumerateClasses([&](MetaClassBase *mclass, bool &stop) {
 			if(mclass->Name() == name)
 			{
 				meta = mclass;
-				*stop = true;
+				stop = true;
 			}
 		});
 		
@@ -65,9 +64,11 @@ namespace RN
 	}
 	
 	
-	void World::SetReleaseSceneNodesOnDestruction(bool releaseSceneNodes)
+	void World::SetMode(Mode mode)
 	{
-		_releaseSceneNodesOnDestructor = releaseSceneNodes;
+		_kernel->ScheduleFunction([this, mode] {
+			_mode = mode;
+		});
 	}
 	
 	// ---------------------
@@ -78,7 +79,10 @@ namespace RN
 	void World::Update(float delta)
 	{}
 	
-	void World::UpdatedToFrame(FrameID frame)
+	void World::UpdateEditMode(float delta)
+	{}
+	
+	void World::DidUpdateToFrame(FrameID frame)
 	{}
 	
 	// ---------------------
@@ -86,9 +90,92 @@ namespace RN
 	// MARK: Updating
 	// ---------------------
 	
+	void World::StepWorldEditMode(FrameID frame, float delta)
+	{
+		ApplyNodes();
+		UpdateEditMode(delta);
+		
+		AutoreleasePool pool;
+		std::vector<SceneNode *> retry;
+		
+		ThreadPool::Batch *batch[3];
+		size_t run = 0;
+		
+		SpinLock retryLock;
+		
+		do
+		{
+#if RN_BUILD_DEBUG
+			if(run >= 100)
+			{
+				Log::Loggable loggable(Log::Level::Warning);
+				loggable << "Assuming dead lock after 100 retry runs, check your SceneNode updates!";
+				loggable << "Going to break, leaving " << retry.size() << " nodes without update to frame " << frame;
+				
+				break;
+			}
+#endif
+			
+			for(size_t i = 0; i < 3; i ++)
+				batch[i] = ThreadPool::GetSharedInstance()->CreateBatch();
+			
+			for(SceneNode *node : (run == 0) ? _nodes : retry)
+			{
+				node->Retain();
+				pool.AddObject(node);
+				
+				size_t priority = static_cast<size_t>(node->GetPriority());
+				batch[priority]->AddTask([&, node] {
+					if(!node->CanUpdate(frame))
+					{
+						retryLock.Lock();
+						retry.push_back(node);
+						retryLock.Unlock();
+						
+						return;
+					}
+					
+					node->UpdateEditMode(delta),
+					node->UpdatedToFrame(frame);
+					
+					node->GetWorldPosition();
+				});
+			}
+			
+			retry.clear();
+			run ++;
+			
+			for(size_t i = 0; i < 3; i ++)
+			{
+				if(batch[i]->GetTaskCount() > 0)
+				{
+					batch[i]->Commit();
+					batch[i]->Wait();
+				}
+				
+				batch[i]->Release();
+			}
+			
+		} while(retry.size() > 0);
+		
+		pool.Drain();
+		
+		ApplyNodes();
+		DidUpdateToFrame(frame);
+		RunWorldAttachement(&WorldAttachment::StepWorldEditMode, delta);
+	}
+	
 	void World::StepWorld(FrameID frame, float delta)
 	{
 		_kernel->PushStatistics("wld.step");
+		
+		if(_mode == Mode::Edit)
+		{
+			StepWorldEditMode(frame, delta);
+			_kernel->PopStatistics();
+			
+			return;
+		}
 		
 		ApplyNodes();
 		Update(delta);
@@ -159,7 +246,7 @@ namespace RN
 		pool.Drain();
 	
 		ApplyNodes();
-		UpdatedToFrame(frame);
+		DidUpdateToFrame(frame);
 		RunWorldAttachement(&WorldAttachment::StepWorld, delta);
 		
 		_kernel->PopStatistics();
@@ -174,9 +261,13 @@ namespace RN
 		for(Camera *camera : _cameras)
 		{
 			camera->PostUpdate();
+			
+			if(camera->GetFlags() & Camera::Flags::Hidden)
+				continue;
+			
 			renderer->BeginCamera(camera);
 			
-			RunWorldAttachement(&WorldAttachment::BeginCamera, camera);
+			RunWorldAttachement(&WorldAttachment::DidBeginCamera, camera);
 			_sceneManager->RenderScene(camera);
 			
 			RunWorldAttachement(&WorldAttachment::WillFinishCamera, camera);
@@ -208,19 +299,35 @@ namespace RN
 			return;
 		
 		_addedNodes.push_back(node);
+		
 		node->_world = this;
 		node->_worldInserted = false;
+		node->_lid = _ids.fetch_add(1);
+		
+		node->Retain();
 	}
 	
 	void World::RemoveSceneNode(SceneNode *node)
 	{
+		if(__RemoveSceneNode(node))
+		{
+			node->Release();
+		}
+	}
+	
+	bool World::__RemoveSceneNode(SceneNode *node)
+	{
 		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
 		
 		if(_isDroppingSceneNodes)
-			return;
+			return false;
 		
 		if(node->_world == this)
 		{
+			node->_children.Enumerate<SceneNode>([&](SceneNode *child, size_t index, bool &stop) {
+				__RemoveSceneNode(child);
+			});
+			
 			DropSceneNode(node);
 			
 			if(node->IsKindOfClass(_cameraClass))
@@ -230,7 +337,7 @@ namespace RN
 			if(iterator != _addedNodes.end())
 			{
 				_addedNodes.erase(iterator);
-				return;
+				return true;
 			}
 			
 			if(!node->_worldStatic)
@@ -241,14 +348,21 @@ namespace RN
 			{
 				_staticNodes.erase(std::find(_staticNodes.begin(), _staticNodes.end(), node));
 			}
+			
+			return true;
 		}
+		
+		return false;
 	}
 		
 	void World::ApplyNodes()
 	{
 		if(_addedNodes.size() > 0)
 		{
-			for(SceneNode *node : _addedNodes)
+			std::vector<SceneNode *> nodes;
+			std::swap(nodes, _addedNodes);
+			
+			for(SceneNode *node : nodes)
 			{
 				node->_worldInserted = true;
 				
@@ -260,7 +374,7 @@ namespace RN
 				
 				_sceneManager->AddSceneNode(node);
 				
-				if(node->GetFlags() & SceneNode::FlagStatic)
+				if(node->GetFlags() & SceneNode::Flags::Static)
 				{
 					_staticNodes.push_back(node);
 					node->_worldStatic = true;
@@ -271,11 +385,17 @@ namespace RN
 					node->_worldStatic = false;
 				}
 				
+				Tag tag = node->GetTag();
+				if(tag != 0)
+				{
+					std::unordered_set<SceneNode *> &table = _tagTable[tag];
+					table.insert(node);
+				}
+				
 				RunWorldAttachement(&WorldAttachment::DidAddSceneNode, node);
-				node->DidUpdate(SceneNode::ChangedWorld);
+				node->DidUpdate(SceneNode::ChangeSet::World);
 			}
 			
-			_addedNodes.clear();
 			_requiresResort = true;
 		}
 		
@@ -287,7 +407,25 @@ namespace RN
 	}
 	
 	
-	void World::SceneNodeDidUpdate(SceneNode *node, uint32 changeSet)
+	void World::SceneNodeWillUpdate(SceneNode *node, SceneNode::ChangeSet changeSet)
+	{
+		if(changeSet & SceneNode::ChangeSet::Tag)
+		{
+			Tag tag = node->GetTag();
+			if(tag != 0)
+			{
+				LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+				
+				std::unordered_set<SceneNode *> &table = _tagTable[tag];
+				table.erase(node);
+				
+				if(table.empty())
+					_tagTable.erase(tag);
+			}
+		}
+	}
+	
+	void World::SceneNodeDidUpdate(SceneNode *node, SceneNode::ChangeSet changeSet)
 	{
 		if(_isDroppingSceneNodes)
 			return;
@@ -298,15 +436,15 @@ namespace RN
 		RunWorldAttachement(&WorldAttachment::SceneNodeDidUpdate, node, changeSet);
 		_sceneManager->UpdateSceneNode(node, changeSet);
 		
-		if((changeSet & SceneNode::ChangedPriority) && node->IsKindOfClass(_cameraClass))
+		if((changeSet & SceneNode::ChangeSet::Priority) && node->IsKindOfClass(_cameraClass))
 			_requiresCameraSort = true;
 		
-		if((changeSet & SceneNode::ChangedDependencies) && !node->_worldStatic)
+		if((changeSet & SceneNode::ChangeSet::Dependencies) && !node->_worldStatic)
 			_requiresResort = true;
 		
-		if(changeSet & SceneNode::ChangedFlags)
+		if(changeSet & SceneNode::ChangeSet::Flags)
 		{
-			if(node->GetFlags() & SceneNode::FlagStatic)
+			if(node->GetFlags() & SceneNode::Flags::Static)
 			{
 				if(!node->_worldStatic)
 				{
@@ -332,6 +470,18 @@ namespace RN
 				}
 			}
 		}
+		
+		if(changeSet & SceneNode::ChangeSet::Tag)
+		{
+			Tag tag = node->GetTag();
+			if(tag != 0)
+			{
+				LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+				
+				std::unordered_set<SceneNode *> &table = _tagTable[tag];
+				table.insert(node);
+			}
+		}
 	}
 	
 	void World::DropSceneNode(SceneNode *node)
@@ -340,7 +490,7 @@ namespace RN
 		_sceneManager->RemoveSceneNode(node);
 		
 		node->_world = nullptr;
-		node->DidUpdate(SceneNode::ChangedWorld);
+		node->DidUpdate(SceneNode::ChangeSet::World);
 	}
 	
 	void World::DropSceneNodes()
@@ -350,21 +500,30 @@ namespace RN
 		_isDroppingSceneNodes = true;
 		
 		for(SceneNode *node : _nodes)
+		{
 			DropSceneNode(node);
+			node->Release();
+		}
 		
 		for(SceneNode *node : _addedNodes)
+		{
 			DropSceneNode(node);
+			node->Release();
+		}
 		
 		for(SceneNode *node : _staticNodes)
+		{
 			DropSceneNode(node);
+			node->Release();
+		}
 		
-		for(Camera *node : _cameras)
-			DropSceneNode(node);
 		
 		_nodes.clear();
 		_addedNodes.clear();
 		_staticNodes.clear();
 		_cameras.clear();
+		
+		_tagTable.clear();
 		
 		_isDroppingSceneNodes = false;
 	}
@@ -387,6 +546,95 @@ namespace RN
 		});
 	}
 	
+	SceneNode *World::__GetSceneNodeWithTag(Tag tag, MetaClassBase *meta)
+	{
+		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+		
+		if(_isDroppingSceneNodes)
+			return nullptr;
+		
+		ApplyNodes();
+		
+		if(tag == 0)
+		{
+			for(SceneNode *node : _nodes)
+			{
+				if(node->_tag == tag && node->IsKindOfClass(meta))
+					return node->Retain()->Autorelease();
+			}
+		}
+		else
+		{
+			auto iterator = _tagTable.find(tag);
+			if(iterator == _tagTable.end())
+				return nullptr;
+			
+			std::unordered_set<SceneNode *> &table = iterator->second;
+			for(SceneNode *node : table)
+			{
+				if(node->IsKindOfClass(meta))
+					return node->Retain()->Autorelease();
+			}
+		}
+		
+		return nullptr;
+	}
+	
+	Array *World::__GetSceneNodesWithTag(Tag tag, MetaClassBase *meta)
+	{
+		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+		
+		if(_isDroppingSceneNodes)
+			return nullptr;
+		
+		ApplyNodes();
+		Array *array = new Array();
+		
+		if(tag == 0)
+		{
+			for(SceneNode *node : _nodes)
+			{
+				if(node->_tag == tag && node->IsKindOfClass(meta))
+					array->AddObject(node);
+			}
+		}
+		else
+		{
+			auto iterator = _tagTable.find(tag);
+			if(iterator == _tagTable.end())
+				return nullptr;
+			
+			std::unordered_set<SceneNode *> &table = iterator->second;
+			for(SceneNode *node : table)
+			{
+				if(node->IsKindOfClass(meta))
+					array->AddObject(node);
+			}
+		}
+		
+		return array->Autorelease();
+	}
+	
+	Array *World::GetSceneNodes()
+	{
+		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+		
+		if(_isDroppingSceneNodes)
+			return Array::WithObjects(nullptr);
+		
+		Array *array = new Array(_nodes.size() + _addedNodes.size() + _staticNodes.size() + _cameras.size());
+		
+		for(SceneNode *node : _nodes)
+			array->AddObject(node);
+		
+		for(SceneNode *node : _addedNodes)
+			array->AddObject(node);
+		
+		for(SceneNode *node : _staticNodes)
+			array->AddObject(node);
+		
+		return array->Autorelease();
+	}
 	
 	// ---------------------
 	// MARK: -
@@ -408,17 +656,69 @@ namespace RN
 	
 	// ---------------------
 	// MARK: -
-	// MARK: Loading
+	// MARK: Loading / Saving
 	// ---------------------
 	
-	void World::LoadOnThread(Thread *thread)
-	{}
+	void World::LoadOnThread(Thread *thread, Deserializer *deserializer)
+	{
+		DropSceneNodes();
+		
+		if(deserializer)
+		{
+			int32 version = deserializer->DecodeInt32();
+			RN_ASSERT(version == 0, "World was encoded with an invalid version (%i)", version);
+			
+			_sceneManager->Release();
+			_sceneManager = SceneManagerWithName(deserializer->DecodeString())->Retain();
+			
+			_ids.store(deserializer->DecodeInt64());
+			
+			size_t nodes = static_cast<size_t>(deserializer->DecodeInt64());
+			
+			for(size_t i = 0; i < nodes; i ++)
+				deserializer->DecodeObject();
+		}
+	}
 	
-	void World::FinishLoading()
-	{}
+	void World::FinishLoading(Deserializer *deserializer)
+	{
+		ApplyNodes();
+	}
 	
 	bool World::SupportsBackgroundLoading() const
 	{
 		return true;
+	}
+	
+	void World::SaveOnThread(Thread *thread, Serializer *serializer)
+	{
+		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
+		ApplyNodes();
+		
+		serializer->EncodeInt32(0);
+		serializer->EncodeString(_sceneManager->Class()->Name());
+		serializer->EncodeInt64(_ids.load());
+		
+		serializer->EncodeInt64(static_cast<int64>(_nodes.size()));
+		
+		std::vector<SceneNode *> saveables;
+		
+		for(SceneNode *node : _nodes)
+		{
+			bool noSave = (node->_flags & SceneNode::Flags::NoSave);
+			
+			if(noSave)
+				serializer->EncodeConditionalObject(node);
+			else
+				serializer->EncodeObject(node);
+		}
+	}
+	
+	void World::FinishSaving(Serializer *serializer)
+	{}
+	
+	bool World::SupportsBackgroundSaving() const
+	{
+		return false;
 	}
 }

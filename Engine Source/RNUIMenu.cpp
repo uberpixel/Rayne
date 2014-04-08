@@ -10,13 +10,14 @@
 #include "RNUIMenu.h"
 #include "RNUIView.h"
 #include "RNMessage.h"
+#include "RNInput.h"
 
 namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(Menu)
-		RNDeclareMeta(MenuItem)
+		RNDefineMeta(Menu, Object)
+		RNDefineMeta(MenuItem, Object)
 		
 #if RN_PLATFORM_MAC_OS
 		NSMenu *TranslateRNUIMenuToNSMenu(Menu *menu);
@@ -73,37 +74,7 @@ namespace RN
 			
 			MessageCenter::GetSharedInstance()->PostMessage(kRNMenuChangedMessage, this, nullptr);
 		}
-		
-		
-		void Menu::PopUpContextMenu(Menu *menu, const Vector2& location)
-		{
-			RN_ASSERT(menu, "menu mustn't be NULL");
-			
-#if RN_PLATFORM_MAC_OS
-			menu->Retain();
-			
-			NSWindow *window = [NSApp keyWindow];
-			NSMenu *nsmenu   = TranslateRNUIMenuToNSMenu(menu);
-			
-			CGFloat height = NSHeight([[window contentView] bounds]);
-			
-			NSPoint locationInWindow = NSMakePoint(location.x, height - location.y);
-			NSEvent *fakeMouseEvent = [NSEvent mouseEventWithType:NSLeftMouseDown
-														 location:locationInWindow
-													modifierFlags:0
-														timestamp:0
-													 windowNumber:[window windowNumber]
-														  context:nil
-													  eventNumber:0
-													   clickCount:0
-														 pressure:0];
-			
-			[NSMenu popUpContextMenu:nsmenu withEvent:fakeMouseEvent forView:[window contentView]];
-			
-			menu->Release();
-#endif
-		}
-		
+
 		// ---------------------
 		// MARK: -
 		// MARK: Menu Item
@@ -120,6 +91,7 @@ namespace RN
 			_isEnabled     = true;
 			_isSeparator   = false;
 			_keyEquivalent = nullptr;
+			_keyEquivalentModifierMask = KeyModifier::KeyAction;
 			
 			SetTitle(RNCSTR(""));
 			SetKeyEquivalent(RNCSTR(""));
@@ -171,6 +143,13 @@ namespace RN
 		{
 			SafeRelease(_keyEquivalent);
 			_keyEquivalent = key ? key->Copy() : RNCSTR("")->Retain();
+			
+			MessageCenter::GetSharedInstance()->PostMessage(kRNMenuItemChangedMessage, this, nullptr);
+		}
+		
+		void MenuItem::SetKeyEquivalentModifierMask(uint32 mask)
+		{
+			_keyEquivalentModifierMask = mask;
 			
 			MessageCenter::GetSharedInstance()->PostMessage(kRNMenuItemChangedMessage, this, nullptr);
 		}

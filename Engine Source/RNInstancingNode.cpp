@@ -12,24 +12,34 @@
 #include "RNThreadPool.h"
 #include "RNNull.h"
 #include "RNString.h"
+#include "RNMessage.h"
+#include "RNWorldCoordinator.h"
+#include "RNOpenGLQueue.h"
 
 #define kRNInstancingNodeAssociatedIndexKey "kRNInstancingNodeAssociatedIndexKey"
 
 namespace RN
 {
-	InstancingNode::InstancingNode()
+	RNDefineMeta(InstancingNode, SceneNode)
+	
+	InstancingNode::InstancingNode() :
+		_clipRange("Clip range", 64.0f, &InstancingNode::GetClipRange, &InstancingNode::SetClippingRange),
+		_thinRange("Thin range", 128.0f, &InstancingNode::GetThinRange, &InstancingNode::SetThinningRange),
+		_cellSize("Cell size", 32.0f, &InstancingNode::GetCellSize, &InstancingNode::SetCellSize)
 	{
+		AddObservables({ &_clipRange, &_thinRange, &_cellSize });
 		Initialize();
 	}
 	
-	InstancingNode::InstancingNode(Model *model)
+	InstancingNode::InstancingNode(Model *model) :
+		InstancingNode()
 	{
-		Initialize();
 		SetModel(model);
 	}
 	
 	InstancingNode::~InstancingNode()
 	{
+		MessageCenter::GetSharedInstance()->RemoveObserver(this);
 		_models->Release();
 		
 		for(auto pair : _data)
@@ -42,17 +52,84 @@ namespace RN
 		}
 	}
 	
+	InstancingNode::InstancingNode(Deserializer *deserializer) :
+		SceneNode(deserializer),
+		_clipRange("Clip range", 64.0f, &InstancingNode::GetClipRange, &InstancingNode::SetClippingRange),
+		_thinRange("Thin range", 128.0f, &InstancingNode::GetThinRange, &InstancingNode::SetThinningRange),
+		_cellSize("Cell size", 32.0f, &InstancingNode::GetCellSize, &InstancingNode::SetCellSize)
+	{
+		AddObservables({ &_clipRange, &_thinRange, &_cellSize });
+		Initialize();
+		
+		_mode = static_cast<Mode>(deserializer->DecodeInt32());
+		
+		SetClippingRange(deserializer->DecodeFloat());
+		SetThinningRange(deserializer->DecodeFloat());
+		SetCellSize(deserializer->DecodeFloat());
+		
+		SetPivot(static_cast<Camera *>(deserializer->DecodeObject()));
+		
+		size_t count = static_cast<size_t>(deserializer->DecodeInt64());
+		Set *set = new Set();
+		
+		for(size_t i = 0; i < count; i ++)
+		{
+			Object *object = deserializer->DecodeObject();
+			if(object)
+				set->AddObject(object);
+		}
+		
+		SetModels(set->Autorelease());
+	}
+	
+	void InstancingNode::Serialize(Serializer *serializer)
+	{
+		SceneNode::Serialize(serializer);
+		
+		serializer->EncodeInt32(static_cast<int32>(_mode));
+		serializer->EncodeFloat(_clipRange);
+		serializer->EncodeFloat(_thinRange);
+		serializer->EncodeFloat(_cellSize);
+		
+		serializer->EncodeConditionalObject(_pivot);
+		
+		
+		serializer->EncodeInt64(static_cast<int64>(_models->GetCount()));
+		
+		_models->Enumerate([&](Object *object, bool &stop) {
+			
+			serializer->EncodeConditionalObject(object);
+			
+		});
+	}
+	
+	void InstancingNode::CleanUp()
+	{
+		const Array *children = GetChildren();
+		children->Enumerate<SceneNode>([&](SceneNode *node, size_t index, bool &stop) {
+			node->RemoveObserver("model", this);
+		});
+		
+		SceneNode::CleanUp();
+	}
+	
+	
 	void InstancingNode::Initialize()
 	{
 		_entityClass = Entity::MetaClass();
 		_models      = new Set();
 		_pivot       = nullptr;
 		
-		_clipRange = 64.0f;
-		_thinRange = 128.0f;
-		_cellSize  = 32.0f;
+		SetFlags(GetFlags() | Flags::HideChildren);
 		
-		SetFlags(GetFlags() | SceneNode::FlagHideChildren);
+		MessageCenter::GetSharedInstance()->AddObserver(kRNWorldCoordinatorDidStepWorldMessage, [this](Message *mesage) {
+			
+			for(InstancingData *data : _rawData)
+			{
+				data->UpdateData();
+			}
+			
+		}, this);
 	}
 	
 	
@@ -120,7 +197,7 @@ namespace RN
 			delete data;
 		}
 		
-		_models->Enumerate([&](Object *object, bool *end) {
+		_models->Enumerate([&](Object *object, bool &stop) {
 			
 			Model *model = static_cast<Model *>(object);
 			auto iterator = _data.find(model);
@@ -255,16 +332,16 @@ namespace RN
 				InstancingData *data = iterator->second;
 				data->InsertEntity(static_cast<Entity *>(object));
 				
-				entity->SetFlags(entity->GetFlags() | SceneNode::FlagHidden);
+				entity->SetFlags(entity->GetFlags() | SceneNode::Flags::Hidden);
 			}
 			else
 			{
-				entity->SetFlags(entity->GetFlags() & ~SceneNode::FlagHidden);
+				entity->SetFlags(entity->GetFlags() & ~SceneNode::Flags::Hidden);
 			}
 		}
 		else
 		{
-			entity->SetFlags(entity->GetFlags() & ~SceneNode::FlagHidden);
+			entity->SetFlags(entity->GetFlags() & ~SceneNode::Flags::Hidden);
 		}
 		
 		Unlock();
@@ -278,11 +355,11 @@ namespace RN
 	
 	
 	
-	void InstancingNode::ChildDidUpdate(SceneNode *child, uint32 changes)
+	void InstancingNode::ChildDidUpdate(SceneNode *child, ChangeSet changes)
 	{
 		if(child->IsKindOfClass(_entityClass))
 		{
-			if(changes & ChangedPosition)
+			if(changes & ChangeSet::Position)
 			{
 				Lock();
 				
@@ -313,7 +390,7 @@ namespace RN
 				InstancingData *data = iterator->second;
 				
 				data->InsertEntity(entity);
-				entity->SetFlags(entity->GetFlags() | SceneNode::FlagHidden);
+				entity->SetFlags(entity->GetFlags() | Flags::Hidden);
 			}
 		}
 	}
@@ -324,7 +401,7 @@ namespace RN
 		{
 			Entity *entity = static_cast<Entity *>(child);
 			entity->RemoveObserver("model", this);
-			entity->SetFlags(entity->GetFlags() & ~SceneNode::FlagHidden);
+			entity->SetFlags(entity->GetFlags() & ~Flags::Hidden);
 			
 			auto iterator = _data.find(entity->GetModel());
 			if(iterator != _data.end())
@@ -344,8 +421,13 @@ namespace RN
 	{
 		for(InstancingData *data : _rawData)
 		{
-			data->UpdateData();
 			data->Render(this, renderer);
 		}
+	}
+	
+	Hit InstancingNode::CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
+	{
+		Hit hit;
+		return hit;
 	}
 }

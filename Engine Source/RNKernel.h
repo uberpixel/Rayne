@@ -13,11 +13,8 @@
 #include "RNAutoreleasePool.h"
 #include "RNObject.h"
 #include "RNApplication.h"
-#include "RNRenderer.h"
-#include "RNWindow.h"
-#include "RNInput.h"
-#include "RNUIServer.h"
-#include "RNString.h"
+#include "RNFunction.h"
+#include "RNTimer.h"
 #include "RNStatistics.h"
 
 #define kRNKernelDidBeginFrameMessage RNCSTR("kRNKernelDidBeginFrameMessage")
@@ -26,11 +23,15 @@
 namespace RN
 {
 	class WorldCoordinator;
+	class KernelInternal;
+	class Window;
+	class Context;
 	
 	class Kernel : public INonConstructingSingleton<Kernel>
 	{
 	public:
 		friend class Settings;
+		friend class Window;
 		
 		RNAPI Kernel(Application *app);
 		RNAPI ~Kernel() override;
@@ -38,83 +39,50 @@ namespace RN
 		RNAPI bool Tick();
 		
 		RNAPI void SetFixedDelta(float delta);
-		RNAPI void SetTimeScale(float timeScale);
+		RNAPI void SetTimeScale(double timeScale);
 		RNAPI void SetMaxFPS(uint32 fps);
 		
 		RNAPI void DidSleepForSignificantTime();
 		RNAPI void Exit();
+		
+		RNAPI void ScheduleFunction(Function &&function);
+		RNAPI void ScheduleTimer(Timer *timer);
+		RNAPI void RemoveTimer(Timer *timer);
 		
 		RNAPI void PushStatistics(const std::string& key);
 		RNAPI void PopStatistics();
 		
 		RNAPI const std::vector<Statistics::DataPoint *>& GetStatisticsData() const;
 
-		float GetScaleFactor() const { return _scaleFactor; }
+		RNAPI float GetScaleFactor() const;
 		RNAPI float GetActiveScaleFactor() const;
 		
-		const std::string& GetTitle() const { return _title; }
-
-		Window *GetWindow() const { return _window; }
-		Context *GetContext() const { return _context; }
-
-		float GetDelta() const { return _delta; }
-		float GetTime() const { return _time; }
-		float GetScaledTime() const { return _scaledTime; }
-		float GetTimeScale() const { return _timeScale; }
+		RNAPI const std::string &GetTitle() const;
+		RNAPI uint32 GetMaxFPS() const;
 		
-		FrameID GetCurrentFrame() const { return _frame; }
+		RNAPI float GetDelta() const;
+		RNAPI double GetTimeScale() const;
+		RNAPI double GetTime() const;
+		RNAPI double GetScaledTime() const;
+		
+		RNAPI FrameID GetCurrentFrame() const;
 
 #if RN_PLATFORM_WINDOWS
-		HWND GetMainWindow() const { return _mainWindow;  }
-		HINSTANCE GetInstance() const { return _instance; }
+		RNAPI HWND GetMainWindow() const;
+		RNAPI HINSTANCE GetInstance() const;
 #endif
 
 	private:
+		Context *GetContext() const;
+		
 		void Prepare();
 		void Initialize();
 		void DumpSystem();
-
-		std::string _title;
-		FrameID _frame;
-		float _scaleFactor;
+	
+		SpinLock _lock;
+		PIMPL<KernelInternal> _internals;
 		
-		Application *_app;
-		Thread *_mainThread;
-
-		Window *_window;
-		Context *_context;
-		
-		AutoreleasePool *_pool;
-		Renderer *_renderer;
-		Input *_input;
-		WorldCoordinator *_worldCoordinator;
-		UI::Server *_uiserver;
-		
-		uint32 _statisticsSwitch;
-		Statistics _statistics[2];
-		
-		uint32 _maxFPS;
-		float _minDelta;
-
-		bool _fixedDelta;
-		bool _resetDelta;
-		bool _shouldExit;
-		bool _initialized;
-
-		float _fixedDeltaTime;
-		float _time;
-		float _scaledTime;
-		float _delta;
-		float _timeScale;
-		std::chrono::steady_clock::time_point _lastFrame;
-
-#if RN_PLATFORM_WINDOWS
-		HWND _mainWindow;
-		HINSTANCE _instance;
-		WNDCLASSEXW _windowClass;
-#endif
-		
-		RNDefineSingleton(Kernel)
+		RNDeclareSingleton(Kernel)
 	};
 }
 

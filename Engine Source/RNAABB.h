@@ -22,7 +22,6 @@ namespace RN
 		AABB();
 		AABB(const Vector3& min, const Vector3& max);
 		AABB(const Vector3& pos, const float radius);
-		AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ);
 		
 		AABB operator+ (const AABB& other) const;
 		AABB& operator+= (const AABB& other);
@@ -33,7 +32,7 @@ namespace RN
 		bool Intersects(const AABB& other) const;
 		bool Contains(const Vector3 &position) const;
 		
-		void Rotate(const Quaternion& rotation);
+		void SetRotation(const Quaternion& rotation);
 		
 		Vector3 position;
 		Vector3 minExtend;
@@ -64,10 +63,6 @@ namespace RN
 		
 		position = pos;
 	}
-	
-	RN_INLINE AABB::AABB(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) :
-		AABB(Vector3(minX, minY, minZ), Vector3(maxX, maxY, maxZ))
-	{}
 	
 	RN_INLINE AABB AABB::operator+ (const AABB& other) const
 	{
@@ -124,17 +119,17 @@ namespace RN
 	
 	RN_INLINE bool AABB::Intersects(const AABB& other) const
 	{
-		if(other.position.x - position.x > maxExtend.x + other.minExtend.x)
+		Vector3 max0 = position + maxExtend;
+		Vector3 max1 = other.position + other.maxExtend;
+		
+		Vector3 min0 = position + minExtend;
+		Vector3 min1 = other.position + other.minExtend;
+		
+		if(min0.x > max1.x || min1.x > max0.x)
 			return false;
-		if(other.position.x - position.x < minExtend.x + other.maxExtend.x)
+		if(min0.y > max1.y || min1.y > max0.y)
 			return false;
-		if(other.position.y - position.y > maxExtend.y + other.minExtend.y)
-			return false;
-		if(other.position.y - position.y < minExtend.y + other.maxExtend.y)
-			return false;
-		if(other.position.z - position.z > maxExtend.z + other.minExtend.z)
-			return false;
-		if(other.position.z - position.z < minExtend.z + other.maxExtend.z)
+		if(min0.z > max1.z || min1.z > max0.z)
 			return false;
 		
 		return true;
@@ -158,18 +153,18 @@ namespace RN
 		return true;
 	}
 	
-	RN_INLINE void AABB::Rotate(const Quaternion& rotation)
+	RN_INLINE void AABB::SetRotation(const Quaternion& rotation)
 	{
 		Matrix matrix = rotation.GetRotationMatrix();
 		
 		Vector3 corners[4];
-		corners[0] = matrix.Transform(Vector3(minExtend.x, minExtend.y, maxExtend.z));
-		corners[1] = matrix.Transform(Vector3(minExtend.x, maxExtend.y, maxExtend.z));
-		corners[2] = matrix.Transform(Vector3(maxExtend.x, maxExtend.y, minExtend.z));
-		corners[3] = matrix.Transform(Vector3(maxExtend.x, minExtend.y, minExtend.z));
+		corners[0] = matrix * Vector3(minExtend.x, minExtend.y, maxExtend.z);
+		corners[1] = matrix * Vector3(minExtend.x, maxExtend.y, maxExtend.z);
+		corners[2] = matrix * Vector3(maxExtend.x, maxExtend.y, minExtend.z);
+		corners[3] = matrix * Vector3(maxExtend.x, minExtend.y, minExtend.z);
 		
-		minExtend = matrix.Transform(minExtend);
-		maxExtend = matrix.Transform(maxExtend);
+		minExtend = matrix * minExtend;
+		maxExtend = matrix * maxExtend;
 		
 		for(size_t i=0; i<4; i++)
 		{

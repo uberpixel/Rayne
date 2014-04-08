@@ -2,106 +2,138 @@
 //  TGWorld.cpp
 //  Game
 //
-//  Created by Sidney Just on 27.01.13.
-//  Copyright (c) 2013 Sidney Just. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "TGWorld.h"
-#include "TGSun.h"
-
-#define TGWorldFeatureLights        1
-#define TGWorldFeatureNormalMapping 1
-#define TGWorldFeatureFreeCamera    1
-#define TGWorldFeatureZPrePass		0
-#define TGWorldFeatureBloom			0
-#define TGWorldFeatureSSAO          0
-#define TGWorldFeatureWater			0
-
-#define TGForestFeatureTrees 500
-#define TGForestFeatureGras  300000
-
-#define TGWorldRandom (float)(rand())/RAND_MAX
-#define TGWorldSpotLightRange 30.0f
 
 namespace TG
 {
+	RNDefineMeta(World, RN::World)
+	
 	World::World() :
-		RN::World("OctreeSceneManager")
+		RN::World("GenericSceneManager"),
+		_exposure(1.0f),
+		_whitepoint(5.0f),
+		_frameCapturing(false),
+		_camera(nullptr),
+		_refractCamera(nullptr),
+		_sunLight(nullptr),
+		_bloomActive(false),
+		_godraysActive(false),
+		_fxaaActive(false),
+		_ssaoActive(false),
+		_bloomPipeline(nullptr),
+		_godraysPipeline(nullptr),
+		_fxaaPipeline(nullptr),
+		_ssaoPipeline(nullptr),
+		_cutScene(nullptr),
+		_captureCount(0)
 	{
-//		srand(time(0));
-		
-		_sunLight = 0;
-		_finalcam = 0;
-		_camera = 0;
-		_spotLight = 0;
-		_player = 0;
-		_sponza = 0;
-		
-		_frameCapturing = false;
-		
-		_exposure = 1.0f;
-		_whitepoint = 5.0f;
-		
-		_debugAttachment = new DebugDrawer();
-		AddAttachment(_debugAttachment);
+		_debugDrawer = new DebugDrawer();
+		AddAttachment(_debugDrawer);
 	}
 	
 	World::~World()
 	{
-		RN::Input::GetSharedInstance()->Deactivate();
 		RN::MessageCenter::GetSharedInstance()->RemoveObserver(this);
+		_debugDrawer->Release();
 		
-		_camera->Release();
+		_ssaoPipeline->Release();
+		_godraysPipeline->Release();
+		_bloomPipeline->Release();
+		_fxaaPipeline->Release();
+		
+		RN::SafeRelease(_sunLight);
 	}
 	
-	void World::LoadOnThread(RN::Thread *thread)
+	void World::LoadOnThread(RN::Thread *thread, RN::Deserializer *deserializer)
 	{
+		RN::World::LoadOnThread(thread, deserializer);
 		CreateCameras();
-		//CreateSponza();
-		//CreateGrass();
-		CreateForest();
-		//CreateSibenik();
-		
-		RN::Input::GetSharedInstance()->Activate();
-		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNInputEventMessage, [&](RN::Message *message) {
-			
-			RN::Event *event = static_cast<RN::Event *>(message);
-			if(event->GetType() == RN::Event::Type::KeyDown)
-			{
-				switch(event->GetCharacter())
-				{
-					case 'f':
-						if(_spotLight)
-							_spotLight->SetRange(_spotLight->GetRange() > 1.0f ? 0.0f : TGWorldSpotLightRange);
-						break;
-						
-					case 'x':
-						_debugAttachment->SetCamera(_debugAttachment->Camera() ? nullptr : _camera);
-						break;
-						
-					case 'c':
-						ToggleFrameCapturing();
-						break;
-						
-					default:
-						break;
-				}
-			}
-			
-		}, this);
 	}
 	
-	bool World::SupportsBackgroundLoading() const
+	void World::HandleInputEvent(RN::Event *event)
 	{
-		return true;
+		if(event->GetType() == RN::Event::Type::KeyDown)
+		{
+			switch(event->GetCharacter())
+			{
+				case 'c':
+					ToggleFrameCapturing();
+					break;
+					
+				case '.':
+				{
+					RN::Renderer::GetSharedInstance()->RequestFrameCapture([=](RN::FrameCapture *capture) {
+						
+						RN::Data *data = capture->GetData(RN::FrameCapture::Format::PNG);
+						std::stringstream file;
+						
+						std::string path = RN::FileManager::GetSharedInstance()->GetNormalizedPathFromFullpath("~/Desktop");
+						
+						file << path << "/Capture/Screenshot_" << _captureCount << ".png";
+						std::string base = RN::PathManager::Basepath(file.str());
+						
+						if(!RN::PathManager::PathExists(base))
+							RN::PathManager::CreatePath(base);
+						
+						data->WriteToFile(file.str());
+						
+						_captureCount ++;
+					});
+					
+					break;
+				}
+					
+				case 'x':
+					_debugDrawer->SetCamera(_debugDrawer->GetCamera() ? nullptr : _camera);
+					break;
+					
+				case 'p':
+				{
+					RN::Vector3 position = _camera->GetWorldPosition();
+					RN::Vector3 euler    = _camera->GetWorldEulerAngle();
+					
+					RNInfo("{%f, %f, %f}", position.x, position.y, position.z);
+					RNInfo("{%f, %f, %f}", euler.x, euler.y, euler.z);
+					break;
+				}
+				
+				case 'b':
+				{
+					PPToggleBloom();
+					break;
+				}
+				case 'n':
+				{
+					PPToggleSSAO();
+					break;
+				}
+				case 'm':
+				{
+					PPToggleFXAA();
+					break;
+				}
+				case ',':
+				{
+					PPToggleGodrays();
+					break;
+				}
+					
+				default:
+					break;
+			}
+		}
 	}
-	
 	
 	void World::ToggleFrameCapturing()
 	{
 		if(!_frameCapturing)
 		{
 			_frameCapturing = true;
+			_frameCount     = 0;
 			
 			RN::Kernel::GetSharedInstance()->SetFixedDelta(1.0f / 30.0f);
 			RecordFrame();
@@ -118,31 +150,93 @@ namespace TG
 		if(!_frameCapturing)
 			return;
 		
-		RN::Renderer::GetSharedInstance()->RequestFrameCapture([](RN::FrameCapture *capture) {
+		RN::Renderer::GetSharedInstance()->RequestFrameCapture([=](RN::FrameCapture *capture) {
 			
 			RN::Data *data = capture->GetData(RN::FrameCapture::Format::RGBA8888);
 			std::stringstream file;
 			
 			std::string path = RN::FileManager::GetSharedInstance()->GetNormalizedPathFromFullpath("~/Desktop");
 			
-			file << path << "/RayneCapture/frame_" << capture->GetFrame() << ".raw";
+			file << path << "/Capture/Capture_" << _frameCount << ".bmp";
 			std::string base = RN::PathManager::Basepath(file.str());
 			
 			if(!RN::PathManager::PathExists(base))
 				RN::PathManager::CreatePath(base);
 			
-			data->WriteToFile(file.str());
 			
+			uint8 fileHeader[14] = {'B','M', 0,0,0,0, 0,0, 0,0, 54,0,0,0};
+			uint8 infoHeader[40] = {40,0,0,0, 0,0,0,0, 0,0,0,0, 1,0, 24,0};
+			
+			size_t w = capture->GetWidth();
+			size_t h = capture->GetHeight();
+			
+			size_t padding   = (4 - w % 4) % 4;
+			size_t dataSize  = w * h * 3 + (h * padding);
+			size_t totalSize = dataSize + 14 + 40;
+			
+			fileHeader[2] = (totalSize) & 0xff;
+			fileHeader[3] = (totalSize >> 8) & 0xff;
+			fileHeader[4] = (totalSize >> 16) & 0xff;
+			fileHeader[5] = (totalSize >> 24) & 0xff;
+			
+			infoHeader[ 4] = (w) & 0xff;
+			infoHeader[ 5] = (w >> 8) & 0xff;
+			infoHeader[ 6] = (w >> 16) & 0xff;
+			infoHeader[ 7] = (w >> 24) & 0xff;
+			infoHeader[ 8] = (h) & 0xff;
+			infoHeader[ 9] = (h >> 8) & 0xff;
+			infoHeader[10] = (h >> 16) & 0xff;
+			infoHeader[11] = (h >> 24) & 0xff;
+			
+			RN::Data *bmpdata = new RN::Data();
+			bmpdata->Append(fileHeader, 14);
+			bmpdata->Append(infoHeader, 40);
+			
+			uint8 *pixelData = reinterpret_cast<uint8 *>(data->GetBytes());
+			uint8 *row = new uint8[capture->GetWidth() * 3];
+			uint8 pad[3] = { 0 };
+			
+			for(size_t i = 0; i < capture->GetHeight(); i ++)
+			{
+				uint32 *pixel = reinterpret_cast<uint32 *>(pixelData + (w * 4) * ((h - i) - 1));
+				uint8  *temp  = row;
+				
+				for(size_t j = 0; j < capture->GetWidth(); j ++)
+				{
+					*temp ++ = ((*pixel) >> 16) & 0xff;
+					*temp ++ = ((*pixel) >> 8) & 0xff;
+					*temp ++ = ((*pixel) >> 0) & 0xff;
+					
+					pixel ++;
+				}
+				
+				bmpdata->Append(row, capture->GetWidth() * 3);
+				bmpdata->Append(pad, padding);
+			}
+			
+			bmpdata->WriteToFile(file.str());
+			bmpdata->Release();
 		});
+		
+		_frameCount ++;
 	}
 	
 	void World::Update(float delta)
 	{
-		RecordFrame();
+		if(_cutScene)
+		{
+			_cutScene->Update(delta);
+			
+			if(!_cutScene->HasKeys())
+			{
+				delete _cutScene;
+				_cutScene = nullptr;
+			}
+		}
 		
+		RecordFrame();
 		RN::Input *input = RN::Input::GetSharedInstance();
 
-#if TGWorldFeatureFreeCamera
 		RN::Vector3 translation;
 		RN::Vector3 rotation;
 		
@@ -159,190 +253,203 @@ namespace TG
 		
 		translation *= (input->GetModifierKeys() & RN::KeyModifier::KeyShift) ? 2.0f : 1.0f;
 		
-		_camera->Rotate(rotation);
-		_camera->TranslateLocal(translation * delta);
-#endif
-		
-		if(_sunLight != 0)
+		if(!_cutScene)
 		{
-			RN::Vector3 sunrot;
-			sunrot.x = (input->IsKeyPressed('e') - input->IsKeyPressed('q')) * 20.0f * delta;
-			sunrot.y = (input->IsKeyPressed('t') - input->IsKeyPressed('g')) * 10.0f * delta;
-			_sunLight->Rotate(sunrot);
+			_camera->Rotate(rotation);
+			_camera->TranslateLocal(translation * delta);
 		}
 		
-		_exposure += (input->IsKeyPressed('u') - input->IsKeyPressed('j')) * delta*2.0f;
-		_exposure = std::min(std::max(0.01f, _exposure), 10.0f);
+		
+		_exposure   += (input->IsKeyPressed('u') - input->IsKeyPressed('j')) * delta*2.0f;
 		_whitepoint += (input->IsKeyPressed('i') - input->IsKeyPressed('k')) * delta;
+		
 		_whitepoint = std::min(std::max(0.01f, _whitepoint), 10.0f);
+		_exposure   = std::min(std::max(0.01f, _exposure), 10.0f);
+		
 		RN::Renderer::GetSharedInstance()->SetHDRExposure(_exposure);
 		RN::Renderer::GetSharedInstance()->SetHDRWhitePoint(_whitepoint);
 		
-		/*if(_sunLight->IsNight())
+		
+		if(_sunLight)
 		{
-			_camera->ambient = RN::Vector4(0.0, 0.0, 0.0, 1.0f);
-			_sunLight->SetFlags(_sunLight->GetFlags() | RN::SceneNode::FlagHidden);
-		}
-		else
-		{
-			_sunLight->SetFlags(_sunLight->GetFlags() & ~RN::SceneNode::FlagHidden);
+			RN::Color color = _sunLight->GetAmbientColor();
+			RN::Color ambient(0.127f, 0.252f, 0.393f, 1.0f);
 			
-			_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f) * (_sunLight->GetPitch() / 50.0);
-			_camera->ambient.w = 1.0;
-		}*/
-		//_sunLight->SetColor(RN::Color(1.0f, 0.0f, 0.0f));
-		//_camera->fogcolor = RN::Color(1.0f, 0.0f, 0.0f);
+			_camera->SetAmbientColor(color * (ambient * 5.0f));
+			_camera->SetFogColor(_sunLight->GetFogColor());
+			
+			if(_camera->GetChildren()->GetCount() > 0)
+			{
+				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetAmbientColor(_camera->GetAmbientColor());
+				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetFogColor(_sunLight->GetFogColor());
+			}
+		}
+	}
+	
+	void World::UpdateEditMode(float delta)
+	{
+		RN::World::UpdateEditMode(delta);
+		
+		if(_sunLight)
+		{
+			RN::Color color = _sunLight->GetAmbientColor();
+			RN::Color ambient(0.127f, 0.252f, 0.393f, 1.0f);
+			
+			_camera->SetAmbientColor(color * (ambient * 5.0f));
+			_camera->SetFogColor(_sunLight->GetFogColor());
+			
+			if(_camera->GetChildren()->GetCount() > 0)
+			{
+				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetAmbientColor(_camera->GetAmbientColor());
+				_camera->GetChildren()->GetObjectAtIndex<RN::Camera>(0)->SetFogColor(_sunLight->GetFogColor());
+			}
+		}
 	}
 	
 	void World::CreateCameras()
 	{
-		RN::Model *sky = RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png", "shader/rn_Sky2");
+		RN::Model *sky = RN::Model::WithSkyCube("textures/sky_up.png", "textures/sky_down.png", "textures/sky_left.png", "textures/sky_right.png", "textures/sky_front.png", "textures/sky_back.png");
 		for(int i = 0; i < 6; i++)
 		{
-			sky->GetMaterialAtIndex(0, i)->ambient = RN::Color(6.0f, 6.0f, 6.0f, 1.0f);
+			sky->GetMaterialAtIndex(0, i)->SetAmbientColor(RN::Color(6.0f, 6.0f, 6.0f, 1.0f));
+			sky->GetMaterialAtIndex(0, i)->SetOverride(RN::Material::Override::Shader);
 			sky->GetMaterialAtIndex(0, i)->Define("RN_ATMOSPHERE");
 		}
 		
-#if TGWorldFeatureZPrePass
-		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatDepth);
-		
-		RN::Texture::Parameter depthparam;
-		depthparam.format = RN::Texture::Format::Depth24I;
-		depthparam.generateMipMaps = false;
-		depthparam.maxMipMaps = 0;
-		depthparam.wrapMode = RN::Texture::WrapMode::Clamp;
-		
-		_depthtex = new RN::Texture2D(depthparam);
-		storage->SetDepthTarget(_depthtex);
-		
-		RN::Shader *depthShader = RN::ResourceCoordinator::GetSharedInstance()->GetResourceWithName<RN::Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
-		RN::Material *depthMaterial = new RN::Material(depthShader);
-		
-		_camera = new ThirdPersonCamera(storage, RN::Camera::FlagDefaults|RN::Camera::FlagNoLights);
-		_camera->SetMaterial(depthMaterial);
-		
-		_finalcam = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA32F, RN::Camera::FlagDefaults);
-		_finalcam->SetClearMask(RN::Camera::ClearFlagColor);
-		_finalcam->GetStorage()->SetDepthTarget(_depthtex);
-		_finalcam->SetSkyCube(sky);
-		_finalcam->renderGroup |= RN::Camera::RenderGroup1;
-		_finalcam->SetPriority(5);
-		
-		_camera->AttachChild(_finalcam);
-		_camera->SetPriority(10);
-		_camera->Rotate(RN::Vector3(90.0f, 0.0f, 0.0f));
-		
-		_finalcam->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
-		
-	#if TGWorldFeatureWater
-		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
-		
-		// Copy refraction to another texture
-		RN::Material *copyFBOMaterial = new RN::Material(updownShader);
-		copyFBOMaterial->Define("RN_COPYDEPTH");
-		RN::Camera *copyRefract = new RN::Camera(_camera->GetFrame().Size(), RN::TextureParameter::Format::RGBA32F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		copyRefract->SetMaterial(copyFBOMaterial);
-		_refractPipeline = _lightcam->AddPostProcessingPipeline("refractioncopy");
-		_refractPipeline->AddStage(copyRefract, RN::RenderStage::Mode::ReUsePreviousStage);
-	#endif
-		
-	#if TGWorldFeatureSSAO
-		PPActivateSSAO(_finalcam);
-	#endif
-		
-	#if TGWorldFeatureBloom
-		PPActivateBloom(_finalcam);
-	#endif
-#else
 		RN::RenderStorage *storage = new RN::RenderStorage(RN::RenderStorage::BufferFormatComplete);
 		storage->AddRenderTarget(RN::Texture::Format::RGB16F);
-		_camera = new ThirdPersonCamera(storage);
-		_camera->renderGroup = RN::Camera::RenderGroup0|RN::Camera::RenderGroup1;
-		_camera->SetSkyCube(sky);
-		_camera->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
+		storage->SetDepthTarget(RN::Texture::Format::Depth24I);
 		
-	#if TGWorldFeatureSSAO
-		PPActivateSSAO(_camera);
-	#endif
+		_camera = new RN::Camera(RN::Vector2(), storage, RN::Camera::Flags::Defaults);
+		_camera->SetDebugName("Main");
+		_camera->SetFlags(_camera->GetFlags() | RN::Camera::Flags::NoFlush);
+		_camera->SceneNode::SetFlags(_camera->SceneNode::GetFlags() | RN::SceneNode::Flags::NoSave);
+		_camera->SetRenderGroups(_camera->GetRenderGroups() | RN::Camera::RenderGroups::Group1 | RN::Camera::RenderGroups::Group3);
+		_camera->SetSky(sky);
+		_camera->Autorelease();
 		
-	#if TGWorldFeatureBloom
-		PPActivateBloom(_camera);
-	#endif
+		RN::PostProcessingPipeline *waterPipeline = _camera->AddPostProcessingPipeline("water", 0);
 		
-		PPActivateFXAA(_camera);
-#endif
+		RN::Material *refractCopy = new RN::Material(RN::Shader::WithFile("shader/rn_PPCopy"));
+		refractCopy->Define("RN_COPYDEPTH");
+		_refractCamera = new RN::Camera(_camera->GetFrame().Size(), RN::Texture::Format::RGBA32F, RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		_refractCamera->SetMaterial(refractCopy);
+		_refractCamera->SceneNode::SetFlags(_camera->SceneNode::GetFlags() | RN::SceneNode::Flags::NoSave);
+		_refractCamera->Release();
+		waterPipeline->AddStage(_refractCamera, RN::RenderStage::Mode::ReUsePreviousStage);
+		
+		_waterCamera = new RN::Camera(RN::Vector2(_camera->GetFrame().Size()), storage, RN::Camera::Flags::Defaults);
+		_waterCamera->SetClearMask(0);
+		_waterCamera->SetRenderGroups(RN::Camera::RenderGroups::Group2 | RN::Camera::RenderGroups::Group3);
+		_waterCamera->SetDebugName("Water");
+		_waterCamera->Autorelease();
+		_waterCamera->SceneNode::SetFlags(_waterCamera->SceneNode::GetFlags() | RN::SceneNode::Flags::NoSave);
+		//waterPipeline->AddStage(waterStage, RN::RenderStage::Mode::ReRender);
+		
+		_waterCamera->SetBlitShader(RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap"));
+		_waterCamera->SetPriority(-100);
+		
+		_camera->AddChild(_waterCamera);
+		
+		_ssaoPipeline = PPCreateSSAOPipeline(_waterCamera)->Retain();
+		_godraysPipeline = PPCreateGodraysPipeline(_waterCamera, _refractCamera->GetRenderTarget())->Retain();
+		_bloomPipeline = PPCreateBloomPipeline(_waterCamera)->Retain();
+		_fxaaPipeline = PPCreateFXAAPipeline(_waterCamera)->Retain();
 	}
 	
-	void World::PPActivateSSAO(RN::Camera *cam)
+	RN::PostProcessingPipeline *World::PPCreateSSAOPipeline(RN::Camera *cam)
 	{
+		RN::Shader *depthShader = RN::Shader::WithFile("shader/rn_SAO_reconstructCSZ");
+		RN::Shader *ssaoShader = RN::Shader::WithFile("shader/rn_SAO_AO");
+		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_SAO_blur");
 		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
-		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
-		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
 		
-		RN::Material *blurXMaterial = new RN::Material(blurShader);
-		blurXMaterial->Define("RN_BLURX");
-		
-		RN::Material *blurYMaterial = new RN::Material(blurShader);
-		blurYMaterial->Define("RN_BLURY");
-		
-		RN::Material *downMaterial = new RN::Material(updownShader);
-		downMaterial->Define("RN_DOWNSAMPLE");
-		
-		// Surface normals
-		RN::Shader *surfaceShader = RN::Shader::WithFile("shader/rn_SurfaceNormals");
-		RN::Material *surfaceMaterial = new RN::Material(surfaceShader);
-		
-		RN::Camera *normalsCamera = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGB16F, RN::Camera::FlagInherit | RN::Camera::FlagNoSky | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatComplete);
-		normalsCamera->SetMaterial(surfaceMaterial);
-		//normalsCamera->GetStorage()->SetDepthTarget(_depthtex);
-		//normalsCamera->SetClearMask(RN::Camera::ClearFlagColor);
-		
-		// SSAO stage
-		RN::Texture *ssaoNoise = RN::Texture::WithFile("textures/rn_SSAONoise.png");
-		
-		RN::Shader *ssaoShader = RN::Shader::WithFile("shader/rn_SSAO");
+		RN::Material *depthMaterial = new RN::Material(depthShader);
 		RN::Material *ssaoMaterial = new RN::Material(ssaoShader);
-		ssaoMaterial->AddTexture(ssaoNoise);
+		RN::Material *blurXMaterial = new RN::Material(blurShader);
+		blurXMaterial->Define("RN_BLURX");
+		RN::Material *blurYMaterial = new RN::Material(blurShader);
+		RN::Material *combineMaterial = new RN::Material(combineShader);
+		combineMaterial->Define("MODE_GRAYSCALE");
 		
-		RN::Camera *ssaoCamera  = new RN::Camera(RN::Vector2(), RN::Texture::Format::R8, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		ssaoCamera->SetMaterial(ssaoMaterial);
+		RN::Camera *depthStage = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA32F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		depthStage->SetMaterial(depthMaterial);
+		depthMaterial->AddTexture(_camera->GetStorage()->GetDepthTarget());
 		
-		// Blur X
-		RN::Camera *ssaoBlurX = new RN::Camera(RN::Vector2(), RN::Texture::Format::R8, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		ssaoBlurX->SetMaterial(blurXMaterial);
+		RN::Camera *ssaoStage = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA8888, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		ssaoStage->SetMaterial(ssaoMaterial);
 		
-		// Blur Y
-		RN::Camera *ssaoBlurY = new RN::Camera(RN::Vector2(), RN::Texture::Format::R8, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		ssaoBlurY->SetMaterial(blurYMaterial);
+		RN::Camera *blurXStage = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA8888, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		blurXStage->SetMaterial(blurXMaterial);
+		RN::Camera *blurYStage = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGBA8888, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		blurYStage->SetMaterial(blurYMaterial);
 		
-		// Combine stage
-		RN::Material *ssaoCombineMaterial = new RN::Material(combineShader);
-		ssaoCombineMaterial->AddTexture(ssaoBlurY->GetStorage()->GetRenderTarget());
-		ssaoCombineMaterial->Define("MODE_GRAYSCALE");
+		RN::Camera *combineStage  = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		combineStage->SetMaterial(combineMaterial);
+		combineMaterial->AddTexture(blurYStage->GetStorage()->GetRenderTarget());
 		
-		RN::Camera *ssaoCombineCamera  = new RN::Camera(RN::Vector2(), RN::Texture::Format::RGB16F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
-		ssaoCombineCamera->SetMaterial(ssaoCombineMaterial);
+		RN::PostProcessingPipeline *ssaoPipeline = cam->AddPostProcessingPipeline("SSAO", 1);
+		ssaoPipeline->AddStage(depthStage->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		ssaoPipeline->AddStage(ssaoStage->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		ssaoPipeline->AddStage(blurXStage->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		ssaoPipeline->AddStage(blurYStage->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		ssaoPipeline->AddStage(combineStage->Autorelease(), RN::RenderStage::Mode::ReUsePipeline);
 		
-		// PP pipeline
-		RN::PostProcessingPipeline *ssaoPipeline = cam->AddPostProcessingPipeline("SSAO");
-		ssaoPipeline->AddStage(normalsCamera, RN::RenderStage::Mode::ReRender);
-		ssaoPipeline->AddStage(ssaoCamera, RN::RenderStage::Mode::ReUsePreviousStage);
-		ssaoPipeline->AddStage(ssaoBlurX, RN::RenderStage::Mode::ReUsePreviousStage);
-		ssaoPipeline->AddStage(ssaoBlurY, RN::RenderStage::Mode::ReUsePreviousStage);
-		ssaoPipeline->AddStage(ssaoCombineCamera, RN::RenderStage::Mode::ReUsePipeline);
+		_ssaoActive = true;
+		
+		return ssaoPipeline;
 	}
 	
-	void World::PPActivateBloom(RN::Camera *cam)
+	RN::PostProcessingPipeline *World::PPCreateGodraysPipeline(RN::Camera *cam, RN::Texture *raysource)
+	{
+		RN::Shader *godraysShader = RN::Shader::WithFile("shader/rn_PPGodrays");
+		
+		// Godrays
+		RN::Material *godraysMaterial = new RN::Material(godraysShader);
+		godraysMaterial->AddTexture(raysource);
+		
+		RN::Camera *godraysCam = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		godraysCam->SetMaterial(godraysMaterial);
+		
+		RN::PostProcessingPipeline *godraysPipeline = cam->AddPostProcessingPipeline("Godrays", 2);
+		godraysPipeline->AddStage(godraysCam->Autorelease(), RN::RenderStage::Mode::ReUsePipeline);
+		
+		_godraysActive = true;
+		
+		return godraysPipeline;
+	}
+
+	
+	RN::PostProcessingPipeline *World::PPCreateBloomPipeline(RN::Camera *cam)
 	{
 		RN::Shader *combineShader = RN::Shader::WithFile("shader/rn_PPCombine");
-		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_BoxBlur");
+		RN::Shader *blurShader = RN::Shader::WithFile("shader/rn_GaussBlur");
 		RN::Shader *updownShader = RN::Shader::WithFile("shader/rn_PPCopy");
+		
+		float blurWeights[10];
+		float sigma = 4.5/3;
+		sigma *= sigma;
+		int n = 0;
+		float gaussfactor = 1.0f/(sqrt(2.0f*RN::k::Pi*sigma));
+		float weightsum = 0;
+		for(float i = -4.5f; i <= 4.6f; i += 1.0f)
+		{
+			blurWeights[n] = exp(-(i*i/2.0f*sigma))*gaussfactor;
+			weightsum += blurWeights[n];
+			n++;
+		}
+		for(int i = 0; i < n; i++)
+		{
+			blurWeights[i] /= weightsum;
+		}
 		
 		RN::Material *blurXMaterial = new RN::Material(blurShader);
 		blurXMaterial->Define("RN_BLURX");
+		blurXMaterial->AddShaderUniform("kernelWeights", RN::Material::ShaderUniform::Type::Float1, blurWeights, 10, true);
 		
 		RN::Material *blurYMaterial = new RN::Material(blurShader);
 		blurYMaterial->Define("RN_BLURY");
+		blurYMaterial->AddShaderUniform("kernelWeights", RN::Material::ShaderUniform::Type::Float1, blurWeights, 10, true);
 		
 		RN::Material *downMaterial = new RN::Material(updownShader);
 		downMaterial->Define("RN_DOWNSAMPLE");
@@ -350,52 +457,56 @@ namespace TG
 		// Filter bright
 		RN::Shader *filterBrightShader = RN::Shader::WithFile("shader/rn_FilterBright");
 		RN::Material *filterBrightMaterial = new RN::Material(filterBrightShader);
-		RN::Camera *filterBright = new RN::Camera(cam->GetFrame().Size() / 2.0f, RN::Texture::Format::RGB16F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *filterBright = new RN::Camera(cam->GetFrame().Size() / 2.0f, RN::Texture::Format::RGB16F, RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		filterBright->SetMaterial(filterBrightMaterial);
 		
 		// Down sample
-		RN::Camera *downSample4x = new RN::Camera(cam->GetFrame().Size() / 4.0f, RN::Texture::Format::RGB16F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *downSample4x = new RN::Camera(cam->GetFrame().Size() / 4.0f, RN::Texture::Format::RGB16F, RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		downSample4x->SetMaterial(downMaterial);
 		
 		// Down sample
-		RN::Camera *downSample8x = new RN::Camera(cam->GetFrame().Size() / 8.0f, RN::Texture::Format::RGB16F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *downSample8x = new RN::Camera(cam->GetFrame().Size() / 8.0f, RN::Texture::Format::RGB16F, RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		downSample8x->SetMaterial(downMaterial);
 		
 		// Blur X
-		RN::Camera *bloomBlurXlow = new RN::Camera(cam->GetFrame().Size() / 8.0f, RN::Texture::Format::RGB16F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomBlurXlow = new RN::Camera(cam->GetFrame().Size() / 8.0f, RN::Texture::Format::RGB16F, RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurXlow->SetMaterial(blurXMaterial);
 		
 		// Blur Y
-		RN::Camera *bloomBlurYlow = new RN::Camera(cam->GetFrame().Size() / 8.0f, RN::Texture::Format::RGB16F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomBlurYlow = new RN::Camera(cam->GetFrame().Size() / 8.0f, RN::Texture::Format::RGB16F, RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurYlow->SetMaterial(blurYMaterial);
 		
 		// Blur X
-		RN::Camera *bloomBlurXhigh = new RN::Camera(cam->GetFrame().Size() / 4.0f, RN::Texture::Format::RGB16F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomBlurXhigh = new RN::Camera(cam->GetFrame().Size() / 4.0f, RN::Texture::Format::RGB16F, RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurXhigh->SetMaterial(blurXMaterial);
 		
 		// Blur Y
-		RN::Camera *bloomBlurYhigh = new RN::Camera(cam->GetFrame().Size() / 4.0f, RN::Texture::Format::RGB16F, RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomBlurYhigh = new RN::Camera(cam->GetFrame().Size() / 4.0f, RN::Texture::Format::RGB16F, RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomBlurYhigh->SetMaterial(blurYMaterial);
 		
 		// Combine
 		RN::Material *bloomCombineMaterial = new RN::Material(combineShader);
 		bloomCombineMaterial->AddTexture(bloomBlurYhigh->GetStorage()->GetRenderTarget());
 		
-		RN::Camera *bloomCombine = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *bloomCombine = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		bloomCombine->SetMaterial(bloomCombineMaterial);
 		
-		RN::PostProcessingPipeline *bloom = cam->AddPostProcessingPipeline("Bloom");
-		bloom->AddStage(filterBright, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(downSample4x, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(downSample8x, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomBlurXlow, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomBlurYlow, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomBlurXhigh, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomBlurYhigh, RN::RenderStage::Mode::ReUsePreviousStage);
-		bloom->AddStage(bloomCombine, RN::RenderStage::Mode::ReUsePipeline);
+		RN::PostProcessingPipeline *bloomPipeline = cam->AddPostProcessingPipeline("Bloom", 3);
+		bloomPipeline->AddStage(filterBright->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(downSample4x->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(downSample8x->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomBlurXlow->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomBlurYlow->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomBlurXhigh->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomBlurYhigh->Autorelease(), RN::RenderStage::Mode::ReUsePreviousStage);
+		bloomPipeline->AddStage(bloomCombine->Autorelease(), RN::RenderStage::Mode::ReUsePipeline);
+		
+		_bloomActive = true;
+		
+		return bloomPipeline;
 	}
 	
-	void World::PPActivateFXAA(RN::Camera *cam)
+	RN::PostProcessingPipeline *World::PPCreateFXAAPipeline(RN::Camera *cam)
 	{
 		RN::Shader *tonemappingShader = RN::Shader::WithFile("shader/rn_DrawFramebufferTonemap");
 		RN::Shader *fxaaShader = RN::Shader::WithFile("shader/rn_FXAA");
@@ -404,728 +515,143 @@ namespace TG
 		RN::Material *tonemappingMaterial = new RN::Material(tonemappingShader);
 		RN::Material *fxaaMaterial = new RN::Material(fxaaShader);
 		
-		RN::Camera *tonemappingCam = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *tonemappingCam = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		tonemappingCam->SetMaterial(tonemappingMaterial);
 		
-		RN::Camera *fxaaCam = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::FlagInherit | RN::Camera::FlagUpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
+		RN::Camera *fxaaCam = new RN::Camera(RN::Vector2(0.0f), RN::Texture::Format::RGB16F, RN::Camera::Flags::Inherit | RN::Camera::Flags::UpdateStorageFrame, RN::RenderStorage::BufferFormatColor);
 		fxaaCam->SetMaterial(fxaaMaterial);
 		
-		RN::PostProcessingPipeline *fxaa = cam->AddPostProcessingPipeline("FXAA");
-		fxaa->AddStage(tonemappingCam, RN::RenderStage::Mode::ReUsePipeline);
-		fxaa->AddStage(fxaaCam, RN::RenderStage::Mode::ReUsePipeline);
+		RN::PostProcessingPipeline *fxaaPipeline = cam->AddPostProcessingPipeline("FXAA", 4);
+		fxaaPipeline->AddStage(tonemappingCam->Autorelease(), RN::RenderStage::Mode::ReUsePipeline);
+		fxaaPipeline->AddStage(fxaaCam->Autorelease(), RN::RenderStage::Mode::ReUsePipeline);
+		
+		_fxaaActive = true;
+		
+		return fxaaPipeline;
 	}
 	
-	void World::CreateSponza()
+	void World::PPToggleBloom()
 	{
-		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f)*0.7f;
-		_camera->SetPosition(RN::Vector3(15.0, 0.0, 0.0));
-		
-		// Sponza
-		RN::Model *model = RN::Model::WithFile("models/sponza/sponza.sgm");
-		model->GetMaterialAtIndex(0, 12)->discard = true;
-		model->GetMaterialAtIndex(0, 12)->culling = false;
-		model->GetMaterialAtIndex(0, 12)->override = RN::Material::OverrideGroupDiscard;
-		
-		model->GetMaterialAtIndex(0, 17)->discard = true;
-		model->GetMaterialAtIndex(0, 17)->culling = false;
-		model->GetMaterialAtIndex(0, 17)->override = RN::Material::OverrideGroupDiscard;
-		
-		model->GetMaterialAtIndex(0, 22)->discard = true;
-		model->GetMaterialAtIndex(0, 22)->culling = false;
-		model->GetMaterialAtIndex(0, 22)->override = RN::Material::OverrideGroupDiscard;
-	
-		
-		RN::Entity *sponza = new RN::Entity();
-		sponza->SetModel(model);
-		sponza->SetScale(RN::Vector3(0.2f));
-		sponza->SetPosition(RN::Vector3(0.0f, -5.0f, 0.0f));
-		
-		_sponza = sponza;
-		
-//		TG::SmokeGrenade *smoke = new TG::SmokeGrenade();
-//		smoke->Material()->AddTexture(_depthtex);
-//		smoke->Material()->Define("RN_SOFTPARTICLE");
-//		smoke->SetPosition(RN::Vector3(0.0f, -8.0f, 0.0f));
-		
-#if !TGWorldFeatureFreeCamera
-		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
-		RN::Skeleton *playerSkeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
-		playerSkeleton->SetAnimation("cammina");
-		
-		_player = new Player(playerModel);
-		_player->SetSkeleton(playerSkeleton);
-		_player->SetPosition(RN::Vector3(1.0f, -1.0f, 0.0f));
-		_player->SetScale(RN::Vector3(0.4f));
-		_player->SetCamera(_camera);
-		
-		_camera->SetTarget(_player);
-#endif
-		
-#if TGWorldFeatureLights
-/*		_sunLight = new RN::Light(RN::Light::Type::DirectionalLight);
-		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(0.0f, -90.0f, 0.0f)));
-		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateDirectionalShadows(true, 2048);
-		_sunLight->SetColor(RN::Color(170, 170, 170));*/
-		
-/*		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
-		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
-		_spotLight->SetRange(TGWorldSpotLightRange);
-		_spotLight->SetAngle(20.0f);
-		_spotLight->SetColor(RN::Color(0.5f));
-		_spotLight->ActivateSpotShadows();*/
-		
-#if TGWorldFeatureFreeCamera
-//		_camera->AttachChild(_spotLight);
-#else
-		_player->AttachChild(_spotLight);
-#endif
-		
-/*		RN::Light *light = new RN::Light();
-		light->SetPosition(RN::Vector3(-21.0f, -5.0f, -5.0f));
-		light->SetRange(15.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		light->ActivatePointShadows();
-		
-		light = new RN::Light();
-		light->SetPosition(RN::Vector3(-21.0f, -5.0f, 5.0f));
-		light->SetRange(15.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		light->ActivatePointShadows();
-		
-		light = new RN::Light();
-		light->SetPosition(RN::Vector3(29.0f, -5.0f, -5.0f));
-		light->SetRange(15.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		light->ActivatePointShadows();
-		
-		light = new RN::Light();
-		light->SetPosition(RN::Vector3(29.0f, -5.0f, 5.0f));
-		light->SetRange(15.0f);
-		light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		light->ActivatePointShadows();
-	*/
-		for(int i=0; i<200; i++)
-		{
-			RN::Light *light = new RN::Light();
-			light->SetPosition(RN::Vector3(TGWorldRandom * 50.0f - 21.0f, TGWorldRandom * 20.0f-7.0f, TGWorldRandom * 21.0f - 10.0f));
-			light->SetRange((TGWorldRandom * 3.0f) + 2.0f);
-			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-			float timeoffset = TGWorldRandom*10.0f;
-			light->SetAction([timeoffset](RN::SceneNode *light, float delta) {
-				RN::Vector3 pos = light->GetWorldPosition();
-				float time = RN::Kernel::GetSharedInstance()->GetTime();
-				time += timeoffset;
-				pos.x += 0.05f*cos(time*2.0f);
-				pos.z += 0.05f*sin(time*2.0f);
-				light->SetWorldPosition(pos);
-			});
-		}
-#endif
-		
-		RN::Billboard *billboard = new RN::Billboard();
-		
-		billboard->SetTexture(RN::Texture::WithFile("textures/billboard.png"));
-		billboard->SetScale(RN::Vector3(0.04f));
-		billboard->GetMaterial()->blending = true;
-		billboard->GetMaterial()->blendSource = GL_SRC_ALPHA;
-		billboard->GetMaterial()->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-		billboard->GetMaterial()->depthwrite = false;
-		billboard->GetMaterial()->depthtest = true;
-		billboard->renderGroup = 1;
-		billboard->SetRotation(RN::Quaternion(RN::Vector3(90.0f, 0.0f, 0.0f)));
-		billboard->Translate(RN::Vector3(-17.35f, 12.0f, 0.7f));
-		
-		_camera->clipfar = 100.0f;
-		_camera->UpdateProjection();
-		
-#if  TGWorldFeatureZPrePass
-//		_lightcam->clipfar = 100.0f;
-//		_lightcam->UpdateProjection();
-		_finalcam->clipfar = 100.0f;
-		_finalcam->UpdateProjection();
-#endif
-		
-#if TGWorldFeatureWater
-		RN::Water *water = new RN::Water((RN::Camera*)_finalcam, _refractPipeline->LastStage()->Camera()->Storage()->RenderTarget());
-#endif
+		_bloomActive = !_bloomActive;
+		if(!_bloomActive)
+			_waterCamera->RemovePostProcessingPipeline(_bloomPipeline);
+		else
+			_waterCamera->AddPostProcessingPipeline(_bloomPipeline);
 	}
 	
-	bool World::PositionBlocked(RN::Vector3 position, RN::Entity **obstacles, int count)
+	void World::PPToggleGodrays()
 	{
-		for(int n = 0; n < count; n++)
-		{
-			if(obstacles[n]->GetBoundingBox().Contains(position))
-				return true;
-		}
-		return false;
+		_godraysActive = !_godraysActive;
+		if(!_godraysActive)
+			_waterCamera->RemovePostProcessingPipeline(_godraysPipeline);
+		else
+			_waterCamera->AddPostProcessingPipeline(_godraysPipeline);
 	}
 	
-	
-	void World::CreateForest()
+	void World::PPToggleSSAO()
 	{
-		RN::Progress *progress = RN::Progress::GetActiveProgress();
-		progress->SetTotalUnits(100);
-		
-		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f)*2.0f;
-		_camera->SetPosition(RN::Vector3(0.0f, 2.0f, 0.0f));
-		
-		//ground
-		RN::Model *ground = RN::Model::WithFile("models/UberPixel/ground.sgm");
-		ground->GetMaterialAtIndex(0, 0)->Define("RN_TEXTURE_TILING", 5);
-		RN::Entity *groundBody = new RN::Entity();
-		groundBody->SetModel(ground);
-		groundBody->SetScale(RN::Vector3(20.0f));
+		_ssaoActive = !_ssaoActive;
+		if(!_ssaoActive)
+			_waterCamera->RemovePostProcessingPipeline(_ssaoPipeline);
+		else
+			_waterCamera->AddPostProcessingPipeline(_ssaoPipeline);
+	}
 	
-		//house
-/*		RN::Model *house = RN::Model::WithFile("models/blendswap/cc0_timber_house/timber_house.sgm");
-		RN::Entity *houseent = new RN::Entity();
-		houseent->SetModel(house);
-		houseent->SetWorldPosition(RN::Vector3(0.0f, 0.8f, 0.0f));*/
-		
-		//tavern
-		RN::Model *tavern = RN::Model::WithFile("models/dexsoft/tavern/tavern_main.sgm");
-		RN::Entity *tavernent = new RN::Entity();
-		tavernent->SetModel(tavern);
-		tavernent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 0.0f));
-		progress->IncrementCompletedUnits(5);
-		
-		RN::Model *house2 = RN::Model::WithFile("models/dexsoft/medieval_1/f1_house02.sgm");
-		RN::Entity *house2ent = new RN::Entity();
-		house2ent->SetModel(house2);
-		house2ent->SetWorldPosition(RN::Vector3(0.0f, 0.0f, 30.0f));
-		progress->IncrementCompletedUnits(5);
-		
-		RN::Model *ruin4 = RN::Model::WithFile("models/dexsoft/ruins/ruins_house4.sgm");
-		RN::Entity *ruin4ent = new RN::Entity();
-		ruin4ent->SetModel(ruin4);
-		ruin4ent->SetWorldPosition(RN::Vector3(-30.0f, 0.0f, 0.0f));
-		progress->IncrementCompletedUnits(5);
-		
-		/*RN::Model *dwarf = RN::Model::WithFile("models/psionic/dwarf/dwarf1.x");
-		RN::Entity *dwarfent = new RN::Entity();
-		dwarfent->SetModel(dwarf);
-		dwarfent->GetSkeleton()->CopyAnimation("AnimationSet0", "idle", 292, 325);
-		dwarfent->GetSkeleton()->SetAnimation("idle");
-		dwarfent->SetAction([](RN::SceneNode *node, float delta) {
-			RN::Entity *dwarfent = static_cast<RN::Entity*>(node);
-			dwarfent->GetSkeleton()->Update(delta*15.0f);
-		});
-		dwarfent->SetWorldPosition(RN::Vector3(0.0f, 0.1f, 20.0f));
-		dwarfent->SetScale(RN::Vector3(0.3f));
-		
-		RN::Model *rat = RN::Model::WithFile("models/psionic/rat/rat.b3d");
-		RN::Entity *ratent = new RN::Entity();
-		ratent->SetModel(rat);
-		ratent->GetSkeleton()->CopyAnimation("", "run", 1, 10);
-		ratent->GetSkeleton()->SetAnimation("run");
-		ratent->SetAction([](RN::SceneNode *node, float delta) {
-			RN::Entity *ratent = static_cast<RN::Entity*>(node);
-			ratent->GetSkeleton()->Update(delta*20.0f);
-			ratent->SetPosition(ratent->GetPosition()+RN::Vector3(-delta*2.0f, 0.0f, 0.0f));
-			if(ratent->GetPosition().x < -15)
-				ratent->SetPosition(RN::Vector3(10.0f, 0.2f, 0.0f));
-		});
-		ratent->SetScale(RN::Vector3(0.05f));
-		ratent->SetRotation(RN::Vector3(90.0f, 0.0f, 0.0f));
-		ratent->SetPosition(RN::Vector3(0.0f, 0.2f, 0.0f));
-		
-		RN::Model *ninja = RN::Model::WithFile("models/psionic/ninja/ninja.b3d");
-		RN::Entity *ninjaent = new RN::Entity();
-		ninjaent->SetModel(ninja);
-		ninjaent->GetSkeleton()->CopyAnimation("", "idle", 206, 250);
-		ninjaent->GetSkeleton()->SetAnimation("idle");
-		ninjaent->SetAction([](RN::SceneNode *node, float delta) {
-			RN::Entity *ninjaent = static_cast<RN::Entity*>(node);
-			ninjaent->GetSkeleton()->Update(delta*15.0f);
-		});
-		ninjaent->SetWorldPosition(RN::Vector3(-17.0f, 0.1f, 17.0f));
-		ninjaent->SetScale(RN::Vector3(0.27f));
-		
-		RN::Model *druid = RN::Model::WithFile("models/arteria3d/FemaleDruid/Female Druid.x");
-		RN::Entity *druident = new RN::Entity();
-		druident->SetModel(druid);
-		druident->GetSkeleton()->SetAnimation("WizardCombatReadyA");
-		druident->SetAction([](RN::SceneNode *node, float delta) {
-			RN::Entity *druident = static_cast<RN::Entity*>(node);
-			druident->GetSkeleton()->Update(delta*50.0f);
-		});
-		druident->SetWorldPosition(RN::Vector3(0.0f, 0.25f, 0.0f));
-		druident->SetScale(RN::Vector3(0.01f));*/
-		
-		
-		RN::Entity *obstacles[3];
-		obstacles[0] = tavernent;
-		obstacles[1] = house2ent;
-		obstacles[2] = ruin4ent;
-		
+	void World::PPToggleFXAA()
+	{
+		_fxaaActive = !_fxaaActive;
+		if(!_fxaaActive)
+			_waterCamera->RemovePostProcessingPipeline(_fxaaPipeline);
+		else
+			_waterCamera->AddPostProcessingPipeline(_fxaaPipeline);
+	}
 
-#define TREE_MODEL_COUNT 10
-		RN::Model *trees[TREE_MODEL_COUNT];
-		trees[0] = RN::Model::WithFile("models/pure3d/BirchTrees/birch2m.sgm");
-		trees[0]->GetMaterialAtIndex(0, 0)->culling = false;
-		trees[0]->GetMaterialAtIndex(0, 0)->discard = true;
-		trees[0]->GetMaterialAtIndex(0, 0)->discardThreshold = 0.1f;
-		trees[0]->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[0]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		trees[0]->GetMaterialAtIndex(0, 1)->culling = false;
-		trees[0]->GetMaterialAtIndex(0, 1)->discard = true;
-		trees[0]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.1f;
-		trees[0]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[0]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
-		trees[0]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
-		trees[0]->GetMaterialAtIndex(1, 0)->culling = false;
-		trees[0]->GetMaterialAtIndex(1, 0)->discard = true;
-		trees[0]->GetMaterialAtIndex(1, 0)->discardThreshold = 0.1f;
-		trees[0]->GetMaterialAtIndex(1, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[0]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
-		trees[0]->GetMaterialAtIndex(1, 1)->culling = false;
-		trees[0]->GetMaterialAtIndex(1, 1)->discard = true;
-		trees[0]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
-		trees[0]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[0]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
-		trees[0]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
-		progress->IncrementCompletedUnits(5);
-		
-		trees[1] = RN::Model::WithFile("models/pure3d/BirchTrees/birch6m.sgm");
-		trees[1]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		trees[1]->GetMaterialAtIndex(0, 0)->culling = false;
-		trees[1]->GetMaterialAtIndex(0, 0)->discard = true;
-		trees[1]->GetMaterialAtIndex(0, 0)->discardThreshold = 0.1f;
-		trees[1]->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[1]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
-		trees[1]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
-		trees[1]->GetMaterialAtIndex(1, 1)->culling = false;
-		trees[1]->GetMaterialAtIndex(1, 1)->discard = true;
-		trees[1]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
-		trees[1]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[1]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
-		progress->IncrementCompletedUnits(5);
-		
-		trees[2] = RN::Model::WithFile("models/pure3d/BirchTrees/birch11m.sgm");
-		trees[2]->GetMaterialAtIndex(0, 0)->culling = false;
-		trees[2]->GetMaterialAtIndex(0, 0)->discard = true;
-		trees[2]->GetMaterialAtIndex(0, 0)->discardThreshold = 0.1f;
-		trees[2]->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[2]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		trees[2]->GetMaterialAtIndex(0, 1)->culling = false;
-		trees[2]->GetMaterialAtIndex(0, 1)->discard = true;
-		trees[2]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.1f;
-		trees[2]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[2]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
-		trees[2]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
-		trees[2]->GetMaterialAtIndex(1, 0)->culling = false;
-		trees[2]->GetMaterialAtIndex(1, 0)->discard = true;
-		trees[2]->GetMaterialAtIndex(1, 0)->discardThreshold = 0.1f;
-		trees[2]->GetMaterialAtIndex(1, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[2]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
-		trees[2]->GetMaterialAtIndex(1, 1)->culling = false;
-		trees[2]->GetMaterialAtIndex(1, 1)->discard = true;
-		trees[2]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
-		trees[2]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[2]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
-		trees[2]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
-		progress->IncrementCompletedUnits(5);
-		
-		trees[3] = RN::Model::WithFile("models/pure3d/BirchTrees/birch13m.sgm");
-		trees[3]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		trees[3]->GetMaterialAtIndex(0, 1)->culling = false;
-		trees[3]->GetMaterialAtIndex(0, 1)->discard = true;
-		trees[3]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.1f;
-		trees[3]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[3]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
-		trees[3]->GetMaterialAtIndex(0, 2)->culling = false;
-		trees[3]->GetMaterialAtIndex(0, 2)->discard = true;
-		trees[3]->GetMaterialAtIndex(0, 2)->discardThreshold = 0.1f;
-		trees[3]->GetMaterialAtIndex(0, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[3]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
-		trees[3]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
-		trees[3]->GetMaterialAtIndex(1, 1)->culling = false;
-		trees[3]->GetMaterialAtIndex(1, 1)->discard = true;
-		trees[3]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
-		trees[3]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[3]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
-		trees[3]->GetMaterialAtIndex(1, 2)->culling = false;
-		trees[3]->GetMaterialAtIndex(1, 2)->discard = true;
-		trees[3]->GetMaterialAtIndex(1, 2)->discardThreshold = 0.1f;
-		trees[3]->GetMaterialAtIndex(1, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[3]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
-		progress->IncrementCompletedUnits(5);
-		
-		trees[4] = RN::Model::WithFile("models/pure3d/BirchTrees/birch18m.sgm");
-		trees[4]->GetMaterialAtIndex(0, 0)->culling = false;
-		trees[4]->GetMaterialAtIndex(0, 0)->discard = true;
-		trees[4]->GetMaterialAtIndex(0, 0)->discardThreshold = 0.1f;
-		trees[4]->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[4]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		trees[4]->GetMaterialAtIndex(0, 1)->culling = false;
-		trees[4]->GetMaterialAtIndex(0, 1)->discard = true;
-		trees[4]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.1f;
-		trees[4]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[4]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
-		trees[4]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
-		trees[4]->GetMaterialAtIndex(1, 0)->culling = false;
-		trees[4]->GetMaterialAtIndex(1, 0)->discard = true;
-		trees[4]->GetMaterialAtIndex(1, 0)->discardThreshold = 0.1f;
-		trees[4]->GetMaterialAtIndex(1, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[4]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
-		trees[4]->GetMaterialAtIndex(1, 1)->culling = false;
-		trees[4]->GetMaterialAtIndex(1, 1)->discard = true;
-		trees[4]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
-		trees[4]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[4]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
-		trees[4]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
-		progress->IncrementCompletedUnits(5);
-		
-		trees[5] = RN::Model::WithFile("models/pure3d/BirchTrees/birch20m.sgm");
-		trees[5]->GetMaterialAtIndex(0, 0)->culling = false;
-		trees[5]->GetMaterialAtIndex(0, 0)->discard = true;
-		trees[5]->GetMaterialAtIndex(0, 0)->discardThreshold = 0.1f;
-		trees[5]->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[5]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		trees[5]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
-		trees[5]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
-		trees[5]->GetMaterialAtIndex(1, 1)->culling = false;
-		trees[5]->GetMaterialAtIndex(1, 1)->discard = true;
-		trees[5]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.1f;
-		trees[5]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[5]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
-		progress->IncrementCompletedUnits(5);
-		
-		trees[6] = RN::Model::WithFile("models/pure3d/PineTrees/pine4m.sgm");
-		trees[6]->GetMaterialAtIndex(0, 0)->culling = false;
-		trees[6]->GetMaterialAtIndex(0, 0)->discard = true;
-		trees[6]->GetMaterialAtIndex(0, 0)->discardThreshold = 0.5f;
-		trees[6]->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[6]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		trees[6]->GetMaterialAtIndex(0, 1)->culling = false;
-		trees[6]->GetMaterialAtIndex(0, 1)->discard = true;
-		trees[6]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.5f;
-		trees[6]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[6]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
-		trees[6]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
-		trees[6]->GetMaterialAtIndex(1, 0)->culling = false;
-		trees[6]->GetMaterialAtIndex(1, 0)->discard = true;
-		trees[6]->GetMaterialAtIndex(1, 0)->discardThreshold = 0.5f;
-		trees[6]->GetMaterialAtIndex(1, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[6]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
-		trees[6]->GetMaterialAtIndex(1, 1)->culling = false;
-		trees[6]->GetMaterialAtIndex(1, 1)->discard = true;
-		trees[6]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.5f;
-		trees[6]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[6]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
-		trees[6]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
-		trees[6]->GetMaterialAtIndex(2, 0)->culling = false;
-		trees[6]->GetMaterialAtIndex(2, 0)->discard = true;
-		trees[6]->GetMaterialAtIndex(2, 0)->discardThreshold = 0.5f;
-		trees[6]->GetMaterialAtIndex(2, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[6]->GetMaterialAtIndex(2, 0)->Define("RN_VEGETATION");
-		trees[6]->GetMaterialAtIndex(2, 1)->culling = false;
-		trees[6]->GetMaterialAtIndex(2, 1)->discard = true;
-		trees[6]->GetMaterialAtIndex(2, 1)->discardThreshold = 0.5f;
-		trees[6]->GetMaterialAtIndex(2, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[6]->GetMaterialAtIndex(2, 1)->Define("RN_VEGETATION");
-		progress->IncrementCompletedUnits(5);
-		
-		trees[7] = RN::Model::WithFile("models/pure3d/PineTrees/pine7m.sgm");
-		trees[7]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		trees[7]->GetMaterialAtIndex(0, 1)->culling = false;
-		trees[7]->GetMaterialAtIndex(0, 1)->discard = true;
-		trees[7]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.5f;
-		trees[7]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[7]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
-		trees[7]->GetMaterialAtIndex(0, 2)->culling = false;
-		trees[7]->GetMaterialAtIndex(0, 2)->discard = true;
-		trees[7]->GetMaterialAtIndex(0, 2)->discardThreshold = 0.5f;
-		trees[7]->GetMaterialAtIndex(0, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[7]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
-		trees[7]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
-		trees[7]->GetMaterialAtIndex(1, 1)->culling = false;
-		trees[7]->GetMaterialAtIndex(1, 1)->discard = true;
-		trees[7]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.5f;
-		trees[7]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[7]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
-		trees[7]->GetMaterialAtIndex(1, 2)->culling = false;
-		trees[7]->GetMaterialAtIndex(1, 2)->discard = true;
-		trees[7]->GetMaterialAtIndex(1, 2)->discardThreshold = 0.5f;
-		trees[7]->GetMaterialAtIndex(1, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[7]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
-		trees[7]->GetMaterialAtIndex(2, 0)->Define("RN_VEGETATION");
-		trees[7]->GetMaterialAtIndex(2, 1)->culling = false;
-		trees[7]->GetMaterialAtIndex(2, 1)->discard = true;
-		trees[7]->GetMaterialAtIndex(2, 1)->discardThreshold = 0.5f;
-		trees[7]->GetMaterialAtIndex(2, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[7]->GetMaterialAtIndex(2, 1)->Define("RN_VEGETATION");
-		trees[7]->GetMaterialAtIndex(2, 2)->culling = false;
-		trees[7]->GetMaterialAtIndex(2, 2)->discard = true;
-		trees[7]->GetMaterialAtIndex(2, 2)->discardThreshold = 0.5f;
-		trees[7]->GetMaterialAtIndex(2, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[7]->GetMaterialAtIndex(2, 2)->Define("RN_VEGETATION");
-		progress->IncrementCompletedUnits(5);
-		
-		trees[8] = RN::Model::WithFile("models/pure3d/PineTrees/pine9m.sgm");
-		trees[8]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		trees[8]->GetMaterialAtIndex(0, 1)->culling = false;
-		trees[8]->GetMaterialAtIndex(0, 1)->discard = true;
-		trees[8]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.5f;
-		trees[8]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[8]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
-		trees[8]->GetMaterialAtIndex(0, 2)->culling = false;
-		trees[8]->GetMaterialAtIndex(0, 2)->discard = true;
-		trees[8]->GetMaterialAtIndex(0, 2)->discardThreshold = 0.5f;
-		trees[8]->GetMaterialAtIndex(0, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[8]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
-		trees[8]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
-		trees[8]->GetMaterialAtIndex(1, 1)->culling = false;
-		trees[8]->GetMaterialAtIndex(1, 1)->discard = true;
-		trees[8]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.5f;
-		trees[8]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[8]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
-		trees[8]->GetMaterialAtIndex(1, 2)->culling = false;
-		trees[8]->GetMaterialAtIndex(1, 2)->discard = true;
-		trees[8]->GetMaterialAtIndex(1, 2)->discardThreshold = 0.5f;
-		trees[8]->GetMaterialAtIndex(1, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[8]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
-		trees[8]->GetMaterialAtIndex(2, 0)->Define("RN_VEGETATION");
-		trees[8]->GetMaterialAtIndex(2, 1)->culling = false;
-		trees[8]->GetMaterialAtIndex(2, 1)->discard = true;
-		trees[8]->GetMaterialAtIndex(2, 1)->discardThreshold = 0.5f;
-		trees[8]->GetMaterialAtIndex(2, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[8]->GetMaterialAtIndex(2, 1)->Define("RN_VEGETATION");
-		progress->IncrementCompletedUnits(5);
-		
-		trees[9] = RN::Model::WithFile("models/pure3d/PineTrees/pine16m.sgm");
-		trees[9]->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		trees[9]->GetMaterialAtIndex(0, 1)->culling = false;
-		trees[9]->GetMaterialAtIndex(0, 1)->discard = true;
-		trees[9]->GetMaterialAtIndex(0, 1)->discardThreshold = 0.5f;
-		trees[9]->GetMaterialAtIndex(0, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[9]->GetMaterialAtIndex(0, 1)->Define("RN_VEGETATION");
-		trees[9]->GetMaterialAtIndex(0, 2)->culling = false;
-		trees[9]->GetMaterialAtIndex(0, 2)->discard = true;
-		trees[9]->GetMaterialAtIndex(0, 2)->discardThreshold = 0.5f;
-		trees[9]->GetMaterialAtIndex(0, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[9]->GetMaterialAtIndex(0, 2)->Define("RN_VEGETATION");
-		trees[9]->GetMaterialAtIndex(1, 0)->Define("RN_VEGETATION");
-		trees[9]->GetMaterialAtIndex(1, 1)->culling = false;
-		trees[9]->GetMaterialAtIndex(1, 1)->discard = true;
-		trees[9]->GetMaterialAtIndex(1, 1)->discardThreshold = 0.5f;
-		trees[9]->GetMaterialAtIndex(1, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[9]->GetMaterialAtIndex(1, 1)->Define("RN_VEGETATION");
-		trees[9]->GetMaterialAtIndex(1, 2)->culling = false;
-		trees[9]->GetMaterialAtIndex(1, 2)->discard = true;
-		trees[9]->GetMaterialAtIndex(1, 2)->discardThreshold = 0.5f;
-		trees[9]->GetMaterialAtIndex(1, 2)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[9]->GetMaterialAtIndex(1, 2)->Define("RN_VEGETATION");
-		trees[9]->GetMaterialAtIndex(2, 0)->Define("RN_VEGETATION");
-		trees[9]->GetMaterialAtIndex(2, 1)->culling = false;
-		trees[9]->GetMaterialAtIndex(2, 1)->discard = true;
-		trees[9]->GetMaterialAtIndex(2, 1)->discardThreshold = 0.5f;
-		trees[9]->GetMaterialAtIndex(2, 1)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		trees[9]->GetMaterialAtIndex(2, 1)->Define("RN_VEGETATION");
-		progress->IncrementCompletedUnits(5);
-		
-
-		RN::Entity *ent;
-		RN::InstancingNode *node;
-		RN::Random::DualPhaseLCG dualPhaseLCG;
-		dualPhaseLCG.Seed(0x1024);
-		
-		node = new RN::InstancingNode();
-		node->SetModels(RN::Array::WithObjects(trees[0], trees[1], trees[2], trees[3], trees[4], trees[5], trees[6], trees[7], trees[8], trees[9], nullptr));
-		node->SetPivot(_camera);
-		
-		for(int i = 0; i < TGForestFeatureTrees; i ++)
+	void World::SetCutScene(const std::string &file)
+	{
+		if(_cutScene)
 		{
-			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f), 0.0f, dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f));
-			
-			if(PositionBlocked(pos+RN::Vector3(0.0f, 0.5f, 0.0f), obstacles, 3))
-				continue;
-			
-			ent = new RN::Entity();
-			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
-			ent->SetModel(trees[dualPhaseLCG.RandomInt32Range(0, TREE_MODEL_COUNT)]);
-			ent->SetPosition(pos);
-			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.89f, 1.12f)));
-			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0.0f, 360.0f), 0.0f, 0.0f));
-			
-			node->AttachChild(ent);
+			delete _cutScene;
+			_cutScene = nullptr;
+			return;
 		}
 		
-		PlaceEntitiesOnGround(node, groundBody);
+		std::string path = RN::FileManager::GetSharedInstance()->GetFilePathWithName(file);
+		RN::Data *data = RN::Data::WithContentsOfFile(path);
+		RN::Array *objects = RN::JSONSerialization::JSONObjectFromData<RN::Array>(data);
 		
-		RN::Model *grass = RN::Model::WithFile("models/dexsoft/grass/grass_1.sgm");
-		grass->GetMaterialAtIndex(0, 0)->culling = false;
-		grass->GetMaterialAtIndex(0, 0)->discard = true;
-		grass->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard|RN::Material::OverrideCulling;
-		grass->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		grass->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
-		
-		node = new RN::InstancingNode(grass);
-		node->renderGroup = 1;
-		node->SetPivot(_camera);
-		node->SetMode(RN::InstancingNode::Mode::Thinning | RN::InstancingNode::Mode::Clipping);
-		node->SetCellSize(32.0f);
-		node->SetClippingRange(16.0f);
-		node->SetThinningRange(128.0f);
-		
-		for(int i = 0; i < TGForestFeatureGras; i ++)
-		{
-			RN::Vector3 pos = RN::Vector3(dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f), 0.2f, dualPhaseLCG.RandomFloatRange(-200.0f, 200.0f));
-			
-			if(PositionBlocked(pos+RN::Vector3(0.0f, 1.0f, 0.0f), obstacles, 3))
-				continue;
-			
-			ent = new RN::Entity();
-			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
-			ent->SetModel(grass);
-			ent->SetPosition(pos);
-			ent->SetScale(RN::Vector3(dualPhaseLCG.RandomFloatRange(1.5f, 2.0f)));
-			ent->SetRotation(RN::Vector3(dualPhaseLCG.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
-			
-			node->AttachChild(ent);
-		}
-		
-		//PlaceEntitiesOnGround(node, groundBody);
-		
-#if !TGWorldFeatureFreeCamera
-		RN::Model *playerModel = RN::Model::WithFile("models/TiZeta/simplegirl.sgm");
-		RN::Skeleton *playerSkeleton = RN::Skeleton::WithFile("models/TiZeta/simplegirl.sga");
-		playerSkeleton->SetAnimation("cammina");
-		
-		_player = new Player(playerModel);
-		_player->SetSkeleton(playerSkeleton);
-		_player->SetPosition(RN::Vector3(5.0f, 10.0f, 0.0f));
-		_player->SetScale(RN::Vector3(0.4f));
-		_player->SetCamera(_camera);
-		
-		_camera->SetTarget(_player);
-#endif
-		
-#if TGWorldFeatureLights
-		_sunLight = new Sun();
-		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateShadows();
-	
-/*		for(int i=0; i<10; i++)
-		{
-			RN::Light *light = new RN::Light();
-			light->SetPosition(RN::Vector3(TGWorldRandom * 20.0f - 10.0f, TGWorldRandom * 5.0f, TGWorldRandom * 20.0f-10.0f));
-			light->SetRange((TGWorldRandom * 20.0f) + 10.0f);
-			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-		}*/
-#endif
-		
-		progress->ResignActive();
+		_cutScene = new CutScene(objects, _camera);
 	}
 	
-	void World::PlaceEntitiesOnGround(RN::SceneNode *node, RN::SceneNode *ground)
+	void World::LoadLevelJSON(const std::string &file)
 	{
-		RN::ThreadPool::Batch *batch = RN::ThreadPool::GetSharedInstance()->CreateBatch();
-		const RN::Array *children = node->GetChildren();
+		std::string path = RN::FileManager::GetSharedInstance()->GetFilePathWithName(file);
 		
-		RN::Progress *progress = RN::Progress::GetActiveProgress()->IntermediateProgressAcountingFor(15);
-		progress->SetTotalUnits(children->GetCount());
+		RN::Data *data = RN::Data::WithContentsOfFile(path);
+		RN::Array *objects = RN::JSONSerialization::JSONObjectFromData<RN::Array>(data);
 		
-		children->Enumerate<RN::Entity>([&](RN::Entity *entity, size_t index, bool *stop) {
+		RN::Dictionary *settings = new RN::Dictionary();
+		settings->SetObjectForKey(RN::Number::WithBool(true), RNCSTR("recalculateNormals"));
+		
+		objects->Enumerate<RN::Dictionary>([&](RN::Dictionary *dictionary, size_t indes, bool &stop) {
 			
-			batch->AddTask([&, entity] {
-				RN::Vector3 pos = entity->GetPosition();
+			RN::String *file = dictionary->GetObjectForKey<RN::String>(RNCSTR("model"));
+			RN::Model *model = RN::ResourceCoordinator::GetSharedInstance()->GetResourceWithName<RN::Model>(file, settings);
+			
+			RN::Entity *entity = new RN::Entity(model);
+			entity->Autorelease();
+			
+			RN::Array *position = dictionary->GetObjectForKey<RN::Array>(RNCSTR("position"));
+			RN::Array *rotation = dictionary->GetObjectForKey<RN::Array>(RNCSTR("rotation"));
+			RN::Array *discard  = dictionary->GetObjectForKey<RN::Array>(RNCSTR("discard"));
+			RN::Number *scale   = dictionary->GetObjectForKey<RN::Number>(RNSTR("scale"));
+			RN::Number *occluder = dictionary->GetObjectForKey<RN::Number>(RNCSTR("occluder"));
+			RN::Array *transparent  = dictionary->GetObjectForKey<RN::Array>(RNCSTR("transparent"));
+			
+			if(position)
+			{
+				float x = position->GetObjectAtIndex<RN::Number>(0)->GetFloatValue();
+				float y = position->GetObjectAtIndex<RN::Number>(1)->GetFloatValue();
+				float z = position->GetObjectAtIndex<RN::Number>(2)->GetFloatValue();
 				
-				pos.y += 100.0f;
-				pos.y = GetGroundHeight(pos, ground);
+				entity->SetPosition(RN::Vector3(x, y, z));
+			}
+			
+			if(rotation)
+			{
+				float x = rotation->GetObjectAtIndex<RN::Number>(0)->GetFloatValue();
+				float y = rotation->GetObjectAtIndex<RN::Number>(1)->GetFloatValue();
+				float z = rotation->GetObjectAtIndex<RN::Number>(2)->GetFloatValue();
 				
-				entity->SetPosition(pos);
-				progress->IncrementCompletedUnits(1);
-				
-			});
+				entity->Rotate(RN::Vector3(x, y, z));
+			}
+			
+			if(scale)
+				entity->SetScale(RN::Vector3(scale->GetFloatValue()));
+			
+			if(discard)
+			{
+				discard->Enumerate<RN::Number>([&](RN::Number *number, size_t index, bool &stop) {
+					
+					index = number->GetUint32Value();
+					model->GetMaterialAtIndex(0, index)->SetDiscard(true);
+					
+				});
+			}
+			
+			if(!occluder || occluder->GetBoolValue())
+				_obstacles.push_back(entity->GetBoundingBox());
+			
+			if(transparent)
+			{
+				transparent->Enumerate<RN::Number>([&](RN::Number *number, size_t index, bool &stop) {
+					
+					index = number->GetUint32Value();
+					model->GetMaterialAtIndex(0, index)->SetBlending(true);
+					model->GetMaterialAtIndex(0, index)->SetBlendMode(RN::Material::BlendMode::OneMinusSourceAlpha, RN::Material::BlendMode::OneMinusSourceAlpha);
+				});
+			}
 		});
 		
-		batch->Commit();
-		batch->Wait();
-		
-		progress->ResignActive();
-	}
-	
-	float World::GetGroundHeight(const RN::Vector3 &position, RN::SceneNode *ground)
-	{
-		float length = -100.0f;
-		RN::Hit hit = ground->CastRay(position, RN::Vector3(0.0f, length, 0.0f));
-		
-		if(hit.node == ground)
-			return position.y + length * hit.distance;
-		
-		return position.y;
-	}
-	
-	void World::CreateGrass()
-	{
-		RN::Model *grass = RN::Model::WithFile("models/dexsoft/grass/grass_1.sgm");
-		grass->GetMaterialAtIndex(0, 0)->culling = false;
-		grass->GetMaterialAtIndex(0, 0)->discard = true;
-		grass->GetMaterialAtIndex(0, 0)->override = RN::Material::OverrideGroupDiscard | RN::Material::OverrideCulling;
-		grass->GetMaterialAtIndex(0, 0)->Define("RN_VEGETATION");
-		grass->GetMaterialAtIndex(0, 0)->Define("RN_GRASS");
-		
-		RN::InstancingNode *node = new RN::InstancingNode(grass);
-		RN::Random::MersenneTwister random;
-		
-		for(int i = 0; i < 100000; i ++)
-		{
-			RN::Vector3 pos = RN::Vector3(random.RandomFloatRange(-100.0f, 100.0f), 0.0f, random.RandomFloatRange(-100.0f, 100.0f));
-
-			RN::Entity *ent = new RN::Entity();
-			ent->SetFlags(ent->GetFlags() | RN::SceneNode::FlagStatic);
-			ent->SetModel(grass);
-			ent->SetPosition(pos);
-			ent->SetScale(random.RandomFloatRange(2.5f, 3.0f));
-			ent->SetRotation(RN::Vector3(random.RandomFloatRange(0, 360.0f), 0.0f, 0.0f));
-			
-			node->AttachChild(ent);
-		}
-		
-		
-		_camera->ambient = RN::Vector4(0.127, 0.252, 0.393, 1.0f) * 2.0f;
-		
-		_sunLight = new Sun();
-		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
-	}
-	
-	void World::CreateSibenik()
-	{
-		RN::Model *sibenik = RN::Model::WithFile("models/Dabrovic/sibenik/sibenik.sgm");
-		RN::Entity *ent = new RN::Entity();
-		ent->SetModel(sibenik);
-		
-		_sunLight = new Sun();
-		_sunLight->SetIntensity(5.0f);
-		_sunLight->SetRotation(RN::Quaternion(RN::Vector3(60.0f, -60.0f, 0.0f)));
-		_sunLight->SetLightCamera(_camera);
-		_sunLight->ActivateShadows();
-		
-		_spotLight = new RN::Light(RN::Light::Type::SpotLight);
-		_spotLight->SetPosition(RN::Vector3(0.75f, -0.5f, 0.0f));
-		_spotLight->SetRange(TGWorldSpotLightRange);
-		_spotLight->SetAngle(20.0f);
-		_spotLight->SetColor(RN::Color(0.5f));
-		_spotLight->ActivateShadows();
-		_camera->AttachChild(_spotLight);
-		
-		for(int i=0; i<0; i++)
-		{
-			RN::Light *light = new RN::Light();
-			light->SetPosition(RN::Vector3(TGWorldRandom * 20.0f - 10.0f, TGWorldRandom * 20.0f-15.0f, TGWorldRandom * 20.0f - 10.0f));
-			light->SetRange((TGWorldRandom * 3.0f) + 2.0f);
-			light->SetColor(RN::Color(TGWorldRandom, TGWorldRandom, TGWorldRandom));
-			float timeoffset = TGWorldRandom*10.0f;
-			light->SetAction([timeoffset](RN::SceneNode *light, float delta) {
-				RN::Vector3 pos = light->GetWorldPosition();
-				float time = RN::Kernel::GetSharedInstance()->GetTime();
-				time += timeoffset;
-				pos.x += 0.05f*cos(time*2.0f);
-				pos.z += 0.05f*sin(time*2.0f);
-				light->SetWorldPosition(pos);
-			});
-		}
+		settings->Release();
 	}
 }

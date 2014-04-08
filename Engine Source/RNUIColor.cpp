@@ -7,21 +7,28 @@
 //
 
 #include "RNUIColor.h"
+#include "RNSettings.h"
 
 namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(Color)
+		RNDefineMeta(Color, Object)
 		
 		
 		Color::Color()
-		{
-		}
+		{}
 		
 		Color::Color(const RN::Color& color)
 		{
 			_color = color;
+			
+			if(Settings::GetSharedInstance()->GetBoolForKey(kRNSettingsGammaCorrectionKey))
+			{
+				_color.r = powf(_color.r, 2.2f);
+				_color.g = powf(_color.g, 2.2f);
+				_color.b = powf(_color.b, 2.2f);
+			}
 		}
 		
 		Color::Color(Color *other)

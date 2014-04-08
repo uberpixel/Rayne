@@ -16,26 +16,46 @@
 #include "RNArray.h"
 #include "RNShaderLookup.h"
 #include "RNShaderUnit.h"
+#include "RNEnum.h"
+#include "RNAsset.h"
 
 namespace RN
 {
+	class Shader;
 	class ShaderProgram
 	{
 	public:
-		enum
+		friend class Shader;
+		
+		struct Type : public Enum<uint32>
 		{
-			TypeNormal = 0,
-			TypeInstanced = (1 << 1),
-			TypeAnimated  = (1 << 2),
-			TypeLighting = (1 << 3),
-			TypeDiscard   = (1 << 4),
-			TypeDirectionalShadows = (1 << 5),
-			TypePointShadows = (1 << 6),
-			TypeSpotShadows = (1 << 7),
-			TypeFog = (1 << 8),
-			TypeClipPlane = (1 << 9),
-			TypeGammaCorrection = (1 << 10),
-			TypeDiffuse = (1 << 11)
+			Type()
+			{}
+			
+			Type(int value) :
+				Enum(value)
+			{}
+			
+			Type(uint32 value) :
+				Enum(value)
+			{}
+			
+			enum
+			{
+				Normal = 0,
+				
+				Instanced = (1 << 1),
+				Animated  = (1 << 2),
+				Lighting = (1 << 3),
+				Discard   = (1 << 4),
+				DirectionalShadows = (1 << 5),
+				PointShadows = (1 << 6),
+				SpotShadows = (1 << 7),
+				Fog = (1 << 8),
+				ClipPlane = (1 << 9),
+				GammaCorrection = (1 << 10),
+				Diffuse = (1 << 11)
+			};
 		};
 		
 		GLuint program;
@@ -121,20 +141,28 @@ namespace RN
 		GLuint depthmap;
 		GLuint depthmapinfo;
 		
-		std::unordered_map<std::string, GLuint> _customLocations;
+		bool HasGeometryShader() const { return linkedPrograms & (1 << static_cast<int>(ShaderType::GeometryShader)); }
+		bool HasTessellationShaders() const { return (linkedPrograms & (1 << static_cast<int>(ShaderType::TessellationControlShader))
+													  && linkedPrograms & (1 << static_cast<int>(ShaderType::TessellationEvaluationShader))); }
 		
 		GLuint GetCustomLocation(const std::string& name);
+		
+	private:
 		void ReadLocations();
+		
+		uint32 linkedPrograms;
+		std::unordered_map<std::string, GLuint> _customLocations;
+		FrameID _lastFrame;
 	};
 	
-	class Shader : public Object
+	class Shader : public Asset
 	{
 	public:
 		friend class ShaderUnit;
 		
 		RNAPI Shader();
 		RNAPI Shader(const std::string& shader);
-		RNAPI virtual ~Shader();
+		RNAPI ~Shader();
 		
 		RNAPI static Shader *WithFile(const std::string& shader);
 		
@@ -147,10 +175,10 @@ namespace RN
 		RNAPI void SetShaderForType(const std::string& path, ShaderType type);
 		RNAPI void SetShaderForType(File *file, ShaderType type);
 		
-		RNAPI ShaderProgram *GetProgramOfType(uint32 type);
+		RNAPI ShaderProgram *GetProgramOfType(ShaderProgram::Type type);
 		RNAPI ShaderProgram *GetProgramWithLookup(const ShaderLookup& lookup);
 		
-		RNAPI bool SupportsProgramOfType(uint32 type);
+		RNAPI bool SupportsProgramOfType(ShaderProgram::Type type);
 		RNAPI const std::string& GetShaderSource(ShaderType type);
 		
 		RNAPI std::string GetFileHash() const;
@@ -210,6 +238,8 @@ namespace RN
 		void DumpLinkStatusAndDie(ShaderProgram *program);
 		bool IsDefined(const std::string& source, const std::string& define);
 		
+		void InvalidatePrograms();
+		
 		DebugMarker ResolveFileForLine(ShaderType type, uint32 line);
 		
 		std::vector<ShaderDefine> _defines;
@@ -219,7 +249,7 @@ namespace RN
 		std::unordered_map<ShaderLookup, ShaderProgram *> _programs;
 		std::map<ShaderType, ShaderData> _shaderData;
 		
-		RNDefineMetaWithTraits(Shader, Object, MetaClassTraitCronstructable)
+		RNDeclareMeta(Shader)
 	};
 }
 

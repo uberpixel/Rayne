@@ -7,88 +7,99 @@
 //
 
 #include "RNValue.h"
+#include "RNSerialization.h"
 
 namespace RN
 {
-	RNDeclareMeta(Value)
+	RNDefineMeta(Value, Object)
 	
-	Value::Value(const void *ptr, size_t size, const std::type_info& typeinfo)
+	Value::Value(const Value *other) :
+		_type(other->_type),
+		_size(other->_size)
 	{
-		_typeinfo = &typeinfo;
-		_size     = size;
-		_buffer   = new uint8[size];
-		
-		uint8 *temp = const_cast<uint8 *>(reinterpret_cast<const uint8 *>(ptr));
-		std::copy(temp, temp + size, _buffer);
+		_storage = new uint8[_size];
+		std::copy(other->_storage, other->_storage + _size, _storage);
 	}
 	
-	Value::Value(const void *ptr) :
-		Value(&ptr, sizeof(const void *), typeid(const void *))
-	{}
-	
-	Value::Value(const Value *other)
+	Value::Value(Deserializer *deserializer)
 	{
-		_typeinfo = other->_typeinfo;
-		_size     = other->_size;
-		_buffer   = new uint8[_size];
+		_type = static_cast<char>(deserializer->DecodeInt32());
 		
-		std::copy(other->_buffer, other->_buffer + _size, _buffer);
+		uint8 *source = static_cast<uint8 *>(deserializer->DecodeBytes(&_size));
+		
+		_storage = new uint8[_size];
+		std::copy(source, source + _size, _storage);
 	}
 	
 	Value::~Value()
 	{
-		delete [] _buffer;
+		delete [] _storage;
+	}
+	
+	
+	void Value::Serialize(Serializer *serializer)
+	{
+		serializer->EncodeInt32(_type);
+		serializer->EncodeBytes(_storage, _size);
 	}
 	
 	
 	Value *Value::WithVector2(const Vector2& vector)
 	{
-		Value *value = new Value(&vector, sizeof(Vector2), typeid(Vector2));
+		Value *value = new Value(vector);
 		return value->Autorelease();
 	}
 	
 	Value *Value::WithVector3(const Vector3& vector)
 	{
-		Value *value = new Value(&vector, sizeof(Vector3), typeid(Vector3));
+		Value *value = new Value(vector);
 		return value->Autorelease();
 	}
 	
 	Value *Value::WithVector4(const Vector4& vector)
 	{
-		Value *value = new Value(&vector, sizeof(Vector4), typeid(Vector4));
+		Value *value = new Value(vector);
 		return value->Autorelease();
 	}
 	
-	Value *Value::WithColor(const Color& color)
+	Value *Value::WithColor(const Color &color)
 	{
-		Value *value = new Value(&color, sizeof(Color), typeid(Color));
+		Value *value = new Value(color);
 		return value->Autorelease();
 	}
 	
 	Value *Value::WithQuaternion(const Quaternion& quaternion)
 	{
-		Value *value = new Value(&quaternion, sizeof(Quaternion), typeid(Quaternion));
+		Value *value = new Value(quaternion);
 		return value->Autorelease();
 	}
 	
 	Value *Value::WithMatrix(const Matrix& matrix)
 	{
-		Value *value = new Value(&matrix, sizeof(Matrix), typeid(Matrix));
+		Value *value = new Value(matrix);
 		return value->Autorelease();
 	}
 	
 	
-	void Value::GetValue(void *ptr) const
+	machine_hash Value::GetHash() const
 	{
-		uint8 *temp = reinterpret_cast<uint8 *>(ptr);
-		std::copy(_buffer, _buffer + _size, temp);
+		machine_hash hash = _size ^ _type;
+		
+		for(size_t i = 0; i < _size - 1; i ++)
+			hash ^= _storage[i] | (static_cast<uint32>(_storage[i + 1]) << 16);
+		
+		return hash;
 	}
 	
-	void *Value::GetPointerValue() const
+	bool Value::IsEqual(Object *tother) const
 	{
-		void *ptr;
-		GetValue(&ptr);
+		const Value *other = tother->Downcast<Value>();
+		if(!other)
+			return false;
 		
-		return ptr;
+		if(_type == other->_type && _size == other->_size)
+			return (memcpy(_storage, other->_storage, _size) == 0);
+		
+		return false;
 	}
 }

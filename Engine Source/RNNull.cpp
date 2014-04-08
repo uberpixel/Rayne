@@ -10,13 +10,20 @@
 
 namespace RN
 {
-	RNDeclareMeta(Null)
+	RNDefineMeta(Null, Object)
 	
 	Null::Null()
 	{}
 	
 	Null::~Null()
 	{}
+	
+	
+	Null::Null(Deserializer *deserializer)
+	{}
+	void Null::Serialize(Serializer *serializer)
+	{}
+	
 	
 	Null *Null::GetNull()
 	{

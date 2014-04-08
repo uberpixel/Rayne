@@ -17,7 +17,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(View)
+		RNDefineMeta(View, Responder)
 		
 		View::View()
 		{
@@ -68,27 +68,27 @@ namespace RN
 		
 		void View::SetBackgroundColor(const RN::Color& color)
 		{
-			_material->diffuse = color;
+			_material->SetDiffuseColor(color);
 		}
 		
 		Mesh *View::BasicMesh(const Vector2& size)
 		{
-			MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+			MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 			vertexDescriptor.elementMember = 2;
 			vertexDescriptor.elementSize   = sizeof(Vector2);
 			
-			MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
+			MeshDescriptor uvDescriptor(MeshFeature::UVSet0);
 			uvDescriptor.elementMember = 2;
 			uvDescriptor.elementSize   = sizeof(Vector2);
 			
 			std::vector<MeshDescriptor> descriptors = { vertexDescriptor, uvDescriptor };
 			Mesh *mesh = new Mesh(descriptors, 4, 0);
-			mesh->SetMode(GL_TRIANGLE_STRIP);
+			mesh->SetDrawMode(Mesh::DrawMode::TriangleStrip);
 			
 			Mesh::Chunk chunk = mesh->GetChunk();
 			
-			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(kMeshFeatureVertices);
-			Mesh::ElementIterator<Vector2> uvCoords = chunk.GetIterator<Vector2>(kMeshFeatureUVSet0);
+			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(MeshFeature::Vertices);
+			Mesh::ElementIterator<Vector2> uvCoords = chunk.GetIterator<Vector2>(MeshFeature::UVSet0);
 			
 			*vertices ++ = Vector2(size.x, size.y);
 			*vertices ++ = Vector2(0.0f, size.y);
@@ -108,12 +108,12 @@ namespace RN
 		Material *View::BasicMaterial(Shader *shader)
 		{
 			Material *material = new Material(shader);
-			material->depthtest  = false;
-			material->depthwrite = false;
-			material->blending   = true;
-			material->blendSource = GL_SRC_ALPHA;
-			material->blendDestination = GL_ONE_MINUS_SRC_ALPHA;
-			material->lighting   = false;
+			material->SetDepthTest(false);
+			material->SetDepthWrite(false);
+			material->SetBlending(true);
+			material->SetBlendMode(Material::BlendMode::SourceAlpha, Material::BlendMode::OneMinusSourceAlpha);
+			material->SetAlphaBlendEquation(Material::BlendEquation::Max);
+			material->SetLighting(false);
 			
 			return material->Autorelease();
 		}
@@ -121,7 +121,7 @@ namespace RN
 		void View::UpdateBasicMesh(Mesh *mesh, const Vector2& size)
 		{
 			Mesh::Chunk chunk = mesh->GetChunk();
-			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(kMeshFeatureVertices);
+			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(MeshFeature::Vertices);
 			
 			*vertices ++ = Vector2(size.x, size.y);
 			*vertices ++ = Vector2(0.0f, size.y);
@@ -500,7 +500,7 @@ namespace RN
 		void View::SetNeedsLayoutUpdate()
 		{
 			_dirtyLayout = true;
-			_subviews.Enumerate<View>([&](View *subview, size_t index, bool *stop) {
+			_subviews.Enumerate<View>([&](View *subview, size_t index, bool &stop) {
 				subview->SetNeedsLayoutUpdate();
 			});
 		}
@@ -526,7 +526,7 @@ namespace RN
 			Vector2 size = _frame.Size();
 			Vector2 diff = size - oldSize;
 			
-			_subviews.Enumerate<View>([&](View *subview, size_t index, bool *stop) {
+			_subviews.Enumerate<View>([&](View *subview, size_t index, bool &stop) {
 				
 				if(subview->_autoresizingMask == 0)
 					return;
@@ -537,23 +537,23 @@ namespace RN
 				uint32 stepsHeight = 0;
 				
 				
-				if(subview->_autoresizingMask & AutoresizingFlexibleLeftMargin)
+				if(subview->_autoresizingMask & AutoresizingMask::FlexibleLeftMargin)
 					stepsWidth ++;
 				
-				if(subview->_autoresizingMask & AutoresizingFlexibleRightMargin)
+				if(subview->_autoresizingMask & AutoresizingMask::FlexibleRightMargin)
 					stepsWidth ++;
 				
-				if(subview->_autoresizingMask & AutoresizingFlexibleWidth)
+				if(subview->_autoresizingMask & AutoresizingMask::FlexibleWidth)
 					stepsWidth ++;
 				
 				
-				if(subview->_autoresizingMask & AutoresizingFlexibleTopMargin)
+				if(subview->_autoresizingMask & AutoresizingMask::FlexibleTopMargin)
 					stepsHeight ++;
 				
-				if(subview->_autoresizingMask & AutoresizingFlexibleBottomMargin)
+				if(subview->_autoresizingMask & AutoresizingMask::FlexibleBottomMargin)
 					stepsHeight ++;
 				
-				if(subview->_autoresizingMask & AutoresizingFlexibleHeight)
+				if(subview->_autoresizingMask & AutoresizingMask::FlexibleHeight)
 					stepsHeight ++;
 				
 				
@@ -562,10 +562,10 @@ namespace RN
 				{
 					float distribution = diff.x / stepsWidth;
 					
-					if(subview->_autoresizingMask & AutoresizingFlexibleLeftMargin)
+					if(subview->_autoresizingMask & AutoresizingMask::FlexibleLeftMargin)
 						frame.x += distribution;
 					
-					if(subview->_autoresizingMask & AutoresizingFlexibleWidth)
+					if(subview->_autoresizingMask & AutoresizingMask::FlexibleWidth)
 						frame.width += distribution;
 				}
 				
@@ -574,10 +574,10 @@ namespace RN
 				{
 					float distribution = diff.y / stepsHeight;
 					
-					if(subview->_autoresizingMask & AutoresizingFlexibleTopMargin)
+					if(subview->_autoresizingMask & AutoresizingMask::FlexibleTopMargin)
 						frame.y += distribution;
 					
-					if(subview->_autoresizingMask & AutoresizingFlexibleHeight)
+					if(subview->_autoresizingMask & AutoresizingMask::FlexibleHeight)
 						frame.height += distribution;
 				}
 				
@@ -603,8 +603,8 @@ namespace RN
 				if(!_clippingView && view->_clipSubviews)
 					_clippingView = view;
 				
-				origin.x += view->_frame.x;
-				origin.y += view->_frame.y;
+				origin.x += view->_frame.x - view->_bounds.x;
+				origin.y += view->_frame.y - view->_bounds.y;
 				
 				view = view->_superview;
 			}
@@ -620,10 +620,10 @@ namespace RN
 			_scissorRect.width  = _frame.width;
 			_scissorRect.height = _frame.height;
 			
-			_scissorRect.x += _clipInsets.left;
+			_scissorRect.x     += _clipInsets.left;
 			_scissorRect.width -= _clipInsets.left + _clipInsets.right;
 			
-			_scissorRect.y += _clipInsets.bottom;
+			_scissorRect.y      += _clipInsets.bottom;
 			_scissorRect.height -= _clipInsets.bottom + _clipInsets.top;
 			
 			if(_clippingView)
@@ -723,7 +723,7 @@ namespace RN
 		
 		void View::Draw(Renderer *renderer)
 		{
-			if(_material->diffuse->a >= k::EpsilonFloat)
+			if(_material->GetDiffuseColor().a >= k::EpsilonFloat)
 			{
 				RenderingObject object;
 				PopulateRenderingObject(object);

@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Formatter)
+	RNDefineMeta(Formatter, Object)
 	
 	AttributedString *Formatter::GetAttributedStringForObject(Object *object, Dictionary *defaultAttributes)
 	{
@@ -56,7 +56,7 @@ namespace RN
 			case Number::Type::Boolean:
 			{
 				bool value = number->GetBoolValue();
-				return RNSTR("%s", value ? "true" : false);
+				return RNSTR("%s", value ? "true" : "false");
 			}
 		}
 

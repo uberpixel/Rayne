@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(TableView)
+		RNDefineMeta(TableView, ScrollView)
 		
 		TableView::TableView()
 		{
@@ -264,8 +264,8 @@ namespace RN
 						
 						for(auto iterator = indices.begin(); iterator != indices.end(); iterator ++)
 						{
-							if(set.row < *iterator)
-								*iterator = *iterator + set.count;
+							if(*iterator >= set.row)
+								*iterator += set.count;
 						}
 						break;
 						
@@ -277,11 +277,14 @@ namespace RN
 						
 						for(auto iterator = indices.begin(); iterator != indices.end();)
 						{
-							if(set.row >= *iterator && set.row + set.count <= *iterator)
+							if(*iterator >= set.row && set.row + set.count >= *iterator)
 							{
 								iterator = indices.erase(iterator);
 								continue;
 							}
+							else
+							if(*iterator >= set.row + set.count)
+								*iterator += offset;
 							
 							iterator ++;
 						}
@@ -310,6 +313,7 @@ namespace RN
 			size_t rows = _dataSource->TableViewNumberOfRows(this);
 			RN_ASSERT(_rows == rows, "Invalid row count after EndEditing() call");
 			
+			// Insertion update
 			IndexSet *set = new IndexSet();
 			for(size_t index : indices)
 			{
@@ -593,7 +597,12 @@ namespace RN
 			if(canAdd)
 			{
 				Input *input = Input::GetSharedInstance();
+				
+#if RN_PLATFORM_MAC_OS
+				bool ctrlDown = (input->GetModifierKeys() & KeyCommand);
+#else
 				bool ctrlDown = (input->GetModifierKeys() & KeyControl);
+#endif
 				
 				if(!_allowsMultipleSelection || !ctrlDown)
 				{

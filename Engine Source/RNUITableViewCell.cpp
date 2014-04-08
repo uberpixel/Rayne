@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(TableViewCell)
+		RNDefineMeta(TableViewCell, Control)
 		
 		TableViewCell::TableViewCell(String *identifier)
 		{
@@ -46,6 +46,8 @@ namespace RN
 			AddSubview(_contentView);
 			
 			_imageView = new ImageView();
+			_imageView->SetScaleMode(ScaleMode::ProportionallyDown);
+			
 			_textLabel = new Label();
 			_textLabel->SetLineBreak(LineBreakMode::TruncateMiddle);
 			

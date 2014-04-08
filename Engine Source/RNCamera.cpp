@@ -14,11 +14,14 @@
 #include "RNLightManager.h"
 #include "RNResourceCoordinator.h"
 #include "RNOpenGLQueue.h"
+#include "RNLogging.h"
+#include "RNMessage.h"
+#include "RNWindow.h"
 
 namespace RN
 {
-	RNDeclareMeta(Camera)
-	
+	RNDefineMeta(Camera, SceneNode)
+	RNDefineMeta(PostProcessingPipeline, Object)
 	
 	RenderStage::RenderStage(Camera *camera, Camera *connection, Mode mode)
 	{
@@ -84,24 +87,23 @@ namespace RN
 	
 	
 	
-	PostProcessingPipeline::PostProcessingPipeline(const std::string& name) :
-		_name(name)
-	{
-		host = 0;
-	}
+	PostProcessingPipeline::PostProcessingPipeline(const std::string& name, int32 priority) :
+		_name(name),
+		_priority(priority),
+		host(nullptr)
+	{}
 	
 	PostProcessingPipeline::~PostProcessingPipeline()
-	{
-	}
+	{}
 	
 	void PostProcessingPipeline::Initialize()
-	{
-	}
+	{}
 	
 	
 	RenderStage *PostProcessingPipeline::AddStage(Camera *camera, RenderStage::Mode mode)
 	{
-		Camera *previous = 0;
+		Camera *previous = nullptr;
+		
 		if(stages.size() > 0)
 		{
 			RenderStage& stage = stages[stages.size() - 1];
@@ -119,7 +121,7 @@ namespace RN
 	
 	void PostProcessingPipeline::PushUpdate(Camera *source, float delta)
 	{
-		for(auto i=stages.begin(); i!=stages.end(); i++)
+		for(auto i = stages.begin(); i != stages.end(); i ++)
 		{
 			Camera *camera = i->GetCamera();
 			if(camera == source)
@@ -131,16 +133,16 @@ namespace RN
 	
 	void PostProcessingPipeline::PostUpdate(Camera *source, const Vector3& position, const Quaternion& rotation, const Rect& frame)
 	{
-		for(auto i=stages.begin(); i!=stages.end(); i++)
+		for(auto i = stages.begin(); i != stages.end(); i ++)
 		{
 			Camera *camera = i->GetCamera();
 			if(camera  == source)
 				continue;
 			
-			if(camera->_flags & Camera::FlagInheritFrame)
+			if(camera->_flags & Camera::Flags::InheritFrame)
 				camera->SetFrame(frame);
 			
-			if(camera->_flags & Camera::FlagInheritPosition)
+			if(camera->_flags & Camera::Flags::InheritPosition)
 			{
 				camera->SetWorldPosition(position);
 				camera->SetWorldRotation(rotation);
@@ -152,19 +154,19 @@ namespace RN
 	
 	void PostProcessingPipeline::PushProjectionUpdate(Camera *source)
 	{
-		for(auto i=stages.begin(); i!=stages.end(); i++)
+		for(auto i = stages.begin(); i != stages.end(); i ++)
 		{
 			Camera *stage = i->GetCamera();
 			if(stage == source)
 				continue;
 			
-			if(stage->_flags & Camera::FlagInheritProjection)
+			if(stage->_flags & Camera::Flags::InheritProjection)
 			{
-				stage->aspect = source->aspect;
-				stage->fov    = source->fov;
+				stage->SetAspectRatio(source->GetAspectRatio());
+				stage->SetFOV(source->GetFOV());
 				
-				stage->clipfar  = source->clipfar;
-				stage->clipnear = source->clipnear;
+				stage->SetClipFar(source->GetClipFar());
+				stage->SetClipNear(source->GetClipNear());
 				
 				stage->UpdateProjection();
 			}
@@ -172,125 +174,25 @@ namespace RN
 	}
 	
 	
-	DownsamplePostProcessingPipeline::DownsamplePostProcessingPipeline(const std::string& name, Camera *camera, Texture *texture, Shader *firstShader, Shader *shader, Texture::Format format) :
-		PostProcessingPipeline(name)
-	{
-		Texture::Parameter parameter;
-		parameter.format = format;
-		
-		_lastTarget = new Texture2D(parameter);
-		_format = format;
-		_level = 0;
-		
-		_texture = texture ? texture->Retain() : 0;
-		_camera = camera->Retain();
-		_firstShader = firstShader ? firstShader->Retain() : shader->Retain();
-		_shader = shader->Retain();
-	}
-	
-	DownsamplePostProcessingPipeline::~DownsamplePostProcessingPipeline()
-	{
-		_firstShader->Release();
-		_shader->Release();
-		
-		_camera->Release();
-		_texture->Release();
-		_lastTarget->Release();
-	}
-	
-	void DownsamplePostProcessingPipeline::Initialize()
-	{
-		_level = 0;
-		_frame = Rect();
-		
-		PushUpdate(nullptr, 0.0f);
-	}
-	
-	void DownsamplePostProcessingPipeline::PushUpdate(Camera *source, float delta)
-	{
-		bool needsUpdate = false;
-		bool needsRecreation = false;
-		
-		if(_frame != host->GetFrame())
-		{
-			_frame = host->GetFrame();
-			needsUpdate = true;
-		}
-		
-		int level = Kernel::GetSharedInstance()->GetActiveScaleFactor() + log2(_camera->GetLightClusters().x) - 1;
-		if(level != _level)
-		{
-			_level = level;
-			needsRecreation = true;
-		}
-		
-		
-		if(needsRecreation)
-		{
-			RecreateStages();
-		}
-		else if(needsUpdate)
-		{
-			UpdateStages();
-		}
-		
-		PostProcessingPipeline::PushUpdate(source, delta);
-	}
-	
-	void DownsamplePostProcessingPipeline::UpdateStages()
-	{
-		int factor = 1;
-		
-		for(auto i=stages.begin(); i!=stages.end(); i++)
-		{
-			factor <<= 1;
-			i->GetCamera()->SetFrame(Rect(Vector2(0.0f), Vector2(_frame.Size().x / factor, _frame.Size().y / factor)));
-		}
-	}
-	
-	void DownsamplePostProcessingPipeline::RecreateStages()
-	{
-		stages.clear();
-		uint32 flags = Camera::FlagUpdateStorageFrame | Camera::FlagInheritProjection;
-		
-		for(int i=0; i<_level; i++)
-		{
-			Material *temp = new Material((i == 0) ? _firstShader : _shader);
-			temp->AddTexture(_texture);
-			
-			Camera *camera = new Camera(Vector2(), _format, flags, RenderStorage::BufferFormatColor);
-			camera->SetMaterial(temp);
-			
-			if(i == _level - 1)
-				camera->GetStorage()->SetRenderTarget(_lastTarget);
-			
-			AddStage(camera, RenderStage::Mode::ReUsePreviousStage);
-			
-			camera->Release();
-			temp->Release();
-		}
-		
-		UpdateStages();
-	}
-
-	
+	Camera::Camera() :
+		Camera(Vector2(0.0f))
+	{}
 	
 	Camera::Camera(const Vector2& size) :
-		Camera(size, Texture::Format::RGBA8888)
+		Camera(size, Texture::Format::RGB16F)
 	{}
 
 
 	Camera::Camera(const Vector2& size, Texture *target) :
-		Camera(size, target, FlagDefaults)
+		Camera(size, target, Flags::Defaults)
 	{}
 
 	Camera::Camera(const Vector2& size, Texture *target, Flags flags) :
 		Camera(size, target, flags, RenderStorage::BufferFormatComplete)
 	{}
 
-
 	Camera::Camera(const Vector2& size, Texture::Format targetFormat) :
-		Camera(size, targetFormat, FlagDefaults)
+		Camera(size, targetFormat, Flags::Defaults)
 	{}
 
 	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags) :
@@ -300,14 +202,13 @@ namespace RN
 
 	Camera::Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format) :
 		_frame(Vector2(0.0f, 0.0f), size),
-		lightManager(nullptr)
+		_storage(nullptr),
+		_lightManager(nullptr)
 	{
-		_storage = 0;
-		
 		RenderStorage *storage = new RenderStorage(format);
 		storage->AddRenderTarget(target);
 		
-		SetCameraFlags(flags);
+		SetFlags(flags);
 		SetRenderStorage(storage);
 		Initialize();
 	}
@@ -315,14 +216,13 @@ namespace RN
 	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_scaleFactor(scaleFactor),
-		lightManager(nullptr)
+		_storage(nullptr),
+		_lightManager(nullptr)
 	{
-		_storage = 0;
-
 		RenderStorage *storage = new RenderStorage(format, 0, scaleFactor);
 		storage->AddRenderTarget(targetFormat);
 		
-		SetCameraFlags(flags);
+		SetFlags(flags);
 		SetRenderStorage(storage);
 		Initialize();
 	}
@@ -330,32 +230,28 @@ namespace RN
 	Camera::Camera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_scaleFactor(scaleFactor),
-		lightManager(nullptr)
+		_storage(nullptr),
+		_lightManager(nullptr)
 	{
-		_storage = 0;
-
-		SetCameraFlags(flags);
+		SetFlags(flags);
 		SetRenderStorage(storage);
 		Initialize();
 	}
 
 	Camera::~Camera()
 	{
-		if(_storage)
-			_storage->Release();
+		SafeRelease(_storage);
+		SafeRelease(_sky);
+		SafeRelease(_material);
+		SafeRelease(_blitShader);
 		
-		if(_skycube)
-			_skycube->Release();
+		for(PostProcessingPipeline *pipeline : _PPPipelines)
+			pipeline->Release();
 		
-		if(_material)
-			_material->Release();
-		
-		_blitShader->Release();
-		
-		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
+		if(_lightManager)
 		{
-			PostProcessingPipeline *pipeline = *i;
-			delete pipeline;
+			_lightManager->camera = nullptr;
+			_lightManager->Release();
 		}
 		
 		MessageCenter::GetSharedInstance()->RemoveObserver(this);
@@ -364,57 +260,55 @@ namespace RN
 
 	void Camera::Initialize()
 	{
-		aspect   = 1.0f;
-		fov      = 70.0f;
+		_fov      = 70.0f;
+		_aspect   = 1.0f;
 
-		clipnear = 0.1f;
-		clipfar  = 500.0f;
+		_clipNear = 0.1f;
+		_clipFar  = 500.0f;
 		
-		ortholeft = -100.0f;
-		orthoright = 100.0f;
-		orthobottom = -100.0f;
-		orthotop = 100.0f;
+		_orthoLeft   = -100.0f;
+		_orthoRight  = 100.0f;
+		_orthoBottom = -100.0f;
+		_orthoTop    = 100.0f;
 		
-		usefog = true;
-		fognear = 100.0f;
-		fogfar = 500.0f;
-		ambient = Vector4(0.1f, 0.1f, 0.1f, 1.0f);
+		_fogNear   = 100.0f;
+		_fogFar    = 500.0f;
+		_ambient   = Color(0.1f, 0.1f, 0.1f, 1.0f);
+		_clipPlane = Plane();
 		
-		useclipplane = false;
-		clipplane = Vector4(0.0f, 1.0f, 0.0f, 0.0f);
-
+		_dirtyProjection = true;
+		_dirtyFrustum    = true;
+		
 		_clearColor  = Color(0.193f, 0.435f, 0.753f, 1.0f);
+		_prefersLightManager = false;
 		
 		_fixedScaleFactor = (_scaleFactor > 0.0f);
-		_scaleFactor = _fixedScaleFactor ? _scaleFactor : Kernel::GetSharedInstance()->GetActiveScaleFactor();
+		_scaleFactor      = _fixedScaleFactor ? _scaleFactor : Kernel::GetSharedInstance()->GetActiveScaleFactor();
 
-		_material = 0;
+		_material   = nullptr;
 		_stageCount = 0;
 
-		_lightClusters = Vector3(32, 32, 5);
-		_skycube = 0;
+		_sky = nullptr;
 		
-		_maxLights = 100;
 		_priority  = 0;
-		
-		_allowDepthWrite = true;
-		_lodCamera = 0;
-		_blend = false;
+		_lodCamera = nullptr;
 		
 		_blitShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDrawFramebufferShader, nullptr)->Retain();
 		_blitMode   = BlitMode::Stretched;
 		
 		_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
-		_colorMask = ColorFlagRed | ColorFlagGreen | ColorFlagBlue | ColorFlagAlpha;
+		_colorMask = ColorMask::Red | ColorMask::Green | ColorMask::Blue | ColorMask::Alpha;
 		
-		renderGroup = RenderGroup0;
+		_renderGroups = RenderGroups::Group0;
 
-		if(_flags & FlagUpdateStorageFrame)
+		if(_flags & Flags::UpdateStorageFrame)
 			_storage->SetSize(_frame.Size());
 		
 		Update(0.0f);
 		UpdateProjection();
 		UpdateFrustum();
+		
+		_prefersLightManager = true;
 		
 		MessageCenter::GetSharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](Message *message) {
 			_scaleFactor = Kernel::GetSharedInstance()->GetActiveScaleFactor();
@@ -423,6 +317,7 @@ namespace RN
 
 	void Camera::PrepareForRendering(Renderer *renderer)
 	{
+		UpdateProjection();
 		_storage->BindAndUpdateBuffer();
 		
 		Rect rect = std::move(GetRenderingFrame());
@@ -433,7 +328,7 @@ namespace RN
 		float width  = ceilf(rect.width * _scaleFactor);
 		float height = ceilf(rect.height * _scaleFactor);
 
-		if(!(_flags & FlagNoClear))
+		if(_clearMask > 0)
 		{
 			OpenGLQueue::GetSharedInstance()->SubmitCommand([=] {
 				gl::ClearDepth(1.0f);
@@ -448,7 +343,7 @@ namespace RN
 		}
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([=] {
-			gl::ColorMask((_colorMask & ColorFlagRed), (_colorMask & ColorFlagGreen), (_colorMask & ColorFlagBlue), (_colorMask & ColorFlagAlpha));
+			gl::ColorMask((_colorMask & ColorMask::Red), (_colorMask & ColorMask::Green), (_colorMask & ColorMask::Blue), (_colorMask & ColorMask::Alpha));
 			gl::Viewport(x, y, width, height);
 		});
 	}
@@ -460,10 +355,10 @@ namespace RN
 		{
 			_frame = std::move(frame.Integral());
 
-			if(_flags & FlagUpdateStorageFrame)
+			if(_flags & Flags::UpdateStorageFrame)
 				_storage->SetSize(frame.Size());
 
-			UpdateProjection();
+			_dirtyProjection = true;
 		}
 	}
 
@@ -477,81 +372,51 @@ namespace RN
 		_clearColor = clearColor;
 	}
 	
-	void Camera::SetCameraFlags(Flags flags)
+	void Camera::SetFlags(Flags flags)
 	{
-		if(!(_flags & FlagNoLights) && flags & FlagNoLights)
-		{
-			if(lightManager != nullptr)
-			{
-				delete lightManager;
-				lightManager = nullptr;
-			}
-		}
-		
-		if(!(flags & FlagNoLights) && lightManager == nullptr)
-		{
-			lightManager = new LightManager();
-		}
-		
 		_flags = flags;
 	}
 
-	void Camera::SetMaterial(class Material *material)
+	void Camera::SetMaterial(Material *material)
 	{
-		if(_material)
-			_material->Release();
-		
-		_material = material ? material->Retain() : 0;
+		SafeRelease(_material);
+		_material = SafeRetain(material);
 	}
 
 	void Camera::SetRenderStorage(RenderStorage *storage)
 	{
 		RN_ASSERT(storage, "Render storage mustn't be NULL!");
 
-		if(_storage)
-			_storage->Release();
-		
-		_storage =storage->Retain();
+		SafeRelease(_storage);
+		_storage = SafeRetain(storage);
 
-		if(_flags & FlagUpdateStorageFrame)
+		if(_flags & Flags::UpdateStorageFrame)
 			_storage->SetSize(_frame.Size());
 	}
 	
-	void Camera::SetClearMask(ClearFlags mask)
+	void Camera::SetClearMask(ClearMask mask)
 	{
 		_clearMask = 0;
 		
-		if(mask & ClearFlagColor)
+		if(mask & ClearMask::Color)
 			_clearMask |= GL_COLOR_BUFFER_BIT;
 		
-		if(mask & ClearFlagDepth)
+		if(mask & ClearMask::Depth)
 			_clearMask |= GL_DEPTH_BUFFER_BIT;
 		
-		if(mask & ClearFlagStencil)
+		if(mask & ClearMask::Stencil)
 			_clearMask |= GL_STENCIL_BUFFER_BIT;
 	}
 	
-	void Camera::SetColorMask(ColorFlags mask)
+	void Camera::SetColorMask(ColorMask mask)
 	{
 		_colorMask = mask;
 	}
 	
-	void Camera::SetAllowsDepthWrite(bool flag)
+	void Camera::SetSky(Model *sky)
 	{
-		_allowDepthWrite = flag;
-	}
-	
-	void Camera::SetSkyCube(Model *skycube)
-	{
-		if(_skycube)
-			_skycube->Release();
-		
-		_skycube = skycube ? skycube->Retain() : 0;
-	}
-	
-	void Camera::SetMaxLightsPerTile(size_t lights)
-	{
-		_maxLights = lights;
+		SafeRelease(_sky);
+		_sky = SafeRetain(sky);
 	}
 	
 	void Camera::SetLODCamera(Camera *camera)
@@ -562,12 +427,6 @@ namespace RN
 	void Camera::SetPriority(int32 priority)
 	{
 		_priority = priority;
-		DidUpdate(ChangedPriority);
-	}
-	
-	void Camera::SetUseBlending(bool useBlending)
-	{
-		_blend = useBlending;
 	}
 	
 	void Camera::SetBlitShader(Shader *shader)
@@ -583,52 +442,155 @@ namespace RN
 		_blitMode = mode;
 	}
 	
-	// Post Processing
-	
-	PostProcessingPipeline *Camera::AddPostProcessingPipeline(const std::string& name)
+	void Camera::SetFOV(float fov)
 	{
-		PostProcessingPipeline *pipeline = new PostProcessingPipeline(name);
+		_fov = fov;
+		_dirtyProjection = true;
+	}
+	void Camera::SetAspectRatio(float ratio)
+	{
+		_aspect = ratio;
+		_dirtyProjection = true;
+		
+		if(_flags & Flags::UpdateAspect)
+			RNDebug("SetAspectRatio() called, but auto aspect ratio updating is set (will invaldiate set ratio on next frame update)");
+	}
+	
+	void Camera::SetClipNear(float near)
+	{
+		_clipNear = near;
+		_dirtyProjection = true;
+		_dirtyFrustum = true;
+	}
+	void Camera::SetClipFar(float far)
+	{
+		_clipFar = far;
+		_dirtyProjection = true;
+		_dirtyFrustum = true;
+	}
+	
+	void Camera::SetFogColor(Color color)
+	{
+		_fogColor = color;
+	}
+	void Camera::SetFogNear(float near)
+	{
+		_fogNear = near;
+	}
+	void Camera::SetFogFar(float far)
+	{
+		_fogFar = far;
+	}
+	
+	void Camera::SetAmbientColor(Color color)
+	{
+		_ambient = color;
+	}
+	void Camera::SetClipPlane(const Plane &clipPlane)
+	{
+		_clipPlane = clipPlane;
+	}
+	
+	void Camera::SetLightManager(LightManager *lightManager)
+	{
+		RN_ASSERT(!lightManager || !lightManager->camera, "The LightManager can't be attached to another camera!");
+		
+		if(_lightManager)
+		{
+			_lightManager->camera = nullptr;
+			_lightManager->Release();
+		}
+		
+		_prefersLightManager = false;
+		
+		_lightManager = SafeRetain(lightManager);
+		
+		if(_lightManager)
+			_lightManager->camera = this;
+	}
+	void Camera::SetRenderGroups(RenderGroups groups)
+	{
+		_renderGroups = groups;
+	}
+	void Camera::SetOrthogonalFrustum(float top, float bottom, float left, float right)
+	{
+		_orthoLeft   = left;
+		_orthoRight  = right;
+		_orthoTop    = top;
+		_orthoBottom = bottom;
+		
+		_dirtyProjection = true;
+		
+		if(!(_flags & Flags::Orthogonal))
+			RNDebug("SetOrthogonalFrustum() called, but the camera is not an orthogonal camera");
+	}
+	
+	void Camera::DidUpdate(ChangeSet changeSet)
+	{
+		SceneNode::DidUpdate(changeSet);
+		
+		if(changeSet & ChangeSet::Position)
+		{
+			_dirtyFrustum = true;
+		}
+	}
+	
+	// Post Processing
+	PostProcessingPipeline *Camera::AddPostProcessingPipeline(const std::string& name, int32 priority)
+	{
+		PostProcessingPipeline *pipeline = new PostProcessingPipeline(name, priority);
 		try
 		{
-			AttachPostProcessingPipeline(pipeline);
+			AddPostProcessingPipeline(pipeline);
+			return pipeline->Autorelease();
 		}
 		catch(Exception e)
 		{
 			delete pipeline;
 			throw e;
 		}
-	
-		return pipeline;
 	}
 	
-	PostProcessingPipeline *Camera::PostProcessingPipelineWithName(const std::string& name)
+	PostProcessingPipeline *Camera::GetPostProcessingPipeline(const std::string& name)
 	{
+		LockGuard<Object *> lock(this);
+		
 		auto iterator = _namedPPPipelines.find(name);
-		return (iterator != _namedPPPipelines.end()) ? iterator->second : 0;
+		return (iterator != _namedPPPipelines.end()) ? iterator->second : nullptr;
 	}
 	
-	void Camera::AttachPostProcessingPipeline(PostProcessingPipeline *pipeline)
+	void Camera::AddPostProcessingPipeline(PostProcessingPipeline *pipeline)
 	{
-		if(PostProcessingPipelineWithName(pipeline->_name) || pipeline->host)
+		LockGuard<Object *> lock(this);
+		
+		if(GetPostProcessingPipeline(pipeline->_name) || pipeline->host)
 			throw Exception(Exception::Type::InvalidArgumentException, "A pipeline with this name already exists, or the pipeline is already associated with a camera!");
 		
 		_PPPipelines.push_back(pipeline);
-		_namedPPPipelines.insert(std::map<std::string, PostProcessingPipeline *>::value_type(pipeline->_name, pipeline));
+		_namedPPPipelines.emplace(pipeline->_name, pipeline);
 		
 		pipeline->host = this;
 		pipeline->Initialize();
+		pipeline->Retain();
+		
+		std::stable_sort(_PPPipelines.begin(), _PPPipelines.end(), [&](PostProcessingPipeline *left, PostProcessingPipeline *right) {
+			return (left->_priority < right->_priority);
+		});
 	}
 	
 	void Camera::RemovePostProcessingPipeline(PostProcessingPipeline *pipeline)
 	{
-		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
+		LockGuard<Object *> lock(this);
+		
+		for(auto i = _PPPipelines.begin(); i != _PPPipelines.end(); i ++)
 		{
 			if(*i == pipeline)
 			{
 				_PPPipelines.erase(i);
 				_namedPPPipelines.erase(pipeline->_name);
 				
-				delete pipeline;
+				pipeline->host = nullptr;
+				pipeline->Release();
 				break;
 			}
 		}
@@ -637,16 +599,16 @@ namespace RN
 	
 	Matrix Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
 	{
-		Vector3 nearcenter = camera->ToWorldZ(Vector3(0.0f, 0.0f, near));
-		Vector3 farcorner1 = camera->ToWorldZ(Vector3(1.0f, 1.0f, far));
-		Vector3 farcorner2 = camera->ToWorldZ(Vector3(-1.0f, -1.0f, far));
+		Vector3 nearcenter = camera->ToWorld(Vector3(0.0f, 0.0f, near));
+		Vector3 farcorner1 = camera->ToWorld(Vector3(1.0f, 1.0f, far));
+		Vector3 farcorner2 = camera->ToWorld(Vector3(-1.0f, -1.0f, far));
 		Vector3 farcenter = (farcorner1+farcorner2)*0.5f;
 		
 		Vector3 center = (nearcenter+farcenter)*0.5f;
-		float dist = center.Distance(farcorner1);
+		float dist = center.GetDistance(farcorner1);
 		
 		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
-		Vector3 pos = center-light->Forward()*500.0f;
+		Vector3 pos = center-light->GetForward()*500.0f;
 		
 		Matrix rot = light->GetWorldRotation().GetRotationMatrix();
 		pos = rot.GetInverse()*pos;
@@ -659,14 +621,17 @@ namespace RN
 		pos = rot*pos;
 		SetPosition(pos);
 		
-		clipfar = 500.0f+dist*2.0f;
-		ortholeft = -dist;
-		orthoright = dist;
-		orthobottom = -dist;
-		orthotop = dist;
+		_clipFar = 500.0f + dist * 2.0f;
+		_orthoLeft = -dist;
+		_orthoRight = dist;
+		_orthoBottom = -dist;
+		_orthoTop = dist;
+		
+		_dirtyProjection = true;
+		
 		UpdateProjection();
 		
-		Matrix projview = projectionMatrix*GetWorldTransform().GetInverse();
+		Matrix projview = _projectionMatrix * GetWorldTransform().GetInverse();
 		return projview;
 	}
 	
@@ -674,6 +639,23 @@ namespace RN
 	void Camera::Update(float delta)
 	{
 		SceneNode::Update(delta);
+		
+		UpdateProjection();
+		UpdateFrustum();
+		
+		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
+		{
+			PostProcessingPipeline *pipeline = *i;
+			pipeline->PushUpdate(this, delta);
+		}
+	}
+	
+	void Camera::UpdateEditMode(float delta)
+	{
+		SceneNode::UpdateEditMode(delta);
+		
+		UpdateProjection();
+		UpdateFrustum();
 		
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
@@ -684,15 +666,13 @@ namespace RN
 	
 	void Camera::PostUpdate()
 	{
-		UpdateFrustum();
+		_inverseViewMatrix = GetWorldTransform();
+		_viewMatrix = _inverseViewMatrix.GetInverse();
 		
-		inverseViewMatrix = GetWorldTransform();
-		viewMatrix = inverseViewMatrix.GetInverse();
-		
-		if(_flags & FlagFullscreen)
+		if(_flags & Flags::Fullscreen)
 		{
-			Rect frame = Kernel::GetSharedInstance()->GetWindow()->GetFrame();
-			SetFrame(frame);
+			Vector2 size = Window::GetSharedInstance()->GetSize();
+			SetFrame(Rect(Vector2(), size));
 		}
 
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
@@ -704,17 +684,22 @@ namespace RN
 
 	void Camera::UpdateProjection()
 	{
-		if(_flags & FlagOrthogonal)
+		if(!_dirtyProjection)
+			return;
+		
+		_dirtyProjection = false;
+		
+		if(_flags & Flags::Orthogonal)
 		{
-			projectionMatrix.MakeProjectionOrthogonal(ortholeft, orthoright, orthobottom, orthotop, clipnear, clipfar);
+			_projectionMatrix = Matrix::WithProjectionOrthogonal(_orthoLeft, _orthoRight, _orthoBottom, _orthoTop, _clipNear, _clipFar);
 			return;
 		}
 		
-		if(_flags & FlagUpdateAspect)
-			aspect = _frame.width / _frame.height;
+		if(_flags & Flags::UpdateAspect)
+			_aspect = _frame.width / _frame.height;
 
-		projectionMatrix.MakeProjectionPerspective(fov, aspect, clipnear, clipfar);
-		inverseProjectionMatrix = projectionMatrix.GetInverse();
+		_projectionMatrix = Matrix::WithProjectionPerspective(_fov, _aspect, _clipNear, _clipFar);
+		_inverseProjectionMatrix = _projectionMatrix.GetInverse();
 
 		for(auto i=_PPPipelines.begin(); i!=_PPPipelines.end(); i++)
 		{
@@ -722,71 +707,112 @@ namespace RN
 			pipeline->PushProjectionUpdate(this);
 		}
 	}
+	
+	void Camera::UpdateFrustum()
+	{
+		if(!_dirtyFrustum)
+			return;
+		
+		_dirtyFrustum = false;
+		
+		Vector3 pos1 = __ToWorld(Vector3(-1.0f, 1.0f, 0.0f));
+		Vector3 pos2 = __ToWorld(Vector3(-1.0f, 1.0f, 1.0));
+		Vector3 pos3 = __ToWorld(Vector3(-1.0f, -1.0f, 1.0));
+		Vector3 pos4 = __ToWorld(Vector3(1.0f, -1.0f, 0.0));
+		Vector3 pos5 = __ToWorld(Vector3(1.0f, 1.0f, 1.0));
+		Vector3 pos6 = __ToWorld(Vector3(1.0f, -1.0f, 1.0));
+		
+		const Vector3& position = GetWorldPosition();
+		Vector3 direction = GetWorldRotation().GetRotatedVector(Vector3(0.0, 0.0, -1.0));
+		
+		Vector3 vmax;
+		Vector3 vmin;
+		vmax.x = std::max(pos1.x, std::max(pos4.x, std::max(pos2.x, std::max(pos3.x, std::max(pos5.x, pos6.x)))));
+		vmax.y = std::max(pos1.y, std::max(pos4.y, std::max(pos2.y, std::max(pos3.y, std::max(pos5.y, pos6.y)))));
+		vmax.z = std::max(pos1.z, std::max(pos4.z, std::max(pos2.z, std::max(pos3.z, std::max(pos5.z, pos6.z)))));
+		vmin.x = std::min(pos1.x, std::min(pos4.x, std::min(pos2.x, std::min(pos3.x, std::min(pos5.x, pos6.x)))));
+		vmin.y = std::min(pos1.y, std::min(pos4.y, std::min(pos2.y, std::min(pos3.y, std::min(pos5.y, pos6.y)))));
+		vmin.z = std::min(pos1.z, std::min(pos4.z, std::min(pos2.z, std::min(pos3.z, std::min(pos5.z, pos6.z)))));
+		
+		_frustumCenter = vmax + vmin;
+		_frustumCenter = _frustumCenter * 0.5f;
+		_frustumRadius = _frustumCenter.GetDistance(vmax);
+		
+		frustrums._frustumLeft = Plane::WithTriangle(pos1, pos2, pos3, 1.0f);
+		frustrums._frustumRight = Plane::WithTriangle(pos4, pos5, pos6, -1.0f);
+		frustrums._frustumTop =  Plane::WithTriangle(pos1, pos2, pos5, -1.0f);
+		frustrums._frustumBottom = Plane::WithTriangle(pos4, pos3, pos6, 1.0f);
+		frustrums._frustumNear = Plane::WithPositionNormal(position + direction * _clipNear, -direction);
+		frustrums._frustumFar = Plane::WithPositionNormal(position + direction * _clipFar, direction);
+	}
 
-	Vector3 Camera::ToWorld(const Vector3& dir)
+	Vector3 Camera::__ToWorld(const Vector3& dir)
 	{
 		Vector3 ndcPos(dir.x, dir.y, dir.z*2.0f-1.0f);
-		if(_flags & FlagOrthogonal)
+		
+		if(_flags & Flags::Orthogonal)
 		{
 			Vector4 temp = Vector4(ndcPos*0.5f);
 			temp += 0.5f;
 			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 1.0f-temp.z, 0.0f);
 			
-			//I have no idea why the fourth parameter has to be 2, but translation is wrong otherwize...
-			Vector4 vec = Vector4(ortholeft, orthobottom, -clipnear, 2.0f)*temp2;
-			vec += Vector4(orthoright, orthotop, -clipfar, 2.0f)*temp;
+			// I have no idea why the fourth parameter has to be 2, but translation is wrong otherwize...
+			Vector4 vec(_orthoLeft, _orthoBottom, -_clipNear, 2.0f);
+			vec *= temp2;
+			vec += Vector4(_orthoRight, _orthoTop, -_clipFar, 2.0f)*temp;
 			
-			vec = inverseViewMatrix.Transform(vec);
+			vec = _inverseViewMatrix * vec;
 			return Vector3(vec);
 		}
 		else
 		{
 			Vector4 clipPos;
-			clipPos.w = projectionMatrix.m[14]/(ndcPos.z+projectionMatrix.m[10]);
+			clipPos.w = _projectionMatrix.m[14] / (ndcPos.z + _projectionMatrix.m[10]);
 			clipPos = Vector4(ndcPos*clipPos.w, clipPos.w);
 			
-			Vector4 temp = inverseProjectionMatrix.Transform(clipPos);
-			temp = inverseViewMatrix.Transform(temp);
+			Vector4 temp = _inverseProjectionMatrix * clipPos;
+			temp = _inverseViewMatrix * temp;
 			return Vector3(temp);
 		}
 	}
 	
-	//There should be a much better solution, but at least this works for now
-	Vector3 Camera::ToWorldZ(const Vector3& dir)
+	// There should be a much better solution, but at least this works for now
+	Vector3 Camera::ToWorld(const Vector3& dir)
 	{
 		Vector3 ndcPos(dir.x, dir.y, 0.0f);
-		if(_flags & FlagOrthogonal)
+		if(_flags & Flags::Orthogonal)
 		{
 			Vector4 temp = Vector4(ndcPos*0.5f);
 			temp += 0.5f;
 			Vector4 temp2(1.0f-temp.x, 1.0f-temp.y, 0.0f, 0.0f);
 			
-			//I have no idea why the fourth parameter has to be 2, but translation is wrong otherwize...
-			Vector4 vec = Vector4(ortholeft, orthobottom, -dir.z, 2.0f)*temp2;
-			vec += Vector4(orthoright, orthotop, -dir.z, 2.0f)*temp;
-			vec = inverseViewMatrix.Transform(vec);
+			// I have no idea why the fourth parameter has to be 2, but translation is wrong otherwize...
+			Vector4 vec(_orthoLeft, _orthoBottom, -dir.z, 2.0f);
+			vec *= temp2;
+			vec += Vector4(_orthoRight, _orthoTop, -dir.z, 2.0f)*temp;
+			vec = _inverseViewMatrix * vec;
 			return Vector3(vec);
 		}
 		else
 		{
 			Vector4 clipPos;
-			clipPos.w = projectionMatrix.m[14]/(ndcPos.z+projectionMatrix.m[10]);
+			clipPos.w = _projectionMatrix.m[14] / (ndcPos.z + _projectionMatrix.m[10]);
 			clipPos = Vector4(ndcPos*clipPos.w, clipPos.w);
 			
-			Vector4 temp = inverseProjectionMatrix.Transform(clipPos);
+			Vector4 temp = _inverseProjectionMatrix * clipPos;
 			temp *= -dir.z/temp.z;
 			temp.w = 1.0f;
-			temp = inverseViewMatrix.Transform(temp);
+			temp = _inverseViewMatrix * temp;
 			return Vector3(temp);
 		}
 	}
 	
 	const Rect& Camera::GetFrame()
 	{
-		if(_flags & FlagFullscreen)
+		if(_flags & Flags::Fullscreen)
 		{
-			Rect frame = Kernel::GetSharedInstance()->GetWindow()->GetFrame();
-			SetFrame(frame);
+			Vector2 size = Window::GetSharedInstance()->GetSize();
+			SetFrame(Rect(Vector2(), size));
 		}
 		
 		return _frame;
@@ -799,43 +825,36 @@ namespace RN
 		
 		return _renderingFrame;
 	}
-
-	void Camera::UpdateFrustum()
+	
+	LightManager *Camera::GetLightManager()
 	{
-		Vector3 pos1 = ToWorld(Vector3(-1.0f, 1.0f, 0.0f));
-		Vector3 pos2 = ToWorld(Vector3(-1.0f, 1.0f, 1.0));
-		Vector3 pos3 = ToWorld(Vector3(-1.0f, -1.0f, 1.0));
-		Vector3 pos4 = ToWorld(Vector3(1.0f, -1.0f, 0.0));
-		Vector3 pos5 = ToWorld(Vector3(1.0f, 1.0f, 1.0));
-		Vector3 pos6 = ToWorld(Vector3(1.0f, -1.0f, 1.0));
+		if(!_lightManager && _prefersLightManager)
+		{
+			SetLightManager(LightManager::CreateDefaultLightManager());
+			_lightManager->Release(); // SetLightManager() retains the light manager, and CreateDefaultLightManager() delegates the ownership to the caller
+		}
 		
-		const Vector3& position = GetWorldPosition();
-		Vector3 direction = GetWorldRotation().RotateVector(Vector3(0.0, 0.0, -1.0));
-
-		Vector3 vmax;
-		Vector3 vmin;
-		vmax.x = std::max(pos1.x, std::max(pos4.x, std::max(pos2.x, std::max(pos3.x, std::max(pos5.x, pos6.x)))));
-		vmax.y = std::max(pos1.y, std::max(pos4.y, std::max(pos2.y, std::max(pos3.y, std::max(pos5.y, pos6.y)))));
-		vmax.z = std::max(pos1.z, std::max(pos4.z, std::max(pos2.z, std::max(pos3.z, std::max(pos5.z, pos6.z)))));
-		vmin.x = std::min(pos1.x, std::min(pos4.x, std::min(pos2.x, std::min(pos3.x, std::min(pos5.x, pos6.x)))));
-		vmin.y = std::min(pos1.y, std::min(pos4.y, std::min(pos2.y, std::min(pos3.y, std::min(pos5.y, pos6.y)))));
-		vmin.z = std::min(pos1.z, std::min(pos4.z, std::min(pos2.z, std::min(pos3.z, std::min(pos5.z, pos6.z)))));
-
-		_frustumCenter = vmax + vmin;
-		_frustumCenter = _frustumCenter * 0.5f;
-		_frustumRadius = _frustumCenter.Distance(vmax);
-
-		frustrums._frustumLeft.SetPlane(pos1, pos2, pos3, 1.0f);
-		frustrums._frustumRight.SetPlane(pos4, pos5, pos6, -1.0f);
-		frustrums._frustumTop.SetPlane(pos1, pos2, pos5, -1.0f);
-		frustrums._frustumBottom.SetPlane(pos4, pos3, pos6, 1.0f);
-		frustrums._frustumNear.SetPlane(position + direction * clipnear, -direction);
-		frustrums._frustumFar.SetPlane(position + direction * clipfar, direction);
+		return _lightManager;
 	}
+	
+	const Vector3& Camera::GetFrustumCenter()
+	{
+		UpdateFrustum();
+		return _frustumCenter;
+	}
+	
+	float Camera::GetFrustumRadius()
+	{
+		UpdateFrustum();
+		return _frustumRadius;
+	}
+	
 
 	bool Camera::InFrustum(const Vector3& position, float radius)
 	{
-		if(_frustumCenter.Distance(position) > _frustumRadius + radius)
+		UpdateFrustum();
+		
+		if(_frustumCenter.GetDistance(position) > _frustumRadius + radius)
 			return false;
 
 		if(frustrums._frustumLeft.GetDistance(position) > radius)
@@ -861,11 +880,14 @@ namespace RN
 	
 	bool Camera::InFrustum(const Sphere& sphere)
 	{
+		UpdateFrustum();
 		return InFrustum(sphere.position+sphere.offset, sphere.radius);
 	}
 	
 	bool Camera::InFrustum(const AABB& aabb)
 	{
+		UpdateFrustum();
+		
 /*		Plane *planes = &_frustumLeft;
 		Plane *absPlanes = &_absFrustumLeft;
 	

@@ -17,8 +17,8 @@
 
 namespace RN
 {
-	RNDeclareMeta(Module)
-	RNDeclareSingleton(ModuleCoordinator)
+	RNDefineMeta(Module, Object)
+	RNDefineSingleton(ModuleCoordinator)
 	
 	struct ModuleInternals
 	{
@@ -154,7 +154,7 @@ namespace RN
 		Array *array = Settings::GetSharedInstance()->GetManifestObjectForKey<Array>(KRNManifestModulesKey);
 		if(array)
 		{
-			array->Enumerate([&](Object *file, size_t index, bool *stop) {
+			array->Enumerate([&](Object *file, size_t index, bool &stop) {
 				
 				try
 				{
@@ -173,7 +173,7 @@ namespace RN
 			});
 		}
 		
-		_modules.Enumerate<Module>([&](Module *module, size_t index, bool *stop) {
+		_modules.Enumerate<Module>([&](Module *module, size_t index, bool &stop) {
 			
 			try
 			{
@@ -195,11 +195,11 @@ namespace RN
 	{
 		Module *module = nullptr;
 		
-		_modules.Enumerate<Module>([&](Module *temp, size_t index, bool *stop) {
+		_modules.Enumerate<Module>([&](Module *temp, size_t index, bool &stop) {
 			if(temp->GetName().compare(name) == 0)
 			{
 				module = temp;
-				*stop = true;
+				stop = true;
 			}
 		});
 		

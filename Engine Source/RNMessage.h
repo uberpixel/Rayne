@@ -32,7 +32,7 @@ namespace RN
 		Object *_object;
 		Dictionary *_info;
 		
-		RNDefineMeta(Message, Object)
+		RNDeclareMeta(Message)
 	};
 	
 	class MessageCenter : public ISingleton<MessageCenter>
@@ -59,13 +59,12 @@ namespace RN
 		{
 			CallbackType callback;
 			void *cookie;
-			String *name;
 		};
 		
 		SpinLock _lock;
-		std::vector<MessageObserverProxy> _observer;
+		std::unordered_map<String *, std::vector<MessageObserverProxy>, std::hash<Object>, std::equal_to<Object>> _observer;
 		
-		RNDefineSingleton(MessageCenter)
+		RNDeclareSingleton(MessageCenter)
 	};
 }
 

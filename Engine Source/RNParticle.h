@@ -14,25 +14,21 @@
 #include "RNColor.h"
 #include "RNMatrix.h"
 #include "RNTexture.h"
+#include "RNInterpolation.h"
 
 namespace RN
 {
 	class ParticleEmitter;
-	class ParticleMaterial;
 	
 	class Particle
 	{
 	public:
 		RNAPI Particle();
 		RNAPI virtual ~Particle();
-		
-		RNAPI virtual void Initialize(ParticleEmitter *emitter, ParticleMaterial *material);
 		RNAPI virtual void Update(float delta);
 		
 		float time;
 		float lifespan;
-		
-		Vector3 velocity;
 
 		struct
 		{
@@ -40,10 +36,18 @@ namespace RN
 			Vector2 size;
 			Color color;
 		};
+	};
+	
+	
+	class GenericParticle : public RN::Particle
+	{
+	public:
+		void Update(float delta);
 		
-	protected:
-		ParticleEmitter *emitter;
-		ParticleMaterial *material;
+		Vector3 velocity;
+		Vector3 gravity;
+		Interpolator<Color> colorInterpolator;
+		Interpolator<Vector2> sizeInterpolator;
 	};
 }
 

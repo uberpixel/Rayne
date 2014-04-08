@@ -18,11 +18,14 @@ namespace RN
 	{
 	public:
 		RNAPI Null();
+		RNAPI Null(Deserializer *deserializer);
 		RNAPI ~Null() override;
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI static Null *GetNull();
 		
-		RNDefineMeta(Null, Object)
+		RNDeclareMeta(Null)
 	};
 }
 

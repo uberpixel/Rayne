@@ -12,7 +12,7 @@
 
 namespace RN
 {
-	RNDeclareSingleton(OpenGLQueue)
+	RNDefineSingleton(OpenGLQueue)
 	
 	OpenGLQueue::OpenGLQueue() :
 		_running(false),
@@ -76,7 +76,9 @@ namespace RN
 		
 		if(_thread->OnThread())
 		{
-			RunTask(command);
+			command.task();
+			command.syncable.signal();
+			
 			return point;
 		}
 		
@@ -136,26 +138,33 @@ namespace RN
 		
 		Task task;
 		
-		while(!_thread->IsCancelled())
+		try
 		{
-			_running.store(true);
-			lock.unlock();
-			
-			while(_commands.pop(task))
+			while(!_thread->IsCancelled())
 			{
-				RunTask(task);
-				_processed.fetch_add(1, std::memory_order_release);
+				_running.store(true);
+				lock.unlock();
+				
+				while(_commands.pop(task))
+				{
+					RunTask(task);
+					_processed.fetch_add(1, std::memory_order_release);
+				}
+				
+				
+				lock.lock();
+				_running.store(false);
+				_waitSignal.notify_all();
+				
+				if(!_commands.was_empty())
+					continue;
+				
+				_signal.wait(lock, [&] { return (!_commands.was_empty() || _thread->IsCancelled()); });
 			}
-			
-			
-			lock.lock();
-			_running.store(false);
-			_waitSignal.notify_all();
-			
-			if(!_commands.was_empty())
-				continue;
-			
-			_signal.wait(lock, [&] { return (!_commands.was_empty() || _thread->IsCancelled()); });
+		}
+		catch(Exception e)
+		{
+			HandleException(e);
 		}
 	}
 }

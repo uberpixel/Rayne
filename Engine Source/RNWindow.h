@@ -14,6 +14,7 @@
 #include "RNArray.h"
 #include "RNRect.h"
 #include "RNMessage.h"
+#include "RNEnum.h"
 
 #define kRNWindowConfigurationChanged   RNCSTR("kRNWindowConfigurationChanged")
 #define kRNWindowScaleFactorChanged     RNCSTR("kRNWindowScaleFactorChanged")
@@ -31,6 +32,7 @@ namespace RN
 		friend class Window;
 		friend class Screen;
 		
+		RNAPI WindowConfiguration(const WindowConfiguration *other);
 		RNAPI WindowConfiguration(uint32 width, uint32 height);
 		RNAPI WindowConfiguration(uint32 width, uint32 height, Screen *screen);
 		
@@ -44,7 +46,7 @@ namespace RN
 		uint32 _width;
 		uint32 _height;
 		
-		RNDefineMeta(WindowConfiguration, Object)
+		RNDeclareMeta(WindowConfiguration)
 	};
 	
 	class Screen
@@ -54,35 +56,31 @@ namespace RN
 		
 		RNAPI ~Screen();
 		
-		RNAPI uint32 GetWidth() const { return _width; }
-		RNAPI uint32 GetHeight() const { return _height; }
+		RNAPI uint32 GetWidth() const { return _frame.width; }
+		RNAPI uint32 GetHeight() const { return _frame.height; }
 		
 		RNAPI float GetScaleFactor() const { return _scaleFactor; }
-		RNAPI const Rect GetFrame() const { return _frame; }
+		RNAPI const Rect &GetFrame() const { return _frame; }
 		
-		RNAPI const Array& GetConfigurations() const { return _configurations; }
+		RNAPI const Array *GetConfigurations() const { return &_configurations; }
 		
 	private:
 #if RN_PLATFORM_MAC_OS
 		Screen(CGDirectDisplayID display);
 #endif
-		
 #if RN_PLATFORM_WINDOWS
-		Screen(const char *name);
+		Screen(HMONITOR monitor);
+		bool IsMainScreen() const { return _isMain; }
 #endif
-		
-		uint32 _width;
-		uint32 _height;
-		
-		Rect _frame;
+		Rect  _frame;
 		float _scaleFactor;
 		
 #if RN_PLATFORM_MAC_OS
 		CGDirectDisplayID _display;
 #endif
-		
 #if RN_PLATFORM_WINDOWS
-		std::string _display;
+		HMONITOR _monitor;
+		bool _isMain;
 #endif
 		
 		Array _configurations;
@@ -96,18 +94,29 @@ namespace RN
 	public:
 		friend class Kernel;
 
-		enum
+		struct Mask : public Enum<uint32>
 		{
-			MaskFullscreen = (1 << 0),
-			MaskVSync = (1 << 1)
+			Mask()
+			{}
+			
+			Mask(int val) :
+				Enum(val)
+			{}
+			
+			enum
+			{
+				Fullscreen = (1 << 0),
+				VSync      = (1 << 1),
+				Borderless = (1 << 2)
+			};
 		};
-		typedef uint32 Mask;
 		
 		RNAPI Window();
 		RNAPI ~Window() override;
 
 		RNAPI void SetTitle(const std::string& title);
-		RNAPI void SetConfiguration(const WindowConfiguration *configuration, Mask mask);
+		RNAPI void SetPosition(const Vector2 &position);
+		RNAPI void ActivateConfiguration(WindowConfiguration *configuration, Mask mask);
 		
 		RNAPI void ShowCursor();
 		RNAPI void HideCursor();
@@ -115,7 +124,7 @@ namespace RN
 		RNAPI void CaptureMouse();
 		RNAPI void ReleaseMouse();
 
-		RNAPI Rect GetFrame() const;
+		RNAPI Vector2 GetSize() const;
 		
 		RNAPI Screen *GetActiveScreen() const { return _activeScreen; }
 		RNAPI Screen *GetMainScreen() const { return _mainScreen; }
@@ -124,8 +133,8 @@ namespace RN
 		Screen *GetScreenWithID(CGDirectDisplayID display);
 #endif
 		
-		RNAPI const WindowConfiguration *GetConfiguration() const { return _activeConfiguration; }
-		RNAPI const std::vector<Screen *>& GetScreens() const { return _screens; }
+		RNAPI WindowConfiguration *GetActiveConfiguration() const { return _activeConfiguration; }
+		RNAPI const std::vector<Screen *> &GetScreens() const { return _screens; }
 
 	private:
 		void Flush();
@@ -145,7 +154,7 @@ namespace RN
 		
 		WindowConfiguration *_activeConfiguration;
 		
-		RNDefineSingleton(Window)
+		RNDeclareSingleton(Window)
 	};
 }
 

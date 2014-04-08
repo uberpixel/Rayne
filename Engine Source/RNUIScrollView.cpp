@@ -12,7 +12,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(ScrollView)
+		RNDefineMeta(ScrollView, View)
 		
 		ScrollView::ScrollView() :
 			_verticalScroller(nullptr),
@@ -36,7 +36,7 @@ namespace RN
 		{
 			_size = Vector2();
 			
-			GetSubivews()->Enumerate([&](Object *tview, size_t index, bool *stop) {
+			GetSubivews()->Enumerate([&](Object *tview, size_t index, bool &stop) {
 				View *view = tview->Downcast<View>();
 				
 				_size.x = std::max(view->GetFrame().GetRight(),  _size.x);
@@ -82,6 +82,15 @@ namespace RN
 			_end.x = std::max(0.0f, _end.x);
 			_end.y = std::max(0.0f, _end.y);
 			
+			if(_offset.y > _end.y || _offset.x > _end.x)
+			{
+				_offset.x = std::min(_offset.x, _end.x);
+				_offset.y = std::min(_offset.y, _end.y);
+				
+				SetContentOffset(_offset);
+				return;
+			}
+			
 			AdjustScroller();
 		}
 		
@@ -112,10 +121,18 @@ namespace RN
 		{
 			if(_verticalScroller)
 			{
-				const Rect& bounds = GetBounds();
-				float width = _verticalScroller->GetPreferredWidth();
+				if(_size.y > GetBounds().height)
+				{
+					const Rect& bounds = GetBounds();
+					float width = _verticalScroller->GetPreferredWidth();
 				
-				_verticalScroller->SetFrame(Rect(bounds.width - width, bounds.y, width, bounds.height));
+					_verticalScroller->SetFrame(Rect(bounds.width - width, bounds.y, width, bounds.height));
+					_verticalScroller->SetHidden(false);
+				}
+				else
+				{
+					_verticalScroller->SetHidden(true);
+				}
 			}
 		}
 		
@@ -139,6 +156,21 @@ namespace RN
 		void ScrollView::ScrollWheel(Event *event)
 		{
 			Vector2 delta = -event->GetMouseWheel();
+			delta += _offset;
+			
+			delta.x = std::max(0.0f, delta.x);
+			delta.y = std::max(0.0f, delta.y);
+			
+			delta.x = delta.x > _end.x ? _end.x : delta.x;
+			delta.y = delta.y > _end.y ? _end.y : delta.y;
+			
+			SetContentOffset(delta);
+		}
+		
+		void ScrollView::MoveScroller(Vector2 delta)
+		{
+			delta /= GetFrame().Size();
+			delta *= _size;
 			delta += _offset;
 			
 			delta.x = std::max(0.0f, delta.x);

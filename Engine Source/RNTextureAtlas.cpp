@@ -111,6 +111,7 @@ namespace RN
 		pdata.format = Format::RGBA8888;
 		pdata.width  = _width;
 		pdata.height = _height;
+		pdata.scaleFactor = GetScaleFactor();
 		
 		memset(nData, 0, nWidth * nHeight * 4);
 		GetData(pdata);

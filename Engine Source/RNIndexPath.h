@@ -28,7 +28,7 @@ namespace RN
 	private:
 		std::vector<size_t> _indices;
 		
-		RNDefineMetaWithTraits(IndexPath, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMeta(IndexPath)
 	};
 }
 

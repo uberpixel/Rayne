@@ -18,22 +18,47 @@
 
 namespace RN
 {
+	struct ShadowSplit
+	{
+		ShadowSplit(size_t updateInterval = 1, size_t updateOffset = 0) :
+			biasFactor(2.0f),
+			biasUnits(512.0f),
+			updateInterval(updateInterval),
+			updateOffset(updateOffset)
+		{}
+		
+		float biasFactor;
+		float biasUnits;
+		size_t updateInterval;
+		size_t updateOffset;
+	};
+	
 	struct ShadowParameter
 	{
-		ShadowParameter(size_t tresolution = 1024) :
-			resolution(tresolution),
-			splits(4),
-			distanceFactor(0.05f),
-			biasFactor(2.0f),
-			biasUnits(512.0f)
-		{}
+		ShadowParameter(size_t resolution = 1024) :
+			resolution(resolution),
+			distanceBlendFactor(0.05f),
+			shadowTarget(nullptr)
+		{
+			splits.push_back(ShadowSplit());
+		}
+		
+		ShadowParameter(Camera *target, size_t resolution = 1024) :
+			resolution(resolution),
+			distanceBlendFactor(0.05f),
+			shadowTarget(target)
+		{
+			splits.push_back(ShadowSplit(1, 0));
+			splits.push_back(ShadowSplit(2, 0));
+			splits.push_back(ShadowSplit(2, 1));
+			splits.push_back(ShadowSplit(3, 0));
+		}
 		
 		size_t resolution;
 		
-		size_t splits;
-		float distanceFactor;
-		float biasFactor;
-		float biasUnits;
+		std::vector<ShadowSplit> splits;
+		float distanceBlendFactor;
+		Camera *shadowTarget;
 	};
 	
 	class Light : public SceneNode
@@ -49,25 +74,32 @@ namespace RN
 		};
 		
 		RNAPI Light(Type type = Type::PointLight);
+		RNAPI Light(const Light *other);
+		RNAPI Light(Deserializer *deserializer);
 		RNAPI ~Light() override;
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI bool ActivateShadows(const ShadowParameter &parameter = ShadowParameter());
 		RNAPI void DeactivateShadows();
-		RNAPI bool HasShadow() const { return _shadow; }
+		RNAPI bool HasShadows() const { return (_shadowDepthCameras.GetCount() > 0 && !_suppressShadows); }
+		RNAPI void SetSuppressShadows(bool suppress);
+		RNAPI void UpdateShadowParameters(const ShadowParameter &parameter);
 		
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
 		RNAPI void Update(float delta) override;
+		RNAPI void UpdateEditMode(float delta) override;
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		
+		RNAPI void SetType(Type type);
 		RNAPI void SetRange(float range);
 		RNAPI void SetColor(const Color& color);
 		RNAPI void SetAngle(float angle);
 		RNAPI void SetIntensity(float intensity);
-		RNAPI void SetLightCamera(Camera *lightCamera);
 		
 		const Color& GetColor() const { return _color; }
-		const Vector3& GetResultColor() { return _resultColor; }
+		const Vector3& GetFinalColor() { return _finalColor; }
 		
 		const Type GetType() const { return _lightType; }
 		float GetRange() const { return _range; }
@@ -75,41 +107,40 @@ namespace RN
 		float GetAngleCos() const { return _angleCos; }
 		float GetIntensity() const { return _intensity; }
 		
-		Camera *GetShadowCamera() const { return _shadowcam; }
-		Camera *GetLightCamera() const { return _lightcam; }
+		ShadowParameter GetShadowParameters() const {return _shadowParameter;}
 		
-		const std::vector<Matrix> &GetShadowMatrices() const { return _shadowmats; }
-		const Array *GetShadowCameras() const { return &_shadowcams; }
+		const std::vector<Matrix> &GetShadowMatrices() const { return _shadowCameraMatrices; }
+		const Array *GetShadowDepthCameras() const { return &_shadowDepthCameras; }
 	
 	private:
 		void ReCalculateColor();
 		void RemoveShadowCameras();
 		
-		bool ActivateDirectionalShadows(const ShadowParameter &parameter);
-		bool ActivatePointShadows(const ShadowParameter &parameter);
-		bool ActivateSpotShadows(const ShadowParameter &parameter);
+		bool ActivateDirectionalShadows();
+		bool ActivatePointShadows();
+		bool ActivateSpotShadows();
+		
+		void UpdateShadows();
 		
 		Type _lightType;
 		
-		Observable<Color> _color;
-		Vector3 _resultColor;
-		Vector3 _direction;
+		Observable<Color, Light> _color;
+		Vector3 _finalColor;
 		
-		Observable<float> _intensity;
-		Observable<float> _range;
-		Observable<float> _angle;
+		Observable<float, Light> _intensity;
+		Observable<float, Light> _range;
+		Observable<float, Light> _angle;
 		
 		float _angleCos;
+		bool _dirty;
 		
-		Camera *_shadowcam;
-		Camera *_lightcam;
-		std::vector<Matrix> _shadowmats;
-		Array _shadowcams;
-		bool _shadow;
-		int _shadowSplits;
-		float _shadowDistFac;
+		Camera *_shadowTarget;
+		std::vector<Matrix> _shadowCameraMatrices;
+		Array _shadowDepthCameras;
+		bool _suppressShadows;
+		ShadowParameter _shadowParameter;
 		
-		RNDefineMetaWithTraits(Light, SceneNode, MetaClassTraitCronstructable)
+		RNDeclareMeta(Light)
 	};
 }
 

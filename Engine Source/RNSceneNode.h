@@ -20,7 +20,9 @@
 #include "RNSphere.h"
 #include "RNKVOImplementation.h"
 #include "RNSTL.h"
-#include "RNSceneNodeAttachment.h"
+#include "RNEnum.h"
+
+#define kRNSceneNodeDidUpdateWorldMessage RNCSTR("kRNSceneNodeDidUpdateWorldMessage")
 
 namespace RN
 {
@@ -29,6 +31,8 @@ namespace RN
 	class World;
 	
 	class RenderingObject;
+	class SceneNodeAttachment;
+	
 	class SceneNode : public Object
 	{
 	public:
@@ -42,43 +46,75 @@ namespace RN
 			UpdateLate
 		};
 		
-		enum
+		struct Flags : public Enum<uint32>
 		{
-			FlagDrawLate     = (1 << 0),
-			FlagStatic       = (1 << 1),
-			FlagHidden       = (1 << 2),
-			FlagHideChildren = (1 << 3)
+			Flags()
+			{}
+			Flags(int value) :
+				Enum(value)
+			{}
+			
+			enum
+			{
+				DrawLate     = (1 << 0),
+				Static       = (1 << 1),
+				Hidden       = (1 << 2),
+				HideChildren = (1 << 3),
+				
+				HideInEditor        = (1 << 10),
+				UndeletableInEditor = (1 << 11),
+				LockedInEditor      = (1 << 12),
+				
+				NoSave  = (1 << 4),
+				Mutated = (1 << 5)
+			};
 		};
 		
-		enum
+		struct ChangeSet : public Enum<uint32>
 		{
-			ChangedGeneric = (1 << 0),
-			ChangedFlags = (1 << 1),
-			ChangedPosition = (1 << 2),
-			ChangedDependencies = (1 << 3),
-			ChangedPriority = (1 << 4),
-			ChangedParent = (1 << 5),
-			ChangedAttachments = (1 << 6),
-			ChangedWorld = (1 << 7)
+			ChangeSet()
+			{}
+			ChangeSet(int value) :
+				Enum(value)
+			{}
+			
+			enum
+			{
+				Generic = (1 << 0),
+				Flags = (1 << 1),
+				Position = (1 << 2),
+				Dependencies = (1 << 3),
+				Priority = (1 << 4),
+				Parent = (1 << 5),
+				Attachments = (1 << 6),
+				World = (1 << 7),
+				Tag = (1 << 8)
+			};
 		};
-		
-		typedef uint32 Flags;
 		
 		RNAPI SceneNode();
 		RNAPI SceneNode(const Vector3& position);
 		RNAPI SceneNode(const Vector3& position, const Quaternion& rotation);
+		RNAPI SceneNode(const SceneNode *other);
+		RNAPI SceneNode(Deserializer *deserializer);
 		RNAPI ~SceneNode() override;
 		
 		RNAPI void FillRenderingObject(RenderingObject& object) const;
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI void Translate(const Vector3& trans);
+		RNAPI void TranslateLocal(const Vector3& trans);
 		RNAPI void Scale(const Vector3& scal);
 		RNAPI void Rotate(const Vector3& rot);
+		RNAPI void Rotate(const Quaternion& rot);
 		
-		RNAPI void TranslateLocal(const Vector3& trans);
-		RNAPI void ScaleLocal(const Vector3& scal);
+		RNAPI void RemoveFromWorld();
 		
 		RNAPI void SetFlags(Flags flags);
+		RNAPI void SetTag(Tag tag);
+		
+		RNAPI void SetRenderGroup(uint8 group);
+		RNAPI void SetCollisionGroup(uint8 group);
 		
 		RNAPI virtual void SetPosition(const Vector3& pos);
 		RNAPI virtual void SetScale(const Vector3& scal);
@@ -97,14 +133,19 @@ namespace RN
 		RNAPI virtual bool IsVisibleInCamera(Camera *camera);
 		RNAPI virtual void Render(Renderer *renderer, Camera *camera);
 		
+		RNAPI uint64 GetUID() const { return _uid; }
+		RNAPI uint64 GetLID() const { return _lid; }
+		
+		RNAPI Tag GetTag() const { return _tag; }
+		
 		RNAPI Vector3 GetPosition() const;
 		RNAPI Vector3 GetScale() const;
 		RNAPI Vector3 GetEulerAngle() const;
 		RNAPI Quaternion GetRotation() const;
 		
-		RNAPI Vector3 Forward() const;
-		RNAPI Vector3 Up() const;
-		RNAPI Vector3 Right() const;
+		RNAPI Vector3 GetForward() const;
+		RNAPI Vector3 GetUp() const;
+		RNAPI Vector3 GetRight() const;
 		
 		RNAPI Vector3 GetWorldPosition() const;
 		RNAPI Vector3 GetWorldScale() const;
@@ -126,13 +167,11 @@ namespace RN
 		
 		RNAPI const std::string& GetDebugName() { return _debugName; }
 		
-		RNAPI void LookAt(SceneNode *other);
+		RNAPI void LookAt(const RN::Vector3 &target, bool keepUpAxis=false);
 		
-		RNAPI void AttachChild(SceneNode *child);
-		RNAPI void DetachChild(SceneNode *child);
-		RNAPI void DetachFromParent();
-		RNAPI void LockChildren() const;
-		RNAPI void UnlockChildren() const;
+		RNAPI void AddChild(SceneNode *child);
+		RNAPI void RemoveChild(SceneNode *child);
+		RNAPI void RemoveFromParent();
 		
 		RNAPI void SetAction(const std::function<void (SceneNode *, float)>& action);
 		RNAPI void AddDependency(SceneNode *dependency);
@@ -154,37 +193,43 @@ namespace RN
 		RNAPI FrameID GetLastFrame() const { return _lastFrame; }
 		RNAPI World *GetWorld() const { return _worldInserted ? _world : nullptr; }
 		RNAPI Priority GetPriority() const { return _priority; }
-		RNAPI Flags GetFlags() const { return _flags; }
+		RNAPI Flags GetFlags() const { return _flags.load(); }
 		
-		RNAPI const Array *GetChildren() const { return &_children; }
+		RNAPI uint8 GetRenderGroup() const {return renderGroup;};
+		RNAPI uint8 GetCollisionGroup() const {return collisionGroup;};
+		
+		RNAPI const Array *GetChildren() const;
+		RNAPI bool HasChildren() const;
 		
 		RNAPI virtual class Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode = Hit::HitMode::IgnoreNone);
 		
 		RNAPI Matrix GetWorldTransform() const;
-		RNAPI Matrix GetLocalTransform() const;
+		RNAPI Matrix GetTransform() const;
 		
 		virtual void Update(float delta)
 		{
 			if(_action)
 				_action(this, delta);
 			
-			_attachments.Enumerate<SceneNodeAttachment>([=](SceneNodeAttachment *attachment, size_t index, bool *stop) {
-				attachment->Update(delta);
-			});
+			UpdateAttachments(delta);
+		}
+		
+		virtual void UpdateEditMode(float delta)
+		{
+			UpdateAttachmentsEditMode(delta);
 		}
 		
 		RNAPI virtual bool CanUpdate(FrameID frame);
 		
-		int8 renderGroup;
-		int8 collisionGroup;
-		
 	protected:
-		RNAPI void WillUpdate(uint32 changeSet);
-		RNAPI void DidUpdate(uint32 changeSet);
+		RNAPI virtual void WillUpdate(ChangeSet changeSet);
+		RNAPI virtual void DidUpdate(ChangeSet changeSet);
 		RNAPI void CleanUp() override;
+		RNAPI void UpdateAttachments(float delta);
+		RNAPI void UpdateAttachmentsEditMode(float delta);
 		
-		RNAPI virtual void ChildDidUpdate(SceneNode *child, uint32 changes) {}
-		RNAPI virtual void ChildWillUpdate(SceneNode *child, uint32 changes) {}
+		RNAPI virtual void ChildDidUpdate(SceneNode *child, ChangeSet changes) {}
+		RNAPI virtual void ChildWillUpdate(SceneNode *child, ChangeSet changes) {}
 		RNAPI virtual void WillAddChild(SceneNode *child) {}
 		RNAPI virtual void DidAddChild(SceneNode *child)  {}
 		RNAPI virtual void WillRemoveChild(SceneNode *child) {}
@@ -192,9 +237,9 @@ namespace RN
 		
 		RNAPI void UpdatedToFrame(FrameID frame) { _lastFrame.store(frame); }
 		
-		Observable<Vector3> _position;
-		Observable<Vector3> _scale;
-		Observable<Quaternion> _rotation;
+		Observable<Vector3, SceneNode> _position;
+		Observable<Vector3, SceneNode> _scale;
+		Observable<Quaternion, SceneNode> _rotation;
 		Vector3 _euler;
 		
 		AABB   _boundingBox;
@@ -220,8 +265,16 @@ namespace RN
 		Array _attachments;
 		
 		Priority _priority;
-		std::atomic<Flags> _flags;
+		std::atomic<uint32> _flags;
 		std::atomic<FrameID> _lastFrame;
+		
+		uint8 renderGroup;
+		uint8 collisionGroup;
+		
+		uint64 _uid;
+		uint64 _lid;
+		
+		Observable<Tag, SceneNode> _tag;
 		
 		std::function<void (SceneNode *, float)> _action;
 		std::string _debugName;
@@ -243,7 +296,7 @@ namespace RN
 		mutable Matrix _worldTransform;
 		mutable Matrix _localTransform;
 		
-		RNDefineMetaWithTraits(SceneNode, Object, MetaClassTraitCronstructable)
+		RNDeclareMeta(SceneNode)
 	};
 	
 	
@@ -251,22 +304,22 @@ namespace RN
 	RN_INLINE void SceneNode::Translate(const Vector3& trans)
 	{
 		_transformLock.Lock();
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		_position += trans;
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		_transformLock.Unlock();
 	}
 	
 	RN_INLINE void SceneNode::Scale(const Vector3& scal)
 	{
 		_transformLock.Lock();
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		_scale += scal;
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		_transformLock.Unlock();
 	}
 	
@@ -274,47 +327,47 @@ namespace RN
 	{
 		_transformLock.Lock();
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		_euler += rot;
 		_rotation = Quaternion(_euler);
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		_transformLock.Unlock();
 	}
 	
+	RN_INLINE void SceneNode::Rotate(const Quaternion& rot)
+	{
+		_transformLock.Lock();
+		
+		WillUpdate(ChangeSet::Position);
+		
+		_rotation *= rot;
+		
+		DidUpdate(ChangeSet::Position);
+		
+		_transformLock.Unlock();
+	}
 	
 	RN_INLINE void SceneNode::TranslateLocal(const Vector3& trans)
 	{
 		_transformLock.Lock();
 		
-		WillUpdate(ChangedPosition);
-		_position += _rotation->RotateVector(trans);
-		DidUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
+		_position += _rotation->GetRotatedVector(trans);
+		DidUpdate(ChangeSet::Position);
 		
 		_transformLock.Unlock();
 	}
-	
-	RN_INLINE void SceneNode::ScaleLocal(const Vector3& scal)
-	{
-		_transformLock.Lock();
-		
-		WillUpdate(ChangedPosition);
-		_scale += _rotation->RotateVector(scal);
-		DidUpdate(ChangedPosition);
-		
-		_transformLock.Unlock();
-	}
-	
 	
 	RN_INLINE void SceneNode::SetPosition(const Vector3& pos)
 	{
 		_transformLock.Lock();
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		_position = pos;
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		_transformLock.Unlock();
 	}
@@ -323,9 +376,9 @@ namespace RN
 	{
 		_transformLock.Lock();
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		_scale = scal;
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		_transformLock.Unlock();
 	}
@@ -334,12 +387,12 @@ namespace RN
 	{
 		_transformLock.Lock();
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		_euler    = rot.GetEulerAngle();
 		_rotation = rot;
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		_transformLock.Unlock();
 	}
@@ -361,14 +414,14 @@ namespace RN
 			return;
 		}
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		Quaternion temp;
 		temp = temp / _parent->GetWorldRotation();
 		
-		_position = temp.RotateVector(pos) - temp.RotateVector(GetWorldPosition());
+		_position = temp.GetRotatedVector(pos) - temp.GetRotatedVector(GetWorldPosition());
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		lock1.unlock();
 		lock2.unlock();
@@ -390,11 +443,18 @@ namespace RN
 			return;
 		}
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
-		_scale = scal - GetWorldScale();
+		if(_parent && !Math::Compare(_parent->GetWorldScale().GetMin(), 0.0f))
+		{
+			_scale = scal / _parent->GetWorldScale();
+		}
+		else
+		{
+			_scale = scal;
+		}
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		lock1.unlock();
 		lock2.unlock();
@@ -416,33 +476,33 @@ namespace RN
 			return;
 		}
 		
-		WillUpdate(ChangedPosition);
+		WillUpdate(ChangeSet::Position);
 		
 		_rotation = rot / _parent->GetWorldRotation();
 		_euler = _rotation->GetEulerAngle();
 		
-		DidUpdate(ChangedPosition);
+		DidUpdate(ChangeSet::Position);
 		
 		lock1.unlock();
 		lock2.unlock();
 	}
 	
 	
-	RN_INLINE Vector3 SceneNode::Forward() const
+	RN_INLINE Vector3 SceneNode::GetForward() const
 	{
-		Vector3 forward = GetWorldRotation().RotateVector(Vector3(0.0, 0.0, -1.0));
+		Vector3 forward = GetWorldRotation().GetRotatedVector(Vector3(0.0, 0.0, -1.0));
 		return forward;
 	}
 	
-	RN_INLINE Vector3 SceneNode::Up() const
+	RN_INLINE Vector3 SceneNode::GetUp() const
 	{
-		Vector3 up = GetWorldRotation().RotateVector(Vector3(0.0, 1.0, 0.0));
+		Vector3 up = GetWorldRotation().GetRotatedVector(Vector3(0.0, 1.0, 0.0));
 		return up;
 	}
 	
-	RN_INLINE Vector3 SceneNode::Right() const
+	RN_INLINE Vector3 SceneNode::GetRight() const
 	{
-		Vector3 right = GetWorldRotation().RotateVector(Vector3(1.0, 0.0, 0.0));
+		Vector3 right = GetWorldRotation().GetRotatedVector(Vector3(1.0, 0.0, 0.0));
 		return right;
 	}
 	
@@ -563,7 +623,7 @@ namespace RN
 	}
 	
 	
-	RN_INLINE Matrix SceneNode::GetLocalTransform() const
+	RN_INLINE Matrix SceneNode::GetTransform() const
 	{
 		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
@@ -633,7 +693,7 @@ namespace RN
 	{
 		if(_updated)
 		{
-			_localTransform.MakeTranslate(_position);
+			_localTransform = Matrix::WithTranslation(_position);
 			_localTransform.Rotate(_rotation);
 			_localTransform.Scale(_scale);
 			
@@ -641,12 +701,12 @@ namespace RN
 			{
 				_parent->UpdateInternalData();
 				
-				_worldPosition = _parent->_worldPosition + _parent->_worldRotation.RotateVector(_position);
+				_worldPosition = _parent->_worldPosition + _parent->_worldRotation.GetRotatedVector(_position);
 				_worldRotation = _parent->_worldRotation * _rotation;
-				_worldScale = _parent->_worldScale + _scale;
+				_worldScale = _parent->_worldScale * _scale;
 				_worldEuler = _parent->_worldEuler + _euler;
 				
-				_worldTransform = _parent->_localTransform * _localTransform;
+				_worldTransform = _parent->_worldTransform * _localTransform;
 			}
 			else
 			{
@@ -662,12 +722,12 @@ namespace RN
 			
 			_transformedBoundingBox.position = _worldPosition;
 			_transformedBoundingBox *= _worldScale;
-			_transformedBoundingBox.Rotate(_worldRotation);
+			_transformedBoundingBox.SetRotation(_worldRotation);
 			
 			_transformedBoundingSphere = _boundingSphere;
 			_transformedBoundingSphere.position = _worldPosition;
 			_transformedBoundingSphere *= _worldScale;
-			_transformedBoundingSphere.Rotate(_worldRotation);
+			_transformedBoundingSphere.SetRotation(_worldRotation);
 			
 			_updated = false;
 			

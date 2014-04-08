@@ -7,11 +7,12 @@
 //
 
 #include "RNSceneManager.h"
+#include "RNWorld.h"
 
 namespace RN
 {
-	RNDeclareMeta(SceneManager)
-	RNDeclareMeta(GenericSceneManager)
+	RNDefineMeta(SceneManager, Object)
+	RNDefineMeta(GenericSceneManager, SceneManager)
 	
 	SceneManager::SceneManager()
 	{
@@ -39,7 +40,6 @@ namespace RN
 		if(!node->GetParent())
 		{
 			_nodes.push_back(node);
-			_rootNodes.insert(node);
 		}
 		
 		Unlock();
@@ -49,40 +49,26 @@ namespace RN
 	{
 		Lock();
 		
-		if(_rootNodes.find(node) != _rootNodes.end())
-		{
-			_nodes.erase(std::remove(_nodes.begin(), _nodes.end(), node), _nodes.end());
-			_rootNodes.erase(node);
-		}
+		_nodes.erase(std::remove(_nodes.begin(), _nodes.end(), node), _nodes.end());
 		
 		Unlock();
 	}
 	
-	void GenericSceneManager::UpdateSceneNode(SceneNode *node, uint32 changes)
+	void GenericSceneManager::UpdateSceneNode(SceneNode *node, SceneNode::ChangeSet changes)
 	{
-		if(changes & SceneNode::ChangedParent)
+		if(changes & SceneNode::ChangeSet::Parent)
 		{
 			Lock();
 			
 			bool hasParent = (node->GetParent());
-			bool markedRoot = (_rootNodes.find(node) != _rootNodes.end());
 			
-			if((!hasParent && markedRoot) || (hasParent && !markedRoot))
+			if(!hasParent)
 			{
 				Unlock();
 				return;
 			}
 			
-			if(hasParent)
-			{
-				_nodes.erase(std::remove(_nodes.begin(), _nodes.end(), node), _nodes.end());
-				_rootNodes.erase(node);
-			}
-			else
-			{
-				_rootNodes.insert(node);
-				_nodes.push_back(node);
-			}
+			_nodes.erase(std::remove(_nodes.begin(), _nodes.end(), node), _nodes.end());
 			
 			Unlock();
 		}
@@ -91,20 +77,25 @@ namespace RN
 	
 	void GenericSceneManager::RenderSceneNode(Camera *camera, SceneNode *node)
 	{
-		if(!(camera->renderGroup & (1 << node->renderGroup)))
+		auto flags = node->GetFlags();
+		
+		if(!(camera->GetRenderGroups() & (1 << node-> GetRenderGroup())) || flags & SceneNode::Flags::Hidden)
 			return;
 		
 		if(node->IsVisibleInCamera(camera))
 		{
 			node->Render(_renderer, camera);
 			
-			const Array *children = node->GetChildren();
-			size_t count = children->GetCount();
-			
-			for(size_t i = 0; i < count; i++)
+			if(!(flags & SceneNode::Flags::HideChildren))
 			{
-				SceneNode *child = children->GetObjectAtIndex<SceneNode>(i);
-				RenderSceneNode(camera, child);
+				const Array *children = node->GetChildren();
+				size_t count = children->GetCount();
+				
+				for(size_t i = 0; i < count; i++)
+				{
+					SceneNode *child = static_cast<SceneNode *>((*children)[i]);
+					RenderSceneNode(camera, child);
+				}
 			}
 		}
 	}
@@ -120,11 +111,13 @@ namespace RN
 	
 	Hit GenericSceneManager::CastRay(const Vector3 &position, const Vector3 &direction, uint32 mask, Hit::HitMode mode)
 	{
+		World::GetActiveWorld()->ApplyNodes();
+		
 		Hit hit;
 		for(auto i=_nodes.begin(); i!=_nodes.end(); i++)
 		{
 			SceneNode *node = *i;
-			if(!(mask & (1 << node->collisionGroup)))
+			if(!(mask & (1 << node->GetCollisionGroup())))
 				continue;
 				
 			Hit result = node->CastRay(position, direction, mode);
@@ -140,5 +133,20 @@ namespace RN
 		}
 		
 		return hit;
+	}
+	
+	std::vector<SceneNode *> GenericSceneManager::GetSceneNodes(const AABB &box)
+	{
+		std::vector<SceneNode *> nodes;
+		
+		World::GetActiveWorld()->ApplyNodes();
+		
+		for(SceneNode *node : _nodes)
+		{
+			if(node->GetBoundingBox().Intersects(box))
+				nodes.push_back(node);
+		}
+		
+		return nodes;
 	}
 }

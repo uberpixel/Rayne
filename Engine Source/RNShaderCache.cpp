@@ -27,7 +27,7 @@ namespace RN
 	};
 	
 	
-	RNDeclareSingleton(ShaderCache)
+	RNDefineSingleton(ShaderCache)
 	
 	ShaderCache::ShaderCache()
 	{

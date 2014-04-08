@@ -17,31 +17,40 @@
 #include "RNAABB.h"
 #include "RNSphere.h"
 #include "RNHit.h"
+#include "RNEnum.h"
 
 namespace RN
 {
-	enum
+	struct MeshFeature : Enum<uint32>
 	{
-		kMeshFeatureVertices,
-		kMeshFeatureNormals,
-		kMeshFeatureTangents,
-		kMeshFeatureColor0,
-		kMeshFeatureColor1,
-		kMeshFeatureUVSet0,
-		kMeshFeatureUVSet1,
-		kMeshFeatureBoneWeights,
-		kMeshFeatureBoneIndices,
-		kMeshFeatureIndices,
+		MeshFeature()
+		{}
 		
-		kMeshFeatureCustom = kMeshFeatureIndices + 1
+		MeshFeature(int value) :
+			Enum(value)
+		{}
+		
+		enum
+		{
+			Vertices,
+			Normals,
+			Tangents,
+			Color0,
+			Color1,
+			UVSet0,
+			UVSet1,
+			BoneWeights,
+			BoneIndices,
+			Indices,
+			
+			Custom = Indices + 1
+		};
 	};
 	
 	enum DescriptorFlags
 	{
 		DescriptorFlagSIMDAlignment
 	};
-	
-	typedef uint32 MeshFeature;
 	
 	struct MeshDescriptor
 	{
@@ -92,7 +101,8 @@ namespace RN
 			
 			ElementIterator(const ElementIterator& other) :
 				_feature(other._feature),
-				_ptr(other._ptr)
+				_ptr(other._ptr),
+				_base(other._base)
 			{
 				_chunk = other._chunk;
 			}
@@ -121,16 +131,63 @@ namespace RN
 			}
 			
 			
-			ElementIterator<T>& operator ++()
+			ElementIterator<T> &Seek(size_t index)
 			{
-				Advance();
+				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_base) + (__ChunkFriend::GetStride() * index)));
 				return *this;
 			}
 			
+			
+			ElementIterator<T> operator +(size_t value) const
+			{
+				ElementIterator<T> result(*this);
+				result.Advance(value);
+				
+				return result;
+			}
+			ElementIterator<T> &operator +=(size_t value)
+			{
+				Advance(value);
+				return *this;
+			}
+			
+			ElementIterator<T> operator -(size_t value) const
+			{
+				ElementIterator<T> result(*this);
+				result.Decrease(value);
+				
+				return result;
+			}
+			ElementIterator<T> &operator -=(size_t value)
+			{
+				Decrease(value);
+				return *this;
+			}
+			
+			
+			ElementIterator<T>& operator ++()
+			{
+				Advance(1);
+				return *this;
+			}
 			ElementIterator<T> operator ++(int)
 			{
 				ElementIterator<T> result(*this);
-				Advance();
+				Advance(1);
+				
+				return result;
+			}
+			
+			
+			ElementIterator<T>& operator --()
+			{
+				Decrease(1);
+				return *this;
+			}
+			ElementIterator<T> operator --(int)
+			{
+				ElementIterator<T> result(*this);
+				Decrease(1);
 				
 				return result;
 			}
@@ -138,18 +195,25 @@ namespace RN
 		private:
 			ElementIterator(MeshFeature feature, Chunk *chunk, T *ptr) :
 				_feature(feature),
-				_ptr(ptr)
+				_ptr(ptr),
+				_base(ptr)
 			{
 				_chunk = chunk;
 			}
 			
-			void Advance()
+			void Advance(size_t count)
 			{
-				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_ptr) + __ChunkFriend::GetStride()));
+				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_ptr) + (__ChunkFriend::GetStride() * count)));
 			}
+			void Decrease(size_t count)
+			{
+				_ptr = reinterpret_cast<T *>((reinterpret_cast<uint8 *>(_ptr) - (__ChunkFriend::GetStride() * count)));
+			}
+			
 			
 			MeshFeature _feature;
 			T *_ptr;
+			T *_base;
 		};
 		
 		class Chunk
@@ -165,6 +229,18 @@ namespace RN
 				uint8 *ptr = reinterpret_cast<uint8 *>(_begin) + offset;
 				
 				return ElementIterator<T>(feature, this, reinterpret_cast<T *>(ptr));
+			}
+			
+			template<class T>
+			ElementIterator<T> GetIteratorAtIndex(MeshFeature feature, size_t index)
+			{
+				size_t offset = _mesh->GetDescriptorForFeature(feature)->offset;
+				uint8 *ptr = reinterpret_cast<uint8 *>(_begin) + offset;
+				
+				ElementIterator<T> result(feature, this, reinterpret_cast<T *>(ptr));
+				result += index;
+				
+				return result;
 			}
 			
 			template<class T>
@@ -190,11 +266,37 @@ namespace RN
 			bool _dirty;
 			bool _indices;
 		};
-	
+		
+		enum class DrawMode : GLenum
+		{
+			Points = GL_POINTS,
+			LineStrip = GL_LINE_STRIP,
+			LineLoop  = GL_LINE_LOOP,
+			Lines = GL_LINES,
+			TriangleStrip = GL_TRIANGLE_STRIP,
+			TriangleFan = GL_TRIANGLE_FAN,
+			Triangles = GL_TRIANGLES,
+			LineStripAdjacency = GL_LINE_STRIP_ADJACENCY,
+			LinesAdjacency = GL_LINES_ADJACENCY,
+			TriangleStripAdjacency = GL_TRIANGLE_STRIP_ADJACENCY,
+			TrianglesAdjacency = GL_TRIANGLES_ADJACENCY,
+			Patches = GL_PATCHES
+		};
+		
+		enum class MeshUsage : GLenum
+		{
+			Static = GL_STATIC_DRAW,
+			Dynamic = GL_DYNAMIC_DRAW,
+			Stream = GL_STREAM_DRAW
+		};
+		
 		
 		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor, size_t verticesCount, size_t indicesCount);
 		RNAPI Mesh(const std::vector<MeshDescriptor>& descriptor, size_t verticesCount, size_t indicesCount, const std::pair<const void *, const void *>& data);
+		RNAPI Mesh(Deserializer *deserializer);
 		RNAPI ~Mesh() override;
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI const MeshDescriptor *GetDescriptorForFeature(MeshFeature feature) const;
 	
@@ -223,15 +325,16 @@ namespace RN
 		RNAPI void DeleteIndicesChunk(size_t offset, size_t elements);
 	
 		
-		RNAPI void SetMode(GLenum mode);
-		RNAPI void SetVBOUsage(GLenum usage);
-		RNAPI void SetIBOUsage(GLenum usage);
+		RNAPI void SetDrawMode(DrawMode mode);
+		RNAPI void SetVBOUsage(MeshUsage usage);
+		RNAPI void SetIBOUsage(MeshUsage usage);
 		
-		RNAPI void SetElementData(MeshFeature feature, void *data);
+		RNAPI void SetElementData(MeshFeature feature, const void *data);
 		RNAPI void SetVerticesCount(size_t count);
 		RNAPI void SetIndicesCount(size_t count);
 		
 		RNAPI void CalculateBoundingVolumes();
+		RNAPI void GenerateTangents();
 		
 		RNAPI bool SupportsFeature(MeshFeature feature) const;
 		
@@ -241,7 +344,7 @@ namespace RN
 		RNAPI GLuint GetIBO() { return _ibo; }
 		
 		RNAPI size_t GetStride() const { return _stride; }
-		RNAPI GLenum GetMode() const { return _mode; }
+		RNAPI DrawMode GetDrawMode() const { return _mode; }
 		
 		RNAPI size_t GetVerticesCount() const { return _verticesCount; }
 		RNAPI size_t GetIndicesCount() const { return _indicesCount; }
@@ -276,9 +379,9 @@ namespace RN
 		size_t _verticesCount;
 		size_t _indicesCount;
 		
-		GLenum _vboUsage;
-		GLenum _iboUsage;
-		GLenum _mode;
+		MeshUsage _vboUsage;
+		MeshUsage _iboUsage;
+		DrawMode  _mode;
 		
 		AABB   _boundingBox;
 		Sphere _boundingSphere;
@@ -290,9 +393,9 @@ namespace RN
 		uint8 *_indices;
 		
 		std::vector<MeshDescriptor> _descriptors;
-		std::unordered_set<MeshFeature> _features;
+		std::set<MeshFeature> _features;
 		
-		RNDefineMeta(Mesh, Object)
+		RNDeclareMeta(Mesh)
 	};
 }
 

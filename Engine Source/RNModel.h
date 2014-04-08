@@ -20,13 +20,17 @@
 namespace RN
 {
 	class Skeleton;
-	class Model : public Object
+	class Model : public Asset
 	{
 	public:
 		RNAPI Model();
 		RNAPI Model(Mesh *mesh, Material *material);
+		RNAPI Model(const Model *other);
 		
 		RNAPI ~Model() override;
+		
+		RNAPI void Unfault(Deserializer *deserializer) override;
+		RNAPI void Serialize(Serializer *serializer);
 		
 		RNAPI static Model *Empty();
 		RNAPI static Model *WithFile(const std::string& path, const Dictionary *settings = nullptr);
@@ -38,6 +42,7 @@ namespace RN
 		RNAPI void SetSkeleton(Skeleton *skeleton);
 		RNAPI Skeleton *GetSkeleton();
 		
+		RNAPI void SetLODFactors(const std::vector<float> &factors);
 		RNAPI void AddMesh(Mesh *mesh, Material *material, size_t lodStage);
 		
 		RNAPI size_t GetLODStageForDistance(float distance) const;
@@ -51,6 +56,9 @@ namespace RN
 		
 		RNAPI const AABB& GetBoundingBox() const { return _boundingBox; }
 		RNAPI const Sphere& GetBoundingSphere() const { return _boundingSphere; }
+		
+		RNAPI static std::vector<float> &GetDefaultLODFactors();
+		RNAPI static void SetDefaultLODFactors(const std::vector<float> &factors);
 		
 	private:
 		class MeshGroup
@@ -102,7 +110,7 @@ namespace RN
 		std::vector<LODGroup *> _groups;
 		Skeleton *_skeleton;
 		
-		RNDefineMetaWithTraits(Model, Object, MetaClassTraitCronstructable)
+		RNDeclareMeta(Model)
 	};
 }
 

@@ -16,7 +16,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(Button)
+		RNDefineMeta(Button, Control)
 		
 		Button::Button()
 		{
@@ -85,6 +85,11 @@ namespace RN
 			_currentTitle = nullptr;
 			_currentImage = nullptr;
 			
+			Style *styleSheet = Style::GetSharedInstance();
+			
+			_fonts.SetValueForState(styleSheet->GetFont(Style::FontStyle::DefaultFont), State::Normal);
+			_colors.SetValueForState(styleSheet->GetColor(Style::ColorStyle::TextColor), State::Normal);
+			
 			AddSubview(_backgroundImage);
 			AddSubview(_image);
 			AddSubview(_label);
@@ -112,7 +117,7 @@ namespace RN
 				SetBehavior(Behavior::Switch);
 			
 			Array *states = style->GetObjectForKey<Array>(RNCSTR("states"));
-			states->Enumerate([&](Object *object, size_t index, bool *stop) {
+			states->Enumerate([&](Object *object, size_t index, bool &stop) {
 				Dictionary *state = object->Downcast<Dictionary>();
 				
 				String *name = state->GetObjectForKey<String>(RNCSTR("name"));
@@ -150,6 +155,8 @@ namespace RN
 			_backgroundImage->SetImage(_backgroundImages.GetValueForState(state));
 			_image->SetImage(_images.GetValueForState(state));
 			_label->SetText(title ? title : RNCSTR(""));
+			_label->SetTextColor(_colors.GetValueForState(state));
+			_label->SetFont(_fonts.GetValueForState(state));
 			
 			_currentImage = _image->GetImage();
 			_currentTitle = _label->GetText();
@@ -189,6 +196,18 @@ namespace RN
 			StateChanged(GetState());
 		}
 		
+		void Button::SetFontForState(Font *font, State state)
+		{
+			_fonts.SetValueForState(font, state);
+			StateChanged(GetState());
+		}
+		
+		void Button::SetTitleColorForState(RN::UI::Color *color, State state)
+		{
+			_colors.SetValueForState(color, state);
+			StateChanged(GetState());
+		}
+		
 		void Button::SetBehavior(Behavior behavior)
 		{
 			_behavior = behavior;
@@ -221,7 +240,7 @@ namespace RN
 		bool Button::PostEvent(EventType event)
 		{
 			if(!IsEnabled())
-				return true;
+				return false;
 			
 			if(_behavior == Behavior::Switch)
 			{
@@ -255,7 +274,7 @@ namespace RN
 		Vector2 Button::GetSizeThatFits()
 		{
 			State temp = GetState();
-			StateChanged(Control::Normal);
+			StateChanged(Control::State::Normal);
 			
 			Vector2 size = Vector2(_contentInsets.left + _contentInsets.right, _contentInsets.top + _contentInsets.bottom);
 			
@@ -324,8 +343,8 @@ namespace RN
 			
 			bool simpleCenter = (_position == ImagePosition::Overlaps || _position == ImagePosition::NoImage || _position == ImagePosition::ImageOnly);
 			
-			_label->SetFrame(Rect(_contentInsets.left, centeredTitle.y, size.x - insetSize.x, titleSize.y));
-			_image->SetFrame(Rect(_contentInsets.left, centeredImage.y, size.x - insetSize.x, imageSize.y));
+			_label->SetFrame(Rect(_contentInsets.left, centeredTitle.y, size.x - insetSize.x, titleSize.y).Integral());
+			_image->SetFrame(Rect(_contentInsets.left, centeredImage.y, size.x - insetSize.x, imageSize.y).Integral());
 			
 			if(!_currentImage || !_currentTitle || simpleCenter)
 				return;

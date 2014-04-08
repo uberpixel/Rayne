@@ -14,8 +14,8 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(WidgetBackgroundView)
-		RNDeclareMeta(WidgetTitleBar)
+		RNDefineMeta(WidgetBackgroundView, View)
+		RNDefineMeta(WidgetTitleBar, View)
 		
 		// ---------------------
 		// MARK: -
@@ -66,15 +66,15 @@ namespace RN
 				{
 					case Widget::TitleControl::Close:
 						style   = styleSheet->GetButtonStyleWithKeyPath(RNCSTR("window.controls.close"));
-						enabled = (_style & Widget::StyleClosable);
+						enabled = (_style & Widget::Style::Closable);
 						break;
 					case Widget::TitleControl::Maximize:
 						style   = styleSheet->GetButtonStyleWithKeyPath(RNCSTR("window.controls.maximize"));
-						enabled = (_style & Widget::StyleMaximizable);
+						enabled = (_style & Widget::Style::Maximizable);
 						break;
 					case Widget::TitleControl::Minimize:
 						style   = styleSheet->GetButtonStyleWithKeyPath(RNCSTR("window.controls.minimize"));
-						enabled = (_style & Widget::StyleMinimizable);
+						enabled = (_style & Widget::Style::Minimizable);
 						break;
 				}
 			}
@@ -126,7 +126,7 @@ namespace RN
 			Rect bounds = GetBounds();
 			float offsetX = 5.0f;
 			
-			_controlButtons.Enumerate<Button>([&](Button *button, size_t index, bool *stop) {
+			_controlButtons.Enumerate<Button>([&](Button *button, size_t index, bool &stop) {
 				
 				Rect frame = button->GetFrame();
 				
@@ -143,7 +143,7 @@ namespace RN
 				float spaceLeft = bounds.width - offsetX - 5.0f;
 				Vector2 size   = _title->GetSizeThatFits();
 				
-				bool fitsCentered = (size.x >= spaceLeft);
+				bool fitsCentered = (size.x < spaceLeft);
 				float top = roundf((bounds.height * 0.4) - (size.y * 0.5f));
 				
 				Rect rect = _title->GetFrame();
@@ -184,32 +184,32 @@ namespace RN
 			Dictionary *border     = style->GetObjectForKey<Dictionary>(RNCSTR("border"));
 			
 			if(selected)
-				ParseStyle(selected, Control::Selected);
+				ParseStyle(selected, Control::State::Selected);
 			
 			if(deselected)
-				ParseStyle(deselected, Control::Normal);
+				ParseStyle(deselected, Control::State::Normal);
 			
 			if(border)
 				_border = Style::ParseEdgeInsets(border);
 			
 			_backdrop = new ImageView();
-			_backdrop->SetAutoresizingMask(AutoresizingFlexibleHeight | AutoresizingFlexibleWidth);
+			_backdrop->SetAutoresizingMask(AutoresizingMask::FlexibleHeight | AutoresizingMask::FlexibleWidth);
 			
 			_shadow = new ImageView();
-			_shadow->SetAutoresizingMask(AutoresizingFlexibleHeight | AutoresizingFlexibleWidth);
+			_shadow->SetAutoresizingMask(AutoresizingMask::FlexibleHeight | AutoresizingMask::FlexibleWidth);
 			
 			_titleBar = new WidgetTitleBar(widget, tstyle);
-			_titleBar->SetAutoresizingMask(AutoresizingFlexibleWidth);
+			_titleBar->SetAutoresizingMask(AutoresizingMask::FlexibleWidth);
 			_titleBar->SetFrame(Rect(0.0f, -_border.top, 0.0f, _border.top));
 			
 			AddSubview(_shadow);
 			AddSubview(_backdrop);
 			AddSubview(_titleBar);
 			
-			if(!(_style & Widget::StyleTitled))
+			if(!(_style & Widget::Style::Titled))
 				_titleBar->SetHidden(true);
 			
-			SetState(Control::Selected);
+			SetState(Control::State::Selected);
 			
 			_titleBar->CreateButton(Widget::TitleControl::Close);
 			_titleBar->CreateButton(Widget::TitleControl::Minimize);

@@ -22,12 +22,14 @@ namespace RN
 		RNAPI Array(size_t size);
 		RNAPI Array(const Array *other);
 		RNAPI Array(const Set *set);
-		
+		RNAPI Array(Deserializer *deserializer);
 		RNAPI ~Array() override;
 		
 		RNAPI static Array *WithArray(const Array *other);
 		RNAPI static Array *WithSet(const Set *set);
 		RNAPI static Array *WithObjects(Object *first, ...);
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		
 		Object *operator [](int index) const
@@ -41,13 +43,13 @@ namespace RN
 		}
 		
 		
-		void Enumerate(const std::function<void (Object *, size_t, bool *)>& callback) const
+		void Enumerate(const std::function<void (Object *, size_t, bool &)>& callback) const
 		{
 			bool stop = false;
 			
 			for(size_t i = 0; i < _count; i ++)
 			{
-				callback(_data[i], i, &stop);
+				callback(_data[i], i, stop);
 				
 				if(stop)
 					break;
@@ -55,13 +57,13 @@ namespace RN
 		}
 		
 		template<class T>
-		void Enumerate(const std::function<void (T *, size_t, bool *)>& callback) const
+		void Enumerate(const std::function<void (T *, size_t, bool &)>& callback) const
 		{
 			bool stop = false;
 			
 			for(size_t i = 0; i < _count; i ++)
 			{
-				callback(static_cast<T *>(_data[i]), i, &stop);
+				callback(static_cast<T *>(_data[i]), i, stop);
 				
 				if(stop)
 					break;
@@ -234,7 +236,7 @@ namespace RN
 		size_t _count;
 		size_t _size;
 		
-		RNDefineMetaWithTraits(Array, Object, MetaClassTraitCronstructable, MetaClassTraitCopyable)
+		RNDeclareMeta(Array)
 	};
 }
 

@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	RNDeclareSingleton(Settings)
+	RNDefineSingleton(Settings)
 	
 	Settings::Settings() :
 		_manifest(nullptr),
@@ -49,10 +49,10 @@ namespace RN
 #define ValidateManifest(Key, OType) \
 		try { \
 			if(!_manifest->GetObjectForKey<OType>(Key)) \
-			{ throw Exception(Exception::Type::InconsistencyException, "manifest.json malformed!"); } \
+			{ throw Exception(Exception::Type::InconsistencyException, ""); } \
 		} \
 		catch(Exception e) \
-		{ throw Exception(Exception::Type::InconsistencyException, "manifest.json malformed!"); }
+		{ throw Exception(Exception::Type::InconsistencyException, "manifest.json malformed! Expected \"%s\" to be present!", Key->GetUTF8String()); }
 		
 		
 		ValidateManifest(kRNManifestApplicationKey, String)
@@ -113,8 +113,14 @@ namespace RN
 	
 	void Settings::SetObjectForKey(Object *object, String *key)
 	{
+		if(!JSONSerialization::IsValidJSONObject(object))
+			throw Exception(Exception::Type::InvalidArgumentException, "Object must be serializable to JSON!");
+		
+		object = object->Copy();
+		key    = key->Copy();
+		
 		_lock.Lock();
-		_settings->SetObjectForKey(object, key);
+		_settings->SetObjectForKey(object->Autorelease(), key->Autorelease());
 		_mutated = true;
 		_lock.Unlock();
 	}

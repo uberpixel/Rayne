@@ -16,39 +16,156 @@
 
 namespace RN
 {
-	RNDeclareMeta(Light)
+	RNDefineMeta(Light, SceneNode)
 	
 	Light::Light(Type lighttype) :
 		_lightType(lighttype),
-		_color("color", Color(1.0f), std::bind(&Light::GetColor, this), std::bind(&Light::SetColor, this, std::placeholders::_1)),
-		_intensity("intensity", 10.0f, std::bind(&Light::GetIntensity, this), std::bind(&Light::SetIntensity, this, std::placeholders::_1)),
-		_range("range", 10.0f, std::bind(&Light::GetRange, this), std::bind(&Light::SetRange, this, std::placeholders::_1)),
-		_angle("angle", 45.0f, std::bind(&Light::GetAngle, this), std::bind(&Light::SetAngle, this, std::placeholders::_1))
+		_color("color", Color(1.0f), &Light::GetColor, &Light::SetColor),
+		_intensity("intensity", 10.0f, &Light::GetIntensity, &Light::SetIntensity),
+		_range("range", 10.0f, &Light::GetRange, &Light::SetRange),
+		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle),
+		_angleCos(0.797),
+		_shadowTarget(nullptr),
+		_suppressShadows(false),
+		_dirty(false)
 	{
-		_shadow = false;
-		_shadowcam = nullptr;
-		_lightcam  = nullptr;
+		AddObservables({ &_color, &_intensity, &_range, &_angle });
+		
+		SetBoundingSphere(Sphere(Vector3(), 1.0f));
+		SetBoundingBox(AABB(Vector3(), 1.0f), false);
 		
 		SetPriority(SceneNode::Priority::UpdateLate);
+		SetCollisionGroup(25);
 		
-		collisionGroup = 25;
-		_angleCos = 0.707f;
-		
-		AddObservable(&_color);
-		AddObservable(&_intensity);
-		AddObservable(&_range);
-		AddObservable(&_angle);
 		ReCalculateColor();
+		SetAngle(GetAngle());
+		SetRange(GetRange());
+	}
+	
+	Light::Light(const Light *other) :
+		SceneNode(other),
+		_lightType(other->_lightType),
+		_color("color", Color(1.0f), &Light::GetColor, &Light::SetColor),
+		_intensity("intensity", 10.0f, &Light::GetIntensity, &Light::SetIntensity),
+		_range("range", 10.0f, &Light::GetRange, &Light::SetRange),
+		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle),
+		_angleCos(0.797),
+		_shadowTarget(nullptr),
+		_suppressShadows(false),
+		_dirty(false)
+	{
+		AddObservables({ &_color, &_intensity, &_range, &_angle });
+		
+		SetBoundingSphere(Sphere(Vector3(), 1.0f));
+		SetBoundingBox(AABB(Vector3(), 1.0f), false);
+		
+		Light *temp = const_cast<Light *>(other);
+		LockGuard<Object *> lock(temp);
+		
+		SetColor(other->GetColor());
+		SetIntensity(other->GetIntensity());
+		SetAngle(other->GetAngle());
+		SetRange(other->GetRange());
+		
+		_suppressShadows = other->_suppressShadows;
+		
+		if(other->HasShadows())
+			ActivateShadows(other->_shadowParameter);
 	}
 	
 	Light::~Light()
 	{
-		if(_shadowcam)
-			_shadowcam->Release();
-		
-		if(_lightcam)
-			_lightcam->Release();
+		RemoveShadowCameras();
 	}
+	
+	
+	Light::Light(Deserializer *deserializer) :
+		SceneNode(deserializer),
+		_color("color", Color(1.0f), &Light::GetColor, &Light::SetColor),
+		_intensity("intensity", 10.0f, &Light::GetIntensity, &Light::SetIntensity),
+		_range("range", 10.0f, &Light::GetRange, &Light::SetRange),
+		_angle("angle", 45.0f, &Light::GetAngle, &Light::SetAngle),
+		_angleCos(0.797),
+		_shadowTarget(nullptr),
+		_suppressShadows(false),
+		_dirty(false)
+	{
+		AddObservables({ &_color, &_intensity, &_range, &_angle });
+		
+		SetBoundingSphere(Sphere(Vector3(), 1.0f));
+		SetBoundingBox(AABB(Vector3(), 1.0f), false);
+		
+		_lightType = static_cast<Type>(deserializer->DecodeInt32());
+		
+		Vector4 color = deserializer->DecodeVector4();
+		
+		SetColor(Color(color.x, color.y, color.z, color.w));
+		SetIntensity(deserializer->DecodeFloat());
+		SetRange(deserializer->DecodeFloat());
+		SetAngle(deserializer->DecodeFloat());
+		
+		bool shadows = deserializer->DecodeBool();
+		if(shadows)
+		{
+			ShadowParameter parameter;
+			
+			parameter.splits.clear();
+			
+			parameter.shadowTarget = static_cast<Camera *>(deserializer->DecodeObject());
+			parameter.resolution = deserializer->DecodeInt32();
+			parameter.distanceBlendFactor = deserializer->DecodeFloat();
+			
+			size_t splitCount = deserializer->DecodeInt32();
+			for(size_t i = 0; i < splitCount; i ++)
+			{
+				ShadowSplit split;
+				
+				split.biasFactor = deserializer->DecodeFloat();
+				split.biasUnits  = deserializer->DecodeFloat();
+				split.updateInterval = deserializer->DecodeInt32();
+				split.updateOffset   = deserializer->DecodeInt32();
+				
+				parameter.splits.push_back(std::move(split));
+			}
+			
+			if(parameter.shadowTarget)
+				ActivateShadows(parameter);
+			else
+				_shadowParameter = parameter;
+		}
+	}
+	
+	void Light::Serialize(Serializer *serializer)
+	{
+		SceneNode::Serialize(serializer);
+		
+		serializer->EncodeInt32(static_cast<int32>(_lightType));
+		serializer->EncodeVector4(Vector4(_color->r, _color->g, _color->b, _color->a));
+		serializer->EncodeFloat(_intensity);
+		serializer->EncodeFloat(_range);
+		serializer->EncodeFloat(_angle);
+		
+		bool shadows = HasShadows();
+		serializer->EncodeBool(shadows);
+		
+		if(shadows)
+		{
+			serializer->EncodeConditionalObject(_shadowTarget);
+			
+			serializer->EncodeInt32(static_cast<int32>(_shadowParameter.resolution));
+			serializer->EncodeFloat(_shadowParameter.distanceBlendFactor);
+			serializer->EncodeInt32(static_cast<int32>(_shadowParameter.splits.size()));
+			
+			for(ShadowSplit &split : _shadowParameter.splits)
+			{
+				serializer->EncodeFloat(split.biasFactor);
+				serializer->EncodeFloat(split.biasUnits);
+				serializer->EncodeInt32(static_cast<int32>(split.updateInterval));
+				serializer->EncodeInt32(static_cast<int32>(split.updateOffset));
+			}
+		}
+	}
+	
 	
 	bool Light::IsVisibleInCamera(Camera *camera)
 	{
@@ -60,21 +177,28 @@ namespace RN
 	
 	void Light::Render(Renderer *renderer, Camera *camera)
 	{
-		if(!(camera->GetFlags() & Camera::FlagNoLights))
-		{
-			if(camera->lightManager != nullptr)
-			{
-				camera->lightManager->AddLight(this);
-			}
-		}
+		SceneNode::Render(renderer, camera);
+		
+		LightManager *manager = camera->GetLightManager();
+		
+		if(manager)
+			manager->AddLight(this);
+	}
+	
+	void Light::SetType(Type type)
+	{
+		_lightType = type;
+		
+		if(_suppressShadows || _shadowDepthCameras.GetCount() == 0)
+			return;
+		
+		RemoveShadowCameras();
+		ActivateShadows();
 	}
 	
 	void Light::SetRange(float range)
 	{
 		_range = range;
-		
-		SetBoundingSphere(Sphere(Vector3(), range));
-		SetBoundingBox(AABB(Vector3(), range), false);
 	}
 	
 	void Light::SetColor(const Color& color)
@@ -95,48 +219,36 @@ namespace RN
 		_angleCos = cosf(angle*k::DegToRad);
 	}
 	
-	void Light::SetLightCamera(Camera *lightCamera)
-	{
-		if(_lightcam)
-		{
-			RemoveDependency(_lightcam);
-			_lightcam->Release();
-		}
-		
-		_lightcam = lightCamera ? lightCamera->Retain() : nullptr;
-		AddDependency(_lightcam);
-	}
-	
 	void Light::RemoveShadowCameras()
 	{
-		_shadowcams.Enumerate<Camera>([&](Camera *camera, size_t index, bool *stop) {
+		_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
 			RemoveDependency(camera);
 		});
 		
-		_shadowcams.RemoveAllObjects();
+		_shadowDepthCameras.RemoveAllObjects();
 		
-		if(_shadowcam)
+		if(_shadowTarget)
 		{
-			RemoveDependency(_shadowcam);
-			_shadowcam->Release();
-			_shadowcam = nullptr;
+			RemoveDependency(_shadowTarget);
+			_shadowTarget->Release();
+			_shadowTarget = nullptr;
 		}
 	}
 	
-	
-	
 	bool Light::ActivateShadows(const ShadowParameter &parameter)
 	{
+		_shadowParameter = parameter;
+		
 		switch(_lightType)
 		{
 			case Type::PointLight:
-				return ActivatePointShadows(parameter);
+				return ActivatePointShadows();
 				
 			case Type::SpotLight:
-				return ActivateSpotShadows(parameter);
+				return ActivateSpotShadows();
 				
 			case Type::DirectionalLight:
-				return ActivateDirectionalShadows(parameter);
+				return ActivateDirectionalShadows();
 
 			default:
 				return false;
@@ -146,17 +258,85 @@ namespace RN
 	void Light::DeactivateShadows()
 	{
 		RemoveShadowCameras();
-		_shadow = false;
+	}
+	
+	void Light::SetSuppressShadows(bool suppress)
+	{
+		_suppressShadows = suppress;
+		
+		if(_suppressShadows)
+		{
+			_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
+				camera->SetFlags(camera->GetFlags()|Camera::Flags::NoRender);
+			});
+		}
+		else
+		{
+			_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
+				camera->SetFlags(camera->GetFlags()&~Camera::Flags::NoRender);
+			});
+		}
+	}
+	
+	void Light::UpdateShadowParameters(const ShadowParameter &parameter)
+	{
+		if(!HasShadows())
+		{
+			ActivateShadows(parameter);
+			return;
+		}
+		
+		
+		if(_shadowParameter.resolution != parameter.resolution || _shadowParameter.splits.size() != parameter.splits.size())
+		{
+			DeactivateShadows();
+			ActivateShadows(parameter);
+		}
+		else
+		{
+			if(parameter.shadowTarget != _shadowTarget)
+			{
+				if(_shadowTarget)
+				{
+					RemoveDependency(_shadowTarget);
+					_shadowTarget->Release();
+					_shadowTarget = nullptr;
+				}
+				
+				if(parameter.shadowTarget)
+				{
+					_shadowTarget = parameter.shadowTarget->Retain();
+					AddDependency(_shadowTarget);
+				}
+			}
+			
+			_shadowDepthCameras.Enumerate<Camera>([&](Camera *camera, size_t index, bool &stop) {
+				camera->GetMaterial()->SetPolygonOffsetFactor(parameter.splits[index].biasFactor);
+				camera->GetMaterial()->SetPolygonOffsetUnits(parameter.splits[index].biasUnits);
+			});
+			
+			_shadowParameter = parameter;
+		}
 	}
 	
 	
-	bool Light::ActivateDirectionalShadows(const ShadowParameter &parameter)
+	bool Light::ActivateDirectionalShadows()
 	{
-		if(_shadow)
+		if(_shadowDepthCameras.GetCount() > 0)
 			DeactivateShadows();
-			
-		_shadowSplits  = static_cast<int>(parameter.splits);
-		_shadowDistFac = parameter.distanceFactor;
+		
+		RN_ASSERT(_shadowParameter.shadowTarget, "Directional shadows need the shadowTarget to be set to a valid value!");
+		RN_ASSERT(_shadowParameter.splits.size() > 0, "The shadow parameter for directional lights needs one or more splits!");
+		
+		if(_shadowTarget)
+		{
+			RemoveDependency(_shadowTarget);
+			_shadowTarget->Release();
+			_shadowTarget = nullptr;
+		}
+		
+		_shadowTarget = _shadowParameter.shadowTarget->Retain();
+		AddDependency(_shadowTarget);
 		
 		Texture::Parameter textureParameter;
 		textureParameter.wrapMode = Texture::WrapMode::Clamp;
@@ -166,31 +346,38 @@ namespace RN
 		textureParameter.maxMipMaps = 0;
 		
 		Texture2DArray *depthtex = new Texture2DArray(textureParameter);
-		depthtex->SetSize(32, 32, parameter.splits);
+		depthtex->SetSize(_shadowParameter.resolution, _shadowParameter.resolution, _shadowParameter.splits.size());
 		depthtex->Autorelease();
 		
-		Shader   *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
-		Material *depthMaterial = new Material(depthShader);
-		depthMaterial->polygonOffset = true;
-		depthMaterial->polygonOffsetFactor = parameter.biasFactor;
-		depthMaterial->polygonOffsetUnits  = parameter.biasUnits;
+		Shader *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
 		
-		for(int i = 0; i < _shadowSplits; i++)
+		_shadowCameraMatrices.clear();
+		
+		for(uint32 i = 0; i < _shadowParameter.splits.size(); i++)
 		{
+			_shadowCameraMatrices.push_back(Matrix());
+			
+			Material *depthMaterial = new Material(depthShader);
+			depthMaterial->SetPolygonOffset(true);
+			depthMaterial->SetPolygonOffsetFactor(_shadowParameter.splits[i].biasFactor);
+			depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[i].biasUnits);
+			depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);
+			
 			RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 			storage->SetDepthTarget(depthtex, i);
+			storage->Autorelease();
 			
-			Camera *tempcam = new Camera(Vector2(parameter.resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagOrthogonal | Camera::FlagHidden | Camera::FlagNoLights, 1.0f);
-			tempcam->SetMaterial(depthMaterial);
-			tempcam->SetLODCamera(_lightcam);
+			Camera *tempcam = new Camera(Vector2(_shadowParameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::Orthogonal | Camera::Flags::NoFlush, 1.0f);
+			tempcam->SetMaterial(depthMaterial->Autorelease());
+			tempcam->SetLODCamera(_shadowTarget);
+			tempcam->SetLightManager(nullptr);
 			tempcam->SetPriority(kRNShadowCameraPriority);
-			tempcam->clipnear = 1.0f;
+			tempcam->SetClipNear(1.0f);
+			tempcam->SceneNode::SetFlags(tempcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor | SceneNode::Flags::NoSave);
+			tempcam->Autorelease();
 
-			_shadowcams.AddObject(tempcam);
+			_shadowDepthCameras.AddObject(tempcam);
 			AddDependency(tempcam);
-			
-			tempcam->Release();
-			storage->Release();
 			
 			try
 			{
@@ -205,14 +392,15 @@ namespace RN
 			}
 		}
 		
-		_shadow = true;
 		return true;
 	}
 	
-	bool Light::ActivatePointShadows(const ShadowParameter &parameter)
+	bool Light::ActivatePointShadows()
 	{
-		if(_shadow)
+		if(_shadowDepthCameras.GetCount() > 0)
 			DeactivateShadows();
+		
+		RN_ASSERT(_shadowParameter.splits.size() == 1, "The shadow parameter for point lights needs exactly one split!");
 		
 		Texture::Parameter textureParameter;
 		textureParameter.wrapMode = Texture::WrapMode::Repeat;
@@ -225,23 +413,28 @@ namespace RN
 		
 		Shader   *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyPointShadowDepthShader, nullptr);
 		Material *depthMaterial = (new Material(depthShader))->Autorelease();
+		depthMaterial->SetPolygonOffset(true);
+		depthMaterial->SetPolygonOffsetFactor(_shadowParameter.splits[0].biasFactor);
+		depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[0].biasUnits);
+		depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);
 		
 		RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 		storage->SetDepthTarget(depthtex, -1);
+		storage->Autorelease();
 		
-		_shadowcam = new CubemapCamera(Vector2(parameter.resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden | Camera::FlagNoLights, 1.0f);
-		_shadowcam->Retain();
-		_shadowcam->Autorelease();
-		_shadowcam->SetMaterial(depthMaterial);
-		_shadowcam->SetPriority(kRNShadowCameraPriority);
-		_shadowcam->clipnear = 0.01f;
-		_shadowcam->clipfar = _range;
-		_shadowcam->fov = 90.0f;
-		_shadowcam->UpdateProjection();
-		_shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
+		RN::Camera *shadowcam = new CubemapCamera(Vector2(_shadowParameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush, 1.0f);
+		shadowcam->SetMaterial(depthMaterial);
+		shadowcam->SetPriority(kRNShadowCameraPriority);
+		shadowcam->SetClipNear(0.01f);
+		shadowcam->SetClipFar(_range);
+		shadowcam->SetFOV(90.0f);
+		shadowcam->SetLightManager(nullptr);
+		shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
+		shadowcam->SceneNode::SetFlags(shadowcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor | SceneNode::Flags::NoSave);
+		shadowcam->Autorelease();
 		
-		AddDependency(_shadowcam);
-		storage->Release();
+		_shadowDepthCameras.AddObject(shadowcam);
+		AddDependency(shadowcam);
 		
 		try
 		{
@@ -255,14 +448,15 @@ namespace RN
 			return false;
 		}
 		
-		_shadow = true;
 		return true;
 	}
 	
-	bool Light::ActivateSpotShadows(const ShadowParameter &parameter)
+	bool Light::ActivateSpotShadows()
 	{
-		if(_shadow)
+		if(_shadowDepthCameras.GetCount() > 0)
 			DeactivateShadows();
+		
+		RN_ASSERT(_shadowParameter.splits.size() == 1, "The shadow parameter for spot lights needs exactly one split!");
 		
 		Texture::Parameter textureParameter;
 		textureParameter.wrapMode = Texture::WrapMode::Clamp;
@@ -276,26 +470,28 @@ namespace RN
 		
 		Shader   *depthShader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDirectionalShadowDepthShader, nullptr);
 		Material *depthMaterial = (new Material(depthShader))->Autorelease();
-		depthMaterial->polygonOffset = true;
-		depthMaterial->polygonOffsetFactor = parameter.biasFactor;
-		depthMaterial->polygonOffsetUnits  = parameter.biasUnits;
+		depthMaterial->SetPolygonOffset(true);
+		depthMaterial->SetPolygonOffsetFactor(_shadowParameter.splits[0].biasFactor);
+		depthMaterial->SetPolygonOffsetUnits(_shadowParameter.splits[0].biasUnits);
+		depthMaterial->SetOverride(Material::Override::GroupDiscard | Material::Override::Culling);
 		
 		RenderStorage *storage = new RenderStorage(RenderStorage::BufferFormatDepth, 0, 1.0f);
 		storage->SetDepthTarget(depthtex, -1);
+		storage->Autorelease();
 		
-		_shadowcam = new Camera(Vector2(parameter.resolution), storage, Camera::FlagUpdateAspect | Camera::FlagUpdateStorageFrame | Camera::FlagHidden | Camera::FlagNoLights, 1.0f);
-		_shadowcam->Retain();
-		_shadowcam->Autorelease();
-		_shadowcam->SetMaterial(depthMaterial);
-		_shadowcam->SetPriority(kRNShadowCameraPriority);
-		_shadowcam->clipnear = 0.01f;
-		_shadowcam->clipfar = _range;
-		_shadowcam->fov = _angle*2.0f;
-		_shadowcam->UpdateProjection();
-		_shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
+		RN::Camera *shadowcam = new Camera(Vector2(_shadowParameter.resolution), storage, Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoFlush, 1.0f);
+		shadowcam->SetMaterial(depthMaterial);
+		shadowcam->SetPriority(kRNShadowCameraPriority);
+		shadowcam->SetClipNear(0.01f);
+		shadowcam->SetClipFar(_range);
+		shadowcam->SetFOV(_angle * 2.0f);
+		shadowcam->SetLightManager(nullptr);
+		shadowcam->SetWorldRotation(Vector3(0.0f, 0.0f, 0.0f));
+		shadowcam->SceneNode::SetFlags(shadowcam->SceneNode::GetFlags() | SceneNode::Flags::HideInEditor | SceneNode::Flags::NoSave);
+		shadowcam->Autorelease();
 		
-		AddDependency(_shadowcam);
-		storage->Release();
+		_shadowDepthCameras.AddObject(shadowcam);
+		AddDependency(shadowcam);
 		
 		try
 		{
@@ -309,7 +505,6 @@ namespace RN
 			return false;
 		}
 		
-		_shadow = true;
 		return true;
 	}
 	
@@ -317,76 +512,89 @@ namespace RN
 	void Light::Update(float delta)
 	{
 		SceneNode::Update(delta);
+		if(_dirty)
+		{
+			SetRange(GetScale().GetMax());
+			_dirty = false;
+		}
+		UpdateShadows();
+	}
+	
+	void Light::UpdateEditMode(float delta)
+	{
+		SceneNode::UpdateEditMode(delta);
+		if(_dirty)
+		{
+			SetRange(GetScale().GetMax());
+			_dirty = false;
+		}
+		UpdateShadows();
+	}
+	
+	void Light::UpdateShadows()
+	{
+		if(_suppressShadows || _shadowDepthCameras.GetCount() == 0)
+			return;
 		
 		if(_lightType == Type::DirectionalLight)
 		{
-			if(_shadow && _lightcam)
+			if(_shadowTarget)
 			{
-				float near = _lightcam->clipnear;
+				float near = _shadowTarget->GetClipNear();
 				float far;
 				
-				if(_shadowcam)
-					_shadowcam->SetWorldRotation(GetWorldRotation());
-				
-				_shadowmats.clear();
-				
-				for(int i = 0; i < _shadowSplits; i++)
+				for(uint32 i = 0; i < _shadowParameter.splits.size(); i++)
 				{
-					float linear = _lightcam->clipnear+(_lightcam->clipfar-_lightcam->clipnear)*(i+1.0f)/float(_shadowSplits);
-					float log = _lightcam->clipnear*powf(_lightcam->clipfar/_lightcam->clipnear, (i+1.0f)/float(_shadowSplits));
-					far = linear*_shadowDistFac+log*(1.0f-_shadowDistFac);
-					
-					if(_shadowcam)
+					if(((GetLastFrame()+_shadowParameter.splits[i].updateOffset) % _shadowParameter.splits[i].updateInterval) == 0)
 					{
-						_shadowmats.push_back(std::move(_shadowcam->MakeShadowSplit(_lightcam, this, near, far)));
+						Camera *cam = _shadowDepthCameras.GetObjectAtIndex<Camera>(i);
+						cam->SetFlags(cam->GetFlags()&(~Camera::Flags::NoRender));
+						cam->SetClearMask(Camera::ClearMask::Depth);
 					}
 					else
 					{
-						Camera *tempcam = _shadowcams.GetObjectAtIndex<Camera>(i);
-						tempcam->SetWorldRotation(GetWorldRotation());
-						
-						_shadowmats.push_back(std::move(tempcam->MakeShadowSplit(_lightcam, this, near, far)));
+						Camera *cam = _shadowDepthCameras.GetObjectAtIndex<Camera>(i);
+						cam->SetFlags(cam->GetFlags()|Camera::Flags::NoRender);
+						cam->SetClearMask(0);
+						continue;
 					}
 					
+					float linear = _shadowTarget->GetClipNear() + (_shadowTarget->GetClipFar() - _shadowTarget->GetClipNear())*(i+1.0f) / float(_shadowParameter.splits.size());
+					float log = _shadowTarget->GetClipNear() * powf(_shadowTarget->GetClipFar() / _shadowTarget->GetClipNear(), (i+1.0f) / float(_shadowParameter.splits.size()));
+					far = linear*_shadowParameter.distanceBlendFactor+log*(1.0f-_shadowParameter.distanceBlendFactor);
+					
+					Camera *tempcam = _shadowDepthCameras.GetObjectAtIndex<Camera>(i);
+					tempcam->SetWorldRotation(GetWorldRotation());
+					
+					_shadowCameraMatrices[i] = std::move(tempcam->MakeShadowSplit(_shadowTarget, this, near, far));
+					
 					near = far;
-				}
-				
-				if(_shadowcam)
-				{
-					_shadowcam->MakeShadowSplit(_lightcam, this, _lightcam->clipnear, _lightcam->clipfar);
 				}
 			}
 		}
 		else if(_lightType == Type::SpotLight)
 		{
-			if(_shadow && _shadowcam)
-			{
-				_shadowcam->SetWorldPosition(GetWorldPosition());
-				_shadowcam->SetWorldRotation(GetWorldRotation());
-				_shadowcam->clipfar = _range;
-				_shadowcam->fov = _angle * 2.0f;
-				_shadowcam->UpdateProjection();
-				_shadowcam->PostUpdate();
-				
-				_shadowmats.clear();
-				Matrix matProjView = _shadowcam->projectionMatrix * _shadowcam->viewMatrix;
-				_shadowmats.push_back(matProjView);
-			}
+			RN::Camera *shadowcam = static_cast<RN::Camera*>(_shadowDepthCameras.GetFirstObject());
+			
+			shadowcam->SetWorldPosition(GetWorldPosition());
+			shadowcam->SetWorldRotation(GetWorldRotation());
+			shadowcam->SetClipFar(_range);
+			shadowcam->SetFOV(_angle * 2.0f);
+			
+			_shadowCameraMatrices.clear();
+			_shadowCameraMatrices.emplace_back(shadowcam->GetProjectionMatrix() * shadowcam->GetViewMatrix());
 		}
 		else
 		{
-			if(_shadow && _shadowcam)
-			{
-				_shadowcam->SetWorldPosition(GetWorldPosition());
-				_shadowcam->clipfar = _range;
-				_shadowcam->UpdateProjection();
-			}
+			RN::Camera *shadowcam = static_cast<RN::Camera*>(_shadowDepthCameras.GetFirstObject());
+			shadowcam->SetWorldPosition(GetWorldPosition());
+			shadowcam->SetClipFar(_range);
 		}
 	}
 
 	void Light::ReCalculateColor()
 	{
-		_resultColor = Vector3(_color->r, _color->g, _color->b);
-		_resultColor *= (float)_intensity;
+		_finalColor = Vector3(_color->r, _color->g, _color->b);
+		_finalColor *= (float)_intensity;
 	}
 }

@@ -27,6 +27,16 @@ namespace RN
 				_references(1)
 			{}
 			
+#if RN_PLATFORM_MAC_OS
+			// Works around a bug in OS X, which sometimes crashes mutexes and condition variables
+			// https://devforums.apple.com/thread/220316?tstart=0
+			~__sync_state()
+			{
+				struct timespec time { .tv_sec = 0, .tv_nsec = 1 };
+				pthread_cond_timedwait_relative_np(_condition.native_handle(), _lock.native_handle(), &time);
+			}
+#endif
+			
 			void retain()
 			{
 				++ _references;
@@ -35,7 +45,12 @@ namespace RN
 			void release()
 			{
 				if((-- _references) == 0)
+				{
+					if(_hasException)
+						std::rethrow_exception(_exception);
+					
 					delete this;
+				}
 			}
 			
 			void signal_exception(std::exception_ptr e)
@@ -75,7 +90,10 @@ namespace RN
 				_condition.wait(lock, [&]{ return (_signaled == true); });
 				
 				if(_hasException)
+				{
 					std::rethrow_exception(_exception);
+					_hasException = false;
+				}
 			}
 			
 			bool signaled()

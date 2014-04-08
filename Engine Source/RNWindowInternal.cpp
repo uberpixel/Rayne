@@ -2,13 +2,14 @@
 //  RNWindowInternal.cpp
 //  Rayne
 //
-//  Created by Sidney Just on 19.10.13.
-//  Copyright (c) 2013 Sidney Just. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "RNWindowInternal.h"
 #include "RNInput.h"
 #include "RNKernel.h"
+#include "RNUIServer.h"
 
 #if RN_PLATFORM_MAC_OS
 
@@ -172,6 +173,16 @@ namespace RN
 			case WM_KEYUP:
 				RN::Input::GetSharedInstance()->HandleSystemEvent(window, message, wparam, lparam);
 				return 0;
+
+			case WM_SYSKEYDOWN:
+			case WM_SYSKEYUP:
+				switch(wparam)
+				{
+					case VK_MENU:
+						return 0;
+				}
+
+				break;
 		}
 
 		return DefWindowProcW(window, message, wparam, lparam);

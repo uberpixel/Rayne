@@ -8,10 +8,11 @@
 
 #include "RNArray.h"
 #include "RNSet.h"
+#include "RNSerialization.h"
 
 namespace RN
 {
-	RNDeclareMeta(Array)
+	RNDefineMeta(Array, Object)
 	
 	Array::Array()
 	{
@@ -51,7 +52,7 @@ namespace RN
 		
 		size_t index = 0;
 		
-		set->Enumerate([&](Object *object, bool *stop) {
+		set->Enumerate([&](Object *object, bool &stop) {
 			_data[index ++] = object->Retain();
 		});
 	}
@@ -64,6 +65,30 @@ namespace RN
 		}
 		
 		delete [] _data;
+	}
+	
+	
+	Array::Array(Deserializer *deserializer)
+	{
+		_count = static_cast<size_t>(deserializer->DecodeInt64());
+		_size  = static_cast<size_t>(deserializer->DecodeInt64());
+		
+		_data = new Object *[_size];
+		
+		for(size_t i = 0; i < _count; i ++)
+		{
+			_data[i] = deserializer->DecodeObject()->Retain();
+		}
+	}
+	void Array::Serialize(Serializer *serializer)
+	{
+		serializer->EncodeInt64(static_cast<int64>(_count));
+		serializer->EncodeInt64(static_cast<int64>(_size));
+		
+		for(size_t i = 0; i < _count; i ++)
+		{
+			serializer->EncodeObject(_data[i]);
+		}
 	}
 	
 	

@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(OutlineView)
+		RNDefineMeta(OutlineView, TableView)
 		
 		OutlineView::OutlineView()
 		{
@@ -103,7 +103,100 @@ namespace RN
 				}
 			}
 			else
-			{}
+			{
+				TableView::BegindEditing();
+				
+				size_t count = _dataSource->OutlineViewGetNumberOfChildrenForItem(this, nullptr);
+				std::unordered_set<ProxyItem *> found;
+				
+				for(size_t i = 0; i < count; i ++)
+				{
+					void *item = _dataSource->OutlineViewGetChildOfItem(this, nullptr, i);
+					
+					for(ProxyItem *proxy : _items)
+					{
+						if(proxy->item == item)
+						{
+							found.insert(proxy);
+							break;
+						}
+					}
+				}
+				
+				// Get rid of the deleted proxies
+				for(auto i = _items.begin(); i != _items.end();)
+				{
+					ProxyItem *proxy = *i;
+					
+					if(found.find(proxy) == found.end())
+					{
+						size_t row = GetRowForProxyItem(proxy);
+						if(row != k::NotFound)
+						{
+							if(proxy->expanded)
+							{
+								std::vector<ProxyItem *> items;
+								GetVisibleItemsForProxyItem(proxy, items);
+								
+								auto start = _rows.begin() + row + 1;
+								auto end = start + items.size();
+								
+								_rows.erase(start, end);
+								
+								TableView::DeleteRows(row + 1, items.size());
+							}
+							
+							TableView::DeleteRows(row, 1);
+							_rows.erase(_rows.begin() + row);
+						}
+						
+						delete proxy;
+						i = _items.erase(i);
+						continue;
+					}
+					
+					i ++;
+				}
+				
+				// Insert new proxies
+				for(size_t i = 0; i < count; i ++)
+				{
+					void *item = _dataSource->OutlineViewGetChildOfItem(this, nullptr, i);
+					
+					if(i >= _items.size())
+					{
+						ProxyItem *proxy = new ProxyItem(item, 0);
+						proxy->isLeaf = !(_dataSource->OutlineViewItemIsExpandable(this, item));
+						
+						PopulateProxyItem(proxy);
+						
+						_items.push_back(proxy);
+						_rows.push_back(proxy);
+						
+						TableView::InsertRows(_rows.size() - 1, 1);
+					}
+					else if(_items[i]->item != item)
+					{
+						ProxyItem *proxy = new ProxyItem(item, 0);
+						proxy->isLeaf = !(_dataSource->OutlineViewItemIsExpandable(this, item));
+						
+						PopulateProxyItem(proxy);
+						
+						size_t row = GetRowForProxyItem(_items[i]);
+						
+						_items.insert(_items.begin() + i, proxy);
+						_rows.insert(_rows.begin() + row, proxy);
+						
+						TableView::InsertRows(row, 1);
+					}
+					else if(reloadChildren)
+					{
+						//ReloadItem(item, true);
+					}
+				}
+				
+				TableView::EndEditing();
+			}
 		}
 		
 		
@@ -193,7 +286,7 @@ namespace RN
 		void *OutlineView::GetItemForRow(size_t row)
 		{
 			RN_ASSERT(row < _rows.size(), "Row mustn't exceed the actual row count");
-			return _rows.at(row);
+			return _rows.at(row)->item;
 		}
 		
 		

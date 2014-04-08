@@ -34,6 +34,7 @@ namespace RN
 		GLuint _copyVAO;
 		GLuint _copyVBO;
 		Vector4 _copyVertices[4];
+		Vector4 _copyAtlas;
 	};
 }
 

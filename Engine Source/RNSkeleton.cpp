@@ -74,14 +74,14 @@ namespace RN
 	
 	Bone::Bone(const Vector3 &pos, const std::string bonename, bool root, bool absolute)
 	{
-		invBaseMatrix.MakeTranslate(pos*(-1.0f));
-		relBaseMatrix.MakeTranslate(pos);
+		invBaseMatrix = Matrix::WithTranslation(pos*(-1.0f));
+		relBaseMatrix = Matrix::WithTranslation(pos);
 		
 		name = bonename;
 		isRoot = root;
 		
 		position = Vector3(0.0f, 0.0f, 0.0f);
-		rotation.MakeIdentity();
+		rotation = Quaternion::WithIdentity();
 		scale = Vector3(1.0, 1.0, 1.0);
 		
 		currFrame = 0;
@@ -100,7 +100,7 @@ namespace RN
 		isRoot = root;
 		
 		position = Vector3(0.0f, 0.0f, 0.0f);
-		rotation.MakeIdentity();
+		rotation = Quaternion::WithIdentity();
 		scale = Vector3(1.0f, 1.0f, 1.0f);
 		
 		currFrame = 0;
@@ -176,9 +176,9 @@ namespace RN
 				}
 			
 				float blend = (currTime-currFrame->time)/timeDiff;
-				position = currFrame->position.Lerp(nextFrame->position, blend);
-				scale = currFrame->scale.Lerp(nextFrame->scale, blend);
-				rotation.MakeLerpS(currFrame->rotation, nextFrame->rotation, blend);
+				position = currFrame->position.GetLerp(nextFrame->position, blend);
+				scale = currFrame->scale.GetLerp(nextFrame->scale, blend);
+				rotation = Quaternion::WithLerpSpherical(currFrame->rotation, nextFrame->rotation, blend);
 			}
 			else
 			{
@@ -201,7 +201,7 @@ namespace RN
 		}
 		else
 		{
-			finalMatrix.MakeTranslate(position);
+			finalMatrix = Matrix::WithTranslation(position);
 		}
 		finalMatrix.Rotate(rotation);
 		finalMatrix.Scale(scale);
@@ -247,7 +247,7 @@ namespace RN
 		else
 		{
 			position = Vector3();
-			rotation.MakeIdentity();
+			rotation = Quaternion::WithIdentity();
 			scale = Vector3(1.0f, 1.0f, 1.0f);
 			currFrame = nullptr;
 			nextFrame = nullptr;

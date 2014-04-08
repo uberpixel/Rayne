@@ -78,23 +78,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Test Game\Classes\TGApplication.h" />
-    <ClInclude Include="Test Game\Classes\TGDebugDrawer.h" />
-    <ClInclude Include="Test Game\Classes\TGLoadingScreen.h" />
-    <ClInclude Include="Test Game\Classes\TGPlayer.h" />
-    <ClInclude Include="Test Game\Classes\TGSmokeGrenade.h" />
-    <ClInclude Include="Test Game\Classes\TGSun.h" />
-    <ClInclude Include="Test Game\Classes\TGThirdPersonCamera.h" />
-    <ClInclude Include="Test Game\Classes\TGWorld.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="Test Game\Classes\TGApplication.cpp" />
+    <ClCompile Include="Test Game\Classes\TGCutScene.cpp" />
     <ClCompile Include="Test Game\Classes\TGDebugDrawer.cpp" />
+    <ClCompile Include="Test Game\Classes\TGFire.cpp" />
+    <ClCompile Include="Test Game\Classes\TGForestWorld.cpp" />
     <ClCompile Include="Test Game\Classes\TGLoadingScreen.cpp" />
-    <ClCompile Include="Test Game\Classes\TGPlayer.cpp" />
-    <ClCompile Include="Test Game\Classes\TGSmokeGrenade.cpp" />
+    <ClCompile Include="Test Game\Classes\TGSmoke.cpp" />
+    <ClCompile Include="Test Game\Classes\TGSponzaWorld.cpp" />
     <ClCompile Include="Test Game\Classes\TGSun.cpp" />
-    <ClCompile Include="Test Game\Classes\TGThirdPersonCamera.cpp" />
     <ClCompile Include="Test Game\Classes\TGWorld.cpp" />
     <ClCompile Include="Test Game\Supporting files\main.cpp" />
   </ItemGroup>
@@ -102,6 +94,18 @@
     <ProjectReference Include="..\Rayne.vcxproj">
       <Project>{d54af823-a9b2-41e4-9fb2-5ccfebf43d21}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Test Game\Classes\TGApplication.h" />
+    <ClInclude Include="Test Game\Classes\TGCutScene.h" />
+    <ClInclude Include="Test Game\Classes\TGDebugDrawer.h" />
+    <ClInclude Include="Test Game\Classes\TGFire.h" />
+    <ClInclude Include="Test Game\Classes\TGForestWorld.h" />
+    <ClInclude Include="Test Game\Classes\TGLoadingScreen.h" />
+    <ClInclude Include="Test Game\Classes\TGSmoke.h" />
+    <ClInclude Include="Test Game\Classes\TGSponzaWorld.h" />
+    <ClInclude Include="Test Game\Classes\TGSun.h" />
+    <ClInclude Include="Test Game\Classes\TGWorld.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

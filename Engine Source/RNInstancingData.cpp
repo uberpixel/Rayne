@@ -9,6 +9,7 @@
 #include "RNInstancingData.h"
 #include "RNLogging.h"
 #include "RNOpenGLQueue.h"
+#include "RNThreadPool.h"
 
 namespace RN
 {
@@ -64,15 +65,19 @@ namespace RN
 		_indicesSize(0)
 	{
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
-			gl::GenTextures(1, &_texture);
+			
+			Renderer::GetSharedInstance()->BindVAO(0);
+			
 			gl::GenBuffers(1, &_buffer);
-			
-			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, _buffer);
-			
-			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+			gl::BufferData(GL_TEXTURE_BUFFER, 32, nullptr, GL_STATIC_DRAW);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+			
+			gl::GenTextures(1, &_texture);
+			gl::ActiveTexture(GL_TEXTURE0);
+			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_R32UI, _buffer);
+			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 		});
 	}
 	
@@ -119,16 +124,19 @@ namespace RN
 			}
 			
 			size_t i = 0;
-			
 			for(uint32 index : _indices)
 				_indicesData[i ++] = index;
 			
 			OpenGLQueue::GetSharedInstance()->SubmitCommand([this, mode] {
+				
+				Renderer::GetSharedInstance()->BindVAO(0);
+				
 				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+				
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-				gl::BufferData(GL_TEXTURE_BUFFER, _indices.size() * sizeof(uint32), _indicesData, mode);
-				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+				gl::BufferData(GL_TEXTURE_BUFFER, _indicesSize * sizeof(uint32), _indicesData, mode);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
+				
 			});
 			
 			_dirty = false;
@@ -176,16 +184,21 @@ namespace RN
 			_stages.push_back(new InstancingLODStage(_model, i));
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
-			gl::GenTextures(1, &_texture);
+			
+			Renderer::GetSharedInstance()->BindVAO(0);
+			
 			gl::GenBuffers(1, &_buffer);
-			
-			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
-			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _buffer);
-			
-			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+			gl::BufferData(GL_TEXTURE_BUFFER, 32, nullptr, GL_STATIC_DRAW);
 			gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
-		});
+			
+			
+			gl::GenTextures(1, &_texture);
+			gl::ActiveTexture(GL_TEXTURE0);
+			gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+			gl::TexBuffer(GL_TEXTURE_BUFFER, GL_RGBA32F, _buffer);
+			gl::BindTexture(GL_TEXTURE_BUFFER, 0);
+		}, true);
 		
 		SetClipping(true, 64);
 		Reserve(50);
@@ -337,10 +350,12 @@ namespace RN
 			
 				LockGuard<decltype(_lock)> lock(_lock);
 				
+				Renderer::GetSharedInstance()->BindVAO(0);
+				
 				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+				
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 				gl::BufferData(GL_TEXTURE_BUFFER, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data(), GL_STATIC_DRAW);
-				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 				
 			});
@@ -354,15 +369,17 @@ namespace RN
 				
 				LockGuard<decltype(_lock)> lock(_lock);
 				
+				Renderer::GetSharedInstance()->BindVAO(0);
+				
 				gl::BindTexture(GL_TEXTURE_BUFFER, _texture);
+				
 				gl::BindBuffer(GL_TEXTURE_BUFFER, _buffer);
 				gl::BufferSubData(GL_TEXTURE_BUFFER, 0, static_cast<GLsizei>(_matrices.size() * sizeof(Matrix)), _matrices.data());
-				gl::BindTexture(GL_TEXTURE_BUFFER, 0);
 				gl::BindBuffer(GL_TEXTURE_BUFFER, 0);
 				
-				_dirtyIndices = false;
-				
 			});
+			
+			_dirtyIndices = false;
 		}
 		
 		for(InstancingLODStage *stage : _stages)
@@ -445,6 +462,7 @@ namespace RN
 		Vector3 position = _pivot->GetWorldPosition();
 		
 		std::vector<InstancingBucket> buckets;
+
 		float clipRange = _clipRange;
 		
 		if(_thinning)
@@ -459,7 +477,7 @@ namespace RN
 			
 			for(InstancingBucket &bucket : buckets)
 			{
-				if(bucket->position.Distance(position) < clipRange)
+				if(bucket->position.GetSquaredDistance(position) < clipRange * clipRange && _pivot->InFrustum(bucket->position, _buckets.get_spacing()))
 					temp.push_back(bucket);
 			}
 			
@@ -481,6 +499,8 @@ namespace RN
 			i ++;
 		}
 		
+		std::vector<Entity *> entities;
+
 		// Activate non active buckets
 		for(auto &bucket : buckets)
 		{
@@ -491,49 +511,72 @@ namespace RN
 				
 				bucket->active = true;
 			}
+
+			entities.insert(entities.end(), bucket->nodes.begin(), bucket->nodes.end());
 		}
-		
-		
+
 		// Update active entities
-		for(Entity *entity : _activeEntites)
+		ThreadPool::Batch *batch = ThreadPool::GetSharedInstance()->CreateBatch();
+		SpinLock lock;
+
+		batch->Reserve(_activeEntites.size());
+		
+		for(auto i = entities.begin(); i != entities.end(); i ++)
 		{
-			InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
-			float distance = position.Distance(entity->GetWorldPosition_NoLock());
+			Entity *entity = *i;
+
+			batch->AddTask([&, entity] {
 			
-			bool clipped = true;
-			
-			if(_thinning)
-			{
-				if(distance <= _clipRange)
-				{
-					clipped = false;
-				}
-				else if(distance <= clipRange)
-				{
-					distance -= _clipRange;
-					distance /= _thinRange;
-					
-					clipped = (distance > data->thinfactor);
-				}
-			}
-			else
-			{
-				clipped = (distance > _clipRange);
-			}
-			
-			if(clipped && data->lodStage != k::NotFound)
-			{
-				ResignIndex(data->index);
-				_stages[data->lodStage]->RemoveIndex(data->index);
+				InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
+				float distance = position.GetSquaredDistance(entity->GetWorldPosition_NoLock());
 				
-				data->lodStage = k::NotFound;
-				data->index = k::NotFound;
-			}
-			else if(!clipped && data->lodStage == k::NotFound)
-			{
-				InsertEntityIntoLODStage(entity);
-			}
+				bool clipped;
+				float _clipRange2 = _clipRange * _clipRange;
+				
+				if(_thinning)
+				{
+					if(distance <= _clipRange2)
+					{
+						clipped = false;
+					}
+					else
+					{
+						distance -= _clipRange2;
+						distance /= _thinRange*_thinRange;
+						distance = 1.0f-distance;
+						distance *= distance*distance;
+						distance = 1.0f - distance;
+						clipped = (distance > data->thinfactor);
+					}
+				}
+				else
+				{
+					clipped = (distance > _clipRange2);
+				}
+				
+				if(clipped && data->lodStage != k::NotFound)
+				{
+					lock.Lock();
+					ResignIndex(data->index);
+					_stages[data->lodStage]->RemoveIndex(data->index);
+					lock.Unlock();
+					
+					data->lodStage = k::NotFound;
+					data->index = k::NotFound;
+				}
+				else if(!clipped && data->lodStage == k::NotFound)
+				{
+					lock.Lock();
+					InsertEntityIntoLODStage(entity);
+					lock.Unlock();
+				}
+					
+			});
 		}
+		
+		batch->Commit();
+		batch->Wait();
+		batch->Release();
 	}
 	
 	
@@ -653,8 +696,8 @@ namespace RN
 		
 		if(_pivot && _hasLODStages)
 		{
-			float distance = entity->GetWorldPosition().Distance(_pivot->GetWorldPosition());
-			stage = _model->GetLODStageForDistance(distance / _pivot->clipfar);
+			float distance = entity->GetWorldPosition().GetDistance(_pivot->GetWorldPosition());
+			stage = _model->GetLODStageForDistance(distance / _pivot->GetClipFar());
 		}
 		
 		if(data->index == k::NotFound)
@@ -668,8 +711,8 @@ namespace RN
 	{
 		InstancingEntity *data = reinterpret_cast<InstancingEntity *>(entity->_instancedData);
 		
-		float distance = entity->GetWorldPosition().Distance(position);
-		size_t newStage = _model->GetLODStageForDistance(distance / _pivot->clipfar);
+		float distance = entity->GetWorldPosition().GetDistance(position);
+		size_t newStage = _model->GetLODStageForDistance(distance / _pivot->GetClipFar());
 		
 		if(newStage != data->lodStage)
 		{

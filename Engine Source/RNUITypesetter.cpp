@@ -479,14 +479,14 @@ namespace RN
 			Mesh *closest = nullptr;
 			ptrdiff_t diff = 0;
 			
-			_meshes.Enumerate<Mesh>([&](Mesh *mesh, size_t index, bool *stop) {
+			_meshes.Enumerate<Mesh>([&](Mesh *mesh, size_t index, bool &stop) {
 				if(!closest)
 				{
 					closest = mesh;
 					diff    = mesh->GetVerticesCount() - vertices;
 					
 					if(diff == 0)
-						*stop = true;
+						stop = true;
 					
 					return;
 				}
@@ -499,7 +499,7 @@ namespace RN
 					diff    = difference;
 					
 					if(diff == 0)
-						*stop = true;
+						stop = true;
 					
 					return;
 				}
@@ -530,7 +530,7 @@ namespace RN
 			
 			Shader *shader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUITextShader, nullptr);
 			
-			meshes->Enumerate([&](Object *object, size_t index, bool *stop) {
+			meshes->Enumerate([&](Object *object, size_t index, bool &stop) {
 				
 				Dictionary *dict = static_cast<Dictionary *>(object);
 				
@@ -544,11 +544,11 @@ namespace RN
 				
 				Material *material = new Material(shader);
 				material->AddTexture(font->GetTexture());
-				material->depthtest = false;
-				material->depthwrite = false;
-				material->blending = true;
-				material->lighting = false;
-				material->ambient  = color->GetRNColor();
+				material->SetDepthTest(false);
+				material->SetDepthWrite(false);
+				material->SetBlending(true);
+				material->SetLighting(false);
+				material->SetAmbientColor(color->GetRNColor());
 				
 				if(font->GetFiltering())
 					material->Define("RN_SUBPIXEL_ANTIALIAS");
@@ -1111,15 +1111,15 @@ namespace RN
 			
 			if(!mesh)
 			{
-				MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+				MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 				vertexDescriptor.elementMember = 2;
 				vertexDescriptor.elementSize   = sizeof(Vector2);
 				
-				MeshDescriptor uvDescriptor(kMeshFeatureUVSet0);
+				MeshDescriptor uvDescriptor(MeshFeature::UVSet0);
 				uvDescriptor.elementMember = 2;
 				uvDescriptor.elementSize   = sizeof(Vector2);
 				
-				MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+				MeshDescriptor indicesDescriptor(MeshFeature::Indices);
 				indicesDescriptor.elementMember = 1;
 				indicesDescriptor.elementSize   = sizeof(uint16);
 				
@@ -1159,8 +1159,8 @@ namespace RN
 			}
 			
 			
-			chunk.SetData(vertices, kMeshFeatureVertices);
-			chunk.SetData(uvCoords, kMeshFeatureUVSet0);
+			chunk.SetData(vertices, MeshFeature::Vertices);
+			chunk.SetData(uvCoords, MeshFeature::UVSet0);
 			chunk.CommitChanges();
 			
 			ichunk.SetData(indices);

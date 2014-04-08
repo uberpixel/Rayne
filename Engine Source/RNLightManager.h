@@ -25,27 +25,73 @@ namespace RN
 	class ShaderProgram;
 	class Texture;
 	
-	class LightManager
+	class LightManager : public Object
+	{
+	public:
+		friend class Camera;
+		
+		RNAPI LightManager();
+		
+		RNAPI virtual void UpdateProgram(Renderer *renderer, ShaderProgram *program) = 0;
+		RNAPI virtual void AdjustShaderLookup(Shader *shader, ShaderLookup &lookup) = 0;
+		
+		RNAPI virtual void AddLight(Light *light) = 0;
+		RNAPI virtual void CreateLightLists() = 0;
+		RNAPI virtual void ClearLights() = 0;
+		
+		RNAPI virtual size_t GetSpotlightCount() = 0;
+		RNAPI virtual size_t GetPointLightCount() = 0;
+		RNAPI virtual size_t GetDirectionalLightCount() = 0;
+		
+		Camera *GetCamera() const { return camera; }
+		
+		static LightManager *CreateDefaultLightManager();
+		
+	protected:
+		Camera *camera;
+		
+		RNDeclareMeta(LightManager)
+	};
+	
+	class ClusteredLightManager : public LightManager
 	{
 	public:		
-		RNAPI LightManager();
-		RNAPI ~LightManager();
+		RNAPI ClusteredLightManager();
+		RNAPI ~ClusteredLightManager();
 		
-		RNAPI void Bind(Renderer *renderer, Camera *camera, ShaderProgram *program);
-		RNAPI void AdjustProgramTypes(Shader *program, uint32 &types);
+		RNAPI void UpdateProgram(Renderer *renderer, ShaderProgram *program) final;
+		RNAPI void AdjustShaderLookup(Shader *shader, ShaderLookup &lookup) final;
 		
-		RNAPI void AddLight(Light *light);
+		RNAPI void AddLight(Light *light) final;
+		RNAPI void CreateLightLists() final;
+		RNAPI void ClearLights() final;
 		
-		RNAPI size_t CreatePointSpotLightLists(Camera *camera);
-		RNAPI size_t CreateDirectionalLightList(Camera *camera);
+		RNAPI void SetClusterSize(const Vector3 &size);
+		RNAPI void SetMaxDirectionalLights(size_t maxLights);
+		RNAPI void SetMaxLightsPerCluster(size_t maxLights);
+		
+		size_t GetSpotlightCount() final { return _spotLightCount; }
+		size_t GetPointLightCount() final { return _pointLightCount; }
+		size_t GetDirectionalLightCount() final { return _directionalLightCount; }
+		
+		const Vector3 &GetClusterSize() const { return _clusterSize; }
+		size_t GetMaxLightsPerCluster() const { return _maxLightsPerCluster; }
+		size_t GetMaxDirectionalLights() const { return _maxLightsDirect; }
 		
 	private:
-		void CullLights(Camera *camera);
+		void CullLights();
 		
-		int _maxLightsDirect;
+		void CreatePointSpotLightLists();
+		void CreateDirectionalLightList();
 		
+		size_t _maxLightsDirect;
+		size_t _maxLightsPerCluster;
 		size_t _pointSpotLightCount;
+		size_t _pointLightCount;
+		size_t _spotLightCount;
 		size_t _directionalLightCount;
+		
+		Vector3 _clusterSize;
 		
 		std::vector<Light *> _pointLights;
 		std::vector<Light *> _spotLights;
@@ -78,6 +124,11 @@ namespace RN
 		std::vector<Vector4> _lightPointColor;
 		std::vector<Texture *> _lightPointDepth;
 		std::vector<Vector4> _lightPointData;
+		
+		bool _hasPointLights;
+		bool _hasSpotLights;
+		
+		RNDeclareMeta(ClusteredLightManager)
 	};
 }
 

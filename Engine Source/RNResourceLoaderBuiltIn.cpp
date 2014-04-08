@@ -21,10 +21,10 @@
 
 namespace RN
 {
-	RNDeclareMeta(PNGResourceLoader)
-	RNDeclareMeta(GLSLResourceLoader)
-	RNDeclareMeta(SGMResourceLoader)
-	RNDeclareMeta(SGAResourceLoader)
+	RNDefineMeta(PNGResourceLoader, ResourceLoader)
+	RNDefineMeta(GLSLResourceLoader, ResourceLoader)
+	RNDefineMeta(SGMResourceLoader, ResourceLoader)
+	RNDefineMeta(SGAResourceLoader, ResourceLoader)
 	
 	// ---------------------
 	// MARK: -
@@ -47,7 +47,7 @@ namespace RN
 		}
 	}
 	
-	Object *PNGResourceLoader::Load(File *rfile, Dictionary *settings)
+	Asset *PNGResourceLoader::Load(File *rfile, Dictionary *settings)
 	{
 		FILE *file = rfile->GetFilePointer();
 		
@@ -136,8 +136,8 @@ namespace RN
 		
 		if(settings->GetObjectForKey(RNCSTR("parameter")))
 		{
-			WrappingObject<Texture::Parameter> *wrapper = static_cast<WrappingObject<Texture::Parameter> *>(settings->GetObjectForKey(RNCSTR("parameter")));
-			parameter = wrapper->GetData();
+			Value *value = settings->GetObjectForKey<Value>(RNCSTR("parameter"));
+			parameter = value->GetValue<Texture::Parameter>();
 		}
 		
 		if(settings->GetObjectForKey(RNCSTR("linear")))
@@ -145,6 +145,8 @@ namespace RN
 			Number *wrapper = settings->GetObjectForKey<Number>(RNCSTR("linear"));
 			isLinear = wrapper->GetBoolValue();
 		}
+		
+		pixelData.scaleFactor = PathManager::ScaleFactorForName(rfile->GetFullPath());
 		
 		
 		Texture2D *texture = new Texture2D(parameter, isLinear);
@@ -201,13 +203,12 @@ namespace RN
 		}
 	}
 	
-	Object *SGMResourceLoader::Load(File *file, Dictionary *settings)
+	Asset *SGMResourceLoader::Load(File *file, Dictionary *settings)
 	{
 		Model *model = new Model();
 		
 		bool guessMaterial = true;
 		bool autoloadLOD = false;
-		float distance[] = { 0.05f, 0.125f, 0.50f, 0.75 };
 		size_t stage = 0;
 		
 		if(settings->GetObjectForKey(RNCSTR("guessMaterial")))
@@ -240,6 +241,8 @@ namespace RN
 		std::string name = PathManager::Basename(file->GetFullPath());
 		std::string extension = PathManager::Extension(file->GetFullPath());
 		
+		const std::vector<float> &distance = Model::GetDefaultLODFactors();
+		
 		while(autoloadLOD && stage < 5)
 		{
 			std::stringstream stream;
@@ -269,7 +272,7 @@ namespace RN
 	{
 		file->Seek(5); // Skip over magic bytes and version number
 		
-		Shader *shader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTexture1Shader, nullptr);
+		Shader *shader = ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyDefaultShader, nullptr);
 		
 		std::vector<Material *> materials;
 		uint8 materialCount = file->ReadUint8();
@@ -326,7 +329,7 @@ namespace RN
 				Color color(file->ReadFloat(), file->ReadFloat(), file->ReadFloat(), file->ReadFloat());
 				
 				if(usagehint == 0 && u == 0)
-					material->diffuse = color;
+					material->SetDiffuseColor(color);
 			}
 			
 			materials.push_back(material);
@@ -350,14 +353,14 @@ namespace RN
 			std::vector<MeshDescriptor> descriptors;
 			size_t size = 0;
 			
-			MeshDescriptor meshDescriptor(kMeshFeatureVertices);
+			MeshDescriptor meshDescriptor(MeshFeature::Vertices);
 			meshDescriptor.elementSize = sizeof(Vector3);
 			meshDescriptor.elementMember = 3;
 			
 			descriptors.push_back(meshDescriptor);
 			size += meshDescriptor.elementSize;
 			
-			meshDescriptor = MeshDescriptor(kMeshFeatureNormals);
+			meshDescriptor = MeshDescriptor(MeshFeature::Normals);
 			meshDescriptor.elementSize = sizeof(Vector3);
 			meshDescriptor.elementMember = 3;
 			
@@ -366,7 +369,7 @@ namespace RN
 			
 			if(uvCount > 0)
 			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureUVSet0);
+				meshDescriptor = MeshDescriptor(MeshFeature::UVSet0);
 				meshDescriptor.elementSize = sizeof(Vector2);
 				meshDescriptor.elementMember = 2;
 				
@@ -376,7 +379,7 @@ namespace RN
 			
 			if(hasTangent == 1)
 			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureTangents);
+				meshDescriptor = MeshDescriptor(MeshFeature::Tangents);
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -385,7 +388,7 @@ namespace RN
 			}
 			if(uvCount > 1)
 			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureUVSet1);
+				meshDescriptor = MeshDescriptor(MeshFeature::UVSet1);
 				meshDescriptor.elementSize = sizeof(Vector2);
 				meshDescriptor.elementMember = 2;
 				
@@ -394,7 +397,7 @@ namespace RN
 			}
 			if(dataCount == 4)
 			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureColor0);
+				meshDescriptor = MeshDescriptor(MeshFeature::Color0);
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -403,14 +406,14 @@ namespace RN
 			}
 			if(hasBones)
 			{
-				meshDescriptor = MeshDescriptor(kMeshFeatureBoneWeights);
+				meshDescriptor = MeshDescriptor(MeshFeature::BoneWeights);
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
 				descriptors.push_back(meshDescriptor);
 				size += meshDescriptor.elementSize;
 				
-				meshDescriptor = MeshDescriptor(kMeshFeatureBoneIndices);
+				meshDescriptor = MeshDescriptor(MeshFeature::BoneIndices);
 				meshDescriptor.elementSize = sizeof(Vector4);
 				meshDescriptor.elementMember = 4;
 				
@@ -429,7 +432,7 @@ namespace RN
 			uint8 *indicesData = new uint8[indicesCount * indicesSize];
 			file->ReadIntoBuffer(indicesData, indicesCount * indicesSize);
 			
-			meshDescriptor = MeshDescriptor(kMeshFeatureIndices);
+			meshDescriptor = MeshDescriptor(MeshFeature::Indices);
 			meshDescriptor.elementSize = indicesSize;
 			meshDescriptor.elementMember = 1;
 			descriptors.push_back(meshDescriptor);
@@ -499,7 +502,7 @@ namespace RN
 		}
 	}
 	
-	Object *SGAResourceLoader::Load(File *file, Dictionary *settings)
+	Asset *SGAResourceLoader::Load(File *file, Dictionary *settings)
 	{
 		Skeleton *skeleton = new Skeleton();
 		
@@ -630,7 +633,7 @@ namespace RN
 		}
 	}
 	
-	Object *GLSLResourceLoader::Load(String *name, Dictionary *settings)
+	Asset *GLSLResourceLoader::Load(String *name, Dictionary *settings)
 	{
 		Shader *shader = new Shader(name->GetUTF8String());
 		return shader;

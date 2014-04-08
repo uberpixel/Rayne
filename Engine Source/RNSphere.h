@@ -22,20 +22,16 @@ namespace RN
 		Sphere(const Vector3& offset, float radius);
 		Sphere(const AABB& aabb);
 		
-		Sphere operator+ (const Vector3& other) const;
-		Sphere& operator+= (const Vector3& other);
 		Sphere operator* (const Vector3& other) const;
 		Sphere& operator*= (const Vector3& other);
 		
-		void Rotate(const Quaternion& rotation);
+		void SetRotation(const Quaternion& rotation);
 		
 		Hit CastRay(const Vector3 &position, const Vector3 &direction) const;
 		bool IntersectsRay(const Vector3 &position, const Vector3 &direction) const;
 		
 		Vector3 position;
 		Vector3 offset;
-		Vector3 offsetBase;
-		
 		float radius;
 	};
 	
@@ -46,32 +42,15 @@ namespace RN
 	
 	RN_INLINE Sphere::Sphere(const Vector3& toffset, float tradius) :
 		offset(toffset),
-		offsetBase(toffset),
 		radius(tradius)
 	{
 	}
 	
 	RN_INLINE Sphere::Sphere(const AABB& aabb) :
+		position(aabb.position),
 		offset(aabb.maxExtend*0.5+aabb.minExtend*0.5),
-		offsetBase(aabb.maxExtend*0.5+aabb.minExtend*0.5),
-		radius(((aabb.maxExtend-aabb.minExtend)*0.5).Length())
+		radius(((aabb.maxExtend-aabb.minExtend)*0.5).GetLength())
 	{
-	}
-	
-	
-	RN_INLINE Sphere Sphere::operator+ (const Vector3& other) const
-	{
-		Sphere result(*this);
-		result.offset += other;
-		result.offsetBase += other;
-		return result;
-	}
-	
-	RN_INLINE Sphere& Sphere::operator+= (const Vector3& other)
-	{
-		offset += other;
-		offsetBase += other;
-		return *this;
 	}
 	
 	RN_INLINE Sphere Sphere::operator* (const Vector3& other) const
@@ -80,7 +59,6 @@ namespace RN
 		float scale = std::max(std::max(other.x, other.y), other.z);
 		result.radius *= scale;
 		result.offset *= scale;
-		result.offsetBase *= scale;
 		
 		return result;
 	}
@@ -90,13 +68,12 @@ namespace RN
 		float scale = std::max(std::max(other.x, other.y), other.z);
 		radius *= scale;
 		offset *= scale;
-		offsetBase *= scale;
 		return *this;
 	}
 	
-	RN_INLINE void Sphere::Rotate(const Quaternion& rotation)
+	RN_INLINE void Sphere::SetRotation(const Quaternion& rotation)
 	{
-		offset = rotation.RotateVector(offsetBase);
+		offset = rotation.GetRotatedVector(offset);
 	}
 	
 	/*based on http://wiki.cgsociety.org/index.php/Ray_Sphere_Intersection*/
@@ -104,10 +81,12 @@ namespace RN
 	{
 		Hit hit;
 		
+		Vector3 pos = position - this->position - this->offset;
+		
 		//Compute A, B and C coefficients
-		float a = direction.Dot(direction);
-		float b = 2.0f * direction.Dot(position);
-		float c = position.Dot(position) - (radius * radius);
+		float a = direction.GetDotProduct(direction);
+		float b = 2.0f * direction.GetDotProduct(pos);
+		float c = pos.GetDotProduct(pos) - (radius * radius);
 		
 		//Find discriminant
 		float disc = b * b - 4.0f * a * c;
@@ -146,13 +125,13 @@ namespace RN
 		// if t0 is less than zero, the intersection point is at t1
 		if (t0 < 0.0f)
 		{
-			hit.position = position+direction*t1;
+			hit.position = this->position + this->offset + direction * t1;
 			hit.distance = t1;
 			return hit;
 		}
 		else
 		{
-			hit.position = position+direction*t0;
+			hit.position = this->position + this->offset + direction * t0;
 			hit.distance = t0;
 			return hit;
 		}
@@ -160,7 +139,7 @@ namespace RN
 	
 	RN_INLINE bool Sphere::IntersectsRay(const Vector3 &tposition, const Vector3 &direction) const
 	{
-		float dist = direction.Cross(tposition - position).Length()/direction.Length();
+		float dist = direction.GetCrossProduct(tposition - position - offset).GetLength()/direction.GetLength();
 		return (dist <= radius);
 	}
 }

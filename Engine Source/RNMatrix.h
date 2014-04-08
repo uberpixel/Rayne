@@ -17,7 +17,8 @@ namespace RN
 {
 	RN_INLINE Matrix::Matrix()
 	{
-		MakeIdentity();
+		std::fill(m, m + 16, 0);
+		m[0] = m[5] = m[10] = m[15] = 1.0f;
 	}
 
 	RN_INLINE Matrix& Matrix::operator*= (const Matrix& other)
@@ -146,6 +147,16 @@ namespace RN
 		return result;
 	}
 	
+	RN_INLINE bool Matrix::operator== (const Matrix &other) const
+	{
+		return IsEqual(other, k::EpsilonFloat);
+	}
+	
+	RN_INLINE bool Matrix::operator!= (const Matrix &other) const
+	{
+		return !IsEqual(other, k::EpsilonFloat);
+	}
+	
 	RN_INLINE Matrix Matrix::GetInverse() const
 	{
 		Matrix result;
@@ -154,78 +165,95 @@ namespace RN
 		
 		for(int i=0; i<16; i++)
 		{
-			result.m[i] = GetDeterminantSubmatrix(i) / det;
+			result.m[i] = GetSubmatrixDeterminant(i) / det;
 		}
 		
 		return result;
 	}
-
-	RN_INLINE void Matrix::MakeIdentity()
-	{
-		std::fill(m, m + 16, 0);
-		m[0] = m[5] = m[10] = m[15] = 1.0f;
-	}
 	
-	RN_INLINE void Matrix::MakeTranslate(const Vector3& trans)
+	RN_INLINE void Matrix::Inverse()
 	{
-		MakeIdentity();
-		
-		m[12] = trans.x;
-		m[13] = trans.y;
-		m[14] = trans.z;
-	}
-	
-	RN_INLINE void Matrix::MakeTranslate(const Vector4& trans)
-	{
-		MakeIdentity();
-		
-		m[12] = trans.x;
-		m[13] = trans.y;
-		m[14] = trans.z;
-		m[15] = trans.w;
-	}
-	
-	RN_INLINE void Matrix::MakeScale(const Vector3& scal)
-	{
-		MakeIdentity();
-		
-		m[0] = scal.x;
-		m[5] = scal.y;
-		m[10] = scal.z;
-	}
-	
-	RN_INLINE void Matrix::MakeScale(const Vector4& scal)
-	{
-		MakeIdentity();
-		
-		m[0] = scal.x;
-		m[5] = scal.y;
-		m[10] = scal.z;
-		m[15] = scal.w;
-	}
-	
-	RN_INLINE void Matrix::MakeRotate(const Vector3& rot)
-	{
-		Quaternion quat(rot);
-		*this = quat.GetRotationMatrix();
-	}
-	
-	RN_INLINE void Matrix::MakeRotate(const Vector4& rot)
-	{
-		Quaternion quat(rot);
-		*this = quat.GetRotationMatrix();
-	}
-	
-	RN_INLINE void Matrix::MakeRotate(const Quaternion& rot)
-	{
-		Quaternion quat(rot);
-		*this = quat.GetRotationMatrix();
+		*this = GetInverse();
 	}
 
-	
-	RN_INLINE void Matrix::MakeProjectionOrthogonal(float left, float right, float bottom, float top, float clipnear, float clipfar)
+	RN_INLINE Matrix Matrix::WithIdentity()
 	{
-		MakeIdentity();
+		Matrix mat;
+		
+		std::fill(mat.m, mat.m + 16, 0);
+		mat.m[0] = mat.m[5] = mat.m[10] = mat.m[15] = 1.0f;
+		
+		return mat;
+	}
+	
+	RN_INLINE Matrix Matrix::WithTranslation(const Vector3& translation)
+	{
+		Matrix mat;
+		
+		mat.m[12] = translation.x;
+		mat.m[13] = translation.y;
+		mat.m[14] = translation.z;
+		
+		return mat;
+	}
+	
+	RN_INLINE Matrix Matrix::WithTranslation(const Vector4& translation)
+	{
+		Matrix mat;
+		
+		mat.m[12] = translation.x;
+		mat.m[13] = translation.y;
+		mat.m[14] = translation.z;
+		mat.m[15] = translation.w;
+		
+		return mat;
+	}
+	
+	RN_INLINE Matrix Matrix::WithScaling(const Vector3& scaling)
+	{
+		Matrix mat;
+		
+		mat.m[0] = scaling.x;
+		mat.m[5] = scaling.y;
+		mat.m[10] = scaling.z;
+		
+		return mat;
+	}
+	
+	RN_INLINE Matrix Matrix::WithScaling(const Vector4& scaling)
+	{
+		Matrix mat;
+		
+		mat.m[0] = scaling.x;
+		mat.m[5] = scaling.y;
+		mat.m[10] = scaling.z;
+		mat.m[15] = scaling.w;
+		
+		return mat;
+	}
+	
+	RN_INLINE Matrix Matrix::WithRotation(const Vector3& rotation)
+	{
+		Quaternion quat(rotation);
+		return quat.GetRotationMatrix();
+	}
+	
+	RN_INLINE Matrix Matrix::WithRotation(const Vector4& rotation)
+	{
+		Quaternion quat(rotation);
+		return quat.GetRotationMatrix();
+	}
+	
+	RN_INLINE Matrix Matrix::WithRotation(const Quaternion& rotation)
+	{
+		Quaternion quat(rotation);
+		return quat.GetRotationMatrix();
+	}
+
+	
+	RN_INLINE Matrix Matrix::WithProjectionOrthogonal(float left, float right, float bottom, float top, float clipnear, float clipfar)
+	{
+		Matrix mat;
 		
 		float rl = right - left;
 		float tb = top - bottom;
@@ -234,46 +262,52 @@ namespace RN
 		float ty = - (top + bottom) / (top - bottom);
 		float tz = - (clipfar + clipnear) / (clipfar - clipnear);
 		
-		m[0] = 2.0f / rl;
-		m[5] = 2.0f / tb;
-		m[10] = -2.0f / fn;
+		mat.m[0] = 2.0f / rl;
+		mat.m[5] = 2.0f / tb;
+		mat.m[10] = -2.0f / fn;
 		
-		m[12] = tx;
-		m[13] = ty;
-		m[14] = tz;
-		m[15] = 1.0f;
+		mat.m[12] = tx;
+		mat.m[13] = ty;
+		mat.m[14] = tz;
+		mat.m[15] = 1.0f;
+		
+		return mat;
 	}
 	
-	RN_INLINE void Matrix::MakeProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)
+	RN_INLINE Matrix Matrix::WithProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)
 	{
-		MakeIdentity();
+		Matrix mat;
 		
 		float xFac, yFac;
 		yFac = tanf(arc * k::Pi / 360.0f);
 		xFac = yFac * aspect;
 		
-		m[0] = 1.0f / xFac;
-		m[5] = 1.0f / yFac;
-		m[10] = -(clipfar + clipnear) / (clipfar - clipnear);
-		m[11] = -1.0f;
-		m[14] = -(2.0f * clipfar * clipnear) / (clipfar - clipnear);
-		m[15] = 0.0f;
+		mat.m[0] = 1.0f / xFac;
+		mat.m[5] = 1.0f / yFac;
+		mat.m[10] = -(clipfar + clipnear) / (clipfar - clipnear);
+		mat.m[11] = -1.0f;
+		mat.m[14] = -(2.0f * clipfar * clipnear) / (clipfar - clipnear);
+		mat.m[15] = 0.0f;
+		
+		return mat;
 	}
 	
-	RN_INLINE void Matrix::MakeInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)
+	RN_INLINE Matrix Matrix::WithInverseProjectionPerspective(float arc, float aspect, float clipnear, float clipfar)
 	{
-		MakeIdentity();
+		Matrix mat;
 		
 		float xFac, yFac;
 		yFac = tanf(arc * k::Pi / 360.0f);
 		xFac = yFac * aspect;
 		
-		m[0] = xFac;
-		m[5] = yFac;
-		m[10] = 0.0f;
-		m[11] = -(clipfar - clipnear) / (2.0f * clipfar * clipnear);
-		m[14] = -1.0f;
-		m[15] = (clipfar + clipnear) / (2.0f * clipfar * clipnear);
+		mat.m[0] = xFac;
+		mat.m[5] = yFac;
+		mat.m[10] = 0.0f;
+		mat.m[11] = -(clipfar - clipnear) / (2.0f * clipfar * clipnear);
+		mat.m[14] = -1.0f;
+		mat.m[15] = (clipfar + clipnear) / (2.0f * clipfar * clipnear);
+		
+		return mat;
 	}
 	
 	RN_INLINE float Matrix::GetDeterminant() const
@@ -285,7 +319,7 @@ namespace RN
 		return det;
 	}
 
-	RN_INLINE float Matrix::GetDeterminantSubmatrix(const int k) const
+	RN_INLINE float Matrix::GetSubmatrixDeterminant(const int k) const
 	{
 		int i = k%4; // i <=> j
 		int j = k/4;
@@ -333,6 +367,11 @@ namespace RN
 		return result;
 	}
 	
+	RN_INLINE Vector4 Matrix::GetAxisAngle() const
+	{
+		return GetQuaternion().GetAxisAngle();
+	}
+	
 	RN_INLINE Quaternion Matrix::GetQuaternion() const
 	{
 		Quaternion result;
@@ -347,51 +386,21 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE void Matrix::SetTranslation(const Vector3& trans)
-	{
-		m[12] = trans.x;
-		m[13] = trans.y;
-		m[14] = trans.z;
-	}
-	
-	RN_INLINE void Matrix::SetTranslation(const Vector4& trans)
-	{
-		m[12] = trans.x;
-		m[13] = trans.y;
-		m[14] = trans.z;
-		m[15] = trans.w;
-	}
-	
-	RN_INLINE void Matrix::SetScale(const Vector3& scal)
-	{
-		m[0] = scal.x;
-		m[5] = scal.y;
-		m[10] = scal.z;
-	}
-	
-	RN_INLINE void Matrix::SetScale(const Vector4& scal)
-	{
-		m[0] = scal.x;
-		m[5] = scal.y;
-		m[10] = scal.z;
-		m[15] = scal.w;
-	}
-	
-	RN_INLINE void Matrix::Translate(const Vector3& trans)
+	RN_INLINE void Matrix::Translate(const Vector3& translation)
 	{
 #if RN_SIMD
-		SIMD::VecFloat result = SIMD::Mul(vec[0], SIMD::Set(trans.x));
-		result = SIMD::Add(result, SIMD::Mul(vec[1], SIMD::Set(trans.y)));
-		result = SIMD::Add(result, SIMD::Mul(vec[2], SIMD::Set(trans.z)));
+		SIMD::VecFloat result = SIMD::Mul(vec[0], SIMD::Set(translation.x));
+		result = SIMD::Add(result, SIMD::Mul(vec[1], SIMD::Set(translation.y)));
+		result = SIMD::Add(result, SIMD::Mul(vec[2], SIMD::Set(translation.z)));
 		
 		vec[3] = SIMD::Add(result, vec[3]);
 #else
 		float tmp[4];
 		
-		tmp[0] = m[ 0] * trans.x + m[ 4] * trans.y + m[ 8] * trans.z + m[12];
-		tmp[1] = m[ 1] * trans.x + m[ 5] * trans.y + m[ 9] * trans.z + m[13];
-		tmp[2] = m[ 2] * trans.x + m[ 6] * trans.y + m[10] * trans.z + m[14];
-		tmp[3] = m[ 3] * trans.x + m[ 7] * trans.y + m[11] * trans.z + m[15];
+		tmp[0] = m[ 0] * translation.x + m[ 4] * translation.y + m[ 8] * translation.z + m[12];
+		tmp[1] = m[ 1] * translation.x + m[ 5] * translation.y + m[ 9] * translation.z + m[13];
+		tmp[2] = m[ 2] * translation.x + m[ 6] * translation.y + m[10] * translation.z + m[14];
+		tmp[3] = m[ 3] * translation.x + m[ 7] * translation.y + m[11] * translation.z + m[15];
 		
 		m[12] = tmp[0];
 		m[13] = tmp[1];
@@ -400,21 +409,21 @@ namespace RN
 #endif
 	}
 	
-	RN_INLINE void Matrix::Translate(const Vector4& trans)
+	RN_INLINE void Matrix::Translate(const Vector4& translation)
 	{
 #if RN_SIMD
-		SIMD::VecFloat result = SIMD::Mul(vec[0], SIMD::Set(trans.x));
-		result = SIMD::Add(result, SIMD::Mul(vec[1], SIMD::Set(trans.y)));
-		result = SIMD::Add(result, SIMD::Mul(vec[2], SIMD::Set(trans.z)));
+		SIMD::VecFloat result = SIMD::Mul(vec[0], SIMD::Set(translation.x));
+		result = SIMD::Add(result, SIMD::Mul(vec[1], SIMD::Set(translation.y)));
+		result = SIMD::Add(result, SIMD::Mul(vec[2], SIMD::Set(translation.z)));
 		
-		vec[3] = SIMD::Add(result, SIMD::Mul(vec[3], SIMD::Set(trans.w)));
+		vec[3] = SIMD::Add(result, SIMD::Mul(vec[3], SIMD::Set(translation.w)));
 #else
 		float tmp[4];
 		
-		tmp[0] = m[ 0] * trans.x + m[ 4] * trans.y + m[ 8] * trans.z + m[12] * trans.w;
-		tmp[1] = m[ 1] * trans.x + m[ 5] * trans.y + m[ 9] * trans.z + m[13] * trans.w;
-		tmp[2] = m[ 2] * trans.x + m[ 6] * trans.y + m[10] * trans.z + m[14] * trans.w;
-		tmp[3] = m[ 3] * trans.x + m[ 7] * trans.y + m[11] * trans.z + m[15] * trans.w;
+		tmp[0] = m[ 0] * translation.x + m[ 4] * translation.y + m[ 8] * translation.z + m[12] * translation.w;
+		tmp[1] = m[ 1] * translation.x + m[ 5] * translation.y + m[ 9] * translation.z + m[13] * translation.w;
+		tmp[2] = m[ 2] * translation.x + m[ 6] * translation.y + m[10] * translation.z + m[14] * translation.w;
+		tmp[3] = m[ 3] * translation.x + m[ 7] * translation.y + m[11] * translation.z + m[15] * translation.w;
 		
 		m[12] = tmp[0];
 		m[13] = tmp[1];
@@ -423,59 +432,29 @@ namespace RN
 #endif
 	}
 	
-	RN_INLINE void Matrix::Scale(const Vector3& scal)
+	RN_INLINE void Matrix::Scale(const Vector3& scaling)
 	{
-		Matrix temp;
-		temp.MakeScale(scal);
-		
-		*this *= temp;
+		*this *= Matrix::WithScaling(scaling);
 	}
 	
-	RN_INLINE void Matrix::Scale(const Vector4& scal)
+	RN_INLINE void Matrix::Scale(const Vector4& scaling)
 	{
-		Matrix temp;
-		temp.MakeScale(scal);
-		
-		*this *= temp;
+		*this *= Matrix::WithScaling(scaling);
 	}
 	
-	RN_INLINE void Matrix::Rotate(const Vector3& rot)
+	RN_INLINE void Matrix::Rotate(const Vector3& rotation)
 	{
-		Matrix temp;
-		temp.MakeRotate(rot);
-		
-		*this *= temp;
+		*this *= Matrix::WithRotation(rotation);
 	}
 	
-	RN_INLINE void Matrix::Rotate(const Vector4& rot)
+	RN_INLINE void Matrix::Rotate(const Vector4& rotation)
 	{
-		Matrix temp;
-		temp.MakeRotate(rot);
-		
-		*this *= temp;
+		*this *= Matrix::WithRotation(rotation);
 	}
 	
-	RN_INLINE void Matrix::Rotate(const Quaternion& rot)
+	RN_INLINE void Matrix::Rotate(const Quaternion& rotation)
 	{
-		Matrix temp;
-		temp.MakeRotate(rot);
-		
-		*this *= temp;
-	}
-	
-	
-	RN_INLINE Vector3 Matrix::Transform(const Vector3& other) const
-	{
-		Vector3 result;
-		result = (*this) * other;
-		return result;
-	}
-	
-	RN_INLINE Vector4 Matrix::Transform(const Vector4& other) const
-	{
-		Vector4 result;
-		result = (*this) * other;
-		return result;
+		*this *= Matrix::WithRotation(rotation);
 	}
 	
 	RN_INLINE void Matrix::Transpose()
@@ -503,6 +482,86 @@ namespace RN
 		temp[15] = m[15];
 		
 		std::copy(temp, temp + 16, m);
+	}
+	
+	RN_INLINE Matrix Matrix::GetTransposed() const
+	{
+		Matrix result;
+		
+		result.m[0] = m[0];
+		result.m[1] = m[4];
+		result.m[2] = m[8];
+		result.m[3] = m[12];
+		
+		result.m[4] = m[1];
+		result.m[5] = m[5];
+		result.m[6] = m[9];
+		result.m[7] = m[13];
+		
+		result.m[8] = m[2];
+		result.m[9] = m[6];
+		result.m[10] = m[10];
+		result.m[11] = m[14];
+		
+		result.m[12] = m[3];
+		result.m[13] = m[7];
+		result.m[14] = m[11];
+		result.m[15] = m[15];
+		
+		return result;
+	}
+	
+	RN_INLINE bool Matrix::IsEqual(const Matrix& other, float epsilon) const
+	{
+		if(fabs(m[0] - other.m[0]) > epsilon)
+			return false;
+		
+		if(fabs(m[1] - other.m[1]) > epsilon)
+			return false;
+		
+		if(fabs(m[2] - other.m[2]) > epsilon)
+			return false;
+		
+		if(fabs(m[3] - other.m[3]) > epsilon)
+			return false;
+		
+		if(fabs(m[4] - other.m[4]) > epsilon)
+			return false;
+		
+		if(fabs(m[5] - other.m[5]) > epsilon)
+			return false;
+		
+		if(fabs(m[6] - other.m[6]) > epsilon)
+			return false;
+		
+		if(fabs(m[7] - other.m[7]) > epsilon)
+			return false;
+		
+		if(fabs(m[8] - other.m[8]) > epsilon)
+			return false;
+		
+		if(fabs(m[9] - other.m[9]) > epsilon)
+			return false;
+		
+		if(fabs(m[10] - other.m[10]) > epsilon)
+			return false;
+		
+		if(fabs(m[11] - other.m[11]) > epsilon)
+			return false;
+		
+		if(fabs(m[12] - other.m[12]) > epsilon)
+			return false;
+		
+		if(fabs(m[13] - other.m[13]) > epsilon)
+			return false;
+		
+		if(fabs(m[14] - other.m[14]) > epsilon)
+			return false;
+		
+		if(fabs(m[15] - other.m[15]) > epsilon)
+			return false;
+		
+		return true;
 	}
 }
 

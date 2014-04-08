@@ -2,8 +2,8 @@
 //  TGLoadingScreen.cpp
 //  Test Game
 //
-//  Created by Sidney Just on 08/01/14.
-//  Copyright (c) 2014 Überpixel. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "TGLoadingScreen.h"
@@ -11,7 +11,7 @@
 namespace TG
 {
 	LoadingScreen::LoadingScreen(RN::Progress *progress) :
-		RN::UI::Widget(RN::UI::Widget::StyleBorderless) // No chrome around the widget
+		RN::UI::Widget(RN::UI::Widget::Style::Borderless) // No chrome around the widget
 	{
 		UpdateSize(nullptr);
 		const RN::Rect &frame = GetFrame();
@@ -26,7 +26,7 @@ namespace TG
 		_progressIndicator = new RN::UI::ProgressIndicator();
 		_progressIndicator->SetFrame(RN::Rect((frame.width / 2.0) - 256.0f, frame.height - 20.0f, 512.0f, 10.0f));
 		_progressIndicator->SetProgress(progress);
-		_progressIndicator->SetAutoresizingMask(RN::UI::View::AutoresizingFlexibleLeftMargin | RN::UI::View::AutoresizingFlexibleRightMargin | RN::UI::View::AutoresizingFlexibleTopMargin);
+		_progressIndicator->SetAutoresizingMask(RN::UI::View::AutoresizingMask::FlexibleLeftMargin | RN::UI::View::AutoresizingMask::FlexibleRightMargin | RN::UI::View::AutoresizingMask::FlexibleTopMargin);
 		
 		GetContentView()->AddSubview(_backdrop);
 		GetContentView()->AddSubview(_progressIndicator);
@@ -35,7 +35,7 @@ namespace TG
 		
 		// Listen to UI Server resizes and the finish of thw world coordinator loading
 		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNUIServerDidResizeMessage, std::bind(&LoadingScreen::UpdateSize, this, std::placeholders::_1), this);
-		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNWorldCoordinatorDidFinishLoading, [this](RN::Message *message) {
+		RN::MessageCenter::GetSharedInstance()->AddObserver(kRNWorldCoordinatorDidFinishLoadingMessage, [this](RN::Message *message) {
 			Close();
 		}, this);
 	}

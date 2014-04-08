@@ -37,6 +37,7 @@
 #include "RNSettings.h"
 #include "RNInput.h"
 #include "RNMessage.h"
+#include "RNTimer.h"
 #include "RNSignal.h"
 #include "RNFile.h"
 #include "RNPathManager.h"
@@ -82,6 +83,7 @@
 #include "RNTexture.h"
 #include "RNTextureAtlas.h"
 
+#include "RNUIStyle.h"
 #include "RNUIFont.h"
 #include "RNUITypesetter.h"
 #include "RNUIImage.h"
@@ -114,12 +116,14 @@
 #include "RNEntity.h"
 #include "RNLight.h"
 #include "RNBillboard.h"
+#include "RNDecal.h"
 #include "RNWater.h"
 #include "RNInstancingNode.h"
 #include "RNParticleEmitter.h"
 #include "RNParticle.h"
 #include "RNTriggerZone.h"
 #include "RNTextNode.h"
+#include "RNTerrain.h"
 
 #include "RNThread.h"
 #include "RNThreadPool.h"
@@ -132,6 +136,7 @@
 #include "RNWindow.h"
 
 #include "RNSTL.h"
+#include "RNAny.h"
 #include "RNRingBuffer.h"
 #include "RNIntervalTree.h"
 #include "RNSHA2.h"

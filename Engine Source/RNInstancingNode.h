@@ -39,7 +39,11 @@ namespace RN
 		
 		RNAPI InstancingNode();
 		RNAPI InstancingNode(Model *model);
+		RNAPI InstancingNode(Deserializer *deserializer);
 		RNAPI ~InstancingNode() override;
+		RNAPI void CleanUp() override;
+		
+		RNAPI void Serialize(Serializer *serializer) override;
 		
 		RNAPI void SetModel(Model *model);
 		RNAPI void AddModel(Model *model);
@@ -53,14 +57,16 @@ namespace RN
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		RNAPI void Render(Renderer *renderer, Camera *camera) override;
+		RNAPI Hit CastRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode) override;
 		
 		RNAPI float GetCellSize() const { return _cellSize; }
 		RNAPI float GetClipRange() const { return _clipRange; }
 		RNAPI float GetThinRange() const { return _thinRange; }
+		RNAPI Camera *GetPivot() const { return _pivot; }
 		RNAPI Mode GetMode() const { return _mode; }
 		
 	protected:
-		RNAPI void ChildDidUpdate(SceneNode *child, uint32 changeSet) override;
+		RNAPI void ChildDidUpdate(SceneNode *child, ChangeSet changeSet) override;
 		RNAPI void WillAddChild(SceneNode *child) override;
 		RNAPI void WillRemoveChild(SceneNode *child) override;
 		
@@ -78,13 +84,15 @@ namespace RN
 		Set *_models;
 		Mode _mode;
 		
-		float _clipRange;
-		float _thinRange;
-		float _cellSize;
+		Observable<float, InstancingNode> _clipRange;
+		Observable<float, InstancingNode> _thinRange;
+		Observable<float, InstancingNode> _cellSize;
 		
 		Camera *_pivot;
 		
 		MetaClassBase *_entityClass;
+		
+		RNDeclareMeta(InstancingNode)
 	};
 }
 

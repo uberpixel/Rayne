@@ -14,7 +14,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(Mesh)
+	RNDefineMeta(Mesh, Object)
 	
 	// ---------------------
 	// MARK: -
@@ -77,6 +77,88 @@ namespace RN
 		}, true);
 	}
 	
+	
+	Mesh::Mesh(Deserializer *deserializer)
+	{
+		size_t count = static_cast<size_t>(deserializer->DecodeInt32());
+		std::vector<MeshDescriptor> descriptors;
+		
+		for(size_t i = 0; i < count; i ++)
+		{
+			MeshDescriptor descriptor(0);
+			
+			descriptor.feature = static_cast<MeshFeature>(deserializer->DecodeInt32());
+			descriptor.flags   = static_cast<uint32>(deserializer->DecodeInt32());
+			
+			descriptor.elementMember = static_cast<size_t>(deserializer->DecodeInt32());
+			descriptor.elementSize   = static_cast<size_t>(deserializer->DecodeInt32());
+			
+			descriptors.push_back(std::move(descriptor));
+		}
+		
+		_verticesCount = static_cast<size_t>(deserializer->DecodeInt64());
+		_indicesCount  = static_cast<size_t>(deserializer->DecodeInt64());
+		
+		Initialize(descriptors);
+		
+		std::pair<const void *, const void *> data(nullptr, nullptr);
+		
+		if(_verticesCount)
+			data.first = deserializer->DecodeBytes(nullptr);
+		if(_indicesCount)
+			data.second = deserializer->DecodeBytes(nullptr);
+		
+		_mode     = static_cast<DrawMode>(deserializer->DecodeInt32());
+		_vboUsage = static_cast<MeshUsage>(deserializer->DecodeInt32());
+		_iboUsage = static_cast<MeshUsage>(deserializer->DecodeInt32());
+		
+		AllocateBuffer(data);
+		
+		_boundingBox.minExtend = deserializer->DecodeVector3();
+		_boundingBox.maxExtend = deserializer->DecodeVector3();
+		_boundingBox.position  = deserializer->DecodeVector3();
+		
+		_boundingSphere.position = deserializer->DecodeVector3();
+		_boundingSphere.offset   = deserializer->DecodeVector3();
+		_boundingSphere.radius   = deserializer->DecodeFloat();
+	}
+	
+	void Mesh::Serialize(Serializer *serializer)
+	{
+		size_t count = _descriptors.size();
+		serializer->EncodeInt32(static_cast<int32>(_descriptors.size()));
+		
+		for(size_t i = 0; i < count; i ++)
+		{
+			serializer->EncodeInt32(static_cast<int32>(_descriptors[i].feature));
+			serializer->EncodeInt32(static_cast<int32>(_descriptors[i].flags));
+			
+			serializer->EncodeInt32(static_cast<int32>(_descriptors[i].elementMember));
+			serializer->EncodeInt32(static_cast<int32>(_descriptors[i].elementSize));
+		}
+		
+		serializer->EncodeInt64(static_cast<int64>(_verticesCount));
+		serializer->EncodeInt64(static_cast<int64>(_indicesCount));
+		
+		if(_verticesCount)
+			serializer->EncodeBytes(_vertices, _verticesSize);
+		if(_indicesCount)
+			serializer->EncodeBytes(_indices, _indicesSize);
+		
+		serializer->EncodeInt32(static_cast<int32>(_mode));
+		serializer->EncodeInt32(static_cast<int32>(_vboUsage));
+		serializer->EncodeInt32(static_cast<int32>(_iboUsage));
+		
+		serializer->EncodeVector3(_boundingBox.minExtend);
+		serializer->EncodeVector3(_boundingBox.maxExtend);
+		serializer->EncodeVector3(_boundingBox.position);
+		
+		serializer->EncodeVector3(_boundingSphere.position);
+		serializer->EncodeVector3(_boundingSphere.offset);
+		serializer->EncodeFloat(_boundingSphere.radius);
+	}
+	
+	
 	void Mesh::PushData(bool vertices, bool indices)
 	{
 		if(vertices)
@@ -85,7 +167,7 @@ namespace RN
 				Renderer::GetSharedInstance()->BindVAO(0);
 				
 				gl::BindBuffer(GL_ARRAY_BUFFER, _vbo);
-				gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, _vertices, _vboUsage);
+				gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, _vertices, static_cast<GLenum>(_vboUsage));
 			});
 		}
 		
@@ -95,7 +177,7 @@ namespace RN
 				Renderer::GetSharedInstance()->BindVAO(0);
 				
 				gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-				gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, _iboUsage);
+				gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, _indices, static_cast<GLenum>(_iboUsage));
 			});
 		}
 	}
@@ -103,17 +185,17 @@ namespace RN
 	
 	void Mesh::Initialize(const std::vector<MeshDescriptor>& descriptors)
 	{
-		_indicesSize  = 0;
-		_verticesSize = 0;
+		_indicesSize   = 0;
+		_verticesSize  = 0;
 		
 		_indices  = nullptr;
 		_vertices = nullptr;
 		
 		_stride = 0;
-		_mode   = GL_TRIANGLES;
+		_mode   = DrawMode::Triangles;
 		
-		_vboUsage = GL_STATIC_DRAW;
-		_iboUsage = GL_STATIC_DRAW;
+		_vboUsage = MeshUsage::Static;
+		_iboUsage = MeshUsage::Static;
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
 			gl::GenBuffers(2, &_vbo);
@@ -133,7 +215,7 @@ namespace RN
 		
 		for(auto& descriptor : _descriptors)
 		{
-			if(descriptor.feature != kMeshFeatureIndices)
+			if(descriptor.feature != MeshFeature::Indices)
 			{
 				descriptor._size  = descriptor.elementSize * _verticesCount;
 				descriptor.offset = offset;
@@ -167,39 +249,39 @@ namespace RN
 			if(_verticesSize > 0)
 			{
 				gl::BindBuffer(GL_ARRAY_BUFFER, _vbo);
-				gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, data.first, _vboUsage);
+				gl::BufferData(GL_ARRAY_BUFFER, _verticesSize, data.first, static_cast<GLenum>(_vboUsage));
 			}
 			
 			if(_indicesCount > 0)
 			{
 				gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ibo);
-				gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, data.second, _iboUsage);
+				gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, _indicesSize, data.second, static_cast<GLenum>(_iboUsage));
 			}
 		}, true);
 	}
 		
 	
-	void Mesh::SetMode(GLenum mode)
+	void Mesh::SetDrawMode(DrawMode mode)
 	{
 		_mode = mode;
 	}
 	
-	void Mesh::SetVBOUsage(GLenum usage)
+	void Mesh::SetVBOUsage(MeshUsage usage)
 	{
 		_vboUsage = usage;
 	}
 	
-	void Mesh::SetIBOUsage(GLenum usage)
+	void Mesh::SetIBOUsage(MeshUsage usage)
 	{
 		_iboUsage = usage;
 	}
 	
 	
-	void Mesh::SetElementData(MeshFeature feature, void *tdata)
+	void Mesh::SetElementData(MeshFeature feature, const void *tdata)
 	{
-		if(feature == kMeshFeatureIndices)
+		if(feature == MeshFeature::Indices)
 		{
-			uint8 *data = static_cast<uint8 *>(tdata);
+			const uint8 *data = static_cast<const uint8 *>(tdata);
 			std::copy(data, data + _indicesSize, _indices);
 			
 			OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
@@ -209,11 +291,11 @@ namespace RN
 		}
 		else
 		{
-			for(auto& descriptor : _descriptors)
+			for(auto &descriptor : _descriptors)
 			{
 				if(descriptor.feature == feature)
 				{
-					uint8 *data   = static_cast<uint8 *>(tdata);
+					const uint8 *data = static_cast<const uint8 *>(tdata);
 					uint8 *buffer = _vertices + descriptor.offset;
 					
 					for(size_t i = 0; i < _verticesCount; i ++)
@@ -261,7 +343,7 @@ namespace RN
 		if(_indicesCount == count)
 			return;
 		
-		const MeshDescriptor *descriptor = GetDescriptorForFeature(kMeshFeatureIndices);
+		const MeshDescriptor *descriptor = GetDescriptorForFeature(MeshFeature::Indices);
 		
 		uint8 *temp = static_cast<uint8 *>(Memory::Allocate(count * descriptor->elementSize));
 		size_t copy = std::min(count * descriptor->elementSize, _indicesCount);
@@ -282,7 +364,7 @@ namespace RN
 		Vector3 min = Vector3();
 		Vector3 max = Vector3();
 		
-		const MeshDescriptor *descriptor = GetDescriptorForFeature(kMeshFeatureVertices);
+		const MeshDescriptor *descriptor = GetDescriptorForFeature(MeshFeature::Vertices);
 		
 		bool is3D = (descriptor->elementMember == 3);
 		uint8 *pointer = _vertices + descriptor->offset;
@@ -347,7 +429,7 @@ namespace RN
 	{
 		if(_indices)
 		{
-			_stride = _mesh->GetDescriptorForFeature(kMeshFeatureIndices)->elementSize;
+			_stride = _mesh->GetDescriptorForFeature(MeshFeature::Indices)->elementSize;
 			_begin  = _mesh->_indices + (range.origin * _stride);
 		}
 		else
@@ -480,7 +562,7 @@ namespace RN
 	
 	Mesh::Chunk Mesh::InsertIndicesChunk(size_t offset, size_t elements)
 	{
-		const MeshDescriptor *descriptor = GetDescriptorForFeature(kMeshFeatureIndices);
+		const MeshDescriptor *descriptor = GetDescriptorForFeature(MeshFeature::Indices);
 		
 		size_t size = elements * descriptor->elementSize;
 		size_t offsetSize = offset * descriptor->elementSize;
@@ -503,7 +585,7 @@ namespace RN
 	
 	void Mesh::DeleteIndicesChunk(size_t offset, size_t elements)
 	{
-		const MeshDescriptor *descriptor = GetDescriptorForFeature(kMeshFeatureIndices);
+		const MeshDescriptor *descriptor = GetDescriptorForFeature(MeshFeature::Indices);
 		
 		size_t size = elements * descriptor->elementSize;
 		size_t offsetSize = offset * descriptor->elementSize;
@@ -524,112 +606,131 @@ namespace RN
 	
 	// ---------------------
 	// MARK: -
-	// MARK: Intersection
+	// MARK: Postprocessing
 	// ---------------------
 	
-	
-	/*bool Mesh::CanMergeMesh(Mesh *mesh)
+	void Mesh::GenerateTangents()
 	{
-		if(_descriptor.size() != mesh->_descriptor.size() || _stride != mesh->_stride || _mode != mesh->_mode)
-			return false;
+		RN_ASSERT(SupportsFeature(MeshFeature::Vertices), "Tangent generation needs vertex positions!");
+		RN_ASSERT(SupportsFeature(MeshFeature::Normals), "Tangent generation needs vertex normals!");
+		RN_ASSERT(SupportsFeature(MeshFeature::UVSet0), "Tangent generation needs first vertex uv set!");
+		RN_ASSERT(SupportsFeature(MeshFeature::UVSet0), "Tangent generation needs vertex tangents to replace!");
 		
-		for(size_t i=0; i!=_descriptor.size(); i++)
+		const MeshDescriptor *inddescriptor = GetDescriptorForFeature(MeshFeature::Indices);
+		uint8 *indpointer = _indices;
+		Chunk chunk = GetChunk();
+		
+		Vector3 *tan1 = new Vector3[_verticesCount * 2];
+		Vector3 *tan2 = tan1 + _verticesCount;
+		
+		size_t indicescount = _indicesCount;
+		if(!SupportsFeature(MeshFeature::Indices))
 		{
-			const MeshDescriptor& dA = _descriptor[i];
-			const MeshDescriptor& dB = mesh->_descriptor[i];
-			
-			if(dA.feature != dB.feature || dA.offset != dB.offset)
-				return false;
-			
-			if(dA.elementMember != dB.elementMember || dA.elementSize != dB.elementSize)
-				return false;
-		
-			if(dA._useCount || dB._useCount)
-				return false;
+			indicescount = _verticesCount;
 		}
 		
-		return true;
-	}
-	
-	void Mesh::MergeMesh(Mesh *mesh)
-	{
-		if(!CanMergeMesh(mesh))
-			throw Exception(Exception::Type::InconsistencyException, "The meshes cannot be merged!");
-		
-		if(_meshData)
+		for(size_t a = 0; a < indicescount; a += 3)
 		{
-			uint8 *tdata = static_cast<uint8 *>(Memory::AllocateSIMD(_meshSize + mesh->_meshSize));
-			std::copy(_meshData, _meshData + _meshSize, tdata);
-			std::copy(mesh->_meshData, mesh->_meshData + mesh->_meshSize, tdata + _meshSize);
+			size_t i1, i2, i3;
 			
-			Memory::FreeSIMD(_meshData);
-			_meshData = tdata;
-			_meshSize += mesh->_meshSize;
-			
-			_dirty = true;
-		}
-		
-		if(_indices)
-		{
-			uint8 *tdata = static_cast<uint8 *>(Memory::AllocateSIMD(_indicesSize + mesh->_indicesSize));
-			std::copy(_indices, _indices + _indicesSize, tdata);
-			std::copy(mesh->_indices, mesh->_indices + mesh->_indicesSize, tdata + _indicesSize);
-			
-			MeshDescriptor *verticesDescriptor = GetDescriptor(kMeshFeatureVertices);
-			MeshDescriptor *indicesDescriptor  = GetDescriptor(kMeshFeatureIndices);
-			
-			switch(indicesDescriptor->elementSize)
+			if(inddescriptor)
 			{
-				case 2:
+				switch(inddescriptor->elementSize)
 				{
-					size_t count = mesh->_indicesSize / 2;
-					uint16 *indices = reinterpret_cast<uint16 *>(tdata) + indicesDescriptor->elementCount;
-					
-					for(size_t i=0; i<count; i++)
+					case 1:
 					{
-						*indices += verticesDescriptor->elementCount;
-						indices ++;
+						i1 = (*indpointer ++);
+						i2 = (*indpointer ++);
+						i3 = (*indpointer ++);
+						break;
 					}
 					
-					break;
-				}
-					
-				case 4:
-				{
-					size_t count = mesh->_indicesSize / 4;
-					uint32 *indices = reinterpret_cast<uint32 *>(tdata) + indicesDescriptor->elementCount;
-					
-					for(size_t i=0; i<count; i++)
+					case 2:
 					{
-						*indices += verticesDescriptor->elementCount;
-						indices ++;
+						uint16 *index = reinterpret_cast<uint16 *>(indpointer + a * inddescriptor->elementSize);
+						
+						i1 = (*index ++);
+						i2 = (*index ++);
+						i3 = (*index ++);
+						break;
 					}
 					
-					break;
+					case 4:
+					{
+						uint32 *index = reinterpret_cast<uint32 *>(indpointer + a * inddescriptor->elementSize);
+						
+						i1 = (*index ++);
+						i2 = (*index ++);
+						i3 = (*index ++);
+						break;
+					}
 				}
-					
-				default:
-					throw Exception(Exception::Type::InconsistencyException, "The indices element size is not supported (uint16 and uint32 support only)");
+			}
+			else
+			{
+				i1 = a;
+				i2 = a+1;
+				i3 = a+2;
 			}
 			
-			Memory::FreeSIMD(_indices);
-			_indices = tdata;
-			_indicesSize += mesh->_indicesSize;
+			Vector3 v1 = *chunk.GetIteratorAtIndex<Vector3>(MeshFeature::Vertices, i1);
+			Vector3 v2 = *chunk.GetIteratorAtIndex<Vector3>(MeshFeature::Vertices, i2);
+			Vector3 v3 = *chunk.GetIteratorAtIndex<Vector3>(MeshFeature::Vertices, i3);
 			
-			_dirtyIndices = true;
+			Vector2 w1 = *chunk.GetIteratorAtIndex<Vector2>(MeshFeature::UVSet0, i1);
+			Vector2 w2 = *chunk.GetIteratorAtIndex<Vector2>(MeshFeature::UVSet0, i2);
+			Vector2 w3 = *chunk.GetIteratorAtIndex<Vector2>(MeshFeature::UVSet0, i3);
+			
+			float x1 = v2.x - v1.x;
+			float x2 = v3.x - v1.x;
+			float y1 = v2.y - v1.y;
+			float y2 = v3.y - v1.y;
+			float z1 = v2.z - v1.z;
+			float z2 = v3.z - v1.z;
+			
+			float s1 = w2.x - w1.x;
+			float s2 = w3.x - w1.x;
+			float t1 = w2.y - w1.y;
+			float t2 = w3.y - w1.y;
+			
+			float r = 1.0F / (s1 * t2 - s2 * t1);
+			Vector3 sdir((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
+						  (t2 * z1 - t1 * z2) * r);
+			Vector3 tdir((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
+						  (s1 * z2 - s2 * z1) * r);
+			
+			tan1[i1] += sdir;
+			tan1[i2] += sdir;
+			tan1[i3] += sdir;
+			
+			tan2[i1] += tdir;
+			tan2[i2] += tdir;
+			tan2[i3] += tdir;
 		}
 		
-		for(size_t i=0; i!=_descriptor.size(); i++)
+		for(size_t a = 0; a < _verticesCount; a++)
 		{
-			MeshDescriptor& dA = _descriptor[i];
-			MeshDescriptor& dB = mesh->_descriptor[i];
+			Vector3 n = *chunk.GetIteratorAtIndex<Vector3>(MeshFeature::Normals, a);
+			const Vector3 &t = tan1[a];
 			
-			dA.elementCount += dB.elementCount;
+			auto tangent = chunk.GetIteratorAtIndex<Vector4>(MeshFeature::Tangents, a);
+			// Gram-Schmidt orthogonalize
+			*tangent = Vector4((t - n * n.GetDotProduct(t)).GetNormalized());
+			
+			// Calculate handedness
+			(*tangent).w = (n.GetCrossProduct(t).GetDotProduct(tan2[a]) < 0.0f) ? -1.0f : 1.0f;
 		}
-	}*/
+		
+		delete[] tan1;
+		
+		chunk.CommitChanges();
+	}
 	
 	
-
+	// ---------------------
+	// MARK: -
+	// MARK: Intersection
+	// ---------------------
 	
 	float Mesh::RayTriangleIntersection(const Vector3 &pos, const Vector3 &dir, const Vector3 &vert1, const Vector3 &vert2, const Vector3 &vert3, Hit::HitMode mode)
 	{
@@ -642,7 +743,7 @@ namespace RN
 		
 		if(mode != Hit::HitMode::IgnoreNone)
 		{
-			float facing = edge1.Cross(edge2).Dot(dir);
+			float facing = edge1.GetCrossProduct(edge2).GetDotProduct(dir);
 			if(mode == Hit::HitMode::IgnoreBackfaces)
 			{
 				if(facing > 0.0f)
@@ -655,8 +756,8 @@ namespace RN
 			}
 		}
 		
-		pvec = dir.Cross(edge2);
-		det = pvec.Dot(edge1);
+		pvec = dir.GetCrossProduct(edge2);
+		det = pvec.GetDotProduct(edge1);
 		
 		if(det > -k::EpsilonFloat && det < k::EpsilonFloat)
 			return -1.0f;
@@ -664,26 +765,26 @@ namespace RN
 		inv_det = 1.0f/det;
 		
 		tvec = pos-vert1;
-		u = tvec.Dot(pvec)*inv_det;
+		u = tvec.GetDotProduct(pvec)*inv_det;
 		
 		if(u < 0.0f || u > 1.0f)
 			return -1.0f;
 		
-		qvec = tvec.Cross(edge1);
-		v = dir.Dot(qvec)*inv_det;
+		qvec = tvec.GetCrossProduct(edge1);
+		v = dir.GetDotProduct(qvec)*inv_det;
 		
 		if(v < 0.0f || u+v > 1.0f)
 			return -1.0f;
 		
 		//distance
-		float t = edge2.Dot(qvec)*inv_det;
+		float t = edge2.GetDotProduct(qvec)*inv_det;
 		return t;
 	}
 	
 	Hit Mesh::IntersectsRay(const Vector3 &position, const Vector3 &direction, Hit::HitMode mode)
 	{
-		const MeshDescriptor *posdescriptor = GetDescriptorForFeature(kMeshFeatureVertices);
-		const MeshDescriptor *inddescriptor = GetDescriptorForFeature(kMeshFeatureIndices);
+		const MeshDescriptor *posdescriptor = GetDescriptorForFeature(MeshFeature::Vertices);
+		const MeshDescriptor *inddescriptor = GetDescriptorForFeature(MeshFeature::Indices);
 		
 		switch(posdescriptor->elementMember)
 		{
@@ -836,9 +937,9 @@ namespace RN
 		Hit hit;
 		
 		uint8 *pospointer = _vertices + positionDescriptor->offset;
-		int trioffset = (GetMode() != GL_TRIANGLE_STRIP) ? 3 : 1;
+		int trioffset = (_mode != DrawMode::TriangleStrip) ? 3 : 1;
 		
-		for(size_t i = 0; i < _indicesCount - 2; i += trioffset)
+		for(size_t i = 0; i < _verticesCount - 2; i += trioffset)
 		{
 			Vector3 *vertex1;
 			Vector3 *vertex2;
@@ -875,9 +976,9 @@ namespace RN
 		Hit hit;
 		
 		uint8 *pospointer = _vertices + positionDescriptor->offset;
-		int trioffset = (GetMode() != GL_TRIANGLE_STRIP) ? 3 : 1;
+		int trioffset = (_mode != DrawMode::TriangleStrip) ? 3 : 1;
 
-		for(size_t i = 0; i < _indicesCount - 2; i += trioffset)
+		for(size_t i = 0; i < _verticesCount - 2; i += trioffset)
 		{
 			Vector2 *vertex1;
 			Vector2 *vertex2;
@@ -913,35 +1014,34 @@ namespace RN
 	
 	Mesh *Mesh::PlaneMesh(const Vector3& size, const Vector3& rotation)
 	{
-		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
 		vertexDescriptor.elementMember = 3;
 		
-		MeshDescriptor texcoordDescriptor(kMeshFeatureUVSet0);
+		MeshDescriptor texcoordDescriptor(MeshFeature::UVSet0);
 		texcoordDescriptor.elementSize = sizeof(Vector2);
 		texcoordDescriptor.elementMember = 2;
 		
-		MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+		MeshDescriptor indicesDescriptor(MeshFeature::Indices);
 		indicesDescriptor.elementSize = sizeof(uint16);
 		indicesDescriptor.elementMember = 1;
 		
 		std::vector<MeshDescriptor> descriptors = { vertexDescriptor, indicesDescriptor, texcoordDescriptor };
 		Mesh *mesh = new Mesh(descriptors, 4, 6);
 		
-		Matrix rotmat;
-		rotmat.MakeRotate(rotation);
+		Matrix rotmat = Matrix::WithRotation(rotation);
 		
 		Chunk chunk = mesh->GetChunk();
 		Chunk ichunk = mesh->GetIndicesChunk();
 		
-		ElementIterator<Vector3> vertices  = chunk.GetIterator<Vector3>(kMeshFeatureVertices);
-		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(kMeshFeatureUVSet0);
-		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(kMeshFeatureIndices);
+		ElementIterator<Vector3> vertices  = chunk.GetIterator<Vector3>(MeshFeature::Vertices);
+		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(MeshFeature::UVSet0);
+		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(MeshFeature::Indices);
 		
-		*vertices ++ = rotmat.Transform(Vector3(-size.x, size.y, -size.z));
-		*vertices ++ = rotmat.Transform(Vector3( size.x, size.y, -size.z));
-		*vertices ++ = rotmat.Transform(Vector3( size.x, size.y, size.z));
-		*vertices ++ = rotmat.Transform(Vector3(-size.x, size.y, size.z));
+		*vertices ++ = rotmat * Vector3(-size.x, size.y, -size.z);
+		*vertices ++ = rotmat * Vector3( size.x, size.y, -size.z);
+		*vertices ++ = rotmat * Vector3( size.x, size.y, size.z);
+		*vertices ++ = rotmat * Vector3(-size.x, size.y, size.z);
 		
 		*texcoords ++ = Vector2(0.0f, 0.0f);
 		*texcoords ++ = Vector2(1.0f, 0.0f);
@@ -963,19 +1063,19 @@ namespace RN
 	
 	Mesh *Mesh::CubeMesh(const Vector3& size)
 	{
-		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
 		vertexDescriptor.elementMember = 3;
 		
-		MeshDescriptor normalDescriptor(kMeshFeatureNormals);
+		MeshDescriptor normalDescriptor(MeshFeature::Normals);
 		normalDescriptor.elementSize = sizeof(Vector3);
 		normalDescriptor.elementMember = 3;
 		
-		MeshDescriptor texcoordDescriptor(kMeshFeatureUVSet0);
+		MeshDescriptor texcoordDescriptor(MeshFeature::UVSet0);
 		texcoordDescriptor.elementSize = sizeof(Vector2);
 		texcoordDescriptor.elementMember = 2;
 		
-		MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+		MeshDescriptor indicesDescriptor(MeshFeature::Indices);
 		indicesDescriptor.elementSize = sizeof(uint16);
 		indicesDescriptor.elementMember = 1;
 		
@@ -986,10 +1086,10 @@ namespace RN
 		Chunk chunk = mesh->GetChunk();
 		Chunk ichunk = mesh->GetIndicesChunk();
 		
-		ElementIterator<Vector3> vertices  = chunk.GetIterator<Vector3>(kMeshFeatureVertices);
-		ElementIterator<Vector3> normals   = chunk.GetIterator<Vector3>(kMeshFeatureNormals);
-		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(kMeshFeatureUVSet0);
-		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(kMeshFeatureIndices);
+		ElementIterator<Vector3> vertices  = chunk.GetIterator<Vector3>(MeshFeature::Vertices);
+		ElementIterator<Vector3> normals   = chunk.GetIterator<Vector3>(MeshFeature::Normals);
+		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(MeshFeature::UVSet0);
+		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(MeshFeature::Indices);
 		
 		*vertices ++ = Vector3(-size.x,  size.y, size.z);
 		*vertices ++ = Vector3( size.x,  size.y, size.z);
@@ -1131,23 +1231,23 @@ namespace RN
 	
 	Mesh *Mesh::CubeMesh(const Vector3& size, const Color& color)
 	{
-		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
 		vertexDescriptor.elementMember = 3;
 		
-		MeshDescriptor normalDescriptor(kMeshFeatureNormals);
+		MeshDescriptor normalDescriptor(MeshFeature::Normals);
 		normalDescriptor.elementSize = sizeof(Vector3);
 		normalDescriptor.elementMember = 3;
 		
-		MeshDescriptor colorDescriptor(kMeshFeatureColor0);
+		MeshDescriptor colorDescriptor(MeshFeature::Color0);
 		colorDescriptor.elementSize = sizeof(Color);
 		colorDescriptor.elementMember = 4;
 		
-		MeshDescriptor texcoordDescriptor(kMeshFeatureUVSet0);
+		MeshDescriptor texcoordDescriptor(MeshFeature::UVSet0);
 		texcoordDescriptor.elementSize = sizeof(Vector2);
 		texcoordDescriptor.elementMember = 2;
 		
-		MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+		MeshDescriptor indicesDescriptor(MeshFeature::Indices);
 		indicesDescriptor.elementSize = sizeof(uint16);
 		indicesDescriptor.elementMember = 1;
 		
@@ -1157,11 +1257,11 @@ namespace RN
 		Chunk chunk = mesh->GetChunk();
 		Chunk ichunk = mesh->GetIndicesChunk();
 		
-		ElementIterator<Vector3> vertices  = chunk.GetIterator<Vector3>(kMeshFeatureVertices);
-		ElementIterator<Vector3> normals   = chunk.GetIterator<Vector3>(kMeshFeatureNormals);
-		ElementIterator<Color>   colors    = chunk.GetIterator<Color>(kMeshFeatureColor0);
-		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(kMeshFeatureUVSet0);
-		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(kMeshFeatureIndices);
+		ElementIterator<Vector3> vertices  = chunk.GetIterator<Vector3>(MeshFeature::Vertices);
+		ElementIterator<Vector3> normals   = chunk.GetIterator<Vector3>(MeshFeature::Normals);
+		ElementIterator<Color>   colors    = chunk.GetIterator<Color>(MeshFeature::Color0);
+		ElementIterator<Vector2> texcoords = chunk.GetIterator<Vector2>(MeshFeature::UVSet0);
+		ElementIterator<uint16> indices    = ichunk.GetIterator<uint16>(MeshFeature::Indices);
 		
 		*vertices ++ = Vector3(-size.x,  size.y, size.z);
 		*vertices ++ = Vector3( size.x,  size.y, size.z);
@@ -1394,15 +1494,15 @@ namespace RN
 		
 		
 		
-		MeshDescriptor vertexDescriptor(kMeshFeatureVertices);
+		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
 		vertexDescriptor.elementMember = 3;
 		
-		MeshDescriptor normalDescriptor(kMeshFeatureNormals);
+		MeshDescriptor normalDescriptor(MeshFeature::Normals);
 		normalDescriptor.elementSize = sizeof(Vector3);
 		normalDescriptor.elementMember = 3;
 							  
-		MeshDescriptor indicesDescriptor(kMeshFeatureIndices);
+		MeshDescriptor indicesDescriptor(MeshFeature::Indices);
 		indicesDescriptor.elementSize = sizeof(uint16);
 		indicesDescriptor.elementMember = 1;
 		

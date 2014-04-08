@@ -22,6 +22,7 @@ namespace RN
 	
 	enum KeyCodes
 	{
+#if RN_PLATFORM_MAC_OS
 		KeyReturn = 0xD,
 		
 		KeyF1 = 0xF704,
@@ -49,7 +50,40 @@ namespace RN
 		KeyPageUp = 0xF72C,
 		KeyPageDown,
 		
-		KeyPrintScreen = 0xF72E
+		KeyPrintScreen = 0xF72E,
+		KeyESC = 0x1B
+#endif
+#if RN_PLATFORM_WINDOWS
+		KeyReturn = 0xD,
+
+		KeyF1 = 0xF770,
+		KeyF2,
+		KeyF3,
+		KeyF4,
+		KeyF5,
+		KeyF6,
+		KeyF7,
+		KeyF8,
+		KeyF9,
+		KeyF10,
+		KeyF11,
+		KeyF12,
+
+		KeyUp = 0xF726,
+		KeyDown = 0xF728,
+		KeyLeft = 0xF725,
+		KeyRight = 0xF727,
+
+		KeyDelete = 0xF72E,
+		KeyBegin = 0xF72D,
+		KeyEnd = 0xF72E,
+
+		KeyPageUp = 0xF721,
+		KeyPageDown,
+
+		KeyPrintScreen = 0xF72E,
+		KeyESC = 0xF71B
+#endif
 	};
 	
 	enum KeyModifier
@@ -59,7 +93,13 @@ namespace RN
 		KeyControl = (1 << 2),
 		KeyCommand = (1 << 3),
 		KeyWindows = KeyCommand,
-		KeyCapsLock = (1 << 4)
+		KeyCapsLock = (1 << 4),
+		
+#if RN_PLATFORM_MAC_OS
+		KeyAction = KeyCommand
+#else
+		KeyAction = KeyControl
+#endif
 	};
 	
 	class Input;
@@ -115,7 +155,7 @@ namespace RN
 		Vector2 _mousePosition;
 		Vector2 _mouseWheel;
 		
-		RNDefineMeta(Event, Message)
+		RNDeclareMeta(Event)
 	};
 	
 	class Input : public ISingleton<Input>
@@ -181,7 +221,7 @@ namespace RN
 		bool _active;
 		bool _invalidateMouse;
 		
-		RNDefineSingleton(Input)
+		RNDeclareSingleton(Input)
 	};
 }
 

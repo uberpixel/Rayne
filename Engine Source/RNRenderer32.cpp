@@ -23,6 +23,8 @@ namespace RN
 		_copyVertices[2] = Vector4(-1.0f, 1.0f,  0.0f, 1.0f);
 		_copyVertices[3] = Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 		
+		_copyAtlas = Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
 			gl::GenVertexArrays(1, &_copyVAO);
 			gl::BindVertexArray(_copyVAO);
@@ -57,11 +59,6 @@ namespace RN
 		const Rect& frame = camera->GetFrame();
 		
 		Vector4 atlas = Vector4(offset.x / size.x, offset.y / size.y, (offset.x + offset.width) / size.x, (offset.y + offset.height) / size.y);
-		
-		_copyVertices[0] = Vector4(-1.0f, -1.0f, atlas.x, atlas.y);
-		_copyVertices[1] = Vector4(1.0f, -1.0f,  atlas.z, atlas.y);
-		_copyVertices[2] = Vector4(-1.0f, 1.0f,  atlas.x, atlas.w);
-		_copyVertices[3] = Vector4(1.0f, 1.0f,   atlas.z, atlas.w);
 		
 		Camera::BlitMode blitMode = camera->GetBlitMode();
 		bool stretchHorizontal = (blitMode == Camera::BlitMode::StretchedHorizontal || blitMode == Camera::BlitMode::Stretched);
@@ -105,8 +102,17 @@ namespace RN
 		
 		gl::Viewport(x, y, width, height);
 		
-		gl::BufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), nullptr, GL_STREAM_DRAW);
-		gl::BufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STREAM_DRAW);
+		if(atlas != _copyAtlas)
+		{
+			_copyVertices[0] = Vector4(-1.0f, -1.0f, atlas.x, atlas.y);
+			_copyVertices[1] = Vector4(1.0f, -1.0f,  atlas.z, atlas.y);
+			_copyVertices[2] = Vector4(-1.0f, 1.0f,  atlas.x, atlas.w);
+			_copyVertices[3] = Vector4(1.0f, 1.0f,   atlas.z, atlas.w);
+			
+			_copyAtlas = atlas;
+			
+			gl::BufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), _copyVertices, GL_STATIC_DRAW);
+		}
 	}
 	
 	void Renderer32::FlushCamera(Camera *camera, Shader *drawShader)
@@ -125,7 +131,9 @@ namespace RN
 			gl::EnableVertexAttribArray(_currentProgram->attTexcoord0);
 			gl::VertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 			
-			
+#if RN_BUILD_DEBUG
+			ValidateState();
+#endif
 			gl::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			
 			gl::DisableVertexAttribArray(_currentProgram->attPosition);
@@ -149,6 +157,9 @@ namespace RN
 			gl::EnableVertexAttribArray(_currentProgram->attTexcoord0);
 			gl::VertexAttribPointer(_currentProgram->attTexcoord0, 2, GL_FLOAT, GL_FALSE, 16, (const void *)8);
 			
+#if RN_BUILD_DEBUG
+			ValidateState();
+#endif
 			gl::DrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 			
 			gl::DisableVertexAttribArray(_currentProgram->attPosition);
@@ -174,43 +185,45 @@ namespace RN
 			camera->PrepareForRendering(this);
 			
 			if(_currentMaterial)
-				SetDepthWriteEnabled(_currentMaterial->depthwrite);
+				SetDepthWriteEnabled(_currentMaterial->GetDepthWrite());
 			
-			bool wantsFog = _currentCamera->usefog;
-			bool wantsClipPlane = _currentCamera->useclipplane;
+			bool wantsFog = (_currentCamera->GetFlags() & Camera::Flags::UseFog);
+			bool wantsClipPlane = (_currentCamera->GetFlags() & Camera::Flags::UseClipPlanes);
 			
 			Matrix identityMatrix;
 			
-			if(!source && !(camera->GetFlags() & Camera::FlagNoRender))
+			if(!source && !(camera->GetFlags() & Camera::Flags::NoRender))
 			{
 				Material *surfaceMaterial = camera->GetMaterial();
-				LightManager *lightManager = camera->lightManager;
+				LightManager *lightManager = camera->GetLightManager();
 				
 				size_t lightDirectionalCount = 0;
 				size_t lightPointSpotCount = 0;
 				
 				if(lightManager)
 				{
-					lightPointSpotCount   = lightManager->CreatePointSpotLightLists(camera);
-					lightDirectionalCount = lightManager->CreateDirectionalLightList(camera);
+					lightManager->CreateLightLists();
+					
+					lightPointSpotCount   = lightManager->GetSpotlightCount() + lightManager->GetPointLightCount();
+					lightDirectionalCount = lightManager->GetDirectionalLightCount();
 					
 					_renderedLights += lightDirectionalCount + lightPointSpotCount;
 				}
 				
 				// Update the shader
-				const Matrix& projectionMatrix = camera->projectionMatrix;
-				const Matrix& inverseProjectionMatrix = camera->inverseProjectionMatrix;
+				const Matrix& projectionMatrix = camera->GetProjectionMatrix();
+				const Matrix& inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 				
-				const Matrix& viewMatrix = camera->viewMatrix;
-				const Matrix& inverseViewMatrix = camera->inverseViewMatrix;
+				const Matrix& viewMatrix = camera->GetViewMatrix();
+				const Matrix& inverseViewMatrix = camera->GetInverseViewMatrix();
 				
 				Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
 				Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
 				
 				size_t objectsCount = _frame.size();
-				size_t i = (camera->GetFlags() & Camera::FlagNoSky) ? skyCubeMeshes : 0;
+				size_t i = (camera->GetFlags() & Camera::Flags::NoSky) ? skyCubeMeshes : 0;
 				
-				for(; i<objectsCount; i++)
+				for(; i < objectsCount; i ++)
 				{
 					RenderingObject& object = _frame[i];
 					if(object.prepare)
@@ -221,9 +234,15 @@ namespace RN
 					if(_scissorTest)
 						SetScissorRect(object.scissorRect);
 					
-					Mesh     *mesh = object.mesh;
 					Material *material = object.material;
-					Shader   *shader = surfaceMaterial ? surfaceMaterial->GetShader() : material->GetShader();
+					Material *surfaceOrMaterial = surfaceMaterial ? surfaceMaterial : material;
+					
+#define IsOverriden(attribute) \
+	((material->GetOverride() & Material::Override::attribute || surfaceOrMaterial->GetOverride() & Material::Override::attribute))
+					
+					
+					Mesh   *mesh = object.mesh;
+					Shader *shader = IsOverriden(Shader) ? material->GetShader() : surfaceOrMaterial->GetShader();
 					
 					Matrix& transform = object.transform ? *object.transform : identityMatrix;
 					Matrix inverseTransform = transform.GetInverse();
@@ -232,69 +251,59 @@ namespace RN
 					bool wantsInstancing = (object.type == RenderingObject::Type::Instanced);
 					if(wantsInstancing)
 					{
-						if(!shader->SupportsProgramOfType(ShaderProgram::TypeInstanced))
+						if(!shader->SupportsProgramOfType(ShaderProgram::Type::Instanced))
 							continue;
 					}
-					
+										
 					// Grab the correct shader program
 					std::vector<ShaderDefine> defines;
 					ShaderLookup lookup = material->GetLookup();
+					ShaderProgram *program = nullptr;
 					
-					uint32 programTypes = 0;
-					ShaderProgram *program = 0;
+					bool wantsDiscard = IsOverriden(Discard) ? material->GetDiscard() : surfaceOrMaterial->GetDiscard();
 					
-					bool wantsDiscard = material->discard;
-					if(surfaceMaterial && !(material->override & Material::OverrideDiscard))
-						wantsDiscard = surfaceMaterial->discard;
+					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::Type::Animated))
+						lookup.type |= ShaderProgram::Type::Animated;
 					
-					if(object.skeleton && shader->SupportsProgramOfType(ShaderProgram::TypeAnimated))
-						programTypes |= ShaderProgram::TypeAnimated;
+					if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::Type::Fog))
+						lookup.type |= ShaderProgram::Type::Fog;
 					
-					bool wantsLighting = (material->lighting && lightManager && shader->SupportsProgramOfType(ShaderProgram::TypeLighting));
+					if(wantsClipPlane && shader->SupportsProgramOfType(ShaderProgram::Type::ClipPlane))
+						lookup.type |= ShaderProgram::Type::ClipPlane;
+					
+					if(wantsInstancing)
+						lookup.type |= ShaderProgram::Type::Instanced;
+					
+					if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::Type::Discard))
+						lookup.type |= ShaderProgram::Type::Discard;
+					
+					if(material->GetTextures()->GetCount() > 0 && shader->SupportsProgramOfType(ShaderProgram::Type::Diffuse))
+						lookup.type |= ShaderProgram::Type::Diffuse;
+					
+					if(surfaceMaterial)
+					{
+						lookup = lookup + surfaceMaterial->GetLookup();
+					}
+					
+					bool wantsLighting = (material->GetLighting() && lightManager && shader->SupportsProgramOfType(ShaderProgram::Type::Lighting));
 					
 					// The surface material can only override lighting if the shader supports lighting
 					if(wantsLighting && surfaceMaterial)
-						wantsLighting = surfaceMaterial->lighting;
+						wantsLighting = surfaceMaterial->GetLighting();
 					
 					if(wantsLighting)
 					{
-						programTypes |= ShaderProgram::TypeLighting;
-						lightManager->AdjustProgramTypes(shader, programTypes);
-						
+						lookup.type |= ShaderProgram::Type::Lighting;
 						lookup.lightDirectionalCount = lightDirectionalCount;
 						
 						//TODO: fix
 						if(lightPointSpotCount > 0)
 							lookup.lightPointSpotCount = 1;//lightPointSpotCount;
-					}
-					
-					if(wantsFog && shader->SupportsProgramOfType(ShaderProgram::TypeFog))
-						programTypes |= ShaderProgram::TypeFog;
-					
-					if(wantsClipPlane && shader->SupportsProgramOfType(ShaderProgram::TypeClipPlane))
-						programTypes |= ShaderProgram::TypeClipPlane;
-					
-					if(wantsInstancing)
-						programTypes |= ShaderProgram::TypeInstanced;
-					
-					if(wantsDiscard && shader->SupportsProgramOfType(ShaderProgram::TypeDiscard))
-						programTypes |= ShaderProgram::TypeDiscard;
-					
-					if(material->GetTextures().GetCount() > 0 && shader->SupportsProgramOfType(ShaderProgram::TypeDiffuse))
-						programTypes |= ShaderProgram::TypeDiffuse;
-					
-					if(surfaceMaterial)
-					{
-						lookup = lookup + surfaceMaterial->GetLookup();
-						lookup.type |= programTypes;
 						
-						program = shader->GetProgramWithLookup(lookup);
+						lightManager->AdjustShaderLookup(shader, lookup);
 					}
-					else
-					{
-						lookup.type |= programTypes;
-						program = shader->GetProgramWithLookup(lookup);
-					}
+					
+					program = shader->GetProgramWithLookup(lookup);
 					
 					RN_ASSERT(program, "");
 					
@@ -313,25 +322,24 @@ namespace RN
 					if(changedShader || changedMaterial)
 					{
 						if(wantsLighting)
-							lightManager->Bind(this, camera, program);
+							lightManager->UpdateProgram(this, program);
 						
-						gl::Uniform4fv(program->ambient, 1, &material->ambient->r);
-						gl::Uniform4fv(program->diffuse, 1, &material->diffuse->r);
-						gl::Uniform4fv(program->emissive, 1, &material->emissive->r);
-						gl::Uniform4fv(program->specular, 1, &material->specular->r);
+						gl::Uniform4fv(program->ambient, 1, &material->GetAmbientColor().r);
+						gl::Uniform4fv(program->diffuse, 1, &material->GetDiffuseColor().r);
+						gl::Uniform4fv(program->emissive, 1, &material->GetEmissiveColor().r);
+						gl::Uniform4fv(program->specular, 1, &material->GetSpecularColor().r);
 						
 						if(program->discardThreshold != -1)
 						{
-							float threshold = material->discardThreshold;
-							
-							if(surfaceMaterial && !(material->override & Material::OverrideDiscardThreshold))
-								threshold = surfaceMaterial->discardThreshold;
-							
+							float threshold = IsOverriden(DiscardThreshold) ? material->GetDiscardThreshold() : surfaceOrMaterial->GetDiscardThreshold();
 							gl::Uniform1f(program->discardThreshold, threshold);
 						}
 						
 						material->ApplyUniforms(program);
 					}
+					
+					for(GPUBuffer *buffer : object.buffers)
+						buffer->Bind(this, program);
 					
 					if(wantsInstancing)
 					{
@@ -400,14 +408,43 @@ namespace RN
 	
 	void Renderer32::DrawMesh(Mesh *mesh, uint32 offset, uint32 count)
 	{
-		bool usesIndices = mesh->SupportsFeature(kMeshFeatureIndices);
-		const MeshDescriptor *descriptor = usesIndices ? mesh->GetDescriptorForFeature(kMeshFeatureIndices) : mesh->GetDescriptorForFeature(kMeshFeatureVertices);
+		bool usesIndices = mesh->SupportsFeature(MeshFeature::Indices);
+		const MeshDescriptor *descriptor = usesIndices ? mesh->GetDescriptorForFeature(MeshFeature::Indices) : mesh->GetDescriptorForFeature(MeshFeature::Vertices);
 		
-		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
+		BindVAO(std::make_pair(_currentProgram, mesh));
 		
 		GLsizei glCount = static_cast<GLsizei>(usesIndices ? mesh->GetIndicesCount() : mesh->GetVerticesCount());
 		if(count != 0)
 			glCount = std::min(glCount, static_cast<GLsizei>(count));
+		
+		Mesh::DrawMode drawMode = mesh->GetDrawMode();
+		
+#if GL_TESS_CONTROL_SHADER
+		if(_currentProgram->HasTessellationShaders())
+		{
+			switch(drawMode)
+			{
+				case Mesh::DrawMode::Triangles:
+					gl::PatchParameteri(GL_PATCH_VERTICES, 3);
+					break;
+					
+				case Mesh::DrawMode::TriangleFan:
+				case Mesh::DrawMode::TriangleStrip:
+					gl::PatchParameteri(GL_PATCH_VERTICES, 2);
+					break;
+				
+				default:
+					break;
+			}
+			
+			drawMode = Mesh::DrawMode::Patches;
+			gl::Flush(); // XXX: Hack to get tessellation with instancing working!
+		}
+#endif
+		
+#if RN_BUILD_DEBUG
+		ValidateState();
+#endif
 		
 		if(usesIndices)
 		{
@@ -417,25 +454,19 @@ namespace RN
 				case 1:
 					type = GL_UNSIGNED_BYTE;
 					break;
-					
 				case 2:
 					type = GL_UNSIGNED_SHORT;
 					break;
-					
 				case 4:
 					type = GL_UNSIGNED_INT;
 					break;
-					
-				default:
-					throw Exception(Exception::Type::InconsistencyException, "");
-					break;
 			}
 			
-			gl::DrawElements(mesh->GetMode(), glCount, type, reinterpret_cast<void *>(offset));
+			gl::DrawElements(static_cast<GLenum>(drawMode), glCount, type, reinterpret_cast<void *>(offset));
 		}
 		else
 		{
-			gl::DrawArrays(mesh->GetMode(), 0, glCount);
+			gl::DrawArrays(static_cast<GLenum>(drawMode), 0, glCount);
 		}
 		
 		BindVAO(0);
@@ -444,16 +475,43 @@ namespace RN
 	void Renderer32::DrawMeshInstanced(const RenderingObject& object)
 	{
 		Mesh *mesh = object.mesh;
-		const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureIndices);
+		const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Indices);
 		
-		BindVAO(std::tuple<ShaderProgram *, Mesh *>(_currentProgram, mesh));
-		RN_ASSERT(_currentProgram->instancingData != -1, "");
+		BindVAO(std::make_pair(_currentProgram, mesh));
 		
 		uint32 dataUnit = BindTexture(GL_TEXTURE_BUFFER, object.instancingData);
 		uint32 indicesUnit = BindTexture(GL_TEXTURE_BUFFER, object.instancingIndices);
 		
 		gl::Uniform1i(_currentProgram->instancingData, dataUnit);
 		gl::Uniform1i(_currentProgram->instancingIndices, indicesUnit);
+		
+		Mesh::DrawMode drawMode = mesh->GetDrawMode();
+		
+#if GL_TESS_CONTROL_SHADER
+		if(_currentProgram->HasTessellationShaders())
+		{
+			switch(drawMode)
+			{
+				case Mesh::DrawMode::Triangles:
+					gl::PatchParameteri(GL_PATCH_VERTICES, 3);
+					break;
+					
+				case Mesh::DrawMode::TriangleFan:
+				case Mesh::DrawMode::TriangleStrip:
+					gl::PatchParameteri(GL_PATCH_VERTICES, 2);
+					break;
+					
+				default:
+					break;
+			}
+			
+			drawMode = Mesh::DrawMode::Patches;
+		}
+#endif
+	
+#if RN_BUILD_DEBUG
+		ValidateState();
+#endif
 		
 		if(descriptor)
 		{
@@ -463,26 +521,20 @@ namespace RN
 				case 1:
 					type = GL_UNSIGNED_BYTE;
 					break;
-					
 				case 2:
 					type = GL_UNSIGNED_SHORT;
 					break;
-					
 				case 4:
 					type = GL_UNSIGNED_INT;
 					break;
-					
-				default:
-					throw Exception(Exception::Type::InconsistencyException, "");
-					break;
 			}
 			
-			gl::DrawElementsInstanced(mesh->GetMode(), (GLsizei)mesh->GetIndicesCount(), type, 0, (GLsizei)object.count);
+			gl::DrawElementsInstanced(static_cast<GLenum>(drawMode), (GLsizei)mesh->GetIndicesCount(), type, 0, (GLsizei)object.count);
 		}
 		else
 		{
-			descriptor = mesh->GetDescriptorForFeature(kMeshFeatureVertices);
-			gl::DrawArraysInstanced(mesh->GetMode(), 0, (GLsizei)mesh->GetVerticesCount(), (GLsizei)object.count);
+			descriptor = mesh->GetDescriptorForFeature(MeshFeature::Vertices);
+			gl::DrawArraysInstanced(static_cast<GLenum>(drawMode), 0, (GLsizei)mesh->GetVerticesCount(), (GLsizei)object.count);
 		}
 		
 		BindVAO(0);

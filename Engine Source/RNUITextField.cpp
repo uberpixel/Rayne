@@ -13,7 +13,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(TextField)
+		RNDefineMeta(TextField, Control)
 		
 		TextField::TextField(Dictionary *style)
 		{
@@ -29,7 +29,7 @@ namespace RN
 			
 			Array *states = style->GetObjectForKey<Array>(RNCSTR("states"));
 			
-			states->Enumerate<Dictionary>([&](Dictionary *state, size_t index, bool *stop) {
+			states->Enumerate<Dictionary>([&](Dictionary *state, size_t index, bool &stop) {
 				
 				String *name = state->GetObjectForKey<String>(RNCSTR("name"));
 				Dictionary *atlas  = state->GetObjectForKey<Dictionary>(RNCSTR("atlas"));
@@ -115,6 +115,7 @@ namespace RN
 		
 		void TextField::SetText(String *text)
 		{
+			text = text ? text : RNCSTR("");
 			_editor->SetText(text);
 		}
 		
@@ -146,7 +147,7 @@ namespace RN
 		}
 		
 		
-		void TextField::SetValueForUndefinedKey(const std::string& key, Object *value)
+		void TextField::SetValueForUndefinedKey(Object *value, const std::string& key)
 		{
 			if(_formatter && key == "value")
 			{
@@ -154,7 +155,7 @@ namespace RN
 				return;
 			}
 			
-			Control::SetValueForUndefinedKey(key, value);
+			Control::SetValueForUndefinedKey(value, key);
 		}
 		
 		Object *TextField::GetValueForUndefinedKey(const std::string& key)
@@ -230,8 +231,15 @@ namespace RN
 			Control::LayoutSubviews();
 			
 			Rect frame = GetFrame();
-			Rect editorRect = Rect(Vector2(_contentInsets.left, _contentInsets.top), _editor->GetTypesetter()->GetDimensions());
-
+			Vector2 size = _editor->GetTypesetter()->GetDimensions();
+			
+			Rect editorRect;
+			
+			editorRect.x = _contentInsets.left;
+			editorRect.y = roundf((frame.height * 0.5f) - (size.y * 0.5));
+			editorRect.width  = frame.width - (_contentInsets.right + _contentInsets.left);
+			editorRect.height = size.y;
+			
 			_background->SetFrame(Rect(0.0f, 0.0f, frame.width, frame.height));
 			_editor->SetFrame(editorRect);
 		}

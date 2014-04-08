@@ -17,12 +17,18 @@
 #include "RNSettings.h"
 #include "RNLogging.h"
 #include "RNOpenGLQueue.h"
+#include "RNLightManager.h"
+#include "RNMessage.h"
+#include "RNWindow.h"
 
 #define kRNRendererMaxVAOAge 300
 
+#define TexturePixelWidth(t) (t->GetWidth() * t->GetScaleFactor())
+#define TexturePixelHeight(t) (t->GetHeight() * t->GetScaleFactor())
+
 namespace RN
 {
-	RNDeclareSingleton(Renderer)
+	RNDefineSingleton(Renderer)
 	
 	Renderer::Renderer()
 	{
@@ -38,7 +44,7 @@ namespace RN
 		_currentVAO      = 0;
 		
 		_scaleFactor = Kernel::GetSharedInstance()->GetActiveScaleFactor();
-		_time = 0.0f;
+		_time = Kernel::GetSharedInstance()->GetTime();
 		_mode = Mode::ModeWorld;
 		
 		_hdrExposure   = 1.0f;
@@ -46,6 +52,9 @@ namespace RN
 		
 		_captureAge = static_cast<FrameID>(-1);
 		_captureIndex = 0;
+		
+		_canValidatePrograms = gl::SupportsFeature(gl::Feature::ProgramValidation);
+		_validatePrograms    = false;
 		
 		// Default OpenGL state
 		_cullingEnabled   = false;
@@ -55,11 +64,17 @@ namespace RN
 		_polygonOffsetEnabled = false;
 		_scissorTest      = false;
 		
-		_cullMode  = GL_CCW;
-		_depthFunc = GL_LESS;
+		_cullMode    = GL_CCW;
+		_depthFunc   = GL_LESS;
+		_polygonMode = GL_FILL;
 		
-		_blendSource      = GL_ONE;
-		_blendDestination = GL_ZERO;
+		_blendEquation      = GL_FUNC_ADD;
+		_alphaBlendEquation = GL_FUNC_ADD;
+		
+		_blendSource           = GL_ONE;
+		_alphaBlendSource      = GL_ONE;
+		_blendDestination      = GL_ZERO;
+		_alphaBlendDestination = GL_ZERO;
 		
 		_polygonOffsetFactor = 0.0f;
 		_polygonOffsetUnits  = 0.0f;
@@ -77,6 +92,7 @@ namespace RN
 			
 			gl::FrontFace(_cullMode);
 			gl::DepthFunc(_depthFunc);
+			gl::BlendEquation(_blendEquation);
 			gl::BlendFunc(_blendSource, _blendDestination);
 			gl::PolygonOffset(_polygonOffsetFactor, _polygonOffsetUnits);
 			
@@ -131,11 +147,11 @@ namespace RN
 	
 	void Renderer::UpdateShaderData()
 	{
-		const Matrix& projectionMatrix = _currentCamera->projectionMatrix;
-		const Matrix& inverseProjectionMatrix = _currentCamera->inverseProjectionMatrix;
+		const Matrix& projectionMatrix = _currentCamera->_projectionMatrix;
+		const Matrix& inverseProjectionMatrix = _currentCamera->_inverseProjectionMatrix;
 		
-		const Matrix& viewMatrix = _currentCamera->viewMatrix;
-		const Matrix& inverseViewMatrix = _currentCamera->inverseViewMatrix;
+		const Matrix& viewMatrix = _currentCamera->_viewMatrix;
+		const Matrix& inverseViewMatrix = _currentCamera->_inverseViewMatrix;
 		
 		if(_currentProgram->frameSize != -1)
 		{
@@ -147,20 +163,20 @@ namespace RN
 			gl::Uniform4f(_currentProgram->hdrSettings, _hdrExposure, _hdrWhitePoint, 0.0f, 0.0f);
 		
 		if(_currentProgram->clipPlanes != -1)
-			gl::Uniform2f(_currentProgram->clipPlanes, _currentCamera->clipnear, _currentCamera->clipfar);
+			gl::Uniform2f(_currentProgram->clipPlanes, _currentCamera->_clipNear, _currentCamera->_clipFar);
 		
 		
 		if(_currentProgram->fogPlanes != -1)
-			gl::Uniform2f(_currentProgram->fogPlanes, _currentCamera->fognear, 1.0f/(_currentCamera->fogfar-_currentCamera->fognear));
+			gl::Uniform2f(_currentProgram->fogPlanes, _currentCamera->_fogNear, 1.0f / (_currentCamera->_fogFar - _currentCamera->_fogNear));
 		
 		if(_currentProgram->fogColor != -1)
-			gl::Uniform4fv(_currentProgram->fogColor, 1, &_currentCamera->fogcolor.r);
+			gl::Uniform4fv(_currentProgram->fogColor, 1, &_currentCamera->_fogColor.r);
 		
 		if(_currentProgram->cameraAmbient != -1)
-			gl::Uniform4fv(_currentProgram->cameraAmbient, 1, &_currentCamera->ambient.x);
+			gl::Uniform4fv(_currentProgram->cameraAmbient, 1, &_currentCamera->_ambient.r);
 		
 		if(_currentProgram->clipPlane != -1)
-			gl::Uniform4fv(_currentProgram->clipPlane, 1, &_currentCamera->clipplane.x);
+			gl::Uniform4f(_currentProgram->clipPlane, _currentCamera->_clipPlane.GetNormal().x, _currentCamera->_clipPlane.GetNormal().y, _currentCamera->_clipPlane.GetNormal().z, _currentCamera->_clipPlane.GetD());
 		
 		if(_currentProgram->matProj != -1)
 			gl::UniformMatrix4fv(_currentProgram->matProj, 1, GL_FALSE, projectionMatrix.m);
@@ -194,7 +210,7 @@ namespace RN
 		
 		if(_currentProgram->viewNormal != -1)
 		{
-			const Vector3& forward = _currentCamera->Forward();
+			const Vector3& forward = _currentCamera->GetForward();
 			gl::Uniform3fv(_currentProgram->viewNormal, 1, &forward.x);
 		}
 	}
@@ -245,6 +261,32 @@ namespace RN
 		}
 	}
 	
+	void Renderer::ValidateState()
+	{
+#if RN_BUILD_DEBUG
+		if(_canValidatePrograms && _validatePrograms)
+		{
+			GLint status, length;
+			
+			gl::ValidateProgram(_currentProgram->program);
+			gl::GetProgramiv(_currentProgram->program, GL_VALIDATE_STATUS, &status);
+			
+			if(!status)
+			{
+				gl::GetProgramiv(_currentProgram->program, GL_INFO_LOG_LENGTH, &length);
+				
+				char *log = new char[length];
+				gl::GetProgramInfoLog(_currentProgram->program, length, &length, static_cast<GLchar *>(log));
+				
+				std::string error(log);
+				delete [] log;
+				
+				throw Exception(Exception::Type::InconsistencyException, "Shader program validation failed: " + error);
+			}
+		}
+#endif
+	}
+	
 	// ---------------------
 	// MARK: -
 	// MARK: Binding
@@ -255,15 +297,15 @@ namespace RN
 		_autoVAOs.clear();
 	}
 	
-	void Renderer::BindVAO(const std::tuple<ShaderProgram *, Mesh *>& tuple)
+	void Renderer::BindVAO(const std::pair<ShaderProgram *, Mesh *> &pair)
 	{
-		auto iterator = _autoVAOs.find(tuple);
+		auto iterator = _autoVAOs.find(pair);
 		GLuint vao;
 		
 		if(iterator == _autoVAOs.end())
 		{
-			ShaderProgram *shader = std::get<0>(tuple);
-			Mesh *mesh = std::get<1>(tuple);
+			ShaderProgram *shader = pair.first;
+			Mesh *mesh = pair.second;
 			
 			GLuint vbo = mesh->GetVBO();
 			GLuint ibo = mesh->GetIBO();
@@ -274,13 +316,13 @@ namespace RN
 				
 				gl::BindBuffer(GL_ARRAY_BUFFER, vbo);
 				
-				if(mesh->SupportsFeature(kMeshFeatureIndices))
+				if(mesh->SupportsFeature(MeshFeature::Indices))
 					gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 				
 				// Vertices
-				if(shader->attPosition != -1 && mesh->SupportsFeature(kMeshFeatureVertices))
+				if(shader->attPosition != -1 && mesh->SupportsFeature(MeshFeature::Vertices))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureVertices);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Vertices);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attPosition);
@@ -288,9 +330,9 @@ namespace RN
 				}
 				
 				// Normals
-				if(shader->attNormal != -1 && mesh->SupportsFeature(kMeshFeatureNormals))
+				if(shader->attNormal != -1 && mesh->SupportsFeature(MeshFeature::Normals))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureNormals);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Normals);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attNormal);
@@ -298,9 +340,9 @@ namespace RN
 				}
 				
 				// Tangents
-				if(shader->attTangent != -1 && mesh->SupportsFeature(kMeshFeatureTangents))
+				if(shader->attTangent != -1 && mesh->SupportsFeature(MeshFeature::Tangents))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureTangents);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Tangents);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attTangent);
@@ -308,9 +350,9 @@ namespace RN
 				}
 				
 				// Texcoord0
-				if(shader->attTexcoord0 != -1 && mesh->SupportsFeature(kMeshFeatureUVSet0))
+				if(shader->attTexcoord0 != -1 && mesh->SupportsFeature(MeshFeature::UVSet0))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureUVSet0);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::UVSet0);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attTexcoord0);
@@ -318,9 +360,9 @@ namespace RN
 				}
 				
 				// Texcoord1
-				if(shader->attTexcoord1 != -1 && mesh->SupportsFeature(kMeshFeatureUVSet1))
+				if(shader->attTexcoord1 != -1 && mesh->SupportsFeature(MeshFeature::UVSet1))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureUVSet1);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::UVSet1);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attTexcoord1);
@@ -328,9 +370,9 @@ namespace RN
 				}
 				
 				// Color0
-				if(shader->attColor0 != -1 && mesh->SupportsFeature(kMeshFeatureColor0))
+				if(shader->attColor0 != -1 && mesh->SupportsFeature(MeshFeature::Color0))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureColor0);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Color0);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attColor0);
@@ -338,9 +380,9 @@ namespace RN
 				}
 				
 				// Color1
-				if(shader->attColor1 != -1 && mesh->SupportsFeature(kMeshFeatureColor1))
+				if(shader->attColor1 != -1 && mesh->SupportsFeature(MeshFeature::Color1))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureColor1);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Color1);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attColor1);
@@ -348,9 +390,9 @@ namespace RN
 				}
 				
 				// Bone Weights
-				if(shader->attBoneWeights != -1 && mesh->SupportsFeature(kMeshFeatureBoneWeights))
+				if(shader->attBoneWeights != -1 && mesh->SupportsFeature(MeshFeature::BoneWeights))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureBoneWeights);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::BoneWeights);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attBoneWeights);
@@ -358,9 +400,9 @@ namespace RN
 				}
 				
 				// Bone Indices
-				if(shader->attBoneIndices != -1 && mesh->SupportsFeature(kMeshFeatureBoneIndices))
+				if(shader->attBoneIndices != -1 && mesh->SupportsFeature(MeshFeature::BoneIndices))
 				{
-					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(kMeshFeatureBoneIndices);
+					const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::BoneIndices);
 					size_t offset = descriptor->offset;
 					
 					gl::EnableVertexAttribArray(shader->attBoneIndices);
@@ -368,7 +410,7 @@ namespace RN
 				}
 			}, true);
 			
-			_autoVAOs[tuple] = std::tuple<GLuint, uint32>(vao, 0);
+			_autoVAOs[pair] = std::tuple<GLuint, uint32>(vao, 0);
 			_currentVAO = vao;
 			
 			return;
@@ -391,63 +433,132 @@ namespace RN
 		if(!surfaceMaterial)
 			surfaceMaterial = material;
 		
+#define IsOverriden(attribute) \
+	(material->override & Material::Override::attribute || surfaceMaterial->override & Material::Override::attribute)
+		
+#define PickAttribute(_override, attribute) \
+	(IsOverriden(_override) ? material->attribute : surfaceMaterial->attribute)
+		
 		if(changedShader || material != _currentMaterial)
 		{
 			_textureUnit = 0;
 			
-			const Array& textures = !(surfaceMaterial->override & Material::OverrideTextures)? material->GetTextures() : surfaceMaterial->GetTextures();
+			const Array *textures = IsOverriden(Textures) ? material->GetTextures() : surfaceMaterial->GetTextures();
 			const std::vector<GLuint>& textureLocations = program->texlocations;
 			
 			if(textureLocations.size() > 0)
 			{
-				size_t textureCount = std::min(textureLocations.size(), textures.GetCount());
+				size_t textureCount = std::min(textureLocations.size(), textures->GetCount());
 				
-				for(size_t i=0; i<textureCount; i++)
+				for(size_t i = 0; i<textureCount; i ++)
 				{
 					GLint location = textureLocations[i];
-					Texture *texture = textures.GetObjectAtIndex<Texture>(i);
+					
+					if(location == -1)
+						continue;
+					
+					Texture *texture = static_cast<Texture *>((*textures)[i]);
 					
 					gl::Uniform1i(location, BindTexture(texture));
 					
 					location = program->texinfolocations[i];
 					if(location != -1)
-						gl::Uniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
+						gl::Uniform4f(location, 1.0f/TexturePixelWidth(texture), 1.0f/TexturePixelHeight(texture), TexturePixelWidth(texture), TexturePixelHeight(texture));
 				}
 			}
 		}
-
-#define PickAttribute(_override, attribute) (material->override & Material::_override) ? material->attribute : surfaceMaterial->attribute
 		
-		SetCullingEnabled(PickAttribute(OverrideCulling, culling));
-		SetCullMode(PickAttribute(OverrideCullmode, cullmode));
-
-		SetDepthTestEnabled(PickAttribute(OverrideDepthtest, depthtest));
-		SetDepthFunction(PickAttribute(OverrideDepthtestMode, depthtestmode));
-		
-		SetPolygonOffsetEnabled(PickAttribute(OverridePolygonOffset, polygonOffset));
-		SetPolygonOffset(PickAttribute(OverridePolygonOffset, polygonOffsetFactor), PickAttribute(OverridePolygonOffset, polygonOffsetUnits));
-		
-		if(material->override & Material::OverrideDepthwrite)
+		if(surfaceMaterial != material)
 		{
-			SetDepthWriteEnabled((material->depthwrite && _currentCamera->AllowsDepthWrite()));
+			Material::CullMode cullMode = IsOverriden(Culling) ? material->cullMode : surfaceMaterial->cullMode;
+			if(cullMode == Material::CullMode::None)
+			{
+				SetCullingEnabled(false);
+			}
+			else
+			{
+				SetCullingEnabled(true);
+				SetCullMode(static_cast<GLenum>(cullMode));
+			}
+			
+			SetPolygonMode(static_cast<GLenum>(material->polygonMode));
+			
+			SetDepthTestEnabled(PickAttribute(Depthtest, depthTest));
+			SetDepthFunction(static_cast<GLenum>(PickAttribute(DepthtestMode, depthTestMode)));
+			
+			SetPolygonOffsetEnabled(PickAttribute(PolygonOffset, polygonOffset));
+			
+			if(IsOverriden(Depthwrite))
+			{
+				SetDepthWriteEnabled((material->depthWrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
+			}
+			else
+			{
+				SetDepthWriteEnabled((surfaceMaterial->depthWrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
+			}
+			
+			SetBlendingEnabled(PickAttribute(Blending, blending));
+			SetPolygonOffset(PickAttribute(PolygonOffset, polygonOffsetFactor), PickAttribute(PolygonOffset, polygonOffsetUnits));
+			
+			if(_blendingEnabled)
+			{
+				if(IsOverriden(Blendmode))
+				{
+					SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination),
+									 static_cast<GLenum>(material->alphaBlendSource), static_cast<GLenum>(material->alphaBlendDestination));
+				}
+				else
+				{
+					SetBlendFunction(static_cast<GLenum>(surfaceMaterial->blendSource), static_cast<GLenum>(surfaceMaterial->blendDestination),
+									 static_cast<GLenum>(surfaceMaterial->alphaBlendSource), static_cast<GLenum>(surfaceMaterial->alphaBlendDestination));
+				}
+				
+				if(IsOverriden(Blendequation))
+				{
+					SetBlendEquation(static_cast<GLenum>(material->blendEquation), static_cast<GLenum>(material->alphaBlendEquation));
+				}
+				else
+				{
+					SetBlendEquation(static_cast<GLenum>(material->blendEquation), static_cast<GLenum>(surfaceMaterial->alphaBlendEquation));
+				}
+			}
 		}
 		else
 		{
-			SetDepthWriteEnabled((surfaceMaterial->depthwrite && _currentCamera->AllowsDepthWrite()));
-		}
-		
-		SetBlendingEnabled(PickAttribute(OverrideBlending, blending));
-		
-		if(material->override & Material::OverrideBlendmode)
-		{
-			SetBlendFunction(material->blendSource, material->blendDestination);
-		}
-		else
-		{
-			SetBlendFunction(surfaceMaterial->blendSource, surfaceMaterial->blendDestination);
+			Material::CullMode cullMode = material->cullMode;
+			
+			if(cullMode == Material::CullMode::None)
+			{
+				SetCullingEnabled(false);
+			}
+			else
+			{
+				SetCullingEnabled(true);
+				SetCullMode(static_cast<GLenum>(cullMode));
+			}
+			
+			SetPolygonMode(static_cast<GLenum>(material->polygonMode));
+			
+			SetDepthTestEnabled(material->depthTest);
+			SetDepthFunction(static_cast<GLenum>(material->depthTestMode));
+			
+			SetPolygonOffsetEnabled(material->polygonOffset);
+			SetDepthWriteEnabled((material->depthWrite && !(_currentCamera->_flags & Camera::Flags::NoDepthWrite)));
+			SetBlendingEnabled(material->blending);
+			
+			if(_polygonOffsetEnabled)
+				SetPolygonOffset(material->polygonOffsetFactor, material->polygonOffsetUnits);
+			
+			if(_blendingEnabled)
+			{
+				SetBlendFunction(static_cast<GLenum>(material->blendSource), static_cast<GLenum>(material->blendDestination),
+								 static_cast<GLenum>(material->alphaBlendSource), static_cast<GLenum>(material->alphaBlendDestination));
+				SetBlendEquation(static_cast<GLenum>(material->blendEquation), static_cast<GLenum>(material->alphaBlendEquation));
+			}
 		}
 		
 #undef PickAttribute
+#undef IsOverriden
 		
 		_currentMaterial = material;
 	}
@@ -476,17 +587,20 @@ namespace RN
 		switch(format)
 		{
 			case Format::RGBA8888:
-				return Data::WithBytes(_data, _width * _height * 4);
-				break;
+			{
+				Data *data = new Data(_data, _width * _height * 4, true, true);
+				return data->Autorelease();
+			}
 				
 			case Format::RGB888:
 			{
 				size_t size = _width * _height;
 				uint8 *temp = new uint8[size * 3];
-				Data *data = new Data(temp, size, true, true);
 				
 				uint32 *pixel = reinterpret_cast<uint32 *>(_data);
 				uint32 *end = pixel + size;
+				
+				uint8 *data = temp;
 				
 				while(pixel != end)
 				{
@@ -497,7 +611,8 @@ namespace RN
 					pixel ++;
 				}
 				
-				return data->Autorelease();
+				
+				return (new Data(data, size * 3, true, true))->Autorelease();
 			}
 				
 			case Format::PNG:
@@ -629,18 +744,18 @@ namespace RN
 	
 	void Renderer::BeginFrame(float delta)
 	{
-		_time += delta;
+		_time = Kernel::GetSharedInstance()->GetTime();
 		
 		_renderedLights   = 0;
 		_renderedVertices = 0;
 		
-		for(auto i=_autoVAOs.begin(); i!=_autoVAOs.end();)
+		for(auto i = _autoVAOs.begin(); i != _autoVAOs.end();)
 		{
 			uint32& age = std::get<1>(i->second);
 			
 			if((++ age) > kRNRendererMaxVAOAge)
 			{
-				GLuint vao = std::get<1>(i->second);
+				GLuint vao = std::get<0>(i->second);
 				
 				OpenGLQueue::GetSharedInstance()->SubmitCommand([vao] {
 					gl::DeleteVertexArrays(1, &vao);
@@ -717,8 +832,9 @@ namespace RN
 		
 		SetDepthTestEnabled(false);
 		SetCullMode(GL_CCW);
+		SetPolygonMode(GL_FILL);
 		
-		if(camera->UseBlending())
+		if(camera->_flags & Camera::Flags::BlendedBlitting)
 		{
 			SetBlendingEnabled(true);
 			SetBlendFunction(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -728,10 +844,10 @@ namespace RN
 			SetBlendingEnabled(false);
 		}
 		
-		uint32 type = ShaderProgram::TypeNormal;		
+		uint32 type = ShaderProgram::Type::Normal;
 
-		if(_gammaCorrection && drawShader->SupportsProgramOfType(ShaderProgram::TypeGammaCorrection))
-			type = ShaderProgram::TypeGammaCorrection;
+		if(_gammaCorrection && drawShader->SupportsProgramOfType(ShaderProgram::Type::GammaCorrection))
+			type = ShaderProgram::Type::GammaCorrection;
 		
 		ShaderProgram *program = drawShader->GetProgramOfType(type);
 		
@@ -748,7 +864,7 @@ namespace RN
 			
 			location = program->targetmapinfolocations.front();
 			if(location != -1)
-				gl::Uniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
+				gl::Uniform4f(location, 1.0f/TexturePixelWidth(texture), 1.0f/TexturePixelHeight(texture), TexturePixelWidth(texture), TexturePixelHeight(texture));
 		}
 	}
 	
@@ -756,7 +872,27 @@ namespace RN
 	void Renderer::DrawCameraStage(Camera *camera, Camera *stage)
 	{
 		Material *material = stage->GetMaterial();
-		ShaderProgram *program = material->GetShader()->GetProgramWithLookup(material->GetLookup() + ShaderLookup(ShaderProgram::TypeNormal));
+		Shader *shader = material->GetShader();
+		
+		ShaderLookup lookup = material->GetLookup();
+		
+		LightManager *lightManager = _frameCamera->GetLightManager();
+		
+		bool wantsLighting = (material->GetLighting() && lightManager && shader->SupportsProgramOfType(ShaderProgram::Type::Lighting));
+		
+		if(wantsLighting)
+		{
+			lookup.type |= ShaderProgram::Type::Lighting;
+			lookup.lightDirectionalCount = lightManager->GetDirectionalLightCount();
+			
+			//TODO: fix
+			if(lightManager->GetPointLightCount() > 0)
+				lookup.lightPointSpotCount = 1;//lightPointSpotCount;
+				
+			lightManager->AdjustShaderLookup(shader, lookup);
+		}
+		
+		ShaderProgram *program = shader->GetProgramWithLookup(lookup);
 		
 		_currentCamera = stage;
 		_textureUnit = 0;
@@ -765,10 +901,16 @@ namespace RN
 		SetBlendingEnabled(false);
 		SetCullMode(GL_CCW);
 		
+		
 		BindMaterial(material, program);
+		
+		SetPolygonMode(GL_FILL);
 		UpdateShaderData();
 		
 		material->ApplyUniforms(program);
+		
+		if(wantsLighting)
+			lightManager->UpdateProgram(this, program);
 		
 		uint32 targetmaps = std::min((uint32)program->targetmaplocations.size(), stage->GetRenderTargetCount());
 		for(uint32 i=0; i<targetmaps; i++)
@@ -780,7 +922,7 @@ namespace RN
 			
 			location = program->targetmapinfolocations[i];
 			if(location != -1)
-				gl::Uniform4f(location, 1.0f/static_cast<float>(texture->GetWidth()), 1.0f/static_cast<float>(texture->GetHeight()), texture->GetWidth(), texture->GetHeight());
+				gl::Uniform4f(location, 1.0f/TexturePixelWidth(texture), 1.0f/TexturePixelHeight(texture), TexturePixelWidth(texture), TexturePixelHeight(texture));
 		}
 		
 		if(program->depthmap != -1)
@@ -791,7 +933,7 @@ namespace RN
 				gl::Uniform1i(program->depthmap, BindTexture(depthmap));
 				
 				if(program->depthmapinfo != -1)
-					gl::Uniform4f(program->depthmapinfo, 1.0f/static_cast<float>(depthmap->GetWidth()), 1.0f/static_cast<float>(depthmap->GetHeight()), depthmap->GetWidth(), depthmap->GetHeight());
+					gl::Uniform4f(program->depthmapinfo, 1.0f/TexturePixelWidth(depthmap), 1.0f/TexturePixelHeight(depthmap), TexturePixelWidth(depthmap), TexturePixelHeight(depthmap));
 			}
 		}
 	}
@@ -818,42 +960,50 @@ namespace RN
 		if(!source)
 		{
 			// Sort the objects
-			if(!(camera->GetFlags() & Camera::FlagNoSorting))
+			if(!(camera->_flags & Camera::Flags::NoSorting))
 			{
 				auto begin = _frame.begin();
 				std::advance(begin, skyCubeMeshes);
+				
+				RN::Vector3 position = camera->GetWorldPosition();
 			
-				ParallelSort(begin, _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
+				for(auto i = begin; i != _frame.end(); i ++)
+				{
+					RenderingObject &object = *i;
+					
+					const Material *material = object.material;
+					bool alpha = (material->blending);
+					
+					if(alpha)
+					{
+						object.distance = position.GetDistance(Vector3(object.transform->m[12], object.transform->m[13], object.transform->m[14]));
+						object.flags |= 1 << 5;
+					}
+				}
+				
+				std::sort(begin, _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
 					
 					bool drawALate = (a.flags & RenderingObject::DrawLate);
 					bool drawBLate = (b.flags & RenderingObject::DrawLate);
 					
-					if(drawALate && drawALate != drawBLate)
-						return false;
+					if(drawALate != drawBLate)
+						return drawBLate;
+					
+					bool alphaA = (a.flags & (1 << 5));
+					bool alphaB = (b.flags & (1 << 5));
+					
+					if(alphaA != alphaB)
+						return alphaB;
+					
+					if(alphaA)
+						return (b.distance < a.distance);
+					
 					
 					const Material *materialA = a.material;
 					const Material *materialB = b.material;
 					
-					if(materialA->blending != materialB->blending)
-					{
-						if(!materialB->blending)
-							return false;
-						
-						return true;
-					}
-					
-					if(materialA->discard != materialB->discard)
-					{
-						if(!materialB->discard)
-							return false;
-						
-						return true;
-					}
-					
-					if(materialA->GetShader() != materialB->GetShader())
-					{
-						return (materialA->GetShader() < materialB->GetShader());
-					}
+					if(materialA->_shader != materialB->_shader)
+						return materialA->_shader < materialB->_shader;
 					
 					return a.mesh < b.mesh;
 				});
@@ -884,11 +1034,11 @@ namespace RN
 		Camera *camera = _frameCamera;
 		
 		// Skycube
-		Model *skyCube = camera->GetSkyCube();
+		Model *skyCube = camera->GetSky();
 		size_t skyCubeMeshes = 0;
 		
 		Matrix cameraRotation;
-		cameraRotation.MakeRotate(camera->GetWorldRotation());
+		cameraRotation = Matrix::WithRotation(camera->GetWorldRotation());
 		
 		if(skyCube)
 		{
@@ -911,7 +1061,7 @@ namespace RN
 		DrawCamera(camera, 0, skyCubeMeshes);
 		Camera *lastPipeline = camera;
 		
-		if(camera->GetFlags() & Camera::FlagForceFlush)
+		if(camera->_flags & Camera::Flags::ForceFlush)
 		{
 			if(_flushedCameras.find(camera) == _flushedCameras.end())
 			{
@@ -958,7 +1108,7 @@ namespace RN
 				
 				previous = stage;
 				
-				if(previous->GetFlags() & Camera::FlagForceFlush)
+				if(previous->_flags & Camera::Flags::ForceFlush)
 				{
 					if(_flushedCameras.find(camera) == _flushedCameras.end())
 					{
@@ -971,10 +1121,16 @@ namespace RN
 			lastPipeline = previous;
 		}
 		
-		if(!(previous->GetFlags() & Camera::FlagHidden) && _flushedCameras.find(camera) == _flushedCameras.end())
+		if(!(previous->GetFlags() & Camera::Flags::NoFlush) && _flushedCameras.find(camera) == _flushedCameras.end())
 		{
 			_flushCameras.push_back(std::pair<Camera *, Shader *>(previous, camera->GetBlitShader()));
 			_flushedCameras.insert(previous);
+		}
+		
+		LightManager *lightManager = _frameCamera->GetLightManager();
+		if(lightManager)
+		{
+			lightManager->ClearLights();
 		}
 		
 		// Cleanup of the frame

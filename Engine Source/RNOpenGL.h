@@ -89,7 +89,8 @@ namespace RN
 			GeometryShaders,
 			TessellationShaders,
 			AnisotropicFilter,
-			ShaderBinary
+			ShaderBinary,
+			ProgramValidation
 		};
 		
 		Version MaximumVersion();

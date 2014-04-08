@@ -147,7 +147,7 @@ namespace RN
 			std::vector<EditingSet> _changes;
 			size_t _changeRows;
 			
-			RNDefineMeta(TableView, ScrollView)
+			RNDeclareMeta(TableView)
 		};
 	}
 }

@@ -16,7 +16,7 @@ namespace RN
 {
 	namespace UI
 	{
-		RNDeclareMeta(Widget)
+		RNDefineMeta(Widget, Responder)
 
 		Widget::Widget(Style style)
 		{
@@ -37,8 +37,11 @@ namespace RN
 		
 		void Widget::Initialize(Style style)
 		{
-			_style = style;
-			_hasShadow = (_style != StyleBorderless);
+			_canBecomeKeyWidget = true;
+			
+			_style     = style;
+			_hasShadow = (_style != Style::Borderless);
+			_level     = kRNUIWidgetLevelNormal;
 			
 			_backgroundView = CreateBackgroundView();
 			_contentView    = CreateContentView();
@@ -66,13 +69,13 @@ namespace RN
 		
 		WidgetBackgroundView *Widget::CreateBackgroundView()
 		{
-			if(_style == StyleBorderless)
+			if(_style == Style::Borderless)
 				return nullptr;
 			
 			UI::Style *styleSheet = UI::Style::GetSharedInstance();
 			Dictionary *style = nullptr;
 			
-			if(_style & StyleTitled)
+			if(_style & Style::Titled)
 				style = styleSheet->GetWindowStyleWithKeyPath(RNCSTR("window.titled"));
 			else
 				style = styleSheet->GetWindowStyleWithKeyPath(RNCSTR("window.untitled"));
@@ -172,10 +175,27 @@ namespace RN
 			_frame = frame;
 		}
 		
+		void Widget::SetCanBecomeKeyWidget(bool canBecome)
+		{
+			_canBecomeKeyWidget = canBecome;
+			
+			if(!canBecome && _server && _server->_keyWidget == this)
+				_server->SetKeyWidget(nullptr);
+		}
+		
 		// ---------------------
 		// MARK: -
 		// MARK: First responder
 		// ---------------------
+		
+		bool Widget::MakeKeyWidget()
+		{
+			if(!_server || !_canBecomeKeyWidget)
+				return false;
+			
+			_server->SetKeyWidget(this);
+			return true;
+		}
 		
 		bool Widget::MakeFirstResponder(Responder *responder)
 		{
@@ -279,10 +299,34 @@ namespace RN
 			return nullptr;
 		}
 		
+		void Widget::SetWidgetLevel(int32 level)
+		{
+			_level = level;
+			
+			if(_server)
+				_server->SortWidgets();
+		}
+		
 		// ---------------------
 		// MARK: -
 		// MARK: Layout engine
 		// ---------------------
+		
+		void Widget::SetNeedsLayoutUpdate()
+		{
+			_contentView->SetNeedsLayoutUpdate();
+		}
+		
+		void Widget::Center()
+		{
+			Rect frame = GetFrame();
+			Vector2 extents = Vector2(Server::GetSharedInstance()->GetWidth(), Server::GetSharedInstance()->GetHeight());
+			
+			frame.x = extents.x * 0.5f - frame.width * 0.5f;
+			frame.y = extents.y * 0.5f - frame.height * 0.5f;
+			
+			SetFrame(frame);
+		}
 		
 		void Widget::Update()
 		{

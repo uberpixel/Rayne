@@ -11,6 +11,10 @@
 
 #include "RNBase.h"
 #include "RNSignal.h"
+#include "RNMatrixQuaternion.h"
+#include "RNVector.h"
+#include "RNColor.h"
+#include "RNTypeTranslator.h"
 
 #define kRNObservableNewValueKey RNCSTR("kRNObservableNewValueKey")
 #define kRNObservableOldValueKey RNCSTR("kRNObservableOldValueKey")
@@ -19,64 +23,45 @@ namespace RN
 {
 	class Object;
 	class Dictionary;
-	
-	enum class ObservableType
-	{
-		Bool,
-		
-		Int8,
-		Int16,
-		Int32,
-		Int64,
-		Uint8,
-		Uint16,
-		Uint32,
-		Uint64,
-		
-		Float,
-		Double,
-		
-		Vector2,
-		Vector3,
-		Vector4,
-		Color,
-		Matrix,
-		Quaternion,
-		
-		Object
-	};
+	class MetaClassBase;
 	
 	class ObservableProperty
 	{
 	public:
 		friend class Object;
+		
 		RNAPI virtual ~ObservableProperty();
 	
-		const std::string &GetName() const { return _name; }
-		ObservableType GetType() const { return _type; }
+		std::string GetName() const { return _name; }
+		char GetType() const { return _type; }
 		
 		RNAPI virtual void SetValue(Object *value) = 0;
 		RNAPI virtual Object *GetValue() const = 0;
+		RNAPI Object *GetObject() const { return _object; }
 		
-		void SetWritable(bool writable) { _writable = writable; }
-		bool IsWritable() const { return _writable; }
+		RNAPI void SetWritable(bool writable);
+		bool IsWritable() const { return _flags & (1 << 8); }
+		
+		RNAPI virtual MetaClassBase *GetMetaClass() const { return nullptr; }
 		
 		RNAPI void WillChangeValue();
 		RNAPI void DidChangeValue();
 		
 	protected:
-		RNAPI ObservableProperty(const std::string &name, ObservableType type);
-		
-	private:
-		std::string _name;
-		ObservableType _type;
-		Signal<void (Object *, const std::string &, Dictionary *)> _signal;
+		RNAPI ObservableProperty(const char *name, char type);
 		
 		Object *_object;
-		Dictionary *_changeSet;
 		
-		bool _writable;
-		char _recursion;
+	private:
+		RNAPI void AssertSignal();
+		
+		char _type;
+		char _name[33];
+		uint8 _flags;
+		
+		Signal<void (Object *, const std::string &, Dictionary *)> *_signal;
+		Dictionary *_changeSet;
+		void *_opaque;
 	};
 }
 

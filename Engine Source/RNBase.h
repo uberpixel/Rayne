@@ -31,6 +31,7 @@
 #include <string>
 #include <sstream>
 #include <iterator>
+#include <array>
 #include <vector>
 #include <map>
 #include <set>
@@ -111,9 +112,9 @@
 
 #define kRNVersionMajor 0
 #define kRNVersionMinor 5
-#define kRNVersionPatch 5
+#define kRNVersionPatch 7
 
-#define kRNABIVersion 4
+#define kRNABIVersion 6
 
 namespace RN
 {
@@ -156,7 +157,7 @@ namespace RN
 	RNAPI uint32 VersionMake(uint32 major, uint32 minor, uint32 patch);
 	
 	typedef uint32 FrameID;
-	typedef size_t Tag;
+	typedef uint64 Tag;
 	
 	enum class ComparisonResult : int
 	{
@@ -220,12 +221,9 @@ namespace RN
 	class PIMPL
 	{
 	public:
-		PIMPL() :
-			_ptr(new T)
-		{}
-		
-		PIMPL(T *val) :
-			_ptr(val)
+		template<class ...Args>
+		PIMPL(Args &&...args) :
+			_ptr(new T(std::forward<Args>(args)...))
 		{}
 		
 		operator T* ()

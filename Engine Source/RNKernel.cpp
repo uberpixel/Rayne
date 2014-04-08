@@ -13,6 +13,7 @@
 #include "RNOpenGL.h"
 #include "RNThreadPool.h"
 #include "RNSettings.h"
+#include "RNArray.h"
 #include "RNModule.h"
 #include "RNPathManager.h"
 #include "RNFileManager.h"
@@ -24,10 +25,17 @@
 #include "RNWindowInternal.h"
 #include "RNWorldCoordinator.h"
 #include "RNOpenGLQueue.h"
+#include "RNMessage.h"
+#include "RNInput.h"
+#include "RNUIServer.h"
+#include "RNWindow.h"
 
 namespace RN
 {
-	bool __needsCleanup = false;
+	// ---------------------
+	// MARK: -
+	// MARK: Misc
+	// ---------------------
 
 #if RN_PLATFORM_INTEL
 	namespace X86_64
@@ -46,29 +54,92 @@ namespace RN
 		extern Context *Initialize();
 	}
 	
+	
+	static std::atomic<bool> __needsCleanup(false);
+	
 	void KernelCleanUp()
 	{
-		if(!__needsCleanup)
+		if(!__needsCleanup.exchange(false))
 			return;
-
+		
 		AutoreleasePool pool;
 		
-		delete ShaderCache::GetSharedInstance();
-		delete Log::Logger::GetSharedInstance();
-		delete Settings::GetSharedInstance();
-		delete Input::GetSharedInstance();
-		delete ModuleCoordinator::GetSharedInstance();
-
-		__needsCleanup = false;
+		Log::Logger::ResignSharedInstance();
+		ShaderCache::ResignSharedInstance();
+		Settings::ResignSharedInstance();
 	}
 	
+	// ---------------------
+	// MARK: -
+	// MARK: KernelInternal
+	// ---------------------
 	
-	RNDeclareSingleton(Kernel)
+	class KernelInternal
+	{
+	public:
+		std::vector<Function> _functions;
+		std::vector<Timer *>  _timer;
+		
+		std::string _title;
+		FrameID _frame;
+		float _scaleFactor;
+		
+		Application *_app;
+		Thread *_mainThread;
+		
+		Window *_window;
+		Context *_context;
+		
+		AutoreleasePool *_pool;
+		Renderer *_renderer;
+		Input *_input;
+		WorldCoordinator *_worldCoordinator;
+		UI::Server *_uiserver;
+		
+		uint32 _statisticsSwitch;
+		Statistics _statistics[2];
+		
+		uint32 _maxFPS;
+		float _minDelta;
+		
+		bool _fixedDelta;
+		bool _resetDelta;
+		bool _shouldExit;
+		bool _initialized;
+		
+		float _fixedDeltaTime;
+		float _delta;
+		double _timeScale;
+		double _time;
+		double _scaledTime;
+		
+		std::chrono::steady_clock::time_point _lastFrame;
+		
+#if RN_PLATFORM_WINDOWS
+		HWND _mainWindow;
+		HINSTANCE _instance;
+		WNDCLASSEXW _windowClass;
+#endif
+	};
+	
+	// ---------------------
+	// MARK: -
+	// MARK: Kernel
+	// ---------------------
+	
+	RNDefineSingleton(Kernel)
 	
 	Kernel::Kernel(Application *app)
 	{
+		static std::once_flag flag;
+		std::call_once(flag, [] {
+			atexit(KernelCleanUp);
+		});
+		
 		Prepare();
-		_app = app;
+		
+		_internals->_app = app;
+		__needsCleanup.store(true);
 	}
 	
 
@@ -76,36 +147,42 @@ namespace RN
 	{
 		RNDebug("Shutting down...");
 		
-		__needsCleanup = false;
-		_app->WillExit();
+		__needsCleanup.store(false);
 		
-		delete ModuleCoordinator::GetSharedInstance();
+		_internals->_worldCoordinator->__AwaitLoadingForExit();
+		_internals->_app->WillExit();
 		
-		delete _worldCoordinator;
-		delete _renderer;
-		delete _input;
-		delete _uiserver;
+		ModuleCoordinator::ResignSharedInstance();
+		
+		delete _internals->_worldCoordinator;
+		delete _internals->_renderer;
+		delete _internals->_input;
+		delete _internals->_uiserver;
 
 #if RN_PLATFORM_LINUX
 		Display *dpy = Context::_dpy;
 		_context->Release();
 		XCloseDisplay(dpy);
 #else
-		_context->Release();
+		_internals->_context->Release();
 #endif
 
 #if RN_PLATFORM_WINDOWS
-		::DestroyWindow(_mainWindow);
+		::DestroyWindow(_internals->_mainWindow);
 #endif
 
-		delete Settings::GetSharedInstance();
-		delete _pool;
+		Settings::ResignSharedInstance();
+		ShaderCache::ResignSharedInstance();
+		OpenGLQueue::ResignSharedInstance();
+		MessageCenter::ResignSharedInstance();
 		
-		_mainThread->Exit();
-		_mainThread->Release();
+		delete _internals->_pool;
 		
-		delete ShaderCache::GetSharedInstance();
-		delete Log::Logger::GetSharedInstance();
+		_internals->_mainThread->Exit();
+		_internals->_mainThread->Release();
+		
+		ThreadCoordinator::ResignSharedInstance();
+		Log::Logger::ResignSharedInstance();
 	}
 	
 	void Kernel::Prepare()
@@ -116,44 +193,41 @@ namespace RN
 		XInitThreads();
 #endif
 #if RN_PLATFORM_WINDOWS
-		_instance = (HINSTANCE)::GetModuleHandle(nullptr);
+		_internals->_instance = (HINSTANCE)::GetModuleHandle(nullptr);
 
-		_windowClass.cbSize = sizeof(WNDCLASSEXW);
-		_windowClass.style = CS_OWNDC;
-		_windowClass.lpfnWndProc = &WindowProc;
-		_windowClass.cbClsExtra = 0;
-		_windowClass.cbWndExtra = 0;
-		_windowClass.hInstance = _instance;
-		_windowClass.hIcon = LoadIconA(_instance, MAKEINTRESOURCE(1));
-		_windowClass.hCursor = LoadCursorA(nullptr, IDC_ARROW);
-		_windowClass.hbrBackground = nullptr;
-		_windowClass.lpszMenuName = nullptr;
-		_windowClass.lpszClassName = L"RNWindowClass";
-		_windowClass.hIconSm = nullptr;
+		_internals->_windowClass.cbSize = sizeof(WNDCLASSEXW);
+		_internals->_windowClass.style = CS_OWNDC;
+		_internals->_windowClass.lpfnWndProc = &WindowProc;
+		_internals->_windowClass.cbClsExtra = 0;
+		_internals->_windowClass.cbWndExtra = 0;
+		_internals->_windowClass.hInstance = _internals->_instance;
+		_internals->_windowClass.hIcon = LoadIconA(_internals->_instance, MAKEINTRESOURCE(1));
+		_internals->_windowClass.hCursor = LoadCursorA(nullptr, IDC_ARROW);
+		_internals->_windowClass.hbrBackground = nullptr;
+		_internals->_windowClass.lpszMenuName = nullptr;
+		_internals->_windowClass.lpszClassName = L"RNWindowClass";
+		_internals->_windowClass.hIconSm = nullptr;
 		
-		::RegisterClassExW(&_windowClass);
+		::RegisterClassExW(&_internals->_windowClass);
 
-		_mainWindow = ::CreateWindowExW(0, L"RNWindowClass", L"", WS_POPUP | WS_CLIPCHILDREN, 0, 0, 640, 480, nullptr, nullptr, _instance, nullptr);
+		_internals->_mainWindow = ::CreateWindowExW(0, L"RNWindowClass", L"", WS_POPUP | WS_CLIPCHILDREN, 0, 0, 640, 480, nullptr, nullptr, _internals->_instance, nullptr);
 
-		::SetFocus(_mainWindow);
-		::SetCursor(_windowClass.hCursor);
+		::SetFocus(_internals->_mainWindow);
+		::SetCursor(_internals->_windowClass.hCursor);
 
 		::CoInitializeEx(nullptr, COINIT_MULTITHREADED | COINIT_SPEED_OVER_MEMORY);
 #endif
-
-		atexit(KernelCleanUp);
-		__needsCleanup = true;
 		
 		OpenGLQueue::GetSharedInstance();
 		
 		// Bootstrap the very basic things
-		_mainThread = new Thread();
-		_pool = new AutoreleasePool();
+		_internals->_mainThread = new Thread();
+		_internals->_pool = new AutoreleasePool();
 		
-		_fixedDelta = false;
-		_statisticsSwitch = 0;
+		_internals->_fixedDelta = false;
+		_internals->_statisticsSwitch = 0;
 		
-		_title = (Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestApplicationKey)->GetUTF8String());
+		_internals->_title = (Settings::GetSharedInstance()->GetManifestObjectForKey<String>(kRNManifestApplicationKey)->GetUTF8String());
 		Settings::GetSharedInstance()->LoadSettings();
 		
 		ThreadCoordinator::GetSharedInstance();
@@ -172,49 +246,52 @@ namespace RN
 		DumpSystem();
 		
 		// Bootstrap OpenGL
-		_context = gl::Initialize();
-		_window  = nullptr;
+		_internals->_context = gl::Initialize();
+		_internals->_window  = nullptr;
 		
 		// Load the shader cache into memory
 		ShaderCache::GetSharedInstance()->InitializeDatabase();
 		
-		_scaleFactor = 1.0f;
+		_internals->_scaleFactor = 1.0f;
 #if RN_PLATFORM_IOS
-		_scaleFactor = [[UIScreen mainScreen] scale];
+		_internals->_scaleFactor = [[UIScreen mainScreen] scale];
 #endif
 #if RN_PLATFORM_MAC_OS
 		if([[NSScreen mainScreen] respondsToSelector:@selector(backingScaleFactor)])
-			_scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
+			_internals->_scaleFactor = [[NSScreen mainScreen] backingScaleFactor];
 #endif
+		
+		if(_internals->_scaleFactor >= 1.5f)
+			FileManager::GetSharedInstance()->AddFileModifier("@2x");
 		
 		Debug::InstallDebugDraw();
 		ResourceCoordinator::GetSharedInstance()->LoadEngineResources();
 		
 		// Bootstrap some more core systems while the resources are loading
-		_renderer = new Renderer32();
-		_input    = Input::GetSharedInstance();
-		_uiserver = UI::Server::GetSharedInstance();
-		_window   = Window::GetSharedInstance();
-		_worldCoordinator = WorldCoordinator::GetSharedInstance();
+		_internals->_renderer = new Renderer32();
+		_internals->_input    = Input::GetSharedInstance();
+		_internals->_uiserver = UI::Server::GetSharedInstance();
+		_internals->_window   = Window::GetSharedInstance();
+		_internals->_worldCoordinator = WorldCoordinator::GetSharedInstance();
 		
 		// Initialize some state
-		_frame  = 0;
-		_maxFPS = 0;
+		_internals->_frame  = 0;
+		_internals->_maxFPS = 0;
 		
 		SetMaxFPS(120);
 		
-		_delta = 0.0f;
-		_time  = 0.0f;
-		_scaledTime = 0.0f;
-		_timeScale  = 1.0f;
+		_internals->_delta = 0.0f;
+		_internals->_time  = 0.0;
+		_internals->_scaledTime = 0.0;
+		_internals->_timeScale  = 1.0f;
 		
-		_lastFrame  = std::chrono::steady_clock::now();
-		_resetDelta = true;
+		_internals->_lastFrame  = std::chrono::steady_clock::now();
+		_internals->_resetDelta = true;
 		
-		_initialized = false;
-		_shouldExit  = false;
+		_internals->_initialized = false;
+		_internals->_shouldExit  = false;
 		
-		_uiserver->UpdateSize();
+		_internals->_uiserver->UpdateSize();
 		
 		// Load all modules
 		ModuleCoordinator::GetSharedInstance();
@@ -271,9 +348,6 @@ namespace RN
 			size = 8;
 			if(sysctlbyname("hw.cpufrequency", &value, &size, nullptr, 0) == 0)
 			{
-				if(!cpustream.tellp() != 0)
-					cpustream << std::endl;
-				
 				cpustream.precision(3);
 				cpustream << std::fixed << (value / 1000000000.0f) << " GHz";
 			}
@@ -407,7 +481,7 @@ namespace RN
 			{
 				std::vector<std::string> modules;
 				
-				array->Enumerate([&](Object *file, size_t index, bool *stop) {
+				array->Enumerate([&](Object *file, size_t index, bool &stop) {
 					
 					try
 					{
@@ -442,8 +516,8 @@ namespace RN
 	
 	void Kernel::Initialize()
 	{
-		_app->Start();
-		_window->SetTitle(_app->GetTitle());
+		_internals->_app->Start();
+		_internals->_window->SetTitle(_internals->_app->GetTitle());
 	}
 
 	
@@ -452,36 +526,36 @@ namespace RN
 	{
 		std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
 
-		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
-		float trueDelta = milliseconds / 1000.0f;
+		auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _internals->_lastFrame).count();
+		double trueDelta  = milliseconds / 1000.0;
 		
-		if(_fixedDeltaTime)
-			trueDelta = _fixedDeltaTime;
+		if(_internals->_fixedDelta)
+			trueDelta = _internals->_fixedDeltaTime;
 		
-		if(_resetDelta)
+		if(_internals->_resetDelta)
 		{
-			trueDelta = 0.0f;
-			_resetDelta = false;
+			trueDelta   = 0.0;
+			_internals->_resetDelta = false;
 		}
 		
-		if(RN_EXPECT_FALSE(!_initialized))
+		if(RN_EXPECT_FALSE(!_internals->_initialized))
 		{
 			Initialize();
-			trueDelta = 0.0f;
+			trueDelta = 0.0;
 			
-			_initialized = true;
-			_resetDelta  = true;
+			_internals->_initialized = true;
+			_internals->_resetDelta  = true;
 			
 			RNDebug("First frame");
 		}
 		
-		_time += trueDelta;
+		_internals->_time += trueDelta;
 
-		_delta = trueDelta * _timeScale;
-		_scaledTime += _delta;
+		_internals->_delta = trueDelta * _internals->_timeScale;
+		_internals->_scaledTime += _internals->_delta;
 		
-		_statisticsSwitch = (++ _statisticsSwitch) % 2;
-		_statistics[_statisticsSwitch].Clear();
+		_internals->_statisticsSwitch = (++ _internals->_statisticsSwitch) % 2;
+		_internals->_statistics[_internals->_statisticsSwitch].Clear();
 		
 		PushStatistics("krn.events");
 		
@@ -534,23 +608,57 @@ namespace RN
 		
 		PopStatistics();
 		
-		_frame ++;
-		_renderer->BeginFrame(_delta);
-		_input->DispatchInputEvents();
+		_internals->_frame ++;
+		_internals->_renderer->BeginFrame(_internals->_delta);
+		_internals->_input->DispatchInputEvents();
+		
+		// Run scheduled functions
+		if(!_internals->_functions.empty())
+		{
+			std::vector<Function> temp;
+
+			{
+				LockGuard<SpinLock> lock(_lock);
+				std::swap(temp, _internals->_functions);
+			}
+
+			for(Function &f : temp)
+				f();
+		}
+	
+		// Timer
+		if(!_internals->_timer.empty())
+		{
+			std::chrono::steady_clock::time_point time = std::chrono::steady_clock::now();
+			std::vector<Timer *> temp;
+			
+			{
+				LockGuard<SpinLock> lock(_lock);
+				
+				for(Timer *timer : _internals->_timer)
+				{
+					if(timer->GetFireDate() <= time)
+						temp.push_back(timer);
+				}
+			}
+			
+			for(Timer *timer : temp)
+				timer->Fire();
+		}
 		
 		MessageCenter::GetSharedInstance()->PostMessage(kRNKernelDidBeginFrameMessage, nullptr, nullptr);
 		
-		_app->GameUpdate(_delta);
+		_internals->_app->GameUpdate(_internals->_delta);
 
+		_internals->_worldCoordinator->StepWorld(_internals->_frame, _internals->_delta);
+		_internals->_app->WorldUpdate(_internals->_delta);
+		_internals->_worldCoordinator->RenderWorld(_internals->_renderer);
 		
-		_worldCoordinator->StepWorld(_frame, _delta);
-		_app->WorldUpdate(_delta);
-		_worldCoordinator->RenderWorld(_renderer);
 		
+		_internals->_uiserver->Render(_internals->_renderer);
 		
-		_uiserver->Render(_renderer);
-		_renderer->FinishFrame();
-		_input->InvalidateFrame();
+		_internals->_renderer->FinishFrame();
+		_internals->_input->InvalidateFrame();
 		
 		Settings::GetSharedInstance()->Sync(false);
 		Log::Logger::GetSharedInstance()->Flush(true);
@@ -559,27 +667,27 @@ namespace RN
 		PushStatistics("krn.flush");
 		
 		OpenGLQueue::GetSharedInstance()->SubmitCommand([&] {
-			_window->Flush();
+			_internals->_window->Flush();
 		}, true);
 		
 		PopStatistics();
 		
-		_lastFrame = now;
-		_pool->Drain();
+		_internals->_lastFrame = now;
+		_internals->_pool->Drain();
 		
 		// See how long this frame took and wait if needed
-		if(_maxFPS > 0)
+		if(_internals->_maxFPS > 0)
 		{
 			now = std::chrono::steady_clock::now();
 			
-			milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _lastFrame).count();
+			milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - _internals->_lastFrame).count();
 			trueDelta    = milliseconds / 1000.0f;
 			
-			if(_minDelta > trueDelta)
+			if(_internals->_minDelta > trueDelta)
 			{
 				PushStatistics("krn.sleep");
 				
-				long sleepTime = (_minDelta - trueDelta) * 1000000;
+				long sleepTime = (_internals->_minDelta - trueDelta) * 1000000;
 				
 				if(sleepTime > 1000)
 					std::this_thread::sleep_for(std::chrono::microseconds(sleepTime));
@@ -588,61 +696,154 @@ namespace RN
 			}
 		}
 		
-		return (_shouldExit == false);
+		return (_internals->_shouldExit == false);
 	}
+
+#if RN_PLATFORM_WINDOWS
+	HWND Kernel::GetMainWindow() const
+	{
+		return _internals->_mainWindow;
+	}
+
+	HINSTANCE Kernel::GetInstance() const
+	{
+		return _internals->_instance;
+	}
+#endif
 
 	void Kernel::Exit()
 	{
-		_shouldExit = true;
+		_internals->_shouldExit = true;
 	}
-
 	
 	void Kernel::PushStatistics(const std::string& key)
 	{
-		_statistics[_statisticsSwitch].Push(key);
+		_internals->_statistics[_internals->_statisticsSwitch].Push(key);
 	}
 	
 	void Kernel::PopStatistics()
 	{
-		_statistics[_statisticsSwitch].Pop();
+		_internals->_statistics[_internals->_statisticsSwitch].Pop();
 	}
+	
 	
 	const std::vector<Statistics::DataPoint *>& Kernel::GetStatisticsData() const
 	{
-		uint32 index = (_statisticsSwitch + 1) % 2;
-		return _statistics[index].GetDataPoints();
+		uint32 index = (_internals->_statisticsSwitch + 1) % 2;
+		return _internals->_statistics[index].GetDataPoints();
 	}
 	
-	void Kernel::SetTimeScale(float timeScale)
+	void Kernel::SetTimeScale(double timeScale)
 	{
-		_timeScale = timeScale;
+		LockGuard<SpinLock> lock(_lock);
+		_internals->_timeScale = timeScale;
 	}
 	
 	void Kernel::SetFixedDelta(float delta)
 	{
-		_fixedDeltaTime = delta;
-		_fixedDelta = (delta > 0);
+		LockGuard<SpinLock> lock(_lock);
+		
+		_internals->_fixedDeltaTime = delta;
+		_internals->_fixedDelta = (delta > 0);
 	}
 	
 	void Kernel::SetMaxFPS(uint32 fps)
 	{
-		_maxFPS = fps;
+		LockGuard<SpinLock> lock(_lock);
 		
-		if(_maxFPS > 0)
-			_minDelta = 1.0f / _maxFPS;
+		_internals->_maxFPS = fps;
+		
+		if(_internals->_maxFPS > 0)
+			_internals->_minDelta = 1.0f / _internals->_maxFPS;
+	}
+	
+	void Kernel::ScheduleFunction(Function &&function)
+	{
+		LockGuard<SpinLock> lock(_lock);
+		_internals->_functions.push_back(std::move(function));
+	}
+	
+	void Kernel::ScheduleTimer(Timer *timer)
+	{
+		LockGuard<SpinLock> lock(_lock);
+		_internals->_timer.push_back(timer->Retain());
+	}
+	
+	void Kernel::RemoveTimer(Timer *timer)
+	{
+		LockGuard<SpinLock> lock(_lock);
+		
+		for(auto i = _internals->_timer.begin(); i != _internals->_timer.end();)
+		{
+			if(*i == timer)
+			{
+				timer->Release();
+				i = _internals->_timer.erase(i);
+				continue;
+			}
+			
+			i ++;
+		}
 	}
 
 	void Kernel::DidSleepForSignificantTime()
 	{
-		_resetDelta = true;
-		_delta = 0.0f;
+		LockGuard<SpinLock> lock(_lock);
+		
+		_internals->_resetDelta = true;
+		_internals->_delta = 0.0f;
+	}
+	
+	float Kernel::GetScaleFactor() const
+	{
+		return _internals->_scaleFactor;
 	}
 	
 	float Kernel::GetActiveScaleFactor() const
 	{
-		if(!_window)
-			return _scaleFactor;
+		if(!_internals->_window)
+			return _internals->_scaleFactor;
 		
-		return _window->GetActiveScreen()->GetScaleFactor();
+		return _internals->_window->GetActiveScreen()->GetScaleFactor();
+	}
+	
+	const std::string &Kernel::GetTitle() const
+	{
+		return _internals->_title;
+	}
+	
+	uint32 Kernel::GetMaxFPS() const
+	{
+		return _internals->_maxFPS;
+	}
+	
+	float Kernel::GetDelta() const
+	{
+		return _internals->_delta;
+	}
+	
+	double Kernel::GetTimeScale() const
+	{
+		return _internals->_timeScale;
+	}
+	
+	double Kernel::GetTime() const
+	{
+		return _internals->_time;
+	}
+	
+	double Kernel::GetScaledTime() const
+	{
+		return _internals->_scaledTime;
+	}
+	
+	FrameID Kernel::GetCurrentFrame() const
+	{
+		return _internals->_frame;
+	}
+	
+	Context *Kernel::GetContext() const
+	{
+		return _internals->_context;
 	}
 }

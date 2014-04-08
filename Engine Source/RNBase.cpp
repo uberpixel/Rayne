@@ -13,6 +13,26 @@
 #include "RNFileManager.h"
 #include "RNLogging.h"
 
+#if RN_PLATFORM_MAC_OS
+
+@interface RNApplication : NSApplication
+
+@end
+
+@implementation RNApplication
+
+- (void)sendEvent:(NSEvent *)event
+{
+	if([event type] == NSKeyUp && ([event modifierFlags] & NSCommandKeyMask))
+		[[self keyWindow] sendEvent:event];
+ 
+	[super sendEvent:event];
+}
+
+@end
+
+#endif
+
 namespace RN
 {
 	void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...)
@@ -22,16 +42,22 @@ namespace RN
 		
 		char reason[1024];
 		vsprintf(reason, message, args);
+		reason[1023] = '\0';
 		
 		va_end(args);
 		
 		
-		Log::Loggable loggable(Log::Level::Warning);
+		{
+			Log::Loggable loggable(Log::Level::Error);
 		
-		loggable << "Assertion '" << expression << "' failed in " << func << ", " << file << ":" << line << std::endl;
-		loggable << "Reason: " << reason;
+			loggable << "Assertion '" << expression << "' failed in " << func << ", " << file << ":" << line << std::endl;
+			loggable << "Reason: " << reason;
+		}
 		
-		throw Exception(Exception::Type::InconsistencyException, reason);
+		Log::Logger::GetSharedInstance()->Flush(true);
+		
+		delete Log::Logger::GetSharedInstance(); // Try to get a cleanly flushed log
+		abort();
 	}
 	
 	void HandleException(const Exception& e)
@@ -75,7 +101,7 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 		@autoreleasepool
 		{
-			[NSApplication sharedApplication];
+			[RNApplication sharedApplication];
 			[NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
 			
 			[NSApp finishLaunching];

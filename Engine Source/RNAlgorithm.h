@@ -100,8 +100,10 @@ namespace RN
 		return (value + 1);
 	}
 	
-	static inline bool IsPowerOfTwo(uint32 value)
+	template<class T>
+	static inline bool IsPowerOfTwo(T value)
 	{
+		static_assert(std::is_integral<T>::value, "T must be integral");
 		return ((value & (value - 1)) == 0);
 	}
 }

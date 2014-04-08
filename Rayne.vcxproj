@@ -14,9 +14,11 @@
     <ClInclude Include="Engine Source\Rayne.h" />
     <ClInclude Include="Engine Source\RNAABB.h" />
     <ClInclude Include="Engine Source\RNAlgorithm.h" />
+    <ClInclude Include="Engine Source\RNAny.h" />
     <ClInclude Include="Engine Source\RNApplication.h" />
     <ClInclude Include="Engine Source\RNArray.h" />
     <ClInclude Include="Engine Source\RNASCIIString.h" />
+    <ClInclude Include="Engine Source\RNAsset.h" />
     <ClInclude Include="Engine Source\RNAttributedString.h" />
     <ClInclude Include="Engine Source\RNAutoreleasePool.h" />
     <ClInclude Include="Engine Source\RNBase.h" />
@@ -32,7 +34,9 @@
     <ClInclude Include="Engine Source\RNCountedSet.h" />
     <ClInclude Include="Engine Source\RNCPU.h" />
     <ClInclude Include="Engine Source\RNData.h" />
+    <ClInclude Include="Engine Source\RNDataAttachment.h" />
     <ClInclude Include="Engine Source\RNDebug.h" />
+    <ClInclude Include="Engine Source\RNDecal.h" />
     <ClInclude Include="Engine Source\RNDefines.h" />
     <ClInclude Include="Engine Source\RNDictionary.h" />
     <ClInclude Include="Engine Source\RNEntity.h" />
@@ -42,6 +46,7 @@
     <ClInclude Include="Engine Source\RNFileManager.h" />
     <ClInclude Include="Engine Source\RNFormatter.h" />
     <ClInclude Include="Engine Source\RNFunction.h" />
+    <ClInclude Include="Engine Source\RNGPUBuffer.h" />
     <ClInclude Include="Engine Source\RNHashTableInternal.h" />
     <ClInclude Include="Engine Source\RNHit.h" />
     <ClInclude Include="Engine Source\RNIndexPath.h" />
@@ -109,6 +114,7 @@
     <ClInclude Include="Engine Source\RNSIMD.h" />
     <ClInclude Include="Engine Source\RNSingleton.h" />
     <ClInclude Include="Engine Source\RNSkeleton.h" />
+    <ClInclude Include="Engine Source\RNSpatialMap.h" />
     <ClInclude Include="Engine Source\RNSphere.h" />
     <ClInclude Include="Engine Source\RNSpinLock.h" />
     <ClInclude Include="Engine Source\RNSQLite3Internal.h" />
@@ -120,8 +126,11 @@
     <ClInclude Include="Engine Source\RNTexture.h" />
     <ClInclude Include="Engine Source\RNTextureAtlas.h" />
     <ClInclude Include="Engine Source\RNThread.h" />
+    <ClInclude Include="Engine Source\RNThreadLocalStorage.h" />
     <ClInclude Include="Engine Source\RNThreadPool.h" />
+    <ClInclude Include="Engine Source\RNTimer.h" />
     <ClInclude Include="Engine Source\RNTriggerZone.h" />
+    <ClInclude Include="Engine Source\RNTypeTranslator.h" />
     <ClInclude Include="Engine Source\RNUIButton.h" />
     <ClInclude Include="Engine Source\RNUIColor.h" />
     <ClInclude Include="Engine Source\RNUIControl.h" />
@@ -167,6 +176,7 @@
     <ClCompile Include="Engine Source\RNApplication.cpp" />
     <ClCompile Include="Engine Source\RNArray.cpp" />
     <ClCompile Include="Engine Source\RNASCIIString.cpp" />
+    <ClCompile Include="Engine Source\RNAsset.cpp" />
     <ClCompile Include="Engine Source\RNAttributedString.cpp" />
     <ClCompile Include="Engine Source\RNAutoreleasePool.cpp" />
     <ClCompile Include="Engine Source\RNBase.cpp" />
@@ -179,13 +189,16 @@
     <ClCompile Include="Engine Source\RNCountedSet.cpp" />
     <ClCompile Include="Engine Source\RNCPU.cpp" />
     <ClCompile Include="Engine Source\RNData.cpp" />
+    <ClCompile Include="Engine Source\RNDataAttachment.cpp" />
     <ClCompile Include="Engine Source\RNDebug.cpp" />
+    <ClCompile Include="Engine Source\RNDecal.cpp" />
     <ClCompile Include="Engine Source\RNDictionary.cpp" />
     <ClCompile Include="Engine Source\RNEntity.cpp" />
     <ClCompile Include="Engine Source\RNException.cpp" />
     <ClCompile Include="Engine Source\RNFile.cpp" />
     <ClCompile Include="Engine Source\RNFileManager.cpp" />
     <ClCompile Include="Engine Source\RNFormatter.cpp" />
+    <ClCompile Include="Engine Source\RNGPUBuffer.cpp" />
     <ClCompile Include="Engine Source\RNIndexPath.cpp" />
     <ClCompile Include="Engine Source\RNIndexSet.cpp" />
     <ClCompile Include="Engine Source\RNInput.cpp" />
@@ -245,6 +258,7 @@
     <ClCompile Include="Engine Source\RNTextureAtlas.cpp" />
     <ClCompile Include="Engine Source\RNThread.cpp" />
     <ClCompile Include="Engine Source\RNThreadPool.cpp" />
+    <ClCompile Include="Engine Source\RNTimer.cpp" />
     <ClCompile Include="Engine Source\RNTriggerZone.cpp" />
     <ClCompile Include="Engine Source\RNUIButton.cpp" />
     <ClCompile Include="Engine Source\RNUIColor.cpp" />

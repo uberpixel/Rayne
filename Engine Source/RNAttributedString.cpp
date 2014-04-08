@@ -11,7 +11,7 @@
 
 namespace RN
 {
-	RNDeclareMeta(AttributedString)
+	RNDefineMeta(AttributedString, Object)
 	
 	AttributedString::AttributedString(String *string)
 	{
@@ -57,7 +57,7 @@ namespace RN
 	
 	void AttributedString::AddAttributes(Dictionary *attributes, const Range& range)
 	{
-		attributes->Enumerate([&](Object *value, Object *key, bool *stop) {
+		attributes->Enumerate([&](Object *value, Object *key, bool &stop) {
 			if(key->IsKindOfClass(RN::String::MetaClass()))
 			{
 				String *sKey = static_cast<String *>(key);
@@ -121,7 +121,7 @@ namespace RN
 	{
 		BeginEditing();
 		
-		keys->Enumerate([&](Object *object, size_t index, bool *stop) {
+		keys->Enumerate([&](Object *object, size_t index, bool &stop) {
 			if(object->IsKindOfClass(RN::String::MetaClass()))
 			{
 				String *key = static_cast<String *>(object);
@@ -255,7 +255,8 @@ namespace RN
 			if(!object)
 			{
 				object = new Wrapper();
-				temp->SetObjectForKey(object->Autorelease(), i->value.key);
+				temp->SetObjectForKey(object, i->value.key);
+				object->Release();
 			}
 			
 			object->GetData().push_back(std::move(*i));
@@ -263,7 +264,7 @@ namespace RN
 		
 		_queuedAttributes.clear();
 		
-		temp->Enumerate([&](Object *value, Object *key, bool *stop) {
+		temp->Enumerate([&](Object *value, Object *key, bool &stop) {
 			Wrapper *object = static_cast<Wrapper *>(value);
 			auto data = object->GetData();
 			
