@@ -66,7 +66,13 @@ namespace RN
 		
 		_material = new Material();
 		_material->SetShader(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyTerrainShader, nullptr));
+		_material->Define("RN_TEXTURE_TILING", "0.5");
 		_material->AddTexture(RN::Texture::WithFile("models/UberPixel/grass.png"));
+		_material->AddTexture(RN::Texture::WithFile("models/UberPixel/rock/rock.png"));
+		
+		MeshDescriptor indexDescriptor(MeshFeature::Indices);
+		indexDescriptor.elementMember = 1;
+		indexDescriptor.elementSize   = sizeof(uint32);
 		
 		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementMember = 3;
@@ -76,7 +82,7 @@ namespace RN
 		normalDescriptor.elementMember = 3;
 		normalDescriptor.elementSize   = sizeof(Vector3);
 		
-		std::vector<MeshDescriptor> descriptors = { vertexDescriptor, normalDescriptor };
+		std::vector<MeshDescriptor> descriptors = {indexDescriptor, vertexDescriptor, normalDescriptor };
 		
 		_mesh = new Mesh(descriptors, 0, 0);
 		_mesh->SetDrawMode(Mesh::DrawMode::Triangles);
@@ -435,7 +441,10 @@ namespace RN
 			{0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
 			{-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
 		
-		std::vector<Vector3> triangles;
+		std::vector<Vector3> vertices;
+		std::unordered_map<std::pair<uint32, uint32>, uint32, __LookupHashMarchingCubes, __LookupCompareMarchingCubes> indexLookup;
+		std::vector<uint32> indices;
+		
 		Vector3 halfResolution = _resolution * 0.5f;
 		halfResolution.y = 0.0f;
 		
@@ -482,59 +491,108 @@ namespace RN
 						continue;
 					
 					Vector3 vertlist[12];
+					std::pair<uint32, uint32> vertLookup[12];
 					
 					/* Find the vertices where the surface intersects the cube */
 					if(edgeTable[cubeindex] & 1)
-						vertlist[0] = LerpSurface(pos00, pos01, v00, v01);
-					if(edgeTable[cubeindex] & 2)
-						vertlist[1] = LerpSurface(pos01, pos02, v01, v02);
-					if(edgeTable[cubeindex] & 4)
-						vertlist[2] = LerpSurface(pos02, pos03, v02, v03);
-					if(edgeTable[cubeindex] & 8)
-						vertlist[3] = LerpSurface(pos03, pos00, v03, v00);
-					if(edgeTable[cubeindex] & 16)
-						vertlist[4] = LerpSurface(pos10, pos11, v10, v11);
-					if(edgeTable[cubeindex] & 32)
-						vertlist[5] = LerpSurface(pos11, pos12, v11, v12);
-					if(edgeTable[cubeindex] & 64)
-						vertlist[6] = LerpSurface(pos12, pos13, v12, v13);
-					if(edgeTable[cubeindex] & 128)
-						vertlist[7] = LerpSurface(pos13, pos10, v13, v10);
-					if(edgeTable[cubeindex] & 256)
-						vertlist[8] = LerpSurface(pos00, pos10, v00, v10);
-					if(edgeTable[cubeindex] & 512)
-						vertlist[9] = LerpSurface(pos01, pos11, v01, v11);
-					if(edgeTable[cubeindex] & 1024)
-						vertlist[10] = LerpSurface(pos02, pos12, v02, v12);
-					if(edgeTable[cubeindex] & 2048)
-						vertlist[11] = LerpSurface(pos03, pos13, v03, v13);
-					
-					for(int i = 0; triTable[cubeindex][i] != -1; i += 3)
 					{
-						triangles.push_back(vertlist[triTable[cubeindex][i]] - halfResolution);
-						triangles.push_back(vertlist[triTable[cubeindex][i+1]] - halfResolution);
-						triangles.push_back(vertlist[triTable[cubeindex][i+2]] - halfResolution);
+						vertlist[0] = LerpSurface(pos00, pos01, v00, v01);
+						vertLookup[0] = std::make_pair(_voxels->GetID(pos00), _voxels->GetID(pos01));
+					}
+					if(edgeTable[cubeindex] & 2)
+					{
+						vertlist[1] = LerpSurface(pos01, pos02, v01, v02);
+						vertLookup[1] = std::make_pair(_voxels->GetID(pos01), _voxels->GetID(pos02));
+					}
+					if(edgeTable[cubeindex] & 4)
+					{
+						vertlist[2] = LerpSurface(pos02, pos03, v02, v03);
+						vertLookup[2] = std::make_pair(_voxels->GetID(pos02), _voxels->GetID(pos03));
+					}
+					if(edgeTable[cubeindex] & 8)
+					{
+						vertlist[3] = LerpSurface(pos03, pos00, v03, v00);
+						vertLookup[3] = std::make_pair(_voxels->GetID(pos03), _voxels->GetID(pos00));
+					}
+					if(edgeTable[cubeindex] & 16)
+					{
+						vertlist[4] = LerpSurface(pos10, pos11, v10, v11);
+						vertLookup[4] = std::make_pair(_voxels->GetID(pos10), _voxels->GetID(pos11));
+					}
+					if(edgeTable[cubeindex] & 32)
+					{
+						vertlist[5] = LerpSurface(pos11, pos12, v11, v12);
+						vertLookup[5] = std::make_pair(_voxels->GetID(pos11), _voxels->GetID(pos12));
+					}
+					if(edgeTable[cubeindex] & 64)
+					{
+						vertlist[6] = LerpSurface(pos12, pos13, v12, v13);
+						vertLookup[6] = std::make_pair(_voxels->GetID(pos12), _voxels->GetID(pos13));
+					}
+					if(edgeTable[cubeindex] & 128)
+					{
+						vertlist[7] = LerpSurface(pos13, pos10, v13, v10);
+						vertLookup[7] = std::make_pair(_voxels->GetID(pos13), _voxels->GetID(pos10));
+					}
+					if(edgeTable[cubeindex] & 256)
+					{
+						vertlist[8] = LerpSurface(pos00, pos10, v00, v10);
+						vertLookup[8] = std::make_pair(_voxels->GetID(pos00), _voxels->GetID(pos10));
+					}
+					if(edgeTable[cubeindex] & 512)
+					{
+						vertlist[9] = LerpSurface(pos01, pos11, v01, v11);
+						vertLookup[9] = std::make_pair(_voxels->GetID(pos01), _voxels->GetID(pos11));
+					}
+					if(edgeTable[cubeindex] & 1024)
+					{
+						vertlist[10] = LerpSurface(pos02, pos12, v02, v12);
+						vertLookup[10] = std::make_pair(_voxels->GetID(pos02), _voxels->GetID(pos12));
+					}
+					if(edgeTable[cubeindex] & 2048)
+					{
+						vertlist[11] = LerpSurface(pos03, pos13, v03, v13);
+						vertLookup[11] = std::make_pair(_voxels->GetID(pos03), _voxels->GetID(pos13));
+					}
+					
+					for(int i = 0; triTable[cubeindex][i] != -1; i++)
+					{
+						auto index0 = indexLookup.find(vertLookup[triTable[cubeindex][i]]);
+						if(index0 != indexLookup.end())
+						{
+							indices.push_back(index0->second);
+						}
+						else
+						{
+							indexLookup[vertLookup[triTable[cubeindex][i]]] = static_cast<uint32>(vertices.size());
+							indices.push_back(static_cast<uint32>(vertices.size()));
+							vertices.push_back(vertlist[triTable[cubeindex][i]] - halfResolution);
+						}
 					}
 				}
 			}
 		}
 		
-		_mesh->SetVerticesCount(triangles.size());
+		_mesh->SetVerticesCount(vertices.size());
+		_mesh->SetIndicesCount(indices.size());
+		_mesh->SetElementData(RN::MeshFeature::Indices, indices.data());
+		
 		Mesh::Chunk chunk = _mesh->GetChunk();
 		Mesh::ElementIterator<Vector3> verticesIterator = chunk.GetIterator<Vector3>(MeshFeature::Vertices);
 		Mesh::ElementIterator<Vector3> normalsIterator = chunk.GetIterator<Vector3>(MeshFeature::Normals);
 		
-		for(int i = 0; i < triangles.size(); i++)
+		for(int i = 0; i < vertices.size(); i++)
 		{
-			*verticesIterator.Seek(i) = triangles[i];
+			*verticesIterator.Seek(i) = vertices[i];
+			*normalsIterator.Seek(i) = Vector3(0.0f);
 		}
 		
-		for(int i = 0; i < triangles.size(); i += 3)
+		for(int i = 0; i < indices.size(); i += 3)
 		{
-			Vector3 normal = (triangles[i]-triangles[i+2]).GetCrossProduct(triangles[i+1]-triangles[i+2]);
-			*normalsIterator.Seek(i) = normal;
-			*normalsIterator.Seek(i+1) = normal;
-			*normalsIterator.Seek(i+2) = normal;
+			Vector3 normal = (vertices[indices[i]]-vertices[indices[i+2]]).GetCrossProduct(vertices[indices[i+1]]-vertices[indices[i+2]]).GetNormalized();
+			*normalsIterator.Seek(indices[i]) += normal;
+			*normalsIterator.Seek(indices[i+1]) += normal;
+			*normalsIterator.Seek(indices[i+2]) += normal;
 		}
 		
 		chunk.CommitChanges();
@@ -566,16 +624,10 @@ namespace RN
 			{
 				for(uint32 z = 0; z < _voxels->GetResolutionZ(); z++)
 				{
-					Point point;
-					if(y <= height)
-						point.density = 255;
-					
-					_voxels->SetVoxel(x, y, z, point);
+					_voxels->SetVoxel(x, y, z, Point((y <= height)? 255:0));
 				}
 			}
 		}
-		
-		GenerateMeshWithMarchingCubes();
 	}
 	
 	void Terrain::SetCubeLocal(Vector3 position, Vector3 size, uint32 density)

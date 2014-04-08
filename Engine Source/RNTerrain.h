@@ -16,6 +16,7 @@
 #include "RNRenderer.h"
 #include "RNPointGrid.h"
 #include "RNSculptable.h"
+#include "RNAlgorithm.h"
 
 namespace RN
 {
@@ -45,6 +46,30 @@ namespace RN
 		RNAPI void GenerateMeshWithMarchingCubes();
 		
 	private:
+		struct __SurfaceNetNode
+		{
+			Vector3 position;
+			uint32 connections[6];
+		};
+		
+		struct __LookupHashMarchingCubes
+		{
+			size_t operator()(const std::pair<uint32, uint32>& lookup) const
+			{
+				size_t hash = std::hash<uint32>{}(std::min(lookup.first, lookup.second));
+				HashCombine(hash, std::max(lookup.first, lookup.second));
+				return hash;
+			}
+		};
+		
+		struct __LookupCompareMarchingCubes
+		{
+			bool operator()(const std::pair<uint32, uint32>& lookup1, const std::pair<uint32, uint32>& lookup2) const
+			{
+				return ((lookup1.first == lookup2.first && lookup1.second == lookup2.second) || (lookup1.first == lookup2.second && lookup1.second == lookup2.first));
+			}
+		};
+		
 		void Initialize();
 		Vector3 LerpSurface(const Vector3 &p1, const Vector3 &p2, uint8 d1, uint8 d2) const;
 		

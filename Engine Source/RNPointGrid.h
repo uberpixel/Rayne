@@ -29,14 +29,16 @@ namespace RN
 		
 		void SetVoxel(uint32 x, uint32 y, uint32 z, const Point &voxel);
 		uint8 GetVoxel(uint32 x, uint32 y, uint32 z) const;
-		uint8 GetVoxel(const Vector3 position) const;
-		uint8 GetSmooth(Vector3 position) const;
+		uint8 GetVoxel(const Vector3 &position) const;
+		uint8 GetSmooth(const Vector3 &position) const;
 		
 		void ApplyBlur(Vector3 from, Vector3 to, uint8 radius);
 		
 		uint32 GetResolutionX() const { return _resolutionX; }
 		uint32 GetResolutionY() const { return _resolutionY; }
 		uint32 GetResolutionZ() const { return _resolutionZ; }
+		
+		uint32 GetID(const Vector3 &position) const;
 		
 	private:
 		Point *_voxels;

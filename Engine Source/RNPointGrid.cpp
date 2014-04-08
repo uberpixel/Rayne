@@ -39,7 +39,7 @@ namespace RN
 		return _voxels[x * _resolutionY * _resolutionZ + y * _resolutionZ + z].density;
 	}
 	
-	uint8 PointGrid::GetVoxel(const Vector3 position) const
+	uint8 PointGrid::GetVoxel(const Vector3 &position) const
 	{
 		if(position.x < 0 || position.y < 0 || position.z < 0 || position.x >= _resolutionX || position.y >= _resolutionY || position.z >= _resolutionZ)
 			return 0;
@@ -128,11 +128,20 @@ namespace RN
 		}
 	}
 	
-	uint8 PointGrid::GetSmooth(Vector3 position) const
+	uint8 PointGrid::GetSmooth(const Vector3 &position) const
 	{
 		if(position.x < 0 || position.y < 0 || position.z < 0 || position.x >= _resolutionX || position.y >= _resolutionY || position.z >= _resolutionZ)
 			return 0;
 		
 		return _voxels[static_cast<uint32>(position.x) * _resolutionY * _resolutionZ + static_cast<uint32>(position.y) * _resolutionZ + static_cast<uint32>(position.z)].smoothDensity;
+	}
+	
+	uint32 PointGrid::GetID(const Vector3 &position) const
+	{
+		uint32 x = (position.x+1.2f);
+		uint32 y = (position.y+1.2f);
+		uint32 z = (position.z+1.2f);
+		
+		return x*(_resolutionY+1.0f)*(_resolutionZ+1)+y*(_resolutionZ+1)+z;
 	}
 }

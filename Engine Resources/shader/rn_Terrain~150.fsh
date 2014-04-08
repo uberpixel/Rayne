@@ -58,6 +58,7 @@ uniform vec4 diffuse;
 
 #if defined(INTERNAL_SAMPLER_DIFFUSE)
 	uniform sampler2D INTERNAL_SAMPLER_DIFFUSE;
+	uniform sampler2D mTexture1;
 #endif
 
 #if defined(INTERNAL_SAMPLER_SPECULAR)
@@ -103,9 +104,9 @@ void main()
 		blendFactors = max((blendFactors - 0.2) * 7.0, 0.0); 
 		blendFactors /= blendFactors.x + blendFactors.y + blendFactors.z;
 
-		vec3 texX = texture(INTERNAL_SAMPLER_DIFFUSE, scaledPosition.yz).rgb;
+		vec3 texX = texture(mTexture1, scaledPosition.yz).rgb;
 		vec3 texY = texture(INTERNAL_SAMPLER_DIFFUSE, scaledPosition.xz).rgb;
-		vec3 texZ = texture(INTERNAL_SAMPLER_DIFFUSE, scaledPosition.xy).rgb;
+		vec3 texZ = texture(mTexture1, scaledPosition.xy).rgb;
 
 		vec4 color0 = vec4(1.0);
 		color0.rgb = texX * blendFactors.x + texY * blendFactors.y + texZ * blendFactors.z;
