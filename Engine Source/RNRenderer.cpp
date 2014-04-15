@@ -198,7 +198,7 @@ namespace RN
 		
 		if(_currentProgram->matProjViewInverse != -1)
 		{
-			Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
+			Matrix inverseProjectionViewMatrix = inverseViewMatrix * inverseProjectionMatrix;
 			gl::UniformMatrix4fv(_currentProgram->matProjViewInverse, 1, GL_FALSE, inverseProjectionViewMatrix.m);
 		}
 		

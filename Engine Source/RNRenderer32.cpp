@@ -218,7 +218,7 @@ namespace RN
 				const Matrix& inverseViewMatrix = camera->GetInverseViewMatrix();
 				
 				Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
-				Matrix inverseProjectionViewMatrix = inverseProjectionMatrix * inverseViewMatrix;
+				Matrix inverseProjectionViewMatrix = inverseViewMatrix * inverseProjectionMatrix;
 				
 				size_t objectsCount = _frame.size();
 				size_t i = (camera->GetFlags() & Camera::Flags::NoSky) ? skyCubeMeshes : 0;
@@ -374,7 +374,7 @@ namespace RN
 					
 					if(program->matViewModelInverse != -1)
 					{
-						Matrix viewModel = inverseViewMatrix * inverseTransform;
+						Matrix viewModel = inverseTransform * inverseViewMatrix;
 						gl::UniformMatrix4fv(program->matViewModelInverse, 1, GL_FALSE, viewModel.m);
 					}
 					
@@ -386,7 +386,7 @@ namespace RN
 					
 					if(program->matProjViewModelInverse != -1)
 					{
-						Matrix projViewModelInverse = inverseProjectionViewMatrix * inverseTransform;
+						Matrix projViewModelInverse = inverseTransform * inverseProjectionViewMatrix;
 						gl::UniformMatrix4fv(program->matProjViewModelInverse, 1, GL_FALSE, projViewModelInverse.m);
 					}
 					
