@@ -42,6 +42,8 @@ namespace RN
 		
 		RNAPI void SetSphere(Vector3 position, float radius) override;
 		RNAPI void RemoveSphere(Vector3 position, float radius) override;
+		RNAPI void SetCube(Vector3 position, Vector3 size) override;
+		RNAPI void RemoveCube(Vector3 position, Vector3 size) override;
 		
 		RNAPI void GenerateMeshWithMarchingCubes();
 		

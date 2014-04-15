@@ -26,6 +26,9 @@ namespace RN
 		RNAPI virtual void SetSphere(Vector3 position, float radius) = 0;
 		RNAPI virtual void RemoveSphere(Vector3 position, float radius) = 0;
 		
+		RNAPI virtual void SetCube(Vector3 position, Vector3 size) = 0;
+		RNAPI virtual void RemoveCube(Vector3 position, Vector3 size) = 0;
+		
 	private:
 		RNDeclareMeta(Sculptable)
 	};

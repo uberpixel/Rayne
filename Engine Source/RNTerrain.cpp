@@ -688,4 +688,26 @@ namespace RN
 		SetSphereLocal(position, radius / GetWorldScale().GetMin(), 0);
 		GenerateMeshWithMarchingCubes();
 	}
+	
+	void Terrain::SetCube(Vector3 position, Vector3 size)
+	{
+		Vector3 offset = _resolution * 0.5f;
+		offset.y = 0.0f;
+		
+		position = _transform.GetInverse() * position;
+		position += offset;
+		SetCubeLocal(position, size / GetWorldScale(), 255);
+		GenerateMeshWithMarchingCubes();
+	}
+	
+	void Terrain::RemoveCube(Vector3 position, Vector3 size)
+	{
+		Vector3 offset = _resolution * 0.5f;
+		offset.y = 0.0f;
+		
+		position = _transform.GetInverse() * position;
+		position += offset;
+		SetCubeLocal(position, size / GetWorldScale(), 0);
+		GenerateMeshWithMarchingCubes();
+	}
 }
