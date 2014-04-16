@@ -52,10 +52,24 @@ namespace RN
 				_lock.Lock();
 				
 				for(auto &pair : _storage)
-				{
 					result.push_back(pair.second);
-				}
 				
+				_lock.Unlock();
+				
+				return result;
+			}
+			
+			std::vector<T> move_values()
+			{
+				std::vector<T> result;
+				result.reserve(_storage.size());
+				
+				_lock.Lock();
+				
+				for(auto &pair : _storage)
+					result.push_back(std::move(pair.second));
+				
+				_storage.clear();
 				_lock.Unlock();
 				
 				return result;
