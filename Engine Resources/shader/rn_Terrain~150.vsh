@@ -29,7 +29,7 @@ precision highp float;
 		#define INTERNAL_SHADOWS_DIRECTIONAL 1
 	#endif
 
-	#if defined(RN_DIRECTIONAL_SHADOWS)
+	#if defined(RN_SPOT_SHADOWS)
 		#define INTERNAL_SHADOWS_SPOT 1
 	#endif
 #endif
