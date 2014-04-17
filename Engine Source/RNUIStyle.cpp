@@ -90,7 +90,7 @@ namespace RN
 				
 				tkey->Release();
 				
-				if(resource && (resource->IsKindOfClass(Dictionary::MetaClass()) || index == (count - 1)))
+				if(resource && (resource->IsKindOfClass(Dictionary::GetMetaClass()) || index == (count - 1)))
 				   return;
 				
 				resource = temp; // Restore the resource
@@ -101,7 +101,7 @@ namespace RN
 					return;
 				}
 				
-				if(!resource->IsKindOfClass(Dictionary::MetaClass()) && index < (count - 1))
+				if(!resource->IsKindOfClass(Dictionary::GetMetaClass()) && index < (count - 1))
 				{
 					stop = true;
 					resource = nullptr;

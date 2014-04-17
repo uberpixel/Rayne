@@ -48,7 +48,7 @@ namespace RN
 		} \
 		void SetValue(Object *value) override \
 		{ \
-			RN_ASSERT(value->IsKindOfClass(Number::MetaClass()), ""); \
+			RN_ASSERT(value->IsKindOfClass(Number::GetMetaClass()), ""); \
 			Number *number = static_cast<Number *>(value); \
 			WillChangeValue(); \
 			if(_setter) \
@@ -218,7 +218,7 @@ namespace RN
 		\
 		void SetValue(Object *tvalue) override \
 		{ \
-			RN_ASSERT(tvalue->IsKindOfClass(Value::MetaClass()), ""); \
+			RN_ASSERT(tvalue->IsKindOfClass(Value::GetMetaClass()), ""); \
 			Value *value = static_cast<Value *>(tvalue); \
 			WillChangeValue(); \
 			if(_setter) \
@@ -367,7 +367,7 @@ namespace RN
 			_getter(getter),
 			_setter(setter),
 			_storage(nullptr),
-			_meta(T::MetaClass())
+			_meta(T::GetMetaClass())
 		{}
 		
 		void SetValue(Object *object) override
@@ -409,7 +409,7 @@ namespace RN
 			return _storage;
 		}
 
-		MetaClassBase *GetMetaClass() const override
+		MetaClass *GetMetaClass() const override
 		{
 			return _meta;
 		}
@@ -459,7 +459,7 @@ namespace RN
 		Getter _getter;
 		Object::MemoryPolicy _policy;
 		T *_storage;
-		MetaClassBase *_meta;
+		MetaClass *_meta;
 	};
 
 
@@ -483,7 +483,7 @@ namespace RN
 		
 		void SetValue(Object *value) override
 		{
-			RN_ASSERT(value->IsKindOfClass(Number::MetaClass()), "");
+			RN_ASSERT(value->IsKindOfClass(Number::GetMetaClass()), "");
 			
 			Number *number = static_cast<Number *>(value);
 			WillChangeValue();

@@ -116,7 +116,7 @@ namespace RN
 	
 	bool Dictionary::IsEqual(Object *temp) const
 	{
-		if(!temp->IsKindOfClass(Dictionary::MetaClass()))
+		if(!temp->IsKindOfClass(Dictionary::GetMetaClass()))
 			return false;
 		
 		Dictionary *other = static_cast<Dictionary *>(temp);

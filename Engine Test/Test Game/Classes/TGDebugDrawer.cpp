@@ -15,8 +15,8 @@ namespace TG
 		_canDraw = false;
 		_camera = nullptr;
 		
-		_lightClass  = RN::Light::MetaClass();
-		_cameraClass = RN::Camera::MetaClass();
+		_lightClass  = RN::Light::GetMetaClass();
+		_cameraClass = RN::Camera::GetMetaClass();
 	}
 	
 	void DebugDrawer::SetCamera(RN::Camera *camera)

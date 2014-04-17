@@ -156,7 +156,7 @@ namespace RN
 		
 		
 		std::string mname = deserializer->DecodeString();
-		MetaClassBase *meta = Catalogue::GetSharedInstance()->GetClassWithName(mname);
+		MetaClass *meta = Catalogue::GetSharedInstance()->GetClassWithName(mname);
 		
 		
 		SafeRelease(_world);
@@ -294,7 +294,7 @@ namespace RN
 		serializer->EncodeInt32(0xdeadf00d);
 		serializer->EncodeInt32(0);
 		
-		serializer->EncodeString(_world->Class()->Fullname().c_str());
+		serializer->EncodeString(_world->GetClass()->GetFullname().c_str());
 		
 		_world->SaveOnThread(Thread::GetCurrentThread(), serializer);
 		_world->FinishSaving(serializer);

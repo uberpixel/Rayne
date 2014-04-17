@@ -32,8 +32,7 @@ namespace RN
 		
 		RNAPI virtual bool IsEqual(Object *other) const;
 		RNAPI virtual machine_hash GetHash() const;
-		RNAPI bool IsKindOfClass(MetaClassBase *other) const;
-		RNAPI bool IsMemberOfClass(MetaClassBase *other) const;
+		RNAPI bool IsKindOfClass(MetaClass *other) const;
 		
 		RNAPI virtual void Serialize(Serializer *serializer);
 		
@@ -49,16 +48,16 @@ namespace RN
 		{
 			static_assert(std::is_base_of<Object, T>::value, "T must inherit from Object!");
 			
-			if(IsKindOfClass(T::MetaClass()))
+			if(IsKindOfClass(T::GetMetaClass()))
 				return static_cast<T *>(this);
 			
 			return nullptr;
 		}
 		
-		RNAPI virtual MetaClassBase *Class() const;
-		RNAPI static MetaClassBase *MetaClass();
+		RNAPI virtual MetaClass *GetClass() const;
+		RNAPI static MetaClass *GetMetaClass();
 		
-		RNAPI static void InitialWakeUp(MetaClassBase *meta);
+		RNAPI static void InitialWakeUp(MetaClass *meta);
 		
 		// -----------------
 		// Associated Objects
@@ -109,7 +108,7 @@ namespace RN
 		
 		RNAPI void SetValueForKey(Object *value, const std::string& keyPath);
 		RNAPI Object *GetValueForKey(const std::string& keyPath);
-		RNAPI std::vector<ObservableProperty *> GetPropertiesForClass(MetaClassBase *meta);
+		RNAPI std::vector<ObservableProperty *> GetPropertiesForClass(MetaClass *meta);
 		
 	protected:
 		RNAPI virtual void CleanUp();
@@ -124,11 +123,11 @@ namespace RN
 		RNAPI void DidChangeValueForKey(const std::string& key);
 		
 	private:
-		class MetaType : public ConcreteMetaClass<Object>
+		class MetaType : public __ConcreteMetaClass<Object>
 		{
 		public:
 			MetaType() :
-				MetaClassBase(0, "Object", RN_FUNCTION_SIGNATURE)
+				MetaClass(0, "Object", RN_FUNCTION_SIGNATURE)
 			{}
 		};
 		
@@ -152,11 +151,11 @@ namespace RN
 	};
 	
 #define __RNDeclareMetaPrivateWithTraits(cls, super, ...) \
-		class cls##MetaType : public RN::ConcreteMetaClass<cls, __VA_ARGS__> \
+		class cls##MetaType : public RN::__ConcreteMetaClass<cls, __VA_ARGS__> \
 		{ \
 		public: \
 			cls##MetaType(const char *signature) : \
-				MetaClassBase(super::MetaClass(), #cls, signature) \
+				MetaClass(super::GetMetaClass(), #cls, signature) \
 			{} \
 		};
 
@@ -178,8 +177,8 @@ namespace RN
 		{ \
 			return static_cast<cls *>(Object::Copy()); \
 		} \
-		RNAPI_DEFINEBASE RN::MetaClassBase *Class() const override; \
-		RNAPI_DEFINEBASE static RN::MetaClassBase *MetaClass();
+		RNAPI_DEFINEBASE RN::MetaClass *GetClass() const override; \
+		RNAPI_DEFINEBASE static RN::MetaClass *GetMetaClass();
 	
 #define RNDeclareMeta(cls) \
 	__RNDeclareMetaPublic(cls)
@@ -190,32 +189,32 @@ namespace RN
 		std::conditional<std::is_constructible<cls, RN::Deserializer *>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitSerializable<cls>, RN::__MetaClassTraitNull1<cls>>::type, \
 		std::conditional<std::is_constructible<cls, const cls *>::value && !std::is_abstract<cls>::value, RN::MetaClassTraitCopyable<cls>, RN::__MetaClassTraitNull2<cls>>::type) \
 	void *__kRN##cls##__metaClass = nullptr; \
-	RN::MetaClassBase *cls::Class() const \
+	RN::MetaClass *cls::GetClass() const \
 	{ \
-		return cls::MetaClass(); \
+		return cls::GetMetaClass(); \
 	} \
-	RN::MetaClassBase *cls::MetaClass() \
+	RN::MetaClass *cls::GetMetaClass() \
 	{ \
 		if(!__kRN##cls##__metaClass) \
 			__kRN##cls##__metaClass = new cls##MetaType(RN_FUNCTION_SIGNATURE); \
 		return reinterpret_cast<cls##MetaType *>(__kRN##cls##__metaClass); \
 	} \
-	RN_REGISTER_INIT(cls##Init, cls::MetaClass(); cls::InitialWakeUp(cls::MetaClass()))
+	RN_REGISTER_INIT(cls##Init, cls::GetMetaClass(); cls::InitialWakeUp(cls::GetMetaClass()))
 	
 #define __RNDefineMetaAndGFYMSVC(cls, super) \
 	__RNDeclareMetaPrivateWithTraits(cls, super, RN::__MetaClassTraitNull0<cls>, RN::__MetaClassTraitNull1<cls>, RN::__MetaClassTraitNull2<cls>) \
 	void *__kRN##cls##__metaClass = nullptr; \
-	RN::MetaClassBase *cls::Class() const \
+	RN::MetaClass *cls::GetClass() const \
 	{ \
-		return cls::MetaClass(); \
+		return cls::GetMetaClass(); \
 	} \
-	RN::MetaClassBase *cls::MetaClass() \
+	RN::MetaClass *cls::GetMetaClass() \
 	{ \
 		if(!__kRN##cls##__metaClass) \
 			__kRN##cls##__metaClass = new cls##MetaType(RN_FUNCTION_SIGNATURE); \
 		return reinterpret_cast<cls##MetaType *>(__kRN##cls##__metaClass); \
 	} \
-	RN_REGISTER_INIT(cls##Init, cls::MetaClass(); cls::InitialWakeUp(cls::MetaClass()))
+	RN_REGISTER_INIT(cls##Init, cls::GetMetaClass(); cls::InitialWakeUp(cls::GetMetaClass()))
 
 	template<class T>
 	static void SafeRelease(T *&object)

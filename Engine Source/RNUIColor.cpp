@@ -46,7 +46,7 @@ namespace RN
 		
 		bool Color::IsEqual(Object *other) const
 		{
-			if(other->IsKindOfClass(Color::MetaClass()))
+			if(other->IsKindOfClass(Color::GetMetaClass()))
 			{
 				Color *otherColor = static_cast<Color *>(other);
 				return (otherColor->_color == _color);

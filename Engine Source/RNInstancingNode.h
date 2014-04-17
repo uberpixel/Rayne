@@ -90,7 +90,7 @@ namespace RN
 		
 		Camera *_pivot;
 		
-		MetaClassBase *_entityClass;
+		MetaClass *_entityClass;
 		
 		RNDeclareMeta(InstancingNode)
 	};

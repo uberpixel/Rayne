@@ -58,7 +58,7 @@ namespace RN
 	void AttributedString::AddAttributes(Dictionary *attributes, const Range& range)
 	{
 		attributes->Enumerate([&](Object *value, Object *key, bool &stop) {
-			if(key->IsKindOfClass(RN::String::MetaClass()))
+			if(key->IsKindOfClass(RN::String::GetMetaClass()))
 			{
 				String *sKey = static_cast<String *>(key);
 				_queuedAttributes.emplace_back(stl::interval_tree<Attribute>::interval(range, Attribute(sKey, value)));
@@ -122,7 +122,7 @@ namespace RN
 		BeginEditing();
 		
 		keys->Enumerate([&](Object *object, size_t index, bool &stop) {
-			if(object->IsKindOfClass(RN::String::MetaClass()))
+			if(object->IsKindOfClass(RN::String::GetMetaClass()))
 			{
 				String *key = static_cast<String *>(object);
 				RemoveAttribute(key, range);

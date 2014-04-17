@@ -33,9 +33,9 @@ namespace RN
 	
 	void Asset::Serialize(Serializer *serializer)
 	{
-		MetaClassBase *meta = Class();
+		MetaClass *meta = GetClass();
 		
-		serializer->EncodeString(meta->Fullname());
+		serializer->EncodeString(meta->GetFullname());
 		serializer->EncodeString(_name);
 		serializer->EncodeObject(_settings);
 		
@@ -51,7 +51,7 @@ namespace RN
 		Dictionary *settings = static_cast<Dictionary *>(deserializer->DecodeObject());
 		bool dirty = deserializer->DecodeBool();
 		
-		MetaClassBase *cmeta = Catalogue::GetSharedInstance()->GetClassWithName(meta);
+		MetaClass *cmeta = Catalogue::GetSharedInstance()->GetClassWithName(meta);
 		Asset *asset;
 		
 		if(name.empty() || dirty)

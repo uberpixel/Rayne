@@ -50,13 +50,13 @@ namespace RN
 		template<class T>
 		T *GetResourceWithName(String *name, Dictionary *settings)
 		{
-			return static_cast<T *>(RequestResourceWithName(T::MetaClass(), name, settings));
+			return static_cast<T *>(RequestResourceWithName(T::GetMetaClass(), name, settings));
 		}
 		
 		template<class T>
 		std::shared_future<Asset *> GetFutureResourceWithName(String *name, Dictionary *settings)
 		{
-			return RequestFutureResourceWithName(T::MetaClass(), name, settings);
+			return RequestFutureResourceWithName(T::GetMetaClass(), name, settings);
 		}
 		
 		RNAPI void WaitForResources();
@@ -65,16 +65,16 @@ namespace RN
 		RNAPI void UnregisterResourceLoader(ResourceLoader *loader);
 		
 	private:
-		RNAPI Asset *RequestResourceWithName(MetaClassBase *base, String *name, Dictionary *settings);
-		RNAPI std::shared_future<Asset *> RequestFutureResourceWithName(MetaClassBase *base, String *name, Dictionary *settings);
+		RNAPI Asset *RequestResourceWithName(MetaClass *base, String *name, Dictionary *settings);
+		RNAPI std::shared_future<Asset *> RequestFutureResourceWithName(MetaClass *base, String *name, Dictionary *settings);
 		
 		void __AddResource(Asset *object);
 		void RemoveResource(Asset *object);
 		
-		Asset *ValidateResource(MetaClassBase *base, Asset *object);
+		Asset *ValidateResource(MetaClass *base, Asset *object);
 		void PrepareResource(Asset *object, String *name, Dictionary *settings);
 		
-		ResourceLoader *PickResourceLoader(MetaClassBase *base, File *file, String *name, bool requiresBackgroundSupport);
+		ResourceLoader *PickResourceLoader(MetaClass *base, File *file, String *name, bool requiresBackgroundSupport);
 		
 		void LoadShader(String *name, String *key);
 		void LoadEngineResources();

@@ -147,8 +147,8 @@ namespace RN
 			return;
 		}
 		
-		if(!object->IsKindOfClass(Asset::MetaClass()) && !object->Class()->SupportsSerialization())
-			throw Exception(Exception::Type::InvalidArgumentException, "EncodeObject() only works with objects that support serialization (tried serializing %s)!", object->Class()->Fullname().c_str());
+		if(!object->IsKindOfClass(Asset::GetMetaClass()) && !object->GetClass()->SupportsSerialization())
+			throw Exception(Exception::Type::InvalidArgumentException, "EncodeObject() only works with objects that support serialization (tried serializing %s)!", object->GetClass()->GetFullname().c_str());
 		
 		auto iterator = _objectTable.find(object);
 		if(iterator != _objectTable.end())
@@ -161,7 +161,7 @@ namespace RN
 			return;
 		}
 		
-		uint32 index  = EncodeClassName(String::WithString(object->Class()->Fullname().c_str()));
+		uint32 index  = EncodeClassName(String::WithString(object->GetClass()->GetFullname().c_str()));
 		size_t tindex = _data->GetLength();
 		
 		EncodeData('@', sizeof(uint32), &index);
@@ -454,9 +454,9 @@ namespace RN
 		_index += sizeof(uint32);
 		
 		String *name = _nametable->GetObjectForKey<String>(Number::WithUint32(index));
-		MetaClassBase *mclass = Catalogue::GetSharedInstance()->GetClassWithName(name->GetUTF8String());
+		MetaClass *mclass = Catalogue::GetSharedInstance()->GetClassWithName(name->GetUTF8String());
 		
-		if(mclass->InheritsFromClass(Asset::MetaClass()))
+		if(mclass->InheritsFromClass(Asset::GetMetaClass()))
 		{
 			Object *result = Asset::Deserialize(this);
 			_objectTable.emplace(temp, result);

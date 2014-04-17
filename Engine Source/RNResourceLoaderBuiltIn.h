@@ -26,7 +26,7 @@ namespace RN
 		
 		uint32 GetPriority() const override;
 		
-		static void InitialWakeUp(MetaClassBase *meta);
+		static void InitialWakeUp(MetaClass *meta);
 		
 		RNDeclareMeta(PNGResourceLoader)
 	};
@@ -44,7 +44,7 @@ namespace RN
 		
 		uint32 GetPriority() const override;
 		
-		static void InitialWakeUp(MetaClassBase *meta);
+		static void InitialWakeUp(MetaClass *meta);
 		
 	private:
 		void LoadLODStage(File *file, Model *model, size_t stage, bool guessMaterial);
@@ -64,7 +64,7 @@ namespace RN
 		
 		uint32 GetPriority() const override;
 		
-		static void InitialWakeUp(MetaClassBase *meta);
+		static void InitialWakeUp(MetaClass *meta);
 		
 		RNDeclareMeta(SGAResourceLoader)
 	};
@@ -82,7 +82,7 @@ namespace RN
 		
 		uint32 GetPriority() const override;
 		
-		static void InitialWakeUp(MetaClassBase *meta);
+		static void InitialWakeUp(MetaClass *meta);
 		
 		RNDeclareMeta(GLSLResourceLoader)
 	};

@@ -520,7 +520,7 @@ namespace RN
 		DidUpdate(ChangeSet::Attachments);
 	}
 	
-	SceneNodeAttachment *SceneNode::GetAttachment(MetaClassBase *metaClass) const
+	SceneNodeAttachment *SceneNode::GetAttachment(MetaClass *metaClass) const
 	{
 		LockGuard<decltype(_attachmentsLock)> lock(_attachmentsLock);
 		

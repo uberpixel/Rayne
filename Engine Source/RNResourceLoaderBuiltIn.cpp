@@ -32,14 +32,14 @@ namespace RN
 	// ---------------------
 	
 	PNGResourceLoader::PNGResourceLoader() :
-		ResourceLoader(Texture2D::MetaClass())
+		ResourceLoader(Texture2D::GetMetaClass())
 	{
 		SetFileExtensions({ "png" });
 	}
 	
-	void PNGResourceLoader::InitialWakeUp(MetaClassBase *meta)
+	void PNGResourceLoader::InitialWakeUp(MetaClass *meta)
 	{
-		if(meta == MetaClass())
+		if(meta == GetMetaClass())
 		{
 			PNGResourceLoader *loader = new PNGResourceLoader();
 			ResourceCoordinator::GetSharedInstance()->RegisterResourceLoader(loader);
@@ -181,7 +181,7 @@ namespace RN
 	// ---------------------
 	
 	SGMResourceLoader::SGMResourceLoader() :
-		ResourceLoader(Model::MetaClass())
+		ResourceLoader(Model::GetMetaClass())
 	{
 		uint8 magicBytes[] = { 0x90, 0x22, 0x5, 0x15 };
 		
@@ -193,9 +193,9 @@ namespace RN
 		data->Release();
 	}
 	
-	void SGMResourceLoader::InitialWakeUp(MetaClassBase *meta)
+	void SGMResourceLoader::InitialWakeUp(MetaClass *meta)
 	{
-		if(meta == MetaClass())
+		if(meta == GetMetaClass())
 		{
 			SGMResourceLoader *loader = new SGMResourceLoader();
 			ResourceCoordinator::GetSharedInstance()->RegisterResourceLoader(loader);
@@ -480,7 +480,7 @@ namespace RN
 	// ---------------------
 	
 	SGAResourceLoader::SGAResourceLoader() :
-	ResourceLoader(Skeleton::MetaClass())
+	ResourceLoader(Skeleton::GetMetaClass())
 	{
 		uint8 magicBytes[] = { 0x5A, 0x4E, 0xDA, 0x16 };
 		
@@ -492,9 +492,9 @@ namespace RN
 		data->Release();
 	}
 	
-	void SGAResourceLoader::InitialWakeUp(MetaClassBase *meta)
+	void SGAResourceLoader::InitialWakeUp(MetaClass *meta)
 	{
-		if(meta == MetaClass())
+		if(meta == GetMetaClass())
 		{
 			SGAResourceLoader *loader = new SGAResourceLoader();
 			ResourceCoordinator::GetSharedInstance()->RegisterResourceLoader(loader);
@@ -618,14 +618,14 @@ namespace RN
 	// ---------------------
 	
 	GLSLResourceLoader::GLSLResourceLoader() :
-		ResourceLoader(Shader::MetaClass())
+		ResourceLoader(Shader::GetMetaClass())
 	{
 		SetSupportsImaginaryFiles(true);
 	}
 	
-	void GLSLResourceLoader::InitialWakeUp(MetaClassBase *meta)
+	void GLSLResourceLoader::InitialWakeUp(MetaClass *meta)
 	{
-		if(meta == MetaClass())
+		if(meta == GetMetaClass())
 		{
 			GLSLResourceLoader *loader = new GLSLResourceLoader();
 			ResourceCoordinator::GetSharedInstance()->RegisterResourceLoader(loader);

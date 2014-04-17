@@ -31,7 +31,7 @@ namespace RN
 		_kernel = Kernel::GetSharedInstance();
 		
 		_sceneManager = sceneManager->Retain();
-		_cameraClass  = Camera::MetaClass();
+		_cameraClass  = Camera::GetMetaClass();
 	}
 	
 	World::World(const std::string& sceneManager) :
@@ -46,9 +46,9 @@ namespace RN
 	
 	SceneManager *World::SceneManagerWithName(const std::string& name)
 	{
-		MetaClassBase *meta = nullptr;
-		Catalogue::GetSharedInstance()->EnumerateClasses([&](MetaClassBase *mclass, bool &stop) {
-			if(mclass->Name() == name)
+		MetaClass *meta = nullptr;
+		Catalogue::GetSharedInstance()->EnumerateClasses([&](MetaClass *mclass, bool &stop) {
+			if(mclass->GetName() == name)
 			{
 				meta = mclass;
 				stop = true;
@@ -546,7 +546,7 @@ namespace RN
 		});
 	}
 	
-	SceneNode *World::__GetSceneNodeWithTag(Tag tag, MetaClassBase *meta)
+	SceneNode *World::__GetSceneNodeWithTag(Tag tag, MetaClass *meta)
 	{
 		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
 		
@@ -580,7 +580,7 @@ namespace RN
 		return nullptr;
 	}
 	
-	Array *World::__GetSceneNodesWithTag(Tag tag, MetaClassBase *meta)
+	Array *World::__GetSceneNodesWithTag(Tag tag, MetaClass *meta)
 	{
 		LockGuard<decltype(_nodeLock)> lock(_nodeLock);
 		
@@ -696,7 +696,7 @@ namespace RN
 		ApplyNodes();
 		
 		serializer->EncodeInt32(0);
-		serializer->EncodeString(_sceneManager->Class()->Name());
+		serializer->EncodeString(_sceneManager->GetClass()->GetName());
 		serializer->EncodeInt64(_ids.load());
 		
 		serializer->EncodeInt64(static_cast<int64>(_nodes.size()));

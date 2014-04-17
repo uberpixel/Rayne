@@ -56,7 +56,7 @@ namespace RN
 			{
 				Object *resource = __GetResourceWithKeyPath(keyPath);
 				
-				if(!resource->IsKindOfClass(T::MetaClass()))
+				if(!resource->IsKindOfClass(T::GetMetaClass()))
 				   throw Exception(Exception::Type::InconsistencyException, "Failed to get resource for key path, unexpected object found");
 				   
 				return static_cast<T *>(resource);

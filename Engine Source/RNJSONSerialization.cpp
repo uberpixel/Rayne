@@ -17,21 +17,21 @@
 
 namespace RN
 {
-	static MetaClassBase *__JSONArrayClass = nullptr;
-	static MetaClassBase *__JSONDictionaryClass = nullptr;
-	static MetaClassBase *__JSONNumberClass = nullptr;
-	static MetaClassBase *__JSONStringClass = nullptr;
-	static MetaClassBase *__JSONNullClass = nullptr;
+	static MetaClass *__JSONArrayClass = nullptr;
+	static MetaClass *__JSONDictionaryClass = nullptr;
+	static MetaClass *__JSONNumberClass = nullptr;
+	static MetaClass *__JSONStringClass = nullptr;
+	static MetaClass *__JSONNullClass = nullptr;
 	
 	void JSONReadClasses()
 	{
 		static std::once_flag onceToken;
 		std::call_once(onceToken, [] {
-			__JSONArrayClass = Array::MetaClass();
-			__JSONDictionaryClass = Dictionary::MetaClass();
-			__JSONNumberClass = Number::MetaClass();
-			__JSONStringClass = String::MetaClass();
-			__JSONNullClass = Null::MetaClass();
+			__JSONArrayClass = Array::GetMetaClass();
+			__JSONDictionaryClass = Dictionary::GetMetaClass();
+			__JSONNumberClass = Number::GetMetaClass();
+			__JSONStringClass = String::GetMetaClass();
+			__JSONNullClass = Null::GetMetaClass();
 		});
 	}
 	

@@ -358,7 +358,7 @@ namespace RN
 	}
 	bool Number::IsEqual(Object *other) const
 	{
-		if(!other->IsKindOfClass(Number::MetaClass()))
+		if(!other->IsKindOfClass(Number::GetMetaClass()))
 			return false;
 		
 		Number *number = static_cast<Number *>(other);

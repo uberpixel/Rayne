@@ -56,10 +56,10 @@ namespace RN
 	
 	
 	
-	Asset *ResourceCoordinator::ValidateResource(MetaClassBase *base, Asset *object)
+	Asset *ResourceCoordinator::ValidateResource(MetaClass *base, Asset *object)
 	{
 		if(!object->IsKindOfClass(base))
-			throw Exception(Exception::Type::InconsistencyException, "Failed to validate asset for class %s", base->Name().c_str());
+			throw Exception(Exception::Type::InconsistencyException, "Failed to validate asset for class %s", base->GetName().c_str());
 		
 		return object;
 	}
@@ -75,7 +75,7 @@ namespace RN
 	}
 	
 	
-	ResourceLoader *ResourceCoordinator::PickResourceLoader(MetaClassBase *base, File *file, String *name, bool requiresBackgroundSupport)
+	ResourceLoader *ResourceCoordinator::PickResourceLoader(MetaClass *base, File *file, String *name, bool requiresBackgroundSupport)
 	{
 		ResourceLoader *resourceLoader = nullptr;
 		
@@ -192,7 +192,7 @@ namespace RN
 	
 	
 	
-	std::shared_future<Asset *> ResourceCoordinator::RequestFutureResourceWithName(MetaClassBase *base, String *name, Dictionary *settings)
+	std::shared_future<Asset *> ResourceCoordinator::RequestFutureResourceWithName(MetaClass *base, String *name, Dictionary *settings)
 	{
 		LockGuard<decltype(_lock)> lock(_lock);
 		
@@ -277,7 +277,7 @@ namespace RN
 		return shared;
 	}
 	
-	Asset *ResourceCoordinator::RequestResourceWithName(MetaClassBase *base, String *name, Dictionary *settings)
+	Asset *ResourceCoordinator::RequestResourceWithName(MetaClass *base, String *name, Dictionary *settings)
 	{
 		LockGuard<decltype(_lock)> lock(_lock);
 		

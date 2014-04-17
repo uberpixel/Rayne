@@ -17,12 +17,12 @@ namespace RN
 	class Serializer;
 	class Deserializer;
 	
-	class MetaClassBase
+	class MetaClass
 	{
 	public:
-		MetaClassBase *SuperClass() const { return _superClass; }
-		const std::string& Name() const { return _name; }
-		std::string Fullname() const;
+		RNAPI MetaClass *GetSuperClass() const { return _superClass; }
+		RNAPI std::string GetName() const { return _name; }
+		RNAPI std::string GetFullname() const;
 		
 		virtual Object *Construct() { throw Exception(Exception::Type::GenericException, ""); }
 		virtual Object *ConstructWithDeserializer(Deserializer *deserializer) { throw Exception(Exception::Type::GenericException, ""); }
@@ -32,33 +32,33 @@ namespace RN
 		virtual bool SupportsSerialization() const { return false; }
 		virtual bool SupportsCopying() const { return false; }
 		
-		RNAPI bool InheritsFromClass(MetaClassBase *other) const;
+		RNAPI bool InheritsFromClass(MetaClass *other) const;
 	
 	protected:
-		RNAPI MetaClassBase() {}
-		RNAPI MetaClassBase(MetaClassBase *parent, const std::string& name, const char *namespaceBlob);
-		RNAPI ~MetaClassBase();
+		RNAPI MetaClass() {}
+		RNAPI MetaClass(MetaClass *parent, const std::string& name, const char *namespaceBlob);
+		RNAPI ~MetaClass();
 		
 	private:
-		MetaClassBase *_superClass;
+		MetaClass *_superClass;
 		std::string _name;
 		std::vector<std::string> _namespace;
 	};
 	
 	template<class T>
-	class __MetaClassTraitNull0 : public virtual MetaClassBase
+	class __MetaClassTraitNull0 : public virtual MetaClass
 	{};
 	
 	template<class T>
-	class __MetaClassTraitNull1 : public virtual MetaClassBase
+	class __MetaClassTraitNull1 : public virtual MetaClass
 	{};
 	
 	template<class T>
-	class __MetaClassTraitNull2 : public virtual MetaClassBase
+	class __MetaClassTraitNull2 : public virtual MetaClass
 	{};
 
 	template<class T>
-	class MetaClassTraitCronstructable : public virtual MetaClassBase
+	class MetaClassTraitCronstructable : public virtual MetaClass
 	{
 	public:
 		T *Construct() override
@@ -70,7 +70,7 @@ namespace RN
 	};
 	
 	template<class T>
-	class MetaClassTraitSerializable : public virtual MetaClassBase
+	class MetaClassTraitSerializable : public virtual MetaClass
 	{
 	public:
 		T *ConstructWithDeserializer(Deserializer *deserializer) override
@@ -82,7 +82,7 @@ namespace RN
 	};
 	
 	template<class T>
-	class MetaClassTraitCopyable : public virtual MetaClassBase
+	class MetaClassTraitCopyable : public virtual MetaClass
 	{
 	public:
 		T *ConstructWithCopy(Object *source) override
@@ -95,24 +95,24 @@ namespace RN
 	
 	
 	template<class T, class... Traits>
-	class ConcreteMetaClass : public virtual MetaClassBase, public Traits...
+	class __ConcreteMetaClass : public virtual MetaClass, public Traits...
 	{};
 	
 	class Catalogue : public ISingleton<Catalogue>
 	{
 	public:
-		friend class MetaClassBase;
+		friend class MetaClass;
 		
-		RNAPI MetaClassBase *GetClassWithName(const std::string& name) const;
-		RNAPI void EnumerateClasses(const std::function<void (MetaClassBase *meta, bool &stop)>& enumerator);
+		RNAPI MetaClass *GetClassWithName(const std::string& name) const;
+		RNAPI void EnumerateClasses(const std::function<void (MetaClass *meta, bool &stop)>& enumerator);
 		
 	private:
-		void AddMetaClass(MetaClassBase *meta);
-		void RemoveMetaClass(MetaClassBase *meta);
+		void AddMetaClass(MetaClass *meta);
+		void RemoveMetaClass(MetaClass *meta);
 		
 		static void ParsePrettyFunction(const char *string, std::vector<std::string>& namespaces);
 		
-		std::unordered_map<std::string, MetaClassBase *> _metaClasses;
+		std::unordered_map<std::string, MetaClass *> _metaClasses;
 		
 		RNDeclareSingleton(Catalogue)
 	};

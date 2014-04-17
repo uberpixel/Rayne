@@ -13,7 +13,7 @@ namespace RN
 {
 	RNDefineMeta(ResourceLoader, Object)
 	
-	ResourceLoader::ResourceLoader(MetaClassBase *resourceClass) :
+	ResourceLoader::ResourceLoader(MetaClass *resourceClass) :
 		_magicBytes(nullptr),
 		_resourceClass(resourceClass),
 		_imagianryFiles(false)
@@ -51,7 +51,7 @@ namespace RN
 		return pool->AddTaskWithFuture([=] {
 			Asset *result;
 			
-			if(fileOrName->IsKindOfClass(File::MetaClass()))
+			if(fileOrName->IsKindOfClass(File::GetMetaClass()))
 			{
 				File *file = static_cast<File *>(fileOrName);
 				result = Load(file, settings);

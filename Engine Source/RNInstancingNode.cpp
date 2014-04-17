@@ -116,7 +116,7 @@ namespace RN
 	
 	void InstancingNode::Initialize()
 	{
-		_entityClass = Entity::MetaClass();
+		_entityClass = Entity::GetMetaClass();
 		_models      = new Set();
 		_pivot       = nullptr;
 		

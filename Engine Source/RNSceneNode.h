@@ -179,13 +179,13 @@ namespace RN
 		
 		RNAPI void AddAttachment(SceneNodeAttachment *attachment);
 		RNAPI void RemoveAttachment(SceneNodeAttachment *attachment);
-		RNAPI SceneNodeAttachment *GetAttachment(MetaClassBase *metaClass) const;
+		RNAPI SceneNodeAttachment *GetAttachment(MetaClass *metaClass) const;
 		RNAPI Array *GetAttachments() const;
 		
 		template<class T>
 		T *GetAttachment() const
 		{
-			SceneNodeAttachment *attachment = GetAttachment(T::MetaClass());
+			SceneNodeAttachment *attachment = GetAttachment(T::GetMetaClass());
 			return static_cast<T *>(attachment);
 		}
 		

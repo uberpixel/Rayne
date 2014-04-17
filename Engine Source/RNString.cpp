@@ -198,7 +198,7 @@ namespace RN
 	
 	bool String::IsEqual(Object *other) const
 	{
-		if(!other->IsKindOfClass(String::MetaClass()))
+		if(!other->IsKindOfClass(String::GetMetaClass()))
 		   return false;
 		   
 		String *string = static_cast<String *>(other);

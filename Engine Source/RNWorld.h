@@ -70,13 +70,13 @@ namespace RN
 		template<class T>
 		T *GetSceneNodeWithTag(Tag tag)
 		{
-			return static_cast<T *>(__GetSceneNodeWithTag(tag, T::MetaClass()));
+			return static_cast<T *>(__GetSceneNodeWithTag(tag, T::GetMetaClass()));
 		}
 		
 		template<class T>
 		Array *GetSceneNodesWithTag(Tag tag)
 		{
-			return __GetSceneNodesWithTag(tag, T::MetaClass());
+			return __GetSceneNodesWithTag(tag, T::GetMetaClass());
 		}
 		
 		RNAPI static World *GetActiveWorld();
@@ -84,8 +84,8 @@ namespace RN
 	private:		
 		static class SceneManager *SceneManagerWithName(const std::string& name);
 		
-		RNAPI SceneNode *__GetSceneNodeWithTag(Tag tag, MetaClassBase *meta);
-		RNAPI Array *__GetSceneNodesWithTag(Tag tag, MetaClassBase *meta);
+		RNAPI SceneNode *__GetSceneNodeWithTag(Tag tag, MetaClass *meta);
+		RNAPI Array *__GetSceneNodesWithTag(Tag tag, MetaClass *meta);
 		
 		void StepWorld(FrameID frame, float delta);
 		void StepWorldEditMode(FrameID frame, float delta);
@@ -132,7 +132,7 @@ namespace RN
 		std::unordered_map<Tag, std::unordered_set<SceneNode *>> _tagTable;
 		
 		SceneManager  *_sceneManager;
-		MetaClassBase *_cameraClass;
+		MetaClass *_cameraClass;
 		
 		RNDeclareMeta(World)
 	};

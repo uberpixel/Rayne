@@ -10,7 +10,7 @@
 
 namespace RN
 {
-	MetaClassBase::MetaClassBase(MetaClassBase *parent, const std::string& name, const char *namespaceBlob) :
+	MetaClass::MetaClass(MetaClass *parent, const std::string& name, const char *namespaceBlob) :
 		_name(name),
 		_superClass(parent)
 	{
@@ -24,12 +24,12 @@ namespace RN
 		Catalogue::GetSharedInstance()->AddMetaClass(this);
 	}
 	
-	MetaClassBase::~MetaClassBase()
+	MetaClass::~MetaClass()
 	{
 		Catalogue::GetSharedInstance()->RemoveMetaClass(this);
 	}
 	
-	bool MetaClassBase::InheritsFromClass(MetaClassBase *other) const
+	bool MetaClass::InheritsFromClass(MetaClass *other) const
 	{
 		if(this == other)
 			return true;
@@ -40,7 +40,7 @@ namespace RN
 		return _superClass->InheritsFromClass(other);
 	}
 	
-	std::string MetaClassBase::Fullname() const
+	std::string MetaClass::GetFullname() const
 	{
 		std::string name;
 		
@@ -58,7 +58,7 @@ namespace RN
 	
 	RNDefineSingleton(Catalogue)
 	
-	MetaClassBase *Catalogue::GetClassWithName(const std::string& name) const
+	MetaClass *Catalogue::GetClassWithName(const std::string& name) const
 	{
 		auto iterator = _metaClasses.find(name);
 		if(iterator != _metaClasses.end())
@@ -67,7 +67,7 @@ namespace RN
 		return 0;
 	}
 	
-	void Catalogue::EnumerateClasses(const std::function<void (MetaClassBase *meta, bool &stop)>& enumerator)
+	void Catalogue::EnumerateClasses(const std::function<void (MetaClass *meta, bool &stop)>& enumerator)
 	{
 		bool stop = false;
 		
@@ -80,18 +80,18 @@ namespace RN
 	}
 	
 	
-	void Catalogue::AddMetaClass(MetaClassBase *meta)
+	void Catalogue::AddMetaClass(MetaClass *meta)
 	{
-		auto iterator = _metaClasses.find(meta->Fullname());
+		auto iterator = _metaClasses.find(meta->GetFullname());
 		if(iterator != _metaClasses.end())
 			throw Exception(Exception::Type::InvalidArgumentException, "A MetaClass of the same name already exists!");
 		
-		_metaClasses.insert(std::unordered_map<std::string, MetaClassBase *>::value_type(meta->Fullname(), meta));
+		_metaClasses.insert(std::unordered_map<std::string, MetaClass *>::value_type(meta->GetFullname(), meta));
 	}
 	
-	void Catalogue::RemoveMetaClass(MetaClassBase *meta)
+	void Catalogue::RemoveMetaClass(MetaClass *meta)
 	{
-		_metaClasses.erase(meta->Fullname());
+		_metaClasses.erase(meta->GetFullname());
 	}
 	
 	void Catalogue::ParsePrettyFunction(const char *string, std::vector<std::string>& namespaces)

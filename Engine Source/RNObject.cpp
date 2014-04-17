@@ -44,17 +44,17 @@ namespace RN
 		}
 	}
 	
-	void Object::InitialWakeUp(MetaClassBase *meta)
+	void Object::InitialWakeUp(MetaClass *meta)
 	{}
 	
 	void Object::CleanUp()
 	{}
 	
-	MetaClassBase *Object::Class() const
+	MetaClass *Object::GetClass() const
 	{
-		return Object::MetaClass();
+		return Object::GetMetaClass();
 	}
-	MetaClassBase *Object::MetaClass()
+	MetaClass *Object::GetMetaClass()
 	{
 		if(!__kRNObjectMetaClass)
 			__kRNObjectMetaClass = new MetaType();
@@ -102,8 +102,8 @@ namespace RN
 	
 	Object *Object::Copy() const
 	{
-		RN_ASSERT(Class()->SupportsCopying(), "Only Objects that support the copy trait can be copied!\n");
-		return Class()->ConstructWithCopy(const_cast<Object *>(this));
+		RN_ASSERT(GetClass()->SupportsCopying(), "Only Objects that support the copy trait can be copied!\n");
+		return GetClass()->ConstructWithCopy(const_cast<Object *>(this));
 	}
 	
 	
@@ -133,14 +133,9 @@ namespace RN
 	}
 	
 	
-	bool Object::IsKindOfClass(MetaClassBase *other) const
+	bool Object::IsKindOfClass(MetaClass *other) const
 	{
-		return Class()->InheritsFromClass(other);
-	}
-	
-	bool Object::IsMemberOfClass(MetaClassBase *other) const
-	{
-		return (Class() == other);
+		return GetClass()->InheritsFromClass(other);
 	}
 	
 	
@@ -187,7 +182,7 @@ namespace RN
 				break;
 				
 			case MemoryPolicy::Copy:
-				object = value->MetaClass()->ConstructWithCopy(value);
+				object = value->GetMetaClass()->ConstructWithCopy(value);
 				break;
 		}
 		
@@ -239,7 +234,7 @@ namespace RN
 	// MARK: KVO / KVC
 	// ---------------------
 	
-	std::vector<ObservableProperty *> Object::GetPropertiesForClass(MetaClassBase *meta)
+	std::vector<ObservableProperty *> Object::GetPropertiesForClass(MetaClass *meta)
 	{
 		if(!meta)
 			return _properties;

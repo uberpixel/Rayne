@@ -37,10 +37,10 @@ namespace RN
 		
 		RNAPI virtual uint32 GetPriority() const;
 		
-		RNAPI MetaClassBase *GetResourceClass() const { return _resourceClass; }
+		RNAPI MetaClass *GetResourceClass() const { return _resourceClass; }
 		
 	protected:
-		RNAPI ResourceLoader(MetaClassBase *resourceClass);
+		RNAPI ResourceLoader(MetaClass *resourceClass);
 		
 		RNAPI void SetFileExtensions(const std::vector<std::string>& extensions);
 		RNAPI void SetMagicBytes(const Data *data, size_t begin);
@@ -54,7 +54,7 @@ namespace RN
 		std::vector<std::string> _fileExtensions;
 		bool _imagianryFiles;
 		
-		MetaClassBase *_resourceClass;
+		MetaClass *_resourceClass;
 		
 		RNDeclareMeta(ResourceLoader)
 	};
