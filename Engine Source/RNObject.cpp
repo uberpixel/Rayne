@@ -255,7 +255,7 @@ namespace RN
 		RN_ASSERT(property->_object == nullptr, "ObservableProperty can only be added once to a receiver!");
 		
 		property->_object = this;
-		property->_opaque = Class();
+		property->_opaque = GetClass();
 		
 		_properties.push_back(property);
 	}
@@ -269,7 +269,7 @@ namespace RN
 			RN_ASSERT(property->_object == nullptr, "ObservableProperty can only be added once to a receiver!");
 			
 			property->_object = this;
-			property->_opaque = Class();
+			property->_opaque = GetClass();
 			
 			_properties.push_back(property);
 		}
