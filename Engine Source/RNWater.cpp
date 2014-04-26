@@ -13,10 +13,11 @@ namespace RN
 {
 	RNDefineMeta(Water, SceneNode)
 	
-	Water::Water(Camera *cam, Texture *refract) :
+	Water::Water(Camera *cam, Texture *normalMap, Texture *refract) :
 		_mesh(nullptr),
 		_material(nullptr),
 		_reflection(nullptr),
+		_normalMap(normalMap->Retain()),
 		_refraction(refract->Retain()),
 		_camera(cam->Retain())
 	{
@@ -27,6 +28,7 @@ namespace RN
 	Water::~Water()
 	{
 		_refraction->Release();
+		_normalMap->Release();
 		_camera->Release();
 		
 		_mesh->Release();
@@ -92,7 +94,9 @@ namespace RN
 			_reflection->SetClipPlane(RN::Plane());
 			
 			_material->AddTexture(_reflection->GetStorage()->GetRenderTarget());
-			_material->AddTexture(RN::Texture::WithFile("textures/waterbump.png", true));
+			
+			if(_normalMap != 0)
+				_material->AddTexture(_normalMap);
 			
 			if(_refraction != 0)
 				_material->AddTexture(_refraction);
@@ -131,9 +135,18 @@ namespace RN
 			_reflection->SetFogColor(_camera->GetFogColor());
 			_reflection->SetFogNear(_camera->GetFogNear());
 			_reflection->SetFogFar(_camera->GetFogFar());
+			_reflection->SetClipNear(_camera->GetClipNear());
+			_reflection->SetClipFar(_camera->GetClipFar());
 			
 			if(_camera->GetFlags() & Camera::Flags::UseFog)
-			_reflection->SceneNode::SetFlags(_reflection->GetFlags() | Camera::Flags::UseFog);
+				_reflection->SceneNode::SetFlags(_reflection->GetFlags() | Camera::Flags::UseFog);
+			
+			if(_reflection->GetWorldPosition().y < GetWorldPosition().y - k::EpsilonFloat || _reflection->GetWorldPosition().y > GetWorldPosition().y + k::EpsilonFloat)
+			{
+				Plane clipPlane = _reflection->GetClipPlane();
+				clipPlane.SetNormal(GetUp() * (GetWorldPosition().y - _reflection->GetWorldPosition().y));
+				_reflection->SetClipPlane(clipPlane);
+			}
 		}
 	}
 	

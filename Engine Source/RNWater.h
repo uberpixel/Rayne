@@ -20,7 +20,7 @@ namespace RN
 	class Water : public SceneNode
 	{
 	public:
-		RNAPI Water(Camera *cam, Texture *refract);
+		RNAPI Water(Camera *cam, Texture *normalMap, Texture *refract);
 		RNAPI ~Water() override;
 		
 		RNAPI void SetTexture(Texture *texture);
@@ -42,6 +42,7 @@ namespace RN
 		Camera *_camera;
 		Camera *_reflection;
 		Texture *_refraction;
+		Texture *_normalMap;
 		
 		RNDeclareMeta(Water)
 	};

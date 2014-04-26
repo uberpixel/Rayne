@@ -36,6 +36,7 @@ namespace RN
 		RNAPI static Model *WithFile(const std::string& path, const Dictionary *settings = nullptr);
 		RNAPI static Model *WithMesh(Mesh *mesh, Material *material);
 		RNAPI static Model *WithSkyCube(const std::string& up, const std::string& down, const std::string& left, const std::string& right, const std::string& front, const std::string& back, const std::string& shader="shader/rn_Sky");
+		RNAPI static Model *WithSkyCube(const std::string& shader="shader/rn_Sky");
 		
 		RNAPI size_t AddLODStage(float distance);
 		RNAPI void RemoveLODStage(size_t stage);

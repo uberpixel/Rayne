@@ -355,4 +355,49 @@ namespace RN
 		
 		return skyModel;
 	}
+	
+	Model *Model::WithSkyCube(const std::string& shader)
+	{
+		Shader *matShader = Shader::WithFile(shader);
+		
+		Texture::Parameter parameter;
+		parameter.format = Texture::Format::RGB888;
+		parameter.wrapMode = Texture::WrapMode::Clamp;
+		
+		
+		Material *skyDownMaterial = new Material(matShader);
+		skyDownMaterial->SetDepthWrite(false);
+		Mesh  *skyDownMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 0.0f, 0.0f));
+		
+		Material *skyUpMaterial = new Material(matShader);
+		skyUpMaterial->SetDepthWrite(false);
+		Mesh  *skyUpMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(180.0f, 180.0f, 0.0f));
+		
+		Material *skyLeftMaterial = new Material(matShader);
+		skyLeftMaterial->SetDepthWrite(false);
+		Mesh  *skyLeftMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(-90.0f, 90.0f, 0.0f));
+		
+		Material *skyRightMaterial = new Material(matShader);
+		skyRightMaterial->SetDepthWrite(false);
+		Mesh  *skyRightMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(90.0f, 90.0f, 0.0f));
+		
+		Material *skyFrontMaterial = new Material(matShader);
+		skyFrontMaterial->SetDepthWrite(false);
+		Mesh  *skyFrontMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(180.0f, 90.0f, 0.0f));
+		
+		Material *skyBackMaterial = new Material(matShader);
+		skyBackMaterial->SetDepthWrite(false);
+		Mesh  *skyBackMesh = Mesh::PlaneMesh(Vector3(1.0f, -1.0f, 1.0f), Vector3(0.0f, 90.0f, 0.0f));
+		
+		Model *skyModel = Model::Empty();
+		skyModel->AddMesh(skyDownMesh, skyDownMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyUpMesh, skyUpMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyLeftMesh, skyLeftMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyRightMesh, skyRightMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyFrontMesh, skyFrontMaterial->Autorelease(), 0);
+		skyModel->AddMesh(skyBackMesh, skyBackMaterial->Autorelease(), 0);
+		
+		return skyModel;
+	}
+
 }
