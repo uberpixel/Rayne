@@ -83,6 +83,7 @@ namespace RN
 		
 		SafeRelease(_magicBytes);
 		_magicBytes = data ? data->Copy() : nullptr;
+		_magicBytesOffset = begin;
 	}
 	
 	void ResourceLoader::SetSupportsImaginaryFiles(bool support)
