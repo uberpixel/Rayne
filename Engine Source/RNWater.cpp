@@ -60,18 +60,18 @@ namespace RN
 			Mesh::ElementIterator<Vector3> vertices = chunk.GetIterator<Vector3>(MeshFeature::Vertices);
 			
 			
-			*vertices ++ = Vector3(0.5f, 0.0f, 0.5f);
-			*vertices ++ = Vector3(-0.5f, 0.0f, 0.5f);
-			*vertices ++ = Vector3(0.5f, 0.0f, -0.5f);
-			*vertices ++ = Vector3(-0.5f, 0.0f, -0.5f);
+			*vertices ++ = Vector3(100.0f, 0.0f, 100.0f);
+			*vertices ++ = Vector3(-100.0f, 0.0f, 100.0f);
+			*vertices ++ = Vector3(100.0f, 0.0f, -100.0f);
+			*vertices ++ = Vector3(-100.0f, 0.0f, -100.0f);
 			
-			*vertices ++ = Vector3(-0.5f, 0.0f, -0.5f);
-			*vertices ++ = Vector3(-0.5f, 0.0f, 0.5f);
+			*vertices ++ = Vector3(-100.0f, 0.0f, -100.0f);
+			*vertices ++ = Vector3(-100.0f, 0.0f, 100.0f);
 			
-			*vertices ++ = Vector3(-0.5f, 0.0f, 0.5f);
-			*vertices ++ = Vector3(0.5f, 0.0f, 0.5f);
-			*vertices ++ = Vector3(-0.5f, 0.0f, -0.5f);
-			*vertices ++ = Vector3(0.5f, 0.0f, -0.5f);
+			*vertices ++ = Vector3(-100.0f, 0.0f, 100.0f);
+			*vertices ++ = Vector3(100.0f, 0.0f, 100.0f);
+			*vertices ++ = Vector3(-100.0f, 0.0f, -100.0f);
+			*vertices ++ = Vector3(100.0f, 0.0f, -100.0f);
 			
 			chunk.CommitChanges();
 
@@ -155,7 +155,6 @@ namespace RN
 		SceneNode::Render(renderer, camera);
 		
 		_transform = GetWorldTransform();
-		_transform.Scale(Vector3(200.0f, 200.0f, 200.0f));
 		
 		RenderingObject object;
 		FillRenderingObject(object);
