@@ -91,11 +91,11 @@ namespace RN
 	class GenericParticleEmitter : public ParticleEmitter
 	{
 	public:
-		GenericParticleEmitter();
-		GenericParticleEmitter(const GenericParticleEmitter *emitter);
-		GenericParticleEmitter(RN::Deserializer *deserializer);
+		RNAPI GenericParticleEmitter();
+		RNAPI GenericParticleEmitter(const GenericParticleEmitter *emitter);
+		RNAPI GenericParticleEmitter(RN::Deserializer *deserializer);
 		
-		void Serialize(RN::Serializer *serializer) override;
+		RNAPI void Serialize(RN::Serializer *serializer) override;
 		
 		Vector2 GetLifeSpan() const { return _lifeSpan; }
 		void SetLifeSpan(const Vector2 &lifeSpan) { _lifeSpan = lifeSpan; }

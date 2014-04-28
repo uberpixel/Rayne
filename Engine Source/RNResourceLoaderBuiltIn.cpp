@@ -326,7 +326,11 @@ namespace RN
 			for(uint8 u = 0; u < colorCount; u ++)
 			{
 				uint8 usagehint = file->ReadUint8();
-				Color color(file->ReadFloat(), file->ReadFloat(), file->ReadFloat(), file->ReadFloat());
+				Color color;
+				color.r = file->ReadFloat();
+				color.g = file->ReadFloat();
+				color.b = file->ReadFloat();
+				color.a = file->ReadFloat();
 				
 				if(usagehint == 0 && u == 0)
 					material->SetDiffuseColor(color);

@@ -494,11 +494,16 @@ namespace RN
 				}
 				else
 				{
+					//TODO: WTF? Would fit the correct key codes without it!?
 					// Special character, move it into the private use Unicode page
 					code = wparam | 0xF700;
 
 					if(code == 0xF70D)
 						code = 0xD;
+
+					//space
+					if(code == 0xF720)
+						code = 0x20;
 				}
 				
 				event->_key  = (UniChar)code;
