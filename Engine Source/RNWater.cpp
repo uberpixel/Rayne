@@ -127,7 +127,7 @@ namespace RN
 			Vector3 rot = _camera->GetWorldEulerAngle();
 			
 			_reflection->SetPosition(Vector3(1.0f, -1.0f, 1.0f)*_camera->GetWorldPosition());
-			_reflection->SetRotation(Vector3(rot.x, -rot.y, rot.z));
+			_reflection->SetRotation(Vector3(rot.x, -rot.y, -rot.z));
 			
 			_reflection->SetAspectRatio(_camera->GetAspectRatio());
 			
