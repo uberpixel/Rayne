@@ -73,7 +73,7 @@ namespace TG
 			_ground->SetScale(RN::Vector3(20.0f));
 			_ground->Release();
 			
-			RN::Water *water = new RN::Water(_camera, _refractCamera->GetStorage()->GetRenderTarget());
+			RN::Water *water = new RN::Water(_camera, RN::Texture::WithFile("textures/waterbump.png", true), _refractCamera->GetStorage()->GetRenderTarget());
 			water->SetWorldPosition(RN::Vector3(71.0f, -0.3f, -5.0f));
 			water->SetFlags(water->GetFlags() | RN::SceneNode::Flags::NoSave);
 			
