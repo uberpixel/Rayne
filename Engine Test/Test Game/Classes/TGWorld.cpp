@@ -121,6 +121,11 @@ namespace TG
 					PPToggleGodrays();
 					break;
 				}
+				case '0':
+				{
+					RN::MessageCenter::GetSharedInstance()->PostMessage(RNCSTR("DPToggle"), nullptr, nullptr);
+					break;
+				}
 					
 				default:
 					break;
@@ -277,6 +282,8 @@ namespace TG
 			
 			_camera->SetAmbientColor(color * (ambient * 5.0f));
 			_camera->SetFogColor(_sunLight->GetFogColor());
+			_camera->SetFogNear(0.0f);
+			_camera->SetFogFar(500.0f);
 			
 			if(_camera->GetChildren()->GetCount() > 0)
 			{
@@ -355,6 +362,10 @@ namespace TG
 		_godraysPipeline = PPCreateGodraysPipeline(_waterCamera, _refractCamera->GetRenderTarget())->Retain();
 		_bloomPipeline = PPCreateBloomPipeline(_waterCamera)->Retain();
 		_fxaaPipeline = PPCreateFXAAPipeline(_waterCamera)->Retain();
+		
+		PPToggleGodrays();
+		PPToggleSSAO();
+		PPToggleFXAA();
 	}
 	
 	RN::PostProcessingPipeline *World::PPCreateSSAOPipeline(RN::Camera *cam)
