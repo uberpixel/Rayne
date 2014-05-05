@@ -99,6 +99,7 @@ namespace RN
 		__GetUniformLocation(lightDirectionalCount);
 		__GetUniformLocation(lightDirectionalMatrix);
 		__GetUniformLocation(lightDirectionalDepth);
+		__GetUniformLocation(lightDirectionalDepthInfo);
 		
 		__GetUniformLocation(lightListIndices);
 		__GetUniformLocation(lightListOffsetCount);

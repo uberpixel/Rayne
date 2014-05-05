@@ -341,6 +341,7 @@ namespace RN
 		Texture::Parameter textureParameter;
 		textureParameter.wrapMode = Texture::WrapMode::Clamp;
 		textureParameter.filter = Texture::Filter::Linear;
+		textureParameter.anisotropy = 1.0f;
 		textureParameter.format = Texture::Format::Depth24I;
 		textureParameter.depthCompare = true;
 		textureParameter.maxMipMaps = 0;
@@ -408,6 +409,7 @@ namespace RN
 		textureParameter.format = Texture::Format::Depth24I;
 		textureParameter.depthCompare = false;
 		textureParameter.maxMipMaps = 0;
+		textureParameter.anisotropy = 1.0f;
 		
 		Texture *depthtex = (new TextureCubeMap(textureParameter))->Autorelease();
 		
@@ -464,6 +466,7 @@ namespace RN
 		textureParameter.format = Texture::Format::Depth24I;
 		textureParameter.depthCompare = true;
 		textureParameter.maxMipMaps = 0;
+		textureParameter.anisotropy = 1.0f;
 		
 		Texture *depthtex = new Texture2D(textureParameter);
 		depthtex->Autorelease();

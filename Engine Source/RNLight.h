@@ -20,9 +20,9 @@ namespace RN
 {
 	struct ShadowSplit
 	{
-		ShadowSplit(size_t updateInterval = 1, size_t updateOffset = 0) :
-			biasFactor(2.0f),
-			biasUnits(512.0f),
+		ShadowSplit(size_t updateInterval = 1, size_t updateOffset = 0, float biasFactor = 2.0f, float biasUnit = 512.0f) :
+			biasFactor(biasFactor),
+			biasUnits(biasUnit),
 			updateInterval(updateInterval),
 			updateOffset(updateOffset)
 		{}
@@ -35,7 +35,7 @@ namespace RN
 	
 	struct ShadowParameter
 	{
-		ShadowParameter(size_t resolution = 1024) :
+		ShadowParameter(size_t resolution = 512) :
 			resolution(resolution),
 			distanceBlendFactor(0.05f),
 			shadowTarget(nullptr)
@@ -48,10 +48,10 @@ namespace RN
 			distanceBlendFactor(0.05f),
 			shadowTarget(target)
 		{
-			splits.push_back(ShadowSplit(1, 0));
-			splits.push_back(ShadowSplit(2, 0));
-			splits.push_back(ShadowSplit(2, 1));
-			splits.push_back(ShadowSplit(3, 0));
+			splits.push_back(ShadowSplit(1, 0, 3.0f, 256.0f));
+			splits.push_back(ShadowSplit(2, 0, 3.0f, 512.0f));
+			splits.push_back(ShadowSplit(2, 1, 3.0f, 1024.0f));
+			splits.push_back(ShadowSplit(3, 0, 3.0f, 1024.0f));
 		}
 		
 		size_t resolution;

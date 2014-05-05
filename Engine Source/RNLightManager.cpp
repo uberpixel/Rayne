@@ -113,6 +113,11 @@ namespace RN
 			gl::Uniform1i(program->lightDirectionalDepth, textureUnit);
 		}
 		
+		if(program->lightDirectionalDepthInfo != -1 && _lightDirectionalDepth.size() > 0)
+		{
+			gl::Uniform4f(program->lightDirectionalDepthInfo, 1.0f / _lightDirectionalDepth.front()->GetWidth(), 1.0f / _lightDirectionalDepth.front()->GetHeight(), _lightDirectionalDepth.front()->GetWidth(), _lightDirectionalDepth.front()->GetHeight());
+		}
+		
 		
 		
 		if(_pointSpotLightCount > 0 && program->lightClusterSize != -1)

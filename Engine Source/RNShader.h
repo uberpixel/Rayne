@@ -124,6 +124,7 @@ namespace RN
 		GLuint lightDirectionalCount;
 		GLuint lightDirectionalMatrix;
 		GLuint lightDirectionalDepth;
+		GLuint lightDirectionalDepthInfo;
 		
 		GLuint lightListIndices;
 		GLuint lightListOffsetCount;
