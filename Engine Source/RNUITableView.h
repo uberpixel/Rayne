@@ -108,7 +108,7 @@ namespace RN
 			};
 			
 			void Initialize();
-			void ScrollViewDidScroll(ScrollView *view) override;
+			RNAPI void ScrollViewDidScroll(ScrollView *view) override;
 			void EnqueueCell(TableViewCell *cell, bool cleanRowData);
 			
 			size_t GetRowForContentOffset(float offset) const;

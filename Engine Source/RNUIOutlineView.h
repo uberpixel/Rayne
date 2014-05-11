@@ -104,15 +104,15 @@ namespace RN
 			size_t GetRowForProxyItem(ProxyItem *item);
 			
 			
-			size_t TableViewNumberOfRows(TableView *tableView) override;
-			TableViewCell *TableViewCellForRow(TableView *tableView, size_t row) override;
+			RNAPI size_t TableViewNumberOfRows(TableView *tableView) override;
+			RNAPI TableViewCell *TableViewCellForRow(TableView *tableView, size_t row) override;
 
-			void TableViewDidSelectRow(TableView *tableView, size_t row) override;
-			void TableViewWillDeselectRow(TableView *tableView, size_t row) override;
-			void TableViewSelectionDidChange(TableView *tableView) override;
+			RNAPI void TableViewDidSelectRow(TableView *tableView, size_t row) override;
+			RNAPI void TableViewWillDeselectRow(TableView *tableView, size_t row) override;
+			RNAPI void TableViewSelectionDidChange(TableView *tableView) override;
 			
-			uint32 TableViewIndentationForRow(TableView *tableView, size_t row) override;
-			void TableViewWillDisplayCellForRow(TableView *tableView, TableViewCell *cell, size_t row) override;
+			RNAPI uint32 TableViewIndentationForRow(TableView *tableView, size_t row) override;
+			RNAPI void TableViewWillDisplayCellForRow(TableView *tableView, TableViewCell *cell, size_t row) override;
 			
 			
 			OutlineViewDataSource *_dataSource;

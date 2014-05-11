@@ -133,12 +133,12 @@ namespace RN
 		
 		void __RemoveAssociatedOject(const void *key);
 		
-		Object *ResolveKeyPath(const std::string& path, std::string& key);
-		Object *GetPrimitiveValueForKey(const std::string& key);
-		ObservableProperty *GetPropertyForKeyPath(const std::string& keyPath, std::string& key);
+		RNAPI Object *ResolveKeyPath(const std::string& path, std::string& key);
+		RNAPI Object *GetPrimitiveValueForKey(const std::string& key);
+		RNAPI ObservableProperty *GetPropertyForKeyPath(const std::string& keyPath, std::string& key);
 		
-		void MapCookie(void *cookie, ObservableProperty *property, Connection *connection);
-		void UnmapCookie(void *cookie, ObservableProperty *property);
+		RNAPI void MapCookie(void *cookie, ObservableProperty *property, Connection *connection);
+		RNAPI void UnmapCookie(void *cookie, ObservableProperty *property);
 		
 		RecursiveSpinLock _lock;
 		
