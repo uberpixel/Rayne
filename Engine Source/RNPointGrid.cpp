@@ -11,9 +11,9 @@
 namespace RN
 {
 	PointGrid::PointGrid(uint32 resolutionX, uint32 resolutionY, uint32 resolutionZ) :
-	_resolutionX(resolutionX),
-	_resolutionY(resolutionY),
-	_resolutionZ(resolutionZ)
+		_resolutionX(resolutionX),
+		_resolutionY(resolutionY),
+		_resolutionZ(resolutionZ)
 	{
 		_voxels = new Point[_resolutionX * _resolutionY * _resolutionZ];
 	}

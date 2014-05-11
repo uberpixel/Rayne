@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="Engine Source\Rayne.h" />
@@ -479,6 +479,15 @@
     <ClInclude Include="Engine Source\RNDataAttachment.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNSculptable.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNTerrain.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNPointGrid.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
@@ -849,6 +858,15 @@
     </ClCompile>
     <ClCompile Include="Engine Source\RNDataAttachment.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNSculptable.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNTerrain.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNPointGrid.cpp">
+      <Filter>Objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

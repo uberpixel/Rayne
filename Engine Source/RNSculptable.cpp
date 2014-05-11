@@ -11,4 +11,18 @@
 namespace RN
 {
 	RNDefineMeta(Sculptable, SceneNode)
+
+	Sculptable::Sculptable()
+	{}
+	Sculptable::Sculptable(Deserializer *deserializer) : 
+		SceneNode(deserializer) 
+	{}
+	Sculptable::Sculptable(const Sculptable *other) : 
+		SceneNode(other) 
+	{}
+
+	void Sculptable::Serialize(Serializer *serializer)
+	{
+		SceneNode::Serialize(serializer); 
+	}
 }

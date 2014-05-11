@@ -16,13 +16,12 @@ namespace RN
 	class Sculptable : public SceneNode
 	{
 	public:
-		Sculptable() {}
-		Sculptable(Deserializer *deserializer) : SceneNode(deserializer) {}
-		Sculptable(const Sculptable *other) : SceneNode(other) {}
-		~Sculptable() override {}
+		RNAPI Sculptable();
+		RNAPI Sculptable(Deserializer *deserializer);
+		RNAPI Sculptable(const Sculptable *other);
 		
-		void Serialize(Serializer *serializer) { SceneNode::Serialize(serializer); }
-		
+		RNAPI void Serialize(Serializer *serializer) override;
+
 		RNAPI virtual void SetSphere(Vector3 position, float radius) = 0;
 		RNAPI virtual void RemoveSphere(Vector3 position, float radius) = 0;
 		

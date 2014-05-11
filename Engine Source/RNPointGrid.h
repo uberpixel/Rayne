@@ -16,7 +16,11 @@ namespace RN
 	struct Point
 	{
 	public:
-		Point(uint8 d=0) : density(d), smoothDensity(d) {}
+		Point(uint8 d = 0) : 
+			density(d), 
+			smoothDensity(d) 
+		{}
+		
 		uint8 density;
 		uint8 smoothDensity;
 	};
@@ -24,21 +28,21 @@ namespace RN
 	class PointGrid
 	{
 	public:
-		PointGrid(uint32 resolutionX=64, uint32 resolutionY=32, uint32 resolutionZ=64);
-		~PointGrid();
+		RNAPI PointGrid(uint32 resolutionX = 64, uint32 resolutionY = 32, uint32 resolutionZ = 64);
+		RNAPI ~PointGrid();
 		
-		void SetVoxel(uint32 x, uint32 y, uint32 z, const Point &voxel);
-		uint8 GetVoxel(uint32 x, uint32 y, uint32 z) const;
-		uint8 GetVoxel(const Vector3 &position) const;
-		uint8 GetSmooth(const Vector3 &position) const;
+		RNAPI void SetVoxel(uint32 x, uint32 y, uint32 z, const Point &voxel);
+		RNAPI uint8 GetVoxel(uint32 x, uint32 y, uint32 z) const;
+		RNAPI uint8 GetVoxel(const Vector3 &position) const;
+		RNAPI uint8 GetSmooth(const Vector3 &position) const;
 		
-		void ApplyBlur(Vector3 from, Vector3 to, uint8 radius);
+		RNAPI void ApplyBlur(Vector3 from, Vector3 to, uint8 radius);
 		
-		uint32 GetResolutionX() const { return _resolutionX; }
-		uint32 GetResolutionY() const { return _resolutionY; }
-		uint32 GetResolutionZ() const { return _resolutionZ; }
+		RNAPI uint32 GetResolutionX() const { return _resolutionX; }
+		RNAPI uint32 GetResolutionY() const { return _resolutionY; }
+		RNAPI uint32 GetResolutionZ() const { return _resolutionZ; }
 		
-		uint32 GetID(const Vector3 &position) const;
+		RNAPI uint32 GetID(const Vector3 &position) const;
 		
 	private:
 		Point *_voxels;

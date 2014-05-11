@@ -86,6 +86,7 @@
     <ClInclude Include="Engine Source\RNParticleEmitter.h" />
     <ClInclude Include="Engine Source\RNPathManager.h" />
     <ClInclude Include="Engine Source\RNPlane.h" />
+    <ClInclude Include="Engine Source\RNPointGrid.h" />
     <ClInclude Include="Engine Source\RNProgress.h" />
     <ClInclude Include="Engine Source\RNQuaternion.h" />
     <ClInclude Include="Engine Source\RNRandom.h" />
@@ -101,6 +102,7 @@
     <ClInclude Include="Engine Source\RNSceneNode.h" />
     <ClInclude Include="Engine Source\RNSceneNodeAttachment.h" />
     <ClInclude Include="Engine Source\RNScopeGuard.h" />
+    <ClInclude Include="Engine Source\RNSculptable.h" />
     <ClInclude Include="Engine Source\RNSemaphore.h" />
     <ClInclude Include="Engine Source\RNSerialization.h" />
     <ClInclude Include="Engine Source\RNSet.h" />
@@ -122,6 +124,7 @@
     <ClInclude Include="Engine Source\RNSTL.h" />
     <ClInclude Include="Engine Source\RNString.h" />
     <ClInclude Include="Engine Source\RNSyncPoint.h" />
+    <ClInclude Include="Engine Source\RNTerrain.h" />
     <ClInclude Include="Engine Source\RNTextNode.h" />
     <ClInclude Include="Engine Source\RNTexture.h" />
     <ClInclude Include="Engine Source\RNTextureAtlas.h" />
@@ -230,6 +233,7 @@
     <ClCompile Include="Engine Source\RNParticle.cpp" />
     <ClCompile Include="Engine Source\RNParticleEmitter.cpp" />
     <ClCompile Include="Engine Source\RNPathManager.cpp" />
+    <ClCompile Include="Engine Source\RNPointGrid.cpp" />
     <ClCompile Include="Engine Source\RNProgress.cpp" />
     <ClCompile Include="Engine Source\RNRandom.cpp" />
     <ClCompile Include="Engine Source\RNRenderer.cpp" />
@@ -241,6 +245,7 @@
     <ClCompile Include="Engine Source\RNSceneManager.cpp" />
     <ClCompile Include="Engine Source\RNSceneNode.cpp" />
     <ClCompile Include="Engine Source\RNSceneNodeAttachment.cpp" />
+    <ClCompile Include="Engine Source\RNSculptable.cpp" />
     <ClCompile Include="Engine Source\RNSerialization.cpp" />
     <ClCompile Include="Engine Source\RNSet.cpp" />
     <ClCompile Include="Engine Source\RNSettings.cpp" />
@@ -253,6 +258,7 @@
     <ClCompile Include="Engine Source\RNStatistics.cpp" />
     <ClCompile Include="Engine Source\RNString.cpp" />
     <ClCompile Include="Engine Source\RNSyncPoint.cpp" />
+    <ClCompile Include="Engine Source\RNTerrain.cpp" />
     <ClCompile Include="Engine Source\RNTextNode.cpp" />
     <ClCompile Include="Engine Source\RNTexture.cpp" />
     <ClCompile Include="Engine Source\RNTextureAtlas.cpp" />
