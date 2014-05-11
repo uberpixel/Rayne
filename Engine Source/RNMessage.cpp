@@ -8,6 +8,10 @@
 
 #include "RNMessage.h"
 
+#ifdef PostMessage
+#undef PostMessage
+#endif
+
 namespace RN
 {
 	RNDefineMeta(Message, Object)

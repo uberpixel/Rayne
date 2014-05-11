@@ -15,6 +15,11 @@
 #include "RNDictionary.h"
 #include "RNThread.h"
 
+#if RN_PLATFORM_WINDOWS
+#pragma push_macro("PostMessage")
+#undef PostMessage
+#endif
+
 namespace RN
 {
 	class Message : public Object
@@ -42,6 +47,18 @@ namespace RN
 		
 		RNAPI void PostMessage(Message *message);
 		RNAPI void PostMessage(String *name, Object *object, Dictionary *info);
+
+#if RN_PLATFORM_WINDOWS
+		// Windows like its PostMessage macro that expands to either PostMessageA or PostMessageW, depending on
+		// wether the user compiles for UniCode or ANSI targets... Not much that we can do about it, except of preach
+		// that macros are evil!
+
+		void PostMessageA(Message *message) { PostMessage(message); }
+		void PostMessageW(Message *message) { PostMessage(message); }
+
+		void PostMessageA(String *name, Object *object, Dictionary *info) { PostMessage(name, object, info); }
+		void PostMessageW(String *name, Object *object, Dictionary *info) { PostMessage(name, object, info); }
+#endif
 		
 		RNAPI void AddObserver(String *name, CallbackType callback, void *cookie);
 		
@@ -53,6 +70,7 @@ namespace RN
 		
 		RNAPI void RemoveObserver(void *cookie);
 		RNAPI void RemoveObserver(void *cookie, String *name);
+
 		
 	private:		
 		struct MessageObserverProxy
@@ -67,5 +85,9 @@ namespace RN
 		RNDeclareSingleton(MessageCenter)
 	};
 }
+
+#if RN_PLATFORM_WINDOWS
+#pragma pop_macro("PostMessage")
+#endif
 
 #endif /* __RAYNE_MESSAGE_H__ */
