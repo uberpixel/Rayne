@@ -139,7 +139,7 @@ namespace RN
 			
 			if(observer.empty())
 			{
-				iterator->first->Release();
+				iterator->first->Autorelease();
 				_observer.erase(iterator);
 			}
 		}
