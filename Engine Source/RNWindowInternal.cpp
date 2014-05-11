@@ -10,6 +10,7 @@
 #include "RNInput.h"
 #include "RNKernel.h"
 #include "RNUIServer.h"
+#include "RNLogging.h"
 
 #if RN_PLATFORM_MAC_OS
 
@@ -183,6 +184,13 @@ namespace RN
 				}
 
 				break;
+
+			case WM_COMMAND:
+			{
+				uint32 command = (wparam & 0xffff);
+				RN::UI::Server::GetSharedInstance()->PerformMenuCommand(command);
+				break;
+			}
 		}
 
 		return DefWindowProcW(window, message, wparam, lparam);

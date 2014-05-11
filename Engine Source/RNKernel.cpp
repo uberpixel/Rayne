@@ -119,6 +119,7 @@ namespace RN
 		HWND _mainWindow;
 		HINSTANCE _instance;
 		WNDCLASSEXW _windowClass;
+		HACCEL _accelerator;
 #endif
 	};
 	
@@ -211,6 +212,7 @@ namespace RN
 		::RegisterClassExW(&_internals->_windowClass);
 
 		_internals->_mainWindow = ::CreateWindowExW(0, L"RNWindowClass", L"", WS_POPUP | WS_CLIPCHILDREN, 0, 0, 640, 480, nullptr, nullptr, _internals->_instance, nullptr);
+		_internals->_accelerator = 0;
 
 		::SetFocus(_internals->_mainWindow);
 		::SetCursor(_internals->_windowClass.hCursor);
@@ -578,8 +580,11 @@ namespace RN
 
 		while(PeekMessageA(&message, 0, 0, 0, PM_REMOVE))
 		{
-			TranslateMessage(&message);
-			DispatchMessageA(&message);
+			if(!_internals->_accelerator || !TranslateAccelerator(_internals->_mainWindow, _internals->_accelerator, &message))
+			{
+				TranslateMessage(&message);
+				DispatchMessageA(&message);
+			}
 		}
 #endif
 		
@@ -845,5 +850,13 @@ namespace RN
 	Context *Kernel::GetContext() const
 	{
 		return _internals->_context;
+	}
+
+	void Kernel::UseAccelerator(HACCEL accelerator)
+	{
+		if(_internals->_accelerator)
+			::DestroyAcceleratorTable(_internals->_accelerator);
+		
+		_internals->_accelerator = accelerator;
 	}
 }

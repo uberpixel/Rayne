@@ -72,7 +72,8 @@ namespace RN
 			_tracking(nullptr),
 			_hover(nullptr),
 			_drawDebugFrames(false),
-			_menu(nullptr)
+			_menu(nullptr),
+			_menuTranslation(nullptr)
 		{
 			uint32 flags = Camera::Flags::Orthogonal | Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoSorting | Camera::Flags::NoDepthWrite | Camera::Flags::BlendedBlitting;
 			_camera = new Camera(Vector2(0.0f), Texture::Format::RGBA16F, flags, RenderStorage::BufferFormatColor);
@@ -89,6 +90,7 @@ namespace RN
 		{
 			_camera->Release();
 			SafeRelease(_menu);
+			SafeRelease(_menuTranslation);
 		}
 		
 		void Server::SetDrawDebugFrames(bool drawDebugFrames)
@@ -440,8 +442,164 @@ namespace RN
 #endif /* RN_PLATFORM_MAC_OS */
 
 #if RN_PLATFORM_WINDOWS
+#define kRNMaxAcceleratorEntries 1024
+
+		struct AcceleratorTable
+		{
+			AcceleratorTable() :
+				_table(new ACCEL[kRNMaxAcceleratorEntries]),
+				_index(0)
+			{}
+
+			~AcceleratorTable()
+			{
+				delete [] _table;
+			}
+
+			std::string AddItem(MenuItem *item, size_t cmd)
+			{
+				RN_ASSERT(_index < 1024, "Too many keyboard shortcuts, maximum is %d", kRNMaxAcceleratorEntries);
+
+				BYTE mask = 0;
+				uint32 modifier = item->GetKeyEquivalentModifierMask();
+
+				const String *string = item->GetKeyEquivalent();
+				UniChar character = string->GetCharacterAtIndex(0);
+
+				WORD key = 0;
+				Range range(0, 1);
+
+				if((character == 'F' || character == 'f') && string->GetLength() > 1)
+				{
+					UniChar fKey = string->GetCharacterAtIndex(1);
+					if(fKey > '0' && fKey <= '9')
+					{
+						uint32 value = fKey - '0';
+						range.length ++;
+						
+						if(string->GetLength() > 2)
+						{
+							fKey = string->GetCharacterAtIndex(2);
+							value += (fKey >= '0' && fKey <= '9') ? (fKey - '0') * 10 : 0;
+
+							if(value >= 10)
+								range.length ++;
+						}
+
+						key = VK_F1 + (value - 1);
+						mask |= FVIRTKEY;
+					}
+					else
+						goto useCharacter;
+				}
+				else
+				{
+				useCharacter:
+					key = static_cast<WORD>(character);
+				}
+
+				mask |= (modifier & KeyModifier::KeyCommand || modifier & KeyModifier::KeyControl) ? FCONTROL : 0;
+				mask |= (modifier & KeyModifier::KeyShift) ? FSHIFT : 0;
+				mask |= (modifier & KeyModifier::KeyAlt) ? FALT : 0;
+
+				_table[_index].cmd   = static_cast<WORD>(cmd);
+				_table[_index].fVirt = mask;
+				_table[_index].key   = key;
+
+				_index ++;
+
+				std::stringstream stream;
+				stream << "\t";
+
+				if(modifier & KeyModifier::KeyCommand || modifier & KeyModifier::KeyControl)
+					stream << "ctrl+";
+				if(modifier & KeyModifier::KeyAlt)
+					stream << "alt+";
+				if(modifier & KeyModifier::KeyShift)
+					stream << "shift+";
+
+				stream << string->GetSubstring(range)->GetUTF8String();
+				return stream.str();
+			}
+
+			HACCEL Translate() const
+			{
+				HACCEL result = ::CreateAcceleratorTable(_table, _index);
+				return result;
+			}
+
+		private:
+			ACCEL *_table;
+			size_t _index;
+		};
+
+		HMENU Server::TranslateRNUIToWinMenu(Menu *menu, AcceleratorTable &table, size_t index)
+		{
+			HMENU hMenu = CreateMenu();
+
+			menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool &stop) {
+
+				size_t cmd = index ++;
+				_menuTranslation->SetObjectForKey(item, Number::WithUint32(static_cast<uint32>(cmd)));
+
+				if(item->IsSeparator())
+				{
+					::InsertMenu(hMenu, -1, MF_BYPOSITION | MF_SEPARATOR, cmd, nullptr);
+				}
+				else
+				{
+					if(item->GetSubMenu())
+					{
+						HMENU subMenu = TranslateRNUIToWinMenu(item->GetSubMenu(), table, cmd);
+						::InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING | MF_POPUP, UINT(subMenu), item->GetTitle()->GetUTF8String());
+					}
+					else
+					{
+						std::stringstream title;
+						title << item->GetTitle()->GetUTF8String();
+
+						if(item->GetKeyEquivalent()->GetLength() > 0)
+							title << table.AddItem(item, cmd);
+						
+						::InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING, cmd, title.str().c_str());
+					}
+				}
+			});
+
+			return hMenu;
+		}
+
 		void Server::TranslateMenuToPlatform()
 		{
+			SafeRelease(_menuTranslation);
+			_menuTranslation = new Dictionary();
+
+			HMENU menu = ::CreateMenu();
+			if(_menu)
+			{
+				AcceleratorTable table;
+				size_t index = 0;
+
+				_menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool &stop) {
+
+					HMENU tMenu = TranslateRNUIToWinMenu(item->GetSubMenu(), table, index);
+					::InsertMenu(menu, -1, MF_BYPOSITION | MF_STRING | MF_POPUP, UINT(tMenu), item->GetTitle()->GetUTF8String());
+
+				});
+
+				HACCEL accelerator = table.Translate();
+				Kernel::GetSharedInstance()->UseAccelerator(accelerator);
+			}
+
+			HWND wnd = Kernel::GetSharedInstance()->GetMainWindow();
+			::SetMenu(wnd, menu);
+		}
+
+		void Server::PerformMenuCommand(uint32 command)
+		{
+			MenuItem *item = _menuTranslation->GetObjectForKey<MenuItem>(Number::WithUint32(static_cast<uint32>(command)));
+			if(item && item->GetCallback())
+				item->GetCallback()(item);
 		}
 #endif
 	}

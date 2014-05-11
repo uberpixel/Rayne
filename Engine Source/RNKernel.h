@@ -26,13 +26,19 @@ namespace RN
 	class KernelInternal;
 	class Window;
 	class Context;
+
+	namespace UI
+	{
+		class Server;
+	}
 	
 	class Kernel : public INonConstructingSingleton<Kernel>
 	{
 	public:
 		friend class Settings;
 		friend class Window;
-		
+		friend class UI::Server;
+
 		RNAPI Kernel(Application *app);
 		RNAPI ~Kernel() override;
 
@@ -78,7 +84,11 @@ namespace RN
 		void Prepare();
 		void Initialize();
 		void DumpSystem();
-	
+
+#if RN_PLATFORM_WINDOWS
+		void UseAccelerator(HACCEL accelerator);
+#endif
+
 		SpinLock _lock;
 		PIMPL<KernelInternal> _internals;
 		

@@ -27,6 +27,7 @@ namespace RN
 	namespace UI
 	{
 		class View;
+		struct AcceleratorTable;
 		
 		class Server : public ISingleton<Server>
 		{
@@ -53,6 +54,9 @@ namespace RN
 #if RN_PLATFORM_MAC_OS
 			void PerformMenuBarAction(void *item);
 #endif
+#if RN_PLATFORM_WINDOWS
+			void PerformMenuCommand(uint32 command);
+#endif
 			
 		protected:
 			RNAPI void Render(Renderer *renderer);
@@ -69,6 +73,9 @@ namespace RN
 			bool ConsumeEvent(Event *event);
 			
 			void TranslateMenuToPlatform();
+#if RN_PLATFORM_WINDOWS
+			HMENU TranslateRNUIToWinMenu(Menu *menu, AcceleratorTable &table, size_t index);
+#endif
 			
 			Camera *_camera;
 			Rect _frame;
@@ -80,6 +87,10 @@ namespace RN
 			
 			Menu *_menu;
 			bool _drawDebugFrames;
+
+#if RN_PLATFORM_WINDOWS
+			Dictionary *_menuTranslation;
+#endif
 			
 			RNDeclareSingleton(Server)
 		};
