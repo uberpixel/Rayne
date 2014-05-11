@@ -17,7 +17,9 @@
 
 #if RN_PLATFORM_WINDOWS
 #pragma push_macro("PostMessage")
+#pragma push_macro("GetObject")
 #undef PostMessage
+#undef GetObject
 #endif
 
 namespace RN
@@ -31,6 +33,11 @@ namespace RN
 		RNAPI String *GetName() const { return _name; }
 		RNAPI Object *GetObject() const { return _object; }
 		RNAPI Dictionary *GetInfo() const { return _info; }
+
+#if RN_PLATFORM_WINDOWS
+		Object *GetObjectA() const { return _object;  }
+		Object *GetObjectW() const { return _object;  }
+#endif
 		
 	protected:
 		String *_name;
@@ -88,6 +95,7 @@ namespace RN
 
 #if RN_PLATFORM_WINDOWS
 #pragma pop_macro("PostMessage")
+#pragma pop_macro("GetObject")
 #endif
 
 #endif /* __RAYNE_MESSAGE_H__ */

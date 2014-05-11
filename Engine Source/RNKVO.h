@@ -19,6 +19,11 @@
 #define kRNObservableNewValueKey RNCSTR("kRNObservableNewValueKey")
 #define kRNObservableOldValueKey RNCSTR("kRNObservableOldValueKey")
 
+#if RN_PLATFORM_WINDOWS
+#pragma push_macro("GetObject")
+#undef GetObject
+#endif
+
 namespace RN
 {
 	class Object;
@@ -38,6 +43,11 @@ namespace RN
 		RNAPI virtual void SetValue(Object *value) = 0;
 		RNAPI virtual Object *GetValue() const = 0;
 		RNAPI Object *GetObject() const { return _object; }
+
+#if RN_PLATFORM_WINDOWS
+		Object *GetObjectA() const { return _object; }
+		Object *GetObjectW() const { return _object; }
+#endif
 		
 		RNAPI void SetWritable(bool writable);
 		bool IsWritable() const { return _flags & (1 << 8); }
@@ -64,5 +74,9 @@ namespace RN
 		void *_opaque;
 	};
 }
+
+#if RN_PLATFORM_WINDOWS
+#pragma pop_macro("GetObject")
+#endif
 
 #endif /* __RAYNE_KVO_H__ */
