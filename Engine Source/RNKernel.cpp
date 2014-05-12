@@ -852,6 +852,7 @@ namespace RN
 		return _internals->_context;
 	}
 
+#if RN_PLATFORM_WINDOWS
 	void Kernel::UseAccelerator(HACCEL accelerator)
 	{
 		if(_internals->_accelerator)
@@ -859,4 +860,5 @@ namespace RN
 		
 		_internals->_accelerator = accelerator;
 	}
+#endif
 }
