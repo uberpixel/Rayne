@@ -525,6 +525,11 @@ namespace RN
 			RNDebug("SetOrthogonalFrustum() called, but the camera is not an orthogonal camera");
 	}
 	
+	void Camera::SetProjectionMatrix(const Matrix &projectionMatrix)
+	{
+		_projectionMatrix = projectionMatrix;
+	}
+	
 	void Camera::DidUpdate(ChangeSet changeSet)
 	{
 		SceneNode::DidUpdate(changeSet);

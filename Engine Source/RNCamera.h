@@ -253,6 +253,7 @@ namespace RN
 		RNAPI void SetClipPlane(const Plane &clipPlane);
 		RNAPI void SetRenderGroups(RenderGroups groups);
 		RNAPI void SetOrthogonalFrustum(float top, float bottom, float left, float right);
+		RNAPI void SetProjectionMatrix(const Matrix &projectionMatrix);
 		
 		RNAPI void Update(float delta) override;
 		RNAPI void UpdateEditMode(float delta) override;
