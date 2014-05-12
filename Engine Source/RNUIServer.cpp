@@ -72,8 +72,10 @@ namespace RN
 			_tracking(nullptr),
 			_hover(nullptr),
 			_drawDebugFrames(false),
-			_menu(nullptr),
-			_menuTranslation(nullptr)
+			_menu(nullptr)
+#if RN_PLATFORM_WINDOWS
+			,_menuTranslation(nullptr)
+#endif
 		{
 			uint32 flags = Camera::Flags::Orthogonal | Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoSorting | Camera::Flags::NoDepthWrite | Camera::Flags::BlendedBlitting;
 			_camera = new Camera(Vector2(0.0f), Texture::Format::RGBA16F, flags, RenderStorage::BufferFormatColor);
@@ -90,7 +92,9 @@ namespace RN
 		{
 			_camera->Release();
 			SafeRelease(_menu);
+#if RN_PLATFORM_WINDOWS
 			SafeRelease(_menuTranslation);
+#endif
 		}
 		
 		void Server::SetDrawDebugFrames(bool drawDebugFrames)
