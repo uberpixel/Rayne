@@ -105,10 +105,16 @@ namespace RN
 #if RN_PLATFORM_WINDOWS
 	void CreateOpenGLContext(gl::Version version, HDC hDC, HGLRC shared, HGLRC *outContext)
 	{
+		int flags = 0;
+
+		if(Settings::GetSharedInstance()->GetBoolForKey(kRNSettingsDebugContextKey))
+			flags |= WGL_CONTEXT_DEBUG_BIT_ARB;
+
 		int attributes[] =
 		{
 			WGL_CONTEXT_MAJOR_VERSION_ARB, 0,
 			WGL_CONTEXT_MINOR_VERSION_ARB, 0,
+			WGL_CONTEXT_FLAGS_ARB, flags,
 			WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
 			0
 		};

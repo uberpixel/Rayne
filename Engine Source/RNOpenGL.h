@@ -90,7 +90,8 @@ namespace RN
 			TessellationShaders,
 			AnisotropicFilter,
 			ShaderBinary,
-			ProgramValidation
+			ProgramValidation,
+			DebugOutput
 		};
 		
 		Version MaximumVersion();
@@ -98,7 +99,7 @@ namespace RN
 		
 		void CheckForError(const char *file, int line);
 		bool SupportsFeature(Feature feature);
-		bool SupportsExtensions(const std::string& extension);
+		bool SupportsExtension(const std::string &extension);
 
 		// 1.0
 		extern RNAPI PFNGLCULLFACEPROC CullFace;
@@ -606,6 +607,12 @@ namespace RN
 		extern RNAPI PFNGLDEPTHRANGEINDEXEDPROC DepthRangeIndexed;
 		extern RNAPI PFNGLGETFLOATI_VPROC GetFloati_v;
 		extern RNAPI PFNGLGETDOUBLEI_VPROC GetDoublei_v;
+
+		// Extensions
+		extern RNAPI PFNGLDEBUGMESSAGECONTROLPROC DebugMessageControl;
+		extern RNAPI PFNGLDEBUGMESSAGEINSERTPROC DebugMessageInsert;
+		extern RNAPI PFNGLDEBUGMESSAGECALLBACKPROC DebugMessageCallback;
+		extern RNAPI PFNGLGETDEBUGMESSAGELOGPROC GetDebugMessageLog;
 	}
 
 #if RN_PLATFORM_WINDOWS

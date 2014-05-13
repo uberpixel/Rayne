@@ -102,7 +102,7 @@ namespace RN
 			return (__features.find(feature) != __features.end());
 		}
 		
-		bool SupportsExtensions(const std::string& extension)
+		bool SupportsExtension(const std::string &extension)
 		{
 			return (__extensions.find(extension) != __extensions.end());
 		}
@@ -182,11 +182,12 @@ namespace RN
 					AddFeature(Feature::GeometryShaders);
 					AddFeature(Feature::ProgramValidation);
 					
-					if(SupportsExtensions("GL_EXT_texture_filter_anisotropic"))
+					if(SupportsExtension("GL_EXT_texture_filter_anisotropic"))
 						AddFeature(Feature::AnisotropicFilter);
-					
-					if(SupportsExtensions("GL_ARB_get_program_binary"))
+					if(SupportsExtension("GL_ARB_get_program_binary"))
 						AddFeature(Feature::ShaderBinary);
+					if(SupportsExtension("GL_ARB_debug_output"))
+						AddFeature(Feature::DebugOutput);
 					
 					break;
 #endif
