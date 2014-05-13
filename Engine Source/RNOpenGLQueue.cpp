@@ -11,6 +11,7 @@
 #include "RNThread.h"
 #include "RNLogging.h"
 #include "RNSettings.h"
+#include "RNMessage.h"
 
 namespace RN
 {
@@ -203,6 +204,7 @@ namespace RN
 				_context->MakeActiveContext();
 
 				EnableDebugOutput();
+				MessageCenter::GetSharedInstance()->PostMessage(kRNOpenGLQueueContextChangedMessage, _context, nullptr);
 			});
 		}
 		
