@@ -80,7 +80,6 @@ namespace RN
 			uint32 flags = Camera::Flags::Orthogonal | Camera::Flags::UpdateAspect | Camera::Flags::UpdateStorageFrame | Camera::Flags::NoSorting | Camera::Flags::NoDepthWrite | Camera::Flags::BlendedBlitting;
 			_camera = new Camera(Vector2(0.0f), Texture::Format::RGBA16F, flags, RenderStorage::BufferFormatColor);
 			_camera->SetClearColor(RN::Color(0.0f, 0.0f, 0.0f, 0.0f));
-			_camera->SetFlags(_camera->GetFlags() | Camera::Flags::Orthogonal);
 			_camera->SetClipNear(-500.0f);
 			_camera->SetLightManager(nullptr);
 			_camera->RemoveFromWorld();
