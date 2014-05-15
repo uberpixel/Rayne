@@ -13,6 +13,8 @@
 #include "RNRingbuffer.h"
 #include "RNSyncPoint.h"
 
+#define kRNOpenGLQueueContextChangedMessage RNCSTR("kRNOpenGLQueueContextChangedMessage")
+
 namespace RN
 {
 	class Thread;

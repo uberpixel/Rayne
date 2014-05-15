@@ -33,10 +33,6 @@ namespace RN
 		_fixedScaleFactor = (scaleFactor > 0.0f);
 		_scaleFactor = _fixedScaleFactor ? scaleFactor : Kernel::GetSharedInstance()->GetActiveScaleFactor();
 		
-		OpenGLQueue::GetSharedInstance()->SubmitCommand([this] {
-			gl::GenFramebuffers(1, &_framebuffer);
-		});
-		
 		MessageCenter::GetSharedInstance()->AddObserver(kRNWindowScaleFactorChanged, [this](Message *message) {
 			_scaleFactor = Kernel::GetSharedInstance()->GetActiveScaleFactor();
 			_sizeChanged = true;
@@ -284,6 +280,9 @@ namespace RN
 		OpenGLQueue *queue = OpenGLQueue::GetSharedInstance();
 		
 		queue->SubmitCommand([this] {
+			if(!_framebuffer)
+				gl::GenFramebuffers(1, &_framebuffer);
+
 			gl::BindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
 		});
 		

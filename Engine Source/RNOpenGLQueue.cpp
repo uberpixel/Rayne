@@ -9,10 +9,90 @@
 #include "RNOpenGLQueue.h"
 #include "RNContextInternal.h"
 #include "RNThread.h"
+#include "RNLogging.h"
+#include "RNSettings.h"
+#include "RNMessage.h"
 
 namespace RN
 {
 	RNDefineSingleton(OpenGLQueue)
+
+	void APIENTRY OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *param)
+	{
+		Log::Loggable loggable = Log::Loggable(Log::Level::Warning);
+		loggable << "OGL Debug: Source: ";
+
+		switch(source)
+		{
+			case GL_DEBUG_SOURCE_API:
+				loggable << "OpenGL ";
+				break;
+			case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+				loggable << "Window system ";
+				break;
+			case GL_DEBUG_SOURCE_THIRD_PARTY:
+				loggable << "Third party ";
+				break;
+			case GL_DEBUG_SOURCE_APPLICATION:
+				loggable << "Application ";
+				break;
+			case GL_DEBUG_SOURCE_OTHER:
+				loggable << "Other ";
+				break;
+		}
+
+		loggable << "Type: ";
+		switch(type)
+		{
+			case GL_DEBUG_TYPE_ERROR:
+				loggable << "Error ";
+				break;
+			case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+				loggable << "Deprecated behavior ";
+				break;
+			case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+				loggable << "Undefined behavior ";
+				break;
+			case GL_DEBUG_TYPE_PORTABILITY:
+				loggable << "Portability ";
+				break;
+			case GL_DEBUG_TYPE_PERFORMANCE:
+				loggable << "Performance ";
+				break;
+			case GL_DEBUG_TYPE_OTHER:
+				loggable << "Other ";
+				break;
+		}
+
+		loggable << "Severity: ";
+
+		switch(severity)
+		{
+			case GL_DEBUG_SEVERITY_HIGH:
+				loggable << "High ";
+				break;
+			case GL_DEBUG_SEVERITY_MEDIUM:
+				loggable << "Medium ";
+				break;
+			case GL_DEBUG_SEVERITY_LOW:
+				loggable << "Low ";
+				break;
+		}
+
+		loggable << "ID: " << id << " Message: " << message;
+	}
+
+	void EnableDebugOutput()
+	{
+		if(gl::SupportsFeature(gl::Feature::DebugOutput) && Settings::GetSharedInstance()->GetBoolForKey(kRNSettingsDebugContextKey))
+		{
+			RNDebug("GL debug callback set");
+
+			gl::DebugMessageCallback(&OpenGLDebugCallback, nullptr);
+			gl::Enable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		}
+	}
+
 	
 	OpenGLQueue::OpenGLQueue() :
 		_running(false),
@@ -104,6 +184,8 @@ namespace RN
 		bool hadContext = (_context != nullptr);
 		if(!hadContext)
 		{
+			EnableDebugOutput();
+
 			std::unique_lock<std::mutex> lock(_signalLock);
 			_context = SafeRetain(context);
 			_signal.notify_one();
@@ -120,7 +202,9 @@ namespace RN
 				
 				_context = SafeRetain(context);
 				_context->MakeActiveContext();
-				
+
+				EnableDebugOutput();
+				MessageCenter::GetSharedInstance()->PostMessage(kRNOpenGLQueueContextChangedMessage, _context, nullptr);
 			});
 		}
 		

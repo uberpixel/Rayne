@@ -161,6 +161,7 @@ namespace RN
 				LONG result;
 				
 				std::wstring faceName(name.begin(), name.end());
+				std::vector<std::pair<std::wstring, std::wstring>> matches;
 				
 				result = RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows NT\\CurrentVersion\\Fonts", 0, KEY_READ, &hKey);
 				if(result != ERROR_SUCCESS)
@@ -175,11 +176,8 @@ namespace RN
 				LPBYTE valueData = new BYTE[maxValueDataSize];
 				DWORD valueIndex = 0;
 				DWORD valueNameSize, valueDataSize, valueType;
-				std::wstring fontFile;
 				
 				do {
-					
-					fontFile.clear();
 					valueDataSize = maxValueDataSize;
 					valueNameSize = maxValueNameSize;
 					
@@ -191,11 +189,8 @@ namespace RN
 					
 					std::wstring wsValueName(valueName, valueNameSize);
 					
-					if(_wcsnicmp(faceName.c_str(), wsValueName.c_str(), faceName.length()) == 0)
-					{
-						fontFile.assign((LPWSTR)valueData, valueDataSize);
-						break;
-					}
+					if(wsValueName.length() >= faceName.length() && _wcsnicmp(faceName.c_str(), wsValueName.c_str(), faceName.length()) == 0)
+						matches.emplace_back(std::make_pair(wsValueName, std::wstring((LPWSTR)valueData, valueDataSize)));
 					
 				} while(result != ERROR_NO_MORE_ITEMS);
 				
@@ -204,9 +199,38 @@ namespace RN
 				
 				RegCloseKey(hKey);
 				
+				if(matches.empty())
+					throw Exception(Exception::Type::GenericException, "No font with name " + name);
+
+				// Find the best match
+				std::wstring fontFile;
+
+				{
+					size_t bestMatched = 0;
+
+					for(auto &match : matches)
+					{
+						bool bold = (match.first.find(L"Bold") != std::wstring::npos);
+						bool italic = (match.first.find(L"Italic") != std::wstring::npos);
+
+						if((bold && !(_descriptor.style & FontDescriptor::FontStyleBold)) || (italic && !(_descriptor.style & FontDescriptor::FontStyleItalic)))
+							continue;
+
+						size_t matched = 0;
+
+						if(bold && (_descriptor.style & FontDescriptor::FontStyleBold))
+							matched ++;
+						if(italic && (_descriptor.style & FontDescriptor::FontStyleItalic))
+							matched ++;
+
+						if(matched >= bestMatched)
+							fontFile = match.second;
+					}
+				}
+
 				if(fontFile.empty())
 					throw Exception(Exception::Type::GenericException, "No font with name " + name);
-				
+
 				WCHAR winDir[MAX_PATH];
 				::GetWindowsDirectoryW(winDir, MAX_PATH);
 				

@@ -601,6 +601,12 @@ namespace RN
 		PFNGLDEPTHRANGEINDEXEDPROC DepthRangeIndexed = nullptr;
 		PFNGLGETFLOATI_VPROC GetFloati_v = nullptr;
 		PFNGLGETDOUBLEI_VPROC GetDoublei_v = nullptr;
+
+		// Extension
+		PFNGLDEBUGMESSAGECONTROLPROC DebugMessageControl = nullptr;
+		PFNGLDEBUGMESSAGEINSERTPROC DebugMessageInsert = nullptr;
+		PFNGLDEBUGMESSAGECALLBACKPROC DebugMessageCallback = nullptr;
+		PFNGLGETDEBUGMESSAGELOGPROC GetDebugMessageLog = nullptr;
 	}
 
 // Binding
@@ -1150,6 +1156,14 @@ namespace RN
 				BindOpenGLExtension(ProgramBinary, "ARB");
 				BindOpenGLExtension(ProgramParameteri, "ARB");
 			}
+		}
+
+		if(gl::SupportsFeature(gl::Feature::DebugOutput))
+		{
+			BindOpenGLExtension(DebugMessageControl, "ARB");
+			BindOpenGLExtension(DebugMessageInsert, "ARB");
+			BindOpenGLExtension(DebugMessageCallback, "ARB");
+			BindOpenGLExtension(GetDebugMessageLog, "ARB");
 		}
 	}
 }
