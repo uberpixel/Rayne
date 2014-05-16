@@ -10,6 +10,7 @@
 #include "RNFileManager.h"
 #include "RNPathManager.h"
 #include "RNMessage.h"
+#include "RNAutoreleasePool.h"
 
 namespace RN
 {
@@ -790,6 +791,8 @@ namespace RN
 	
 	bool FileManager::AddSearchPath(const std::string& tpath)
 	{
+		AutoreleasePool pool;
+		
 		bool hasPath = false;
 		char buffer[1024];
 

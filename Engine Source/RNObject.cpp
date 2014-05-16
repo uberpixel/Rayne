@@ -90,7 +90,10 @@ namespace RN
 		if(!pool)
 		{
 			Log::Loggable loggable(Log::Level::Error);
-			loggable << "Autorelease() with no pool in place, " << this << " will leak!";
+			
+			MetaClass *meta = GetClass();
+			
+			loggable << "Autorelease() with no pool in place, " << this << " (" << meta->GetFullname() << ") will leak!";
 			
 			return this;
 		}

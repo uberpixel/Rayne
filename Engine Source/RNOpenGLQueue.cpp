@@ -12,6 +12,7 @@
 #include "RNLogging.h"
 #include "RNSettings.h"
 #include "RNMessage.h"
+#include "RNAutoreleasePool.h"
 
 namespace RN
 {
@@ -221,6 +222,7 @@ namespace RN
 		_context->MakeActiveContext();
 		
 		Task task;
+		AutoreleasePool pool;
 		
 		try
 		{
