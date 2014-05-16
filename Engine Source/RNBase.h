@@ -94,11 +94,16 @@
 #if RN_PLATFORM_LINUX
 
 	#include <X11/extensions/Xrandr.h>
+
+	//define mess with previous include...
+	#define X11_None 0L
 	#undef FilterNearest
+	#undef None
+	#undef Always
+	#undef Below
+	#undef Above
 
 	#include <GL/glx.h>
-	#include "glext.h"
-	
 #endif
 
 #include "RNMath.h"

@@ -161,8 +161,8 @@ namespace RN
 		delete _internals->_uiserver;
 
 #if RN_PLATFORM_LINUX
-		Display *dpy = Context::_dpy;
-		_context->Release();
+		Display *dpy = _internals->_context->_internals->display;
+		_internals->_context->Release();
 		XCloseDisplay(dpy);
 #else
 		_internals->_context->Release();
@@ -590,10 +590,10 @@ namespace RN
 		
 #if RN_PLATFORM_LINUX
 		XEvent event;
-		Atom wmDeleteMessage = XInternAtom(_context->_dpy, "WM_DELETE_WINDOW", False);
-		while(XPending(_context->_dpy))
+		Atom wmDeleteMessage = XInternAtom(_internals->_context->_internals->display, "WM_DELETE_WINDOW", False);
+		while(XPending(_internals->_context->_internals->display))
 		{
-			XNextEvent(_context->_dpy, &event);
+			XNextEvent(_internals->_context->_internals->display, &event);
 			
 			switch(event.type)
 			{
@@ -605,7 +605,7 @@ namespace RN
 					break;
 					
 				default:
-					_input->HandleEvent(&event);
+//					_internals->_input->HandleEvent(&event);
 					break;
 			}
 		}

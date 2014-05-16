@@ -19,7 +19,7 @@ namespace RN
 
 	void APIENTRY OpenGLDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar *message, const void *param)
 	{
-		Log::Loggable loggable = Log::Loggable(Log::Level::Warning);
+		Log::Loggable loggable(Log::Level::Warning);
 		loggable << "OGL Debug: Source: ";
 
 		switch(source)

@@ -441,7 +441,7 @@ namespace RN
 	
 	void Mesh::Chunk::SetData(const void *data)
 	{
-		std::memcpy(_begin, data, _range.length * _stride);
+		memcpy(_begin, data, _range.length * _stride);
 		_dirty = true;
 	}
 	
@@ -470,7 +470,7 @@ namespace RN
 		uint8 *temp = reinterpret_cast<uint8 *>(_begin);
 		temp += range.origin * _stride;
 		
-		std::memcpy(temp, data, range.length * _stride);
+		memcpy(temp, data, range.length * _stride);
 		_dirty = true;
 	}
 	

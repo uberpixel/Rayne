@@ -37,9 +37,10 @@ namespace RN
 #endif
 		
 #if RN_PLATFORM_LINUX
-		XVisualInfo vi;
+		XVisualInfo *vi;
 		GLXContext context;
 		XID win;
+		Display *display = 0;
 #endif
 	};
 	

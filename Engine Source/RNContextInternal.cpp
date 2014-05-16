@@ -15,10 +15,6 @@
 namespace RN
 {
 	RNDefineMeta(Context, Object)
-	
-#if RN_PLATFORM_LINUX
-	Display *Context::_dpy = 0;
-#endif
 
 	extern void BindOpenGLCore();
 	extern void BindOpenGLFunctions(gl::Version version);
@@ -284,55 +280,55 @@ namespace RN
 					GLX_GREEN_SIZE, 8,
 					GLX_BLUE_SIZE, 8,
 					GLX_DEPTH_SIZE, 16, 
-					GLX_DOUBLEBUFFER, None};
+					GLX_DOUBLEBUFFER, X11_None};
 		int dummy;
 
-		if (_dpy == 0)
-		{
+//		if(_internals->display == 0)
+//		{
 			/*** (1) open a connection to the X server ***/
-			_dpy = XOpenDisplay(NULL);
-			if (_dpy == NULL)
-				throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "could not open display");
-		}
+			_internals->display = XOpenDisplay(NULL);
+			if(_internals->display == NULL)
+				throw Exception(Exception::Type::NoGPUException, "could not open display");
+//		}
 
 		/*** (2) make sure OpenGL's GLX extension supported ***/
-		if(!glXQueryExtension(_dpy, &dummy, &dummy))
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "X server has no OpenGL GLX extension");
+		if(!glXQueryExtension(_internals->display, &dummy, &dummy))
+			throw Exception(Exception::Type::NoGPUException, "X server has no OpenGL GLX extension");
 
 		/*** (3) find an appropriate visual ***/
 
 		// find an OpenGL-capable RGB visual with depth and double buffer 
-		_vi = glXChooseVisual(_dpy, DefaultScreen(_dpy), attributes);
-		if (_vi == NULL)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "no RGB visual with depth buffer and double buffer");
+		_internals->vi = glXChooseVisual(_internals->display, DefaultScreen(_internals->display), attributes);
+		if(_internals->vi == NULL)
+			throw Exception(Exception::Type::NoGPUException, "no RGB visual with depth buffer and double buffer");
 
-		if (_vi->c_class != TrueColor)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "TrueColor visual required for this program");
+		if(_internals->vi->c_class != TrueColor)
+			throw Exception(Exception::Type::NoGPUException, "TrueColor visual required for this program");
 
 		/*** (4) create an OpenGL rendering context  ***/
 
 		// create an OpenGL rendering context
-		_context = glXCreateContext(_dpy, _vi, _shared ? _shared->_context : 0,
+		_internals->context = glXCreateContext(_internals->display, _internals->vi, _shared ? _shared->_internals->context : 0,
 							/* direct rendering if possible */ GL_TRUE);
-		if (_context == NULL)
-			throw ErrorException(kErrorGroupGraphics, 0, kGraphicsContextFailed, "could not create rendering context");
+		if(_internals->context == NULL)
+			throw Exception(Exception::Type::NoGPUException, "could not create rendering context");
 
 		// Create fake Invisible XWindow to enable openGl context without window 
 		// create an X colormap since probably not using default visual 
-		cmap = XCreateColormap(_dpy, RootWindow(_dpy, _vi->screen), _vi->visual, AllocNone);
+		cmap = XCreateColormap(_internals->display, RootWindow(_internals->display, _internals->vi->screen), _internals->vi->visual, AllocNone);
 		swa.colormap = cmap;
 		swa.border_pixel = 0;
 		swa.event_mask = KeyPressMask  | KeyReleaseMask | ExposureMask
 					 | ButtonPressMask | ButtonReleaseMask | StructureNotifyMask
 					  | PointerMotionMask | EnterWindowMask | LeaveWindowMask;
 
-		_win = XCreateWindow(_dpy, RootWindow(_dpy, _vi->screen), 0, 0,
-						  1024, 768, 0, _vi->depth, InputOutput, _vi->visual,
+		_internals->win = XCreateWindow(_internals->display, RootWindow(_internals->display, _internals->vi->screen), 0, 0,
+						  1024, 768, 0, _internals->vi->depth, InputOutput, _internals->vi->visual,
 						  CWBorderPixel | CWColormap | CWEventMask, &swa);
 						  
 		// register interest in the delete window message
-	   Atom wmDeleteMessage = XInternAtom(_dpy, "WM_DELETE_WINDOW", False);
-	   XSetWMProtocols(_dpy, _win, &wmDeleteMessage, 1);
+	   Atom wmDeleteMessage = XInternAtom(_internals->display, "WM_DELETE_WINDOW", False);
+	   XSetWMProtocols(_internals->display, _internals->win, &wmDeleteMessage, 1);
 						  
 						  
 		if(_shared)
@@ -368,8 +364,8 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_LINUX
-		glXDestroyContext(_dpy, _context);
-		XDestroyWindow(_dpy, _win);
+		glXDestroyContext(_internals->display, _internals->context);
+		XDestroyWindow(_internals->display, _internals->win);
 #endif
 	}
 
@@ -465,7 +461,7 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_LINUX
-		glXMakeCurrent(_dpy, _win, _context);
+		glXMakeCurrent(_internals->display, _internals->win, _internals->context);
 #endif
 
 		if(_firstActivation)
@@ -492,7 +488,7 @@ namespace RN
 #endif
 
 #if RN_PLATFORM_LINUX
-		glXMakeCurrent(_dpy, None, 0);
+		glXMakeCurrent(_internals->display, X11_None, 0);
 #endif
 	}
 }

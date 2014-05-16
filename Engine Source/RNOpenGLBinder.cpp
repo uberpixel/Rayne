@@ -621,8 +621,8 @@ namespace RN
 #endif
 	
 #if RN_PLATFORM_LINUX
-	#define BindOpenGL(name) gl::name = reinterpret_cast<decltype(gl::name)>(glXGetProcAddressARB(reintrpret_cast<const GLubyte *>("gl" #name)))
-	#define BindOpenGLExtension(name, ext) gl::name = reinterpret_cast<decltype(gl::name)>(glXGetProcAddressARB(reintrpret_cast<const GLubyte *>("gl" #name ext)))
+	#define BindOpenGL(name) gl::name = reinterpret_cast<decltype(gl::name)>(glXGetProcAddressARB(reinterpret_cast<const GLubyte *>("gl" #name)))
+	#define BindOpenGLExtension(name, ext) gl::name = reinterpret_cast<decltype(gl::name)>(glXGetProcAddressARB(reinterpret_cast<const GLubyte *>("gl" #name ext)))
 #endif
 	
 	void BindOpenGLCore()

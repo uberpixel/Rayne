@@ -415,8 +415,8 @@ if(UNIX)
 	else(APPLE)
 		#Make Linux specific setup
 		
-		#Activate SSE3
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
+		#Activate SSE
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.2")
 		
 		#Find libraries
 		find_library(XRANDR_LIBRARY NAMES Xrandr)

@@ -30,12 +30,9 @@ namespace RN
 		float time;
 		float lifespan;
 
-		struct
-		{
-			Vector3 position;
-			Vector2 size;
-			Color color;
-		};
+		Vector3 position;
+		Vector2 size;
+		Color color;
 	};
 	
 	
