@@ -293,6 +293,7 @@ namespace RN
 						break;
 					
 					UnicodeToUTF8(utf32[i], temp);
+					temp += UTF8ByteLengthForUnichar(utf32[i]);
 				}
 				
 				WakeUpWithUTF8String(tdata, temp - tdata, true);
