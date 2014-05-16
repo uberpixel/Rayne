@@ -177,7 +177,7 @@ else(PNG_FOUND)
 endif(PNG_FOUND)
 
 #freetype
-find_package(FREETYPE REQUIRED)
+find_package(Freetype REQUIRED)
 if(FREETYPE_FOUND)
 	set(RAYNE_INCLUDE_PATHS ${RAYNE_INCLUDE_PATHS} ${FREETYPE_INCLUDE_DIRS})
 	set(RAYNE_DEPENDEND_LIBRARIES ${RAYNE_DEPENDEND_LIBRARIES} ${FREETYPE_LIBRARIES})
@@ -186,7 +186,7 @@ else(FREETYPE_FOUND)
 endif(FREETYPE_FOUND)
 
 #jansson
-find_package(JANSSON REQUIRED)
+find_package(Jansson REQUIRED)
 if(JANSSON_FOUND)
 	set(RAYNE_INCLUDE_PATHS ${RAYNE_INCLUDE_PATHS} ${JANSSON_INCLUDE_DIRS})
 	set(RAYNE_DEPENDEND_LIBRARIES ${RAYNE_DEPENDEND_LIBRARIES} ${JANSSON_LIBRARIES})
@@ -195,59 +195,85 @@ else(JANSSON_FOUND)
 endif(JANSSON_FOUND)
 
 
-#Make OSX specific setup
-if(APPLE)
-	#Activate objective-c++
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++ -mtune=core2")
+if(UNIX)
+	if(APPLE)
+		#Make OSX specific setup
+		
+		#Activate objective-c++
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++ -mtune=core2")
 
-	#Find libraries
-	find_library(CORE_SERVICES_LIBRARY CoreServices)
-	find_library(APP_KIT_LIBRARY AppKit)
-	find_library(COCOA_LIBRARY Cocoa)
-	find_library(CORE_DATA_LIBRARY CoreData)
-	find_library(FOUNDATION_LIBRARY Foundation)
-	find_library(IO_KIT_LIBRARY IOKit)
-	find_library(OPENGL_LIBRARY OpenGL)
+		#Find libraries
+		find_library(CORE_SERVICES_LIBRARY CoreServices)
+		find_library(APP_KIT_LIBRARY AppKit)
+		find_library(COCOA_LIBRARY Cocoa)
+		find_library(CORE_DATA_LIBRARY CoreData)
+		find_library(FOUNDATION_LIBRARY Foundation)
+		find_library(IO_KIT_LIBRARY IOKit)
+		find_library(OPENGL_LIBRARY OpenGL)
 
-	#Find header paths
-	find_path(CORE_SERVICES_INCLUDE_PATH CoreServices/CoreServices.h)
-	find_path(APP_KIT_INCLUDE_PATH AppKit/AppKit.h)
-	find_path(COCOA_INCLUDE_PATH Cocoa/Cocoa.h)
-	find_path(CORE_DATA_INCLUDE_PATH CoreData/CoreData.h)
-	find_path(FOUNDATION_INCLUDE_PATH Foundation/Foundation.h)
-	find_path(IO_KIT_INCLUDE_PATH IOKit/IOKitLib.h)
-	find_path(OPENGL_INCLUDE_PATH OpenGL/OpenGL.h)
+		#Find header paths
+		find_path(CORE_SERVICES_INCLUDE_PATH CoreServices/CoreServices.h)
+		find_path(APP_KIT_INCLUDE_PATH AppKit/AppKit.h)
+		find_path(COCOA_INCLUDE_PATH Cocoa/Cocoa.h)
+		find_path(CORE_DATA_INCLUDE_PATH CoreData/CoreData.h)
+		find_path(FOUNDATION_INCLUDE_PATH Foundation/Foundation.h)
+		find_path(IO_KIT_INCLUDE_PATH IOKit/IOKitLib.h)
+		find_path(OPENGL_INCLUDE_PATH OpenGL/OpenGL.h)
 
-	#Hide as advanced settings
-	mark_as_advanced(
-		CORE_SERVICES_LIBRARY CORE_SERVICES_INCLUDE_PATH
-		APP_KIT_LIBRARY APP_KIT_INCLUDE_PATH
-		COCOA_LIBRARY COCOA_INCLUDE_PATH
-		CORE_DATA_LIBRARY CORE_DATA_INCLUDE_PATH
-		FOUNDATION_LIBRARY FOUNDATION_INCLUDE_PATH
-		IO_KIT_LIBRARY IO_KIT_INCLUDE_PATH
-		OPENGL_LIBRARY OPENGL_INCLUDE_PATH)
+		#Hide as advanced settings
+		mark_as_advanced(
+			CORE_SERVICES_LIBRARY CORE_SERVICES_INCLUDE_PATH
+			APP_KIT_LIBRARY APP_KIT_INCLUDE_PATH
+			COCOA_LIBRARY COCOA_INCLUDE_PATH
+			CORE_DATA_LIBRARY CORE_DATA_INCLUDE_PATH
+			FOUNDATION_LIBRARY FOUNDATION_INCLUDE_PATH
+			IO_KIT_LIBRARY IO_KIT_INCLUDE_PATH
+			OPENGL_LIBRARY OPENGL_INCLUDE_PATH)
 
-	#Set library variable
-	set(RAYNE_DEPENDEND_LIBRARIES ${RAYNE_DEPENDEND_LIBRARIES}
-		${CORE_SERVICES_LIBRARY}
-		${APP_KIT_LIBRARY}
-		${COCOA_LIBRARY}
-		${CORE_DATA_LIBRARY}
-		${FOUNDATION_LIBRARY}
-		${IO_KIT_LIBRARY}
-		${OPENGL_LIBRARY})
+		#Set library variable
+		set(RAYNE_DEPENDEND_LIBRARIES ${RAYNE_DEPENDEND_LIBRARIES}
+			${CORE_SERVICES_LIBRARY}
+			${APP_KIT_LIBRARY}
+			${COCOA_LIBRARY}
+			${CORE_DATA_LIBRARY}
+			${FOUNDATION_LIBRARY}
+			${IO_KIT_LIBRARY}
+			${OPENGL_LIBRARY})
 
-	#Set include variable
-	set(RAYNE_INCLUDE_PATHS ${RAYNE_INCLUDE_PATHS}
-		${CORE_SERVICES_INCLUDE_PATH}
-		${APP_KIT_INCLUDE_PATH}
-		${COCOA_INCLUDE_PATH}
-		${CORE_DATA_INCLUDE_PATH}
-		${FOUNDATION_INCLUDE_PATH}
-		${IO_KIT_INCLUDE_PATH}
-		${OPENGL_INCLUDE_PATH})
-endif(APPLE)
+		#Set include variable
+		set(RAYNE_INCLUDE_PATHS ${RAYNE_INCLUDE_PATHS}
+			${CORE_SERVICES_INCLUDE_PATH}
+			${APP_KIT_INCLUDE_PATH}
+			${COCOA_INCLUDE_PATH}
+			${CORE_DATA_INCLUDE_PATH}
+			${FOUNDATION_INCLUDE_PATH}
+			${IO_KIT_INCLUDE_PATH}
+			${OPENGL_INCLUDE_PATH})
+	else(APPLE)
+		#Make Linux specific setup
+		
+		#Activate SSE3
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse4.1")
+		
+		#Find libraries
+		find_library(XRANDR_LIBRARY NAMES Xrandr)
+
+		#Find header paths
+		find_path(XRANDR_INCLUDE_PATH X11/extensions/Xrandr.h)
+
+		#Hide as advanced settings
+		mark_as_advanced(
+			XRANDR_LIBRARY XRANDR_INCLUDE_PATH)
+
+		#Set library variable
+		set(RAYNE_DEPENDEND_LIBRARIES ${RAYNE_DEPENDEND_LIBRARIES}
+			${XRANDR_LIBRARY})
+
+		#Set include variable
+		set(RAYNE_INCLUDE_PATHS ${RAYNE_INCLUDE_PATHS}
+			${XRANDR_INCLUDE_PATH})
+	endif(APPLE)
+endif(UNIX)
 
 #Set include folders
 include_directories(${RAYNE_INCLUDE_PATHS})

@@ -25,13 +25,15 @@ include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Test Game/Classes/")
 add_executable(TestGame "Test Game/Supporting files/main.cpp" ${TEST_GAME_SOURCES})
 
 #Find Rayne and set it as dependency
-find_package(RAYNE REQUIRED)
-if(RAYNE_FOUND)
-	include_directories(${RAYNE_INCLUDE_DIRS})
-	target_link_libraries(TestGame ${RAYNE_LIBRARIES})
-else(RAYNE_FOUND)
-	MESSAGE(FATAL_ERROR "Library not found: Rayne")
-endif(RAYNE_FOUND)
+#find_package(RAYNE REQUIRED)
+#if(RAYNE_FOUND)
+#	include_directories(${RAYNE_INCLUDE_DIRS})
+#	target_link_libraries(TestGame ${RAYNE_LIBRARIES})
+#else(RAYNE_FOUND)
+#	MESSAGE(FATAL_ERROR "Library not found: Rayne")
+#endif(RAYNE_FOUND)
+
+add_dependencies(TestGame Rayne)
 
 #Set defines
 set_target_properties(TestGame PROPERTIES COMPILE_DEFINITIONS "DEBUG=1") 

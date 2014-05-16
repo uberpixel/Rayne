@@ -11,6 +11,10 @@
 
 #include <type_traits>
 
+#if defined(__linux__)
+    #include <cstddef>
+#endif
+
 #define RN_PLATFORM_MAC_OS  0
 #define RN_PLATFORM_WINDOWS 0
 #define RN_PLATFORM_IOS     0
