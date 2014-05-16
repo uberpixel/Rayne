@@ -7,9 +7,10 @@
 //
 
 #include "RNString.h"
+#include "RNStringInternal.h"
 #include "RNFile.h"
-#include "RNBasicString.h"
 #include "RNSerialization.h"
+#include "RNAutoreleasePool.h"
 
 namespace RN
 {
@@ -20,13 +21,13 @@ namespace RN
 	// MARK: String
 	// ---------------------
 	
-#define _ainternal static_cast<BasicString *>(_internal)
+	String::String() :
+		_string(new UTF8String())
+	{}
 	
-	String::String()
-	{
-		_internal = StringFactory::EmptyString()->Retain();
-		_encoding = _ainternal->CharacterEncoding();
-	}
+	String::String(UTF8String *string) :
+		_string(string->Retain())
+	{}
 	
 	String::String(const char *string, va_list args)
 	{
@@ -39,67 +40,41 @@ namespace RN
 		vsnprintf(formatted, size, string, args);
 		va_end(temp);
 		
-		_internal = StringFactory::ConstructString(formatted, Encoding::ASCII, StringTraits::Mutable);
-		_encoding = _ainternal->CharacterEncoding();
+		_string = new UTF8String(reinterpret_cast<uint8 *>(formatted), strlen(formatted), true);
 		
 		delete [] formatted;
 	}
 	
 	String::String(const char *string, bool constant)
 	{
-		StringTraits traits = constant ? StringTraits::Constant : StringTraits::Mutable;
-		
-		_internal = StringFactory::ConstructString(string, Encoding::ASCII, traits);
-		_encoding = _ainternal->CharacterEncoding();
+		_string = new UTF8String(reinterpret_cast<const uint8 *>(string), kRNNotFound, !constant);
 	}
 	
 	String::String(const char *string, size_t length, bool constant)
 	{
-		StringTraits traits = constant ? StringTraits::Constant : StringTraits::Mutable;
-		
-		_internal = StringFactory::ConstructString(string, length, Encoding::ASCII, traits);
-		_encoding = _ainternal->CharacterEncoding();
+		_string = new UTF8String(reinterpret_cast<const uint8 *>(string), length, !constant);
 	}
 	
-	String::String(const UniChar *string, Encoding encodingHint)
-	{
-		_internal = StringFactory::ConstructString(const_cast<UniChar *>(string), encodingHint);
-		_encoding = _ainternal->CharacterEncoding();
-	}
 	
 	String::String(const void *bytes, Encoding encoding, bool constant)
 	{
-		StringTraits traits = constant ? StringTraits::Constant : StringTraits::Mutable;
-		
-		_internal = StringFactory::ConstructString(bytes, encoding, traits);
-		_encoding = _ainternal->CharacterEncoding();
+		_string = new UTF8String(bytes, kRNNotFound, encoding, !constant);
 	}
 	
 	String::String(const void *bytes, size_t length, Encoding encoding, bool constant)
 	{
-		StringTraits traits = constant ? StringTraits::Constant : StringTraits::Mutable;
-		
-		_internal = StringFactory::ConstructString(bytes, length, encoding, traits);
-		_encoding = _ainternal->CharacterEncoding();
+		_string = new UTF8String(bytes, length, encoding, !constant);
 	}
-	
-	String::String(void *internal)
-	{
-		_internal = internal;
-		_encoding = _ainternal->CharacterEncoding();
-	}
-
 	
 	
 	String::String(const String *string)
 	{
-		BasicString *other = static_cast<BasicString *>(string->_internal);
-		_internal = other->SimpleCopy();
+		_string = string->_string->Copy();
 	}
 	
 	String::~String()
 	{
-		_ainternal->Release();
+		_string->Release();
 	}
 	
 	
@@ -109,14 +84,13 @@ namespace RN
 		size_t length;
 		uint8 *bytes = static_cast<uint8 *>(deserializer->DecodeBytes(&length));
 		
-		_internal = StringFactory::ConstructString(bytes, length, Encoding::UTF8, StringTraits::Mutable);
-		_encoding = _ainternal->CharacterEncoding();
+		_string = new UTF8String(bytes, length, true);
 	}
 	
 	void String::Serialize(Serializer *serializer)
 	{
 		size_t length;
-		uint8 *bytes = GetBytesWithEncoding(Encoding::UTF8, false, &length);
+		uint8 *bytes = GetBytesWithEncoding(Encoding::UTF8, false, length);
 		
 		serializer->EncodeBytes(bytes, length);
 	}
@@ -136,37 +110,19 @@ namespace RN
 	
 	String *String::WithString(const char *string, bool constant)
 	{
-		if(constant)
-		{
-			void *data = const_cast<char *>(string);
-			return StringFactory::DequeueConstantString(data, Encoding::ASCII);
-		}
-		
-		String *temp = new String(string, false);
+		String *temp = new String(string, constant);
 		return temp->Autorelease();
 	}
 	
 	String *String::WithString(const char *string, size_t length, bool constant)
 	{
-		String *temp = new String(string, length, false);
-		return temp->Autorelease();
-	}
-	
-	String *String::WithUnicode(const UniChar *string, Encoding encodingHint)
-	{
-		String *temp = new String(string, encodingHint);
+		String *temp = new String(string, length, constant);
 		return temp->Autorelease();
 	}
 	
 	String *String::WithBytes(const void *bytes, Encoding encoding, bool constant)
 	{
-		if(constant)
-		{
-			void *data = const_cast<void *>(bytes);
-			return StringFactory::DequeueConstantString(data, encoding);
-		}
-		
-		String *string = new String(bytes, encoding, false);
+		String *string = new String(bytes, encoding, constant);
 		return string->Autorelease();
 	}
 	
@@ -176,13 +132,14 @@ namespace RN
 		return string->Autorelease();
 	}
 	
-	String *String::WithContentsOfFile(const std::string& tfile, Encoding encoding)
+	String *String::WithContentsOfFile(const std::string &tfile, Encoding encoding)
 	{
 		File *file = new File(tfile);
 		std::vector<uint8> bytes = std::move(file->GetBytes());
+		size_t size = file->GetSize();
 		file->Release();
 		
-		String *string = new String(bytes.data(), encoding, false);
+		String *string = new String(bytes.data(), size, encoding, false);
 		return string->Autorelease();
 	}
 	
@@ -193,7 +150,7 @@ namespace RN
 	
 	machine_hash String::GetHash() const
 	{
-		return _ainternal->Hash();
+		return _string->GetHash();
 	}
 	
 	bool String::IsEqual(Object *other) const
@@ -205,9 +162,6 @@ namespace RN
 		if(string->GetLength() != GetLength())
 			return false;
 		
-		if(_internal == string->_internal)
-			return true;
-		
 		return (Compare(string) == ComparisonResult::EqualTo);
 	}
 	
@@ -215,26 +169,6 @@ namespace RN
 	// MARK: -
 	// MARK: Mutation
 	// ---------------------
-	
-	void String::PromoteStringIfNeeded(Encoding encoding)
-	{
-		if(!_ainternal->IsMutable())
-		{
-			BasicString *copy = _ainternal->MutableCopy();
-			
-			_ainternal->Release();
-			_internal = copy;
-		}
-		
-		bool needsReEncoding = (_encoding == Encoding::ASCII && encoding != Encoding::ASCII);
-		if(needsReEncoding)
-		{
-			BasicString *copy = StringFactory::ConstructString(_ainternal, encoding);
-			
-			_ainternal->Release();
-			_internal = copy;
-		}
-	}
 	
 	void String::Append(const char *string, ...)
 	{
@@ -250,15 +184,11 @@ namespace RN
 	
 	void String::Append(const String *string)
 	{
-		BasicString *other = static_cast<BasicString *>(string->_internal);
-		
-		PromoteStringIfNeeded(other->CharacterEncoding());
-		_ainternal->ReplaceCharactersInRange(Range(GetLength(), 0), other);
+		_string->ReplaceCharactersInRange(Range(GetLength(), 0), string->_string);
 	}
 	
 	void String::Insert(const String *string, size_t index)
 	{
-		PromoteStringIfNeeded(_ainternal->CharacterEncoding());
 		ReplaceCharacters(string, Range(index, 0));
 	}
 	
@@ -267,14 +197,14 @@ namespace RN
 		UniChar buffer[128];
 		
 		size_t read = 0;
-		size_t length = _ainternal->Length();
+		size_t length = _string->GetLength();
 		
 		bool needsUppercase = true;
 		
 		while(read < length)
 		{
 			size_t left = std::min(length - read, static_cast<size_t>(128));
-			_ainternal->CharactersInRange(buffer, Range(read, left));
+			_string->GetCharactersInRange(buffer, Range(read, left));
 			
 			for(size_t i = 0; i < left; i ++)
 			{
@@ -293,8 +223,8 @@ namespace RN
 					temp[0] = uppercase;
 					temp[1] = 0;
 					
-					BasicString *string = StringFactory::ConstructString(temp, _encoding);
-					_ainternal->ReplaceCharactersInRange(Range(read + i, 1), string);
+					UTF8String *string = new UTF8String(temp, 4, Encoding::UTF32, true);
+					_string->ReplaceCharactersInRange(Range(read + i, 1), string);
 					string->Release();
 				}
 				
@@ -305,23 +235,14 @@ namespace RN
 		}
 	}
 	
-	void String::DeleteCharacters(const Range& range)
+	void String::DeleteCharacters(const Range &range)
 	{
-		PromoteStringIfNeeded(_ainternal->CharacterEncoding());
-		_ainternal->ReplaceCharactersInRange(range, nullptr);
+		_string->ReplaceCharactersInRange(range, nullptr);
 	}
 	
-	void String::ReplaceCharacters(const String *replacement, const Range& range)
+	void String::ReplaceCharacters(const String *replacement, const Range &range)
 	{
-		BasicString *other = nullptr;
-		
-		if(replacement)
-		{
-			other = static_cast<BasicString *>(replacement->_internal);
-			PromoteStringIfNeeded(other->CharacterEncoding());
-		}
-		
-		_ainternal->ReplaceCharactersInRange(range, other);
+		_string->ReplaceCharactersInRange(range, replacement ? replacement->_string : nullptr);
 	}
 	
 	void String::ReplaceOccurrencesOfString(const String *string, const String *replacement)
@@ -348,7 +269,7 @@ namespace RN
 		return GetRangeOfString(string, mode, Range(0, GetLength()));
 	}
 	
-	Range String::GetRangeOfString(const String *string, ComparisonMode mode, const Range& range) const
+	Range String::GetRangeOfString(const String *string, ComparisonMode mode, const Range &range) const
 	{
 		size_t length = string->GetLength();
 		
@@ -358,8 +279,7 @@ namespace RN
 		UniChar characters[kStringUniCharFetch];
 		UniChar *compare = new UniChar[length];
 		
-		BasicString *other = static_cast<BasicString *>(string->_internal);
-		other->CharactersInRange(compare, Range(0, length));
+		string->_string->GetCharactersInRange(compare, Range(0, length));
 		
 		bool found = false;
 		size_t left   = range.length;
@@ -372,7 +292,7 @@ namespace RN
 		while(left > 0 && !found)
 		{
 			size_t read = std::min(left, static_cast<size_t>(kStringUniCharFetch));
-			_ainternal->CharactersInRange(characters, Range(offset, read));
+			_string->GetCharactersInRange(characters, Range(offset, read));
 			
 			for(size_t i = 0; i < read; i ++)
 			{
@@ -396,7 +316,7 @@ namespace RN
 				{
 					CodePoint tpoint = CodePoint(compare[j]);
 					
-					if(mode & ComparisonModeCaseInsensitive)
+					if(mode & ComparisonMode::CaseInsensitive)
 					{
 						point  = point.GetLowerCase();
 						tpoint = tpoint.GetLowerCase();
@@ -434,7 +354,7 @@ namespace RN
 		return Compare(other, mode, Range(0, GetLength()));
 	}
 	
-	ComparisonResult String::Compare(const String *other, ComparisonMode mode, const Range& range) const
+	ComparisonResult String::Compare(const String *other, ComparisonMode mode, const Range &range) const
 	{
 		if(range.length < other->GetLength())
 			return ComparisonResult::GreaterThan;
@@ -445,8 +365,8 @@ namespace RN
 		UniChar charactersA[kStringUniCharFetch];
 		UniChar charactersB[kStringUniCharFetch];
 		
-		BasicString *internalA = static_cast<BasicString *>(_internal);
-		BasicString *internalB = static_cast<BasicString *>(other->_internal);
+		UTF8String *internalA = _string;
+		UTF8String *internalB = other->_string;
 		
 		size_t iA = 0;
 		size_t iB = 0;
@@ -469,7 +389,7 @@ namespace RN
 					\
 				read##Side = std::min(left##Side, static_cast<size_t>(kStringUniCharFetch)); \
 				offset##Side += i##Side; \
-				internal##Side->CharactersInRange(characters##Side, Range(offset##Side, read##Side)); \
+				internal##Side->GetCharactersInRange(characters##Side, Range(offset##Side, read##Side)); \
 				\
 				left##Side -= read##Side; \
 				i##Side = 0; \
@@ -484,13 +404,13 @@ namespace RN
 			CodePoint a = charactersA[iA ++];
 			CodePoint b = charactersB[iB ++];
 			
-			if(mode & ComparisonModeCaseInsensitive)
+			if(mode & ComparisonMode::CaseInsensitive)
 			{
 				a = a.GetLowerCase();
 				b = b.GetLowerCase();
 			}
 			
-			if(mode & ComparisonModeNumerically)
+			if(mode & ComparisonMode::Numerically)
 			{
 				if(a <= 0x7f && b <= 0x7f)
 				{
@@ -561,17 +481,18 @@ namespace RN
 	
 	size_t String::GetLength() const
 	{
-		return _ainternal->Length();
+		return _string->GetLength();
 	}
 	
 	char *String::GetUTF8String() const
 	{
-		return static_cast<char *>(_ainternal->BytesWithEncoding(Encoding::UTF8, false, nullptr));
+		size_t length;
+		return static_cast<char *>(_string->GetBytesWithEncoding(Encoding::UTF8, false, length));
 	}
 	
-	String *String::GetSubstring(const Range& range) const
+	String *String::GetSubstring(const Range &range) const
 	{
-		void *string = static_cast<void *>(_ainternal->Substring(range));
+		UTF8String *string = _string->GetSubstring(range);
 		String *substring = new String(string);
 		
 		return substring->Autorelease();
@@ -579,12 +500,12 @@ namespace RN
 	
 	UniChar String::GetCharacterAtIndex(size_t index) const
 	{
-		return _ainternal->CharacterAtIndex(index);
+		return _string->GetCharacterAtIndex(index);
 	}
 	
-	uint8 *String::GetBytesWithEncoding(Encoding encoding, bool lossy, size_t *outLength) const
+	uint8 *String::GetBytesWithEncoding(Encoding encoding, bool lossy, size_t &outLength) const
 	{		
-		return static_cast<uint8 *>(_ainternal->BytesWithEncoding(encoding, lossy, outLength));
+		return static_cast<uint8 *>(_string->GetBytesWithEncoding(encoding, lossy, outLength));
 	}
 	
 	Array *String::GetComponentsSeparatedByString(const String *other) const
@@ -617,5 +538,28 @@ namespace RN
 		}
 		
 		return array->Autorelease();
+	}
+	
+	
+	bool String::WriteToFile(const std::string &path, Encoding encoding)
+	{
+		AutoreleasePool pool;
+		
+		try
+		{
+			size_t length;
+			void *buffer = GetBytesWithEncoding(encoding, true, length);
+			
+			File *file = new File(path, File::FileMode::Write);
+			file->WriteBuffer(buffer, length);
+			file->Release();
+			
+			
+			return true;
+		}
+		catch(...)
+		{}
+		
+		return false;
 	}
 }

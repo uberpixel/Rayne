@@ -16,8 +16,6 @@ set(RAYNE_SOURCES
 	RNApplication.h
 	RNArray.cpp
 	RNArray.h
-	RNASCIIString.cpp
-	RNASCIIString.h
 	RNAsset.cpp
 	RNAsset.h
 	RNAttributedString.cpp
@@ -27,8 +25,6 @@ set(RAYNE_SOURCES
 	RNBase.cpp
 	RNBase.h
 	RNBaseInternal.h
-	RNBasicString.cpp
-	RNBasicString.h
 	RNBillboard.cpp
 	RNBillboard.h
 	RNCamera.cpp
@@ -201,6 +197,8 @@ set(RAYNE_SOURCES
 	RNSTL.h
 	RNString.cpp
 	RNString.h
+	RNStringInternal.cpp
+	RNStringInternal.h
 	RNSyncPoint.cpp
 	RNSyncPoint.h
 	RNTerrain.cpp
@@ -279,8 +277,6 @@ set(RAYNE_SOURCES
 	RNUIWidgetInternals.h
 	RNUnicode.cpp
 	RNUnicode.h
-	RNUTF8String.cpp
-	RNUTF8String.h
 	RNValue.cpp
 	RNValue.h
 	RNVector.h

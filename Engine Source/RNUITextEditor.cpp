@@ -138,7 +138,7 @@ namespace RN
 								unicode[0] = event->GetCode();
 								unicode[1] = 0;
 								
-								InsertString(String::WithUnicode(unicode));
+								InsertString(String::WithBytes(unicode, Encoding::UTF32));
 							}
 							break;
 						}

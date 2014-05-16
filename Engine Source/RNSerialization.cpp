@@ -60,7 +60,7 @@ namespace RN
 			Number *index = static_cast<Number *>(value);
 			
 			size_t length;
-			uint8 *tname = name->GetBytesWithEncoding(Encoding::UTF8, false, &length);
+			uint8 *tname = name->GetBytesWithEncoding(Encoding::UTF8, false, length);
 			
 			temp = static_cast<uint32>(length);
 			
