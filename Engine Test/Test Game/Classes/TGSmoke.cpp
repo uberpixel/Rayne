@@ -20,9 +20,9 @@ namespace TG
 			time += delta;
 			lifespan -= delta;
 			
-			color.a = alphaInterpolator.GetValue(time);
-			size = sizeInterpolator.GetValue(time);
-			position += velocity*delta;
+			storage.color.a = alphaInterpolator.GetValue(time);
+			storage.size = sizeInterpolator.GetValue(time);
+			storage.position += velocity*delta;
 		}
 		
 		RN::Vector3 velocity;
@@ -109,15 +109,15 @@ namespace TG
 		particle->lifespan = 10.0f;
 		
 		particle->velocity = _rng->RandomVector3Range(_velocityMin, _velocityMax);
-		particle->position = _rng->RandomVector3Range(_positionMin, _positionMax);
+		particle->storage.position = _rng->RandomVector3Range(_positionMin, _positionMax);
 		
 		float sizeScale = 1.0f;
 		if(!GetIsLocal())
 		{
 			sizeScale = GetWorldScale().GetMax();
 			
-			particle->position *= sizeScale;
-			particle->position += GetWorldPosition();
+			particle->storage.position *= sizeScale;
+			particle->storage.position += GetWorldPosition();
 			particle->velocity *= sizeScale;
 		}
 		
