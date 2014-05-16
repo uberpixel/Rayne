@@ -105,6 +105,10 @@ namespace RN
 				
 			case Type::Matrix:
 				return 16;
+
+			default:
+				throw Exception(Exception::Type::InconsistencyException, "This should NEVER be reached!");
+				break;
 		}
 	}
 	

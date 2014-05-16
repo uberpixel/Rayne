@@ -250,6 +250,10 @@ namespace RN
 					t -= 2.0;
 					return _startValue + (_difference / 2.0 * (t * t * t * t * t + 2.0));
 				}
+
+				default:
+					throw Exception(Exception::Type::InconsistencyException, "This should NEVER be reached!");
+					break;
 			}
 		}
 			

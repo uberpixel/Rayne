@@ -649,6 +649,10 @@ namespace RN
 				
 				return data->Autorelease();
 			}
+
+			default:
+				throw Exception(Exception::Type::InconsistencyException, "This should NEVER be reached!");
+				break;
 		}
 	}
 	
