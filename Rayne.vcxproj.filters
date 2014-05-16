@@ -62,16 +62,7 @@
     <ClInclude Include="Engine Source\RNValue.h">
       <Filter>Objects</Filter>
     </ClInclude>
-    <ClInclude Include="Engine Source\RNUTF8String.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
     <ClInclude Include="Engine Source\RNUnicode.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNASCIIString.h">
-      <Filter>Objects</Filter>
-    </ClInclude>
-    <ClInclude Include="Engine Source\RNBasicString.h">
       <Filter>Objects</Filter>
     </ClInclude>
     <ClInclude Include="Engine Source\RNBaseInternal.h">
@@ -488,6 +479,9 @@
     <ClInclude Include="Engine Source\RNPointGrid.h">
       <Filter>Objects</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNStringInternal.h">
+      <Filter>Objects</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
@@ -547,16 +541,7 @@
     <ClCompile Include="Engine Source\RNValue.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
-    <ClCompile Include="Engine Source\RNUTF8String.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
     <ClCompile Include="Engine Source\RNUnicode.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNASCIIString.cpp">
-      <Filter>Objects</Filter>
-    </ClCompile>
-    <ClCompile Include="Engine Source\RNBasicString.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
     <ClCompile Include="Engine Source\RNData.cpp">
@@ -866,6 +851,9 @@
       <Filter>Scene</Filter>
     </ClCompile>
     <ClCompile Include="Engine Source\RNPointGrid.cpp">
+      <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNStringInternal.cpp">
       <Filter>Objects</Filter>
     </ClCompile>
   </ItemGroup>

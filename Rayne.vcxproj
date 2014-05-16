@@ -17,13 +17,11 @@
     <ClInclude Include="Engine Source\RNAny.h" />
     <ClInclude Include="Engine Source\RNApplication.h" />
     <ClInclude Include="Engine Source\RNArray.h" />
-    <ClInclude Include="Engine Source\RNASCIIString.h" />
     <ClInclude Include="Engine Source\RNAsset.h" />
     <ClInclude Include="Engine Source\RNAttributedString.h" />
     <ClInclude Include="Engine Source\RNAutoreleasePool.h" />
     <ClInclude Include="Engine Source\RNBase.h" />
     <ClInclude Include="Engine Source\RNBaseInternal.h" />
-    <ClInclude Include="Engine Source\RNBasicString.h" />
     <ClInclude Include="Engine Source\RNBillboard.h" />
     <ClInclude Include="Engine Source\RNCamera.h" />
     <ClInclude Include="Engine Source\RNCameraInternal.h" />
@@ -123,6 +121,7 @@
     <ClInclude Include="Engine Source\RNStatistics.h" />
     <ClInclude Include="Engine Source\RNSTL.h" />
     <ClInclude Include="Engine Source\RNString.h" />
+    <ClInclude Include="Engine Source\RNStringInternal.h" />
     <ClInclude Include="Engine Source\RNSyncPoint.h" />
     <ClInclude Include="Engine Source\RNTerrain.h" />
     <ClInclude Include="Engine Source\RNTextNode.h" />
@@ -164,7 +163,6 @@
     <ClInclude Include="Engine Source\RNUIWidget.h" />
     <ClInclude Include="Engine Source\RNUIWidgetInternals.h" />
     <ClInclude Include="Engine Source\RNUnicode.h" />
-    <ClInclude Include="Engine Source\RNUTF8String.h" />
     <ClInclude Include="Engine Source\RNValue.h" />
     <ClInclude Include="Engine Source\RNVector.h" />
     <ClInclude Include="Engine Source\RNWater.h" />
@@ -178,12 +176,10 @@
   <ItemGroup>
     <ClCompile Include="Engine Source\RNApplication.cpp" />
     <ClCompile Include="Engine Source\RNArray.cpp" />
-    <ClCompile Include="Engine Source\RNASCIIString.cpp" />
     <ClCompile Include="Engine Source\RNAsset.cpp" />
     <ClCompile Include="Engine Source\RNAttributedString.cpp" />
     <ClCompile Include="Engine Source\RNAutoreleasePool.cpp" />
     <ClCompile Include="Engine Source\RNBase.cpp" />
-    <ClCompile Include="Engine Source\RNBasicString.cpp" />
     <ClCompile Include="Engine Source\RNBillboard.cpp" />
     <ClCompile Include="Engine Source\RNCamera.cpp" />
     <ClCompile Include="Engine Source\RNCameraInternal.cpp" />
@@ -257,6 +253,7 @@
     <ClCompile Include="Engine Source\RNSpinLock.cpp" />
     <ClCompile Include="Engine Source\RNStatistics.cpp" />
     <ClCompile Include="Engine Source\RNString.cpp" />
+    <ClCompile Include="Engine Source\RNStringInternal.cpp" />
     <ClCompile Include="Engine Source\RNSyncPoint.cpp" />
     <ClCompile Include="Engine Source\RNTerrain.cpp" />
     <ClCompile Include="Engine Source\RNTextNode.cpp" />
@@ -294,7 +291,6 @@
     <ClCompile Include="Engine Source\RNUIWidget.cpp" />
     <ClCompile Include="Engine Source\RNUIWidgetInternals.cpp" />
     <ClCompile Include="Engine Source\RNUnicode.cpp" />
-    <ClCompile Include="Engine Source\RNUTF8String.cpp" />
     <ClCompile Include="Engine Source\RNValue.cpp" />
     <ClCompile Include="Engine Source\RNWater.cpp" />
     <ClCompile Include="Engine Source\RNWindow.cpp" />
