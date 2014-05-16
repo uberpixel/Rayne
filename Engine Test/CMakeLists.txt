@@ -11,15 +11,25 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMakeMod
 #Specify source files
 set(TEST_GAME_SOURCES
 	"Test Game/Classes/TGApplication.cpp"
+	"Test Game/Classes/TGApplication.h"
 	"Test Game/Classes/TGCutScene.cpp"
+	"Test Game/Classes/TGCutScene.h"
 	"Test Game/Classes/TGDebugDrawer.cpp"
+	"Test Game/Classes/TGDebugDrawer.h"
 	"Test Game/Classes/TGFire.cpp"
+	"Test Game/Classes/TGFire.h"
 	"Test Game/Classes/TGForestWorld.cpp"
+	"Test Game/Classes/TGForestWorld.h"
 	"Test Game/Classes/TGLoadingScreen.cpp"
+	"Test Game/Classes/TGLoadingScreen.h"
 	"Test Game/Classes/TGSmoke.cpp"
+	"Test Game/Classes/TGSmoke.h"
 	"Test Game/Classes/TGSponzaWorld.cpp"
+	"Test Game/Classes/TGSponzaWorld.h"
 	"Test Game/Classes/TGSun.cpp"
-	"Test Game/Classes/TGWorld.cpp")
+	"Test Game/Classes/TGSun.h"
+	"Test Game/Classes/TGWorld.cpp"
+	"Test Game/Classes/TGWorld.h")
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Test Game/Classes/")
 add_executable(TestGame "Test Game/Supporting files/main.cpp" ${TEST_GAME_SOURCES})

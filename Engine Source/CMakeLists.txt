@@ -8,132 +8,295 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMakeMod
 #Specify all source files to compile
 #TODO: Maybe sort into groups?
 set(RAYNE_SOURCES
+	Rayne.h
+	RNAABB.h
+	RNAlgorithm.h
+	RNAny.h
 	RNApplication.cpp
+	RNApplication.h
 	RNArray.cpp
+	RNArray.h
 	RNASCIIString.cpp
+	RNASCIIString.h
 	RNAsset.cpp
+	RNAsset.h
 	RNAttributedString.cpp
+	RNAttributedString.h
 	RNAutoreleasePool.cpp
+	RNAutoreleasePool.h
 	RNBase.cpp
+	RNBase.h
+	RNBaseInternal.h
 	RNBasicString.cpp
+	RNBasicString.h
 	RNBillboard.cpp
+	RNBillboard.h
 	RNCamera.cpp
+	RNCamera.h
 	RNCameraInternal.cpp
+	RNCameraInternal.h
 	RNCatalogue.cpp
+	RNCatalogue.h
+	RNColor.h
+	RNConstants.h
 	RNContextInternal.cpp
+	RNContextInternal.h
 	RNCountedSet.cpp
+	RNCountedSet.h
 	RNCPU.cpp
+	RNCPU.h
 	RNData.cpp
+	RNData.h
 	RNDataAttachment.cpp
+	RNDataAttachment.h
 	RNDebug.cpp
+	RNDebug.h
 	RNDecal.cpp
+	RNDecal.h
+	RNDefines.h
 	RNDictionary.cpp
+	RNDictionary.h
 	RNEntity.cpp
+	RNEntity.h
+	RNEnum.h
 	RNException.cpp
+	RNException.h
 	RNFile.cpp
+	RNFile.h
 	RNFileManager.cpp
+	RNFileManager.h
 	RNFormatter.cpp
+	RNFormatter.h
+	RNFunction.h
 	RNGPUBuffer.cpp
+	RNGPUBuffer.h
+	RNHashTableInternal.h
+	RNHit.h
 	RNIndexPath.cpp
+	RNIndexPath.h
 	RNIndexSet.cpp
+	RNIndexSet.h
 	RNInput.cpp
+	RNInput.h
 	RNInstancingData.cpp
+	RNInstancingData.h
 	RNInstancingNode.cpp
+	RNInstancingNode.h
+	RNInterpolation.h
+	RNIntervalTree.h
 	RNJSONSerialization.cpp
+	RNJSONSerialization.h
 	RNKernel.cpp
+	RNKernel.h
 	RNKVO.cpp
+	RNKVO.h
+	RNKVOImplementation.h
 	RNLight.cpp
+	RNLight.h
 	RNLightManager.cpp
+	RNLightManager.h
+	RNLockGuard.h
 	RNLogging.cpp
+	RNLogging.h
 	RNLoggingEngine.cpp
+	RNLoggingEngine.h
 	RNMaterial.cpp
+	RNMaterial.h
 	RNMath.cpp
+	RNMath.h
+	RNMatrix.h
+	RNMatrixQuaternion.h
 	RNMemory.cpp
+	RNMemory.h
 	RNMesh.cpp
+	RNMesh.h
 	RNMessage.cpp
+	RNMessage.h
 	RNModel.cpp
+	RNModel.h
 	RNModule.cpp
+	RNModule.h
 	RNMutex.cpp
+	RNMutex.h
 	RNNull.cpp
+	RNNull.h
 	RNNumber.cpp
+	RNNumber.h
 	RNObject.cpp
+	RNObject.h
 	RNOctreeSceneManager.cpp
+	RNOctreeSceneManager.h
 	RNOpenGL.cpp
+	RNOpenGL.h
 	RNOpenGLBinder.cpp
 	RNOpenGLQueue.cpp
+	RNOpenGLQueue.h
 	RNOpenPanel.cpp
+	RNOpenPanel.h
 	RNParticle.cpp
+	RNParticle.h
 	RNParticleEmitter.cpp
+	RNParticleEmitter.h
 	RNPathManager.cpp
+	RNPathManager.h
+	RNPlane.h
 	RNPointGrid.cpp
+	RNPointGrid.h
 	RNProgress.cpp
+	RNProgress.h
+	RNQuaternion.h
 	RNRandom.cpp
+	RNRandom.h
+	RNRect.h
 	RNRenderer.cpp
+	RNRenderer.h
 	RNRenderer32.cpp
+	RNRenderer32.h
 	RNRenderStorage.cpp
+	RNRenderStorage.h
 	RNResourceCoordinator.cpp
+	RNResourceCoordinator.h
 	RNResourceLoader.cpp
+	RNResourceLoader.h
 	RNResourceLoaderBuiltIn.cpp
+	RNResourceLoaderBuiltIn.h
+	RNRingbuffer.h
 	RNSceneManager.cpp
+	RNSceneManager.h
 	RNSceneNode.cpp
+	RNSceneNode.h
 	RNSceneNodeAttachment.cpp
+	RNSceneNodeAttachment.h
+	RNScopeGuard.h
 	RNSculptable.cpp
+	RNSculptable.h
+	RNSemaphore.h
 	RNSerialization.cpp
+	RNSerialization.h
 	RNSet.cpp
+	RNSet.h
 	RNSettings.cpp
+	RNSettings.h
 	RNSHA2.cpp
+	RNSHA2.h
 	RNShader.cpp
+	RNShader.h
 	RNShaderCache.cpp
+	RNShaderCache.h
+	RNShaderLookup.h
 	RNShaderUnit.cpp
+	RNShaderUnit.h
+	RNSignal.h
+	RNSIMD.h
+	RNSingleton.h
 	RNSkeleton.cpp
+	RNSkeleton.h
+	RNSpatialMap.h
+	RNSphere.h
 	RNSpinLock.cpp
+	RNSpinLock.h
+	RNSQLite3Internal.h
 	RNStatistics.cpp
+	RNStatistics.h
+	RNSTL.h
 	RNString.cpp
+	RNString.h
 	RNSyncPoint.cpp
+	RNSyncPoint.h
 	RNTerrain.cpp
+	RNTerrain.h
 	RNTextNode.cpp
+	RNTextNode.h
 	RNTexture.cpp
+	RNTexture.h
 	RNTextureAtlas.cpp
+	RNTextureAtlas.h
 	RNThread.cpp
+	RNThread.h
+	RNThreadLocalStorage.h
 	RNThreadPool.cpp
+	RNThreadPool.h
 	RNTimer.cpp
+	RNTimer.h
 	RNTriggerZone.cpp
+	RNTriggerZone.h
+	RNTypeTranslator.h
 	RNUIButton.cpp
+	RNUIButton.h
 	RNUIColor.cpp
+	RNUIColor.h
 	RNUIControl.cpp
+	RNUIControl.h
 	RNUIFont.cpp
+	RNUIFont.h
+	RNUIGeometry.h
 	RNUIImage.cpp
+	RNUIImage.h
 	RNUIImageView.cpp
+	RNUIImageView.h
 	RNUILabel.cpp
+	RNUILabel.h
 	RNUIMenu.cpp
+	RNUIMenu.h
 	RNUIOutlineView.cpp
+	RNUIOutlineView.h
 	RNUIOutlineViewCell.cpp
+	RNUIOutlineViewCell.h
 	RNUIProgressIndicator.cpp
+	RNUIProgressIndicator.h
 	RNUIResponder.cpp
+	RNUIResponder.h
 	RNUIScroller.cpp
+	RNUIScroller.h
 	RNUIScrollerInternals.cpp
+	RNUIScrollerInternals.h
 	RNUIScrollView.cpp
+	RNUIScrollView.h
 	RNUISegmentView.cpp
+	RNUISegmentView.h
 	RNUIServer.cpp
+	RNUIServer.h
 	RNUIStyle.cpp
+	RNUIStyle.h
 	RNUITableView.cpp
+	RNUITableView.h
 	RNUITableViewCell.cpp
+	RNUITableViewCell.h
 	RNUITextEditor.cpp
+	RNUITextEditor.h
 	RNUITextField.cpp
+	RNUITextField.h
+	RNUITextStyle.h
 	RNUITypesetter.cpp
+	RNUITypesetter.h
 	RNUIUtilities.cpp
+	RNUIUtilities.h
 	RNUIView.cpp
+	RNUIView.h
 	RNUIWidget.cpp
+	RNUIWidget.h
 	RNUIWidgetInternals.cpp
+	RNUIWidgetInternals.h
 	RNUnicode.cpp
+	RNUnicode.h
 	RNUTF8String.cpp
+	RNUTF8String.h
 	RNValue.cpp
+	RNValue.h
+	RNVector.h
 	RNWater.cpp
+	RNWater.h
 	RNWindow.cpp
+	RNWindow.h
 	RNWindowInternal.cpp
+	RNWindowInternal.h
 	RNWorld.cpp
+	RNWorld.h
 	RNWorldAttachment.cpp
-	RNWorldCoordinator.cpp)
+	RNWorldAttachment.h
+	RNWorldCoordinator.cpp
+	RNWorldCoordinator.h
+	RNWrappingObject.h)
 
 
 #Enable C++11
