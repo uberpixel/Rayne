@@ -17,12 +17,11 @@ namespace RN
 	// MARK: Particle
 	// ---------------------
 	
-	Particle::Particle() :
-		size(Vector2(1.0f))
+	Particle::Particle()
 	{
 		lifespan = 1.0f;
 		time = 0.0f;
-		size = Vector2(1.0f);
+		storage.size = Vector2(1.0f);
 	}
 	
 	Particle::~Particle()
@@ -45,10 +44,10 @@ namespace RN
 	{
 		Particle::Update(delta);
 		
-		color = colorInterpolator.GetValue(time);
-		size = sizeInterpolator.GetValue(time);
+		storage.color = colorInterpolator.GetValue(time);
+		storage.size = sizeInterpolator.GetValue(time);
 		
 		velocity += gravity*delta;
-		position += velocity*delta;
+		storage.position += velocity*delta;
 	}
 }

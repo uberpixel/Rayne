@@ -263,9 +263,9 @@ namespace RN
 			{
 				Particle *particle = _particles[i];
 				
-				data->position = particle->position;
-				data->size     = particle->size;
-				data->color    = particle->color;
+				data->position = particle->storage.position;
+				data->size     = particle->storage.size;
+				data->color    = particle->storage.color;
 				
 				data ++;
 			}
@@ -276,9 +276,9 @@ namespace RN
 			{
 				Particle *particle = _particles[i];
 				
-				data->position = particle->position;
-				data->size     = particle->size;
-				data->color    = particle->color;
+				data->position = particle->storage.position;
+				data->size     = particle->storage.size;
+				data->color    = particle->storage.color;
 				
 				data ++;
 			}
@@ -322,7 +322,7 @@ namespace RN
 		
 		if(_isSorted)
 		{
-			std::sort(_particles.begin(), _particles.end(), [camera](Particle *a, Particle *b) { return  (a->position.GetDistance(camera->GetWorldPosition()) < b->position.GetDistance(camera->GetWorldPosition()));});
+			std::sort(_particles.begin(), _particles.end(), [camera](Particle *a, Particle *b) { return  (a->storage.position.GetDistance(camera->GetWorldPosition()) < b->storage.position.GetDistance(camera->GetWorldPosition()));});
 			
 			UpdateMesh();
 		}
@@ -444,7 +444,7 @@ namespace RN
 	RN::Particle *GenericParticleEmitter::CreateParticle()
 	{
 		GenericParticle *particle = new GenericParticle();
-		particle->position = _rng->RandomVector3Range(_positionRandomizeMin, _positionRandomizeMax);
+		particle->storage.position = _rng->RandomVector3Range(_positionRandomizeMin, _positionRandomizeMax);
 		
 		float lifespan = _rng->RandomFloatRange(_lifeSpan->x, _lifeSpan->y);
 		particle->lifespan = lifespan;
@@ -458,8 +458,8 @@ namespace RN
 			Vector3 scale = GetWorldScale();
 			sizeScale = std::max(std::max(scale.x, scale.y), scale.z);
 			
-			particle->position *= scale;
-			particle->position += GetWorldPosition();
+			particle->storage.position *= scale;
+			particle->storage.position += GetWorldPosition();
 			particle->gravity *= scale;
 			particle->velocity *= scale;
 		}
