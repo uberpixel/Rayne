@@ -115,6 +115,11 @@ namespace RN
 			UpdateVisibleRows(false);
 		}
 		
+		void TableView::ScrollViewDidChangeScrollerInset(ScrollView *scrollView, const EdgeInsets &insets)
+		{
+			SetNeedsLayoutUpdate();
+		}
+		
 		void TableView::SetRowHeight(float rowHeight)
 		{
 			_rowHeight = rowHeight;
@@ -456,17 +461,18 @@ namespace RN
 		{
 			ScrollView::LayoutSubviews();
 			
-			float width = GetFrame().width;
+			float x     = GetScrollerInsets().left;
+			float width = GetFrame().width - (GetScrollerInsets().right + x);
 			
-			size_t count = _cells.GetCount();
-			for(size_t i = 0; i < count; i ++)
-			{
-				TableViewCell *cell = _cells.GetObjectAtIndex<TableViewCell>(i);
+			_cells.Enumerate<TableViewCell>([&](TableViewCell *cell, size_t index, bool &stop) {
+				
 				Rect frame = cell->GetFrame();
+				frame.x     = x;
 				frame.width = width;
 				
 				cell->SetFrame(frame);
-			}
+				
+			});
 		}
 		
 		void TableView::InsertCellForRow(size_t row, float offset)

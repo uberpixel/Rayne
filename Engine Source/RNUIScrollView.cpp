@@ -114,6 +114,10 @@ namespace RN
 				AddSubview(_verticalScroller);
 				AdjustScroller();
 			}
+			else
+			{
+				ScrollerInsetsChanged();
+			}
 		}
 		
 		
@@ -127,12 +131,34 @@ namespace RN
 					float width = _verticalScroller->GetPreferredWidth();
 				
 					_verticalScroller->SetFrame(Rect(bounds.width - width, bounds.y, width, bounds.height));
-					_verticalScroller->SetHidden(false);
+					
+					if(_verticalScroller->IsHidden())
+					{
+						_verticalScroller->SetHidden(false);
+						ScrollerInsetsChanged();
+					}
 				}
-				else
+				else if(!_verticalScroller->IsHidden())
 				{
 					_verticalScroller->SetHidden(true);
+					ScrollerInsetsChanged();
 				}
+			}
+		}
+		
+		void ScrollView::ScrollerInsetsChanged()
+		{
+			EdgeInsets insets;
+			
+			if(_verticalScroller && !_verticalScroller->IsHidden())
+				insets.right = _verticalScroller->GetPreferredWidth();
+			
+			if(insets != _scrollerInsets)
+			{
+				_scrollerInsets = insets;
+				
+				if(_delegate)
+					_delegate->ScrollViewDidChangeScrollerInset(this, _scrollerInsets);
 			}
 		}
 		

@@ -50,6 +50,7 @@ namespace RN
 			
 			_textLabel = new Label();
 			_textLabel->SetLineBreak(LineBreakMode::TruncateMiddle);
+			_textLabel->SetAutoresizingMask(AutoresizingMask::FlexibleWidth);
 			
 			_contentView->AddSubview(_imageView);
 			_contentView->AddSubview(_textLabel);
@@ -70,7 +71,6 @@ namespace RN
 		void TableViewCell::SetFrame(const Rect& frame)
 		{
 			Control::SetFrame(frame);
-			_contentView->SetFrame(Rect(Vector2(), frame.GetSize()));
 		}
 		
 		void TableViewCell::SetIndentation(float indentation)
@@ -89,7 +89,7 @@ namespace RN
 			
 			Rect contentFrame = Rect(Vector2(), GetFrame().GetSize());
 			contentFrame.width -= _indentation;
-			contentFrame.x += _indentation;
+			contentFrame.x     += _indentation;
 			
 			_contentView->SetFrame(contentFrame);
 			

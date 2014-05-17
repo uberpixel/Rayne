@@ -71,7 +71,7 @@ namespace RN
 			_keyWidget(nullptr),
 			_tracking(nullptr),
 			_hover(nullptr),
-			_drawDebugFrames(false),
+			_drawDebugFrames(true),
 			_menu(nullptr)
 #if RN_PLATFORM_WINDOWS
 			,_menuTranslation(nullptr)

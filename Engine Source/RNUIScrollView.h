@@ -23,6 +23,7 @@ namespace RN
 		{
 		public:
 			RNAPI virtual void ScrollViewDidScroll(ScrollView *scrollView) {}
+			RNAPI virtual void ScrollViewDidChangeScrollerInset(ScrollView *scrollView, const EdgeInsets &insets) {}
 		};
 		
 		class ScrollView : public View
@@ -46,12 +47,15 @@ namespace RN
 			RNAPI void DidAddSubview(View *subview) override;
 			RNAPI void DidBringSubviewToFront(View *subview) override;
 			
-			RNAPI const Vector2& GetContentOffset() const { return _offset; }
-			RNAPI const Vector2& GetContentSize() const { return _size; }
+			RNAPI const Vector2 &GetContentOffset() const { return _offset; }
+			RNAPI const Vector2 &GetContentSize() const { return _size; }
+			
+			RNAPI const EdgeInsets &GetScrollerInsets() const { return _scrollerInsets; }
 			
 		private:
 			void AdjustScroller();
 			void MoveScroller(Vector2 delta);
+			void ScrollerInsetsChanged();
 			
 			ScrollViewDelegate *_delegate;
 			
@@ -60,6 +64,8 @@ namespace RN
 			Vector2 _offset;
 			Vector2 _size;
 			Vector2 _end;
+			
+			EdgeInsets _scrollerInsets;
 			
 			RNDeclareMeta(ScrollView)
 		};
