@@ -77,7 +77,7 @@ namespace RN
 		void ScrollView::SetContentSize(const Vector2& size)
 		{
 			_size = size;
-			_end  = _size - GetFrame().Size();
+			_end  = _size - GetFrame().GetSize();
 			
 			_end.x = std::max(0.0f, _end.x);
 			_end.y = std::max(0.0f, _end.y);
@@ -169,7 +169,7 @@ namespace RN
 		
 		void ScrollView::MoveScroller(Vector2 delta)
 		{
-			delta /= GetFrame().Size();
+			delta /= GetFrame().GetSize();
 			delta *= _size;
 			delta += _offset;
 			

@@ -302,7 +302,7 @@ namespace RN
 		_renderGroups = RenderGroups::Group0;
 
 		if(_flags & Flags::UpdateStorageFrame)
-			_storage->SetSize(_frame.Size());
+			_storage->SetSize(_frame.GetSize());
 		
 		Update(0.0f);
 		UpdateProjection();
@@ -353,10 +353,10 @@ namespace RN
 	{
 		if(_frame != frame)
 		{
-			_frame = std::move(frame.Integral());
+			_frame = std::move(frame.GetIntegral());
 
 			if(_flags & Flags::UpdateStorageFrame)
-				_storage->SetSize(frame.Size());
+				_storage->SetSize(frame.GetSize());
 
 			_dirtyProjection = true;
 		}
@@ -364,7 +364,7 @@ namespace RN
 
 	void Camera::SetRenderingFrame(const Rect& frame)
 	{
-		_renderingFrame = std::move(frame.Integral());
+		_renderingFrame = std::move(frame.GetIntegral());
 	}
 	
 	void Camera::SetClearColor(const Color& clearColor)
@@ -391,7 +391,7 @@ namespace RN
 		_storage = SafeRetain(storage);
 
 		if(_flags & Flags::UpdateStorageFrame)
-			_storage->SetSize(_frame.Size());
+			_storage->SetSize(_frame.GetSize());
 	}
 	
 	void Camera::SetClearMask(ClearMask mask)

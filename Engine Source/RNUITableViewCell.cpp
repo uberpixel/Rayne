@@ -70,7 +70,7 @@ namespace RN
 		void TableViewCell::SetFrame(const Rect& frame)
 		{
 			Control::SetFrame(frame);
-			_contentView->SetFrame(Rect(Vector2(), frame.Size()));
+			_contentView->SetFrame(Rect(Vector2(), frame.GetSize()));
 		}
 		
 		void TableViewCell::SetIndentation(float indentation)
@@ -87,13 +87,13 @@ namespace RN
 		{
 			Control::LayoutSubviews();
 			
-			Rect contentFrame = Rect(Vector2(), GetFrame().Size());
+			Rect contentFrame = Rect(Vector2(), GetFrame().GetSize());
 			contentFrame.width -= _indentation;
 			contentFrame.x += _indentation;
 			
 			_contentView->SetFrame(contentFrame);
 			
-			Rect frame = Rect(Vector2(), contentFrame.Size()).Inset(5.0f, 2.0f);
+			Rect frame = Rect(Vector2(), contentFrame.GetSize()).Inset(5.0f, 2.0f);
 			
 			if(_imageView->GetImage())
 			{

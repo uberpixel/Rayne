@@ -19,32 +19,33 @@ namespace RN
 	public:
 		Rect();
 		Rect(float x, float y, float width, float height);
-		Rect(const Vector2& origin, float width, float height);
-		Rect(const Vector2& origin, const Vector2& size);
-		Rect(const Rect& other);
+		Rect(const Vector2 &origin, float width, float height);
+		Rect(const Vector2 &origin, const Vector2 &size);
+		Rect(const Rect &other);
 		
-		bool operator== (const Rect& other);
-		bool operator!= (const Rect& other);
+		bool operator== (const Rect &other);
+		bool operator!= (const Rect &other);
 		
-		bool ContainsPoint(const Vector2& point) const;
-		bool IntersectsRect(const Rect& other) const;
-		bool ContainsRect(const Rect& other) const;
+		bool ContainsPoint(const Vector2 &point) const;
+		bool IntersectsRect(const Rect &other) const;
+		bool ContainsRect(const Rect &other) const;
 		
 		Rect& Inset(float dx, float dy);
 		Rect& Integral();
-		Rect Integral() const;
+		
+		Rect GetIntegral() const;
 		
 		float GetTop() const;
 		float GetBottom() const;
 		float GetLeft() const;
 		float GetRight() const;
 		
-		Vector2 Origin() const
+		Vector2 GetOrigin() const
 		{
 			return Vector2(x, y);
 		}
 		
-		Vector2 Size() const
+		Vector2 GetSize() const
 		{
 			return Vector2(width, height);
 		}
@@ -73,7 +74,7 @@ namespace RN
 		height = theight;
 	}
 	
-	RN_INLINE Rect::Rect(const Vector2& origin, float twidth, float theight)
+	RN_INLINE Rect::Rect(const Vector2 &origin, float twidth, float theight)
 	{
 		x = origin.x;
 		y = origin.y;
@@ -82,7 +83,7 @@ namespace RN
 		height = theight;
 	}
 	
-	RN_INLINE Rect::Rect(const Vector2& origin, const Vector2& size)
+	RN_INLINE Rect::Rect(const Vector2 &origin, const Vector2 &size)
 	{
 		x = origin.x;
 		y = origin.y;
@@ -91,7 +92,7 @@ namespace RN
 		height = size.y;
 	}
 	
-	RN_INLINE Rect::Rect(const Rect& other)
+	RN_INLINE Rect::Rect(const Rect &other)
 	{
 		x = other.x;
 		y = other.y;
@@ -100,7 +101,7 @@ namespace RN
 		height = other.height;
 	}
 	
-	RN_INLINE bool Rect::operator== (const Rect& other)
+	RN_INLINE bool Rect::operator== (const Rect &other)
 	{
 		if(abs(x - other.x) > k::EpsilonFloat || abs(y - other.y) > k::EpsilonFloat ||
 		   abs(width - other.width) > k::EpsilonFloat || abs(height - other.height) > k::EpsilonFloat)
@@ -109,7 +110,7 @@ namespace RN
 		return true;
 	}
 	
-	RN_INLINE bool Rect::operator!= (const Rect& other)
+	RN_INLINE bool Rect::operator!= (const Rect &other)
 	{
 		if(abs(x - other.x) > k::EpsilonFloat || abs(y - other.y) > k::EpsilonFloat ||
 		   abs(width - other.width) > k::EpsilonFloat || abs(height - other.height) > k::EpsilonFloat)
@@ -119,18 +120,18 @@ namespace RN
 	}
 	
 	
-	RN_INLINE bool Rect::ContainsPoint(const Vector2& point) const
+	RN_INLINE bool Rect::ContainsPoint(const Vector2 &point) const
 	{
 		return ((point.x >= x && point.x <= x + width) && (point.y >= y && point.y <= y + height));
 	}
 	
-	RN_INLINE bool Rect::IntersectsRect(const Rect& other) const
+	RN_INLINE bool Rect::IntersectsRect(const Rect &other) const
 	{
 		return ((x < other.x + other.width && x + width > other.x) &&
 				(y < other.y + other.height && y + height > other.y));
 	}
 	
-	RN_INLINE bool Rect::ContainsRect(const Rect& other) const
+	RN_INLINE bool Rect::ContainsRect(const Rect &other) const
 	{
 		return ((x <= other.x && x + width >= other.x + other.width) && (y <= other.y && y + height >= other.y + other.height));
 	}
@@ -158,7 +159,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE Rect Rect::Integral() const
+	RN_INLINE Rect Rect::GetIntegral() const
 	{
 		Rect result(*this);
 		

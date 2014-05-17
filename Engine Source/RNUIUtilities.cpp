@@ -34,7 +34,7 @@ namespace RN
 			
 			// Layout
 			Vector2 checkBoxSize = _fpsCheckbox->GetSizeThatFits();
-			Vector2 size = GetFrame().Size();
+			Vector2 size = GetFrame().GetSize();
 			
 			_fpsCheckbox->SetFrame(Rect(5.0f, size.y - checkBoxSize.y - 5.0f, checkBoxSize.x, checkBoxSize.y));
 			_label->SetFrame(Rect(0.0f, 0.0f, size.x, size.y - checkBoxSize.y).Inset(5.0f, 5.0f));

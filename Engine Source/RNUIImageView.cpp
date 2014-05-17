@@ -154,8 +154,8 @@ namespace RN
 					_material->RemoveTextures();
 					_material->AddTexture(_image->GetTexture());
 					
-					Vector2 size = std::move(GetFittingImageSize(GetFrame().Size()));
-					Vector2 offset = (GetFrame().Size() - size) * 0.5f;
+					Vector2 size = std::move(GetFittingImageSize(GetFrame().GetSize()));
+					Vector2 offset = (GetFrame().GetSize() - size) * 0.5f;
 					
 					_mesh = _image->GetFittingMesh(size, offset)->Retain();
 				}

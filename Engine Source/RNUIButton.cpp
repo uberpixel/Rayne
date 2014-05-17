@@ -324,7 +324,7 @@ namespace RN
 			Vector2 imageSize = std::move(_image->GetSizeThatFits());
 			
 			Vector2 insetSize = Vector2(_contentInsets.left + _contentInsets.right, _contentInsets.top + _contentInsets.bottom);
-			Vector2 size = GetFrame().Size();
+			Vector2 size = GetFrame().GetSize();
 			Vector2 truncatedSize = size - insetSize;
 			
 			titleSize.x = truncatedSize.x > titleSize.x ? titleSize.x : truncatedSize.x;

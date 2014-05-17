@@ -464,12 +464,12 @@ namespace RN
 		
 		Vector2 View::GetSizeThatFits()
 		{
-			return _frame.Size();
+			return _frame.GetSize();
 		}
 		
 		void View::SetFrame(const Rect& frame)
 		{
-			Vector2 oldSize = _frame.Size();
+			Vector2 oldSize = _frame.GetSize();
 			
 			_frame = frame;
 			
@@ -482,9 +482,9 @@ namespace RN
 		
 		void View::SetBounds(const Rect& bounds)
 		{
-			if(_frame.Size() != bounds.Size())
+			if(_frame.GetSize() != bounds.GetSize())
 			{
-				Vector2 size = _frame.Size();
+				Vector2 size = _frame.GetSize();
 				
 				_frame.width  = bounds.width;
 				_frame.height = bounds.height;
@@ -523,7 +523,7 @@ namespace RN
 		
 		void View::ResizeSubviewsFromOldSize(const Vector2& oldSize)
 		{
-			Vector2 size = _frame.Size();
+			Vector2 size = _frame.GetSize();
 			Vector2 diff = size - oldSize;
 			
 			_subviews.Enumerate<View>([&](View *subview, size_t index, bool &stop) {
@@ -593,7 +593,7 @@ namespace RN
 		void View::CalculateScissorRect()
 		{
 			float serverHeight = (_widget && _widget->_server) ? _widget->_server->GetHeight() : 0.0f;
-			Vector2 origin = _frame.Origin();
+			Vector2 origin = _frame.GetOrigin();
 			
 			_clippingView = nullptr;
 			
@@ -643,7 +643,7 @@ namespace RN
 		{
 			if(_dirtyLayout)
 			{
-				Vector2 converted = ConvertPointToView(_bounds.Origin(), nullptr);
+				Vector2 converted = ConvertPointToView(_bounds.GetOrigin(), nullptr);
 				float serverHeight = 0.0f;
 				
 				if(_superview)
@@ -668,9 +668,9 @@ namespace RN
 				_finalTransform.Translate(Vector3(converted.x, serverHeight - _frame.height - converted.y, 0.0f));
 				
 				if(_mesh)
-					UpdateBasicMesh(_mesh, _frame.Size());
+					UpdateBasicMesh(_mesh, _frame.GetSize());
 				else
-					_mesh = BasicMesh(_frame.Size())->Retain();
+					_mesh = BasicMesh(_frame.GetSize())->Retain();
 				
 				CalculateScissorRect();
 				LayoutSubviews();
