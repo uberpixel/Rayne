@@ -14,6 +14,8 @@
 #include "RNPathManager.h"
 #include "RNFileManager.h"
 #include "RNLogging.h"
+#include "RNJSONSerialization.h"
+#include "RNLockGuard.h"
 
 namespace RN
 {
@@ -22,6 +24,13 @@ namespace RN
 	
 	struct ModuleInternals
 	{
+		ModuleInternals() :
+			manifest(nullptr),
+			handle(0)
+		{}
+		
+		Dictionary *manifest;
+		
 #if RN_PLATFORM_POSIX
 		void *handle;
 #endif
@@ -51,9 +60,28 @@ namespace RN
 		_path = FileManager::GetSharedInstance()->GetFilePathWithName(_name + ".dll");
 #endif
 		
-		memset(&_exports, 0, sizeof(ModuleExports));
+		// Check if there is a manifest.json present
+		std::string manifest = PathManager::PathByRemovingPathComponent(_path);
+		manifest = PathManager::Join(manifest, "manifest.json");
+
+		bool isFolder;
 		
-		_internals->handle = nullptr;
+		if(PathManager::PathExists(manifest, &isFolder) && !isFolder)
+		{
+			try
+			{
+				_internals->manifest = JSONSerialization::JSONObjectFromData<Dictionary>(Data::WithContentsOfFile(manifest));
+				_internals->manifest->Retain();
+			}
+			catch(...)
+			{}
+		}
+		
+		if(!_internals->manifest)
+			_internals->manifest = new Dictionary();
+		
+		
+		memset(&_exports, 0, sizeof(ModuleExports));
 		
 		_exports.module = this;
 		_exports.kernel = Kernel::GetSharedInstance();
@@ -63,6 +91,7 @@ namespace RN
 	Module::~Module()
 	{
 		Unload();
+		SafeRelease(_internals->manifest);
 	}
 	
 	
@@ -102,8 +131,13 @@ namespace RN
 			// Sanity check
 			if(_exports.version != GetABIVersion())
 			{
-				Unload();
-				throw Exception(Exception::Type::ModuleUnsupportedABIException, "Module " + _name + " uses an unuspported ABI version");
+				Number *ignoresABI = _internals->manifest->GetObjectForKey<Number>(kRNModuleManifestIgnoreABI);
+				
+				if(!ignoresABI || !ignoresABI->GetBoolValue())
+				{
+					Unload();
+					throw Exception(Exception::Type::ModuleUnsupportedABIException, "Module " + _name + " uses an unuspported ABI version");
+				}
 			}
 		}
 	}
@@ -138,6 +172,11 @@ namespace RN
 #endif
 	}
 	
+	Object *Module::__GetManifestObject(String *key) const
+	{
+		return _internals->manifest->GetObjectForKey(key);
+	}
+	
 	bool Module::IsLoaded() const
 	{
 		return (_internals->handle != nullptr);
@@ -166,8 +205,8 @@ namespace RN
 				}
 				catch(Exception e)
 				{
-					Log::Loggable loggable(Log::Level::Error);
-					loggable << "Failed to load module. Reason: " << e.GetReason();
+					// Make sure we go down!
+					HandleException(e);
 				}
 				
 			});
@@ -183,6 +222,11 @@ namespace RN
 			{
 				Log::Loggable loggable(Log::Level::Error);
 				loggable << "Failed to load module. Reason: " << e.GetReason();
+				
+				Number *optional = module->GetManifestObject<Number>(kRNModuleManifestOptional);
+				
+				if(!optional || !optional->GetBoolValue())
+					HandleException(e);
 			}
 			
 		});
@@ -193,6 +237,8 @@ namespace RN
 	
 	Module *ModuleCoordinator::GetModuleWithName(const std::string& name)
 	{
+		LockGuard<Mutex> lock(_mutex);
+		
 		Module *module = nullptr;
 		
 		_modules.Enumerate<Module>([&](Module *temp, size_t index, bool &stop) {
@@ -217,7 +263,7 @@ namespace RN
 		}
 		catch(Exception e)
 		{
-			delete module;
+			module->Release();
 			throw e;
 		}
 	}

@@ -12,6 +12,11 @@
 #include "RNBase.h"
 #include "RNObject.h"
 #include "RNArray.h"
+#include "RNString.h"
+#include "RNMutex.h"
+
+#define kRNModuleManifestIgnoreABI RNCSTR("RNModuleIgnoreABI")
+#define kRNModuleManifestOptional  RNCSTR("RNModuleOptional")
 
 namespace RN
 {
@@ -47,7 +52,16 @@ namespace RN
 		
 		RNAPI void *GetFunctionAddress(const std::string& name);
 		
+		template<class T>
+		T *GetManifestObject(String *key) const
+		{
+			Object *result = __GetManifestObject(key);
+			return result ? result->Downcast<T>() : nullptr;
+		}
+		
 	private:
+		RNAPI Object *__GetManifestObject(String *key) const;
+		
 		PIMPL<ModuleInternals> _internals;
 		
 		std::string _name;
@@ -71,6 +85,7 @@ namespace RN
 		RNAPI const Array *GetModules() const { return &_modules; }
 		
 	private:
+		Mutex _mutex;
 		Array _modules;
 		
 		RNDeclareSingleton(ModuleCoordinator)
