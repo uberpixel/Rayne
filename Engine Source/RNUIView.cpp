@@ -643,7 +643,7 @@ namespace RN
 		{
 			if(_dirtyLayout)
 			{
-				Vector2 converted = ConvertPointToView(Vector2(), nullptr);
+				Vector2 converted = ConvertPointToView(_bounds.Origin(), nullptr);
 				float serverHeight = 0.0f;
 				
 				if(_superview)
