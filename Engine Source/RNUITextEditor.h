@@ -22,7 +22,7 @@ namespace RN
 		class TextEditorDelegate
 		{
 		public:
-			RNAPI virtual void TextEditorSelectionDidChange(TextEditor *editor, const Range& selection) {}
+			RNAPI virtual void TextEditorSelectionDidChange(TextEditor *editor, const Range &selection) {}
 			RNAPI virtual bool TextEditorShouldReturn(TextEditor *editor) { return true; }
 		};
 		
@@ -32,9 +32,9 @@ namespace RN
 			RNAPI TextEditor();
 			RNAPI ~TextEditor() override;
 			
-			RNAPI void SetFrame(const Rect& frame) override;
+			RNAPI void SetFrame(const Rect &frame) override;
 			RNAPI void SetTypingAttributes(Dictionary *attributes);
-			RNAPI void SetSelection(const Range& selection);
+			RNAPI void SetSelection(const Range &selection);
 			RNAPI void SetText(String *text);
 			RNAPI void SetAttributedText(AttributedString *text);
 			RNAPI void SetDelegate(TextEditorDelegate *delegate);

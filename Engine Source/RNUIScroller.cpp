@@ -56,10 +56,10 @@ namespace RN
 		{
 			if(_container)
 			{
-				const Rect& bounds = GetBounds();
+				const Rect &bounds = GetBounds();
 				
-				const Vector2& size = _container->GetContentSize();
-				const Rect& extents = _container->GetBounds();
+				const Vector2 &size = _container->GetContentSize();
+				const Rect &extents = _container->GetBounds();
 				
 				if(!_horizontal)
 				{

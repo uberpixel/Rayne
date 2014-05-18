@@ -25,7 +25,7 @@ namespace RN
 			RNAPI virtual bool IsOpen() const = 0;
 			
 			RNAPI virtual void CutOff() = 0;
-			RNAPI virtual void Write(const Message& message) = 0;
+			RNAPI virtual void Write(const Message &message) = 0;
 			
 			RNAPI void SetLevel(Level level);
 			Level GetLevel() { return _level; }
@@ -46,7 +46,7 @@ namespace RN
 			RNAPI virtual bool IsOpen() const = 0;
 			
 			RNAPI virtual void CutOff() = 0;
-			RNAPI virtual void Write(const Message& message) = 0;
+			RNAPI virtual void Write(const Message &message) = 0;
 		};
 		
 		class CallbackLoggingEngine : public LoggingEngine
@@ -59,7 +59,7 @@ namespace RN
 			RNAPI virtual bool IsOpen() const final;
 			
 			RNAPI virtual void CutOff() final;
-			RNAPI virtual void Write(const Message& message) final;
+			RNAPI virtual void Write(const Message &message) final;
 			
 		private:
 			LoggingEngineDelegate *_delegate;
@@ -78,7 +78,7 @@ namespace RN
 			RNAPI virtual bool IsOpen() const final;
 			
 			RNAPI virtual void CutOff() final;
-			RNAPI virtual void Write(const Message& message) final;
+			RNAPI virtual void Write(const Message &message) final;
 			
 		private:
 			PIMPL<StreamLoggingInternal> _internal;
@@ -97,7 +97,7 @@ namespace RN
 			RNAPI virtual bool IsOpen() const final;
 			
 			RNAPI virtual void CutOff() final;
-			RNAPI virtual void Write(const Message& message) final;
+			RNAPI virtual void Write(const Message &message) final;
 			
 		private:
 			std::fstream _stream;
@@ -115,7 +115,7 @@ namespace RN
 			RNAPI virtual bool IsOpen() const final;
 			
 			RNAPI virtual void CutOff() final;
-			RNAPI virtual void Write(const Message& message) final;
+			RNAPI virtual void Write(const Message &message) final;
 			
 		private:
 			void WriteCSSBoilerplate();

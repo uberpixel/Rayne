@@ -23,7 +23,7 @@ namespace RN
 		WrappingObject()
 		{}
 		
-		WrappingObject(const T& data) :
+		WrappingObject(const T &data) :
 			_data(data)
 		{}
 		
@@ -37,7 +37,7 @@ namespace RN
 				_dealloc(this);
 		}
 		
-		T& GetData() { return _data; }
+		T &GetData() { return _data; }
 		
 		void SetDealloc(DeallocCallback callback)
 		{

@@ -53,10 +53,10 @@ namespace RN
 			};
 			
 			RNAPI ShaderUniform(const std::string& name, Type type, void *data, size_t count, bool copy=true);
-			RNAPI ShaderUniform(const std::string& name, const Matrix& matrix);
-			RNAPI ShaderUniform(const std::string& name, const Vector2& vec2);
-			RNAPI ShaderUniform(const std::string& name, const Vector3& vec3);
-			RNAPI ShaderUniform(const std::string& name, const Vector4& vec4);
+			RNAPI ShaderUniform(const std::string& name, const Matrix &matrix);
+			RNAPI ShaderUniform(const std::string& name, const Vector2 &vec2);
+			RNAPI ShaderUniform(const std::string& name, const Vector3 &vec3);
+			RNAPI ShaderUniform(const std::string& name, const Vector4 &vec4);
 			
 			RNAPI explicit ShaderUniform(const std::string& name, float fValue);
 			RNAPI explicit ShaderUniform(const std::string& name, int32 iValue);
@@ -66,10 +66,10 @@ namespace RN
 			RNAPI void SetIntegerValue(int32 value);
 			RNAPI void SetUIntValue(uint32 value);
 			
-			RNAPI void SetMatrix(const Matrix& matrix);
-			RNAPI void SetVector(const Vector2& vector);
-			RNAPI void SetVector(const Vector3& vector);
-			RNAPI void SetVector(const Vector4& vector);
+			RNAPI void SetMatrix(const Matrix &matrix);
+			RNAPI void SetVector(const Vector2 &vector);
+			RNAPI void SetVector(const Vector3 &vector);
+			RNAPI void SetVector(const Vector4 &vector);
 			
 			RNAPI void SetData(const void *data);
 			
@@ -198,7 +198,7 @@ namespace RN
 		RNAPI void Undefine(const std::string& define);
 		
 		RNAPI const Array *GetTextures() const { return _textures; }
-		RNAPI const ShaderLookup& GetLookup() const { return _lookup; }
+		RNAPI const ShaderLookup &GetLookup() const { return _lookup; }
 		
 		template<class ... Args>
 		ShaderUniform *AddShaderUniform(Args&&... args)

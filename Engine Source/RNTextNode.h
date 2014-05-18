@@ -24,7 +24,7 @@ namespace RN
 		
 		RNAPI void SetText(String *text);
 		RNAPI void SetAttributedText(AttributedString *text);
-		RNAPI void SetTextColor(const Color& color);
+		RNAPI void SetTextColor(const Color &color);
 		RNAPI void SetFont(UI::Font *font);
 		RNAPI void SetAlignment(UI::TextAlignment alignment);
 		RNAPI void SetLineBreak(UI::LineBreakMode mode);

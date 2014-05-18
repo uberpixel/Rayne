@@ -44,19 +44,19 @@ namespace RN
 	}
 	
 	
-	Value *Value::WithVector2(const Vector2& vector)
+	Value *Value::WithVector2(const Vector2 &vector)
 	{
 		Value *value = new Value(vector);
 		return value->Autorelease();
 	}
 	
-	Value *Value::WithVector3(const Vector3& vector)
+	Value *Value::WithVector3(const Vector3 &vector)
 	{
 		Value *value = new Value(vector);
 		return value->Autorelease();
 	}
 	
-	Value *Value::WithVector4(const Vector4& vector)
+	Value *Value::WithVector4(const Vector4 &vector)
 	{
 		Value *value = new Value(vector);
 		return value->Autorelease();
@@ -68,13 +68,13 @@ namespace RN
 		return value->Autorelease();
 	}
 	
-	Value *Value::WithQuaternion(const Quaternion& quaternion)
+	Value *Value::WithQuaternion(const Quaternion &quaternion)
 	{
 		Value *value = new Value(quaternion);
 		return value->Autorelease();
 	}
 	
-	Value *Value::WithMatrix(const Matrix& matrix)
+	Value *Value::WithMatrix(const Matrix &matrix)
 	{
 		Value *value = new Value(matrix);
 		return value->Autorelease();

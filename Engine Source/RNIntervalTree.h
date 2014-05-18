@@ -25,7 +25,7 @@ namespace RN
 			class interval
 			{
 			public:
-				interval(const Range& trange, const T& tvalue) :
+				interval(const Range &trange, const T &tvalue) :
 					range(trange),
 					value(tvalue)
 				{}
@@ -63,13 +63,13 @@ namespace RN
 			{
 				if(leftextent == 0 && rightextent == 0)
 				{
-					ParallelSort(intervals.begin(), intervals.end(), [](const interval& a, const interval& b) {
+					ParallelSort(intervals.begin(), intervals.end(), [](const interval &a, const interval &b) {
 						return a.range.origin < b.range.origin;
 					});
 					
 					std::vector<size_t> stops;
 					stops.resize(intervals.size());
-					std::transform(intervals.begin(), intervals.end(), stops.begin(), [](const interval& interval) {
+					std::transform(intervals.begin(), intervals.end(), stops.begin(), [](const interval &interval) {
 						return interval.range.GetEnd();
 					});
 					
@@ -121,7 +121,7 @@ namespace RN
 				delete _nodes[1];
 			}
 			
-			interval_tree& operator=(const interval_tree<T>& other)
+			interval_tree &operator=(const interval_tree<T>& other)
 			{
 				_center      = other._center;
 				_leftextent  = other._leftextent;
@@ -152,7 +152,7 @@ namespace RN
 				return _size;
 			}
 			
-			void find_contained(const Range& range, std::vector<interval>& contained)
+			void find_contained(const Range &range, std::vector<interval>& contained)
 			{
 				if(!_intervals.empty())
 				{
@@ -172,7 +172,7 @@ namespace RN
 					_nodes[1]->find_contained(range, contained);
 			}
 					
-			void find_overlapping(const Range& range, std::vector<interval>& overlapping)
+			void find_overlapping(const Range &range, std::vector<interval>& overlapping)
 			{
 				if(!_intervals.empty())
 				{

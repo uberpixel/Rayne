@@ -20,19 +20,19 @@ namespace RN
 	{
 	public:
 		AABB();
-		AABB(const Vector3& min, const Vector3& max);
-		AABB(const Vector3& pos, const float radius);
+		AABB(const Vector3 &min, const Vector3 &max);
+		AABB(const Vector3 &pos, const float radius);
 		
-		AABB operator+ (const AABB& other) const;
-		AABB& operator+= (const AABB& other);
+		AABB operator+ (const AABB &other) const;
+		AABB &operator+= (const AABB &other);
 		
-		AABB operator* (const Vector3& other) const;
-		AABB& operator*= (const Vector3& other);
+		AABB operator* (const Vector3 &other) const;
+		AABB &operator*= (const Vector3 &other);
 		
-		bool Intersects(const AABB& other) const;
+		bool Intersects(const AABB &other) const;
 		bool Contains(const Vector3 &position) const;
 		
-		void SetRotation(const Quaternion& rotation);
+		void SetRotation(const Quaternion &rotation);
 		
 		Vector3 position;
 		Vector3 minExtend;
@@ -43,7 +43,7 @@ namespace RN
 	{
 	}
 	
-	RN_INLINE AABB::AABB(const Vector3& tmin, const Vector3& tmax)
+	RN_INLINE AABB::AABB(const Vector3 &tmin, const Vector3 &tmax)
 	{		
 		minExtend.x = std::min(tmin.x, tmax.x);
 		minExtend.y = std::min(tmin.y, tmax.y);
@@ -54,7 +54,7 @@ namespace RN
 		maxExtend.z = std::max(tmin.z, tmax.z);
 	}
 	
-	RN_INLINE AABB::AABB(const Vector3& pos, const float radius)
+	RN_INLINE AABB::AABB(const Vector3 &pos, const float radius)
 	{
 		Vector3 dist(radius);
 		
@@ -64,7 +64,7 @@ namespace RN
 		position = pos;
 	}
 	
-	RN_INLINE AABB AABB::operator+ (const AABB& other) const
+	RN_INLINE AABB AABB::operator+ (const AABB &other) const
 	{
 		Vector3 min;
 		Vector3 max;
@@ -80,7 +80,7 @@ namespace RN
 		return AABB(min, max);
 	}
 	
-	RN_INLINE AABB& AABB::operator+= (const AABB& other)
+	RN_INLINE AABB &AABB::operator+= (const AABB &other)
 	{
 		Vector3 min;
 		Vector3 max;
@@ -99,7 +99,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE AABB AABB::operator* (const Vector3& other) const
+	RN_INLINE AABB AABB::operator* (const Vector3 &other) const
 	{
 		AABB result = *this;
 		
@@ -109,7 +109,7 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE AABB& AABB::operator*= (const Vector3& other)
+	RN_INLINE AABB &AABB::operator*= (const Vector3 &other)
 	{
 		minExtend *= other;
 		maxExtend *= other;
@@ -117,7 +117,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE bool AABB::Intersects(const AABB& other) const
+	RN_INLINE bool AABB::Intersects(const AABB &other) const
 	{
 		Vector3 max0 = position + maxExtend;
 		Vector3 max1 = other.position + other.maxExtend;
@@ -135,7 +135,7 @@ namespace RN
 		return true;
 	}
 	
-	RN_INLINE bool AABB::Contains(const Vector3& position) const
+	RN_INLINE bool AABB::Contains(const Vector3 &position) const
 	{
 		if(position.x - this->position.x > maxExtend.x)
 			return false;
@@ -153,7 +153,7 @@ namespace RN
 		return true;
 	}
 	
-	RN_INLINE void AABB::SetRotation(const Quaternion& rotation)
+	RN_INLINE void AABB::SetRotation(const Quaternion &rotation)
 	{
 		Matrix matrix = rotation.GetRotationMatrix();
 		

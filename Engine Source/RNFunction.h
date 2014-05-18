@@ -27,14 +27,14 @@ namespace RN
 			_implementation(std::move(other._implementation))
 		{}
 		
-		Function& operator=(Function&& other) RN_NOEXCEPT
+		Function &operator=(Function&& other) RN_NOEXCEPT
 		{
 			_implementation = std::move(other._implementation);
 			return *this;
 		}
 		
 		Function(const Function&) = delete;
-		Function& operator= (const Function&) = delete;
+		Function &operator= (const Function&) = delete;
 		
 		void operator() () { _implementation->Call(); }
 		

@@ -94,12 +94,12 @@ namespace RN
 		
 		RNAPI void SetType(Type type);
 		RNAPI void SetRange(float range);
-		RNAPI void SetColor(const Color& color);
+		RNAPI void SetColor(const Color &color);
 		RNAPI void SetAngle(float angle);
 		RNAPI void SetIntensity(float intensity);
 		
-		const Color& GetColor() const { return _color; }
-		const Vector3& GetFinalColor() { return _finalColor; }
+		const Color &GetColor() const { return _color; }
+		const Vector3 &GetFinalColor() { return _finalColor; }
 		
 		const Type GetType() const { return _lightType; }
 		float GetRange() const { return _range; }

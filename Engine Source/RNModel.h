@@ -55,8 +55,8 @@ namespace RN
 		
 		RNAPI void CalculateBoundingVolumes();
 		
-		RNAPI const AABB& GetBoundingBox() const { return _boundingBox; }
-		RNAPI const Sphere& GetBoundingSphere() const { return _boundingSphere; }
+		RNAPI const AABB &GetBoundingBox() const { return _boundingBox; }
+		RNAPI const Sphere &GetBoundingSphere() const { return _boundingSphere; }
 		
 		RNAPI static std::vector<float> &GetDefaultLODFactors();
 		RNAPI static void SetDefaultLODFactors(const std::vector<float> &factors);

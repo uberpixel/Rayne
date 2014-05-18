@@ -150,7 +150,7 @@ namespace RN
 				batch(std::move(other.batch))
 			{}
 
-			Task& operator= (Task&& other)
+			Task &operator= (Task&& other)
 			{
 				function = std::move(other.function);
 				batch    = std::move(other.batch);

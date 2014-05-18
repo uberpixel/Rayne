@@ -34,7 +34,7 @@ namespace RN
 			RNAPI void SetAlignment(TextAlignment alignment);
 			RNAPI void SetLineBreak(LineBreakMode mode);
 			RNAPI void SetNumberOfLines(uint32 lines);
-			RNAPI void SetFrame(const Rect& frame) override;
+			RNAPI void SetFrame(const Rect &frame) override;
 			
 			RNAPI String *GetText() const { return _string->GetString(); }
 			RNAPI Color *GetTextColor() const { return _color; }

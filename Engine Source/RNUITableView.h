@@ -72,7 +72,7 @@ namespace RN
 			RNAPI TableViewCell *GetCellForRow(size_t row);
 			
 			RNAPI void LayoutSubviews() override;
-			RNAPI void SetFrame(const Rect& frame) override;
+			RNAPI void SetFrame(const Rect &frame) override;
 			RNAPI void SetAllowsMultipleSelection(bool multipleSelection);
 			RNAPI void SetSelection(IndexSet *selection);
 			RNAPI void SetIndentationOffset(float offset);
@@ -119,7 +119,7 @@ namespace RN
 			
 			void ClearAllCells();
 			void InsertCellForRow(size_t row, float offset);
-			void InvalidateCellsForRange(const Range& range);
+			void InvalidateCellsForRange(const Range &range);
 			void InvalidateCellsForIndexSet(IndexSet *set);
 			void UpdateDimensions();
 			void UpdateVisibleRows(bool updateFrames);

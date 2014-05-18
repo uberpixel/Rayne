@@ -60,7 +60,7 @@ namespace RN
 		abort();
 	}
 	
-	void HandleException(const Exception& e)
+	void HandleException(const Exception &e)
 	{
 		{
 			Log::Loggable loggable(Log::Level::Error);

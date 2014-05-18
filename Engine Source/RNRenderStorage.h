@@ -33,7 +33,7 @@ namespace RN
 		RNAPI RenderStorage(BufferFormat format, Texture *depthTexture=0, float scaleFactor=0.0f);
 		RNAPI virtual ~RenderStorage();
 		
-		RNAPI void SetSize(const Vector2& size);
+		RNAPI void SetSize(const Vector2 &size);
 		RNAPI void SetRenderTarget(Texture *target, uint32 index=0);
 		RNAPI void AddRenderTarget(Texture *target);
 		RNAPI void AddRenderTarget(Texture::Format format);
@@ -49,7 +49,7 @@ namespace RN
 		RNAPI uint32 GetRenderTargets() const { return (uint32)_renderTargets->GetCount(); }
 		RNAPI Texture *GetRenderTarget(uint32 index=0) const { return _renderTargets->GetObjectAtIndex<Texture>(index); }
 		RNAPI Texture *GetDepthTarget() const { return _depthTexture; }
-		RNAPI const Vector2& GetSize() const { return _size; }
+		RNAPI const Vector2 &GetSize() const { return _size; }
 		
 		RNAPI static uint32 GetMaxRenderTargets();
 		

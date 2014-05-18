@@ -109,7 +109,7 @@ namespace RN
 		
 		std::unordered_map<std::string, ShaderDefine> cleanedDefines;
 		
-		for(const ShaderDefine& define : defines)
+		for(const ShaderDefine &define : defines)
 		{
 			cleanedDefines.insert(std::unordered_map<std::string, ShaderDefine>::value_type(define.name, define));
 		}

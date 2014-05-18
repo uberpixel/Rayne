@@ -82,7 +82,7 @@ namespace RN
 			}
 			
 		private:
-			T& _lock;
+			T &_lock;
 		};
 	}
 }

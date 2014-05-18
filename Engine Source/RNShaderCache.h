@@ -31,8 +31,8 @@ namespace RN
 		RNAPI ~ShaderCache() override;
 		
 		RNAPI void InvalidateCacheEntries(Shader *shader);
-		RNAPI void CacheShaderProgram(Shader *shader, ShaderProgram *program, const ShaderLookup& lookup);
-		RNAPI ShaderProgram *DequeShaderProgram(Shader *shader, const ShaderLookup& lookup);
+		RNAPI void CacheShaderProgram(Shader *shader, ShaderProgram *program, const ShaderLookup &lookup);
+		RNAPI ShaderProgram *DequeShaderProgram(Shader *shader, const ShaderLookup &lookup);
 		
 		RNAPI static bool SupportsCaching();
 		

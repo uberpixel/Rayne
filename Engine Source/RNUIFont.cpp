@@ -43,7 +43,7 @@ namespace RN
 			Font(name, size, FontDescriptor())
 		{}
 		
-		Font::Font(const std::string& name, float size, const FontDescriptor& descriptor) :
+		Font::Font(const std::string& name, float size, const FontDescriptor &descriptor) :
 			_descriptor(descriptor)
 		{
 			Texture::Parameter parameter;
@@ -85,7 +85,7 @@ namespace RN
 			return font->Autorelease();
 		}
 		
-		Font *Font::WithNameAndDescriptor(const std::string& name, float size, const FontDescriptor& descriptor)
+		Font *Font::WithNameAndDescriptor(const std::string& name, float size, const FontDescriptor &descriptor)
 		{
 			Font *font = new Font(name, size, descriptor);
 			return font->Autorelease();
@@ -430,7 +430,7 @@ namespace RN
 			
 			for(auto &temp : _glyphs)
 			{
-				Glyph& glyph = temp.second;
+				Glyph &glyph = temp.second;
 				
 				float width  = glyph._region.width  * _scale;
 				float height = glyph._region.height * _scale;
@@ -497,7 +497,7 @@ namespace RN
 			DropInternals();
 		}
 		
-		const Glyph& Font::GetGlyphForCharacter(UniChar character)
+		const Glyph &Font::GetGlyphForCharacter(UniChar character)
 		{
 			auto iterator = _glyphs.find(character);
 			if(iterator == _glyphs.end())

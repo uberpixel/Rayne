@@ -88,28 +88,28 @@ namespace RN
 		
 		
 
-		static inline VecFloat SmearX(const VecFloat& vec)
+		static inline VecFloat SmearX(const VecFloat &vec)
 		{
 #if RN_SSE
 			return (_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(0, 0, 0, 0)));
 #endif
 		}
 		
-		static inline VecFloat SmearY(const VecFloat& vec)
+		static inline VecFloat SmearY(const VecFloat &vec)
 		{
 #if RN_SSE
 			return (_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(1, 1, 1, 1)));
 #endif
 		}
 		
-		static inline VecFloat SmearZ(const VecFloat& vec)
+		static inline VecFloat SmearZ(const VecFloat &vec)
 		{
 #if RN_SSE
 			return (_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(2, 2, 2, 2)));
 #endif
 		}
 		
-		static inline VecFloat SmearW(const VecFloat& vec)
+		static inline VecFloat SmearW(const VecFloat &vec)
 		{
 #if RN_SSE
 			return (_mm_shuffle_ps(vec, vec, _MM_SHUFFLE(3, 3, 3, 3)));
@@ -117,7 +117,7 @@ namespace RN
 		}
 		
 		
-		static inline VecFloat Select(const VecFloat& v1, const VecFloat& v2, const VecFloat& mask)
+		static inline VecFloat Select(const VecFloat &v1, const VecFloat &v2, const VecFloat &mask)
 		{
 #if RN_SSE
 			return _mm_or_ps(_mm_andnot_ps(mask, v1), _mm_and_ps(mask, v2));
@@ -125,21 +125,21 @@ namespace RN
 		}
 		
 		
-		static inline VecFloat Cmplt(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat Cmplt(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_cmplt_ps(v1, v2);
 #endif
 		}
 		
-		static inline VecFloat Cmpgt(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat Cmpgt(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_cmpgt_ps(v1, v2);
 #endif
 		}
 		
-		static inline VecFloat Cmpeq(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat Cmpeq(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_cmpeq_ps(v1, v2);
@@ -147,21 +147,21 @@ namespace RN
 		}
 		
 		
-		static inline bool CmpltScalar(const VecFloat& v1, const VecFloat& v2)
+		static inline bool CmpltScalar(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_comilt_ss(v1, v2);
 #endif
 		}
 		
-		static inline bool CmpgtSclar(const VecFloat& v1, const VecFloat& v2)
+		static inline bool CmpgtSclar(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_comigt_ss(v1, v2);
 #endif
 		}
 		
-		static inline bool CmpeqScalar(const VecFloat& v1, const VecFloat& v2)
+		static inline bool CmpeqScalar(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_comieq_ss(v1, v2);
@@ -169,28 +169,28 @@ namespace RN
 		}
 		
 		
-		static inline VecFloat And(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat And(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_and_ps(v1, v2);
 #endif
 		}
 		
-		static inline VecFloat AndNot(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat AndNot(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_andnot_ps(v2, v1);
 #endif
 		}
 		
-		static inline VecFloat Or(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat Or(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_or_ps(v1, v2);
 #endif
 		}
 		
-		static inline VecFloat Xor(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat Xor(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_xor_ps(v1, v2);
@@ -198,14 +198,14 @@ namespace RN
 		}
 		
 		
-		static inline VecFloat Add(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat Add(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_add_ps(v1, v2);
 #endif
 		}
 		
-		static inline VecFloat Hadd(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat Hadd(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_hadd_ps(v1, v2);
@@ -213,7 +213,7 @@ namespace RN
 		}
 		
 		
-		static inline VecFloat AddScalar(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat AddScalar(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_add_ss(v1, v2);
@@ -221,42 +221,42 @@ namespace RN
 		}
 		
 		
-		static inline VecFloat Sub(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat Sub(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_sub_ps(v1, v2);
 #endif
 		}
 		
-		static inline VecFloat SubScalar(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat SubScalar(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_sub_ss(v1, v2);
 #endif
 		}
 		
-		static inline VecFloat Mul(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat Mul(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_mul_ps(v1, v2);
 #endif
 		}
 		
-		static inline VecFloat MulScalar(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat MulScalar(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_mul_ss(v1, v2);	
 #endif
 		}
 		
-		static inline VecFloat Div(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat Div(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_div_ps(v1, v2);
 #endif
 		}
 		
-		static inline VecFloat DivScalar(const VecFloat& v1, const VecFloat& v2)
+		static inline VecFloat DivScalar(const VecFloat &v1, const VecFloat &v2)
 		{
 #if RN_SSE
 			return _mm_div_ss(v1, v2);
@@ -264,28 +264,28 @@ namespace RN
 		}
 		
 		
-		inline VecFloat Madd(const VecFloat& v1, const VecFloat& v2, const VecFloat& v3)
+		inline VecFloat Madd(const VecFloat &v1, const VecFloat &v2, const VecFloat &v3)
 		{
 #if RN_SSE
 			return _mm_add_ps(_mm_mul_ps(v1, v2), v3);
 #endif
 		}
 		
-		inline VecFloat MaddScalar(const VecFloat& v1, const VecFloat& v2, const VecFloat& v3)
+		inline VecFloat MaddScalar(const VecFloat &v1, const VecFloat &v2, const VecFloat &v3)
 		{
 #if RN_SSE
 			return _mm_add_ss(_mm_mul_ss(v1, v2), v3);
 #endif
 		}
 		
-		inline VecFloat Nmsub(const VecFloat& v1, const VecFloat& v2, const VecFloat& v3)
+		inline VecFloat Nmsub(const VecFloat &v1, const VecFloat &v2, const VecFloat &v3)
 		{
 #if RN_SSE
 			return _mm_sub_ps(v3, _mm_mul_ps(v1, v2));
 #endif
 		}
 		
-		inline VecFloat NmsubScalar(const VecFloat& v1, const VecFloat& v2, const VecFloat& v3)
+		inline VecFloat NmsubScalar(const VecFloat &v1, const VecFloat &v2, const VecFloat &v3)
 		{
 #if RN_SSE
 			return _mm_sub_ss(v3, _mm_mul_ss(v1, v2));	
@@ -332,7 +332,7 @@ namespace RN
 		}
 		
 		
-		static inline VecFloat PositiveFloor(const VecFloat& v)
+		static inline VecFloat PositiveFloor(const VecFloat &v)
 		{
 #if RN_SSE
 			const VecFloat one = LoadConstant<0x3F800000>();
@@ -343,7 +343,7 @@ namespace RN
 #endif
 		}
 		
-		static inline VecFloat PositiveFloorScalar(const VecFloat& v)
+		static inline VecFloat PositiveFloorScalar(const VecFloat &v)
 		{
 #if RN_SSE
 			const VecFloat one = LoadConstant<0x3F800000>();
@@ -354,7 +354,7 @@ namespace RN
 #endif
 		}
 		
-		static inline int TruncateConvert(const VecFloat& v)
+		static inline int TruncateConvert(const VecFloat &v)
 		{
 #if RN_SSE
 			return _mm_cvtt_ss2si(v);
@@ -362,7 +362,7 @@ namespace RN
 		}
 		
 		
-		inline VecFloat Negate(const VecFloat& v)
+		inline VecFloat Negate(const VecFloat &v)
 		{
 #if RN_SSE
 			return _mm_sub_ps(_mm_setzero_ps(), v);
@@ -370,14 +370,14 @@ namespace RN
 		}
 		
 		
-		static inline void Store(const VecFloat& vec, float *dest)
+		static inline void Store(const VecFloat &vec, float *dest)
 		{
 #if RN_SSE
 			_mm_store_ps(dest, vec);
 #endif
 		}
 		
-		static inline void StoreUnaligned(const VecFloat& vec, float *dest)
+		static inline void StoreUnaligned(const VecFloat &vec, float *dest)
 		{
 #if RN_SSE
 			_mm_store_ss(&dest[0], vec);
@@ -387,28 +387,28 @@ namespace RN
 #endif
 		}
 		
-		static inline void StoreX(const VecFloat& vec, float *dest)
+		static inline void StoreX(const VecFloat &vec, float *dest)
 		{
 #if RN_SSE
 			_mm_store_ss(dest, vec);
 #endif
 		}
 		
-		static inline void StoreY(const VecFloat& vec, float *dest)
+		static inline void StoreY(const VecFloat &vec, float *dest)
 		{
 #if RN_SSE
 			_mm_store_ss(dest, SmearY(vec));
 #endif
 		}
 		
-		static inline void StoreZ(const VecFloat& vec, float *dest)
+		static inline void StoreZ(const VecFloat &vec, float *dest)
 		{
 #if RN_SSE
 			_mm_store_ss(dest, SmearZ(vec));
 #endif
 		}
 		
-		static inline void StoreW(const VecFloat& vec, float *dest)
+		static inline void StoreW(const VecFloat &vec, float *dest)
 		{
 #if RN_SSE
 			_mm_store_ss(dest, SmearW(vec));

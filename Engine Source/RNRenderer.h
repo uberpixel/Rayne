@@ -150,7 +150,7 @@ namespace RN
 		RNAPI void SetPolygonOffsetEnabled(bool enabled);
 		RNAPI void SetMode(Mode mode);
 		RNAPI void SetScissorEnabled(bool enabled);
-		RNAPI void SetScissorRect(const Rect& rect);
+		RNAPI void SetScissorRect(const Rect &rect);
 		
 		RNAPI void SetCullMode(GLenum cullMode);
 		RNAPI void SetPolygonMode(GLenum polygonMode);
@@ -322,7 +322,7 @@ namespace RN
 		_scissorTest ? gl::Enable(GL_SCISSOR_TEST) : gl::Disable(GL_SCISSOR_TEST);
 	}
 	
-	RN_INLINE void Renderer::SetScissorRect(const Rect& rect)
+	RN_INLINE void Renderer::SetScissorRect(const Rect &rect)
 	{
 		gl::Scissor(rect.x*_scaleFactor, rect.y*_scaleFactor, rect.width*_scaleFactor, rect.height*_scaleFactor);
 	}

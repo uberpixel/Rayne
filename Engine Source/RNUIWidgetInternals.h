@@ -60,7 +60,7 @@ namespace RN
 			void SetState(Control::State state);
 			void SetTitle(String *title);
 			
-			const EdgeInsets& GetBorder() const { return _border; }
+			const EdgeInsets &GetBorder() const { return _border; }
 			
 			void LayoutSubviews() override;
 			

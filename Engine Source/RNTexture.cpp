@@ -65,7 +65,7 @@ namespace RN
 		return texture;
 	}
 	
-	Texture *Texture::WithFile(const std::string& name, const Parameter& parameter, bool isLinear)
+	Texture *Texture::WithFile(const std::string& name, const Parameter &parameter, bool isLinear)
 	{
 		Value *value = new Value(parameter);
 		
@@ -98,7 +98,7 @@ namespace RN
 		gl::BindTexture(_glType, _name);
 	}
 
-	void Texture::SetParameter(const Parameter& parameter)
+	void Texture::SetParameter(const Parameter &parameter)
 	{
 		_parameter = parameter;
 		
@@ -166,7 +166,7 @@ namespace RN
 	
 	
 	
-	RN_INLINE uint8 *ReadPixel(uint8 *data, Texture::Format format, uint32& r, uint32& g, uint32& b, uint32& a)
+	RN_INLINE uint8 *ReadPixel(uint8 *data, Texture::Format format, uint32 &r, uint32 &g, uint32 &b, uint32 &a)
 	{
 		switch(format)
 		{
@@ -267,7 +267,7 @@ namespace RN
 		return data;
 	}
 	
-	void *Texture::ConvertData(const PixelData& data, Format target)
+	void *Texture::ConvertData(const PixelData &data, Format target)
 	{
 		if(data.format == target)
 			return const_cast<void *>(data.data);
@@ -408,7 +408,7 @@ namespace RN
 		return result;
 	}
 	
-	void Texture::ConvertFormatToOpenGL(Format format, bool linear, GLint& glInternalFormat, GLenum& glFormat, GLenum& glType)
+	void Texture::ConvertFormatToOpenGL(Format format, bool linear, GLint &glInternalFormat, GLenum &glFormat, GLenum &glType)
 	{
 		switch(format)
 		{
@@ -599,7 +599,7 @@ namespace RN
 		SetParameter(_parameter);
 	}
 	
-	Texture2D::Texture2D(const Parameter& parameter, bool isLinear) :
+	Texture2D::Texture2D(const Parameter &parameter, bool isLinear) :
 		Texture(GL_TEXTURE_2D, isLinear)
 	{
 		SetParameter(parameter);
@@ -626,7 +626,7 @@ namespace RN
 		});
 	}
 	
-	void Texture2D::SetData(const PixelData& data)
+	void Texture2D::SetData(const PixelData &data)
 	{
 		void *converted = ConvertData(data, _parameter.format);
 		
@@ -655,12 +655,12 @@ namespace RN
 			free(converted);
 	}
 	
-	void Texture2D::UpdateData(const PixelData& data)
+	void Texture2D::UpdateData(const PixelData &data)
 	{
 		UpdateRegion(data, Rect(0, 0, _width, _height));
 	}
 	
-	void Texture2D::UpdateRegion(const PixelData& data, const Rect& region)
+	void Texture2D::UpdateRegion(const PixelData &data, const Rect &region)
 	{
 		void *converted = ConvertData(data, _parameter.format);
 		
@@ -712,7 +712,7 @@ namespace RN
 		SetParameter(_parameter);
 	}
 	
-	Texture2DArray::Texture2DArray(const Parameter& parameter, bool isLinear) :
+	Texture2DArray::Texture2DArray(const Parameter &parameter, bool isLinear) :
 		Texture(GL_TEXTURE_2D_ARRAY, isLinear),
 		_layer(1)
 	{
@@ -746,7 +746,7 @@ namespace RN
 		});
 	}
 	
-	void Texture2DArray::SetData(const PixelData& data, size_t index)
+	void Texture2DArray::SetData(const PixelData &data, size_t index)
 	{
 		void *converted = ConvertData(data, _parameter.format);
 		
@@ -774,7 +774,7 @@ namespace RN
 			free(converted);
 	}
 	
-	void Texture2DArray::UpdateData(const PixelData& data, size_t index)
+	void Texture2DArray::UpdateData(const PixelData &data, size_t index)
 	{
 		void *converted = ConvertData(data, _parameter.format);
 		
@@ -810,7 +810,7 @@ namespace RN
 		SetParameter(_parameter);
 	}
 	
-	TextureCubeMap::TextureCubeMap(const Parameter& parameter, bool isLinear) :
+	TextureCubeMap::TextureCubeMap(const Parameter &parameter, bool isLinear) :
 		Texture(GL_TEXTURE_CUBE_MAP, isLinear)
 	{
 		SetParameter(parameter);
@@ -839,7 +839,7 @@ namespace RN
 		});
 	}
 	
-	void TextureCubeMap::SetData(const PixelData& data, Side side)
+	void TextureCubeMap::SetData(const PixelData &data, Side side)
 	{
 		void *converted = ConvertData(data, _parameter.format);
 		
@@ -878,7 +878,7 @@ namespace RN
 			free(converted);
 	}
 	
-	void TextureCubeMap::UpdateData(const PixelData& data, Side side)
+	void TextureCubeMap::UpdateData(const PixelData &data, Side side)
 	{
 		void *converted = ConvertData(data, _parameter.format);
 		

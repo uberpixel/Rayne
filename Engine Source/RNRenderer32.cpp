@@ -54,9 +54,9 @@ namespace RN
 	
 	void Renderer32::AdjustDrawBuffer(Camera *camera, Camera *target)
 	{
-		const Vector2& size = camera->GetStorage()->GetSize();
-		const Rect& offset = camera->GetRenderingFrame();
-		const Rect& frame = camera->GetFrame();
+		const Vector2 &size = camera->GetStorage()->GetSize();
+		const Rect &offset = camera->GetRenderingFrame();
+		const Rect &frame = camera->GetFrame();
 		
 		Vector4 atlas = Vector4(offset.x / size.x, offset.y / size.y, (offset.x + offset.width) / size.x, (offset.y + offset.height) / size.y);
 		
@@ -79,7 +79,7 @@ namespace RN
 		else
 		{
 			Rect tframe(target->GetRenderingFrame());
-			const Rect& targetFrame = target->GetFrame();
+			const Rect &targetFrame = target->GetFrame();
 			
 			if(stretchHorizontal)
 			{
@@ -211,11 +211,11 @@ namespace RN
 				}
 				
 				// Update the shader
-				const Matrix& projectionMatrix = camera->GetProjectionMatrix();
-				const Matrix& inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
+				const Matrix &projectionMatrix = camera->GetProjectionMatrix();
+				const Matrix &inverseProjectionMatrix = camera->GetInverseProjectionMatrix();
 				
-				const Matrix& viewMatrix = camera->GetViewMatrix();
-				const Matrix& inverseViewMatrix = camera->GetInverseViewMatrix();
+				const Matrix &viewMatrix = camera->GetViewMatrix();
+				const Matrix &inverseViewMatrix = camera->GetInverseViewMatrix();
 				
 				Matrix projectionViewMatrix = projectionMatrix * viewMatrix;
 				Matrix inverseProjectionViewMatrix = inverseViewMatrix * inverseProjectionMatrix;
@@ -225,7 +225,7 @@ namespace RN
 				
 				for(; i < objectsCount; i ++)
 				{
-					RenderingObject& object = _frame[i];
+					RenderingObject &object = _frame[i];
 					if(object.prepare)
 						object.prepare(this, object);
 					
@@ -244,7 +244,7 @@ namespace RN
 					Mesh   *mesh = object.mesh;
 					Shader *shader = IsOverriden(Shader) ? material->GetShader() : surfaceOrMaterial->GetShader();
 					
-					Matrix& transform = object.transform ? *object.transform : identityMatrix;
+					Matrix &transform = object.transform ? *object.transform : identityMatrix;
 					Matrix inverseTransform = transform.GetInverse();
 					
 					// Check if we can use instancing here
@@ -472,7 +472,7 @@ namespace RN
 		BindVAO(0);
 	}
 	
-	void Renderer32::DrawMeshInstanced(const RenderingObject& object)
+	void Renderer32::DrawMeshInstanced(const RenderingObject &object)
 	{
 		Mesh *mesh = object.mesh;
 		const MeshDescriptor *descriptor = mesh->GetDescriptorForFeature(MeshFeature::Indices);

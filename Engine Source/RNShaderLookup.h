@@ -54,7 +54,7 @@ namespace RN
 			lightPointSpotCount(0)
 		{
 			defines = tdefines;
-			std::sort(defines.begin(), defines.end(), [](const ShaderDefine& left, const ShaderDefine& right) {
+			std::sort(defines.begin(), defines.end(), [](const ShaderDefine &left, const ShaderDefine &right) {
 				return (left.name.compare(right.name) < 0);
 			});
 			
@@ -69,7 +69,7 @@ namespace RN
 			type = 0;
 		}
 		
-		ShaderLookup operator +(const ShaderLookup& other) const
+		ShaderLookup operator +(const ShaderLookup &other) const
 		{
 			std::vector<ShaderDefine> tdefines(defines);
 			tdefines.insert(tdefines.end(), other.defines.begin(), other.defines.end());

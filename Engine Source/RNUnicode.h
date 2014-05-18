@@ -37,17 +37,17 @@ namespace RN
 		RNAPI UniChar GetUpperCase() const;
 		RNAPI UniChar GetLowerCase() const;
 		
-		bool operator ==(const CodePoint& other) const
+		bool operator ==(const CodePoint &other) const
 		{
 			return (_codePoint == other._codePoint);
 		}
 		
-		bool operator >(const CodePoint& other) const
+		bool operator >(const CodePoint &other) const
 		{
 			return (_codePoint > other._codePoint);
 		}
 		
-		bool operator <(const CodePoint& other) const
+		bool operator <(const CodePoint &other) const
 		{
 			return (_codePoint < other._codePoint);
 		}

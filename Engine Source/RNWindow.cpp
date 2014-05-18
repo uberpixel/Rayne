@@ -460,7 +460,7 @@ namespace RN
 		
 		if(mask & Mask::Fullscreen)
 		{
-			const Rect& rect = screen->GetFrame();
+			const Rect &rect = screen->GetFrame();
 			
 			_internals->nativeWindow = [[RNNativeWindow alloc] initWithFrame:NSMakeRect(rect.x, rect.y, rect.width, rect.height) andStyleMask:NSBorderlessWindowMask];
 			[_internals->nativeWindow setLevel:NSMainMenuWindowLevel + 1];

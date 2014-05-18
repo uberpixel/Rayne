@@ -60,19 +60,19 @@ namespace RN
 			_difference   = (_endValue - _startValue);
 		}
 		
-		void SetStartValue(const T& value)
+		void SetStartValue(const T &value)
 		{
 			_startValue = value;
 			_difference = (_endValue - _startValue);
 		}
 		
-		void SetEndValue(const T& value)
+		void SetEndValue(const T &value)
 		{
 			_endValue = value;
 			_difference = (_endValue - _startValue);
 		}
 		
-		void SetValues(const T& start, const T& end)
+		void SetValues(const T &start, const T &end)
 		{
 			_startValue = start;
 			_endValue = end;
@@ -263,12 +263,12 @@ namespace RN
 			_difference = (_endValue - _startValue);
 		}
 		
-		const T& GetStartValue() const
+		const T &GetStartValue() const
 		{
 			return _startValue;
 		}
 		
-		const T& GetEndValue() const
+		const T &GetEndValue() const
 		{
 			return _endValue;
 		}

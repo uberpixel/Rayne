@@ -50,7 +50,7 @@ namespace RN
 		};
 		
 		RNAPI RenderStage(Camera *camera, Camera *conenction, Mode mode);
-		RNAPI RenderStage(const RenderStage& other);
+		RNAPI RenderStage(const RenderStage &other);
 		RNAPI ~RenderStage();
 		
 		RNAPI void Connect(Camera *other);
@@ -92,7 +92,7 @@ namespace RN
 		std::vector<RenderStage> stages;
 		
 	private:
-		void PostUpdate(Camera *source, const Vector3& position, const Quaternion& rotation, const Rect& frame);
+		void PostUpdate(Camera *source, const Vector3 &position, const Quaternion &rotation, const Rect &frame);
 		void PushProjectionUpdate(Camera *source);
 		
 		std::string _name;
@@ -211,27 +211,27 @@ namespace RN
 		};
 		
 		RNAPI Camera();
-		RNAPI Camera(const Vector2& size);
+		RNAPI Camera(const Vector2 &size);
 		
-		RNAPI Camera(const Vector2& size, Texture *target);
-		RNAPI Camera(const Vector2& size, Texture *target, Flags flags);
-		RNAPI Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format);
+		RNAPI Camera(const Vector2 &size, Texture *target);
+		RNAPI Camera(const Vector2 &size, Texture *target, Flags flags);
+		RNAPI Camera(const Vector2 &size, Texture *target, Flags flags, RenderStorage::BufferFormat format);
 		
-		RNAPI Camera(const Vector2& size, Texture::Format targetFormat);
-		RNAPI Camera(const Vector2& size, Texture::Format targetFormat, Flags flags);
-		RNAPI Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f);
+		RNAPI Camera(const Vector2 &size, Texture::Format targetFormat);
+		RNAPI Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags);
+		RNAPI Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor=0.0f);
 		
-		RNAPI Camera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f);
+		RNAPI Camera(const Vector2 &size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f);
 		RNAPI ~Camera() override;
 		
 		RNAPI void DidUpdate(ChangeSet changeSet) override;
 		
 		RNAPI void PrepareForRendering(Renderer *renderer);
 		
-		RNAPI void SetFrame(const Rect& frame);
-		RNAPI void SetRenderingFrame(const Rect& offset);
+		RNAPI void SetFrame(const Rect &frame);
+		RNAPI void SetRenderingFrame(const Rect &offset);
 		RNAPI void SetFlags(Flags flags);
-		RNAPI void SetClearColor(const Color& color);
+		RNAPI void SetClearColor(const Color &color);
 		RNAPI void SetMaterial(Material *material);
 		RNAPI void SetRenderStorage(RenderStorage *storage);
 		RNAPI void SetLightManager(LightManager *lightManager);
@@ -258,20 +258,20 @@ namespace RN
 		RNAPI void Update(float delta) override;
 		RNAPI void UpdateEditMode(float delta) override;
 		
-		RNAPI Vector3 ToWorld(const Vector3& dir);
+		RNAPI Vector3 ToWorld(const Vector3 &dir);
 		
-		RNAPI virtual bool InFrustum(const Vector3& position, float radius);
-		RNAPI virtual bool InFrustum(const Sphere& sphere);
-		RNAPI virtual bool InFrustum(const AABB& aabb);
+		RNAPI virtual bool InFrustum(const Vector3 &position, float radius);
+		RNAPI virtual bool InFrustum(const Sphere &sphere);
+		RNAPI virtual bool InFrustum(const AABB &aabb);
 		
 		RNAPI bool IsVisibleInCamera(Camera *camera) override;
 		
-		RNAPI const Vector3& GetFrustumCenter();
+		RNAPI const Vector3 &GetFrustumCenter();
 		RNAPI float GetFrustumRadius();
 		
 		RenderStorage *GetStorage() const { return _storage; }
-		const Color& GetClearColor() const { return _clearColor; }
-		RNAPI const Rect& GetFrame();
+		const Color &GetClearColor() const { return _clearColor; }
+		RNAPI const Rect &GetFrame();
 		RNAPI Rect GetRenderingFrame();
 		Material *GetMaterial() const { return _material; }
 		Flags GetFlags() const { return _flags; }
@@ -316,7 +316,7 @@ namespace RN
 		void UpdateProjection();
 		void UpdateFrustum();
 		
-		Vector3 __ToWorld(const Vector3& dir);
+		Vector3 __ToWorld(const Vector3 &dir);
 		Matrix MakeShadowSplit(Camera *camera, Light *light, float near, float far);
 		void Initialize();
 		

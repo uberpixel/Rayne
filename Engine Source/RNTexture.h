@@ -109,12 +109,12 @@ namespace RN
 		RNAPI ~Texture() override;
 		
 		RNAPI static Texture *WithFile(const std::string& name, bool isLinear = false);
-		RNAPI static Texture *WithFile(const std::string& name, const Parameter& parameter, bool isLinear = false);
+		RNAPI static Texture *WithFile(const std::string& name, const Parameter &parameter, bool isLinear = false);
 		
 		RNAPI virtual void SetSize(size_t width, size_t height);
-		RNAPI void SetParameter(const Parameter& parameter);
+		RNAPI void SetParameter(const Parameter &parameter);
 		
-		RNAPI const Parameter& GetParameter() const { return _parameter; }
+		RNAPI const Parameter &GetParameter() const { return _parameter; }
 		
 		RNAPI GLuint GetName() { return _name; }
 		RNAPI GLuint GetGLType() { return _glType; }
@@ -136,8 +136,8 @@ namespace RN
 		RNAPI void Bind();
 		RNAPI void Update();
 		
-		RNAPI static void *ConvertData(const PixelData& data, Format target);
-		RNAPI static void ConvertFormatToOpenGL(Format format, bool linear, GLint& glInternalFormat, GLenum& glFormat, GLenum& glType);
+		RNAPI static void *ConvertData(const PixelData &data, Format target);
+		RNAPI static void ConvertFormatToOpenGL(Format format, bool linear, GLint &glInternalFormat, GLenum &glFormat, GLenum &glType);
 		
 		Parameter _parameter;
 		
@@ -160,13 +160,13 @@ namespace RN
 	{
 	public:
 		RNAPI Texture2D(Format format, bool isLinear=false);
-		RNAPI Texture2D(const Parameter& parameter, bool isLinear=false);
+		RNAPI Texture2D(const Parameter &parameter, bool isLinear=false);
 		
 		RNAPI void SetSize(size_t width, size_t height) override;
 		
-		RNAPI void SetData(const PixelData& data);
-		RNAPI void UpdateData(const PixelData& data);
-		RNAPI void UpdateRegion(const PixelData& data, const Rect& region);
+		RNAPI void SetData(const PixelData &data);
+		RNAPI void UpdateData(const PixelData &data);
+		RNAPI void UpdateRegion(const PixelData &data, const Rect &region);
 		
 		RNAPI void GetData(PixelData& data);
 		
@@ -177,13 +177,13 @@ namespace RN
 	{
 	public:
 		RNAPI Texture2DArray(Format format, bool isLinear=false);
-		RNAPI Texture2DArray(const Parameter& parameter, bool isLinear=false);
+		RNAPI Texture2DArray(const Parameter &parameter, bool isLinear=false);
 		
 		RNAPI void SetSize(size_t width, size_t height) override;
 		RNAPI void SetSize(size_t width, size_t height, size_t layer);
 		
-		RNAPI void SetData(const PixelData& data, size_t index);
-		RNAPI void UpdateData(const PixelData& data, size_t index);
+		RNAPI void SetData(const PixelData &data, size_t index);
+		RNAPI void UpdateData(const PixelData &data, size_t index);
 		
 	private:
 		size_t _layer;
@@ -207,12 +207,12 @@ namespace RN
 		};
 		
 		RNAPI TextureCubeMap(Format format, bool isLinear=false);
-		RNAPI TextureCubeMap(const Parameter& parameter, bool isLinear=false);
+		RNAPI TextureCubeMap(const Parameter &parameter, bool isLinear=false);
 		
 		RNAPI void SetSize(size_t width, size_t height) override;
 		
-		RNAPI void SetData(const PixelData& data, Side side);
-		RNAPI void UpdateData(const PixelData& data, Side side);
+		RNAPI void SetData(const PixelData &data, Side side);
+		RNAPI void UpdateData(const PixelData &data, Side side);
 		
 		RNDeclareMeta(TextureCubeMap)
 	};

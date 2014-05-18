@@ -358,7 +358,7 @@ namespace RN
 		throw Exception(Exception::Type::ShaderLinkingFailedException, tlog);
 	}
 	
-	ShaderProgram *Shader::CompileProgram(const ShaderLookup& lookup)
+	ShaderProgram *Shader::CompileProgram(const ShaderLookup &lookup)
 	{
 		auto iterator = _programs.find(lookup);
 		if(iterator != _programs.end())
@@ -499,7 +499,7 @@ namespace RN
 		return program;
 	}
 	
-	ShaderProgram *Shader::GetProgramWithLookup(const ShaderLookup& lookup)
+	ShaderProgram *Shader::GetProgramWithLookup(const ShaderLookup &lookup)
 	{
 		if(!SupportsProgramOfType(lookup.type))
 			return 0;
@@ -542,7 +542,7 @@ namespace RN
 	// MARK: Setter
 	// ---------------------
 	
-	void Shader::IncludeShader(const std::string& name, IncludeMode mode, File *parent, PreProcessedFile& output)
+	void Shader::IncludeShader(const std::string& name, IncludeMode mode, File *parent, PreProcessedFile &output)
 	{
 		File *includeFile = 0;
 		
@@ -573,7 +573,7 @@ namespace RN
 		PreProcessFile(includeFile, output);
 	}
 	
-	void Shader::PreProcessFile(File *file, PreProcessedFile& output)
+	void Shader::PreProcessFile(File *file, PreProcessedFile &output)
 	{
 		std::string data = file->GetString();
 		size_t index = -1;
@@ -763,7 +763,7 @@ namespace RN
 		std::vector<DebugMarker>& markers = _shaderData[type].marker;
 		DebugMarker closestMarker = markers[0];
 		
-		for(const DebugMarker& marker : markers)
+		for(const DebugMarker &marker : markers)
 		{
 			if(marker.line > line)
 				break;

@@ -68,7 +68,7 @@ namespace RN
 			SetNeedsLayoutUpdate();
 		}
 		
-		void TableViewCell::SetFrame(const Rect& frame)
+		void TableViewCell::SetFrame(const Rect &frame)
 		{
 			Control::SetFrame(frame);
 		}

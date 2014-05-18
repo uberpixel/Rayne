@@ -28,7 +28,7 @@ namespace RN
 			_rollback(std::move(other._rollback))
 		{}
 		
-		ScopeGuard& operator=(ScopeGuard&& other)
+		ScopeGuard &operator=(ScopeGuard&& other)
 		{
 			_rollback = std::move(other._rollback);
 			_committed = other._committed;

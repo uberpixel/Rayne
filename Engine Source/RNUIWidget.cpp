@@ -23,7 +23,7 @@ namespace RN
 			Initialize(style);
 		}
 		
-		Widget::Widget(Style style, const Rect& frame) :
+		Widget::Widget(Style style, const Rect &frame) :
 			_frame(frame)
 		{
 			Initialize(style);
@@ -106,7 +106,7 @@ namespace RN
 			ConstraintContentView();
 		}
 		
-		void Widget::SetMinimumSize(const Vector2& size)
+		void Widget::SetMinimumSize(const Vector2 &size)
 		{
 			_minimumSize = size;
 			
@@ -114,7 +114,7 @@ namespace RN
 			ConstraintContentView();
 		}
 		
-		void Widget::SetMaximumSize(const Vector2& size)
+		void Widget::SetMaximumSize(const Vector2 &size)
 		{
 			_maximumSize = size;
 			
@@ -122,7 +122,7 @@ namespace RN
 			ConstraintContentView();
 		}
 		
-		void Widget::SetFrame(const Rect& frame)
+		void Widget::SetFrame(const Rect &frame)
 		{
 			if(_frame != frame)
 			{
@@ -142,12 +142,12 @@ namespace RN
 				_backgroundView->SetTitle(title);
 		}
 		
-		void Widget::SetTransform(const Matrix& transform)
+		void Widget::SetTransform(const Matrix &transform)
 		{
 			_transform = transform;
 		}
 		
-		void Widget::SetContentSize(const Vector2& size)
+		void Widget::SetContentSize(const Vector2 &size)
 		{
 			Rect frame;
 			frame.width  = size.x;
@@ -263,7 +263,7 @@ namespace RN
 			_server->MoveWidgetToFront(this);
 		}
 		
-		View *Widget::PerformHitTest(const Vector2& position, Event *event)
+		View *Widget::PerformHitTest(const Vector2 &position, Event *event)
 		{
 			if(_frame.ContainsPoint(position))
 			{
@@ -277,7 +277,7 @@ namespace RN
 			// Check the background view
 			if(_backgroundView)
 			{
-				const EdgeInsets& border = _backgroundView->GetBorder();
+				const EdgeInsets &border = _backgroundView->GetBorder();
 				Rect extendedFrame = _frame;
 				
 				extendedFrame.x     -= border.left;

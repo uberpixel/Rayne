@@ -24,7 +24,7 @@ namespace RN
 			Initialize();
 		}
 		
-		View::View(const Rect& frame) :
+		View::View(const Rect &frame) :
 			_frame(frame),
 			_bounds(0.0f, 0.0f, frame.width, frame.height)
 		{
@@ -71,7 +71,7 @@ namespace RN
 			_material->SetDiffuseColor(color);
 		}
 		
-		Mesh *View::BasicMesh(const Vector2& size)
+		Mesh *View::BasicMesh(const Vector2 &size)
 		{
 			MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 			vertexDescriptor.elementMember = 2;
@@ -118,7 +118,7 @@ namespace RN
 			return material->Autorelease();
 		}
 		
-		void View::UpdateBasicMesh(Mesh *mesh, const Vector2& size)
+		void View::UpdateBasicMesh(Mesh *mesh, const Vector2 &size)
 		{
 			Mesh::Chunk chunk = mesh->GetChunk();
 			Mesh::ElementIterator<Vector2> vertices = chunk.GetIterator<Vector2>(MeshFeature::Vertices);
@@ -174,7 +174,7 @@ namespace RN
 			point.y -= _frame.y - _bounds.y;
 		}
 		
-		Vector2 View::ConvertPointToView(const Vector2& point, View *view)
+		Vector2 View::ConvertPointToView(const Vector2 &point, View *view)
 		{
 			Vector2 converted = point;
 			ConvertPointToWidget(converted);
@@ -186,7 +186,7 @@ namespace RN
 			return converted;
 		}
 		
-		Vector2 View::ConvertPointFromView(const Vector2& point, View *view)
+		Vector2 View::ConvertPointFromView(const Vector2 &point, View *view)
 		{
 			Vector2 converted = point;
 			
@@ -197,7 +197,7 @@ namespace RN
 			return converted;
 		}
 		
-		Vector2 View::ConvertPointToBase(const Vector2& point)
+		Vector2 View::ConvertPointToBase(const Vector2 &point)
 		{
 			Vector2 converted = point;
 			ConvertPointToWidget(converted);
@@ -211,7 +211,7 @@ namespace RN
 			return converted;
 		}
 		
-		Vector2 View::ConvertPointFromBase(const Vector2& point)
+		Vector2 View::ConvertPointFromBase(const Vector2 &point)
 		{
 			Vector2 converted = point;
 			if(_widget)
@@ -225,7 +225,7 @@ namespace RN
 		}
 		
 		
-		Rect View::ConvertRectToView(const Rect& frame, View *view)
+		Rect View::ConvertRectToView(const Rect &frame, View *view)
 		{
 			Rect converted = frame;
 			Vector2 point  = ConvertPointToView(Vector2(frame.x, frame.y), view);
@@ -236,7 +236,7 @@ namespace RN
 			return converted;
 		}
 		
-		Rect View::ConvertRectFromView(const Rect& frame, View *view)
+		Rect View::ConvertRectFromView(const Rect &frame, View *view)
 		{
 			Rect converted = frame;
 			Vector2 point  = ConvertPointFromView(Vector2(frame.x, frame.y), view);
@@ -252,7 +252,7 @@ namespace RN
 		// MARK: Hit test
 		// ---------------------
 		
-		View *View::HitTest(const Vector2& tpoint, Event *event)
+		View *View::HitTest(const Vector2 &tpoint, Event *event)
 		{
 			bool traverse = true;
 			View *potential = this;
@@ -281,7 +281,7 @@ namespace RN
 			return (potential && potential->_interactionEnabled) ? potential : nullptr;
 		}
 		
-		bool View::IsPointInside(const Vector2& point, Event *event)
+		bool View::IsPointInside(const Vector2 &point, Event *event)
 		{
 			return _bounds.ContainsPoint(point);
 		}
@@ -305,7 +305,7 @@ namespace RN
 			SetNeedsLayoutUpdate();
 		}
 		
-		void View::SetClipInsets(const EdgeInsets& insets)
+		void View::SetClipInsets(const EdgeInsets &insets)
 		{
 			_clipInsets = insets;
 			SetNeedsLayoutUpdate();
@@ -467,7 +467,7 @@ namespace RN
 			return _frame.GetSize();
 		}
 		
-		void View::SetFrame(const Rect& frame)
+		void View::SetFrame(const Rect &frame)
 		{
 			Vector2 oldSize = _frame.GetSize();
 			
@@ -480,7 +480,7 @@ namespace RN
 			ResizeSubviewsFromOldSize(oldSize);
 		}
 		
-		void View::SetBounds(const Rect& bounds)
+		void View::SetBounds(const Rect &bounds)
 		{
 			if(_frame.GetSize() != bounds.GetSize())
 			{
@@ -515,13 +515,13 @@ namespace RN
 			_autoresizingMask = mask;
 		}
 		
-		void View::SetTransform(const Matrix& transform)
+		void View::SetTransform(const Matrix &transform)
 		{
 			_transform = transform;
 			SetNeedsLayoutUpdate();
 		}
 		
-		void View::ResizeSubviewsFromOldSize(const Vector2& oldSize)
+		void View::ResizeSubviewsFromOldSize(const Vector2 &oldSize)
 		{
 			Vector2 size = _frame.GetSize();
 			Vector2 diff = size - oldSize;

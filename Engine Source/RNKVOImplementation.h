@@ -41,7 +41,7 @@ namespace RN
 			_getter(getter), \
 			_setter(setter) \
 		{} \
-		Observable(const char *name, const type& initial, Getter getter = nullptr, Setter setter = nullptr) : \
+		Observable(const char *name, const type &initial, Getter getter = nullptr, Setter setter = nullptr) : \
 			Observable(name, getter, setter) \
 		{ \
 			_storage = initial; \
@@ -65,11 +65,11 @@ namespace RN
 		{ \
 			return _getter ? Number::With##kvotype ((static_cast<Target *>(_object)->*_getter)()) : Number::With##kvotype (_storage); \
 		} \
-		bool operator == (const type& other) const \
+		bool operator == (const type &other) const \
 		{ \
 			return (_storage == other); \
 		} \
-		bool operator != (const type& other) const \
+		bool operator != (const type &other) const \
 		{ \
 			return (_storage != other); \
 		} \
@@ -83,7 +83,7 @@ namespace RN
 			return _storage; \
 		} \
 		\
-		type& operator= (const type& other) \
+		type &operator= (const type &other) \
 		{ \
 			WillChangeValue(); \
 			_storage = other; \
@@ -92,7 +92,7 @@ namespace RN
 			return _storage; \
 		} \
 		\
-		type& operator+= (const type& other) \
+		type &operator+= (const type &other) \
 		{ \
 			WillChangeValue(); \
 			_storage += other; \
@@ -100,7 +100,7 @@ namespace RN
 			 \
 			return _storage; \
 		} \
-		type& operator-= (const type& other) \
+		type &operator-= (const type &other) \
 		{ \
 			WillChangeValue(); \
 			_storage -= other; \
@@ -108,7 +108,7 @@ namespace RN
 			 \
 			return _storage; \
 		} \
-		type& operator*= (const type& other) \
+		type &operator*= (const type &other) \
 		{ \
 			WillChangeValue(); \
 			_storage *= other; \
@@ -116,7 +116,7 @@ namespace RN
 			 \
 			return _storage; \
 		} \
-		type& operator/= (const type& other) \
+		type &operator/= (const type &other) \
 		{ \
 			WillChangeValue(); \
 			_storage /= other; \
@@ -125,24 +125,24 @@ namespace RN
 			return _storage; \
 		} \
 		\
-		type operator+ (const type& other) const \
+		type operator+ (const type &other) const \
 		{ \
 			return _storage + other; \
 		} \
-		type operator- (const type& other) const \
+		type operator- (const type &other) const \
 		{ \
 			return _storage - other; \
 		} \
-		type operator* (const type& other) const \
+		type operator* (const type &other) const \
 		{ \
 			return _storage * other; \
 		} \
-		type operator/ (const type& other) const \
+		type operator/ (const type &other) const \
 		{ \
 			return _storage / other; \
 		} \
 		\
-		type& operator ++() \
+		type &operator ++() \
 		{ \
 			WillChangeValue(); \
 			++ _storage; \
@@ -160,7 +160,7 @@ namespace RN
 			 \
 			return result; \
 		} \
-		type& operator --() \
+		type &operator --() \
 		{ \
 			WillChangeValue(); \
 			-- _storage; \
@@ -205,12 +205,12 @@ namespace RN
 			_setter(setter), \
 			_const(true) \
 		{} \
-		Observable(const char *name, const type& initial, Getter getter = nullptr, Setter setter = nullptr) : \
+		Observable(const char *name, const type &initial, Getter getter = nullptr, Setter setter = nullptr) : \
 			Observable(name, getter, setter) \
 		{ \
 			_storage = initial; \
 		} \
-		Observable(const char *name, const type& initial, ConstGetter getter, Setter setter) : \
+		Observable(const char *name, const type &initial, ConstGetter getter, Setter setter) : \
 			Observable(name, getter, setter) \
 		{ \
 			_storage = initial; \
@@ -241,7 +241,7 @@ namespace RN
 		{ \
 			return _storage; \
 		} \
-		type& operator= (const type& other) \
+		type &operator= (const type &other) \
 		{ \
 			WillChangeValue(); \
 			_storage = other; \
@@ -261,11 +261,11 @@ namespace RN
 	
 
 #define __ObservableValueComparison(type) \
-	bool operator == (const type& other) const \
+	bool operator == (const type &other) const \
 	{ \
 		return (_storage == other); \
 	} \
-	bool operator != (const type& other) const \
+	bool operator != (const type &other) const \
 	{ \
 		return (_storage != other); \
 	} \
@@ -275,7 +275,7 @@ namespace RN
 	{ \
 		return _storage; \
 	} \
-	const type& operator *() const \
+	const type &operator *() const \
 	{ \
 		return _storage; \
 	} \
@@ -289,7 +289,7 @@ namespace RN
 	}
 
 #define __ObservableValueBinaryArithmeticAddition(type) \
-	type& operator+= (const type& other) \
+	type &operator+= (const type &other) \
 	{ \
 		WillChangeValue(); \
 		_storage += other; \
@@ -297,13 +297,13 @@ namespace RN
 		\
 		return _storage; \
 	} \
-	type operator+ (const type& other) const \
+	type operator+ (const type &other) const \
 	{ \
 		return _storage + other; \
 	}
 
 #define __ObservableValueBinaryArithmeticSubtraction(type) \
-	type& operator-= (const type& other) \
+	type &operator-= (const type &other) \
 	{ \
 		WillChangeValue(); \
 		_storage -= other; \
@@ -311,13 +311,13 @@ namespace RN
 		\
 		return _storage; \
 	} \
-	type operator- (const type& other) const \
+	type operator- (const type &other) const \
 	{ \
 		return _storage - other; \
 	}
 
 #define __ObservableValueBinaryArithmeticMultiplication(type) \
-	type& operator*= (const type& other) \
+	type &operator*= (const type &other) \
 	{ \
 		WillChangeValue(); \
 		_storage *= other; \
@@ -325,13 +325,13 @@ namespace RN
 		\
 		return _storage; \
 	} \
-	type operator* (const type& other) const \
+	type operator* (const type &other) const \
 	{ \
 		return _storage * other; \
 	}
 
 #define __ObservableValueBinaryArithmeticDivision(type) \
-	type& operator/= (const type& other) \
+	type &operator/= (const type &other) \
 	{ \
 		WillChangeValue(); \
 		_storage /= other; \
@@ -339,7 +339,7 @@ namespace RN
 		\
 		return _storage; \
 	} \
-	type operator/ (const type& other) const \
+	type operator/ (const type &other) const \
 	{ \
 		return _storage / other; \
 	}
@@ -512,7 +512,7 @@ namespace RN
 			return (_storage != other);
 		}
 
-		bool& operator= (const bool& other)
+		bool &operator= (const bool &other)
 		{
 			WillChangeValue();
 			_storage = other;

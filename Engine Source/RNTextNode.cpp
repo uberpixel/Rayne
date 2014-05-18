@@ -90,7 +90,7 @@ namespace RN
 		_typesetter->SetText(_string);
 	}
 	
-	void TextNode::SetTextColor(const Color& color)
+	void TextNode::SetTextColor(const Color &color)
 	{
 		_color = color;
 	}

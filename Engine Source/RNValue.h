@@ -41,14 +41,14 @@ namespace RN
 		RNAPI machine_hash GetHash() const override;
 		RNAPI bool IsEqual(Object *other) const override;
 		
-		RNAPI static Value *WithVector2(const Vector2& vector);
-		RNAPI static Value *WithVector3(const Vector3& vector);
-		RNAPI static Value *WithVector4(const Vector4& vector);
+		RNAPI static Value *WithVector2(const Vector2 &vector);
+		RNAPI static Value *WithVector3(const Vector3 &vector);
+		RNAPI static Value *WithVector4(const Vector4 &vector);
 		
-		RNAPI static Value *WithColor(const Color& color);
+		RNAPI static Value *WithColor(const Color &color);
 		
-		RNAPI static Value *WithQuaternion(const Quaternion& quaternion);
-		RNAPI static Value *WithMatrix(const Matrix& matrix);
+		RNAPI static Value *WithQuaternion(const Quaternion &quaternion);
+		RNAPI static Value *WithMatrix(const Matrix &matrix);
 		
 		template<class T>
 		bool CanConvertToType() const

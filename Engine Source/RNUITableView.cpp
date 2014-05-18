@@ -97,7 +97,7 @@ namespace RN
 			SetContentSize(Vector2(GetFrame().width, _height));
 		}
 		
-		void TableView::SetFrame(const Rect& frame)
+		void TableView::SetFrame(const Rect &frame)
 		{
 			ScrollView::SetFrame(frame);
 			SetContentSize(Vector2(frame.width, _height));
@@ -258,7 +258,7 @@ namespace RN
 			
 			for(size_t i = 0; i < _changes.size(); i ++)
 			{
-				EditingSet& set = _changes[i];
+				EditingSet &set = _changes[i];
 				ptrdiff_t offset = 0;
 				
 				switch(set.type)
@@ -305,7 +305,7 @@ namespace RN
 				{
 					for(size_t j = i + 1; j < _changes.size(); j ++)
 					{
-						EditingSet& set = _changes[j];
+						EditingSet &set = _changes[j];
 						set.row += offset;
 					}
 				}
@@ -364,7 +364,7 @@ namespace RN
 					break;
 			}
 			
-			const Vector2& size = GetContentSize();
+			const Vector2 &size = GetContentSize();
 			
 			offset.y = std::max(0.0f, std::min(size.y - height, offset.y));
 			
@@ -373,7 +373,7 @@ namespace RN
 		}
 		
 		
-		void TableView::InvalidateCellsForRange(const Range& range)
+		void TableView::InvalidateCellsForRange(const Range &range)
 		{
 			for(size_t i = 0; i < _cells.GetCount(); i ++)
 			{

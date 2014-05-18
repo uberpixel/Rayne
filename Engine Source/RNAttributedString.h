@@ -26,17 +26,17 @@ namespace RN
 		RNAPI void BeginEditing();
 		RNAPI void EndEditing();
 		
-		RNAPI void AddAttribute(String *key, Object *value, const Range& range);
-		RNAPI void AddAttributes(Dictionary *attributes, const Range& range);
-		RNAPI void RemoveAttribute(String *key, const Range& range);
-		RNAPI void RemoveAttributes(Array *keys, const Range& range);
+		RNAPI void AddAttribute(String *key, Object *value, const Range &range);
+		RNAPI void AddAttributes(Dictionary *attributes, const Range &range);
+		RNAPI void RemoveAttribute(String *key, const Range &range);
+		RNAPI void RemoveAttributes(Array *keys, const Range &range);
 		
 		RNAPI Dictionary *GetAttributesAtIndex(size_t index);
 		
-		RNAPI void SetAttributes(Dictionary *attributes, const Range& range);
+		RNAPI void SetAttributes(Dictionary *attributes, const Range &range);
 		
-		RNAPI void ReplaceCharacters(String *string, const Range& range);
-		RNAPI void ReplaceCharacters(String *string, const Range& range, Dictionary *attributes);
+		RNAPI void ReplaceCharacters(String *string, const Range &range);
+		RNAPI void ReplaceCharacters(String *string, const Range &range, Dictionary *attributes);
 		
 		size_t GetLength() const { return _string->GetLength(); }
 		String *GetString() const { return _string; }
@@ -51,7 +51,7 @@ namespace RN
 				value = tvalue->Retain();
 			}
 			
-			Attribute(const Attribute& other)
+			Attribute(const Attribute &other)
 			{
 				key = other.key->Retain();
 				value = other.value->Retain();
@@ -66,7 +66,7 @@ namespace RN
 				other.value = nullptr;
 			}
 			
-			Attribute& operator= (const Attribute& other)
+			Attribute &operator= (const Attribute &other)
 			{
 				if(key)
 					key->Release();
@@ -79,7 +79,7 @@ namespace RN
 				return *this;
 			}
 			
-			Attribute& operator= (Attribute&& other)
+			Attribute &operator= (Attribute&& other)
 			{
 				if(key)
 					key->Release();

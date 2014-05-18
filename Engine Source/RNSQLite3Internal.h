@@ -121,7 +121,7 @@ namespace RN
 			
 			
 			
-			const void *GetColumnBlob(int column, int& size)
+			const void *GetColumnBlob(int column, int &size)
 			{
 				const void *blob = sqlite3_column_blob(_statement, column);
 				size = sqlite3_column_bytes(_statement, column);

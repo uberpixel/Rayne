@@ -36,13 +36,13 @@ namespace RN
 		RNAPI virtual void EncodeInt32(int32 value) = 0;
 		RNAPI virtual void EncodeInt64(int64 value) = 0;
 		
-		RNAPI virtual void EncodeVector2(const Vector2& value) = 0;
-		RNAPI virtual void EncodeVector3(const Vector3& value) = 0;
-		RNAPI virtual void EncodeVector4(const Vector4& value) = 0;
+		RNAPI virtual void EncodeVector2(const Vector2 &value) = 0;
+		RNAPI virtual void EncodeVector3(const Vector3 &value) = 0;
+		RNAPI virtual void EncodeVector4(const Vector4 &value) = 0;
 		RNAPI virtual void EncodeColor(const Color &color) = 0;
 		
-		RNAPI virtual void EncodeMatrix(const Matrix& value) = 0;
-		RNAPI virtual void EncodeQuarternion(const Quaternion& value) = 0;
+		RNAPI virtual void EncodeMatrix(const Matrix &value) = 0;
+		RNAPI virtual void EncodeQuarternion(const Quaternion &value) = 0;
 		
 		RNAPI virtual Data *GetSerializedData() const = 0;
 		
@@ -99,13 +99,13 @@ namespace RN
 		RNAPI void EncodeInt32(int32 value) override;
 		RNAPI void EncodeInt64(int64 value) override;
 		
-		RNAPI void EncodeVector2(const Vector2& value) override;
-		RNAPI void EncodeVector3(const Vector3& value) override;
-		RNAPI void EncodeVector4(const Vector4& value) override;
+		RNAPI void EncodeVector2(const Vector2 &value) override;
+		RNAPI void EncodeVector3(const Vector3 &value) override;
+		RNAPI void EncodeVector4(const Vector4 &value) override;
 		RNAPI void EncodeColor(const Color &color) override;
 		
-		RNAPI void EncodeMatrix(const Matrix& value) override;
-		RNAPI void EncodeQuarternion(const Quaternion& value) override;
+		RNAPI void EncodeMatrix(const Matrix &value) override;
+		RNAPI void EncodeQuarternion(const Quaternion &value) override;
 		
 		RNAPI Data *GetSerializedData() const override;
 		

@@ -19,17 +19,17 @@ namespace RN
 		StoreData(type, data, GetSizeForType(type), copy);
 	}
 	
-	Material::ShaderUniform::ShaderUniform(const std::string& name, const Matrix& matrix) :
+	Material::ShaderUniform::ShaderUniform(const std::string& name, const Matrix &matrix) :
 		ShaderUniform(name, Type::Matrix, const_cast<Matrix *>(&matrix), 1, true)
 	{}
 	
-	Material::ShaderUniform::ShaderUniform(const std::string& name, const Vector2& vec2) :
+	Material::ShaderUniform::ShaderUniform(const std::string& name, const Vector2 &vec2) :
 		ShaderUniform(name, Type::Float2, const_cast<Vector2 *>(&vec2), 1, true)
 	{}
-	Material::ShaderUniform::ShaderUniform(const std::string& name, const Vector3& vec3) :
+	Material::ShaderUniform::ShaderUniform(const std::string& name, const Vector3 &vec3) :
 		ShaderUniform(name, Type::Float3, const_cast<Vector3 *>(&vec3), 1, true)
 	{}
-	Material::ShaderUniform::ShaderUniform(const std::string& name, const Vector4& vec4) :
+	Material::ShaderUniform::ShaderUniform(const std::string& name, const Vector4 &vec4) :
 		ShaderUniform(name, Type::Float4, const_cast<Vector4 *>(&vec4), 1, true)
 	{}
 	
@@ -59,19 +59,19 @@ namespace RN
 		StoreData(Type::UInt1, &value, sizeof(uint32), true);
 	}
 	
-	void Material::ShaderUniform::SetMatrix(const Matrix& matrix)
+	void Material::ShaderUniform::SetMatrix(const Matrix &matrix)
 	{
 		StoreData(Type::Matrix, const_cast<Matrix *>(&matrix), sizeof(Matrix), true);
 	}
-	void Material::ShaderUniform::SetVector(const Vector2& vector)
+	void Material::ShaderUniform::SetVector(const Vector2 &vector)
 	{
 		StoreData(Type::Float2, const_cast<Vector2 *>(&vector), sizeof(Vector2), true);
 	}
-	void Material::ShaderUniform::SetVector(const Vector3& vector)
+	void Material::ShaderUniform::SetVector(const Vector3 &vector)
 	{
 		StoreData(Type::Float3, const_cast<Vector3 *>(&vector), sizeof(Vector3), true);
 	}
-	void Material::ShaderUniform::SetVector(const Vector4& vector)
+	void Material::ShaderUniform::SetVector(const Vector4 &vector)
 	{
 		StoreData(Type::Float4, const_cast<Vector4 *>(&vector), sizeof(Vector4), true);
 	}

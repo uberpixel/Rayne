@@ -37,7 +37,7 @@ namespace RN
 		}
 		
 		
-		Mesh *Image::GetFittingMesh(const Vector2& size, const Vector2& offset)
+		Mesh *Image::GetFittingMesh(const Vector2 &size, const Vector2 &offset)
 		{
 			uint16 xverts = 2;
 			uint16 yverts = 2;
@@ -162,7 +162,7 @@ namespace RN
 			return image->Autorelease();
 		}
 		
-		void Image::SetAtlas(const Atlas& atlas, bool normalized)
+		void Image::SetAtlas(const Atlas &atlas, bool normalized)
 		{
 			_atlas = atlas;
 			
@@ -179,7 +179,7 @@ namespace RN
 			}
 		}
 		
-		void Image::SetEdgeInsets(const EdgeInsets& insets)
+		void Image::SetEdgeInsets(const EdgeInsets &insets)
 		{
 			_insets = insets;
 		}

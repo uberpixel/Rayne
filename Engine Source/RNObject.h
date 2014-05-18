@@ -79,7 +79,7 @@ namespace RN
 		// -----------------
 		
 		template<class F>
-		void AddObserver(const std::string& keyPath, F&& function, void *cookie)
+		void AddObserver(const std::string& keyPath, F &&function, void *cookie)
 		{
 			std::string key;
 			ObservableProperty *property = GetPropertyForKeyPath(keyPath, key);

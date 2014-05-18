@@ -21,13 +21,13 @@ namespace RN
 		{
 		public:
 			RNAPI ImageView();
-			RNAPI ImageView(const Rect& frame);
+			RNAPI ImageView(const Rect &frame);
 			RNAPI ImageView(Image *image);
 			RNAPI ~ImageView() override;
 			
 			RNAPI void SetImage(Image *image);
 			RNAPI void SetScaleMode(ScaleMode mode);
-			RNAPI void SetFrame(const Rect& frame) override;
+			RNAPI void SetFrame(const Rect &frame) override;
 			
 			RNAPI Image *GetImage() const { return _image; }
 			RNAPI ScaleMode GetScaleMode() const { return _scaleMode; }
@@ -40,7 +40,7 @@ namespace RN
 			
 		private:
 			void Initialize();
-			Vector2 GetFittingImageSize(const Vector2& tsize);
+			Vector2 GetFittingImageSize(const Vector2 &tsize);
 			
 			bool _isDirty;
 			

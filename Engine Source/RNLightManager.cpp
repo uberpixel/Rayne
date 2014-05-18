@@ -321,8 +321,8 @@ namespace RN
 			for(size_t i = 0; i < lightCount; i ++)
 			{
 				Light *light = lights[i];
-				const Vector3& position = light->GetWorldPosition();
-				const Vector3& color    = light->GetFinalColor();
+				const Vector3 &position = light->GetWorldPosition();
+				const Vector3 &color    = light->GetFinalColor();
 				const float range = light->GetRange();
 				const float shadow = light->HasShadows()?static_cast<float>(i):-1.0f;
 				
@@ -398,9 +398,9 @@ namespace RN
 			for(size_t i = 0; i < lightCount; i ++)
 			{
 				Light *light = lights[i];
-				const Vector3& position = light->GetWorldPosition();
-				const Vector3& color    = light->GetFinalColor();
-				const Vector3& direction = -light->GetForward();
+				const Vector3 &position = light->GetWorldPosition();
+				const Vector3 &color    = light->GetFinalColor();
+				const Vector3 &direction = -light->GetForward();
 				const float angle = light->GetAngleCos();
 				const float range = light->GetRange();
 				const float shadow = light->HasShadows()?static_cast<float>(i):-1.0f;
@@ -452,8 +452,8 @@ namespace RN
 		for(size_t i = 0; i < _directionalLightCount; i ++)
 		{
 			Light *light = _directionalLights[i];
-			const Vector3& color = light->GetFinalColor();
-			const Vector3& direction = -light->GetForward();
+			const Vector3 &color = light->GetFinalColor();
+			const Vector3 &direction = -light->GetForward();
 			
 			_lightDirectionalDirection.push_back(direction);
 			_lightDirectionalColor.emplace_back(Vector4(color, light->HasShadows() ? static_cast<float>(i):-1.0f));
@@ -481,7 +481,7 @@ namespace RN
 		Vector3 cameraForward = camera->GetForward();
 		
 		Vector3 cameraWorldPosition = camera->GetWorldPosition();
-		const Rect& rect = camera->GetFrame();
+		const Rect &rect = camera->GetFrame();
 		
 		int tilesWidth   = ceil(rect.width / _clusterSize.x);
 		int tilesHeight  = ceil(rect.height / _clusterSize.y);
@@ -514,7 +514,7 @@ namespace RN
 		//Cull point lights
 		for(auto light : _pointLights)
 		{
-			const Vector3& lightPosition = light->GetWorldPosition();
+			const Vector3 &lightPosition = light->GetWorldPosition();
 			float lightRange = light->GetRange();
 
 			Vector4 viewPosition = std::move(camera->GetViewMatrix() * Vector4(lightPosition, 1.0f));
@@ -615,7 +615,7 @@ namespace RN
 		
 		for(auto light : _spotLights)
 		{
-			const Vector3& lightPosition = light->GetWorldPosition();
+			const Vector3 &lightPosition = light->GetWorldPosition();
 			float lightRange = light->GetRange();
 			
 			Vector4 viewPosition = std::move(camera->GetViewMatrix() * Vector4(lightPosition, 1.0f));

@@ -22,7 +22,7 @@ namespace RN
 	
 	protected:
 		RNAPI void DrawMesh(Mesh *mesh, uint32 offset, uint32 count);
-		RNAPI void DrawMeshInstanced(const RenderingObject& object);
+		RNAPI void DrawMeshInstanced(const RenderingObject &object);
 		
 		RNAPI void FlushCamera(Camera *camera, Shader *drawShader) override;
 		RNAPI void DrawCameraStage(Camera *camera, Camera *stage) override;

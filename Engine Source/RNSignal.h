@@ -151,7 +151,7 @@ namespace RN
 		struct Slot
 		{
 			template<class F>
-			Slot(Tag ttag, Connection *tconnection, F&& f) :
+			Slot(Tag ttag, Connection *tconnection, F &&f) :
 				tag(ttag),
 				callback(std::move(f)),
 				connection(tconnection)
@@ -168,7 +168,7 @@ namespace RN
 				Move(std::move(other));
 			}
 			
-			Slot& operator= (Slot&& other)
+			Slot &operator= (Slot&& other)
 			{
 				Move(std::move(other));
 				return *this;
@@ -191,7 +191,7 @@ namespace RN
 		{
 			LockGuard<SpinLock> lock(_lock);
 		
-			auto iterator = std::find_if(_slots.begin(), _slots.end(), [&](const Slot& slot) { return slot.tag == tag; });
+			auto iterator = std::find_if(_slots.begin(), _slots.end(), [&](const Slot &slot) { return slot.tag == tag; });
 			if(iterator != _slots.end())
 			{
 				iterator->connection.reset();

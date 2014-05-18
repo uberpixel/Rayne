@@ -21,7 +21,7 @@ namespace RN
 		m[0] = m[5] = m[10] = m[15] = 1.0f;
 	}
 
-	RN_INLINE Matrix& Matrix::operator*= (const Matrix& other)
+	RN_INLINE Matrix &Matrix::operator*= (const Matrix &other)
 	{
 #if RN_SIMD
 		alignas(16) float tmp[16];
@@ -71,7 +71,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE Matrix Matrix::operator* (const Matrix& other) const
+	RN_INLINE Matrix Matrix::operator* (const Matrix &other) const
 	{
 		Matrix matrix;
 		
@@ -117,7 +117,7 @@ namespace RN
 	}
 
 
-	RN_INLINE Vector3 Matrix::operator* (const Vector3& other) const
+	RN_INLINE Vector3 Matrix::operator* (const Vector3 &other) const
 	{
 		Vector3 result;
 
@@ -128,7 +128,7 @@ namespace RN
 		return result;
 	}
 
-	RN_INLINE Vector4 Matrix::operator* (const Vector4& other) const
+	RN_INLINE Vector4 Matrix::operator* (const Vector4 &other) const
 	{
 		Vector4 result;
 
@@ -186,7 +186,7 @@ namespace RN
 		return mat;
 	}
 	
-	RN_INLINE Matrix Matrix::WithTranslation(const Vector3& translation)
+	RN_INLINE Matrix Matrix::WithTranslation(const Vector3 &translation)
 	{
 		Matrix mat;
 		
@@ -197,7 +197,7 @@ namespace RN
 		return mat;
 	}
 	
-	RN_INLINE Matrix Matrix::WithTranslation(const Vector4& translation)
+	RN_INLINE Matrix Matrix::WithTranslation(const Vector4 &translation)
 	{
 		Matrix mat;
 		
@@ -209,7 +209,7 @@ namespace RN
 		return mat;
 	}
 	
-	RN_INLINE Matrix Matrix::WithScaling(const Vector3& scaling)
+	RN_INLINE Matrix Matrix::WithScaling(const Vector3 &scaling)
 	{
 		Matrix mat;
 		
@@ -220,7 +220,7 @@ namespace RN
 		return mat;
 	}
 	
-	RN_INLINE Matrix Matrix::WithScaling(const Vector4& scaling)
+	RN_INLINE Matrix Matrix::WithScaling(const Vector4 &scaling)
 	{
 		Matrix mat;
 		
@@ -232,19 +232,19 @@ namespace RN
 		return mat;
 	}
 	
-	RN_INLINE Matrix Matrix::WithRotation(const Vector3& rotation)
+	RN_INLINE Matrix Matrix::WithRotation(const Vector3 &rotation)
 	{
 		Quaternion quat(rotation);
 		return quat.GetRotationMatrix();
 	}
 	
-	RN_INLINE Matrix Matrix::WithRotation(const Vector4& rotation)
+	RN_INLINE Matrix Matrix::WithRotation(const Vector4 &rotation)
 	{
 		Quaternion quat(rotation);
 		return quat.GetRotationMatrix();
 	}
 	
-	RN_INLINE Matrix Matrix::WithRotation(const Quaternion& rotation)
+	RN_INLINE Matrix Matrix::WithRotation(const Quaternion &rotation)
 	{
 		Quaternion quat(rotation);
 		return quat.GetRotationMatrix();
@@ -386,7 +386,7 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE void Matrix::Translate(const Vector3& translation)
+	RN_INLINE void Matrix::Translate(const Vector3 &translation)
 	{
 #if RN_SIMD
 		SIMD::VecFloat result = SIMD::Mul(vec[0], SIMD::Set(translation.x));
@@ -409,7 +409,7 @@ namespace RN
 #endif
 	}
 	
-	RN_INLINE void Matrix::Translate(const Vector4& translation)
+	RN_INLINE void Matrix::Translate(const Vector4 &translation)
 	{
 #if RN_SIMD
 		SIMD::VecFloat result = SIMD::Mul(vec[0], SIMD::Set(translation.x));
@@ -432,27 +432,27 @@ namespace RN
 #endif
 	}
 	
-	RN_INLINE void Matrix::Scale(const Vector3& scaling)
+	RN_INLINE void Matrix::Scale(const Vector3 &scaling)
 	{
 		*this *= Matrix::WithScaling(scaling);
 	}
 	
-	RN_INLINE void Matrix::Scale(const Vector4& scaling)
+	RN_INLINE void Matrix::Scale(const Vector4 &scaling)
 	{
 		*this *= Matrix::WithScaling(scaling);
 	}
 	
-	RN_INLINE void Matrix::Rotate(const Vector3& rotation)
+	RN_INLINE void Matrix::Rotate(const Vector3 &rotation)
 	{
 		*this *= Matrix::WithRotation(rotation);
 	}
 	
-	RN_INLINE void Matrix::Rotate(const Vector4& rotation)
+	RN_INLINE void Matrix::Rotate(const Vector4 &rotation)
 	{
 		*this *= Matrix::WithRotation(rotation);
 	}
 	
-	RN_INLINE void Matrix::Rotate(const Quaternion& rotation)
+	RN_INLINE void Matrix::Rotate(const Quaternion &rotation)
 	{
 		*this *= Matrix::WithRotation(rotation);
 	}
@@ -511,7 +511,7 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE bool Matrix::IsEqual(const Matrix& other, float epsilon) const
+	RN_INLINE bool Matrix::IsEqual(const Matrix &other, float epsilon) const
 	{
 		if(fabs(m[0] - other.m[0]) > epsilon)
 			return false;

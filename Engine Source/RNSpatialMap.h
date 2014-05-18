@@ -62,13 +62,13 @@ namespace RN
 				_entries.erase(position);
 			}
 			
-			T& operator[](const Vector3 &key)
+			T &operator[](const Vector3 &key)
 			{
 				Vector3 translated(std::move(translate_vector(key)));
 				return _entries[translated];
 			}
 			
-			T& access(const Vector3 &key, const Vector3 &offset = Vector3())
+			T &access(const Vector3 &key, const Vector3 &offset = Vector3())
 			{
 				Vector3 translated(std::move(translate_vector(key)));
 				return _entries[translated + offset];

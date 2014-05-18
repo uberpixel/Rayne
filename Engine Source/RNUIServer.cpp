@@ -195,7 +195,7 @@ namespace RN
 					}
 				}
 				
-				const Vector2& position = event->GetMousePosition();
+				const Vector2 &position = event->GetMousePosition();
 				
 				Widget *hitWidget = nullptr;
 				View *hit = nullptr;

@@ -46,7 +46,7 @@ namespace RN
 			SetContentSize(_size);
 		}
 		
-		void ScrollView::SetFrame(const Rect& frame)
+		void ScrollView::SetFrame(const Rect &frame)
 		{
 			View::SetFrame(frame);
 			SetContentSize(_size);
@@ -59,7 +59,7 @@ namespace RN
 		
 		
 		
-		void ScrollView::SetContentOffset(const Vector2& offset)
+		void ScrollView::SetContentOffset(const Vector2 &offset)
 		{
 			Rect bounds = GetBounds();
 			bounds.x = offset.x;
@@ -74,7 +74,7 @@ namespace RN
 			
 			AdjustScroller();
 		}
-		void ScrollView::SetContentSize(const Vector2& size)
+		void ScrollView::SetContentSize(const Vector2 &size)
 		{
 			_size = size;
 			_end  = _size - GetFrame().GetSize();
@@ -127,7 +127,7 @@ namespace RN
 			{
 				if(_size.y > GetBounds().height)
 				{
-					const Rect& bounds = GetBounds();
+					const Rect &bounds = GetBounds();
 					float width = _verticalScroller->GetPreferredWidth();
 				
 					_verticalScroller->SetFrame(Rect(bounds.width - width, bounds.y, width, bounds.height));

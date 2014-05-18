@@ -162,11 +162,11 @@ namespace RN
 					rotation = trotation;
 				}
 				
-				bool operator==(const marker_type& other) const
+				bool operator==(const marker_type &other) const
 				{
 					return (index == other.index && rotation == other.rotation);
 				}
-				bool operator!=(const marker_type& other) const
+				bool operator!=(const marker_type &other) const
 				{
 					return (index != other.index || rotation != other.rotation);
 				}
@@ -180,17 +180,17 @@ namespace RN
 			{
 				friend class ring_buffer;
 			public:
-				bool operator== (const __iterator& other) const
+				bool operator== (const __iterator &other) const
 				{
 					return (_marker == other._marker);
 				}
-				bool operator!= (const __iterator& other) const
+				bool operator!= (const __iterator &other) const
 				{
 					return (_marker != other._marker);
 				}
 				
 				
-				__iterator& operator-- ()
+				__iterator &operator-- ()
 				{
 					_buffer.decrement_marker(_marker);
 					return *this;
@@ -202,7 +202,7 @@ namespace RN
 					return temp;
 				}
 				
-				__iterator& operator++ ()
+				__iterator &operator++ ()
 				{
 					_buffer.increment_marker(_marker);
 					return *this;
@@ -225,13 +225,13 @@ namespace RN
 				}
 				
 			private:
-				__iterator(const ring_buffer& buffer, marker_type marker) :
+				__iterator(const ring_buffer &buffer, marker_type marker) :
 					_buffer(buffer),
 					_marker(marker)
 				{}
 				
 				marker_type _marker;
-				const ring_buffer& _buffer;
+				const ring_buffer &_buffer;
 			};
 			
 			size_type last_index() const
@@ -334,7 +334,7 @@ namespace RN
 			{}
 			
 			
-			bool push(const T& val)
+			bool push(const T &val)
 			{
 				size_t tail = _tail.load(std::memory_order_relaxed);
 				size_t next = advance(tail);

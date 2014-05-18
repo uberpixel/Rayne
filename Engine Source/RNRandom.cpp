@@ -327,7 +327,7 @@ namespace RN
 		return result;
 	}
 	
-	Vector2 RandomNumberGenerator::RandomVector2Range(const Vector2& min, const Vector2& max)
+	Vector2 RandomNumberGenerator::RandomVector2Range(const Vector2 &min, const Vector2 &max)
 	{
 		Vector2 result;
 		
@@ -337,7 +337,7 @@ namespace RN
 		return result;
 	}
 	
-	Vector3 RandomNumberGenerator::RandomVector3Range(const Vector3& min, const Vector3& max)
+	Vector3 RandomNumberGenerator::RandomVector3Range(const Vector3 &min, const Vector3 &max)
 	{
 		Vector3 result;
 		
@@ -348,7 +348,7 @@ namespace RN
 		return result;
 	}
 	
-	Vector4 RandomNumberGenerator::RandomVector4Range(const Vector4& min, const Vector4& max)
+	Vector4 RandomNumberGenerator::RandomVector4Range(const Vector4 &min, const Vector4 &max)
 	{
 		Vector4 result;
 		
@@ -360,7 +360,7 @@ namespace RN
 		return result;
 	}
 	
-	Color RandomNumberGenerator::RandomColorRange(const Color& min, const Color& max)
+	Color RandomNumberGenerator::RandomColorRange(const Color &min, const Color &max)
 	{
 		Color result;
 		

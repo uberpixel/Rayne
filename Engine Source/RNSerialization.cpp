@@ -235,28 +235,28 @@ namespace RN
 		EncodeData('l', sizeof(int64), &value);
 	}
 	
-	void FlatSerializer::EncodeVector2(const Vector2& value)
+	void FlatSerializer::EncodeVector2(const Vector2 &value)
 	{
 		EncodeData('2', sizeof(Vector2), &value);
 	}
-	void FlatSerializer::EncodeVector3(const Vector3& value)
+	void FlatSerializer::EncodeVector3(const Vector3 &value)
 	{
 		EncodeData('3', sizeof(Vector3), &value);
 	}
-	void FlatSerializer::EncodeVector4(const Vector4& value)
+	void FlatSerializer::EncodeVector4(const Vector4 &value)
 	{
 		EncodeData('4', sizeof(Vector4), &value);
 	}
-	void FlatSerializer::EncodeColor(const Color& value)
+	void FlatSerializer::EncodeColor(const Color &value)
 	{
 		EncodeData('c', sizeof(Color), &value);
 	}
 	
-	void FlatSerializer::EncodeMatrix(const Matrix& value)
+	void FlatSerializer::EncodeMatrix(const Matrix &value)
 	{
 		EncodeData('m', sizeof(Matrix), &value);
 	}
-	void FlatSerializer::EncodeQuarternion(const Quaternion& value)
+	void FlatSerializer::EncodeQuarternion(const Quaternion &value)
 	{
 		EncodeData('q', sizeof(Quaternion), &value);
 	}

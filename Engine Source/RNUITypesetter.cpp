@@ -23,7 +23,7 @@ namespace RN
 		// MARK: Typesetter
 		// ---------------------
 		
-		Typesetter::Typesetter(AttributedString *string, const Rect& frame) :
+		Typesetter::Typesetter(AttributedString *string, const Rect &frame) :
 			_frame(frame)
 		{
 			RN_ASSERT(string, "String mustn't be NULL!");
@@ -106,7 +106,7 @@ namespace RN
 			_frameChanged = true;
 		}
 		
-		void Typesetter::SetFrame(const Rect& frame)
+		void Typesetter::SetFrame(const Rect &frame)
 		{
 			if(Math::Compare(frame.width, _frame.width) && Math::Compare(frame.height, _frame.height))
 			{
@@ -127,13 +127,13 @@ namespace RN
 		}
 		
 		
-		void Typesetter::InvalidateStringInRange(const Range& range)
+		void Typesetter::InvalidateStringInRange(const Range &range)
 		{
 			_dirty = true;
 		}
 		
 		
-		Line *Typesetter::GetLineAtPoint(const Vector2& point)
+		Line *Typesetter::GetLineAtPoint(const Vector2 &point)
 		{
 			LayoutText();
 			
@@ -150,7 +150,7 @@ namespace RN
 			return nullptr;
 		}
 		
-		Range Typesetter::GetRangeOfCharactersAtPoint(const Vector2& point)
+		Range Typesetter::GetRangeOfCharactersAtPoint(const Vector2 &point)
 		{
 			LayoutText();
 			
@@ -348,7 +348,7 @@ namespace RN
 				}
 				
 				Font *font = FontForAttributes(_string->GetAttributesAtIndex(i));
-				const Glyph& glyph = font->GetGlyphForCharacter(character);
+				const Glyph &glyph = font->GetGlyphForCharacter(character);
 				
 				float width = glyph.GetAdvanceX();
 				
@@ -398,7 +398,7 @@ namespace RN
 								if(temp.IsWhitespace() || temp.IsNewline())
 									break;
 								
-								const Glyph& tglyph = font->GetGlyphForCharacter(character);
+								const Glyph &tglyph = font->GetGlyphForCharacter(character);
 								wordWidth += tglyph.GetAdvanceX();
 								wordRange.length ++;
 							}
@@ -444,7 +444,7 @@ namespace RN
 			
 			for(Line *line : _lines)
 			{
-				const Vector2& extents = line->GetExtents();
+				const Vector2 &extents = line->GetExtents();
 				float widthOffset = 0.0f;
 				
 				switch(_alignment)
@@ -569,7 +569,7 @@ namespace RN
 			_font = nullptr;
 			_range = Range(0, 0);
 		}
-		LineSegment::LineSegment(const LineSegment& other)
+		LineSegment::LineSegment(const LineSegment &other)
 		{
 			_font    = other._font ? other._font->Retain() : nullptr;
 			_glyphs  = other._glyphs;
@@ -595,7 +595,7 @@ namespace RN
 		}
 		
 		
-		LineSegment& LineSegment::operator= (const LineSegment& other)
+		LineSegment &LineSegment::operator= (const LineSegment &other)
 		{
 			_font    = other._font ? other._font->Retain() : nullptr;
 			_glyphs  = other._glyphs;
@@ -605,7 +605,7 @@ namespace RN
 			
 			return *this;
 		}
-		LineSegment& LineSegment::operator= (LineSegment&& other)
+		LineSegment &LineSegment::operator= (LineSegment&& other)
 		{
 			_font    = other._font;
 			_glyphs  = std::move(other._glyphs);
@@ -631,7 +631,7 @@ namespace RN
 			_color = color;
 		}
 		
-		void LineSegment::SetOffset(const Vector2& offset)
+		void LineSegment::SetOffset(const Vector2 &offset)
 		{
 			_offset = offset;
 		}
@@ -641,12 +641,12 @@ namespace RN
 			_range.origin = offset;
 		}
 		
-		bool LineSegment::CanMergeWithSegment(const LineSegment& other)
+		bool LineSegment::CanMergeWithSegment(const LineSegment &other)
 		{
 			return (_font == other._font && _color == other._color);
 		}
 		
-		bool LineSegment::IsValidGlyph(const Glyph& glyph) const
+		bool LineSegment::IsValidGlyph(const Glyph &glyph) const
 		{
 			CodePoint point(glyph.GetCharacter());
 			
@@ -656,14 +656,14 @@ namespace RN
 			return true;
 		}
 		
-		Range LineSegment::GetRangeOfCharactersAtPoint(const Vector2& point) const
+		Range LineSegment::GetRangeOfCharactersAtPoint(const Vector2 &point) const
 		{
 			float offset = 0;
 			Range range = Range(k::NotFound, 0);
 			
 			for(size_t i = 0; i < _range.length; i ++)
 			{
-				const Glyph& glyph = _glyphs[i];
+				const Glyph &glyph = _glyphs[i];
 				float width = glyph.GetAdvanceX();
 				
 				if(i > 0)
@@ -689,7 +689,7 @@ namespace RN
 			return range;
 		}
 		
-		void LineSegment::AppendGlyph(const Glyph& glyph)
+		void LineSegment::AppendGlyph(const Glyph &glyph)
 		{
 			if(!IsValidGlyph(glyph))
 				return;
@@ -709,7 +709,7 @@ namespace RN
 			
 			for(size_t i = 0; i < glyphs.size(); i ++)
 			{
-				const Glyph& glyph = glyphs[i];
+				const Glyph &glyph = glyphs[i];
 				if(!IsValidGlyph(glyph))
 					continue;
 				
@@ -728,7 +728,7 @@ namespace RN
 			_range.length += glyphs.size();
 		}
 		
-		void LineSegment::PrependGlyph(const Glyph& glyph)
+		void LineSegment::PrependGlyph(const Glyph &glyph)
 		{
 			if(!IsValidGlyph(glyph))
 				return;
@@ -808,7 +808,7 @@ namespace RN
 			
 			for(size_t i = 0; i < _glyphs.size(); i ++)
 			{				
-				Glyph& glyph = _glyphs[i];
+				Glyph &glyph = _glyphs[i];
 				
 				float x0 = offsetX + glyph.GetOffsetX();
 				float y1 = offsetY + glyph.GetOffsetY() - _extents.y;
@@ -851,7 +851,7 @@ namespace RN
 		// MARK: Lines
 		// ---------------------
 		
-		Line::Line(AttributedString *string, const Range& range) :
+		Line::Line(AttributedString *string, const Range &range) :
 			_range(range),
 			_typesetter(nullptr)
 		{
@@ -870,10 +870,10 @@ namespace RN
 		}
 		
 		
-		float Line::TokenWidthInSegment(const LineSegment& segment)
+		float Line::TokenWidthInSegment(const LineSegment &segment)
 		{
 			Font *font = segment.GetFont();
-			const Glyph& glyph = font->GetGlyphForCharacter(_truncationToken);
+			const Glyph &glyph = font->GetGlyphForCharacter(_truncationToken);
 			
 			return glyph.GetAdvanceX();
 		}
@@ -888,7 +888,7 @@ namespace RN
 			_dirty = true;
 		}
 		
-		void Line::SetLineOffset(const Vector2& offset)
+		void Line::SetLineOffset(const Vector2 &offset)
 		{
 			_offset = offset;
 			
@@ -907,23 +907,23 @@ namespace RN
 			return _segments;
 		}
 		
-		const Vector2& Line::GetExtents()
+		const Vector2 &Line::GetExtents()
 		{
 			LayoutLine();
 			return _extents;
 		}
 		
-		const Vector2& Line::GetUntruncatedExtents()
+		const Vector2 &Line::GetUntruncatedExtents()
 		{
 			LayoutLine();
 			return _untruncatedExtents;
 		}
 		
-		Range Line::GetRangeOfCharactersAtPoint(const Vector2& point)
+		Range Line::GetRangeOfCharactersAtPoint(const Vector2 &point)
 		{
 			LayoutLine();
 			
-			for(const LineSegment& segment : _segments)
+			for(const LineSegment &segment : _segments)
 			{
 				if(segment.GetFrame().ContainsPoint(point))
 					return segment.GetRangeOfCharactersAtPoint(point);
@@ -995,7 +995,7 @@ namespace RN
 					segment.SetRangeOffset(_range.origin + i);
 				}
 				
-				const Glyph& glyph = font->GetGlyphForCharacter(character);
+				const Glyph &glyph = font->GetGlyphForCharacter(character);
 				segment.AppendGlyph(glyph);
 			}
 			
@@ -1091,7 +1091,7 @@ namespace RN
 		{
 			_extents = Vector2(0.0f);
 			
-			for(const LineSegment& segment : _segments)
+			for(const LineSegment &segment : _segments)
 			{
 				_extents.x += segment.GetExtents().x;
 				_extents.y = std::max(_extents.y, segment.GetExtents().y);
@@ -1184,7 +1184,7 @@ namespace RN
 			
 			std::vector<std::vector<LineSegment *>> segments;
 
-			for(const LineSegment& segment : _segments)
+			for(const LineSegment &segment : _segments)
 			{
 				LineSegment *psegment = const_cast<LineSegment *>(&segment);
 				bool pushed = false;

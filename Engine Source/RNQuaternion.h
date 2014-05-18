@@ -29,19 +29,19 @@ namespace RN
 		w = _w;
 	}
 	
-	RN_INLINE Quaternion::Quaternion(const Vector3& euler)
+	RN_INLINE Quaternion::Quaternion(const Vector3 &euler)
 	{
 		*this = WithEulerAngle(euler);
 	}
 	
-	RN_INLINE Quaternion::Quaternion(const Vector4& axis)
+	RN_INLINE Quaternion::Quaternion(const Vector4 &axis)
 	{
 		*this = WithAxisAngle(axis);
 	}
 	
 	
 	
-	RN_INLINE Quaternion& Quaternion::operator+= (const Quaternion& other)
+	RN_INLINE Quaternion &Quaternion::operator+= (const Quaternion &other)
 	{
 		w += other.w;
 		x += other.x;
@@ -51,7 +51,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE Quaternion& Quaternion::operator-= (const Quaternion& other)
+	RN_INLINE Quaternion &Quaternion::operator-= (const Quaternion &other)
 	{
 		w -= other.w;
 		x -= other.x;
@@ -61,7 +61,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE Quaternion& Quaternion::operator*= (const Quaternion& other)
+	RN_INLINE Quaternion &Quaternion::operator*= (const Quaternion &other)
 	{
 		Vector4 temp = Vector4(x, y, z, w);
 		
@@ -73,7 +73,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE Quaternion& Quaternion::operator/= (const Quaternion& other)
+	RN_INLINE Quaternion &Quaternion::operator/= (const Quaternion &other)
 	{
 		Vector4 temp = Vector4(x, y, z, w);
 		
@@ -85,7 +85,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE Quaternion& Quaternion::operator+= (const Vector3& other)
+	RN_INLINE Quaternion &Quaternion::operator+= (const Vector3 &other)
 	{
 		Vector3 euler = GetEulerAngle();
 		euler += other;
@@ -94,7 +94,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE Quaternion& Quaternion::operator-= (const Vector3& other)
+	RN_INLINE Quaternion &Quaternion::operator-= (const Vector3 &other)
 	{
 		Vector3 euler = GetEulerAngle();
 		euler -= other;
@@ -103,7 +103,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE Quaternion& Quaternion::operator*= (float scalar)
+	RN_INLINE Quaternion &Quaternion::operator*= (float scalar)
 	{
 		x *= scalar;
 		y *= scalar;
@@ -113,7 +113,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE Quaternion& Quaternion::operator/= (float scalar)
+	RN_INLINE Quaternion &Quaternion::operator/= (float scalar)
 	{
 		x /= scalar;
 		y /= scalar;
@@ -123,7 +123,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE Quaternion Quaternion::operator+ (const Quaternion& other) const
+	RN_INLINE Quaternion Quaternion::operator+ (const Quaternion &other) const
 	{
 		Quaternion result(*this);
 		result += other;
@@ -131,7 +131,7 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE Quaternion Quaternion::operator- (const Quaternion& other) const
+	RN_INLINE Quaternion Quaternion::operator- (const Quaternion &other) const
 	{
 		Quaternion result(*this);
 		result -= other;
@@ -139,7 +139,7 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE Quaternion Quaternion::operator* (const Quaternion& other) const
+	RN_INLINE Quaternion Quaternion::operator* (const Quaternion &other) const
 	{
 		Quaternion result(*this);
 		result *= other;
@@ -147,7 +147,7 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE Quaternion Quaternion::operator/ (const Quaternion& other) const
+	RN_INLINE Quaternion Quaternion::operator/ (const Quaternion &other) const
 	{
 		Quaternion result(*this);
 		result /= other;
@@ -155,7 +155,7 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE Quaternion Quaternion::operator+ (const Vector3& other) const
+	RN_INLINE Quaternion Quaternion::operator+ (const Vector3 &other) const
 	{
 		Vector3 euler = GetEulerAngle();
 		euler += other;
@@ -163,7 +163,7 @@ namespace RN
 		return Quaternion(euler);
 	}
 	
-	RN_INLINE Quaternion Quaternion::operator- (const Vector3& other) const
+	RN_INLINE Quaternion Quaternion::operator- (const Vector3 &other) const
 	{
 		Vector3 euler = GetEulerAngle();
 		euler -= other;
@@ -217,7 +217,7 @@ namespace RN
 		return Quaternion();
 	}
 	
-	RN_INLINE Quaternion Quaternion::WithEulerAngle(const Vector3& euler)
+	RN_INLINE Quaternion Quaternion::WithEulerAngle(const Vector3 &euler)
 	{
 		Quaternion temp;
 		
@@ -241,7 +241,7 @@ namespace RN
 		return temp;
 	}
 	
-	RN_INLINE Quaternion Quaternion::WithAxisAngle(const Vector4& axis)
+	RN_INLINE Quaternion Quaternion::WithAxisAngle(const Vector4 &axis)
 	{
 		Quaternion temp;
 		
@@ -258,7 +258,7 @@ namespace RN
 		return temp;
 	}
 	
-	RN_INLINE Quaternion Quaternion::WithLerpSpherical(const Quaternion& start, const Quaternion& end, float factor)
+	RN_INLINE Quaternion Quaternion::WithLerpSpherical(const Quaternion &start, const Quaternion &end, float factor)
 	{
 		Quaternion quat1(start);
 		Quaternion quat2(end);
@@ -298,13 +298,13 @@ namespace RN
 		return (quat1 * scale) + (quat2 * inverseScale);
 	}
 	
-	RN_INLINE Quaternion Quaternion::WithLerpLinear(const Quaternion& start, const Quaternion& end, float factor)
+	RN_INLINE Quaternion Quaternion::WithLerpLinear(const Quaternion &start, const Quaternion &end, float factor)
 	{
 		float inverseFactor = 1.0f - factor;
 		return (end * factor) + (start * inverseFactor);
 	}
 	
-	RN_INLINE Quaternion Quaternion::WithLookAt(const Vector3& tdir, const Vector3& tup, bool forceup)
+	RN_INLINE Quaternion Quaternion::WithLookAt(const Vector3 &tdir, const Vector3 &tup, bool forceup)
 	{
 		Quaternion temp;
 		
@@ -417,24 +417,24 @@ namespace RN
 		return Quaternion(-x, -y, -z, w);
 	}
 	
-	RN_INLINE Quaternion Quaternion::GetLerpSpherical(const Quaternion& other, float factor) const
+	RN_INLINE Quaternion Quaternion::GetLerpSpherical(const Quaternion &other, float factor) const
 	{
 		return WithLerpSpherical(*this, other, factor);
 	}
 	
-	RN_INLINE Quaternion Quaternion::GetLerpLinear(const Quaternion& other, float factor) const
+	RN_INLINE Quaternion Quaternion::GetLerpLinear(const Quaternion &other, float factor) const
 	{
 		return WithLerpLinear(*this, other, factor);
 	}
 	
-	RN_INLINE Vector3 Quaternion::GetRotatedVector(const Vector3& vector) const
+	RN_INLINE Vector3 Quaternion::GetRotatedVector(const Vector3 &vector) const
 	{
 		Quaternion vectorquat(vector.x, vector.y, vector.z, 0.0f);
 		Quaternion resultquat = (*this) * vectorquat * GetConjugated();
 		return Vector3(resultquat.x, resultquat.y, resultquat.z);
 	}
 	
-	RN_INLINE Vector4 Quaternion::GetRotatedVector(const Vector4& vector) const
+	RN_INLINE Vector4 Quaternion::GetRotatedVector(const Vector4 &vector) const
 	{
 		Quaternion vectorquat(vector.x, vector.y, vector.z, 0.0f);
 		Quaternion resultquat = (*this) * vectorquat * GetConjugated();
@@ -534,12 +534,12 @@ namespace RN
 		return Math::Sqrt(x * x + y * y + z * z + w * w);
 	}
 	
-	RN_INLINE float Quaternion::GetDotProduct(const Quaternion& other) const
+	RN_INLINE float Quaternion::GetDotProduct(const Quaternion &other) const
 	{
 		return x * other.x + y * other.y + z * other.z + w * other.w;
 	}
 	
-	RN_INLINE bool Quaternion::IsEqual(const Quaternion& other, float epsilon) const
+	RN_INLINE bool Quaternion::IsEqual(const Quaternion &other, float epsilon) const
 	{
 		if(fabs(x - other.x) > epsilon)
 			return false;

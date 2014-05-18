@@ -150,7 +150,7 @@ namespace RN
 	
 	RNAPI RN_NORETURN void __Assert(const char *func, const char *file, int line, const char *expression, const char *message, ...);
 	
-	RNAPI RN_NORETURN void HandleException(const Exception& e);
+	RNAPI RN_NORETURN void HandleException(const Exception &e);
 	RNAPI void ParseCommandLine(int argc, char *argv[]);
 	RNAPI void Initialize(int argc, char *argv[]);
 	
@@ -209,12 +209,12 @@ namespace RN
 			return origin + length;
 		}
 		
-		bool Contains(const Range& other) const
+		bool Contains(const Range &other) const
 		{
 			return (other.origin >= origin && GetEnd() <= other.GetEnd());
 		}
 		
-		bool Overlaps(const Range& other) const
+		bool Overlaps(const Range &other) const
 		{
 			return (GetEnd() >= other.origin && origin <= other.GetEnd());
 		}

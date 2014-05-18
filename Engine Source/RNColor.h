@@ -18,25 +18,25 @@ namespace RN
 		Color(float r, float g, float b, float a=1.0f);
 		Color(int r, int g, int b, int a=255);
 
-		bool operator== (const Color& other) const;
-		bool operator!= (const Color& other) const;
+		bool operator== (const Color &other) const;
+		bool operator!= (const Color &other) const;
 
 		Color operator- () const;
 
-		Color& operator+= (const Color& other);
-		Color& operator-= (const Color& other);
-		Color& operator*= (const Color& other);
-		Color& operator/= (const Color& other);
+		Color &operator+= (const Color &other);
+		Color &operator-= (const Color &other);
+		Color &operator*= (const Color &other);
+		Color &operator/= (const Color &other);
 
-		Color operator+ (const Color& other) const;
-		Color operator- (const Color& other) const;
-		Color operator* (const Color& other) const;
-		Color operator/ (const Color& other) const;
+		Color operator+ (const Color &other) const;
+		Color operator- (const Color &other) const;
+		Color operator* (const Color &other) const;
+		Color operator/ (const Color &other) const;
 
-		Color& operator+= (float other);
-		Color& operator-= (float other);
-		Color& operator*= (float other);
-		Color& operator/= (float other);
+		Color &operator+= (float other);
+		Color &operator-= (float other);
+		Color &operator*= (float other);
+		Color &operator/= (float other);
 
 		Color operator+ (float other) const;
 		Color operator- (float other) const;
@@ -83,7 +83,7 @@ namespace RN
 	}
 
 
-	RN_INLINE bool Color::operator== (const Color& other) const
+	RN_INLINE bool Color::operator== (const Color &other) const
 	{
 		float absR = Math::FastAbs(r - other.r);
 		float absG = Math::FastAbs(g - other.g);
@@ -93,7 +93,7 @@ namespace RN
 		return (absR <= k::EpsilonFloat && absG <= k::EpsilonFloat && absB <= k::EpsilonFloat && absA <= k::EpsilonFloat);
 	}
 
-	RN_INLINE bool Color::operator!= (const Color& other) const
+	RN_INLINE bool Color::operator!= (const Color &other) const
 	{
 		float absR = Math::FastAbs(r - other.r);
 		float absG = Math::FastAbs(g - other.g);
@@ -115,7 +115,7 @@ namespace RN
 		return result;
 	}
 
-	RN_INLINE Color& Color::operator+= (const Color& other)
+	RN_INLINE Color &Color::operator+= (const Color &other)
 	{
 		r += other.r;
 		g += other.g;
@@ -125,7 +125,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE Color& Color::operator-= (const Color& other)
+	RN_INLINE Color &Color::operator-= (const Color &other)
 	{
 		r -= other.r;
 		g -= other.g;
@@ -135,7 +135,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE Color& Color::operator*= (const Color& other)
+	RN_INLINE Color &Color::operator*= (const Color &other)
 	{
 		r *= other.r;
 		g *= other.g;
@@ -145,7 +145,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE Color& Color::operator/= (const Color& other)
+	RN_INLINE Color &Color::operator/= (const Color &other)
 	{
 		r /= other.r;
 		g /= other.g;
@@ -157,7 +157,7 @@ namespace RN
 
 
 
-	RN_INLINE Color Color::operator+ (const Color& other) const
+	RN_INLINE Color Color::operator+ (const Color &other) const
 	{
 		Color result(*this);
 
@@ -169,7 +169,7 @@ namespace RN
 		return result;
 	}
 
-	RN_INLINE  Color Color::operator- (const Color& other) const
+	RN_INLINE  Color Color::operator- (const Color &other) const
 	{
 		Color result(*this);
 
@@ -181,7 +181,7 @@ namespace RN
 		return result;
 	}
 
-	RN_INLINE Color Color::operator* (const Color& other) const
+	RN_INLINE Color Color::operator* (const Color &other) const
 	{
 		Color result(*this);
 
@@ -193,7 +193,7 @@ namespace RN
 		return result;
 	}
 
-	RN_INLINE Color Color::operator/ (const Color& other) const
+	RN_INLINE Color Color::operator/ (const Color &other) const
 	{
 		Color result(*this);
 
@@ -207,7 +207,7 @@ namespace RN
 
 
 
-	RN_INLINE Color& Color::operator+= (float other)
+	RN_INLINE Color &Color::operator+= (float other)
 	{
 		r += other;
 		g += other;
@@ -217,7 +217,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE Color& Color::operator-= (float other)
+	RN_INLINE Color &Color::operator-= (float other)
 	{
 		r -= other;
 		g -= other;
@@ -227,7 +227,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE Color& Color::operator*= (float other)
+	RN_INLINE Color &Color::operator*= (float other)
 	{
 		r *= other;
 		g *= other;
@@ -237,7 +237,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE Color& Color::operator/= (float other)
+	RN_INLINE Color &Color::operator/= (float other)
 	{
 		r /= other;
 		g /= other;

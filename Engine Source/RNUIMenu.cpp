@@ -117,14 +117,14 @@ namespace RN
 			SafeRelease(_image);
 		}
 		
-		MenuItem *MenuItem::WithTitle(String *title, const Callback& callback)
+		MenuItem *MenuItem::WithTitle(String *title, const Callback &callback)
 		{
 			MenuItem *item = new MenuItem(title);
 			item->SetCallback(callback);
 			return item->Autorelease();
 		}
 		
-		MenuItem *MenuItem::WithTitleAndKeyEquivalent(String *title, const Callback& callback, String *key)
+		MenuItem *MenuItem::WithTitleAndKeyEquivalent(String *title, const Callback &callback, String *key)
 		{
 			MenuItem *item = new MenuItem(title, key);
 			item->SetCallback(callback);
@@ -183,7 +183,7 @@ namespace RN
 			MessageCenter::GetSharedInstance()->PostMessage(kRNMenuItemChangedMessage, this, nullptr);
 		}
 		
-		void MenuItem::SetCallback(const Callback& callback)
+		void MenuItem::SetCallback(const Callback &callback)
 		{
 			_callback = callback;
 			MessageCenter::GetSharedInstance()->PostMessage(kRNMenuItemChangedMessage, this, nullptr);

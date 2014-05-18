@@ -19,15 +19,15 @@ namespace RN
 {
 	namespace Debug
 	{
-		RNAPI void AddLinePoint(const Vector3& point, const Color& color);
-		RNAPI void AddLinePoint(const Vector2& point, const Color& color);
+		RNAPI void AddLinePoint(const Vector3 &point, const Color &color);
+		RNAPI void AddLinePoint(const Vector2 &point, const Color &color);
 		RNAPI void CloseLine();
 		RNAPI void EndLine();
 		
-		RNAPI void DrawBox(const AABB& box, const Color& color);
-		RNAPI void DrawBox(const Vector3& min, const Vector3& max, const Color& color);
+		RNAPI void DrawBox(const AABB &box, const Color &color);
+		RNAPI void DrawBox(const Vector3 &min, const Vector3 &max, const Color &color);
 		
-		RNAPI void DrawSphere(const Sphere& sphere, const Color& color, const int tesselation = 20);
+		RNAPI void DrawSphere(const Sphere &sphere, const Color &color, const int tesselation = 20);
 		RNAPI void DrawSphere(const Vector3 &pos, const float radius, const Color &color, const int tesselation = 20);
 	}
 }

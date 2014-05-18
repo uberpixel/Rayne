@@ -56,8 +56,8 @@ namespace RN
 			RNAPI MenuItem(String *title, String *keyEquivalent);
 			RNAPI ~MenuItem();
 			
-			RNAPI static MenuItem *WithTitle(String *title, const Callback& callback = Callback());
-			RNAPI static MenuItem *WithTitleAndKeyEquivalent(String *title, const Callback& callback, String *key);
+			RNAPI static MenuItem *WithTitle(String *title, const Callback &callback = Callback());
+			RNAPI static MenuItem *WithTitleAndKeyEquivalent(String *title, const Callback &callback, String *key);
 			RNAPI static MenuItem *SeparatorItem();
 			
 			RNAPI void SetTitle(String *title);
@@ -65,7 +65,7 @@ namespace RN
 			RNAPI void SetImage(Image *image);
 			RNAPI void SetKeyEquivalent(String *key);
 			RNAPI void SetKeyEquivalentModifierMask(uint32 mask);
-			RNAPI void SetCallback(const Callback& callback);
+			RNAPI void SetCallback(const Callback &callback);
 			
 			RNAPI void SetSubMenu(Menu *menu);
 			RNAPI void SetEnabled(bool enabled);
@@ -80,7 +80,7 @@ namespace RN
 			RNAPI const Image *GetImage() const { return _image; }
 			RNAPI const String *GetKeyEquivalent() const { return _keyEquivalent; }
 			RNAPI uint32 GetKeyEquivalentModifierMask() const { return _keyEquivalentModifierMask; }
-			RNAPI const Callback& GetCallback() const { return _callback; }
+			RNAPI const Callback &GetCallback() const { return _callback; }
 			
 			RNAPI bool IsSeparator() const { return _isSeparator; }
 			

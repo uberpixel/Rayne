@@ -80,7 +80,7 @@ namespace RN
 		
 	private:
 		bool _ownsLock;
-		T& _lock;
+		T &_lock;
 	};
 	
 	template<class T>

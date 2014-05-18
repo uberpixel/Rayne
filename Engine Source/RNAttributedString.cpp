@@ -47,7 +47,7 @@ namespace RN
 			ApplyUpdates();
 	}
 	
-	void AttributedString::AddAttribute(String *key, Object *value, const Range& range)
+	void AttributedString::AddAttribute(String *key, Object *value, const Range &range)
 	{
 		_queuedAttributes.emplace_back(stl::interval_tree<Attribute>::interval(range, Attribute(key, value)));
 		
@@ -55,7 +55,7 @@ namespace RN
 			ApplyUpdates();
 	}
 	
-	void AttributedString::AddAttributes(Dictionary *attributes, const Range& range)
+	void AttributedString::AddAttributes(Dictionary *attributes, const Range &range)
 	{
 		attributes->Enumerate([&](Object *value, Object *key, bool &stop) {
 			if(key->IsKindOfClass(RN::String::GetMetaClass()))
@@ -69,7 +69,7 @@ namespace RN
 			ApplyUpdates();
 	}
 	
-	void AttributedString::RemoveAttribute(String *key, const Range& range)
+	void AttributedString::RemoveAttribute(String *key, const Range &range)
 	{
 		if(_attributes.size() > 0)
 		{
@@ -117,7 +117,7 @@ namespace RN
 			ApplyUpdates();
 	}
 	
-	void AttributedString::RemoveAttributes(Array *keys, const Range& range)
+	void AttributedString::RemoveAttributes(Array *keys, const Range &range)
 	{
 		BeginEditing();
 		
@@ -134,7 +134,7 @@ namespace RN
 	}
 	
 	
-	void AttributedString::SetAttributes(Dictionary *attributes, const Range& range)
+	void AttributedString::SetAttributes(Dictionary *attributes, const Range &range)
 	{
 		BeginEditing();
 		
@@ -145,7 +145,7 @@ namespace RN
 	}
 	
 	
-	void AttributedString::ReplaceCharacters(String *string, const Range& range)
+	void AttributedString::ReplaceCharacters(String *string, const Range &range)
 	{
 		size_t index = range.origin;
 		
@@ -156,7 +156,7 @@ namespace RN
 		ReplaceCharacters(string, range, attributes);
 	}
 	
-	void AttributedString::ReplaceCharacters(String *string, const Range& range, Dictionary *attributes)
+	void AttributedString::ReplaceCharacters(String *string, const Range &range, Dictionary *attributes)
 	{
 		_string->ReplaceCharacters(string, range);
 		
@@ -268,7 +268,7 @@ namespace RN
 			Wrapper *object = static_cast<Wrapper *>(value);
 			auto data = object->GetData();
 			
-			std::sort(data.begin(), data.end(), [](const Interval& left, const Interval& right) {
+			std::sort(data.begin(), data.end(), [](const Interval &left, const Interval &right) {
 				return (left.range.origin < right.range.origin);
 			});
 			

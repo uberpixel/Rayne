@@ -93,8 +93,8 @@ namespace RN
 		};
 		
 		RNAPI SceneNode();
-		RNAPI SceneNode(const Vector3& position);
-		RNAPI SceneNode(const Vector3& position, const Quaternion& rotation);
+		RNAPI SceneNode(const Vector3 &position);
+		RNAPI SceneNode(const Vector3 &position, const Quaternion &rotation);
 		RNAPI SceneNode(const SceneNode *other);
 		RNAPI SceneNode(Deserializer *deserializer);
 		RNAPI ~SceneNode() override;
@@ -102,11 +102,11 @@ namespace RN
 		RNAPI void FillRenderingObject(RenderingObject& object) const;
 		RNAPI void Serialize(Serializer *serializer) override;
 		
-		RNAPI void Translate(const Vector3& trans);
-		RNAPI void TranslateLocal(const Vector3& trans);
-		RNAPI void Scale(const Vector3& scal);
-		RNAPI void Rotate(const Vector3& rot);
-		RNAPI void Rotate(const Quaternion& rot);
+		RNAPI void Translate(const Vector3 &trans);
+		RNAPI void TranslateLocal(const Vector3 &trans);
+		RNAPI void Scale(const Vector3 &scal);
+		RNAPI void Rotate(const Vector3 &rot);
+		RNAPI void Rotate(const Quaternion &rot);
 		
 		RNAPI void RemoveFromWorld();
 		
@@ -116,16 +116,16 @@ namespace RN
 		RNAPI void SetRenderGroup(uint8 group);
 		RNAPI void SetCollisionGroup(uint8 group);
 		
-		RNAPI virtual void SetPosition(const Vector3& pos);
-		RNAPI virtual void SetScale(const Vector3& scal);
-		RNAPI virtual void SetRotation(const Quaternion& rot);
+		RNAPI virtual void SetPosition(const Vector3 &pos);
+		RNAPI virtual void SetScale(const Vector3 &scal);
+		RNAPI virtual void SetRotation(const Quaternion &rot);
 		
-		RNAPI virtual void SetWorldPosition(const Vector3& pos);
-		RNAPI virtual void SetWorldScale(const Vector3& scal);
-		RNAPI virtual void SetWorldRotation(const Quaternion& rot);
+		RNAPI virtual void SetWorldPosition(const Vector3 &pos);
+		RNAPI virtual void SetWorldScale(const Vector3 &scal);
+		RNAPI virtual void SetWorldRotation(const Quaternion &rot);
 		
-		RNAPI void SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere=true);
-		RNAPI void SetBoundingSphere(const Sphere& boundingSphere);
+		RNAPI void SetBoundingBox(const AABB &boundingBox, bool calculateBoundingSphere=true);
+		RNAPI void SetBoundingSphere(const Sphere &boundingSphere);
 		
 		RNAPI void SetPriority(Priority priority);
 		RNAPI void SetDebugName(const std::string& name);
@@ -301,7 +301,7 @@ namespace RN
 	
 	
 	
-	RN_INLINE void SceneNode::Translate(const Vector3& trans)
+	RN_INLINE void SceneNode::Translate(const Vector3 &trans)
 	{
 		_transformLock.Lock();
 		WillUpdate(ChangeSet::Position);
@@ -312,7 +312,7 @@ namespace RN
 		_transformLock.Unlock();
 	}
 	
-	RN_INLINE void SceneNode::Scale(const Vector3& scal)
+	RN_INLINE void SceneNode::Scale(const Vector3 &scal)
 	{
 		_transformLock.Lock();
 		WillUpdate(ChangeSet::Position);
@@ -323,7 +323,7 @@ namespace RN
 		_transformLock.Unlock();
 	}
 	
-	RN_INLINE void SceneNode::Rotate(const Vector3& rot)
+	RN_INLINE void SceneNode::Rotate(const Vector3 &rot)
 	{
 		_transformLock.Lock();
 		
@@ -337,7 +337,7 @@ namespace RN
 		_transformLock.Unlock();
 	}
 	
-	RN_INLINE void SceneNode::Rotate(const Quaternion& rot)
+	RN_INLINE void SceneNode::Rotate(const Quaternion &rot)
 	{
 		_transformLock.Lock();
 		
@@ -350,7 +350,7 @@ namespace RN
 		_transformLock.Unlock();
 	}
 	
-	RN_INLINE void SceneNode::TranslateLocal(const Vector3& trans)
+	RN_INLINE void SceneNode::TranslateLocal(const Vector3 &trans)
 	{
 		_transformLock.Lock();
 		
@@ -361,7 +361,7 @@ namespace RN
 		_transformLock.Unlock();
 	}
 	
-	RN_INLINE void SceneNode::SetPosition(const Vector3& pos)
+	RN_INLINE void SceneNode::SetPosition(const Vector3 &pos)
 	{
 		_transformLock.Lock();
 		
@@ -372,7 +372,7 @@ namespace RN
 		_transformLock.Unlock();
 	}
 	
-	RN_INLINE void SceneNode::SetScale(const Vector3& scal)
+	RN_INLINE void SceneNode::SetScale(const Vector3 &scal)
 	{
 		_transformLock.Lock();
 		
@@ -383,7 +383,7 @@ namespace RN
 		_transformLock.Unlock();
 	}
 	
-	RN_INLINE void SceneNode::SetRotation(const Quaternion& rot)
+	RN_INLINE void SceneNode::SetRotation(const Quaternion &rot)
 	{
 		_transformLock.Lock();
 		
@@ -398,7 +398,7 @@ namespace RN
 	}
 	
 	
-	RN_INLINE void SceneNode::SetWorldPosition(const Vector3& pos)
+	RN_INLINE void SceneNode::SetWorldPosition(const Vector3 &pos)
 	{
 		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
@@ -427,7 +427,7 @@ namespace RN
 		lock2.unlock();
 	}
 	
-	RN_INLINE void SceneNode::SetWorldScale(const Vector3& scal)
+	RN_INLINE void SceneNode::SetWorldScale(const Vector3 &scal)
 	{
 		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);
@@ -460,7 +460,7 @@ namespace RN
 		lock2.unlock();
 	}
 	
-	RN_INLINE void SceneNode::SetWorldRotation(const Quaternion& rot)
+	RN_INLINE void SceneNode::SetWorldRotation(const Quaternion &rot)
 	{
 		stl::lockable_shim<RecursiveSpinLock> lock1(_parentChildLock);
 		stl::lockable_shim<RecursiveSpinLock> lock2(_transformLock);

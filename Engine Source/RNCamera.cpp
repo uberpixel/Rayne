@@ -33,7 +33,7 @@ namespace RN
 		InsertCamera(camera);
 	}
 	
-	RenderStage::RenderStage(const RenderStage& other)
+	RenderStage::RenderStage(const RenderStage &other)
 	{
 		_camera = other._camera->Retain();
 		_connection = 0;
@@ -106,7 +106,7 @@ namespace RN
 		
 		if(stages.size() > 0)
 		{
-			RenderStage& stage = stages[stages.size() - 1];
+			RenderStage &stage = stages[stages.size() - 1];
 			previous = stage.GetCamera();
 		}
 		
@@ -131,7 +131,7 @@ namespace RN
 		}
 	}
 	
-	void PostProcessingPipeline::PostUpdate(Camera *source, const Vector3& position, const Quaternion& rotation, const Rect& frame)
+	void PostProcessingPipeline::PostUpdate(Camera *source, const Vector3 &position, const Quaternion &rotation, const Rect &frame)
 	{
 		for(auto i = stages.begin(); i != stages.end(); i ++)
 		{
@@ -178,29 +178,29 @@ namespace RN
 		Camera(Vector2(0.0f))
 	{}
 	
-	Camera::Camera(const Vector2& size) :
+	Camera::Camera(const Vector2 &size) :
 		Camera(size, Texture::Format::RGB16F)
 	{}
 
 
-	Camera::Camera(const Vector2& size, Texture *target) :
+	Camera::Camera(const Vector2 &size, Texture *target) :
 		Camera(size, target, Flags::Defaults)
 	{}
 
-	Camera::Camera(const Vector2& size, Texture *target, Flags flags) :
+	Camera::Camera(const Vector2 &size, Texture *target, Flags flags) :
 		Camera(size, target, flags, RenderStorage::BufferFormatComplete)
 	{}
 
-	Camera::Camera(const Vector2& size, Texture::Format targetFormat) :
+	Camera::Camera(const Vector2 &size, Texture::Format targetFormat) :
 		Camera(size, targetFormat, Flags::Defaults)
 	{}
 
-	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags) :
+	Camera::Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags) :
 		Camera(size, targetFormat, flags, RenderStorage::BufferFormatComplete)
 	{}
 
 
-	Camera::Camera(const Vector2& size, Texture *target, Flags flags, RenderStorage::BufferFormat format) :
+	Camera::Camera(const Vector2 &size, Texture *target, Flags flags, RenderStorage::BufferFormat format) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_storage(nullptr),
 		_lightManager(nullptr)
@@ -213,7 +213,7 @@ namespace RN
 		Initialize();
 	}
 
-	Camera::Camera(const Vector2& size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor) :
+	Camera::Camera(const Vector2 &size, Texture::Format targetFormat, Flags flags, RenderStorage::BufferFormat format, float scaleFactor) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_scaleFactor(scaleFactor),
 		_storage(nullptr),
@@ -227,7 +227,7 @@ namespace RN
 		Initialize();
 	}
 
-	Camera::Camera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor) :
+	Camera::Camera(const Vector2 &size, RenderStorage *storage, Flags flags, float scaleFactor) :
 		_frame(Vector2(0.0f, 0.0f), size),
 		_scaleFactor(scaleFactor),
 		_storage(nullptr),
@@ -349,7 +349,7 @@ namespace RN
 	}
 
 	// Setter
-	void Camera::SetFrame(const Rect& frame)
+	void Camera::SetFrame(const Rect &frame)
 	{
 		if(_frame != frame)
 		{
@@ -362,12 +362,12 @@ namespace RN
 		}
 	}
 
-	void Camera::SetRenderingFrame(const Rect& frame)
+	void Camera::SetRenderingFrame(const Rect &frame)
 	{
 		_renderingFrame = std::move(frame.GetIntegral());
 	}
 	
-	void Camera::SetClearColor(const Color& clearColor)
+	void Camera::SetClearColor(const Color &clearColor)
 	{
 		_clearColor = clearColor;
 	}
@@ -735,7 +735,7 @@ namespace RN
 		Vector3 pos5 = __ToWorld(Vector3(1.0f, 1.0f, 1.0));
 		Vector3 pos6 = __ToWorld(Vector3(1.0f, -1.0f, 1.0));
 		
-		const Vector3& position = GetWorldPosition();
+		const Vector3 &position = GetWorldPosition();
 		Vector3 direction = GetWorldRotation().GetRotatedVector(Vector3(0.0, 0.0, -1.0));
 		
 		Vector3 vmax;
@@ -759,7 +759,7 @@ namespace RN
 		frustrums._frustumFar = Plane::WithPositionNormal(position + direction * _clipFar, direction);
 	}
 
-	Vector3 Camera::__ToWorld(const Vector3& dir)
+	Vector3 Camera::__ToWorld(const Vector3 &dir)
 	{
 		Vector3 ndcPos(dir.x, dir.y, dir.z*2.0f-1.0f);
 		
@@ -790,7 +790,7 @@ namespace RN
 	}
 	
 	// There should be a much better solution, but at least this works for now
-	Vector3 Camera::ToWorld(const Vector3& dir)
+	Vector3 Camera::ToWorld(const Vector3 &dir)
 	{
 		Vector3 ndcPos(dir.x, dir.y, 0.0f);
 		if(_flags & Flags::Orthogonal)
@@ -820,7 +820,7 @@ namespace RN
 		}
 	}
 	
-	const Rect& Camera::GetFrame()
+	const Rect &Camera::GetFrame()
 	{
 		if(_flags & Flags::Fullscreen)
 		{
@@ -850,7 +850,7 @@ namespace RN
 		return _lightManager;
 	}
 	
-	const Vector3& Camera::GetFrustumCenter()
+	const Vector3 &Camera::GetFrustumCenter()
 	{
 		UpdateFrustum();
 		return _frustumCenter;
@@ -863,7 +863,7 @@ namespace RN
 	}
 	
 
-	bool Camera::InFrustum(const Vector3& position, float radius)
+	bool Camera::InFrustum(const Vector3 &position, float radius)
 	{
 		UpdateFrustum();
 		
@@ -891,13 +891,13 @@ namespace RN
 		return true;
 	}
 	
-	bool Camera::InFrustum(const Sphere& sphere)
+	bool Camera::InFrustum(const Sphere &sphere)
 	{
 		UpdateFrustum();
 		return InFrustum(sphere.position+sphere.offset, sphere.radius);
 	}
 	
-	bool Camera::InFrustum(const AABB& aabb)
+	bool Camera::InFrustum(const AABB &aabb)
 	{
 		UpdateFrustum();
 		
@@ -908,8 +908,8 @@ namespace RN
 		
 		for(int i=0; i<6; i++)
 		{
-			const Plane& plane = planes[i];
-			const Plane& absPlane = absPlanes[i];
+			const Plane &plane = planes[i];
+			const Plane &absPlane = absPlanes[i];
 			
 			float d = position.Dot(plane.normal);
 			float r = aabb.width.Dot(absPlane.normal);

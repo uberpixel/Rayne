@@ -149,7 +149,7 @@ namespace RN
 		Append(other->_bytes, other->_length);
 	}
 	
-	void Data::ReplaceBytes(const void *bytes, const Range& range)
+	void Data::ReplaceBytes(const void *bytes, const Range &range)
 	{
 		if(range.origin + range.length > _length)
 			throw Exception(Exception::Type::RangeException, "range is not within the datas bounds!");

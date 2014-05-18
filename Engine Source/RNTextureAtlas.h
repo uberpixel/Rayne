@@ -25,7 +25,7 @@ namespace RN
 		RNAPI ~TextureAtlas() override;
 		
 		RNAPI Rect AllocateRegion(uint32 width, uint32 height);
-		RNAPI void SetRegionData(const Rect& region, void *data, Texture::Format format);
+		RNAPI void SetRegionData(const Rect &region, void *data, Texture::Format format);
 		
 		RNAPI void SetMaxSize(uint32 maxWidth, uint32 maxHeight);
 		RNAPI uint32 GetTag() const { return _tag; }

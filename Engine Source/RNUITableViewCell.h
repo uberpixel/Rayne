@@ -37,7 +37,7 @@ namespace RN
 			RNAPI Label *GetTextLabel() const { return _textLabel; }
 			
 			RNAPI void SetSelected(bool selected) override;
-			RNAPI void SetFrame(const Rect& frame) override;
+			RNAPI void SetFrame(const Rect &frame) override;
 			RNAPI void LayoutSubviews() override;
 			
 		protected:

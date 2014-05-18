@@ -95,7 +95,7 @@ namespace RN
 			
 			b = SIMD::MulScalar(SIMD::SubScalar(b, i), SIMD::LoadConstant<0x3cc90fdb>());
 			
-			const Vector2& cossin = TrigonometryTable()[SIMD::TruncateConvert(i) & 255];
+			const Vector2 &cossin = TrigonometryTable()[SIMD::TruncateConvert(i) & 255];
 			
 			SIMD::VecFloat cosine_alpha = SIMD::LoadScalar(&cossin.x);
 			SIMD::VecFloat sine_alpha   = SIMD::LoadScalar(&cossin.y);
@@ -124,7 +124,7 @@ namespace RN
 			
 			b = SIMD::MulScalar(SIMD::SubScalar(b, i), SIMD::LoadConstant<0x3CC90FDB>());
 			
-			const Vector2& cossin = TrigonometryTable()[SIMD::TruncateConvert(i) & 255];
+			const Vector2 &cossin = TrigonometryTable()[SIMD::TruncateConvert(i) & 255];
 			SIMD::VecFloat cosine_alpha = SIMD::LoadScalar(&cossin.x);
 			SIMD::VecFloat sine_alpha = SIMD::LoadScalar(&cossin.y);
 			

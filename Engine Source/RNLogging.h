@@ -66,21 +66,21 @@ namespace RN
 			
 			RNAPI void Submit();
 			
-			Loggable& operator << (const std::string& val) { _stream << val; return *this; }
-			Loggable& operator << (const char *val) { _stream << val; return *this; }
-			Loggable& operator << (bool val) { _stream << val; return *this; }
-			Loggable& operator << (short val) { _stream << val; return *this; }
-			Loggable& operator << (unsigned short val) { _stream << val; return *this; }
-			Loggable& operator << (int val) { _stream << val; return *this; }
-			Loggable& operator << (unsigned int val) { _stream << val; return *this; }
-			Loggable& operator << (long val) { _stream << val; return *this; }
-			Loggable& operator << (unsigned long val) { _stream << val; return *this; }
-			Loggable& operator << (long long val) { _stream << val; return *this; }
-			Loggable& operator << (unsigned long long val) { _stream << val; return *this; }
-			Loggable& operator << (const void *val) { _stream << val; return *this; }
-			Loggable& operator << (std::ostream& (*pf)(std::ostream&)) { _stream << pf; return *this; }
-			Loggable& operator << (std::ios& (*pf)(std::ios&)) { _stream << pf; return *this; };
-			Loggable& operator << (std::ios_base& (*pf)(std::ios_base&)) { _stream << pf; return *this; }
+			Loggable &operator << (const std::string& val) { _stream << val; return *this; }
+			Loggable &operator << (const char *val) { _stream << val; return *this; }
+			Loggable &operator << (bool val) { _stream << val; return *this; }
+			Loggable &operator << (short val) { _stream << val; return *this; }
+			Loggable &operator << (unsigned short val) { _stream << val; return *this; }
+			Loggable &operator << (int val) { _stream << val; return *this; }
+			Loggable &operator << (unsigned int val) { _stream << val; return *this; }
+			Loggable &operator << (long val) { _stream << val; return *this; }
+			Loggable &operator << (unsigned long val) { _stream << val; return *this; }
+			Loggable &operator << (long long val) { _stream << val; return *this; }
+			Loggable &operator << (unsigned long long val) { _stream << val; return *this; }
+			Loggable &operator << (const void *val) { _stream << val; return *this; }
+			Loggable &operator << (std::ostream& (*pf)(std::ostream&)) { _stream << pf; return *this; }
+			Loggable &operator << (std::ios& (*pf)(std::ios&)) { _stream << pf; return *this; };
+			Loggable &operator << (std::ios_base& (*pf)(std::ios_base&)) { _stream << pf; return *this; }
 			
 		private:
 			Level _level;

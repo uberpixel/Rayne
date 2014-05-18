@@ -142,7 +142,7 @@ namespace RN
 			return _typesetter->GetDimensions();
 		}
 		
-		void Label::SetFrame(const Rect& frame)
+		void Label::SetFrame(const Rect &frame)
 		{
 			View::SetFrame(frame);
 			

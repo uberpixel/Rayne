@@ -23,37 +23,37 @@ namespace RN
 		Vector2();
 		Vector2(const float n);
 		Vector2(const float x, const float y);
-		explicit Vector2(const Vector3& other);
-		explicit Vector2(const Vector4& other);
+		explicit Vector2(const Vector3 &other);
+		explicit Vector2(const Vector4 &other);
 
 		bool operator== (const Vector2 &other) const;
 		bool operator!= (const Vector2 &other) const;
 
 		Vector2 operator- () const;
 
-		Vector2 operator+ (const Vector2& other) const;
-		Vector2 operator- (const Vector2& other) const;
-		Vector2 operator* (const Vector2& other) const;
-		Vector2 operator/ (const Vector2& other) const;
+		Vector2 operator+ (const Vector2 &other) const;
+		Vector2 operator- (const Vector2 &other) const;
+		Vector2 operator* (const Vector2 &other) const;
+		Vector2 operator/ (const Vector2 &other) const;
 		Vector2 operator* (const float n) const;
 		Vector2 operator/ (const float n) const;
 
-		Vector2& operator+= (const Vector2& other);
-		Vector2& operator-= (const Vector2& other);
-		Vector2& operator*= (const Vector2& other);
-		Vector2& operator/= (const Vector2& other);
+		Vector2 &operator+= (const Vector2 &other);
+		Vector2 &operator-= (const Vector2 &other);
+		Vector2 &operator*= (const Vector2 &other);
+		Vector2 &operator/= (const Vector2 &other);
 
 		float GetLength() const;
 		float GetMax() const;
 		float GetMin() const;
-		float GetDotProduct(const Vector2& other) const;
+		float GetDotProduct(const Vector2 &other) const;
 		Vector2 GetCrossProduct() const;
 		float GetDistance(const Vector2 &other) const;
 		float GetSquaredDistance(const Vector2 &other) const;
 		Vector2 GetLerp(const Vector2 &other, float factor) const;
-		bool IsEqual(const Vector2& other, float epsilon) const;
+		bool IsEqual(const Vector2 &other, float epsilon) const;
 
-		Vector2& Normalize(const float n=1.0f);
+		Vector2 &Normalize(const float n=1.0f);
 		Vector2 GetNormalized(const float n=1.0f) const;
 
 		struct
@@ -69,37 +69,37 @@ namespace RN
 		Vector3();
 		Vector3(const float n);
 		Vector3(const float x, const float y, const float z);
-		explicit Vector3(const Vector2& other, float z=0.0f);
-		explicit Vector3(const Vector4& other);
+		explicit Vector3(const Vector2 &other, float z=0.0f);
+		explicit Vector3(const Vector4 &other);
 		
 		bool operator== (const Vector3 &other) const;
 		bool operator!= (const Vector3 &other) const;
 		
 		Vector3 operator- () const;
 		
-		Vector3 operator+ (const Vector3& other) const;
-		Vector3 operator- (const Vector3& other) const;
-		Vector3 operator* (const Vector3& other) const;
-		Vector3 operator/ (const Vector3& other) const;
+		Vector3 operator+ (const Vector3 &other) const;
+		Vector3 operator- (const Vector3 &other) const;
+		Vector3 operator* (const Vector3 &other) const;
+		Vector3 operator/ (const Vector3 &other) const;
 		Vector3 operator* (const float n) const;
 		Vector3 operator/ (const float n) const;
 		
-		Vector3& operator+= (const Vector3& other);
-		Vector3& operator-= (const Vector3& other);
-		Vector3& operator*= (const Vector3& other);
-		Vector3& operator/= (const Vector3& other);
+		Vector3 &operator+= (const Vector3 &other);
+		Vector3 &operator-= (const Vector3 &other);
+		Vector3 &operator*= (const Vector3 &other);
+		Vector3 &operator/= (const Vector3 &other);
 		
 		float GetLength() const;
 		float GetMax() const;
 		float GetMin() const;
-		float GetDotProduct(const Vector3& other) const;
-		Vector3 GetCrossProduct(const Vector3& other) const;
-		bool IsEqual(const Vector3& other, float epsilon) const;
+		float GetDotProduct(const Vector3 &other) const;
+		Vector3 GetCrossProduct(const Vector3 &other) const;
+		bool IsEqual(const Vector3 &other, float epsilon) const;
 		float GetDistance(const Vector3 &other) const;
 		float GetSquaredDistance(const Vector3 &other) const;
 		Vector3 GetLerp(const Vector3 &other, float factor) const;
 		
-		Vector3& Normalize(const float n=1.0f);
+		Vector3 &Normalize(const float n=1.0f);
 		Vector3 GetNormalized(const float n=1.0f) const;
 		
 		struct
@@ -116,12 +116,12 @@ namespace RN
 		Vector4();
 		Vector4(const float n);
 		Vector4(const float x, const float y, const float z, const float w);
-		explicit Vector4(const Vector2& other, float z=0.0f, float w=0.0f);
-		explicit Vector4(const Vector3& other, float w=0.0f);
+		explicit Vector4(const Vector2 &other, float z=0.0f, float w=0.0f);
+		explicit Vector4(const Vector3 &other, float w=0.0f);
 		
 #if RN_SIMD
 		Vector4(const SIMD::VecFloat& other);
-		Vector4& operator= (const SIMD::VecFloat& other);
+		Vector4 &operator= (const SIMD::VecFloat& other);
 		
 		RN_INLINE void *operator new[](size_t size) { return Memory::AllocateSIMD(size); }
 		RN_INLINE void operator delete[](void *ptr) { if(ptr) Memory::FreeSIMD(ptr); }
@@ -132,28 +132,28 @@ namespace RN
 		
 		Vector4 operator- () const;
 		
-		Vector4 operator+ (const Vector4& other) const;
-		Vector4 operator- (const Vector4& other) const;
-		Vector4 operator* (const Vector4& other) const;
-		Vector4 operator/ (const Vector4& other) const;
+		Vector4 operator+ (const Vector4 &other) const;
+		Vector4 operator- (const Vector4 &other) const;
+		Vector4 operator* (const Vector4 &other) const;
+		Vector4 operator/ (const Vector4 &other) const;
 		Vector4 operator* (const float n) const;
 		Vector4 operator/ (const float n) const;
 		
-		Vector4& operator+= (const Vector4& other);
-		Vector4& operator-= (const Vector4& other);
-		Vector4& operator*= (const Vector4& other);
-		Vector4& operator/= (const Vector4& other);
+		Vector4 &operator+= (const Vector4 &other);
+		Vector4 &operator-= (const Vector4 &other);
+		Vector4 &operator*= (const Vector4 &other);
+		Vector4 &operator/= (const Vector4 &other);
 		
 		float GetLength() const;
 		float GetMax() const;
 		float GetMin() const;
-		float GetDotProduct(const Vector4& other) const;
+		float GetDotProduct(const Vector4 &other) const;
 		float GetDistance(const Vector4 &other) const;
 		float GetSquaredDistance(const Vector4 &other) const;
 		Vector4 GetLerp(const Vector4 &other, float factor) const;
-		bool IsEqual(const Vector4& other, float epsilon) const;
+		bool IsEqual(const Vector4 &other, float epsilon) const;
 		
-		Vector4& Normalize(const float n=1.0f);
+		Vector4 &Normalize(const float n=1.0f);
 		Vector4 GetNormalized(const float n=1.0f) const;
 		
 #if RN_SIMD
@@ -197,13 +197,13 @@ namespace RN
 		y = _y;
 	}
 	
-	RN_INLINE Vector2::Vector2(const Vector3& other)
+	RN_INLINE Vector2::Vector2(const Vector3 &other)
 	{
 		x = other.x;
 		y = other.y;
 	}
 	
-	RN_INLINE Vector2::Vector2(const Vector4& other)
+	RN_INLINE Vector2::Vector2(const Vector4 &other)
 	{
 		x = other.x;
 		y = other.y;
@@ -233,19 +233,19 @@ namespace RN
 		return Vector2(-x, -y);
 	}
 
-	RN_INLINE Vector2 Vector2::operator+ (const Vector2& other) const
+	RN_INLINE Vector2 Vector2::operator+ (const Vector2 &other) const
 	{
 		return Vector2(x + other.x, y + other.y);
 	}
-	RN_INLINE Vector2 Vector2::operator- (const Vector2& other) const
+	RN_INLINE Vector2 Vector2::operator- (const Vector2 &other) const
 	{
 		return Vector2(x - other.x, y - other.y);
 	}
-	RN_INLINE Vector2 Vector2::operator* (const Vector2& other) const
+	RN_INLINE Vector2 Vector2::operator* (const Vector2 &other) const
 	{
 		return Vector2(x * other.x, y * other.y);
 	}
-	RN_INLINE Vector2 Vector2::operator/ (const Vector2& other) const
+	RN_INLINE Vector2 Vector2::operator/ (const Vector2 &other) const
 	{
 		return Vector2(x / other.x, y / other.y);
 	}
@@ -258,28 +258,28 @@ namespace RN
 		return Vector2(x / n, y / n);
 	}
 
-	RN_INLINE Vector2& Vector2::operator+= (const Vector2& other)
+	RN_INLINE Vector2 &Vector2::operator+= (const Vector2 &other)
 	{
 		x += other.x;
 		y += other.y;
 
 		return *this;
 	}
-	RN_INLINE Vector2& Vector2::operator-= (const Vector2& other)
+	RN_INLINE Vector2 &Vector2::operator-= (const Vector2 &other)
 	{
 		x -= other.x;
 		y -= other.y;
 
 		return *this;
 	}
-	RN_INLINE Vector2& Vector2::operator*= (const Vector2& other)
+	RN_INLINE Vector2 &Vector2::operator*= (const Vector2 &other)
 	{
 		x *= other.x;
 		y *= other.y;
 
 		return *this;
 	}
-	RN_INLINE Vector2& Vector2::operator/= (const Vector2& other)
+	RN_INLINE Vector2 &Vector2::operator/= (const Vector2 &other)
 	{
 		x /= other.x;
 		y /= other.y;
@@ -302,7 +302,7 @@ namespace RN
 		return std::min(x, y);
 	}
 
-	RN_INLINE float Vector2::GetDotProduct(const Vector2& other) const
+	RN_INLINE float Vector2::GetDotProduct(const Vector2 &other) const
 	{
 		return (x * other.x + y * other.y);
 	}
@@ -312,7 +312,7 @@ namespace RN
 		return Vector2(y, -x);
 	}
 
-	RN_INLINE bool Vector2::IsEqual(const Vector2& other, float epsilon) const
+	RN_INLINE bool Vector2::IsEqual(const Vector2 &other, float epsilon) const
 	{
 		if(fabs(x - other.x) > epsilon)
 			return false;
@@ -323,7 +323,7 @@ namespace RN
 		return true;
 	}
 
-	RN_INLINE Vector2& Vector2::Normalize(const float n)
+	RN_INLINE Vector2 &Vector2::Normalize(const float n)
 	{
 		if(x*x+y*y > k::EpsilonFloat)
 		{
@@ -377,14 +377,14 @@ namespace RN
 		z = _z;
 	}
 	
-	RN_INLINE Vector3::Vector3(const Vector2& other, float _z)
+	RN_INLINE Vector3::Vector3(const Vector2 &other, float _z)
 	{
 		x = other.x;
 		y = other.y;
 		z = _z;
 	}
 	
-	RN_INLINE Vector3::Vector3(const Vector4& other)
+	RN_INLINE Vector3::Vector3(const Vector4 &other)
 	{
 		x = other.x;
 		y = other.y;
@@ -418,19 +418,19 @@ namespace RN
 		return Vector3(-x, -y, -z);
 	}
 
-	RN_INLINE Vector3 Vector3::operator+ (const Vector3& other) const
+	RN_INLINE Vector3 Vector3::operator+ (const Vector3 &other) const
 	{
 		return Vector3(x + other.x, y + other.y, z + other.z);
 	}
-	RN_INLINE Vector3 Vector3::operator- (const Vector3& other) const
+	RN_INLINE Vector3 Vector3::operator- (const Vector3 &other) const
 	{
 		return Vector3(x - other.x, y - other.y, z - other.z);
 	}
-	RN_INLINE Vector3 Vector3::operator* (const Vector3& other) const
+	RN_INLINE Vector3 Vector3::operator* (const Vector3 &other) const
 	{
 		return Vector3(x * other.x, y * other.y, z * other.z);
 	}
-	RN_INLINE Vector3 Vector3::operator/ (const Vector3& other) const
+	RN_INLINE Vector3 Vector3::operator/ (const Vector3 &other) const
 	{
 		return Vector3(x / other.x, y / other.y, z / other.z);
 	}
@@ -443,7 +443,7 @@ namespace RN
 		return Vector3(x / n, y / n, z / n);
 	}
 
-	RN_INLINE Vector3& Vector3::operator+= (const Vector3& other)
+	RN_INLINE Vector3 &Vector3::operator+= (const Vector3 &other)
 	{
 		x += other.x;
 		y += other.y;
@@ -451,7 +451,7 @@ namespace RN
 
 		return *this;
 	}
-	RN_INLINE Vector3& Vector3::operator-= (const Vector3& other)
+	RN_INLINE Vector3 &Vector3::operator-= (const Vector3 &other)
 	{
 		x -= other.x;
 		y -= other.y;
@@ -459,7 +459,7 @@ namespace RN
 
 		return *this;
 	}
-	RN_INLINE Vector3& Vector3::operator*= (const Vector3& other)
+	RN_INLINE Vector3 &Vector3::operator*= (const Vector3 &other)
 	{
 		x *= other.x;
 		y *= other.y;
@@ -467,7 +467,7 @@ namespace RN
 
 		return *this;
 	}
-	RN_INLINE Vector3& Vector3::operator/= (const Vector3& other)
+	RN_INLINE Vector3 &Vector3::operator/= (const Vector3 &other)
 	{
 		x /= other.x;
 		y /= other.y;
@@ -491,12 +491,12 @@ namespace RN
 		return std::min(std::min(x, y), z);
 	}
 
-	RN_INLINE float Vector3::GetDotProduct(const Vector3& other) const
+	RN_INLINE float Vector3::GetDotProduct(const Vector3 &other) const
 	{
 		return (x * other.x + y * other.y + z * other.z);
 	}
 
-	RN_INLINE Vector3 Vector3::GetCrossProduct(const Vector3& other) const
+	RN_INLINE Vector3 Vector3::GetCrossProduct(const Vector3 &other) const
 	{
 		Vector3 result;
 
@@ -507,7 +507,7 @@ namespace RN
 		return result;
 	}
 
-	RN_INLINE bool Vector3::IsEqual(const Vector3& other, float epsilon) const
+	RN_INLINE bool Vector3::IsEqual(const Vector3 &other, float epsilon) const
 	{
 		if(fabs(x - other.x) > epsilon)
 			return false;
@@ -521,7 +521,7 @@ namespace RN
 		return true;
 	}
 
-	RN_INLINE Vector3& Vector3::Normalize(const float n)
+	RN_INLINE Vector3 &Vector3::Normalize(const float n)
 	{
 		if(x*x+y*y+z*z > k::EpsilonFloat)
 		{
@@ -577,7 +577,7 @@ namespace RN
 		w = _w;
 	}
 	
-	RN_INLINE Vector4::Vector4(const Vector2& other, float _z, float _w)
+	RN_INLINE Vector4::Vector4(const Vector2 &other, float _z, float _w)
 	{
 		x = other.x;
 		y = other.y;
@@ -585,7 +585,7 @@ namespace RN
 		w = _w;
 	}
 	
-	RN_INLINE Vector4::Vector4(const Vector3& other, float _w)
+	RN_INLINE Vector4::Vector4(const Vector3 &other, float _w)
 	{
 		x = other.x;
 		y = other.y;
@@ -598,7 +598,7 @@ namespace RN
 		simd(other)
 	{}
 	
-	RN_INLINE Vector4& Vector4::operator= (const SIMD::VecFloat& other)
+	RN_INLINE Vector4 &Vector4::operator= (const SIMD::VecFloat& other)
 	{
 		simd = other;
 		return *this;
@@ -639,7 +639,7 @@ namespace RN
 #endif
 	}
 
-	RN_INLINE Vector4 Vector4::operator+ (const Vector4& other) const
+	RN_INLINE Vector4 Vector4::operator+ (const Vector4 &other) const
 	{
 #if RN_SIMD
 		return SIMD::Add(simd, other.simd);
@@ -647,7 +647,7 @@ namespace RN
 		return Vector4(x + other.x, y + other.y, z + other.z, w + other.w);
 #endif
 	}
-	RN_INLINE Vector4 Vector4::operator- (const Vector4& other) const
+	RN_INLINE Vector4 Vector4::operator- (const Vector4 &other) const
 	{
 #if RN_SIMD
 		return SIMD::Sub(simd, other.simd);
@@ -655,7 +655,7 @@ namespace RN
 		return Vector4(x - other.x, y - other.y, z - other.z, w - other.w);
 #endif
 	}
-	RN_INLINE Vector4 Vector4::operator* (const Vector4& other) const
+	RN_INLINE Vector4 Vector4::operator* (const Vector4 &other) const
 	{
 #if RN_SIMD
 		return SIMD::Mul(simd, other.simd);
@@ -663,7 +663,7 @@ namespace RN
 		return Vector4(x * other.x, y * other.y, z * other.z, w * other.w);
 #endif
 	}
-	RN_INLINE Vector4 Vector4::operator/ (const Vector4& other) const
+	RN_INLINE Vector4 Vector4::operator/ (const Vector4 &other) const
 	{
 #if RN_SIMD
 		return SIMD::Div(simd, other.simd);
@@ -689,7 +689,7 @@ namespace RN
 #endif
 	}
 
-	RN_INLINE Vector4& Vector4::operator+= (const Vector4& other)
+	RN_INLINE Vector4 &Vector4::operator+= (const Vector4 &other)
 	{
 #if RN_SIMD
 		simd = SIMD::Add(simd, other.simd);
@@ -703,7 +703,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE Vector4& Vector4::operator-= (const Vector4& other)
+	RN_INLINE Vector4 &Vector4::operator-= (const Vector4 &other)
 	{
 #if RN_SIMD
 		simd = SIMD::Sub(simd, other.simd);
@@ -717,7 +717,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE Vector4& Vector4::operator*= (const Vector4& other)
+	RN_INLINE Vector4 &Vector4::operator*= (const Vector4 &other)
 	{
 #if RN_SIMD
 		simd = SIMD::Mul(simd, other.simd);
@@ -731,7 +731,7 @@ namespace RN
 		return *this;
 	}
 
-	RN_INLINE Vector4& Vector4::operator/= (const Vector4& other)
+	RN_INLINE Vector4 &Vector4::operator/= (const Vector4 &other)
 	{
 #if RN_SIMD
 		simd = SIMD::Div(simd, other.simd);
@@ -779,7 +779,7 @@ namespace RN
 		return std::min(std::min(std::min(x, y), z), w);
 	}
 
-	RN_INLINE float Vector4::GetDotProduct(const Vector4& other) const
+	RN_INLINE float Vector4::GetDotProduct(const Vector4 &other) const
 	{
 #if RN_SIMD
 		if(X86_64::GetCapabilites() & X86_64::CAP_SSE41)
@@ -803,7 +803,7 @@ namespace RN
 		return (x * other.x + y * other.y + z * other.z + w * other.w);
 	}
 
-	RN_INLINE bool Vector4::IsEqual(const Vector4& other, float epsilon) const
+	RN_INLINE bool Vector4::IsEqual(const Vector4 &other, float epsilon) const
 	{
 		if(fabs(x - other.x) > epsilon)
 			return false;
@@ -820,7 +820,7 @@ namespace RN
 		return true;
 	}
 
-	RN_INLINE Vector4& Vector4::Normalize(const float n)
+	RN_INLINE Vector4 &Vector4::Normalize(const float n)
 	{
 #if RN_SIMD
 		if(X86_64::GetCapabilites() & X86_64::CAP_SSE41)

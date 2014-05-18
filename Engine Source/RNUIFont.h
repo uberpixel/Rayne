@@ -94,11 +94,11 @@ namespace RN
 		friend class Glyph;
 		public:
 			RNAPI Font(const std::string& name, float size);
-			RNAPI Font(const std::string& name, float size, const FontDescriptor& descriptor);
+			RNAPI Font(const std::string& name, float size, const FontDescriptor &descriptor);
 			RNAPI ~Font() override;
 			
 			RNAPI static Font *WithName(const std::string& name, float size);
-			RNAPI static Font *WithNameAndDescriptor(const std::string& name, float size, const FontDescriptor& descriptor);
+			RNAPI static Font *WithNameAndDescriptor(const std::string& name, float size, const FontDescriptor &descriptor);
 			
 			RNAPI bool GetHinting() const { return _descriptor.hinting; }
 			RNAPI bool GetFiltering() const { return _descriptor.filtering; };
@@ -112,7 +112,7 @@ namespace RN
 			
 			RNAPI Texture *GetTexture() const { return _texture; }
 			
-			RNAPI const Glyph& GetGlyphForCharacter(UniChar character);
+			RNAPI const Glyph &GetGlyphForCharacter(UniChar character);
 			RNAPI void RenderGlyphsFromString(String *string);
 			
 		private:

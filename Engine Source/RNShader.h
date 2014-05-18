@@ -177,7 +177,7 @@ namespace RN
 		RNAPI void SetShaderForType(File *file, ShaderType type);
 		
 		RNAPI ShaderProgram *GetProgramOfType(ShaderProgram::Type type);
-		RNAPI ShaderProgram *GetProgramWithLookup(const ShaderLookup& lookup);
+		RNAPI ShaderProgram *GetProgramWithLookup(const ShaderLookup &lookup);
 		
 		RNAPI bool SupportsProgramOfType(ShaderProgram::Type type);
 		RNAPI const std::string& GetShaderSource(ShaderType type);
@@ -230,10 +230,10 @@ namespace RN
 		
 		std::string PreProcessedShaderSource(const std::string& source);
 		
-		ShaderProgram *CompileProgram(const ShaderLookup& lookup);
+		ShaderProgram *CompileProgram(const ShaderLookup &lookup);
 		
-		void IncludeShader(const std::string& name, IncludeMode mode, File *parent, PreProcessedFile& output);
-		void PreProcessFile(File *file, PreProcessedFile& output);
+		void IncludeShader(const std::string& name, IncludeMode mode, File *parent, PreProcessedFile &output);
+		void PreProcessFile(File *file, PreProcessedFile &output);
 		
 		void CompileShader(ShaderType type, const std::string& file, GLuint *outShader);
 		void DumpLinkStatusAndDie(ShaderProgram *program);

@@ -166,13 +166,13 @@ namespace RN
 		
 
 		
-		void Button::SetFrame(const Rect& frame)
+		void Button::SetFrame(const Rect &frame)
 		{
 			Control::SetFrame(frame);
 			_backgroundImage->SetFrame(GetBounds());
 		}
 		
-		void Button::SetContentInsets(const EdgeInsets& insets)
+		void Button::SetContentInsets(const EdgeInsets &insets)
 		{
 			_contentInsets = insets;
 			SetNeedsLayoutUpdate();

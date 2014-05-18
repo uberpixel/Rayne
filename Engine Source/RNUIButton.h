@@ -53,9 +53,9 @@ namespace RN
 			RNAPI void SetTitleColorForState(RN::UI::Color *color, State state);
 			RNAPI void SetBehavior(Behavior behavior);
 			RNAPI void SetImagePosition(ImagePosition position);
-			RNAPI void SetContentInsets(const EdgeInsets& insets);
+			RNAPI void SetContentInsets(const EdgeInsets &insets);
 			
-			RNAPI void SetFrame(const Rect& frame) override;
+			RNAPI void SetFrame(const Rect &frame) override;
 			RNAPI Vector2 GetSizeThatFits() override;
 			
 		protected:

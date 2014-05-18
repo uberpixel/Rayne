@@ -64,21 +64,21 @@ namespace RN
 			};
 			
 			RNAPI Widget(Style style);
-			RNAPI Widget(Style style, const Rect& frame);
+			RNAPI Widget(Style style, const Rect &frame);
 			RNAPI ~Widget() override;
 			
 			RNAPI void SetContentView(View *view);
-			RNAPI void SetMinimumSize(const Vector2& size);
-			RNAPI void SetMaximumSize(const Vector2& size);
+			RNAPI void SetMinimumSize(const Vector2 &size);
+			RNAPI void SetMaximumSize(const Vector2 &size);
 			RNAPI void SetHasShadow(bool hasShadow);
-			RNAPI void SetFrame(const Rect& frame);
-			RNAPI void SetContentSize(const Vector2& size);
+			RNAPI void SetFrame(const Rect &frame);
+			RNAPI void SetContentSize(const Vector2 &size);
 			RNAPI void SetTitle(String *title);
-			RNAPI void SetTransform(const Matrix& transform);
+			RNAPI void SetTransform(const Matrix &transform);
 			RNAPI void SetWidgetLevel(int32 level);
 			RNAPI void SetCanBecomeKeyWidget(bool canBecome);
 			
-			RNAPI const Rect& GetFrame() const { return _frame; }
+			RNAPI const Rect &GetFrame() const { return _frame; }
 			RNAPI Vector2 GetContentSize() const;
 			
 			RNAPI View *GetContentView() const { return _contentView; }
@@ -107,7 +107,7 @@ namespace RN
 			void Render(Renderer *renderer);
 			
 			void ForceResignFirstResponder();
-			View *PerformHitTest(const Vector2& position, Event *event);
+			View *PerformHitTest(const Vector2 &position, Event *event);
 			
 			View *CreateContentView();
 			WidgetBackgroundView *CreateBackgroundView();

@@ -107,7 +107,7 @@ namespace RN
 		return result;
 	}
 	
-	Vector2 TranslateMouseDelta(NSEvent *event, bool& ignoreDelta)
+	Vector2 TranslateMouseDelta(NSEvent *event, bool &ignoreDelta)
 	{
 		if(ignoreDelta)
 		{
@@ -211,7 +211,7 @@ namespace RN
 	}
 	
 	
-	Vector2 Input::ClampMousePosition(const Vector2& position) const
+	Vector2 Input::ClampMousePosition(const Vector2 &position) const
 	{
 		Vector2 size = Window::GetSharedInstance()->GetSize();
 		Vector2 result;

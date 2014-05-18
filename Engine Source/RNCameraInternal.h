@@ -17,9 +17,9 @@ namespace RN
 	class CubemapCamera : public Camera
 	{
 	public:
-		CubemapCamera(const Vector2& size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f);
+		CubemapCamera(const Vector2 &size, RenderStorage *storage, Flags flags, float scaleFactor=0.0f);
 		
-		bool InFrustum(const Vector3& position, float radius) override;
+		bool InFrustum(const Vector3 &position, float radius) override;
 		
 		RNDeclareMeta(CubemapCamera)
 	};

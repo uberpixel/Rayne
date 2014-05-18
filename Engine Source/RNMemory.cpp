@@ -264,7 +264,7 @@ namespace RN
 						free(buffer);
 				}
 				
-				AllocationBucket& operator= (AllocationBucket&& other)
+				AllocationBucket &operator= (AllocationBucket&& other)
 				{
 					size = other.size;
 					offset = other.offset;
@@ -281,7 +281,7 @@ namespace RN
 				size_t size;
 			};
 			
-			AllocationBucket& CreateBucket(size_t minSize)
+			AllocationBucket &CreateBucket(size_t minSize)
 			{
 				_lastSize = std::max(minSize, _lastSize * 2);
 				_freeBuckets.emplace_back(AllocationBucket(_lastSize));
@@ -293,7 +293,7 @@ namespace RN
 			{
 				for(auto i = _freeBuckets.begin(); i != _freeBuckets.end();)
 				{
-					auto& bucket = *i;
+					auto &bucket = *i;
 					
 					if(bucket.offset + size <= bucket.size)
 					{
@@ -316,7 +316,7 @@ namespace RN
 					i ++;
 				}
 				
-				AllocationBucket& bucket = CreateBucket(size);
+				AllocationBucket &bucket = CreateBucket(size);
 				bucket.offset += size;
 				bucket.offset += (bucket.offset % _alignment);
 				

@@ -187,7 +187,7 @@ namespace RN
 			Log(std::move(temp));
 		}
 		
-		void Logger::Log(const Message& message)
+		void Logger::Log(const Message &message)
 		{
 			LockGuard<SpinLock> lock(_lock);
 			bool knocked = false;

@@ -31,13 +31,13 @@ namespace RN
 		AddObservables({ &_tag, &_position, &_rotation, &_scale });
 	}
 	
-	SceneNode::SceneNode(const Vector3& position) :
+	SceneNode::SceneNode(const Vector3 &position) :
 		SceneNode()
 	{
 		SetPosition(position);
 	}
 	
-	SceneNode::SceneNode(const Vector3& position, const Quaternion& rotation) :
+	SceneNode::SceneNode(const Vector3 &position, const Quaternion &rotation) :
 		SceneNode()
 	{
 		SetRotation(rotation);
@@ -355,7 +355,7 @@ namespace RN
 		collisionGroup = group;
 	}
 	
-	void SceneNode::SetBoundingBox(const AABB& boundingBox, bool calculateBoundingSphere)
+	void SceneNode::SetBoundingBox(const AABB &boundingBox, bool calculateBoundingSphere)
 	{
 		_transformLock.Lock();
 		_boundingBox = boundingBox;
@@ -367,7 +367,7 @@ namespace RN
 		_transformLock.Unlock();
 	}
 	
-	void SceneNode::SetBoundingSphere(const Sphere& boundingSphere)
+	void SceneNode::SetBoundingSphere(const Sphere &boundingSphere)
 	{
 		_transformLock.Lock();
 		_boundingSphere = boundingSphere;

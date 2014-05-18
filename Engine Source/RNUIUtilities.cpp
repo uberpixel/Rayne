@@ -55,7 +55,7 @@ namespace RN
 		float DebugWidget::AverageFPS()
 		{
 			float average = 0.0f;
-			for(const float& f : _fps)
+			for(const float &f : _fps)
 			{
 				average += f;
 			}

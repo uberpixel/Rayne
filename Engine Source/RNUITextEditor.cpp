@@ -41,7 +41,7 @@ namespace RN
 			_delegate = delegate;
 		}
 		
-		void TextEditor::SetFrame(const Rect& frame)
+		void TextEditor::SetFrame(const Rect &frame)
 		{
 			View::SetFrame(frame);
 			_typesetter->SetFrame(frame);
@@ -54,7 +54,7 @@ namespace RN
 			_typingAttributes = attributes->Retain();
 		}
 		
-		void TextEditor::SetSelection(const Range& selection)
+		void TextEditor::SetSelection(const Range &selection)
 		{
 			_selection = selection;
 			SetTypingAttributes(_string->GetAttributesAtIndex(_selection.origin));

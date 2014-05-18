@@ -33,7 +33,7 @@ namespace RN
 				right = tright;
 			}
 			
-			bool operator ==(const EdgeInsets& other)
+			bool operator ==(const EdgeInsets &other)
 			{
 				if(Math::FastAbs(top - other.top) >= k::EpsilonFloat)
 					return false;
@@ -50,7 +50,7 @@ namespace RN
 				return true;
 			}
 			
-			bool operator !=(const EdgeInsets& other)
+			bool operator !=(const EdgeInsets &other)
 			{
 				return !(*this == other);
 			}
@@ -69,7 +69,7 @@ namespace RN
 				v2 = tv2;
 			}
 			
-			Atlas(const Vector2& uv1, const Vector2& uv2)
+			Atlas(const Vector2 &uv1, const Vector2 &uv2)
 			{
 				u1 = uv1.x;
 				v1 = uv1.y;

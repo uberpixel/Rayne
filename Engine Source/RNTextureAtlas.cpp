@@ -42,7 +42,7 @@ namespace RN
 	}
 	
 	
-	void TextureAtlas::SetRegionData(const Rect& region, void *data, Texture::Format format)
+	void TextureAtlas::SetRegionData(const Rect &region, void *data, Texture::Format format)
 	{
 		PixelData pdata;
 		pdata.data = data;
@@ -150,7 +150,7 @@ namespace RN
 		
 		for(size_t i = 0; i < _regions.size(); i ++)
 		{
-			TextureRegion& region = _regions[i];
+			TextureRegion &region = _regions[i];
 			
 			if(region.isFree && (region.rect.width >= width && region.rect.height >= height))
 			{
@@ -168,7 +168,7 @@ namespace RN
 			throw Exception(Exception::Type::RangeException, "Not enough free space found in atlas texture!");
 		
 		
-		TextureRegion& source = _regions[bestIndex];
+		TextureRegion &source = _regions[bestIndex];
 		
 		if(source.rect.width == width && source.rect.height == height)
 		{

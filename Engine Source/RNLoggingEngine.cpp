@@ -74,7 +74,7 @@ namespace RN
 			_delegate->CutOff();
 		}
 		
-		void CallbackLoggingEngine::Write(const Message& message)
+		void CallbackLoggingEngine::Write(const Message &message)
 		{
 			_delegate->Write(message);
 		}
@@ -91,7 +91,7 @@ namespace RN
 				_stream(stream)
 			{}
 			
-			void Write(const Message& message)
+			void Write(const Message &message)
 			{
 				const char *level;
 				
@@ -153,7 +153,7 @@ namespace RN
 		void StdoutLoggingEngine::CutOff()
 		{}
 		
-		void StdoutLoggingEngine::Write(const Message& message)
+		void StdoutLoggingEngine::Write(const Message &message)
 		{
 			_internal->Write(message);
 		}
@@ -186,7 +186,7 @@ namespace RN
 		void SimpleLoggingEngine::CutOff()
 		{}
 		
-		void SimpleLoggingEngine::Write(const Message& message)
+		void SimpleLoggingEngine::Write(const Message &message)
 		{
 			_internal->Write(message);
 		}
@@ -254,7 +254,7 @@ namespace RN
 			SwitchMode(0xffff);
 		}
 		
-		void HTMLLoggingEngine::Write(const Message& message)
+		void HTMLLoggingEngine::Write(const Message &message)
 		{
 			int mode = message.HasTitle() ? 1 : 0;
 			SwitchMode(mode);

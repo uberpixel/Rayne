@@ -37,12 +37,12 @@ namespace RN
 			RNAPI void SetDelegate(ScrollViewDelegate *delegate);
 			RNAPI void CalculateContentSize();
 			
-			RNAPI void SetContentOffset(const Vector2& offset);
-			RNAPI void SetContentSize(const Vector2& size);
+			RNAPI void SetContentOffset(const Vector2 &offset);
+			RNAPI void SetContentSize(const Vector2 &size);
 			RNAPI void SetVerticalScroller(Scroller *scroller);
 			
 			RNAPI void ScrollWheel(Event *event) override;
-			RNAPI void SetFrame(const Rect& frame) override;
+			RNAPI void SetFrame(const Rect &frame) override;
 			
 			RNAPI void DidAddSubview(View *subview) override;
 			RNAPI void DidBringSubviewToFront(View *subview) override;

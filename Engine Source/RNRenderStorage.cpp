@@ -68,7 +68,7 @@ namespace RN
 	}
 	
 	
-	void RenderStorage::SetSize(const Vector2& size)
+	void RenderStorage::SetSize(const Vector2 &size)
 	{
 		if(_size != size)
 		{

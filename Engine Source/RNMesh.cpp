@@ -421,7 +421,7 @@ namespace RN
 	// MARK: Chunk
 	// ---------------------
 	
-	Mesh::Chunk::Chunk(Mesh *mesh, const Range& range, bool indices) :
+	Mesh::Chunk::Chunk(Mesh *mesh, const Range &range, bool indices) :
 		_mesh(mesh),
 		_range(range),
 		_indices(indices),
@@ -465,7 +465,7 @@ namespace RN
 		_dirty = true;
 	}
 	
-	void Mesh::Chunk::SetDataInRange(const void *data, const Range& range)
+	void Mesh::Chunk::SetDataInRange(const void *data, const Range &range)
 	{
 		uint8 *temp = reinterpret_cast<uint8 *>(_begin);
 		temp += range.origin * _stride;
@@ -505,7 +505,7 @@ namespace RN
 		return GetChunkForRange(Range(0, _verticesCount));
 	}
 	
-	Mesh::Chunk Mesh::GetChunkForRange(const Range& range)
+	Mesh::Chunk Mesh::GetChunkForRange(const Range &range)
 	{
 		return Chunk(this, range, false);
 	}
@@ -515,7 +515,7 @@ namespace RN
 		return GetIndicesChunkForRange(Range(0, _indicesCount));
 	}
 	
-	Mesh::Chunk Mesh::GetIndicesChunkForRange(const Range& range)
+	Mesh::Chunk Mesh::GetIndicesChunkForRange(const Range &range)
 	{
 		return Chunk(this, range, true);
 	}
@@ -1012,7 +1012,7 @@ namespace RN
 	
 	
 	
-	Mesh *Mesh::PlaneMesh(const Vector3& size, const Vector3& rotation)
+	Mesh *Mesh::PlaneMesh(const Vector3 &size, const Vector3 &rotation)
 	{
 		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
@@ -1061,7 +1061,7 @@ namespace RN
 		return mesh;
 	}
 	
-	Mesh *Mesh::CubeMesh(const Vector3& size)
+	Mesh *Mesh::CubeMesh(const Vector3 &size)
 	{
 		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);
@@ -1229,7 +1229,7 @@ namespace RN
 		return mesh;
 	}
 	
-	Mesh *Mesh::CubeMesh(const Vector3& size, const Color& color)
+	Mesh *Mesh::CubeMesh(const Vector3 &size, const Color &color)
 	{
 		MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 		vertexDescriptor.elementSize = sizeof(Vector3);

@@ -19,13 +19,13 @@ namespace RN
 	{
 	public:
 		Sphere();
-		Sphere(const Vector3& offset, float radius);
-		Sphere(const AABB& aabb);
+		Sphere(const Vector3 &offset, float radius);
+		Sphere(const AABB &aabb);
 		
-		Sphere operator* (const Vector3& other) const;
-		Sphere& operator*= (const Vector3& other);
+		Sphere operator* (const Vector3 &other) const;
+		Sphere &operator*= (const Vector3 &other);
 		
-		void SetRotation(const Quaternion& rotation);
+		void SetRotation(const Quaternion &rotation);
 		
 		Hit CastRay(const Vector3 &position, const Vector3 &direction) const;
 		bool IntersectsRay(const Vector3 &position, const Vector3 &direction) const;
@@ -40,20 +40,20 @@ namespace RN
 		radius = 0.0f;
 	}
 	
-	RN_INLINE Sphere::Sphere(const Vector3& toffset, float tradius) :
+	RN_INLINE Sphere::Sphere(const Vector3 &toffset, float tradius) :
 		offset(toffset),
 		radius(tradius)
 	{
 	}
 	
-	RN_INLINE Sphere::Sphere(const AABB& aabb) :
+	RN_INLINE Sphere::Sphere(const AABB &aabb) :
 		position(aabb.position),
 		offset(aabb.maxExtend*0.5+aabb.minExtend*0.5),
 		radius(((aabb.maxExtend-aabb.minExtend)*0.5).GetLength())
 	{
 	}
 	
-	RN_INLINE Sphere Sphere::operator* (const Vector3& other) const
+	RN_INLINE Sphere Sphere::operator* (const Vector3 &other) const
 	{
 		Sphere result(*this);
 		float scale = std::max(std::max(other.x, other.y), other.z);
@@ -63,7 +63,7 @@ namespace RN
 		return result;
 	}
 	
-	RN_INLINE Sphere& Sphere::operator*= (const Vector3& other)
+	RN_INLINE Sphere &Sphere::operator*= (const Vector3 &other)
 	{
 		float scale = std::max(std::max(other.x, other.y), other.z);
 		radius *= scale;
@@ -71,7 +71,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE void Sphere::SetRotation(const Quaternion& rotation)
+	RN_INLINE void Sphere::SetRotation(const Quaternion &rotation)
 	{
 		offset = rotation.GetRotatedVector(offset);
 	}

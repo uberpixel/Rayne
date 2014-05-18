@@ -160,9 +160,9 @@ namespace RN
 		char GetCharacter() const { return CodePoint::ConverToCharacter(_key); }
 		UniChar GetCode() const { return _key; }
 		
-		const Vector2& GetMouseDelta() const { return _mouseDelta; }
-		const Vector2& GetMousePosition() const { return _mousePosition; }
-		const Vector2& GetMouseWheel() const { return _mouseWheel; }
+		const Vector2 &GetMouseDelta() const { return _mouseDelta; }
+		const Vector2 &GetMousePosition() const { return _mousePosition; }
+		const Vector2 &GetMouseWheel() const { return _mouseWheel; }
 		
 		bool IsShift() const { return (_modifierKeys & KeyModifier::KeyShift); }
 		bool IsControl() const { return (_modifierKeys & KeyModifier::KeyControl); }
@@ -214,9 +214,9 @@ namespace RN
 		RNAPI void HandleSystemEvent(HWND window, UINT message, WPARAM wparam, LPARAM lparam);
 #endif
 		
-		const Vector2& GetMouseDelta() const { return _mouseDelta; }
-		const Vector2& GetMousePosition() const { return _mousePosition; }
-		const Vector2& GetMouseWheel() const { return _mouseWheel; }
+		const Vector2 &GetMouseDelta() const { return _mouseDelta; }
+		const Vector2 &GetMousePosition() const { return _mousePosition; }
+		const Vector2 &GetMouseWheel() const { return _mouseWheel; }
 		
 		uint32 GetModifierKeys() const { return _modifierKeys; }
 		bool IsActive() const { return _active; }
@@ -228,7 +228,7 @@ namespace RN
 
 	private:
 		void FlushEventQueue();
-		Vector2 ClampMousePosition(const Vector2& position) const;
+		Vector2 ClampMousePosition(const Vector2 &position) const;
 
 #if RN_PLATFORM_WINDOWS
 		void HandleMouseEvent(HWND window, UINT message, WPARAM wparam, LPARAM lparam);

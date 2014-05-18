@@ -123,7 +123,7 @@ namespace RN
 #endif
 	}
 	
-	void ShaderCache::CacheShaderProgram(Shader *shader, ShaderProgram *program, const ShaderLookup& lookup)
+	void ShaderCache::CacheShaderProgram(Shader *shader, ShaderProgram *program, const ShaderLookup &lookup)
 	{
 #if RN_TARGET_SUPPORT_SQLITE
 #if GL_ARB_get_program_binary
@@ -162,7 +162,7 @@ namespace RN
 #endif
 	}
 
-	ShaderProgram *ShaderCache::DequeShaderProgram(Shader *shader, const ShaderLookup& lookup)
+	ShaderProgram *ShaderCache::DequeShaderProgram(Shader *shader, const ShaderLookup &lookup)
 	{
 #if RN_TARGET_SUPPORT_SQLITE
 		if(!_internals->connection)

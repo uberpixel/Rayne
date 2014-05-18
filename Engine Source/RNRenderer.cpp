@@ -147,15 +147,15 @@ namespace RN
 	
 	void Renderer::UpdateShaderData()
 	{
-		const Matrix& projectionMatrix = _currentCamera->_projectionMatrix;
-		const Matrix& inverseProjectionMatrix = _currentCamera->_inverseProjectionMatrix;
+		const Matrix &projectionMatrix = _currentCamera->_projectionMatrix;
+		const Matrix &inverseProjectionMatrix = _currentCamera->_inverseProjectionMatrix;
 		
-		const Matrix& viewMatrix = _currentCamera->_viewMatrix;
-		const Matrix& inverseViewMatrix = _currentCamera->_inverseViewMatrix;
+		const Matrix &viewMatrix = _currentCamera->_viewMatrix;
+		const Matrix &inverseViewMatrix = _currentCamera->_inverseViewMatrix;
 		
 		if(_currentProgram->frameSize != -1)
 		{
-			const Rect& frame = _currentCamera->GetFrame();
+			const Rect &frame = _currentCamera->GetFrame();
 			gl::Uniform4f(_currentProgram->frameSize, 1.0f/frame.width/_scaleFactor, 1.0f/frame.height/_scaleFactor, frame.width * _scaleFactor, frame.height * _scaleFactor);
 		}
 		
@@ -204,13 +204,13 @@ namespace RN
 		
 		if(_currentProgram->viewPosition != -1)
 		{
-			const Vector3& position = _currentCamera->GetWorldPosition();
+			const Vector3 &position = _currentCamera->GetWorldPosition();
 			gl::Uniform3fv(_currentProgram->viewPosition, 1, &position.x);
 		}
 		
 		if(_currentProgram->viewNormal != -1)
 		{
-			const Vector3& forward = _currentCamera->GetForward();
+			const Vector3 &forward = _currentCamera->GetForward();
 			gl::Uniform3fv(_currentProgram->viewNormal, 1, &forward.x);
 		}
 	}
@@ -416,7 +416,7 @@ namespace RN
 			return;
 		}
 		
-		uint32& age = std::get<1>(iterator->second);
+		uint32 &age = std::get<1>(iterator->second);
 		
 		vao = std::get<0>(iterator->second);
 		age = 0;
@@ -755,7 +755,7 @@ namespace RN
 		
 		for(auto i = _autoVAOs.begin(); i != _autoVAOs.end();)
 		{
-			uint32& age = std::get<1>(i->second);
+			uint32 &age = std::get<1>(i->second);
 			
 			if((++ age) > kRNRendererMaxVAOAge)
 			{
@@ -985,7 +985,7 @@ namespace RN
 					}
 				}
 				
-				std::sort(begin, _frame.end(), [](const RenderingObject& a, const RenderingObject& b) {
+				std::sort(begin, _frame.end(), [](const RenderingObject &a, const RenderingObject &b) {
 					
 					bool drawALate = (a.flags & RenderingObject::DrawLate);
 					bool drawBLate = (b.flags & RenderingObject::DrawLate);

@@ -30,8 +30,8 @@ namespace RN
 		bool IntersectsRect(const Rect &other) const;
 		bool ContainsRect(const Rect &other) const;
 		
-		Rect& Inset(float dx, float dy);
-		Rect& Integral();
+		Rect &Inset(float dx, float dy);
+		Rect &Integral();
 		
 		Rect GetIntegral() const;
 		
@@ -137,7 +137,7 @@ namespace RN
 	}
 	
 	
-	RN_INLINE Rect& Rect::Inset(float dx, float dy)
+	RN_INLINE Rect &Rect::Inset(float dx, float dy)
 	{
 		x += dx;
 		y += dy;
@@ -148,7 +148,7 @@ namespace RN
 		return *this;
 	}
 	
-	RN_INLINE Rect& Rect::Integral()
+	RN_INLINE Rect &Rect::Integral()
 	{
 		x = floorf(x);
 		y = floorf(y);

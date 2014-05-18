@@ -99,7 +99,7 @@ namespace RN
 		public:
 			friend class Chunk;
 			
-			ElementIterator(const ElementIterator& other) :
+			ElementIterator(const ElementIterator &other) :
 				_feature(other._feature),
 				_ptr(other._ptr),
 				_base(other._base)
@@ -119,13 +119,13 @@ namespace RN
 				return _ptr;
 			}
 			
-			T& operator *()
+			T &operator *()
 			{
 				__ChunkFriend::MarkDirty();
 				return *_ptr;
 			}
 			
-			const T& operator *() const
+			const T &operator *() const
 			{
 				return *_ptr;
 			}
@@ -252,12 +252,12 @@ namespace RN
 			
 			RNAPI void SetData(const void *data);
 			RNAPI void SetData(const void *data, MeshFeature feature);
-			RNAPI void SetDataInRange(const void *data, const Range& range);
+			RNAPI void SetDataInRange(const void *data, const Range &range);
 			
 			RNAPI void CommitChanges();
 			
 		private:
-			Chunk(Mesh *mesh, const Range& range, bool indices);
+			Chunk(Mesh *mesh, const Range &range, bool indices);
 			
 			Mesh *_mesh;
 			Range _range;
@@ -313,10 +313,10 @@ namespace RN
 		}
 		
 		RNAPI Chunk GetChunk();
-		RNAPI Chunk GetChunkForRange(const Range& range);
+		RNAPI Chunk GetChunkForRange(const Range &range);
 		
 		RNAPI Chunk GetIndicesChunk();
-		RNAPI Chunk GetIndicesChunkForRange(const Range& range);
+		RNAPI Chunk GetIndicesChunkForRange(const Range &range);
 		
 		RNAPI Chunk InsertChunk(size_t offset, size_t elements);
 		RNAPI Chunk InsertIndicesChunk(size_t offset, size_t elements);
@@ -349,12 +349,12 @@ namespace RN
 		RNAPI size_t GetVerticesCount() const { return _verticesCount; }
 		RNAPI size_t GetIndicesCount() const { return _indicesCount; }
 		
-		RNAPI const AABB& GetBoundingBox() const { return _boundingBox; }
-		RNAPI const Sphere& GetBoundingSphere() const { return _boundingSphere; }
+		RNAPI const AABB &GetBoundingBox() const { return _boundingBox; }
+		RNAPI const Sphere &GetBoundingSphere() const { return _boundingSphere; }
 		
-		RNAPI static Mesh *PlaneMesh(const Vector3& size = Vector3(1.0f), const Vector3& rotation = Vector3(0.0f));
-		RNAPI static Mesh *CubeMesh(const Vector3& size);
-		RNAPI static Mesh *CubeMesh(const Vector3& size, const Color& color);
+		RNAPI static Mesh *PlaneMesh(const Vector3 &size = Vector3(1.0f), const Vector3 &rotation = Vector3(0.0f));
+		RNAPI static Mesh *CubeMesh(const Vector3 &size);
+		RNAPI static Mesh *CubeMesh(const Vector3 &size, const Color &color);
 		RNAPI static Mesh *SphereMesh(float radius, size_t slices, size_t segments);
 		
 	private:

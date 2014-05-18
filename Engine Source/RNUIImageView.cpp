@@ -20,7 +20,7 @@ namespace RN
 			Initialize();
 		}
 		
-		ImageView::ImageView(const Rect& frame) :
+		ImageView::ImageView(const Rect &frame) :
 			View(frame)
 		{
 			Initialize();
@@ -67,7 +67,7 @@ namespace RN
 			_scaleMode = ScaleMode::AxisIndependently;
 		}
 
-		Vector2 ImageView::GetFittingImageSize(const Vector2& tsize)
+		Vector2 ImageView::GetFittingImageSize(const Vector2 &tsize)
 		{			
 			Vector2 size = tsize;
 			
@@ -113,7 +113,7 @@ namespace RN
 			return Vector2(_image->GetWidth(), _image->GetHeight());
 		}
 		
-		void ImageView::SetFrame(const Rect& frame)
+		void ImageView::SetFrame(const Rect &frame)
 		{
 			View::SetFrame(frame);
 			_isDirty = true;

@@ -20,7 +20,7 @@ namespace RN
 	{
 		struct Point2D
 		{
-			Point2D(const Vector2& tpoint, const Color& tcolor) :
+			Point2D(const Vector2 &tpoint, const Color &tcolor) :
 				point(tpoint),
 				color(tcolor)
 			{}
@@ -31,7 +31,7 @@ namespace RN
 		
 		struct Point3D
 		{
-			Point3D(const Vector3& tpoint, const Color& tcolor) :
+			Point3D(const Vector3 &tpoint, const Color &tcolor) :
 				point(tpoint),
 				color(tcolor)
 			{}
@@ -79,7 +79,7 @@ namespace RN
 			gl::EnableVertexAttribArray(program->attPosition);
 			gl::EnableVertexAttribArray(program->attColor0);
 			
-			for(const Line& line : lines)
+			for(const Line &line : lines)
 			{
 				gl::BufferData(GL_ARRAY_BUFFER, line.size() * sizeof(Point), line.data(), GL_STREAM_DRAW);
 				
@@ -109,7 +109,7 @@ namespace RN
 			{
 				RenderingObject object(RenderingObject::Type::Custom);
 				object.material = __Line3DMaterial;
-				object.callback = [](Renderer *renderer, const RenderingObject& object) {
+				object.callback = [](Renderer *renderer, const RenderingObject &object) {
 					DrawLine<Point3D, Vector3, Line3D>(renderer, __Line3D);
 					
 					__Line3D.clear();
@@ -128,14 +128,14 @@ namespace RN
 				object.material  = __Line2DMaterial;
 				object.transform = &__LineTransform;
 				
-				object.callback = [](Renderer *renderer, const RenderingObject& object) {
+				object.callback = [](Renderer *renderer, const RenderingObject &object) {
 					DrawLine<Point2D, Vector2, Line2D>(renderer, __Line2D);
 					
 					__Line2D.clear();
 					__Line2DHandlerState.store(false);
 				};
 				
-				object.prepare = [](Renderer *renderer, RenderingObject& object) {
+				object.prepare = [](Renderer *renderer, RenderingObject &object) {
 					Camera *camera = renderer->GetActiveCamera();
 					float height = camera->GetFrame().height - 1.0f;
 					
@@ -146,7 +146,7 @@ namespace RN
 			}
 		}
 		
-		void __AddLinePoint3D(const Vector3 &point, const Color& color)
+		void __AddLinePoint3D(const Vector3 &point, const Color &color)
 		{
 			Line3D &line = __Line3DStack.get();
 			
@@ -156,7 +156,7 @@ namespace RN
 				line.emplace_back(Point3D(point, color));
 		}
 		
-		void __AddLinePoint2D(const Vector2 &point, const Color& color)
+		void __AddLinePoint2D(const Vector2 &point, const Color &color)
 		{
 			Line2D &line = __Line2DStack.get();
 			
@@ -167,12 +167,12 @@ namespace RN
 		}
 		
 		
-		void AddLinePoint(const Vector3& point, const Color& color)
+		void AddLinePoint(const Vector3 &point, const Color &color)
 		{
 			__AddLinePoint3D(point, color);
 		}
 		
-		void AddLinePoint(const Vector2& point, const Color& color)
+		void AddLinePoint(const Vector2 &point, const Color &color)
 		{
 			__AddLinePoint2D(Vector2(point.x, -point.y), color);
 		}
@@ -217,7 +217,7 @@ namespace RN
 			}
 		}
 		
-		void DrawBox(const AABB& box, const Color& color)
+		void DrawBox(const AABB &box, const Color &color)
 		{
 			Vector3 min = box.position + box.minExtend;
 			Vector3 max = box.position + box.maxExtend;
@@ -225,7 +225,7 @@ namespace RN
 			DrawBox(min, max, color);
 		}
 		
-		void DrawBox(const Vector3& tmin, const Vector3& tmax, const Color& color)
+		void DrawBox(const Vector3 &tmin, const Vector3 &tmax, const Color &color)
 		{
 			Vector3 min = Vector3(std::min(tmin.x, tmax.x), std::min(tmin.y, tmax.y), std::min(tmin.z, tmax.z));
 			Vector3 max = Vector3(std::max(tmin.x, tmax.x), std::max(tmin.y, tmax.y), std::max(tmin.z, tmax.z));
@@ -263,7 +263,7 @@ namespace RN
 			EndLine();
 		}
 		
-		void DrawSphere(const Sphere& sphere, const Color& color, const int tesselation)
+		void DrawSphere(const Sphere &sphere, const Color &color, const int tesselation)
 		{
 			DrawSphere(sphere.position+sphere.offset, sphere.radius, Color::Yellow(), tesselation);
 		}

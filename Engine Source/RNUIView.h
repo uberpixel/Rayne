@@ -53,31 +53,31 @@ namespace RN
 			};
 			
 			RNAPI View();
-			RNAPI View(const Rect& frame);
+			RNAPI View(const Rect &frame);
 			RNAPI ~View() override;
 			
-			RNAPI Vector2 ConvertPointToView(const Vector2& point, View *view);
-			RNAPI Vector2 ConvertPointFromView(const Vector2& point, View *view);
+			RNAPI Vector2 ConvertPointToView(const Vector2 &point, View *view);
+			RNAPI Vector2 ConvertPointFromView(const Vector2 &point, View *view);
 			
-			RNAPI Vector2 ConvertPointToBase(const Vector2& point);
-			RNAPI Vector2 ConvertPointFromBase(const Vector2& point);
+			RNAPI Vector2 ConvertPointToBase(const Vector2 &point);
+			RNAPI Vector2 ConvertPointFromBase(const Vector2 &point);
 			
-			RNAPI Rect ConvertRectToView(const Rect& frame, View *view);
-			RNAPI Rect ConvertRectFromView(const Rect& frame, View *view);
+			RNAPI Rect ConvertRectToView(const Rect &frame, View *view);
+			RNAPI Rect ConvertRectFromView(const Rect &frame, View *view);
 			
-			RNAPI const Rect& GetFrame() const { return _frame; }
-			RNAPI const Rect& GetBounds() const { return _bounds; }
+			RNAPI const Rect &GetFrame() const { return _frame; }
+			RNAPI const Rect &GetBounds() const { return _bounds; }
 			
-			RNAPI virtual void SetFrame(const Rect& frame);
-			RNAPI virtual void SetBounds(const Rect& bounds);
+			RNAPI virtual void SetFrame(const Rect &frame);
+			RNAPI virtual void SetBounds(const Rect &bounds);
 			
 			RNAPI void SetBackgroundColor(const RN::Color& color);
 			RNAPI void SetInteractionEnabled(bool enabled);
 			RNAPI void SetClipSubviews(bool clipping);
-			RNAPI void SetClipInsets(const EdgeInsets& insets);
+			RNAPI void SetClipInsets(const EdgeInsets &insets);
 			RNAPI void SetHidden(bool hidden);
 			RNAPI void SetAutoresizingMask(AutoresizingMask mask);
-			RNAPI void SetTransform(const Matrix& transform);
+			RNAPI void SetTransform(const Matrix &transform);
 			
 			RNAPI void AddSubview(View *subview);
 			RNAPI void RemoveSubview(View *subview);
@@ -89,7 +89,7 @@ namespace RN
 			RNAPI View *GetSuperview() const { return _superview; }
 			RNAPI const Array *GetSubivews() const { return &_subviews; }
 			RNAPI Widget *GetWidget() const { return _widget; }
-			RNAPI const Matrix& GetTransform() const { return _transform; }
+			RNAPI const Matrix &GetTransform() const { return _transform; }
 			RNAPI bool IsHidden() const { return _hidden; }
 			
 			RNAPI void SetNeedsLayoutUpdate();
@@ -97,16 +97,16 @@ namespace RN
 			RNAPI void SizeToFit();
 			RNAPI virtual Vector2 GetSizeThatFits();
 			
-			RNAPI View *HitTest(const Vector2& point, Event *event);
-			RNAPI virtual bool IsPointInside(const Vector2& point, Event *event);
+			RNAPI View *HitTest(const Vector2 &point, Event *event);
+			RNAPI virtual bool IsPointInside(const Vector2 &point, Event *event);
 			
 			RNAPI Responder *GetNextResponder() const override;
 			
 		protected:
-			RNAPI Mesh *BasicMesh(const Vector2& size);
+			RNAPI Mesh *BasicMesh(const Vector2 &size);
 			RNAPI Material *BasicMaterial(Shader *shader);
 			
-			RNAPI void UpdateBasicMesh(Mesh *mesh, const Vector2& size);
+			RNAPI void UpdateBasicMesh(Mesh *mesh, const Vector2 &size);
 			
 			RNAPI virtual void Update();
 			RNAPI virtual void Draw(Renderer *renderer);
@@ -127,7 +127,7 @@ namespace RN
 			void Initialize();
 			void ViewHierarchyChanged();
 			void CalculateScissorRect();
-			void ResizeSubviewsFromOldSize(const Vector2& oldSize);
+			void ResizeSubviewsFromOldSize(const Vector2 &oldSize);
 			void UpdateRecursively();
 			void DrawRecursively(Renderer *renderer);
 			

@@ -29,14 +29,14 @@ namespace RN
 			RNAPI static Image *WithFile(const std::string& file);
 			RNAPI static Image *WithTexture(Texture *texture);
 			
-			RNAPI void SetAtlas(const Atlas& atlas, bool normalized=true);
-			RNAPI void SetEdgeInsets(const EdgeInsets& insets);
+			RNAPI void SetAtlas(const Atlas &atlas, bool normalized=true);
+			RNAPI void SetEdgeInsets(const EdgeInsets &insets);
 			
-			RNAPI const Atlas& GetAtlas() const { return _atlas; }
-			RNAPI const EdgeInsets& GetEdgeInsets() const { return _insets; }
+			RNAPI const Atlas &GetAtlas() const { return _atlas; }
+			RNAPI const EdgeInsets &GetEdgeInsets() const { return _insets; }
 			
 			RNAPI Texture *GetTexture() const { return _texture; }
-			RNAPI Mesh *GetFittingMesh(const Vector2& size, const Vector2& offset=Vector2());
+			RNAPI Mesh *GetFittingMesh(const Vector2 &size, const Vector2 &offset=Vector2());
 			
 			RNAPI size_t GetWidth() const;
 			RNAPI size_t GetHeight() const;

@@ -201,7 +201,7 @@ namespace RN
 		_range = range;
 	}
 	
-	void Light::SetColor(const Color& color)
+	void Light::SetColor(const Color &color)
 	{
 		_color = color;
 		ReCalculateColor();
