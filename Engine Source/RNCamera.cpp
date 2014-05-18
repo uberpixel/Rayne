@@ -601,41 +601,49 @@ namespace RN
 		}
 	}
 	
-	
 	Matrix Camera::MakeShadowSplit(Camera *camera, Light *light, float near, float far)
 	{
+		//Get camera frustums extends to be covered by the split
 		Vector3 nearcenter = camera->ToWorld(Vector3(0.0f, 0.0f, near));
 		Vector3 farcorner1 = camera->ToWorld(Vector3(1.0f, 1.0f, far));
 		Vector3 farcorner2 = camera->ToWorld(Vector3(-1.0f, -1.0f, far));
 		Vector3 farcenter = (farcorner1+farcorner2)*0.5f;
-		
 		Vector3 center = (nearcenter+farcenter)*0.5f;
-		float dist = center.GetDistance(farcorner1);
 		
+		//Calculate the size of a pixel in world units
+		float dist = center.GetDistance(farcorner1);
 		Vector3 pixelsize = Vector3(Vector2(dist*2.0f), 1.0f)/Vector3(_frame.width, _frame.height, 1.0f);
+		
+		//Place the light camera 500 units above the splits center
 		Vector3 pos = center-light->GetForward()*500.0f;
 		
+		//Transform the position to light space
 		Matrix rot = light->GetWorldRotation().GetRotationMatrix();
 		pos = rot.GetInverse()*pos;
 		
+		//Snap to the pixel grid
 		pos /= pixelsize;
 		pos.x = floorf(pos.x);
 		pos.y = floorf(pos.y);
 		pos.z = floorf(pos.z);
 		pos *= pixelsize;
+		
+		//Transform back and place the camera there
 		pos = rot*pos;
 		SetPosition(pos);
 		
+		//Set the light camera frustum
 		_clipFar = 500.0f + dist * 2.0f;
 		_orthoLeft = -dist;
 		_orthoRight = dist;
 		_orthoBottom = -dist;
 		_orthoTop = dist;
 		
+		//Update the projection matrix
 		_dirtyProjection = true;
-		
 		UpdateProjection();
 		
+		//Return the resulting matrix
 		Matrix projview = _projectionMatrix * GetWorldTransform().GetInverse();
 		return projview;
 	}
