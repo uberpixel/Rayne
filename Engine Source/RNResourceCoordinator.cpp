@@ -185,7 +185,12 @@ namespace RN
 		}
 		
 		if(!resourceLoader)
-			throw Exception(Exception::Type::InconsistencyException, std::string("No resource loader matching ") + name->GetUTF8String());
+		{
+			if(file)
+				throw Exception(Exception::Type::InconsistencyException, "No resource loader matching %s (%s)", name->GetUTF8String(), file->GetFullPath().c_str());
+			
+			throw Exception(Exception::Type::InconsistencyException, "No resource loader matching %s (couldn't resolve name to a path)", name->GetUTF8String());
+		}
 		
 		return resourceLoader;
 	}
