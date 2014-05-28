@@ -209,6 +209,7 @@ namespace RN
 		void TextField::ResignFirstResponder()
 		{
 			Control::ResignFirstResponder();
+			DispatchEvent(RN::UI::Control::EventType::ValueChanged);
 			
 			if(_delegate)
 				_delegate->TextFieldDidEndEditing(this);
