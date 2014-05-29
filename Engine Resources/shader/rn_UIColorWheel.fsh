@@ -59,7 +59,7 @@ void main()
 
 	float E = 0.5 * fwidth(r);
 
-	vec4 rgba = vec4(hsv2rgb(theta, r, diffuse.a), smoothstep(1.0 + E, 1.0 - E, r));
+	vec4 rgba = vec4(pow(hsv2rgb(theta, r, diffuse.a), vec3(2.2)), smoothstep(1.0 + E, 1.0 - E, r));
 
 	fragColor0 = rgba;
 }
