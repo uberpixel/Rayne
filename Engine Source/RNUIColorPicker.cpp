@@ -35,7 +35,7 @@ namespace RN
 			AddSubview(_colorWheel);
 			AddSubview(_colorKnob);
 			
-			SetColor(Color::WithRNColor(RN::Color::Red()));
+			_color = Color::WithRNColor(RN::Color::Yellow())->Retain();
 		}
 		
 		ColorPicker::~ColorPicker()
@@ -55,7 +55,9 @@ namespace RN
 			_color = color->Retain();
 			
 			Vector2 position = ConvertColorToWheel(_color);
-			UpdateKnob(position * _colorWheel->GetBounds().GetSize());
+			position *= _colorWheel->GetBounds().GetSize();
+			position += _colorWheel->GetBounds().GetSize() * 0.5f;
+			UpdateKnob(position);
 		}
 		
 		
@@ -118,8 +120,9 @@ namespace RN
 			
 			_colorWheel->SetFrame(wheelRect);
 			
-			Vector2 position = ConvertColorToWheel(_color);
-			UpdateKnob(position * _colorWheel->GetBounds().GetSize());
+			_color->Retain();
+			SetColor(_color);
+			_color->Release();
 		}
 		
 		
@@ -200,10 +203,8 @@ namespace RN
 		
 		Color *ColorPicker::ConvertColorFromWheel(const Vector2 &position, float brightness)
 		{
-			Vector2 coords = position * 2.0 - 1.0;
-			
-			float theta = atan2(coords.y, -coords.x);
-			float r = coords.GetLength();
+			float theta = atan2(position.y, -position.x);
+			float r = position.GetLength();
 			
 			Vector3 rgb = ColorFromHSV(theta, r, brightness);
 			return Color::WithRNColor(RN::Color(rgb.x, rgb.y, rgb.z, 1.0));
@@ -216,7 +217,7 @@ namespace RN
 			
 			Vector3 hsv = ColorToHSV(myColor);
 			
-			return Vector2(hsv.y * cos(hsv.x), hsv.y * sin(hsv.x));
+			return Vector2(hsv.y * cos(hsv.x), hsv.y * -sin(hsv.x));
 		}
 	}
 }
