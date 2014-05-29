@@ -12,17 +12,17 @@ namespace RN
 {
 	namespace UI
 	{
-		SegmentView::SegmentView()
-		{
-		}
+		SegmentView::SegmentView() :
+			_requiresSelection(false),
+			_singleSelection(false)
+		{}
 		
 		SegmentView::~SegmentView()
-		{
-		}
+		{}
 		
 		
 		
-		void SegmentView::InsertegmentAtIndex(Image *image, size_t index)
+		void SegmentView::InsertSegmentAtIndex(Image *image, size_t index)
 		{
 			Button *segment = Button::WithType(Button::Type::Bezel);
 			segment->SetImageForState(image, Control::State::Normal);
@@ -90,10 +90,86 @@ namespace RN
 		}
 		
 		
+		void SegmentView::SetRequiresSelection(bool requiresSelection)
+		{
+			_requiresSelection = requiresSelection;
+			
+			if(_requiresSelection && _segments.GetCount() > 0)
+			{
+				bool hasSelection = false;
+				
+				_segments.Enumerate<Button>([&](Button *button, size_t index, bool &stop) {
+					
+					if(button->IsSelected())
+					{
+						hasSelection = true;
+						stop = true;
+					}
+					
+				});
+				
+				if(!hasSelection)
+					_segments.GetObjectAtIndex<Button>(0)->SetSelected(true);
+			}
+		}
+		
+		void SegmentView::SetRequiresSingleSelection(bool singleSelection)
+		{
+			_singleSelection = singleSelection;
+			
+			if(_singleSelection)
+			{
+				bool hasSelection = false;
+				
+				_segments.Enumerate<Button>([&](Button *button, size_t index, bool &stop) {
+					
+					if(button->IsSelected())
+					{
+						if(hasSelection)
+							button->SetSelected(false);
+						
+						hasSelection = true;
+					}
+				});
+			}
+		}
+		
+		void SegmentView::SetFontForSegmentAtIndex(Font *font, size_t index)
+		{
+			if(_segments.GetCount() > index)
+			{
+				Button *segment = _segments.GetObjectAtIndex<Button>(index);
+				segment->SetFontForState(font, Control::State::Normal);
+			}
+		}
+		void SegmentView::SetTextColorForSegmentAtIndex(Color *color, size_t index)
+		{
+			Button *segment = _segments.GetObjectAtIndex<Button>(index);
+			segment->SetTitleColorForState(color, Control::State::Normal);
+		}
+		
+		
+		size_t SegmentView::GetSelection() const
+		{
+			size_t selection = k::NotFound;
+			
+			_segments.Enumerate<Button>([&](Button *button, size_t index, bool &stop) {
+				
+				if(button->IsSelected())
+				{
+					selection = index;
+					stop = true;
+				}
+				
+			});
+			
+			return selection;
+		}
+		
 		
 		void SegmentView::InsertSegment(Button *segment, size_t index)
 		{
-			if(index == _segments.GetCount())
+			if(index >= _segments.GetCount() || index == k::NotFound)
 			{
 				_segments.AddObject(segment);
 			}
@@ -104,8 +180,41 @@ namespace RN
 			
 			segment->SetBehavior(Button::Behavior::Switch);
 			segment->AddListener(Control::EventType::MouseUpInside, [&](Control *control, EventType event) {
+				
+				if(_singleSelection)
+				{
+					Button *selection = control->Downcast<Button>();
+					
+					_segments.Enumerate<Button>([&](Button *button, size_t index, bool &stop) {
+						
+						if(button != selection && button->IsSelected())
+							button->SetSelected(false);
+					});
+				}
+				
+				if(_requiresSelection && !control->IsSelected())
+				{
+					Button *selection = control->Downcast<Button>();
+					bool hasSelection = false;
+					
+					_segments.Enumerate<Button>([&](Button *button, size_t index, bool &stop) {
+						
+						if(button != selection && button->IsSelected())
+						{
+							hasSelection = true;
+							stop = true;
+						}
+					});
+					
+					if(!hasSelection)
+						selection->SetSelected(true);
+				}
+				
 				DispatchEvent(EventType::ValueChanged);
 			}, this);
+			
+			if(_requiresSelection && _segments.GetCount() == 1)
+				segment->SetSelected(true);
 			
 			AddSubview(segment);
 			SetNeedsLayoutUpdate();
