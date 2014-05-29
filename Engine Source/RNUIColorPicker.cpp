@@ -91,6 +91,45 @@ namespace RN
 			}
 		}
 		
+		Vector3 ColorPicker::ColorToHSV(const Vector3 &color)
+		{
+			float max = color.GetMax();
+			float min = color.GetMin();
+			float diff = max - min;
+			
+			float h = 0.0f;
+			float s = 0.0f;
+			float v = max;
+			
+			if(!Math::Compare(max, min))
+			{
+				if(Math::Compare(max, color.x))
+				{
+					h = k::Pi/3.0f * (color.y - color.z) / diff;
+				}
+				else if(Math::Compare(max, color.y))
+				{
+					h = k::Pi/3.0f * (2.0f + (color.z - color.x) / diff);
+				}
+				else if(Math::Compare(max, color.z))
+				{
+					h = k::Pi/3.0f * (4.0f + (color.x - color.y) / diff);
+				}
+				
+				if(h < 0.0f)
+				{
+					h += 2.0f * k::Pi;
+				}
+			}
+			
+			if(!Math::Compare(max, 0.0f))
+			{
+				s = diff/max;
+			}
+			
+			return Vector3(h, s, v);
+		}
+		
 		Color *ColorPicker::ConvertColorFromWheel(const Vector2 &position, float brightness)
 		{
 			Vector2 coords = position * 2.0 - 1.0;
@@ -100,6 +139,16 @@ namespace RN
 			
 			Vector3 rgb = ColorFromHSV(theta, r, brightness);
 			return Color::WithRNColor(RN::Color(rgb.x, rgb.y, rgb.z, 1.0));
+		}
+		
+		Vector2 ColorPicker::ConvertColorToWheel(Color *color)
+		{
+			RN::Color rnColor = color->GetRNColor();
+			Vector3 myColor(rnColor.r, rnColor.g, rnColor.b);
+			
+			Vector3 hsv = ColorToHSV(myColor);
+			
+			return Vector2(hsv.y * cos(hsv.x), hsv.y * sin(hsv.x));
 		}
 	}
 }
