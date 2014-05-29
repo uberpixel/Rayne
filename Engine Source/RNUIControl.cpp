@@ -185,10 +185,15 @@ namespace RN
 		
 		bool Control::IsEventWithinBounds(Event *event)
 		{
+			return GetBounds().ContainsPoint(GetLocationForEvent(event));
+		}
+		
+		Vector2 Control::GetLocationForEvent(Event *event)
+		{
 			Vector2 point = event->GetMousePosition();
 			point = std::move(ConvertPointFromBase(point));
 			
-			return GetBounds().ContainsPoint(point);
+			return point;
 		}
 	
 		

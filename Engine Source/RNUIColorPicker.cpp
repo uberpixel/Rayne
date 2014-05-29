@@ -19,7 +19,8 @@ namespace RN
 		{}
 		
 		ColorPicker::ColorPicker(const Rect &frame) :
-			Control(frame)
+			Control(frame),
+			_color(nullptr)
 		{
 			_colorWheel = new ColorWheel();
 			
@@ -33,15 +34,80 @@ namespace RN
 			
 			AddSubview(_colorWheel);
 			AddSubview(_colorKnob);
+			
+			SetColor(Color::WithRNColor(RN::Color::Red()));
 		}
 		
 		ColorPicker::~ColorPicker()
 		{
 			_colorWheel->Release();
 			_colorKnob->Release();
+			
+			SafeRelease(_color);
 		}
 		
 		
+		void ColorPicker::SetColor(Color *color)
+		{
+			RN_ASSERT(color, "Color mustn't be NULL");
+			
+			SafeRelease(_color);
+			_color = color->Retain();
+			
+			Vector2 position = ConvertColorToWheel(_color);
+			UpdateKnob(position * _colorWheel->GetBounds().GetSize());
+		}
+		
+		
+		
+		void ColorPicker::MouseDown(Event *event)
+		{
+			Control::MouseDown(event);
+			
+			Vector2 point = event->GetMousePosition();
+			point = std::move(_colorWheel->ConvertPointFromBase(point));
+			
+			UpdateKnob(point);
+		}
+		void ColorPicker::MouseDragged(Event *event)
+		{
+			Control::MouseDragged(event);
+			
+			Vector2 point = event->GetMousePosition();
+			point = std::move(_colorWheel->ConvertPointFromBase(point));
+			
+			UpdateKnob(point);
+		}
+		
+		void ColorPicker::UpdateKnob(const Vector2 &position)
+		{
+			Vector2 location = position;
+			Vector2 center = _colorWheel->GetBounds().GetSize() * 0.5f;
+			float distance = position.GetDistance(center);
+			
+			if(distance > center.x)
+			{
+				float angle = atan2f(location.x - center.x, location.y - center.y);
+				
+				location.x = center.x + (center.x * sinf(angle));
+				location.y = center.x + (center.x * cosf(angle));
+			}
+			
+			
+			Rect frame = _colorKnob->GetFrame();
+			
+			frame.x = location.x + 2.0;
+			frame.y = location.y + 2.0;
+			
+			_colorKnob->SetFrame(frame);
+			
+			location = location / _colorWheel->GetBounds().GetSize();
+			
+			SafeRelease(_color);
+			_color = ConvertColorFromWheel(location, 1.0)->Retain();
+			
+			DispatchEvent(EventType::ValueChanged);
+		}
 		
 		void ColorPicker::LayoutSubviews()
 		{
@@ -52,9 +118,11 @@ namespace RN
 			
 			_colorWheel->SetFrame(wheelRect);
 			
-			
-			_colorKnob->SetFrame(Rect(100.0f, 100.0f, 4.0f, 4.0f));
+			Vector2 position = ConvertColorToWheel(_color);
+			UpdateKnob(position * _colorWheel->GetBounds().GetSize());
 		}
+		
+		
 		
 		
 		Vector3 ColorPicker::ColorFromHSV(float h, float s, float v)

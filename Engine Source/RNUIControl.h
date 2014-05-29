@@ -76,6 +76,8 @@ namespace RN
 			RNAPI void MouseMoved(Event *event) override;
 			RNAPI void MouseUp(Event *event) override;
 			RNAPI void MouseLeft(Event *event) override;
+			
+			RNAPI Vector2 GetLocationForEvent(Event *event);
 		
 		protected:
 			RNAPI Control();
