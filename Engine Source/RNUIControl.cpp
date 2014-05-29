@@ -21,6 +21,14 @@ namespace RN
 			_mouseDown = false;
 			_mouseInside = false;
 		}
+		Control::Control(const Rect &frame) :
+			View(frame)
+		{
+			_state = Control::State::Normal;
+			
+			_mouseDown = false;
+			_mouseInside = false;
+		}
 		Control::~Control()
 		{
 		}

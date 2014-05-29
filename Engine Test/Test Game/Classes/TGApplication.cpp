@@ -64,9 +64,9 @@ namespace TG
 		RN::Texture::SetDefaultAnisotropyLevel(RN::Texture::GetMaxAnisotropyLevel());
 		RN::Kernel::GetSharedInstance()->SetMaxFPS(60);
 		
-		/*RN::UI::Widget *widget = new RN::UI::DebugWidget();
+		RN::UI::Widget *widget = new RN::UI::DebugWidget();
 		widget->Open();
-		widget->Release();*/
+		widget->Release();
 		
 		/*widget = new RN::UI::ConsoleWidget();
 		widget->Open();

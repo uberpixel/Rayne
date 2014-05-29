@@ -10,6 +10,7 @@
 #include "RNKernel.h"
 #include "RNRenderer.h"
 #include "RNLogging.h"
+#include "RNUIColorPicker.h"
 
 namespace RN
 {
@@ -19,7 +20,7 @@ namespace RN
 			Widget(Widget::Style::Titled | Widget::Style::Closable, Rect(10.0f, 50.0f, 180.0f, 220.0f)),
 			_fps(60)
 		{
-			SetTitle(RNCSTR("Statistics"));
+			SetTitle(RNCSTR("Color"));
 			SetWidgetLevel(kRNUIWidgetLevelFloating);
 			
 			_label = new Label();
@@ -40,10 +41,18 @@ namespace RN
 			_label->SetFrame(Rect(0.0f, 0.0f, size.x, size.y - checkBoxSize.y).Inset(5.0f, 5.0f));
 			
 			// Misc
-			GetContentView()->AddSubview(_fpsCheckbox);
-			GetContentView()->AddSubview(_label->Autorelease());
+			//GetContentView()->AddSubview(_fpsCheckbox);
+			//GetContentView()->AddSubview(_label->Autorelease());
 			
-			MessageCenter::GetSharedInstance()->AddObserver(kRNKernelDidEndFrameMessage, &DebugWidget::HandleMessage, this, this);
+			_fpsCheckbox->Retain();
+			
+			
+			ColorPicker *colorWheel = new ColorPicker();
+			colorWheel->SetFrame(Rect(0.0f, 0.0f, 180.0f, 180.0f).Inset(5.0f, 5.0f));
+			
+			GetContentView()->AddSubview(colorWheel);
+			
+			//MessageCenter::GetSharedInstance()->AddObserver(kRNKernelDidEndFrameMessage, &DebugWidget::HandleMessage, this, this);
 		}
 		
 		DebugWidget::~DebugWidget()

@@ -59,7 +59,7 @@ namespace RN
 			SetBackgroundColor(Color::ClearColor());
 			
 			_mesh  = nullptr;
-			_material = BasicMaterial(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUIImageShader, nullptr));
+			_material = GetBasicMaterial(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(kRNResourceKeyUIImageShader, nullptr));
 			_material->Retain();
 			
 			_image   = nullptr;

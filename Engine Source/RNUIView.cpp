@@ -60,7 +60,7 @@ namespace RN
 			_hidden             = false;
 			_autoresizingMask   = 0;
 			
-			_material = BasicMaterial(Shader::WithFile("shader/rn_View"));
+			_material = GetBasicMaterial(Shader::WithFile("shader/rn_UIView"));
 			_material->Retain();
 			
 			SetBackgroundColor(Style::GetSharedInstance()->GetColor(Style::ColorStyle::BackgroundColor)->GetRNColor());
@@ -71,7 +71,7 @@ namespace RN
 			_material->SetDiffuseColor(color);
 		}
 		
-		Mesh *View::BasicMesh(const Vector2 &size)
+		Mesh *View::GetBasicMesh(const Vector2 &size)
 		{
 			MeshDescriptor vertexDescriptor(MeshFeature::Vertices);
 			vertexDescriptor.elementMember = 2;
@@ -105,7 +105,7 @@ namespace RN
 			return mesh->Autorelease();
 		}
 		
-		Material *View::BasicMaterial(Shader *shader)
+		Material *View::GetBasicMaterial(Shader *shader)
 		{
 			Material *material = new Material(shader);
 			material->SetDepthTest(false);
@@ -639,11 +639,11 @@ namespace RN
 		void View::LayoutSubviews()
 		{}
 		
-		void View::Update()
+		void View::LayoutIfNeeded()
 		{
 			if(_dirtyLayout)
 			{
-				Vector2 converted = ConvertPointToView(_bounds.GetOrigin(), nullptr);
+				Vector2 converted  = ConvertPointToView(_bounds.GetOrigin(), nullptr);
 				float serverHeight = 0.0f;
 				
 				if(_superview)
@@ -670,13 +670,18 @@ namespace RN
 				if(_mesh)
 					UpdateBasicMesh(_mesh, _frame.GetSize());
 				else
-					_mesh = BasicMesh(_frame.GetSize())->Retain();
+					_mesh = GetBasicMesh(_frame.GetSize())->Retain();
 				
 				CalculateScissorRect();
 				LayoutSubviews();
 				
 				_dirtyLayout = false;
 			}
+		}
+		
+		void View::Update()
+		{
+			LayoutIfNeeded();
 			
 			if(_widget && _widget->_server && _widget->_server->GetDrawDebugFrames())
 			{

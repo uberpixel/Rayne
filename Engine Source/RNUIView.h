@@ -93,6 +93,7 @@ namespace RN
 			RNAPI bool IsHidden() const { return _hidden; }
 			
 			RNAPI void SetNeedsLayoutUpdate();
+			RNAPI void LayoutIfNeeded();
 			
 			RNAPI void SizeToFit();
 			RNAPI virtual Vector2 GetSizeThatFits();
@@ -103,8 +104,8 @@ namespace RN
 			RNAPI Responder *GetNextResponder() const override;
 			
 		protected:
-			RNAPI Mesh *BasicMesh(const Vector2 &size);
-			RNAPI Material *BasicMaterial(Shader *shader);
+			RNAPI Mesh *GetBasicMesh(const Vector2 &size);
+			RNAPI Material *GetBasicMaterial(Shader *shader);
 			
 			RNAPI void UpdateBasicMesh(Mesh *mesh, const Vector2 &size);
 			

@@ -79,6 +79,7 @@ namespace RN
 		
 		protected:
 			RNAPI Control();
+			RNAPI Control(const Rect &frame);
 			RNAPI ~Control() override;
 			
 			RNAPI void SetState(State state);

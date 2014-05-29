@@ -1,5 +1,5 @@
 //
-//  rn_View.fsh
+//  rn_UIView.fsh
 //  Rayne
 //
 //  Copyright 2014 by Überpixel. All rights reserved.

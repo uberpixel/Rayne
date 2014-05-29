@@ -90,6 +90,10 @@
 		E945666617D4B80200DEA632 /* RNUIColor.h in Headers */ = {isa = PBXBuildFile; fileRef = E945666417D4B80200DEA632 /* RNUIColor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E945AB60178D7D1200C7B30A /* RNUIStyle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E945AB5E178D7D1200C7B30A /* RNUIStyle.cpp */; };
 		E945AB61178D7D1200C7B30A /* RNUIStyle.h in Headers */ = {isa = PBXBuildFile; fileRef = E945AB5F178D7D1200C7B30A /* RNUIStyle.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9474D4E19379B0400105C64 /* RNUIColorWheel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9474D4C19379B0400105C64 /* RNUIColorWheel.cpp */; };
+		E9474D4F19379B0400105C64 /* RNUIColorWheel.h in Headers */ = {isa = PBXBuildFile; fileRef = E9474D4D19379B0400105C64 /* RNUIColorWheel.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9474D6F1937BEB300105C64 /* RNUIColorPicker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9474D6D1937BEB300105C64 /* RNUIColorPicker.cpp */; };
+		E9474D701937BEB300105C64 /* RNUIColorPicker.h in Headers */ = {isa = PBXBuildFile; fileRef = E9474D6E1937BEB300105C64 /* RNUIColorPicker.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9488F1818698D3500C00995 /* RNSingleton.h in Headers */ = {isa = PBXBuildFile; fileRef = E9488F1618698D3500C00995 /* RNSingleton.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E949088518ACD3CB008CBFCF /* RNThreadLocalStorage.h in Headers */ = {isa = PBXBuildFile; fileRef = E949088418ACD396008CBFCF /* RNThreadLocalStorage.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E94CB79E18600D4C005A3778 /* RNStatistics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E94CB79C18600D4C005A3778 /* RNStatistics.cpp */; };
@@ -421,6 +425,10 @@
 		E945666417D4B80200DEA632 /* RNUIColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIColor.h; sourceTree = "<group>"; };
 		E945AB5E178D7D1200C7B30A /* RNUIStyle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIStyle.cpp; sourceTree = "<group>"; };
 		E945AB5F178D7D1200C7B30A /* RNUIStyle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIStyle.h; sourceTree = "<group>"; };
+		E9474D4C19379B0400105C64 /* RNUIColorWheel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIColorWheel.cpp; sourceTree = "<group>"; };
+		E9474D4D19379B0400105C64 /* RNUIColorWheel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIColorWheel.h; sourceTree = "<group>"; };
+		E9474D6D1937BEB300105C64 /* RNUIColorPicker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUIColorPicker.cpp; sourceTree = "<group>"; };
+		E9474D6E1937BEB300105C64 /* RNUIColorPicker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUIColorPicker.h; sourceTree = "<group>"; };
 		E9488F1618698D3500C00995 /* RNSingleton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNSingleton.h; sourceTree = "<group>"; };
 		E949088418ACD396008CBFCF /* RNThreadLocalStorage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RNThreadLocalStorage.h; sourceTree = "<group>"; };
 		E94CB79C18600D4C005A3778 /* RNStatistics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNStatistics.cpp; sourceTree = "<group>"; };
@@ -879,6 +887,10 @@
 				E91C8CDC176023EC00E9E8F2 /* RNUIButton.h */,
 				E945666317D4B80200DEA632 /* RNUIColor.cpp */,
 				E945666417D4B80200DEA632 /* RNUIColor.h */,
+				E9474D6D1937BEB300105C64 /* RNUIColorPicker.cpp */,
+				E9474D6E1937BEB300105C64 /* RNUIColorPicker.h */,
+				E9474D4C19379B0400105C64 /* RNUIColorWheel.cpp */,
+				E9474D4D19379B0400105C64 /* RNUIColorWheel.h */,
 				E91C8CD7176006A200E9E8F2 /* RNUIControl.cpp */,
 				E91C8CD8176006A200E9E8F2 /* RNUIControl.h */,
 				E9E83F3E172A4F7D0075559B /* RNUIFont.cpp */,
@@ -1231,6 +1243,7 @@
 				E9E83F46172A4FD70075559B /* RNTextureAtlas.h in Headers */,
 				E97C3EB1172B11C7006EA63A /* RNString.h in Headers */,
 				E9D7DA79172F9C0D00A858CB /* RNUIWidget.h in Headers */,
+				E9474D4F19379B0400105C64 /* RNUIColorWheel.h in Headers */,
 				E9D7DA7D172F9C7700A858CB /* RNUIView.h in Headers */,
 				D5005AD118CF91CB00097D31 /* RNDecal.h in Headers */,
 				E9586E5F172FD40C00D24737 /* RNUIServer.h in Headers */,
@@ -1292,6 +1305,7 @@
 				E919370818A0748C000B1C2E /* RNGPUBuffer.h in Headers */,
 				E919599017901180004B5880 /* RNUIUtilities.h in Headers */,
 				E9BE9F3F1861627D00B486E8 /* RNUIScroller.h in Headers */,
+				E9474D701937BEB300105C64 /* RNUIColorPicker.h in Headers */,
 				E917F0801791FC7C003765C1 /* RNUIScrollView.h in Headers */,
 				E986B6A01879209500AFF219 /* RNOpenGLQueue.h in Headers */,
 				E9D3D048183A5022007780A7 /* RNNull.h in Headers */,
@@ -1468,6 +1482,7 @@
 				E93CE16317D83DB700A7A8A3 /* RNKVO.cpp in Sources */,
 				E90D0EFC185E7D5900807A13 /* RNUIWidgetInternals.cpp in Sources */,
 				E957BAB81714F61400AD7A54 /* RNSceneManager.cpp in Sources */,
+				E9474D6F1937BEB300105C64 /* RNUIColorPicker.cpp in Sources */,
 				E9B083BB171761FB009AD83F /* RNMath.cpp in Sources */,
 				E9B083F117188E29009AD83F /* RNCPU.cpp in Sources */,
 				E9B083F81718B1D1009AD83F /* RNMemory.cpp in Sources */,
@@ -1533,6 +1548,7 @@
 				E945AB60178D7D1200C7B30A /* RNUIStyle.cpp in Sources */,
 				E9E09ECF18204C580022073F /* RNLogging.cpp in Sources */,
 				E919598F17901180004B5880 /* RNUIUtilities.cpp in Sources */,
+				E9474D4E19379B0400105C64 /* RNUIColorWheel.cpp in Sources */,
 				E917F07F1791FC7C003765C1 /* RNUIScrollView.cpp in Sources */,
 				E93763F71794DD7000859EBA /* RNUITextField.cpp in Sources */,
 			);

@@ -107,6 +107,7 @@
 #include "RNUIImageView.h"
 #include "RNUISegmentView.h"
 #include "RNUIProgressIndicator.h"
+#include "RNUIColorWheel.h"
 #include "RNUIUtilities.h"
 #include "RNUIMenu.h"
 
