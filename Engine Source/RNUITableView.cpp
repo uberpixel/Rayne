@@ -42,6 +42,55 @@ namespace RN
 			_selection = new IndexSet();
 		}
 		
+		void TableView::MouseDown(RN::Event *event)
+		{
+			GetWidget()->MakeFirstResponder(this);
+		}
+		
+		void TableView::KeyDown(Event *event)
+		{
+			if(!_delegate)
+				return;
+			
+			switch(event->GetCode())
+			{
+				case KeyCodes::KeyUp:
+				{
+					size_t index = _selection->GetLastIndex();
+					while(!_delegate->TableViewCanSelectRow(this, --index) && index < _rows){}
+					
+					if(index < _rows)
+					{
+						SetSelection(new IndexSet(index));
+						if(!GetVisibleRange().Contains(Range(index, 0)))
+						{
+							ScrollToRow(index, ScrollPosition::Top);
+						}
+					}
+					
+					break;
+				}
+					
+				case KeyCodes::KeyDown:
+				{
+					size_t index = _selection->GetLastIndex();
+					while(!_delegate->TableViewCanSelectRow(this, ++index) && index < _rows){}
+					
+					if(index < _rows)
+					{
+						SetSelection(new IndexSet(index));
+						//TODO: shits fucked up
+						if(!GetVisibleRange().Contains(Range((index >= 2)?index-2:0, 4)))
+						{
+							ScrollToRow(index, ScrollPosition::Bottom);
+						}
+					}
+					
+					break;
+				}
+			}
+		}
+		
 		
 		void TableView::SetDataSource(TableViewDataSource *dataSource)
 		{
@@ -360,7 +409,7 @@ namespace RN
 					break;
 					
 				case ScrollPosition::Bottom:
-					offset.y = rowOffset + (height - _rowHeight);
+					offset.y = rowOffset - height + _rowHeight;
 					break;
 			}
 			

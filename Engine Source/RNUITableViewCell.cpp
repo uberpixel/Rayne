@@ -135,6 +135,7 @@ namespace RN
 					return true;
 					
 				case Control::EventType::MouseDown:
+					GetWidget()->MakeFirstResponder(_tableView);
 					return true;
 					
 				case Control::EventType::MouseUpInside:

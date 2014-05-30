@@ -211,7 +211,7 @@ namespace RN
 		
 		bool Contains(const Range &other) const
 		{
-			return (other.origin >= origin && GetEnd() <= other.GetEnd());
+			return (other.origin >= origin && GetEnd() >= other.GetEnd());
 		}
 		
 		bool Overlaps(const Range &other) const
