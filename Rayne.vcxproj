@@ -135,6 +135,8 @@
     <ClInclude Include="Engine Source\RNTypeTranslator.h" />
     <ClInclude Include="Engine Source\RNUIButton.h" />
     <ClInclude Include="Engine Source\RNUIColor.h" />
+    <ClInclude Include="Engine Source\RNUIColorPicker.h" />
+    <ClInclude Include="Engine Source\RNUIColorWheel.h" />
     <ClInclude Include="Engine Source\RNUIControl.h" />
     <ClInclude Include="Engine Source\RNUIFont.h" />
     <ClInclude Include="Engine Source\RNUIGeometry.h" />
@@ -265,6 +267,8 @@
     <ClCompile Include="Engine Source\RNTriggerZone.cpp" />
     <ClCompile Include="Engine Source\RNUIButton.cpp" />
     <ClCompile Include="Engine Source\RNUIColor.cpp" />
+    <ClCompile Include="Engine Source\RNUIColorPicker.cpp" />
+    <ClCompile Include="Engine Source\RNUIColorWheel.cpp" />
     <ClCompile Include="Engine Source\RNUIControl.cpp" />
     <ClCompile Include="Engine Source\RNUIFont.cpp" />
     <ClCompile Include="Engine Source\RNUIImage.cpp" />
