@@ -37,6 +37,54 @@ namespace RN
 		}
 		
 		
+		void OutlineView::KeyDown(RN::Event *event)
+		{
+			IndexSet *selection = GetSelection();
+			if(selection->GetCount() == 0)
+				return;
+			
+			switch(event->GetCode())
+			{
+				case KeyCodes::KeyLeft:
+				{
+					std::vector<void*> items;
+					for(int i = 0; i < selection->GetCount(); i++)
+					{
+						ProxyItem *item = _rows[selection->GetIndex(i)];
+						if(!item->isLeaf)
+							items.push_back(item->item);
+					}
+					
+					for(auto item : items)
+					{
+						CollapseItem(item, false);
+					}
+				}
+					
+				case KeyCodes::KeyRight:
+				{
+					std::vector<void*> items;
+					for(int i = 0; i < selection->GetCount(); i++)
+					{
+						ProxyItem *item = _rows[selection->GetIndex(i)];
+						if(!item->isLeaf)
+							items.push_back(item->item);
+					}
+					
+					for(auto item : items)
+					{
+						ExpandItem(item, false);
+					}
+				}
+					
+				default:
+				{
+					RN::UI::TableView::KeyDown(event);
+					break;
+				}
+			}
+		}
+		
 		
 		void OutlineView::SetDataSource(OutlineViewDataSource *dataSource)
 		{

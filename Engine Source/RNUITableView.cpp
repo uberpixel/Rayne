@@ -61,7 +61,17 @@ namespace RN
 					
 					if(index < _rows)
 					{
-						SetSelection(new IndexSet(index));
+						if(event->IsShift() && _allowsMultipleSelection)
+						{
+							IndexSet *selection = new IndexSet(GetSelection());
+							selection->AddIndex(index);
+							SetSelection(selection);
+						}
+						else
+						{
+							SetSelection(new IndexSet(index));
+						}
+						
 						if(!GetVisibleRange().Contains(Range(index, 0)))
 						{
 							ScrollToRow(index, ScrollPosition::Top);
@@ -78,7 +88,17 @@ namespace RN
 					
 					if(index < _rows)
 					{
-						SetSelection(new IndexSet(index));
+						if(event->IsShift() && _allowsMultipleSelection)
+						{
+							IndexSet *selection = new IndexSet(GetSelection());
+							selection->AddIndex(index);
+							SetSelection(selection);
+						}
+						else
+						{
+							SetSelection(new IndexSet(index));
+						}
+						
 						//TODO: shits fucked up
 						if(!GetVisibleRange().Contains(Range((index >= 2)?index-2:0, 4)))
 						{

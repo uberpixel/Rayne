@@ -49,6 +49,8 @@ namespace RN
 			RNAPI OutlineView();
 			RNAPI ~OutlineView();
 			
+			RNAPI void KeyDown(Event *event) override;
+			
 			RNAPI void SetDataSource(OutlineViewDataSource *dataSource);
 			RNAPI void SetDelegate(OutlineViewDelegate *delegate);
 			
