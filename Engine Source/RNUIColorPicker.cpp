@@ -54,7 +54,8 @@ namespace RN
 			SafeRelease(_color);
 			_color = color->Retain();
 			
-			Vector2 position = ConvertColorToWheel(_color);
+			float brightness = 0;
+			Vector2 position = ConvertColorToWheel(_color, brightness);
 			position *= _colorWheel->GetBounds().GetSize();
 			position += _colorWheel->GetBounds().GetSize() * 0.5f;
 			UpdateKnob(position);
@@ -210,12 +211,13 @@ namespace RN
 			return Color::WithRNColor(RN::Color(rgb.x, rgb.y, rgb.z, 1.0));
 		}
 		
-		Vector2 ColorPicker::ConvertColorToWheel(Color *color)
+		Vector2 ColorPicker::ConvertColorToWheel(Color *color, float &brightness)
 		{
 			RN::Color rnColor = color->GetRNColor();
 			Vector3 myColor(rnColor.r, rnColor.g, rnColor.b);
 			
 			Vector3 hsv = ColorToHSV(myColor);
+			brightness = hsv.z;
 			
 			return Vector2(hsv.y * cos(hsv.x), hsv.y * -sin(hsv.x));
 		}

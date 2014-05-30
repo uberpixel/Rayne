@@ -38,7 +38,7 @@ namespace RN
 			Vector3 ColorFromHSV(float h, float s, float v);
 			Vector3 ColorToHSV(const Vector3 &color);
 			Color *ConvertColorFromWheel(const Vector2 &position, float brightness);
-			Vector2 ConvertColorToWheel(Color *color);
+			Vector2 ConvertColorToWheel(Color *color, float &brightness);
 			
 			ColorWheel *_colorWheel;
 			View *_colorKnob;
