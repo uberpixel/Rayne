@@ -9,6 +9,8 @@
 #ifndef __RAYNE_Color_H__
 #define __RAYNE_Color_H__
 
+#include "RNVector.h"
+
 namespace RN
 {
 	class Color
@@ -43,6 +45,8 @@ namespace RN
 		Color operator* (float other) const;
 		Color operator/ (float other) const;
 		
+		Vector4 GetHSV() const;
+		
 		static Color Red() { return Color(1.0f, 0.0f, 0.0f); }
 		static Color Green() { return Color(0.0f, 1.0f, 0.0f); }
 		static Color Blue() { return Color(0.0f, 0.0f, 1.0f); }
@@ -51,6 +55,7 @@ namespace RN
 		static Color White() { return Color(1.0f, 1.0f, 1.0f); }
 		static Color Gray() { return Color(0.5f, 0.5f, 0.5f); }
 		static Color ClearColor() { return Color(0.0f, 0.0f, 0.0f, 0.0f); }
+		static Color WithHSV(float h, float s, float v, float alpha=1.0f);
 		
 		struct
 		{
@@ -294,6 +299,80 @@ namespace RN
 		result.a /= other;
 
 		return result;
+	}
+	
+	RN_INLINE Color Color::WithHSV(float h, float s, float v, float alpha)
+	{
+		float hi = h * 3.0 / k::Pi;
+		float f  = hi - floorf(hi);
+		
+		Color components(0.0, s, s * f, s * (1.0 - f));
+		components = Color::White() - components;
+		components *= v;
+		
+		if(hi < -2.0)
+		{
+			return Color(components.r, components.a, components.g, alpha);
+		}
+		else if(hi < -1.0)
+		{
+			return Color(components.b, components.r, components.g, alpha);
+		}
+		else if(hi < 0.0)
+		{
+			return Color(components.g, components.r, components.a, alpha);
+		}
+		else if(hi < 1.0)
+		{
+			return Color(components.g, components.b, components.r, alpha);
+		}
+		else if(hi < 2.0)
+		{
+			return Color(components.a, components.g, components.r, alpha);
+		}
+		else
+		{
+			return Color(components.r, components.g, components.b, alpha);
+		}
+	}
+	
+	RN_INLINE Vector4 Color::GetHSV() const
+	{
+		float max = std::max(r, std::max(g, b));
+		float min = std::min(r, std::min(g, b));
+		float diff = max - min;
+		
+		float h = 0.0f;
+		float s = 0.0f;
+		float v = max;
+		
+		if(!Math::Compare(max, min))
+		{
+			if(Math::Compare(max, r))
+			{
+				h = k::Pi/3.0f * (g - b) / diff;
+			}
+			else if(Math::Compare(max, g))
+			{
+				h = k::Pi/3.0f * (2.0f + (b - r) / diff);
+			}
+			else if(Math::Compare(max, b))
+			{
+				h = k::Pi/3.0f * (4.0f + (r - g) / diff);
+			}
+			
+			if(h < 0.0f)
+			{
+				h += 2.0f * k::Pi;
+			}
+		}
+		
+		if(!Math::Compare(max, 0.0f))
+		{
+			s = diff/max;
+		}
+		
+		return Vector4(h, s, v, a);
 	}
 
 	#ifndef __GNUG__

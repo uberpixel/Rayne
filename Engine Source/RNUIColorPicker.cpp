@@ -20,7 +20,7 @@ namespace RN
 		
 		ColorPicker::ColorPicker(const Rect &frame) :
 			Control(frame),
-			_color(nullptr)
+			_color(RN::Color::White())
 		{
 			_colorWheel = new ColorWheel();
 			_brightnessView = new GradientView();
@@ -41,25 +41,18 @@ namespace RN
 			AddSubview(_colorKnob);
 			
 			AddSubview(_brightnessView);
-			
-			_color = Color::WithRNColor(RN::Color::White())->Retain();
 		}
 		
 		ColorPicker::~ColorPicker()
 		{
 			_colorWheel->Release();
 			_colorKnob->Release();
-			
-			SafeRelease(_color);
 		}
 		
 		
-		void ColorPicker::SetColor(Color *color)
+		void ColorPicker::SetColor(const RN::Color &color)
 		{
-			RN_ASSERT(color, "Color mustn't be NULL");
-			
-			SafeRelease(_color);
-			_color = color->Retain();
+			_color = color;
 			
 			float brightness = 0;
 			Vector2 position = ConvertColorToWheel(_color, brightness);
@@ -113,8 +106,7 @@ namespace RN
 			
 			location = location / _colorWheel->GetBounds().GetSize();
 			
-			SafeRelease(_color);
-			_color = ConvertColorFromWheel(location * 2.0f - 1.0f, 1.0)->Retain();
+			_color = ConvertColorFromWheel(location * 2.0f - 1.0f, 1.0);
 			
 			UpdateBrightness();
 			DispatchEvent(EventType::ValueChanged);
@@ -123,7 +115,7 @@ namespace RN
 		void ColorPicker::UpdateBrightness()
 		{
 			_brightnessView->SetStartColor(_color);
-			_brightnessView->SetEndColor(Color::WithRNColor(RN::Color::Black()));
+			_brightnessView->SetEndColor(RN::Color::Black());
 		}
 		
 		void ColorPicker::LayoutSubviews()
@@ -144,106 +136,23 @@ namespace RN
 			_colorWheel->SetFrame(wheelRect);
 			_brightnessView->SetFrame(brightnessRect);
 			
-			
-			_color->Retain();
 			SetColor(_color);
-			_color->Release();
 		}
 		
-		
-		
-		
-		Vector3 ColorPicker::ColorFromHSV(float h, float s, float v)
-		{
-			float hi = h * 3.0 / k::Pi;
-			float f  = hi - floorf(hi);
-			
-			Vector4 components(0.0, s, s * f, s * (1.0 - f));
-			components = (Vector4(1.0 - components.x, 1.0 - components.y, 1.0 - components.z, 1.0 - components.w)) * v;
-			
-			if(hi < -2.0)
-			{
-				return Vector3(components.x, components.w, components.y);
-			}
-			else if(hi < -1.0)
-			{
-				return Vector3(components.z, components.x, components.y);
-			}
-			else if(hi < 0.0)
-			{
-				return Vector3(components.y, components.x, components.w);
-			}
-			else if(hi < 1.0)
-			{
-				return Vector3(components.y, components.z, components.x);
-			}
-			else if(hi < 2.0)
-			{
-				return Vector3(components.w, components.y, components.x);
-			}
-			else
-			{
-				return Vector3(components);
-			}
-		}
-		
-		Vector3 ColorPicker::ColorToHSV(const Vector3 &color)
-		{
-			float max = color.GetMax();
-			float min = color.GetMin();
-			float diff = max - min;
-			
-			float h = 0.0f;
-			float s = 0.0f;
-			float v = max;
-			
-			if(!Math::Compare(max, min))
-			{
-				if(Math::Compare(max, color.x))
-				{
-					h = k::Pi/3.0f * (color.y - color.z) / diff;
-				}
-				else if(Math::Compare(max, color.y))
-				{
-					h = k::Pi/3.0f * (2.0f + (color.z - color.x) / diff);
-				}
-				else if(Math::Compare(max, color.z))
-				{
-					h = k::Pi/3.0f * (4.0f + (color.x - color.y) / diff);
-				}
-				
-				if(h < 0.0f)
-				{
-					h += 2.0f * k::Pi;
-				}
-			}
-			
-			if(!Math::Compare(max, 0.0f))
-			{
-				s = diff/max;
-			}
-			
-			return Vector3(h, s, v);
-		}
-		
-		Color *ColorPicker::ConvertColorFromWheel(const Vector2 &position, float brightness)
+		RN::Color ColorPicker::ConvertColorFromWheel(const Vector2 &position, float brightness)
 		{
 			float theta = atan2(position.y, -position.x);
 			float r = position.GetLength();
 			
-			Vector3 rgb = ColorFromHSV(theta, r, brightness);
-			return Color::WithRNColor(RN::Color(rgb.x, rgb.y, rgb.z, 1.0));
+			return RN::Color::WithHSV(theta, r, brightness);
 		}
 		
-		Vector2 ColorPicker::ConvertColorToWheel(Color *color, float &brightness)
+		Vector2 ColorPicker::ConvertColorToWheel(const RN::Color &color, float &brightness)
 		{
-			RN::Color rnColor = color->GetRNColor();
-			Vector3 myColor(rnColor.r, rnColor.g, rnColor.b);
+			Vector4 hsva = color.GetHSV();
+			brightness = hsva.z;
 			
-			Vector3 hsv = ColorToHSV(myColor);
-			brightness = hsv.z;
-			
-			return Vector2(hsv.y * cos(hsv.x), hsv.y * -sin(hsv.x));
+			return Vector2(hsva.y * cos(hsva.x), hsva.y * -sin(hsva.x));
 		}
 	}
 }
