@@ -13,6 +13,7 @@
 #include "RNUIColor.h"
 #include "RNUIColorWheel.h"
 #include "RNUIControl.h"
+#include "RNUIGradientView.h"
 
 namespace RN
 {
@@ -34,6 +35,7 @@ namespace RN
 			
 		private:
 			void UpdateKnob(const Vector2 &position);
+			void UpdateBrightness();
 			
 			Vector3 ColorFromHSV(float h, float s, float v);
 			Vector3 ColorToHSV(const Vector3 &color);
@@ -41,7 +43,9 @@ namespace RN
 			Vector2 ConvertColorToWheel(Color *color, float &brightness);
 			
 			ColorWheel *_colorWheel;
-			View *_colorKnob;
+			GradientView *_brightnessView;
+			
+			View  *_colorKnob;
 			Color *_color;
 			
 			RNDeclareMeta(ColorPicker)

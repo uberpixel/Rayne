@@ -23,19 +23,26 @@ namespace RN
 			_color(nullptr)
 		{
 			_colorWheel = new ColorWheel();
+			_brightnessView = new GradientView();
 			
-			_colorKnob = new View(Rect(0.0f, 0.0f, 4.0, 4.0));
-			_colorKnob->SetBackgroundColor(RN::Color::Black());
 			
-			View *secondKnob = new View(Rect(1.0f, 1.0f, 2.0f, 2.0f));
-			secondKnob->SetBackgroundColor(RN::Color::White());
+			{
+				_colorKnob = new View(Rect(0.0f, 0.0f, 4.0, 4.0));
+				_colorKnob->SetBackgroundColor(RN::Color::Black());
+				
+				View *secondKnob = new View(Rect(1.0f, 1.0f, 2.0f, 2.0f));
+				secondKnob->SetBackgroundColor(RN::Color::White());
+				
+				_colorKnob->AddSubview(secondKnob->Autorelease());
+			}
 			
-			_colorKnob->AddSubview(secondKnob->Autorelease());
 			
 			AddSubview(_colorWheel);
 			AddSubview(_colorKnob);
 			
-			_color = Color::WithRNColor(RN::Color::Yellow())->Retain();
+			AddSubview(_brightnessView);
+			
+			_color = Color::WithRNColor(RN::Color::White())->Retain();
 		}
 		
 		ColorPicker::~ColorPicker()
@@ -109,7 +116,14 @@ namespace RN
 			SafeRelease(_color);
 			_color = ConvertColorFromWheel(location, 1.0)->Retain();
 			
+			UpdateBrightness();
 			DispatchEvent(EventType::ValueChanged);
+		}
+		
+		void ColorPicker::UpdateBrightness()
+		{
+			_brightnessView->SetStartColor(_color);
+			_brightnessView->SetEndColor(Color::WithRNColor(RN::Color::Black()));
 		}
 		
 		void ColorPicker::LayoutSubviews()
@@ -117,9 +131,19 @@ namespace RN
 			Control::LayoutSubviews();
 			
 			Rect frame = GetBounds();
-			Rect wheelRect = Rect(frame).Inset(5.0f, 5.0f);
+			
+			Rect wheelRect = Rect(frame.x, frame.y, frame.width - 20.0f, frame.height);
+			
+			
+			wheelRect.width  = std::min(wheelRect.height, wheelRect.width);
+			wheelRect.height = wheelRect.width;
+			
+			
+			Rect brightnessRect = Rect(frame.width - 15.0f, 0.0f, 15.0f, wheelRect.height);
 			
 			_colorWheel->SetFrame(wheelRect);
+			_brightnessView->SetFrame(brightnessRect);
+			
 			
 			_color->Retain();
 			SetColor(_color);

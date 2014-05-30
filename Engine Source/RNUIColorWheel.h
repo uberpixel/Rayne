@@ -22,6 +22,8 @@ namespace RN
 		public:
 			RNAPI ColorWheel();
 			
+			RNAPI void SetBrightness(float brightness);
+			
 			RNAPI void Update() override;
 			RNAPI void Draw(Renderer *renderer) override;
 			

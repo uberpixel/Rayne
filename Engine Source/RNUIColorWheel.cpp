@@ -28,6 +28,14 @@ namespace RN
 			
 			_material = GetBasicMaterial(ResourceCoordinator::GetSharedInstance()->GetResourceWithName<Shader>(RNCSTR("shader/rn_UIColorWheel"), nullptr));
 			_material->Retain();
+			
+			SetBrightness(1.0f);
+		}
+		
+		void ColorWheel::SetBrightness(float brightness)
+		{
+			brightness = std::max(0.0f, std::min(1.0f, brightness));
+			_material->SetDiffuseColor(RN::Color(0.0f, 0.0f, 0.0f, brightness));
 		}
 		
 		void ColorWheel::Update()
