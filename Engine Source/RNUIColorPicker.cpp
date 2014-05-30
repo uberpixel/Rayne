@@ -114,7 +114,7 @@ namespace RN
 			location = location / _colorWheel->GetBounds().GetSize();
 			
 			SafeRelease(_color);
-			_color = ConvertColorFromWheel(location, 1.0)->Retain();
+			_color = ConvertColorFromWheel(location * 2.0f - 1.0f, 1.0)->Retain();
 			
 			UpdateBrightness();
 			DispatchEvent(EventType::ValueChanged);

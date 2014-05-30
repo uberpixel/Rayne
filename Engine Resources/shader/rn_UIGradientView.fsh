@@ -24,7 +24,7 @@ void main()
 	vec2  coords   = vertTexcoord - sin(angle);
 	float gradient = coords.x * sin(angle) + coords.y * cos(angle);
 
-	vec4 difference = (ambient - diffuse);
-
-	fragColor0 = pow(diffuse + (difference * gradient), vec4(2.2));
+	fragColor0.rgb = mix(diffuse.rgb, ambient.rgb, gradient);
+	fragColor0.rgb = pow(fragColor0.rgb, vec3(2.2));
+	fragColor0.a = diffuse.a;
 }
