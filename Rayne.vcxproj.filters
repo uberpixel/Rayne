@@ -482,6 +482,12 @@
     <ClInclude Include="Engine Source\RNStringInternal.h">
       <Filter>Objects</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNUIColorPicker.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine Source\RNUIColorWheel.h">
+      <Filter>UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
@@ -855,6 +861,12 @@
     </ClCompile>
     <ClCompile Include="Engine Source\RNStringInternal.cpp">
       <Filter>Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIColorPicker.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIColorWheel.cpp">
+      <Filter>UI</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
