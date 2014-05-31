@@ -599,7 +599,20 @@ namespace RN
 			}
 
 			case WM_MOUSEMOVE:
-				event->_type = (wparam & MK_LBUTTON) ? Event::Type::MouseDragged : Event::Type::MouseMoved;
+				event->_type = (wparam & MK_LBUTTON || wparam & MK_RBUTTON || wparam & MK_MBUTTON) ? Event::Type::MouseDragged : Event::Type::MouseMoved;
+				
+				if(event->_type == Event::Type::MouseDragged)
+				{
+					if(wparam & MK_LBUTTON)
+						event->_button = 0;
+
+					if(wparam & MK_RBUTTON)
+						event->_button = 1;
+
+					if(wparam & MK_MBUTTON)
+						event->_button = 2;
+				}
+				
 				break;
 		}
 
