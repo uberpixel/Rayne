@@ -133,7 +133,7 @@ namespace RN
 		
 		TableViewCell *ConsoleWidget::TableViewCellForRow(TableView *tableView, size_t row)
 		{
-			TableViewCell *cell = tableView->DequeCellWithIdentifier(RNCSTR("cell"));
+			TableViewCell *cell = tableView->DequeueCellWithIdentifier(RNCSTR("cell"));
 			if(!cell)
 			{
 				cell = new TableViewCell(RNCSTR("cell"));
@@ -157,7 +157,7 @@ namespace RN
 			
 			if(!_queue.empty())
 			{
-				_table->BegindEditing();
+				_table->BeginEditing();
 			
 				for(const std::string& message : _queue)
 				{

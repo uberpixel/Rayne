@@ -64,7 +64,7 @@ namespace RN
 			RNAPI void SetDataSource(TableViewDataSource *dataSource);
 			RNAPI void SetDelegate(TableViewDelegate *delegate);
 			
-			RNAPI void BegindEditing();
+			RNAPI void BeginEditing();
 			RNAPI void EndEditing();
 			RNAPI void InsertRows(size_t row, size_t count);
 			RNAPI void DeleteRows(size_t row, size_t count);
@@ -72,7 +72,7 @@ namespace RN
 			
 			RNAPI void ScrollToRow(size_t row, ScrollPosition position);
 			
-			RNAPI TableViewCell *DequeCellWithIdentifier(String *identifier);
+			RNAPI TableViewCell *DequeueCellWithIdentifier(String *identifier);
 			RNAPI TableViewCell *GetCellForRow(size_t row);
 			
 			RNAPI void LayoutSubviews() override;

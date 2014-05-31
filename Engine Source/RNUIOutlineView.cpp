@@ -111,7 +111,7 @@ namespace RN
 				ProxyItem *proxy = FindProxyItemSlowPath(item);
 				if(proxy)
 				{
-					TableView::BegindEditing();
+					TableView::BeginEditing();
 					
 					size_t row = GetRowForProxyItem(proxy);
 					if(row != k::NotFound)
@@ -152,7 +152,7 @@ namespace RN
 			}
 			else
 			{
-				TableView::BegindEditing();
+				TableView::BeginEditing();
 				
 				size_t count = _dataSource->OutlineViewGetNumberOfChildrenForItem(this, nullptr);
 				std::unordered_set<ProxyItem *> found;
@@ -250,7 +250,7 @@ namespace RN
 		
 		OutlineViewCell *OutlineView::DequeCellWithIdentifier(String *identifier)
 		{
-			TableViewCell *cell = TableView::DequeCellWithIdentifier(identifier);
+			TableViewCell *cell = TableView::DequeueCellWithIdentifier(identifier);
 			return static_cast<OutlineViewCell *>(cell);
 		}
 		
@@ -268,13 +268,13 @@ namespace RN
 			
 			if(titem)
 			{
-				TableView::BegindEditing();
+				TableView::BeginEditing();
 				ExpandProxyItem(item, row, expandChildren);
 				TableView::EndEditing();
 			}
 			else
 			{
-				TableView::BegindEditing();
+				TableView::BeginEditing();
 				
 				for(ProxyItem *item : _items)
 				{
@@ -292,13 +292,13 @@ namespace RN
 			
 			if(titem)
 			{
-				TableView::BegindEditing();
+				TableView::BeginEditing();
 				CollapseProxyItem(item, row, collapseChildren);
 				TableView::EndEditing();
 			}
 			else
 			{
-				TableView::BegindEditing();
+				TableView::BeginEditing();
 				
 				for(ProxyItem *item : _items)
 				{

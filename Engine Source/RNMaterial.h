@@ -219,7 +219,7 @@ namespace RN
 		void SetAlphaBlendEquation(BlendEquation equation) { alphaBlendEquation = equation; }
 		void SetBlendMode(BlendMode source, BlendMode destination) { SetRGBBlendMode(source, destination); SetAlphaBlendMode(source, destination); }
 		void SetRGBBlendMode(BlendMode source, BlendMode destination)  { blendSource = source; blendDestination = destination; }
-		void SetAlphaBlendMode(BlendMode source, BlendMode destination) { alphaBlendSource = blendSource; alphaBlendDestination = destination; }
+		void SetAlphaBlendMode(BlendMode source, BlendMode destination) { alphaBlendSource = source; alphaBlendDestination = destination; }
 		
 		void SetPolygonOffset(bool enabled) { polygonOffset = enabled; }
 		void SetPolygonOffsetFactor(float factor) { polygonOffsetFactor = factor; }

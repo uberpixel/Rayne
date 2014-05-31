@@ -260,7 +260,7 @@ namespace RN
 		}
 		
 		
-		void TableView::BegindEditing()
+		void TableView::BeginEditing()
 		{
 			RN_ASSERT(_dataSource, "TableView needs a data source!");
 			RN_ASSERT(_editing == false, "BeginEditing() can't be stacked!\n");
@@ -573,7 +573,7 @@ namespace RN
 		}
 		
 		
-		TableViewCell *TableView::DequeCellWithIdentifier(String *identifier)
+		TableViewCell *TableView::DequeueCellWithIdentifier(String *identifier)
 		{
 			Array *cells = _queuedCells.GetObjectForKey<Array>(identifier);
 			if(cells && cells->GetCount() > 0)
