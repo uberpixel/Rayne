@@ -25,8 +25,10 @@ namespace RN
 			RNAPI ~PopUpView();
 			
 			RNAPI void SetMenu(Menu *menu);
+			RNAPI void SetSelection(size_t index);
+			
 			RNAPI Menu *GetMenu() const { return _menu; }
-			RNAPI void SetSelection(size_t row);
+			RNAPI MenuItem *GetSelectedItem() const;
 			RNAPI size_t GetSelection() const { return _selected; }
 			
 		protected:

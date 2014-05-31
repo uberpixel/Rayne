@@ -60,15 +60,18 @@ namespace RN
 			TableViewCell *cell = tableView->DequeueCellWithIdentifier(RNCSTR("Cell"));
 			
 			if(!cell)
+			{
 				cell = new TableViewCell(RNCSTR("Cell"));
+				cell->Autorelease();
+			}
 			
 			MenuItem *item = _menu->GetItems()->GetObjectAtIndex<MenuItem>(row);
 			
 			cell->GetTextLabel()->SetAttributedText(const_cast<AttributedString *>(item->GetAttributedTitle()));
 			cell->GetTextLabel()->SetTextColor(RN::Color::Black());
 			cell->GetImageView()->SetImage(const_cast<Image *>(item->GetImage()));
-			cell->SetBackgroundColor(RN::Color::White());
 			
+			cell->SetBackgroundColor(RN::Color::White());
 			cell->SetSelected(row == _selected);
 			
 			return cell;
@@ -88,16 +91,26 @@ namespace RN
 			_popUpTableView->ReloadData();
 		}
 		
-		void PopUpView::SetSelection(size_t row)
+		void PopUpView::SetSelection(size_t index)
 		{
 			if(!_menu)
 				return;
 			
 			_popUpTableView->GetCellForRow(_selected)->SetSelected(false);
-			_selected = row;
-			MenuItem *item = _menu->GetItems()->GetObjectAtIndex<MenuItem>(row);
+			_selected = index;
+			
+			MenuItem *item = _menu->GetItems()->GetObjectAtIndex<MenuItem>(_selected);
+			
 			SetTitleForState(const_cast<String *>(item->GetTitle()), Control::State::Normal);
 			DispatchEvent(EventType::ValueChanged);
+		}
+		
+		MenuItem *PopUpView::GetSelectedItem() const
+		{
+			if(!_menu)
+				return nullptr;
+			
+			return _menu->GetItems()->GetObjectAtIndex<MenuItem>(_selected);
 		}
 	}
 }
