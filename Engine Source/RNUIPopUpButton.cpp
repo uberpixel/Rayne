@@ -1,18 +1,18 @@
 //
-//  RNUIPopUpView.cpp
+//  RNUIPopUpButton.cpp
 //  Rayne
 //
 //  Copyright 2014 by Überpixel. All rights reserved.
 //  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
-#include "RNUIPopUpView.h"
+#include "RNUIPopUpButton.h"
 
 namespace RN
 {
 	namespace UI
 	{
-		PopUpView::PopUpView() :
+		PopUpButton::PopUpButton() :
 			Button(Button::Type::Bezel),
 			_menu(nullptr),
 			_selected(0)
@@ -26,14 +26,14 @@ namespace RN
 			_popUpWidget->SetWidgetLevel(kRNUIWidgetLevelFloating);
 		}
 		
-		PopUpView::~PopUpView()
+		PopUpButton::~PopUpButton()
 		{
 			SafeRelease(_popUpWidget);
 			SafeRelease(_popUpTableView);
 			SafeRelease(_menu);
 		}
 		
-		bool PopUpView::PostEvent(EventType event)
+		bool PopUpButton::PostEvent(EventType event)
 		{
 			if(event == EventType::MouseUpInside)
 			{
@@ -47,7 +47,7 @@ namespace RN
 			return Button::PostEvent(event);
 		}
 		
-		size_t PopUpView::TableViewNumberOfRows(TableView *tableView)
+		size_t PopUpButton::TableViewNumberOfRows(TableView *tableView)
 		{
 			if(!_menu)
 				return 0;
@@ -55,7 +55,7 @@ namespace RN
 			return _menu->GetItems()->GetCount();
 		}
 		
-		TableViewCell *PopUpView::TableViewCellForRow(TableView *tableView, size_t row)
+		TableViewCell *PopUpButton::TableViewCellForRow(TableView *tableView, size_t row)
 		{
 			TableViewCell *cell = tableView->DequeueCellWithIdentifier(RNCSTR("Cell"));
 			
@@ -77,13 +77,13 @@ namespace RN
 			return cell;
 		}
 		
-		void PopUpView::TableViewDidSelectRow(TableView *tableView, size_t row)
+		void PopUpButton::TableViewDidSelectRow(TableView *tableView, size_t row)
 		{
 			_popUpWidget->Close();
 			SetSelection(row);
 		}
 		
-		void PopUpView::SetMenu(RN::UI::Menu *menu)
+		void PopUpButton::SetMenu(RN::UI::Menu *menu)
 		{
 			SafeRelease(_menu);
 			_menu = menu->Retain();
@@ -91,7 +91,7 @@ namespace RN
 			_popUpTableView->ReloadData();
 		}
 		
-		void PopUpView::SetSelection(size_t index)
+		void PopUpButton::SetSelection(size_t index)
 		{
 			if(!_menu)
 				return;
@@ -105,7 +105,7 @@ namespace RN
 			DispatchEvent(EventType::ValueChanged);
 		}
 		
-		MenuItem *PopUpView::GetSelectedItem() const
+		MenuItem *PopUpButton::GetSelectedItem() const
 		{
 			if(!_menu)
 				return nullptr;

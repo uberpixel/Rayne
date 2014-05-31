@@ -1,5 +1,5 @@
 //
-//  RNUIPopUpView.h
+//  RNUIPopUpButton.h
 //  Rayne
 //
 //  Copyright 2014 by Überpixel. All rights reserved.
@@ -18,11 +18,11 @@ namespace RN
 {
 	namespace UI
 	{
-		class PopUpView : public Button, TableViewDataSource, TableViewDelegate
+		class PopUpButton : public Button, TableViewDataSource, TableViewDelegate
 		{
 		public:
-			RNAPI PopUpView();
-			RNAPI ~PopUpView();
+			RNAPI PopUpButton();
+			RNAPI ~PopUpButton();
 			
 			RNAPI void SetMenu(Menu *menu);
 			RNAPI void SetSelection(size_t index);
