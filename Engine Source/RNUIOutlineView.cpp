@@ -248,7 +248,7 @@ namespace RN
 		}
 		
 		
-		OutlineViewCell *OutlineView::DequeCellWithIdentifier(String *identifier)
+		OutlineViewCell *OutlineView::DequeueCellWithIdentifier(String *identifier)
 		{
 			TableViewCell *cell = TableView::DequeueCellWithIdentifier(identifier);
 			return static_cast<OutlineViewCell *>(cell);

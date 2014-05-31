@@ -2,8 +2,8 @@
 //  RNUIPopUpView.cpp
 //  Rayne
 //
-//  Created by Nils Daumann on 30.05.14.
-//  Copyright (c) 2014 Sidney Just. All rights reserved.
+//  Copyright 2014 by Überpixel. All rights reserved.
+//  Unauthorized use is punishable by torture, mutilation, and vivisection.
 //
 
 #include "RNUIPopUpView.h"
@@ -12,13 +12,16 @@ namespace RN
 {
 	namespace UI
 	{
-		PopUpView::PopUpView()
-		: Button(Button::Type::Bezel), _menu(nullptr), _selected(0)
+		PopUpView::PopUpView() :
+			Button(Button::Type::Bezel),
+			_menu(nullptr),
+			_selected(0)
 		{
-			_popUpWidget = new Widget(Widget::Style::Borderless);
 			_popUpTableView = new TableView();
 			_popUpTableView->SetDataSource(this);
 			_popUpTableView->SetDelegate(this);
+			
+			_popUpWidget = new Widget(Widget::Style::Borderless);
 			_popUpWidget->SetContentView(_popUpTableView);
 			_popUpWidget->SetWidgetLevel(kRNUIWidgetLevelFloating);
 		}

@@ -60,7 +60,7 @@ namespace RN
 			RNAPI void ExpandItem(void *item, bool expandChildren);
 			RNAPI void CollapseItem(void *item, bool collapseChildren);
 			
-			RNAPI OutlineViewCell *DequeCellWithIdentifier(String *identifier);
+			RNAPI OutlineViewCell *DequeueCellWithIdentifier(String *identifier);
 			
 			RNAPI size_t GetRowForItem(void *item);
 			RNAPI void *GetItemForRow(size_t row);
