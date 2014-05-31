@@ -27,6 +27,7 @@ namespace RN
 			RNAPI ~ColorPicker() override;
 			
 			RNAPI void SetColor(const RN::Color &color);
+			RNAPI const RN::Color &GetColor() const { return _color; }
 			
 			RNAPI void MouseDown(Event *event) override;
 			RNAPI void MouseDragged(Event *event) override;
@@ -34,7 +35,10 @@ namespace RN
 			RNAPI void LayoutSubviews() override;
 			
 		private:
-			void UpdateKnob(const Vector2 &position);
+			void UpdateWithMouseLocation(const Vector2 &point);
+			
+			void UpdateColorKnob(const Vector2 &position, bool updateColor);
+			void UpdateColor(const RN::Color &color);
 			void UpdateBrightness();
 			
 			RN::Color ConvertColorFromWheel(const Vector2 &position, float brightness);
@@ -44,7 +48,13 @@ namespace RN
 			GradientView *_brightnessView;
 			
 			View  *_colorKnob;
+			View  *_brightnessKnob;
+			View  *_hit;
+			
+			RN::Color _fullColor;
 			RN::Color _color;
+			
+			float _brightness;
 			
 			RNDeclareMeta(ColorPicker)
 		};

@@ -555,6 +555,64 @@
 			}
 		}
 	},
+	"colorPicker": {
+		"contentInsets": {
+			"top": 2.0,
+			"bottom": 2.0,
+			"left": 2.0,
+			"right": 2.0
+		},
+		"border": {
+			"texture": "ui/rn_uikit.png",
+			"states": [
+				{
+					"name": "normal",
+					"atlas": {
+						"x": 100.0,
+						"y": 140.0,
+						"width": 20.0,
+						"height": 20.0
+					},
+					"insets": {
+						"top": 5.0,
+						"bottom": 5.0,
+						"left": 5.0,
+						"right": 5.0
+					}
+				},
+				{
+					"name": "selected",
+					"atlas": {
+						"x": 120.0,
+						"y": 140.0,
+						"width": 20.0,
+						"height": 20.0
+					},
+					"insets": {
+						"top": 5.0,
+						"bottom": 5.0,
+						"left": 5.0,
+						"right": 5.0
+					}
+				},
+				{
+					"name": "disabled",
+					"atlas": {
+						"x": 140.0,
+						"y": 140.0,
+						"width": 20.0,
+						"height": 20.0
+					},
+					"insets": {
+						"top": 5.0,
+						"bottom": 5.0,
+						"left": 5.0,
+						"right": 5.0
+					}
+				}
+			]
+		}
+	},
 	"scroller": {
 		"vertical": {
 			"controls": [

@@ -36,29 +36,59 @@ namespace RN
 				_colorKnob->AddSubview(secondKnob->Autorelease());
 			}
 			
+			{
+				_brightnessKnob = new View(Rect(0.0f, 0.0f, 16.0, 5.0));
+				
+				View *top    = new View(Rect(0.0f, 0.0, 16.0, 1.0));
+				View *bottom = new View(Rect(0.0f, 4.0, 16.0, 1.0));
+				
+				View *left  = new View(Rect(0.0f, 0.0,  1.0, 5.0));
+				View *right = new View(Rect(16.0, 0.0, 1.0, 5.0));
+				
+				top->SetBackgroundColor(RN::Color::Black());
+				bottom->SetBackgroundColor(RN::Color::Black());
+				left->SetBackgroundColor(RN::Color::Black());
+				right->SetBackgroundColor(RN::Color::Black());
+				
+				_brightnessKnob->AddSubview(top->Autorelease());
+				_brightnessKnob->AddSubview(bottom->Autorelease());
+				_brightnessKnob->AddSubview(left->Autorelease());
+				_brightnessKnob->AddSubview(right->Autorelease());
+			}
 			
 			AddSubview(_colorWheel);
 			AddSubview(_colorKnob);
 			
 			AddSubview(_brightnessView);
+			AddSubview(_brightnessKnob);
 		}
 		
 		ColorPicker::~ColorPicker()
 		{
 			_colorWheel->Release();
 			_colorKnob->Release();
+			
+			_brightnessView->Release();
+			_brightnessKnob->Release();
 		}
+		
 		
 		
 		void ColorPicker::SetColor(const RN::Color &color)
 		{
-			_color = color;
+			if(color == _color)
+				return;
 			
-			float brightness = 0;
-			Vector2 position = ConvertColorToWheel(_color, brightness);
+			float brightness;
+			Vector2 position = ConvertColorToWheel(color, brightness);
+			
 			position *= _colorWheel->GetBounds().GetSize();
 			position += _colorWheel->GetBounds().GetSize() * 0.5f;
-			UpdateKnob(position);
+			
+			UpdateColorKnob(position, false);
+			
+			UpdateColor(color);
+			UpdateBrightness();
 		}
 		
 		
@@ -67,26 +97,65 @@ namespace RN
 		{
 			Control::MouseDown(event);
 			
-			Vector2 point = event->GetMousePosition();
-			point = std::move(_colorWheel->ConvertPointFromBase(point));
+			_hit = nullptr;
 			
-			UpdateKnob(point);
+			Vector2 point = event->GetMousePosition();
+			UpdateWithMouseLocation(point);
 		}
 		void ColorPicker::MouseDragged(Event *event)
 		{
 			Control::MouseDragged(event);
 			
 			Vector2 point = event->GetMousePosition();
-			point = std::move(_colorWheel->ConvertPointFromBase(point));
-			
-			UpdateKnob(point);
+			UpdateWithMouseLocation(point);
 		}
 		
-		void ColorPicker::UpdateKnob(const Vector2 &position)
+		void ColorPicker::UpdateWithMouseLocation(const Vector2 &point)
+		{
+			if(!_hit)
+			{
+				Vector2 wheelPoint = _colorWheel->ConvertPointFromBase(point);
+				Vector2 brightnessPoint = _brightnessView->ConvertPointFromBase(point);
+				
+				if(_colorWheel->GetBounds().ContainsPoint(wheelPoint))
+					_hit = _colorWheel;
+				
+				if(_brightnessView->GetBounds().ContainsPoint(brightnessPoint))
+					_hit = _brightnessView;
+			}
+			
+			
+			if(_hit == _colorWheel)
+			{
+				Vector2 wheelPoint = _colorWheel->ConvertPointFromBase(point);
+				UpdateColorKnob(wheelPoint, true);
+				return;
+			}
+			
+			if(_hit == _brightnessView)
+			{
+				Vector2 brightnessPoint = _brightnessView->ConvertPointFromBase(point);
+				
+				if(brightnessPoint.y > _brightnessView->GetFrame().height || brightnessPoint.y < 0.0)
+					return;
+				
+				_brightness = 1.0f - (brightnessPoint.y / _brightnessView->GetFrame().height);
+				
+				UpdateBrightness();
+				DispatchEvent(EventType::ValueChanged);
+				
+				return;
+			}
+		}
+		
+		
+		
+		
+		void ColorPicker::UpdateColorKnob(const Vector2 &position, bool updateColor)
 		{
 			Vector2 location = position;
-			Vector2 center = _colorWheel->GetBounds().GetSize() * 0.5f;
-			float distance = position.GetDistance(center);
+			Vector2 center   = _colorWheel->GetBounds().GetSize() * 0.5f;
+			float distance   = position.GetDistance(center);
 			
 			if(distance > center.x)
 			{
@@ -99,14 +168,30 @@ namespace RN
 			
 			Rect frame = _colorKnob->GetFrame();
 			
-			frame.x = location.x + 2.0;
-			frame.y = location.y + 2.0;
+			frame.x = location.x - 2.0;
+			frame.y = location.y - 2.0;
 			
 			_colorKnob->SetFrame(frame);
 			
-			location = location / _colorWheel->GetBounds().GetSize();
+			if(updateColor)
+			{
+				location = location / _colorWheel->GetBounds().GetSize();
+				UpdateColor(ConvertColorFromWheel(location * 2.0f - 1.0f, _brightness));
+			}
+		}
+		
+		
+		void ColorPicker::UpdateColor(const RN::Color &color)
+		{
+			_color = color;
 			
-			_color = ConvertColorFromWheel(location * 2.0f - 1.0f, 1.0);
+			{
+				Vector2 position = ConvertColorToWheel(_color, _brightness);
+				_fullColor = ConvertColorFromWheel(position, 1.0);
+			}
+			
+			_brightnessView->SetStartColor(_fullColor);
+			_brightnessView->SetEndColor(RN::Color::Black());
 			
 			UpdateBrightness();
 			DispatchEvent(EventType::ValueChanged);
@@ -114,9 +199,21 @@ namespace RN
 		
 		void ColorPicker::UpdateBrightness()
 		{
-			_brightnessView->SetStartColor(_color);
-			_brightnessView->SetEndColor(RN::Color::Black());
+			Rect frame = Rect(_brightnessView->GetFrame().x - 1.0f, 0.0, 16.0, 4.0f);
+			
+			frame.y  = _brightnessView->GetFrame().height * (1.0 - _brightness);
+			frame.y -= 2.0;
+			
+			_brightnessKnob->SetFrame(frame);
+			_colorWheel->SetBrightness(_brightness);
+			
+			{
+				float brightness;
+				Vector2 position = ConvertColorToWheel(_color, brightness);
+				_color = ConvertColorFromWheel(position, _brightness);
+			}
 		}
+		
 		
 		void ColorPicker::LayoutSubviews()
 		{
@@ -125,7 +222,6 @@ namespace RN
 			Rect frame = GetBounds();
 			
 			Rect wheelRect = Rect(frame.x, frame.y, frame.width - 20.0f, frame.height);
-			
 			
 			wheelRect.width  = std::min(wheelRect.height, wheelRect.width);
 			wheelRect.height = wheelRect.width;
@@ -136,7 +232,13 @@ namespace RN
 			_colorWheel->SetFrame(wheelRect);
 			_brightnessView->SetFrame(brightnessRect);
 			
-			SetColor(_color);
+			{
+				Vector2 position = ConvertColorToWheel(_color, _brightness);
+				position *= _colorWheel->GetFrame().GetSize();
+				
+				UpdateColorKnob(position, false);
+				UpdateBrightness();
+			}
 		}
 		
 		RN::Color ColorPicker::ConvertColorFromWheel(const Vector2 &position, float brightness)
