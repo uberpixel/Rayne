@@ -41,18 +41,10 @@ namespace RN
 			_label->SetFrame(Rect(0.0f, 0.0f, size.x, size.y - checkBoxSize.y).Inset(5.0f, 5.0f));
 			
 			// Misc
-			//GetContentView()->AddSubview(_fpsCheckbox);
-			//GetContentView()->AddSubview(_label->Autorelease());
+			GetContentView()->AddSubview(_fpsCheckbox);
+			GetContentView()->AddSubview(_label->Autorelease());
 			
-			_fpsCheckbox->Retain();
-			
-			
-			ColorPicker *colorWheel = new ColorPicker();
-			colorWheel->SetFrame(Rect(0.0f, 0.0f, 180.0f, 180.0f).Inset(5.0f, 5.0f));
-			
-			GetContentView()->AddSubview(colorWheel);
-			
-			//MessageCenter::GetSharedInstance()->AddObserver(kRNKernelDidEndFrameMessage, &DebugWidget::HandleMessage, this, this);
+			MessageCenter::GetSharedInstance()->AddObserver(kRNKernelDidEndFrameMessage, &DebugWidget::HandleMessage, this, this);
 		}
 		
 		DebugWidget::~DebugWidget()
