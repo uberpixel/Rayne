@@ -42,11 +42,6 @@ namespace RN
 			_selection = new IndexSet();
 		}
 		
-		void TableView::MouseDown(RN::Event *event)
-		{
-			GetWidget()->MakeFirstResponder(this);
-		}
-		
 		void TableView::KeyDown(Event *event)
 		{
 			if(!_delegate)

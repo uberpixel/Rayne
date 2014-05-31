@@ -58,7 +58,6 @@ namespace RN
 			RNAPI ~TableView();
 			
 			RNAPI bool CanBecomeFirstResponder() override { return true; }
-			RNAPI void MouseDown(RN::Event *event) override;
 			RNAPI void KeyDown(Event *event) override;
 			
 			RNAPI void SetDataSource(TableViewDataSource *dataSource);
