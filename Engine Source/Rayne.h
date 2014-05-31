@@ -100,7 +100,7 @@
 #include "RNUITableViewCell.h"
 #include "RNUIOutlineView.h"
 #include "RNUIOutlineViewCell.h"
-#include "RNUIPopUpView.h"
+#include "RNUIPopUpButton.h"
 #include "RNUIButton.h"
 #include "RNUILabel.h"
 #include "RNUITextField.h"
