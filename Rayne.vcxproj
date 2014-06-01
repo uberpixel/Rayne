@@ -148,6 +148,7 @@
     <ClInclude Include="Engine Source\RNUIMenu.h" />
     <ClInclude Include="Engine Source\RNUIOutlineView.h" />
     <ClInclude Include="Engine Source\RNUIOutlineViewCell.h" />
+    <ClInclude Include="Engine Source\RNUIPopUpButton.h" />
     <ClInclude Include="Engine Source\RNUIProgressIndicator.h" />
     <ClInclude Include="Engine Source\RNUIResponder.h" />
     <ClInclude Include="Engine Source\RNUIScroller.h" />
@@ -281,6 +282,7 @@
     <ClCompile Include="Engine Source\RNUIMenu.cpp" />
     <ClCompile Include="Engine Source\RNUIOutlineView.cpp" />
     <ClCompile Include="Engine Source\RNUIOutlineViewCell.cpp" />
+    <ClCompile Include="Engine Source\RNUIPopUpButton.cpp" />
     <ClCompile Include="Engine Source\RNUIProgressIndicator.cpp" />
     <ClCompile Include="Engine Source\RNUIResponder.cpp" />
     <ClCompile Include="Engine Source\RNUIScroller.cpp" />

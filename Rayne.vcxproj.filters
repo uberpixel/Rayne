@@ -494,6 +494,9 @@
     <ClInclude Include="Engine Source\RNUIGradientView.h">
       <Filter>UI</Filter>
     </ClInclude>
+    <ClInclude Include="Engine Source\RNUIPopUpButton.h">
+      <Filter>UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine Source\RNBase.cpp">
@@ -878,6 +881,9 @@
       <Filter>UI</Filter>
     </ClCompile>
     <ClCompile Include="Engine Source\RNUIGradientView.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine Source\RNUIPopUpButton.cpp">
       <Filter>UI</Filter>
     </ClCompile>
   </ItemGroup>
