@@ -8,6 +8,8 @@
 
 #include "RNOpenPanel.h"
 #include "RNBaseInternal.h"
+#include "RNKernel.h"
+#include "RNLogging.h"
 
 namespace RN
 {
@@ -70,6 +72,51 @@ namespace RN
 			callback(result, url ? [[url path] UTF8String] : "");
 			Autorelease();
 		}];
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		OPENFILENAME ofd;
+		char buffer[MAX_PATH];
+
+		DWORD flags = OFN_CREATEPROMPT;
+		std::vector<char> extensions;
+
+		memset(&ofd, 0, sizeof(OPENFILENAME));
+		memset(buffer, 0, MAX_PATH);
+
+		ofd.lStructSize = sizeof(OPENFILENAME);
+		ofd.hwndOwner   = Kernel::GetSharedInstance()->GetMainWindow();
+		ofd.lpstrFile   = buffer;
+		ofd.nMaxFile    = MAX_PATH - 1;
+		ofd.lpstrTitle  = _title.c_str();
+		ofd.Flags       = flags;
+
+		if(!_allowedFileTypes.empty())
+		{
+			for(const auto &extension : _allowedFileTypes)
+			{
+				std::copy(extension.begin(), extension.end(), std::back_inserter<std::vector<char>>(extensions));
+				extensions.push_back('\0');
+
+				extensions.push_back('*');
+				extensions.push_back('.');
+				std::copy(extension.begin(), extension.end(), std::back_inserter<std::vector<char>>(extensions));
+				extensions.push_back('\0');
+			}
+
+			extensions.push_back('\0');
+
+			ofd.lpstrFilter = extensions.data();
+		}
+		else
+		{
+			ofd.lpstrFilter = "*.*\0*.*\0\0";
+		}
+
+		bool result = ::GetSaveFileNameA(&ofd);
+		std::string file = result ? ofd.lpstrFile : "";
+
+		callback(result, file);
 #endif
 	}
 	
@@ -206,6 +253,76 @@ namespace RN
 			}
 		}
 		
+		callback(result, files);
+#endif
+
+#if RN_PLATFORM_WINDOWS
+		OPENFILENAME ofd;
+		char buffer[MAX_PATH];
+
+		DWORD flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST;
+		std::vector<char> extensions;
+
+		memset(&ofd, 0, sizeof(OPENFILENAME));
+		memset(buffer, 0, MAX_PATH);
+
+		if(_allowsMultipleSelection)
+			flags |= OFN_ALLOWMULTISELECT;
+
+		ofd.lStructSize = sizeof(OPENFILENAME);
+		ofd.hwndOwner = Kernel::GetSharedInstance()->GetMainWindow();
+		ofd.lpstrFile = buffer;
+		ofd.nMaxFile = MAX_PATH - 1;
+		ofd.lpstrTitle = _title.c_str();
+		ofd.Flags = flags;
+
+		if(!_allowedFileTypes.empty())
+		{
+			for(const auto &extension : _allowedFileTypes)
+			{
+				std::copy(extension.begin(), extension.end(), std::back_inserter<std::vector<char>>(extensions));
+				extensions.push_back('\0');
+
+				extensions.push_back('*');
+				extensions.push_back('.');
+				std::copy(extension.begin(), extension.end(), std::back_inserter<std::vector<char>>(extensions));
+				extensions.push_back('\0');
+			}
+
+			extensions.push_back('\0');
+
+			ofd.lpstrFilter = extensions.data();
+		}
+		else
+		{
+			ofd.lpstrFilter = "*.*\0*.*\0\0";
+		}
+
+		bool result = ::GetOpenFileNameA(&ofd);
+		std::vector<std::string> files;
+
+		if(result)
+		{
+			if(!_allowsMultipleSelection)
+			{
+				files.push_back(buffer);
+			}
+			else
+			{
+				char *temp = buffer;
+
+				while(1)
+				{
+					size_t length = strlen(temp);
+					if(length == 0)
+						break;
+
+					files.push_back(temp);
+					temp += length + 1;
+				}
+			}
+		}
+
 		callback(result, files);
 #endif
 	}
