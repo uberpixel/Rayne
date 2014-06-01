@@ -463,7 +463,7 @@ namespace RN
 			{
 				RN_ASSERT(_index < 1024, "Too many keyboard shortcuts, maximum is %d", kRNMaxAcceleratorEntries);
 
-				BYTE mask = 0;
+				BYTE mask = FVIRTKEY;
 				uint32 modifier = item->GetKeyEquivalentModifierMask();
 
 				const String *string = item->GetKeyEquivalent();
@@ -490,7 +490,6 @@ namespace RN
 						}
 
 						key = VK_F1 + (value - 1);
-						mask |= FVIRTKEY;
 					}
 					else
 						goto useCharacter;
@@ -498,7 +497,7 @@ namespace RN
 				else
 				{
 				useCharacter:
-					key = static_cast<WORD>(character);
+					key = static_cast<WORD>(VkKeyScanEx(static_cast<CHAR>(character), nullptr) & 0xff);
 				}
 
 				mask |= (modifier & KeyModifier::KeyCommand || modifier & KeyModifier::KeyControl) ? FCONTROL : 0;
@@ -536,11 +535,11 @@ namespace RN
 			size_t _index;
 		};
 
-		HMENU Server::TranslateRNUIToWinMenu(Menu *menu, AcceleratorTable &table, size_t index)
+		HMENU Server::TranslateRNUIToWinMenu(Menu *menu, AcceleratorTable &table, size_t &index)
 		{
 			HMENU hMenu = CreateMenu();
 
-			menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool &stop) {
+			menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t tindex, bool &stop) {
 
 				size_t cmd = index ++;
 				_menuTranslation->SetObjectForKey(item, Number::WithUint32(static_cast<uint32>(cmd)));
@@ -553,7 +552,7 @@ namespace RN
 				{
 					if(item->GetSubMenu())
 					{
-						HMENU subMenu = TranslateRNUIToWinMenu(item->GetSubMenu(), table, cmd);
+						HMENU subMenu = TranslateRNUIToWinMenu(item->GetSubMenu(), table, index);
 						::InsertMenu(hMenu, -1, MF_BYPOSITION | MF_STRING | MF_POPUP, UINT(subMenu), item->GetTitle()->GetUTF8String());
 					}
 					else
@@ -583,7 +582,7 @@ namespace RN
 				AcceleratorTable table;
 				size_t index = 0;
 
-				_menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t index, bool &stop) {
+				_menu->GetItems()->Enumerate<MenuItem>([&](MenuItem *item, size_t tindex, bool &stop) {
 
 					HMENU tMenu = TranslateRNUIToWinMenu(item->GetSubMenu(), table, index);
 					::InsertMenu(menu, -1, MF_BYPOSITION | MF_STRING | MF_POPUP, UINT(tMenu), item->GetTitle()->GetUTF8String());

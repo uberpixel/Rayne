@@ -74,7 +74,7 @@ namespace RN
 			
 			void TranslateMenuToPlatform();
 #if RN_PLATFORM_WINDOWS
-			HMENU TranslateRNUIToWinMenu(Menu *menu, AcceleratorTable &table, size_t index);
+			HMENU TranslateRNUIToWinMenu(Menu *menu, AcceleratorTable &table, size_t &index);
 #endif
 			
 			Camera *_camera;
