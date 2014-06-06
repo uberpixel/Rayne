@@ -256,7 +256,12 @@ namespace RN
 		{
 			bool traverse = true;
 			View *potential = this;
-			Vector2 point = ConvertPointToView(tpoint, nullptr);
+			Vector2 point = tpoint;
+			
+			//TODO: This line causes problems if the widgets content view has bounds.xy other than 0
+			//		Things might break without if the widgets content views frame.xy is not equal 0
+			//		or if called on a view directly, independent of its widget.
+		//	ConvertPointToWidget(point);
 			
 			while(traverse)
 			{

@@ -14,8 +14,7 @@ namespace RN
 	{
 		PopUpButton::PopUpButton() :
 			Button(Button::Type::Bezel),
-			_menu(nullptr),
-			_selected(0)
+			_menu(nullptr)
 		{
 			_popUpTableView = new TableView();
 			_popUpTableView->SetDataSource(this);
@@ -68,19 +67,20 @@ namespace RN
 			MenuItem *item = _menu->GetItems()->GetObjectAtIndex<MenuItem>(row);
 			
 			cell->GetTextLabel()->SetAttributedText(const_cast<AttributedString *>(item->GetAttributedTitle()));
+			cell->SetBackgroundColor(RN::Color::White());
 			cell->GetTextLabel()->SetTextColor(RN::Color::Black());
 			cell->GetImageView()->SetImage(const_cast<Image *>(item->GetImage()));
-			
-			cell->SetBackgroundColor(RN::Color::White());
-			cell->SetSelected(row == _selected);
 			
 			return cell;
 		}
 		
 		void PopUpButton::TableViewDidSelectRow(TableView *tableView, size_t row)
 		{
+			MenuItem *item = _menu->GetItems()->GetObjectAtIndex<MenuItem>(row);
+			SetTitleForState(const_cast<String *>(item->GetTitle()), Control::State::Normal);
+			DispatchEvent(EventType::ValueChanged);
+			
 			_popUpWidget->Close();
-			SetSelection(row);
 		}
 		
 		void PopUpButton::SetMenu(RN::UI::Menu *menu)
@@ -96,13 +96,7 @@ namespace RN
 			if(!_menu)
 				return;
 			
-			_popUpTableView->GetCellForRow(_selected)->SetSelected(false);
-			_selected = index;
-			
-			MenuItem *item = _menu->GetItems()->GetObjectAtIndex<MenuItem>(_selected);
-			
-			SetTitleForState(const_cast<String *>(item->GetTitle()), Control::State::Normal);
-			DispatchEvent(EventType::ValueChanged);
+			_popUpTableView->SetSelection((new RN::IndexSet(index))->Autorelease());
 		}
 		
 		MenuItem *PopUpButton::GetSelectedItem() const
@@ -110,7 +104,7 @@ namespace RN
 			if(!_menu)
 				return nullptr;
 			
-			return _menu->GetItems()->GetObjectAtIndex<MenuItem>(_selected);
+			return _menu->GetItems()->GetObjectAtIndex<MenuItem>(_popUpTableView->GetSelection()->GetFirstIndex());
 		}
 	}
 }

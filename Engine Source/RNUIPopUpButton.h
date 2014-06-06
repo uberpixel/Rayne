@@ -29,7 +29,7 @@ namespace RN
 			
 			RNAPI Menu *GetMenu() const { return _menu; }
 			RNAPI MenuItem *GetSelectedItem() const;
-			RNAPI size_t GetSelection() const { return _selected; }
+			RNAPI size_t GetSelection() const { return _popUpTableView->GetSelection()->GetFirstIndex(); }
 			
 		protected:
 			RNAPI bool PostEvent(EventType event) override;
@@ -42,7 +42,6 @@ namespace RN
 			Menu *_menu;
 			Widget *_popUpWidget;
 			TableView *_popUpTableView;
-			size_t _selected;
 		};
 	}
 }
