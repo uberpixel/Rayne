@@ -102,6 +102,7 @@
 #include "RNUIOutlineViewCell.h"
 #include "RNUIPopUpButton.h"
 #include "RNUIButton.h"
+#include "RNUISlider.h"
 #include "RNUILabel.h"
 #include "RNUITextField.h"
 #include "RNUITextEditor.h"

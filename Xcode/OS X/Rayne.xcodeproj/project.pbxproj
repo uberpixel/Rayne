@@ -307,6 +307,8 @@
 		E9F6B5AC167FE6CF00EBE826 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E9F6B5AB167FE6CF00EBE826 /* Cocoa.framework */; };
 		E9F77798169C5CF8006EE702 /* RNOpenGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */; };
 		E9F77799169C5CF8006EE702 /* RNOpenGL.h in Headers */ = {isa = PBXBuildFile; fileRef = E9F77797169C5CF8006EE702 /* RNOpenGL.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E9F912CC193C869D003A5DAB /* RNUISlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9F912CA193C869D003A5DAB /* RNUISlider.cpp */; };
+		E9F912CD193C869D003A5DAB /* RNUISlider.h in Headers */ = {isa = PBXBuildFile; fileRef = E9F912CB193C869D003A5DAB /* RNUISlider.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9FB69E118383DF000D8396B /* glcorearb.h in Headers */ = {isa = PBXBuildFile; fileRef = E9FB69DD18383DF000D8396B /* glcorearb.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9FB69E218383DF000D8396B /* glext.h in Headers */ = {isa = PBXBuildFile; fileRef = E9FB69DE18383DF000D8396B /* glext.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E9FB69E618388A1000D8396B /* RNShaderCache.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E9FB69E418388A1000D8396B /* RNShaderCache.cpp */; };
@@ -652,6 +654,8 @@
 		E9F6B5AB167FE6CF00EBE826 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		E9F77796169C5CF8006EE702 /* RNOpenGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNOpenGL.cpp; sourceTree = "<group>"; };
 		E9F77797169C5CF8006EE702 /* RNOpenGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNOpenGL.h; sourceTree = "<group>"; };
+		E9F912CA193C869D003A5DAB /* RNUISlider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNUISlider.cpp; sourceTree = "<group>"; };
+		E9F912CB193C869D003A5DAB /* RNUISlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RNUISlider.h; sourceTree = "<group>"; };
 		E9FB69DD18383DF000D8396B /* glcorearb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glcorearb.h; sourceTree = "<group>"; };
 		E9FB69DE18383DF000D8396B /* glext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glext.h; sourceTree = "<group>"; };
 		E9FB69E418388A1000D8396B /* RNShaderCache.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RNShaderCache.cpp; sourceTree = "<group>"; };
@@ -940,6 +944,8 @@
 				E9AA6CB717DB3A8F00E69FFA /* RNUISegmentView.h */,
 				E9586E5C172FD40C00D24737 /* RNUIServer.cpp */,
 				E9586E5D172FD40C00D24737 /* RNUIServer.h */,
+				E9F912CA193C869D003A5DAB /* RNUISlider.cpp */,
+				E9F912CB193C869D003A5DAB /* RNUISlider.h */,
 				E945AB5E178D7D1200C7B30A /* RNUIStyle.cpp */,
 				E945AB5F178D7D1200C7B30A /* RNUIStyle.h */,
 				E951615717D40D930006156A /* RNUITableView.cpp */,
@@ -1239,6 +1245,7 @@
 				E92B859616FC8E42002FA04D /* RNCatalogue.h in Headers */,
 				E995F3CD1709B9F20051223B /* RNPathManager.h in Headers */,
 				E9C7DB271710D0F3006AD768 /* RNInterpolation.h in Headers */,
+				E9F912CD193C869D003A5DAB /* RNUISlider.h in Headers */,
 				E957BAB91714F61400AD7A54 /* RNSceneManager.h in Headers */,
 				E9D820A51717143B0080CD17 /* RNAABB.h in Headers */,
 				E949088518ACD3CB008CBFCF /* RNThreadLocalStorage.h in Headers */,
@@ -1526,6 +1533,7 @@
 				E9E83F40172A4F7D0075559B /* RNUIFont.cpp in Sources */,
 				E9E83F45172A4FD70075559B /* RNTextureAtlas.cpp in Sources */,
 				E97C3EB0172B11C7006EA63A /* RNString.cpp in Sources */,
+				E9F912CC193C869D003A5DAB /* RNUISlider.cpp in Sources */,
 				D5ABFACE19391869003C44C3 /* RNUIPopUpButton.cpp in Sources */,
 				E9474D7619380B4400105C64 /* RNUIGradientView.cpp in Sources */,
 				E9D7DA78172F9C0D00A858CB /* RNUIWidget.cpp in Sources */,

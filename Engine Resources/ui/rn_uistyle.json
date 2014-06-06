@@ -710,5 +710,66 @@
 				}
 			}
 		}
+	},
+	"slider": {
+		"vertical": {
+			"texture": "ui/rn_uikit.png",
+			"insets": {
+				"top": 3.0,
+				"bottom": 3.0,
+				"left": 5.0,
+				"right": 5.0
+			},
+			"atlas": {
+				"x": 250.0,
+				"y": 210.0,
+				"width": 10.0,
+				"height": 20.0
+			}
+		},
+		"horizontal": {
+			"texture": "ui/rn_uikit.png",
+			"insets": {
+				"top": 5.0,
+				"bottom": 5.0,
+				"left": 3.0,
+				"right": 3.0
+			},
+			"atlas": {
+				"x": 250.0,
+				"y": 200.0,
+				"width": 20.0,
+				"height": 10.0
+			}
+		},
+		"knob": {
+			"texture": "ui/rn_uikit.png",
+			"insets": {
+				"top": 5.0,
+				"bottom": 5.0,
+				"left": 5.0,
+				"right": 5.0
+			},
+			"states": [
+				{
+					"name": "normal",
+					"atlas": {
+						"x": 240.0,
+						"y": 200.0,
+						"width": 10.0,
+						"height": 10.0
+					}
+				},
+				{
+					"name": "selected",
+					"atlas": {
+						"x": 240.0,
+						"y": 210.0,
+						"width": 10.0,
+						"height": 10.0
+					}
+				}
+			]
+		}
 	}
 }
