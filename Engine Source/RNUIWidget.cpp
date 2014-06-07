@@ -267,10 +267,7 @@ namespace RN
 		{
 			if(_frame.ContainsPoint(position))
 			{
-				Vector2 transformed = position;
-				transformed.x -= _frame.x;
-				transformed.y -= _frame.y;
-				
+				Vector2 transformed = _contentView->ConvertPointFromBase(position);
 				return _contentView->HitTest(transformed, event);
 			}
 			
